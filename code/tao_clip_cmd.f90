@@ -21,8 +21,9 @@ use tao_mod
 
 implicit none
 
-type (tao_plot_struct), pointer :: plot
-type (tao_graph_struct), pointer :: graph
+type (tao_plot_struct), pointer :: p
+type (tao_plot_array_struct), allocatable, save :: plot(:)
+type (tao_graph_array_struct), allocatable, save :: graph(:)
 
 real(rp) y_min, y_max
 
@@ -36,30 +37,31 @@ logical err
 
 if (len_trim(where) == 0) then
   do j = 1, size(s%plot_page%region)
-    plot => s%plot_page%region(j)%plot
+    p => s%plot_page%region(j)%plot
     if (.not. s%plot_page%region(j)%visible) cycle
-    do i = 1, size(plot%graph)
-      call clip_graph (plot, plot%graph(i))
+    do i = 1, size(p%graph)
+      call clip_graph (p, p%graph(i))
     enddo
   enddo
   return
 endif
 
 ! locate the plot by the region name given by the where argument.
-! If where has a '.' then we are dealing with just one graph of the plot.
-! Otherwise we clip all the graphs of the plot.
 
-call tao_find_plot_by_region (err, where, plot, graph)
+call tao_find_plots (err, where, 'REGION', plot, graph)
 if (err) return
 
-ix = index(where, '.')
-if (ix == 0) then       ! If all the graphs of a plot...
-  do i = 1, size(plot%graph)
-    call clip_graph (plot, plot%graph(i))
+if (allocated(graph)) then       ! If all the graphs of a plot...
+  do i = 1, size(graph)
+    call clip_graph (graph(i)%g%p, graph(i)%g)
   enddo
 
 else                    ! else just the one graph...
-  call clip_graph (plot, graph)
+  do j = 1, size(plot)
+    do i = 1, size(plot(j)%p%graph)
+      call clip_graph (plot(j)%p, plot(j)%p%graph(i))
+    enddo
+  enddo
 endif
 
 !----------------------------------------------------------------------------

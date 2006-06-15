@@ -363,151 +363,56 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_plot_by_region (err, where, plot, graph, curve, region, print_flag)
+! Subroutine tao_find_plot_region (err, where, region, print_flag)
 !
-! Routine to find a plot using the region name.
-! Optionally find a graph of the plot.
-! A region name is something like: where = "top"
-! A graph name is something like: where  = "top.x"
-! A curve name is something like: where  = "top.x.1"
-
+! Routine to find a region using the region name.
+!
 ! Input:
-!   where      -- Character(*): Name to match to.
+!   where      -- Character(*): Region name.
 !   print_flag -- Logical, optional: If present and False then surpress error
 !                   messages. Default is True.
 !
 ! Output:
 !   err      -- logical: Set True on error. False otherwise.
-!   plot     -- Tao_plot_struct, pointer, optional: Pointer to the appropriate plot.
-!   graph    -- Tao_graph_struct, pointer, optional: Pointer to the appropriate graph.
-!   curve    -- Tao_curve_struct, pointer, optional: Pointer to the appropriate curve.
-!   region   -- Tao_plot_region_struct, pointer, optional: Region found.
+!   region   -- Tao_plot_region_struct, pointer: Region found.
 !-
 
-subroutine tao_find_plot_by_region (err, where, plot, graph, curve, region, print_flag)
+subroutine tao_find_plot_region (err, where, region, print_flag)
 
 implicit none
 
-type (tao_plot_region_struct), pointer, optional :: region
-type (tao_plot_struct), pointer, optional :: plot
-type (tao_graph_struct), pointer, optional :: graph
-type (tao_curve_struct), pointer, optional :: curve
-type (tao_plot_region_struct), pointer :: this_region
+type (tao_plot_region_struct), pointer :: region
 
 integer i, ix
 
 character(*) where
 character(40) plot_name, graph_name
-character(28) :: r_name = 'tao_find_plot_by_region'
+character(28) :: r_name = 'tao_find_plot_region'
 
 logical, optional :: print_flag
 logical err
 
 ! Parse where argument
 
-err = .false.
-
 ix = index(where, '.')
 if (ix == 0) then
   plot_name = where
-  graph_name = ' '
 else
   plot_name = where(1:ix-1)
-  graph_name = where(ix+1:)
 endif
 
 ! Match plot name to region
 
-do i = 1, size(s%plot_page%region)
-
-  this_region => s%plot_page%region(i)
-  if (plot_name == this_region%name) exit
-
-  if (i == size(s%plot_page%region)) then
-    if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
-                                             'PLOT LOCATION NOT FOUND: ' // plot_name)
-    err = .true.
-    return
-  endif
-
-enddo
-
-if (present(region)) region => this_region
-if (present(plot)) plot => this_region%plot
-
-! Find the graph and/or curve
-
-call tao_find_graph_or_curve_from_plot (err, graph_name, this_region%plot, &
-                                                            graph, curve, print_flag)
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine tao_find_template_plot (err, where, plot, graph, curve, print_flag)
-!
-! Routine to find a template plot using the template name.
-! A plot name is something like: where = "top"
-!
-! Input:
-!   where    -- Character(*): Name to match to.
-!   print_flag -- Logical, optional: If present and False then surpress error
-!                   messages. Default is True.
-!
-! Output:
-!   plot     -- Tao_plot_struct, pointer, optional: Pointer to the appropriate plot.
-!   graph    -- Tao_graph_struct, pointer, optional: Pointer to the appropriate graph.
-!   curve    -- Tao_curve_struct, pointer, optional: Pointer to the appropriate curve.
-!-
-
-subroutine tao_find_template_plot (err, where, plot, graph, curve, print_flag)
-
-implicit none
-
-type (tao_plot_struct), pointer, optional :: plot
-type (tao_graph_struct), pointer, optional :: graph
-type (tao_curve_struct), pointer, optional :: curve
-
-integer i, j, ix
-
-character(*) where
-character(40) plot_name, graph_name
-character(28) :: r_name = 'tao_find_template_plot'
-
-logical, optional :: print_flag
-logical err
-
-! Find plot
-
 err = .false.
 
-ix = index(where, '.')
-if (ix == 0) then
-  plot_name = where
-  graph_name = ' '
-else
-  plot_name = where(1:ix-1)
-  graph_name = where(ix+1:)
-endif
-
-do i = 1, size(s%template_plot)
-  if (plot_name == s%template_plot(i)%name) then
-    if (present(plot)) plot => s%template_plot(i)
-    exit
-  endif
+do i = 1, size(s%plot_page%region)
+  region => s%plot_page%region(i)
+  if (plot_name == region%name) return
 enddo
 
-if (i == size(s%template_plot) + 1) then
-  if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
-                                                  'PLOT LOCATION NOT FOUND: ' // where)
-  err = .true.
-  return
-endif
-
-call tao_find_graph_or_curve_from_plot (err, graph_name, s%template_plot(i), &
-                                                               graph, curve, print_flag)
+if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+                                    'PLOT LOCATION NOT FOUND: ' // plot_name)
+err = .true.
 
 end subroutine
 
@@ -515,83 +420,213 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_graph_or_curve_from_plot (err, where, plot, graph, curve, print_flag)
+! Subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag)
 !
-! Subroutine to find a graph or curve of a given plot.
+! Routine to find a plot using the region or plot name.
+! A region or plot name is something like: name = "top"
+! A graph name is something like: name  = "top.x"
+! A curve name is something like: name  = "top.x.1"
 !
 ! Input:
-!   where    -- Character(*): Name to match to.
-!   plot     -- Tao_plot_struct: Plot containing graph and/or curve.
+!   name       -- Character(*): Name of plot or region.
+!   where      -- Character(*): Where to look: 'TEMPLATE', 'REGION', or 'BOTH'
 !   print_flag -- Logical, optional: If present and False then surpress error
 !                   messages. Default is True.
 !
 ! Output:
 !   err      -- logical: Set True on error. False otherwise.
-!   graph    -- Tao_graph_struct, pointer, optional: Pointer to the appropriate graph.
-!   curve    -- Tao_curve_struct, pointer, optional: Pointer to the appropriate curve.
+!   plot(:)  -- Tao_plot_array_struct, allocatable, optional: Array of plots.
+!   graph(:) -- Tao_graph_array_struct, allocatable, optional: Array of graphs.
+!   curve(:) -- Tao_curve_array_struct, allocatable, optional: Array of curves.
 !-
 
-subroutine tao_find_graph_or_curve_from_plot (err, where, plot, graph, curve, print_flag)
+subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag)
 
-type (tao_plot_struct) :: plot
-type (tao_graph_struct), pointer, optional :: graph
-type (tao_curve_struct), pointer, optional :: curve
-type (tao_graph_struct), pointer :: this_graph
+implicit none
 
-integer i, j, ix
+type (tao_plot_array_struct), allocatable, optional :: plot(:)
+type (tao_graph_array_struct), allocatable, optional :: graph(:)
+type (tao_curve_array_struct), allocatable, optional :: curve(:)
+type (tao_plot_array_struct), allocatable, save :: p(:)
+type (tao_graph_array_struct), allocatable, save :: g(:)
+type (tao_curve_array_struct), allocatable, save :: c(:)
 
-character(*) where
+integer i, j, k, ix, np, ng, nc
+
+character(*) name, where
 character(40) plot_name, graph_name, curve_name
-character(28) :: r_name = 'tao_find_graph_or_curve_from_plot'
+character(28) :: r_name = 'tao_find_plots'
 
 logical, optional :: print_flag
 logical err
 
-!
+! Init
 
-if (present(graph)) nullify(graph)
-if (present(curve)) nullify(curve)
+if (present(plot)) then
+  if (allocated(plot)) deallocate(plot)
+endif
 
-ix = index(where, '.')
+if (present(graph)) then
+  if (allocated(graph)) deallocate(graph)
+endif
+
+if (present(curve)) then
+  if (allocated(curve)) deallocate(curve)
+endif
+
+if (allocated(p)) deallocate(p)
+if (allocated(g)) deallocate(g)
+if (allocated(c)) deallocate(c)
+
+! Error check
+
+if (where /= 'REGION' .and. where /= 'BOTH' .and. where /= 'TEMPLATE') then
+  if (logic_option(.true., print_flag)) call out_io (s_fatal$, r_name, &
+                                             'BAD "WHERE" LOCATION: ' // where)
+  call err_exit
+endif
+
+! Parse name argument
+
+err = .false.
+
+ix = index(name, '.')
 if (ix == 0) then
-  graph_name = where
+  plot_name = name
+  graph_name = ' '
+else
+  plot_name = name(1:ix-1)
+  graph_name = name(ix+1:)
+endif
+
+! Match name to region or plot
+
+np = 0
+
+if (where == 'REGION' .or. where == 'BOTH') then
+  do i = 1, size(s%plot_page%region)
+    if (s%plot_page%region(i)%name == plot_name) np = np + 1
+    if (s%plot_page%region(i)%plot%name == plot_name) np = np + 1
+  enddo
+endif
+
+if (where == 'TEMPLATE' .or. where == 'BOTH') then
+  do i = 1, size(s%template_plot)
+    if (plot_name == s%template_plot(i)%name) np = np + 1
+  enddo
+endif
+
+! Allocate space
+
+if (np == 0) then
+  if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+                                             'PLOT NOT FOUND: ' // plot_name)
+  err = .true.
+  return
+endif
+
+allocate (p(np))
+if (present(plot)) allocate(plot(np))
+
+np = 0
+
+if (where == 'REGION' .or. where == 'BOTH') then
+  do i = 1, size(s%plot_page%region)
+    if (s%plot_page%region(i)%name == plot_name) then
+      np = np + 1
+      p(np)%p => s%plot_page%region(i)%plot
+    endif
+    if (s%plot_page%region(i)%plot%name == plot_name) then
+      np = np + 1
+      p(np)%p => s%plot_page%region(i)%plot
+    endif
+  enddo
+endif
+
+if (where == 'TEMPLATE' .or. where == 'BOTH') then
+  do i = 1, size(s%template_plot)
+    if (plot_name == s%template_plot(i)%name) then
+      np = np + 1
+      p(np)%p => s%template_plot(i)
+    endif
+  enddo
+endif
+
+if (present(plot)) plot = p
+
+! Find graphs
+
+ix = index(graph_name, '.')
+if (ix == 0) then
   curve_name = ' '
 else
-  graph_name = where(1:ix-1)
-  curve_name = where(ix+1:)
+  curve_name = graph_name(ix+1:)
+  graph_name = graph_name(1:ix-1)
 endif
 
 if (graph_name == ' ') return
 
-do j = 1, size(plot%graph)
-  this_graph => plot%graph(j)
-  if (graph_name == this_graph%name) then
-    if (present(graph)) graph => this_graph
-    exit
-  endif
+ng = 0
+do i = 1, np
+  do j = 1, size(p(i)%p%graph)
+    if (p(i)%p%graph(j)%name == graph_name) ng = ng + 1
+  enddo
 enddo
 
-if (j == size(plot%graph) + 1) then
+if (ng == 0) then
   if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
-                                                  'GRAPH NOT FOUND: ' // where)
+                  'GRAPH NOT FOUND: ' // trim(plot_name) // '.' // graph_name)
   err = .true.
+  return
 endif
 
-! Find the curve
+allocate (g(ng))
+if (present(graph)) allocate (graph(ng))
 
-if (curve_name == ' ') return
-if (.not. present(curve)) return
-
-do j = 1, size(this_graph%curve)
-  if (curve_name == this_graph%curve(j)%name) then
-    curve => this_graph%curve(j)
-    return
-  endif
+ng = 0
+do i = 1, np
+  do j = 1, size(p(i)%p%graph)
+    if (p(i)%p%graph(j)%name == graph_name) then
+      ng = ng + 1
+      g(ng)%g => p(i)%p%graph(j)
+    endif
+  enddo
 enddo
 
-if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
-                                                  'CURVE NOT FOUND: ' // where)
-err = .true.
+if (present(graph)) graph = g
+
+! Find curves
+
+if (curve_name == ' ') return
+
+nc = 0
+do j = 1, ng
+  do k = 1, size(g(i)%g%curve)
+    if (g(j)%g%curve(k)%name == curve_name) nc = nc + 1
+  enddo
+enddo
+
+if (nc == 0) then
+  if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+                  'CURVE NOT FOUND: ' // name)
+  err = .true.
+  return
+endif
+
+allocate (c(nc))
+if (present(curve)) allocate (curve(nc))
+
+nc = 0
+do j = 1, np
+  do k = 1, size(g(j)%g%curve)
+    if (g(j)%g%curve(k)%name == curve_name) then
+      nc = nc + 1
+      c(nc)%c => g(j)%g%curve(k)
+    endif
+  enddo
+enddo
+
+if (present(curve)) curve = c
 
 end subroutine
 

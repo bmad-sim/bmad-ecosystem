@@ -123,6 +123,7 @@ do
   endif
   
   plt => s%template_plot(ip)
+  nullify(plt%r)
   plt%name        = plot%name
   plt%x           = plot%x
   plt%x_divisions = plot%x%major_div
@@ -180,6 +181,7 @@ do
       call err_exit
     endif
     grph => plt%graph(i)
+    grph%p             => plt
     grph%name          = graph%name
     grph%type          = graph%type
     grph%who           = graph%who
@@ -216,6 +218,7 @@ do
 
     do j = 1, graph%n_curve
       crv => grph%curve(j)
+      crv%g                   => grph
       crv%data_source         = curve(j)%data_source
       crv%data_type           = curve(j)%data_type
       crv%x_axis_scale_factor = curve(j)%x_axis_scale_factor

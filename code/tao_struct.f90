@@ -71,6 +71,7 @@ type tao_curve_struct
   character(40) :: data_type = ' '         ! "orbit.x", etc.
   character(40) :: ele_ref_name            ! Reference element.
   type (beam_struct) beam                  ! for phase-space plotting
+  type (tao_graph_struct), pointer :: g    ! pointer to parent graph 
   real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
   real(rp), pointer :: y_line(:) => null()
   real(rp), pointer :: x_symb(:) => null() ! coords for drawing the symbols
@@ -106,6 +107,7 @@ type tao_graph_struct
   type (qp_axis_struct) y2     ! Y-axis attributes.
   type (qp_rect_struct) margin ! margin around the graph.
   type (tao_curve_struct), pointer :: curve(:) => null()
+  type (tao_plot_struct), pointer :: p ! pointer to parent plot
   logical clip                 ! clip plot at graph boundary.
   integer box(4)               ! Defines which box the plot is put in.
   integer ix_universe          ! Used for lat_layout plots.
@@ -122,6 +124,7 @@ type tao_plot_struct
   type (tao_graph_struct), pointer :: graph(:) => null() 
                                 ! individual graphs of a plot
   type (qp_axis_struct) x       ! X-axis parameters.
+  type (tao_plot_region_struct), pointer :: r ! pointer to parent.
   real(rp) x_divisions          ! Nominal number of x-axis divisions.
   character(16) x_axis_type     ! 'index', 'ele_index', 's'
   logical independent_graphs    ! scale cmd scales graphs independently?
@@ -155,6 +158,20 @@ type tao_plot_page_struct
   real(rp) text_height
   real(rp) :: text_scale = 1
   integer id_window                  ! X window id number.
+end type
+
+! Arrays of structures
+
+type tao_plot_array_struct
+  type (tao_plot_struct), pointer :: p
+end type
+
+type tao_graph_array_struct
+  type (tao_graph_struct), pointer :: g
+end type
+
+type tao_curve_array_struct
+  type (tao_curve_struct), pointer :: c
 end type
 
 !-----------------------------------------------------------------------

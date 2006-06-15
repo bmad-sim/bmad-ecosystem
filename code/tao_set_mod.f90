@@ -246,10 +246,10 @@ subroutine tao_set_curve_cmd (curve_name, component, set_value)
 
 implicit none
 
-type (tao_curve_struct), pointer :: curve
-type (tao_graph_struct), pointer :: graph
+type (tao_curve_array_struct), allocatable, save :: curve(:)
+type (tao_graph_array_struct), allocatable, save :: graph(:)
 
-integer i, ios, i_uni
+integer i, j, ios, i_uni
 integer, allocatable :: ix_ele(:)
 
 character(*) curve_name, component, set_value
@@ -259,14 +259,18 @@ logical err
 
 !
 
-call tao_find_plot_by_region (err, curve_name, graph = graph, curve = curve)
+call tao_find_plots (err, curve_name, 'REGION', graph = graph, curve = curve)
 if (err) return
 
-if (associated(curve)) then
-  call set_this_curve (curve)
-elseif (associated(graph)) then
-  do i = 1, size(graph%curve)
-    call set_this_curve (graph%curve(i))
+if (allocated(curve)) then
+  do i = 1, size(curve)
+    call set_this_curve (curve(i)%c)
+  enddo
+elseif (allocated(graph)) then
+  do i = 1, size(graph)
+    do j = 1, size(graph(i)%g%curve)
+      call set_this_curve (graph(i)%g%curve(j))
+    enddo
   enddo
 else
   call out_io (s_error$, r_name, 'CURVE OR GRAPH NOT SPECIFIED')

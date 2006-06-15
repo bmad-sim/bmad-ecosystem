@@ -17,8 +17,8 @@ use tao_mod
 
 implicit none
 
-type (tao_plot_struct), pointer :: plot
-type (tao_graph_struct), pointer :: graph
+type (tao_plot_array_struct), allocatable, save :: plot(:)
+type (tao_graph_array_struct), allocatable, save :: graph(:)
 type (tao_plot_region_struct), pointer :: region
 type (tao_plot_who_struct) :: p_who(n_who_maxx)
 integer i, j
@@ -67,13 +67,17 @@ if (where == 'all') then
   enddo
 
 else
-  call tao_find_plot_by_region (err, where, plot, graph)
+  call tao_find_plots (err, where, 'REGION', plot, graph)
   if (err) return
-  if (associated(graph)) then
-    graph%who = p_who
+  if (allocated(graph)) then
+    do i = 1, size(graph)
+      graph(i)%g%who = p_who
+    enddo
   else
-    do j = 1, size(plot%graph)
-      plot%graph(j)%who = p_who
+    do i = 1, size(plot)
+      do j = 1, size(plot(i)%p%graph)
+        plot(i)%p%graph(j)%who = p_who
+      enddo
     enddo
   endif
 endif

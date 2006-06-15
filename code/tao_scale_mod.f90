@@ -26,8 +26,8 @@ subroutine tao_scale_cmd (where, y_min, y_max)
 
 implicit none
 
-type (tao_plot_struct), pointer :: plot
-type (tao_graph_struct), pointer :: graph
+type (tao_plot_array_struct), allocatable, save :: plot(:)
+type (tao_graph_array_struct), allocatable, save :: graph(:)
 
 real(rp) y_min, y_max
 
@@ -41,25 +41,26 @@ logical err
 
 if (len_trim(where) == 0 .or. where(1:3) == 'all') then
   do j = 1, size(s%plot_page%region)
-    plot => s%plot_page%region(j)%plot
     if (.not. s%plot_page%region(j)%visible) cycle
-    call tao_scale_plot (plot, y_min, y_max)
+    call tao_scale_plot (s%plot_page%region(j)%plot, y_min, y_max)
   enddo
   return
 endif
 
 ! locate the plot by the region name given by the where argument.
-! If where has a '.' then we are dealing with just one graph of the plot.
-! Otherwise we scale all the graphs of the plot.
+!If no graph is specified then we scale all the graphs of the plot.
 
-call tao_find_plot_by_region (err, where, plot, graph)
+call tao_find_plots (err, where, 'REGION', plot, graph)
 if (err) return
 
-ix = index(where, '.')
-if (ix == 0) then                ! If all the graphs of a plot...
-  call tao_scale_plot (plot, y_min, y_max)
+if (allocated(graph)) then                ! If all the graphs of a plot...
+  do j = 1, size(graph)
+    call tao_scale_graph (graph(j)%g, y_min, y_max)
+  enddo
 else                          ! else just the one graph...
-  call tao_scale_graph (graph, y_min, y_max)
+  do i = 1, size(plot)
+    call tao_scale_plot (plot(i)%p, y_min, y_max)
+  enddo
 endif
 
 end subroutine

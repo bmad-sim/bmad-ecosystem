@@ -29,9 +29,12 @@ type (tao_data_struct), pointer :: d_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
 type (tao_var_array_struct), allocatable, save, target :: v_array(:)
-type (tao_plot_struct), pointer :: plot
-type (tao_graph_struct), pointer :: graph
-type (tao_curve_struct), pointer :: curve
+type (tao_plot_array_struct), allocatable, save :: plot(:)
+type (tao_graph_array_struct), allocatable, save :: graph(:)
+type (tao_curve_array_struct), allocatable, save :: curve(:)
+type (tao_plot_struct), pointer :: p
+type (tao_graph_struct), pointer :: g
+type (tao_curve_struct), pointer :: c
 type (tao_plot_region_struct), pointer :: region
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 
@@ -646,14 +649,14 @@ case ('plot')
     nl=nl+1; lines(nl) = 'Templates:        Plot.Graph'
     nl=nl+1; lines(nl) = '             --------- ----------'
     do i = 1, size(s%template_plot)
-      plot => s%template_plot(i)
-      if (plot%name == ' ') cycle
-      ix = 21 - len_trim(plot%name)
+      p => s%template_plot(i)
+      if (p%name == ' ') cycle
+      ix = 21 - len_trim(p%name)
       name = ' '
-      name(ix:) = trim(plot%name)
-      if (associated(plot%graph)) then
-        do j = 1, size(plot%graph)
-          nl=nl+1; write (lines(nl), '(2x, 3a)') name(1:20), '.', plot%graph(j)%name
+      name(ix:) = trim(p%name)
+      if (associated(p%graph)) then
+        do j = 1, size(p%graph)
+          nl=nl+1; write (lines(nl), '(2x, 3a)') name(1:20), '.', p%graph(j)%name
           name = ' '
         enddo
       else
@@ -677,56 +680,71 @@ case ('plot')
 
 ! Find particular plot
 
-  call tao_find_template_plot (err, word(1), plot, graph, curve, print_flag = .false.)
-  if (err) call tao_find_plot_by_region (err, word(1), plot, graph, curve)
+  call tao_find_plots (err, word(1), 'BOTH', plot, graph, curve, print_flag = .false.)
   if (err) return
 
 ! print info on particular plot, graph, or curve
 
-  if (associated(curve)) then
-    nl=nl+1; lines(nl) = 'Full name:  ' // trim(plot%name) // '.' // &
-                                               trim(graph%name) // '.' // curve%name
-    nl=nl+1; write (lines(nl), amt) 'name:                  ', curve%name
-    nl=nl+1; write (lines(nl), amt) 'data_source:           ', curve%data_source
-    nl=nl+1; write (lines(nl), amt) 'data_type:             ', curve%data_type
-    nl=nl+1; write (lines(nl), amt) 'ele_ref_name:          ', curve%ele_ref_name
-    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref:            ', curve%ix_ele_ref
-    nl=nl+1; write (lines(nl), imt) 'ix_universe:           ', curve%ix_universe
-    nl=nl+1; write (lines(nl), imt) 'symbol_every:          ', curve%symbol_every
-    nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor:   ', curve%x_axis_scale_factor
-    nl=nl+1; write (lines(nl), rmt) 'y_axis_scale_factor:   ', curve%y_axis_scale_factor
-    nl=nl+1; write (lines(nl), lmt) 'use_y2:                ', curve%use_y2
-    nl=nl+1; write (lines(nl), lmt) 'draw_line:             ', curve%draw_line
-    nl=nl+1; write (lines(nl), lmt) 'draw_symbols:          ', curve%draw_symbols
-    nl=nl+1; write (lines(nl), lmt) 'limited:               ', curve%limited
-    nl=nl+1; write (lines(nl), lmt) 'convert:               ', curve%convert
+  if (allocated(curve)) then
+    c => curve(1)%c
+    g => c%g
+    p => g%p
+    if (associated(p%r)) then
+      nl=nl+1; lines(nl) = 'Region.Graph.Curve: ' // trim(p%r%name) // '.' // &
+                                                  trim(g%name) // '.' // c%name
+    endif
+    nl=nl+1; lines(nl) = 'Plot.Graph.Curve:   ' // trim(p%name) // '.' // &
+                                                  trim(g%name) // '.' // c%name
+    nl=nl+1; write (lines(nl), amt) 'name:                  ', c%name
+    nl=nl+1; write (lines(nl), amt) 'data_source:           ', c%data_source
+    nl=nl+1; write (lines(nl), amt) 'data_type:             ', c%data_type
+    nl=nl+1; write (lines(nl), amt) 'ele_ref_name:          ', c%ele_ref_name
+    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref:            ', c%ix_ele_ref
+    nl=nl+1; write (lines(nl), imt) 'ix_universe:           ', c%ix_universe
+    nl=nl+1; write (lines(nl), imt) 'symbol_every:          ', c%symbol_every
+    nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor:   ', c%x_axis_scale_factor
+    nl=nl+1; write (lines(nl), rmt) 'y_axis_scale_factor:   ', c%y_axis_scale_factor
+    nl=nl+1; write (lines(nl), lmt) 'use_y2:                ', c%use_y2
+    nl=nl+1; write (lines(nl), lmt) 'draw_line:             ', c%draw_line
+    nl=nl+1; write (lines(nl), lmt) 'draw_symbols:          ', c%draw_symbols
+    nl=nl+1; write (lines(nl), lmt) 'limited:               ', c%limited
+    nl=nl+1; write (lines(nl), lmt) 'convert:               ', c%convert
     
 
-  elseif (associated(graph)) then
-    nl=nl+1; lines(nl) = 'Full name:  ' // trim(plot%name) // '.' // graph%name
-    nl=nl+1; write (lines(nl), amt) 'name:                  ', graph%name
-    nl=nl+1; write (lines(nl), amt) 'type:                  ', graph%type
-    nl=nl+1; write (lines(nl), amt) 'title:                 ', graph%title
-    nl=nl+1; write (lines(nl), amt) 'title_suffix:          ', graph%title_suffix
-    nl=nl+1; write (lines(nl), imt) 'box:                   ', graph%box
-    nl=nl+1; write (lines(nl), imt) 'ix_universe:           ', graph%ix_universe
-    nl=nl+1; write (lines(nl), imt) 'box:                   ', graph%box
-    nl=nl+1; write (lines(nl), lmt) 'valid:                 ', graph%valid
-    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y:          ', graph%y2_mirrors_y
+  elseif (allocated(graph)) then
+    g => graph(1)%g
+    p => g%p
+    if (associated(p%r)) then
+      nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(p%r%name) // '.' // trim(g%name)
+    endif
+    nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(p%name) // '.' // trim(g%name)
+    nl=nl+1; write (lines(nl), amt) 'name:                  ', g%name
+    nl=nl+1; write (lines(nl), amt) 'type:                  ', g%type
+    nl=nl+1; write (lines(nl), amt) 'title:                 ', g%title
+    nl=nl+1; write (lines(nl), amt) 'title_suffix:          ', g%title_suffix
+    nl=nl+1; write (lines(nl), imt) 'box:                   ', g%box
+    nl=nl+1; write (lines(nl), imt) 'ix_universe:           ', g%ix_universe
+    nl=nl+1; write (lines(nl), imt) 'box:                   ', g%box
+    nl=nl+1; write (lines(nl), lmt) 'valid:                 ', g%valid
+    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y:          ', g%y2_mirrors_y
     nl=nl+1; lines(nl) = 'Curves:'
-    do i = 1, size(graph%curve)
-      nl=nl+1; write (lines(nl), amt) '   ', graph%curve(i)%name
+    do i = 1, size(g%curve)
+      nl=nl+1; write (lines(nl), amt) '   ', g%curve(i)%name
     enddo
 
-  elseif (associated(plot)) then
-    nl=nl+1; lines(nl) = 'Plot:  ' // plot%name
-    nl=nl+1; write (lines(nl), amt) 'x_axis_type:              ', plot%x_axis_type
-    nl=nl+1; write (lines(nl), rmt) 'x_divisions:              ', plot%x_divisions
-    nl=nl+1; write (lines(nl), lmt) 'independent_graphs:       ', plot%independent_graphs
+  elseif (allocated(plot)) then
+    p => plot(1)%p
+    if (associated(p%r)) then
+      nl=nl+1; lines(nl) = 'Region:  ' // trim(p%r%name)
+    endif
+    nl=nl+1; lines(nl) = 'Plot:  ' // p%name
+    nl=nl+1; write (lines(nl), amt) 'x_axis_type:          ', p%x_axis_type
+    nl=nl+1; write (lines(nl), rmt) 'x_divisions:          ', p%x_divisions
+    nl=nl+1; write (lines(nl), lmt) 'independent_graphs:   ', p%independent_graphs
     
     nl=nl+1; write (lines(nl), *) 'Graphs:'
-    do i = 1, size(plot%graph)
-      nl=nl+1; write (lines(nl), amt) '   ', plot%graph(i)%name
+    do i = 1, size(p%graph)
+      nl=nl+1; write (lines(nl), amt) '   ', p%graph(i)%name
     enddo
 
   else
@@ -734,71 +752,6 @@ case ('plot')
     return
   endif
 
-  call out_io (s_blank$, r_name, lines(1:nl))
-
-!----------------------------------------------------------------------
-! graph
-
-
-case ('graph')
-
-  call tao_find_template_plot (err, word(1), plot, graph, curve, print_flag = .false.)
-  if (err) call tao_find_plot_by_region (err, word(1), plot, graph, curve)
-  if (err) return
-  if (.not. associated(graph)) then
-    call out_io (s_error$, r_name, 'This is not a graph')
-    return
-  endif
-
-  nl=nl+1; lines(nl) = 'Plot:  ' // plot%name
-  nl=nl+1; lines(nl) = 'Graph: ' // graph%name
-  nl=nl+1; lines(nl) = ' '
-  nl=nl+1; write (lines(nl), amt) 'type:                     ', graph%type
-  nl=nl+1; write (lines(nl), amt) 'title:                    ', trim(graph%title)
-  nl=nl+1; write (lines(nl), amt) 'title_suffix:             ', trim(graph%title_suffix)
-  nl=nl+1; write (lines(nl), imt) 'box:                      ', graph%box
-  nl=nl+1; write (lines(nl), imt) 'ix_universe:              ', graph%ix_universe
-  nl=nl+1; write (lines(nl), lmt) 'clip:                     ', graph%clip
-  nl=nl+1; write (lines(nl), lmt) 'valid:                    ', graph%valid
-  nl=nl+1; write (lines(nl), *) 'Curves:'
-
-  do i = 1, size(graph%curve)
-    nl=nl+1; write (lines(nl), amt) '   ', graph%curve(i)%name
-  enddo
-
-  call out_io (s_blank$, r_name, lines(1:nl))
-
-!----------------------------------------------------------------------
-! curve
-
-case ('curve')
-
-  call tao_find_template_plot (err, word(1), plot, graph, curve, print_flag = .false.)
-  if (err) call tao_find_plot_by_region (err, word(1), plot, graph, curve)
-  if (err) return
-  if (.not. associated(curve)) then
-    call out_io (s_error$, r_name, 'This is not a curve')
-    return
-  endif
-
-  nl=nl+1; lines(nl) = 'Plot:  ' // plot%name
-  nl=nl+1; lines(nl) = 'Graph: ' // graph%name
-  nl=nl+1; lines(nl) = 'Curve: ' // curve%name
-  nl=nl+1; lines(nl) = ' '
-  nl=nl+1; write (lines(nl), amt) 'data_source:              ', curve%data_source
-  nl=nl+1; write (lines(nl), amt) 'data_type:                ', curve%data_type  
-  nl=nl+1; write (lines(nl), amt) 'ele_ref_name:             ', curve%ele_ref_name
-  nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor:      ', curve%x_axis_scale_factor
-  nl=nl+1; write (lines(nl), rmt) 'y_axis_scale_factor:      ', curve%y_axis_scale_factor
-  nl=nl+1; write (lines(nl), imt) 'ix_universe:              ', curve%ix_universe
-  nl=nl+1; write (lines(nl), imt) 'symbol_every:             ', curve%symbol_every
-  nl=nl+1; write (lines(nl), imt) 'ix_ele_ref:               ', curve%ix_ele_ref
-  nl=nl+1; write (lines(nl), lmt) 'use_y2:                   ', curve%use_y2
-  nl=nl+1; write (lines(nl), lmt) 'draw_line:                ', curve%draw_line
-  nl=nl+1; write (lines(nl), lmt) 'draw_symbols:             ', curve%draw_symbols
-  nl=nl+1; write (lines(nl), lmt) 'limited:                  ', curve%limited
-  nl=nl+1; write (lines(nl), lmt) 'convert:                  ', curve%convert
-    
   call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------

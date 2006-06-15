@@ -23,7 +23,7 @@ use quick_plot
 
 implicit none
 
-type (tao_plot_struct), pointer :: template
+type (tao_plot_array_struct), allocatable, save :: template(:)
 type (qp_axis_struct), pointer :: ax
 type (tao_plot_region_struct), pointer :: region
 
@@ -36,7 +36,7 @@ character(20) :: r_name = 'tao_place_cmd'
 ! Find the region where the plot is to be placed.
 ! The plot pointer will point to the plot associated with the region.
 
-call tao_find_plot_by_region (err, where, region = region)
+call tao_find_plot_region (err, where, region)
 if (err) return
 
 ! If who = 'non' then no plot is wanted here so just turn off
@@ -49,19 +49,20 @@ endif
 
 ! Find the template for the type of plot.
 
-call tao_find_template_plot (err, who, template)
+call tao_find_plots (err, who, 'TEMPLATE', template)
 if (err) return
 
 ! transfer the plotting information from the template to the plot 
 ! representing the region
 
-call tao_plot_struct_transfer (template, region%plot)
+call tao_plot_struct_transfer (template(1)%p, region%plot)
 region%visible = .true.
+region%plot%r => region
 
 ! If the plot has a phase_space curve then recalculate the lattice
 
-do i = 1, size(template%graph)
-  if (template%graph(i)%type == 'phase_space') s%global%lattice_recalc = .true.
+do i = 1, size(template(1)%p%graph)
+  if (template(1)%p%graph(i)%type == 'phase_space') s%global%lattice_recalc = .true.
 enddo
 
 ! auto scale and calculate places

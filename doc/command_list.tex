@@ -635,19 +635,19 @@ Format:
 \begin{example}
   show alias                     
   show constraints
-  show curve <curve_name>
   show data \{<data_name> <locations>\} 
   show ele <ele_name>
   show global
-  show graph <graph_name>
   show hom
   show lattice <locations>
   show optimizer
   show opt_vars
-  show top10
-  show var \{<var_name> <locations>\}
   show plot \{<template_plot_name>\}
   show plot \{<plot_region_name>\}
+  show plot <graph_name>
+  show plot <curve_name>
+  show top10
+  show var \{<var_name> <locations>\}
   show write ...
 \end{example}
 
@@ -670,9 +670,6 @@ details.
   \item[show constraints]
 Lists data and variable constraints.
 
-  \item[show curve]
-Lists attributes of a curve. 
-
   \item[show data]
 Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
 present shown is a list of d2\_data names.
@@ -690,9 +687,6 @@ lattice list will be shown.
 
   \item[show global]
 Shows global information.
-
-  \item[show graph]
-Lists attributes of a graph. 
 
   \item[show hom]
 Shows long--rang higher order mode information for linac accelerating cavities.

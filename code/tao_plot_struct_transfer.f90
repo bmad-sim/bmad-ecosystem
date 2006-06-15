@@ -59,6 +59,7 @@ if (associated(plot_in%graph)) then
   do i = 1, size(plot_out%graph)
 
     plot_out%graph(i) = plot_in%graph(i)
+    plot_out%graph(i)%p => plot_out
 
     if (.not. associated (plot_in%graph(i)%curve)) cycle
     allocate (plot_out%graph(i)%curve(size(plot_in%graph(i)%curve)))
@@ -67,6 +68,7 @@ if (associated(plot_in%graph)) then
       c_in  => plot_in%graph(i)%curve(j)
       c_out => plot_out%graph(i)%curve(j)
       c_out = c_in
+      c_out%g => plot_out%graph(i)
       if (.not. associated (c_in%x_symb)) cycle
       n = size(c_in%x_symb)
       allocate (c_out%x_symb(n), c_out%y_symb(n), c_out%ix_symb(n))
