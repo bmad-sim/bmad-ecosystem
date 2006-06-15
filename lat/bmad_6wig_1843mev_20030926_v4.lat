@@ -1,4 +1,38 @@
 ! BMAD input file
+!+
+! Tue Jun  6 10:29:20 2006 => Documented by latdoc.
+! 				Emittance(nm rad)
+! Qx	Qy	Fx	Fy	e+	e-
+! 10.53	9.59	206.7	229.7	164.3	158.1
+!
+! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)
+! 0.69	0.0119	0.002	-0.092	-0.154	-0.011	-2.420
+!
+! Bx*	By*	Eta*	Alphax*	Alphay* -> Positron-Electron
+! 0.31	0.0005	-0.012	-0.285	-0.113
+!
+! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3
+! 1.14	9.177	-0.155	0.038	0.044	-0.001
+!
+! IP_L0 disp.: e+ x:-2.74e-05 y:3.67e-07   e- x:1.93e-05 y:-3.72e-07
+!
+! IP_L0 cbar: -3.3e-04    1.0e-03   IP_L3 cbar:  7.5e-04   -8.7e-04
+!             -7.0e-02    8.4e-04               -1.4e-04    1.5e-03
+!
+! Peak Arc Betas: e+ Bx:54.6 By:42.8   e- Bx:55.0 By:44.2
+! H_Sep Bx: 08w:28.35  08e:28.35  45w:14.77  45e:14.77
+! V_Sep By: 48w:9.35  48e:9.35
+!
+! 9x5 info: Pr_apert:3.63e-02  Effic:0.30  I_bunch:0.54  B_param_i:0.54
+! Worst e+ x disp:-1.14e-02  at: Q00W\CLEO_
+! 34w: e+ Bx:46.69  e- Bx:30.65  e+ Eta:2.87   Ring sigma_sep:2.81
+! 34e: e+ Bx:41.00  e- Bx:49.71  e- Eta:2.62
+!
+! Full turn 4x4 det: 1.51  Momentum_comp: 1.13e-02
+! sync_beta_path x:0.0e+00  y:0.0e+00  _volt x:5.3e-09  y:-1.0e-07
+! max dbeta(dE) x:36.48 y:147.10  dbeta(dPretz) x:4.47e-01 y:1.70e-01
+! Chrom x:-0.30  y:0.67    Tonality x:2.29  y:-0.56
+!-
 
 lattice := 6wig_1843mev_20030926_v4
 !call, file=BMAD_LAYOUT:cesr_c1_layout.bmad
