@@ -109,6 +109,7 @@ do i = 1, s%global%n_opti_cycles+1
 
 ! look for keyboard input to end optimization
 
+#ifndef CESR_WINCVF
   do
     call get_tty_char (char, .false., .false.) 
     if (char == '.') then
@@ -120,6 +121,7 @@ do i = 1, s%global%n_opti_cycles+1
     endif
     if (char == achar(0)) exit   ! only exit if there is no more input
   enddo
+#endif
 
 ! reinit the derivative matrix 
 

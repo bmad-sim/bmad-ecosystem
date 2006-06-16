@@ -116,6 +116,7 @@ endif
 
 end_flag = 0  ! continue
 
+#ifndef CESR_WINCVF
 do
   call get_tty_char (char, .false., .false.) 
   if (char == '.') then
@@ -126,6 +127,7 @@ do
   endif
   if (char == achar(0)) exit   ! only exit if there is no more input
 enddo
+#endif
 
 !
 
