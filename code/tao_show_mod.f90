@@ -797,7 +797,45 @@ case ('universe')
     
 case ('var')
 
-  if (.not. associated (s%v1_var)) return 
+  if (.not. associated (s%v1_var)) then
+    call out_io (s_error$, r_name, 'NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!')
+    return 
+  endif
+
+! If 'n@' is present then write out stuff for universe n
+
+  ix = index(word(1), '@')
+  if (ix /= 0) then
+    if (ix == 1) then
+      ix_u = s%global%u_view
+    else
+      read (word(1)(:ix-1), *, iostat = ios) ix_u
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'BAD UNIVERSE NUMBER')
+        return
+      endif
+      if (ix_u == 0) ix_u = s%global%u_view
+      if (ix_u < 1 .or. ix_u > size(s%u)) then
+        call out_io (s_error$, r_name, 'UNIVERSE NUMBER OUT OF RANGE')
+        return
+      endif
+    endif
+    write (lines(1), '(a, i4)') 'Variables controlling universe:', ix_u
+    write (lines(2), '(5x, a)') '                    '
+    write (lines(3), '(5x, a)') 'Name                '
+    nl = 3
+    do i = 1, size(s%var)
+      if (.not. s%var(i)%exists) cycle
+      found = .false.
+      do j = 1, size(s%var(i)%this)
+        if (s%var(i)%this(j)%ix_uni == ix_u) found = .true.
+      enddo
+      if (.not. found) cycle
+      nl=nl+1; write(lines(nl), '(5x, a20, i5, i7)') s%var(i)%name
+    enddo
+    call out_io (s_blank$, r_name, lines(1:nl))
+    return
+  endif
 
 ! If just "show var" then show all namees
 
@@ -814,9 +852,8 @@ case ('var')
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-      nl=nl+1
-      write(lines(nl), '(5x, a20, i5, i7)') v1_ptr%name, &
-                  lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
+      nl=nl+1; write(lines(nl), '(5x, a20, i5, i7)') v1_ptr%name, &
+                                       lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
     enddo
     call out_io (s_blank$, r_name, lines(1:nl))
     return
