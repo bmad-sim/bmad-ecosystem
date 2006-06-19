@@ -55,6 +55,7 @@ character(24) show_name, show2_name
 character(100), pointer :: ptr_lines(:)
 character(100) file_name
 character(40) ele_name, name, sub_name
+character(60) nam
 
 character(16) :: show_names(16) = (/ &
    'data        ', 'var         ', 'global      ', 'alias       ', 'top10       ', &
@@ -831,7 +832,8 @@ case ('var')
         if (s%var(i)%this(j)%ix_uni == ix_u) found = .true.
       enddo
       if (.not. found) cycle
-      nl=nl+1; write(lines(nl), '(5x, a20, i5, i7)') s%var(i)%name
+      nam = tao_var1_name(s%var(i))
+      nl=nl+1; write(lines(nl), '(5x, a, a40)') nam(1:25), s%var(i)%name
     enddo
     call out_io (s_blank$, r_name, lines(1:nl))
     return

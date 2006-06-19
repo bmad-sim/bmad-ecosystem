@@ -648,6 +648,7 @@ Format:
   show plot <curve_name>
   show top10
   show var \{<var_name> <locations>\}
+  show var <universe_number>@
   show write ...
 \end{example}
 
@@ -704,6 +705,10 @@ Shows information pertinent to optimization: Data and variables used, etc.
 Shows the settings of the variables used in the optimization using the 
 Bmad standard lattice input format.
 
+  \item[show plot]
+Shows which templates are being plotted and in which regions and also all
+available templates.
+
   \item[show top10]
 Shows top contributors to the merit function, dMerit/dVariable
 derivatives, and Largest changes in variable value.
@@ -712,10 +717,9 @@ derivatives, and Largest changes in variable value.
 Shows variable information. If \vn{<var_name>} \vn{<locations>} is not
 present shown is a list of v1\_var classes. If \vn{<var_name>} is
 \vn{*} then the variables will be printed in Bmad lattice format.
+To show variables associated with the \vn{n}th universe use
+the format: \vn{show var n@}.
 
-  \item[show plot]
-Shows which templates are being plotted and in which regions and also all
-available templates.
 \end{description}
 
 Examples:
@@ -735,6 +739,7 @@ Examples:
   show ele 105                ! show element #105 in the lattice
   show lattice 50:100         ! show lattice elements 50 to 100
   show var *                  ! list variables in Bmad lattice format.
+  show var 2@                 ! List all variables that control attributes in universe 2.
 \end{example}
 
 %% single-mode --------------------------------------------------------------
