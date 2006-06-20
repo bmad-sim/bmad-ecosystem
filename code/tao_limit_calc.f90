@@ -25,7 +25,7 @@ real(rp) value
 integer i, j
 
 character(20) :: r_name = 'tao_limit_calc'
-character(80) line
+character(80) line, v_name
 
 logical limited
 
@@ -41,23 +41,29 @@ do j = 1, size(s%var)
 
   var => s%var(j)
 
-  if (var%correction_value > var%high_lim) then
-    write (line, '(a, 1pe13.4)') &
-     'HAS TARGET VALUE GREATER THAN THE HIGH LIMIT OF: ', var%high_lim
-    call out_io (s_warn$, r_name, 'VARIABLE: ' // var%name, line, &
+  if (var%model_value > var%high_lim) then
+    write (line, '(1pe13.4)') var%high_lim
+    v_name = trim(tao_var1_name(var)) // '  ' // trim(var%ele_name) // &
+                                '[' // trim(var%attrib_name) // ']'
+    call out_io (s_warn$, r_name, &
+      'VARIABLE: ' // v_name, &
+      'HAS TARGET VALUE GREATER THAN THE HIGH LIMIT OF: ' // line, &
       'RESETTING VARIABLE TO BE WITHIN BOUNDS & VETOING FROM OPTIMIZER LIST')
-    value = var%model_value - 1.00001 * (var%correction_value - var%high_lim)
+    value = var%high_lim
     call tao_set_var_model_value (var, value) 
     var%good_user = .false.
     limited = .true.
   endif
 
-  if (var%correction_value < var%low_lim) then
-    write (line, '(a, 1pe13.4)') &
-       'HAS TARGET VALUE LESS THAN THE LOW LIMIT OF: ', var%low_lim
-    call out_io (s_warn$, r_name, 'VARIABLE: ' // var%name, line, &
+  if (var%model_value < var%low_lim) then
+    write (line, '(1pe13.4)') var%low_lim
+    v_name = trim(tao_var1_name(var)) // '  ' // trim(var%ele_name) // &
+                                '[' // trim(var%attrib_name) // ']'
+    call out_io (s_warn$, r_name, &
+      'VARIABLE: ' // v_name, &
+      'HAS TARGET VALUE LESS THAN THE LOW LIMIT OF: ' // line, &
       'RESETTING VARIABLE TO BE WITHIN BOUNDS & VETOING FROM OPTIMIZER LIST')
-    value = var%model_value + 1.00001 * (var%low_lim - var%correction_value)
+    value = var%low_lim
     call tao_set_var_model_value (var, value) 
     var%good_user = .false.
     limited = .true.

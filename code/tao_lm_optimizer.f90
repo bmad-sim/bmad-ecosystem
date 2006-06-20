@@ -22,7 +22,6 @@ use tao_dmerit_mod
 use tao_top10_mod
 use tao_var_mod
 use single_char_input_mod
-use nr
 
 implicit none
 
@@ -40,6 +39,7 @@ integer n_data, n_var
 
 logical, allocatable, save :: mask_a(:)
 logical :: finished, init_needed = .true.
+logical limited, limited2
 
 character(20) :: r_name = 'tao_lm_optimizer'
 character(80) line
@@ -100,12 +100,12 @@ do i = 1, s%global%n_opti_cycles+1
     call tao_var_write (s%global%var_out_file)
   endif
 
-  call mrqmin (x, y, sig, a, mask_a, covar, alpha, chi_sq, tao_mrq_func, a_lambda) 
-  call tao_mrq_func (x, a, y_fit, dy_da)  ! put a -> model
+  call tao_mrqmin (x, y, sig, a, mask_a, covar, alpha, chi_sq, a_lambda, limited) 
+  call tao_mrq_func (x, a, y_fit, dy_da, limited2)  ! put a -> model
   write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)
 
-  if (finished) return
+  if (finished .or. limited) return
 
 ! look for keyboard input to end optimization
 
@@ -138,12 +138,12 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_mrq_func (x, a, y_fit, dy_da)
+! Subroutine tao_mrq_func (x, a, y_fit, dy_da, limited)
 ! 
 ! Subroutine to be called by the Numerical Recipes routine mrqmin
 
 
-subroutine tao_mrq_func (x, a, y_fit, dy_da)
+subroutine tao_mrq_func (x, a, y_fit, dy_da, limited)
 
 use tao_mod
 use tao_var_mod
