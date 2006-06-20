@@ -847,7 +847,7 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
         'dy =', ele%y%eta, ', dpy = ', ele%y%etap
   endif
 
-  print *, 'Written: ', trim(mad_file)
+  print *, 'Written MAD lattice file: ', trim(mad_file)
 
 end subroutine
 
@@ -1031,7 +1031,7 @@ subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end)
         'dy =', ele%y%eta, ', dpy = ', ele%y%etap
   endif
 
-  print *, 'Written: ', trim(xsif_file)
+  print *, 'Written XSIF lattice file: ', trim(xsif_file)
 
 end subroutine
 

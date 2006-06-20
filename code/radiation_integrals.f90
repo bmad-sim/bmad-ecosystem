@@ -418,6 +418,11 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
     if (ele%sub_key /= map_type$) cycle
     if (.not. ele%is_on) cycle
 
+    nullify (cache_ele)
+    if (use_cache) then
+      if (cache%ix_ele(ir) > 0) cache_ele => cache%ele(cache%ix_ele(ir))
+    endif
+
     ele0 => ring%ele_(ir-1)
     ric%orb0 => orbit(ir-1)
     ric%orb1 => orbit(ir)
