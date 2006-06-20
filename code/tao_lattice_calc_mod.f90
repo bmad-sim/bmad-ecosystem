@@ -102,7 +102,7 @@ do i = 1, size(s%u)
   ! zero data array
   u%data%model_value = tiny(1.0_rp)
   do j = 1, 6
-    u%model%orb%vec(i) = 0.0
+    u%model%orb%vec(j) = 0.0
   enddo
   u%model%orb(0) = u%model%lat%bunch_start
 
