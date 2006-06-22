@@ -704,6 +704,8 @@ if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
   u%data(n1:n2)%merit_type = default_merit_type 
   u%data(n1:n2)%good_meas  = .false.
 
+! SAME:
+
 elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
   call string_trim (data(0)%ele_name(6:), name, ix)
   call tao_find_data (err, name, d1_ptr = d1_ptr, ix_uni = u%ix_uni)
@@ -719,17 +721,28 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
                 'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
     call err_exit
   endif
-  u%data(n1:n2)%data_type  = default_data_type
-  u%data(n1:n2)%merit_type = default_merit_type 
+
   u%data(n1:n2)%ele_name   = d1_ptr%d%ele_name
   u%data(n1:n2)%ix_ele     = d1_ptr%d%ix_ele
   u%data(n1:n2)%ele0_name  = d1_ptr%d%ele0_name
   u%data(n1:n2)%ix_ele0    = d1_ptr%d%ix_ele0
   u%data(n1:n2)%exists     = d1_ptr%d%exists
-else
-  u%data(n1:n2)%ele_name  = data(ix1:ix2)%ele_name
-  u%data(n1:n2)%ele0_name = data(ix1:ix2)%ele0_name
+
+  u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
+  u%data(n1:n2)%weight     = data(ix1:ix2)%weight
   u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
+
+  ! If %meas_value was set then %good_meas is set to True
+  u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
+  where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
+    u%data(n1:n2)%meas_value = 0  
+  elsewhere
+    u%data(n1:n2)%good_meas = .true.
+  end where
+
+! Not SEARCH or SAME:
+
+else
 
   ! Find elements associated with the data
 
@@ -759,15 +772,19 @@ else
 
   ! Transfer info from the input structure
 
-  u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
+  u%data(n1:n2)%ele_name   = data(ix1:ix2)%ele_name
+  u%data(n1:n2)%ele0_name  = data(ix1:ix2)%ele0_name
+  u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
   u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
   u%data(n1:n2)%good_user  = data(ix1:ix2)%good_user
   u%data(n1:n2)%weight     = data(ix1:ix2)%weight
+
   ! If %meas_value was set then %good_meas is set to True
-  where (u%data(n1:n2)%meas_value /= real_garbage$)  ! where %meas_value was set
-    u%data(n1:n2)%good_meas = .true.
-  elsewhere
+  u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
+  where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
     u%data(n1:n2)%meas_value = 0  
+  elsewhere
+    u%data(n1:n2)%good_meas = .true.
   end where
 
 endif
