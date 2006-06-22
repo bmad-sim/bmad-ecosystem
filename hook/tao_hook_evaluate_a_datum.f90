@@ -45,6 +45,9 @@ found = .true.
 
 select case (datum%data_type)
 
+  case ('ibsT.x')
+    !this is evaluated in tao_post_process_data
+
   case default
     ! datum not found here
     found = .false.

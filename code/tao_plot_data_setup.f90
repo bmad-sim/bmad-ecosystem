@@ -724,6 +724,7 @@ do k = 1, size(graph%curve)
 
     smooth_curve = (s%global%track_type == 'single') .or. &
                       (s%global%track_type == 'beam' .and. allocated(u%model%bunch_params2))
+    smooth_curve = smooth_curve .and. curve%draw_interpolated_curve
     do m = 1, size(graph%who)
       if (graph%who(m)%name == 'meas' .or. graph%who(m)%name == 'ref') smooth_curve = .false.
     enddo

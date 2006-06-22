@@ -85,6 +85,7 @@ type tao_curve_input
   logical draw_line
   logical draw_symbols
   logical use_y2
+  logical draw_interpolated_curve
   type (qp_line_struct) line
   type (qp_symbol_struct) symbol
   logical convert  

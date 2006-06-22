@@ -89,6 +89,7 @@ type tao_curve_struct
   logical draw_symbols         ! draw a line through the data points?
   logical limited              ! True if at least one data point past limit.
   logical convert              ! Eg: covert coupling to cbar?
+  logical draw_interpolated_curve
 end type
 
 ! A graph is a collection of overlayed curves with associated graph title, etc.
