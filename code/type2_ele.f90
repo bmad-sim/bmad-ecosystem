@@ -297,7 +297,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
       if (ele%n_slave /= 0) then
         write (li(nl+1), '(1x, a, i4)') 'Slaves: Number:', ele%n_slave
         write (li(nl+2), *) &
-          '    Name             Lat_index  Attribute       Coefficient'
+          '    Name                           Lat_index  Attribute           Coefficient'
         nl = nl + 2
         do i = ele%ix1_slave, ele%ix2_slave
           j = lattice%control_(i)%ix_slave
@@ -318,7 +318,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
               a_name = attribute_name(lattice%ele_(j), iv)
             endif
           end select
-          nl=nl+1; write (li(nl), '(5x, a, i10, 2x, a20, es11.3, es12.3)') &
+          nl=nl+1; write (li(nl), '(5x, a30, i10, 2x, a20, es11.3, es12.3)') &
                                 lattice%ele_(j)%name, j, a_name, coef
         enddo
       endif
@@ -326,7 +326,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
       if (ele%n_lord /= 0) then
         write (li(nl+1), '(1x, a, i4)') 'Lords: Number:', ele%n_lord
         write (li(nl+2), *) &
-  '    Name             Lat_index  Attribute       Coefficient       Value'
+  '    Name                           Lat_index  Attribute           Coefficient       Value'
         nl = nl + 2
         do i = ele%ic1_lord, ele%ic2_lord
           ic = lattice%ic_(i)
@@ -347,7 +347,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
               write (val_str, '(1p, e12.3)') lattice%ele_(j)%value(ix)
             endif
           endif
-          nl=nl+1; write (li(nl), '(5x, a, i10, 2x, a20, es11.3, a12)') &
+          nl=nl+1; write (li(nl), '(5x, a30, i10, 2x, a20, es11.3, a12)') &
                              lattice%ele_(j)%name, j, a_name, coef, val_str
         enddo
       endif
