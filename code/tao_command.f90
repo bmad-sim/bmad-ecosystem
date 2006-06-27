@@ -190,8 +190,8 @@ subroutine tao_command (command_line, err)
 
   case ('output')
 
-    call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
-    call tao_output_cmd (cmd_word(1), cmd_word(2))
+    call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+    call tao_output_cmd (cmd_word(1), cmd_word(2), cmd_word(3))
     return
 
 !--------------------------------

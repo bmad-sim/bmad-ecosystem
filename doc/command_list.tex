@@ -313,6 +313,7 @@ Examples
 
 Format:
 \begin{example}
+  output curve <curve_name> \{<file_name>\} ! Write the curve data
   output digested \{<file_name>\}  ! Write a digested Bmad lattice file of the model.
   output gif \{<file_name>\}       ! create a gif file of the plot window.
   output hard                    ! print the plot window to a printer.
@@ -321,9 +322,10 @@ Format:
   output var \{<file_name>\}       ! Write a Bmad file of variable values.
 \end{example}
 
-\vskip 0.2in \vn{Output} creates various files. If \vn{<file_name>} is
+\vskip 0.2in The \vn{output} command creates various files. If \vn{<file_name>} is
 not given then the defaults are:
 \begin{example}
+  curve.dat                       ! output curve
   digested8_lat_universe_#.bmad   ! output digested
   quick_plot.gif                  ! output gif
   lat_universe_#.bmad             ! output lattice

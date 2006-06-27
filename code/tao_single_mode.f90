@@ -271,12 +271,12 @@ subroutine tao_single_mode (char)
 ! /p: Just create a postscript file.
 
     case ('p')
-      call tao_output_cmd ('ps', ' ')
+      call tao_output_cmd ('ps', ' ', ' ')
 
 ! /P: Print a hardcopy.
 
     case ('P')
-      call tao_output_cmd ('hard', ' ')
+      call tao_output_cmd ('hard', ' ', ' ')
   
 ! /v: View universe 
 

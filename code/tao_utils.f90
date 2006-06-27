@@ -601,7 +601,7 @@ if (curve_name == ' ') return
 
 nc = 0
 do j = 1, ng
-  do k = 1, size(g(i)%g%curve)
+  do k = 1, size(g(j)%g%curve)
     if (g(j)%g%curve(k)%name == curve_name) nc = nc + 1
   enddo
 enddo

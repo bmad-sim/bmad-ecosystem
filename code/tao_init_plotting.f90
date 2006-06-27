@@ -138,7 +138,7 @@ do
   endif
 
   do i = 1, ng
-    write (graph%name, '(i0)') i
+    write (graph%name, '(a, i0)') 'g', i
     graph_index = 0                 ! setup defaults
     graph%type  = 'data'
     graph%legend_origin = qp_point_struct(1.0_rp, 1.0_rp, '%GRAPH')
@@ -152,7 +152,7 @@ do
     graph%box    = (/ 1, 1, 1, 1 /)
     graph%margin = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
     do j = 1, size(curve)
-      write (curve(j)%name, '(i0)') j
+      write (curve(j)%name, '(a, i0)') 'c', j
     enddo
     curve(:)%x_axis_scale_factor = 1
     curve(:)%y_axis_scale_factor = 1

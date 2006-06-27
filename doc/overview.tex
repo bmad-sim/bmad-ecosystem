@@ -288,6 +288,20 @@ assigned to different \vn{regions} and the plots in different
 the \vn{top} plot is \vn{model} and for the \vn{bottom} plot it is
 \vn{model - design}.
 
+Plots may be referred to by their template name or by the name of the 
+region they are placed in. For example, the orbit plot in 
+Figure~\ref{f:plot_page1} may be referred to using the region name (\vn{top})
+or the template name (\vn{orbit}). A template may be placed in multiple regions.
+For example, you may wish to plot the \vn{model} data for the orbit in one
+region and the  \vn{design} data for the orbit in another region. In this case 
+the command \vn{scale orbit} would scale the plots in both regions while to scale
+the plot in only one of the regions you would need to use the region name. A graph
+of a plot is specified using the format \vn{plot_name.graph_name} where \vn{plot_name}
+is a template or region name and \vn{graph_name} is the name of the graph. For example,
+if the horizontal orbit graph of the ]\vn{orbit} plot is named \vn{x} then it would
+be referred to as \vn{orbit.x} or \vn{top.x}. A curve
+within a graph is specified using the format \vn{plot_name.graph_name.curve_name}.
+
 The \vn{use}, \vn{veto}, \vn{restore}, and \vn{clip} commands are used
 to control what data is used in fitting the model to the data in the
 optimization process (see Chapter~\ref{c:opti}). The general rule is

@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_output_cmd (what, file_name)
+! Subroutine tao_output_cmd (what, arg1, arg2)
 !
 ! 
 ! Input:
@@ -7,7 +7,7 @@
 !  Output:
 !-
 
-subroutine tao_output_cmd (what, file_name)
+subroutine tao_output_cmd (what, arg1, arg2)
 
 use tao_mod
 use tao_top10_mod
@@ -17,12 +17,17 @@ use io_mod
 
 implicit none
 
-character(*) what, file_name
+type (tao_curve_array_struct), allocatable, save :: curve(:)
+type (tao_curve_struct), pointer :: c
+
+character(*) what
+character(*) arg1, arg2
 character(16) action
 character(20) :: r_name = 'tao_output_cmd'
-character(100) file_name2
+character(100) file_name
 
-integer i, ix
+integer i, j, ix, iu
+logical err
 
 !
 
@@ -51,7 +56,7 @@ case ('hard')
 
 case ('gif')
   call qp_open_page ('GIF', x_len = s%plot_page%size(1), &
-           y_len = s%plot_page%size(2), units = 'POINTS', plot_file = file_name)
+           y_len = s%plot_page%size(2), units = 'POINTS', plot_file = arg1)
   call tao_plot_out ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
@@ -61,7 +66,7 @@ case ('gif')
 ! ps
 
 case ('ps')
-  call qp_open_page ('PS', plot_file = file_name)
+  call qp_open_page ('PS', plot_file = arg1)
   call tao_plot_out ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
@@ -70,31 +75,62 @@ case ('ps')
 ! variables
 
 case ('var')
-  if (file_name == ' ') then
+  if (arg1 == ' ') then
     call tao_var_write (s%global%var_out_file)
   else
-    call tao_var_write (file_name)
+    call tao_var_write (arg1)
   endif
 
 case ('lattice')
-  file_name2 = file_name
-  if (file_name2 == ' ') file_name2 = 'lat_universe_#.bmad'
+  file_name = arg1
+  if (file_name == ' ') file_name = 'lat_universe_#.bmad'
   do i = 1, size(s%u)
-    ix = index(file_name2, '#')
-    if (ix /= 0) write (file_name2, '(a, i0, a)') file_name2(1:ix-1), i, trim(file_name2(ix+1:))
-    call write_bmad_lattice_file (file_name2, s%u(i)%model%lat)
-    call out_io (s_info$, r_name, 'Writen: ' // file_name2)
+    ix = index(file_name, '#')
+    if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
+    call write_bmad_lattice_file (file_name, s%u(i)%model%lat)
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
 
 case ('digested')
-  file_name2 = file_name
-  if (file_name2 == ' ') file_name2 = 'digested_lat_universe_#.bmad'
+  file_name = arg1
+  if (file_name == ' ') file_name = 'digested_lat_universe_#.bmad'
   do i = 1, size(s%u)
-    ix = index(file_name2, '#')
-    if (ix /= 0) write (file_name2, '(a, i0, a)') file_name2(1:ix-1), i, trim(file_name2(ix+1:))
-    call write_digested_bmad_file (file_name2, s%u(i)%model%lat)
-    call out_io (s_info$, r_name, 'Writen: ' // file_name2)
+    ix = index(file_name, '#')
+    if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
+    call write_digested_bmad_file (file_name, s%u(i)%model%lat)
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
+
+! curve
+
+case ('curve')
+
+  call tao_find_plots (err, arg1, 'BOTH', curve = curve)
+  if (.not. allocated(curve)) then
+    call out_io (s_error$, r_name, 'NO CURVE SPECIFIED.')
+    return
+  endif
+
+  file_name = 'curve.dat'
+  if (arg2 /= ' ') file_name = arg2
+  iu = lunget()
+  open (iu, file = file_name)
+
+  c => curve(1)%c
+  if (associated(c%beam%bunch)) then
+    write (iu, '(a, 6(9x, a))') '  Ix', '  x', 'p_x', '  y', 'p_y', '  z', 'p_z'
+    do i = 1, size(c%beam%bunch(1)%particle)
+      write (iu, '(i6, 6es12.4)') i, (c%beam%bunch(1)%particle(i)%r%vec(j), j = 1, 6)
+    enddo
+  else
+    write (iu, '(a, 6(9x, a))') '  Ix', '  x', '  y'
+    do i = 1, size(c%x_symb)
+      write (iu, '(i6, 2es12.4)') i, c%x_symb(i), c%y_symb(i)
+    enddo
+  endif
+
+  call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  close(iu)
 
 ! error
 
