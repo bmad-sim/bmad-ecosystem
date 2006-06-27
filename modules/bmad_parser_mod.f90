@@ -3147,7 +3147,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
   integer ix_lord, ix_slave(1000), k_slave, k_slave_original
   integer, allocatable, save :: r_indexx(:)
 
-  character(40), allocatable :: name_(:)
+  character(40), allocatable :: name_list(:)
   character(40) name, name1, slave_name, attrib_name
 
 ! setup
@@ -3157,12 +3157,12 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
   n = ring%n_ele_max + n2 + 1000
 
   allocate (r_indexx(n))
-  allocate (name_(n))
+  allocate (name_list(n))
   allocate (cs_(1000))
 
   ix1 = ring%n_ele_max
-  name_(1:ix1) = ring%ele_(1:ix1)%name
-  call indexx (name_(1:ix1), r_indexx(1:ix1)) ! get sorted list
+  name_list(1:ix1) = ring%ele_(1:ix1)%name
+  call indexx (name_list(1:ix1), r_indexx(1:ix1)) ! get sorted list
 
 ! loop over elements
 
@@ -3190,7 +3190,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
       do i = 1, lord%n_slave
 
         name = pring%ele(ixx)%name_(i)
-        call find_indexx (name, name_, r_indexx, ix1, k, k2)
+        call find_indexx (name, name_list, r_indexx, ix1, k, k2)
         if (k == 0) then  ! not in ring
           if (all(in_ring%ele_(1:n2)%name /= name)) then ! Not in in_ring.
             call warning ('CANNOT FIND SLAVE FOR: ' // lord%name, &
@@ -3233,11 +3233,11 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 ! put the element name in the list r_indexx list
 
       call find_indexx (lord%name, ring%ele_(1:ix1)%name, &
-                                             r_indexx(1:ix1), ix1-1, k, k2)
+                                             r_indexx(1:ix1), ix1, k, k2)
       ix1 = ix1 + 1
       r_indexx(k2+1:ix1) = r_indexx(k2:ix1-1)
       r_indexx(k2) = ix1
-      name_(ix1) = lord%name
+      name_list(ix1) = lord%name
 
 ! create the lord
 
@@ -3260,7 +3260,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
       ixx = lord%ixx
       name1 = pring%ele(ixx)%name_(1)
 
-      call find_indexx (name1, name_, r_indexx, ix1, k_slave, k2)
+      call find_indexx (name1, name_list, r_indexx, ix1, k_slave, k2)
       if (k_slave == 0) then
         call warning ('CANNOT FIND START ELEMENT FOR I_BEAM: ' // lord%name, &
                       'CANNOT FIND: '// name)
@@ -3332,7 +3332,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 ! cleanup
 
   deallocate (r_indexx)
-  deallocate (name_)
+  deallocate (name_list)
   deallocate (cs_)
 
 end subroutine
