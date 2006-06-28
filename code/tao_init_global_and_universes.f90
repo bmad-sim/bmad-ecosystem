@@ -746,6 +746,9 @@ else
 
   ! Find elements associated with the data
 
+  u%data(n1:n2)%ele_name   = data(ix1:ix2)%ele_name
+  u%data(n1:n2)%ele0_name  = data(ix1:ix2)%ele0_name
+
   do j = n1, n2
 
     if (u%data(j)%ele_name == ' ') cycle
@@ -772,8 +775,6 @@ else
 
   ! Transfer info from the input structure
 
-  u%data(n1:n2)%ele_name   = data(ix1:ix2)%ele_name
-  u%data(n1:n2)%ele0_name  = data(ix1:ix2)%ele0_name
   u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
   u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
   u%data(n1:n2)%good_user  = data(ix1:ix2)%good_user
