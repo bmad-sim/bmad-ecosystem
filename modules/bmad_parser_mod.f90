@@ -570,8 +570,8 @@ subroutine get_attribute (how, ele, ring, pring, &
     elseif (word == 'FINTX') then
       ele%value(fintx$) = 0.5
     elseif (ele%key == multipole$) then
-      if (i >= t0$) then
-        ele%b(i-t0$) = pi / (2*(i-t0$) + 2)
+      if (ix_attrib >= t0$) then
+        ele%b(ix_attrib-t0$) = pi / (2*(ix_attrib-t0$) + 2)
       else
         call warning ('EXPECTING "=" AFTER MULTIPOLE ATTRIBUTE: ' // word,  &
                          'FOR ELEMENT: ' // ele%name)
