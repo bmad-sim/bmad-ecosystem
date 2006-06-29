@@ -5,6 +5,7 @@
 ! Returns an array of pointers to an attribute with name attrib_name within 
 ! elements with name ele_name.
 ! Note: ele_name = 'BUNCH_START' corresponds to the lat%bunch_start substructure. 
+! Note: ele_name can be a list of element indices
 ! Note: Use attribute_free to see if the attribute may be varied independently.
 !
 ! Modules needed:
@@ -12,8 +13,8 @@
 !
 ! Input:
 !   lat             -- Ring_struct: Lattice.
-!   ele_name        -- Character(40): Element name. Must be uppercase
-!   attrib_name     -- Character(40): Attribute name. Must be uppercase.
+!   ele_name        -- Character(*): Element name. Must be uppercase
+!   attrib_name     -- Character(*): Attribute name. Must be uppercase.
 !                       For example: "HKICK".
 !   do_allocation   -- Logical: If True then do an allocation if needed.
 !                       EG: The multipole An and Bn arrays need to be allocated
@@ -51,11 +52,13 @@ integer, optional :: ix_attrib
 integer, optional, allocatable :: ix_eles(:)
 integer n, i, ix
 
-character(*) ele_name, attrib_name
+character(*) ele_name
+character(*) attrib_name
 character(24) :: r_name = 'pointers_to_attribute'
 
 logical err_flag, do_allocation, do_print
 logical, optional :: err_print_flag
+logical, save, allocatable :: this_ele(:)
 
 ! init
 
@@ -81,31 +84,56 @@ if (ele_name == 'BUNCH_START') then
   return
 endif
 
-! everything else
 
-n = 0
-do i = 0, lat%n_ele_max
-  ele => lat%ele_(i)
-  if (ele%name == ele_name) n = n + 1
-enddo
+if (index(":1234567890", ele_name(1:1)) .ne. 0) then
+! index array
+  if (allocated (this_ele)) deallocate(this_ele)
+  allocate(this_ele(0:lat%n_ele_max))
+  call location_decode (ele_name, this_ele, 0, n)
 
-call reallocate_arrays (n)
-if (n == 0) then
-  if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
-  return  
-endif
-
-n = 0
-do i = 0, lat%n_ele_max
-  ele => lat%ele_(i)
-  if (ele%name == ele_name) then
-    n = n + 1
-    call pointer_to_attribute (ele, attrib_name, do_allocation, &
-                        ptr_array(n)%r, err_flag, err_print_flag, ix_attrib)
-    if (present(ix_eles)) ix_eles(n) = i
-    if (err_flag) return
+  call reallocate_arrays (n)
+  if (n == 0) then
+    if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
+    return  
   endif
-enddo
+
+  n = 0
+  do i = 0, lat%n_ele_max
+    if (this_ele(i)) then
+      ele => lat%ele_(i)
+      n = n + 1
+      call pointer_to_attribute (ele, attrib_name, do_allocation, &
+                        ptr_array(n)%r, err_flag, err_print_flag, ix_attrib)
+      if (present(ix_eles)) ix_eles(n) = i
+      if (err_flag) return
+    endif
+  enddo
+else
+! ele_name
+  n = 0
+  do i = 0, lat%n_ele_max
+    ele => lat%ele_(i)
+    if (ele%name == ele_name) n = n + 1
+  enddo
+
+  call reallocate_arrays (n)
+  if (n == 0) then
+    if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
+    return  
+  endif
+
+  n = 0
+  do i = 0, lat%n_ele_max
+    ele => lat%ele_(i)
+    if (ele%name == ele_name) then
+      n = n + 1
+      call pointer_to_attribute (ele, attrib_name, do_allocation, &
+                        ptr_array(n)%r, err_flag, err_print_flag, ix_attrib)
+      if (present(ix_eles)) ix_eles(n) = i
+      if (err_flag) return
+    endif
+  enddo
+endif
 
 !----------------------------------------------------------------------------
 contains
@@ -121,7 +149,7 @@ call reallocate_real_array (ptr_array, n_size)
 if (.not. present (ix_eles)) return
 
 if (n_size == 0) then
-  deallocate (ix_eles)
+  if (allocated(ix_eles)) deallocate (ix_eles)
   return
 endif
 
@@ -148,7 +176,7 @@ type (real_array_struct), allocatable :: ptr_array(:)
 integer n
 
 if (n == 0) then
-  deallocate (ptr_array)
+  if (allocated(ptr_array)) deallocate (ptr_array)
   return
 endif
 
