@@ -742,43 +742,46 @@ character(20) :: r_name = "inject_particle"
 
 !
 
-if (.not. u%coupling%coupled) return
+if (.not. u%coupling%coupled) then
+  orb(0) = u%model%orb(0)
+else
     
-if (.not. s%u(u%coupling%from_uni)%is_on) then
-  call out_io (s_error$, r_name, &
-    "Injecting from a turned off universe! This will not do!")
-  call out_io (s_blank$, r_name, &
-    "No injection will be performed")
-  return
-endif
+  if (.not. s%u(u%coupling%from_uni)%is_on) then
+    call out_io (s_error$, r_name, &
+      "Injecting from a turned off universe! This will not do!")
+    call out_io (s_blank$, r_name, &
+      "No injection will be performed")
+    return
+  endif
   
-call init_ele (extract_ele)
+  call init_ele (extract_ele)
   
-! get particle perameters from previous universe at position s
-call twiss_and_track_at_s (s%u(u%coupling%from_uni)%model%lat, &
+  ! get particle perameters from previous universe at position s
+  call twiss_and_track_at_s (s%u(u%coupling%from_uni)%model%lat, &
                              u%coupling%from_uni_s, extract_ele, &
                              s%u(u%coupling%from_uni)%model%orb, pos)
 
-! track through coupling element
-if (u%coupling%use_coupling_ele) then
-  call make_mat6 (u%coupling%coupling_ele, s%u(u%coupling%from_uni)%model%lat%param)
-  call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
-  call track1 (pos, u%coupling%coupling_ele, &
+  ! track through coupling element
+  if (u%coupling%use_coupling_ele) then
+    call make_mat6 (u%coupling%coupling_ele, s%u(u%coupling%from_uni)%model%lat%param)
+    call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
+    call track1 (pos, u%coupling%coupling_ele, &
                     s%u(u%coupling%from_uni)%model%lat%param, pos)
-  u%coupling%coupling_ele%value(beam_energy$) = extract_ele%value(beam_energy$)
-  u%coupling%coupling_ele%floor = extract_ele%floor
-  extract_ele = u%coupling%coupling_ele
-endif
+    u%coupling%coupling_ele%value(beam_energy$) = extract_ele%value(beam_energy$)
+    u%coupling%coupling_ele%floor = extract_ele%floor
+    extract_ele = u%coupling%coupling_ele
+  endif
   
-! transfer to this lattice
-lat%ele_(0)%x = extract_ele%x
-lat%ele_(0)%y = extract_ele%y
-lat%ele_(0)%z = extract_ele%z
-lat%ele_(0)%value(beam_energy$) = extract_ele%value(beam_energy$)
-lat%ele_(0)%c_mat   = extract_ele%c_mat
-lat%ele_(0)%gamma_c = extract_ele%gamma_c
-lat%ele_(0)%floor   = extract_ele%floor
-orb(0)      = pos
+  ! transfer to this lattice
+  lat%ele_(0)%x = extract_ele%x
+  lat%ele_(0)%y = extract_ele%y
+  lat%ele_(0)%z = extract_ele%z
+  lat%ele_(0)%value(beam_energy$) = extract_ele%value(beam_energy$)
+  lat%ele_(0)%c_mat   = extract_ele%c_mat
+  lat%ele_(0)%gamma_c = extract_ele%gamma_c
+  lat%ele_(0)%floor   = extract_ele%floor
+  orb(0)      = pos
+endif
         
 end subroutine tao_inject_particle
 
@@ -811,6 +814,7 @@ character(20) :: r_name = "tao_inject_beam"
 if (.not. u%coupling%coupled) then
   u%beam%beam_init%center = u%model%lat%bunch_start%vec
   call init_beam_distribution (lat%ele_(0), u%beam%beam_init, u%beam%beam)
+  call tao_find_beam_centroid (u%beam%beam, orb(0))
 else
    
   if (.not. s%u(u%coupling%from_uni)%is_on) then
@@ -882,6 +886,7 @@ if (.not. u%coupling%coupled) then
   call init_macro_distribution (u%macro_beam%beam, u%macro_beam%macro_init, &
                                 lat%ele_(0), .true.)
   u%macro_beam%ix_lost(:,:,:) = not_lost$
+  call tao_find_macro_beam_centroid (u%macro_beam%beam, orb(0))
 else
   if (.not. s%u(u%coupling%from_uni)%is_on) then
     call out_io (s_error$, r_name, &

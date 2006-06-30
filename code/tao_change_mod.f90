@@ -163,7 +163,9 @@ type (real_array_struct), allocatable, save :: d_ptr(:), m_ptr(:)
 
 real(rp) change_number
 
-character(*) ele_name, attrib_name, num_str
+character(*) ele_name
+character(*) attrib_name
+character(*) num_str
 character(40) e_name, a_name, fmt
 character(20) :: r_name = 'tao_change_ele'
 character(200), allocatable, save :: lines(:)

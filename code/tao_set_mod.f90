@@ -59,6 +59,7 @@ real(rp), pointer :: dest_data(:)
 real(rp), pointer :: source_data(:)
 logical calc_ok
 
+integer j
 !
 
 err = .false.
@@ -103,7 +104,9 @@ dest1_lat%orb          = source1_lat%orb
 dest1_lat%modes        = source1_lat%modes
 dest1_lat%a            = source1_lat%a
 dest1_lat%b            = source1_lat%b
-dest1_lat%bunch_params = source1_lat%bunch_params
+do j = lbound(dest1_lat%bunch_params,1), ubound(dest1_lat%bunch_params,1)
+  dest1_lat%bunch_params(j) = source1_lat%bunch_params(j)
+enddo
 if (allocated(source1_lat%bunch_params2)) then
   if (allocated(dest1_lat%bunch_params2)) then
     if (size(dest1_lat%bunch_params2) < size(source1_lat%bunch_params2)) &

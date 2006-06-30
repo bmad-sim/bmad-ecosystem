@@ -492,11 +492,13 @@ case ('lattice')
                                   u%model%orb, u%model%modes, u%ix_rad_int_cache)
     call radiation_integrals (u%design%lat, &
                                   u%design%orb, u%design%modes, u%ix_rad_int_cache)
-    call chrom_calc (u%model%lat, delta_e, &
-                        u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
-    call chrom_calc (u%design%lat, delta_e, &
-                        u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
-    
+    if (u%model%lat%param%lattice_type .eq. circular_lattice$) then
+      call chrom_calc (u%model%lat, delta_e, &
+                          u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
+      call chrom_calc (u%design%lat, delta_e, &
+                          u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
+    endif
+
     write (lines(nl+1), *)
     write (lines(nl+2), '(17x, a)') '       X          |            Y'
     write (lines(nl+3), '(17x, a)') 'Model     Design  |     Model     Design'
@@ -954,7 +956,7 @@ case ('var')
       if (.not. v_ptr%exists) cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
       nl=nl+1
-      write(lines(nl), '(i6, 2x, a)') v_ptr%ix_var, v_ptr%name
+      write(lines(nl), '(i6, 2x, a)') v_ptr%ix_v1, v_ptr%name
       write(lines(nl)(nc+9:), '(3es14.4, 7x, l)') v_ptr%meas_value, &
                  v_ptr%model_value, v_ptr%design_value, v_ptr%useit_opt
     enddo
