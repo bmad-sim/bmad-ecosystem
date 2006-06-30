@@ -53,6 +53,7 @@ integer, optional, allocatable :: ix_eles(:)
 integer n, i, ix
 
 character(*) ele_name
+character(100) ele_name_temp
 character(*) attrib_name
 character(24) :: r_name = 'pointers_to_attribute'
 
@@ -87,13 +88,14 @@ endif
 
 if (index(":1234567890", ele_name(1:1)) .ne. 0) then
 ! index array
+  ele_name_temp = ele_name
   if (allocated (this_ele)) deallocate(this_ele)
   allocate(this_ele(0:lat%n_ele_max))
-  call location_decode (ele_name, this_ele, 0, n)
+  call location_decode (ele_name_temp, this_ele, 0, n)
 
   call reallocate_arrays (n)
   if (n == 0) then
-    if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
+    if (do_print) call out_io (s_error$, r_name, 'ELEMENTS NOT FOUND: ' // ele_name)
     return  
   endif
 
