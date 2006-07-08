@@ -51,7 +51,7 @@ subroutine ele_at_s (lat, s, ix_ele)
   do
 
     if (n3 == n1 + 1) then
-      ix_ele = n1
+      ix_ele = n3
       return
     endif
 
