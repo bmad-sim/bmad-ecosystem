@@ -267,6 +267,8 @@ synchrotron radiation calculations.
 \begin{example}
   type csr_common_struct
     real(rp) ds_track_step                   ! Tracking step size
+    integer n_bin                            ! Number of bins (slices) used
+    integer particle_bin_span = 2            ! Longitudinal particle length / bin width
     logical :: lcsr_component_on = .true.    ! Longitudinal csr component
     logical :: lsc_component_on = .true.     ! Longitudinal space charge component
     logical :: tsc_component_on = .true.     ! Transverse space charge component

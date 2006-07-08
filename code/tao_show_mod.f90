@@ -57,11 +57,10 @@ character(100) file_name
 character(40) ele_name, name, sub_name
 character(60) nam
 
-character(16) :: show_names(16) = (/ &
+character(16) :: show_names(14) = (/ &
    'data        ', 'var         ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'ele         ', 'lattice     ', 'constraints ', 'plot        ', &
-   'write       ', 'hom         ', 'graph       ', 'curve       ', 'opt_vars    ', &
-   'universe    ' /)
+   'write       ', 'hom         ', 'opt_vars    ', 'universe    ' /)
 
 character(200), allocatable, save :: lines(:)
 character(100) line1, line2
