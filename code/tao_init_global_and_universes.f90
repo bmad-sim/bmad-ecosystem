@@ -728,17 +728,10 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
   u%data(n1:n2)%ix_ele0    = d1_ptr%d%ix_ele0
   u%data(n1:n2)%exists     = d1_ptr%d%exists
 
-  u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
-  u%data(n1:n2)%weight     = data(ix1:ix2)%weight
-  u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
-
-  ! If %meas_value was set then %good_meas is set to True
-  u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
-  where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
-    u%data(n1:n2)%meas_value = 0  
-  elsewhere
-    u%data(n1:n2)%good_meas = .true.
-  end where
+  u%data(n1:n2)%merit_type = default_merit_type
+  u%data(n1:n2)%weight     = default_weight
+  u%data(n1:n2)%data_type  = default_data_type
+  u%data(n1:n2)%meas_value = 0 
 
 ! Not SEARCH or SAME:
 

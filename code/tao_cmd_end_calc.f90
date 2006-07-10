@@ -29,6 +29,8 @@ logical err
 
 this_merit =  tao_merit()         
 
+! update variable values to reflect lattice values
+call tao_update_var_values ()
 call tao_plot_data_setup()       ! transfer data to the plotting structures
 call tao_hook_plot_data_setup()
 if (s%global%auto_scale .eq. .true.) then

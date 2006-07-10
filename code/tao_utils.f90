@@ -2538,4 +2538,48 @@ endif
 
 end function
 
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine tao_update_var_values ()
+!
+! This will update the s%var(*)%model_value and s%var(*)%base_value to 
+! reflect the actual values in the lattice. This is needed for example if a
+! element values is changed using the 'change ele' command where a tao variable
+! also controls the element value. The variable must be updated to refelct the
+! change.
+!
+! If the variables controls element in multiple universe as a 'clone' then the
+! value in the currently displayed universe will be used.
+!
+! Input: 
+!  none
+!
+! Ouput:
+!  s%var(*)%model_value  -- Real(rp): value updated to reflect lattice
+!  s%var(*)%base_value   -- Real(rp): value updated to reflect lattice
+!-
+
+Subroutine tao_update_var_values ()
+
+implicit none
+
+integer i_var, i_this, ix_this
+
+  do i_var = 1, size(s%var)
+    ix_this = -1
+    if (.not. associated(s%var(i_var)%this)) cycle
+    do i_this = 1, size(s%var(i_var)%this)
+      if (s%var(i_var)%this(i_this)%ix_uni .eq. s%global%u_view) &
+              ix_this = i_this
+    enddo
+    if (ix_this .eq. -1) cycle
+    s%var(i_var)%model_value = s%var(i_var)%this(ix_this)%model_ptr
+    s%var(i_var)%base_value = s%var(i_var)%this(ix_this)%base_ptr
+  enddo
+
+end subroutine tao_update_var_values
+
+
 end module tao_utils

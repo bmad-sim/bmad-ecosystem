@@ -1000,7 +1000,7 @@ logical :: found_one = .false.
 
   nl=nl+1; write (lines(nl), '(a)') "  "
   nl=nl+1; write (lines(nl), '(a)') &
-        "   Data Type                         |  Model Value  |  Design Value |  Base Value"
+        "   Data Type          |  Model Value  |  Design Value |  Base Value"
 
   do i = 1, size(u%data)
     if (u%data(i)%ix_ele .eq. i_ele) then
@@ -1019,7 +1019,7 @@ logical :: found_one = .false.
 
   nl=nl+1; write (lines(nl), '(a)') "  "
   nl=nl+1; write (lines(nl), '(a)') &
-        "   Data Type                         |  Model Value  |  Design Value |  Base Value"
+        "   Data Type          |  Model Value  |  Design Value |  Base Value"
 
 
 end subroutine show_ele_data

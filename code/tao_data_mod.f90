@@ -1351,6 +1351,7 @@ type (beam_struct) beam
 real(rp), allocatable, save :: dist(:)
 
 real(rp) theta, theta_rad, moment, ran_num(2)
+real(rp) avg
 
   call ran_gauss (ran_num)
   
@@ -1369,7 +1370,10 @@ real(rp) theta, theta_rad, moment, ran_num(2)
   dist =  beam%bunch(1)%particle%r%vec(1) * cos(-theta_rad ) &
         + beam%bunch(1)%particle%r%vec(3) * sin(-theta_rad)
   
-  moment = (1 + ele%r(1,1)*ran_num(2)) * sum (dist*dist, &
+  avg = sum (dist, mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
+          / count (beam%bunch(1)%particle%ix_lost == not_lost$)
+        
+  moment = (1 + ele%r(1,1)*ran_num(2)) * sum ((dist-avg)*(dist-avg), &
                  mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
           / count (beam%bunch(1)%particle%ix_lost == not_lost$)
 
