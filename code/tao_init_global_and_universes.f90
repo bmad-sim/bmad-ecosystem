@@ -737,12 +737,21 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
 
 else
 
-  ! Find elements associated with the data
+  ! Transfer info from the input structure
 
+  u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
+  u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
+  u%data(n1:n2)%good_user  = data(ix1:ix2)%good_user
+  u%data(n1:n2)%weight     = data(ix1:ix2)%weight
   u%data(n1:n2)%ele_name   = data(ix1:ix2)%ele_name
   u%data(n1:n2)%ele0_name  = data(ix1:ix2)%ele0_name
 
+  ! Find elements associated with the data
+
   do j = n1, n2
+
+    call tao_hook_does_data_exist (u%data(j))
+    if (u%data(j)%exists) cycle
 
     if (u%data(j)%ele_name == ' ') cycle
     call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
@@ -765,13 +774,6 @@ else
     endif
     u%data(j)%ix_ele0 = ix
   enddo
-
-  ! Transfer info from the input structure
-
-  u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
-  u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
-  u%data(n1:n2)%good_user  = data(ix1:ix2)%good_user
-  u%data(n1:n2)%weight     = data(ix1:ix2)%weight
 
   ! If %meas_value was set then %good_meas is set to True
   u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
