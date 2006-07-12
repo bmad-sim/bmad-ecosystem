@@ -118,9 +118,9 @@ case ('curve')
 
   c => curve(1)%c
   if (associated(c%beam%bunch)) then
-    write (iu, '(a, 6(9x, a))') '  Ix', '  x', 'p_x', '  y', 'p_y', '  z', 'p_z'
+    write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'p_x', '  y', 'p_y', '  z', 'p_z'
     do i = 1, size(c%beam%bunch(1)%particle)
-      write (iu, '(i6, 6es12.4)') i, (c%beam%bunch(1)%particle(i)%r%vec(j), j = 1, 6)
+      write (iu, '(i6, 6es15.7)') i, (c%beam%bunch(1)%particle(i)%r%vec(j), j = 1, 6)
     enddo
   else
     write (iu, '(a, 6(9x, a))') '  Ix', '  x', '  y'
