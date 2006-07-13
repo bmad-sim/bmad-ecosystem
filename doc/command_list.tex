@@ -17,8 +17,8 @@ on one line using the ``;'' character as a separator.
   alias      & \ref{s:alias}    &  restore      & \ref{s:restore} \\ \hline
   call       & \ref{s:call}     &  reinitialize & \ref{s:reinit}  \\ \hline
   change     & \ref{s:change}   &  run          & \ref{s:run}     \\ \hline
-  clip       & \ref{s:clip}     &  set          & \ref{s:set}     \\ \hline
-  derivative & \ref{s:deriv}    &  scale        & \ref{s:scale}   \\ \hline
+  clip       & \ref{s:clip}     &  scale        & \ref{s:scale}   \\ \hline
+  derivative & \ref{s:deriv}    &  set          & \ref{s:set}     \\ \hline
   exit       & \ref{s:exit}     &  show         & \ref{s:show}    \\ \hline 
   flatten    & \ref{s:flatten}  &  single-mode  & \ref{s:sing}    \\ \hline
   help       & \ref{s:help}     &  spawn        & \ref{s:spawn}   \\ \hline
@@ -467,6 +467,33 @@ Examples:
   run de
 \end{example}
 
+%% scale --------------------------------------------------------------
+\section{Scale}\index{Commands!scale}
+\label{s:scale}
+
+Format:
+\begin{example}
+  scale \{<where> <value1> <value2>\}
+\end{example}
+
+\vskip 0.2in 
+\vn{scale} adjusts the vertical scale of graphs. If neither
+\vn{<value1>} nor \vn{<value2>} is present then the scale is adjusted
+so that all the data points are within the graph region.  If only
+\vn{<value1>} is present then the scale is taken to be from
+-\vn{<value1>} to +\vn{<value1>}. If both are present than the scale
+is from \vn{<value1>} to \vn{<value2>}.  The graphs that are scaled is
+determined by the \vn{<where>} switch. If \vn{<where>} is not present
+or \vn{<where>} is ``all'' then all graphs are scaled.
+
+Examples:
+\begin{example}
+  scale top.x -3  7  ! scale the x graph in the top region
+  scale bottom       ! scale the graphs in the bottom region
+  scale              ! scale everything
+\end{example}
+
+
 %% set --------------------------------------------------------------
 \section{Set}\index{Commands!set}
 \label{s:set}
@@ -476,6 +503,7 @@ Format:
   set curve <curve> <component> = <value>
   set data <data_name>|<component> = <value>
   set global <component> = <value>
+  set graph <graph> <component> = <value>
   set lattice <component> = <value>
   set plot_page <component> = <value1> \{<value2>\}
   set universe <universe> <on/off> <recalculate>
@@ -516,33 +544,12 @@ Besides a numeric value \vn{<value>} can be any of the above along with:
 \end{example}
 \vskip 0.2in
 
-For \vn{set var}, the \vn{<component>}s that can be set are:
+For \vn{set graph}, the \vn{component}s that can be set are:
 \begin{example}
-  model       ! Model lattice value.
-  base        ! Base model value
-  design      ! Design model value
-  meas        ! Value at the time of a measurement.
-  ref         ! Value at the time of a reference measurement.
-  weight      ! Weight for the merit function.
-  exists      ! Does this variable actually correspond to something?
-  good_var    ! The optimizer can be allowed to vary it
-  good_opt    ! Good for using in the merit function for optimization?
-  good_plot   ! Good for using in a plot?
-  good_user   ! This is what is set by the use, veto, and restore commands.
-  step       ! Sets what a "small" variation of the variable is.
-\end{example}
-\vskip 0.2in
-
-For \vn{set lattice}, the \vn{<component>}s that can be set are:
-\begin{example}
-  model      ! Model lattice value.
-  base       ! Base lattice value
-\end{example}
-\vn{<value>} can be:
-\begin{example}
-  model       ! model lattice value.
-  base        ! base lattice value.
-  design      ! design lattice value
+  who(<n>)    = <string>
+  who(<n>)    = <string>, <integer>
+  clip        = <logical>
+  ix_universe = <number>
 \end{example}
 \vskip 0.2in
 
@@ -570,6 +577,19 @@ For \vn{set global}, the \vn{<component>}s that can be set are:
 \end{example}
 \vskip 0.2in
 
+For \vn{set lattice}, the \vn{<component>}s that can be set are:
+\begin{example}
+  model      ! Model lattice value.
+  base       ! Base lattice value
+\end{example}
+\vn{<value>} can be:
+\begin{example}
+  model       ! model lattice value.
+  base        ! base lattice value.
+  design      ! design lattice value
+\end{example}
+\vskip 0.2in
+
 For \vn{set plot_page}, the \vn{<component>}s that can be set are:
 \begin{example}
   title        = <string>          ! Set the plot title text
@@ -579,6 +599,23 @@ For \vn{set plot_page}, the \vn{<component>}s that can be set are:
 The \vn{subtitle_loc} component can be used to place the subtitle anywhere on
 the plot page. This can be useful for referencing a noteworthy part of a graph
 data.
+\vskip 0.2in
+
+For \vn{set var}, the \vn{<component>}s that can be set are:
+\begin{example}
+  model       ! Model lattice value.
+  base        ! Base model value
+  design      ! Design model value
+  meas        ! Value at the time of a measurement.
+  ref         ! Value at the time of a reference measurement.
+  weight      ! Weight for the merit function.
+  exists      ! Does this variable actually correspond to something?
+  good_var    ! The optimizer can be allowed to vary it
+  good_opt    ! Good for using in the merit function for optimization?
+  good_plot   ! Good for using in a plot?
+  good_user   ! This is what is set by the use, veto, and restore commands.
+  step       ! Sets what a "small" variation of the variable is.
+\end{example}
 \vskip 0.2in
 
 \vn{set universe} will turn the specified universe on or off. Turning
@@ -603,38 +640,13 @@ still vary in the turned off universe.
 
 Examples:
 \begin{example}
-  set data *|ref = *|meas                   ! set all ref data = measured data in current universe.
-  set data 2@orbit.x|base = 2@orbit.x|model ! set the ref orbit.x data in universe 2 to meas
-  set var quad\_k1 weight = 0.1             ! set quad\_k1 weights. 
-  set lattice *&|model = *&|design          ! resets model lattice to the design in all universes
+  set data *|ref = *|meas                   ! Set all ref data = measured data in current universe.
+  set data 2@orbit.x|base = 2@orbit.x|model ! Set the ref orbit.x data in universe 2 to meas
+  set graph orbit.x who(1) = model          ! Plot the model orbit in the graph
+  set graph orbit.x who(2) = design, -1     ! With the previous line: Plot model - design 
+  set var quad\_k1 weight = 0.1             ! Set quad\_k1 weights. 
+  set lattice *&|model = *&|design          ! Resets model lattice to the design in all universes
 \end{example}
-
-%% scale --------------------------------------------------------------
-\section{Scale}\index{Commands!scale}
-\label{s:scale}
-
-Format:
-\begin{example}
-  scale \{<where> <value1> <value2>\}
-\end{example}
-
-\vskip 0.2in 
-\vn{scale} adjusts the vertical scale of graphs. If neither
-\vn{<value1>} nor \vn{<value2>} is present then the scale is adjusted
-so that all the data points are within the graph region.  If only
-\vn{<value1>} is present then the scale is taken to be from
--\vn{<value1>} to +\vn{<value1>}. If both are present than the scale
-is from \vn{<value1>} to \vn{<value2>}.  The graphs that are scaled is
-determined by the \vn{<where>} switch. If \vn{<where>} is not present
-or \vn{<where>} is ``all'' then all graphs are scaled.
-
-Examples:
-\begin{example}
-  scale top.x -3  7  ! scale the x graph in the top region
-  scale bottom       ! scale the graphs in the bottom region
-  scale              ! scale everything
-\end{example}
-
 
 %% show --------------------------------------------------------------
 \section{Show}\index{Commands!show}

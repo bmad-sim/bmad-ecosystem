@@ -505,14 +505,14 @@ np = 0
 
 if (where == 'REGION' .or. where == 'BOTH') then
   do i = 1, size(s%plot_page%region)
-    if (s%plot_page%region(i)%name == plot_name) np = np + 1
-    if (s%plot_page%region(i)%plot%name == plot_name) np = np + 1
+    if (s%plot_page%region(i)%name == plot_name .or. plot_name == '*') np = np + 1
+    if (s%plot_page%region(i)%plot%name == plot_name .or. plot_name == '*') np = np + 1
   enddo
 endif
 
 if (where == 'TEMPLATE' .or. where == 'BOTH') then
   do i = 1, size(s%template_plot)
-    if (plot_name == s%template_plot(i)%name) np = np + 1
+    if (plot_name == s%template_plot(i)%name .or. plot_name == '*') np = np + 1
   enddo
 endif
 
@@ -532,11 +532,11 @@ np = 0
 
 if (where == 'REGION' .or. where == 'BOTH') then
   do i = 1, size(s%plot_page%region)
-    if (s%plot_page%region(i)%name == plot_name) then
+    if (s%plot_page%region(i)%name == plot_name .or. plot_name == '*') then
       np = np + 1
       p(np)%p => s%plot_page%region(i)%plot
     endif
-    if (s%plot_page%region(i)%plot%name == plot_name) then
+    if (s%plot_page%region(i)%plot%name == plot_name .or. plot_name == '*') then
       np = np + 1
       p(np)%p => s%plot_page%region(i)%plot
     endif
@@ -545,7 +545,7 @@ endif
 
 if (where == 'TEMPLATE' .or. where == 'BOTH') then
   do i = 1, size(s%template_plot)
-    if (plot_name == s%template_plot(i)%name) then
+    if (plot_name == s%template_plot(i)%name .or. plot_name == '*') then
       np = np + 1
       p(np)%p => s%template_plot(i)
     endif
@@ -569,7 +569,7 @@ if (graph_name == ' ') return
 ng = 0
 do i = 1, np
   do j = 1, size(p(i)%p%graph)
-    if (p(i)%p%graph(j)%name == graph_name) ng = ng + 1
+    if (p(i)%p%graph(j)%name == graph_name .or. graph_name == '*') ng = ng + 1
   enddo
 enddo
 
@@ -586,7 +586,7 @@ if (present(graph)) allocate (graph(ng))
 ng = 0
 do i = 1, np
   do j = 1, size(p(i)%p%graph)
-    if (p(i)%p%graph(j)%name == graph_name) then
+    if (p(i)%p%graph(j)%name == graph_name .or. graph_name == '*') then
       ng = ng + 1
       g(ng)%g => p(i)%p%graph(j)
     endif
@@ -602,7 +602,7 @@ if (curve_name == ' ') return
 nc = 0
 do j = 1, ng
   do k = 1, size(g(j)%g%curve)
-    if (g(j)%g%curve(k)%name == curve_name) nc = nc + 1
+    if (g(j)%g%curve(k)%name == curve_name .or. curve_name == '*') nc = nc + 1
   enddo
 enddo
 
@@ -619,7 +619,7 @@ if (present(curve)) allocate (curve(nc))
 nc = 0
 do j = 1, np
   do k = 1, size(g(j)%g%curve)
-    if (g(j)%g%curve(k)%name == curve_name) then
+    if (g(j)%g%curve(k)%name == curve_name .or. curve_name == '*') then
       nc = nc + 1
       c(nc)%c => g(j)%g%curve(k)
     endif

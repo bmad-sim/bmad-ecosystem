@@ -1155,9 +1155,9 @@ the index of the graph or
 curve. Thus, in the example above, the name of the curve defaults to
 \vn{c1} and it would be referred to as \vn{orbit.x.c1}.
 
-\vn{graph%who(i)} sets what is plotted by default. For example, if
-\vn{graph%who(i) = model - design} then by default the graph will show
-the \vn{model} value. Possibilities are:
+\vn{graph%who(i)} sets what is plotted. In the above example, what will be
+plotted is \vn{model - design}. Possible \vn{graph%who}
+settings are:
 \index{model}\index{design}\index{base}\index{meas}\index{ref}
 \begin{example}
   "model"     ! model values.
@@ -1166,7 +1166,8 @@ the \vn{model} value. Possibilities are:
   "meas"      ! data values.
   "ref"       ! reference data values.
 \end{example}
-If nothing is specified, the default is to plot \vn{model}. 
+The default, if \vn{graph%who} is not
+specified, is for the graph will show \vn{model} values. 
 
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:

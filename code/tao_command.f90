@@ -309,7 +309,7 @@ subroutine tao_command (command_line, err)
          (set_word == 'var'       .and. cmd_word(3) /= '=') .or. &
          (set_word == 'global'    .and. cmd_word(3) /= '=') .or. &
          (set_word == 'plot_page' .and. cmd_word(3) /= '=') .or. &
-         (set_word == 'graph'     .and. cmd_word(3) /= '=') .or. &
+         (set_word == 'graph'     .and. cmd_word(4) /= '=') .or. &
 		     (set_word == 'lattice'   .and. cmd_word(3) /= '=')) then
       call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
       return
@@ -333,7 +333,7 @@ subroutine tao_command (command_line, err)
     case ('plot_page')
       call tao_set_plot_page_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
     case ('graph')
-      call tao_set_graph_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
+      call tao_set_graph_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
     case ('universe')
       
       if (cmd_word(4) .eq. "recalc") then

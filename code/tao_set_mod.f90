@@ -286,6 +286,9 @@ contains
 subroutine set_this_curve (this_curve)
 
 type (tao_curve_struct) this_curve
+integer ix
+
+!
 
 i_uni = this_curve%ix_universe
 if (i_uni == 0) i_uni = s%global%u_view
@@ -299,16 +302,16 @@ select case (component)
     this_curve%ix_ele_ref = ix_ele(1)
 
   case ('ix_ele_ref')
-    read (set_value, '(i)', iostat = ios) i
+    read (set_value, '(i)', iostat = ios) ix
     if (ios /= 0) then
       call out_io (s_error$, r_name, 'BAD IX_ELE_REF VALUE.')
       return
     endif
-    if (i < 0 .or. i > s%u(i_uni)%model%lat%n_ele_max) then
+    if (ix < 0 .or. ix > s%u(i_uni)%model%lat%n_ele_max) then
       call out_io (s_error$, r_name, 'BAD IX_ELE_REF VALUE OUT OF RANGE.')
       return
     endif
-    this_curve%ix_ele_ref = i      
+    this_curve%ix_ele_ref = ix      
     this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele_(this_curve%ix_ele_ref)%name
 
   case default
@@ -328,33 +331,118 @@ end subroutine
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_graph_cmd (name, component, set_value)
+! Subroutine tao_set_graph_cmd (graph_name, component, set_value)
 !
 ! Routine to set var values.
 !
 ! Input:
-!   name       -- Character(*): Which graph to set.
+!   graph_name -- Character(*): Which graph to set.
 !   component  -- Character(*): Which component to set.
 !   set_value  -- Character(*): What value to set it to.
 !
 !  Output:
 !-
 
-subroutine tao_set_graph_cmd (name, component, set_value)
+subroutine tao_set_graph_cmd (graph_name, component, set_value)
 
 implicit none
 
-character(*) name, component, set_value
+type (tao_plot_array_struct), allocatable, save :: plot(:)
+type (tao_graph_array_struct), allocatable, save :: graph(:)
+
+character(*) graph_name, component, set_value
 character(20) :: r_name = 'tao_set_graph_cmd'
 
+integer i, j, ios, i_uni
 logical err
 
-! Locate the graph
+!
 
-print *, 'Not yet implemented'
+call tao_find_plots (err, graph_name, 'REGION', plot = plot, graph = graph)
+if (err) return
 
+if (allocated(graph)) then
+  do i = 1, size(graph)
+    call set_this_graph (graph(i)%g)
+  enddo
+elseif (allocated(plot)) then
+  do i = 1, size(plot)
+    do j = 1, size(plot(i)%p%graph)
+      call set_this_graph (plot(i)%p%graph(j))
+    enddo
+  enddo
+else
+  call out_io (s_error$, r_name, 'graph OR PLOT NOT SPECIFIED')
+  return
+endif
 
+!---------------------------------------------
+contains
 
+subroutine set_this_graph (this_graph)
+
+type (tao_graph_struct) this_graph
+character(40) comp
+integer iset, iw, ix
+logical logic
+
+!
+
+i_uni = this_graph%ix_universe
+if (i_uni == 0) i_uni = s%global%u_view
+comp = component
+if (comp(1:4) == 'who(') comp = 'who('
+
+select case (comp)
+
+  case ('who(')
+    read (component(5:5), '(i)', iostat = ios) iw
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'BAD WHO(#) INDEX.')
+      return
+    endif
+    ix = index(set_value, ',')
+    if (ix == 0) then
+      this_graph%who(iw)%name = set_value
+    else
+      read (set_value(ix+1:), '(i)', iostat = ios) iset
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'BAD SIGN VALUE.')
+        return
+      endif
+      this_graph%who(iw)%name = set_value(1:ix-1)
+      this_graph%who(iw)%sign = iset
+    endif
+
+  case ('clip')
+    read (set_value, '(l)', iostat = ios) logic
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'BAD CLIP VALUE.')
+      return
+    endif
+    this_graph%clip = logic
+
+  case ('ix_universe')
+    read (set_value, '(i)', iostat = ios) iset
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'BAD IX_UNIVERSE VALUE.')
+      return
+    endif
+    if (iset < 0 .or. iset > size(s%u)) then
+      call out_io (s_error$, r_name, 'BAD IX_UNIVERSE VALUE OUT OF RANGE.')
+      return
+    endif
+    this_graph%ix_universe = iset     
+
+  case default
+    call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
+    return
+    
+end select
+
+s%global%lattice_recalc = .true.
+
+end subroutine
 end subroutine
 
 !-----------------------------------------------------------------------------
