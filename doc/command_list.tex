@@ -165,21 +165,24 @@ Format:
   change bunch_start <coordinate> <number>
 \end{example}
 
-\vskip 0.2in
-\vn{change} changes element attribute values or variable values. Generally
-\vn{<number>} is added to the existing value
+\vskip 0.2in \vn{change} changes element attribute values or variable
+values in the \vn{model} lattice. To set, say, datum values, etc. use
+the \vn{set} command.
+
+Generally \vn{<number>} is added to the existing value of the
+attribute or variable. That is:
 \begin{example}
-  set_value = init_value + <number>
+  final_value = initial_value + <number>
 \end{example}
 If "@" is prepended to \vn{<number>} then just the value of
 \vn{<number>} is used to set the value
 \begin{example}
-  set_value = <number>
+  final_value = <number>
 \end{example}
-If "d" is prepended to \vn{<number>}  then the value relative to the design
+If "d" is prepended to \vn{<number>} then the value relative to the design
 value is used:
 \begin{example}
-  set_value = design_value + <number>
+  final_value = design_value + <number>
 \end{example}
 
 For linear lattices, \vn{change bunch_start <coordinate> <number>} 
@@ -198,10 +201,10 @@ vary the starting Twiss parameters where \vn{<twiss>} is one of:
 Examples:
 \begin{example}
   change ele 124 x_offset  0.1     ! Offset element #124 by 0.1
-  change ele q02w k1 d1.2e-2       ! set the k1 strength of q02w relative to the design
+  change ele q02w k1 d 1.2e-2      ! set the k1 strength of q02w relative to the design
   change var steering[34:36] @1e-3 ! set the steering strength #34-36 to 0.001
   change var steering[*] @0.0      ! set all steering strengths to 0.0
-  change bunch_start x @0.001       ! set beginning x position to 1 mm
+  change bunch_start x @0.001      ! set beginning x position to 1 mm
 \end{example}
 
 
@@ -479,9 +482,13 @@ Format:
   set var <var_name>|<component> = <value>
 \end{example}
 
-\vskip 0.2in
+\vskip 0.2in 
+The \vn{set} command is used to set values for datums,
+variables, etc.  For setting element attributes in the \vn{model}
+lattice use the \vn{change} command.
+
 To apply a set to all data or variable classes use ``*''
-in place of \vn{<data_name>} or \vn{var_name}. \\
+in place of \vn{<data_name>} or \vn{var_name}.
 
 For \vn{set curve}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -511,7 +518,7 @@ Besides a numeric value \vn{<value>} can be any of the above along with:
 
 For \vn{set var}, the \vn{<component>}s that can be set are:
 \begin{example}
-  model      ! Model lattice value.
+  model       ! Model lattice value.
   base        ! Base model value
   design      ! Design model value
   meas        ! Value at the time of a measurement.

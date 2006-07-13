@@ -1193,12 +1193,27 @@ curves to plot in each graph. \vn{curve%data_source} is the type of
 information for the source of the data points. There are the following
 types of data sources:
 \begin{example}
-  "data_array"   ! d1_data is the source of the curve points.
-  "var_array"    ! v1_var is the source of the curve points.
-  "calculation"  ! The curve points are computed directly from the lattice.
+  "data_array"       ! A d1_data array is the source of the curve points.
+  "var_array"        ! A v1_var array is the source of the curve points.
+  "calculation"      ! The curve points are computed directly from the lattice.
+  "beam_calculation" ! The curve points are computed tracking a beam of particles.
 \end{example}
+With \vn{curve%data_source} set to \vn{data_array}, the values of the
+curve points come from the \vn{d1_data} array structure named by
+\vn{curve%data_type}. Thus in the above example the curve point values
+are obtained from \vn{orbit.x} data. To be valid the data structure
+named by \vn{curve%data_type} must be set up in an initialization
+file. Similarly, \vn{var_array} indicates that the values of the curve
+points come from a \vn{v1_var} array structure. \vn{calculation} means
+that the curve data points are calculated from the lattice without
+regard to any data structures. \vn{beam_calculation} is used when
+tracking beams of particles or macroparticles. In this case the curve
+points are calculated from the tracking. For example, with
+\vn{curve%data_type} set to \vn{beta.x}, the setting of
+\vn{curve%data_source} to \vn{calculation} gives the beta as
+calculated from the lattice and \vn{beam_calculation} gives the beta
+as calculated from the shape of the beam. 
 
-\index{curve!data_source}
 For a curve with the \vn{curve%data_source} set to \vn{"data_array"} the
 possible \vn{curve%data_type} values are the same as the possible
 \vn{d1_data%type} values as given in \sref{s:data_types}. If the

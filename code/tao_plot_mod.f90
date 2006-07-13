@@ -366,7 +366,7 @@ do i = 1, lat%n_ele_max
   if (s%global%label_lattice_elements .and. s%plot_page%ele_shape(j)%plot_name) then
     j_label = j_label + 1
     if (j_label == s%global%n_lat_layout_label_rows) j_label = 0
-    y_off = y_bottom + 12.0_rp * j_label 
+    y_off = y_bottom   ! + 12.0_rp * j_label 
     height = 0.8 * s%plot_page%text_height 
     call qp_draw_text (ele%name, ele%s-ele%value(l$)/2, y_off, &
                                  height = height, justify = 'CB', ANGLE = 90.0_rp)

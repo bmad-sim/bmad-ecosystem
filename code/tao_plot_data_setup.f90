@@ -342,6 +342,7 @@ logical err, smooth_curve, found, zero_average_phase
 
 character(12)  :: u_view_char
 character(30) :: r_name = 'tao_data_plot_data_setup'
+character(40) track_type
 
 call reallocate_integer (ix_ele, 1)
 
@@ -619,7 +620,7 @@ do k = 1, size(graph%curve)
 !----------------------------------------------------------------------------
 ! Case: data source is from the lattice_layout
 
-  case ('calculation')
+  case ('calculation', 'beam_calculation')
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
       i_min = max(1, floor(plot%x%min))
@@ -655,6 +656,11 @@ do k = 1, size(graph%curve)
     datum%merit_type = 'target'
     datum%data_type = curve%data_type
     datum%ele0_name = curve%ele_ref_name
+    if (curve%data_source == 'calculation') then
+      track_type = 'single'
+    else
+      track_type = s%global%track_type
+    endif
 
     do m = 1, size(graph%who)
       do ie = 1, n_dat
@@ -669,11 +675,11 @@ do k = 1, size(graph%curve)
         case (' ') 
           cycle
         case ('model')   
-          call tao_evaluate_a_datum (datum, u, u%model, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%model, track_type, y_val, t_map)
         case ('base')  
-          call tao_evaluate_a_datum (datum, u, u%base, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%base, track_type, y_val, t_map)
         case ('design')  
-          call tao_evaluate_a_datum (datum, u, u%design, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%design, track_type, y_val, t_map)
         case default
           call out_io (s_error$, r_name, &
                   'BAD PLOT "WHO" FOR LAT_LAYOUT DATA_SOURCE: ' // graph%who(m)%name, &
@@ -722,8 +728,9 @@ do k = 1, size(graph%curve)
 
   case ('s')
 
-    smooth_curve = (s%global%track_type == 'single') .or. &
-                      (s%global%track_type == 'beam' .and. allocated(u%model%bunch_params2))
+    smooth_curve = (curve%data_source == 'calculation') .or. &
+                   (s%global%track_type == 'single') .or. &
+                   (s%global%track_type == 'beam' .and. allocated(u%model%bunch_params2))
     smooth_curve = smooth_curve .and. curve%draw_interpolated_curve
     do m = 1, size(graph%who)
       if (graph%who(m)%name == 'meas' .or. graph%who(m)%name == 'ref') smooth_curve = .false.
@@ -742,11 +749,11 @@ do k = 1, size(graph%curve)
         case (' ') 
           cycle
         case ('model')
-          call calc_data_at_s (u%model, curve%data_type, graph%who(m), curve, err)
+          call calc_data_at_s (u%model, curve, graph%who(m), err)
         case ('base')  
-          call calc_data_at_s (u%base, curve%data_type, graph%who(m), curve, err)
+          call calc_data_at_s (u%base, curve, graph%who(m), err)
         case ('design')  
-          call calc_data_at_s (u%design, curve%data_type, graph%who(m), curve, err)
+          call calc_data_at_s (u%design, curve, graph%who(m), err)
         case default
           call out_io (s_error$, r_name, &
                        'BAD PLOT "WHO" WITH "S" X-AXIS: ' // graph%who(m)%name)
@@ -790,22 +797,22 @@ enddo
 !----------------------------------------------------------------------------
 contains 
 
-subroutine calc_data_at_s (tao_lat, data_type, who, curve, err)
+subroutine calc_data_at_s (tao_lat, curve, who, err)
 
 type (tao_lattice_struct), target :: tao_lat
 type (tao_plot_who_struct) who
+type (tao_curve_struct) curve
 type (bunch_params_struct), pointer :: bunch_params
 type (coord_struct), pointer :: orb(:)
 type (ring_struct), pointer :: lat
 type (ele_struct) ele
 type (coord_struct) here
-type (tao_curve_struct) curve
 type (taylor_struct) t_map(6)
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6)
 integer i, j, k, expnt(6), ix_ele
-character(40), intent(in) ::  data_type
-character(40) data_type_select
+character(40) data_type
+character(40) data_type_select, track_type
 character(20) ::r_name = 'calc_data_at_s'
 logical err
 
@@ -813,12 +820,20 @@ logical err
 
 err = .false.
 
+data_type = curve%data_type
+
 lat => tao_lat%lat
 orb => tao_lat%orb
 
 if (lat%param%lattice_type == circular_lattice$ .and. .not. lat%param%stable) then
   err = .true.
   return
+endif
+
+if (curve%data_source == 'calculation') then
+  track_type = 'single'
+else
+  track_type = s%global%track_type
 endif
 
 x1 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%min, u%model%lat%ele_(0)%s))
@@ -843,7 +858,7 @@ do ii = 1, size(curve%x_line)
   curve%x_line(ii) = s_now
   value = 0
 
-  select case (s%global%track_type)
+  select case (track_type)
   case ('single')   
     call twiss_and_track_at_s (lat, s_now, ele, orb, here)
   case ('beam')
@@ -853,7 +868,7 @@ do ii = 1, size(curve%x_line)
     here = bunch_params%centroid
   case default
     call out_io (s_fatal$, r_name, &
-            'I DO NOT KNOW HOW TO HANDLE THIS TRACK TYPE: ' // s%global%track_type)
+            'I DO NOT KNOW HOW TO HANDLE THIS TRACK TYPE: ' // track_type)
     call err_exit
   end select
 
