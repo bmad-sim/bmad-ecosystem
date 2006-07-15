@@ -1174,8 +1174,9 @@ following types:
 \index{data}\index{lat_layout}\index{key_table}\index{phase_space}
 \begin{example}
   "data"         ! Data plots (default) 
-  "lat_layout"   ! Schematic showing placement of the lattice elements.
+  "floor_plan"   ! A 2-dimentional birds-eye view of the machine.
   "key_table"    ! Key binding table for single mode.
+  "lat_layout"   ! Schematic showing placement of the lattice elements.
   "phase_space"  ! Phase space plots
 \end{example}
 The \vn{key_table} is drawn with respect to the upper left hand corner
@@ -1303,7 +1304,8 @@ Example:
 
 \index{element_shapes}
 \index{shape}
-In addition the shapes to be drawn for the various lattice elements need to
+With a \vn{graph%type} of \vn{lat_layout} or \vn{floor_plan}, 
+the shapes to be drawn for the various lattice elements need to
 be defined using an \vn{element_shapes} namelist whose syntax is:
 \begin{example}
   &element_shapes 

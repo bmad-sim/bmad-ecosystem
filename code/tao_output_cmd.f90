@@ -111,26 +111,41 @@ case ('curve')
     return
   endif
 
-  file_name = 'curve.dat'
-  if (arg2 /= ' ') file_name = arg2
   iu = lunget()
-  open (iu, file = file_name)
 
+  file_name = 'curve'
+  if (arg2 /= ' ') file_name = arg2
   c => curve(1)%c
+
   if (associated(c%beam%bunch)) then
+    call file_suffixer (file_name, file_name, 'particle_dat', .true.)
+    open (iu, file = file_name)
     write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'p_x', '  y', 'p_y', '  z', 'p_z'
     do i = 1, size(c%beam%bunch(1)%particle)
       write (iu, '(i6, 6es15.7)') i, (c%beam%bunch(1)%particle(i)%r%vec(j), j = 1, 6)
     enddo
-  else
-    write (iu, '(a, 6(9x, a))') '  Ix', '  x', '  y'
-    do i = 1, size(c%x_symb)
-      write (iu, '(i6, 2es12.4)') i, c%x_symb(i), c%y_symb(i)
-    enddo
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    close(iu)
   endif
 
+  call file_suffixer (file_name, file_name, 'symbol_dat', .true.)
+  open (iu, file = file_name)
+  write (iu, '(a, 6(9x, a))') '  Ix', '  x', '  y'
+  do i = 1, size(c%x_symb)
+    write (iu, '(i6, 2es12.4)') i, c%x_symb(i), c%y_symb(i)
+  enddo
   call out_io (s_info$, r_name, 'Writen: ' // file_name)
   close(iu)
+
+  call file_suffixer (file_name, file_name, 'line_dat', .true.)
+  open (iu, file = file_name)
+  write (iu, '(a, 6(9x, a))') '  Ix', '  x', '  y'
+  do i = 1, size(c%x_line)
+    write (iu, '(i6, 2es12.4)') i, c%x_line(i), c%y_line(i)
+  enddo
+  call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  close(iu)
+
 
 ! error
 

@@ -328,14 +328,20 @@ Format:
 \vskip 0.2in The \vn{output} command creates various files. If \vn{<file_name>} is
 not given then the defaults are:
 \begin{example}
-  curve.dat                       ! output curve
+  curve                           ! output curve
   digested8_lat_universe_#.bmad   ! output digested
   quick_plot.gif                  ! output gif
   lat_universe_#.bmad             ! output lattice
   quick_plot.ps                   ! output ps
   global%var_out_file             ! optput var
 \end{example}
-where \vn{\#} is replaced by the universe number. 
+where \vn{\#} is replaced by the universe number. For \vn{output
+curve} there are two files produced: A file
+\vn{<file_name>.symbol_dat} file for the symbol coordinates and a
+\vn{<file_name>.line_dat} file for the coordinates used to draw the
+(possibly smooth) curve through the symbols. A third file named
+\vn{<file_name>.particle_dat} may be produced if there is particle
+data plotted.
 
 Note: PGPLOT does a poor job producing gif files so consider
 making a postscript file instead and using the pstogif unix command to
