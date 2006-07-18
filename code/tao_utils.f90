@@ -811,6 +811,15 @@ endif
 
 err = .true.
 
+! Check for data
+
+if (all(s%u(:)%n_data_used == 0)) then
+  if (print_error) call out_io (s_error$, r_name, &
+                        "NO DATA HAVE BEEN DEFINED IN THE INPUT FILES!")
+  return
+endif
+
+
 ! Select meas, ref, etc.
 
 ix = index(data_name, '|')
@@ -906,7 +915,7 @@ endif
 
 ! loop over matching d2 names
 
-do i = 1, size(uu%d2_data)
+do i = 1, uu%n_d2_data_used
   if (d2_name == '*') then
     call find_this_d1 (uu%d2_data(i), d1_name, this_err)
     if (this_err) return
@@ -1222,6 +1231,14 @@ endif
 
 err = .true.
 
+! Error if no variables exist
+
+if (s%n_var_used == 0) then
+  if (print_error) call out_io (s_error$, r_name, &
+                        "NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!")
+  return
+endif
+
 ! Select meas, ref, etc.
 
 ix = index(var_name, '|')
@@ -1258,12 +1275,10 @@ else
   ix = index(v_name, ']')
   if (ix == 0) then
     if (print_error) call out_io (s_error$, r_name, "NO MATCHING ']': " // var_name)
-    this_err = .true.
     return
   endif
   if (v_name(ix+1:) /= ' ') then
     if (print_error) call out_io (s_error$, r_name, "GARBAGE AFTER ']': " // var_name)
-    this_err = .true.
     return
   endif
   v_name = v_name(:ix-1)
@@ -1271,14 +1286,13 @@ endif
 
 call string_trim(v1_name, v1_name, ix)
 if (ix == 0) then
-  err = .true.
   if (print_error) call out_io (s_error$, r_name, 'VARIABLE NAME IS BLANK')
   return
 endif
 
 ! Point to the correct v1 var type 
 
-do i = 1, size(s%v1_var)
+do i = 1, s%n_v1_var_used
   if (v1_name == '*') then
     call find_this_var (s%v1_var(i), v_name, this_err)
     if (this_err) return
