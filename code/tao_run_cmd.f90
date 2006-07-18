@@ -32,13 +32,13 @@ character(40) :: r_name = 'tao_run_cmd', my_opti
 call tao_set_var_useit_opt()
 call tao_set_data_useit_opt()
 
-if (.not. any (which /= (/ '      ', 'de    ', 'lm    ', 'custom' /))) then
+if (.not. any (which /= (/ '      ', 'de    ', 'lm    ', 'lmdif ', 'custom' /))) then
   call out_io (s_error$, r_name, 'OPTIMIZER NOT RECOGNIZED: ' // which)
   return
 endif
 
 if (which /= ' ') s%global%optimizer = which
-call out_io (s_blank$, r_name, 'Optimizing with: ' // which)
+call out_io (s_blank$, r_name, 'Optimizing with: ' // s%global%optimizer)
 call out_io (s_blank$, r_name, &
               "Type ``.'' to stop the optimizer before it's finished.")
 
@@ -69,6 +69,9 @@ case ('de')
 
 case ('lm') 
   call tao_lm_optimizer ()
+
+case ('lmdif')
+  call tao_lmdif_optimizer ()
 
 case ('custom')
   call tao_hook_optimizer ()

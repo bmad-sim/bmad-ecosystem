@@ -17,7 +17,7 @@ implicit none
 type (tao_plot_struct), pointer :: plot
 type (ele_struct), pointer :: ele
 
-integer i, ii, k, m, n_dat, i_uni, ie, jj
+integer i, ii, k, m, i_uni, ie, jj
 integer ix, ir, jg
 
 character(20) :: r_name = 'tao_plot_data_setup'

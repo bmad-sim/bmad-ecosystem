@@ -372,6 +372,7 @@ type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
   real(rp) :: lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
   real(rp) :: de_lm_step_ratio = 1       ! Scaling for step sizes between DE and LM optimizers.
+  real(rp) :: lmdif_eps = 1e-12          ! tollerance for lmdif optimizer.
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: ix_key_bank = 0             ! For single mode.

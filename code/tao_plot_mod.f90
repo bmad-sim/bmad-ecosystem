@@ -102,6 +102,8 @@ do i = 1, size(s%plot_page%region)
       call tao_plot_lat_layout (plot, graph)
     case ('key_table')
       call tao_plot_key_table (plot, graph)
+    case ('floor_plan')
+      call tao_plot_floor_plan (plot, graph)
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN GRAPH TYPE: ' // graph%type)
     end select
@@ -216,6 +218,129 @@ do i = 1, 10
                           height = dy_key-1.0_rp, uniform_spacing = .true.)
   y_here = y_here - dy_key
 enddo
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+subroutine tao_plot_floor_plan (plot, graph)
+
+type (tao_plot_struct) :: plot
+type (tao_graph_struct) :: graph
+type (ring_struct), pointer :: lat
+type (ele_struct), pointer :: ele
+type (floor_position_struct) screen1, screen2
+
+integer i, j, icol, ix1, ix2, isu
+
+real(rp) r, y
+
+character(80) str
+character(20) :: r_name = 'tao_plot_lat_layout'
+character(16) shape
+
+! Each graph is a separate lattice layout (presumably for different universes). 
+! setup the placement of the graph on the plot page.
+
+call qp_set_layout (x_axis = plot%x, y_axis = graph%y, box = graph%box, margin = graph%margin)
+  
+isu = graph%ix_universe
+! if garph%ix_universe .eq. 0 then graph currently viewed universe
+if (isu .eq. 0) then
+  lat => s%u(s%global%u_view)%model%lat
+else
+  lat => s%u(isu)%model%lat
+endif
+  
+! loop over all elements in the lattice. 
+
+do i = 1, lat%n_ele_max
+
+  ele => lat%ele_(i)
+  if (ele%control_type == multipass_lord$) cycle
+  if (ele%control_type == super_slave$) cycle
+
+  call find_element_ends (lat, i, ix1, ix2)
+  call floor_to_screen_coords (lat%ele_(ix1)%floor, screen1)
+  call floor_to_screen_coords (lat%ele_(ix2)%floor, screen2)
+
+  ! Only draw those element that are within bounds.
+
+  if (min(screen1%x, screen2%x) > plot%x%max) cycle
+  if (max(screen1%x, screen2%x) < plot%x%min) cycle
+
+  if (min(screen1%y, screen2%y) > graph%y%max) cycle
+  if (max(screen1%y, screen2%y) < graph%y%min) cycle
+
+  ! Only those elements with ele%ix_pointer > 0 are to be drawn.
+  ! All others are drawn with a line or are
+
+  j = ele%ix_pointer
+  if (j < 1) then
+    cycle
+  endif
+
+  ! Here if element is to be drawn...
+
+  call qp_translate_to_color_index (s%plot_page%ele_shape(j)%color, icol)
+
+  y = s%plot_page%ele_shape(j)%dy_pix/2
+
+  shape = s%plot_page%ele_shape(j)%shape
+
+  if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
+    select case (ele%key)
+    case (quadrupole$)
+      r = ele%value(k1$)
+    case (sextupole$)
+      r = ele%value(k2$)
+    case (octupole$)
+      r = ele%value(k3$)
+    case (solenoid$)
+      r = ele%value(ks$)
+    end select
+  end if
+
+
+
+  select case (s%plot_page%ele_shape(j)%shape)
+
+  case ('BOX')
+
+  case ('VAR_BOX')
+
+  case ('ASYM_VAR_BOX')
+
+  case ('XBOX')
+
+  case default
+    print *, 'ERROR: UNKNOWN SHAPE: ', s%plot_page%ele_shape(j)%shape
+    call err_exit
+  end select
+
+enddo
+
+!--------------------------------------------------------------------------
+contains
+
+subroutine floor_to_screen_coords (floor, screen)
+
+type (floor_position_struct) floor, screen
+
+!
+
+! Mapping from floor coords to screen coords is:
+!   Floor   Screen 
+!    z   ->  -x
+!    x   ->  -y
+
+screen%x = -floor%z
+screen%y = -floor%x
+screen%theta = pi - floor%theta
+
+end subroutine
 
 end subroutine
 

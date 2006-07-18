@@ -218,6 +218,12 @@ interface
 end interface
  
 interface
+  subroutine tao_lmdif_optimizer ()
+    implicit none
+  end subroutine
+end interface
+ 
+interface
   function tao_merit (calc_ok) result (this_merit)
     use precision_def
     implicit none
