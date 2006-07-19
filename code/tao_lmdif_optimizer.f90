@@ -32,10 +32,11 @@ real(rp), allocatable, save :: merit_vec(:), weight(:)
 real(rp), allocatable, save :: var_delta(:), var_value(:)
 real(rp) merit
 
-integer i, j, k, n, iend
+integer i, j, k, n
 integer n_data, n_var
 
 logical :: finished, init_needed = .true.
+logical at_end
 
 character(20) :: r_name = 'tao_lmdif_optimizer'
 character(80) :: line
@@ -77,24 +78,31 @@ do i = 1, s%global%n_opti_cycles
     enddo
   enddo
 
-  call suggest_lmdif (var_value, merit_vec, s%global%lmdif_eps, s%global%n_opti_cycles, iend)
+  call suggest_lmdif (var_value, merit_vec, s%global%lmdif_eps, s%global%n_opti_cycles, at_end)
   call tao_set_vars (var_value)
   write (line, '(i5, es14.4, es10.2)') i, tao_merit()
   call out_io (s_blank$, r_name, line)
 
-! look for keyboard input to end optimization
+  if (at_end) then
+    s%global%optimizer_running = .false.
+    call out_io (s_blank$, r_name, 'Optimizer at minimum. Stopping now.')
+    exit
+  endif
 
 #ifndef CESR_WINCVF
+  ! look for keyboard input to end optimization
+
   do
     call get_tty_char (char, .false., .false.) 
     if (char == '.') then
       s%global%optimizer_running = .false.
-      call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', &
-                                                             'Stopping now.')
       finished = .true.
-      call suggest_lmdif (var_value, merit_vec, s%global%lmdif_eps, i, iend)
+      call suggest_lmdif (var_value, merit_vec, s%global%lmdif_eps, i, at_end)
       call tao_set_vars (var_value)
       write (line, '(i5, es14.4, es10.2)') i, tao_merit()
+      call out_io (s_blank$, r_name, line)
+      call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', &
+                                                             'Stopping now.')
       call tao_var_write (s%global%var_out_file)
       return
     endif
