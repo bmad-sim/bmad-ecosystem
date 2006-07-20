@@ -558,6 +558,7 @@ case ('lattice')
     at_ends = .false.
     word(1) = word(2)
     word(2) = ' '
+    if (word(1) == ' ') word(1) = 'all'
   else
     at_ends = .true.
   endif
