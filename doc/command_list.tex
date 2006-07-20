@@ -668,6 +668,7 @@ Format:
   show global
   show hom
   show lattice <locations>
+  show lattice middle <locations>
   show optimizer
   show opt_vars
   show plot \{<template_plot_name>\}
@@ -724,7 +725,9 @@ Shows long--rang higher order mode information for linac accelerating cavities.
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
 regular element locations. If \vn{<locations>} is \vn{all} then the
 entire lattice will be shown. If \vn{<locations>} is not present then
-the length of the lattice will be shown.
+the length of the lattice will be shown. The default is to show the Twiss
+parameter at the exit end of the elements. To show the parameters in the 
+middle use the \vn{show lattice middle} command.
 
   \item[show optimizer]
 Shows information pertinent to optimization: Data and variables used, etc.

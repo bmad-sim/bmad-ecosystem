@@ -63,7 +63,7 @@ character(16) :: show_names(14) = (/ &
    'write       ', 'hom         ', 'opt_vars    ', 'universe    ' /)
 
 character(200), allocatable, save :: lines(:)
-character(100) line1, line2
+character(200) line1, line2, line3
 character(9) angle
 
 integer :: data_number, ix_plane
@@ -553,12 +553,20 @@ case ('lattice')
     call out_io (s_blank$, r_name, lines(1:nl))
     return
   endif
+
+  if (index('middle', trim(word(1))) == 1) then
+    at_ends = .false.
+    word(1) = word(2)
+    word(2) = ' '
+  else
+    at_ends = .true.
+  endif
   
   allocate (show_here(0:u%model%lat%n_ele_use))
   if (word(1) == 'all') then
     show_here = .true.
   else
-    word(2) = trim(word(1)) // trim(word(2))
+    word(2) = trim(word(1)) // ' ' // trim(word(2))
     call location_decode (word(2), show_here, 0, num_locations)
     if (num_locations .eq. -1) then
       call out_io (s_error$, r_name, "Syntax error in range list!")
@@ -567,21 +575,25 @@ case ('lattice')
     endif
   endif
 
-  if (.true.) then
+  if (at_ends) then
     at_ends = .true.
-    write (lines(nl+1), '(37x, a)') 'Model values at End of Element:'
+    write (line1, '(6x, a)') 'Model values at End of Element:'
   else
     at_ends = .false.
-    write (lines(nl+1), '(37x, a)') 'Model values at Center of Element:'
+    write (line1, '(6x, a)') 'Model values at Center of Element:'
   endif
 
 
-  write (lines(nl+2), '(29x, 22x, a)') &
+  write (line2, '(29x, 22x, a)') &
                      '|              X           |             Y        '
-  write (lines(nl+3), '(6x, a, 16x, a)') ' Name             key', &
+  write (line3, '(6x, a, 16x, a)') ' Name                     key', &
                   '   S    |  Beta   Phi   Eta  Orb   | Beta    Phi    Eta   Orb'
 
+  lines(nl+1) = line1
+  lines(nl+2) = line2
+  lines(nl+3) = line3
   nl=nl+3
+
   do ix = lbound(show_here,1), ubound(show_here,1)
     if (.not. show_here(ix)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
@@ -596,17 +608,16 @@ case ('lattice')
       s_pos = ele%s-ele%value(l$)/2
     endif
     nl=nl+1
-    write (lines(nl), '(i6, 1x, a16, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
+    write (lines(nl), '(i6, 1x, a24, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
           ix, ele%name, key_name(ele%key), s_pos, &
           ele3%x%beta, f_phi*ele3%x%phi, ele3%x%eta, 1000*orb%vec(1), &
           ele3%y%beta, f_phi*ele3%y%phi, ele3%y%eta, 1000*orb%vec(3)
   enddo
 
-  write (lines(nl+1), '(6x, a, 16x, a)') ' Name             key', &
-                  '   S    |  Beta   Phi   Eta  Orb   | Beta    Phi    Eta   Orb'
-  write (lines(nl+2), '(29x, 22x, a)') &
-                     '|              X           |             Y        '
-  nl=nl+2
+  lines(nl+1) = line3
+  lines(nl+2) = line2
+  lines(nl+3) = line1
+  nl=nl+3
   
   call out_io (s_blank$, r_name, lines(1:nl))
 
