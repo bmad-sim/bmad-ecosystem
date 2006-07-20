@@ -49,12 +49,14 @@ subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s)
 ! Actually take into account that the lattice may start from some non-zero s.
 
   s_use = s
-  if (s < lat%ele_(0)%s) s_use = lat%param%total_length - s
+  if (lat%param%lattice_type == circular_lattice$) then
+    if (s < lat%ele_(0)%s) s_use = s + lat%param%total_length
+  endif
 
 ! error_check
 
   i = lat%n_ele_use
-  if (s_use < lat%ele_(0)%s .or. s > lat%ele_(i)%s) then
+  if (s_use < lat%ele_(0)%s .or. s_use > lat%ele_(i)%s) then
     print *, 'ERROR IN TWISS_AND_TRACK_AT_S: S POSITION OUT OF BOUNDS.', s
     call err_exit
   endif
