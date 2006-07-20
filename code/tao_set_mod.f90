@@ -308,11 +308,23 @@ select case (component)
       return
     endif
     if (ix < 0 .or. ix > s%u(i_uni)%model%lat%n_ele_max) then
-      call out_io (s_error$, r_name, 'BAD IX_ELE_REF VALUE OUT OF RANGE.')
+      call out_io (s_error$, r_name, 'IX_ELE_REF VALUE OUT OF RANGE.')
       return
     endif
     this_curve%ix_ele_ref = ix      
     this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele_(this_curve%ix_ele_ref)%name
+
+  case ('ix_universe')
+    read (set_value, '(i)', iostat = ios) ix
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'BAD IX_UNIVERSE VALUE.')
+      return
+    endif
+    if (ix < 0 .or. ix > size(s%u)) then
+      call out_io (s_error$, r_name, 'IX_UNIVERSE VALUE OUT OF RANGE.')
+      return
+    endif
+    this_curve%ix_universe = ix      
 
   case default
     
