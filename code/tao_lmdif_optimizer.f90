@@ -83,11 +83,7 @@ do i = 1, s%global%n_opti_cycles
   write (line, '(i5, es14.4, es10.2)') i, tao_merit()
   call out_io (s_blank$, r_name, line)
 
-  if (at_end) then
-    s%global%optimizer_running = .false.
-    call out_io (s_blank$, r_name, 'Optimizer at minimum. Stopping now.')
-    exit
-  endif
+  if (at_end) exit
 
 #ifndef CESR_WINCVF
   ! look for keyboard input to end optimization
@@ -111,6 +107,13 @@ do i = 1, s%global%n_opti_cycles
 #endif
 
 enddo
+
+! cleanup
+
+if (i < s%global%n_opti_cycles) then
+  s%global%optimizer_running = .false.
+  call out_io (s_blank$, r_name, 'Optimizer at minimum. Stopping now.')
+endif
 
 call tao_var_write (s%global%var_out_file)
 
