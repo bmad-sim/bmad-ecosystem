@@ -592,7 +592,7 @@ used.
 
 \vn{var(i)%universe} gives the universe that the
 lattice element lives in. If \vn{var(i)%universe} is not present 
-\vn{default_universe} is used instead. In addition to a number 
+\vn{default_universe} is used instead. In addition to a number, 
 \vn{default_universe} can have values:
 \index{gang}\index{clone}
 \begin{example}
@@ -604,10 +604,10 @@ may not be set in the namelist. \vn{"gang"} means that each variable
 will control the given attribute in each universe
 simultaneously. \vn{"clone"} means that an array of variables will be
 duplicated, one for each universe.  To differentiate variables from
-different universes \vn{;n} will be appended to each \vn{v1_var%name}
-where \vn{n} is the universe number.  For example, if \vn{v1_var%name}
+different universes \vn{_u<n>} will be appended to each \vn{v1_var%name}
+where \vn{<n>} is the universe number.  For example, if \vn{v1_var%name}
 is \vn{quad_k1} then the variable block name for the second universe
-will be \vn{quad_k1;2}. The default if both \vn{default_universe} and
+will be \vn{quad_k1_u2}. The default if both \vn{default_universe} and
 all \vn{var(i)%universe} are not given is for \vn{default_universe} to
 be \vn{"gang"}
 

@@ -37,7 +37,7 @@ subroutine tao_init_single_mode (single_mode_file)
 ! nu(i) keeps track of the sizes of allocatable pointers in universe s%u(i).
 
   key%ele_name = ' '
-  key%universe = '0'
+  key%universe = '*'
   key%merit_type = s%global%default_key_merit_type
 
   call tao_open_file ('TAO_INIT_DIR', single_mode_file, iu, file_name)

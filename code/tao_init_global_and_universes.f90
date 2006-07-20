@@ -442,7 +442,7 @@ do
     do i = 1, size(s%u)
       call var_stuffit_common
       write (s%v1_var(s%n_v1_var_used)%name, '(2a, i0)') &
-                                trim(s%v1_var(s%n_v1_var_used)%name), ';', i
+                                trim(s%v1_var(s%n_v1_var_used)%name), '_u', i
       call var_stuffit_1_uni (i)
     enddo
 
