@@ -66,7 +66,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
 
   l_orig = ele2%value(l$)
 
-  if (del_s < 0 .or. del_s > l_orig+1e-6) then
+  if (del_s*l_orig < 0 .or. abs(del_s) > abs(l_orig)+1e-6) then
     write (line, '(a, f10.4)') 'DEL_S NEGATIVE OR LARGER THAN ELEMENT LENGTH: ', del_s
     call out_io (s_abort$, r_name, line)
     call err_exit
