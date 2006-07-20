@@ -973,14 +973,14 @@ s_loop: do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
     n_tot = 0
     do iu = 1, size(s%u)
       call tao_locate_elements (s_var, iu, n_ele)
-      if (n_ele == 0) then
-        call out_io (s_error$, r_name, 'ELEMENT DOES NOT EXIST: ' // s_var%ele_name)
-        s_var%exists = .false.
-        cycle s_loop
-      endif
       s%u(iu)%ixx = n_ele
       n_tot = n_tot + n_ele
     enddo
+    if (n_tot == 0) then
+      call out_io (s_error$, r_name, 'ELEMENT DOES NOT EXIST: ' // s_var%ele_name)
+      s_var%exists = .false.
+      cycle
+    endif
     allocate (s_var%this(n_tot))
     n_tot = 0
     do iu = 1, size(s%u)
