@@ -804,13 +804,17 @@ type (tao_plot_who_struct) who
 type (tao_curve_struct) curve
 type (bunch_params_struct), pointer :: bunch_params
 type (coord_struct), pointer :: orb(:)
+type (coord_struct), pointer :: orb0
 type (ring_struct), pointer :: lat
 type (ele_struct) ele
+type (ele_struct), pointer :: ele0
 type (coord_struct) here
 type (taylor_struct) t_map(6)
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6)
-integer i, j, k, expnt(6), ix_ele
+real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz
+
+integer i, j, k, expnt(6), ix_ele, ix0
 character(40) data_type
 character(40) data_type_select, track_type
 character(20) ::r_name = 'calc_data_at_s'
@@ -824,6 +828,8 @@ data_type = curve%data_type
 
 lat => tao_lat%lat
 orb => tao_lat%orb
+ix0 = curve%ix_ele_ref
+if (ix0 < 0) ix0 = 0
 
 if (lat%param%lattice_type == circular_lattice$ .and. .not. lat%param%stable) then
   err = .true.
@@ -838,11 +844,9 @@ endif
 
 x1 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%min, u%model%lat%ele_(0)%s))
 x2 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%max, u%model%lat%ele_(0)%s))
-if (curve%ix_ele_ref < 0) then
-  s_last = 0
-else
-  s_last = lat%ele_(curve%ix_ele_ref)%s
-endif
+ele0 => lat%ele_(ix0)
+orb0 => orb(ix0)
+s_last = ele0%s
 
 data_type_select = data_type
 if (data_type_select(1:2) == 'r.') data_type_select = 'r.'
@@ -988,6 +992,16 @@ do ii = 1, size(curve%x_line)
     enddo
     call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
     value = taylor_coef (t_map(i), expnt)
+  case ('momentum_compaction')
+    call tao_mat6_calc_at_s (lat, mat6, s_last, s_now, unit_start = .false.)
+    call make_v_mats (ele0, v_mat, v_inv_mat)
+    eta_vec = (/ ele0%x%eta, ele0%x%etap, ele0%y%eta, ele0%y%etap /)
+    eta_vec = matmul (v_mat, eta_vec)
+    one_pz = 1 + orb0%vec(6)
+    eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
+    eta_vec(4) = eta_vec(4) * one_pz + orb0%vec(4) / one_pz
+    value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
+
   case default
    call out_io (s_fatal$, r_name, &
                   'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // data_type)

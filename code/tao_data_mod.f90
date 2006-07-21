@@ -197,8 +197,11 @@ type (modes_struct) mode
 type (taylor_struct), save :: taylor(6)
 type (taylor_struct), optional :: taylor_in(6)
 type (spin_polar_struct) polar
+type (ele_struct), pointer :: ele0
+type (coord_struct), pointer :: orb0
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py
+real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz
 
 integer, save :: ix_save = -1
 integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_lat
@@ -729,8 +732,19 @@ case ('spin.polarity')
     datum_value = 1.0
   endif
   
-case default
+case ('momentum_compaction')
+  call transfer_matrix_calc (lat, .true., mat6, vec0, ix0, ix1)
+  ele0 => lat%ele_(ix0)
+  orb0 => tao_lat%orb(ix0)
+  call make_v_mats (ele0, v_mat, v_inv_mat)
+  eta_vec = (/ ele0%x%eta, ele0%x%etap, ele0%y%eta, ele0%y%etap /)
+  eta_vec = matmul (v_mat, eta_vec)
+  one_pz = 1 + orb0%vec(6)
+  eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
+  eta_vec(4) = eta_vec(4) * one_pz + orb0%vec(4) / one_pz
+  datum_value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
 
+case default
   call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
   call err_exit
 

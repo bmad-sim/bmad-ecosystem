@@ -117,51 +117,54 @@ associated with them.
 \centering 
 {\tt
 \begin{tabular}{|l|l|l|} \hline
-  {\it Data\_Type}        & {\it Description}                 &          \\ \hline 
-    beta.x, beta.y        & Projected Beta Function           &          \\ \hline 
-    beta.a, beta.b        & Normal-Mode Beta Function         &          \\ \hline 
-    alpha.x, alpha.y      & Projected Alpha Function          &          \\ \hline 
-    alpha.a, alpha.b      & Normal-Mode Alpha Function        &          \\ \hline 
-    eta.x, eta.y          & Dispersion                        &          \\ \hline 
-    etap.x, etap.y        & Dispersion derivative             &          \\ \hline 
-    phase.x, phase.y      & Betatron phase                    & relative \\ \hline 
-    phase\_frac\_diff     & Fractional phase difference (x-y) & relative \\ \hline
-    orbit.x, orbit.y      & Transverse orbit                  &          \\ \hline 
-    orbit.p\_x, orbit.p\_y& Tranverse momenta                 &          \\ \hline 
-    orbit.z, orbit.z\_p   & Longitudinal orbit and momenta    &          \\ \hline 
-    bpm.x, bpm.y          & Transverse BPM reading            &          \\ \hline 
+  {\it Data\_Type}        & {\it Description}                  &          \\ \hline 
+    alpha.x, alpha.y      & Projected Alpha Function           &          \\ \hline 
+    alpha.a, alpha.b      & Normal-Mode Alpha Function         &          \\ \hline 
+    beam_energy           & Beam Kinetic Energy                &          \\ \hline
+    %beam_energy          & Beam energy deviation from nominal &          \\ \hline
+    beta.x, beta.y        & Projected Beta Function            &          \\ \hline 
+    beta.a, beta.b        & Normal-Mode Beta Function          &          \\ \hline 
+    bpm.x, bpm.y          & Transverse BPM reading             &          \\ \hline 
+    eta.x, eta.y          & Dispersion                         &          \\ \hline 
+    etap.x, etap.y        & Dispersion derivative              &          \\ \hline 
+    momentum_compaction   & Momentum compaction factor         & relative \\ \hline
+    orbit.x, orbit.y      & Transverse orbit                   &          \\ \hline 
+    orbit.p\_x, orbit.p\_y& Tranverse momenta                  &          \\ \hline 
+    orbit.z, orbit.z\_p   & Longitudinal orbit and momenta     &          \\ \hline 
+    phase.x, phase.y      & Betatron phase                     & relative \\ \hline 
+    phase\_frac\_diff     & Fractional phase difference (x-y)  & relative \\ \hline
     wire.<angle>          & Wire Scanner with wire angle <angle>
-                                                              &          \\ \hline
+                                                               &          \\ \hline
     \begin{tabular}{@{}l}     
       spin.polarization, \\ 
       spin.theta, spin.phi 
     \end{tabular} 
-                          & Particle spin                     &          \\ \hline 
+                          & Particle spin                      &          \\ \hline 
     \begin{tabular}{@{}l}     
       cbar.11, cbar.12, \\ 
       cbar.21, cbar.22 
     \end{tabular} 
-                          & Coupling                         &          \\ \hline 
+                          & Coupling                          &          \\ \hline 
     \begin{tabular}{@{}l}   
       coupling.11b, coupling.12a, \\ 
       coupling.12b, coupling.22a 
     \end{tabular} 
-                          & Coupling                         &          \\ \hline 
+                          & Coupling                          &          \\ \hline 
     floor.x, floor.y, floor.z
-                          & Global (``floor'') position      & relative \\ \hline 
-    floor.theta           & Global (``floor'') angle         & relative \\ \hline 
+                          & Global (``floor'') position       & relative \\ \hline 
+    floor.theta           & Global (``floor'') angle          & relative \\ \hline 
     r.$ij$                & 
                            \begin{tabular}{l}
                              Term in linear transfer map \\
                              $1 \le i,j \le 6$
                            \end{tabular}
-                                                             & relative \\ \hline 
+                                                              & relative \\ \hline 
     t.$ijk$               & 
                            \begin{tabular}{l}
                              Term in 2\Nd order transfer map \\
                               $1 \le i,j,k \le 6$
                            \end{tabular} 
-                                                             & relative \\ \hline 
+                                                              & relative \\ \hline 
     tt.$ijklm\ldots$      & 
                            \begin{tabular}{l}
                              Term in n\Th order transfer map \\
@@ -231,14 +234,13 @@ associated with them.
 \begin{sideways}\vni{Macroparticle Beam}\end{sideways} 
 \\ \hline
 %   data type             & Single & Beam & Macroparticle
-    \vni{beta}             &   L    &   B  &   B   \\ \hline
     \vni{alpha}            &   L    &   B  &   B   \\ \hline
+    \vni{beta}             &   L    &   B  &   B   \\ \hline
+    \vni{bpm}              &   B    &   B  &   B   \\ \hline
     \vni{eta}              &   L    &   B  &   B   \\ \hline
     \vni{etap}             &   L    &   B  &   B   \\ \hline
-    \vni{phase}            &   L    &   L  &   L   \\ \hline
     \vni{orbit}            &   B    &   B  &   B   \\ \hline
-    \vni{bpm}              &   B    &   B  &   B   \\ \hline
-    \vni{wire}             &   X    &   B  &   X   \\ \hline
+    \vni{phase}            &   L    &   L  &   L   \\ \hline
     \vni{spin}             &   B    &   B  &   X   \\ \hline
     \vni{cbar}             &   L    &   L  &   L   \\ \hline
     \vni{coupling}         &   L    &   L  &   L   \\ \hline
@@ -254,6 +256,7 @@ associated with them.
                                     &   B  &   B   \\ \hline
     \vni{bunch_sigma}      &   X    &   B  &   B   \\ \hline
     \vn{dpx_dx,dpy_dy,...} &   X    &   B  &   B   \\ \hline
+    \vni{wire}             &   X    &   B  &   X   \\ \hline
 \end{tabular}
 }
 \caption{Data\_type Calculation method. L means this data type uses 
