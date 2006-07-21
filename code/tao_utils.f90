@@ -1536,10 +1536,10 @@ if (.not. (var%exists .and. var%good_var)) return
 ! check if hit variable limit
 if (s%global%var_limits_on) then
   if (value .lt. var%low_lim) then
-    call out_io (s_blank$, ' ', "Hit lower limit of variable.")
+    call out_io (s_blank$, ' ', "Hit lower limit of variable: " // tao_var1_name(var))
     value = var%low_lim
   elseif (value .gt. var%high_lim) then
-    call out_io (s_blank$, ' ', "Hit upper limit of variable.")
+    call out_io (s_blank$, ' ', "Hit upper limit of variable: " // tao_var1_name(var))
     value = var%high_lim
   endif
 endif

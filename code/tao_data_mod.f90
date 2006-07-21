@@ -202,6 +202,7 @@ type (coord_struct), pointer :: orb0
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz
+real(rp) gamma
 
 integer, save :: ix_save = -1
 integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_lat
@@ -550,6 +551,30 @@ case ('norm_emittance.z')
     datum_value = 0.0
   endif
 
+case ('emittance.x')
+  if (track_type == "beam") then
+    datum_value = tao_lat%bunch_params(ix1)%x%norm_emitt
+  elseif (track_type == "macro") then
+    datum_value = u%macro_beam%params%x%norm_emitt
+  else
+    datum_value = 0.0
+  endif
+  call convert_total_energy_to (lat%ele_(ix1)%value(beam_energy$), &
+                                              lat%param%particle, gamma)
+  datum_value = datum_value / gamma
+
+case ('emittance.y')  
+  if (track_type == "beam") then
+    datum_value = tao_lat%bunch_params(ix1)%y%norm_emitt
+  elseif (track_type == "macro") then
+    datum_value = u%macro_beam%params%y%norm_emitt
+  else
+    datum_value = 0.0
+  endif
+  call convert_total_energy_to (lat%ele_(ix1)%value(beam_energy$), &
+                                              lat%param%particle, gamma)
+  datum_value = datum_value / gamma
+  
 case ('emittance.a')
   datum_value = tao_lat%modes%a%emittance  
 
