@@ -53,9 +53,8 @@ endif
 ! If single character input wanted then...
 
 if (s%global%single_mode) then
-
   call get_a_char (cmd_line(1:1), .true., (/ ' ' /))  ! ignore blanks
-
+  tao_com%cmd_from_cmd_file = .false.
   return
 endif
 
@@ -81,9 +80,11 @@ endif
 
 ! If a command file is open then read a line from the file.
 
-if (tao_com%nest_level /= 0) then
+if (tao_com%cmd_file_level /= 0) then
+
   if (.not. multi_commands_here) then
-    read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 8000) cmd_line
+    read (tao_com%lun_command_file(tao_com%cmd_file_level), '(a)', end = 8000) cmd_line
+    tao_com%cmd_from_cmd_file = .true.
     call string_trim (cmd_line, cmd_line, ix)
 
     ! replace argument variables
@@ -100,16 +101,17 @@ if (tao_com%nest_level /= 0) then
     call do_loop()
     
   endif
+
   call alias_translate (cmd_line, err)
   call check_for_multi_commands
 
   return
 
   8000 continue
-  close (tao_com%lun_command_file(tao_com%nest_level))
-  tao_com%lun_command_file(tao_com%nest_level) = 0 
-  tao_com%nest_level = tao_com%nest_level - 1 ! signal that the file has been closed
-  if (tao_com%nest_level .ne. 0) return ! still lower nested command file to complete
+  close (tao_com%lun_command_file(tao_com%cmd_file_level))
+  tao_com%lun_command_file(tao_com%cmd_file_level) = 0 
+  tao_com%cmd_file_level = tao_com%cmd_file_level - 1 ! signal that the file has been closed
+  if (tao_com%cmd_file_level .ne. 0) return ! still lower nested command file to complete
 endif
 
 ! Here if no command file is being used.
@@ -117,6 +119,7 @@ endif
 if (.not. multi_commands_here) then
   cmd_line = ' '
   tag = trim(prompt_string) // '> ' // achar(0)
+  tao_com%cmd_from_cmd_file = .false.
 !***************
 #ifndef CESR_WINCVF
   call read_line (trim(tag), cmd_line)
@@ -126,6 +129,7 @@ if (.not. multi_commands_here) then
 #endif
 
 endif
+
 call alias_translate (cmd_line, err)
 call check_for_multi_commands
 
@@ -217,7 +221,7 @@ character(8) :: r_name = "do_loop"
   if (ix .le. len(do_word)) &
     call str_upcase(do_word(1:ix), cmd_line(1:ix))
   if (ix .eq. 2 .and. do_word(1:3) .eq. "DO ") then
-    call set_loop_nest_level (in_loop + 1)
+    call set_loop_cmd_file_level (in_loop + 1)
     ! next word is loop index
     indx_name(in_loop) = ' '
     call string_trim (cmd_line(ix+1:), cmd_line, ix)
@@ -242,7 +246,7 @@ character(8) :: r_name = "do_loop"
     enddo_count = 0
     inner_loop_count = 0
     do 
-      read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9000) cmd_line
+      read (tao_com%lun_command_file(tao_com%cmd_file_level), '(a)', end = 9000) cmd_line
       write (*, '(3a)') trim(prompt_string), ': ', trim(cmd_line)
       call string_trim (cmd_line, cmd_line, ix)
       do_word = ' '
@@ -265,9 +269,9 @@ character(8) :: r_name = "do_loop"
     if (inner_loop_count .ne. 0) then
       ! There's an inner loop so rewind to beginning of first inner loop
       do i = 1, loop_line_count(in_loop) + 1
-        backspace (tao_com%lun_command_file(tao_com%nest_level))
-        backspace (tao_com%lun_command_file(tao_com%nest_level))
-        read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9000) cmd_line
+        backspace (tao_com%lun_command_file(tao_com%cmd_file_level))
+        backspace (tao_com%lun_command_file(tao_com%cmd_file_level))
+        read (tao_com%lun_command_file(tao_com%cmd_file_level), '(a)', end = 9000) cmd_line
         call string_trim (cmd_line, cmd_line, ix)
         do_word = ' '
         if (ix .le. len(do_word)) &
@@ -301,22 +305,22 @@ character(8) :: r_name = "do_loop"
     if (indx(in_loop) .le. indx_end(in_loop) .and. indx_step(in_loop) .gt. 0) then
       ! rewind
       do i = 1, loop_line_count(in_loop) + 1
-        backspace (tao_com%lun_command_file(tao_com%nest_level))
+        backspace (tao_com%lun_command_file(tao_com%cmd_file_level))
       enddo
     elseif (indx(in_loop) .ge. indx_end(in_loop) .and. indx_step(in_loop) .lt. 0) then
       call out_io (s_error$, r_name, &
         "negative step size in loops not yet implemented: will ignore loop")
     else
       ! looped correct number of times, now exit loop
-      call set_loop_nest_level (in_loop - 1)
+      call set_loop_cmd_file_level (in_loop - 1)
       if (in_loop .ge. 1) then
-        read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9000) cmd_line
+        read (tao_com%lun_command_file(tao_com%cmd_file_level), '(a)', end = 9000) cmd_line
         goto 1001
       else
       endif
     endif
     ! read next line
-    read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9100) cmd_line
+    read (tao_com%lun_command_file(tao_com%cmd_file_level), '(a)', end = 9100) cmd_line
     goto 1001
   endif
   
@@ -345,9 +349,9 @@ character(8) :: r_name = "do_loop"
   call out_io (s_error$, r_name, &
        "No corresponding 'enddo' statment found, loop will be ignored")
   9100 continue
-  close (tao_com%lun_command_file(tao_com%nest_level))
-  tao_com%lun_command_file(tao_com%nest_level) = 0 
-  tao_com%nest_level = tao_com%nest_level - 1 ! signal that the file has been closed
+  close (tao_com%lun_command_file(tao_com%cmd_file_level))
+  tao_com%lun_command_file(tao_com%cmd_file_level) = 0 
+  tao_com%cmd_file_level = tao_com%cmd_file_level - 1 ! signal that the file has been closed
   in_loop = 0
 
   ! don't send last 'ENDDO' to tao_command.f90
@@ -364,7 +368,7 @@ end subroutine do_loop
 ! contains
 !
 
-subroutine set_loop_nest_level (level)
+subroutine set_loop_cmd_file_level (level)
 
 implicit none
 
@@ -378,7 +382,7 @@ integer level
   call reallocate_integer (indx_step, in_loop)
   call reallocate_string (indx_name, 10, in_loop)
 
-end subroutine set_loop_nest_level
+end subroutine set_loop_cmd_file_level
 
 end subroutine tao_get_user_input
 

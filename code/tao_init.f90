@@ -12,6 +12,7 @@ subroutine tao_init (init_file)
 
   use tao_mod
   use tao_lattice_calc_mod
+  use tao_command_mod
   use tao_plot_mod
 
   implicit none
@@ -143,6 +144,8 @@ subroutine tao_init (init_file)
   call tao_open_file ('TAO_INIT_DIR', startup_file, iu, file_name)
   if (iu /= 0) then
     call out_io (s_blank$, r_name, 'Using startup file: ' // file_name)
+    tao_com%cmd_from_cmd_file = .false.
+    call tao_cmd_history_record ('call ' // startup_file)
     call tao_call_cmd (file_name)
   endif
 

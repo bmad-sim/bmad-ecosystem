@@ -35,8 +35,12 @@ character(*) cmd
 ix_history = ix_history + 1
 if (ix_history > size(history)) ix_history = 1
 n_history = n_history + 1
-history(ix_history)%cmd = cmd
 history(ix_history)%ix = n_history
+if (tao_com%cmd_from_cmd_file) then
+  history(ix_history)%cmd = '  ! ' // trim(cmd)
+else
+  history(ix_history)%cmd = trim(cmd)
+endif
 
 end subroutine
 

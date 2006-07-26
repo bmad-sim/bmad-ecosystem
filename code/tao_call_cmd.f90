@@ -26,21 +26,21 @@ character(200) full_name
 character(16) :: r_name = 'tao_call_cmd'
 
 integer iu
-integer, automatic :: lun_save(tao_com%nest_level)
+integer, automatic :: lun_save(tao_com%cmd_file_level)
 
 ! Open the command file and store the unit number
 
-tao_com%nest_level = tao_com%nest_level + 1
+tao_com%cmd_file_level = tao_com%cmd_file_level + 1
 
 ! reallocate lun_command_file array
-if (tao_com%nest_level .gt. 1) &
-  lun_save = tao_com%lun_command_file(1:tao_com%nest_level-1)
+if (tao_com%cmd_file_level .gt. 1) &
+  lun_save = tao_com%lun_command_file(1:tao_com%cmd_file_level-1)
 
 if (associated (tao_com%lun_command_file)) deallocate (tao_com%lun_command_file)
-allocate (tao_com%lun_command_file(tao_com%nest_level))
+allocate (tao_com%lun_command_file(tao_com%cmd_file_level))
 
-if (tao_com%nest_level .gt. 1) &
-  tao_com%lun_command_file(1:tao_com%nest_level-1) = lun_save
+if (tao_com%cmd_file_level .gt. 1) &
+  tao_com%lun_command_file(1:tao_com%cmd_file_level-1) = lun_save
   
 
 ! check for nested command files
@@ -52,14 +52,14 @@ if (tao_com%nest_level .gt. 1) &
 iu = lunget()
 call tao_open_file ('TAO_COMMAND_DIR', file_name, iu, full_name)
 if (iu == 0) then ! open failed
-  tao_com%nest_level = tao_com%nest_level - 1
+  tao_com%cmd_file_level = tao_com%cmd_file_level - 1
   return
 endif
 
-tao_com%lun_command_file(tao_com%nest_level) = iu
+tao_com%lun_command_file(tao_com%cmd_file_level) = iu
 
 ! command arguments only valid for first level
-if (tao_com%nest_level .ne. 1 .and. present(cmd_arg)) then
+if (tao_com%cmd_file_level .ne. 1 .and. present(cmd_arg)) then
   if (cmd_arg(1) .ne. ' ') then
     call out_io (s_warn$, r_name, &
                  "Command arguments only valid for first level command file")

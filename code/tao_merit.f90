@@ -70,15 +70,16 @@ enddo
 
 do i = 1, size(s%u)
 
-! check if universe is turned off
-  if (.not. s%u(i)%is_on) cycle
-
-! First compute the delta for the merit function
-  
   data => s%u(i)%data
   data%merit = 0
   data%delta_merit = 0
 
+! check if universe is turned off
+
+  if (.not. s%u(i)%is_on) cycle
+
+! First compute the delta for the merit function
+  
   do j = 1, size(data)
     if (.not. data(j)%useit_opt) cycle
     if (s%global%opt_with_ref .and. s%global%opt_with_base) then

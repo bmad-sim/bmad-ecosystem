@@ -49,6 +49,7 @@ n_var = size(var_delta)
 
 n_data = n_var
 do i = 1, size(s%u)
+  if (.not. s%u(i)%is_on) cycle
   n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0)
 enddo
 
@@ -70,6 +71,7 @@ do i = 1, s%global%n_opti_cycles
   k = n_var
   do n = 1, size(s%u)
     u => s%u(n)
+    if (.not. u%is_on) cycle
     do j = 1, size(u%data)
       if (.not. u%data(j)%useit_opt) cycle
       if (u%data(j)%weight == 0) cycle

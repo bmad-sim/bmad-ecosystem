@@ -18,6 +18,7 @@ subroutine tao_run_cmd (which)
 
 use tao_mod
 use tao_var_mod
+use tao_lm_optimizer_mod
 
 implicit none
 

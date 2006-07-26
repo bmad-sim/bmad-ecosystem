@@ -2583,7 +2583,7 @@ integer i_var, i_this, ix_this
 
   do i_var = 1, size(s%var)
     ix_this = -1
-    if (.not. associated(s%var(i_var)%this)) cycle
+    if (.not. allocated(s%var(i_var)%this)) cycle
     do i_this = 1, size(s%var(i_var)%this)
       if (s%var(i_var)%this(i_this)%ix_uni .eq. s%global%u_view) &
               ix_this = i_this

@@ -316,7 +316,7 @@ type tao_var_struct
   character(40) alias       ! Short alias name.
   character(40) ele_name    ! Associated lattice element name.
   character(40) attrib_name ! Name of the attribute to vary.
-  type (tao_this_var_struct), pointer :: this(:) => null()
+  type (tao_this_var_struct), allocatable :: this(:)
   integer ix_v1             ! Index of this var in the s%v1_var(i)%v(:) array.
   integer ix_var            ! Index number of this var in the s%var(:) array.
   integer ix_dvar           ! Column in the dData_dVar derivative matrix.
@@ -528,13 +528,14 @@ type tao_common_struct
   logical opti_init        ! init needed?
   logical opti_at_limit    ! Variable at limit?
   character(40) cmd_arg(9) ! Command file arguments.
-  character(100) cmd
+  character(100) cmd       ! Used for the cmd history
   character(16) :: init_name = "Tao"  !label for initialization
   integer :: n_alias = 0
-  integer :: nest_level = 0 ! for nested command files
+  integer :: cmd_file_level = 0 ! for nested command files
               ! unit numbers for a command files. 0 -> no command file.
   integer, pointer :: lun_command_file(:) => null() 
   logical :: use_cmd_here  = .false. ! Used for the cmd history stack
+  logical cmd_from_cmd_file ! was command from a command file?
 end type
 
 

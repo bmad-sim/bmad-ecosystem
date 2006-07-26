@@ -901,7 +901,7 @@ case ('var')
     nl=nl+1; write(lines(nl), rmt)  'Model_value:   ', v_ptr%model_value
     nl=nl+1; write(lines(nl), rmt)  'Base_value:    ', v_ptr%base_value
 
-    if (.not. associated (v_ptr%this)) then
+    if (.not. allocated (v_ptr%this)) then
       nl=nl+1; write(lines(nl), imt)  'this(:) -- Not associated!'
     else
       do i = 1, size(v_ptr%this)

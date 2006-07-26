@@ -212,12 +212,6 @@ interface
 end interface
 
 interface
-  subroutine tao_lm_optimizer ()
-    implicit none
-  end subroutine
-end interface
- 
-interface
   subroutine tao_lmdif_optimizer ()
     implicit none
   end subroutine
@@ -230,31 +224,6 @@ interface
     real(rp) this_merit
     logical, optional :: calc_ok
   end function
-end interface
- 
-interface
-  subroutine tao_mrqmin(x, y, sig, a, maska, covar, alpha, chisq, alamda, limited)
-    use nrtype
-    use precision_def
-    real(rp), dimension(:), intent(in) :: x, y, sig
-    real(rp), dimension(:), intent(inout) :: a
-    real(rp), dimension(:,:), intent(out) :: covar, alpha
-    real(rp), intent(out) :: chisq
-    real(rp), intent(inout) :: alamda
-    logical(lgt), dimension(:), intent(in) :: maska
-    logical limited
-  end subroutine
-end interface
-
-interface
-  subroutine tao_mrq_func (x, a, y_fit, dy_da, limited)
-    use precision_def
-    implicit none
-    real(rp), intent(in) :: x(:), a(:)
-    real(rp), intent(out) :: y_fit(:)
-    real(rp), intent(out) :: dy_da(:, :)
-    logical limited
-  end subroutine
 end interface
  
 interface
