@@ -246,10 +246,11 @@ end subroutine
 ! Subroutine to put the dispersion into ele.mat6 given the eta vector e_vec
 !
 ! Input:
-!   e_vec(4) -- Real(rp): eta vector
+!   e_vec(4) -- Real(rp): Dispersion vector
+!   mat6(6,6) -- Real(rp): Matrix with 4x4 x-y submatrix already made.
 !
 ! Output:
-!   mat6(6,6) -- Real(rp): Matrix with 4x4 x-y submatrix already made.
+!   mat6(6,6) -- Real(rp): mat6(5, 1:4) components set for the dispersion.
 !-
 
 subroutine mat6_dispersion (e_vec, mat6)
