@@ -1004,35 +1004,34 @@ implicit none
 type (tao_universe_struct), target :: u
 type (tao_data_struct), pointer :: datum
 character(*) :: lines(:)
+character(100) l1
 integer i_ele, nl, i
 
-character(30) :: dmt = "(a20, 3(1x, es15.5)) "
+logical found_one
 
-logical :: found_one = .false.
+!
 
-  nl=nl+1; write (lines(nl), '(a)') "  "
-  nl=nl+1; write (lines(nl), '(a)') &
-        "   Data Type          |  Model Value  |  Design Value |  Base Value"
+nl=nl+1; write (lines(nl), '(a)') "  "
+write (l1, '(a, 20x, a)') "Data Name", &
+          "Data Type             |  Model Value  |  Design Value |  Base Value"
+nl=nl+1; lines(nl) = l1
 
-  do i = 1, size(u%data)
-    if (u%data(i)%ix_ele .eq. i_ele) then
-      found_one = .true.
-      datum => u%data(i)
-      nl = nl + 1
-      write (lines(nl), dmt) datum%data_type, datum%model_value, &
-                             datum%design_value, datum%base_value 
-    endif
-  enddo
-
-  if (.not. found_one) then
-    nl = nl +1 
-    write (lines(nl), '(a)') "No data types associated with this element."
+found_one = .false.
+do i = 1, size(u%data)
+  if (u%data(i)%ix_ele .eq. i_ele) then
+    found_one = .true.
+    datum => u%data(i)
+    nl=nl+1; write (lines(nl), "(a, t30, a20, 3(1x, es15.5))") &
+                trim(tao_datum_name(datum)),  datum%data_type, datum%model_value, &
+                datum%design_value, datum%base_value 
   endif
+enddo
 
-  nl=nl+1; write (lines(nl), '(a)') "  "
-  nl=nl+1; write (lines(nl), '(a)') &
-        "   Data Type          |  Model Value  |  Design Value |  Base Value"
-
+if (found_one) then
+  nl=nl+1; lines(nl) = l1
+else
+  nl=nl+1; write (lines(nl), '(a)') "No data associated with this element."
+endif
 
 end subroutine show_ele_data
 

@@ -336,7 +336,7 @@ enddo
 l1 = 'Constraint'
 n=3+n_d2_d1_name+2+n_name; l1(n:) = 'Where0'
 n=len_trim(l1)+n_loc0-4;   l1(n:) = 'Where'
-n=len_trim(l1)+n_loc1-1;   l1(n:) = 'Target       Value     Merit   Max'
+n=len_trim(l1)+n_loc1-2;   l1(n:) = 'Target     Value      Merit     Max'
 
 nl=nl+1; line(nl) = ' '
 nl=nl+1; line(nl) = l1
@@ -350,7 +350,7 @@ do j = 1, n_max
   i = ixm(j)
   nl=nl+1; write (line(nl), fmt) con(i)%d2_d1_name(1:n_d2_d1_name), &
             con(i)%name(1:n_name), &
-            con(i)%loc0(1:n_loc1), con(i)%loc1(1:n_loc0), con(i)%target_value, &
+            con(i)%loc0(1:n_loc0), con(i)%loc1(1:n_loc1), con(i)%target_value, &
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
 end do
 nl=nl+1; line(nl) = l1

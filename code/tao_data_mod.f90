@@ -234,9 +234,9 @@ if (data_type(1:5) == 'wire.') data_type = 'wire.'
 if (data_type == 'r.' .or. data_type == 't.' .or. data_type == 'tt.') then
   if (ix0 > ix1 .and. lat%param%lattice_type == linear_lattice$) then
     call out_io (s_error$, r_name, &
-                'ERROR: ELEMENTS ARE REVERSED FOR: ' // datum%data_type, &
-                'STARTING ELEMENT: ' // lat%ele_(ix0)%name, &
-                'IS AFTER ENDING ELEMENT: ' // lat%ele_(ix1)%name)
+            'ERROR: ELEMENTS ARE REVERSED FOR: ' // tao_datum_name(datum), &
+            'STARTING ELEMENT: ' // lat%ele_(ix0)%name, &
+            'IS AFTER ENDING ELEMENT: ' // lat%ele_(ix1)%name)
     return
   endif
 endif
@@ -246,11 +246,11 @@ endif
 select case (data_type)
 
 case ('orbit.x')
-  call load_it (tao_lat%orb(:)%vec(1))
+  call load_it (tao_lat%orb(:)%vec(1), ix0, ix1, datum_value, datum, lat)
 case ('orbit.y')
-  call load_it (tao_lat%orb(:)%vec(3))
+  call load_it (tao_lat%orb(:)%vec(3), ix0, ix1, datum_value, datum, lat)
 case ('orbit.z')
-  call load_it (tao_lat%orb(:)%vec(5))
+  call load_it (tao_lat%orb(:)%vec(5), ix0, ix1, datum_value, datum, lat)
 
 case ('bpm.x')
   call tao_read_bpm (tao_lat%orb(ix1), lat%ele_(ix1), x_plane$, datum_value)
@@ -258,11 +258,11 @@ case ('bpm.y')
   call tao_read_bpm (tao_lat%orb(ix1), lat%ele_(ix1), y_plane$, datum_value)
 
 case ('orbit.p_x')
-  call load_it (tao_lat%orb(:)%vec(2))
+  call load_it (tao_lat%orb(:)%vec(2), ix0, ix1, datum_value, datum, lat)
 case ('orbit.p_y')
-  call load_it (tao_lat%orb(:)%vec(4))
+  call load_it (tao_lat%orb(:)%vec(4), ix0, ix1, datum_value, datum, lat)
 case ('orbit.p_z')
-  call load_it (tao_lat%orb(:)%vec(6))
+  call load_it (tao_lat%orb(:)%vec(6), ix0, ix1, datum_value, datum, lat)
 
 case ('phase.x')
   datum_value = lat%ele_(ix1)%x%phi - lat%ele_(ix0)%x%phi
@@ -280,7 +280,7 @@ case ('phase_frac_diff')
 
 case ('beta.x')
   if (track_type == "single") then
-    call load_it (lat%ele_(:)%x%beta)
+    call load_it (lat%ele_(:)%x%beta, ix0, ix1, datum_value, datum, lat)
   elseif (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%x%beta
   elseif (track_type == "macro") then
@@ -289,7 +289,7 @@ case ('beta.x')
     
 case ('beta.a')
   if (track_type == "single") then
-    call load_it (lat%ele_(:)%x%beta)
+    call load_it (lat%ele_(:)%x%beta, ix0, ix1, datum_value, datum, lat)
   elseif (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%beta
   elseif (track_type == "macro") then
@@ -298,7 +298,7 @@ case ('beta.a')
     
 case ('beta.y')
   if (track_type == "single") then
-    call load_it (lat%ele_(:)%y%beta)
+    call load_it (lat%ele_(:)%y%beta, ix0, ix1, datum_value, datum, lat)
   elseif (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%y%beta
   elseif (track_type == "macro") then
@@ -307,7 +307,7 @@ case ('beta.y')
 
 case ('beta.b')
   if (track_type == "single") then
-    call load_it (lat%ele_(:)%y%beta)
+    call load_it (lat%ele_(:)%y%beta, ix0, ix1, datum_value, datum, lat)
   elseif (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%b%beta
   elseif (track_type == "macro") then
@@ -316,7 +316,7 @@ case ('beta.b')
 
 case ('alpha.x')
   if (track_type == "single") then
-    call load_it (lat%ele_(:)%x%alpha)
+    call load_it (lat%ele_(:)%x%alpha, ix0, ix1, datum_value, datum, lat)
   elseif (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%x%alpha
   elseif (track_type == "macro") then
@@ -325,7 +325,7 @@ case ('alpha.x')
   
 case ('alpha.a')
   if (track_type == "single") then
-    call load_it (lat%ele_(:)%x%alpha)
+    call load_it (lat%ele_(:)%x%alpha, ix0, ix1, datum_value, datum, lat)
   elseif (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%alpha
   elseif (track_type == "macro") then
@@ -334,7 +334,7 @@ case ('alpha.a')
   
 case ('alpha.y')
   if (track_type == "single") then
-    call load_it (lat%ele_(:)%y%alpha)
+    call load_it (lat%ele_(:)%y%alpha, ix0, ix1, datum_value, datum, lat)
   elseif (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%y%alpha
   elseif (track_type == "macro") then
@@ -343,7 +343,7 @@ case ('alpha.y')
 
 case ('alpha.b')
   if (track_type == "single") then
-    call load_it (lat%ele_(:)%y%alpha)
+    call load_it (lat%ele_(:)%y%alpha, ix0, ix1, datum_value, datum, lat)
   elseif (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%b%alpha
   elseif (track_type == "macro") then
@@ -356,7 +356,7 @@ case ('eta.x')
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%x%eta
   else
-    call load_it (lat%ele_(:)%x%eta_lab)
+    call load_it (lat%ele_(:)%x%eta_lab, ix0, ix1, datum_value, datum, lat)
   endif
 
 case ('eta.y')
@@ -365,7 +365,7 @@ case ('eta.y')
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%y%eta
   else
-    call load_it (lat%ele_(:)%y%eta_lab)
+    call load_it (lat%ele_(:)%y%eta_lab, ix0, ix1, datum_value, datum, lat)
   endif
 
 case ('etap.x')
@@ -374,7 +374,7 @@ case ('etap.x')
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%x%etap
   else
-    call load_it (lat%ele_(:)%x%etap_lab)
+    call load_it (lat%ele_(:)%x%etap_lab, ix0, ix1, datum_value, datum, lat)
   endif
 
 case ('etap.y')
@@ -383,7 +383,7 @@ case ('etap.y')
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%y%etap
   else
-    call load_it (lat%ele_(:)%y%etap_lab)
+    call load_it (lat%ele_(:)%y%etap_lab, ix0, ix1, datum_value, datum, lat)
   endif
 
 case ('eta.a')
@@ -392,7 +392,7 @@ case ('eta.a')
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%a%eta
   else
-    call load_it (lat%ele_(:)%x%eta)
+    call load_it (lat%ele_(:)%x%eta, ix0, ix1, datum_value, datum, lat)
   endif
 
 case ('eta.b')
@@ -401,7 +401,7 @@ case ('eta.b')
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%b%eta
   else
-    call load_it (lat%ele_(:)%y%eta)
+    call load_it (lat%ele_(:)%y%eta, ix0, ix1, datum_value, datum, lat)
   endif
 
 case ('etap.a')
@@ -410,7 +410,7 @@ case ('etap.a')
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%a%etap
   else
-    call load_it (lat%ele_(:)%x%etap)
+    call load_it (lat%ele_(:)%x%etap, ix0, ix1, datum_value, datum, lat)
   endif
 
 case ('etap.b')
@@ -419,33 +419,33 @@ case ('etap.b')
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%b%etap
   else
-    call load_it (lat%ele_(:)%y%etap)
+    call load_it (lat%ele_(:)%y%etap, ix0, ix1, datum_value, datum, lat)
   endif
 
 case ('beam_energy')
   call load_it (lat%ele_(0:n_lat)%value(beam_energy$) * &
-                                        (1+tao_lat%orb(0:n_lat)%vec(6)))
+                       (1+tao_lat%orb(0:n_lat)%vec(6)), ix0, ix1, datum_value, datum, lat)
 
 case ('%beam_energy')
-  call load_it (tao_lat%orb(0:n_lat)%vec(6))
+  call load_it (tao_lat%orb(0:n_lat)%vec(6), ix0, ix1, datum_value, datum, lat)
   
 case ('coupling.11b')
-  call load_it (cc%coupling11, cc%f_11, coupling_here = .true.)
+  call load_it (cc%coupling11, ix0, ix1, datum_value, datum, lat, cc%f_11, coupling_here = .true.)
 case ('coupling.12a')
-  call load_it (cc%coupling12a, cc%f_12a, coupling_here = .true.)
+  call load_it (cc%coupling12a, ix0, ix1, datum_value, datum, lat, cc%f_12a, coupling_here = .true.)
 case ('coupling.12b')
-  call load_it (cc%coupling12b, cc%f_12b, coupling_here = .true.)
+  call load_it (cc%coupling12b, ix0, ix1, datum_value, datum, lat, cc%f_12b, coupling_here = .true.)
 case ('coupling.22a')
-  call load_it (cc%coupling22, cc%f_22, coupling_here = .true.)
+  call load_it (cc%coupling22, ix0, ix1, datum_value, datum, lat, cc%f_22, coupling_here = .true.)
 
 case ('cbar.11')
-  call load_it (cc%cbar(1,1), coupling_here = .true.)
+  call load_it (cc%cbar(1,1), ix0, ix1, datum_value, datum, lat, coupling_here = .true.)
 case ('cbar.12')
-  call load_it (cc%cbar(1,2), coupling_here = .true.)
+  call load_it (cc%cbar(1,2), ix0, ix1, datum_value, datum, lat, coupling_here = .true.)
 case ('cbar.21')
-  call load_it (cc%cbar(1,2), coupling_here = .true.)
+  call load_it (cc%cbar(2,1), ix0, ix1, datum_value, datum, lat, coupling_here = .true.)
 case ('cbar.22')
-  call load_it (cc%cbar(2,2), coupling_here = .true.)
+  call load_it (cc%cbar(2,2), ix0, ix1, datum_value, datum, lat, coupling_here = .true.)
 
 case ('i5a_e6')
   datum_value = tao_lat%modes%lin%i5a_e6
@@ -775,24 +775,46 @@ case default
 
 end select
 
-!  if (isnan(datum_value)) datum_value = tiny(1.0_rp)
+end subroutine tao_evaluate_a_datum
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-contains
+!-----------------------------------------------------------------------
 
-subroutine load_it (vec, f, coupling_here)
+subroutine load_it (vec, ix0, ix1, datum_value, datum, lat, f, coupling_here)
+
+implicit none
+
+type (tao_data_struct) datum
+type (ring_struct) lat
 
 real(rp) vec(0:)
 real(rp), optional :: f(0:)
-integer ix_m, i
+real(rp) datum_value
+
+character(20) :: r_name = 'tao_evaluate_a_datum'
+
+integer ix_m, i, ix0, ix1, n_lat
 logical, optional :: coupling_here
 
 !
 
+if (ix1 < ix0 .and. lat%param%lattice_type == linear_lattice$) then
+  call out_io (s_error$, r_name, &
+                'ERROR: ELEMENTS ARE REVERSED FOR: ' // tao_datum_name(datum), &
+                'STARTING ELEMENT: ' // lat%ele_(ix0)%name, &
+                'IS AFTER ENDING ELEMENT: ' // lat%ele_(ix1)%name)
+  datum_value = 0
+  return
+endif
+ 
+!
+
+n_lat = lat%n_ele_use
+
 if (datum%ele0_name == ' ') then
   ix_m = ix1
-  if (present(coupling_here)) call coupling_calc (ix_m)
+  if (present(coupling_here)) call coupling_calc (ix_m, datum, lat)
 
 !
 
@@ -802,10 +824,10 @@ else
 
     if (present(coupling_here)) then
       do i = ix0, n_lat
-        call coupling_calc (i)
+        call coupling_calc (i, datum, lat)
       enddo
       do i = 0, ix1
-        call coupling_calc (i)
+        call coupling_calc (i, datum, lat)
       enddo
     endif
   
@@ -836,14 +858,14 @@ else
       endif
     case default
       call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
-                                   'FOR DATUM: ' // datum%data_type)
+                                   'FOR DATUM: ' // tao_datum_name(datum))
       call err_exit
     end select
 
   else
     if (present(coupling_here)) then
       do i = ix0, ix1
-        call coupling_calc (i)
+        call coupling_calc (i, datum, lat)
       enddo
     endif
 
@@ -879,12 +901,17 @@ end subroutine
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-! contains
+!-----------------------------------------------------------------------
 
-subroutine coupling_calc (ixd)
+subroutine coupling_calc (ixd, datum, lat)
+
+implicit none
 
 type (ele_struct), pointer :: ele
 type (this_coupling_struct), pointer :: cc_p
+type (tao_data_struct) datum
+type (ring_struct) lat
+
 integer ie, ixd
 real(rp) f, f1, f2
 
@@ -912,8 +939,6 @@ cc_p%f_12b = f1
 cc_p%f_22  = f2
 
 end subroutine coupling_calc
-
-end subroutine tao_evaluate_a_datum
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

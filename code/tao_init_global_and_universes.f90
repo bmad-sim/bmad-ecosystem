@@ -890,7 +890,7 @@ j_save = 1
 do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
   s_var => s%v1_var(n)%v(i)
 
-  if (associated(s_var%this)) deallocate (s_var%this)
+  if (allocated(s_var%this)) deallocate (s_var%this)
   if (s_var%ele_name == ' ') then
     allocate (s_var%this(0))
     s_var%exists = .false.
@@ -963,7 +963,7 @@ j_save = 1
   
 s_loop: do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
   s_var => s%v1_var(n)%v(i)
-  if (associated(s_var%this)) deallocate (s_var%this)
+  if (allocated(s_var%this)) deallocate (s_var%this)
   if (s_var%ele_name == ' ') then
     allocate (s_var%this(0))
     s_var%exists = .false.
@@ -1529,8 +1529,10 @@ do j = 1, size(u%data)
     ix_ele = -2
   elseif (data%ix_ele == -1) then
     ix_ele = -1
+  elseif (data%ix_ele0 > data%ix_ele) then
+    ix_ele = u%model%lat%n_ele_use
   else
-    ix_ele = max(data%ix_ele, data%ix_ele0)
+    ix_ele = data%ix_ele
   endif
   n_data(ix_ele) = n_data(ix_ele) + 1
 enddo
@@ -1546,6 +1548,8 @@ enddo
 ix_next(:) = 1
   
 ! setup ix_ele array for each element
+! This is the point where the datum is evaluated
+! if ix_ele0 > ix_ele then there is "wrap around"
 do j = 1, size(u%data)
   data => u%data(j)
   if (.not. data%exists) cycle
@@ -1553,8 +1557,10 @@ do j = 1, size(u%data)
     ix_ele = -2
   elseif (data%ix_ele == -1) then
     ix_ele = -1
+  elseif (data%ix_ele0 > data%ix_ele) then
+    ix_ele = u%model%lat%n_ele_use
   else
-    ix_ele = max(data%ix_ele, data%ix_ele0)
+    ix_ele = data%ix_ele
   endif
   u%ix_data(ix_ele)%ix_datum(ix_next(ix_ele)) = j
   ix_next(ix_ele) = ix_next(ix_ele) + 1

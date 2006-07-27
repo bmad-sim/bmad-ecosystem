@@ -2472,6 +2472,37 @@ end function
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
+! Function tao_datum_name (datum) result (datum_name)
+!
+! Function to return the datum name in the form:
+!   d2_name.d1_name[index]
+! For example:
+!   orbit.x[23]
+!
+! Input:
+!   datum -- Tao_data_struct: Datum
+!
+! Output:
+!   datum_name -- Character(60): Appropriate name.
+!-
+
+function tao_datum_name(datum) result (datum_name)
+
+implicit none
+
+type (tao_data_struct) datum
+character(60) datum_name
+
+!
+
+write (datum_name, '(4a, i0, a)') &
+      trim(datum%d1%d2%name), '.', trim(datum%d1%name), '[', datum%ix_d1, ']'
+
+end function
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
 !+
 ! Function is_logical (string, ignore) result (good)
 !
