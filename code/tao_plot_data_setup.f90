@@ -812,7 +812,7 @@ type (coord_struct) here
 type (taylor_struct) t_map(6)
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6)
-real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz
+real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma
 
 integer i, j, k, expnt(6), ix_ele, ix0
 character(40) data_type
@@ -965,6 +965,22 @@ do ii = 1, size(curve%x_line)
     value = sqrt(bunch_params%sigma(s55$))
   case ('sigma.p_z')
     value = sqrt(bunch_params%sigma(s66$))
+  case ('norm_emittance.x')
+    value = bunch_params%x%norm_emitt
+  case ('norm_emittance.y')
+    value = bunch_params%y%norm_emitt
+  case ('norm_emittance.z')
+    value = bunch_params%z%norm_emitt
+  case ('emittance.x')
+    value = bunch_params%x%norm_emitt
+    call convert_total_energy_to (ele%value(beam_energy$), &
+                                              lat%param%particle, gamma)
+    value = value / gamma
+  case ('emittance.y')
+    value = bunch_params%y%norm_emitt
+    call convert_total_energy_to (ele%value(beam_energy$), &
+                                              lat%param%particle, gamma)
+    value = value / gamma
   case ('r.')
     if (ii == 1) call mat_make_unit (mat6)
     if (s_now < s_last) cycle
