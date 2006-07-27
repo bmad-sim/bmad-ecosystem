@@ -1104,8 +1104,10 @@ end subroutine
 !     voltage$ = e_field$ * gap$ 
 !
 ! LCAVITY:    
-!     delta_e$ = gradient$ * L$ 
-!
+!     delta_e$     = gradient$ * L$ 
+!     beam_energy$ = beam_energy$ + gradient$ * l$ * cos(phase)
+!     p0c$         = sqrt(b4eam_energy$**2 - mc2^2)
+! 
 ! RFCAVITY:   
 !     rf_frequency$ = harmon$ * c_light / param%total_length (only if harmon$ /= 0)
 !
@@ -1141,7 +1143,7 @@ subroutine attribute_bookkeeper (ele, param)
   type (ele_struct) ele
   type (param_struct) param
 
-  real(rp) factor, check_sum
+  real(rp) factor, check_sum, phase, beam_energy
   
   character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -1257,7 +1259,12 @@ subroutine attribute_bookkeeper (ele, param)
 
   case (lcavity$)
     ele%value(delta_e$) = ele%value(gradient$) * ele%value(L$) 
-    
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+    beam_energy = ele%value(energy_start$) + ele%value(gradient$) * &
+                                                ele%value(l$) * cos(phase)
+    beam_energy = beam_energy - ele%value(e_loss$) * param%n_part * e_charge
+    ele%value(beam_energy$) = beam_energy
+    call convert_total_energy_to (beam_energy, param%particle, pc = ele%value(p0c$))
 
 ! RFcavity
 

@@ -102,6 +102,9 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   if (ele%key == hkicker$ .or. ele%key == vkicker$) &
                         ele%value(kick$) = ele2%value(kick$) * ratio
 
+  ! Need to do bookkeeping if auto_bookkeeper is off
+  if (.not. bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
+
   if (present(start)) then
     c0 = start
   else

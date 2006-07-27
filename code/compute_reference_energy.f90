@@ -66,8 +66,7 @@ subroutine compute_reference_energy (lattice, compute)
 
     case (custom$) 
       beam_energy = beam_energy + ele%value(gradient$) * ele%value(l$)
-      call convert_total_energy_to (beam_energy, &
-                                             lattice%param%particle, pc = p0c)
+      call convert_total_energy_to (beam_energy, lattice%param%particle, pc = p0c)
     end select
 
     ele%value(beam_energy$) = beam_energy
