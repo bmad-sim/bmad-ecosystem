@@ -92,17 +92,23 @@ case ('lattice')
   enddo
 
 case ('derivative_matrix')
+
+  nd = 0
+  do i = 1, size(s%u)  
+    if (.not. s%u(i)%is_on) cycle
+    nd = nd + count(s%u(i)%data%useit_opt)
+    if (.not. associated(s%u(i)%dmodel_dvar)) then
+      call out_io (s_error$, r_name, 'DERIVATIVE MATRIX NOT YET CALCULATED!')
+      return
+    endif
+  enddo
+
   file_name = arg1
   if (file_name == ' ') file_name = 'derivative_matrix.dat'
   iu = lunget()
   open (iu, file = file_name)
 
   write (iu, *) count(s%var%useit_opt), '  ! n_var'
-  nd = 0
-  do i = 1, size(s%u)  
-    if (.not. s%u(i)%is_on) cycle
-    nd = nd + count(s%u(i)%data%useit_opt)
-  enddo
   write (iu, *) nd, '  ! n_data'
   write (iu, *) ' ix_dat ix_var  dModel_dVar'
   nd = 0
