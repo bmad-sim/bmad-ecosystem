@@ -255,7 +255,7 @@ Format:
   derivative
 \end{example}
 
-\vskip 0.2in \vn{Derivative} calculates the \vn{dModel/dVariable}
+\vskip 0.2in \vn{Derivative} calculates the \vn{dModel_Data/dVar} derivative
 matrix needed for the \vn{lm} optimizer.
 
 %% flatten --------------------------------------------------------------
@@ -317,6 +317,7 @@ Examples
 Format:
 \begin{example}
   output curve <curve_name> \{<file_name>\} ! Write the curve data
+  output derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
   output digested \{<file_name>\}  ! Write a digested Bmad lattice file of the model.
   output gif \{<file_name>\}       ! create a gif file of the plot window.
   output hard                    ! print the plot window to a printer.
@@ -329,6 +330,7 @@ Format:
 not given then the defaults are:
 \begin{example}
   curve                           ! output curve
+  derivative_matrix.dat           ! output derivative_matrix
   digested8_lat_universe_#.bmad   ! output digested
   quick_plot.gif                  ! output gif
   lat_universe_#.bmad             ! output lattice
@@ -463,7 +465,8 @@ stop the optimizer before it is finished press the period ``.''
 key. If you want the optimizer to run forever run the optimizer in
 \vn{single mode}. Valid optimizers are:
 \begin{example}
-  lm            ! Levenburg-Marquardt
+  lm            ! Levenburg-Marquardt from Numerical Recipes 
+  lmdif         ! Levenburg-Marquardt 
   de            ! Differential Evolution
 \end{example}
 
@@ -569,7 +572,7 @@ For \vn{set global}, the \vn{<component>}s that can be set are:
   bunch_to_plot     = <number> ! View data for this bunch
   n_curve_pts       = <number> ! Number of points used to draw a "smooth" curve.
   prompt_string     = <string> ! Prompt String
-  optimizer         = <string> ! optimizer to use. 'de', 'lm' etc...
+  optimizer         = <string> ! optimizer to use: 'de', 'lm' or 'lmdif'
   var_limits_on     = T/F      ! Respect the variable limits?
   plot_on           = T/F      ! Update plot window?
   opt_with_ref      = T/F      ! use reference data in optimization?

@@ -22,11 +22,11 @@ type (tao_curve_struct), pointer :: c
 
 character(*) what
 character(*) arg1, arg2
-character(16) action
+character(20) action
 character(20) :: r_name = 'tao_output_cmd'
 character(100) file_name
 
-integer i, j, ix, iu
+integer i, j, ix, iu, nd, ii
 logical err
 
 !
@@ -90,6 +90,35 @@ case ('lattice')
     call write_bmad_lattice_file (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
+
+case ('derivative_matrix')
+  file_name = arg1
+  if (file_name == ' ') file_name = 'derivative_matrix.dat'
+  iu = lunget()
+  open (iu, file = file_name)
+
+  write (iu, *) count(s%var%useit_opt), '  ! n_var'
+  nd = 0
+  do i = 1, size(s%u)  
+    if (.not. s%u(i)%is_on) cycle
+    nd = nd + count(s%u(i)%data%useit_opt)
+  enddo
+  write (iu, *) nd, '  ! n_data'
+  write (iu, *) ' ix_dat ix_var  dModel_dVar'
+  nd = 0
+  do i = 1, size(s%u)
+    if (.not. s%u(i)%is_on) cycle
+    do ii = 1, size(s%u(i)%dmodel_dvar, 1)
+      do j = 1, size(s%u(i)%dmodel_dvar, 2)
+        write (iu, '(2i7, es15.5)') nd + ii, j, s%u(i)%dmodel_dvar(ii, j)
+      enddo
+    enddo
+    nd = nd + count(s%u(i)%data%useit_opt)
+  enddo
+
+
+  call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  close(iu)
 
 case ('digested')
   file_name = arg1
