@@ -101,6 +101,11 @@ call out_io (s_blank$, r_name, '   Loop      Merit   A_lambda')
 
 do i = 1, s%global%n_opti_cycles+1
 
+  if (a_lambda > 1e10) then
+    call out_io (s_blank$, r_name, 'Optimizer at minimum or derivatives need to be recalculated.')
+    finished = .true.
+  endif
+
   if (finished .or. i == s%global%n_opti_cycles+1) then
     a_lambda = 0  ! tell mrqmin we are finished
     call tao_var_write (s%global%var_out_file)
@@ -262,20 +267,18 @@ if (alamda < 0.0) then
   atry=a
 end if
 
+if (alamda == 0.0) then
+  deallocate(atry,beta,da)
+  return
+end if
+
 covar(1:mfit,1:mfit)=alpha(1:mfit,1:mfit)
 call diagmult(covar(1:mfit,1:mfit),1.0_rp+alamda)
 da(1:mfit,1)=beta(1:mfit)
 call gaussj(covar(1:mfit,1:mfit),da(1:mfit,1:1))
 
-if (alamda == 0.0) then
-  call covsrt(covar,mask)
-  call covsrt(alpha,mask)
-  deallocate(atry,beta,da)
-  return
-end if
-
 atry=a+unpack(da(1:mfit,1),mask,0.0_rp)
-call tao_mrqcof(atry, y, covar,da(1:mfit,1), weight, chisq, limited)
+call tao_mrqcof(atry, y, covar, da(1:mfit,1), weight, chisq, limited)
 if (limited) return
 
 if (chisq < ochisq) then
