@@ -79,7 +79,6 @@ y = 0
 weight(1:n_var) = weight
 
 merit0 = tao_merit()
-print *, 'merit0:', merit0
 
 k = n_var
 do j = 1, size(s%u)
@@ -109,8 +108,7 @@ do i = 1, s%global%n_opti_cycles+1
 
   call tao_mrqmin (y, weight, a, covar, alpha, chi_sq, a_lambda, limited) 
   call tao_mrq_func (a, y_fit, dy_da, limited2)  ! put a -> model
-!  write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
-  write (line, *) i, tao_merit(), a_lambda
+  write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)
 
   if (finished .or. limited) return
