@@ -796,6 +796,16 @@ interface
 end interface
 
 interface
+  subroutine slice_ele_calc (ele, param, i_slice, n_slice_tot, sliced_ele)
+    use bmad_struct, only: ele_struct, param_struct
+    implicit none
+    type (ele_struct) ele, sliced_ele
+    type (param_struct) param
+    integer i_slice, n_slice_tot
+  end subroutine
+end interface
+
+interface
   subroutine split_ring (ring, s_split, ix_split, split_done)
     use bmad_struct, only: ring_struct, rp
     implicit none

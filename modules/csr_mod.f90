@@ -113,7 +113,7 @@ type (ele_struct), pointer :: ele
 type (ele_struct), save :: runt
 type (csr_bin_struct) bin
 
-real(rp) s_travel
+real(rp) s_start
 integer i, j, nb, ix_ele, n_step
 
 character(20) :: r_name = 'track1_bunch_sc'
@@ -137,37 +137,26 @@ if (csr_com%ds_track_step == 0) then
   call err_exit
 endif
 
+! make sure that l / track_step is an integer.
+
 n_step = ele%value(l$) / csr_com%ds_track_step
 bin%ds_track_step = ele%value(l$) / n_step  
-
-! runt is the element that is tracked through at each step.
-
-runt = ele
-runt%value(l$) = bin%ds_track_step
-call attribute_bookkeeper (runt, lat%param)
 
 auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
 bmad_com%auto_bookkeeper = .false.   ! make things go faster
 
 ! Loop over the tracking steps
+! runt is the element that is tracked through at each step.
 
 do i = 1, n_step
 
-  if (ele%key == sbend$) then
-    if (i == 1) then
-      runt%value(e2$) = 0
-    elseif (i == 2) then
-      runt%value(e1$) = 0
-    elseif (i == n_step) then
-      runt%value(e2$) = ele%value(e2$)
-    endif
-  endif
+  call slice_ele_calc (ele, lat%param, i, n_step, runt)
 
-  s_travel = bin%ds_track_step * (i - 1)
+  s_start = bin%ds_track_step * (i - 1)
 
   if (csr_com%lcsr_component_on .or. csr_com%lsc_component_on) then
     call csr_bin_particles (bunch_end%particle, bin)    
-    call csr_bin_kicks (lat, ix_ele, s_travel, bin)
+    call csr_bin_kicks (lat, ix_ele, s_start, bin)
   endif
 
   ! loop over all particles
@@ -186,7 +175,7 @@ do i = 1, n_step
 
   enddo
 
-  call save_bunch_track (bunch_end, ele, s_travel)
+  call save_bunch_track (bunch_end, ele, s_start)
 
 enddo
 
