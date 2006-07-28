@@ -800,7 +800,7 @@ logical, optional :: coupling_here
 !
 
 if (ix1 < ix0 .and. lat%param%lattice_type == linear_lattice$) then
-  call out_io (s_error$, r_name, &
+  if (datum%useit_opt) call out_io (s_error$, r_name, &
                 'ERROR: ELEMENTS ARE REVERSED FOR: ' // tao_datum_name(datum), &
                 'STARTING ELEMENT: ' // lat%ele_(ix0)%name, &
                 'IS AFTER ENDING ELEMENT: ' // lat%ele_(ix1)%name)

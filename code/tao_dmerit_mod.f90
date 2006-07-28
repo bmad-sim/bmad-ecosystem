@@ -45,6 +45,11 @@ reinit = force_calc
 do i = 1, size(s%u)
 
   u => s%u(i)
+  if (.not. u%is_on) then
+    if (associated(u%dModel_dVar)) deallocate(u%dModel_dVar)
+     cycle
+  endif
+
   n_data = count (u%data%useit_opt)
   n_var = count (s%var%useit_opt)
 

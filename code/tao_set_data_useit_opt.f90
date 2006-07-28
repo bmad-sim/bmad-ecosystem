@@ -18,14 +18,19 @@ type (tao_data_struct), pointer :: d(:)
 
 integer i, j
 
-!
+! 
 
 do i = 1, size(s%u)
   d => s%u(i)%data
-  d(:)%useit_opt = d(:)%good_opt .and. d(:)%exists .and. &
+  if (s%u(i)%is_on) then
+    d(:)%useit_opt = d(:)%good_opt .and. d(:)%exists .and. &
                               d(:)%good_user .and. d(:)%good_meas
-  if (s%global%opt_with_ref) d(:)%useit_opt = &
+    if (s%global%opt_with_ref) d(:)%useit_opt = &
                           d(:)%useit_opt .and. d(:)%good_ref
+  ! data in off universes does not get used in optimizations.
+  else
+    d(:)%useit_opt = .false.
+  endif
 enddo
 
 end subroutine tao_set_data_useit_opt

@@ -741,6 +741,7 @@ else
 endif
 
 ! make sure lattice calculation is up to date if turning lattice on
+call tao_set_data_useit_opt()
 if (recalc) s%global%lattice_recalc = .true.
   
 end subroutine tao_set_uni_cmd
