@@ -27,6 +27,7 @@ on one line using the ``;'' character as a separator.
   place      & \ref{s:place}    &  view         & \ref{s:view}    \\ \hline
   plot       & \ref{s:plot}     &  x-axis       & \ref{s:x-axis}  \\ \hline
   quit       & \ref{s:quit}     &  x-scale      & \ref{s:x-scale} \\ \hline
+  read       & \ref{s:read}     &               &                 \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -402,6 +403,21 @@ Format:
 
 \vskip 0.2in
 \vn{Quit} exits the program. Same as \vn{exit}.
+
+%% read --------------------------------------------------------------
+\section{Read}\index{Commands!read}
+\label{s:read}
+
+Format:
+\begin{example}
+  read lattice <file_name>
+\end{example}
+
+\vskip 0.2in 
+The \vn{read} command is used to modify the currently
+viewed \vn{model} lattice. For example, with the appropriate file,
+the \vn{read} command can be used to misalign the lattice
+elements. The input file must be in Bmad standard lattice format.
 
 %% restore --------------------------------------------------------------
 \section{Restore}\index{Commands!restore}

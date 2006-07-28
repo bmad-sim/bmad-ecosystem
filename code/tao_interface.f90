@@ -41,6 +41,12 @@ interface
 end interface
  
 interface
+  subroutine tao_cmd_end_calc ()
+    implicit none
+  end subroutine
+end interface
+ 
+interface
   subroutine tao_command (cmd_line, err)
     implicit none
     character(*) :: cmd_line
@@ -267,16 +273,17 @@ interface
 end interface
  
 interface
-  subroutine tao_cmd_end_calc ()
-    implicit none
-  end subroutine
-end interface
- 
-interface
   subroutine tao_plot_struct_transfer (plot_in, plot_out)
     use tao_struct, only: tao_plot_struct
     type (tao_plot_struct) plot_in
     type (tao_plot_struct) plot_out
+  end subroutine
+end interface
+ 
+interface
+  subroutine tao_read_cmd (which, file)
+    implicit none
+    character(*) which, file
   end subroutine
 end interface
  

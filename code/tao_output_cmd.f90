@@ -26,12 +26,25 @@ character(20) action
 character(20) :: r_name = 'tao_output_cmd'
 character(100) file_name
 
+character(20) :: names(8) = (/ &
+      'hard             ', 'gif              ', 'ps               ', 'variable         ', &
+      'lattice          ', 'derivative_matrix', 'digested         ', 'curve            ' /)
+
 integer i, j, ix, iu, nd, ii
 logical err
 
 !
 
 call string_trim (what, action, ix)
+call match_word (action, names, ix)
+if (ix == 0) then
+  call out_io (s_error$, r_name, 'UNRECOGNIZED "WHAT": ' // action)
+  return
+elseif (ix < 0) then
+  call out_io (s_error$, r_name, 'AMBIGUOUS "WHAT": ' // action)
+  return
+endif
+action = names(ix)
 
 select case (action)
 
@@ -74,7 +87,7 @@ case ('ps')
 
 ! variables
 
-case ('var')
+case ('variable')
   if (arg1 == ' ') then
     call tao_var_write (s%global%var_out_file)
   else
