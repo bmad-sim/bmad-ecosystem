@@ -33,7 +33,7 @@ this_merit =  tao_merit()
 call tao_update_var_values ()
 call tao_plot_data_setup()       ! transfer data to the plotting structures
 call tao_hook_plot_data_setup()
-if (s%global%auto_scale .eq. .true.) then
+if (s%global%auto_scale) then
   call tao_scale_cmd (' ', 0.0_rp, 0.0_rp) 
   call tao_x_scale_cmd (' ', 0.0_rp, 0.0_rp, err)
 endif

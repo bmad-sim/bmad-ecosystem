@@ -411,7 +411,7 @@ do i = 1, size(s%u)
   enddo
   
   if (iu /= 0) then
-    call tao_write_out (iu, (/ '        ', 'end_file', '      ' /), 3)
+    call tao_write_out (iu, (/ '        ', 'end_file', '        ' /), 3)
     call tao_show_constraints (iu, 'ALL')
     call tao_show_constraints (iu, 'TOP10')
     close (iu)
