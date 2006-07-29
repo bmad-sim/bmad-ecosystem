@@ -1399,14 +1399,12 @@ integer i
 
 logical set
 
-if (set .eq. set$) then
+if (set) then
     particle(:)%r%vec(2) = particle(:)%r%vec(2) / (1 + particle(:)%r%vec(6))
     particle(:)%r%vec(4) = particle(:)%r%vec(4) / (1 + particle(:)%r%vec(6))
-elseif (set .eq. unset$) then
+else
     particle(:)%r%vec(2) = particle(:)%r%vec(2) * (1 + particle(:)%r%vec(6))
     particle(:)%r%vec(4) = particle(:)%r%vec(4) * (1 + particle(:)%r%vec(6))
-else
-  call out_io (s_error$, "switch_to_geometric", "bad set$ or unset$")
 endif
 
 end subroutine switch_to_geometric  

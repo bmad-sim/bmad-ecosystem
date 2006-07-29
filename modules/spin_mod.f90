@@ -11,9 +11,9 @@ real(rp), parameter :: fudge = 1e-30
 
 ! This includes the phase of the spinor
 type spin_polar_struct
-  real(rp) theta
-  real(rp) phi
-  real(rp) xi
+  real(rp) :: theta = 0
+  real(rp) :: phi   = 0
+  real(rp) :: xi    = 0
 end type
 
 ! Pauli Matrices
