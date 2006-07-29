@@ -664,10 +664,10 @@ if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
   allocate (found_one(u%design%lat%n_ele_max))
   if (index(data(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
     call string_trim(data(0)%ele_name(12:), search_string, ix)
-    call find_elements (u, search_string, ele_key$, found_one)
+    call find_elements (u, search_string, ele_key$, data(0)%ele0_name, found_one)
   elseif  (index(data(0)%ele_name, 'SEARCH:') .ne. 0) then
     call string_trim(data(0)%ele_name(8:), search_string, ix)
-    call find_elements (u, search_string, ele_name$, found_one)
+    call find_elements (u, search_string, ele_name$, data(0)%ele0_name, found_one)
   else
     call out_io (s_abort$, r_name, 'Syntax Error in data(0)%ele_name SEARCH string')
     call err_exit
@@ -1193,10 +1193,10 @@ if (uni == 0) then
     ix2 = s%u(jj)%design%lat%n_ele_max
     if (index(var(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
       call string_trim(var(0)%ele_name(12:), search_string, ix)
-      call find_elements (s%u(jj), search_string, ele_key$, found_one(ix1:ix2))
+      call find_elements (s%u(jj), search_string, ele_key$, 'no_slaves', found_one(ix1:ix2))
     elseif (index(var(0)%ele_name, 'SEARCH:') .ne. 0) then 
       call string_trim(var(0)%ele_name(8:), search_string, ix)
-      call find_elements (s%u(jj), search_string, ele_name$, found_one(ix1:ix2))
+      call find_elements (s%u(jj), search_string, ele_name$, 'no_slaves', found_one(ix1:ix2))
     else
       call out_io (s_abort$, r_name, 'Syntax Error in var(0)%ele_name SEARCH string')
       call err_exit
@@ -1205,10 +1205,10 @@ if (uni == 0) then
 else
   if (index(var(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
     call string_trim(var(0)%ele_name(12:), search_string, ix)
-    call find_elements (s%u(uni), search_string, ele_key$, found_one)
+    call find_elements (s%u(uni), search_string, ele_key$, 'no_slaves', found_one)
   elseif (index(var(0)%ele_name, 'SEARCH:') .ne. 0) then 
     call string_trim(var(0)%ele_name(8:), search_string, ix)
-    call find_elements (s%u(uni), search_string, ele_name$, found_one)
+    call find_elements (s%u(uni), search_string, ele_name$, 'no_slaves', found_one)
   else
     call out_io (s_abort$, r_name, 'Syntax Error in var(0)%ele_name SEARCH string')
     call err_exit
@@ -1254,41 +1254,62 @@ end subroutine form_count_name
 !
 ! Attribute can be either ele_name$ or ele_key$
 
-subroutine find_elements (u, search_string, attribute, found_one)
+subroutine find_elements (u, search_string, attribute, restriction, found_one)
 
-type (tao_universe_struct) :: u
-character(*) search_string
+type (tao_universe_struct), target :: u
+type (ele_struct), pointer :: ele
+
+character(*) search_string, restriction
 integer attribute, key, found_key
 logical found_one(:)
 
-integer j
+integer j, n_max
+logical no_slaves
+
+!
+
+if (restriction == 'no_lords') then
+  n_max = u%design%lat%n_ele_use
+  no_slaves = .false.
+elseif (restriction == 'no_slaves') then
+  n_max = u%design%lat%n_ele_max
+  no_slaves = .true.
+elseif (restriction == ' ') then
+  n_max = u%design%lat%n_ele_max
+  no_slaves = .false.  
+else
+  call out_io (s_abort$, r_name, "BAD SEARCH RESTRICTION: " // restriction)
+  call err_exit
+endif
 
 !
 
 found_one = .false.
+
 if (attribute == ele_name$) then
-  do j = 1, u%design%lat%n_ele_max
-    if (match_wild(u%design%lat%ele_(j)%name, search_string)) &
+  do j = 1, n_max
+    ele => u%design%lat%ele_(j)
+    if (no_slaves .and. &
+            (ele%control_type == super_slave$ .or. ele%control_type == multipass_slave$)) cycle
+    if (.not. match_wild(ele%name, search_string)) cycle
     found_one(j) = .true.
   enddo
+
 elseif (attribute == ele_key$) then
-  found_key = 0
-  call upcase_string(search_string)
-  do j = 1, size(key_name)
-    if (key_name(j)(1:len(trim(search_string))) == search_string) then
-! if (index(key_name(j), trim(search_string)) .ne. 0) then
-      found_key = found_key + 1
-      key = j
-    endif
-  enddo
-  if (found_key .ne. 1) then
-    call out_io (s_abort$, r_name, "Ambiguous or non-existant key name")
+  call match_word (search_string, key_name, key)
+  if (key < 1) then
+    call out_io (s_abort$, r_name, "Ambiguous or non-existant key name: " // search_string)
     call err_exit
   endif
-  do j = 1, u%design%lat%n_ele_max
-    if (u%design%lat%ele_(j)%key == key) &
+
+  do j = 1, n_max
+    ele => u%design%lat%ele_(j)
+    if (ele%key /= key) cycle
+    if (no_slaves .and. &
+            (ele%control_type == super_slave$ .or. ele%control_type == multipass_slave$)) cycle
     found_one(j) = .true.
   enddo
+
 else 
   !bug in call to subroutine
   call out_io (s_abort$, r_name, "Internal Error in find_elements!")
