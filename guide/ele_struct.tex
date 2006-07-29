@@ -45,6 +45,7 @@ generally hidden  by the \bmad bookkeeping routines.
     logical map_with_offsets     ! Taylor map calculated with element offsets?
     logical field_master         ! Calculate strength from the field value?
     logical is_on                ! For turning element on/off.
+    logical on_an_i_beam         ! Have an I_Beam lord?
   end type
 \end{verbatim}
 \caption[The \vn{ele\_struct}.]{The \vn{ele\_struct}. Only part of the 
@@ -252,6 +253,67 @@ approbriate attribute. For example:
     endif
   enddo
 \end{example}
+
+%--------------------------------------------------------------------------
+\section{Control\_type}
+\index{control_type}
+\label{s:control_type}
+
+In a \vn{ring_struct} (\sref{c:ring_struct}), elements in the lattice
+can control the attributes of other elements. The \vn{%control_type}
+component of an element identifies whether the element is a slave
+element (it is being controlled or is a lord element (it controls
+other elements). Possible values for \vn{%control_type} are:
+\index{free_element}\index{super_lord}
+\index{group_lord}\index{i_beam_lord}
+\index{multipass_lord}\index{super_slave}
+\index{overlay_slave}\index{overlay_lord}
+\index{multipass_slave}
+\begin{example}
+  free_element\$
+  super_lord\$
+  group_lord\$
+  i_beam_lord\$
+  multipass_lord\$
+  overlay_lord\$
+  multipass_slave\$
+  super_slave\$
+  overlay_slave\$
+\end{example}
+
+\begin{description}
+\item[free\_element] 
+A \vn{free_element} is just that, An element that is neither
+controlls or is controlled. The exception is that attributes of this element
+may be controlled by a \vn{group_lord}.
+
+\item[super\_lord and super\_slave]
+\vn{super_lord} and \vn{super_slave} elements
+come from superimposing elements on top of other elements (\sref{s:super}).
+
+\item[overlay\_lord, overlay\_slave]
+An \vn{overlay_lord} is an \vn{overlay} element and the elements it
+controlls are \vn{overlay_slave}s (\sref{s:overlay}).
+
+\item[group\_lord]
+A \vn{group_lord} is a \vn{group} element (\sref{s:group}). Since a
+\vn{group_lord} element only modifies the attributes of the elements
+it is linked to when the \vn{command} attribute of the \vn{group_lord}
+is modified, there is no corresponding \vn{group_slave} designation
+for the corresponding ``slave'' elements.
+
+\item[i\_beam\_lord]
+\index{on_an_i_beam}
+An \vn{i_beam_lord} is an \vn{i_beam} element. In this case, the slaves
+are marked by setting the \vn{%on_an_i_beam} component in the
+\vn{ele_struct}.
+
+\item{multipass\_lord, multipass\_slave}
+\vn{multipass_lord}s and \vn{multipass_slave}s are created when
+multipass lines are present (\sref{s:multipass}). In the example in
+\sref{s:multipass}, Element \vn{A} would be a \vn{multipass_lord} and
+\vn{A\B1} and \vn{A\B2} would be \vn{multipass_slave}s.
+\end{description}
 
 %--------------------------------------------------------------------------
 \section{Positional Offsets}

@@ -9,7 +9,7 @@ with a storage ring or open as with a LINAC.
 
 %----------------------------------------------------------------------------
 \section{Elements Within the ring\_struct}
-\label {s:ring_ele}
+\label {s:ring_struct}
 
 \begin{figure}[htb]
 \centering
@@ -54,10 +54,12 @@ bound.  \vn{%ele_(0)} is a marker element with the name
 matrix. \vn{%ele_(0:)} is divided up into two parts: A ``physical''
 part (also called the ``regular'' part) and a ``control'' part (also
 called the ``lord'' part). The physical part of this array holds the
-elements that are tracked through. The control part holds the
-\vn{Overlay}, \vn{I_Beam} and \vn{Group} elements, and those elements that are
-``mangled'' when elements are superimposed upon other elements.  The
-bounds of these two parts is given in Table~\ref{tab:part_extent}.
+elements that are tracked through. The physical part has \vn{free},
+\vn{overlay_slave}, and \vn{multipass_slave} \vn{control_type} elements. The
+control part holds the \vn{Overlay_lord}, \vn{I_Beam_lord},
+\vn{multipass_lord}, \vn{super_lord}, and \vn{Group_lord}
+\vn{control_type} elements (\sref{s:control_type}).  The bounds of
+these two parts is given in Table~\ref{tab:part_extent}.
 \begin{table}[htb]
 \begin{center}
 \begin{tabular}{|l|l|l|}

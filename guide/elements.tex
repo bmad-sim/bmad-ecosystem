@@ -1452,12 +1452,18 @@ assuming a periodic field (``periodic type''). See
 \sref{s:wiggler_phys} for more details.
 
 \index{Polarity}
+\index{X_ray_line_len}
 \index{Term (for a Wiggler)}
 Attributes specific to a map type \vn{Wiggler} element are:
 \begin{example}
   term(i)  = \{<Wig_Term>\} 
   polarity = <Real>     ! Used to scale the field strength.
+  x_ray_line_len = <Real>
 \end{example}
+\vn{x_ray_line_len} is the length of an associated x-ray synchrotron
+light line. This is used for machine geometry calculations and is
+irrelavent for lattice computations.
+
 A \vn{<Wig_Term>} is of the form $C, k_x, k_y, k_z, \phi_z$ as
 explained in \sref{s:wiggler_phys}. \vn{Polarity} is used to scale the
 magnetic field. By default, \vn{Polarity} has a value of 1.0. 
