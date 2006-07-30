@@ -150,12 +150,12 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_lattice_calc (universe, tao_lat, used)
+  subroutine tao_hook_lattice_calc (universe, tao_lat, used, calc_ok)
     use tao_struct, only: tao_universe_struct, tao_lattice_struct
     implicit none
     type (tao_universe_struct) :: universe
     type (tao_lattice_struct) :: tao_lat
-    logical used
+    logical used, calc_ok
   end subroutine
 end interface
  
