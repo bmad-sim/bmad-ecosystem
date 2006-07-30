@@ -39,8 +39,8 @@ subroutine track1_runge_kutta (start, ele, param, end, track)
 
   implicit none
 
-  type (coord_struct), intent(in)  :: start
-  type (coord_struct), intent(out) :: end
+  type (coord_struct) :: start
+  type (coord_struct) :: end
   type (param_struct), target, intent(inout) :: param
   type (ele_struct), target, intent(inout) :: ele
   type (track_struct) track

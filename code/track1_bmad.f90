@@ -31,10 +31,10 @@ subroutine track1_bmad (start, ele, param, end)
 
   implicit none
 
-  type (coord_struct), intent(in)  :: start
-  type (coord_struct), intent(out) :: end
-  type (ele_struct),   intent(inout)  :: ele
-  type (param_struct), intent(inout) :: param
+  type (coord_struct) :: start
+  type (coord_struct) :: end
+  type (ele_struct) :: ele
+  type (param_struct) :: param
 
   real(rp) k1, k2, k2l, k3l, length, phase, beta_start, beta_end
   real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const

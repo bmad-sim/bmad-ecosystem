@@ -37,11 +37,11 @@ subroutine track1 (start, ele, param, end)
 
   implicit none
 
-  type (coord_struct), intent(in)  :: start
-  type (coord_struct), intent(out) :: end
-  type (coord_struct) orb
-  type (ele_struct),   intent(inout)  :: ele
-  type (param_struct), intent(inout) :: param
+  type (coord_struct) :: start
+  type (coord_struct) :: end
+  type (coord_struct) :: orb
+  type (ele_struct)   :: ele
+  type (param_struct) :: param
 
   integer tracking_method, plane_lost
 

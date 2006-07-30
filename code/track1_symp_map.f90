@@ -28,11 +28,11 @@ use tpsalie_analysis, only: assignment(=), operator(*), lnv
 
 implicit none
 
-type (coord_struct), intent(in)  :: start
-type (coord_struct), intent(out) :: end
+type (coord_struct) :: start
+type (coord_struct) :: end
 type (coord_struct) start2
-type (ele_struct),   intent(inout)  :: ele
-type (param_struct), intent(inout) :: param
+type (ele_struct) :: ele
+type (param_struct) :: param
 
 real(dp) re(lnv)
 

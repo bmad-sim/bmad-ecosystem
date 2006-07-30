@@ -23,10 +23,10 @@ subroutine track1_taylor (start, ele, param, end)
 
   implicit none
 
-  type (coord_struct), intent(in)  :: start
-  type (coord_struct), intent(out) :: end
-  type (param_struct), intent(inout) :: param
-  type (ele_struct), intent(inout) :: ele
+  type (coord_struct) :: start
+  type (coord_struct) :: end
+  type (param_struct) :: param
+  type (ele_struct) :: ele
 
 !
 

@@ -851,10 +851,10 @@ interface
   subroutine track1 (start, ele, param, end)
     use bmad_struct, only: ele_struct, coord_struct, param_struct
     implicit none
-    type (coord_struct), intent(in) :: start
-    type (coord_struct), intent(out) :: end
-    type (ele_struct), intent(inout) :: ele
-    type (param_struct), intent(inout) :: param
+    type (coord_struct) :: start
+    type (coord_struct) :: end
+    type (ele_struct)   :: ele
+    type (param_struct) :: param
   end subroutine
 end interface
 
@@ -862,10 +862,10 @@ interface
   subroutine track1_runge_kutta (start, ele, param, end, track)
     use bmad_struct, only: ele_struct, coord_struct, param_struct, track_struct
     implicit none
-    type (coord_struct), intent(in) :: start
-    type (coord_struct), intent(out) :: end
-    type (ele_struct), target, intent(inout) :: ele
-    type (param_struct), target, intent(inout) :: param
+    type (coord_struct) :: start
+    type (coord_struct) :: end
+    type (ele_struct), target :: ele
+    type (param_struct), target :: param
     type (track_struct) track
   end subroutine
 end interface
@@ -874,10 +874,10 @@ interface
   subroutine track1_linear (start, ele, param, end)
     use bmad_struct, only: ele_struct, coord_struct, param_struct
     implicit none
-    type (coord_struct), intent(in) :: start
-    type (coord_struct), intent(out) :: end
-    type (ele_struct), intent(inout) :: ele
-    type (param_struct), intent(inout) :: param
+    type (coord_struct) :: start
+    type (coord_struct) :: end
+    type (ele_struct) :: ele
+    type (param_struct) :: param
   end subroutine
 end interface
 
@@ -885,10 +885,10 @@ interface
   subroutine track1_taylor (start, ele, param, end)
     use bmad_struct, only: ele_struct, coord_struct, param_struct
     implicit none
-    type (coord_struct), intent(in) :: start
-    type (coord_struct), intent(out) :: end
-    type (ele_struct), intent(inout) :: ele
-    type (param_struct), intent(inout) :: param
+    type (coord_struct) :: start
+    type (coord_struct) :: end
+    type (ele_struct) :: ele
+    type (param_struct) :: param
   end subroutine
 end interface
 
@@ -896,10 +896,10 @@ interface
   subroutine track1_custom (start, ele, param, end)
     use bmad_struct, only: ele_struct, coord_struct, param_struct
     implicit none
-    type (coord_struct), intent(in) :: start
-    type (coord_struct), intent(out) :: end
-    type (ele_struct), intent(inout) :: ele
-    type (param_struct), intent(inout) :: param
+    type (coord_struct) :: start
+    type (coord_struct) :: end
+    type (ele_struct) :: ele
+    type (param_struct) :: param
   end subroutine
 end interface
 
@@ -907,10 +907,10 @@ interface
   subroutine track1_bmad (start, ele, param, end)
     use bmad_struct, only: ele_struct, coord_struct, param_struct
     implicit none
-    type (coord_struct), intent(in) :: start
-    type (coord_struct), intent(out) :: end
-    type (ele_struct), intent(inout) :: ele
-    type (param_struct), intent(inout) :: param
+    type (coord_struct) :: start
+    type (coord_struct) :: end
+    type (ele_struct) :: ele
+    type (param_struct) :: param
   end subroutine
 end interface
 
@@ -918,10 +918,10 @@ interface
   subroutine track1_symp_lie_ptc (start, ele, param, end)
     use bmad_struct, only: ele_struct, coord_struct, param_struct
     implicit none
-    type (coord_struct), intent(in) :: start
-    type (coord_struct), intent(out) :: end
-    type (ele_struct), intent(inout) :: ele
-    type (param_struct), intent(inout) :: param
+    type (coord_struct) :: start
+    type (coord_struct) :: end
+    type (ele_struct) :: ele
+    type (param_struct) :: param
   end subroutine
 end interface
 
@@ -929,10 +929,10 @@ interface
   subroutine track1_symp_map (start, ele, param, end)
     use bmad_struct, only: ele_struct, coord_struct, param_struct
     implicit none
-    type (coord_struct), intent(in) :: start
-    type (coord_struct), intent(out) :: end
-    type (ele_struct), intent(inout) :: ele
-    type (param_struct), intent(inout) :: param
+    type (coord_struct) :: start
+    type (coord_struct) :: end
+    type (ele_struct) :: ele
+    type (param_struct) :: param
   end subroutine
 end interface
 

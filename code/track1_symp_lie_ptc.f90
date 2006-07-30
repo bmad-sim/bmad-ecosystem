@@ -27,10 +27,10 @@ subroutine track1_symp_lie_ptc (start, ele, param, end)
 
   implicit none
 
-  type (coord_struct), intent(in)  :: start
-  type (coord_struct), intent(out) :: end
-  type (ele_struct),   intent(inout)  :: ele
-  type (param_struct), intent(inout) :: param
+  type (coord_struct) :: start
+  type (coord_struct) :: end
+  type (ele_struct) :: ele
+  type (param_struct) :: param
   type (fibre), pointer :: fibre_ele
 
   real(dp) re(6)
