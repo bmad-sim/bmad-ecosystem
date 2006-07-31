@@ -165,7 +165,7 @@ case ('curve')
   if (arg2 /= ' ') file_name = arg2
   c => curve(1)%c
 
-  if (associated(c%beam%bunch)) then
+  if (allocated(c%beam%bunch)) then
     call file_suffixer (file_name, file_name, 'particle_dat', .true.)
     open (iu, file = file_name)
     write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'p_x', '  y', 'p_y', '  z', 'p_z'

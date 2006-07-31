@@ -813,6 +813,10 @@ character(20) :: r_name = "tao_inject_beam"
 
 if (.not. u%coupling%coupled) then
   u%beam%beam_init%center = u%model%lat%bunch_start%vec
+  if (u%beam%beam_init%n_bunch < 1 .or. u%beam%beam_init%n_particle < 1) then
+    call out_io (s_fatal$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET.')
+    call err_exit
+  endif
   call init_beam_distribution (lat%ele_(0), u%beam%beam_init, u%beam%beam)
   call tao_find_beam_centroid (u%beam%beam, orb(0))
 else

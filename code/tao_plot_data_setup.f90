@@ -191,8 +191,8 @@ do k = 1, size(graph%curve)
 
   if (curve%data_source == 'beam_tracking') then
 
-    if (.not. associated(curve%beam%bunch)) then
-      call out_io (s_abort$, r_name, 'NO ASSOCIATED BEAM WITH PHASE_SPACE PLOTTING.')
+    if (.not. allocated(curve%beam%bunch)) then
+      call out_io (s_abort$, r_name, 'NO allocated BEAM WITH PHASE_SPACE PLOTTING.')
       return
     endif
 
