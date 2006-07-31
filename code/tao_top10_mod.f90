@@ -403,9 +403,13 @@ do i = 1, size(s%u)
     endif
   endif
 
+  ! If printing then only write vars once.
+
+  if (iu == 0 .and. i > 1) return
+
   do j = 1, size(s%var)
     if (.not. s%var(j)%exists) cycle
-    if (.not. any (s%var(j)%this(:)%ix_uni == i)) cycle
+    if (iu /= 0 .and. .not. any (s%var(j)%this(:)%ix_uni == i)) cycle
     if (logic_option(.false., good_opt_vars_only) .and. .not. s%var(j)%useit_opt) cycle
     write (str(1), '(4a, es22.14)')  trim(s%var(j)%ele_name), &
               '[', trim(s%var(j)%attrib_name), '] = ', s%var(j)%model_value
