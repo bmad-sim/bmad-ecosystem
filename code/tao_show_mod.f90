@@ -585,7 +585,7 @@ case ('lattice')
   endif
 
 
-  write (line2, '(29x, 22x, a)') &
+  write (line2, '(59x, a)') &
                      '|              X           |             Y        '
   write (line3, '(6x, a, 16x, a)') ' Name                     key', &
                   '   S    |  Beta   Phi   Eta  Orb   | Beta    Phi    Eta   Orb'
