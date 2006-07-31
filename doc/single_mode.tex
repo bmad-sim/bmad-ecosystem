@@ -38,6 +38,12 @@ can be used to change the deltas for the variables.
 \section{List of Key Strokes}\index{Single Mode!List of Key Strokes}
 \label{s:keys}
 
+In the following list, commands that start with a slash (\vn{/}) or hyphen (\vn{-})
+use two key strokes. For example, the \vn{/v} command is involked by first pressing
+the slash (\vn{/}) key followed by the \vn{v} key. Commands that start with \vn{\W}
+indicate a control sequence. For example the \vn{\W v} command is involked by 
+pressing the \vn{v} key while holding down the \vn{control} key.
+
 \begin{description}
 \item[?]
 Type a short help message.
@@ -58,8 +64,10 @@ variable to.
 
 \item[V]
 Show variable values in bmad compatable lattice format. See also the
-\vn{/w} command.
+\vn{/w} and \vn{\W v} commands.
 
+\item[\W v] 
+Same an \vn{V} except only only variables used in the optimization are printed.
 \item[z] 
 Go back to \vn{line mode}
 

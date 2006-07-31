@@ -370,7 +370,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_var_write (out_file)
+subroutine tao_var_write (out_file, good_opt_vars_only)
 
 implicit none
 
@@ -379,6 +379,7 @@ integer i, j, iu, ix, ios, ix_hash
 character(*) out_file
 character(200) file_name, str(1)
 character(20) :: r_name = 'tao_var_write'
+logical, optional :: good_opt_vars_only
 
 !
 
@@ -405,6 +406,7 @@ do i = 1, size(s%u)
   do j = 1, size(s%var)
     if (.not. s%var(j)%exists) cycle
     if (.not. any (s%var(j)%this(:)%ix_uni == i)) cycle
+    if (logic_option(.false., good_opt_vars_only) .and. .not. s%var(j)%useit_opt) cycle
     write (str(1), '(4a, es22.14)')  trim(s%var(j)%ele_name), &
               '[', trim(s%var(j)%attrib_name), '] = ', s%var(j)%model_value
     call tao_write_out (iu, str, 1)

@@ -107,6 +107,11 @@ subroutine tao_single_mode (char)
   case ('V')
     call tao_var_write (' ')
 
+! ^V: Show optimization variables 
+
+  case (achar(22))
+    call tao_var_write (' ', .true.)
+
 ! z: Quit single character input mode.
 
   case ('z')
