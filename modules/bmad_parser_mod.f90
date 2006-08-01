@@ -606,6 +606,10 @@ subroutine get_attribute (how, ele, ring, pring, &
     call get_logical ('IS_ON', ele%is_on)
     if (ios /= 0 .or. ix_word == 0) return
 
+  case (csr_calc_on$)
+    call get_logical ('CSR_CALC_ON', ele%csr_calc_on)
+    if (ios /= 0 .or. ix_word == 0) return
+
   case (map_with_offsets$)
     call get_logical ('MAP_WITH_OFFSETS', ele%map_with_offsets)
     if (ios /= 0 .or. ix_word == 0) return

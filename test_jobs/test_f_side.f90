@@ -237,6 +237,7 @@ ele_in%is_on = F
 ele_in%internal_logic = T
 ele_in%logic = F
 ele_in%on_an_i_beam = T
+ele_in%csr_calc_on = F
 
 ele_in%floor = floor_position_in
 ele_in%x = twiss_in

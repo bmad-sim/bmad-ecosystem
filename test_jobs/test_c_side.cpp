@@ -184,6 +184,7 @@ void init_all_c_structs () {
   c_ele_in.internal_logic = T;
   c_ele_in.logic = F;
   c_ele_in.on_an_i_beam = T;
+  c_ele_in.csr_calc_on = F;
   c_ele_in.floor = c_floor_position_in;
   c_ele_in.x = c_twiss_in;
   c_ele_in.y = c_twiss_out;

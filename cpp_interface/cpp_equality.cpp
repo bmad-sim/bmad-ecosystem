@@ -208,7 +208,8 @@ bool operator== (const C_ele& x, const C_ele& y) {
     (x.map_with_offsets == y.map_with_offsets) && 
     (x.field_master == y.field_master) && 
     (x.is_on == y.is_on) && (x.internal_logic == y.internal_logic) && 
-    (x.logic == y.logic) && (x.on_an_i_beam == y.on_an_i_beam);
+    (x.logic == y.logic) && (x.on_an_i_beam == y.on_an_i_beam) && 
+    (x.csr_calc_on == y.csr_calc_on);
 }
 
 bool operator== (const C_mode_info& x, const C_mode_info& y) {

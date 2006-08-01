@@ -263,7 +263,7 @@ integer i, j, n, ix_ele
 !------------------------------------------------
 ! space charge tracking will also include wakes if they are on too.
 
-if (bmad_com%coherent_synch_rad_on) then
+if (bmad_com%coherent_synch_rad_on .and. lat%ele_(ix_ele)%csr_calc_on) then
   call track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)
 
 else
@@ -317,7 +317,7 @@ character(20) :: r_name = 'track1_bunch_ele'
 
 ! It is not possible to calculate space charge from this
 
-if (bmad_com%coherent_synch_rad_on) then
+if (bmad_com%coherent_synch_rad_on .and. ele%csr_calc_on) then
   call out_io (s_abort$, r_name, 'CANNOT COMPUTE CSR WITHOUT ENTIRE LATTICE!')
   call err_exit
 endif

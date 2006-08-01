@@ -90,6 +90,7 @@ function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, ds_step$)           = 'DS_STEP'
       attrib_array(i, rel_tol$)           = 'REL_TOL'
       attrib_array(i, abs_tol$)           = 'ABS_TOL'
+      attrib_array(i, csr_calc_on$)       = 'CSR_CALC_ON'
 
       if (i == hkicker$)      cycle
       if (i == vkicker$)      cycle

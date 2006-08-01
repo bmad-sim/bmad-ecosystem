@@ -1526,7 +1526,8 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%num_steps, f%integrator_order, f%ptc_kind, f%taylor_order, &
       f%aperture_at, f%coupler_at, f%symplectify, f%mode_flip, &
       f%multipoles_on, f%map_with_offsets, &
-      f%field_master, f%is_on, f%internal_logic, f%logic, f%on_an_i_beam)
+      f%field_master, f%is_on, f%internal_logic, f%logic, f%on_an_i_beam, &
+      f%csr_calc_on)
 
 if (associated(f%r)) deallocate(r_arr)
 
@@ -1548,7 +1549,7 @@ end subroutine
 !    con_tp, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
 !    ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, int_ord, &
 !    ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad,  &
-!    f_master, on, intern, logic, i_beam)
+!    f_master, on, intern, logic, i_beam, csr_calc)
 !
 ! Subroutine used by ele_to_f to convert a C++ C_ele into
 ! a Bmad ele_struct. This routine is not for general use.
@@ -1561,7 +1562,7 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
     con_tp, ixv, nsl, ix1s, ix2s, &
     nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
     int_ord, ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad, &
-    f_master, on, intern, logic, i_beam)   
+    f_master, on, intern, logic, i_beam, csr_calc)   
 
 use bmad_and_cpp
 use multipole_mod
@@ -1576,7 +1577,7 @@ type (genfield), target :: gen
 integer n_nam, nr1, nr2, n_ab, n_const, key, sub, con_tp, ixv, nsl, ix1s, &
     ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
     int_ord, ptc, tlr_ord, aperture_at, symp, mode, mult, ex_rad, f_master, &
-    on, intern, logic, i_beam, n_typ, n_ali, n_attrib, n_des, &
+    on, intern, logic, i_beam, csr_calc, n_typ, n_ali, n_attrib, n_des, &
     n_wig, n_sr1, n_sr2_long, n_sr2_trans, n_lr, coupler_at
 
 real(rp) val(n_attrib_maxx), g0(6), v0(6), m6(36), c2(4), gam, s
@@ -1638,6 +1639,7 @@ f%is_on               = f_logic(on)
 f%internal_logic      = f_logic(intern)
 f%logic               = f_logic(logic)
 f%on_an_i_beam        = f_logic(i_beam)
+f%csr_calc_on         = f_logic(csr_calc)
 
 ! pointer stuff
 

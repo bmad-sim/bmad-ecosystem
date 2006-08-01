@@ -915,15 +915,16 @@ subroutine init_ele (ele)
   ele%mat6_calc_method = bmad_standard$
   ele%tracking_method  = bmad_standard$
   ele%field_calc       = bmad_standard$
-  ele%integrator_order  = bmad_com%default_integ_order
+  ele%integrator_order = bmad_com%default_integ_order
   ele%ptc_kind  = 0
   ele%num_steps = 0
 
-  ele%is_on = .true.
-  ele%multipoles_on = .true.
-  ele%symplectify = .false.
-  ele%map_with_offsets = .true.
-  ele%on_an_i_beam = .false.
+  ele%is_on             = .true.
+  ele%multipoles_on     = .true.
+  ele%symplectify       = .false.
+  ele%map_with_offsets  = .true.
+  ele%on_an_i_beam      = .false.
+  ele%csr_calc_on       = .true.
 
   ele%field_master = .false.
   ele%aperture_at = exit_end$

@@ -258,6 +258,10 @@ if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
   nl=nl+1; write (li(nl), '(a, l1)') ' Symplectify:       ', ele%symplectify
 endif
   
+if (attribute_index(ele, 'CSR_CALC_ON') /= 0) then
+  nl=nl+1; write (li(nl), '(a, l1)') ' CSR_calc_on:       ', ele%symplectify
+endif
+  
 ! Encode lord info
 
 if (ele%n_slave /= ele%ix2_slave - ele%ix1_slave + 1) then

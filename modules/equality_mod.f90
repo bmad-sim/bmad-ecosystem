@@ -444,7 +444,8 @@ is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     (f1%map_with_offsets .eqv. f2%map_with_offsets) .and. &
     (f1%field_master .eqv. f2%field_master) .and. &
     (f1%is_on .eqv. f2%is_on) .and. (f1%internal_logic .eqv. f2%internal_logic) .and. &
-    (f1%logic .eqv. f2%logic) .and. (f1%on_an_i_beam .eqv. f2%on_an_i_beam)
+    (f1%logic .eqv. f2%logic) .and. (f1%on_an_i_beam .eqv. f2%on_an_i_beam) .and. &
+    (f1%csr_calc_on .eqv. f2%csr_calc_on)
 
 is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .and. &
     (associated(f1%a) .eqv. associated(f2%a)) .and. &

@@ -717,12 +717,13 @@ public:
   bool symplectify;             // Symplectify mat6 matrices.
   bool mode_flip;               // Have the normal modes traded places?
   bool multipoles_on;           // For turning multipoles on/off
-  bool map_with_offsets;      // Exact radiation integral calculation?
+  bool map_with_offsets;        // Exact radiation integral calculation?
   bool field_master;            // Calculate strength from the field value?
   bool is_on;                   // For turning element on/off.
   bool internal_logic;          // For Bmad internal use only.
   bool logic;                   // For general use. Not used by Bmad.
   bool on_an_i_beam;            // Have an I_Beam overlay_lord?
+  bool csr_calc_on;             // Coherent synchrotron radiation calculation.
 
   C_ele () : value(double(0), Bmad::N_ATTRIB_MAXX+1), taylor(C_taylor(0), 6),
     mat6(M6_mat), c_mat(M2_mat), vec0(V6_array), gen0(V6_array) {}

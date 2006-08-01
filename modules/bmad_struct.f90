@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 81
+integer, parameter :: bmad_inc_version$ = 82
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -188,6 +188,7 @@ type ele_struct
   logical internal_logic     ! For Bmad internal use only.
   logical logic              ! For general use. Not used by Bmad.
   logical on_an_i_beam       ! Have an I_Beam overlay_lord?
+  logical csr_calc_on        ! Coherent synchrotron radiation calculation
 end type
 
 ! struct for element to element control
@@ -399,6 +400,7 @@ integer, parameter :: accordion_edge$ =75
 integer, parameter :: lattice$ = 76
 integer, parameter :: coupler_at$ = 77
 integer, parameter :: map_with_offsets$ = 78
+integer, parameter :: csr_calc_on$ = 79
 
 integer, parameter :: a0$  =  80, k0l$  =  80
 integer, parameter :: a20$ = 100, k20l$ = 100
