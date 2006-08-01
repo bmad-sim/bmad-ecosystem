@@ -866,7 +866,7 @@ logical de_bunch, de_particle
 de_bunch = .false.
 de_particle = .false.
 
-if (associated(beam%bunch)) then
+if (allocated(beam%bunch)) then
   if (n_bunch .eq. 0) then
     de_bunch = .true.
     de_particle = .true.
@@ -891,9 +891,9 @@ if (n_bunch .eq. 0) return
   
 ! Allocate
 
-if (.not. associated (beam%bunch)) allocate (beam%bunch(n_bunch))
+if (.not. allocated (beam%bunch)) allocate (beam%bunch(n_bunch))
 do i = 1, n_bunch
-  if (.not. associated (beam%bunch(i)%particle)) &
+  if (.not. allocated (beam%bunch(i)%particle)) &
                     allocate (beam%bunch(i)%particle(n_particle))
 enddo
 
@@ -1639,13 +1639,13 @@ type (beam_struct), intent(in)    :: beam2
 integer i, j, n_bun, n_particle
 logical allocate_this
 
-! The following rule must be observed: If beam%bunch is associated then
+! The following rule must be observed: If beam%bunch is allocated then
 ! beam%bunch%particle must be also.
 
 n_bun = size(beam2%bunch)
 
 allocate_this = .true.
-if (associated(beam1%bunch)) then
+if (allocated(beam1%bunch)) then
   if (size(beam1%bunch) /= size(beam2%bunch)) then
     do i = 1, size(beam1%bunch)
       deallocate (beam1%bunch(i)%particle)

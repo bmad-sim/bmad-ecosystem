@@ -127,8 +127,9 @@ bunch_end = bunch_start
 ! n_step is the number of steps to take when tracking through the element.
 ! bin%ds_step is the true step length.
 
-if (csr_com%n_bin == 0) then
-  call out_io (s_fatal$, r_name, 'CSR_COM%N_BIN NOT SET!')
+if (csr_com%n_bin <= csr_com%particle_bin_span + 1) then
+  call out_io (s_fatal$, r_name, &
+            'CSR_COM%N_BIN MUST BE GREATER THAN CSR_COM%PARTICLE_BIN_SPAN+1!')
   call err_exit
 endif
 
@@ -232,6 +233,8 @@ real(rp) z_min, z_max, f, dz_particle, dz
 real(rp) zp_center, zp0, zp1, dz_bin2, zb0, zb1, charge, dcharge_ds
 
 integer i, j, n, ix0, ib, ic
+
+character(20) :: r_name = 'csr_bin_particles'
 
 ! Init bins...
 ! The left edge of bin%bunch1(1) is at z_min
@@ -467,7 +470,7 @@ type (ele_struct), pointer :: ele
 integer i, n_ele_pp, ix_source
 
 real(rp) dphi, s0_kick_ele
-real(rp) g_i(100), d_i(100)
+real(rp), allocatable, save :: g_i(:), d_i(:)
 
 ! n_ele_pp is the number of elements between P' and P excluding the 
 ! P and P' elements
@@ -492,8 +495,14 @@ endif
 
 val%g = 0
 if (ele%key == sbend$) val%g = ele%value(g$)
-g_i(n_ele_pp+1) = val%g
 
+if (.not. allocated(g_i)) allocate(g_i(100), d_i(100))
+if (size(g_i) <= n_ele_pp) then
+  call re_allocate (g_i, 2*size(g_i))
+  call re_allocate (d_i, 2*size(d_i))
+endif
+
+g_i(n_ele_pp+1) = val%g
 d_i(n_ele_pp+1) = ele%value(l$)
 
 if (n_ele_pp == 0) d_i(1) = s_travel

@@ -28,13 +28,13 @@ type particle_struct
 end type
 
 type bunch_struct
-  type (particle_struct), pointer :: particle(:) => null()
+  type (particle_struct), allocatable :: particle(:)
   real(rp) charge   ! total charge in a bunch (Coul).
   real(rp) s_center ! longitudinal center of bunch (m).
 end type
 
 type beam_struct
-  type (bunch_struct), pointer :: bunch(:) => null()
+  type (bunch_struct), allocatable :: bunch(:)
 end type
 
 type beam_init_struct
@@ -51,12 +51,12 @@ type beam_init_struct
   real(rp) :: sig_z_jitter     = 0.0 ! bunch length RMS jitter 
   real(rp) :: sig_e_jitter     = 0.0 ! energy spread RMS jitter 
   type(beam_spin_struct)  spin       ! Initialize the spin
-  integer n_particle        ! Number of simulated particles per bunch.
-  integer n_bunch           ! Number of bunches.
-  logical :: renorm_center = .true.    ! Renormalize centroid?
-  logical :: renorm_sigma = .true.     ! Renormalize sigma?
-  logical :: preserve_dist = .false.   ! use the same grid distributon each time
-  logical :: init_spin     = .false.   ! initialize beam spinors
+  integer :: n_particle = 0          ! Number of simulated particles per bunch.
+  integer :: n_bunch = 0             ! Number of bunches.
+  logical :: renorm_center = .true.  ! Renormalize centroid?
+  logical :: renorm_sigma = .true.   ! Renormalize sigma?
+  logical :: preserve_dist = .false. ! use the same grid distributon each time
+  logical :: init_spin     = .false. ! initialize beam spinors
 end type
 
 type bunch_param_struct
