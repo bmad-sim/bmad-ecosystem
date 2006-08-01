@@ -733,15 +733,27 @@ case ('plot')
       nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(p%r%name) // '.' // trim(g%name)
     endif
     nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(p%name) // '.' // trim(g%name)
-    nl=nl+1; write (lines(nl), amt) 'name:                  ', g%name
-    nl=nl+1; write (lines(nl), amt) 'type:                  ', g%type
-    nl=nl+1; write (lines(nl), amt) 'title:                 ', g%title
-    nl=nl+1; write (lines(nl), amt) 'title_suffix:          ', g%title_suffix
-    nl=nl+1; write (lines(nl), imt) 'box:                   ', g%box
-    nl=nl+1; write (lines(nl), imt) 'ix_universe:           ', g%ix_universe
-    nl=nl+1; write (lines(nl), imt) 'box:                   ', g%box
-    nl=nl+1; write (lines(nl), lmt) 'valid:                 ', g%valid
-    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y:          ', g%y2_mirrors_y
+    nl=nl+1; write (lines(nl), amt) 'name:                 ', g%name
+    nl=nl+1; write (lines(nl), amt) 'type:                 ', g%type
+    nl=nl+1; write (lines(nl), amt) 'title:                ', g%title
+    nl=nl+1; write (lines(nl), amt) 'title_suffix:         ', g%title_suffix
+    nl=nl+1; write (lines(nl), imt) 'box:                  ', g%box
+    nl=nl+1; write (lines(nl), imt) 'ix_universe:          ', g%ix_universe
+    nl=nl+1; write (lines(nl), imt) 'box:                  ', g%box
+    nl=nl+1; write (lines(nl), lmt) 'valid:                ', g%valid
+    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y:         ', g%y2_mirrors_y
+    nl=nl+1; write (lines(nl), rmt) 'y%max:                ', g%y%max
+    nl=nl+1; write (lines(nl), rmt) 'y%min:                ', g%y%min
+    nl=nl+1; write (lines(nl), imt) 'y%major_div:          ', g%y%major_div
+    nl=nl+1; write (lines(nl), imt) 'y%places:             ', g%y%places
+    nl=nl+1; write (lines(nl), lmt) 'y%draw_label:         ', g%y%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers:       ', g%y%draw_numbers
+    nl=nl+1; write (lines(nl), rmt) 'y2%max:               ', g%y2%max
+    nl=nl+1; write (lines(nl), rmt) 'y2%min:               ', g%y2%min
+    nl=nl+1; write (lines(nl), imt) 'y2%major_div:         ', g%y2%major_div
+    nl=nl+1; write (lines(nl), imt) 'y2%places:            ', g%y2%places
+    nl=nl+1; write (lines(nl), lmt) 'y2%draw_label:        ', g%y2%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers:      ', g%y2%draw_numbers
     nl=nl+1; lines(nl) = 'Curves:'
     do i = 1, size(g%curve)
       nl=nl+1; write (lines(nl), amt) '   ', g%curve(i)%name
@@ -755,6 +767,12 @@ case ('plot')
     nl=nl+1; lines(nl) = 'Plot:  ' // p%name
     nl=nl+1; write (lines(nl), amt) 'x_axis_type:          ', p%x_axis_type
     nl=nl+1; write (lines(nl), rmt) 'x_divisions:          ', p%x_divisions
+    nl=nl+1; write (lines(nl), rmt) 'x%max:                ', p%x%max
+    nl=nl+1; write (lines(nl), rmt) 'x%min:                ', p%x%min
+    nl=nl+1; write (lines(nl), imt) 'x%major_div:          ', p%x%major_div
+    nl=nl+1; write (lines(nl), imt) 'x%places:             ', p%x%places
+    nl=nl+1; write (lines(nl), lmt) 'x%draw_label:         ', p%x%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers:       ', p%x%draw_numbers
     nl=nl+1; write (lines(nl), lmt) 'independent_graphs:   ', p%independent_graphs
     
     nl=nl+1; write (lines(nl), *) 'Graphs:'
