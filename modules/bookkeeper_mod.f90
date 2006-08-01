@@ -67,7 +67,11 @@ contains
 subroutine this_bookkeeper (ix_ele)
 
   integer ix_ele, j, k, ix, ix1, ix2, ix_lord
-  integer ix_slaves(300)
+  integer, allocatable, save :: ix_slaves(:)
+
+! Init
+
+  if (.not. allocated(ix_slaves)) allocate (ix_slaves(300))
 
 ! Attribute bookkeeping for this element
 
@@ -84,6 +88,7 @@ subroutine this_bookkeeper (ix_ele)
 
   do
     ix1 = ix1 + 1
+    if (ix1 > size(ix_slaves)) call re_allocate(ix_slaves, ix1+100)
     ix_lord = ix_slaves(ix1)
     lord => lattice%ele_(ix_lord)
     do j = lord%ix1_slave, lord%ix2_slave
@@ -91,6 +96,7 @@ subroutine this_bookkeeper (ix_ele)
       if (lord%control_type == group_lord$ .and. lattice%ele_(ix)%control_type == free$) cycle
       if (ix == ix_slaves(ix2)) cycle   ! do not use duplicates
       ix2 = ix2 + 1
+      if (ix2 > size(ix_slaves)) call re_allocate(ix_slaves, ix2+100)
       ix_slaves(ix2) = ix
     enddo
     if (ix1 == ix2) exit
