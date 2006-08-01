@@ -266,8 +266,12 @@ case ('reinitialize')
 
   call tao_cmd_split(cmd_line, 2, cmd_word, .false., err)
 
-  call out_io (s_warn$, r_name, &
-         "Use this command with a little caution. There is a small memory leak somewhere!")
+    ! quit the plot window so it will be recreated    
+    if (s%global%plot_on) then
+      call tao_destroy_plot_window
+      s%global%init_plot_needed = .true.
+    endif
+
     
   ! quit the plot window so it will be recreated    
   call tao_destroy_plot_window

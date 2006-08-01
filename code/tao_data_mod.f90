@@ -1401,7 +1401,7 @@ end subroutine
 ! accounted for!
 !
 ! The ele%r array is used for wire scanner resolution:
-!  ele%r(1,1) = relatice wire resolution RMS (i.e. 0.1 => 10%)
+!  ele%r(1,1) = relative wire resolution RMS (i.e. 0.1 => 10%)
 !  ele%r(1,4) = wire angle error in radians rms
 !
 ! Input:
