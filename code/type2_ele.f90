@@ -259,7 +259,7 @@ if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
 endif
   
 if (attribute_index(ele, 'CSR_CALC_ON') /= 0) then
-  nl=nl+1; write (li(nl), '(a, l1)') ' CSR_calc_on:       ', ele%symplectify
+  nl=nl+1; write (li(nl), '(a, l1)') ' CSR_calc_on:       ', ele%csr_calc_on
 endif
   
 ! Encode lord info
