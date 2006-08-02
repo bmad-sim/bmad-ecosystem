@@ -857,6 +857,7 @@ if (allocated(found_one)) deallocate (found_one)
 
 do j = n1, n2
   if (u%data(j)%data_type(1:10) == 'emittance.') u%do_synch_rad_int_calc = .true. 
+  if (u%data(j)%data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
   if (u%data(j)%data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
   if (u%data(j)%data_type(1:10) == 'emittance.' .or. &
           u%data(j)%data_type(1:6)  == 'chrom.' .or. &
