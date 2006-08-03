@@ -859,9 +859,10 @@ do j = n1, n2
   if (u%data(j)%data_type(1:10) == 'emittance.') u%do_synch_rad_int_calc = .true. 
   if (u%data(j)%data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
   if (u%data(j)%data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
-  if (u%data(j)%data_type(1:10) == 'emittance.' .or. &
+  if (u%data(j)%data_type(1:10)     == 'emittance.' .or. &
           u%data(j)%data_type(1:6)  == 'chrom.' .or. &
           u%data(j)%data_type(1:13) == 'unstable_ring' .or. &
+          u%data(j)%data_type(1:2)  == 'i5' .or. &
           u%data(j)%data_type(1:17) == 'multi_turn_orbit.') then
     u%data(j)%exists = .true.
     if (u%data(j)%ele_name /= ' ') then
