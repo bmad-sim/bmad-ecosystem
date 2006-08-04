@@ -223,9 +223,8 @@ endif
 ix = ix_universe
 if (ix == 0) ix = s%global%u_view
 
-read (ele_name, *, iostat = ios) ix_ele_temp
-if (ios .eq. 0 .and. index(ele_name,":") .eq. 0 .and. index(ele_name,",") .eq. 0) then
-  !it's a number
+if (is_integer(ele_name)) then
+  read (ele_name, *, iostat = ios) ix_ele_temp
   call reallocate_integer (ix_ele, 1)
   ix_ele(1) = ix_ele_temp
   if (ix_ele(1) < 0 .or. ix_ele(1) > s%u(ix)%model%lat%n_ele_max) then
@@ -235,9 +234,7 @@ if (ios .eq. 0 .and. index(ele_name,":") .eq. 0 .and. index(ele_name,",") .eq. 0
   return
 endif
 
-read (ele_name(1:1), *, iostat = ios) ix_ele_temp
-if (ios .eq. 0) then
-  ! must be an array of numbers
+if (is_integer(ele_name(1:1))) then ! must be an array of numbers
   if (allocated (here)) deallocate(here)
   allocate(here(0:s%u(ix)%model%lat%n_ele_max))
   call location_decode(ele_name, here, 0, num) 
