@@ -1112,7 +1112,7 @@ end subroutine
 ! LCAVITY:    
 !     delta_e$     = gradient$ * L$ 
 !     beam_energy$ = beam_energy$ + gradient$ * l$ * cos(phase)
-!     p0c$         = sqrt(b4eam_energy$**2 - mc2^2)
+!     p0c$         = sqrt(beam_energy$**2 - mc2^2)
 ! 
 ! RFCAVITY:   
 !     rf_frequency$ = harmon$ * c_light / param%total_length (only if harmon$ /= 0)
@@ -1262,15 +1262,19 @@ subroutine attribute_bookkeeper (ele, param)
     endif
 
 ! Lcavity
+! Only do the calculation if the starting energy is not zero since 
+! attribute_bookkeeper can be called before the attributes are set.
 
   case (lcavity$)
-    ele%value(delta_e$) = ele%value(gradient$) * ele%value(L$) 
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-    beam_energy = ele%value(energy_start$) + ele%value(gradient$) * &
+    if (ele%value(energy_start$) /= 0) then
+      ele%value(delta_e$) = ele%value(gradient$) * ele%value(L$) 
+      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+      beam_energy = ele%value(energy_start$) + ele%value(gradient$) * &
                                                 ele%value(l$) * cos(phase)
-    beam_energy = beam_energy - ele%value(e_loss$) * param%n_part * e_charge
-    ele%value(beam_energy$) = beam_energy
-    call convert_total_energy_to (beam_energy, param%particle, pc = ele%value(p0c$))
+      beam_energy = beam_energy - ele%value(e_loss$) * param%n_part * e_charge
+      ele%value(beam_energy$) = beam_energy
+      call convert_total_energy_to (beam_energy, param%particle, pc = ele%value(p0c$))
+    endif
 
 ! RFcavity
 
