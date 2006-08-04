@@ -34,7 +34,8 @@ subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
   type (ring_struct) ring
 
   integer ix_ele, ix_start, ix_end, ix_slave
-  integer ix1, ix2, n, ixs(100), indx(100), n_end, n_slave
+  integer ix1, ix2, n, n_end, n_slave
+  integer, allocatable, save :: ixs(:)
 
 !
 
@@ -54,6 +55,7 @@ subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
     ix_end   = 0
     n = 0
     n_slave = ring%ele_(ix_ele)%n_slave
+    call re_allocate(ixs, n_slave)
     ixs(1:n_slave) = ring%control_(ix1:ix2)%ix_slave
     n_end = n_slave
     do 
@@ -64,6 +66,7 @@ subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
         n_slave = ring%ele_(ix_slave)%n_slave
         ix1 = ring%ele_(ix_slave)%ix1_slave
         ix2 = ring%ele_(ix_slave)%ix2_slave
+        call re_allocate(ixs, n_slave+n_end)
         ixs(n_end+1:n_end+n_slave) = ring%control_(ix1:ix2)%ix_slave
         n_end = n_end + n_slave
       else
