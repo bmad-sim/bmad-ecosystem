@@ -205,7 +205,7 @@ if (s%global%track_type == 'beam') then
   ! defaults
   do 
     ix_universe = -1
-    beam_init%a_norm_emitt  = 0.0
+    beam_init%a_norm_emitt  = -1
     beam_init%b_norm_emitt  = 0.0
     beam_init%dPz_dz = 0.0
     beam_init%center(:) = 0.0
@@ -221,15 +221,21 @@ if (s%global%track_type == 'beam') then
     read (iu, nml = tao_beam_init, iostat = ios)
 
     if (ios == 0) then
-      if (ix_universe == -1) then
+      if (beam_init%a_norm_emitt == -1) then
         call out_io (s_abort$, r_name, &
-              'INIT: READ TAO_BEAM_INIT NAMELIST HAS NOT SET IX_UNIVERSE!')
+              'TAO_BEAM_INIT NAMELIST: BEAM_INIT%A_NORM_EMITT NOT SET !')
         call err_exit
       endif
       call out_io (s_blank$, r_name, &
               'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
-      i = ix_universe
-      call init_beam(s%u(i), beam_init, calc_emittance)
+      if (ix_universe == -1) then
+        do i = 1, size(s%u)
+          call init_beam(s%u(i), beam_init, calc_emittance)
+        enddo
+      else
+        i = ix_universe
+        call init_beam(s%u(i), beam_init, calc_emittance)
+      endif
       cycle
     elseif (ios > 0) then
       call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!')
