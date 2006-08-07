@@ -1009,7 +1009,7 @@ elseif (logic_option(.false., all_elements) .or. name == '*' .or. name == ' ') t
 else
   call location_decode (name, list, i1, num)
   if (num <  1) then
-    call out_io (s_error$, r_name, "BAD DATA NUMBER(S): " // d_name)
+    call out_io (s_error$, r_name, "BAD DATA NUMBER(S): " // name)
     this_err = .true.
     return  
   endif
