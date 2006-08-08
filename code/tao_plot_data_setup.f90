@@ -153,12 +153,13 @@ character(40) :: r_name = 'tao_phase_space_plot_data_setup'
 ! Set up the graph suffix
 
 curve => graph%curve(1)
+
+i_uni = curve%ix_universe
+if (i_uni == 0) i_uni = s%global%u_view
+u => s%u(i_uni)
+
 name = curve%ele_ref_name
-if (name == ' ') then
-  ix = curve%ix_universe
-  if (ix == 0) ix = s%global%u_view
-  name = s%u(ix)%model%lat%ele_(curve%ix_ele_ref)%name
-endif
+if (name == ' ') name = s%u(i_uni)%model%lat%ele_(curve%ix_ele_ref)%name
 
 write (graph%title_suffix, '(a, i0, 3a)') '[', curve%ix_ele_ref, ': ', trim(name), ']'
 
@@ -192,7 +193,8 @@ do k = 1, size(graph%curve)
   if (curve%data_source == 'beam_tracking') then
 
     if (.not. allocated(curve%beam%bunch)) then
-      call out_io (s_abort$, r_name, 'NO allocated BEAM WITH PHASE_SPACE PLOTTING.')
+      call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
+      if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
       return
     endif
 
@@ -217,10 +219,6 @@ do k = 1, size(graph%curve)
 
   elseif (curve%data_source == 'multi_turn_orbit') then
     
-    i_uni = s%global%u_view  ! universe where the data comes from
-    if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
-    u => s%u(i_uni)
-
     call tao_find_data (err, curve%data_source, d2_ptr, ix_uni = i_uni)
     if (err) then
       call out_io (s_error$, r_name, &

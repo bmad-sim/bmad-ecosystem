@@ -127,15 +127,29 @@ if (y_min == y_max) then
   this_max2 = -1e30
 
   do i = 1, size(graph%curve)
-    if (.not. associated(graph%curve(i)%y_symb)) cycle
-    if (graph%curve(i)%use_y2) then
-      this_min2 = min(this_min, minval(graph%curve(i)%y_symb))
-      this_max2 = max(this_max, maxval(graph%curve(i)%y_symb))
-    else
-      this_min = min(this_min, minval(graph%curve(i)%y_symb))
-      this_max = max(this_max, maxval(graph%curve(i)%y_symb))
+
+    if (associated(graph%curve(i)%y_symb)) then
+      if (graph%curve(i)%use_y2) then
+        this_min2 = min(this_min, minval(graph%curve(i)%y_symb))
+        this_max2 = max(this_max, maxval(graph%curve(i)%y_symb))
+      else
+        this_min = min(this_min, minval(graph%curve(i)%y_symb))
+        this_max = max(this_max, maxval(graph%curve(i)%y_symb))
+      endif
     endif
+
+    if (associated(graph%curve(i)%y_line)) then
+      if (graph%curve(i)%use_y2) then
+        this_min2 = min(this_min, minval(graph%curve(i)%y_line))
+        this_max2 = max(this_max, maxval(graph%curve(i)%y_line))
+      else
+        this_min = min(this_min, minval(graph%curve(i)%y_line))
+        this_max = max(this_max, maxval(graph%curve(i)%y_line))
+      endif
+    endif
+
   enddo
+
 
   call qp_calc_axis_scale (this_min, this_max, graph%y)
   call qp_calc_axis_scale (this_min2, this_max2, graph%y2)

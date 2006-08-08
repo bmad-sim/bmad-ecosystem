@@ -224,16 +224,19 @@ lat%param%ix_lost = not_lost$
 
 call tao_load_data_array (s%u(uni), 0, s%global%track_type)
 
-do i = 1, lat%n_ele_use
-  call track1 (tao_lat%orb(i-1), lat%ele_(i), lat%param, tao_lat%orb(i))
+do i = 0, lat%n_ele_use
 
-  if (lat%param%lost) then
-    lat%param%ix_lost = i
-    calc_ok = .false.
-    do ii = i+1, lat%n_ele_use
-      tao_lat%orb(ii)%vec = 0
-    enddo
-    return
+  if (i /= 0) then
+    call track1 (tao_lat%orb(i-1), lat%ele_(i), lat%param, tao_lat%orb(i))
+
+    if (lat%param%lost) then
+      lat%param%ix_lost = i
+      calc_ok = .false.
+      do ii = i+1, lat%n_ele_use
+        tao_lat%orb(ii)%vec = 0
+      enddo
+      return
+    endif
   endif
 
   call tao_calc_params (s%u(uni), i)
@@ -381,9 +384,9 @@ call tao_load_data_array (u, 0, s%global%track_type)
 
 ! track through every element
 
-do j = 1, lat%n_ele_use
+do j = 0, lat%n_ele_use
   ! track to the element
-  call track_beam (lat, beam, j-1, j)
+  if (j /= 0) call track_beam (lat, beam, j-1, j)
  
   ! Save beam at location if injecting into another lattice
   if (extract_at_ix_ele == j) then
@@ -521,9 +524,9 @@ endif
 call tao_load_data_array (u, 0, s%global%track_type) 
 
 ! track through every element
-do j = 1, lat%n_ele_use
+do j = 0, lat%n_ele_use
   ! track to the element
-  call track_macro_beam (lat, beam, j-1, j)
+  if (j /= 0) call track_macro_beam (lat, beam, j-1, j)
  
   ! Save beam at location if injecting into another lattice
   if (extract_at_ix_ele == j) then

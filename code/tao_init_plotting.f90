@@ -255,6 +255,9 @@ do
               crv%data_type(1:2) == 't.' .or. crv%data_type(1:3) == 'tt.') then
         crv%ix_ele_ref = 0
         crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(0)%name
+      elseif (graph%type == 'phase_space') then
+        crv%ix_ele_ref = 0
+        crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(0)%name
       endif
 
     enddo

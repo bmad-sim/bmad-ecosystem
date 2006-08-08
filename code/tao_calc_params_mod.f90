@@ -43,23 +43,19 @@ integer ix_ele
 
 lat => u%model%lat
 
-if (s%global%track_type == "single" .or. &
-                    lat%param%lattice_type == circular_lattice$) then
+if (ix_ele /= 0) then
   call make_mat6 (lat%ele_(ix_ele), lat%param, u%model%orb(ix_ele-1), &
                     u%model%orb(ix_ele), .true.)
   call twiss_propagate1 (lat%ele_(ix_ele-1), lat%ele_(ix_ele))
-elseif (s%global%track_type == "beam") then
+endif
 
-  call make_mat6 (lat%ele_(ix_ele), lat%param, u%model%orb(ix_ele-1), &
-                    u%model%orb(ix_ele), .true.)
-  call twiss_propagate1 (lat%ele_(ix_ele-1), lat%ele_(ix_ele))
+!
+
+if (s%global%track_type == "beam") then
   call calc_bunch_params (u%beam%beam%bunch(s%global%bunch_to_plot), &
                                 lat%ele_(ix_ele), u%model%bunch_params(ix_ele))
 
 elseif (s%global%track_type == "macro") then
-  call make_mat6 (lat%ele_(ix_ele), lat%param, u%model%orb(ix_ele-1), &
-                    u%model%orb(ix_ele), .true.)
-  call twiss_propagate1 (lat%ele_(ix_ele-1), lat%ele_(ix_ele))
   call calc_macro_bunch_params (u%macro_beam%beam%bunch(s%global%bunch_to_plot), &
                                 lat%ele_(ix_ele), u%macro_beam%params)
 endif

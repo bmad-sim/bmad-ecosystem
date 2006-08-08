@@ -178,18 +178,18 @@ case ('curve')
 
   call file_suffixer (file_name, file_name, 'symbol_dat', .true.)
   open (iu, file = file_name)
-  write (iu, '(a, 6(9x, a))') '  Ix', '  x', '  y'
+  write (iu, '(a, 6(12x, a))') '  Ix', '  x', '  y'
   do i = 1, size(c%x_symb)
-    write (iu, '(i6, 2es12.4)') i, c%x_symb(i), c%y_symb(i)
+    write (iu, '(i6, 2es15.7)') i, c%x_symb(i), c%y_symb(i)
   enddo
   call out_io (s_info$, r_name, 'Writen: ' // file_name)
   close(iu)
 
   call file_suffixer (file_name, file_name, 'line_dat', .true.)
   open (iu, file = file_name)
-  write (iu, '(a, 6(9x, a))') '  Ix', '  x', '  y'
+  write (iu, '(a, 6(12x, a))') '  Ix', '  x', '  y'
   do i = 1, size(c%x_line)
-    write (iu, '(i6, 2es12.4)') i, c%x_line(i), c%y_line(i)
+    write (iu, '(i6, 2es15.7)') i, c%x_line(i), c%y_line(i)
   enddo
   call out_io (s_info$, r_name, 'Writen: ' // file_name)
   close(iu)
