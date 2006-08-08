@@ -1182,7 +1182,7 @@ following types:
 \index{data}\index{lat_layout}\index{key_table}\index{phase_space}
 \begin{example}
   "data"         ! Data plots (default) 
-  "floor_plan"   ! A 2-dimentional birds-eye view of the machine.
+  "floor_plan"   ! A 2-dimensional birds-eye view of the machine.
   "key_table"    ! Key binding table for single mode.
   "lat_layout"   ! Schematic showing placement of the lattice elements.
   "phase_space"  ! Phase space plots
@@ -1200,13 +1200,14 @@ itself into the bottom one.
 \index{curve!data_source}
 The \vn{curve} structure is used to define the number and types of
 curves to plot in each graph. \vn{curve%data_source} is the type of
-information for the source of the data points. There are the following
-types of data sources:
+information for the source of the data points. \vn{curve%data_source}
+must be one of:
 \begin{example}
   "data_array"       ! A d1_data array is the source of the curve points.
   "var_array"        ! A v1_var array is the source of the curve points.
   "calculation"      ! The curve points are computed directly from the lattice.
-  "beam_calculation" ! The curve points are computed tracking a beam of particles.
+  "beam_tracking"    ! The curve points are computed tracking a beam of particles.
+  "multi_turn_orbit" ! Computation is from multi-turn tracking. 
 \end{example}
 With \vn{curve%data_source} set to \vn{data_array}, the values of the
 curve points come from the \vn{d1_data} array structure named by
@@ -1230,8 +1231,11 @@ possible \vn{curve%data_type} values are the same as the possible
 \vn{curve%data_source} is \vn{"var_array"} then the possible
 \vn{curve%data_type} values are any of the \vn{v1_var} names. This is
 what points the curve to the proper data so there needs to be a
-corresponding data or var type defined in the initialization file.  If
-\vn{graph%type} is \vn{"phase_space"} then \vn{curve%data_source}
+corresponding data or var type defined in the initialization file.  
+
+If \vn{graph%type} is \vn{"phase_space"} then \vn{curve%data_source} 
+must be either \vn{"beam_tracking"} or \vn{"multi_turn_orbit"}. 
+Additionally, \vn{curve%data_type}
 determines what planes are plotted. A plane is either:
 \index{x}\index{p_x}\index{y}\index{p_y}\index{z}\index{p_z}
 \begin{example}

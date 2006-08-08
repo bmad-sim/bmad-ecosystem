@@ -620,7 +620,7 @@ do k = 1, size(graph%curve)
 !----------------------------------------------------------------------------
 ! Case: data source is from the lattice_layout
 
-  case ('calculation', 'beam_calculation')
+  case ('calculation', 'beam_tracking')
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
       i_min = max(1, floor(plot%x%min))
