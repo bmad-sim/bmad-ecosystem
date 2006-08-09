@@ -9,25 +9,24 @@ is shown in Table~\ref{t:commands}.\index{Commands!Command List}
 Multiple commands may be entered
 on one line using the ``;'' character as a separator.
 
-
 \begin{table}[h]
 \centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}  & {\it Command} & {\it Section} \\ \hline
-  alias      & \ref{s:alias}    &  restore      & \ref{s:restore} \\ \hline
-  call       & \ref{s:call}     &  reinitialize & \ref{s:reinit}  \\ \hline
-  change     & \ref{s:change}   &  run          & \ref{s:run}     \\ \hline
-  clip       & \ref{s:clip}     &  scale        & \ref{s:scale}   \\ \hline
-  derivative & \ref{s:deriv}    &  set          & \ref{s:set}     \\ \hline
-  exit       & \ref{s:exit}     &  show         & \ref{s:show}    \\ \hline 
-  flatten    & \ref{s:flatten}  &  single-mode  & \ref{s:sing}    \\ \hline
-  help       & \ref{s:help}     &  spawn        & \ref{s:spawn}   \\ \hline
-  history    & \ref{s:history}  &  use          & \ref{s:use}     \\ \hline
-  output     & \ref{s:output}   &  veto         & \ref{s:veto}    \\ \hline
-  place      & \ref{s:place}    &  view         & \ref{s:view}    \\ \hline
-  plot       & \ref{s:plot}     &  x-axis       & \ref{s:x-axis}  \\ \hline
-  quit       & \ref{s:quit}     &  x-scale      & \ref{s:x-scale} \\ \hline
-  read       & \ref{s:read}     &               &                 \\ \hline
+  alias      & \ref{s:alias}    & read         & \ref{s:read}    \\ \hline
+  call       & \ref{s:call}     & restore      & \ref{s:restore} \\ \hline 
+  change     & \ref{s:change}   & reinitialize & \ref{s:reinit}  \\ \hline 
+  clip       & \ref{s:clip}     & run          & \ref{s:run}     \\ \hline 
+  derivative & \ref{s:deriv}    & scale        & \ref{s:scale}   \\ \hline 
+  exit       & \ref{s:exit}     & set          & \ref{s:set}     \\ \hline  
+  flatten    & \ref{s:flatten}  & show         & \ref{s:show}    \\ \hline 
+  help       & \ref{s:help}     & single-mode  & \ref{s:sing}    \\ \hline 
+  history    & \ref{s:history}  & spawn        & \ref{s:spawn}   \\ \hline 
+  misalign   & \ref{s:misalign} & use          & \ref{s:use}     \\ \hline 
+  output     & \ref{s:output}   & veto         & \ref{s:veto}    \\ \hline 
+  place      & \ref{s:place}    & view         & \ref{s:view}    \\ \hline 
+  plot       & \ref{s:plot}     & x-axis       & \ref{s:x-axis}  \\ \hline 
+  quit       & \ref{s:quit}     & x-scale      & \ref{s:x-scale} \\ \hline 
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -309,6 +308,54 @@ Examples
 \begin{example}
   history 34   ! Reinvoke command number 34.
   history set  ! Reinvoke last set command.  
+\end{example}
+
+%% misalign --------------------------------------------------------------
+\section{Misalign}\index{Command!misalign}
+\label{s:misalign}
+
+Format:
+\begin{example}
+   misalign <wrt> <ele_type> <locations> <ele_attrib> <misalign_value>
+\end{example}
+
+\vskip 0.2in
+Misaligns a set of elements of type \vn{<ele_type>} at lattice locations \vn{<locations>}.
+The element attribute \vn{<ele_attrib>} is ``misaligned'' by the rms value
+\vn{<misalign_value>} with respect to the component \vn{<wrt>}. Any element
+attribute can be misaligned provided it is free to vary.
+
+If \vn{<ele_type>} begins with "*@" then choose all universes. If \vn{<ele_type>}
+begin with "n@" then choose universe n. Otherwise the viewed universe is used.
+
+\vn{<locations>} is a range of lattice indices and may contain elements not of
+type \vn{<ele_type>}. Only elements of type \vn{<ele_type>} will be misaligned
+within the range.
+
+If \vn{<misalign_value>} is prepended by 'x' then the misalignment value will be
+a relative misalignment with respect to the \vn{<wrt>} value. Otherwise, it's an 
+absolute rms value about the \vn{<wrt>} value.
+
+In the special case where sbend strengths are misaligned then use
+\vn{<ele_attrib> = g_err}. However, if a relative error is specified it will be 
+relative to 'g'.
+
+The possible with respect to components are:
+\begin{example}
+  wrt_model          ! Misalign about the current model value
+  wrt_design         ! Misalign about the design value
+  wrt_survey         ! Misalign about the zero value
+\end{example}
+
+Examples
+\begin{example}
+   ! The following will misalign all quadrupole vertical positions in the viewed
+   ! universe within the lattice element range 100:250 with respect to the zero 
+   ! value by 300 microns
+  misalign wrt_survey quadrupole 100:250 y_offset 300e-6
+   ! The following will misalign all quadrupole strengths in all universes for
+   ! the entire lattice with respect to the design value by 1%.
+  misalign wrt_design *@quadrupole ALL k1 x0.01
 \end{example}
 
 %% output --------------------------------------------------------------

@@ -26,12 +26,13 @@ use tao_set_mod
 use tao_plot_window_mod
 use tao_show_mod
 use tao_change_mod
+use tao_misalign_mod
 
 implicit none
 
 integer i, j
 integer ix, ix_line, ix_cmd, which
-integer int1, int2, uni
+integer int1, int2, uni, wrt
 
 real(rp) value1, value2
 
@@ -41,13 +42,13 @@ character(20) :: r_name = 'tao_command'
 character(80) :: cmd_word(12)
 character(16) cmd_name, set_word
 
-character(16) :: cmd_names(28) = (/  &
+character(16) :: cmd_names(29) = (/  &
     'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
     'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
     'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
     'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
     'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ', &
-    'spawn       ', 'xy-scale    ', 'read        ' /)
+    'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ' /)
 
 character(16) :: set_names(8) = (/ &
     'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
@@ -176,6 +177,16 @@ case ('history')
   call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
   call tao_history_cmd (cmd_word(1), err)
   return
+
+!--------------------------------
+! MISALIGN
+
+case ('misalign')
+
+  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) return
+  call tao_misalign (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4), &
+                     cmd_word(5))
+
 
 !--------------------------------
 ! OUTPUT

@@ -224,7 +224,13 @@ lat%param%ix_lost = not_lost$
 
 call tao_load_data_array (s%u(uni), 0, s%global%track_type)
 
-do i = 0, lat%n_ele_use
+do i = 1, lat%n_ele_use
+
+  ! if doing linear tracking, first compute transfer matrix
+  if (lat%ele_(i)%tracking_method .eq. linear$) &
+           call make_mat6 (lat%ele_(i), lat%param) 
+
+  call track1 (tao_lat%orb(i-1), lat%ele_(i), lat%param, tao_lat%orb(i))
 
   if (i /= 0) then
     call track1 (tao_lat%orb(i-1), lat%ele_(i), lat%param, tao_lat%orb(i))
@@ -384,7 +390,12 @@ call tao_load_data_array (u, 0, s%global%track_type)
 
 ! track through every element
 
-do j = 0, lat%n_ele_use
+do j = 1, lat%n_ele_use
+
+  ! if doing linear tracking, first compute transfer matrix
+  if (lat%ele_(j)%tracking_method .eq. linear$) &
+           call make_mat6 (lat%ele_(j), lat%param) 
+
   ! track to the element
   if (j /= 0) call track_beam (lat, beam, j-1, j)
  
@@ -524,7 +535,12 @@ endif
 call tao_load_data_array (u, 0, s%global%track_type) 
 
 ! track through every element
-do j = 0, lat%n_ele_use
+do j = 1, lat%n_ele_use
+
+  ! if doing linear tracking, first compute transfer matrix
+  if (lat%ele_(j)%tracking_method .eq. linear$) &
+           call make_mat6 (lat%ele_(j), lat%param) 
+
   ! track to the element
   if (j /= 0) call track_macro_beam (lat, beam, j-1, j)
  

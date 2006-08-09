@@ -253,8 +253,10 @@ endif
 nl=nl+1;write (lines(nl), fmt) 'Merit:      ', &
                         old_merit, '  ->', new_merit, new_merit-old_merit
 nl=nl+1;lines(nl) = ' '
-nl=nl+1;if (delta /= 0) write (lines(nl), '(a, es12.3)') &
-                         'dMerit/dValue:  ', (new_merit-old_merit) / delta
+if (delta /= 0) then
+  nl=nl+1
+  write (lines(nl), '(a, es12.3)') 'dMerit/dValue:  ', (new_merit-old_merit) / delta
+endif
 
 call out_io (s_blank$, r_name, lines(1:nl))
 
