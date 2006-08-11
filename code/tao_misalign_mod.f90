@@ -2,7 +2,7 @@ module tao_misalign_mod
 
 use tao_mod
 
-type (ele_struct), target :: zero_ele
+type (ele_struct), target, save :: zero_ele
 
 ! with respect to what?
   integer, parameter :: wrt_beam$ = 1, wrt_model$ = 2, wrt_design$ = 3
