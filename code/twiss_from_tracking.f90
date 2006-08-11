@@ -63,8 +63,6 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
 
 ! Init
 
-  error = .true.  ! Assume the worst
-
   do i = -6, 6
     call reallocate_coord (mo(i)%orb, ring%n_ele_max)
   enddo
@@ -111,6 +109,8 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
     do i = 1, 6
       mat(:,i) = (mo(i)%orb(j)%vec - mo(-i)%orb(j)%vec) / (2*delta(i))
     enddo
+
+    call mat_symp_check (mat, error)
     call mat_symplectify (mat, mat)
 
     r = mo(0)%orb(j)%vec - matmul(mat, mo(0)%orb(0)%vec)
@@ -134,6 +134,5 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
 
   call twiss_propagate_all (ring)
   call set_on_off (rfcavity$, ring, restore_state$)
-  error = .false.
 
 end subroutine
