@@ -31,7 +31,7 @@ setenv CERNSRC      $CERN_ROOT/src
 #------  CESR libraries  ------
 #
 setenv CESR_PLATFORM $PLATFORM_TAG
-setenv CESR_BASE     $CESR_/$PLATFORM_TAG
+setenv CESR_BASE     $CESR_/${PLATFORM_TAG}_${CESRF90}
 setenv CESR_CURRENT  $CESR_BASE/current
 setenv CESR_DEVEL    $CESR_BASE/devel
 
@@ -95,6 +95,9 @@ setenv TOAD_DIR     $CESR_CVSSRC/toad
 # $Id$
 #
 # $Log$
+# Revision 1.16  2006/08/13 22:28:45  cesrulib
+# Update environment variables so that directory trees for each OS/compiler combination are unique.
+#
 # Revision 1.15  2005/05/15 01:31:36  cesrulib
 # New environment variables and some changes have been introduced in order
 # make switches between FORTRAN compilers more easy.
