@@ -44,8 +44,9 @@ fi
 if ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then 
   CESRF90=${CESRF90:-absoft}
 fi
+
 #
-# Set CESR Librarian base areas:
+# Set Accelerator Code Libraries base areas:
 # Presently have Unix/Linux and Cygwin versions
 #
 BASE_DIR_DEF=/home/cesrulib
@@ -127,9 +128,40 @@ unset CESRENV
 unset CESRF90
 
 #
+# Log users who are setting up the CESR accelerator code 
+# libraries environment.  This is so that notifications of
+# changes can be sent to all active users. 
+#
+lock_count=0
+lock_file=/home/cesrulib/user_log/users.lock
+users_done=0
+users_file=/home/cesrulib/user_log/users.list
+max_count=2
+while ( [ ${users_done} -eq 0 -a ${lock_count} -lt ${max_count} ] ) do
+    if ( [ -f ${lock_file} ] ) then
+      echo "Waiting for ACL setup lock!"
+      sleep 1
+      lock_count=`expr ${lock_count} + 1`
+    else
+      touch ${lock_file}
+      echo "`whoami`" >> ${users_file}
+      users_done=1
+      rm ${lock_file}
+    fi
+done
+unset lock_count
+unset lock_file
+unset users_done
+unset users_file
+unset max_count
+
+#
 # $Id$
 #
 # $Log$
+# Revision 1.10  2006/08/13 22:31:42  cesrulib
+# Update with user logging.
+#
 # Revision 1.9  2006/03/13 18:53:26  cesrulib
 # merging with win_port
 #

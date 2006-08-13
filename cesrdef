@@ -128,10 +128,42 @@ unsetenv CONST
 unsetenv CESR_
 unsetenv CESRENV
 unsetenv CESRF90
+
+#
+# Log users who are setting up the CESR accelerator code 
+# libraries environment.  This is so that notifications of 
+# changes can be sent to all active users. 
+#
+set lock_count=0
+set lock_file=/home/cesrulib/user_log/users.lock
+set users_done=0
+set users_file=/home/cesrulib/user_log/users.list
+set max_count=2
+while ( ${lock_count} < ${max_count} )
+    if ( `filetest -e ${lock_file}` ) then
+      echo "Waiting for ACL setup lock!"
+      sleep 1
+      set lock_count=`expr ${lock_count} + 1`
+    else
+      touch ${lock_file}
+      echo "`whoami`" >> ${users_file}
+      rm ${lock_file}
+      break
+    endif
+end 
+unset lock_count
+unset lock_file
+unset users_done
+unset users_file
+unset max_count
+
 #
 # $Id$
 #
 # $Log$
+# Revision 1.10  2006/08/13 22:30:43  cesrulib
+# Update with user logging.
+#
 # Revision 1.9  2005/06/02 18:32:52  cesrulib
 # Intel ifort is default on Linux now...
 #
