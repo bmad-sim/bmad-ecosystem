@@ -12,7 +12,7 @@
 #then it will be tuned against devel  (devel->devel_intel)
 #                    
 ###############################################
-. /nfs/opt/intel_fc_80/bin/ifortvars.sh
+# . /nfs/opt/intel_fc_80/bin/ifortvars.sh
 if ( [ $# -eq 0 ] ) then
  CESRF90=intel; CESRLIB=devel;. /home/cesrulib/bin/cesrdefs
 else

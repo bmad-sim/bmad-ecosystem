@@ -1,0 +1,419 @@
+#!/bin/sh
+#
+################################################################
+#
+# build_release:
+#
+# Script to build CESR packages and release areas on supported 
+# machines.
+#
+# SPECIAL WARNINGS:
+# This script contains a function get_release_name() which is also
+# employed in the do_release script.  Separate copies of the function
+# are presently maintained in each (DANGEROUS) and must be kept 
+# synchronized for proper operation
+#
+#
+# usage : build_release [options] [var defs] <lib_tag> <pkg_tag> [<SGL/DBL>]
+#         arguments:
+#          <SGL/DBL>            specify double or single precision
+#                               (default is DBL)
+#
+#         options:
+#          -cesr                Build a cesr release
+#          -pkg                 Build a packages release 
+#          -vms_prep            Don't build, just prepare release for  
+#                               transfer to OpenVMS
+#          -dump                Dump the configuration information for 
+#                               this script
+#         variables:
+#           PKG=<packages_name> Specify a specific packages release
+#                               to build against.  Expects only base 
+#                               directory name (NO path).
+#           REL=<release_name>  Specify a specific CESR release
+#                               to build against.  Expects only base 
+#                               directory name (NO path).
+#           F90=<F90_compiler>  Compiler flag to load into the CESR_F90 
+#                               variable.  The possible values are defined 
+#                               in the /home/cesrulib/bin/cesrdef(s) 
+#                               scripts.
+#           GMAKE=<gmake_dir>   Specify a custom CESR_GMAKE directory.
+#                               Expects FULL path.
+#           UTIL=<util_dir>     Specify a custom CESR_UTIL  directory
+#                               to build against.  Expects FULL path.
+#           BIN=<bin_dir>       Specify a custom CESR_BIN directory
+#                               Expects FULL path.
+#
+# examples: build_release -cesr -pkg REL=cesr_2003_0728_d PKG=packages_2003_0728_d DBL 
+#           (builds packages followed by release)
+#
+#           build_release -cesr -dump REL=cesr_2003_0728_d PKG=packages_2003_0728_d DBL 
+#           (dumps the setup information and then builds only the CESR release using 
+#           the specified version of the packages area)
+#
+################################################################
+#
+# $Id$
+#
+# $Log$
+# Revision 1.1  2006/08/14 00:38:48  cesrulib
+# Update for latest changes in build area structure and new do_release/build_release scripts.
+#
+#
+################################################################
+
+################################################################
+# Set up some internal functions
+################################################################
+
+# Script help function
+myprint_help () {
+#       Print help info
+    echo ""
+    echo "Usage is:  build_release [options] [var. defs] [<precision>]"
+    echo ""
+    echo "Inputs:"
+    echo "<precision>         SGL or DBL (optional) [default is DBL]"
+    echo "Options:"
+    echo "-cesr               Build a cesr release"
+    echo "-pkg                Build a packages release"
+    echo "-vms_prep           Prepare a release for transfer to OpenVMS"
+    echo "-dump               Dump the configuration information for"
+    echo "                    this script"
+    echo ""
+    echo "Variable definitions:"
+    echo "PKG=<packages_name> Specify a specific packages release"
+    echo "                    to build against"
+    echo "REL=<release_name>  Specify a specific CESR release"
+    echo "                    to build against"
+    echo "F90=<F90_compiler>  Specify the 3rd part F90 compiler"
+    echo "GMAKE=<gmake_dir>   Specify a custom CESR_GMAKE directory"
+    echo "UTIL=<util_dir>     Specify a custom CESR_UTIL  directory"
+    echo "BIN=<bin_dir>       Specify a custom CESR_BIN   directory"
+    echo ""
+    echo "PATH =  $PATH "
+}
+
+###########################
+# Main script starts here #
+###########################
+
+#-----------------
+# Initializations
+#-----------------
+
+# Get the operating system, machine type, and default fortran compiler
+PLATFORM_TAG="`uname -s`_`uname -m`"
+if ( [ -n "${CESR_PLATFORM}" ] ) then
+   PLATFORM_TAG="${CESR_PLATFORM}"
+fi
+
+#Initializations
+BUILD_DIR=/home/cesrulib/cesr_libs
+PREC="DBL"
+
+REL_TAG="cesr"
+PKG_TAG="packages"
+
+REL=""
+PKG=""
+CESRF90=${CESR_F90}
+DO_REL=0
+DO_PKG=0
+VMS_PREP=0
+DO_DUMP=0
+GMAKE_OVERRIDE=0
+UTIL_OVERRIDE=0
+use_cesr_bin=/home/cesrulib/bin
+
+GMAKE=gmake
+
+# Default customizations for Windows builds in the CYGWIN environment
+if ( [ ${PLATFORM_TAG} = "CYGWIN_NT_i686" ] ) then
+ use_cesr_bin=/cygdrive/z/cesrulib/bin
+ BUILD_DIR=/cygdrive/c/user_local/cesrulib/cesr_libs
+ GMAKE=make
+fi
+
+CURRENT_HOST="`uname -n`"
+
+#------------
+# Get inputs
+#------------
+arg_list=""
+for i 
+do arg_list="${arg_list} ${i}";
+   case $i in
+     "DBL"|"dbl") PREC="DBL";;
+     "SGL"|"sgl") PREC="SGL";;
+     "-cesr"    ) DO_REL=1  ;;
+     "-pkg"     ) DO_PKG=1  ;;
+     "-vms_prep") VMS_PREP=1;;
+     "-dump"    ) DO_DUMP=1 ;;
+     PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
+     REL=*      ) REL=`echo $i|cut -d= -f2`;;
+     F90=*      ) CESRF90=`echo $i|cut -d= -f2`;
+                  echo "Overriding CESRF90";;
+     GMAKE=*    )use_cesr_gmake=`echo $i|cut -d= -f2`;
+                  GMAKE_OVERRIDE=1;;
+     UTIL=*     )use_cesr_util=`echo $i|cut -d= -f2`;
+                 UTIL_OVERRIDE=1;;
+     BIN=*      )use_cesr_bin=`echo $i|cut -d= -f2`;;
+     *          ) myprint_help;
+     code=1;  echo "BUILD_STATUS:  ${code}"; exit ${code};;
+   esac
+done
+
+echo "build_release - called with the following arguments:  "
+echo "${arg_list}" 
+echo ""
+
+#---------------------------------------
+# Log start of job (1 = job running)
+#---------------------------------------
+code=-1
+echo "BUILD_STATUS:  ${code}"
+
+#---------------------------------------
+# Configure the job based on the inputs 
+#---------------------------------------
+
+# Set up the precision tag
+case $PREC in
+   "DBL")PREC_TAG="d";;
+   "SGL")PREC_TAG="s";;
+esac 
+CESR_PREC="_${PREC}"
+
+# Set up the base area
+BASE_TAG=${PLATFORM_TAG}_${CESRF90}
+
+echo "BASE area:  ${BASE_TAG}"
+
+# Generate full path information for the CESR area
+if ( [ -n "${REL}" ] ) then
+    REL_NAME=${REL}
+    FULL_REL_NAME=${BUILD_DIR}/${BASE_TAG}/${REL_NAME}
+    FULL_REL_LOG=${BUILD_DIR}/log/${BASE_TAG}/${REL}.log
+else
+    echo "No CESR release specified.  Exiting!"
+    code=2
+    echo "BUILD_STATUS:  ${code}"
+    exit ${code}
+fi		
+
+# Generate full path information for the PACKAGES area
+if ( [ -n "${PKG}" ] ) then
+    PKG_NAME=${PKG}
+    FULL_PKG_NAME=${BUILD_DIR}/${BASE_TAG}/${PKG_NAME}
+    FULL_PKG_LOG=${BUILD_DIR}/log/${BASE_TAG}/${PKG}.log
+else
+    echo "No PACKAGES area specified.  Exiting!"
+    code=3
+    echo "BUILD_STATUS:  ${code}"
+    exit ${code}    
+fi
+
+# Set the CESR bin directory for picking up scripts
+BIN_DIR=${use_cesr_bin}
+#CESRENV=${BIN_DIR}/cesrenv2
+
+# Export the environment for the new release
+if ( [ -n "${REL_NAME}" ] ) then 
+    CESRLIB=${REL_NAME}
+fi
+
+CESRLIB_BIN=${BIN_DIR}; . ${BIN_DIR}/cesrdefs
+
+# Use user-specified CESR_GMAKE and CESR_UTIL areas, if present.
+if ( [ ${GMAKE_OVERRIDE} -eq 1 ] ) then
+    CESR_GMAKE=${use_cesr_gmake}
+    export CESR_GMAKE
+fi
+
+if ( [ ${UTIL_OVERRIDE} -eq 1 ] ) then
+    CESR_UTIL=${use_cesr_util}
+    export CESR_UTIL
+fi
+
+#-------------------------------------------------
+# Dump the configuration information if requested
+#-------------------------------------------------
+if ( [ $DO_DUMP -eq 1 ] ) then
+    echo "BUILD_DIR         = ${BUILD_DIR}"
+    echo "PREC              = ${PREC}"
+    echo "REL_TAG           = ${REL_TAG}"
+    echo "PKG_TAG           = ${PKG_TAG}"
+    echo "DO_REL            = ${DO_REL}"
+    echo "DO_PKG            = ${DO_PKG}"
+    echo "VMS_PREP          = ${VMS_PREP}"
+    echo "PLATFORM_TAG      = ${PLATFORM_TAG}"
+    echo ""
+    echo "CESR_GMAKE        = ${CESR_GMAKE}"
+    echo "CESR_UTIL         = ${CESR_UTIL}"
+    echo "bin Directory     = ${BIN_DIR}"
+    echo ""
+    echo "REL_NAME          = ${REL_NAME}"
+    echo "REL_PATH          = ${CESR_REL}"
+    echo "FULL_REL_LOG      = ${FULL_REL_LOG}"
+    echo "PKG_NAME          = ${PKG_NAME}"
+    echo "PKG_PATH          = ${CESR_PKG}"
+    echo "FULL_PKG_LOG      = ${FULL_PKG_LOG}"
+    echo ""
+    echo "CURRENT_HOST      = ${CURRENT_HOST}"
+    echo "CESRF90           = ${CESR_F90}"
+    echo "PATH              = ${PATH} "
+    echo "BIN_DIR           = ${BIN_DIR}"
+fi
+
+#--------------------------------------
+# Print the CESR environment variables
+#--------------------------------------
+echo ""
+echo "CESR Environment:  "
+printenv | grep CESR_
+printenv | grep PKG_
+echo ""
+
+
+#-----------------------------------------------------
+# Verify that the release and package paths are valid 
+#-----------------------------------------------------
+if ( [ -d ${CESR_BASE}/${REL_NAME} ] ) then
+    rel_exists=1
+else
+    rel_exists=0
+fi
+
+if ( [ -d ${CESR_BASE}/${PKG_NAME} ] ) then
+    pkg_exists=1
+else
+    pkg_exists=0
+fi
+
+#echo ""
+#echo "${CESR_BASE}/${REL_NAME}:  rel_exists = ${rel_exists}"
+#echo "${CESR_BASE}/${PKG_NAME}:  pkg_exists = ${pkg_exists}"
+#echo ""
+
+#code=4
+#echo "BUILD_STATUS:  ${code}"
+#exit ${code}
+
+if ( [ $rel_exists -eq 0 -o  $pkg_exists -eq 0 ] ) then
+    
+    if ( [ $rel_exists -eq 0 ] ) then
+        echo "`date`:  Could not find ${CESR_BASE}/${REL_NAME}"
+    fi
+    if ( [ $pkg_exists -eq 0 ] ) then
+        echo "`date`:  Could not find ${CESR_BASE}/${PKG_NAME}"
+    fi
+
+    echo "`date`: Exiting!"
+    code=4
+    echo "BUILD_STATUS:  ${code}"
+    exit ${code}
+fi
+
+################################
+# Build the 3rd-party PACKAGES #
+################################
+build_pkg_status=0
+if ( [ $DO_PKG -eq 1 ] ) then
+    if ( [ $VMS_PREP -eq 1 ] ) then
+        echo ""
+        echo "`date`: Preparing packages for VMS..."
+        echo ""
+        ${GMAKE} -f ${BIN_DIR}/M.release PKG_NAME=${PKG_NAME} to_vms_alpha_pkg;
+        echo "`date`: PACKAGES ready for VMS transfer;  Status = ${build_pkg_status}"
+    else
+        echo ""
+        echo "`date`: Building packages..."
+        echo ""
+        ${GMAKE} -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT="" BUILD="do_build" >> ${FULL_PKG_LOG} 2>&1
+        build_pkg_status=$?
+        echo "`date`: PACKAGES build complete;  Status = ${build_pkg_status}"
+    fi
+fi
+
+##########################
+# Build the CESR RELEASE #
+##########################
+build_rel_status=0
+test_rel_status=${build_pkg_status}
+if ( [ $DO_REL -eq 1 ] ) then
+    if ( [ $VMS_PREP -eq 1 ] ) then
+        echo ""
+        echo "`date`: Preparing release for VMS..."
+        ${GMAKE} -f ${BIN_DIR}/M.release REL_NAME=${REL_NAME} to_vms_alpha_rel;
+        echo ""
+        echo "`date`: CESR release ready for VMS transfer;  Status = ${build_rel_status}"
+    else
+        echo ""
+        echo "`date`: Building release..."
+        echo ""
+        ${GMAKE} -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT="" BUILD="do_build" >> ${FULL_REL_LOG} 2>&1
+        build_rel_status=$?
+        echo "`date`: CESR build complete;  Status = ${build_rel_status}"
+    fi
+
+#------------------------------------------------------------------
+#   Set group to cesr and add write permission for the config area
+#   Create the release database of files and functions
+#------------------------------------------------------------------
+    if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 ] ) then
+        chgrp -R cesr $CESR_CONFIG
+        chmod -R g+w $CESR_CONFIG
+        ${use_cesr_bin}/create_fdb.pl
+    fi
+
+#-------------------------------------------------
+#   Build and run test jobs using the new release  
+#-------------------------------------------------
+    test_rel_status=1
+    if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 ] ) then
+#       Run test jobs here
+#       test_rel_status=$?
+        test_rel_status=0
+        echo "Executable testing not yet available!"
+    fi
+
+fi
+
+
+###############################################################
+# Final messages after  building CESR RELEASE or PACKAGES
+###############################################################
+if ( [ ${test_rel_status} -eq 0 ] ) then
+    echo "`date`: Installation completed successfully for ${BASE_TAG} !";
+else
+    echo "`date`: Installation completed with errors!"
+    code=5
+    echo "BUILD_STATUS:  ${code}"
+    exit ${code}
+fi
+
+code=0
+echo "BUILD_STATUS:  ${code}"
+exit ${code}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

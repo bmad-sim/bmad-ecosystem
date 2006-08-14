@@ -12,10 +12,10 @@
 #then it will be tuned against devel_lahey
 #                    
 ###############################################
-source /nfs/opt/lf9562/csh_setup
+# source /nfs/opt/lf9562/csh_setup
 if ( $#argv == 0  ) then
- setenv CESRF90 lahey; setenv CESRLIB devel_lahey;source /home/cesrulib/bin/cesrdef
+ setenv CESRF90 lahey; setenv CESRLIB devel; source /home/cesrulib/bin/cesrdef
 else
- setenv CESRF90 lahey; setenv CESRLIB $1;source /home/cesrulib/bin/cesrdef
+ setenv CESRF90 lahey; setenv CESRLIB $1; source /home/cesrulib/bin/cesrdef
 endif
 

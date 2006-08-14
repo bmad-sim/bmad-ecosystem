@@ -47,6 +47,15 @@
 #           do_release -cesr -tagr PKG=packages_2003_0728_d DBL
 #                        #building  release then tagging#
 ################################################################
+#
+# $Id$
+#
+# $Log$
+# Revision 1.15  2006/08/14 00:38:48  cesrulib
+# Update for latest changes in build area structure and new do_release/build_release scripts.
+#
+#
+################################################################
 
 ################################################################
 # Set up some internal functions

@@ -12,10 +12,10 @@
 #then it will be tuned against devel (devel->devel_intel)
 #                    
 ###############################################
-source /nfs/opt/intel_fc_80/bin/ifortvars.csh
+# source /nfs/opt/intel_fc_80/bin/ifortvars.csh
 if ( $#argv == 0  ) then
- setenv CESRF90 intel; setenv CESRLIB devel;source /home/cesrulib/bin/cesrdef
+ setenv CESRF90 intel; setenv CESRLIB devel; source /home/cesrulib/bin/cesrdef
 else
- setenv CESRF90 intel; setenv CESRLIB $1;source /home/cesrulib/bin/cesrdef
+ setenv CESRF90 intel; setenv CESRLIB $1; source /home/cesrulib/bin/cesrdef
 endif
 

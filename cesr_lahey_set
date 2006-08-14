@@ -12,9 +12,9 @@
 #then it will be tuned against devel_lahey
 #                    
 ###############################################
-. /nfs/opt/lf9562/bash_setup
+# . /nfs/opt/lf9562/bash_setup
 if ( [ $# -eq 0 ] ) then
- CESRF90=lahey; CESRLIB=devel_lahey;. /home/cesrulib/bin/cesrdefs
+ CESRF90=lahey; CESRLIB=devel;. /home/cesrulib/bin/cesrdefs
 else
-  CESRF90=lahey; CESRLIB=$1;. /home/cesrulib/bin/cesrdefs
+ CESRF90=lahey; CESRLIB=$1;. /home/cesrulib/bin/cesrdefs
 fi
