@@ -20,7 +20,7 @@ subroutine tao_init (init_file)
   type (tao_universe_struct), pointer :: u
   type (tao_var_struct), pointer :: var_ptr
   type (tao_this_var_struct), pointer :: this
-
+  type (tao_plot_struct), pointer :: p
   real(rp), pointer :: ptr_attrib
 
   character(*) init_file

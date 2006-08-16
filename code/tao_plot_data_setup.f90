@@ -11,14 +11,20 @@
 subroutine tao_plot_data_setup ()
 
 use tao_mod
+use tao_x_scale_mod
+use tao_scale_mod
 
 implicit none
 
 type (tao_plot_struct), pointer :: plot
+type (tao_graph_struct), pointer :: graph
+type (tao_curve_struct), pointer :: curve
 type (ele_struct), pointer :: ele
 
-integer i, ii, k, m, i_uni, ie, jj
+integer i, ii, k, m, i_uni, ie, jj, ic
 integer ix, ir, jg
+
+real(rp) ax_min, ax_max
 
 character(20) :: r_name = 'tao_plot_data_setup'
 
@@ -59,18 +65,39 @@ plot_loop: do ir = 1, size(s%plot_page%region)
   ! Don't worry about invisable graphs
   if (.not. s%plot_page%region(ir)%visible) cycle  
 
-  if (plot%x_axis_type /= 'index' .and. plot%x_axis_type /= 's' .and. &
-      plot%x_axis_type /= 'ele_index') then
+  select case (plot%x_axis_type)
+  case ('index', 's', 'ele_index', 'phase_space', 'none')
+  case default
     call out_io (s_abort$, r_name, 'BAD X_AXIS_TYPE: ' // plot%x_axis_type)
     plot%graph%valid = .false.
     cycle
-  endif
+  endselect
 
 ! loop over all graphs and curves
 
   do jg = 1, size(plot%graph)
-    call tao_graph_data_setup (plot, plot%graph(jg))
+    graph => plot%graph(jg)
+    call tao_graph_data_setup (plot, graph)
+    if (graph%y%min == graph%y%max) call tao_scale_graph (graph, 0.0_rp, 0.0_rp)
+    graph%limited = .false.
+    if (associated(graph%curve)) then
+      ax_min = graph%y%min + 1e-6 * (graph%y%min - graph%y%max)
+      ax_max = graph%y%max + 1e-6 * (graph%y%max - graph%y%min)
+      do ic = 1, size(graph%curve)
+        curve => graph%curve(ic)
+        if (associated(curve%y_symb)) then
+          if (any(curve%y_symb < ax_min .or. &
+                    curve%y_symb > ax_max)) graph%limited = .true.
+        endif
+        if (associated(curve%y_line)) then
+          if (any(curve%y_line < ax_min .or. &
+                    curve%y_line > ax_max)) graph%limited = .true.
+        endif
+      enddo
+    endif
   enddo
+
+  if (plot%x%min == plot%x%max) call tao_x_scale_plot (plot, 0.0_rp, 0.0_rp)
 
 enddo plot_loop
 
@@ -108,7 +135,7 @@ case ('data')
   call tao_data_plot_data_setup(plot, graph)
 end select
 
-! Renormalize and check for limited graph
+! Renormalize
 
 if (associated (graph%curve)) then
   do i = 1, size(graph%curve)
@@ -140,8 +167,12 @@ type (tao_plot_struct) plot
 type (tao_graph_struct) graph
 type (tao_curve_struct), pointer :: curve
 type (tao_universe_struct), pointer :: u
+type (ele_struct), pointer :: ele
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_x, d1_y
+
+real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
+real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry
 
 integer k, n, m, ib, ix1_ax, ix2_ax, ix, i_uni, i
 
@@ -157,9 +188,10 @@ curve => graph%curve(1)
 i_uni = curve%ix_universe
 if (i_uni == 0) i_uni = s%global%u_view
 u => s%u(i_uni)
+ele => s%u(i_uni)%model%lat%ele_(curve%ix_ele_ref)
 
 name = curve%ele_ref_name
-if (name == ' ') name = s%u(i_uni)%model%lat%ele_(curve%ix_ele_ref)%name
+if (name == ' ') name = ele%name
 
 write (graph%title_suffix, '(a, i0, 3a)') '[', curve%ix_ele_ref, ': ', trim(name), ']'
 
@@ -264,8 +296,52 @@ do k = 1, size(graph%curve)
       curve%y_symb(ib) = d1_y%d(i)%model_value
     enddo
 
+
+  elseif (curve%data_source == 'twiss') then
+
+    n = 2 * s%global%n_curve_pts
+    call re_associate (curve%x_line, n)
+    call re_associate (curve%y_line, n)
+
+    call make_v_mats (ele, v_mat, v_inv_mat)
+    call make_g_mats (ele, g_mat, g_inv_mat)
+
+    mat4 = matmul(v_mat, g_inv_mat)
+    sigma_mat =  0
+    sigma_mat(1,1) = u%model%lat%x%emit
+    sigma_mat(2,2) = u%model%lat%x%emit
+    sigma_mat(3,3) = u%model%lat%y%emit
+    sigma_mat(4,4) = u%model%lat%y%emit
+    sigma_mat = matmul (matmul (mat4, sigma_mat), transpose(mat4))
+
+    if (ix1_ax > 4 .or. ix2_ax > 4) then
+      call out_io (s_error$, r_name, &
+        'Z OR P_Z PHASE SPACE PLOTTING NOT YET IMPLEMENTED FOR "twiss" DATA_SOURCE.')
+      return
+    endif
+
+    rx = sqrt(sigma_mat(ix1_ax, ix1_ax))
+    ry = sqrt(sigma_mat(ix1_ax, ix2_ax))
+    if(rx == 0 .or. ry == 0) then
+      theta_xy = 0
+    else
+      theta_xy =  asin(sigma_mat(ix1_ax, ix2_ax) / (rx * ry))
+    endif
+
+    n = 2 * s%global%n_curve_pts
+    call re_associate (curve%x_line, n)
+    call re_associate (curve%y_line, n)
+
+    do i = 1, n
+      theta = (i-1) * twopi / (n-1)
+      curve%x_line(i) = rx * cos(theta)
+      curve%y_line(i) = ry * sin(theta + theta_xy)
+    enddo
+
   else
-    call out_io (s_abort$, r_name, 'INVALID CURVE%DATA_SOURCE: ' // curve%data_source)
+    call out_io (s_abort$, r_name, &
+        'INVALID CURVE%DATA_SOURCE: ' // curve%data_source, &
+        'FOR CURVE: '// curve%name)
     call err_exit
   endif
 
@@ -329,7 +405,7 @@ type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
 type (tao_var_struct), pointer :: v_ptr
 
-real(rp) f, y_val, eps, ax_min, ax_max, gs
+real(rp) f, y_val, eps, gs
 real(rp), pointer :: value(:)
 
 integer ii, k, m, n_dat, i_uni, ie, jj, iv, ic
@@ -422,16 +498,18 @@ do k = 1, size(graph%curve)
     endif
 
     d1_ptr%d%good_plot = .true.
-    eps = 1e-4 * (plot%x%max - plot%x%min)
-    if (plot%x_axis_type == 'index') then
-      where (d1_ptr%d%ix_d1 < plot%x%min-eps) d1_ptr%d%good_plot = .false.
-      where (d1_ptr%d%ix_d1 > plot%x%max+eps) d1_ptr%d%good_plot = .false.
-    elseif (plot%x_axis_type == 'ele_index') then
-      where (d1_ptr%d%ix_ele < plot%x%min-eps) d1_ptr%d%good_plot = .false.
-      where (d1_ptr%d%ix_ele > plot%x%max+eps) d1_ptr%d%good_plot = .false.
-    else ! s
-      where (d1_ptr%d%s < plot%x%min-eps) d1_ptr%d%good_plot = .false.
-      where (d1_ptr%d%s > plot%x%max+eps) d1_ptr%d%good_plot = .false.
+    if (plot%x%min /= plot%x%max) then
+      eps = 1e-4 * (plot%x%max - plot%x%min)
+      if (plot%x_axis_type == 'index') then
+        where (d1_ptr%d%ix_d1 < plot%x%min-eps) d1_ptr%d%good_plot = .false.
+        where (d1_ptr%d%ix_d1 > plot%x%max+eps) d1_ptr%d%good_plot = .false.
+      elseif (plot%x_axis_type == 'ele_index') then
+        where (d1_ptr%d%ix_ele < plot%x%min-eps) d1_ptr%d%good_plot = .false.
+        where (d1_ptr%d%ix_ele > plot%x%max+eps) d1_ptr%d%good_plot = .false.
+      else ! s
+        where (d1_ptr%d%s < plot%x%min-eps) d1_ptr%d%good_plot = .false.
+        where (d1_ptr%d%s > plot%x%max+eps) d1_ptr%d%good_plot = .false.
+      endif
     endif
 
     ! make sure %useit_plot up-to-date & count the number of data points
@@ -524,18 +602,20 @@ do k = 1, size(graph%curve)
     endif
 
     v1_ptr%v%good_plot = .true.
-    eps = 1e-4 * (plot%x%max - plot%x%min)
-    if (plot%x_axis_type == 'index') then
-      where (v1_ptr%v%ix_v1 < plot%x%min-eps) v1_ptr%v%good_plot = .false.
-      where (v1_ptr%v%ix_v1 > plot%x%max+eps) v1_ptr%v%good_plot = .false.
-    elseif (plot%x_axis_type == 'ele_index') then
-      do jj = lbound(v1_ptr%v, 1), ubound(v1_ptr%v,1)
-        if (v1_ptr%v(jj)%this(ix_this)%ix_ele < plot%x%min-eps) v1_ptr%v%good_plot = .false.
-        if (v1_ptr%v(jj)%this(ix_this)%ix_ele > plot%x%max+eps) v1_ptr%v%good_plot = .false.
-      enddo
-    else
-      where (v1_ptr%v%s < plot%x%min-eps) v1_ptr%v%good_plot = .false.
-      where (v1_ptr%v%s > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+    if (plot%x%min /= plot%x%max) then
+      eps = 1e-4 * (plot%x%max - plot%x%min)
+      if (plot%x_axis_type == 'index') then
+        where (v1_ptr%v%ix_v1 < plot%x%min-eps) v1_ptr%v%good_plot = .false.
+        where (v1_ptr%v%ix_v1 > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+      elseif (plot%x_axis_type == 'ele_index') then
+        do jj = lbound(v1_ptr%v, 1), ubound(v1_ptr%v,1)
+          if (v1_ptr%v(jj)%this(ix_this)%ix_ele < plot%x%min-eps) v1_ptr%v%good_plot = .false.
+          if (v1_ptr%v(jj)%this(ix_this)%ix_ele > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+        enddo
+      else
+        where (v1_ptr%v%s < plot%x%min-eps) v1_ptr%v%good_plot = .false.
+        where (v1_ptr%v%s > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+      endif
     endif
 
     call tao_var_useit_plot_calc (graph, v1_ptr%v) ! make sure %useit_plot up-to-date
@@ -621,15 +701,22 @@ do k = 1, size(graph%curve)
   case ('calculation', 'beam_tracking')
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
-      i_min = max(1, floor(plot%x%min))
-      i_max = min(u%base%lat%n_ele_use, ceiling(plot%x%max)) 
+      i_min = 1
+      i_max = u%base%lat%n_ele_use
+      if (plot%x%min /= plot%x%max) then
+        i_min = max(i_min, floor(plot%x%min))
+        i_max = min(i_max, ceiling(plot%x%max))
+      endif 
       n_dat = max(0, i_max+1-i_min)
     elseif (plot%x_axis_type == 's') then
       ! %ix_pointer has been set to the element index for displayed elements
       eps = 1e-4 * (plot%x%max - plot%x%min)             ! a small number
-      u%base%lat%ele_(:)%logic = (u%base%lat%ele_(:)%ix_pointer > 0) .and. &
+      u%base%lat%ele_(:)%logic = (u%base%lat%ele_(:)%ix_pointer > 0)
+      if (plot%x%min /= plot%x%max) then
+        u%base%lat%ele_(:)%logic = u%base%lat%ele_(:)%logic .and. &
                                  (u%base%lat%ele_(:)%s >= plot%x%min-eps) .and. &
                                  (u%base%lat%ele_(:)%s <= plot%x%max+eps)
+      endif
       n_dat = count (u%base%lat%ele_(:)%logic)
     endif
 
@@ -680,7 +767,7 @@ do k = 1, size(graph%curve)
           call tao_evaluate_a_datum (datum, u, u%design, track_type, y_val, t_map)
         case default
           call out_io (s_error$, r_name, &
-                  'BAD PLOT "WHO" FOR LAT_LAYOUT DATA_SOURCE: ' // graph%who(m)%name, &
+                  'BAD PLOT "WHO" FOR DATA_SOURCE: ' // graph%who(m)%name, &
                   '    FOR DATA_TYPE: ' // curve%data_type)
           graph%valid = .false.
           return
@@ -786,10 +873,6 @@ do k = 1, size(graph%curve)
     curve%y_line = curve%y_line - f 
   endif 
 
-  ax_min = graph%y%min + 1e-6 * (graph%y%min - graph%y%max)
-  ax_max = graph%y%max + 1e-6 * (graph%y%max - graph%y%min)
-  curve%limited = any(curve%y_symb .lt. ax_min .or. curve%y_symb .gt. ax_max)
-
 enddo
 
 !----------------------------------------------------------------------------
@@ -840,8 +923,12 @@ else
   track_type = s%global%track_type
 endif
 
-x1 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%min, u%model%lat%ele_(0)%s))
-x2 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%max, u%model%lat%ele_(0)%s))
+x1 = u%model%lat%ele_(0)%s
+x2 = u%model%lat%ele_(u%model%lat%n_ele_use)%s
+if (plot%x%min /= plot%x%max) then
+  x1 = min(u%model%lat%ele_(u%model%lat%n_ele_use)%s, max(plot%x%min, x1))
+  x2 = min(x2, max(plot%x%max, u%model%lat%ele_(0)%s))
+endif
 ele0 => lat%ele_(ix0)
 orb0 => orb(ix0)
 s_last = ele0%s

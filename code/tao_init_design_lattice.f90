@@ -66,6 +66,8 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
     select case (design_lattice(i)%parser)
     case ('bmad')
       call bmad_parser (design_lattice(i)%file, s%u(i)%design%lat)
+      s%u(i)%design%modes%a%emittance = s%u(i)%design%lat%x%emit
+      s%u(i)%design%modes%b%emittance = s%u(i)%design%lat%y%emit
     case ('xsif')
       call xsif_parser (design_lattice(i)%file, s%u(i)%design%lat)
     case ('digested')

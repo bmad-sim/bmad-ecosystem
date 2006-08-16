@@ -65,22 +65,4 @@ do i = 1, size(template(1)%p%graph)
   if (template(1)%p%graph(i)%type == 'phase_space') s%global%lattice_recalc = .true.
 enddo
 
-! auto scale and calculate places
-
-if (region%plot%x%min == region%plot%x%max) then
-  call tao_x_scale_cmd (where, 0.0_rp, 0.0_rp, err)
-else
-  ax => region%plot%x
-  call qp_calc_axis_places (ax)
-endif
-
-if (associated (region%plot%graph)) then
-  do i = 1, size (region%plot%graph)
-    ax => region%plot%graph(i)%y
-    call qp_calc_axis_places (ax)
-    ax => region%plot%graph(i)%y2
-    call qp_calc_axis_places (ax)
-  enddo
-endif
-
 end subroutine

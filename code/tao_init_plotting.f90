@@ -54,6 +54,7 @@ namelist / element_shapes / shape
 
 if (.not. s%global%init_plot_needed) return
 s%global%init_plot_needed = .false.
+init_axis%max = 0
 
 ! Read in the plot page parameters
 
@@ -167,12 +168,11 @@ do
     curve(:)%ele_ref_name   = ' '
     curve(:)%ix_ele_ref = -1
     curve(:)%draw_interpolated_curve = .true.
-    curve(2:7)%symbol%type = (/ times$, square$, plus$, triangle$, &
-                                  x_symbol$, diamond$ /)
-    curve(2:7)%symbol%color = (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)
+    curve(2:7)%symbol%type = &
+                (/ times$, square$, plus$, triangle$, x_symbol$, diamond$ /)
+    curve(2:7)%symbol%color = &
+                (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)
     curve(2:7)%line%color = curve(2:7)%symbol%color
-!    curve(2:7)%line%style = (/ dashed$, dotted$, dash_dot$, &
-!                                               dash_dot3$, solid$, dotted$ /)
     read (iu, nml = tao_template_graph, err = 9200)
     call out_io (s_blank$, r_name, &
                  'Init: Read tao_template_graph namelist: ' // graph%name)
@@ -208,7 +208,7 @@ do
     if (grph%type == 'lat_layout') then
       lat_layout_here = .true.
       if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
-                            'A lat_layout must have x_axis_type = "s" for a visible plot!')
+                'A lat_layout must have x_axis_type = "s" for a visible plot!')
     endif
 
     if (graph%n_curve == 0) then
@@ -256,8 +256,11 @@ do
         crv%ix_ele_ref = 0
         crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(0)%name
       elseif (graph%type == 'phase_space') then
+        plt%x_axis_type = 'phase_space'
         crv%ix_ele_ref = 0
         crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(0)%name
+      elseif (graph%type == 'key_table') then
+        plt%x_axis_type = 'none'
       endif
 
     enddo

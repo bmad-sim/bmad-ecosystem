@@ -20,6 +20,7 @@ contains
 !   x_max -- Real(rp): Plot x-axis max value.
 !
 !  Output:
+!   err -- Logical: Set to True if the plot cannot be found. False otherwise.
 !-
 
 subroutine tao_x_scale_cmd (where, x_min, x_max, err)
@@ -86,11 +87,23 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
+!+
+! Subroutine tao_x_scale_plot (plot, x_min, x_max)
+!
+! Routine to scale a plot. If x_min = x_max
+! Then the scales will be chosen to show all the data.
+! 
+! Input:
+!   plot  -- Tao_plot_struct: Plot to scale. Eg: "top"
+!   x_min -- Real(rp): Plot x-axis min value.
+!   x_max -- Real(rp): Plot x-axis max value.
+!-
 
 subroutine tao_x_scale_plot (plot, x_min, x_max)
 
-type (tao_plot_struct) plot
-integer j, k, n, p1, p2
+type (tao_plot_struct), target :: plot
+type (tao_curve_struct), pointer :: curve
+integer j, k, n, p1, p2, iu, ix
 real(rp) x_min, x_max
 real(rp) x1, x2
 logical curve_here
@@ -105,35 +118,38 @@ if (x_max == x_min) then
 
   plot%x%min = -1e20     ! to setup all data
   plot%x%max = 1e20
-  call tao_plot_data_setup 
 
-  if (plot%x_axis_type == "index") then
-    x1 =  1e20
-    x2 = -1e20
-    curve_here = .false.
-    do j = 1, size(plot%graph)
-      if (plot%graph(j)%type == 'key_table') cycle
+  x1 =  1e20
+  x2 = -1e20
+  curve_here = .false.
+  do j = 1, size(plot%graph)
+    if (plot%graph(j)%type == 'key_table') cycle
+    if (plot%graph(j)%type == 'lat_layout') then
+      iu = plot%graph(j)%ix_universe
+      if (iu == 0) iu = s%global%u_view
+      x1 = min (x1, s%u(iu)%model%lat%ele_(0)%s)
+      ix = s%u(iu)%model%lat%n_ele_use
+      x2 = max (x2, s%u(iu)%model%lat%ele_(ix)%s)
+      curve_here = .true.
+    else
       if (.not. associated(plot%graph(j)%curve)) cycle
       do k = 1, size(plot%graph(j)%curve)
-        curve_here = .true.
-        n = size(plot%graph(j)%curve(k)%x_symb)
-        if (n .eq. 0) cycle ! no data
-        x1 = min (x1, minval(plot%graph(j)%curve(k)%x_symb(:)))
-        x2 = max (x2, maxval(plot%graph(j)%curve(k)%x_symb(:)))
+        curve => plot%graph(j)%curve(k)
+        if (associated (curve%x_symb)) then
+          curve_here = .true.
+          x1 = min (x1, minval(curve%x_symb(:)))
+          x2 = max (x2, maxval(curve%x_symb(:)))
+        endif
+        if (associated (curve%x_line)) then
+          curve_here = .true.
+          x1 = min (x1, minval(curve%x_line(:)))
+          x2 = max (x2, maxval(curve%x_line(:)))
+        endif
       enddo
-    enddo
+    endif
+  enddo
 
-    if (.not. curve_here) return
-
-  elseif (plot%x_axis_type == "ele_index") then
-    x1 = 0
-    x2 = s%u(s%global%u_view)%model%lat%n_ele_use 
-  elseif (plot%x_axis_type == "s") then
-    x1 = 0
-    x2 = maxval (s%u(:)%model%lat%param%total_length)
-  endif
-
-! not auto scale
+  if (.not. curve_here) return
 
 else
   x1 = x_min

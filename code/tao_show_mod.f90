@@ -721,7 +721,6 @@ case ('plot')
     nl=nl+1; write (lines(nl), lmt) 'use_y2:                  ', c%use_y2
     nl=nl+1; write (lines(nl), lmt) 'draw_line:               ', c%draw_line
     nl=nl+1; write (lines(nl), lmt) 'draw_symbols:            ', c%draw_symbols
-    nl=nl+1; write (lines(nl), lmt) 'limited:                 ', c%limited
     nl=nl+1; write (lines(nl), lmt) 'convert:                 ', c%convert
     nl=nl+1; write (lines(nl), lmt) 'draw_interpolated_curve: ', c%draw_interpolated_curve
     
@@ -754,6 +753,7 @@ case ('plot')
     nl=nl+1; write (lines(nl), imt) 'y2%places:            ', g%y2%places
     nl=nl+1; write (lines(nl), lmt) 'y2%draw_label:        ', g%y2%draw_label
     nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers:      ', g%y2%draw_numbers
+    nl=nl+1; write (lines(nl), lmt) 'limited:              ', g%limited
     nl=nl+1; lines(nl) = 'Curves:'
     do i = 1, size(g%curve)
       nl=nl+1; write (lines(nl), amt) '   ', g%curve(i)%name

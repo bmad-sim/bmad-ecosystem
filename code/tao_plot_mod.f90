@@ -375,7 +375,7 @@ call qp_set_axis ('Y', y_bottom, y_top, 1, 0)
   
 isu = graph%ix_universe
 ! if garph%ix_universe .eq. 0 then graph currently viewed universe
-if (isu .eq. 0) then
+if (isu == 0) then
   lat => s%u(s%global%u_view)%model%lat
 else
   lat => s%u(isu)%model%lat
@@ -555,7 +555,7 @@ call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, &
 call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
 call qp_draw_axes
 
-if (any(graph%curve%limited) .and. graph%clip) &
+if (graph%limited .and. graph%clip) &
   call qp_draw_text ('**Limited**', -0.18_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
 
 ! loop over all the curves of the graph and draw them

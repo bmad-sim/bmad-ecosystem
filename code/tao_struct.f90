@@ -87,7 +87,6 @@ type tao_curve_struct
   logical use_y2               ! Use y2 axis?
   logical draw_line            ! draw a line through the data points?
   logical draw_symbols         ! draw a line through the data points?
-  logical limited              ! True if at least one data point past limit.
   logical convert              ! Eg: covert coupling to cbar?
   logical draw_interpolated_curve
 end type
@@ -114,6 +113,7 @@ type tao_graph_struct
   integer ix_universe          ! Used for lat_layout plots.
   logical valid                ! valid if all curve y_dat computed OK.
   logical y2_mirrors_y         ! Y2-axis same as Y-axis?
+  logical limited              ! True if at least one data point past graph bounds.
 end type
 
 ! A plot is collection of graphs.
@@ -127,7 +127,7 @@ type tao_plot_struct
   type (qp_axis_struct) x       ! X-axis parameters.
   type (tao_plot_region_struct), pointer :: r ! pointer to parent.
   real(rp) x_divisions          ! Nominal number of x-axis divisions.
-  character(16) x_axis_type     ! 'index', 'ele_index', 's'
+  character(16) x_axis_type     ! 'index', 'ele_index', 's', 'none', or 'phase_space'
   logical independent_graphs    ! scale cmd scales graphs independently?
 end type
 

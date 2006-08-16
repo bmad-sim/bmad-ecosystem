@@ -1234,8 +1234,29 @@ what points the curve to the proper data so there needs to be a
 corresponding data or var type defined in the initialization file.  
 
 If \vn{graph%type} is \vn{"phase_space"} then \vn{curve%data_source} 
-must be either \vn{"beam_tracking"} or \vn{"multi_turn_orbit"}. 
-Additionally, \vn{curve%data_type}
+must be either:
+\begin{example}
+  "beam_tracking"
+  "multi_turn_orbit"
+  "twiss"
+\end{example} 
+\vn{"beam_tracking"} indicates that the points of the phase space plot
+will be obtained correspond to the positions of the particles within
+a tracked beam. \vn{multi_turn_orbit"} is used for rings where a
+single particle is tracked multiple turns and the position of this 
+particle is recorded each turn. In this case, a \vn{d2_data} structure
+must have been set up to hold the turn--by--turn orbit. This \vn{d2_data}
+structure must be called \vn{multi_turn_orbit} and must have \vn{d1_data}
+data arrays for the phase space planes to be plotted. For example, if
+the phase space plot is \vn{x} verses \vn{p_x}, then there must be 
+\vn{d1_data} arrays named "x" and "p_x". The number of turns is determined
+by the setting of \vn{ix_max_data} in the \vn{tao_d1_data} namelist 
+(\sef{s:init_data}). Using \vn{"twiss"} as the \vn{curve%data_source}
+indicates that the phase space plot will be an ellipse whose shape is
+based upon the Twiss
+and coupling parameters, and the normal mode emittances.
+
+Additionally, for a \vn{"phase_space"} type graph, \vn{curve%data_type}
 determines what planes are plotted. A plane is either:
 \index{x}\index{p_x}\index{y}\index{p_y}\index{z}\index{p_z}
 \begin{example}
