@@ -172,7 +172,7 @@ type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_x, d1_y
 
 real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
-real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry
+real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
 
 integer k, n, m, ib, ix1_ax, ix2_ax, ix, i_uni, i
 
@@ -321,12 +321,19 @@ do k = 1, size(graph%curve)
     endif
 
     rx = sqrt(sigma_mat(ix1_ax, ix1_ax))
-    ry = sqrt(sigma_mat(ix1_ax, ix2_ax))
+    ry = sqrt(sigma_mat(ix2_ax, ix2_ax))
+    write (graph%legend(1), '(a, f10.6)') 'r_x:', rx
+    write (graph%legend(2), '(a, f10.6)') 'r_y:', ry
+
     if(rx == 0 .or. ry == 0) then
       theta_xy = 0
+      write (graph%legend(3), '(a, f10.4)') 'Theta_tilt (rad):', 0
     else
       theta_xy =  asin(sigma_mat(ix1_ax, ix2_ax) / (rx * ry))
-    endif
+      phi = 0.5 *atan2((rx**2+ry**2) * sin(2*theta_xy), &
+                              (rx**2-ry**2) * cos(2*theta_xy)) - theta_xy
+      write (graph%legend(3), '(a, f10.4)') 'Theta_tilt (rad):', phi
+  endif
 
     n = 2 * s%global%n_curve_pts
     call re_associate (curve%x_line, n)

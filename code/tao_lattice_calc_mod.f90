@@ -104,7 +104,7 @@ do i = 1, size(s%u)
   do j = 1, 6
     u%model%orb%vec(j) = 0.0
   enddo
-  u%model%orb(0) = u%model%lat%bunch_start
+  u%model%orb(0) = u%model%lat%beam_start
 
   ! set up matching element
   if (initing_design) call tao_match_lats_init (u)
@@ -150,7 +150,7 @@ do i = 1, size(s%u)
       n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
     enddo
     call reallocate_coord (orb, u%model%lat%n_ele_max)
-    orb(0) = u%model%lat%bunch_start
+    orb(0) = u%model%lat%beam_start
     do it = 0, n_max
       do id = 1, size(d2_dat%d1)
         d1_dat => d2_dat%d1(id)
@@ -347,7 +347,7 @@ if (.not. u%coupling%coupled) then
     endif
     ! transfer extracted particle info into macro_init
     if (extract_at_ix_ele .ne. -1) then
-      beam_init%center  = tao_lat%lat%bunch_start%vec
+      beam_init%center  = tao_lat%lat%beam_start%vec
       ! other beam_init parameters will be as in tao.init, or as above
       call init_beam_distribution (lat%ele_(extract_at_ix_ele), &
                                beam_init, s%u(i_uni_to)%coupling%injecting_beam)
@@ -518,7 +518,7 @@ if (.not. u%coupling%coupled) then
     endif
     !transfer extracted particle info into macro_init
     if (extract_at_ix_ele .ne. -1) then
-      macro_init%center  = tao_lat%lat%bunch_start%vec
+      macro_init%center  = tao_lat%lat%beam_start%vec
       ! other macro_init parameters will be as in init.tao, or as above
       call init_macro_distribution (s%u(i_uni)%coupling%injecting_macro_beam, &
                                 macro_init, lat%ele_(extract_at_ix_ele), .true.)
@@ -831,7 +831,7 @@ character(20) :: r_name = "tao_inject_beam"
 !
 
 if (.not. u%coupling%coupled) then
-  u%beam%beam_init%center = u%model%lat%bunch_start%vec
+  u%beam%beam_init%center = u%model%lat%beam_start%vec
   if (u%beam%beam_init%n_bunch < 1 .or. u%beam%beam_init%n_particle < 1) then
     call out_io (s_fatal$, r_name, &
       'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
@@ -906,7 +906,7 @@ character(20) :: r_name = "tao_inject_macro_beam"
 !
 
 if (.not. u%coupling%coupled) then
-  u%macro_beam%macro_init%center = u%model%lat%bunch_start%vec
+  u%macro_beam%macro_init%center = u%model%lat%beam_start%vec
   call init_macro_distribution (u%macro_beam%beam, u%macro_beam%macro_init, &
                                 lat%ele_(0), .true.)
   u%macro_beam%ix_lost(:,:,:) = not_lost$

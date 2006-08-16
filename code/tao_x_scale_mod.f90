@@ -31,56 +31,48 @@ type (tao_plot_struct), pointer :: p, p2
 type (tao_plot_array_struct), allocatable, save :: plot(:)
 
 real(rp) x_min, x_max
-
-integer i, j, ix, places, im
-
+integer i, j, n, ix, places, im
 character(*) where
-
-real(rp) this_min, this_max
-
 logical err
 
-! If the where argument is blank then scale all graphs.
-! Make sure that all plots using an 's' scale have the same scale
+! find plots to scale
 
-if (len_trim(where) == 0 .or. where == 'all') then
-
-  im = 0
+if (len_trim(where) == 0 .or. where == 'all' .or. where == 's') then
+  if (allocated(plot)) deallocate(plot)
+  n = 0
   do j = 1, size(s%plot_page%region)
-    p => s%plot_page%region(j)%plot
     if (.not. s%plot_page%region(j)%visible) cycle
-    call tao_x_scale_plot (p, x_min, x_max)
-    if (p%x_axis_type == 's' .and. &
-              any (p%graph(:)%type /= 'lat_layout')) then
-      if (im == 0) im = j
-      if (p%x%max < s%plot_page%region(im)%plot%x%max) im = j
-    endif
+    if (where == 's' .and. s%plot_page%region(j)%plot%x_axis_type /= 's') cycle
+    n = n + 1
   enddo
-
-  if (im /= 0) then
-    do j = 1, size(s%plot_page%region)
-      p => s%plot_page%region(j)%plot
-      if (.not. s%plot_page%region(j)%visible) cycle
-      if (p%x_axis_type /= 's') cycle
-      p2 => s%plot_page%region(im)%plot
-      p%x%max = p2%x%max
-      p%x%min = p2%x%min
-      p%x%major_div = p2%x%major_div
-    enddo
-  endif
-
-  return
+  allocate (plot(n))
+  n = 0
+  do j = 1, size(s%plot_page%region)
+    if (.not. s%plot_page%region(j)%visible) cycle
+    if (where == 's' .and. s%plot_page%region(j)%plot%x_axis_type /= 's') cycle
+    n = n + 1
+    plot(n)%p => s%plot_page%region(j)%plot
+  enddo
+else
+  call tao_find_plots (err, where, 'REGION', plot)
+  if (err) return
 endif
 
-! locate the plot by the region name given by the where argument.
-! If where has a '.' then we are dealing with just one graph of the plot.
-! Otherwise we scale all the graphs of the plot.
+! If autoscaling then figure out the limits of data.
 
-call tao_find_plots (err, where, 'REGION', plot)
-if (err) return
-do i = 1, size(plot)
-  call tao_x_scale_plot (plot(i)%p, x_min, x_max)
-enddo
+if (x_min == x_max) then
+  do i = 1, size(plot)
+    plot(i)%p%x%min = -1e30  ! So no cliping of points
+    plot(i)%p%x%max = 1e30   ! So no cliping of points
+  enddo
+  call tao_plot_data_setup()
+endif
+
+! Set max and min
+
+  do i = 1, size(plot)
+    call tao_x_scale_plot (plot(i)%p, x_min, x_max)
+  enddo
 
 end subroutine
 
@@ -124,7 +116,7 @@ if (x_max == x_min) then
   curve_here = .false.
   do j = 1, size(plot%graph)
     if (plot%graph(j)%type == 'key_table') cycle
-    if (plot%graph(j)%type == 'lat_layout') then
+    if (plot%x_axis_type == 's') then
       iu = plot%graph(j)%ix_universe
       if (iu == 0) iu = s%global%u_view
       x1 = min (x1, s%u(iu)%model%lat%ele_(0)%s)
