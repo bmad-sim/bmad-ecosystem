@@ -523,7 +523,7 @@ function equivalent_eles (ele1, ele2) result (equiv)
 
   if (ele1%key /= ele2%key) return
   if (ele1%sub_key /= ele2%sub_key) return
-  if (ele1%map_with_offsets .eqv. ele2%map_with_offsets) return
+  if (ele1%map_with_offsets .neqv. ele2%map_with_offsets) return
   if (ele1%integrator_order /= ele2%integrator_order) return
   if (ele1%name /= ele2%name .and. any(ele1%taylor%ref /= 0)) return
 
