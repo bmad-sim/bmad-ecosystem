@@ -4,7 +4,7 @@
 !
 ! Returns an array of pointers to an attribute with name attrib_name within 
 ! elements with name ele_name.
-! Note: ele_name = 'BUNCH_START' corresponds to the lat%bunch_start substructure. 
+! Note: ele_name = 'BEAM_START' corresponds to the lat%beam_start substructure. 
 ! Note: ele_name can be a list of element indices
 ! Note: Use attribute_free to see if the attribute may be varied independently.
 !
@@ -44,7 +44,7 @@ use bmad_interface, except => pointers_to_attribute
 implicit none
 
 type (ring_struct), target :: lat
-type (ele_struct), target :: bunch_start
+type (ele_struct), target :: beam_start
 type (ele_struct), pointer :: ele
 type (real_array_struct), allocatable :: ptr_array(:)
 
@@ -66,9 +66,9 @@ logical, save, allocatable :: this_ele(:)
 err_flag = .false.
 do_print = logic_option (.true., err_print_flag)
 
-! bunch_start
+! beam_start
 
-if (ele_name == 'BUNCH_START') then
+if (ele_name == 'BEAM_START') then
 
   call reallocate_arrays (1)
   if (present(ix_eles)) ix_eles(1) = -1
@@ -77,8 +77,8 @@ if (ele_name == 'BUNCH_START') then
   case ('EMITTANCE_A'); ptr_array(1)%r => lat%x%emit 
   case ('EMITTANCE_B'); ptr_array(1)%r => lat%y%emit
   case default
-    bunch_start%key = def_bunch_start$
-    ix = attribute_index (bunch_start, attrib_name)
+    beam_start%key = def_beam_start$
+    ix = attribute_index (beam_start, attrib_name)
     if (ix < 1) then
       if (do_print) call out_io (s_error$, r_name, &
              'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
@@ -87,7 +87,7 @@ if (ele_name == 'BUNCH_START') then
       return
     endif
     if (present(ix_attrib)) ix_attrib = ix
-    ptr_array(1)%r => lat%bunch_start%vec(ix)
+    ptr_array(1)%r => lat%beam_start%vec(ix)
   end select
 
   return

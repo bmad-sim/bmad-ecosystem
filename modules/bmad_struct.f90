@@ -246,7 +246,7 @@ type ring_struct
   type (ele_struct)  ele_init      ! For use by any program
   type (ele_struct), pointer ::  ele_(:) => null()        ! Array of elements
   type (control_struct), pointer :: control_(:) => null() ! control list
-  type (coord_struct) bunch_start  ! Starting coords
+  type (coord_struct) beam_start  ! Starting coords
   integer version                  ! Version number
   integer n_ele_use                ! Number of regular ring elements
   integer n_ele_ring               ! OBSOLETE: Identical to n_ele_use.
@@ -279,7 +279,7 @@ integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
 integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
 integer, parameter :: ecollimator$ = 36, i_beam$ = 37, bend_sol_quad$ = 38
-integer, parameter :: def_bunch_start$ = 39
+integer, parameter :: def_beam_start$ = 39
 
 integer, parameter :: n_key = 39
 
@@ -293,7 +293,7 @@ character(16) :: key_name(n_key) = (/ &
     'LCAVITY      ', 'DEF_PARAMETER', 'NULL_ELE     ', 'INIT_ELE     ', &
     'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
-    'I_BEAM       ', 'BEND_SOL_QUAD', 'BUNCH_START  ' /)
+    'I_BEAM       ', 'BEND_SOL_QUAD', 'BEAM_START   ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:

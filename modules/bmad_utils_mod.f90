@@ -368,7 +368,7 @@ subroutine transfer_ring_parameters (ring_in, ring_out)
   ring_out%n_control_max =        ring_in%n_control_max
   ring_out%n_ic_max =             ring_in%n_ic_max
   ring_out%input_taylor_order =   ring_in%input_taylor_order
-  ring_out%bunch_start        =   ring_in%bunch_start
+  ring_out%beam_start =           ring_in%beam_start
 
 end subroutine
 
@@ -467,7 +467,20 @@ subroutine init_ring (ring, n)
   ring%input_file_name = ' '
   ring%param%stable = .true.
 
-  ring%bunch_start%vec = 0
+  ring%beam_start%vec = 0
+  call init_mode_info (ring%x)
+  call init_mode_info (ring%y)
+  call init_mode_info (ring%z)
+
+!----------------------------------------
+contains
+
+subroutine init_mode_info (t)
+  type (mode_info_struct) t
+  t%tune = 0
+  t%emit = 0
+  t%chrom = 0
+endsubroutine
 
 end subroutine
 

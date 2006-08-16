@@ -328,7 +328,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
     read (d_unit, err = 9100) lat%ic_(i)
   enddo
 
-  read (d_unit, iostat = ios) lat%bunch_start
+  read (d_unit, iostat = ios) lat%beam_start
 
   close (d_unit)
 

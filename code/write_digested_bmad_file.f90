@@ -197,7 +197,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     write (d_unit) ring%ic_(i)
   enddo
 
-  write (d_unit) ring%bunch_start
+  write (d_unit) ring%beam_start
 
   close (d_unit)
 

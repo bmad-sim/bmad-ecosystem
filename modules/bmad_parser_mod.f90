@@ -314,9 +314,9 @@ subroutine get_attribute (how, ele, ring, pring, &
 
   endif
 
-! beginning element or bunch_start element
+! beginning element or beam_start element
 
-  if (ele%key == init_ele$ .or. ele%key == def_bunch_start$) then
+  if (ele%key == init_ele$ .or. ele%key == def_beam_start$) then
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                       ring, delim, delim_found, err_flag) 
     if (err_flag) return

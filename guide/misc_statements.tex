@@ -85,29 +85,29 @@ This syntax is obsolete since a typographical error is not easily caught.
 
 %-----------------------------------------------------------------------------
 \section{Bunch\_start Statement}
-\label{s:bunch_start}
-\index{Bunch_start statement|textbf}
+\label{s:beam_start}
+\index{Beam_start statement|textbf}
 
 
-\index{Bunch_start!x, p_x, y, p_y, z, p_z}
-The \vn{bunch_start} statement is used to set the starting coordinates
+\index{Beam_start!x, p_x, y, p_y, z, p_z}
+The \vn{beam_start} statement is used to set the starting coordinates
 for particle tracking
 \begin{example}
-  bunch_start[x]    = <Real> ! Horizontal position.
-  bunch_start[p_x]  = <Real> ! Horizontal momentum.
-  bunch_start[y]    = <Real> ! Vertical position.
-  bunch_start[p_y]  = <Real> ! Vertical momentum.
-  bunch_start[z]    = <Real> ! Longitudinal position.
-  bunch_start[p_z]  = <Real> ! Longitudinal momentum (energy deviation).
-  bunch_start[emittance_a] = <Real> ! A-mode emittance
-  bunch_start[emittance_b] = <Real> ! B-mode emittance
-  bunch_start[emittance_z] = <Real> ! Z-mode emittance
+  beam_start[x]    = <Real> ! Horizontal position.
+  beam_start[p_x]  = <Real> ! Horizontal momentum.
+  beam_start[y]    = <Real> ! Vertical position.
+  beam_start[p_y]  = <Real> ! Vertical momentum.
+  beam_start[z]    = <Real> ! Longitudinal position.
+  beam_start[p_z]  = <Real> ! Longitudinal momentum (energy deviation).
+  beam_start[emittance_a] = <Real> ! A-mode emittance
+  beam_start[emittance_b] = <Real> ! B-mode emittance
+  beam_start[emittance_z] = <Real> ! Z-mode emittance
 \end{example}
 
 \noindent
 Examples
 \begin{example}
-  bunch_start[y] = 2 * bunch_start[x]
+  beam_start[y] = 2 * beam_start[x]
 \end{example}
 
 %-----------------------------------------------------------------------------

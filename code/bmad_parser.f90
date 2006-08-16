@@ -51,7 +51,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   type (ele_struct) this_ele
   type (seq_struct), save, target :: sequence_(1000)
   type (seq_struct), pointer :: seq, seq2
-  type (ele_struct), pointer :: beam_ele, param_ele, bunch_start_ele
+  type (ele_struct), pointer :: beam_ele, param_ele, beam_start_ele
   type (seq_ele_struct), target :: dummy_seq_ele
   type (seq_ele_struct), pointer :: s_ele, this_seq_ele
   type (parser_ring_struct) pring
@@ -166,10 +166,10 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   param_ele%key = def_parameter$
   param_ele%value(lattice_type$) = circular_lattice$  ! Default
 
-  bunch_start_ele => in_ring%ele_(3)
-  call init_ele (bunch_start_ele)
-  bunch_start_ele%name = 'BUNCH_START'           ! For parameters 
-  bunch_start_ele%key = def_bunch_start$
+  beam_start_ele => in_ring%ele_(3)
+  call init_ele (beam_start_ele)
+  beam_start_ele%name = 'BEAM_START'           ! For parameters 
+  beam_start_ele%key = def_beam_start$
 
   n_max => in_ring%n_ele_max
   n_max = 3                              ! Number of elements encountered
@@ -433,7 +433,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
     else
 
-      if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BUNCH_START') then
+      if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START') then
         call warning ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
         cycle parsing_loop
       endif
@@ -443,7 +443,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
         call allocate_ring_ele_ (in_ring)
         beam_ele => in_ring%ele_(1)
         param_ele => in_ring%ele_(2)
-        bunch_start_ele => in_ring%ele_(3)
+        beam_start_ele => in_ring%ele_(3)
         call allocate_pring (in_ring, pring)
       endif
 
@@ -838,7 +838,10 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   ring%param%aperture_limit_on = .true.
 
   ring%ele_(0)    = in_ring%ele_(0)    ! Beginning element
-  ring%bunch_start = in_ring%bunch_start
+  ring%beam_start = in_ring%beam_start
+  ring%x          = in_ring%x
+  ring%y          = in_ring%y
+  ring%z          = in_ring%z
 
   if (beam_ele%value(n_part$) /= 0 .and. param_ele%value(n_part$) /= 0) then
     call warning ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
@@ -1102,11 +1105,11 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       enddo
     endif
 
-    if (index(bp_com%debug_line, 'BUNCH_START') /= 0) then
+    if (index(bp_com%debug_line, 'BEAM_START') /= 0) then
       print *
       print *, '----------------------------------------'
-      print *, 'Bunch_start:'
-      print '(3x, 6es13.4)', ring%bunch_start%vec      
+      print *, 'beam_start:'
+      print '(3x, 6es13.4)', ring%beam_start%vec      
     endif
 
   endif

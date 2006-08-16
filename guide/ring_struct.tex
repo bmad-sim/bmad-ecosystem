@@ -24,7 +24,7 @@ type ring_struct
   type (ele_struct), pointer :: ele_(:)    ! Array of lattice elements
   type (ele_struct)  ele_init              ! For use by any program
   type (control_struct)  control_(n_control_maxx)  ! control list
-  type (coord_struct) bunch_start  ! Starting coordinates.
+  type (coord_struct) beam_start  ! Starting coordinates.
   integer version                  ! Version number for digested files
   integer n_ele_use                ! number of physical lattice elements
   integer n_ele_max                ! Index of last element used
@@ -154,11 +154,11 @@ these matrices as input for calculations.
 
 %----------------------------------------------------------------------------
 \section{Bunch\_start Component}
-\label{s:ring_bunch_start}
+\label{s:ring_beam_start}
 
-The \vn{%bunch_start} component within the \vn{ring_struct} is a
+The \vn{%beam_start} component within the \vn{ring_struct} is a
 \vn{coord_struct} structure for holding the information obtained from
-\vn{bunch_start} statements (\sref{s:bunch_start}) in a \bmad lattice
+\vn{beam_start} statements (\sref{s:beam_start}) in a \bmad lattice
 file. 
 
 This component is not used in any standard \bmad calculation. It is up
