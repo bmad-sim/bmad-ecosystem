@@ -63,28 +63,38 @@ logical, save, allocatable :: this_ele(:)
 
 ! init
 
-err_flag = .true.
+err_flag = .false.
 do_print = logic_option (.true., err_print_flag)
 
 ! bunch_start
 
 if (ele_name == 'BUNCH_START') then
-  bunch_start%key = def_bunch_start$
-  ix = attribute_index (bunch_start, attrib_name)
-  if (ix < 1) then
-    if (do_print) call out_io (s_error$, r_name, &
-           'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
-    if (allocated(ptr_array)) call reallocate_arrays (0)
-    return
-  endif
-  if (present(ix_attrib)) ix_attrib = ix
+
   call reallocate_arrays (1)
-  ptr_array(1)%r => lat%bunch_start%vec(ix)
   if (present(ix_eles)) ix_eles(1) = -1
-  err_flag = .false.
+
+  select case(attrib_name)
+  case ('EMITTANCE_A'); ptr_array(1)%r => lat%x%emit 
+  case ('EMITTANCE_B'); ptr_array(1)%r => lat%y%emit
+  case default
+    bunch_start%key = def_bunch_start$
+    ix = attribute_index (bunch_start, attrib_name)
+    if (ix < 1) then
+      if (do_print) call out_io (s_error$, r_name, &
+             'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
+      if (allocated(ptr_array)) call reallocate_arrays (0)
+      err_flag = .true.
+      return
+    endif
+    if (present(ix_attrib)) ix_attrib = ix
+    ptr_array(1)%r => lat%bunch_start%vec(ix)
+  end select
+
   return
+
 endif
 
+!
 
 if (index(":1234567890", ele_name(1:1)) .ne. 0) then
 ! index array
@@ -96,6 +106,7 @@ if (index(":1234567890", ele_name(1:1)) .ne. 0) then
   call reallocate_arrays (n)
   if (n == 0) then
     if (do_print) call out_io (s_error$, r_name, 'ELEMENTS NOT FOUND: ' // ele_name)
+    err_flag = .true.
     return  
   endif
 
@@ -121,6 +132,7 @@ else
   call reallocate_arrays (n)
   if (n == 0) then
     if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
+    err_flag = .true.
     return  
   endif
 

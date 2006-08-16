@@ -314,34 +314,9 @@ subroutine get_attribute (how, ele, ring, pring, &
 
   endif
 
-! beginning element
+! beginning element or bunch_start element
 
-  if (ele%key == init_ele$) then
-    call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                      ring, delim, delim_found, err_flag) 
-    if (err_flag) return
-    call pointer_to_attribute (ele, word, .false., r_ptr, err_flag)
-    if (err_flag) then
-      bp_com%error_flag = .true.
-      return
-    endif
-
-    r_ptr = value
-    
-    if (ele%x%beta /= 0) ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
-    if (ele%y%beta /= 0) ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
-    ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + &
-                                              ele%c_mat(1,2)*ele%c_mat(2,1))
-    ele%x%eta_lab  = ele%x%eta
-    ele%x%etap_lab = ele%x%etap
-    ele%y%eta_lab  = ele%y%eta
-    ele%y%etap_lab = ele%y%etap
-    return
-  endif
-
-! bunch_start element
-
-  if (ele%key == def_bunch_start$) then
+  if (ele%key == init_ele$ .or. ele%key == def_bunch_start$) then
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                       ring, delim, delim_found, err_flag) 
     if (err_flag) return
@@ -352,6 +327,18 @@ subroutine get_attribute (how, ele, ring, pring, &
     endif
 
     r_ptrs(1)%r = value
+    
+    if (ele%key == init_ele$) then
+      if (ele%x%beta /= 0) ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
+      if (ele%y%beta /= 0) ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
+      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + &
+                                              ele%c_mat(1,2)*ele%c_mat(2,1))
+      ele%x%eta_lab  = ele%x%eta
+      ele%x%etap_lab = ele%x%etap
+      ele%y%eta_lab  = ele%y%eta
+      ele%y%etap_lab = ele%y%etap
+    endif
+
     return
   endif
 
