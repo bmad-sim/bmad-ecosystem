@@ -558,6 +558,7 @@ subroutine get_attribute (how, ele, ring, pring, &
       ele%value(fintx$) = 0.5
     elseif (ele%key == multipole$) then
       if (ix_attrib >= t0$) then
+        if (.not. associated(ele%a)) call multipole_init (ele)
         ele%b(ix_attrib-t0$) = pi / (2*(ix_attrib-t0$) + 2)
       else
         call warning ('EXPECTING "=" AFTER MULTIPOLE ATTRIBUTE: ' // word,  &
