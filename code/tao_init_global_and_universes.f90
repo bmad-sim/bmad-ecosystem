@@ -639,17 +639,13 @@ character(20) fmt
 !
 
 u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)  ! point back to the parent
+u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name    ! stuff in the data
 
-! are we counting elements and forming data names?
+n1 = u%n_data_used + 1
 
-if (index(data(0)%name, 'COUNT:') /= 0) then
-  counting = .true.
-  call form_count_name (data(0)%name(7:), num_hashes, count_name1, count_name2)
+! if not using SAME: then use the specified d1_data to count datums below...
 
-! if using SAME: then use the specified d1_data to count datums below...
-elseif (index(data(0)%ele_name, 'SAME:') == 0) then
-  counting = .false.
-  n1 = u%n_data_used + 1
+if (data(0)%ele_name(1:5) /= 'SAME:') then
   n2 = u%n_data_used + ix_max_data - ix_min_data + 1
   ix1 = ix_min_data
   ix2 = ix_max_data
@@ -661,17 +657,15 @@ elseif (index(data(0)%ele_name, 'SAME:') == 0) then
   endif
 endif
 
-u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name  ! stuff in the data
-
 ! now check if we are searching for elements or repeating elements
 ! and record the element names in the data structs
     
-if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
+if (data(0)%ele_name(1:6) == 'SEARCH') then
   allocate (found_one(u%design%lat%n_ele_max))
-  if (index(data(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
+  if (data(0)%ele_name(1:11) == 'SEARCH_KEY:') then
     call string_trim(data(0)%ele_name(12:), search_string, ix)
     call find_elements (u, search_string, ele_key$, data(0)%ele0_name, found_one)
-  elseif  (index(data(0)%ele_name, 'SEARCH:') .ne. 0) then
+  elseif  (data(0)%ele_name(1:7) == 'SEARCH:') then
     call string_trim(data(0)%ele_name(8:), search_string, ix)
     call find_elements (u, search_string, ele_name$, data(0)%ele0_name, found_one)
   else
@@ -679,17 +673,14 @@ if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
     call err_exit
   endif
   ! finish finding data array limits
-  if (counting) then
-    n1 = u%n_data_used + 1
-    n2 = u%n_data_used + count(found_one)
-    ix1 = ix_min_data
-    ix2 = (count(found_one) - (1-ix_min_data))
-    u%n_data_used = n2
-    if (n2 > size(u%data)) then
-      call out_io (s_abort$, r_name, &
+  n2 = u%n_data_used + count(found_one)
+  ix1 = ix_min_data
+  ix2 = (count(found_one) - (1-ix_min_data))
+  u%n_data_used = n2
+  if (n2 > size(u%data)) then
+    call out_io (s_abort$, r_name, &
                   'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-      call err_exit
-    endif
+    call err_exit
   endif
   ! get element names
   jj = n1
@@ -712,14 +703,13 @@ if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
 
 ! SAME:
 
-elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
+elseif (data(0)%ele_name(1:5) == 'SAME:') then
   call string_trim (data(0)%ele_name(6:), name, ix)
   call tao_find_data (err, name, d1_ptr = d1_ptr, ix_uni = u%ix_uni)
   if (err .or. .not. associated(d1_ptr)) then
     call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
     call err_exit
   endif
-  n1 = u%n_data_used + 1
   n2 = n1 + size(d1_ptr%d) - 1
   u%n_data_used = n2
   if (n2 > size(u%data)) then
@@ -807,14 +797,16 @@ if (d2_data%name .eq. "bpm") then
     u%design%lat%ele_(u%data(j)%ix_ele)%r(1,1) = default_data_noise
   enddo
   do j = lbound(data,1), ubound(data,1)
-    if (data(j)%data_noise .ne. real_garbage$) &
+    if (data(j)%data_noise /= real_garbage$) &
       u%design%lat%ele_(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%data_noise
   enddo
 endif                   
 
 ! Create data names
+! are we counting elements and forming data names?
 
-if (index(data(0)%name, 'COUNT:') /= 0) then
+if (data(0)%name(1:6) == 'COUNT:') then
+  call form_count_name (data(0)%name(7:), num_hashes, count_name1, count_name2)
   jj = ix1
   do j = n1, n2
     if (jj .gt. ix2) then
@@ -826,7 +818,7 @@ if (index(data(0)%name, 'COUNT:') /= 0) then
     jj = jj + 1
   enddo
 
-elseif (index(data(0)%name, 'SAME:') /= 0) then
+elseif (data(0)%name(1:5) == 'SAME:') then
   call string_trim (data(0)%name(6:), name, ix)
   call tao_find_data (err, name, d1_ptr = d1_ptr, ix_uni = u%ix_uni)
   if (err) then
@@ -835,6 +827,12 @@ elseif (index(data(0)%name, 'SAME:') /= 0) then
   endif
   n2 = n1 + size(d1_ptr%d) - 1
   u%data(n1:n2)%name = d1_ptr%d%name
+elseif (index(data(0)%name, '*') /= 0) then
+  ix = index(data(0)%name, '*')
+  do j = n1, n2
+    u%data(j)%name = data(0)%name(1:ix-1) // &
+                  trim(u%data(j)%ele_name) // trim(data(0)%name(ix+1:))
+  enddo
 else
   u%data(n1:n2)%name = data(ix1:ix2)%name
 endif
@@ -1037,48 +1035,41 @@ integer num_ele, ios, ixx1, ixx2
 
 s%n_v1_var_used = s%n_v1_var_used + 1
 nn = s%n_v1_var_used
+s%v1_var(nn)%name = v1_var%name
 
 ! are we searching for and counting elements?
 
-if (index(var(0)%name, 'COUNT:') /= 0) then
-  counting = .true.
-  call form_count_name (var(0)%name(7:), num_hashes, count_name1, count_name2)
-  if (index(var(0)%ele_name, 'SEARCH') /= 0) then
-    searching = .true.
-    ! search through all universes specified
-    num_ele = 0
-    if (default_universe == 'gang' .or. default_universe == 'clone') then
-      do iu = 1, size(s%u)
-        num_ele = num_ele + s%u(iu)%design%lat%n_ele_max 
-      enddo
-      if (allocated(found_one)) deallocate (found_one)  
-      allocate (found_one(num_ele))
-      ! search in all universes
-      call search_for_vars (0, found_one) 
-    elseif (any(var%universe .ne. ' ')) then
-      call out_io (s_abort$, r_name, &
+if (var(0)%ele_name(1:6) == 'SEARCH') then
+  searching = .true.
+  ! search through all universes specified
+  num_ele = 0
+  if (default_universe == 'gang' .or. default_universe == 'clone') then
+    do iu = 1, size(s%u)
+      num_ele = num_ele + s%u(iu)%design%lat%n_ele_max 
+    enddo
+    if (allocated(found_one)) deallocate (found_one)  
+    allocate (found_one(num_ele))
+    ! search in all universes
+    call search_for_vars (0, found_one) 
+  elseif (any(var%universe /= ' ')) then
+    call out_io (s_abort$, r_name, &
            "Cannot specify individual universes when searching for variables")
-      call err_exit
-    else
-      read (default_universe, '(i)', iostat = ios) iu
-      if (ios .ne. 0) then
-        call out_io (s_abort$, r_name, &
+    call err_exit
+  else
+    read (default_universe, '(i)', iostat = ios) iu
+    if (ios /= 0) then
+      call out_io (s_abort$, r_name, &
             "DEFAULT_UNIVERSE MUST BE 'gang', 'clone' OR A NUMBER FOR: " // &
             v1_var%name)
-        call err_exit
-      endif
-      if (iu < 1 .or. iu > size(s%u)) then
-        call out_io (s_abort$, r_name, &
-              'DEFAULT_UNIVERSE NUMBER OUT OF RANGE FOR: ' // v1_var%name)
-      endif
-      if (allocated(found_one)) deallocate (found_one)  
-      allocate (found_one(s%u(iu)%design%lat%n_ele_max))
-      call search_for_vars (iu, found_one)
+      call err_exit
     endif
-  else
-    call out_io (s_abort$, r_name, &
-          'If you are counting elements you should also be searching for them')
-    call err_exit
+    if (iu < 1 .or. iu > size(s%u)) then
+      call out_io (s_abort$, r_name, &
+              'DEFAULT_UNIVERSE NUMBER OUT OF RANGE FOR: ' // v1_var%name)
+    endif
+    if (allocated(found_one)) deallocate (found_one)  
+    allocate (found_one(s%u(iu)%design%lat%n_ele_max))
+    call search_for_vars (iu, found_one)
   endif
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + count(found_one)
@@ -1086,9 +1077,9 @@ if (index(var(0)%name, 'COUNT:') /= 0) then
   ix2 = (count(found_one) - (1-ix_min_var))
   s%n_var_used = n2
   ! get element names
-  ! if num_ele .ne. 0 then searching through multiple universes
+  ! if num_ele /= 0 then searching through multiple universes
   jj = n1
-  if (num_ele .ne. 0) then
+  if (num_ele /= 0) then
     ixx2 = 1
     do iu = 1, size(s%u)
       ixx1 = ixx2
@@ -1096,7 +1087,7 @@ if (index(var(0)%name, 'COUNT:') /= 0) then
       do j = 1, size(found_one(ixx1:ixx2))
         if (found_one(ixx1+j-1)) then
           if (jj .gt. n2) then
-            call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+            call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT SEARCHING")
             call err_exit
           endif
           s%var(jj)%ele_name = s%u(iu)%design%lat%ele_(j)%name
@@ -1109,7 +1100,7 @@ if (index(var(0)%name, 'COUNT:') /= 0) then
     do j = 1, size(found_one)
       if (found_one(j)) then
         if (jj .gt. n2) then
-          call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+          call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT SEARCHING")
           call err_exit
         endif
         s%var(jj)%ele_name = s%u(iu)%design%lat%ele_(j)%name
@@ -1118,24 +1109,17 @@ if (index(var(0)%name, 'COUNT:') /= 0) then
       endif
     enddo
   endif
-  ! Create var names
-  jj = ix1
-  do j = n1, n2
-    if (jj .gt. ix2) then
-      call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
-      call err_exit
-    endif
-    write(fmt, '(a,i0,a,i0,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
-    write(s%var(j)%name, fmt) trim(count_name1), jj, trim(count_name2)
-    jj = jj + 1
-  enddo
+
   s%var(n1:n2)%attrib_name = default_attribute
   s%var(n1:n2)%weight = default_weight
   s%var(n1:n2)%step = default_step
   s%var(n1:n2)%merit_type = default_merit_type
   s%var(n1:n2)%low_lim = default_low_lim
   s%var(n1:n2)%high_lim = default_high_lim
-else
+
+! If not searching...
+
+else  
   counting = .false.
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + ix_max_var - ix_min_var + 1
@@ -1167,7 +1151,28 @@ else
   where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
 endif
  
-s%v1_var(nn)%name = v1_var%name
+! If counting...
+
+if (var(0)%name(1:6) == 'COUNT:') then
+  call form_count_name (var(0)%name(7:), num_hashes, count_name1, count_name2)
+  ! Create var names
+  jj = ix1
+  do j = n1, n2
+    if (jj .gt. ix2) then
+      call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+      call err_exit
+    endif
+    write(fmt, '(a,i0,a,i0,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
+    write(s%var(j)%name, fmt) trim(count_name1), jj, trim(count_name2)
+    jj = jj + 1
+  enddo
+elseif (index(var(0)%name, '*') /= 0) then
+  ix  = index(var(0)%name, '*')
+  do j = n1, n2
+    s%var(j)%name = var(0)%name(1:ix-1) // &
+                              trim(s%var(j)%ele_name) // trim(var(0)%name(ix+1:))
+  enddo
+endif
 
 ! now for some family guidance...
 ! point the v1_var mother to the appropriate children in the big data array
@@ -1199,10 +1204,10 @@ if (uni == 0) then
   do jj = 1, size(s%u)
     ix1 = ix2 + 1
     ix2 = s%u(jj)%design%lat%n_ele_max
-    if (index(var(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
+    if (index(var(0)%ele_name, 'SEARCH_KEY:') /= 0) then
       call string_trim(var(0)%ele_name(12:), search_string, ix)
       call find_elements (s%u(jj), search_string, ele_key$, 'no_slaves', found_one(ix1:ix2))
-    elseif (index(var(0)%ele_name, 'SEARCH:') .ne. 0) then 
+    elseif (index(var(0)%ele_name, 'SEARCH:') /= 0) then 
       call string_trim(var(0)%ele_name(8:), search_string, ix)
       call find_elements (s%u(jj), search_string, ele_name$, 'no_slaves', found_one(ix1:ix2))
     else
@@ -1211,10 +1216,10 @@ if (uni == 0) then
     endif
   enddo
 else
-  if (index(var(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
+  if (index(var(0)%ele_name, 'SEARCH_KEY:') /= 0) then
     call string_trim(var(0)%ele_name(12:), search_string, ix)
     call find_elements (s%u(uni), search_string, ele_key$, 'no_slaves', found_one)
-  elseif (index(var(0)%ele_name, 'SEARCH:') .ne. 0) then 
+  elseif (index(var(0)%ele_name, 'SEARCH:') /= 0) then 
     call string_trim(var(0)%ele_name(8:), search_string, ix)
     call find_elements (s%u(uni), search_string, ele_name$, 'no_slaves', found_one)
   else
@@ -1369,8 +1374,8 @@ if (u%coupling%match_to_design) u%coupling%use_coupling_ele = .true.
           
 ! find extraction element
 call string_trim (coupled%at_element, ele_name, ix)
-if (ix .ne. 0) then
-  if (coupled%at_s .ne. -1 .or. coupled%at_ele_index .ne. -1) then
+if (ix /= 0) then
+  if (coupled%at_s /= -1 .or. coupled%at_ele_index /= -1) then
     call out_io (s_error$, r_name, &
         "INIT Coupling: cannot specify an element, it's index or position at same time!")
     call out_io (s_blank$, r_name, "Will use element name.")
@@ -1395,8 +1400,8 @@ if (ix .ne. 0) then
       endif
     enddo
   endif
-elseif (coupled%at_ele_index .ne. -1) then
-  if (coupled%at_s .ne. -1) then
+elseif (coupled%at_ele_index /= -1) then
+  if (coupled%at_s /= -1) then
     call out_io (s_error$, r_name, &
         "INIT Coupling: cannot specify an element, it's index or position at same time!")
     call out_io (s_blank$, r_name, "Will use element index.")
@@ -1405,7 +1410,7 @@ elseif (coupled%at_ele_index .ne. -1) then
     u%coupling%from_uni_ix_ele = coupled%at_ele_index
 else
   ! using s position
-  if (s%global%track_type .ne. 'single' ) then
+  if (s%global%track_type /= 'single' ) then
     call out_io (s_abort$, r_name, &
      "Cannot specify arbitrary s position for coupling if not tracking a single particle")
     call err_exit
