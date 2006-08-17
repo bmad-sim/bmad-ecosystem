@@ -545,6 +545,7 @@ type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 
 integer k
+logical have_data
 
 !
 
@@ -560,16 +561,28 @@ if (graph%limited .and. graph%clip) &
 
 ! loop over all the curves of the graph and draw them
 
+have_data = .false.
+
 do k = 1, size(graph%curve)
   curve => graph%curve(k)
   call qp_set_symbol (curve%symbol)
   call qp_set_line ('PLOT', curve%line) 
-  if (curve%draw_symbols) call qp_draw_data (curve%x_symb, curve%y_symb, &
-                                      .false., curve%symbol_every, graph%clip)
-  if (curve%draw_line) call qp_draw_data (curve%x_line, curve%y_line, &
-                                               curve%draw_line, 0, graph%clip)
+  if (curve%draw_symbols .and. allocated(curve%x_symb)) then
+    if (size(curve%x_symb) > 0) then
+      call qp_draw_data (curve%x_symb, curve%y_symb, .false., curve%symbol_every, graph%clip)
+      have_data = .true.
+    endif
+  endif
+  if (curve%draw_line .and. allocated(curve%x_line)) then
+    if (size(curve%x_line) > 0) then
+      call qp_draw_data (curve%x_line, curve%y_line, curve%draw_line, 0, graph%clip)
+      have_data = .true.
+    endif
+  endif
 enddo
 
+if (.not. have_data) call qp_draw_text ('**No Plottable Data**', &
+                            0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
 ! draw the legend if there is one
 
 if (any(graph%legend /= ' ')) call qp_draw_legend (graph%legend, &

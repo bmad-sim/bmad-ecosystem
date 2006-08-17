@@ -668,7 +668,7 @@ case ('plot')
       ix = 21 - len_trim(p%name)
       name = ' '
       name(ix:) = trim(p%name)
-      if (associated(p%graph)) then
+      if (allocated(p%graph)) then
         do j = 1, size(p%graph)
           nl=nl+1; write (lines(nl), '(2x, 3a)') name(1:20), '.', p%graph(j)%name
           name = ' '

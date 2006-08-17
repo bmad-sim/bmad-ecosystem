@@ -414,7 +414,7 @@ subroutine scale_it_all (ix_plot, factor, a_min, a_max)
 
   do i = 1, size(s%plot_page%region)
     plot => s%plot_page%region(i)%plot
-    if (.not. associated (plot%graph)) cycle
+    if (.not. allocated (plot%graph)) cycle
     do j = 1, size(plot%graph)
       graph => plot%graph(j) 
       graph%y2%max = graph%y2%max * factor 

@@ -72,11 +72,11 @@ type tao_curve_struct
   character(40) :: ele_ref_name            ! Reference element.
   type (beam_struct) beam                  ! for phase-space plotting
   type (tao_graph_struct), pointer :: g    ! pointer to parent graph 
-  real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
-  real(rp), pointer :: y_line(:) => null()
-  real(rp), pointer :: x_symb(:) => null() ! coords for drawing the symbols
-  real(rp), pointer :: y_symb(:) => null()
-  integer, pointer :: ix_symb(:) => null() ! corresponding index in d1_data%d(:) array.
+  real(rp), allocatable :: x_line(:)       ! coords for drawing a curve
+  real(rp), allocatable :: y_line(:) 
+  real(rp), allocatable :: x_symb(:)       ! coords for drawing the symbols
+  real(rp), allocatable :: y_symb(:) 
+  integer, allocatable :: ix_symb(:)       ! corresponding index in d1_data%d(:) array.
   real(rp) x_axis_scale_factor ! x-axis conversion from internal to plotting units.
   real(rp) y_axis_scale_factor ! y-axis conversion from internal to plotting units.
   type (qp_line_struct) line   ! Line attributes
@@ -106,7 +106,7 @@ type tao_graph_struct
   type (qp_axis_struct) y      ! Y-axis attributes.
   type (qp_axis_struct) y2     ! Y-axis attributes.
   type (qp_rect_struct) margin ! margin around the graph.
-  type (tao_curve_struct), pointer :: curve(:) => null()
+  type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
   logical clip                 ! clip plot at graph boundary.
   integer box(4)               ! Defines which box the plot is put in.
@@ -121,8 +121,8 @@ end type
 ! One for Cbar12, and one for Cbar22.
 
 type tao_plot_struct
-  character(40) :: name = ' '           ! Identifying name
-  type (tao_graph_struct), pointer :: graph(:) => null() 
+  character(40) :: name = ' '   ! Identifying name
+  type (tao_graph_struct), allocatable :: graph(:)
                                 ! individual graphs of a plot
   type (qp_axis_struct) x       ! X-axis parameters.
   type (tao_plot_region_struct), pointer :: r ! pointer to parent.

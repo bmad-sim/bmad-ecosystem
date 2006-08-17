@@ -71,7 +71,7 @@ end subroutine
 
 subroutine tao_scale_plot (plot, y_min, y_max)
 
-type (tao_plot_struct) plot
+type (tao_plot_struct), target :: plot
 type (tao_graph_struct), pointer :: graph
 real(rp) y_min, y_max, this_min, this_max
 integer i
@@ -80,7 +80,7 @@ integer i
 ! are adjusted to have the same scale such that all the data fits on
 ! all the graphs.
 
-if (.not. associated (plot%graph)) return
+if (.not. allocated (plot%graph)) return
 
 do i = 1, size(plot%graph)
   call tao_scale_graph (plot%graph(i), y_min, y_max)
@@ -113,11 +113,12 @@ subroutine tao_scale_graph (graph, y_min, y_max)
 type (tao_graph_struct) graph
 real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2
 integer i
+logical found_data, found_data2
 
 ! If y_min = y_max then autoscale: That is we need to find the 
 ! min/max so all the data points are within bounds.
 
-if (.not. associated (graph%curve)) return
+if (.not. allocated (graph%curve)) return
 
 if (y_min == y_max) then
 
@@ -125,34 +126,54 @@ if (y_min == y_max) then
   this_max = -1e30
   this_min2 =  1e30
   this_max2 = -1e30
+  found_data = .false.
+  found_data2 = .false.
 
   do i = 1, size(graph%curve)
 
-    if (associated(graph%curve(i)%y_symb)) then
-      if (graph%curve(i)%use_y2) then
-        this_min2 = min(this_min, minval(graph%curve(i)%y_symb))
-        this_max2 = max(this_max, maxval(graph%curve(i)%y_symb))
-      else
-        this_min = min(this_min, minval(graph%curve(i)%y_symb))
-        this_max = max(this_max, maxval(graph%curve(i)%y_symb))
+    if (allocated(graph%curve(i)%y_symb)) then
+      if (size(graph%curve(i)%y_symb) > 0) then
+        if (graph%curve(i)%use_y2) then
+          this_min2 = min(this_min, minval(graph%curve(i)%y_symb))
+          this_max2 = max(this_max, maxval(graph%curve(i)%y_symb))
+          found_data2 = .true.
+        else
+          this_min = min(this_min, minval(graph%curve(i)%y_symb))
+          this_max = max(this_max, maxval(graph%curve(i)%y_symb))
+          found_data = .true.
+        endif
       endif
     endif
 
-    if (associated(graph%curve(i)%y_line)) then
-      if (graph%curve(i)%use_y2) then
-        this_min2 = min(this_min, minval(graph%curve(i)%y_line))
-        this_max2 = max(this_max, maxval(graph%curve(i)%y_line))
-      else
-        this_min = min(this_min, minval(graph%curve(i)%y_line))
-        this_max = max(this_max, maxval(graph%curve(i)%y_line))
+    if (allocated(graph%curve(i)%y_line)) then
+      if (size(graph%curve(i)%y_line) > 0) then
+        if (graph%curve(i)%use_y2) then
+          this_min2 = min(this_min, minval(graph%curve(i)%y_line))
+          this_max2 = max(this_max, maxval(graph%curve(i)%y_line))
+          found_data2 = .true.
+        else
+          this_min = min(this_min, minval(graph%curve(i)%y_line))
+          this_max = max(this_max, maxval(graph%curve(i)%y_line))
+          found_data = .true.
+        endif
       endif
     endif
 
   enddo
 
+  if (.not. found_data) then
+    this_max = 10
+    this_min = -10
+  endif
+
+  if (.not. found_data2) then
+    this_max2 = 10
+    this_min2 = -10
+  endif
 
   call qp_calc_axis_scale (this_min, this_max, graph%y)
   call qp_calc_axis_scale (this_min2, this_max2, graph%y2)
+
   return
 
 endif

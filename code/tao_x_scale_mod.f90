@@ -102,7 +102,7 @@ logical curve_here
 
 ! Check if the thing exists
 
-if (.not. associated (plot%graph)) return
+if (.not. allocated (plot%graph)) return
 
 ! auto scale
 
@@ -124,15 +124,15 @@ if (x_max == x_min) then
       x2 = max (x2, s%u(iu)%model%lat%ele_(ix)%s)
       curve_here = .true.
     else
-      if (.not. associated(plot%graph(j)%curve)) cycle
+      if (.not. allocated(plot%graph(j)%curve)) cycle
       do k = 1, size(plot%graph(j)%curve)
         curve => plot%graph(j)%curve(k)
-        if (associated (curve%x_symb)) then
+        if (allocated (curve%x_symb)) then
           curve_here = .true.
           x1 = min (x1, minval(curve%x_symb(:)))
           x2 = max (x2, maxval(curve%x_symb(:)))
         endif
-        if (associated (curve%x_line)) then
+        if (allocated (curve%x_line)) then
           curve_here = .true.
           x1 = min (x1, minval(curve%x_line(:)))
           x2 = max (x2, maxval(curve%x_line(:)))

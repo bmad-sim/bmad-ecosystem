@@ -83,7 +83,7 @@ elseif (what == 'index') then
   minn = 1e30; maxx = -1e30
   do ig = 1, size(plot%graph)
     plot%graph(ig)%valid = .false.
-    if (associated(plot%graph(ig)%curve)) then
+    if (allocated(plot%graph(ig)%curve)) then
       plot%graph(ig)%valid = .true.
       do ic = 1, size(plot%graph(ig)%curve)
         minn = min(minn, plot%graph(ig)%curve(ic)%x_symb(1))

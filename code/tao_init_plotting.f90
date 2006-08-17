@@ -133,7 +133,7 @@ do
 
   ng = plot%n_graph
   if (ng == 0) then
-    nullify (plt%graph)
+    deallocate (plt%graph)
   else
     allocate (plt%graph(ng))
   endif
@@ -198,6 +198,9 @@ do
     grph%legend = ' '
     grph%y2_mirrors_y = .true.
 
+    if (grph%y%min /= grph%y%max) call qp_calc_axis_places (grph%y)
+    if (grph%y2%min /= grph%y2%max) call qp_calc_axis_places (grph%y2)
+
     if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
       call out_io (s_blank$, r_name, &
@@ -212,7 +215,7 @@ do
     endif
 
     if (graph%n_curve == 0) then
-      nullify (grph%curve)
+      if (allocated(grph%curve)) deallocate (grph%curve)
     else
       allocate (grph%curve(graph%n_curve))
     endif

@@ -186,16 +186,16 @@ subroutine deallocate_everything ()
 
   do i = 1, size(s%template_plot)
     plot => s%template_plot(i)
-    if (.not. associated (plot%graph)) cycle
+    if (.not. allocated (plot%graph)) cycle
     do j = 1, size(plot%graph)
-      if (.not. associated (plot%graph(j)%curve)) cycle
+      if (.not. allocated (plot%graph(j)%curve)) cycle
       do k = 1, size(plot%graph(j)%curve)
         curve => plot%graph(j)%curve(k)
-        if (associated(curve%x_line)) deallocate(curve%x_line, stat=istat)
-        if (associated(curve%y_line)) deallocate(curve%y_line, stat=istat)
-        if (associated(curve%x_symb)) deallocate(curve%x_symb, stat=istat)
-        if (associated(curve%y_symb)) deallocate(curve%y_symb, stat=istat)
-        if (associated(curve%ix_symb)) deallocate(curve%ix_symb, stat=istat)
+        if (allocated(curve%x_line)) deallocate(curve%x_line, stat=istat)
+        if (allocated(curve%y_line)) deallocate(curve%y_line, stat=istat)
+        if (allocated(curve%x_symb)) deallocate(curve%x_symb, stat=istat)
+        if (allocated(curve%y_symb)) deallocate(curve%y_symb, stat=istat)
+        if (allocated(curve%ix_symb)) deallocate(curve%ix_symb, stat=istat)
       enddo
       deallocate(plot%graph(j)%curve, stat=istat)
     enddo

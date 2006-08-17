@@ -80,16 +80,16 @@ plot_loop: do ir = 1, size(s%plot_page%region)
     call tao_graph_data_setup (plot, graph)
     if (graph%y%min == graph%y%max) call tao_scale_graph (graph, 0.0_rp, 0.0_rp)
     graph%limited = .false.
-    if (associated(graph%curve)) then
+    if (allocated(graph%curve)) then
       ax_min = graph%y%min + 1e-6 * (graph%y%min - graph%y%max)
       ax_max = graph%y%max + 1e-6 * (graph%y%max - graph%y%min)
       do ic = 1, size(graph%curve)
         curve => graph%curve(ic)
-        if (associated(curve%y_symb)) then
+        if (allocated(curve%y_symb)) then
           if (any(curve%y_symb < ax_min .or. &
                     curve%y_symb > ax_max)) graph%limited = .true.
         endif
-        if (associated(curve%y_line)) then
+        if (allocated(curve%y_line)) then
           if (any(curve%y_line < ax_min .or. &
                     curve%y_line > ax_max)) graph%limited = .true.
         endif
@@ -114,7 +114,7 @@ use tao_mod
 implicit none
 
 type (tao_plot_struct) plot
-type (tao_graph_struct) graph
+type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 
 integer i
@@ -137,14 +137,14 @@ end select
 
 ! Renormalize
 
-if (associated (graph%curve)) then
+if (allocated (graph%curve)) then
   do i = 1, size(graph%curve)
     curve => graph%curve(i)
-    if (associated(curve%x_symb)) then
+    if (allocated(curve%x_symb)) then
         curve%x_symb = curve%x_symb * curve%x_axis_scale_factor
         curve%y_symb = curve%y_symb * curve%y_axis_scale_factor
     endif
-    if (associated(curve%x_line)) then
+    if (allocated(curve%x_line)) then
       curve%x_line = curve%x_line * curve%x_axis_scale_factor
       curve%y_line = curve%y_line * curve%y_axis_scale_factor
     endif
@@ -164,7 +164,7 @@ use tao_mod
 implicit none
 
 type (tao_plot_struct) plot
-type (tao_graph_struct) graph
+type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 type (tao_universe_struct), pointer :: u
 type (ele_struct), pointer :: ele
@@ -219,8 +219,8 @@ do k = 1, size(graph%curve)
 
   ! fill the curve data arrays
 
-  if (associated (curve%ix_symb)) deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
-  if (associated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
+  if (allocated (curve%ix_symb)) deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
+  if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
   if (curve%data_source == 'beam_tracking') then
 
@@ -235,9 +235,9 @@ do k = 1, size(graph%curve)
       n = size(curve%beam%bunch(ib)%particle)
     enddo
 
-    call re_associate (curve%ix_symb, n)
-    call re_associate (curve%x_symb, n)
-    call re_associate (curve%y_symb, n)
+    call re_allocate (curve%ix_symb, n)
+    call re_allocate (curve%x_symb, n)
+    call re_allocate (curve%y_symb, n)
 
     n = 0
     do ib = 1, size(curve%beam%bunch)
@@ -286,9 +286,9 @@ do k = 1, size(graph%curve)
     endif
 
     n = size(d1_x%d)
-    call re_associate (curve%ix_symb, n)
-    call re_associate (curve%x_symb, n)
-    call re_associate (curve%y_symb, n)
+    call re_allocate (curve%ix_symb, n)
+    call re_allocate (curve%x_symb, n)
+    call re_allocate (curve%y_symb, n)
 
     do ib = 1, n
       i = ib + lbound(d1_x%d, 1) - 1
@@ -300,8 +300,8 @@ do k = 1, size(graph%curve)
   elseif (curve%data_source == 'twiss') then
 
     n = 2 * s%global%n_curve_pts
-    call re_associate (curve%x_line, n)
-    call re_associate (curve%y_line, n)
+    call re_allocate (curve%x_line, n)
+    call re_allocate (curve%y_line, n)
 
     call make_v_mats (ele, v_mat, v_inv_mat)
     call make_g_mats (ele, g_mat, g_inv_mat)
@@ -336,8 +336,8 @@ do k = 1, size(graph%curve)
   endif
 
     n = 2 * s%global%n_curve_pts
-    call re_associate (curve%x_line, n)
-    call re_associate (curve%y_line, n)
+    call re_allocate (curve%x_line, n)
+    call re_allocate (curve%y_line, n)
 
     do i = 1, n
       theta = (i-1) * twopi / (n-1)
@@ -402,7 +402,7 @@ use tao_mod
 implicit none
 
 type (tao_plot_struct) plot
-type (tao_graph_struct) graph
+type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 type (tao_universe_struct), pointer :: u
 type (tao_d2_data_struct), pointer :: d2_ptr
@@ -530,9 +530,9 @@ do k = 1, size(graph%curve)
     endif
     n_dat = count (d1_ptr%d%useit_plot)       
 
-    call reassociate_integer (curve%ix_symb, n_dat)
-    call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
-    call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
+    call re_allocate (curve%ix_symb, n_dat)
+    call re_allocate (curve%y_symb, n_dat) ! allocate space for the data
+    call re_allocate (curve%x_symb, n_dat) ! allocate space for the data
 
     curve%ix_symb = pack(d1_ptr%d%ix_d1, mask = d1_ptr%d%useit_plot)
 
@@ -628,9 +628,9 @@ do k = 1, size(graph%curve)
     call tao_var_useit_plot_calc (graph, v1_ptr%v) ! make sure %useit_plot up-to-date
     n_dat = count (v1_ptr%v%useit_plot)       ! count the number of data points
 
-    call reassociate_integer (curve%ix_symb, n_dat)
-    call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
-    call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
+    call re_allocate (curve%ix_symb, n_dat)
+    call re_allocate (curve%y_symb, n_dat) ! allocate space for the data
+    call re_allocate (curve%x_symb, n_dat) ! allocate space for the data
 
     curve%ix_symb = pack(v1_ptr%v%ix_v1, mask = v1_ptr%v%useit_plot)
 
@@ -727,9 +727,9 @@ do k = 1, size(graph%curve)
       n_dat = count (u%base%lat%ele_(:)%logic)
     endif
 
-    call reassociate_integer (curve%ix_symb, n_dat)
-    call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
-    call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
+    call re_allocate (curve%ix_symb, n_dat)
+    call re_allocate (curve%y_symb, n_dat) ! allocate space for the data
+    call re_allocate (curve%x_symb, n_dat) ! allocate space for the data
 
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
@@ -807,14 +807,14 @@ do k = 1, size(graph%curve)
 
   select case (plot%x_axis_type)
   case ('index')
-    call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
-    call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
+    call re_allocate (curve%y_line, n_dat) ! allocate space for the data
+    call re_allocate (curve%x_line, n_dat) ! allocate space for the data
     curve%x_line = curve%x_symb
     curve%y_line = curve%y_symb
 
   case ('ele_index')
-    call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
-    call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
+    call re_allocate (curve%y_line, n_dat) ! allocate space for the data
+    call re_allocate (curve%x_line, n_dat) ! allocate space for the data
     curve%x_line = curve%x_symb
     curve%y_line = curve%y_symb
 
@@ -832,8 +832,8 @@ do k = 1, size(graph%curve)
 
       ! allocate data space
 
-      call reassociate_real (curve%y_line, s%global%n_curve_pts) 
-      call reassociate_real (curve%x_line, s%global%n_curve_pts) 
+      call re_allocate (curve%y_line, s%global%n_curve_pts) 
+      call re_allocate (curve%x_line, s%global%n_curve_pts) 
       curve%y_line = 0
 
       do m = 1, size(graph%who)
@@ -862,8 +862,8 @@ do k = 1, size(graph%curve)
 
     if (.not. smooth_curve) then
       ! allocate space for the data
-      call reassociate_real (curve%y_line, n_dat) 
-      call reassociate_real (curve%x_line, n_dat) 
+      call re_allocate (curve%y_line, n_dat) 
+      call re_allocate (curve%x_line, n_dat) 
       curve%x_line = curve%x_symb 
       curve%y_line = curve%y_symb 
     endif

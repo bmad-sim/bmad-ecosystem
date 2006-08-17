@@ -26,15 +26,15 @@ integer i, j, n
 
 ! Deallocate plot_out pointers
 
-if (associated(plot_out%graph)) then
+if (allocated(plot_out%graph)) then
 
   do i = 1, size(plot_out%graph)
-    if (.not. associated(plot_out%graph(i)%curve)) cycle
+    if (.not. allocated(plot_out%graph(i)%curve)) cycle
     do j = 1, size(plot_out%graph(i)%curve)
       c_out => plot_out%graph(i)%curve(j)
-      if (associated(c_out%x_symb)) &
+      if (allocated(c_out%x_symb)) &
                       deallocate (c_out%x_symb, c_out%y_symb, c_out%ix_symb)
-      if (associated(c_out%x_line)) &
+      if (allocated(c_out%x_line)) &
                       deallocate (c_out%y_line, c_out%x_line)
     enddo
     deallocate (plot_out%graph(i)%curve)
@@ -52,8 +52,9 @@ plot_out = plot_in
 ! Now allocate storage for the plot_out pointers and 
 ! copy the data from plot_in to plot_out
 
-if (associated(plot_in%graph)) then
+if (allocated(plot_in%graph)) then
 
+  if (allocated(plot_out%graph)) deallocate(plot_out%graph)
   allocate (plot_out%graph(size(plot_in%graph)))
 
   do i = 1, size(plot_out%graph)
@@ -61,7 +62,8 @@ if (associated(plot_in%graph)) then
     plot_out%graph(i) = plot_in%graph(i)
     plot_out%graph(i)%p => plot_out
 
-    if (.not. associated (plot_in%graph(i)%curve)) cycle
+    if (.not. allocated (plot_in%graph(i)%curve)) cycle
+    if (allocated(plot_out%graph(i)%curve)) deallocate(plot_out%graph(i)%curve)
     allocate (plot_out%graph(i)%curve(size(plot_in%graph(i)%curve)))
 
     do j = 1, size(plot_out%graph(i)%curve)
@@ -69,7 +71,7 @@ if (associated(plot_in%graph)) then
       c_out => plot_out%graph(i)%curve(j)
       c_out = c_in
       c_out%g => plot_out%graph(i)
-      if (.not. associated (c_in%x_symb)) cycle
+      if (.not. allocated (c_in%x_symb)) cycle
       n = size(c_in%x_symb)
       allocate (c_out%x_symb(n), c_out%y_symb(n), c_out%ix_symb(n))
       c_out%x_symb  = c_in%x_symb 
