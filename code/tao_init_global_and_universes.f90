@@ -641,24 +641,8 @@ character(20) fmt
 u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)  ! point back to the parent
 u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name    ! stuff in the data
 
-n1 = u%n_data_used + 1
-
-! if not using SAME: then use the specified d1_data to count datums below...
-
-if (data(0)%ele_name(1:5) /= 'SAME:') then
-  n2 = u%n_data_used + ix_max_data - ix_min_data + 1
-  ix1 = ix_min_data
-  ix2 = ix_max_data
-  u%n_data_used = n2
-  if (n2 > size(u%data)) then
-    call out_io (s_abort$, r_name, &
-                'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-    call err_exit
-  endif
-endif
-
-! now check if we are searching for elements or repeating elements
-! and record the element names in the data structs
+! Check if we are searching for elements or repeating elements
+! and record the element names in the data structs.
     
 if (data(0)%ele_name(1:6) == 'SEARCH') then
   allocate (found_one(u%design%lat%n_ele_max))
@@ -673,10 +657,11 @@ if (data(0)%ele_name(1:6) == 'SEARCH') then
     call err_exit
   endif
   ! finish finding data array limits
+  n1 = u%n_data_used + 1
   n2 = u%n_data_used + count(found_one)
-  ix1 = ix_min_data
-  ix2 = (count(found_one) - (1-ix_min_data))
   u%n_data_used = n2
+  ix1 = ix_min_data
+  ix2 = ix_min_data + (n2 - n1)
   if (n2 > size(u%data)) then
     call out_io (s_abort$, r_name, &
                   'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
@@ -710,8 +695,11 @@ elseif (data(0)%ele_name(1:5) == 'SAME:') then
     call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
     call err_exit
   endif
-  n2 = n1 + size(d1_ptr%d) - 1
+  n1 = u%n_data_used + 1
+  n2 = u%n_data_used + size(d1_ptr%d)
   u%n_data_used = n2
+  ix1 = ix_min_data
+  ix2 = ix_min_data + (n2 - n1)
   if (n2 > size(u%data)) then
     call out_io (s_abort$, r_name, &
                 'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
@@ -732,6 +720,17 @@ elseif (data(0)%ele_name(1:5) == 'SAME:') then
 ! Not SEARCH or SAME:
 
 else
+
+  n1 = u%n_data_used + 1
+  n2 = u%n_data_used + ix_max_data - ix_min_data + 1
+  ix1 = ix_min_data
+  ix2 = ix_max_data
+  u%n_data_used = n2
+  if (n2 > size(u%data)) then
+    call out_io (s_abort$, r_name, &
+                'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
+    call err_exit
+  endif
 
   ! Transfer info from the input structure
 
@@ -781,6 +780,7 @@ else
 
 endif
 
+!--------------------------------------------
 ! use default_data_type if given, if not, auto-generate the data_type
 if (default_data_type == ' ') then
   where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
