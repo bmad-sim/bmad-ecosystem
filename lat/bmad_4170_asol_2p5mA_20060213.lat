@@ -2,7 +2,7 @@
 ! Final optimization was done with lrbbi current at 2.5mA
 ! The sextupoles were re-optimized without lrbbi afterwards
 !+
-! Tue Aug  1 16:07:45 2006 => Documented by latdoc.
+! Thu Aug 17 17:27:12 2006 => Documented by latdoc.
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.53	9.57	206.7	222.3	123.1	
 ! e-	0.53	0.57	208.0	223.1	126.5	
@@ -26,12 +26,13 @@
 ! V_Sep By: 48w:10.17  48e:10.17
 !
 ! 9x5 info: Pr_apert:4.08e-02  Effic:0.52  I_bunch:4.08  B_param_i:2.71
-! Worst e+ x disp:-1.98e-02  at: Q14W
+! Worst x disp e+:-1.98e-02  at: Q14W, 	e-:1.98e-02 at: Q14W
 ! 34w: e+ Bx:42.24  e- Bx:43.46  e+ Eta:2.21   Ring sigma_sep:7.38
 ! 34e: e+ Bx:41.41  e- Bx:39.75  e- Eta:1.97
 !
 ! Full turn 4x4 det: 0.41  Momentum_comp: 1.13e-02
 ! sync_beta_path x:0.0e+00  y:0.0e+00  _volt x:-1.0e-08  y:-9.1e-07
+! Qs-2Qx Mag  e+: 6.61   e-: 2.26
 ! *IP*  dbeta(dE) x:5.22 y:-1.20  dbeta(dPretz) x:3.12e-02 y:1.25e-02
 ! *max* dbeta(dE) x:4.89 y:70.98  dbeta(dPretz) x:1.45e-01 y:2.43e-01
 ! Chrom x:1.04  y:0.68    Tonality x:0.01  y:-0.42

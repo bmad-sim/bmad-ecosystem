@@ -2,7 +2,7 @@
 ! Final optimization was done with lrbbi current at 2.2mA
 ! The sextupoles were re-optimized without lrbbi afterwards
 !+
-! Tue Aug 15 21:38:23 2006 => Documented by latdoc.
+! Fri Aug 18 15:02:20 2006 => Documented by latdoc.
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.53	9.57	206.7	221.1	131.8	
 ! e-	0.54	0.57	208.8	220.6	134.2	
@@ -32,6 +32,7 @@
 !
 ! Full turn 4x4 det: 6.34  Momentum_comp: 1.13e-02
 ! sync_beta_path x:0.0e+00  y:0.0e+00  _volt x:5.9e-10  y:1.7e-06
+! Qs-2Qx Mag  e+: 13.97   e-: 7.40
 ! *IP*  dbeta(dE) x:1.15 y:-0.31  dbeta(dPretz) x:3.19e-01 y:1.93e-01
 ! *max* dbeta(dE) x:1.75 y:68.62  dbeta(dPretz) x:6.33e-01 y:4.85e-01
 ! Chrom x:0.99  y:0.97    Tonality x:-0.55  y:0.36
