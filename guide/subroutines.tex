@@ -558,7 +558,7 @@ Subroutine to convert particleparticle coords from
     (x, px, y, py, z, pz)
 
 \index{Routine!init_beam_distribution}
-\item[init\_beam\_distribution (ele, beam\_init, beam, renormalize, random\_dist)] \Newline 
+\item[init\_beam\_distribution (ele, beam\_init, beam)] \Newline 
 Subroutine to initialize a distribution of particles matched to
 the Twiss parameters, centroid position, and Energy - z correlation
 
@@ -647,10 +647,6 @@ Subroutine to track the particle spin through one element.
 \index{Wake fields!list of routines}
 
 \begin{description}
-
-\index{Routine!init_wake}
-\item[init\_wake (wake, n\_sr, n\_lr)] \Newline 
-Subroutine to initialize a wake struct.
 
 \index{Routine!lr_wake_apply_kick}
 \item[lr\_wake\_apply\_kick (ele, s\_ref, orbit)] \Newline 
@@ -1729,20 +1725,6 @@ b\_x, b\_y, coord, mat4, vec\_st)] \Newline
 Subroutine to calculate the 4x4 transfer matrix (excluding steerings) for a 
 segment of an accelerating solenoid. 
 
-\index{Routine!b_field_loop}
-\item[b\_field\_loop (coord, ele, s\_pos, b\_loop)] \Newline
-Subroutine to calculate the magnetic field vector due to a 
-circular current loop. 
-
-\index{Routine!b_field_mult}
-\item[b\_field\_mult (ring, coord, first, last, s\_pos, b\_vector)] \Newline
-Subroutine to calculate the magnetic field vector due to multiple 
-circular current loops. 
-
-\index{Routine!hypergeom}
-\item[hypergeom (hgcx, arg)] \Newline
-Function to calculate a particular hypergeometric function 
-
 \end{description}
 
 %------------------------------------------------------------------------
@@ -1904,8 +1886,8 @@ Subroutine to return the calibration constants for the CESR quads.
      Subroutine to clear all drawing from the current box.
      That is, white out the box region.
 
-\index{Routine!qp_draw_arc}
-\item[qp\_draw\_arc (x0, y0, r\_x, r\_y, ang1, ang2, 
+\index{Routine!qp_draw_ellipse}
+\item[qp\_draw\_ellipse (x0, y0, r\_x, r\_y, theta_xy, angle1, angle2, 
                      units, width, color, style, clip) ] \Newline 
      Subroutine to plot a section of an ellipse.
 
@@ -1946,18 +1928,23 @@ Subroutine to return the calibration constants for the CESR quads.
 \item[qp\_draw\_polyline (x, y, units, width, color, style, clip)] \Newline 
      Subroutine to draw a polyline.
 
+\index{Routine!qp_draw_polyline_no_set}
+\item[qp\_draw\_polyline\_no\_set (x, y, units)] \Newline 
+Subroutine to draw a polyline.
+This is similar to qp\_draw\_polyline except qp\_set\_line\_attrib is not called.
+
 \index{Routine!qp_draw_polyline_basic}
 \item[qp\_draw\_polyline\_basic (x, y, units) ] \Newline 
      Subroutine to draw a polyline. See also qp\_draw\_polyline
+
+\index{Routine!qp_draw_line}
+\item[qp\_draw\_line (x1, x2, y1, y2, units, width, color, style, clip)] \Newline 
+     Subroutine to draw a line.
 
 \index{Routine!qp_draw_rectangle}
 \item[qp\_draw\_rectangle (x1, x2, y1, y2, units, color, width,
                                              style, clip) ] \Newline 
      Subroutine to draw a rectangular box.
-
-\index{Routine!qp_draw_line}
-\item[qp\_draw\_line (x1, x2, y1, y2, units, width, color, style, clip)] \Newline 
-     Subroutine to draw a line.
 
 \index{Routine!qp_draw_symbol}
 \item[qp\_draw\_symbol (x, y, units, type, height, color, 
@@ -1973,6 +1960,11 @@ Subroutine to return the calibration constants for the CESR quads.
 \item[qp\_draw\_text (text, x, y, units, justify, height
         color, angle, ...) ] \Newline 
      Subroutine to draw text.
+
+\index{Routine!qp_draw_text_no_set}
+\item[qp\_draw\_text\_no\_set (text, x, y, units, justify, angle)] \Newline 
+Subroutine to display on a plot a character string.
+See also: qp\_draw\_text.
 
 \index{Routine!qp_draw_text_basic}
 \item[qp\_draw\_text\_basic (text, x, y, units, justify, angle)] \Newline 
@@ -2039,11 +2031,6 @@ Subroutine to return the calibration constants for the CESR quads.
 Subroutine to set up the margins from the sides of the box (see QP\_SET\_BOX)
 to the edges of the actual graph.
 
-\index{Routine!qp_set_pgplot_color}
-\item[qp\_set\_pgplot\_color (ix\_color) ] \Newline 
-     Subroutine to set the color in pgplot taking into account that GIF
-     inverts the black for white.
-
 \index{Routine!qp_set_page_border}
 \item[qp\_set\_page\_border (x1\_b, x2\_b, y1\_b, y2\_b, units)] \Newline 
      Subroutine to set the border around the physical page.
@@ -2082,6 +2069,10 @@ Subroutine to set various quick\_plot parameters.
 \item[qp\_set\_text\_attrib (who, height, color, background, 
                                 uniform\_spacing, spacing\_factor) ] \Newline 
      Subroutine to set the default text attributes.
+
+\index{Routine!qp_use_axis}
+\item[qp\_use\_axis (x, y)] \Newline 
+Subroutine to set what axis to use: X or X2, Y or Y2.
 
 \end{description}
 
@@ -2128,27 +2119,11 @@ Subroutine to get various quick\_plot parameters.
 Function to convert from a text height in points to a text height in
 inches taking into account the text\_scale.
 
-\index{Routine!qp_to_datum_abs}
-\item[qp\_to\_datum\_abs (x, y, x\_dat, y\_dat, units)] \Newline 
-     Subroutine to convert an (x, y) point on the page to data units.
-
-\index{Routine!qp_to_datum_rel}
-\item[qp\_to\_datum\_rel (x, y, x\_dat, y\_dat, units)] \Newline 
-     Subroutine to convert an (x, y) delta to data units.
-
-\index{Routine!qp_to_data_abs}
-\item[qp\_to\_data\_abs (x, y, x\_dat, y\_dat, units)] \Newline 
-     Subroutine to convert (x, y) points on the page to data units.
-
-\index{Routine!qp_to_data_rel}
-\item[qp\_to\_data\_rel (x, y, x\_dat, y\_dat, units)] \Newline 
-     Subroutine to convert (x, y) deltas to data units.
-
-\index{Routine!qp_to_inch_rel}
+\index{Routine!qp_to_inches_rel}
 \item[qp\_to\_inch\_rel (x, y, x\_inch, y\_inch, units)] \Newline 
      Subroutine to convert a relative (x, y) into inches.
 
-\index{Routine!qp_to_inch_abs}
+\index{Routine!qp_to_inches_abs}
 \item[qp\_to\_inch\_abs (x, y, x\_inch, y\_inch, units)] \Newline 
      Subroutine to convert an absolute position (x, y) into inches referenced
      to the left bottom corner of the page.
@@ -2172,28 +2147,107 @@ inches taking into account the text\_scale.
 
 \begin{description}
 
+\index{Routine!qp_clear_box_basic}
+\item[qp\_clear\_box\_basic (x1, x2, y1, y2, page\_type)] \Newline 
+Subroutine to clear all drawing from a box.
+That is, white out the box region.
+
+\index{Routine!qp_clear_page_basic}
+\item[qp\_clear\_page\_basic] \Newline 
+Subroutine to clear all drawing from the page.
+
+\index{Routine!qp_close_page_basic}
+\item[qp\_close\_page\_basic] \Newline 
+Subroutine to finish plotting on a page.
+For X this closes the window.
+
+\index{Routine!qp_draw_symbol_basic}
+\item[qp\_draw\_symbol\_basic (x, y, symbol)] \Newline 
+Subroutine to draw a symbol.
+
+\index{Routine!qp_init_com_struct}
+\item[qp\_init\_com\_struct ] \Newline 
+Subroutine to initialize the common block qp\_state\_struct.
+This subroutine is not for general use.
+
 \index{Routine!qp_justify}
 \item[qp\_justify (justify)] \Newline 
      Function to convert a justify character string to a real value
      representing the horizontal justification. 
 
-\index{Routine!qp_save_state}
-\item[qp\_save\_state (buffer)] \Newline 
-     Subroutine to save the current attributes. 
-     Use qp\_restore\_state to restore the saved state.
+\index{Routine!qp_open_page_basic}
+\item[qp\_open\_page\_basic (page\_type, x\_len, y\_len, plot\_file, &] \Newline 
+                                               x\_page, y\_page, i\_chan)
+Subroutine to Initialize a page (window) for plotting.
 
 \index{Routine!qp_restore_state}
 \item[qp\_restore\_state] \Newline 
      Subroutine to restore saved attributes. 
      Use qp\_save\_state to restore the saved state.
 
-\index{Routine!qp_init_struct}
-\item[qp\_init\_struct (qp)] \Newline 
-     Subroutine to initialize the qp\_struct.
+\index{Routine!qp_restore_state_basic}
+\item[qp\_restore\_state\_basic ()] \Newline 
+Subroutine to restore the print state.
+
+\index{Routine!qp_save_state}
+\item[qp\_save\_state (buffer)] \Newline 
+     Subroutine to save the current attributes. 
+     Use qp\_restore\_state to restore the saved state.
+
+\index{Routine!qp_save_state_basic }
+\item[qp\_save\_state\_basic ] \Newline 
+Subroutine to save the print state.
+
+\index{Routine!qp_select_page_basic}
+\item[qp\_select\_page\_basic (iw)] \Newline 
+Subroutine to switch to a particular page for drawing graphics.
+
+\index{Routine!qp_set_char_size_basic}
+\item[qp\_set\_char\_size\_basic (height)] \Newline 
+Subroutine to set the character size.
+
+\index{Routine!qp_set_clip_basic}
+\item[qp\_set\_clip\_basic (clip)] \Newline 
+Subroutine to set the clipping state.
+Note: This affects both lines and symbols.
+
+\index{Routine!qp_set_color_basic}
+\item[qp\_set\_color\_basic (ix\_color, page\_type)  ] \Newline 
+Subroutine to set the color taking into accout that GIF
+inverts the black for white.
+
+\index{Routine!qp_set_graph_position_basic}
+\item[qp\_set\_graph\_position\_basic (x1, x2, y1, y2)] \Newline 
+Subroutine to set the position of a graph.
+Units are inches from lower left of page.
+
+\index{Routine!qp_set_line_width_basic}
+\item[qp\_set\_line\_width\_basic (line\_width)] \Newline 
+Subroutine to set the line width.
+
+\index{Routine!qp_set_line_style_basic}
+\item[qp\_set\_line\_style\_basic (style)] \Newline 
+Subroutine to set the line style.
+
+\index{Routine!qp_set_symbol_fill_basic}
+\item[qp\_set\_symbol\_fill\_basic (fill)] \Newline 
+Subroutine to set the symbol fill style.
+
+\index{Routine!qp_set_symbol_size_basic}
+\item[qp\_set\_symbol\_size\_basic (height, symbol\_type, page\_type, uniform\_size)] \Newline 
+Subroutine to set the symbol\_size
+
+\index{Routine!qp_set_text_background_color_basic}
+\item[qp\_set\_text\_background\_color\_basic (color)] \Newline 
+Subroutine to set the character text background color.
 
 \index{Routine!qp_split_units_string}
 \item[qp\_split\_units\_string (u\_type, region, corner, units)] \Newline 
      Subroutine to split a units string into its components.
+
+\index{Routine!qp_text_len_basic}
+\item[qp\_text\_len\_basic (text, len\_text)] \Newline 
+Function to find the length of a text string.
 
 \index{Routine!qp_translate_to_color_index}
 \item[qp\_translate\_to\_color\_index (name, index)] \Newline 

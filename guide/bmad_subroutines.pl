@@ -5,161 +5,160 @@ use File::Find;
 #---------------------------------------------------------
 # List of subroutines too low level to be mentioned
 
-$tex_hash{"modulo2_sp"} = "modulo2_mod.f90";
-$tex_hash{"modulo2_int"} = "modulo2_mod.f90";
-$tex_hash{"modulo2_dp"} = "modulo2_mod.f90";
-$tex_hash{"taylor_coef1"} = "bmad_taylor_mod.f90";
-$tex_hash{"taylor_coef2"} = "bmad_taylor_mod.f90";
-$tex_hash{"coord_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"amode_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"param_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"ran_uniform_vector"} = "random_mod.f90";
-$tex_hash{"ran_uniform_scaler"} = "random_mod.f90";
-$tex_hash{"integration_timer"} = "integration_timer_mod.f90";
-$tex_hash{"test_f_em_field"} = "test_f_side.f90";
-$tex_hash{"test_f_modes"} = "test_f_side.f90";
-$tex_hash{"test_f_amode"} = "test_f_side.f90";
-$tex_hash{"bmad_com_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"mode_info_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"lr_wake_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"sr2_wake_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"sr2_trans_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"sr1_wake_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"sr1_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"sr2_long_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"sr2_long_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"lr_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"test_f_floor_position"} = "test_f_side.f90";
-$tex_hash{"coord_in_orbit_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"modes_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"test_f_ele"} = "test_f_side.f90";
-$tex_hash{"test_f_wig_term"} = "test_f_side.f90";
-$tex_hash{"test_f_control"} = "test_f_side.f90";
-$tex_hash{"test_f_sr1_wake"} = "test_f_side.f90";
-$tex_hash{"test_f_coord"} = "test_f_side.f90";
-$tex_hash{"test_f_taylor_term"} = "test_f_side.f90";
-$tex_hash{"init_all_structs"} = "test_f_side.f90";
-$tex_hash{"test_f_param"} = "test_f_side.f90";
-$tex_hash{"test_f_ring"} = "test_f_side.f90";
-$tex_hash{"test_f_mode_info"} = "test_f_side.f90";
-$tex_hash{"test_f_wake"} = "test_f_side.f90";
-$tex_hash{"test_f_lr_wake"} = "test_f_side.f90";
-$tex_hash{"test_f_taylor"} = "test_f_side.f90";
-$tex_hash{"test_f_bmad_com"} = "test_f_side.f90";
-$tex_hash{"test_f_twiss"} = "test_f_side.f90";
-$tex_hash{"test_f_linac_mode"} = "test_f_side.f90";
-$tex_hash{"control_from_ring_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"taylor_term_in_taylor_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"wig_term_in_ele_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"ele_from_ring_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"taylor_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"floor_position_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"ele_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"linac_mode_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"ring_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"wake_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"wig_term_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"twiss_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"em_field_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"taylor_term_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"orbit_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"control_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"parser_add_variable"} = "bmad_parser_mod.f90";
-$tex_hash{"quad_mat2_calc"} = "make_mat6_mod.f90";
-$tex_hash{"write_out"} = "io_mod.f90";
-$tex_hash{"str"} = "io_mod.f90";
-$tex_hash{"rchomp"} = "io_mod.f90";
-$tex_hash{"qrfac"} = "lmdif_mod.f90";
-$tex_hash{"if_error"} = "if_error.f90";
-$tex_hash{"track_bend_edge"} = "track1_mod.f90";
-$tex_hash{"ion_kick_2d"} = "ion_kick_2d.f90";
-$tex_hash{"parser_add_lord"} = "bmad_parser_mod.f90";
-$tex_hash{"mat6_multipole"} = "make_mat6_mod.f90";
-$tex_hash{"mat4_multipole"} = "make_mat6_mod.f90";
-$tex_hash{"evaluate_logical"} = "bmad_parser_mod.f90";
-$tex_hash{"read_sr_wake"} = "bmad_parser_mod.f90";
-$tex_hash{"read_lr_wake"} = "bmad_parser_mod.f90";
-$tex_hash{"get_sequence_args"} = "bmad_parser_mod.f90";
-$tex_hash{"allocate_pring"} = "bmad_parser_mod.f90";
-$tex_hash{"add_taylor_term"} = "bmad_parser_mod.f90";
-$tex_hash{"file_stack"} = "bmad_parser_mod.f90";
-$tex_hash{"find_indexx"} = "bmad_parser_mod.f90";
-$tex_hash{"get_attribute"} = "bmad_parser_mod.f90";
-$tex_hash{"get_next_word"} = "bmad_parser_mod.f90";
-$tex_hash{"get_overlay_group_names"} = "bmad_parser_mod.f90";
-$tex_hash{"load_parse_line"} = "bmad_parser_mod.f90";
-$tex_hash{"seq_expand1"} = "bmad_parser_mod.f90";
-$tex_hash{"qromb_rad_int"} = "rad_int_common.f90";
-$tex_hash{"derivs_bmad"} = "runge_kutta_mod.f90";
-$tex_hash{"init_bmad_parser_common"} = "bmad_parser_mod.f90";
-$tex_hash{"bbi_slice_calc"} = "make_mat6_mod.f90";
-$tex_hash{"rkqs_bmad"} = "runge_kutta_mod.f90";
-$tex_hash{"allocate_saved_orbit"} = "em_field_mod.f90";
-$tex_hash{"preparse_element_init"} = "bmad_parser_mod.f90";
-$tex_hash{"reallocate_control_"} = "bmad_utils_mod.f90";
-$tex_hash{"compute_super_lord_s"} = "bmad_parser_mod.f90";
-$tex_hash{"save_a_step"} = "em_field_mod.f90";
-$tex_hash{"verify_valid_name"} = "bmad_parser_mod.f90";
-$tex_hash{"warning"} = "bmad_parser_mod.f90";
-$tex_hash{"bbi_kick_matrix"} = "make_mat6_bmad.f90";
-$tex_hash{"track_solenoid_edge"} = "boris_mod.f90";
-$tex_hash{"get_called_file"} = "bmad_parser_mod.f90";
-$tex_hash{"mexp"} = "bmad_basic_mod.f90";
-$tex_hash{"integration_timer_fibre"} = "integration_timer_mod.f90";
-$tex_hash{"propagate_part_way"} = "rad_int_common.f90";
-$tex_hash{"add_all_superimpose"} = "bmad_parser_mod.f90";
-$tex_hash{"calc_g_params"} = "rad_int_common.f90";
-$tex_hash{"diff"} = "integration_timer_mod.f90";
-$tex_hash{"multi_turn_func"} = "multi_turn_tracking_to_mat.f90";
-$tex_hash{"evaluate_value"} = "bmad_parser_mod.f90";
-$tex_hash{"reallocate_bp_com_var"} = "bmad_parser_mod.f90";
-$tex_hash{"error_exit"} = "bmad_parser_mod.f90";
-$tex_hash{"do_vsp_eles"} = "create_vsp_volt_elements.f90";
-$tex_hash{"word_to_value"} = "bmad_parser_mod.f90";
-$tex_hash{"rkck_bmad"} = "runge_kutta_mod.f90";
-$tex_hash{"term_diff"} = "integration_timer_mod.f90";
-$tex_hash{"track1_bunch"} = "macro_particle_mod.f90";
-$tex_hash{"pushit"} = "bmad_parser_mod.f90";
-$tex_hash{"type_get"} = "bmad_parser_mod.f90";
-$tex_hash{"get_taylor"} = "integration_timer_mod.f90";
-$tex_hash{"order_macroparticles_in_z"} = "macro_particle_mod.f90";
-$tex_hash{"integration_timer_ele"} = "integration_timer_mod.f90";
-$tex_hash{"solenoid_mat_calc"} = "make_mat6_mod.f90";
-$tex_hash{"lr_wake_add_to"} = "wake_mod.f90";
-$tex_hash{"word_read"} =               "word_read.f90";
-$tex_hash{"string_typ"} =              "string_typ.f90";
-$tex_hash{"goodbye_exit"} =            "goodbye_exit.f90";
-$tex_hash{"calc_file_number"} =        "calc_file_number.f90";
-$tex_hash{"odd"} =                     "odd.f90";
-$tex_hash{"fdjac2"} =                  "lmdif_mod.f90";
-$tex_hash{"increment_file_number"} =   "increment_file_number.f90";
-$tex_hash{"ion_kick"} =                "ion_kick.f90";
-$tex_hash{"get_file_number"} =         "get_file_number.f90";
-$tex_hash{"doubleup_quotes"} =         "doubleup_quotes.f90";
-$tex_hash{"qrsolv"} =                  "lmdif_mod.f90";
-$tex_hash{"string_to_int"} =           "string_to_int.f90";
-$tex_hash{"match_word"} =              "match_word.f90";
-$tex_hash{"ask"} =                     "ask.f90";
-$tex_hash{"file_suffixer"} =           "file_suffixer.f90";
-$tex_hash{"rel_typ"} =                 "rel_typ.f90";
-$tex_hash{"change_file_number"} =      "change_file_number.f90";
-$tex_hash{"settled_test"} =            "settled_test.f90";
-$tex_hash{"spawn_command"} =           "spawn_command.f90";
-$tex_hash{"to_node_name"} =            "to_node_name.f90";
-$tex_hash{"file_get_open"} =           "file_get_open.f90";
-$tex_hash{"match_word_exact"} =        "match_word_exact.f90";
-$tex_hash{"file_directorizer"} =       "file_directorizer.f90";
-$tex_hash{"make_legal_comment"} =      "make_legal_comment.f90";
-$tex_hash{"ran_gauss_vector"} = "random_mod.f90";
-$tex_hash{"ran_gauss_scaler"} = "random_mod.f90";
-$tex_hash{"plot_it"} = "plot_example.f90";
-$tex_hash{"compute_slave_aperture"} = "bookkeeper_mod.f90";
+$pl_hash{"modulo2_sp"} = "modulo2_mod.f90";
+$pl_hash{"modulo2_int"} = "modulo2_mod.f90";
+$pl_hash{"modulo2_dp"} = "modulo2_mod.f90";
+$pl_hash{"taylor_coef1"} = "bmad_taylor_mod.f90";
+$pl_hash{"taylor_coef2"} = "bmad_taylor_mod.f90";
+$pl_hash{"coord_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"amode_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"param_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"ran_uniform_vector"} = "random_mod.f90";
+$pl_hash{"ran_uniform_scaler"} = "random_mod.f90";
+$pl_hash{"integration_timer"} = "integration_timer_mod.f90";
+$pl_hash{"test_f_em_field"} = "test_f_side.f90";
+$pl_hash{"test_f_modes"} = "test_f_side.f90";
+$pl_hash{"test_f_amode"} = "test_f_side.f90";
+$pl_hash{"bmad_com_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"mode_info_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"lr_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr2_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr2_trans_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr1_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr1_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr2_long_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr2_long_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"lr_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"test_f_floor_position"} = "test_f_side.f90";
+$pl_hash{"coord_in_orbit_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"modes_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"test_f_ele"} = "test_f_side.f90";
+$pl_hash{"test_f_wig_term"} = "test_f_side.f90";
+$pl_hash{"test_f_control"} = "test_f_side.f90";
+$pl_hash{"test_f_sr1_wake"} = "test_f_side.f90";
+$pl_hash{"test_f_coord"} = "test_f_side.f90";
+$pl_hash{"test_f_taylor_term"} = "test_f_side.f90";
+$pl_hash{"init_all_structs"} = "test_f_side.f90";
+$pl_hash{"test_f_param"} = "test_f_side.f90";
+$pl_hash{"test_f_ring"} = "test_f_side.f90";
+$pl_hash{"test_f_mode_info"} = "test_f_side.f90";
+$pl_hash{"test_f_wake"} = "test_f_side.f90";
+$pl_hash{"test_f_lr_wake"} = "test_f_side.f90";
+$pl_hash{"test_f_taylor"} = "test_f_side.f90";
+$pl_hash{"test_f_bmad_com"} = "test_f_side.f90";
+$pl_hash{"test_f_twiss"} = "test_f_side.f90";
+$pl_hash{"test_f_linac_mode"} = "test_f_side.f90";
+$pl_hash{"control_from_ring_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"taylor_term_in_taylor_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"wig_term_in_ele_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"ele_from_ring_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"taylor_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"floor_position_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"ele_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"linac_mode_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"ring_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"wig_term_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"twiss_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"em_field_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"taylor_term_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"orbit_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"control_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"parser_add_variable"} = "bmad_parser_mod.f90";
+$pl_hash{"quad_mat2_calc"} = "make_mat6_mod.f90";
+$pl_hash{"write_out"} = "io_mod.f90";
+$pl_hash{"str"} = "io_mod.f90";
+$pl_hash{"rchomp"} = "io_mod.f90";
+$pl_hash{"qrfac"} = "lmdif_mod.f90";
+$pl_hash{"if_error"} = "if_error.f90";
+$pl_hash{"track_bend_edge"} = "track1_mod.f90";
+$pl_hash{"ion_kick_2d"} = "ion_kick_2d.f90";
+$pl_hash{"parser_add_lord"} = "bmad_parser_mod.f90";
+$pl_hash{"mat6_multipole"} = "make_mat6_mod.f90";
+$pl_hash{"mat4_multipole"} = "make_mat6_mod.f90";
+$pl_hash{"evaluate_logical"} = "bmad_parser_mod.f90";
+$pl_hash{"read_sr_wake"} = "bmad_parser_mod.f90";
+$pl_hash{"read_lr_wake"} = "bmad_parser_mod.f90";
+$pl_hash{"get_sequence_args"} = "bmad_parser_mod.f90";
+$pl_hash{"allocate_pring"} = "bmad_parser_mod.f90";
+$pl_hash{"add_taylor_term"} = "bmad_parser_mod.f90";
+$pl_hash{"file_stack"} = "bmad_parser_mod.f90";
+$pl_hash{"find_indexx"} = "bmad_parser_mod.f90";
+$pl_hash{"get_attribute"} = "bmad_parser_mod.f90";
+$pl_hash{"get_next_word"} = "bmad_parser_mod.f90";
+$pl_hash{"get_overlay_group_names"} = "bmad_parser_mod.f90";
+$pl_hash{"load_parse_line"} = "bmad_parser_mod.f90";
+$pl_hash{"seq_expand1"} = "bmad_parser_mod.f90";
+$pl_hash{"qromb_rad_int"} = "rad_int_common.f90";
+$pl_hash{"derivs_bmad"} = "runge_kutta_mod.f90";
+$pl_hash{"init_bmad_parser_common"} = "bmad_parser_mod.f90";
+$pl_hash{"bbi_slice_calc"} = "make_mat6_mod.f90";
+$pl_hash{"rkqs_bmad"} = "runge_kutta_mod.f90";
+$pl_hash{"allocate_saved_orbit"} = "em_field_mod.f90";
+$pl_hash{"preparse_element_init"} = "bmad_parser_mod.f90";
+$pl_hash{"reallocate_control_"} = "bmad_utils_mod.f90";
+$pl_hash{"compute_super_lord_s"} = "bmad_parser_mod.f90";
+$pl_hash{"save_a_step"} = "em_field_mod.f90";
+$pl_hash{"verify_valid_name"} = "bmad_parser_mod.f90";
+$pl_hash{"warning"} = "bmad_parser_mod.f90";
+$pl_hash{"bbi_kick_matrix"} = "make_mat6_bmad.f90";
+$pl_hash{"track_solenoid_edge"} = "boris_mod.f90";
+$pl_hash{"get_called_file"} = "bmad_parser_mod.f90";
+$pl_hash{"mexp"} = "bmad_basic_mod.f90";
+$pl_hash{"integration_timer_fibre"} = "integration_timer_mod.f90";
+$pl_hash{"propagate_part_way"} = "rad_int_common.f90";
+$pl_hash{"add_all_superimpose"} = "bmad_parser_mod.f90";
+$pl_hash{"diff"} = "integration_timer_mod.f90";
+$pl_hash{"multi_turn_func"} = "multi_turn_tracking_to_mat.f90";
+$pl_hash{"evaluate_value"} = "bmad_parser_mod.f90";
+$pl_hash{"reallocate_bp_com_var"} = "bmad_parser_mod.f90";
+$pl_hash{"error_exit"} = "bmad_parser_mod.f90";
+$pl_hash{"do_vsp_eles"} = "create_vsp_volt_elements.f90";
+$pl_hash{"word_to_value"} = "bmad_parser_mod.f90";
+$pl_hash{"rkck_bmad"} = "runge_kutta_mod.f90";
+$pl_hash{"term_diff"} = "integration_timer_mod.f90";
+$pl_hash{"track1_bunch"} = "macro_particle_mod.f90";
+$pl_hash{"pushit"} = "bmad_parser_mod.f90";
+$pl_hash{"type_get"} = "bmad_parser_mod.f90";
+$pl_hash{"get_taylor"} = "integration_timer_mod.f90";
+$pl_hash{"order_macroparticles_in_z"} = "macro_particle_mod.f90";
+$pl_hash{"integration_timer_ele"} = "integration_timer_mod.f90";
+$pl_hash{"solenoid_mat_calc"} = "make_mat6_mod.f90";
+$pl_hash{"lr_wake_add_to"} = "wake_mod.f90";
+$pl_hash{"word_read"} =               "word_read.f90";
+$pl_hash{"string_typ"} =              "string_typ.f90";
+$pl_hash{"goodbye_exit"} =            "goodbye_exit.f90";
+$pl_hash{"calc_file_number"} =        "calc_file_number.f90";
+$pl_hash{"odd"} =                     "odd.f90";
+$pl_hash{"fdjac2"} =                  "lmdif_mod.f90";
+$pl_hash{"increment_file_number"} =   "increment_file_number.f90";
+$pl_hash{"ion_kick"} =                "ion_kick.f90";
+$pl_hash{"get_file_number"} =         "get_file_number.f90";
+$pl_hash{"doubleup_quotes"} =         "doubleup_quotes.f90";
+$pl_hash{"qrsolv"} =                  "lmdif_mod.f90";
+$pl_hash{"string_to_int"} =           "string_to_int.f90";
+$pl_hash{"match_word"} =              "match_word.f90";
+$pl_hash{"ask"} =                     "ask.f90";
+$pl_hash{"file_suffixer"} =           "file_suffixer.f90";
+$pl_hash{"rel_typ"} =                 "rel_typ.f90";
+$pl_hash{"change_file_number"} =      "change_file_number.f90";
+$pl_hash{"settled_test"} =            "settled_test.f90";
+$pl_hash{"spawn_command"} =           "spawn_command.f90";
+$pl_hash{"to_node_name"} =            "to_node_name.f90";
+$pl_hash{"file_get_open"} =           "file_get_open.f90";
+$pl_hash{"match_word_exact"} =        "match_word_exact.f90";
+$pl_hash{"file_directorizer"} =       "file_directorizer.f90";
+$pl_hash{"make_legal_comment"} =      "make_legal_comment.f90";
+$pl_hash{"ran_gauss_vector"} = "random_mod.f90";
+$pl_hash{"ran_gauss_scaler"} = "random_mod.f90";
+$pl_hash{"plot_it"} = "plot_example.f90";
+$pl_hash{"compute_slave_aperture"} = "bookkeeper_mod.f90";
 
 
 #---------------------------------------------------------
 # make a list of names from bmad_subroutines.html
 
-$tex_file =  '/home/dcs/new_lib/bmad/guide/subroutines.tex';
+$tex_file =  'subroutines.tex';
 open (F_IN, $tex_file) || die ("Cannot open File: $tex_file");
 
 while (<F_IN>) {
@@ -183,9 +182,9 @@ while (<F_IN>) {
 print "\n---------------------------------------------------\n";
 print "Subroutines in bmad but not in subroutines.tex:\n\n";
 
-find (\&searchit, '/home/dcs/new_lib/bmad');
-find (\&searchit, '/home/dcs/new_lib/dcslib');
-find (\&searchit, '/home/dcs/new_lib/cesr_utils');
+find (\&searchit, '..');
+find (\&searchit, '../../dcslib');
+find (\&searchit, '../../cesr_utils');
 
 #---------------------------------------------------------
 # find all BMAD subroutines and see if they are in the tex file
@@ -194,9 +193,9 @@ print "\n---------------------------------------------------\n";
 print "Subroutines in bmad but not in subroutines.tex:\n\n";
 
 while (($key, $val) = each %f90_hash) {
-  if (! exists $tex_hash{$key}) {
+  if (! exists $tex_hash{$key} && ! exists $pl_hash{$key}) {
 #    printf "%-30s%s\n", ":$key:", $val;
-    printf "\$tex_hash\{\"$key\"\} = \"$val\"\;\n";
+    printf "\$pl_hash\{\"$key\"\} = \"$val\"\;\n";
   }
 }
 
@@ -204,9 +203,21 @@ while (($key, $val) = each %f90_hash) {
 # find all listings in the tex file and see if there are bmad subroutines
 
 print "\n---------------------------------------------------\n";
-print "Subroutines in subroutines.tex or bmad_subroutines.pl that are not in bmad:\n\n";
+print "Subroutines in subroutines.tex that are not in bmad:\n\n";
 
 while (($key, $val) = each %tex_hash) {
+  if (! exists $f90_hash{$key}) {
+    print ":$key:\n";
+  }
+}
+
+#---------------------------------------------------------
+# find all listings in the tex file and see if there are bmad subroutines
+
+print "\n---------------------------------------------------\n";
+print "Subroutines in bmad_subroutines.pl that are not in bmad:\n\n";
+
+while (($key, $val) = each %pl_hash) {
   if (! exists $f90_hash{$key}) {
     print ":$key:\n";
   }
@@ -221,6 +232,7 @@ sub searchit {
   if (!/\.f90$/) {return;}
 
   $file = $_;
+##  print "File: $file\n";
 
   open (F_IN, $file) || die ("Cannot open File: $_");
 

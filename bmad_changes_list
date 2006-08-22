@@ -23,6 +23,14 @@ modes_struct -> normal_modes_struct
 mode_struct  -> normal_mode_struct
 param_struct -> lat_param_struct
 
+sr1_wake_struct -> tabular_sr_wake_struct
+sr2_wake_struct -> mode_sr_wake_struct
+
+type wake_struct
+  sr1(:) -> table_sr_table(:)
+  sr2_long(:) -> mode_sr_long(:)
+  sr2_trans(:) -> mode_sr_trans(:)
+
 -----------------
 
 add: ring%param%s_start
