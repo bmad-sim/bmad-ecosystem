@@ -63,7 +63,7 @@ character(40) default_merit_type, default_attribute
 character(100) line
 
 logical err, free
-logical counting, searching
+logical searching
 logical calc_emittance
 logical, allocatable :: found_one(:), mask(:)
 
@@ -905,7 +905,7 @@ do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
 
   ! universe to use
   ix_u = ix_u_in
-  if (.not. (counting .and. searching)) then
+  if (.not. searching) then
     if (var(i)%universe /= ' ') then
       read (var(i)%universe, *, iostat = ios) ix_u
       if (ios /= 0) then
@@ -975,7 +975,7 @@ s_loop: do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
     s_var%exists = .false.
     cycle
   endif
-  if (.not. (counting .and. searching)) then
+  if (.not. searching) then
     n_tot = 0
     do iu = 1, size(s%u)
       call tao_locate_elements (s_var, iu, n_ele)
@@ -1120,7 +1120,7 @@ if (var(0)%ele_name(1:6) == 'SEARCH') then
 ! If not searching...
 
 else  
-  counting = .false.
+  searching = .false.
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + ix_max_var - ix_min_var + 1
   ix1 = ix_min_var
