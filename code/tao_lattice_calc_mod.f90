@@ -12,6 +12,7 @@ use tao_calc_params_mod
 use macroparticle_mod
 use beam_mod
 use random_mod
+use rad_int_common
 
 !
 
@@ -131,8 +132,10 @@ do i = 1, size(s%u)
   end select
 
   if (this_calc_ok) then
-    if (u%do_synch_rad_int_calc)  call radiation_integrals (u%model%lat, &
-                                         u%model%orb, u%model%modes, u%ix_rad_int_cache)
+    if (u%do_synch_rad_int_calc) then
+      call radiation_integrals (u%model%lat, u%model%orb, u%model%modes, u%ix_rad_int_cache)
+      call transfer_rad_int_struct (ric, u%model%rad_int)
+    endif
     if (u%do_chrom_calc) call chrom_calc (u%model%lat, delta_e, &
                                     u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
   else

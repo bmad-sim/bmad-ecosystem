@@ -17,6 +17,7 @@ use macroparticle_mod, only: macro_init_struct, macro_beam_struct
 use macro_utils_mod, only: macro_bunch_params_struct
 use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
+use rad_int_common, only: rad_int_common_struct
 
 interface assignment (=)
   module procedure tao_lat_equal_tao_lat
@@ -472,6 +473,7 @@ type tao_lattice_struct
   type (ring_struct) lat                           ! lattice structures
   type (coord_struct), allocatable :: orb(:)
   type (modes_struct) modes                        ! Synchrotron integrals stuff
+  type (rad_int_common_struct) rad_int
   type (tao_lat_mode_struct) a, b
   type (bunch_params_struct), allocatable :: bunch_params(:)
   type (bunch_params_struct), allocatable :: bunch_params2(:)

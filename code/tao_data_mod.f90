@@ -520,12 +520,26 @@ case ('cbar.22')
   call load_it (cc%cbar(2,2), ix0, ix1, datum_value, datum, lat, coupling_here = .true.)
 
 case ('i5a_e6')
-  datum_value = tao_lat%modes%lin%i5a_e6
-  datum%ix_ele_merit = lat%n_ele_use
+  if (ix0 > 0 .or. ix1 > 0) then
+    ix0 = max(1, ix0)
+    if (ix1 < 1) ix1 = lat%n_ele_use
+    datum_value = sum(tao_lat%rad_int%lin_i5a_e6(ix0:ix1))
+    datum%ix_ele_merit = ix1
+  else
+    datum_value = tao_lat%modes%lin%i5a_e6
+    datum%ix_ele_merit = lat%n_ele_use
+  endif
 
 case ('i5b_e6')
-  datum_value = tao_lat%modes%lin%i5b_e6
-  datum%ix_ele_merit = lat%n_ele_use
+  if (ix0 > 0 .or. ix1 > 0) then
+    ix0 = max(1, ix0)
+    if (ix1 < 1) ix1 = lat%n_ele_use
+    datum_value = sum(tao_lat%rad_int%lin_i5b_e6(ix0:ix1))
+    datum%ix_ele_merit = ix1
+  else
+    datum_value = tao_lat%modes%lin%i5b_e6
+    datum%ix_ele_merit = lat%n_ele_use
+  endif
 
 case ('r.')
   i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
