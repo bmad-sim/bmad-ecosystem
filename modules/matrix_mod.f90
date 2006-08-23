@@ -15,15 +15,15 @@ module matrix_mod
       'IN_STOP_BAND  ', 'NON_SYMPLECTIC', 'UNSTABLE      ', '              ' /)
 
 contains
-
+      
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
 ! Subroutine mat_inverse (mat, mat_inv)
 !
-! Program to take the inverse of a square matrix.
-! program is from NUMERICAL RECIPES
+! Takes the inverse of a square matrix using LU Decomposition from
+! Numerical Recipes.
 !
 ! Modules needed:
 !   bmad_interface

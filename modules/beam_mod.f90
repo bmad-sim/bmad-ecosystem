@@ -3,6 +3,7 @@ module beam_mod
 use wake_mod
 use csr_mod
 use spin_mod
+use eigen_mod
 
 interface assignment (=)
   module procedure bunch_equal_bunch
@@ -1225,7 +1226,11 @@ end subroutine init_spin_distribution
 ! Subroutine calc_bunch_params (bunch, ele, params)
 !
 ! Finds all bunch parameters defined in bunch_params_struct, both normal-mode
-! and projected
+! and projected. Projected parameters are found purely from the geometrical
+! distribution of the beam. Normal-Mode parameters are found using the method
+! developed in:
+!   "Alternate approach to general coupled linear optics" 
+!    A. Wolski, PRST AB 9, 024001 (2006)
 !
 ! Modules needed:
 !  use beam_mod
@@ -1236,24 +1241,20 @@ end subroutine init_spin_distribution
 !
 ! Output     
 !   params -- bunch_params_struct:
-!     %x%alpha; %x%beta; %x%gamma
-!     %x%sigma
-!     %x%emitt; %x%dpx_dx
-!     %y%alpha; %y%beta; %y%gamma
-!     %y%sigma
-!     %y%emitt; %y%dpx_dx
-!     %z%alpha; %z%beta; %z%gamma
-!     %z%sigma
-!     %z%emitt; %z%dpx_dx
-!     %a%alpha; %a%beta; %a%gamma
-!     %a%sigma
-!     %a%emitt; %a%dpx_dx
-!     %b%alpha; %b%beta; %b%gamma
-!     %b%sigma
-!     %b%emitt; %b%dpx_dx
+!     %x,%y,%z       -- Projected parameters
+!       %alpha; %beta; %gamma
+!       %eta, %etap, %norm_emitt
+!     %a,%b,%c       -- Normal-Mode parameters
+!       %alpha; %beta; %gamma
+!       %eta, %etap, %norm_emitt
+!     %sigma         -- Projected Sigma Matrix
+!     %sigma_normal  -- Normal-Mode Sigma Matrix
 !     %centroid
-!     %n_particle ! # particle not lost
-!     %spin
+!     %spin      
+!       %polarization -- Polarization
+!       %theta        -- Polar Angle of polarization vector
+!       %phi          -- Polar Angle of polarization vector
+!     %n_particle ! # particles not lost
 !-
 
 subroutine calc_bunch_params (bunch, ele, params)
@@ -1267,11 +1268,41 @@ type (particle_struct), allocatable, save :: a_mode(:)
 
 real(rp) exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
 real(rp) avg_energy, temp6(6)
-real(rp) v_mat(4,4), v_inv_mat(4,4)
 real(rp) eta, etap
+real(rp) :: sigma_s(6,6) = 0.0
+real(rp) :: s(6,6), s_inv(6,6)
+real(rp) :: sigma_s_save(6,6) = 0.0
+reaL(rp) :: d_r(6) = 0.0, d_i(6) = 0.0, e_r(6,6) = 0.0, e_i(6,6) = 0.0
+real(rp) :: u(6,6), u_trans(6,6)
+real(rp) :: n_real(6,6)
+
+complex(rp) :: sigma_s_complex(6,6) = 0.0
+complex(rp) :: n(6,6), q(6,6)
 
 integer i
+
+logical err
+
+character(18) :: r_name = "calc_bunch_params"
   
+s = 0.0
+
+s(1,2) =  1.0 
+s(2,1) = -1.0
+s(3,4) =  1.0 
+s(4,3) = -1.0
+s(5,6) =  1.0 
+s(6,5) = -1.0
+
+s_inv = 0.0
+
+s_inv(1,2) = -1.0
+s_inv(2,1) = 1.0
+s_inv(3,4) = -1.0
+s_inv(4,3) = 1.0
+s_inv(5,6) = -1.0
+s_inv(6,5) = 1.0
+
 ! n_particle and centroid
 
 params%n_particle = count(bunch%particle%ix_lost == not_lost$)
@@ -1282,6 +1313,7 @@ if (params%n_particle == 0) then
   call zero_plane (params%z)
   call zero_plane (params%a)
   call zero_plane (params%b)
+  call zero_plane (params%c)
 endif
   
 ! average the energy
@@ -1294,9 +1326,9 @@ avg_energy = avg_energy * ele%value(beam_energy$) / params%n_particle
 
 call switch_to_geometric (bunch%particle, set$)
     
-call find_bunch_sigma_matrix (bunch%particle, params%centroid%vec, params%sigma)
+call find_bunch_sigma_matrix (bunch%particle, params%centroid%vec, params%sigma, sigma_s)
 
-!--------
+!********
 ! Projected Parameters
 ! X
 call param_stuffit (params%x, params%sigma(s11$), params%sigma(s22$), &
@@ -1311,58 +1343,118 @@ call param_stuffit (params%z, params%sigma(s55$), params%sigma(s66$), &
 !***
 ! Normal-Mode Parameters
   
-! take out coupling
-call make_v_mats (ele, v_mat, v_inv_mat)
+! Use Andy Wolski's eigemode method to find normal-mode beam parameters
 
-if (.not. allocated(a_mode)) allocate (a_mode(size(bunch%particle)))
-if (size(a_mode) .ne. size(bunch%particle)) then
-  deallocate(a_mode)
-  allocate(a_mode(size(bunch%particle)))
-endif
-do i = 1, size(a_mode)
-  a_mode(i)%r%vec(1:4) = matmul(v_inv_mat, bunch%particle(i)%r%vec(1:4))
-  ! longitudinal plane doesn't change
-  a_mode(i)%r%vec(5:6) = bunch%particle(i)%r%vec(5:6)
-enddo 
-  
-call find_bunch_sigma_matrix (a_mode, temp6, params%sigma_normal)
-  
-! Take out linear dispersion for normal mode sigma
-! x
-eta  = params%sigma_normal(s16$) / params%sigma_normal(s66$)
-etap = params%sigma_normal(s26$) / params%sigma_normal(s66$)
-params%sigma_normal(s11$) = params%sigma_normal(s11$) &
-                             - 2*eta*params%sigma_normal(s16$) &
-                             + (eta**2)*params%sigma_normal(s66$)
-params%sigma_normal(s22$) = params%sigma_normal(s22$) &
-                             - 2*etap*params%sigma_normal(s26$) &
-                             + (etap**2)*params%sigma_normal(s66$)
-params%sigma_normal(s12$) = params%sigma_normal(s12$) &
-                             - etap*params%sigma_normal(s16$) &
-                             - eta*params%sigma_normal(s26$) &
-                             + eta*etap*params%sigma_normal(s66$)
-! y
-eta  = params%sigma_normal(s36$) / params%sigma_normal(s66$)
-etap = params%sigma_normal(s46$) / params%sigma_normal(s66$)
-params%sigma_normal(s33$) = params%sigma_normal(s33$) &
-                             - 2*eta*params%sigma_normal(s36$) &
-                             + (eta**2)*params%sigma_normal(s66$)
-params%sigma_normal(s44$) = params%sigma_normal(s44$) &
-                             - 2*etap*params%sigma_normal(s46$) &
-                             + (etap**2)*params%sigma_normal(s66$)
-params%sigma_normal(s34$) = params%sigma_normal(s34$) &
-                             - etap*params%sigma_normal(s36$) &
-                             - eta*params%sigma_normal(s46$) &
-                             + eta*params%y%etap*params%sigma_normal(s66$)
-                             
-! A
-call param_stuffit (params%a, params%sigma_normal(s11$), params%sigma_normal(s22$), &
-                      params%sigma_normal(s12$), params%sigma_normal(s16$), &
-                      params%sigma_normal(s26$))
-! B
-call param_stuffit (params%b, params%sigma_normal(s33$), params%sigma_normal(s44$), &
-                      params%sigma_normal(s34$), params%sigma_normal(s36$), &
-                      params%sigma_normal(s46$))
+! find eigensystem of sigma.S
+
+sigma_s_save = sigma_s
+call mat_eigen (sigma_s, d_r, d_i, e_r, e_i, err)
+if (err) goto 999
+
+params%a%norm_emitt = d_i(1) * (avg_energy/m_electron)
+params%b%norm_emitt = d_i(3) * (avg_energy/m_electron)
+params%c%norm_emitt = d_i(5) * (avg_energy/m_electron)
+
+! Now find twiss parameters
+
+n(1,:) = e_r(1,:) + i_imaginary * e_i(1,:)
+n(2,:) = e_r(2,:) + i_imaginary * e_i(2,:)
+n(3,:) = e_r(3,:) + i_imaginary * e_i(3,:)
+n(4,:) = e_r(4,:) + i_imaginary * e_i(4,:)
+n(5,:) = e_r(5,:) + i_imaginary * e_i(5,:)
+n(6,:) = e_r(6,:) + i_imaginary * e_i(6,:)
+
+call normalize_e (n)
+n = transpose(n)
+
+q = 0.0
+q(1,1) = 1.0/sqrt(2.0)
+q(2,1) = 1.0/sqrt(2.0)
+q(3,3) = 1.0/sqrt(2.0)
+q(4,3) = 1.0/sqrt(2.0)
+q(5,5) = 1.0/sqrt(2.0)
+q(6,5) = 1.0/sqrt(2.0)
+q(1,2) =  i_imaginary / sqrt(2.0) 
+q(2,2) = -i_imaginary / sqrt(2.0)
+q(3,4) =  i_imaginary / sqrt(2.0) 
+q(4,4) = -i_imaginary / sqrt(2.0)
+q(5,6) =  i_imaginary / sqrt(2.0) 
+q(6,6) = -i_imaginary / sqrt(2.0)
+
+n = matmul(n,q)
+n_real = real(n)
+
+! take inverse of symplectic matrix
+call mat_symp_conj (n_real, u)
+u_trans = transpose (u)
+
+sigma_s = matmul(u, matmul(sigma_s_save, u_trans))
+
+! temporarily get sigma matrix (from sigma_s) to save the normal_sigma matrix
+sigma_s_save = matmul(sigma_s,s_inv)
+! Normal-Mode Sigma Matrix
+params%sigma_normal(s11$) = sigma_s_save(1,1) 
+params%sigma_normal(s12$) = sigma_s_save(1,2) 
+params%sigma_normal(s13$) = sigma_s_save(1,3) 
+params%sigma_normal(s14$) = sigma_s_save(1,4) 
+params%sigma_normal(s15$) = sigma_s_save(1,5) 
+params%sigma_normal(s16$) = sigma_s_save(1,6) 
+params%sigma_normal(s22$) = sigma_s_save(2,2) 
+params%sigma_normal(s23$) = sigma_s_save(2,3) 
+params%sigma_normal(s24$) = sigma_s_save(2,4) 
+params%sigma_normal(s25$) = sigma_s_save(2,5) 
+params%sigma_normal(s26$) = sigma_s_save(2,6) 
+params%sigma_normal(s33$) = sigma_s_save(3,3) 
+params%sigma_normal(s34$) = sigma_s_save(3,4) 
+params%sigma_normal(s35$) = sigma_s_save(3,5) 
+params%sigma_normal(s36$) = sigma_s_save(3,6) 
+params%sigma_normal(s44$) = sigma_s_save(4,4) 
+params%sigma_normal(s45$) = sigma_s_save(4,5) 
+params%sigma_normal(s46$) = sigma_s_save(4,6) 
+params%sigma_normal(s55$) = sigma_s_save(5,5) 
+params%sigma_normal(s56$) = sigma_s_save(5,6) 
+params%sigma_normal(s66$) = sigma_s_save(6,6) 
+
+!sigma_s = matmul(sigma_s,s)
+
+call mat_eigen (sigma_s, d_r, d_i, e_r, e_i, err)
+if (err) goto 999
+
+n(1,:) = e_r(1,:) + i_imaginary * e_i(1,:)
+n(2,:) = e_r(2,:) + i_imaginary * e_i(2,:)
+n(3,:) = e_r(3,:) + i_imaginary * e_i(3,:)
+n(4,:) = e_r(4,:) + i_imaginary * e_i(4,:)
+n(5,:) = e_r(5,:) + i_imaginary * e_i(5,:)
+n(6,:) = e_r(6,:) + i_imaginary * e_i(6,:)
+
+call normalize_e (n)
+n = transpose(n)
+
+n = matmul(n,q)
+n_real = real(n)
+
+params%a%beta = n_real(1,1)**2 + n_real(1,2)**2
+params%b%beta = n_real(3,3)**2 + n_real(3,4)**2
+params%c%beta = n_real(5,6)**2 + n_real(5,6)**2
+
+params%a%alpha = -(n_real(1,1)*n_real(2,1) + n_real(1,2)*n_real(2,2))
+params%b%alpha = -(n_real(3,3)*n_real(4,3) + n_real(3,4)*n_real(4,4))
+params%c%alpha = -(n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6))
+
+params%a%gamma = n_real(2,1)**2 + n_real(2,2)**2
+params%b%gamma = n_real(4,3)**2 + n_real(4,4)**2
+params%c%gamma = n_real(6,5)**2 + n_real(6,6)**2
+
+params%a%eta  = n_real(1,5)*n_real(6,5) + n_real(1,6)*n_real(6,6)
+params%a%etap = n_real(2,5)*n_real(6,5) + n_real(2,6)*n_real(6,6)
+
+params%b%eta  = n_real(3,5)*n_real(6,5) + n_real(3,6)*n_real(6,6)
+params%b%etap = n_real(4,5)*n_real(6,5) + n_real(4,6)*n_real(6,6)
+
+params%c%eta  = n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6)
+params%c%etap = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
+
+999 continue
 
 if (bmad_com%spin_tracking_on) call calc_spin_params ()
   
@@ -1436,6 +1528,43 @@ end subroutine param_stuffit
 !----------------------------------------------------------------------
 ! contains
 
+subroutine normalize_e (e)
+
+implicit none
+
+complex(rp) :: s(6,6)
+
+complex(rp) :: e(6,6), temp(6)
+complex(rp) :: wronsk, factor
+
+integer i, j, k
+
+s = 0.0
+s(1,2) = ( 1.0,0.0) 
+s(2,1) = (-1.0,0.0)
+s(3,4) = ( 1.0,0.0) 
+s(4,3) = (-1.0,0.0)
+s(5,6) = ( 1.0,0.0) 
+s(6,5) = (-1.0,0.0)
+
+ do i = 1, 6, 2
+   e(i,:) = conjg(e(i+1,:))
+   temp = matmul(s,e(i+1,:))
+   wronsk = 0.0
+   do j = 1, 6
+     wronsk = e(i,j)*temp(j) + wronsk
+   enddo
+   factor = sqrt(i_imaginary) / sqrt(wronsk)
+   e(i+1,:) = e(i+1,:) * factor
+   e(i,:) = conjg(e(i+1,:))
+ enddo
+
+
+end subroutine
+  
+!----------------------------------------------------------------------
+! contains
+
 subroutine calc_spin_params ()
 
 implicit none
@@ -1498,15 +1627,17 @@ end subroutine calc_bunch_params
 ! Output:
 !   sigma(21)   -- Real(rp): Sigma matrix elements.
 !   ave(6)      -- Real(rp): Bunch Centroid.
+!   sigma_S     -- Sigma.S matrix for Wolski normal-modes
 !-
 
-subroutine find_bunch_sigma_matrix (particle, avg, sigma)
+subroutine find_bunch_sigma_matrix (particle, avg, sigma, sigma_s)
 
 implicit none
 
 type (particle_struct) :: particle(:)
 real(rp) sigma(21)
 real(rp) avg(6)
+real(rp) sigma_s(6,6), s(6,6)
 
 integer i, n
 
@@ -1539,6 +1670,55 @@ sigma(s46$) = exp_calc (particle, 4, 6, avg)
 sigma(s55$) = exp_calc (particle, 5, 5, avg)
 sigma(s56$) = exp_calc (particle, 5, 6, avg)
 sigma(s66$) = exp_calc (particle, 6, 6, avg)
+
+!make sigma.S matrix
+sigma_s(1,1) = sigma(s11$)
+sigma_s(1,2) = sigma(s12$)
+sigma_s(1,3) = sigma(s13$)
+sigma_s(1,4) = sigma(s14$)
+sigma_s(1,5) = sigma(s15$)
+sigma_s(1,6) = sigma(s16$)
+sigma_s(2,1) = sigma(s12$)
+sigma_s(2,2) = sigma(s22$)
+sigma_s(2,3) = sigma(s23$)
+sigma_s(2,4) = sigma(s24$)
+sigma_s(2,5) = sigma(s25$)
+sigma_s(2,6) = sigma(s26$)
+sigma_s(3,1) = sigma(s13$)
+sigma_s(3,2) = sigma(s23$)
+sigma_s(3,3) = sigma(s33$)
+sigma_s(3,4) = sigma(s34$)
+sigma_s(3,5) = sigma(s35$)
+sigma_s(3,6) = sigma(s36$)
+sigma_s(4,1) = sigma(s14$)
+sigma_s(4,2) = sigma(s24$)
+sigma_s(4,3) = sigma(s34$)
+sigma_s(4,4) = sigma(s44$)
+sigma_s(4,5) = sigma(s45$)
+sigma_s(4,6) = sigma(s46$)
+sigma_s(5,1) = sigma(s15$)
+sigma_s(5,2) = sigma(s25$)
+sigma_s(5,3) = sigma(s35$)
+sigma_s(5,4) = sigma(s45$)
+sigma_s(5,5) = sigma(s55$)
+sigma_s(5,6) = sigma(s56$)
+sigma_s(6,1) = sigma(s16$)
+sigma_s(6,2) = sigma(s26$)
+sigma_s(6,3) = sigma(s36$)
+sigma_s(6,4) = sigma(s46$)
+sigma_s(6,5) = sigma(s56$)
+sigma_s(6,6) = sigma(s66$)
+
+s = 0.0
+
+s(1,2) =  1.0 
+s(2,1) = -1.0
+s(3,4) =  1.0 
+s(4,3) = -1.0
+s(5,6) =  1.0 
+s(6,5) = -1.0
+
+sigma_s = matmul(sigma_s, s)
 
 !----------------------------------------------------------------------
 contains

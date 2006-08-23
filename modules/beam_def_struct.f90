@@ -66,7 +66,7 @@ type bunch_param_struct
 end type
 
 type bunch_params_struct
-  type (bunch_param_struct) :: x, y, z, a, b
+  type (bunch_param_struct) :: x, y, z, a, b, c
   type (coord_struct) :: centroid  ! Lab frame
   type (beam_spin_struct) :: spin  ! polarization
   real(rp) sigma(21)               ! projected sigma matrix
