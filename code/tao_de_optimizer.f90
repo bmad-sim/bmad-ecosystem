@@ -97,7 +97,7 @@ real(rp) merit
 
 integer i, end_flag
 integer :: iter = 0
-integer t0(8), t1(8), t_del(8), t_delta
+integer, save :: t0(8), t1(8), t_del(8), t_delta
 
 character(80) line, line2, stars
 character(20) :: r_name = 'tao_de_optimizer'

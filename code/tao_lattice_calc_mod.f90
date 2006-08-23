@@ -85,6 +85,7 @@ endif
 if (s%global%lattice_recalc) then
   do i = 1, size(s%u)
     u => s%u(i)
+    if (.not. u%is_on) cycle
     call tao_lat_bookkeeper (u, u%model)
     call tao_hook_lattice_calc (u, u%model, hook_used(i), calc_ok)
   enddo
