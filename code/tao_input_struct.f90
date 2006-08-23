@@ -30,6 +30,7 @@ type tao_data_input
   real(rp) :: meas_value
   real(rp) :: weight
   real(rp) :: data_noise ! not used by most data types
+  real(rp) :: scale_error ! not used by most data types
   logical :: good_user
 end type
 

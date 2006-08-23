@@ -400,9 +400,11 @@ The syntax is as follows:
     beam_init%emitt_jitter  = <bumber>*2  ! a and b emittance rms jitter (depsilon/epsilon)
     beam_init%siz_z_jitter  = <number>    ! bunch length rms jitter (dz/z)
     beam_init%siz_e_jitter  = <number>    ! bunch energy spread rms jitter (dE/E)
-    beam_ini%spin%polarization = <number> ! spin polarization (1.0 = %100 polarizaed)
-    beam_ini%spin%theta     = <number> ! spin orientation  (polar coordinate)
-    beam_ini%spin%phi       = <number> ! spin orientation  (polar coordinate)
+    beam_init%spin%polarization = <number> ! spin polarization (1.0 = %100 polarizaed)
+    beam_init%spin%theta    = <number> ! spin orientation  (polar coordinate)
+    beam_init%spin%phi      = <number> ! spin orientation  (polar coordinate)
+    beam_init%init_spin     = <logical> ! Initialize the spin (default: False)
+    beam_init%preserve_dist = <logical> ! Use the same particle distribution.
   /
 \end{example}
 \vn{ix_universe} refers to the universe index. See \bmad documentation on what
@@ -418,6 +420,15 @@ be calculated using the \bmad routine \vn{radiation_integrals} unless
 initialization will be used. The state of \vn{calc_emittance} has no
 effect on Linear lattices where the initial emittance must be
 specified.
+
+If spin tracking is desired then \vn{beam_init%init_spin} must be set to true.
+If it is desired to use the exact same distribution of particles for each time
+the beam is tracked then set \vn{beam_init%preserve_dist} to True. Otherwise, a
+new random distribution will be generated. The
+initialization routine does attempt to renormalize the beam to the specified
+parameters, nevertheless if tracking a small number of
+particles the distribution is subject to small random fluctuations unless
+\vn{beam_init%prserve_dist} is True. 
 
 The default is single particle tracking. To turn on particle tracking the
 \vn{global%track_type} perameter must be set to 'beam.' This can be placed in
@@ -735,8 +746,15 @@ are:
   "abs_min"
 \end{example}
 See Chapter~\ref{c:opti} on optimization for more
-details.\vni{default_data_noise} gives the RMS noise on \vn{bpm} and \vn{wire} 
-data types. All other data types ignore this parameter.
+details.
+
+\vni{data_noise} gives the RMS noise on \vn{bpm} and \vn{wire} 
+data types. All other data types ignore this parameter. \vn{scale_error} gives
+the BPM scale error in the form
+\begin{equation}
+  x_{BPM} = (1+a) x_real.
+\end{equation}
+Where $a$ is a gaussian distribution of RMS specified by \vn{scale_error}.
 
 \vn{n_d1_data} defines how many \vn{d1_data} structures are associated
 with the \vn{d2_data} structure. For each \vn{n_d1_data} structure
@@ -774,6 +792,7 @@ there must be a \vn{tao_d1_data} namelist which has the form:
     data(j)%meas_value = "<number>"     ! Datum "measured" value
     data(j)%weight     = "<weight>"     ! Merit function weight.
     data(j)%data_noise  = <number"      ! RMS data noise
+    data(j)%scale_error = <number"      ! RMS scale erorr
     data(j)%good_user  = Logical        ! Use for optimization and plotting?
   /
 \end{example}

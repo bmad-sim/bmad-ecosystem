@@ -117,24 +117,23 @@ associated with them.
 \centering 
 {\tt
 \begin{tabular}{|l|l|l|} \hline
-  {\it Data\_Type}        & {\it Description}                  &          \\ \hline 
-    alpha.x, alpha.y      & Projected Alpha Function           &          \\ \hline 
-    alpha.a, alpha.b      & Normal-Mode Alpha Function         &          \\ \hline 
-    beam\_energy          & Beam Kinetic Energy                &          \\ \hline
-    %beam\_energy         & Beam energy deviation from nominal &          \\ \hline
-    beta.x, beta.y        & Projected Beta Function            &          \\ \hline 
-    beta.a, beta.b        & Normal-Mode Beta Function          &          \\ \hline 
-    bpm.x, bpm.y          & Transverse BPM reading             &          \\ \hline 
-    eta.x, eta.y          & Dispersion                         &          \\ \hline 
-    etap.x, etap.y        & Dispersion derivative              &          \\ \hline 
-    momentum\_compaction  & Momentum compaction factor         & relative \\ \hline
-    orbit.x, orbit.y      & Transverse orbit                   &          \\ \hline 
-    orbit.p\_x, orbit.p\_y& Tranverse momenta                  &          \\ \hline 
-    orbit.z, orbit.z\_p   & Longitudinal orbit and momenta     &          \\ \hline 
-    phase.x, phase.y      & Betatron phase                     & relative \\ \hline 
-    phase\_frac\_diff     & Fractional phase difference (x-y)  & relative \\ \hline
-    wire.<angle>          & Wire Scanner with wire angle <angle>
-                                                               &          \\ \hline
+  {\it Data\_Type}              & {\it Description}                  &          \\ \hline 
+    alpha.x, alpha.y, alpha.z   & Projected Alpha Function           &          \\ \hline 
+    alpha.a, alpha.b, alpha.c   & Normal-Mode Alpha Function         &          \\ \hline 
+    beam\_energy                & Beam Kinetic Energy                &          \\ \hline
+    beta.x, beta.y, beta.z      & Projected Beta Function            &          \\ \hline 
+    beta.a, beta.b, beta.c      & Normal-Mode Beta Function          &          \\ \hline 
+    bpm.x, bpm.y                & Transverse BPM reading             &          \\ \hline 
+    eta.x, eta.y, eta.z         & Projected Dispersion               &          \\ \hline 
+    eta.a, eta.b, eta.c         & Normal-Mode Dispersion             &          \\ \hline 
+    etap.x, etap.y, etap.z      & Projected Dispersion derivative    &          \\ \hline 
+    etap.a, etap.b, etap.c      & Normal-Mode Dispersion derivative  &          \\ \hline 
+    momentum\_compaction        & Momentum compaction factor         & relative \\ \hline
+    orbit.x, orbit.y            & Transverse orbit                   &          \\ \hline 
+    orbit.p\_x, orbit.p\_y      & Tranverse momenta                  &          \\ \hline 
+    orbit.z, orbit.z\_p         & Longitudinal orbit and momenta     &          \\ \hline 
+    phase.x, phase.y            & Betatron phase                     & relative \\ \hline 
+    phase\_frac\_diff           & Fractional phase difference (x-y)  & relative \\ \hline
     \begin{tabular}{@{}l}     
       spin.polarization, \\ 
       spin.theta, spin.phi 
@@ -176,8 +175,9 @@ associated with them.
     beam\_energy          & Beam energy                       &          \\ \hline
     unstable\_ring        & Nonzero if a ring is unstable     & global   \\ \hline
     \begin{tabular}{@{}l}
-      emittance.a  \\
-      emittance.b  \\
+      lat\_emittance.a \\
+      lat\_emittance.b \\
+      lat\_emittance.c \\
     \end{tabular}
                           & Emittance for a ring              & global   \\ \hline
     \begin{tabular}{@{}l}
@@ -186,13 +186,23 @@ associated with them.
     \end{tabular}
                           & Chromaticity for a ring           & global   \\ \hline
     \begin{tabular}{@{}l}  
-      norm\_emittance.x \\ 
-      norm\_emittance.y \\
-      norm\_emittance.z \\
-      norm\_emittance.a \\
-      norm\_emittance.b \\
+      beam\_emittance.x \\ 
+      beam\_emittance.y \\
+      beam\_emittance.z \\
+      beam\_emittance.a \\
+      beam\_emittance.b \\
+      beam\_emittance.c \\
     \end{tabular} 
-                          & Normalized emittance              &          \\ \hline 
+                          & Beam Emittance         &          \\ \hline 
+    \begin{tabular}{@{}l}  
+      norm\_beam\_emittance.x \\ 
+      norm\_beam\_emittance.y \\
+      norm\_beam\_emittance.z \\
+      norm\_beam\_emittance.a \\
+      norm\_beam\_emittance.b \\
+      norm\_beam\_emittance.c \\
+    \end{tabular} 
+                          & Normalized Beam Emittance         &          \\ \hline 
     \begin{tabular}{@{}l}   
       sigma.x, sigma.p\_x \\ 
       sigma.y, sigma.p\_y \\
@@ -213,6 +223,8 @@ associated with them.
       dpb\_db \\
     \end{tabular} 
                           & <x p\_x> / <x\^2> \& Etc...       &          \\ \hline 
+    wire.<angle>                & Wire Scanner with wire angle <angle>
+                                                               &          \\ \hline
 \end{tabular}
 } 
 \label{t:data_types}
@@ -251,8 +263,10 @@ associated with them.
     \vn{i5a_e6, i5b_e6}    &   L    &   L  &   L   \\ \hline      
     \vni{s_position}       &   L    &   L  &   L   \\ \hline           
     \vni{beam_energy}      &   L    &   L  &   L   \\ \hline  
-    \vni{%beam_energy}     &   L    &   L  &   L   \\ \hline  
-    \vni{norm_emittance}   &   L\footnote{Uses the Courant-Snyder Invariant} 
+    \vni{lat_emittance}    &   L    &   L  &   L   \\ \hline
+    \vni{beam_emittance}   &   B\footnote{Uses the Courant-Snyder Invariant} 
+                                    &   B  &   B   \\ \hline
+    \vni{norm_beam_emittance}   &   B\footnote{Uses the Courant-Snyder Invariant} 
                                     &   B  &   B   \\ \hline
     \vni{bunch_sigma}      &   X    &   B  &   B   \\ \hline
     \vn{dpx_dx,dpy_dy,...} &   X    &   B  &   B   \\ \hline

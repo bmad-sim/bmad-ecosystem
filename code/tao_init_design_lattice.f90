@@ -87,7 +87,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   ! r(2,:) is for saving ele parameters
   do i = 1, size(s%u)
     do j = 1, s%u(i)%design%lat%n_ele_max
-        allocate(s%u(i)%design%lat%ele_(j)%r(2,4))
+        allocate(s%u(i)%design%lat%ele_(j)%r(2,5))
         s%u(i)%design%lat%ele_(j)%r = 0.0
     enddo
   enddo

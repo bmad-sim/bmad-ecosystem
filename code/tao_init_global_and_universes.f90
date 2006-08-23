@@ -47,6 +47,7 @@ real(rp) :: default_weight        ! default merit function weight
 real(rp) :: default_step          ! default "small" step size
 real(rp) default_low_lim, default_high_lim
 real(rp) :: default_data_noise         ! default noise for data type
+real(rp) :: default_scale_error        ! default noise for data type
 
 integer ios, iu, i, j, i2, j2, k, ix, n_uni
 integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
@@ -78,7 +79,7 @@ namelist / tao_beam_init / ix_universe, calc_emittance, beam_init
 namelist / tao_macro_init / ix_universe, calc_emittance, macro_init
          
 namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe, &
-                           default_data_noise
+                           default_data_noise, default_scale_error
   
 namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, &
                            ix_max_data, default_weight, default_data_type
@@ -363,6 +364,7 @@ do
     data(:)%meas_value = real_garbage$  ! used to tag when %meas_value is set in file
     data(:)%weight     = 0.0
     data(:)%data_noise  = real_garbage$
+    data(:)%scale_error = real_garbage$
     data(:)%good_user  = .true.
     read (iu, nml = tao_d1_data, err = 9150)
     if (ix_d1_data /= k) then
@@ -791,14 +793,17 @@ else
 endif
 
 
-! set data noise (only applicable to all data types)
-if (d2_data%name .eq. "bpm") then
+! set data noise (not applicable to all data types)
+if (d2_data%name .eq. "bpm" .or. d2_data%name .eq. "wire") then
   do j = n1, n2
     u%design%lat%ele_(u%data(j)%ix_ele)%r(1,1) = default_data_noise
+    u%design%lat%ele_(u%data(j)%ix_ele)%r(1,1) = default_scale_error
   enddo
   do j = lbound(data,1), ubound(data,1)
     if (data(j)%data_noise /= real_garbage$) &
       u%design%lat%ele_(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%data_noise
+    if (data(j)%scale_error .ne. real_garbage$) &
+      u%design%lat%ele_(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%scale_error
   enddo
 endif                   
 
