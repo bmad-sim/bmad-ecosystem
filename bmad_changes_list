@@ -31,6 +31,8 @@ type wake_struct
   sr2_long(:) -> mode_sr_long(:)
   sr2_trans(:) -> mode_sr_trans(:)
 
+a0/b0 -> a1/b1
+
 -----------------
 
 add: ring%param%s_start

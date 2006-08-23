@@ -43,19 +43,23 @@ end type
 ! eta_a(4) is the a-mode dispersion in the lab frame.
 
 type rad_int_common_struct
-  type (ring_struct), pointer :: ring
+  type (ring_struct), pointer :: lat
   type (coord_struct), pointer :: orb0, orb1
   type (rad_int_cache_struct) cache(10)         ! up to 10 separate caches
   type (track_point_cache_struct) pt
   real(rp) eta_a(4), eta_b(4), eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
-  real(rp), allocatable :: i1_(:) 
-  real(rp), allocatable :: i2_(:) 
-  real(rp), allocatable :: i3_(:) 
-  real(rp), allocatable :: i4a_(:)
-  real(rp), allocatable :: i4b_(:)
-  real(rp), allocatable :: i5a_(:) 
-  real(rp), allocatable :: i5b_(:) 
+  real(rp), allocatable :: i1(:) 
+  real(rp), allocatable :: i2(:) 
+  real(rp), allocatable :: i3(:) 
+  real(rp), allocatable :: i4a(:)
+  real(rp), allocatable :: i4b(:)
+  real(rp), allocatable :: i5a(:) 
+  real(rp), allocatable :: i5b(:) 
   real(rp), allocatable :: n_steps(:)      ! number of qromb steps needed
+  real(rp), allocatable :: lin_i2_E4(:) 
+  real(rp), allocatable :: lin_i3_E7(:) 
+  real(rp), allocatable :: lin_i5a_E6(:) 
+  real(rp), allocatable :: lin_i5b_E6(:) 
   real(rp) :: int_tot(7)
 end type
 
@@ -207,21 +211,21 @@ do j = 1, jmax
     ! Note that ric%i... may already contain a contribution from edge
     ! affects (Eg bend face angles) so add it on to rad_int(i)
 
-    ric%i1_(ir)  = ric%i1_(ir)  + rad_int(1)
-    ric%i2_(ir)  = ric%i2_(ir)  + rad_int(2)
-    ric%i3_(ir)  = ric%i3_(ir)  + rad_int(3)
-    ric%i4a_(ir) = ric%i4a_(ir) + rad_int(4)
-    ric%i4b_(ir) = ric%i4b_(ir) + rad_int(5)
-    ric%i5a_(ir) = ric%i5a_(ir) + rad_int(6)
-    ric%i5b_(ir) = ric%i5b_(ir) + rad_int(7)
+    ric%i1(ir)  = ric%i1(ir)  + rad_int(1)
+    ric%i2(ir)  = ric%i2(ir)  + rad_int(2)
+    ric%i3(ir)  = ric%i3(ir)  + rad_int(3)
+    ric%i4a(ir) = ric%i4a(ir) + rad_int(4)
+    ric%i4b(ir) = ric%i4b(ir) + rad_int(5)
+    ric%i5a(ir) = ric%i5a(ir) + rad_int(6)
+    ric%i5b(ir) = ric%i5b(ir) + rad_int(7)
 
-    ric%int_tot(1) = ric%int_tot(1) + ric%i1_(ir)
-    ric%int_tot(2) = ric%int_tot(2) + ric%i2_(ir)
-    ric%int_tot(3) = ric%int_tot(3) + ric%i3_(ir)
-    ric%int_tot(4) = ric%int_tot(4) + ric%i4a_(ir)
-    ric%int_tot(5) = ric%int_tot(5) + ric%i4b_(ir)
-    ric%int_tot(6) = ric%int_tot(6) + ric%i5a_(ir)
-    ric%int_tot(7) = ric%int_tot(7) + ric%i5b_(ir)
+    ric%int_tot(1) = ric%int_tot(1) + ric%i1(ir)
+    ric%int_tot(2) = ric%int_tot(2) + ric%i2(ir)
+    ric%int_tot(3) = ric%int_tot(3) + ric%i3(ir)
+    ric%int_tot(4) = ric%int_tot(4) + ric%i4a(ir)
+    ric%int_tot(5) = ric%int_tot(5) + ric%i4b(ir)
+    ric%int_tot(6) = ric%int_tot(6) + ric%i5a(ir)
+    ric%int_tot(7) = ric%int_tot(7) + ric%i5b(ir)
 
   endif
 
@@ -393,8 +397,8 @@ elseif (j_loop == 1 .and. n_pt == 2) then  ! z_here = l$
 else
   runt%value(l$) = z_here
   if (ele%key == sbend$) runt%value(e2$) = 0
-  call track1 (ric%orb0, runt, ric%ring%param, orb)
-  call make_mat6 (runt, ric%ring%param, ric%orb0, orb, .true.)
+  call track1 (ric%orb0, runt, ric%lat%param, orb)
+  call make_mat6 (runt, ric%lat%param, ric%orb0, orb, .true.)
   call twiss_propagate1 (ele0, runt)
 
 endif
@@ -434,7 +438,7 @@ real(rp) kick_0(6)
 
 ! Standard non-cache calc.
 
-call derivs_bmad (ele, ric%ring%param, z, orb%vec, kick_0, dk)
+call derivs_bmad (ele, ric%lat%param, z, orb%vec, kick_0, dk)
 
 pt%g_x = -kick_0(2)
 pt%g_y = -kick_0(4)
@@ -444,6 +448,53 @@ pt%g2 = pt%g_x**2 + pt%g_y**2
 pt%g  = sqrt(pt%g2)
 pt%dg2_x = 2*kick_0(2)*dk(1,1) + 2*kick_0(4)*dk(2,1) 
 pt%dg2_y = 2*kick_0(2)*dk(1,2) + 2*kick_0(4)*dk(2,2) 
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+subroutine transfer_rad_int_struct (rad_int_in, rad_int_out)
+
+implicit none
+
+type (rad_int_common_struct) rad_int_in, rad_int_out
+integer n
+
+!
+
+n = size(rad_int_in%i1)
+
+call allocateit (rad_int_out%i1)
+call allocateit (rad_int_out%i2)
+call allocateit (rad_int_out%i3)
+call allocateit (rad_int_out%i4a)
+call allocateit (rad_int_out%i4b)
+call allocateit (rad_int_out%i5a)
+call allocateit (rad_int_out%i5b)
+call allocateit (rad_int_out%n_steps)
+call allocateit (rad_int_out%lin_i2_e4)
+call allocateit (rad_int_out%lin_i3_e7)
+call allocateit (rad_int_out%lin_i5a_e6)
+call allocateit (rad_int_out%lin_i5b_e6)
+
+rad_int_out = rad_int_in
+
+!----------------------------------------------
+contains
+
+subroutine allocateit (array)
+
+real(rp), allocatable :: array(:)
+
+if (allocated(array)) then
+  if (size(array) /= n) deallocate(array)
+endif
+
+if (.not. allocated(array)) allocate(array(n))
+
+end subroutine
 
 end subroutine
 
