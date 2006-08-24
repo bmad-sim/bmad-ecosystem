@@ -35,7 +35,7 @@
 !   orbit(0:)  -- Coord_struct: Closed orbit.
 !   ix_cache   -- Integer, optional: Cache pointer.
 !                              == 0 --> Create a new cache.
-!                              /= 0 --> Use the corresponding cache. 
+!                              > 0  --> Use the corresponding cache. 
 ! Output:
 !   mode -- Modes_struct: Parameters for the ("horizontal like") a-mode,
 !                              ("vertical like") b-mode, and the z-mode
@@ -98,6 +98,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   type (track_struct) track
   type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
 
+  real(rp) :: int_tot(7)
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
   real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
@@ -166,11 +167,13 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   ric%i1 = 0;   ric%i2 = 0;  ric%i3 = 0
   ric%i4a = 0;  ric%i4b = 0
   ric%i5a = 0;  ric%i5b = 0
-  ric%int_tot = 0; ric%n_steps = 0
+  ric%n_steps = 0
   ric%lin_i2_E4 = 0;  ric%lin_i3_E7 = 0;
   ric%lin_i5a_E6 = 0;  ric%lin_i5b_E6 = 0;
 
   m65 = 0
+
+  int_tot = 0; 
 
 !---------------------------------------------------------------------
 ! Caching
@@ -180,11 +183,11 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   if (present(ix_cache)) then
 
     if (ix_cache == 0) then
-      do i = 1, size(ric%cache)
-        if (ric%cache(i)%set) cycle
-        ric%cache(i)%set = .true.
+      do i = 1, size(rad_int_cache_common)
+        if (rad_int_cache_common(i)%set) cycle
+        rad_int_cache_common(i)%set = .true.
         ix_cache = i
-        cache => ric%cache(i)
+        cache => rad_int_cache_common(i)
         exit
       enddo
 
@@ -287,7 +290,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
       enddo
       
     else  ! ix_cache /= 0
-      cache => ric%cache(ix_cache)
+      cache => rad_int_cache_common(ix_cache)
 
     endif ! ix_cache /= 0
 
@@ -365,7 +368,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
       ric%pt%k1   = 0
       ric%pt%s1   = 0
 
-      call qromb_rad_int (ele0, ele, (/ F, F, F, F, F, T, T /), ir, cache_ele)
+      call qromb_rad_int (ele0, ele, (/ F, F, F, F, F, T, T /), ir, cache_ele, int_tot)
       cycle
 
     endif
@@ -416,7 +419,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 
 ! Integrate for quads, bends and nonzero kicks
 
-    call qromb_rad_int (ele0, ele, (/ T, F, F, T, T, T, T /), ir, cache_ele)
+    call qromb_rad_int (ele0, ele, (/ T, F, F, T, T, T, T /), ir, cache_ele, int_tot)
 
   enddo
 
@@ -457,7 +460,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
     ric%eta_b1 = &
           matmul(v, (/ 0.0_rp, 0.0_rp, ele%y%eta, ele%y%etap /))
 
-    call qromb_rad_int (ele0, ele, (/ T, T, T, T, T, T, T /), ir, cache_ele) 
+    call qromb_rad_int (ele0, ele, (/ T, T, T, T, T, T, T /), ir, cache_ele, int_tot) 
 
   enddo
 
@@ -494,13 +497,13 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 
 ! Normal integrals
 
-  i1   = ric%int_tot(1)
-  i2   = ric%int_tot(2)
-  i3   = ric%int_tot(3)
-  i4a  = ric%int_tot(4)
-  i4b  = ric%int_tot(5)
-  i5a  = ric%int_tot(6)
-  i5b  = ric%int_tot(7)
+  i1   = int_tot(1)
+  i2   = int_tot(2)
+  i3   = int_tot(3)
+  i4a  = int_tot(4)
+  i4b  = int_tot(5)
+  i5a  = int_tot(6)
+  i5b  = int_tot(7)
 
   i4z = i4a + i4b
 

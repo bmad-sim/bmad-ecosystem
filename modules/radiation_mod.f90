@@ -45,15 +45,15 @@ subroutine release_rad_int_cache (ix_cache)
 
 !
 
-  do i = 1, size(ric%cache(ix_cache)%ele)
-    if (allocated(ric%cache(ix_cache)%ele(i)%pt)) &
-                                deallocate (ric%cache(ix_cache)%ele(i)%pt)
+  do i = 1, size(rad_int_cache_common(ix_cache)%ele)
+    if (allocated(rad_int_cache_common(ix_cache)%ele(i)%pt)) &
+                                deallocate (rad_int_cache_common(ix_cache)%ele(i)%pt)
   enddo
 
-  deallocate (ric%cache(ix_cache)%ele)
-  deallocate (ric%cache(ix_cache)%ix_ele)
+  deallocate (rad_int_cache_common(ix_cache)%ele)
+  deallocate (rad_int_cache_common(ix_cache)%ix_ele)
 
-  ric%cache(ix_cache)%set = .false.
+  rad_int_cache_common(ix_cache)%set = .false.
   ix_cache = 0
 
 end subroutine

@@ -45,7 +45,6 @@ end type
 type rad_int_common_struct
   type (ring_struct), pointer :: lat
   type (coord_struct), pointer :: orb0, orb1
-  type (rad_int_cache_struct) cache(10)         ! up to 10 separate caches
   type (track_point_cache_struct) pt
   real(rp) eta_a(4), eta_b(4), eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
   real(rp), allocatable :: i1(:) 
@@ -60,10 +59,10 @@ type rad_int_common_struct
   real(rp), allocatable :: lin_i3_E7(:) 
   real(rp), allocatable :: lin_i5a_E6(:) 
   real(rp), allocatable :: lin_i5b_E6(:) 
-  real(rp) :: int_tot(7)
 end type
 
 type (rad_int_common_struct), target, save :: ric
+type (rad_int_cache_struct), target, save :: rad_int_cache_common(10)
 
 contains
 
@@ -71,7 +70,7 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine qromb_rad_int(ele0, ele, do_int, ir, cache_ele)
+! Subroutine qromb_rad_int(ele0, ele, do_int, ir, cache_ele, int_tot)
 !
 ! Function to do integration using Romberg's method on the 7 radiation 
 ! integrals.
@@ -88,7 +87,7 @@ contains
 ! not have to be done by this routine.
 !-
 
-subroutine qromb_rad_int (ele0, ele, do_int, ir, cache_ele)
+subroutine qromb_rad_int (ele0, ele, do_int, ir, cache_ele, int_tot)
 
 use precision_def
 use nrtype
@@ -103,6 +102,7 @@ type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
 integer, parameter :: jmax = 14
 integer j, j0, n, n_pts, ir
 
+real(rp) :: int_tot(7)
 real(rp) :: eps_int, eps_sum
 real(rp) :: ll, del_z, l_ref, z_pos, dint, d0, d_max
 real(rp) i_sum(7), rad_int(7)
@@ -196,7 +196,7 @@ do j = 1, jmax
   do n = 1, 7
     if (.not. do_int(n)) cycle
     call polint (ri(n)%h(j0:j), ri(n)%sum(j0:j), 0.0_rp, rad_int(n), dint)
-    d0 = eps_int * abs(rad_int(n)) + eps_sum * abs(ric%int_tot(n))
+    d0 = eps_int * abs(rad_int(n)) + eps_sum * abs(int_tot(n))
     if (abs(dint) > d0)  complete = .false.
     if (d0 /= 0) d_max = abs(dint) / d0
   enddo
@@ -219,13 +219,13 @@ do j = 1, jmax
     ric%i5a(ir) = ric%i5a(ir) + rad_int(6)
     ric%i5b(ir) = ric%i5b(ir) + rad_int(7)
 
-    ric%int_tot(1) = ric%int_tot(1) + ric%i1(ir)
-    ric%int_tot(2) = ric%int_tot(2) + ric%i2(ir)
-    ric%int_tot(3) = ric%int_tot(3) + ric%i3(ir)
-    ric%int_tot(4) = ric%int_tot(4) + ric%i4a(ir)
-    ric%int_tot(5) = ric%int_tot(5) + ric%i4b(ir)
-    ric%int_tot(6) = ric%int_tot(6) + ric%i5a(ir)
-    ric%int_tot(7) = ric%int_tot(7) + ric%i5b(ir)
+    int_tot(1) = int_tot(1) + ric%i1(ir)
+    int_tot(2) = int_tot(2) + ric%i2(ir)
+    int_tot(3) = int_tot(3) + ric%i3(ir)
+    int_tot(4) = int_tot(4) + ric%i4a(ir)
+    int_tot(5) = int_tot(5) + ric%i4b(ir)
+    int_tot(6) = int_tot(6) + ric%i5a(ir)
+    int_tot(7) = int_tot(7) + ric%i5b(ir)
 
   endif
 

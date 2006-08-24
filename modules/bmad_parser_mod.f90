@@ -883,7 +883,7 @@ subroutine file_stack (how, file_name_in, finished)
 
   character(*) how, file_name_in
   character(200) file_name, basename
-  logical finished, found_it
+  logical finished, found_it, is_relative
 
 ! "push" means open a file and put its name on the stack.
 ! The special name 'FROM: BMAD_PARSER' is for letting bmad_parser2 finish 
@@ -909,7 +909,8 @@ subroutine file_stack (how, file_name_in, finished)
       print *, 'ERROR: CALL NESTING GREATER THAN 20 LEVELS'
       call err_exit
     endif
-    ix = splitfilename (file_name_in, file(i_level)%dir, basename)
+    ix = splitfilename (file_name_in, file(i_level)%dir, basename, is_relative)
+    if (is_relative) file(i_level)%dir = trim(file(i_level-1)%dir) // file(i_level)%dir
     bp_com%dirs(2) = file(i_level-1)%dir
     call find_file (file_name_in, found_it, file_name, bp_com%dirs)
     file(i_level)%logical_name = file_name_in
