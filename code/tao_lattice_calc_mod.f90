@@ -306,7 +306,7 @@ tao_lat%n_bunch_params2 = 0
 
 calc_ok = .true.
 
-call reallocate_integer (ix_ele,1)
+call re_allocate (ix_ele,1)
 
 u => s%u(uni)
 beam => u%beam%beam

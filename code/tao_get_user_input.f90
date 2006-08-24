@@ -375,12 +375,12 @@ implicit none
 integer level
   
   in_loop = level
-  call reallocate_integer (loop_line_count, in_loop)
-  call reallocate_integer (indx, in_loop)
-  call reallocate_integer (indx_start, in_loop)
-  call reallocate_integer (indx_end, in_loop)
-  call reallocate_integer (indx_step, in_loop)
-  call reallocate_string (indx_name, 10, in_loop)
+  call re_allocate (loop_line_count, in_loop)
+  call re_allocate (indx, in_loop)
+  call re_allocate (indx_start, in_loop)
+  call re_allocate (indx_end, in_loop)
+  call re_allocate (indx_step, in_loop)
+  call re_allocate (indx_name, 10, in_loop)
 
 end subroutine set_loop_cmd_file_level
 

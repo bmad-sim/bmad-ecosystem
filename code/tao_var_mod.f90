@@ -39,12 +39,12 @@ integer n_var
 ! 
 
   n_var  = count(s%var(:)%useit_opt)
-  if (present(var_value))      call reallocate_real (var_value, n_var)
-  if (present(var_delta))      call reallocate_real (var_delta, n_var)
-  if (present(var_step))       call reallocate_real (var_step, n_var)
-  if (present(var_meas_value)) call reallocate_real (var_meas_value, n_var)
-  if (present(var_weight))     call reallocate_real (var_weight, n_var)
-  if (present(var_ix_dVar))    call reallocate_real (var_ix_dVar, n_var)
+  if (present(var_value))      call re_allocate (var_value, n_var)
+  if (present(var_delta))      call re_allocate (var_delta, n_var)
+  if (present(var_step))       call re_allocate (var_step, n_var)
+  if (present(var_meas_value)) call re_allocate (var_meas_value, n_var)
+  if (present(var_weight))     call re_allocate (var_weight, n_var)
+  if (present(var_ix_dVar))    call re_allocate (var_ix_dVar, n_var)
 
   j = 0
   do i = 1, size(s%var)

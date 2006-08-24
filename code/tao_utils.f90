@@ -208,13 +208,13 @@ call str_upcase (ele_name, string)
 call string_trim (ele_name, ele_name, ix)
 
 if (ix == 0 .and. logic_option(.false., ignore_blank)) then
-  call reallocate_integer (ix_ele, 1)
+  call re_allocate (ix_ele, 1)
   ix_ele = -1
   return
 endif
 
 if (ix == 0) then
-  call reallocate_integer (ix_ele, 1)
+  call re_allocate (ix_ele, 1)
   ix_ele = -1
   call out_io (s_error$, r_name, 'ELEMENT NAME IS BLANK')
   return
@@ -225,7 +225,7 @@ if (ix == 0) ix = s%global%u_view
 
 if (is_integer(ele_name)) then
   read (ele_name, *, iostat = ios) ix_ele_temp
-  call reallocate_integer (ix_ele, 1)
+  call re_allocate (ix_ele, 1)
   ix_ele(1) = ix_ele_temp
   if (ix_ele(1) < 0 .or. ix_ele(1) > s%u(ix)%model%lat%n_ele_max) then
     ix_ele(1) = -1
@@ -238,7 +238,7 @@ if (is_integer(ele_name(1:1))) then ! must be an array of numbers
   if (allocated (here)) deallocate(here)
   allocate(here(0:s%u(ix)%model%lat%n_ele_max))
   call location_decode(ele_name, here, 0, num) 
-  call reallocate_integer (ix_ele, num)
+  call re_allocate (ix_ele, num)
   i_ix_ele = 1
   do i = 0, ubound(here,1)
     if (here(i)) then
@@ -249,7 +249,7 @@ if (is_integer(ele_name(1:1))) then ! must be an array of numbers
   return
 endif
 
-call reallocate_integer (ix_ele, 1)
+call re_allocate (ix_ele, 1)
 call element_locator (ele_name, s%u(ix)%model%lat, ix_ele(1))
 
 if (ix_ele(1) < 0) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // string)

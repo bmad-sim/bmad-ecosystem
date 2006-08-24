@@ -79,7 +79,7 @@ logical, allocatable :: show_here(:)
 
 !
 
-call reallocate_integer (ix_ele,1)
+call re_allocate (ix_ele,1)
 call re_allocate (lines, 200, 500)
 
 err = .false.

@@ -425,7 +425,7 @@ character(12)  :: u_view_char
 character(30) :: r_name = 'tao_data_plot_data_setup'
 character(40) track_type
 
-call reallocate_integer (ix_ele, 1)
+call re_allocate (ix_ele, 1)
 
 ! For the title_suffix: strip off leading "+" and enclose in "[ ]".
 

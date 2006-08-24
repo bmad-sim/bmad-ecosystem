@@ -57,10 +57,10 @@ do iu = 1, size(s%u)
   if (.not. s%u(iu)%is_on) cycle
   n_data  = n_data + count(s%u(iu)%data(:)%useit_opt)
 enddo
-if (present(data_value))      call reallocate_real (data_value, n_data)
-if (present(data_meas_value)) call reallocate_real (data_meas_value, n_data)
-if (present(data_weight))     call reallocate_real (data_weight, n_data)
-if (present(data_ix_dModel))  call reallocate_real (data_ix_dModel, n_data)
+if (present(data_value))      call re_allocate (data_value, n_data)
+if (present(data_meas_value)) call re_allocate (data_meas_value, n_data)
+if (present(data_weight))     call re_allocate (data_weight, n_data)
+if (present(data_ix_dModel))  call re_allocate (data_ix_dModel, n_data)
 
 j = 0
 do iu = 1, size(s%u)
