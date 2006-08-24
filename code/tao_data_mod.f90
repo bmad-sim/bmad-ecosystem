@@ -521,6 +521,7 @@ case ('cbar.22')
 
 case ('i5a_e6')
   if (ix0 > 0 .or. ix1 > 0) then
+    if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) return
     ix0 = max(1, ix0)
     if (ix1 < 1) ix1 = lat%n_ele_use
     datum_value = sum(tao_lat%rad_int%lin_i5a_e6(ix0:ix1))
@@ -532,6 +533,7 @@ case ('i5a_e6')
 
 case ('i5b_e6')
   if (ix0 > 0 .or. ix1 > 0) then
+    if (.not. allocated(tao_lat%rad_int%lin_i5b_e6)) return
     ix0 = max(1, ix0)
     if (ix1 < 1) ix1 = lat%n_ele_use
     datum_value = sum(tao_lat%rad_int%lin_i5b_e6(ix0:ix1))

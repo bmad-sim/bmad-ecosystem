@@ -1565,6 +1565,8 @@ do j = 1, size(u%data)
   if (.not. data%exists) cycle
   if (data%data_type(1:17) == 'multi_turn_orbit.') then
     ix_ele = -2
+  elseif (data%data_type(1:2) == 'i5') then
+    ix_ele = -1
   elseif (data%ix_ele == -1) then
     ix_ele = -1
   elseif (data%ix_ele0 > data%ix_ele) then
@@ -1593,6 +1595,8 @@ do j = 1, size(u%data)
   if (.not. data%exists) cycle
   if (data%data_type(1:17) == 'multi_turn_orbit.') then
     ix_ele = -2
+  elseif (data%data_type(1:2) == 'i5') then
+    ix_ele = -1
   elseif (data%ix_ele == -1) then
     ix_ele = -1
   elseif (data%ix_ele0 > data%ix_ele) then
