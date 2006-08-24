@@ -738,7 +738,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
       if (n_ele_use+1 > size(ix_ring)) then
         n = 1.5*n_ele_use
-        call reallocate_integer (ix_ring, n)
+        call re_allocate (ix_ring, n)
         ix = size(used_line) 
         allocate (used2(ix))
         used2(1:ix) = used_line(1:ix)
