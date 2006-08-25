@@ -355,6 +355,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 ! fast compaired to the variation in eta.
 
     if (key == wiggler$ .and. ele%sub_key == periodic_type$) then
+      if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
       G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
       g3_ave = 4 * G_max**3 / (3 * pi)
       ric%i1(ir) = - ele%value(k1$) * (ele%value(l_pole$) / pi)**2
