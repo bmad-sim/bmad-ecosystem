@@ -27,6 +27,7 @@ TYPE(bjmt_struct) :: bjmt_com
 REAL(rp) Elpha
 
 PUBLIC ibs_equilibrium
+PUBLIC ibsequilibrium2
 PUBLIC ibs_rates
 PRIVATE cimp
 PRIVATE bane
@@ -34,6 +35,165 @@ PRIVATE bjmt
 PRIVATE mtto
 
 CONTAINS
+!+
+!  Subroutine ibsequilibrium2(ring,inmode,ibsmode,formula,ratio,initial_blow_up)
+!
+!  Computes the equilibrium beam size using the equilibrium equations given in 
+!  'Intrabeam scattering formulas for high energy beams' by Kubo et al.
+!  In contrast to the ibs_equilibrium subroutine, ibsequilibrium2 takes into
+!  account nominal vertical emittance due to dispersion.  The parameter
+!  ratio is a statement about how much of the vertical beam size is expected
+!  to be due to dispersion, and how much from coupling.  Ratios between
+!  .50 and .85 are commonly used.
+!  This method generally requires that the initial beam parameters be larger
+!  than the expected equilibrium.  An initial_blow_up of 3 to 5 is generally
+!  a good place to start.
+!
+!  Modules needed:
+!    use ibs_mod
+!
+!  Input:
+!    ring             -- ring_struct: lattice for tracking
+!      %param$n_part  -- Real: number of particles in bunch
+!    inmode           -- modes_struct: natural beam parameters 
+!    formula          -- character*4: IBS formulation to use (see ibs_rates)
+!    ratio            -- Real: Ratio of vert_emit_coupling / vert_emit_total
+!    initial_blow_up  -- Real: Factor multiplied to all 3 bunch dimensions
+!                              prior to starting iteration.
+!
+!  Output:
+!    ibsmode          -- modes_struct: beam parameters after IBS effects
+!
+!  See ibs_rates subroutine for available IBS rate formulas.
+!-
+SUBROUTINE ibsequilibrium2(ring,inmode,ibsmode,formula,ratio,initial_blow_up)
+
+  IMPLICIT NONE
+                                                                                                         
+  TYPE(ring_struct), INTENT(IN), target :: ring
+  TYPE(modes_struct), INTENT(IN) :: inmode
+  TYPE(modes_struct), INTENT(OUT) :: ibsmode
+  CHARACTER(*), INTENT(IN) :: formula
+  REAL(rp), INTENT(IN) :: ratio
+  REAL(rp), INTENT(IN) :: initial_blow_up
+  TYPE(ele_struct), pointer :: ele
+  TYPE(ibs_struct) rates
+
+  REAL(rp) time_for_one_turn
+  REAL(rp) tau_x, tau_y, tau_z
+  REAL(rp) Tx, Ty, Tz
+  REAL(rp) xfactor,yfactor,zfactor
+  REAL(rp) emit_x, emit_y, emit_z
+  REAL(rp) emit_x0, emit_y0, emit_z0
+  REAL(rp) advance, threshold
+  REAL(rp) sigE_E, sigma_z, L_ratio
+  REAL(rp) sigE_E0, sigma_z0
+  REAL(rp) fpw
+  LOGICAL converged
+  INTEGER counter
+
+  CHARACTER(20) :: r_name = 'ibs_equilibrium2'
+
+  !compute the SR betatron damping times
+  time_for_one_turn = ring%param%total_length / c_light
+  tau_x = time_for_one_turn / inmode%a%alpha_damp
+  tau_y = time_for_one_turn / inmode%b%alpha_damp
+  tau_z = time_for_one_turn / inmode%z%alpha_damp 
+
+  !fpw is a simple way of modeling potential well bunch lengthing.
+  !This factor is multiplied by the zero current L_ratio when 
+  !determining bunch length from energy spread.
+  fpw = 1.0 ! + .21/(12.0E9) * ring%param%n_part
+  sigma_z0 = inmode%sig_z
+  sigE_E0 = inmode%sigE_E 
+  L_ratio = sigma_z0 / sigE_E0
+  emit_x0 = inmode%a%emittance
+  emit_y0 = inmode%b%emittance 
+
+  !CALL ibs_equilibrium(ring,inmode,ibsmode,formula)
+  ibsmode%a%emittance = emit_x0 * initial_blow_up
+  ibsmode%b%emittance = emit_y0 * initial_blow_up
+  ibsmode%sig_z = sigma_z0      * sqrt(initial_blow_up)
+  ibsmode%sigE_E = sigE_E0      * sqrt(initial_blow_up)
+
+  WRITE(*,FMT="(A,' ',ES9.2,' ',ES9.2,' ',ES9.2,' ',ES9.2)") &
+           "Initial point: ", ibsmode%a%emittance, &
+           ibsmode%b%emittance, ibsmode%sig_z, ibsmode%sigE_E
+
+  !compute equilibrium
+  converged = .false.
+  counter = 0
+  !Advance is what percent of the way from the current emittance 
+  !towards the equilibrium emittance the beam should be advanced on
+  !each iteration.
+  advance = .05
+  !Changes in emittance between iterations less than threshold
+  !indicate convergence.
+  threshold = advance * .0001
+  DO WHILE(.not.converged)
+    CALL ibs_rates(ring,ibsmode,rates,formula)
+    counter = counter + 1
+    !It is possible that method can give negative emittances
+    !at some point in the iterative process, in which case the case
+    !structure below will terminate the program.  If this happens, try
+    !using different values for initial_blow_up.
+    IF( rates%inv_Tx .gt. 0.0 ) THEN
+      Tx = 1.0/rates%inv_Tx
+      xfactor = 1.0/(1.0-(tau_x/Tx))
+    ELSEIF( rates%inv_Tx .eq. 0.0 ) THEN
+      xfactor = 1.0
+    ELSE
+      CALL out_io(s_abort$, r_name, &
+         'FATAL ERROR: Negative emittance encountered: ', &
+         'Try adjusting initial_blow_up.')
+      STOP
+    ENDIF
+    IF( rates%inv_Ty .gt. 0.0 ) THEN
+      Ty = 1.0/rates%inv_Ty
+      yfactor = 1.0/(1.0-(tau_y/Ty))
+    ELSEIF( rates%inv_Ty .eq. 0.0 ) THEN
+      yfactor = 1.0
+    ELSE
+      CALL out_io(s_abort$, r_name, &
+         'FATAL ERROR: Negative emittance encountered: ', &
+         'Try adjusting initial_blow_up.')
+      STOP
+    ENDIF
+    IF( rates%inv_Tz .gt. 0.0 ) THEN
+      Tz = 1.0/rates%inv_Tz
+      zfactor = 1/(1-(tau_z/Tz))
+    ELSEIF( rates%inv_Tz .eq. 0.0 ) THEN
+      zfactor = 1.0
+    ELSE
+      CALL out_io(s_abort$, r_name, &
+         'FATAL ERROR: Negative emittance encountered: ', &
+         'Try adjusting initial_blow_up.')
+      STOP
+    ENDIF
+
+    emit_y = ibsmode%b%emittance + advance*( &
+             ((1.0-ratio)*yfactor+ratio*xfactor)*emit_y0 - ibsmode%b%emittance )
+    emit_x = ibsmode%a%emittance + advance*( xfactor*emit_x0 - ibsmode%a%emittance )
+    sigE_E = ibsmode%sigE_E      + advance*( (zfactor)*sigE_E0 - ibsmode%sigE_E )
+
+    IF( abs(emit_y/ibsmode%b%emittance-1.) .lt. threshold ) THEN
+      IF( abs(emit_x/ibsmode%a%emittance-1.) .lt. threshold ) THEN
+        IF( abs(sigE_E/ibsmode%sigE_E-1.) .lt. threshold ) THEN
+          converged = .true.
+        ENDIF
+      ENDIF
+    ENDIF        
+
+    IF(.not.converged) THEN
+      ibsmode%a%emittance = emit_x
+      ibsmode%b%emittance = emit_y
+      ibsmode%sigE_E = sigE_E 
+      ibsmode%sig_z = L_ratio * sigE_E * fpw
+    ENDIF
+    
+  ENDDO
+
+END SUBROUTINE ibsequilibrium2
 
 !+
 !  Subroutine ibs_equilibrium(ring,inmode,ibsmode,formula,coupling)
@@ -48,7 +208,7 @@ CONTAINS
 !    ring             -- ring_struct: lattice for tracking
 !      %param$n_part  -- Real: number of particles in bunch
 !    inmode           -- modes_struct: natural beam parameters 
-!    formula          -- character*4: IBS formulation to use (see ibs_rates)
+!    formula          -- character(4): IBS formulation to use (see ibs_rates)
 !    coupling         -- real: horizontal to vertical emittanc coupling
 !
 !  Output:
@@ -63,7 +223,7 @@ SUBROUTINE ibs_equilibrium(ring,inmode,ibsmode,formula,coupling)
   TYPE(ring_struct), INTENT(IN), target :: ring
   TYPE(modes_struct), INTENT(IN) :: inmode
   TYPE(modes_struct), INTENT(OUT) :: ibsmode
-  CHARACTER*4, INTENT(IN) :: formula
+  CHARACTER(*), INTENT(IN) :: formula
   REAL(rp), INTENT(IN), OPTIONAL :: coupling
   TYPE(ele_struct), pointer :: ele
   TYPE(ibs_struct) rates
@@ -74,7 +234,7 @@ SUBROUTINE ibs_equilibrium(ring,inmode,ibsmode,formula,coupling)
   REAL(rp) Tx, Ty, Tz
   REAL(rp) emit_x, emit_y, emit_z
   REAL(rp) emit_x0, emit_y0, emit_z0
-  REAL(rp) dxdt, dydt, dzdt, dT
+  REAL(rp) dxdt, dydt, dzdt, dT, reps
   REAL(rp) threshold
   REAL(rp) sigE_E0, sigma_z0, L_ratio
   REAL(rp) ka, ka_one, ka_small
@@ -120,14 +280,18 @@ SUBROUTINE ibs_equilibrium(ring,inmode,ibsmode,formula,coupling)
     emit_x = ibsmode%a%emittance
     emit_y = ibsmode%b%emittance
     emit_z = ibsmode%sigE_E*ibsmode%sig_z
-                                                                                
+
     !Compute change in emittance per time for x,y,z dimensions, taking
     !into account radiation damping, IBS blow-up, and x-y coupling
     dxdt = -(emit_x-ka_one*emit_x0)*2./tau_x + emit_x*2./Tx
     dydt = -(emit_y-ka_small*emit_x)*2./tau_y + emit_y*2./Ty
     dzdt = -(emit_z-emit_z0)*2./tau_z + 2./Tz*emit_z
-    !dxdt = -2./tau_x*(emit_x-emit_x0) + 2./Tx*emit_x
-    !dydt = -2./tau_y*(emit_y-emit_y0) + 2./Ty*emit_y
+
+    !dxdt = emit_x/Tx - (emit_x-emit_x0)/tau_x
+    !dydt = emit_y/Ty + ka*emit_x/Tx - (emit_y-emit_y0)/tau_y
+    !dzdt = emit_z/Tz - (emit_z-emit_z0)/tau_z
+
+    !WRITE(123,*) dxdt,dydt,dzdt
 
     IF( (dxdt*dT)/emit_x .lt. threshold ) THEN
       IF( (dydt*dT)/emit_y .lt. threshold ) THEN
@@ -155,16 +319,16 @@ END SUBROUTINE ibs_equilibrium
 !  available in this module of calculating IBS rates.
 !
 !  Available IBS formulas:
-!    cimp - Modified Piwinski
-!    bane - Bane approximation of Bjorken-Mtingwa formulation
-!    bjmt - General Bjorken-Mtingwa formulation for bunched beams (slow)
-!    mtto - Mtingwa-Tollerstrup formulation
+!    "cimp" - Modified Piwinski
+!    "bane" - Bane approximation of Bjorken-Mtingwa formulation
+!    "bjmt" - General Bjorken-Mtingwa formulation for bunched beams (slow)
+!    "mtto" - Mtingwa-Tollerstrup formulation
 !
 !  Input:
 !    ring             -- ring_struct: lattice for tracking
 !      %param$n_part  -- Real: number of particles in bunch
 !    mode             -- modes_struct: beam parameters 
-!    formula          -- character*4: IBS formulation to use
+!    formula          -- character(4): IBS formulation to use
 !
 !  Output:
 !    rates          -- ibs_struct: ibs rates in x,y,z 
@@ -175,7 +339,20 @@ SUBROUTINE ibs_rates(ring, mode, rates, formula)
   TYPE(modes_struct), INTENT(IN) :: mode
   TYPE(ring_struct), INTENT(IN), target :: ring
   TYPE(ibs_struct), INTENT(OUT) :: rates
-  CHARACTER*4, INTENT(IN) ::  formula
+  CHARACTER(*), INTENT(IN) ::  formula
+
+  IF(mode%a%emittance .le. 0.0) THEN
+    WRITE(*,*) "Negative or zero emittance detected: stopping"
+    STOP
+  ENDIF
+  IF(mode%b%emittance .le. 0.0) THEN
+    WRITE(*,*) "Negative or zero emittance detected: stopping"
+    STOP
+  ENDIF
+  IF(mode%sig_z*mode%sigE_E .le. 0.0) THEN
+    WRITE(*,*) "Negative or zero emittance detected: stopping"
+    STOP
+  ENDIF
 
   IF(formula == 'cimp') THEN
     CALL cimp(ring, mode, rates)
@@ -517,7 +694,10 @@ SUBROUTINE bane(ring, mode, rates)
                                                                                                  
     inv_Tz = big_A*coulomb_log*sigma_H*g_bane*((beta_x*beta_y)**(-1./4.))
     inv_Tx = (sigma_p**2)*Hx/emit_x*inv_Tz
-    inv_Ty = (sigma_p**2)*Hy/emit_y*inv_Tz
+    !inv_Ty = (sigma_p**2)*Hy/emit_y*inv_Tz
+    inv_Ty = (sigma_p**2)*(5.13E-7)/emit_y*inv_Tz
+    !ctf inv_Ty = (sigma_p**2)*(1.07E-7)/emit_y*inv_Tz
+    !ocsv2 inv_Ty = (sigma_p**2)*(1.73E-7)/emit_y*inv_Tz
                                                                                                  
     length_multiplier = ring%ele_(i)%value(l$)/2.0 + ring%ele_(i+1)%value(l$)/2.0
     sum_inv_Tz = sum_inv_Tz + inv_Tz * length_multiplier
@@ -595,10 +775,10 @@ SUBROUTINE cimp(ring, mode, rates)
   sum_inv_Tx = 0.0
   sum_inv_Ty = 0.0
   distance_s = 0.0
-  
+
   big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(beta**3)/(gamma**4)/emit_x/emit_y/sigma_z/sigma_p
-  
-  OPEN(88, FILE='contribs.dat',STATUS='REPLACE')
+
+  !OPEN(88, FILE='contribs.dat',STATUS='REPLACE')
   DO i=1,ring%n_ele_use   
     ele => ring%ele_(i)
 
@@ -640,14 +820,13 @@ SUBROUTINE cimp(ring, mode, rates)
     length_multiplier = ring%ele_(i)%value(l$)/2.0 + ring%ele_(i+1)%value(l$)/2.0
     distance_s = distance_s + length_multiplier
 
-    WRITE(88,FMT="(ES8.2,' ',ES11.4,' ',ES11.4,' ',ES11.4)") &
-        distance_s,inv_Tx,beta_y
-!       distance_s,inv_Tx,inv_Ty,inv_Tz
+!    WRITE(88,FMT="(ES8.2,' ',ES11.4,' ',ES11.4,' ',ES11.4)") &
+!        distance_s,inv_Tx,beta_y
     sum_inv_Tz = sum_inv_Tz + inv_Tz * length_multiplier
     sum_inv_Tx = sum_inv_Tx + inv_Tx * length_multiplier
     sum_inv_Ty = sum_inv_Ty + inv_Ty * length_multiplier
   ENDDO
-  CLOSE(88)
+!  CLOSE(88)
   
   rates%inv_Tz = sum_inv_Tz / ring%param%total_length
   rates%inv_Tx = sum_inv_Tx / ring%param%total_length
