@@ -445,7 +445,6 @@ case ('global')
   nl=nl+1; write (lines(nl), amt) 'optimizer:         ', s%global%optimizer
   nl=nl+1; write (lines(nl), amt) 'prompt_string:     ', s%global%prompt_string
   nl=nl+1; write (lines(nl), amt) 'var_out_file:      ', s%global%var_out_file
-  nl=nl+1; write (lines(nl), amt) 'opt_var_out_file:  ', s%global%opt_var_out_file
   nl=nl+1; write (lines(nl), amt) 'print_command:     ', s%global%print_command
   nl=nl+1; write (lines(nl), amt) 'current_init_file: ',s%global%current_init_file
   nl=nl+1; write (lines(nl), lmt) 'var_limits_on:     ', s%global%var_limits_on

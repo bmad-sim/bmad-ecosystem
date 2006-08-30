@@ -387,6 +387,8 @@ ix_hash = index (out_file, '#')
 
 do i = 1, size(s%u)
 
+  if (.not. s%u(i)%is_on) cycle
+
   file_name = out_file
   if (ix_hash /= 0) write (file_name, '(a, i0, a)') &
                   file_name(1:ix_hash-1), i, trim(file_name(ix_hash+1:))

@@ -407,7 +407,6 @@ type tao_global_struct
   character(80) :: default_init_file = 'tao.init' ! used with 'reinitialize' command
   character(80) :: current_init_file = 'tao.init' ! used with 'reinitialize' command
   character(80) :: var_out_file = 'var#.out'
-  character(80) :: opt_var_out_file = 'opt_var#.out'
 end type
 
 !------------------------------------------------------------------------

@@ -195,7 +195,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
 \index{lattice_recalc}\index{init_plot_needed}
 \index{valid_plot_who}\index{print_command}\index{default_init_file}
-\index{current_init_file}\index{var_out_file}\index{opt_var_out_file}
+\index{current_init_file}\index{var_out_file}
 \begin{example}
 type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
@@ -234,7 +234,6 @@ type tao_global_struct
   character(80) :: default_init_file = 'tao.init'
   character(80) :: current_init_file = 'tao.init'
   character(80) :: var_out_file = 'var#.out'
-  character(80) :: opt_var_out_file = 'opt_var#.out'
 end type
 \end{example}
 
