@@ -160,6 +160,7 @@ subroutine deallocate_everything ()
 
   type (tao_plot_struct), pointer :: plot
   type (tao_curve_struct), pointer :: curve
+  type (tao_universe_struct), pointer :: u
 
   integer i, j, k, istat
 
@@ -180,7 +181,7 @@ subroutine deallocate_everything ()
 
   if (associated (s%key)) deallocate(s%key, stat=istat)
 
-! plotting  
+! Plotting  
 
   nullify(s%plot_page%region)
 
@@ -206,50 +207,56 @@ subroutine deallocate_everything ()
 
   if (associated (s%u)) then
     do i = 1, size(s%u)
+
+      u => s%u(i)
+      ! radiation integrals cache
+      if (u%ix_rad_int_cache /= 0) call release_rad_int_cache(u%ix_rad_int_cache)
+
+
       ! Orbits
-      deallocate(s%u(i)%model%orb, stat=istat)
-      deallocate(s%u(i)%design%orb, stat=istat)
-      deallocate(s%u(i)%base%orb, stat=istat)
+      deallocate(u%model%orb, stat=istat)
+      deallocate(u%design%orb, stat=istat)
+      deallocate(u%base%orb, stat=istat)
       
       ! Beams
-      deallocate (s%u(i)%macro_beam%ix_lost, stat=istat)
-      call reallocate_macro_beam (s%u(i)%macro_beam%beam, 0, 0, 0)
-      call reallocate_beam (s%u(i)%beam%beam, 0, 0)
+      deallocate (u%macro_beam%ix_lost, stat=istat)
+      call reallocate_macro_beam (u%macro_beam%beam, 0, 0, 0)
+      call reallocate_beam (u%beam%beam, 0, 0)
   
       ! Coupling
-      call deallocate_ele_pointers (s%u(i)%coupling%coupling_ele)
-      call reallocate_macro_beam (s%u(i)%coupling%injecting_macro_beam, 0, 0, 0)
-      call reallocate_beam (s%u(i)%coupling%injecting_beam, 0, 0)
+      call deallocate_ele_pointers (u%coupling%coupling_ele)
+      call reallocate_macro_beam (u%coupling%injecting_macro_beam, 0, 0, 0)
+      call reallocate_beam (u%coupling%injecting_beam, 0, 0)
       
       ! d2_data
-      do j = 1, size(s%u(i)%d2_data)
-        do k = 1, size(s%u(i)%d2_data(j)%d1)
-          nullify(s%u(i)%d2_data(j)%d1(k)%d2)
-          nullify(s%u(i)%d2_data(j)%d1(k)%d)
+      do j = 1, size(u%d2_data)
+        do k = 1, size(u%d2_data(j)%d1)
+          nullify(u%d2_data(j)%d1(k)%d2)
+          nullify(u%d2_data(j)%d1(k)%d)
         enddo
-        deallocate(s%u(i)%d2_data(j)%d1, stat=istat)
+        deallocate(u%d2_data(j)%d1, stat=istat)
       enddo
-      deallocate(s%u(i)%d2_data, stat=istat)
+      deallocate(u%d2_data, stat=istat)
  
       ! Data
-      do j = lbound(s%u(i)%data,1), ubound(s%u(i)%data,1)
-        nullify(s%u(i)%data(j)%d1)
+      do j = lbound(u%data,1), ubound(u%data,1)
+        nullify(u%data(j)%d1)
       enddo
-      deallocate(s%u(i)%data, stat=istat)
+      deallocate(u%data, stat=istat)
  
       ! ix_data
-      do j = 0, ubound(s%u(i)%ix_data,1)
-        if (associated(s%u(i)%ix_data(j)%ix_datum)) deallocate(s%u(i)%ix_data(j)%ix_datum)
+      do j = 0, ubound(u%ix_data,1)
+        if (associated(u%ix_data(j)%ix_datum)) deallocate(u%ix_data(j)%ix_datum)
       enddo
-      deallocate(s%u(i)%ix_data)
+      deallocate(u%ix_data)
       
       ! dModel_dVar
-      deallocate(s%u(i)%dmodel_dvar, stat=istat)
+      deallocate(u%dmodel_dvar, stat=istat)
  
       ! Lattices
-      call deallocate_ring_pointers (s%u(i)%model%lat)
-      call deallocate_ring_pointers (s%u(i)%design%lat)
-      call deallocate_ring_pointers (s%u(i)%base%lat)
+      call deallocate_ring_pointers (u%model%lat)
+      call deallocate_ring_pointers (u%design%lat)
+      call deallocate_ring_pointers (u%base%lat)
     enddo
   endif
     
