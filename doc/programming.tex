@@ -109,6 +109,60 @@ perform all of the steps listed in Section~\ref{s:lat_calc}. If this
 isn't called than whatever is performed in the custom command will not
 show up until a standard command is performed.
 
+\subsection{tao\_hook\_does\_data\_exist}
+\index{Customizing!tao_hook_does_data_exist}
+
+This routine is for use with custom data types. 
+This routine sets \vn{datum%exists} to true for datums with no
+associated datum%ele_name. This is necessary since otherwise
+\vn{tao_init_global_and_universes} will flag the datum as
+not existing.
+
+\subsection{tao\_hook\_evaluate\_a\_datum}
+\index{Customizing!tao_hook_evaluate\_a\_datum}
+
+Any custom data types are defined and calculated here. If a
+non-standard data type is listed in the intialization files then a
+corresponding data type must be placed in this routine. The tutorial
+uses this hook routine when calculating the emittance.
+
+\tao evaluates data at each element while each lattice is being
+calculated. At initialization time \tao determines which datums are to
+be evaluated at each element then calls \vn{tao_evaluate_a_datum} at
+each element for each datum that needs to be evaluated. If a range of
+elements are specified for a datum then \vn{tao_evaluate_a_datum} is
+called for this datum at the last element in the
+range. \vn{tao_evaluate_a_datum} starts by calling
+\vn{tao_hook_avaluate_a_datum} to evaluate the custom data types.
+
+As explained in the dummy file, the datum merit type affects how a
+datum's value should be calculated. There is a helper subroutine in
+the dummy hook routine called \vn{load_it} to aid in modifying the
+datum's value based on the merit type. If there is a range of elements
+associated with datum then a merit type other than \vn{target}
+requires that the entire range of elements associated with the datum
+be searched for the appropriate value to be returned.  See
+Chapter~\ref{c:opti} for details on the merit type.
+
+For example, if the data type is \vn{orbit.x} (yes, this is already
+defined in \tao) then the appropriate case item in
+\vn{tao_hook_load_data_array} would be:
+\begin{example}
+select case (datum%data_type)
+
+case ('orbit.x')
+  call load_it (orb(:)%vec(1))
+\end{example}
+\vn{load_it} will then look at each datum. If the merit type is other
+than \vn{target} then \vn{load_it} will search the appropriate range
+of elements for either the minimum or maximum horizontal orbit value
+and this will be the datum's value. Because, a datum may refer to a
+range of elements, the entire orbit array (from 0 to \vn{n_ele_max})
+is passed to \vn{load_it} for each \vn{orbit.x} datum.
+
+If the only merit type that is going to be used is \vn{target} then
+\vn{load_it} can be ignored.
+
 \subsection{tao\_hook\_graph\_data\_setup}
 \index{Customizing!tao_hook_graph_data_setup}
 
@@ -151,51 +205,6 @@ can be performed on any lattice separately, this allows for the
 possibility of, for example, tracking a single particle for one
 lattice and macroparticles in another.
 
-\subsection{tao\_hook\_load\_data\_array}
-\index{Customizing!tao_hook_load_data_array}
-
-Any custom data types are defined and calculated here. If a
-non-standard data type is listed in the intialization files then a
-corresponding data type must be placed in this routine. The tutorial
-uses this hook routine when calculating the emittance.
-
-\tao evaluates data at each element while each lattice is being
-calculated. At initialization time \tao determines which datums are to
-be evaluated at each element then calls \vn{tao_load_data_array} at
-each element for each datum that needs to be evaluated. If a range of
-elements are specified for a datum then \vn{tao_load|data_array} is
-called for this datum at the last element in the
-range. \vn{tao_load_data_array} starts by calling
-\vn{tao_hook_load_data_array} to evaluate the custom data types.
-
-As explained in the dummy file, the datum merit type affects how a
-datum's value should be calculated. There is a helper subroutine in
-the dummy hook routine called \vn{load_it} to aid in modifying the
-datum's value based on the merit type. If there is a range of elements
-associated with datum then a merit type other than \vn{target}
-requires that the entire range of elements associated with the datum
-be searched for the appropriate value to be returned.  See
-Chapter~\ref{c:opti} for details on the merit type.
-
-For example, if the data type is \vn{orbit.x} (yes, this is already
-defined in \tao) then the appropriate case item in
-\vn{tao_hook_load_data_array} would be:
-\begin{example}
-select case (datum%data_type)
-
-case ('orbit.x')
-  call load_it (orb(:)%vec(1))
-\end{example}
-\vn{load_it} will then look at each datum. If the merit type is other
-than \vn{target} then \vn{load_it} will search the appropriate range
-of elements for either the minimum or maximum horizontal orbit value
-and this will be the datum's value. Because, a datum may refer to
-range of elements, the entire orbit array (from 0 to \vn{n_ele_max})
-is passed to \vn{load_it} for each \vn{orbit.x} datum.
-
-If the only merit type that is going to be used is \vn{target} then
-\vn{load_it} can be ignored.
-
 \subsection{tao\_hook\_merit\_data}
 \index{Customizing!tao_hook_merit_data}
 
@@ -222,6 +231,13 @@ merit types are calculated.
 If a non standard optimizer is needed then it can be implemented
 here. See the \vn{tao/code/tao_*_optimizer.f90} files for how the
 standard optimizers are implemented.
+
+\subsection{tao\_hook\_plot\_graph}
+\index{Customizing!tao_hook_plot_graph}
+
+This will customize the plotting of a graph. See the \tao module
+\vn{tao_plot_mod} for details on what it normally done. You will also need to know how
+DCSLIB's \vn{quick_plot} works.
 
 \subsection{tao\_hook\_plot\_data\_setup}
 \index{Customizing!tao_hook_plot_data_setup}

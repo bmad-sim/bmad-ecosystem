@@ -888,25 +888,25 @@ Notice that this line is just being commented out with a `\#'. You are
 now ready to make your customizations to the hook routines.
 
 This example will only require the modification of one file:
-\vn{tao_hook_load_data_array.f90}. The formula for single particle emittance is
+\vn{tao_hook_evaluate_a_datum.f90}. The formula for single particle emittance is
 \Begineq
   \epsilon = \gamma x^{2} + 2 \alpha x x' + \beta x'^{2}
   \label{e:emittance}
 \Endeq
-Place the following code in \vn{tao_hook_load_data_array.f90} in the
+Place the following code in \vn{tao_hook_evaluate_a_datum.f90} in the
 \cmd{case select} construct (also add the necessary type declarations)
 \begin{verbatim}
-  case ('particle_emittance:x') 
+  case ('particle_emittance.x') 
 
-    datum_value =  ( ele%x%gamma * orb(ix1)%vec(1)**2 + &
-		     2 * ele%x%alpha * orb(ix1)%vec(1) * orb(ix1)%vec(2) + &
-		     ele%x%beta * orb(ix1)%vec(2)**2)
+    datum_value =  ( ele%x%gamma * tao_lat%orb(ix1)%vec(1)**2 + &
+		     2 * ele%x%alpha * tao_lat%orb(ix1)%vec(1) * tao_lat%orb(ix1)%vec(2) + &
+		     ele%x%beta * tao_lat%orb(ix1)%vec(2)**2)
     
-  case ('particle_emittance:y')
+  case ('particle_emittance.y')
 
-    datum_value = ( ele%y%gamma * orb(ix1)%vec(3)**2 + &
-		     2 * ele%y%alpha * orb(ix1)%vec(3) * orb(ix1)%vec(4) + &
-		     ele%y%beta * orb(ix1)%vec(4)**2)
+    datum_value = ( ele%y%gamma * tao_lat%orb(ix1)%vec(3)**2 + &
+		     2 * ele%y%alpha * tao_lat%orb(ix1)%vec(3) * tao_lat%orb(ix1)%vec(4) + &
+		     ele%y%beta * tao_lat%orb(ix1)%vec(4)**2)
 \end{verbatim}
 This defines what is to be calculated for each \vn{particle_emittance}
 datum.  There are two transverse coordinates, so two definitions need
@@ -976,7 +976,7 @@ of the file
     graph%y%major_div = 4
     graph%n_curve = 1
     curve(1)%data_source = 'data_array'
-    curve(1)%data_type   = 'particle_emittance:x'
+    curve(1)%data_type   = 'particle_emittance.x'
     curve(1)%y_axis_scale_factor = 1e6 !convert from meters to microns
   /
 
@@ -992,7 +992,7 @@ of the file
     graph%y%major_div = 4
     graph%n_curve = 1
     curve(1)%data_source = 'data_array'
-    curve(1)%data_type = 'particle_emittance:y'
+    curve(1)%data_type = 'particle_emittance.y'
     curve(1)%units_factor = 1e6 !convert from meters to microns
   /
 \end{example}
@@ -1004,9 +1004,9 @@ so all you need to do is
 \begin{example}
   cd ROOT/my_tao
   gmake
-  ../bin/my_tao_cl
+  ../bin/my_tao
 \end{example}
-Notice that the name of the custom \tao program is \cmd{my_tao_cl}. If you run 
+Notice that the name of the custom \tao program is \cmd{my_tao}. If you run 
 `\cmd{../bin/tao}' then you will run ``vanilla'' \tao.
 
 After your custom \tao initializes type
