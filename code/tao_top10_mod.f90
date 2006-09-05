@@ -380,10 +380,12 @@ character(*) out_file
 character(200) file_name, str(1)
 character(20) :: r_name = 'tao_var_write'
 logical, optional :: good_opt_vars_only
+logical printed
 
 !
 
 ix_hash = index (out_file, '#')
+printed = .false.
 
 do i = 1, size(s%u)
 
@@ -407,7 +409,7 @@ do i = 1, size(s%u)
 
   ! If printing then only write vars once.
 
-  if (iu == 0 .and. i > 1) return
+  if (iu == 0 .and. printed) return
 
   do j = 1, size(s%var)
     if (.not. s%var(j)%exists) cycle
@@ -425,6 +427,8 @@ do i = 1, size(s%u)
     close (iu)
     call out_io (s_blank$, r_name, 'Written: ' // file_name)
   endif
+
+  printed = .true.
 
 enddo
 
