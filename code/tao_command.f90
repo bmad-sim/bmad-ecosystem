@@ -30,7 +30,7 @@ use tao_misalign_mod
 
 implicit none
 
-integer i, j
+integer i, j, iu
 integer ix, ix_line, ix_cmd, which
 integer int1, int2, uni, wrt
 
@@ -395,6 +395,19 @@ case ('scale')
 case ('show')
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) return
+  if (cmd_word(1) == '-file') then
+    cmd_line = cmd_word(2)
+    call tao_cmd_split (cmd_line, 3, cmd_word, .false., err); if (err) return
+    iu = lunget()
+    open (iu, file = cmd_word(1))
+    call output_direct (iu)
+    call tao_show_cmd (cmd_word(2), cmd_word(3))
+    call output_mod(0)
+    close (iu)
+    call out_io (s_blank$, r_name, 'Output written to file: ' // cmd_word(1))
+    return
+  endif
+
   call tao_show_cmd (cmd_word(1), cmd_word(2))
   return
 

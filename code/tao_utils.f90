@@ -330,7 +330,7 @@ end subroutine tao_pointer_to_var_in_lattice
 !+
 ! Subroutine tao_locate_elements (var, ix_u, n_ele)
 !
-! Routine to locate the elements with name s_var%ele_name.
+! Routine to locate the elements with name var%ele_name.
 !-
 
 subroutine tao_locate_elements (var, ix_u, n_ele)

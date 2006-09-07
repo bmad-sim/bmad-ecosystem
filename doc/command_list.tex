@@ -725,6 +725,12 @@ Examples:
 \section{Show}\index{Commands!show}
 \label{s:show}
 
+The \vn{show} command has an optional argument to write the results to a file.
+The format for this is:
+\begin{example}
+  show -file <file_name> <rest_of_the_command>
+\end{example}
+
 Format:
 \begin{example}
   show alias                     
@@ -733,8 +739,7 @@ Format:
   show ele <ele_name>
   show global
   show hom
-  show lattice <locations>
-  show lattice middle <locations>
+  show lattice \{middle\} \{custom <file_name>\} \{<locations>\}
   show optimizer
   show opt_vars
   show plot \{<template_plot_name>\}
@@ -748,7 +753,9 @@ Format:
 \end{example}
 
 \vskip 0.2in \vn{Show} is used to display various information about
-the state of \tao.  \vn{Show write} writes to a file as well as
+the state of \tao. 
+
+\vn{Show write} writes to a file as well as
 printing the information at the terminal. The file name is set by
 \vn{global%write_file} which has the default value of
 \vn{tao_show.dat}. Results are appended to the output file whan
@@ -793,7 +800,34 @@ regular element locations. If \vn{<locations>} is \vn{all} then the
 entire lattice will be shown. If \vn{<locations>} is not present then
 the length of the lattice will be shown. The default is to show the Twiss
 parameter at the exit end of the elements. To show the parameters in the 
-middle use the \vn{show lattice middle} command.
+middle use the \vn{show lattice middle} command. To custimize the output
+use the command \vn{show lattice custom <file_name>}. The custimization
+file looks like:
+\begin{example}
+  &custom_show_lat
+    format = "(i6, 1x, a24, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3)"
+    column(1) = "index"
+    column(2) = "name"
+    column(3) = "key"
+    column(4) = "s"
+    column(5) = "beta_a"
+  /
+\end{example}
+Possible columns are:
+\begin{example}
+  index             ! Index nuber of element.
+  name              ! Name of element.
+  key               ! Type of element (quadrupole, etc.)
+  s                 ! Longitudinal position.
+  beta_a  beta_b    ! Twiss beta functions.
+  alpha_a alpha_b   ! Twiss alpha functions.
+  pha_a   phi_b     ! Betatron phase.
+  eta_a   eta_b     ! Dispersion functions.
+  etap_a  etap_b    ! Dispersion derivatives.
+  orbit_x, orbit_px ! Horizontal position and momentum deviation.
+  orbit_y, orbit_py ! Horizontal position and momentum deviation.
+  orbit_z, orbit_pz ! Horizontal position and momentum deviation.
+\end{example}
 
   \item[show optimizer]
 Shows information pertinent to optimization: Data and variables used, etc.
@@ -822,12 +856,13 @@ the format: \vn{show var n@}.
 
 Examples:
 \begin{example}
+  show data orbit             ! Show orbit data.
+  show -file orb.dat orbit    ! Write orbit data to the file "orb.dat".
   show curve r2.g1.c3         ! Show the attributes of a curve named "c3" which is 
                               !   in the graph "g1" which is plotted in region "r2".
   show data                   ! lists d2_data arrays.
   show write data             ! Same as previous except results are also written
                               !   to a file.
-  show data orbit             ! Show orbit data.
   show data orbit.x           ! list all orbit.x data elements
   show data orbit.x[35]       ! show details for orbit.x element 35
   show data orbit.x[35,86:95] ! list orbit.x elements 35 and 86 through 95

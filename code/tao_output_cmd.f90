@@ -123,6 +123,27 @@ case ('derivative_matrix')
 
   write (iu, *) count(s%var%useit_opt), '  ! n_var'
   write (iu, *) nd, '  ! n_data'
+
+  write (iu, *)
+  write (iu, *) '! Index   Variable'
+
+  do i = 1, size(s%var)
+    if (.not. s%var(i)%useit_opt) cycle
+    write (iu, '(i7, 3x, a)') s%var(i)%ix_dvar, tao_var1_name(s%var(i))
+  enddo
+
+  write (iu, *)
+  write (iu, *) '! Index   Data'
+
+  do i = 1, size(s%u)
+    if (.not. s%u(i)%is_on) cycle
+    do j = 1, size(s%u(i)%data)
+      if (.not. s%u(i)%data(j)%useit_opt) cycle
+      write (iu, '(i7, 3x, a)') s%u(i)%data(j)%ix_dModel, tao_datum_name(s%u(i)%data(j))
+    enddo
+  enddo
+
+  write (iu, *)
   write (iu, *) ' ix_dat ix_var  dModel_dVar'
   nd = 0
   do i = 1, size(s%u)

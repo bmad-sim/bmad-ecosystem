@@ -1241,12 +1241,12 @@ named by \vn{curve%data_type} must be set up in an initialization
 file. Similarly, \vn{var_array} indicates that the values of the curve
 points come from a \vn{v1_var} array structure. \vn{calculation} means
 that the curve data points are calculated from the lattice without
-regard to any data structures. \vn{beam_calculation} is used when
+regard to any data structures. \vn{beam_tracking} is used when
 tracking beams of particles or macroparticles. In this case the curve
 points are calculated from the tracking. For example, with
 \vn{curve%data_type} set to \vn{beta.x}, the setting of
 \vn{curve%data_source} to \vn{calculation} gives the beta as
-calculated from the lattice and \vn{beam_calculation} gives the beta
+calculated from the lattice and \vn{beam_tracking} gives the beta
 as calculated from the shape of the beam. 
 
 For a curve with the \vn{curve%data_source} set to \vn{"data_array"} the
