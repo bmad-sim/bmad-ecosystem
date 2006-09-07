@@ -72,7 +72,7 @@ integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju
 integer num_locations
 integer, allocatable, save :: ix_ele(:)
 
-logical err, found, at_ends
+logical err, found, at_ends, first_time
 logical show_all, name_found
 logical, automatic :: picked(size(s%u))
 logical, allocatable :: show_here(:)
@@ -562,7 +562,7 @@ case ('lattice')
     at_ends = .true.
   endif
   
-  allocate (show_here(0:u%model%lat%n_ele_use))
+  allocate (show_here(0:u%model%lat%n_ele_max))
   if (word(1) == 'all') then
     show_here = .true.
   else
@@ -594,7 +594,7 @@ case ('lattice')
   lines(nl+3) = line3
   nl=nl+3
 
-  do ix = lbound(show_here,1), ubound(show_here,1)
+  do ix = 0, u%model%lat%n_ele_use
     if (.not. show_here(ix)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
     ele => u%model%lat%ele_(ix)
@@ -618,7 +618,24 @@ case ('lattice')
   lines(nl+2) = line2
   lines(nl+3) = line1
   nl=nl+3
-  
+
+  first_time = .true.  
+  do ix = u%model%lat%n_ele_use+1, u%model%lat%n_ele_max
+    if (.not. show_here(ix)) cycle
+    if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
+    ele => u%model%lat%ele_(ix)
+    if (first_time) then
+      nl=nl+1; lines(nl) = ' '
+      nl=nl+1; lines(nl) = 'Lord Elements:'
+      first_time = .false.
+    endif
+    nl=nl+1
+    write (lines(nl), '(i6, 1x, a24, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
+          ix, ele%name, key_name(ele%key)
+  enddo
+
+
+
   call out_io (s_blank$, r_name, lines(1:nl))
 
   deallocate(show_here)
