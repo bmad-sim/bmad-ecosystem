@@ -185,7 +185,7 @@ value is used:
   final_value = design_value + <number>
 \end{example}
 
-For linear lattices, \vn{change bunch_start <coordinate> <number>} 
+For linear lattices, \vn{change beam_start <coordinate> <number>} 
 can be use to vary the starting coordinates where \vn{<coordinate>} is one of: 
 \begin{example}
   (x, p_x, y, p_y, z, p_z)
@@ -204,7 +204,7 @@ Examples:
   change ele q02w k1 d 1.2e-2      ! set the k1 strength of q02w relative to the design
   change var steering[34:36] @1e-3 ! set the steering strength #34-36 to 0.001
   change var steering[*] @0.0      ! set all steering strengths to 0.0
-  change bunch_start x @0.001      ! set beginning x position to 1 mm
+  change beam_start x @0.001      ! set beginning x position to 1 mm
 \end{example}
 
 
@@ -1018,23 +1018,27 @@ Examples:
 
 Format:
 \begin{example}
-  x-scale \{<where>\} \{<bound1>\} \{<bound2>\}  ! sets horizontal axis bounds.
+  x-scale \{<where>\} \{<bound1>\} \{<bound2>\} \{force\} ! sets horizontal axis bounds.
 \end{example}
 
-\vskip 0.2in 
-\vn{x-scale} sets the lower and upper bounds for the horizontal axis.
-If both \vn{<bound1>} and \vn{<bound2>} are present then \vn{<bound1>}
-is taken to be the lower (left) bound and \vn{<bound2>} is the upper
-(right) bound. If only \vn{<bound1>} is present then the bounds will
-be from -\vn{<bound1>} to \vn{<bound1>}. If neither is present then
-autoscale will be invoked to give the largest bounds comensurate with
-the data. If \vn{<where>} is \vn{s} then the scaling is done only to
-the plot where the x--axis scale is the longitudinal s-position.
+\vskip 0.2in \vn{x-scale} sets the lower and upper bounds for the
+horizontal axis.  If both \vn{<bound1>} and \vn{<bound2>} are present
+then \vn{<bound1>} is taken to be the lower (left) bound and
+\vn{<bound2>} is the upper (right) bound. If only \vn{<bound1>} is
+present then the bounds will be from -\vn{<bound1>} to \vn{<bound1>}.
+If neither is present then autoscale will be invoked to give the
+largest bounds comensurate with the data. If \vn{<where>} is \vn{s}
+then the scaling is done only to the plot where the x--axis scale is
+the longitudinal s-position. if \vn{force} is present then the
+specified ranges will be used and QuickPlot will not try to find
+``nice'' plot scales.
 
 Example:
 \begin{example}
-  x-scale            ! Autoscale all x-axes.
-  x-scale all 0 100  ! scale all x-axes to go from 0 to 100.
+  x-scale                   ! Autoscale all x-axes.
+  x-scale all 0 100         ! scale all x-axes to go from 0 to 100.
+  x-scale top 101 257 force ! forces the x-axis in the top region to
+                            ! go from 101 to 257
 \end{example}
 
 %% xy-scale --------------------------------------------------------------
@@ -1043,7 +1047,7 @@ Example:
 
 Format:
 \begin{example}
-  xy-scale \{<where>\} \{<bound1>\} \{<bound2>\}  ! sets horizontal and vertical axis bounds.
+  xy-scale \{<where>\} \{<bound1>\} \{<bound2>\} \{force\} ! sets horizontal and vertical axis bounds.
 \end{example}
 
 \vskip 0.2in \vn{xy-scale} sets the lower and upper bounds for both
@@ -1053,7 +1057,9 @@ the horizontal vertical axes.  This is just a shortcut for doing an
 (left) bound and \vn{<bound2>} is the upper (right) bound. If only
 \vn{<bound1>} is present then the bounds will be from -\vn{<bound1>}
 to \vn{<bound1>}. If neither is present then autoscale will be invoked
-to give the largest bounds comensurate with the data.
+to give the largest bounds comensurate with the data.if \vn{force} is
+present then the specified ranges will be used and QuickPlot will not
+try to find ``nice'' plot scales.
 
 Example:
 \begin{example}

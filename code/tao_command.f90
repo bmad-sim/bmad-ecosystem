@@ -56,7 +56,7 @@ character(16) :: set_names(8) = (/ &
 
 
 
-logical quit_tao, err
+logical quit_tao, err, force
 
 ! blank line => nothing to do
 
@@ -114,8 +114,8 @@ case ('change')
     call tao_change_var (cmd_word(2), cmd_word(3))
   elseif (cmd_word(1) == 'ele') then
     call tao_change_ele (cmd_word(2), cmd_word(3), cmd_word(4))
-  elseif (cmd_word(1) == 'bunch_start') then
-    call tao_change_ele ('bunch_start', cmd_word(2), cmd_word(3))
+  elseif (cmd_word(1) == 'beam_start') then
+    call tao_change_ele ('beam_start', cmd_word(2), cmd_word(3))
   else
     call out_io (s_error$, r_name, &
              'Error: Change who? (should be: "ele", "bunch_start", or "var")')
@@ -465,13 +465,15 @@ case ('x-scale')
     return
   endif
 
-  call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 4, cmd_word, .true., err); if (err) return
+  force = .false.
+  if (cmd_word(4) .eq. 'force') force = .true.
   if (cmd_word(2) == ' ') then
-    call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err)
+    call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err, force)
   else
     call tao_to_real (cmd_word(2), value1, err); if (err) return
     call tao_to_real (cmd_word(3), value2, err); if (err) return
-    call tao_x_scale_cmd (cmd_word(1), value1, value2, err)
+    call tao_x_scale_cmd (cmd_word(1), value1, value2, err, force)
   endif
 
 !--------------------------------
@@ -485,8 +487,10 @@ case ('xy-scale')
   endif
 
   call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+  force = .false.
+  if (cmd_word(3) .eq. 'force') force = .true.
   if (cmd_word(2) == ' ') then
-    call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err)
+    call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err, force)
     call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
   else
     call tao_to_real (cmd_word(2), value1, err);  if (err) return
@@ -496,7 +500,7 @@ case ('xy-scale')
       value2 = value1
       value1 = -value1
     endif
-    call tao_x_scale_cmd (cmd_word(1), value1, value2, err)
+    call tao_x_scale_cmd (cmd_word(1), value1, value2, err, force)
     call tao_scale_cmd (cmd_word(1), value1, value2)
   endif
 
