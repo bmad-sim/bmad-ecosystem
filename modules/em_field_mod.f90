@@ -285,13 +285,13 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   case (quadrupole$) 
 
     f = ele%value(p0c$) / c_light
-    field%b(1) = y * ele%value(k1$) * f 
-    field%b(2) = x * ele%value(k1$) * f 
+    field%b(1) = -y * ele%value(k1$) * f 
+    field%b(2) = -x * ele%value(k1$) * f 
 
     if (df_calc) then
       field%dB = 0
-      field%dB(1,1) = -ele%value(k1$) * f
-      field%dB(2,2) =  ele%value(k1$) * f
+      field%dB(1,1) =  ele%value(k1$) * f
+      field%dB(2,2) = -ele%value(k1$) * f
     endif
 
 !------------------------------------------
