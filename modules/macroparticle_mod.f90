@@ -25,7 +25,7 @@ end type
 type macro_bunch_struct
   type (macro_slice_struct), pointer :: slice(:) => null()
   real(rp) charge   ! total charge in a bunch (Coul).
-  real(rp) s_center ! longitudinal center of bunch (m).
+  real(rp) z_center ! longitudinal center of bunch (m).
 end type
 
 type macro_beam_struct
@@ -198,7 +198,7 @@ Subroutine track1_macro_bunch (bunch_start, ele, param, bunch_end)
 
 ! Charge and center
 
-  bunch_end%s_center = bunch_start%s_center
+  bunch_end%z_center = bunch_start%z_center
   bunch_end%charge   = bunch_start%charge
   do i = 1, size(bunch_start%slice)
     bunch_end%slice(i)%charge = bunch_start%slice(i)%charge
@@ -455,7 +455,7 @@ subroutine track1_macro_lr_wake (bunch, ele)
     do k = 1, size(bunch%slice(j)%macro)
       macro => bunch%slice(j)%macro(k)
       if (macro%lost) cycle
-      call lr_wake_apply_kick (ele, bunch%s_center, macro%r)
+      call lr_wake_apply_kick (ele, bunch%z_center, macro%r)
     enddo
   enddo
 
@@ -465,7 +465,7 @@ subroutine track1_macro_lr_wake (bunch, ele)
     do k = 1, size(bunch%slice(j)%macro)
       macro => bunch%slice(j)%macro(k)
       if (macro%lost) cycle
-      call lr_wake_add_to (ele, bunch%s_center, macro%r, macro%charge)
+      call lr_wake_add_to (ele, bunch%z_center, macro%r, macro%charge)
     enddo
   enddo
 
@@ -1253,11 +1253,11 @@ subroutine init_macro_distribution (beam, init, ele, &
 
 ! Initialize all bunches
 
-  bunch%s_center = 0.0
+  bunch%z_center = 0.0
 
   do i = 2, size(beam%bunch)
     beam%bunch(i) = beam%bunch(1)
-    beam%bunch(i)%s_center = (1-i) * init%ds_bunch
+    beam%bunch(i)%z_center = (1-i) * init%ds_bunch
   enddo
 
 !-----------------------------------------------------
@@ -1517,7 +1517,7 @@ subroutine mp_bunch_equal_mp_bunch (bunch1, bunch2)
   enddo  
 
   bunch1%charge    = bunch2%charge
-  bunch1%s_center  = bunch2%s_center
+  bunch1%z_center  = bunch2%z_center
 
 end subroutine mp_bunch_equal_mp_bunch
 

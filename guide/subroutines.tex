@@ -34,6 +34,7 @@ general interest.
  	Long Range Beam--Beam Interaction       & \ref{r:lrbbi}      \\ \hline
   \cpp interface                          & \ref{r:cpp}        \\ \hline
  	Tracking Routines called by \vn{track1} & \ref{r:track1}     \\ \hline
+	Collective Effects                      & \ref{r:collective} \\ \hline
  	Helper Routines: Informational          & \ref{r:info}       \\ \hline
  	Helper Routines: Elemental              & \ref{r:elem}       \\ \hline
  	Helper Routines: Transformational       & \ref{r:trans}      \\ \hline
@@ -909,7 +910,7 @@ Subroutine to convert from PTC to Bmad coordinates.
      The equivalent MAD-8 routine is: TMSECT
 
 \index{Routine!mad_tmfoc}
-\item[mad\_tmfoc (el, sk1, c, s, d, f) ] \Newline 
+\item[mad\_tmfoc (el, sk1, c, s, d, f)] \Newline 
      Subroutine to compute the linear focussing functions.  
      The equivalent MAD-8 routine is: TMFOC
 
@@ -1275,6 +1276,32 @@ Subroutine to track through an element using the elements taylor series.
 \index{Routine!track1_wiedemann_wiggler}
 \item[track1\_wiedemann\_wiggler (start, ele, param, end)] \Newline
 Subroutine to track through the body of a wiggler. 
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Collective Effects}
+\label{r:collective}
+
+\begin{description}
+
+\index{Routine!touschek_lifetime}
+\item[touschek\_lifetime (mode, lifetime, ring, orb)] \Newline
+Subroutine to calculate the Touschek lifetime for a ring.
+
+\index{Routine!ibs_rates}
+\item[ibs\_rates (ring, mode, rates, formula)] \Newline
+Subroutine to calculate the IBS rates for a ring.
+
+\index{Routine!ibs_equilibrium}
+\item[ibs\_equilibrium(ring, inmode, ibsmode, formula, coupling)] \Newline
+Subroutine to calculate the equilibrium mode of a ring due to IBS effects
+by iterating over derivatives of the equilibrium equations.
+
+\index{Routine!ibsequilibrium2}
+\item[ibsequilibrium2(ring, inmode, ibsmode, formula, ratio, initial\_blow\_up)] \Newline
+Subroutine to calculate the equilibrium mode of a ring due to IBS effects
+by iterating over the equilibrium equations.
 
 \end{description}
 
@@ -1887,7 +1914,7 @@ Subroutine to return the calibration constants for the CESR quads.
      That is, white out the box region.
 
 \index{Routine!qp_draw_ellipse}
-\item[qp\_draw\_ellipse (x0, y0, r\_x, r\_y, theta_xy, angle1, angle2, 
+\item[qp\_draw\_ellipse (x0, y0, r\_x, r\_y, theta\_xy, angle1, angle2, 
                      units, width, color, style, clip) ] \Newline 
      Subroutine to plot a section of an ellipse.
 
@@ -2176,8 +2203,8 @@ This subroutine is not for general use.
      representing the horizontal justification. 
 
 \index{Routine!qp_open_page_basic}
-\item[qp\_open\_page\_basic (page\_type, x\_len, y\_len, plot\_file, &] \Newline 
-                                               x\_page, y\_page, i\_chan)
+\item[qp\_open\_page\_basic (page\_type, x\_len, y\_len, plot\_file] \Newline 
+      x\_page, y\_page, i\_chan)
 Subroutine to Initialize a page (window) for plotting.
 
 \index{Routine!qp_restore_state}

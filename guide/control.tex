@@ -329,6 +329,16 @@ extends beyound either end of the lattice will be wrapped around. For consistanc
 this is done even if the \vn{lattice_type} is set to \vn{linear_lattice} but in this case
 a warning message will be issued.
 
+When a superposition is made that overlaps a drift the drift, not being a "real" 
+element, vanishes. That is, it does not get put in the lord section of the lattice.
+Thus, it is an error if a second superposition uses the drift as the refernce element.
+For example
+\begin{example}
+  dft1: drift, l = 10
+  q1: quad, l = 1, superposition, ref = dft1   ! OK 
+  q2: quad, l = 2, superposition, ref = dft1   ! ERROR! 
+\end{example}
+
 %-----------------------------------------------------------------------------
 \section{Multipass}
 \label{s:multipass}

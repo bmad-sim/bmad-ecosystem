@@ -655,7 +655,7 @@ do k = 1, size(bunch%particle)
   j = bunch%particle(k)%ix_z
   particle => bunch%particle(j)
   if (particle%ix_lost /= not_lost$) cycle
-  call lr_wake_apply_kick (ele, bunch%s_center, particle%r)
+  call lr_wake_apply_kick (ele, bunch%z_center, particle%r)
 enddo
 
 ! Add the wakes left by this bunch to the existing wakes.
@@ -664,7 +664,7 @@ do k = 1, size(bunch%particle)
   j = bunch%particle(k)%ix_z
   particle => bunch%particle(j)
   if (particle%ix_lost /= not_lost$) cycle
-  call lr_wake_add_to (ele, bunch%s_center, particle%r, particle%charge)
+  call lr_wake_add_to (ele, bunch%z_center, particle%r, particle%charge)
 enddo
 
 end subroutine
@@ -1154,11 +1154,11 @@ call init_spin_distribution (beam_init, bunch)
   
 ! init all bunches
   
-bunch%s_center = 0.0
+bunch%z_center = 0.0
 
 do i = 2, size(beam%bunch)
   call bunch_equal_bunch (beam%bunch(i), beam%bunch(1))
-  beam%bunch(i)%s_center = (1-i) * beam_init%ds_bunch
+  beam%bunch(i)%z_center = (1-i) * beam_init%ds_bunch
 enddo
   
 end subroutine init_beam_distribution
@@ -1785,7 +1785,7 @@ endif
 
 bunch1%particle  = bunch2%particle
 bunch1%charge    = bunch2%charge
-bunch1%s_center  = bunch2%s_center
+bunch1%z_center  = bunch2%z_center
 
 end subroutine bunch_equal_bunch
 
