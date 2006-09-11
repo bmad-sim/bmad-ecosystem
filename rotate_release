@@ -1,0 +1,162 @@
+#!/bin/sh
+#
+#-------------------------------------------------------------------------
+#
+# This is the master script to rotate code releases across the  
+# supported computer systems at CLASSE.  
+# 
+# Supporting scripts:  - M.release makefile
+#                      - build_release script to execute individual builds
+#                      - test_release script to validate the functionality 
+#                        of the code builds
+#                      - tag_release script to tag releases in the CVS 
+#                        repository
+#                            
+#
+# argument:  release_name (eg, cesr_2003_0728_d)
+#
+# usage :    rotate_release [options] <release_name>
+#
+#         flags:
+#          -current       Rotate CURRENT release
+#          -devel         Rotate DEVEL release (DEFAULT)
+#
+# examples: Update the DEVEL release -
+#           rotate_release cesr_2003_0728_d
+#           Update the CURRENT release -
+#           rotate_release -current cesr_2003_0728_d
+#
+################################################################
+
+#---------------------------------+
+# Set up some internal functions  |
+#---------------------------------+
+
+# Script help function
+myprint_help () {
+#   Print help info
+    echo ""
+    echo "Usage is:  rotate_release [options] <release_name>"
+    echo ""
+    echo "Variables:"
+    echo "   <release_name>      cesr_xxxx_yyyy_d"
+    echo "Options:"
+    echo "   -current            Flag to rotate CURRENT release"
+    echo "   -devel              Flag to rotate DEVEL release"
+}
+
+
+#--------------------------+
+# Main script starts here  |
+#--------------------------+
+
+BASE_DIRECTORY="/nfs/cesr/libs"
+#BASE_DIRECTORY="/home/cesrulib/temp/utilities"
+BASE_AREA_LIST="OSF1_alpha_hp Linux_i686_intel Linux_i686_lahey"
+
+current_idx_file=${BASE_DIRECTORY}/current.index
+devel_idx_file=${BASE_DIRECTORY}/devel.index
+
+# Set default inputs
+REL=""
+ROTATE_DEVEL=1
+ROTATE_CURRENT=0
+
+# Get inputs
+arg_list=""
+for i 
+do arg_list="${arg_list} ${i}";
+   case $i in
+     "-current" ) ROTATE_CURRENT=1;;
+     "-devel"   ) ROTATE_DEVEL=1  ;;
+     cesr_*     ) REL=`echo $i`;;
+     *          ) myprint_help;
+     exit 1;;
+   esac
+done
+
+echo "rotate_release - called with the following arguments:  "
+echo "${arg_list}" 
+echo ""
+
+
+# Verify that the specified release is valid
+good_release=1
+for dir in ${BASE_AREA_LIST}; do
+  REL_DIR=${BASE_DIRECTORY}/${dir}/${REL}
+  if ( [ ! -e ${REL_DIR} ] ) then
+    good_release=0
+    echo "Specified release not found in:  ${BASE_DIRECTORY}/${dir}"
+  fi
+done
+
+if ( [ ${good_release} -eq 0 ] ) then
+  echo ""
+  echo "Aborting rotation!!"
+  echo ""
+  exit 1
+fi
+
+# Get old release index
+if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
+  if ( [ -e ${current_idx_file} ] ) then
+    current_index=`head -n1 ${current_idx_file} | awk '// {print $1}'`
+    new_index=`expr ${current_index} + 1`
+    echo "${new_index}" > ${current_idx_file} 
+  else
+    current_index=last
+    echo "No index file found for the current release!"
+  fi
+  current_old="current_${current_index}"
+fi
+
+if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
+  if ( [ -e ${devel_idx_file} ] ) then
+    devel_index=`head -n1 ${devel_idx_file} | awk '// {print $1}'`
+    new_index=`expr ${devel_index} + 1`
+    echo "${new_index}" > ${devel_idx_file} 
+  else
+    devel_index=last
+    echo "No index file found for the devel release!"
+  fi
+  devel_old="devel_${devel_index}"
+fi
+
+
+# Rotate specified release
+#echo "Starting rotation"
+for dir in ${BASE_AREA_LIST}; do
+  BASE_DIR=${BASE_DIRECTORY}/${dir}
+  cd ${BASE_DIR}
+#  echo ${BASE_DIR}
+  if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
+    present_rel=`ls -l current | cut -d\> -f2`
+    mv -f current ${current_old}
+    ln -s ${REL} current
+  fi
+  if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
+    present_rel=`ls -l devel | cut -d\> -f2`
+    mv -f devel ${devel_old}
+    ln -s ${REL} devel
+  fi
+done
+
+
+# Print out rotation summary
+if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
+  echo "CURRENT Release Rotation for:  ${BASE_AREA_LIST}" 
+  echo ""
+  echo "OLD:  ${present_rel}  -->   NEW:  ${REL}"
+  echo ""
+fi
+if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
+  echo "DEVEL Release Rotation for:  ${BASE_AREA_LIST}" 
+  echo ""
+  echo "OLD:  ${present_rel}  -->   NEW:  ${REL}"
+  echo ""
+fi
+
+
+# Should tag releases here....
+
+exit 0
