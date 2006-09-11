@@ -1,9 +1,17 @@
 #!/bin/sh
 #
-################################################################
+#-------------------------------------------------------------------------
 #
-# this is a wrapper script used to setup the correct environment
-# and call install_lib
+# This is the master script to build new code releases across the  
+# supported computer systems at CLASSE.  
+# 
+# Supporting scripts:  - M.release makefile
+#                      - build_release script to execute individual builds
+#                      - test_release script to validate the functionality 
+#                        of the code builds
+#                      - tag_release script to tag releases in the CVS 
+#                        repository
+#                            
 #
 # usage : do_release [options] [var defs] <lib_tag> <pkg_tag> [<SGL/DBL>]
 #         arguments:
@@ -22,16 +30,19 @@
 #                         script
 #          -tagr          cesr release tagging
 #          -tagp          packages release tagging
-#          -lnx           Build a cesr(packages) release on linux platform as well
-#          -vms           Porting release to VMS_alpha
+#          -osf           Run OSF1 build
+#          -lnx           Run Linux builds
+#          -vms           Prepare release for transfer to VMS_alpha
+#          -win           Automatic windows builds not yet operational
+#          
 #         variables:
-#           TAG=<release_tag>   Specify a custom tag for the release
-#           PKG=<packages_name> Specify a specific packages release
-#                               to build against.  Expects only base 
-#                               directory name (NO path).
 #           REL=<release_name>  Specify a specific CESR release
 #                               to build against.  Expects only base 
 #                               directory name (NO path).
+#           PKG=<packages_name> Specify a specific packages release
+#                               to build against.  Expects only base 
+#                               directory name (NO path).
+#           TAG=<release_tag>   Specify a custom tag for the release
 #           GMAKE=<gmake_dir>   Specify a custom CESR_GMAKE directory.
 #                               Expects FULL path.
 #           UTIL=<util_dir>     Specify a custom CESR_UTIL  directory
@@ -51,8 +62,8 @@
 # $Id$
 #
 # $Log$
-# Revision 1.15  2006/08/14 00:38:48  cesrulib
-# Update for latest changes in build area structure and new do_release/build_release scripts.
+# Revision 1.16  2006/09/11 20:47:01  cesrulib
+# Updates for new library build tree (supporting multiple compiler combinations).
 #
 #
 ################################################################
@@ -63,43 +74,40 @@
 
 # Script help function
 myprint_help () {
-#       Print help info
+#   Print help info
     echo ""
     echo "Usage is:  do_release [options] [var. defs] [<precision>]"
     echo ""
     echo "Inputs:"
-    echo "<precision>         SGL or DBL (optional) [default is DBL]"
+    echo "   <precision>         SGL or DBL (optional) [default is DBL]"
     echo "Options:"
-    echo "-cesr               Build a cesr release"
-    echo "-pkg                Build a packages release"
-    echo "-build_only         if you want to forgo the checkout and"
-    echo "                    creation of necessary dirs, add "
-    echo "                    -build_only flag.  In this case, "
-    echo "                    REL and/or PKG must contain the full "
-    echo "                    name of the corresponding release"
-    echo "-dump               Dump the configuration information for"
-    echo "                    this script"
-    echo "-tagr               cesr release tagging"
-    echo "-tagp               packages release tagging"
-    echo "-lnx     Build a cesr(packages) release on Linux platform as well"
-    echo "-vms    porting release to VMS_alpha"
+    echo "   -cesr               Flag to checkout and/or build a cesr release"
+    echo "   -pkg                Flag to checkout and/or build a packages release"
+    echo "   -build_only         If you want to forgo the checkout and creation"
+    echo "                       of the release directory tree, use this flag."
+    echo "   -dump               Dump this script's configuration information"
+    echo "   -tagr               cesr release tagging"
+    echo "   -tagp               packages release tagging"
+    echo "   -osf                Remote exec OSF1 build"
+    echo "   -lnx                Remote exec linux builds"
+    echo "   -vms                Prepare VMS build for transfer"
+    echo "   -win                Remote exec of Windows build not yet operational"
     echo ""
     echo "Variable definitions:"
-    echo "TAG=<release_tag>   Specify a custom tag for the release"
-    echo "PKG=<packages_name> Specify a specific packages release"
-    echo "                    to build against"
-    echo "REL=<release_name>  Specify a specific CESR release"
-    echo "                    to build against"
-    echo "GMAKE=<gmake_dir>   Specify a custom CESR_GMAKE directory"
-    echo "UTIL=<util_dir>     Specify a custom CESR_UTIL  directory"
-    echo "BIN=<bin_dir>       Specify a custom CESR_BIN   directory"
+    echo "   REL=<release_name>  Specify a custom CESR release name"
+    echo "   PKG=<packages_name> Specify a custom packages release name"
+    echo "   F90=<f90_compiler>  Specify a 3rd-party fortran compiler"
+    echo "   TAG=<release_tag>   Specify a custom tag for the release"
+    echo "   GMAKE=<gmake_dir>   Specify a custom CESR_GMAKE directory"
+    echo "   UTIL=<util_dir>     Specify a custom CESR_UTIL  directory"
+    echo "   BIN=<bin_dir>       Specify a custom CESR_BIN   directory"
     echo ""
-    echo "PATH =  $PATH "
+    echo "   PATH =  $PATH "
 }
 
-# Generate Unique Release Names
+# Function to generate unique release names
 get_release_name () {
-    FULL_RNAME=${BUILD_DIR}/${PLATFORM_TAG}/${RNAME}
+    FULL_RNAME=${BUILD_DIR}/${BASE_TAG}/${RNAME}
 
 #   Determine whether an index tag is needed to 
 #   insure a unique release name
@@ -113,22 +121,26 @@ get_release_name () {
         done
 
         RNAME=${RNAME}_${UNIQ_TAG}
-        FULL_RNAME=${BUILD_DIR}/${PLATFORM_TAG}/${RNAME}
+        FULL_RNAME=${BUILD_DIR}/${BASE_TAG}/${RNAME}
     fi
 
     RLOG=${RNAME}.log
-    FULL_RLOG=${BUILD_DIR}/log/${PLATFORM_TAG}/${RLOG}
+    FULL_RLOG=${BUILD_DIR}/log/${BASE_TAG}/${RLOG}
 }
 
 ################################################################
 # Main script starts here
 ################################################################
 
-# Get the operating system and the machine type
+# Get the operating system, machine type, and default fortran compiler
 PLATFORM_TAG="`uname -s`_`uname -m`"
 if ( [ -n "${CESR_PLATFORM}" ] ) then
    PLATFORM_TAG="${CESR_PLATFORM}"
 fi
+
+# Generate the base directory in which to create/build the release
+BASE_TAG=${PLATFORM_TAG}_${CESR_F90}
+
 #Initializations
 BUILD_DIR=/home/cesrulib/cesr_libs
 PREC="DBL"
@@ -142,27 +154,43 @@ DO_DUMP=0
 GMAKE_OVERRIDE=0
 UTIL_OVERRIDE=0
 use_cesr_bin=/home/cesrulib/bin
-#use_cesr_bin=/home/cesrulib/bin_win
 
-
+# Special customization for Windows builds in the CYGWIN environment
 if ( [ ${PLATFORM_TAG} = "CYGWIN_NT_i686" ] ) then
-#if you are workin out of CYGWIN_NT_i686 modify the following two lines
-#use_cesr_bin=${CESR_BASE}/devel/util
  use_cesr_bin=/cygdrive/z/cesrulib/bin
-#BUILD_DIR=//lns101/cesrulib/cesr_libs
  BUILD_DIR=/cygdrive/c/user_local/cesrulib/cesr_libs
 fi
+
+
 DO_TAG_RELEASE=0
 DO_TAG_PACKAGES=0
 REL=""
 PKG=""
+
+# Build flags and default host machines
+# NOTE:  host machine for VMS is to prepare the release for transfer to VMS.  
+#        Code builds on VMS must be executed manually (for now)
+# NOTE:  host machine for Windows is not presently used.  Builds on Windows 
+#        must be executed manually (for now)
+OSF=0
 LNX=0
 VMS=0
+WIN=0
+
+OSF_HOST=cesr68.lns.cornell.edu
 LNX_HOST=lnx209.lns.cornell.edu
+VMS_HOST=cesr68.lns.cornell.edu
+WIN_HOST=pc6115.lns.cornell.edu
+
 CURRENT_HOST="`uname -n`"
-PLATFORM_TAG_LIST="OSF1_alpha Linux_i686"
-KEY_END=1
+
+# Flag for checking whether kinit has been run (needed to remote exec builds)
+KINIT_CHECK=0
+
+BASE_AREA_LIST="OSF1_alpha_hp Linux_i686_intel Linux_i686_lahey VMS_alpha_hp CYGWIN_NT_i686_intel"
+
 GMAKE=gmake
+
 # Get inputs
 arg_list=""
 for i 
@@ -172,30 +200,35 @@ do arg_list="${arg_list} ${i}";
      "SGL"|"sgl") PREC="SGL";;
      "-cesr"    ) DO_REL=1  ;;
      "-pkg"     ) DO_PKG=1  ;;
-     "-build_only")DO_CHECKOUT="no_checkout";;
+     "-build_only") DO_CHECKOUT="no_checkout";;
      "-dump"    ) DO_DUMP=1 ;;
      "-tagr"    ) DO_TAG_RELEASE=1;;
      "-tagp"    ) DO_TAG_PACKAGES=1;;
-     "-lnx"     ) LNX=1;;
-     "-vms"     ) VMS=1;;
+     "-osf"     ) OSF=1; KINIT_CHECK=1;;
+     "-lnx"     ) LNX=1; KINIT_CHECK=1;;
+     "-vms"     ) VMS=1; KINIT_CHECK=1;;
+     "-win"     ) WIN=1; KINIT_CHECK=1;;
      TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
-     GMAKE=*)use_cesr_gmake=`echo $i|cut -d= -f2`;
+     GMAKE=*    )use_cesr_gmake=`echo $i|cut -d= -f2`;
                   GMAKE_OVERRIDE=1;;
-     UTIL=*)use_cesr_util=`echo $i|cut -d= -f2`;
+     UTIL=*     )use_cesr_util=`echo $i|cut -d= -f2`;
                  UTIL_OVERRIDE=1;;
-     BIN=*)use_cesr_bin=`echo $i|cut -d= -f2`;;
-     *) myprint_help;
-        exit 1;;
+     BIN=*      )use_cesr_bin=`echo $i|cut -d= -f2`;;
+     *          ) myprint_help;
+     exit 1;;
    esac
 done
+
 echo "do_release - called with the following arguments:  "
 echo "${arg_list}" 
 echo ""
+
 ##################################
-#Have you ran kinit?
-if ( [ $VMS = 1 -o $LNX = 1 ] ) then
+
+#Have you run kinit?
+if ( [ ${KINIT_CHECK} = 1 ] ) then
     TERMINAL01=`tty`
     echo "Did you run kinit? (y/n):" >> $TERMINAL01
     read ANSWER < $TERMINAL01
@@ -204,16 +237,12 @@ if ( [ $VMS = 1 -o $LNX = 1 ] ) then
         exit
     fi
 fi 
-
-# set PLATFORM_TAG_LIST 
-if ( [ $VMS -eq 1 ] ) then
-    PLATFORM_TAG_LIST="OSF1_alpha Linux_i686 VMS_alpha"
-fi
    
-# some platform dependent definition
+# Platform dependent definitions
 if ( [ ${PLATFORM_TAG} = "CYGWIN_NT_i686" ] ) then
    GMAKE=make
 fi
+
 # Set up the yyyy_mmdd tag
 DATE_TAG=`date +"%Y_%m%d"`
 
@@ -233,8 +262,8 @@ if ( [ $DO_REL -eq 1 -a $DO_CHECKOUT = "do_checkout" ] ) then
     FULL_REL_LOG=${FULL_RLOG}
 elif ( [ -n "${REL}" ] ) then
     REL_NAME=${REL}
-    FULL_REL_NAME=${BUILD_DIR}/${PLATFORM_TAG}/${REL_NAME}
-    FULL_REL_LOG=${BUILD_DIR}/log/${PLATFORM_TAG}/${REL}.log
+    FULL_REL_NAME=${BUILD_DIR}/${BASE_TAG}/${REL_NAME}
+    FULL_REL_LOG=${BUILD_DIR}/log/${BASE_TAG}/${REL}.log
 else
     REL_NAME=""
 fi		
@@ -248,8 +277,8 @@ if ( [ $DO_PKG -eq 1 ] && [ $DO_CHECKOUT = "do_checkout" ] ) then
     FULL_PKG_LOG=${FULL_RLOG}
 elif ( [ -n "${PKG}" ] ) then
     PKG_NAME=${PKG}
-    FULL_PKG_NAME=${BUILD_DIR}/${PLATFORM_TAG}/${PKG_NAME}
-    FULL_PKG_LOG=${BUILD_DIR}/log/${PLATFORM_TAG}/${PKG}.log
+    FULL_PKG_NAME=${BUILD_DIR}/${BASE_TAG}/${PKG_NAME}
+    FULL_PKG_LOG=${BUILD_DIR}/log/${BASE_TAG}/${PKG}.log
 else
     PKG_NAME=${PKG}
 fi
@@ -267,7 +296,7 @@ else
     CESRLIB=devel
 fi
 
-CESRF90=${CESR_F90}
+
 CESRLIB_BIN=${BIN_DIR}; . ${BIN_DIR}/cesrdefs
 
 # Use user-specified CESR_GMAKE and CESR_UTIL areas, if present.
@@ -280,7 +309,6 @@ if ( [ ${UTIL_OVERRIDE} -eq 1 ] ) then
     CESR_UTIL=${use_cesr_util}
     export CESR_UTIL
 fi
-
 
 # Dump the configuration information if requested
 if ( [ $DO_DUMP -eq 1 ] ) then
@@ -305,11 +333,20 @@ if ( [ $DO_DUMP -eq 1 ] ) then
     echo "FULL_PKG_LOG      = ${FULL_PKG_LOG}"
     echo "DO_TAG_RELEASE    = ${DO_TAG_RELEASE}"
     echo "DO_TAG_PACKAGES   = ${DO_TAG_PACKAGES}"
+    echo ""
+    echo "OSF               = ${OSF}"
     echo "LNX               = ${LNX}"
+    echo "VMS               = ${VMS}"
+    echo "WIN               = ${WIN}"
+    echo "OSF_HOST          = ${OSF_HOST}"
     echo "LNX_HOST          = ${LNX_HOST}"
+    echo "VMS_HOST          = ${VMS_HOST}"
+    echo "WIN_HOST          = ${WIN_HOST}"
+    echo ""
     echo "CURRENT_HOST      = ${CURRENT_HOST}"
-    echo "PATH              = $PATH "
-    echo "BIN_DIR           = $BIN_DIR"
+    echo "PATH              = ${PATH} "
+    echo "BIN_DIR           = ${BIN_DIR}"
+    echo "KINIT_CHECK       = ${KINIT_CHECK}"
 fi
 
 # Print the CESR environment variables
@@ -319,56 +356,6 @@ printenv | grep CESR_
 printenv | grep PKG_
 echo ""
 
-##########################################################
-#create the body of  e-mail  ( taggin cesr release or packages release)
-##########################################################
-if ( [ $DO_TAG_RELEASE -eq 1  -o  $DO_TAG_PACKAGES -eq 1 ] ) then 
-     TAG_EMAIL_ADDRESS="smirvi@mail.lepp.cornell.edu"
-     NAME_BODY_EMAIL_FILE=tmp_file_${PLATFORM_TAG}
-     if ( [ $DO_TAG_RELEASE -eq 1 ] ) then
-       echo "TAG: ${REL_NAME}">$NAME_BODY_EMAIL_FILE
-       echo " ">>$NAME_BODY_EMAIL_FILE
-       echo "has been assigned to sources in ">>$NAME_BODY_EMAIL_FILE
-       echo " ">>$NAME_BODY_EMAIL_FILE
-       echo "${FULL_REL_NAME}">>$NAME_BODY_EMAIL_FILE
-       echo " ">>$NAME_BODY_EMAIL_FILE
-       echo " and ">>$NAME_BODY_EMAIL_FILE
-       echo " ">>$NAME_BODY_EMAIL_FILE
-       echo "${FULL_PKG_NAME}">>$NAME_BODY_EMAIL_FILE
-     else
-       echo "TAG: ${PKG_NAME}">$NAME_BODY_EMAIL_FILE
-       echo " ">>$NAME_BODY_EMAIL_FILE
-       echo "has been assigned to sources in ">>$NAME_BODY_EMAIL_FILE
-       echo " ">>$NAME_BODY_EMAIL_FILE
-       echo "${FULL_PKG_NAME}">>$NAME_BODY_EMAIL_FILE
-     fi
-fi
-
- 
-#############    do tagging only ############################
-if ( [ $DO_TAG_RELEASE -eq 1 -a ${DO_REL} -eq 0 ] ) then
-      echo " Tagging with tag ${REL_NAME}";
-      gmake -f ${BIN_DIR}/M.release TAGS_NAME=${REL_NAME}  add_tag_release;
-      if ( [ $? -ne 0 ] ) then 
-               echo " Tagging failed. Code $? ";
-               exit 7
-      fi
-      Mail -s "Release packages have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
-      rm $NAME_BODY_EMAIL_FILE 
-      exit
-fi
-
-if ( [ $DO_TAG_PACKAGES -eq 1 -a ${DO_PKG} -eq 0 ] ) then
-      echo "Tagging packages with name ${PKG_NAME}"; 
-      gmake -f ${BIN_DIR}/M.release  FULL_PKG_DIR=${FULL_PKG_NAME} TAGS_NAME=${PKG_NAME} add_tag_packages;
-      if ( [ $? -ne 0 ] ) then 
-               echo " Tagging failed. Code $? ";
-               exit 7
-      fi
-      Mail -s "Release packages have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
-      rm $NAME_BODY_EMAIL_FILE 
-      exit
-fi 
 
 #######################################################
 # Checkout the PACKAGES RELEASE
@@ -376,16 +363,18 @@ fi
 co_pkg_status=0
 if ( [ $DO_PKG -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out packages..."
-    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} PLATFORM_TAG_LIST="${PLATFORM_TAG_LIST}" BUILD="" > ${FULL_PKG_LOG} 2>&1
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" > ${FULL_PKG_LOG} 2>&1
     co_pkg_status=$?
 fi
+
+
 ####################################################
 # Checkout the CESR RELEASE
 ####################################################
 co_rel_status=0
 if ( [ $DO_REL -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out CESR release..."
-    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} PLATFORM_TAG_LIST="${PLATFORM_TAG_LIST}" BUILD="" > ${FULL_REL_LOG} 2>&1
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" > ${FULL_REL_LOG} 2>&1
     co_rel_status=$?
 fi
 
@@ -396,166 +385,186 @@ if ( [ $co_pkg_status -eq 0 ] && [ $co_rel_status -eq 0 ] ) then
         echo "`date`: No checkout required!"
     fi
 else
-    echo "`date`: Checkout failed [PKG_STATUS=$build_pkg_status, REL_STATUS=$build_rel_status]!"
+    echo "`date`: Checkout failed [PKG_STATUS=$co_pkg_status, REL_STATUS=$co_rel_status]!"
     echo "Aborting!"
     exit 1
 fi
-###################################################
-# Call do_release on Linux platform
-###################################################
-# LNX_FILE_STATUS : 1  -- do_release called on Linux
-#                   0  -- successfully completed on Linux
-#                   2  -- completed with errors on Linux
-# 
-LNX_FILE_STATUS=$HOME/bin/lnx.status
-if ( [ $LNX -eq 1 ] ) then
-  echo "1">$LNX_FILE_STATUS
-  if ( [ $DO_REL -eq 1 -a $DO_PKG -eq 0 ] ) then
-    LNX_LOG="bin/${REL_NAME}_Linux_release.log"
-    krsh -x $LNX_HOST ". .bash_profile; bin/do_release -cesr -build_only -dump REL=$REL_NAME PKG=$PKG_NAME $PREC >$LNX_LOG 2>&1 &"&  
-    start_status=$?
-    echo "Building release started on Linux. See file $LNX_LOG "  
-  elif ( [ $DO_REL -eq 1 -a $DO_PKG -eq 1 ] ) then
-    LNX_LOG="bin/${REL_NAME}_Linux_release_pkg.log"
-    krsh -x $LNX_HOST ". .bash_profile; bin/do_release -cesr -pkg -build_only -dump REL=$REL_NAME PKG=$PKG_NAME $PREC >$LNX_LOG 2>&1 &" &
-    start_status=$?
-    echo "Building release and packages started on Linux. See file $LNX_LOG "
-  elif ( [ $DO_REL -eq 0 -a $DO_PKG -eq 1 ] ) then
-    LNX_LOG="bin/${PKG_NAME}_Linux.log"
-    krsh -x $LNX_HOST  ". .bash_profile; bin/do_release  -pkg -build_only -dump  PKG=$PKG_NAME $PREC > $LNX_LOG 2>&1 &" &
-    start_status=$?
-    echo "Building packages started on Linux. See file $LNX_LOG "
-  fi
-  if ( [ $start_status -ne 0 ] ) then
-    echo " do_release on Linux failed. start_status: $start_status "
-    exit 5
-  fi
-fi
 
-   
+
 ###################################################
-# Build the PACKAGES RELEASE
+# Execute builds on specified platforms
+# NOTE:  At present, code builds must be launched
+#        manually on OpenVMS and Windows
 ###################################################
-build_pkg_status=0
+
+# Specify standard build arguments string for M.release
+
+# Always dump confguration info
+BUILD_ARGS="-dump"
+
+# Check whether to build the 3rd-party packages
 if ( [ $DO_PKG -eq 1 ] ) then
-    echo "`date`: Installing packages... gmake : ${GMAKE}"
-    ${GMAKE} -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT="" BUILD=${DO_BUILD} >> ${FULL_PKG_LOG} 2>&1
-    build_pkg_status=$?
-    echo "`date`: PACKAGES build complete;  Status = ${build_pkg_status}"
+  BUILD_ARGS="${BUILD_ARGS} -pkg"
 fi
-###########################################
-# Build the CESR RELEASE
-build_rel_status=0
+
+# Check whether to build the release
 if ( [ $DO_REL -eq 1 ] ) then
-    echo "`date`: Installing release..."
-    ${GMAKE} -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT="" BUILD=${DO_BUILD} >> ${FULL_REL_LOG} 2>&1
-    build_rel_status=$?
-    echo "`date`: CESR build complete;  Status = ${build_rel_status}"
+  BUILD_ARGS="${BUILD_ARGS} -cesr"
 fi
 
+# Add release and package specifications
+BUILD_ARGS="${BUILD_ARGS} REL=${REL_NAME} PKG=${PKG_NAME} DBL"
 
-##############################################################
-# waiting for do_release to finish on Linux 
-#  waiting time = xxx01 * 20 in seconds
-#  in each 20 seconds it checks for LNX_FILE_STATUS
-#
-if ( [ $LNX_HOST != $CURRENT_HOST -a $LNX -eq 1 ] ) then
-    xxx01=60
-    while ( [ $xxx01 -gt 0 ] ) 
-    do
-      `sleep 20`;
-      lnxstatus="`cat $LNX_FILE_STATUS`";
-      if ( [ $lnxstatus -ne 1 ] ) then
-         xxx01=0 
-      else
-         xxx01=" `expr $xxx01 - 1`"    
-      fi
-    done
-fi
 
-###############################################################
-# Final messages after  building CESR RELEASE or PACKAGES
-# tagging after successful building CESR RELEASE or PACKAGES
-###############################################################
+# Build Linux releases
+echo ""
+echo "`date`:  Launching builds..."
 if ( [ $LNX -eq 1 ] ) then
- if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 -a $lnxstatus -eq 0 ] ) then
-     echo "`date`: Installation completed successfully on Linux and ${PLATFORM_TAG} !";
-     KEY_END=0;
-     if ( [ $DO_TAG_RELEASE -eq 1 ] ) then
-        echo " Tagging with tag ${REL_NAME}";
-        gmake -f ${BIN_DIR}/M.release TAGS_NAME=${REL_NAME}  add_tag_release;
-        if ( [ $? -ne 0 ] ) then 
-                echo " Tagging failed. Code $? ";
-                exit 7
+    
+#   Build Linux_intel release
+    LINUX_INTEL_STAT=${BUILD_DIR}/log/Linux_i686_intel/${REL_NAME}.build_status
+    echo "BUILD_STATUS:  -2" > ${LINUX_INTEL_STAT}
+    LOCAL_BUILD_ARGS="${BUILD_ARGS} F90=intel"
+    krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_INTEL_STAT 2>&1 &"&  
+    echo "`date`:  Linux_intel build launched with status:  $?"
+
+#   Build Linux_lahey release
+    LINUX_LAHEY_STAT=${BUILD_DIR}/log/Linux_i686_lahey/${REL_NAME}.build_status
+    echo "BUILD_STATUS:  -2" > ${LINUX_LAHEY_STAT}
+    LOCAL_BUILD_ARGS="${BUILD_ARGS} F90=lahey"
+    krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_LAHEY_STAT 2>&1 &"&  
+    echo "`date`:  Linux_lahey build launched with status:  $?"
+fi
+
+# Build OSF1 release
+if ( [ $OSF -eq 1 ] ) then
+    OSF_HP_STAT=${BUILD_DIR}/log/OSF1_alpha_hp/${REL_NAME}.build_status
+    echo "BUILD_STATUS:  -2" > ${OSF_HP_STAT}
+    LOCAL_BUILD_ARGS="${BUILD_ARGS}"
+    krsh -x $OSF_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $OSF_HP_STAT 2>&1 &"&  
+    echo "`date`:  OSF_hp build launched with status:  $?"
+fi
+
+# Prepare OpenVMS release
+if ( [ $VMS -eq 1 ] ) then
+    VMS_PREP_STAT=${BUILD_DIR}/log/VMS_alpha_hp/${REL_NAME}.build_status
+    echo "BUILD_STATUS:  -2" > ${VMS_PREP_STAT}
+    LOCAL_BUILD_ARGS="-vms_prep ${BUILD_ARGS}"
+    krsh -x $VMS_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $VMS_PREP_STAT 2>&1 &"&  
+    echo "`date`:  VMS preparation job launched with status:  $?"
+fi
+
+# Build Windows release - NOT YET AVAILABLE
+if ( [ $WIN -eq 1 ] ) then
+    CYGWIN_INTEL_STAT=${BUILD_DIR}/log/CYGWIN_NT_i686_intel/${REL_NAME}.build_status
+    echo "BUILD_STATUS:  -2" > ${CYGWIN_INTEL_STAT}
+    echo "`date`:  Windows release must be started manually on PC6115!"
+    echo "BUILD_STATUS:  0" >> ${CYGWIN_INTEL_STAT}
+fi
+
+
+###################################################
+# Loop and check build status on all platforms
+###################################################
+max_loops=720
+sleep_seconds=60
+
+loop=0
+loop_done=0
+job_status=0
+
+while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
+
+    loop_done=1
+    job_status=0
+    echo "`date`: Loop = ${loop}   Last build status - "
+    if ( [ $LNX -eq 1 ] ) then
+        linux_intel_build=`grep "BUILD_STATUS:" $LINUX_INTEL_STAT | tail -1l | cut -d: -f2`
+        if ( [ $linux_intel_build -lt 0 ] ) then
+            loop_done=0
         fi
-        Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
-        rm $NAME_BODY_EMAIL_FILE 
-     fi
-     if ( [ $DO_TAG_PACKAGES -eq 1 ] ) then
-        echo "Tagging packages with name ${PKG_NAME}"; 
-        gmake -f ${BIN_DIR}/M.release  FULL_PKG_DIR=${FULL_PKG_NAME} TAGS_NAME=${PKG_NAME} add_tag_packages;
-        if ( [ $? -ne 0 ] ) then 
-                echo " Tagging failed. Code $? ";
-                exit 7
+        if ( [ $linux_intel_build -gt 0 ] ) then
+            job_status=10
         fi
-        Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
-        rm $NAME_BODY_EMAIL_FILE   
-     fi
-     else
-     echo "`date`: Installation completed with errors!"
- fi
+        echo "          Linux_intel :  $linux_intel_build"
+        linux_lahey_build=`grep "BUILD_STATUS:" $LINUX_LAHEY_STAT | tail -1l | cut -d: -f2`
+        if ( [ $linux_lahey_build -lt 0 ] ) then
+            loop_done=0
+        fi
+        if ( [ $linux_lahey_build -gt 0 ] ) then
+            job_status=10
+        fi
+        echo "          Linux_lahey :  $linux_lahey_build"
+    fi
+    if ( [ $OSF -eq 1 ] ) then
+        osf_hp_build=`grep "BUILD_STATUS:" $OSF_HP_STAT | tail -1l | cut -d: -f2`
+        if ( [ $osf_hp_build -lt 0 ] ) then
+            loop_done=0
+        fi
+        if ( [ $osf_hp_build -gt 0 ] ) then
+            job_status=10
+        fi
+        echo "          OSF_hp      :  $osf_hp_build"
+    fi
+    if ( [ $VMS -eq 1 ] ) then
+        vms_prep_build=`grep "BUILD_STATUS:" $VMS_PREP_STAT | tail -1l | cut -d: -f2`
+        if ( [ $vms_prep_build -lt 0 ] ) then
+            loop_done=0
+        fi
+        if ( [ $vms_prep_build -gt 0 ] ) then
+            job_status=10
+        fi
+        echo "          VMS_prep    :  $vms_prep_build" 
+    fi
+    if ( [ $WIN -eq 1 ] ) then
+        cygwin_intel_build=`grep "BUILD_STATUS:" $CYGWIN_INTEL_STAT | tail -1l | cut -d: -f2`
+        if ( [ $cygwin_intel_build -lt 0 ] ) then
+            loop_done=0
+        fi
+        if ( [ $cygwin_intel_build -gt 0 ] ) then
+            job_status=10
+        fi
+        echo "          CYGWIN_intel:  $cygwin_intel_build"
+    fi
+
+
+#   Control the loop timing at start and end
+#   Make the first 10 cycles be fast
+    if ( [ $loop -le 10 ] ) then
+        tosleep=5
+    else
+        tosleep=$sleep_seconds
+    fi
+
+#   If the job has completed, don't sleep
+    if ( [ $loop_done -eq 1 ] ) then
+        tosleep=0
+    fi
+
+#   Sleep, increment loop counter, and re-check
+    sleep ${tosleep}
+    loop=`expr ${loop} + 1`
+
+done
+
+#------------------------------------------------------
+# If all build jobs complete successfully, tag release 
+# NOTE:  Not yet enabled
+#------------------------------------------------------
+
+#------------------------
+# Print status summary
+#------------------------
+if ( [ $loop -lt $max_loops ] ) then
+    if ( [ $job_status -eq 0 ] ) then
+        echo "`date`:  Release build has completed successfully!"
+    else
+        echo "`date`:  Release build completed with ERRORS (status = ${job_status})!"
+    fi
 else
- if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 ] ) then
-     echo "`date`: Installation completed successfully on ${PLATFORM_TAG} !";
-     KEY_END=0;
-     if ( [ $LNX_HOST = $CURRENT_HOST ] ) then 
-        echo "0">$LNX_FILE_STATUS
-     fi   
-     if ( [ $DO_TAG_RELEASE -eq 1 ] ) then
-        echo " Tagging with tag ${REL_NAME}";
-        gmake -f ${BIN_DIR}/M.release TAGS_NAME=${REL_NAME}  add_tag_release;
-        if ( [ $? -ne 0 ] ) then 
-                echo " Tagging failed. Code $? ";
-                exit 7
-        fi
-        Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
-        rm $NAME_BODY_EMAIL_FILE 
-     fi
-     if ( [ $DO_TAG_PACKAGES -eq 1 ] ) then
-        echo "Tagging packages with name ${PKG_NAME}"; 
-        gmake -f ${BIN_DIR}/M.release  FULL_PKG_DIR=${FULL_PKG_NAME} TAGS_NAME=${PKG_NAME} add_tag_packages;
-        if ( [ $? -ne 0 ] ) then 
-                echo " Tagging failed. Code $? ";
-                exit 7
-        fi
-        Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
-        rm $NAME_BODY_EMAIL_FILE   
-     fi
-     else
-     echo "`date`: Installation completed with errors!"
-     if ( [ $LNX_HOST = $CURRENT_HOST ] ) then 
-        echo "2">$LNX_FILE_STATUS
-     fi 
- fi
+    echo "`date`:  Release build has TIMED OUT!"
 fi
-################################################################
-# +write permition CESR group for config/*/*
-################################################################
-if ( [ ${KEY_END} -eq 0 ] ) then
-   chmod g+w $CESR_CONFIG/*/*
-   ${use_cesr_bin}/create_fdb.pl
-fi
-#################################################################
-# Porting to VMS_alpha
-################################################################
-if ( [ ${KEY_END} -eq 0 -a ${VMS} -eq 1 ] ) then
-    if ( [ $DO_REL -eq 1 ]) then
-    gmake -f ${BIN_DIR}/M.release REL_NAME=${REL_NAME} to_vms_alpha_rel;
-    fi
-    if ( [ $DO_PKG -eq 1 ]) then
-    gmake -f ${BIN_DIR}/M.release PKG_NAME=${PKG_NAME} to_vms_alpha_pkg;
-    fi
-fi
+
 exit
 
 

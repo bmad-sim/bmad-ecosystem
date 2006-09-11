@@ -141,7 +141,7 @@ set users_file=/home/cesrulib/user_log/users.list
 set max_count=2
 while ( ${lock_count} < ${max_count} )
     if ( `filetest -e ${lock_file}` ) then
-      echo "Waiting for ACL setup lock!"
+#      echo "Waiting for ACL setup lock!"
       sleep 1
       set lock_count=`expr ${lock_count} + 1`
     else
@@ -161,6 +161,9 @@ unset max_count
 # $Id$
 #
 # $Log$
+# Revision 1.11  2006/09/11 20:47:01  cesrulib
+# Updates for new library build tree (supporting multiple compiler combinations).
+#
 # Revision 1.10  2006/08/13 22:30:43  cesrulib
 # Update with user logging.
 #

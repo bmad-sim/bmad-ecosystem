@@ -10,7 +10,7 @@
 # Usage in .profile:
 #   . /home/cesrulib/bin/cesrdefs
 # or switch to other versions of libraries and constants:
-#   CESRLIB=current; CONST=/tem/constants; PACKAGES=packages; . /home/cesrulib/bin/cesrdefs
+#   CESRLIB=current; CONST=/tem/constants; . /home/cesrulib/bin/cesrdefs
 # or define aliases in .profile, e.g.:
 #   alias cesrdefs ". /home/cesrulib/bin/cesrdefs"
 #   alias devel="CESRLIB=devel; . /home/cesrulib/bin/cesrdefs"
@@ -139,7 +139,7 @@ users_file=/home/cesrulib/user_log/users.list
 max_count=2
 while ( [ ${users_done} -eq 0 -a ${lock_count} -lt ${max_count} ] ) do
     if ( [ -f ${lock_file} ] ) then
-      echo "Waiting for ACL setup lock!"
+#      echo "Waiting for ACL setup lock!"
       sleep 1
       lock_count=`expr ${lock_count} + 1`
     else
@@ -156,9 +156,29 @@ unset users_file
 unset max_count
 
 #
+# Verify whether CESR environment setup succeeded
+# 
+#if ( [ -e ${CESR_REL} ] ) then
+#  echo "CESR setup complete for ${CESR_REL}"
+#fi
+if ( [ ! -e ${CESR_REL} ] ) then
+  echo "${CESR_REL} does NOT EXIST!!!"
+  echo ""
+  echo "**************  WARNING!!!!  **************"
+  echo "*                                         *"
+  echo "* CESR environment variable setup failed! *"  
+  echo "*  Please check your inputs to cesrdefs!  *"
+  echo "*                                         *"
+  echo "*******************************************"
+fi
+
+#
 # $Id$
 #
 # $Log$
+# Revision 1.11  2006/09/11 20:47:01  cesrulib
+# Updates for new library build tree (supporting multiple compiler combinations).
+#
 # Revision 1.10  2006/08/13 22:31:42  cesrulib
 # Update with user logging.
 #
