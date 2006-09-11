@@ -402,7 +402,7 @@ case ('show')
     open (iu, file = cmd_word(1))
     call output_direct (iu)
     call tao_show_cmd (cmd_word(2), cmd_word(3))
-    call output_mod(0)
+    call output_direct(0)
     close (iu)
     call out_io (s_blank$, r_name, 'Output written to file: ' // cmd_word(1))
     return
