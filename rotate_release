@@ -2,8 +2,8 @@
 #
 #-------------------------------------------------------------------------
 #
-# This is the master script to rotate code releases across the  
-# supported computer systems at CLASSE.  
+# This is the master script to rotate filesystem links to the code 
+# releases across the supported computer systems at CLASSE.  
 # 
 # Supporting scripts:  - M.release makefile
 #                      - build_release script to execute individual builds
@@ -20,14 +20,27 @@
 #         flags:
 #          -current       Rotate CURRENT release
 #          -devel         Rotate DEVEL release (DEFAULT)
+#          -nightly       Rotate NIGHTLY release
 #
 # examples: Update the DEVEL release -
-#           rotate_release cesr_2003_0728_d
+#             rotate_release cesr_2003_0728_d
 #           Update the CURRENT release -
-#           rotate_release -current cesr_2003_0728_d
+#             rotate_release -current cesr_2003_0728_d
+#           Update the NIGHTLY release - will most often be used
+#                                        in an automated fashion.
+#             rotate_release -nightly cesr_2006_0912_d
+#             
+################################################################
+#
+# $Id$
+#
+# $Log$
+# Revision 1.2  2006/09/12 17:13:10  cesrulib
+# Added nightly release rotation functionality
+#       RCS Id and Log keywords to comments
+#
 #
 ################################################################
-
 #---------------------------------+
 # Set up some internal functions  |
 #---------------------------------+
@@ -43,6 +56,7 @@ myprint_help () {
     echo "Options:"
     echo "   -current            Flag to rotate CURRENT release"
     echo "   -devel              Flag to rotate DEVEL release"
+    echo "   -nightly            Flag to rotate NIGHTLY release"
 }
 
 
@@ -61,6 +75,7 @@ devel_idx_file=${BASE_DIRECTORY}/devel.index
 REL=""
 ROTATE_DEVEL=1
 ROTATE_CURRENT=0
+ROTATE_NIGHTLY=0
 
 # Get inputs
 arg_list=""
@@ -69,6 +84,7 @@ do arg_list="${arg_list} ${i}";
    case $i in
      "-current" ) ROTATE_CURRENT=1;;
      "-devel"   ) ROTATE_DEVEL=1  ;;
+     "-nightly" ) ROTATE_NIGHTLY=1;;
      cesr_*     ) REL=`echo $i`;;
      *          ) myprint_help;
      exit 1;;
@@ -122,7 +138,6 @@ if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
   devel_old="devel_${devel_index}"
 fi
 
-
 # Rotate specified release
 #echo "Starting rotation"
 for dir in ${BASE_AREA_LIST}; do
@@ -139,6 +154,12 @@ for dir in ${BASE_AREA_LIST}; do
     mv -f devel ${devel_old}
     ln -s ${REL} devel
   fi
+  if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
+    present_rel=`ls -l nightly | cut -d\> -f2`
+      rm -fv nightly
+      ln -s ${REL} nightly
+    fi 
+  fi
 done
 
 
@@ -151,6 +172,12 @@ if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
 fi
 if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
   echo "DEVEL Release Rotation for:  ${BASE_AREA_LIST}" 
+  echo ""
+  echo "OLD:  ${present_rel}  -->   NEW:  ${REL}"
+  echo ""
+fi
+if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
+  echo "NIGHTLY Release Rotation for:  ${BASE_AREA_LIST}"
   echo ""
   echo "OLD:  ${present_rel}  -->   NEW:  ${REL}"
   echo ""
