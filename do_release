@@ -34,6 +34,7 @@
 #          -lnx           Run Linux builds
 #          -vms           Prepare release for transfer to VMS_alpha
 #          -win           Automatic windows builds not yet operational
+#          -nobs          Suppress periodic build-status messages (Default: NO)
 #          
 #         variables:
 #           REL=<release_name>  Specify a specific CESR release
@@ -62,6 +63,11 @@
 # $Id$
 #
 # $Log$
+# Revision 1.18  2006/09/12 19:51:08  cesrulib
+# Added command-line option '-nobs' to suppress voluminous build status
+# messages (useful when script's output is directed to something other
+# than a tty).
+#
 # Revision 1.17  2006/09/12 13:24:23  cesrulib
 # Added kinit incantation to allow unattended builds.
 #
@@ -95,6 +101,7 @@ myprint_help () {
     echo "   -lnx                Remote exec linux builds"
     echo "   -vms                Prepare VMS build for transfer"
     echo "   -win                Remote exec of Windows build not yet operational"
+    echo "   -nobs               Suppress periodic build-status messages."
     echo ""
     echo "Variable definitions:"
     echo "   REL=<release_name>  Specify a custom CESR release name"
@@ -154,6 +161,7 @@ DO_PKG=0
 DO_CHECKOUT="do_checkout"
 DO_BUILD="do_build"
 DO_DUMP=0
+SHOW_STATUS=1
 GMAKE_OVERRIDE=0
 UTIL_OVERRIDE=0
 use_cesr_bin=/home/cesrulib/bin
@@ -211,6 +219,7 @@ do arg_list="${arg_list} ${i}";
      "-lnx"     ) LNX=1; KINIT_CHECK=1;;
      "-vms"     ) VMS=1; KINIT_CHECK=1;;
      "-win"     ) WIN=1; KINIT_CHECK=1;;
+     "-nobs"    ) SHOW_STATUS=0 ;;
      TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
@@ -354,6 +363,7 @@ if ( [ $DO_DUMP -eq 1 ] ) then
     echo "PATH              = ${PATH} "
     echo "BIN_DIR           = ${BIN_DIR}"
     echo "KINIT_CHECK       = ${KINIT_CHECK}"
+    echo "SHOW_STATUS       = %{SHOW_STATUS}"
 fi
 
 # Print the CESR environment variables
@@ -484,7 +494,9 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
 
     loop_done=1
     job_status=0
-    echo "`date`: Loop = ${loop}   Last build status - "
+    if ( [ $SHOW_STATUS -eq 1 ] ) then
+      echo "`date`: Loop = ${loop}   Last build status - "
+    fi
     if ( [ $LNX -eq 1 ] ) then
         linux_intel_build=`grep "BUILD_STATUS:" $LINUX_INTEL_STAT | tail -1l | cut -d: -f2`
         if ( [ $linux_intel_build -lt 0 ] ) then
@@ -493,7 +505,9 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
         if ( [ $linux_intel_build -gt 0 ] ) then
             job_status=10
         fi
-        echo "          Linux_intel :  $linux_intel_build"
+        if ( [ $SHOW_STATUS -eq 1 ] ) then
+          echo "          Linux_intel :  $linux_intel_build"
+        fi
         linux_lahey_build=`grep "BUILD_STATUS:" $LINUX_LAHEY_STAT | tail -1l | cut -d: -f2`
         if ( [ $linux_lahey_build -lt 0 ] ) then
             loop_done=0
@@ -501,7 +515,9 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
         if ( [ $linux_lahey_build -gt 0 ] ) then
             job_status=10
         fi
-        echo "          Linux_lahey :  $linux_lahey_build"
+        if ( [ $SHOW_STATUS -eq 1 ] ) then
+          echo "          Linux_lahey :  $linux_lahey_build"
+        fi
     fi
     if ( [ $OSF -eq 1 ] ) then
         osf_hp_build=`grep "BUILD_STATUS:" $OSF_HP_STAT | tail -1l | cut -d: -f2`
@@ -511,7 +527,9 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
         if ( [ $osf_hp_build -gt 0 ] ) then
             job_status=10
         fi
-        echo "          OSF_hp      :  $osf_hp_build"
+        if ( [ $SHOW_STATUS -eq 1 ] ) then
+          echo "          OSF_hp      :  $osf_hp_build"
+        fi
     fi
     if ( [ $VMS -eq 1 ] ) then
         vms_prep_build=`grep "BUILD_STATUS:" $VMS_PREP_STAT | tail -1l | cut -d: -f2`
@@ -521,7 +539,9 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
         if ( [ $vms_prep_build -gt 0 ] ) then
             job_status=10
         fi
-        echo "          VMS_prep    :  $vms_prep_build" 
+        if ( [ $SHOW_STATUS -eq 1 ] ) then
+          echo "          VMS_prep    :  $vms_prep_build" 
+        fi
     fi
     if ( [ $WIN -eq 1 ] ) then
         cygwin_intel_build=`grep "BUILD_STATUS:" $CYGWIN_INTEL_STAT | tail -1l | cut -d: -f2`
@@ -531,7 +551,9 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
         if ( [ $cygwin_intel_build -gt 0 ] ) then
             job_status=10
         fi
-        echo "          CYGWIN_intel:  $cygwin_intel_build"
+        if ( [ $SHOW_STATUS -eq 1 ] ) then
+          echo "          CYGWIN_intel:  $cygwin_intel_build"
+        fi
     fi
 
 
