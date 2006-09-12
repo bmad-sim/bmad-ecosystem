@@ -35,6 +35,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.3  2006/09/12 18:26:42  cesrulib
+# Fixed bug where devel rotation would always occur even if a current or nightly flag was used.
+#
 # Revision 1.2  2006/09/12 17:13:10  cesrulib
 # Added nightly release rotation functionality
 #       RCS Id and Log keywords to comments
@@ -82,9 +85,9 @@ arg_list=""
 for i 
 do arg_list="${arg_list} ${i}";
    case $i in
-     "-current" ) ROTATE_CURRENT=1;;
-     "-devel"   ) ROTATE_DEVEL=1  ;;
-     "-nightly" ) ROTATE_NIGHTLY=1;;
+     "-current" ) ROTATE_CURRENT=1; ROTATE_DEVEL=0;;
+     "-devel"   ) ROTATE_DEVEL=1;;
+     "-nightly" ) ROTATE_NIGHTLY=1; ROTATE_DEVEL=0;;
      cesr_*     ) REL=`echo $i`;;
      *          ) myprint_help;
      exit 1;;
@@ -157,8 +160,7 @@ for dir in ${BASE_AREA_LIST}; do
   if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
     present_rel=`ls -l nightly | cut -d\> -f2`
       rm -fv nightly
-      ln -s ${REL} nightly
-    fi 
+      ln -s ${REL} nightly 
   fi
 done
 
