@@ -35,8 +35,8 @@
 # $Id$
 #
 # $Log$
-# Revision 1.4  2006/09/13 17:16:57  cesrulib
-# Input flag addition and tweaks.
+# Revision 1.5  2006/09/13 17:27:37  cesrulib
+# *** empty log message ***
 #
 # Revision 1.3  2006/09/12 18:26:42  cesrulib
 # Fixed bug where devel rotation would always occur even if a current or nightly flag was used.
@@ -80,7 +80,6 @@ devel_idx_file=${BASE_DIRECTORY}/devel.index
 # Set default inputs
 REL=""
 ROTATE_DEVEL=1
-ROTATE_DEVEL=0
 ROTATE_CURRENT=0
 ROTATE_NIGHTLY=0
 
