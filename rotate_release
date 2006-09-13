@@ -35,6 +35,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.4  2006/09/13 17:16:57  cesrulib
+# Input flag addition and tweaks.
+#
 # Revision 1.3  2006/09/12 18:26:42  cesrulib
 # Fixed bug where devel rotation would always occur even if a current or nightly flag was used.
 #
@@ -77,6 +80,7 @@ devel_idx_file=${BASE_DIRECTORY}/devel.index
 # Set default inputs
 REL=""
 ROTATE_DEVEL=1
+ROTATE_DEVEL=0
 ROTATE_CURRENT=0
 ROTATE_NIGHTLY=0
 
@@ -142,7 +146,7 @@ if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
 fi
 
 # Rotate specified release
-#echo "Starting rotation"
+echo "Rotating links..."
 for dir in ${BASE_AREA_LIST}; do
   BASE_DIR=${BASE_DIRECTORY}/${dir}
   cd ${BASE_DIR}
@@ -159,11 +163,11 @@ for dir in ${BASE_AREA_LIST}; do
   fi
   if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
     present_rel=`ls -l nightly | cut -d\> -f2`
-      rm -fv nightly
+      rm -fv nightly > /dev/null
       ln -s ${REL} nightly 
   fi
 done
-
+echo "Done."
 
 # Print out rotation summary
 if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then

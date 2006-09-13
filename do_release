@@ -34,7 +34,9 @@
 #          -lnx           Run Linux builds
 #          -vms           Prepare release for transfer to VMS_alpha
 #          -win           Automatic windows builds not yet operational
-#          -nobs          Suppress periodic build-status messages (Default: NO)
+#          -nobs          Suppress periodic build-status messages
+#          -ntly          Will run as a nightly build, rotating the library
+#                          links after completion.
 #          
 #         variables:
 #           REL=<release_name>  Specify a specific CESR release
@@ -63,6 +65,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.19  2006/09/13 17:16:57  cesrulib
+# Input flag addition and tweaks.
+#
 # Revision 1.18  2006/09/12 19:51:08  cesrulib
 # Added command-line option '-nobs' to suppress voluminous build status
 # messages (useful when script's output is directed to something other
@@ -102,6 +107,7 @@ myprint_help () {
     echo "   -vms                Prepare VMS build for transfer"
     echo "   -win                Remote exec of Windows build not yet operational"
     echo "   -nobs               Suppress periodic build-status messages."
+    echo "   -ntly               Nightly build, rotate library links when done"
     echo ""
     echo "Variable definitions:"
     echo "   REL=<release_name>  Specify a custom CESR release name"
@@ -162,6 +168,7 @@ DO_CHECKOUT="do_checkout"
 DO_BUILD="do_build"
 DO_DUMP=0
 SHOW_STATUS=1
+NIGHTLY=0
 GMAKE_OVERRIDE=0
 UTIL_OVERRIDE=0
 use_cesr_bin=/home/cesrulib/bin
@@ -220,6 +227,7 @@ do arg_list="${arg_list} ${i}";
      "-vms"     ) VMS=1; KINIT_CHECK=1;;
      "-win"     ) WIN=1; KINIT_CHECK=1;;
      "-nobs"    ) SHOW_STATUS=0 ;;
+     "-ntly"    ) NIGHTLY=1;;
      TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
@@ -363,7 +371,8 @@ if ( [ $DO_DUMP -eq 1 ] ) then
     echo "PATH              = ${PATH} "
     echo "BIN_DIR           = ${BIN_DIR}"
     echo "KINIT_CHECK       = ${KINIT_CHECK}"
-    echo "SHOW_STATUS       = %{SHOW_STATUS}"
+    echo "SHOW_STATUS       = ${SHOW_STATUS}"
+    echo "NIGHTLY           = ${NIGHTLY}"
 fi
 
 # Print the CESR environment variables
@@ -593,6 +602,15 @@ if ( [ $loop -lt $max_loops ] ) then
 else
     echo "`date`:  Release build has TIMED OUT!"
 fi
+
+####################################################
+# If this is a nightly build, call the 
+# rotate_release script using appropriate arguments
+####################################################
+if ( [ $NIGHTLY -eq 1 ] ) then
+    /home/cesrulib/bin/util/rotate_release -nightly ${REL_NAME}
+fi
+
 
 exit
 
