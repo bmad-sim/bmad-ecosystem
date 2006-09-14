@@ -65,6 +65,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.20  2006/09/14 18:42:04  cesrulib
+# Tweaked error checking for rotation
+#
 # Revision 1.19  2006/09/13 17:16:57  cesrulib
 # Input flag addition and tweaks.
 #
@@ -124,6 +127,7 @@ myprint_help () {
 # Function to generate unique release names
 get_release_name () {
     FULL_RNAME=${BUILD_DIR}/${BASE_TAG}/${RNAME}
+
 
 #   Determine whether an index tag is needed to 
 #   insure a unique release name
@@ -604,32 +608,14 @@ else
 fi
 
 ####################################################
-# If this is a nightly build, call the 
-# rotate_release script using appropriate arguments
+# If this is a nightly build, has completed
+# without errors, and has not completed by timing
+# out, call the rotate_release script using 
+# appropriate arguments.
 ####################################################
-if ( [ $NIGHTLY -eq 1 ] ) then
+if ( [ $NIGHTLY -eq 1 ] && [ $job_status -eq 0 ] && [ $loop -lt $max_loops ] ) then
     /home/cesrulib/bin/util/rotate_release -nightly ${REL_NAME}
 fi
 
 
 exit
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
