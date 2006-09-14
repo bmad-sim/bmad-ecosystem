@@ -35,6 +35,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.6  2006/09/14 18:42:55  cesrulib
+# Aesthetic changes to output
+#
 # Revision 1.5  2006/09/13 17:27:37  cesrulib
 # *** empty log message ***
 #
@@ -97,6 +100,7 @@ do arg_list="${arg_list} ${i}";
    esac
 done
 
+echo ""
 echo "rotate_release - called with the following arguments:  "
 echo "${arg_list}" 
 echo ""
