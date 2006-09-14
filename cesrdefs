@@ -108,12 +108,12 @@ fi
 # Add hook to support OLD style of environment variables
 # Unset variable when done
 #
-CESR_ENV_OLD=${CESR_ENV_OLD:+T}
-if ( [ "${CESR_ENV_OLD}" = "T" ] ) then
-  CESR_LIB=${CESR_REL}
-  export CESR_LIB
-fi
-unset CESR_ENV_OLD
+#CESR_ENV_OLD=${CESR_ENV_OLD:+T}
+#if ( [ "${CESR_ENV_OLD}" = "T" ] ) then
+#  CESR_LIB=${CESR_REL}
+#  export CESR_LIB
+#fi
+#unset CESR_ENV_OLD
 
 #
 # Now unset all override variables that, by default, use a 
@@ -161,8 +161,20 @@ unset max_count
 #if ( [ -e ${CESR_REL} ] ) then
 #  echo "CESR setup complete for ${CESR_REL}"
 #fi
-if ( [ ! -e ${CESR_REL} ] ) then
-  echo "${CESR_REL} does NOT EXIST!!!"
+#if ( [ ! -e ${CESR_REL} ] ) then
+#  echo "${CESR_REL} does NOT EXIST!!!"
+#  echo ""
+#  echo "**************  WARNING!!!!  **************"
+#  echo "*                                         *"
+#  echo "* CESR environment variable setup failed! *"  
+#  echo "*  Please check your inputs to cesrdefs!  *"
+#  echo "*                                         *"
+#  echo "*******************************************"
+#fi
+
+if ( [ -z "${CESR_REL}" ] && [ -z "${CESR_F90}" ] ) then
+  echo "The critical variables CESR_REL and/or CESR_F90$"
+  echo "            have not been set!"
   echo ""
   echo "**************  WARNING!!!!  **************"
   echo "*                                         *"
@@ -176,6 +188,10 @@ fi
 # $Id$
 #
 # $Log$
+# Revision 1.12  2006/09/14 20:50:38  cesrulib
+# Fixed setup-failed check, commented out hook
+# to old-style env. vars.
+#
 # Revision 1.11  2006/09/11 20:47:01  cesrulib
 # Updates for new library build tree (supporting multiple compiler combinations).
 #
