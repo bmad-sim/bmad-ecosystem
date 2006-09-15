@@ -138,7 +138,8 @@ users_done=0
 users_file=/home/cesrulib/user_log/users.list
 max_count=2
 while ( [ ${users_done} -eq 0 -a ${lock_count} -lt ${max_count} ] ) do
-    if ( [ -f ${lock_file} ] ) then
+    if ( [ -f ${lock_file} ] ) then  # make two attempts then let the set up
+                                     # continue without logging the username?
 #      echo "Waiting for ACL setup lock!"
       sleep 1
       lock_count=`expr ${lock_count} + 1`
@@ -188,6 +189,9 @@ fi
 # $Id$
 #
 # $Log$
+# Revision 1.13  2006/09/15 21:33:17  cesrulib
+# Error-checking and documentation adjustments
+#
 # Revision 1.12  2006/09/14 20:50:38  cesrulib
 # Fixed setup-failed check, commented out hook
 # to old-style env. vars.
