@@ -21,6 +21,8 @@
 #          -current       Rotate CURRENT release
 #          -devel         Rotate DEVEL release (DEFAULT)
 #          -nightly       Rotate NIGHTLY release
+#          -mail          Send notification to the 
+#                          cesr-code-l list upon rotation
 #
 # examples: Update the DEVEL release -
 #             rotate_release cesr_2003_0728_d
@@ -35,6 +37,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.7  2006/09/18 19:17:44  cesrulib
+# Added '-mail' flag to notify mailing list of release rotations.
+#
 # Revision 1.6  2006/09/14 18:42:55  cesrulib
 # Aesthetic changes to output
 #
@@ -66,6 +71,7 @@ myprint_help () {
     echo "   -current            Flag to rotate CURRENT release"
     echo "   -devel              Flag to rotate DEVEL release"
     echo "   -nightly            Flag to rotate NIGHTLY release"
+    echo "   -mail               Send notification to the cesr-code-l listserv"
 }
 
 
@@ -80,11 +86,14 @@ BASE_AREA_LIST="OSF1_alpha_hp Linux_i686_intel Linux_i686_lahey"
 current_idx_file=${BASE_DIRECTORY}/current.index
 devel_idx_file=${BASE_DIRECTORY}/devel.index
 
+
 # Set default inputs
 REL=""
 ROTATE_DEVEL=1
 ROTATE_CURRENT=0
 ROTATE_NIGHTLY=0
+REL_TYPE=""
+MAIL=0
 
 # Get inputs
 arg_list=""
@@ -94,6 +103,7 @@ do arg_list="${arg_list} ${i}";
      "-current" ) ROTATE_CURRENT=1; ROTATE_DEVEL=0;;
      "-devel"   ) ROTATE_DEVEL=1;;
      "-nightly" ) ROTATE_NIGHTLY=1; ROTATE_DEVEL=0;;
+     "-mail"    ) MAIL=1;;
      cesr_*     ) REL=`echo $i`;;
      *          ) myprint_help;
      exit 1;;
@@ -172,26 +182,47 @@ for dir in ${BASE_AREA_LIST}; do
 done
 echo "Done."
 
+
 # Print out rotation summary
 if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
-  echo "CURRENT Release Rotation for:  ${BASE_AREA_LIST}" 
-  echo ""
-  echo "OLD:  ${present_rel}  -->   NEW:  ${REL}"
-  echo ""
+  echo "CURRENT Release Rotation for:  ${BASE_AREA_LIST}"
+  REL_TYPE="CURRENT"
 fi
 if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
-  echo "DEVEL Release Rotation for:  ${BASE_AREA_LIST}" 
-  echo ""
-  echo "OLD:  ${present_rel}  -->   NEW:  ${REL}"
-  echo ""
+  echo "DEVEL Release Rotation for:  ${BASE_AREA_LIST}"
+  REL_TYPE="-DEVEL-"
 fi
 if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
   echo "NIGHTLY Release Rotation for:  ${BASE_AREA_LIST}"
+  REL_TYPE="NIGHTLY"
+fi
   echo ""
   echo "OLD:  ${present_rel}  -->   NEW:  ${REL}"
   echo ""
-fi
 
+if ( [ ${MAIL} -eq 1 ] ) then
+  echo "Mailing notification message to LIST: cesr-code-l@mail.lns.cornell.edu."
+  echo "Hello Everyone,
+ 
+A release has been updated on the Unix/Linux platforms indicated below.
+
+    --Matt
+
+--------------------------------------------------------------------------------
+
+ ${REL_TYPE} Release Rotation for:  ${BASE_AREA_LIST}
+
+ OLD:  ${present_rel}  -->   NEW:  ${REL}
+
+--------------------------------------------------------------------------------
+Accelerator Code Support Links -
+Documentation  : https://wiki.lepp.cornell.edu/lepp/bin/view/CESR/ACL/WebHome
+Bug Reports    : cesr-libraries@rt.lepp.cornell.edu
+Librarian Email: cesrulib@mail.lepp.cornell.edu" > mail_tempfile
+
+mail -s "Accelerator Libraries Rotation" mcr@mail.lepp.cornell.edu < mail_tempfile
+rm -f mail_tempfile
+fi
 
 # Should tag releases here....
 
