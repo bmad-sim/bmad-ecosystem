@@ -2,7 +2,8 @@
 ! Final optimization was done with lrbbi current at 2.2mA
 ! The sextupoles were re-optimized without lrbbi afterwards
 !+
-! Mon Aug 21 08:17:44 2006 => Documented by latdoc.
+! Mon Sep 18 14:12:48 2006 => Documented by latdoc.
+! Beam energy is 1.843 GeV
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.54	9.57	210.6	221.1	133.4	
 ! e-	0.53	0.57	208.5	221.1	141.0	
@@ -24,6 +25,11 @@
 ! Peak Arc Betas: e+ Bx:42.9 By:45.5   e- Bx:45.1 By:45.4
 ! H_Sep Bx: 08w:21.71  08e:21.71  45w:16.32  45e:16.32
 ! V_Sep By: 48w:8.85  48e:8.85
+! sc wiggler beta y's (1_14 -> 3_18):
+! e+ west: 16.24   8.09  28.04  10.08  16.59  20.65
+! e- west: 12.66   5.60  41.98  10.33  14.77  16.66
+! e+ east: 19.30  11.93  31.98   5.64  10.86  15.39
+! e- east: 22.34  15.11  21.35   4.50  10.73  17.18
 !
 ! 9x5 info: Pr_apert:4.22e-02  Effic:0.52  I_bunch:3.07  B_param_i:2.33
 ! Worst x disp e+:-1.87e-02  at: Q14W, 	e-:1.94e-02 at: Q34W

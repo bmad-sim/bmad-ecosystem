@@ -3,10 +3,11 @@
 ! while getting beta h* the same.
 ! Now including IP_L0 in the lrbbi calculation.
 !+
-! Tue Apr 25 16:16:12 2006 => Documented by latdoc.
-! 				Emittance(nm rad)
-! Qx	Qy	Fx	Fy	e+	e-
-! 10.55	9.60	214.5	234.4	89.6	83.8
+! Mon Sep 18 14:19:01 2006 => Documented by latdoc.
+! Beam energy is 5.289 GeV
+! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
+! e+	10.55	9.60	214.5	234.4	88.9	
+! e-	0.55	0.60	215.2	234.1	83.2	
 !
 ! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)
 ! 1.71	0.0233	0.683	-0.017	-0.052	0.014	-1.959
@@ -26,14 +27,16 @@
 ! H_Sep Bx: 08w:16.87  08e:16.87  45w:16.17  45e:16.17
 ! V_Sep By: 48w:12.49  48e:12.49
 !
-! 9x5 info: Pr_apert:3.84e-02  Effic:0.43  I_bunch:9.61  B_param_i:9.80
-! Worst e+ x disp:-1.83e-02  at: Q34W
-! 34w: e+ Bx:34.21  e- Bx:27.25  e+ Eta:2.94   Ring sigma_sep:7.35
+! 9x5 info: Pr_apert:3.84e-02  Effic:0.43  I_bunch:9.61  B_param_i:9.84
+! Worst x disp e+:-1.83e-02  at: Q34W, 	e-:-1.87e-02 at: Q18W
+! 34w: e+ Bx:34.21  e- Bx:27.25  e+ Eta:2.94   Ring sigma_sep:7.37
 ! 34e: e+ Bx:32.53  e- Bx:40.33  e- Eta:2.60
 !
 ! Full turn 4x4 det: 0.36  Momentum_comp: 1.07e-02
 ! sync_beta_path x:0.0e+00  y:0.0e+00  _volt x:-4.8e-10  y:-5.6e-08
-! max dbeta(dE) x:22.34 y:42.30  dbeta(dPretz) x:1.64e-01 y:1.86e-01
+! Qs-2Qx Mag  e+: 7.87   e-: 10.78
+! *IP*  dbeta(dE) x:13.38 y:-21.86  dbeta(dPretz) x:3.25e-02 y:9.74e-03
+! *max* dbeta(dE) x:22.34 y:42.30  dbeta(dPretz) x:1.64e-01 y:1.86e-01
 ! Chrom x:0.95  y:0.60    Tonality x:0.29  y:0.18
 !-
 
