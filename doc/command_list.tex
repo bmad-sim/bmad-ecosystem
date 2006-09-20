@@ -805,29 +805,33 @@ use the command \vn{show lattice custom <file_name>}. The custimization
 file looks like:
 \begin{example}
   &custom_show_lat
-    format = "(i6, 1x, a24, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3)"
-    column(1) = "index"
-    column(2) = "name"
-    column(3) = "key"
-    column(4) = "s"
-    column(5) = "beta_a"
+    column(1) = "index",   "i6",     7 
+    column(2) = "name",    "a24",   25
+    column(3) = "key",     "a16",   16
+    column(4) = "s",       "f10.3", 10
+    column(5) = "beta_a",  "f7.2",   7
+    column(6) = "orbit_x", "3p, f8.3", 8   ! "3p" -> convert meters to mm.
   /
 \end{example}
-Possible columns are:
+each \vn{column(1)} has three components. The first component is what is to be 
+displayed in that column. Possibilities are:
 \begin{example}
-  index             ! Index nuber of element.
-  name              ! Name of element.
-  key               ! Type of element (quadrupole, etc.)
-  s                 ! Longitudinal position.
-  beta_a  beta_b    ! Twiss beta functions.
-  alpha_a alpha_b   ! Twiss alpha functions.
-  pha_a   phi_b     ! Betatron phase.
-  eta_a   eta_b     ! Dispersion functions.
-  etap_a  etap_b    ! Dispersion derivatives.
-  orbit_x, orbit_px ! Horizontal position and momentum deviation.
-  orbit_y, orbit_py ! Horizontal position and momentum deviation.
-  orbit_z, orbit_pz ! Horizontal position and momentum deviation.
+  index              ! Index nuber of element.
+  name               ! Name of element.
+  key                ! Type of element (quadrupole, etc.)
+  s                  ! Longitudinal position.
+  beta_a,  beta_b    ! Twiss beta functions.
+  alpha_a, alpha_b   ! Twiss alpha functions.
+  pha_a,   phi_b     ! Betatron phase.
+  eta_a,   eta_b     ! Dispersion functions.
+  etap_a,  etap_b    ! Dispersion derivatives.
+  orbit_x, orbit_px  ! Horizontal position and momentum deviation.
+  orbit_y, orbit_py  ! Horizontal position and momentum deviation.
+  orbit_z, orbit_pz  ! Horizontal position and momentum deviation.
 \end{example}
+The second component is the Fortran edit descriptor. The third column is the total
+width of the field.
+
 
   \item[show optimizer]
 Shows information pertinent to optimization: Data and variables used, etc.

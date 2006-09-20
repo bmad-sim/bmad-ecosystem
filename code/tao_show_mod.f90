@@ -5,7 +5,7 @@
 !
 ! Input:
 !   what  -- Character(*): What to show.
-!   stuff -- Character(*): ParticularStuff to show.
+!   stuff -- Character(*): Particular stuff to show.
 !-
 
 module tao_show_mod
@@ -43,6 +43,14 @@ type (ele_struct), pointer :: ele
 type (coord_struct) orb
 type (ele_struct) ele3
 
+type show_lat_column_struct
+  character(16) name
+  character(16) format
+  integer field_width
+end type
+
+type (show_lat_column_struct) column(40)
+
 real(rp) f_phi, s_pos, l_lat
 real(rp) :: delta_e = 0
 
@@ -54,6 +62,7 @@ character(8) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(100), pointer :: ptr_lines(:)
 character(100) file_name
+character(200) stuff2
 character(40) ele_name, name, sub_name
 character(60) nam
 
@@ -63,11 +72,11 @@ character(16) :: show_names(14) = (/ &
    'write       ', 'hom         ', 'opt_vars    ', 'universe    ' /)
 
 character(200), allocatable, save :: lines(:)
-character(200) line1, line2, line3
+character(200) line, line1, line2, line3
 character(9) angle
 
 integer :: data_number, ix_plane
-integer nl, loc, ixl, iu, nc, n_size, ix_u, ios
+integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju
 integer num_locations
 integer, allocatable, save :: ix_ele(:)
@@ -76,6 +85,8 @@ logical err, found, at_ends, first_time
 logical show_all, name_found
 logical, automatic :: picked(size(s%u))
 logical, allocatable :: show_here(:)
+
+namelist / custom_show_list / column
 
 !
 
@@ -553,21 +564,55 @@ case ('lattice')
     return
   endif
 
-  if (index('middle', trim(word(1))) == 1) then
-    at_ends = .false.
-    word(1) = word(2)
-    word(2) = ' '
-    if (word(1) == ' ') word(1) = 'all'
-  else
-    at_ends = .true.
-  endif
-  
+! Here to show info on particular elements
+
+  column(:)%name = ""
+  column(1)  = show_lat_column_struct("index",   "i6",     7)
+  column(2)  = show_lat_column_struct("name",    "a24",   25)
+  column(3)  = show_lat_column_struct("key",     "a16",   16)
+  column(4)  = show_lat_column_struct("s",       "f10.3", 10)
+  column(5)  = show_lat_column_struct("beta_a",  "f7.2",   7)
+  column(6)  = show_lat_column_struct("phi_a",   "f8.3",   8)
+  column(7)  = show_lat_column_struct("eta_a",   "f5.1",   5)
+  column(8)  = show_lat_column_struct("orbit_x", "3p, f8.3",   8)
+  column(9)  = show_lat_column_struct("beta_b",  "f7.2",   7)
+  column(10) = show_lat_column_struct("phi_b",   "f8.3",   8)
+  column(11) = show_lat_column_struct("eta_b",   "f5.1",   5)
+  column(12) = show_lat_column_struct("orbit_y", "3p, f8.3",   8)
+
+  call string_trim(stuff, stuff2, ix)
+  at_ends = .true.
   allocate (show_here(0:u%model%lat%n_ele_max))
-  if (word(1) == 'all') then
+
+  do
+    if (stuff2(1:ix) == 'middle') then
+      call string_trim(stuff2(ix+1:), stuff2, ix)
+      at_ends = .false.
+    elseif (stuff2(1:ix) == 'custom') then
+      call string_trim(stuff2(ix+1:), stuff2, ix)
+      file_name = stuff2(1:ix)
+      call string_trim(stuff2(ix+1:), stuff2, ix)
+      iu = lunget()
+      open (iu, file = file_name, status = 'old', iostat = ios)
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // file_name)
+        return
+      endif
+      column(:)%name = ""
+      read (iu, nml = custom_show_list, iostat = ios)
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'CANNOT READ "CUSTOM_SHOW_LIST" NAMELIST IN FILE: ' // file_name)
+        return
+      endif
+    else
+      exit
+    endif
+  enddo
+  
+  if (ix == 0 .or. stuff2(1:ix) == 'all') then
     show_here = .true.
   else
-    word(2) = trim(word(1)) // ' ' // trim(word(2))
-    call location_decode (word(2), show_here, 0, num_locations)
+    call location_decode (stuff2, show_here, 0, num_locations)
     if (num_locations .eq. -1) then
       call out_io (s_error$, r_name, "Syntax error in range list!")
       deallocate(show_here)
@@ -583,47 +628,163 @@ case ('lattice')
     write (line1, '(6x, a)') 'Model values at Center of Element:'
   endif
 
-
-  write (line2, '(59x, a)') &
-                     '|              X           |             Y        '
-  write (line3, '(6x, a, 16x, a)') ' Name                     key', &
-                  '   S    |  Beta   Phi   Eta  Orb   | Beta    Phi    Eta   Orb'
+  ix = 1
+  line2 = ""
+  line3 = ""
+  do i = 1, size(column)
+    if (column(i)%name == "") exit
+    ix2 = ix + column(i)%field_width
+    select case (column(i)%name)
+    case ("index")
+      line2(ix:) = "Index" 
+    case ("name")
+      line2(ix:) = "Name" 
+    case ("key")
+      line2(ix:) = "key" 
+    case ("s")
+      line2(ix2-3:) = "S" 
+    case ("beta_a")
+      line2(ix2-4:) = "Beta" 
+      line3(ix2-4:) = "  A "
+    case ("beta_b")
+      line2(ix2-4:) = "Beta" 
+      line3(ix2-4:) = "  B "
+    case ("alpha_a")
+      line2(ix2-5:) = "Alpha" 
+      line3(ix2-5:) = "   A "
+    case ("alpha_b")
+      line2(ix2-5:) = "Alpha" 
+      line3(ix2-5:) = "   B "
+    case ("phi_a")
+      line2(ix2-3:) = "Phi" 
+      line3(ix2-3:) = " A "
+    case ("phi_b")
+      line2(ix2-3:) = "Phi" 
+      line3(ix2-3:) = " B "
+    case ("eta_a")
+      line2(ix2-3:) = "Eta" 
+      line3(ix2-3:) = " A "
+    case ("eta_b")
+      line2(ix2-3:) = "Eta" 
+      line3(ix2-3:) = " B "
+    case ("etap_a")
+      line2(ix2-4:) = "Etap" 
+      line3(ix2-4:) = "  A "
+    case ("etap_b")
+      line2(ix2-4:) = "Etap" 
+      line3(ix2-4:) = "  B "
+    case ("orbit_x")
+      line2(ix2-5:) = "Orbit" 
+      line3(ix2-5:) = "   X "
+    case ("orbit_px")
+      line2(ix2-5:) = "Orbit" 
+      line3(ix2-5:) = "  Px "
+    case ("orbit_y")
+      line2(ix2-5:) = "Orbit" 
+      line3(ix2-5:) = "   Y "
+    case ("orbit_py")
+      line2(ix2-5:) = "Orbit" 
+      line3(ix2-5:) = "  Py "
+    case ("orbit_z")
+      line2(ix2-5:) = "Orbit" 
+      line3(ix2-5:) = "   Z "
+    case ("orbit_pz")
+      line2(ix2-5:) = "Orbit" 
+      line3(ix2-5:) = "  Pz "
+    case default
+      call out_io (s_error$, r_name, 'BAD NAME FOUND IN COLUMN SPEC: ' // column(i)%name)
+      return
+    end select
+    column(i)%format = "(" // trim(column(i)%format) // ")"
+    ix = ix2
+  enddo
 
   lines(nl+1) = line1
   lines(nl+2) = line2
   lines(nl+3) = line3
   nl=nl+3
 
-  do ix = 0, u%model%lat%n_ele_use
-    if (.not. show_here(ix)) cycle
+  do ie = 0, u%model%lat%n_ele_use
+    if (.not. show_here(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-    ele => u%model%lat%ele_(ix)
-    if (ix == 0 .or. at_ends) then
+    ele => u%model%lat%ele_(ie)
+    if (ie == 0 .or. at_ends) then
       ele3 = ele
-      orb = u%model%orb(ix)
+      orb = u%model%orb(ie)
       s_pos = ele3%s
     else
-      call twiss_and_track_partial (u%model%lat%ele_(ix-1), ele, &
-                u%model%lat%param, ele%value(l$)/2, ele3, u%model%orb(ix-1), orb)
+      call twiss_and_track_partial (u%model%lat%ele_(ie-1), ele, &
+                u%model%lat%param, ele%value(l$)/2, ele3, u%model%orb(ie-1), orb)
       s_pos = ele%s-ele%value(l$)/2
     endif
-    nl=nl+1
-    write (lines(nl), '(i6, 1x, a24, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
-          ix, ele%name, key_name(ele%key), s_pos, &
-          ele3%x%beta, f_phi*ele3%x%phi, ele3%x%eta, 1000*orb%vec(1), &
-          ele3%y%beta, f_phi*ele3%y%phi, ele3%y%eta, 1000*orb%vec(3)
+
+    line = ""
+    ix = 1
+    do i = 1, size(column)
+      if (column(i)%name == "") exit
+      select case (column(i)%name)
+      case ("index")
+        write (line(ix:), column(i)%format, iostat = ios) ie
+      case ("name")
+        write (line(ix:), column(i)%format, iostat = ios) ele%name
+      case ("key")
+        write (line(ix:), column(i)%format, iostat = ios) key_name(ele%key)
+      case ("s")
+        write (line(ix:), column(i)%format, iostat = ios) s_pos
+      case ("beta_a")
+        write (line(ix:), column(i)%format, iostat = ios) ele3%x%beta
+      case ("beta_b")
+        write (line(ix:), column(i)%format, iostat = ios) ele3%y%beta
+      case ("alpha_a")
+        write (line(ix:), column(i)%format, iostat = ios) ele3%x%alpha
+      case ("alpha_b")
+        write (line(ix:), column(i)%format, iostat = ios) ele3%y%alpha
+      case ("phi_a")
+        write (line(ix:), column(i)%format, iostat = ios) ele3%x%phi
+      case ("phi_b") 
+        write (line(ix:), column(i)%format, iostat = ios) ele3%y%phi
+      case ("eta_a")
+        write (line(ix:), column(i)%format, iostat = ios) ele3%x%eta
+      case ("eta_b")
+        write (line(ix:), column(i)%format, iostat = ios) ele3%y%eta
+      case ("etap_a")
+        write (line(ix:), column(i)%format, iostat = ios) ele3%x%etap
+      case ("etap_b")
+        write (line(ix:), column(i)%format, iostat = ios) ele3%y%etap
+      case ("orbit_x")
+        write (line(ix:), column(i)%format, iostat = ios) orb%vec(1)
+      case ("orbit_px")
+        write (line(ix:), column(i)%format, iostat = ios) orb%vec(2)
+      case ("orbit_y")
+        write (line(ix:), column(i)%format, iostat = ios) orb%vec(3)
+      case ("orbit_py")
+        write (line(ix:), column(i)%format, iostat = ios) orb%vec(4)
+      case ("orbit_z")
+        write (line(ix:), column(i)%format, iostat = ios) orb%vec(5)
+      case ("orbit_pz")
+        write (line(ix:), column(i)%format, iostat = ios) orb%vec(6)
+      end select
+      ix  = ix + column(i)%field_width
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'BAD FORMAT: ' // column(i)%format, 'FOR DISPLAYING: ' // column(i)%name)
+        return
+      endif
+    enddo
+
+    nl=nl+1; lines(nl) = line
+
   enddo
 
-  lines(nl+1) = line3
-  lines(nl+2) = line2
+  lines(nl+1) = line2
+  lines(nl+2) = line3
   lines(nl+3) = line1
   nl=nl+3
 
   first_time = .true.  
-  do ix = u%model%lat%n_ele_use+1, u%model%lat%n_ele_max
-    if (.not. show_here(ix)) cycle
+  do ie = u%model%lat%n_ele_use+1, u%model%lat%n_ele_max
+    if (.not. show_here(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-    ele => u%model%lat%ele_(ix)
+    ele => u%model%lat%ele_(ie)
     if (first_time) then
       nl=nl+1; lines(nl) = ' '
       nl=nl+1; lines(nl) = 'Lord Elements:'
@@ -631,7 +792,7 @@ case ('lattice')
     endif
     nl=nl+1
     write (lines(nl), '(i6, 1x, a24, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
-          ix, ele%name, key_name(ele%key)
+          ie, ele%name, key_name(ele%key)
   enddo
 
 
