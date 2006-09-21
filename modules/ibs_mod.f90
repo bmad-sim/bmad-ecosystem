@@ -12,6 +12,18 @@ TYPE ibs_struct
   REAL(rp) inv_Tz
 END TYPE
 
+TYPE ibs_lifetime_struct
+  REAL(rp) Tlx
+  REAL(rp) Tly
+  REAL(rp) Tlp
+END TYPE
+
+TYPE ibs_maxratio_struct
+  REAL(rp) rx
+  REAL(rp) ry
+  REAL(rp) r_p
+END TYPE
+
 TYPE bjmt_struct
   REAL(rp) Lp(3,3)
   REAL(rp) Lh(3,3)
@@ -73,7 +85,7 @@ SUBROUTINE ibsequilibrium2(ring,inmode,ibsmode,formula,ratio,initial_blow_up)
   TYPE(ring_struct), INTENT(IN), target :: ring
   TYPE(modes_struct), INTENT(IN) :: inmode
   TYPE(modes_struct), INTENT(OUT) :: ibsmode
-  CHARACTER(*), INTENT(IN) :: formula
+  CHARACTER*4, INTENT(IN) :: formula
   REAL(rp), INTENT(IN) :: ratio
   REAL(rp), INTENT(IN) :: initial_blow_up
   TYPE(ele_struct), pointer :: ele
@@ -115,10 +127,6 @@ SUBROUTINE ibsequilibrium2(ring,inmode,ibsmode,formula,ratio,initial_blow_up)
   ibsmode%b%emittance = emit_y0 * initial_blow_up
   ibsmode%sig_z = sigma_z0      * sqrt(initial_blow_up)
   ibsmode%sigE_E = sigE_E0      * sqrt(initial_blow_up)
-
-  WRITE(*,FMT="(A,' ',ES9.2,' ',ES9.2,' ',ES9.2,' ',ES9.2)") &
-           "Initial point: ", ibsmode%a%emittance, &
-           ibsmode%b%emittance, ibsmode%sig_z, ibsmode%sigE_E
 
   !compute equilibrium
   converged = .false.
@@ -208,7 +216,7 @@ END SUBROUTINE ibsequilibrium2
 !    ring             -- ring_struct: lattice for tracking
 !      %param$n_part  -- Real: number of particles in bunch
 !    inmode           -- modes_struct: natural beam parameters 
-!    formula          -- character(4): IBS formulation to use (see ibs_rates)
+!    formula          -- character*4: IBS formulation to use (see ibs_rates)
 !    coupling         -- real: horizontal to vertical emittanc coupling
 !
 !  Output:
@@ -223,7 +231,7 @@ SUBROUTINE ibs_equilibrium(ring,inmode,ibsmode,formula,coupling)
   TYPE(ring_struct), INTENT(IN), target :: ring
   TYPE(modes_struct), INTENT(IN) :: inmode
   TYPE(modes_struct), INTENT(OUT) :: ibsmode
-  CHARACTER(*), INTENT(IN) :: formula
+  CHARACTER*4, INTENT(IN) :: formula
   REAL(rp), INTENT(IN), OPTIONAL :: coupling
   TYPE(ele_struct), pointer :: ele
   TYPE(ibs_struct) rates
@@ -312,6 +320,52 @@ SUBROUTINE ibs_equilibrium(ring,inmode,ibsmode,formula,coupling)
 END SUBROUTINE ibs_equilibrium
 
 !+
+!  Subroutine ibs_lifetime(ring, mode, lifetime, formula)
+!
+!  This module computes the beam lifetime due to
+!  the diffusion process according to equation 12
+!  from page 129 of The Handbook for Accelerator
+!  Physics and Engineering.
+!
+!  Input:
+!    ring             -- ring_struct: lattice for tracking
+!    mode             -- modes_struct: beam parameters 
+!    maxratio(ibs_maxratio_struct)  Ax,y,p/sigma_x,y,p where Ax,y,p
+!                 is the maximum sigma.  Note that this quantity
+!                 is just the ratio, not the ratio squared.  For
+!                 example, maxratio%Rx = 1.1 says that the maximum
+!                 acceptable beamsize is 10% larger than the beamsize
+!                 before IBS effects.
+!    formula(CHAR*4) See the ibs_rates subroutine for available formulas.
+!                 formula = 'cimp' is a good choice.
+!  Output:
+!    lifetime(ibs_lifetime_struct) --structure returning IBS lifetimes
+!-
+SUBROUTINE ibs_lifetime(ring,mode,maxratio,lifetime,formula)
+  IMPLICIT NONE
+
+  TYPE(ring_struct), INTENT(IN), target :: ring
+  TYPE(modes_struct), INTENT(IN) :: mode
+  TYPE(ibs_maxratio_struct), INTENT(IN) :: maxratio
+  TYPE(ibs_lifetime_struct), INTENT(OUT) :: lifetime
+  CHARACTER*4, INTENT(IN) :: formula
+
+  TYPE(ibs_struct) rates
+
+  REAL(rp) Rx, Ry, R_p
+
+  Rx = maxratio%rx**2
+  Ry = maxratio%ry**2
+  R_p = maxratio%r_p**2
+
+  CALL ibs_rates(ring, mode, rates, formula)
+
+  lifetime%Tlx = exp(Rx)/2/Rx/rates%inv_Tx
+  lifetime%Tly = exp(Ry)/2/Ry/rates%inv_Ty
+  lifetime%Tlp = exp(R_p)/2/R_p/rates%inv_Tz
+END SUBROUTINE ibs_lifetime
+
+!+
 !  Subroutine ibs_rates(ring, mode, rates, formula)
 !
 !  Calculates IBS risetimes for given ring and mode.
@@ -319,16 +373,16 @@ END SUBROUTINE ibs_equilibrium
 !  available in this module of calculating IBS rates.
 !
 !  Available IBS formulas:
-!    "cimp" - Modified Piwinski
-!    "bane" - Bane approximation of Bjorken-Mtingwa formulation
-!    "bjmt" - General Bjorken-Mtingwa formulation for bunched beams (slow)
-!    "mtto" - Mtingwa-Tollerstrup formulation
+!    cimp - Modified Piwinski
+!    bane - Bane approximation of Bjorken-Mtingwa formulation
+!    bjmt - General Bjorken-Mtingwa formulation for bunched beams (slow)
+!    mtto - Mtingwa-Tollerstrup formulation
 !
 !  Input:
 !    ring             -- ring_struct: lattice for tracking
 !      %param$n_part  -- Real: number of particles in bunch
 !    mode             -- modes_struct: beam parameters 
-!    formula          -- character(4): IBS formulation to use
+!    formula          -- character*4: IBS formulation to use
 !
 !  Output:
 !    rates          -- ibs_struct: ibs rates in x,y,z 
@@ -339,7 +393,7 @@ SUBROUTINE ibs_rates(ring, mode, rates, formula)
   TYPE(modes_struct), INTENT(IN) :: mode
   TYPE(ring_struct), INTENT(IN), target :: ring
   TYPE(ibs_struct), INTENT(OUT) :: rates
-  CHARACTER(*), INTENT(IN) ::  formula
+  CHARACTER*4, INTENT(IN) ::  formula
 
   IF(mode%a%emittance .le. 0.0) THEN
     WRITE(*,*) "Negative or zero emittance detected: stopping"
@@ -694,10 +748,7 @@ SUBROUTINE bane(ring, mode, rates)
                                                                                                  
     inv_Tz = big_A*coulomb_log*sigma_H*g_bane*((beta_x*beta_y)**(-1./4.))
     inv_Tx = (sigma_p**2)*Hx/emit_x*inv_Tz
-    !inv_Ty = (sigma_p**2)*Hy/emit_y*inv_Tz
-    inv_Ty = (sigma_p**2)*(5.13E-7)/emit_y*inv_Tz
-    !ctf inv_Ty = (sigma_p**2)*(1.07E-7)/emit_y*inv_Tz
-    !ocsv2 inv_Ty = (sigma_p**2)*(1.73E-7)/emit_y*inv_Tz
+    inv_Ty = (sigma_p**2)*Hy/emit_y*inv_Tz
                                                                                                  
     length_multiplier = ring%ele_(i)%value(l$)/2.0 + ring%ele_(i+1)%value(l$)/2.0
     sum_inv_Tz = sum_inv_Tz + inv_Tz * length_multiplier
@@ -827,7 +878,7 @@ SUBROUTINE cimp(ring, mode, rates)
     sum_inv_Ty = sum_inv_Ty + inv_Ty * length_multiplier
   ENDDO
 !  CLOSE(88)
-  
+
   rates%inv_Tz = sum_inv_Tz / ring%param%total_length
   rates%inv_Tx = sum_inv_Tx / ring%param%total_length
   rates%inv_Ty = sum_inv_Ty / ring%param%total_length
