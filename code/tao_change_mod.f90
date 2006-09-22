@@ -209,27 +209,28 @@ end do
 
 do i = 1, size(d_ptr)
 
-    old_value = m_ptr(i)%r
+  old_value = m_ptr(i)%r
      
-    if (abs_or_rel == 'ABS') then
-      m_ptr(i)%r = change_number
-    elseif (abs_or_rel == 'REL') then
-      m_ptr(i)%r = d_ptr(i)%r + change_number
-    else
-      m_ptr(i)%r = m_ptr(i)%r + change_number
-    endif
+  if (abs_or_rel == 'ABS') then
+    m_ptr(i)%r = change_number
+  elseif (abs_or_rel == 'REL') then
+    m_ptr(i)%r = d_ptr(i)%r + change_number
+  else
+    m_ptr(i)%r = m_ptr(i)%r + change_number
+  endif
      
-    new_value = m_ptr(i)%r
-  enddo
+  new_value = m_ptr(i)%r
+
+  call changed_attribute_bookkeeper (u%model%lat, m_ptr(i)%r)
+
+enddo
 
 s%global%lattice_recalc = .true.
 
-! don't print results if changing multiple elements
-
-if (size(d_ptr) /= 1) return
-
 !----------------------------------
 ! print results
+
+if (size(d_ptr) /= 1) return ! don't print results if changing multiple elements
 
 new_merit = tao_merit()
 delta = new_value - old_value
