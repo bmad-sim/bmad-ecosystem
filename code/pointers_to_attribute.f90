@@ -5,7 +5,9 @@
 ! Returns an array of pointers to an attribute with name attrib_name within 
 ! elements with name ele_name.
 ! Note: ele_name = 'BEAM_START' corresponds to the lat%beam_start substructure. 
-! Note: ele_name can be a list of element indices
+! Note: ele_name can be a list of element indices. For example:
+!           ele_name = "3:5"
+!  This sets elements 3, 4, and 5 in the lat%ele_(:) array.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
 !
 ! Modules needed:
