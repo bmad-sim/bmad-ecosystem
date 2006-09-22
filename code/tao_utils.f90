@@ -487,6 +487,13 @@ endif
 
 err = .false.
 
+if (name == "") then
+  if (logic_option(.true., print_flag)) &
+                call out_io (s_error$, r_name, 'BLANK "WHERE" LOCATION')
+  err = .true.
+  return
+endif
+
 ix = index(name, '.')
 if (ix == 0) then
   plot_name = name
