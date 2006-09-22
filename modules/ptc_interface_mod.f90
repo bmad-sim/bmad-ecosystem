@@ -1535,6 +1535,7 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
 
 ! For wigglers there is a z_patch to take out the non-zero z offset that an
 ! on axis particle gets.
+! Additionally, a periodic wiggler uses the x_patch to take out a non-zero x offset.
 
   if (ele%key == wiggler$) then
 
@@ -1552,9 +1553,24 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
           ele%taylor(5)%term(i)%coef = ele%taylor(5)%term(i)%coef - &
                                                        ele%value(z_patch$)
         endif
-        return
+        exit
       endif
     enddo
+
+    if (ele%sub_key == periodic_type$) then
+      do i = 1, size(ele%taylor(1)%term)
+        if (all(ele%taylor(1)%term(i)%exp == 0)) then
+          if (all(x == 0)) then    ! an on-axis particle defines the z_patch
+            ele%value(x_patch$) = ele%taylor(1)%term(i)%coef
+            ele%taylor(1)%term(i)%coef = 0
+          else                     ! take out the z_patch
+            ele%taylor(1)%term(i)%coef = ele%taylor(1)%term(i)%coef - &
+                                                         ele%value(x_patch$)
+          endif
+          exit
+        endif
+      enddo
+    endif
 
   endif
 
@@ -1882,11 +1898,6 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
 
   case (wiggler$)
     ptc_key%magnet = 'wiggler'
-    if (ele%sub_key == periodic_type$) then
-      print *, 'ERROR IN ELE_TO_FIBRE: OLD STYLE WIGGLER: ', trim(ele%name)
-      print *, '       CANNOT BE USED WITH TAYLOR.'
-      call err_exit
-    endif
 
   case default
     print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT KEY: ', &

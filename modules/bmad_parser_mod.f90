@@ -3461,9 +3461,13 @@ case (lcavity$)
 
 case (wiggler$)
   if (ele%sub_key == periodic_type$) then
+
     if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
       ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 
     endif
+
+    allocate (ele%wig_term(1))
+
   endif
 
 ! check for inconsistancies
@@ -3515,7 +3519,11 @@ if (attribute_index(ele, 'DS_STEP') > 0) then  ! If this is an attribute for thi
   if (ele%num_steps > 0) then
     ele%value(ds_step$) = abs(ele%value(l$) / ele%num_steps)
   elseif (ele%value(ds_step$) == 0) then
-    ele%value(ds_step$) = bmad_com%default_ds_step
+    if (ele%key == wiggler$ .and. ele%value(l_pole$) /= 0) then
+      ele%value(ds_step$) = ele%value(l_pole$) / 10
+    else
+      ele%value(ds_step$) = bmad_com%default_ds_step
+    endif
   endif
 endif
 

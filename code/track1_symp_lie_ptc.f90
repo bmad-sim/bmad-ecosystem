@@ -56,6 +56,7 @@ subroutine track1_symp_lie_ptc (start, ele, param, end)
     call ptc_track (fibre_ele, re, DEFAULT, charge)  ! "track" in PTC
     call vec_ptc_to_bmad (re, end%vec)
     ele%value(z_patch$) = end%vec(5)
+    if (ele%sub_key == periodic_type$) ele%value(x_patch$) = end%vec(1)
   endif
 
 ! call the PTC routines to track through the fibre.
@@ -63,7 +64,10 @@ subroutine track1_symp_lie_ptc (start, ele, param, end)
   call vec_bmad_to_ptc (start%vec, re)  ! convert BMAD coords to PTC coords
   call ptc_track (fibre_ele, re, DEFAULT, charge)  ! "track" in PTC
   call vec_ptc_to_bmad (re, end%vec)
-  if (ele%key == wiggler$) end%vec(5) = end%vec(5) - ele%value(z_patch$)
+  if (ele%key == wiggler$) then
+    end%vec(5) = end%vec(5) - ele%value(z_patch$)
+    if (ele%sub_key == periodic_type$) end%vec(1) = end%vec(1) - ele%value(x_patch$)
+  endif
 
   call kill(fibre_ele)  ! clean up allocated memory.
 

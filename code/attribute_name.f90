@@ -390,6 +390,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(wiggler$, term$)           = 'TERM'
     attrib_array(wiggler$, polarity$)       = 'POLARITY'
     attrib_array(wiggler$, z_patch$)        = 'Z_PATCH'
+    attrib_array(wiggler$, x_patch$)        = 'X_PATCH'
     attrib_array(wiggler$, radius$)         = 'RADIUS'
     attrib_array(wiggler$, field_calc$)     = 'FIELD_CALC'
     attrib_array(wiggler$, x_ray_line_len$) = 'X_RAY_LINE_LEN'

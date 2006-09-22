@@ -204,7 +204,7 @@ endif
 
 ! wiggler terms
 
-if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+if (associated(ele%wig_term)) then
   nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 7x, a)') ' Term#', &
                               'Coef', 'K_x', 'K_y', 'K_z', 'phi_z   Type'
   do i = 1, size(ele%wig_term)

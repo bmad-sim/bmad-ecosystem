@@ -1342,6 +1342,19 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(n_pole$) = ele%value(l$) / ele%value(l_pole$)
     endif
 
+    if (ele%sub_key == periodic_type$) then
+      if (ele%value(l_pole$) == 0) then
+        ele%wig_term(1)%ky = 0
+      else
+        ele%wig_term(1)%ky = pi / ele%value(l_pole$)
+      endif
+      ele%wig_term(1)%coef   = ele%value(b_max$)
+      ele%wig_term(1)%kx     = 0
+      ele%wig_term(1)%kz     = ele%wig_term(1)%ky
+      ele%wig_term(1)%phi_z  = (ele%value(l_pole$) - ele%value(l$)) / 2
+      ele%wig_term(1)%type   = hyper_y$
+    endif
+
   end select
 
 ! num_steps
@@ -1409,7 +1422,10 @@ subroutine attribute_bookkeeper (ele, param)
     ele%value(check_sum$) = check_sum
     if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
     if (associated(ele%gen_field)) call kill_gen_field(ele%gen_field)
-    if (ele%key == wiggler$) ele%value(z_patch$) = 0
+    if (ele%key == wiggler$) then
+      ele%value(z_patch$) = 0
+      ele%value(x_patch$) = 0
+    endif
 
   endif
 
