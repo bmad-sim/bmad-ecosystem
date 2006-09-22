@@ -1419,6 +1419,85 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine changed_attribute_bookkeeper (lat, a_ptr)
+!
+! Subroutine to do bookkeeping when a particular attribute has been altered.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   lat   -- Ring_struct: Lattice with the changed attribute.
+!   a_ptr -- Real, pointer: Pointer to the changed attribute.
+!
+! Output:
+!   lat  -- Ring_struct: Lattice with appropriate changes.
+!-
+
+subroutine changed_attribute_bookkeeper (lat, a_ptr)
+
+implicit none
+
+type (ring_struct), target :: lat
+type (ele_struct), pointer :: ele
+
+real(rp), pointer :: a_ptr
+real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_lab_vec(4)
+logical coupling_change
+
+!
+
+ele => lat%ele_(0)
+coupling_change = .false.
+
+if (associated(a_ptr, ele%x%beta) .or. associated(a_ptr, ele%x%alpha)) then
+  if (ele%x%beta /= 0) ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
+  return
+endif
+
+if (associated(a_ptr, ele%y%beta) .or. associated(a_ptr, ele%y%alpha)) then
+  if (ele%y%beta /= 0) ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
+  return
+endif
+
+if (associated(a_ptr, ele%c_mat(1,1)) .or. associated(a_ptr, ele%c_mat(1,2)) .or. & 
+        associated(a_ptr, ele%c_mat(2,1)) .or. associated(a_ptr, ele%c_mat(2,2))) then
+  ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + &
+                                              ele%c_mat(1,2)*ele%c_mat(2,1))
+  coupling_change = .true.
+endif
+
+if (associated(a_ptr, ele%x%eta_lab) .or. associated(a_ptr, ele%x%etap_lab) .or. &
+    associated(a_ptr, ele%y%eta_lab) .or. associated(a_ptr, ele%y%etap_lab) .or. &
+    coupling_change) then 
+  call make_v_mats (ele, v_mat, v_inv_mat)
+  eta_lab_vec = (/ ele%x%eta_lab, ele%x%etap_lab, ele%y%eta_lab, ele%y%etap_lab /)
+  eta_vec = matmul (v_inv_mat, eta_lab_vec)
+  ele%x%eta  = eta_vec(1)
+  ele%x%etap = eta_vec(2)
+  ele%y%eta  = eta_vec(3)
+  ele%y%etap = eta_vec(4)
+  return
+endif
+
+if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%x%etap) .or. &
+    associated(a_ptr, ele%y%eta) .or. associated(a_ptr, ele%y%etap)) then 
+  call make_v_mats (ele, v_mat, v_inv_mat)
+  eta_vec = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
+  eta_lab_vec = matmul (v_mat, eta_vec)
+  ele%x%eta_lab  = eta_lab_vec(1)
+  ele%x%etap_lab = eta_lab_vec(2)
+  ele%y%eta_lab  = eta_lab_vec(3)
+  ele%y%etap_lab = eta_lab_vec(4)
+  return
+endif
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine transfer_ring_taylors (lattice_in, lattice_out, 
 !                                              type_out, transfered_all)
 !
