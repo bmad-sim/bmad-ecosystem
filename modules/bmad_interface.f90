@@ -742,21 +742,6 @@ interface
 end interface
 
 interface
-  subroutine set_ele_attribute (ring, i_ele, attrib_name, &
-                              attrib_value, err_flag, make_mat6_flag, orbit_)
-    use bmad_struct, only: ring_struct, rp, coord_struct
-    implicit none
-    type (ring_struct) :: ring
-    type (coord_struct), optional :: orbit_(0:)
-    real(rp) attrib_value
-    integer i_ele
-    character(*) attrib_name
-    logical make_mat6_flag
-    logical err_flag
-  end subroutine
-end interface
-
-interface
   subroutine s_calc (ring)
     use bmad_struct, only: ring_struct
     implicit none
