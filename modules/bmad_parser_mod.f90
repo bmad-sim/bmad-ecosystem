@@ -137,7 +137,7 @@ type bp_com_struct
   integer, pointer :: var_indexx(:) => null()        ! variable sort index
   integer num_lat_files               ! Number of files opened
   integer ivar_tot, ivar_init
-  character(200) lat_file_names(50)   ! List of all files used to create lat
+  character(200) lat_file_names(100)   ! List of all files used to create lat
   character(n_parse_line) parse_line
   character(n_parse_line) input_line1          ! For debug messages
   character(n_parse_line) input_line2          ! For debug messages
