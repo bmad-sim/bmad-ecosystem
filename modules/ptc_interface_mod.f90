@@ -1883,7 +1883,7 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
   case (wiggler$)
     ptc_key%magnet = 'wiggler'
     if (ele%sub_key == periodic_type$) then
-      print *, 'ERROR IN ELE_TO_FIBRE: OLD STYLE WIGGLER: ', ele%name
+      print *, 'ERROR IN ELE_TO_FIBRE: OLD STYLE WIGGLER: ', trim(ele%name)
       print *, '       CANNOT BE USED WITH TAYLOR.'
       call err_exit
     endif
@@ -1891,7 +1891,7 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
   case default
     print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT KEY: ', &
                                                  key_name(ele%key)
-    print *, '      FOR ELEMENT: ', ele%name
+    print *, '      FOR ELEMENT: ', trim(ele%name)
     call err_exit
 
   end select
