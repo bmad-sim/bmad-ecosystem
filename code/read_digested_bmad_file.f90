@@ -268,6 +268,13 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
       enddo
     endif
 
+    ! This is to cover up the change where periodic_type wigglers now have a single wig_term
+    ! where before they did not have any.
+    if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ .and. &
+                                                       .not. associated(ele%wig_term)) then
+      allocate (ele%wig_term(1))
+    endif
+
     if (ix_const /= 0) then
       allocate (ele%const(ix_const))
       read (d_unit, err = 9300) ele%const
