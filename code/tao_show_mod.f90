@@ -66,10 +66,10 @@ character(200) stuff2
 character(40) ele_name, name, sub_name
 character(60) nam
 
-character(16) :: show_names(14) = (/ &
+character(16) :: show_names(15) = (/ &
    'data        ', 'var         ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'ele         ', 'lattice     ', 'constraints ', 'plot        ', &
-   'write       ', 'hom         ', 'opt_vars    ', 'universe    ' /)
+   'write       ', 'hom         ', 'opt_vars    ', 'universe    ', 'taylor      ' /)
 
 character(200), allocatable, save :: lines(:)
 character(200) line, line1, line2, line3
@@ -377,7 +377,7 @@ case ('data')
 !----------------------------------------------------------------------
 ! ele
 
-case ('ele')
+case ('ele', 'taylor')
 
   call str_upcase (ele_name, word(1))
 
@@ -406,8 +406,13 @@ case ('ele')
     nl = nl + 1
 
     ! Show the element info
-    call type2_ele (u%model%lat%ele_(loc), ptr_lines, n, .true., 6, .false., &
+    if (show_names(ix) == 'ele') then
+      call type2_ele (u%model%lat%ele_(loc), ptr_lines, n, .true., 6, .false., &
                                         s%global%phase_units, .true., u%model%lat)
+    else
+      call type2_ele (u%model%lat%ele_(loc), ptr_lines, n, .true., 6, .true., &
+                                        s%global%phase_units, .true., u%model%lat)
+    endif
     if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100)
     lines(nl+1:nl+n) = ptr_lines(1:n)
     nl = nl + n

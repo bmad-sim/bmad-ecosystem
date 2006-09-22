@@ -746,6 +746,7 @@ Format:
   show plot \{<plot_region_name>\}
   show plot <graph_name>
   show plot <curve_name>
+  show taylor <ele_name>
   show top10
   show var \{<var_name> <locations>\}
   show var <universe_number>@
@@ -787,6 +788,9 @@ about the element whose name matches \vn{<ele_name>} is shown. All
 data types associated with the element will also be
 listed. \vn{<ele_name>} is a number $n$ then the $n$\Th element in the
 lattice list will be shown.
+
+\vn{show ele} does not show the Taylor map associated with an element
+even if it has one. To see this map use the \vn{show taylor} command.
 
   \item[show global]
 Shows global information.
@@ -844,6 +848,9 @@ Bmad standard lattice input format.
 Shows which templates are being plotted and in which regions and also all
 available templates. See \sref{s:plot_overview} for the syntax on plot, graph, and
 curve names.
+
+  \item[show taylor]
+Same as \vn{show ele} except that the elements taylor map is also printed.
 
   \item[show top10]
 Shows top contributors to the merit function, dMerit/dVariable
