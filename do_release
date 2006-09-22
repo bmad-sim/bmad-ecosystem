@@ -28,7 +28,7 @@
 #                         of the release
 #          -dump          Dump the configuration information for this 
 #                         script
-#          -tagr          cesr release tagging
+#          -tagr          Tag release about to be built with release name in CVS repo. (devel)
 #          -tagp          packages release tagging
 #          -osf           Run OSF1 build
 #          -lnx           Run Linux builds
@@ -69,6 +69,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.22  2006/09/22 18:03:42  cesrulib
+# Added ability to tag a release in CVS immediately after a successful build.
+#
 # Revision 1.21  2006/09/15 21:33:17  cesrulib
 # Error-checking and documentation adjustments
 #
@@ -110,7 +113,7 @@ myprint_help () {
     echo "   -build_only         If you want to forgo the checkout and creation"
     echo "                       of the release directory tree, use this flag."
     echo "   -dump               Dump this script's configuration information"
-    echo "   -tagr               cesr release tagging"
+    echo "   -tagr               Tag this cesr release in the CVS repository with release name (devel)"
     echo "   -tagp               packages release tagging"
     echo "   -osf                Remote exec OSF1 build"
     echo "   -lnx                Remote exec linux builds"
@@ -118,8 +121,8 @@ myprint_help () {
     echo "   -win                Remote exec of Windows build not yet operational"
     echo "   -nobs               Suppress periodic build-status messages."
     echo "   -ntly               Nightly build, rotate library links when done"
-    echo "   -devel              Run a DEVEL build, rotate release and apply CVS tag."
-    echo "   -curr               Run a CURRENT build, rotate release and apply special CVS tag."
+#    echo "   -devel              Run a DEVEL build, rotate release and apply CVS tag."
+#    echo "   -curr               Run a CURRENT build, rotate release and apply special CVS tag."
     echo ""
     echo "Variable definitions:"
     echo "   REL=<release_name>  Specify a custom CESR release name"
@@ -197,6 +200,7 @@ fi
 
 DO_TAG_RELEASE=0
 DO_TAG_PACKAGES=0
+CVS_TAGNAME=""
 REL=""
 PKG=""
 
@@ -243,8 +247,8 @@ do arg_list="${arg_list} ${i}";
      "-win"     ) WIN=1; KINIT_CHECK=1;;
      "-nobs"    ) SHOW_STATUS=0 ;;
      "-ntly"    ) NIGHTLY_BUILD=1;;
-     "-devel"   ) DEVEL_BUILD=1;;
-     "-curr"    ) CURRENT_BUILD=1;;
+#     "-devel"   ) DEVEL_BUILD=1;;
+#     "-curr"    ) CURRENT_BUILD=1;;
      TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
@@ -265,13 +269,16 @@ echo ""
 ##################################
 # Obtain a Kerberos V ticket to enable krsh builds on remote hosts
 #################################
+# kinit command does not return a meaningful code upon failure or completion
+# it merely returns its PID
 
 kdestroy
 kinit -k -t /etc/cesrulib-keytab cesrulib/lnx209.lns.cornell.edu
-if ( [ ${?} -ne 0 ] ) then
-    echo "Could not obtain Kerberos credentials, exiting with error code: ${?}"
-    exit ${?}
-fi
+#if ( [ ${?} -ne 0 ] ) then
+#    echo "Could not obtain Kerberos credentials, exiting with error code: ${?}"
+#    exit ${?}
+#fi
+
 #Have you run kinit?
 #if ( [ ${KINIT_CHECK} = 1 ] ) then
 #    TERMINAL01=`tty`
@@ -415,9 +422,9 @@ if ( [ $DO_PKG -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
 fi
 
 
-####################################################
-# Checkout the CESR RELEASE
-####################################################
+#####################################################################
+# Checkout the CESR RELEASE 
+#####################################################################
 co_rel_status=0
 if ( [ $DO_REL -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out CESR release..."
@@ -475,6 +482,7 @@ if ( [ $LNX -eq 1 ] ) then
     krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_INTEL_STAT 2>&1 &"&  
     echo "`date`:  Linux_intel build launched with status:  $?"
 
+
 #   Build Linux_lahey release
     LINUX_LAHEY_STAT=${BUILD_DIR}/log/Linux_i686_lahey/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${LINUX_LAHEY_STAT}
@@ -515,12 +523,12 @@ fi
 ##################################################################
 # Status value key:    (Double check these values and descriptions)
 #   -1 : currently building on designated host
-#   -2 : build initiated, awating release checkout etc.
+#   -2 : build initiated, awating release checkout etc.?
 #    0 : build complete
 # +INT : Error code percolated up from some sub-script or command
 ##################################################################
 #max_loops=720  #~12 hours worth of looping
-max_loops=480   #~8  hours worth
+max_loops=480   #~8  hours worth  (Builds usually complete in just under 1 hr.)
 sleep_seconds=60
 
 loop=0
@@ -613,20 +621,6 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
 
 done
 
-#------------------------------------------------------
-# If all build jobs complete successfully, and this is 
-# a DEVEL build, tag release.
-# If this is a CURRENT build -- make tag special
-# NOTE:  Not yet enabled
-#------------------------------------------------------
-if ( [ $loop -lt $max_loops -a $job_status -eq 0 -a $DO_TAG_RELEASE -eq 1 ] ) then
-    if ( [ ${DEVEL_RELEASE} -eq 1 ] ) then
-        tag_release -REL_NAME -TAG_NAME  ## what tag format should this use?
-    fi
-    if ( [ ${CURRENT_RELEASE} -eq 1 ] ) then
-        tag_release REL=${REL_NAME} TAG=${TAG_NAME} ## flag for 'special' tag?
-    fi
-fi
 
 #------------------------
 # Print status summary
@@ -635,21 +629,48 @@ if ( [ $loop -lt $max_loops ] ) then
     if ( [ $job_status -eq 0 ] ) then
         echo "`date`:  Release build has completed successfully!"
     else
-        echo "`date`:  Release build completed with ERRORS (status = ${job_status})!"
+        echo "`date`:  Release build terminated with ERRORS (status = ${job_status})!"
     fi
 else
     echo "`date`:  Release build has TIMED OUT!"
 fi
+
+DEVEL_RELEASE_TEST=1
+#####################################################################################
+# If all build jobs complete successfully and this is 
+# a DEVEL build, tag release, append output of tagging commands to FULL_REL_LOG file
+# If this is a CURRENT build -- make tag special
+# NOTE:  Not yet enabled
+#####################################################################################
+if ( [ $loop -lt $max_loops -a $job_status -eq 0 -a $DO_TAG_RELEASE -eq 1 ] ) then
+    if ( [ $DEVEL_RELEASE_TEST -eq 1 ] ) then
+            CVS_TAGNAME="${REL_NAME}"
+            echo "`date`: TAGGING the files in CVS used to build this release..."
+            gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL="" TAGNAME=${CVS_TAGNAME} CHECKOUT="" BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" >> ${FULL_REL_LOG} 2>&1
+            if ( [ ${?} -eq 0 ] ) then
+                echo "`date`: Release tagged in CVS with tag: "${CVS_TAGNAME}
+                # python tagscript in viewCVS should take care of mailage when configured properly
+            else
+                echo "ERROR during tagging!"
+            fi
+    fi
+#    if ( [ ${CURRENT_RELEASE} -eq 1 ] ) then  # set up flags to choose current or devel?
+#        echo "current release being tagged"
+#    fi
+fi
+
 
 ####################################################
 # If this is a nightly build, has not timed out,
 # and has completed without errors, call the 
 # rotate_release script using appropriate arguments.
 ####################################################
-if ( [ $NIGHTLY_BUILD -eq 1 ] && [ $job_status -eq 0 ] && [ $loop -lt $max_loops ] ) then
-    /home/cesrulib/bin/util/rotate_release -nightly ${REL_NAME}
-else 
-    echo "ERROR: Not rotating release due to build errors or timeout!"
+if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
+    if ( [ $job_status -eq 0 ] && [ $loop -lt $max_loops ] ) then
+        /home/cesrulib/bin/util/rotate_release -nightly ${REL_NAME}
+    else  
+        echo "ERROR: Not rotating release due to build errors or timeout!"
+    fi
 fi
 
 #####################################################
