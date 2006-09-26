@@ -37,6 +37,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.8  2006/09/26 20:31:04  cesrulib
+# Added code to gracefully abort if no arguments are provided.
+#
 # Revision 1.7  2006/09/18 19:17:44  cesrulib
 # Added '-mail' flag to notify mailing list of release rotations.
 #
@@ -94,6 +97,11 @@ ROTATE_CURRENT=0
 ROTATE_NIGHTLY=0
 REL_TYPE=""
 MAIL=0
+
+if ( [ $# = 0 ] ) then
+    myprint_help
+    exit 1
+fi
 
 # Get inputs
 arg_list=""
