@@ -1,0 +1,147 @@
+#!/bin/sh
+#####################################################################
+# This is a script to delete an ENTIRE previously built CESR release
+#####################################################################
+#        USE     WITH     CAUTION   
+#####################################################################
+# Reasonable and very conservative measures have been taken to 
+# prevent the accidental deletion of an important release, but if
+# you make it through all the error checking and interlocks, this
+# script WILL completely delete the entire release that you specify,
+# including all log and build_status files.
+#   --It will be as if it had never been built in the first place.
+#   --You have been warned.
+#####################################################################
+
+
+# Script help function
+myprint_help () {
+#       Print help info
+    echo ""
+    echo "Usage is: DELETE_release  REL=release-name"
+    echo ""
+    exit 1
+}
+
+##########################
+#  Main script starts here
+##########################
+
+# Get command arguments
+
+arg_list=""
+REL_NAME=""
+
+BASEPATH="/home/cesrulib/cesr_libs/"
+
+if ( [ $# = 0 ] ) then
+    myprint_help
+    exit 1
+fi
+
+#############################
+#  Get command-line arguments
+#############################
+for i in $@
+do 
+   arg_list="${arg_list} ${i}"
+   case $i in
+     REL=*       ) REL_NAME=`echo $i | cut -d= -f2`;;
+     *           ) myprint_help;
+     exit 1;;
+   esac
+done
+
+################################################
+#  Begin error-checking paranoia
+################################################
+
+if ( [ ! -d /home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME} ] ) then
+   echo "Release with name ${REL_NAME} does not exist. (Linux intel check)"
+   exit 1
+fi
+
+if ( [ ${REL_NAME} = "" ] ) then
+    echo "Please specify a release name after REL= on the command line."
+    exit 1
+fi
+
+# check here to determine if requested release has either
+# a current pointer or a devel pointer filesystem link.  If so, abort.
+if ( [ ${BASEPATH}Linux_i686_intel/current -ef ${BASEPATH}Linux_i686_intel/${REL_NAME} ] ) then
+     echo ""
+     echo "The release you have requested to delete is the CURRENT release."
+     echo "This is not allowed.  Aborting."
+     echo ""
+     exit 1
+fi
+if ( [ ${BASEPATH}Linux_i686_intel/devel -ef ${BASEPATH}Linux_i686_intel/${REL_NAME} ] ) then
+     echo ""
+     echo "The release you have requested to delete is the DEVEL release."
+     echo "This is not allowed.  Aborting."
+     echo ""
+     exit 1
+fi
+
+
+
+echo ""
+echo -e " DELETE_release - \a "
+echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+echo " @  WARNING    WARNING    WARNING    WARNING    WARNING  @"
+echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+echo " @                                                       @"
+echo " @        YOU ARE ABOUT TO _COMPLETELY_DELETE_           @" 
+echo " @                                                       @"
+echo " @              *** ${REL_NAME} ***"
+echo " @                                                       @"
+echo " @ FROM ALL PLATFORM DIRECTORIES.  ALL LOG FILES WILL BE @"
+echo " @                   REMOVED AS WELL!                    @"
+echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+echo " Press ENTER to continue with this operation, "
+echo "                                   any other key to abort."
+
+read -n 1 CONFIRM
+if ( [ ! ${CONFIRM} = "\n" ] ) then
+    echo ""
+    exit 1
+fi
+
+echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+echo " @                                                       @"
+echo " @ Hit  <CNTRL><C>  _NOW_ IF YOU DO NOT WANT TO DO THIS. @"
+echo " @                (You have 10 seconds)                  @"
+echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+sleep 10
+
+echo ""
+echo "DELETING release ${REL_NAME}..."
+echo ""
+#################################################################
+#  Paths are long and explicit here so there is no doubt as to
+#  what is going to happen in terms of data loss.
+#################################################################
+rm -r /home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME}
+rm -r /home/cesrulib/cesr_libs/Linux_i686_lahey/${REL_NAME}
+rm -r /home/cesrulib/cesr_libs/OSF1_alpha_hp/${REL_NAME}
+rm -r /home/cesrulib/cesr_libs/VMS_alpha_hp/${REL_NAME}
+rm -r /home/cesrulib/cesr_libs/CYGWIN_NT_i686_intel/${REL_NAME}
+
+rm /home/cesrulib/cesr_libs/log/Linux_i686_intel/${REL_NAME}.log
+rm /home/cesrulib/cesr_libs/log/Linux_i686_intel/${REL_NAME}.build_status
+
+rm /home/cesrulib/cesr_libs/log/Linux_i686_lahey/${REL_NAME}.log
+rm /home/cesrulib/cesr_libs/log/Linux_i686_lahey/${REL_NAME}.build_status
+
+rm /home/cesrulib/cesr_libs/log/OSF1_alpha_hp/${REL_NAME}.log
+rm /home/cesrulib/cesr_libs/log/OSF1_alpha_hp/${REL_NAME}.build_status
+
+## rm /home/cesrulib/cesr_libs/log/VMS_alpha_hp/${REL_NAME}.log
+rm /home/cesrulib/cesr_libs/log/VMS_alpha_hp/${REL_NAME}.build_status
+
+## rm /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.log
+rm /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.build_status
+
+echo ""
+echo "${REL_NAME} is GONE."
+echo ""
