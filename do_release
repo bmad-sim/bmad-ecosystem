@@ -8,10 +8,16 @@
 # Supporting scripts:  - M.release makefile
 #                      - build_release script to execute individual builds
 #                      - test_release script to validate the functionality 
-#                        of the code builds
+#                        of the code builds (not yet implemented)
 #                      - tag_release script to tag releases in the CVS 
-#                        repository
-#                            
+#                        repository 
+#                            (this is taken care of by a call to
+#                             the tagging routine in M.release)
+#                         This standalone script does what it should though,
+#                         in the event a tag not conforming to the 
+#                         release tag/rotation convention is desired.
+#                      - rel_disk_total script to compute disk space used
+#                        to store the resulting release
 #
 # usage : do_release [options] [var defs] <lib_tag> <pkg_tag> [<SGL/DBL>]
 #         arguments:
@@ -28,19 +34,21 @@
 #                         of the release
 #          -dump          Dump the configuration information for this 
 #                         script
-#          -tagr          Tag release about to be built with release name in CVS repo. (devel)
-#          -tagp          packages release tagging
+#          -tagr          Tag release in CVS after building (special cases
+#                                                   implemented, see below)
+#          -tagp          packages release tagging (not implemented)
 #          -osf           Run OSF1 build
 #          -lnx           Run Linux builds
 #          -vms           Prepare release for transfer to VMS_alpha
 #          -win           Automatic windows builds not yet operational
 #          -nobs          Suppress periodic build-status messages
-#          -ntly          Run a nightly build, rotating the library
+#          -ntly          Run a NIGHTLY build, rotating the library
 #                          links after completion.
 #          -devel         Run a DEVEL build, rotate release and apply 
-#                          CVS tag.
+#                          CVS tag consisting of the release name.
 #          -curr          Run a CURRENT build, rotate release and apply 
-#                          _special_ CVS tag.
+#                          CVS tag consisting of the release name
+#                          followed by "_current".
 #          
 #         variables:
 #           REL=<release_name>  Specify a specific CESR release
@@ -50,6 +58,8 @@
 #                               to build against.  Expects only base 
 #                               directory name (NO path).
 #           TAG=<release_tag>   Specify a custom tag for the release
+#                                (rename this to "LBL"? as it acts 
+#                                like a release name label, not a CVS tag)
 #           GMAKE=<gmake_dir>   Specify a custom CESR_GMAKE directory.
 #                               Expects FULL path.
 #           UTIL=<util_dir>     Specify a custom CESR_UTIL  directory
@@ -64,11 +74,26 @@
 #                        #  tagging only #
 #           do_release -cesr -tagr PKG=packages_2003_0728_d DBL
 #                        #building  release then tagging#
-################################################################
+#           do_release -cesr PKG=packages_2006_0228_d -devel -lnx -DBL
+#                        build release, tag in CVS as a devel
+#                        release and rotate filesystem links
+#                        to point at this devel release 
+#   do_release -cesr -dump -osf -lnx -vms -win -nobs -ntly PKG=packages_2006_0228_d DBL
+#       Build release, dump lots of status info, on all platforms, suppress 
+#       console messages during actual building, rotate release as nightly when done.
+########################################################################################
 #
 # $Id$
 #
 # $Log$
+# Revision 1.23  2006/09/26 20:29:04  cesrulib
+# Added code to calculate the elapsed time of a build process.
+# The -devel and -current flags now cause standardized tagging and
+# rotation behavior.
+# Added call to calculate and log disk usage of a build process.
+# General cleanup
+# Documentation tweaks
+#
 # Revision 1.22  2006/09/22 18:03:42  cesrulib
 # Added ability to tag a release in CVS immediately after a successful build.
 #
@@ -98,6 +123,9 @@
 ################################################################
 # Set up some internal functions
 ################################################################
+TIME_1=`date +%s`  # use these later to compute the total 
+TIME_2=0            # time spent building a release
+TIME_TOTAL=0        #
 
 # Script help function
 myprint_help () {
@@ -113,16 +141,16 @@ myprint_help () {
     echo "   -build_only         If you want to forgo the checkout and creation"
     echo "                       of the release directory tree, use this flag."
     echo "   -dump               Dump this script's configuration information"
-    echo "   -tagr               Tag this cesr release in the CVS repository with release name (devel)"
-    echo "   -tagp               packages release tagging"
+#    echo "   -tagr               Tag this cesr release in the CVS repository"
+    echo "   -tagp               packages release tagging (not implemented)"
     echo "   -osf                Remote exec OSF1 build"
     echo "   -lnx                Remote exec linux builds"
     echo "   -vms                Prepare VMS build for transfer"
     echo "   -win                Remote exec of Windows build not yet operational"
     echo "   -nobs               Suppress periodic build-status messages."
     echo "   -ntly               Nightly build, rotate library links when done"
-#    echo "   -devel              Run a DEVEL build, rotate release and apply CVS tag."
-#    echo "   -curr               Run a CURRENT build, rotate release and apply special CVS tag."
+    echo "   -devel              Run a DEVEL build, rotate release and apply CVS tag."
+    echo "   -curr               Run a CURRENT build, rotate release and apply special CVS tag."
     echo ""
     echo "Variable definitions:"
     echo "   REL=<release_name>  Specify a custom CESR release name"
@@ -184,9 +212,16 @@ DO_CHECKOUT="do_checkout"
 DO_BUILD="do_build"
 DO_DUMP=0
 SHOW_STATUS=1
-CURRENT_BUILD=0
-DEVEL_BUILD=0
 NIGHTLY_BUILD=0
+DEVEL_BUILD=0
+CURRENT_BUILD=0
+
+DO_TAG_RELEASE=0
+DO_TAG_PACKAGES=0
+CVS_TAGNAME=""
+REL=""
+PKG=""
+
 GMAKE_OVERRIDE=0
 UTIL_OVERRIDE=0
 use_cesr_bin=/home/cesrulib/bin
@@ -196,13 +231,6 @@ if ( [ ${PLATFORM_TAG} = "CYGWIN_NT_i686" ] ) then
  use_cesr_bin=/cygdrive/z/cesrulib/bin
  BUILD_DIR=/cygdrive/c/user_local/cesrulib/cesr_libs
 fi
-
-
-DO_TAG_RELEASE=0
-DO_TAG_PACKAGES=0
-CVS_TAGNAME=""
-REL=""
-PKG=""
 
 # Build flags and default host machines
 # NOTE:  host machine for VMS is to prepare the release for transfer to VMS.  
@@ -221,12 +249,14 @@ WIN_HOST=pc6115.lns.cornell.edu
 
 CURRENT_HOST="`uname -n`"
 
-# Flag for checking whether kinit has been run (needed to remote exec builds)
-KINIT_CHECK=0
-
 BASE_AREA_LIST="OSF1_alpha_hp Linux_i686_intel Linux_i686_lahey VMS_alpha_hp CYGWIN_NT_i686_intel"
 
 GMAKE=gmake
+
+if ( [ $# = 0 ] ) then
+    myprint_help
+    exit 1
+fi
 
 # Get inputs
 arg_list=""
@@ -239,16 +269,16 @@ do arg_list="${arg_list} ${i}";
      "-pkg"     ) DO_PKG=1  ;;
      "-build_only") DO_CHECKOUT="no_checkout";;
      "-dump"    ) DO_DUMP=1 ;;
-     "-tagr"    ) DO_TAG_RELEASE=1;;
-     "-tagp"    ) DO_TAG_PACKAGES=1;;
-     "-osf"     ) OSF=1; KINIT_CHECK=1;;
-     "-lnx"     ) LNX=1; KINIT_CHECK=1;;
-     "-vms"     ) VMS=1; KINIT_CHECK=1;;
-     "-win"     ) WIN=1; KINIT_CHECK=1;;
-     "-nobs"    ) SHOW_STATUS=0 ;;
+#     "-tagr"    ) DO_TAG_RELEASE=1;;
+#     "-tagp"    ) DO_TAG_PACKAGES=1;;
+     "-osf"     ) OSF=1;;
+     "-lnx"     ) LNX=1;;
+     "-vms"     ) VMS=1;;
+     "-win"     ) WIN=1;;
+     "-nobs"    ) SHOW_STATUS=0;;
      "-ntly"    ) NIGHTLY_BUILD=1;;
-#     "-devel"   ) DEVEL_BUILD=1;;
-#     "-curr"    ) CURRENT_BUILD=1;;
+     "-devel"   ) DEVEL_BUILD=1; DO_TAG_RELEASE=1;;
+     "-curr"    ) CURRENT_BUILD=1; DO_TAG_RELEASE=1;;
      TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
@@ -274,21 +304,11 @@ echo ""
 
 kdestroy
 kinit -k -t /etc/cesrulib-keytab cesrulib/lnx209.lns.cornell.edu
-#if ( [ ${?} -ne 0 ] ) then
-#    echo "Could not obtain Kerberos credentials, exiting with error code: ${?}"
-#    exit ${?}
-#fi
-
-#Have you run kinit?
-#if ( [ ${KINIT_CHECK} = 1 ] ) then
-#    TERMINAL01=`tty`
-#    echo "Did you run kinit? (y/n):" >> $TERMINAL01
-#    read ANSWER < $TERMINAL01
-#    if ( [ $ANSWER != y ] ) then 
-#        echo " Run kinit and start again." >> $TERMINAL01
-#        exit
-#    fi
-#fi 
+klist | grep LNS.CORNELL.EDU > /dev/null
+if ( [ ${?} -ne 0 ] ) then               # check to see if new credentials are cached
+    echo "Could not obtain Kerberos credentials, exiting with error code: ${?}"
+    exit ${?}
+fi
    
 # Platform dependent definitions
 if ( [ ${PLATFORM_TAG} = "CYGWIN_NT_i686" ] ) then
@@ -398,9 +418,10 @@ if ( [ $DO_DUMP -eq 1 ] ) then
     echo "CURRENT_HOST      = ${CURRENT_HOST}"
     echo "PATH              = ${PATH} "
     echo "BIN_DIR           = ${BIN_DIR}"
-    echo "KINIT_CHECK       = ${KINIT_CHECK}"
     echo "SHOW_STATUS       = ${SHOW_STATUS}"
     echo "NIGHTLY_BUILD     = ${NIGHTLY_BUILD}"
+    echo "DEVEL_BUILD       = ${DEVEL_BUILD}"
+    echo "CURRENT_BUILD     = ${CURRENT_BUILD}"
 fi
 
 # Print the CESR environment variables
@@ -635,47 +656,65 @@ else
     echo "`date`:  Release build has TIMED OUT!"
 fi
 
-DEVEL_RELEASE_TEST=1
+#####################################################################################
+# Compute disk space consumed by this build and append categorized info to the log file
+#####################################################################################
+rel_disk_total ${REL_NAME} >> ${FULL_REL_LOG}
+
+
 #####################################################################################
 # If all build jobs complete successfully and this is 
-# a DEVEL build, tag release, append output of tagging commands to FULL_REL_LOG file
-# If this is a CURRENT build -- make tag special
-# NOTE:  Not yet enabled
+# a DEVEL build, tag release, 
+# If this is a CURRENT build -- make the tag special.
+# Append output of tagging commands to FULL_REL_LOG file
 #####################################################################################
 if ( [ $loop -lt $max_loops -a $job_status -eq 0 -a $DO_TAG_RELEASE -eq 1 ] ) then
-    if ( [ $DEVEL_RELEASE_TEST -eq 1 ] ) then
-            CVS_TAGNAME="${REL_NAME}"
-            echo "`date`: TAGGING the files in CVS used to build this release..."
-            gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL="" TAGNAME=${CVS_TAGNAME} CHECKOUT="" BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" >> ${FULL_REL_LOG} 2>&1
-            if ( [ ${?} -eq 0 ] ) then
-                echo "`date`: Release tagged in CVS with tag: "${CVS_TAGNAME}
-                # python tagscript in viewCVS should take care of mailage when configured properly
-            else
-                echo "ERROR during tagging!"
-            fi
+    if ( [ $DEVEL_RELEASE -eq 1 ] ) then
+        CVS_TAGNAME="${REL_NAME}"
     fi
-#    if ( [ ${CURRENT_RELEASE} -eq 1 ] ) then  # set up flags to choose current or devel?
-#        echo "current release being tagged"
-#    fi
+    if ( [ $CURRENT_RELEASE -eq 1 ] ) then
+        CVS_TAGNAME="${REL_NAME}_current"
+    fi
+        echo "`date`: TAGGING the files in CVS used to build this release..."
+        gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL="" TAGNAME=${CVS_TAGNAME} CHECKOUT="" BUILD="" >> ${FULL_REL_LOG} 2>&1
+        if ( [ ${?} -eq 0 ] ) then
+            echo "`date`: Release tagged in CVS with tag: "${CVS_TAGNAME}
+             # python tagscript in viewCVS should take care of mailage when configured properly.
+             # It does produce a lot of output (one e-mail message per directory tagged)
+        else
+            echo "ERROR during tagging!"
+        fi
+    fi
 fi
 
-
-####################################################
-# If this is a nightly build, has not timed out,
-# and has completed without errors, call the 
-# rotate_release script using appropriate arguments.
-####################################################
-if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
-    if ( [ $job_status -eq 0 ] && [ $loop -lt $max_loops ] ) then
+##############################################################
+# If this build has not timed out or otherwise failed,
+# call the rotate_release script using appropriate arguments.
+##############################################################
+if ( [ $job_status -eq 0 ] && [ $loop -lt $max_loops ] ) then
+    if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
         /home/cesrulib/bin/util/rotate_release -nightly ${REL_NAME}
-    else  
-        echo "ERROR: Not rotating release due to build errors or timeout!"
-    fi
-fi
+    elif ( [ $DEVEL_BUILD -eq 1 ] ) then
+        /home/cesrulib/bin/util/rotate_release -devel ${REL_NAME}
+    else ( [ $CURRENT_BUILD -eq 1 ] ) then
+        /home/cesrulib/bin/util/rotate_release -current ${REL_NAME} 
+else  
+    echo "ERROR: Not rotating release due to build errors or timeout!"
+
+
 
 #####################################################
 # Do not to leave valid KRB credentials laying about.
 #####################################################
 kdestroy
+
+#####################################################
+# Calculate the elapsed time in Hr:Min:Sec format
+#####################################################
+TIME_TOTAL=`expr ${TIME_2} - ${TIME_1}`
+HRS=`expr ${TIME_TOTAL} / \3600`
+MINS=`expr \( ${TIME_TOTAL} % 3600 \) / 60`
+SECS=`expr \( ${TIME_TOTAL} % 60 \)`
+echo "Total elapsed time for this build:    ${HRS} hr ${MINS} min ${SECS} sec"
 
 exit
