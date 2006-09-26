@@ -1,0 +1,83 @@
+#!/bin/sh
+############################################################################################
+# This script will tag the code-tree in CVS that was used to build an existing 
+# CESR release with its name (cesr_YYYY_MMDD_d) by default or a custom string if specified.
+############################################################################################
+#  Not completed
+####################################
+
+# Script help function
+myprint_help () {
+#       Print help info
+    echo ""
+    echo "Usage is: tag_release  [-current] release-name [TAG=optional_tagname]"
+    echo ""
+    exit 1
+}
+
+##########################
+#  Main script starts here
+##########################
+arg_list=""
+REL_NAME=""
+TAG_CURRENT=0
+TAG=""
+
+if ( [ $# = 0 ] ) then
+    myprint_help
+    exit 1
+fi
+
+################################################
+#  Get command-line arguments.  Make sure
+#  var values are set up as needed by makefile.
+################################################
+for i
+do 
+   arg_list="${arg_list} ${i}"
+   case $i in
+     cesr_*     ) REL_NAME=`echo $i`; TAG=${REL_NAME};;
+     -current   ) TAG_CURRENT=1;;
+     TAG=*      ) TAG=`echo $i|cut -d= -f2`;;
+     *          ) myprint_help;
+     exit 1;;
+   esac
+done
+
+if ( [ ${TAG_CURRENT} = 1 ] ) then
+    TAG=${TAG}_current
+fi
+
+echo ""
+echo "tag_release called with the following arguments --"
+echo "  ${arg_list}"
+echo ""
+echo "Existing pertinent environment variables:" 
+echo "CESR_REL =       "${CESR_REL}
+echo "CESR_CVSROOT =   "${CESR_CVSROOT}
+echo "CESR_PKG =       "${CESR_PKG}
+echo "TAG =            "${TAG}
+echo "-----------------------------------------"
+
+OLD_CESR_REL=${CESR_REL}
+
+# Set ENV variable CESR_REL to the full path 
+# of the release specified on the command line.
+export CESR_REL=/home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME}
+
+if ( [ ! -d ${CESR_REL} ] ) then
+    echo "The release ${REL_NAME} does not exist. Aborting."
+    exit 1
+fi
+
+echo "Updated environment variable values:"
+echo "CESR_REL = "${CESR_REL}
+echo "-----------------------------------------"
+
+
+#Call gmake to actually do the tagging.
+gmake -f /home/cesrulib/bin/Gmake/M.release PACKAGE_NAME=${CESR_PKG} TAGNAME=${TAG} DO_REL="" CHECKOUT="" BUILD=""
+
+# Put things back the way they were before running this script.
+export CESR_REL=${OLD_CESR_REL}
+exit 0
