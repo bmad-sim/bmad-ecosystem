@@ -1,0 +1,80 @@
+#!/bin/sh
+
+##############################################################
+# This script will compute the disk space taken up by a given
+# release.  It will tally and display the disk space used by
+# each architecture in the release as well as a grand total.
+# FWIW, it also includes the .log and .build_status file sizes
+# in its totals.
+###############################################################
+# Usage: rel_disk_total release-name
+###############################################################
+
+arg_list=""
+REL_NAME=""
+LIBS_PATH=/home/cesrulib/cesr_libs
+BASE_AREA_LIST="OSF1_alpha_hp Linux_i686_intel Linux_i686_lahey VMS_alpha_hp CYGWIN_NT_i686_intel"
+
+
+myprint_help ()  {
+#       Print help info
+    echo ""
+    echo "Usage is: rel_disk_total release-name"
+    echo ""
+    exit 1
+}
+
+if ( [ $# = 0 ] ) then
+    myprint_help
+    exit 1
+fi
+
+################################################
+#  Get command-line arguments.  Make sure
+#  var values are set up as needed by makefile.
+################################################
+for i
+do 
+   arg_list="${arg_list} ${i}"
+   case $i in
+     cesr_*     ) REL_NAME=`echo $i`;;
+     
+     *          ) myprint_help;
+     exit 1;;
+   esac
+done
+
+if ( [ ! -d ${LIBS_PATH}/Linux_i686_intel/${REL_NAME} ] ) then
+    echo "${LIBS_PATH}/Linux_i686_intel/${REL_NAME} does not exist.  Quitting."
+    exit 1
+fi
+
+echo ""
+echo "Disk space consumption for release ${REL_NAME}..."
+echo "---------------------------------------------------------"
+
+TOTAL=0
+SUBTOTAL=0
+for j in $BASE_AREA_LIST
+do
+   TEMP=0
+   SUBTOTAL=0
+   TEMP=`du -cb ${LIBS_PATH}/${j}/${REL_NAME} | tail -n1 | cut -f1`
+   SUBTOTAL=`expr ${TEMP} + ${SUBTOTAL}`
+   if ( [ ${j} != "VMS_alpha_hp" ] && [ ${j} != "CYGWIN_NT_i686_intel" ] ) then
+       TEMP=`du -cb ${LIBS_PATH}/log/${j}/${REL_NAME}.log | tail -n1 | cut -f1`
+       SUBTOTAL=`expr ${SUBTOTAL} + ${TEMP}` 
+       TEMP=`du -cb ${LIBS_PATH}/log/${j}/${REL_NAME}.build_status | tail -n1 | cut -f1`
+       SUBTOTAL=`expr ${SUBTOTAL} + ${TEMP}`
+   fi
+   TOTAL=`expr ${TOTAL} + ${SUBTOTAL}`
+   SUBTOTALMEG=`expr ${SUBTOTAL} / 1048576`
+   echo -e "${SUBTOTAL} B\t(${SUBTOTALMEG} M)\t\t: ${j}"
+   SUBTOTAL=0
+done
+TOTALMEG=`expr ${TOTAL} / 1048576`
+echo "---------------------------------------------------------"
+echo -e "${TOTAL} B\t(${TOTALMEG} M)\t: TOTAL"
+echo ""
+
+exit 0
