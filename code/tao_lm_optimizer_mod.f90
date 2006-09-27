@@ -76,7 +76,7 @@ allocate (dy_da(n_data, n_var))
 
 a = var_value
 y = 0
-weight(1:n_var) = weight
+weight(1:n_var) = var_weight
 
 merit0 = tao_merit()
 
