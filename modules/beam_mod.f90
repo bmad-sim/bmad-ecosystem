@@ -1269,17 +1269,17 @@ type (particle_struct), allocatable, save :: a_mode(:)
 real(rp) exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
 real(rp) avg_energy, temp6(6)
 real(rp) eta, etap
-real(rp) :: sigma_s(6,6) = 0.0
-real(rp) :: s(6,6), s_inv(6,6)
+real(rp) :: sigma_s(6,6) 
+real(rp) :: s(6,6)
 real(rp) :: sigma_s_save(6,6) = 0.0
-reaL(rp) :: d_r(6) = 0.0, d_i(6) = 0.0, e_r(6,6) = 0.0, e_i(6,6) = 0.0
+real(rp) :: d_r(6) = 0.0, d_i(6) = 0.0, e_r(6,6) = 0.0, e_i(6,6) = 0.0
 real(rp) :: u(6,6), u_trans(6,6)
 real(rp) :: n_real(6,6)
 
 complex(rp) :: sigma_s_complex(6,6) = 0.0
 complex(rp) :: n(6,6), q(6,6)
 
-integer i
+integer i, j
 
 logical err
 
@@ -1293,15 +1293,6 @@ s(3,4) =  1.0
 s(4,3) = -1.0
 s(5,6) =  1.0 
 s(6,5) = -1.0
-
-s_inv = 0.0
-
-s_inv(1,2) = -1.0
-s_inv(2,1) = 1.0
-s_inv(3,4) = -1.0
-s_inv(4,3) = 1.0
-s_inv(5,6) = -1.0
-s_inv(6,5) = 1.0
 
 ! n_particle and centroid
 
@@ -1391,7 +1382,7 @@ u_trans = transpose (u)
 sigma_s = matmul(u, matmul(sigma_s_save, u_trans))
 
 ! temporarily get sigma matrix (from sigma_s) to save the normal_sigma matrix
-sigma_s_save = matmul(sigma_s,s_inv)
+sigma_s_save = -matmul(sigma_s, s)
 ! Normal-Mode Sigma Matrix
 params%sigma_normal(s11$) = sigma_s_save(1,1) 
 params%sigma_normal(s12$) = sigma_s_save(1,2) 
