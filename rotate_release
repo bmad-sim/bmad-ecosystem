@@ -20,7 +20,7 @@
 #         flags:
 #          -current       Rotate CURRENT release
 #          -devel         Rotate DEVEL release (DEFAULT)
-#          -nightly       Rotate NIGHTLY release
+#          -nightly       Rotate NIGHTLY release 
 #          -mail          Send notification to the 
 #                          cesr-code-l list upon rotation
 #
@@ -37,6 +37,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.9  2006/09/27 19:28:33  cesrulib
+# Various minor bugfixes, cosmetics
+#
 # Revision 1.8  2006/09/26 20:31:04  cesrulib
 # Added code to gracefully abort if no arguments are provided.
 #
@@ -66,14 +69,14 @@
 myprint_help () {
 #   Print help info
     echo ""
-    echo "Usage is:  rotate_release [options] <release_name>"
+    echo "Usage is:  rotate_release [options or none for DEVEL] <release_name>"
     echo ""
     echo "Variables:"
     echo "   <release_name>      cesr_xxxx_yyyy_d"
     echo "Options:"
-    echo "   -current            Flag to rotate CURRENT release"
-    echo "   -devel              Flag to rotate DEVEL release"
+    echo "   -devel              Flag to rotate DEVEL release (DEFAULT)"
     echo "   -nightly            Flag to rotate NIGHTLY release"
+    echo "   --current           Flag to rotate CURRENT release"
     echo "   -mail               Send notification to the cesr-code-l listserv"
 }
 

@@ -50,26 +50,26 @@ if ( [ ! -d ${LIBS_PATH}/Linux_i686_intel/${REL_NAME} ] ) then
 fi
 
 echo ""
-echo "Disk space consumption for release ${REL_NAME}..."
+echo "Disk space consumption for release ${REL_NAME} :"
 echo "---------------------------------------------------------"
 
 TOTAL=0
 SUBTOTAL=0
+TEMP=0
 for j in $BASE_AREA_LIST
 do
-   TEMP=0
-   SUBTOTAL=0
-   TEMP=`du -cb ${LIBS_PATH}/${j}/${REL_NAME} | tail -n1 | cut -f1`
-   SUBTOTAL=`expr ${TEMP} + ${SUBTOTAL}`
+   TEMP=`du -cb ${LIBS_PATH}/${j}/${REL_NAME} 2> /dev/null | tail -n1 | cut -f1`
+   SUBTOTAL=`expr ${SUBTOTAL} + ${TEMP}`   
    if ( [ ${j} != "VMS_alpha_hp" ] && [ ${j} != "CYGWIN_NT_i686_intel" ] ) then
-       TEMP=`du -cb ${LIBS_PATH}/log/${j}/${REL_NAME}.log | tail -n1 | cut -f1`
-       SUBTOTAL=`expr ${SUBTOTAL} + ${TEMP}` 
-       TEMP=`du -cb ${LIBS_PATH}/log/${j}/${REL_NAME}.build_status | tail -n1 | cut -f1`
+       TEMP=`du -cb ${LIBS_PATH}/log/${j}/${REL_NAME}.log 2> /dev/null | tail -n1 | cut -f1`
+       SUBTOTAL=`expr ${SUBTOTAL} + ${TEMP}`
+       TEMP=`du -cb ${LIBS_PATH}/log/${j}/${REL_NAME}.build_status 2> /dev/null | tail -n1 | cut -f1`
        SUBTOTAL=`expr ${SUBTOTAL} + ${TEMP}`
    fi
    TOTAL=`expr ${TOTAL} + ${SUBTOTAL}`
    SUBTOTALMEG=`expr ${SUBTOTAL} / 1048576`
    echo -e "${SUBTOTAL} B\t(${SUBTOTALMEG} M)\t\t: ${j}"
+   TEMP=0
    SUBTOTAL=0
 done
 TOTALMEG=`expr ${TOTAL} / 1048576`

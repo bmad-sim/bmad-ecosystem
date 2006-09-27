@@ -86,6 +86,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.24  2006/09/27 19:28:33  cesrulib
+# Various minor bugfixes, cosmetics
+#
 # Revision 1.23  2006/09/26 20:29:04  cesrulib
 # Added code to calculate the elapsed time of a build process.
 # The -devel and -current flags now cause standardized tagging and
@@ -503,7 +506,8 @@ if ( [ $LNX -eq 1 ] ) then
     krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_INTEL_STAT 2>&1 &"&  
     echo "`date`:  Linux_intel build launched with status:  $?"
 
-
+    sleep 20          # attempt to mitigate KRB replay messages by spacing out
+                      # executions in time.
 #   Build Linux_lahey release
     LINUX_LAHEY_STAT=${BUILD_DIR}/log/Linux_i686_lahey/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${LINUX_LAHEY_STAT}
@@ -514,6 +518,7 @@ fi
 
 # Build OSF1 release
 if ( [ $OSF -eq 1 ] ) then
+    sleep 20
     OSF_HP_STAT=${BUILD_DIR}/log/OSF1_alpha_hp/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${OSF_HP_STAT}
     LOCAL_BUILD_ARGS="${BUILD_ARGS}"
@@ -523,6 +528,7 @@ fi
 
 # Prepare OpenVMS release
 if ( [ $VMS -eq 1 ] ) then
+    sleep 20
     VMS_PREP_STAT=${BUILD_DIR}/log/VMS_alpha_hp/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${VMS_PREP_STAT}
     LOCAL_BUILD_ARGS="-vms_prep ${BUILD_ARGS}"
@@ -532,6 +538,7 @@ fi
 
 # Build Windows release - NOT YET AVAILABLE
 if ( [ $WIN -eq 1 ] ) then
+    sleep 20
     CYGWIN_INTEL_STAT=${BUILD_DIR}/log/CYGWIN_NT_i686_intel/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${CYGWIN_INTEL_STAT}
     echo "`date`:  Windows release must be started manually on PC6115!"
@@ -657,9 +664,12 @@ else
 fi
 
 #####################################################################################
-# Compute disk space consumed by this build and append categorized info to the log file
+# Compute disk space consumed by this build and append categorized info to 
+# standard output.  (Log this somewhere else?  Otherwise, we'll need to keep
+# the nightly mail messages or console output from manual builds to preserve
+# a size-history of builds.)
 #####################################################################################
-rel_disk_total ${REL_NAME} >> ${FULL_REL_LOG}
+/home/cesrulib/bin/util/rel_disk_total ${REL_NAME}
 
 
 #####################################################################################
@@ -675,15 +685,14 @@ if ( [ $loop -lt $max_loops -a $job_status -eq 0 -a $DO_TAG_RELEASE -eq 1 ] ) th
     if ( [ $CURRENT_RELEASE -eq 1 ] ) then
         CVS_TAGNAME="${REL_NAME}_current"
     fi
-        echo "`date`: TAGGING the files in CVS used to build this release..."
-        gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL="" TAGNAME=${CVS_TAGNAME} CHECKOUT="" BUILD="" >> ${FULL_REL_LOG} 2>&1
-        if ( [ ${?} -eq 0 ] ) then
-            echo "`date`: Release tagged in CVS with tag: "${CVS_TAGNAME}
-             # python tagscript in viewCVS should take care of mailage when configured properly.
-             # It does produce a lot of output (one e-mail message per directory tagged)
-        else
-            echo "ERROR during tagging!"
-        fi
+    echo "`date`: TAGGING the files in CVS used to build this release..."
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL="" TAGNAME=${CVS_TAGNAME} CHECKOUT="" BUILD="" >> ${FULL_REL_LOG} 2>&1
+    if ( [ ${?} -eq 0 ] ) then
+        echo "`date`: Release tagged in CVS with tag: "${CVS_TAGNAME}
+         # python tagscript in viewCVS should take care of mailage when configured properly.
+         # It does produce a lot of output (one e-mail message per directory tagged)
+    else
+        echo "ERROR during tagging!"
     fi
 fi
 
@@ -696,25 +705,29 @@ if ( [ $job_status -eq 0 ] && [ $loop -lt $max_loops ] ) then
         /home/cesrulib/bin/util/rotate_release -nightly ${REL_NAME}
     elif ( [ $DEVEL_BUILD -eq 1 ] ) then
         /home/cesrulib/bin/util/rotate_release -devel ${REL_NAME}
-    else ( [ $CURRENT_BUILD -eq 1 ] ) then
+    elif ( [ $CURRENT_BUILD -eq 1 ] ) then
         /home/cesrulib/bin/util/rotate_release -current ${REL_NAME} 
+    fi
 else  
     echo "ERROR: Not rotating release due to build errors or timeout!"
-
+fi
 
 
 #####################################################
-# Do not to leave valid KRB credentials laying about.
+# Do not leave valid KRB credentials laying about.
 #####################################################
 kdestroy
 
 #####################################################
 # Calculate the elapsed time in Hr:Min:Sec format
 #####################################################
+TIME_2=`date +%s`
 TIME_TOTAL=`expr ${TIME_2} - ${TIME_1}`
-HRS=`expr ${TIME_TOTAL} / \3600`
+echo "Seconds: "${TIME_TOTAL}
+HRS=`expr ${TIME_TOTAL} / 3600`
 MINS=`expr \( ${TIME_TOTAL} % 3600 \) / 60`
 SECS=`expr \( ${TIME_TOTAL} % 60 \)`
 echo "Total elapsed time for this build:    ${HRS} hr ${MINS} min ${SECS} sec"
+echo "EOF"
 
-exit
+exit 0
