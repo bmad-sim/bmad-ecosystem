@@ -86,6 +86,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.25  2006/09/27 19:37:33  cesrulib
+# Aesthetic change
+#
 # Revision 1.24  2006/09/27 19:28:33  cesrulib
 # Various minor bugfixes, cosmetics
 #
@@ -723,7 +726,6 @@ kdestroy
 #####################################################
 TIME_2=`date +%s`
 TIME_TOTAL=`expr ${TIME_2} - ${TIME_1}`
-echo "Seconds: "${TIME_TOTAL}
 HRS=`expr ${TIME_TOTAL} / 3600`
 MINS=`expr \( ${TIME_TOTAL} % 3600 \) / 60`
 SECS=`expr \( ${TIME_TOTAL} % 60 \)`
