@@ -17,6 +17,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.12  2006/09/29 14:27:25  mjf7
+# added bmad/synrad directory
+#
 # Revision 1.11  2005/01/21 13:53:13  palmer
 # Update bmad makefiles for addition of test_job area with sources for a
 # standard test program.
@@ -84,7 +87,7 @@
 # LOCAL_INCS      - Local directories to search for include files
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := ./code ./cesr ./modules ./cpp_interface
+LIB_SRC_DIRS := ./code ./cesr ./synrad ./modules ./cpp_interface
 OBJ_SRC_DIRS := ./test_jobs
 CONFIG_DIRS   := ./lat ./layout
 LOCAL_INCS    := ./include ../include
