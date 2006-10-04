@@ -86,6 +86,12 @@
 # $Id$
 #
 # $Log$
+# Revision 1.26  2006/10/04 19:49:22  cesrulib
+# Added build statistics output that provides an itemized time summary of
+# the builds for each architecture.
+# Added disk space check to terminate script if insufficient space exists to
+# accomodate the output.
+#
 # Revision 1.25  2006/09/27 19:37:33  cesrulib
 # Aesthetic change
 #
@@ -168,6 +174,14 @@ myprint_help () {
     echo "   BIN=<bin_dir>       Specify a custom CESR_BIN   directory"
     echo ""
     echo "   PATH =  $PATH "
+}
+
+# Function to convert an elapsed seconds number into Hour Minute and Second
+# values, stored in the variables HRS   MINS   SECS
+seconds_to_HMS () {
+    HRS=`expr ${1} / 3600`
+    MINS=`expr \( ${1} % 3600 \) / 60`
+    SECS=`expr \( ${1} % 60 \)`
 }
 
 # Function to generate unique release names
@@ -301,6 +315,23 @@ done
 echo "do_release - called with the following arguments:  "
 echo "${arg_list}" 
 echo ""
+
+#######################################################
+# Check the available disk space and abort if it is
+# insufficient to contain the expected build size
+#######################################################
+# 2,500,000 K  =  2.5 Gig
+DISK_NEEDED=2500000
+
+DISKSPACE=`df /mnt/libs | tail -n1 | sed 's/ \([ ]*\) /=/g' | cut -d= -f4`
+## if there is less than 2.5 Gig available, abort.
+if ( [ ${DISKSPACE} -lt ${DISK_NEEDED} ] ) then
+    echo "Disk free space = ${DISKSPACE}         Space required = ${DISK_NEEDED}"
+    echo "Insufficient disk space on /mnt/libs (/dev/vg1/libs).  Quitting!"
+    echo "Build process terminated at : "`date`
+    exit 1
+fi
+
 
 ##################################
 # Obtain a Kerberos V ticket to enable krsh builds on remote hosts
@@ -506,6 +537,7 @@ if ( [ $LNX -eq 1 ] ) then
     LINUX_INTEL_STAT=${BUILD_DIR}/log/Linux_i686_intel/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${LINUX_INTEL_STAT}
     LOCAL_BUILD_ARGS="${BUILD_ARGS} F90=intel"
+    LIN_INTEL_T1=`date +%s`
     krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_INTEL_STAT 2>&1 &"&  
     echo "`date`:  Linux_intel build launched with status:  $?"
 
@@ -515,6 +547,7 @@ if ( [ $LNX -eq 1 ] ) then
     LINUX_LAHEY_STAT=${BUILD_DIR}/log/Linux_i686_lahey/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${LINUX_LAHEY_STAT}
     LOCAL_BUILD_ARGS="${BUILD_ARGS} F90=lahey"
+    LIN_LAHEY_T1=`date +%s`
     krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_LAHEY_STAT 2>&1 &"&  
     echo "`date`:  Linux_lahey build launched with status:  $?"
 fi
@@ -525,6 +558,7 @@ if ( [ $OSF -eq 1 ] ) then
     OSF_HP_STAT=${BUILD_DIR}/log/OSF1_alpha_hp/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${OSF_HP_STAT}
     LOCAL_BUILD_ARGS="${BUILD_ARGS}"
+    OSF_ALPHA_T1=`date +%s`
     krsh -x $OSF_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $OSF_HP_STAT 2>&1 &"&  
     echo "`date`:  OSF_hp build launched with status:  $?"
 fi
@@ -535,6 +569,7 @@ if ( [ $VMS -eq 1 ] ) then
     VMS_PREP_STAT=${BUILD_DIR}/log/VMS_alpha_hp/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${VMS_PREP_STAT}
     LOCAL_BUILD_ARGS="-vms_prep ${BUILD_ARGS}"
+    VMS_ALPHA_T1=`date +%s`
     krsh -x $VMS_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $VMS_PREP_STAT 2>&1 &"&  
     echo "`date`:  VMS preparation job launched with status:  $?"
 fi
@@ -544,6 +579,7 @@ if ( [ $WIN -eq 1 ] ) then
     sleep 20
     CYGWIN_INTEL_STAT=${BUILD_DIR}/log/CYGWIN_NT_i686_intel/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${CYGWIN_INTEL_STAT}
+    CYGWIN_NT_T1=`date +%s`
     echo "`date`:  Windows release must be started manually on PC6115!"
     echo "BUILD_STATUS:  0" >> ${CYGWIN_INTEL_STAT}
 fi
@@ -551,13 +587,13 @@ fi
 
 ###################################################
 # Loop and check build status on all platforms
-##################################################################
+####################################################################
 # Status value key:    (Double check these values and descriptions)
 #   -1 : currently building on designated host
 #   -2 : build initiated, awating release checkout etc.?
 #    0 : build complete
 # +INT : Error code percolated up from some sub-script or command
-##################################################################
+####################################################################
 #max_loops=720  #~12 hours worth of looping
 max_loops=480   #~8  hours worth  (Builds usually complete in just under 1 hr.)
 sleep_seconds=60
@@ -565,6 +601,18 @@ sleep_seconds=60
 loop=0
 loop_done=0
 job_status=0
+
+LIN_INTEL_TIME=0
+LIN_LAHEY_TIME=0
+OSF_ALPHA_TIME=0
+VMS_ALPHA_TIME=0
+CYGWIN_NT_TIME=0
+
+L_I_donelatch=0
+L_L_donelatch=0
+O_A_donelatch=0
+V_A_donelatch=0
+C_I_donelatch=0
 
 while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
 
@@ -575,7 +623,12 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
     fi
     if ( [ $LNX -eq 1 ] ) then
         linux_intel_build=`grep "BUILD_STATUS:" $LINUX_INTEL_STAT | tail -1l | cut -d: -f2`
-        if ( [ $linux_intel_build -lt 0 ] ) then
+        if ( [ $linux_intel_build -eq 0 ] &&  [ $L_I_donelatch -eq 0 ] ) then
+	    LIN_INTEL_T2=`date +%s`
+	    LIN_INTEL_TIME=`expr ${LIN_INTEL_T2} - ${LIN_INTEL_T1}`
+	    L_I_donelatch=1
+	fi
+	if ( [ $linux_intel_build -lt 0 ] ) then
             loop_done=0
         fi
         if ( [ $linux_intel_build -gt 0 ] ) then
@@ -584,8 +637,14 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
         if ( [ $SHOW_STATUS -eq 1 ] ) then
           echo "          Linux_intel :  $linux_intel_build"
         fi
+	
         linux_lahey_build=`grep "BUILD_STATUS:" $LINUX_LAHEY_STAT | tail -1l | cut -d: -f2`
-        if ( [ $linux_lahey_build -lt 0 ] ) then
+        if ( [ $linux_lahey_build -eq 0 ] && [ $L_L_donelatch -eq 0 ] ) then
+	    LIN_LAHEY_T2=`date +%s`
+	    LIN_LAHEY_TIME=`expr ${LIN_LAHEY_T2} - ${LIN_INTEL_T1}`
+	    L_L_donelatch=1
+	fi
+	if ( [ $linux_lahey_build -lt 0 ] ) then
             loop_done=0
         fi
         if ( [ $linux_lahey_build -gt 0 ] ) then
@@ -597,6 +656,11 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
     fi
     if ( [ $OSF -eq 1 ] ) then
         osf_hp_build=`grep "BUILD_STATUS:" $OSF_HP_STAT | tail -1l | cut -d: -f2`
+	if ( [ $osf_hp_build -eq 0 ] && [ $O_A_donelatch -eq 0 ] ) then
+	    OSF_ALPHA_T2=`date +%s`
+	    OSF_ALPHA_TIME=`expr ${OSF_ALPHA_T2} - ${OSF_ALPHA_T1}`
+	    O_A_donelatch=1
+	fi
         if ( [ $osf_hp_build -lt 0 ] ) then
             loop_done=0
         fi
@@ -609,6 +673,11 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
     fi
     if ( [ $VMS -eq 1 ] ) then
         vms_prep_build=`grep "BUILD_STATUS:" $VMS_PREP_STAT | tail -1l | cut -d: -f2`
+	if ( [ $vms_prep_build -eq 0 ] && [ $V_A_donelatch -eq 0 ] ) then
+	    VMS_ALPHA_T2=`date +%s`
+	    VMS_ALPHA_TIME=`expr ${VMS_ALPHA_T2} - ${VMS_ALPHA_T1}`
+	    V_A_donelatch=1
+	fi
         if ( [ $vms_prep_build -lt 0 ] ) then
             loop_done=0
         fi
@@ -621,6 +690,11 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
     fi
     if ( [ $WIN -eq 1 ] ) then
         cygwin_intel_build=`grep "BUILD_STATUS:" $CYGWIN_INTEL_STAT | tail -1l | cut -d: -f2`
+	if ( [ $cygwin_intel_build -eq 0 ] && [ C_I_donelatch -eq 0 ] ) then
+	    CYGWIN_NT_T2=`date +%s`
+	    CYGWIN_NT_TIME=`expr ${CYGWIN_NT_T2} - ${CYGWIN_NT_T1}`
+	    C_I_donelatch=1
+	fi
         if ( [ $cygwin_intel_build -lt 0 ] ) then
             loop_done=0
         fi
@@ -652,7 +726,6 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
 
 done
 
-
 #------------------------
 # Print status summary
 #------------------------
@@ -665,6 +738,49 @@ if ( [ $loop -lt $max_loops ] ) then
 else
     echo "`date`:  Release build has TIMED OUT!"
 fi
+
+###################################################################################
+# Print itemized time-summary of build processes.
+#   Do it before additional loop timeout checks below to highlight which build
+#   might have stalled in the event a timeout occurs.
+###################################################################################
+# Gather time information from each platform build process
+
+echo ""
+echo "      ======= Statistics for this build process ======="
+echo "------------------------ Time summary: -------------------------"
+if ( [ ${LIN_INTEL_TIME} != 0 ] ) then
+    seconds_to_HMS ${LIN_INTEL_TIME}
+    echo "Linux intel build : ${HRS} hr ${MINS} min ${SECS} sec"
+else
+    echo "No time data available for Linux intel build."
+fi
+if ( [ ${LIN_LAHEY_TIME} != 0 ] ) then
+    seconds_to_HMS ${LIN_LAHEY_TIME}
+    echo "Linux lahey build : ${HRS} hr ${MINS} min ${SECS} sec"
+else
+    echo "No time data available for Linux lahey bulid."
+fi
+if ( [ ${OSF_ALPHA_TIME} != 0 ] ) then
+    seconds_to_HMS ${OSF_ALPHA_TIME}
+    echo "OSF1 alpha  build : ${HRS} hr ${MINS} min ${SECS} sec"
+else
+    echo "No time data available for OSF1 alpha build."
+fi
+if ( [ ${VMS_ALPHA_TIME} != 0 ] ) then
+    seconds_to_HMS ${VMS_ALPHA_TIME}
+    echo "VMS  alpha  build : ${HRS} hr ${MINS} min ${SECS} sec"
+else
+    echo "No time data available for VMS alpha build."
+fi
+if ( [ ${CYGWIN_NT_TIME} != 0 ] ) then
+    seconds_to_HMS ${CYGWIN_NT_TIME}
+    echo "Cygwin i686 build : ${HRS} hr ${MINS} min ${SECS} sec"
+else
+    echo "No time data available for Cygwin i686 build."
+fi
+echo "----------------------------------------------------------------"
+
 
 #####################################################################################
 # Compute disk space consumed by this build and append categorized info to 
@@ -726,9 +842,10 @@ kdestroy
 #####################################################
 TIME_2=`date +%s`
 TIME_TOTAL=`expr ${TIME_2} - ${TIME_1}`
-HRS=`expr ${TIME_TOTAL} / 3600`
-MINS=`expr \( ${TIME_TOTAL} % 3600 \) / 60`
-SECS=`expr \( ${TIME_TOTAL} % 60 \)`
+seconds_to_HMS ${TIME_TOTAL}
+## HRS=`expr ${TIME_TOTAL} / 3600`
+## MINS=`expr \( ${TIME_TOTAL} % 3600 \) / 60`
+## SECS=`expr \( ${TIME_TOTAL} % 60 \)`
 echo "Total elapsed time for this build:    ${HRS} hr ${MINS} min ${SECS} sec"
 echo "EOF"
 
