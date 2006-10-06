@@ -20,8 +20,10 @@ foreach $dir (`ls -R \$CESR_CVSSRC \$CESR_PKG | grep \':\'|grep -v CVS`) {
         $ls_arg=$ls_arg."$dir/*\.$x ";
     }
     
-    # take all of the files in the directory and loop them
-    foreach $x  (`ls $ls_arg`){
+    # Loop through all files in directory, throw out 'ls' complaints
+    # about certain filetypes not being present (prevents tons of 
+    # extraneous output.
+    foreach $x  (`ls $ls_arg 2> /dev/null`){
         chomp $x;
         if ($x=~/\/(\w+\-*\w*\.\w+)/){$x=$1};#notdir filename
         if ($x=~/(?:\w+\-*\w*)\.(?:h|c|cc|cpp|cxx)/i){$ff=deal_c();}
