@@ -3,37 +3,40 @@
 ! while getting beta h* the same.                                               
 ! Now including IP_L0 in the lrbbi calculation.                                 
 !+
-! Wed Oct 26 11:13:04 2005 => Documented by latdoc.
-! 				Emittance(nm rad)
-! Qx	Qy	Fx	Fy	e+	e-
-! 10.55	9.60	214.5	233.2	106.6	111.6
+! Mon Oct  9 14:58:09 2006 => Documented by latdoc.
+! Beam energy is 5.289 GeV
+! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
+! e+	10.55	9.60	214.5	233.2	107.0	
+! e-	0.55	0.60	215.4	233.7	111.7	
 !
 ! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)
-! 1.25	0.030	0.408	0.107	0.124	0.068	-2.357
+! 1.25	0.0304	0.408	0.107	0.124	0.071	-2.357
 !
 ! Bx*	By*	Eta*	Alphax*	Alphay* -> Positron-Electron
-! -0.08	0.000	-0.036	-0.236	0.022
+! -0.08	0.0001	-0.036	-0.236	0.022
 !
 ! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3
-! 7.14	2.991	0.190	0.270	-0.114	0.024
+! 7.14	2.991	0.190	0.270	-0.114	0.025
 !
 ! IP_L0 disp.: e+ x:9.84e-05 y:7.11e-05   e- x:2.46e-04 y:-7.09e-05
 !
 ! IP_L0 cbar:  1.9e-02   -1.5e-01   IP_L3 cbar:  7.5e-04   -1.1e-04
 !             -5.8e-02   -1.7e-02                1.1e-04    2.9e-04
 !
-! Peak Arc Betas: e+ Bx:49.3 By:56.1   e- Bx:47.0 By:52.9
+! Peak Arc Betas: e+ Bx:48.6 By:55.1   e- Bx:47.0 By:52.9
 ! H_Sep Bx: 08w:17.38  08e:17.38  45w:19.33  45e:19.33
 ! V_Sep By: 48w:14.04  48e:14.04
 !
 ! 9x5 info: Pr_apert:3.91e-02  Effic:0.46  I_bunch:9.42  B_param_i:8.49
-! Worst e+ x disp:1.82e-02  at: Q10W
+! Worst x disp e+:1.82e-02  at: Q10W, 	e-:-1.82e-02 at: Q34E
 ! 34w: e+ Bx:38.18  e- Bx:46.95  e+ Eta:2.73   Ring sigma_sep:6.86
 ! 34e: e+ Bx:47.95  e- Bx:39.25  e- Eta:2.53
 !
 ! Full turn 4x4 det: 0.33  Momentum_comp: 1.11e-02
-! sync_beta_path x:-1.0e-09  y:1.1e-07  _volt x:-1.1e-09  y:1.1e-07
-! max dbeta(dE) x:30.81 y:40.30  dbeta(dPretz) x:2.79e-01 y:1.14e-01
+! sync_beta_path x:0.0e+00  y:0.0e+00  _volt x:-1.1e-09  y:1.1e-07
+! Qs-2Qx Mag  e+: 7.98   e-: 13.70
+! *IP*  dbeta(dE) x:30.85 y:-12.82  dbeta(dPretz) x:-2.82e-03 y:1.28e-02
+! *max* dbeta(dE) x:30.81 y:40.30  dbeta(dPretz) x:2.79e-01 y:1.14e-01
 ! Chrom x:1.89  y:1.78    Tonality x:0.02  y:-0.28
 !-
                                                                                 

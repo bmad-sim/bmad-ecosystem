@@ -1,33 +1,47 @@
  ! BMAD input file 
  ! 
- !+ 
- ! Fri Jun 25 11:18:51 2004 => Documented by latdoc. 
- ! 				Emittance(nm rad) 
- ! Qx	Qy	Fx	Fy	e+	e- 
- ! 10.52	9.58	202.8	225.8	126.0	136.1 
- ! 
- ! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad) 
- ! 0.85	0.012	-0.001	0.071	-0.036	-0.000	-3.464 
- ! 
- ! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3 
- ! 2.75	7.257	-0.483	-0.092	0.065	0.009 
- ! 
- ! IP_L0 disp.: e+ x:-1.59e-04 y:2.08e-06   e- x:-1.59e-04 y:-2.08e-06 
- ! 
- ! IP_L0 cbar: -2.8e-04   -1.6e-03   IP_L3 cbar:  1.1e-03    9.7e-04 
- !             -7.4e-02   -1.7e-03               -1.5e-03    3.3e-04 
- ! 
- ! Peak Arc Betas: e+ Bx:40.9 By:44.5   e- Bx:41.2 By:48.6 
- ! H_Sep Bx: 08w:28.23  08e:28.23  45w:14.44  45e:14.44 
- ! V_Sep By: 48w:11.77  48e:11.77 
- ! 
- ! 9x4 info: Pr_apert:4.44e-02  Effic:0.62  I_bunch:4.89  B_param_i:3.04 
- ! 34w: e+ Bx:40.24  e- Bx:40.24  e+ Eta:0.91   Ring sigma_sep:6.97 
- ! 34e: e+ Bx:34.05  e- Bx:34.05  e- Eta:0.77 
- ! 
- ! Full turn 4x4 det: 2.61 
- ! Chrom x:-1.61  y:1.92    Tonality x:-0.06  y:0.35 
- !- 
+!+
+! Mon Oct  9 14:55:40 2006 => Documented by latdoc.
+! Beam energy is 1.885 GeV
+! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
+! e+	10.52	9.58	202.8	225.0	132.2	
+! e-	0.52	0.57	202.3	224.2	141.6	
+!
+! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)
+! 0.84	0.0119	-0.003	0.030	-0.001	0.005	-3.456
+!
+! Bx*	By*	Eta*	Alphax*	Alphay* -> Positron-Electron
+! -0.06	0.0005	0.005	-0.007	0.023
+!
+! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3
+! 2.79	7.088	-0.484	-0.059	0.075	0.021
+!
+! IP_L0 disp.: e+ x:-1.73e-04 y:2.05e-06   e- x:-1.53e-04 y:-2.06e-06
+!
+! IP_L0 cbar: -3.6e-04   -1.8e-03   IP_L3 cbar:  1.0e-03    1.1e-03
+!             -7.4e-02   -1.5e-03               -1.7e-03    2.8e-04
+!
+! Peak Arc Betas: e+ Bx:38.7 By:43.2   e- Bx:41.4 By:51.5
+! H_Sep Bx: 08w:29.01  08e:29.01  45w:9.08  45e:9.08
+! V_Sep By: 48w:12.08  48e:12.08
+! sc wiggler beta y's (wig1_14 -> wig3_18):
+! e+ west: 19.15  10.84  18.98   9.04  15.58  19.12
+! e- west: 14.72   7.41  30.20   9.22  13.80  15.39
+! e+ east: 17.94  13.42  19.54   3.74   8.61  13.31
+! e- east: 23.19  18.86  12.14   2.96   9.03  15.96
+!
+! 9x5 info: Pr_apert:4.48e-02  Effic:0.54  I_bunch:3.85  B_param_i:2.49
+! Worst x disp e+:1.98e-02  at: Q06W, 	e-:1.97e-02 at: Q06E
+! 34w: e+ Bx:38.01  e- Bx:33.54  e+ Eta:0.98   Ring sigma_sep:6.23
+! 34e: e+ Bx:36.15  e- Bx:40.47  e- Eta:0.83
+!
+! Full turn 4x4 det: 1.18  Momentum_comp: 1.13e-02
+! sync_beta_path x:0.0e+00  y:0.0e+00  _volt x:-3.7e-09  y:1.4e-06
+! Qs-2Qx Mag  e+: 10.07   e-: 4.38
+! *IP*  dbeta(dE) x:16.22 y:-3.72  dbeta(dPretz) x:5.59e-01 y:6.60e-02
+! *max* dbeta(dE) x:19.46 y:65.68  dbeta(dPretz) x:6.97e-01 y:2.45e-01
+! Chrom x:2.96  y:1.67    Tonality x:-0.05  y:0.38
+!-
 
  lattice := hibetainj_20040628_v01_flm
  beam, energy =   1.885 

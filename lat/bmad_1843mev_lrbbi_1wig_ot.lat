@@ -2,7 +2,7 @@
 
 lattice := 1843mev_lrbbi_1wig_ot
 
-call, file=[cesr.bmad.layout]cesr_iii_1wig_corr_layout.bmad
+call, file=BMAD_LAYOUT:cesr_iii_1wig_corr_layout.bmad
 
 ! cleo solenoid
 

@@ -1,7 +1,8 @@
  ! BMAD input file 
  ! 
 !+
-! Tue Sep  5 10:44:03 2006 => Documented by latdoc.
+! Mon Oct  9 15:00:47 2006 => Documented by latdoc.
+! Beam energy is 1.885 GeV
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.52	9.58	202.8	225.0	132.4	
 ! e-	0.52	0.57	202.3	224.2	141.4	
@@ -23,6 +24,11 @@
 ! Peak Arc Betas: e+ Bx:38.8 By:43.1   e- Bx:41.6 By:51.5
 ! H_Sep Bx: 08w:29.10  08e:29.10  45w:9.13  45e:9.13
 ! V_Sep By: 48w:12.10  48e:12.10
+! sc wiggler beta y's (wig1_14 -> wig3_18):
+! e+ west: 19.18  10.85  18.97   9.05  15.60  19.15
+! e- west: 14.74   7.42  30.16   9.22  13.81  15.40
+! e+ east: 17.97  13.44  19.53   3.74   8.62  13.33
+! e- east: 23.21  18.87  12.14   2.96   9.05  15.97
 !
 ! 9x5 info: Pr_apert:4.48e-02  Effic:0.54  I_bunch:3.85  B_param_i:2.49
 ! Worst x disp e+:1.98e-02  at: Q06W, 	e-:1.97e-02 at: Q06E

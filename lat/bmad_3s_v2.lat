@@ -1,10 +1,48 @@
 ! BMAD input file
+!+
+! Mon Oct  9 14:59:35 2006 => Documented by latdoc.
+! Beam energy is 5.175 GeV
+! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
+! e+	10.53	9.61	206.7	239.5	153.8	
+! e-	0.53	0.62	206.0	240.1	158.7	
+!
+! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)
+! 1.24	0.0171	0.008	0.129	-0.067	0.036	-2.822
+!
+! Bx*	By*	Eta*	Alphax*	Alphay* -> Positron-Electron
+! 0.04	0.0001	0.005	0.197	-0.001
+!
+! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3
+! 1.74	6.921	-0.075	-0.117	0.068	-0.003
+!
+! IP_L0 disp.: e+ x:6.11e-05 y:-9.78e-07   e- x:-6.72e-05 y:9.79e-07
+!
+! IP_L0 cbar: -1.3e-04    4.2e-04   IP_L3 cbar:  1.5e-04   -9.4e-05
+!             -4.4e-02   -9.8e-05                5.0e-05    1.9e-04
+!
+! Peak Arc Betas: e+ Bx:46.0 By:42.2   e- Bx:45.4 By:42.4
+! H_Sep Bx: 08w:26.01  08e:26.01  45w:13.51  45e:13.51
+! V_Sep By: 48w:10.66  48e:10.66
+!
+! 9x5 info: Pr_apert:4.08e-02  Effic:0.40  I_bunch:6.23  B_param_i:5.67
+! Worst x disp e+:-1.81e-02  at: Q08E, 	e-:1.80e-02 at: Q08E
+! 34w: e+ Bx:46.00  e- Bx:36.95  e+ Eta:2.06   Ring sigma_sep:4.97
+! 34e: e+ Bx:35.59  e- Bx:42.44  e- Eta:2.14
+!
+! Full turn 4x4 det: 0.48  Momentum_comp: 1.14e-02
+! sync_beta_path x:0.0e+00  y:0.0e+00  _volt x:4.3e-09  y:-1.5e-07
+! Qs-2Qx Mag  e+: 7.79   e-: 7.19
+! *IP*  dbeta(dE) x:7.87 y:-24.00  dbeta(dPretz) x:1.01e-02 y:4.27e-03
+! *max* dbeta(dE) x:7.27 y:63.44  dbeta(dPretz) x:2.66e-01 y:9.55e-02
+! Chrom x:2.67  y:-1.40    Tonality x:-0.04  y:-0.25
+!-
  
-lattice := cesrc_3s_v2
+lattice := 3s_v2
  
 call, file=BMAD_LAYOUT:cesr_iii_layout.bmad
  
 ! cleo solenoid
+wig_14e[is_on] = false
  
 beam, energy =   5.17500
 solenoid_tesla = 1.5

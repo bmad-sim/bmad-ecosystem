@@ -2,37 +2,45 @@
  ! 
 !+ 
 !+
-! Tue Sep 27 15:21:08 2005 => Documented by latdoc.
-! 				Emittance(nm rad)
-! Qx	Qy	Fx	Fy	e+	e-
-! 10.52	9.59	202.8	228.9	128.1	138.0
+! Mon Oct  9 14:57:34 2006 => Documented by latdoc.
+! Beam energy is 2.130 GeV
+! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
+! e+	10.52	9.59	202.8	228.9	129.2	
+! e-	0.52	0.59	201.2	228.6	139.2	
 !
 ! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)
-! 0.83	0.012	0.010	-0.152	-0.024	0.004	-2.969
+! 0.83	0.0121	0.010	-0.152	-0.024	0.007	-2.969
 !
 ! Bx*	By*	Eta*	Alphax*	Alphay* -> Positron-Electron
-! 0.02	0.001	-0.015	-0.394	-0.035
+! 0.02	0.0008	-0.015	-0.394	-0.035
 !
 ! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3
-! 2.10	6.320	-0.272	0.019	-0.047	0.020
+! 2.10	6.320	-0.272	0.019	-0.047	0.022
 !
 ! IP_L0 disp.: e+ x:-3.15e-04 y:-9.79e-07   e- x:3.61e-04 y:9.48e-07
 !
 ! IP_L0 cbar: -1.3e-04    4.2e-04   IP_L3 cbar: -1.4e-04    5.0e-06
 !             -6.5e-02    9.0e-05                3.9e-04   -5.8e-05
 !
-! Peak Arc Betas: e+ Bx:48.9 By:46.3   e- Bx:47.4 By:44.6
+! Peak Arc Betas: e+ Bx:48.3 By:45.1   e- Bx:47.4 By:44.6
 ! H_Sep Bx: 08w:37.79  08e:37.79  45w:9.13  45e:9.13
 ! V_Sep By: 48w:13.07  48e:13.07
+! sc wiggler beta y's (wig1_14 -> wig3_18):
+! e+ west: 13.01   6.44  31.73   8.91  14.35  18.50
+! e- west: 11.58   5.27  40.78   9.60  14.13  17.09
+! e+ east: 17.57  10.61  29.96   5.24   9.78  14.31
+! e- east: 18.03  11.50  24.54   4.45   9.26  14.54
 !
-! 9x5 info: Pr_apert:4.23e-02  Effic:0.47  I_bunch:3.26  B_param_i:2.26
-! Worst e+ x disp:-1.81e-02  at: Q08E
-! 34w: e+ Bx:38.46  e- Bx:44.08  e+ Eta:2.57   Ring sigma_sep:5.58
+! 9x5 info: Pr_apert:4.24e-02  Effic:0.47  I_bunch:3.26  B_param_i:2.25
+! Worst x disp e+:-1.81e-02  at: Q08E, 	e-:1.84e-02 at: Q08E
+! 34w: e+ Bx:38.46  e- Bx:44.08  e+ Eta:2.57   Ring sigma_sep:5.57
 ! 34e: e+ Bx:36.83  e- Bx:31.82  e- Eta:2.52
 !
 ! Full turn 4x4 det: 0.57  Momentum_comp: 1.12e-02
-! sync_beta_path x:8.7e-09  y:1.1e-06  _volt x:-6.1e-09  y:8.1e-07
-! max dbeta(dE) x:-5.08 y:70.67  dbeta(dPretz) x:4.22e-01 y:1.40e-01
+! sync_beta_path x:0.0e+00  y:0.0e+00  _volt x:-6.1e-09  y:8.1e-07
+! Qs-2Qx Mag  e+: 5.55   e-: 6.67
+! *IP*  dbeta(dE) x:-4.39 y:-47.96  dbeta(dPretz) x:-5.71e-02 y:3.02e-02
+! *max* dbeta(dE) x:-5.08 y:70.67  dbeta(dPretz) x:4.21e-01 y:1.43e-01
 ! Chrom x:1.01  y:0.63    Tonality x:0.45  y:0.15
 !-
  

@@ -1,5 +1,47 @@
 ! BMAD input file
 ! Focus on pretzel efficiency and bunch current
+!+
+! Mon Oct  9 15:00:56 2006 => Documented by latdoc.
+! Beam energy is 1.835 GeV
+! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
+! e+	10.53	9.59	206.7	228.9	98.2	
+! e-	0.53	0.58	206.4	227.9	98.6	
+!
+! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)
+! 1.30	0.0134	0.003	-0.002	-0.003	-0.008	2.756
+!
+! Bx*	By*	Eta*	Alphax*	Alphay* -> Positron-Electron
+! 0.00	0.0009	-0.010	0.133	0.105
+!
+! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3
+! 2.06	8.076	-0.200	-0.004	0.154	-0.050
+!
+! IP_L0 disp.: e+ x:-4.69e-05 y:8.15e-06   e- x:4.39e-05 y:-7.96e-06
+!
+! IP_L0 cbar:  3.8e-03    4.1e-03   IP_L3 cbar: -2.8e-03   -2.0e-03
+!             -9.2e-02    2.3e-03                4.5e-03   -2.1e-03
+!
+! Peak Arc Betas: e+ Bx:47.6 By:41.9   e- Bx:49.8 By:40.7
+! H_Sep Bx: 08w:25.52  08e:25.52  45w:10.38  45e:10.38
+! V_Sep By: 48w:10.23  48e:10.23
+! sc wiggler beta y's (wig1_14 -> wig3_18):
+! e+ west:  0.01   0.01   0.01   0.01   0.01   0.01
+! e- west:  0.01   0.01   0.01   0.01   0.01   0.01
+! e+ east: 25.52  19.37  18.60   3.33   8.72  14.21
+! e- east: 23.25  16.80  24.29   4.35  10.20  15.40
+!
+! 9x5 info: Pr_apert:4.19e-02  Effic:0.42  I_bunch:2.12  B_param_i:1.88
+! Worst x disp e+:-1.88e-02  at: Q38W, 	e-:1.87e-02 at: Q38W
+! 34w: e+ Bx:43.40  e- Bx:37.86  e+ Eta:2.48   Ring sigma_sep:4.53
+! 34e: e+ Bx:47.28  e- Bx:48.31  e- Eta:1.85
+!
+! Full turn 4x4 det: 1.17  Momentum_comp: 1.09e-02
+! sync_beta_path x:0.0e+00  y:0.0e+00  _volt x:-2.2e-08  y:1.1e-06
+! Qs-2Qx Mag  e+: 7.77   e-: 3.34
+! *IP*  dbeta(dE) x:11.79 y:-51.83  dbeta(dPretz) x:1.77e-01 y:2.76e-02
+! *max* dbeta(dE) x:11.86 y:121.70  dbeta(dPretz) x:4.51e-01 y:1.93e-01
+! Chrom x:0.51  y:-0.80    Tonality x:0.26  y:0.51
+!-
 
 
 lattice := low6_20040324_v01

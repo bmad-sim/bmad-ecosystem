@@ -1,34 +1,46 @@
  ! BMAD input file 
  ! 
 !+
-! Thu Jul 14 11:14:51 2005 => Documented by latdoc.
-! 				Emittance(nm rad)
-! Qx	Qy	Fx	Fy	e+	e-
-! 10.52	9.58	202.8	225.0	129.4	138.4
+! Mon Oct  9 14:56:17 2006 => Documented by latdoc.
+! Beam energy is 1.885 GeV
+! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
+! e+	10.52	9.58	202.8	225.0	132.4	
+! e-	0.52	0.57	202.3	224.2	141.4	
 !
 ! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)
-! 0.84	0.012	-0.003	0.025	-0.001	0.001	-3.455
+! 0.84	0.0120	-0.003	0.025	-0.001	0.005	-3.455
+!
+! Bx*	By*	Eta*	Alphax*	Alphay* -> Positron-Electron
+! -0.06	0.0005	0.005	-0.007	0.023
 !
 ! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3
-! 2.80	7.078	-0.483	-0.054	0.075	0.019
+! 2.80	7.078	-0.484	-0.054	0.075	0.021
 !
 ! IP_L0 disp.: e+ x:-1.73e-04 y:2.06e-06   e- x:-1.53e-04 y:-2.06e-06
 !
 ! IP_L0 cbar: -3.6e-04   -1.8e-03   IP_L3 cbar:  1.0e-03    1.1e-03
 !             -7.4e-02   -1.5e-03               -1.7e-03    2.8e-04
 !
-! Peak Arc Betas: e+ Bx:38.8 By:43.7   e- Bx:41.6 By:51.5
-! H_Sep Bx: 08w:35.54  08e:35.54  45w:13.83  45e:13.83
+! Peak Arc Betas: e+ Bx:38.8 By:43.1   e- Bx:41.6 By:51.5
+! H_Sep Bx: 08w:29.10  08e:29.10  45w:9.13  45e:9.13
 ! V_Sep By: 48w:12.10  48e:12.10
+! sc wiggler beta y's (wig1_14 -> wig3_18):
+! e+ west: 19.18  10.85  18.97   9.05  15.60  19.15
+! e- west: 14.74   7.42  30.16   9.22  13.81  15.40
+! e+ east: 17.97  13.44  19.53   3.74   8.62  13.33
+! e- east: 23.21  18.87  12.14   2.96   9.05  15.97
 !
-! 9x5 info: Pr_apert:4.47e-02  Effic:0.54  I_bunch:3.94  B_param_i:2.52
-! 34w: e+ Bx:37.83  e- Bx:33.37  e+ Eta:0.98   Ring sigma_sep:6.25
+! 9x5 info: Pr_apert:4.48e-02  Effic:0.54  I_bunch:3.85  B_param_i:2.49
+! Worst x disp e+:1.98e-02  at: Q06W, 	e-:1.97e-02 at: Q06E
+! 34w: e+ Bx:37.83  e- Bx:33.37  e+ Eta:0.98   Ring sigma_sep:6.23
 ! 34e: e+ Bx:36.34  e- Bx:40.68  e- Eta:0.83
 !
-! Full turn 4x4 det: 1.94  Momentum_comp: 1.13e-02
-! sync_beta_path x:-6.9e-10  y:1.4e-06  _volt x:-4.1e-09  y:1.4e-06
-! max dbeta(dE) x:36.69 y:69.75  dbeta(dPretz) x:6.44e-02 y:3.99e-02
-! Chrom x:1.86  y:2.11    Tonality x:-0.05  y:0.38
+! Full turn 4x4 det: 1.25  Momentum_comp: 1.13e-02
+! sync_beta_path x:0.0e+00  y:0.0e+00  _volt x:-4.1e-09  y:1.4e-06
+! Qs-2Qx Mag  e+: 10.22   e-: 4.39
+! *IP*  dbeta(dE) x:17.75 y:-3.74  dbeta(dPretz) x:5.67e-01 y:6.62e-02
+! *max* dbeta(dE) x:18.59 y:65.49  dbeta(dPretz) x:7.00e-01 y:2.47e-01
+! Chrom x:2.94  y:1.68    Tonality x:-0.05  y:0.38
 !-
 
  lattice := 12WIG_20050626
