@@ -26,6 +26,9 @@
 #                               transfer to OpenVMS
 #          -dump                Dump the configuration information for 
 #                               this script
+#          -test                Perform test cases on binary ouput from
+#                                build processes.
+#
 #         variables:
 #           PKG=<packages_name> Specify a specific packages release
 #                               to build against.  Expects only base 
@@ -56,6 +59,10 @@
 # $Id$
 #
 # $Log$
+# Revision 1.2  2006/10/13 21:21:30  cesrulib
+# Implemented -test flag to perform tests on the executable code built for
+# bmadz.
+#
 # Revision 1.1  2006/08/14 00:38:48  cesrulib
 # Update for latest changes in build area structure and new do_release/build_release scripts.
 #
@@ -80,6 +87,8 @@ myprint_help () {
     echo "-vms_prep           Prepare a release for transfer to OpenVMS"
     echo "-dump               Dump the configuration information for"
     echo "                    this script"
+    echo "-test               Run test-cases on binary output. Results go"
+    echo "                     to build_status file."
     echo ""
     echo "Variable definitions:"
     echo "PKG=<packages_name> Specify a specific packages release"
@@ -126,6 +135,8 @@ GMAKE_OVERRIDE=0
 UTIL_OVERRIDE=0
 use_cesr_bin=/home/cesrulib/bin
 
+TEST_EXEC=0
+
 GMAKE=gmake
 
 # Default customizations for Windows builds in the CYGWIN environment
@@ -150,6 +161,7 @@ do arg_list="${arg_list} ${i}";
      "-pkg"     ) DO_PKG=1  ;;
      "-vms_prep") VMS_PREP=1;;
      "-dump"    ) DO_DUMP=1 ;;
+     "-test"    ) TEST_EXEC=1;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
      F90=*      ) CESRF90=`echo $i|cut -d= -f2`;
@@ -264,6 +276,7 @@ if ( [ $DO_DUMP -eq 1 ] ) then
     echo "CESRF90           = ${CESR_F90}"
     echo "PATH              = ${PATH} "
     echo "BIN_DIR           = ${BIN_DIR}"
+    echo "TEST_EXEC         = ${TEST_EXEC}"
 fi
 
 #--------------------------------------
@@ -371,19 +384,24 @@ if ( [ $DO_REL -eq 1 ] ) then
 #   Build and run test jobs using the new release  
 #-------------------------------------------------
     test_rel_status=1
-    if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 ] ) then
-#       Run test jobs here
-#       test_rel_status=$?
-        test_rel_status=0
-        echo "Executable testing not yet available!"
+    if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 -a ${TEST_EXEC} -eq 1 ] ) then
+        echo "Starting ${REL_NAME} test jobs for ${PLATFORM_TAG}_${CESRF90}:"
+
+# # # # >> bmadz test job
+        /home/cesrulib/bin/util/test_bmadz ${REL_NAME} ${BASE_TAG}
+         # get error status from test job
+# # # # Run other test jobs here
+
+#        echo "Executable testing not yet available!"
     fi
 
 fi
-
-
+test_rel_status=0
 ###############################################################
 # Final messages after  building CESR RELEASE or PACKAGES
 ###############################################################
+# Investigate behavior for when build succeeds but test fails.
+
 if ( [ ${test_rel_status} -eq 0 ] ) then
     echo "`date`: Installation completed successfully for ${BASE_TAG} !";
 else
