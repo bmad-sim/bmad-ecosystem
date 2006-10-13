@@ -37,6 +37,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.10  2006/10/13 21:12:54  cesrulib
+# Edited mail footer content and cosmetic changes.
+#
 # Revision 1.9  2006/09/27 19:28:33  cesrulib
 # Various minor bugfixes, cosmetics
 #
@@ -208,7 +211,7 @@ if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
   REL_TYPE="NIGHTLY"
 fi
   echo ""
-  echo "OLD:  ${present_rel}  -->   NEW:  ${REL}"
+  echo "OLD:  ${present_rel}   -->   NEW:  ${REL}"
   echo ""
 
 if ( [ ${MAIL} -eq 1 ] ) then
@@ -223,15 +226,16 @@ A release has been updated on the Unix/Linux platforms indicated below.
 
  ${REL_TYPE} Release Rotation for:  ${BASE_AREA_LIST}
 
- OLD:  ${present_rel}  -->   NEW:  ${REL}
+ OLD:  ${present_rel}   -->   NEW:  ${REL}
 
 --------------------------------------------------------------------------------
 Accelerator Code Support Links -
-Documentation  : https://wiki.lepp.cornell.edu/lepp/bin/view/CESR/ACL/WebHome
-Bug Reports    : cesr-libraries@rt.lepp.cornell.edu
-Librarian Email: cesrulib@mail.lepp.cornell.edu" > mail_tempfile
+Documentation      : https://wiki.lepp.cornell.edu/lepp/bin/view/CESR/ACL/WebHome
+Bug Reports        : cesr-libraries@rt.lepp.cornell.edu
+Librarian Email    : cesrulib@mail.lepp.cornell.edu
+Repository Viewing : http://cesrelog.lns.cornell.edu/cgi/viewcvs/viewcvs.cgi/" > mail_tempfile
 
-mail -s "Accelerator Libraries Rotation" mcr@mail.lepp.cornell.edu < mail_tempfile
+mail -s "Accelerator Libraries Rotation" cesr-code-l@mail.lns.cornell.edu < mail_tempfile
 rm -f mail_tempfile
 fi
 
