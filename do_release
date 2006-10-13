@@ -26,7 +26,8 @@
 #
 #         flags:
 #          -cesr          Build a cesr release
-#          -pkg           Build a packages release 
+#          -pkg           Build a packages release (not capable of standalone
+#                                          package production?)
 #          -build_only    if you want to forgo the checkout and
 #                         creation of necessary dirs, add 
 #                         -build_only flag.  In this case, 
@@ -49,6 +50,9 @@
 #          -curr          Run a CURRENT build, rotate release and apply 
 #                          CVS tag consisting of the release name
 #                          followed by "_current".
+#          -test          Perform executable testing on build products,
+#                          detailed results will be logged to build_status 
+#                          files and summarized in the output of this script.
 #          
 #         variables:
 #           REL=<release_name>  Specify a specific CESR release
@@ -86,6 +90,11 @@
 # $Id$
 #
 # $Log$
+# Revision 1.28  2006/10/13 21:15:53  cesrulib
+# Implemented -test flag to perform binary testing of bmadz after a successful
+# build.
+# A summary of that process is provided after time and disk space summaries.
+#
 # Revision 1.27  2006/10/06 13:46:58  cesrulib
 # Typographical correction.
 #
@@ -166,6 +175,7 @@ myprint_help () {
     echo "   -ntly               Nightly build, rotate library links when done"
     echo "   -devel              Run a DEVEL build, rotate release and apply CVS tag."
     echo "   -curr               Run a CURRENT build, rotate release and apply special CVS tag."
+    echo "   -test               Run test jobs on all binary build products. Summarize results."
     echo ""
     echo "Variable definitions:"
     echo "   REL=<release_name>  Specify a custom CESR release name"
@@ -238,6 +248,7 @@ SHOW_STATUS=1
 NIGHTLY_BUILD=0
 DEVEL_BUILD=0
 CURRENT_BUILD=0
+TEST_EXEC=0
 
 DO_TAG_RELEASE=0
 DO_TAG_PACKAGES=0
@@ -248,6 +259,10 @@ PKG=""
 GMAKE_OVERRIDE=0
 UTIL_OVERRIDE=0
 use_cesr_bin=/home/cesrulib/bin
+
+   # text file containing the REL_NAME of the
+   # last successfully built release
+PREV_BUILT="${BUILD_DIR}/log/prev_built" 
 
 # Special customization for Windows builds in the CYGWIN environment
 if ( [ ${PLATFORM_TAG} = "CYGWIN_NT_i686" ] ) then
@@ -302,6 +317,7 @@ do arg_list="${arg_list} ${i}";
      "-ntly"    ) NIGHTLY_BUILD=1;;
      "-devel"   ) DEVEL_BUILD=1; DO_TAG_RELEASE=1;;
      "-curr"    ) CURRENT_BUILD=1; DO_TAG_RELEASE=1;;
+     "-test"    ) TEST_EXEC=1;;
      TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
@@ -527,6 +543,12 @@ if ( [ $DO_REL -eq 1 ] ) then
   BUILD_ARGS="${BUILD_ARGS} -cesr"
 fi
 
+# If binary output testing is requested, pass the message along to
+# the build_release calls.
+if ( [ $TEST_EXEC -eq 1 ] ) then
+  BUILD_ARGS="${BUILD_ARGS} -test"
+fi
+
 # Add release and package specifications
 BUILD_ARGS="${BUILD_ARGS} REL=${REL_NAME} PKG=${PKG_NAME} DBL"
 
@@ -542,9 +564,9 @@ if ( [ $LNX -eq 1 ] ) then
     LOCAL_BUILD_ARGS="${BUILD_ARGS} F90=intel"
     LIN_INTEL_T1=`date +%s`
     krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_INTEL_STAT 2>&1 &"&  
-    echo "`date`:  Linux_intel build launched with status:  $?"
+    echo "`date`:  Linux_intel build launched with status:  $?" ## does this grab the return val of 'date?'
 
-    sleep 20          # attempt to mitigate KRB replay messages by spacing out
+    sleep 20          # attempt to eliminate KRB replay messages by spacing out
                       # executions in time.
 #   Build Linux_lahey release
     LINUX_LAHEY_STAT=${BUILD_DIR}/log/Linux_i686_lahey/${REL_NAME}.build_status
@@ -553,39 +575,39 @@ if ( [ $LNX -eq 1 ] ) then
     LIN_LAHEY_T1=`date +%s`
     krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_LAHEY_STAT 2>&1 &"&  
     echo "`date`:  Linux_lahey build launched with status:  $?"
+    sleep 20
 fi
 
 # Build OSF1 release
 if ( [ $OSF -eq 1 ] ) then
-    sleep 20
     OSF_HP_STAT=${BUILD_DIR}/log/OSF1_alpha_hp/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${OSF_HP_STAT}
     LOCAL_BUILD_ARGS="${BUILD_ARGS}"
     OSF_ALPHA_T1=`date +%s`
     krsh -x $OSF_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $OSF_HP_STAT 2>&1 &"&  
     echo "`date`:  OSF_hp build launched with status:  $?"
+    sleep 20
 fi
 
 # Prepare OpenVMS release
 if ( [ $VMS -eq 1 ] ) then
-    sleep 20
     VMS_PREP_STAT=${BUILD_DIR}/log/VMS_alpha_hp/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${VMS_PREP_STAT}
     LOCAL_BUILD_ARGS="-vms_prep ${BUILD_ARGS}"
     VMS_ALPHA_T1=`date +%s`
     krsh -x $VMS_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $VMS_PREP_STAT 2>&1 &"&  
     echo "`date`:  VMS preparation job launched with status:  $?"
+    sleep 20
 fi
 
 # Build Windows release - NOT YET AVAILABLE
 if ( [ $WIN -eq 1 ] ) then
-    sleep 20
     CYGWIN_INTEL_STAT=${BUILD_DIR}/log/CYGWIN_NT_i686_intel/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${CYGWIN_INTEL_STAT}
     CYGWIN_NT_T1=`date +%s`
     echo "`date`:  Windows release must be started manually on PC6115!"
     echo "BUILD_STATUS:  0" >> ${CYGWIN_INTEL_STAT}
-    sleep 1
+    sleep 20
 fi
 
 
@@ -751,8 +773,14 @@ fi
 # Gather time information from each platform build process
 
 echo ""
-echo "      ======= Statistics for this build process ======="
-echo "------------------------ Time summary: -------------------------"
+echo "          ======= Statistics for this build process ======="
+echo "============================ Time summary: ============================="
+if ( [ ${OSF_ALPHA_TIME} != 0 ] ) then
+    seconds_to_HMS ${OSF_ALPHA_TIME}
+    echo "OSF1 alpha  build : ${HRS} hr ${MINS} min ${SECS} sec"
+else
+    echo "No time data available for OSF1 alpha build."
+fi
 if ( [ ${LIN_INTEL_TIME} != 0 ] ) then
     seconds_to_HMS ${LIN_INTEL_TIME}
     echo "Linux intel build : ${HRS} hr ${MINS} min ${SECS} sec"
@@ -764,12 +792,6 @@ if ( [ ${LIN_LAHEY_TIME} != 0 ] ) then
     echo "Linux lahey build : ${HRS} hr ${MINS} min ${SECS} sec"
 else
     echo "No time data available for Linux lahey bulid."
-fi
-if ( [ ${OSF_ALPHA_TIME} != 0 ] ) then
-    seconds_to_HMS ${OSF_ALPHA_TIME}
-    echo "OSF1 alpha  build : ${HRS} hr ${MINS} min ${SECS} sec"
-else
-    echo "No time data available for OSF1 alpha build."
 fi
 if ( [ ${VMS_ALPHA_TIME} != 0 ] ) then
     seconds_to_HMS ${VMS_ALPHA_TIME}
@@ -783,7 +805,6 @@ if ( [ ${CYGWIN_NT_TIME} != 0 ] ) then
 else
     echo "No time data available for Cygwin i686 build."
 fi
-echo "----------------------------------------------------------------"
 
 
 #####################################################################################
@@ -794,6 +815,36 @@ echo "----------------------------------------------------------------"
 #####################################################################################
 /home/cesrulib/bin/util/rel_disk_total ${REL_NAME}
 
+#####################################################################################
+# Print a status summary of all active post-build test jobs (executable testing)
+# If any post-build tests fail, keep the release but do not rotate or tag?
+# Weight release testing so that errors on key platforms (Linux_intel) cause global
+# failure and notification while test failures on less important platforms continue
+# with tagging/rotation but still notify of failure?
+#####################################################################################
+if ( [ ${TEST_EXEC} -eq 1 ] ) then
+    echo "======================== Binary testing summary: ======================="
+    for platform in ${BASE_AREA_LIST}
+      do
+      statfile=${BUILD_DIR}/log/${platform}/${REL_NAME}.build_status
+      if ( ! [ ${platform} = "VMS_alpha_hp" ] && ! [ ${platform} = "CYGWIN_NT_i686_intel" ] ) then
+          echo "${platform}:"
+          ecode=`grep 'BMADZ TEST COMP' ${statfile} | cut -d' ' -f6`
+          tsec1=`grep 'BEGIN bmadz' ${statfile} | cut -d'(' -f2 | cut -d')' -f1`
+          tsec2=`grep 'END bmadz' ${statfile} | cut -d'(' -f2 | cut -d')' -f1`
+          tseconds=`expr ${tsec2} - ${tsec1}`
+          seconds_to_HMS ${tseconds}
+          if ( [ ${ecode} -eq 0 ] ) then
+              echo -e "  BMADZ:  OK!\t\t\t\tTest lasted: ${HRS} hrs ${MINS} min ${SECS} sec"
+          else
+              echo -e "  BMADZ exited with code:  ${ecode}\t\tTest lasted: ${HRS} hrs ${MINS} min ${SECS} sec" 
+          fi
+      else
+          echo "No data available for ${platform}."
+      fi
+    done
+    echo ""
+fi
 
 #####################################################################################
 # If all build jobs complete successfully and this is 
@@ -823,18 +874,48 @@ fi
 # If this build has not timed out or otherwise failed,
 # call the rotate_release script using appropriate arguments.
 ##############################################################
+rotation_success="false"
 if ( [ $job_status -eq 0 ] && [ $loop -lt $max_loops ] ) then
     if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
         /home/cesrulib/bin/util/rotate_release -nightly ${REL_NAME}
+        if ( [ $? -eq 0 ] ) then
+            rotation_success="true"
+        fi
     elif ( [ $DEVEL_BUILD -eq 1 ] ) then
         /home/cesrulib/bin/util/rotate_release -devel ${REL_NAME}
+        if ( [ $? -eq 0 ] ) then
+            rotation_success="true"
+        fi
     elif ( [ $CURRENT_BUILD -eq 1 ] ) then
         /home/cesrulib/bin/util/rotate_release -current ${REL_NAME} 
+        if ( [ $? -eq 0 ] ) then
+            rotation_success="true"
+        fi
     fi
 else  
     echo "ERROR: Not rotating release due to build errors or timeout!"
 fi
 
+########################################################
+# If this is a nightly, and we've rotated successfully
+# by having no other errors, delete the previous night's
+# build as long as it hasn't been promoted to a devel
+# or current release.  (Checking done within
+# DELETE_release script.)
+########################################################
+if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
+    if ( [ $rotation_success = "true" ] ) then
+        if ( [ -e ${PREV_BUILT} ] ) then
+            echo "Build and rotation successful, so deleting previous nights build."
+            /home/cesrulib/bin/util/DELETE_release -FORCE REL=`cat ${PREV_BUILT}`
+        else
+            echo "Problem reading file ${PREV_BUILT}.  No deletion performed."
+        fi
+    fi    
+fi
+chmod u+w ${PREV_BUILT}
+echo "${REL_NAME}" > ${PREV_BUILT}
+chmod u-w ${PREV_BUILT}
 
 #####################################################
 # Do not leave valid KRB credentials laying about.
