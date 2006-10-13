@@ -11,6 +11,12 @@
 # including all log and build_status files.
 #   --It will be as if it had never been built in the first place.
 #   --You have been warned.
+##############################
+#   Usage:
+#          DELETE_release REL=release-name [-FORCE]
+# Optional -FORCE flag will perform the deletion without 
+# interactively prompting for confirmation.  This is used primarily
+# for automatic scripts.
 #####################################################################
 
 
@@ -18,8 +24,10 @@
 myprint_help () {
 #       Print help info
     echo ""
-    echo "Usage is: DELETE_release  REL=release-name"
+    echo "Usage is: DELETE_release  REL=release-name [-FORCE]"
     echo ""
+    echo "Optional -FORCE flag will delete without prompting you"
+    echo "for confirmation."
     exit 1
 }
 
@@ -31,6 +39,7 @@ myprint_help () {
 
 arg_list=""
 REL_NAME=""
+FORCE=0      # Delete without interactive confirmation.
 
 BASEPATH="/home/cesrulib/cesr_libs/"
 
@@ -42,15 +51,21 @@ fi
 #############################
 #  Get command-line arguments
 #############################
-for i in $@
-do 
-   arg_list="${arg_list} ${i}"
+for i
+do arg_list="${arg_list} ${i}"
    case $i in
-     REL=*       ) REL_NAME=`echo $i | cut -d= -f2`;;
+     REL=*       ) REL_NAME=`echo $i | cut -d= -f2` ;;
+     "-FORCE"    ) FORCE=1 ;;
      *           ) myprint_help;
      exit 1;;
    esac
 done
+
+echo "testing"
+
+if ( [ ${FORCE} -eq 1 ] && [ ! ${#} -eq 2 ] ) then
+    myprint_help
+fi
 
 ################################################
 #  Begin error-checking paranoia
@@ -61,7 +76,7 @@ if ( [ ! -d /home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME} ] ) then
    exit 1
 fi
 
-if ( [ ${REL_NAME} = "" ] ) then
+if ( [ "${REL_NAME}" = "" ] ) then
     echo "Please specify a release name after REL= on the command line."
     exit 1
 fi
@@ -107,39 +122,40 @@ do
   fi
 done
 
-
-echo ""
-echo -e " DELETE_release - \a "
-echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-echo " @  WARNING    WARNING    WARNING    WARNING    WARNING  @"
-echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-echo " @                                                       @"
-echo " @        YOU ARE ABOUT TO _COMPLETELY_DELETE_           @" 
-echo " @                                                       @"
-echo " @              *** ${REL_NAME} ***"
-echo " @                                                       @"
-echo " @ FROM ALL PLATFORM DIRECTORIES.  ALL LOG FILES WILL BE @"
-echo " @                   REMOVED AS WELL!                    @"
-echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-echo " Press ENTER to continue with this operation, "
-echo "                                   any other key to abort."
-
-read -n 1 CONFIRM
-if ( [ ! ${CONFIRM} = "\n" ] ) then
+if ( [ ! $FORCE -eq 1 ] ) then
     echo ""
-    exit 1
+    echo -e " DELETE_release - \a "
+    echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+    echo " @  WARNING    WARNING    WARNING    WARNING    WARNING  @"
+    echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+    echo " @                                                       @"
+    echo " @        YOU ARE ABOUT TO _COMPLETELY_DELETE_           @" 
+    echo " @                                                       @"
+    echo " @              *** ${REL_NAME} ***"
+    echo " @                                                       @"
+    echo " @ FROM ALL PLATFORM DIRECTORIES.  ALL LOG FILES WILL BE @"
+    echo " @                   REMOVED AS WELL!                    @"
+    echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+    echo " Press ENTER to continue with this operation, "
+    echo "                                   any other key to abort."
+
+    read -n 1 CONFIRM
+    if ( [ ! ${CONFIRM} = "\n" ] ) then
+        echo ""
+        exit 1
+    fi
+
+    echo -e " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\a"
+    echo " @                                                       @"
+    echo " @ Hit  <CNTRL><C>  _NOW_ IF YOU DO NOT WANT TO DO THIS. @"
+    echo " @                (You have 10 seconds)                  @"
+    echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+    sleep 10
 fi
-
-echo -e " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\a"
-echo " @                                                       @"
-echo " @ Hit  <CNTRL><C>  _NOW_ IF YOU DO NOT WANT TO DO THIS. @"
-echo " @                (You have 10 seconds)                  @"
-echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-sleep 10
-
 echo ""
 echo "DELETING release ${REL_NAME}..."
 echo ""
+
 #################################################################
 #  Paths are long and explicit here so there is no doubt as to
 #  what is going to happen in terms of data loss.
