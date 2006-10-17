@@ -61,8 +61,6 @@ do arg_list="${arg_list} ${i}"
    esac
 done
 
-echo "testing"
-
 if ( [ ${FORCE} -eq 1 ] && [ ! ${#} -eq 2 ] ) then
     myprint_help
 fi
@@ -152,9 +150,7 @@ if ( [ ! $FORCE -eq 1 ] ) then
     echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
     sleep 10
 fi
-echo ""
-echo "DELETING release ${REL_NAME}..."
-echo ""
+echo -n "DELETING release ${REL_NAME}..."
 
 #################################################################
 #  Paths are long and explicit here so there is no doubt as to
@@ -181,6 +177,5 @@ rm /home/cesrulib/cesr_libs/log/VMS_alpha_hp/${REL_NAME}.build_status
 ## rm /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.log
 rm /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.build_status
 
-echo ""
-echo "${REL_NAME} is GONE."
+echo "  DONE."
 echo ""

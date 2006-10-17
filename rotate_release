@@ -37,6 +37,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.11  2006/10/17 12:54:14  cesrulib
+# Changed output formatting.
+#
 # Revision 1.10  2006/10/13 21:12:54  cesrulib
 # Edited mail footer content and cosmetic changes.
 #
@@ -124,8 +127,7 @@ do arg_list="${arg_list} ${i}";
    esac
 done
 
-echo ""
-echo "rotate_release - called with the following arguments:  "
+echo "=*= rotate_release - called with the following arguments:  "
 echo "${arg_list}" 
 echo ""
 
@@ -173,7 +175,7 @@ if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
 fi
 
 # Rotate specified release
-echo "Rotating links..."
+echo -n "Rotating links..."
 for dir in ${BASE_AREA_LIST}; do
   BASE_DIR=${BASE_DIRECTORY}/${dir}
   cd ${BASE_DIR}
@@ -194,7 +196,7 @@ for dir in ${BASE_AREA_LIST}; do
       ln -s ${REL} nightly 
   fi
 done
-echo "Done."
+echo "  Done."
 
 
 # Print out rotation summary
