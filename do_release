@@ -90,6 +90,10 @@
 # $Id$
 #
 # $Log$
+# Revision 1.29  2006/10/17 12:56:34  cesrulib
+# Now sends output to a general log file in the cesr_libs/log directory as well
+# as to standard output (e-mail when run via cron).
+#
 # Revision 1.28  2006/10/13 21:15:53  cesrulib
 # Implemented -test flag to perform binary testing of bmadz after a successful
 # build.
@@ -331,27 +335,6 @@ do arg_list="${arg_list} ${i}";
    esac
 done
 
-echo "do_release - called with the following arguments:  "
-echo "${arg_list}" 
-echo ""
-
-#######################################################
-# Check the available disk space and abort if it is
-# insufficient to contain the expected build size
-#######################################################
-# 2,500,000 K  =  2.5 Gig
-DISK_NEEDED=2500000
-
-DISKSPACE=`df /mnt/libs | tail -n1 | sed 's/ \([ ]*\) /=/g' | cut -d= -f4`
-## if there is less than 2.5 Gig available, abort.
-if ( [ ${DISKSPACE} -lt ${DISK_NEEDED} ] ) then
-    echo "Disk free space = ${DISKSPACE}         Space required = ${DISK_NEEDED}"
-    echo "Insufficient disk space on /mnt/libs (/dev/vg1/libs).  Quitting!"
-    echo "Build process terminated at : "`date`
-    exit 1
-fi
-
-
 ##################################
 # Obtain a Kerberos V ticket to enable krsh builds on remote hosts
 #################################
@@ -411,6 +394,26 @@ else
     PKG_NAME=${PKG}
 fi
 
+echo "=*= do_release - called with the following arguments: " | tee ${BUILD_DIR}/log/${REL_NAME}.genlog
+echo "${arg_list}"  | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+
+#######################################################
+# Check the available disk space and abort if it is
+# insufficient to contain the expected build size
+#######################################################
+# 2,500,000 K  =  2.5 Gig
+DISK_NEEDED=2500000
+
+DISKSPACE=`df /mnt/libs | tail -n1 | sed 's/ \([ ]*\) /=/g' | cut -d= -f4`
+## if there is less than 2.5 Gig available, abort.
+if ( [ ${DISKSPACE} -lt ${DISK_NEEDED} ] ) then
+    echo "Disk free space = ${DISKSPACE}         Space required = ${DISK_NEEDED}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "Insufficient disk space on /mnt/libs (/dev/vg1/libs).  Quitting!" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "Build process terminated at : "`date` | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    exit 1
+fi
+
 
 # Set the CESR bin directory for picking up scripts
 BIN_DIR=${use_cesr_bin}
@@ -440,52 +443,52 @@ fi
 
 # Dump the configuration information if requested
 if ( [ $DO_DUMP -eq 1 ] ) then
-    echo "BUILD_DIR         = ${BUILD_DIR}"
-    echo "PREC              = ${PREC}"
-    echo "REL_TAG           = ${REL_TAG}"
-    echo "PKG_TAG           = ${PKG_TAG}"
-    echo "DO_REL            = ${DO_REL}"
-    echo "DO_PKG            = ${DO_PKG}"
-    echo "DO_CHECKOUT       = ${DO_CHECKOUT}"
-    echo "PLATFORM_TAG      = ${PLATFORM_TAG}"
-    echo ""
-    echo "CESR_GMAKE        = ${CESR_GMAKE}"
-    echo "CESR_UTIL         = ${CESR_UTIL}"
-    echo "bin Directory     = ${BIN_DIR}"
-    echo ""
-    echo "REL_NAME          = ${REL_NAME}"
-    echo "FULL_REL_NAME     = ${FULL_REL_NAME}"
-    echo "FULL_REL_LOG      = ${FULL_REL_LOG}"
-    echo "PKG_NAME          = ${PKG_NAME}"
-    echo "FULL_PKG_NAME     = ${FULL_PKG_NAME}"
-    echo "FULL_PKG_LOG      = ${FULL_PKG_LOG}"
-    echo "DO_TAG_RELEASE    = ${DO_TAG_RELEASE}"
-    echo "DO_TAG_PACKAGES   = ${DO_TAG_PACKAGES}"
-    echo ""
-    echo "OSF               = ${OSF}"
-    echo "LNX               = ${LNX}"
-    echo "VMS               = ${VMS}"
-    echo "WIN               = ${WIN}"
-    echo "OSF_HOST          = ${OSF_HOST}"
-    echo "LNX_HOST          = ${LNX_HOST}"
-    echo "VMS_HOST          = ${VMS_HOST}"
-    echo "WIN_HOST          = ${WIN_HOST}"
-    echo ""
-    echo "CURRENT_HOST      = ${CURRENT_HOST}"
-    echo "PATH              = ${PATH} "
-    echo "BIN_DIR           = ${BIN_DIR}"
-    echo "SHOW_STATUS       = ${SHOW_STATUS}"
-    echo "NIGHTLY_BUILD     = ${NIGHTLY_BUILD}"
-    echo "DEVEL_BUILD       = ${DEVEL_BUILD}"
-    echo "CURRENT_BUILD     = ${CURRENT_BUILD}"
+    echo "BUILD_DIR         = ${BUILD_DIR}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "PREC              = ${PREC}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "REL_TAG           = ${REL_TAG}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "PKG_TAG           = ${PKG_TAG}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "DO_REL            = ${DO_REL}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "DO_PKG            = ${DO_PKG}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "DO_CHECKOUT       = ${DO_CHECKOUT}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "PLATFORM_TAG      = ${PLATFORM_TAG}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "CESR_GMAKE        = ${CESR_GMAKE}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "CESR_UTIL         = ${CESR_UTIL}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "bin Directory     = ${BIN_DIR}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "REL_NAME          = ${REL_NAME}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "FULL_REL_NAME     = ${FULL_REL_NAME}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "FULL_REL_LOG      = ${FULL_REL_LOG}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "PKG_NAME          = ${PKG_NAME}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "FULL_PKG_NAME     = ${FULL_PKG_NAME}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "FULL_PKG_LOG      = ${FULL_PKG_LOG}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "DO_TAG_RELEASE    = ${DO_TAG_RELEASE}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "DO_TAG_PACKAGES   = ${DO_TAG_PACKAGES}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "OSF               = ${OSF}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "LNX               = ${LNX}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "VMS               = ${VMS}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "WIN               = ${WIN}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "OSF_HOST          = ${OSF_HOST}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "LNX_HOST          = ${LNX_HOST}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "VMS_HOST          = ${VMS_HOST}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "WIN_HOST          = ${WIN_HOST}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "CURRENT_HOST      = ${CURRENT_HOST}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "PATH              = ${PATH} " | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "BIN_DIR           = ${BIN_DIR}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "SHOW_STATUS       = ${SHOW_STATUS}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "NIGHTLY_BUILD     = ${NIGHTLY_BUILD}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "DEVEL_BUILD       = ${DEVEL_BUILD}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "CURRENT_BUILD     = ${CURRENT_BUILD}" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 fi
 
 # Print the CESR environment variables
-echo ""
-echo "CESR Environment:  "
-printenv | grep CESR_
-printenv | grep PKG_
-echo ""
+echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+echo "CESR Environment:  " | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+printenv | grep CESR_ | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+printenv | grep PKG_ | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 
 
 #######################################################
@@ -493,8 +496,9 @@ echo ""
 #######################################################
 co_pkg_status=0
 if ( [ $DO_PKG -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
-    echo "`date`: Checking out packages..."
-    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" > ${FULL_PKG_LOG} 2>&1
+    echo "`date`: Checking out packages..." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+#    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" > ${FULL_PKG_LOG} 2>&1
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" 2>&1 >> ${BUILD_DIR}/log/${REL_NAME}.genlog
     co_pkg_status=$?
 fi
 
@@ -504,20 +508,21 @@ fi
 #####################################################################
 co_rel_status=0
 if ( [ $DO_REL -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
-    echo "`date`: Checking out CESR release..."
-    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" > ${FULL_REL_LOG} 2>&1
+    echo "`date`: Checking out CESR release..." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+#    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" > ${FULL_REL_LOG} 2>&1
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" 2>&1 >> ${BUILD_DIR}/log/${REL_NAME}.genlog
     co_rel_status=$?
 fi
 
 if ( [ $co_pkg_status -eq 0 ] && [ $co_rel_status -eq 0 ] ) then
     if ( [ ${DO_CHECKOUT} = "do_checkout" ] ) then
-        echo "`date`: Checkout phase completed successfully!"
+        echo "`date`: Checkout phase completed successfully!" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     else
-        echo "`date`: No checkout required!"
+        echo "`date`: No checkout required!" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     fi
 else
-    echo "`date`: Checkout failed [PKG_STATUS=$co_pkg_status, REL_STATUS=$co_rel_status]!"
-    echo "Aborting!"
+    echo "`date`: Checkout failed [PKG_STATUS=$co_pkg_status, REL_STATUS=$co_rel_status]!" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+    echo "Aborting!" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     exit 1
 fi
 
@@ -554,8 +559,8 @@ BUILD_ARGS="${BUILD_ARGS} REL=${REL_NAME} PKG=${PKG_NAME} DBL"
 
 
 # Build Linux releases
-echo ""
-echo "`date`:  Launching builds..."
+echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+echo "`date`:  Launching builds..." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 if ( [ $LNX -eq 1 ] ) then
     
 #   Build Linux_intel release
@@ -564,8 +569,8 @@ if ( [ $LNX -eq 1 ] ) then
     LOCAL_BUILD_ARGS="${BUILD_ARGS} F90=intel"
     LIN_INTEL_T1=`date +%s`
     krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_INTEL_STAT 2>&1 &"&  
-    echo "`date`:  Linux_intel build launched with status:  $?" ## does this grab the return val of 'date?'
-
+    echo "`date`:  Linux_intel build launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+            # does this ? grab the return value of 'date'?
     sleep 20          # attempt to eliminate KRB replay messages by spacing out
                       # executions in time.
 #   Build Linux_lahey release
@@ -574,7 +579,7 @@ if ( [ $LNX -eq 1 ] ) then
     LOCAL_BUILD_ARGS="${BUILD_ARGS} F90=lahey"
     LIN_LAHEY_T1=`date +%s`
     krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_LAHEY_STAT 2>&1 &"&  
-    echo "`date`:  Linux_lahey build launched with status:  $?"
+    echo "`date`:  Linux_lahey build launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     sleep 20
 fi
 
@@ -585,7 +590,7 @@ if ( [ $OSF -eq 1 ] ) then
     LOCAL_BUILD_ARGS="${BUILD_ARGS}"
     OSF_ALPHA_T1=`date +%s`
     krsh -x $OSF_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $OSF_HP_STAT 2>&1 &"&  
-    echo "`date`:  OSF_hp build launched with status:  $?"
+    echo "`date`:  OSF_hp build launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     sleep 20
 fi
 
@@ -596,7 +601,7 @@ if ( [ $VMS -eq 1 ] ) then
     LOCAL_BUILD_ARGS="-vms_prep ${BUILD_ARGS}"
     VMS_ALPHA_T1=`date +%s`
     krsh -x $VMS_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $VMS_PREP_STAT 2>&1 &"&  
-    echo "`date`:  VMS preparation job launched with status:  $?"
+    echo "`date`:  VMS preparation job launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     sleep 20
 fi
 
@@ -605,7 +610,7 @@ if ( [ $WIN -eq 1 ] ) then
     CYGWIN_INTEL_STAT=${BUILD_DIR}/log/CYGWIN_NT_i686_intel/${REL_NAME}.build_status
     echo "BUILD_STATUS:  -2" > ${CYGWIN_INTEL_STAT}
     CYGWIN_NT_T1=`date +%s`
-    echo "`date`:  Windows release must be started manually on PC6115!"
+    echo "`date`:  Windows release must be started manually on PC6115!" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     echo "BUILD_STATUS:  0" >> ${CYGWIN_INTEL_STAT}
     sleep 20
 fi
@@ -757,12 +762,12 @@ done
 #------------------------
 if ( [ $loop -lt $max_loops ] ) then
     if ( [ $job_status -eq 0 ] ) then
-        echo "`date`:  Release build has completed successfully!"
+        echo "`date`:  Release build has completed successfully!" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     else
-        echo "`date`:  Release build terminated with ERRORS (status = ${job_status})!"
+        echo "`date`:  Release build terminated with ERRORS (status = ${job_status})!" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     fi
 else
-    echo "`date`:  Release build has TIMED OUT!"
+    echo "`date`:  Release build has TIMED OUT!" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 fi
 
 ###################################################################################
@@ -772,38 +777,38 @@ fi
 ###################################################################################
 # Gather time information from each platform build process
 
-echo ""
-echo "          ======= Statistics for this build process ======="
-echo "============================ Time summary: ============================="
+echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+echo "          ======= Statistics for this build process =======" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+echo "============================ Time summary: =============================" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 if ( [ ${OSF_ALPHA_TIME} != 0 ] ) then
     seconds_to_HMS ${OSF_ALPHA_TIME}
-    echo "OSF1 alpha  build : ${HRS} hr ${MINS} min ${SECS} sec"
+    echo "OSF1 alpha  build : ${HRS} hr ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 else
-    echo "No time data available for OSF1 alpha build."
+    echo "No time data available for OSF1 alpha build." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 fi
 if ( [ ${LIN_INTEL_TIME} != 0 ] ) then
     seconds_to_HMS ${LIN_INTEL_TIME}
-    echo "Linux intel build : ${HRS} hr ${MINS} min ${SECS} sec"
+    echo "Linux intel build : ${HRS} hr ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 else
-    echo "No time data available for Linux intel build."
+    echo "No time data available for Linux intel build." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 fi
 if ( [ ${LIN_LAHEY_TIME} != 0 ] ) then
     seconds_to_HMS ${LIN_LAHEY_TIME}
-    echo "Linux lahey build : ${HRS} hr ${MINS} min ${SECS} sec"
+    echo "Linux lahey build : ${HRS} hr ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 else
-    echo "No time data available for Linux lahey bulid."
+    echo "No time data available for Linux lahey bulid." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 fi
 if ( [ ${VMS_ALPHA_TIME} != 0 ] ) then
     seconds_to_HMS ${VMS_ALPHA_TIME}
-    echo "VMS  alpha  build : ${HRS} hr ${MINS} min ${SECS} sec"
+    echo "VMS  alpha  build : ${HRS} hr ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 else
-    echo "No time data available for VMS alpha build."
+    echo "No time data available for VMS alpha build." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 fi
 if ( [ ${CYGWIN_NT_TIME} != 0 ] ) then
     seconds_to_HMS ${CYGWIN_NT_TIME}
-    echo "Cygwin i686 build : ${HRS} hr ${MINS} min ${SECS} sec"
+    echo "Cygwin i686 build : ${HRS} hr ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 else
-    echo "No time data available for Cygwin i686 build."
+    echo "No time data available for Cygwin i686 build." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 fi
 
 
@@ -813,7 +818,7 @@ fi
 # the nightly mail messages or console output from manual builds to preserve
 # a size-history of builds.)
 #####################################################################################
-/home/cesrulib/bin/util/rel_disk_total ${REL_NAME}
+/home/cesrulib/bin/util/rel_disk_total ${REL_NAME} 2>&1 | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 
 #####################################################################################
 # Print a status summary of all active post-build test jobs (executable testing)
@@ -823,27 +828,27 @@ fi
 # with tagging/rotation but still notify of failure?
 #####################################################################################
 if ( [ ${TEST_EXEC} -eq 1 ] ) then
-    echo "======================== Binary testing summary: ======================="
+    echo "======================== Binary testing summary: =======================" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     for platform in ${BASE_AREA_LIST}
       do
       statfile=${BUILD_DIR}/log/${platform}/${REL_NAME}.build_status
       if ( ! [ ${platform} = "VMS_alpha_hp" ] && ! [ ${platform} = "CYGWIN_NT_i686_intel" ] ) then
-          echo "${platform}:"
+          echo "${platform}:" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
           ecode=`grep 'BMADZ TEST COMP' ${statfile} | cut -d' ' -f6`
           tsec1=`grep 'BEGIN bmadz' ${statfile} | cut -d'(' -f2 | cut -d')' -f1`
           tsec2=`grep 'END bmadz' ${statfile} | cut -d'(' -f2 | cut -d')' -f1`
           tseconds=`expr ${tsec2} - ${tsec1}`
           seconds_to_HMS ${tseconds}
-          if ( [ ${ecode} -eq 0 ] ) then
-              echo -e "  BMADZ:  OK!\t\t\t\tTest lasted: ${HRS} hrs ${MINS} min ${SECS} sec"
+          if ( [ "${ecode}" -eq 0 ] ) then
+              echo -e "  BMADZ:  OK!\t\t\t\tTest lasted: ${HRS} hrs ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
           else
-              echo -e "  BMADZ exited with code:  ${ecode}\t\tTest lasted: ${HRS} hrs ${MINS} min ${SECS} sec" 
+              echo -e "  BMADZ exited with code:  ${ecode}\t\tTest lasted: ${HRS} hrs ${MINS} min ${SECS} sec"  | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
           fi
       else
-          echo "No data available for ${platform}."
+          echo "No data available for ${platform}." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
       fi
     done
-    echo ""
+    echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 fi
 
 #####################################################################################
@@ -859,14 +864,15 @@ if ( [ $loop -lt $max_loops -a $job_status -eq 0 -a $DO_TAG_RELEASE -eq 1 ] ) th
     if ( [ $CURRENT_RELEASE -eq 1 ] ) then
         CVS_TAGNAME="${REL_NAME}_current"
     fi
-    echo "`date`: TAGGING the files in CVS used to build this release..."
-    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL="" TAGNAME=${CVS_TAGNAME} CHECKOUT="" BUILD="" >> ${FULL_REL_LOG} 2>&1
+    echo "`date`: TAGGING the files in CVS used to build this release..." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+#    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL="" TAGNAME=${CVS_TAGNAME} CHECKOUT="" BUILD="" >> ${FULL_REL_LOG} 2>&1
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL="" TAGNAME=${CVS_TAGNAME} CHECKOUT="" BUILD="" 2>&1 | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     if ( [ ${?} -eq 0 ] ) then
-        echo "`date`: Release tagged in CVS with tag: "${CVS_TAGNAME}
+        echo "`date`: Release tagged in CVS with tag: "${CVS_TAGNAME} | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
          # python tagscript in viewCVS should take care of mailage when configured properly.
          # It does produce a lot of output (one e-mail message per directory tagged)
     else
-        echo "ERROR during tagging!"
+        echo "ERROR during tagging!" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
     fi
 fi
 
@@ -893,7 +899,7 @@ if ( [ $job_status -eq 0 ] && [ $loop -lt $max_loops ] ) then
         fi
     fi
 else  
-    echo "ERROR: Not rotating release due to build errors or timeout!"
+    echo "ERROR: Not rotating release due to build errors or timeout!" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 fi
 
 ########################################################
@@ -906,10 +912,10 @@ fi
 if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
     if ( [ $rotation_success = "true" ] ) then
         if ( [ -e ${PREV_BUILT} ] ) then
-            echo "Build and rotation successful, so deleting previous nights build."
-            /home/cesrulib/bin/util/DELETE_release -FORCE REL=`cat ${PREV_BUILT}`
+            echo "Build and rotation successful, so deleting previous nights build." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+            /home/cesrulib/bin/util/DELETE_release -FORCE REL=`cat ${PREV_BUILT}` 2>&1 | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
         else
-            echo "Problem reading file ${PREV_BUILT}.  No deletion performed."
+            echo "Problem reading file ${PREV_BUILT}.  No deletion performed." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
         fi
     fi    
 fi
@@ -931,7 +937,7 @@ seconds_to_HMS ${TIME_TOTAL}
 ## HRS=`expr ${TIME_TOTAL} / 3600`
 ## MINS=`expr \( ${TIME_TOTAL} % 3600 \) / 60`
 ## SECS=`expr \( ${TIME_TOTAL} % 60 \)`
-echo "Total elapsed time for this build:    ${HRS} hr ${MINS} min ${SECS} sec"
-echo "EOF"
+echo "Total elapsed time for this build:    ${HRS} hr ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+echo "EOF" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 
 exit 0
