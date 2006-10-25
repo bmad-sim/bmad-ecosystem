@@ -868,10 +868,10 @@ u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)
 ! do we need to do the radiation integrals?
 
 do j = n1, n2
-  if (u%data(j)%data_type(1:10) == 'emittance.') u%do_synch_rad_int_calc = .true. 
+  if (u%data(j)%data_type(1:14) == 'lat_emittance.') u%do_synch_rad_int_calc = .true. 
   if (u%data(j)%data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
   if (u%data(j)%data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
-  if (u%data(j)%data_type(1:10)     == 'emittance.' .or. &
+  if (u%data(j)%data_type(1:14)     == 'lat_emittance.' .or. &
           u%data(j)%data_type(1:6)  == 'chrom.' .or. &
           u%data(j)%data_type(1:13) == 'unstable_ring' .or. &
           u%data(j)%data_type(1:17) == 'multi_turn_orbit.') then

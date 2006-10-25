@@ -453,11 +453,11 @@ case ('global')
 
   nl=nl+1; write (lines(nl), imt) 'n_universes:       ', size(s%u)
   nl=nl+1; write (lines(nl), imt) 'u_view:            ', s%global%u_view
-  nl=nl+1; write (lines(nl), imt) 'phase_units:       ', s%global%phase_units
   nl=nl+1; write (lines(nl), imt) 'n_opti_cycles:     ', s%global%n_opti_cycles
-  nl=nl+1; write (lines(nl), amt) 'track_type:        ', s%global%track_type
-  if (s%global%track_type .eq. 'macro') &
   nl=nl+1; write (lines(nl), imt) 'bunch_to_plot::    ', s%global%bunch_to_plot
+  nl=nl+1; write (lines(nl), amt) 'track_type:        ', s%global%track_type
+  nl=nl+1; write (lines(nl), amt) 'phase_units:       ', &
+                              frequency_units_name(s%global%phase_units)
   nl=nl+1; write (lines(nl), amt) 'optimizer:         ', s%global%optimizer
   nl=nl+1; write (lines(nl), amt) 'prompt_string:     ', s%global%prompt_string
   nl=nl+1; write (lines(nl), amt) 'var_out_file:      ', s%global%var_out_file
@@ -468,7 +468,7 @@ case ('global')
   nl=nl+1; write (lines(nl), lmt) 'opt_with_base:     ', s%global%opt_with_base
   nl=nl+1; write (lines(nl), lmt) 'plot_on:           ', s%global%plot_on
   nl=nl+1; write (lines(nl), lmt) 'var_limits_on:     ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), amt) 'curren_init_file:  ', s%global%current_init_file
+  nl=nl+1; write (lines(nl), rmt) 'de_lm_step_ratio:  ', s%global%de_lm_step_ratio
 
   call out_io (s_blank$, r_name, lines(1:nl))
 

@@ -68,22 +68,27 @@ case ('hard')
                                               s%global%print_command)
 
 case ('gif')
+  file_name = arg1
+  if (file_name == "") file_name = "tao.gif"
   call qp_open_page ('GIF', x_len = s%plot_page%size(1), &
-           y_len = s%plot_page%size(2), units = 'POINTS', plot_file = arg1)
+           y_len = s%plot_page%size(2), units = 'POINTS', plot_file = file_name)
   call tao_plot_out ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
   call tao_plot_out ()   ! Update the plotting window
-  call out_io (s_info$, r_name, 'GIF file created: quick_plot.gif')
+  call out_io (s_info$, r_name, "Created GIF file: " // file_name)
 
 ! ps
 
 case ('ps')
-  call qp_open_page ('PS', plot_file = arg1)
+  file_name = arg1
+  if (file_name == "") file_name = "tao.ps"
+  call qp_open_page ('PS', plot_file = file_name)
   call tao_plot_out ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
   call tao_plot_out ()   ! Update the plotting window
+  call out_io (s_blank$, r_name, "Created PS file: " // file_name)
 
 ! variables
 
