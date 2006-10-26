@@ -73,7 +73,11 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   rel_p = 1 + c0%vec(6)  ! E/E_0
 
   if (.not. logic_option (.false., end_in)) then
-    call track1 (c0, ele, param, c1)
+    if (ele%tracking_method == linear$) then
+      call track1_bmad (c0, ele, param, c1)
+    else
+      call track1 (c0, ele, param, c1)
+    endif
     if (param%lost) then
       mat6 = 0
       return
