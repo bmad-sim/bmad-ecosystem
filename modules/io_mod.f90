@@ -696,11 +696,11 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
   type (ele_struct)  ele, drift_ele
 
   integer, optional :: ix_start, ix_end
-  integer i, j, il, ix, iout, n, ix1, ix2, iu, ie1, ie2, n_list
+  integer i, j, i_line, ix, iout, n, ix1, ix2, iu, ie1, ie2, n_list
 
   character(*) mad_file 
   character(300) line
-  character(6) line_name(3)
+  character(6) line_name(10)
   character(16) name
   character(16), allocatable :: name_list(:)
 
@@ -768,7 +768,7 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
 
   deallocate (name_list)
 
-! Write lattice line
+! Write the MAD lattice line
 ! mad has a limit of 5000 characters so we may need to break the lat into
 ! pieces
 
@@ -776,7 +776,7 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
   line_name(2) = 'line_2'
   line_name(3) = 'line_3'
 
-  il = 0
+  i_line = 0
   init_needed = .true.
   line = ' '
 
@@ -817,8 +817,8 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
       write (iu, *)
       write (iu, *) '!---------------------------------'
       write (iu, *)
-      il = il + 1
-      line = line_name(il) // ': line = (' // name
+      i_line = i_line + 1
+      line = line_name(i_line) // ': line = (' // name
       iout = 0
       init_needed = .false.
 
@@ -831,7 +831,7 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
   write (iu, *)
   write (iu, *) '!---------------------------------'
   write (iu, *)
-  write (iu, *) 'lat: line = (line_1', (', ', line_name(i), i = 2, il), ')'
+  write (iu, *) 'lat: line = (line_1', (', ', line_name(i), i = 2, i_line), ')'
 
   if (lat%param%lattice_type /= circular_lattice$) then
     write (iu, *)

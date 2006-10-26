@@ -378,16 +378,18 @@ if (con_type /= overlay_lord$ .and. con_type /= multipass_lord$ .and. &
 
   if (n /= 0) then
     nl=nl+1; li(nl) = ' '
-    nl=nl+1; li(nl) = 'Transfer Matrix:'
+    nl=nl+1; li(nl) = 'Transfer Matrix : Kick'
   endif
 
-  if (any(abs(ele%mat6(1:n,1:n)) >= 1000)) then
+  if (any(abs(ele%mat6(1:n,1:n)) >= 1000) .or. any(abs(ele%vec0(1:n)) > 1000)) then
     do i = 1, n
-      nl=nl+1; write (li(nl), '(1p, 6e11.3)') (ele%mat6(i, j), j = 1, n)
+      nl=nl+1; write (li(nl), '(1p, 6e11.3, a, e11.3)') &
+                          (ele%mat6(i, j), j = 1, n), '   : ', ele%vec0(i)
     enddo
   else
     do i = 1, n
-      nl=nl+1; write (li(nl), '(6f10.5)') (ele%mat6(i, j), j = 1, n)
+      nl=nl+1; write (li(nl), '(6f10.5, a, f10.5)') &
+                          (ele%mat6(i, j), j = 1, n), '   : ', ele%vec0(i)
     enddo
   endif
 
