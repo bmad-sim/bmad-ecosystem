@@ -216,7 +216,7 @@ if (lat%param%lattice_type == circular_lattice$) then
       tao_lat%orb(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
     enddo
   endif
-  call ring_make_mat6 (lat, -1, tao_lat%orb)
+  if (s%global%matrix_recalc_on) call ring_make_mat6 (lat, -1, tao_lat%orb)
   call twiss_at_start (lat)
   if (.not. bmad_status%ok) then
     calc_ok = .false.
@@ -231,7 +231,7 @@ call tao_load_data_array (s%u(uni), 0, s%global%track_type)
 do i = 1, lat%n_ele_use
 
   ! if doing linear tracking, first compute transfer matrix
-  if (lat%ele_(i)%tracking_method .eq. linear$) &
+  if (s%global%matrix_recalc_on .and. lat%ele_(i)%tracking_method .eq. linear$) &
            call make_mat6 (lat%ele_(i), lat%param) 
 
   call track1 (tao_lat%orb(i-1), lat%ele_(i), lat%param, tao_lat%orb(i))
@@ -397,7 +397,7 @@ call tao_load_data_array (u, 0, s%global%track_type)
 do j = 1, lat%n_ele_use
 
   ! if doing linear tracking, first compute transfer matrix
-  if (lat%ele_(j)%tracking_method .eq. linear$) &
+  if (s%global%matrix_recalc_on .and. lat%ele_(j)%tracking_method .eq. linear$) &
            call make_mat6 (lat%ele_(j), lat%param) 
 
   ! track to the element
@@ -542,7 +542,7 @@ call tao_load_data_array (u, 0, s%global%track_type)
 do j = 1, lat%n_ele_use
 
   ! if doing linear tracking, first compute transfer matrix
-  if (lat%ele_(j)%tracking_method .eq. linear$) &
+  if (s%global%matrix_recalc_on .and. lat%ele_(j)%tracking_method .eq. linear$) &
            call make_mat6 (lat%ele_(j), lat%param) 
 
   ! track to the element
@@ -786,7 +786,8 @@ else
 
   ! track through coupling element
   if (u%coupling%use_coupling_ele) then
-    call make_mat6 (u%coupling%coupling_ele, s%u(u%coupling%from_uni)%model%lat%param)
+    if (s%global%matrix_recalc_on) call make_mat6 (u%coupling%coupling_ele, &
+                                             s%u(u%coupling%from_uni)%model%lat%param)
     call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
     call track1 (pos, u%coupling%coupling_ele, &
                     s%u(u%coupling%from_uni)%model%lat%param, pos)
@@ -860,7 +861,7 @@ else
   !track through coupling element
   if (u%coupling%use_coupling_ele) then
     param => s%u(u%coupling%from_uni)%model%lat%param
-    call make_mat6 (u%coupling%coupling_ele, param)
+    if (s%global%matrix_recalc_on) call make_mat6 (u%coupling%coupling_ele, param)
     call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
     call track1_beam (u%coupling%injecting_beam, u%coupling%coupling_ele, &
                         param, u%coupling%injecting_beam)
@@ -931,7 +932,7 @@ else
   !track through coupling element
   if (u%coupling%use_coupling_ele) then
     param => s%u(u%coupling%from_uni)%model%lat%param
-    call make_mat6 (u%coupling%coupling_ele, param)
+    if (s%global%matrix_recalc_on) call make_mat6 (u%coupling%coupling_ele, param)
     call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
     call track1_macro_beam (u%coupling%injecting_macro_beam, u%coupling%coupling_ele, &
                                               param, u%coupling%injecting_macro_beam)
@@ -1051,7 +1052,7 @@ coupling_ele%value(dphi_x$)   = mod(inject_ele%x%phi - extract_ele%x%phi,twopi)
 coupling_ele%value(dphi_y$)   = mod(inject_ele%y%phi - extract_ele%y%phi,twopi)
   
 ! it's a linear element so no orbit need be passed
-call make_mat6 (coupling_ele, s%u(u%coupling%from_uni)%design%lat%param)
+if (s%global%matrix_recalc_on) call make_mat6 (coupling_ele, s%u(u%coupling%from_uni)%design%lat%param)
   
 end subroutine  tao_match_lats_init
  

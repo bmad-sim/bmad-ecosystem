@@ -195,7 +195,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
 \index{lattice_recalc}\index{init_plot_needed}
 \index{valid_plot_who}\index{print_command}\index{default_init_file}
-\index{current_init_file}\index{var_out_file}
+\index{current_init_file}\index{var_out_file}\index{matrix_recalc_on}
 \begin{example}
 type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
@@ -228,6 +228,7 @@ type tao_global_struct
   logical :: label_keys = .true.             ! For lat_layout plots
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
+  logical :: matrix_recalc_on = .true.       ! calc linear transfer matrix?  
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'

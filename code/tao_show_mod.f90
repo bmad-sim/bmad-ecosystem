@@ -272,37 +272,37 @@ case ('data')
     if (size(s%u) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d_ptr%d1%d2%ix_uni
     endif
-    nl=nl+1; write(lines(nl), amt)  '%Name:              ', d_ptr%name
-    nl=nl+1; write(lines(nl), amt)  '%Ele0_name:         ', d_ptr%ele0_name
-    nl=nl+1; write(lines(nl), amt)  '%Ele_name:          ', d_ptr%ele_name
-    nl=nl+1; write(lines(nl), amt)  '%Data_type:         ', d_ptr%data_type
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele0:           ', d_ptr%ix_ele0
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele:            ', d_ptr%ix_ele
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele_merit:      ', d_ptr%ix_ele_merit
-    nl=nl+1; write(lines(nl), imt)  '%Ix_dModel:         ', d_ptr%ix_dModel
-    nl=nl+1; write(lines(nl), imt)  '%Ix_d1:             ', d_ptr%ix_d1
-    nl=nl+1; write(lines(nl), imt)  '%Ix_data:           ', d_ptr%ix_data
-    nl=nl+1; write(lines(nl), rmt)  '%meas_value:        ', d_ptr%meas_value
-    nl=nl+1; write(lines(nl), rmt)  '%Ref_value:         ', d_ptr%ref_value
-    nl=nl+1; write(lines(nl), rmt)  '%Model_value:       ', d_ptr%model_value
-    nl=nl+1; write(lines(nl), rmt)  '%base_value:        ', d_ptr%base_value
-    nl=nl+1; write(lines(nl), rmt)  '%delta_merit:       ', d_ptr%delta_merit
-    nl=nl+1; write(lines(nl), rmt)  '%Design_value:      ', d_ptr%design_value
-    nl=nl+1; write(lines(nl), rmt)  '%Old_value:         ', d_ptr%old_value
-    nl=nl+1; write(lines(nl), rmt)  '%Fit_value:         ', d_ptr%fit_value
-    nl=nl+1; write(lines(nl), rmt)  '%Merit:             ', d_ptr%merit
-    nl=nl+1; write(lines(nl), rmt)  '%Conversion_factor: ', d_ptr%conversion_factor
-    nl=nl+1; write(lines(nl), rmt)  '%S:                 ', d_ptr%s
-    nl=nl+1; write(lines(nl), rmt)  '%Weight:            ', d_ptr%weight
-    nl=nl+1; write(lines(nl), amt)  '%Merit_type:        ', d_ptr%merit_type
-    nl=nl+1; write(lines(nl), lmt)  '%Exists:            ', d_ptr%exists
-    nl=nl+1; write(lines(nl), lmt)  '%Good_meas:         ', d_ptr%good_meas
-    nl=nl+1; write(lines(nl), lmt)  '%Good_ref:          ', d_ptr%good_ref
-    nl=nl+1; write(lines(nl), lmt)  '%Good_user:         ', d_ptr%good_user
-    nl=nl+1; write(lines(nl), lmt)  '%Good_opt:          ', d_ptr%good_opt
-    nl=nl+1; write(lines(nl), lmt)  '%Good_plot:         ', d_ptr%good_plot
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:        ', d_ptr%useit_plot
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:         ', d_ptr%useit_opt
+    nl=nl+1; write(lines(nl), amt)  '%Name              = ', d_ptr%name
+    nl=nl+1; write(lines(nl), amt)  '%Ele0_name         = ', d_ptr%ele0_name
+    nl=nl+1; write(lines(nl), amt)  '%Ele_name          = ', d_ptr%ele_name
+    nl=nl+1; write(lines(nl), amt)  '%Data_type         = ', d_ptr%data_type
+    nl=nl+1; write(lines(nl), imt)  '%Ix_ele0           = ', d_ptr%ix_ele0
+    nl=nl+1; write(lines(nl), imt)  '%Ix_ele            = ', d_ptr%ix_ele
+    nl=nl+1; write(lines(nl), imt)  '%Ix_ele_merit      = ', d_ptr%ix_ele_merit
+    nl=nl+1; write(lines(nl), imt)  '%Ix_dModel         = ', d_ptr%ix_dModel
+    nl=nl+1; write(lines(nl), imt)  '%Ix_d1             = ', d_ptr%ix_d1
+    nl=nl+1; write(lines(nl), imt)  '%Ix_data           = ', d_ptr%ix_data
+    nl=nl+1; write(lines(nl), rmt)  '%meas_value        = ', d_ptr%meas_value
+    nl=nl+1; write(lines(nl), rmt)  '%Ref_value         = ', d_ptr%ref_value
+    nl=nl+1; write(lines(nl), rmt)  '%Model_value       = ', d_ptr%model_value
+    nl=nl+1; write(lines(nl), rmt)  '%base_value        = ', d_ptr%base_value
+    nl=nl+1; write(lines(nl), rmt)  '%delta_merit       = ', d_ptr%delta_merit
+    nl=nl+1; write(lines(nl), rmt)  '%Design_value      = ', d_ptr%design_value
+    nl=nl+1; write(lines(nl), rmt)  '%Old_value         = ', d_ptr%old_value
+    nl=nl+1; write(lines(nl), rmt)  '%Fit_value         = ', d_ptr%fit_value
+    nl=nl+1; write(lines(nl), rmt)  '%Merit             = ', d_ptr%merit
+    nl=nl+1; write(lines(nl), rmt)  '%Conversion_factor = ', d_ptr%conversion_factor
+    nl=nl+1; write(lines(nl), rmt)  '%S                 = ', d_ptr%s
+    nl=nl+1; write(lines(nl), rmt)  '%Weight            = ', d_ptr%weight
+    nl=nl+1; write(lines(nl), amt)  '%Merit_type        = ', d_ptr%merit_type
+    nl=nl+1; write(lines(nl), lmt)  '%Exists            = ', d_ptr%exists
+    nl=nl+1; write(lines(nl), lmt)  '%Good_meas         = ', d_ptr%good_meas
+    nl=nl+1; write(lines(nl), lmt)  '%Good_ref          = ', d_ptr%good_ref
+    nl=nl+1; write(lines(nl), lmt)  '%Good_user         = ', d_ptr%good_user
+    nl=nl+1; write(lines(nl), lmt)  '%Good_opt          = ', d_ptr%good_opt
+    nl=nl+1; write(lines(nl), lmt)  '%Good_plot         = ', d_ptr%good_plot
+    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot        = ', d_ptr%useit_plot
+    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt         = ', d_ptr%useit_opt
 
 ! Else show the d1_data info.
 
@@ -451,24 +451,25 @@ case ('ele', 'taylor')
 
 case ('global')
 
-  nl=nl+1; write (lines(nl), imt) 'n_universes:       ', size(s%u)
-  nl=nl+1; write (lines(nl), imt) 'u_view:            ', s%global%u_view
-  nl=nl+1; write (lines(nl), imt) 'n_opti_cycles:     ', s%global%n_opti_cycles
-  nl=nl+1; write (lines(nl), imt) 'bunch_to_plot::    ', s%global%bunch_to_plot
-  nl=nl+1; write (lines(nl), amt) 'track_type:        ', s%global%track_type
-  nl=nl+1; write (lines(nl), amt) 'phase_units:       ', &
+  nl=nl+1; write (lines(nl), imt) 'n_universes       = ', size(s%u)
+  nl=nl+1; write (lines(nl), imt) 'u_view            = ', s%global%u_view
+  nl=nl+1; write (lines(nl), imt) 'n_opti_cycles     = ', s%global%n_opti_cycles
+  nl=nl+1; write (lines(nl), imt) 'bunch_to_plot:    = ', s%global%bunch_to_plot
+  nl=nl+1; write (lines(nl), amt) 'track_type        = ', s%global%track_type
+  nl=nl+1; write (lines(nl), amt) 'phase_units       = ', &
                               frequency_units_name(s%global%phase_units)
-  nl=nl+1; write (lines(nl), amt) 'optimizer:         ', s%global%optimizer
-  nl=nl+1; write (lines(nl), amt) 'prompt_string:     ', s%global%prompt_string
-  nl=nl+1; write (lines(nl), amt) 'var_out_file:      ', s%global%var_out_file
-  nl=nl+1; write (lines(nl), amt) 'print_command:     ', s%global%print_command
-  nl=nl+1; write (lines(nl), amt) 'current_init_file: ',s%global%current_init_file
-  nl=nl+1; write (lines(nl), lmt) 'var_limits_on:     ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), lmt) 'opt_with_ref:      ', s%global%opt_with_ref 
-  nl=nl+1; write (lines(nl), lmt) 'opt_with_base:     ', s%global%opt_with_base
-  nl=nl+1; write (lines(nl), lmt) 'plot_on:           ', s%global%plot_on
-  nl=nl+1; write (lines(nl), lmt) 'var_limits_on:     ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), rmt) 'de_lm_step_ratio:  ', s%global%de_lm_step_ratio
+  nl=nl+1; write (lines(nl), amt) 'optimizer         = ', s%global%optimizer
+  nl=nl+1; write (lines(nl), amt) 'prompt_string     = ', s%global%prompt_string
+  nl=nl+1; write (lines(nl), amt) 'var_out_file      = ', s%global%var_out_file
+  nl=nl+1; write (lines(nl), amt) 'print_command     = ', s%global%print_command
+  nl=nl+1; write (lines(nl), amt) 'current_init_file = ',s%global%current_init_file
+  nl=nl+1; write (lines(nl), lmt) 'var_limits_on     = ', s%global%var_limits_on
+  nl=nl+1; write (lines(nl), lmt) 'opt_with_ref      = ', s%global%opt_with_ref 
+  nl=nl+1; write (lines(nl), lmt) 'opt_with_base     = ', s%global%opt_with_base
+  nl=nl+1; write (lines(nl), lmt) 'plot_on           = ', s%global%plot_on
+  nl=nl+1; write (lines(nl), lmt) 'matrix_recalc_on  = ', s%global%matrix_recalc_on
+  nl=nl+1; write (lines(nl), lmt) 'var_limits_on     = ', s%global%var_limits_on
+  nl=nl+1; write (lines(nl), rmt) 'de_lm_step_ratio  = ', s%global%de_lm_step_ratio
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
@@ -891,20 +892,20 @@ case ('plot')
     endif
     nl=nl+1; lines(nl) = 'Plot.Graph.Curve:   ' // trim(p%name) // '.' // &
                                                   trim(g%name) // '.' // c%name
-    nl=nl+1; write (lines(nl), amt) 'name:                    ', c%name
-    nl=nl+1; write (lines(nl), amt) 'data_source:             ', c%data_source
-    nl=nl+1; write (lines(nl), amt) 'data_type:               ', c%data_type
-    nl=nl+1; write (lines(nl), amt) 'ele_ref_name:            ', c%ele_ref_name
-    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref:              ', c%ix_ele_ref
-    nl=nl+1; write (lines(nl), imt) 'ix_universe:             ', c%ix_universe
-    nl=nl+1; write (lines(nl), imt) 'symbol_every:            ', c%symbol_every
-    nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor:     ', c%x_axis_scale_factor
-    nl=nl+1; write (lines(nl), rmt) 'y_axis_scale_factor:     ', c%y_axis_scale_factor
-    nl=nl+1; write (lines(nl), lmt) 'use_y2:                  ', c%use_y2
-    nl=nl+1; write (lines(nl), lmt) 'draw_line:               ', c%draw_line
-    nl=nl+1; write (lines(nl), lmt) 'draw_symbols:            ', c%draw_symbols
-    nl=nl+1; write (lines(nl), lmt) 'convert:                 ', c%convert
-    nl=nl+1; write (lines(nl), lmt) 'draw_interpolated_curve: ', c%draw_interpolated_curve
+    nl=nl+1; write (lines(nl), amt) 'name                    = ', c%name
+    nl=nl+1; write (lines(nl), amt) 'data_source             = ', c%data_source
+    nl=nl+1; write (lines(nl), amt) 'data_type               = ', c%data_type
+    nl=nl+1; write (lines(nl), amt) 'ele_ref_name            = ', c%ele_ref_name
+    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref              = ', c%ix_ele_ref
+    nl=nl+1; write (lines(nl), imt) 'ix_universe             = ', c%ix_universe
+    nl=nl+1; write (lines(nl), imt) 'symbol_every            = ', c%symbol_every
+    nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor     = ', c%x_axis_scale_factor
+    nl=nl+1; write (lines(nl), rmt) 'y_axis_scale_factor     = ', c%y_axis_scale_factor
+    nl=nl+1; write (lines(nl), lmt) 'use_y2                  = ', c%use_y2
+    nl=nl+1; write (lines(nl), lmt) 'draw_line               = ', c%draw_line
+    nl=nl+1; write (lines(nl), lmt) 'draw_symbols            = ', c%draw_symbols
+    nl=nl+1; write (lines(nl), lmt) 'convert                 = ', c%convert
+    nl=nl+1; write (lines(nl), lmt) 'draw_interpolated_curve = ', c%draw_interpolated_curve
     
 
   elseif (allocated(graph)) then
@@ -914,28 +915,28 @@ case ('plot')
       nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(p%r%name) // '.' // trim(g%name)
     endif
     nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(p%name) // '.' // trim(g%name)
-    nl=nl+1; write (lines(nl), amt) 'name:                 ', g%name
-    nl=nl+1; write (lines(nl), amt) 'type:                 ', g%type
-    nl=nl+1; write (lines(nl), amt) 'title:                ', g%title
-    nl=nl+1; write (lines(nl), amt) 'title_suffix:         ', g%title_suffix
-    nl=nl+1; write (lines(nl), imt) 'box:                  ', g%box
-    nl=nl+1; write (lines(nl), imt) 'ix_universe:          ', g%ix_universe
-    nl=nl+1; write (lines(nl), imt) 'box:                  ', g%box
-    nl=nl+1; write (lines(nl), lmt) 'valid:                ', g%valid
-    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y:         ', g%y2_mirrors_y
-    nl=nl+1; write (lines(nl), rmt) 'y%max:                ', g%y%max
-    nl=nl+1; write (lines(nl), rmt) 'y%min:                ', g%y%min
-    nl=nl+1; write (lines(nl), imt) 'y%major_div:          ', g%y%major_div
-    nl=nl+1; write (lines(nl), imt) 'y%places:             ', g%y%places
-    nl=nl+1; write (lines(nl), lmt) 'y%draw_label:         ', g%y%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers:       ', g%y%draw_numbers
-    nl=nl+1; write (lines(nl), rmt) 'y2%max:               ', g%y2%max
-    nl=nl+1; write (lines(nl), rmt) 'y2%min:               ', g%y2%min
-    nl=nl+1; write (lines(nl), imt) 'y2%major_div:         ', g%y2%major_div
-    nl=nl+1; write (lines(nl), imt) 'y2%places:            ', g%y2%places
-    nl=nl+1; write (lines(nl), lmt) 'y2%draw_label:        ', g%y2%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers:      ', g%y2%draw_numbers
-    nl=nl+1; write (lines(nl), lmt) 'limited:              ', g%limited
+    nl=nl+1; write (lines(nl), amt) 'name                 = ', g%name
+    nl=nl+1; write (lines(nl), amt) 'type                 = ', g%type
+    nl=nl+1; write (lines(nl), amt) 'title                = ', g%title
+    nl=nl+1; write (lines(nl), amt) 'title_suffix         = ', g%title_suffix
+    nl=nl+1; write (lines(nl), imt) 'box                  = ', g%box
+    nl=nl+1; write (lines(nl), imt) 'ix_universe          = ', g%ix_universe
+    nl=nl+1; write (lines(nl), imt) 'box                  = ', g%box
+    nl=nl+1; write (lines(nl), lmt) 'valid                = ', g%valid
+    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y         = ', g%y2_mirrors_y
+    nl=nl+1; write (lines(nl), rmt) 'y%max                = ', g%y%max
+    nl=nl+1; write (lines(nl), rmt) 'y%min                = ', g%y%min
+    nl=nl+1; write (lines(nl), imt) 'y%major_div          = ', g%y%major_div
+    nl=nl+1; write (lines(nl), imt) 'y%places             = ', g%y%places
+    nl=nl+1; write (lines(nl), lmt) 'y%draw_label         = ', g%y%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers       = ', g%y%draw_numbers
+    nl=nl+1; write (lines(nl), rmt) 'y2%max               = ', g%y2%max
+    nl=nl+1; write (lines(nl), rmt) 'y2%min               = ', g%y2%min
+    nl=nl+1; write (lines(nl), imt) 'y2%major_div         = ', g%y2%major_div
+    nl=nl+1; write (lines(nl), imt) 'y2%places            = ', g%y2%places
+    nl=nl+1; write (lines(nl), lmt) 'y2%draw_label        = ', g%y2%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers      = ', g%y2%draw_numbers
+    nl=nl+1; write (lines(nl), lmt) 'limited              = ', g%limited
     nl=nl+1; lines(nl) = 'Curves:'
     do i = 1, size(g%curve)
       nl=nl+1; write (lines(nl), amt) '   ', g%curve(i)%name
@@ -947,15 +948,15 @@ case ('plot')
       nl=nl+1; lines(nl) = 'Region:  ' // trim(p%r%name)
     endif
     nl=nl+1; lines(nl) = 'Plot:  ' // p%name
-    nl=nl+1; write (lines(nl), amt) 'x_axis_type:          ', p%x_axis_type
-    nl=nl+1; write (lines(nl), rmt) 'x_divisions:          ', p%x_divisions
-    nl=nl+1; write (lines(nl), rmt) 'x%max:                ', p%x%max
-    nl=nl+1; write (lines(nl), rmt) 'x%min:                ', p%x%min
-    nl=nl+1; write (lines(nl), imt) 'x%major_div:          ', p%x%major_div
-    nl=nl+1; write (lines(nl), imt) 'x%places:             ', p%x%places
-    nl=nl+1; write (lines(nl), lmt) 'x%draw_label:         ', p%x%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers:       ', p%x%draw_numbers
-    nl=nl+1; write (lines(nl), lmt) 'independent_graphs:   ', p%independent_graphs
+    nl=nl+1; write (lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
+    nl=nl+1; write (lines(nl), rmt) 'x_divisions          = ', p%x_divisions
+    nl=nl+1; write (lines(nl), rmt) 'x%max                = ', p%x%max
+    nl=nl+1; write (lines(nl), rmt) 'x%min                = ', p%x%min
+    nl=nl+1; write (lines(nl), imt) 'x%major_div          = ', p%x%major_div
+    nl=nl+1; write (lines(nl), imt) 'x%places             = ', p%x%places
+    nl=nl+1; write (lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers
+    nl=nl+1; write (lines(nl), lmt) 'independent_graphs   = ', p%independent_graphs
     
     nl=nl+1; write (lines(nl), *) 'Graphs:'
     do i = 1, size(p%graph)
@@ -998,12 +999,12 @@ case ('universe')
   u => s%u(ix_u)
 
   nl = 0
-  nl=nl+1; write(lines(nl), imt) '%ix_uni:                ', u%ix_uni
-  nl=nl+1; write(lines(nl), imt) '%n_d2_data_used:        ', u%n_d2_data_used
-  nl=nl+1; write(lines(nl), imt) '%n_data_used:           ', u%n_data_used
-  nl=nl+1; write(lines(nl), lmt) '%do_synch_rad_int_calc: ', u%do_synch_rad_int_calc
-  nl=nl+1; write(lines(nl), lmt) '%do_chrom_calc:         ', u%do_chrom_calc
-  nl=nl+1; write(lines(nl), lmt) '%is_on:                 ', u%is_on
+  nl=nl+1; write(lines(nl), imt) '%ix_uni                = ', u%ix_uni
+  nl=nl+1; write(lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
+  nl=nl+1; write(lines(nl), imt) '%n_data_used           = ', u%n_data_used
+  nl=nl+1; write(lines(nl), lmt) '%do_synch_rad_int_calc = ', u%do_synch_rad_int_calc
+  nl=nl+1; write(lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
+  nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
 
   call out_io (s_blank$, r_name, lines(1:nl)) 
 
@@ -1091,15 +1092,15 @@ case ('var')
 
     v_ptr => v_array(1)%v
 
-    nl=nl+1; write(lines(nl), amt)  'Name:          ', v_ptr%name        
-    nl=nl+1; write(lines(nl), amt)  'Alias:         ', v_ptr%alias       
-    nl=nl+1; write(lines(nl), amt)  'Ele_name:      ', v_ptr%ele_name    
-    nl=nl+1; write(lines(nl), amt)  'Attrib_name:   ', v_ptr%attrib_name 
-    nl=nl+1; write(lines(nl), imt)  'Ix_var:        ', v_ptr%ix_var
-    nl=nl+1; write(lines(nl), imt)  'Ix_dvar:       ', v_ptr%ix_dvar           
-    nl=nl+1; write(lines(nl), imt)  'Ix_v1:         ', v_ptr%ix_v1
-    nl=nl+1; write(lines(nl), rmt)  'Model_value:   ', v_ptr%model_value
-    nl=nl+1; write(lines(nl), rmt)  'Base_value:    ', v_ptr%base_value
+    nl=nl+1; write(lines(nl), amt)  'Name          = ', v_ptr%name        
+    nl=nl+1; write(lines(nl), amt)  'Alias         = ', v_ptr%alias       
+    nl=nl+1; write(lines(nl), amt)  'Ele_name      = ', v_ptr%ele_name    
+    nl=nl+1; write(lines(nl), amt)  'Attrib_name   = ', v_ptr%attrib_name 
+    nl=nl+1; write(lines(nl), imt)  'Ix_var        = ', v_ptr%ix_var
+    nl=nl+1; write(lines(nl), imt)  'Ix_dvar       = ', v_ptr%ix_dvar           
+    nl=nl+1; write(lines(nl), imt)  'Ix_v1         = ', v_ptr%ix_v1
+    nl=nl+1; write(lines(nl), rmt)  'Model_value   = ', v_ptr%model_value
+    nl=nl+1; write(lines(nl), rmt)  'Base_value    = ', v_ptr%base_value
 
     if (.not. allocated (v_ptr%this)) then
       nl=nl+1; write(lines(nl), imt)  'this(:) -- Not associated!'
@@ -1123,25 +1124,25 @@ case ('var')
       enddo
     endif
 
-    nl=nl+1; write(lines(nl), rmt)  '%Design_value:    ', v_ptr%design_value
-    nl=nl+1; write(lines(nl), rmt)  '%Old_value:       ', v_ptr%old_value
-    nl=nl+1; write(lines(nl), rmt)  '%Meas_value:      ', v_ptr%meas_value
-    nl=nl+1; write(lines(nl), rmt)  '%Ref_value:       ', v_ptr%ref_value
-    nl=nl+1; write(lines(nl), rmt)  '%Correction_value:', v_ptr%correction_value
-    nl=nl+1; write(lines(nl), rmt)  '%High_lim:        ', v_ptr%high_lim
-    nl=nl+1; write(lines(nl), rmt)  '%Low_lim:         ', v_ptr%low_lim
-    nl=nl+1; write(lines(nl), rmt)  '%Step:            ', v_ptr%step
-    nl=nl+1; write(lines(nl), rmt)  '%Weight:          ', v_ptr%weight
-    nl=nl+1; write(lines(nl), rmt)  '%delta_merit:     ', v_ptr%delta_merit
-    nl=nl+1; write(lines(nl), amt)  '%Merit_type:      ', v_ptr%merit_type
-    nl=nl+1; write(lines(nl), rmt)  '%Merit:           ', v_ptr%merit
-    nl=nl+1; write(lines(nl), rmt)  '%dMerit_dVar:     ', v_ptr%dMerit_dVar
-    nl=nl+1; write(lines(nl), lmt)  '%Exists:          ', v_ptr%exists
-    nl=nl+1; write(lines(nl), lmt)  '%Good_var:        ', v_ptr%good_var
-    nl=nl+1; write(lines(nl), lmt)  '%Good_user:       ', v_ptr%good_user
-    nl=nl+1; write(lines(nl), lmt)  '%Good_opt:        ', v_ptr%good_opt
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:       ', v_ptr%useit_opt
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:      ', v_ptr%useit_plot
+    nl=nl+1; write(lines(nl), rmt)  '%Design_value     = ', v_ptr%design_value
+    nl=nl+1; write(lines(nl), rmt)  '%Old_value        = ', v_ptr%old_value
+    nl=nl+1; write(lines(nl), rmt)  '%Meas_value       = ', v_ptr%meas_value
+    nl=nl+1; write(lines(nl), rmt)  '%Ref_value        = ', v_ptr%ref_value
+    nl=nl+1; write(lines(nl), rmt)  '%Correction_value = ', v_ptr%correction_value
+    nl=nl+1; write(lines(nl), rmt)  '%High_lim         = ', v_ptr%high_lim
+    nl=nl+1; write(lines(nl), rmt)  '%Low_lim          = ', v_ptr%low_lim
+    nl=nl+1; write(lines(nl), rmt)  '%Step             = ', v_ptr%step
+    nl=nl+1; write(lines(nl), rmt)  '%Weight           = ', v_ptr%weight
+    nl=nl+1; write(lines(nl), rmt)  '%delta_merit      = ', v_ptr%delta_merit
+    nl=nl+1; write(lines(nl), amt)  '%Merit_type       = ', v_ptr%merit_type
+    nl=nl+1; write(lines(nl), rmt)  '%Merit            = ', v_ptr%merit
+    nl=nl+1; write(lines(nl), rmt)  '%dMerit_dVar      = ', v_ptr%dMerit_dVar
+    nl=nl+1; write(lines(nl), lmt)  '%Exists           = ', v_ptr%exists
+    nl=nl+1; write(lines(nl), lmt)  '%Good_var         = ', v_ptr%good_var
+    nl=nl+1; write(lines(nl), lmt)  '%Good_user        = ', v_ptr%good_user
+    nl=nl+1; write(lines(nl), lmt)  '%Good_opt         = ', v_ptr%good_opt
+    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt        = ', v_ptr%useit_opt
+    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot       = ', v_ptr%useit_plot
 
 ! check if there is a variable number
 ! if no variable number requested, show a range
@@ -1155,7 +1156,7 @@ case ('var')
       nc = max(nc, len_trim(v_ptr%name))
     enddo
 
-    write(lines(1), '(2a)') 'Variable name:   ', v1_ptr%name
+    write(lines(1), '(2a)') 'Variable name:  ', v1_ptr%name
     lines(2) = ' '
     line1 = '       Name'
     line1(nc+17:) = 'Meas         Model        Design  Useit_opt'

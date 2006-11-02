@@ -44,8 +44,8 @@ integer ix_ele
 lat => u%model%lat
 
 if (ix_ele /= 0) then
-  call make_mat6 (lat%ele_(ix_ele), lat%param, u%model%orb(ix_ele-1), &
-                    u%model%orb(ix_ele), .true.)
+  if (s%global%matrix_recalc_on) call make_mat6 (lat%ele_(ix_ele), &
+                      lat%param, u%model%orb(ix_ele-1), u%model%orb(ix_ele), .true.)
   call twiss_propagate1 (lat%ele_(ix_ele-1), lat%ele_(ix_ele))
 endif
 

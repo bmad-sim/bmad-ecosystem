@@ -1531,7 +1531,7 @@ subroutine transfer_this (s_1, s_2)
       if (s_end /= ele%s) ele%value(e2$) = 0
     endif
 
-    call make_mat6 (ele, lat%param)
+    if (s%global%matrix_recalc_on) call make_mat6 (ele, lat%param)
     mat6 = matmul (ele%mat6, mat6)
 
     if (s_end == s_2) return
