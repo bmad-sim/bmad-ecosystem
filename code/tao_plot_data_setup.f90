@@ -757,11 +757,15 @@ do k = 1, size(graph%curve)
     do m = 1, size(graph%who)
       do ie = 1, n_dat
 
-        datum%ix_ele = curve%ix_symb(ie)
-
         if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
-          if (ie == 1) call taylor_make_unit (t_map)
+          if (ie == 1) then
+            call taylor_make_unit (t_map)
+          else
+            datum%ix_ele0 = datum%ix_ele
+          endif
         endif
+
+        datum%ix_ele = curve%ix_symb(ie)
 
         select case (graph%who(m)%name)
         case (' ') 
@@ -902,7 +906,7 @@ type (taylor_struct) t_map(6)
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma
 
-integer i, j, k, expnt(6), ix_ele, ix0
+integer i, ii, j, k, expnt(6), ix_ele, ix0
 character(40) data_type
 character(40) data_type_select, track_type
 character(20) ::r_name = 'calc_data_at_s'
