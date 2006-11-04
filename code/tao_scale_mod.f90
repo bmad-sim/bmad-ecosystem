@@ -166,10 +166,16 @@ if (y_min == y_max) then
     this_min = -10
   endif
 
+  if (this_max >  1d252) this_max =  1d252
+  if (this_min < -1d252) this_min = -1d252
+
   if (.not. found_data2) then
     this_max2 = 10
     this_min2 = -10
   endif
+
+  if (this_max2 >  1d252) this_max2 =  1d252
+  if (this_min2 < -1d252) this_min2 = -1d252
 
   call qp_calc_axis_scale (this_min, this_max, graph%y)
   call qp_calc_axis_scale (this_min2, this_max2, graph%y2)
