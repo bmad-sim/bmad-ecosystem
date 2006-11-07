@@ -90,6 +90,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.30  2006/11/07 16:24:57  cesrulib
+# Minor organizational changes.
+#
 # Revision 1.29  2006/10/17 12:56:34  cesrulib
 # Now sends output to a general log file in the cesr_libs/log directory as well
 # as to standard output (e-mail when run via cron).
@@ -291,7 +294,7 @@ WIN_HOST=pc6115.lns.cornell.edu
 
 CURRENT_HOST="`uname -n`"
 
-BASE_AREA_LIST="OSF1_alpha_hp Linux_i686_intel Linux_i686_lahey VMS_alpha_hp CYGWIN_NT_i686_intel"
+BASE_AREA_LIST="Linux_i686_intel Linux_i686_lahey OSF1_alpha_hp VMS_alpha_hp CYGWIN_NT_i686_intel"
 
 GMAKE=gmake
 
@@ -498,7 +501,7 @@ co_pkg_status=0
 if ( [ $DO_PKG -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out packages..." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 #    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" > ${FULL_PKG_LOG} 2>&1
-    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" 2>&1 >> ${BUILD_DIR}/log/${REL_NAME}.genlog
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" >> ${BUILD_DIR}/log/${REL_NAME}.genlog 2>&1
     co_pkg_status=$?
 fi
 
@@ -510,7 +513,7 @@ co_rel_status=0
 if ( [ $DO_REL -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out CESR release..." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 #    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" > ${FULL_REL_LOG} 2>&1
-    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" 2>&1 >> ${BUILD_DIR}/log/${REL_NAME}.genlog
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" >> ${BUILD_DIR}/log/${REL_NAME}.genlog 2>&1
     co_rel_status=$?
 fi
 
@@ -780,12 +783,7 @@ fi
 echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 echo "          ======= Statistics for this build process =======" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 echo "============================ Time summary: =============================" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
-if ( [ ${OSF_ALPHA_TIME} != 0 ] ) then
-    seconds_to_HMS ${OSF_ALPHA_TIME}
-    echo "OSF1 alpha  build : ${HRS} hr ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
-else
-    echo "No time data available for OSF1 alpha build." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
-fi
+
 if ( [ ${LIN_INTEL_TIME} != 0 ] ) then
     seconds_to_HMS ${LIN_INTEL_TIME}
     echo "Linux intel build : ${HRS} hr ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
@@ -797,6 +795,12 @@ if ( [ ${LIN_LAHEY_TIME} != 0 ] ) then
     echo "Linux lahey build : ${HRS} hr ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 else
     echo "No time data available for Linux lahey bulid." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+fi
+if ( [ ${OSF_ALPHA_TIME} != 0 ] ) then
+    seconds_to_HMS ${OSF_ALPHA_TIME}
+    echo "OSF1 alpha  build : ${HRS} hr ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+else
+    echo "No time data available for OSF1 alpha build." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 fi
 if ( [ ${VMS_ALPHA_TIME} != 0 ] ) then
     seconds_to_HMS ${VMS_ALPHA_TIME}
@@ -850,6 +854,7 @@ if ( [ ${TEST_EXEC} -eq 1 ] ) then
     done
     echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 fi
+echo "========================================================================" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
 
 #####################################################################################
 # If all build jobs complete successfully and this is 
@@ -912,7 +917,7 @@ fi
 if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
     if ( [ $rotation_success = "true" ] ) then
         if ( [ -e ${PREV_BUILT} ] ) then
-            echo "Build and rotation successful, so deleting previous nights build." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+            echo "Build and rotation successful, so deleting previous night's build." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
             /home/cesrulib/bin/util/DELETE_release -FORCE REL=`cat ${PREV_BUILT}` 2>&1 | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
         else
             echo "Problem reading file ${PREV_BUILT}.  No deletion performed." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
