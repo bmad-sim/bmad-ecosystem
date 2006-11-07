@@ -202,7 +202,7 @@ enddo
 ! Init Beam
 
 ! Do not initialize both beam and macro
-if (s%global%track_type /= 'beam') then
+if (s%global%track_type /= 'macro') then
 
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
