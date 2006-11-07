@@ -202,7 +202,7 @@ enddo
 ! Init Beam
 
 ! Do not initialize both beam and macro
-if (s%global%track_type == 'beam') then
+if (s%global%track_type /= 'beam') then
 
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
@@ -226,7 +226,7 @@ if (s%global%track_type == 'beam') then
     read (iu, nml = tao_beam_init, iostat = ios)
 
     if (ios == 0) then
-      if (beam_init%a_norm_emitt == -1) then
+      if (beam_init%a_norm_emitt == -1 .and. s%global%track_type == "beam") then
         call out_io (s_abort$, r_name, &
               'TAO_BEAM_INIT NAMELIST: BEAM_INIT%A_NORM_EMITT NOT SET !')
         call err_exit
@@ -242,7 +242,7 @@ if (s%global%track_type == 'beam') then
         call init_beam(s%u(i), beam_init, calc_emittance)
       endif
       cycle
-    elseif (ios > 0) then
+    elseif (ios > 0 .and. s%global%track_type == "beam") then
       call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!')
       rewind (iu)
       do
