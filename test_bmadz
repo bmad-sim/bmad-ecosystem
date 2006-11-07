@@ -63,7 +63,7 @@ case $platform in
   CYGWIN_NT_i686_intel  ) HOST=pc6115.lns.cornell.edu; flag=CI;;
 esac
 
-testdir=${HOME}/tmp/bmadzT_${release}_${flag}
+testdir=/tmp/bmadzT_${release}_${flag}
 echo "HOST: ${HOST}"
 
 echo ""
