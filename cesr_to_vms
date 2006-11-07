@@ -3,7 +3,7 @@
 # cesr_to_vms - Script to move a specfied library directory from 
 #            Unix to VMS
 #
-# Useage:  cesr_to_vms <library_directory>
+# Usage:  cesr_to_vms <library_directory>
 #
 # Inputs:  library_directory  -  full path to the directory to 
 #                                zip and move
@@ -15,6 +15,10 @@
 # $Id$
 #
 # $Log$
+# Revision 1.2  2006/11/07 18:00:27  cesrulib
+# No longer performs zipping operation on the solaris machine.
+# Some extra output information as well.
+#
 # Revision 1.1  2004/10/19 19:21:28  cesrulib
 # VMS porting.
 #
@@ -29,7 +33,7 @@ if ( [ $# -ne 1 ] ) then
 fi
 
 # Initializations
-DO_ZIP=/home/cesrulib/bin/do_zip
+#DO_ZIP=/home/cesrulib/bin/do_zip
 LIB_NAME=`basename ${LIBRARY}`
 LIB_DIR=`dirname ${LIBRARY}`
 
@@ -37,9 +41,20 @@ LIB_DIR=`dirname ${LIBRARY}`
 echo "Preparing ${LIB_NAME} for transport to vms"
 
 # Run zip from the solaris nodes to package up the library
-krsh -x solfa3 ${DO_ZIP} ${LIB_DIR} ${LIB_NAME}
+#krsh -x solfa3 ${DO_ZIP} ${LIB_DIR} ${LIB_NAME}
+
+# Zip up the source-tree
+cd ${LIB_DIR}
+
+/usr/bin/zip -r ${LIB_NAME} ${LIB_NAME}
+if ( [ $? -ne 0 ] ) then
+    echo "Zipping operation failed in VMS preparation job!"
+    exit 55
+fi
+echo "Zipping operation complete in VMS preparation job."
 
 # Now ftp the library to the [cesrulib.cesr_libs] area on CESR2f
+echo -n "Transferring file ${LIB_NAME}.zip to VMS machine CESR2f via FTP... "
 WORKDIR=CESR2f'$'DKB200:[CESR_LIBS.ZIP]
 echo $WORKDIR
 cd ${LIB_DIR}
@@ -48,6 +63,7 @@ ftp cesr2f <<EOF
 		cd $WORKDIR
 		put ${LIB_NAME}.zip
 EOF
+echo "DONE!"
 
 # Notify of completion
 echo "Transfer of ${LIB_NAME} to CESR2f::$WORKDIR complete!"
