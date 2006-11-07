@@ -37,6 +37,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.12  2006/11/07 16:21:55  cesrulib
+# Cosmetic changes.
+#
 # Revision 1.11  2006/10/17 12:54:14  cesrulib
 # Changed output formatting.
 #
@@ -127,10 +130,7 @@ do arg_list="${arg_list} ${i}";
    esac
 done
 
-echo "=*= rotate_release - called with the following arguments:  "
-echo "${arg_list}" 
-echo ""
-
+echo "=*= rotate_release called:  ${arg_list}" 
 
 # Verify that the specified release is valid
 good_release=1

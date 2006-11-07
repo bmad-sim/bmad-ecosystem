@@ -13,7 +13,7 @@
 arg_list=""
 REL_NAME=""
 LIBS_PATH=/home/cesrulib/cesr_libs
-BASE_AREA_LIST="OSF1_alpha_hp Linux_i686_intel Linux_i686_lahey VMS_alpha_hp CYGWIN_NT_i686_intel"
+BASE_AREA_LIST="Linux_i686_intel Linux_i686_lahey OSF1_alpha_hp VMS_alpha_hp CYGWIN_NT_i686_intel"
 
 
 myprint_help ()  {
@@ -50,8 +50,8 @@ if ( [ ! -d ${LIBS_PATH}/Linux_i686_intel/${REL_NAME} ] ) then
 fi
 
 echo ""
-echo "========================== Disk space summary: ========================"
-echo "                For release ${REL_NAME}"
+echo "========================== Disk space summary: ========================="
+echo "                      For release ${REL_NAME}"
 
 TOTAL=0
 SUBTOTAL=0
@@ -73,7 +73,7 @@ do
    SUBTOTAL=0
 done
 TOTALMEG=`expr ${TOTAL} / 1048576`
-echo "---------------------------------------------------------------"
+echo "------------------------------------------------------------------------"
 echo -e "${TOTAL} B\t(${TOTALMEG} M)\t: TOTAL"
 echo ""
 
