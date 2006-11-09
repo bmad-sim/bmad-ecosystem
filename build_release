@@ -59,6 +59,10 @@
 # $Id$
 #
 # $Log$
+# Revision 1.3  2006/11/09 16:14:16  cesrulib
+# Minor syntactic tweaks
+# Added additional information to output for tracing and debugging purposes.
+#
 # Revision 1.2  2006/10/13 21:21:30  cesrulib
 # Implemented -test flag to perform tests on the executable code built for
 # bmadz.
@@ -366,7 +370,7 @@ if ( [ $DO_REL -eq 1 ] ) then
         echo "`date`: Building release..."
         echo ""
         ${GMAKE} -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT="" BUILD="do_build" >> ${FULL_REL_LOG} 2>&1
-        build_rel_status=$?
+        build_rel_status=${?}
         echo "`date`: CESR build complete;  Status = ${build_rel_status}"
     fi
 
@@ -374,10 +378,13 @@ if ( [ $DO_REL -eq 1 ] ) then
 #   Set group to cesr and add write permission for the config area
 #   Create the release database of files and functions
 #------------------------------------------------------------------
-    if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 ] ) then
+    if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 -a ${VMS_PREP} -ne 1 ] ) then
+	echo -n "Setting config area permissions... "
         chgrp -R cesr $CESR_CONFIG
         chmod -R g+w $CESR_CONFIG
+	echo "DONE."
         ${use_cesr_bin}/create_fdb.pl
+	echo "Database of files & functions created."
     fi
 
 #-------------------------------------------------
@@ -387,7 +394,7 @@ if ( [ $DO_REL -eq 1 ] ) then
     if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 -a ${TEST_EXEC} -eq 1 ] ) then
         echo "Starting ${REL_NAME} test jobs for ${PLATFORM_TAG}_${CESRF90}:"
 
-# # # # >> bmadz test job
+# # # # >>>> bmadz test job
         /home/cesrulib/bin/util/test_bmadz ${REL_NAME} ${BASE_TAG}
          # get error status from test job
 # # # # Run other test jobs here
