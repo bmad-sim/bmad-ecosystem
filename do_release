@@ -90,6 +90,10 @@
 # $Id$
 #
 # $Log$
+# Revision 1.31  2006/11/09 16:12:50  cesrulib
+# Adjusted log output behavior for VMS prep job.
+# Minor internal documentation tweak.
+#
 # Revision 1.30  2006/11/07 16:24:57  cesrulib
 # Minor organizational changes.
 #
@@ -603,9 +607,10 @@ if ( [ $VMS -eq 1 ] ) then
     echo "BUILD_STATUS:  -2" > ${VMS_PREP_STAT}
     LOCAL_BUILD_ARGS="-vms_prep ${BUILD_ARGS}"
     VMS_ALPHA_T1=`date +%s`
-    krsh -x $VMS_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $VMS_PREP_STAT 2>&1 &"&  
+    krsh -x $VMS_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $VMS_PREP_STAT 2>&1"
     echo "`date`:  VMS preparation job launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
-    sleep 20
+    ${use_cesr_bin}/util/cesr_to_vms ${FULL_REL_NAME}
+    sleep 10
 fi
 
 # Build Windows release - NOT YET AVAILABLE
@@ -882,7 +887,8 @@ if ( [ $loop -lt $max_loops -a $job_status -eq 0 -a $DO_TAG_RELEASE -eq 1 ] ) th
 fi
 
 ##############################################################
-# If this build has not timed out or otherwise failed,
+# If this build has not timed out or otherwise failed, and a
+# rotaton was requested on the command line,
 # call the rotate_release script using appropriate arguments.
 ##############################################################
 rotation_success="false"
