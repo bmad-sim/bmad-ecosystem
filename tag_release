@@ -12,6 +12,9 @@ myprint_help () {
     echo ""
     echo "Usage is: tag_release  [-current] release-name [TAG=optional_tagname]"
     echo ""
+    echo " Absence of TAG= specifier will use the release name itself as the tag."
+    echo " Using the -current flag will automatically append   _current   to the release"
+    echo " name and use that as the tag."
     exit 1
 }
 
