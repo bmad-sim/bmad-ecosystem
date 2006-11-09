@@ -3,7 +3,7 @@
 # cesr_to_vms - Script to move a specfied library directory from 
 #            Unix to VMS
 #
-# Usage:  cesr_to_vms <library_directory>
+# Usage:  cesr_to_vms <library_directory full path>
 #
 # Inputs:  library_directory  -  full path to the directory to 
 #                                zip and move
@@ -15,6 +15,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.3  2006/11/09 16:10:40  cesrulib
+# Script now handles FTPing of source code zip file to VMS on its own.
+#
 # Revision 1.2  2006/11/07 18:00:27  cesrulib
 # No longer performs zipping operation on the solaris machine.
 # Some extra output information as well.
@@ -33,42 +36,43 @@ if ( [ $# -ne 1 ] ) then
 fi
 
 # Initializations
-#DO_ZIP=/home/cesrulib/bin/do_zip
 LIB_NAME=`basename ${LIBRARY}`
-LIB_DIR=`dirname ${LIBRARY}`
+INTEL_LIB_DIR=`dirname ${LIBRARY}`
+MAIN_LIB_DIR=`dirname ${INTEL_LIB_DIR}`
+
+VMS_LIB_DIR=${MAIN_LIB_DIR}/VMS_alpha_hp
+VMS_LOG_DIR=${MAIN_LIB_DIR}/log/VMS_alpha_hp
+VMS_LOG_FILE=${VMS_LOG_DIR}/${LIB_NAME}.build_status
+
+WORKDIR=CESR2f'$'DKB200:[CESR_LIBS.ZIP]
 
 # Now make a copy for transport to VMS
 echo "Preparing ${LIB_NAME} for transport to vms"
-
-# Run zip from the solaris nodes to package up the library
-#krsh -x solfa3 ${DO_ZIP} ${LIB_DIR} ${LIB_NAME}
+cd ${VMS_LIB_DIR}
 
 # Zip up the source-tree
-cd ${LIB_DIR}
-
-/usr/bin/zip -r ${LIB_NAME} ${LIB_NAME}
-if ( [ $? -ne 0 ] ) then
+/usr/bin/zip -r ${LIB_NAME} ${LIB_NAME} >> ${VMS_LOG_FILE}
+if ( [ ${?} -ne 0 ] ) then
     echo "Zipping operation failed in VMS preparation job!"
     exit 55
 fi
 echo "Zipping operation complete in VMS preparation job."
 
 # Now ftp the library to the [cesrulib.cesr_libs] area on CESR2f
-echo -n "Transferring file ${LIB_NAME}.zip to VMS machine CESR2f via FTP... "
-WORKDIR=CESR2f'$'DKB200:[CESR_LIBS.ZIP]
+echo "Transferring file ${LIB_NAME}.zip to VMS machine CESR2f via FTP... "
 echo $WORKDIR
-cd ${LIB_DIR}
 ftp cesr2f <<EOF
 		binary
 		cd $WORKDIR
 		put ${LIB_NAME}.zip
 EOF
-echo "DONE!"
+ftp_success=${?}
 
 # Notify of completion
-echo "Transfer of ${LIB_NAME} to CESR2f::$WORKDIR complete!"
-
-exit 0
-
-
+if ( [ ${ftp_success} -eq 0 ] ) then
+    echo "Transfer of ${LIB_NAME} to CESR2f::${WORKDIR} complete!"
+else
+    echo "***ERROR! Transfer of ${LIB_NAME} to CESR2F FAILED!" 
+    exit 0
+fi
 
