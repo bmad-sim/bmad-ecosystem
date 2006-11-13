@@ -59,6 +59,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.5  2006/11/13 20:57:27  cesrulib
+# Path correction for bmadz test script.
+#
 # Revision 1.4  2006/11/13 19:02:50  cesrulib
 # Generalized call(s) to external test scripts to use whatever bin directory
 # has been specified by the existing default/override mechanism.
@@ -399,7 +402,7 @@ if ( [ $DO_REL -eq 1 ] ) then
         echo "Starting ${REL_NAME} test jobs for ${PLATFORM_TAG}_${CESRF90}:"
 
 # # # # >>>> bmadz test job
-        ${use_cesr_bin}/test_bmadz ${REL_NAME} ${BASE_TAG}
+        ${use_cesr_bin}/util/test_bmadz ${REL_NAME} ${BASE_TAG}
          # get error status from test job
 # # # # Run other test jobs here
 
