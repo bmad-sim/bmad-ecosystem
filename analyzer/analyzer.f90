@@ -78,8 +78,8 @@ interface
       character*16 x_or_y, answer, save_answer
       character*72 comment
       character*20 device_type, last_device_type/' '/
-      character*16 ele_names(4)
-      character*16 location
+      character*40 ele_names(4)
+      character*40 location
 
       logical keep_trying/.true./
       logical write_orbit/.false./                                        
