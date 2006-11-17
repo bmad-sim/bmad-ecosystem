@@ -19,8 +19,11 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2006/11/17 21:13:14  cesrulib
+! changed ele_name size to reflect change in bmad
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -91,7 +94,7 @@
       character*16 x_or_y, answer, save_answer
       character*72 comment
       character*20 device_type, last_device_type/' '/
-      character*16 ele_names(4)
+      character*40 ele_names(4)
 
       logical keep_trying/.true./
       logical write_orbit/.false./                                        
