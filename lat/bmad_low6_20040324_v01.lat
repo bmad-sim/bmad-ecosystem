@@ -1,7 +1,7 @@
 ! BMAD input file
 ! Focus on pretzel efficiency and bunch current
 !+
-! Mon Oct  9 15:00:56 2006 => Documented by latdoc.
+! Fri Oct 20 13:22:57 2006 => Documented by latdoc.
 ! Beam energy is 1.835 GeV
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.53	9.59	206.7	228.9	98.2	

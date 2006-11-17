@@ -1,7 +1,7 @@
 ! BMAD input file
 ! Working directory is /cdat/cesr38/disk1/dlr/bmad_devel/3500
 !+
-! Mon Oct  9 14:58:24 2006 => Documented by latdoc.
+! Fri Oct 20 13:21:28 2006 => Documented by latdoc.
 ! Beam energy is 3.500 GeV
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.53	9.60	206.7	234.8	429.2	

@@ -1,7 +1,7 @@
  ! BMAD input file
  !
 !+
-! Mon Oct  9 14:56:07 2006 => Documented by latdoc.
+! Fri Oct 20 13:20:07 2006 => Documented by latdoc.
 ! Beam energy is 2.030 GeV
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.53	9.59	206.7	228.2	173.6	

@@ -2,7 +2,7 @@
 ! Final optimization was done with lrbbi current at 2.2mA
 ! The sextupoles were re-optimized without lrbbi afterwards
 !+
-! Mon Oct  9 14:57:25 2006 => Documented by latdoc.
+! Fri Oct 20 13:20:52 2006 => Documented by latdoc.
 ! Beam energy is 1.843 GeV
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.53	9.57	206.7	221.1	131.8	
@@ -43,6 +43,41 @@
 ! *max* dbeta(dE) x:1.75 y:68.62  dbeta(dPretz) x:6.33e-01 y:4.85e-01
 ! Chrom x:0.99  y:0.97    Tonality x:-0.55  y:0.36
 !-
+!bbi+
+! Fri Oct 13 16:55:11 2006 => Documented by bbi_latdoc.
+! With 2.20 mA in bunch 3 of 9 x 5
+! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
+! e+	10.52	9.58	202.8	226.6	139.2	
+! e-	0.52	0.58	203.5	226.0	145.7	
+!
+! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)
+! 1.11	0.0137	0.005	0.019	0.035	-0.036	-3.102
+!
+! Bx*	By*	Eta*	Alphax*	Alphay* -> Positron-Electron
+! 0.05	-0.0001	-0.025	0.225	0.173
+!
+! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3
+! 1.26	8.381	-0.318	-0.005	0.007	0.035
+!
+! IP_L0 disp.: e+ x:-5.22e-04 y:8.27e-06   e- x:7.57e-04 y:-8.38e-06
+!
+! IP_L0 cbar:  7.3e-04   -4.7e-03   IP_L3 cbar:  5.1e-03    6.6e-03
+!             -2.9e-03   -3.5e-03               -3.5e-03   -1.7e-03
+!
+! Peak Arc Betas: e+ Bx:42.5 By:43.7   e- Bx:40.4 By:43.9
+! H_Sep Bx: 08w:24.82  08e:24.82  45w:16.29  45e:16.29
+! V_Sep By: 48w:9.48  48e:9.48
+! sc wiggler beta y's (wig1_14 -> wig3_18):
+! e+ west: 14.42   7.00  31.81   7.30  15.20  20.24
+! e- west: 12.50   5.53  42.13   7.58  13.41  16.22
+! e+ east: 19.13  11.71  33.22   7.69  13.81  16.83
+! e- east: 20.51  13.63  23.75   7.29  15.50  20.88
+!
+! 9x5 info: Pr_apert:4.17e-02  Effic:0.53  I_bunch:2.65  B_param_i:2.07
+! Worst x disp e+:1.79e-02  at: Q06W, 	e-:1.84e-02 at: Q08E
+! 34w: e+ Bx:38.27  e- Bx:39.82  e+ Eta:1.80   Ring sigma_sep:7.06
+! 34e: e+ Bx:39.97  e- Bx:39.29  e- Eta:1.69
+!bbi-
 
  lattice := 3686_2p2ma_20060814
  beam, energy =  1.843

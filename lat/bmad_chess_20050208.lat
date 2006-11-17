@@ -3,7 +3,7 @@
 ! while getting beta h* the same.                                               
 ! Now including IP_L0 in the lrbbi calculation.                                 
 !+
-! Mon Oct  9 14:58:09 2006 => Documented by latdoc.
+! Fri Oct 20 13:21:19 2006 => Documented by latdoc.
 ! Beam energy is 5.289 GeV
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.55	9.60	214.5	233.2	107.0	

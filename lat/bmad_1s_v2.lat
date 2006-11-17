@@ -1,7 +1,7 @@
 ! BMAD input file
 ! Working directory is: [cesr.cesrc.ramp.1s]
 !+
-! Mon Oct  9 14:58:17 2006 => Documented by latdoc.
+! Fri Oct 20 13:21:24 2006 => Documented by latdoc.
 ! Beam energy is 4.730 GeV
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.53	9.63	206.7	245.3	345.6	
