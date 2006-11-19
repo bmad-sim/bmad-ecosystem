@@ -2,7 +2,7 @@
 ! Final optimization was done with lrbbi current at 2.2mA
 ! The sextupoles were re-optimized without lrbbi afterwards
 !+
-! Fri Oct 20 13:19:39 2006 => Documented by latdoc.
+! Fri Nov 17 15:33:07 2006 => Documented by latdoc.
 ! Beam energy is 1.843 GeV
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.54	9.57	210.6	221.1	133.4	
