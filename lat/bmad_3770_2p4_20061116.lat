@@ -674,4 +674,30 @@ RAW_XQUNEING_4  : GROUP = {SEX_08W/ 0.057380,SEX_08E/-0.007001, &
          Type = "CSR XQUNEING   4"
 
 
+! Call, file = /a/lnx209/nfs/cesr/user/mjf7/des/knobs/betasing/bs1/bmad.
+RAW_BETASING_1  : GROUP = {Q03W/ 0.000275,Q04W/-0.000496,Q05W/-0.001952, &
+        Q06W/ 0.003401,Q07W/ 0.011356,Q08W/-0.012761,Q09W/ 0.023252, &
+        Q10W/-0.005085,Q03E/-0.019733,Q04E/ 0.003162,Q05E/-0.002757, &
+        Q06E/ 0.000591,Q07E/-0.001768,Q08E/ 0.003195,Q09E/-0.001494, &
+        Q10E/-0.001778}, K1, &
+         Type = "CSR BETASING   1"
+
+! Call, file = /a/lnx209/nfs/cesr/user/mjf7/des/knobs/betasing/bs2/bmad.
+RAW_BETASING_2  : GROUP = {Q03W/-0.005280,Q04W/ 0.013685,Q05W/-0.000036, &
+        Q06W/-0.015589,Q07W/-0.009109,Q08W/ 0.018835,Q09W/-0.010420, &
+        Q10W/-0.002831,Q03E/ 0.014021,Q04E/ 0.009239,Q05E/-0.000444, &
+        Q06E/-0.014477,Q07E/ 0.000459,Q08E/ 0.007151,Q09E/ 0.012873, &
+        Q10E/-0.009713}, K1, &
+         Type = "CSR BETASING   2"
+
+! Call, file = /a/lnx209/nfs/cesr/user/mjf7/des/knobs/betasing/bs3/bmad.
+RAW_BETASING_3  : GROUP = {Q03W/-0.015450,Q04W/-0.003992,Q05W/ 0.029444, &
+        Q06W/-0.018304,Q07W/ 0.026305,Q08W/ 0.003449,Q09W/-0.009438, &
+        Q10W/-0.000259,Q03E/ 0.014860,Q04E/-0.002000,Q05E/ 0.010538, &
+        Q06E/ 0.017568,Q07E/-0.046956,Q08E/ 0.008694,Q09E/-0.003000, &
+        Q10E/ 0.001583}, K1, &
+         Type = "CSR BETASING   3"
+
+
+
   ! Vars not in original file
