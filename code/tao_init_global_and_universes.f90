@@ -87,7 +87,7 @@ namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, &
                      
 namelist / tao_var / v1_var, var, default_weight, default_step, &
                     ix_min_var, ix_max_var, default_universe, default_attribute, &
-                    default_low_lim, default_high_lim
+                    default_low_lim, default_high_lim, default_merit_type
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
