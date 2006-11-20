@@ -59,6 +59,11 @@
 # $Id$
 #
 # $Log$
+# Revision 1.6  2006/11/20 22:09:02  cesrulib
+# Now allows for a completely isolated packages release to be built without
+# an accompanying CESR libraries release being built at the same time.
+# Changes to logging appropriate for the above adjustments
+#
 # Revision 1.5  2006/11/13 20:57:27  cesrulib
 # Path correction for bmadz test script.
 #
@@ -187,12 +192,12 @@ do arg_list="${arg_list} ${i}";
    esac
 done
 
-echo "build_release - called with the following arguments:  "
+echo "=*= build_release - called with the following arguments:  "
 echo "${arg_list}" 
 echo ""
 
 #---------------------------------------
-# Log start of job (1 = job running)
+# Log start of job (-1 = job running)
 #---------------------------------------
 code=-1
 echo "BUILD_STATUS:  ${code}"
@@ -214,16 +219,22 @@ BASE_TAG=${PLATFORM_TAG}_${CESRF90}
 echo "BASE area:  ${BASE_TAG}"
 
 # Generate full path information for the CESR area
-if ( [ -n "${REL}" ] ) then
-    REL_NAME=${REL}
-    FULL_REL_NAME=${BUILD_DIR}/${BASE_TAG}/${REL_NAME}
-    FULL_REL_LOG=${BUILD_DIR}/log/${BASE_TAG}/${REL}.log
-else
-    echo "No CESR release specified.  Exiting!"
-    code=2
-    echo "BUILD_STATUS:  ${code}"
-    exit ${code}
-fi		
+#if ( [ ${DO_REL} -eq 1 ] ) then
+#    if ( [ -n "${REL}" -a ${DO_REL} -eq 1 ] ) then
+    if ( [ -n "${REL}" ] ) then
+	REL_NAME=${REL}
+        FULL_REL_NAME=${BUILD_DIR}/${BASE_TAG}/${REL_NAME}
+        FULL_REL_LOG=${BUILD_DIR}/log/${BASE_TAG}/${REL}.log
+    else
+        echo "No CESR release specified.  Exiting!"
+        code=2
+        echo "BUILD_STATUS:  ${code}"
+        exit ${code}
+    fi		
+#else
+#    # Do nothing here as we've not been instructed to build a CESR release.
+#    echo "Continuing with PACKAGES ONLY build."
+#fi
 
 # Generate full path information for the PACKAGES area
 if ( [ -n "${PKG}" ] ) then
@@ -303,10 +314,15 @@ echo ""
 #-----------------------------------------------------
 # Verify that the release and package paths are valid 
 #-----------------------------------------------------
-if ( [ -d ${CESR_BASE}/${REL_NAME} ] ) then
-    rel_exists=1
+if ( [ ${DO_REL} -eq 1 ] ) then
+    if ( [ -d ${CESR_BASE}/${REL_NAME} ] ) then
+        rel_exists=1
+    else
+        rel_exists=0
+    fi
 else
-    rel_exists=0
+    rel_exists=1   # Doing ONLY a PKG release so set to true just to 
+                   # pass the next check and proceed to PKG build.
 fi
 
 if ( [ -d ${CESR_BASE}/${PKG_NAME} ] ) then
@@ -411,13 +427,16 @@ if ( [ $DO_REL -eq 1 ] ) then
 
 fi
 test_rel_status=0
-###############################################################
-# Final messages after  building CESR RELEASE or PACKAGES
-###############################################################
-# Investigate behavior for when build succeeds but test fails.
+##################################################################
+# Final messages after building CESR RELEASE or PACKAGES or BOTH
+##################################################################
 
-if ( [ ${test_rel_status} -eq 0 ] ) then
-    echo "`date`: Installation completed successfully for ${BASE_TAG} !";
+if ( [ ${test_rel_status} -eq 0 -a ${build_rel_status} -eq 0 ] ) then
+    if ( [ $DO_PKG -eq 1 -a $DO_REL -eq 0 ] ) then
+        echo "`date`: Installation completed successfully for ${BASE_TAG} !";
+    else
+	echo "`date`: Installation of PACKAGES ONLY build completed successfully for ${BASE_TAG} !"
+    fi
 else
     echo "`date`: Installation completed with errors!"
     code=5
