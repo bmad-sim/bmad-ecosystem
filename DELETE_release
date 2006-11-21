@@ -188,7 +188,7 @@ rm /home/cesrulib/cesr_libs/log/VMS_alpha_hp/${REL_NAME}.build_status
 ## rm /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.log
 rm /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.build_status
 
-rm /home/cesrulib/cesr_libs/log/${REL_NAME}.genlog
+#rm /home/cesrulib/cesr_libs/log/${REL_NAME}.genlog
 
 echo "  DONE."
 echo ""
