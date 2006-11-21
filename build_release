@@ -59,10 +59,8 @@
 # $Id$
 #
 # $Log$
-# Revision 1.6  2006/11/20 22:09:02  cesrulib
-# Now allows for a completely isolated packages release to be built without
-# an accompanying CESR libraries release being built at the same time.
-# Changes to logging appropriate for the above adjustments
+# Revision 1.7  2006/11/21 15:51:32  cesrulib
+# Bug fixes
 #
 # Revision 1.5  2006/11/13 20:57:27  cesrulib
 # Path correction for bmadz test script.
@@ -219,7 +217,7 @@ BASE_TAG=${PLATFORM_TAG}_${CESRF90}
 echo "BASE area:  ${BASE_TAG}"
 
 # Generate full path information for the CESR area
-#if ( [ ${DO_REL} -eq 1 ] ) then
+if ( [ ${DO_REL} -eq 1 ] ) then
 #    if ( [ -n "${REL}" -a ${DO_REL} -eq 1 ] ) then
     if ( [ -n "${REL}" ] ) then
 	REL_NAME=${REL}
@@ -231,10 +229,10 @@ echo "BASE area:  ${BASE_TAG}"
         echo "BUILD_STATUS:  ${code}"
         exit ${code}
     fi		
-#else
-#    # Do nothing here as we've not been instructed to build a CESR release.
-#    echo "Continuing with PACKAGES ONLY build."
-#fi
+else
+    # Do nothing here as we've not been instructed to build a CESR release.
+    echo "Continuing with PACKAGES ONLY build."
+fi
 
 # Generate full path information for the PACKAGES area
 if ( [ -n "${PKG}" ] ) then

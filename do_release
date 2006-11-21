@@ -90,6 +90,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.33  2006/11/21 15:51:32  cesrulib
+# Bug fixes
+#
 # Revision 1.32  2006/11/20 22:09:02  cesrulib
 # Now allows for a completely isolated packages release to be built without
 # an accompanying CESR libraries release being built at the same time.
@@ -944,9 +947,12 @@ if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
         fi
     fi    
 fi
-chmod u+w ${PREV_BUILT}
-echo "${REL_NAME}" > ${PREV_BUILT}
-chmod u-w ${PREV_BUILT}
+
+if ( [ $DO_REL -eq 1 ] ) then
+    chmod u+w ${PREV_BUILT}
+    echo "${REL_NAME}" > ${PREV_BUILT}
+    chmod u-w ${PREV_BUILT}
+fi
 
 #####################################################
 # Do not leave valid KRB credentials laying about.
