@@ -28,6 +28,10 @@ myprint_help () {
     echo ""
     echo "Optional -FORCE flag will delete without prompting you"
     echo "for confirmation."
+    echo ""
+    echo "Optional -NOLOCK flag will allow you to delete otherwise protected"
+    echo "DEVEL and/or CURRENT releases.  Use with caution."
+    echo ""
     exit 1
 }
 
@@ -103,7 +107,7 @@ for j in ${BASEPATH}Linux_i686_intel/current*
 do
   if ( [ ${j} -ef ${BASEPATH}Linux_i686_intel/${REL_NAME} ] ) then
       if ( [ ${NOLOCK} -eq 1 ] ) then
-	  echo "You have requested to delete a DEVEL release!  Make sure"
+	  echo "You have requested to delete a CURRENT release!  Make sure"
 	  echo "this is really what you want to do, then press <ENTER> to continue."
 	  read -n 1 CONFIRM1
 	  if ( [ ! ${CONFIRM1} = "\n" ] ) then
@@ -111,11 +115,11 @@ do
 	      exit 1
           fi
       else
-      echo ""
-      echo "The release you have requested to delete is an older CURRENT release."
-      echo "This is not currently allowed.  Aborting."
-      echo ""
-      exit 1
+          echo ""
+          echo "The release you have requested to delete is an older CURRENT release."
+          echo "This is not currently allowed.  Aborting."
+          echo ""
+          exit 1
       fi
   fi
 done
@@ -123,11 +127,21 @@ done
 for k in ${BASEPATH}Linux_i686_intel/devel*
 do
   if ( [ ${k} -ef ${BASEPATH}Linux_i686_intel/${REL_NAME} ] ) then
-      echo ""
-      echo "The release you have requested to delete is an older DEVEL release."
-      echo "This is not currently allowed.  Aborting."
-      echo ""
-      exit 1
+      if ( [ ${NOLOCK} -eq 1 ] ) then
+	  echo "You have requested to delete a DEVEL release!  Make sure"
+	  echo "this is really what you want to do, then press <ENTER> to continue."
+	  read -n 1 CONFIRM2
+	  if ( [ ! ${CONFIRM2} = "\n" ] ) then
+	      echo ""
+	      exit 1
+	  fi
+      else
+          echo ""
+          echo "The release you have requested to delete is an older DEVEL release."
+          echo "This is not currently allowed.  Aborting."
+          echo ""
+          exit 1
+      fi
   fi
 done
 
