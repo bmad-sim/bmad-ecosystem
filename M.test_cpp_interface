@@ -16,6 +16,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.5  2006/11/23 02:34:47  dcs
+# bmad_parser now catches 'a[b] : ...' error.
+#
 # Revision 1.4  2005/06/03 18:49:26  dcs
 # cxx -> g++
 #
@@ -214,7 +217,7 @@ SYM_UNDEFS :=
 BUILD_EXE := Y
 
 #LINK_COMPILER := cxx
-LINK_COMPILER := g++
+#LINK_COMPILER := g++
 
 #------------------------------------------------
 # Include the standard CESR M.tail makefile

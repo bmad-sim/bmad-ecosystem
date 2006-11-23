@@ -327,6 +327,16 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
         cycle parsing_loop
       endif
 
+      ! If delim is ':' then this is an error since get_next_word treats
+      ! a ':=' construction as a '=' 
+
+      if (delim == ':') then
+        call warning ('MALFORMED ELEMENT ATTRIBUTE REDEF')
+        cycle parsing_loop
+      endif
+
+      ! find associated element and evaluate the attribute value
+
       do i = 0, n_max
 
         ele => in_ring%ele_(i)

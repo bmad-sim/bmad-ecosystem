@@ -247,6 +247,16 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
         cycle parsing_loop
       endif
 
+      ! If delim is ':' then this is an error since get_next_word treats
+      ! a ':=' construction as a '=' 
+
+      if (delim == ':') then
+        call warning ('MALFORMED ELEMENT ATTRIBUTE REDEF')
+        cycle parsing_loop
+      endif
+
+      ! find associated element and evaluate the attribute value
+
       do i = 0, n_max
         if (lat%ele_(i)%name == word_1 .or. &
                           key_name(lat%ele_(i)%key) == word_1) then

@@ -410,7 +410,7 @@ integer, parameter :: b20$ = 130, t20$ = 130
 
 integer, parameter :: n_attrib_special_maxx = 130
 
-character(40), parameter :: null_name = 'NULL' 
+character(40), parameter :: null_name = '!NULL' 
 character(40), parameter :: blank_name = ' '
 
 ! electron/positron

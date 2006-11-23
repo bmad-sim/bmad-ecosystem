@@ -8,11 +8,17 @@
 !   use bmad
 !
 ! Input:
-!   ele    -- Ele_struct: Integer: Key name of element type (e.g. SBEND$, etc.)
+!   ele    -- Ele_struct: 
+!     %key    -- Integer: Key name of element type (e.g. SBEND$, etc.)
 !   ix_att -- Integer: Index of attribute (e.g. k1$)
 !
 ! Output:
-!   attribute_name -- Character(16): Name of attribute.
+!   attribute_name -- Character(16): Name of attribute. 
+!              If %key is invalid then                   attribute_name = "!BAD ELE KEY"
+!              If ix_att is invalid then                 attribute_name = "!BAD INDEX"
+!              If ix_att is invalid for an overlay then  attribute_name = "!INVALID INDEX"
+!              If ix_att does not correspond to an attribute for the given key then
+!                                                        attribute_name = "!NULL"
 !
 ! Example:
 !   ele%key = sbend$
@@ -473,14 +479,14 @@ function attribute_name (ele, ix_att) result (at_name)
   key = ele%key
 
   if (key <= 0 .or. key > n_key) then
-    at_name = 'BAD ELE KEY'
+    at_name = '!BAD ELE KEY'
   elseif (ix_att <= 0 .or. ix_att > n_attrib_special_maxx) then
-    at_name = 'BAD INDEX'
+    at_name = '!BAD INDEX'
   elseif (ele%control_type == overlay_lord$) then
     if (ix_att == ele%ix_value) then
       at_name = ele%attribute_name
     else
-      at_name = 'INVALID INDEX'
+      at_name = '!INVALID INDEX'
     endif
   else
     at_name = attrib_array(key, ix_att)
