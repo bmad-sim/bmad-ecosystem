@@ -160,7 +160,7 @@ For example the following is not allowed:
 
 %-----------------------------------------------------------------------------
 \section{Line and List Tags}
-\index{Tags for Lines and Lists}
+\index{Tags for Lines and Lists|textbf}
 \label{s:tag}
 
 When a lattice has repeating lines, it can be desirable to differentiate
@@ -227,4 +227,17 @@ The lattice elements in this case are:
   z1.t1.a, z1.t1.b, z1.hh.g, z2.t1.a, z2.t1.b, z1.hh.h 
 \end{example}
 
-
+\index{Expand_lattice!statement}
+To modify a particular tagged element the lattice must be expanded first (\sref{s:expand}). For example:
+\begin{example}
+  line1: line = (a, b)
+  line2: line = (line1[t1], line1[t2])
+  use, line2
+  expand_lattice
+  t1.b[k1] = 1.37
+  b[k1] = 0.63       ! This statement does not have any effect
+\end{example}
+After the lattice has been expanded there is no connection between 
+the original \vn{a} and \vn{b} elements and the elements in the lattcie like
+\vn{t1.b}. Thus the last line in the example where the \vn{k1} attribute of\vn{b} 
+is modified do not have any effect on the lattice elements. 

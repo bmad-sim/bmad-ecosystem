@@ -265,19 +265,19 @@ For any lattice the \vn{beginning} statement can be used to set the starting flo
 
 %----------------------------------------------------------------------------
 \section{Expand\_lattice Statement}
-\label{s:lat_expand}
+\label{s:expand}
 \index{Lattice!expansion|textbf}
 \index{Expand_lattice statement}
 
 At some point in parsing a lattice file, the ordered sequence of
-elements that form a lattice must be constructed. This process is
-called \vn{lattice expansion} since the element sequence can be built
-up from sub--sequences. Normally lattice expansion happens
-automatically at the end of parsing the lattice file but an explicit
-\vn{expand_lattice} statement will cause immediate expansion. The
-reason why this can be important is that there are restrictions, on
-some types of operations which must come either before or after
-lattice expansion. 
+elements that form a lattice must be constructed. This process is called
+\vn{lattice expansion} since the element sequence can be built up from
+sub--sequences (\sref{c:sequence}). Normally lattice expansion happens
+automatically at the end of the parsing of the lattice file but an
+explicit \vn{expand_lattice} statement in a lattice file will cause
+immediate expansion. The reason why this can be important is that there
+are restrictions, on some types of operations which must come either
+before or after lattice expansion:
 \begin{Itemize}
 \item 
 \index{Intrinsic functions!ran}
@@ -287,12 +287,16 @@ that show up multiple times in a lattice, generally need to be used
 after lattice expansion. See \sref{s:functions}.
 \item 
 Some dependent variables may be set as if they are independent
-variables but only if done before lattice expansion. See
-\sref{s:depend}.
+variables but only if done before lattice expansion. See \sref{s:depend}.
 \index{Multipass}
 \item 
-Setting \vn{dphi0} for an \vn{Lcavity} or \vn{RFcavity} multipass
-slave may only be done after lattice expansion.
+Setting the \vn{dphi0} attribute for an 
+\vn{Lcavity} or \vn{RFcavity} multipass
+slave may only be done after lattice expansion (\sref{s:multipass}).
+\item
+\index{Tags for Lines and Lists}
+Setting individual element attributes for tagged elements can only be done
+after lattice expansion (\sref{s:tag}).
 \end{Itemize}
 
 %--------------------------------------------------------------------------

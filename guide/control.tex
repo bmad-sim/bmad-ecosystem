@@ -373,7 +373,8 @@ routines. Assuming \vn{A\B1} is an accelerating cavity, to make
 \vn{A\B2} is set to 0.5. This is the one attribute that \bmad's
 bookkeeping routines will not touch when transferring attribute values
 from \vn{A} to its slaves. Notice that the \vn{dphi0} attribute had to
-be set after \vn{expand_lattice} is used to expand the lattice since
+be set after \vn{expand_lattice} (\sref{s:expand})
+is used to expand the lattice since
 \bmad does immediate evaluation and \vn{A\B2} does not exist before
 the lattice is expanded.
 
