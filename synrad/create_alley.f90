@@ -1,0 +1,151 @@
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+
+subroutine create_alley (wall)
+
+  use sr_struct
+  use sr_interface
+  use nr
+  use dcslib
+
+  implicit none
+
+  type (wall_struct), target :: wall
+  type (wall_pt_struct), pointer :: pt(:)
+
+  integer i, j, i1, i2, i3, i4, i5, i6
+  integer closed_end_direct
+
+  real(rp) s_left, s_right, x_wall
+
+! loop over all points until we come to a switchback which indicates
+! we are in an alley.
+! i1 is the beginning of the alley with s_wall(i1) >= s_wall(i4).
+! i2 is the first point after i1 where s_wall is a local maximum.
+! i3 is the point at which the wall starts going backward (s_wall
+!    starts decreasing).
+! i4 is the first point after i3 where s_wall is a local minimum.
+! i5 is the point after i3 where the wall starts to go forward again.
+! i6 is the end of the alley with s_wall(i6) <= s_wall(i2).
+
+  pt => wall%pt
+
+  i6 = 0
+  do
+
+    i3 = i6
+    do
+      i3 = i3 + 1
+      if (pt(i3)%s < pt(i3-1)%s) exit
+      if (i3 == wall%n_pt_tot) then
+        do i = 1, wall%n_pt_tot
+          if (pt(i)%type == possible_alley$) pt(i)%type = no_alley$
+        enddo
+        return
+      endif
+    enddo
+
+    s_right = pt(i3-1)%s
+
+! go forward to 2nd switchback of the alley
+
+    i5 = i3
+    do
+      i5 = i5 + 1
+      if (pt(i5)%s > pt(i5-1)%s) exit
+    enddo
+
+    s_left = pt(i5-1)%s
+
+! find the beginning of the second switchback
+
+    i4 = i3
+      do
+        if (pt(i4)%s == s_left) exit
+        i4 = i4 + 1
+      enddo
+
+! find the alley orientation
+
+    i = i3
+    do
+      i = i - 1
+      if (pt(i)%s < pt(i3)%s) then
+        x_wall = pt(i)%x + (pt(i+1)%x - pt(i)%x) * &
+              (pt(i3)%s - pt(i)%s) / (pt(i+1)%s - pt(i)%s)
+        if (x_wall < pt(i3)%x) then
+          closed_end_direct = -1
+        else
+          closed_end_direct = +1
+        endif
+        exit
+      endif
+    enddo
+
+! find the beginning of the alley
+
+    i1 = i3
+    do
+      if (pt(i1)%s == s_right) i2 = i1
+      if (pt(i1-1)%s < s_left) exit
+      i1 = i1 - 1
+    enddo
+
+! find the end of the alley
+
+    i6 = i5
+    do
+      if (pt(i6)%s < pt(i6-1)%s) then
+        type *, 'ERROR IN CREATE_ALLEY:'
+        type *, '      I CANNOT HANDLE A DOUBLE BACKTRACK ALLEY'
+        type *, '      ON THE WALL: ', wall_name(wall%side)
+        type *, '      BETWEEN POINTS:', i6-1, i6
+        do j = i1, i6-1
+          type '(i6, 2x, a, f11.4)', j, wall%pt(j)%name, wall%pt(j)%s
+        enddo
+        call err_exit
+      endif
+      if (pt(i6)%s > s_right) exit
+      i6 = i6 + 1
+    enddo
+
+! mark sections of the alley
+
+    do i = i1, i6-1
+      if (pt(i)%type /= possible_alley$) then
+        type *, 'ERROR IN CREATE_ALLEY:'
+        type *, '      FOUND A WALL ALLEY WHERE THERE SHOULD BE NONE.'
+        type *, '      ON THE WALL: ', wall_name(wall%side)
+        type *, '      BETWEEN POINTS:', i1, i6-1
+        do j = max(1,i1-1), i6
+          type '(i6, 2x, a, f11.4)', j, wall%pt(j)%name, wall%pt(j)%s
+        enddo
+        call err_exit
+      endif
+    enddo
+
+    if (closed_end_direct == +1) then
+      pt(i1:i2-1)%type = outer_wall$
+      pt(i2:i3-1)%type = closed_end$
+      pt(i3:i4-1)%type = middle_wall$
+      pt(i4:i5-1)%type = open_end$
+      pt(i5:i6-1)%type = inner_wall$
+    else
+      pt(i1:i2-1)%type = inner_wall$
+      pt(i2:i3-1)%type = open_end$
+      pt(i3:i4-1)%type = middle_wall$
+      pt(i4:i5-1)%type = closed_end$
+      pt(i5:i6-1)%type = outer_wall$
+    endif
+
+    pt(i1:i6-1)%closed_end_direct = closed_end_direct
+
+! order the points in assending s
+
+    call indexx(pt(i1:i6)%s, pt(i1:i6)%ix_pt)
+    pt(i1:i6)%ix_pt = pt(i1:i6)%ix_pt + (i1 - 1)
+
+  enddo
+
+end subroutine
