@@ -25,6 +25,7 @@ general interest.
   Particle Distribution Tracking          & \ref{r:part_dist}  \\ \hline
   Spin Tracking                           & \ref{r:spin_track} \\ \hline
   Wake Fields                             & \ref{r:wake}       \\ \hline
+  
  	Low Level Tracking Routines             & \ref{r:low_track}  \\ \hline
  	Particle Coordinate Stuff               & \ref{r:coord}      \\ \hline
  	Lattice Geometry                        & \ref{r:geom}       \\ \hline
@@ -71,6 +72,11 @@ Subroutine to parse (read in) a Bmad input file to modify an existing lattice.
 \item[bmad\_to\_mad (mad\_file, ring, ix\_start, ix\_end)] \Newline 
 Subroutine to write a mad lattice file using the information in
 a ring\_struct. 
+
+\index{Routine!bmad_to_xsif}
+\item[bmad\_to\_xsif (xsif\_file, lat, ix\_start, ix\_end)] \Newline 
+Subroutine to write a xsif lattice file using the information in
+a ring\_struct. Optionally only part of the lattice can be generated.
 
 \index{Routine!read_digested_bmad_file}
 \item[read\_digested\_bmad\_file (in\_file\_name, ring, version)] \Newline
@@ -404,6 +410,11 @@ Subroutine to calculate the closed orbit at the beginning of the ring.
 eps\_rel, eps\_abs, init\_guess)] \Newline
 Subroutine to find the closed orbit via tracking. 
 
+\index{Routine!compute_even_steps}
+\item[compute\_even\_steps (ds\_in, length, ds\_default, ds\_out, n\_step)] \Newline 
+Subroutine to compute a step size ds\_out, close to ds\_in, so that an 
+integer number of steps spans the length.
+
 \index{Routine!dynamic_aperture}
 \item[dynamic\_aperture (ring, track\_input, aperture)] \Newline
 Subroutine to determine the dynamic aperture of a lattice via tracking. 
@@ -448,6 +459,11 @@ instead rotating the particle position with negative the angle.
 \index{Routine!track1}
 \item[track1 (start, ele, param, end)] \Newline
 Subroutine to track through a single element. 
+
+\index{Routine!track1_bunch_csr}
+\item[track1\_bunch\_csr (bunch\_start, lat, ix\_ele, bunch\_end)] \Newline 
+Routine to track a bunch of particles through the element lat%ele\_(ix\_ele)
+with csr radiation effects.
 
 \index{Routine!track_all}
 \item[track\_all (ring, orbit\_)] \Newline
@@ -653,8 +669,8 @@ Subroutine to track the particle spin through one element.
 \item[lr\_wake\_apply\_kick (ele, s\_ref, orbit)] \Newline 
 Subroutine to apply the long-range wake kick to a particle.
 
-\index{Routine!sr1_apply_kick}
-\item[sr1\_apply\_kick (ele, leader, charge, follower)] \Newline 
+\index{Routine!sr1_apply_trans_kick}
+\item[sr1\_apply\_trans\_kick (ele, leader, charge, follower)] \Newline 
 Subroutine to put in the kick for the short-range wakes.
 
 \index{Routine!sr2_long_wake_add_to}
@@ -1391,6 +1407,10 @@ Subroutine to convert accelerator coordinates (x, x', y, y', z, z') to
 Cartesian coordinates and time derivatives (x, x\_dot, y, y\_dot, z,
 z\_dot) or vice-versa.
 
+\index{Routine!changed_attribute_bookkeeper}
+\item[changed\_attribute\_bookkeeper (lat, a\_ptr)] \Newline 
+Subroutine to do bookkeeping when a particular attribute has been altered.
+
 \index{Routine!create_group}
 \item[create\_group (ring, ix\_ele, contrl)] \Newline
 Subroutine to create a group control element. 
@@ -1428,11 +1448,6 @@ Subroutine to create a new control element.
 \\ \hspace*{2in} ptr\_attrib, ix\_attrib, err\_flag, err\_print\_flag)}] \Newline
 Returns a pointer to an attribute of an element with name attrib\_name. 
 
-\index{Routine!set_ele_attribute}
-\item[set\_ele\_attribute (ring, i\_ele, attrib\_name, attrib\_value, 
-err\_flag, make\_mat6\_flag, orbit\_)] \Newline
-Subroutine to set the attribute of an element and propagate the change to any slave elements. 
-
 \index{Routine!split_ring}
 \item[split\_ring (ring, s\_split, ix\_split, split\_done)] \Newline
 Subroutine to split a ring at a point.
@@ -1449,11 +1464,6 @@ hyberdized by \vn{make_hybrid_ring}.
 \label{r:trans}    
 
 \begin{description}
-
-\index{Routine!adjust_control_struct}
-\item[adjust\_control\_struct (ring, ix\_ele)] \Newline
-Subroutine to adjust the control structure of a ring so that 
-extra control elements can be added. 
 
 \index{Routine!allocate_ring_ele}
 \item[allocate\_ring\_ele\_(ring, des\_size)] \Newline 
@@ -1542,6 +1552,10 @@ the elements of another.
 \index{Multipole!list of routines}
 
 \begin{description}
+
+\index{Routine!mexp}
+\item[mexp (x, m) result (this\_exp)] \Newline 
+Returns x**m with 0**0 = 0.
 
 \index{Routine!multipole_ab_to_kt}
 \item[multipole\_ab\_to\_kt (an, bn, knl, tn)] \Newline
@@ -2358,37 +2372,13 @@ interval [0, 1]. This routine uses the same algorithm as ran from
 Function to return y = x + 2 * n * amp, n is an integer, such that y is 
 in the interval [-amp, amp].
 
-\index{Routine!reallocate_string}
-\item[reallocate\_string (str, l\_str, n)] \Newline 
-Function to reallocate a string array.
+\index{Routine!re_allocate}
+\item[re\_allocate (ptr\_to\_array, n)] \Newline 
+Function to reallocate a pointer to an array of strings, integers, reals, or logicals.
 
-\index{Routine!reallocate_integer}
-\item[reallocate\_integer (inte, n)] \Newline 
-Function to reallocate a integer.
-
-\index{Routine!reallocate_real}
-\item[reallocate\_real (re, n)] \Newline 
-Function to reallocate a real;
-
-\index{Routine!reallocate_logical}
-\item[reallocate\_logical (logic, n)] \Newline 
-Function to reallocate a string array.
-
-\index{Routine!reassociate_string}
-\item[reassociate\_string (str, l\_str, n)] \Newline 
-Function to reassociate an array of strings.
-
-\index{Routine!reassociate_integer}
-\item[reassociate\_integer (inte, n)] \Newline 
-Function to reassociate an array of integers.
-
-\index{Routine!reassociate_real}
-\item[reassociate\_real (re, n)] \Newline 
-Function to reassociate an array of reals.
-
-\index{Routine!reassociate_logical}
-\item[reassociate\_logical (logic, n)] \Newline 
-Function to reassociate a string array.
+\index{Routine!re_associate}
+\item[re\_associate (array, n)] \Newline 
+Function to reassociate an allocatable array of strings, integers, reals, or logicals.
 
 \index{Routine!skip_header}
 \item[skip\_header (unit\_, error\_flag)] \Newline 

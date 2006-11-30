@@ -4,6 +4,8 @@
 ! Subroutine to calculate the physical placement of all the elements in a lattice.
 ! That is, the layout on the floor. This is the same as the MAD convention.
 !
+! Note: This routine does NOT update %ele_(i)%s. To do this call s_calc.
+!
 ! Modules Needed:
 !   use bmad
 !

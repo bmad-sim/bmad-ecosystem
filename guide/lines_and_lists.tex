@@ -114,7 +114,7 @@ When \vn{line2} is expanded the actual arguments of \vn{line1}, in this
 case \vn(y, z), replaces the dummy arguments \vn{(DA1, DA2)} to give for
 \vn{line2}
 \begin{example}
-  (h, a, z, b, y, g)
+  h, a, z, b, y, g
 \end{example} 
 \index{MAD}
 Unlike \mad, Beam Line actual arguments can only be elements or Beam Lines. 
@@ -146,9 +146,9 @@ When the lattice is expanded the first instance of \vn{list1} in
 etc. If there are more instances of \vn{list1} in the lattice then
 members of \vn{list1}, the replacement starts at the beginning of
 \vn{list1} after the last member of \vn{list1} is used. In this case the
-lattice would be
+lattice would be:
 \begin{example}
-  (z1, a, z2, b, z3, c, z4, a)
+  z1, a, z2, b, z3, c, z4, a
 \end{example}
 \index{MAD}
 Unlike \mad members of a replacement list can only be simple elements 
@@ -157,3 +157,74 @@ For example the following is not allowed:
 \begin{example}
   list1: list = (2*a, b)  ! NO: No repetition count allowed.
 \end{example}
+
+%-----------------------------------------------------------------------------
+\section{Line and List Tags}
+\index{Tags for Lines and Lists}
+\label{s:tag}
+
+When a lattice has repeating lines, it can be desirable to differentiate
+between repeated elements. This can be done by tagging lines with a \vn{tag}. 
+An example will make this clear:
+\begin{example}
+  line1: line = (a, b)
+  line2: line = (line1, line1)
+  use, line2
+\end{example}
+When expanded the lattice would be:
+\begin{example}
+  a, b, a, b
+\end{example}
+The first and third elements have the same name ``a'' and the second and fourth
+elements have the same name ``b''. Using tags the lattice elements can be given
+unique names. lines or lists are tagged  
+using brackets \vn{[...]}. The general syntax is:
+\begin{example}
+  line_name[tag_name]                           ! Syntax for lines
+  list_name[tag_name]                           ! Syntax for lists
+  replacement_line[tag_name](arg1, arg2, ...)   ! Syntax for replacement lines.
+\end{example}
+Thus to differentiate the lattice elements in the above example \vn{line2} needs to
+be modified using tags:
+\begin{example}
+  line1: line = (a, b)
+  line2: line = (line1[t1], line1[t2])
+  use, line2
+\end{example}
+In this case the lattice elements will have names of the form:
+\begin{example}
+  tag_name.element_name
+\end{example}
+In this particular example, the lattice with tagging will be:
+\begin{example}
+  t1.a, t1.b, t2.a, t2.b
+\end{example}
+Of course with this simple example one could have just as easily not used tags:
+\begin{example}
+  t1.a: a;   t2.a: a
+  t1.b: b;   t2.b: b
+  line1: line = (t1.a, t1.b, t2.a, t2.b)
+  use, line2
+\end{example}
+But in more complicated situations tagging can make for compact lattice files.
+
+When lines are nested, the name of an element is formed by concatenating the tags
+together with dots in between in the form:
+\begin{example}
+  tag_name1.tag_name2. ... tag_name_n.element_name
+\end{example}
+An example will make this clear:
+\begin{example}
+  list1 = (g, h)
+  line1(y, z) = (a, b)
+  line2: line = (line1[t1](a, b))
+  line3: line = (line2, list1[hh])
+  line4: line = (line3[z1], line3[z2])
+  use, line4
+\end{example}
+The lattice elements in this case are:
+\begin{example}
+  z1.t1.a, z1.t1.b, z1.hh.g, z2.t1.a, z2.t1.b, z1.hh.h 
+\end{example}
+
+

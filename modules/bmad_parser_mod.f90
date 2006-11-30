@@ -23,6 +23,7 @@ use bookkeeper_mod
 type seq_ele_struct
   character(40) name             ! name of element, subline, or sublist
   character(40), pointer :: actual_arg(:) => null()
+  character(40) :: tag = ''      ! tag name.
   integer type                   ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
   integer ix_ele                 ! if an element: pointer to ELE_ array
                                  ! if a list: pointer to SEQ_ array
@@ -45,8 +46,9 @@ type seq_struct
 end type
 
 type used_seq_struct
-  character(40) :: name = ' '           ! name of sequence
-  character(40) :: multipass_line = ' ' ! name of root multipass line
+  character(40) :: name = ''           ! name of sequence
+  character(40) :: multipass_line = '' ! name of root multipass line
+  character(40) :: tag = ''             ! tag name.
   integer :: ix_multipass = 0           ! index used to sort elements
 end type    
 
@@ -58,6 +60,7 @@ type seq_stack_struct
   integer ix_ele                ! index to seq%ele(:) array
   integer rep_count             ! repetition count
   integer direction             ! +1 => forwad, -1 => back reflection.
+  character(40) :: tag = ''
   logical multipass
 end type
 
@@ -155,7 +158,7 @@ end type
 
 type (bp_com_struct), save :: bp_com
 
-character(40) :: blank = ' '
+character(40) :: blank = ''
 
 contains
 
@@ -675,19 +678,19 @@ subroutine get_called_file (delim)
 
 !
 
-  if (delim /= ',')  call warning ('"CALL" NOT FOLLOWED BY COMMA', ' ')
+  if (delim /= ',')  call warning ('"CALL" NOT FOLLOWED BY COMMA')
   call get_next_word(call_file, ix_word, ':=,', delim, delim_found, .true.)
   if (ix_word == 0) then
-    call warning ('NOTHING AFTER "CALL"', ' ')
+    call warning ('NOTHING AFTER "CALL"')
   elseif (index('FILENAME', call_file(:ix_word)) /= 1) then
-    call warning ('INVALID "CALL" COMMAND', ' ')
+    call warning ('INVALID "CALL" COMMAND')
   elseif (delim /= '=') then
-    call warning ('NO "=" AFTER "FILENAME"', ' ')
+    call warning ('NO "=" AFTER "FILENAME"')
   else
     call get_next_word(call_file, ix_word, ',', &
                                        delim, delim_found, .false.)
     if (ix_word == 0) then
-      call warning ('NO FILE NAME SPECIFIED', ' ')
+      call warning ('NO FILE NAME SPECIFIED')
     else
       if (call_file(1:1) == '"') then
         call_file = call_file(2:)
@@ -936,7 +939,7 @@ subroutine file_stack (how, file_name_in, finished)
     close (unit = bp_com%current_file%f_unit)
     i_level = i_level - 1
     if (i_level < 0) then
-      call error_exit ('BAD "RETURN"', ' ')
+      call error_exit ('BAD "RETURN"')
     elseif (i_level > 0) then
       bp_com%current_file = file(i_level)
     else    ! i_level == 0
@@ -994,7 +997,7 @@ subroutine load_parse_line (how, ix_cmd, file_end)
       bp_com%input_line1 = ' '
       bp_com%input_line2 = line
     else
-      call error_exit ('INTERNAL ERROR #4: CALL HELP', ' ')    
+      call error_exit ('INTERNAL ERROR #4: CALL HELP')    
     endif
 
 ! strip off comments
@@ -1335,7 +1338,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
     case (',', '}', ':')
       i_delim = no_delim$
     case default
-        call error_exit ('INTERNAL ERROR #01: GET HELP', ' ')
+        call error_exit ('INTERNAL ERROR #01: GET HELP')
     end select
 
 ! now see if there are operations on the OP_ stack that need to be transferred
@@ -1429,12 +1432,12 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
       i2 = i2 + 1
       call ran_gauss(stk(i2)%value)
     else
-      call error_exit ('INTERNAL ERROR #02: GET HELP', ' ')
+      call error_exit ('INTERNAL ERROR #02: GET HELP')
     endif
   enddo
 
 
-  if (i2 /= 1) call error_exit ('INTERNAL ERROR #03: GET HELP', ' ')
+  if (i2 /= 1) call error_exit ('INTERNAL ERROR #03: GET HELP')
 
   value = stk(1)%value
 
@@ -2215,12 +2218,12 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine warning (what1, what2, seq)
+subroutine warning (what1, what2, what3, seq)
 
   implicit none
 
   character(*) what1
-  character(*), optional :: what2
+  character(*), optional :: what2, what3
   type (seq_struct), optional :: seq
 
 ! BP_COM%ERROR_FLAG is a common logical used so program will stop at end of parsing
@@ -2230,6 +2233,7 @@ subroutine warning (what1, what2, seq)
     print *, 'ERROR IN ', trim(bp_com%parser_name), ': ', trim(what1)
 
     if (present(what2)) print '(22x, a)', trim(what2)
+    if (present(what3)) print '(22x, a)', trim(what3)
 
     if (present(seq)) then
       print *, '      IN FILE: ', trim(seq%file_name)
@@ -2921,7 +2925,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 
   do 
 
-    call get_next_word (word, ix_word, ':=(,)', delim, delim_found, .true.)
+    call get_next_word (word, ix_word, ':=(,)[]', delim, delim_found, .true.)
 
     ix = index(word, '*')          ! E.g. word = '-3*LINE'
     if (ix /= 0) then
@@ -2949,16 +2953,33 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
       this_ele%name = word
     endif
 
-! Check for a subline or replacement line.
-! If there is one then save as an internal sequence.
-
     name = this_ele%name
     if (name /= ' ') call verify_valid_name (name, ix_word)
+
+    ! Check for line tag
+
+    if (delim == '[') then
+      call get_next_word (this_ele%tag, ix_word, '[]:=(,)', delim, delim_found, .true.)
+      if (delim /= ']') then
+        call warning ('NO MATCHING "]" FOUND FOR OPENING "[" IN SEQUENCE: ' // seq%name)
+        return
+      endif
+      call get_next_word (word, ix_word, '[]:=(,)', delim, delim_found, .true.)
+      if (ix_word > 0) then
+        call warning ('ILLEGAL CHARACTERS AFTER CLOSING "]" FOUND IN SEQUENCE: ' // seq%name)
+        return
+      endif   
+    endif
+
+    ! Check for a subline or replacement line.
+    ! If there is one then save as an internal sequence.
 
     replacement_line_here = .false.
 
     if (delim == '(') then ! subline or replacement line
-      if (name == ' ') then
+
+      ! if a subline...
+      if (name == ' ') then  
         ix_internal = ix_internal + 1
         write (str, '(a, i3.3)') '#Internal', ix_internal   ! unique name 
         this_ele%name = str
@@ -2976,11 +2997,14 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
         endif
         bp_com%parse_line = '(' // bp_com%parse_line
         call seq_expand1 (sequence_, iseq_tot, ring, .false.)
-      else
+
+      ! else this is a replacement line
+      else    
         replacement_line_here = .true.
         call get_sequence_args (name, this_ele%actual_arg, delim, err_flag)
         if (err_flag) return
       endif
+
       call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
       if (word /= ' ') call warning &
                 ('NO COMMA AFTER SUBLINE OR REPLACEMENT LINE. FOUND: ' // &
@@ -2990,7 +3014,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
     if (this_ele%name == ' ') call warning &
               ('SUB-ELEMENT NAME IS BLANK FOR LINE/LIST: ' // seq%name)
 
-! if a replacement line then look for element in argument list
+    ! if a replacement line then look for element in argument list
 
     this_ele%ix_arg = 0
     if (seq%type == replacement_line$) then

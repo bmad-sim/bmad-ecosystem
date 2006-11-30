@@ -55,7 +55,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   type (seq_ele_struct), target :: dummy_seq_ele
   type (seq_ele_struct), pointer :: s_ele, this_seq_ele
   type (parser_ring_struct) pring
-  type (seq_stack_struct) stack(20)
+  type (seq_stack_struct) stack(40)
   type (ele_struct), save, pointer :: ele
   type (ele_struct), allocatable, save :: old_ele(:) 
   type (used_seq_struct), allocatable, save ::  used_line(:), used2(:)
@@ -656,6 +656,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   stack(1)%direction = +1              ! and move forward
   stack(1)%rep_count = seq%ele(1)%rep_count
   stack(1)%multipass = .false.
+  stack(1)%tag = ''
 
   n_ele_use = 0
            
@@ -714,7 +715,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
         call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
         if (j == 0) then  ! if not a sequence then I don't know what it is
           call warning ('CANNOT FIND DEFINITION FOR: ' // name, &
-                          'IN LINE: ' // seq%name, seq)
+                          'IN LINE: ' // seq%name, seq = seq)
           call err_exit
         endif
         s_ele%ix_ele = j
@@ -739,11 +740,16 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
         seq2%ix = seq2%ix + 1
         if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
       else
+        if (s_ele%tag /= '') then
+          call warning ('ELEMENTS IN A LINE OR LIST ARE NOT ALLOWED TO HAVE A TAG.', &
+                        'FOUND ILLEGAL TAG FOR ELEMENT: ' // s_ele%name, &
+                        'IN THE LINE/LIST: ' // seq%name, seq)
+        endif
         this_seq_ele => s_ele
       endif
 
       if (this_seq_ele%ix_ele < 1) call warning('NOT A DEFINED ELEMENT: ' // &
-                          s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq)
+                          s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq = seq)
 
 
       if (n_ele_use+1 > size(ix_ring)) then
@@ -762,6 +768,14 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
       used_line(n_ele_use)%name = this_seq_ele%name
 
+      if (stack(i_lev)%tag /= '' .and. s_ele%tag /= '') then
+        used_line(n_ele_use)%tag =  trim(stack(i_lev)%tag) // '.' // s_ele%tag
+      elseif (s_ele%tag /= '') then
+        used_line(n_ele_use)%tag = s_ele%tag
+      else
+        used_line(n_ele_use)%tag =  stack(i_lev)%tag
+      endif
+
       if (stack(i_lev)%multipass) then
         ix_multipass = ix_multipass + 1
         used_line(n_ele_use)%ix_multipass = ix_multipass
@@ -778,11 +792,15 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
     case (line$, replacement_line$)
       i_lev = i_lev + 1
+      if (i_lev > size(stack)) then
+        call warning ('NESTED LINES EXCEED STACK DEPTH!')
+        call err_exit
+      endif
       if (s_ele%type == replacement_line$) then
         seq2 => sequence_(s_ele%ix_ele)
         if (size(seq2%dummy_arg) /= size(s_ele%actual_arg)) then
           call warning ('WRONG NUMBER OF ARGUMENTS FORREPLACEMENT LINE: ' // &
-              s_ele%name, 'WHEN USED IN LINE: ' // seq%name, seq)
+              s_ele%name, 'WHEN USED IN LINE: ' // seq%name, seq = seq)
           call err_exit
         endif
         arg_loop: do i = 1, size(seq2%dummy_arg)
@@ -803,6 +821,13 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       stack(i_lev)%ix_seq = s_ele%ix_ele
       stack(i_lev)%direction = stack(i_lev-1)%direction
       stack(i_lev)%multipass = (stack(i_lev-1)%multipass .or. seq%multipass)
+      if (stack(i_lev-1)%tag /= '' .and. s_ele%tag /= '') then
+         stack(i_lev)%tag = trim(stack(i_lev-1)%tag) // '.' // s_ele%tag
+      elseif (stack(i_lev-1)%tag /= '') then
+         stack(i_lev)%tag = trim(stack(i_lev-1)%tag)
+      else
+         stack(i_lev)%tag = s_ele%tag
+      endif
       if (s_ele%reflect) stack(i_lev)%direction = -stack(i_lev)%direction
 
       if (stack(i_lev)%direction == 1) then
@@ -905,14 +930,12 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   enddo
 
 ! Transfer the ele information from the in_ring to ring
-! Use the name as given in sequence lists since elements can have different 
-! names from the defining elements. Eg: B01\H2 gets its definition from B01.
-
 
   do i = 1, n_ele_use
     ele => ring%ele_(i)
     ele = in_ring%ele_(ix_ring(i)) 
     ele%name = used_line(i)%name
+    if (used_line(i)%tag /= '') ele%name = trim(used_line(i)%tag) // '.' // ele%name
   enddo
 
 ! First work on multipass before overlays, groups, and usuperimpose. 

@@ -5,6 +5,12 @@ use File::Find;
 #---------------------------------------------------------
 # List of subroutines too low level to be mentioned
 
+$pl_hash{"initialize_pauli_vector"} = "spin_mod.f90";
+$pl_hash{"track1_macro_sr_trans_wake"} = "macroparticle_mod.f90";
+$pl_hash{"track1_macro_lr_wake"} = "macroparticle_mod.f90";
+$pl_hash{"makeup_overlay_and_i_beam_slave"} = "bookkeeper_mod.f90";
+$pl_hash{"compute_slave_coupler"} = "bookkeeper_mod.f90";
+$pl_hash{"makeup_multipass_slave"} = "bookkeeper_mod.f90";
 $pl_hash{"modulo2_sp"} = "modulo2_mod.f90";
 $pl_hash{"modulo2_int"} = "modulo2_mod.f90";
 $pl_hash{"modulo2_dp"} = "modulo2_mod.f90";
@@ -250,15 +256,13 @@ sub searchit {
     if ($old =~ /^\!\+/) {
       if (/^\! *subroutine */i || /^\! *function */i) {
       
-        $this = $';     # strip off "subroutine"
+        $this = $';     #' strip off "subroutine"
         chomp $this;
         $this =~ tr/A-Z/a-z/; #lowercase
         $name = $this;
         $name =~ s/ *\(.*//;    # strip off " (..."
 
-        if (exists $tex_hash{$name}) {
-##          print "$this  In list \n";
-        } else {
+        if (!exists $tex_hash{$name} && !exists $pl_hash{$name}) {
           print "\nFile: $file\n";
           $this2 = $this; 
           $this2 =~ s/\s*\(.*//;
@@ -283,7 +287,7 @@ sub searchit {
     if (/^ *subroutine /i || /^ *recursive subroutine /i || 
         /^ *function /i   || /^ *real\(rp\) *function /i || 
         /^ *elemental subroutine /i || /^ *interface /i) {
-      $name = $';              # strip off "subroutine
+      $name = $';              #' strip off "subroutine"
       $name =~ s/ *\(.*//;     # strip off " (..."
       $name =~ s/ +$//;        # strip off trailing blank if no arg list
       $name =~ tr/A-Z/a-z/; #lowercase
@@ -295,7 +299,7 @@ sub searchit {
       $count = 1;
       while (<F_IN>) {
         if (/^ *end /i) {
-          $_ = $';  
+          $_ = $';  #'
           if (/^ *subroutine/i || /^ *function/i || /^ *interface/i) {
             $count = $count - 1;
           }

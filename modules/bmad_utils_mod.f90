@@ -480,7 +480,7 @@ subroutine init_mode_info (t)
   t%tune = 0
   t%emit = 0
   t%chrom = 0
-endsubroutine
+end subroutine
 
 end subroutine
 
