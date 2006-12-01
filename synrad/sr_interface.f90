@@ -164,17 +164,6 @@ module sr_interface
   end interface
 
   interface
-    subroutine read_outline (outside, inside, ring, type_warning)
-      use sr_struct
-      implicit none
-      type (wall_struct) inside
-      type (wall_struct) outside
-      type (ring_struct) ring
-      logical type_warning
-    end subroutine
-  end interface
-
-  interface
     subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
       use sr_struct
       implicit none
