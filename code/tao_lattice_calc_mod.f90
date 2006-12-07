@@ -416,7 +416,7 @@ do j = 1, lat%n_ele_use
   enddo
 
   ! compute centroid orbit
-  call tao_find_beam_centroid (beam, tao_lat%orb(j), uni, j)
+  call tao_find_beam_centroid (beam, tao_lat%orb(j), uni, j, lat%ele_(j))
 
   if (all_lost_already) exit
 
@@ -596,18 +596,21 @@ end subroutine tao_macro_track
 ! Find the centroid of all particles in viewed bunches
 ! Also keep track of lost macroparticles if the optional arguments are passed
 
-subroutine tao_find_beam_centroid (beam, orb, uni, ix_ele)
+subroutine tao_find_beam_centroid (beam, orb, uni, ix_ele, ele)
 
 implicit none
 
 type (beam_struct), target :: beam
 type (coord_struct) :: orb, coord
+type (ele_struct), optional :: ele
+
 integer, optional :: uni, ix_ele
 
 integer n_bunch, n_part, n_lost, tot_part, i_ele
 
 logical record_lost
 
+character(100) line
 character(20) :: r_name = "tao_find_beam_centroid"
 
 !
@@ -620,6 +623,7 @@ n_bunch = s%global%bunch_to_plot
   
 ! If optional arguments not present no verbose and
 !  just check if particles lost
+
 if (present(uni) .or. present(ix_ele)) then
   record_lost = .true.
   i_ele = ix_ele
@@ -642,15 +646,9 @@ enddo
       
 ! Post lost particles
 if (record_lost) then
-  if (n_lost == 1) then
-    call out_io (s_blank$, r_name, &
-            "   1 particle  lost at element \I\ in universe \I\.", &
-                                           i_array = (/ ix_ele, uni /) )
-  elseif (n_lost .gt. 1) then
-    call out_io (s_blank$, r_name, &
-            "\I4\ particles lost at element \I\ in universe \I\.", &
-                                           i_array = (/ n_lost, ix_ele, uni /) )
-  endif
+  line = "\I4\ particle(s) lost at element \I6\: " // ele%name
+  if (size(s%u) > 1) line = trim(line) // " in universe \I3\ "
+  call out_io (s_blank$, r_name, line, i_array = (/ n_lost, ix_ele, uni /) )
 endif
   
 ! average
