@@ -645,7 +645,7 @@ do n_part = 1, size(beam%bunch(n_bunch)%particle)
 enddo
       
 ! Post lost particles
-if (record_lost) then
+if (record_lost .and. n_lost > 0) then
   line = "\I4\ particle(s) lost at element \I6\: " // ele%name
   if (size(s%u) > 1) line = trim(line) // " in universe \I3\ "
   call out_io (s_blank$, r_name, line, i_array = (/ n_lost, ix_ele, uni /) )
