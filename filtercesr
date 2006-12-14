@@ -59,7 +59,7 @@ open (DEPFILE,"$lib_depfile")|| die "can not open file $lib_depfile";
 #}
 
 #close(FILE01) || die "couldn't close file: dependir.tmp";
-system "rm dirdepen.tmp";
+#system "rm depdir.tmp";
 
 close(DEPFILE) || die "couldn't close file: $lib_depfile";
 
@@ -111,8 +111,8 @@ sub convertP {local($varP,$i,@smlist,@prereqs);
   @prereqs=@_; 
   foreach $varP (@prereqs){
       if ($varP !~ /\// && $varP !~ /\$/ && $varP !~ /\.m/  && $varP !~ /\.o/ && $varP !~ /\.d/ ){
-          print "varP  =  $varP\n";
-	  print "listfilek{varP}  =  $listfilek{$varP}\n";
+#          print "varP  =  $varP\n";
+#	  print "listfilek{varP}  =  $listfilek{$varP}\n";
           print DEPFILE "$listfilek{$varP}$varP";
           next;
       }
@@ -250,7 +250,7 @@ sub take_care_of_some_variables {
 # location of all the source files in the cesr release library
 # example: $listfilek{file.f90} gives vms-format directory where file.f90 lives.
 sub gendepfullname {
-    print "gendepfullname called\n";
+#    print "gendepfullname called\n";
 #    local ($x,$snd);
     system "ls -Ra $absrelname/$cvssrc/$libname |grep ':'|grep -v CVS > subdir_list.tmp";
     open (FILE04,"subdir_list.tmp") || die "cannot open file subdir_list.tmp";
