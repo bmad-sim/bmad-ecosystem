@@ -3439,11 +3439,14 @@ case (sbend$, rbend$)
   if (ele%key == rbend$) then
     ele%value(l_chord$) = ele%value(l$)
         
-    if (angle /= 0) then
-      ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
-    elseif (ele%value(l_chord$) == 0) then
+    if (ele%value(l_chord$) == 0) then
       angle = 0
       ele%value(l$) = 0
+    elseif (angle /= 0) then
+      ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
+    elseif (ele%value(g$) /= 0) then
+      angle = 2 * asin(ele%value(l_chord$) * ele%value(g$) / 2)
+      ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
     endif
     ele%value(e1$) = ele%value(e1$) + angle / 2
     ele%value(e2$) = ele%value(e2$) + angle / 2
