@@ -3441,16 +3441,20 @@ case (sbend$, rbend$)
         
     if (angle /= 0) then
       ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
-    elseif (ele%value(g$) /= 0 .and. ele%value(l_chord$) == 0) then
-      angle = ele%value(g$) * ele%value(l_chord$) / 2
-      ele%value(l$) = ele%value(l_chord$) * asin(angle)/ angle
+    elseif (ele%value(l_chord$) == 0) then
+      angle = 0
+      ele%value(l$) = 0
     endif
     ele%value(e1$) = ele%value(e1$) + angle / 2
     ele%value(e2$) = ele%value(e2$) + angle / 2
     ele%key = sbend$
   endif
 
-  if (ele%value(angle$) /= 0) ele%value(g$) = ele%value(angle$) / ele%value(l$) 
+  if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0) then
+    call warning ('THE BENDING ANGLE IS NONZERO IN ZERO LENGTH BEND! ' // ele%name)
+  elseif (ele%value(angle$) /= 0) then
+    ele%value(g$) = ele%value(angle$) / ele%value(l$) 
+  endif
 
   ! If fintx or hgapx are real_garbage then they have not been set.
   ! If so, set their valuse to fint and hgap.
