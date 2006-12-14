@@ -2239,8 +2239,12 @@ subroutine warning (what1, what2, what3, seq)
       print *, '      IN FILE: ', trim(seq%file_name)
       print *, '      AT LINE:', seq%ix_line
     elseif (bp_com%current_file%full_name /= ' ') then
-      print *, '      IN FILE: ', trim(bp_com%current_file%full_name)
-      print *, '      AT OR BEFORE LINE:', bp_com%current_file%i_line
+      if (bp_com%input_line_meaningful) then
+        print *, '      IN FILE: ', trim(bp_com%current_file%full_name)
+        print *, '      AT OR BEFORE LINE:', bp_com%current_file%i_line
+      else
+        print *, '      ROOT FILE: ', trim(bp_com%current_file%full_name)
+      endif
     endif
 
     if (bp_com%input_line_meaningful) then
@@ -3426,6 +3430,9 @@ case (sbend$, rbend$)
   ele%sub_key = ele%key  ! save input format.
   angle = ele%value(angle$) 
 
+  if (ele%value(b_field$) /= 0 .and. ele%key == rbend$) call warning &
+          ("B_FIELD NOT SETTABLE FOR AN RBEND (USE AN SBEND INSTEAD): " // ele%name)
+
   if (ele%value(b_field$) /= 0 .and. ele%value(g$) /= 0) call warning &
           ('BOTH G AND B_FIELD SET FOR A BEND: ' // ele%name)
 
@@ -3435,6 +3442,8 @@ case (sbend$, rbend$)
 
   if (ele%value(g$) /= 0 .and. angle /= 0) call warning &
             ('BOTH ANGLE AND G OR RHO SPECIFIED FOR BEND: ' // ele%name)
+
+  ! Convert an rbend
 
   if (ele%key == rbend$) then
     ele%value(l_chord$) = ele%value(l$)
@@ -3451,7 +3460,10 @@ case (sbend$, rbend$)
     ele%value(e1$) = ele%value(e1$) + angle / 2
     ele%value(e2$) = ele%value(e2$) + angle / 2
     ele%key = sbend$
+
   endif
+
+  ! 
 
   if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0) then
     call warning ('THE BENDING ANGLE IS NONZERO IN ZERO LENGTH BEND! ' // ele%name)
