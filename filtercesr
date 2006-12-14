@@ -26,48 +26,58 @@ $cvssrcdot="cvssrc.";
 if ($absrelname=~m/packages/g){$cvssrc=""; $cvssrcdot=""}
 if ($absrelname=~m/PACKAGES/g){$cvssrc=""; $cvssrcdot=""}
 $libname=$ARGV[1];
-print "converting to vms dependencies for $libname \n";
+print "Converting to VMS-style dependencies for $libname \n";
 gendepfullname();
 
-$z=$libname;
-if ($z eq "recipes_f-90_LEPP"){$zout="recipes_f_90_LEPP"}
-else {$zout=$z}
-$aa=">$zout.depvms";
-open (FILE1,"$aa")|| die "can not open file $aa";
-system "ls -Ra $ARGV[0]/$cvssrc/$z | grep  '\.depend:' >> dirdepen.tmp";
-open (FILE01, 'dirdepen.tmp' )|| die "can't open file:dirdepen.tmp";
-while ($x = <FILE01>){
-    chomp $x;
-    chop $x;
-    system "ls -Ra $x | grep  '\.d' >> dirdepcont.tmp";
-    open (FILE02, 'dirdepcont.tmp' )|| die "can't open file:dirdepcont.tmp";
-    while ($y=<FILE02>){
-        filterf ("$x/$y");
+if ($libname eq "recipes_f-90_LEPP"){$libname="recipes_f_90_LEPP"}
+
+else
+   {}
+$lib_depfile=">$libname.depvms";
+open (DEPFILE,"$lib_depfile")|| die "can not open file $lib_depfile";
+
+#system "ls -Ra $absrelname/$cvssrc/$libname | grep  '\.depend:' >> dependir.tmp";
+#open (FILE01, 'dependir.tmp' )|| die "can't open file:dirdepen.tmp";
+
+#while ($x = <FILE01>){  # for each 
+#    chomp $x;
+#    chop $x;
+#    system "ls -Ra $x | grep  '\.d' >> depdircont.tmp";
+    system "ls -Ra .depend | grep  '\.d' | grep -v ':' >> depdircont.tmp";
+    open (FILE02, 'depdircont.tmp' )|| die "can't open file: depdircont.tmp";
+    while ($y=<FILE02>){        # for every .d file in the .depend directory...
+#	print ".depend directory file : $y \n";
+#        filterf ("$x/$y");
+	filterf (".depend/$y");
     }
-    if ($z ne "c_utils"){
-    filterf ("$ARGV[0]/$cvssrc/$z/.f90_module_rules");
+    if ($libname ne "c_utils"){
+#        filterf ("$absrelname/$cvssrc/$libname/.f90_module_rules");
+	filterf ("./.f90_module_rules");
     }
     close(FILE02) || die "couldn't close file:dirdepcont.tmp";
-    system "rm dirdepcont.tmp";
-}
-close(FILE01) || die "couldn't close file:dirdepen.tmp";
+    system "rm depdircont.tmp";
+#}
+
+#close(FILE01) || die "couldn't close file: dependir.tmp";
 system "rm dirdepen.tmp";
-close(FILE1) || die "couldn't close file: $aa";
+
+close(DEPFILE) || die "couldn't close file: $lib_depfile";
 
 
 
-
-#this subroutine converts the dependancy file content to the VMS-format
-# and prints to file <FILE1>
+###########################################################################
+#   Subroutines follow
+###########################################################################
+# this subroutine converts the dependancy file content to the VMS-format
+# and prints to file <DEPFILE>
 # example: filterf ( vms.depend); 
-#  
+# 
 sub filterf { 
-open (FILE0, $_[0])|| die "can't open file:$ARGV[0]";
+open (FILE0, $_[0]) || die "can't open file:$_[0]";
 while (<FILE0>){
     if (/d:/){
        @words=split(/:\s*/,$_);
        @targets=split " ",$words[0];
-#       print $#targets, "\n";
        @prereqs= split " ",$words[1];
        rm_usr_include();
        rm_include_readline();
@@ -78,52 +88,58 @@ while (<FILE0>){
        take_care_of_some_variables();
        if ($#prereqs >= 0){ 
            convertP(@targets);
-           print FILE1 ": ";
+           print DEPFILE ": ";
            convertP(@prereqs);
-           print FILE1 "\n";
+           print DEPFILE "\n";
        }
    }
     elsif (/\$\(F90_LMOD_RULE\)/) {
-        print FILE1 $F90_LMOD_RULE;
+        print DEPFILE $F90_LMOD_RULE;
     }
     elsif (/\$\(F90_MOD_RULE\)/) {
-        print FILE1 $F90_MOD_RULE;
+        print DEPFILE $F90_MOD_RULE;
     }
 }
 close(FILE0) || die "couldn't close file:$ARGV[0]";
 }
+
+
+
 #this subroutine convert's and print's the string from
 #unix to vms file-format.
 sub convertP {local($varP,$i,@smlist,@prereqs); 
   @prereqs=@_; 
   foreach $varP (@prereqs){
       if ($varP !~ /\// && $varP !~ /\$/ && $varP !~ /\.m/  && $varP !~ /\.o/ && $varP !~ /\.d/ ){
-          print FILE1 "$listfilek{$varP}$varP";
+          print "varP  =  $varP\n";
+	  print "listfilek{varP}  =  $listfilek{$varP}\n";
+          print DEPFILE "$listfilek{$varP}$varP";
           next;
       }
     $varP=~ s/\.mod/\.f90\$\$mod/;
     $varP=~ s/\)\//\)/;
     $varP=~ s/\.o/\.obj/;
     if ($varP !~ /\.d/){
-      if ($varP =~ /\$\(/) {print FILE1 " $varP";}
+      if ($varP =~ /\$\(/) {print DEPFILE " $varP";}
       else{
         $varP=~ s/\B\///;
         $varP=~ s/\B\./-\./;
         $varP=~ s/\.\./-\./;
         @smlist=split(/\//,$varP);
-        if ($#smlist==0){print FILE1$smlist[0];}
+        if ($#smlist==0){print DEPFILE$smlist[0];}
         else{
-        print FILE1 " [$smlist[0]";
+        print DEPFILE " [$smlist[0]";
         for ($i=1;$i<$#smlist;$i++){
-           print FILE1 ".", $smlist[$i];
+           print DEPFILE ".", $smlist[$i];
            }   
         
-        print FILE1 "]$smlist[$#smlist]";
+        print DEPFILE "]$smlist[$#smlist]";
     }
       }
     }
   }
 }
+
 
 #this subroutine removes all /usr/include/* fields
 sub rm_usr_include {
@@ -136,6 +152,9 @@ sub rm_usr_include {
     $smlist = join " ",@prereqs;
     @prereqs =  split " " ,$smlist;
 }        
+
+
+
 #this subroutine removes all /include/readline* fields
 sub rm_include_readline {
     local($varP,$smlist);
@@ -147,6 +166,9 @@ sub rm_include_readline {
     $smlist = join " ",@prereqs;
     @prereqs =  split " " ,$smlist;
 } 
+
+
+
 #this subroutine removes all /include/cxx* fields
 sub rm_include_cxx {
     local($varP,$smlist);
@@ -158,6 +180,9 @@ sub rm_include_cxx {
     $smlist = join " ",@prereqs;
     @prereqs =  split " " ,$smlist;
 } 
+
+
+
 #this subroutine removes absolute path /home..../packages/modules/
 #and chenges it to $(PKG_MOD)
 sub rm_home_packages_modules {
@@ -168,6 +193,9 @@ sub rm_home_packages_modules {
     $smlist = join " ",@prereqs;
     @prereqs =  split " " ,$smlist;
 }          
+
+
+
 #this subroutine removes absolute path /home..../modules/
 #and changes it to $(MOD_OUT_DIR)
 sub rm_home_modules {
@@ -179,6 +207,8 @@ sub rm_home_modules {
     @prereqs =  split " " ,$smlist;
 }
         
+
+
 #this subroutine removes absolute path /home..../packages
 #and changes it to $(PBASE)
 #also it changes $(PBASE)/include/ to
@@ -193,6 +223,9 @@ sub rm_home_packages {
     $smlist = join " ",@prereqs;
     @prereqs =  split " " ,$smlist;
 }
+
+
+
 #this subroutine does the following:
 #NA 1. It changes $(CESR_INC)/            to [--.include]
 #NA 2.    -||-    $(CESR_MOD)/            to $(MOD_OUT_DIR)
@@ -213,34 +246,35 @@ sub take_care_of_some_variables {
 
 
         
-#this subroutine generate hash-array %listfilek with info about the exact directory
-#location of the all  source files in the cesr release library
+# This subroutine generates a hash listfilek with info about the exact directory
+# location of all the source files in the cesr release library
 # example: $listfilek{file.f90} gives vms-format directory where file.f90 lives.
 sub gendepfullname {
-    local ($x,$snd);
-    system "ls -Ra $absrelname/$cvssrc/$libname |grep ':'|grep -v CVS > tmp04.dat";
-    open (FILE04,"tmp04.dat")|| die "can not open file tmp04.dat";
-    while ($snd = <FILE04>){
-        chomp($snd);
-        chop($snd);
-        $snd=~s/.*$libname/\/$libname/g;
-#        print "$snd\n"; 
-        system "ls  $absrelname/$cvssrc/$snd |grep -v CVS > tmp03.dat";
-        open (FILE03,"tmp03.dat")|| die "can not open file tmp03.dat";
-        while ($x = <FILE03>){
-            chomp($x);
-            $listfilek{$x}="$snd";
-            $listfilek{$x}=~s/\B\//\$(CLBASE)\.$cvssrcdot/g;
-            $listfilek{$x}=~s/\//\./g;
-            $listfilek{$x}=~s/\-/\_/g;
-            $listfilek{$x}=~s/\B\$\(CLBASE\)\.cvssrc\./\[--\./g;
-            $listfilek{$x}="$listfilek{$x}]";
+    print "gendepfullname called\n";
+#    local ($x,$snd);
+    system "ls -Ra $absrelname/$cvssrc/$libname |grep ':'|grep -v CVS > subdir_list.tmp";
+    open (FILE04,"subdir_list.tmp") || die "cannot open file subdir_list.tmp";
+    while ($subdir = <FILE04>){           # for each subdirectory of a library dir...
+        chomp($subdir);
+        chop($subdir);
+        $subdir=~s/.*$libname/\/$libname/g;
+        system "ls  $absrelname/$cvssrc/$subdir |grep -v CVS > tmp03.tmp"; # grab a list of every file in subdir
+        open (BASELIST_FILE,"tmp03.tmp") || die "cannot open file tmp03.tmp";
+        while ($file = <BASELIST_FILE>){            # for each file in subdir, convert it's full name to VMS-friendly format
+            chomp($file);
+            $listfilek{$file}="$subdir";
+            $listfilek{$file}=~s/\B\//\$(CLBASE)\.$cvssrcdot/g;		# replace 
+            $listfilek{$file}=~s/\//\./g;   				# replace / with .
+            $listfilek{$file}=~s/\-/\_/g;				# replace - with _ if it exists
+            $listfilek{$file}=~s/\B\$\(CLBASE\)\.cvssrc\./\[--\./g;	# replace 
+            $listfilek{$file}="$listfilek{$file}]$file";
+#	    print "$listfilek{$file}\n";
         }
-        close (FILE03)|| die "can not close file tmp03.dat";
+        close (BASELIST_FILE)|| die "can not close file tmp03.tmp";
     }
-    system "rm tmp03.dat";
-    close (FILE04)|| die "can not close file tmp04.dat";
-    system "rm tmp04.dat";
+    system "rm tmp03.tmp";
+    close (FILE04)|| die "can not close file subdir_list.tmp";
+    system "rm subdir_list.tmp";
 }
 
 
