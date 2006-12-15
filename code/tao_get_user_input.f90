@@ -147,7 +147,7 @@ contains
 subroutine alias_translate (cmd_line, err)
 
 character(*) cmd_line
-character(100) string
+character(100) string, old_cmd_line
 
 integer ic, i, j
 logical err
@@ -155,6 +155,7 @@ logical err
 !
 
 call string_trim (cmd_line, cmd_line, ic)
+old_cmd_line = cmd_line ! Save old command line for the command history.
 
 do i = 1, tao_com%n_alias
 
@@ -179,6 +180,7 @@ do i = 1, tao_com%n_alias
   cmd_line = trim(cmd_line) // ' ' // string
 
   write (*, '(2a)') 'Alias: ', trim (cmd_line)
+  cmd_line = trim(cmd_line) // "  ! " // trim(old_cmd_line)  
   return
 
 enddo

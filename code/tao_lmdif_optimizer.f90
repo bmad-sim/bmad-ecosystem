@@ -123,7 +123,8 @@ if (merit > merit_at_min) then
   call out_io (s_blank$, r_name, 'Setting to minimum.')
   call tao_set_vars (var_at_min)
   merit = tao_merit()
-  write (line, '(i5, es14.4, es10.2)') i, merit
+  write (line, '(i5, es14.4, es10.2)') i+1, merit
+  call out_io (s_blank$, r_name, line)
 endif
 
 s%global%optimizer_running = .false.

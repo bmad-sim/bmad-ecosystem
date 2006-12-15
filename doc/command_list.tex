@@ -119,7 +119,7 @@ in it.  \tao first looks in the current directory for the file. If not
 found \tao will look in the directory pointed to by the
 \vn{TAO_COMMAND_DIR} directory.  Up to 9 arguments may be passed to
 the command file. The i\Th argument is substituted in place of the
-string ``[i]'' in the file. Nesting of command files (command files
+string ``[[i]]'' in the file. Nesting of command files (command files
 calling other command files) is allowed. There is no limit to the
 number of nestings, however, only one argument list is allowed. This
 argument list is specified by the call to the first command file. Any
@@ -129,7 +129,7 @@ Do loops are allowed with the following syntax:
 \begin{example}
   do <var> <begin> <end> <step> 
     ...
-    tao command [<var>]
+    tao command [[<var>]]
     ...
   enddo
 \end{example}
