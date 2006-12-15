@@ -87,8 +87,15 @@ if (tao_com%cmd_file_level /= 0) then
     tao_com%cmd_from_cmd_file = .true.
     call string_trim (cmd_line, cmd_line, ix)
 
+    ! nothing more to do if an alias definition
+
+    if (cmd_line(1:5) == 'alias') then
+      write (*, '(3a)') trim(prompt_string), ': ', trim(cmd_line)
+      return
+    endif
+
     ! replace argument variables
-    if (cmd_line(1:5) == 'alias') return
+
     do i = 1, 9
       ix = index (cmd_line, sub_str(i))
       if (ix /= 0) cmd_line = cmd_line(1:ix-1) // trim(tao_com%cmd_arg(i)) // &

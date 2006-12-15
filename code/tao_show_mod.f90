@@ -919,6 +919,8 @@ case ('plot')
     nl=nl+1; write (lines(nl), amt) 'type                 = ', g%type
     nl=nl+1; write (lines(nl), amt) 'title                = ', g%title
     nl=nl+1; write (lines(nl), amt) 'title_suffix         = ', g%title_suffix
+    nl=nl+1; write (lines(nl), '(a, 4f10.2, 2x, a)') &
+                                    'margin               = ', g%margin
     nl=nl+1; write (lines(nl), imt) 'box                  = ', g%box
     nl=nl+1; write (lines(nl), imt) 'ix_universe          = ', g%ix_universe
     nl=nl+1; write (lines(nl), imt) 'box                  = ', g%box
