@@ -254,6 +254,7 @@ sc_sk_Q01e[tilt] = -q00_tilt - pi/4
 sc_sk_Q02e[tilt] = -q00_tilt - pi/4
 
 ! scs ks of 2.93 corresponds to 163 A
+! 2**16 * 163./200. = 53412 CU
 !scs03: overlay = {scs03w,scs03e}, ks=   2.9309935785520919E-01
 scs03w[ks] = 2.9309935785520919E-01
 scs03e[ks] = 2.9309935785520919E-01
@@ -567,3 +568,27 @@ RAW_XQUNEING_4  : GROUP = {SEX_08W/ 0.006294,SEX_08E/-0.004111, &
         SEX_45W/-0.018429,SEX_45E/ 0.006439,SEX_47W/-0.007151, &
         SEX_47E/ 0.016336}, K2, &
          Type = "CSR XQUNEING   4"
+
+!  Call, file = /a/lnx209/nfs/cesr/user/mjf7/des/knobs/betasing/bs1/bmad.
+RAW_BETASING_1  : GROUP = {Q03W/-0.020429,Q04W/ 0.001527,Q05W/ 0.004854, &
+        Q06W/ 0.003301,Q07W/ 0.000867,Q08W/-0.001845,Q09W/ 0.009576, &
+        Q10W/-0.002375,Q03E/-0.020804,Q04E/ 0.000382,Q05E/ 0.002366, &
+        Q06E/ 0.001514,Q07E/-0.000690,Q08E/ 0.002381,Q09E/ 0.004206, &
+        Q10E/-0.002263}, K1, &
+         Type = "CSR BETASING   1"
+
+!  Call, file = /a/lnx209/nfs/cesr/user/mjf7/des/knobs/betasing/bs2/bmad.
+RAW_BETASING_2  : GROUP = {Q03W/ 0.036482,Q04W/ 0.031189,Q05W/-0.001811, &
+        Q06W/-0.108683,Q07W/ 0.049783,Q08W/ 0.043903,Q09W/-0.010149, &
+        Q10W/-0.020865,Q03E/ 0.042705,Q04E/ 0.040546,Q05E/-0.018069, &
+        Q06E/-0.089113,Q07E/ 0.082627,Q08E/ 0.022058,Q09E/-0.016346, &
+        Q10E/-0.006015}, K1, &
+         Type = "CSR BETASING   2"
+
+!  Call, file = /a/lnx209/nfs/cesr/user/mjf7/des/knobs/betasing/bs3/bmad.
+RAW_BETASING_3  : GROUP = {Q03W/-0.022555,Q04W/ 0.016552,Q05W/ 0.044257, &
+        Q06W/-0.000555,Q07W/-0.010169,Q08W/ 0.007735,Q09W/-0.005967, &
+        Q10W/-0.004003,Q03E/ 0.046131,Q04E/-0.021686,Q05E/-0.021291, &
+        Q06E/ 0.011348,Q07E/-0.038406,Q08E/ 0.006897,Q09E/-0.000329, &
+        Q10E/ 0.003705}, K1, &
+         Type = "CSR BETASING   3"
