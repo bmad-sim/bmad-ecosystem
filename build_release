@@ -59,6 +59,10 @@
 # $Id$
 #
 # $Log$
+# Revision 1.10  2006/12/20 14:10:29  cesrulib
+# For VMS builds, script will wait until OSF build completes, then copy over
+# the necessary dependency descriptor files prior to conversion to VMS format.
+#
 # Revision 1.9  2006/12/14 20:05:15  cesrulib
 # Source the cesrenv script instead of duplicate cesrenv2 for consistency.
 #
@@ -150,10 +154,13 @@ CESRF90=${CESR_F90}
 DO_REL=0
 DO_PKG=0
 VMS_PREP=0
+DEP_ONLY=0 
 DO_DUMP=0
 GMAKE_OVERRIDE=0
 UTIL_OVERRIDE=0
 use_cesr_bin=/home/cesrulib/bin
+
+module_list="c_utils cesr_utils recipes_f-90_LEPP dcslib CesrBPM bmad bmadz odysseus toad tao bsim MPMnet nonlin_bpm BeamInstSupport"
 
 TEST_EXEC=0
 
@@ -180,6 +187,7 @@ do arg_list="${arg_list} ${i}";
      "-cesr"    ) DO_REL=1  ;;
      "-pkg"     ) DO_PKG=1  ;;
      "-vms_prep") VMS_PREP=1;;
+     "-dep_only") DEP_ONLY=1;;
      "-dump"    ) DO_DUMP=1 ;;
      "-test"    ) TEST_EXEC=1;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
@@ -380,6 +388,7 @@ if ( [ $DO_PKG -eq 1 ] ) then
     fi
 fi
 
+
 ##########################
 # Build the CESR RELEASE #
 ##########################
@@ -387,7 +396,22 @@ build_rel_status=0
 test_rel_status=${build_pkg_status}
 if ( [ $DO_REL -eq 1 ] ) then
     if ( [ $VMS_PREP -eq 1 ] ) then
-        echo ""
+        echo "Waiting for OSF1 build to complete so dependencies can be copied."
+	OSF_done=`grep "BUILD_STATUS:" ${BUILD_DIR}/log/OSF1_alpha_hp/${REL_NAME}.build_status | tail -1l | cut -d: -f2`
+	echo "OSF_done = ${OSF_done}"        # Since OSF and VMS 'builds' are concurrent, wait for the OSF build to complete,
+	while ( [ $OSF_done -ne 0 ] ); do    # thus generating the dependencies, then continue with copying of dependency descriptors
+	       sleep 10
+	       OSF_done=`grep "BUILD_STATUS:" ${BUILD_DIR}/log/OSF1_alpha_hp/${REL_NAME}.build_status | tail -1l | cut -d: -f2`
+	done
+	for module in $module_list;          # copy the dependency descriptor files for each module from OSF1 build
+	do
+	  echo "Module is : ${module}"
+	  pwd
+	  cd ${CESR_REL}/../../VMS_alpha/${REL_NAME}/cvssrc/${module}
+	  cp -R ${CESR_REL}/cvssrc/${module}/.depend .
+	  cp ${CESR_REL}/cvssrc/${module}/.f90_module_rules .
+	done  
+	echo "Done generating dependencies."
         echo "`date`: Preparing release for VMS..."
         ${GMAKE} -f ${BIN_DIR}/M.release REL_NAME=${REL_NAME} to_vms_alpha_rel;
         echo ""
@@ -415,7 +439,7 @@ if ( [ $DO_REL -eq 1 ] ) then
     fi
 
 #-------------------------------------------------
-#   Build and run test jobs using the new release  
+#   Build and run test jobs using the new release 
 #-------------------------------------------------
     test_rel_status=1
     if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 -a ${TEST_EXEC} -eq 1 ] ) then
