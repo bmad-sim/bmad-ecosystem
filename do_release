@@ -90,6 +90,10 @@
 # $Id$
 #
 # $Log$
+# Revision 1.36  2006/12/20 14:15:17  cesrulib
+# Mostly restored to the way it was prior to VMS dependency-generation
+# experimentation.
+#
 # Revision 1.35  2006/12/14 20:03:27  cesrulib
 # Revert last change.  build_release call cannot detatch from tty because
 # dependencies need to be tallied before the code tree is zipped up for
@@ -599,6 +603,7 @@ if ( [ $LNX -eq 1 ] ) then
     LIN_INTEL_T1=`date +%s`
     krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_INTEL_STAT 2>&1 &"&  
     echo "`date`:  Linux_intel build launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+    echo ""
             # does this ? grab the return value of 'date'?
     sleep 20          # attempt to eliminate KRB replay messages by spacing out
                       # executions in time.
@@ -609,6 +614,7 @@ if ( [ $LNX -eq 1 ] ) then
     LIN_LAHEY_T1=`date +%s`
     krsh -x $LNX_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $LINUX_LAHEY_STAT 2>&1 &"&  
     echo "`date`:  Linux_lahey build launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+    echo ""
     sleep 20
 fi
 
@@ -618,8 +624,9 @@ if ( [ $OSF -eq 1 ] ) then
     echo "BUILD_STATUS:  -2" > ${OSF_HP_STAT}
     LOCAL_BUILD_ARGS="${BUILD_ARGS}"
     OSF_ALPHA_T1=`date +%s`
-    krsh -x $OSF_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $OSF_HP_STAT 2>&1 &"&  
+    krsh -x $OSF_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $OSF_HP_STAT 2>&1 &"& # detatch
     echo "`date`:  OSF_hp build launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+    echo ""
     sleep 20
 fi
 
@@ -629,8 +636,9 @@ if ( [ $VMS -eq 1 ] ) then
     echo "BUILD_STATUS:  -2" > ${VMS_PREP_STAT}
     LOCAL_BUILD_ARGS="-vms_prep ${BUILD_ARGS}"
     VMS_ALPHA_T1=`date +%s`
-    krsh -x $VMS_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $VMS_PREP_STAT 2>&1"  # don't detatch so deps
-    echo "`date`:  VMS preparation job launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog    # are calc'd BEFORE zipping
+    krsh -x $VMS_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $VMS_PREP_STAT 2>&1"& 
+    echo "`date`:  VMS preparation job launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog   
+    echo ""
     ${use_cesr_bin}/util/cesr_to_vms ${FULL_REL_NAME}
     sleep 10
 fi
