@@ -33,8 +33,9 @@ if ($libname eq "recipes_f-90_LEPP"){$libname="recipes_f_90_LEPP"}
 
 else
    {}
-$lib_depfile=">$libname.depvms";
-open (DEPFILE,"$lib_depfile")|| die "can not open file $lib_depfile";
+   
+$lib_depfile="$libname.depvms";
+open (DEPFILE,">","$lib_depfile")|| die "Cannot open file $lib_depfile";
 
 #system "ls -Ra $absrelname/$cvssrc/$libname | grep  '\.depend:' >> dependir.tmp";
 #open (FILE01, 'dependir.tmp' )|| die "can't open file:dirdepen.tmp";
