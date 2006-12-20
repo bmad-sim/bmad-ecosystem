@@ -114,7 +114,7 @@ sub convertP {local($varP,$i,@smlist,@prereqs);
       if ($varP !~ /\// && $varP !~ /\$/ && $varP !~ /\.m/  && $varP !~ /\.o/ && $varP !~ /\.d/ ){
 #          print "varP  =  $varP\n";
 #	  print "listfilek{varP}  =  $listfilek{$varP}\n";
-          print DEPFILE "$listfilek{$varP}$varP";
+	  print DEPFILE "$listfilek{$varP}";	  
           next;
       }
     $varP=~ s/\.mod/\.f90\$\$mod/;
