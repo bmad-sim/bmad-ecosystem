@@ -98,8 +98,10 @@ subroutine tao_init (init_file)
 ! make sure two variables do not vary the same attribute
 
   do i = 1, size(s%var)
+    if (.not. allocated(s%var(i)%this)) cycle
     do j = 1, size(s%var(i)%this)
       do i2 = i, size(s%var)
+        if (.not. allocated(s%var(i2)%this)) cycle
         do j2 = 1, size(s%var(i2)%this)
           if (i == i2 .and. j == j2) cycle
           if (associated (s%var(i)%this(j)%model_ptr, &
