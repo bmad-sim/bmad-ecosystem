@@ -64,7 +64,7 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
   energy = ring%ele_(rays(1)%ix_source)%value(beam_energy$)
 
 
-  ! 14.1e3 [m (eV)^-3] is  Cgamma * 1e9 / (2 pi) 
+  ! 14.1e3 [m (eV)^-3] (used below) is  Cgamma * 1e9 / (2 pi) 
   !    Cgamma is from Sands (p98) which is 8.85e-5 m (GeV)^-3 
   !    for electrons.  Not valid for protons, etc!!!
   factor = 14.1e3 * gen%i_beam * (energy/1e9)**4
@@ -72,6 +72,8 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
 
     ! sum up the power radiated by the element:
     ! above factor * delta S * avg(gbend^2)
+    ! which is an integrated segment of Sands eq. 4.5
+    ! * the current to get the power
     power%radiated = power%radiated + factor * &
                    (rays(i)%start%vec(5) - rays(i-1)%start%vec(5)) * &
                    (rays(i)%g_bend**2 + rays(i-1)%g_bend**2) / 2
@@ -86,11 +88,13 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
   do i = 1, i_ray
     iw = rays(i)%ix_wall_pt
     
+
+    ! should update to include energy and dispersion component!!!
     ! sig_y is the sqrt of the vert emitt * vert beta
     sig_y = sqrt(gen%epsilon_y * rays(i)%y_twiss%beta)
 
-    ! sig_yprime is the sqrt of the vert emitt / vert beta
-    sig_yp = sqrt(gen%epsilon_y / rays(i)%y_twiss%beta)
+    ! sig_yprime is the sqrt of the vert emitt * vert gamma
+    sig_yp = sqrt(gen%epsilon_y * rays(i)%y_twiss%gamma)
 
     ! the effective sig_y includes the increase from sig_yp
     sig_y_eff = sqrt(sig_y**2 + (rays(i)%track_len * sig_yp)**2)
@@ -167,6 +171,8 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
       if (wall%side == outside$ .and. theta_rel*rays(i)%direction < 0) cycle
       if (wall%side == inside$ .and. theta_rel*rays(i)%direction > 0) cycle
 !      if (rr < 0 .or. rr > 1) cycle  ! not in fan
+      if (rr < 0) rr = 0
+      if (rr > 1) rr = 1
 
       type0 = wall%pt(ip-1)%type
       type1 = wall%pt(ip)%type
@@ -220,6 +226,16 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
             abs(sin(theta_rel)) * frac_illum * &
             ((1 - rr)*rays(i-1)%p2_factor + rr*rays(i)%p2_factor) / track_len
       ep%power = ep%power + dpower * wall%seg(is)%len
+
+      ! from Sands and Chao/Tigner p188
+      ! Flux is 3.248 * Power / critical photon energy 
+      ! 3.248 is 15*sqrt(3)/8
+      ep%photons_per_sec = ep%photons_per_sec + &
+            3.248 * (dpower * wall%seg(is)%len) / &
+            (2.218 * (energy/1e9)**3 * &
+            ( (1 - rr) * rays(i)%g_bend + rr * rays(i-1)%g_bend) &
+            * 1.602e-16 ) ! Convert keV to Joules 
+
       ep%n_source = ep%n_source + 1
 
       if (associated(ep%rays)) then

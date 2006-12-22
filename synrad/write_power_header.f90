@@ -21,8 +21,8 @@ subroutine write_power_header (iu, file, gen_params)
   write (iu, *) 'Epsilon_y =', gen_params%epsilon_y, ' ! Vertical emittance'
 
   write (iu, '(3(/,2x,a))') &
-'          Segment                                  |        Source', &
-'Ix Name         S_seg X_seg  P/len   P/Area  P_tot | N E/P  Name           S',&
-'                 (m)   (m)   (W/m)  (kW/m^2)   (W) |                      (m)'
+'          Segment                                  ', &
+'Ix Name           S_seg    X_seg     P/len      P/Area     P_tot     Phot/sec',&
+'                   (m)      (m)      (W/m)     (W/mm^2)      (W)      (1/s)'
 
 end subroutine

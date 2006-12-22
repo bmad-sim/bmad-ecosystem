@@ -35,6 +35,7 @@ module sr_struct
     real(rp) power               ! total power on segment (Watts)
     real(rp) power_per_len       ! power density (Watts / m)
     real(rp) power_per_area      ! power density (Watts / m^2)
+    real(rp) photons_per_sec     ! flux hitting segment in photons per sec
     integer ix_ele_source    ! element index for the largest source
     real(rp) s_source            ! s position of the largest source
     integer n_source         ! number of source points
