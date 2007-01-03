@@ -70,6 +70,11 @@
 #                               to build against.  Expects FULL path.
 #           BIN=<bin_dir>       Specify a custom CESR_BIN directory
 #                               Expects FULL path.
+#           BRANCH=<branch name> Specify the name of a branch from which
+#                               to draw modules from in order to build
+#                               a release.  Required modules not present 
+#                               in the branch will be automatically taken
+#                               from the trunk of the repository.
 #
 # examples: do_release -cesr PKG=packages_2003_0728_d DBL 
 #           do_release -cesr -build_only cesr_yyyy_mmdd_d DBL
@@ -90,6 +95,14 @@
 # $Id$
 #
 # $Log$
+# Revision 1.37  2007/01/03 20:29:47  cesrulib
+# Finishing tweaks to get VMS preparation tasks to complete correctly.
+#
+# Modifications added to allow a release to be built using code from a branch.
+# Code from the branch (the name of which is specified on the command line)
+# replaces congruent code from the mainline and then a release is built with the
+# resultant.
+#
 # Revision 1.36  2006/12/20 14:15:17  cesrulib
 # Mostly restored to the way it was prior to VMS dependency-generation
 # experimentation.
@@ -205,6 +218,8 @@ myprint_help () {
     echo "   -curr               Run a CURRENT build, rotate release and apply special CVS tag."
     echo "   -test               Run test jobs on all binary build products. Summarize results."
     echo ""
+    echo "   -BRANCH=<br name>   Build a release using modules taken from a specific CESR development branch."
+    echo ""
     echo "Variable definitions:"
     echo "   REL=<release_name>  Specify a custom CESR release name"
     echo "   PKG=<packages_name> Specify a custom packages release name"
@@ -228,7 +243,6 @@ seconds_to_HMS () {
 # Function to generate unique release names
 get_release_name () {
     FULL_RNAME=${BUILD_DIR}/${BASE_TAG}/${RNAME}
-
 
 #   Determine whether an index tag is needed to 
 #   insure a unique release name
@@ -283,6 +297,7 @@ DO_TAG_PACKAGES=0
 CVS_TAGNAME=""
 REL=""
 PKG=""
+BRANCH="TRUNK"
 
 GMAKE_OVERRIDE=0
 UTIL_OVERRIDE=0
@@ -354,6 +369,7 @@ do arg_list="${arg_list} ${i}";
      UTIL=*     )use_cesr_util=`echo $i|cut -d= -f2`;
                  UTIL_OVERRIDE=1;;
      BIN=*      )use_cesr_bin=`echo $i|cut -d= -f2`;;
+     BRANCH=*   )BRANCH=`echo $i|cut -d= -f2`;;
      *          ) myprint_help;
      exit 1;;
    esac
@@ -393,13 +409,25 @@ CESR_PREC="_${PREC}"
 if ( [ $DO_REL -eq 1 -a $DO_CHECKOUT = "do_checkout" ] ) then
     RNAME="${REL_TAG}_${DATE_TAG}_${PREC_TAG}"
     get_release_name
-    REL_NAME=${RNAME}
-    FULL_REL_NAME=${FULL_RNAME}
-    FULL_REL_LOG=${FULL_RLOG}
+    if ( [ ${BRANCH} != "TRUNK" ] ) then
+      REL_NAME="${RNAME}-${BRANCH}"
+      FULL_REL_NAME="${FULL_RNAME}-${BRANCH}"
+      FULL_REL_LOG="${FULL_RLOG}-${BRANCH}"
+    else
+      REL_NAME=${RNAME}
+      FULL_REL_NAME=${FULL_RNAME}
+      FULL_REL_LOG=${FULL_RLOG}
+    fi
 elif ( [ -n "${REL}" ] ) then
-    REL_NAME=${REL}
-    FULL_REL_NAME=${BUILD_DIR}/${BASE_TAG}/${REL_NAME}
-    FULL_REL_LOG=${BUILD_DIR}/log/${BASE_TAG}/${REL}.log
+    if ( [ ${BRANCH} != "TRUNK" ] ) then
+      REL_NAME=${REL}-${BRANCH}
+      FULL_REL_NAME="${FULL_REL_NAME}-${BRANCH}"
+      FULL_REL_LOG=${BUILD_DIR}/log/${BASE_TAG}/${REL}-${BRANCH}.log
+    else
+      REL_NAME=${REL}
+      FULL_REL_NAME=${BUILD_DIR}/${BASE_TAG}/${REL_NAME}
+      FULL_REL_LOG=${BUILD_DIR}/log/${BASE_TAG}/${REL}.log    
+    fi
 else
     REL_NAME=""
 fi		
@@ -480,6 +508,7 @@ if ( [ $DO_DUMP -eq 1 ] ) then
     echo "DO_REL            = ${DO_REL}" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
     echo "DO_PKG            = ${DO_PKG}" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
     echo "DO_CHECKOUT       = ${DO_CHECKOUT}" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+    echo "BRANCH            = ${BRANCH}" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
     echo "PLATFORM_TAG      = ${PLATFORM_TAG}" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
     echo "" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
     echo "CESR_GMAKE        = ${CESR_GMAKE}" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
@@ -536,11 +565,16 @@ fi
 #####################################################################
 # Checkout the CESR RELEASE 
 #####################################################################
+echo "Branch name is: ${BRANCH}"
 co_rel_status=0
 if ( [ $DO_REL -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out CESR release..." | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
-#    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" > ${FULL_REL_LOG} 2>&1
-    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" >> ${BUILD_DIR}/log/${REL_IDENT}.genlog 2>&1
+    if ( [ ${BRANCH} != "TRUNK" ] ) then
+      branch_arg="BRANCH=${BRANCH}"
+    else
+      branch_arg=""
+    fi
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" ${branch_arg} >> ${BUILD_DIR}/log/${REL_IDENT}.genlog 2>&1
     co_rel_status=$?
 fi
 
@@ -587,12 +621,19 @@ fi
 # Pass along BIN directory path to build_release calls
 BUILD_ARGS="${BUILD_ARGS} BIN=${BIN_DIR}"
 
+# If a development branch was specified for this build, pass
+# along that paramter to the build initiations
+if ( [ $BRANCH != "TRUNK" ] ) then
+  BUILD_ARGS="${BUILD_ARGS} BRANCH=${BRANCH}"
+fi
+
 # Add release and package specifications
 BUILD_ARGS="${BUILD_ARGS} REL=${REL_NAME} PKG=${PKG_NAME} DBL"
 
 
 # Build Linux releases
 echo "" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+echo "_______________________________________________" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
 echo "`date`:  Launching builds..." | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
 if ( [ $LNX -eq 1 ] ) then
     
@@ -624,7 +665,7 @@ if ( [ $OSF -eq 1 ] ) then
     echo "BUILD_STATUS:  -2" > ${OSF_HP_STAT}
     LOCAL_BUILD_ARGS="${BUILD_ARGS}"
     OSF_ALPHA_T1=`date +%s`
-    krsh -x $OSF_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $OSF_HP_STAT 2>&1 &"& # detatch
+    krsh -x $OSF_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $OSF_HP_STAT 2>&1 &"&
     echo "`date`:  OSF_hp build launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
     echo ""
     sleep 20
@@ -636,10 +677,10 @@ if ( [ $VMS -eq 1 ] ) then
     echo "BUILD_STATUS:  -2" > ${VMS_PREP_STAT}
     LOCAL_BUILD_ARGS="-vms_prep ${BUILD_ARGS}"
     VMS_ALPHA_T1=`date +%s`
-    krsh -x $VMS_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $VMS_PREP_STAT 2>&1"& 
+    krsh -x $VMS_HOST ". .bash_profile; ${use_cesr_bin}/build_release ${LOCAL_BUILD_ARGS} >> $VMS_PREP_STAT 2>&1"&
     echo "`date`:  VMS preparation job launched with status:  $?" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog   
     echo ""
-    ${use_cesr_bin}/util/cesr_to_vms ${FULL_REL_NAME}
+#    ${use_cesr_bin}/util/cesr_to_vms ${FULL_REL_NAME}
     sleep 10
 fi
 
@@ -653,6 +694,8 @@ if ( [ $WIN -eq 1 ] ) then
     sleep 20
 fi
 
+echo "`date`: Launch phase complete..." | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+echo "______________________________________________" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
 
 ###################################################
 # Loop and check build status on all platforms
@@ -794,6 +837,15 @@ while ( [ $loop -le $max_loops ] && [ $loop_done -eq 0 ] ); do
     loop=`expr ${loop} + 1`
 
 done
+
+#############################################################
+# If VMS build was requested, zip up source and generated 
+# dependency files after OSF build completes with prep work.
+#############################################################
+if ( [ $VMS -eq 1 ] ) then
+  ${use_cesr_bin}/util/cesr_to_vms ${FULL_REL_NAME}
+fi
+
 
 #------------------------
 # Print status summary
