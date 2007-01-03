@@ -36,31 +36,16 @@ else
    
 $lib_depfile="$libname.depvms";
 open (DEPFILE,">","$lib_depfile")|| die "Cannot open file $lib_depfile";
-
-#system "ls -Ra $absrelname/$cvssrc/$libname | grep  '\.depend:' >> dependir.tmp";
-#open (FILE01, 'dependir.tmp' )|| die "can't open file:dirdepen.tmp";
-
-#while ($x = <FILE01>){  # for each 
-#    chomp $x;
-#    chop $x;
-#    system "ls -Ra $x | grep  '\.d' >> depdircont.tmp";
     system "ls -Ra .depend | grep  '\.d' | grep -v ':' >> depdircont.tmp";
     open (FILE02, 'depdircont.tmp' )|| die "can't open file: depdircont.tmp";
     while ($y=<FILE02>){        # for every .d file in the .depend directory...
-#	print ".depend directory file : $y \n";
-#        filterf ("$x/$y");
 	filterf (".depend/$y");
     }
     if ($libname ne "c_utils"){
-#        filterf ("$absrelname/$cvssrc/$libname/.f90_module_rules");
 	filterf ("./.f90_module_rules");
     }
     close(FILE02) || die "couldn't close file:dirdepcont.tmp";
     system "rm depdircont.tmp";
-#}
-
-#close(FILE01) || die "couldn't close file: dependir.tmp";
-#system "rm depdir.tmp";
 
 close(DEPFILE) || die "couldn't close file: $lib_depfile";
 
@@ -112,8 +97,6 @@ sub convertP {local($varP,$i,@smlist,@prereqs);
   @prereqs=@_; 
   foreach $varP (@prereqs){
       if ($varP !~ /\// && $varP !~ /\$/ && $varP !~ /\.m/  && $varP !~ /\.o/ && $varP !~ /\.d/ ){
-#          print "varP  =  $varP\n";
-#	  print "listfilek{varP}  =  $listfilek{$varP}\n";
 	  print DEPFILE "$listfilek{$varP}";	  
           next;
       }
@@ -269,7 +252,6 @@ sub gendepfullname {
             $listfilek{$file}=~s/\-/\_/g;				# replace - with _ if it exists
             $listfilek{$file}=~s/\B\$\(CLBASE\)\.cvssrc\./\[--\./g;	# replace 
             $listfilek{$file}="$listfilek{$file}]$file";
-#	    print "$listfilek{$file}\n";
         }
         close (BASELIST_FILE)|| die "can not close file tmp03.tmp";
     }
