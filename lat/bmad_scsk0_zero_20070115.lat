@@ -2,7 +2,7 @@
 ! Turn off sc_sk_q01, do 3 pair comp with sols, sc_sk_q02 and sk_q02
 !
 !+
-! Mon Jan 15 16:28:44 2007 => Documented by latdoc.
+! Mon Jan 15 16:58:21 2007 => Documented by latdoc.
 ! Beam energy is 1.885 GeV
 ! 	Qx	Qy	Fx	Fy	Emitt(nm rad)
 ! e+	10.52	9.58	202.8	225.0	131.2	
@@ -44,7 +44,7 @@
 ! Chrom x:99.00  y:99.00    Tonality x:0.05  y:0.40
 !-
 
- lattice := 12WIG_20050626A
+ lattice := SCSK0_ZERO_20070115
  beam, energy =   1.885
 
  call, file = BMAD_LAYOUT:layout_antisol_2006_02_23.bmad
@@ -56,7 +56,7 @@
  solenoid_tesla = 1.0
  ks_solenoid    = -1.0e-9 * clight * solenoid_tesla / beam[energy]
  cleo_sol: solenoid, l = 3.51, ks = ks_solenoid, superimpose
- SCS03 : overlay = {SCS03W, SCS03E}, ks =   1.7889653357637963E-01
+
 
  wig_w[b_max] = 0.0
  wig_e[b_max] = 0.0
@@ -273,6 +273,9 @@
  Sc_sK_q01 : overlay = {sc_SK_q01W, sc_SK_q01E}, K1 = 0.
  !sc_SK_q01W[K1]:= -1.83153E-01
  !sc_SK_q01E[K1]:= -1.83153E-01
+
+! scs ks of 0.1783984263264027 corresponds to 99.5 A at 1.885GeV
+ SCS03 : overlay = {SCS03W, SCS03E}, ks =   0.1783984263264027    
 
  fact = 1.
 
@@ -939,13 +942,8 @@ RAW_BETASING_5  : GROUP = {Q03W/-0.030995,Q03E/ 0.036851,Q04W/ 0.006944, &
         Q04E/-0.014832,Q05W/ 0.044091,Q05E/-0.034585}, K1, &
          Type = "CSR BETASING   5"
 
- ! Vars not in original file
-
-SC_SK_Q02[K1] =   1.4074636338865940E-01
-SK_Q02[K1] =   3.6915172906244263E-02
  
  ! Vars not in original file
  
-SCS03[KS] =   0.1783984263264027    
 SC_SK_Q02[K1] =   0.1407633070193217    
 SK_Q02[K1] =   0.3706755107659407E-01
