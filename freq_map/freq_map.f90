@@ -19,8 +19,11 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/22 22:54:12  dlr
+! use scan params and add inputs
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -29,13 +32,13 @@
 
   program freq_map
 
-  use bmad_struct
-  use bmad_interface
-!  use bmadz_interface
-!  use cesr_utils
+  use bmad
+!  use bmad_interface
+  use bmadz_interface
+  use bsim_interface
   use nr
-!  use bmad
   use nrutil, only: dpc
+  use scan_parameters
 
   implicit none
 
@@ -43,10 +46,11 @@
   type (coord_struct), allocatable :: co_(:), orb_(:), data_(:)
   type (coord_struct) start_coord, orb
   type (modes_struct) mode
+  type (scan_params_struct) scan_params
 
   integer i, j, k, isign, r, s, g
   integer ix
-  integer n_turn, particle, i_train, j_car, n_trains_tot, n_cars, n_part
+  integer n_turn, particle, i_train, j_car, n_trains_tot, n_cars, n_part, slices
   integer ios
   integer i_x, i_y, i_z
   integer n_x, n_y, n_z
@@ -55,6 +59,8 @@
   real(rdef) eps_rel(4), eps_abs(4)
   real(rdef), allocatable :: tune(:,:,:)
   real(rdef) Qx, Qy, Qz, current, Q, d, b, c, A
+  real(rdef) sig_in(3) !sigx, sigy, sigz, initial distribution
+  real(rdef) coupling_sb, coupling_wb
   real(rdef) x0, y0, e0, x1, y1, e1, dx, dy, de
   real(rp) fft1(4096), ft1a(4096), ft1b(4096), fft2(4096), ft2a(4096),  ft2b(4096)
   real(rp) fft3(4096), ft3a(4096), ft3b(4096), fft4(4096), ft4a(4096),  ft4b(4096)
@@ -72,14 +78,15 @@
 
   logical keep_trying/.true./
   logical write_orbit/.false./                                        
-  logical beambeam_ip, close_pretz, close_vert, lrbbi, go
+  logical beambeam_ip, close_pretz, close_vert, lrbbi, rec_taylor, radiation,  go
   logical ok
 
   namelist / parameters /lat_file, Qx, Qy, Qz, &
                          x0, y0, e0, x1, y1, e1, dx, dy, de, &
                 n_turn, particle, &
                 i_train, j_car, n_trains_tot, n_cars, current, &
-                lrbbi, beambeam_ip, close_pretz, close_vert, go
+                lrbbi, rec_taylor, beambeam_ip, close_pretz, close_vert, &
+                slices, radiation, sig_in, coupling_sb, go
 
 !
   do   !read file with input parameters
@@ -106,7 +113,25 @@
   close_pretz = .false.
   close_vert = .false.
   read(1, nml = parameters)
-
+  
+  scan_params%Q_z    =        Qz 
+  scan_params%lat_file =      lat_file 
+  scan_params%n_turn =        n_turn 
+  scan_params%particle =      particle
+  scan_params%i_train =       i_train 
+  scan_params%j_car =         j_car 
+  scan_params%n_trains_tot =  n_trains_tot 
+  scan_params%n_cars =        n_cars 
+  scan_params%current =       current
+  scan_params%lrbbi =         lrbbi
+  scan_params%beambeam_ip =   beambeam_ip 
+  scan_params%close_pretz =   close_pretz
+  scan_params%close_vert =    close_vert 
+  scan_params%slices =        slices 
+  scan_params%rec_taylor =    rec_taylor
+ ! scan_params%radiation  =    radiation
+  scan_params%sig_in     =    sig_in
+  scan_params%coupling_sb = coupling_sb
 
    type *, ' lat_file = ', lat_file
 
@@ -164,7 +189,7 @@
 
   if(lrbbi)then
    ring_in = ring
-   call lrbbi_setup ( ring_in, ring, particle, i_train, j_car, n_trains_tot, n_cars, current)
+   call lrbbi_setup ( ring_in, ring, particle, i_train, j_car, n_trains_tot, n_cars, current, rec_taylor)
   endif
    
   call twiss_at_start(ring)
@@ -177,7 +202,7 @@
   type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
   
   ring%z%tune = Qz * twopi
-  if(beambeam_ip)call beambeam_setup(ring, particle, current)
+  if(beambeam_ip)call beambeam_setup(ring, particle, current, scan_params, slices)
 
   call twiss_at_start(ring)
   co_(0)%vec = 0.
