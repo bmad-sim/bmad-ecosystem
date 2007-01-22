@@ -19,8 +19,11 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/22 22:53:18  dlr
+! compute closed orbit
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -31,7 +34,7 @@
 
 !  set fractional tunes to Q_x, Q_y
 
-  use bmad_struct
+  use bmad
   use bmadz_interface
   use bsim_interface
 
@@ -46,8 +49,10 @@
 
   logical ok
 
-       allocate(orb_(0:ring%n_ele_max))       
+       call reallocate_coord(orb_, ring%n_ele_max)       
        allocate(dk1(ring%n_ele_max))
+       call closed_orbit_at_start(ring, orb_(0), 4, .true.)
+       call track_all(ring, orb_)
 
        call choose_quads(ring, dk1)
        int_Q_x = int(ring%ele_(ring%n_ele_ring)%x%phi / twopi)
