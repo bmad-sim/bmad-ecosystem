@@ -758,6 +758,7 @@ type (coord_struct) orb(0:)
 
 type (ele_struct), save :: extract_ele
 type (coord_struct) pos
+type (spin_polar_struct) :: polar
 
 character(20) :: r_name = "inject_particle"
 
@@ -765,6 +766,10 @@ character(20) :: r_name = "inject_particle"
 
 if (.not. u%coupling%coupled) then
   orb(0) = u%model%orb(0)
+  polar%theta = u%beam%beam_init%spin%theta
+  polar%phi = u%beam%beam_init%spin%phi
+
+  call polar_to_spinor (polar, orb(0))
 else
     
   if (.not. s%u(u%coupling%from_uni)%is_on) then

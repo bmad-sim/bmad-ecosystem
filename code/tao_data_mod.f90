@@ -386,6 +386,60 @@ case ('alpha.c')
     datum_value = 0.0
   endif
 
+case ('gamma.x')
+  if (track_type == "single") then
+    call load_it (lat%ele_(:)%x%gamma, ix0, ix1, datum_value, datum, lat)
+  elseif (track_type == "beam") then
+    datum_value = tao_lat%bunch_params(ix1)%x%gamma
+  elseif (track_type == "macro") then
+    datum_value = u%macro_beam%params%x%gamma
+  endif
+  
+case ('gamma.y')
+  if (track_type == "single") then
+    call load_it (lat%ele_(:)%y%gamma, ix0, ix1, datum_value, datum, lat)
+  elseif (track_type == "beam") then
+    datum_value = tao_lat%bunch_params(ix1)%y%gamma
+  elseif (track_type == "macro") then
+    datum_value = u%macro_beam%params%y%gamma
+  endif
+
+case ('gamma.z')
+  if (track_type == "single") then
+    datum_value = 0.0
+  elseif (track_type == "beam") then
+    datum_value = tao_lat%bunch_params(ix1)%z%gamma
+  elseif (track_type == "macro") then
+    datum_value = 0.0
+  endif
+
+case ('gamma.a')
+  if (track_type == "single") then
+    call load_it (lat%ele_(:)%x%gamma, ix0, ix1, datum_value, datum, lat)
+  elseif (track_type == "beam") then
+    datum_value = tao_lat%bunch_params(ix1)%a%gamma
+  elseif (track_type == "macro") then
+    datum_value = u%macro_beam%params%a%gamma
+  endif
+  
+case ('gamma.b')
+  if (track_type == "single") then
+    call load_it (lat%ele_(:)%y%gamma, ix0, ix1, datum_value, datum, lat)
+  elseif (track_type == "beam") then
+    datum_value = tao_lat%bunch_params(ix1)%b%gamma
+  elseif (track_type == "macro") then
+    datum_value = u%macro_beam%params%b%gamma
+  endif
+
+case ('gamma.c')
+  if (track_type == "single") then
+    datum_value = 0.0
+  elseif (track_type == "beam") then
+    datum_value = tao_lat%bunch_params(ix1)%c%gamma
+  elseif (track_type == "macro") then
+    datum_value = 0.0
+  endif
+
 case ('eta.x')
   if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%x%eta
@@ -1604,6 +1658,10 @@ real(rp) avg
   moment = (1 + ele%r(1,1)*ran_num(2)) * sum ((dist-avg)*(dist-avg), &
                  mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
           / count (beam%bunch(1)%particle%ix_lost == not_lost$)
+
+! moment = (ele%r(1,1)**2)*ran_num(2) + sum ((dist-avg)*(dist-avg), &
+!                mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
+!         / count (beam%bunch(1)%particle%ix_lost == not_lost$)
 
 end function tao_do_wire_scan
 

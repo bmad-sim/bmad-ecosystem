@@ -968,7 +968,10 @@ else
 endif
 
 do i = 1, size(d2%d1)
-  if (d1_name == '*') then
+  if (size(d2%d1) == 1) then
+    if (present(d1_ptr)) d1_ptr => d2%d1(i)
+    call find_this_data (d2%d1(i), d_name, this_err)
+  elseif (d1_name == '*') then
     call find_this_data (d2%d1(i), d_name, this_err)
     if (this_err) return
   elseif (d1_name == d2%d1(i)%name) then
