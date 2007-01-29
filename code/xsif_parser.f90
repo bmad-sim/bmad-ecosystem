@@ -361,8 +361,15 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
         endif
 
       case (mad_gkick)
-        call xsif_error ('GKICK NOT YET IMPLEMENTED FOR: ' // ele%name)
-        call err_exit
+        call add_ele (patch$)
+        ele%value(x_offset$) = pdata(dat_indx+1)
+        ele%value(x_pitch$)  = pdata(dat_indx+2)
+        ele%value(y_offset$) = pdata(dat_indx+3)
+        ele%value(y_pitch$)  = pdata(dat_indx+4)
+        ele%value(l$)        = pdata(dat_indx+5)
+        ele%value(de_offset$)= pdata(dat_indx+6)
+        ele%value(tilt$)     = pdata(dat_indx+7)
+        ele%value(z_offset$) = pdata(dat_indx+8)
 
       case (mad_arbit)
         call add_ele (custom$)
@@ -487,6 +494,16 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
     ele%x%etap  = pdata(dat_indx+7)
     ele%y%eta   = pdata(dat_indx+8)
     ele%y%etap  = pdata(dat_indx+9)
+    ele%x%eta_lab   = ele%x%eta  
+    ele%x%etap_lab  = ele%x%etap 
+    ele%y%eta_lab   = ele%y%eta  
+    ele%y%etap_lab  = ele%y%etap 
+    lat%beam_start%vec(1) =  pdata(dat_indx+10)
+    lat%beam_start%vec(2) =  pdata(dat_indx+11)
+    lat%beam_start%vec(3) =  pdata(dat_indx+12)
+    lat%beam_start%vec(4) =  pdata(dat_indx+13)
+    lat%beam_start%vec(5) =  pdata(dat_indx+14)
+    lat%beam_start%vec(6) =  pdata(dat_indx+15)
     ele%value(beam_energy$) = pdata(dat_indx+26) * 1e9
 
     if (ele%x%beta /= 0) ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
