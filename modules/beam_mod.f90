@@ -1223,6 +1223,66 @@ end subroutine init_spin_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! subroutine calc_bunch_params_slice (bunch, ele, params, plane, slice_center, slice_spread)
+!
+! Finds all bunch parameters for a slice through the beam distribution.
+!
+! Modules needed:
+!  use beam_mod
+!
+! Input:
+!   bunch        -- Bunch_struct
+!   ele          -- ele_struct: element to find parameters at
+!   plane        -- Integer: plane to slice through (x$, p_x$, & etc...)
+!   slice_center -- Real(rp): Center to take slice about
+!   slice_spread -- Real(rp): hard-wall spread in slice about center
+!
+! Output     
+!   params -- bunch_params_struct:
+! -
+
+subroutine calc_bunch_params_slice (bunch, ele, params, plane, slice_center, slice_spread)
+
+implicit none
+
+type (bunch_struct), intent(in) :: bunch
+type (beam_struct) :: beam
+type (ele_struct), intent(in) :: ele
+type (bunch_params_struct) params
+
+real(rp) slice_center, slice_spread
+
+integer plane
+integer i, n_part
+
+n_part = 0
+do i = 1, size(bunch%particle)
+  if (bunch%particle(i)%r%vec(plane) .le. slice_center + abs(slice_spread) .and. &
+      bunch%particle(i)%r%vec(plane) .ge. slice_center - slice_spread) &
+            n_part = n_part + 1
+enddo
+
+call reallocate_beam (beam, 1, n_part)
+
+beam%bunch(1)%charge = bunch%charge
+beam%bunch(1)%z_center = bunch%z_center
+n_part = 1
+do i = 1, size(bunch%particle)
+  if (bunch%particle(i)%r%vec(plane) .le. slice_center + abs(slice_spread) .and. &
+      bunch%particle(i)%r%vec(plane) .ge. slice_center - slice_spread) then
+            beam%bunch(1)%particle(n_part) = bunch%particle(i)
+            n_part = n_part + 1
+  endif
+enddo
+
+call calc_bunch_params (beam%bunch(1), ele, params)
+
+end subroutine calc_bunch_params_slice
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine calc_bunch_params (bunch, ele, params)
 !
 ! Finds all bunch parameters defined in bunch_params_struct, both normal-mode
@@ -1264,7 +1324,6 @@ implicit none
 type (bunch_struct), intent(in) :: bunch
 type (ele_struct), intent(in) :: ele
 type (bunch_params_struct) params
-type (particle_struct), allocatable, save :: a_mode(:)
 
 real(rp) exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
 real(rp) avg_energy, temp6(6)
@@ -1285,6 +1344,9 @@ logical err
 
 character(18) :: r_name = "calc_bunch_params"
   
+!TEST!!!!
+type (spin_polar_struct) polar, ave_polar
+
 s = 0.0
 
 s(1,2) =  1.0 
@@ -1560,28 +1622,36 @@ subroutine calc_spin_params ()
 
 implicit none
 
-type (spin_polar_struct) polar, ave_polar
+!type (spin_polar_struct) polar, ave_polar
 
-real(rp) angle
+real(rp) vec(3), ave_vec(3)
 
 ! polarization vector
 
 params%spin%theta = 0.0
 params%spin%phi   = 0.0
 
+ave_vec = 0.0
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%ix_lost .ne. not_lost$) cycle
-  call spinor_to_polar (bunch%particle(i)%r, polar)
-  params%spin%theta = params%spin%theta + polar%theta 
-  params%spin%phi = params%spin%phi + polar%phi
+  call spinor_to_vec (bunch%particle(i)%r, vec)
+  ave_vec = ave_vec + vec
+! params%spin%theta = params%spin%theta + polar%theta 
+! params%spin%phi = params%spin%phi + polar%phi
 enddo
 
-params%spin%theta = params%spin%theta / params%n_particle
-params%spin%phi = params%spin%phi / params%n_particle
-
+ave_vec = ave_vec / params%n_particle
+call vec_to_polar (ave_vec, ave_polar)
+params%spin%theta = ave_polar%theta
+params%spin%phi = ave_polar%phi
 ave_polar%xi = 0.0
-ave_polar%theta = params%spin%theta
-ave_polar%phi = params%spin%phi
+
+!params%spin%theta = params%spin%theta / params%n_particle
+!params%spin%phi = params%spin%phi / params%n_particle
+
+!ave_polar%xi = 0.0
+!ave_polar%theta = params%spin%theta
+!ave_polar%phi = params%spin%phi
   
 ! polarization
 

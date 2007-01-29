@@ -411,6 +411,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
     Omega = spin_omega_at (field, start, ele, param, s+ds/2)
     quaternion = (i_imaginary/2.0_rp)*&
         (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
+    ! normalizing the quaternion is slow, so only do if needed
 !   quaternion = normalized_quaternion (quaternion)
     dspin_dz = matmul(quaternion, start%spin)
     end%spin = start%spin + dspin_dz * (ds/2.0_rp)

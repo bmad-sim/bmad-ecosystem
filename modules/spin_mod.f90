@@ -520,8 +520,15 @@ integer key
 
   case (quadrupole$)
 
+    ! initial:
     omega1 = sqrt(abs(ele%value(k1$)))
-    u = omega1*ele%value(l$)
+!   u = omega1*ele%value(l$)
+
+    ! test
+!   omega1 = sign(1.0, ele%value(k1$)) * sqrt(abs(ele%value(k1$)))
+!   u = omega1*ele%value(l$)
+    u = sign(1.0, ele%value(k1$)) * omega1*ele%value(l$)
+
     xi = 1 + g_factor * &
           ((1+start%vec(6)) * ele%value(beam_energy$)) / m_particle
     
@@ -593,7 +600,7 @@ integer key
     ! This is a simple zeroeth order transfer matrix
     
     ! rotation angle
-    alpha = (1-g_factor)*ele%value(b_field$)*ele%value(l$) / (ele%value(p0c$)/c_light)
+    alpha = - (1-g_factor)*ele%value(b_field$)*ele%value(l$) / (ele%value(p0c$)/c_light)
     
     map => maps(solenoid$)
     

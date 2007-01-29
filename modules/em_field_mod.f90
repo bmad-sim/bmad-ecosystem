@@ -149,12 +149,12 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   type (wig_term_struct), pointer :: t
   type (em_field_struct), intent(out) :: field
 
-  real(rp) :: x, y, xx, yy, s, s_pos, f, dk(3,3)
+  real(rp) :: x, y, xx, yy, s, s_pos, f, dk(3,3), charge
   real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
   real(rp) :: cos_ang, sin_ang, s_rel, sgn_x, dc_x, dc_y
   real(rp) phase, gradient, dEz_dz, theta, phi, r, E_r, B_phi
 
-  integer i
+  integer i, sign_charge
 
   logical, optional :: calc_dfield
   logical offset, df_calc
@@ -172,6 +172,9 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
     call err_exit
   end select
 
+  charge = charge_of(param%particle)
+  sign_charge = sign(1.0, charge)
+  
 !----------------------------------------------------------------------------
 ! convert to local coords
 
@@ -285,8 +288,8 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   case (quadrupole$) 
 
     f = ele%value(p0c$) / c_light
-    field%b(1) = -y * ele%value(k1$) * f 
-    field%b(2) = -x * ele%value(k1$) * f 
+    field%b(1) = y * sign_charge * ele%value(k1$) * f 
+    field%b(2) = x * sign_charge * ele%value(k1$) * f 
 
     if (df_calc) then
       field%dB = 0
@@ -300,9 +303,9 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   case (sextupole$)
 
     f = ele%value(p0c$) / c_light
-    field%b(1) = x * y * ele%value(k2$) * f
+    field%b(1) = x * y * sign_charge * ele%value(k2$) * f
     field%b(2) = 1.0
-    field%b(2) = (1/2.0) * ele%value(k2$) * f * (x**2 - y**2)
+    field%b(2) = - (1/2.0) * sign_charge * ele%value(k2$) * f * (x**2 - y**2)
 
     if (df_calc) then
       print *, 'ERROR IN EM_FIELD: dFIELD NOT YET IMPLEMENTED FOR SEXTUPOLE!'
@@ -315,9 +318,9 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   case (sol_quad$)
 
     f = ele%value(p0c$) / c_light
-    field%b(1) = y * ele%value(k1$) * f 
-    field%b(2) = x * ele%value(k1$) * f 
-    field%b(3) = ele%value(ks$) * f
+    field%b(1) = y * sign_charge * ele%value(k1$) * f 
+    field%b(2) = x * sign_charge * ele%value(k1$) * f 
+    field%b(3) = sign_charge * ele%value(ks$) * f
 
     if (df_calc) then
       print *, 'ERROR IN EM_FIELD: dFIELD NOT YET IMPLEMENTED FOR SOL_QUAD!'
@@ -330,7 +333,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   case (solenoid$)
 
     f = ele%value(p0c$) / c_light
-    field%b(3) = ele%value(ks$) * f
+    field%b(3) = sign_charge * ele%value(ks$) * f
 
     if (df_calc) then
       print *, 'ERROR IN EM_FIELD: dFIELD NOT YET IMPLEMENTED FOR SOLENOID!'
