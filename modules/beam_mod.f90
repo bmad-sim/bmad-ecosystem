@@ -1258,7 +1258,7 @@ integer i, n_part
 n_part = 0
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%r%vec(plane) .le. slice_center + abs(slice_spread) .and. &
-      bunch%particle(i)%r%vec(plane) .ge. slice_center - slice_spread) &
+      bunch%particle(i)%r%vec(plane) .ge. slice_center - abs(slice_spread)) &
             n_part = n_part + 1
 enddo
 
@@ -1269,7 +1269,7 @@ beam%bunch(1)%z_center = bunch%z_center
 n_part = 1
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%r%vec(plane) .le. slice_center + abs(slice_spread) .and. &
-      bunch%particle(i)%r%vec(plane) .ge. slice_center - slice_spread) then
+      bunch%particle(i)%r%vec(plane) .ge. slice_center - abs(slice_spread)) then
             beam%bunch(1)%particle(n_part) = bunch%particle(i)
             n_part = n_part + 1
   endif
