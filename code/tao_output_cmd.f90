@@ -48,6 +48,7 @@ action = names(ix)
 
 select case (action)
 
+!---------------------------------------------------
 ! hard
 
 case ('hard')
@@ -66,6 +67,8 @@ case ('hard')
   call system (trim(s%global%print_command) // ' quick_plot.ps')
   call out_io (s_blank$, r_name, 'Printing with command: ' // &
                                               s%global%print_command)
+!---------------------------------------------------
+! gif
 
 case ('gif')
   file_name = arg1
@@ -78,6 +81,7 @@ case ('gif')
   call tao_plot_out ()   ! Update the plotting window
   call out_io (s_info$, r_name, "Created GIF file: " // file_name)
 
+!---------------------------------------------------
 ! ps
 
 case ('ps')
@@ -90,6 +94,7 @@ case ('ps')
   call tao_plot_out ()   ! Update the plotting window
   call out_io (s_blank$, r_name, "Created PS file: " // file_name)
 
+!---------------------------------------------------
 ! variables
 
 case ('variable')
@@ -98,6 +103,9 @@ case ('variable')
   else
     call tao_var_write (arg1)
   endif
+
+!---------------------------------------------------
+!lattice
 
 case ('lattice')
   file_name = arg1
@@ -108,6 +116,9 @@ case ('lattice')
     call write_bmad_lattice_file (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
+
+!---------------------------------------------------
+! derivative_matrix
 
 case ('derivative_matrix')
 
@@ -165,6 +176,9 @@ case ('derivative_matrix')
   call out_io (s_info$, r_name, 'Writen: ' // file_name)
   close(iu)
 
+!---------------------------------------------------
+! digested
+
 case ('digested')
   file_name = arg1
   if (file_name == ' ') file_name = 'digested_lat_universe_#.bmad'
@@ -175,6 +189,7 @@ case ('digested')
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
 
+!---------------------------------------------------
 ! curve
 
 case ('curve')
@@ -191,12 +206,13 @@ case ('curve')
   if (arg2 /= ' ') file_name = arg2
   c => curve(1)%c
 
-  if (allocated(c%beam%bunch)) then
+  if (associated(c%beam_save)) then
     call file_suffixer (file_name, file_name, 'particle_dat', .true.)
     open (iu, file = file_name)
     write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'p_x', '  y', 'p_y', '  z', 'p_z'
-    do i = 1, size(c%beam%bunch(1)%particle)
-      write (iu, '(i6, 6es15.7)') i, (c%beam%bunch(1)%particle(i)%r%vec(j), j = 1, 6)
+    do i = 1, size(c%beam_save%beam%bunch(1)%particle)
+      write (iu, '(i6, 6es15.7)') i, &
+                        (c%beam_save%beam%bunch(1)%particle(i)%r%vec(j), j = 1, 6)
     enddo
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
     close(iu)
@@ -220,7 +236,7 @@ case ('curve')
   call out_io (s_info$, r_name, 'Writen: ' // file_name)
   close(iu)
 
-
+!---------------------------------------------------
 ! error
 
 case default

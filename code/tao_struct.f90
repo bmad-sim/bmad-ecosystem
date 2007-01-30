@@ -9,7 +9,7 @@
 
 module tao_struct
 
-use bmad_struct, only: rp, ring_struct, coord_struct, radians$, ele_struct, modes_struct
+use bmad_struct, only: rp, lat_struct, coord_struct, radians$, ele_struct, normal_modes_struct
 use equal_mod
 use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, &
                       qp_rect_struct, qp_point_struct
@@ -31,13 +31,21 @@ end interface
 
 !----------------------------------------------------------------------
 
+type tao_beam_save_struct
+  type (beam_struct) beam
+  integer ix_universe ! universe to take the data from. 0 => use s%global%u_view
+  integer ix_ele      ! element index
+end type
+
+!----------------------------------------------------------------------
+
 type tao_ele_shape_struct    ! for the element layout plot
   character(40) key_name     ! Element key name
   character(40) ele_name     ! element name
   character(16) shape        ! plot shape
   character(16) color        ! plot color
   real(rp) dy_pix            ! plot vertical height 
-  Logical :: plot_name = .true.
+  Logical :: draw_name = .true.
   integer key                ! Element key index to match to
 end type
 
@@ -71,7 +79,7 @@ type tao_curve_struct
   character(40) :: data_source             ! "calculation", "data_array", or "var_array"
   character(40) :: data_type = ' '         ! "orbit.x", etc.
   character(40) :: ele_ref_name            ! Reference element.
-  type (beam_struct) beam                  ! for phase-space plotting
+  type (tao_beam_save_struct), pointer :: beam_save ! for phase-space plotting
   type (tao_graph_struct), pointer :: g    ! pointer to parent graph 
   real(rp), allocatable :: x_line(:)       ! coords for drawing a curve
   real(rp), allocatable :: y_line(:) 
@@ -98,7 +106,7 @@ end type
 
 type tao_graph_struct
   character(40) name           ! Name identifying the graph
-  character(40) type           ! "data", "lat_layout", "key_table", or "phase_space"
+  character(40) type           ! "data", "lat_layout", "key_table", "phase_space"
   character(80) title
   character(80) title_suffix 
   character(80) legend(n_legend_maxx) ! Array for holding descriptive info.
@@ -109,6 +117,8 @@ type tao_graph_struct
   type (qp_rect_struct) margin ! margin around the graph.
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
+  real(rp) x_min, x_max         ! min and max of floor_plan drawing.
+  real(rp) y_min, y_max         ! min and max of floor_plan drawing.
   logical clip                 ! clip plot at graph boundary.
   integer box(4)               ! Defines which box the plot is put in.
   integer ix_universe          ! Used for lat_layout plots.
@@ -307,7 +317,7 @@ end type
 
 type tao_this_var_struct
   integer ix_uni            ! universe index.
-  integer ix_ele            ! Index of element in the u%lattice%ele_(:) array.
+  integer ix_ele            ! Index of element in the u%lattice%ele(:) array.
   real(rp), pointer :: model_ptr => null() ! Pointer to the model value.
   real(rp), pointer :: base_ptr => null()  ! Pointer to the base value.
 end type  
@@ -443,7 +453,7 @@ type tao_beam_struct
   type (beam_struct) beam
   type (beam_init_struct) :: beam_init ! beam distrubution
                                        !  at beginning of lattice
-  logical calc_emittance               ! for a ring calculate emittance
+  logical calc_emittance               ! for a lat calculate emittance
 end type
 
 !-----------------------------------------------------------------------
@@ -453,7 +463,7 @@ type tao_macro_beam_struct
   type (macro_beam_struct) beam             ! macroparticle beam
   type (macro_init_struct) macro_init ! macro distribution at beginning of lat
   type (macro_bunch_params_struct) params ! macro bunch parameters for viewed bunch
-  logical calc_emittance     ! for a ring calculate emittance
+  logical calc_emittance     ! for a lat calculate emittance
   integer, pointer :: ix_lost(:,:,:) => null()
                                       ! ^ if .ne. -1 then this macro lost at this ele
                                       ! ix_lost(bunch,slice,macro)
@@ -470,9 +480,9 @@ type tao_lat_mode_struct
 end type
 
 type tao_lattice_struct
-  type (ring_struct) lat                           ! lattice structures
+  type (lat_struct) lat                           ! lattice structures
   type (coord_struct), allocatable :: orb(:)
-  type (modes_struct) modes                        ! Synchrotron integrals stuff
+  type (normal_modes_struct) modes                ! Synchrotron integrals stuff
   type (rad_int_common_struct) rad_int
   type (tao_lat_mode_struct) a, b
   type (bunch_params_struct), allocatable :: bunch_params(:)
@@ -513,6 +523,7 @@ type tao_super_universe_struct
   type (tao_var_struct), pointer :: var(:) => null()       ! array of all variables.
   type (tao_universe_struct), pointer :: u(:) => null()    ! array of universes.
   type (tao_keyboard_struct), pointer :: key(:) => null()
+  type (tao_beam_save_struct) beam_save(20)                ! Save beam info for plotting.
   integer n_var_used
   integer n_v1_var_used
 end type

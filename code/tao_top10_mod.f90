@@ -248,21 +248,21 @@ do i = 1, size(s%u)
     if (data%ix_ele < 0) then
       con(nc)%loc1 = ' '
     else
-      con(nc)%loc1 = s%u(i)%model%lat%ele_(data%ix_ele)%name
+      con(nc)%loc1 = s%u(i)%model%lat%ele(data%ix_ele)%name
     endif
 
     ie = data%ix_ele0
     if (ie < 1) then
       con(nc)%loc0 = '-'
     else
-      con(nc)%loc0 = s%u(i)%model%lat%ele_(ie)%name
+      con(nc)%loc0 = s%u(i)%model%lat%ele(ie)%name
     endif
 
     ie = data%ix_ele_merit
     if (ie < 0) then
       con(nc)%max_loc = ' '
     else
-      con(nc)%max_loc = s%u(i)%model%lat%ele_(ie)%name
+      con(nc)%max_loc = s%u(i)%model%lat%ele(ie)%name
     endif
 
     con(nc)%target_value = data%meas_value
@@ -280,7 +280,7 @@ do i = 1, size(s%var(:))
   write (con(nc)%d2_d1_name, '(2a, i0, a)') trim(var%v1%name), '[', var%ix_v1, ']'
   con(nc)%name       = var%name
   iu = var%this(1)%ix_uni
-  con(nc)%loc1 = s%u(iu)%model%lat%ele_(var%this(1)%ix_ele)%name
+  con(nc)%loc1 = s%u(iu)%model%lat%ele(var%this(1)%ix_ele)%name
   con(nc)%loc0 = '-'
   if (var%merit_type == 'target') then
     con(nc)%target_value = var%meas_value

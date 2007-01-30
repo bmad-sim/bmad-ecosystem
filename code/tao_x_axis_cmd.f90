@@ -67,13 +67,13 @@ plot%x_axis_type = what
 iu = s%global%u_view
 
 if (what == 's') then
-  minn = s%u(iu)%model%lat%ele_(0)%s
-  n = s%u(iu)%model%lat%n_ele_use
+  minn = s%u(iu)%model%lat%ele(0)%s
+  n = s%u(iu)%model%lat%n_ele_track
   maxx = s%u(iu)%model%lat%param%total_length
 
 elseif (what == 'ele_index') then
   minn = 0
-  maxx = s%u(s%global%u_view)%model%lat%n_ele_use 
+  maxx = s%u(s%global%u_view)%model%lat%n_ele_track 
 
 elseif (what == 'index') then
   plot%x%min = -1e30; plot%x%max = 1e30

@@ -38,7 +38,7 @@ ix1 = datum%ix_ele
 ! if there is only one element associated with the element then ix0 = -1
 ix0 = datum%ix_ele0
 
-! ele => tao_lat%lat%ele_(ix1)
+! ele => tao_lat%lat%ele(ix1)
 
 
 ! if found = .true. then the data type was found here and the standard data

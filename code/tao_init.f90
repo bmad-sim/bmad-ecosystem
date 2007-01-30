@@ -75,13 +75,13 @@ subroutine tao_init (init_file)
     do j = 1, size(var_ptr%this)
       this => var_ptr%this(j)
       u => s%u(this%ix_uni)
-      call pointer_to_attribute (u%model%lat%ele_(this%ix_ele), var_ptr%attrib_name, &
+      call pointer_to_attribute (u%model%lat%ele(this%ix_ele), var_ptr%attrib_name, &
                                  .false., ptr_attrib, err, .false., ix_attrib)
       if (err) then
         call out_io (s_abort$, r_name, &
                 'Error: Attribute not recognized: ' // var_ptr%attrib_name, &
-                '       For element: ' // u%model%lat%ele_(this%ix_ele)%name, &
-                '       Which is a: ' // key_name(u%model%lat%ele_(this%ix_ele)%key))
+                '       For element: ' // u%model%lat%ele(this%ix_ele)%name, &
+                '       Which is a: ' // key_name(u%model%lat%ele(this%ix_ele)%key))
         call err_exit
       endif
       if (.not. attribute_free (this%ix_ele, ix_attrib, u%model%lat)) then
@@ -256,9 +256,9 @@ subroutine deallocate_everything ()
       deallocate(u%dmodel_dvar, stat=istat)
  
       ! Lattices
-      call deallocate_ring_pointers (u%model%lat)
-      call deallocate_ring_pointers (u%design%lat)
-      call deallocate_ring_pointers (u%base%lat)
+      call deallocate_lat_pointers (u%model%lat)
+      call deallocate_lat_pointers (u%design%lat)
+      call deallocate_lat_pointers (u%base%lat)
     enddo
   endif
     

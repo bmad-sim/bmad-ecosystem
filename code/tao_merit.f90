@@ -7,7 +7,7 @@
 !
 ! Output:
 !   calc_ok    -- Logical, optional: Set False if there was an error in the 
-!                   calculation like a particle was lost or a ring is unstable.
+!                   calculation like a particle was lost or a lat is unstable.
 !   this_merit -- Real(rp): Merit value.
 !-
 

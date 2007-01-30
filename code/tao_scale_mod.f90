@@ -115,84 +115,93 @@ real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2
 integer i
 logical found_data, found_data2
 
-! If y_min = y_max then autoscale: That is we need to find the 
-! min/max so all the data points are within bounds.
+! If specific min/max values are given then life is easy.
 
-if (.not. allocated (graph%curve)) return
+if (y_min /= y_max) then
 
-if (y_min == y_max) then
+  graph%y%min = y_min
+  graph%y%max = y_max
+  call qp_calc_axis_places (graph%y)
 
-  this_min =  1e30
-  this_max = -1e30
-  this_min2 =  1e30
-  this_max2 = -1e30
-  found_data = .false.
-  found_data2 = .false.
-
-  do i = 1, size(graph%curve)
-
-    if (allocated(graph%curve(i)%y_symb)) then
-      if (size(graph%curve(i)%y_symb) > 0) then
-        if (graph%curve(i)%use_y2) then
-          this_min2 = min(this_min, minval(graph%curve(i)%y_symb))
-          this_max2 = max(this_max, maxval(graph%curve(i)%y_symb))
-          found_data2 = .true.
-        else
-          this_min = min(this_min, minval(graph%curve(i)%y_symb))
-          this_max = max(this_max, maxval(graph%curve(i)%y_symb))
-          found_data = .true.
-        endif
-      endif
-    endif
-
-    if (allocated(graph%curve(i)%y_line)) then
-      if (size(graph%curve(i)%y_line) > 0) then
-        if (graph%curve(i)%use_y2) then
-          this_min2 = min(this_min, minval(graph%curve(i)%y_line))
-          this_max2 = max(this_max, maxval(graph%curve(i)%y_line))
-          found_data2 = .true.
-        else
-          this_min = min(this_min, minval(graph%curve(i)%y_line))
-          this_max = max(this_max, maxval(graph%curve(i)%y_line))
-          found_data = .true.
-        endif
-      endif
-    endif
-
-  enddo
-
-  if (.not. found_data) then
-    this_max = 10
-    this_min = -10
-  endif
-
-  if (this_max >  1d252) this_max =  1d252
-  if (this_min < -1d252) this_min = -1d252
-
-  if (.not. found_data2) then
-    this_max2 = 10
-    this_min2 = -10
-  endif
-
-  if (this_max2 >  1d252) this_max2 =  1d252
-  if (this_min2 < -1d252) this_min2 = -1d252
-
-  call qp_calc_axis_scale (this_min, this_max, graph%y)
-  call qp_calc_axis_scale (this_min2, this_max2, graph%y2)
+  graph%y2%min = y_min
+  graph%y2%max = y_max
+  call qp_calc_axis_places (graph%y2)
 
   return
 
 endif
 
-! If specific min/max values are given then life is easy.
+! Since y_min = y_max then autoscale: That is we need to find the 
+! min/max so all the data points are within bounds.
 
-graph%y%min = y_min
-graph%y%max = y_max
-call qp_calc_axis_places (graph%y)
+! For a floor plan the min and max have been stored in graph%y_min, graph%y_max
 
-graph%y2%min = y_min
-graph%y2%max = y_max
-call qp_calc_axis_places (graph%y2)
+if (graph%type == 'floor_plan') then
+  call qp_calc_axis_scale (graph%y_min, graph%y_max, graph%y)
+  return
+endif
+
+!
+
+if (.not. allocated (graph%curve)) return
+
+this_min =  1e30
+this_max = -1e30
+this_min2 =  1e30
+this_max2 = -1e30
+found_data = .false.
+found_data2 = .false.
+
+do i = 1, size(graph%curve)
+
+  if (allocated(graph%curve(i)%y_symb)) then
+    if (size(graph%curve(i)%y_symb) > 0) then
+      if (graph%curve(i)%use_y2) then
+        this_min2 = min(this_min, minval(graph%curve(i)%y_symb))
+        this_max2 = max(this_max, maxval(graph%curve(i)%y_symb))
+        found_data2 = .true.
+      else
+        this_min = min(this_min, minval(graph%curve(i)%y_symb))
+        this_max = max(this_max, maxval(graph%curve(i)%y_symb))
+        found_data = .true.
+      endif
+    endif
+  endif
+
+  if (allocated(graph%curve(i)%y_line)) then
+    if (size(graph%curve(i)%y_line) > 0) then
+      if (graph%curve(i)%use_y2) then
+        this_min2 = min(this_min, minval(graph%curve(i)%y_line))
+        this_max2 = max(this_max, maxval(graph%curve(i)%y_line))
+        found_data2 = .true.
+      else
+        this_min = min(this_min, minval(graph%curve(i)%y_line))
+        this_max = max(this_max, maxval(graph%curve(i)%y_line))
+        found_data = .true.
+      endif
+    endif
+  endif
+
+enddo
+
+if (.not. found_data) then
+  this_max = 10
+  this_min = -10
+endif
+
+if (this_max >  1d252) this_max =  1d252
+if (this_min < -1d252) this_min = -1d252
+
+if (.not. found_data2) then
+  this_max2 = 10
+  this_min2 = -10
+endif
+
+if (this_max2 >  1d252) this_max2 =  1d252
+if (this_min2 < -1d252) this_min2 = -1d252
+
+call qp_calc_axis_scale (this_min, this_max, graph%y)
+call qp_calc_axis_scale (this_min2, this_max2, graph%y2)
 
 end subroutine
 

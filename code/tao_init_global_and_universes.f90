@@ -266,8 +266,8 @@ elseif(s%global%track_type == 'macro') then
   ! defaults
   do
     ix_universe = -1
-    macro_init%x%norm_emit  = 0.0
-    macro_init%y%norm_emit  = 0.0
+    macro_init%a%norm_emit  = 0.0
+    macro_init%b%norm_emit  = 0.0
     macro_init%dPz_dz = 0.0
     macro_init%center(:) = 0.0
     macro_init%ds_bunch = 1
@@ -589,8 +589,8 @@ do i = 1, size(s%u)
   ! Specify initial conditions
   s%u(i)%design%orb(0)%vec = 0.0
   call polar_to_spinor (spin, s%u(i)%design%orb(0))
-  call init_ring (s%u(i)%model%lat, s%u(i)%design%lat%n_ele_max)
-  call init_ring (s%u(i)%base%lat, s%u(i)%design%lat%n_ele_max)
+  call init_lat (s%u(i)%model%lat, s%u(i)%design%lat%n_ele_max)
+  call init_lat (s%u(i)%base%lat, s%u(i)%design%lat%n_ele_max)
   s%u(i)%model%lat = s%u(i)%design%lat
   s%u(i)%base%lat  = s%u(i)%design%lat
 enddo
@@ -679,10 +679,10 @@ if (data(0)%ele_name(1:6) == 'SEARCH') then
   do i = 1, n_found
     j = found_one(i)
     if (jj .gt. n2) then
-      call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+      call out_io (s_abort$, r_name, "INTERNAL ERROR DULAT ELEMENT COUNTING")
       call err_exit
     endif
-    u%data(jj)%ele_name = u%design%lat%ele_(j)%name
+    u%data(jj)%ele_name = u%design%lat%ele(j)%name
     u%data(jj)%ix_ele   = j
     u%data(jj)%exists   = .true.
     jj = jj + 1
@@ -800,14 +800,14 @@ endif
 ! set data noise (not applicable to all data types)
 if (d2_data%name .eq. "bpm" .or. d2_data%name .eq. "wire") then
   do j = n1, n2
-    u%design%lat%ele_(u%data(j)%ix_ele)%r(1,1) = default_data_noise
-    u%design%lat%ele_(u%data(j)%ix_ele)%r(1,1) = default_scale_error
+    u%design%lat%ele(u%data(j)%ix_ele)%r(1,1) = default_data_noise
+    u%design%lat%ele(u%data(j)%ix_ele)%r(1,1) = default_scale_error
   enddo
   do j = lbound(data,1), ubound(data,1)
     if (data(j)%data_noise /= real_garbage$) &
-      u%design%lat%ele_(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%data_noise
+      u%design%lat%ele(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%data_noise
     if (data(j)%scale_error .ne. real_garbage$) &
-      u%design%lat%ele_(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%scale_error
+      u%design%lat%ele(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%scale_error
   enddo
 endif                   
 
@@ -819,7 +819,7 @@ if (data(0)%name(1:6) == 'COUNT:') then
   jj = ix1
   do j = n1, n2
     if (jj .gt. ix2) then
-      call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+      call out_io (s_abort$, r_name, "INTERNAL ERROR DULAT ELEMENT COUNTING")
       call err_exit
     endif
     write(fmt, '(a,i0,a,i0,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
@@ -873,7 +873,7 @@ do j = n1, n2
   if (u%data(j)%data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
   if (u%data(j)%data_type(1:14)     == 'lat_emittance.' .or. &
           u%data(j)%data_type(1:6)  == 'chrom.' .or. &
-          u%data(j)%data_type(1:13) == 'unstable_ring' .or. &
+          u%data(j)%data_type(1:13) == 'unstable_lat' .or. &
           u%data(j)%data_type(1:17) == 'multi_turn_orbit.') then
     u%data(j)%exists = .true.
     if (u%data(j)%ele_name /= ' ') then
@@ -955,12 +955,12 @@ if (var(0)%ele_name(1:6) == 'SEARCH') then
       call search_for_vars (iu, found_one, n_found)
       do j = 1, n_found
         if (jj .gt. n2) then
-          call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT SEARCHING")
+          call out_io (s_abort$, r_name, "INTERNAL ERROR DULAT ELEMENT SEARCHING")
           call err_exit
         endif
         k = found_one(j)
-        s%var(jj)%ele_name = s%u(iu)%design%lat%ele_(k)%name
-        s%var(jj)%s = s%u(iu)%design%lat%ele_(k)%s
+        s%var(jj)%ele_name = s%u(iu)%design%lat%ele(k)%name
+        s%var(jj)%s = s%u(iu)%design%lat%ele(k)%s
         jj = jj + 1
       enddo
     enddo
@@ -969,11 +969,11 @@ if (var(0)%ele_name(1:6) == 'SEARCH') then
     do j = 1, num_ele
       k = found_one(j)
       if (jj .gt. n2) then
-        call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT SEARCHING")
+        call out_io (s_abort$, r_name, "INTERNAL ERROR DULAT ELEMENT SEARCHING")
         call err_exit
       endif
-      s%var(jj)%ele_name = s%u(iu)%design%lat%ele_(k)%name
-      s%var(jj)%s = s%u(iu)%design%lat%ele_(k)%s
+      s%var(jj)%ele_name = s%u(iu)%design%lat%ele(k)%name
+      s%var(jj)%s = s%u(iu)%design%lat%ele(k)%s
       jj = jj + 1
     enddo
   endif
@@ -1027,7 +1027,7 @@ if (var(0)%name(1:6) == 'COUNT:') then
   jj = ix1
   do j = n1, n2
     if (jj .gt. ix2) then
-      call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+      call out_io (s_abort$, r_name, "INTERNAL ERROR DULAT ELEMENT COUNTING")
       call err_exit
     endif
     write(fmt, '(a,i0,a,i0,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
@@ -1094,7 +1094,7 @@ do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
     allocate (s_var%this(n_ele))
     do ie = 1, n_ele
       call tao_pointer_to_var_in_lattice (s_var, s_var%this(ie), ix_u, &
-                                      ix_ele = s%u(ix_u)%model%lat%ele_(ie)%ixx)
+                                      ix_ele = s%u(ix_u)%model%lat%ele(ie)%ixx)
     enddo
 
   else ! use found_one array
@@ -1154,7 +1154,7 @@ s_loop: do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
     do iu = 1, size(s%u)
       do ie = 1, s%u(iu)%ixx
         call tao_pointer_to_var_in_lattice (s_var, s_var%this(ie+n_tot), iu, &
-                                          ix_ele = s%u(iu)%model%lat%ele_(ie)%ixx)
+                                          ix_ele = s%u(iu)%model%lat%ele(ie)%ixx)
       enddo
       n_tot = n_tot + s%u(iu)%ixx
     enddo
@@ -1269,7 +1269,7 @@ n_found = 0
 found_one = -1
 
 if (restriction == 'no_lords') then
-  n_max = u%design%lat%n_ele_use
+  n_max = u%design%lat%n_ele_track
   no_slaves = .false.
 elseif (restriction == 'no_slaves') then
   n_max = u%design%lat%n_ele_max
@@ -1286,12 +1286,12 @@ endif
 
 if (attribute == ele_name$) then
   do j = 1, n_max
-    ele => u%design%lat%ele_(j)
+    ele => u%design%lat%ele(j)
     if (ele%control_type == super_slave$ .or. ele%control_type == multipass_slave$) then
       do i = ele%ic1_lord, ele%ic2_lord
-        i2 = u%design%lat%ic_(i)
-        ii = u%design%lat%control_(i2)%ix_lord
-        if (match_wild(u%design%lat%ele_(ii)%name, search_string)) then
+        i2 = u%design%lat%ic(i)
+        ii = u%design%lat%control(i2)%ix_lord
+        if (match_wild(u%design%lat%ele(ii)%name, search_string)) then
           if (ii <= n_max .and. all(found_one /= ii)) then
             n_found = n_found + 1
             found_one(n_found) = ii
@@ -1316,12 +1316,12 @@ elseif (attribute == ele_key$) then
   endif
 
   do j = 1, n_max
-    ele => u%design%lat%ele_(j)
+    ele => u%design%lat%ele(j)
     if (ele%control_type == super_slave$ .or. ele%control_type == multipass_slave$) then
       do i = ele%ic1_lord, ele%ic2_lord
-        i2 = u%design%lat%ic_(i)
-        ii = u%design%lat%control_(i2)%ix_lord
-        if (u%design%lat%ele_(ii)%key == key) then
+        i2 = u%design%lat%ic(i)
+        ii = u%design%lat%control(i2)%ix_lord
+        if (u%design%lat%ele(ii)%key == key) then
           if (ii <= n_max .and. all(found_one /= ii)) then
             n_found = n_found + 1
             found_one(n_found) = ii
@@ -1396,14 +1396,14 @@ if (ix /= 0) then
     call out_io (s_blank$, r_name, "Will use element name.")
   endif
   if (ele_name == "end") then
-    u%coupling%from_uni_s  = from_uni%design%lat%ele_(from_uni%design%lat%n_ele_use)%s
-    u%coupling%from_uni_ix_ele = from_uni%design%lat%n_ele_use
+    u%coupling%from_uni_s  = from_uni%design%lat%ele(from_uni%design%lat%n_ele_track)%s
+    u%coupling%from_uni_ix_ele = from_uni%design%lat%n_ele_track
   else
     ! using element name 
     ! find last element with name
-    do j = from_uni%design%lat%n_ele_use, 0, -1
-      if (ele_name(1:ix) == trim(from_uni%design%lat%ele_(j)%name)) then
-        u%coupling%from_uni_s = from_uni%design%lat%ele_(j)%s
+    do j = from_uni%design%lat%n_ele_track, 0, -1
+      if (ele_name(1:ix) == trim(from_uni%design%lat%ele(j)%name)) then
+        u%coupling%from_uni_s = from_uni%design%lat%ele(j)%s
         u%coupling%from_uni_ix_ele = j
         return
       endif
@@ -1421,7 +1421,7 @@ elseif (coupled%at_ele_index /= -1) then
         "INIT Coupling: cannot specify an element, it's index or position at same time!")
     call out_io (s_blank$, r_name, "Will use element index.")
   endif
-    u%coupling%from_uni_s = from_uni%design%lat%ele_(coupled%at_ele_index)%s
+    u%coupling%from_uni_s = from_uni%design%lat%ele(coupled%at_ele_index)%s
     u%coupling%from_uni_ix_ele = coupled%at_ele_index
 else
   ! using s position
@@ -1482,9 +1482,9 @@ u%design%orb(0)%vec = beam_init%center
 if (u%design%lat%param%lattice_type == circular_lattice$) return
   
 ! This is just to get things allocated
-call init_beam_distribution (u%design%lat%ele_(0), beam_init, u%beam%beam)
+call init_beam_distribution (u%design%lat%ele(0), beam_init, u%beam%beam)
 if (u%coupling%coupled) &
-    call init_beam_distribution (u%design%lat%ele_(0), beam_init, u%coupling%injecting_beam)
+    call init_beam_distribution (u%design%lat%ele(0), beam_init, u%coupling%injecting_beam)
 
 end subroutine init_beam
 
@@ -1534,10 +1534,10 @@ u%design%orb(0)%vec = macro_init%center
 if (u%design%lat%param%lattice_type == circular_lattice$) return
     
 ! This is just to get things allocated
-call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%lat%ele_(0), .true.)
+call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%lat%ele(0), .true.)
 if (u%coupling%coupled) &
   call init_macro_distribution (u%coupling%injecting_macro_beam, &
-                                             macro_init, u%design%lat%ele_(0), .true.)
+                                             macro_init, u%design%lat%ele(0), .true.)
 
 ! keep track of where macros are lost
 if (associated (u%macro_beam%ix_lost)) deallocate (u%macro_beam%ix_lost)
@@ -1581,7 +1581,7 @@ do j = 1, size(u%data)
   elseif (data%ix_ele == -1) then
     ix_ele = -1
   elseif (data%ix_ele0 > data%ix_ele) then
-    ix_ele = u%model%lat%n_ele_use
+    ix_ele = u%model%lat%n_ele_track
   else
     ix_ele = data%ix_ele
   endif
@@ -1611,7 +1611,7 @@ do j = 1, size(u%data)
   elseif (data%ix_ele == -1) then
     ix_ele = -1
   elseif (data%ix_ele0 > data%ix_ele) then
-    ix_ele = u%model%lat%n_ele_use
+    ix_ele = u%model%lat%n_ele_track
   else
     ix_ele = data%ix_ele
   endif

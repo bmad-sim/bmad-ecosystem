@@ -66,8 +66,8 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
     select case (design_lattice(i)%parser)
     case ('bmad')
       call bmad_parser (design_lattice(i)%file, s%u(i)%design%lat)
-      s%u(i)%design%modes%a%emittance = s%u(i)%design%lat%x%emit
-      s%u(i)%design%modes%b%emittance = s%u(i)%design%lat%y%emit
+      s%u(i)%design%modes%a%emittance = s%u(i)%design%lat%a%emit
+      s%u(i)%design%modes%b%emittance = s%u(i)%design%lat%b%emit
     case ('xsif')
       call xsif_parser (design_lattice(i)%file, s%u(i)%design%lat)
     case ('digested')
@@ -87,19 +87,19 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   ! r(2,:) is for saving ele parameters
   do i = 1, size(s%u)
     do j = 1, s%u(i)%design%lat%n_ele_max
-        allocate(s%u(i)%design%lat%ele_(j)%r(2,5))
-        s%u(i)%design%lat%ele_(j)%r = 0.0
+        allocate(s%u(i)%design%lat%ele(j)%r(2,5))
+        s%u(i)%design%lat%ele(j)%r = 0.0
     enddo
   enddo
 
   ! TAO does its own bookkeeping
   bmad_com%auto_bookkeeper = .false.
 
-  ! turn off rfcavities in rings
+  ! turn off rfcavities in lattices
   do i = 1, size(s%u)
     if (s%u(i)%design%lat%param%lattice_type .eq. circular_lattice$) then
       call out_io (s_blank$, r_name, &
-                  "RFCavities will be turned off in rings")
+                  "RFCavities will be turned off in lattices")
       call set_on_off (rfcavity$, s%u(i)%design%lat, off$)
     endif
   enddo

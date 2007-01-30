@@ -65,19 +65,19 @@ subroutine tao_hook_init_design_lattice (design_lattice_file, custom_init)
 ! ! r(2,:) is for saving ele parameters
 ! do i = 1, size(s%u)
 !   do j = 1, s%u(i)%design%n_ele_max
-!       allocate(s%u(i)%design%ele_(j)%r(2,4))
-!       s%u(i)%design%ele_(j)%r = 0.0
+!       allocate(s%u(i)%design%ele(j)%r(2,4))
+!       s%u(i)%design%ele(j)%r = 0.0
 !   enddo
 ! enddo
 
 ! ! TAO does its own bookkeeping
 ! bmad_com%auto_bookkeeper = .false.
 
-! ! turn off rfcavities in rings
+! ! turn off rfcavities in lattices
 ! do i = 1, size(s%u)
 !   if (s%u(i)%design%param%lattice_type .eq. circular_lattice$) then
 !     call out_io (s_blank$, r_name, &
-!                 "RFCavities will be turned off in rings")
+!                 "RFCavities will be turned off in lattices")
 !     call set_on_off (rfcavity$, s%u(i)%design, off$)
 !   endif
 ! enddo

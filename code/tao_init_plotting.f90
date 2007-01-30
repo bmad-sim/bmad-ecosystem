@@ -109,6 +109,7 @@ do
   plot%x_axis_type = 'index'
   plot%x = init_axis
   plot%independent_graphs = .false.
+  plot%n_graph = 0
   read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
   if (ios /= 0) exit                                 ! exit on end of file.
   call out_io (s_blank$, r_name, &
@@ -152,6 +153,7 @@ do
     graph%who(1) = tao_plot_who_struct('model', +1)     ! set default
     graph%box    = (/ 1, 1, 1, 1 /)
     graph%margin = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
+    graph%n_curve = 0
     do j = 1, size(curve)
       write (curve(j)%name, '(a, i0)') 'c', j
     enddo
@@ -208,6 +210,7 @@ do
       call err_exit
     endif
 
+    if (grph%type == 'floor_plan') lat_layout_here = .true.
     if (grph%type == 'lat_layout') then
       lat_layout_here = .true.
       if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
@@ -250,18 +253,18 @@ do
       ! to be the beginning element.
 
       if (crv%ele_ref_name == ' ' .and. crv%ix_ele_ref >= 0) then ! if ix_ele_ref has been set ...
-        crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(crv%ix_ele_ref)%name ! then find the name
+        crv%ele_ref_name = s%u(i_uni)%design%lat%ele(crv%ix_ele_ref)%name ! then find the name
       elseif (crv%ele_ref_name /= ' ') then                    ! if ele_ref_name has been set ...
         call tao_locate_element (crv%ele_ref_name, i_uni, ix_ele, .true.) ! then find the index
         crv%ix_ele_ref = ix_ele(1)
       elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r.' .or. &
               crv%data_type(1:2) == 't.' .or. crv%data_type(1:3) == 'tt.') then
         crv%ix_ele_ref = 0
-        crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(0)%name
+        crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
       elseif (graph%type == 'phase_space') then
         plt%x_axis_type = 'phase_space'
         crv%ix_ele_ref = 0
-        crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(0)%name
+        crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
       elseif (graph%type == 'key_table') then
         plt%x_axis_type = 'none'
       endif

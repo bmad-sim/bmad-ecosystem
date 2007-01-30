@@ -43,7 +43,7 @@ contains
 !
 !
 !  Output:
-!      s%u(i)%model    -- ring_struct  : Model lattice with gaussian 
+!      s%u(i)%model    -- lat_struct  : Model lattice with gaussian 
 !                                        errors introduced on current values.
 !                                        i being specified universe
 !-
@@ -76,7 +76,7 @@ logical err, found, rel_error, found_double, rel_sbend_error_flag
 logical, automatic :: which_univ(size(s%u))
 logical, allocatable :: action_logic(:)
 
-! random number seeded during tao initialization
+! random number seeded dulat tao initialization
 
   select case (wrt)
     case ('wrt_model')
@@ -105,8 +105,8 @@ logical, allocatable :: action_logic(:)
   do i = 1, size(s%u)
     if (.not. which_univ(i)) cycle
     do j = 1, s%u(i)%model%lat%n_ele_max
-      if (s%u(i)%model%lat%ele_(j)%key .eq. ix_key(1)) then
-	ele => s%u(i)%model%lat%ele_(j)
+      if (s%u(i)%model%lat%ele(j)%key .eq. ix_key(1)) then
+	ele => s%u(i)%model%lat%ele(j)
 	exit
       endif
     enddo
@@ -158,7 +158,7 @@ logical, allocatable :: action_logic(:)
           found_double = .false.
           cycle
         endif
-        if (s%u(i)%model%lat%ele_(j)%key .eq. ix_key(1) .and. action_logic(j)) then
+        if (s%u(i)%model%lat%ele(j)%key .eq. ix_key(1) .and. action_logic(j)) then
           call find_ele_and_ref_ele (wrt_what, i, j, ref_ele, ele)
           if (.not. attribute_free (j, ix_attrib, s%u(i)%model%lat)) cycle
           if (rel_error) then
@@ -171,7 +171,7 @@ logical, allocatable :: action_logic(:)
             ele%value(ix_attrib) = ref_ele%value(ix_attrib) + gauss_err() * misalign_value_num
           endif
           if (j .eq. s%u(i)%model%lat%n_ele_max) exit
-          if (s%u(i)%model%lat%ele_(j+1)%key .eq. ix_key(1) .and. action_logic(j)) then
+          if (s%u(i)%model%lat%ele(j+1)%key .eq. ix_key(1) .and. action_logic(j)) then
             call find_ele_and_ref_ele (wrt_what, i, j+1, ref_ele, ele2)
             ! Found Woodley double
             ele2%value(ix_attrib) = ele%value(ix_attrib)
@@ -202,14 +202,14 @@ integer wrt_what, ix_ele, ix_uni
 
   select case (wrt_what)
     case (wrt_model$)
-      ref_ele => s%u(ix_uni)%model%lat%ele_(ix_ele)
-      ele => s%u(ix_uni)%model%lat%ele_(ix_ele)
+      ref_ele => s%u(ix_uni)%model%lat%ele(ix_ele)
+      ele => s%u(ix_uni)%model%lat%ele(ix_ele)
     case (wrt_design$)
-      ref_ele => s%u(ix_uni)%design%lat%ele_(ix_ele)
-      ele => s%u(ix_uni)%model%lat%ele_(ix_ele)
+      ref_ele => s%u(ix_uni)%design%lat%ele(ix_ele)
+      ele => s%u(ix_uni)%model%lat%ele(ix_ele)
     case (wrt_survey$)
       ref_ele => zero_ele
-      ele => s%u(ix_uni)%model%lat%ele_(ix_ele)
+      ele => s%u(ix_uni)%model%lat%ele(ix_ele)
   end select
 
 end subroutine find_ele_and_ref_ele

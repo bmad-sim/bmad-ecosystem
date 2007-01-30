@@ -37,6 +37,7 @@ type (tao_graph_struct), pointer :: g
 type (tao_curve_struct), pointer :: c
 type (tao_plot_region_struct), pointer :: region
 type (tao_data_array_struct), allocatable, save :: d_array(:)
+type (tao_ele_shape_struct), pointer :: shape
 
 type (lr_wake_struct), pointer :: lr
 type (ele_struct), pointer :: ele
@@ -148,8 +149,8 @@ case ('hom')
 
   nl=nl+1; lines(nl) = &
         '       #        Freq         R/Q           Q   m  Polarization_Angle'
-  do i = 1, size(u%model%lat%ele_)
-    ele => u%model%lat%ele_(i)
+  do i = 1, size(u%model%lat%ele)
+    ele => u%model%lat%ele(i)
     if (ele%key /= lcavity$) cycle
     if (ele%control_type == multipass_slave$) cycle
     nl=nl+1; write (lines(nl), '(a, i6)') ele%name, i
@@ -385,9 +386,9 @@ case ('ele', 'taylor')
     write (lines(1), *) 'Matches to name:'
     nl = 1
     do loc = 1, u%model%lat%n_ele_max
-      if (.not. match_wild(u%model%lat%ele_(loc)%name, ele_name)) cycle
+      if (.not. match_wild(u%model%lat%ele(loc)%name, ele_name)) cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-      nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, u%model%lat%ele_(loc)%name
+      nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, u%model%lat%ele(loc)%name
       name_found = .true.
     enddo
     if (.not. name_found) then
@@ -407,10 +408,10 @@ case ('ele', 'taylor')
 
     ! Show the element info
     if (show_names(ix) == 'ele') then
-      call type2_ele (u%model%lat%ele_(loc), ptr_lines, n, .true., 6, .false., &
+      call type2_ele (u%model%lat%ele(loc), ptr_lines, n, .true., 6, .false., &
                                         s%global%phase_units, .true., u%model%lat)
     else
-      call type2_ele (u%model%lat%ele_(loc), ptr_lines, n, .true., 6, .true., &
+      call type2_ele (u%model%lat%ele(loc), ptr_lines, n, .true., 6, .true., &
                                         s%global%phase_units, .true., u%model%lat)
     endif
     if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100)
@@ -432,7 +433,7 @@ case ('ele', 'taylor')
 
     found = .false.
     do i = loc + 1, u%model%lat%n_ele_max
-      if (u%model%lat%ele_(i)%name /= ele_name) cycle
+      if (u%model%lat%ele(i)%name /= ele_name) cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
       if (found) then
         nl=nl+1; write (lines(nl), *)
@@ -481,10 +482,10 @@ case ('lattice')
   if (word(1) .eq. ' ') then
     nl=nl+1; write (lines(nl), '(a, i3)') 'Universe: ', s%global%u_view
     nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Regular elements:', &
-                                          1, '  through', u%model%lat%n_ele_use
-    if (u%model%lat%n_ele_max .gt. u%model%lat%n_ele_use) then
+                                          1, '  through', u%model%lat%n_ele_track
+    if (u%model%lat%n_ele_max .gt. u%model%lat%n_ele_track) then
       nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Lord elements:   ', &
-                        u%model%lat%n_ele_use+1, '  through', u%model%lat%n_ele_max
+                        u%model%lat%n_ele_track+1, '  through', u%model%lat%n_ele_max
     else
       nl=nl+1; write (lines(nl), '(a)') "there are NO Lord elements"
     endif
@@ -522,10 +523,10 @@ case ('lattice')
     fmt3 = '(1x, a10, 2f11.4, 2x, 2f11.4, 2x, a)'
     f_phi = 1 / twopi
     l_lat = u%model%lat%param%total_length
-    n = u%model%lat%n_ele_use
-    write (lines(nl+4), fmt2) 'Q', f_phi*u%model%lat%ele_(n)%x%phi, &
-            f_phi*u%design%lat%ele_(n)%x%phi, f_phi*u%model%lat%ele_(n)%y%phi, &
-            f_phi*u%design%lat%ele_(n)%y%phi,  '! Tune'
+    n = u%model%lat%n_ele_track
+    write (lines(nl+4), fmt2) 'Q', f_phi*u%model%lat%ele(n)%a%phi, &
+            f_phi*u%design%lat%ele(n)%a%phi, f_phi*u%model%lat%ele(n)%b%phi, &
+            f_phi*u%design%lat%ele(n)%b%phi,  '! Tune'
     write (lines(nl+5), fmt2) 'Chrom', u%model%a%chrom, & 
             u%design%a%chrom, u%model%b%chrom, u%design%b%chrom, '! dQ/(dE/E)'
     write (lines(nl+6), fmt2) 'J_damp', u%model%modes%a%j_damp, &
@@ -710,16 +711,16 @@ case ('lattice')
   lines(nl+3) = line3
   nl=nl+3
 
-  do ie = 0, u%model%lat%n_ele_use
+  do ie = 0, u%model%lat%n_ele_track
     if (.not. show_here(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-    ele => u%model%lat%ele_(ie)
+    ele => u%model%lat%ele(ie)
     if (ie == 0 .or. at_ends) then
       ele3 = ele
       orb = u%model%orb(ie)
       s_pos = ele3%s
     else
-      call twiss_and_track_partial (u%model%lat%ele_(ie-1), ele, &
+      call twiss_and_track_partial (u%model%lat%ele(ie-1), ele, &
                 u%model%lat%param, ele%value(l$)/2, ele3, u%model%orb(ie-1), orb)
       s_pos = ele%s-ele%value(l$)/2
     endif
@@ -738,25 +739,25 @@ case ('lattice')
       case ("s")
         write (line(ix:), column(i)%format, iostat = ios) s_pos
       case ("beta_a")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%x%beta
+        write (line(ix:), column(i)%format, iostat = ios) ele3%a%beta
       case ("beta_b")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%y%beta
+        write (line(ix:), column(i)%format, iostat = ios) ele3%b%beta
       case ("alpha_a")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%x%alpha
+        write (line(ix:), column(i)%format, iostat = ios) ele3%a%alpha
       case ("alpha_b")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%y%alpha
+        write (line(ix:), column(i)%format, iostat = ios) ele3%b%alpha
       case ("phi_a")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%x%phi
+        write (line(ix:), column(i)%format, iostat = ios) ele3%a%phi
       case ("phi_b") 
-        write (line(ix:), column(i)%format, iostat = ios) ele3%y%phi
+        write (line(ix:), column(i)%format, iostat = ios) ele3%b%phi
       case ("eta_a")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%x%eta
+        write (line(ix:), column(i)%format, iostat = ios) ele3%a%eta
       case ("eta_b")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%y%eta
+        write (line(ix:), column(i)%format, iostat = ios) ele3%b%eta
       case ("etap_a")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%x%etap
+        write (line(ix:), column(i)%format, iostat = ios) ele3%a%etap
       case ("etap_b")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%y%etap
+        write (line(ix:), column(i)%format, iostat = ios) ele3%b%etap
       case ("orbit_x")
         write (line(ix:), column(i)%format, iostat = ios) orb%vec(1)
       case ("orbit_px")
@@ -787,10 +788,10 @@ case ('lattice')
   nl=nl+3
 
   first_time = .true.  
-  do ie = u%model%lat%n_ele_use+1, u%model%lat%n_ele_max
+  do ie = u%model%lat%n_ele_track+1, u%model%lat%n_ele_max
     if (.not. show_here(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-    ele => u%model%lat%ele_(ie)
+    ele => u%model%lat%ele(ie)
     if (first_time) then
       nl=nl+1; lines(nl) = ' '
       nl=nl+1; lines(nl) = 'Lord Elements:'
@@ -870,6 +871,25 @@ case ('plot')
       nl=nl+1; write (lines(nl), '(3x l1, 10x, a20, 2a)') region%visible, &
                                     region%name, '<-->  ', region%plot%name
     enddo
+
+    ! shapes
+
+    if (s%plot_page%ele_shape(1)%key > 0) then
+      nl=nl+1; lines(nl) = ' '
+      nl=nl+1; lines(nl) = 'Element Shapes:'
+      nl=nl+1; lines(nl) = &
+            ' Key             Ele_Name        Shape         Color        dy_pix   Draw_Name?'
+      nl=nl+1; lines(nl) = &
+            ' -----------     ------------    --------      -----        -------  ---------'
+
+      do i = 1, size(s%plot_page%ele_shape)
+        shape => s%plot_page%ele_shape(i)
+        if (shape%key < 1) cycle
+        nl=nl+1; write (lines(nl), '(4a, f10.4, l3)') shape%key_name(1:16), &
+                  shape%ele_name(1:16), shape%shape(1:14), shape%color(1:10), &
+                  shape%dy_pix, shape%draw_name
+      enddo
+    endif
 
     call out_io (s_blank$, r_name, lines(1:nl))
     return

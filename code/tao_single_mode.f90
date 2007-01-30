@@ -12,7 +12,7 @@ subroutine tao_single_mode (char)
 
   implicit none
 
-  type (ring_struct), pointer :: ring
+  type (lat_struct), pointer :: lat
 
   integer i, j, ix, ix_plot, ie, iv, factor, ix_key, ios, ir
   integer n1, n2, i_ele, ix_var
@@ -227,7 +227,7 @@ subroutine tao_single_mode (char)
       if (str(ix-1:ix-1) == ':') then
         read (str(ix:), *, iostat = ios) n1
         if (n1 > size(s%u) .or. n1 < 1) then
-          write (*, *) 'ERROR: RING INDEX NOT VALID.'
+          write (*, *) 'ERROR: LAT INDEX NOT VALID.'
           return
         endif
         n2 = n1
@@ -245,14 +245,14 @@ subroutine tao_single_mode (char)
 
       found = .false.
       do i = n1, n2
-        ring => s%u(i)%model%lat
-        do j = 0, ring%n_ele_max
-          if (ring%ele_(j)%name /= str .and. j /= ie) cycle
+        lat => s%u(i)%model%lat
+        do j = 0, lat%n_ele_max
+          if (lat%ele(j)%name /= str .and. j /= ie) cycle
           write (*, *) '!---------------------------------------------------'
-          write (*, *) '! Ring:', i, ':  ', trim(ring%lattice)
+          write (*, *) '! Lat:', i, ':  ', trim(lat%lattice)
           write (*, *) '! Element Index:', j
-          call type_ele (ring%ele_(j), .false., 6, &
-                                               .true., radians$, .true., ring)
+          call type_ele (lat%ele(j), .false., 6, &
+                                               .true., radians$, .true., lat)
           found = .true.
         enddo
       enddo
@@ -263,13 +263,13 @@ subroutine tao_single_mode (char)
 
     case ('l')
       do i = 1, size(s%u)
-        ring => s%u(i)%model%lat
+        lat => s%u(i)%model%lat
         write (*, *)
-        write (*, *) 'Ring: ', ring%lattice, i
-        write (*, *) 'Ix  Name                   S  Beta_x  Beta_y'
-        do j = 1, ring%n_ele_ring
-          write (*, '(i3, 2x, a, f8.2, 2f8.2)') j, ring%ele_(j)%name, &
-                 ring%ele_(j)%s, ring%ele_(j)%x%beta, ring%ele_(j)%y%beta
+        write (*, *) 'Lat: ', lat%lattice, i
+        write (*, *) 'Ix  Name                   S  Beta_a  Beta_b'
+        do j = 1, lat%n_ele_track
+          write (*, '(i3, 2x, a, f8.2, 2f8.2)') j, lat%ele(j)%name, &
+                 lat%ele(j)%s, lat%ele(j)%a%beta, lat%ele(j)%b%beta
         enddo
       enddo
 

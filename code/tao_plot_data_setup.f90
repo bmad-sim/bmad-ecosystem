@@ -32,23 +32,23 @@ character(20) :: r_name = 'tao_plot_data_setup'
 
 if (any(s%plot_page%ele_shape(:)%key /= 0)) then
   do i_uni = 1, size(s%u)
-    s%u(i_uni)%model%lat%ele_(:)%ix_pointer = 0
-    s%u(i_uni)%base%lat%ele_(:)%ix_pointer = 0
+    s%u(i_uni)%model%lat%ele(:)%ix_pointer = 0
+    s%u(i_uni)%base%lat%ele(:)%ix_pointer = 0
     do ie = 1, s%u(i_uni)%model%lat%n_ele_max
-      ele => s%u(i_uni)%model%lat%ele_(ie)
+      ele => s%u(i_uni)%model%lat%ele(ie)
       if (ele%control_type == group_lord$) cycle
       if (ele%control_type == overlay_lord$) cycle
       if (ele%control_type == super_slave$) cycle
       if (ele%control_type == multipass_lord$) cycle
-      if (ie > s%u(i_uni)%model%lat%n_ele_use .and. &
+      if (ie > s%u(i_uni)%model%lat%n_ele_track .and. &
                                 ele%control_type == free$) cycle
       do k = 1, size(s%plot_page%ele_shape(:))
         if (s%plot_page%ele_shape(k)%key == 0) cycle
         if (ele%key == s%plot_page%ele_shape(k)%key .and. &
                  match_wild(ele%name, s%plot_page%ele_shape(k)%ele_name)) then
           ele%ix_pointer = k
-          s%u(i_uni)%base%lat%ele_(ie)%ix_pointer = ie
-          s%u(i_uni)%base%lat%ele_(ie-1)%ix_pointer = ie-1
+          s%u(i_uni)%base%lat%ele(ie)%ix_pointer = ie
+          s%u(i_uni)%base%lat%ele(ie-1)%ix_pointer = ie-1
           exit
         endif
       enddo
@@ -188,7 +188,7 @@ curve => graph%curve(1)
 i_uni = curve%ix_universe
 if (i_uni == 0) i_uni = s%global%u_view
 u => s%u(i_uni)
-ele => s%u(i_uni)%model%lat%ele_(curve%ix_ele_ref)
+ele => s%u(i_uni)%model%lat%ele(curve%ix_ele_ref)
 
 name = curve%ele_ref_name
 if (name == ' ') name = ele%name
@@ -224,15 +224,15 @@ do k = 1, size(graph%curve)
 
   if (curve%data_source == 'beam_tracking') then
 
-    if (.not. allocated(curve%beam%bunch)) then
+    if (.not. allocated(curve%beam_save%beam%bunch)) then
       call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
       return
     endif
 
     n = 0
-    do ib = 1,  size(curve%beam%bunch)
-      n = size(curve%beam%bunch(ib)%particle)
+    do ib = 1,  size(curve%beam_save%beam%bunch)
+      n = size(curve%beam_save%beam%bunch(ib)%particle)
     enddo
 
     call re_allocate (curve%ix_symb, n)
@@ -240,10 +240,10 @@ do k = 1, size(graph%curve)
     call re_allocate (curve%y_symb, n)
 
     n = 0
-    do ib = 1, size(curve%beam%bunch)
-      m = size(curve%beam%bunch(ib)%particle)
-      curve%x_symb(n+1:n+m) = curve%beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
-      curve%y_symb(n+1:n+m) = curve%beam%bunch(ib)%particle(:)%r%vec(ix2_ax)
+    do ib = 1, size(curve%beam_save%beam%bunch)
+      m = size(curve%beam_save%beam%bunch(ib)%particle)
+      curve%x_symb(n+1:n+m) = curve%beam_save%beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
+      curve%y_symb(n+1:n+m) = curve%beam_save%beam%bunch(ib)%particle(:)%r%vec(ix2_ax)
       n = n + m
     enddo
 
@@ -308,10 +308,10 @@ do k = 1, size(graph%curve)
 
     mat4 = matmul(v_mat, g_inv_mat)
     sigma_mat =  0
-    sigma_mat(1,1) = u%model%lat%x%emit
-    sigma_mat(2,2) = u%model%lat%x%emit
-    sigma_mat(3,3) = u%model%lat%y%emit
-    sigma_mat(4,4) = u%model%lat%y%emit
+    sigma_mat(1,1) = u%model%lat%a%emit
+    sigma_mat(2,2) = u%model%lat%a%emit
+    sigma_mat(3,3) = u%model%lat%b%emit
+    sigma_mat(4,4) = u%model%lat%b%emit
     sigma_mat = matmul (matmul (mat4, sigma_mat), transpose(mat4))
 
     if (ix1_ax > 4 .or. ix2_ax > 4) then
@@ -524,7 +524,7 @@ do k = 1, size(graph%curve)
     if (plot%x_axis_type == 's') then
       ! veto non-regular elements when plotting s
       forall (m = lbound(d1_ptr%d,1):ubound(d1_ptr%d,1), &
-                     d1_ptr%d(m)%ix_ele .gt. u%model%lat%n_ele_use)
+                     d1_ptr%d(m)%ix_ele .gt. u%model%lat%n_ele_track)
         d1_ptr%d(m)%useit_plot = .false.
       endforall
     endif
@@ -541,7 +541,7 @@ do k = 1, size(graph%curve)
     elseif (plot%x_axis_type == 'ele_index') then
       curve%x_symb = d1_ptr%d(curve%ix_symb)%ix_ele
     elseif (plot%x_axis_type == 's') then
-      curve%x_symb = u%model%lat%ele_(d1_ptr%d(curve%ix_symb)%ix_ele)%s
+      curve%x_symb = u%model%lat%ele(d1_ptr%d(curve%ix_symb)%ix_ele)%s
     else
       call out_io (s_error$, r_name, "Unknown axis type!")
       graph%valid = .false.
@@ -644,7 +644,7 @@ do k = 1, size(graph%curve)
       enddo
     elseif (plot%x_axis_type == 's') then
       do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
-        curve%x_symb(jj) = u%model%lat%ele_(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
+        curve%x_symb(jj) = u%model%lat%ele(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
       enddo
     endif
 
@@ -709,7 +709,7 @@ do k = 1, size(graph%curve)
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
       i_min = 1
-      i_max = u%base%lat%n_ele_use
+      i_max = u%base%lat%n_ele_track
       if (plot%x%min /= plot%x%max) then
         i_min = max(i_min, floor(plot%x%min))
         i_max = min(i_max, ceiling(plot%x%max))
@@ -718,13 +718,13 @@ do k = 1, size(graph%curve)
     elseif (plot%x_axis_type == 's') then
       ! %ix_pointer has been set to the element index for displayed elements
       eps = 1e-4 * (plot%x%max - plot%x%min)             ! a small number
-      u%base%lat%ele_(:)%logic = (u%base%lat%ele_(:)%ix_pointer > 0)
+      u%base%lat%ele(:)%logic = (u%base%lat%ele(:)%ix_pointer > 0)
       if (plot%x%min /= plot%x%max) then
-        u%base%lat%ele_(:)%logic = u%base%lat%ele_(:)%logic .and. &
-                                 (u%base%lat%ele_(:)%s >= plot%x%min-eps) .and. &
-                                 (u%base%lat%ele_(:)%s <= plot%x%max+eps)
+        u%base%lat%ele(:)%logic = u%base%lat%ele(:)%logic .and. &
+                                 (u%base%lat%ele(:)%s >= plot%x%min-eps) .and. &
+                                 (u%base%lat%ele(:)%s <= plot%x%max+eps)
       endif
-      n_dat = count (u%base%lat%ele_(:)%logic)
+      n_dat = count (u%base%lat%ele(:)%logic)
     endif
 
     call re_allocate (curve%ix_symb, n_dat)
@@ -736,9 +736,9 @@ do k = 1, size(graph%curve)
       if (n_dat > 0) curve%ix_symb = (/ (i, i = i_min, i_max) /)
       curve%x_symb = curve%ix_symb
     elseif (plot%x_axis_type == 's') then
-      curve%ix_symb = pack(u%base%lat%ele_(:)%ix_pointer, &
-                                                  mask = u%base%lat%ele_(:)%logic)
-      curve%x_symb = u%model%lat%ele_(curve%ix_symb)%s
+      curve%ix_symb = pack(u%base%lat%ele(:)%ix_pointer, &
+                                                  mask = u%base%lat%ele(:)%logic)
+      curve%x_symb = u%model%lat%ele(curve%ix_symb)%s
     endif
 
     ! calculate the y-axis data point values.
@@ -776,9 +776,16 @@ do k = 1, size(graph%curve)
           call tao_evaluate_a_datum (datum, u, u%base, track_type, y_val, t_map)
         case ('design')  
           call tao_evaluate_a_datum (datum, u, u%design, track_type, y_val, t_map)
+        case ('ref', 'meas')
+          call out_io (s_error$, r_name, &
+                  'PLOT "WHO" WHICH IS: ' // graph%who(m)%name, &
+                  '    FOR DATA_TYPE: ' // curve%data_type, &
+                  '    NOT ALLOWED SINCE DATA_SOURCE IS SET TO: ' // curve%data_source)
+          graph%valid = .false.
+          return
         case default
           call out_io (s_error$, r_name, &
-                  'BAD PLOT "WHO" FOR DATA_SOURCE: ' // graph%who(m)%name, &
+                  'BAD PLOT "WHO": ' // graph%who(m)%name, &
                   '    FOR DATA_TYPE: ' // curve%data_type)
           graph%valid = .false.
           return
@@ -897,7 +904,7 @@ type (tao_curve_struct) curve
 type (bunch_params_struct), pointer :: bunch_params
 type (coord_struct), pointer :: orb(:)
 type (coord_struct), pointer :: orb0
-type (ring_struct), pointer :: lat
+type (lat_struct), pointer :: lat
 type (ele_struct) ele
 type (ele_struct), pointer :: ele0
 type (coord_struct) here
@@ -934,13 +941,13 @@ else
   track_type = s%global%track_type
 endif
 
-x1 = u%model%lat%ele_(0)%s
-x2 = u%model%lat%ele_(u%model%lat%n_ele_use)%s
+x1 = u%model%lat%ele(0)%s
+x2 = u%model%lat%ele(u%model%lat%n_ele_track)%s
 if (plot%x%min /= plot%x%max) then
-  x1 = min(u%model%lat%ele_(u%model%lat%n_ele_use)%s, max(plot%x%min, x1))
-  x2 = min(x2, max(plot%x%max, u%model%lat%ele_(0)%s))
+  x1 = min(u%model%lat%ele(u%model%lat%n_ele_track)%s, max(plot%x%min, x1))
+  x2 = min(x2, max(plot%x%max, u%model%lat%ele(0)%s))
 endif
-ele0 => lat%ele_(ix0)
+ele0 => lat%ele(ix0)
 orb0 => orb(ix0)
 s_last = ele0%s
 
@@ -954,7 +961,7 @@ if (data_type_select(1:3) == 'tt.') data_type_select = 'tt.'
 do ii = 1, size(curve%x_line)
 
   s_now = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
-  if (s_now .ge. lat%ele_(lat%n_ele_use)%s) s_now = lat%ele_(lat%n_ele_use)%s - 1e-9
+  if (s_now .ge. lat%ele(lat%n_ele_track)%s) s_now = lat%ele(lat%n_ele_track)%s - 1e-9
   curve%x_line(ii) = s_now
   value = 0
 
@@ -964,7 +971,7 @@ do ii = 1, size(curve%x_line)
   case ('beam')
     call find_nearest_bunch_params (tao_lat, s_now, bunch_params)
     call ele_at_s (lat, s_now, ix_ele)
-    ele = lat%ele_(ix_ele)
+    ele = lat%ele(ix_ele)
     here = bunch_params%centroid
   case default
     call out_io (s_fatal$, r_name, &
@@ -988,42 +995,42 @@ do ii = 1, size(curve%x_line)
   case ('orbit.p_z')
     value = here%vec(6)
   case ('phase.x')
-    value = ele%x%phi
+    value = ele%a%phi
   case ('phase.y')
-    value = ele%y%phi
+    value = ele%b%phi
   case ('beta.x', 'beta.a')
-    value = ele%x%beta
+    value = ele%a%beta
   case ('beta.y', 'beta.b')
-    value = ele%y%beta
+    value = ele%b%beta
   case ('alpha.x', 'alpha.a')
-    value = ele%x%alpha
+    value = ele%a%alpha
   case ('alpha.y', 'alpha.b')
-    value = ele%y%alpha
+    value = ele%b%alpha
   case ('eta.x')
-    value = ele%x%eta_lab
+    value = ele%a%eta_lab
   case ('eta.y')
-    value = ele%y%eta_lab
+    value = ele%b%eta_lab
   case ('etap.x')
-    value = ele%x%etap_lab
+    value = ele%a%etap_lab
   case ('etap.y')
-    value = ele%y%etap_lab
+    value = ele%b%etap_lab
   case ('eta.a')
-    value = ele%x%eta
+    value = ele%a%eta
   case ('eta.b')
-    value = ele%y%eta
+    value = ele%b%eta
   case ('etap.a')
-    value = ele%x%etap
+    value = ele%a%etap
   case ('etap.b')
-    value = ele%y%etap
+    value = ele%b%etap
   case ('floor.x')
     value = ele%floor%x
   case ('floor.y')
     value = ele%floor%y
   case ('floor.z')
     value = ele%floor%z
-  case ('beam_energy')
-    value = ele%value(beam_energy$) * (1 + here%vec(6))
-  case ('%beam_energy')
+  case ('e_tot')
+    value = ele%value(e_tot$) * (1 + here%vec(6))
+  case ('%e_tot')
     value = here%vec(6)
   case ('cbar.11')
     call c_to_cbar (ele, cbar)
@@ -1039,16 +1046,16 @@ do ii = 1, size(curve%x_line)
     value = cbar(2,2)
   case ('coupling.11b')
     call c_to_cbar (ele, cbar)
-    value = cbar(1,1) * sqrt(ele%x%beta/ele%y%beta) / ele%gamma_c
+    value = cbar(1,1) * sqrt(ele%a%beta/ele%b%beta) / ele%gamma_c
   case ('coupling.12a')
     call c_to_cbar (ele, cbar)
-    value = cbar(1,2) * sqrt(ele%y%beta/ele%x%beta) / ele%gamma_c
+    value = cbar(1,2) * sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
   case ('coupling.12b')
     call c_to_cbar (ele, cbar)
-    value = cbar(1,2) * sqrt(ele%x%beta/ele%y%beta) / ele%gamma_c
+    value = cbar(1,2) * sqrt(ele%a%beta/ele%b%beta) / ele%gamma_c
   case ('coupling.22a')
     call c_to_cbar (ele, cbar)
-    value = cbar(2,2)* sqrt(ele%y%beta/ele%x%beta) / ele%gamma_c
+    value = cbar(2,2)* sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
   case ('sigma.x')
     value = sqrt(bunch_params%sigma(s11$))
   case ('sigma.p_x')
@@ -1062,19 +1069,19 @@ do ii = 1, size(curve%x_line)
   case ('sigma.p_z')
     value = sqrt(bunch_params%sigma(s66$))
   case ('norm_emittance.x')
-    value = bunch_params%x%norm_emitt
+    value = bunch_params%a%norm_emitt
   case ('norm_emittance.y')
-    value = bunch_params%y%norm_emitt
+    value = bunch_params%b%norm_emitt
   case ('norm_emittance.z')
     value = bunch_params%z%norm_emitt
   case ('emittance.x')
-    value = bunch_params%x%norm_emitt
-    call convert_total_energy_to (ele%value(beam_energy$), &
+    value = bunch_params%a%norm_emitt
+    call convert_total_energy_to (ele%value(E_tot$), &
                                               lat%param%particle, gamma)
     value = value / gamma
   case ('emittance.y')
-    value = bunch_params%y%norm_emitt
-    call convert_total_energy_to (ele%value(beam_energy$), &
+    value = bunch_params%b%norm_emitt
+    call convert_total_energy_to (ele%value(E_tot$), &
                                               lat%param%particle, gamma)
     value = value / gamma
   case ('r.')
@@ -1107,7 +1114,7 @@ do ii = 1, size(curve%x_line)
   case ('momentum_compaction')
     call tao_mat6_calc_at_s (lat, mat6, s_last, s_now, unit_start = .false.)
     call make_v_mats (ele0, v_mat, v_inv_mat)
-    eta_vec = (/ ele0%x%eta, ele0%x%etap, ele0%y%eta, ele0%y%etap /)
+    eta_vec = (/ ele0%a%eta, ele0%a%etap, ele0%b%eta, ele0%b%etap /)
     eta_vec = matmul (v_mat, eta_vec)
     one_pz = 1 + orb0%vec(6)
     eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz

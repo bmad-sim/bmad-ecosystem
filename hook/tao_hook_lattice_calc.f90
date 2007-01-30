@@ -25,7 +25,7 @@
 !   tao_lat    -- Tao_lattice_struct: Lattice and orbit to use (i.e. model, design, etc...)
 !   used       -- Logical: is this hook being used for this universe
 !   calc_ok    -- Logical: Set False if there was an error in the 
-!                   calculation like a particle was lost or a ring is unstable.
+!                   calculation like a particle was lost or a lat is unstable.
 !-
 
 subroutine tao_hook_lattice_calc (universe, tao_lat, used, calc_ok)

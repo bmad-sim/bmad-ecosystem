@@ -229,13 +229,13 @@ subroutine tao_plot_floor_plan (plot, graph)
 
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
-type (ring_struct), pointer :: lat
+type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
-type (floor_position_struct) screen1, screen2
+type (floor_position_struct) end1, end2
 
-integer i, j, icol, ix1, ix2, isu
+integer i, j, ix_ptr, icol, ix1, ix2, isu
 
-real(rp) r, y
+real(rp) y, y1, y2, angle, theta1_perp, rho, x0, y0, dx1, dy1, dx2, dy2
 
 character(80) str
 character(20) :: r_name = 'tao_plot_lat_layout'
@@ -244,7 +244,10 @@ character(16) shape
 ! Each graph is a separate lattice layout (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
 
-call qp_set_layout (x_axis = plot%x, y_axis = graph%y, box = graph%box, margin = graph%margin)
+call qp_set_layout (x_axis = plot%x, y_axis = graph%y, &
+                    box = graph%box, margin = graph%margin)
+call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+call qp_draw_axes
   
 isu = graph%ix_universe
 ! if garph%ix_universe .eq. 0 then graph currently viewed universe
@@ -253,81 +256,126 @@ if (isu .eq. 0) then
 else
   lat => s%u(isu)%model%lat
 endif
+
+graph%x_max = -1e20
+graph%x_min =  1e20
+graph%y_max = -1e20
+graph%y_min =  1e20
   
 ! loop over all elements in the lattice. 
 
 do i = 1, lat%n_ele_max
 
-  ele => lat%ele_(i)
+  ele => lat%ele(i)
+  ix_ptr = ele%ix_pointer
+
   if (ele%control_type == multipass_lord$) cycle
   if (ele%control_type == super_slave$) cycle
+  if (i > lat%n_ele_track .and. ix_ptr < 1) cycle
 
   call find_element_ends (lat, i, ix1, ix2)
-  call floor_to_screen_coords (lat%ele_(ix1)%floor, screen1)
-  call floor_to_screen_coords (lat%ele_(ix2)%floor, screen2)
+  call floor_to_screen_coords (lat%ele(ix1)%floor, end1)
+  call floor_to_screen_coords (lat%ele(ix2)%floor, end2)
+
+  ! Record min and max
+
+  graph%x_max = max(graph%x_max, end1%x, end2%x)
+  graph%x_min = min(graph%x_min, end1%x, end2%x)
+  graph%y_max = max(graph%y_max, end1%y, end2%y)
+  graph%y_min = min(graph%y_min, end1%y, end2%y)
 
   ! Only draw those element that are within bounds.
 
-  if (min(screen1%x, screen2%x) > plot%x%max) cycle
-  if (max(screen1%x, screen2%x) < plot%x%min) cycle
+  if (min(end1%x, end2%x) > plot%x%max) cycle
+  if (max(end1%x, end2%x) < plot%x%min) cycle
 
-  if (min(screen1%y, screen2%y) > graph%y%max) cycle
-  if (max(screen1%y, screen2%y) < graph%y%min) cycle
+  if (min(end1%y, end2%y) > graph%y%max) cycle
+  if (max(end1%y, end2%y) < graph%y%min) cycle
+
+  angle = ele%value(angle$)
+  theta1_perp = end1%theta + pi / 2  ! angle of outward pointing vector
+
+  if (ele%key == sbend$) then
+    rho = ele%value(rho$)
+    if (ele%value(g$) < 0) theta1_perp = end1%theta - pi / 2
+    x0 = end1%x - rho * cos(theta1_perp)
+    y0 = end1%y - rho * sin(theta1_perp)
+  endif
 
   ! Only those elements with ele%ix_pointer > 0 are to be drawn.
-  ! All others are drawn with a line or are
+  ! All others are drawn with a line or arc
 
-  j = ele%ix_pointer
-  if (j < 1) then
+  if (ix_ptr < 1) then
+    if (ele%key == sbend$) then
+      call qp_draw_circle(x0, y0, rho, theta1_perp, -angle) 
+    else
+      call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
+    endif
     cycle
   endif
 
   ! Here if element is to be drawn...
 
-  call qp_translate_to_color_index (s%plot_page%ele_shape(j)%color, icol)
+  select case (s%plot_page%ele_shape(ix_ptr)%shape)
+  case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX')
+  case default
+    print *, 'ERROR: UNKNOWN SHAPE: ', s%plot_page%ele_shape(ix_ptr)%shape
+    call err_exit
+  end select
 
-  y = s%plot_page%ele_shape(j)%dy_pix/2
+  call qp_translate_to_color_index (s%plot_page%ele_shape(ix_ptr)%color, icol)
 
-  shape = s%plot_page%ele_shape(j)%shape
+  shape = s%plot_page%ele_shape(ix_ptr)%shape
 
+  y = s%plot_page%ele_shape(ix_ptr)%dy_pix/2
+  y1 = y
+  y2 = y
   if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
     select case (ele%key)
     case (quadrupole$)
-      r = ele%value(k1$)
+      y1 = y * ele%value(k1$)
     case (sextupole$)
-      r = ele%value(k2$)
+      y1 = y * ele%value(k2$)
     case (octupole$)
-      r = ele%value(k3$)
+      y1 = y * ele%value(k3$)
     case (solenoid$)
-      r = ele%value(ks$)
+      y1 = y * ele%value(ks$)
     end select
+    y2 = y1
+    if (shape == 'ASYM_VAR_BOX') y1 = 0
   end if
 
+  ! Draw the shape
 
+  dx1 = y1 * cos(theta1_perp)
+  dy1 = y1 * sin(theta1_perp)
+  dx2 = y2 * cos(theta1_perp-angle)
+  dy2 = y2 * sin(theta1_perp-angle)
 
-  select case (s%plot_page%ele_shape(j)%shape)
+  call qp_draw_line (end1%x+dx1, end1%x-dx2, end1%y+dy1, end1%y-dy2, color = icol)
+  call qp_draw_line (end2%x+dx1, end2%x-dx2, end2%y+dy1, end2%y-dy2, color = icol)
 
-  case ('BOX')
+  if (ele%key == sbend$) then
+    call qp_draw_circle (x0, y0, rho+y1, theta1_perp, -angle, color = icol) 
+    call qp_draw_circle (x0, y0, rho-y2, theta1_perp, -angle, color = icol) 
+  else
+    call qp_draw_line (end1%x+dx1, end2%x+dx1, end1%y+dy1, end2%y+dy1, color = icol)
+    call qp_draw_line (end1%x-dx2, end2%x-dx2, end1%y-dy2, end2%y-dy2, color = icol)
+  endif
 
-  case ('VAR_BOX')
-
-  case ('ASYM_VAR_BOX')
-
-  case ('XBOX')
-
-  case default
-    print *, 'ERROR: UNKNOWN SHAPE: ', s%plot_page%ele_shape(j)%shape
-    call err_exit
-  end select
+  if (s%plot_page%ele_shape(ix_ptr)%shape == 'XBOX') then
+    call qp_draw_line (end1%x+dx1, end2%x+dx1, end1%y+dy1, end2%y+dy1, color = icol)
+    call qp_draw_line (end1%x-dx2, end2%x-dx2, end1%y-dy2, end2%y-dy2, color = icol)
+  endif
 
 enddo
 
 !--------------------------------------------------------------------------
 contains
 
-subroutine floor_to_screen_coords (floor, screen)
+subroutine floor_to_screen_coords (floor_pt, screen_pt)
 
-type (floor_position_struct) floor, screen
+type (floor_position_struct) floor_pt, screen_pt
 
 !
 
@@ -336,9 +384,9 @@ type (floor_position_struct) floor, screen
 !    z   ->  -x
 !    x   ->  -y
 
-screen%x = -floor%z
-screen%y = -floor%x
-screen%theta = pi - floor%theta
+screen_pt%x = -floor_pt%z
+screen_pt%y = -floor_pt%x
+screen_pt%theta = pi + floor_pt%theta
 
 end subroutine
 
@@ -352,12 +400,12 @@ subroutine tao_plot_lat_layout (plot, graph)
 
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
-type (ring_struct), pointer :: lat
+type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 
-real(rp) r, x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, height
+real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, height
 
-integer i, j, k, kk, ix, ix1, ix2, isu
+integer i, j, ix_ptr, k, kk, ix, ix1, ix2, isu
 integer icol, ix_var, ixv, j_label
 
 character(80) str
@@ -408,14 +456,17 @@ j_label = 0
 
 do i = 1, lat%n_ele_max
 
-  ele => lat%ele_(i)
+  ele => lat%ele(i)
+  ix_ptr = ele%ix_pointer
+
   if (ele%control_type == multipass_lord$) cycle
   if (ele%control_type == super_slave$) cycle
+  if (i > lat%n_ele_track .and. ix_ptr < 1) cycle
 
   if (plot%x_axis_type .eq. 's') then
     call find_element_ends (lat, i, ix1, ix2)
-    x1 = lat%ele_(ix1)%s
-    x2 = lat%ele_(ix2)%s
+    x1 = lat%ele(ix1)%s
+    x2 = lat%ele(ix2)%s
   elseif (plot%x_axis_type .eq. 'index') then
     ! shouldn't be here!
     call out_io (s_error$, r_name, "Shouldn't be here!")
@@ -437,58 +488,56 @@ do i = 1, lat%n_ele_max
   ! Only those elements with ele%ix_pointer > 0 are to be drawn.
   ! All others have the zero line drawn through them.
 
-  j = ele%ix_pointer
-  if (j < 1) then
+  if (ix_ptr < 1) then
     call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
     cycle
   endif
 
   ! Here if element is to be drawn...
 
-  call qp_translate_to_color_index (s%plot_page%ele_shape(j)%color, icol)
-
-  y = s%plot_page%ele_shape(j)%dy_pix/2
-
-  shape = s%plot_page%ele_shape(j)%shape
-
-  if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
-    select case (ele%key)
-    case (quadrupole$)
-      r = ele%value(k1$)
-    case (sextupole$)
-      r = ele%value(k2$)
-    case (octupole$)
-      r = ele%value(k3$)
-    case (solenoid$)
-      r = ele%value(ks$)
-    end select
-  end if
-
-
-
-  select case (s%plot_page%ele_shape(j)%shape)
-
-  case ('BOX')
-    call qp_draw_rectangle (x1, x2,  -y, y, color = icol)
-
-  case ('VAR_BOX')
-    call qp_draw_rectangle (x1, x2,  -y*r, y*r, color = icol)
-
-  case ('ASYM_VAR_BOX')
-    call qp_draw_rectangle (x1, x2,  0.0_rp, y*r, color = icol)
-
-  case ('XBOX')
-    call qp_draw_rectangle (x1, x2,  -y, y, color = icol)
-    call qp_draw_line (x1, x2,  y, -y, color = icol)
-    call qp_draw_line (x1, x2, -y,  y, color = icol)
-
+  select case (s%plot_page%ele_shape(ix_ptr)%shape)
+  case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX')
   case default
-    print *, 'ERROR: UNKNOWN SHAPE: ', s%plot_page%ele_shape(j)%shape
+    print *, 'ERROR: UNKNOWN SHAPE: ', s%plot_page%ele_shape(ix_ptr)%shape
     call err_exit
   end select
 
+  call qp_translate_to_color_index (s%plot_page%ele_shape(ix_ptr)%color, icol)
+
+  shape = s%plot_page%ele_shape(ix_ptr)%shape
+
+  ! r1 and r2 are the scale factors for the lines below and above the center line.
+
+  y = s%plot_page%ele_shape(ix_ptr)%dy_pix/2
+  y1 = y
+  y2 = y
+  if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
+    select case (ele%key)
+    case (quadrupole$)
+      y1 = y * ele%value(k1$)
+    case (sextupole$)
+      y1 = y * ele%value(k2$)
+    case (octupole$)
+      y1 = y * ele%value(k3$)
+    case (solenoid$)
+      y1 = y * ele%value(ks$)
+    end select
+    y2 = y1
+    if (shape == 'ASYM_VAR_BOX') y1 = 0
+  end if
+
+  ! Draw the shape
+
+  call qp_draw_rectangle (x1, x2,  -y1, y2, color = icol)
+
+  if (s%plot_page%ele_shape(ix_ptr)%shape == 'XBOX') then
+    call qp_draw_line (x1, x2,  y2, -y1, color = icol)
+    call qp_draw_line (x1, x2, -y1,  y2, color = icol)
+  endif
+
+  ! Put on a label
   
-  if (s%global%label_lattice_elements .and. s%plot_page%ele_shape(j)%plot_name) then
+  if (s%global%label_lattice_elements .and. s%plot_page%ele_shape(ix_ptr)%draw_name) then
     j_label = j_label + 1
     if (j_label == s%global%n_lat_layout_label_rows) j_label = 0
     y_off = y_bottom   ! + 12.0_rp * j_label 
@@ -513,15 +562,15 @@ if (s%global%label_keys) then
       ix = s%var(ix_var)%this(ixv)%ix_ele
       kk = mod(k - s%global%ix_key_bank, 10)
       write (str, '(i1)') kk
-      if (ix > lat%n_ele_use) then
-        do j = lat%ele_(ix)%ix1_slave, lat%ele_(ix)%ix2_slave
-          ix1 = lat%control_(j)%ix_slave
-          s_pos = lat%ele_(ix1)%s - lat%ele_(ix1)%value(l$)/2
+      if (ix > lat%n_ele_track) then
+        do j = lat%ele(ix)%ix1_slave, lat%ele(ix)%ix2_slave
+          ix1 = lat%control(j)%ix_slave
+          s_pos = lat%ele(ix1)%s - lat%ele(ix1)%value(l$)/2
           call qp_draw_text (trim(str), s_pos, y_top, &
                               justify = 'CT', height = 10.0_rp)  
         enddo
       else
-        s_pos = lat%ele_(ix)%s - lat%ele_(ix)%value(l$)/2
+        s_pos = lat%ele(ix)%s - lat%ele(ix)%value(l$)/2
         call qp_draw_text (trim(str), s_pos, y_top, &
                                 justify = 'CT', height = 10.0_rp)  
       endif

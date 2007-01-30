@@ -102,6 +102,7 @@ end subroutine
 subroutine tao_x_scale_plot (plot, x_min, x_max, force)
 
 type (tao_plot_struct), target :: plot
+type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 integer j, k, n, p1, p2, iu, ix
 real(rp) x_min, x_max
@@ -124,18 +125,24 @@ if (x_max == x_min) then
   x2 = -1e20
   curve_here = .false.
   do j = 1, size(plot%graph)
-    if (plot%graph(j)%type == 'key_table') cycle
-    if (plot%x_axis_type == 's') then
-      iu = plot%graph(j)%ix_universe
+    graph => plot%graph(j)
+    if (graph%type == 'key_table') then
+      cycle
+    else if (graph%type == 'floor_plan') then
+      x1 = min(x1, graph%x_min)
+      x2 = max(x2, graph%x_max)
+      curve_here = .true.
+    else if (plot%x_axis_type == 's') then
+      iu = graph%ix_universe
       if (iu == 0) iu = s%global%u_view
-      x1 = min (x1, s%u(iu)%model%lat%ele_(0)%s)
-      ix = s%u(iu)%model%lat%n_ele_use
-      x2 = max (x2, s%u(iu)%model%lat%ele_(ix)%s)
+      x1 = min (x1, s%u(iu)%model%lat%ele(0)%s)
+      ix = s%u(iu)%model%lat%n_ele_track
+      x2 = max (x2, s%u(iu)%model%lat%ele(ix)%s)
       curve_here = .true.
     else
-      if (.not. allocated(plot%graph(j)%curve)) cycle
-      do k = 1, size(plot%graph(j)%curve)
-        curve => plot%graph(j)%curve(k)
+      if (.not. allocated(graph%curve)) cycle
+      do k = 1, size(graph%curve)
+        curve => graph%curve(k)
         if (allocated (curve%x_symb)) then
           curve_here = .true.
           x1 = min (x1, minval(curve%x_symb(:)))

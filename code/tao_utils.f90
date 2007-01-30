@@ -307,14 +307,14 @@ character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
 
   ! locate attribute
 
-  call pointer_to_attribute (u%model%lat%ele_(ie), var%attrib_name, .true., &
+  call pointer_to_attribute (u%model%lat%ele(ie), var%attrib_name, .true., &
                                                                  this%model_ptr, error)
   if (error) then
     if (present(err)) return
     call err_exit
   endif
 
-  call pointer_to_attribute (u%base%lat%ele_(ie),  var%attrib_name, .true., &
+  call pointer_to_attribute (u%base%lat%ele(ie),  var%attrib_name, .true., &
                                                                  this%base_ptr,  error)
 
   if (present(err)) err = .false.
@@ -338,7 +338,7 @@ subroutine tao_locate_elements (var, ix_u, n_ele)
 implicit none
 
 type (tao_var_struct) var
-type (ring_struct), pointer :: lat
+type (lat_struct), pointer :: lat
 
 integer ix_u, n_ele, iv
 
@@ -348,9 +348,9 @@ lat => s%u(ix_u)%model%lat
 
 n_ele = 0
 do iv = 0, lat%n_ele_max
-  if (var%ele_name == lat%ele_(iv)%name) then
+  if (var%ele_name == lat%ele(iv)%name) then
     n_ele = n_ele + 1
-    lat%ele_(n_ele)%ixx = iv
+    lat%ele(n_ele)%ixx = iv
   endif
 enddo
 
@@ -422,7 +422,13 @@ end subroutine
 ! Routine to find a plot using the region or plot name.
 ! A region or plot name is something like: name = "top"
 ! A graph name is something like: name  = "top.x"
-! A curve name is something like: name  = "top.x.1"
+! A curve name is something like: name  = "top.x.c1"
+! The wild car "*" can be used so name = "top.*.c1" could 
+!   return "top.x.c1" and "top.y.c1".
+! The graph(:) array will only be allocated if the graph portion of name is not blank.
+!   For example: name = "top" will leave graph(:) unallocated.
+! The curve(:) array will only be allocated if the curve portion of name is not blank.
+!   For example: name = "top.x" will leave curve(:) unallocated.
 !
 ! Input:
 !   name       -- Character(*): Name of plot or region.
@@ -503,7 +509,7 @@ else
   graph_name = name(ix+1:)
 endif
 
-! Match name to region or plot
+! Match name to region or plot and count how many there are.
 
 np = 0
 
@@ -532,6 +538,8 @@ endif
 allocate (p(np))
 if (present(plot)) allocate(plot(np))
 
+! Now that we have counted and allocated the matches set the plot pointers.
+
 np = 0
 
 if (where == 'REGION' .or. where == 'BOTH') then
@@ -558,7 +566,7 @@ endif
 
 if (present(plot)) plot = p
 
-! Find graphs
+! Find the number of graphs and allocate.
 
 ix = index(graph_name, '.')
 if (ix == 0) then
@@ -587,6 +595,8 @@ endif
 allocate (g(ng))
 if (present(graph)) allocate (graph(ng))
 
+! Now that we have counted and allocated the matches set the graph pointers
+
 ng = 0
 do i = 1, np
   do j = 1, size(p(i)%p%graph)
@@ -599,7 +609,7 @@ enddo
 
 if (present(graph)) graph = g
 
-! Find curves
+! Find number of curves that match
 
 if (curve_name == ' ') return
 
@@ -619,6 +629,8 @@ endif
 
 allocate (c(nc))
 if (present(curve)) allocate (curve(nc))
+
+! Now that we have counted and allocated the matches set the curve pointers
 
 nc = 0
 do j = 1, np
@@ -1531,7 +1543,8 @@ subroutine tao_set_var_model_value (var, value)
 
 implicit none
 
-type (tao_var_struct) var
+type (tao_var_struct), target :: var
+type (tao_this_var_struct), pointer :: t
 
 real(rp) value
 integer i
@@ -1553,7 +1566,9 @@ endif
 
 var%model_value = value
 do i = 1, size(var%this)
-  var%this(i)%model_ptr = value
+  t => var%this(i)
+  t%model_ptr = value
+  call changed_attribute_bookkeeper (s%u(t%ix_uni)%model%lat, t%ix_ele, t%model_ptr)
 enddo
 
 s%global%lattice_recalc = .true.
@@ -1608,7 +1623,7 @@ end subroutine tao_count_strings
 !  tao_lat      -- tao_lattice_struct
 !
 ! Output:
-!  tao_lat      -- ring_struct
+!  tao_lat      -- lat_struct
 !-
 
 subroutine tao_lat_bookkeeper (u, tao_lat)
@@ -1685,7 +1700,7 @@ type (eval_stack_struct) stk(200)
 integer i_lev, i_op, i, ios, n, n_size, p2, p2_1
 integer ptr(-1:200)
 
-integer op_(200), ix_word, i_delim, i2, ix, ix_word2, ixb
+integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
 
 real(rp), allocatable :: value(:)
 
@@ -1725,7 +1740,7 @@ endif
 
 ! The stack is called: stk
 ! Since operations move towards the end of the stack we need a separate
-! stack called op_ which keeps track of what operations have not yet
+! stack called op which keeps track of what operations have not yet
 ! been put on stk.
 
 ! init
@@ -1847,30 +1862,30 @@ parsing_loop: do
       call str_upcase (word2, word)
       select case (word2)
       case ('SIN') 
-        call pushit (op_, i_op, sin$)
+        call pushit (op, i_op, sin$)
       case ('COS') 
-        call pushit (op_, i_op, cos$)
+        call pushit (op, i_op, cos$)
       case ('TAN') 
-        call pushit (op_, i_op, tan$)
+        call pushit (op, i_op, tan$)
       case ('ASIN') 
-        call pushit (op_, i_op, asin$)
+        call pushit (op, i_op, asin$)
       case ('ACOS') 
-        call pushit (op_, i_op, acos$)
+        call pushit (op, i_op, acos$)
       case ('ATAN') 
-        call pushit (op_, i_op, atan$)
+        call pushit (op, i_op, atan$)
       case ('ABS') 
-        call pushit (op_, i_op, abs$)
+        call pushit (op, i_op, abs$)
       case ('SQRT') 
-        call pushit (op_, i_op, sqrt$)
+        call pushit (op, i_op, sqrt$)
       case ('LOG') 
-        call pushit (op_, i_op, log$)
+        call pushit (op, i_op, log$)
       case ('EXP') 
-        call pushit (op_, i_op, exp$)
+        call pushit (op, i_op, exp$)
       case ('RAN') 
-        call pushit (op_, i_op, ran$)
+        call pushit (op, i_op, ran$)
         ran_function_pending = .true.
       case ('RAN_GAUSS') 
-        call pushit (op_, i_op, ran_gauss$)
+        call pushit (op, i_op, ran_gauss$)
         ran_function_pending = .true.
       case default
         call out_io (s_warn$, r_name, &
@@ -1880,18 +1895,18 @@ parsing_loop: do
       end select
     endif
 
-    call pushit (op_, i_op, l_parens$)
+    call pushit (op, i_op, l_parens$)
     cycle parsing_loop
 
 ! for a unary "-"
 
   elseif (delim == '-' .and. ix_word == 0) then
-    call pushit (op_, i_op, unary_minus$)
+    call pushit (op, i_op, unary_minus$)
     cycle parsing_loop
 
 ! for a unary "+"
 
-    call pushit (op_, i_op, unary_plus$)
+    call pushit (op, i_op, unary_plus$)
     cycle parsing_loop
 
 ! for a ")" delim
@@ -1910,8 +1925,8 @@ parsing_loop: do
 
     do
       do i = i_op, 1, -1     ! release pending ops
-        if (op_(i) == l_parens$) exit          ! break do loop
-        call pushit (stk%type, i_lev, op_(i))
+        if (op(i) == l_parens$) exit          ! break do loop
+        call pushit (stk%type, i_lev, op(i))
       enddo
 
       if (i == 0) then
@@ -1978,29 +1993,29 @@ parsing_loop: do
       call err_exit
   end select
 
-! now see if there are operations on the OP_ stack that need to be transferred
-! to the STK_ stack
+! now see if there are operations on the OP stack that need to be transferred
+! to the STK stack
 
   do i = i_op, 1, -1
-    if (eval_level(op_(i)) >= eval_level(i_delim)) then
-      if (op_(i) == l_parens$) then
+    if (eval_level(op(i)) >= eval_level(i_delim)) then
+      if (op(i) == l_parens$) then
         call out_io (s_warn$, r_name, 'UNMATCHED "("')
         err_flag = .true.
         return
       endif
-      call pushit (stk%type, i_lev, op_(i))
+      call pushit (stk%type, i_lev, op(i))
     else
       exit
     endif
   enddo
 
-! put the pending operation on the OP_ stack
+! put the pending operation on the OP stack
 
   i_op = i
   if (i_delim == no_delim$) then
     exit parsing_loop
   else
-    call pushit (op_, i_op, i_delim)
+    call pushit (op, i_op, i_delim)
   endif
 
 enddo parsing_loop

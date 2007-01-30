@@ -221,7 +221,7 @@ do i = 1, size(d_ptr)
      
   new_value = m_ptr(i)%r
 
-  call changed_attribute_bookkeeper (u%model%lat, m_ptr(i)%r)
+  call changed_attribute_bookkeeper (u%model%lat, ix_ele(i), m_ptr(i)%r)
 
 enddo
 

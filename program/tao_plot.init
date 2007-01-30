@@ -17,6 +17,12 @@ the plot page) is broken up.
 /
 
 
+&element_shapes
+  shape(1) = 'LCavity'     '*'    'XBox'      'Red'    40  F
+  shape(2) = 'Quadrupole'  '*'    'XBox'  'Magenta'    30  T
+  shape(3) = 'SBend'       '*'     'Box'     'Blue'    15  F
+/
+
 !----------------------------------------------------------------
 Templates define the basics of, say, how to display an orbit.
 
@@ -288,3 +294,24 @@ Templates define the basics of, say, how to display an orbit.
   curve(1)%data_type = 'quad_k1'
   curve(1)%y_axis_scale_factor = 1
 /
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'floor'
+  plot%x%min =  -200
+  plot%x%max = 200
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'this'
+	graph%type = 'floor_plan'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Floor Plan'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%max =  300
+  graph%y%min = -100
+/
+
