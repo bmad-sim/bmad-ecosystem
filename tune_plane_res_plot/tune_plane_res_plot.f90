@@ -57,6 +57,6 @@ program tune_plane_res_plot
   call res_line_plot ('X', param, res)
 
   write (*, '(a)', advance = 'NO') ' Hit any key to end program: '
-  accept '(a)', ans
+  read (*, '(a)') ans
 
 end program
