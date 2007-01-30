@@ -17,6 +17,12 @@
 ! $Id$
 !
 ! $Log$
+! Revision 1.6  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.5.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
 ! Revision 1.5  2005/09/21 20:59:07  dcs
 ! more changes to get around compiler bug.
 !
@@ -41,9 +47,9 @@ module bsim_interface
   
   interface
      subroutine close_pretzel(ring,i_dim,final_pos_in, final_pos_out)
-       use bmad_struct, only: ring_struct, coord_struct
+       use bmad_struct, only: lat_struct, coord_struct
        implicit none
-       type (ring_struct), intent(inout) :: ring
+       type (lat_struct), intent(inout) :: ring
        type (coord_struct), optional, intent(in) :: final_pos_in
        type (coord_struct), optional, intent(out) :: final_pos_out
        integer, intent(in) :: i_dim
@@ -52,9 +58,9 @@ module bsim_interface
   
   interface
      subroutine close_vertical(ring,i_dim,final_pos_in, final_pos_out)
-       use bmad_struct, only: ring_struct, coord_struct
+       use bmad_struct, only: lat_struct, coord_struct
        implicit none
-       type(ring_struct), intent(inout) :: ring
+       type(lat_struct), intent(inout) :: ring
        type(coord_struct), optional, intent(in) :: final_pos_in
        type(coord_struct), optional, intent(out) :: final_pos_out
        integer, intent(in) :: i_dim
@@ -86,11 +92,11 @@ module bsim_interface
   end interface
   
   interface
-     subroutine gaussian_dist (ele, mode, coupling, min_sig, coord_)
-       use bmad_struct, only: modes_struct, coord_struct, ele_struct, rp
+     subroutine gaussian_dist (ele, mode, coupling, min_sig, coord)
+       use bmad_struct, only: normal_modes_struct, coord_struct, ele_struct, rp
        implicit none
-       type (modes_struct) mode
-       type (coord_struct), allocatable :: coord_(:)
+       type (normal_modes_struct) mode
+       type (coord_struct), allocatable :: coord(:)
        type (ele_struct) ele
        real(rp) min_sig
        real(rp) coupling
@@ -98,10 +104,10 @@ module bsim_interface
   end interface
   
   interface
-     subroutine histogram (ele, coord_, in_file, sig,a_out)
+     subroutine histogram (ele, coord, in_file, sig,a_out)
        use bmad_struct, only: coord_struct, ele_struct, rp
        implicit none
-       type (coord_struct) coord_(:)
+       type (coord_struct) coord(:)
        type (ele_struct) ele
        real(rp) sig(3), a_out(3)
        character(*) in_file
@@ -109,10 +115,10 @@ module bsim_interface
   end interface
   
   interface
-     subroutine histogram_new (ele, coord_, in_file, sig)
+     subroutine histogram_new (ele, coord, in_file, sig)
        use bmad_struct, only: coord_struct, ele_struct, rp
        implicit none
-       type (coord_struct) coord_(:)
+       type (coord_struct) coord(:)
        type (ele_struct) ele
        real(rp) sig(3)
        character*60 in_file
@@ -120,12 +126,12 @@ module bsim_interface
   end interface
   
   interface
-     subroutine luminosity_calc (ele, coord_, param, n_ok, lum)
-       use bmad_struct, only: ele_struct, coord_struct, param_struct, rp
+     subroutine luminosity_calc (ele, coord, param, n_ok, lum)
+       use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, rp
        implicit none
        type(ele_struct) ele
-       type(coord_struct), allocatable :: coord_(:)
-       type(param_struct) param
+       type(coord_struct), allocatable :: coord(:)
+       type(lat_param_struct) param
        real(rp) lum, f
        integer n_ok
      end subroutine luminosity_calc
@@ -133,21 +139,21 @@ module bsim_interface
   
   interface
      subroutine lum_tracker(ring,n_part, start, end)
-       use bmad_struct, only: ring_struct, coord_struct
+       use bmad_struct, only: lat_struct, coord_struct
        implicit none
-       type(ring_struct) ring
+       type(lat_struct) ring
        type(coord_struct) start(:),end(:)
-       type(coord_struct), allocatable, save :: co_(:)
+       type(coord_struct), allocatable, save :: co(:)
        integer n_part, i, j
      end subroutine lum_tracker
   end interface
   
   interface
      subroutine MARK_LRBBI_ONLY(master_ring, master_ring_oppos, ring, crossings)
-       use bmad_struct, only: ring_struct, rp
+       use bmad_struct, only: lat_struct, rp
        implicit none
-       type (ring_struct), dimension(:) :: ring
-       type (ring_struct) :: master_ring, master_ring_oppos
+       type (lat_struct), dimension(:) :: ring
+       type (lat_struct) :: master_ring, master_ring_oppos
        real(rp), dimension(:,:) :: crossings
      end subroutine MARK_LRBBI_ONLY
   end interface

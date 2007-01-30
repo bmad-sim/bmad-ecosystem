@@ -17,6 +17,12 @@
 ! $Id$
 !
 ! $Log$
+! Revision 1.3  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.2.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
 ! Revision 1.2  2005/09/21 20:59:07  dcs
 ! more changes to get around compiler bug.
 !
@@ -37,7 +43,7 @@ module beambeam_interface
 
 contains
 
-subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, phi_x, phi_y, past_params, past_lums, parameters)
+subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb, phi_x, phi_y, past_params, past_lums, parameters)
 
   use bmad_struct
   use bmad_interface
@@ -48,10 +54,10 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, p
   
   implicit none
 
-  type(ring_struct) ring
+  type(lat_struct) ring
   type(coord_struct) end(:)
   type(scan_params_struct) scan_params
-  type(coord_struct) orb_(0:)
+  type(coord_struct) orb(0:)
   
   logical, dimension(2) :: transmit
   
@@ -74,11 +80,11 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, p
   character*80 params_file, times_file, turns_file, ends_file, dist_file, final_pos_file, in_file
   character*20 wordx, wordy
   type(coord_struct) :: final_pos_out
-  type (coord_struct), allocatable, save ::  end_coord_(:)
+  type (coord_struct), allocatable, save ::  end_coord(:)
 
   real(rdef) x_offset, y_offset
 
-  call reallocate_coord(end_coord_, scan_params%n_part)
+  call reallocate_coord(end_coord, scan_params%n_part)
   param_mean(:) = 0.0
 
   damping = scan_params%damping
@@ -100,12 +106,12 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, p
      do i = 1, scan_params%n_part
         if(end(i)%vec(1) == 999.)cycle
         n_ok = n_ok +1
-        x_offset = orb_(0)%vec(2) * end(i)%vec(5)
-        y_offset = orb_(0)%vec(4) * end(i)%vec(5)
-        co_%vec(:) = end(i)%vec(:) - orb_(0)%vec(:)
+        x_offset = orb(0)%vec(2) * end(i)%vec(5)
+        y_offset = orb(0)%vec(4) * end(i)%vec(5)
+        co_%vec(:) = end(i)%vec(:) - orb(0)%vec(:)
         co_%vec(1) = co_%vec(1) - x_offset
         co_%vec(3) = co_%vec(3) - y_offset
-        end_coord_(n_ok) = co_
+        end_coord(n_ok) = co_
      enddo
      type *,' Finished tracking particle ',n_ok,'  of', scan_params%n_part
 
@@ -119,22 +125,22 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, p
 !        d_unit = lunget()
 !        open(unit=d_unit,file=dist_file)
 !        do i=1,scan_params%n_part_out
-!           write(d_unit,'(6e12.4)')end_coord_(i)%vec(:)
+!           write(d_unit,'(6e12.4)')end_coord(i)%vec(:)
 !        end do
 !        close(d_unit)
 !     end if
 !     
      open(unit=18,file="dist.calc")
      do i=1,n_ok
-        write(18,'(6e12.4)')end_coord_(i)%vec(:)
+        write(18,'(6e12.4)')end_coord(i)%vec(:)
      end do
      close(18)
 
      if(sib_j*n_typeout == scan_params%n_turn)then
         call file_suffixer (scan_params%file_name, in_file, '.end', .true.)
-        call histogram(ring%ele_(0),end_coord_(1:n_ok), in_file, scan_params%sig_out,A)
+        call histogram(ring%ele(0),end_coord(1:n_ok), in_file, scan_params%sig_out,A)
      else
-        call histogram(ring%ele_(0),end_coord_(1:n_ok), 'junk', scan_params%sig_out,A)
+        call histogram(ring%ele(0),end_coord(1:n_ok), 'junk', scan_params%sig_out,A)
      endif
      variances(:)=scan_params%sig_out(:)
 
@@ -147,7 +153,7 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, p
      write(g_unit,'(i8,2x)',advance='no') sib_j*n_typeout
      close(g_unit)
 
-     call gfit3D(end_coord_(1:n_ok),parameters)
+     call gfit3D(end_coord(1:n_ok),parameters)
 
 !     write(g_unit,'(1x)')
      close(g_unit)
@@ -186,8 +192,8 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, p
      p_unit=lunget()
      call file_suffixer (scan_params%file_name, params_file, '.params', .true.)
      open(unit=p_unit, file=params_file,access="append")
-     write(p_unit,'(i6,e12.4,e12.4,e12.4,3e12.4,3e12.4,3e12.4)') sib_j*n_typeout,ring%ele_(1)%value(sig_x$), &
-          ring%ele_(1)%value(sig_y$), ring%ele_(1)%value(sig_z$), variances(1:3), parameters(3,1:3), param_mean(1:3)
+     write(p_unit,'(i6,e12.4,e12.4,e12.4,3e12.4,3e12.4,3e12.4)') sib_j*n_typeout,ring%ele(1)%value(sig_x$), &
+          ring%ele(1)%value(sig_y$), ring%ele(1)%value(sig_z$), variances(1:3), parameters(3,1:3), param_mean(1:3)
      close(p_unit)
      
      ! we adjust the size of the strong beam to match the weak beam 
@@ -196,35 +202,35 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, p
         ! only start adjusting strong beam after a few damping periods
         if(sib_j*n_typeout > damping) then
            
-           if( 1.2*ring%ele_(1)%value(sig_x$) .lt. param_mean(1) ) then
-              ring%ele_(1)%value(sig_x$) = ring%ele_(1)%value(sig_x$) + 0.5*ABS( param_mean(1)-ring%ele_(1)%value(sig_x$) )
+           if( 1.2*ring%ele(1)%value(sig_x$) .lt. param_mean(1) ) then
+              ring%ele(1)%value(sig_x$) = ring%ele(1)%value(sig_x$) + 0.5*ABS( param_mean(1)-ring%ele(1)%value(sig_x$) )
               print *,"Strong Beam x Adjustment"
               transmit(2)=.true.
            end if
-           if( 0.8*ring%ele_(1)%value(sig_x$) .gt. param_mean(1) ) then
-              ring%ele_(1)%value(sig_x$) = ring%ele_(1)%value(sig_x$) - 0.5*ABS( param_mean(1)-ring%ele_(1)%value(sig_x$) )
+           if( 0.8*ring%ele(1)%value(sig_x$) .gt. param_mean(1) ) then
+              ring%ele(1)%value(sig_x$) = ring%ele(1)%value(sig_x$) - 0.5*ABS( param_mean(1)-ring%ele(1)%value(sig_x$) )
               print *,"Strong Beam x Adjustment"
               transmit(2)=.true.
            end if
            
-           if( 1.2*ring%ele_(1)%value(sig_y$) .lt. param_mean(2) ) then
-              ring%ele_(1)%value(sig_y$) = ring%ele_(1)%value(sig_y$) + 0.5*ABS( param_mean(2)-ring%ele_(1)%value(sig_y$) )
+           if( 1.2*ring%ele(1)%value(sig_y$) .lt. param_mean(2) ) then
+              ring%ele(1)%value(sig_y$) = ring%ele(1)%value(sig_y$) + 0.5*ABS( param_mean(2)-ring%ele(1)%value(sig_y$) )
               print *,"Strong Beam y Adjustment"
               transmit(2)=.true.
            end if
-           if( 0.8*ring%ele_(1)%value(sig_y$) .gt. param_mean(2) ) then
-              ring%ele_(1)%value(sig_y$) = ring%ele_(1)%value(sig_y$) - 0.5*ABS( param_mean(2)-ring%ele_(1)%value(sig_y$) )
+           if( 0.8*ring%ele(1)%value(sig_y$) .gt. param_mean(2) ) then
+              ring%ele(1)%value(sig_y$) = ring%ele(1)%value(sig_y$) - 0.5*ABS( param_mean(2)-ring%ele(1)%value(sig_y$) )
               print *,"Strong Beam y Adjustment"
               transmit(2)=.true.
            end if
            
-           if( 1.2*ring%ele_(1)%value(sig_z$) .lt. param_mean(3) ) then
-              ring%ele_(1)%value(sig_z$) = ring%ele_(1)%value(sig_z$) + 0.5*ABS( param_mean(3)-ring%ele_(1)%value(sig_z$) )
+           if( 1.2*ring%ele(1)%value(sig_z$) .lt. param_mean(3) ) then
+              ring%ele(1)%value(sig_z$) = ring%ele(1)%value(sig_z$) + 0.5*ABS( param_mean(3)-ring%ele(1)%value(sig_z$) )
               print *,"Strong Beam z Adjustment"
               transmit(2)=.true.
            end if
-           if( 0.8*ring%ele_(1)%value(sig_z$) .gt. param_mean(3) ) then
-              ring%ele_(1)%value(sig_z$) = ring%ele_(1)%value(sig_z$) - 0.5*ABS( param_mean(3)-ring%ele_(1)%value(sig_z$) )
+           if( 0.8*ring%ele(1)%value(sig_z$) .gt. param_mean(3) ) then
+              ring%ele(1)%value(sig_z$) = ring%ele(1)%value(sig_z$) - 0.5*ABS( param_mean(3)-ring%ele(1)%value(sig_z$) )
               print *,"Strong Beam z Adjustment"
               transmit(2)=.true.
            end if
@@ -249,16 +255,16 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, p
      
      if(sib_j*n_typeout.eq.scan_params%n_turn) transmit(1)=.false.
      
-     if(ring%ele_(1)%key == beambeam$)call luminosity_calc (ring%ele_(1), &
-          end_coord_, ring%param, n_ok, &
+     if(ring%ele(1)%key == beambeam$)call luminosity_calc (ring%ele(1), &
+          end_coord, ring%param, n_ok, &
           scan_params%lum)
      t_unit=lunget()
      call file_suffixer (scan_params%file_name, turns_file, '.turns', .true.)
      open(unit=t_unit, file= turns_file, status='unknown',access='append')
      write(t_unit,'(2f10.5,2x,2f10.5,3e12.4,2x,3e12.4,2x,i6,2x,e12.4,2x,i5,2x,e12.4,2x,i5)')phi_x/twopi-10, phi_y/twopi-9, &
-          ring%x%tune/twopi, ring%y%tune/twopi, &
-          ring%ele_(1)%value(sig_x$), &
-          ring%ele_(1)%value(sig_y$), ring%ele_(1)%value(sig_z$), &
+          ring%a%tune/twopi, ring%b%tune/twopi, &
+          ring%ele(1)%value(sig_x$), &
+          ring%ele(1)%value(sig_y$), ring%ele(1)%value(sig_z$), &
           scan_params%sig_out(1:3), n_typeout*sib_j, scan_params%lum, scan_params%n_part_out, scan_params%current,scan_params%n_cars
      close(unit=t_unit)
      
@@ -299,10 +305,10 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, p
         call file_suffixer (scan_params%file_name, ends_file, '.ends', .true.)
         open(e_unit, file=ends_file,access='append')
         write(e_unit,'(I7,2x,4f10.5,2e12.4,2x,2e12.4,2x,i5,2x,e10.3,3e12.4,2x,i3,3e12.4)') scan_params%n_turn, &
-             phi_x/twopi-10, phi_y/twopi-9, ring%x%tune/twopi, ring%y%tune/twopi, &
-             ring%ele_(1)%value(sig_x$), ring%ele_(1)%value(sig_y$), &
+             phi_x/twopi-10, phi_y/twopi-9, ring%a%tune/twopi, ring%b%tune/twopi, &
+             ring%ele(1)%value(sig_x$), ring%ele(1)%value(sig_y$), &
              scan_params%sig_out(1:2), scan_params%n_part_out, scan_params%current, mean_lum, mean_lum+dev_lum, mean_lum-dev_lum, &
-             scan_params%n_cars, ring%ele_(0)%y%alpha
+             scan_params%n_cars, ring%ele(0)%b%alpha
         close(e_unit)
      end if
 !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

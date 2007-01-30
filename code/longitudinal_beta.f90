@@ -19,8 +19,14 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.1.1.1.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -33,8 +39,8 @@
 
   implicit none
 
-  type (ring_struct) ring
-  type (modes_struct) mode
+  type (lat_struct) ring
+  type (normal_modes_struct) mode
 
   real(rdef) z_emit
   real(rdef) a(6,6)
@@ -43,7 +49,7 @@
 ! compute beta, alpha in longitudinal phase space
 
    z_emit = mode%sig_z * mode%sige_e 
-   ring%ele_(0)%z%beta = mode%sig_z**2/z_emit
+   ring%ele(0)%z%beta = mode%sig_z**2/z_emit
 
 ! to get alpha as well as beta 
 
@@ -55,12 +61,12 @@
   mu = acos(cosmu)
   sinmu = sin(mu)
   beta_z = abs(a(5,6)/sinmu)
-  ring%ele_(0)%z%alpha = -0.5*(a(5,5)-a(6,6))
-  ring%ele_(0)%z%gamma = (1+ring%ele_(0)%z%alpha**2)/beta_z
+  ring%ele(0)%z%alpha = -0.5*(a(5,5)-a(6,6))
+  ring%ele(0)%z%gamma = (1+ring%ele(0)%z%alpha**2)/beta_z
 
-  if(abs(beta_z-ring%ele_(0)%z%beta)/beta_z > 0.1)then
+  if(abs(beta_z-ring%ele(0)%z%beta)/beta_z > 0.1)then
     type *,' longitudinal beta: beta_z = ',beta_z,'   delta_beta_z = ', &
-            beta_z-ring%ele_(0)%z%beta
+            beta_z-ring%ele(0)%z%beta
   endif
 
   return

@@ -16,14 +16,11 @@
 !-
 !........................................................................
 !
-! $Id$
 !
 ! $Log$
-! Revision 1.2  2007/01/22 22:54:12  dlr
-! use scan params and add inputs
+! Revision 1.3  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
 !
-! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
-! Beam Simulation Code
 !
 !
 !........................................................................
@@ -42,10 +39,10 @@
 
   implicit none
 
-  type (ring_struct) ring, ring_in
-  type (coord_struct), allocatable :: co_(:), orb_(:), data_(:)
+  type (lat_struct) ring, ring_in
+  type (coord_struct), allocatable :: co(:), orbit(:), data(:)
   type (coord_struct) start_coord, orb
-  type (modes_struct) mode
+  type (normal_modes_struct) mode
   type (scan_params_struct) scan_params
 
   integer i, j, k, isign, r, s, g
@@ -137,8 +134,8 @@
 
    call bmad_parser (lat_file, ring)
 
-   call reallocate_coord(orb_, ring%n_ele_max)
-   call reallocate_coord(co_, ring%n_ele_max)
+   call reallocate_coord(orbit, ring%n_ele_max)
+   call reallocate_coord(co, ring%n_ele_max)
 
 ! in the next do loop, tune lattice parameters
 
@@ -173,18 +170,18 @@
   ring%param%particle = particle
 
   call twiss_at_start(ring)
-  co_(0)%vec = 0.
-  call closed_orbit_at_start(ring, co_(0), 4, .true.)
-  call track_all (ring, co_)
-  call ring_make_mat6(ring,-1,co_)
+  co(0)%vec = 0.
+  call closed_orbit_at_start(ring, co(0), 4, .true.)
+  call track_all (ring, co)
+  call lat_make_mat6(ring,-1,co)
 
 
   call twiss_at_start(ring)
   call twiss_propagate_all (ring)
   type *
   type *,' FREQ_MAP: Before parasitic added '
-  type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
-  type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+  type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
 
   if(lrbbi)then
@@ -193,52 +190,52 @@
   endif
    
   call twiss_at_start(ring)
-  co_(0)%vec = 0.
-  call closed_orbit_at_start(ring, co_(0), 4, .true.)
+  co(0)%vec = 0.
+  call closed_orbit_at_start(ring, co(0), 4, .true.)
 
   type *
   type *,' FREQ_MAP: After parasitic added '
-  type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
-  type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+  type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
   
   ring%z%tune = Qz * twopi
   if(beambeam_ip)call beambeam_setup(ring, particle, current, scan_params, slices)
 
   call twiss_at_start(ring)
-  co_(0)%vec = 0.
-  call closed_orbit_at_start(ring, co_(0), 4, .true.)
+  co(0)%vec = 0.
+  call closed_orbit_at_start(ring, co(0), 4, .true.)
 
   type *
   type *,' FREQ_MAP: After beambeam added '
-  type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
-  type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+  type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
 
   if(close_pretz)call close_pretzel (ring, 6)
 !  if(close_vert)call close_vertical(ring)
 
-  forall( i=1:ring%n_ele_use) orb_(i)%vec = 0.
+  forall( i=1:ring%n_ele_track) orbit(i)%vec = 0.
 
   call twiss_at_start(ring)
 
    type *
    type *,' After CLOSE PRETZEL ' 
-  type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
-  call closed_orbit_at_start(ring, orb_(0), 4, .true.)
-  call track_all (ring, orb_)
-  call ring_make_mat6(ring, -1, orb_)
+  type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  call closed_orbit_at_start(ring, orbit(0), 4, .true.)
+  call track_all (ring, orbit)
+  call lat_make_mat6(ring, -1, orbit)
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)
 
   call q_tune(ring, Qx, Qy, ok)
-  if(ok)print '(1x,a7,a6,f10.4,a6,f10.4)','Qtune: ',' Qx = ',ring%x%tune/twopi,' Qy = ', ring%y%tune/twopi
+  if(ok)print '(1x,a7,a6,f10.4,a6,f10.4)','Qtune: ',' Qx = ',ring%a%tune/twopi,' Qy = ', ring%b%tune/twopi
 
   call set_on (rfcavity$, ring, .true.)
   call set_z_tune(ring)
 
   do i = 1, ring.n_ele_max
-    if(ring.ele_(i).value(x_limit$) == 0.)ring.ele_(i).value(x_limit$) = 0.05
-    if(ring.ele_(i).value(y_limit$) == 0.)ring.ele_(i).value(y_limit$) = 0.05
+    if(ring.ele(i).value(x_limit$) == 0.)ring.ele(i).value(x_limit$) = 0.05
+    if(ring.ele(i).value(y_limit$) == 0.)ring.ele(i).value(y_limit$) = 0.05
   enddo
 
  
@@ -261,13 +258,13 @@
 
 !  write(14,'(a14,a)')'  Input file :',file_name
 !  write(14,'(a10,f10.3,a11,f11.4)') &
-!          ' beta_x = ',ring%ele_(0)%x%beta, ' alpha_x = ', ring%ele_(0)%x%alpha 
+!          ' beta_a = ',ring%ele(0)%a%beta, ' alpha_a = ', ring%ele(0)%a%alpha 
 !  write(14,'(a10,f10.3,a11,f11.4)') &
-!          ' beta_y = ',ring%ele_(0)%y%beta, ' alpha_y = ', ring%ele_(0)%y%alpha 
+!          ' beta_b = ',ring%ele(0)%b%beta, ' alpha_y = ', ring%ele(0)%b%alpha 
 !  write(14,'(a10,f10.3,a11,f11.4)') &
-!          '  eta_x = ',ring%ele_(0)%x%eta, '  eta_xp = ', ring%ele_(0)%x%etap
+!          '  eta_a = ',ring%ele(0)%a%eta, '  eta_ap = ', ring%ele(0)%a%etap
 !  write(14,'(a10,f10.3,a11,f11.4)') &
-!          '  eta_y = ',ring%ele_(0)%y%eta, '  eta_yp = ', ring%ele_(0)%y%etap
+!          '  eta_b = ',ring%ele(0)%b%eta, '  eta_bp = ', ring%ele(0)%b%etap
   open(unit=13, file= 'uber.out')
 
 
@@ -291,7 +288,7 @@
 
 !     open(unit=16, file=temp_name)
 
-       co_(0)%vec = orb_(0)%vec + start_coord%vec
+       co(0)%vec = orbit(0)%vec + start_coord%vec
 !       write(14,*)' !'
 !       write(14,'(23x,a26,23x,10x,23x,a27)')'phase space at IP at start', &
 !                                'phase space at IP at turn n'
@@ -301,19 +298,19 @@
 !                                       '   yp       ','     dl     ','    dE/E    '
 
        do j =1, n_turn
-         call track_all(ring, co_)
+         call track_all(ring, co)
          if(ring%param%lost)then
             type *,' Particle lost in turn ',j
             exit
          endif
-         co_(0)%vec = co_(ring%n_ele_use)%vec
+         co(0)%vec = co(ring%n_ele_track)%vec
 
-   fft1(j)= co_(0)%vec(1) -orb_(0)%vec(1)
-   fft2(j)= co_(0)%vec(2) -orb_(0)%vec(2)
-   fft3(j)= co_(0)%vec(3) -orb_(0)%vec(3)
-   fft4(j)= co_(0)%vec(4) -orb_(0)%vec(4)
-   fft5(j)= co_(0)%vec(5) -orb_(0)%vec(5)
-   fft6(j)= co_(0)%vec(6) -orb_(0)%vec(6)
+   fft1(j)= co(0)%vec(1) -orbit(0)%vec(1)
+   fft2(j)= co(0)%vec(2) -orbit(0)%vec(2)
+   fft3(j)= co(0)%vec(3) -orbit(0)%vec(3)
+   fft4(j)= co(0)%vec(4) -orbit(0)%vec(4)
+   fft5(j)= co(0)%vec(5) -orbit(0)%vec(5)
+   fft6(j)= co(0)%vec(6) -orbit(0)%vec(6)
    
    cfftx(1, j)= cmplx(fft1(j), fft2(j))*(2*(sin((pi*j)/n_turn))*(sin((pi*j)/n_turn)))
    cffty(1, j)= cmplx(fft3(j), fft4(j))*(2*(sin((pi*j)/n_turn))*(sin((pi*j)/n_turn)))

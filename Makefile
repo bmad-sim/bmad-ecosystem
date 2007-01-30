@@ -15,6 +15,15 @@
 # $Id$
 #
 # $Log$
+# Revision 1.4  2007/01/30 16:14:30  dcs
+# merged with branch_bmad_1.
+#
+# Revision 1.3.2.2  2007/01/26 18:01:48  dcs
+# added bmad_to_csrtrack.
+#
+# Revision 1.3.2.1  2007/01/26 17:19:47  dcs
+# added tune_plane_res_plot.
+#
 # Revision 1.3  2005/12/22 21:46:16  mjf7
 # Adding dlr program analyzer to cvs
 #
@@ -66,12 +75,12 @@
 # SRC_EXCLUDE     - Source files to exclude from compilation (just the base 
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := code
-OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer
+LIB_SRC_DIRS := code 
+OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack
 CONFIG_DIRS  := 
 LOCAL_INCS   :=
 SRC_EXCLUDE  := beambeam_scan.f90 # only with lahey it can be compiled
-M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer
+M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer M.tune_plane_res_plot
 ifeq "$(CESR_F90)" "lahey"
   SRC_EXCLUDE  :=
 #  M_FILE_LIST  += M.beambeam  

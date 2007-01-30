@@ -19,8 +19,14 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.1.1.1.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -52,13 +58,13 @@ subroutine phase_space_amplitude (ele, orb, amp_x, amp_y)
   temp_vec(1:4) = matmul(V_inv,orb%vec(1:4))  !switch lab coordinates
   orb%vec(1:4) = temp_vec(1:4)
 
-  amp_x = sqrt(ele%x%gamma * orb%vec(1)**2 &
-                + 2*ele%x%alpha * orb%vec(1) * orb%vec(2) &
-                + ele%x%beta * orb%vec(2)**2)
+  amp_x = sqrt(ele%a%gamma * orb%vec(1)**2 &
+                + 2*ele%a%alpha * orb%vec(1) * orb%vec(2) &
+                + ele%a%beta * orb%vec(2)**2)
 
-  amp_y = sqrt(ele%y%gamma * orb%vec(3)**2 &
-                + 2*ele%y%alpha * orb%vec(3) * orb%vec(4) &
-                + ele%y%beta * orb%vec(4)**2)
+  amp_y = sqrt(ele%b%gamma * orb%vec(3)**2 &
+                + 2*ele%b%alpha * orb%vec(3) * orb%vec(4) &
+                + ele%b%beta * orb%vec(4)**2)
 
   return
 

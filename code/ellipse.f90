@@ -19,8 +19,14 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.1.1.1.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -40,9 +46,9 @@
 
       integer ix,n
  
-      bet = ele%x%beta
-      rootb = sqrt(ele%x%beta)
-      alp  = ele%x%alpha
+      bet = ele%a%beta
+      rootb = sqrt(ele%a%beta)
+      alp  = ele%a%alpha
       gamma = ele%gamma_c
       A= (-ele%c_mat(2,2)+ele%c_mat(1,2)*alp/bet)/gamma
       B = ele%c_mat(1,2)/bet/gamma

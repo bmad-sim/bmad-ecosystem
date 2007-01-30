@@ -1,12 +1,12 @@
 !+
-! subroutine GAUSSIAN_DIST (ELE, MODE, coupling, MIN_SIG, COORD_)
+! subroutine GAUSSIAN_DIST (ELE, MODE, coupling, MIN_SIG, COORD)
 !
 ! Subroutine to generate gaussian distribution in 6d phase space in coord_struct 
 !  For each mode (x,y,z), get gaussian distribution of amplitudes and then
 !  choose phase space angle with flat random distribution 0-2pi
 ! Input:
 !   ELE  -- Element_struct
-!   MODE -- Mode_struct : emittances
+!   MODE -- normal_mode_struct : emittances
 !   MIN_SIG -- Real: only keep phase space with (N_xsig + N_ysig + N_zsig > MIN_SIG)
 !   COUPLING -- Real: fraction of horizontal emittance that mixes into vertical
 ! Output:
@@ -25,15 +25,21 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.1.1.1.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
 !
 #include "CESR_platform.h"
 
- subroutine gaussian_dist (ele, mode, coupling, min_sig, coord_)
+ subroutine gaussian_dist (ele, mode, coupling, min_sig, coord)
 
   use bmad_struct
   use bmad_interface
@@ -41,8 +47,8 @@
 
   implicit none
 
-  type (modes_struct) mode
-  type (coord_struct), allocatable :: coord_(:)
+  type (normal_modes_struct) mode
+  type (coord_struct), allocatable :: coord(:)
   type (ele_struct) ele
 
   real(rdef) a, b, z
@@ -59,7 +65,7 @@
   integer i, idum,p
   integer j
 
-  p=size(coord_)
+  p=size(coord)
   call out_io(s_info$,"GAUSSIAN_DIST",' size=\i\ ',p)
 
 
@@ -73,7 +79,7 @@
   
 
   i = 0
-  do while(i < size(coord_)-1)
+  do while(i < size(coord)-1)
 
   call gasdev_s(a)
   call gasdev_s(b)
@@ -93,21 +99,21 @@
      dl =  sqrt(z_amp * ele%z%beta)* cos(theta_z) 
      delta = sqrt(z_amp /ele%z%beta)* sin(theta_z)
 
-     coord_(i)%vec(1) = sqrt(a_amp * ele%x%beta) * cos(theta_a) + &
-                          delta * ele%x%eta  
-     coord_(i)%vec(2) = -sqrt(a_amp/ele%x%beta)*(ele%x%alpha * cos(theta_a) +sin(theta_a)) + &
-                          delta * sin(theta_z) * ele%x%etap
+     coord(i)%vec(1) = sqrt(a_amp * ele%a%beta) * cos(theta_a) + &
+                          delta * ele%a%eta  
+     coord(i)%vec(2) = -sqrt(a_amp/ele%a%beta)*(ele%a%alpha * cos(theta_a) +sin(theta_a)) + &
+                          delta * sin(theta_z) * ele%a%etap
 
-     coord_(i)%vec(3) = sqrt(b_amp * ele%y%beta) * cos(theta_b) + &
-                          delta * ele%y%eta                          
-     coord_(i)%vec(4) = -sqrt(b_amp/ele%y%beta)*(ele%y%alpha * cos(theta_b) +sin(theta_b)) + &
-                          delta * ele%y%etap  
+     coord(i)%vec(3) = sqrt(b_amp * ele%b%beta) * cos(theta_b) + &
+                          delta * ele%b%eta                          
+     coord(i)%vec(4) = -sqrt(b_amp/ele%b%beta)*(ele%b%alpha * cos(theta_b) +sin(theta_b)) + &
+                          delta * ele%b%etap  
 
-     coord_(i)%vec(5) = dl
-     coord_(i)%vec(6) = delta
+     coord(i)%vec(5) = dl
+     coord(i)%vec(6) = delta
 
-     temp_vec(1:4) = matmul(V,coord_(i)%vec(1:4))  !switch lab coordinates
-     coord_(i)%vec(1:4) = temp_vec(1:4)
+     temp_vec(1:4) = matmul(V,coord(i)%vec(1:4))  !switch lab coordinates
+     coord(i)%vec(1:4) = temp_vec(1:4)
 
    end do
 

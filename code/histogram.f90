@@ -1,6 +1,6 @@
 !........................................................................
 !+
-! Subroutine subroutine histogram (ele, coord_, in_file, sig, a_out)
+! Subroutine subroutine histogram (ele, coord, in_file, sig, a_out)
 !
 ! Description:
 !
@@ -19,6 +19,12 @@
 ! $Id$
 !
 ! $Log$
+! Revision 1.3  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.2.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
 ! Revision 1.2  2005/09/21 20:59:07  dcs
 ! more changes to get around compiler bug.
 !
@@ -30,21 +36,21 @@
 !
 #include "CESR_platform.h"
 
-subroutine histogram (ele, coord_, in_file, sig, a_out)
+subroutine histogram (ele, coord, in_file, sig, a_out)
   
   use bmad_struct
   use bmad_interface
   
   implicit none
   
-  type (coord_struct) coord_(:)
+  type (coord_struct) coord(:)
   type (ele_struct) ele
   real(rdef) sum(6), avg(6), rms(6)
   real(rdef) disp_sum(6), disp_avg(6), disp_rms(6)
   real(rdef) x, disp_x
   real(rdef) a(6),a_out(1:3),y,f,fsum,ysum
   real(rdef) disp_a(6),disp_fsum,disp_ysum
-  real(rdef), dimension(size(coord_),3) :: amp, disp_amp
+  real(rdef), dimension(size(coord),3) :: amp, disp_amp
   real(rdef) V_inv(4,4), temp_vec(4)
   real(rdef) sig(3)
 
@@ -73,7 +79,7 @@ subroutine histogram (ele, coord_, in_file, sig, a_out)
 !         end do
 ! 99      continue
 
-  psize =size(coord_)-1
+  psize =size(coord)-1
   
   V_inv(1:4,1:4)=0
   forall (j=1:4) V_inv(j,j)=ele%gamma_c
@@ -86,22 +92,22 @@ subroutine histogram (ele, coord_, in_file, sig, a_out)
 ! amplitude
   do j=1,psize
      
-     temp_vec(1:4) = matmul(V_inv, coord_(j)%vec(1:4)) !switch back to normal modes
+     temp_vec(1:4) = matmul(V_inv, coord(j)%vec(1:4)) !switch back to normal modes
      
-     amp(j,1) = ele%x%gamma* temp_vec(1)**2 &
-          + 2*ele%x%alpha*temp_vec(1)*temp_vec(2) &
-          + ele%x%beta * temp_vec(2)**2
-     amp(j,2) = ele%y%gamma* temp_vec(3)**2 &
-          + 2*ele%y%alpha*temp_vec(3)*temp_vec(4) &
-          + ele%y%beta * temp_vec(4)**2
-     amp(j,3) = ele%z%gamma* coord_(j)%vec(5)**2 &
-          + 2*ele%z%alpha*coord_(j)%vec(5)*coord_(j)%vec(6) &
-          + ele%z%beta * coord_(j)%vec(6)**2
+     amp(j,1) = ele%a%gamma* temp_vec(1)**2 &
+          + 2*ele%a%alpha*temp_vec(1)*temp_vec(2) &
+          + ele%a%beta * temp_vec(2)**2
+     amp(j,2) = ele%b%gamma* temp_vec(3)**2 &
+          + 2*ele%b%alpha*temp_vec(3)*temp_vec(4) &
+          + ele%b%beta * temp_vec(4)**2
+     amp(j,3) = ele%z%gamma* coord(j)%vec(5)**2 &
+          + 2*ele%z%alpha*coord(j)%vec(5)*coord(j)%vec(6) &
+          + ele%z%beta * coord(j)%vec(6)**2
      
      
      disp_amp(j,1)=temp_vec(1)
      disp_amp(j,2)=temp_vec(3)
-     disp_amp(j,3)=coord_(j)%vec(5)
+     disp_amp(j,3)=coord(j)%vec(5)
      
   end do
   

@@ -19,8 +19,14 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.1.1.1.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -33,7 +39,7 @@
 
      implicit none
 
-     type(ring_struct) ring
+     type(lat_struct) ring
 
      character*80 line, last_line
      integer ix

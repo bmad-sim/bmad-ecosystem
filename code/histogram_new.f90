@@ -1,6 +1,6 @@
 !........................................................................
 !+
-! Subroutine histogram_new (ele, coord_, in_file, sig)
+! Subroutine histogram_new (ele, coord, in_file, sig)
 !
 ! Description:
 !
@@ -19,27 +19,33 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.1.1.1.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
 !
 #include "CESR_platform.h"
 
- subroutine histogram_new (ele, coord_, in_file, sig)
+ subroutine histogram_new (ele, coord, in_file, sig)
 
   use bmad_struct
   use bmad_interface
 
  implicit none
 
-  type (coord_struct) coord_(:)
+  type (coord_struct) coord(:)
   type (ele_struct) ele
          real(rdef) sum(6), avg(6), rms(6)
          real(rdef) x
          real(rdef) a(6),y,f,fsum,ysum
-         real(rdef), dimension(size(coord_),3) :: amp
+         real(rdef), dimension(size(coord),3) :: amp
          real(rdef) sig(3)
 
          integer i,j,k, n
@@ -66,19 +72,19 @@
 !         end do
 ! 99      continue
 
-         psize =size(coord_)
+         psize =size(coord)
 
 ! amplitude
          do j=1,psize
-           amp(j,1) = ele%x%gamma* coord_(j)%vec(1)**2 &
-                    - 2*ele%x%alpha*coord_(j)%vec(1)*coord_(j)%vec(2) &
-                    + ele%x%beta * coord_(j)%vec(2)**2
-           amp(j,2) = ele%y%gamma* coord_(j)%vec(3)**2 &
-                    - 2*ele%y%alpha*coord_(j)%vec(3)*coord_(j)%vec(4) &
-                    + ele%y%beta * coord_(j)%vec(4)**2
-           amp(j,3) = ele%z%gamma* coord_(j)%vec(5)**2 &
-                    - 2*ele%z%alpha*coord_(j)%vec(5)*coord_(j)%vec(6) &
-                    + ele%z%beta * coord_(j)%vec(6)**2
+           amp(j,1) = ele%a%gamma* coord(j)%vec(1)**2 &
+                    - 2*ele%a%alpha*coord(j)%vec(1)*coord(j)%vec(2) &
+                    + ele%a%beta * coord(j)%vec(2)**2
+           amp(j,2) = ele%b%gamma* coord(j)%vec(3)**2 &
+                    - 2*ele%b%alpha*coord(j)%vec(3)*coord(j)%vec(4) &
+                    + ele%b%beta * coord(j)%vec(4)**2
+           amp(j,3) = ele%z%gamma* coord(j)%vec(5)**2 &
+                    - 2*ele%z%alpha*coord(j)%vec(5)*coord(j)%vec(6) &
+                    + ele%z%beta * coord(j)%vec(6)**2
          end do
 
          do k = 1,3

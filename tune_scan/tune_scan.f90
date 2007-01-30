@@ -18,8 +18,14 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/30 16:14:32  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.1.1.1.2.1  2006/12/22 20:30:43  dcs
+! conversion compiles.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -36,8 +42,8 @@ program scan_driver
  
   implicit none
 
-  type (ring_struct) ring, ring_ok, ring_in
-  type (coord_struct), allocatable :: orb_(:)
+  type (lat_struct) ring, ring_ok, ring_in
+  type (coord_struct), allocatable :: orb(:)
   type (coord_struct) init(100)
   type (scan_params_struct) scan_params
   
@@ -220,14 +226,14 @@ program scan_driver
   close(unit=21)
 
   do i = 1, ring.n_ele_max
-    if(ring.ele_(i).value(x_limit$) == 0.)ring.ele_(i).value(x_limit$) = 0.05
-    if(ring.ele_(i).value(y_limit$) == 0.)ring.ele_(i).value(y_limit$) = 0.05
+    if(ring.ele(i).value(x_limit$) == 0.)ring.ele(i).value(x_limit$) = 0.05
+    if(ring.ele(i).value(y_limit$) == 0.)ring.ele(i).value(y_limit$) = 0.05
   enddo
 
   ring.param.aperture_limit_on = .true.
 
   allocate(dk1(ring%n_ele_max))
-  allocate(orb_(0:ring%n_ele_max))
+  allocate(orb(0:ring%n_ele_max))
 
   if(Q_x_init == 0)Q_x_init = Q_x0
   if(Q_y_init == 0)Q_y_init = Q_y0
@@ -235,19 +241,19 @@ program scan_driver
 ! find which quads to change
 
   call twiss_at_start(ring)
-  orb_(0)%vec=0
-  call closed_orbit_at_start(ring, orb_(0), 4, .true.)
-  call track_all(ring, orb_)
-  call ring_make_mat6(ring, -1, orb_)
+  orb(0)%vec=0
+  call closed_orbit_at_start(ring, orb(0), 4, .true.)
+  call track_all(ring, orb)
+  call lat_make_mat6(ring, -1, orb)
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)
   call choose_quads(ring, dk1)
-  int_Q_x = int(ring%ele_(ring%n_ele_ring)%x%phi / twopi)
-  int_Q_y = int(ring%ele_(ring%n_ele_ring)%y%phi / twopi)
+  int_Q_x = int(ring%ele(ring%n_ele_track)%a%phi / twopi)
+  int_Q_y = int(ring%ele(ring%n_ele_track)%b%phi / twopi)
   phi_x = (int_Q_x + Q_x_init) * twopi
   phi_y = (int_Q_y + Q_y_init) * twopi
 
-  call custom_set_tune(phi_x, phi_y, dk1, ring, orb_, ok)    
+  call custom_set_tune(phi_x, phi_y, dk1, ring, orb, ok)    
 
 ! scan the tune
   ring_ok = ring
@@ -292,7 +298,7 @@ program scan_driver
 !
 !       open(unit=21, file = out_file,status='old', access='append' )
 !       write(21,'(2f10.5,2x,2f10.5,3e12.4,2x,3e12.4,2x,i5,2x,e12.4)')Q_x,Q_y, &
-!            ring_in%x%tune/twopi, ring_in%y%tune/twopi, &
+!            ring_in%a%tune/twopi, ring_in%b%tune/twopi, &
 !                     scan_params%sig_in(1:3), &
 !                                    scan_params%sig_out(1:3), scan_params%n_part_out, scan_params%lum
 !       close(unit=21)
@@ -304,7 +310,7 @@ program scan_driver
   end do
 
   close(unit = 21)
-  deallocate(orb_)
+  deallocate(orb)
 
 end program
 

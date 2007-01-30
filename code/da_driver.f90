@@ -11,7 +11,7 @@
 !   use bmad_interface
 !
 ! Input:
-!   RING    -- Ring_struct: Ring containing the lattice.
+!   RING    -- lat_struct: Ring containing the lattice.
 !   TRACK_INPUT   -- Track_input_struct: Structure holding the input data:
 !     %N_TURN         -- Number of turns tracked.
 !     %X_INIT         -- Suggested initial x coordinate to start with.
@@ -42,8 +42,14 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.1.1.1.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -59,10 +65,10 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
   implicit none
 
-  type (ring_struct)  ring
-  type (param_struct)  ring_param_state
+  type (lat_struct)  ring
+  type (lat_param_struct)  ring_param_state
   type (coord_struct) orb0
-  type (coord_struct), allocatable, save :: co_(:)
+  type (coord_struct), allocatable, save :: co(:)
   type (aperture_struct)  aperture
   type (track_input_struct)  track_input
 
@@ -100,17 +106,17 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
   ring_param_state = ring%param
 
-  do i=1,ring%n_ele_use
-   if(ring%ele_(i)%key /= wiggler$)cycle
-   if(ring%ele_(i)%key == rfcavity$)cycle
-   if(ring%ele_(i)%key == quadrupole$)cycle
-!   if(ring%ele_(i)%tracking_method /= custom$)then
-!     ring%ele_(i)%tracking_method = taylor$
-!     ring%ele_(i)%mat6_calc_method = taylor$
+  do i=1,ring%n_ele_track
+   if(ring%ele(i)%key /= wiggler$)cycle
+   if(ring%ele(i)%key == rfcavity$)cycle
+   if(ring%ele(i)%key == quadrupole$)cycle
+!   if(ring%ele(i)%tracking_method /= custom$)then
+!     ring%ele(i)%tracking_method = taylor$
+!     ring%ele(i)%mat6_calc_method = taylor$
 !   endif
   end do
 
-  call reallocate_coord (co_, ring%n_ele_max)
+  call reallocate_coord (co, ring%n_ele_max)
   allocate(dk1(ring%n_ele_max))
 
   call twiss_at_start (ring)
@@ -122,20 +128,20 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   endif
   type *,' Q_z = ',ring%z%tune/twopi
 
-  type *,' Before Qtune: Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
+  type *,' Before Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
   if(Qx /= 0. .and. Qy /= 0.)then 
-    int_Q_x = int(ring%ele_(ring%n_ele_ring)%x%phi / twopi)
-    int_Q_y = int(ring%ele_(ring%n_ele_ring)%y%phi / twopi)
+    int_Q_x = int(ring%ele(ring%n_ele_track)%a%phi / twopi)
+    int_Q_y = int(ring%ele(ring%n_ele_track)%b%phi / twopi)
     phy_x_set = (int_Q_x + Qx)*twopi
     phy_y_set = (int_Q_y + Qy)*twopi
     call choose_quads(ring, dk1)
-    call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co_, ok) 
+    call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
     if(.not. ok) type *,' Qtune failed'
   endif
 
 
   call twiss_at_start (ring)
-  type '(a19,f12.4,a9,f12.4)',' After Qtune: Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
+  type '(a19,f12.4,a9,f12.4)',' After Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
 
 
@@ -148,23 +154,23 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   call chrom_calc(ring, delta_e, chrom_x, chrom_y) 
   type '(a23,f12.4,a11,f12.4)',' After Qp_tune: Qp_x = ',chrom_x,'    Qp_y = ',chrom_y
   call twiss_at_start(ring)
-  type '(a21,f12.4,a9,f12.4)',' After Qp_tune: Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
+  type '(a21,f12.4,a9,f12.4)',' After Qp_tune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
-    call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co_, ok) 
+    call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
     if(.not. ok) type *,' Second Qtune failed'
 
   call twiss_at_start(ring)
-  type '(a26,f12.4,a9,f12.4)',' After second qtune: Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
+  type '(a26,f12.4,a9,f12.4)',' After second qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
 
-  call closed_orbit_at_start (ring, co_(0), 4, .true.)
-  call track_all(ring, co_)
+  call closed_orbit_at_start (ring, co(0), 4, .true.)
+  call track_all(ring, co)
 
 !  eps_rel(:) = 0.000001
 !  eps_abs(:) = 0.000001
-!  call closed_orbit_from_tracking (ring, co_, 4, eps_rel, eps_abs, co_(0))
+!  call closed_orbit_from_tracking (ring, co, 4, eps_rel, eps_abs, co(0))
 
-  call ring_make_mat6(ring, -1, co_)
+  call lat_make_mat6(ring, -1, co)
   call twiss_at_start (ring) 
    ring%param%aperture_limit_on = .true.
 
@@ -174,8 +180,8 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
                                         carriagecontrol = 'list')
   write (2, *) 'Lattice  = ', ring.lattice
   write (2, '(a11,i5,3(a10,f7.5))') ' N_turn   =', track_input.n_turn
-  write(2,'(a8,a1,f8.4,a1)') '  Q_x = ',"`",ring%x%tune/twopi,"'"
-  write(2,'(a8,a1,f8.4,a1)') '  Q_y = ',"`",ring%y%tune/twopi,"'"
+  write(2,'(a8,a1,f8.4,a1)') '  Q_x = ',"`",ring%a%tune/twopi,"'"
+  write(2,'(a8,a1,f8.4,a1)') '  Q_y = ',"`",ring%b%tune/twopi,"'"
   write(2,'(a8,a1,f8.4,a1)') '  Q_z = ',"`",ring%z%tune/twopi,"'"
   write (2, *) 'n_xy_pts =', n_xy_pts
   write (2, *) 'point_range =',point_range
@@ -186,7 +192,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
                        (energy(i),i=1, n_energy_pts)
   write (2, *) 'accuracy =', track_input%accuracy
   write (2, '(a, 6f10.5)') ' Closed_orbit:',  &
-                                (co_(0)%vec(i), i = 1, 6)
+                                (co(0)%vec(i), i = 1, 6)
   write(2,'(1x,a16,a1,a9,a1)')' particle_type =',"'", particle_type(particle),"'"  
   write(2,*) 'return'
   write(2,*)
@@ -197,8 +203,8 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
      e_init = energy(i_e)
 
-     aperture%closed_orbit = co_(0)
-     orb0 = co_(0)
+     aperture%closed_orbit = co(0)
+     orb0 = co(0)
      orb0%vec(6) = e_init
 
     call string_trim (in_file, in_file, ix)
@@ -217,8 +223,8 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
     write (3, *) 'dE_E     = ', e_init
     call date_and_time_stamp (date_str)
     write (3, '(4a)') 'data_date = `', date_str, "'"
-    write(3,*)'Q_x = ',"`",'Q_x = ',ring%x%tune/twopi,"'"
-    write(3,*)'Q_y = ',"`",'Q_y = ',ring%y%tune/twopi,"'"
+    write(3,*)'Q_x = ',"`",'Q_x = ',ring%a%tune/twopi,"'"
+    write(3,*)'Q_y = ',"`",'Q_y = ',ring%b%tune/twopi,"'"
     write(3,*)'Q_z = ',"`",'Q_z = ',ring%z%tune/twopi,"'"
     write(2,'(1x,a16,a1,a9,a1)')' particle_type =',"'", particle_type(particle),"'"  
     write (3, *) 'return'
@@ -238,14 +244,14 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
               aperture%y,  &
               aperture%i_turn, &
               plane_name(aperture%plane),  &
-              ring%ele_(aperture%ix_ring)%name
+              ring%ele(aperture%ix_lat)%name
 
 
       write (3, '(2f11.6, i7, 6x, a1, 3x, a)') aperture%x, &
                aperture%y,  &
               aperture%i_turn, &
               plane_name(aperture%plane),  &
-              ring%ele_(aperture%ix_ring)%name
+              ring%ele(aperture%ix_lat)%name
 
 
     enddo ! i_xy

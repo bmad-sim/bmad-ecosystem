@@ -19,8 +19,14 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.1.1.1.2.1  2006/12/22 20:30:43  dcs
+! conversion compiles.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -34,11 +40,11 @@ program dynamic_aperture_test
 
   implicit none
 
-  type ( ring_struct ) ring
-  type ( ring_struct ), save :: ring_in, ring_out
+  type ( lat_struct ) ring
+  type ( lat_struct ), save :: ring_in, ring_out
   type (track_input_struct) track_input
   type (ele_struct) ele
-  type (coord_struct), allocatable, save :: co_(:)
+  type (coord_struct), allocatable, save :: co(:)
 
   integer n_turn, n_xy_pts, n_energy_pts, i, j, ix, ios, point_range(2), particle
   integer i_train, j_car, n_trains_tot, n_cars
@@ -109,39 +115,39 @@ program dynamic_aperture_test
 
   call bmad_parser (lat_file, ring)
 
-  call reallocate_coord (co_, ring%n_ele_max)
+  call reallocate_coord (co, ring%n_ele_max)
   allocate(dk1(ring%n_ele_max))
 
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)
 
   type '(a28,f12.6,a9,f12.6)', &
-       ' Before initial Qtune: Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
+       ' Before initial Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
   if(Qx_ini /= 0. .and. Qy_ini /= 0.)then 
-    int_Q_x = int(ring%ele_(ring%n_ele_ring)%x%phi / twopi)
-    int_Q_y = int(ring%ele_(ring%n_ele_ring)%y%phi / twopi)
+    int_Q_x = int(ring%ele(ring%n_ele_track)%a%phi / twopi)
+    int_Q_y = int(ring%ele(ring%n_ele_track)%b%phi / twopi)
     phy_x_set = (int_Q_x + Qx_ini)*twopi
     phy_y_set = (int_Q_y + Qy_ini)*twopi
     call choose_quads(ring, dk1)
     do i=0,ring%n_ele_max
-     co_(i)%vec(1:6)=0.
+     co(i)%vec(1:6)=0.
     end do
    call set_on(elseparator$, ring, .false.) 
-   call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co_, ok) 
+   call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
     if(.not. ok) type *,' Qtune failed'
    call set_on(elseparator$, ring, .true.) 
   endif
 
   type '(a28,f12.6,a9,f12.6)', &
-       '  After initial Qtune: Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
+       '  After initial Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
 
 
   call twiss_at_start(ring)
-  co_(0)%vec = 0.
-  call closed_orbit_at_start(ring, co_(0), 4, .true.)
-  call track_all (ring, co_)
-  call ring_make_mat6(ring,-1,co_)
+  co(0)%vec = 0.
+  call closed_orbit_at_start(ring, co(0), 4, .true.)
+  call track_all (ring, co)
+  call lat_make_mat6(ring,-1,co)
   call twiss_at_start(ring)
   call twiss_propagate_all (ring)
 
@@ -156,17 +162,17 @@ program dynamic_aperture_test
    ring = ring_out
 
    call twiss_at_start(ring)
-   co_(0)%vec = 0.
-   call closed_orbit_at_start(ring, co_(0), 4, .true.)
-   call track_all(ring, co_)
-   call ring_make_mat6(ring,-1, co_)
+   co(0)%vec = 0.
+   call closed_orbit_at_start(ring, co(0), 4, .true.)
+   call track_all(ring, co)
+   call lat_make_mat6(ring,-1, co)
    call twiss_at_start(ring)
 
    type *
    type '(a51,f4.1,a8)', &
         ' BEAMBEAM_SCAN: After parasitic interactions added ', current,'mA/bunch' 
-   type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
-   type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+   type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+   type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
   endif
 
@@ -174,10 +180,10 @@ program dynamic_aperture_test
   call twiss_at_start(ring)
 
   do i = 1, ring.n_ele_max
-    ring.ele_(i).value(x_limit$) = ap_mult * ring.ele_(i).value(x_limit$)
-    ring.ele_(i).value(y_limit$) = ap_mult * ring.ele_(i).value(y_limit$)
-    if(ring.ele_(i).value(x_limit$) == 0.)ring.ele_(i).value(x_limit$) = 0.3
-    if(ring.ele_(i).value(y_limit$) == 0.)ring.ele_(i).value(y_limit$) = 0.3
+    ring.ele(i).value(x_limit$) = ap_mult * ring.ele(i).value(x_limit$)
+    ring.ele(i).value(y_limit$) = ap_mult * ring.ele(i).value(y_limit$)
+    if(ring.ele(i).value(x_limit$) == 0.)ring.ele(i).value(x_limit$) = 0.3
+    if(ring.ele(i).value(y_limit$) == 0.)ring.ele(i).value(y_limit$) = 0.3
   enddo
 
   ring.param.aperture_limit_on = .true.

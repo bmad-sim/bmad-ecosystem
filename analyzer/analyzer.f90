@@ -8,27 +8,27 @@
  
   implicit none
 interface
-  subroutine psp(ring, co_, traj, n_turns, istat2, ix_start, ix_end)
-  use bmad_struct, only: ring_struct, coord_struct
+  subroutine psp(ring, co, traj, n_turns, istat2, ix_start, ix_end)
+  use bmad_struct, only: lat_struct, coord_struct
   implicit none
 
-  type (ring_struct) ring
+  type (lat_struct) ring
   type (coord_struct) traj
-  type (coord_struct), allocatable :: co_(:)
+  type (coord_struct), allocatable :: co(:)
 
   integer n_turns, i, pgopen, istat2
   integer ix_start, ix_end
   end subroutine
  end interface
 
- type (ring_struct) ring_1, ring_2
- type (ring_struct), save :: ring, ring_two(-1:1)
- type (coord_struct), allocatable, save :: co_(:), cot_(:), co_high_(:), co_low_(:)
- type (coord_struct), allocatable, save :: co_off_(:)
- type (coord_struct), allocatable, save :: co_electron_(:)
+ type (lat_struct) ring_1, ring_2
+ type (lat_struct), save :: ring, ring_two(-1:1)
+ type (coord_struct), allocatable, save :: co(:), cot(:), co_high(:), co_low(:)
+ type (coord_struct), allocatable, save :: co_off(:)
+ type (coord_struct), allocatable, save :: co_electron(:)
  type (coord_struct) traj
  type (coord_struct) dorb
- type (modes_struct) mode
+ type (normal_modes_struct) mode
  type (coord_struct) track_start
 
       integer pgopen, istat1, istat2
@@ -110,24 +110,24 @@ interface
       ring  = ring_1
 
 !      do i=1,ring%n_ele_max
-!       if(index(ring%ele_(i)%name, 'WIG_DAMP') /= 0)then
-!          ring%ele_(i)%exact_rad_int_calc = .true.
-!          type *, ring%ele_(i)%name
+!       if(index(ring%ele(i)%name, 'WIG_DAMP') /= 0)then
+!          ring%ele(i)%exact_rad_int_calc = .true.
+!          type *, ring%ele(i)%name
 !       endif
 !      end do
-  call reallocate_coord (co_, ring%n_ele_max)
-  call reallocate_coord (co_electron_, ring%n_ele_max)
-  call reallocate_coord (cot_, ring%n_ele_max)
-  call reallocate_coord (co_off_, ring%n_ele_max)
-  call reallocate_coord (co_high_, ring%n_ele_max)
-  call reallocate_coord (co_low_, ring%n_ele_max)
+  call reallocate_coord (co, ring%n_ele_max)
+  call reallocate_coord (co_electron, ring%n_ele_max)
+  call reallocate_coord (cot, ring%n_ele_max)
+  call reallocate_coord (co_off, ring%n_ele_max)
+  call reallocate_coord (co_high, ring%n_ele_max)
+  call reallocate_coord (co_low, ring%n_ele_max)
 
-  co_(0)%vec = 0
-  co_electron_(0)%vec=0
-  cot_(0)%vec=0
-  co_off_(0)%vec=0
-  co_high_(0)%vec=0
-  co_low_(0)%vec=0
+  co(0)%vec = 0
+  co_electron(0)%vec=0
+  cot(0)%vec=0
+  co_off(0)%vec=0
+  co_high(0)%vec=0
+  co_low(0)%vec=0
   track_start%vec = 0.
 
   allocate(track_meth(0:ring%n_ele_max))
@@ -142,7 +142,7 @@ interface
   allocate(zz(0:ring%n_ele_max,1:5))
   allocate(n_ele(1:5))
 
-   length = ring%ele_(ring%n_ele_use)%s
+   length = ring%ele(ring%n_ele_track)%s
   
     last = 0
 
@@ -228,12 +228,12 @@ interface
        call string_trim(line, line, ix)
        call string_trim(line(ix+1:), line, ix)
        if(ix /= 0)then
-         read(line(1:ix),*)co_(0)%vec(6)
+         read(line(1:ix),*)co(0)%vec(6)
         else
-         co_(0)%vec(6)=0.
+         co(0)%vec(6)=0.
        endif
-     co_electron_(0)%vec(6)=0.
-     print '(a43,e12.4)',' Compute 4-d closed orbit, energy offset = ', co_(0)%vec(6)
+     co_electron(0)%vec(6)=0.
+     print '(a43,e12.4)',' Compute 4-d closed orbit, energy offset = ', co(0)%vec(6)
      exit
    endif
 
@@ -265,7 +265,7 @@ interface
        print *,' TRACK <n_turns> <x> <y> <de/e> <xp> <yp> <dl> '
        print *,' or  TRACK START <start_location>'
        print *,' or  TRACK END   <end_location>'
-       print *,' Phase space will be computed at ',ring%ele_(ix_end)%name
+       print *,' Phase space will be computed at ',ring%ele(ix_end)%name
        cycle 
     else
        read(line(1:ix),*,iostat = io_stat)n_turns
@@ -289,32 +289,32 @@ interface
 
    if(line(1:2) /= 'PS' .and.  line(1:3) /= 'GIF')then
 
-!  call ring_make_mat6 (ring, -1)
+!  call lat_make_mat6 (ring, -1)
 
-!  forall( i=0:ring.n_ele_use) co_(i)%vec = 0.
+!  forall( i=0:ring.n_ele_use) co(i)%vec = 0.
      ring%param%particle = positron$
 
     if(.not. transfer_line)then
      call twiss_at_start(ring)
-     call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
+     call closed_orbit_at_start(ring, co(0), i_dim, .true.)
     endif
-     call track_all (ring, co_)
+     call track_all (ring, co)
       print *, ' '
       print *,ring%input_file_name
       print '(a42,a12,1x,6f9.4)',' e+ orbit at start (mm/mr)       Element: ', &
-                  ring%ele_(1)%name , (co_(0)%vec(i)*1000.,i=1,6)
+                  ring%ele(1)%name , (co(0)%vec(i)*1000.,i=1,6)
       print '(a42,a12,1x,6f9.4)',' e+ closed orbit (mm/mr) at end, Element: ', &
-                  ring%ele_(ring%n_ele_use)%name,  (co_(0)%vec(i)*1000.,i=1,6)
+                  ring%ele(ring%n_ele_track)%name,  (co(0)%vec(i)*1000.,i=1,6)
 
       if(track)then
-        traj%vec(1:6) = co_(ix_start)%vec(1:6) + track_start%vec(1:6)       
+        traj%vec(1:6) = co(ix_start)%vec(1:6) + track_start%vec(1:6)       
         print *
         print '(1x,a10,1x,a12,1x,a2,1x,a12,i5,1x,a6)', &
-                      'TRACK from',ring%ele_(ix_start)%name,'to',ring%ele_(ix_end)%name, n_turns, ' turns'
-        print '(1x,a15,1x,a12,6f10.2)','TRACK: start at',ring%ele_(ix_start)%name, track_start%vec *1000
-        print '(1x,a15,1x,a12,6f10.2)','TRACK: start+co',ring%ele_(ix_start)%name, traj%vec * 1000
+                      'TRACK from',ring%ele(ix_start)%name,'to',ring%ele(ix_end)%name, n_turns, ' turns'
+        print '(1x,a15,1x,a12,6f10.2)','TRACK: start at',ring%ele(ix_start)%name, track_start%vec *1000
+        print '(1x,a15,1x,a12,6f10.2)','TRACK: start+co',ring%ele(ix_start)%name, traj%vec * 1000
 
-        call psp(ring, co_, traj, n_turns, istat2, ix_start, ix_end)
+        call psp(ring, co, traj, n_turns, istat2, ix_start, ix_end)
 
         print '(1x,a15,1x,a12,6f10.2,/)','TRACK: end at  ',location, traj%vec*1000
         track=.false.
@@ -324,15 +324,15 @@ interface
      n_part_save = ring%param%n_part
      ring%param%n_part = 0.
     if(.not. transfer_line) &
-     call closed_orbit_at_start(ring, co_electron_(0), i_dim, .true.)
+     call closed_orbit_at_start(ring, co_electron(0), i_dim, .true.)
       print '(a42,a12,1x,6f9.4)',' e- closed orbit (mm/mr) at end, Element: ', & 
-               ring%ele_(ring%n_ele_use)%name, (co_electron_(0)%vec(i)*1000.,i=1,6)
+               ring%ele(ring%n_ele_track)%name, (co_electron(0)%vec(i)*1000.,i=1,6)
       print *, ' '
 
      ring%param%n_part = n_part_save
      ring%param%particle = positron$
 
-     call ring_make_mat6(ring,-1,co_)
+     call lat_make_mat6(ring,-1,co)
     if(.not. transfer_line) &
      call twiss_at_start(ring)
      call calc_z_tune (ring)
@@ -341,27 +341,27 @@ interface
 
 !      print *,' Recompute tunes with new matrices'
       print '(23x,3a14)','  Horizontal  ','  Vertical    ',' Longitudinal '
-      print '(a19,3f14.4)',' Fractional Tune   ',ring%x%tune/twopi,ring%y%tune/twopi,ring%z%tune/twopi
-      print '(a19,2f14.4)','  Beta*            ',ring%ele_(0)%x%beta, ring%ele_(0)%y%beta
-      print '(a19,2f14.4)','  Alpha*           ',ring%ele_(0)%x%alpha, ring%ele_(0)%y%alpha
-      print '(a19,2f14.4)','   Eta*            ',ring%ele_(0)%x%eta, ring%ele_(0)%y%eta
-      print '(a19,2f14.4)','   Etap*           ',ring%ele_(0)%x%etap, ring%ele_(0)%y%etap
-      print '(a19,2f14.4)','  Full turn Phase  ',ring%ele_(ring%n_ele_use)%x%phi, &
-                                                       ring%ele_(ring%n_ele_use)%y%phi
+      print '(a19,3f14.4)',' Fractional Tune   ',ring%a%tune/twopi,ring%b%tune/twopi,ring%z%tune/twopi
+      print '(a19,2f14.4)','  Beta*            ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
+      print '(a19,2f14.4)','  Alpha*           ',ring%ele(0)%a%alpha, ring%ele(0)%b%alpha
+      print '(a19,2f14.4)','   Eta*            ',ring%ele(0)%a%eta, ring%ele(0)%b%eta
+      print '(a19,2f14.4)','   Etap*           ',ring%ele(0)%a%etap, ring%ele(0)%b%etap
+      print '(a19,2f14.4)','  Full turn Phase  ',ring%ele(ring%n_ele_track)%a%phi, &
+                                                       ring%ele(ring%n_ele_track)%b%phi
 
 
-      call c_to_cbar(ring%ele_(0),cbar_mat)
+      call c_to_cbar(ring%ele(0),cbar_mat)
 
 
     if(transfer_line)then
-      print '(/,a19,2f14.4)','  Beta at end      ',ring%ele_(ring%n_ele_use)%x%beta, &
-                                                          ring%ele_(ring%n_ele_use)%y%beta
-      print '(a19,2f14.4)','  Alpha at end     ',ring%ele_(ring%n_ele_use)%x%alpha, &
-                                                          ring%ele_(ring%n_ele_use)%y%alpha
-      print '(a19,2f14.4)','   Eta at end      ',ring%ele_(ring%n_ele_use)%x%eta, &
-                                                          ring%ele_(ring%n_ele_use)%y%eta
-      print '(a19,2f14.4)','   Etap at end     ',ring%ele_(ring%n_ele_use)%x%etap, &
-                                                       ring%ele_(ring%n_ele_use)%y%etap
+      print '(/,a19,2f14.4)','  Beta at end      ',ring%ele(ring%n_ele_track)%a%beta, &
+                                                          ring%ele(ring%n_ele_track)%b%beta
+      print '(a19,2f14.4)','  Alpha at end     ',ring%ele(ring%n_ele_track)%a%alpha, &
+                                                          ring%ele(ring%n_ele_track)%b%alpha
+      print '(a19,2f14.4)','   Eta at end      ',ring%ele(ring%n_ele_track)%a%eta, &
+                                                          ring%ele(ring%n_ele_track)%b%eta
+      print '(a19,2f14.4)','   Etap at end     ',ring%ele(ring%n_ele_track)%a%etap, &
+                                                       ring%ele(ring%n_ele_track)%b%etap
     endif
 
 
@@ -371,33 +371,33 @@ interface
       ring_two(1) = ring
       ring_two(-1) = ring
       do i = -1,1,2
-       co_off_(0)%vec(6) = de *i
+       co_off(0)%vec(6) = de *i
       if(.not. transfer_line) &
-       call closed_orbit_at_start(ring_two(i), co_off_(0),i_dim,.true.)
-       call track_all(ring_two(i), co_off_)
-       call ring_make_mat6(ring_two(i), -1, co_off_)
+       call closed_orbit_at_start(ring_two(i), co_off(0),i_dim,.true.)
+       call track_all(ring_two(i), co_off)
+       call lat_make_mat6(ring_two(i), -1, co_off)
       if(.not. transfer_line) &
        call twiss_at_start(ring_two(i))
        call twiss_propagate_all(ring_two(i))
-       if(i == -1)forall(j=0:ring%n_ele_use)co_low_(j)%vec = co_off_(j)%vec
-       if(i ==  1)forall(j=0:ring%n_ele_use)co_high_(j)%vec = co_off_(j)%vec
+       if(i == -1)forall(j=0:ring%n_ele_track)co_low(j)%vec = co_off(j)%vec
+       if(i ==  1)forall(j=0:ring%n_ele_track)co_high(j)%vec = co_off(j)%vec
       end do
       call de_dbeta(ring_two(1), ring_two(-1), de, rms_x, rms_y)
 
       print *
-      print '(a19,2f14.4)',' dBeta*/dE          ',(ring_two(1)%ele_(0)%x%beta - ring_two(-1)%ele_(0)%x%beta)/2/de, &
-                             (ring_two(1)%ele_(0)%y%beta - ring_two(-1)%ele_(0)%y%beta)/2/de 
+      print '(a19,2f14.4)',' dBeta*/dE          ',(ring_two(1)%ele(0)%a%beta - ring_two(-1)%ele(0)%a%beta)/2/de, &
+                             (ring_two(1)%ele(0)%b%beta - ring_two(-1)%ele(0)%b%beta)/2/de 
 
-      print '(a19,2f14.4)', ' Chromaticity      ',(ring_two(1)%x%tune - ring_two(-1)%x%tune)/twopi/2/de, &
-                             (ring_two(1)%y%tune - ring_two(-1)%y%tune)/twopi/2/de 
+      print '(a19,2f14.4)', ' Chromaticity      ',(ring_two(1)%a%tune - ring_two(-1)%a%tune)/twopi/2/de, &
+                             (ring_two(1)%b%tune - ring_two(-1)%b%tune)/twopi/2/de 
       print '(a19,2f14.4)', ' sqrt(<(dB/dE)^2>) ',rms_x, rms_y
 
       print *,' ' 
       print '(1x,a13,2f12.4)','    cbar     ',cbar_mat(1,1), cbar_mat(1,2) 
       print '(1x,a13,2f12.4)','             ',cbar_mat(2,1),cbar_mat(2,2) 
 
-      call c_to_cbar(ring_two(1)%ele_(0),cbar_mat1)
-      call c_to_cbar(ring_two(-1)%ele_(0),cbar_mat2)
+      call c_to_cbar(ring_two(1)%ele(0),cbar_mat1)
+      call c_to_cbar(ring_two(-1)%ele(0),cbar_mat2)
       print *,' '
       print '(1x,a13,2f12.4)',' dcbar*/dE   ',(cbar_mat1(1,1)-cbar_mat2(1,1))/de, &
                                              (cbar_mat1(1,2)-cbar_mat2(1,2))/de 
@@ -410,8 +410,8 @@ interface
       call sext_detune(ring, axx, axy, ayy)
       print *
       print *,' Sextupole detuning rates '
-      print '(a12,e12.4)',' Alpha_xx = ',axx 
-      print '(a12,e12.4)',' Alpha_xy = ',axy 
+      print '(a12,e12.4)',' Alpha_ax = ',axx 
+      print '(a12,e12.4)',' Alpha_ay = ',axy 
       print '(a12,e12.4)',' Alpha_yy = ',ayy
       print * 
 
@@ -439,18 +439,18 @@ interface
 
       ix_cache = 0
       if(radiation)then
-       call radiation_integrals (ring, co_, mode, ix_cache)
+       call radiation_integrals (ring, co, mode, ix_cache)
        print '(a24,e12.4,a25,e12.4)',' horizontal emittance = ', mode%a%emittance, &
                                     '    vertical emittance = ',mode%b%emittance
        print '(a17,e12.4,a18,e12.4)',' Energy spread = ',mode%sige_e,'   Bunch length = ',mode%sig_z
-       frev=c_light/ring%ele_(ring%n_ele_use)%s
+       frev=c_light/ring%ele(ring%n_ele_track)%s
        print '(a11,e12.4)',' Revolution freq    = ', frev
        if(mode%a%alpha_damp /= 0.)then
          print '(a22,e12.4)',' Horiz damping time = ',1/mode%a%alpha_damp/frev
          print '(a22,e12.4)',' Vert damping time =  ',1/mode%b%alpha_damp/frev
          print '(a22,e12.4)',' Long damping time =  ',1/mode%z%alpha_damp/frev
          print '(a7,e12.4,a10,e12.4)',' i1  =',mode%synch_int(1), &
-                                      ' alpha_p =',mode%synch_int(1)/ring%ele_(ring%n_ele_use)%s
+                                      ' alpha_p =',mode%synch_int(1)/ring%ele(ring%n_ele_track)%s
          print '(a7,e12.4)',' i2  =',mode%synch_int(2)
          print '(a7,e12.4)',' i3  =',mode%synch_int(3)
          print '(a7,e12.4)',' i4  =',mode%a%synch_int(4)
@@ -586,70 +586,70 @@ interface
 
 
      nd=0
-     do i=0,ring%n_ele_use
-      z(i) = ring%ele_(i)%s
+     do i=0,ring%n_ele_track
+      z(i) = ring%ele(i)%s
 
       if(plot_flag == orbit$)then
-       x(i)= co_(i)%vec(1)*1000.
-       y(i)= co_(i)%vec(3)*1000.
-       if(index(ring_two(1)%ele_(i)%name, 'WIG') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele_(i)%name,z(i),x(i),y(i)
+       x(i)= co(i)%vec(1)*1000.
+       y(i)= co(i)%vec(3)*1000.
+       if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
+!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
        endif
-       if(index(ring_two(1)%ele_(i)%name, 'IP_L0') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele_(i)%name,z(i),x(i),y(i)
+       if(index(ring_two(1)%ele(i)%name, 'IP_L0') /= 0 )then
+!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
        endif
       endif
 
       if(plot_flag == beta$)then
-       x(i) = ring%ele_(i)%x%beta
-       y(i) = ring%ele_(i)%y%beta
-       if(i == 0)print '(1x,a16,3a12)','     Element    ','     z      ','   Beta_x   ','   Beta_y   '
-       if(index(ring_two(1)%ele_(i)%name, 'WIG') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele_(i)%name,z(i),max(x(i-1),x(i)),max(y(i-1),y(i))
+       x(i) = ring%ele(i)%a%beta
+       y(i) = ring%ele(i)%b%beta
+       if(i == 0)print '(1x,a16,3a12)','     Element    ','     z      ','   Beta_a   ','   Beta_b   '
+       if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
+!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),max(x(i-1),x(i)),max(y(i-1),y(i))
        endif
-       if(index(ring_two(1)%ele_(i)%name, 'IP_L0') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele_(i)%name,z(i),x(i),y(i)
+       if(index(ring_two(1)%ele(i)%name, 'IP_L0') /= 0 )then
+!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
        endif
       endif
 
       if(plot_flag == de_beta$)then
-       x(i) = (ring_two(1)%ele_(i)%x%beta - ring_two(-1)%ele_(i)%x%beta)/2/de/ &
-                   ring%ele_(i)%x%beta
-       y(i) = (ring_two(1)%ele_(i)%y%beta - ring_two(-1)%ele_(i)%y%beta)/2/de/ &
-                    ring%ele_(i)%y%beta
-       if(index(ring_two(1)%ele_(i)%name, 'WIG') /= 0 )then
-!        type *,ring_two(1)%ele_(i)%name,z(i),x(i),y(i)
+       x(i) = (ring_two(1)%ele(i)%a%beta - ring_two(-1)%ele(i)%a%beta)/2/de/ &
+                   ring%ele(i)%a%beta
+       y(i) = (ring_two(1)%ele(i)%b%beta - ring_two(-1)%ele(i)%b%beta)/2/de/ &
+                    ring%ele(i)%b%beta
+       if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
+!        type *,ring_two(1)%ele(i)%name,z(i),x(i),y(i)
        endif
-       if(index(ring_two(1)%ele_(i)%name, 'IP_L0') /= 0 )then
-!        type *,ring_two(1)%ele_(i)%name,z(i),x(i),y(i)
+       if(index(ring_two(1)%ele(i)%name, 'IP_L0') /= 0 )then
+!        type *,ring_two(1)%ele(i)%name,z(i),x(i),y(i)
        endif
       endif
 
       if(plot_flag == eta$)then
-       x(i) = (co_high_(i)%vec(1) - co_low_(i)%vec(1))/2/de
-       y(i) = (co_high_(i)%vec(3) - co_low_(i)%vec(3))/2/de
+       x(i) = (co_high(i)%vec(1) - co_low(i)%vec(1))/2/de
+       y(i) = (co_high(i)%vec(3) - co_low(i)%vec(3))/2/de
       endif
 
       if(plot_flag == cbar$)then
-       call c_to_cbar(ring%ele_(i),cbar_mat)
+       call c_to_cbar(ring%ele(i),cbar_mat)
        x(i) = cbar_mat(1,2)
        y(i) = cbar_mat(2,2)
-!       if(index(ring_two(1)%ele_(i)%name, 'WIG') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele_(ring%ni)%name,z(i),x(i),y(i)
+!       if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
+!        type '(1x,a16,3f12.4)',ring_two(1)%ele(ring%ni)%name,z(i),x(i),y(i)
 !       endif
-!       if(ring%ele_(i)%s < 15. .or. ring%ele_(ring%n_ele_use)%s - ring%ele_(i)%s <15. )then
-!        print '(1x,a16,3f12.4)',ring_two(1)%ele_(i)%name,z(i),x(i),y(i)
+!       if(ring%ele(i)%s < 15. .or. ring%ele(ring%n_ele_track)%s - ring%ele(i)%s <15. )then
+!        print '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
 !       endif
       endif
 
       if(plot_flag == de_cbar$)then
-       call c_to_cbar(ring_two(1)%ele_(i),cbar_mat1)
-       call c_to_cbar(ring_two(-1)%ele_(i),cbar_mat2)
+       call c_to_cbar(ring_two(1)%ele(i),cbar_mat1)
+       call c_to_cbar(ring_two(-1)%ele(i),cbar_mat2)
        x(i) = (cbar_mat1(1,2)-cbar_mat2(1,2))/2/de
        y(i) = (cbar_mat1(2,2)-cbar_mat2(2,2))/2/de
       endif
 
-      if(index(ring%ele_(i)%name, 'DET') /= 0)then
+      if(index(ring%ele(i)%name, 'DET') /= 0)then
         nd = nd+1
         zdet(nd) = z(i)
         xdet(nd) = x(i)
@@ -661,7 +661,7 @@ interface
       if(xmax0 /= 0.)xmax=xmax0
       if(ymax0 /= 0.)ymax=ymax0
      end do
-     n_all = ring%n_ele_use
+     n_all = ring%n_ele_track
      l = n_all
      endif
 
@@ -669,45 +669,45 @@ interface
      if(diff)then
      nd = 0
      l=0
-     do i=0,ring%n_ele_use
+     do i=0,ring%n_ele_track
       do j = 0, n_all
-       if(abs(z(j) -  ring%ele_(i)%s) > 0.0001) cycle
+       if(abs(z(j) -  ring%ele(i)%s) > 0.0001) cycle
 
        l = l+1
 
-       zz_diff(l) = ring%ele_(i)%s 
+       zz_diff(l) = ring%ele(i)%s 
 
       if(plot_flag == orbit$)then
-       xx_diff(l)= co_(i)%vec(1)*1000. -x(j)
-       yy_diff(l)= co_(i)%vec(3)*1000. -y(j)
+       xx_diff(l)= co(i)%vec(1)*1000. -x(j)
+       yy_diff(l)= co(i)%vec(3)*1000. -y(j)
       endif
       if(plot_flag == beta$)then
-       xx_diff(l) = ring%ele_(i)%x%beta -x(j)
-       yy_diff(l) = ring%ele_(i)%y%beta -y(j)
+       xx_diff(l) = ring%ele(i)%a%beta -x(j)
+       yy_diff(l) = ring%ele(i)%b%beta -y(j)
       endif
 
       if(plot_flag == de_beta$)then
-       xx_diff(l) = (ring_two(1)%ele_(i)%x%beta - ring_two(-1)%ele_(i)%x%beta)/2/de/ &
-                  ring%ele_(i)%x%beta - x(j)
-       yy_diff(l) = (ring_two(1)%ele_(i)%y%beta - ring_two(-1)%ele_(i)%y%beta)/2/de/ &
-                  ring%ele_(i)%y%beta - y(j)
+       xx_diff(l) = (ring_two(1)%ele(i)%a%beta - ring_two(-1)%ele(i)%a%beta)/2/de/ &
+                  ring%ele(i)%a%beta - x(j)
+       yy_diff(l) = (ring_two(1)%ele(i)%b%beta - ring_two(-1)%ele(i)%b%beta)/2/de/ &
+                  ring%ele(i)%b%beta - y(j)
       endif
 
       if(plot_flag == eta$)then
-       xx_diff(l) = (co_high_(i)%vec(1) - co_low_(i)%vec(1))/2/de - x(j)
-       yy_diff(l) = (co_high_(i)%vec(3) - co_low_(i)%vec(3))/2/de - y(j)
+       xx_diff(l) = (co_high(i)%vec(1) - co_low(i)%vec(1))/2/de - x(j)
+       yy_diff(l) = (co_high(i)%vec(3) - co_low(i)%vec(3))/2/de - y(j)
       endif
 
 
       if(plot_flag == cbar$)then
-       call c_to_cbar(ring%ele_(i),cbar_mat)
+       call c_to_cbar(ring%ele(i),cbar_mat)
        xx_diff(l) = cbar_mat(1,2) -x(j)
        yy_diff(l) = cbar_mat(2,2) -y(j)
       endif
 
       if(plot_flag == de_cbar$)then
-       call c_to_cbar(ring_two(1)%ele_(i),cbar_mat1)
-       call c_to_cbar(ring_two(-1)%ele_(i),cbar_mat2)
+       call c_to_cbar(ring_two(1)%ele(i),cbar_mat1)
+       call c_to_cbar(ring_two(-1)%ele(i),cbar_mat2)
        xx_diff(l) = (cbar_mat1(1,2)-cbar_mat2(1,2))/2/de - x(j)
        yy_diff(l) = (cbar_mat1(2,2)-cbar_mat2(2,2))/2/de - y(j)
       endif
@@ -720,13 +720,13 @@ interface
       if(xmax0 /= 0.)xmax=xmax0
       if(ymax0 /= 0.)ymax=ymax0
 
-      if(index(ring%ele_(i)%name, 'DET') /= 0)then
+      if(index(ring%ele(i)%name, 'DET') /= 0)then
         nd = nd+1
         zdet(nd) = zz_diff(l)
         xdet(nd) = xx_diff(l)
         ydet(nd) = yy_diff(l)
       endif
-       print *,ring%ele_(i)%name, l, zz_diff(l), xx_diff(l), yy_diff(l)       
+       print *,ring%ele(i)%name, l, zz_diff(l), xx_diff(l), yy_diff(l)       
       end do
 
      end do
@@ -785,12 +785,12 @@ interface
        endif
 !       endif
 
-!       do i=1,ring%n_ele_use
+!       do i=1,ring%n_ele_track
        do i=1,l
          zz(i,n)=z(i)
          xx(i,n)=x(i)
        end do
-!         n_ele(n) = ring%n_ele_use
+!         n_ele(n) = ring%n_ele_track
          n_ele(n) = l
 
        do j =1,n
@@ -844,7 +844,7 @@ interface
          call pglab('z (m)','d(cbar22)/dE',' cbar')
        endif
 
-!       do i=1,ring%n_ele_use
+!       do i=1,ring%n_ele_track
        do i=1,l
          zz(i,n)=z(i)
          yy(i,n)=y(i)
@@ -883,9 +883,9 @@ interface
       write(33,2)
 2     format(1x,'ele',14x,'z',9x,'x',5x,'xp',6x,'y',7x,'yp',10x,'l',7x,'energy')
 
-       do i=1,ring%n_ele_use
-  write(33,1)ring%ele_(i)%name,ring%ele_(i)%s,(co_(i)%vec(j)*1000.,j=1,4),   &
-                       co_(i)%vec(5), co_(i)%vec(6)
+       do i=1,ring%n_ele_track
+  write(33,1)ring%ele(i)%name,ring%ele(i)%s,(co(i)%vec(j)*1000.,j=1,4),   &
+                       co(i)%vec(5), co(i)%vec(6)
        end do
 1      format(1x,a13,f8.3,4f8.2,2e12.4) 
        close(unit=33)
@@ -896,10 +896,10 @@ interface
                                               '     x       ','     y      ','     z      ',&
                                               '   theta     ','    phi     ','    psi     ' 
 
-       do i=1,ring%n_ele_use
-  write(34,'(1x,a13,7e12.4)')ring%ele_(i)%name, ring%ele_(i)%s, &
-                        ring%ele_(i)%floor%x,ring%ele_(i)%floor%y,ring%ele_(i)%floor%z, &
-                        ring%ele_(i)%floor%theta,ring%ele_(i)%floor%phi,ring%ele_(i)%floor%psi
+       do i=1,ring%n_ele_track
+  write(34,'(1x,a13,7e12.4)')ring%ele(i)%name, ring%ele(i)%s, &
+                        ring%ele(i)%floor%x,ring%ele(i)%floor%y,ring%ele(i)%floor%z, &
+                        ring%ele(i)%floor%theta,ring%ele(i)%floor%phi,ring%ele(i)%floor%psi
 
        end do
 
@@ -915,7 +915,7 @@ interface
 
  implicit none
 
- type (ring_struct) ring_high, ring_low
+ type (lat_struct) ring_high, ring_low
 
  real(rdef) de, rms_x, rms_y, avg_x, avg_y,sum_x,sum_y
 
@@ -923,23 +923,23 @@ interface
 
    sum_x=0.
    sum_y=0.
-   do i=1,ring_high%n_ele_use
-      sum_x = sum_x + (ring_high%ele_(i)%x%beta - ring_low%ele_(i)%x%beta)/2/de
-      sum_y = sum_y + (ring_high%ele_(i)%y%beta - ring_low%ele_(i)%y%beta)/2/de
+   do i=1,ring_high%n_ele_track
+      sum_x = sum_x + (ring_high%ele(i)%a%beta - ring_low%ele(i)%a%beta)/2/de
+      sum_y = sum_y + (ring_high%ele(i)%b%beta - ring_low%ele(i)%b%beta)/2/de
    end do
-    avg_x = sum_x/ring_high%n_ele_use
-    avg_y = sum_y/ring_high%n_ele_use
+    avg_x = sum_x/ring_high%n_ele_track
+    avg_y = sum_y/ring_high%n_ele_track
 
     sum_x=0.
     sum_y=0.
 
-   do i=1,ring_high%n_ele_use
-      sum_x = sum_x + ( (ring_high%ele_(i)%x%beta - ring_low%ele_(i)%x%beta)/2/de -  avg_x)**2
-      sum_y = sum_y + ( (ring_high%ele_(i)%y%beta - ring_low%ele_(i)%y%beta)/2/de -  avg_y)**2
+   do i=1,ring_high%n_ele_track
+      sum_x = sum_x + ( (ring_high%ele(i)%a%beta - ring_low%ele(i)%a%beta)/2/de -  avg_x)**2
+      sum_y = sum_y + ( (ring_high%ele(i)%b%beta - ring_low%ele(i)%b%beta)/2/de -  avg_y)**2
    end do
 
-   rms_x = sqrt(sum_x/ring_high%n_ele_use)
-   rms_y = sqrt(sum_y/ring_high%n_ele_use)
+   rms_x = sqrt(sum_x/ring_high%n_ele_track)
+   rms_y = sqrt(sum_y/ring_high%n_ele_track)
 
    return
    end
@@ -974,7 +974,7 @@ interface
 
  implicit none
 
- type (ring_struct) ring
+ type (lat_struct) ring
 
  real(rdef) rate_x, rate_y, delta_e, rate_xq, rate_yq
  real(rdef) xf, yf,sum_x_real, sum_x_imagine, sum_y_real, sum_y_imagine
@@ -984,7 +984,7 @@ interface
 
   integer i
 
-   frev=c_light/ring%ele_(ring%n_ele_use)%s
+   frev=c_light/ring%ele(ring%n_ele_track)%s
    sum_x_real =0.
    sum_x_imagine =0.
    sum_y_real =0.
@@ -994,25 +994,25 @@ interface
    sum_y_realq =0.
    sum_y_imagineq =0.
 
-   do i=1,ring%n_ele_use
-     if(ring%ele_(i)%key == sextupole$)then
-     xf = ring%ele_(i)%value(k2$) * ring%ele_(i)%x%eta *ring%ele_(i)%x%beta
-     yf = ring%ele_(i)%value(k2$) * ring%ele_(i)%x%eta *ring%ele_(i)%y%beta
+   do i=1,ring%n_ele_track
+     if(ring%ele(i)%key == sextupole$)then
+     xf = ring%ele(i)%value(k2$) * ring%ele(i)%a%eta *ring%ele(i)%a%beta
+     yf = ring%ele(i)%value(k2$) * ring%ele(i)%a%eta *ring%ele(i)%b%beta
 
-     sum_x_real = sum_x_real+ xf*cos(2*ring%ele_(i)%x%phi)
-     sum_x_imagine = sum_x_imagine +xf*sin(2*ring%ele_(i)%x%phi)
-     sum_y_real = sum_y_real + yf*cos(2*ring%ele_(i)%y%phi)
-     sum_y_imagine = sum_y_imagine + yf*sin(2*ring%ele_(i)%y%phi)
-!!     type '(a16,a16,i,2e12.4)',' name, i, xf, yf', ring%ele_(i)%name, i, xf, yf
+     sum_x_real = sum_x_real+ xf*cos(2*ring%ele(i)%a%phi)
+     sum_x_imagine = sum_x_imagine +xf*sin(2*ring%ele(i)%a%phi)
+     sum_y_real = sum_y_real + yf*cos(2*ring%ele(i)%b%phi)
+     sum_y_imagine = sum_y_imagine + yf*sin(2*ring%ele(i)%b%phi)
+!!     type '(a16,a16,i,2e12.4)',' name, i, xf, yf', ring%ele(i)%name, i, xf, yf
    
-    elseif (ring%ele_(i)%key == quadrupole$ .or. index(ring%ele_(i)%name,'Q01')/= 0) then
-     xfq = ring%ele_(i)%value(k1$) *ring%ele_(i)%x%beta
-     yfq = ring%ele_(i)%value(k1$) *ring%ele_(i)%y%beta
-     sum_x_realq = sum_x_realq+ xfq*cos(2*ring%ele_(i)%x%phi)
-     sum_x_imagineq = sum_x_imagineq +xfq*sin(2*ring%ele_(i)%x%phi)
-     sum_y_realq = sum_y_realq + yfq*cos(2*ring%ele_(i)%y%phi)
-     sum_y_imagineq = sum_y_imagineq + yfq*sin(2*ring%ele_(i)%y%phi)
- !    type '( a16,2e12.4,i)', ring%ele_(i)%name, xfq, sum_x_realq, ring%ele_(i)%key
+    elseif (ring%ele(i)%key == quadrupole$ .or. index(ring%ele(i)%name,'Q01')/= 0) then
+     xfq = ring%ele(i)%value(k1$) *ring%ele(i)%a%beta
+     yfq = ring%ele(i)%value(k1$) *ring%ele(i)%b%beta
+     sum_x_realq = sum_x_realq+ xfq*cos(2*ring%ele(i)%a%phi)
+     sum_x_imagineq = sum_x_imagineq +xfq*sin(2*ring%ele(i)%a%phi)
+     sum_y_realq = sum_y_realq + yfq*cos(2*ring%ele(i)%b%phi)
+     sum_y_imagineq = sum_y_imagineq + yfq*sin(2*ring%ele(i)%b%phi)
+ !    type '( a16,2e12.4,i)', ring%ele(i)%name, xfq, sum_x_realq, ring%ele(i)%key
    
    endif   
   
@@ -1047,7 +1047,7 @@ interface
   subroutine psp(ring, co, traj, n_turns, istat2, ix_start, ix_end)
   use bmad
   implicit none
-  type (ring_struct) ring
+  type (lat_struct) ring
   type (coord_struct) traj, psp_all
   type (coord_struct), allocatable :: co(:), psp_save(:)
   type (coord_struct), allocatable, save :: orbit(:)
@@ -1087,8 +1087,8 @@ interface
   end do
 
   do i = 1, ring%n_ele_max
-    if(ring%ele_(i)%value(x_limit$) == 0.)ring%ele_(i)%value(x_limit$) = 0.05
-    if(ring%ele_(i)%value(y_limit$) == 0.)ring%ele_(i)%value(y_limit$) = 0.05
+    if(ring%ele(i)%value(x_limit$) == 0.)ring%ele(i)%value(x_limit$) = 0.05
+    if(ring%ele(i)%value(y_limit$) == 0.)ring%ele(i)%value(y_limit$) = 0.05
   enddo
 
   ring%param%aperture_limit_on = .true.
@@ -1097,7 +1097,7 @@ interface
   open(unit = 51, file = 'phase_space.dat')
    write(51,'(a6,a12,6a12)')' turn ','  Element   ','     x      ','     xp     ','     y      ','    yp      ', &
                                                                                   '   delta l  ','  delta E/E '
-  call string_trim(ring%ele_(ix_end)%name, end_name, ix)
+  call string_trim(ring%ele(ix_end)%name, end_name, ix)
 
   do i=1,n_turns
     istart = ix_start
@@ -1117,16 +1117,16 @@ interface
        call track_many(ring, orbit, ix_start, ix_end, 1)
        if(ring%param%lost) exit
        psp_save(i)%vec(1:6) = (orbit(ix_end)%vec(1:6) - co(ix_end)%vec(1:6))*1000.
-       call track_many(ring, orbit, ix_end, ring%n_ele_use, 1)
+       call track_many(ring, orbit, ix_end, ring%n_ele_track, 1)
        if(ring%param%lost) exit
-       orbit(0)%vec = orbit(ring%n_ele_use)%vec
+       orbit(0)%vec = orbit(ring%n_ele_track)%vec
        call track_many(ring, orbit, 0, ix_start, 1)
        if(ring%param%lost) exit
 
      else
-       call track_many(ring, orbit, ix_start, ring%n_ele_use, 1)
+       call track_many(ring, orbit, ix_start, ring%n_ele_track, 1)
        if(ring%param%lost) exit
-       orbit(0)%vec = orbit(ring%n_ele_use)%vec
+       orbit(0)%vec = orbit(ring%n_ele_track)%vec
        call track_many(ring, orbit, 0, ix_end, 1)
        if(ring%param%lost) exit
        psp_save(i)%vec(1:6) = (orbit(ix_end)%vec(1:6) - co(ix_end)%vec(1:6))*1000.
@@ -1135,8 +1135,8 @@ interface
 
     endif
 
-      do j=1,ring%n_ele_use
-       if(abs(orbit(j)%vec(1))>0.045)print '(2i5,a12,4f12.4)',i,j,ring%ele_(j)%name, orbit(j)%vec(1:4)
+      do j=1,ring%n_ele_track
+       if(abs(orbit(j)%vec(1))>0.045)print '(2i5,a12,4f12.4)',i,j,ring%ele(j)%name, orbit(j)%vec(1:4)
       enddo
     if(ring%param%lost)exit
 
@@ -1198,17 +1198,17 @@ interface
   call pgsci(icall)
 
   call pgenv(-yscale, yscale, -yscalep, yscalep,0,1)
-  title = ' vertical phase space at '//ring%ele_(ix_end)%name
+  title = ' vertical phase space at '//ring%ele(ix_end)%name
   call pglab('y(mm)','yp',title)
   call pgpt(number_turns, psy, psyp, 18)
 
   call pgenv(-xscale, xscale, -xscalep, xscalep,0,1)
-  title = ' horizontal phase space at '//ring%ele_(ix_end)%name
+  title = ' horizontal phase space at '//ring%ele(ix_end)%name
   call pglab('x(mm)','xp', title)
   call pgpt(number_turns, psx, psxp, 18)
 
   call pgenv(-zscale, zscale, -zscalep, zscalep,0,1)
-  title = ' longitudinal phase space at '//ring%ele_(ix_end)%name
+  title = ' longitudinal phase space at '//ring%ele(ix_end)%name
   call pglab('l(mm)','Delta E/E 0.1%', title)
   call pgpt(number_turns, psz, pszp, 18)
 

@@ -1,8 +1,8 @@
 !+
-!   SUBROUTINE LUMINOSITY_CALC (ELE, coord_, param, n_ok, LUM)
+!   SUBROUTINE LUMINOSITY_CALC (ELE, coord, param, n_ok, LUM)
 !
 ! routine to compute luminosity for a distribution of particles
-! with coordinates COORD_, colliding with a gaussian bunch. Assume
+! with coordinates COORD, colliding with a gaussian bunch. Assume
 ! that the weak beam has the same current as the strong beam
 !
 ! INPUT: ELE : ele_struct, beambeam element
@@ -25,14 +25,20 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.1.1.1.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
 !
 #include "CESR_platform.h"
-  subroutine luminosity_calc (ele, coord_, param, n_ok, lum)
+  subroutine luminosity_calc (ele, coord, param, n_ok, lum)
 
   use bmad_struct
   use bmad_interface
@@ -42,8 +48,8 @@
   implicit none
 
   type(ele_struct) ele
-  type(coord_struct), allocatable :: coord_(:)
-  type(param_struct) param
+  type(coord_struct), allocatable :: coord(:)
+  type(lat_param_struct) param
 
   real(rdef) z_slice(100), sig_x0, sig_y0, sig_x, sig_y
   real(rdef) s_pos, s_pos_old
@@ -60,11 +66,11 @@
   call attribute_bookkeeper (ele, param)
 
   lum = 0.
-  psize = size(coord_) - 1
+  psize = size(coord) - 1
   do i =1,n_ok
 
-    vec(1:6) = coord_(i)%vec(1:6)
-    call offset_particle (ele, param, coord_(i), set$)
+    vec(1:6) = coord(i)%vec(1:6)
+    call offset_particle (ele, param, coord(i), set$)
 
     sig_x0 = ele%value(sig_x$)
     sig_y0 = ele%value(sig_y$)
@@ -76,14 +82,14 @@
       s_pos = (vec(5) + z_slice(j)) / 2
       vec(1) = vec(1) + vec(2) * (s_pos - s_pos_old)
       vec(3) = vec(3) + vec(4) * (s_pos - s_pos_old)
-      if (ele%x%beta == 0) then
+      if (ele%a%beta == 0) then
         sig_x = sig_x0
         sig_y = sig_y0
       else
-        beta = ele%x%beta - 2 * ele%x%alpha * s_pos + ele%x%gamma * s_pos**2
-        sig_x = sig_x0 * sqrt(beta / ele%x%beta)
-        beta = ele%y%beta - 2 * ele%y%alpha * s_pos + ele%y%gamma * s_pos**2
-        sig_y = sig_y0 * sqrt(beta / ele%y%beta)
+        beta = ele%a%beta - 2 * ele%a%alpha * s_pos + ele%a%gamma * s_pos**2
+        sig_x = sig_x0 * sqrt(beta / ele%a%beta)
+        beta = ele%b%beta - 2 * ele%b%alpha * s_pos + ele%b%gamma * s_pos**2
+        sig_y = sig_y0 * sqrt(beta / ele%b%beta)
       endif
 
       x = vec(1)/sig_x

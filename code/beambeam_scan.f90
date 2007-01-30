@@ -19,6 +19,12 @@
 ! $Id$
 !
 ! $Log$
+! Revision 1.5  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.4.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
 ! Revision 1.4  2006/02/21 21:33:55  ajl59
 ! Fixed use of MPI causing error on turn 20500
 !
@@ -50,13 +56,13 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   
 #include "mpif.h"  
   
-  type (ring_struct) ring
-  type (ring_struct), save :: ring_in, ring_out
-  type (coord_struct), allocatable, save ::  start_coord_(:), end_coord_(:)
-  type (coord_struct), allocatable, save :: co_(:), orb_(:)
+  type (lat_struct) ring
+  type (lat_struct), save :: ring_in, ring_out
+  type (coord_struct), allocatable, save ::  start_coord(:), end_coord(:)
+  type (coord_struct), allocatable, save :: co(:), orb(:)
   type (coord_struct), allocatable, save :: start(:), end(:)
   type (coord_struct) orb, delta_ip
-  type (modes_struct) mode
+  type (normal_modes_struct) mode
   type (ele_struct) beambeam_ele
   type (scan_params_struct) scan_params
   
@@ -102,7 +108,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
                                      !strong beam size has been updated
   logical round_flag,found_flag
   real(rp), dimension(7) :: onepart,recvpart,partstart
-  type (coord_struct), allocatable :: sib_co_(:)
+  type (coord_struct), allocatable :: sib_co(:)
   character name*12 
 
 !ANDREW added these
@@ -135,25 +141,25 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   damping = scan_params%damping
 !######################
 
-  call reallocate_coord(sib_co_,ring%n_ele_max)
+  call reallocate_coord(sib_co,ring%n_ele_max)
 
-  call reallocate_coord(co_,ring%n_ele_max)
-  call reallocate_coord(orb_, ring%n_ele_max)
-  call reallocate_coord(start_coord_, scan_params%n_part)
-  call reallocate_coord(end_coord_, scan_params%n_part)
+  call reallocate_coord(co,ring%n_ele_max)
+  call reallocate_coord(orb, ring%n_ele_max)
+  call reallocate_coord(start_coord, scan_params%n_part)
+  call reallocate_coord(end_coord, scan_params%n_part)
   call reallocate_coord(start, scan_params%n_part)
   call reallocate_coord(end, scan_params%n_part)
 
-  call setup_radiation_tracking(ring, co_, .false., .false.)
+  call setup_radiation_tracking(ring, co, .false., .false.)
   call set_on (rfcavity$, ring, .false.)
 
   ring%param%particle = positron$
 
   call twiss_at_start(ring)
-  co_(0)%vec = 0.
-  call closed_orbit_at_start(ring, co_(0), 4, .true.)
-  call track_all (ring, co_)
-  call ring_make_mat6(ring,-1,co_)
+  co(0)%vec = 0.
+  call closed_orbit_at_start(ring, co(0), 4, .true.)
+  call track_all (ring, co)
+  call lat_make_mat6(ring,-1,co)
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)  
   rank=0
@@ -166,8 +172,8 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   if(rank.eq.0) then
      type *
      type *,' BEAMBEAM_SCAN: Initially '
-     type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
-     type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+     type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+     type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
   endif
 
   particle = scan_params%particle
@@ -191,10 +197,10 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      ring = ring_out
      
      call twiss_at_start(ring)
-     co_(0)%vec = 0.
-     call closed_orbit_at_start(ring, co_(0), 4, .true.)
-     call track_all(ring, co_)
-     call ring_make_mat6(ring,-1, co_)
+     co(0)%vec = 0.
+     call closed_orbit_at_start(ring, co(0), 4, .true.)
+     call track_all(ring, co)
+     call lat_make_mat6(ring,-1, co)
      call twiss_at_start(ring)
      
 !only 0 talks to the world
@@ -202,15 +208,15 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
         type *
         type '(a51,f4.1,a8)', &
              ' BEAMBEAM_SCAN: After parasitic interactions added ', current,'mA/bunch' 
-        type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
-        type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+        type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+        type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
      endif
   endif
   
   ! set Q-tunes, save initial tunes to be read into .ends file later
-  Qx = ring%x%tune/twopi
+  Qx = ring%a%tune/twopi
   Qx_in = Qx
-  Qy = ring%y%tune/twopi
+  Qy = ring%b%tune/twopi
   Qy_in = Qy
   ring%z%tune = scan_params%Q_z * twopi
   
@@ -219,14 +225,14 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      call beambeam_setup(ring, particle, current, scan_params, slices)
      
      call twiss_at_start(ring)
-     co_(0)%vec = 0.
-     call closed_orbit_at_start(ring, co_(0), 4, .true.)
+     co(0)%vec = 0.
+     call closed_orbit_at_start(ring, co(0), 4, .true.)
 !only 0 talks to the world
      if(rank.eq.0) then
-        type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+        type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
      endif
-     call track_all(ring, co_)
-     call ring_make_mat6(ring, -1, co_)
+     call track_all(ring, co)
+     call lat_make_mat6(ring, -1, co)
      call twiss_at_start(ring)
 
 !things written need be done but once
@@ -235,13 +241,13 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
         type *,' BEAMBEAM_SCAN: After beambeam added '
         type '(a37,f4.1,a8)', &
              ' BEAMBEAM_SCAN: After beambeam added ', current,'mA/bunch' 
-        type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
-        type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+        type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+        type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
         write(23, *)
         write(23, '(a37,f4.1,a8)') &
              ' BEAMBEAM_SCAN: After beambeam added ', current,'mA/bunch' 
      endif
-     beambeam_ele = ring%ele_(1)
+     beambeam_ele = ring%ele(1)
      if(rank.eq.0) then
         write(23,  '(1x,a14)') ' Strong beam: '
         write(23,  '(1x,a12,e12.4)') '  sigma_x = ',beambeam_ele%value(sig_x$)
@@ -264,13 +270,13 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   if(scan_params%close_pretz)then
      call close_pretzel (ring, i_dim, scan_params%final_pos_in, final_pos_out) 
      call twiss_at_start(ring)
-     call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
-     call track_all(ring, co_)
-     call ring_make_mat6(ring, -1, co_)
+     call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+     call track_all(ring, co)
+     call lat_make_mat6(ring, -1, co)
      call twiss_at_start(ring)
      if(rank.eq.0) then
         type*,' after close pretzel but before close vertical: '
-        type '(1x,3(a9,f12.4))','    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi,'   Qz = ',ring%z%tune/twopi
+        type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
      endif
   endif
 
@@ -278,37 +284,37 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   
   call twiss_at_start(ring)
   
-  forall( i=0:ring%n_ele_use) co_(i)%vec = 0.
-  call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
-  call track_all(ring, co_)
-  call ring_make_mat6(ring, -1, co_)
+  forall( i=0:ring%n_ele_track) co(i)%vec = 0.
+  call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+  call track_all(ring, co)
+  call lat_make_mat6(ring, -1, co)
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)
   
   if(rank.eq.0)then
      type *
      type *,' After CLOSE VERTICAL ' 
-     type '(1x,3(a9,f12.4))','    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi,'   Qz = ', ring%z%tune/twopi
-     type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
-     write(23,'(a36,f6.4,a12,f6.4)')' Beam beam tune shifts:  Delta Qx = ', ring%x%tune/twopi - Qx, &
-          '  Delta Qy =',ring%y%tune/twopi-Qy
+     type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
+     type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+     write(23,'(a36,f6.4,a12,f6.4)')' Beam beam tune shifts:  Delta Qx = ', ring%a%tune/twopi - Qx, &
+          '  Delta Qy =',ring%b%tune/twopi-Qy
   endif
 
   ! set rgamma, den, xi_v, and xi_h; print these values to file
-  rgamma = ring%ele_(0)%value(beam_energy$)
+  rgamma = ring%ele(0)%value(E_TOT$)
   den = twopi*rgamma*beambeam_ele%value(sig_x$)+beambeam_ele%value(sig_y$)
-  xi_v = r_0*ring%param%n_part*ring%ele_(0)%y%beta/beambeam_ele%value(sig_y$)/den
-  xi_h = r_0*ring%param%n_part*ring%ele_(0)%x%beta/beambeam_ele%value(sig_x$)/den
+  xi_v = r_0*ring%param%n_part*ring%ele(0)%b%beta/beambeam_ele%value(sig_y$)/den
+  xi_h = r_0*ring%param%n_part*ring%ele(0)%a%beta/beambeam_ele%value(sig_x$)/den
   if(rank.eq.0) then
      write(23,'(2(a10,f7.4))')'   xi_v = ', xi_v,'   xi_h = ',xi_h
   endif
   
   ! find beambeam at IP and turn it off
   do i=0,ring%n_ele_max
-     if(ring%ele_(i)%name == 'IP_COLLISION')then
+     if(ring%ele(i)%name == 'IP_COLLISION')then
         ix_ip = i
-        charge = ring%ele_(i)%value(charge$)
-        ring%ele_(i)%value(charge$) = 0
+        charge = ring%ele(i)%value(charge$)
+        ring%ele(i)%value(charge$) = 0
         exit
      endif
   end do
@@ -319,34 +325,34 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   ! Qtune
   allocate(dk1(ring%n_ele_max))
   call choose_quads(ring, dk1)
-  call custom_set_tune (phi_x, phi_y, dk1, ring, co_, ok)
+  call custom_set_tune (phi_x, phi_y, dk1, ring, co, ok)
   deallocate(dk1)
   
   ! IF CLOSE_PRETZ
   if(scan_params%close_pretz)then
      call close_pretzel (ring,i_dim, scan_params%final_pos_in, final_pos_out)
 !        call twiss_at_start(ring)
-     call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
-     call track_all(ring, co_)
-     call ring_make_mat6(ring, -1, co_)
+     call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+     call track_all(ring, co)
+     call lat_make_mat6(ring, -1, co)
      call twiss_at_start(ring)
      if(rank.eq.0) then
         type *,' beam beam at IP is off'
         type*,' after qtune and after close pretzel but before close vertical: '
-        type '(1x,3(a9,f12.4))','    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi,'   Qz = ',ring%z%tune/twopi
+        type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
      endif
   endif
   ! IF CLOSE_VERT
   if(scan_params%close_vert)then
      call close_vertical(ring,i_dim,scan_params%final_pos_in,final_pos_out)
 !        call twiss_at_start(ring)
-     call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
-     call track_all(ring, co_)
-     call ring_make_mat6(ring, -1, co_)
+     call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+     call track_all(ring, co)
+     call lat_make_mat6(ring, -1, co)
      call twiss_at_start(ring)
      if(rank.eq.0) then
         type*,' after qtune with pretzel and vert closed but beam beam at IP off: '
-        type '(1x,3(a9,f12.4))','    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi,'   Qz = ', ring%z%tune/twopi
+        type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
      endif
   endif
 
@@ -361,19 +367,19 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 
 
   ! Turn beambeam back on
-  ring%ele_(ix_ip)%value(charge$) = charge
+  ring%ele(ix_ip)%value(charge$) = charge
   call twiss_at_start(ring)
-  call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
-  call track_all(ring, co_)
-  call ring_make_mat6(ring, -1, co_)
+  call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+  call track_all(ring, co)
+  call lat_make_mat6(ring, -1, co)
   call twiss_at_start(ring)
   call beambeam_separation(ring, delta_ip, i_dim)
   if(rank.eq.0) then
      type *,' Turn Beambeam on'
-     type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
+     type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
      type '(a22,4f8.4)', ' dx,dxp,dy,dyp (mm) = ', delta_ip%vec(1:4)*1000.
   endif
-  beambeam_ele = ring%ele_(1)
+  beambeam_ele = ring%ele(1)
   if(rank.eq.0) then
      write(23,*)
      write(23,  '(1x,a14)') ' Strong beam: after closing pretzel '
@@ -389,20 +395,20 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   call set_on(rfcavity$, ring, .true.)
   call set_z_tune(ring)
   if(scan_params%radiation)then
-     call setup_radiation_tracking(ring, co_, .true., .true.)
+     call setup_radiation_tracking(ring, co, .true., .true.)
      if(rank.eq.0) then
         type *,' radiation fluctuations and damping are on'
      endif
   endif
-  forall(i=0:ring%n_ele_use) orb_(i)%vec = co_(i)%vec
-  call radiation_integrals (ring, orb_, mode)
+  forall(i=0:ring%n_ele_track) orb(i)%vec = co(i)%vec
+  call radiation_integrals (ring, orb, mode)
   call longitudinal_beta( ring, mode)
 
   ! generate initial gaussian dist for weak beam & calculate its size
   if(rank.eq.0) then
-     call gaussian_dist(ring%ele_(0), mode, scan_params%coupling_wb, scan_params%min_sig, start_coord_) 
+     call gaussian_dist(ring%ele(0), mode, scan_params%coupling_wb, scan_params%min_sig, start_coord) 
      call file_suffixer (scan_params%file_name, in_file, '.beg', .true.)
-     call histogram(ring%ele_(0), start_coord_,in_file, scan_params%sig_in,A)
+     call histogram(ring%ele(0), start_coord,in_file, scan_params%sig_in,A)
 
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
      if(fit_sig) then
@@ -417,7 +423,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
         write(g_unit,'(i8)',ADVANCE='NO') 0
         close(g_unit)
 
-        call gfit3d(start_coord_(1:scan_params%n_part),parameters)
+        call gfit3d(start_coord(1:scan_params%n_part),parameters)
         scan_params%sig_in(:) = parameters(3,:)
         call file_suffixer (scan_params%file_name, in_file, '.beg', .true.)
         call writefile(in_file,parameters)
@@ -427,20 +433,20 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 !dist_file = './dists/dist.calc_' // trim(wordx) // '_000000'
 !open(unit=18,file=dist_file)
 !do i=1,scan_params%n_part
-!write(18,'(6e12.4)')start_coord_(i)%vec(:)
+!write(18,'(6e12.4)')start_coord(i)%vec(:)
 !end do
 !close(18)
 !
   ! tilt the beam onto the orbit axis for tracking
   open(unit=14)
   do i = 1, scan_params%n_part
-     x_offset = orb_(0)%vec(2) * start_coord_(i)%vec(5)
-     y_offset = orb_(0)%vec(4) * start_coord_(i)%vec(5)
-     co_(0)%vec(:) = orb_(0)%vec(:) + start_coord_(i)%vec(:)
-     co_(0)%vec(1) = co_(0)%vec(1) + x_offset
-     co_(0)%vec(3) = co_(0)%vec(3) + y_offset
-     write(14,'(6e12.4)')start_coord_(i)%vec
-     start(i) = co_(0)
+     x_offset = orb(0)%vec(2) * start_coord(i)%vec(5)
+     y_offset = orb(0)%vec(4) * start_coord(i)%vec(5)
+     co(0)%vec(:) = orb(0)%vec(:) + start_coord(i)%vec(:)
+     co(0)%vec(1) = co(0)%vec(1) + x_offset
+     co(0)%vec(3) = co(0)%vec(3) + y_offset
+     write(14,'(6e12.4)')start_coord(i)%vec
+     start(i) = co(0)
   end do
   close(14)
 
@@ -590,7 +596,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
         if(start(sib_i)%vec(1) /= 999.)list(sib_i) = list(sib_i) - 2
      enddo
 
-     call size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, phi_x, phi_y, past_params, past_lums, parameters)
+     call size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb, phi_x, phi_y, past_params, past_lums, parameters)
 
 !tell all of the processes that they can transmit if they have been holding or that they can quit if it is the end
 
@@ -600,9 +606,9 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 
 !check is the strong beam size was updated. 
      if(transmit(2)) then
-        call MPI_BCAST(ring%ele_(1)%value(sig_x$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
-        call MPI_BCAST(ring%ele_(1)%value(sig_y$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
-        call MPI_BCAST(ring%ele_(1)%value(sig_z$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST(ring%ele(1)%value(sig_x$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST(ring%ele(1)%value(sig_y$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST(ring%ele(1)%value(sig_z$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
 !transmit(2) should always be false at this point
         transmit(2)=.false.
         do sib_i=1,size
@@ -642,8 +648,8 @@ else
            call MPI_RECV(recvpart,7,mpi_type,0,MPI_ANY_TAG,MPI_COMM_WORLD,status,ierr)
            call MPI_IRECV(transmit,2,MPI_LOGICAL,0,go,MPI_COMM_WORLD,request,ierr)
         endif
-        deallocate(sib_co_)
-        call reallocate_coord(sib_co_,ring%n_ele_max)
+        deallocate(sib_co)
+        call reallocate_coord(sib_co,ring%n_ele_max)
         
 !if we got the same particle back, we already have the data, just grab it again, this reduces transmission errors
         if(status(MPI_TAG).eq.idnum) then
@@ -659,9 +665,9 @@ else
            do sib_j=1,n_typeout
 !if a particle is lost during tracking, stop tracking it
               if(recvpart(1).ne.999.) then              
-                 sib_co_(0)%vec = recvpart(1:6)
-                 call track_all(ring, sib_co_)
-                 onepart(1:6) = sib_co_(ring%n_ele_use)%vec
+                 sib_co(0)%vec = recvpart(1:6)
+                 call track_all(ring, sib_co)
+                 onepart(1:6) = sib_co(ring%n_ele_track)%vec
 !since we can no longer save p turns, just print out the line number when it gets lost
                  if(ring%param%lost)then      
 !                    write(wordx,'(i3.3)') idnum
@@ -681,9 +687,9 @@ else
 !wait to get the recieve and if it says not to transmit, leave, otherwise, keep on going
         if(.not.round_flag) call MPI_WAIT(request,status,ierr)
         if(transmit(2))then
-           call MPI_BCAST(ring%ele_(1)%value(sig_x$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(ring%ele_(1)%value(sig_y$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(ring%ele_(1)%value(sig_z$),1,mpi_type,0,MPI_COMM_WORLD,ierr)           
+           call MPI_BCAST(ring%ele(1)%value(sig_x$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(ring%ele(1)%value(sig_y$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(ring%ele(1)%value(sig_z$),1,mpi_type,0,MPI_COMM_WORLD,ierr)           
            call MPI_IRECV(transmit,2,MPI_LOGICAL,0,go,MPI_COMM_WORLD,request,ierr)
            recvpart=partstart
 ! I hate go to statements but as written this is the easiest way to do it
@@ -706,7 +712,7 @@ else !not parallel
       if(mod(j,n_typeout) /= 0 .and. j /= scan_params%n_turn)cycle
       sib_j=j/n_typeout
 
-      call size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, phi_x, phi_y, past_params, past_lums, parameters)
+      call size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb, phi_x, phi_y, past_params, past_lums, parameters)
 
   end do
   deallocate(parameters,past_params,past_lums)
@@ -724,20 +730,20 @@ end subroutine beambeam_scan
     implicit none
   
 
-    type(ring_struct) ring
+    type(lat_struct) ring
     type(coord_struct) start(:),end(:)
-    type(coord_struct), allocatable, save :: co_(:)
+    type(coord_struct), allocatable, save :: co(:)
 
     integer n_part, i, j
 
-    call reallocate_coord(co_,ring%n_ele_max)
+    call reallocate_coord(co,ring%n_ele_max)
   
    do i = 1,n_part
       if(start(i)%vec(1) == 999.)cycle
-      co_(0) = start(i)
-      call track_all(ring, co_)
-      co_(0)%vec = co_(ring%n_ele_use)%vec
-      end(i) = co_(0)
+      co(0) = start(i)
+      call track_all(ring, co)
+      co(0)%vec = co(ring%n_ele_track)%vec
+      end(i) = co(0)
       if(ring%param%lost)end(i)%vec(1:6)=999.
   end do
 
@@ -758,8 +764,8 @@ end subroutine lum_tracker
 !    do i = 1, scan_params%n_part
 !      if(end(i)%vec(1) == 999.)cycle
 !       n_ok = n_ok +1
-!       end_coord_(n_ok)%vec = end(i)%vec - orb_(0)%vec
-!      write(16,'(6e12.4)')end_coord_(n_ok)%vec
+!       end_coord(n_ok)%vec = end(i)%vec - orb(0)%vec
+!      write(16,'(6e12.4)')end_coord(n_ok)%vec
 !      type *,' Finished tracking particle ',n_ok,'  of', scan_params%n_part
 !    enddo
 !
@@ -767,18 +773,18 @@ end subroutine lum_tracker
 !
 !    if(j == scan_params%n_turn)then
 !      call file_suffixer (scan_params%file_name, in_file, '.end', .true.)
-!      call histogram(ring%ele_(0),end_coord_(1:n_ok), in_file, scan_params%sig_out,A)
+!      call histogram(ring%ele(0),end_coord(1:n_ok), in_file, scan_params%sig_out,A)
 !     else
-!      call histogram(ring%ele_(0),end_coord_(1:n_ok), 'junk', scan_params%sig_out,A)
+!      call histogram(ring%ele(0),end_coord(1:n_ok), 'junk', scan_params%sig_out,A)
 !    endif
 !
-!    if(ring%ele_(1)%key == beambeam$)call luminosity_calc (ring%ele_(1), &
-!                      end_coord_, ring%param, n_ok, &
+!    if(ring%ele(1)%key == beambeam$)call luminosity_calc (ring%ele(1), &
+!                      end_coord, ring%param, n_ok, &
 !                      scan_params%lum)
 !
 !       open(unit=15, file= turns_file, status='unknown', access='append' )
 !       write(15,'(2f10.5,2x,2f10.5,3e12.4,2x,3e12.4,2x,i5,2x,e12.4,2x,i5)')phi_x/twopi, phi_y/twopi, &
-!            ring%x%tune/twopi, ring%y%tune/twopi, &
+!            ring%a%tune/twopi, ring%b%tune/twopi, &
 !                     scan_params%sig_in(1:3), &
 !                                    scan_params%sig_out(1:3), j, scan_params%lum, scan_params%n_part_out
 !       close(unit=15)
@@ -793,20 +799,20 @@ end subroutine lum_tracker
 !    implicit none
 !  
 !
-!    type(ring_struct) ring
+!    type(lat_struct) ring
 !    type(coord_struct) start(:),end(:)
-!    type(coord_struct), allocatable, save :: co_(:)
+!    type(coord_struct), allocatable, save :: co(:)
 !
 !    integer n_part, i, j
 !
-!    call reallocate_coord(co_,ring%n_ele_max)
+!    call reallocate_coord(co,ring%n_ele_max)
 !  
 !   do i = 1,n_part
 !      if(start(i)%vec(1) == 999.)cycle
-!      co_(0) = start(i)
-!      call track_all(ring, co_)
-!      co_(0)%vec = co_(ring%n_ele_use)%vec
-!      end(i) = co_(0)
+!      co(0) = start(i)
+!      call track_all(ring, co)
+!      co(0)%vec = co(ring%n_ele_track)%vec
+!      end(i) = co(0)
 !      if(ring%param%lost)end(i)%vec(1:6)=999.
 !  end do
 !

@@ -19,6 +19,12 @@
 ! $Id$
 !
 ! $Log$
+! Revision 1.3  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.2.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
 ! Revision 1.2  2005/10/17 14:59:02  dlr
 ! missing optional arguments to close_pretzel and close_vert give error. Include
 ! arguments
@@ -43,14 +49,14 @@
 
   implicit none
 
-  type (ring_struct) ring
-  type (ring_struct), save :: ring_in, ring_out
-  type (coord_struct), allocatable, save ::  start_coord_(:), end_coord_(:) 
-  type (coord_struct), allocatable, save :: co_(:), orb_(:)
+  type (lat_struct) ring
+  type (lat_struct), save :: ring_in, ring_out
+  type (coord_struct), allocatable, save ::  start_coord(:), end_coord(:) 
+  type (coord_struct), allocatable, save :: co(:), orbit(:)
   type (coord_struct), allocatable, save :: start(:), end(:)
   type (coord_struct) orb, delta_ip
   type (coord_struct) final_pos_in, final_pos_out
-  type (modes_struct) mode
+  type (normal_modes_struct) mode
   type (ele_struct) beambeam_ele
   type (scan_params_struct) scan_params
 
@@ -79,30 +85,30 @@
   logical ok
   logical rec_taylor
 
-  call reallocate_coord(co_,ring%n_ele_max)
-  call reallocate_coord(orb_, ring%n_ele_max)
-  call reallocate_coord(start_coord_, scan_params%n_part)
-  call reallocate_coord(end_coord_, scan_params%n_part)
+  call reallocate_coord(co,ring%n_ele_max)
+  call reallocate_coord(orbit, ring%n_ele_max)
+  call reallocate_coord(start_coord, scan_params%n_part)
+  call reallocate_coord(end_coord, scan_params%n_part)
   call reallocate_coord(start, scan_params%n_part)
   call reallocate_coord(end, scan_params%n_part)
 
-  call setup_radiation_tracking(ring, co_, .false., .false.)
+  call setup_radiation_tracking(ring, co, .false., .false.)
   call set_on (rfcavity$, ring, .false.)
 
   ring%param%particle = scan_params%particle
 
   call twiss_at_start(ring)
-  co_(0)%vec = 0.
-  call closed_orbit_at_start(ring, co_(0), 4, .true.)
-  call track_all (ring, co_)
-  call ring_make_mat6(ring,-1,co_)
+  co(0)%vec = 0.
+  call closed_orbit_at_start(ring, co(0), 4, .true.)
+  call track_all (ring, co)
+  call lat_make_mat6(ring,-1,co)
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)  
 
   type *
   type *,' BEAMBEAM_INITIALIZE: Initially '
-  type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
-  type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+  type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
 
 
@@ -122,32 +128,32 @@
    ring = ring_out
 
    call twiss_at_start(ring)
-   co_(0)%vec = 0.
-   call closed_orbit_at_start(ring, co_(0), 4, .true.)
-   call track_all(ring, co_)
-   call ring_make_mat6(ring,-1, co_)
+   co(0)%vec = 0.
+   call closed_orbit_at_start(ring, co(0), 4, .true.)
+   call track_all(ring, co)
+   call lat_make_mat6(ring,-1, co)
    call twiss_at_start(ring)
 
    type *
    type '(a51,f4.1,a8)', &
         ' BEAMBEAM_INITIALIZE: After parasitic interactions added ', current,'mA/bunch' 
-   type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
-   type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+   type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+   type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
   endif
   
-  Qx = ring%x%tune/twopi
-  Qy = ring%y%tune/twopi
+  Qx = ring%a%tune/twopi
+  Qy = ring%b%tune/twopi
   ring%z%tune = scan_params%Q_z * twopi
   if(scan_params%beambeam_ip)then
     call beambeam_setup(ring, particle, current, scan_params, slices)
 
     call twiss_at_start(ring)
-    co_(0)%vec = 0.
-    call closed_orbit_at_start(ring, co_(0), 4, .true.)
-   type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
-    call track_all(ring, co_)
-    call ring_make_mat6(ring, -1, co_)
+    co(0)%vec = 0.
+    call closed_orbit_at_start(ring, co(0), 4, .true.)
+   type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+    call track_all(ring, co)
+    call lat_make_mat6(ring, -1, co)
     call twiss_at_start(ring)
 
     type *
@@ -155,13 +161,13 @@
 
     type '(a37,f4.1,a8)', &
          ' BEAMBEAM_INITIALIZE: After beambeam added ', current,'mA/bunch' 
-    type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
-    type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+    type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+    type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
     write(23, *)
     write(23, '(a37,f4.1,a8)') &
          ' BEAMBEAM_INITIALIZE: After beambeam added ', current,'mA/bunch' 
 
-    beambeam_ele = ring%ele_(1)
+    beambeam_ele = ring%ele(1)
     write(23,  '(1x,a14)') ' Strong beam: '
     write(23,  '(1x,a12,e12.4)') '  sigma_x = ',beambeam_ele%value(sig_x$)
     write(23,  '(1x,a12,e12.4)') '  sigma_y = ',beambeam_ele%value(sig_y$)
@@ -188,46 +194,46 @@
     final_pos_out%vec(:) = 0.
     call close_pretzel (ring, i_dim, final_pos_in, final_pos_out) 
     call twiss_at_start(ring)
-    call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
-    call track_all(ring, co_)
-    call ring_make_mat6(ring, -1, co_)
+    call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+    call track_all(ring, co)
+    call lat_make_mat6(ring, -1, co)
     call twiss_at_start(ring)
     type*,' after close pretzel but before close vertical: '
-    type '(1x,3(a9,f12.4))','    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi,'   Qz = ',ring%z%tune/twopi
+    type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
  endif
  if(scan_params%close_vert)call close_vertical(ring,i_dim, final_pos_in, final_pos_out)
 
     call twiss_at_start(ring)
 
-    forall( i=0:ring%n_ele_use) co_(i)%vec = 0.
-    call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
-    call track_all(ring, co_)
-    call ring_make_mat6(ring, -1, co_)
+    forall( i=0:ring%n_ele_track) co(i)%vec = 0.
+    call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+    call track_all(ring, co)
+    call lat_make_mat6(ring, -1, co)
     call twiss_at_start(ring)
     call twiss_propagate_all(ring)
 
     type *
     type *,' After CLOSE VERTICAL ' 
-    type '(1x,3(a9,f12.4))','    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi,'   Qz = ', ring%z%tune/twopi
-    type '(a15,4e12.4)','  Closed orbit ', co_(0)%vec(1:4)
+    type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
+    type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
-   write(23,'(a36,f6.4,a12,f6.4)')' Beam beam tune shifts:  Delta Qx = ', ring%x%tune/twopi - Qx, &
-                                           '  Delta Qy =',ring%y%tune/twopi-Qy
+   write(23,'(a36,f6.4,a12,f6.4)')' Beam beam tune shifts:  Delta Qx = ', ring%a%tune/twopi - Qx, &
+                                           '  Delta Qy =',ring%b%tune/twopi-Qy
 
    if(scan_params%beambeam_ip)then
-    rgamma = ring%ele_(0)%value(beam_energy$)/mass_of(-1)
+    rgamma = ring%ele(0)%value(E_TOT$)/mass_of(-1)
     den = twopi*rgamma*beambeam_ele%value(sig_x$)+beambeam_ele%value(sig_y$)
-    xi_v = r_0*ring%param%n_part*ring%ele_(0)%y%beta/beambeam_ele%value(sig_y$)/den
-    xi_h = r_0*ring%param%n_part*ring%ele_(0)%x%beta/beambeam_ele%value(sig_x$)/den
+    xi_v = r_0*ring%param%n_part*ring%ele(0)%b%beta/beambeam_ele%value(sig_y$)/den
+    xi_h = r_0*ring%param%n_part*ring%ele(0)%a%beta/beambeam_ele%value(sig_x$)/den
    write(23,'(2(a10,f7.4))')'   xi_v = ', xi_v,'   xi_h = ',xi_h
    endif
 
 ! find beambeam at IP and turn it off
   do i=0,ring%n_ele_max
-   if(ring%ele_(i)%name == 'IP_COLLISION')then
+   if(ring%ele(i)%name == 'IP_COLLISION')then
      ix_ip = i
-     charge = ring%ele_(i)%value(charge$)
-     ring%ele_(i)%value(charge$) = 0
+     charge = ring%ele(i)%value(charge$)
+     ring%ele(i)%value(charge$) = 0
      exit
    endif
   end do
@@ -237,43 +243,43 @@
 ! Qtune
       allocate(dk1(ring%n_ele_max))
        call choose_quads(ring, dk1)
-       call custom_set_tune (phi_x, phi_y, dk1, ring, co_, ok)
+       call custom_set_tune (phi_x, phi_y, dk1, ring, co, ok)
       deallocate(dk1)
 
       if(scan_params%close_pretz)then
         call close_pretzel (ring, i_dim, final_pos_in, final_pos_out)
 !        call twiss_at_start(ring)
-        call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
-        call track_all(ring, co_)
-        call ring_make_mat6(ring, -1, co_)
+        call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+        call track_all(ring, co)
+        call lat_make_mat6(ring, -1, co)
         call twiss_at_start(ring)
         type *,' beam beam at IP is off'
         type*,' after qtune and after close pretzel but before close vertical: '
-    type '(1x,3(a9,f12.4))','    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi,'   Qz = ',ring%z%tune/twopi
+    type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
       endif
       if(scan_params%close_vert)then
         call close_vertical(ring,i_dim, final_pos_in, final_pos_out)
 !        call twiss_at_start(ring)
-        call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
-        call track_all(ring, co_)
-        call ring_make_mat6(ring, -1, co_)
+        call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+        call track_all(ring, co)
+        call lat_make_mat6(ring, -1, co)
         call twiss_at_start(ring)
         type*,' after qtune with pretzel and vert closed but beam beam at IP off: '
-    type '(1x,3(a9,f12.4))','    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi,'   Qz = ', ring%z%tune/twopi
+    type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
       endif
 ! Turn beambeam back on
-  if(ix_ip /= 0)ring%ele_(ix_ip)%value(charge$) = charge
+  if(ix_ip /= 0)ring%ele(ix_ip)%value(charge$) = charge
   call twiss_at_start(ring)
-  call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
-  call track_all(ring, co_)
-  call ring_make_mat6(ring, -1, co_)
+  call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+  call track_all(ring, co)
+  call lat_make_mat6(ring, -1, co)
   call twiss_at_start(ring)
   call beambeam_separation(ring, delta_ip, i_dim)
   type *,' Turn Beambeam on'
-  type *,'    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi
+  type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
   type '(a22,4f8.4)', ' dx,dxp,dy,dyp (mm) = ', delta_ip%vec(1:4)*1000.
 
-    beambeam_ele = ring%ele_(1)
+    beambeam_ele = ring%ele(1)
     write(23,*)
     write(23,  '(1x,a14)') ' Strong beam: after closing pretzel '
     write(23,  '(1x,a12,e12.4)') '  sigma_x = ',beambeam_ele%value(sig_x$)
@@ -289,16 +295,16 @@
   call set_on (rfcavity$, ring, .true.)
   call set_z_tune(ring)
   if(scan_params%radiation)then
-    call setup_radiation_tracking(ring, co_, .true., .true.)
+    call setup_radiation_tracking(ring, co, .true., .true.)
     type *,' radiation fluctuations and damping are on'
   endif
-  forall(i=0:ring%n_ele_use) orb_(i)%vec = co_(i)%vec
-  call radiation_integrals (ring, orb_, mode)
+  forall(i=0:ring%n_ele_track) orbit(i)%vec = co(i)%vec
+  call radiation_integrals (ring, orbit, mode)
 
  do i = 1, scan_params%n_part
-   start(i)%vec = orb_(0)%vec + scan_params%init(i)%vec
+   start(i)%vec = orbit(0)%vec + scan_params%init(i)%vec
    open(unit=21, file=scan_params%file_name, status='old', access='append')
-   call track_a_particle (orb_(0), start(i), scan_params%n_turn, ring, mod(phi_x/twopi,1.), &
+   call track_a_particle (orbit(0), start(i), scan_params%n_turn, ring, mod(phi_x/twopi,1.), &
                                 mod(phi_y/twopi,1.), ring%z%tune/twopi)
    close(unit=21)
  end do

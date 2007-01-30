@@ -17,6 +17,12 @@
 ! $Id$
 !
 ! $Log$
+! Revision 1.4  2007/01/30 16:14:31  dcs
+! merged with branch_bmad_1.
+!
+! Revision 1.3.2.1  2006/12/22 20:30:42  dcs
+! conversion compiles.
+!
 ! Revision 1.3  2005/09/21 20:35:58  dcs
 ! Put beambeam_setup in scan_parameters module.
 !
@@ -70,13 +76,13 @@ contains
 ! Description: Subroutine to add beambeam element at IP 
 !
 ! Arguments  :
-!   RING -- Ring_struct: Ring containing the lattice to be modified
+!   RING -- lat_struct: Ring containing the lattice to be modified
 !   particle  -- Integer : (+-1) for positrons or electrons
 !   current   -- real : bunch current in ma
 !   slices    -- integer, optional : number of slices, default is 1 
 !   SCAN_PARAMS -- scan_params_struct, for emittance coupling or beam sizes
 ! Output:
-!    RING -- Ring_struct: Ring includes Beam-beam element at IP
+!    RING -- lat_struct: Ring includes Beam-beam element at IP
 ! 
 ! Mod/Commons:
 !
@@ -95,11 +101,11 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
 
   implicit none
 
-  type ( ring_struct ) ring
-  type (ring_struct), save :: ring_oppos
-  type (coord_struct), allocatable :: co_(:), co_oppos_(:)
+  type ( lat_struct ) ring
+  type (lat_struct), save :: ring_oppos
+  type (coord_struct), allocatable :: co(:), co_oppos(:)
   type (ele_struct) ele, beambeam_ele
-  type (modes_struct) mode
+  type (normal_modes_struct) mode
   type (scan_params_struct) scan_params
 
   integer particle
@@ -114,22 +120,22 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
 
   character(20) :: r_name='BEAMBEAM_SETUP'
 
-  allocate( co_(0:ring%n_ele_max))
-  allocate( co_oppos_(0:ring%n_ele_max))
+  allocate( co(0:ring%n_ele_max))
+  allocate( co_oppos(0:ring%n_ele_max))
 ! init
 
 
      
   ring%param%particle = particle
   call twiss_at_start(ring)
-!  type *,' beambeam_setup:1 beta ',ring%ele_(0)%x%beta, ring%ele_(0)%y%beta
-  co_(0)%vec = 0.
-  call closed_orbit_at_start(ring, co_(0), 4, .true.)
-!  type *, ' closed_orbit: co_',co_(0)%vec(1:4)
-  call track_all (ring, co_)
-  call ring_make_mat6(ring,-1,co_)
+!  type *,' beambeam_setup:1 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
+  co(0)%vec = 0.
+  call closed_orbit_at_start(ring, co(0), 4, .true.)
+!  type *, ' closed_orbit: co_',co(0)%vec(1:4)
+  call track_all (ring, co)
+  call lat_make_mat6(ring,-1,co)
   call twiss_at_start(ring)
-!  type *,' beambeam_setup:2 beta ',ring%ele_(0)%x%beta, ring%ele_(0)%y%beta
+!  type *,' beambeam_setup:2 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
   call twiss_propagate_all (ring)
 
 ! set up for lrbbi
@@ -145,19 +151,19 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
   ring_oppos%param%n_part = 0.
   ring_oppos%param%particle = -particle
 
-  call ring_make_mat6(ring_oppos,-1)
-  co_oppos_(0)%vec = 0.
-  call closed_orbit_at_start(ring_oppos, co_oppos_(0), 4, .true.)
-  call track_all (ring_oppos, co_oppos_)
-  call ring_make_mat6(ring_oppos,-1,co_oppos_)
+  call lat_make_mat6(ring_oppos,-1)
+  co_oppos(0)%vec = 0.
+  call closed_orbit_at_start(ring_oppos, co_oppos(0), 4, .true.)
+  call track_all (ring_oppos, co_oppos)
+  call lat_make_mat6(ring_oppos,-1,co_oppos)
   call twiss_at_start(ring_oppos)
-!  type *,' beambeam_setup:3 beta ',ring%ele_(0)%x%beta, ring%ele_(0)%y%beta
+!  type *,' beambeam_setup:3 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
   call twiss_propagate_all (ring_oppos)
   call set_on (rfcavity$, ring_oppos, .true.)
   call set_z_tune(ring_oppos)
-  call radiation_integrals (ring_oppos, co_oppos_, mode)
+  call radiation_integrals (ring_oppos, co_oppos, mode)
 
-  call ellipse (ring_oppos%ele_(0), major, minor, theta)
+  call ellipse (ring_oppos%ele(0), major, minor, theta)
 
   call init_ele (beambeam_ele)
 
@@ -166,18 +172,18 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
   coupling = scan_params%coupling_sb
 
   if(scan_params%sig_in(1) == 0)then
-!    beambeam_ele%value(sig_x$) = sqrt(ring_oppos%ele_(0)%x%beta * mode%a%emittance &
-!                                    + (ring_oppos%ele_(0)%x%eta * mode%sige_e)**2)
+!    beambeam_ele%value(sig_x$) = sqrt(ring_oppos%ele(0)%a%beta * mode%a%emittance &
+!                                    + (ring_oppos%ele(0)%a%eta * mode%sige_e)**2)
 
      beambeam_ele%value(sig_x$) = sqrt( mode%a%emittance * major**2 + &
-                                      (ring_oppos%ele_(0)%x%eta * mode%sige_e)**2)
+                                      (ring_oppos%ele(0)%a%eta * mode%sige_e)**2)
 
-!    beambeam_ele%value(sig_y$) = sqrt(ring_oppos%ele_(0)%y%beta * mode%a%emittance*0.01 &
-!                                    + (ring_oppos%ele_(0)%y%eta * mode%sige_e)**2)
-     vert_size_coupled = mode%a%emittance * max( minor**2, coupling * ring_oppos%ele_(0)%y%beta)
-     vert_size_emit    = mode%b%emittance * ring_oppos%ele_(0)%y%beta
+!    beambeam_ele%value(sig_y$) = sqrt(ring_oppos%ele(0)%b%beta * mode%a%emittance*0.01 &
+!                                    + (ring_oppos%ele(0)%b%eta * mode%sige_e)**2)
+     vert_size_coupled = mode%a%emittance * max( minor**2, coupling * ring_oppos%ele(0)%b%beta)
+     vert_size_emit    = mode%b%emittance * ring_oppos%ele(0)%b%beta
      beambeam_ele%value(sig_y$) = sqrt(vert_size_coupled + vert_size_emit  &
-                                    + (ring_oppos%ele_(0)%y%eta * mode%sige_e)**2)
+                                    + (ring_oppos%ele(0)%b%eta * mode%sige_e)**2)
      beambeam_ele%value(sig_z$) = mode%sig_z
   else
      beambeam_ele%value(sig_x$) = scan_params%sig_in(1)
@@ -192,16 +198,16 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
      beambeam_ele%value(n_slice$) = 1
   endif
   beambeam_ele%value(charge$) = -1 
-  beambeam_ele%value(x_pitch$) =  co_oppos_(0)%vec(2)
-  beambeam_ele%value(y_pitch$) =  co_oppos_(0)%vec(4)
-  beambeam_ele%value(x_offset$) = co_oppos_(0)%vec(1)
-  beambeam_ele%value(y_offset$) = co_oppos_(0)%vec(3)
+  beambeam_ele%value(x_pitch$) =  co_oppos(0)%vec(2)
+  beambeam_ele%value(y_pitch$) =  co_oppos(0)%vec(4)
+  beambeam_ele%value(x_offset$) = co_oppos(0)%vec(1)
+  beambeam_ele%value(y_offset$) = co_oppos(0)%vec(3)
   beambeam_ele%value(tilt$) = theta !tilt of beam ellipse due to coupling
 
   ix_ip = 1
 
   call add_superimpose (ring, beambeam_ele, ix_ip)
-  call ring_make_mat6(ring, -1)
+  call lat_make_mat6(ring, -1)
 
   call out_io(s_info$,r_name,' Strong beam: ')
   call out_io(s_blank$,r_name,'  sigma_x = \e12.4\ ',beambeam_ele%value(sig_x$))
@@ -231,18 +237,18 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
 !             'x_offset ', &
 !             'y_offset'
 
-!  do i=1, ring%n_ele_use
-!   ele = ring%ele_(i)
+!  do i=1, ring%n_ele_track
+!   ele = ring%ele(i)
 !   if(ele%key == beambeam$)then
 !    n=n+1
-!   type '(i3,4x,a16,4x,f7.3,2x,4f9.5)',n,ring%ele_(i)%name, ring%ele_(i)%s, &
+!   type '(i3,4x,a16,4x,f7.3,2x,4f9.5)',n,ring%ele(i)%name, ring%ele(i)%s, &
 !          ele%value(x_pitch$), ele%value(y_pitch$), ele%value(x_offset$), ele%value(y_offset$)
 !   endif
 !   end do
 
 
-  deallocate( co_)
-  deallocate( co_oppos_)
+  deallocate( co)
+  deallocate( co_oppos)
 
 end subroutine                                                            
 
