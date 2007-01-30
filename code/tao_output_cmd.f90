@@ -108,10 +108,15 @@ case ('variable')
 !lattice
 
 case ('lattice')
-  file_name = arg1
-  if (file_name == ' ') file_name = 'lat_universe_#.bmad'
   do i = 1, size(s%u)
+    file_name = arg1
+    if (file_name == ' ') file_name = 'lat_universe_#.bmad'
     ix = index(file_name, '#')
+    if (size(s%u) > 1 .and. ix == 0) then
+      call out_io (s_info$, r_name, 'FILE_NAME DOES NOT HAVE A "#" CHARACTER!', &
+        ' YOU NEED THIS TO GENERATE A UNIQUE FILE NAME FOR EACH UNIVERSE!')
+      return
+    endif
     if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
     call write_bmad_lattice_file (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
@@ -180,10 +185,15 @@ case ('derivative_matrix')
 ! digested
 
 case ('digested')
-  file_name = arg1
-  if (file_name == ' ') file_name = 'digested_lat_universe_#.bmad'
   do i = 1, size(s%u)
+    file_name = arg1
+    if (file_name == ' ') file_name = 'digested_lat_universe_#.bmad'
     ix = index(file_name, '#')
+    if (size(s%u) > 1 .and. ix == 0) then
+      call out_io (s_info$, r_name, 'FILE_NAME DOES NOT HAVE A "#" CHARACTER!', &
+        ' YOU NEED THIS TO GENERATE A UNIQUE FILE NAME FOR EACH UNIVERSE!')
+      return
+    endif
     if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
     call write_digested_bmad_file (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
