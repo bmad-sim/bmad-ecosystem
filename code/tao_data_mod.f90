@@ -818,7 +818,7 @@ case ('chrom.a')
 case ('chrom.b')
   datum_value = tao_lat%b%chrom
 
-case ('unstable_lat')
+case ('unstable_ring')
   datum_value = lat%param%growth_rate
 
 case ('dpx_dx') 
