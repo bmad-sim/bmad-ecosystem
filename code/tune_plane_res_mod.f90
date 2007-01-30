@@ -494,7 +494,7 @@ subroutine res_line_plot (plot_type, param, res)
 
     call qp_draw_symbol (line%x_lab, line%y_lab, type = circle$)
 
-    write (str, '(5(a, i0))'), '(', line%p, ',', line%q, ',', line%r, ',', line%n, ')'
+    write (str, '(5(a, i0))') '(', line%p, ',', line%q, ',', line%r, ',', line%n, ')'
 
     ! x_off, y_off are to keep the text away from the resonance line.
 
