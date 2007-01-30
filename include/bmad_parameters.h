@@ -26,11 +26,11 @@ namespace Bmad {
   const int VAL1=3, VAL2=4, VAL3=5, VAL4=6, VAL5=7,
           VAL6=8, VAL7=9, VAL8=10, VAL9=11, VAL10=12, VAL11=13,
           VAL12=15;
-  const int BETA_X0 = 2, ALPHA_X0 = 3, BETA_Y0 = 4,
-          ALPHA_Y0 = 5, BETA_X1 = 6, ALPHA_X1 = 7, BETA_Y1 = 8,
-          ALPHA_Y1 = 9, DPHI_X = 10, DPHI_Y = 11,
-          ETA_X0 = 12, ETAP_X0 = 13, ETA_Y0 = 14, ETAP_Y0 = 15,
-          ETA_X1 = 16, ETAP_X1 = 17, ETA_Y1 = 18, ETAP_Y1 = 19;
+  const int BETA_A0 = 2, ALPHA_A0 = 3, BETA_B0 = 4,
+          ALPHA_B0 = 5, BETA_A1 = 6, ALPHA_A1 = 7, BETA_B1 = 8,
+          ALPHA_B1 = 9, DPHI_A = 10, DPHI_B = 11,
+          ETA_A0 = 12, ETAP_A0 = 13, ETA_B0 = 14, ETAP_B0 = 15,
+          ETA_A1 = 16, ETAP_A1 = 17, ETA_B1 = 18, ETAP_B1 = 19;
   const int L=1;
   const int TILT=2, COMMAND=2;
   const int OLD_COMMAND=3, ANGLE=3, KICK=3, DT_REF=3, GRADIENT_ERR=3;

@@ -22,10 +22,10 @@ general interest.
  	Low level matrix routines               & \ref{r:low_mat}    \\ \hline
  	Tracking, Closed Orbit                  & \ref{r:track}      \\ \hline
   Macroparticle Tracking                  & \ref{r:macro}      \\ \hline
-  Particle Distribution Tracking          & \ref{r:part_dist}  \\ \hline
+  Particle Distribution (Beam) Tracking   & \ref{r:part_dist}  \\ \hline
   Spin Tracking                           & \ref{r:spin_track} \\ \hline
   Wake Fields                             & \ref{r:wake}       \\ \hline
-  
+  Synchrotron Radiation                   & \ref{r:synch_rad}  \\ \hline  
  	Low Level Tracking Routines             & \ref{r:low_track}  \\ \hline
  	Particle Coordinate Stuff               & \ref{r:coord}      \\ \hline
  	Lattice Geometry                        & \ref{r:geom}       \\ \hline
@@ -61,38 +61,38 @@ general interest.
 \begin{description}
 
 \index{Routine!bmad_parser}
-\item[bmad\_parser (in\_file, ring, make\_mats6, digested\_read\_ok, use\_line)] \Newline
+\item[bmad\_parser (in\_file, lat, make\_mats6, digested\_read\_ok, use\_line)] \Newline
 Subroutine to parse (read in) a Bmad input file. 
 
 \index{Routine!bmad_parser2}
-\item[bmad\_parser2 (in\_file, ring, orbit, make\_mats6)] \Newline
+\item[bmad\_parser2 (in\_file, lat, orbit, make\_mats6)] \Newline
 Subroutine to parse (read in) a Bmad input file to modify an existing lattice. 
 
 \index{Routine!bmad_to_mad}
-\item[bmad\_to\_mad (mad\_file, ring, ix\_start, ix\_end)] \Newline 
+\item[bmad\_to\_mad (mad\_file, lat, ix\_start, ix\_end)] \Newline 
 Subroutine to write a mad lattice file using the information in
-a ring\_struct. 
+a lat\_struct. 
 
 \index{Routine!bmad_to_xsif}
 \item[bmad\_to\_xsif (xsif\_file, lat, ix\_start, ix\_end)] \Newline 
 Subroutine to write a xsif lattice file using the information in
-a ring\_struct. Optionally only part of the lattice can be generated.
+a lat\_struct. Optionally only part of the lattice can be generated.
 
 \index{Routine!read_digested_bmad_file}
-\item[read\_digested\_bmad\_file (in\_file\_name, ring, version)] \Newline
+\item[read\_digested\_bmad\_file (in\_file\_name, lat, version)] \Newline
 Subroutine to read in a digested file. 
 
 \index{Routine!write_bmad_lattice_file}
-\item[write\_bmad\_lattice\_file (lattice\_name, ring)] \Newline 
+\item[write\_bmad\_lattice\_file (lattice\_name, lat)] \Newline 
 Subroutine to write a Bmad lattice file using the information in
-a ring\_struct.
+a lat\_struct.
 
 \index{Routine!write_digested_bmad_file}
-\item[write\_digested\_bmad\_file (digested\_name, ring, n\_files, file\_names)] \Newline
+\item[write\_digested\_bmad\_file (digested\_name, lat, n\_files, file\_names)] \Newline
 Subroutine to write a digested file. 
 
 \index{Routine!xsif_parser}
-\item[xsif\_parser (xsif\_file, ring, make\_mats6, use\_line)] \Newline 
+\item[xsif\_parser (xsif\_file, lat, make\_mats6, use\_line)] \Newline 
      Subroutine to parse an XSIF (extended standard input format) lattice file.
 
 \end{description}
@@ -104,7 +104,7 @@ Subroutine to write a digested file.
 \begin{description}
 
 \index{Routine!choose_cesr_lattice}
-\item[choose\_cesr\_lattice (lattice, lat\_file, current\_lat, ring)] \Newline
+\item[choose\_cesr\_lattice (lattice, lat\_file, current\_lat, lat)] \Newline
 Subroutine to let the user choose a lattice. The subroutine will present a list to choose from. 
 
 \index{Routine!get_lattice_list}
@@ -121,29 +121,29 @@ Subroutine to get the names of the lattices of the form: directory/bmad\_*.lat
 \begin{description}
 
 \index{Routine!calc_z_tune}
-\item[calc\_z\_tune (ring)] \Newline
+\item[calc\_z\_tune (lat)] \Newline
 Subroutine to calculate the synchrotron tune from the full 6X6 1 turn matrix. 
 
 \index{Routine!chrom_calc}
-\item[chrom\_calc (ring, delta\_e, chrom\_x, chrom\_y)] \Newline
+\item[chrom\_calc (lat, delta\_e, chrom\_x, chrom\_y)] \Newline
 Subroutine to calculate the chromaticities by computing the tune 
 change when then energy is changed. 
 
 \index{Routine!chrom_tune}
-\item[chrom\_tune (ring, delta\_e, target\_x, target\_y, err\_flag)] \Newline
-Subroutine to set the sextupole strengths so that the ring 
+\item[chrom\_tune (lat, delta\_e, target\_x, target\_y, err\_flag)] \Newline
+Subroutine to set the sextupole strengths so that the lat 
 has the desired chromaticities. 
 
 \index{Routine!emitt_calc}
-\item[emitt\_calc (ring, what, mode)] \Newline
+\item[emitt\_calc (lat, what, mode)] \Newline
 Subroutine to calculate the emittance, energy spread, and synchrotron integrals. 
 
 \index{Routine!quad_beta_ave}
-\item[quad\_beta\_ave (ring, ix\_ele, beta\_x\_ave, beta\_y\_ave)] \Newline
+\item[quad\_beta\_ave (lat, ix\_ele, beta\_x\_ave, beta\_y\_ave)] \Newline
 Subroutine to compute the average betas in a quad.
 
 \index{Routine!radiation_integrals}
-\item[radiation\_integrals (ring, orb\_, mode)] \Newline
+\item[radiation\_integrals (lat, orb\_, mode)] \Newline
 Subroutine to calculate the synchrotron radiation integrals, the emittance, and energy spread. 
 
 \index{Routine!relative_mode_flip}
@@ -151,15 +151,15 @@ Subroutine to calculate the synchrotron radiation integrals, the emittance, and 
 Function to see if the modes of ELE1 are flipped relative to ELE2. 
 
 \index{Routine!set_tune}
-\item[set\_tune (phi\_x\_set, phi\_y\_set, dk1, ring, orb\_, ok)] \Newline
-Subroutine to Q\_tune a ring. This routine will set the tunes to within 0.001 radian (0.06 deg). 
+\item[set\_tune (phi\_x\_set, phi\_y\_set, dk1, lat, orb\_, ok)] \Newline
+Subroutine to Q\_tune a lat. This routine will set the tunes to within 0.001 radian (0.06 deg). 
 
 \index{Routine!set_z_tune}
-\item[set\_z\_tune (ring)] \Newline
+\item[set\_z\_tune (lat)] \Newline
 Subroutine to set the longitudinal tune by setting the RF voltages in the RF cavities. 
 
 \index{Routine!twiss_and_track}
-\item[twiss\_and\_track (ring, orb)] \Newline
+\item[twiss\_and\_track (lat, orb)] \Newline
 Subroutine to calculate the Twiss and orbit parameters. 
 This is not necessarily the fastest routine. 
 
@@ -168,20 +168,20 @@ This is not necessarily the fastest routine.
 Subroutine to propagate partially through ELE2 the Twiss parameters and the orbit. 
 
 \index{Routine!twiss_at_element}
-\item[twiss\_at\_element (ring, ix\_ele, start, end, average)] \Newline
+\item[twiss\_at\_element (lat, ix\_ele, start, end, average)] \Newline
 Subroutine to return the Twiss parameters at the beginning, end, or the average of an element. 
 
 \index{Routine!twiss_and_track_at_s}
-\item[twiss\_and\_track\_at\_s (ring, s, ele, orb\_, here)] \Newline
+\item[twiss\_and\_track\_at\_s (lat, s, ele, orb\_, here)] \Newline
 Subroutine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
 
 \index{Routine!twiss_at_start}
-\item[twiss\_at\_start (ring)] \Newline
-Subroutine to calculate the Twiss parameters at the start of the ring. 
+\item[twiss\_at\_start (lat)] \Newline
+Subroutine to calculate the Twiss parameters at the start of the lat. 
 
 \index{Routine!twiss_from_tracking}
-\item[twiss\_from\_tracking (ring, closed\_orb\_, d\_orb, error)] \Newline
-Subroutine to compute from tracking, for every element in the ring, 
+\item[twiss\_from\_tracking (lat, closed\_orb\_, d\_orb, error)] \Newline
+Subroutine to compute from tracking, for every element in the lat, 
 the Twiss parameters and the transfer matrices. 
 
 \index{Routine!twiss_propagate1}
@@ -189,12 +189,12 @@ the Twiss parameters and the transfer matrices.
 Subroutine to propagate the Twiss parameters from the end of ELE1 to the end of ELE2. 
 
 \index{Routine!twiss_propagate_all}
-\item[twiss\_propagate\_all (ring, set\_match)] \Newline
+\item[twiss\_propagate\_all (lat, set\_match)] \Newline
 Subroutine to propagate the Twiss parameters from the start to the end. 
 
 \index{Routine!twiss_propagate_many}
-\item[twiss\_propagate\_many (ring, ix\_start, ix\_end, direction)] \Newline
-Subroutine to propagate the Twiss parameters from one element in the ring to another. 
+\item[twiss\_propagate\_many (lat, ix\_start, ix\_end, direction)] \Newline
+Subroutine to propagate the Twiss parameters from one element in the lat to another. 
 
 \index{Routine!twiss_to_1_turn_mat}
 \item[twiss\_to\_1\_turn\_mat (twiss, phi, mat2)] \Newline
@@ -217,9 +217,9 @@ Subroutine to compute Cbar from the C matrix and the Twiss parameters.
 \item[cbar\_to\_c (cbar\_mat, ele)] \Newline
 Subroutine to compute C coupling matrix from the Cbar matrix and the Twiss parameters. 
 
-\index{Routine!clear_ring_1turn_mats}
-\item[clear\_ring\_1turn\_mats (ring)] \Newline
-Clear the 1-turn matrices in the ring structure. 
+\index{Routine!clear_lat_1turn_mats}
+\item[clear\_lat\_1turn\_mats (lat)] \Newline
+Clear the 1-turn matrices in the lat structure. 
 
 \index{Routine!do_mode_flip}
 \item[do\_mode\_flip (ele, ele\_flip)] \Newline
@@ -293,7 +293,7 @@ Subroutine to analyze 1-turn tracking data to find the 1-turn transfer matrix
 and the closed orbit offset.
 
 \index{Routine!transfer_matrix_calc}
-\item[transfer\_matrix\_calc (ring, rf\_on, mat6, ix1, ix2)] \Newline
+\item[transfer\_matrix\_calc (lat, rf\_on, mat6, ix1, ix2)] \Newline
 Subroutine to calculate the transfer matrix between two elements. If
 ix1 and ix2 are not present the full 1--turn matrix is calculated.
 
@@ -302,8 +302,8 @@ ix1 and ix2 are not present the full 1--turn matrix is calculated.
 Subroutine to form the 4x4 1-turn coupled matrix with the reference point 
 at the end of an element. 
 
-\index{Routine!ring_make_mat6}
-\item[ring\_make\_mat6 (ring, ix\_ele, coord\_)] \Newline
+\index{Routine!lat_make_mat6}
+\item[lat\_make\_mat6 (lat, ix\_ele, coord)] \Newline
 Subroutine to make the 6x6 linear transfer matrix for an element 
 
 \index{Routine!taylor_to_mat6}
@@ -402,11 +402,11 @@ tilted in (x, Px, y, Py) with respect to the old reference frame.
 Subroutine to check if an orbit is outside the aperture. 
 
 \index{Routine!closed_orbit_calc}
-\item[closed\_orbit\_calc (ring, closed\_orb, i\_dim, direction)] \Newline 
-Subroutine to calculate the closed orbit at the beginning of the ring.
+\item[closed\_orbit\_calc (lat, closed\_orb, i\_dim, direction)] \Newline 
+Subroutine to calculate the closed orbit at the beginning of the lat.
 
 \index{Routine!closed_orbit_from_tracking}
-\item[closed\_orbit\_from\_tracking (ring, closed\_orb\_, i\_dim, 
+\item[closed\_orbit\_from\_tracking (lat, closed\_orb\_, i\_dim, 
 eps\_rel, eps\_abs, init\_guess)] \Newline
 Subroutine to find the closed orbit via tracking. 
 
@@ -416,7 +416,7 @@ Subroutine to compute a step size ds\_out, close to ds\_in, so that an
 integer number of steps spans the length.
 
 \index{Routine!dynamic_aperture}
-\item[dynamic\_aperture (ring, track\_input, aperture)] \Newline
+\item[dynamic\_aperture (lat, track\_input, aperture)] \Newline
 Subroutine to determine the dynamic aperture of a lattice via tracking. 
 
 \index{Routine!lost_particle_info}
@@ -448,7 +448,7 @@ Routine to calculate the "invariant" amplitude of a particle at a
 particular point in its orbit. 
 
 \index{Routine!setup_radiation_tracking}
-\item[setup\_radiation\_tracking (ring, closed\_orb, fluctuations\_on, damping\_on)] \Newline
+\item[setup\_radiation\_tracking (lat, closed\_orb, fluctuations\_on, damping\_on)] \Newline
 Subroutine to compute synchrotron radiation parameters prior to tracking. 
 
 \index{Routine!tilt_coords}
@@ -462,23 +462,23 @@ Subroutine to track through a single element.
 
 \index{Routine!track1_bunch_csr}
 \item[track1\_bunch\_csr (bunch\_start, lat, ix\_ele, bunch\_end)] \Newline 
-Routine to track a bunch of particles through the element lat%ele\_(ix\_ele)
+Routine to track a bunch of particles through the element lat%ele(ix\_ele)
 with csr radiation effects.
 
 \index{Routine!track_all}
-\item[track\_all (ring, orbit\_)] \Newline
-Subroutine to track through the ring. 
+\item[track\_all (lat, orbit)] \Newline
+Subroutine to track through the lat. 
 
 \index{Routine!track_many}
-\item[track\_many (ring, orbit\_, ix\_start, ix\_end, direction)] \Newline
-Subroutine to track from one element in the ring to another. 
+\item[track\_many (lat, orbit\_, ix\_start, ix\_end, direction)] \Newline
+Subroutine to track from one element in the lat to another. 
 
 \index{Routine!twiss_and_track}
-\item[twiss\_and\_track (ring, orb)] \Newline
+\item[twiss\_and\_track (lat, orb)] \Newline
 See the Twiss section for more details. 
 
 \index{Routine!twiss_and_track_at_s}
-\item[twiss\_and\_track\_at\_s (ring, s, ele, orb\_, here)] \Newline
+\item[twiss\_and\_track\_at\_s (lat, s, ele, orb\_, here)] \Newline
 Subroutine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
 
 \index{Routine!twiss_and_track_partial}
@@ -486,9 +486,9 @@ Subroutine to calculate the Twiss parameters and orbit at a particular longitudi
 Subroutine to calculate the Twiss parameters and orbit at a particular position inside an element. 
 
 \index{Routine!twiss_from_tracking}
-\item[twiss\_from\_tracking (ring, closed\_orb\_, d\_orb, error)] \Newline
+\item[twiss\_from\_tracking (lat, closed\_orb\_, d\_orb, error)] \Newline
 Subroutine to compute from tracking the Twiss parameters and the transfer matrices 
-for every element in the ring. 
+for every element in the lat. 
 
 \end{description}
 
@@ -537,9 +537,9 @@ Subroutine to reallocate memory within a beam\_struct.
 Subroutine to track a beam of macroparticles through an element.
 
 \index{Routine!track_macro_beam}
-\item[track\_macro\_beam (ring, beam, ix1, ix2)] \Newline 
+\item[track\_macro\_beam (lat, beam, ix1, ix2)] \Newline 
 Subroutine to track a beam of macroparticles from the end of
-ring%ele\_(ix1) Through to the end of ring%ele\_(ix2).
+lat%ele(ix1) Through to the end of lat%ele(ix2).
 
 \index{Routine!track1_macroparticle}
 \item[track1\_macroparticle (start, ele, param, end)] \Newline 
@@ -548,7 +548,7 @@ Subroutine to track a macroparticle through an element.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Particle Distribution Tracking}
+\section{Particle Distribution (Beam) Tracking}
 \label{r:part_dist}    
 \index{Particle distribution!list of routines}
 
@@ -596,6 +596,31 @@ Subroutine to reallocate memory within a beam\_struct.
 \item[track1\_beam (beam\_start, ele, param, beam\_end)] \Newline 
 Subroutine to track a beam of particles through a single element.
 
+\index{Routine!track1_beam_lat}
+\item[track1\_beam\_lat (beam\_start, lat, ix\_ele, beam\_end)] \Newline 
+Subroutine to track a beam of particles through a single element.
+Overloaded by \vn{track1_beam}.
+
+\index{Routine!track1_beam_ele}
+\item[track1\_beam\_ele (beam\_start, ele, param, beam\_end)] \Newline 
+Subroutine to track a beam of particles through a single element.
+Overloaded by \vn{track1_beam}.
+
+\index{Routine!track1_bunch}
+\item[track1\_bunch] \Newline 
+Subroutine to track a bunch of particles through an element.
+
+\index{Routine!track1_bunch_lat}
+\item[track1\_bunch\_lat (bunch\_start, lat, ix\_ele, bunch\_end)] \Newline 
+Subroutine to track a bunch of particles through an element.
+Overloaded by \vn{track1_bunch}.
+
+\index{Routine!track1_bunch_ele}
+\item[track1\_bunch\_ele (bunch\_start, ele, param, bunch\_end)] \Newline 
+Subroutine to track a bunch of particles through an element.
+Overloaded by \vn{track1_bunch}.
+
+
 \index{Routine!track1_sr_wake}
 \item[track1\_sr\_wake (bunch, ele)] \Newline 
 Subroutine to apply the short range wake fields to a bunch. 
@@ -609,9 +634,9 @@ Subroutine to put in the long-range wakes for particle tracking.
 Subroutine to track a particle through an element.
 
 \index{Routine!track_beam}
-\item[track\_beam (ring, beam, ix1, ix2)] \Newline 
+\item[track\_beam (lat, beam, ix1, ix2)] \Newline 
      Subroutine to track a beam of macroparticles from the end of
-     ring%ele\_(ix1) Through to the end of ring%ele\_(ix2).
+     lat%ele(ix1) Through to the end of lat%ele(ix2).
 
 \end{description}
 
@@ -673,30 +698,30 @@ Subroutine to track the particle spin through one element.
 \item[lr\_wake\_apply\_kick (ele, s\_ref, orbit)] \Newline 
 Subroutine to apply the long-range wake kick to a particle.
 
-\index{Routine!sr1_apply_trans_kick}
-\item[sr1\_apply\_trans\_kick (ele, leader, charge, follower)] \Newline 
+\index{Routine!sr_table_apply_trans_kick}
+\item[sr\_table\_apply\_trans\_kick (ele, leader, charge, follower)] \Newline 
 Subroutine to put in the kick for the short-range wakes.
 
-\index{Routine!sr2_long_wake_add_to}
-\item[sr2\_long\_wake\_add\_to (ele, orbit, charge)] \Newline 
+\index{Routine!sr_mode_long_wake_add_to}
+\item[sr\_mode\_long\_wake\_add\_to (ele, orbit, charge)] \Newline 
 Subroutine to add to the existing short-range wake the contribution from
 a passing (macro)particle.
 
-\index{Routine!sr2_long_wake_apply_kick}
-\item[sr2\_long\_wake\_apply\_kick (ele, orbit)] \Newline 
+\index{Routine!sr_mode_long_wake_apply_kick}
+\item[sr\_mode\_long\_wake\_apply\_kick (ele, orbit)] \Newline 
 Subroutine to put in the kick for the short-range wakes.
 
-\index{Routine!sr2_long_self_wake_apply_kick}
-\item[sr2\_long\_self\_wake\_apply\_kick (ele, charge, orbit)] \Newline 
+\index{Routine!sr_mode_long_self_wake_apply_kick}
+\item[sr\_mode\_long\_self\_wake\_apply\_kick (ele, charge, orbit)] \Newline 
 Subroutine to put in the kick for the short-range wakes
 
-\index{Routine!sr2_trans_wake_add_to}
-\item[sr2\_trans\_wake\_add\_to (ele, orbit, charge)] \Newline 
+\index{Routine!sr_mode_trans_wake_add_to}
+\item[sr\_mode\_trans\_wake\_add\_to (ele, orbit, charge)] \Newline 
 Subroutine to add to the existing short-range wake the contribution from
 a passing (macro)particle.
 
-\index{Routine!sr2_trans_wake_apply_kick}
-\item[sr2\_trans\_wake\_apply\_kick (ele, orbit)] \Newline 
+\index{Routine!sr_mode_trans_wake_apply_kick}
+\item[sr\_mode\_trans\_wake\_apply\_kick (ele, orbit)] \Newline 
 Subroutine to put in the kick for the short-range wakes
 
 \index{Routine!track1_sr_wake}
@@ -706,6 +731,47 @@ Subroutine to apply the short range wake fields to a bunch.
 \index{Routine!track1_lr_wake}
 \item[track1\_lr\_wake (bunch, ele)] \Newline 
 Subroutine to put in the long-range wakes for particle tracking.
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Synchrotron Radiation}
+\label{r:synch_rad}
+
+\begin{description}
+
+\index{Routine!calculate_sr_power}
+\item[calculate\_sr\_power (lat, orb, direction, power, &] \Newline 
+                                 inside, outside, gen)
+subroutine to calculate the synch radiation power
+hitting wall segments from all elements in the lat
+
+\index{Routine!ele_sr_power}
+\item[ele\_sr\_power (lat, ie, orb, direction, ] \Newline 
+                            power, inside, outside, gen)
+subroutine to calculate the synch radiation power from
+one element of the lat
+
+\index{Routine!get_initial_pt}
+\item[get\_initial\_pt (ray, wall, ix\_wall, lat)] \Newline 
+subroutine to
+
+\index{Routine!init_ray}
+\item[init\_ray (ray, lat, ix\_ele, l\_offset, orb, direction)] \Newline 
+subroutine to start a new synch radiation ray
+
+\index{Routine!seg_power_calc}
+\item[seg\_power\_calc (rays, i\_ray, inside, outside, ] \Newline 
+                            lat, gen, power)
+subroutine to calculate the synch radiation power for
+segments of the wall from one lat element
+
+\index{Routine!track_ray_to_wall}
+\item[track\_ray\_to\_wall (ray, lat, inside, outside, ] \Newline 
+                               hit\_flag, track\_max)
+subroutine to propagate a synch radiation ray until it hits a wall.
+
+
 
 \end{description}
 
@@ -763,14 +829,14 @@ Subroutine to type out a coordinate.
 
 \begin{description}
 
-\index{Routine!ring_geometry}
-\item[ring\_geometry (ring)] \Newline
-Subroutine to calculate the physical placement of all the elements in a ring. 
+\index{Routine!lat_geometry}
+\item[lat\_geometry (lat)] \Newline
+Subroutine to calculate the physical placement of all the elements in a lat. 
 That is, the layout on the floor. 
 
 \index{Routine!s_calc}
-\item[s\_calc (ring)] \Newline
-Subroutine to calculate the longitudinal distance S for the elements in a ring. 
+\item[s\_calc (lat)] \Newline
+Subroutine to calculate the longitudinal distance S for the elements in a lat. 
 
 \end{description}
 
@@ -817,9 +883,9 @@ Subroutine to allocate a PTC real\_8 variable.
 \item[remove\_constant\_taylor (taylor\_in, taylor\_out, c0, remove\_higher\_order\_terms)] \Newline
 Subroutine to remove the constant part of a taylor series. 
 
-\index{Routine!ring_to_layout}
-\item[ring\_to\_layout (ring, ptc\_layout)] \Newline
-Subroutine to create a PTC layout from a Bmad ring. 
+\index{Routine!lat_to_layout}
+\item[lat\_to\_layout (lat, ptc\_layout)] \Newline
+Subroutine to create a PTC layout from a Bmad lat. 
 
 \index{Routine!set_ptc}
 \item[set\_ptc (param, taylor\_order, integ\_order, n\_step, no\_cavity, exact\_calc)] \Newline
@@ -1077,10 +1143,10 @@ Subroutine to track using a Taylor map.
 \item[transfer\_ele\_taylor (ele\_in, ele\_out, taylor\_order)] \Newline 
 Subroutine to transfer a Taylor map from one element to another.
 
-\index{Routine!transfer_ring_taylors}
-\item[transfer\_ring\_taylors (ring\_in, ring\_out, 
+\index{Routine!transfer_lat_taylors}
+\item[transfer\_lat\_taylors (lat\_in, lat\_out, 
                                              type\_out, transfered\_all) ] \Newline 
-Subroutine to transfer the taylor maps from the elements of one ring to
+Subroutine to transfer the taylor maps from the elements of one lat to
 the elements of another. 
 
 \index{Routine!type_taylors}
@@ -1100,12 +1166,12 @@ Subroutine to write a Bmad taylor map in a nice format to a character array.
 \begin{description}
 
 \index{Routine!init_lrbb}
-\item[init\_lrbbi(ring, oppos\_ring, lrbbi\_ele, ix\_lrbbi, ix\_oppos)] \Newline 
+\item[init\_lrbbi(lat, oppos\_lat, lrbbi\_ele, ix\_lrbbi, ix\_oppos)] \Newline 
      Subroutine to calculate the basic parameters of a beambeam element. 
      Initializes the element and establishes the following values.
 
 \index{Routine!insert_lrbbi}
-\item[insert\_lrbbi (ring, ring\_oppos, cross\_positions, ix\_lrbbi)] \Newline
+\item[insert\_lrbbi (lat, lat\_oppos, cross\_positions, ix\_lrbbi)] \Newline
 Subroutine to create and insert beambeam elements at each parasitic crossing
 point as specified form a list of crossing points.
 
@@ -1115,12 +1181,12 @@ Subroutine to calculate the location of the parasitic crossings points
 given a bunch and an array of positions of the bunches it will cross. 
 
 \index{Routine!make_lrbb}
-\item[make\_lrbbi(master\_ring, master\_ring\_oppos, ring, ix\_lrbbi, master\_ix\_lrbbi)] \Newline
+\item[make\_lrbbi(master\_lat, master\_lat\_oppos, lat, ix\_lrbbi, master\_ix\_lrbbi)] \Newline
 Subroutine to turn elements marking parasitic crossings into beam-beam elements. 
 
 \index{Routine!mark_lrbb}
-\item[mark\_lrbbi(master\_ring, master\_ring\_oppos, ring, crossings)] \Newline
-Subroutine to insert named markers into the ring structure at the positions of parasitic crossings. 
+\item[mark\_lrbbi(master\_lat, master\_lat\_oppos, lat, crossings)] \Newline
+Subroutine to insert named markers into the lat structure at the positions of parasitic crossings. 
 
 \end{description}
 
@@ -1205,17 +1271,17 @@ Subroutine to convert an a Bmad orbit\_struct to a C++ C\_orbit.
 \item[param\_to\_c (f\_param, c\_param)] \Newline 
 Subroutine to convert a Bmad param\_struct to a C++ C\_param.
 
-\index{Routine!ring_to_c}
-\item[ring\_to\_c (f\_ring, c\_ring)] \Newline 
-Subroutine to convert a Bmad ring\_struct to a C++ C\_ring.
+\index{Routine!lat_to_c}
+\item[lat\_to\_c (f\_lat, c\_lat)] \Newline 
+Subroutine to convert a Bmad lat\_struct to a C++ C\_lat.
 
-\index{Routine!sr1_wake_to_c}
-\item[sr1\_wake\_to\_c (f\_sr1\_wake, c\_sr\_wake)] \Newline 
-Subroutine to convert a Bmad sr1\_wake\_struct to a C++ C\_sr1\_wake.
+\index{Routine!sr_table_wake_to_c}
+\item[sr\_table\_wake\_to\_c (f\_sr\_table\_wake, c\_sr\_wake)] \Newline 
+Subroutine to convert a Bmad sr\_table\_wake\_struct to a C++ C\_sr\_table\_wake.
 
-\index{Routine!sr2_wake_to_c}
-\item[sr2\_wake\_to\_c (f\_sr2\_wake, c\_sr\_wake)] \Newline 
-Subroutine to convert a Bmad sr2\_wake\_struct to a C++ C\_sr2\_wake.
+\index{Routine!sr_mode_wake_to_c}
+\item[sr\_mode\_wake\_to\_c (f\_sr\_mode\_wake, c\_sr\_wake)] \Newline 
+Subroutine to convert a Bmad sr\_mode\_wake\_struct to a C++ C\_sr\_mode\_wake.
 
 \index{Routine!twiss_to_c}
 \item[twiss\_to\_c (f\_twiss, c\_twiss)] \Newline 
@@ -1306,21 +1372,21 @@ Subroutine to track through the body of a wiggler.
 \begin{description}
 
 \index{Routine!touschek_lifetime}
-\item[touschek\_lifetime (mode, lifetime, ring, orb)] \Newline
-Subroutine to calculate the Touschek lifetime for a ring.
+\item[touschek\_lifetime (mode, lifetime, lat, orb)] \Newline
+Subroutine to calculate the Touschek lifetime for a lat.
 
 \index{Routine!ibs_rates}
-\item[ibs\_rates (ring, mode, rates, formula)] \Newline
-Subroutine to calculate the IBS rates for a ring.
+\item[ibs\_rates (lat, mode, rates, formula)] \Newline
+Subroutine to calculate the IBS rates for a lat.
 
 \index{Routine!ibs_equilibrium}
-\item[ibs\_equilibrium(ring, inmode, ibsmode, formula, coupling)] \Newline
-Subroutine to calculate the equilibrium mode of a ring due to IBS effects
+\item[ibs\_equilibrium(lat, inmode, ibsmode, formula, coupling)] \Newline
+Subroutine to calculate the equilibrium mode of a lat due to IBS effects
 by iterating over derivatives of the equilibrium equations.
 
 \index{Routine!ibsequilibrium2}
-\item[ibsequilibrium2(ring, inmode, ibsmode, formula, ratio, initial\_blow\_up)] \Newline
-Subroutine to calculate the equilibrium mode of a ring due to IBS effects
+\item[ibsequilibrium2(lat, inmode, ibsmode, formula, ratio, initial\_blow\_up)] \Newline
+Subroutine to calculate the equilibrium mode of a lat due to IBS effects
 by iterating over the equilibrium equations.
 
 \end{description}
@@ -1340,21 +1406,21 @@ type and the name of the attribute
 \item[attribute\_name (key, index)] \Newline
 Function to return the name of an attribute for a particular type of element. 
 
-\index{Routine!check_ring_controls}
-\item[check\_ring\_controls (ring, exit\_on\_error)] \Newline
-Subroutine to check if the control links in a ring structure are valid. 
+\index{Routine!check_lat_controls}
+\item[check\_lat\_controls (lat, exit\_on\_error)] \Newline
+Subroutine to check if the control links in a lat structure are valid. 
 
 \index{Routine!attribute_free}
-\item[attribute\_free (ele, ix\_attrib, ring, err\_print\_flag) result (free)] \Newline
+\item[attribute\_free (ele, ix\_attrib, lat, err\_print\_flag) result (free)] \Newline
 Function to check if an attribute is free to vary.
 
 \index{Routine!elements_locator}
-\item[elements\_locator (key, ring, indx)] \Newline
-Subroutine to locate all the elements of a certain kind in a ring. 
+\item[elements\_locator (key, lat, indx)] \Newline
+Subroutine to locate all the elements of a certain kind in a lat. 
 
 \index{Routine!element_locator}
-\item[element\_locator (ele\_name, ring, ix\_ele)] \Newline
-Subroutine to locate an element in a ring. 
+\item[element\_locator (ele\_name, lat, ix\_ele)] \Newline
+Subroutine to locate an element in a lat. 
 
 \index{Routine!ele_at_s}
 \item[ele\_at\_s (lat, s, ix\_ele)] \Newline 
@@ -1366,7 +1432,7 @@ Subroutine to see if two elements are equivalent in terms of their attributes so
 that their Taylor Maps, if they existed, would be the same.
 
 \index{Routine!find_element_ends}
-\item[find\_element\_ends (ring, ix\_ele, ix\_start, ix\_end)] \Newline
+\item[find\_element\_ends (lat, ix\_ele, ix\_start, ix\_end)] \Newline
 Subroutine to find the end points of an element. 
 
 \index{Routine!type_ele}
@@ -1398,7 +1464,7 @@ These routine are for adding elements, moving elements, etc.
 \begin{description}
 
 \index{Routine!add_superimpose}
-\item[add\_superimpose (ring, super\_ele, ix\_super)] \Newline
+\item[add\_superimpose (lat, super\_ele, ix\_super)] \Newline
 Subroutine to make a superimposed element. 
 
 \index{Routine!attribute_bookkeeper}
@@ -1416,35 +1482,35 @@ z\_dot) or vice-versa.
 Subroutine to do bookkeeping when a particular attribute has been altered.
 
 \index{Routine!create_group}
-\item[create\_group (ring, ix\_ele, contrl)] \Newline
+\item[create\_group (lat, ix\_ele, contrl)] \Newline
 Subroutine to create a group control element. 
 
 \index{Routine!create_i_beam}
-\item[create\_i\_beam (ring, ix\_i\_beam, ix\_slave\_)] \Newline 
+\item[create\_i\_beam (lat, ix\_i\_beam, ix\_slave)] \Newline 
      Subroutine to add the controller information to slave elements of
      an i\_beam\_lord.
 
 \index{Routine!create_overlay}
-\item[create\_overlay (ring, ix\_overlay, attrib\_name, , contl)] \Newline
+\item[create\_overlay (lat, ix\_overlay, attrib\_name, , contl)] \Newline
 Subroutine to add the controller information to slave elements of an 
 overlay\_lord. 
 
-\index{Routine!compress_ring}
-\item[compress\_ring (ring, ok)] \Newline
-Subroutine to compress the ele\_(*) and control\_(*) arrays to remove
+\index{Routine!compress_lat}
+\item[compress\_lat (lat, ok)] \Newline
+Subroutine to compress the ele(*) and control(*) arrays to remove
 elements no longer used.
 
 \index{Routine!insert_element}
-\item[insert\_element (ring, insert\_ele, insert\_index)] \Newline
-Subroutine to Insert a new element into the regular part of the 
-ring structure. 
+\item[insert\_element (lat, insert\_ele, insert\_index)] \Newline
+Subroutine to Insert a new element into the tracking part of the 
+lat structure. 
 
-\index{Routine!make_hybrid_ring}
-\item[make\_hybrid\_ring (ring\_in, use\_ele, remove\_markers, ring\_out, ix\_out)] \Newline
-Subroutine to concatenate together elements to make a hybrid ring 
+\index{Routine!make_hybrid_lat}
+\item[make\_hybrid\_lat (lat\_in, use\_ele, remove\_markers, lat\_out, ix\_out)] \Newline
+Subroutine to concatenate together elements to make a hybrid lat 
 
 \index{Routine!new_control}
-\item[new\_control (ring, ix\_ele)] \Newline
+\item[new\_control (lat, ix\_ele)] \Newline
 Subroutine to create a new control element. 
 
 \index{Routine!pointer_to_attribute}
@@ -1452,14 +1518,14 @@ Subroutine to create a new control element.
 \\ \hspace*{2in} ptr\_attrib, ix\_attrib, err\_flag, err\_print\_flag)}] \Newline
 Returns a pointer to an attribute of an element with name attrib\_name. 
 
-\index{Routine!split_ring}
-\item[split\_ring (ring, s\_split, ix\_split, split\_done)] \Newline
-Subroutine to split a ring at a point.
+\index{Routine!split_lat}
+\item[split\_lat (lat, s\_split, ix\_split, split\_done)] \Newline
+Subroutine to split a lat at a point.
 
 \index{Routine!update_hybrid_list}
-\item[update\_hybrid\_list (ring, n\_in, use\_ele)] \Newline
+\item[update\_hybrid\_list (lat, n\_in, use\_ele)] \Newline
 Subroutine used to specify a list of element that should not be
-hyberdized by \vn{make_hybrid_ring}.
+hyberdized by \vn{make_hybrid_lat}.
 
 \end{description}
 
@@ -1469,54 +1535,54 @@ hyberdized by \vn{make_hybrid_ring}.
 
 \begin{description}
 
-\index{Routine!allocate_ring_ele}
-\item[allocate\_ring\_ele\_(ring, des\_size)] \Newline 
-Subroutine to allocate or re-allocate the ring%ele\_(:) pointer in a ring.
+\index{Routine!allocate_lat_ele}
+\item[allocate\_lat\_ele(lat, des\_size)] \Newline 
+Subroutine to allocate or re-allocate the lat%ele(:) pointer in a lat.
 
 \index{Routine!control_bookkeeper}
-\item[control\_bookkeeper (ring, ix\_ele)] \Newline
+\item[control\_bookkeeper (lat, ix\_ele)] \Newline
 Subroutine to calculate the combined strength of the attributes for
 controlled elements.
 
-\index{Routine!deallocate_ring_pointers}
-\item[deallocate\_ring\_pointers (ring)] \Newline 
-Subroutine to deallocate the pointers in a ring.
+\index{Routine!deallocate_lat_pointers}
+\item[deallocate\_lat\_pointers (lat)] \Newline 
+Subroutine to deallocate the pointers in a lat.
 
 \index{Routine!init_ele}
 \item[init\_ele (ele)] \Newline
 Subroutine to initialize an element. 
 
-\index{Routine!init_ring}
-\item[init\_ring (ring, n)] \Newline 
-Subroutine to initialize a Bmad ring.
+\index{Routine!init_lat}
+\item[init\_lat (lat, n)] \Newline 
+Subroutine to initialize a Bmad lat.
 
 \index{Routine!lattice_bookkeeper}
-\item[lattice\_bookkeeper (ring)] \Newline 
+\item[lattice\_bookkeeper (lat)] \Newline 
 Subroutine to do bookkeeping for the entire lattice.
 
 \index{Routine!reallocate_coord}
 \item[reallocate\_coord (coord\_, n\_coord)] \Newline 
 Subroutine to reallocate an allocatable  coord\_struct array to at least:
-coord\_(0:n\_coord).
+coord(0:n\_coord).
 
 \index{Routine!reverse_ele}
 \item[reverse\_ele (ele)] \Newline
 Subroutine to "reverse" an element for backward tracking. 
 
-\index{Routine!ring_reverse}
-\item[ring\_reverse (ring\_in, ring\_rev)] \Newline
-Subroutine to construct a ring structure with the elements in reversed 
-order. This may be used for backward tracking through the ring. 
+\index{Routine!lat_reverse}
+\item[lat\_reverse (lat\_in, lat\_rev)] \Newline
+Subroutine to construct a lat structure with the elements in reversed 
+order. This may be used for backward tracking through the lat. 
 
 \index{Routine!set_design_linear}
-\item[set\_design\_linear (ring)] \Newline
+\item[set\_design\_linear (lat)] \Newline
 Subroutine to set only those elements on that constitute the "design" 
 lattice. That is, only quadrupoles, bends and wigglers will be set on. 
 
 \index{Routine!set_on_off}
-\item[set\_on\_off (key, ring, switch, orb\_)] \Newline
+\item[set\_on\_off (key, lat, switch, orb)] \Newline
 Subroutine to turn on or off a set of elements (quadrupoles,
-rfcavities, etc.) in a ring.
+rfcavities, etc.) in a lat.
 
 \index{Routine!transfer_ele}
 \item[transfer\_ele (ele1, ele2)] \Newline 
@@ -1532,20 +1598,20 @@ rfcavities, etc.) in a ring.
 \item[transfer\_ele\_taylor (ele\_in, ele\_out, taylor\_order)] \Newline 
      Subroutine to transfer a Taylor map from one element to another.
 
-\index{Routine!transfer_ring}
-\item[transfer\_ring (ring1, ring2)] \Newline 
-     Subroutine to set ring2 = ring1. 
+\index{Routine!transfer_lat}
+\item[transfer\_lat (lat1, lat2)] \Newline 
+     Subroutine to set lat2 = lat1. 
      This is a plain transfer of information not using the overloaded equal.
 
-\index{Routine!transfer_ring_parameters}
-\item[transfer\_ring\_parameters (ring\_in, ring\_out)] \Newline
-Subroutine to transfer the ring parameters (such as ring\%name, 
-ring\%param, etc.) from one ring to another. 
+\index{Routine!transfer_lat_parameters}
+\item[transfer\_lat\_parameters (lat\_in, lat\_out)] \Newline
+Subroutine to transfer the lat parameters (such as lat\%name, 
+lat\%param, etc.) from one lat to another. 
 
-\index{Routine!transfer_ring_taylors}
-\item[transfer\_ring\_taylors (ring\_in, ring\_out, 
+\index{Routine!transfer_lat_taylors}
+\item[transfer\_lat\_taylors (lat\_in, lat\_out, 
                         type\_out, transfered\_all) ] \Newline 
-Subroutine to transfer the taylor maps from the elements of one ring to
+Subroutine to transfer the taylor maps from the elements of one lat to
 the elements of another. 
 
 \end{description}
@@ -1600,7 +1666,7 @@ Subroutine to compute multipole factors:
 c\_multi(n, m) = +/- ("n choose m")/n! 
 
 \index{Routine!compute_reference_energy}
-\item[compute\_reference\_energy (ring)] \Newline
+\item[compute\_reference\_energy (lat)] \Newline
 Subroutine to compute the reference energy for each element in a lattice. 
 
 \index{Routine!custom_emitt_calc}
@@ -1608,7 +1674,7 @@ Subroutine to compute the reference energy for each element in a lattice.
 Dummy routine for the emittance calculation for CUSTOM elements. 
 
 \index{Routine!custom_radiation_integrals}
-\item[custom\_radiation\_integrals (ring, ir, orb\_)] \Newline
+\item[custom\_radiation\_integrals (lat, ir, orb)] \Newline
 Dummy routine for the radiation\_integrals calculation for CUSTOM elements. 
 
 \index{Routine!em_field}
@@ -1628,12 +1694,12 @@ Subroutine to calculate the energy, etc. from a particle's momentum.
 Function to interpolate a 3d field. 
 
 \index{Routine!name_to_list}
-\item[name\_to\_list (ring, ele\_names, use\_ele)] \Newline
-Subroutine to make a list of the elements in a ring 
+\item[name\_to\_list (lat, ele\_names, use\_ele)] \Newline
+Subroutine to make a list of the elements in a lat 
 whose name matches the names in the ele\_names list. 
 
 \index{Routine!order_super_lord_slaves}
-\item[order\_super\_lord\_slaves (ring, ix\_lord)] \Newline
+\item[order\_super\_lord\_slaves (lat, ix\_lord)] \Newline
 Subroutine to make the slave elements of a super\_lord in order. 
 
 \index{Routine!release_rad_int_cache}
@@ -1653,14 +1719,14 @@ Subroutine to calculate the normalized vector potential at a point for a wiggler
 \begin{description}
 
 \index{Routine!adjust_super_lord_s_position}
-\item[adjust\_super\_lord\_s\_position (ring, ix\_lord)] \Newline
+\item[adjust\_super\_lord\_s\_position (lat, ix\_lord)] \Newline
 Subroutine to adjust the positions of the slaves of a 
 super\_lord due to changes in the lord's s\_offset. 
 
 \index{Routine!bracket_index}
 \item[bracket\_index (s\_, s, ix)] \Newline
-Subroutine to find the index ix so that s\_(ix) $\le$ s $<$ s\_(ix+1). 
-If s $<$ s\_(1) then ix = 0 
+Subroutine to find the index ix so that s(ix) $\le$ s $<$ s(ix+1). 
+If s $<$ s(1) then ix = 0 
 
 \index{Routine!deallocate_ele_pointers}
 \item[deallocate\_ele\_pointers (ele)] \Newline
@@ -1679,11 +1745,11 @@ Dummy routine that will generate an error if called.
 Dummy routine that will generate an error if called. 
 
 \index{Routine!makeup_group_slaves}
-\item[makeup\_group\_slaves (ring, ix\_slave)] \Newline
+\item[makeup\_group\_slaves (lat, ix\_slave)] \Newline
 Subroutine to calculate the attributes of group slave elements.
 
 \index{Routine!makeup_super_slave}
-\item[makeup\_super\_slave (ring, ix\_slave)] \Newline
+\item[makeup\_super\_slave (lat, ix\_slave)] \Newline
 Subroutine to calculate the attributes of overlay slave elements. 
 
 \index{Routine!orbit_to_dispersion}
@@ -1735,15 +1801,15 @@ This routine takes care of the pointers in ele1.
 \item[real\_8\_equal\_taylor (y8, bmad\_taylor)] \Newline
 Subroutine to overload "=" in expressions real\_8 (PTC) = bmad\_taylor.
 
-\index{Routine!ring_equal_ring}
-\item[ring\_equal\_ring (ring1, ring2)] \Newline
-Subroutine that is used to set one ring equal to another. 
-This routine takes care of the pointers in ring1. 
+\index{Routine!lat_equal_lat}
+\item[lat\_equal\_lat (lat1, lat2)] \Newline
+Subroutine that is used to set one lat equal to another. 
+This routine takes care of the pointers in lat1. 
 
-\index{Routine!ring_vec_equal_ring_vec}
-\item[ring\_vec\_equal\_ring\_vec (ring1, ring2)] \Newline
-Subroutine that is used to set one ring array equal to another. 
-This routine takes care of the pointers in ring1(:). 
+\index{Routine!lat_vec_equal_lat_vec}
+\item[lat\_vec\_equal\_lat\_vec (lat1, lat2)] \Newline
+Subroutine that is used to set one lat array equal to another. 
+This routine takes care of the pointers in lat1(:). 
 
 \index{Routine!taylor_equal_real_8}
 \item[taylor\_equal\_real\_8 (bmad\_taylor, y8)] \Newline
@@ -1782,19 +1848,19 @@ outside of Cornell are not of general interest.
 \begin{description}
 
 \index{Routine!bmad_to_cesr}
-\item[bmad\_to\_cesr (ring, cesr)] \Newline
-Subroutine to transfer information from the ring structure returned from 
-\vn{Bmad_Parser} to a structure for the CESR ring.
+\item[bmad\_to\_cesr (lat, cesr)] \Newline
+Subroutine to transfer information from the lat structure returned from 
+\vn{Bmad_Parser} to a structure for the CESR lat.
 
 \index{Routine!bmad_to_db}
-\item[bmad\_to\_db (ring, db)] \Newline
+\item[bmad\_to\_db (lat, db)] \Newline
 Subroutine to return information on the database that pertains to CESR elements. 
 
 \index{Routine!cesr_crossings}
 \item[\protect\parbox{6in}{cesr\_crossings (i\_train, j\_car, species, n\_trains\_tot, 
 \\ \hspace*{2in}n\_cars, cross\_positions, n\_car\_spacing, train\_spacing)}] \Newline
-Subroutine to calculate all parasitic crossing points for a bunch at a given location 
-with oppositely circulating bunches of known spacing. 
+Subroutine to calculate all parasitic crossing points for a bunch at a
+given location with oppositely circulating bunches of known spacing.
 
 \index{Routine!cesr_loc_decod}
 \item[cesr\_loc\_decode(string, array, num)] \Newline 
@@ -1810,26 +1876,26 @@ Subroutine to parse a character string for a location in the CESR ring.
 
 \index{Routine!cesr_elements_get}
 \item[cesr\_elements\_get (name, n\_found, ele)] \Newline 
-Subroutine to find the location of elements from [CESR.SURVEY]RING\_MASTER.DAT
+Subroutine to find the location of elements from [CESR.SURVEY]LAT\_MASTER.DAT
 
 \index{Routine!choose_cesr_lattice}
-\item[choose\_cesr\_lattice (lattice, lat\_file, current\_lat, ring)] \Newline
+\item[choose\_cesr\_lattice (lattice, lat\_file, current\_lat, lat)] \Newline
 Subroutine to let the user choose a lattice. The subroutine will present a list to choose from. 
 
 \index{Routine!create_vsp_volt_elements}
-\item[create\_vsp\_volt\_elements (ring, ele\_type)] \Newline
+\item[create\_vsp\_volt\_elements (lat, ele\_type)] \Newline
 Subroutine to create elements corresponding to the 6 database elements in CSR VSP VOLT. 
 
 \index{Routine!db_group_to_bmad}
 \item[db\_group\_to\_bmad (ing\_name, ing\_num, biggrp\_set, 
-ring, con\_, n\_con, ok, type\_err)] \Newline
+lat, con\_, n\_con, ok, type\_err)] \Newline
 Subroutine to take a database group element and find the elements 
 controlled along with the coefficients. 
 
 \index{Routine!db_group_to_bmad_group}
 \item[db\_group\_to\_bmad\_group (group\_name, group\_num, i\_biggrp, 
-ring, ix\_ele, ok, type\_err)] \Newline
-Subroutine to set up a database group knob in a Bmad ring structure. 
+lat, ix\_ele, ok, type\_err)] \Newline
+Subroutine to set up a database group knob in a Bmad lat structure. 
 
 \index{Routine!identify_db_node}
 \item[identify\_db\_node (db\_name, db, dp\_ptr, ok, type\_err)] \Newline
@@ -1848,8 +1914,8 @@ Subroutine to return the calibration constants for the CESR quads.
 \item[read\_butns\_file (butns\_num, butns, db, ok)] \Newline
 Subroutine to read in the information in a BUTNS.nnnnn file. 
 
-\index{Routine!ring_to_quad_calib}
-\item[\protect\parbox{6in}{ring\_to\_quad\_calib (ring, cesr, k\_theory, k\_base, 
+\index{Routine!lat_to_quad_calib}
+\item[\protect\parbox{6in}{lat\_to\_quad\_calib (lat, cesr, k\_theory, k\_base, 
 \\ \hspace*{2in} len\_quad, cu\_per\_k\_gev, quad\_rot, dk\_gev\_dcu, cu\_theory)}] \Newline
 Subroutine to return the calibration constants for the CESR quads. 
 
@@ -2411,19 +2477,19 @@ Subroutine to evaluate a spline at a set of points.
 \begin{description}
 
 \index{Routine!closed_orbit_at_start}
-\item[closed\_orbit\_at\_start (ring, co, i\_dim, iterate)] \Newline
-Subroutine to calculate the closed orbit at the beginning of the ring. 
+\item[closed\_orbit\_at\_start (lat, co, i\_dim, iterate)] \Newline
+Subroutine to calculate the closed orbit at the beginning of the lat. 
 
 \index{Routine!mat_unit}
 \item[mat\_unit (mat, size, psize)] \Newline 
 Routine to create a unit matrix.
 
 \index{Routine!set_on}
-\item[set\_on (key, ring, on\_switch, orb\_)] \Newline
-Subroutine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a ring. 
+\item[set\_on (key, lat, on\_switch, orb)] \Newline
+Subroutine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a lat. 
 
 \index{Routine!twiss_at_s}
-\item[twiss\_at\_s (ring, s, ele)] \Newline
+\item[twiss\_at\_s (lat, s, ele)] \Newline
 Obsolete. Use twiss\_and\_track\_at\_s instead. 
 
 \end{description}

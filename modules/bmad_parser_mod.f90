@@ -25,8 +25,8 @@ type seq_ele_struct
   character(40), pointer :: actual_arg(:) => null()
   character(40) :: tag = ''      ! tag name.
   integer type                   ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
-  integer ix_ele                 ! if an element: pointer to ELE_ array
-                                 ! if a list: pointer to SEQ_ array
+  integer ix_ele                 ! if an element: pointer to ELE array
+                                 ! if a list: pointer to SEQ array
   integer ix_arg                 ! index in arg list (for replacement lines)
   integer rep_count              ! how many copies of an element
   logical reflect                ! reflection sequence
@@ -56,7 +56,7 @@ end type
 ! used to form a lattice
 
 type seq_stack_struct
-  integer ix_seq                ! index to seq_(:) array
+  integer ix_seq                ! index to seq(:) array
   integer ix_ele                ! index to seq%ele(:) array
   integer rep_count             ! repetition count
   integer direction             ! +1 => forwad, -1 => back reflection.
@@ -98,9 +98,9 @@ end type
 
 type parser_ele_struct
   character(40) ref_name
-  character(40), pointer :: name_(:) => null()
-  character(40), pointer :: attrib_name_(:) => null()
-  real(rp), pointer :: coef_(:) => null()
+  character(40), pointer :: name(:) => null()
+  character(40), pointer :: attrib_name(:) => null()
+  real(rp), pointer :: coef(:) => null()
   real(rp) s
   integer ix_count
   integer ele_pt, ref_pt
@@ -108,7 +108,7 @@ type parser_ele_struct
   logical common_lord
 end type
 
-type parser_ring_struct
+type parser_lat_struct
   type (parser_ele_struct), pointer :: ele(:) => null()
 end type
 
@@ -131,10 +131,10 @@ parameter (redef$ = 2)
 
 integer, parameter :: n_parse_line = 280
 
-type bp_com_struct
+type bp_common_struct
   type (stack_file_struct) current_file
   type (stack_file_struct) calling_file
-  type (ring_struct), pointer :: old_ring
+  type (lat_struct), pointer :: old_lat
   character(40), pointer :: var_name(:) => null()    ! variable name
   real(rp), pointer :: var_value(:) => null()        ! variable value
   integer, pointer :: var_indexx(:) => null()        ! variable sort index
@@ -156,7 +156,7 @@ end type
 
 !
 
-type (bp_com_struct), save :: bp_com
+type (bp_common_struct), save :: bp_com
 
 character(40) :: blank = ''
 
@@ -166,7 +166,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_attribute (how, ele, ring, pring,
+! Subroutine get_attribute (how, ele, lat, plat,
 !                                             delim, delim_found, err_flag)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
@@ -176,15 +176,15 @@ contains
 !-
 
 
-subroutine get_attribute (how, ele, ring, pring, &
+subroutine get_attribute (how, ele, lat, plat, &
                                              delim, delim_found, err_flag)
 
   use random_mod
          
   implicit none
 
-  type (ring_struct)  ring
-  type (parser_ring_struct) pring
+  type (lat_struct)  lat
+  type (parser_lat_struct) plat
   type (ele_struct), target ::  ele, ele0
   type (wig_term_struct), pointer :: wig_term(:)
   type (real_array_struct), allocatable, save :: r_ptrs(:)
@@ -225,7 +225,7 @@ subroutine get_attribute (how, ele, ring, pring, &
       return
     endif
 
-    call evaluate_value (str, coef, ring, delim, delim_found, err_flag)
+    call evaluate_value (str, coef, lat, delim, delim_found, err_flag)
     if (err_flag) return
 
     call get_next_word (line, ix_word, '},', delim, delim_found, .true.)
@@ -263,7 +263,7 @@ subroutine get_attribute (how, ele, ring, pring, &
       endif
       if (delim == '=') then  ! value
         call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                      ring, delim, delim_found, err_flag)
+                                      lat, delim, delim_found, err_flag)
         if (err_flag) return
         ele%value(i) = value
       else
@@ -300,7 +300,7 @@ subroutine get_attribute (how, ele, ring, pring, &
       endif
       if (delim == '=') then  ! value
         call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                ring, delim, delim_found, err_flag)
+                                lat, delim, delim_found, err_flag)
         if (err_flag) return
         if (how == def$) then
           ele%value(command$) = value
@@ -321,16 +321,16 @@ subroutine get_attribute (how, ele, ring, pring, &
 
   if (ele%key == init_ele$ .or. ele%key == def_beam_start$) then
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                      ring, delim, delim_found, err_flag) 
+                                      lat, delim, delim_found, err_flag) 
     if (err_flag) return
-    call pointers_to_attribute (ring, ele%name, word, .false., r_ptrs, err_flag)
+    call pointers_to_attribute (lat, ele%name, word, .false., r_ptrs, err_flag)
     if (err_flag) then
       bp_com%error_flag = .true.
       return
     endif
 
     r_ptrs(1)%r = value
-    call changed_attribute_bookkeeper (ring, r_ptrs(1)%r)
+    call changed_attribute_bookkeeper (lat, ele%ix_ele, r_ptrs(1)%r)
     return
   endif
 
@@ -349,7 +349,7 @@ subroutine get_attribute (how, ele, ring, pring, &
       return
     endif
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                      ring, delim, delim_found, err_flag)
+                                      lat, delim, delim_found, err_flag)
     r_ptr = value
     return
   endif
@@ -385,27 +385,27 @@ subroutine get_attribute (how, ele, ring, pring, &
     case ('SUPERIMPOSE')
       ele%control_type = super_lord$
     case ('REF_BEGINNING')
-      pring%ele(ic)%ref_pt = begin$
+      plat%ele(ic)%ref_pt = begin$
     case ('REF_CENTER')
-      pring%ele(ic)%ref_pt = center$
+      plat%ele(ic)%ref_pt = center$
     case ('REF_END')
-      pring%ele(ic)%ref_pt = end$
+      plat%ele(ic)%ref_pt = end$
     case ('ELE_BEGINNING')
-      pring%ele(ic)%ele_pt = begin$
+      plat%ele(ic)%ele_pt = begin$
     case ('ELE_CENTER')
-      pring%ele(ic)%ele_pt = center$
+      plat%ele(ic)%ele_pt = center$
     case ('ELE_END')
-      pring%ele(ic)%ele_pt = end$
+      plat%ele(ic)%ele_pt = end$
     case ('COMMON_LORD')
-      pring%ele(ic)%common_lord = .true.
+      plat%ele(ic)%common_lord = .true.
     case ('REFERENCE')
-      call get_next_word(pring%ele(ic)%ref_name, ix_word,  &
+      call get_next_word(plat%ele(ic)%ref_name, ix_word,  &
                                          ':=,', delim, delim_found, .true.)
     case ('OFFSET')
       call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                      ring, delim, delim_found, err_flag)
+                                      lat, delim, delim_found, err_flag)
       if (err_flag) return
-      pring%ele(ic)%s = value
+      plat%ele(ic)%s = value
     case default
       print *, 'ERROR IN BMAD_PARSER: INTERNAL ERROR. PLEASE GET HELP!'
       call err_exit
@@ -469,23 +469,23 @@ subroutine get_attribute (how, ele, ring, pring, &
     err_str = trim(ele%name) // ' ' // str_ix
 
     call evaluate_value (err_str, ele%wig_term(ix)%coef, &
-                              ring, delim, delim_found, err_flag)
+                              lat, delim, delim_found, err_flag)
     if (err_flag) return
  
     call evaluate_value (err_str, ele%wig_term(ix)%kx, &
-                              ring, delim, delim_found, err_flag)
+                              lat, delim, delim_found, err_flag)
     if (err_flag) return
 
     call evaluate_value (err_str, ele%wig_term(ix)%ky, &
-                              ring, delim, delim_found, err_flag)
+                              lat, delim, delim_found, err_flag)
     if (err_flag) return
 
     call evaluate_value (err_str, ele%wig_term(ix)%kz, &
-                              ring, delim, delim_found, err_flag)
+                              lat, delim, delim_found, err_flag)
     if (err_flag) return
 
     call evaluate_value (err_str, ele%wig_term(ix)%phi_z, &
-                              ring, delim, delim_found, err_flag)
+                              lat, delim, delim_found, err_flag)
     if (err_flag) return
 
 
@@ -550,8 +550,8 @@ subroutine get_attribute (how, ele, ring, pring, &
       ele%value(fintx$) = 0.5
     elseif (ele%key == multipole$) then
       if (ix_attrib >= t0$) then
-        if (.not. associated(ele%a)) call multipole_init (ele)
-        ele%b(ix_attrib-t0$) = pi / (2*(ix_attrib-t0$) + 2)
+        if (.not. associated(ele%a_pole)) call multipole_init (ele)
+        ele%b_pole(ix_attrib-t0$) = pi / (2*(ix_attrib-t0$) + 2)
       else
         call warning ('EXPECTING "=" AFTER MULTIPOLE ATTRIBUTE: ' // word,  &
                          'FOR ELEMENT: ' // ele%name)
@@ -597,15 +597,15 @@ subroutine get_attribute (how, ele, ring, pring, &
   case default   ! normal attribute
 
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                      ring, delim, delim_found, err_flag)
+                                      lat, delim, delim_found, err_flag)
     if (err_flag) return
 
     if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then  ! multipole attribute
-        if (.not. associated(ele%a)) call multipole_init (ele)
+        if (.not. associated(ele%a_pole)) call multipole_init (ele)
         if (ix_attrib >= b0$) then
-          ele%b(ix_attrib-b0$) = value
+          ele%b_pole(ix_attrib-b0$) = value
         else
-          ele%a(ix_attrib-a0$) = value
+          ele%a_pole(ix_attrib-a0$) = value
         endif
     elseif (ix_attrib == mat6_calc_method$) then
       ele%mat6_calc_method = nint(value)
@@ -1098,7 +1098,7 @@ end function
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
+! Subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
 !
 ! This routine creates an "evaluation stack" structure which can be used 
 ! to evaluate an arithmethic expression.
@@ -1107,18 +1107,18 @@ end function
 ! This subroutine is not intended for general use.
 !-
 
-subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
+subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
 
   use random_mod
 
   implicit none
 
-  type (ring_struct)  ring
+  type (lat_struct)  lat
   type (eval_stack_struct) stk(200)
 
   integer i_lev, i_op, i
 
-  integer op_(200), ix_word, i_delim, i2, ix_word2
+  integer op(200), ix_word, i_delim, i2, ix_word2
 
   real(rp) value
 
@@ -1135,7 +1135,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 
 ! The stack is called: stk
 ! Since operations move towards the end of the stack we need a separate
-! stack called op_ which keeps track of what operations have not yet
+! stack called op which keeps track of what operations have not yet
 ! been put on stk.
 
 ! init
@@ -1209,31 +1209,31 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
       if (ix_word /= 0) then
         select case (word)
         case ('SIN') 
-          call pushit (op_, i_op, sin$)
+          call pushit (op, i_op, sin$)
         case ('COS') 
-          call pushit (op_, i_op, cos$)
+          call pushit (op, i_op, cos$)
         case ('TAN') 
-          call pushit (op_, i_op, tan$)
+          call pushit (op, i_op, tan$)
         case ('ASIN') 
-          call pushit (op_, i_op, asin$)
+          call pushit (op, i_op, asin$)
         case ('ACOS') 
-          call pushit (op_, i_op, acos$)
+          call pushit (op, i_op, acos$)
         case ('ATAN') 
-          call pushit (op_, i_op, atan$)
+          call pushit (op, i_op, atan$)
         case ('ABS') 
-          call pushit (op_, i_op, abs$)
+          call pushit (op, i_op, abs$)
         case ('SQRT') 
-          call pushit (op_, i_op, sqrt$)
+          call pushit (op, i_op, sqrt$)
         case ('LOG') 
-          call pushit (op_, i_op, log$)
+          call pushit (op, i_op, log$)
         case ('EXP') 
-          call pushit (op_, i_op, exp$)
+          call pushit (op, i_op, exp$)
         case ('RAN') 
-          call pushit (op_, i_op, ran$)
+          call pushit (op, i_op, ran$)
           ran_function_pending = .true.
           bp_com%ran_function_was_called = .true.
         case ('RAN_GAUSS') 
-          call pushit (op_, i_op, ran_gauss$)
+          call pushit (op, i_op, ran_gauss$)
           ran_function_pending = .true.
           bp_com%ran_function_was_called = .true.
         case default
@@ -1244,19 +1244,19 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
         end select
       endif
 
-      call pushit (op_, i_op, l_parens$)
+      call pushit (op, i_op, l_parens$)
       cycle parsing_loop
 
 ! for a unary "-"
 
     elseif (delim == '-' .and. ix_word == 0) then
-      call pushit (op_, i_op, unary_minus$)
+      call pushit (op, i_op, unary_minus$)
       cycle parsing_loop
 
 ! for a unary "+"
 
     elseif (delim == '+' .and. ix_word == 0) then
-      call pushit (op_, i_op, unary_plus$)
+      call pushit (op, i_op, unary_plus$)
       cycle parsing_loop
 
 ! for a ")" delim
@@ -1267,15 +1267,15 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
               ('CONSTANT OR VARIABLE MISSING BEFORE ")"', 'FOR: ' // err_str)
         ran_function_pending = .false.
       else
-        call word_to_value (word, ring, value)
+        call word_to_value (word, lat, value)
         call pushit (stk%type, i_lev, numeric$)
         stk(i_lev)%value = value
       endif
 
       do
         do i = i_op, 1, -1     ! release pending ops
-          if (op_(i) == l_parens$) exit          ! break do loop
-          call pushit (stk%type, i_lev, op_(i))
+          if (op(i) == l_parens$) exit          ! break do loop
+          call pushit (stk%type, i_lev, op(i))
         enddo
 
         if (i == 0) then
@@ -1313,7 +1313,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
         err_flag = .true.
         return
       endif
-      call word_to_value (word, ring, value)
+      call word_to_value (word, lat, value)
       call pushit (stk%type, i_lev, numeric$)
       stk(i_lev)%value = value
     endif
@@ -1341,29 +1341,29 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
         call error_exit ('INTERNAL ERROR #01: GET HELP')
     end select
 
-! now see if there are operations on the OP_ stack that need to be transferred
-! to the STK_ stack
+! now see if there are operations on the OP stack that need to be transferred
+! to the STK stack
 
     do i = i_op, 1, -1
-      if (eval_level(op_(i)) >= eval_level(i_delim)) then
-        if (op_(i) == l_parens$) then
+      if (eval_level(op(i)) >= eval_level(i_delim)) then
+        if (op(i) == l_parens$) then
           call warning ('UNMATCHED "(" IN EVALUATING: ' // err_str)
           err_flag = .true.
           return
         endif
-        call pushit (stk%type, i_lev, op_(i))
+        call pushit (stk%type, i_lev, op(i))
       else
         exit
       endif
     enddo
 
-! put the pending operation on the OP_ stack
+! put the pending operation on the OP stack
 
     i_op = i
     if (i_delim == no_delim$) then
       exit parsing_loop
     else
-      call pushit (op_, i_op, i_delim)
+      call pushit (op, i_op, i_delim)
     endif
 
   enddo parsing_loop
@@ -1480,11 +1480,11 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine word_to_value (word, ring, value)
+subroutine word_to_value (word, lat, value)
 
   implicit none
 
-  type (ring_struct), target ::  ring
+  type (lat_struct), target ::  lat
   type (ele_struct), pointer :: ele
   type (real_array_struct), allocatable, save :: ptr(:)
 
@@ -1533,7 +1533,7 @@ subroutine word_to_value (word, ring, value)
     call warning ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
   endif
 
-  call pointers_to_attribute (ring, ele_name, attrib_name, .false., ptr, err_flag, .false.)
+  call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err_flag, .false.)
   if (err_flag) then
     call warning('BAD ATTRIBUTE: ' // word)
   else
@@ -1552,11 +1552,11 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_add_variable (word, ring)
+subroutine parser_add_variable (word, lat)
 
   implicit none
 
-  type (ring_struct) ring
+  type (lat_struct) lat
   character(*) word
   character(1) delim
   integer i, ivar, ixm, ixm2
@@ -1568,7 +1568,7 @@ subroutine parser_add_variable (word, ring)
                                     bp_com%var_indexx, bp_com%ivar_tot, i)
   if (i /= 0) then
     call warning ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word)
-    call evaluate_value (word, bp_com%var_value(i), ring, &
+    call evaluate_value (word, bp_com%var_value(i), lat, &
                                               delim, delim_found, err_flag)
     return
   endif
@@ -1578,7 +1578,7 @@ subroutine parser_add_variable (word, ring)
   ivar = bp_com%ivar_tot
   bp_com%var_name(ivar) = word
   call evaluate_value (bp_com%var_name(ivar), bp_com%var_value(ivar), &
-                                       ring, delim, delim_found, err_flag)
+                                       lat, delim, delim_found, err_flag)
   if (delim_found .and. .not. err_flag) call warning  &
                     ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
                      'FOR VARIABLE: ' // bp_com%var_name(ivar))
@@ -1696,9 +1696,9 @@ subroutine read_lr_wake (ele, lr_file_name)
 ! Init
 
   if (.not. associated(ele%wake)) allocate (ele%wake)
-  if (.not. associated(ele%wake%sr1))       allocate (ele%wake%sr1(0))
-  if (.not. associated(ele%wake%sr2_long))  allocate (ele%wake%sr2_long(0))
-  if (.not. associated(ele%wake%sr2_trans)) allocate (ele%wake%sr2_trans(0))
+  if (.not. associated(ele%wake%sr_table))       allocate (ele%wake%sr_table(0))
+  if (.not. associated(ele%wake%sr_mode_long))  allocate (ele%wake%sr_mode_long(0))
+  if (.not. associated(ele%wake%sr_mode_trans)) allocate (ele%wake%sr_mode_trans(0))
   if (associated(ele%wake%lr)) deallocate (ele%wake%lr)
 
 ! get data
@@ -1757,9 +1757,9 @@ end subroutine
 !
 ! Output:
 !   ele -- Ele_struct: Element with wake information.
-!     %wake%sr1(:)       -- Short-range wake potential.
-!     %wake%sr2_long(:)  -- Short-range wake potential.
-!     %wake%sr2_trans(:) -- Short-range wake potential.
+!     %wake%sr_table(:)       -- Short-range wake potential.
+!     %wake%sr_mode_long(:)  -- Short-range wake potential.
+!     %wake%sr_mode_trans(:) -- Short-range wake potential.
 !-
         
 subroutine read_sr_wake (ele, sr_file_name)
@@ -1767,7 +1767,7 @@ subroutine read_sr_wake (ele, sr_file_name)
   implicit none
 
   type (ele_struct) ele
-  type (sr2_wake_struct) longitudinal(100), transverse(100)
+  type (sr_mode_wake_struct) longitudinal(100), transverse(100)
 
   real(rp) dz, col1(500), col2(500), col3(500), z_max
   integer n_row, n, j, iu, ios, ix, i
@@ -1784,13 +1784,13 @@ subroutine read_sr_wake (ele, sr_file_name)
 
   if (.not. associated(ele%wake)) allocate (ele%wake)
   if (.not. associated(ele%wake%lr)) allocate (ele%wake%lr(0))
-  if (associated(ele%wake%sr1))       deallocate (ele%wake%sr1)
-  if (associated(ele%wake%sr2_long))  deallocate (ele%wake%sr2_long)
-  if (associated(ele%wake%sr2_trans)) deallocate (ele%wake%sr2_trans)
+  if (associated(ele%wake%sr_table))       deallocate (ele%wake%sr_table)
+  if (associated(ele%wake%sr_mode_long))  deallocate (ele%wake%sr_mode_long)
+  if (associated(ele%wake%sr_mode_trans)) deallocate (ele%wake%sr_mode_trans)
 
-  allocate (ele%wake%sr1(0), ele%wake%sr2_long(0), ele%wake%sr2_trans(0))
+  allocate (ele%wake%sr_table(0), ele%wake%sr_mode_long(0), ele%wake%sr_mode_trans(0))
 
-! get sr1 data
+! get sr_table data
 
   iu = 0
   ele%wake%sr_file = sr_file_name
@@ -1827,25 +1827,25 @@ subroutine read_sr_wake (ele, sr_file_name)
 
   enddo
 
-  allocate (ele%wake%sr1(0:n_row-1))
-  ele%wake%sr1%z     = col1(1:n_row)
-  ele%wake%sr1%long  = col2(1:n_row)
-  ele%wake%sr1%trans = col3(1:n_row)
+  allocate (ele%wake%sr_table(0:n_row-1))
+  ele%wake%sr_table%z     = col1(1:n_row)
+  ele%wake%sr_table%long  = col2(1:n_row)
+  ele%wake%sr_table%trans = col3(1:n_row)
 
   ! err check
 
   if (n_row > 1) then
-    if (ele%wake%sr1(0)%z /= 0) then
+    if (ele%wake%sr_table(0)%z /= 0) then
       call warning ('WAKEFIELDS DO NOT START AT Z = 0!', &
                                     'IN FILE: ' // ele%wake%sr_file)
       return
     endif
 
     n = n_row - 1
-    dz = ele%wake%sr1(n)%z / n
+    dz = ele%wake%sr_table(n)%z / n
 
     do j = 1, n
-      if (abs(ele%wake%sr1(j)%z - dz * j) > 1e-4 * abs(dz)) then
+      if (abs(ele%wake%sr_table(j)%z - dz * j) > 1e-4 * abs(dz)) then
         write (line, '(a, i5)') &
                  'WAKEFIELD POINTS DO NOT HAVE UNIFORM DZ FOR POINT:', j
         call warning (line, 'IN FILE: ' // ele%wake%sr_file)
@@ -1859,14 +1859,14 @@ subroutine read_sr_wake (ele, sr_file_name)
             'SHORT-RANGE WAKEFIELD FILE TABLES NOW MUST HAVE Z < 0! ' // full_file_name, &
             'REMEMBER THAT Wt NEEDS TO BE NEGATIVE ALSO!')
 
-    if (ele%wake%sr1(1)%trans > 0) call warning ( &
+    if (ele%wake%sr_table(1)%trans > 0) call warning ( &
              'POSITIVE Wt IN WAKEFIELD FILE INDICATES SIGN ERROR! ' // full_file_name)
 
   endif
 
   if (iu == 0) return  ! end of file reached
 
-! Get sr2_long data
+! Get sr_mode_long data
 
   longitudinal(:)%phi = real_garbage$
   transverse(:)%phi = real_garbage$
@@ -1881,21 +1881,21 @@ subroutine read_sr_wake (ele, sr_file_name)
   endif
 
   n = count(longitudinal%phi /= real_garbage$)
-  allocate (ele%wake%sr2_long(n))
-  ele%wake%sr2_long = longitudinal(1:n)
+  allocate (ele%wake%sr_mode_long(n))
+  ele%wake%sr_mode_long = longitudinal(1:n)
   if (any(longitudinal(1:n)%phi == real_garbage$)) call warning ( &
       'JUMBLED INDEX FOR LONGITUDINAL SHORT_RANGE_MODES FROM FILE: ' &
       // full_file_name, 'FOR ELEMENT: ' // ele%name)
 
   n = count(transverse%phi /= real_garbage$)
-  allocate (ele%wake%sr2_trans(n))
-  ele%wake%sr2_trans = transverse(1:n)
+  allocate (ele%wake%sr_mode_trans(n))
+  ele%wake%sr_mode_trans = transverse(1:n)
   if (any(transverse(1:n)%phi == real_garbage$)) call warning ( &
       'JUMBLED INDEX FOR TRANSVERSE SHORT_RANGE_MODES FROM FILE: ' &
       // full_file_name, 'FOR ELEMENT: ' // ele%name)
 
 
-  ele%wake%z_sr2_max = z_max
+  ele%wake%z_sr_mode_max = z_max
   if (z_max == real_garbage$) call warning ( &
       'Z_MAX NOT SET FOR SHORT_RANGE_MODES FROM FILE: ' &
       // full_file_name, 'FOR ELEMENT: ' // ele%name)
@@ -1953,27 +1953,27 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
+! Subroutine get_overlay_group_names (ele, lat, plat, delim, delim_found)
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
         
-subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
+subroutine get_overlay_group_names (ele, lat, plat, delim, delim_found)
 
   implicit none
 
   type (ele_struct)  ele
-  type (parser_ring_struct) pring
-  type (ring_struct)  ring
+  type (parser_lat_struct) plat
+  type (lat_struct)  lat
 
-  real(rp) coef_(200)
+  real(rp) coef(200)
   real(rp) value
   
   integer ic, ix_word, ixs, j, k
                              
   character delim*1, word_in*40, word*40
-  character(40) name_(200), attrib_name_(200)
+  character(40) name(200), attrib_name(200)
 
   logical delim_found, err_flag, file_end
                       
@@ -2007,27 +2007,27 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
         call warning ('BAD ATTRIBUTE SPEC: ' // word_in, 'FOR: ' // ele%name)
         word = word(:k-1) // word(j+1:)
       else
-        attrib_name_(ixs) = word(j+1:k-1)
+        attrib_name(ixs) = word(j+1:k-1)
         word = word(:j-1) // word(k+1:)
       endif
     else
-      attrib_name_(ixs) = blank
+      attrib_name(ixs) = blank
     endif
 
-    name_(ixs) = word
+    name(ixs) = word
 
     if (delim == '/') then
       call evaluate_value (trim(ele%name), value, &
-                                  ring, delim, delim_found, err_flag)
+                                  lat, delim, delim_found, err_flag)
       if (err_flag) then
         call warning ('BAD COEFFICIENT: ' // word_in,  &
                                           'FOR ELEMENT: ' // ele%name)
         call load_parse_line ('normal', 1, file_end)         ! next line
         return
       endif
-      coef_(ixs) = value
+      coef(ixs) = value
     else
-      coef_(ixs) = 1.0
+      coef(ixs) = 1.0
     endif
 
     if (delim == '}') then
@@ -2044,11 +2044,11 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
 !
 
   ic = ele%ixx
-  allocate (pring%ele(ic)%coef_(ixs), pring%ele(ic)%name_(ixs), &
-                                       pring%ele(ic)%attrib_name_(ixs))
-  pring%ele(ic)%coef_ = coef_(1:ixs)
-  pring%ele(ic)%name_ = name_(1:ixs)
-  pring%ele(ic)%attrib_name_ = attrib_name_(1:ixs)
+  allocate (plat%ele(ic)%coef(ixs), plat%ele(ic)%name(ixs), &
+                                       plat%ele(ic)%attrib_name(ixs))
+  plat%ele(ic)%coef = coef(1:ixs)
+  plat%ele(ic)%name = name(1:ixs)
+  plat%ele(ic)%attrib_name = attrib_name(1:ixs)
 
 end subroutine
 
@@ -2368,39 +2368,41 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine add_this_multipass (ring, ixm)
+subroutine add_this_multipass (lat, ixm)
 
   implicit none
 
-  type (ring_struct) ring
+  type (lat_struct) lat
   type (ele_struct), pointer :: slave, lord
 
   integer i, n_multipass, ixm(:), ixc, ixic, ix_lord, ix_slave
 
 ! Count slaves.
-! If i > ring%n_ele_use we are looking at cloning a super_lord which should
+! If i > lat%n_ele_track we are looking at cloning a super_lord which should
 ! not happen.
 
   n_multipass = size(ixm)
 
 ! setup multipass_lord
 
-  call new_control (ring, ix_lord)
-  lord => ring%ele_(ix_lord)
+  call new_control (lat, ix_lord)
+  lord => lat%ele(ix_lord)
 
-  lord = ring%ele_(ixm(1))  ! Set attributes equal to first slave.
+  lord = lat%ele(ixm(1))  ! Set attributes equal to first slave.
   lord%control_type = multipass_lord$
   lord%n_slave = n_multipass
-  call add_lattice_control_structs (ring, ix_lord)
+  lord%ix1_slave = 0
+  lord%ix2_slave = -1
+  call add_lattice_control_structs (lat, ix_lord)
 
 ! Setup bookkeeping between lord and slaves
 
   do i = 1, n_multipass
     ix_slave = ixm(i)
     ixc = i + lord%ix1_slave - 1
-    ring%control_(ixc)%ix_lord = ix_lord
-    ring%control_(ixc)%ix_slave = ix_slave
-    slave => ring%ele_(ix_slave)
+    lat%control(ixc)%ix_lord = ix_lord
+    lat%control(ixc)%ix_slave = ix_slave
+    slave => lat%ele(ix_slave)
     if (slave%n_lord /= 0) then
       call warning ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', &
                     'PLEASE GET EXPERT HELP!')
@@ -2408,10 +2410,10 @@ subroutine add_this_multipass (ring, ixm)
     endif
     slave%n_lord = 1
     write (slave%name, '(2a, i1)') trim(slave%name), '\', i   ! '
-    call add_lattice_control_structs (ring, ix_slave)
+    call add_lattice_control_structs (lat, ix_slave)
     if (slave%control_type /= super_lord$) slave%control_type = multipass_slave$
     ixic = slave%ic1_lord
-    ring%ic_(ixic) = ixc
+    lat%ic(ixic) = ixc
   enddo
 
 end subroutine
@@ -2461,14 +2463,17 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine add_all_superimpose (ring, ele_in, pele)
+subroutine add_all_superimpose (lat, ele_in, pele)
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (lat_struct), target :: lat
   type (ele_struct)  ele, ele_in, ele2
   type (ele_struct), pointer :: this_ele
   type (parser_ele_struct) pele
+  type (ele_struct), pointer :: eles(:)
+  type (control_struct), pointer :: control(:)
+  integer, pointer :: ics(:)
 
   integer ix, i, j, it, nic, nn, i_sup, i_ele, ic
   integer n_inserted, n_con
@@ -2481,31 +2486,35 @@ subroutine add_all_superimpose (ring, ele_in, pele)
 
 ! init
 
+  eles => lat%ele
+  control => lat%control
+  ics => lat%ic
+
   ele = ele_in   ! in case ele changes
   ele2 = ele
   n_inserted = 0
-  ring%ele_%internal_logic = .false.    ! to keep track of where we have inserted
+  lat%ele%internal_logic = .false.    ! to keep track of where we have inserted
 
 ! If no refrence point then superposition is simple
 
   if (pele%ref_name == blank) then
-    call compute_super_lord_s (ring, 0, ele2, pele)
-    call add_superimpose (ring, ele2, i_sup)
+    call compute_super_lord_s (lat, 0, ele2, pele)
+    call add_superimpose (lat, ele2, i_sup)
     return
   endif
 
-! insert ele in the ring
+! insert ele in the lat
 ! do not insert twice at the same spot
 
   do 
 
     have_inserted = .false.
 
-    ele_loop: do i_ele = 1, ring%n_ele_max
+    ele_loop: do i_ele = 1, lat%n_ele_max
 
-      if (ring%ele_(i_ele)%control_type /= free$)  &
-                                   call control_bookkeeper (ring, i_ele)
-      this_ele => ring%ele_(i_ele)
+      if (lat%ele(i_ele)%control_type /= free$)  &
+                                   call control_bookkeeper (lat, i_ele)
+      this_ele => lat%ele(i_ele)
       ic = this_ele%control_type
        
       if (ic == group_lord$ .or. ic == super_slave$) cycle
@@ -2525,7 +2534,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
 
         if (this_ele%control_type == multipass_lord$) then
           allocate (ixs(this_ele%n_slave), multi_name(this_ele%n_slave))
-          ixs = ring%control_(this_ele%ix1_slave:this_ele%ix2_slave)%ix_slave
+          ixs = lat%control(this_ele%ix1_slave:this_ele%ix2_slave)%ix_slave
           call string_trim(ele%name, ele%name, ix)
           ele2%name = ele%name(:ix)
 
@@ -2536,33 +2545,33 @@ subroutine add_all_superimpose (ring, ele_in, pele)
           !     to identify them later.
 
           do i = size(ixs), 1, -1  ! reverse order in decreasing s
-            call compute_super_lord_s (ring, ixs(i), ele2, pele)
-            call add_superimpose (ring, ele2, i_sup)
-            ring%ele_(i_sup)%name = 'dummy name'
+            call compute_super_lord_s (lat, ixs(i), ele2, pele)
+            call add_superimpose (lat, ele2, i_sup)
+            lat%ele(i_sup)%name = 'dummy name'
           enddo
-          ! add a multipass_lord to control everything
+          ! add a multipass_lord to control the created super loards.
           j = 0
-          do i = 1, ring%n_ele_max
-            if (ring%ele_(i)%name == 'dummy name') then
-              ring%ele_(i)%name = ele%name
+          do i = 1, lat%n_ele_max
+            if (lat%ele(i)%name == 'dummy name') then
+              lat%ele(i)%name = ele%name
               j = j + 1
               ixs(j) = i
             endif
           enddo
-          call add_this_multipass (ring, ixs)    
+          call add_this_multipass (lat, ixs)    
           deallocate (ixs, multi_name)
           ele2%name = ele%name
 
         ! not superimposing on a multipass_lord 
 
         else
-          call compute_super_lord_s (ring, i_ele, ele2, pele)
+          call compute_super_lord_s (lat, i_ele, ele2, pele)
           call string_trim(ele%name, ele%name, ix)
           ele2%name = ele%name(:ix)            
-          call add_superimpose (ring, ele2, i_sup)
+          call add_superimpose (lat, ele2, i_sup)
         endif
 
-        call s_calc (ring)
+        call s_calc (lat)
 
         n_inserted = n_inserted + 1
         matched_name(n_inserted) = ele2%name
@@ -2589,54 +2598,54 @@ subroutine add_all_superimpose (ring, ele_in, pele)
 ! here for common_lord, not scalled multipoles
 
   if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
-    print *, 'ERROR IN INSERT_MUTIPLE: ELEMENT ', ring%ele_(i)%name
+    print *, 'ERROR IN INSERT_MUTIPLE: ELEMENT ', lat%ele(i)%name
     print *, '      IS USED WITH THE "COMMON_LORD" ATTRIBUTE BUT'
     print *, '      THIS ELEMENT IS NOT A MULIPOLE OR AB_MULTIPOLE'
     call err_exit
   endif
 
-  ring%n_ele_max = ring%n_ele_max + 1
-  if (ring%n_ele_max > ubound(ring%ele_, 1)) call allocate_ring_ele_(ring)
+  lat%n_ele_max = lat%n_ele_max + 1
+  if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele(lat)
 
-  nn = ring%n_ele_max 
+  nn = lat%n_ele_max 
 
-  n_con = ring%n_control_max 
-  ring%n_control_max = n_con + n_inserted
-  if (ring%n_control_max > size(ring%control_)) &
-   ring%control_ => reallocate_control_(ring%control_, ring%n_control_max+1000)
+  n_con = lat%n_control_max 
+  lat%n_control_max = n_con + n_inserted
+  if (lat%n_control_max > size(lat%control)) &
+   lat%control => reallocate_control(lat%control, lat%n_control_max+1000)
 
 
-  ring%ele_(nn) = ele
-  ring%ele_(nn)%control_type = super_lord$
-  ring%ele_(nn)%n_slave = n_inserted
-  ring%ele_(nn)%ix1_slave = n_con + 1
-  ring%ele_(nn)%ix2_slave = n_con + n_inserted
+  lat%ele(nn) = ele
+  lat%ele(nn)%control_type = super_lord$
+  lat%ele(nn)%n_slave = n_inserted
+  lat%ele(nn)%ix1_slave = n_con + 1
+  lat%ele(nn)%ix2_slave = n_con + n_inserted
 
   do i = n_con + 1, n_con + n_inserted
-    ring%control_(i)%ix_lord = nn
-    ring%control_(i)%ix_attrib = 0
+    lat%control(i)%ix_lord = nn
+    lat%control(i)%ix_attrib = 0
   enddo
 
   j = 0
-  do i = 1, ring%n_ele_max-1
-    if (any (matched_name(1:n_inserted) == ring%ele_(i)%name)) then
-      it = ring%ele_(i)%control_type
+  do i = 1, lat%n_ele_max-1
+    if (any (matched_name(1:n_inserted) == lat%ele(i)%name)) then
+      it = lat%ele(i)%control_type
       if (it /= free$) then
-        print *, 'ERROR IN INSERT_MUTIPLE: SLAVE ', ring%ele_(i)%name
+        print *, 'ERROR IN INSERT_MUTIPLE: SLAVE ', lat%ele(i)%name
         print *, '      OF LORD ', ele%name
         print *, '      IS NOT A "FREE" ELEMENT BUT IS: ', control_name(it)
         call err_exit
       endif
       j = j + 1
-      ring%ele_(i)%control_type = super_slave$
-      nic = ring%n_ic_max + 1
-      if (nic > size(ring%ic_)) call re_associate (ring%ic_, nic+500)
-      ring%ele_(i)%n_lord = 1
-      ring%ele_(i)%ic1_lord = nic
-      ring%ele_(i)%ic2_lord = nic
-      ring%ic_(nic) = n_con + j
-      ring%control_(n_con+j)%ix_slave = i
-      ring%n_ic_max = nic
+      lat%ele(i)%control_type = super_slave$
+      nic = lat%n_ic_max + 1
+      if (nic > size(lat%ic)) call re_associate (lat%ic, nic+500)
+      lat%ele(i)%n_lord = 1
+      lat%ele(i)%ic1_lord = nic
+      lat%ele(i)%ic2_lord = nic
+      lat%ic(nic) = n_con + j
+      lat%control(n_con+j)%ix_slave = i
+      lat%n_ic_max = nic
     endif
   enddo
 
@@ -2656,11 +2665,11 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine compute_super_lord_s (ring, i_ref, ele, pele)
+subroutine compute_super_lord_s (lat, i_ref, ele, pele)
 
   implicit none
 
-  type (ring_struct)  ring
+  type (lat_struct)  lat
   type (ele_struct)  ele
   type (parser_ele_struct) pele
 
@@ -2683,22 +2692,22 @@ subroutine compute_super_lord_s (ring, i_ref, ele, pele)
 
 ! Find the refernce point in the lattice.
 
-  ct = ring%ele_(i_ref)%control_type
+  ct = lat%ele(i_ref)%control_type
   if (ct == overlay_lord$ .or. ct == i_beam_lord$) then
     s_ref_begin = 1e10
     s_ref_end = 0
-    do i = ring%ele_(i_ref)%ix1_slave, ring%ele_(i_ref)%ix2_slave
-      ix = ring%control_(i)%ix_slave
+    do i = lat%ele(i_ref)%ix1_slave, lat%ele(i_ref)%ix2_slave
+      ix = lat%control(i)%ix_slave
       s_ref_begin = min(s_ref_begin,  &
-                         ring%ele_(ix)%s - ring%ele_(ix)%value(l$))
-      s_ref_end = max(s_ref_end, ring%ele_(ix)%s)
+                         lat%ele(ix)%s - lat%ele(ix)%value(l$))
+      s_ref_end = max(s_ref_end, lat%ele(ix)%s)
     enddo
   elseif (ct == group_lord$) then
     call warning ('SUPERPOSING: ' // ele%name, 'UPON GROUP' // pele%ref_name)
     return
   else
-    s_ref_begin = ring%ele_(i_ref)%s - ring%ele_(i_ref)%value(l$)
-    s_ref_end = ring%ele_(i_ref)%s
+    s_ref_begin = lat%ele(i_ref)%s - lat%ele(i_ref)%value(l$)
+    s_ref_end = lat%ele(i_ref)%s
   endif
 
 ! Now compute the s position at the end of the element and put it in ele%s.
@@ -2717,11 +2726,11 @@ subroutine compute_super_lord_s (ring, i_ref, ele, pele)
 ! For circular lattices a superimpose can wrap around the beginning or 
 ! the end of the lattice.
 
-  if (ring%param%lattice_type == circular_lattice$) then
-    if (ele%s > ring%ele_(ring%n_ele_use)%s) then
-      ele%s = ele%s - ring%param%total_length
+  if (lat%param%lattice_type == circular_lattice$) then
+    if (ele%s > lat%ele(lat%n_ele_track)%s) then
+      ele%s = ele%s - lat%param%total_length
     elseif (ele%s < 0) then
-      ele%s = ele%s + ring%param%total_length
+      ele%s = ele%s + lat%param%total_length
     endif
   endif
 
@@ -2869,23 +2878,23 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
+! Subroutine seq_expand1 (sequence, iseq_tot, lat, top_level)
 !
 ! Subroutine to expand a sequence.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
+recursive subroutine seq_expand1 (sequence, iseq_tot, lat, top_level)
 
   implicit none
 
-  type (seq_struct), target :: sequence_(:)
+  type (seq_struct), target :: sequence(:)
   type (seq_struct), pointer :: seq, sub_seq
   type (seq_ele_struct), pointer :: s_ele(:)
   type (seq_ele_struct), pointer :: s_ele2(:)
   type (seq_ele_struct), pointer :: this_ele
-  type (ring_struct) ring
+  type (lat_struct) lat
 
   integer ix_ele, iseq_tot, ix_word, ix, i, n
   integer, save :: ix_internal = 0
@@ -2901,14 +2910,14 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 
 ! init
 
-  allocate (s_ele(ubound(ring%ele_, 1)))
+  allocate (s_ele(ubound(lat%ele, 1)))
   s_ele%type = 0
   s_ele%ix_ele = 0
   s_ele%ix_arg = 0
 
 ! save info on what file we are parsing for error messages.
 
-  seq => sequence_(iseq_tot)
+  seq => sequence(iseq_tot)
   seq%file_name = bp_com%current_file%full_name 
   seq%ix_line = bp_com%current_file%i_line
 
@@ -2935,7 +2944,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
     if (ix /= 0) then
       bp_com%parse_line = word(:ix-1) // "," // bp_com%parse_line
       call evaluate_value (trim(seq%name) // ' Repetition Count', rcount, &
-                              ring, c_delim, c_delim_found, err_flag)
+                              lat, c_delim, c_delim_found, err_flag)
       this_ele%rep_count = nint(rcount)
       if (err_flag) return
       this_ele%name = word(ix+1:)
@@ -2988,7 +2997,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
         write (str, '(a, i3.3)') '#Internal', ix_internal   ! unique name 
         this_ele%name = str
         iseq_tot = iseq_tot + 1
-        sub_seq => sequence_(iseq_tot) 
+        sub_seq => sequence(iseq_tot) 
         sub_seq%name = str
         sub_seq%type = seq%type
         sub_seq%multipass = seq%multipass
@@ -3000,7 +3009,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
           this_ele%actual_arg = seq%dummy_arg
         endif
         bp_com%parse_line = '(' // bp_com%parse_line
-        call seq_expand1 (sequence_, iseq_tot, ring, .false.)
+        call seq_expand1 (sequence, iseq_tot, lat, .false.)
 
       ! else this is a replacement line
       else    
@@ -3079,53 +3088,53 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine allocate_pring (ring, pring) 
+! Subroutine allocate_plat (lat, plat) 
 !
 ! Subroutine to allocate allocatable array sizes.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-Subroutine allocate_pring (ring, pring)
+Subroutine allocate_plat (lat, plat)
 
   implicit none
 
-  type (ring_struct) ring
-  type (parser_ring_struct) pring
+  type (lat_struct) lat
+  type (parser_lat_struct) plat
   type (parser_ele_struct), pointer :: temp_pele(:)
 
   integer i, n_now, n_ele_max
 
 ! assume all the arrays have the same size
 
-  n_ele_max = ubound(ring%ele_, 1)
+  n_ele_max = ubound(lat%ele, 1)
 
-  if (associated(pring%ele)) then
-    n_now = ubound(pring%ele, 1)
+  if (associated(plat%ele)) then
+    n_now = ubound(plat%ele, 1)
     allocate (temp_pele(0:n_now))
-    temp_pele = pring%ele
-    deallocate (pring%ele)
-    allocate (pring%ele(0:n_ele_max))
-    pring%ele(0:n_now) = temp_pele
+    temp_pele = plat%ele
+    deallocate (plat%ele)
+    allocate (plat%ele(0:n_ele_max))
+    plat%ele(0:n_now) = temp_pele
     deallocate (temp_pele)
 
   else
-    allocate (pring%ele(0:n_ele_max))
+    allocate (plat%ele(0:n_ele_max))
     n_now = -1
   endif
 
-! %ixx is used as a pointer from the in_ring%ele_ array to the pring%ele array
+! %ixx is used as a pointer from the in_lat%ele array to the plat%ele array
 
-  do i = n_now+1, ubound(pring%ele, 1)
-    nullify (pring%ele(i)%name_)
+  do i = n_now+1, ubound(plat%ele, 1)
+    nullify (plat%ele(i)%name)
 
-    pring%ele(i)%ref_name = blank
-    pring%ele(i)%ref_pt  = center$
-    pring%ele(i)%ele_pt  = center$
-    pring%ele(i)%s       = 0
-    pring%ele(i)%common_lord = .false.
+    plat%ele(i)%ref_name = blank
+    plat%ele(i)%ref_pt  = center$
+    plat%ele(i)%ele_pt  = center$
+    plat%ele(i)%s       = 0
+    plat%ele(i)%common_lord = .false.
 
-    ring%ele_(i)%ixx = i
+    lat%ele(i)%ixx = i
   enddo
 
 end subroutine
@@ -3134,7 +3143,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_add_lord (in_ring, n2, pring, ring)
+! Subroutine parser_add_lord (in_lat, n2, plat, lat)
 !
 ! Subroutine to add overlay, group, and i_beam lords to the lattice.
 ! For overlays and groups: If multiple elements have the same name then 
@@ -3144,14 +3153,14 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_add_lord (in_ring, n2, pring, ring)
+subroutine parser_add_lord (in_lat, n2, plat, lat)
 
   implicit none
 
-  type (ring_struct), target :: in_ring, ring
+  type (lat_struct), target :: in_lat, lat
   type (ele_struct), pointer :: lord
-  type (parser_ring_struct) pring
-  type (control_struct), pointer, save :: cs_(:) => null()
+  type (parser_lat_struct) plat
+  type (control_struct), pointer, save :: cs(:) => null()
 
   integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ix1, ns, ixs
   integer ix_lord, ix_slave(1000), k_slave, k_slave_original
@@ -3161,24 +3170,24 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
   character(40) name, name1, slave_name, attrib_name
 
 ! setup
-! in_ring has the lords that are to be added to ring.
+! in_lat has the lords that are to be added to lat.
 ! we add an extra 1000 places to the arrays to give us some overhead.
 
-  n = ring%n_ele_max + n2 + 1000
+  n = lat%n_ele_max + n2 + 1000
 
   allocate (r_indexx(n))
   allocate (name_list(n))
-  allocate (cs_(1000))
+  allocate (cs(1000))
 
-  ix1 = ring%n_ele_max
-  name_list(1:ix1) = ring%ele_(1:ix1)%name
+  ix1 = lat%n_ele_max
+  name_list(1:ix1) = lat%ele(1:ix1)%name
   call indexx (name_list(1:ix1), r_indexx(1:ix1)) ! get sorted list
 
 ! loop over elements
 
   main_loop: do n = 1, n2
 
-    lord => in_ring%ele_(n)  ! next lord to add
+    lord => in_lat%ele(n)  ! next lord to add
 
 !-----------------------------------------------------
 ! overlay and groups
@@ -3186,12 +3195,12 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
     select case (lord%control_type)
     case (overlay_lord$, group_lord$)
  
-      call new_control (ring, ix_lord)  ! get index in ring where lord goes
-      ring%ele_(ix_lord) = lord
+      call new_control (lat, ix_lord)  ! get index in lat where lord goes
+      lat%ele(ix_lord) = lord
       ixx = lord%ixx
 
 ! Find where the slave elements are. 
-! If a slave element is not in ring but is in in_ring then the slave has 
+! If a slave element is not in lat but is in in_lat then the slave has 
 ! not been used in the lattice list. In this case do not add the lord to 
 ! the lattice.
 
@@ -3199,10 +3208,10 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
       do i = 1, lord%n_slave
 
-        name = pring%ele(ixx)%name_(i)
+        name = plat%ele(ixx)%name(i)
         call find_indexx (name, name_list, r_indexx, ix1, k, k2)
-        if (k == 0) then  ! not in ring
-          if (all(in_ring%ele_(1:n2)%name /= name)) then ! Not in in_ring.
+        if (k == 0) then  ! not in lat
+          if (all(in_lat%ele(1:n2)%name /= name)) then ! Not in in_lat.
             call warning ('CANNOT FIND SLAVE FOR: ' // lord%name, &
                           'CANNOT FIND: '// name)
           endif
@@ -3211,20 +3220,20 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
 ! There might be more than 1 element with %name = name. 
 ! Loop over all elements whose name matches name.
-! Put the info into the cs_ structure.
+! Put the info into the cs structure.
 
         do 
           j = j + 1
           k = r_indexx(k2)
-          cs_(j)%coef = pring%ele(ixx)%coef_(i)
-          cs_(j)%ix_slave = k
-          cs_(j)%ix_lord = -1             ! dummy value
-          attrib_name = pring%ele(ixx)%attrib_name_(i)
+          cs(j)%coef = plat%ele(ixx)%coef(i)
+          cs(j)%ix_slave = k
+          cs(j)%ix_lord = -1             ! dummy value
+          attrib_name = plat%ele(ixx)%attrib_name(i)
           if (attrib_name == blank) then
-            cs_(j)%ix_attrib = lord%ix_value
+            cs(j)%ix_attrib = lord%ix_value
           else
-            ix = attribute_index(ring%ele_(k), attrib_name)
-            cs_(j)%ix_attrib = ix
+            ix = attribute_index(lat%ele(k), attrib_name)
+            cs(j)%ix_attrib = ix
             if (ix < 1) then
               call warning ('BAD ATTRIBUTE NAME: ' // attrib_name, &
                             'IN ELEMENT: ' // lord%name)
@@ -3233,7 +3242,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
           k2 = k2 + 1
           if (k2 > ix1) exit
           k = r_indexx(k2)
-          if (ring%ele_(k)%name /= name) exit ! exit loop if no more matches
+          if (lat%ele(k)%name /= name) exit ! exit loop if no more matches
         enddo
 
       enddo
@@ -3242,7 +3251,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
 ! put the element name in the list r_indexx list
 
-      call find_indexx (lord%name, ring%ele_(1:ix1)%name, &
+      call find_indexx (lord%name, lat%ele(1:ix1)%name, &
                                              r_indexx(1:ix1), ix1, k, k2)
       ix1 = ix1 + 1
       r_indexx(k2+1:ix1) = r_indexx(k2:ix1-1)
@@ -3255,9 +3264,9 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
       select case (lord%control_type)
       case (overlay_lord$)
-        call create_overlay (ring, ix_lord, lord%attribute_name, cs_(1:ns))
+        call create_overlay (lat, ix_lord, lord%attribute_name, cs(1:ns))
       case (group_lord$)
-        call create_group (ring, ix_lord, cs_(1:ns))
+        call create_group (lat, ix_lord, cs(1:ns))
       end select
 
 !-----------------------------------------------------
@@ -3268,7 +3277,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
     case (i_beam_lord$) 
 
       ixx = lord%ixx
-      name1 = pring%ele(ixx)%name_(1)
+      name1 = plat%ele(ixx)%name(1)
 
       call find_indexx (name1, name_list, r_indexx, ix1, k_slave, k2)
       if (k_slave == 0) then
@@ -3277,9 +3286,9 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
         cycle
       endif
 
-      if (k_slave > ring%n_ele_use) then ! must be a super_lord.
-        ix = ring%ele_(k)%ix1_slave
-        k_slave = ring%control_(ix)%ix_slave
+      if (k_slave > lat%n_ele_track) then ! must be a super_lord.
+        ix = lat%ele(k)%ix1_slave
+        k_slave = lat%control(ix)%ix_slave
       endif
 
       k_slave_original = k_slave
@@ -3293,25 +3302,25 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
         slave_loop: do            ! loop over all slaves
           ixs = ixs + 1
           if (ixs > lord%n_slave) exit
-          slave_name = pring%ele(ixx)%name_(ixs)
+          slave_name = plat%ele(ixx)%name(ixs)
 
           do  ! loop over all lattice elements
-            if (ring%ele_(k_slave)%control_type == super_slave$) then
-              do ic = ring%ele_(k_slave)%ic1_lord, ring%ele_(k_slave)%ic2_lord
-                ie = ring%control_(ic)%ix_lord
-                if (match_wild(ring%ele_(ie)%name, slave_name)) then
+            if (lat%ele(k_slave)%control_type == super_slave$) then
+              do ic = lat%ele(k_slave)%ic1_lord, lat%ele(k_slave)%ic2_lord
+                ie = lat%control(ic)%ix_lord
+                if (match_wild(lat%ele(ie)%name, slave_name)) then
                   ix_slave(ixs) = ie
                   cycle slave_loop
                 endif
               enddo
             else
-              if (match_wild(ring%ele_(k_slave)%name, slave_name)) then
+              if (match_wild(lat%ele(k_slave)%name, slave_name)) then
                 ix_slave(ixs) = k_slave
                 cycle slave_loop
               endif
             endif
             k_slave = k_slave + 1  
-            if (k_slave == ring%n_ele_use + 1) k_slave = 1
+            if (k_slave == lat%n_ele_track + 1) k_slave = 1
             if (k_slave == k_slave_original) then
               call warning ('CANNOT FIND END ELEMENT FOR I_BEAM: ' // &
                                      lord%name, 'CANNOT FIND: ' // slave_name)
@@ -3322,15 +3331,15 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
 ! create the i_beam element
 
-        call new_control (ring, ix_lord)
-        call create_i_beam (ring, ix_lord, ix_slave(1:lord%n_slave), lord)
+        call new_control (lat, ix_lord)
+        call create_i_beam (lat, ix_lord, ix_slave(1:lord%n_slave), lord)
 
         k2 = k2 + 1
         k_slave = r_indexx(k2)
-        if (ring%ele_(k_slave)%name /= name1) exit
-        if (k_slave > ring%n_ele_use) then ! must be a super_lord.
-          ix = ring%ele_(k_slave)%ix1_slave
-          k_slave = ring%control_(ix)%ix_slave
+        if (lat%ele(k_slave)%name /= name1) exit
+        if (k_slave > lat%n_ele_track) then ! must be a super_lord.
+          ix = lat%ele(k_slave)%ix1_slave
+          k_slave = lat%control(ix)%ix_slave
         endif
 
       enddo 
@@ -3343,7 +3352,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
   deallocate (r_indexx)
   deallocate (name_list)
-  deallocate (cs_)
+  deallocate (cs)
 
 end subroutine
 
@@ -3353,7 +3362,7 @@ end subroutine
 !+
 ! Subroutine parser_set_ele_defaults (ele)
 !
-! Subroutine initialize an element given its class (key).
+! Subroutine initialize an element given its key (key).
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
@@ -3414,7 +3423,7 @@ type (ele_struct) ele
 
 real(rp) angle, rr
 integer n
-logical kick_set
+logical kick_set, length_set
 
 !
 
@@ -3430,33 +3439,50 @@ case (sbend$, rbend$)
   ele%sub_key = ele%key  ! save input format.
   angle = ele%value(angle$) 
 
+  ! Only one of b_field, g, or rho may be set.
+
   if (ele%value(b_field$) /= 0 .and. ele%key == rbend$) call warning &
           ("B_FIELD NOT SETTABLE FOR AN RBEND (USE AN SBEND INSTEAD): " // ele%name)
 
   if (ele%value(b_field$) /= 0 .and. ele%value(g$) /= 0) call warning &
           ('BOTH G AND B_FIELD SET FOR A BEND: ' // ele%name)
 
+  if (ele%value(b_field$) /= 0 .and. ele%value(rho$) /= 0) call warning &
+          ('BOTH RHO AND B_FIELD SET FOR A BEND: ' // ele%name)
+
   if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) &
             call warning ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
+
+  ! if rho is set then this gives g
+
   if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
 
-  if (ele%value(g$) /= 0 .and. angle /= 0) call warning &
-            ('BOTH ANGLE AND G OR RHO SPECIFIED FOR BEND: ' // ele%name)
+  ! If g and angle are set then this determines l
+
+  length_set = .false.
+  if (ele%value(g$) /= 0 .and. angle /= 0) then
+    if (ele%value(l$) /= 0) call warning ('ANGLE, G/RHO, AND L SPECIFIED FOR BEND: ' // ele%name)
+    ele%value(l$) = angle / ele%value(g$)
+    length_set = .true.
+  endif
 
   ! Convert an rbend
 
   if (ele%key == rbend$) then
-    ele%value(l_chord$) = ele%value(l$)
-        
-    if (ele%value(l_chord$) == 0) then
-      angle = 0
-      ele%value(l$) = 0
-    elseif (angle /= 0) then
-      ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
-    elseif (ele%value(g$) /= 0) then
-      angle = 2 * asin(ele%value(l_chord$) * ele%value(g$) / 2)
-      ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
+
+    if (.not. length_set) then
+      ele%value(l_chord$) = ele%value(l$)
+      if (ele%value(l_chord$) == 0) then
+        angle = 0
+        ele%value(l$) = 0
+      elseif (angle /= 0) then
+        ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
+      elseif (ele%value(g$) /= 0) then
+        angle = 2 * asin(ele%value(l_chord$) * ele%value(g$) / 2)
+        ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
+      endif
     endif
+    
     ele%value(e1$) = ele%value(e1$) + angle / 2
     ele%value(e2$) = ele%value(e2$) + angle / 2
     ele%key = sbend$
@@ -3466,7 +3492,7 @@ case (sbend$, rbend$)
   ! 
 
   if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0) then
-    call warning ('THE BENDING ANGLE IS NONZERO IN ZERO LENGTH BEND! ' // ele%name)
+    call warning ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
   elseif (ele%value(angle$) /= 0) then
     ele%value(g$) = ele%value(angle$) / ele%value(l$) 
   endif
@@ -3479,7 +3505,7 @@ case (sbend$, rbend$)
 
   if (ele%value(k2$) /= 0) then
     call multipole_init (ele)
-    ele%b(2) = ele%value(k2$) * ele%value(l$) / 2
+    ele%b_pole(2) = ele%value(k2$) * ele%value(l$) / 2
   endif
 
 ! Accept Use of Delta_E for lcavities and vary the mode frequencies.
@@ -3634,7 +3660,7 @@ subroutine save_taylor_elements (lat, ele_array)
 
   implicit none
 
-  type (ring_struct) lat
+  type (lat_struct) lat
   type (ele_struct), allocatable :: ele_array(:) 
 
   integer i, ix
@@ -3643,7 +3669,7 @@ subroutine save_taylor_elements (lat, ele_array)
 
   ix = 0
   do i = 1, lat%n_ele_max
-    if (associated(lat%ele_(i)%taylor(1)%term)) ix = ix + 1
+    if (associated(lat%ele(i)%taylor(1)%term)) ix = ix + 1
   enddo
 
   if (ix /= 0) then
@@ -3651,9 +3677,9 @@ subroutine save_taylor_elements (lat, ele_array)
     allocate(ele_array(ix))
     ix = 0
     do i = 1, lat%n_ele_max
-      if (associated(lat%ele_(i)%taylor(1)%term)) then
+      if (associated(lat%ele(i)%taylor(1)%term)) then
         ix = ix + 1
-        ele_array(ix) = lat%ele_(i)
+        ele_array(ix) = lat%ele(i)
       endif
     enddo
   endif  
@@ -3676,7 +3702,7 @@ subroutine reuse_taylor_elements (lat, ele_array)
 
   implicit none
 
-  type (ring_struct), target :: lat
+  type (lat_struct), target :: lat
   type (ele_struct), pointer :: ele
   type (ele_struct), allocatable :: ele_array(:) 
 
@@ -3689,7 +3715,7 @@ subroutine reuse_taylor_elements (lat, ele_array)
 
   do i = 1, lat%n_ele_max
 
-    ele => lat%ele_(i)
+    ele => lat%ele(i)
     call attribute_bookkeeper (ele, lat%param) ! for equivalent_eles test
 
     do j = 1, size(ele_array)

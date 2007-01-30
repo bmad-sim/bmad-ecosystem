@@ -31,7 +31,7 @@ must be declared to be allocatable.
 \end{example}
 An example of how to do multi-turn tracking (assuming a circular lattice) is
 \begin{example}
-  type (ring_struct) lattice             ! lattice to track through
+  type (lat_struct) lattice             ! lattice to track through
   type (coord_struct), allocatable :: orbit(:)
   ...
   call bmad_parser ('this_lattice', lattice)
@@ -40,17 +40,17 @@ An example of how to do multi-turn tracking (assuming a circular lattice) is
   orbits(0)%vec = (/ 0.01, 0.2, 0.3, 0.4, 0.0, 0.0 /) ! initialization
   do i = 1, n_turns
     call track_all (lattice, orbit)
-    orbit(0) = orbit(lattice%n_ele_use)
+    orbit(0) = orbit(lattice%n_ele_track)
   end do
 \end{example}
 \vn{orbit(n)} holds the particle's position at the exit end of the
-$n$\Th element. With \vn{ring%n_ele_max} elements in the lattice
-(\sref{s:ring_struct}) the \vn{orbit(:)} array needs to be made this
+$n$\Th element. With \vn{lat%n_ele_max} elements in the lattice
+(\sref{s:lat_struct}) the \vn{orbit(:)} array needs to be made this
 large. The call to \vn{reallocate_coords} does this allocation. Since
-\vn{ring%ele_(0)} is essentially a marker element \vn{orbit(0)} is the
+\vn{lat%ele(0)} is essentially a marker element \vn{orbit(0)} is the
 orbit at the start of the lattice.  \vn{track_all} takes \vn{orbit(0)}
 and tracks through the list of lattice elements until it gets to the
-last trackable element \vn{lattice%n_ele_use} (\sref{s:ring_struct}).
+last trackable element \vn{lattice%n_ele_track} (\sref{s:lat_struct}).
 
 If you are writing a routine where the \vn{coord_struct} array is
 local (not passed as an argument to the routine) then you have to
@@ -76,8 +76,8 @@ track through a selective number of elements or to track backwards
 (See \sref{s:reverse_track}). The routines used for tracking
 and closed orbit calculations are listed in Section \sref{r:track}.
 
-\index{Param_struct!lost}
-\index{Param_struct!ix_lost}
+\index{lat_param_struct!lost}
+\index{lat_param_struct!ix_lost}
 \index{Tracking!example}
 The \vn{track_all} routine serves as a good example of how tracking
 works. \vn{track_all} tracks a particle through a lattice from
@@ -100,7 +100,7 @@ what element the loss occured.
     use bmad_struct
     use bmad_interface
     implicit none
-    type (ring_struct)  lattice
+    type (lat_struct)  lattice
     type (coord_struct), allocatable :: orbit(:)
     integer n
 
@@ -112,8 +112,8 @@ what element the loss occured.
 
   ! Track through the elements and check for lost particles.
 
-    do n = 1, lattice%n_ele_use
-      call track1 (orbit(n-1), lattice%ele_(n), lattice%param, orbit(n))
+    do n = 1, lattice%n_ele_track
+      call track1 (orbit(n-1), lattice%ele(n), lattice%param, orbit(n))
       if (lattice%param%lost) then
         lattice%param%ix_lost = n
         return
@@ -146,8 +146,8 @@ robust way but with a large speed penalty.
 \section{Apertures}
 \index{Tracking!apertures}
 
-\index{Param_struct!aperture_limit_on}
-\index{Bmad_com_struct!max_aperture_limit}
+\index{lat_param_struct!aperture_limit_on}
+\index{bmad_common_struct!max_aperture_limit}
 The logical \vn{lattice%param%aperture_limit_on} determines if element
 apertures (See \sref{s:limit}) are used to determine if a
 particle has been lost in tracking.  The default
@@ -159,9 +159,9 @@ meters. Additionally, even if a particle is within the hard limit,
 some routines will mark a particle as lost if the tracking calculation
 will result in an overflow.
 
-\index{Param_struct!end_lost_at}
-\index{Param_struct!lost}
-\index{Param_struct!ix_lost}
+\index{lat_param_struct!end_lost_at}
+\index{lat_param_struct!lost}
+\index{lat_param_struct!ix_lost}
 \index{Entrance_end}
 \index{Exit_end}
 \vn{lattice%param%lost} is the logical to check to see if a particle has
@@ -252,12 +252,12 @@ use the Fortran associated function:
 To concatinate the Taylor maps in a set of elements the routine
 \vnr{concat_taylor} can be used
 \begin{example}
-  type (ring_struct) lat          ! lattice
+  type (lat_struct) lat          ! lattice
   type (taylor_struct) taylor(6)  ! taylor map
   ...
   call taylor_make_unit (taylor)  ! Make a unit map
   do i = i1+1, i2
-    call concat_taylor (taylor, lat%ele_(i)%taylor, taylor)
+    call concat_taylor (taylor, lat%ele(i)%taylor, taylor)
   enddo
 \end{example}
 The above example forms the transfer Taylor map starting at the end of
@@ -268,12 +268,12 @@ concatinating maps is that if there is a constant term in the map
 get around this one can ``track'' a taylor map through an element
 using symplectic integration.
 \begin{example}
-  type (ring_struct) lat          ! lattice
+  type (lat_struct) lat          ! lattice
   type (taylor_struct) taylor(6)  ! taylor map
   ...
   call taylor_make_unit (taylor)  ! Make a unit map
   do i = i1+1, i2
-    call call taylor_propagate1 (taylor, lat%ele_(i), lat%param)
+    call call taylor_propagate1 (taylor, lat%ele(i), lat%param)
   enddo
 \end{example}
 \index{Ds_step}
@@ -298,7 +298,7 @@ program macroparticle_test
 
   implicit none
 
-  type (ring_struct) lattice
+  type (lat_struct) lattice
   type (macro_beam_struct) beam
   type (macroparticle_struct) mp
   type (macro_init_struct) init
@@ -314,7 +314,7 @@ program macroparticle_test
   call bmad_parser ('test.bmad', lattice)
 
   open (1, file = 'test.init', status = 'old')
-  init%E_0 = lattice%ele_(0)%value(beam_energy$)
+  init%E_0 = lattice%ele(0)%value(E_tot$)
   read (1, nml = beam_init)
   close (1)
 
@@ -327,14 +327,14 @@ program macroparticle_test
     do j = 1, size(beam%bunch(i)%slice)
       do k = 1, size(beam%bunch(i)%slice(j)%macro)
         mp = beam%bunch(i)%slice(j)%macro(k)
-        call mp_to_angle_coords (mp, lattice%ele_(n)%value(beam_energy$))
+        call mp_to_angle_coords (mp, lattice%ele(n)%value(E_tot$))
         print '(3i2, 1p, 5e12.4)', i, j, k, mp%r%vec(1), mp%r%vec(2), &
                   mp%sigma(s11$), mp%sigma(s12$), mp%sigma(s22$)
       enddo
     enddo
   enddo
 
-  call calc_macro_bunch_params (beam%bunch(1), lattice%ele_(lattice%n_ele_use), &
+  call calc_macro_bunch_params (beam%bunch(1), lattice%ele(lattice%n_ele_track), &
                                 params)
 
   print *
@@ -475,14 +475,14 @@ simple. The disadvantage is that it can slow things down some since
 each element goes through a reversal process every time it is tracked
 through. If a program is doing a lot of tracking the other option
 is to form a reversed lattice with the elements in the reverse order
-and track through that. The routine \vnr{ring_reverse} will do
+and track through that. The routine \vnr{lat_reverse} will do
 this. One must be somewhat careful since the reversed lattice uses a
 reversed coordinate system. The transformation between the reversed
 and unreversed lattices is
 \Begineq
   (x, p_x, y, p_y, z, p_z) -> (x, -p_x, y, -p_y, -z, p_z)
 \Endeq
-See the \vn{ring_reverse} routine for more details.
+See the \vn{lat_reverse} routine for more details.
 
 Generally tracking backwards is simply the reverse of tracking
 forwards (time reversal symmetry). That is, if you start at some

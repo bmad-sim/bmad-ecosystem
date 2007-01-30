@@ -8,7 +8,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base, len_quad,
+! Subroutine lat_to_quad_calib (lat, cesr, k_theory, k_base, len_quad,
 !                               cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
 !
 ! This subroutine returns the calibration constants for the CESR quads.
@@ -17,7 +17,7 @@ contains
 !   use cesr_mod
 !
 ! Input:
-!   ring  -- Ring_struct: Ring with lattice loaded.
+!   lat  -- lat_struct: Lat with lattice loaded.
 !   cesr  -- Cesr_struct: Locations of the quads. 
 !              Need previous call to bmad_to_cesr.
 !
@@ -56,13 +56,13 @@ contains
 !    I.e. CU_PER_K_GEV is the chord between 2 points on the curve.
 !-
 
-subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
+subroutine lat_to_quad_calib (lat, cesr, k_theory, k_base,  &
                  len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
 
   implicit none
 
   type (cesr_struct) cesr
-  type (ring_struct) ring
+  type (lat_struct) lat
   real gev, k_theory(0:*), k_base(0:*), len_quad(0:*)
   real cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
   integer cindex, rindex, cu_theory(0:*)
@@ -73,14 +73,14 @@ subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
   enddo
 
 ! read lattice file
-  gev = 1e-9 * ring%ele_(0)%value(beam_energy$)
+  gev = 1e-9 * lat%ele(0)%value(E_TOT$)
 
   do cindex = 0, 120
-    rindex = cesr%quad_(cindex)%ix_ring
+    rindex = cesr%quad(cindex)%ix_lat
     if(rindex/=0) then
-      k_theory(cindex) = ring%ele_(rindex)%value(k1$)
-      len_quad(cindex) = ring%ele_(rindex)%value(l$)
-      quad_rot(cindex) = ring%ele_(rindex)%value(tilt_tot$)*(180./pi)
+      k_theory(cindex) = lat%ele(rindex)%value(k1$)
+      len_quad(cindex) = lat%ele(rindex)%value(l$)
+      quad_rot(cindex) = lat%ele(rindex)%value(tilt_tot$)*(180./pi)
     endif
   enddo
       
@@ -150,7 +150,7 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
   implicit none
 
   type (cesr_struct)  cesr
-  type (ring_struct)  ring
+  type (lat_struct)  lat
   character(*) lattice
   character(60) latfil
   real energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
@@ -160,9 +160,9 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
 ! read lattice file
 
   call lattice_to_bmad_file_name (lattice, latfil)
-  call bmad_parser(latfil, ring)
-  call bmad_to_cesr(ring, CESR)
-  energy = 1e-9 * ring%ele_(0)%value(beam_energy$)
+  call bmad_parser(latfil, lat)
+  call bmad_to_cesr(lat, CESR)
+  energy = 1e-9 * lat%ele(0)%value(E_TOT$)
 
 
   k_theory(0:120) = 0
@@ -170,11 +170,11 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
   quad_rot(0:120) = 0
 
   do ix = 0, 120
-    rindex = cesr%quad_(ix)%ix_ring
+    rindex = cesr%quad(ix)%ix_lat
     if(rindex==0) cycle
-    k_theory(ix) = ring%ele_(rindex)%value(k1$)
-    len_quad(ix) = ring%ele_(rindex)%value(l$)
-    quad_rot(ix) = ring%ele_(rindex)%value(tilt_tot$)*(180./pi)
+    k_theory(ix) = lat%ele(rindex)%value(k1$)
+    len_quad(ix) = lat%ele(rindex)%value(l$)
+    quad_rot(ix) = lat%ele(rindex)%value(tilt_tot$)*(180./pi)
   enddo
 
 ! convert k_theory to scalar computer units given the specified design energy

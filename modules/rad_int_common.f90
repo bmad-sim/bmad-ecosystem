@@ -43,7 +43,7 @@ end type
 ! eta_a(4) is the a-mode dispersion in the lab frame.
 
 type rad_int_common_struct
-  type (ring_struct), pointer :: lat
+  type (lat_struct), pointer :: lat
   type (coord_struct), pointer :: orb0, orb1
   type (track_point_cache_struct) pt
   real(rp) eta_a(4), eta_b(4), eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
@@ -168,13 +168,13 @@ do j = 1, jmax
               ric%pt%g2 * (ric%pt%g_x * ric%eta_b(1) + ric%pt%g_y * ric%eta_b(3)) + &
                        (ric%pt%dg2_x * ric%eta_b(1) + ric%pt%dg2_y * ric%eta_b(3))
     i_sum(6) = i_sum(6) + &
-                  ric%pt%g2 * ric%pt%g * (runt%x%gamma * runt%x%eta**2 + &
-                  2 * runt%x%alpha * runt%x%eta * runt%x%etap + &
-                  runt%x%beta * runt%x%etap**2)
+                  ric%pt%g2 * ric%pt%g * (runt%a%gamma * runt%a%eta**2 + &
+                  2 * runt%a%alpha * runt%a%eta * runt%a%etap + &
+                  runt%a%beta * runt%a%etap**2)
     i_sum(7) = i_sum(7) + &
-                  ric%pt%g2 * ric%pt%g * (runt%y%gamma * runt%y%eta**2 + &
-                  2 * runt%y%alpha * runt%y%eta * runt%y%etap + &
-                  runt%y%beta * runt%y%etap**2)
+                  ric%pt%g2 * ric%pt%g * (runt%b%gamma * runt%b%eta**2 + &
+                  2 * runt%b%alpha * runt%b%eta * runt%b%etap + &
+                  runt%b%beta * runt%b%etap**2)
   enddo
 
   ri(:)%sum(j) = (ri(:)%sum(j-1) + del_z * i_sum(:)) / 2
@@ -312,35 +312,35 @@ if (associated(cache_ele)) then
   runt%vec0 = pt0%vec0
   if (.not. ele%map_with_offsets) call mat6_add_offsets (runt)
   call twiss_propagate1 (ele0, runt)
-  e0%x = runt%x; e0%y = runt%y
+  e0%a = runt%a; e0%b = runt%b
   call make_v_mats (runt, v, v_inv)
   ric%eta_a0 = &
-    matmul(v, (/ runt%x%eta, runt%x%etap, 0.0_rp,   0.0_rp    /))
+    matmul(v, (/ runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp    /))
   ric%eta_b0 = &
-    matmul(v, (/ 0.0_rp,   0.0_rp,    runt%y%eta, runt%y%etap /))
+    matmul(v, (/ 0.0_rp,   0.0_rp,    runt%b%eta, runt%b%etap /))
 
   runt%mat6 = pt1%mat6
   runt%vec0 = pt1%vec0
   if (.not. ele%map_with_offsets) call mat6_add_offsets (runt)
   call twiss_propagate1 (ele0, runt)
-  e1%x = runt%x; e1%y = runt%y
+  e1%a = runt%a; e1%b = runt%b
   call make_v_mats (runt, v, v_inv)
   ric%eta_a1 = &
-    matmul(v, (/ runt%x%eta, runt%x%etap, 0.0_rp,   0.0_rp    /))
+    matmul(v, (/ runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp    /))
   ric%eta_b1 = &
-    matmul(v, (/ 0.0_rp,   0.0_rp,    runt%y%eta, runt%y%etap /))
+    matmul(v, (/ 0.0_rp,   0.0_rp,    runt%b%eta, runt%b%etap /))
 
-  runt%x%beta  = e0%x%beta  * f0 + e1%x%beta  * f1
-  runt%x%alpha = e0%x%alpha * f0 + e1%x%alpha * f1
-  runt%x%gamma = e0%x%gamma * f0 + e1%x%gamma * f1
-  runt%x%eta   = e0%x%eta   * f0 + e1%x%eta   * f1
-  runt%x%etap  = e0%x%etap  * f0 + e1%x%etap  * f1
+  runt%a%beta  = e0%a%beta  * f0 + e1%a%beta  * f1
+  runt%a%alpha = e0%a%alpha * f0 + e1%a%alpha * f1
+  runt%a%gamma = e0%a%gamma * f0 + e1%a%gamma * f1
+  runt%a%eta   = e0%a%eta   * f0 + e1%a%eta   * f1
+  runt%a%etap  = e0%a%etap  * f0 + e1%a%etap  * f1
 
-  runt%y%beta  = e0%y%beta  * f0 + e1%y%beta  * f1
-  runt%y%alpha = e0%y%alpha * f0 + e1%y%alpha * f1
-  runt%y%gamma = e0%y%gamma * f0 + e1%y%gamma * f1
-  runt%y%eta   = e0%y%eta   * f0 + e1%y%eta   * f1
-  runt%y%etap  = e0%y%etap  * f0 + e1%y%etap  * f1
+  runt%b%beta  = e0%b%beta  * f0 + e1%b%beta  * f1
+  runt%b%alpha = e0%b%alpha * f0 + e1%b%alpha * f1
+  runt%b%gamma = e0%b%gamma * f0 + e1%b%gamma * f1
+  runt%b%eta   = e0%b%eta   * f0 + e1%b%eta   * f1
+  runt%b%etap  = e0%b%etap  * f0 + e1%b%etap  * f1
 
   ric%eta_a = ric%eta_a0 * f0 + ric%eta_a1 * f1
   ric%eta_b = ric%eta_b0 * f0 + ric%eta_b1 * f1
@@ -358,17 +358,17 @@ elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
   orb%vec = ric%orb0%vec * f0 + ric%orb1%vec * f1
   call calc_wiggler_g_params (ele, z_here, orb, ric%pt)
 
-  runt%x%beta  = ele0%x%beta  * f0 + ele%x%beta  * f1
-  runt%x%alpha = ele0%x%alpha * f0 + ele%x%alpha * f1
-  runt%x%gamma = ele0%x%gamma * f0 + ele%x%gamma * f1
-  runt%x%eta   = ele0%x%eta   * f0 + ele%x%eta   * f1
-  runt%x%etap  = ele0%x%etap  * f0 + ele%x%etap  * f1
+  runt%a%beta  = ele0%a%beta  * f0 + ele%a%beta  * f1
+  runt%a%alpha = ele0%a%alpha * f0 + ele%a%alpha * f1
+  runt%a%gamma = ele0%a%gamma * f0 + ele%a%gamma * f1
+  runt%a%eta   = ele0%a%eta   * f0 + ele%a%eta   * f1
+  runt%a%etap  = ele0%a%etap  * f0 + ele%a%etap  * f1
 
-  runt%y%beta  = ele0%y%beta  * f0 + ele%y%beta  * f1
-  runt%y%alpha = ele0%y%alpha * f0 + ele%y%alpha * f1
-  runt%y%gamma = ele0%y%gamma * f0 + ele%y%gamma * f1
-  runt%y%eta   = ele0%y%eta   * f0 + ele%y%eta   * f1
-  runt%y%etap  = ele0%y%etap  * f0 + ele%y%etap  * f1
+  runt%b%beta  = ele0%b%beta  * f0 + ele%b%beta  * f1
+  runt%b%alpha = ele0%b%alpha * f0 + ele%b%alpha * f1
+  runt%b%gamma = ele0%b%gamma * f0 + ele%b%gamma * f1
+  runt%b%eta   = ele0%b%eta   * f0 + ele%b%eta   * f1
+  runt%b%etap  = ele0%b%etap  * f0 + ele%b%etap  * f1
 
   ric%eta_a = ric%eta_a0 * f0 + ric%eta_a1 * f1
   ric%eta_b = ric%eta_b0 * f0 + ric%eta_b1 * f1
@@ -381,15 +381,15 @@ endif
 ! No caching, Not a map type wiggler
 
 if (j_loop == 1 .and. n_pt == 1) then  ! z_here = 0
-  runt%x       = ele0%x
-  runt%y       = ele0%y
+  runt%a       = ele0%a
+  runt%b       = ele0%b
   runt%c_mat   = ele0%c_mat
   runt%gamma_c = ele0%gamma_c
   orb = ric%orb0
 
 elseif (j_loop == 1 .and. n_pt == 2) then  ! z_here = l$
-  runt%x       = ele%x
-  runt%y       = ele%y
+  runt%a       = ele%a
+  runt%b       = ele%b
   runt%c_mat   = ele%c_mat
   runt%gamma_c = ele%gamma_c
   orb = ric%orb1
@@ -407,8 +407,8 @@ endif
 
 call make_v_mats (runt, v, v_inv)
 
-ric%eta_a = matmul(v, (/ runt%x%eta, runt%x%etap, 0.0_rp,   0.0_rp /))
-ric%eta_b = matmul(v, (/ 0.0_rp,   0.0_rp,    runt%y%eta, runt%y%etap /))
+ric%eta_a = matmul(v, (/ runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp /))
+ric%eta_b = matmul(v, (/ 0.0_rp,   0.0_rp,    runt%b%eta, runt%b%etap /))
 
 ric%pt%g_x = ric%pt%g_x0 + orb%vec(1) * ric%pt%k1 + orb%vec(3) * ric%pt%s1
 ric%pt%g_y = ric%pt%g_y0 - orb%vec(3) * ric%pt%k1 + orb%vec(1) * ric%pt%s1

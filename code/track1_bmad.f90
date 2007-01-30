@@ -17,7 +17,7 @@
 ! Input:
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element
-!   param  -- Param_struct:
+!   param  -- lat_param_struct:
 !
 ! Output:
 !   end   -- Coord_struct: End position
@@ -34,7 +34,7 @@ subroutine track1_bmad (start, ele, param, end)
   type (coord_struct) :: start
   type (coord_struct) :: end
   type (ele_struct) :: ele
-  type (param_struct) :: param
+  type (lat_param_struct) :: param
 
   real(rp) k1, k2, k2l, k3l, length, phase, beta_start, beta_end
   real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const
@@ -148,14 +148,14 @@ subroutine track1_bmad (start, ele, param, end)
       s_pos = (end%vec(5) + z_slice(i)) / 2
       end%vec(1) = end%vec(1) + end%vec(2) * (s_pos - s_pos_old)
       end%vec(3) = end%vec(3) + end%vec(4) * (s_pos - s_pos_old)
-      if (ele%x%beta == 0) then
+      if (ele%a%beta == 0) then
         sig_x = sig_x0
         sig_y = sig_y0
       else
-        beta = ele%x%beta - 2 * ele%x%alpha * s_pos + ele%x%gamma * s_pos**2
-        sig_x = sig_x0 * sqrt(beta / ele%x%beta)
-        beta = ele%y%beta - 2 * ele%y%alpha * s_pos + ele%y%gamma * s_pos**2
-        sig_y = sig_y0 * sqrt(beta / ele%y%beta)
+        beta = ele%a%beta - 2 * ele%a%alpha * s_pos + ele%a%gamma * s_pos**2
+        sig_x = sig_x0 * sqrt(beta / ele%a%beta)
+        beta = ele%b%beta - 2 * ele%b%alpha * s_pos + ele%b%gamma * s_pos**2
+        sig_y = sig_y0 * sqrt(beta / ele%b%beta)
       endif
 
       call bbi_kick (end%vec(1)/sig_x, end%vec(3)/sig_y, sig_y/sig_x,  &
@@ -258,7 +258,7 @@ subroutine track1_bmad (start, ele, param, end)
       k  =  ff * ele%value(voltage$) * cos(phase) / ele%value(p0c$)
     endif
 
-    dE0 =  ele%value(voltage$) * sin(phase) / ele%value(beam_energy$)
+    dE0 =  ele%value(voltage$) * sin(phase) / ele%value(E_TOT$)
     L = ele%value(l$)
     E = 1 + pz
     E2 = E**2
@@ -289,8 +289,8 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (lcavity$)
 
-    if (ele%value(energy_start$) == 0) then
-      print *, 'ERROR IN TRACK1_BMAD: ENERGY_START IS 0 FOR A LCAVITY!'
+    if (ele%value(E_TOT_START$) == 0) then
+      print *, 'ERROR IN TRACK1_BMAD: E_TOT_START IS 0 FOR A LCAVITY!'
       call err_exit
     endif
 
@@ -414,9 +414,9 @@ subroutine track1_bmad (start, ele, param, end)
 
 ! correct z for change in velocity
 
-    dE = ele%value(beam_energy$) - ele%value(energy_start$)
+    dE = ele%value(E_TOT$) - ele%value(E_TOT_START$)
     if (dE == 0) then
-      dt_ref = length * ele%value(beam_energy$) / ele%value(p0c$)
+      dt_ref = length * ele%value(E_TOT$) / ele%value(p0c$)
     else
       dt_ref = (ele%value(p0c$) - ele%value(p0c_start$)) * length / dE
     endif                      

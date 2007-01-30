@@ -1,23 +1,23 @@
 !+
-! Subroutine ring_geometry (lat)
+! Subroutine lat_geometry (lat)
 !
 ! Subroutine to calculate the physical placement of all the elements in a lattice.
 ! That is, the layout on the floor. This is the same as the MAD convention.
 !
-! Note: This routine does NOT update %ele_(i)%s. To do this call s_calc.
+! Note: This routine does NOT update %ele(i)%s. To do this call s_calc.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   lat -- ring_struct: The lattice.
-!     %ele_(0)%floor  -- Floor_position_struct: The starting point for the calculations.
+!   lat -- lat_struct: The lattice.
+!     %ele(0)%floor  -- Floor_position_struct: The starting point for the calculations.
 !
 ! Output:
-!   lat -- Ring_struct: The lattice.
-!     %ele_(i)%floor --  floor_position_struct: Floor position.
-!       %x                -- X position at end of element
-!       %y                -- Y position at end of element
+!   lat -- lat_struct: The lattice.
+!     %ele(i)%floor --  floor_position_struct: Floor position.
+!       %a                -- X position at end of element
+!       %b                -- Y position at end of element
 !       %z                -- Z position at end of element
 !       %theta            -- Orientation angle at end of element in X-Z plane
 !       %phi              -- Elevation angle.
@@ -26,32 +26,32 @@
 
 #include "CESR_platform.inc"
 
-subroutine ring_geometry (lat)
+subroutine lat_geometry (lat)
 
 use bmad_struct
-use bmad_interface, except => ring_geometry
+use bmad_interface, except => lat_geometry
 
 implicit none
 
-type (ring_struct), target :: lat
+type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 
 integer i, ix2, ie
 
 !
 
-do i = 1, lat%n_ele_use
-  call ele_geometry (lat%ele_(i-1), lat%ele_(i), lat%param)
+do i = 1, lat%n_ele_track
+  call ele_geometry (lat%ele(i-1), lat%ele(i), lat%param)
 enddo
 
 ! put info in superimpose lords
 
-do i = lat%n_ele_use+1, lat%n_ele_max  
-  ele => lat%ele_(i)
+do i = lat%n_ele_track+1, lat%n_ele_max  
+  ele => lat%ele(i)
   if (ele%key == super_lord$) then
     ix2 = ele%ix2_slave
-    ie = lat%control_(ix2)%ix_slave
-    ele%floor = lat%ele_(ie)%floor
+    ie = lat%control(ix2)%ix_slave
+    ele%floor = lat%ele(ie)%floor
   endif
 enddo
 
@@ -71,13 +71,13 @@ end subroutine
 !
 ! Input:
 !   ele0   -- Ele_struct: The preceeding element
-!   param  -- Param_struct: lattice parameters
+!   param  -- lat_param_struct: lattice parameters
 !     %particle -- particle type. Needed if there are multipoles.
 !
 ! Output:
 !   ele%floor --  floor_position_struct: Floor position.
-!        %x                -- X position at end of element
-!        %y                -- Y position at end of element
+!        %a                -- X position at end of element
+!        %b                -- Y position at end of element
 !        %z                -- Z position at end of element
 !        %theta            -- Orientation angle at end of element in X-Z plane
 !        %phi              -- Elevation angle.
@@ -95,7 +95,7 @@ use multipole_mod
 implicit none
 
 type (ele_struct) ele0, ele
-type (param_struct) param
+type (lat_param_struct) param
 
 integer i, key
 

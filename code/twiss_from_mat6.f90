@@ -13,10 +13,10 @@
 !
 ! Output:
 !   ele         -- Ele_struct: Structure holding the Twiss parameters.
-!     %x           -- X Twiss parameters at the start of the ring.
-!     %x%phi       -- Fractional part of the tune in radians.
-!     %y           -- Y Twiss parameters at the start of the ring.
-!     %y%phi       -- Fractional part of the tune in radians.
+!     %a           -- X Twiss parameters at the start of the lat.
+!     %a%phi       -- Fractional part of the tune in radians.
+!     %b           -- Y Twiss parameters at the start of the lat.
+!     %b%phi       -- Fractional part of the tune in radians.
 !     %c_mat       -- Coupling matrix.
 !   stable      -- Set true or false.
 !   growth_rate -- unstable growth rate (= 0 if stable)
@@ -57,7 +57,7 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
 !
 
   call mat_symp_decouple (mat4, tol, bmad_status%status, u, v, ubar, &
-                                             vbar, g, ele%x, ele%y, .false.)
+                                             vbar, g, ele%a, ele%b, .false.)
 
   if (bmad_status%status /= ok$) then
     if (bmad_status%type_out) then
@@ -77,12 +77,12 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
     return
   else
     growth_rate = 0          ! no growth
-    stable = .true.          ! stable ring
+    stable = .true.          ! stable lat
   endif
 
 ! here if everything normal so load twiss parameters
 
-  if (ele%x%beta /= 0 .and. ele%y%beta /= 0) then
+  if (ele%a%beta /= 0 .and. ele%b%beta /= 0) then
     ele%mode_flip = .false.
     ele%c_mat = v(1:2,3:4)
     call mat_det (ele%c_mat, det)
@@ -104,17 +104,17 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
   vec(4) = mat6(4,6) - mat6(4,1) * orb(1) - mat6(4,3) * orb(3) - map0(4)
   eta_vec = matmul(mat4, vec)
 
-  ele%x%eta_lab  = eta_vec(1)
-  ele%x%etap_lab = eta_vec(2)
-  ele%y%eta_lab  = eta_vec(3)
-  ele%y%etap_lab = eta_vec(4)
+  ele%a%eta_lab  = eta_vec(1)
+  ele%a%etap_lab = eta_vec(2)
+  ele%b%eta_lab  = eta_vec(3)
+  ele%b%etap_lab = eta_vec(4)
 
   call mat_symp_conj (v, v_inv)
   eta_vec = matmul(v_inv, eta_vec)
-  ele%x%eta  = eta_vec(1)
-  ele%x%etap = eta_vec(2)
-  ele%y%eta  = eta_vec(3)
-  ele%y%etap = eta_vec(4)
+  ele%a%eta  = eta_vec(1)
+  ele%a%etap = eta_vec(2)
+  ele%b%eta  = eta_vec(3)
+  ele%b%etap = eta_vec(4)
 
   bmad_status%ok = .true.
 

@@ -28,12 +28,12 @@ $pl_hash{"test_f_amode"} = "test_f_side.f90";
 $pl_hash{"bmad_com_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"mode_info_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"lr_wake_to_f2"} = "bmad_and_cpp.f90";
-$pl_hash{"sr2_wake_to_f2"} = "bmad_and_cpp.f90";
-$pl_hash{"sr2_trans_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
-$pl_hash{"sr1_wake_to_f2"} = "bmad_and_cpp.f90";
-$pl_hash{"sr1_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
-$pl_hash{"sr2_long_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
-$pl_hash{"sr2_long_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr_mode_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr_mode_trans_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr_table_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr_table_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr_mode_long_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"sr_mode_long_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"lr_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"test_f_floor_position"} = "test_f_side.f90";
 $pl_hash{"coord_in_orbit_to_f2"} = "bmad_and_cpp.f90";
@@ -41,12 +41,12 @@ $pl_hash{"modes_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"test_f_ele"} = "test_f_side.f90";
 $pl_hash{"test_f_wig_term"} = "test_f_side.f90";
 $pl_hash{"test_f_control"} = "test_f_side.f90";
-$pl_hash{"test_f_sr1_wake"} = "test_f_side.f90";
+$pl_hash{"test_f_sr_table_wake"} = "test_f_side.f90";
 $pl_hash{"test_f_coord"} = "test_f_side.f90";
 $pl_hash{"test_f_taylor_term"} = "test_f_side.f90";
 $pl_hash{"init_all_structs"} = "test_f_side.f90";
 $pl_hash{"test_f_param"} = "test_f_side.f90";
-$pl_hash{"test_f_ring"} = "test_f_side.f90";
+$pl_hash{"test_f_lat"} = "test_f_side.f90";
 $pl_hash{"test_f_mode_info"} = "test_f_side.f90";
 $pl_hash{"test_f_wake"} = "test_f_side.f90";
 $pl_hash{"test_f_lr_wake"} = "test_f_side.f90";
@@ -54,15 +54,15 @@ $pl_hash{"test_f_taylor"} = "test_f_side.f90";
 $pl_hash{"test_f_bmad_com"} = "test_f_side.f90";
 $pl_hash{"test_f_twiss"} = "test_f_side.f90";
 $pl_hash{"test_f_linac_mode"} = "test_f_side.f90";
-$pl_hash{"control_from_ring_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"control_from_lat_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"taylor_term_in_taylor_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"wig_term_in_ele_to_f2"} = "bmad_and_cpp.f90";
-$pl_hash{"ele_from_ring_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"ele_from_lat_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"taylor_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"floor_position_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"ele_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"linac_mode_to_f2"} = "bmad_and_cpp.f90";
-$pl_hash{"ring_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"lat_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"wake_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"wig_term_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"twiss_to_f2"} = "bmad_and_cpp.f90";
@@ -86,7 +86,7 @@ $pl_hash{"evaluate_logical"} = "bmad_parser_mod.f90";
 $pl_hash{"read_sr_wake"} = "bmad_parser_mod.f90";
 $pl_hash{"read_lr_wake"} = "bmad_parser_mod.f90";
 $pl_hash{"get_sequence_args"} = "bmad_parser_mod.f90";
-$pl_hash{"allocate_pring"} = "bmad_parser_mod.f90";
+$pl_hash{"allocate_plat"} = "bmad_parser_mod.f90";
 $pl_hash{"add_taylor_term"} = "bmad_parser_mod.f90";
 $pl_hash{"file_stack"} = "bmad_parser_mod.f90";
 $pl_hash{"find_indexx"} = "bmad_parser_mod.f90";
@@ -102,7 +102,7 @@ $pl_hash{"bbi_slice_calc"} = "make_mat6_mod.f90";
 $pl_hash{"rkqs_bmad"} = "runge_kutta_mod.f90";
 $pl_hash{"allocate_saved_orbit"} = "em_field_mod.f90";
 $pl_hash{"preparse_element_init"} = "bmad_parser_mod.f90";
-$pl_hash{"reallocate_control_"} = "bmad_utils_mod.f90";
+$pl_hash{"reallocate_control"} = "bmad_utils_mod.f90";
 $pl_hash{"compute_super_lord_s"} = "bmad_parser_mod.f90";
 $pl_hash{"save_a_step"} = "em_field_mod.f90";
 $pl_hash{"verify_valid_name"} = "bmad_parser_mod.f90";
@@ -123,7 +123,6 @@ $pl_hash{"do_vsp_eles"} = "create_vsp_volt_elements.f90";
 $pl_hash{"word_to_value"} = "bmad_parser_mod.f90";
 $pl_hash{"rkck_bmad"} = "runge_kutta_mod.f90";
 $pl_hash{"term_diff"} = "integration_timer_mod.f90";
-$pl_hash{"track1_bunch"} = "macro_particle_mod.f90";
 $pl_hash{"pushit"} = "bmad_parser_mod.f90";
 $pl_hash{"type_get"} = "bmad_parser_mod.f90";
 $pl_hash{"get_taylor"} = "integration_timer_mod.f90";
@@ -261,7 +260,8 @@ sub searchit {
         $this =~ tr/A-Z/a-z/; #lowercase
         $name = $this;
         $name =~ s/ *\(.*//;    # strip off " (..."
-
+        $name =~ s/ +$//;       # strip off trailing blanks if no arg list.
+        # print "Found: $name\n";
         if (!exists $tex_hash{$name} && !exists $pl_hash{$name}) {
           print "\nFile: $file\n";
           $this2 = $this; 
@@ -292,7 +292,8 @@ sub searchit {
       $name =~ s/ +$//;        # strip off trailing blank if no arg list
       $name =~ tr/A-Z/a-z/; #lowercase
       chomp $name;
-      if (! exists $f90_hash{$name}) { $f90_hash{$name} = $file; }
+      # print "Hashed: $name\n";
+     if (! exists $f90_hash{$name}) { $f90_hash{$name} = $file; }
 
       # skip rest of routine including contained routines
 

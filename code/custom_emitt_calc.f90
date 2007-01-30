@@ -1,5 +1,5 @@
 !+
-! Subroutine custom_emitt_calc (ring, ir, i2, i3, i5a, i5b) 
+! Subroutine custom_emitt_calc (lat, ir, i2, i3, i5a, i5b) 
 !
 ! Dummy routine for custom elements. Will generate an error if called.
 ! A valid custom_emitt_calc is needed only if the emitt_calc routine 
@@ -8,8 +8,8 @@
 ! Arguments needed to construct a custom_emitt_calc routine:
 !
 ! Input:
-!   ring -- Ring_struct: Lattice with the custom element.
-!   ir   -- Integer: ring%ele_(ir) is the custom element.
+!   lat -- lat_struct: Lattice with the custom element.
+!   ir   -- Integer: lat%ele(ir) is the custom element.
 !
 ! Output:
 !   i2   -- Real(rp): Integral of g^2 (g = 1/bending_radius)

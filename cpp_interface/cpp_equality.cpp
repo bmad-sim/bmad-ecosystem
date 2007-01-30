@@ -21,8 +21,8 @@ template <class T> bool is_all_true (const valarray<T>& v1, const valarray<T>& v
 template bool is_all_true(const Real_Array&, const Real_Array&);
 template bool is_all_true(const Int_Array&, const Int_Array&);
 template bool is_all_true(const C_taylor_term_array&, const C_taylor_term_array&);
-template bool is_all_true(const C_sr1_wake_array&, const C_sr1_wake_array&);
-template bool is_all_true(const C_sr2_wake_array&, const C_sr2_wake_array&);
+template bool is_all_true(const C_sr_table_wake_array&, const C_sr_table_wake_array&);
+template bool is_all_true(const C_sr_mode_wake_array&, const C_sr_mode_wake_array&);
 template bool is_all_true(const C_lr_wake_array&, const C_lr_wake_array&);
 template bool is_all_true(const C_taylor_array&, const C_taylor_array&);
 template bool is_all_true(const C_wig_term_array&, const C_wig_term_array&);
@@ -84,11 +84,11 @@ bool operator== (const C_taylor& x, const C_taylor& y) {
   return (x.ref == y.ref) && is_all_true(x.term, y.term);
 };
 
-bool operator== (const C_sr1_wake& x, const C_sr1_wake& y) {
+bool operator== (const C_sr_table_wake& x, const C_sr_table_wake& y) {
   return (x.z == y.z) && (x.longitudinal == y.longitudinal) && (x.transverse == y.transverse);
 };
 
-bool operator== (const C_sr2_wake& x, const C_sr2_wake& y) {
+bool operator== (const C_sr_mode_wake& x, const C_sr_mode_wake& y) {
   return (x.amp == y.amp) && (x.damp == y.damp) && 
          (x.k == y.k) && (x.phi == y.phi) && 
          (x.norm_sin == y.norm_sin) && (x.norm_cos == y.norm_cos) && 
@@ -106,11 +106,11 @@ bool operator== (const C_lr_wake& x, const C_lr_wake& y) {
 bool operator== (const C_wake& x, const C_wake& y) {
   bool all_true;
   all_true = (x.sr_file == y.sr_file) && (x.lr_file == y.lr_file) &&
-            (x.sr1.size() == y.sr1.size()) && (x.sr2_long.size() == y.sr2_long.size()) && 
-            (x.sr2_trans.size() == y.sr2_trans.size()) && (x.lr.size() == y.lr.size()); 
+            (x.sr_table.size() == y.sr_table.size()) && (x.sr_mode_long.size() == y.sr_mode_long.size()) && 
+            (x.sr_mode_trans.size() == y.sr_mode_trans.size()) && (x.lr.size() == y.lr.size()); 
   if (!all_true) return all_true;
-  return is_all_true(x.sr1, y.sr1) && is_all_true(x.sr2_long, y.sr2_long) && 
-         is_all_true(x.sr2_trans, y.sr2_trans) && is_all_true(x.lr, y.lr);
+  return is_all_true(x.sr_table, y.sr_table) && is_all_true(x.sr_mode_long, y.sr_mode_long) && 
+         is_all_true(x.sr_mode_trans, y.sr_mode_trans) && is_all_true(x.lr, y.lr);
 }
 
 bool operator== (const C_control& x, const C_control& y) {
@@ -216,7 +216,7 @@ bool operator== (const C_mode_info& x, const C_mode_info& y) {
   return (x.tune == y.tune) && (x.emit == y.emit) && (x.chrom == y.chrom);
 }
 
-bool operator== (const C_ring& x, const C_ring& y) {
+bool operator== (const C_lat& x, const C_lat& y) {
   bool is_true = true;
   is_true = is_true && (x.name == y.name); 
   is_true = is_true && (x.lattice == y.lattice);

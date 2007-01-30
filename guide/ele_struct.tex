@@ -20,7 +20,7 @@ generally hidden  by the \bmad bookkeeping routines.
     character(16) type                ! type name
     character(16) alias               ! Another name
     character(200), pointer :: descrip => null()     ! For general use
-    type (twiss_struct)  x, y, z      ! Twiss parameters at end of element
+    type (twiss_struct)  a, b, z      ! Twiss parameters at end of element
     type (floor_position_struct) position
     real(rp) value(n_attrib_maxx)     ! attribute values
     real(rp) vec0(6)                  ! 0th order transport vector
@@ -28,8 +28,8 @@ generally hidden  by the \bmad bookkeeping routines.
     real(rp) c_mat(2,2)               ! 2x2 C coupling matrix
     real(rp) gamma_c                  ! gamma associated with C matrix
     real(rp) s                        ! longitudinal position at the end
-    real(rp), pointer :: a(:) => null()           ! skew multipole component
-    real(rp), pointer :: b(:) => null()           ! normal multipole component
+    real(rp), pointer :: a_pole(:) => null()  ! skew multipole component
+    real(rp), pointer :: b_pole(:) => null()  ! normal multipole component
     type (wake_struct), pointer :: wake => null() ! Wakefields
     type (taylor_struct) :: taylor(6)             ! Taylor terms
     integer key                  ! key value
@@ -83,7 +83,7 @@ integer to the appropriate string. For example
   print *, 'This element: ', key_name(ele%key) ! Prints, for example, 'WIGGLER'
 \end{example}
 The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
-outside of a \vn{ring_struct} structure.
+outside of a \vn{lat_struct} structure.
 
 \index{Wiggler}
 \index{Rbend}
@@ -116,9 +116,9 @@ the value at the exit end of the element. Such variables are:
 \index{Ele_struct!%s}
 \index{Ele_struct!%gamma_c}
 \index{Ele_struct!%c_mat}
-\index{Ele_struct!%x}
+\index{Ele_struct!%a}
 \begin{example}
-  type (twiss_struct)  x, y, z          ! Twiss parameters
+  type (twiss_struct)  a, b, z          ! Twiss parameters
   type (floor_position_struct) position ! Floor position
   real(rp) c_mat(2,2)                   ! Coupling c matrix
   real(rp) gamma_c                      ! Coupling parameter
@@ -126,15 +126,15 @@ the value at the exit end of the element. Such variables are:
 \end{example}
 To get the Twiss parameters, floor (global) position, etc.\ for the beginning
 of the element you need to look at the preceding element in the
-\vn{ring%ele_(:)} array 
+\vn{lat%ele(:)} array 
 \begin{example}
-  ring%ele_(i-1)%x%beta  ! Beta_x at beginning of ith element.
+  lat%ele(i-1)%a%beta  ! Beta_a at beginning of ith element.
 \end{example}
 To get the parameters at a position within an element you can use the
 routines \vn{twiss_and_track_at_s} or \vn{twiss_and_track_partial}.
 
 \index{Normal Mode!in Ele_struct}
-The \vnes{%x}, \vnes{%y}, and \vnes{%z} components are
+The \vnes{%a}, \vnes{%b}, and \vnes{%z} components are
 \vn{twiss_struct} structures that hold the Twiss parameters for the
 $a$, $b$ and $z$ modes respectively. [Yes it is known that the labeling
 is misleading. Unfortunately it is a bit entrenched now.] The definition of
@@ -209,16 +209,16 @@ when \vnf{make_mat6} is called to make transfer matrices and when
 \vnf{track1} is called to track through an element. As a general rule,
 to be safe, when elment attributes are changed, call
 \vnf{attribute_bookkeeper}. If the element is part of a
-\vn{Ring_struct} (as it is in most cases), the routine
+\vn{Lat_struct} (as it is in most cases), the routine
 \vnf{control_bookkeeper} (which calls \vn{attribute_bookkeeper})
 should be called instead.  The function \vnr{attribute_free} will
 check if an attribute is free to vary.
 \begin{example}
-  type (ring_struct) lat
+  type (lat_struct) lat
   integer ix_ele
   ...
   call element_locator ('Q10W', lat, ix_ele)   ! look for a quadrupole
-  free = attribute_free (lat%ele_(ix_ele), k1$, lat, .false.)
+  free = attribute_free (lat%ele(ix_ele), k1$, lat, .false.)
   if (.not. free) print *, 'Cannot vary: Q10W k1'
 \end{example}
 \vn{%b_field_master} is the logical within appropriate elements that
@@ -232,7 +232,7 @@ With user input the routine \vn{pointer_to_attribute} is a covienient
 way to obtain from an input string a pointer that points to the
 approbriate attribute. For example:
 \begin{example}
-  type (ring_struct) lat
+  type (lat_struct) lat
   character(16) attrib_name, ele_name
   real(rp), pointer :: attrib_ptr
   real(rp) set_value
@@ -246,8 +246,8 @@ approbriate attribute. For example:
   write (*, '(a)', advance = 'no') ' Value to set attribute at: '
   accept *, set_value
   do ie = 1, lat%n_ele_max
-    if (lat%ele_(ie)%name == ele_name) then
-      call pointer_to_attribute (lat%ele_(ie), attrib_name, &
+    if (lat%ele(ie)%name == ele_name) then
+      call pointer_to_attribute (lat%ele(ie), attrib_name, &
                             .false., attrib_ptr, ix_attrib, err_flag)
       if (err_flag) exit      ! Do nothing on an error
       attrib_ptr = set_value  ! Set the attribute
@@ -260,7 +260,7 @@ approbriate attribute. For example:
 \index{control_type}
 \label{s:control_type}
 
-In a \vn{ring_struct} (\sref{c:ring_struct}), elements in the lattice
+In a \vn{lat_struct} (\sref{c:lat_struct}), elements in the lattice
 can control the attributes of other elements. The \vn{%control_type}
 component of an element identifies whether the element is a slave
 element (it is being controlled or is a lord element (it controls
@@ -357,7 +357,7 @@ and \vn{mat6}. Thus with \vn{Linear} tracking the appropriate formula is
 \begin{example}
   orbit_out = %vec0 + %mat6 * orbit_in
 \end{example}
-The \bmad routines that compute \vn{%mat6} (for example \vn{ring_make_mat6})
+The \bmad routines that compute \vn{%mat6} (for example \vn{lat_make_mat6})
 take a reference orbit as an argument and the resulting \vn{%mat6} matrix
 is the Jacobian about the reference orbit.
 
@@ -419,11 +419,11 @@ calculations.  Wakefields are stored in the \vnes{%wake} struct:
   type wake_struct
     character(200) :: sr_file = ' '
     character(200) :: lr_file = ' '
-    type (sr1_wake_struct), pointer :: sr1(:) => null()
-    type (sr2_wake_struct), pointer :: sr2_long(:) => null()
-    type (sr2_wake_struct), pointer :: sr2_trans(:) => null()
+    type (sr_table_wake_struct), pointer :: sr_table(:) => null()
+    type (sr_mode_wake_struct), pointer :: sr_mode_long(:) => null()
+    type (sr_mode_wake_struct), pointer :: sr_mode_trans(:) => null()
     type (lr_wake_struct), pointer :: lr(:) => null()
-    real(rp) :: z_sr2_max = 0   
+    real(rp) :: z_sr_mode_max = 0   
   end type
 \end{example}
 Since \vn{%wake} is a pointer its association status must be tested
@@ -436,30 +436,30 @@ before any of its sub--components are accessed.
 \end{example}
 
 \bmad observes the following rule: If \vn{%wake} is associated then it
-is assumed that all the sub--components (\vn{%wake%sr1}, etc.) are
+is assumed that all the sub--components (\vn{%wake%sr_table}, etc.) are
 associated. This simplifies programming in that you do not have to
 test directly the association status of the sub--components.
 
 The short--range wake is parameterized using three arrays:
-\vn{%wake%sr1} stores the tabular form of the short--range wake
-(see~\sref{s:wiggler}).\vn{%wake%sr2_long}, and \vn{%wake%sr2_trans}
+\vn{%wake%sr_table} stores the tabular form of the short--range wake
+(see~\sref{s:wiggler}).\vn{%wake%sr_mode_long}, and \vn{%wake%sr_mode_trans}
 store the longitudinal and transverse pseudo--modes. The structure
-definition for \vn{%wake%sr1} is
+definition for \vn{%wake%sr_table} is
 \begin{example}
-  type sr1_wake_struct     ! Tabular short-Range Wake struct
-    real(rp) z             ! Distance behind the leading particle
-    real(rp) long          ! Longitudinal wake in V/C/m
-    real(rp) trans         ! Transverse wake in V/C/m^2
+  type sr_table_wake_struct  ! Tabular short-Range Wake struct
+    real(rp) z               ! Distance behind the leading particle
+    real(rp) long            ! Longitudinal wake in V/C/m
+    real(rp) trans           ! Transverse wake in V/C/m^2
   end type
 \end{example}
-All \vn{%wake%sr1(0:)%z} will be negative. Notice that the array lower
-bounds is zero since \vn{%wake%sr1(0)%z} = 0. Wakefield kicks are
+All \vn{%wake%sr_table(0:)%z} will be negative. Notice that the array lower
+bounds is zero since \vn{%wake%sr_table(0)%z} = 0. Wakefield kicks are
 applied using \Eqs{delvp} and \eq{pelqxw}.
 
-The \vn{%wake%sr2_long} and \vn{%wake%sr2_trans} pseudo--mode
+The \vn{%wake%sr_mode_long} and \vn{%wake%sr_mode_trans} pseudo--mode
 structures are the same:
 \begin{example}
-  type sr2_wake_struct  ! Psudo-mode short-range wake struct 
+  type sr_mode_wake_struct  ! Psudo-mode short-range wake struct 
     real(rp) amp        ! Amplitude
     real(rp) damp       ! Dampling factor.
     real(rp) freq       ! Frequency in Hz
@@ -478,7 +478,7 @@ set to zero and as each particle passes through the cavity the
 contribution to the wake due to the particle is calculated and added
 the components.
 
-\vn{%wake%z_sr2_max} is the maximum $z$ value beyond which the pseudo
+\vn{%wake%z_sr_mode_max} is the maximum $z$ value beyond which the pseudo
 mode representation is not valid. This is set in the input lattice file.
 
 The \vn{%wake%lr} array stores the long--range wake modes. The
@@ -499,7 +499,7 @@ structure definition is:
   end type
 \end{example}
 \index{Freq_spread}
-This is similar to the \vn{sr2_wake_struct}. \vn{%freq_in} is the
+This is similar to the \vn{sr_mode_wake_struct}. \vn{%freq_in} is the
 actual frequency in the input file. \vnr{bmad_parser} will set
 \vn{%freq} to \vn{%freq_in} except when the \vn{freq_spread} attribute
 is non-zero in which case \vn{bmad_parser} will vary \vn{%freq} as
@@ -545,10 +545,10 @@ someone writing a program. These components are
 \index{Ele_struct!initialization}
 \index{Ele_struct!pointer components}
 
-Generally most \vn{ele_struct} elements are part of a \vn{ring_struct}
-variable and elements in a \vn{ring_struct} are handled by the
-\vn{ring_struct} allocation/deallocation routines (see
-\sref{s:ring:point}). In case you do have a local \vn{ele_struct}
+Generally most \vn{ele_struct} elements are part of a \vn{lat_struct}
+variable and elements in a \vn{lat_struct} are handled by the
+\vn{lat_struct} allocation/deallocation routines (see
+\sref{s:lat:point}). In case you do have a local \vn{ele_struct}
 variable within a subroutine or function then you either have to
 deallocate the pointers within it with a call to
 \vn{deallocate_ele_pointers} or you use the save attribute.

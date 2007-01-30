@@ -27,7 +27,7 @@
 !                       = cycles$   => Print Twiss, phi in radians/2pi.
 !   type_control   -- Logical, optional: If True then print control status.
 !                       Default: False if lattice is not present. Otherwise True.
-!   lattice        -- Ring_struct, optional: Needed for control typeout.
+!   lattice        -- lat_struct, optional: Needed for control typeout.
 !   type_wake      -- Logical, optional: If True then print the long-range and 
 !                       short-range wakes information. If False then just print
 !                       how many terms the wake has. Default is True.
@@ -53,11 +53,11 @@ use multipole_mod
 implicit none
 
 type (ele_struct), target, intent(in) :: ele
-type (ring_struct), optional, intent(in) :: lattice
+type (lat_struct), optional, intent(in) :: lattice
 type (wig_term_struct), pointer :: term
 type (lr_wake_struct), pointer :: lr
-type (sr1_wake_struct), pointer :: sr1
-type (sr2_wake_struct), pointer :: sr2
+type (sr_table_wake_struct), pointer :: sr_table
+type (sr_mode_wake_struct), pointer :: sr_mode
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
@@ -161,7 +161,7 @@ else
                                   element_end_name(ele%coupler_at)
     endif
 
-    if (associated(ele%a)) then
+    if (associated(ele%a_pole)) then
       particle = +1
       if (present(lattice)) particle = lattice%param%particle
 
@@ -174,24 +174,24 @@ else
       endif
 
       do i = 0, n_pole_maxx
-        if (ele%a(i) == 0 .and. ele%b(i) == 0) cycle
+        if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
         write (str_i, '(i2)') i
         call string_trim (str_i, str_i, ix)
         if (ele%key == ab_multipole$) then
           write (li(nl+1), '(5x, 2a, 2(a, 1pe11.3))') &
-                 'A', str_i, ' =', ele%a(i), '   W/Tilt:', a2(i)
+                 'A', str_i, ' =', ele%a_pole(i), '   W/Tilt:', a2(i)
           write (li(nl+2), '(5x, 2a, 2(a, 1pe11.3))') &
-                 'B', str_i, ' =', ele%b(i), '   W/Tilt:', b2(i)
+                 'B', str_i, ' =', ele%b_pole(i), '   W/Tilt:', b2(i)
         elseif (ele%key == multipole$) then
           write (li(nl+1), '(5x, 2a, 2(a, 1pe11.3))') &
-                 'K', trim(str_i), 'L =', ele%a(i), '   W/Tilt:', a2(i)
+                 'K', trim(str_i), 'L =', ele%a_pole(i), '   W/Tilt:', a2(i)
           write (li(nl+2), '(5x, 2a, 2(a, 1pe11.3))') &
-                 'T', trim(str_i), '  =', ele%b(i), '   W/Tilt:', b2(i)
+                 'T', trim(str_i), '  =', ele%b_pole(i), '   W/Tilt:', b2(i)
         else
           write (li(nl+1), '(5x, 2a, 3(a, 1pe11.3))') 'A', str_i, ' =', &
-                 ele%a(i), '   Scaled:', a(i), '   W/Tilt:', a2(i)
+                 ele%a_pole(i), '   Scaled:', a(i), '   W/Tilt:', a2(i)
           write (li(nl+2), '(5x, 2a, 3(a, 1pe11.3))') 'B', str_i, ' =', &
-                 ele%b(i), '   Scaled:', b(i), '   W/Tilt:', b2(i)
+                 ele%b_pole(i), '   Scaled:', b(i), '   W/Tilt:', b2(i)
         endif
 
         nl = nl + 2
@@ -304,26 +304,26 @@ if (logic_option(present(lattice), type_control)) then
           '    Name                           Lat_index  Attribute           Coefficient'
       nl = nl + 2
       do i = ele%ix1_slave, ele%ix2_slave
-        j = lattice%control_(i)%ix_slave
-        iv = lattice%control_(i)%ix_attrib
-        coef = lattice%control_(i)%coef
+        j = lattice%control(i)%ix_slave
+        iv = lattice%control(i)%ix_attrib
+        coef = lattice%control(i)%coef
         select case (con_type)
         case (super_lord$, i_beam_lord$, multipass_lord$) 
           a_name = '--------'
         case default
-          if (lattice%ele_(j)%control_type == overlay_lord$) then
-            if (iv == lattice%ele_(j)%ix_value) then
-              ix = lattice%control_(lattice%ele_(j)%ix1_slave)%ix_slave
-              a_name = attribute_name(lattice%ele_(ix), iv)
+          if (lattice%ele(j)%control_type == overlay_lord$) then
+            if (iv == lattice%ele(j)%ix_value) then
+              ix = lattice%control(lattice%ele(j)%ix1_slave)%ix_slave
+              a_name = attribute_name(lattice%ele(ix), iv)
             else
               a_name = '** BAD POINTER! **'
             endif            
           else
-            a_name = attribute_name(lattice%ele_(j), iv)
+            a_name = attribute_name(lattice%ele(j), iv)
           endif
         end select
         nl=nl+1; write (li(nl), '(5x, a30, i10, 2x, a20, es11.3, es12.3)') &
-                                lattice%ele_(j)%name, j, a_name, coef
+                                lattice%ele(j)%name, j, a_name, coef
       enddo
     endif
 
@@ -333,26 +333,26 @@ if (logic_option(present(lattice), type_control)) then
   '    Name                           Lat_index  Attribute           Coefficient       Value'
       nl = nl + 2
       do i = ele%ic1_lord, ele%ic2_lord
-        ic = lattice%ic_(i)
-        j = lattice%control_(ic)%ix_lord
-        coef = lattice%control_(ic)%coef
+        ic = lattice%ic(i)
+        j = lattice%control(ic)%ix_lord
+        coef = lattice%control(ic)%coef
         con_type = ele%control_type
         if (con_type == super_slave$ .or. con_type == multipass_slave$ .or. &
-                          lattice%ele_(j)%control_type == i_beam_lord$) then
+                          lattice%ele(j)%control_type == i_beam_lord$) then
           a_name = '--------'
           val_str = '    --------'
         else
-          iv = lattice%control_(ic)%ix_attrib
+          iv = lattice%control(ic)%ix_attrib
           a_name = attribute_name(ele, iv)
-          ix = lattice%ele_(j)%ix_value
+          ix = lattice%ele(j)%ix_value
           if (ix == 0) then
             val_str = '  GARBAGE!'
           else
-            write (val_str, '(1p, e12.3)') lattice%ele_(j)%value(ix)
+            write (val_str, '(1p, e12.3)') lattice%ele(j)%value(ix)
           endif
         endif
         nl=nl+1; write (li(nl), '(5x, a30, i10, 2x, a20, es11.3, a12)') &
-                             lattice%ele_(j)%name, j, a_name, coef, val_str
+                             lattice%ele(j)%name, j, a_name, coef, val_str
       enddo
     endif
 
@@ -420,51 +420,51 @@ endif
 
 if (associated(ele%wake)) then
 
-  if (size(ele%wake%sr1) /= 0) then
+  if (size(ele%wake%sr_table) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li,  len(li(1)), nl+size(ele%wake%sr1)+100)
+      call re_associate (li,  len(li(1)), nl+size(ele%wake%sr_table)+100)
       nl=nl+1; li(nl) = 'Short-range wake table:'
       nl=nl+1; li(nl) = &
             '   #           Z   Longitudinal     Transverse'
-      do i = 0, ubound(ele%wake%sr1,1)
-        sr1 => ele%wake%sr1(i)
-        nl=nl+1; write (li(nl), '(i4, es12.4, 2es15.4)') i, sr1%z, sr1%long, sr1%trans
+      do i = 0, ubound(ele%wake%sr_table,1)
+        sr_table => ele%wake%sr_table(i)
+        nl=nl+1; write (li(nl), '(i4, es12.4, 2es15.4)') i, sr_table%z, sr_table%long, sr_table%trans
       enddo
     else
-      nl=nl+1; write (li(nl), *) 'Number of short-range wake table rows:', size(ele%wake%sr1)
+      nl=nl+1; write (li(nl), *) 'Number of short-range wake table rows:', size(ele%wake%sr_table)
     endif
   endif
 
-  if (size(ele%wake%sr2_long) /= 0) then
+  if (size(ele%wake%sr_mode_long) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
       nl=nl+1; li(nl) = 'Short-range pseudo modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
-      do i = 1, size(ele%wake%sr2_long)
-        sr2 => ele%wake%sr2_long(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr2%amp, sr2%damp, sr2%k, sr2%phi
+      do i = 1, size(ele%wake%sr_mode_long)
+        sr_mode => ele%wake%sr_mode_long(i)
+        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr_mode%amp, sr_mode%damp, sr_mode%k, sr_mode%phi
       enddo
     else
       nl=nl+1; write (li(nl), *) &
-                  'Number of short-range longitudinal pseudo modes:', size(ele%wake%sr2_long)
+                  'Number of short-range longitudinal pseudo modes:', size(ele%wake%sr_mode_long)
     endif
   endif
 
-  if (size(ele%wake%sr2_trans) /= 0) then
+  if (size(ele%wake%sr_mode_trans) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
       nl=nl+1; li(nl) = 'Short-range pseudo modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
-      do i = 1, size(ele%wake%sr2_trans)
-        sr2 => ele%wake%sr2_trans(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr2%amp, sr2%damp, sr2%k, sr2%phi
+      do i = 1, size(ele%wake%sr_mode_trans)
+        sr_mode => ele%wake%sr_mode_trans(i)
+        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr_mode%amp, sr_mode%damp, sr_mode%k, sr_mode%phi
       enddo
     else
       nl=nl+1; write (li(nl), *) &
-                'Number of short-range transitudinal pseudo-modes:', size(ele%wake%sr2_trans)
+                'Number of short-range transitudinal pseudo-modes:', size(ele%wake%sr_mode_trans)
     endif
   endif
 

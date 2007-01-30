@@ -7,8 +7,8 @@ use bmad_utils_mod
 interface assignment (=)
   module procedure ele_equal_ele
   module procedure ele_vec_equal_ele_vec
-  module procedure ring_equal_ring 
-  module procedure ring_vec_equal_ring_vec 
+  module procedure lat_equal_lat 
+  module procedure lat_vec_equal_lat_vec 
 !    module procedure coord_equal_coord
 end interface
 
@@ -113,14 +113,14 @@ subroutine ele_equal_ele (ele1, ele2)
     ele1%taylor(i) = ele2%taylor(i)      ! use overloaded taylor_equal_taylor
   enddo
 
-  if (associated(ele2%a)) then
-    ele1%a => ele_save%a   ! reinstate
-    ele1%b => ele_save%b   ! reinstate
+  if (associated(ele2%a_pole)) then
+    ele1%a_pole => ele_save%a_pole   ! reinstate
+    ele1%b_pole => ele_save%b_pole   ! reinstate
     call multipole_init (ele1)
-    ele1%a = ele2%a
-    ele1%b = ele2%b
+    ele1%a_pole = ele2%a_pole
+    ele1%b_pole = ele2%b_pole
   else
-    if (associated (ele_save%a)) deallocate (ele_save%a, ele_save%b)
+    if (associated (ele_save%a_pole)) deallocate (ele_save%a_pole, ele_save%b_pole)
   endif
 
   if (associated(ele2%descrip)) then
@@ -216,91 +216,91 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine ring_equal_ring (ring_out, ring_in)
+! Subroutine lat_equal_lat (lat_out, lat_in)
 !
-! Subroutine that is used to set one ring equal to another. 
-! This routine takes care of the pointers in ring_in. 
+! Subroutine that is used to set one lat equal to another. 
+! This routine takes care of the pointers in lat_in. 
 !
 ! Note: This subroutine is called by the overloaded equal sign:
-!		ring_out = ring_in
+!		lat_out = lat_in
 !
 ! Input:
-!   ring_in -- ring_struct: Input ring.
+!   lat_in -- lat_struct: Input lat.
 !
 ! Output:
-!   ring_out -- ring_struct: Output ring.
+!   lat_out -- lat_struct: Output lat.
 !-
 
-subroutine ring_equal_ring (ring_out, ring_in)
+subroutine lat_equal_lat (lat_out, lat_in)
 
   implicit none
 
-  type (ring_struct), intent(inout) :: ring_out
-  type (ring_struct), intent(in) :: ring_in
+  type (lat_struct), intent(inout) :: lat_out
+  type (lat_struct), intent(in) :: lat_in
 
   integer i, n
 
-! If ring_in has not been properly initialized then assume there is 
+! If lat_in has not been properly initialized then assume there is 
 ! a problem somewhere
 
-  if (.not. associated (ring_in%ele_)) then
-    print *, 'ERROR IN RING_EQUAL_RING: RING%ELE_(:) ON RHS NOT ASSOCIATED!'
+  if (.not. associated (lat_in%ele)) then
+    print *, 'ERROR IN lat_equal_lat: LAT%ele(:) ON RHS NOT ASSOCIATED!'
     call err_exit
   endif
 
-! resize %ele_ array if needed
+! resize %ele array if needed
 
-  if (ubound(ring_out%ele_, 1) < ubound(ring_in%ele_, 1)) &
-               call allocate_ring_ele_(ring_out, ubound(ring_in%ele_, 1))
+  if (ubound(lat_out%ele, 1) < ubound(lat_in%ele, 1)) &
+               call allocate_lat_ele(lat_out, ubound(lat_in%ele, 1))
   
-  do i = 0, ring_in%n_ele_max
-    ring_out%ele_(i) = ring_in%ele_(i)
+  do i = 0, lat_in%n_ele_max
+    lat_out%ele(i) = lat_in%ele(i)
   enddo
-  ring_out%ele_init = ring_in%ele_init
+  lat_out%ele_init = lat_in%ele_init
 
-! handle ring%control_ array
+! handle lat%control array
 
-  n = size(ring_in%control_)
-  if (associated (ring_in%control_)) then
-    if (associated(ring_out%control_)) then
-      if (size (ring_in%control_) < size (ring_out%control_)) then
-        ring_out%control_(1:n) = ring_in%control_(1:n)
+  n = size(lat_in%control)
+  if (associated (lat_in%control)) then
+    if (associated(lat_out%control)) then
+      if (size (lat_in%control) < size (lat_out%control)) then
+        lat_out%control(1:n) = lat_in%control(1:n)
       else
-        deallocate (ring_out%control_)
-        allocate (ring_out%control_(n))
-        ring_out%control_ = ring_in%control_
+        deallocate (lat_out%control)
+        allocate (lat_out%control(n))
+        lat_out%control = lat_in%control
       endif
     else
-      allocate (ring_out%control_(n))
-      ring_out%control_ = ring_in%control_
+      allocate (lat_out%control(n))
+      lat_out%control = lat_in%control
     endif
   else
-    if (associated(ring_out%control_)) deallocate (ring_out%control_)
+    if (associated(lat_out%control)) deallocate (lat_out%control)
   endif
 
-! handle ring%ic_ array
+! handle lat%ic array
 
-  n = size(ring_in%ic_)
-  if (associated (ring_in%ic_)) then
-    if (associated(ring_out%ic_)) then
-      if (size (ring_in%ic_) < size (ring_out%ic_)) then
-        ring_out%ic_(1:n) = ring_in%ic_(1:n)
+  n = size(lat_in%ic)
+  if (associated (lat_in%ic)) then
+    if (associated(lat_out%ic)) then
+      if (size (lat_in%ic) < size (lat_out%ic)) then
+        lat_out%ic(1:n) = lat_in%ic(1:n)
       else
-        deallocate (ring_out%ic_)
-        allocate (ring_out%ic_(n))
-        ring_out%ic_ = ring_in%ic_
+        deallocate (lat_out%ic)
+        allocate (lat_out%ic(n))
+        lat_out%ic = lat_in%ic
       endif
     else
-      allocate (ring_out%ic_(n))
-      ring_out%ic_ = ring_in%ic_
+      allocate (lat_out%ic(n))
+      lat_out%ic = lat_in%ic
     endif
   else
-    if (associated(ring_out%ic_)) deallocate (ring_out%ic_)
+    if (associated(lat_out%ic)) deallocate (lat_out%ic)
   endif
 
 ! non-pointer transfer
 
-  call transfer_ring_parameters (ring_in, ring_out)
+  call transfer_lat_parameters (lat_in, lat_out)
 
 end subroutine
 
@@ -308,41 +308,41 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine ring_vec_equal_ring_vec (ring1, ring2)
+! Subroutine lat_vec_equal_lat_vec (lat1, lat2)
 !
-! Subroutine that is used to set one ring vector equal to another. 
-! This routine takes care of the pointers in ring1. 
+! Subroutine that is used to set one lat vector equal to another. 
+! This routine takes care of the pointers in lat1. 
 !
 ! Note: This subroutine is called by the overloaded equal sign:
-!		ring1(:) = ring2(:)
+!		lat1(:) = lat2(:)
 !
 ! Input:
-!   ring2(:) -- Ring_struct: Input ring vector.
+!   lat2(:) -- lat_struct: Input lat vector.
 !
 ! Output:
-!   ring1(:) -- Ring_struct: Output ring vector.
+!   lat1(:) -- lat_struct: Output lat vector.
 !-
 
-subroutine ring_vec_equal_ring_vec (ring1, ring2)
+subroutine lat_vec_equal_lat_vec (lat1, lat2)
 
   implicit none
 	
-  type (ring_struct), intent(inout) :: ring1(:)
-  type (ring_struct), intent(in) :: ring2(:)
+  type (lat_struct), intent(inout) :: lat1(:)
+  type (lat_struct), intent(in) :: lat2(:)
 
   integer i
 
 ! error check
 
-  if (size(ring1) /= size(ring2)) then
-    print *, 'ERROR IN RING_VEC_EQUAL_RING_VEC: ARRAY SIZES ARE NOT THE SAME!'
+  if (size(lat1) /= size(lat2)) then
+    print *, 'ERROR IN lat_vec_equal_lat_vec: ARRAY SIZES ARE NOT THE SAME!'
     call err_exit
   endif
 
 ! transfer
 
-  do i = 1, size(ring1)
-    call ring_equal_ring (ring1(i), ring2(i))
+  do i = 1, size(lat1)
+    call lat_equal_lat (lat1(i), lat2(i))
   enddo
 
 end subroutine

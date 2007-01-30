@@ -14,7 +14,7 @@
 ! Input:
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element
-!   param  -- Param_struct:
+!   param  -- lat_param_struct:
 !
 ! Output:
 !   end    -- Coord_struct: End position
@@ -33,7 +33,7 @@ subroutine track1_wiedemann_wiggler (start, ele, param, end)
 
   type (coord_struct)  start, end
   type (ele_struct)  ele
-  type (param_struct)  param
+  type (lat_param_struct)  param
 
   real(rp) length, k_z, factor, dx, l_start, l_end
   real(rp) const1, const3, l_period, l_bend, l_drift, rho_bend, angle
@@ -59,9 +59,9 @@ subroutine track1_wiedemann_wiggler (start, ele, param, end)
 
 ! normal case of wiggler on.
 ! l_original is the original length of the wiggler if the wiggler
-! has been split into pieces by split_ring.
+! has been split into pieces by split_lat.
 ! l_start & l_end are the starting and stopping points for the tracking
-! (these have been set by split_ring).
+! (these have been set by split_lat).
 
   call offset_particle (ele, param, end, set$, set_multipoles=.false.)
              

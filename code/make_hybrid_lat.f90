@@ -1,13 +1,13 @@
 !+
-! Subroutine make_hybrid_ring (ring_in, keep_ele,
-!                    remove_markers, ring_out, ix_out, use_taylor, orb0_)
+! Subroutine make_hybrid_lat (lat_in, keep_ele,
+!                    remove_markers, lat_out, ix_out, use_taylor, orb0)
 !
-! Subroutine to concatinate together the elements in a ring to make
-! a ring with fewer elements. This is used to speed up computation times.
-! The concatinated elements in the new ring are known as hybrid elements.
+! Subroutine to concatinate together the elements in a lat to make
+! a lat with fewer elements. This is used to speed up computation times.
+! The concatinated elements in the new lat are known as hybrid elements.
 !
-! Note: For hybrid elements ring_out%ele_(i)%tracking_method and 
-! ring_out%ele_(i)%mat6_calc_method are set as follows:
+! Note: For hybrid elements lat_out%ele(i)%tracking_method and 
+! lat_out%ele(i)%mat6_calc_method are set as follows:
 !
 !   use_taylor    tracking_method     mat6_calc_method
 !   ----------    ---------------     ----------------  
@@ -15,49 +15,49 @@
 !   True          taylor$             taylor$
 !
 ! Note: For use_taylor = .false. You need to have made the 
-! ring_in%ele_()%mat6 matrices before you call this routine.
+! lat_in%ele()%mat6 matrices before you call this routine.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ring_in        -- Ring_struct: Input ring.
-!   keep_ele(ring%n_ele_max) 
+!   lat_in        -- lat_struct: Input lat.
+!   keep_ele(lat%n_ele_max) 
 !                  -- Logical array: keep_ele(I) = True indicates an element
 !                        that is NOT to be concatenated. That is, there will be
-!                        a corresponding element in ring_out.
+!                        a corresponding element in lat_out.
 !   remove_markers -- Logical: If .true. then marker elements in keep_ele
-!                        are removed from RING_OUT. In this case IX_OUT
+!                        are removed from LAT_OUT. In this case IX_OUT
 !                        points to the element before the marker
-!   ring_out       -- Ring_struct: Ring with hybrid elements.
+!   lat_out       -- lat_struct: Lat with hybrid elements.
 !   use_taylor     -- Logical, optional: If present and True then the
 !                        hybrid elements will have a taylor series 
 !                        instead of a simple linear matrix. If an element to
 !                        be concatenated has a taylor series then this taylor
 !                        series will be concatenated with the other elements
 !                        in the hybrid element. 
-!   orb0_(0:)      -- Coord_struct, optional: Central orbit for taylor stuff.
+!   orb0(0:)      -- Coord_struct, optional: Central orbit for taylor stuff.
 !
 ! Output:
-!   ring_out  -- Ring_struct. Ring with hybrid elements.
-!   ix_out(ring%n_ele_max) 
-!             -- Integer array. Ix_out(i) is the index for ring_in%ele_(i) 
-!                of the corresponding element in ring_out%ele(). 
-!                ix_out(i) set to 0 if ring_in%ele_(i) is concatenated.
+!   lat_out  -- lat_struct. Lat with hybrid elements.
+!   ix_out(lat%n_ele_max) 
+!             -- Integer array. Ix_out(i) is the index for lat_in%ele(i) 
+!                of the corresponding element in lat_out%ele(). 
+!                ix_out(i) set to 0 if lat_in%ele(i) is concatenated.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
-                                       r_out, ix_out, use_taylor, orb0_)
+subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
+                                       r_out, ix_out, use_taylor, orb0)
 
-  use ptc_interface_mod, except => make_hybrid_ring
+  use ptc_interface_mod, except => make_hybrid_lat
   use bmad_utils_mod
 
   implicit none
 
-  type (ring_struct), target :: r_in, r_out
-  type (coord_struct), optional, volatile :: orb0_(0:)
+  type (lat_struct), target :: r_in, r_out
+  type (coord_struct), optional, volatile :: orb0(0:)
   type (coord_struct) c0, c2
   type (ele_struct), pointer :: ele_in, ele_out
 
@@ -65,7 +65,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
   integer j_in, i_out, ix_out(:), k, n
   integer n_ele, j, ix, ic, o_key, n_con, n_ic
-  integer, allocatable, save :: ic_(:)
+  integer, allocatable, save :: ica(:)
 
   logical init_hybrid_needed, remove_markers, keep_ele(:)
   logical z_decoupled, do_taylor
@@ -74,7 +74,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 ! Init
 
   n = count(keep_ele(1:r_in%n_ele_max))
-  call init_ring (r_out, n+100)
+  call init_lat (r_out, n+100)
 
   if (present(use_taylor)) then
     do_taylor = use_taylor
@@ -82,28 +82,28 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
     do_taylor = .false.
   endif
 
-  if (all(r_in%ele_(1:r_in%n_ele_use)%mat6(6,5) == 0) .and. &
+  if (all(r_in%ele(1:r_in%n_ele_track)%mat6(6,5) == 0) .and. &
                                                   .not. do_taylor) then
     z_decoupled = .true.
   else
     z_decoupled = .false.
   endif
 
-  i_out = 0                        ! index for current out ring
-  r_out%ele_(0) = r_in%ele_(0)     !
-  init_hybrid_needed = .true.         ! we need to init out ring element
+  i_out = 0                        ! index for current out lat
+  r_out%ele(0) = r_in%ele(0)     !
+  init_hybrid_needed = .true.         ! we need to init out lat element
 
-  n_ele = r_in%n_ele_use
+  n_ele = r_in%n_ele_track
   if (n_ele == 0) then
-    print *, 'ERROR IN MAKE_HYBRID_RING: RING_IN%N_ELE_USE = 0!'
+    print *, 'ERROR IN make_hybrid_lat: LAT_IN%n_ele_track = 0!'
     call err_exit
   endif
 
-! loop over all in ring elements
+! loop over all in lat elements
 
   do j_in = 1, n_ele
 
-    ele_in => r_in%ele_(j_in)
+    ele_in => r_in%ele(j_in)
 
 ! if a match...
 
@@ -122,8 +122,8 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
         ix_out(j_in) = i_out
       else
         i_out = i_out + 1                     ! starting next element
-        if (i_out > ubound(r_out%ele_, 1)) call allocate_ring_ele_(r_out)
-        ele_out => r_out%ele_(i_out)
+        if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out)
+        ele_out => r_out%ele(i_out)
         ele_out = ele_in   ! single element
         ix_out(j_in) = i_out
       endif
@@ -140,8 +140,8 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
       if (init_hybrid_needed) then
         i_out = i_out + 1                       ! starting next element
-        if (i_out > ubound(r_out%ele_, 1)) call allocate_ring_ele_(r_out)
-        ele_out => r_out%ele_(i_out)
+        if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out)
+        ele_out => r_out%ele(i_out)
         ele_out = ele_in
         ele_out%control_type = free$
         ele_out%n_slave = 0
@@ -153,8 +153,8 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
         ele_out%tracking_method = linear$
         ele_out%mat6_calc_method = none$
 
-        if (present (orb0_)) then
-          c0 = orb0_(j_in)
+        if (present (orb0)) then
+          c0 = orb0(j_in)
         else
           c0%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
         endif
@@ -215,16 +215,16 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
           ele_out%key = hybrid$
         endif
 
-        ele_out%x       = ele_in%x
-        ele_out%y       = ele_in%y
+        ele_out%a       = ele_in%a
+        ele_out%b       = ele_in%b
         ele_out%c_mat   = ele_in%c_mat
         ele_out%gamma_c = ele_in%gamma_c
 
       endif
 
       if (ele_out%key == hybrid$ .and. .not. do_taylor) then
-        if (present(orb0_)) then
-          ele_out%vec0 = orb0_(j_in)%vec - matmul(ele_out%mat6, c0%vec)
+        if (present(orb0)) then
+          ele_out%vec0 = orb0(j_in)%vec - matmul(ele_out%mat6, c0%vec)
         else
           ele_out%vec0 = 0
         endif
@@ -239,18 +239,18 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
   if (ele_out%key == hybrid$ .and. z_decoupled)  &
                           call mat6_dispersion (e_vec, ele_out%mat6)
 
-  call transfer_ring_parameters (r_in, r_out)
-  r_out%n_ele_use  = i_out
-  r_out%n_ele_ring = i_out
+  call transfer_lat_parameters (r_in, r_out)
+  r_out%n_ele_track  = i_out
+  r_out%n_ele_track = i_out
 
 ! put control elements in
 
-  do j_in = r_in%n_ele_use+1, r_in%n_ele_max
-    ele_in => r_in%ele_(j_in)    
+  do j_in = r_in%n_ele_track+1, r_in%n_ele_max
+    ele_in => r_in%ele(j_in)    
     if (keep_ele(j_in)) then
       i_out = i_out + 1
-      if (i_out > ubound(r_out%ele_, 1)) call allocate_ring_ele_(r_out)
-      ele_out => r_out%ele_(i_out)
+      if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out)
+      ele_out => r_out%ele(i_out)
       ix_out(j_in) = i_out
       ele_out = ele_in
     endif
@@ -261,31 +261,31 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
   n_con = 0
   n_ic = 0
-  allocate (ic_(size(r_in%control_)))
+  allocate (ica(size(r_in%control)))
 
   do i_out = 1, r_out%n_ele_max
 
-    ele_out => r_out%ele_(i_out)
+    ele_out => r_out%ele(i_out)
     if (ele_out%n_slave == 0) cycle
 
     n_con = n_con + ele_out%n_slave
-    if (n_con > size(r_out%control_)) &
-        r_out%control_ => reallocate_control_(r_out%control_, n_con + 500)
+    if (n_con > size(r_out%control)) &
+        r_out%control => reallocate_control(r_out%control, n_con + 500)
 
     do j = ele_out%ix1_slave, ele_out%ix2_slave
       k = n_con + j - ele_out%ix2_slave
-      ic_(j) = k
-      ix = r_in%control_(j)%ix_slave
+      ica(j) = k
+      ix = r_in%control(j)%ix_slave
       if (ix_out(ix) == 0) then
-        r_out%control_(k)%ix_lord = i_out
-        r_out%control_(k)%ix_slave = ubound(r_out%ele_, 1) ! point to dummy ele
-        r_out%control_(k)%ix_attrib = -1
-        r_out%control_(k)%coef = 0
+        r_out%control(k)%ix_lord = i_out
+        r_out%control(k)%ix_slave = ubound(r_out%ele, 1) ! point to dummy ele
+        r_out%control(k)%ix_attrib = -1
+        r_out%control(k)%coef = 0
       else
-        r_out%control_(k)%ix_lord = i_out
-        r_out%control_(k)%ix_slave = ix_out(ix)
-        r_out%control_(k)%ix_attrib = r_in%control_(j)%ix_attrib
-        r_out%control_(k)%coef = r_in%control_(j)%coef
+        r_out%control(k)%ix_lord = i_out
+        r_out%control(k)%ix_slave = ix_out(ix)
+        r_out%control(k)%ix_attrib = r_in%control(j)%ix_attrib
+        r_out%control(k)%coef = r_in%control(j)%coef
       endif
     enddo
 
@@ -296,25 +296,25 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
   r_out%n_control_max = n_con
 
-! correct r_out%ic_ array
+! correct r_out%ic array
 
   n_ic = 0
-  call re_associate (r_out%ic_, size(r_out%control_))
+  call re_associate (r_out%ic, size(r_out%control))
 
   do i_out = 1, r_out%n_ele_max
     
-    ele_out => r_out%ele_(i_out)
+    ele_out => r_out%ele(i_out)
     if (ele_out%n_lord == 0) cycle
 
     n_ic = n_ic + ele_out%n_lord
 
     do j = ele_out%ic1_lord, ele_out%ic2_lord
       k = n_ic + j - ele_out%ic2_lord
-      r_out%ic_(k) = ic_(r_in%ic_(j))
-      ic = r_out%ic_(k)
-      ix = r_in%control_(ic)%ix_lord
+      r_out%ic(k) = ica(r_in%ic(j))
+      ic = r_out%ic(k)
+      ix = r_in%control(ic)%ix_lord
       if (ix == 0) then
-        print *, 'WARNING IN MAKE_HYBRID_RING: LORD ELEMENT ',  &
+        print *, 'WARNING IN make_hybrid_lat: LORD ELEMENT ',  &
                     'LIST NOT COMPLETE FOR: ', ele_out%name
       endif
     enddo
@@ -325,17 +325,17 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
   enddo
 
   r_out%n_ic_max = n_ic
-  deallocate (ic_)
+  deallocate (ica)
 
 ! end
 
-  if (r_out%n_ele_use == 0) then
-    print *, 'ERROR IN MAKE_HYBRID_RING: OUTPUT RING HAS 0 ELEMENTS!'
+  if (r_out%n_ele_track == 0) then
+    print *, 'ERROR IN make_hybrid_lat: OUTPUT LAT HAS 0 ELEMENTS!'
     call err_exit
   endif
 
   r_out%ele_init = r_in%ele_init
 
-  call check_ring_controls (r_out, .false.)
+  call check_lat_controls (r_out, .false.)
 
 end subroutine

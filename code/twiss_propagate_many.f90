@@ -1,11 +1,11 @@
 !+
-! Subroutine twiss_propagate_many (ring, ix_start, ix_end, direction)
+! Subroutine twiss_propagate_many (lat, ix_start, ix_end, direction)
 !
 ! Subroutine to propagate the Twiss parameters from one point in the 
-! ring to another.
+! lat to another.
 !
-! Note: ring%ele_()%x Twiss parameters are associated with the "A" mode and
-! the ring%ele_()%y Twiss parameters are associated with the "B" mode.
+! Note: lat%ele()%a Twiss parameters are associated with the "A" mode and
+! the lat%ele()%b Twiss parameters are associated with the "B" mode.
 !
 ! Note: Starting and ending points are just after the elements with index
 !   IX_START and IX_END. For example, if DIRECTION = +1 then the first element
@@ -13,14 +13,14 @@
 !   element propagateed through is element ix_start.
 !
 ! Note: If needed the subroutine will propagate through from the end of the 
-!   ring to the beginning (or vice versa) to get to the end point.
+!   lat to the beginning (or vice versa) to get to the end point.
 !   Also: If IX_START = IX_END then the subroutine will propagate 1 full turn.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   ring             -- Ring_struct: Ring to propagate through.
+!   lat             -- lat_struct: Lat to propagate through.
 !   ix_start         -- Integer: Start index (See Note).
 !   ix_end           -- Integer: End index (See Note).
 !   direction        -- Integer: Direction to propagate.
@@ -31,23 +31,23 @@
 !       %exit_on_error -- If True then stop if there is an error.
 !
 ! Output:
-!   ring          -- Ring_struct:
-!     %ele_(i)%x       -- X Twiss for i^th element.
-!     %ele_(i)%y       -- Y Twiss for i^th element.
-!     %ele_(i)%c_mat   -- C coupling matrix for i^th element.
-!     %ele_(i)%gamma_c -- Coupling gamma factor for i^th element.
+!   lat          -- lat_struct:
+!     %ele(i)%a       -- X Twiss for i^th element.
+!     %ele(i)%b       -- Y Twiss for i^th element.
+!     %ele(i)%c_mat   -- C coupling matrix for i^th element.
+!     %ele(i)%gamma_c -- Coupling gamma factor for i^th element.
 !   bmad_status -- Common block status structure:
 !       %ok         -- Set False if an input beta is zero. True otherwise
 !-
 
-subroutine twiss_propagate_many (ring, ix_start, ix_end, direction)
+subroutine twiss_propagate_many (lat, ix_start, ix_end, direction)
 
   use bmad_struct
   use bmad_interface, except => twiss_propagate_many
 
   implicit none
 
-  type (ring_struct) :: ring
+  type (lat_struct) :: lat
 
   integer, intent(in) :: ix_start, ix_end, direction
   integer i
@@ -62,26 +62,26 @@ subroutine twiss_propagate_many (ring, ix_start, ix_end, direction)
 
     if (ix_start < ix_end) then
       do i = ix_start, ix_end-1
-        call twiss_propagate1 (ring%ele_(i), ring%ele_(i+1))
+        call twiss_propagate1 (lat%ele(i), lat%ele(i+1))
         if (.not. bmad_status%ok) return
       enddo
       return
     endif
 
-    do i = ix_start, ring%n_ele_use - 1
-      call twiss_propagate1 (ring%ele_(i), ring%ele_(i+1))
+    do i = ix_start, lat%n_ele_track - 1
+      call twiss_propagate1 (lat%ele(i), lat%ele(i+1))
       if (.not. bmad_status%ok) return
     enddo
 
     if (ix_start /= 0) then
-      ring%ele_(0)%x       = ring%ele_(ring%n_ele_use)%x
-      ring%ele_(0)%y       = ring%ele_(ring%n_ele_use)%y
-      ring%ele_(0)%c_mat   = ring%ele_(ring%n_ele_use)%c_mat
-      ring%ele_(0)%gamma_c = ring%ele_(ring%n_ele_use)%gamma_c
+      lat%ele(0)%a       = lat%ele(lat%n_ele_track)%a
+      lat%ele(0)%b       = lat%ele(lat%n_ele_track)%b
+      lat%ele(0)%c_mat   = lat%ele(lat%n_ele_track)%c_mat
+      lat%ele(0)%gamma_c = lat%ele(lat%n_ele_track)%gamma_c
     endif
 
     do i = 0, ix_end-1
-      call twiss_propagate1 (ring%ele_(i), ring%ele_(i+1))
+      call twiss_propagate1 (lat%ele(i), lat%ele(i+1))
       if (.not. bmad_status%ok) return
     enddo
 

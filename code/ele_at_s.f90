@@ -3,7 +3,7 @@
 !
 ! Subroutine to return the index of the element at position s.
 ! That is, ix_ele is choisen such that:
-!     lat%ele_(ix_ele-1)%s < s <= lat%ele_(ix_ele)%s
+!     lat%ele(ix_ele-1)%s < s <= lat%ele(ix_ele)%s
 !
 ! Note: For a circular lattice s is evaluated modulo the 
 ! lattice length:
@@ -13,7 +13,7 @@
 !   use bmad
 !
 ! Input:
-!   lat -- Ring_struct: Lattice of elements.
+!   lat -- lat_struct: Lattice of elements.
 !   s   -- Real(rp): Longitudinal position.
 !
 ! Output:
@@ -26,7 +26,7 @@ subroutine ele_at_s (lat, s, ix_ele)
 
   implicit none
 
-  type (ring_struct) lat
+  type (lat_struct) lat
   real(rp) s, ss, ll
   integer ix_ele, n1, n2, n3
   character(16) :: r_name = 'ele_at_s'
@@ -36,17 +36,17 @@ subroutine ele_at_s (lat, s, ix_ele)
   ll = lat%param%total_length
 
   if (lat%param%lattice_type == circular_lattice$) then
-    ss = s - ll * floor((s-lat%ele_(0)%s)/ll)
+    ss = s - ll * floor((s-lat%ele(0)%s)/ll)
   else
     ss = s
-    if (s < lat%ele_(0)%s .or. s > lat%ele_(lat%n_ele_use)%s) then
+    if (s < lat%ele(0)%s .or. s > lat%ele(lat%n_ele_track)%s) then
       call out_io (s_fatal$, r_name, 'S POSITION OUT OF BOUNDS \f10.2\ ' , s)
       call err_exit
     endif
   endif
 
   n1 = 0
-  n3 = lat%n_ele_use
+  n3 = lat%n_ele_track
 
   do
 
@@ -57,7 +57,7 @@ subroutine ele_at_s (lat, s, ix_ele)
 
     n2 = (n1 + n3) / 2
 
-    if (ss < lat%ele_(n2)%s) then
+    if (ss < lat%ele(n2)%s) then
       n3 = n2
     else
       n1 = n2

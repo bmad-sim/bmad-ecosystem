@@ -35,7 +35,7 @@ contains
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field_standard
-!   param   -- Param_struct: Beam parameters.
+!   param   -- lat_param_struct: Beam parameters.
 !     %enegy       -- Energy in GeV
 !     %particle    -- Particle type [positron$, or electron$]
 !   s1      -- Real: Starting point.
@@ -64,7 +64,7 @@ subroutine odeint_bmad (start, ele, param, end, &
   type (coord_struct), intent(in) :: start
   type (coord_struct), intent(out) :: end
   type (ele_struct) ele
-  type (param_struct) param
+  type (lat_param_struct) param
   type (track_struct) track
 
   real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
@@ -145,7 +145,7 @@ subroutine rkqs_bmad (ele, param, r, dr_ds, s, h_try, rel_tol, abs_tol, &
   implicit none
 
   type (ele_struct) ele
-  type (param_struct) param
+  type (lat_param_struct) param
 
   real(rp), intent(inout) :: r(6)
   real(rp), intent(in)    :: dr_ds(6), r_scal(6)
@@ -202,7 +202,7 @@ subroutine rkck_bmad (ele, param, r, dr_ds, s, h, r_out, r_err)
 	implicit none
 
   type (ele_struct) ele
-  type (param_struct) param
+  type (lat_param_struct) param
 
 	real(rp), intent(in) :: r(6), dr_ds(6)
 	real(rp), intent(in) :: s, h

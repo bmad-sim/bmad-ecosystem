@@ -1,5 +1,5 @@
 !+
-! Subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, 
+! Subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, 
 !                                 digested_file_name, digested_read_ok)
 !
 ! Subroutine parse (read in) a BMAD input file.
@@ -26,9 +26,9 @@
 !
 ! Input:
 !   lat_file    -- Character(*): Input file name
-!   lat         -- Ring_struct: lattice with existing layout.
-!   orbit_(0:)  -- Coord_struct, optional: closed orbit for when
-!                           bmad_parser2 calls ring_make_mat6
+!   lat         -- lat_struct: lattice with existing layout.
+!   orbit(0:)  -- Coord_struct, optional: closed orbit for when
+!                           bmad_parser2 calls lat_make_mat6
 !   make_mats6  -- Logical, optional: Make the 6x6 transport matrices for then
 !                   Elements? Default is True.
 !   digested_file_name 
@@ -39,24 +39,24 @@
 !                           successfully read. False otherwise.
 !
 ! Output:
-!   lat    -- Ring_struct: lattice with modifications.
+!   lat    -- lat_struct: lattice with modifications.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
+subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
                                            digested_file_name, digested_read_ok)
 
   use bmad_parser_mod, except => bmad_parser2
 
   implicit none
     
-  type (ring_struct), target :: lat
-  type (ring_struct), save :: lat2
+  type (lat_struct), target :: lat
+  type (lat_struct), save :: lat2
   type (ele_struct), pointer :: ele
   type (ele_struct), target, save :: beam_ele, param_ele, beam_start_ele
-  type (coord_struct), optional :: orbit_(0:)
-  type (parser_ring_struct) plat
+  type (coord_struct), optional :: orbit(0:)
+  type (parser_lat_struct) plat
   type (ele_struct), allocatable, save :: old_ele(:) 
 
   integer ix_word, i, ix, last_con, ixx, ele_num
@@ -89,7 +89,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
 
   last_con = 0
 
-  call allocate_pring (lat, plat)
+  call allocate_plat (lat, plat)
 
   call init_ele(beam_ele)
   beam_ele%name = 'BEAM'              ! fake beam element
@@ -102,7 +102,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
   param_ele%name = 'PARAMETER'
   param_ele%key = def_parameter$
   param_ele%value(lattice_type$) = lat%param%lattice_type
-  param_ele%value(beam_energy$)  = 0
+  param_ele%value(E_TOT$)  = 0
   param_ele%value(taylor_order$) = lat%input_taylor_order
   param_ele%value(n_part$)       = lat%param%n_part
 
@@ -119,11 +119,11 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
     call read_digested_bmad_file (digested_name, lat2, digested_version)
     if (bmad_status%ok) then
       lat = lat2
-      call deallocate_ring_pointers (lat2)
+      call deallocate_lat_pointers (lat2)
       return
     endif
     call save_taylor_elements (lat2, old_ele)
-    call deallocate_ring_pointers (lat2)
+    call deallocate_lat_pointers (lat2)
     bp_com%write_digested = .true.
     if (bmad_status%type_out) &
              call out_io (s_info$, r_name, 'Creating new digested file...')
@@ -258,15 +258,15 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
       ! find associated element and evaluate the attribute value
 
       do i = 0, n_max
-        if (lat%ele_(i)%name == word_1 .or. &
-                          key_name(lat%ele_(i)%key) == word_1) then
+        if (lat%ele(i)%name == word_1 .or. &
+                          key_name(lat%ele(i)%key) == word_1) then
           bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
           if (found) then   ! if not first time
             bp_com%parse_line = parse_line_save
           else
             parse_line_save = bp_com%parse_line
           endif
-          call get_attribute (redef$, lat%ele_(i), lat, plat, &
+          call get_attribute (redef$, lat%ele(i), lat, plat, &
                                                delim, delim_found, err_flag)
           if (delim_found) call warning ('BAD DELIMITER: ' // delim, ' ')
           found = .true.
@@ -277,8 +277,8 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
       ! element was just not used in the lattice. If so then just ignore it.
       if (.not. found) then
         if (bp_com%bmad_parser_calling) then
-          do i = 0, bp_com%old_ring%n_ele_max
-            if (bp_com%old_ring%ele_(i)%name == word_1) then
+          do i = 0, bp_com%old_lat%n_ele_max
+            if (bp_com%old_lat%ele(i)%name == word_1) then
               bp_com%parse_line = ' '  ! discard rest of statement
               cycle parsing_loop       ! goto next statement
             endif
@@ -326,18 +326,18 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
     else
 
       n_max = n_max + 1
-      if (n_max > ubound(lat%ele_, 1)) then
-        call allocate_ring_ele_(lat)
-        call allocate_pring (lat, plat)
+      if (n_max > ubound(lat%ele, 1)) then
+        call allocate_lat_ele(lat)
+        call allocate_plat (lat, plat)
       endif
 
-      lat%ele_(n_max)%name = word_1
+      lat%ele(n_max)%name = word_1
       last_con = last_con + 1     ! next free slot
-      lat%ele_(n_max)%ixx = last_con
+      lat%ele(n_max)%ixx = last_con
 
       do i = 1, n_max-1
-        if (lat%ele_(n_max)%name == lat%ele_(i)%name) then
-          call warning ('DUPLICATE ELEMENT NAME ' // lat%ele_(n_max)%name, ' ')
+        if (lat%ele(n_max)%name == lat%ele(i)%name) then
+          call warning ('DUPLICATE ELEMENT NAME ' // lat%ele(n_max)%name, ' ')
           exit
         endif
       enddo
@@ -348,20 +348,20 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
 
       do i = 1, n_key
         if (word_2(:ix_word) == key_name(i)(:ix_word)) then
-          lat%ele_(n_max)%key = i
-          call preparse_element_init (lat%ele_(n_max))
+          lat%ele(n_max)%key = i
+          call preparse_element_init (lat%ele(n_max))
           found = .true.
           exit
         endif
       enddo
 
-! check if element part of a element class
+! check if element part of a element key
 
       if (.not. found) then
         do i = 1, n_max-1
-          if (word_2 == lat%ele_(i)%name) then
-            lat%ele_(n_max) = lat%ele_(i)
-            lat%ele_(n_max)%name = word_1
+          if (word_2 == lat%ele(i)%name) then
+            lat%ele(n_max) = lat%ele(i)
+            lat%ele(n_max)%name = word_1
             found = .true.
             exit
           endif
@@ -372,31 +372,31 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
 
       if (.not. found) then
         call warning ('KEY NAME NOT RECOGNIZED: ' // word_2,  &
-                       'FOR ELEMENT: ' // lat%ele_(n_max)%name)
-        lat%ele_(n_max)%key = 1       ! dummy value
+                       'FOR ELEMENT: ' // lat%ele(n_max)%name)
+        lat%ele(n_max)%key = 1       ! dummy value
       endif
 
 ! now get the attribute values.
-! For control elements lat%ELE_()%IXX temporarily points to
+! For control elements lat%ele()%IXX temporarily points to
 ! the plat structure where storage for the control lists is
                    
-      call parser_set_ele_defaults (lat%ele_(n_max))
+      call parser_set_ele_defaults (lat%ele(n_max))
 
-      key = lat%ele_(n_max)%key
+      key = lat%ele(n_max)%key
       if (key == overlay$ .or. key == group$ .or. key == i_beam$) then
         if (delim /= '=') then
           call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
-                      'FOR ELEMENT: ' // lat%ele_(n_max)%name)
+                      'FOR ELEMENT: ' // lat%ele(n_max)%name)
         else
-          if (key == overlay$) lat%ele_(n_max)%control_type = overlay_lord$
-          if (key == group$)   lat%ele_(n_max)%control_type = group_lord$
-          if (key == i_beam$)  lat%ele_(n_max)%control_type = i_beam_lord$
-          call get_overlay_group_names(lat%ele_(n_max), lat,  &
+          if (key == overlay$) lat%ele(n_max)%control_type = overlay_lord$
+          if (key == group$)   lat%ele(n_max)%control_type = group_lord$
+          if (key == i_beam$)  lat%ele(n_max)%control_type = i_beam_lord$
+          call get_overlay_group_names(lat%ele(n_max), lat,  &
                                               plat, delim, delim_found)
         endif
         if (key /= i_beam$ .and. .not. delim_found) then
           call warning ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
-                        'FOR ELEMENT: ' // lat%ele_(n_max)%name)
+                        'FOR ELEMENT: ' // lat%ele(n_max)%name)
           n_max = n_max - 1
           cycle parsing_loop
         endif
@@ -408,11 +408,11 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
           parsing = .false.           ! break loop
         elseif (delim /= ',') then
           call warning ('EXPECTING: "," BUT GOT: ' // delim,  &
-                        'FOR ELEMENT: ' // lat%ele_(n_max)%name)
+                        'FOR ELEMENT: ' // lat%ele(n_max)%name)
           n_max = n_max - 1
           cycle parsing_loop
         else
-          call get_attribute (def$, lat%ele_(n_max), &
+          call get_attribute (def$, lat%ele(n_max), &
                                   lat, plat, delim, delim_found, err_flag)
           if (err_flag) then
             n_max = n_max - 1
@@ -424,7 +424,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
 ! Element must be a group, overlay, or superimpose element
 
       if (key /= overlay$ .and. key /= group$ .and. &
-              lat%ele_(n_max)%control_type /= super_lord$) then
+              lat%ele(n_max)%control_type /= super_lord$) then
         call warning ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  &
                                              'OR GROUP: ' // word_1, ' ')
         n_max = n_max - 1
@@ -445,9 +445,9 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
   lat%input_taylor_order = nint(param_ele%value(taylor_order$))
 
   if (beam_ele%value(energy_gev$) /= 0) then
-    lat%ele_(0)%value(beam_energy$) = beam_ele%value(energy_gev$) * 1e9
-  elseif (param_ele%value(beam_energy$) /= 0) then
-    lat%ele_(0)%value(beam_energy$) = param_ele%value(beam_energy$)
+    lat%ele(0)%value(E_TOT$) = beam_ele%value(energy_gev$) * 1e9
+  elseif (param_ele%value(E_TOT$) /= 0) then
+    lat%ele(0)%value(E_TOT$) = param_ele%value(E_TOT$)
   endif
 
   if (lat%param%n_part /= param_ele%value(n_part$)) then
@@ -459,14 +459,14 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
 ! Transfer the new elements to a safe_place
 
   ele_num = n_max - n_max_old
-  allocate (lat2%ele_(1:ele_num))
-  lat2%ele_(1:ele_num) = lat%ele_(n_max_old+1:n_max)
+  allocate (lat2%ele(1:ele_num))
+  lat2%ele(1:ele_num) = lat%ele(n_max_old+1:n_max)
   n_max = n_max_old
 
 ! Do bookkeeping for settable dependent variables.
 
   do i = 1, ele_num
-    ele => lat2%ele_(i)
+    ele => lat2%ele(i)
     call settable_dep_var_bookkeeping (ele)
   enddo
 
@@ -474,7 +474,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
 ! First put in superimpose elements
 
   do i = 1, ele_num
-    ele => lat2%ele_(i)
+    ele => lat2%ele(i)
     if (ele%control_type /= super_lord$) cycle
 
     select case (ele%key)
@@ -505,9 +505,9 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
   call compute_reference_energy (lat, .true.)
   doit = .true.
   if (present(make_mats6)) doit = make_mats6
-  if (doit) call ring_make_mat6(lat, -1, orbit_)  ! make transport matrices
+  if (doit) call lat_make_mat6(lat, -1, orbit)  ! make transport matrices
   call s_calc (lat)                       ! calc loginitudinal distances
-  call ring_geometry (lat)                ! lat layout
+  call lat_geometry (lat)                ! lat layout
 
 !-----------------------------------------------------------------------------
 ! error check
@@ -517,20 +517,20 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
     stop
   endif
 
-  call check_ring_controls (lat, .true.)
+  call check_lat_controls (lat, .true.)
 
   do i = lbound(plat%ele, 1) , ubound(plat%ele, 1)
-    if (associated (plat%ele(i)%name_)) then
-      deallocate(plat%ele(i)%name_)
-      deallocate(plat%ele(i)%attrib_name_)
-      deallocate(plat%ele(i)%coef_)
+    if (associated (plat%ele(i)%name)) then
+      deallocate(plat%ele(i)%name)
+      deallocate(plat%ele(i)%attrib_name)
+      deallocate(plat%ele(i)%coef)
     endif
   enddo
 
   if (associated (plat%ele))        deallocate (plat%ele)
 
-  do i = 1, size(lat2%ele_)
-    call deallocate_ele_pointers (lat2%ele_(i))
+  do i = 1, size(lat2%ele)
+    call deallocate_ele_pointers (lat2%ele(i))
   enddo
 
 ! write to digested file

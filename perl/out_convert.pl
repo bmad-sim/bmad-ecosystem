@@ -7,9 +7,21 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/map_no_offsets/map_with_offsets/g;
-    s/MAP_NO_OFFSETS/MAP_WITH_OFFSETS/g;
-    s/exact_rad_int_calc/map_with_offsets/g;
+    s/etap_x/etap_a/g;
+    s/Etap_x/Etap_a/g;
+    s/ETAP_X/ETAP_A/g;
+
+    s/etap_y/etap_b/g;
+    s/Etap_y/Etap_b/g;
+    s/ETAP_Y/ETAP_B/g;
+
+    s/phi_x/phi_a/g;
+    s/Phi_x/Phi_a/g;
+    s/PHI_X/PHI_A/g;
+
+    s/phi_y/phi_b/g;
+    s/Phi_y/Phi_b/g;
+    s/PHI_Y/PHI_B/g;
 
     {print (F_OUT);}
 

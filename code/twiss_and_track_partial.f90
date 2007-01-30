@@ -21,7 +21,7 @@
 !   ele1      -- Ele_struct: Structure holding the starting Twiss parameters.
 !   ele2      -- Ele_struct: Element to partially track through.
 !   del_s     -- Real(rp): length to propagate.
-!   param     -- Param_struct:
+!   param     -- lat_param_struct:
 !   start     -- Coord_struct, optional: Starting position
 !                If not present then START is taken to be 0.
 !   body_only -- Logical, optional: If present and True then for a bend
@@ -30,8 +30,8 @@
 !
 ! Output:
 !   ele3 -- Ele_struct, optional: Structure for the Twiss results at DEL_S.
-!     %x             -- X Twiss parameters
-!     %y             -- Y Twiss parametser
+!     %a             -- X Twiss parameters
+!     %b             -- Y Twiss parametser
 !     %mat6(6,6)     -- Transfer matrix (1st order part of xfer map).
 !     %vec0(6)       -- 0th order part of the transfer map.
 !     %value(l$)     -- Set to DEL_S
@@ -54,7 +54,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   type (ele_struct), save :: ele
   type (coord_struct), optional :: start, end
   type (coord_struct) c0, c1
-  type (param_struct) param
+  type (lat_param_struct) param
 
   real(rp) del_s, l_orig, ratio
   integer track, mat6

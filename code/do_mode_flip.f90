@@ -2,8 +2,8 @@
 ! Subroutine do_mode_flip (ele, ele_flip)
 !
 ! Subroutine to mode flip the twiss_parameters of an element.
-! That is, the normal mode associated with ele%x is transfered to ele%y
-! and the normal mode associated with ele%y is trnsfered to ele%x.
+! That is, the normal mode associated with ele%a is transfered to ele%b
+! and the normal mode associated with ele%b is trnsfered to ele%x.
 !
 ! Modules Needed:
 !   use bmad
@@ -65,7 +65,7 @@ subroutine do_mode_flip (ele, ele_flip)
   ele_flip%mode_flip = .not. ele%mode_flip
   ele_flip%c_mat = -ele%c_mat * ele%gamma_c / gamma_flip
   ele_flip%gamma_c = gamma_flip
-  ele_flip%x = ele2%x
-  ele_flip%y = ele2%y
+  ele_flip%a = ele2%a
+  ele_flip%b = ele2%b
 
 end subroutine

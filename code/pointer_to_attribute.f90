@@ -120,26 +120,26 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
       ptr_attrib => ele%floor%phi
     case ('PSI_POSITION')
       ptr_attrib => ele%floor%psi
-    case ('BETA_X')
-      ptr_attrib => ele%x%beta
-    case ('ALPHA_X')
-      ptr_attrib => ele%x%alpha
-    case ('PHI_X')
-      ptr_attrib => ele%x%phi
-    case ('ETA_X')
-      ptr_attrib => ele%x%eta
-    case ('ETAP_X')
-      ptr_attrib => ele%x%etap
-    case ('BETA_Y')
-      ptr_attrib => ele%y%beta
-    case ('ALPHA_Y')
-      ptr_attrib => ele%y%alpha
-    case ('PHI_Y')
-      ptr_attrib => ele%y%phi
-    case ('ETA_Y')
-      ptr_attrib => ele%y%eta
-    case ('ETAP_Y')
-      ptr_attrib => ele%y%etap
+    case ('BETA_A')
+      ptr_attrib => ele%a%beta
+    case ('ALPHA_A')
+      ptr_attrib => ele%a%alpha
+    case ('PHI_A')
+      ptr_attrib => ele%a%phi
+    case ('ETA_A')
+      ptr_attrib => ele%a%eta
+    case ('ETAP_A')
+      ptr_attrib => ele%a%etap
+    case ('BETA_B')
+      ptr_attrib => ele%b%beta
+    case ('ALPHA_B')
+      ptr_attrib => ele%b%alpha
+    case ('PHI_B')
+      ptr_attrib => ele%b%phi
+    case ('ETA_B')
+      ptr_attrib => ele%b%eta
+    case ('ETAP_B')
+      ptr_attrib => ele%b%etap
     case ('C11')
       ptr_attrib => ele%c_mat(1,1)
     case ('C12')
@@ -148,8 +148,8 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
       ptr_attrib => ele%c_mat(2,1)
     case ('C22')
       ptr_attrib => ele%c_mat(2,2)
-    case ('BEAM_ENERGY')
-      ptr_attrib => ele%value(beam_energy$)
+    case ('E_TOT')
+      ptr_attrib => ele%value(E_TOT$)
     case ('S')
       ptr_attrib => ele%s
     case default
@@ -168,7 +168,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
   if (ix_a >= a0$ .and. ix_a <= b20$) then   ! multipole attribute
 
-    if (.not. associated(ele%a)) then
+    if (.not. associated(ele%a_pole)) then
       if (do_allocation) then
         call multipole_init (ele)
       else
@@ -179,9 +179,9 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
     endif
 
     if (ix_a >= b0$) then
-      ptr_attrib => ele%b(ix_a-b0$)
+      ptr_attrib => ele%b_pole(ix_a-b0$)
     else
-      ptr_attrib => ele%a(ix_a-a0$)
+      ptr_attrib => ele%a_pole(ix_a-a0$)
     endif
 
   elseif (ix_a < 1 .or. ix_a > n_attrib_maxx) then

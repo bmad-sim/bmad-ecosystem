@@ -164,7 +164,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr1_add_long_kick (ele, leader, charge, follower)
+! Subroutine sr_table_add_long_kick (ele, leader, charge, follower)
 !
 ! Subroutine to add the component of the gradient loss from the leading particle
 ! on the following particle.
@@ -183,7 +183,7 @@ end subroutine
 !                                  specified leader
 !-
 
-subroutine sr1_add_long_kick (ele, leader, charge, follower)
+subroutine sr_table_add_long_kick (ele, leader, charge, follower)
 
 implicit none
 
@@ -192,31 +192,31 @@ type (coord_struct) leader, follower
 
 real(rp) z, dz, f1, f2, charge, fact
 
-integer iw, n_sr1
+integer iw, n_sr_table
 
 if (.not. bmad_com%sr_wakes_on) return
 if (.not. associated(ele%wake)) return
 
 z = follower%vec(5) - leader%vec(5)
-n_sr1 = size(ele%wake%sr1) - 1
-dz = ele%wake%sr1(n_sr1)%z / n_sr1
+n_sr_table = size(ele%wake%sr_table) - 1
+dz = ele%wake%sr_table(n_sr_table)%z / n_sr_table
 
 iw = z / dz     ! integer part of z/dz
 f2 = z/dz - iw  ! fractional part of z/dz
 f1 = 1 - f2
 
-if (iw .lt. 0 .or. iw .gt. ubound(ele%wake%sr1,1)) return
+if (iw .lt. 0 .or. iw .gt. ubound(ele%wake%sr_table,1)) return
 
 bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake &
-      + (ele%wake%sr1(iw)%long*f1 + ele%wake%sr1(iw+1)%long*f2) * charge 
+      + (ele%wake%sr_table(iw)%long*f1 + ele%wake%sr_table(iw+1)%long*f2) * charge 
 
-end subroutine sr1_add_long_kick
+end subroutine sr_table_add_long_kick
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr1_apply_trans_kick (ele, leader, charge, follower)
+! Subroutine sr_table_apply_trans_kick (ele, leader, charge, follower)
 !
 ! Subroutine to put in the transverse kick for the short-range wakes.
 !
@@ -233,7 +233,7 @@ end subroutine sr1_add_long_kick
 !   follower -- Coord_struct: coords after the kick.
 !+
 
-subroutine sr1_apply_trans_kick (ele, leader, charge, follower)
+subroutine sr_table_apply_trans_kick (ele, leader, charge, follower)
 
 implicit none
 
@@ -241,7 +241,7 @@ type (ele_struct) ele
 type (coord_struct) leader, follower
 
 real(rp) z, dz, f1, f2, charge, fact
-integer iw, n_sr1
+integer iw, n_sr_table
 
 !
 
@@ -249,14 +249,14 @@ if (.not. bmad_com%sr_wakes_on) return
 if (.not. associated(ele%wake)) return
 
 z = follower%vec(5) - leader%vec(5)
-n_sr1 = size(ele%wake%sr1) - 1
-dz = ele%wake%sr1(n_sr1)%z / n_sr1
+n_sr_table = size(ele%wake%sr_table) - 1
+dz = ele%wake%sr_table(n_sr_table)%z / n_sr_table
 
 iw = z / dz     ! integer part of z/dz
 f2 = z/dz - iw  ! fractional part of z/dz
 f1 = 1 - f2
 
-fact = (ele%wake%sr1(iw)%trans*f1 + ele%wake%sr1(iw+1)%trans*f2) * &
+fact = (ele%wake%sr_table(iw)%trans*f1 + ele%wake%sr_table(iw+1)%trans*f2) * &
                               charge * ele%value(l$) / ele%value(p0c$)
 follower%vec(2) = follower%vec(2) - fact * leader%vec(1)
 follower%vec(4) = follower%vec(4) - fact * leader%vec(3)
@@ -267,7 +267,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr2_long_wake_add_to (ele, orbit, charge)
+! Subroutine sr_mode_long_wake_add_to (ele, orbit, charge)
 !
 ! Subroutine to add to the existing short-range wake the contribution from
 ! a passing (macro)particle.
@@ -284,10 +284,10 @@ end subroutine
 !   ele     -- Ele_struct: Element with wakes.
 !+
 
-subroutine sr2_long_wake_add_to (ele, orbit, charge)
+subroutine sr_mode_long_wake_add_to (ele, orbit, charge)
 
 type (ele_struct), target :: ele
-type (sr2_wake_struct), pointer :: sr2_long
+type (sr_mode_wake_struct), pointer :: sr_mode_long
 type (coord_struct) orbit
 
 integer i
@@ -301,19 +301,19 @@ if (.not. associated(ele%wake)) return
 ! Add to wake
 ! The monipole wake does not have any skew components.
 
-do i = 1, size(ele%wake%sr2_long)
+do i = 1, size(ele%wake%sr_mode_long)
 
-  sr2_long => ele%wake%sr2_long(i)
+  sr_mode_long => ele%wake%sr_mode_long(i)
 
-  ff = charge * sr2_long%amp * exp(-orbit%vec(5) * sr2_long%damp) * &
+  ff = charge * sr_mode_long%amp * exp(-orbit%vec(5) * sr_mode_long%damp) * &
                                           ele%value(l$) / ele%value(p0c$)
 
-  arg = sr2_long%phi - orbit%vec(5) * sr2_long%k 
+  arg = sr_mode_long%phi - orbit%vec(5) * sr_mode_long%k 
   c = cos (arg)
   s = sin (arg)
 
-  sr2_long%norm_sin = sr2_long%norm_sin + ff * c
-  sr2_long%norm_cos = sr2_long%norm_cos + ff * s
+  sr_mode_long%norm_sin = sr_mode_long%norm_sin + ff * c
+  sr_mode_long%norm_cos = sr_mode_long%norm_cos + ff * s
 
 enddo
 
@@ -323,7 +323,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr2_long_wake_apply_kick (ele, orbit)
+! Subroutine sr_mode_long_wake_apply_kick (ele, orbit)
 !
 ! Subroutine to put in the kick for the short-range wakes.
 !
@@ -338,13 +338,13 @@ end subroutine
 !   orbit   -- Coord_struct: coords after the kick.
 !+
 
-subroutine sr2_long_wake_apply_kick (ele, orbit)
+subroutine sr_mode_long_wake_apply_kick (ele, orbit)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (sr2_wake_struct), pointer :: sr2_long
+type (sr_mode_wake_struct), pointer :: sr_mode_long
 
 integer i
 real(rp) arg, ff, c, s, w_norm
@@ -356,17 +356,17 @@ if (.not. associated(ele%wake)) return
 
 ! Loop over all modes
 
-do i = 1, size(ele%wake%sr2_long)
+do i = 1, size(ele%wake%sr_mode_long)
 
-  sr2_long => ele%wake%sr2_long(i)
+  sr_mode_long => ele%wake%sr_mode_long(i)
 
-  ff = exp(orbit%vec(5) * sr2_long%damp)
+  ff = exp(orbit%vec(5) * sr_mode_long%damp)
 
-  arg = orbit%vec(5) * sr2_long%k 
+  arg = orbit%vec(5) * sr_mode_long%k 
   c = cos (arg)
   s = sin (arg)
 
-  w_norm = sr2_long%norm_sin * ff * s + sr2_long%norm_cos * ff * c
+  w_norm = sr_mode_long%norm_sin * ff * s + sr_mode_long%norm_cos * ff * c
   orbit%vec(6) = orbit%vec(6) - w_norm
 
 enddo
@@ -377,7 +377,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr2_long_self_wake_apply_kick (ele, charge, orbit)
+! Subroutine sr_mode_long_self_wake_apply_kick (ele, charge, orbit)
 !
 ! Subroutine to put in the kick for the short-range wakes
 !
@@ -393,13 +393,13 @@ end subroutine
 !   orbit   -- Coord_struct: coords after the kick.
 !+
 
-subroutine sr2_long_self_wake_apply_kick (ele, charge, orbit)
+subroutine sr_mode_long_self_wake_apply_kick (ele, charge, orbit)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (sr2_wake_struct), pointer :: sr2_long
+type (sr_mode_wake_struct), pointer :: sr_mode_long
 
 integer i
 real(rp) k, c, s, w_norm, charge
@@ -411,10 +411,10 @@ if (.not. associated(ele%wake)) return
 
 ! Loop over all modes
 
-do i = 1, size(ele%wake%sr2_long)
-  sr2_long => ele%wake%sr2_long(i)
-  orbit%vec(6) = orbit%vec(6) - charge * sin(sr2_long%phi) * &
-                         sr2_long%amp * ele%value(l$) / (2 * ele%value(p0c$))
+do i = 1, size(ele%wake%sr_mode_long)
+  sr_mode_long => ele%wake%sr_mode_long(i)
+  orbit%vec(6) = orbit%vec(6) - charge * sin(sr_mode_long%phi) * &
+                         sr_mode_long%amp * ele%value(l$) / (2 * ele%value(p0c$))
 enddo
 
 end subroutine
@@ -423,7 +423,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr2_trans_wake_add_to (ele, orbit, charge)
+! Subroutine sr_mode_trans_wake_add_to (ele, orbit, charge)
 !
 ! Subroutine to add to the existing short-range wake the contribution from
 ! a passing (macro)particle.
@@ -440,10 +440,10 @@ end subroutine
 !   ele     -- Ele_struct: Element with wakes.
 !+
 
-subroutine sr2_trans_wake_add_to (ele, orbit, charge)
+subroutine sr_mode_trans_wake_add_to (ele, orbit, charge)
 
 type (ele_struct), target :: ele
-type (sr2_wake_struct), pointer :: sr2_trans
+type (sr_mode_wake_struct), pointer :: sr_mode_trans
 type (coord_struct) orbit
 
 integer i
@@ -457,21 +457,21 @@ if (.not. associated(ele%wake)) return
 ! Add to wake
 ! The monipole wake does not have any skew components.
 
-do i = 1, size(ele%wake%sr2_trans)
+do i = 1, size(ele%wake%sr_mode_trans)
 
-  sr2_trans => ele%wake%sr2_trans(i)
+  sr_mode_trans => ele%wake%sr_mode_trans(i)
 
-  ff = charge * sr2_trans%amp * exp(-orbit%vec(5) * sr2_trans%damp) * &
+  ff = charge * sr_mode_trans%amp * exp(-orbit%vec(5) * sr_mode_trans%damp) * &
                                            ele%value(l$) / ele%value(p0c$)
 
-  arg =  sr2_trans%phi - orbit%vec(5) * sr2_trans%k 
+  arg =  sr_mode_trans%phi - orbit%vec(5) * sr_mode_trans%k 
   c = cos (arg)
   s = sin (arg)
 
-  sr2_trans%norm_sin = sr2_trans%norm_sin + ff * orbit%vec(1) * c
-  sr2_trans%norm_cos = sr2_trans%norm_cos + ff * orbit%vec(1) * s
-  sr2_trans%skew_sin = sr2_trans%skew_sin + ff * orbit%vec(3) * c
-  sr2_trans%skew_cos = sr2_trans%skew_cos + ff * orbit%vec(3) * s
+  sr_mode_trans%norm_sin = sr_mode_trans%norm_sin + ff * orbit%vec(1) * c
+  sr_mode_trans%norm_cos = sr_mode_trans%norm_cos + ff * orbit%vec(1) * s
+  sr_mode_trans%skew_sin = sr_mode_trans%skew_sin + ff * orbit%vec(3) * c
+  sr_mode_trans%skew_cos = sr_mode_trans%skew_cos + ff * orbit%vec(3) * s
 
 enddo
 
@@ -481,7 +481,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr2_trans_wake_apply_kick (ele, orbit)
+! Subroutine sr_mode_trans_wake_apply_kick (ele, orbit)
 !
 ! Subroutine to put in the kick for the short-range wakes
 !
@@ -496,13 +496,13 @@ end subroutine
 !   orbit   -- Coord_struct: coords after the kick.
 !+
 
-subroutine sr2_trans_wake_apply_kick (ele, orbit)
+subroutine sr_mode_trans_wake_apply_kick (ele, orbit)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (sr2_wake_struct), pointer :: sr2_trans
+type (sr_mode_wake_struct), pointer :: sr_mode_trans
 
 integer i
 real(rp) arg, ff, c, s, w_norm, w_skew
@@ -514,18 +514,18 @@ if (.not. associated(ele%wake)) return
 
 ! Loop over all modes
 
-do i = 1, size(ele%wake%sr2_trans)
+do i = 1, size(ele%wake%sr_mode_trans)
 
-  sr2_trans => ele%wake%sr2_trans(i)
+  sr_mode_trans => ele%wake%sr_mode_trans(i)
 
-  ff = exp(orbit%vec(5) * sr2_trans%damp)
+  ff = exp(orbit%vec(5) * sr_mode_trans%damp)
 
-  arg = orbit%vec(5) * sr2_trans%k 
+  arg = orbit%vec(5) * sr_mode_trans%k 
   c = cos (arg)
   s = sin (arg)
 
-  w_norm = sr2_trans%norm_sin * ff * s + sr2_trans%norm_cos * ff * c
-  w_skew = sr2_trans%skew_sin * ff * s + sr2_trans%skew_cos * ff * c
+  w_norm = sr_mode_trans%norm_sin * ff * s + sr_mode_trans%norm_cos * ff * c
+  w_skew = sr_mode_trans%skew_sin * ff * s + sr_mode_trans%skew_cos * ff * c
 
   orbit%vec(2) = orbit%vec(2) - w_norm
   orbit%vec(4) = orbit%vec(4) - w_skew

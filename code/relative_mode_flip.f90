@@ -3,7 +3,7 @@
 !
 ! Function to see if the modes of ELE1 are flipped relative to ELE2.
 ! This is done by seeing which eigen planes are similar.
-! This function is used with the same element of differing lattices
+! This function is used with the same element of different lattices
 ! to help identify which mode is which.
 !
 ! Modules Needed:

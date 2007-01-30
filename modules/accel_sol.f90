@@ -27,7 +27,7 @@ contains
 ! Input:
 !   START  -- Coord_struct: Starting position
 !   ELE    -- Ele_struct: Element
-!   PARAM  -- Param_struct:
+!   PARAM  -- lat_param_struct:
 !     %APERTURE_LIMIT_ON -- If .true. then %LOST will be set if the
 !                 particle is outsile the aperture.
 !
@@ -46,7 +46,7 @@ subroutine track_a_accel_sol (start, ele, param, end)
 
   type (coord_struct)  start, end
   type (ele_struct)  ele
-  type (param_struct)  param
+  type (lat_param_struct)  param
 
   real(rp) gamma_b, gamma_new, gamma_old, l_over_gamma, ll, ls(5), s_cumul
   real(rp) s_grand_cum, vec_st(4), x_beg_lim, y_beg_lim, x_lim, y_lim
@@ -63,7 +63,7 @@ subroutine track_a_accel_sol (start, ele, param, end)
 ! beta_b is the total speed in units of c_light (before entering the element)
 ! beta_s is the longitudinal speed in units of c_light
 
-  gamma_b = ele%value(beam_energy$) * (end%vec(6) + 1) / m_electron
+  gamma_b = ele%value(E_TOT$) * (end%vec(6) + 1) / m_electron
   beta_b = sqrt(1 - 1 / gamma_b**2)
   gam_inv2_b = 1.0 / gamma_b**2
   if (gam_inv2_b <= 0.001) then
@@ -87,7 +87,7 @@ subroutine track_a_accel_sol (start, ele, param, end)
       param%lost = .true.
       return
     else
-      end%vec(6) = end%vec(6) + en_gain / ele%value(beam_energy$)
+      end%vec(6) = end%vec(6) + en_gain / ele%value(E_TOT$)
       c_e = en_gain / (m_electron * length)
     endif
   else
@@ -225,7 +225,7 @@ end subroutine
 ! whatsoever EXCEPT that there is no (local) bend--the design orbit is locally
 ! straight.
 !   Note that if the Lorentz factor (gamma) is around 100 or higher, converting
-! _from_ accelerator coordinates and then back _to_ accelerator coordinates will
+! _from accelerator coordinates and then back _to accelerator coordinates will
 ! produce a slight change in z'.
 !   Also, due to rounding errors in iterations, particles may acquire a speed
 ! higher than c.  Such speeds will be reset (if TO_CART is false) so that the

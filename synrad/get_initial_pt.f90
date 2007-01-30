@@ -2,7 +2,7 @@
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine get_initial_pt (ray, wall, ix_wall, ring)
+! subroutine get_initial_pt (ray, wall, ix_wall, lat)
 !
 ! subroutine to
 !  
@@ -14,13 +14,13 @@
 !   ray    -- ray_struct:
 !   wall   -- wall_struct: inside wall with outline ready
 !   ix_wall -- integer:
-!   ring   -- ring_struct with twiss propagated and mat6s made
+!   lat   -- lat_struct with twiss propagated and mat6s made
 !
 ! Output:
 !                         
 !-
 
-subroutine get_initial_pt (ray, wall, ix_wall, ring)
+subroutine get_initial_pt (ray, wall, ix_wall, lat)
 
   use sr_struct
   use sr_interface
@@ -29,7 +29,7 @@ subroutine get_initial_pt (ray, wall, ix_wall, ring)
 
   type (ray_struct) ray
   type (wall_struct) wall
-  type (ring_struct) ring
+  type (lat_struct) lat
 
   integer ix_wall, ix, ix0, ix1, ix2
 
@@ -45,7 +45,7 @@ subroutine get_initial_pt (ray, wall, ix_wall, ring)
 
 ! edge cases
 
-  if (ray%now%vec(5) == ring%param%total_length) then
+  if (ray%now%vec(5) == lat%param%total_length) then
     if (ray%direction == 1) then
       ix_wall = 0
       wall%ix_pt = 0

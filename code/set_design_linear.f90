@@ -1,5 +1,5 @@
 !+
-! Subroutine set_design_linear (ring)
+! Subroutine set_design_linear (lat)
 !
 ! Subroutine to set only those elements on that constitute the "design"
 ! lattice. That is, only quadrupoles, bends and wigglers will be set on.
@@ -8,40 +8,40 @@
 !   use bmad
 !
 ! Output:
-!   ring -- Ring_struct: Ring structure with quads, bends and wigglers only 
+!   lat -- lat_struct: Lat structure with quads, bends and wigglers only 
 !           set on.
 !-
 
 #include "CESR_platform.inc"
 
 
-subroutine set_design_linear (ring)
+subroutine set_design_linear (lat)
 
   use bmad_struct
   use bmad_interface, except => set_design_linear
 
   implicit none
 
-  type (ring_struct) ring
-  type (coord_struct), allocatable :: orb_(:)
+  type (lat_struct) lat
+  type (coord_struct), allocatable :: orb(:)
 
   integer i, key
 
-  allocate (orb_(0:ubound(ring%ele_, 1)))
+  allocate (orb(0:ubound(lat%ele, 1)))
 
 !
 
-  do i = 1, ring%n_ele_use
-    key = ring%ele_(i)%key
+  do i = 1, lat%n_ele_track
+    key = lat%ele(i)%key
     if (key == quadrupole$ .or. key == sbend$ .or. key == wiggler$) then
-      ring%ele_(i)%is_on = .true.
+      lat%ele(i)%is_on = .true.
     else
-      ring%ele_(i)%is_on = .false.
+      lat%ele(i)%is_on = .false.
     endif
   enddo
 
-  call ring_make_mat6 (ring, -1, orb_)
+  call lat_make_mat6 (lat, -1, orb)
 
-  deallocate(orb_)
+  deallocate(orb)
 
 end subroutine

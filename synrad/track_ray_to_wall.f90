@@ -2,7 +2,7 @@
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine track_ray_to_wall (ray, ring, inside, outside, 
+! subroutine track_ray_to_wall (ray, lat, inside, outside, 
 !                                hit_flag, track_max)
 !
 ! subroutine to propagate a synch radiation ray until it hits
@@ -14,7 +14,7 @@
 ! Input:
 !   ray    -- ray_struct: synch radiation ray with starting
 !                         parameters set
-!   ring   -- ring_struct: with twiss propagated and mat6s made
+!   lat   -- lat_struct: with twiss propagated and mat6s made
 !   inside  -- wall_struct: inside wall
 !   outside -- wall_struct: outside wall
 !   track_max -- real(rp), optional: Maximum length in m to track
@@ -26,14 +26,14 @@
 !                                  false if track_max was reached first
 !-
 
-subroutine track_ray_to_wall (ray, ring, inside, outside, hit_flag, track_max)
+subroutine track_ray_to_wall (ray, lat, inside, outside, hit_flag, track_max)
 
   use sr_struct
   use sr_interface
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (lat_struct), target :: lat
   type (ray_struct), target :: ray
   type (wall_struct) inside, outside
 
@@ -53,8 +53,8 @@ subroutine track_ray_to_wall (ray, ring, inside, outside, hit_flag, track_max)
 ! ix_in and ix_out are the next inside and outside wall points that
 ! are at or just "downstream" of the ray.
 
-  call get_initial_pt (ray, inside, ix_in, ring)
-  call get_initial_pt (ray, outside, ix_out, ring)
+  call get_initial_pt (ray, inside, ix_in, lat)
+  call get_initial_pt (ray, outside, ix_out, lat)
 
 ! propagation loop:
 ! Propagate the ray. Figure out how far to advance in s.
@@ -70,16 +70,16 @@ subroutine track_ray_to_wall (ray, ring, inside, outside, hit_flag, track_max)
                                                  ray%now%vec(5) - 1.0)
     endif
 
-    call propagate_ray (ray, s_next, ring)
+    call propagate_ray (ray, s_next, lat)
 
 ! See if we are outside the beam pipe.
 ! If so we calculate the exact hit spot where the ray crossed the
 ! wall boundry and return
 
-    call hit_spot_calc (ray, inside, ix_in, is_hit, ring)
+    call hit_spot_calc (ray, inside, ix_in, is_hit, lat)
     if (is_hit) return
 
-    call hit_spot_calc (ray, outside, ix_out, is_hit, ring)
+    call hit_spot_calc (ray, outside, ix_out, is_hit, lat)
     if (is_hit) return
 
     if (present(track_max)) then

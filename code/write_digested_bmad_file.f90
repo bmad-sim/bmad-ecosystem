@@ -1,8 +1,8 @@
 !+
-! Subroutine write_digested_bmad_file (digested_name, ring, n_files, file_names)
+! Subroutine write_digested_bmad_file (digested_name, lat, n_files, file_names)
 !
 ! Subroutine to write a digested file. The names of the original files used
-! to create the RING structure are also put in the digested file and are used
+! to create the LAT structure are also put in the digested file and are used
 ! by other routines to check if the digested file is out of date.
 !
 ! Modules Needed:
@@ -10,15 +10,15 @@
 !
 ! Input:
 !     digested_name -- Character(*): Name for the digested file.
-!     ring          -- Ring_struct: Input ring structure.
+!     lat          -- lat_struct: Input lat structure.
 !     n_files       -- Integer, optional: Number of original files
 !     file_names(*) -- Character(*), optional: Names of the original 
-!                       files used to create the ring structure.
+!                       files used to create the lat structure.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine write_digested_bmad_file (digested_name, ring,  &
+subroutine write_digested_bmad_file (digested_name, lat,  &
                                                   n_files, file_names)
 
   use bmad_struct
@@ -28,7 +28,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
   implicit none
 
-  type (ring_struct), target, intent(in) :: ring
+  type (lat_struct), target, intent(in) :: lat
   type (ele_struct), pointer :: ele
   type (taylor_struct), pointer :: tt(:)
   type (wake_struct), pointer :: wake
@@ -37,8 +37,8 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   integer d_unit, i, j, k, n_file
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
   integer stat_b(12), stat, n_wake
-  integer ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, ierr
-  integer :: ix_wake(ring%n_ele_max)
+  integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr
+  integer :: ix_wake(lat%n_ele_max)
 
   character(*) digested_name
   character(*), optional :: file_names(:)
@@ -93,30 +93,30 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
   enddo
 
-! Write the ring structure to the digested file. We do this in pieces
+! Write the lat structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
 
   write (d_unit) &
-          ring%name, ring%lattice, ring%input_file_name, ring%title, &
-          ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_use, &
-          ring%n_ele_use, ring%n_ele_max, &
-          ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
+          lat%name, lat%lattice, lat%input_file_name, lat%title, &
+          lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
+          lat%n_ele_track, lat%n_ele_max, &
+          lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
   
   n_wake = 0  ! number of wakes written to the digested file.
 
-  do i = 0, ring%n_ele_max
+  do i = 0, lat%n_ele_max
   
-    ele => ring%ele_(i)
+    ele => lat%ele(i)
     tt => ele%taylor
     
     ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_const = 0; ix_r = 0
-    ix_sr1 = 0; ix_sr2_long = 0; ix_sr2_trans = 0; ix_lr = 0
+    ix_sr_table = 0; ix_sr_mode_long = 0; ix_sr_mode_trans = 0; ix_lr = 0
 
     if (associated(ele%wig_term)) ix_wig = size(ele%wig_term)
     if (associated(ele%const))    ix_const = size(ele%const)
     if (associated(ele%r))        ix_r = (/ lbound(ele%r), ubound(ele%r) /)
     if (associated(ele%descrip))  ix_d = 1
-    if (associated(ele%a))        ix_m = 1
+    if (associated(ele%a_pole))        ix_m = 1
     if (associated(tt(1)%term))   ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
 
     ! Since some large lattices with a large number of wakes can take a lot of time writing 
@@ -126,15 +126,15 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     write_wake = .true.
     if (associated(ele%wake)) then
       do j = 1, n_wake
-        if (.not. ring%ele_(ix_wake(j))%wake == ele%wake) cycle
+        if (.not. lat%ele(ix_wake(j))%wake == ele%wake) cycle
         write_wake = .false.
         ix_lr = -ix_wake(j)        
       enddo
 
       if (write_wake) then
-        if (associated(ele%wake%sr1))       ix_sr1       = size(ele%wake%sr1)
-        if (associated(ele%wake%sr2_long))  ix_sr2_long  = size(ele%wake%sr2_long)
-        if (associated(ele%wake%sr2_trans)) ix_sr2_trans = size(ele%wake%sr2_trans)
+        if (associated(ele%wake%sr_table))       ix_sr_table       = size(ele%wake%sr_table)
+        if (associated(ele%wake%sr_mode_long))  ix_sr_mode_long  = size(ele%wake%sr_mode_long)
+        if (associated(ele%wake%sr_mode_trans)) ix_sr_mode_trans = size(ele%wake%sr_mode_trans)
         if (associated(ele%wake%lr))        ix_lr        = size(ele%wake%lr)
         n_wake = n_wake + 1
         ix_wake(n_wake) = i
@@ -144,9 +144,9 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     ! Now write the element info
 
     write (d_unit) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
-            ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%a, &
+            ele%b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -165,7 +165,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     if (associated(ele%const))    write (d_unit) ele%const
     if (associated(ele%r))        write (d_unit) ele%r
     if (associated(ele%descrip))  write (d_unit) ele%descrip
-    if (associated(ele%a))        write (d_unit) ele%a, ele%b
+    if (associated(ele%a_pole))        write (d_unit) ele%a_pole, ele%b_pole
     
     do j = 1, 6
       if (ix_t(j) == 0) cycle
@@ -177,27 +177,27 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
     if (associated(ele%wake) .and. write_wake) then
       write (d_unit) ele%wake%sr_file
-      write (d_unit) ele%wake%sr1
-      write (d_unit) ele%wake%sr2_long
-      write (d_unit) ele%wake%sr2_trans
+      write (d_unit) ele%wake%sr_table
+      write (d_unit) ele%wake%sr_mode_long
+      write (d_unit) ele%wake%sr_mode_trans
       write (d_unit) ele%wake%lr_file
       write (d_unit) ele%wake%lr
-      write (d_unit) ele%wake%z_sr2_max
+      write (d_unit) ele%wake%z_sr_mode_max
     endif
 
   enddo
 
 ! write the control info, etc
 
-  do i = 1, ring%n_control_max
-    write (d_unit) ring%control_(i)
+  do i = 1, lat%n_control_max
+    write (d_unit) lat%control(i)
   enddo
 
-  do i = 1, ring%n_ic_max
-    write (d_unit) ring%ic_(i)
+  do i = 1, lat%n_ic_max
+    write (d_unit) lat%ic(i)
   enddo
 
-  write (d_unit) ring%beam_start
+  write (d_unit) lat%beam_start
 
   close (d_unit)
 

@@ -8,7 +8,7 @@
 !
 ! Input:
 !   ele         -- Ele_struct: Custom element.
-!   param       -- Param_struct: Lattice parameters.
+!   param       -- lat_param_struct: Lattice parameters.
 !   s_pos       -- Real(rp): Longitudinal position of the reference particle.
 !   here        -- Coord_struct: Coords with respect to the reference particle.
 !   calc_dfield -- Logical, optional: If present and True then the field 
@@ -27,7 +27,7 @@ subroutine em_field_custom (ele, param, s, orb, field, calc_dfield)
   implicit none
 
   type (ele_struct), intent(in) :: ele
-  type (param_struct) param
+  type (lat_param_struct) param
   type (coord_struct), intent(in) :: orb
   real(rp), intent(in) :: s
   type (em_field_struct), intent(out) :: field

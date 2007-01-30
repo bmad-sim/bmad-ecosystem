@@ -2,7 +2,7 @@
 ! Subroutine multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)
 !
 ! Subroutine to analyze multi-turn tracking data to find the 1-turn transfer
-! matrix and the closed orbit offset at a given point in the ring.
+! matrix and the closed orbit offset at a given point in the lat.
 !
 ! Modules needed:
 !   use bmad
@@ -10,7 +10,7 @@
 ! Input:
 !   track(:) -- Coord_struct: multi-turn tracking data to analyze.
 !                track(i) is the particle position at a given point
-!                in the ring on the i^th turn.
+!                in the lat on the i^th turn.
 !   i_dim    -- Integer: Dimensionality of the data (2, 4, or 6).
 !
 ! Output: 

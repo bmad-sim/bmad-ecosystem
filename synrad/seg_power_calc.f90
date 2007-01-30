@@ -3,30 +3,30 @@
 !-------------------------------------------------------------------------
 !+
 ! subroutine seg_power_calc (rays, i_ray, inside, outside, 
-!                             ring, gen, power)
+!                             lat, gen, power)
 !
 ! subroutine to calculate the synch radiation power for
-!      segments of the wall from one ring element
+!      segments of the wall from one lat element
 !
 ! Modules needed:
 !   use sr_mod
 !
 ! Input:
-!   rays(*) -- ray_struct: array of rays from one ring element
+!   rays(*) -- ray_struct: array of rays from one lat element
 !   i_ray   -- integer: index of highest ray used
-!   ring    -- ring_struct: with twiss propagated and mat6s made
+!   lat    -- lat_struct: with twiss propagated and mat6s made
 !   inside  -- wall_struct: inside wall with outline ready
 !   outside -- wall_struct: outside wall with outline ready
-!   gen    -- general_param_struct: Contains lat name,
+!   gen    -- general_lat_param_struct: Contains lat name,
 !                     vert emittance, and beam current
 !
 ! Output:
-!   power(*)  -- ele_power_struct: power radiated from a ring ele
+!   power(*)  -- ele_power_struct: power radiated from a lat ele
 !   inside  -- wall_struct: inside wall with power information
 !   outside -- wall_struct: outside wall with power information
 !-
 
-subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
+subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
 
   use sr_struct
   use sr_interface
@@ -37,8 +37,8 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
   type (wall_struct) inside, outside
   type (wall_struct), pointer :: wall
   type (ray_struct) :: ray
-  type (general_param_struct) gen
-  type (ring_struct) ring
+  type (general_lat_param_struct) gen
+  type (lat_struct) lat
   type (sr_power_struct), pointer :: ep
   type (ele_power_struct) power
 
@@ -61,7 +61,7 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
 
 
   ! get energy from source element
-  energy = ring%ele_(rays(1)%ix_source)%value(beam_energy$)
+  energy = lat%ele(rays(1)%ix_source)%value(E_TOT$)
 
 
   ! 14.1e3 [m (eV)^-3] (used below) is  Cgamma * 1e9 / (2 pi) 
@@ -140,14 +140,14 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
 
       dx = wall%seg(is)%x_mid - rays(i-1)%now%vec(1)
       ds = wall%seg(is)%s_mid - rays(i-1)%now%vec(5)
-      if (ds >  ring%param%total_length/2) ds = ds - ring%param%total_length
-      if (ds < -ring%param%total_length/2) ds = ds + ring%param%total_length
+      if (ds >  lat%param%total_length/2) ds = ds - lat%param%total_length
+      if (ds < -lat%param%total_length/2) ds = ds + lat%param%total_length
       dr1 = dx * cos(rays(i-1)%now%vec(2)) - ds * sin(rays(i-1)%now%vec(2))
 
       dx = wall%seg(is)%x_mid - rays(i)%now%vec(1)
       ds = wall%seg(is)%s_mid - rays(i)%now%vec(5)
-      if (ds >  ring%param%total_length/2) ds = ds - ring%param%total_length
-      if (ds < -ring%param%total_length/2) ds = ds + ring%param%total_length
+      if (ds >  lat%param%total_length/2) ds = ds - lat%param%total_length
+      if (ds < -lat%param%total_length/2) ds = ds + lat%param%total_length
       dr2 = dx * cos(rays(i)%now%vec(2)) - ds * sin(rays(i)%now%vec(2))
 
       if ((dr1 - dr2) == 0) then
@@ -198,7 +198,7 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
       ray%crossed_end = rays(i)%crossed_end
       track_len = abs((1 - rr)*rays(i-1)%start%vec(5) + &
                              rr*rays(i)%start%vec(5) - wall%seg(is)%s_mid)
-      call track_ray_to_wall (ray, ring, inside, outside, hit_flag, track_len)
+      call track_ray_to_wall (ray, lat, inside, outside, hit_flag, track_len)
       if (hit_flag) cycle
 
 
@@ -215,8 +215,8 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
 ! only change ep%ix_ele_source and ep%s_source if the contribution to the
 ! power is larger than what has so far been accumulated.
 
-      if (track_len > ring%param%total_length / 2) &
-                             track_len = ring%param%total_length - track_len
+      if (track_len > lat%param%total_length / 2) &
+                             track_len = lat%param%total_length - track_len
 
       dpower = ((1 - rr)*rays(i-1)%p1_factor + rr*rays(i)%p1_factor) * &
                         abs(sin(theta_rel)) * frac_illum / track_len

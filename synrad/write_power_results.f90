@@ -2,7 +2,7 @@
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine write_power_results (wall, ring, gen_params)
+subroutine write_power_results (wall, lat, gen_params)
 
   use sr_struct
   use sr_interface
@@ -12,8 +12,8 @@ subroutine write_power_results (wall, ring, gen_params)
   type (wall_struct), target :: wall
   type (wall_seg_struct), pointer :: seg
   type (sr_power_struct), pointer :: ep
-  type (general_param_struct) gen_params
-  type (ring_struct) ring
+  type (general_lat_param_struct) gen_params
+  type (lat_struct) lat
 
   integer i
   character*16 seg_name, ep_source_name, e_source_name, p_source_name
@@ -35,7 +35,7 @@ subroutine write_power_results (wall, ring, gen_params)
       ep_source_name = '--------'
       ep_name = '--'
     else
-      ep_source_name = ring%ele_(ep%ix_ele_source)%name
+      ep_source_name = lat%ele(ep%ix_ele_source)%name
     endif
 
     call convert_blanks_to_underscore (wall%pt(seg%ix_pt)%name, seg_name)

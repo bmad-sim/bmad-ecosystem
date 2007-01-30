@@ -15,7 +15,7 @@ use tpsalie_analysis, only: genfield
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-! IF YOU CHANGE THE RING_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST 
+! IF YOU CHANGE THE lat_struct OR ANY ASSOCIATED STRUCTURES YOU MUST 
 ! INCREASE THE VERSION NUMBER !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
@@ -56,13 +56,13 @@ end type
 ! Wakefield structs...
 ! Each sr_wake_struct represents a point on the wake vs. z curve.
 
-type sr1_wake_struct    ! Tabular short-Range Wake struct
+type sr_table_wake_struct    ! Tabular short-Range Wake struct
   real(rp) z            ! Distance behind the leading particle
   real(rp) long         ! Longitudinal wake in V/C/m
   real(rp) trans        ! Transverse wake in V/C/m^2
 end type
 
-type sr2_wake_struct  ! Psudo-mode short-Range Wake struct 
+type sr_mode_wake_struct  ! Psudo-mode short-Range Wake struct 
   real(rp) amp        ! Amplitude
   real(rp) damp       ! Dampling factor.
   real(rp) k          ! k factor
@@ -96,11 +96,11 @@ end type
 type wake_struct
   character(200) :: sr_file = ' '
   character(200) :: lr_file = ' '
-  type (sr1_wake_struct), pointer :: sr1(:) => null()
-  type (sr2_wake_struct), pointer :: sr2_long(:) => null()
-  type (sr2_wake_struct), pointer :: sr2_trans(:) => null()
+  type (sr_table_wake_struct), pointer :: sr_table(:) => null()
+  type (sr_mode_wake_struct), pointer :: sr_mode_long(:) => null()
+  type (sr_mode_wake_struct), pointer :: sr_mode_trans(:) => null()
   type (lr_wake_struct), pointer :: lr(:) => null()
-  real(rp) :: z_sr2_max = 0   ! Max allowable z value sr2. 
+  real(rp) :: z_sr_mode_max = 0   ! Max allowable z value sr_mode. 
 end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
@@ -137,7 +137,7 @@ type ele_struct
   character(40) type              ! type name.
   character(40) alias             ! Another name.
   character(40) attribute_name    ! Used by overlays.
-  type (twiss_struct)  x,y,z       ! Twiss parameters at end of element
+  type (twiss_struct)  a, b, z       ! Twiss parameters at end of element
   type (floor_position_struct) floor  ! Global floor position at end of ele.
   real(rp) value(n_attrib_maxx)    ! attribute values.
   real(rp) closed_orb(6)           ! For Bmad internal use only.
@@ -148,8 +148,8 @@ type ele_struct
   real(rp) gamma_c                 ! gamma associated with C matrix
   real(rp) s                       ! longitudinal position at the end
   real(rp), pointer :: r(:,:) => null()  ! For general use. Not used by Bmad.
-  real(rp), pointer :: a(:) => null()              ! multipole
-  real(rp), pointer :: b(:) => null()              ! multipoles
+  real(rp), pointer :: a_pole(:) => null()              ! multipole
+  real(rp), pointer :: b_pole(:) => null()              ! multipoles
   real(rp), pointer :: const(:) => null()          ! Working constants.
   character(200), pointer :: descrip => null()     ! For general use
   type (genfield), pointer :: gen_field => null()  ! For symp_map$
@@ -169,7 +169,7 @@ type ele_struct
   integer ic2_lord           ! Stop  index for lord elements
   integer ix_pointer         ! For general use. Not used by Bmad.
   integer ixx                ! Index for Bmad internal use
-  integer ix_ele             ! Index in ring%ele_(:) array
+  integer ix_ele             ! Index in lat%ele(:) array
   integer mat6_calc_method   ! bmad_standard$, taylor$, etc.
   integer tracking_method    ! bmad_standard$, taylor$, etc.
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
@@ -202,9 +202,9 @@ end type
 
 ! parameter and mode structures
 
-type param_struct
+type lat_param_struct
   real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
-  real(rp) total_length       ! total_length of ring
+  real(rp) total_length       ! total_length of lat
   real(rp) growth_rate        ! growth rate/turn if not stable
   real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.
   real(rp) t1_no_RF(6,6)      ! Full 1-turn matrix with RF off.
@@ -214,7 +214,7 @@ type param_struct
   integer lattice_type        ! linear_lattice$, etc...
   integer ixx                 ! Integer for general use
   integer ran_seed            ! Random number seed used.
-  logical stable              ! is closed ring stable?
+  logical stable              ! is closed lat stable?
   logical aperture_limit_on   ! use apertures in tracking?
   logical lost                ! for use in tracking
 end type
@@ -229,33 +229,32 @@ type dummy_parameter_struct
   integer dummy(250)
 end type
 
-! RING_STRUCT
+! lat_struct
 ! Remember: If this struct is changed you have to modify:
 !     read_digested_bmad_file
 !     write_digested_bmad_file
-!     transfer_ring_parameters
-!     ring_equal_ring
+!     transfer_lat_parameters
+!     lat_equal_lat
 
-type ring_struct
-  character(40) name               ! Name of ring given by USE statement
+type lat_struct
+  character(40) name               ! Name of lat given by USE statement
   character(40) lattice            ! Lattice
   character(200) input_file_name   ! Name of the lattice input file
   character(80) title              ! General title
-  type (mode_info_struct) x, y, z  ! Tunes, etc.
-  type (param_struct) param        ! Parameters
+  type (mode_info_struct) a, b, z  ! Tunes, etc.
+  type (lat_param_struct) param        ! Parameters
   type (ele_struct)  ele_init      ! For use by any program
-  type (ele_struct), pointer ::  ele_(:) => null()        ! Array of elements
-  type (control_struct), pointer :: control_(:) => null() ! control list
+  type (ele_struct), pointer ::  ele(:) => null()        ! Array of elements
+  type (control_struct), pointer :: control(:) => null() ! control list
   type (coord_struct) beam_start  ! Starting coords
   integer version                  ! Version number
-  integer n_ele_use                ! Number of regular ring elements
-  integer n_ele_ring               ! OBSOLETE: Identical to n_ele_use.
+  integer n_ele_track                ! Number of regular lat elements
   integer n_ele_max                ! Index of last element used
-  integer n_control_max            ! Last index used in CONTROL_ array
-  integer n_ic_max                 ! Last index used in IC_ array
+  integer n_control_max            ! Last index used in CONTROL_array
+  integer n_ic_max                 ! Last index used in IC_array
   integer input_taylor_order       ! As set in the input file
-  integer, pointer :: ic_(:) => null()                ! index to %control_(:)
-  real(rp), pointer :: beam_energy ! points to ring%ele_(0)%value(beam_energy$)
+  integer, pointer :: ic(:) => null()                ! index to %control(:)
+  real(rp), pointer :: E_TOT ! points to lat%ele(0)%value(E_TOT$)
 end type
 
 !
@@ -310,18 +309,18 @@ integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
           val6$=8, val7$=9, val8$=10, val9$=11, val10$=12, val11$=13, &
           val12$=15
 
-integer, parameter :: beta_x0$ = 2, alpha_x0$ = 3, beta_y0$ = 4, &
-          alpha_y0$ = 5, beta_x1$ = 6, alpha_x1$ = 7, beta_y1$ = 8, &
-          alpha_y1$ = 9, dphi_x$ = 10, dphi_y$ = 11, &
-          eta_x0$ = 12, etap_x0$ = 13, eta_y0$ = 14, etap_y0$ = 15, &
-          eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19
+integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
+          alpha_b0$ = 5, beta_a1$ = 6, alpha_a1$ = 7, beta_b1$ = 8, &
+          alpha_b1$ = 9, dphi_a$ = 10, dphi_b$ = 11, &
+          eta_a0$ = 12, etap_a0$ = 13, eta_b0$ = 14, etap_b0$ = 15, &
+          eta_a1$ = 16, etap_a1$ = 17, eta_b1$ = 18, etap_b1$ = 19
 
 integer, parameter :: x$ = 1, p_x$ = 2, y$ = 3, p_y$ = 4, z$ = 5, p_z$ = 6
 
 !  integer, parameter :: x_position$ = 2, y_position$ = 3, z_position$ = 4, &
 !          theta_position$ = 5, phi_position$ = 6, psi_position$ = 7, &
-!          beta_x$ = 8, beta_y$ = 9, alpha_x$ = 10, alpha_y$ = 11, &
-!          eta_x$ = 12, eta_y$ = 13, etap_x$ = 14, etap_y$ = 15, &
+!          beta_a$ = 8, beta_b$ = 9, alpha_a$ = 10, alpha_b$ = 11, &
+!          eta_a$ = 12, eta_b$ = 13, etap_a$ = 14, etap_b$ = 15, &
 !          phase_x$ = 16, phase_y$ = 17, &
 !          c11$ = 18, c12$ = 19, c21$ = 20, c22$ = 21
 
@@ -338,7 +337,7 @@ integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9
 integer, parameter :: fint$=10, polarity$=10, gradient$=10
 integer, parameter :: fintx$=11, z_patch$=11, phi0$=11
 integer, parameter :: rho$=12, s_center$=12, p0c_start$=12
-integer, parameter :: hgap$=13, energy_start$=13, x_patch$=13
+integer, parameter :: hgap$=13, E_TOT_START$=13, x_patch$=13
 integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14
 integer, parameter :: roll$=15, quad_tilt$=15, freq_spread$=15, x_ray_line_len$=15
 integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16
@@ -358,7 +357,7 @@ integer, parameter :: x_limit$=29
 integer, parameter :: y_limit$=30
 integer, parameter :: aperture$=31
 integer, parameter :: radius$=32
-integer, parameter :: beam_energy$=33
+integer, parameter :: E_TOT$=33
 integer, parameter :: rel_tol$=34
 integer, parameter :: abs_tol$=35
 integer, parameter :: B_field$=36, E_field$=36
@@ -435,7 +434,7 @@ integer, parameter :: circular_lattice$ = 12
 character(16) :: lattice_type(10:12) = &
         (/ 'LINEAR_LATTICE  ', 'GARBAGE!        ', 'CIRCULAR_LATTICE' /)
 
-! logicals for MAKE_HYBIRD_RING
+! logicals for MAKE_HYBIRD_lat
 
 logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 
@@ -496,10 +495,10 @@ integer, parameter :: no_end$ = 4
 character(16), parameter :: element_end_name(0:4) = (/ "GARBAGE!    ", &
       "Entrance_End", "Exit_End    ", "Both_Ends   ", "No_End      " /)
 
-! The linac_mode_struct is basically the synchrotron integrals with the
+! The linac_normal_mode_struct is basically the synchrotron integrals with the
 ! energy factors thrown in. Useful for linacs.
 
-type amode_struct
+type anormal_mode_struct
   real(rp) emittance        ! Beam emittance
   real(rp) synch_int(4:5)   ! Synchrotron integrals
   real(rp) j_damp           ! damping partition number
@@ -508,7 +507,7 @@ type amode_struct
   real(rp) tune             ! "Fractional" tune in radians
 end type
 
-type linac_mode_struct
+type linac_normal_mode_struct
   real(rp) i2_E4            ! Integral: g^2 * gamma^4
   real(rp) i3_E7            ! Integral: g^3 * gamma^7
   real(rp) i5a_E6           ! Integral: (g^3 * H_a) * gamma^6
@@ -518,14 +517,14 @@ type linac_mode_struct
   real(rp) b_emittance_end  ! b mode emittance at end of linac
 end type
 
-type modes_struct
+type normal_modes_struct
   real(rp) synch_int(3)  ! Synchrotron integrals I1, I2, and I3
   real(rp) sigE_E        ! SigmaE/E
   real(rp) sig_z         ! Sigma_Z
   real(rp) e_loss        ! Energy loss / turn (eV)
   real(rp) pz_aperture   ! pz aperture limit
-  type (amode_struct)  a, b, z
-  type (linac_mode_struct) lin
+  type (anormal_mode_struct)  a, b, z
+  type (linac_normal_mode_struct) lin
 end type
 
 integer, parameter :: bends$ = 201
@@ -608,9 +607,9 @@ end type
 !   cannot be set until the energy is set so Bmad must sometimes cache the 
 !   taylor order until the energy is known.
 ! %max_aperture_limit is used when no limit is specified or when 
-!   ring%param%aperture_limit_on = False.
+!   lat%param%aperture_limit_on = False.
 
-type bmad_com_struct
+type bmad_common_struct
   real(rp) :: max_aperture_limit = 1e3       ! Max Aperture.
   real(rp) :: d_orb(6)           = 1e-5      ! for the make_mat6_tracking routine.
   real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.
@@ -638,7 +637,7 @@ type bmad_com_struct
   logical :: compute_ref_energy = .true.          ! Enable recomputation?
 end type
   
-type (bmad_com_struct), save :: bmad_com
+type (bmad_common_struct), save :: bmad_com
 
 ! multi_turn_func_common is for multi_turn_tracking_to_mat.
 

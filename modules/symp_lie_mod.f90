@@ -34,7 +34,7 @@ contains
 !
 ! Input:
 !   ele       -- Ele_struct: Element with transfer matrix
-!   param     -- Param_struct: Parameters are needed for some elements.
+!   param     -- lat_param_struct: Parameters are needed for some elements.
 !   start     -- Coord_struct: Coordinates at the beginning of element. 
 !   calc_mat6 -- Logical: If True then make the 6x6 transfer matrix.
 !   track      -- Track_struct: Structure holding the track information.
@@ -54,7 +54,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
 
   type (ele_struct), target :: ele
   type (coord_struct) :: start, end, start0
-  type (param_struct)  param
+  type (lat_param_struct)  param
   type (track_struct) track
 
   logical calc_mat6
@@ -83,7 +83,7 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
 
   type (ele_struct), target :: ele
   type (coord_struct) :: start, end
-  type (param_struct)  param
+  type (lat_param_struct)  param
   type (wig_term_struct), pointer :: wt
   type (track_struct) track
 

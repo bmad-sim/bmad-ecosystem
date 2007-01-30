@@ -3,15 +3,15 @@
 !
 ! Subroutine to take an orbit vector difference and calculate the dispersion.
 !
-! Note that, despite the names, ele%x and ele%y are the "a" and "b" mode
-! Twiss parameters. Thus, for example, with coupling ele%x%eta is not simply
+! Note that, despite the names, ele%a and ele%b are the "a" and "b" mode
+! Twiss parameters. Thus, for example, with coupling ele%a%eta is not simply
 ! proportional to orb_diff%vec(1).
 !
 ! Modules needed:
 !   use bamd
 !
 ! Input:
-!   orb_diff -- Coord_struct: orbit difference between 2 orbits with differing
+!   orb_diff -- Coord_struct: orbit difference between 2 orbits with different
 !               energies. That is, orb_diff%vec(6) must be nonzero.
 !   ele      -- Ele_struct: Element containing the coupling info.
 !     %c_mat   -- coupling matrix needed by the routine. You need to have
@@ -20,10 +20,10 @@
 !
 ! Output:
 !   ele   -- Ele_struct: Element containing the dispersion
-!     %x%eta  -- "a" mode eta.
-!     %x%etap -- "a" mode etap.
-!     %y%eta  -- "b" mode eta.
-!     %y%etap -- "b" mode etap.
+!     %a%eta  -- "a" mode eta.
+!     %a%etap -- "a" mode etap.
+!     %b%eta  -- "b" mode eta.
+!     %b%etap -- "b" mode etap.
 !-
 
 #include "CESR_platform.inc"
@@ -49,9 +49,9 @@ Subroutine orbit_to_dispersion (orb_diff, ele)
 
   call ele_to_v_mats (ele, v_mat, v_inv_mat)
   disp_vec = matmul (v_inv_mat, orb_diff%vec(1:4)) / orb_diff%vec(6)
-  ele%x%eta  = disp_vec(1)
-  ele%x%etap = disp_vec(2)
-  ele%y%eta  = disp_vec(3)
-  ele%y%etap = disp_vec(4)
+  ele%a%eta  = disp_vec(1)
+  ele%a%etap = disp_vec(2)
+  ele%b%eta  = disp_vec(3)
+  ele%b%etap = disp_vec(4)
 
 end subroutine

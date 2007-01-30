@@ -3,14 +3,14 @@ module macro_utils_mod
 use bmad
 use macroparticle_mod
 
-!type macro_bunch_param_struct
+!type macro_bunch_lat_param_struct
 !  real(rp) beta, alpha, gamma
 !  real(rp) sigma, p_sigma
 !  real(rp) emitt ! normalized emittance
 !endtype
 
 !type macro_bunch_params_struct
-!  type (macro_bunch_param_struct) :: x, y
+!  type (macro_bunch_lat_param_struct) :: x, y
 !  real(rp) dpz_dz, z_sigma, p_z_sigma
 !  type (coord_struct) :: centroid
 !  real(rp) :: charge ! bunch charge NOT including lost particles
@@ -20,7 +20,7 @@ use macroparticle_mod
 !  type (macro_bunch_params_struct), pointer :: bunch(:) => null()
 !endtype
 
-type macro_bunch_param_struct
+type macro_bunch_lat_param_struct
   real(rp) beta, alpha, gamma
   real(rp) eta, etap
   real(rp) sigma, p_sigma
@@ -29,7 +29,7 @@ type macro_bunch_param_struct
 end type
 
 type macro_bunch_params_struct
-  type (macro_bunch_param_struct) :: x, y, z, a, b
+  type (macro_bunch_lat_param_struct) :: x, y, z, a, b
   type (coord_struct) :: centroid !Lab frame
   real(rp) :: charge ! bunch charge NOT including lost particles
 end type
@@ -57,12 +57,12 @@ contains
 !  ele       -- ele_struct: element to find parameters at
 !
 ! Output     -- Macro_bunch_params_struct
-!                 %x%alpha; %x%beta; %x%gamma
-!                 %x%sigma; %x%p_sigma
-!                 %x%emitt; %x%dpx_dx
-!                 %y%alpha; %y%beta; %y%gamma
-!                 %y%sigma; %y%p_sigma
-!                 %y%emitt; %y%dpx_dx
+!                 %a%alpha; %a%beta; %a%gamma
+!                 %a%sigma; %a%p_sigma
+!                 %a%emitt; %a%dpx_dx
+!                 %b%alpha; %b%beta; %b%gamma
+!                 %b%sigma; %b%p_sigma
+!                 %b%emitt; %b%dpx_dx
 !                 %z%alpha; %z%beta; %z%gamma
 !                 %z%sigma; %z%p_sigma
 !                 %z%emitt; %z%dpx_dx
@@ -112,13 +112,13 @@ subroutine calc_macro_bunch_params (bunch, ele, params)
 
   params%charge = params%charge
   params%centroid%vec = params%centroid%vec / params%charge
-  avg_energy = avg_energy * ele%value(beam_energy$) / params%charge
+  avg_energy = avg_energy * ele%value(E_TOT$) / params%charge
   avg_delta = avg_delta  / params%charge
     
   if (params%charge < e_charge) then
     params%centroid%vec = 0.0
-    call zero_plane (params%x)
-    call zero_plane (params%y)
+    call zero_plane (params%a)
+    call zero_plane (params%b)
     call zero_plane (params%z)
     call zero_plane (params%a)
     call zero_plane (params%b)
@@ -142,12 +142,12 @@ subroutine calc_macro_bunch_params (bunch, ele, params)
   ! X
   call find_expectations (bunch, 'x', exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
 
-  call param_stuffit (params%x, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
+  call param_stuffit (params%a, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
      
   ! Y
   call find_expectations (bunch, 'y', exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
 
-  call param_stuffit (params%y, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
+  call param_stuffit (params%b, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
   
   ! Z
   call find_expectations (bunch, 'z', exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
@@ -188,7 +188,7 @@ subroutine zero_plane (param)
 
   implicit none
 
-  type (macro_bunch_param_struct), intent(out) :: param
+  type (macro_bunch_lat_param_struct), intent(out) :: param
 
   param%beta       = 0.0
   param%alpha      = 0.0
@@ -341,7 +341,7 @@ subroutine param_stuffit (param, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
 
   implicit none
 
-  type (macro_bunch_param_struct), intent(out) :: param
+  type (macro_bunch_lat_param_struct), intent(out) :: param
   real(rp), intent(in) :: exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
   real(rp) emitt
 

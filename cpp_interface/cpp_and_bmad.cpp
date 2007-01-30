@@ -239,47 +239,47 @@ C_taylor& C_taylor::operator= (const C_taylor& c) {
 }
 
 //---------------------------------------------------------------------------
-// sr1_wake
+// sr_table_wake
 
-extern "C" void sr1_wake_to_f2_(sr1_wake_struct*, Re&, Re&, Re&);
+extern "C" void sr_table_wake_to_f2_(sr_table_wake_struct*, Re&, Re&, Re&);
 
-extern "C" void sr1_wake_to_f_(C_sr1_wake& c, sr1_wake_struct* f) {
-  sr1_wake_to_f2_(f, c.z, c.longitudinal, c.transverse);
+extern "C" void sr_table_wake_to_f_(C_sr_table_wake& c, sr_table_wake_struct* f) {
+  sr_table_wake_to_f2_(f, c.z, c.longitudinal, c.transverse);
 }
 
-extern "C" void sr1_wake_to_c2_(C_sr1_wake& c, Re& z, Re& lw, Re& tw) {
-  c = C_sr1_wake(z, lw, tw);
+extern "C" void sr_table_wake_to_c2_(C_sr_table_wake& c, Re& z, Re& lw, Re& tw) {
+  c = C_sr_table_wake(z, lw, tw);
 }
 
-void operator>> (C_sr1_wake& c, sr1_wake_struct* f) {
-  sr1_wake_to_f_(c, f);
+void operator>> (C_sr_table_wake& c, sr_table_wake_struct* f) {
+  sr_table_wake_to_f_(c, f);
 }
 
-void operator>> (sr1_wake_struct* f, C_sr1_wake& c) {
-  sr1_wake_to_c_(f, c);
+void operator>> (sr_table_wake_struct* f, C_sr_table_wake& c) {
+  sr_table_wake_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
-// sr2_wake
+// sr_mode_wake
 
-extern "C" void sr2_wake_to_f2_(sr2_wake_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void sr_mode_wake_to_f2_(sr_mode_wake_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
-extern "C" void sr2_wake_to_f_(C_sr2_wake& c, sr2_wake_struct* f) {
-  sr2_wake_to_f2_(f, c.amp, c.damp, c.k, c.phi,
+extern "C" void sr_mode_wake_to_f_(C_sr_mode_wake& c, sr_mode_wake_struct* f) {
+  sr_mode_wake_to_f2_(f, c.amp, c.damp, c.k, c.phi,
                           c.norm_sin, c.norm_cos, c.skew_sin, c.skew_cos);
 }
 
-extern "C" void sr2_wake_to_c2_(C_sr2_wake& c, Re& amp, Re& damp, Re& k, Re& phi,
+extern "C" void sr_mode_wake_to_c2_(C_sr_mode_wake& c, Re& amp, Re& damp, Re& k, Re& phi,
                           Re& norm_sin, Re& norm_cos, Re& skew_sin, Re& skew_cos) {
-  c = C_sr2_wake(amp, damp, k, phi, norm_sin, norm_cos, skew_sin, skew_cos);
+  c = C_sr_mode_wake(amp, damp, k, phi, norm_sin, norm_cos, skew_sin, skew_cos);
 }
 
-void operator>> (C_sr2_wake& c, sr2_wake_struct* f) {
-  sr2_wake_to_f_(c, f);
+void operator>> (C_sr_mode_wake& c, sr_mode_wake_struct* f) {
+  sr_mode_wake_to_f_(c, f);
 }
 
-void operator>> (sr2_wake_struct* f, C_sr2_wake& c) {
-  sr2_wake_to_c_(f, c);
+void operator>> (sr_mode_wake_struct* f, C_sr_mode_wake& c) {
+  sr_mode_wake_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
@@ -312,32 +312,32 @@ void operator>> (lr_wake_struct* f, C_lr_wake& c) {
 // wake
 
 extern "C" void wake_to_f2_(wake_struct*, Char, Int&, Char, Int&, Re&, Int&, Int&, Int&, Int&);
-extern "C" void sr1_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&);
-extern "C" void sr2_long_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
-extern "C" void sr2_trans_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void sr_table_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&);
+extern "C" void sr_mode_long_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void sr_mode_trans_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 extern "C" void lr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&,
                                                          Re&, Re&, Re&, Re&, Int&, Int&);
 
 extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   int n_lr = c.lr.size();
-  int n_sr1 = c.sr1.size(); 
-  int n_sr2_long = c.sr2_long.size(); 
-  int n_sr2_trans = c.sr2_trans.size(); 
+  int n_sr_table = c.sr_table.size(); 
+  int n_sr_mode_long = c.sr_mode_long.size(); 
+  int n_sr_mode_trans = c.sr_mode_trans.size(); 
   const char* srf = c.sr_file.data();     int n_srf = c.sr_file.length();
   const char* lrf = c.lr_file.data();     int n_lrf = c.lr_file.length();
-  wake_to_f2_(f, srf, n_srf, lrf, n_lrf, c.z_sr2_max, n_sr1, n_sr2_long, n_sr2_trans, n_lr);
-  for (int i = 0; i < n_sr1; i++) {
-    sr1_wake_in_wake_to_f2_(f, i, c.sr1[i].z, c.sr1[i].longitudinal, c.sr1[i].transverse);
+  wake_to_f2_(f, srf, n_srf, lrf, n_lrf, c.z_sr_mode_max, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr);
+  for (int i = 0; i < n_sr_table; i++) {
+    sr_table_wake_in_wake_to_f2_(f, i, c.sr_table[i].z, c.sr_table[i].longitudinal, c.sr_table[i].transverse);
   }
-  for (int i = 0; i < n_sr2_long; i++) {
-    sr2_long_wake_in_wake_to_f2_(f, i+1, c.sr2_long[i].amp, c.sr2_long[i].damp, 
-        c.sr2_long[i].k, c.sr2_long[i].phi, c.sr2_long[i].norm_sin, 
-        c.sr2_long[i].norm_cos, c.sr2_long[i].skew_sin, c.sr2_long[i].skew_cos);
+  for (int i = 0; i < n_sr_mode_long; i++) {
+    sr_mode_long_wake_in_wake_to_f2_(f, i+1, c.sr_mode_long[i].amp, c.sr_mode_long[i].damp, 
+        c.sr_mode_long[i].k, c.sr_mode_long[i].phi, c.sr_mode_long[i].norm_sin, 
+        c.sr_mode_long[i].norm_cos, c.sr_mode_long[i].skew_sin, c.sr_mode_long[i].skew_cos);
   }
-  for (int i = 0; i < n_sr2_trans; i++) {
-    sr2_trans_wake_in_wake_to_f2_(f, i+1, c.sr2_trans[i].amp, c.sr2_trans[i].damp, 
-        c.sr2_trans[i].k, c.sr2_trans[i].phi, c.sr2_trans[i].norm_sin, 
-        c.sr2_trans[i].norm_cos, c.sr2_trans[i].skew_sin, c.sr2_trans[i].skew_cos);
+  for (int i = 0; i < n_sr_mode_trans; i++) {
+    sr_mode_trans_wake_in_wake_to_f2_(f, i+1, c.sr_mode_trans[i].amp, c.sr_mode_trans[i].damp, 
+        c.sr_mode_trans[i].k, c.sr_mode_trans[i].phi, c.sr_mode_trans[i].norm_sin, 
+        c.sr_mode_trans[i].norm_cos, c.sr_mode_trans[i].skew_sin, c.sr_mode_trans[i].skew_cos);
   }
   for (int i = 0; i < n_lr; i++) {
     lr_wake_in_wake_to_f2_(f, i+1, c.lr[i].freq, c.lr[i].freq_in, 
@@ -346,29 +346,29 @@ extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   }
 }
 
-extern "C" void wake_to_c2_(C_wake& c, char* srf, char* lrf, Re& z_cut, Int& n_sr1, Int& n_sr2_long,
-                            Int& n_sr2_trans, Int& n_lr) {
-  if (c.sr1.size() != n_sr1) c.sr1.resize(n_sr1);
-  if (c.sr2_long.size() != n_sr2_long) c.sr2_long.resize(n_sr2_long);
-  if (c.sr2_trans.size() != n_sr2_trans) c.sr2_trans.resize(n_sr2_trans);
+extern "C" void wake_to_c2_(C_wake& c, char* srf, char* lrf, Re& z_cut, Int& n_sr_table, Int& n_sr_mode_long,
+                            Int& n_sr_mode_trans, Int& n_lr) {
+  if (c.sr_table.size() != n_sr_table) c.sr_table.resize(n_sr_table);
+  if (c.sr_mode_long.size() != n_sr_mode_long) c.sr_mode_long.resize(n_sr_mode_long);
+  if (c.sr_mode_trans.size() != n_sr_mode_trans) c.sr_mode_trans.resize(n_sr_mode_trans);
   c.sr_file = srf;
   if (c.lr.size() != n_lr) c.lr.resize(n_lr);
   c.lr_file = lrf;
-  c.z_sr2_max = z_cut;
+  c.z_sr_mode_max = z_cut;
 }
 
-extern "C" void sr1_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& z, Re& l, Re& t) {
-  c.sr1[it] = C_sr1_wake(z, l, t);
+extern "C" void sr_table_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& z, Re& l, Re& t) {
+  c.sr_table[it] = C_sr_table_wake(z, l, t);
 }
 
-extern "C" void sr2_long_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& a, Re& d, 
+extern "C" void sr_mode_long_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& a, Re& d, 
                       Re& f, Re& p, Re& ns, Re& nc, Re& ss, Re& sc) {
-  c.sr2_long[it-1] = C_sr2_wake(a, d, f, p, ns, nc, ss, sc);
+  c.sr_mode_long[it-1] = C_sr_mode_wake(a, d, f, p, ns, nc, ss, sc);
 }
 
-extern "C" void sr2_trans_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& a, Re& d, 
+extern "C" void sr_mode_trans_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& a, Re& d, 
                       Re& f, Re& p, Re& ns, Re& nc, Re& ss, Re& sc) {
-  c.sr2_trans[it-1] = C_sr2_wake(a, d, f, p, ns, nc, ss, sc);
+  c.sr_mode_trans[it-1] = C_sr_mode_wake(a, d, f, p, ns, nc, ss, sc);
 }
 
 extern "C" void lr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& f, Re& k, 
@@ -386,12 +386,12 @@ void operator>> (wake_struct* f, C_wake& c) {
 }
 
 C_wake& C_wake::operator= (const C_wake& c) {
-  if (sr1.size() != c.sr1.size()) sr1.resize(c.sr1.size());
-  sr1 = c.sr1;
-  if (sr2_long.size() != c.sr2_long.size()) sr2_long.resize(c.sr2_long.size());
-  sr2_long = c.sr2_long;
-  if (sr2_trans.size() != c.sr2_trans.size()) sr2_trans.resize(c.sr2_trans.size());
-  sr2_trans = c.sr2_trans;
+  if (sr_table.size() != c.sr_table.size()) sr_table.resize(c.sr_table.size());
+  sr_table = c.sr_table;
+  if (sr_mode_long.size() != c.sr_mode_long.size()) sr_mode_long.resize(c.sr_mode_long.size());
+  sr_mode_long = c.sr_mode_long;
+  if (sr_mode_trans.size() != c.sr_mode_trans.size()) sr_mode_trans.resize(c.sr_mode_trans.size());
+  sr_mode_trans = c.sr_mode_trans;
   sr_file = c.sr_file;
   if (lr.size() != c.lr.size()) lr.resize(c.lr.size());
   lr = c.lr;
@@ -423,10 +423,10 @@ void operator>> (control_struct* f, C_control& c) {
 //---------------------------------------------------------------------------
 // param
 
-extern "C" void param_to_f2_(param_struct*, Re&, Re&, Re&, ReArr, ReArr, 
+extern "C" void param_to_f2_(lat_param_struct*, Re&, Re&, Re&, ReArr, ReArr, 
                                Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
 
-extern "C" void param_to_f_(C_param& c, param_struct* f) {
+extern "C" void param_to_f_(C_param& c, lat_param_struct* f) {
   double arr1[36], arr2[36];
   matrix_to_array (c.t1_with_RF, arr1);
   matrix_to_array (c.t1_no_RF, arr2);
@@ -445,20 +445,20 @@ extern "C" void param_to_c2_(C_param& c, Re& np, Re& total_l,
               end_lost, lattice_type, ixx, r_seed, stable, ap_lim, lost);
 }
 
-void operator>> (C_param& c, param_struct* f) {
+void operator>> (C_param& c, lat_param_struct* f) {
   param_to_f_(c, f);
 }
 
-void operator>> (param_struct* f, C_param& c) {
+void operator>> (lat_param_struct* f, C_param& c) {
   param_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
 // amode
 
-extern "C" void amode_to_f2_(amode_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void amode_to_f2_(anormal_mode_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
-extern "C" void amode_to_f_(C_amode& c, amode_struct* f) {
+extern "C" void amode_to_f_(C_amode& c, anormal_mode_struct* f) {
   amode_to_f2_(f, c.emittance, c.synch_int4, c.synch_int5, c.j_damp, 
                                                c.alpha_damp, c.chrom, c.tune);
 }
@@ -468,20 +468,20 @@ extern "C" void amode_to_c2_(C_amode& c, Re& emit, Re& i4, Re& i5,
   c = C_amode(emit, i4, i5, jd, ad, chrom, tune);
 }
 
-void operator>> (C_amode& c, amode_struct* f) {
+void operator>> (C_amode& c, anormal_mode_struct* f) {
   amode_to_f_(c, f);
 }
 
-void operator>> (amode_struct* f, C_amode& c) {
+void operator>> (anormal_mode_struct* f, C_amode& c) {
   amode_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
 // linac_mode
 
-extern "C" void linac_mode_to_f2_(linac_mode_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void linac_mode_to_f2_(linac_normal_mode_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
-extern "C" void linac_mode_to_f_(C_linac_mode& c, linac_mode_struct* f) {
+extern "C" void linac_mode_to_f_(C_linac_mode& c, linac_normal_mode_struct* f) {
   linac_mode_to_f2_(f, c.i2_E4, c.i3_E7, c.i5a_E6, c.i5b_E6, c.sig_E1, 
                                                c.a_emittance_end, c.b_emittance_end);
 }
@@ -491,21 +491,21 @@ extern "C" void linac_mode_to_c2_(C_linac_mode& c, Re& i2, Re& i3, Re& i5a,
   c = C_linac_mode(i2, i3, i5a, i5b, sig_e, ea, eb);
 }
 
-void operator>> (C_linac_mode& c, linac_mode_struct* f) {
+void operator>> (C_linac_mode& c, linac_normal_mode_struct* f) {
   linac_mode_to_f_(c, f);
 }
 
-void operator>> (linac_mode_struct* f, C_linac_mode& c) {
+void operator>> (linac_normal_mode_struct* f, C_linac_mode& c) {
   linac_mode_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
 // modes
 
-extern "C" void modes_to_f2_(modes_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&,
+extern "C" void modes_to_f2_(normal_modes_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&,
                               C_amode, C_amode, C_amode, C_linac_mode);
 
-extern "C" void modes_to_f_(C_modes& c, modes_struct* f) {
+extern "C" void modes_to_f_(C_modes& c, normal_modes_struct* f) {
   modes_to_f2_(f, c.synch_int1, c.synch_int2, c.synch_int3,
             c.sigE_E, c.sig_z, c.e_loss, c.pz_aperture, c.a, c.b, c.z, c.lin);
 }
@@ -516,11 +516,11 @@ extern "C" void modes_to_c2_(C_modes& c, Re& i1, Re& i2, Re& i3, Re& sige,
   c = C_modes(i1, i2, i3, sige, sig_z, e_loss, pz, a, b, z, lin);
 }
 
-void operator>> (C_modes& c, modes_struct* f) {
+void operator>> (C_modes& c, normal_modes_struct* f) {
   modes_to_f_(c, f);
 }
 
-void operator>> (modes_struct* f, C_modes& c) {
+void operator>> (normal_modes_struct* f, C_modes& c) {
   modes_to_c_(f, c);
 }
 
@@ -599,8 +599,8 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   const char* attrib = c.attribute_name.data(); 
                                     int n_attrib = c.attribute_name.length();
   int n_ab = c.a.size(), n_const = c.const_arr.size();
-  int n_sr1 = c.wake.sr1.size(), n_sr2_long = c.wake.sr2_long.size();
-  int n_sr2_trans = c.wake.sr2_trans.size(), n_lr = c.wake.lr.size();
+  int n_sr_table = c.wake.sr_table.size(), n_sr_mode_long = c.wake.sr_mode_long.size();
+  int n_sr_mode_trans = c.wake.sr_mode_trans.size(), n_lr = c.wake.lr.size();
   int n_wig = c.wig_term.size();
   int nr1 = c.r.size(), nr2 = 0;
   if (nr1) {
@@ -615,8 +615,8 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.x, c.y, c.z, c.floor, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat, 
     c.gamma_c, c.s, r_arr, nr1, nr2, &c.a[0], &c.b[0], n_ab, &c.const_arr[0], 
     n_const, des, n_des, c.gen_field, c.taylor[0], c.taylor[1], c.taylor[2], 
-    c.taylor[3], c.taylor[4], c.taylor[5], c.wake, n_sr1, n_sr2_long, 
-    n_sr2_trans, n_lr, n_wig, c.key, 
+    c.taylor[3], c.taylor[4], c.taylor[5], c.wake, n_sr_table, n_sr_mode_long, 
+    n_sr_mode_trans, n_lr, n_wig, c.key, 
     c.sub_key, c.control_type, c.ix_value, c.n_slave, c.ix1_slave, 
     c.ix2_slave, c.n_lord, c.ic1_lord, c.ic2_lord, c.ix_pointer, 
     c.ixx, c.ix_ele, c.mat6_calc_method, c.tracking_method, c.field_calc,
@@ -818,16 +818,16 @@ void operator>> (mode_info_struct* f, C_mode_info& c) {
 //---------------------------------------------------------------------------
 // ring
 
-extern "C" void ring_to_f2_(ring_struct*, Char, Int&, Char, Int&, Char, Int&,
+extern "C" void lat_to_f2_(lat_struct*, Char, Int&, Char, Int&, Char, Int&,
     Char, Int&, C_mode_info&, C_mode_info&, C_mode_info&, C_param&, 
     Int&, Int&, Int&, Int&, Int&, Int&, Int&,
     C_ele&, Int&, IntArr, Int&);
 
-extern "C" void ele_from_ring_to_f2_(ring_struct*, Int&, C_ele&);
-extern "C" void control_from_ring_to_f2_(ring_struct*, Int&, C_control&);
+extern "C" void ele_from_lat_to_f2_(lat_struct*, Int&, C_ele&);
+extern "C" void control_from_lat_to_f2_(lat_struct*, Int&, C_control&);
 
 
-extern "C" void ring_to_f_(C_ring& c, ring_struct* f) {
+extern "C" void ring_to_f_(C_lat& c, lat_struct* f) {
   const char* name  = c.name.data();            int n_name = c.name.size();
   const char* lat   = c.lattice.data();         int n_lat = c.lattice.size();
   const char* file  = c.input_file_name.data(); int n_file = c.input_file_name.size();
@@ -835,21 +835,21 @@ extern "C" void ring_to_f_(C_ring& c, ring_struct* f) {
   int n_con = c.control.size();
   int n_ic  = c.ic.size();
   int n_ele_max = c.ele.size() - 1;
-  ring_to_f2_(f, name, n_name, lat, n_lat, file, n_file, title, n_title,
+  lat_to_f2_(f, name, n_name, lat, n_lat, file, n_file, title, n_title,
       c.x, c.y, c.z, c.param, 
       c.version, c.n_ele_use, c.n_ele_max, n_ele_max, c.n_control_max, 
       c.n_ic_max, c.input_taylor_order, c.ele_init, n_con, &c.ic[0], n_ic);
   for (int i = 0; i < n_ele_max+1; i++) {
-    ele_from_ring_to_f2_(f, i, c.ele[i]);
+    ele_from_lat_to_f2_(f, i, c.ele[i]);
   }
   for (int i = 0; i < n_con; i++) {
-    control_from_ring_to_f2_(f, i+1, c.control[i]);
+    control_from_lat_to_f2_(f, i+1, c.control[i]);
   }
 }
 
-extern "C" void ring_to_c2_(C_ring& c, char* name, char* lat, char* file,
+extern "C" void lat_to_c2_(C_lat& c, char* name, char* lat, char* file,
     char* title, mode_info_struct* x, mode_info_struct* y, mode_info_struct* z,
-    param_struct* param, Int& ver, Int& n_use, Int& n_max, Int& n_maxx, 
+    lat_param_struct* param, Int& ver, Int& n_use, Int& n_max, Int& n_maxx, 
     Int& n_con_max, Int& n_ic_max, Int& n_taylor, 
     ele_struct* ele_init, Int& n_con_array, IntArr ic, Int& n_ic_array) {
   c.name                = name;
@@ -874,23 +874,23 @@ extern "C" void ring_to_c2_(C_ring& c, char* name, char* lat, char* file,
 }
 
 
-extern "C" void ele_from_ring_to_c2_(C_ring& ring, Int& it, ele_struct* ele) {
+extern "C" void ele_from_lat_to_c2_(C_lat& ring, Int& it, ele_struct* ele) {
   ele >> ring.ele[it];
 }
 
-extern "C" void control_from_ring_to_c2_(C_ring& c, Int& it, control_struct* control) {
+extern "C" void control_from_lat_to_c2_(C_lat& c, Int& it, control_struct* control) {
   control >> c.control[it-1];
 }
 
-void operator>> (C_ring& c, ring_struct* f) {
+void operator>> (C_lat& c, lat_struct* f) {
   ring_to_f_(c, f);
 }
 
-void operator>> (ring_struct* f, C_ring& c) {
-  ring_to_c_(f, c);
+void operator>> (lat_struct* f, C_lat& c) {
+  lat_to_c_(f, c);
 }
 
-C_ring& C_ring::operator= (const C_ring& c) {
+C_lat& C_lat::operator= (const C_lat& c) {
   name               = c.name;
   lattice            = c.lattice;
   input_file_name    = c.input_file_name;

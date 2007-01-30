@@ -22,7 +22,7 @@ module em_field_mod
       use bmad_struct
       implicit none
       type (ele_struct), intent(in) :: ele
-      type (param_struct) param
+      type (lat_param_struct) param
       type (coord_struct), intent(in) :: orb
       real(rp), intent(in) :: s
       type (em_field_struct), intent(out) :: field
@@ -83,7 +83,7 @@ subroutine save_a_step (track, ele, param, s, here, s_sav)
 
   type (track_struct) track
   type (ele_struct), intent(in) :: ele
-  type (param_struct), intent(in) :: param
+  type (lat_param_struct), intent(in) :: param
   type (coord_struct) orb
   integer n_pt
   real(rp) s, s_sav, here(:)
@@ -144,7 +144,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   implicit none
 
   type (ele_struct), target, intent(in) :: ele
-  type (param_struct) param
+  type (lat_param_struct) param
   type (coord_struct) :: here
   type (wig_term_struct), pointer :: t
   type (em_field_struct), intent(out) :: field
@@ -201,7 +201,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   endif
 
   field%e = 0
-  field%b = 0
+  field%B = 0
   field%type = em_field$
 
   df_calc = .false.
@@ -468,7 +468,7 @@ end subroutine
 !
 ! Input:
 !   ele   -- Ele_struct: Element being tracked thorugh.
-!   param -- Param_struct: Lattice parameters.
+!   param -- lat_param_struct: Lattice parameters.
 !   s     -- Real(rp): Distance from the start of the element to the particle.
 !   r(6)  -- Real(rp): Position vector: (x, x', y, y', z, Pz)
 !
@@ -483,7 +483,7 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
   implicit none
 
   type (ele_struct) ele
-  type (param_struct) param
+  type (lat_param_struct) param
   type (em_field_struct) field
 
   real(rp), intent(in) :: s         ! s-position
@@ -536,7 +536,7 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
     dvel_y = vel_s * field%B(1) - vel_x * field%B(3) + field%E(2) * f
     dvel_s = vel_x * field%B(2) - vel_y * field%B(1)
 
-    energy = (ele%value(beam_energy$) * (1 + r(6)))
+    energy = (ele%value(E_TOT$) * (1 + r(6)))
     f = c_light / energy
 
     dr_ds(1) = r(2)

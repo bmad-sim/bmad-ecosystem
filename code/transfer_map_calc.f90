@@ -16,11 +16,11 @@
 !   use bmad
 !
 ! Input:
-!   lat   -- Ring_struct: Lattice used in the calculation.
+!   lat   -- lat_struct: Lattice used in the calculation.
 !   ix1   -- Integer, optional: Element start index for the calculation.
 !              Default is 0.
 !   ix2   -- Integer, optional: Element end index for the calculation.
-!              Default is lat%n_ele_use.
+!              Default is lat%n_ele_track.
 !
 ! Output:
 !    t_map(6) -- Taylor_struct: Transfer map.
@@ -37,7 +37,7 @@ subroutine transfer_map_calc (lat, t_map, ix1, ix2)
 
   implicit none
 
-  type (ring_struct) lat
+  type (lat_struct) lat
 
   type (taylor_struct) :: t_map(:), taylor2(6)
 
@@ -47,16 +47,16 @@ subroutine transfer_map_calc (lat, t_map, ix1, ix2)
 !
 
   i1 = integer_option(0, ix1) 
-  i2 = integer_option(lat%n_ele_use, ix2) 
+  i2 = integer_option(lat%n_ele_track, ix2) 
 
-  if (associated(lat%ele_(i1)%taylor(1)%term)) then
-    t_map = lat%ele_(i1)%taylor
+  if (associated(lat%ele(i1)%taylor(1)%term)) then
+    t_map = lat%ele(i1)%taylor
   else
-    call mat6_to_taylor (lat%ele_(i1)%vec0, lat%ele_(i1)%mat6, t_map)
+    call mat6_to_taylor (lat%ele(i1)%vec0, lat%ele(i1)%mat6, t_map)
   endif
 
   if (i2 < i1) then
-    do i = i1+1, lat%n_ele_use
+    do i = i1+1, lat%n_ele_track
       call add_on_to_t_map
     enddo
     do i = 1, i2
@@ -74,11 +74,11 @@ contains
 
 subroutine add_on_to_t_map
 
-  if (.not. associated(lat%ele_(i)%taylor(1)%term)) then
-    call ele_to_taylor (lat%ele_(i), lat%param)
+  if (.not. associated(lat%ele(i)%taylor(1)%term)) then
+    call ele_to_taylor (lat%ele(i), lat%param)
   endif
 
-  call concat_taylor (t_map, lat%ele_(i)%taylor, t_map)
+  call concat_taylor (t_map, lat%ele(i)%taylor, t_map)
 
 end subroutine
 

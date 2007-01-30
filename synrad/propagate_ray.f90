@@ -2,14 +2,14 @@
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine propagate_ray (ray, s_end, ring)
+subroutine propagate_ray (ray, s_end, lat)
 
   use sr_struct
   use sr_interface
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (lat_struct), target :: lat
   type (ray_struct), target :: ray
 
   real(rp) s_end, s_next, del_s, s_target
@@ -20,7 +20,7 @@ subroutine propagate_ray (ray, s_end, ring)
   s_target = s_end
 
   if ((s_target - ray%now%vec(5)) * ray%direction < 0) s_target = &
-          s_target + ray%direction * ring%param%total_length
+          s_target + ray%direction * lat%param%total_length
 
   if (abs(s_target - ray%now%vec(5)) > 200) then
     type *, ' ERROR IN PROPAGATE_RAY: TRYING TO PROPAGATE TOO FAR.'
@@ -31,7 +31,7 @@ subroutine propagate_ray (ray, s_end, ring)
 ! update old (but only if we have moved or gone thorough the IP)
 
   if (s_target == ray%now%vec(5) .and. &
-            abs(s_end - ray%now%vec(5)) /= ring%param%total_length) return
+            abs(s_end - ray%now%vec(5)) /= lat%param%total_length) return
 
   ray%old = ray%now
 
@@ -40,21 +40,21 @@ subroutine propagate_ray (ray, s_end, ring)
   propagation_loop: do
 
 ! If we are crossing over to a new element then update ray%ix_ele.
-! Additionally, if we cross the ring end we need to reset ray%now%vec(5) and ray%ix_ele.
+! Additionally, if we cross the lat end we need to reset ray%now%vec(5) and ray%ix_ele.
 ! Note: Since we can be going "backwards" to find a shadow then ray%crossed_end
 ! can toggle from true to false.
 
     if (ray%direction == 1) then
       do
-        if (ray%now%vec(5) .ge. ring%ele_(ray%ix_ele)%s) then
+        if (ray%now%vec(5) .ge. lat%ele(ray%ix_ele)%s) then
           ray%ix_ele = ray%ix_ele + 1
-          if (ray%ix_ele > ring%n_ele_ring) then
+          if (ray%ix_ele > lat%n_ele_track) then
             ray%ix_ele = 1
-            ray%now%vec(5) = ray%now%vec(5) - ring%param%total_length
-            s_target = s_target - ring%param%total_length
+            ray%now%vec(5) = ray%now%vec(5) - lat%param%total_length
+            s_target = s_target - lat%param%total_length
             ray%crossed_end = .not. ray%crossed_end
           endif
-        elseif (ray%now%vec(5) .lt. ring%ele_(ray%ix_ele-1)%s) then
+        elseif (ray%now%vec(5) .lt. lat%ele(ray%ix_ele-1)%s) then
           ray%ix_ele = ray%ix_ele - 1
           if (ray%ix_ele == 0) then
             type *, 'ERROR IN PROPAGATE_RAY: INTERNAL + ERROR'
@@ -67,17 +67,17 @@ subroutine propagate_ray (ray, s_end, ring)
 
     else   ! direction = -1
       do
-        if (ray%now%vec(5) .le. ring%ele_(ray%ix_ele-1)%s) then
+        if (ray%now%vec(5) .le. lat%ele(ray%ix_ele-1)%s) then
           ray%ix_ele = ray%ix_ele - 1
           if (ray%ix_ele .le. 0) then
-            ray%ix_ele = ring%n_ele_ring
-            ray%now%vec(5) = ray%now%vec(5) + ring%param%total_length
-            s_target = s_target + ring%param%total_length
+            ray%ix_ele = lat%n_ele_track
+            ray%now%vec(5) = ray%now%vec(5) + lat%param%total_length
+            s_target = s_target + lat%param%total_length
             ray%crossed_end = .not. ray%crossed_end
           endif
-        elseif (ray%now%vec(5) .gt. ring%ele_(ray%ix_ele)%s) then
+        elseif (ray%now%vec(5) .gt. lat%ele(ray%ix_ele)%s) then
           ray%ix_ele = ray%ix_ele + 1
-          if (ray%ix_ele == ring%n_ele_ring+1) then
+          if (ray%ix_ele == lat%n_ele_track+1) then
             type *, 'ERROR IN PROPAGATE_RAY: INTERNAL - ERROR'
             call err_exit
           endif
@@ -88,9 +88,9 @@ subroutine propagate_ray (ray, s_end, ring)
     endif
 
     if (ray%direction == 1) then
-      s_next = min (s_target, ring%ele_(ray%ix_ele)%s)
+      s_next = min (s_target, lat%ele(ray%ix_ele)%s)
     else
-      s_next = max (s_target, ring%ele_(ray%ix_ele-1)%s)
+      s_next = max (s_target, lat%ele(ray%ix_ele-1)%s)
     endif
 
     del_s = s_next - ray%now%vec(5)
@@ -99,8 +99,8 @@ subroutine propagate_ray (ray, s_end, ring)
 ! new_x = (rho * (cos(theta0) - cos(theta1)) + ray%now%vec(1) * cos(theta0)) /
 !                                                              cos(theta1)
 
-    if (ring%ele_(ray%ix_ele)%key == sbend$) then
-      rho = ring%ele_(ray%ix_ele)%value(rho$)
+    if (lat%ele(ray%ix_ele)%key == sbend$) then
+      rho = lat%ele(ray%ix_ele)%value(rho$)
       theta0 = ray%now%vec(2)
       theta1 = ray%now%vec(2) + del_s / rho
       c_t0 = -(theta0**2)/2 + theta0**4/24

@@ -10,8 +10,8 @@
 ! Input:
 !   cbar_mat(2,2) -- Real(rp): Cbar matrix.
 !   ele -- Ele_struct: Element with the Twiss parameters.
-!     %x          -- a-mode Twiss parameters
-!     %y          -- b-mode Twiss parameters
+!     %a          -- a-mode Twiss parameters
+!     %b          -- b-mode Twiss parameters
 !
 ! Output:
 !   ele -- Ele_struct: Element with the C matrix.
@@ -33,10 +33,10 @@ subroutine cbar_to_c (cbar_mat, ele)
 
 !
 
-  sqrt_beta_a  = sqrt(ele%x%beta)
-  sqrt_beta_b  = sqrt(ele%y%beta)
-  alpha_a = ele%x%alpha
-  alpha_b = ele%y%alpha
+  sqrt_beta_a  = sqrt(ele%a%beta)
+  sqrt_beta_b  = sqrt(ele%b%beta)
+  alpha_a = ele%a%alpha
+  alpha_b = ele%b%alpha
 
   g_b(1,1) = 1 / sqrt_beta_b
   g_b(1,2) = 0

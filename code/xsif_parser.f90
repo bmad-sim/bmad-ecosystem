@@ -20,7 +20,7 @@
 !                   statement in the lattice file and use use_line instead.
 !
 ! Output:
-!   lat         -- Ring_struct: Structure holding the lattice information.
+!   lat         -- lat_struct: Structure holding the lattice information.
 !   bmad_status  -- Bmad status common block.
 !     %ok            -- Set True if parsing is successful. False otherwise.
 !-
@@ -37,7 +37,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 
   implicit none
 
-  type (ring_struct), target :: lat
+  type (lat_struct), target :: lat
   type (ele_struct), pointer :: ele
 
   integer xsif_unit, err_unit, std_out_unit, internal_unit
@@ -72,7 +72,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
   if (bmad_status%ok) then
     if (present(digested_read_ok)) digested_read_ok = .true.
     call set_taylor_order (lat%input_taylor_order, .false.)
-    call set_ptc (lat%beam_energy, lat%param%particle)
+    call set_ptc (lat%E_TOT, lat%param%particle)
     return
   endif
 
@@ -141,7 +141,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 ! Init the lattice and look for an LCavity which means this is 
 ! a linear lattice.
 
-  call init_ring (lat, npos2-npos1+100)
+  call init_lat (lat, npos2-npos1+100)
   lat%param%lattice_type = circular_lattice$
 
   do ie = 1, maxelm
@@ -155,18 +155,18 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 
 ! Allocate elements
 
-  do i = 0, ubound(lat%ele_, 1)
-    call init_ele (lat%ele_(i))
+  do i = 0, ubound(lat%ele, 1)
+    call init_ele (lat%ele(i))
   enddo
 
   lat%param%particle = positron$
-  lat%ele_(0)%value(beam_energy$) = 0
+  lat%ele(0)%value(E_TOT$) = 0
 
-  lat%ele_(0)%name = 'BEGINNING'     ! Beginning element
-  lat%ele_(0)%key = init_ele$
-  call mat_make_unit (lat%ele_(0)%mat6)
+  lat%ele(0)%name = 'BEGINNING'     ! Beginning element
+  lat%ele(0)%key = init_ele$
+  call mat_make_unit (lat%ele(0)%mat6)
 
-! Transfer elements to the ring_struct
+! Transfer elements to the lat_struct
 
   i_ele = 0
 
@@ -201,7 +201,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 
         if (k2 /= 0) then
           call multipole_init (ele)
-          ele%b(2) = k2 / 2
+          ele%b_pole(2) = k2 / 2
         endif
 
         if (key == mad_rbend) then  ! transform to an sbend
@@ -240,13 +240,13 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
         call add_ele (multipole$)
         call multipole_init (ele)
         ele%value(l$)        = pdata(dat_indx)
-        ele%a(0:20)          = pdata(dat_indx+1:dat_indx+41:2)
-        ele%b(0:20)          = pdata(dat_indx+2:dat_indx+42:2)
+        ele%a_pole(0:20)          = pdata(dat_indx+1:dat_indx+41:2)
+        ele%b_pole(0:20)          = pdata(dat_indx+2:dat_indx+42:2)
         ele%value(aperture$) = pdata(dat_indx+44)
         ele%value(tilt$)     = pdata(dat_indx+49)
 
         if (key == mad_dimu) then
-          if (ele%value(l$) /= 0) ele%a = ele%a * ele%value(l$)
+          if (ele%value(l$) /= 0) ele%a_pole = ele%a_pole * ele%value(l$)
         endif
 
         if (abs(pdata(dat_indx+43) - 1) > 1e-6) then
@@ -357,7 +357,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 
         if (k2 /= 0) then
           call multipole_init (ele)
-          ele%b(2) = k2 / 2
+          ele%b_pole(2) = k2 / 2
         endif
 
       case (mad_gkick)
@@ -437,13 +437,13 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 
         if ((ix1 /= 0) .and. (ix2 /= 0)) then
           allocate (ele%wake)
-          allocate (ele%wake%sr2_long(0), ele%wake%sr2_trans(0), ele%wake%lr(0))
+          allocate (ele%wake%sr_mode_long(0), ele%wake%sr_mode_trans(0), ele%wake%lr(0))
           name1 = arr_to_str(lwake_file(ix1)%fnam_ptr)
           name2 = arr_to_str(twake_file(ix2)%fnam_ptr)
           ele%wake%sr_file = trim(name1) // ' | ' // name2
-          call read_xsif_wake (ele%wake%sr1, name1, 'LONG')
-          call read_xsif_wake (ele%wake%sr1, name2, 'TRANS')
-          ele%wake%z_sr2_max = 0
+          call read_xsif_wake (ele%wake%sr_table, name1, 'LONG')
+          call read_xsif_wake (ele%wake%sr_table, name2, 'TRANS')
+          ele%wake%z_sr_mode_max = 0
         endif
 
         lat%param%lattice_type = linear_lattice$
@@ -483,37 +483,37 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 
   if (ibeta0_ptr /= 0) then
     dat_indx = iedat(ibeta0_ptr, 1)
-    ele => lat%ele_(0)
-    ele%x%beta  = pdata(dat_indx)
-    ele%x%alpha = pdata(dat_indx+1)
-    ele%x%phi   = pdata(dat_indx+2)
-    ele%y%beta  = pdata(dat_indx+3)
-    ele%y%alpha = pdata(dat_indx+4)
-    ele%y%phi   = pdata(dat_indx+5)
-    ele%x%eta   = pdata(dat_indx+6)
-    ele%x%etap  = pdata(dat_indx+7)
-    ele%y%eta   = pdata(dat_indx+8)
-    ele%y%etap  = pdata(dat_indx+9)
-    ele%x%eta_lab   = ele%x%eta  
-    ele%x%etap_lab  = ele%x%etap 
-    ele%y%eta_lab   = ele%y%eta  
-    ele%y%etap_lab  = ele%y%etap 
+    ele => lat%ele(0)
+    ele%a%beta  = pdata(dat_indx)
+    ele%a%alpha = pdata(dat_indx+1)
+    ele%a%phi   = pdata(dat_indx+2)
+    ele%b%beta  = pdata(dat_indx+3)
+    ele%b%alpha = pdata(dat_indx+4)
+    ele%b%phi   = pdata(dat_indx+5)
+    ele%a%eta   = pdata(dat_indx+6)
+    ele%a%etap  = pdata(dat_indx+7)
+    ele%b%eta   = pdata(dat_indx+8)
+    ele%b%etap  = pdata(dat_indx+9)
+    ele%a%eta_lab   = ele%a%eta  
+    ele%a%etap_lab  = ele%a%etap 
+    ele%b%eta_lab   = ele%b%eta  
+    ele%b%etap_lab  = ele%b%etap 
     lat%beam_start%vec(1) =  pdata(dat_indx+10)
     lat%beam_start%vec(2) =  pdata(dat_indx+11)
     lat%beam_start%vec(3) =  pdata(dat_indx+12)
     lat%beam_start%vec(4) =  pdata(dat_indx+13)
     lat%beam_start%vec(5) =  pdata(dat_indx+14)
     lat%beam_start%vec(6) =  pdata(dat_indx+15)
-    ele%value(beam_energy$) = pdata(dat_indx+26) * 1e9
+    ele%value(e_tot$) = pdata(dat_indx+26) * 1e9
 
-    if (ele%x%beta /= 0) ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
-    if (ele%y%beta /= 0) ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
+    if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
+    if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
   endif
 
 
   if (ibeam_ptr /= 0) then
     dat_indx = iedat(ibeam_ptr, 1)
-    ele => lat%ele_(0)
+    ele => lat%ele(0)
     select case (nint(pdata(dat_indx)))  ! particle type
     case (0) ! default
       lat%param%particle = positron$
@@ -533,7 +533,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 
     lat%param%n_part = pdata(dat_indx+14)
 
-    if (pdata(dat_indx+3) /= 0) ele%value(beam_energy$) = &
+    if (pdata(dat_indx+3) /= 0) ele%value(E_TOT$) = &
                                                   pdata(dat_indx+3) * 1e9
   endif
 
@@ -545,8 +545,8 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
   lat%name = ' '
   lat%lattice = ' '
 
-  lat%n_ele_use  = i_ele
-  lat%n_ele_ring = i_ele
+  lat%n_ele_track  = i_ele
+  lat%n_ele_track = i_ele
   lat%n_ele_max  = i_ele
 
   lat%version            = bmad_inc_version$
@@ -556,24 +556,24 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
   lat%name = ktext  ! ktext is global xsif variable
 
   call set_taylor_order (lat%input_taylor_order, .false.)
-  call set_ptc (lat%beam_energy, lat%param%particle)
+  call set_ptc (lat%E_TOT, lat%param%particle)
 
 ! Element cleanup
 
   call compute_reference_energy (lat)
   do i = 1, lat%n_ele_max
     if (ele%key == elseparator$) then
-      if (ele%value(beam_energy$) == 0) cycle
+      if (ele%value(E_TOT$) == 0) cycle
       ele%value(vkick$) = ele%value(e_field$) * ele%value(l$) / &
-                                                      ele%value(beam_energy$)
+                                                      ele%value(E_TOT$)
     endif
   enddo
 
 ! last
 
   call s_calc (lat)
-  call ring_geometry (lat)
-  if (logic_option (.true., make_mats6)) call ring_make_mat6 (lat, -1)
+  call lat_geometry (lat)
+  if (logic_option (.true., make_mats6)) call lat_make_mat6 (lat, -1)
   err_flag = .false.
   call xsif_io_close
 
@@ -595,7 +595,7 @@ subroutine add_ele (key)
   integer key
 
   i_ele = i_ele + 1
-  ele => lat%ele_(i_ele)
+  ele => lat%ele(i_ele)
   ele%key = key
   ele%name = kelem(indx)
   ele%type = ketyp(indx)
@@ -638,7 +638,7 @@ end subroutine
 
 subroutine read_xsif_wake (wake, file_name, this)
 
-  type (sr1_wake_struct), pointer :: wake(:)
+  type (sr_table_wake_struct), pointer :: wake(:)
 
   real(rp) s_pos(1000), field(1000), ds
 

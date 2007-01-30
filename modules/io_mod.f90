@@ -15,17 +15,17 @@ contains
 ! Subroutine write_bmad_lattice_file (bmad_file, lat)
 !
 ! Subroutine to write a Bmad lattice file using the information in
-! a ring_struct. Optionally only part of the lattice can be generated.
+! a lat_struct. Optionally only part of the lattice can be generated.
 !
 ! Modules needed:
 !   use io_mod
 !
 ! Input:
 !   bmad_file     -- Character(*): Name of the output lattice file.
-!   lat           -- Ring_struct: Holds the lattice information.
-!   ix_start      -- Integer, optional: Starting index of lat%ele_(i)
+!   lat           -- lat_struct: Holds the lattice information.
+!   ix_start      -- Integer, optional: Starting index of lat%ele(i)
 !                       used for output.
-!   ix_end        -- Integer, optional: Ending index of lat%ele_(i)
+!   ix_end        -- Integer, optional: Ending index of lat%ele(i)
 !                       used for output.
 !-
 
@@ -33,7 +33,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
 
   implicit none
 
-  type (ring_struct), target :: lat
+  type (lat_struct), target :: lat
   type (ele_struct), pointer :: ele, slave
   type (ele_struct) ele_init
   type (wig_term_struct) wt
@@ -77,13 +77,13 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
   write (iu, *) 'parameter[taylor_order] =', lat%input_taylor_order
 
   write (iu, *)
-  write (iu, *) 'parameter[beam_energy] =', &
-                      trim(str(lat%ele_(0)%value(beam_energy$)))
+  write (iu, *) 'parameter[E_TOT] =', &
+                      trim(str(lat%ele(0)%value(E_TOT$)))
   write (iu, *) 'beam, particle = ', particle_name(lat%param%particle)
   if (lat%param%n_part /= 0) &
           write (iu, *) 'beam, n_part = ', lat%param%n_part
 
-  ele => lat%ele_(0) 
+  ele => lat%ele(0) 
 
   if (ele%floor%x /= 0) &
         write (iu, *) 'beginning[x_position] = ', trim(str(ele%floor%x))
@@ -100,26 +100,26 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
 
   if (lat%param%lattice_type /= circular_lattice$) then
     write (iu, *)
-    if (ele%x%beta /= 0) &
-        write (iu, *) 'beginning[beta_x] = ', trim(str(ele%x%beta))
-    if (ele%x%alpha /= 0) &
-        write (iu, *) 'beginning[alpha_x] = ', trim(str(ele%x%alpha))
-    if (ele%x%phi /= 0) &
-        write (iu, *) 'beginning[phi_x] = ', trim(str(ele%x%phi))
-    if (ele%x%eta /= 0) &
-        write (iu, *) 'beginning[eta_x] = ', trim(str(ele%x%eta))
-    if (ele%x%etap /= 0) &
-        write (iu, *) 'beginning[etap_x] = ', trim(str(ele%x%etap))
-    if (ele%y%beta /= 0) &
-        write (iu, *) 'beginning[beta_y] = ', trim(str(ele%y%beta))
-    if (ele%y%alpha /= 0) &
-        write (iu, *) 'beginning[alpha_y] = ', trim(str(ele%y%alpha))
-    if (ele%y%phi /= 0) &
-        write (iu, *) 'beginning[phi_y] = ', trim(str(ele%y%phi))
-    if (ele%y%eta /= 0) &
-        write (iu, *) 'beginning[eta_y] = ', trim(str(ele%y%eta))
-    if (ele%y%etap /= 0) &
-        write (iu, *) 'beginning[etap_y] = ', trim(str(ele%y%etap))
+    if (ele%a%beta /= 0) &
+        write (iu, *) 'beginning[beta_a] = ', trim(str(ele%a%beta))
+    if (ele%a%alpha /= 0) &
+        write (iu, *) 'beginning[alpha_a] = ', trim(str(ele%a%alpha))
+    if (ele%a%phi /= 0) &
+        write (iu, *) 'beginning[phi_a] = ', trim(str(ele%a%phi))
+    if (ele%a%eta /= 0) &
+        write (iu, *) 'beginning[eta_a] = ', trim(str(ele%a%eta))
+    if (ele%a%etap /= 0) &
+        write (iu, *) 'beginning[etap_a] = ', trim(str(ele%a%etap))
+    if (ele%b%beta /= 0) &
+        write (iu, *) 'beginning[beta_b] = ', trim(str(ele%b%beta))
+    if (ele%b%alpha /= 0) &
+        write (iu, *) 'beginning[alpha_b] = ', trim(str(ele%b%alpha))
+    if (ele%b%phi /= 0) &
+        write (iu, *) 'beginning[phi_b] = ', trim(str(ele%b%phi))
+    if (ele%b%eta /= 0) &
+        write (iu, *) 'beginning[eta_b] = ', trim(str(ele%b%eta))
+    if (ele%b%etap /= 0) &
+        write (iu, *) 'beginning[etap_b] = ', trim(str(ele%b%etap))
     if (ele%c_mat(1,1) /= 0) &
         write (iu, *) 'beginning[c11] = ', trim(str(ele%c_mat(1,1)))
     if (ele%c_mat(1,2) /= 0) &
@@ -143,11 +143,11 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
 
   ele_loop: do i = 1, lat%n_ele_max
 
-    ele => lat%ele_(i)
+    ele => lat%ele(i)
 
     if (ele%key == null_ele$) cycle
 
-    if (i == lat%n_ele_use+1) then
+    if (i == lat%n_ele_track+1) then
       write (iu, *)
       write (iu, *) '!-------------------------------------------------------'
       write (iu, *)
@@ -156,7 +156,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
     if (ele%control_type == super_slave$) then
       ele%ixx = 0
       if (slave_here) cycle
-      s0 = lat%ele_(i-1)%s
+      s0 = lat%ele(i-1)%s
       ixs = ixs + 1
       ele%ixx = ixs
       slave_here = .true.
@@ -164,7 +164,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
     endif
 
     if (slave_here) then
-      s0 = lat%ele_(i-1)%s - s0
+      s0 = lat%ele(i-1)%s - s0
       write (iu, '(a, i3.3, 2a)') ' slave_drift_', ixs, ': drift, l = ', trim(str(s0))
       slave_here = .false.
     endif
@@ -187,11 +187,11 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
         write (line, '(2a)') trim(ele%name), ': group = {'
       endif
       j_loop: do j = ele%ix1_slave, ele%ix2_slave
-        ctl = lat%control_(j)
+        ctl = lat%control(j)
         ix = ctl%ix_slave
-        slave => lat%ele_(ix)
+        slave => lat%ele(ix)
         do k = ele%ix1_slave, j-1 ! do not use elements w/ duplicate names
-          if (lat%ele_(lat%control_(k)%ix_slave)%name == slave%name) exit j_loop
+          if (lat%ele(lat%control(k)%ix_slave)%name == slave%name) exit j_loop
         enddo
         if (j == ele%ix1_slave) then
           write (line, '(3a)') trim(line), trim(slave%name)
@@ -223,11 +223,11 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
     if (ele%control_type == i_beam$) then
       write (line, '(2a)') trim(ele%name), ': i_beam = {'
       do j = ele%ix1_slave, ele%ix2_slave
-        ix1 = lat%control_(j)%ix_slave
+        ix1 = lat%control(j)%ix_slave
         if (j == ele%ix2_slave) then
-          write (line, '(3a)') trim(line), trim(lat%ele_(ix1)%name), '}'
+          write (line, '(3a)') trim(line), trim(lat%ele(ix1)%name), '}'
         else
-          write (line, '(3a)') trim(line), trim(lat%ele_(ix1)%name), ', '
+          write (line, '(3a)') trim(line), trim(lat%ele(ix1)%name), ', '
         endif
       enddo
     else
@@ -259,7 +259,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
 ! Exclude dependent variables
 
       if (j == check_sum$ .and. ele%key /= patch$) cycle
-      if (j == beam_energy$) cycle
+      if (j == E_TOT$) cycle
       if (j == p0c$) cycle
       if (j == tilt_tot$) cycle
       if (j == x_pitch_tot$) cycle
@@ -279,7 +279,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
         if (j == e_loss$) cycle
         if (j == delta_e$) cycle
         if (j == p0c_start$) cycle
-        if (j == energy_start$) cycle
+        if (j == E_TOT_START$) cycle
       case (wiggler$)
         if (j == k1$) cycle
         if (j == rho$) cycle
@@ -384,12 +384,12 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
       enddo
     endif
 
-    if (associated(ele%a)) then
-      do j = 0, ubound(ele%a, 1)
-        if (ele%a(j) /= 0) line = trim(line) // ', ' // &
-                trim(attribute_name(ele, j+a0$)) // ' = ' // str(ele%a(j))
-        if (ele%b(j) /= 0) line = trim(line) // ', ' // &
-                trim(attribute_name(ele, j+b0$)) // ' = ' // str(ele%b(j))
+    if (associated(ele%a_pole)) then
+      do j = 0, ubound(ele%a_pole, 1)
+        if (ele%a_pole(j) /= 0) line = trim(line) // ', ' // &
+                trim(attribute_name(ele, j+a0$)) // ' = ' // str(ele%a_pole(j))
+        if (ele%b_pole(j) /= 0) line = trim(line) // ', ' // &
+                trim(attribute_name(ele, j+b0$)) // ' = ' // str(ele%b_pole(j))
       enddo
     endif
     
@@ -419,8 +419,8 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
 
   line = 'main_line: line = ('
 
-  do i = 1, lat%n_ele_use
-    ele => lat%ele_(i)
+  do i = 1, lat%n_ele_track
+    ele => lat%ele(i)
     if (ele%control_type == super_slave$) then
       if (ele%ixx == 0) cycle
       write (line, '(2a, i3.3, a)') trim(line), ' slave_drift_', ele%ixx, ','
@@ -674,17 +674,17 @@ end subroutine
 ! Subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
 !
 ! Subroutine to write a mad lattice file using the information in
-! a ring_struct. Optionally only part of the lattice can be generated.
+! a lat_struct. Optionally only part of the lattice can be generated.
 !
 ! Modules needed:
 !   use io_mod
 !
 ! Input:
 !   mad_file    -- Character(*): Name of the mad output lattice file.
-!   lat         -- Ring_struct: Holds the lattice information.
-!   ix_start    -- Integer, optional: Starting index of lat%ele_(i)
+!   lat         -- lat_struct: Holds the lattice information.
+!   ix_start    -- Integer, optional: Starting index of lat%ele(i)
 !                       used for output.
-!   ix_end      -- Integer, optional: Ending index of lat%ele_(i)
+!   ix_end      -- Integer, optional: Ending index of lat%ele(i)
 !                       used for output.
 !-
 
@@ -692,7 +692,7 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
 
   implicit none
 
-  type (ring_struct)  lat
+  type (lat_struct)  lat
   type (ele_struct)  ele, drift_ele
 
   integer, optional :: ix_start, ix_end
@@ -723,18 +723,18 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
   ie1 = 1    ! element index
   if (present(ix_start)) ie1 = ix_start
 
-  ie2 = lat%n_ele_use
+  ie2 = lat%n_ele_track
   if (present(ix_end)) ie2 = ix_end
 
   allocate (name_list(2*(ie2-ie1+1))) ! list of unique names
   n_list = 0                     ! number of names stored in the list
 
 
-  ele = lat%ele_(ie1-1)
+  ele = lat%ele(ie1-1)
 
   write (iu, '(2a, 2(a, es12.5))')  &
         'BEAM, Particle = ', trim(particle_name(lat%param%particle)),  &
-        ', Energy =', 1e-9*ele%value(beam_energy$), ', Npart =', lat%param%n_part
+        ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', lat%param%n_part
 
   write (iu, *)
 
@@ -746,7 +746,7 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
   j = 0    ! drift around solenoid or sol_quad index
 
   do i = ie1, ie2
-    ele = lat%ele_(i)
+    ele = lat%ele(i)
     if (ele%key == wiggler$ .or. ele%key == sol_quad$) then
       j = j + 1
       write (drift_ele%name, '(a, i3.3)') 'DZ', j
@@ -782,7 +782,7 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
 
   do n = ie1, ie2
 
-    ele = lat%ele_(n)
+    ele = lat%ele(n)
     ix = len_trim(line)
 
 ! replace element name containing "/" with "_"
@@ -838,13 +838,13 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
     write (iu, *) '!---------------------------------'
     write (iu, *)
     write (iu, '(3(a, es12.5))') &
-        'TWISS, betx =', ele%x%beta, ', bety =', ele%y%beta, ', &'
+        'TWISS, betx =', ele%a%beta, ', bety =', ele%b%beta, ', &'
     write (iu, '(5x, 3(a, es12.5))') &
-        'alfx =', ele%x%alpha, ', alfy =', ele%y%alpha, ', &'
+        'alfx =', ele%a%alpha, ', alfy =', ele%b%alpha, ', &'
     write (iu, '(5x, 3(a, es12.5))') &
-        'dx =', ele%x%eta, ', dpx = ', ele%x%etap, ', &'
+        'dx =', ele%a%eta, ', dpx = ', ele%a%etap, ', &'
     write (iu, '(5x, 3(a, es12.5))') &
-        'dy =', ele%y%eta, ', dpy = ', ele%y%etap
+        'dy =', ele%b%eta, ', dpy = ', ele%b%etap
   endif
 
   print *, 'Written MAD lattice file: ', trim(mad_file)
@@ -858,17 +858,17 @@ end subroutine
 ! Subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end)
 !
 ! Subroutine to write a xsif lattice file using the information in
-! a ring_struct. Optionally only part of the lattice can be generated.
+! a lat_struct. Optionally only part of the lattice can be generated.
 !
 ! Modules needed:
 !   use io_mod
 !
 ! Input:
 !   xsif_file   -- Character(*): Name of the xsif output lattice file.
-!   lat         -- Ring_struct: Holds the lattice information.
-!   ix_start    -- Integer, optional: Starting index of lat%ele_(i)
+!   lat         -- lat_struct: Holds the lattice information.
+!   ix_start    -- Integer, optional: Starting index of lat%ele(i)
 !                       used for output.
-!   ix_end      -- Integer, optional: Ending index of lat%ele_(i)
+!   ix_end      -- Integer, optional: Ending index of lat%ele(i)
 !                       used for output.
 !-
 
@@ -876,7 +876,7 @@ subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end)
 
   implicit none
 
-  type (ring_struct)  lat
+  type (lat_struct)  lat
   type (ele_struct)  ele, drift_ele
 
   integer, optional :: ix_start, ix_end
@@ -907,18 +907,18 @@ subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end)
   ie1 = 1    ! element index
   if (present(ix_start)) ie1 = ix_start
 
-  ie2 = lat%n_ele_use
+  ie2 = lat%n_ele_track
   if (present(ix_end)) ie2 = ix_end
 
   allocate (name_list(2*(ie2-ie1+1))) ! list of unique names
   n_list = 0                     ! number of names stored in the list
 
 
-  ele = lat%ele_(ie1-1)
+  ele = lat%ele(ie1-1)
 
   write (iu, '(2a, 2(a, es12.5))')  &
         'BEAM, Particle = ', trim(particle_name(lat%param%particle)),  &
-        ', Energy =', 1e-9*ele%value(beam_energy$), ', Npart =', lat%param%n_part
+        ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', lat%param%n_part
 
   write (iu, *)
 
@@ -930,7 +930,7 @@ subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end)
   j = 0    ! drift around solenoid or sol_quad index
 
   do i = ie1, ie2
-    ele = lat%ele_(i)
+    ele = lat%ele(i)
     if (ele%key == wiggler$ .or. ele%key == sol_quad$) then
       j = j + 1
       write (drift_ele%name, '(a, i3.3)') 'DZ', j
@@ -966,7 +966,7 @@ subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end)
 
   do n = ie1, ie2
 
-    ele = lat%ele_(n)
+    ele = lat%ele(n)
     ix = len_trim(line)
 
 ! replace element name containing "/" with "_"
@@ -1022,13 +1022,13 @@ subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end)
     write (iu, *) '!---------------------------------'
     write (iu, *)
     write (iu, '(3(a, es12.5))') &
-        'TWISS, betx =', ele%x%beta, ', bety =', ele%y%beta, ', &'
+        'TWISS, betx =', ele%a%beta, ', bety =', ele%b%beta, ', &'
     write (iu, '(5x, 3(a, es12.5))') &
-        'alfx =', ele%x%alpha, ', alfy =', ele%y%alpha, ', &'
+        'alfx =', ele%a%alpha, ', alfy =', ele%b%alpha, ', &'
     write (iu, '(5x, 3(a, es12.5))') &
-        'dx =', ele%x%eta, ', dpx = ', ele%x%etap, ', &'
+        'dx =', ele%a%eta, ', dpx = ', ele%a%etap, ', &'
     write (iu, '(5x, 3(a, es12.5))') &
-        'dy =', ele%y%eta, ', dpy = ', ele%y%etap
+        'dy =', ele%b%eta, ', dpy = ', ele%b%etap
   endif
 
   print *, 'Written XSIF lattice file: ', trim(xsif_file)
@@ -1042,7 +1042,7 @@ end subroutine
 subroutine element_out (ele, lat, name_list, n_list, iu)
 
   type (ele_struct), target :: ele
-  type (ring_struct) lat
+  type (lat_struct) lat
 
   integer i, n_list, ix, iu
 
@@ -1053,7 +1053,7 @@ subroutine element_out (ele, lat, name_list, n_list, iu)
 
   real(rp) field, hk, vk, tilt
   real(rp), pointer :: val(:)
-  real(rp) knl(0:n_pole_maxx), tilt_(0:n_pole_maxx)
+  real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx)
 
   logical parsing
 
@@ -1110,7 +1110,7 @@ subroutine element_out (ele, lat, name_list, n_list, iu)
     if (hk /= 0 .or. vk /= 0) then
 
       ix = len_trim(line) + 1
-      field = 1.0e3 * sqrt(hk**2 + vk**2) * val(beam_energy$) / val(l$)
+      field = 1.0e3 * sqrt(hk**2 + vk**2) * val(E_TOT$) / val(l$)
       write (line(ix:), '(a, es13.5)') ', e =', field
 
       if (lat%param%particle == positron$) then
@@ -1240,13 +1240,13 @@ subroutine element_out (ele, lat, name_list, n_list, iu)
 
   case (multipole$, ab_multipole$)
 
-    call multipole_ele_to_kt (ele, lat%param%particle, knl, tilt_, .true.)
+    call multipole_ele_to_kt (ele, lat%param%particle, knl, tilts, .true.)
     write (line, '(a, es13.5)') trim(name) // ': multipole'  
     do i = 0, 9
       write (str, '(a, i1, a)') 'K', i, 'L'
       call value_to_line (line, knl(i), str, 'es13.5', 'R')
       write (str, '(a, i1)') 'T', i
-      call value_to_line (line, tilt_(i), str, 'es13.5', 'R')
+      call value_to_line (line, tilts(i), str, 'es13.5', 'R')
     enddo
 
 ! unknown

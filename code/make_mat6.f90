@@ -9,7 +9,7 @@
 !
 ! Input:
 !   ele    -- Ele_struct: Element holding the transfer matrix.
-!   param  -- Param_struct: Lattice global parameters.
+!   param  -- lat_param_struct: Lattice global parameters.
 !   start  -- Coord_struct, optional: Coordinates at the beginning of element. 
 !               If not present then default is start = 0.
 !   end    -- Coord_struct, optional: Coordinates at the end of element.
@@ -24,7 +24,7 @@
 !     %vec0  -- Real(rp): 0th order transfer vector.
 !   end    -- Coord_struct, optional: Coordinates at the end of element.
 !               end is an output if end_in is not set to True.
-!   param  -- Param_struct:
+!   param  -- lat_param_struct:
 !     %lost  -- Since make_mat6 may do tracking %lost may be set to True if
 !                 tracking was unsuccessful. %lost set to False otherwise.
 !-
@@ -45,7 +45,7 @@ subroutine make_mat6 (ele, param, start, end, end_in)
 
   type (ele_struct), target :: ele
   type (coord_struct), optional :: start, end
-  type (param_struct)  param
+  type (lat_param_struct)  param
   type (coord_struct) a_start, a_end
 
   integer mat6_calc_method

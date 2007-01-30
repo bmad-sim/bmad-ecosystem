@@ -88,20 +88,20 @@ if (logic_option (.false., compact_format)) then
   write (lines(1), '(10x, a)')  &
             'Beta     Alpha     Gamma       Phi        Eta       Etap'
   lines(2) = trim(str) // '        (m)        (-)'
-  write (lines(3), fmt) ' X:', ele%x%beta,  &
-          ele%x%alpha, ele%x%gamma, coef*ele%x%phi, ele%x%eta, ele%x%etap
-  write (lines(4), fmt) ' Y:', ele%y%beta,  &
-          ele%y%alpha, ele%y%gamma, coef*ele%y%phi, ele%y%eta, ele%y%etap
+  write (lines(3), fmt) ' X:', ele%a%beta,  &
+          ele%a%alpha, ele%a%gamma, coef*ele%a%phi, ele%a%eta, ele%a%etap
+  write (lines(4), fmt) ' Y:', ele%b%beta,  &
+          ele%b%alpha, ele%b%gamma, coef*ele%b%phi, ele%b%eta, ele%b%etap
   n_lines = 4
 
 else
   write (lines(1), '(12x, 2(19x, a))') 'X', 'Y'
-  write (lines(2), '(a14, 2f20.8)') 'Beta (m)      ', ele%x%beta, ele%y%beta
-  write (lines(3), '(a14, 2f20.8)') 'Alpha (-)     ', ele%x%alpha, ele%y%alpha
-  write (lines(4), '(a14, 2f20.8)') 'Gamma (1/m)   ', ele%x%gamma, ele%y%gamma
-  write (lines(5), '(a14, 2f20.8)') freq_str(:14),    ele%x%phi*coef, ele%y%phi*coef
-  write (lines(6), '(a14, 2f20.8)') 'Eta (m)       ', ele%x%eta, ele%y%eta
-  write (lines(7), '(a14, 2f20.8)') 'Etap (-)      ', ele%x%etap, ele%y%etap
+  write (lines(2), '(a14, 2f20.8)') 'Beta (m)      ', ele%a%beta, ele%b%beta
+  write (lines(3), '(a14, 2f20.8)') 'Alpha (-)     ', ele%a%alpha, ele%b%alpha
+  write (lines(4), '(a14, 2f20.8)') 'Gamma (1/m)   ', ele%a%gamma, ele%b%gamma
+  write (lines(5), '(a14, 2f20.8)') freq_str(:14),    ele%a%phi*coef, ele%b%phi*coef
+  write (lines(6), '(a14, 2f20.8)') 'Eta (m)       ', ele%a%eta, ele%b%eta
+  write (lines(7), '(a14, 2f20.8)') 'Etap (-)      ', ele%a%etap, ele%b%etap
   n_lines = 7
 endif
 

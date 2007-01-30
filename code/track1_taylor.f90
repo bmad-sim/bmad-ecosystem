@@ -9,7 +9,7 @@
 ! Input:
 !   start      -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct: Element to track through.
-!   param      -- Param_struct: Beam parameters.
+!   param      -- lat_param_struct: Beam parameters.
 !     %enegy     -- Energy in GeV
 !     %particle  -- Particle type [positron$, or electron$]
 !
@@ -25,7 +25,7 @@ subroutine track1_taylor (start, ele, param, end)
 
   type (coord_struct) :: start
   type (coord_struct) :: end
-  type (param_struct) :: param
+  type (lat_param_struct) :: param
   type (ele_struct) :: ele
 
 !

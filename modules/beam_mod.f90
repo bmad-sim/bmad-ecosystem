@@ -32,10 +32,10 @@ end interface
 !
 ! Input:
 !   beam_start  -- Beam_struct: Starting beam position.
-!   lat         -- Ring_struct: Lattice containing element to be tracked through.
+!   lat         -- lat_struct: Lattice containing element to be tracked through.
 !   ix_ele      -- Integer: Index of element to track through.
 !   ele         -- Ele_struct: Element to be tracked through.
-!   param       -- Param_struct: General parameters.
+!   param       -- lat_param_struct: General parameters.
 !
 ! Output:
 !   beam_end    -- beam_struct: Ending beam position.
@@ -64,10 +64,10 @@ end interface
 !
 ! Input:
 !   bunch_start -- bunch_struct: Starting bunch position.
-!   lat         -- Ring_struct: Lattice containing element to be tracked through.
+!   lat         -- lat_struct: Lattice containing element to be tracked through.
 !   ix_ele      -- Integer: Index of element to track through.
 !   ele         -- Ele_struct: Element to be tracked through.
-!   param       -- Param_struct: General parameters.
+!   param       -- lat_param_struct: General parameters.
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
@@ -87,18 +87,18 @@ contains
 ! Subroutine track_beam (lat, beam, ix1, ix2)
 !
 ! Subroutine to track a beam of particles from the end of
-! lat%ele_(ix1) Through to the end of lat%ele_(ix2).
+! lat%ele(ix1) Through to the end of lat%ele(ix2).
 !
 ! Modules needed:
 !   use beam_mod
 !
 ! Input:
-!   lat    -- Ring_struct: Lattice to track through.
+!   lat    -- lat_struct: Lattice to track through.
 !   beam   -- Beam_struct: Beam at end of element ix1.
 !   ix1    -- Integer, optional: Index of starting element (this element 
 !               is NOT tracked through). Default is 0.
 !   ix2    -- Integer, optional: Index of ending element.
-!               Default is lat%n_ele_use.
+!               Default is lat%n_ele_track.
 !
 ! Output:
 !   beam   -- beam_struct: Beam at end of element ix2.
@@ -108,7 +108,7 @@ subroutine track_beam (lat, beam, ix1, ix2)
 
 implicit none
 
-type (ring_struct) :: lat
+type (lat_struct) :: lat
 type (beam_struct) :: beam
 
 integer, optional, intent(in) :: ix1, ix2
@@ -118,7 +118,7 @@ integer i, i1, i2, j
 
 i1 = 0
 if (present(ix1)) i1 = ix1
-i2 = lat%n_ele_use
+i2 = lat%n_ele_track
 if (present(ix2)) i2 = ix2
 
 ! Loop over all elements in the lattice
@@ -145,7 +145,7 @@ end subroutine track_beam
 !
 ! Input:
 !   beam_start  -- Beam_struct: Starting beam position.
-!   lat         -- Ring_struct: Lattice containing element to be tracked through.
+!   lat         -- lat_struct: Lattice containing element to be tracked through.
 !   ix_ele      -- Integer: Index of element to track through.
 !
 ! Output:
@@ -158,15 +158,15 @@ implicit none
 
 type (beam_struct) beam_start
 type (beam_struct) :: beam_end
-type (ring_struct) :: lat
+type (lat_struct) :: lat
 
 integer i, ix_ele, n_mode
 
 ! zero the long-range wakes if they exist.
 
-if (associated(lat%ele_(ix_ele)%wake)) then
-  lat%ele_(ix_ele)%wake%lr%norm_sin = 0; lat%ele_(ix_ele)%wake%lr%norm_cos = 0
-  lat%ele_(ix_ele)%wake%lr%skew_sin = 0; lat%ele_(ix_ele)%wake%lr%skew_cos = 0
+if (associated(lat%ele(ix_ele)%wake)) then
+  lat%ele(ix_ele)%wake%lr%norm_sin = 0; lat%ele(ix_ele)%wake%lr%norm_cos = 0
+  lat%ele(ix_ele)%wake%lr%skew_sin = 0; lat%ele(ix_ele)%wake%lr%skew_cos = 0
 endif
 
 ! loop over all bunches in a beam
@@ -194,7 +194,7 @@ end subroutine track1_beam_lat
 ! Input:
 !   beam_start  -- beam_struct: starting beam position
 !   ele         -- Ele_struct: The element to track through.
-!   param       -- Param_struct: General parameters.
+!   param       -- lat_param_struct: General parameters.
 !
 ! Output:
 !   beam_end    -- beam_struct: ending beam position.
@@ -207,7 +207,7 @@ implicit none
 type (beam_struct) beam_start
 type (beam_struct), target :: beam_end
 type (ele_struct) ele
-type (param_struct) param
+type (lat_param_struct) param
 
 integer i, n_mode
 
@@ -242,7 +242,7 @@ end subroutine track1_beam_ele
 !
 ! Input:
 !   bunch_start -- bunch_struct: Starting bunch position.
-!   lat         -- Ring_struct: Lattice containing element to be tracked through.
+!   lat         -- lat_struct: Lattice containing element to be tracked through.
 !   ix_ele      -- Integer: Index of element to track through.
 !
 ! Output:
@@ -254,7 +254,7 @@ subroutine track1_bunch_lat (bunch_start, lat, ix_ele, bunch_end)
 implicit none
 
 type (bunch_struct) bunch_start, bunch_end
-type (ring_struct), target :: lat
+type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (ele_struct), save :: rf_ele
 
@@ -264,11 +264,11 @@ integer i, j, n, ix_ele
 !------------------------------------------------
 ! space charge tracking will also include wakes if they are on too.
 
-if (bmad_com%coherent_synch_rad_on .and. lat%ele_(ix_ele)%csr_calc_on) then
+if (bmad_com%coherent_synch_rad_on .and. lat%ele(ix_ele)%csr_calc_on) then
   call track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)
 
 else
-  call track1_bunch_ele (bunch_start, lat%ele_(ix_ele), lat%param, bunch_end)
+  call track1_bunch_ele (bunch_start, lat%ele(ix_ele), lat%param, bunch_end)
 
 endif
 
@@ -295,7 +295,7 @@ end subroutine track1_bunch_lat
 ! Input:
 !   bunch_start -- bunch_struct: Starting bunch position.
 !   ele         -- Ele_struct: The element to track through.
-!   param       -- Param_struct: General parameters.
+!   param       -- lat_param_struct: General parameters.
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
@@ -309,7 +309,7 @@ implicit none
 type (bunch_struct) bunch_start, bunch_end
 type (ele_struct) ele
 type (ele_struct), save :: rf_ele
-type (param_struct) param
+type (lat_param_struct) param
 
 real(rp) charge
 integer i, j, n
@@ -360,8 +360,8 @@ enddo
 
 rf_ele = ele
 rf_ele%value(l$) = ele%value(l$) / 2
-rf_ele%value(beam_energy$) = &
-        (ele%value(energy_start$) + ele%value(beam_energy$)) / 2
+rf_ele%value(E_TOT$) = &
+        (ele%value(E_TOT_START$) + ele%value(E_TOT$)) / 2
 rf_ele%value(p0c$) = &
             (ele%value(p0c_start$) + ele%value(p0c$)) / 2
 rf_ele%value(e_loss$) = 0
@@ -371,7 +371,7 @@ rf_ele%value(e_loss$) = 0
 call zero_ele_offsets (rf_ele)
 rf_ele%value(hkick$) = 0.0
 rf_ele%value(vkick$) = 0.0
-if (associated(ele%a)) deallocate(ele%a)
+if (associated(ele%a_pole)) deallocate(ele%a_pole)
     
 ! Track half way through. This includes the sr longitudinal wakes 
 
@@ -395,9 +395,9 @@ call track1_lr_wake (bunch_end, rf_ele)
 ! Track the last half of the lcavity.  This includes the sr longitudinal wakes 
 
 rf_ele%value(l$)            = ele%value(l$) / 2
-rf_ele%value(energy_start$) = rf_ele%value(beam_energy$)
+rf_ele%value(E_TOT_START$) = rf_ele%value(E_TOT$)
 rf_ele%value(p0c_start$)    = rf_ele%value(p0c$)
-rf_ele%value(beam_energy$)  = ele%value(beam_energy$)
+rf_ele%value(E_TOT$)  = ele%value(E_TOT$)
 rf_ele%value(p0c$)          = ele%value(p0c$)
 
 call order_particles_in_z (bunch_end)
@@ -454,7 +454,7 @@ type (bunch_struct) bunch
 type (coord_struct), pointer :: leader
 
 integer ix_follower, i, num_in_front
-integer n_sr1, n_sr2_long, n_sr2_trans, k_start
+integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, k_start
 
 !-----------------------------------
 ! If there is no wake for this element or the sr wakes are turned off then just 
@@ -462,11 +462,11 @@ integer n_sr1, n_sr2_long, n_sr2_trans, k_start
 
 bmad_com%grad_loss_sr_wake = 0.0
 
-n_sr1 = size(ele%wake%sr1) 
-n_sr2_long = size(ele%wake%sr2_long)
-n_sr2_trans = size(ele%wake%sr2_trans)
+n_sr_table = size(ele%wake%sr_table) 
+n_sr_mode_long = size(ele%wake%sr_mode_long)
+n_sr_mode_trans = size(ele%wake%sr_mode_trans)
 
-if ((n_sr1 == 0 .and. n_sr2_long == 0 .and. n_sr2_trans == 0) .or. &
+if ((n_sr_table == 0 .and. n_sr_mode_long == 0 .and. n_sr_mode_trans == 0) .or. &
                                           .not. bmad_com%sr_wakes_on) then 
   bmad_com%grad_loss_sr_wake = 0.0
   return 
@@ -475,15 +475,15 @@ endif
 ! the self wake only sees the charge of each real particle, not the "macro"
 ! charge of the simulated particle
 
-if (n_sr1 > 0) then
+if (n_sr_table > 0) then
   bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake &
-                        + ele%wake%sr1(0)%long * e_charge / 2.0
+                        + ele%wake%sr_table(0)%long * e_charge / 2.0
 
 !-----------------------------------
 ! add up all wakes from front of bunch to follower
   do i = 1, num_in_front
     if (bunch%particle(bunch%particle(i)%ix_z)%ix_lost .eq. not_lost$) &
-      call sr1_add_long_kick (ele, bunch%particle(bunch%particle(i)%ix_z)%r, &
+      call sr_table_add_long_kick (ele, bunch%particle(bunch%particle(i)%ix_z)%r, &
                bunch%particle(bunch%particle(i)%ix_z)%charge, &
                bunch%particle(ix_follower)%r)
   enddo
@@ -521,8 +521,8 @@ type (ele_struct) ele
 type (particle_struct), pointer :: particle, leader
 type (particle_struct), pointer :: p(:)
 
-real(rp) dz_sr1, sr02, z_sr1_max
-integer i, j, k, i1, i2, i_sr2, n_sr1, n_sr2_long, n_sr2_trans, k_start
+real(rp) dz_sr_table, sr02, z_sr_table_max
+integer i, j, k, i1, i2, i_sr_mode, n_sr_table, n_sr_mode_long, n_sr_mode_trans, k_start
 
 logical wake_here
 character(16) :: r_name = 'track1_sr_wake'
@@ -536,65 +536,65 @@ p => bunch%particle
 ! error check and zero wake sums and order particles in z
 
 call order_particles_in_z (bunch)  
-if (size(ele%wake%sr2_long) /= 0) then
+if (size(ele%wake%sr_mode_long) /= 0) then
   i1 = p(1)%ix_z 
   i2 = p(size(p))%ix_z
-  if (p(i1)%r%vec(5) - p(i2)%r%vec(5) > ele%wake%z_sr2_max) then
+  if (p(i1)%r%vec(5) - p(i2)%r%vec(5) > ele%wake%z_sr_mode_max) then
     call out_io (s_abort$, r_name, &
-        'Bunch longer than SR2 wake can handle for element: ' // ele%name)
+        'Bunch longer than sr_mode wake can handle for element: ' // ele%name)
     call err_exit
   endif
 endif
 
-do i = 1, size(ele%wake%sr2_long)
-  ele%wake%sr2_long%norm_sin = 0
-  ele%wake%sr2_long%norm_cos = 0
-  ele%wake%sr2_long%skew_sin = 0
-  ele%wake%sr2_long%skew_cos = 0
+do i = 1, size(ele%wake%sr_mode_long)
+  ele%wake%sr_mode_long%norm_sin = 0
+  ele%wake%sr_mode_long%norm_cos = 0
+  ele%wake%sr_mode_long%skew_sin = 0
+  ele%wake%sr_mode_long%skew_cos = 0
 enddo
 
 !
 
-n_sr1 = size(ele%wake%sr1) 
-z_sr1_max = 0
-if (n_sr1 > 0) then
-  z_sr1_max = ele%wake%sr1(n_sr1-1)%z
-  dz_sr1 = z_sr1_max / (n_sr1 - 1)
+n_sr_table = size(ele%wake%sr_table) 
+z_sr_table_max = 0
+if (n_sr_table > 0) then
+  z_sr_table_max = ele%wake%sr_table(n_sr_table-1)%z
+  dz_sr_table = z_sr_table_max / (n_sr_table - 1)
 endif
 
 ! loop over all particles in the bunch and apply the wake
 
-i_sr2 = 1  ! index of next particle to be added to the sr2 wake sums.
+i_sr_mode = 1  ! index of next particle to be added to the sr_mode wake sums.
 
 do j = 1, size(p)
   particle => p(p(j)%ix_z)
   ! apply longitudinal self wake
 
-  if (z_sr1_max .ge. 0) then
-    call sr2_long_self_wake_apply_kick (ele, particle%charge, particle%r)
+  if (z_sr_table_max .ge. 0) then
+    call sr_mode_long_self_wake_apply_kick (ele, particle%charge, particle%r)
   endif
 
   ! Particle_j is kicked by particles k = 1, ..., j-1.
-  ! The particles 1, ... i_sr2-1 have already had their wakes added to the 
-  ! sr2 wake sums so the loop is from i_sr2, ..., j-1.
+  ! The particles 1, ... i_sr_mode-1 have already had their wakes added to the 
+  ! sr_mode wake sums so the loop is from i_sr_mode, ..., j-1.
 
-  k_start = i_sr2
+  k_start = i_sr_mode
   do k = k_start, j-1
     leader => p(p(k)%ix_z)
-    if ((particle%r%vec(5) - leader%r%vec(5)) > z_sr1_max) then
-      ! use sr1 table to add to particle j the wake of particle k
-      call sr1_apply_trans_kick (ele, leader%r, leader%charge, particle%r)
+    if ((particle%r%vec(5) - leader%r%vec(5)) > z_sr_table_max) then
+      ! use sr_table table to add to particle j the wake of particle k
+      call sr_table_apply_trans_kick (ele, leader%r, leader%charge, particle%r)
     else
       ! add contribution of particle(k) to wake sums
-      i_sr2 = k  ! update i_sr2
-      call sr2_long_wake_add_to (ele, leader%r, leader%charge)
-      call sr2_trans_wake_add_to(ele, leader%r, leader%charge)
+      i_sr_mode = k  ! update i_sr_mode
+      call sr_mode_long_wake_add_to (ele, leader%r, leader%charge)
+      call sr_mode_trans_wake_add_to(ele, leader%r, leader%charge)
     endif
   enddo
 
   ! apply wake to particle(j)
-  call sr2_long_wake_apply_kick (ele, particle%r)
-  call sr2_trans_wake_apply_kick(ele, particle%r)
+  call sr_mode_long_wake_apply_kick (ele, particle%r)
+  call sr_mode_trans_wake_apply_kick(ele, particle%r)
 
 enddo
 
@@ -1081,10 +1081,10 @@ endif
 call ran_gauss(ran)
 center(1) = beam_init%center(1) + beam_init%center_jitter(1)*ran(1)
 center(2) = beam_init%center(2) + beam_init%center_jitter(2)*ran(2) + &
-                 (ele%x%alpha/ele%x%beta) * beam_init%center_jitter(1)*ran(1)
+                 (ele%a%alpha/ele%a%beta) * beam_init%center_jitter(1)*ran(1)
 center(3) = beam_init%center(3) + beam_init%center_jitter(3)*ran(3)
 center(4) = beam_init%center(4) + beam_init%center_jitter(4)*ran(4) + &
-                 (ele%y%alpha/ele%y%beta) * beam_init%center_jitter(3)*ran(3)
+                 (ele%b%alpha/ele%b%beta) * beam_init%center_jitter(3)*ran(3)
 center(5) = beam_init%center(5) + beam_init%center_jitter(5)*ran(5)
 center(6) = beam_init%center(6) + beam_init%center_jitter(6)*ran(6) + &
                  beam_init%dpz_dz * beam_init%center_jitter(5)*ran(5)
@@ -1092,7 +1092,7 @@ center(6) = beam_init%center(6) + beam_init%center_jitter(6)*ran(6) + &
 ! Now scale by the emittances, etc. and put in jitter
 
 call ran_gauss(ran(1:4)) ! ran(3:4) for z and e jitter used below
-denom = (1 + center(6)) * ele%value(beam_energy$)
+denom = (1 + center(6)) * ele%value(E_TOT$)
 a_emitt = beam_init%a_norm_emitt*(1+beam_init%emitt_jitter(1)*ran(1)) &
                                                       * m_electron / denom
 b_emitt = beam_init%b_norm_emitt*(1+beam_init%emitt_jitter(2)*ran(2)) &
@@ -1102,10 +1102,10 @@ dpz_dz = beam_init%dpz_dz
   
 call make_v_mats(ele, v_mat, v_inv)
 
-sigma(1) = sqrt(a_emitt * ele%x%beta)
-sigma(2) = sqrt(a_emitt / ele%x%beta)
-sigma(3) = sqrt(b_emitt * ele%y%beta)
-sigma(4) = sqrt(b_emitt / ele%y%beta)
+sigma(1) = sqrt(a_emitt * ele%a%beta)
+sigma(2) = sqrt(a_emitt / ele%a%beta)
+sigma(3) = sqrt(b_emitt * ele%b%beta)
+sigma(4) = sqrt(b_emitt / ele%b%beta)
 sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran(3))
 sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran(4))
 
@@ -1127,15 +1127,15 @@ do i = 1, beam_init%n_particle
   r = p%r%vec
 
   p%r%vec(1) = sigma(1) *  r(1)
-  p%r%vec(2) = - sigma(2) * (r(2) + r(1) * ele%x%alpha)
+  p%r%vec(2) = - sigma(2) * (r(2) + r(1) * ele%a%alpha)
   p%r%vec(3) = sigma(3) *  r(3)
-  p%r%vec(4) = - sigma(4) * (r(4) + r(3) * ele%y%alpha)
+  p%r%vec(4) = - sigma(4) * (r(4) + r(3) * ele%b%alpha)
   p%r%vec(5) = sigma(5) *  r(5)
   p%r%vec(6) = sigma(6) * (r(6) * b + r(5) * a)
       
   ! Include Dispersion
   p%r%vec(1:4) =  p%r%vec(1:4) + &
-              p%r%vec(6) * (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
+              p%r%vec(6) * (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
       
   ! Include Coupling
   p%r%vec(1:4) = matmul(v_mat, p%r%vec(1:4))
@@ -1301,7 +1301,7 @@ end subroutine calc_bunch_params_slice
 !
 ! Output     
 !   params -- bunch_params_struct:
-!     %x,%y,%z       -- Projected parameters
+!     %a,%b,%z       -- Projected parameters
 !       %alpha; %beta; %gamma
 !       %eta, %etap, %norm_emitt
 !     %a,%b,%c       -- Normal-Mode parameters
@@ -1361,8 +1361,8 @@ s(6,5) = -1.0
 params%n_particle = count(bunch%particle%ix_lost == not_lost$)
 if (params%n_particle == 0) then
   params%centroid%vec = 0.0     ! zero everything
-  call zero_plane (params%x)
-  call zero_plane (params%y)
+  call zero_plane (params%a)
+  call zero_plane (params%b)
   call zero_plane (params%z)
   call zero_plane (params%a)
   call zero_plane (params%b)
@@ -1373,7 +1373,7 @@ endif
 
 avg_energy = sum((1+bunch%particle%r%vec(6)), & 
                               mask = (bunch%particle%ix_lost == not_lost$))
-avg_energy = avg_energy * ele%value(beam_energy$) / params%n_particle
+avg_energy = avg_energy * ele%value(E_TOT$) / params%n_particle
 
 ! Convert to geometric coords and find the sigma matrix
 
@@ -1384,10 +1384,10 @@ call find_bunch_sigma_matrix (bunch%particle, params%centroid%vec, params%sigma,
 !********
 ! Projected Parameters
 ! X
-call param_stuffit (params%x, params%sigma(s11$), params%sigma(s22$), &
+call param_stuffit (params%a, params%sigma(s11$), params%sigma(s22$), &
                       params%sigma(s12$), params%sigma(s16$), params%sigma(s26$))
 ! Y
-call param_stuffit (params%y, params%sigma(s33$), params%sigma(s44$), &
+call param_stuffit (params%b, params%sigma(s33$), params%sigma(s44$), &
                       params%sigma(s34$), params%sigma(s36$), params%sigma(s46$))
 ! Z
 call param_stuffit (params%z, params%sigma(s55$), params%sigma(s66$), &
@@ -1520,7 +1520,7 @@ subroutine zero_plane (param)
 
 implicit none
 
-type (bunch_param_struct), intent(out) :: param
+type (bunch_lat_param_struct), intent(out) :: param
 
 param%beta       = 0.0
 param%alpha      = 0.0
@@ -1561,7 +1561,7 @@ subroutine param_stuffit (param, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
 
 implicit none
 
-type (bunch_param_struct), intent(out) :: param
+type (bunch_lat_param_struct), intent(out) :: param
 real(rp), intent(in) :: exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
 real(rp) emitt
 

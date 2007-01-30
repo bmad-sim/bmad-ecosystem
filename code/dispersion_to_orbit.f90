@@ -3,11 +3,11 @@
 !
 ! Subroutine to make an orbit vector proportional to the dispersion.
 !
-! Note that, despite the names, ele%x and ele%y are the "a" and "b" mode
-! Twiss parameters. Thus, for example, with coupling ele%x%eta is not simply
+! Note that, despite the names, ele%a and ele%b are the "a" and "b" mode
+! Twiss parameters. Thus, for example, with coupling ele%a%eta is not simply
 ! proportional to disp_orb%vec(1).
 !
-! Note: to calculate ele%x%eta, ele%c_mat, etc. you typically need to have 
+! Note: to calculate ele%a%eta, ele%c_mat, etc. you typically need to have 
 ! called twiss_propagate_all.
 !
 ! Modules needed:
@@ -15,10 +15,10 @@
 !
 ! Input:
 !   ele      -- Ele_struct: Element containing the dispersion info.
-!     %x%eta  -- "a" mode eta.
-!     %x%etap -- "a" mode etap.
-!     %y%eta  -- "b" mode eta.
-!     %y%etap -- "b" mode etap.
+!     %a%eta  -- "a" mode eta.
+!     %a%etap -- "a" mode etap.
+!     %b%eta  -- "b" mode eta.
+!     %b%etap -- "b" mode etap.
 !     %c_mat   -- coupling matrix needed by the routine. 
 !     %gamma_c -- coupling gamma factor.
 !
@@ -43,7 +43,7 @@ Subroutine dispersion_to_orbit (ele, disp_orb)
   
 !
 
-  disp_orb%vec = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, &
+  disp_orb%vec = (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap, &
                                                        0.0_rp, 1.0_rp /)
 
   if (all(ele%c_mat == 0)) return

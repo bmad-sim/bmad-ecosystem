@@ -2,7 +2,7 @@
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine init_ray (ray, ring, ix_ele, l_offset, orb, direction)
+! subroutine init_ray (ray, lat, ix_ele, l_offset, orb, direction)
 !
 ! subroutine to start a new synch radiation ray
 !
@@ -10,8 +10,8 @@
 !   use sr_mod
 !
 ! Input:
-!   ring   -- ring_struct with twiss propagated and mat6s made
-!   ix_ele -- integer: index of ring element to start ray from
+!   lat   -- lat_struct with twiss propagated and mat6s made
+!   ix_ele -- integer: index of lat element to start ray from
 !   l_offset -- real(rp): offset along the length of the element 
 !                         to use as a starting point for ray
 !   orb(0:*) -- coord_struct: orbit of particles to use as 
@@ -24,7 +24,7 @@
 !                         parameters set
 !-
 
-subroutine init_ray (ray, ring, ix_ele, l_offset, orb, direction)
+subroutine init_ray (ray, lat, ix_ele, l_offset, orb, direction)
 
   use sr_struct
   use sr_interface
@@ -32,7 +32,7 @@ subroutine init_ray (ray, ring, ix_ele, l_offset, orb, direction)
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (lat_struct), target :: lat
   type (coord_struct) :: orb(0:*), orb0, orb1
   type (ele_struct), pointer :: ele0, ele
   type (ele_struct) :: runt_ele
@@ -45,16 +45,16 @@ subroutine init_ray (ray, ring, ix_ele, l_offset, orb, direction)
 
 ! initialize the ray
 
-  ele0 => ring%ele_(ix_ele-1)
-  ele => ring%ele_(ix_ele)
+  ele0 => lat%ele(ix_ele-1)
+  ele => lat%ele(ix_ele)
 
   runt_ele = ele                             ! make a runt element
 
   ! set the ray's initial twiss values
 
   if (l_offset == 0) then    ! use twiss from end of prev ele
-    ray%x_twiss = ele0%x
-    ray%y_twiss = ele0%y
+    ray%x_twiss = ele0%a
+    ray%y_twiss = ele0%b
     orb0 = orb(ix_ele-1)
   else                       ! make a runt_ele of l_offset length
                              ! and generate twiss values at the 
@@ -62,11 +62,11 @@ subroutine init_ray (ray, ring, ix_ele, l_offset, orb, direction)
     if (ele%key == sbend$) runt_ele%value(angle$) = &
                      ele%value(angle$) * l_offset / ele%value(l$)
     runt_ele%value(l$) = l_offset       
-    call make_mat6( runt_ele, ring%param, orb(ix_ele-1), orb(ix_ele))
-    call track1 (orb(ix_ele-1), runt_ele, ring%param, orb0)
+    call make_mat6( runt_ele, lat%param, orb(ix_ele-1), orb(ix_ele))
+    call track1 (orb(ix_ele-1), runt_ele, lat%param, orb0)
     call twiss_propagate1 (ele0, runt_ele)
-    ray%x_twiss = runt_ele%x
-    ray%y_twiss = runt_ele%y
+    ray%x_twiss = runt_ele%a
+    ray%y_twiss = runt_ele%b
   endif
 
   ! set the ray's g_bend value (inverse bending radius at src pt) 
@@ -83,8 +83,8 @@ subroutine init_ray (ray, ring, ix_ele, l_offset, orb, direction)
     ! distance in the element
     l_small = 1e-2      ! something small
     runt_ele%value(l$) = l_small
-    call make_mat6 (runt_ele, ring%param, orb0, orb0)
-    call track1 (orb0, runt_ele, ring%param, orb1)
+    call make_mat6 (runt_ele, lat%param, orb0, orb0)
+    call track1 (orb0, runt_ele, lat%param, orb1)
     orb1%vec = orb1%vec - orb0%vec
     ray%g_bend = sqrt(orb1%vec(2)**2 + orb1%vec(4)**2) / l_small
 
@@ -96,8 +96,8 @@ subroutine init_ray (ray, ring, ix_ele, l_offset, orb, direction)
     ! Note: assumes particles are relativistic!!
     k_wig = twopi * ele%value(n_pole$) / (2 * ele%value(l$))
 
-    ! changed to use the beam_energy at the ele 2006.11.24 mjf
-    g_max = c_light * ele%value(b_max$) / (ele%value(beam_energy$))
+    ! changed to use the E_TOT at the ele 2006.11.24 mjf
+    g_max = c_light * ele%value(b_max$) / (ele%value(E_TOT$))
     ray%g_bend = abs(g_max * cos (k_wig * l_offset))
     orb0%vec(2) = orb0%vec(2) + (g_max / k_wig) * sin (k_wig * l_offset)
 
@@ -106,10 +106,10 @@ subroutine init_ray (ray, ring, ix_ele, l_offset, orb, direction)
     ! for mapped wigglers, find the B field at the source point
     ! and extract the g_bend
     ! Note: assumes particles are relativistic!!
-    call em_field (runt_ele, ring%param, l_offset, orb0, field)
+    call em_field (runt_ele, lat%param, l_offset, orb0, field)
 
-    ! changed to use the beam_energy at the ele 2006.11.24 mjf
-    ray%g_bend = sqrt(sum(field%b(1:2)**2)) * c_light / ele%value(beam_energy$)
+    ! changed to use the E_TOT at the ele 2006.11.24 mjf
+    ray%g_bend = sqrt(sum(field%b(1:2)**2)) * c_light / ele%value(E_TOT$)
 
   else
 

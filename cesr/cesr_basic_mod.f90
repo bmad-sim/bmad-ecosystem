@@ -38,7 +38,7 @@ module cesr_basic_mod
     type (b_struct)  x, y          ! beta's and positions
     character(12) db_node_name
     integer ix_db                  ! element index for data base node
-    integer ix_ring                ! index to element in ring structure
+    integer ix_lat                 ! index to element in lat structure
   end type
 
   integer, parameter :: n_quad_maxx = 120
@@ -61,22 +61,22 @@ module cesr_basic_mod
 ! %ix_cesr is a pointer to cesr_struct for given type
 
   type cesr_struct
-    type (cesr_element_struct) quad_(0:n_quad_maxx)
-    type (cesr_element_struct) skew_quad_(0:n_quad_maxx)
-    type (cesr_element_struct) sex_(0:n_sex_maxx)
-    type (cesr_element_struct) det_(0:n_det_maxx)
-    type (cesr_element_struct) skew_sex_(n_skew_sex_maxx)
-    type (cesr_element_struct) oct_(n_oct_maxx)
-    type (cesr_element_struct) rf_(n_rf_maxx)
-    type (cesr_element_struct) wig_(n_wig_maxx)
-    type (cesr_element_struct) sep_(n_sep_maxx)
-    type (cesr_element_struct) h_steer_(0:n_steer_maxx)
-    type (cesr_element_struct) v_steer_(0:n_steer_maxx)
+    type (cesr_element_struct) quad(0:n_quad_maxx)
+    type (cesr_element_struct) skew_quad(0:n_quad_maxx)
+    type (cesr_element_struct) sex(0:n_sex_maxx)
+    type (cesr_element_struct) det(0:n_det_maxx)
+    type (cesr_element_struct) skew_sex(n_skew_sex_maxx)
+    type (cesr_element_struct) oct(n_oct_maxx)
+    type (cesr_element_struct) rf(n_rf_maxx)
+    type (cesr_element_struct) wig(n_wig_maxx)
+    type (cesr_element_struct) sep(n_sep_maxx)
+    type (cesr_element_struct) h_steer(0:n_steer_maxx)
+    type (cesr_element_struct) v_steer(0:n_steer_maxx)
     type (cesr_element_struct) solenoid       ! solenoid struct
-    type (cesr_element_struct) scir_cam_rho_(n_scir_cam_maxx)
-    type (cesr_element_struct) scir_tilt_(n_scir_tilt_maxx)
+    type (cesr_element_struct) scir_cam_rho(n_scir_cam_maxx)
+    type (cesr_element_struct) scir_tilt(n_scir_tilt_maxx)
     type (cesr_element_struct) nir_shuntcur(n_nir_shuntcur_maxx)
-    type (cesr_element_struct) scsol_cur_(5*n_sc_sol_maxx)
+    type (cesr_element_struct) scsol_cur(5*n_sc_sol_maxx)
 
     integer ix_ip_l3                     ! pointer to IP_L3
     integer, pointer :: ix_cesr(:) => null() 
@@ -166,10 +166,10 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine bmad_to_cesr (ring, cesr)
+! Subroutine bmad_to_cesr (lat, cesr)
 !
-! Subroutine to transfer information from the RING structure returned from
-! BMAD_PARSER to a structure for the CESR ring
+! Subroutine to transfer information from the LAT structure returned from
+! BMAD_PARSER to a structure for the CESR lat
 !
 ! WARNING! cesr%ix_cesr is allocated in this subroutine.  It should be
 ! deallocated in the calling function!
@@ -178,7 +178,7 @@ contains
 !   use cesr_basic_mod
 !
 ! Input:
-!   ring      -- Ring_struct: Ring to parse.
+!   lat      -- lat_struct: Lat to parse.
 !   status    -- Common block status structure
 !     %type_out    -- If .true. then type error messages if all the elements
 !                       are not found
@@ -193,11 +193,11 @@ contains
 ! Hardbend steerings are put in CESR.H_STEER(101) through CESR.H_STEER(106)
 !-
 
-subroutine bmad_to_cesr (ring, cesr)
+subroutine bmad_to_cesr (lat, cesr)
 
   implicit none
 
-  type (ring_struct)  ring
+  type (lat_struct)  lat
   type (cesr_struct)  cesr
   type (ele_struct)  ele
 
@@ -210,50 +210,50 @@ subroutine bmad_to_cesr (ring, cesr)
 ! load names
 
   if (associated(cesr%ix_cesr)) deallocate (cesr%ix_cesr)
-  allocate (cesr%ix_cesr(ring%n_ele_max))
+  allocate (cesr%ix_cesr(lat%n_ele_max))
 
-  cesr%quad_(:)%ix_ring         = 0
-  cesr%skew_quad_(:)%ix_ring    = 0
-  cesr%scsol_cur_(:)%ix_ring    = 0
-  cesr%skew_sex_(:)%ix_ring     = 0
-  cesr%sep_(:)%ix_ring          = 0
-  cesr%sex_(:)%ix_ring          = 0
-  cesr%det_(:)%ix_ring          = 0
-  cesr%oct_(:)%ix_ring          = 0
-  cesr%wig_(:)%ix_ring          = 0
-  cesr%rf_(:)%ix_ring           = 0
-  cesr%h_steer_(:)%ix_ring      = 0
-  cesr%v_steer_(:)%ix_ring      = 0
-  cesr%scir_cam_rho_(:)%ix_ring = 0
-  cesr%scir_tilt_(:)%ix_ring    = 0
+  cesr%quad(:)%ix_lat         = 0
+  cesr%skew_quad(:)%ix_lat    = 0
+  cesr%scsol_cur(:)%ix_lat    = 0
+  cesr%skew_sex(:)%ix_lat     = 0
+  cesr%sep(:)%ix_lat          = 0
+  cesr%sex(:)%ix_lat          = 0
+  cesr%det(:)%ix_lat          = 0
+  cesr%oct(:)%ix_lat          = 0
+  cesr%wig(:)%ix_lat          = 0
+  cesr%rf(:)%ix_lat           = 0
+  cesr%h_steer(:)%ix_lat      = 0
+  cesr%v_steer(:)%ix_lat      = 0
+  cesr%scir_cam_rho(:)%ix_lat = 0
+  cesr%scir_tilt(:)%ix_lat    = 0
 
-  cesr%quad_(:)%name         = 'DUMMY'            ! assume nothing here
-  cesr%skew_quad_(:)%name    = 'DUMMY'
-  cesr%skew_sex_(:)%name     = 'DUMMY'
-  cesr%scsol_cur_(:)%name    = 'DUMMY'
-  cesr%sep_(:)%name          = 'DUMMY'
-  cesr%sex_(:)%name          = 'DUMMY'
-  cesr%det_(:)%name          = 'DUMMY'
-  cesr%oct_(:)%name          = 'DUMMY'
-  cesr%wig_(:)%name          = 'DUMMY'
-  cesr%rf_(:)%name           = 'DUMMY'
-  cesr%h_steer_(:)%name      = 'DUMMY'
-  cesr%v_steer_(:)%name      = 'DUMMY'
-  cesr%scir_cam_rho_(:)%name = 'DUMMY'            
-  cesr%scir_tilt_(:)%name    = 'DUMMY'            
+  cesr%quad(:)%name         = 'DUMMY'            ! assume nothing here
+  cesr%skew_quad(:)%name    = 'DUMMY'
+  cesr%skew_sex(:)%name     = 'DUMMY'
+  cesr%scsol_cur(:)%name    = 'DUMMY'
+  cesr%sep(:)%name          = 'DUMMY'
+  cesr%sex(:)%name          = 'DUMMY'
+  cesr%det(:)%name          = 'DUMMY'
+  cesr%oct(:)%name          = 'DUMMY'
+  cesr%wig(:)%name          = 'DUMMY'
+  cesr%rf(:)%name           = 'DUMMY'
+  cesr%h_steer(:)%name      = 'DUMMY'
+  cesr%v_steer(:)%name      = 'DUMMY'
+  cesr%scir_cam_rho(:)%name = 'DUMMY'            
+  cesr%scir_tilt(:)%name    = 'DUMMY'            
 
 !
 
   do i = 0, 49
     write (cc2, '(i2.2)') i
-    cesr%quad_(i)%name    = 'Q' // cc2 // 'W'
-    cesr%quad_(99-i)%name = 'Q' // cc2 // 'E'
-    cesr%skew_quad_(i)%name    = 'SK_Q' // cc2 // 'W'
-    cesr%skew_quad_(99-i)%name = 'SK_Q' // cc2 // 'E'
-    cesr%sex_(i)%name    = 'SEX_' // cc2 // 'W'
-    cesr%sex_(99-i)%name = 'SEX_' // cc2 // 'E'
-    cesr%det_(i)%name    = 'DET_' // cc2 // 'W'
-    cesr%det_(99-i)%name = 'DET_' // cc2 // 'E'
+    cesr%quad(i)%name    = 'Q' // cc2 // 'W'
+    cesr%quad(99-i)%name = 'Q' // cc2 // 'E'
+    cesr%skew_quad(i)%name    = 'SK_Q' // cc2 // 'W'
+    cesr%skew_quad(99-i)%name = 'SK_Q' // cc2 // 'E'
+    cesr%sex(i)%name    = 'SEX_' // cc2 // 'W'
+    cesr%sex(99-i)%name = 'SEX_' // cc2 // 'E'
+    cesr%det(i)%name    = 'DET_' // cc2 // 'W'
+    cesr%det(99-i)%name = 'DET_' // cc2 // 'E'
   enddo
 
   do i = 0, 99
@@ -267,88 +267,88 @@ subroutine bmad_to_cesr (ring, cesr)
     hsteer_name(i+100) = 'CSR HBND CUR' // cc4
   enddo
 
-  cesr%quad_(q49aw$)%name = 'Q49AW'
-  cesr%quad_(q47aw$)%name = 'Q47AW'
-  cesr%quad_(q47ae$)%name = 'Q47AE'
-  cesr%quad_(q49ae$)%name = 'Q49AE'
-  cesr%quad_(q43aw$)%name = 'Q43AW'
-  cesr%quad_(q43ae$)%name = 'Q43AE'
-  cesr%quad_(q08aw$)%name = 'Q08AW'
+  cesr%quad(q49aw$)%name = 'Q49AW'
+  cesr%quad(q47aw$)%name = 'Q47AW'
+  cesr%quad(q47ae$)%name = 'Q47AE'
+  cesr%quad(q49ae$)%name = 'Q49AE'
+  cesr%quad(q43aw$)%name = 'Q43AW'
+  cesr%quad(q43ae$)%name = 'Q43AE'
+  cesr%quad(q08aw$)%name = 'Q08AW'
 
-  cesr%sep_(h_sep_08w$)%name = 'H_SEP_08W'
-  cesr%sep_(h_sep_08e$)%name = 'H_SEP_08E'
-  cesr%sep_(h_sep_45w$)%name = 'H_SEP_45W'
-  cesr%sep_(h_sep_45e$)%name = 'H_SEP_45E'
-  cesr%sep_(v_sep_48w$)%name = 'V_SEP_48W'
-  cesr%sep_(v_sep_48e$)%name = 'V_SEP_48E'
+  cesr%sep(h_sep_08w$)%name = 'H_SEP_08W'
+  cesr%sep(h_sep_08e$)%name = 'H_SEP_08E'
+  cesr%sep(h_sep_45w$)%name = 'H_SEP_45W'
+  cesr%sep(h_sep_45e$)%name = 'H_SEP_45E'
+  cesr%sep(v_sep_48w$)%name = 'V_SEP_48W'
+  cesr%sep(v_sep_48e$)%name = 'V_SEP_48E'
 
-  cesr%oct_(1)%name = 'OCT_45W'
-  cesr%oct_(2)%name = 'OCT_48W'
-  cesr%oct_(3)%name = 'OCT_48E'
-  cesr%oct_(4)%name = 'OCT_45E'
+  cesr%oct(1)%name = 'OCT_45W'
+  cesr%oct(2)%name = 'OCT_48W'
+  cesr%oct(3)%name = 'OCT_48E'
+  cesr%oct(4)%name = 'OCT_45E'
 
-  cesr%rf_(rf_w1$)%name = 'RF_W1'
-  cesr%rf_(rf_w2$)%name = 'RF_W2'
-  cesr%rf_(rf_e1$)%name = 'RF_E1'
-  cesr%rf_(rf_e2$)%name = 'RF_E2'
+  cesr%rf(rf_w1$)%name = 'RF_W1'
+  cesr%rf(rf_w2$)%name = 'RF_W2'
+  cesr%rf(rf_e1$)%name = 'RF_E1'
+  cesr%rf(rf_e2$)%name = 'RF_E2'
 
-  cesr%skew_sex_(1)%name = 'SK_SEX_07W'
-  cesr%skew_sex_(2)%name = 'SK_SEX_23W'
-  cesr%skew_sex_(3)%name = 'SK_SEX_23E'
-  cesr%skew_sex_(4)%name = 'SK_SEX_07E'
-  cesr%skew_sex_(5)%name = 'SK_SEX_29W'
-  cesr%skew_sex_(6)%name = 'SK_SEX_29E'
-  cesr%skew_sex_(7)%name = 'SK_SEX_12W'
-  cesr%skew_sex_(8)%name = 'SK_SEX_12E'
-  cesr%skew_sex_(11)%name = 'SK_SEX_02E'
+  cesr%skew_sex(1)%name = 'SK_SEX_07W'
+  cesr%skew_sex(2)%name = 'SK_SEX_23W'
+  cesr%skew_sex(3)%name = 'SK_SEX_23E'
+  cesr%skew_sex(4)%name = 'SK_SEX_07E'
+  cesr%skew_sex(5)%name = 'SK_SEX_29W'
+  cesr%skew_sex(6)%name = 'SK_SEX_29E'
+  cesr%skew_sex(7)%name = 'SK_SEX_12W'
+  cesr%skew_sex(8)%name = 'SK_SEX_12E'
+  cesr%skew_sex(11)%name = 'SK_SEX_02E'
 
-  cesr%wig_(wig_w$)%name = 'WIG_W'
-  cesr%wig_(wig_e$)%name = 'WIG_E'
+  cesr%wig(wig_w$)%name = 'WIG_W'
+  cesr%wig(wig_e$)%name = 'WIG_E'
 
   cesr%solenoid%name = 'CLEO_SOL'
 
 ! phase_iii
 
-  cesr%v_steer_(111)%name = 'SC_V01W'
-  cesr%v_steer_(112)%name = 'SC_V02W'
-  cesr%v_steer_(113)%name = 'SC_V02E'
-  cesr%v_steer_(114)%name = 'SC_V01E'
+  cesr%v_steer(111)%name = 'SC_V01W'
+  cesr%v_steer(112)%name = 'SC_V02W'
+  cesr%v_steer(113)%name = 'SC_V02E'
+  cesr%v_steer(114)%name = 'SC_V01E'
 
-  cesr%skew_quad_(111)%name = 'SC_SK_Q01W'
-  cesr%skew_quad_(112)%name = 'SC_SK_Q02W'
-  cesr%skew_quad_(113)%name = 'SC_SK_Q02E'
-  cesr%skew_quad_(114)%name = 'SC_SK_Q01E'
+  cesr%skew_quad(111)%name = 'SC_SK_Q01W'
+  cesr%skew_quad(112)%name = 'SC_SK_Q02W'
+  cesr%skew_quad(113)%name = 'SC_SK_Q02E'
+  cesr%skew_quad(114)%name = 'SC_SK_Q01E'
 
-  cesr%quad_(111)%name = 'SC_Q01W'
-  cesr%quad_(112)%name = 'SC_Q02W'
-  cesr%quad_(113)%name = 'SC_Q02E'
-  cesr%quad_(114)%name = 'SC_Q01E'
+  cesr%quad(111)%name = 'SC_Q01W'
+  cesr%quad(112)%name = 'SC_Q02W'
+  cesr%quad(113)%name = 'SC_Q02E'
+  cesr%quad(114)%name = 'SC_Q01E'
 
   do i = 1, 5                          
-    write (cesr%scir_cam_rho_(i)%name,   '(a, i1, a)') 'SC_CAM_', i, 'W'
-    write (cesr%scir_cam_rho_(i+5)%name, '(a, i1, a)') 'SC_CAM_', i, 'E'
+    write (cesr%scir_cam_rho(i)%name,   '(a, i1, a)') 'SC_CAM_', i, 'W'
+    write (cesr%scir_cam_rho(i+5)%name, '(a, i1, a)') 'SC_CAM_', i, 'E'
   enddo
 
-  cesr%scir_tilt_(scir_tilt_w$)%name    = 'SC_TILT_W'
-  cesr%scir_tilt_(scir_tilt_e$)%name    = 'SC_TILT_E'
-  cesr%scir_tilt_(scir_tilt_sk_w$)%name = 'SC_TILT_SK_W'
-  cesr%scir_tilt_(scir_tilt_sk_e$)%name = 'SC_TILT_SK_E'
+  cesr%scir_tilt(scir_tilt_w$)%name    = 'SC_TILT_W'
+  cesr%scir_tilt(scir_tilt_e$)%name    = 'SC_TILT_E'
+  cesr%scir_tilt(scir_tilt_sk_w$)%name = 'SC_TILT_SK_W'
+  cesr%scir_tilt(scir_tilt_sk_e$)%name = 'SC_TILT_SK_E'
 
   cesr%nir_shuntcur(1)%name = 'NIR_SHUNTCUR___1'
   cesr%nir_shuntcur(2)%name = 'NIR_SHUNTCUR___2'
   cesr%nir_shuntcur(3)%name = 'NIR_SHUNTCUR___3'
   cesr%nir_shuntcur(4)%name = 'NIR_SHUNTCUR___4'
 
-  cesr%scsol_cur_(1)%name = 'SCS03W'
-  cesr%scsol_cur_(6)%name = 'SCS03E'
+  cesr%scsol_cur(1)%name = 'SCS03W'
+  cesr%scsol_cur(6)%name = 'SCS03E'
 
 
 !-------------------------------------------------------------
-! Load elements from RING to CESR
+! Load elements from LAT to CESR
 
-  ele_loop: do i = 1, ring%n_ele_max
+  ele_loop: do i = 1, lat%n_ele_max
 
-    ele = ring%ele_(i)
+    ele = lat%ele(i)
 
 ! quads and skew quads
 
@@ -356,18 +356,18 @@ subroutine bmad_to_cesr (ring, cesr)
 
       if (ele%name(1:1) == 'Q' .or. ele%name(1:4) == 'SC_Q') then
         do j = 0, 120
-          if (ele%name == cesr%quad_(j)%name) then
+          if (ele%name == cesr%quad(j)%name) then
             cesr%ix_cesr(i) = j
-            call insert_info (cesr%quad_(j), ele, i)
+            call insert_info (cesr%quad(j), ele, i)
             cycle ele_loop
           endif
         enddo
 
       elseif (ele%name(:2) == 'SK' .or. ele%name(1:5) == 'SC_SK') then
         do j = 0, 120
-          if (ele%name == cesr%skew_quad_(j)%name) then
+          if (ele%name == cesr%skew_quad(j)%name) then
             cesr%ix_cesr(i) = j
-            call insert_info (cesr%skew_quad_(j), ele, i)
+            call insert_info (cesr%skew_quad(j), ele, i)
             cycle ele_loop
           endif
         enddo
@@ -381,18 +381,18 @@ subroutine bmad_to_cesr (ring, cesr)
 
       if (ele%name(:3) == 'SEX') then
         do j = 0, 120
-          if (ele%name == cesr%sex_(j)%name) then
+          if (ele%name == cesr%sex(j)%name) then
             cesr%ix_cesr(i) = j
-            call insert_info (cesr%sex_(j), ele, i)
+            call insert_info (cesr%sex(j), ele, i)
             cycle ele_loop
           endif
         enddo
 
       elseif (ele%name(:6) == 'SK_SEX') then
         do j = 1, n_skew_sex_maxx
-          if (ele%name == cesr%skew_sex_(j)%name) then
+          if (ele%name == cesr%skew_sex(j)%name) then
             cesr%ix_cesr(i) = j
-            call insert_info (cesr%skew_sex_(j), ele, i)
+            call insert_info (cesr%skew_sex(j), ele, i)
             cycle ele_loop
           endif
         enddo
@@ -405,10 +405,10 @@ subroutine bmad_to_cesr (ring, cesr)
     if (ele%key == octupole$) then
 
       do j = 1, n_oct_maxx
-        if (ele%name == cesr%oct_(j)%name) then
-          cesr%oct_(j)%ix_ring = i
+        if (ele%name == cesr%oct(j)%name) then
+          cesr%oct(j)%ix_lat = i
           cesr%ix_cesr(i) = j
-          call insert_info (cesr%oct_(j), ele, i)
+          call insert_info (cesr%oct(j), ele, i)
           cycle ele_loop
         endif
       enddo
@@ -420,9 +420,9 @@ subroutine bmad_to_cesr (ring, cesr)
     if (ele%key == elseparator$) then
 
       do j = 1, n_sep_maxx
-        if (ele%name == cesr%sep_(j)%name) then
+        if (ele%name == cesr%sep(j)%name) then
           cesr%ix_cesr(i) = j
-          call insert_info (cesr%sep_(j), ele, i)
+          call insert_info (cesr%sep(j), ele, i)
           cycle ele_loop
         endif
       enddo
@@ -436,9 +436,9 @@ subroutine bmad_to_cesr (ring, cesr)
 
       if (ele%name(:3) == 'DET') then
         do j = 0, 120
-          if (ele%name == cesr%det_(j)%name) then
+          if (ele%name == cesr%det(j)%name) then
             cesr%ix_cesr(i) = j
-            call insert_info (cesr%det_(j), ele, i)
+            call insert_info (cesr%det(j), ele, i)
             cycle ele_loop
           endif
         enddo
@@ -457,7 +457,7 @@ subroutine bmad_to_cesr (ring, cesr)
       if (ele%name(:1) == 'H') then
         do j = 0, 120
           if (ele%type == hsteer_name(j)) then
-            call insert_info (cesr%h_steer_(j), ele, i)
+            call insert_info (cesr%h_steer(j), ele, i)
             cycle ele_loop
           endif
         enddo
@@ -465,31 +465,31 @@ subroutine bmad_to_cesr (ring, cesr)
       elseif (ele%name(1:1) == 'V') then
         do j = 0, 99
           if (ele%type == vsteer_name(j)) then
-            call insert_info (cesr%v_steer_(j), ele, i)
+            call insert_info (cesr%v_steer(j), ele, i)
             cycle ele_loop
           endif
         enddo
 
       elseif (ele%name(1:4) == 'SC_V') then
-        do j = 101, size(cesr%v_steer_)
-          if (ele%name == cesr%v_steer_(j)%name) then
-            call insert_info (cesr%v_steer_(j), ele, i)
+        do j = 101, size(cesr%v_steer)
+          if (ele%name == cesr%v_steer(j)%name) then
+            call insert_info (cesr%v_steer(j), ele, i)
             cycle ele_loop
           endif
         enddo     
 
       elseif (ele%name(1:6) == 'SC_CAM') then
-        do j = 1, size(cesr%scir_cam_rho_)
-          if (ele%name == cesr%scir_cam_rho_(j)%name) then
-            call insert_info (cesr%scir_cam_rho_(j), ele, i)
+        do j = 1, size(cesr%scir_cam_rho)
+          if (ele%name == cesr%scir_cam_rho(j)%name) then
+            call insert_info (cesr%scir_cam_rho(j), ele, i)
             cycle ele_loop
           endif
         enddo
 
       elseif (ele%name(1:7) == 'SC_TILT') then
-        do j = 1, size(cesr%scir_tilt_)
-          if (ele%name == cesr%scir_tilt_(j)%name) then
-            call insert_info (cesr%scir_tilt_(j), ele, i)
+        do j = 1, size(cesr%scir_tilt)
+          if (ele%name == cesr%scir_tilt(j)%name) then
+            call insert_info (cesr%scir_tilt(j), ele, i)
             cycle ele_loop
           endif
         enddo
@@ -510,8 +510,8 @@ subroutine bmad_to_cesr (ring, cesr)
 
     if (ele%key == rfcavity$) then
       do j = 1, n_rf_maxx
-        if (ele%name == cesr%rf_(j)%name) then
-          call insert_info (cesr%rf_(j), ele, i)
+        if (ele%name == cesr%rf(j)%name) then
+          call insert_info (cesr%rf(j), ele, i)
           cycle ele_loop
         endif
       enddo
@@ -521,8 +521,8 @@ subroutine bmad_to_cesr (ring, cesr)
 
     if (ele%key == wiggler$) then
       do j = 1, n_wig_maxx
-        if (ele%name == cesr%wig_(j)%name) then
-          call insert_info (cesr%wig_(j), ele, i)
+        if (ele%name == cesr%wig(j)%name) then
+          call insert_info (cesr%wig(j), ele, i)
           cycle ele_loop
         endif
       enddo
@@ -531,14 +531,14 @@ subroutine bmad_to_cesr (ring, cesr)
 ! solenoid
 
     if (ele%name == cesr%solenoid%name) then
-      cesr%solenoid%ix_ring = i
+      cesr%solenoid%ix_lat = i
       cycle ele_loop
     endif
 
 ! SC anti-solenoids
     do j = 1, 5*n_sc_sol_maxx
-      if (ele%name == cesr%scsol_cur_(j)%name) then
-        cesr%scsol_cur_(j)%ix_ring = i
+      if (ele%name == cesr%scsol_cur(j)%name) then
+        cesr%scsol_cur(j)%ix_lat = i
         cycle ele_loop
       endif
     enddo
@@ -549,11 +549,11 @@ subroutine bmad_to_cesr (ring, cesr)
 !-------------------------------------------------------------------
 ! Point to quad overlay instead of quad for nir_shuntcur quads
 
-  do i = ring%n_ele_use+1, ring%n_ele_max
-    ele = ring%ele_(i)
+  do i = lat%n_ele_track+1, lat%n_ele_max
+    ele = lat%ele(i)
     if (ele%type(1:12) == 'CSR QUAD CUR') then
       read (ele%type(13:16), *) ix
-      call insert_info (cesr%quad_(ix), ele, i)
+      call insert_info (cesr%quad(ix), ele, i)
     endif
   enddo
 
@@ -561,20 +561,20 @@ subroutine bmad_to_cesr (ring, cesr)
 ! check that we have loaded everything...
 ! do not check Q01 and Q02's
 
-  if (cesr%quad_( 1)%ix_ring == 0) cesr%quad_( 1)%name = 'DUMMY'
-  if (cesr%quad_( 2)%ix_ring == 0) cesr%quad_( 2)%name = 'DUMMY'
-  if (cesr%quad_(97)%ix_ring == 0) cesr%quad_(97)%name = 'DUMMY'
-  if (cesr%quad_(98)%ix_ring == 0) cesr%quad_(98)%name = 'DUMMY'
+  if (cesr%quad( 1)%ix_lat == 0) cesr%quad( 1)%name = 'DUMMY'
+  if (cesr%quad( 2)%ix_lat == 0) cesr%quad( 2)%name = 'DUMMY'
+  if (cesr%quad(97)%ix_lat == 0) cesr%quad(97)%name = 'DUMMY'
+  if (cesr%quad(98)%ix_lat == 0) cesr%quad(98)%name = 'DUMMY'
 
-  call bmad_to_cesr_err_type (cesr%quad_,        'QUADRUPOLE')
-  call bmad_to_cesr_err_type (cesr%sep_,         'SEPARATOR')
-  call bmad_to_cesr_err_type (cesr%skew_sex_,    'SKEW SEXTUPOLE')
-  call bmad_to_cesr_err_type (cesr%oct_,         'OCTUPOLE')
-  call bmad_to_cesr_err_type (cesr%wig_,         'WIGGLER')
-  call bmad_to_cesr_err_type (cesr%rf_,          'RF CAVITY')
-  call bmad_to_cesr_err_type (cesr%scir_cam_rho_,    'SCIR CAM')
-  call bmad_to_cesr_err_type (cesr%scir_tilt_,   'SCIR TILT')
-  call bmad_to_cesr_err_type (cesr%scsol_cur_,   'SC SOL CUR')
+  call bmad_to_cesr_err_type (cesr%quad,        'QUADRUPOLE')
+  call bmad_to_cesr_err_type (cesr%sep,         'SEPARATOR')
+  call bmad_to_cesr_err_type (cesr%skew_sex,    'SKEW SEXTUPOLE')
+  call bmad_to_cesr_err_type (cesr%oct,         'OCTUPOLE')
+  call bmad_to_cesr_err_type (cesr%wig,         'WIGGLER')
+  call bmad_to_cesr_err_type (cesr%rf,          'RF CAVITY')
+  call bmad_to_cesr_err_type (cesr%scir_cam_rho,    'SCIR CAM')
+  call bmad_to_cesr_err_type (cesr%scir_tilt,   'SCIR TILT')
+  call bmad_to_cesr_err_type (cesr%scsol_cur,   'SC SOL CUR')
 
 !----------------------------------------------------------------
 contains
@@ -588,7 +588,7 @@ subroutine bmad_to_cesr_err_type (cesr_ele, str)
 !
 
   do i = lbound(cesr_ele, 1), ubound(cesr_ele, 1)
-    if (cesr_ele(i)%ix_ring == 0 .and.  &
+    if (cesr_ele(i)%ix_lat == 0 .and.  &
                                   cesr_ele(i)%name(:5) /= 'DUMMY') then
       bmad_status%ok = .false.
       if (bmad_status%type_out) then
@@ -612,7 +612,7 @@ subroutine insert_info (cesr_ele, ele, i_ele)
 
 !
 
-  cesr_ele%ix_ring = i_ele
+  cesr_ele%ix_lat = i_ele
   cesr_ele%db_node_name = ele%type(:12)
   cesr_ele%name = ele%name
   if (ele%type(13:) /= '    ') then
@@ -630,7 +630,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
+! Subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
 !
 ! Subroutine to let the user choose a lattice. The subroutine will present a
 ! list to choose from.
@@ -650,18 +650,18 @@ end subroutine
 !
 ! Output:
 !   lattice  -- Character(40): Lattice name choisen. If a file name is given
-!                    and RING is not present then LATTICE = ""
+!                    and LAT is not present then LATTICE = ""
 !   lat_file -- Character(*): Name of the lattice file. Typically:
 !                    lat_file = 'U:[CESR.BMAD.LAT]BMAD_' // lattice // .LAT
-!   ring     -- Ring_struct: OPTIONAL. If present then BMAD_PARSER is called
-!               to load the RING structure.
+!   lat     -- lat_struct: OPTIONAL. If present then BMAD_PARSER is called
+!               to load the LAT structure.
 !-
 
-subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
+subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
 
   implicit none
 
-  type (ring_struct), optional :: ring
+  type (lat_struct), optional :: lat
 
   character(len=*), optional :: choice
   character(*) lat_file
@@ -760,15 +760,15 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
   enddo
 
-! load ring if present
+! load lat if present
 
-  if (present (ring)) then
-    call bmad_parser (lat_file, ring)
+  if (present (lat)) then
+    call bmad_parser (lat_file, lat)
     if (lattice /= "") then
-      if (lattice /= ring%lattice) print *, &
-           'WARNING FROM CHOOSE_CESR_LATTICE: LATTICE NAME IN RING DOES MATCH FILE NAME!'
+      if (lattice /= lat%lattice) print *, &
+           'WARNING FROM CHOOSE_CESR_LATTICE: LATTICE NAME IN LAT DOES MATCH FILE NAME!'
     endif
-    lattice = ring%lattice
+    lattice = lat%lattice
   endif
 
 end subroutine
@@ -777,7 +777,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine create_vsp_volt_elements (ring, ele_type)
+! Subroutine create_vsp_volt_elements (lat, ele_type)
 !
 ! Subroutine to create elements corresponding to the 6 data base elements
 ! in CSR VSP VOLT. For each vertical separator 3 controller (lord) elements are
@@ -793,20 +793,20 @@ end subroutine
 !   use cesr_basic_mod
 !
 ! Input:
-!   ring     -- Ring_struct: Ring to be modified
+!   lat     -- lat_struct: Lat to be modified
 !   ele_type -- Integer: Type of elements to make
 !                   = group$      ! make group controller elements
 !                   = overlay$    ! make overlay controller elements
 !
 ! Output:
-!   ring -- Ring_struct: Modified ring.
+!   lat -- lat_struct: Modified lat.
 !-
 
-subroutine create_vsp_volt_elements (ring, ele_type)
+subroutine create_vsp_volt_elements (lat, ele_type)
 
   implicit none
 
-  type (ring_struct)  ring
+  type (lat_struct)  lat
 
   type vsp_index_struct
     integer ix(3)
@@ -829,11 +829,11 @@ subroutine create_vsp_volt_elements (ring, ele_type)
 
   found_vsp = .false.
 
-  do i = 1, ring%n_ele_ring
+  do i = 1, lat%n_ele_track
     do j = 1, 2
-      if (ring%ele_(i)%name == vsep_name(j)) then
+      if (lat%ele(i)%name == vsep_name(j)) then
         found_vsp(j) = .true.
-        call do_vsp_eles (ring, i, vsp_index(j)%ix, ele_type)
+        call do_vsp_eles (lat, i, vsp_index(j)%ix, ele_type)
       endif
     enddo
   enddo
@@ -857,14 +857,14 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine do_vsp_eles (ring, i_vsep, vsp_index, ele_type)
+subroutine do_vsp_eles (lat, i_vsep, vsp_index, ele_type)
 
   use bmad_struct
   use bmad_interface
 
   implicit none
 
-  type (ring_struct)  ring
+  type (lat_struct)  lat
   type (control_struct)  contl(1)
 
   integer i_vsep, vsp_index(3), ele_type, i, i_con
@@ -873,29 +873,29 @@ subroutine do_vsp_eles (ring, i_vsep, vsp_index, ele_type)
 
 !
                  
-  if (ring%ele_(i_vsep)%control_type /= free$) then
+  if (lat%ele(i_vsep)%control_type /= free$) then
     print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: VSEP NOT FREE!', i_vsep
     return
   endif
 
-  ring%ele_(i_vsep)%type = ' '
+  lat%ele(i_vsep)%type = ' '
 
   contl(1)%ix_attrib = vkick$
   contl(1)%coef = 1.0
   contl(1)%ix_slave = i_vsep
-  vkick = ring%ele_(i_vsep)%value(vkick$)
+  vkick = lat%ele(i_vsep)%value(vkick$)
 
   do i = 1, 3
 
-    call new_control (ring, i_con)
-    write (ring%ele_(i_con)%name, '(a, i1)') 'VSP_VOLT_', vsp_index(i)
-    write (ring%ele_(i_con)%type, '(a, i4)') 'CSR VSP VOLT', vsp_index(i)
+    call new_control (lat, i_con)
+    write (lat%ele(i_con)%name, '(a, i1)') 'VSP_VOLT_', vsp_index(i)
+    write (lat%ele(i_con)%type, '(a, i4)') 'CSR VSP VOLT', vsp_index(i)
 
     if (ele_type == group$) then
-      call create_group (ring, i_con, contl(1:1))
+      call create_group (lat, i_con, contl(1:1))
     elseif (ele_type == overlay$) then
-      call create_overlay (ring, i_con, 'VKICK', contl(1:1))
-      if (i == 2 .or. i == 3) ring%ele_(i_con)%value(vkick$) = vkick / 2
+      call create_overlay (lat, i_con, 'VKICK', contl(1:1))
+      if (i == 2 .or. i == 3) lat%ele(i_con)%value(vkick$) = vkick / 2
     else
       print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: BAD ELE_TYPE: ', ele_type
       call err_exit
@@ -909,7 +909,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine create_nir_shuntcur_elements (ring, ele_type)
+! Subroutine create_nir_shuntcur_elements (lat, ele_type)
 !
 ! Subroutine to create Bmad lattice elements corresponding to the 
 ! NIR_SHUNTCUR data base elements.
@@ -923,22 +923,22 @@ end subroutine
 !   use cesr_basic_mod
 !
 ! Input:
-!   ring     -- Ring_struct: Ring to be modified
+!   lat     -- lat_struct: Lat to be modified
 !   ele_type -- Integer: Type of elements to make
 !                   = group$      ! make group controller elements
 !                   = overlay$    ! make overlay controller elements
 !
 ! Output:
-!   ring -- Ring_struct: Modified ring.
+!   lat -- lat_struct: Modified lat.
 !-
 
-subroutine create_nir_shuntcur_elements (ring)
+subroutine create_nir_shuntcur_elements (lat)
 
   use bmad
 
   implicit none
 
-  type (ring_struct)  ring
+  type (lat_struct)  lat
 
   integer i, j
 
@@ -951,11 +951,11 @@ subroutine create_nir_shuntcur_elements (ring)
 
   found_quad = .false.
 
-  do i = 1, ring%n_ele_max
+  do i = 1, lat%n_ele_max
     do j = 1, 4
-      if (ring%ele_(i)%name == nir_quad_name(j)) then
+      if (lat%ele(i)%name == nir_quad_name(j)) then
         found_quad(j) = .true.
-        call do_setup_nir_shuntcur (ring%ele_(i), i, j)
+        call do_setup_nir_shuntcur (lat%ele(i), i, j)
       endif
     enddo
   enddo
@@ -986,9 +986,9 @@ subroutine do_setup_nir_shuntcur (quad, ix_quad, ix_nir)
 !
                  
   do i = quad%ic1_lord, quad%ic2_lord
-    ix_lord = ring%control_(ring%ic_(i))%ix_lord
-    if (ring%ele_(ix_lord)%control_type == overlay_lord$ .and. &
-        ring%ele_(ix_lord)%ix_value == k1$) then
+    ix_lord = lat%control(lat%ic(i))%ix_lord
+    if (lat%ele(ix_lord)%control_type == overlay_lord$ .and. &
+        lat%ele(ix_lord)%ix_value == k1$) then
       print *, 'ERROR IN CREATE_NIR_SHUNTCUR_ELEMENTS: VSEP NOT FREE!', ix_quad
       return
     endif
@@ -997,28 +997,28 @@ subroutine do_setup_nir_shuntcur (quad, ix_quad, ix_nir)
   contl(1)%ix_attrib = k1$
   contl(1)%coef = 1.0
   contl(1)%ix_slave = ix_quad
-  k1 = ring%ele_(ix_quad)%value(k1$)
+  k1 = lat%ele(ix_quad)%value(k1$)
 
 ! create control for CSR_QUAD_CUR
 
-  call new_control (ring, i_con)
-  call create_overlay (ring, i_con, 'K1', contl(1:1))
-  ring%ele_(i_con)%value(k1$) = k1
-  ring%ele_(i_con)%type = ring%ele_(ix_quad)%type
-  ring%ele_(i_con)%name = ring%ele_(i_con)%type
-  do j = 1, len(ring%ele_(i_con)%name)
-     if (ring%ele_(i_con)%name(j:j) == ' ') ring%ele_(i_con)%name(j:j) = '_'
+  call new_control (lat, i_con)
+  call create_overlay (lat, i_con, 'K1', contl(1:1))
+  lat%ele(i_con)%value(k1$) = k1
+  lat%ele(i_con)%type = lat%ele(ix_quad)%type
+  lat%ele(i_con)%name = lat%ele(i_con)%type
+  do j = 1, len(lat%ele(i_con)%name)
+     if (lat%ele(i_con)%name(j:j) == ' ') lat%ele(i_con)%name(j:j) = '_'
   enddo
-  ring%ele_(ix_quad)%type = ' '
+  lat%ele(ix_quad)%type = ' '
 
 ! Create control for NIR_SHUNTCUR
 
-  call new_control (ring, i_con)
-  call create_overlay (ring, i_con, 'K1', contl(1:1))
-  write (ring%ele_(i_con)%type, '(a12, i4)') 'NIR SHUNTCUR', ix_nir
-  ring%ele_(i_con)%name = ring%ele_(i_con)%type
-  do j = 1, len(ring%ele_(i_con)%name)
-     if (ring%ele_(i_con)%name(j:j) == ' ') ring%ele_(i_con)%name(j:j) = '_'
+  call new_control (lat, i_con)
+  call create_overlay (lat, i_con, 'K1', contl(1:1))
+  write (lat%ele(i_con)%type, '(a12, i4)') 'NIR SHUNTCUR', ix_nir
+  lat%ele(i_con)%name = lat%ele(i_con)%type
+  do j = 1, len(lat%ele(i_con)%name)
+     if (lat%ele(i_con)%name(j:j) == ' ') lat%ele(i_con)%name(j:j) = '_'
   enddo
 
 end subroutine

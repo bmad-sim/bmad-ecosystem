@@ -4,8 +4,8 @@
 ! Subroutine to propagate the twiss parameters from the end of ELE1 to
 ! the end of ELE2.
 !
-! Note: ele%x Twiss parameters are associated with the "A" mode and
-! the ele%y Twiss parameters are associated with the "B" mode.
+! Note: ele%a Twiss parameters are associated with the "A" mode and
+! the ele%b Twiss parameters are associated with the "B" mode.
 !
 ! Modules Needed:
 !   use bmad
@@ -45,7 +45,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 ! init
 ! ELE_TEMP needs the element length for the betatron phase calculation
 
-  if (ele1%x%beta == 0 .or. ele1%y%beta == 0) then
+  if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
     print *, 'ERROR IN TWISS_PROPAGATE1: ZERO BETA DETECTED.'
     if (bmad_status%exit_on_error) call err_exit
     bmad_status%ok = .false.
@@ -59,8 +59,8 @@ subroutine twiss_propagate1 (ele1, ele2)
 ! markers are easy
 
   if (ele2%key == marker$) then
-    ele2%x = ele1%x
-    ele2%y = ele1%y
+    ele2%a = ele1%a
+    ele2%b = ele1%b
     ele2%z = ele1%z
     ele2%gamma_c = ele1%gamma_c
     ele2%c_mat = ele1%c_mat
@@ -155,15 +155,15 @@ subroutine twiss_propagate1 (ele1, ele2)
   ele_temp%mode_flip = ele2%mode_flip
   ele_temp%key       = ele2%key
   call twiss_decoupled_propagate (ele1, ele_temp)  
-  ele2%x = ele_temp%x                     ! transfer twiss to ele2
-  ele2%y = ele_temp%y
+  ele2%a = ele_temp%a                     ! transfer twiss to ele2
+  ele2%b = ele_temp%b
 
 ! Comming out of a flipped state correct phase by twopi.
 ! This is a kludge but factors of twopi are not physically meaningful.
 
   if (ele1%mode_flip .and. .not. ele2%mode_flip) then
-    ele2%x%phi = ele2%x%phi - twopi
-    ele2%y%phi = ele2%y%phi - twopi
+    ele2%a%phi = ele2%a%phi - twopi
+    ele2%b%phi = ele2%b%phi - twopi
   endif
 
 !----------------------------------------------------
@@ -171,8 +171,8 @@ subroutine twiss_propagate1 (ele1, ele2)
 ! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
 ! This is just 1.0 (except for RF cavities).
 
-  eta1_vec = (/ ele1%x%eta_lab, ele1%x%etap_lab, &
-           ele1%y%eta_lab, ele1%y%etap_lab, ele1%z%eta_lab, 1.0_rp /)
+  eta1_vec = (/ ele1%a%eta_lab, ele1%a%etap_lab, &
+           ele1%b%eta_lab, ele1%b%etap_lab, ele1%z%eta_lab, 1.0_rp /)
 
   if (ele2%key == rfcavity$) then
     eta1_vec(5) = 0
@@ -190,19 +190,19 @@ subroutine twiss_propagate1 (ele1, ele2)
   eta_vec(3) = eta_vec(3) + mat6(3,2) * orb(2) + mat6(3,4) * orb(4)
   eta_vec(4) = eta_vec(4) - mat6(4,1) * orb(1) - mat6(4,3) * orb(3) - ele2%vec0(4)
 
-  ele2%x%eta_lab  = eta_vec(1)
-  ele2%x%etap_lab = eta_vec(2)
-  ele2%y%eta_lab  = eta_vec(3)
-  ele2%y%etap_lab = eta_vec(4)
+  ele2%a%eta_lab  = eta_vec(1)
+  ele2%a%etap_lab = eta_vec(2)
+  ele2%b%eta_lab  = eta_vec(3)
+  ele2%b%etap_lab = eta_vec(4)
   ele2%z%eta_lab  = eta_vec(5)
 
   call make_v_mats (ele2, v_mat, v_inv_mat)
   eta_vec(1:4) = matmul (v_inv_mat, eta_vec(1:4))
 
-  ele2%x%eta  = eta_vec(1)
-  ele2%x%etap = eta_vec(2)
-  ele2%y%eta  = eta_vec(3)
-  ele2%y%etap = eta_vec(4)
+  ele2%a%eta  = eta_vec(1)
+  ele2%a%etap = eta_vec(2)
+  ele2%b%eta  = eta_vec(3)
+  ele2%b%etap = eta_vec(4)
   ele2%z%eta  = ele2%z%eta_lab
 
   ele2%closed_orb(1:4) = &
@@ -263,8 +263,8 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
   m21 = mat4(2,1) / det_factor
   m22 = mat4(2,2) / det_factor
 
-  a1 = ele1%x%alpha
-  b1 = ele1%x%beta
+  a1 = ele1%a%alpha
+  b1 = ele1%a%beta
   g1 = (1 + a1**2) / b1
 
   b2 =  m11**2  * b1 - 2*m11*m12     * a1 + m12**2  * g1
@@ -276,15 +276,15 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
   if (del_phi > 0 .and. ele2%value(l$) < 0) del_phi = del_phi - twopi
 
   if (ele2%mode_flip .eqv. ele1%mode_flip) then
-    ele2%x%beta = b2
-    ele2%x%alpha = a2
-    ele2%x%gamma = g2
-    ele2%x%phi = ele1%x%phi + del_phi
+    ele2%a%beta = b2
+    ele2%a%alpha = a2
+    ele2%a%gamma = g2
+    ele2%a%phi = ele1%a%phi + del_phi
   else
-    ele2%y%beta = b2
-    ele2%y%alpha = a2
-    ele2%y%gamma = g2
-    ele2%y%phi = ele1%x%phi + del_phi
+    ele2%b%beta = b2
+    ele2%b%alpha = a2
+    ele2%b%gamma = g2
+    ele2%b%phi = ele1%a%phi + del_phi
   endif
 
 !-----------------------------------------------------
@@ -295,8 +295,8 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
   m21 = mat4(4,3) / det_factor
   m22 = mat4(4,4) / det_factor
 
-  a1 = ele1%y%alpha
-  b1 = ele1%y%beta
+  a1 = ele1%b%alpha
+  b1 = ele1%b%beta
   g1 = (1 + a1**2) / b1
 
   b2 =  m11**2  * b1 - 2*m11*m12     * a1 + m12**2  * g1
@@ -308,15 +308,15 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
   if (del_phi > 0 .and. ele2%value(l$) < 0) del_phi = del_phi - twopi
 
   if (ele2%mode_flip .eqv. ele1%mode_flip) then
-    ele2%y%beta = b2
-    ele2%y%alpha = a2
-    ele2%y%gamma = g2
-    ele2%y%phi = ele1%y%phi + del_phi
+    ele2%b%beta = b2
+    ele2%b%alpha = a2
+    ele2%b%gamma = g2
+    ele2%b%phi = ele1%b%phi + del_phi
   else
-    ele2%x%beta = b2
-    ele2%x%alpha = a2
-    ele2%x%gamma = g2
-    ele2%x%phi = ele1%y%phi + del_phi
+    ele2%a%beta = b2
+    ele2%a%alpha = a2
+    ele2%a%gamma = g2
+    ele2%a%phi = ele1%b%phi + del_phi
   endif
 
 end subroutine

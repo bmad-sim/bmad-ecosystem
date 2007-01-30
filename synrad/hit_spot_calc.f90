@@ -2,14 +2,14 @@
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, ring)
+subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
 
   use sr_struct
   use sr_interface
 
   implicit none
 
-  type (ring_struct) ring
+  type (lat_struct) lat
   type (ray_struct) :: ray, ray0, ray1, ray2
   type (wall_struct), target :: wall
   type (wall_pt_struct), pointer :: pt(:)
@@ -179,7 +179,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, ring)
     else
       ray1%direction = +1
     endif
-    call propagate_ray (ray1, s1, ring)
+    call propagate_ray (ray1, s1, lat)
 
     del1 = (dx_wall*(ray1%now%vec(5) - pt(ix0)%s) - &
                         ds_wall*(ray1%now%vec(1) - pt(ix0)%x)) / denom
@@ -215,7 +215,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, ring)
 
   del_s = ray%now%vec(5) - ray%start%vec(5)
   if (ray%crossed_end) then
-    ray%track_len = ring%param%total_length - abs(del_s)
+    ray%track_len = lat%param%total_length - abs(del_s)
   else
     ray%track_len = abs(del_s)
   endif

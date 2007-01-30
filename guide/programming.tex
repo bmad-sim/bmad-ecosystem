@@ -125,9 +125,8 @@ This searches for any routine or structure with the name
 single character. For example:
 \begin{example}
     getf bmad_parser
-    getf ring_struct
+    getf lat_struct
     getf twiss_at_.
-    getf 'twiss_at_.'
 \end{example}
 The third line in this example will match to the routine
 \vn{twiss_at_s} but not the routine \vn{twiss_at_start}. You may or
@@ -149,19 +148,19 @@ the command \vn{getf element_locator} is:
 \begin{example}
   /home/cesrulib/cesr_libs/devel/cvssrc/bmad/code/element_locator.f90
   !+
-  ! Subroutine element_locator (ele_name, ring, ix_ele)
+  ! Subroutine element_locator (ele_name, lat, ix_ele)
   !
-  ! Subroutine to locate an element in a ring. 
+  ! Subroutine to locate an element in a lat. 
   !
   ! Modules Needed:
   !   use bmad
   !
   ! Input:
   !   ele_name -- Character*16: Name of the element to find.
-  !   ring     -- Ring_struct: Ring to search through
+  !   lat     -- Lat_struct: Lat to search through
   !
   ! Output:
-  !   ix_ele -- Integer: Index of element in ring%ele_(:) array. 
+  !   ix_ele -- Integer: Index of element in lat%ele(:) array. 
   !               ix_ele set to -1 if not found.
   !-
 \end{example}
@@ -240,7 +239,7 @@ respectively.
 integer parameter. For example, in the above program, to check
 whether an element is a quadrupole one would write:
 \begin{verbatim}
-  if (ring%ele_(i)%key == quadrupole$) ...
+  if (lat%ele(i)%key == quadrupole$) ...
 \end{verbatim}
 Checking the source code one would find in the module \vn{bmad_struct}
 \begin{verbatim}
@@ -249,7 +248,7 @@ Checking the source code one would find in the module \vn{bmad_struct}
 One should always use the parameter name instead of the integer it represents.
 That is, one should never write
 \begin{verbatim}
-  if (ring%ele_(i)%key == 3) ...  ! DO NOT DO THIS!
+  if (lat%ele(i)%key == 3) ...  ! DO NOT DO THIS!
 \end{verbatim}
 For one, using the name makes the code clearer. However, more
 importantly, the integer value of the parameters may at times be
@@ -258,7 +257,7 @@ could thus lead to disastrous results.
 
 \index{Programming!structures}
 \item[Structure names have a \_struct suffix:]
-For example: \vn{ring_struct}, \vn{ele_struct}, etc. Structures without a 
+For example: \vn{lat_struct}, \vn{ele_struct}, etc. Structures without a 
 \vn{_struct} are usually part of Etienne's PTC/FPP package.
 
 \end{description}

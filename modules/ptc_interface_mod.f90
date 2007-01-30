@@ -16,13 +16,13 @@ module ptc_interface_mod
     module procedure universal_equal_universal
   end interface
 
-  type ptc_com_struct
+  type ptc_common_struct
     integer :: real_8_map_init               ! See PTC doc.
     integer :: taylor_order_ptc = 0          ! 0 -> not yet set 
     logical :: taylor_order_set = .false.    ! Used by set_taylor_order
   end type
 
-  type (ptc_com_struct), private, save :: ptc_com
+  type (ptc_common_struct), private, save :: ptc_com
   integer, parameter :: bmad_std$ = 1, ptc_std$ = -1
 
 
@@ -239,9 +239,9 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ring_to_layout (ring, ptc_layout)
+! Subroutine lat_to_layout (lat, ptc_layout)
 !
-! Subroutine to create a PTC layout from a BMAD ring.
+! Subroutine to create a PTC layout from a BMAD lat.
 ! Note: If ptc_layout has been already used then you should first do a 
 !           call kill(ptc_layout)
 ! This deallocates the pointers in the layout
@@ -253,20 +253,20 @@ end subroutine
 !   use ptc_interface_mod
 !
 ! Input:
-!   ring -- Ring_struct: 
+!   lat -- lat_struct: 
 !
 ! Output:
 !   ptc_layout -- Layout:
 !-
 
-subroutine ring_to_layout (ring, ptc_layout)
+subroutine lat_to_layout (lat, ptc_layout)
 
   use s_fibre_bundle, only: ring_l, append, lp
   use mad_like, only: set_up, kill
 
   implicit none
 
-  type (ring_struct), intent(in) :: ring
+  type (lat_struct), intent(in) :: lat
   type (layout), intent(inout) :: ptc_layout
   type (fibre), pointer :: fib
 
@@ -278,16 +278,16 @@ subroutine ring_to_layout (ring, ptc_layout)
 
 ! transfer elements.
 
-  do i = 1, ring%n_ele_use
+  do i = 1, lat%n_ele_track
     allocate (fib)
-    call ele_to_fibre (ring%ele_(i), fib, ring%param, .true.)
+    call ele_to_fibre (lat%ele(i), fib, lat%param, .true.)
     call append (ptc_layout, fib)
     call kill (fib)
   enddo
 
 ! circular or not?
 
-  if (ring%param%lattice_type == circular_lattice$) then
+  if (lat%param%lattice_type == circular_lattice$) then
     ptc_layout%closed = .true.
     call ring_l (ptc_layout, .true._lp)
   else
@@ -470,12 +470,12 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
+! Subroutine set_ptc (E_TOT, particle, taylor_order, integ_order, &
 !                               n_step, no_cavity, exact_calc, exact_misalign)
 !
 ! Subroutine to initialize PTC.
 ! Note: At some point before you use PTC to compute Taylor maps etc.
-!   you have to call set_ptc with both beam_energy and particle args
+!   you have to call set_ptc with both E_TOT and particle args
 !   present. Always supply both of these args together or not at all. 
 ! Note: If you just want to use FPP without PTC then call init directly.
 ! Note: This subroutine cannot be used if you want to have "knobs" 
@@ -489,7 +489,7 @@ end subroutine
 !   use ptc_interface_mod
 !
 ! Input:
-!   beam_energy  -- Real(rp), optional: Energy in eV.
+!   E_TOT  -- Real(rp), optional: Energy in eV.
 !   particle     -- Integer, optional: Type of particle:
 !                     electron$, proton$, etc.
 !   taylor_order -- Integer, optional: Maximum order of the taylor polynomials.
@@ -510,7 +510,7 @@ end subroutine
 !                     See the PTC guide for more details.
 !-
 
-subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
+subroutine set_ptc (E_TOT, particle, taylor_order, integ_order, &
                                     n_step, no_cavity, exact_calc, exact_misalign) 
 
   use mad_like, only: make_states, exact_model, always_exactmis, &
@@ -523,8 +523,8 @@ subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
   integer this_method, this_steps
   integer nd2
 
-  real(rp), optional :: beam_energy
-  real(rp), save :: old_beam_energy = 0
+  real(rp), optional :: E_TOT
+  real(rp), save :: old_E_TOT = 0
   real(dp) this_energy
 
   logical, optional :: no_cavity, exact_calc, exact_misalign
@@ -535,7 +535,7 @@ subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
 
 ! do not call set_mad
 
-  params_present = present(beam_energy) .and. present(particle)
+  params_present = present(E_TOT) .and. present(particle)
 
   if (init_needed .and. params_present) then
     if (particle == positron$ .or. particle == electron$) then
@@ -566,16 +566,16 @@ subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
   endif
 
   if (params_present) then
-    if (init_needed .or. old_beam_energy /= beam_energy .or. &
+    if (init_needed .or. old_E_TOT /= E_TOT .or. &
                         present(integ_order) .or. present(n_step)) then
-      this_energy = 1e-9 * beam_energy
+      this_energy = 1e-9 * E_TOT
       if (this_energy == 0) then
-        call out_io (s_fatal$, r_name, 'BEAM_ENERGY IS 0.')
+        call out_io (s_fatal$, r_name, 'E_TOT IS 0.')
         call err_exit
       endif
       call set_madx (energy = this_energy, method = this_method, &
                                                        step = this_steps)
-      old_beam_energy  = beam_energy
+      old_E_TOT  = E_TOT
       init_needed = .false.
     endif
   endif
@@ -1106,7 +1106,7 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
 
   type (taylor_struct), intent(in) :: bmad_taylor(6)
   type (genfield), intent(inout) :: gen_field
-  type (taylor_struct) taylor_(6)
+  type (taylor_struct) taylor(6)
   type (damap) da_map
   type (real_8) y(6)
 
@@ -1121,7 +1121,7 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
 ! not needed but we do it to make sure everything is alright.
 ! Also remove terms that have higher order then bmad_com%taylor_order
 
-  call remove_constant_taylor (bmad_taylor, taylor_, c0, .true.)
+  call remove_constant_taylor (bmad_taylor, taylor, c0, .true.)
 
 ! allocate pointers
 
@@ -1131,7 +1131,7 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
 
 ! calculate the gen_field
 
-  y = taylor_
+  y = taylor
   da_map = y
   gen_field = da_map
 
@@ -1139,7 +1139,7 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
 
   call kill (da_map)
   call kill (y)
-  call kill_taylor (taylor_)
+  call kill_taylor (taylor)
 
 end subroutine
 
@@ -1373,7 +1373,7 @@ end subroutine
 ! Input:
 !   tlr(6) -- Taylor_struct: Map to be tracked
 !   ele    -- Ele_struct: Element to track through
-!   param  -- Param_struct: 
+!   param  -- lat_param_struct: 
 !
 ! Output:
 !   tlr(6)  -- Taylor_struct: Map through element
@@ -1389,7 +1389,7 @@ subroutine taylor_propagate1 (tlr, ele, param)
   type (taylor_struct) tlr(:)
   type (real_8), save :: y(6)
   type (ele_struct) ele
-  type (param_struct) param
+  type (lat_param_struct) param
   type (fibre), pointer, save :: a_fibre
 
   logical :: init_needed = .true.
@@ -1439,8 +1439,8 @@ end subroutine
 !     %map_with_offsets  -- Make Taylor map with element offsets, pitches, and tilt?
 !   orb0  -- Coord_struct, optional: Starting coords around which the Taylor series 
 !              is evaluated.
-!   param -- Param_struct: 
-!     %beam_energy -- Needed for wigglers.
+!   param -- lat_param_struct: 
+!     %E_TOT -- Needed for wigglers.
 !   map_with_offsets -- Logical, optional: If present then overrides 
 !                         ele%map_with_offsets.
 !
@@ -1457,7 +1457,7 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
   implicit none
   
   type (ele_struct), intent(inout) :: ele
-  type (param_struct) :: param
+  type (lat_param_struct) :: param
   type (coord_struct), optional, intent(in) :: orb0
   type (coord_struct) start0, end0
 
@@ -1646,7 +1646,7 @@ subroutine sort_universal_terms (ut_in, ut_sorted)
   type (universal_taylor), intent(in)  :: ut_in
   type (universal_taylor) :: ut_sorted
 
-  integer, allocatable :: ix_(:), ord_(:)
+  integer, allocatable :: ix(:), ord(:)
   integer i, n, nv, expn(6)
 
 ! init
@@ -1662,7 +1662,7 @@ subroutine sort_universal_terms (ut_in, ut_sorted)
   if (associated(ut_sorted%n)) &
               deallocate(ut_sorted%n, ut_sorted%nv, ut_sorted%c, ut_sorted%j)
   allocate(ut_sorted%n, ut_sorted%nv, ut_sorted%c(n), ut_sorted%j(n,nv), &
-                                                              ix_(n), ord_(n))
+                                                              ix(n), ord(n))
 
   ut_sorted%n = n
   ut_sorted%nv = nv
@@ -1671,18 +1671,18 @@ subroutine sort_universal_terms (ut_in, ut_sorted)
 
   do i = 1, n
     expn = ut_in%j(i,:)
-    ord_(i) = sum(expn)*10**6 + expn(6)*10**5 + expn(5)*10**4 + &
+    ord(i) = sum(expn)*10**6 + expn(6)*10**5 + expn(5)*10**4 + &
                 expn(4)*10**3 + expn(3)*10**2 + expn(2)*10**1 + expn(1)
   enddo
 
-  call indexx (ord_, ix_)
+  call indexx (ord, ix)
 
   do i = 1, n
-    ut_sorted%c(i)= ut_in%c(ix_(i))
-    ut_sorted%j(i,:)= ut_in%j(ix_(i),:)
+    ut_sorted%c(i)= ut_in%c(ix(i))
+    ut_sorted%j(i,:)= ut_in%j(ix(i),:)
   enddo
 
-  deallocate(ord_, ix_)
+  deallocate(ord, ix)
 
 end subroutine
 
@@ -1749,8 +1749,8 @@ end subroutine
 !   ele    -- Ele_struct: Bmad element.
 !     %map_with_offsets -- If False then the values for x_pitch, x_offset, 
 !                           tilt, etc. for the  fiber element will be zero.
-!   param       -- param_struct: 
-!     %beam_energy     -- Beam energy (for wigglers).
+!   param       -- lat_param_struct: 
+!     %E_TOT     -- Beam energy (for wigglers).
 !   use_offsets -- Logical: Does fiber include element offsets, pitches and tilt?
 !   integ_order -- Integer, optional: Order for the 
 !                    sympletic integrator. Possibilities are: 2, 4, or 6
@@ -1774,7 +1774,7 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
   type (ele_struct) ele
   type (fibre) fiber
   type (keywords) ptc_key
-  type (param_struct) :: param
+  type (lat_param_struct) :: param
 
   real(dp) mis_rot(6)
   real(dp) omega(3), basis(3,3), angle(3)
@@ -1880,7 +1880,7 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
       endif
       ptc_key%tiltd = -atan2 (hk, vk) + ele%value(tilt_tot$)
     endif
-    ptc_key%list%volt = 1e-6 * ele%value(beam_energy$) * sqrt(hk**2 + vk**2)
+    ptc_key%list%volt = 1e-6 * ele%value(E_TOT$) * sqrt(hk**2 + vk**2)
     call multipole_ele_to_ab (ele, +1, an0, bn0, .false.) 
     if (any(an0 /= 0) .or. any(bn0 /= 0)) then
       print *, 'ERROR IN ELE_TO_FIBRE: ', &
@@ -1900,7 +1900,7 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
     ptc_key%magnet = 'wiggler'
 
   case default
-    print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT KEY: ', &
+    print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT CLASS: ', &
                                                  key_name(ele%key)
     print *, '      FOR ELEMENT: ', trim(ele%name)
     call err_exit
@@ -1970,7 +1970,7 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
     call init_sagan_pointers (fiber%mag%wi%w, n_term)   
 
     fiber%mag%wi%w%a(1:n_term) = c_light * &
-            ele%value(polarity$) * ele%wig_term%coef / ele%value(beam_energy$)
+            ele%value(polarity$) * ele%wig_term%coef / ele%value(E_TOT$)
     fiber%mag%wi%w%k(1,1:n_term)  = ele%wig_term%kx
     fiber%mag%wi%w%k(2,1:n_term)  = ele%wig_term%ky
     fiber%mag%wi%w%k(3,1:n_term)  = ele%wig_term%kz

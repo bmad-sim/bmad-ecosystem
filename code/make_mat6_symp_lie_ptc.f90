@@ -8,7 +8,7 @@
 !
 ! Input:
 !   ele    -- Ele_struct: Element with transfer matrix
-!   param  -- Param_struct: Parameters are needed for some elements.
+!   param  -- lat_param_struct: Parameters are needed for some elements.
 !   c0     -- Coord_struct: Coordinates at the beginning of element. 
 !
 ! Output:
@@ -27,7 +27,7 @@ subroutine make_mat6_symp_lie_ptc (ele, param, c0)
 
   type (ele_struct), target :: ele
   type (coord_struct) :: c0
-  type (param_struct)  param
+  type (lat_param_struct)  param
 
 !
 

@@ -2,46 +2,46 @@
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine ele_sr_power (ring, ie, orb, direction, 
+! subroutine ele_sr_power (lat, ie, orb, direction, 
 !                             power, inside, outside, gen)
 !
 ! subroutine to calculate the synch radiation power from
-!      one element of the ring
+!      one element of the lat
 !
 ! Modules needed:
 !   use sr_mod
 !
 ! Input:
-!   ring   -- ring_struct: with twiss propagated and mat6s made
-!   ie     -- integer: index of the current element in ring
+!   lat   -- lat_struct: with twiss propagated and mat6s made
+!   ie     -- integer: index of the current element in lat
 !   orb(0:*) -- coord_struct: orbit of particles to use as 
 !                             source of ray
 !   direction -- integer: +1 for in direction of s
 !                         -1 for against s
 !   inside  -- wall_struct: inside wall with outline ready
 !   outside -- wall_struct: outside wall with outline ready
-!   gen    -- general_param_struct: Contains lat name,
+!   gen    -- general_lat_param_struct: Contains lat name,
 !                     vert emittance, and beam current
 !
 ! Output:
-!   power(*)  -- ele_power_struct: power radiated from a ring ele
+!   power(*)  -- ele_power_struct: power radiated from a lat ele
 !   inside  -- wall_struct: inside wall with power information
 !   outside -- wall_struct: outside wall with power information
 !-
 
-subroutine ele_sr_power (ring, ie, orb, direction, power, inside, outside, gen)
+subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
 
   use sr_struct
   use sr_interface
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (lat_struct), target :: lat
   type (coord_struct) orb(0:*)
   type (ele_struct), pointer :: ele
   type (wall_struct) inside, outside
   type (ray_struct) rays(3000), ray, ray_temp
-  type (general_param_struct) gen
+  type (general_lat_param_struct) gen
   type (ele_power_struct) power(*)
 
   integer direction, ie, i_ray, n_slice, ns
@@ -50,7 +50,7 @@ subroutine ele_sr_power (ring, ie, orb, direction, power, inside, outside, gen)
 
 ! power calculation is only for bends, quads and wigglers.
 
-  ele => ring%ele_(ie)
+  ele => lat%ele(ie)
 
   if (ele%key /= sbend$ .and. ele%key /= quadrupole$ .and. &
                      ele%key /= wiggler$ .and. ele%key /= sol_quad$) return
@@ -101,9 +101,9 @@ subroutine ele_sr_power (ring, ie, orb, direction, power, inside, outside, gen)
     endif
 
     ! start a ray from each slice location
-    call init_ray (rays(i_ray), ring, ie, l_off, orb, direction)
+    call init_ray (rays(i_ray), lat, ie, l_off, orb, direction)
     ! track the ray until it hits something
-    call track_ray_to_wall (rays(i_ray), ring, inside, outside)
+    call track_ray_to_wall (rays(i_ray), lat, inside, outside)
 
 
     ! check if this ray hit a different wall than the previous ray
@@ -117,8 +117,8 @@ subroutine ele_sr_power (ring, ie, orb, direction, power, inside, outside, gen)
         ! binary search for transition point
         do
           l_try = (l0 + l1) / 2
-          call init_ray (ray, ring, ie, l_try, orb, direction)
-          call track_ray_to_wall (ray, ring, inside, outside)
+          call init_ray (ray, lat, ie, l_try, orb, direction)
+          call track_ray_to_wall (ray, lat, inside, outside)
           if (ray%wall%side == rays(i_ray)%wall%side) then
             rays(i_ray) = ray
             l0 = l_try
@@ -134,7 +134,7 @@ subroutine ele_sr_power (ring, ie, orb, direction, power, inside, outside, gen)
             if (abs(rays(i_ray)%start%vec(5) - &
                  rays(i_ray-1)%start%vec(5)) < 5e-4) i_ray = i_ray - 1
             call seg_power_calc (rays, i_ray, inside, outside, &
-                 ring, gen, power(ie))
+                 lat, gen, power(ie))
             rays(1) = ray_temp
             i_ray = 1
             exit
@@ -147,7 +147,7 @@ subroutine ele_sr_power (ring, ie, orb, direction, power, inside, outside, gen)
 ! now compute the sr power hitting the wall using the tracking results
 ! and interpolating inbetween.
 
-  call seg_power_calc (rays, i_ray, inside, outside, ring, gen, &
+  call seg_power_calc (rays, i_ray, inside, outside, lat, gen, &
        power(ie))
 
 end subroutine ele_sr_power

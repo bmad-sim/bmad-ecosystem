@@ -1,5 +1,5 @@
 !+
-! Subroutine set_z_tune (ring)
+! Subroutine set_z_tune (lat)
 !
 ! Subroutine to set the longitudinal tune by scalling the RF voltages
 ! in the RF cavities.
@@ -8,12 +8,12 @@
 !   use bmad
 !
 ! Input:
-!   ring   -- Ring_struct:
+!   lat   -- lat_struct:
 !     %z%tune  -- Longitudinal tune in radians (must be negative). 
 !
 ! Output:
-!   ring
-!     %ele_(i_rf)%value(voltage$) -- Voltage on the cavity
+!   lat
+!     %ele(i_rf)%value(voltage$) -- Voltage on the cavity
 !
 ! Notes: 
 !   1) The calculation assumes that Q_z << 1.
@@ -24,14 +24,14 @@
 
 #include "CESR_platform.inc"
 
-subroutine set_z_tune (ring)
+subroutine set_z_tune (lat)
 
   use bmad_struct
   use bmad_interface, except => set_z_tune
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (lat_struct), target :: lat
   type (ele_struct), pointer :: ele, ele2
 
   real(rp) z_tune_wanted, r_volt
@@ -43,13 +43,13 @@ subroutine set_z_tune (ring)
 
 ! Error detec and init.
 
-  if (ring%z%tune > 0) then
-    print *, 'WARNING FROM SET_Z_TUNE: RING%Z%TUNE IS POSITIVE!'
+  if (lat%z%tune > 0) then
+    print *, 'WARNING FROM SET_Z_TUNE: LAT%Z%TUNE IS POSITIVE!'
     print *, '     I AM ASSUMING THIS IS INCORRECT AND AM SWITCHING THE SIGN.'
-    ring%z%tune = -ring%z%tune
+    lat%z%tune = -lat%z%tune
   endif
 
-  z_tune_wanted = ring%z%tune
+  z_tune_wanted = lat%z%tune
 
 ! Make a list of controllers for the voltage of the RFcavities.
 ! The list is:
@@ -58,23 +58,23 @@ subroutine set_z_tune (ring)
 !   2) overlays that control the voltage of an RFcavity
 
 
-  E0 = ring%ele_(0)%value(beam_energy$)
+  E0 = lat%ele(0)%value(E_TOT$)
 
   n_rf = 0
   coef_tot = 0
   rf_is_on = .false.
 
-  do i = 1, ring%n_ele_max
+  do i = 1, lat%n_ele_max
 
-    ele => ring%ele_(i)
+    ele => lat%ele(i)
 
     if (ele%key == rfcavity$) then
 
       if (ele%control_type == super_slave$) cycle 
 
       do j = ele%ic1_lord, ele%ic2_lord ! check any overlays.
-        ix = ring%ic_(j)
-        if (ring%control_(ix)%ix_attrib == voltage$) cycle
+        ix = lat%ic(j)
+        if (lat%control(ix)%ix_attrib == voltage$) cycle
       enddo
 
       if (ele%value(rf_frequency$) /= 0) rf_is_on = .true.
@@ -91,14 +91,14 @@ subroutine set_z_tune (ring)
     if (ele%key == overlay$) then
       found_control = .false.
       do j = ele%ix1_slave, ele%ix2_slave
-        ix = ring%control_(j)%ix_slave
-        ele2 => ring%ele_(ix)
+        ix = lat%control(j)%ix_slave
+        ele2 => lat%ele(ix)
         if (ele2%key == rfcavity$ .and. &
-                          ring%control_(j)%ix_attrib == voltage$) then
+                          lat%control(j)%ix_attrib == voltage$) then
           if (.not. found_control) n_rf = n_rf + 1
           found_control = .true.
           phase = twopi * (ele2%value(phi0$) + ele2%value(dphi0$))
-          coef_tot = coef_tot + ring%control_(j)%coef * twopi * &
+          coef_tot = coef_tot + lat%control(j)%coef * twopi * &
                    cos(phase) * ele2%value(rf_frequency$) / (c_light * E0)
           k = ele%ix_value
           ix_attrib(n_rf) = k
@@ -126,12 +126,12 @@ subroutine set_z_tune (ring)
 ! If the voltage is near zero then start from scratch.
 ! This is only approximate.
 
-  call calc_z_tune (ring)
-  if (abs(ring%z%tune) < 0.001 .or. z_tune_wanted == 0) then
-    volt = -z_tune_wanted**2 / (ring%param%t1_with_RF(5,6) * coef_tot)
+  call calc_z_tune (lat)
+  if (abs(lat%z%tune) < 0.001 .or. z_tune_wanted == 0) then
+    volt = -z_tune_wanted**2 / (lat%param%t1_with_RF(5,6) * coef_tot)
     do i = 1, n_rf
-      ring%ele_(ix_rf(i))%value(ix_attrib(i)) = volt
-      call ring_make_mat6 (ring, ix_rf(i))
+      lat%ele(ix_rf(i))%value(ix_attrib(i)) = volt
+      call lat_make_mat6 (lat, ix_rf(i))
     enddo
   endif
 
@@ -139,18 +139,18 @@ subroutine set_z_tune (ring)
 
   do k = 1, 10
 
-    call calc_z_tune (ring)
-    if (abs(ring%z%tune - z_tune_wanted) < 0.001) return
+    call calc_z_tune (lat)
+    if (abs(lat%z%tune - z_tune_wanted) < 0.001) return
 
-    r_volt = (z_tune_wanted / ring%z%tune)**2 
+    r_volt = (z_tune_wanted / lat%z%tune)**2 
 
     do i = 1, n_rf
-      ring%ele_(ix_rf(i))%value(ix_attrib(i)) = &
-                      ring%ele_(ix_rf(i))%value(ix_attrib(i)) * r_volt
-      call ring_make_mat6 (ring, ix_rf(i))
+      lat%ele(ix_rf(i))%value(ix_attrib(i)) = &
+                      lat%ele(ix_rf(i))%value(ix_attrib(i)) * r_volt
+      call lat_make_mat6 (lat, ix_rf(i))
     enddo
 
-    call calc_z_tune (ring)
+    call calc_z_tune (lat)
 
   enddo
 
@@ -158,7 +158,7 @@ subroutine set_z_tune (ring)
 
   print *, 'ERROR IN SET_Z_TUNE: I CANNOT SET THE TUNE TO THE CORRECT VALUE.'
   print *, '      VALUE WANTED:   ', z_tune_wanted
-  print *, '      VALUE OPTAINED: ', ring%z%tune
+  print *, '      VALUE OPTAINED: ', lat%z%tune
   call err_exit
 
 end subroutine

@@ -21,7 +21,7 @@ program test
 
   use bmad                 ! Define the structures we need to know about.
   implicit none
-  type (ring_struct) lattice  ! This structure holds the lattice info
+  type (lat_struct) lattice  ! This structure holds the lattice info
   integer i, ix
 
 ! Read in a lattice and calculate the twiss parameters.
@@ -32,11 +32,11 @@ program test
 
 ! Print info on the first 11 elements
 
-  print *, ' Ix  Name              Ele_type                   S      Beta_x'
+  print *, ' Ix  Name              Ele_type                   S      Beta_a'
   do i = 0, 10
-    print '(i4, 2x, a, 2x, a, 2f12.4)', i, lattice%ele_(i)%name, &
-                    key_name(lattice%ele_(i)%key), &
-                    lattice%ele_(i)%s, lattice%ele_(i)%x%beta
+    print '(i4, 2x, a, 2x, a, 2f12.4)', i, lattice%ele(i)%name, &
+                    key_name(lattice%ele(i)%key), &
+                    lattice%ele(i)%s, lattice%ele(i)%a%beta
   enddo
 
 ! Find the CLEO_SOL element and print information on it.
@@ -46,7 +46,7 @@ program test
   print *, '!---------------------------------------------------------'
   print *, '! Information on element: CLEO_SOL', ix
   print *
-  call type_ele (lattice%ele_(ix), .false., 0, .false., 0, .true., lattice)
+  call type_ele (lattice%ele(ix), .false., 0, .false., 0, .true., lattice)
 
 end program
 \end{listing}
@@ -66,7 +66,7 @@ Figure~\ref{f:output}.
 
 \begin{figure}[ht]
 \begin{listing}{1}
-  Ix  Name              Ele_type                   S      Beta_x
+  Ix  Name              Ele_type                   S      Beta_a
    0  BEGINNING         INIT_ELEMENT          0.0000      0.9381
    1  IP_L0             MARKER                0.0000      0.9381
    2  CLEO_SOL\3        SOLENOID              0.6223      1.3500
@@ -87,7 +87,7 @@ Figure~\ref{f:output}.
   Attribute values [Only non-zero values shown]:
       1   L                =  3.51000E+00
       7   KS               = -8.50234E-02
-     31   BEAM_ENERGY      =  5.28900E+09
+     31   E_TOT      =  5.28900E+09
      34   B_FIELD          = -1.50000E+00
   S:       1.7550
 
@@ -115,54 +115,54 @@ Figure~\ref{f:output}.
 %-----------------------------------------------------------------------------
 \section{Explanation of the Simple\_Program}
 
-\index{Ring_struct!example use of}
+\index{Lat_struct!example use of}
 A line by line explanation of the simple test program follows. 
 The \vn{use bmad} statement at line 3
 defines the \bmad structures and defines the interfaces
 (argument lists) for the \bmad subroutines. In particular, the
-\vn{ring_struct} structure (line 5) holds all of the lattice
+\vn{lat_struct} structure (line 5) holds all of the lattice
 information: The list of elements, their attributes,
 etc. \vnr{bmad_parser} (line 10) is the routine which parses a lattice
 file and transfers the information to a
-\vn{ring_struct} variable. Note: Despite its name, \bmad does
-not make any assumption about whether a \vn{ring_struct} is actually
-closed or open like a LINAC. To get a listing of the \vn{ring_struct}
+\vn{lat_struct} variable. Note: Despite its name, \bmad does
+not make any assumption about whether a \vn{lat_struct} is actually
+closed or open like a LINAC. To get a listing of the \vn{lat_struct}
 components or to find out more about \vn{bmad_parser} use the \vn{getf}
 command as discussed in \sref{s:getf}.
 
 After \vnr{bmad_parser} is called, the program uses the
 routine \vnr{twiss_at_start} (line 11) to multiply the transfer
 matrices of the individual elements together to form the 1--turn
-matrix from the start of the ring back to the start. [Of course,
+matrix from the start of the lat back to the start. [Of course,
 if the lattice is not closed you would not want the program to do
 this.] From this matrix
 \vn{twiss_at_start} calculates the Twiss parameters at the start of
-the lattice and puts the information into the \vn{ring} variable. The
+the lattice and puts the information into the \vn{lat} variable. The
 next call, to \vnr{twiss_propagate_all} (line 12), takes the starting
 Twiss parameters and, using the transfer matrices of the individual
 elements, calculates the Twiss parameters at all the elements. Again
-the results of the calculation are stored in \vn{ring}. 
+the results of the calculation are stored in \vn{lat}. 
 
 \index{Ele_struct!%x}
 \index{Ele_struct!%key}
 \index{Ele_struct!%s}
-\index{Ring_struct!%ele_(:)}
+\index{Lat_struct!%ele(:)}
 The program is now ready to print out the results of the calculation
 which it does on lines 16 through 21 of the program and lines 1 through 12
-of the output. \vn{ring} has within it an array
-\vn{ring%ele_(0:)}.  Each element of the array holds the information
+of the output. \vn{lat} has within it an array
+\vn{lat%ele(0:)}.  Each element of the array holds the information
 about an individual element as explained in
-Chapter~\ref{c:ele_struct}. \vn{ring%ele_(0)} is basically a marker
-element to denote the beginning of the array. \vn{ring%ele_(i)%key} is
+Chapter~\ref{c:ele_struct}. \vn{lat%ele(0)} is basically a marker
+element to denote the beginning of the array. \vn{lat%ele(i)%key} is
 an integer denoting what type of element (quadrupole, wiggler, etc.)
 it is. \vn{key_name} is an array that translates the key of an element
-to a string. \vn{ring%ele_(i)%s} is the longitudinal position at the
-exit end of the i\Th\ element. \vn{ring%ele_(i)%x%beta} is the
+to a string. \vn{ring%ele(i)%s} is the longitudinal position at the
+exit end of the i\Th\ element. \vn{lat%ele(i)%x%beta} is the
 $a$--mode (nearly horizontal mode) beta.
 
 The next section of the program, lines 25 through 30, uses the routine
 \vnr{element_locator} to find the index of an
-element in the \vn{ring%ele_(:)} array with the name \vn{CLEO_SOL}.
+element in the \vn{lat%ele(:)} array with the name \vn{CLEO_SOL}.
 \vnr{type_ele} is used to type out the element's attributes and other
 information as shown on lines 14 through 41 of the output (more on this later).
 
@@ -214,10 +214,10 @@ center of the \vn{CLEO_SOL} is at $s = 0$, half of it extends to
 negative $s$. In this situation, \vn{bmad_parser} will wrap this half
 back and superimpose it on the elements at the end of the lattice list
 near $s = s_{lat}$ where $s_{lat}$ is the length of the lattice.  As
-explained in Chapter~\ref{c:ring_struct}, the lattice list that is used
-for tracking extends from \vn{ring%ele_(0)} through \vn{ring%ele_(n)}
-where \vn{n = ring%n_ele_use}. The \vn{CLEO_SOL} element is put in the
-section of \vn{ring%ele_(n)} with \vn{n > ring%n_ele_use} since it is
+explained in Chapter~\ref{c:lat_struct}, the lattice list that is used
+for tracking extends from \vn{lat%ele(0)} through \vn{lat%ele(n)}
+where \vn{n = lat%n_ele_track}. The \vn{CLEO_SOL} element is put in the
+section of \vn{lat%ele(n)} with \vn{n > lat%n_ele_track} since it is
 not an element to be tracked through. The \vn{Q00W} quadrupole also
 gets put in this part of the list.  The bookkeeping information that
 the \vn{cleo_sol\B3} element is derived from the \vn{cleo_sol} is put
@@ -228,9 +228,9 @@ attributes of the dependent (``\vn{super_slave}'') elements updated
 with one subroutine call. For example, the following code increases the
 solenoid strength by 1\%
 \begin{example}
-  call element_locator ('CLEO_SOL', ring, ix)
-  ring%ele_(ix)%value(ks$) = ring%ele_(ix)%value(ks$) * 1.01 
-  call control_bookkeeper (ring, ix)
+  call element_locator ('CLEO_SOL', lat, ix)
+  lat%ele(ix)%value(ks$) = lat%ele(ix)%value(ks$) * 1.01 
+  call control_bookkeeper (lat, ix)
 \end{example}
 \bmad takes care of the bookkeeping. In fact \vn{control_bookkeeper} is
 automatically called when transfer matrices are remade so the direct call

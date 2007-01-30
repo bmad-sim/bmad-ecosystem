@@ -15,7 +15,7 @@
 !   digested_name -- Character(*): Name of the digested file.
 !
 ! Output:
-!   lat         -- Ring_struct: Output lattice structure
+!   lat         -- lat_struct: Output lattice structure
 !   version     -- Integer: bmad_inc_version number stored in the lattice file.
 !                   If the file is current this number should be the same 
 !                   as the global parameter bmad_inc_version$.
@@ -33,12 +33,12 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 
   implicit none
 
-  type (ring_struct), target, intent(inout) :: lat
+  type (lat_struct), target, intent(inout) :: lat
   type (ele_struct), pointer :: ele
   
   integer d_unit, n_files, version, i, j, k, ix, dum1, dum2
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios
-  integer ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, ierr, stat
+  integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
   integer stat_b(12), idate_old
 
   character(*) digested_name
@@ -51,14 +51,14 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 ! init all elements in lat
 
   call init_ele (lat%ele_init)  ! init pointers
-  call deallocate_ring_pointers (lat)
+  call deallocate_lat_pointers (lat)
 
 ! Read the digested file.
 ! Some old versions can be read even though they are not the current version.
 
   d_unit = lunget()
   bmad_status%ok = .true.
-  lat%n_ele_use = 0
+  lat%n_ele_track = 0
 
   call fullfilename (digested_name, full_digested_name)
   inquire (file = full_digested_name, name = full_digested_name)
@@ -151,25 +151,25 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 
   read (d_unit, err = 9100)  &   
           lat%name, lat%lattice, lat%input_file_name, lat%title, &
-          lat%x, lat%y, lat%z, lat%param, lat%version, lat%n_ele_use, &
-          lat%n_ele_ring, lat%n_ele_max, &
+          lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
+          lat%n_ele_track, lat%n_ele_max, &
           lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
 
-  call allocate_ring_ele_(lat, lat%n_ele_max+100)
-  allocate (lat%control_(lat%n_control_max+100))
-  allocate (lat%ic_(lat%n_ic_max+100))
+  call allocate_lat_ele(lat, lat%n_ele_max+100)
+  allocate (lat%control(lat%n_control_max+100))
+  allocate (lat%ic(lat%n_ic_max+100))
 
 !
 
   do i = 0, lat%n_ele_max
 
-    ele => lat%ele_(i)
+    ele => lat%ele(i)
 
     if (v77) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
-            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%x, &
-            ele%y, ele%z, ele%value(1:49), ele%gen0, ele%vec0, ele%mat6, &
+            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%a, &
+            ele%b, ele%z, ele%value(1:49), ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -183,9 +183,9 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 
     elseif (v78) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
-            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%x, &
-            ele%y, ele%z, ele%value(1:49), ele%gen0, ele%vec0, ele%mat6, &
+            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%a, &
+            ele%b, ele%z, ele%value(1:49), ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -199,9 +199,9 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 
     elseif (v79 .or. v80) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
-            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%x, &
-            ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%a, &
+            ele%b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -214,9 +214,9 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%coupler_at, ele%on_an_i_beam
     elseif (v81) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
-            ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%a, &
+            ele%b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -229,9 +229,9 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%coupler_at, ele%on_an_i_beam
     elseif (v_now) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
-            ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%a, &
+            ele%b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -292,7 +292,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 
     if (ix_m /= 0) then
       call multipole_init (ele)
-      read (d_unit, err = 9600) ele%a, ele%b
+      read (d_unit, err = 9600) ele%a_pole, ele%b_pole
     endif
     
     do j = 1, 6
@@ -307,19 +307,19 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
     ! If ix_lr is negative then it is a pointer to a previously read wake. 
     ! See write_digested_bmad_file.
 
-    if (ix_sr1 /= 0 .or. ix_sr2_long /= 0 .or. ix_sr2_trans /= 0 .or. ix_lr /= 0) then
+    if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. ix_lr /= 0) then
       if (ix_lr < 0) then
-        call transfer_wake (lat%ele_(abs(ix_lr))%wake, ele%wake)
+        call transfer_wake (lat%ele(abs(ix_lr))%wake, ele%wake)
 
       else
-        call init_wake (ele%wake, ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr)
+        call init_wake (ele%wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
         read (d_unit, err = 9800) ele%wake%sr_file
-        read (d_unit, err = 9810) ele%wake%sr1
-        read (d_unit, err = 9840) ele%wake%sr2_long
-        read (d_unit, err = 9850) ele%wake%sr2_trans
+        read (d_unit, err = 9810) ele%wake%sr_table
+        read (d_unit, err = 9840) ele%wake%sr_mode_long
+        read (d_unit, err = 9850) ele%wake%sr_mode_trans
         read (d_unit, err = 9820) ele%wake%lr_file
         read (d_unit, err = 9830) ele%wake%lr
-        read (d_unit, err = 9860) ele%wake%z_sr2_max
+        read (d_unit, err = 9860) ele%wake%z_sr_mode_max
       endif
     endif
 
@@ -328,11 +328,11 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 !
 
   do i = 1, lat%n_control_max
-    read (d_unit, err = 9100) lat%control_(i)
+    read (d_unit, err = 9100) lat%control(i)
   enddo
 
   do i = 1, lat%n_ic_max
-    read (d_unit, err = 9100) lat%ic_(i)
+    read (d_unit, err = 9100) lat%ic(i)
   enddo
 
   read (d_unit, iostat = ios) lat%beam_start
@@ -430,7 +430,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 9810  continue
   if (bmad_status%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%SR1 FOR ELEMENT: ' // ele%name)
+          'ERROR READING WAKE%sr_table FOR ELEMENT: ' // ele%name)
   endif
   close (d_unit)
   bmad_status%ok = .false.
@@ -457,7 +457,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 9840  continue
   if (bmad_status%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%SR2_LONG FOR ELEMENT: ' // ele%name)
+          'ERROR READING WAKE%sr_mode_long FOR ELEMENT: ' // ele%name)
   endif
   close (d_unit)
   bmad_status%ok = .false.
@@ -466,7 +466,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 9850  continue
   if (bmad_status%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%SR2_TRANS FOR ELEMENT: ' // ele%name)
+          'ERROR READING WAKE%sr_mode_trans FOR ELEMENT: ' // ele%name)
   endif
   close (d_unit)
   bmad_status%ok = .false.

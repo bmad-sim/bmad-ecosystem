@@ -21,7 +21,7 @@
 !   use bmad
 !
 ! Input:
-!   lattice   -- ring_struct: lattice tracked through.
+!   lattice   -- lat_struct: lattice tracked through.
 !   orbit(0:) -- Coord_struct: coordinates.
 !
 ! Output:
@@ -37,7 +37,7 @@ subroutine lost_particle_info (lattice, orbit, ix_lost, plane_lost)
 
   implicit none
 
-  type (ring_struct) lattice
+  type (lat_struct) lattice
   type (coord_struct) orbit(0:)
 
   integer ix_lost, plane_lost, ix
@@ -61,7 +61,7 @@ subroutine lost_particle_info (lattice, orbit, ix_lost, plane_lost)
     call out_io (s_abort$, r_name, 'INTERNAL ERROR')
   end select
 
-  call check_aperture_limit (orbit(ix_lost), lattice%ele_(ix), &
+  call check_aperture_limit (orbit(ix_lost), lattice%ele(ix), &
                                                    lattice%param, plane_lost)
 
 end subroutine

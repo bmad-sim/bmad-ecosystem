@@ -30,7 +30,7 @@ implicit none
 
 type (ele_struct) ele
 type (coord_struct) orb
-type (param_struct) param
+type (lat_param_struct) param
 
 ! the new vec0 is obtained by just tracking through the element
 

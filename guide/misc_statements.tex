@@ -11,7 +11,7 @@ This chapter deals with the statements not covered in the previous chapters.
 \index{Lattice!parameter statement}
 \index{Lattice_type!parameter statement}
 \index{Taylor_order!parameter statement}
-\index{Beam_energy!parameter statement}
+\index{E_tot!parameter statement}
 \index{Ran_seed!parameter statement}
 \index{N_part!parameter statement}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
@@ -20,7 +20,7 @@ other variables.  The variables that can be set by \vn{parameter} is
   parameter[lattice]      = <String>      ! Lattice name 
   parameter[lattice_type] = <Switch>      ! 
   parameter[taylor_order] = <Integer>     ! Default: 3
-  parameter[beam_energy]  = <Real>        ! Total Energy. Default: 0
+  parameter[E_tot]  = <Real>        ! Total Energy. Default: 0
   parameter[n_part]       = <Real>        ! Number of particles in a bunch.
   parameter[ran_seed]     = <Integer>     ! Random number generator init.
 \end{example}
@@ -31,14 +31,14 @@ Examples
   parameter[lattice]      = "L9A19C501.FD93S_4S_15KG"
   parameter[lattice_type] = circular_lattice
   parameter[taylor_order] = 5
-  parameter[beam_energy]  = 5.6e9    ! eV
+  parameter[E_tot]  = 5.6e9    ! eV
 \end{example}
 
 For more information on \vn{parameter[ran_seed]} see \sref{s:functions}.
 
-The \vn{parameter[beam_energy]} is the reference energy at the start of the
+The \vn{parameter[E_tot]} is the reference energy at the start of the
 lattice.  Each element in a lattice has an individual reference
-\vn{beam_energy} which is a dependent parameter. 
+\vn{E_tot} which is a dependent parameter. 
 The reference energy will only change between \vn{LCavity} or
 \vn{Patch} elements. The starting reference energy must always be set.
 
@@ -66,7 +66,7 @@ Valid \vn{lattice_type} switches are
   circular_lattice  ! Default w/o LCavity element present.
   linear_lattice    ! Default if LCavity elements present.
 \end{example}
-a \vn{circular_lattice} is for a closed ring where one expects a
+a \vn{circular_lattice} is for a closed lat where one expects a
 periodic solution for the Twiss parameters. A \vn{linear_lattice} is
 not closed so that the initial Twiss parameters need to be given, not
 computed. Although \vn{circular_lattice} is the nominal default, If
@@ -129,7 +129,7 @@ For example
   beam, particle = electron, n_part = 1.6e10
 \end{example}
 Setting the reference energy using the \vn{energy} attribute is the same
-as using \vn{parameter[beam_energy]}. Valid \vn{particle}
+as using \vn{parameter[E_tot]}. Valid \vn{particle}
 switches are
 \index{positron}\index{electron}\index{proton}\index{antiproton}
 \begin{example}
@@ -210,40 +210,40 @@ the file.
 \label{s:beginning}
 \index{Beginning statement|textbf}
 
-\index{Beta_x!initialization}
-\index{Alpha_x!initialization}
-\index{Phi_x!initialization}
-\index{Eta_x!initialization}
-\index{Etap_x!initialization}
-\index{Beta_y!initialization}
-\index{Alpha_y!initialization}
-\index{Phi_y!initialization}
-\index{Eta_y!initialization}
-\index{Etap_y!initialization}
+\index{Beta_a!initialization}
+\index{Alpha_a!initialization}
+\index{Phi_a!initialization}
+\index{Eta_a!initialization}
+\index{Etap_a!initialization}
+\index{Beta_b!initialization}
+\index{Alpha_b!initialization}
+\index{Phi_b!initialization}
+\index{Eta_b!initialization}
+\index{Etap_b!initialization}
 \index{Cij!initialization}
-\index{Beam_energy!initialization}
+\index{E_tot!initialization}
 For non--circular lattices the \vn{beginning} statement can be used to
-set the Twiss parameters and beam energy at the beginning of the ring
+set the Twiss parameters and beam energy at the beginning of the lat
 \begin{example}
-  beginning[beta_x]  = <Real>  ! "a" mode beta
-  beginning[alpha_x] = <Real>  ! "a" mode alpha
-  beginning[phi_x]   = <Real>  ! "a" mode phase
-  beginning[eta_x]   = <Real>  ! "a" mode dispersion
-  beginning[etap_x]  = <Real>  ! "a" mode dispersion derivative.
-  beginning[beta_y]  = <Real>  ! "b" mode beta
-  beginning[alpha_y] = <Real>  ! "b" mode alpha
-  beginning[phi_y]   = <Real>  ! "b" mode phase
-  beginning[eta_y]   = <Real>  ! "b" mode dispersion
-  beginning[etap_y]  = <Real>  ! "b" mode dispersion derivative.
+  beginning[beta_a]  = <Real>  ! "a" mode beta
+  beginning[alpha_a] = <Real>  ! "a" mode alpha
+  beginning[phi_a]   = <Real>  ! "a" mode phase
+  beginning[eta_a]   = <Real>  ! "a" mode dispersion
+  beginning[etap_a]  = <Real>  ! "a" mode dispersion derivative.
+  beginning[beta_b]  = <Real>  ! "b" mode beta
+  beginning[alpha_b] = <Real>  ! "b" mode alpha
+  beginning[phi_b]   = <Real>  ! "b" mode phase
+  beginning[eta_b]   = <Real>  ! "b" mode dispersion
+  beginning[etap_b]  = <Real>  ! "b" mode dispersion derivative.
   beginning[cij]     = <Real>  ! C coupling matrix. i, j = {``1'', or ``2''} 
   beginning[s]       = <Real>  ! Longitudinal starting position.
-  beginning[beam_energy] = <Real>  ! Total energy in eV.
+  beginning[E_tot] = <Real>  ! Total energy in eV.
 \end{example}
-\index{Beam_energy!initialization}
-The \vn{gamma_x}, \vn{gamma_y}, and \vn{gamma_c} (the coupling gamma
+\index{E_tot!initialization}
+The \vn{gamma_a}, \vn{gamma_b}, and \vn{gamma_c} (the coupling gamma
 factor) will be kept consistent with the values set. If not set the
 default values are all zero.  \vn{beginning[energy]} and
-\vn{parameter[beam_energy]} are equivalent and one or the other may be
+\vn{parameter[E_tot]} are equivalent and one or the other may be
 set but not both.
 
 \index{X_position!initialization}
@@ -326,13 +326,13 @@ Valid \vn{<switches>} are
   lattice             ! Print a list of lattice element information.
   lord                ! Print full information on all lord elements.
   seq                 ! Print sequence information.
-  slave               ! Print full information on all regular elements.
+  slave               ! Print full information on all slave elements.
   var                 ! Print variable information.
 \end{example}
 Here $<n1>$, $<n2>$, etc. are the index of the selected elements in
 the lattice.  Example
 \begin{example}
-  parser\_debug var ring ele 34 78
+  parser\_debug var lat ele 34 78
 \end{example}
 
 

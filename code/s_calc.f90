@@ -1,52 +1,52 @@
 !+
-! Subroutine s_calc (ring)
+! Subroutine s_calc (lat)
 !
 ! Subroutine to calculate the longitudinal distance S for the elements
-! in a ring.
+! in a lat.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   ring -- Ring_struct:
+!   lat -- lat_struct:
 !
 ! Output:
-!   ring -- Ring_struct:
+!   lat -- lat_struct:
 !-
 
 #include "CESR_platform.inc"
 
-subroutine s_calc (ring)
+subroutine s_calc (lat)
 
   use bmad_struct
   use bmad_interface, except => s_calc
   
   implicit none
 
-  type (ring_struct)  ring
+  type (lat_struct)  lat
 
   integer n, ix2
   real*8 ss
 
 ! Just go through all the elements and add up the lengths.
 
-  ss = ring%ele_(0)%s
+  ss = lat%ele(0)%s
 
-  do n = 1, ring%n_ele_use
-    ss = ring%ele_(n-1)%s + ring%ele_(n)%value(l$)
-    ring%ele_(n)%s = ss
+  do n = 1, lat%n_ele_track
+    ss = lat%ele(n-1)%s + lat%ele(n)%value(l$)
+    lat%ele(n)%s = ss
   enddo
 
-  ring%param%total_length = ss - ring%ele_(0)%s
+  lat%param%total_length = ss - lat%ele(0)%s
 
 ! now get fill in the positions of the super_lords
 
-  do n = ring%n_ele_use+1, ring%n_ele_max
-    if (ring%ele_(n)%control_type == super_lord$) then
-      ix2 = ring%control_(ring%ele_(n)%ix2_slave)%ix_slave
-      ring%ele_(n)%s = ring%ele_(ix2)%s
+  do n = lat%n_ele_track+1, lat%n_ele_max
+    if (lat%ele(n)%control_type == super_lord$) then
+      ix2 = lat%control(lat%ele(n)%ix2_slave)%ix_slave
+      lat%ele(n)%s = lat%ele(ix2)%s
     else
-      ring%ele_(n)%s = 0
+      lat%ele(n)%s = 0
     endif
   enddo
 

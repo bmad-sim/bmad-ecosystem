@@ -10,8 +10,8 @@ the effect of changing a knob in the control room. For this purpose
 the lattice is split into two sections: The first section is the list
 of elements that \bmad uses for any analysis (tracking, Twiss
 parameter calculations, etc.). This first part is called the
-\vn{regular} part of the lattice.
-Elements in the \vn{regular} part are either
+\vn{tracking} part of the lattice.
+Elements in the \vn{tracking} part are either
 \vn{slave} elements if they have a controlling lord or \vn{free}
 elements if they do not.  The second section consists solely of
 \vn{lord} elements. \vn{Lord} elements can control other \vn{lord}
@@ -21,10 +21,11 @@ There are five types of lord elements:
 \begin{Itemize}
 \item 
 \index{Group}
-\vn{Group} lord elements are used to make variations in attributes. For example, to
-simulate the action of a control room knob that changes the beam tune
-in a storage ring, a \vn{Group} can be used to vary the strength of
-selected quads in a specified manner. \vn{Groups} are covered in \sref{s:group}.
+\vn{Group} lord elements are used to make variations in
+attributes. For example, to simulate the action of a control room knob
+that changes the beam tune in a storage ring, a \vn{Group} can be used
+to vary the strength of selected quads in a specified
+manner. \vn{Groups} are covered in \sref{s:group}.
 \item
 \index{Overlay}
 An \vn{Overlay} lord is like a \vn{group} except that \vn{overlays}
@@ -228,7 +229,7 @@ how this works:
 The \vn{superimpose} attribute of element \vn{S} superimposes \vn{S}
 over the lattice \vn{(Q, D)}. The placement of \vn{S} is such that the
 center of \vn{S} coincides with the end of \vn{Q} (more on how
-superimposed elements get placed later). The regular part of the
+superimposed elements get placed later). The tracking part of the
 lattice list (the part that one does tracking through) Looks like:
 \begin{example}
         Element   Key         Length
@@ -358,8 +359,7 @@ in the beam. In \bmad this situation can simulated using the
   expand_lattice
   A\B2[dphi0] = 0.5
 \end{example}
-The regular part of the lattice (the part that gets tracked through)
-consists of two slave elements
+The tracking part of the lattice consists of two slave elements
 \begin{example}
   A\B1, ..., A\B2, ...
 \end{example}
@@ -392,13 +392,13 @@ physically distinct:
   u_line: line = (m_line, m_line)
   use, u_line
 \end{example}
-In this example the regular part of the lattice is
+In this example the tracking part of the lattice is
 \begin{example}
   A\B1, A\B1, B\B1, A\B2, A\B2, B\B2
 \end{example}
 In the control section of the lattice there will be two multipass
 lords called \vn{A} and one called \vn{B}. The first \vn{A} lord 
-controls the 1\St and 4\Th elements in the regular part of the lattice 
+controls the 1\St and 4\Th elements in the tracking part of the lattice 
 and the second \vn{A} lord controls the 2\Nd and 5\Th elements.
 
 If a multipass line is reversed then the elements are considered to be
@@ -408,7 +408,7 @@ transversed backwards:
   u_line: line = (m_line, -m_line)
   use, u_line
 \end{example}
-In this example the regular part of the lattice is
+In this example the tracking part of the lattice is
 \begin{example}
   A\B1, A\B1, B\B1, B\B2, A\B2, A\B2
 \end{example}

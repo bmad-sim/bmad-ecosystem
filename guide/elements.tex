@@ -183,7 +183,7 @@ in the linear region near $x = y = 0$ the horizontal component of the
 beam--beam kick is approximately 
 $k_x = -4\, \pi \, x \, C_{bbi} / \sigma_x$ and the
 horizontal beam--beam tune shift is 
-$dQ_x = C_{bbi} \, \beta_x / \sigma_x$.
+$dQ_x = C_{bbi} \, \beta_a / \sigma_x$.
 
 Example:
 \begin{example}
@@ -542,7 +542,7 @@ For an \vn{Elseparator}, the kick is determined by \vn{hkick} and
 the electric field for a given kick. The voltage is a dependent
 attribute determined by:
 \begin{example}
-  e_field (V/m) = sqrt(hkick^2 + vkick^2) * beam_energy / L
+  e_field (V/m) = sqrt(hkick^2 + vkick^2) * E_TOT / L
   voltage (V) = e_field * gap  
 \end{example}
 
@@ -1002,30 +1002,30 @@ also not used by \bmad proper. Example:
 
 Attributes specific to a \vn{Match} element are:
 \begin{example}
-  beta_x0  = <Real>,  beta_y0  = <Real>   ! Beginning betas
-  beta_x1  = <Real>,  beta_y1  = <Real>   ! Ending betas
-  alpha_x0 = <Real>,  alpha_y0 = <Real>   ! Beginning alphas
-  alpha_x1 = <Real>,  alpha_y1 = <Real>   ! Ending alphas
-  eta_x0   = <Real>,  eta_y0   = <Real>   ! Beginning etas 
-  eta_x1   = <Real>,  eta_y1   = <Real>   ! Ending etas 
+  beta_a0  = <Real>,  beta_b0  = <Real>   ! Beginning betas
+  beta_a1  = <Real>,  beta_b1  = <Real>   ! Ending betas
+  alpha_a0 = <Real>,  alpha_b0 = <Real>   ! Beginning alphas
+  alpha_a1 = <Real>,  alpha_b1 = <Real>   ! Ending alphas
+  eta_a0   = <Real>,  eta_b0   = <Real>   ! Beginning etas 
+  eta_a1   = <Real>,  eta_b1   = <Real>   ! Ending etas 
   etap_x0  = <Real>,  etap_y0  = <Real>   ! Beginning eta' 
   etap_x1  = <Real>,  etap_y1  = <Real>   ! Ending eta'
   dphi_x   = <Real>,  dphi_y   = <Real>   ! Phase advances
 \end{example}
 
-\index{Beta_x0}
-\index{Beta_y0}
-\index{Beta_x1}
-\index{Beta_y1}
+\index{Beta_a0}
+\index{Beta_b0}
+\index{Beta_a1}
+\index{Beta_b1}
 \index{Dphi_x}
 \index{Dphi_y}
 A \vn{Match} element is used to match the Twiss parameters between two
 points. That is, the transfer map for a match element, which is just a
 linear matrix, is calculated such that if the Twiss parameters at the
 exit end of the element preceding the \vn{match} element are given by
-\vn{beta_x0}, \vn{beta_y0}, etc., then the computed Twiss parameters
-at the exit end of the \vn{match} element will be \vn{beta_x1},
-\vn{beta_y1}, etc. \vn{dphi_x} and \vn{dphi_y} are the phase advances
+\vn{beta_a0}, \vn{beta_b0}, etc., then the computed Twiss parameters
+at the exit end of the \vn{match} element will be \vn{beta_a1},
+\vn{beta_b1}, etc. \vn{dphi_x} and \vn{dphi_y} are the phase advances
 in radians.
 
 \index{L}
@@ -1036,7 +1036,7 @@ a match element.
 
 Example:
 \begin{example}
-  mm: match, beta_x0 = 12.5, beta_y0 = 3.4, eta_x0 = 1.0, ...
+  mm: match, beta_a0 = 12.5, beta_b0 = 3.4, eta_a0 = 1.0, ...
 \end{example}
 
 %-----------------------------------------------------------------

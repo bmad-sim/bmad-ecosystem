@@ -513,7 +513,7 @@ subroutine sort_taylor_terms (taylor_in, taylor_sorted)
   type (taylor_struct) :: taylor_sorted
   type (taylor_term_struct), allocatable :: tt(:)
   
-  integer, allocatable :: ord_(:), ix_(:)
+  integer, allocatable :: ord(:), ix(:)
 
   integer i, n, expn(6)
 
@@ -521,7 +521,7 @@ subroutine sort_taylor_terms (taylor_in, taylor_sorted)
 
   n = size(taylor_in%term)
   if (associated(taylor_sorted%term)) deallocate(taylor_sorted%term)
-  allocate(taylor_sorted%term(n), ix_(n), ord_(n), tt(n))
+  allocate(taylor_sorted%term(n), ix(n), ord(n), tt(n))
 
 !
 
@@ -529,17 +529,17 @@ subroutine sort_taylor_terms (taylor_in, taylor_sorted)
 
   do i = 1, n
     expn = tt(i)%exp
-    ord_(i) = sum(expn)*10**6 + expn(6)*10**5 + expn(5)*10**4 + &
+    ord(i) = sum(expn)*10**6 + expn(6)*10**5 + expn(5)*10**4 + &
                 expn(4)*10**3 + expn(3)*10**2 + expn(2)*10**1 + expn(1)
   enddo
 
-  call indexx (ord_, ix_)
+  call indexx (ord, ix)
 
   do i = 1, n
-    taylor_sorted%term(i)= tt(ix_(i))
+    taylor_sorted%term(i)= tt(ix(i))
   enddo
 
-  deallocate(ord_, ix_, tt)
+  deallocate(ord, ix, tt)
 
 end subroutine
 

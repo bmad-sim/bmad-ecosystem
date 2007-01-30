@@ -1,26 +1,26 @@
 !+
-! Subroutine twiss_at_start (ring)
+! Subroutine twiss_at_start (lat)
 !
 ! Subroutine to calculate, for a circular machine, the closed 1-turn 
-! solution for the Twiss parameters at the start of the ring.
+! solution for the Twiss parameters at the start of the lat.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ring   -- Ring_struct: Ring
+!   lat   -- lat_struct: Lat
 !   bmad_status -- BMAD Common block status structure
 !     %type_out  -- Logical: If .true. then will type a message for
 !                       non ok$ STATUS
 !
 ! Output:
-!   ring
+!   lat
 !     %param%t1_no_RF --  Note: Only the linear part is computed.
-!     %ele_(0)%x      -- "a" mode Twiss parameters at the start of the ring.
-!     %ele_(0)%y      -- "b" mode Twiss parameters at the start of the ring.
-!     %ele_(0)%c_mat  -- Coupling matrix.
-!     %x%tune         -- Fractional part of the tune in radians
-!     %y%tune         -- Fractional part of the tune in radians
+!     %ele(0)%a      -- "a" mode Twiss parameters at the start of the lat.
+!     %ele(0)%b      -- "b" mode Twiss parameters at the start of the lat.
+!     %ele(0)%c_mat  -- Coupling matrix.
+!     %a%tune         -- Fractional part of the tune in radians
+!     %b%tune         -- Fractional part of the tune in radians
 !     %param%stable   -- Set true or false.
 !     %param%growth_rate -- unstable growth rate (= 0 if stable)
 ! 
@@ -32,14 +32,14 @@
 
 #include "CESR_platform.inc"
 
-subroutine twiss_at_start (ring)
+subroutine twiss_at_start (lat)
 
   use bmad_struct
   use bmad_interface, except => twiss_at_start
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (lat_struct), target :: lat
   type (ele_struct), pointer :: ele
 
   real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), error, map0(4)
@@ -58,7 +58,7 @@ subroutine twiss_at_start (ring)
   eta_vec = 0
   map0 = 0
 
-! Propagate the transfer map around ring. 
+! Propagate the transfer map around lat. 
 ! Since the RF is taken to be off we use a trick so we only have to multiply
 ! 4x4 matrices.
 
@@ -67,8 +67,8 @@ subroutine twiss_at_start (ring)
     open (iu, file = 'twiss_at_start.dat')
   endif
 
-  do n = 1, ring%n_ele_use
-    ele => ring%ele_(n)
+  do n = 1, lat%n_ele_track
+    ele => lat%ele(n)
     eta_vec = matmul (ele%mat6(1:4,1:4), eta_vec)
     eta_vec = eta_vec + ele%mat6(1:4,6)
     map0 = matmul (ele%mat6(1:4,1:4), map0) + ele%vec0(1:4)
@@ -91,21 +91,21 @@ subroutine twiss_at_start (ring)
 
   if (debug) close (iu)
 
-! Put 1-turn matrix into ring%param%t1_no_RF
+! Put 1-turn matrix into lat%param%t1_no_RF
 
   call mat_make_unit (mat6)
   mat6(1:4,1:4) = t0_4
 
   call mat6_dispersion (eta_vec, mat6) ! dispersion to %mat6
-  ring%param%t1_no_RF = mat6
+  lat%param%t1_no_RF = mat6
 
 ! compute twiss parameters
 
-  call twiss_from_mat6 (mat6, map0, ring%ele_(0), &
-                                  ring%param%stable, ring%param%growth_rate)
-  ring%x%tune = ring%ele_(0)%x%phi
-  ring%y%tune = ring%ele_(0)%y%phi
-  ring%ele_(0)%x%phi = 0
-  ring%ele_(0)%y%phi = 0
+  call twiss_from_mat6 (mat6, map0, lat%ele(0), &
+                                  lat%param%stable, lat%param%growth_rate)
+  lat%a%tune = lat%ele(0)%a%phi
+  lat%b%tune = lat%ele(0)%b%phi
+  lat%ele(0)%a%phi = 0
+  lat%ele(0)%b%phi = 0
 
 end subroutine

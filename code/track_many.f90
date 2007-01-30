@@ -1,10 +1,10 @@
 !+
-! Subroutine track_many (ring, orbit, ix_start, ix_end, direction)
+! Subroutine track_many (lat, orbit, ix_start, ix_end, direction)
 !
-! Subroutine to track from one point in the ring to another.
+! Subroutine to track from one point in the lat to another.
 !
-! Note: A faster way for tracking backward is to use a reversed ring using
-!   ring_reverse. See ring_reverse for more details.
+! Note: A faster way for tracking backward is to use a reversed lat using
+!   lat_reverse. See lat_reverse for more details.
 !
 ! Note: Starting and ending points are just after the elements with index
 !   IX_START and IX_END. For example, if DIRECTION = +1 then the first element
@@ -15,7 +15,7 @@
 !   forward: That is, +z always points in the direction of increasing s, not 
 !   in the actual direction that the particle is traveling.
 !
-! Note: If needed the subroutine will track through from the end of the ring
+! Note: If needed the subroutine will track through from the end of the lat
 !   to the beginning (or vice versa) to get to the end point. 
 !   Also: If IX_START = IX_END then the subroutine will track 1 full turn.
 !
@@ -26,7 +26,7 @@
 !   use bmad
 !
 ! Input:
-!   ring             -- Ring_struct: Ring to track through.
+!   lat             -- lat_struct: Lat to track through.
 !     %param%aperture_limit_on -- Logical: Sets whether TRACK_MANY looks to
 !                                 see whether a particle is lost or not
 !   orbit(ix_start)  -- Coord_struct: Coordinates at start of tracking.
@@ -37,7 +37,7 @@
 !                            = -1  -> Track backward
 !
 ! Output:
-!   ring          -- Ring_struct:
+!   lat          -- lat_struct:
 !     %param%lost    -- Logical: Set when a particle is lost with the 
 !                         aperture limit on.
 !     %param%ix_lost -- Integer: Index of element where particle is lost.
@@ -48,7 +48,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine track_many (ring, orbit, ix_start, ix_end, direction)
+subroutine track_many (lat, orbit, ix_start, ix_end, direction)
 
   use bmad_struct
   use bmad_interface, except => track_many
@@ -57,7 +57,7 @@ subroutine track_many (ring, orbit, ix_start, ix_end, direction)
 
   implicit none
 
-  type (ring_struct) ring
+  type (lat_struct) lat
   type (coord_struct) orbit(0:)
 
   integer ix_start, ix_end, direction
@@ -69,10 +69,10 @@ subroutine track_many (ring, orbit, ix_start, ix_end, direction)
 
 ! init
 
-  if (bmad_com%auto_bookkeeper) call control_bookkeeper (ring)
+  if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
-  ring%param%lost = .false.
-  ring%param%ix_lost = -1
+  lat%param%lost = .false.
+  lat%param%ix_lost = -1
 
 ! track through elements.
 
@@ -81,12 +81,12 @@ subroutine track_many (ring, orbit, ix_start, ix_end, direction)
       call track_fwd (ix_start+1, ix_end)
       return
     else
-      call track_fwd (ix_start+1, ring%n_ele_use)
-      if (ring%param%lost) then
+      call track_fwd (ix_start+1, lat%n_ele_track)
+      if (lat%param%lost) then
         call zero_this_track (0, ix_end)
         return
       endif
-      orbit(0) = orbit(ring%n_ele_use) 
+      orbit(0) = orbit(lat%n_ele_track) 
       call track_fwd (1, ix_end)
     endif
 
@@ -96,12 +96,12 @@ subroutine track_many (ring, orbit, ix_start, ix_end, direction)
       return
     else
       call track_back (ix_start, 1)
-      if (ring%param%lost) then
-        call zero_this_track (ix_end, ring%n_ele_use)
+      if (lat%param%lost) then
+        call zero_this_track (ix_end, lat%n_ele_track)
         return
       endif
-      orbit(ring%n_ele_use) = orbit(0)
-      call track_back (ring%n_ele_use, ix_end+1)
+      orbit(lat%n_ele_track) = orbit(0)
+      call track_back (lat%n_ele_track, ix_end+1)
     endif
 
   else
@@ -120,15 +120,15 @@ subroutine track_fwd (ix1, ix2)
 
   do n = ix1, ix2
 
-    call track1 (orbit(n-1), ring%ele_(n), ring%param, orbit(n))
+    call track1 (orbit(n-1), lat%ele(n), lat%param, orbit(n))
 
 ! check for lost particles
 
-    if (ring%param%lost) then
-      ring%param%ix_lost = n
-      if (ring%param%end_lost_at == exit_end$) then
+    if (lat%param%lost) then
+      lat%param%ix_lost = n
+      if (lat%param%end_lost_at == exit_end$) then
         call zero_this_track (n+1, ix2)
-      elseif (ring%param%end_lost_at == entrance_end$) then
+      elseif (lat%param%end_lost_at == entrance_end$) then
         call zero_this_track (n, ix2)
       else
         call out_io (s_abort$, r_name, 'INTERNAL ERROR')
@@ -138,7 +138,7 @@ subroutine track_fwd (ix1, ix2)
     endif
 
     if (debug) then
-      print *, ring%ele_(n)%name
+      print *, lat%ele(n)%name
       print *, (orbit(n)%vec(i), i = 1, 6)
     endif
 
@@ -172,30 +172,30 @@ subroutine track_back (ix1, ix2)
 
   do n = ix1, ix2, -1
 
-    ele = ring%ele_(n)
+    ele = lat%ele(n)
     call reverse_ele (ele)
-    call track1 (orbit(n), ele, ring%param, orbit(n-1))
+    call track1 (orbit(n), ele, lat%param, orbit(n-1))
 
 ! check for lost particles
 
-    if (ring%param%lost) then
-      if (ring%param%end_lost_at == exit_end$) then
-        ring%param%end_lost_at = entrance_end$
+    if (lat%param%lost) then
+      if (lat%param%end_lost_at == exit_end$) then
+        lat%param%end_lost_at = entrance_end$
         call zero_this_track (ix2-1, n-2)
-      elseif (ring%param%end_lost_at == entrance_end$) then
-        ring%param%end_lost_at = exit_end$
+      elseif (lat%param%end_lost_at == entrance_end$) then
+        lat%param%end_lost_at = exit_end$
         call zero_this_track (ix2-1, n-1)
       else
         call out_io (s_abort$, r_name, 'INTERNAL ERROR')
         call err_exit
       endif
-      ring%param%ix_lost = n 
+      lat%param%ix_lost = n 
       ix_last = n-1
       exit
     endif
 
     if (debug) then
-      print *, ring%ele_(n)%name
+      print *, lat%ele(n)%name
       print *, (orbit(n)%vec(i), i = 1, 6)
     endif
 

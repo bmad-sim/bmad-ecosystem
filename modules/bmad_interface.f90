@@ -15,27 +15,27 @@ use nrutil, only: reallocate
 
 interface
   subroutine lost_particle_info (lattice, orbit, ix_lost, plane_lost)
-    use bmad_struct, only: ring_struct, coord_struct
+    use bmad_struct, only: lat_struct, coord_struct
     implicit none
-    type (ring_struct) lattice
+    type (lat_struct) lattice
     type (coord_struct) orbit(0:)
     integer ix_lost, plane_lost
   end subroutine
 end interface
 
 interface
-  subroutine compute_reference_energy (ring, compute)
-    use bmad_struct, only: ring_struct
-    type (ring_struct) ring
+  subroutine compute_reference_energy (lat, compute)
+    use bmad_struct, only: lat_struct
+    type (lat_struct) lat
     logical, optional :: compute
   end subroutine
 end interface
 
 interface
-  subroutine add_superimpose (ring, super_ele, ix_super)
-    use bmad_struct, only: ring_struct, ele_struct
+  subroutine add_superimpose (lat, super_ele, ix_super)
+    use bmad_struct, only: lat_struct, ele_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     type (ele_struct) super_ele
     integer ix_super
   end subroutine
@@ -62,11 +62,11 @@ interface
 end interface
 
 interface
-  subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
-    use bmad_struct, only: ring_struct
+  subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+    use bmad_struct, only: lat_struct
     implicit none
     character(*) lat_file
-    type (ring_struct), target :: ring
+    type (lat_struct), target :: lat
     logical, optional :: make_mats6
     logical, optional :: digested_read_ok
     character(*), optional :: use_line
@@ -74,13 +74,13 @@ interface
 end interface
   
 interface
-  subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6, &
+  subroutine bmad_parser2 (in_file, lat, orbit, make_mats6, &
                                       digested_file_name, digested_read_ok)
-    use bmad_struct, only: ring_struct, coord_struct
+    use bmad_struct, only: lat_struct, coord_struct
     implicit none
     character(*) in_file
-    type (ring_struct), target :: ring
-    type (coord_struct), optional :: orbit_(0:)
+    type (lat_struct), target :: lat
+    type (coord_struct), optional :: orbit(0:)
     character(*), optional :: digested_file_name
     logical, optional :: make_mats6, digested_read_ok
   end subroutine
@@ -105,27 +105,27 @@ interface
 end interface
 
 interface
-  subroutine calc_z_tune (ring)
-    use bmad_struct, only: ring_struct
+  subroutine calc_z_tune (lat)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
   end subroutine
 end interface
 
 interface
-  subroutine check_ring_controls (ring, exit_on_error)
-    use bmad_struct, only: ring_struct
+  subroutine check_lat_controls (lat, exit_on_error)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct), target :: ring
+    type (lat_struct), target :: lat
     logical exit_on_error
   end subroutine
 end interface
 
 interface
-  subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y, exit_on_error)
-    use bmad_struct, only: ring_struct, rp
+  subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, exit_on_error)
+    use bmad_struct, only: lat_struct, rp
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     real(rp) delta_e
     real(rp) chrom_x
     real(rp) chrom_y
@@ -134,10 +134,10 @@ interface
 end interface
 
 interface
-  subroutine chrom_tune (ring, delta_e, chrom_x, chrom_y, err_tol, err_flag)
-    use bmad_struct, only: ring_struct, rp
+  subroutine chrom_tune (lat, delta_e, chrom_x, chrom_y, err_tol, err_flag)
+    use bmad_struct, only: lat_struct, rp
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     real(rp) delta_e
     real(rp) chrom_x
     real(rp) chrom_y
@@ -147,10 +147,10 @@ interface
 end interface
 
 interface
-  subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
-    use bmad_struct, only: ring_struct, coord_struct
+  subroutine closed_orbit_at_start (lat, co, i_dim, iterate)
+    use bmad_struct, only: lat_struct, coord_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     type (coord_struct) co
     integer i_dim
     logical iterate
@@ -158,10 +158,10 @@ interface
 end interface
 
 interface
-  subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction, exit_on_error)
-    use bmad_struct, only: ring_struct, coord_struct
+  subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
+    use bmad_struct, only: lat_struct, coord_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     type (coord_struct), allocatable, target :: closed_orb(:)
     integer i_dim
     integer, optional :: direction
@@ -170,11 +170,11 @@ interface
 end interface
 
 interface
- subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
+ subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
                                                eps_rel, eps_abs, init_guess)
-   use bmad_struct, only: ring_struct, rp, coord_struct
-   type (ring_struct) ring
-   type (coord_struct), allocatable :: closed_orb_(:)
+   use bmad_struct, only: lat_struct, rp, coord_struct
+   type (lat_struct) lat
+   type (coord_struct), allocatable :: closed_orb(:)
    type (coord_struct), optional :: init_guess
    real(rp), intent(in), optional :: eps_rel(:), eps_abs(:)
    integer i_dim
@@ -182,10 +182,10 @@ interface
 end interface
 
 interface
-  subroutine compress_ring (ring, ok)
-    use bmad_struct, only: ring_struct
+  subroutine compress_lat (lat, ok)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct), target :: ring
+    type (lat_struct), target :: lat
     logical ok
   end subroutine
 end interface
@@ -204,20 +204,20 @@ interface
 end interface
 
 interface
-  subroutine create_group (ring, ix_ele, con_)
-    use bmad_struct, only: ring_struct, control_struct
+  subroutine create_group (lat, ix_ele, con)
+    use bmad_struct, only: lat_struct, control_struct
     implicit none
-    type (ring_struct) ring
-    type (control_struct) con_(:)
+    type (lat_struct) lat
+    type (control_struct) con(:)
     integer ix_ele
   end subroutine
 end interface
 
 interface
-  subroutine create_i_beam (ring, ix_ele, ix_slave, init_ele)
-    use bmad_struct, only: ring_struct, ele_struct
+  subroutine create_i_beam (lat, ix_ele, ix_slave, init_ele)
+    use bmad_struct, only: lat_struct, ele_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     type (ele_struct), optional :: init_ele
     integer, intent(in) :: ix_ele
     integer, intent(in) :: ix_slave(:)
@@ -225,10 +225,10 @@ interface
 end interface
 
 interface
-  subroutine create_overlay (ring, ix_overlay, attrib_value, contl)
-    use bmad_struct, only: ring_struct, control_struct
+  subroutine create_overlay (lat, ix_overlay, attrib_value, contl)
+    use bmad_struct, only: lat_struct, control_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     integer ix_overlay
     character(*) attrib_value
     type (control_struct) contl(:)
@@ -236,9 +236,9 @@ interface
 end interface
 
 interface
-  subroutine custom_emitt_calc (ring, ir, i2, i3, i5a, i5b)
-    use bmad_struct, only: ring_struct, rp
-    type (ring_struct) ring
+  subroutine custom_emitt_calc (lat, ir, i2, i3, i5a, i5b)
+    use bmad_struct, only: lat_struct, rp
+    type (lat_struct) lat
     integer ir
     real(rp) i2, i3, i5a, i5b
   end subroutine
@@ -263,50 +263,50 @@ interface
 end interface
 
 interface
-  subroutine element_locator (ele_name, ring, ix_ele)
-    use bmad_struct, only: ring_struct
+  subroutine element_locator (ele_name, lat, ix_ele)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     integer ix_ele
     character(*) ele_name
   end subroutine
 end interface
 
 interface
-  subroutine elements_locator (key, ring, indx)
-    use bmad_struct, only: ring_struct
+  subroutine elements_locator (key, lat, indx)
+    use bmad_struct, only: lat_struct
     implicit none
     integer key
-    type (ring_struct) ring
+    type (lat_struct) lat
     integer, pointer :: indx(:)
   end subroutine
 end interface
 
 interface
   subroutine ele_at_s (lat, s, ix_ele)
-    use bmad_struct, only: ring_struct, rp
+    use bmad_struct, only: lat_struct, rp
     implicit none
-    type (ring_struct) lat
+    type (lat_struct) lat
     real(rp) s
     integer ix_ele
   end subroutine
 end interface
 
 interface
-  subroutine emitt_calc (ring, what, mode)
-    use bmad_struct, only: ring_struct, modes_struct
+  subroutine emitt_calc (lat, what, mode)
+    use bmad_struct, only: lat_struct, normal_modes_struct
     implicit none
-    type (ring_struct) ring
-    type (modes_struct) mode
+    type (lat_struct) lat
+    type (normal_modes_struct) mode
     integer what
   end subroutine
 end interface
 
 interface
-  subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
-    use bmad_struct, only: ring_struct
+  subroutine find_element_ends (lat, ix_ele, ix_start, ix_end)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     integer ix_ele
     integer ix_start
     integer ix_end
@@ -315,8 +315,8 @@ end interface
 
 interface
   subroutine get_element_slave_list (lat, ix_ele, slave_list, n_slave)
-    use bmad_struct, only: ring_struct
-    type (ring_struct) lat
+    use bmad_struct, only: lat_struct
+    type (lat_struct) lat
     integer ix_ele, n_slave
     integer, allocatable :: slave_list(:)
   end subroutine
@@ -333,31 +333,31 @@ interface
 end interface
 
 interface
-  subroutine init_LRBBI(ring, oppos_ring, LRBBI_ele, ix_LRBBI, ix_oppos)
-    use bmad_struct, only: ring_struct, ele_struct
+  subroutine init_LRBBI(lat, oppos_lat, LRBBI_ele, ix_LRBBI, ix_oppos)
+    use bmad_struct, only: lat_struct, ele_struct
     implicit none
-    type (ring_struct) ring
-	type (ring_struct) :: oppos_ring
+    type (lat_struct) lat
+	type (lat_struct) :: oppos_lat
     type (ele_struct) LRBBI_ele
 	integer, intent(in) :: ix_LRBBI, ix_oppos
   end subroutine
 end interface
 
 interface
-  subroutine insert_element (ring, insert_ele, insert_index)
-    use bmad_struct, only: ring_struct, ele_struct
+  subroutine insert_element (lat, insert_ele, insert_index)
+    use bmad_struct, only: lat_struct, ele_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     type (ele_struct) insert_ele
     integer insert_index
   end subroutine
 end interface
 
 interface
-  subroutine insert_LRBBI (ring, oppos_ring, cross_positions, ix_LRBBI)
-	use bmad_struct, only: ring_struct, rp
-    type (ring_struct) ring
-	type (ring_struct) oppos_ring 
+  subroutine insert_LRBBI (lat, oppos_lat, cross_positions, ix_LRBBI)
+	use bmad_struct, only: lat_struct, rp
+    type (lat_struct) lat
+	type (lat_struct) oppos_lat 
    real(rp), dimension(:), intent(inout) :: cross_positions
     integer, dimension(:), intent(inout) :: ix_LRBBI
   end subroutine
@@ -382,26 +382,26 @@ interface
 end interface
 
 interface
-  subroutine make_hybrid_ring (r_in, use_ele, remove_markers, &
-                                           r_out, ix_out, use_taylor, orb0_)
-    use bmad_struct, only: ring_struct, coord_struct
+  subroutine make_hybrid_lat (r_in, use_ele, remove_markers, &
+                                           r_out, ix_out, use_taylor, orb0)
+    use bmad_struct, only: lat_struct, coord_struct
     implicit none
-    type (ring_struct), target :: r_in
-    type (ring_struct), target :: r_out
+    type (lat_struct), target :: r_in
+    type (lat_struct), target :: r_out
     integer ix_out(:)
     logical remove_markers
     logical use_ele(:)
     logical, optional :: use_taylor
-    type (coord_struct), optional :: orb0_(0:)
+    type (coord_struct), optional :: orb0(0:)
   end subroutine
 end interface
 
 interface
-  subroutine make_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI)
-    use bmad_struct, only: ring_struct
+  subroutine make_LRBBI(master_lat_oppos, lat, ix_LRBBI, master_ix_LRBBI)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct), dimension(:) :: ring
-    type (ring_struct) :: master_ring_oppos
+    type (lat_struct), dimension(:) :: lat
+    type (lat_struct) :: master_lat_oppos
     integer, dimension(:,:) :: ix_LRBBI
     integer, dimension(:,:) :: master_ix_LRBBI
   end subroutine
@@ -409,82 +409,82 @@ end interface
  
 interface
   subroutine make_mat6 (ele, param, start, end, end_in)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct) ele
     type (coord_struct), optional :: start, end
-    type (param_struct) param
+    type (lat_param_struct) param
     logical, optional :: end_in
   end subroutine
 end interface
 
 interface
   subroutine make_mat6_custom (ele, param, start, end)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start, end
-    type (param_struct) param
+    type (lat_param_struct) param
   end subroutine
 end interface
 
 interface
   subroutine make_mat6_taylor (ele, param, start)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start
-    type (param_struct) param
+    type (lat_param_struct) param
   end subroutine
 end interface
 
 interface
   subroutine make_mat6_bmad (ele, param, start, end, end_in)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start, end
-    type (param_struct) param
+    type (lat_param_struct) param
     logical, optional :: end_in
   end subroutine
 end interface
 
 interface
   subroutine make_mat6_runge_kutta (ele, param, start, end)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start, end
-    type (param_struct) param
+    type (lat_param_struct) param
   end subroutine
 end interface
 
 interface
   subroutine make_mat6_symp_lie_ptc (ele, param, start)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start
-    type (param_struct) param
+    type (lat_param_struct) param
   end subroutine
 end interface
 
 interface
   subroutine make_mat6_tracking (ele, param, start, end)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start, end
-    type (param_struct) param
+    type (lat_param_struct) param
   end subroutine
 end interface
 
 interface
-  subroutine custom_radiation_integrals (ring, ir, orb_)
-    use bmad_struct, only: ring_struct, coord_struct
+  subroutine custom_radiation_integrals (lat, ir, orb)
+    use bmad_struct, only: lat_struct, coord_struct
     implicit none
-    type (ring_struct) ring
-    type (coord_struct) orb_(0:)
+    type (lat_struct) lat
+    type (coord_struct) orb(0:)
     integer ir
   end subroutine
 end interface
@@ -507,31 +507,31 @@ interface
 end interface
 
 interface
-  subroutine mark_LRBBI(master_ring, master_ring_oppos, ring, crossings)
-    use bmad_struct, only: ring_struct, rp
+  subroutine mark_LRBBI(master_lat, master_lat_oppos, lat, crossings)
+    use bmad_struct, only: lat_struct, rp
     implicit none
-    type (ring_struct), dimension(:) :: ring
-    type (ring_struct) :: master_ring
-    type (ring_struct) :: master_ring_oppos
+    type (lat_struct), dimension(:) :: lat
+    type (lat_struct) :: master_lat
+    type (lat_struct) :: master_lat_oppos
     real(rp), dimension(:,:) :: crossings
   end subroutine
 end interface
 
 interface
-  subroutine name_to_list (ring, ele_names, use_ele)
-    use bmad_struct, only: ring_struct
+  subroutine name_to_list (lat, ele_names, use_ele)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     logical use_ele(:)
     character(*) ele_names(:)
   end subroutine
 end interface
 
 interface
-  subroutine new_control (ring, ix_ele)
-    use bmad_struct, only: ring_struct
+  subroutine new_control (lat, ix_ele)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     integer ix_ele
   end subroutine
 end interface
@@ -539,10 +539,10 @@ end interface
 interface
   subroutine offset_particle (ele, param, coord, set, &
            set_canonical, set_tilt, set_multipoles, set_hvkicks, s_pos)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct, rp
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, rp
     implicit none
     type (ele_struct), intent(in) :: ele
-    type (param_struct), intent(in) :: param
+    type (lat_param_struct), intent(in) :: param
     type (coord_struct), intent(inout) :: coord
     logical, intent(in) :: set
     logical, optional, intent(in) :: set_canonical, set_multipoles, &
@@ -553,9 +553,9 @@ end interface
 
 interface
   subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2)
-    use bmad_struct, only: ring_struct, rp
+    use bmad_struct, only: lat_struct, rp
     implicit none
-    type (ring_struct) lat
+    type (lat_struct) lat
     logical, intent(in) :: rf_on
     real(rp), intent(out) :: xfer_mat(:,:)
     real(rp), intent(out), optional :: xfer_vec(:)
@@ -565,9 +565,9 @@ end interface
 
 interface
   subroutine transfer_map_calc (lat, t_map, ix1, ix2)
-    use bmad_struct, only: ring_struct, rp, taylor_struct
+    use bmad_struct, only: lat_struct, rp, taylor_struct
     implicit none
-    type (ring_struct) lat
+    type (lat_struct) lat
     type (taylor_struct) :: t_map(:)
     integer, intent(in), optional :: ix1, ix2
   end subroutine
@@ -619,10 +619,10 @@ interface
 end interface
 
 interface
-  subroutine order_super_lord_slaves (ring, ix_lord)
-    use bmad_struct, only: ring_struct
+  subroutine order_super_lord_slaves (lat, ix_lord)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct), target :: ring
+    type (lat_struct), target :: lat
     integer ix_lord
   end subroutine
 end interface
@@ -657,9 +657,9 @@ end interface
 interface
   Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
                     ptr_array, err_flag, err_print_flag, ix_eles, ix_attrib)
-    use bmad_struct, only: ring_struct, real_array_struct
+    use bmad_struct, only: lat_struct, real_array_struct
     implicit none
-    type (ring_struct) lat
+    type (lat_struct) lat
     type (real_array_struct), allocatable :: ptr_array(:)
     character(*) ele_name, attrib_name
     logical err_flag
@@ -672,9 +672,9 @@ end interface
 
 interface
   function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
-    use bmad_struct, only: ring_struct, ele_struct
+    use bmad_struct, only: lat_struct, ele_struct
     implicit none
-    type (ring_struct), target :: lat
+    type (lat_struct), target :: lat
     integer ix_ele, ix_attrib
     logical free
     logical, optional :: err_print_flag
@@ -682,32 +682,32 @@ interface
 end interface
 
 interface
-  subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
-    use bmad_struct, only: ring_struct, rp
+  subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
+    use bmad_struct, only: lat_struct, rp
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     integer ix_ele
-    real(rp) beta_x_ave
-    real(rp) beta_y_ave
+    real(rp) beta_a_ave
+    real(rp) beta_b_ave
   end subroutine
 end interface
 
 interface
-  subroutine radiation_integrals (ring, orb_, mode, ix_cache)
-    use bmad_struct, only: ring_struct, coord_struct, modes_struct
+  subroutine radiation_integrals (lat, orb, mode, ix_cache)
+    use bmad_struct, only: lat_struct, coord_struct, normal_modes_struct
     implicit none
-    type (ring_struct), target :: ring
-    type (coord_struct), target :: orb_(0:)
-    type (modes_struct) mode
+    type (lat_struct), target :: lat
+    type (coord_struct), target :: orb(0:)
+    type (normal_modes_struct) mode
     integer, optional :: ix_cache
   end subroutine
 end interface
 
 interface
-  subroutine read_digested_bmad_file (in_file_name, ring, version)
-    use bmad_struct, only: ring_struct
+  subroutine read_digested_bmad_file (in_file_name, lat, version)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct), target, intent(inout) :: ring
+    type (lat_struct), target, intent(inout) :: lat
     integer version
     character(*) in_file_name
   end subroutine
@@ -724,77 +724,77 @@ interface
 end interface
 
 interface
-  subroutine ring_geometry (ring)
-    use bmad_struct, only: ring_struct
+  subroutine lat_geometry (lat)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
   end subroutine
 end interface
 
 interface
-  recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
-    use bmad_struct, only: ring_struct, coord_struct
+  recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
+    use bmad_struct, only: lat_struct, coord_struct
     implicit none
-    type (ring_struct), target :: ring
-    type (coord_struct), optional :: coord_(0:)
+    type (lat_struct), target :: lat
+    type (coord_struct), optional :: coord(0:)
     integer, optional :: ix_ele
   end subroutine
 end interface
 
 interface
-  subroutine s_calc (ring)
-    use bmad_struct, only: ring_struct
+  subroutine s_calc (lat)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
   end subroutine
 end interface
 
 interface
-  subroutine set_on (key, ring, on_switch, orb_)
-    use bmad_struct, only: ring_struct, coord_struct
-    type (ring_struct) ring
-    type (coord_struct), optional :: orb_(0:)
+  subroutine set_on (key, lat, on_switch, orb)
+    use bmad_struct, only: lat_struct, coord_struct
+    type (lat_struct) lat
+    type (coord_struct), optional :: orb(0:)
     integer key
     logical on_switch
   end subroutine
 end interface
 
 interface
-  subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
-    use bmad_struct, only: ring_struct, rp, coord_struct
+  subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
+    use bmad_struct, only: lat_struct, rp, coord_struct
     implicit none
-    type (ring_struct) ring
-    type (coord_struct), allocatable :: orb_(:)
-    real(rp) phi_x_set
-    real(rp) phi_y_set
+    type (lat_struct) lat
+    type (coord_struct), allocatable :: orb(:)
+    real(rp) phi_a_set
+    real(rp) phi_b_set
     real(rp) dk1(:)
     logical ok
   end subroutine
 end interface
 
 interface
-  subroutine set_z_tune (ring)
-    use bmad_struct, only: ring_struct
+  subroutine set_z_tune (lat)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct), target :: ring
+    type (lat_struct), target :: lat
   end subroutine
 end interface
 
 interface
   subroutine slice_ele_calc (ele, param, i_slice, n_slice_tot, sliced_ele)
-    use bmad_struct, only: ele_struct, param_struct
+    use bmad_struct, only: ele_struct, lat_param_struct
     implicit none
     type (ele_struct) ele, sliced_ele
-    type (param_struct) param
+    type (lat_param_struct) param
     integer i_slice, n_slice_tot
   end subroutine
 end interface
 
 interface
-  subroutine split_ring (ring, s_split, ix_split, split_done)
-    use bmad_struct, only: ring_struct, rp
+  subroutine split_lat (lat, s_split, ix_split, split_done)
+    use bmad_struct, only: lat_struct, rp
     implicit none
-    type (ring_struct), target :: ring
+    type (lat_struct), target :: lat
     real(rp) s_split
     integer ix_split
     logical split_done
@@ -812,20 +812,20 @@ interface
 end interface
 
 interface
-  subroutine track_all (ring, orbit_)
-    use bmad_struct, only: ring_struct, coord_struct
+  subroutine track_all (lat, orbit)
+    use bmad_struct, only: lat_struct, coord_struct
     implicit none
-    type (ring_struct) ring
-    type (coord_struct), allocatable :: orbit_(:)
+    type (lat_struct) lat
+    type (coord_struct), allocatable :: orbit(:)
   end subroutine
 end interface
 
 interface
-  subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
-    use bmad_struct, only: ring_struct, coord_struct
+  subroutine track_many (lat, orbit, ix_start, ix_end, direction)
+    use bmad_struct, only: lat_struct, coord_struct
     implicit none
-    type (ring_struct)  ring
-    type (coord_struct)  orbit_(0:)
+    type (lat_struct)  lat
+    type (coord_struct)  orbit(0:)
     integer ix_start
     integer ix_end
     integer direction
@@ -834,109 +834,109 @@ end interface
 
 interface
   subroutine track1 (start, ele, param, end)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (coord_struct) :: start
     type (coord_struct) :: end
     type (ele_struct)   :: ele
-    type (param_struct) :: param
+    type (lat_param_struct) :: param
   end subroutine
 end interface
 
 interface
   subroutine track1_runge_kutta (start, ele, param, end, track)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct, track_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start
     type (coord_struct) :: end
     type (ele_struct), target :: ele
-    type (param_struct), target :: param
+    type (lat_param_struct), target :: param
     type (track_struct) track
   end subroutine
 end interface
 
 interface
   subroutine track1_linear (start, ele, param, end)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (coord_struct) :: start
     type (coord_struct) :: end
     type (ele_struct) :: ele
-    type (param_struct) :: param
+    type (lat_param_struct) :: param
   end subroutine
 end interface
 
 interface
   subroutine track1_taylor (start, ele, param, end)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (coord_struct) :: start
     type (coord_struct) :: end
     type (ele_struct) :: ele
-    type (param_struct) :: param
+    type (lat_param_struct) :: param
   end subroutine
 end interface
 
 interface
   subroutine track1_custom (start, ele, param, end)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (coord_struct) :: start
     type (coord_struct) :: end
     type (ele_struct) :: ele
-    type (param_struct) :: param
+    type (lat_param_struct) :: param
   end subroutine
 end interface
 
 interface
   subroutine track1_bmad (start, ele, param, end)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (coord_struct) :: start
     type (coord_struct) :: end
     type (ele_struct) :: ele
-    type (param_struct) :: param
+    type (lat_param_struct) :: param
   end subroutine
 end interface
 
 interface
   subroutine track1_symp_lie_ptc (start, ele, param, end)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (coord_struct) :: start
     type (coord_struct) :: end
     type (ele_struct) :: ele
-    type (param_struct) :: param
+    type (lat_param_struct) :: param
   end subroutine
 end interface
 
 interface
   subroutine track1_symp_map (start, ele, param, end)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (coord_struct) :: start
     type (coord_struct) :: end
     type (ele_struct) :: ele
-    type (param_struct) :: param
+    type (lat_param_struct) :: param
   end subroutine
 end interface
 
 interface
   subroutine track1_wiedemann_wiggler (start, ele, param, end)
-    use bmad_struct, only: ele_struct, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (coord_struct) start
     type (coord_struct) end
-    type (param_struct) param
+    type (lat_param_struct) param
     type (ele_struct) ele
   end subroutine
 end interface
 
 interface
-  subroutine twiss_and_track (ring, orb)
-    use bmad_struct, only: ring_struct, coord_struct
+  subroutine twiss_and_track (lat, orb)
+    use bmad_struct, only: lat_struct, coord_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     type (coord_struct), allocatable :: orb(:)
   end subroutine
 end interface
@@ -944,14 +944,14 @@ end interface
 interface
   subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
                                                        start, end, body_only)
-    use bmad_struct, only: coord_struct, ele_struct, param_struct, rp
+    use bmad_struct, only: coord_struct, ele_struct, lat_param_struct, rp
     implicit none
     type (ele_struct), optional :: ele3
     type (ele_struct) ele1
     type (ele_struct) ele2
     type (coord_struct), optional :: start
     type (coord_struct), optional :: end
-    type (param_struct) param
+    type (lat_param_struct) param
     logical, optional :: body_only
     real(rp) del_s
   end subroutine
@@ -960,23 +960,23 @@ end interface
 interface
   subroutine twiss_and_track_body (ele1, ele2, param, del_s, ele3, &
                                                                  start, end)
-    use bmad_struct, only: ele_struct, rp, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, rp, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), optional :: ele3
     type (ele_struct) ele1
     type (ele_struct) ele2
     type (coord_struct), optional :: start
     type (coord_struct), optional :: end
-    type (param_struct) param
+    type (lat_param_struct) param
     real(rp) del_s
   end subroutine
 end interface
 
 interface
-  recursive subroutine twiss_at_element (ring, ix_ele, start, end, average)
-    use bmad_struct, only: ring_struct, ele_struct
+  recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
+    use bmad_struct, only: lat_struct, ele_struct
     implicit none
-    type (ring_struct), target :: ring
+    type (lat_struct), target :: lat
     type (ele_struct), optional :: start
     type (ele_struct), optional :: end
     type (ele_struct), optional :: average
@@ -985,32 +985,22 @@ interface
 end interface
 
 interface
-  subroutine twiss_at_s (ring, s, ele)
-    use bmad_struct, only: ring_struct, ele_struct, rp
+  subroutine twiss_and_track_at_s (lat, s, ele, orb, here)
+    use bmad_struct, only: lat_struct, ele_struct, rp, coord_struct
     implicit none
-    type (ring_struct) :: ring
-    type (ele_struct) :: ele
-    real(rp) s
-  end subroutine
-end interface
-
-interface
-  subroutine twiss_and_track_at_s (ring, s, ele, orb_, here)
-    use bmad_struct, only: ring_struct, ele_struct, rp, coord_struct
-    implicit none
-    type (ring_struct) :: ring
+    type (lat_struct) :: lat
     type (ele_struct), optional :: ele
     real(rp) s
-    type (coord_struct), optional :: orb_(0:)
+    type (coord_struct), optional :: orb(0:)
     type (coord_struct), optional :: here
   end subroutine
 end interface
 
 interface
-  subroutine twiss_at_start (ring)
-    use bmad_struct, only: ring_struct
+  subroutine twiss_at_start (lat)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
   end subroutine
 end interface
 
@@ -1033,9 +1023,9 @@ interface
 end interface
 
 interface
-  subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb) 
-    use bmad_struct, only: ring_struct, rp, coord_struct
-    type (ring_struct), intent(inout) :: ring
+  subroutine twiss_from_tracking (lat, ref_orb0, error, d_orb) 
+    use bmad_struct, only: lat_struct, rp, coord_struct
+    type (lat_struct), intent(inout) :: lat
     type (coord_struct), intent(in) :: ref_orb0
     real(rp), intent(in), optional :: d_orb(:)   
     real(rp), intent(out) :: error
@@ -1052,19 +1042,19 @@ interface
 end interface
 
 interface
-  subroutine twiss_propagate_all (ring, set_match)
-    use bmad_struct, only: ring_struct
+  subroutine twiss_propagate_all (lat, set_match)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     logical, optional :: set_match
   end subroutine
 end interface
 
 interface
-  subroutine twiss_propagate_many (ring, ix_start, ix_end, direction)
-    use bmad_struct, only: ring_struct
+  subroutine twiss_propagate_many (lat, ix_start, ix_end, direction)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) :: ring
+    type (lat_struct) :: lat
     integer, intent(in) :: ix_start
     integer, intent(in) :: ix_end
     integer, intent(in) :: direction
@@ -1082,10 +1072,10 @@ end interface
 interface
   subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
                                     twiss_type, type_control, lattice, type_wake)
-    use bmad_struct, only: ring_struct, ele_struct
+    use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (ele_struct) ele
-    type (ring_struct), optional :: lattice
+    type (lat_struct), optional :: lattice
     logical, optional :: type_zero_attrib
     integer, optional :: type_mat6
     integer, optional :: twiss_type
@@ -1105,10 +1095,10 @@ end interface
 interface
   subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
         type_mat6, type_taylor, twiss_type, type_control, lattice, type_wake)
-    use bmad_struct, only: ring_struct, ele_struct
+    use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (ele_struct), target, intent(in) :: ele
-    type (ring_struct), optional, intent(in) :: lattice
+    type (lat_struct), optional, intent(in) :: lattice
     integer, optional, intent(in) :: type_mat6
     integer, intent(out) :: n_lines
     integer, optional, intent(in) :: twiss_type
@@ -1131,11 +1121,11 @@ interface
 end interface
  
 interface
-  subroutine write_digested_bmad_file (digested_name, ring,  &
+  subroutine write_digested_bmad_file (digested_name, lat,  &
                                                     n_files, file_names)
-    use bmad_struct, only: ring_struct
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct), target, intent(in) :: ring
+    type (lat_struct), target, intent(in) :: lat
     integer, intent(in), optional :: n_files
     character(*) digested_name
     character(*), optional :: file_names(:)
@@ -1143,29 +1133,29 @@ interface
 end interface
 
 interface
-  recursive subroutine update_hybrid_list (ring, n_in, use_ele)
-    use bmad_struct, only: ring_struct
+  recursive subroutine update_hybrid_list (lat, n_in, use_ele)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
     logical use_ele(:)
     integer n_in
   end subroutine
 end interface
 
 interface
-  subroutine add_lattice_control_structs (ring, ix_ele)
-    use bmad_struct, only: ring_struct
+  subroutine add_lattice_control_structs (lat, ix_ele)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct), target :: ring
+    type (lat_struct), target :: lat
     integer ix_ele
   end subroutine
 end interface
 
 interface
-  subroutine delete_lattice_control_struct (ring, ix_con)
-    use bmad_struct, only: ring_struct
+  subroutine delete_lattice_control_struct (lat, ix_con)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct), target :: ring
+    type (lat_struct), target :: lat
     integer ix_con
   end subroutine
 end interface
@@ -1183,20 +1173,20 @@ interface
 end interface
 
 interface
-  subroutine set_design_linear (ring)
-    use bmad_struct, only: ring_struct
+  subroutine set_design_linear (lat)
+    use bmad_struct, only: lat_struct
     implicit none
-    type (ring_struct) ring
+    type (lat_struct) lat
   end subroutine
 end interface
 
 interface
-  subroutine xsif_parser (xsif_file, ring, make_mats6, digested_read_ok, use_line)
-    use bmad_struct, only: ring_struct
+  subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
+    use bmad_struct, only: lat_struct
     implicit none
     character(*) xsif_file
     character(*), optional :: use_line
-    type (ring_struct), target :: ring
+    type (lat_struct), target :: lat
     logical, optional :: make_mats6
     logical, optional :: digested_read_ok
   end subroutine
@@ -1204,10 +1194,10 @@ end interface
 
 interface
   subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
-    use bmad_struct, only: ele_struct, rp, coord_struct, param_struct
+    use bmad_struct, only: ele_struct, rp, coord_struct, lat_param_struct
     implicit none
     type (ele_struct) ele
-    type (param_struct) param
+    type (lat_param_struct) param
     type (coord_struct) orb
     real(rp) s_pos
     real(rp) mat6(6,6)

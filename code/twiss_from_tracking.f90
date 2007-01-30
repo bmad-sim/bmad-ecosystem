@@ -1,7 +1,7 @@
 !+
-! Subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
+! Subroutine twiss_from_tracking (lat, ref_orb0, error, d_orb)
 !
-! Subroutine to compute, from tracking, and for every element in the ring, 
+! Subroutine to compute, from tracking, and for every element in the lat, 
 ! the Twiss parameters and the transfer matrices about some reference orbit.
 !
 ! The is done by tracking 12 particle offset from the reference orbit 
@@ -17,8 +17,8 @@
 !   use bmad
 !
 ! Input:
-!   ring            -- Ring_struct: Ring to track through.
-!   ref_orb0        -- Coord_struct: Reference orbit at ring%ele_(0).
+!   lat            -- lat_struct: Lat to track through.
+!   ref_orb0        -- Coord_struct: Reference orbit at lat%ele(0).
 !   d_orb(6)        -- real(rp), optional: Vector of offsets to use. 
 !                       If not present or zero bmad_com%d_orb(:) will be used.
 !   bmad_status      -- BMAD status common block
@@ -26,7 +26,7 @@
 !                         a warning message if a particle is lost in tracking.
 !
 ! Output:
-!   ring        -- Ring_struct: Structure holding the Twiss parameters.
+!   lat        -- lat_struct: Structure holding the Twiss parameters.
 !     %mat6       -- transfer matrices.
 !
 !   error       -- Real(rp): A measure of how symplectic the constructed 
@@ -38,7 +38,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
+subroutine twiss_from_tracking (lat, ref_orb0, error, d_orb)
 
   use bmad_struct
   use bmad_interface, except => twiss_from_tracking
@@ -46,7 +46,7 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
 
   implicit none
 
-  type (ring_struct), intent(inout) :: ring
+  type (lat_struct), intent(inout) :: lat
   type (coord_struct), intent(in) :: ref_orb0
 
   real(rp), optional, intent(in) :: d_orb(:)
@@ -64,14 +64,14 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
 ! Init
 
   do i = -6, 6
-    call reallocate_coord (mo(i)%orb, ring%n_ele_max)
+    call reallocate_coord (mo(i)%orb, lat%n_ele_max)
   enddo
 
   call mat_make_unit (mat6_unit)
-  n_ele = ring%n_ele_use
+  n_ele = lat%n_ele_track
 
-  call set_on_off (rfcavity$, ring, save_state$)
-  call set_on_off (rfcavity$, ring, off$)
+  call set_on_off (rfcavity$, lat, save_state$)
+  call set_on_off (rfcavity$, lat, off$)
 
   delta(0) = 0
   delta(1:6) = bmad_com%d_orb(1:6)
@@ -80,18 +80,18 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
 ! track offset particles
 
   mo(0)%orb(0) = ref_orb0 
-  call track_all (ring, mo(0)%orb)
+  call track_all (lat, mo(0)%orb)
   if (.not. bmad_status%ok) return
   r = mo(0)%orb(n_ele)%vec - mo(0)%orb(0)%vec
 
   do i = 1, 6
     mo(i)%orb(0) = ref_orb0 
     mo(i)%orb(0)%vec(i) = ref_orb0%vec(i) + delta(i)
-    call track_all (ring, mo(i)%orb)
+    call track_all (lat, mo(i)%orb)
     if (.not. bmad_status%ok) return
     mo(-i)%orb(0) = ref_orb0 
     mo(-i)%orb(0)%vec(i) = ref_orb0%vec(i) - delta(i)
-    call track_all (ring, mo(-i)%orb)
+    call track_all (lat, mo(-i)%orb)
     if (.not. bmad_status%ok) return
     mat(:,i) = (mo(i)%orb(n_ele)%vec - mo(-i)%orb(n_ele)%vec) / (2*delta(i))
   enddo
@@ -118,8 +118,8 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
     call mat_symp_conj (mat0, mat_inv)   ! symp_conj is the inverse
     mat1 = matmul (mat, mat_inv)
 
-    ring%ele_(j)%mat6 = mat1
-    ring%ele_(j)%vec0 = r - matmul(mat1, r0)
+    lat%ele(j)%mat6 = mat1
+    lat%ele(j)%vec0 = r - matmul(mat1, r0)
 
     r0 = r
     mat0 = mat
@@ -129,10 +129,10 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
 ! Now compute the twiss parameters.
 ! And turn the RF back on.
 
-  call twiss_at_start (ring)
+  call twiss_at_start (lat)
   if (.not. bmad_status%ok) return
 
-  call twiss_propagate_all (ring)
-  call set_on_off (rfcavity$, ring, restore_state$)
+  call twiss_propagate_all (lat)
+  call set_on_off (rfcavity$, lat, restore_state$)
 
 end subroutine

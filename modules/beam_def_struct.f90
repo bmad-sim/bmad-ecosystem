@@ -60,14 +60,14 @@ type beam_init_struct
   logical :: init_spin     = .false. ! initialize beam spinors
 end type
 
-type bunch_param_struct
+type bunch_lat_param_struct
   real(rp) beta, alpha, gamma
   real(rp) eta, etap
   real(rp) norm_emitt ! normalized emittance
 end type
 
 type bunch_params_struct
-  type (bunch_param_struct) :: x, y, z, a, b, c
+  type (bunch_lat_param_struct) :: x, y, z, a, b, c
   type (coord_struct) :: centroid  ! Lab frame
   type (beam_spin_struct) :: spin  ! polarization
   real(rp) sigma(21)               ! projected sigma matrix
@@ -97,7 +97,7 @@ contains
 ! Input:
 !   start  -- struct: Starting coords.
 !   ele    -- Ele_struct: Element to track through.
-!   param  -- Param_struct: Global parameters.
+!   param  -- lat_param_struct: Global parameters.
 !
 ! Output:
 !   end    -- struct: Ending coords.
@@ -110,7 +110,7 @@ subroutine track1_particle (start, ele, param, end)
   type (particle_struct) :: start
   type (particle_struct) :: end
   type (ele_struct) :: ele
-  type (param_struct), intent(inout) :: param
+  type (lat_param_struct), intent(inout) :: param
 
 ! transfer z-order index, charge, etc
 

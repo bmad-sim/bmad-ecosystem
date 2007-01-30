@@ -9,7 +9,7 @@ subroutine write_power_header (iu, file, gen_params)
 
   implicit none
 
-  type (general_param_struct) gen_params
+  type (general_lat_param_struct) gen_params
   character*(*) file
   integer iu
 

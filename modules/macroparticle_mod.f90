@@ -37,7 +37,7 @@ type macro_init_twiss_struct
 end type
 
 type macro_init_struct
-  type (macro_init_twiss_struct) x, y
+  type (macro_init_twiss_struct) a, b
   real(rp) :: dPz_dz = 0  ! Correlation of Pz with long position.
   real(rp) :: center(6) = 0 ! Bench center offset relative to reference.
   real(rp) n_part      ! Number of particles per bunch.
@@ -70,31 +70,31 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track_macro_beam (ring, beam, ix1, ix2)
+! Subroutine track_macro_beam (lat, beam, ix1, ix2)
 !
 ! Subroutine to track a beam of macroparticles from the end of
-! ring%ele_(ix1) Through to the end of ring%ele_(ix2).
+! lat%ele(ix1) Through to the end of lat%ele(ix2).
 !
 ! Modules needed:
 !   use macroparticle_mod
 !
 ! Input:
-!   ring   -- Ring_struct: Lattice to track through.
+!   lat   -- lat_struct: Lattice to track through.
 !   beam   -- Macro_beam_struct: Beam at end of element ix1.
 !   ix1    -- Integer, optional: Index of starting element (this element 
 !               is NOT tracked through). Default is 0.
 !   ix2    -- Integer, optional: Index of ending element.
-!               Default is ring%n_ele_use.
+!               Default is lat%n_ele_track.
 !
 ! Output:
 !   beam   -- Macro_beam_struct: Beam at end of element ix2.
 !-
 
-subroutine track_macro_beam (ring, beam, ix1, ix2)
+subroutine track_macro_beam (lat, beam, ix1, ix2)
 
   implicit none
 
-  type (ring_struct) :: ring
+  type (lat_struct) :: lat
   type (macro_beam_struct) :: beam
 
   integer, optional, intent(in) :: ix1, ix2
@@ -104,13 +104,13 @@ subroutine track_macro_beam (ring, beam, ix1, ix2)
 
   i1 = 0
   if (present(ix1)) i1 = ix1
-  i2 = ring%n_ele_use
+  i2 = lat%n_ele_track
   if (present(ix2)) i2 = ix2
 
 ! Loop over all elements in the lattice
 
   do i = i1+1, i2
-    call track1_macro_beam (beam, ring%ele_(i), ring%param, beam)
+    call track1_macro_beam (beam, lat%ele(i), lat%param, beam)
   enddo
 
 end subroutine track_macro_beam
@@ -132,7 +132,7 @@ end subroutine track_macro_beam
 ! Input:
 !   beam_start  -- Macro_beam_struct: starting beam position
 !   ele         -- Ele_struct: The element to track through.
-!   param       -- Param_struct: General parameters.
+!   param       -- lat_param_struct: General parameters.
 !
 ! Output:
 !   beam_end    -- Macro_beam_struct: ending beam position.
@@ -145,7 +145,7 @@ subroutine track1_macro_beam (beam_start, ele, param, beam_end)
   type (macro_beam_struct) beam_start
   type (macro_beam_struct), target :: beam_end
   type (ele_struct) ele
-  type (param_struct) param
+  type (lat_param_struct) param
 
   integer i, n_mode
 
@@ -178,7 +178,7 @@ end subroutine track1_macro_beam
 ! Input:
 !   bunch_start -- Macro_bunch_struct: Starting bunch position.
 !   ele         -- Ele_struct: The element to track through.
-!   param       -- Param_struct: General parameters.
+!   param       -- lat_param_struct: General parameters.
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
@@ -191,7 +191,7 @@ Subroutine track1_macro_bunch (bunch_start, ele, param, bunch_end)
   type (macro_bunch_struct) bunch_start, bunch_end
   type (ele_struct) ele
   type (ele_struct), save :: rf_ele
-  type (param_struct) param
+  type (lat_param_struct) param
 
   real(rp) charge
   integer i, j
@@ -227,8 +227,8 @@ Subroutine track1_macro_bunch (bunch_start, ele, param, bunch_end)
 
   rf_ele = ele
   rf_ele%value(l$) = ele%value(l$) / 2
-  rf_ele%value(beam_energy$) = &
-            (ele%value(energy_start$) + ele%value(beam_energy$)) / 2
+  rf_ele%value(E_TOT$) = &
+            (ele%value(E_TOT_START$) + ele%value(E_TOT$)) / 2
   rf_ele%value(p0c$) = &
             (ele%value(p0c_start$) + ele%value(p0c$)) / 2
 
@@ -260,9 +260,9 @@ Subroutine track1_macro_bunch (bunch_start, ele, param, bunch_end)
 ! This includes the short-range longitudinal wakes.
 
   rf_ele%value(l$)            = ele%value(l$) / 2
-  rf_ele%value(energy_start$) = rf_ele%value(beam_energy$)
+  rf_ele%value(E_TOT_START$) = rf_ele%value(E_TOT$)
   rf_ele%value(p0c_start$)    = rf_ele%value(p0c$)
-  rf_ele%value(beam_energy$)  = ele%value(beam_energy$)
+  rf_ele%value(E_TOT$)  = ele%value(E_TOT$)
   rf_ele%value(p0c$)          = ele%value(p0c$)
 
   do i = 1, size(bunch_start%slice)
@@ -321,7 +321,7 @@ subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
 
   wake_here = .true.
   if (.not. associated(ele%wake)) wake_here = .false.
-  if (wake_here) n_wake = size (ele%wake%sr1) - 1
+  if (wake_here) n_wake = size (ele%wake%sr_table) - 1
     
   if (.not. wake_here .or. n_wake == -1) then 
     do i = 1, size(bunch%slice)
@@ -337,8 +337,8 @@ subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
     bunch%slice(i)%macro(:)%grad_loss_sr_wake = 0
   enddo
 
-  dz_wake = ele%wake%sr1(n_wake)%z / n_wake
-  sr02 = ele%wake%sr1(0)%long / 2
+  dz_wake = ele%wake%sr_table(n_wake)%z / n_wake
+  sr02 = ele%wake%sr_table(0)%long / 2
 
 ! Loop over all slices
 
@@ -415,7 +415,7 @@ subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
         f2 = z/dz_wake - iw
         f1 = 1 - f2
         macro2(k)%grad_loss_sr_wake = macro2(k)%grad_loss_sr_wake + charge * &
-                  (ele%wake%sr1(iw)%long * f1 + ele%wake%sr1(iw+1)%long * f2)
+                  (ele%wake%sr_table(iw)%long * f1 + ele%wake%sr_table(iw+1)%long * f2)
       enddo
     enddo
 
@@ -499,12 +499,12 @@ subroutine track1_macro_sr_trans_wake (bunch, ele)
 ! Init
 
   if (.not. associated(ele%wake)) return
-  n_wake = size(ele%wake%sr1) - 1
+  n_wake = size(ele%wake%sr_table) - 1
   if (n_wake == -1 .or. .not. bmad_com%sr_wakes_on) return
 
   call order_macroparticles_in_z (bunch)
 
-  dz_wake = ele%wake%sr1(n_wake)%z / n_wake
+  dz_wake = ele%wake%sr_table(n_wake)%z / n_wake
 
 ! Loop over all slices
 
@@ -544,7 +544,7 @@ subroutine track1_macro_sr_trans_wake (bunch, ele)
         iw = min(n_wake-1, iw)    ! effectively do an extrapolation.
         f2 = z/dz_wake - iw
         f1 = 1 - f2
-        fact = (ele%wake%sr1(iw)%trans*f1 + ele%wake%sr1(iw+1)%trans*f2) * &
+        fact = (ele%wake%sr_table(iw)%trans*f1 + ele%wake%sr_table(iw+1)%trans*f2) * &
                               charge * ele%value(l$) / ele%value(p0c$)
         macro2(k)%r%vec(2) = macro2(k)%r%vec(2) - fact * x_ave 
         macro2(k)%r%vec(4) = macro2(k)%r%vec(4) - fact * y_ave
@@ -570,7 +570,7 @@ end subroutine
 ! Input:
 !   start  -- macro_struct: Starting coords.
 !   ele    -- Ele_struct: Element to track through.
-!   param  -- Param_struct: Global parameters.
+!   param  -- lat_param_struct: Global parameters.
 !
 ! Output:
 !   end    -- macro_struct: Ending coords.
@@ -583,7 +583,7 @@ subroutine track1_macroparticle (start, ele, param, end)
   type (macro_struct) :: start
   type (macro_struct) :: end
   type (ele_struct) :: ele
-  type (param_struct), intent(inout) :: param
+  type (lat_param_struct), intent(inout) :: param
 
   real(rp) l, l2, s(21), m4(4,4), s_mat4(4,4), s_mat6(6,6)
   real(rp) mat6(6,6), vec0(6)
@@ -1157,10 +1157,10 @@ end subroutine
 !                      parameters of the initial distribution. See the 
 !                      definition of the structure for more details.
 !   ele           -- Ele _struct: Structure with dispersion and Twiss parameters.
-!     %value(beam_energy$) -- Reference energy.
-!     %x%beta              -- Beta
-!     %x%alpha             -- Alpha
-!     %x%eta               -- Dispersion
+!     %value(E_TOT$) -- Reference energy.
+!     %a%beta              -- Beta
+!     %a%alpha             -- Alpha
+!     %a%eta               -- Dispersion
 !     %c_mat(2,2)          -- Coupling matrix.
 !   canonical_out -- Logical: If True then convert to canonical coords.
 !   liar_gaussian -- Logical, optional: If true then use the liar algorithm
@@ -1203,14 +1203,14 @@ subroutine init_macro_distribution (beam, init, ele, &
 
   z_fudge = 2 * gauss_int(init%sig_z_cut)
   e_fudge = 2 * gauss_int(init%sig_e_cut)
-  E0 = ele%value(beam_energy$)
+  E0 = ele%value(E_TOT$)
   E_center =  E0 * (1 + init%center(6))
 
   bunch => beam%bunch(1)
   bunch%charge = init%n_part * e_charge
 
-  ex = init%x%norm_emit * m_electron / E_center
-  ey = init%y%norm_emit * m_electron / E_center
+  ex = init%a%norm_emit * m_electron / E_center
+  ey = init%b%norm_emit * m_electron / E_center
 
   do j = 1, init%n_slice
     dz = init%sig_z_cut / init%n_slice
@@ -1229,16 +1229,16 @@ subroutine init_macro_distribution (beam, init, ele, &
       macro%r%vec = init%center
       macro%r%vec(5) = init%center(5) + init%sig_z * z_rel 
       macro%r%vec(6) = dE_E
-      r = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /) * dE_E
-      ele%x%gamma = (1+ele%x%alpha**2) / ele%x%beta
-      ele%y%gamma = (1+ele%y%alpha**2) / ele%y%beta
+      r = (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /) * dE_E
+      ele%a%gamma = (1+ele%a%alpha**2) / ele%a%beta
+      ele%b%gamma = (1+ele%b%alpha**2) / ele%b%beta
       macro%sigma = 0
-      macro%sigma(s11$) =  ex * ele%x%beta  + r(1)**2
-      macro%sigma(s12$) = -ex * ele%x%alpha + r(1) * r(2)
-      macro%sigma(s22$) =  ex * ele%x%gamma + r(2)**2 
-      macro%sigma(s33$) =  ey * ele%y%beta  + r(3)**2
-      macro%sigma(s34$) = -ey * ele%y%alpha + r(3) * r(4)
-      macro%sigma(s44$) =  ey * ele%y%gamma + r(4)**2
+      macro%sigma(s11$) =  ex * ele%a%beta  + r(1)**2
+      macro%sigma(s12$) = -ex * ele%a%alpha + r(1) * r(2)
+      macro%sigma(s22$) =  ex * ele%a%gamma + r(2)**2 
+      macro%sigma(s33$) =  ey * ele%b%beta  + r(3)**2
+      macro%sigma(s34$) = -ey * ele%b%alpha + r(3) * r(4)
+      macro%sigma(s44$) =  ey * ele%b%gamma + r(4)**2
       if (any(ele%c_mat /= 0)) then
         call mp_sigma_to_mat (macro%sigma, mat4)
         call make_v_mats (ele, v_mat, v_inv_mat)

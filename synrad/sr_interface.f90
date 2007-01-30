@@ -3,12 +3,12 @@ module sr_interface
   use sr_struct
 
   interface
-    subroutine write_power_results (wall, ring, gen_params)
+    subroutine write_power_results (wall, lat, gen_params)
       use sr_struct
       implicit none
       type (wall_struct), target :: wall
-      type (general_param_struct) gen_params
-      type (ring_struct) ring
+      type (general_lat_param_struct) gen_params
+      type (lat_struct) lat
     end subroutine
   end interface
 
@@ -22,40 +22,40 @@ module sr_interface
   end interface
 
   interface
-    subroutine calculate_sr_power (ring, orb, direction, power, &
+    subroutine calculate_sr_power (lat, orb, direction, power, &
                                                      inside, outside, gen)
       use sr_struct
       implicit none
-      type (ring_struct), target :: ring
+      type (lat_struct), target :: lat
       type (coord_struct) orb(0:*)
       type (wall_struct) inside
       type (wall_struct) outside
-      type (general_param_struct) gen
+      type (general_lat_param_struct) gen
       type (ele_power_struct) power(*)
       integer direction
     end subroutine
   end interface
 
   interface
-    subroutine ele_sr_power (ring, ie, orb, direction, power, &
+    subroutine ele_sr_power (lat, ie, orb, direction, power, &
                                                      inside, outside, gen)
       use sr_struct
       implicit none
-      type (ring_struct), target :: ring
+      type (lat_struct), target :: lat
       type (coord_struct) orb(0:*)
       type (wall_struct) inside
       type (wall_struct) outside
-      type (general_param_struct) gen
+      type (general_lat_param_struct) gen
       type (ele_power_struct) power(*)
       integer direction, ie
     end subroutine
   end interface
 
   interface
-    subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, ring)
+    subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat)
       use sr_struct
       implicit none
-      type (ring_struct) ring
+      type (lat_struct) lat
       type (ray_struct) :: ray
       type (wall_struct), target :: wall
       integer ix_wall
@@ -64,30 +64,30 @@ module sr_interface
   end interface
 
   interface
-    subroutine check_end (point_, ix, string_in)
+    subroutine check_end (point, ix, string_in)
       use sr_struct
       implicit none
-      type (outline_pt_struct) point_(*)
+      type (outline_pt_struct) point(*)
       integer ix
       character*(*) string_in
     end subroutine
   end interface
 
   interface
-    subroutine check_wall (wall, ring)
+    subroutine check_wall (wall, lat)
       use sr_struct
       implicit none
       type (wall_struct) wall
-      type (ring_struct) ring
+      type (lat_struct) lat
     end subroutine
   end interface
 
   interface
-    subroutine track_ray_to_wall (ray, ring, inside, outside, &
+    subroutine track_ray_to_wall (ray, lat, inside, outside, &
                                                hit_flag, track_max)
       use sr_struct
       implicit none
-      type (ring_struct), target :: ring
+      type (lat_struct), target :: lat
       type (ray_struct), target :: ray
       type (wall_struct) inside
       type (wall_struct) outside
@@ -122,10 +122,10 @@ module sr_interface
   end interface
 
   interface
-    subroutine init_ray (ray, ring, ix_ele, l_offset, orb, direction)
+    subroutine init_ray (ray, lat, ix_ele, l_offset, orb, direction)
       use sr_struct
       implicit none
-      type (ring_struct), target :: ring
+      type (lat_struct), target :: lat
       type (coord_struct) orb(0:*)
       type (ray_struct) ray
       real(rp) l_offset
@@ -154,36 +154,36 @@ module sr_interface
   end interface
 
   interface
-    subroutine propagate_ray (ray, s_end, ring)
+    subroutine propagate_ray (ray, s_end, lat)
       use sr_struct
       implicit none
-      type (ring_struct), target :: ring
+      type (lat_struct), target :: lat
       type (ray_struct), target :: ray
       real(rp) s_end
     end subroutine
   end interface
 
   interface
-    subroutine seg_power_calc (rays, i_ray, inside, outside, ring, gen, power)
+    subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
       use sr_struct
       implicit none
       type (ray_struct) :: rays(*)
       type (wall_struct)          inside
       type (wall_struct)          outside
-      type (general_param_struct) gen
-      type (ring_struct)          ring
+      type (general_lat_param_struct) gen
+      type (lat_struct)          lat
       type (ele_power_struct)     power
       integer i_ray
     end subroutine
   end interface
 
   interface
-    subroutine get_initial_pt (ray, wall, ix_wall, ring)
+    subroutine get_initial_pt (ray, wall, ix_wall, lat)
       use sr_struct
       implicit none
       type (ray_struct) ray
       type (wall_struct) wall
-      type (ring_struct) ring
+      type (lat_struct) lat
       integer ix_wall
     end subroutine
   end interface
@@ -210,7 +210,7 @@ module sr_interface
     subroutine write_power_header (iu, file, gen_params)
       use sr_struct
       implicit none
-      type (general_param_struct) gen_params
+      type (general_lat_param_struct) gen_params
       character*(*) file
       integer iu
     end subroutine

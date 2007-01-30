@@ -27,7 +27,7 @@ structures and the corresponding \cpp classes.
   mode\_info\_struct      & C\_mode\_info            \\ \hline
   orbit\_struct           & C\_orbit                 \\ \hline
   param\_struct           & C\_param                 \\ \hline
-  ring\_struct            & C\_ring                  \\ \hline
+  lat\_struct            & C\_lat                  \\ \hline
   sr\_wake\_struct        & C\_sr\_wake              \\ \hline
   taylor\_struct          & C\_taylor                \\ \hline
   taylor\_term\_struct    & C\_taylor\_term          \\ \hline
@@ -46,21 +46,21 @@ structures and the corresponding \cpp classes.
 
 The \cpp classes are defined in a header file \vn{cpp_and_bmad.h}.
 Generally, The \cpp classes have been set up to simply mirror the
-corresponding \bmad structures. For example, the \vn{C_ring} class has
+corresponding \bmad structures. For example, the \vn{C_lat} class has
 a string component named \vn{.version} that mirrors the \vn{%version}
-component of the \vn{ring_struct} structure. There are some exceptions
+component of the \vn{lat_struct} structure. There are some exceptions
 here and \vn{getf} (Section \sref{s:getf} can be used to quickly
 examine the definition of any \cpp class. Note that while generally
 the same component name is used for both the \bmad structures and the
 \cpp classes in the case where a component of a structure has a
 trailing underscore \vn{_} the corresponding \cpp structure does
 not. For example, the analog on the \cpp side of the \vn{%ele_}
-component of a \vn{ring_struct} is \vn{.ele}
+component of a \vn{lat_struct} is \vn{.ele}
 
 All of the \cpp arrays and matrices are zero based so that, for
 example, the index of the \vn{.vec[i]} array in a \vn{C_coord} runs
 from 0 through 5 and not 1 through 6 as on the Fortran side. Notice
-that for a \vn{ring_struct} the \vn{%ele_(0:)} component has a
+that for a \vn{lat_struct} the \vn{%ele(0:)} component has a
 starting index of zero so there is no off--by--one problem here.
 
 A header file \vn{bmad_parameters.h} defines corresponding \bmad
@@ -82,7 +82,7 @@ corresponding \vn{ele.value[]} array has goes from 0 to
 \begin{listing}{1}
   subroutine test
     use bmad
-    type (ring_struct) lattice   // lattice on Fortran side 
+    type (lat_struct) lattice   // lattice on Fortran side 
     ! ... setup lattice ...
     call c_wrapper (lattice)    // Pass lattice to C++ routine
   end subroutine
@@ -96,9 +96,9 @@ corresponding \vn{ele.value[]} array has goes from 0 to
 \begin{listing}{1}
   #include "cpp_and_bmad.h"
 
-  exteral "C" c_wrapper_(ring_struct* f_lat) {
+  exteral "C" c_wrapper(lat_struct* f_lat) {
     using namespace Bmad;
-    C_ring c_lat;          // Lattice on \cpp side 
+    C_lat c_lat;          // Lattice on \cpp side 
     f_lat >> c_lat;        // Transfer info: F -> \cpp
     // ... do calculations ...
     cout << c_lat.name << "  " << c_lat.ele[1].value[K1] << endl;
@@ -111,33 +111,33 @@ corresponding \vn{ele.value[]} array has goes from 0 to
 
 A simple example of a Fortran routine calling a \cpp routine is shown
 in figures~\ref{f:f/fc} and \ref{f:c/fc}. The Fortran calling routine
-simply passes the \vn{ring_struct} structure to the \cpp routine. On
+simply passes the \vn{lat_struct} structure to the \cpp routine. On
 the \cpp side the \cpp routine must be decleared as \vn{external "C"} to
 make sure the name mangling between \cpp and Fortran is consistant
 and to make sure the arguments are passed correctly. Notice that on
 the \cpp side the routine name has a trailing underscore \vn{_} while
 on the Fortran side it does not. In the \cpp routine the
-\vn{ring_struct} argument is decleared as a pointer. The
-\vn{ring_struct} class on the \cpp side holds no data and is simply
+\vn{lat_struct} argument is decleared as a pointer. The
+\vn{lat_struct} class on the \cpp side holds no data and is simply
 meant as a place holder. There are corresponding ``dummy'' classes for
 each \bmad structure. These classes should never be instantiated like:
 \begin{example}
-  ring_struct lattice;  // Wrong!
+  lat_struct lattice;  // Wrong!
 \end{example}
 The \cpp compiler would not allocate any storage for this variable and
 the use of this variable will (hopefully) lead to the program bombing.
 
 The \vn{>>} operator on the \cpp side has been overloaded to do the
 Fortran to \cpp conversion.  The only exception is with the
-\vn{bmad_com_struct} structure where the data on the Fortran side
-comes directly from the \bmad \vn{bmad_com_struct} common block.  In
+\vn{bmad_common_struct} structure where the data on the Fortran side
+comes directly from the \bmad \vn{bmad_common_struct} common block.  In
 this case no structure variable is passed to the \cpp routine and the
 syntax on the \cpp side for transfering this common block data back and
 forth looks like:
 \begin{example}
     C_bmad_com c_com;      // Variable to hold Bmad common block data
-    bmad_com_to_c_(c_com); // Load \cpp variable
-    bmad_com_to_f_(c_com); // Transfer back to common block
+    bmad_com_to_c(c_com); // Load \cpp variable
+    bmad_com_to_f(c_com); // Transfer back to common block
 \end{example}
 
 
@@ -148,11 +148,11 @@ forth looks like:
 \begin{figure}
 \begin{listing}{1}
   #include "cpp_and_bmad.h"
-  external "C" void f_wrapper_(C_ring&);
+  external "C" void f_wrapper(C_lat&);
 
   void test () {
-    C_ring c_lat;          // lattice on C++ side 
-    f_wrapper_(c_lat);     // pass lattice to Fortran side
+    C_lat c_lat;          // lattice on C++ side 
+    f_wrapper(c_lat);     // pass lattice to Fortran side
   }
 \end{listing}
 \caption{Example \cpp routine calling a Fortran routine.}
@@ -162,12 +162,12 @@ forth looks like:
 
 \begin{figure}
 \begin{listing}{1}
-  subroutine f_wrapper (c_ring)
+  subroutine f_wrapper (c_lat)
     type (c_dummy_struct) c_lat     ! C++ lattice 
-    type (ring_struct) f_lat        ! lattice on Fortran side 
-    call ring_to_f (c_lat, f_lat)   ! Transfer info: C++ -> F
+    type (lat_struct) f_lat        ! lattice on Fortran side 
+    call lat_to_f (c_lat, f_lat)   ! Transfer info: C++ -> F
     ! ... do some calculations ...
-    call ring_to_c (f_lat, c_lat)   ! Transfer back: F -> C++
+    call lat_to_c (f_lat, c_lat)   ! Transfer back: F -> C++
   end subroutine
 \end{listing}
 \caption{Example Fortran routine callable from a \cpp routine.}
@@ -175,8 +175,8 @@ forth looks like:
 \end{figure}
 
 An example of a \cpp routine calling a Fortran routine is shown in
-figures~\ref{f:f/cf} and \ref{f:c/cf}. \vn{ring_to_f} and
-\vn{ring_to_c} converts between a \vn{ring_struct} and a \vn{C_ring}.
+figures~\ref{f:f/cf} and \ref{f:c/cf}. \vn{lat_to_f} and
+\vn{lat_to_c} converts between a \vn{lat_struct} and a \vn{C_lat}.
 In general the routines names to convert between a \vn{xyz_struct}
 structure and a \vn{C_xyz} class are called \vn{xyz_to_f} and
 \vn{xyz_to_c} on the Fortran side.  On the \cpp side these routines

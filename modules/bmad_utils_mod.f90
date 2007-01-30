@@ -5,7 +5,7 @@
 ! call other routines in bmad_interface.
 !
 ! ALSO: THESE ROUTINES DO NOT HAVE ACCESS TO THE OVERLOADED
-! ELE1 = ELE2 AND RING1 = RING2.
+! ELE1 = ELE2 AND LAT1 = LAT2.
 !-
 
 #include "CESR_platform.inc"
@@ -16,7 +16,7 @@ use bmad_struct
 use make_mat6_mod
 
 interface reallocate
-  module procedure reallocate_control_
+  module procedure reallocate_control
 end interface
 
 contains
@@ -329,46 +329,46 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine transfer_ring_parameters (ring_in, ring_out)
+! Subroutine transfer_lat_parameters (lat_in, lat_out)
 !
-! Subroutine to transfer the ring parameters (such as ring%name, ring%param, etc.)
-! from one ring to another.
+! Subroutine to transfer the lat parameters (such as lat%name, lat%param, etc.)
+! from one lat to another. The only stuff that is not transfered are the
+! arrays and lat%ele_init.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ring_in -- Ring_struct: Input ring.
+!   lat_in -- lat_struct: Input lat.
 !
 ! Output:
-!   ring_out -- Ring_struct: Output ring with parameters set.
+!   lat_out -- lat_struct: Output lat with parameters set.
 !-
 
-subroutine transfer_ring_parameters (ring_in, ring_out)
+subroutine transfer_lat_parameters (lat_in, lat_out)
 
   implicit none
 
-  type (ring_struct), intent(in) :: ring_in
-  type (ring_struct) :: ring_out
+  type (lat_struct), intent(in) :: lat_in
+  type (lat_struct) :: lat_out
 
 !
 
-  ring_out%name =                 ring_in%name
-  ring_out%lattice =              ring_in%lattice
-  ring_out%input_file_name =      ring_in%input_file_name
-  ring_out%title =                ring_in%title
-  ring_out%x =                    ring_in%x
-  ring_out%y =                    ring_in%y
-  ring_out%z =                    ring_in%z
-  ring_out%param =                ring_in%param
-  ring_out%version =              ring_in%version
-  ring_out%n_ele_use =            ring_in%n_ele_use
-  ring_out%n_ele_ring =           ring_in%n_ele_use
-  ring_out%n_ele_max =            ring_in%n_ele_max
-  ring_out%n_control_max =        ring_in%n_control_max
-  ring_out%n_ic_max =             ring_in%n_ic_max
-  ring_out%input_taylor_order =   ring_in%input_taylor_order
-  ring_out%beam_start =           ring_in%beam_start
+  lat_out%name =                 lat_in%name
+  lat_out%lattice =              lat_in%lattice
+  lat_out%input_file_name =      lat_in%input_file_name
+  lat_out%title =                lat_in%title
+  lat_out%a =                    lat_in%a
+  lat_out%b =                    lat_in%b
+  lat_out%z =                    lat_in%z
+  lat_out%param =                lat_in%param
+  lat_out%version =              lat_in%version
+  lat_out%n_ele_track =          lat_in%n_ele_track
+  lat_out%n_ele_max =            lat_in%n_ele_max
+  lat_out%n_control_max =        lat_in%n_control_max
+  lat_out%n_ic_max =             lat_in%n_ic_max
+  lat_out%input_taylor_order =   lat_in%input_taylor_order
+  lat_out%beam_start =           lat_in%beam_start
 
 end subroutine
 
@@ -431,46 +431,46 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_ring (ring, n)
+! Subroutine init_lat (lat, n)
 !
-! Subroutine to initialize a BMAD ring.
+! Subroutine to initialize a BMAD lat.
 ! 
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   n    -- Integer: Upper bound ring%ele_(0:) array is initialized to.
+!   n    -- Integer: Upper bound lat%ele(0:) array is initialized to.
 !
 ! Output:
-!   ring -- Ring_struct: Initialized ring.
+!   lat -- lat_struct: Initialized lat.
 !-
 
-subroutine init_ring (ring, n)
+subroutine init_lat (lat, n)
 
   implicit none
 
-  type (ring_struct)  ring
+  type (lat_struct)  lat
   integer n
 
 !
 
-  call deallocate_ring_pointers (ring)
-  call allocate_ring_ele_(ring, n)
-  call init_ele (ring%ele_init)
+  call deallocate_lat_pointers (lat)
+  call allocate_lat_ele(lat, n)
+  call init_ele (lat%ele_init)
 
-  allocate (ring%control_(1000))
-  allocate (ring%ic_(1000))
+  allocate (lat%control(1000))
+  allocate (lat%ic(1000))
 
-  ring%title = ' '
-  ring%name = ' '
-  ring%lattice = ' '
-  ring%input_file_name = ' '
-  ring%param%stable = .true.
+  lat%title = ' '
+  lat%name = ' '
+  lat%lattice = ' '
+  lat%input_file_name = ' '
+  lat%param%stable = .true.
 
-  ring%beam_start%vec = 0
-  call init_mode_info (ring%x)
-  call init_mode_info (ring%y)
-  call init_mode_info (ring%z)
+  lat%beam_start%vec = 0
+  call init_mode_info (lat%a)
+  call init_mode_info (lat%b)
+  call init_mode_info (lat%z)
 
 !----------------------------------------
 contains
@@ -559,28 +559,28 @@ end function
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine clear_ring_1turn_mats (ring)
+! Subroutine clear_lat_1turn_mats (lat)
 !
-! Subroutine to clear the 1-turn matrices in the ring structure:
-!   ring%param%t1_no_RF
-!   ring%param%t1_with_RF
+! Subroutine to clear the 1-turn matrices in the lat structure:
+!   lat%param%t1_no_RF
+!   lat%param%t1_with_RF
 ! This will force any routine dependent upon these to do a remake.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Output:
-!   ring -- ring_struct: Ring with 1-turn matrices cleared.
+!   lat -- lat_struct: Lat with 1-turn matrices cleared.
 !-
 
-subroutine clear_ring_1turn_mats (ring)
+subroutine clear_lat_1turn_mats (lat)
 
   implicit none
 
-  type (ring_struct) ring
+  type (lat_struct) lat
 
-  ring%param%t1_no_RF = 0
-  ring%param%t1_with_RF = 0
+  lat%param%t1_no_RF = 0
+  lat%param%t1_with_RF = 0
 
 end subroutine
 
@@ -651,11 +651,11 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine transfer_ring (ring1, ring2)
+! Subroutine transfer_lat (lat1, lat2)
 !
-! Subroutine to set ring2 = ring1. 
+! Subroutine to set lat2 = lat1. 
 ! This is a plain transfer of information not using the overloaded equal.
-! Thus at the end ring2's pointers point to the same memory as ring1's.
+! Thus at the end lat2's pointers point to the same memory as lat1's.
 !
 ! NOTE: Do not use this routine unless you know what you are doing!
 !
@@ -663,18 +663,18 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   ring1 -- ring_struct:
+!   lat1 -- lat_struct:
 !
 ! Output:
-!   ring2 -- ring_struct:
+!   lat2 -- lat_struct:
 !-
 
-subroutine transfer_ring (ring1, ring2)
+subroutine transfer_lat (lat1, lat2)
 
-  type (ring_struct), intent(in) :: ring1
-  type (ring_struct), intent(out) :: ring2
+  type (lat_struct), intent(in) :: lat1
+  type (lat_struct), intent(out) :: lat2
 
-  ring2 = ring1
+  lat2 = lat1
 
 end subroutine
 
@@ -734,9 +734,9 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Fuunction reallocate_control_(control, n) result (new_control)
+! Fuunction reallocate_control(control, n) result (new_control)
 !
-! Function to reallocate the ring%control(:) array.
+! Function to reallocate the lat%control(:) array.
 ! This data in the array will be saved.
 ! 
 ! Modules needed:
@@ -750,7 +750,7 @@ end subroutine
 !   new_control(:) -- Control_struct, pointer: Allocated array.
 !-
 
-function reallocate_control_(control, n) result (new_control)
+function reallocate_control(control, n) result (new_control)
 
   implicit none
 
@@ -804,7 +804,7 @@ subroutine deallocate_ele_pointers (ele, nullify_only)
       nullify (ele%const)
       nullify (ele%r)
       nullify (ele%descrip)
-      nullify (ele%a, ele%b)
+      nullify (ele%a_pole, ele%b_pole)
       nullify (ele%wake)
       nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
                 ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
@@ -819,12 +819,12 @@ subroutine deallocate_ele_pointers (ele, nullify_only)
   if (associated (ele%const))    deallocate (ele%const)
   if (associated (ele%r))        deallocate (ele%r)
   if (associated (ele%descrip))  deallocate (ele%descrip)
-  if (associated (ele%a))        deallocate (ele%a, ele%b)
+  if (associated (ele%a_pole))        deallocate (ele%a_pole, ele%b_pole)
 
   if (associated (ele%wake)) then
-    if (associated (ele%wake%sr1))       deallocate (ele%wake%sr1)
-    if (associated (ele%wake%sr2_long))  deallocate (ele%wake%sr2_long)
-    if (associated (ele%wake%sr2_trans)) deallocate (ele%wake%sr2_trans)
+    if (associated (ele%wake%sr_table))       deallocate (ele%wake%sr_table)
+    if (associated (ele%wake%sr_mode_long))  deallocate (ele%wake%sr_mode_long)
+    if (associated (ele%wake%sr_mode_trans)) deallocate (ele%wake%sr_mode_trans)
     if (associated (ele%wake%lr))        deallocate (ele%wake%lr)
     deallocate (ele%wake)
   endif
@@ -950,25 +950,25 @@ subroutine init_ele (ele)
   ele%c_mat = 0
   ele%gamma_c = 1.0
 
-  ele%x%beta     = 0
-  ele%x%alpha    = 0
-  ele%x%gamma    = 0
-  ele%x%eta      = 0
-  ele%x%etap     = 0
-  ele%x%eta_lab  = 0
-  ele%x%etap_lab = 0
-  ele%x%phi      = 0
-  ele%x%sigma    = 0
+  ele%a%beta     = 0
+  ele%a%alpha    = 0
+  ele%a%gamma    = 0
+  ele%a%eta      = 0
+  ele%a%etap     = 0
+  ele%a%eta_lab  = 0
+  ele%a%etap_lab = 0
+  ele%a%phi      = 0
+  ele%a%sigma    = 0
 
-  ele%y%beta     = 0
-  ele%y%alpha    = 0
-  ele%y%gamma    = 0
-  ele%y%eta      = 0
-  ele%y%etap     = 0
-  ele%y%eta_lab  = 0
-  ele%y%etap_lab = 0
-  ele%y%phi      = 0
-  ele%y%sigma    = 0
+  ele%b%beta     = 0
+  ele%b%alpha    = 0
+  ele%b%gamma    = 0
+  ele%b%eta      = 0
+  ele%b%etap     = 0
+  ele%b%eta_lab  = 0
+  ele%b%etap_lab = 0
+  ele%b%phi      = 0
+  ele%b%sigma    = 0
 
   ele%z%beta     = 0
   ele%z%alpha    = 0
@@ -990,29 +990,29 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine allocate_ring_ele_ (ring, des_size)
+! Subroutine allocate_lat_ele (lat, des_size)
 !
-! Subroutine to allocate or re-allocate the ele_ pointer in a ring.
-! The upper bound of ring%ele_(0:n) will be des_size if it is present
-! or the maximum of: (1000, 1.3*ring%ele_(:)).
+! Subroutine to allocate or re-allocate the ele pointer in a lat.
+! The upper bound of lat%ele(0:n) will be des_size if it is present
+! or the maximum of: (1000, 1.3*lat%ele(:)).
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ring     -- ring_struct: Ring with del_ pointer.
+!   lat     -- lat_struct: Lat with del pointer.
 !   des_size -- integer, Optional: Optional desired upper bound for 
-!                 ring%ele_(:).
+!                 lat%ele(:).
 !
 ! Output:
-!   ring     -- ring_struct: Ring with re-allocated %ele_(:) pointer. 
+!   lat     -- lat_struct: Lat with re-allocated %ele(:) pointer. 
 !-
 
-subroutine allocate_ring_ele_ (ring, des_size)
+subroutine allocate_lat_ele (lat, des_size)
 
   implicit none
 
-  type (ring_struct) ring
+  type (lat_struct) lat
   integer, optional :: des_size
 
   type (ele_struct), pointer :: temp_ele(:)
@@ -1021,33 +1021,33 @@ subroutine allocate_ring_ele_ (ring, des_size)
 ! get new size
 
   desired_size = 1000
-  if (associated (ring%ele_)) &
-        desired_size = max (int(1.3*size(ring%ele_)), desired_size)
+  if (associated (lat%ele)) &
+        desired_size = max (int(1.3*size(lat%ele)), desired_size)
   if (present(des_size))  desired_size = des_size
 
-!  save ring%ele_ if present
+!  save lat%ele if present
 
-  if (associated (ring%ele_)) then
-    curr_n_ele = size (ring%ele_) - 1
+  if (associated (lat%ele)) then
+    curr_n_ele = size (lat%ele) - 1
     allocate (temp_ele(0:curr_n_ele))
-    call transfer_eles (ring%ele_, temp_ele)
-    deallocate (ring%ele_)
-    allocate(ring%ele_(0:desired_size))
-    call transfer_eles (temp_ele(0:curr_n_ele), ring%ele_(0:curr_n_ele))
+    call transfer_eles (lat%ele, temp_ele)
+    deallocate (lat%ele)
+    allocate(lat%ele(0:desired_size))
+    call transfer_eles (temp_ele(0:curr_n_ele), lat%ele(0:curr_n_ele))
     deallocate (temp_ele)
   else
     curr_n_ele = -1
-    allocate(ring%ele_(0:desired_size))
+    allocate(lat%ele(0:desired_size))
   endif
 
 ! 
 
   do i = curr_n_ele+1, desired_size
-    call init_ele (ring%ele_(i))
-    ring%ele_(i)%ix_ele = i
+    call init_ele (lat%ele(i))
+    lat%ele(i)%ix_ele = i
   end do
 
-  ring%beam_energy => ring%ele_(0)%value(beam_energy$)
+  lat%E_TOT => lat%ele(0)%value(E_TOT$)
 
 end subroutine
 
@@ -1055,44 +1055,44 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine deallocate_ring_pointers (ring)
+! Subroutine deallocate_lat_pointers (lat)
 !
-! Subroutine to deallocate the pointers in a ring.
+! Subroutine to deallocate the pointers in a lat.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ring -- ring_struct: Ring with pointers.
+!   lat -- lat_struct: Lat with pointers.
 !
 ! Output:
-!   ring -- ring_struct: Ring with deallocated pointers.
+!   lat -- lat_struct: Lat with deallocated pointers.
 !-
 
-subroutine deallocate_ring_pointers (ring)
+subroutine deallocate_lat_pointers (lat)
 
   implicit none
 
-  type (ring_struct) ring
+  type (lat_struct) lat
   integer i
 
 !
 
-  if (associated (ring%ele_)) then
+  if (associated (lat%ele)) then
 
-    do i = lbound(ring%ele_, 1), ubound(ring%ele_, 1)
-      call deallocate_ele_pointers (ring%ele_(i))
+    do i = lbound(lat%ele, 1), ubound(lat%ele, 1)
+      call deallocate_ele_pointers (lat%ele(i))
     enddo
-    call deallocate_ele_pointers (ring%ele_init)
+    call deallocate_ele_pointers (lat%ele_init)
 
-    deallocate (ring%ele_)
-    deallocate (ring%control_)
-    deallocate (ring%ic_)
+    deallocate (lat%ele)
+    deallocate (lat%control)
+    deallocate (lat%ic)
 
   endif
 
-  ring%n_ele_use  = -1
-  ring%n_ele_max  = -1
+  lat%n_ele_track  = -1
+  lat%n_ele_max  = -1
 
 end subroutine
 
@@ -1110,7 +1110,7 @@ end subroutine
 !
 ! Input:
 !   ele1 -- Ele_struct: Element with twiss parameters for the starting point.
-!     %x, %y -- a-mode and b-mode Twiss paramters
+!     %a, %b -- a-mode and b-mode Twiss paramters
 !       %beta   -- Beta parameter.
 !       %alpha  -- Alpha parameter.
 !       %phi    -- Phase at initial point.
@@ -1134,12 +1134,12 @@ subroutine transfer_mat_from_twiss (ele1, ele2, m)
 
 ! Error check
 
-  if (ele1%x%beta == 0 .or. ele1%y%beta == 0) then
+  if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
     call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT: ' // ele1%name)
     call err_exit
   endif
 
-  if (ele2%x%beta == 0 .or. ele2%y%beta == 0) then
+  if (ele2%a%beta == 0 .or. ele2%b%beta == 0) then
     call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT: ' // ele2%name)
     call err_exit
   endif
@@ -1147,8 +1147,8 @@ subroutine transfer_mat_from_twiss (ele1, ele2, m)
 ! Transfer matrices without coupling or dispersion
 
   call mat_make_unit (m)
-  call transfer_mat2_from_twiss (ele1%x, ele2%x, m(1:2,1:2))
-  call transfer_mat2_from_twiss (ele1%y, ele2%y, m(3:4,3:4))
+  call transfer_mat2_from_twiss (ele1%a, ele2%a, m(1:2,1:2))
+  call transfer_mat2_from_twiss (ele1%b, ele2%b, m(3:4,3:4))
 
 ! Add in coupling
 
@@ -1169,10 +1169,10 @@ subroutine transfer_mat_from_twiss (ele1, ele2, m)
 ! Add in dispersion.
 ! The m(5,x) terms follow from the symplectic condition.
 
-  m(1:2,6) = (/ ele2%x%eta, ele2%x%etap /) - &
-                     matmul (m(1:2,1:2), (/ ele1%x%eta, ele1%x%etap /)) 
-  m(3:4,6) = (/ ele2%y%eta, ele2%y%etap /) - &
-                     matmul (m(3:4,3:4), (/ ele1%y%eta, ele1%y%etap /)) 
+  m(1:2,6) = (/ ele2%a%eta, ele2%a%etap /) - &
+                     matmul (m(1:2,1:2), (/ ele1%a%eta, ele1%a%etap /)) 
+  m(3:4,6) = (/ ele2%b%eta, ele2%b%etap /) - &
+                     matmul (m(3:4,3:4), (/ ele1%b%eta, ele1%b%etap /)) 
 
   m(5,1) = -m(2,6)*m(1,1) + m(1,6)*m(2,1) - m(4,6)*m(3,1) + m(3,6)*m(4,1)
   m(5,2) = -m(2,6)*m(1,2) + m(1,6)*m(2,2) - m(4,6)*m(3,2) + m(3,6)*m(4,2)
@@ -1196,7 +1196,7 @@ end subroutine
 !
 ! Input:
 !   ele -- Ele_struct: Match element.
-!     %value(beta_x0$) -- Beta_x at the start
+!     %value(beta_a0$) -- Beta_a at the start
 !
 ! Output:
 !   vec0(6)   -- Real(rp): Currently just set to zero.
@@ -1216,29 +1216,29 @@ subroutine match_ele_to_mat6 (ele, vec0, mat6)
   vec0 = 0
   v = ele%value
 
-  ele0%x%beta   = v(beta_x0$)
-  ele0%x%alpha  = v(alpha_x0$)
-  ele0%x%eta    = v(eta_x0$)
-  ele0%x%etap   = v(etap_x0$)
-  ele0%x%phi    = 0
+  ele0%a%beta   = v(beta_a0$)
+  ele0%a%alpha  = v(alpha_a0$)
+  ele0%a%eta    = v(eta_a0$)
+  ele0%a%etap   = v(etap_a0$)
+  ele0%a%phi    = 0
 
-  ele0%y%beta   = v(beta_y0$)
-  ele0%y%alpha  = v(alpha_y0$)
-  ele0%y%eta    = v(eta_y0$)
-  ele0%y%etap   = v(etap_y0$)
-  ele0%y%phi    = 0
+  ele0%b%beta   = v(beta_b0$)
+  ele0%b%alpha  = v(alpha_b0$)
+  ele0%b%eta    = v(eta_b0$)
+  ele0%b%etap   = v(etap_b0$)
+  ele0%b%phi    = 0
 
-  ele1%x%beta   = v(beta_x1$)
-  ele1%x%alpha  = v(alpha_x1$)
-  ele1%x%eta    = v(eta_x1$)
-  ele1%x%etap   = v(etap_x1$)
-  ele1%x%phi    = v(dphi_x$)
+  ele1%a%beta   = v(beta_a1$)
+  ele1%a%alpha  = v(alpha_a1$)
+  ele1%a%eta    = v(eta_a1$)
+  ele1%a%etap   = v(etap_a1$)
+  ele1%a%phi    = v(dphi_a$)
 
-  ele1%y%beta   = v(beta_y1$)
-  ele1%y%alpha  = v(alpha_y1$)
-  ele1%y%eta    = v(eta_y1$)
-  ele1%y%etap   = v(etap_y1$)
-  ele1%y%phi    = v(dphi_y$)
+  ele1%b%beta   = v(beta_b1$)
+  ele1%b%alpha  = v(alpha_b1$)
+  ele1%b%eta    = v(eta_b1$)
+  ele1%b%etap   = v(etap_b1$)
+  ele1%b%phi    = v(dphi_b$)
 
   ele0%c_mat = 0 
   ele1%c_mat = 0 
@@ -1273,22 +1273,22 @@ subroutine transfer_wake (wake_in, wake_out)
   implicit none
 
   type (wake_struct), pointer :: wake_in, wake_out
-  integer n_sr1, n_sr2_long, n_sr2_trans, n_lr
+  integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr
 
 !
 
   if (associated (wake_in)) then
-    n_sr1       = size(wake_in%sr1)
-    n_sr2_long  = size(wake_in%sr2_long)
-    n_sr2_trans = size(wake_in%sr2_trans)
+    n_sr_table       = size(wake_in%sr_table)
+    n_sr_mode_long  = size(wake_in%sr_mode_long)
+    n_sr_mode_trans = size(wake_in%sr_mode_trans)
     n_lr        = size(wake_in%lr)
-    call init_wake (wake_out, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
+    call init_wake (wake_out, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
     wake_out%sr_file   = wake_in%sr_file
     wake_out%lr_file   = wake_in%lr_file
-    wake_out%z_sr2_max  = wake_in%z_sr2_max
-    wake_out%sr1       = wake_in%sr1
-    wake_out%sr2_long  = wake_in%sr2_long
-    wake_out%sr2_trans = wake_in%sr2_trans
+    wake_out%z_sr_mode_max  = wake_in%z_sr_mode_max
+    wake_out%sr_table       = wake_in%sr_table
+    wake_out%sr_mode_long  = wake_in%sr_mode_long
+    wake_out%sr_mode_trans = wake_in%sr_mode_trans
     wake_out%lr        = wake_in%lr
   else
     if (associated(wake_out)) call init_wake (wake_out, 0, 0, 0, 0)
@@ -1300,7 +1300,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_wake (wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
+! Subroutine init_wake (wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
 !
 ! Subroutine to initialize a wake struct.
 !
@@ -1308,9 +1308,9 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   n_sr1       -- Integer: Number of terms: wake%sr1(0:n_sr-1).
-!   n_sr2_long  -- Integer: Number of terms: wake%nr(n_sr2_long).
-!   n_sr2_trans -- Integer: Number of terms: wake%nr(n_sr2_trans).
+!   n_sr_table       -- Integer: Number of terms: wake%sr_table(0:n_sr-1).
+!   n_sr_mode_long  -- Integer: Number of terms: wake%nr(n_sr_mode_long).
+!   n_sr_mode_trans -- Integer: Number of terms: wake%nr(n_sr_mode_trans).
 !   n_lr        -- Integer: Number of terms: wake%nr(n_lr)
 !
 ! Output:
@@ -1318,20 +1318,20 @@ end subroutine
 !               If all inputs are 0 then wake is deallocated.
 !-
 
-subroutine init_wake (wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
+subroutine init_wake (wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
 
   implicit none
 
   type (wake_struct), pointer :: wake
-  integer n_sr1, n_sr2_long, n_sr2_trans, n_lr
+  integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr
 
 ! Deallocate wake if all inputs are zero.
 
-  if (n_sr1 == 0 .and. n_sr2_long == 0 .and. n_sr2_trans == 0 .and. n_lr == 0) then
+  if (n_sr_table == 0 .and. n_sr_mode_long == 0 .and. n_sr_mode_trans == 0 .and. n_lr == 0) then
     if (associated(wake)) then
-      deallocate (wake%sr1)
-      deallocate (wake%sr2_long)
-      deallocate (wake%sr2_trans)
+      deallocate (wake%sr_table)
+      deallocate (wake%sr_mode_long)
+      deallocate (wake%sr_mode_trans)
       deallocate (wake%lr)
       deallocate (wake)
     endif
@@ -1341,17 +1341,17 @@ subroutine init_wake (wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
 !
 
   if (associated (wake)) then
-    if (size(wake%sr1) /= n_sr1) then
-      deallocate (wake%sr1)
-      allocate (wake%sr1(0:n_sr1-1))
+    if (size(wake%sr_table) /= n_sr_table) then
+      deallocate (wake%sr_table)
+      allocate (wake%sr_table(0:n_sr_table-1))
     endif
-    if (size(wake%sr2_long) /= n_sr2_long) then
-      deallocate (wake%sr2_long)
-      allocate (wake%sr2_long(n_sr2_long))
+    if (size(wake%sr_mode_long) /= n_sr_mode_long) then
+      deallocate (wake%sr_mode_long)
+      allocate (wake%sr_mode_long(n_sr_mode_long))
     endif
-    if (size(wake%sr2_trans) /= n_sr2_trans) then
-      deallocate (wake%sr2_trans)
-      allocate (wake%sr2_trans(n_sr2_trans))
+    if (size(wake%sr_mode_trans) /= n_sr_mode_trans) then
+      deallocate (wake%sr_mode_trans)
+      allocate (wake%sr_mode_trans(n_sr_mode_trans))
     endif
     if (size(wake%lr) /= n_lr) then
       deallocate (wake%lr)
@@ -1360,9 +1360,9 @@ subroutine init_wake (wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
 
   else
     allocate (wake)
-    allocate (wake%sr1(0:n_sr1-1))
-    allocate (wake%sr2_long(n_sr2_long))
-    allocate (wake%sr2_trans(n_sr2_trans))
+    allocate (wake%sr_table(0:n_sr_table-1))
+    allocate (wake%sr_mode_long(n_sr_mode_long))
+    allocate (wake%sr_mode_trans(n_sr_mode_trans))
     allocate (wake%lr(n_lr))
   endif
 

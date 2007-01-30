@@ -11,7 +11,7 @@
 ! Input:
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element
-!   param  -- Param_struct:
+!   param  -- lat_param_struct:
 !
 ! Output:
 !   end   -- Coord_struct: End position
@@ -30,7 +30,7 @@ subroutine track1_symp_lie_ptc (start, ele, param, end)
   type (coord_struct) :: start
   type (coord_struct) :: end
   type (ele_struct) :: ele
-  type (param_struct) :: param
+  type (lat_param_struct) :: param
   type (fibre), pointer :: fibre_ele
 
   real(dp) re(6)

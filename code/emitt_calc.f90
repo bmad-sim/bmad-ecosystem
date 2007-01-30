@@ -1,5 +1,5 @@
 !+
-! Subroutine EMITT_CALC (RING, WHAT, MODE)
+! Subroutine EMITT_CALC (LAT, WHAT, MODE)
 !
 ! Subroutine to calculate the emittance, energy spread, and synchrotron
 ! integrals. This subroutine assumes that bends are in the horizontal plane.
@@ -14,38 +14,38 @@
 !   use bmad_interface
 !
 ! Input:
-!     RING -- Ring_struct: Ring to use
+!     LAT -- lat_struct: Lat to use
 !     WHAT -- Integer: Which elements to use in the calculation.
 !               = BENDS$      Use only the bends.
 !               = WIGGLERS$   Use only wigglers.
 !               = All$        Use both bends and wigglers.
 !
 ! Output:
-!     MODE -- Modes_struct: Parameters for the ("horizontal like") a-mode,
+!     MODE -- normal_modes_struct: Parameters for the ("horizontal like") a-mode,
 !                              ("vertical like") b-mode, and the z-mode
 !       %SYNCH_INT(1:3) -- Synchrotron integrals.
 !       %sigE_E         -- Sigma_E/E energy spread
 !       %SIG_Z          -- Bunch Length
 !       %E_LOSS         -- Energy loss in eV per turn
-!       %A, %B, %Z      -- Amode_struct: Substructure
+!       %a_pole, %b_pole, %Z      -- Anormal_mode_struct: Substructure
 !         %EMITTANCE      -- Emittance
 !         %SYNCH_INT(4:5) -- Synchrotron integrals
 !         %J_DAMP         -- Damping partition factor
 !         %ALPHA_DAMP     -- Exponential damping coefficient per turn
 !
 ! Notes:
-!     1) %SYNCH_INT(1) = momentum_compaction * ring_length
+!     1) %SYNCH_INT(1) = momentum_compaction * lat_length
 !     2) The calculation assumes that the Twiss parameters have been calculated.
 !-
 
 
-subroutine emitt_calc (ring, what, mode)
+subroutine emitt_calc (lat, what, mode)
 
   use bmad_struct
   implicit none
 
-  type (ring_struct)  ring
-  type (modes_struct)  mode
+  type (lat_struct)  lat
+  type (normal_modes_struct)  mode
   type (ele_struct)  ele0, ele
 
   real(rp) :: c_gam = 4.425e-5, c_q = 3.84e-13
@@ -98,14 +98,14 @@ subroutine emitt_calc (ring, what, mode)
 !---------------------------------------------------------------------
 ! loop over all elements
 
-  do ir = 1, ring%n_ele_use
+  do ir = 1, lat%n_ele_track
 
 !---------------------------------------------------------------------
 ! bend contribution
 
-    if (do_bends .and. ring%ele_(ir)%key == sbend$) then
+    if (do_bends .and. lat%ele(ir)%key == sbend$) then
 
-      ele  = ring%ele_(ir)
+      ele  = lat%ele(ir)
 
       g = ele%value(g$)
       ll = ele%value(l$)
@@ -138,13 +138,13 @@ subroutine emitt_calc (ring, what, mode)
 
       if (e1 == 0) then
         tan_e1 = 0
-        ele0 = ring%ele_(ir-1)
+        ele0 = lat%ele(ir-1)
       else
         tan_e1 = tan(e1)
         call mat_make_unit (ele0%mat6)
         ele0%mat6(2,1) =  tan_e1 * g
         ele0%mat6(4,3) = -tan_e1 * g
-        call twiss_propagate1 (ring%ele_(ir-1), ele0)
+        call twiss_propagate1 (lat%ele(ir-1), ele0)
       endif
 
       if (e2 == 0) then
@@ -160,19 +160,19 @@ subroutine emitt_calc (ring, what, mode)
       c21 = ele0%c_mat(2,1)
       c22 = ele0%c_mat(2,2)
 
-      beta_a0  = ele0%x%beta
-      alpha_a0 = ele0%x%alpha
-      gamma_a0 = ele0%x%gamma
+      beta_a0  = ele0%a%beta
+      alpha_a0 = ele0%a%alpha
+      gamma_a0 = ele0%a%gamma
 
-      beta_b0  = ele0%y%beta
-      alpha_b0 = ele0%y%alpha
-      gamma_b0 = ele0%y%gamma
+      beta_b0  = ele0%b%beta
+      alpha_b0 = ele0%b%alpha
+      gamma_b0 = ele0%b%gamma
 
-      eta_a0  = ele0%x%eta
-      etap_a0 = ele0%x%etap
+      eta_a0  = ele0%a%eta
+      etap_a0 = ele0%a%etap
 
-      eta_b0  = ele0%y%eta
-      etap_b0 = ele0%y%etap
+      eta_b0  = ele0%b%eta
+      etap_b0 = ele0%b%etap
 
       eta_x0  = gamma_c * eta_a0  + c11 * eta_b0 + c12 * etap_b0
       etap_x0 = gamma_c * etap_a0 + c21 * eta_b0 + c22 * etap_b0
@@ -199,8 +199,8 @@ subroutine emitt_calc (ring, what, mode)
       t1 = eta_ax0 * sin_kl / k_1 + etap_ax0 * (1 - cos_kl) / k_2
       t2 = gamma_c**2 * (kl - sin_kl) * g / k_3
       
-      end_4  = (eta_x0 * tan_e1 + ele%x%eta_lab * tan_e2) * g**2
-      end_4a = (eta_ax0 * tan_e1 + gamma_c * ele%x%eta * tan_e2) * g**2
+      end_4  = (eta_x0 * tan_e1 + ele%a%eta_lab * tan_e2) * g**2
+      end_4a = (eta_ax0 * tan_e1 + gamma_c * ele%a%eta * tan_e2) * g**2
 
       i4a_bend = (t1 + t2) * g**3 - end_4a
       i4z_bend = eta_x_int * g**3 - end_4
@@ -255,9 +255,9 @@ subroutine emitt_calc (ring, what, mode)
 !---------------------------------------------------------------------
 ! wiggler contribution
 
-    elseif (do_wigs .and. ring%ele_(ir)%key == wiggler$) then
+    elseif (do_wigs .and. lat%ele(ir)%key == wiggler$) then
 
-      if (ring%ele_(ir)%sub_key == map_type$) then
+      if (lat%ele(ir)%sub_key == map_type$) then
         if (print_wig_err_message) then
           print *, 'WARNING FROM EMITT_CALC: ',&
                         'I AM NOT UP TO HANDLING "NEW STYLE" WIGGLERS.'
@@ -266,27 +266,27 @@ subroutine emitt_calc (ring, what, mode)
         endif
       endif
 
-      ele = ring%ele_(ir)
-      ele0 = ring%ele_(ir-1)
+      ele = lat%ele(ir)
+      ele0 = lat%ele(ir-1)
       k1 = ele%value(k1$)
 
       G_max = sqrt(2*abs(k1))       ! g at max B
       ll = ele%value(l$)
 
 
-      beta_a0  = ele0%x%beta
-      alpha_a0 = ele0%x%alpha
-      gamma_a0 = ele0%x%gamma
+      beta_a0  = ele0%a%beta
+      alpha_a0 = ele0%a%alpha
+      gamma_a0 = ele0%a%gamma
 
-      beta_b0  = ele0%y%beta
-      alpha_b0 = ele0%y%alpha
-      gamma_b0 = ele0%y%gamma
+      beta_b0  = ele0%b%beta
+      alpha_b0 = ele0%b%alpha
+      gamma_b0 = ele0%b%gamma
 
-      eta_a0  = ele0%x%eta
-      etap_a0 = ele0%x%etap
+      eta_a0  = ele0%a%eta
+      etap_a0 = ele0%a%etap
 
-      eta_b0  = ele0%y%eta
-      etap_b0 = ele0%y%etap
+      eta_b0  = ele0%b%eta
+      etap_b0 = ele0%b%etap
 
 ! i2 calc
 
@@ -310,11 +310,11 @@ subroutine emitt_calc (ring, what, mode)
 
 ! custom contribution
 
-    elseif (do_wigs .and. ring%ele_(ir)%key == custom$) then
-       call custom_emitt_calc (ring, ir, i2, i3, i5a, i5b)
+    elseif (do_wigs .and. lat%ele(ir)%key == custom$) then
+       call custom_emitt_calc (lat, ir, i2, i3, i5a, i5b)
 
-    elseif (ring%ele_(ir)%key == rfcavity$) then
-      m65 = m65 + ring%ele_(ir)%mat6(6,5)   ! add up the m65s
+    elseif (lat%ele(ir)%key == rfcavity$) then
+      m65 = m65 + lat%ele(ir)%mat6(6,5)   ! add up the m65s
     endif
 
 
@@ -323,7 +323,7 @@ subroutine emitt_calc (ring, what, mode)
 !---------------------------------------------------------------------
 ! now put everything together
 
-  energy = ring%ele_(0)%value(beam_energy$)
+  energy = lat%ele(0)%value(E_TOT$)
   gamma2_factor = (energy * 1956.95e-9)**2
   energy_loss = 1e9 * c_gam * (1e-9 * energy)**4 * i2 / pi
 

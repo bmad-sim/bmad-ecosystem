@@ -8,7 +8,7 @@ The subroutine to read in an XSIF lattice file is \vn{xsif_parser}.
 There are two subroutines in \bmad\ to read in a \bmad standard
 lattice file: \vn{bmad_parser} and \vn{bmad_parser2}.
 
-\vn{bmad_parser} is used to initialize a \vn{ring_struct}
+\vn{bmad_parser} is used to initialize a \vn{lat_struct}
 structure from scratch using the information from a lattice
 file. Unless told otherwise, after reading in the lattice
 \vn{bmad_parser} will compute the 6x6 transfer matrices for each
@@ -24,8 +24,8 @@ example, aperture limits for the elements are often stored in a
 separate file. In this case there are two possibilities: The first is
 to use \vn{bmad_parser2}
 \begin{verbatim}
-  call bmad_parser ('lattice_file', ring)       ! read in a lattice.
-  call bmad_parser2 ('aperture_file', ring)     ! read in the aperture limits.
+  call bmad_parser ('lattice_file', lat)       ! read in a lattice.
+  call bmad_parser2 ('aperture_file', lat)     ! read in the aperture limits.
 \end{verbatim}
 The second alternative is to create a third file that calls the first two
 \begin{verbatim}
@@ -40,9 +40,9 @@ and then just use \vn{bmad_parser} to parse this third file.
 \index{Lattice files!digested files}
 
 Since parsing can be slow, once \vn{bmad_parser} has transfered the
-information from a lattice file into the \vn{ring_struct} it will make
+information from a lattice file into the \vn{lat_struct} it will make
 what is called a digested file. A digested file is an image of the
-\vn{ring_struct} in binary form. When \vn{bmad_parser} is called it
+\vn{lat_struct} in binary form. When \vn{bmad_parser} is called it
 (actually it is a the subroutine \vn{read_digested_bmad_file} that
 does all the work) first looks in the same directory as the lattice
 file for a digested file whose name is of the form
@@ -56,7 +56,7 @@ since the digested file stores the names and the dates of all the
 lattice files that were used when the digested file was made. The
 \bmad\ version number stored in the digested file is also checked. The
 \bmad\ version number is a global parameter that is increased (not too
-frequently) each time the structure of the \vn{ring_struct} or
+frequently) each time the structure of the \vn{lat_struct} or
 \vn{ele_struct} is modified. If the \bmad\ version number in the
 digested file does not agree with the current or the digested file is
 out--of--date a warning will be printed and the digested file will not
@@ -81,15 +81,15 @@ file with the digested file name corresponding to the first lattice.
 The digested file is in binary format and is not human readable but it
 provides a convenient mechanism for transporting lattices between
 programs. For example, say you have read in a lattice, changed
-some parameters in the \vn{ring_struct}, and now you want to do some
-analysis on this modified \vn{ring_struct} using a different program. The 
+some parameters in the \vn{lat_struct}, and now you want to do some
+analysis on this modified \vn{lat_struct} using a different program. The 
 answer is to have the first program create a digested file
 \begin{example}
-  call write_digested_bmad_file ('digested_file_of_mine', ring)
+  call write_digested_bmad_file ('digested_file_of_mine', lat)
 \end{example}
 and then read the digested file in with the second program
 \begin{example}
-  call read_digested_bmad_file ('digested_file_of_mine', ring)
+  call read_digested_bmad_file ('digested_file_of_mine', lat)
 \end{example}
 An alternative to writing a digested file is to write a lattice file
 using \vn{write_bmad_lattice_file}
@@ -102,7 +102,7 @@ using \vn{write_bmad_lattice_file}
 \index{MAD!MAD-8}
 \mad--8 compatible lattice files can be created using the routine \vnr{bmad_to_mad}:
 \begin{example}
-  type (ring_struct) lat             ! lattice
+  type (lat_struct) lat             ! lattice
   ...
   call bmad_to_mad ('lat.mad', lat)  ! create MAD file
 \end{example}

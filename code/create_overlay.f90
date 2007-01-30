@@ -1,5 +1,5 @@
 !+
-! Subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
+! Subroutine create_overlay (lat, ix_overlay, attrib_name, contl)
 !
 ! Subroutine to add the controller information to slave elements of
 ! an overlay_lord.
@@ -8,7 +8,7 @@
 !   use bmad
 !
 ! Input:
-!   ring        -- Ring_struct: Ring to modify.
+!   lat        -- lat_struct: Lat to modify.
 !   ix_overlay  -- Integer: Index of overlay element.
 !   attrib_name -- Character(40): Name of attribute in the overlay that is
 !                     to be varied.
@@ -18,30 +18,30 @@
 !     %coef       -- Coefficient
 !
 ! Output:
-!   ring    -- Ring_struct: Modified ring.
+!   lat    -- lat_struct: Modified lat.
 !
 ! Note: Use NEW_CONTROL to get an index for the overlay element
 !
 ! Example:
-!   call new_control (ring, ix_ovr)      ! get index of overlay in ring%ele_
-!   ring%ele_(ix_ovr)%name = 'OVERLAY1'  ! overlay name
-!   ring%ele_(ix_ovr)%value(k1$) = 0.1   ! starting value
+!   call new_control (lat, ix_ovr)      ! get index of overlay in lat%ele
+!   lat%ele(ix_ovr)%name = 'OVERLAY1'  ! overlay name
+!   lat%ele(ix_ovr)%value(k1$) = 0.1   ! starting value
 !
-!   contl(1)%ix_slave = 10   ! RING%ELE_(10) is, say, a quadrupole.
+!   contl(1)%ix_slave = 10   ! LAT%ele(10) is, say, a quadrupole.
 !   contl(1)%ix_attrib = k1$ ! The overlay controls the quadrupole strength.
 !   contl(1)%coef = 0.1      ! A change in the overlay value of 1 produces
 !                            !    a change of 0.1 in k1 of element 10.
 !
-!   contl(2)%ix_slave = 790  ! RING%ELE_(790) is, say, a sextupole.
+!   contl(2)%ix_slave = 790  ! LAT%ele(790) is, say, a sextupole.
 !   contl(2)%ix_attrib = k2$ ! The overlay controls the sextupole strength.
 !   contl(2)%coef = -0.1     ! make changes antisymmetric.
 !
-!   call create_overlay (ring, ix_ovr, 'K1', contl(1:2))  ! create the overlay
+!   call create_overlay (lat, ix_ovr, 'K1', contl(1:2))  ! create the overlay
 !-
 
 #include "CESR_platform.inc"
 
-subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
+subroutine create_overlay (lat, ix_overlay, attrib_name, contl)
 
   use bmad_struct
   use bmad_interface, except => create_overlay
@@ -49,7 +49,7 @@ subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (lat_struct), target :: lat
   type (ele_struct), pointer :: slave, lord
   type (control_struct)  contl(:)
 
@@ -61,17 +61,17 @@ subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
 
 ! Mark element as an overlay lord
 
-  lord => ring%ele_(ix_overlay)
+  lord => lat%ele(ix_overlay)
   n_slave = size (contl)
 
-  ix = ring%n_control_max
+  ix = lat%n_control_max
   n_con2 = ix + n_slave
-  if (n_con2 > size(ring%control_)) &
-                      ring%control_ => reallocate (ring%control_, n_con2+500)
+  if (n_con2 > size(lat%control)) &
+                      lat%control => reallocate (lat%control, n_con2+500)
 
   do j = 1, n_slave
-    ring%control_(ix+j) = contl(j)
-    ring%control_(ix+j)%ix_lord = ix_overlay
+    lat%control(ix+j) = contl(j)
+    lat%control(ix+j)%ix_lord = ix_overlay
   enddo
 
   lord%n_slave = n_slave
@@ -79,7 +79,7 @@ subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
   lord%ix2_slave = ix + n_slave
   lord%control_type = overlay_lord$
   lord%key = overlay$
-  ring%n_control_max = n_con2
+  lat%n_control_max = n_con2
 
   call str_upcase (at_name, attrib_name)
   ix_attrib =  attribute_index (lord, at_name)
@@ -96,13 +96,13 @@ subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
 
   do i = lord%ix1_slave, lord%ix2_slave
 
-    ix_slave = ring%control_(i)%ix_slave
+    ix_slave = lat%control(i)%ix_slave
     if (ix_slave <= 0) then
       print *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
       call err_exit
     endif
 
-    slave => ring%ele_(ix_slave)
+    slave => lat%ele(ix_slave)
     slave_type = slave%control_type
 
     if (slave_type == free$) slave%control_type = overlay_slave$
@@ -118,13 +118,13 @@ subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
 ! update controller info for the slave ele
 
     slave%n_lord = slave%n_lord + 1
-    call add_lattice_control_structs (ring, ix_slave)
+    call add_lattice_control_structs (lat, ix_slave)
     ixc = slave%ic2_lord
-    ring%ic_(ixc) = i
+    lat%ic(ixc) = i
 
   enddo
 
-  call control_bookkeeper (ring, ix_overlay)
+  call control_bookkeeper (lat, ix_overlay)
 
 end subroutine
 

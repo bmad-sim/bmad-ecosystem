@@ -42,14 +42,14 @@ CONTAINS
 !   use touschek_mod
 !
 ! Input:
-!   mode            -- Modes_struct: beam properties
+!   mode            -- normal_modes_struct: beam properties
 !     %pz_aperture    -- Real: momentum apperature of lattice
 !     %sigE_E         -- Real: deltaE/E
 !     %a%emittance    -- Real: horizontal emittance
 !     %b%emittance    -- Real: vertical emittance, should be set to 
 !                          a%emittance * coupling_constant
 !     %sig_z          -- Real: bunch length
-!   ring            -- Ring_struct: Lattice for tracking
+!   ring            -- lat_struct: Lattice for tracking
 !     %param$n_part   -- Real: Number of particles in bunch, must be set 
 !                          prior to calling touschek_lifetime
 !   orb             -- Coord_struct array: closed orbit
@@ -62,9 +62,9 @@ SUBROUTINE touschek_lifetime(mode, Tl, ring, orb)
 
 IMPLICIT NONE
 
-TYPE(modes_struct), INTENT(IN) :: mode
+TYPE(normal_modes_struct), INTENT(IN) :: mode
 REAL(rp), INTENT(OUT) :: Tl
-TYPE(ring_struct), INTENT(IN), target :: ring
+TYPE(lat_struct), INTENT(IN), target :: ring
 TYPE(coord_struct), INTENT(IN) :: orb(0:)
 
 TYPE(ele_struct), pointer :: ele
@@ -72,7 +72,7 @@ TYPE(ele_struct), pointer :: ele
 REAL(rp) E_tot, gamma, KE, beta, g2, beta2
 REAL(rp) sigma_p2, sigma_z
 REAL(rp) sigma_x2, sigma_y2, sigma_x_beta2, sigma_y_beta2
-REAL(rp) NB,alpha_x,alpha_y,beta_x2,beta_y2
+REAL(rp) NB,alpha_a,alpha_b,beta_a2,beta_b2
 REAL(rp) Dx,Dy,Dxp,Dyp,Dxt,Dyt
 REAL(rp) TL_inv,sum_Tl_inv,norm_sum_Tl_inv
 REAL(rp) k_m, pi_2, integral, F
@@ -92,7 +92,7 @@ emit_x = mode%a%emittance
 ! this should be set to something sane like C*emit_x, by calling program
 emit_y = mode%b%emittance 
 
-E_tot = ring%ele_(0)%value(beam_energy$)
+E_tot = ring%ele(0)%value(E_TOT$)
 CALL convert_total_energy_to(E_tot, ring%param%particle, gamma, KE, beta)
 g2 = gamma**2
 beta2 = beta**2
@@ -103,21 +103,21 @@ touschek_com%tau_m = beta2 * mode%pz_aperture**2
 
 sum_Tl_inv = 0.0
 
-DO i=1,ring%n_ele_use
-  ele => ring%ele_(i)
+DO i=1,ring%n_ele_track
+  ele => ring%ele(i)
 
-  alpha_x = ele%x%alpha
-  alpha_y = ele%y%alpha
-  beta_x2 = ele%x%beta**2
-  beta_y2 = ele%y%beta**2
-  Dx = ele%x%eta
-  Dxp = ele%x%etap
-  Dy = ele%y%eta
-  Dyp = ele%y%etap
-  Dxt = alpha_x*Dx + SQRT(beta_x2)*Dxp
-  Dyt = alpha_y*Dy + SQRT(beta_y2)*Dyp
-  sigma_x_beta2 = SQRT(beta_x2) * emit_x
-  sigma_y_beta2 = SQRT(beta_y2) * emit_y
+  alpha_a = ele%a%alpha
+  alpha_b = ele%b%alpha
+  beta_a2 = ele%a%beta**2
+  beta_b2 = ele%b%beta**2
+  Dx = ele%a%eta
+  Dxp = ele%a%etap
+  Dy = ele%b%eta
+  Dyp = ele%b%etap
+  Dxt = alpha_a*Dx + SQRT(beta_a2)*Dxp
+  Dyt = alpha_b*Dy + SQRT(beta_b2)*Dyp
+  sigma_x_beta2 = SQRT(beta_a2) * emit_x
+  sigma_y_beta2 = SQRT(beta_b2) * emit_y
   sigma_x2 = sigma_x_beta2 + (Dx**2)*sigma_p2
   sigma_y2 = sigma_y_beta2 + (Dy**2)*sigma_p2
   sigma_x_t2 = sigma_x2 + sigma_p2*(Dxt**2)
@@ -126,12 +126,12 @@ DO i=1,ring%n_ele_use
     + ( (Dx**2)+(Dxt**2))/sigma_x_beta2 + ((Dy**2)+(Dyt**2))/sigma_y_beta2 )
 
   touschek_com%B1 = &
-    beta_x2/2.0/beta2/g2/sigma_x_beta2*(1.0 - sigma_h2*(Dxt**2)/sigma_x_beta2) &
-    + beta_y2/2.0/beta2/g2/sigma_y_beta2*(1.0 - sigma_h2*(Dyt**2)/sigma_y_beta2) 
+    beta_a2/2.0/beta2/g2/sigma_x_beta2*(1.0 - sigma_h2*(Dxt**2)/sigma_x_beta2) &
+    + beta_b2/2.0/beta2/g2/sigma_y_beta2*(1.0 - sigma_h2*(Dyt**2)/sigma_y_beta2) 
 
 
   touschek_com%B2 = &
-    SQRT( touschek_com%B1**2 - beta_x2*beta_y2*sigma_h2/(beta2**2)/(g2**2) &
+    SQRT( touschek_com%B1**2 - beta_a2*beta_b2*sigma_h2/(beta2**2)/(g2**2) &
     / (sigma_x_beta2**2)/(sigma_y_beta2**2)/(sigma_p2) &
     * (sigma_x2*sigma_y2 - (sigma_p2**2)*(Dx**2)*(Dy**2)) )
 
@@ -145,7 +145,7 @@ DO i=1,ring%n_ele_use
     / SQRT( sigma_x2*sigma_y2 - (sigma_p2**2)*(Dx**2)*(Dy**2) ) * F
 
   sum_Tl_inv = sum_Tl_inv + Tl_inv &
-    * ( ring%ele_(i)%value(l$)/2 + ring%ele_(i+1)%value(l$)/2 )
+    * ( ring%ele(i)%value(l$)/2 + ring%ele(i+1)%value(l$)/2 )
 
 ENDDO
 

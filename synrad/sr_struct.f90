@@ -81,7 +81,7 @@ module sr_struct
     integer alley_status
     real(rp) track_len      ! length of the track from the start
     type (coord_struct) start, old, now  ! coords
-    logical crossed_end  ! ray crossed the ring end?
+    logical crossed_end  ! ray crossed the lat end?
     integer ix_source   ! element index at source of ray
     integer ix_wall_pt  ! index of wall point where hit
     real(rp) p1_factor      ! factor for computing the power/length
@@ -94,12 +94,12 @@ module sr_struct
 
 ! misc stuff
 
-  type ele_power_struct       ! power from a ring element
+  type ele_power_struct       ! power from a lat element
     real(rp) at_wall              ! power hitting the wall
     real(rp) radiated             ! power radiated
   end type
 
-  type general_param_struct
+  type general_lat_param_struct
     character*40 lattice
     real(rp) epsilon_y     ! vertical emit
     real(rp) i_beam        ! beam current

@@ -8,7 +8,7 @@
 !
 ! Input:
 !   ele    -- Ele_struct: Element with transfer matrix
-!   param  -- Param_struct: Parameters are needed for some elements.
+!   param  -- lat_param_struct: Parameters are needed for some elements.
 !   c0     -- Coord_struct: Coordinates at the beginning of element. 
 !   end_in -- Logical, optional: If present and True then the end coords c1
 !               will be taken as input. not output as normal.
@@ -32,7 +32,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   type (coord_struct) :: c0, c1
   type (coord_struct) :: c00, c11
   type (coord_struct) orb
-  type (param_struct)  param
+  type (lat_param_struct)  param
 
   real(rp), pointer :: mat6(:,:)
 
@@ -448,7 +448,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 ! One must keep in mind that we are NOT using good canonical coordinates since
 !   the energy of the reference particle is changing.
 ! This means that the resulting matrix will NOT be symplectic.
-! Since things are very complicated we simplify things by ignoring the
+! Since things are very complicated we simplify things by ignolat the
 !   off-axis corrections to mat6.
 !
 ! bmad_com%grad_loss_sr_wake is an internal variable used with macroparticles.
@@ -887,7 +887,7 @@ contains
 
 subroutine add_multipoles_and_s_offset
 
-  if (associated(ele%a) .and. key /= multipole$ .and. key /= ab_multipole$) then
+  if (associated(ele%a_pole) .and. key /= multipole$ .and. key /= ab_multipole$) then
     mat6_m = 0
     call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
     call mat6_multipole (knl, tilt, c0%vec, 0.5_rp, mat6_m)
@@ -927,7 +927,7 @@ subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
 
   type (ele_struct)  ele
   type (coord_struct)  orb
-  type (param_struct) param
+  type (lat_param_struct) param
 
   real(rp) x_pos, y_pos, del, sig_x, sig_y, coef, garbage, s_pos
   real(rp) ratio, k0_x, k1_x, k0_y, k1_y, mat6(6,6), beta, bbi_const
@@ -941,11 +941,11 @@ subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
 
   if (sig_x == 0 .or. sig_y == 0) return
 
-  if (s_pos /= 0 .and. ele%x%beta /= 0) then
-    beta = ele%x%beta - 2 * ele%x%alpha * s_pos + ele%x%gamma * s_pos**2
-    sig_x = sig_x * sqrt(beta / ele%x%beta)
-    beta = ele%y%beta - 2 * ele%y%alpha * s_pos + ele%y%gamma * s_pos**2
-    sig_y = sig_y * sqrt(beta / ele%y%beta)
+  if (s_pos /= 0 .and. ele%a%beta /= 0) then
+    beta = ele%a%beta - 2 * ele%a%alpha * s_pos + ele%a%gamma * s_pos**2
+    sig_x = sig_x * sqrt(beta / ele%a%beta)
+    beta = ele%b%beta - 2 * ele%b%alpha * s_pos + ele%b%gamma * s_pos**2
+    sig_y = sig_y * sqrt(beta / ele%b%beta)
   endif
 
   x_pos = orb%vec(1) / sig_x  ! this has offset in it

@@ -23,9 +23,9 @@ contains
 !
 ! Input:
 !   calc_on    -- Logical: True turns on the space charge calculation.
-!   lattice    -- Ring_struct: Lattice for tracking.
+!   lattice    -- lat_struct: Lattice for tracking.
 !     %param%n_part -- Number of particles in a bunch
-!   mode       -- modes_struct: Structure holding the beam info.
+!   mode       -- normal_modes_struct: Structure holding the beam info.
 !     %a%emittance  -- a-mode emitance.
 !     %b%emittance  -- b-mode emittance.
 !     %sig_z        -- Real(rp): Bunch length.
@@ -38,9 +38,9 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 
   implicit none
 
-  type (ring_struct), target :: lattice
+  type (lat_struct), target :: lattice
   type (coord_struct), optional :: closed_orb(0:)
-  type (modes_struct) mode
+  type (normal_modes_struct) mode
   type (trans_space_charge_struct), pointer :: sc
   type (ele_struct), pointer :: ele
   type (twiss_struct) a, b
@@ -60,9 +60,9 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 !------------------------------
 ! Loop over all lattice elements
 
-  do i = 1, lattice%n_ele_use
+  do i = 1, lattice%n_ele_track
 
-    ele => lattice%ele_(i)
+    ele => lattice%ele(i)
     if (.not. associated(ele%trans_sc)) allocate(ele%trans_sc)
     sc => ele%trans_sc
 
@@ -82,8 +82,8 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 ! sc%sig_x and sc%sig_y are the x and y sigmas in the rotated frame.
 
     c11 = ele%c_mat(1,1); c12 = ele%c_mat(1,2); c22 = ele%c_mat(2,2)
-    a = ele%x
-    b = ele%y
+    a = ele%a
+    b = ele%b
     g = ele%gamma_c
     g2 = ele%gamma_c**2
     a_emit = mode%a%emittance
@@ -117,9 +117,9 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 ! The length over which the space charge acts is taken to be half 
 ! the length of the element + half the length of the next element.
 
-    length = (ele%value(l$) + lattice%ele_(i+1)%value(l$)) / 2
-    if (i == 1) length = ele%value(l$) + lattice%ele_(i+1)%value(l$) / 2
-    if (i == lattice%n_ele_use) length = ele%value(l$) / 2
+    length = (ele%value(l$) + lattice%ele(i+1)%value(l$)) / 2
+    if (i == 1) length = ele%value(l$) + lattice%ele(i+1)%value(l$) / 2
+    if (i == lattice%n_ele_track) length = ele%value(l$) / 2
 
 ! Calculate the kick constant.
 ! Taken from:
@@ -155,7 +155,7 @@ end subroutine
 ! Input:
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element tracked through.
-!   param  -- Param_struct:
+!   param  -- lat_param_struct:
 !
 ! Output:
 !   end   -- Coord_struct: End position
@@ -168,7 +168,7 @@ subroutine track1_trans_space_charge (start, ele, param, end)
   type (coord_struct), intent(in)  :: start
   type (coord_struct), intent(out) :: end
   type (ele_struct), target, intent(inout)  :: ele
-  type (param_struct), intent(inout) :: param
+  type (lat_param_struct), intent(inout) :: param
   type (trans_space_charge_struct), pointer :: sc
 
   real(rp) x, y, x_rel, y_rel, kx_rot, ky_rot
@@ -223,7 +223,7 @@ end subroutine
 ! Input:
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element tracked through.
-!   param  -- Param_struct:
+!   param  -- lat_param_struct:
 !
 ! Output:
 !   end   -- Coord_struct: End position
@@ -234,7 +234,7 @@ subroutine make_mat6_trans_space_charge (ele, param)
   implicit none
 
   type (ele_struct), target, intent(inout)  :: ele
-  type (param_struct), intent(inout) :: param
+  type (lat_param_struct), intent(inout) :: param
   type (trans_space_charge_struct), pointer :: sc
 
   real(rp) kx_rot, ky_rot, kick_const, sc_kick_mat(6,6)

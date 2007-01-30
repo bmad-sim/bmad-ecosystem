@@ -1,34 +1,34 @@
 !+
-! Subroutine insert_LRBBI (ring, ring_oppos, cross_positions, ix_LRBBI)
+! Subroutine insert_LRBBI (lat, lat_oppos, cross_positions, ix_LRBBI)
 !            
-! Uses a ring and a list of parasitic crossing points to create and insert
-!   beambeam elements at each crossing point. Returns the new ring, and a list
+! Uses a lat and a list of parasitic crossing points to create and insert
+!   beambeam elements at each crossing point. Returns the new lat, and a list
 !   of indices of the new elements.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   Ring               -- Ring_struct: ring to be updated with lrbbi.
-!   Ring_oppos         -- Ring_struct: ring with positions of opposite bunches
+!   Lat               -- lat_struct: lat to be updated with lrbbi.
+!   Lat_oppos         -- lat_struct: lat with positions of opposite bunches
 !   cross_positions(:) -- Real(rp): array of parasitic crossing positions
 !
 ! Output:
-!   Ring               -- Updated ring within beambeam elements inserted
+!   Lat               -- Updated lat within beambeam elements inserted
 !   ix_LRBBI(1:*)      -- Integer: array of indices of inserted elements
 !-
 
 #include "CESR_platform.inc"
 
-subroutine insert_LRBBI (ring, oppos_ring, cross_positions, ix_LRBBI)
+subroutine insert_LRBBI (lat, oppos_lat, cross_positions, ix_LRBBI)
 
   use bmad_struct
   use bmad_interface, except => insert_LRBBI
 
   implicit none
 
-  type (ring_struct)  ring
-  type (ring_struct) oppos_ring
+  type (lat_struct)  lat
+  type (lat_struct) oppos_lat
   type (ele_struct), pointer ::  insert_ele(:)
 
   real(rp), dimension(:), intent(inout) :: cross_positions
@@ -65,34 +65,34 @@ subroutine insert_LRBBI (ring, oppos_ring, cross_positions, ix_LRBBI)
 
   call_it = 'lrbbi'
 
-! Add a beambeam element to the ring at each crossing point.
+! Add a beambeam element to the lat at each crossing point.
 
   do i=1, size(cross_positions)
 
-    s_split = cross_positions(i) * ring%param%total_length 
+    s_split = cross_positions(i) * lat%param%total_length 
             !puts cross_positions in meters
 
     if (s_split == 0) cycle
 
     ix_split=0
 
-    call split_ring(oppos_ring, s_split, ix_split_oppos, split_done)
-    call ring_make_mat6(oppos_ring, -1)
+    call split_lat(oppos_lat, s_split, ix_split_oppos, split_done)
+    call lat_make_mat6(oppos_lat, -1)
 
-    call split_ring(ring, s_split, ix_split, split_done)
-    call ring_make_mat6(ring, -1)
+    call split_lat(lat, s_split, ix_split, split_done)
+    call lat_make_mat6(lat, -1)
 
     ix_ele = ix_split + 1
 
-    call init_LRBBI(ring, oppos_ring, insert_ele(i), ix_split, ix_split_oppos)
+    call init_LRBBI(lat, oppos_lat, insert_ele(i), ix_split, ix_split_oppos)
 
     insert_ele(i)%s = s_split
 
     ix_LRBBI(i) = ix_ele
 
-    call insert_element(ring, insert_ele(i), ix_ele)
+    call insert_element(lat, insert_ele(i), ix_ele)
 
-    call ring_make_mat6(ring, ix_ele)
+    call lat_make_mat6(lat, ix_ele)
 
   enddo
 

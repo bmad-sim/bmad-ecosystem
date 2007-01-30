@@ -2,7 +2,7 @@
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine check_wall (wall, ring)
+subroutine check_wall (wall, lat)
 
   use sr_struct
   use sr_interface
@@ -10,7 +10,7 @@ subroutine check_wall (wall, ring)
   implicit none
 
   type (wall_struct), target :: wall
-  type (ring_struct) ring
+  type (lat_struct) lat
 
   type (wall_pt_struct), pointer :: wptr(:)
 
@@ -55,7 +55,7 @@ subroutine check_wall (wall, ring)
     call err_exit
   endif
 
-  if (wptr(wall%n_pt_tot)%s /= ring%ele_(ring%n_ele_ring)%s) then
+  if (wptr(wall%n_pt_tot)%s /= lat%ele(lat%n_ele_track)%s) then
     type *, 'ERROR: ', wall_name(wall%side), &
                                   ' WALL DOES NOT GO A FULL TURN'
     call err_exit

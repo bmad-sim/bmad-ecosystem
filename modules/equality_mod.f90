@@ -5,10 +5,10 @@ use bmad_struct
 interface operator (==)
   module procedure eq_coord, eq_twiss, eq_floor_position, eq_wig_term
   module procedure eq_taylor_term, eq_taylor
-  module procedure eq_sr1_wake, eq_sr2_wake, eq_lr_wake
+  module procedure eq_sr_table_wake, eq_sr_mode_wake, eq_lr_wake
   module procedure eq_wake, eq_control, eq_param, eq_amode, eq_linac_mode
   module procedure eq_modes, eq_bmad_com, eq_em_field, eq_ele, eq_mode_info
-  module procedure eq_ring
+  module procedure eq_lat
 end interface
 
 contains
@@ -141,13 +141,13 @@ end function
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-elemental function eq_sr1_wake (f1, f2) result (is_eq)
+elemental function eq_sr_table_wake (f1, f2) result (is_eq)
 
 use bmad_struct
 
 implicit none
 
-type (sr1_wake_struct), intent(in) :: f1, f2
+type (sr_table_wake_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -159,13 +159,13 @@ end function
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-elemental function eq_sr2_wake (f1, f2) result (is_eq)
+elemental function eq_sr_mode_wake (f1, f2) result (is_eq)
 
 use bmad_struct
 
 implicit none
 
-type (sr2_wake_struct), intent(in) :: f1, f2
+type (sr_mode_wake_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -216,21 +216,21 @@ logical is_eq
 !
 
 is_eq = (f1%sr_file == f2%sr_file) .and. (f1%lr_file == f2%lr_file) .and. &
-     (size(f1%sr1) == size(f2%sr1)) .and. (size(f2%sr2_long) == size(f2%sr2_long)) .and. &
-     (size(f1%sr2_trans) == size(f2%sr2_trans)) .and. (size(f1%lr) == size(f2%lr)) .and. &
-     (f1%z_sr2_max == f2%z_sr2_max)
+     (size(f1%sr_table) == size(f2%sr_table)) .and. (size(f2%sr_mode_long) == size(f2%sr_mode_long)) .and. &
+     (size(f1%sr_mode_trans) == size(f2%sr_mode_trans)) .and. (size(f1%lr) == size(f2%lr)) .and. &
+     (f1%z_sr_mode_max == f2%z_sr_mode_max)
 if (.not. is_eq) return
 
-do i = lbound(f1%sr1, 1), ubound(f1%sr1, 1)
-  is_eq = is_eq .and. (f1%sr1(i) == f2%sr1(i)) 
+do i = lbound(f1%sr_table, 1), ubound(f1%sr_table, 1)
+  is_eq = is_eq .and. (f1%sr_table(i) == f2%sr_table(i)) 
 enddo
 
-do i = lbound(f1%sr2_long, 1), ubound(f1%sr2_long, 1)
-  is_eq = is_eq .and. (f1%sr2_long(i) == f2%sr2_long(i)) 
+do i = lbound(f1%sr_mode_long, 1), ubound(f1%sr_mode_long, 1)
+  is_eq = is_eq .and. (f1%sr_mode_long(i) == f2%sr_mode_long(i)) 
 enddo
 
-do i = lbound(f1%sr2_trans, 1), ubound(f1%sr2_trans, 1)
-  is_eq = is_eq .and. (f1%sr2_trans(i) == f2%sr2_trans(i)) 
+do i = lbound(f1%sr_mode_trans, 1), ubound(f1%sr_mode_trans, 1)
+  is_eq = is_eq .and. (f1%sr_mode_trans(i) == f2%sr_mode_trans(i)) 
 enddo
 
 do i = lbound(f1%lr, 1), ubound(f1%lr, 1)
@@ -267,7 +267,7 @@ use bmad_struct
 
 implicit none
 
-type (param_struct), intent(in) :: f1, f2
+type (lat_param_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -293,7 +293,7 @@ use bmad_struct
 
 implicit none
 
-type (amode_struct), intent(in) :: f1, f2
+type (anormal_mode_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -314,7 +314,7 @@ use bmad_struct
 
 implicit none
 
-type (linac_mode_struct), intent(in) :: f1, f2
+type (linac_normal_mode_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -335,7 +335,7 @@ use bmad_struct
 
 implicit none
 
-type (modes_struct), intent(in) :: f1, f2
+type (normal_modes_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -356,7 +356,7 @@ use bmad_struct
 
 implicit none
 
-type (bmad_com_struct), intent(in) :: f1, f2
+type (bmad_common_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -397,7 +397,7 @@ logical is_eq
 
 !
 
-is_eq = all(f1%E == f2%E) .and. all(f1%B == f2%B) .and. &
+is_eq = all(f1%E == f2%E) .and. all(f1%b == f2%b) .and. &
     all(f1%kick == f2%kick) .and. all(f1%dE == f2%dE) .and. &
     all(f1%dB == f2%dB) .and. all(f1%dkick == f2%dkick) .and. &
     (f1%type == f2%type)
@@ -421,8 +421,8 @@ integer i, j
 
 is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     (f1%alias == f2%alias) .and. &
-    (f1%attribute_name == f2%attribute_name) .and. (f1%x == f2%x) .and. &
-    (f1%y == f2%y) .and. &
+    (f1%attribute_name == f2%attribute_name) .and. (f1%a == f2%a) .and. &
+    (f1%b == f2%b) .and. &
     (f1%z == f2%z) .and. (f1%floor == f2%floor) .and. all(f1%value == f2%value) .and. &
     all(f1%gen0 == f2%gen0) .and. all(f1%vec0 == f2%vec0) .and. &
     all(f1%mat6 == f2%mat6) .and. all(f1%c_mat == f2%c_mat) .and. &
@@ -448,7 +448,7 @@ is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     (f1%csr_calc_on .eqv. f2%csr_calc_on)
 
 is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .and. &
-    (associated(f1%a) .eqv. associated(f2%a)) .and. &
+    (associated(f1%a_pole) .eqv. associated(f2%a_pole)) .and. &
     (associated(f1%const) .eqv. associated(f2%const)) .and. &
     (associated(f1%r) .eqv. associated(f2%r)) .and. &
     (associated(f1%descrip) .eqv. associated(f2%descrip)) .and. &
@@ -459,8 +459,8 @@ is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .a
 if (.not. is_eq) return
 is_eq = .false.
 
-if (associated(f1%a)) then
-  if (any(f1%a /= f2%a) .or. any(f1%b /= f2%b)) return
+if (associated(f1%a_pole)) then
+  if (any(f1%a_pole /= f2%a_pole) .or. any(f1%b_pole /= f2%b_pole)) return
 endif
 
 if (associated(f1%const)) then
@@ -536,7 +536,7 @@ print *, 'logic:      ', (f1%mat6_calc_method == f2%mat6_calc_method) .and. &
     (f1%is_on .eqv. f2%is_on) .and. (f1%internal_logic .eqv. f2%internal_logic) .and. &
     (f1%logic .eqv. f2%logic) .and. (f1%on_an_i_beam .eqv. f2%on_an_i_beam)
 
-print *, 'xyz:        ', (f1%x == f2%x) .and. (f1%y == f2%y) .and. (f1%z == f2%z) 
+print *, 'xyz:        ', (f1%a == f2%a) .and. (f1%b == f2%b) .and. (f1%z == f2%z) 
 print *, 'floor:      ', (f1%floor == f2%floor)
 !print fmt, ' floor1:', f1%floor
 !print fmt, ' floor2:', f2%floor
@@ -547,7 +547,7 @@ print *, 'gen0:       ', all(f1%gen0 == f2%gen0)
 print *, 'vec0:       ', all(f1%vec0 == f2%vec0) 
 print *, 'mat6:       ', all(f1%mat6 == f2%mat6)
 print *, 'c_mat:      ', all(f1%c_mat == f2%c_mat)
-print *, 'Associated: ', (associated(f1%a) .eqv. associated(f2%a)) .and. &
+print *, 'Associated: ', (associated(f1%a_pole) .eqv. associated(f2%a_pole)) .and. &
     (associated(f1%const) .eqv. associated(f2%const)) .and. &
     (associated(f1%descrip) .eqv. associated(f2%descrip))
 print *, 'A wig:      ', (associated(f1%wig_term) .eqv. associated(f2%wig_term))
@@ -555,8 +555,8 @@ print *, 'A wake:     ', (associated(f1%wake) .eqv. associated(f2%wake))
 print *, 'A gen_field:', (associated(f1%gen_field) .eqv. associated(f2%gen_field))
 print *, 'A r:        ', (associated(f1%r) .eqv. associated(f2%r))
 
-if (associated(f1%a) .and. associated(f2%a)) then
-  print *, 'ab:       ', all(f1%a == f2%a) .and. all(f1%b == f2%b)
+if (associated(f1%a_pole) .and. associated(f2%a_pole)) then
+  print *, 'ab:       ', all(f1%a_pole == f2%a_pole) .and. all(f1%b_pole == f2%b_pole)
 endif
 
 if (associated(f1%const) .and. associated(f2%const)) then
@@ -617,13 +617,13 @@ end function
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-elemental function eq_ring (f1, f2) result (is_eq)
+elemental function eq_lat (f1, f2) result (is_eq)
 
 use bmad_struct
 
 implicit none
 
-type (ring_struct), intent(in) :: f1, f2
+type (lat_struct), intent(in) :: f1, f2
 logical is_eq
 integer i
 
@@ -633,34 +633,34 @@ is_eq = (f1%name == f2%name)
 is_eq = is_eq .and. (f1%lattice == f2%lattice) 
 is_eq = is_eq .and. (f1%input_file_name == f2%input_file_name) 
 is_eq = is_eq .and. (f1%title == f2%title) 
-is_eq = is_eq .and. (f1%x == f2%x) 
-is_eq = is_eq .and. (f1%y == f2%y) 
+is_eq = is_eq .and. (f1%a == f2%a) 
+is_eq = is_eq .and. (f1%b == f2%b) 
 is_eq = is_eq .and. (f1%z == f2%z) 
 is_eq = is_eq .and. (f1%param == f2%param) 
 is_eq = is_eq .and. (f1%version == f2%version) 
-is_eq = is_eq .and. (f1%n_ele_use == f2%n_ele_use) 
+is_eq = is_eq .and. (f1%n_ele_track == f2%n_ele_track) 
 is_eq = is_eq .and. (f1%n_ele_max == f2%n_ele_max) 
 is_eq = is_eq .and. (f1%n_control_max == f2%n_control_max) 
 is_eq = is_eq .and. (f1%n_ic_max == f2%n_ic_max) 
 is_eq = is_eq .and. (f1%input_taylor_order == f2%input_taylor_order) 
 is_eq = is_eq .and. (f1%ele_init == f2%ele_init) 
-is_eq = is_eq .and. (size(f1%ele_) == size(f2%ele_)) 
-is_eq = is_eq .and. (size(f1%control_) == size(f2%control_)) 
-is_eq = is_eq .and. (size(f1%ic_) == size(f2%ic_)) 
-is_eq = is_eq .and. (f1%beam_energy == f2%beam_energy)
+is_eq = is_eq .and. (size(f1%ele) == size(f2%ele)) 
+is_eq = is_eq .and. (size(f1%control) == size(f2%control)) 
+is_eq = is_eq .and. (size(f1%ic) == size(f2%ic)) 
+is_eq = is_eq .and. (f1%E_TOT == f2%E_TOT)
 
 if (.not. is_eq) return
 
 do i = 0, f1%n_ele_max
-  is_eq = is_eq .and. (f1%ele_(i) == f2%ele_(i))
+  is_eq = is_eq .and. (f1%ele(i) == f2%ele(i))
 enddo
 
-do i = 1, size(f1%control_)
-  is_eq = is_eq .and. (f1%control_(i) == f2%control_(i))
+do i = 1, size(f1%control)
+  is_eq = is_eq .and. (f1%control(i) == f2%control(i))
 enddo
 
-do i = 1, size(f1%ic_)
-  is_eq = is_eq .and. (f1%ic_(i) == f2%ic_(i))
+do i = 1, size(f1%ic)
+  is_eq = is_eq .and. (f1%ic(i) == f2%ic(i))
 enddo
 
 end function

@@ -27,7 +27,7 @@
 !                       = cycles$   => Print Twiss, phi in radians/2pi.
 !   type_control   -- Logical, optional: If True then print control status.
 !                       Default is False if lattice is not present. Otherwise True.
-!   lattice        -- Ring_struct, optional: Needed for control typeout.
+!   lattice        -- lat_struct, optional: Needed for control typeout.
 !   type_wake      -- Logical, optional: If True then print the long-range and 
 !                       short-range wakes information. If False then just print
 !                       how many terms the wake has. Default is True.
@@ -45,7 +45,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
   implicit none
 
   type (ele_struct)  ele
-  type (ring_struct), optional :: lattice
+  type (lat_struct), optional :: lattice
 
   integer n_lines, i
   integer, optional :: type_mat6, twiss_out

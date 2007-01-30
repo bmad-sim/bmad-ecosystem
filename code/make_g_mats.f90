@@ -30,10 +30,10 @@ subroutine make_g_mats (ele, g_mat, g_inv_mat)
   real(rp) sqrt_beta_a, sqrt_beta_b, alpha_a, alpha_b
 !
 
-  sqrt_beta_a = sqrt(ele%x%beta)
-  alpha_a     = ele%x%alpha
-  sqrt_beta_b = sqrt(ele%y%beta)
-  alpha_b     = ele%y%alpha
+  sqrt_beta_a = sqrt(ele%a%beta)
+  alpha_a     = ele%a%alpha
+  sqrt_beta_b = sqrt(ele%b%beta)
+  alpha_b     = ele%b%alpha
 
   g_mat = 0
   g_mat(1,1) = 1 / sqrt_beta_a

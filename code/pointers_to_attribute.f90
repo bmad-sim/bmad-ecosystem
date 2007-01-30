@@ -7,14 +7,14 @@
 ! Note: ele_name = 'BEAM_START' corresponds to the lat%beam_start substructure. 
 ! Note: ele_name can be a list of element indices. For example:
 !           ele_name = "3:5"
-!  This sets elements 3, 4, and 5 in the lat%ele_(:) array.
+!  This sets elements 3, 4, and 5 in the lat%ele(:) array.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   lat             -- Ring_struct: Lattice.
+!   lat             -- lat_struct: Lattice.
 !   ele_name        -- Character(*): Element name. Must be uppercase
 !   attrib_name     -- Character(*): Attribute name. Must be uppercase.
 !                       For example: "HKICK".
@@ -30,7 +30,7 @@
 !   err_flag     -- Logical: Set True if attribtute not found or attriubte
 !                     cannot be changed directly.
 !   ix_eles(:)   -- Integer, optional, allocatable: List of element indexes 
-!                     in lat%ele_(:) array. Set to -1 if not applicable.
+!                     in lat%ele(:) array. Set to -1 if not applicable.
 !   ix_attrib    -- Integer, optional: If applicable then this is the index to the 
 !                     attribute in the ele%value(:) array.
 !-
@@ -45,7 +45,7 @@ use bmad_interface, except => pointers_to_attribute
 
 implicit none
 
-type (ring_struct), target :: lat
+type (lat_struct), target :: lat
 type (ele_struct), target :: beam_start
 type (ele_struct), pointer :: ele
 type (real_array_struct), allocatable :: ptr_array(:)
@@ -76,8 +76,8 @@ if (ele_name == 'BEAM_START') then
   if (present(ix_eles)) ix_eles(1) = -1
 
   select case(attrib_name)
-  case ('EMITTANCE_A'); ptr_array(1)%r => lat%x%emit 
-  case ('EMITTANCE_B'); ptr_array(1)%r => lat%y%emit
+  case ('EMITTANCE_A'); ptr_array(1)%r => lat%a%emit 
+  case ('EMITTANCE_B'); ptr_array(1)%r => lat%b%emit
   case default
     beam_start%key = def_beam_start$
     ix = attribute_index (beam_start, attrib_name)
@@ -115,7 +115,7 @@ if (index(":1234567890", ele_name(1:1)) .ne. 0) then
   n = 0
   do i = 0, lat%n_ele_max
     if (this_ele(i)) then
-      ele => lat%ele_(i)
+      ele => lat%ele(i)
       n = n + 1
       call pointer_to_attribute (ele, attrib_name, do_allocation, &
                         ptr_array(n)%r, err_flag, err_print_flag, ix_attrib)
@@ -127,7 +127,7 @@ else
 ! ele_name
   n = 0
   do i = 0, lat%n_ele_max
-    ele => lat%ele_(i)
+    ele => lat%ele(i)
     if (ele%name == ele_name) n = n + 1
   enddo
 
@@ -140,7 +140,7 @@ else
 
   n = 0
   do i = 0, lat%n_ele_max
-    ele => lat%ele_(i)
+    ele => lat%ele(i)
     if (ele%name == ele_name) then
       n = n + 1
       call pointer_to_attribute (ele, attrib_name, do_allocation, &

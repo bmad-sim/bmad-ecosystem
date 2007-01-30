@@ -11,11 +11,11 @@
 ! Input:
 !   start  -- Coord_struct: Starting position.
 !   ele    -- Ele_struct: Element.
-!   param  -- Param_struct: Lattice parameters.
+!   param  -- lat_param_struct: Lattice parameters.
 !
 ! Output:
 !   end   -- Coord_struct: End position.
-!   param -- Param_struct: Lattice parameters.
+!   param -- lat_param_struct: Lattice parameters.
 !     %lost -- Logical. Set to true if a particle is lost.
 !-
 
@@ -30,7 +30,7 @@ subroutine track1_custom (start, ele, param, end)
   type (coord_struct) :: start
   type (coord_struct) :: end
   type (ele_struct) :: ele
-  type (param_struct) :: param
+  type (lat_param_struct) :: param
 
 !
 

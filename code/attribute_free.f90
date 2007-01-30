@@ -14,9 +14,9 @@
 !   use bmad
 !
 ! Input:
-!   ix_ele          -- Integer: Index of element in lat%ele_(:) array.
+!   ix_ele          -- Integer: Index of element in lat%ele(:) array.
 !   ix_attrib       -- Integer: Index to the attribute in ele%value(:) array.
-!   lat             -- Ring_struct: Lattice structure.
+!   lat             -- lat_struct: Lattice structure.
 !   err_print_flag  -- Logical, optional: If present and False then supress
 !                       printing of an error message if attribute is not free.
 !
@@ -35,7 +35,7 @@ function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
 
   implicit none
 
-  type (ring_struct), target :: lat
+  type (lat_struct), target :: lat
 
   integer ix_attrib, ix_ele, ix_ele0, ix_attrib0
 
@@ -62,22 +62,22 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
 ! super_slaves attributes cannot be varied
 
   free = .false.
-  ele => lat%ele_(ix_ele)
+  ele => lat%ele(ix_ele)
 
 ! If the attribute is controled by an overlay lord then it cannot be varied.
 ! Exception: Multiple overlays can control the same attribute.
 
   do i = ele%ic1_lord, ele%ic2_lord
-    ix = lat%ic_(i)
-    ir = lat%control_(ix)%ix_lord
+    ix = lat%ic(i)
+    ir = lat%control(ix)%ix_lord
     if (present(ix_lord)) then
       if (ix_lord == ir) cycle
-      if (lat%ele_(ix_lord)%control_type == overlay_lord$) cycle
+      if (lat%ele(ix_lord)%control_type == overlay_lord$) cycle
     endif
-    if (lat%ele_(ir)%control_type == overlay_lord$) then
-      if (lat%control_(ix)%ix_attrib == ix_attrib) then
+    if (lat%ele(ir)%control_type == overlay_lord$) then
+      if (lat%control(ix)%ix_attrib == ix_attrib) then
         call print_error (ix_ele, ix_attrib, &
-            'IT IS CONTROLLED BY THE OVERLAY_LORD: ' // lat%ele_(ir)%name)
+            'IT IS CONTROLLED BY THE OVERLAY_LORD: ' // lat%ele(ir)%name)
         return
       endif
     endif
@@ -114,7 +114,7 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
 
   select case (ele%key)
   case (sbend$)
-    if (any(ix_attrib == (/ angle$, l_chord$, rho$ /))) free = .false.
+    if (any(ix_attrib == (/ angle$, l_chord$, rho$, k2$ /))) free = .false.
   case (rfcavity$)
     if (ix_attrib == rf_frequency$ .and. ele%value(harmon$) /= 0) free = .false.
   case (beambeam$)
@@ -192,8 +192,8 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
 
   if (ele%control_type == group_lord$ .or. ele%control_type == overlay_lord$) then
     do i = ele%ix1_slave, ele%ix2_slave
-      call check_this_attribute_free (lat%control_(i)%ix_slave, &
-                                               lat%control_(i)%ix_attrib, ix_ele)
+      call check_this_attribute_free (lat%control(i)%ix_slave, &
+                                               lat%control(i)%ix_attrib, ix_ele)
       if (.not. free) return
     enddo
   endif
@@ -214,8 +214,8 @@ subroutine print_error (ix_ele, ix_attrib, l1)
   if (.not. do_print) return
 
   li(1) = 'ERROR IN ATTRIBUTE_FREE:'
-  li(2) = '     THE ATTRIBUTE: ' // attribute_name(lat%ele_(ix_ele0), ix_attrib0)
-  li(3) = '     OF THE ELEMENT: ' // lat%ele_(ix_ele0)%name
+  li(2) = '     THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele0), ix_attrib0)
+  li(3) = '     OF THE ELEMENT: ' // lat%ele(ix_ele0)%name
 
   if (ix_ele == ix_ele0) then
     li(4) = '   IS NOT FREE TO VARY SINCE:'
@@ -223,8 +223,8 @@ subroutine print_error (ix_ele, ix_attrib, l1)
     call out_io (s_error$, r_name, li(1:5))   
   else 
     li(4) = '   IS NOT FREE TO VARY SINCE IT IS TRYING TO CONTROL:'
-    li(5) = '     THE ATTRIBUTE: ' // attribute_name(lat%ele_(ix_ele), ix_attrib)
-    li(6) = '     OF THE ELEMENT: ' // lat%ele_(ix_ele)%name
+    li(5) = '     THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele), ix_attrib)
+    li(6) = '     OF THE ELEMENT: ' // lat%ele(ix_ele)%name
     li(7) = '   AND THIS IS NOT FREE TO VARY SINCE:'
     li(8) = '     ' // l1
     call out_io (s_error$, r_name, li)        

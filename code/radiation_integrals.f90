@@ -30,20 +30,20 @@
 !   use bmad
 !
 ! Input:
-!   lat        -- Ring_struct: Lattice to use. The calculation assumes that 
+!   lat        -- lat_struct: Lattice to use. The calculation assumes that 
 !                    the Twiss parameters have been calculated.
 !   orbit(0:)  -- Coord_struct: Closed orbit.
 !   ix_cache   -- Integer, optional: Cache pointer.
 !                              == 0 --> Create a new cache.
 !                              > 0  --> Use the corresponding cache. 
 ! Output:
-!   mode -- Modes_struct: Parameters for the ("horizontal like") a-mode,
+!   mode -- normal_modes_struct: Parameters for the ("horizontal like") a-mode,
 !                              ("vertical like") b-mode, and the z-mode
 !     %synch_int(1:3) -- Synchrotron integrals.
 !     %sigE_E         -- Sigma_E/E energy spread
 !     %sig_z          -- Bunch Length
 !     %e_loss         -- Energy loss in eV per turn
-!     %a, %b, %z      -- Amode_struct: Substructure
+!     %a_pole, %b_pole, %z      -- Anormal_mode_struct: Substructure
 !       %emittance      -- Emittance
 !       %synch_int(4:5) -- Synchrotron integrals
 !       %j_damp         -- Damping partition factor
@@ -87,13 +87,13 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   
   implicit none
 
-  type (ring_struct), target :: lat
+  type (lat_struct), target :: lat
   type (ele_struct), save :: runt
   type (ele_struct), pointer :: ele, ele0
   type (ele_struct) :: ele2
   type (coord_struct), target :: orbit(0:), start, end, c2
-  type (modes_struct) mode
-  type (bmad_com_struct) bmad_com_save
+  type (normal_modes_struct) mode
+  type (bmad_common_struct) bmad_com_save
   type (rad_int_cache_struct), pointer :: cache
   type (track_struct) track
   type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
@@ -123,7 +123,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   bmad_com%trans_space_charge_on = .false.
 
   ie1 = 1
-  ie2 = lat%n_ele_use
+  ie2 = lat%n_ele_track
 
   if (allocated(ric%i1)) then
     if (ubound(ric%i1, 1) < lat%n_ele_max) then 
@@ -202,10 +202,10 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 
       j = 0  ! number of elements to cache
       do i = ie1, ie2
-        key = lat%ele_(i)%key
+        key = lat%ele(i)%key
         if (key == quadrupole$ .or. key == sol_quad$ .or. key == sbend$ .or. &
-                 key == wiggler$ .or. lat%ele_(i)%value(hkick$) /= 0 .or. &
-                 lat%ele_(i)%value(vkick$) /= 0) then
+                 key == wiggler$ .or. lat%ele(i)%value(hkick$) /= 0 .or. &
+                 lat%ele(i)%value(vkick$) /= 0) then
           j = j + 1
           cache%ix_ele(i) = j  ! mark element for caching
         else
@@ -222,9 +222,10 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
         if (cache%ix_ele(i) == -1) cycle
 
         j = j + 1
-        cache%ele(j)%ix_ele = i
+        cache_ele => cache%ele(j)
+        cache_ele%ix_ele = i
 
-        ele2 = lat%ele_(i)
+        ele2 = lat%ele(i)
         if (.not. ele2%map_with_offsets) call zero_ele_offsets (ele2)
 
         if (ele2%key == wiggler$ .and. ele2%sub_key == periodic_type$) then
@@ -235,8 +236,8 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
                                       bmad_com%default_ds_step, del_z, n_step)
         endif
 
-        cache%ele(j)%del_z = del_z
-        allocate (cache%ele(j)%pt(0:n_step))
+        cache_ele%del_z = del_z
+        allocate (cache_ele%pt(0:n_step))
 
         if (ele2%key == wiggler$) then
           if (ele2%sub_key == map_type$) then
@@ -246,10 +247,10 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
             do k = 0, track%n_pt
               z_here = track%pt(k)%s 
               end = track%pt(k)%orb
-              call calc_wiggler_g_params (ele2, z_here, end, cache%ele(j)%pt(k))
-              cache%ele(j)%pt(k)%orb  = end
-              cache%ele(j)%pt(k)%mat6 = track%pt(k)%mat6
-              cache%ele(j)%pt(k)%vec0 = track%pt(k)%vec0
+              call calc_wiggler_g_params (ele2, z_here, end, cache_ele%pt(k))
+              cache_ele%pt(k)%orb  = end
+              cache_ele%pt(k)%mat6 = track%pt(k)%mat6
+              cache_ele%pt(k)%vec0 = track%pt(k)%vec0
             enddo
 
           else  ! periodic_type$
@@ -265,25 +266,29 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
               z_here = k * del_z
               c = fac * cos (kz * z_here) 
               s = fac * sin (kz * z_here)
-              cache%ele(j)%pt(k)%orb%vec = &
+              cache_ele%pt(k)%orb%vec = &
                 (/ (c - fac) / kz**2, -s / kz, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp /)
-              call mat_make_unit(cache%ele(j)%pt(k)%mat6)
-              cache%ele(j)%pt(k)%mat6(1,6) = -cache%ele(j)%pt(k)%orb%vec(1)
-              cache%ele(j)%pt(k)%mat6(2,6) = -cache%ele(j)%pt(k)%orb%vec(2)
-              cache%ele(j)%pt(k)%vec0 = cache%ele(j)%pt(k)%orb%vec
-              cache%ele(j)%pt(k)%g = abs(c)
-              cache%ele(j)%pt(k)%g2 = c**2
+              call mat_make_unit(cache_ele%pt(k)%mat6)
+              cache_ele%pt(k)%mat6(1,6) = -cache_ele%pt(k)%orb%vec(1)
+              cache_ele%pt(k)%mat6(2,6) = -cache_ele%pt(k)%orb%vec(2)
+              cache_ele%pt(k)%vec0 = cache_ele%pt(k)%orb%vec
+              cache_ele%pt(k)%g = abs(c)
+              cache_ele%pt(k)%g2 = c**2
+              cache_ele%pt(k)%g_x = -c
+              cache_ele%pt(k)%g_y = 0
+              cache_ele%pt(k)%dg2_x = 0
+              cache_ele%pt(k)%dg2_y = 0
             enddo
           endif
 
         else  ! non wiggler elements
           do k = 0, n_step
-            z_here = k * cache%ele(j)%del_z
-            call twiss_and_track_partial (lat%ele_(i-1), ele2, lat%param, &
+            z_here = k * cache_ele%del_z
+            call twiss_and_track_partial (lat%ele(i-1), ele2, lat%param, &
                                             z_here, runt, orbit(i-1), end)
-            cache%ele(j)%pt(k)%orb = end
-            cache%ele(j)%pt(k)%mat6 = runt%mat6
-            cache%ele(j)%pt(k)%vec0 = runt%vec0
+            cache_ele%pt(k)%orb = end
+            cache_ele%pt(k)%mat6 = runt%mat6
+            cache_ele%pt(k)%vec0 = runt%vec0
           enddo
         endif
 
@@ -304,7 +309,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 
   do ir = ie1, ie2
 
-    ele => lat%ele_(ir)
+    ele => lat%ele(ir)
     if (.not. ele%is_on) cycle
 
     nullify (cache_ele)
@@ -312,7 +317,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
       if (cache%ix_ele(ir) > 0) cache_ele => cache%ele(cache%ix_ele(ir))
     endif
 
-    ele0 => lat%ele_(ir-1)
+    ele0 => lat%ele(ir-1)
     ric%orb0 => orbit(ir-1)
     ric%orb1 => orbit(ir)
 
@@ -429,7 +434,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 
   do ir = ie1, ie2
 
-    ele => lat%ele_(ir)
+    ele => lat%ele(ir)
     if (ele%key /= wiggler$) cycle
     if (ele%sub_key /= map_type$) cycle
     if (.not. ele%is_on) cycle
@@ -439,7 +444,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
       if (cache%ix_ele(ir) > 0) cache_ele => cache%ele(cache%ix_ele(ir))
     endif
 
-    ele0 => lat%ele_(ir-1)
+    ele0 => lat%ele(ir-1)
     ric%orb0 => orbit(ir-1)
     ric%orb1 => orbit(ir)
 
@@ -451,15 +456,15 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 
     call make_v_mats (ele0, v, v_inv)
     ric%eta_a0 = &
-          matmul(v, (/ ele0%x%eta, ele0%x%etap, 0.0_rp, 0.0_rp /))
+          matmul(v, (/ ele0%a%eta, ele0%a%etap, 0.0_rp, 0.0_rp /))
     ric%eta_b0 = &
-          matmul(v, (/ 0.0_rp, 0.0_rp, ele0%y%eta, ele0%y%etap /))
+          matmul(v, (/ 0.0_rp, 0.0_rp, ele0%b%eta, ele0%b%etap /))
 
     call make_v_mats (ele, v, v_inv)
     ric%eta_a1 = &
-          matmul(v, (/ ele%x%eta, ele%x%etap, 0.0_rp, 0.0_rp /))
+          matmul(v, (/ ele%a%eta, ele%a%etap, 0.0_rp, 0.0_rp /))
     ric%eta_b1 = &
-          matmul(v, (/ 0.0_rp, 0.0_rp, ele%y%eta, ele%y%etap /))
+          matmul(v, (/ 0.0_rp, 0.0_rp, ele%b%eta, ele%b%etap /))
 
     call qromb_rad_int (ele0, ele, (/ T, T, T, T, T, T, T /), ir, cache_ele, int_tot) 
 
@@ -470,7 +475,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 ! Linac radiation integrals:
 
   mc2 = mass_of (lat%param%particle)
-  gamma_f = lat%ele_(ie2)%value(beam_energy$) / mc2
+  gamma_f = lat%ele(ie2)%value(E_TOT$) / mc2
 
   mode%lin%sig_E1 = 0
   mode%lin%i2_E4  = 0
@@ -479,7 +484,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   mode%lin%i5b_E6 = 0
 
   do i = ie1, ie2
-    gamma = lat%ele_(i)%value(beam_energy$) / mc2
+    gamma = lat%ele(i)%value(E_TOT$) / mc2
     gamma4 = gamma**4
     gamma6 = gamma4 * gamma**2
     ric%lin_i2_E4(i)  = ric%i2(i) * gamma4
@@ -508,7 +513,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 
   i4z = i4a + i4b
 
-  energy = lat%ele_(0)%value(beam_energy$)
+  energy = lat%ele(0)%value(E_TOT$)
   gamma2_factor = (energy * 1956.95e-9)**2
   energy_loss = 1e9 * c_gam * (1e-9 * mc2)**4 * mode%lin%i2_E4 / pi
 

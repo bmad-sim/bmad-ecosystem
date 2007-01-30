@@ -53,18 +53,18 @@ subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, &
 
   call make_v_mats (ele, v_mat, v_inv_mat)
   a_orb = matmul (v_inv_mat, orb%vec(1:4)) - &
-              orb%vec(6) * (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
+              orb%vec(6) * (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
 
-  amp = (ele%x%gamma * a_orb(1)**2 + 2 * ele%x%alpha * a_orb(1)*a_orb(2) + &
-                                                 ele%x%beta * a_orb(2)**2) / 2
+  amp = (ele%a%gamma * a_orb(1)**2 + 2 * ele%a%alpha * a_orb(1)*a_orb(2) + &
+                                                 ele%a%beta * a_orb(2)**2) / 2
   if (present(amp_a)) amp_a = amp
   if (present(amp_na)) amp_na = &
-          amp * ele%value(beam_energy$) * (1 + orb%vec(6)) / mass_of(particle)
+          amp * ele%value(E_TOT$) * (1 + orb%vec(6)) / mass_of(particle)
 
-  amp = (ele%y%gamma * a_orb(3)**2 + 2 * ele%y%alpha * a_orb(3)*a_orb(4) + &
-                                                 ele%y%beta * a_orb(4)**2) / 2
+  amp = (ele%b%gamma * a_orb(3)**2 + 2 * ele%b%alpha * a_orb(3)*a_orb(4) + &
+                                                 ele%b%beta * a_orb(4)**2) / 2
   if (present(amp_b)) amp_b = amp
   if (present(amp_nb)) amp_nb = &
-          amp * ele%value(beam_energy$) * (1 + orb%vec(6)) / mass_of(particle)
+          amp * ele%value(E_TOT$) * (1 + orb%vec(6)) / mass_of(particle)
 
 end subroutine

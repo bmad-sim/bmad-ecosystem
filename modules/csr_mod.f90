@@ -87,7 +87,7 @@ contains
 !+
 ! Subroutine track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)
 !
-! Routine to track a bunch of particles through the element lat%ele_(ix_ele)
+! Routine to track a bunch of particles through the element lat%ele(ix_ele)
 ! with csr radiation effects.
 !
 ! Modules needed:
@@ -95,8 +95,8 @@ contains
 !
 ! Input:
 !   bunch_start -- Bunch_struct: Starting bunch position.
-!   lat         -- Ring_struct: Lattice.
-!   ix_ele      -- Integer: lat%ele_(ix_ele) is the element to track through.
+!   lat         -- lat_struct: Lattice.
+!   ix_ele      -- Integer: lat%ele(ix_ele) is the element to track through.
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
@@ -106,7 +106,7 @@ subroutine track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)
 
 implicit none
 
-type (ring_struct) lat
+type (lat_struct) lat
 type (bunch_struct), target :: bunch_start, bunch_end
 type (particle_struct), pointer :: pt
 type (ele_struct), pointer :: ele
@@ -121,7 +121,7 @@ logical auto_bookkeeper
 
 ! Init
 
-ele => lat%ele_(ix_ele)
+ele => lat%ele(ix_ele)
 bunch_end = bunch_start
 
 ! n_step is the number of steps to take when tracking through the element.
@@ -391,8 +391,8 @@ end subroutine
 !   use csr_mod
 !
 ! Input:
-!   lat       -- Ring_struct: Lattice.
-!   ix_ele    -- Integer: lat%ele_(ix_ele) is the element to set up cache for.
+!   lat       -- lat_struct: Lattice.
+!   ix_ele    -- Integer: lat%ele(ix_ele) is the element to set up cache for.
 !   s_travel  -- Real(rp): Distance between the beginning of the element we are
 !          tracking through and the kick point (which is within this element). 
 !   bin       -- Csr_bin_struct: Binned particle averages.
@@ -408,7 +408,7 @@ subroutine csr_bin_kicks (lat, ix_ele, s_travel, bin)
 implicit none
 
 type (csr_bin_struct), target :: bin
-type (ring_struct), target :: lat
+type (lat_struct), target :: lat
 type (csr_kick_bin_struct), pointer :: kick1
 type (csr_values_struct) val
 
@@ -428,7 +428,7 @@ n_ele_pp = -1
 call next_element_params_calc (n_ele_pp, s0_kick_ele, val)
 s_kick = s0_kick_ele + s_travel  ! absolute s value at point P.
 
-call convert_total_energy_to (lat%ele_(ix_ele)%value(beam_energy$), &
+call convert_total_energy_to (lat%ele(ix_ele)%value(E_TOT$), &
                                                lat%param%particle, bin%gamma)
 bin%gamma2 = bin%gamma**2
 
@@ -479,14 +479,14 @@ real(rp), allocatable, save :: g_i(:), d_i(:)
 n_ele_pp = n_ele_pp + 1
 ix_source = ix_ele - n_ele_pp  ! Index of current P' element
 
-ele => lat%ele_(ix_source)  ! Pointer to the P' element
+ele => lat%ele(ix_source)  ! Pointer to the P' element
 
 ! Assume a drift before the first element if needed.
 
 if (ix_source == 0) then
   s0_kick_ele = -1e20  ! something large and negative
 else
-  s0_kick_ele = lat%ele_(ix_source-1)%s  ! s value at beginning edge of the P' element
+  s0_kick_ele = lat%ele(ix_source-1)%s  ! s value at beginning edge of the P' element
 endif
 
 ! calculate new values for d and g for this element and store in arrays

@@ -7,7 +7,7 @@ module cesr_db_mod
 !---------------------------------------------------------------------------
 ! DB_STRUCT:                       
 ! This structrue holds info on the correspondence between CESR data base
-! elements and a BMAD ring. Use BMAD_TO_DB to initialize this structure.
+! elements and a BMAD lat. Use BMAD_TO_DB to initialize this structure.
 ! For completeness there are, in addition, arrays for the detectors and
 ! wigglers, etc.
 
@@ -18,7 +18,7 @@ module cesr_db_mod
     real dvar_dcu             ! calibration factor
     real var_theory           ! theory var value
     real var_0                ! extrapolated var value at CU = 0
-    integer ix_ring           ! index to element array in ring struct
+    integer ix_lat           ! index to element array in lat struct
     integer ix_attrib         ! index to element attribute
     integer ix_cesrv          ! index to cesr_struct arrays
     character(12) db_node_name ! node name ("CSR QUAD CUR")
@@ -88,7 +88,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine bmad_to_db (ring, db, calib_date)
+! Subroutine bmad_to_db (lat, db, calib_date)
 !
 ! Subroutine to return information on the data base that pertains to
 ! CESR elements.
@@ -100,7 +100,7 @@ contains
 !   use cesr_mod
 !
 ! Input:
-!   ring       -- Ring_struct: Ring structure
+!   lat       -- lat_struct: Lat structure
 !   calib_date -- Character(10), optional: Date to use when looking up the 
 !                   calibration constants. 
 !                   calib_date is in the form: "YYYY-MM-DD".
@@ -116,12 +116,12 @@ contains
 ! %CU_NOW is *NOT* filled in by this subroutine.
 !
 ! To check if an element is in the data base check that %DVAR_DCU is not zero.
-! To check if an element has a corresponding ring element check that %IX_RING
+! To check if an element has a corresponding lat element check that %IX_LAT
 !   is not zero.
 !
 ! For completeness the REQ's are included in DB%CSR_QUAD_CUR as 
 ! elements 0 and 99. 
-! These elements have %IX_RING /= 0 but %DVAR_DCU = 0. 
+! These elements have %IX_LAT /= 0 but %DVAR_DCU = 0. 
 !
 ! The arrays DB%QUAD_TILT and DB%QADD_TILT are to record the theory rotations
 ! and do not have corresponding data base elements
@@ -133,11 +133,11 @@ contains
 ! Use the DB%NODE(i)%PTR(1)%DB_NAME array to search for a particular node name
 !-
 
-subroutine bmad_to_db (ring, db, calib_date)
+subroutine bmad_to_db (lat, db, calib_date)
 
   implicit none
 
-  type (ring_struct) ring
+  type (lat_struct) lat
   type (db_struct) db
   type (cesr_struct) cesr
 
@@ -155,30 +155,30 @@ subroutine bmad_to_db (ring, db, calib_date)
 
   nq100 = 100+n_qadd_maxx
 
-  call bmad_to_cesr (ring, cesr)
+  call bmad_to_cesr (lat, cesr)
 
   call db_init_it (db%csr_quad_cur, 0, 'INIT_IT', 0, db%node)  ! init call
 
   call db_init_it (db%csr_quad_cur, lbound(db%csr_quad_cur, 1), &
-          'CSR QUAD CUR',    k1$,    db%node, cesr%quad_(1:98), 1)
+          'CSR QUAD CUR',    k1$,    db%node, cesr%quad(1:98), 1)
 
   call db_init_it (db%nir_shuntcur, lbound(db%nir_shuntcur, 1), &
           'NIR SHUNTCUR',    k1$,    db%node, cesr%nir_shuntcur, 1)
 
   call db_init_it (db%csr_qadd_cur, lbound(db%csr_qadd_cur, 1), &
-          'CSR QADD CUR',    k1$,    db%node, cesr%quad_(101:nq100), 101)
+          'CSR QADD CUR',    k1$,    db%node, cesr%quad(101:nq100), 101)
 
   call db_init_it (db%scir_quadcur, lbound(db%scir_quadcur, 1), &
-          'SCIR QUADCUR',    k1$,    db%node, cesr%quad_(111:114), 111)
+          'SCIR QUADCUR',    k1$,    db%node, cesr%quad(111:114), 111)
 
   call db_init_it (db%csr_horz_cur, lbound(db%csr_horz_cur, 1), &
-          'CSR HORZ CUR', hkick$, db%node, cesr%h_steer_(1:98), 1)
+          'CSR HORZ CUR', hkick$, db%node, cesr%h_steer(1:98), 1)
 
   call db_init_it (db%csr_hbnd_cur, lbound(db%csr_hbnd_cur, 1), &
-          'CSR HBND CUR', hkick$, db%node, cesr%h_steer_(101:106), 101)
+          'CSR HBND CUR', hkick$, db%node, cesr%h_steer(101:106), 101)
 
   call db_init_it (db%csr_vert_cur, lbound(db%csr_vert_cur, 1), &
-          'CSR VERT CUR', vkick$, db%node, cesr%v_steer_(1:98), 1)
+          'CSR VERT CUR', vkick$, db%node, cesr%v_steer(1:98), 1)
 
   call db_init_it (db%csr_hsp_volt, lbound(db%csr_hsp_volt, 1), &
           'CSR HSP VOLT', hkick$, db%node)
@@ -187,36 +187,36 @@ subroutine bmad_to_db (ring, db, calib_date)
           'CSR VSP VOLT', vkick$, db%node)
 
   call db_init_it (db%csr_sext_cur, lbound(db%csr_sext_cur, 1), &
-          'CSR SEXT CUR',    k2$,    db%node, cesr%sex_(1:98), 1)
+          'CSR SEXT CUR',    k2$,    db%node, cesr%sex(1:98), 1)
 
   call db_init_it (db%csr_octu_cur, lbound(db%csr_octu_cur, 1), &
-          'CSR OCTU CUR',    k3$,    db%node, cesr%oct_, 1)
+          'CSR OCTU CUR',    k3$,    db%node, cesr%oct, 1)
 
   call db_init_it (db%csr_sqewquad, lbound(db%csr_sqewquad, 1), &
-          'CSR SQEWQUAD',    k1$,    db%node, cesr%skew_quad_(1:98), 1)
+          'CSR SQEWQUAD',    k1$,    db%node, cesr%skew_quad(1:98), 1)
                            
   call db_init_it (db%csr_scsolcur, lbound(db%csr_scsolcur, 1), &
-          'SCSOL CONTRL',    ks$,    db%node, cesr%scsol_cur_(1:10), 1)
+          'SCSOL CONTRL',    ks$,    db%node, cesr%scsol_cur(1:10), 1)
                            
   call db_init_it (db%scir_skqucur, lbound(db%scir_skqucur, 1), &
-          'SCIR SKQUCUR',    k1$,    db%node, cesr%skew_quad_(111:114), 111)
+          'SCIR SKQUCUR',    k1$,    db%node, cesr%skew_quad(111:114), 111)
                            
   call db_init_it (db%csr_sqewsext, lbound(db%csr_sqewsext, 1), &
           'CSR SQEWSEXT',    k2$,    db%node, &
-	  cesr%skew_sex_(1:n_csr_sqewsext_maxx), 1)
+	  cesr%skew_sex(1:n_csr_sqewsext_maxx), 1)
 
   call db_init_it (db%scir_vertcur, lbound(db%scir_vertcur, 1), &
-          'SCIR VERTCUR', vkick$, db%node, cesr%v_steer_(111:114), 111)
+          'SCIR VERTCUR', vkick$, db%node, cesr%v_steer(111:114), 111)
 
   call db_init_it (db%ir_sksxcur, lbound(db%ir_sksxcur, 1), &
-          'IR SKSXCUR  ',   k2$,    db%node, cesr%skew_sex_(11:11), 11)
+          'IR SKSXCUR  ',   k2$,    db%node, cesr%skew_sex(11:11), 11)
 
 !-----------------------------------------------------------------------------
 ! find the separators
 
-  do i = 1, ring%n_ele_max
+  do i = 1, lat%n_ele_max
 
-    type_str = ring%ele_(i)%type
+    type_str = lat%ele(i)%type
 
     if (type_str(:12) == db%csr_vsp_volt(1)%db_node_name) then 
       if (type_str(13:) /= '    ') then
@@ -224,8 +224,8 @@ subroutine bmad_to_db (ring, db, calib_date)
         if (ios .ne. 0) then
           print *, 'ERROR IN BAMD_TO_DB: READ ERROR FOR NODE INDEX: ', type_str
         endif
-        db%csr_vsp_volt(ix)%bmad_name = ring%ele_(i)%name
-        db%csr_vsp_volt(ix)%ix_ring = i
+        db%csr_vsp_volt(ix)%bmad_name = lat%ele(i)%name
+        db%csr_vsp_volt(ix)%ix_lat = i
       endif
     endif
 
@@ -235,8 +235,8 @@ subroutine bmad_to_db (ring, db, calib_date)
         if (ios .ne. 0) then
           print *, 'ERROR IN BAMD_TO_DB: READ ERROR FOR NODE INDEX: ', type_str
         endif
-        db%csr_hsp_volt(ix)%bmad_name = ring%ele_(i)%name
-        db%csr_hsp_volt(ix)%ix_ring = i
+        db%csr_hsp_volt(ix)%bmad_name = lat%ele(i)%name
+        db%csr_hsp_volt(ix)%ix_lat = i
       endif
     endif
 
@@ -250,7 +250,7 @@ subroutine bmad_to_db (ring, db, calib_date)
   this_date = 'NOW'
   if (present(calib_date)) this_date = calib_date
 
-  gev = 1e-9 * ring%ele_(0)%value(beam_energy$)
+  gev = 1e-9 * lat%ele(0)%value(E_TOT$)
   if (gev == 0) then
     print *, 'ERROR IN BMAD_TO_DB: BEAM ENERGY IS ZERO!'
     call err_exit
@@ -269,18 +269,18 @@ subroutine bmad_to_db (ring, db, calib_date)
   db%csr_hsp_volt(:)%dvar_dcu = 1.0e-6 * db%csr_hsp_volt(:)%dvar_dcu / gev
   db%csr_vsp_volt(:)%dvar_dcu = 1.0e-6 * db%csr_vsp_volt(:)%dvar_dcu / gev
 
-  call get_ele_theory (ring, db%csr_hsp_volt)
-  call get_ele_theory (ring, db%csr_vsp_volt)
+  call get_ele_theory (lat, db%csr_hsp_volt)
+  call get_ele_theory (lat, db%csr_vsp_volt)
 
 ! sextupole calibration
 
   call sext_calib (gev, db%csr_sext_cur(:)%dvar_dcu)
-  call get_ele_theory (ring, db%csr_sext_cur)
+  call get_ele_theory (lat, db%csr_sext_cur)
 
 ! octupole calibration
 
   db%csr_octu_cur(:)%dvar_dcu = 0.213 / gev
-  call get_ele_theory (ring, db%csr_octu_cur)
+  call get_ele_theory (lat, db%csr_octu_cur)
 
 ! skew quad calibration
 
@@ -289,8 +289,8 @@ subroutine bmad_to_db (ring, db, calib_date)
   db%csr_sqewquad(:)%dvar_dcu = db%csr_sqewquad(:)%dvar_dcu / gev
   db%scir_skqucur(:)%dvar_dcu = db%scir_skqucur(:)%dvar_dcu / gev
 
-  call get_ele_theory (ring, db%csr_sqewquad) 
-  call get_ele_theory (ring, db%scir_skqucur) 
+  call get_ele_theory (lat, db%csr_sqewquad) 
+  call get_ele_theory (lat, db%scir_skqucur) 
 
 ! skew sextupole calibration
 
@@ -299,15 +299,15 @@ subroutine bmad_to_db (ring, db, calib_date)
   db%csr_sqewsext(:)%dvar_dcu = db%csr_sqewsext(:)%dvar_dcu / gev
   db%ir_sksxcur(:)%dvar_dcu = db%ir_sksxcur(:)%dvar_dcu / gev
 
-  call get_ele_theory (ring, db%csr_sqewsext) 
-  call get_ele_theory (ring, db%ir_sksxcur) 
+  call get_ele_theory (lat, db%csr_sqewsext) 
+  call get_ele_theory (lat, db%ir_sksxcur) 
 
 ! quad calibrations 
 
-  call ring_to_quad_calib (ring, cesr, k_theory, k_base, len_quad, &
+  call lat_to_quad_calib (lat, cesr, k_theory, k_base, len_quad, &
                               cu_per_k_gev, quad_tilt, dk_gev_dcu, cu_theory)
 
-  call non_db_set (db%quad, cesr%quad_, k1$, 0)
+  call non_db_set (db%quad, cesr%quad, k1$, 0)
   db%quad(1:98) = db%csr_quad_cur 
   db%quad(101:nq100) = db%csr_qadd_cur
   db%quad(111:114) = db%scir_quadcur(:)
@@ -330,15 +330,15 @@ subroutine bmad_to_db (ring, db, calib_date)
   call sc_sol_calib (db%csr_scsolcur(:)%dvar_dcu)
   db%csr_scsolcur(:)%dvar_dcu = db%csr_scsolcur(:)%dvar_dcu / gev
 
-  call get_ele_theory (ring, db%csr_scsolcur) 
+  call get_ele_theory (lat, db%csr_scsolcur) 
 
 
 ! Things not part of the CESR DB
 
-  call non_db_set (db%detector, cesr%det_, 0, 0)
-  call non_db_set (db%wiggler, cesr%wig_, b_max$, 1)
-  call non_db_set (db%scir_cam_rho, cesr%scir_cam_rho_, rho$, 1)
-  call non_db_set (db%scir_tilt, cesr%scir_tilt_, tilt$, 1)
+  call non_db_set (db%detector, cesr%det, 0, 0)
+  call non_db_set (db%wiggler, cesr%wig, b_max$, 1)
+  call non_db_set (db%scir_cam_rho, cesr%scir_cam_rho, rho$, 1)
+  call non_db_set (db%scir_tilt, cesr%scir_tilt, tilt$, 1)
 
 
   deallocate( cesr%ix_cesr )
@@ -352,7 +352,7 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
 
   implicit none
 
-  integer ix_attrib, n1, i, vnumbr, iv, ix_(200)
+  integer ix_attrib, n1, i, vnumbr, iv, ix(200)
 
   type (db_element_struct), target :: node(n1:)
   type (db_node_struct) :: node_array(:)
@@ -377,7 +377,7 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
 
   do i = lbound(node, 1), ubound(node, 1)
     node(i)%bmad_name = ' '
-    node(i)%ix_ring = 0
+    node(i)%ix_lat = 0
     node(i)%ix_attrib = ix_attrib
     node(i)%db_node_name = node_name       
     node(i)%ix_db = i
@@ -401,7 +401,7 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
   if (iv .gt. 0) then
     call vmglim (node_name, &
                    1, iv, node(1:iv)%cu_low_lim, node(1:iv)%cu_high_lim)
-    call vstget (node_name, 1, iv, node(1:iv)%db_ele_name, ix_)
+    call vstget (node_name, 1, iv, node(1:iv)%db_ele_name, ix)
   endif
 
   if (present(cesr_ele)) then
@@ -409,7 +409,7 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
       print *, 'ERROR IN DB_INIT_IT: ARRAYS DO NOT MATCH FOR: ', node_name
       call err_exit
     endif
-    node(:)%ix_ring = cesr_ele(:)%ix_ring
+    node(:)%ix_lat = cesr_ele(:)%ix_lat
     node(:)%bmad_name = cesr_ele(:)%name
     do i = lbound(node, 1), ubound(node, 1)
       node(i)%ix_cesrv = i - lbound(node, 1) + ix0_cesrv 
@@ -431,22 +431,22 @@ end subroutine db_init_it
 !---------------------------------------------------------------------
 ! contains
                             
-subroutine get_ele_theory (ring, db_ele)
+subroutine get_ele_theory (lat, db_ele)
                                                                
   implicit none
 
   type (db_element_struct) :: db_ele(:)
-  type (ring_struct) :: ring
+  type (lat_struct) :: lat
 
   integer i, ie, iv
 
 !
 
   do i = 1, ubound(db_ele, 1)
-    ie = db_ele(i)%ix_ring
+    ie = db_ele(i)%ix_lat
     if (ie /= 0) then
       iv = db_ele(i)%ix_attrib
-      db_ele(i)%var_theory = ring%ele_(ie)%value(iv)
+      db_ele(i)%var_theory = lat%ele(ie)%value(iv)
     endif
   enddo
 
@@ -465,7 +465,7 @@ subroutine non_db_set (db_ele, cesr_ele, ix_attrib, ix0_cesrv)
   integer i, ix0_cesrv, ix_attrib
 
   db_ele(:)%bmad_name = cesr_ele(:)%name
-  db_ele(:)%ix_ring = cesr_ele(:)%ix_ring
+  db_ele(:)%ix_lat = cesr_ele(:)%ix_lat
   db_ele(:)%ix_db = 0
   db_ele(:)%ix_attrib = ix_attrib
   db_ele(:)%db_node_name = '----------'
@@ -487,7 +487,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !+
 ! Subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, csr_set, &
-!                                      ring, db, con_, n_con, ok, type_err)
+!                                      lat, db, con, n_con, ok, type_err)
 !
 ! Subroutine to take a data base group element and find the elements
 ! controlled along with the coefficients.
@@ -500,33 +500,33 @@ end subroutine
 !   ing_num    -- Integer: DB element number (e.g. 13)
 !   biggrp_set -- Integer: Biggrp set number. 0 => read from the data base
 !   csr_set    -- Integer: CSR set number. 0 => read from the data base
-!   ring       -- Ring_struct: BMAD ring to use.
-!   db         -- Db_struct: Info about ring obtained with a 
-!                            "call bmad_to_db (ring, db)"
+!   lat       -- lat_struct: BMAD lat to use.
+!   db         -- Db_struct: Info about lat obtained with a 
+!                            "call bmad_to_db (lat, db)"
 !   type_err   -- Logical: If true then error messages are typed.
 !
 ! Output:
-!   con_(:) -- Control_struct: Control structure.
-!     %ix_slave    -- Index to ring element controlled.
+!   con(:) -- Control_struct: Control structure.
+!     %ix_slave    -- Index to lat element controlled.
 !     %ix_attrib -- Index of attribute controlled.
 !     %coef      -- Control coefficient
-!   n_con   -- Integer: number of con_(:) elements used by the group.
+!   n_con   -- Integer: number of con(:) elements used by the group.
 !   ok      -- Logical: True if everything was OK.
 !
 ! Note: See also DB_GROUP_TO_BMAD_GROUP which uses the results of this
-! subroutine to create a BMAD group in the ring structure.
+! subroutine to create a BMAD group in the lat structure.
 !-
 
 subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, csr_set, &
-                                      ring, db, con_, n_con, ok, type_err)
+                                      lat, db, con, n_con, ok, type_err)
 
 
   implicit none
 
-  type (ring_struct) ring
+  type (lat_struct) lat
   type (db_struct) db
   type (group_info_struct) grp
-  type (control_struct) con_(:)
+  type (control_struct) con(:)
   type (db_element_struct), pointer :: db_ptr(:)
 
   integer k, n, nn, n_con, ing_num, biggrp_set, csr_set
@@ -561,7 +561,7 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, csr_set, &
     do n = 1, grp%node(k)%n_ele
       nn = n + grp%node(k)%offset
       if (grp%ele(nn)%coef == 0) cycle
-      if (db_ptr(n)%ix_ring == 0) then
+      if (db_ptr(n)%ix_lat == 0) then
         if (type_err) then
           print *, 'ERROR IN DB_GROUP_TO_BMAD: CANNOT FIND A LATTICE ELEMENT'
           print *, '      CORRESPONDING TO: ', db_ptr(n)%db_node_name, db_ptr(n)%ix_db
@@ -571,9 +571,9 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, csr_set, &
         return
       endif
       n_con = n_con + 1
-      con_(n_con)%ix_slave = db_ptr(n)%ix_ring
-      con_(n_con)%ix_attrib = db_ptr(n)%ix_attrib
-      con_(n_con)%coef = grp%ele(nn)%coef * db_ptr(n)%dvar_dcu  
+      con(n_con)%ix_slave = db_ptr(n)%ix_lat
+      con(n_con)%ix_attrib = db_ptr(n)%ix_attrib
+      con(n_con)%coef = grp%ele(nn)%coef * db_ptr(n)%dvar_dcu  
     enddo
 
   enddo
@@ -585,9 +585,9 @@ end subroutine
 !----------------------------------------------------------------------------
 !+     
 ! Subroutine db_group_to_bmad_group (group_name, group_num, 
-!                   biggrp_set, csr_set, ring, db, ix_ele, ok, type_err)
+!                   biggrp_set, csr_set, lat, db, ix_ele, ok, type_err)
 !
-! Subroutine to set up a data base group knob in a bmad ring structure.
+! Subroutine to set up a data base group knob in a bmad lat structure.
 !
 ! Modules used:
 !   use cesr_mod
@@ -597,26 +597,26 @@ end subroutine
 !   group_num  -- Integer: Group node number
 !   biggrp_set -- Integer: Biggrp number. 0 => read from CESR database
 !   csr_set    -- Integer: CSR set number. 0 => read from the data base
-!   ring       -- Ring_struct: Ring to modify
-!   db         -- Db_struct: Info about ring obtained with a 
-!                            "call bmad_to_db (ring, db)"
+!   lat       -- lat_struct: Lat to modify
+!   db         -- Db_struct: Info about lat obtained with a 
+!                            "call bmad_to_db (lat, db)"
 !   type_err   -- Logical: If true then error messages are typed.
 !
 ! Output:
-!   ring    -- Ring_struct: Modified ring.
-!   ix_ele  -- Integer: RING%ELE_(IX_ELE) is the group element
+!   lat    -- lat_struct: Modified lat.
+!   ix_ele  -- Integer: LAT%ele(IX_ELE) is the group element
 !   ok      -- Logical: True if everything was OK.
 !
 ! Note: See also DB_GROUP_TO_BMAD.
 !-
 
 subroutine db_group_to_bmad_group (group_name, group_num, &
-                   biggrp_set, csr_set, ring, db, ix_ele, ok, type_err)
+                   biggrp_set, csr_set, lat, db, ix_ele, ok, type_err)
 
   implicit none              
 
-  type (ring_struct) ring                                       
-  type (control_struct) con_(150)
+  type (lat_struct) lat                                       
+  type (control_struct) con(150)
   type (db_struct) db
 
   integer n_con, group_num, ix_ele, biggrp_set, ix, ixs(1), csr_set
@@ -628,22 +628,22 @@ subroutine db_group_to_bmad_group (group_name, group_num, &
   ix_ele = -1
 
   call db_group_to_bmad (group_name, group_num, biggrp_set, csr_set, &
-                                         ring, db, con_, n_con, ok, type_err)
+                                         lat, db, con, n_con, ok, type_err)
   if (.not. ok) return
-  call new_control (ring, ix_ele)
+  call new_control (lat, ix_ele)
 
-  call vstget (group_name, group_num, group_num, ring%ele_(ix_ele:ix_ele)%name, ixs)
+  call vstget (group_name, group_num, group_num, lat%ele(ix_ele:ix_ele)%name, ixs)
 
-  write (ring%ele_(ix_ele)%type, '(a, i4)') group_name, group_num
+  write (lat%ele(ix_ele)%type, '(a, i4)') group_name, group_num
 
-  ring%ele_(ix_ele)%name = ring%ele_(ix_ele)%type
+  lat%ele(ix_ele)%name = lat%ele(ix_ele)%type
   do
-    ix = index(ring%ele_(ix_ele)%name, ' ')
+    ix = index(lat%ele(ix_ele)%name, ' ')
     if (ix == 0) exit
-    ring%ele_(ix_ele)%name(ix:ix) = '_'
+    lat%ele(ix_ele)%name(ix:ix) = '_'
   enddo
 
-  call create_group (ring, ix_ele, con_(1:n_con))
+  call create_group (lat, ix_ele, con(1:n_con))
 
 end subroutine
                                                              
@@ -782,7 +782,7 @@ subroutine read_butns_file (butns_num, nonlinear_calc, butns, db, &
   butns%file_num = butns_num
 
 ! read header line in the data file (to get lattice name)
-! and sterring strengths
+! and sterlat strengths
 
   iu = lunget()
   open(unit = iu, file = file_in, status = 'old', action = 'READ', iostat = ios)

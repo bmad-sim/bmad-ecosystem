@@ -1,19 +1,19 @@
 !+                       
-! Subroutine track_all (ring, orbit)
+! Subroutine track_all (lat, orbit)
 !
-! Subroutine to track through the ring.
+! Subroutine to track through the lat.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   ring      -- Ring_struct: Ring to track through.
+!   lat      -- lat_struct: Lat to track through.
 !     %param%aperture_limit_on -- Logical: Sets whether track_all looks to
 !                                 see whether a particle hits an aperture or not.
-!   orbit(0)  -- Coord_struct: Coordinates at beginning of ring.
+!   orbit(0)  -- Coord_struct: Coordinates at beginning of lat.
 !
 ! Output:
-!   ring
+!   lat
 !     %param%lost    -- Logical: Set True when a particle cannot make it 
 !                         through an element.
 !     %param%ix_lost -- Integer: Set to index of element where particle is lost.
@@ -25,7 +25,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine track_all (ring, orbit)
+subroutine track_all (lat, orbit)
 
   use bmad_struct
   use bmad_interface, except => track_all
@@ -33,7 +33,7 @@ subroutine track_all (ring, orbit)
 
   implicit none
 
-  type (ring_struct)  ring
+  type (lat_struct)  lat
   type (coord_struct), allocatable :: orbit(:)
 
   integer n, i, nn
@@ -42,31 +42,31 @@ subroutine track_all (ring, orbit)
 
 ! init
 
-  if (size(orbit) < ring%n_ele_max+1) &
-                  call reallocate_coord (orbit, ring%n_ele_max)
+  if (size(orbit) < lat%n_ele_max+1) &
+                  call reallocate_coord (orbit, lat%n_ele_max)
 
-  ring%param%ix_lost = -1
+  lat%param%ix_lost = -1
 
-  if (bmad_com%auto_bookkeeper) call control_bookkeeper (ring)
+  if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
 ! track through elements.
 
-  do n = 1, ring%n_ele_use
+  do n = 1, lat%n_ele_track
 
-    call track1 (orbit(n-1), ring%ele_(n), ring%param, orbit(n))
+    call track1 (orbit(n-1), lat%ele(n), lat%param, orbit(n))
 
 ! check for lost particles
 
-    if (ring%param%lost) then
-      ring%param%ix_lost = n
-      do nn = n+1, ring%n_ele_use
+    if (lat%param%lost) then
+      lat%param%ix_lost = n
+      do nn = n+1, lat%n_ele_track
         orbit(nn)%vec = 0
       enddo
       return
     endif
 
     if (debug) then
-      print *, ring%ele_(n)%name
+      print *, lat%ele(n)%name
       print *, (orbit(n)%vec(i), i = 1, 6)
     endif
 

@@ -48,7 +48,7 @@ PRIVATE mtto
 
 CONTAINS
 !+
-!  Subroutine ibsequilibrium2(ring,inmode,ibsmode,formula,ratio,initial_blow_up)
+!  Subroutine ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
 !
 !  Computes the equilibrium beam size using the equilibrium equations given in 
 !  'Intrabeam scattering formulas for high energy beams' by Kubo et al.
@@ -65,26 +65,26 @@ CONTAINS
 !    use ibs_mod
 !
 !  Input:
-!    ring             -- ring_struct: lattice for tracking
+!    lat             -- lat_struct: lattice for tracking
 !      %param$n_part  -- Real: number of particles in bunch
-!    inmode           -- modes_struct: natural beam parameters 
+!    inmode           -- normal_modes_struct: natural beam parameters 
 !    formula          -- character*4: IBS formulation to use (see ibs_rates)
 !    ratio            -- Real: Ratio of vert_emit_coupling / vert_emit_total
 !    initial_blow_up  -- Real: Factor multiplied to all 3 bunch dimensions
 !                              prior to starting iteration.
 !
 !  Output:
-!    ibsmode          -- modes_struct: beam parameters after IBS effects
+!    ibsmode          -- normal_modes_struct: beam parameters after IBS effects
 !
 !  See ibs_rates subroutine for available IBS rate formulas.
 !-
-SUBROUTINE ibsequilibrium2(ring,inmode,ibsmode,formula,ratio,initial_blow_up)
+SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
 
   IMPLICIT NONE
                                                                                                          
-  TYPE(ring_struct), INTENT(IN), target :: ring
-  TYPE(modes_struct), INTENT(IN) :: inmode
-  TYPE(modes_struct), INTENT(OUT) :: ibsmode
+  TYPE(lat_struct), INTENT(IN), target :: lat
+  TYPE(normal_modes_struct), INTENT(IN) :: inmode
+  TYPE(normal_modes_struct), INTENT(OUT) :: ibsmode
   CHARACTER*4, INTENT(IN) :: formula
   REAL(rp), INTENT(IN) :: ratio
   REAL(rp), INTENT(IN) :: initial_blow_up
@@ -107,7 +107,7 @@ SUBROUTINE ibsequilibrium2(ring,inmode,ibsmode,formula,ratio,initial_blow_up)
   CHARACTER(20) :: r_name = 'ibs_equilibrium2'
 
   !compute the SR betatron damping times
-  time_for_one_turn = ring%param%total_length / c_light
+  time_for_one_turn = lat%param%total_length / c_light
   tau_x = time_for_one_turn / inmode%a%alpha_damp
   tau_y = time_for_one_turn / inmode%b%alpha_damp
   tau_z = time_for_one_turn / inmode%z%alpha_damp 
@@ -115,14 +115,14 @@ SUBROUTINE ibsequilibrium2(ring,inmode,ibsmode,formula,ratio,initial_blow_up)
   !fpw is a simple way of modeling potential well bunch lengthing.
   !This factor is multiplied by the zero current L_ratio when 
   !determining bunch length from energy spread.
-  fpw = 1.0 ! + .21/(12.0E9) * ring%param%n_part
+  fpw = 1.0 ! + .21/(12.0E9) * lat%param%n_part
   sigma_z0 = inmode%sig_z
   sigE_E0 = inmode%sigE_E 
   L_ratio = sigma_z0 / sigE_E0
   emit_x0 = inmode%a%emittance
   emit_y0 = inmode%b%emittance 
 
-  !CALL ibs_equilibrium(ring,inmode,ibsmode,formula)
+  !CALL ibs_equilibrium(lat,inmode,ibsmode,formula)
   ibsmode%a%emittance = emit_x0 * initial_blow_up
   ibsmode%b%emittance = emit_y0 * initial_blow_up
   ibsmode%sig_z = sigma_z0      * sqrt(initial_blow_up)
@@ -139,7 +139,7 @@ SUBROUTINE ibsequilibrium2(ring,inmode,ibsmode,formula,ratio,initial_blow_up)
   !indicate convergence.
   threshold = advance * .0001
   DO WHILE(.not.converged)
-    CALL ibs_rates(ring,ibsmode,rates,formula)
+    CALL ibs_rates(lat,ibsmode,rates,formula)
     counter = counter + 1
     !It is possible that method can give negative emittances
     !at some point in the iterative process, in which case the case
@@ -204,7 +204,7 @@ SUBROUTINE ibsequilibrium2(ring,inmode,ibsmode,formula,ratio,initial_blow_up)
 END SUBROUTINE ibsequilibrium2
 
 !+
-!  Subroutine ibs_equilibrium(ring,inmode,ibsmode,formula,coupling)
+!  Subroutine ibs_equilibrium(lat,inmode,ibsmode,formula,coupling)
 !
 !  Computes equilibrium beam sizes taking into account
 !  radiation damping, IBS growth rates, and coupling.
@@ -213,29 +213,29 @@ END SUBROUTINE ibsequilibrium2
 !    use ibs_mod
 !
 !  Input:
-!    ring             -- ring_struct: lattice for tracking
+!    lat             -- lat_struct: lattice for tracking
 !      %param$n_part  -- Real: number of particles in bunch
-!    inmode           -- modes_struct: natural beam parameters 
+!    inmode           -- normal_modes_struct: natural beam parameters 
 !    formula          -- character*4: IBS formulation to use (see ibs_rates)
 !    coupling         -- real: horizontal to vertical emittanc coupling
 !
 !  Output:
-!    ibsmode          -- modes_struct: beam parameters after IBS effects
+!    ibsmode          -- normal_modes_struct: beam parameters after IBS effects
 !
 !  See ibs_rates subroutine for available IBS rate formulas.
 !-
-SUBROUTINE ibs_equilibrium(ring,inmode,ibsmode,formula,coupling)
+SUBROUTINE ibs_equilibrium(lat,inmode,ibsmode,formula,coupling)
 
   IMPLICIT NONE
                                                                                                          
-  TYPE(ring_struct), INTENT(IN), target :: ring
-  TYPE(modes_struct), INTENT(IN) :: inmode
-  TYPE(modes_struct), INTENT(OUT) :: ibsmode
+  TYPE(lat_struct), INTENT(IN), target :: lat
+  TYPE(normal_modes_struct), INTENT(IN) :: inmode
+  TYPE(normal_modes_struct), INTENT(OUT) :: ibsmode
   CHARACTER*4, INTENT(IN) :: formula
   REAL(rp), INTENT(IN), OPTIONAL :: coupling
   TYPE(ele_struct), pointer :: ele
   TYPE(ibs_struct) rates
-  TYPE(modes_struct) :: naturalmode
+  TYPE(normal_modes_struct) :: naturalmode
 
   REAL(rp) time_for_one_turn
   REAL(rp) tau_x, tau_y, tau_z
@@ -259,7 +259,7 @@ SUBROUTINE ibs_equilibrium(ring,inmode,ibsmode,formula,coupling)
   ENDIF
 
   !compute the SR betatron damping times
-  time_for_one_turn = ring%param%total_length / c_light
+  time_for_one_turn = lat%param%total_length / c_light
   tau_x = time_for_one_turn / naturalmode%a%alpha_damp
   tau_y = time_for_one_turn / naturalmode%b%alpha_damp
   tau_z = time_for_one_turn / naturalmode%z%alpha_damp 
@@ -280,7 +280,7 @@ SUBROUTINE ibs_equilibrium(ring,inmode,ibsmode,formula,coupling)
   counter = 0
   ibsmode = naturalmode
   DO WHILE(.not.converged)
-    CALL ibs_rates(ring,ibsmode,rates,formula)
+    CALL ibs_rates(lat,ibsmode,rates,formula)
     counter = counter + 1
     Tx = 1.0/rates%inv_Tx
     Ty = 1.0/rates%inv_Ty
@@ -320,16 +320,16 @@ SUBROUTINE ibs_equilibrium(ring,inmode,ibsmode,formula,coupling)
 END SUBROUTINE ibs_equilibrium
 
 !+
-!  Subroutine ibs_lifetime(ring, mode, lifetime, formula)
+!  Subroutine ibs_lifetime(lat, mode, lifetime, formula)
 !
 !  This module computes the beam lifetime due to
 !  the diffusion process according to equation 12
 !  from page 129 of The Handbook for Accelerator
-!  Physics and Engineering.
+!  Physics and Engineelat.
 !
 !  Input:
-!    ring             -- ring_struct: lattice for tracking
-!    mode             -- modes_struct: beam parameters 
+!    lat             -- lat_struct: lattice for tracking
+!    mode             -- normal_modes_struct: beam parameters 
 !    maxratio(ibs_maxratio_struct)  Ax,y,p/sigma_x,y,p where Ax,y,p
 !                 is the maximum sigma.  Note that this quantity
 !                 is just the ratio, not the ratio squared.  For
@@ -341,11 +341,11 @@ END SUBROUTINE ibs_equilibrium
 !  Output:
 !    lifetime(ibs_lifetime_struct) --structure returning IBS lifetimes
 !-
-SUBROUTINE ibs_lifetime(ring,mode,maxratio,lifetime,formula)
+SUBROUTINE ibs_lifetime(lat,mode,maxratio,lifetime,formula)
   IMPLICIT NONE
 
-  TYPE(ring_struct), INTENT(IN), target :: ring
-  TYPE(modes_struct), INTENT(IN) :: mode
+  TYPE(lat_struct), INTENT(IN), target :: lat
+  TYPE(normal_modes_struct), INTENT(IN) :: mode
   TYPE(ibs_maxratio_struct), INTENT(IN) :: maxratio
   TYPE(ibs_lifetime_struct), INTENT(OUT) :: lifetime
   CHARACTER*4, INTENT(IN) :: formula
@@ -358,7 +358,7 @@ SUBROUTINE ibs_lifetime(ring,mode,maxratio,lifetime,formula)
   Ry = maxratio%ry**2
   R_p = maxratio%r_p**2
 
-  CALL ibs_rates(ring, mode, rates, formula)
+  CALL ibs_rates(lat, mode, rates, formula)
 
   lifetime%Tlx = exp(Rx)/2/Rx/rates%inv_Tx
   lifetime%Tly = exp(Ry)/2/Ry/rates%inv_Ty
@@ -366,9 +366,9 @@ SUBROUTINE ibs_lifetime(ring,mode,maxratio,lifetime,formula)
 END SUBROUTINE ibs_lifetime
 
 !+
-!  Subroutine ibs_rates(ring, mode, rates, formula)
+!  Subroutine ibs_rates(lat, mode, rates, formula)
 !
-!  Calculates IBS risetimes for given ring and mode.
+!  Calculates IBS risetimes for given lat and mode.
 !  This is basically a front-end for the various formulas 
 !  available in this module of calculating IBS rates.
 !
@@ -379,19 +379,19 @@ END SUBROUTINE ibs_lifetime
 !    mtto - Mtingwa-Tollerstrup formulation
 !
 !  Input:
-!    ring             -- ring_struct: lattice for tracking
+!    lat             -- lat_struct: lattice for tracking
 !      %param$n_part  -- Real: number of particles in bunch
-!    mode             -- modes_struct: beam parameters 
+!    mode             -- normal_modes_struct: beam parameters 
 !    formula          -- character*4: IBS formulation to use
 !
 !  Output:
 !    rates          -- ibs_struct: ibs rates in x,y,z 
 !-
-SUBROUTINE ibs_rates(ring, mode, rates, formula)
+SUBROUTINE ibs_rates(lat, mode, rates, formula)
   IMPLICIT NONE
 
-  TYPE(modes_struct), INTENT(IN) :: mode
-  TYPE(ring_struct), INTENT(IN), target :: ring
+  TYPE(normal_modes_struct), INTENT(IN) :: mode
+  TYPE(lat_struct), INTENT(IN), target :: lat
   TYPE(ibs_struct), INTENT(OUT) :: rates
   CHARACTER*4, INTENT(IN) ::  formula
 
@@ -409,13 +409,13 @@ SUBROUTINE ibs_rates(ring, mode, rates, formula)
   ENDIF
 
   IF(formula == 'cimp') THEN
-    CALL cimp(ring, mode, rates)
+    CALL cimp(lat, mode, rates)
   ELSEIF(formula == 'bjmt') THEN
-    CALL bjmt(ring, mode, rates)
+    CALL bjmt(lat, mode, rates)
   ELSEIF(formula == 'bane') THEN
-    CALL bane(ring, mode, rates)
+    CALL bane(lat, mode, rates)
   ELSEIF(formula == 'mtto') THEN
-    CALL mtto(ring, mode, rates)
+    CALL mtto(lat, mode, rates)
   ELSE
     WRITE(*,*) "Invalid IBS formula selected ... returning zero"
     rates%inv_Tx = 0.0
@@ -425,7 +425,7 @@ SUBROUTINE ibs_rates(ring, mode, rates, formula)
 END SUBROUTINE ibs_rates
 
 !+
-!  subroutine bjmt(ring, mode, rates)
+!  subroutine bjmt(lat, mode, rates)
 !
 !  This is a private subroutine.  To access this subroutine, call
 !  ibs_rates.
@@ -437,19 +437,19 @@ END SUBROUTINE ibs_rates
 !
 !  This formulation takes a very long time to evaluate.
 !-
-SUBROUTINE bjmt(ring, mode, rates)
+SUBROUTINE bjmt(lat, mode, rates)
   IMPLICIT NONE
 
-  TYPE(modes_struct), INTENT(IN) :: mode
-  TYPE(ring_struct), INTENT(IN), target :: ring
+  TYPE(normal_modes_struct), INTENT(IN) :: mode
+  TYPE(lat_struct), INTENT(IN), target :: lat
   TYPE(ibs_struct), INTENT(OUT) :: rates
   TYPE(ele_struct), pointer :: ele
 
   REAL(rp) sigma_p, emit_x, emit_y, sigma_z, E_tot
-  REAL(rp) gamma, KE, beta, beta_x, beta_y
+  REAL(rp) gamma, KE, beta, beta_a, beta_b
   REAL(rp) sigma_y
   REAL(rp) Dx, Dy, Dxp, Dyp
-  REAL(rp) alpha_x, alpha_y, coulomb_log
+  REAL(rp) alpha_a, alpha_b, coulomb_log
   REAL(rp) NB, big_A
   REAL(rp) sigma_H, Hx, Hy
   REAL(rp) sum_inv_Tz, sum_inv_Tx, sum_inv_Ty
@@ -462,39 +462,39 @@ SUBROUTINE bjmt(ring, mode, rates)
   REAL(rp) endpoint
   LOGICAL far_enough
 
-  NB = ring%param%n_part
+  NB = lat%param%n_part
   sigma_p = mode%sigE_E
   emit_x = mode%a%emittance
   emit_y = mode%b%emittance
   sigma_z = mode%sig_z
 
-  E_tot = ring%ele_(0)%value(beam_energy$)
-  CALL convert_total_energy_to(E_tot, ring%param%particle, gamma, KE, beta)
+  E_tot = lat%ele(0)%value(E_TOT$)
+  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, beta)
 
   sum_inv_Tz = 0.0
   sum_inv_Tx = 0.0
   sum_inv_Ty = 0.0
   big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(beta**3)/(gamma**4)/emit_x/emit_y/sigma_z/sigma_p
-  DO i=1,ring%n_ele_use
-    ele => ring%ele_(i)
+  DO i=1,lat%n_ele_track
+    ele => lat%ele(i)
 
-    alpha_x = ele%x%alpha
-    alpha_y = ele%y%alpha
-    beta_x = ele%x%beta
-    beta_y = ele%y%beta
-    Dx = ele%x%eta
-    Dy = ele%y%eta
-    Dxp = ele%x%etap
-    Dyp = ele%y%etap
-    sigma_y = SQRT(beta_y*emit_y + (Dy*sigma_p)**2)
+    alpha_a = ele%a%alpha
+    alpha_b = ele%b%alpha
+    beta_a = ele%a%beta
+    beta_b = ele%b%beta
+    Dx = ele%a%eta
+    Dy = ele%b%eta
+    Dxp = ele%a%etap
+    Dyp = ele%b%etap
+    sigma_y = SQRT(beta_b*emit_y + (Dy*sigma_p)**2)
 
-    coulomb_log = LOG( (gamma**2)*sigma_y*emit_x/r_e/beta_x )
+    coulomb_log = LOG( (gamma**2)*sigma_y*emit_x/r_e/beta_a )
 
-    Hx = ( Dx**2 + (beta_x*Dxp + alpha_x*Dx)**2 ) / beta_x
-    Hy = ( Dy**2 + (beta_y*Dyp + alpha_y*Dy)**2 ) / beta_y
+    Hx = ( Dx**2 + (beta_a*Dxp + alpha_a*Dx)**2 ) / beta_a
+    Hy = ( Dy**2 + (beta_b*Dyp + alpha_b*Dy)**2 ) / beta_b
 
-    phi_h = Dxp + alpha_x*Dx/beta_x
-    phi_v = Dyp + alpha_y*Dy/beta_y
+    phi_h = Dxp + alpha_a*Dx/beta_a
+    phi_v = Dyp + alpha_b*Dy/beta_b
 
     bjmt_com%Lp = 0.0
     bjmt_com%Lp(2,2) = 1.0
@@ -504,15 +504,15 @@ SUBROUTINE bjmt(ring, mode, rates)
     bjmt_com%Lh(1,1) = 1.0
     bjmt_com%Lh(1,2) = -1.0*gamma*phi_h
     bjmt_com%Lh(2,1) = -1.0*gamma*phi_h
-    bjmt_com%Lh(2,2) = (gamma**2)*Hx/beta_x
-    bjmt_com%Lh = beta_x/emit_x*bjmt_com%Lh
+    bjmt_com%Lh(2,2) = (gamma**2)*Hx/beta_a
+    bjmt_com%Lh = beta_a/emit_x*bjmt_com%Lh
 
     bjmt_com%Lv = 0.0
-    bjmt_com%Lv(2,2) = (gamma**2)*Hy/beta_y
+    bjmt_com%Lv(2,2) = (gamma**2)*Hy/beta_b
     bjmt_com%Lv(2,3) = -1.0*gamma*phi_v
     bjmt_com%Lv(3,2) = -1.0*gamma*phi_v
     bjmt_com%Lv(3,3) = 1.0
-    bjmt_com%Lv = beta_y/emit_y*bjmt_com%Lv
+    bjmt_com%Lv = beta_b/emit_y*bjmt_com%Lv
 
     bjmt_com%L_sum = bjmt_com%Lp + bjmt_com%Lh + bjmt_com%Lv
 
@@ -573,15 +573,15 @@ SUBROUTINE bjmt(ring, mode, rates)
     ENDDO
     inv_Ty=4.0*pi*big_A*coulomb_log*sum_y
 
-    length_multiplier = ring%ele_(i)%value(l$)/2.0 + ring%ele_(i+1)%value(l$)/2.0
+    length_multiplier = lat%ele(i)%value(l$)/2.0 + lat%ele(i+1)%value(l$)/2.0
     sum_inv_Tz = sum_inv_Tz + inv_Tz * length_multiplier
     sum_inv_Tx = sum_inv_Tx + inv_Tx * length_multiplier
     sum_inv_Ty = sum_inv_Ty + inv_Ty * length_multiplier
   ENDDO
 
-  rates%inv_Tz = sum_inv_Tz / ring%param%total_length
-  rates%inv_Tx = sum_inv_Tx / ring%param%total_length
-  rates%inv_Ty = sum_inv_Ty / ring%param%total_length
+  rates%inv_Tz = sum_inv_Tz / lat%param%total_length
+  rates%inv_Tx = sum_inv_Tx / lat%param%total_length
+  rates%inv_Ty = sum_inv_Ty / lat%param%total_length
 
 END SUBROUTINE bjmt
 
@@ -672,7 +672,7 @@ END FUNCTION bjmt_int_v
   
 
 !+
-!  subroutine bane(ring, mode, rates)
+!  subroutine bane(lat, mode, rates)
 !
 !  This is a private subroutine. To access this subroutine, call
 !  ibs_rates.
@@ -682,21 +682,21 @@ END FUNCTION bjmt_int_v
 !  It is a high energy approximation of the Bjorken-Mtingwa IBS
 !  formulation.
 !-
-SUBROUTINE bane(ring, mode, rates)
+SUBROUTINE bane(lat, mode, rates)
 
   IMPLICIT NONE
  
 
-  TYPE(modes_struct), INTENT(IN) :: mode
-  TYPE(ring_struct), INTENT(IN), target :: ring
+  TYPE(normal_modes_struct), INTENT(IN) :: mode
+  TYPE(lat_struct), INTENT(IN), target :: lat
   TYPE(ibs_struct), INTENT(OUT) :: rates
   TYPE(ele_struct), pointer :: ele
 
   REAL(rp) sigma_p, emit_x, emit_y, sigma_z, E_tot
-  REAL(rp) gamma, KE, beta, beta_x, beta_y
+  REAL(rp) gamma, KE, beta, beta_a, beta_b
   REAL(rp) sigma_x, sigma_y, sigma_x_beta, sigma_y_beta
   REAL(rp) Dx, Dy, Dxp, Dyp
-  REAL(rp) alpha_x, alpha_y, coulomb_log
+  REAL(rp) alpha_a, alpha_b, coulomb_log
   REAL(rp) a, b, g_bane
   REAL(rp) NB, big_A
   REAL(rp) sigma_H, Hx, Hy
@@ -705,60 +705,60 @@ SUBROUTINE bane(ring, mode, rates)
   REAL(rp) length_multiplier
   INTEGER i
 
-  NB = ring%param%n_part
+  NB = lat%param%n_part
   sigma_p = mode%sigE_E
   emit_x = mode%a%emittance
   emit_y = mode%b%emittance
   sigma_z = mode%sig_z
 
-  E_tot = ring%ele_(0)%value(beam_energy$)
-  CALL convert_total_energy_to(E_tot, ring%param%particle, gamma, KE, beta)
+  E_tot = lat%ele(0)%value(E_TOT$)
+  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, beta)
 
   sum_inv_Tz = 0.0
   sum_inv_Tx = 0.0
   sum_inv_Ty = 0.0
   big_A=(r_e**2)*c_light*NB/16.0/(gamma**3)/(emit_x**(3./4.))/(emit_y**(3./4.))/sigma_z/(sigma_p**3)
-  DO i=1,ring%n_ele_use
-    ele => ring%ele_(i)
+  DO i=1,lat%n_ele_track
+    ele => lat%ele(i)
                                                                                                      
-    beta_x = ele%x%beta
-    beta_y = ele%y%beta
-    alpha_x = ele%x%alpha
-    alpha_y = ele%y%alpha
-    Dxp = ele%x%etap
-    Dyp = ele%y%etap
-    Dx = ele%x%eta
-    Dy = ele%y%eta
-    sigma_x_beta = SQRT(beta_x * emit_x)
-    sigma_y_beta = SQRT(beta_y * emit_y)
+    beta_a = ele%a%beta
+    beta_b = ele%b%beta
+    alpha_a = ele%a%alpha
+    alpha_b = ele%b%alpha
+    Dxp = ele%a%etap
+    Dyp = ele%b%etap
+    Dx = ele%a%eta
+    Dy = ele%b%eta
+    sigma_x_beta = SQRT(beta_a * emit_x)
+    sigma_y_beta = SQRT(beta_b * emit_y)
     sigma_x = SQRT(sigma_x_beta**2 + (Dx**2)*(sigma_p**2))
     sigma_y = SQRT(sigma_y_beta**2 + (Dy**2)*(sigma_p**2))
                                                                                                        
-    coulomb_log = LOG( (gamma**2)*sigma_y*emit_x/r_e/beta_x )
+    coulomb_log = LOG( (gamma**2)*sigma_y*emit_x/r_e/beta_a )
                                                                                                      
-    Hx = ( (Dx**2) + (beta_x*Dxp + alpha_x*Dx)**2 ) / beta_x
-    Hy = ( (Dy**2) + (beta_y*Dyp + alpha_y*Dy)**2 ) / beta_y
+    Hx = ( (Dx**2) + (beta_a*Dxp + alpha_a*Dx)**2 ) / beta_a
+    Hy = ( (Dy**2) + (beta_b*Dyp + alpha_b*Dy)**2 ) / beta_b
     sigma_H = 1.0/SQRT(1.0/(sigma_p**2) + Hx/emit_x + Hy/emit_y)
 
-    a = sigma_H/gamma*SQRT(beta_x/emit_x)
-    b = sigma_H/gamma*SQRT(beta_y/emit_y)
+    a = sigma_H/gamma*SQRT(beta_a/emit_x)
+    b = sigma_H/gamma*SQRT(beta_b/emit_y)
                                                                                                      
     Elpha = a/b
     g_bane = 2.*SQRT(Elpha)/pi*qromo(integrand, 0._rp, 9999._rp, midexp)
                                                                                                  
-    inv_Tz = big_A*coulomb_log*sigma_H*g_bane*((beta_x*beta_y)**(-1./4.))
+    inv_Tz = big_A*coulomb_log*sigma_H*g_bane*((beta_a*beta_b)**(-1./4.))
     inv_Tx = (sigma_p**2)*Hx/emit_x*inv_Tz
     inv_Ty = (sigma_p**2)*Hy/emit_y*inv_Tz
                                                                                                  
-    length_multiplier = ring%ele_(i)%value(l$)/2.0 + ring%ele_(i+1)%value(l$)/2.0
+    length_multiplier = lat%ele(i)%value(l$)/2.0 + lat%ele(i+1)%value(l$)/2.0
     sum_inv_Tz = sum_inv_Tz + inv_Tz * length_multiplier
     sum_inv_Tx = sum_inv_Tx + inv_Tx * length_multiplier
     sum_inv_Ty = sum_inv_Ty + inv_Ty * length_multiplier
   ENDDO
   
-  rates%inv_Tz = sum_inv_Tz / ring%param%total_length
-  rates%inv_Tx = sum_inv_Tx / ring%param%total_length
-  rates%inv_Ty = sum_inv_Ty / ring%param%total_length
+  rates%inv_Tz = sum_inv_Tz / lat%param%total_length
+  rates%inv_Tx = sum_inv_Tx / lat%param%total_length
+  rates%inv_Ty = sum_inv_Ty / lat%param%total_length
 
 END SUBROUTINE bane
 
@@ -775,7 +775,7 @@ END FUNCTION integrand
 
 
 !+
-!  subroutine cimp(ring, mode, rates)
+!  subroutine cimp(lat, mode, rates)
 !
 !  This is a private subroutine. To access this subroutine, call
 !  ibs_rates.
@@ -789,20 +789,20 @@ END FUNCTION integrand
 !
 !  This is the quickest of the three IBS formuations in this module. 
 !-
-SUBROUTINE cimp(ring, mode, rates)
+SUBROUTINE cimp(lat, mode, rates)
 
   IMPLICIT NONE
 
-  TYPE(modes_struct), INTENT(IN) :: mode
-  TYPE(ring_struct), INTENT(IN), target :: ring
+  TYPE(normal_modes_struct), INTENT(IN) :: mode
+  TYPE(lat_struct), INTENT(IN), target :: lat
   TYPE(ibs_struct), INTENT(OUT) :: rates
   TYPE(ele_struct), pointer :: ele
 
   REAL(rp) sigma_p, emit_x, emit_y, sigma_z, E_tot
-  REAL(rp) gamma, KE, beta, beta_x, beta_y
+  REAL(rp) gamma, KE, beta, beta_a, beta_b
   REAL(rp) sigma_x, sigma_y, sigma_x_beta, sigma_y_beta
   REAL(rp) Dx, Dy, Dxp, Dyp
-  REAL(rp) alpha_x, alpha_y, coulomb_log
+  REAL(rp) alpha_a, alpha_b, coulomb_log
   REAL(rp) a, b
   REAL(rp) NB, big_A
   REAL(rp) sigma_H, Hx, Hy
@@ -813,14 +813,14 @@ SUBROUTINE cimp(ring, mode, rates)
   REAL(rp) distance_s
   INTEGER  i
 
-  NB = ring%param%n_part
+  NB = lat%param%n_part
   sigma_p = mode%sigE_E
   emit_x = mode%a%emittance
   emit_y = mode%b%emittance
   sigma_z = mode%sig_z
 
-  E_tot = ring%ele_(0)%value(beam_energy$)
-  CALL convert_total_energy_to(E_tot, ring%param%particle, gamma, KE, beta)
+  E_tot = lat%ele(0)%value(E_TOT$)
+  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, beta)
 
   sum_inv_Tz = 0.0
   sum_inv_Tx = 0.0
@@ -830,31 +830,31 @@ SUBROUTINE cimp(ring, mode, rates)
   big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(beta**3)/(gamma**4)/emit_x/emit_y/sigma_z/sigma_p
 
   !OPEN(88, FILE='contribs.dat',STATUS='REPLACE')
-  DO i=1,ring%n_ele_use   
-    ele => ring%ele_(i)
+  DO i=1,lat%n_ele_track   
+    ele => lat%ele(i)
 
-    alpha_x = ele%x%alpha
-    alpha_y = ele%y%alpha
-    beta_x = ele%x%beta
-    beta_y = ele%y%beta
-    sigma_x_beta = SQRT(beta_x * emit_x)
-    sigma_y_beta = SQRT(beta_y * emit_y)
-    Dx = ele%x%eta
-    Dy = ele%y%eta
-    Dxp = ele%x%etap
-    Dyp = ele%y%etap
+    alpha_a = ele%a%alpha
+    alpha_b = ele%b%alpha
+    beta_a = ele%a%beta
+    beta_b = ele%b%beta
+    sigma_x_beta = SQRT(beta_a * emit_x)
+    sigma_y_beta = SQRT(beta_b * emit_y)
+    Dx = ele%a%eta
+    Dy = ele%b%eta
+    Dxp = ele%a%etap
+    Dyp = ele%b%etap
     sigma_x = SQRT(sigma_x_beta**2 + (Dx**2)*(sigma_p**2))
     sigma_y = SQRT(sigma_y_beta**2 + (Dy**2)*(sigma_p**2))
 
-    Hx = ( Dx**2 + (beta_x*Dxp + alpha_x*Dx)**2 ) / beta_x
-    Hy = ( Dy**2 + (beta_y*Dyp + alpha_y*Dy)**2 ) / beta_y
+    Hx = ( Dx**2 + (beta_a*Dxp + alpha_a*Dx)**2 ) / beta_a
+    Hy = ( Dy**2 + (beta_b*Dyp + alpha_b*Dy)**2 ) / beta_b
 
     sigma_H = 1.0/SQRT( 1.0/(sigma_p**2)+ Hx/emit_x + Hy/emit_y )
 
-    coulomb_log = LOG( (gamma**2)*sigma_y*emit_x/r_e/beta_x )
+    coulomb_log = LOG( (gamma**2)*sigma_y*emit_x/r_e/beta_a )
 
-    a = sigma_H/gamma*SQRT(beta_x/emit_x)
-    b = sigma_H/gamma*SQRT(beta_y/emit_y)
+    a = sigma_H/gamma*SQRT(beta_a/emit_x)
+    b = sigma_H/gamma*SQRT(beta_b/emit_y)
 
     g_ba = g(b/a)
     g_ab = g(a/b)
@@ -868,20 +868,20 @@ SUBROUTINE cimp(ring, mode, rates)
       (-b*g_ab + Hy*(sigma_H**2)/emit_y* &
       ( g_ba/a + g_ab/b ) )
 
-    length_multiplier = ring%ele_(i)%value(l$)/2.0 + ring%ele_(i+1)%value(l$)/2.0
+    length_multiplier = lat%ele(i)%value(l$)/2.0 + lat%ele(i+1)%value(l$)/2.0
     distance_s = distance_s + length_multiplier
 
 !    WRITE(88,FMT="(ES8.2,' ',ES11.4,' ',ES11.4,' ',ES11.4)") &
-!        distance_s,inv_Tx,beta_y
+!        distance_s,inv_Tx,beta_b
     sum_inv_Tz = sum_inv_Tz + inv_Tz * length_multiplier
     sum_inv_Tx = sum_inv_Tx + inv_Tx * length_multiplier
     sum_inv_Ty = sum_inv_Ty + inv_Ty * length_multiplier
   ENDDO
 !  CLOSE(88)
 
-  rates%inv_Tz = sum_inv_Tz / ring%param%total_length
-  rates%inv_Tx = sum_inv_Tx / ring%param%total_length
-  rates%inv_Ty = sum_inv_Ty / ring%param%total_length
+  rates%inv_Tz = sum_inv_Tz / lat%param%total_length
+  rates%inv_Tx = sum_inv_Tx / lat%param%total_length
+  rates%inv_Ty = sum_inv_Ty / lat%param%total_length
 END SUBROUTINE cimp
 
 !+
@@ -995,7 +995,7 @@ END FUNCTION g
 
 
 !+
-!  subroutine mtto(ring, mode, rates)
+!  subroutine mtto(lat, mode, rates)
 !
 !  NOTE:  The Mtingwa-Tollerstrup formula gives different from the other
 !  formulations in this module.
@@ -1013,17 +1013,17 @@ END FUNCTION g
 !  This is a private subroutine. To access this subroutine, call
 !  ibs_rates.
 !-
-SUBROUTINE mtto(ring, mode, rates)
+SUBROUTINE mtto(lat, mode, rates)
 
   IMPLICIT NONE
 
-  TYPE(modes_struct), INTENT(IN) :: mode
-  TYPE(ring_struct), INTENT(IN), target :: ring
+  TYPE(normal_modes_struct), INTENT(IN) :: mode
+  TYPE(lat_struct), INTENT(IN), target :: lat
   TYPE(ibs_struct), INTENT(OUT) :: rates
   TYPE(ele_struct), pointer :: ele
 
   REAL(rp) sigma_p, emit_x, emit_y, sigma_z, E_tot
-  REAL(rp) gamma, KE, beta, beta_x, beta_y
+  REAL(rp) gamma, KE, beta, beta_a, beta_b
   REAL(rp) sigma_x_beta, sigma_y_beta
   REAL(rp) sigma_x_eta, sigma_y_eta
   REAL(rp) Dx
@@ -1034,40 +1034,40 @@ SUBROUTINE mtto(ring, mode, rates)
   REAL(rp) g_b,g_1_b
   INTEGER  i
 
-  NB = ring%param%n_part
+  NB = lat%param%n_part
   sigma_p = mode%sigE_E
   emit_x = mode%a%emittance
   emit_y = mode%b%emittance
   sigma_z = mode%sig_z
 
-  E_tot = ring%ele_(0)%value(beam_energy$)
-  CALL convert_total_energy_to(E_tot, ring%param%particle, gamma, KE, beta)
+  E_tot = lat%ele(0)%value(E_TOT$)
+  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, beta)
 
   big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(beta**3)/(gamma**4)/emit_x/emit_y/sigma_z/sigma_p
 
-  beta_x = 0.0
-  beta_y = 0.0
+  beta_a = 0.0
+  beta_b = 0.0
   Dx = 0.0
  
-  DO i=1,ring%n_ele_use   
-    ele => ring%ele_(i)
-    length_multiplier = ring%ele_(i)%value(l$)/2.0 + ring%ele_(i+1)%value(l$)/2.0
-    !Compute average lattice beta_x, beta_y, and Dx
-    beta_x = beta_x + (ele%x%beta*length_multiplier)
-    beta_y = beta_y + (ele%y%beta*length_multiplier)
-    Dx = Dx + (ele%x%eta*length_multiplier)
+  DO i=1,lat%n_ele_track   
+    ele => lat%ele(i)
+    length_multiplier = lat%ele(i)%value(l$)/2.0 + lat%ele(i+1)%value(l$)/2.0
+    !Compute average lattice beta_a, beta_b, and Dx
+    beta_a = beta_a + (ele%a%beta*length_multiplier)
+    beta_b = beta_b + (ele%b%beta*length_multiplier)
+    Dx = Dx + (ele%a%eta*length_multiplier)
   ENDDO
 
-  beta_x = beta_x / ring%param%total_length
-  beta_y = beta_y / ring%param%total_length
-  Dx = Dx / ring%param%total_length
+  beta_a = beta_a / lat%param%total_length
+  beta_b = beta_b / lat%param%total_length
+  Dx = Dx / lat%param%total_length
 
-  T = beta_x*emit_x / ( beta_x*emit_x + (Dx**2)*(sigma_p**2) )
-  a = 1./Sqrt(T)/sigma_p*Sqrt((gamma**2)*emit_y/beta_y)
-  b = Sqrt(emit_y*beta_y/emit_x/beta_x)
-  c = ((gamma**2)*emit_y/beta_y/r_e)**(1./2.) * &
+  T = beta_a*emit_x / ( beta_a*emit_x + (Dx**2)*(sigma_p**2) )
+  a = 1./Sqrt(T)/sigma_p*Sqrt((gamma**2)*emit_y/beta_b)
+  b = Sqrt(emit_y*beta_b/emit_x/beta_a)
+  c = ((gamma**2)*emit_y/beta_b/r_e)**(1./2.) * &
       (Sqrt(6*pi)*sigma_z/NB)**(1./6.) * &
-      (36.*(pi*pi)*(gamma**2)*emit_x*emit_y*beta_x*beta_y/T)**(1./12.)
+      (36.*(pi*pi)*(gamma**2)*emit_x*emit_y*beta_a*beta_b/T)**(1./12.)
 
   !This is the same g used by the cimp formula.
   g_b = g(b)

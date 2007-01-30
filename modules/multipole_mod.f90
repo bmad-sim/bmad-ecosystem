@@ -13,7 +13,7 @@ contains
 !+
 ! Subroutine multipole_init (ele, zero)
 !
-! Subroutine to allocate memory for the the ele%a and ele%b multipole 
+! Subroutine to allocate memory for the the ele%a_pole and ele%b_pole multipole 
 ! vectors.
 !
 ! Modules needed:
@@ -27,8 +27,8 @@ contains
 !
 ! Output:
 !   ele -- Ele_struct: Element holding the multipoles.
-!     %a(0:n_pole_maxx) -- Multipole An array 
-!     %b(0:n_pole_maxx) -- Multipole Bn array
+!     %a_pole(0:n_pole_maxx) -- Multipole An array 
+!     %b_pole(0:n_pole_maxx) -- Multipole Bn array
 !-
 
 subroutine multipole_init (ele, zero)
@@ -38,21 +38,21 @@ implicit none
 type (ele_struct) ele
 logical, optional :: zero
 
-! If %a and %b already exist then zero them if zero argument present 
+! If %a_pole and %b_pole already exist then zero them if zero argument present 
 ! and True.
 
-if (associated (ele%a)) then
+if (associated (ele%a_pole)) then
   if (logic_option(.false., zero)) then
-    ele%a = 0
-    ele%b = 0
+    ele%a_pole = 0
+    ele%b_pole = 0
   endif
 
 ! If memory not allocated then allocate and zero.
 
 else
-  allocate (ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
-  ele%a = 0
-  ele%b = 0
+  allocate (ele%a_pole(0:n_pole_maxx), ele%b_pole(0:n_pole_maxx))
+  ele%a_pole = 0
+  ele%b_pole = 0
 endif
 
 end subroutine
@@ -147,7 +147,7 @@ subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
 
 !
 
-  if (.not. ele%multipoles_on .or. .not. ele%is_on .or. .not. associated(ele%a)) then
+  if (.not. ele%multipoles_on .or. .not. ele%is_on .or. .not. associated(ele%a_pole)) then
     knl = 0
     tilt = 0
     return
@@ -156,8 +156,8 @@ subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
 ! multipole
                     
   if (ele%key == multipole$) then
-    knl  = ele%a
-    tilt = ele%b + ele%value(tilt_tot$)
+    knl  = ele%a_pole
+    tilt = ele%b_pole + ele%value(tilt_tot$)
     return
   endif
 
@@ -262,7 +262,7 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
 
 !
 
-  if (.not. ele%multipoles_on .or. .not. ele%is_on .or. .not. associated(ele%a)) then
+  if (.not. ele%multipoles_on .or. .not. ele%is_on .or. .not. associated(ele%a_pole)) then
     a = 0
     b = 0
     return
@@ -270,8 +270,8 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
 
 ! transfer values to a and b vecs
 
-  a = ele%a
-  b = ele%b
+  a = ele%a_pole
+  b = ele%b_pole
 
   if (ele%key == multipole$) call multipole_kt_to_ab (a, b, a, b)
 

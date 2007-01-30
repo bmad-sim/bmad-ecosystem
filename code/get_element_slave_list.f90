@@ -4,7 +4,7 @@
 ! Subroutine to get the list of slaves for an element.
 !
 ! This is a list of ultimate slaves. That is, slaves in the regular part 
-! of the lattice. Thus if the element lat%ele_(ix_ele) controls an
+! of the lattice. Thus if the element lat%ele(ix_ele) controls an
 ! element ix_ele2 which controlls an element ix_ele3 then ix_ele3 will
 ! show up in the slave_list but ix_ele2 will not.
 !
@@ -18,7 +18,7 @@
 !   use bmad
 !
 ! Input:
-!   lat     -- Ring_struct: Lattice
+!   lat     -- lat_struct: Lattice
 !   ix_ele  -- Integer: Index element in the lattice.
 !
 ! Output:
@@ -33,7 +33,7 @@ subroutine get_element_slave_list (lat, ix_ele, slave_list, n_slave)
 
   implicit none
 
-  type (ring_struct) lat
+  type (lat_struct) lat
 
   integer ix_ele, n_slave
   integer, allocatable :: slave_list(:)
@@ -43,7 +43,7 @@ subroutine get_element_slave_list (lat, ix_ele, slave_list, n_slave)
   n_slave = 0
   if (.not. allocated(slave_list)) call re_allocate (slave_list, 100)
 
-  call get_slaves (lat%ele_(ix_ele))
+  call get_slaves (lat%ele(ix_ele))
 
 !--------------------------------------------------------------------------
 contains
@@ -56,9 +56,9 @@ recursive subroutine get_slaves (lord)
 !
 
   do i = lord%ix1_slave, lord%ix2_slave
-    ix = lat%control_(i)%ix_slave
-    if (ix > lat%n_ele_use) then
-      call get_slaves (lat%ele_(ix))
+    ix = lat%control(i)%ix_slave
+    if (ix > lat%n_ele_track) then
+      call get_slaves (lat%ele(ix))
     else
       n_slave = n_slave + 1
       if (n_slave > size(slave_list)) &

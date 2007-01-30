@@ -32,20 +32,20 @@ type (floor_position_struct), save ::  floor_position_in, floor_position_out
 type (wig_term_struct), save ::        wig_term_in, wig_term_out
 type (taylor_term_struct), save ::     taylor_term_in, taylor_term_out
 type (taylor_struct), save ::          taylor_in, taylor_out
-type (sr1_wake_struct), save ::        sr1_wake_in, sr1_wake_out
-type (sr2_wake_struct), save ::        sr2_wake_in, sr2_wake_out
+type (sr_table_wake_struct), save ::        sr_table_wake_in, sr_table_wake_out
+type (sr_mode_wake_struct), save ::        sr_mode_wake_in, sr_mode_wake_out
 type (lr_wake_struct), save ::         lr_wake_in, lr_wake_out
 type (wake_struct), save, target ::    wake_in, wake_out
 type (control_struct), save ::         control_in, control_out
-type (param_struct), save ::           param_in, param_out
-type (amode_struct), save ::           amode_in, amode_out
-type (linac_mode_struct), save ::      linac_mode_in, linac_mode_out
-type (modes_struct), save ::           modes_in, modes_out
-type (bmad_com_struct), save ::        bmad_com_in, bmad_com_out
+type (lat_param_struct), save ::           param_in, param_out
+type (anormal_mode_struct), save ::           amode_in, amode_out
+type (linac_normal_mode_struct), save ::      linac_mode_in, linac_mode_out
+type (normal_modes_struct), save ::           modes_in, modes_out
+type (bmad_common_struct), save ::        bmad_com_in, bmad_com_out
 type (em_field_struct), save ::        em_field_in, em_field_out
 type (ele_struct), save ::             ele_in, ele_out
 type (mode_info_struct), save ::       mode_info_in, mode_info_out
-type (ring_struct), save ::            ring_in, ring_out
+type (lat_struct), save ::            ring_in, ring_out
 
 logical, save :: all_ok = .true.
 
@@ -126,12 +126,12 @@ taylor_out%ref = 1.0_rp
 taylor_out%term(1) = taylor_term_struct(-1.0_rp, (/ -2, -3, -4, -5, -6, -7 /))
 taylor_out%term(2) = taylor_term_struct(-8.0_rp, (/ -9, -10, -11, -12, -13, -14 /)) 
 
-sr1_wake_in  = sr1_wake_struct (1.0_rp, 2.0_rp, 3.0_rp)
-sr1_wake_out = sr1_wake_struct (3.0_rp, 2.0_rp, 1.0_rp)
+sr_table_wake_in  = sr_table_wake_struct (1.0_rp, 2.0_rp, 3.0_rp)
+sr_table_wake_out = sr_table_wake_struct (3.0_rp, 2.0_rp, 1.0_rp)
 
-sr2_wake_in  = sr2_wake_struct (21.0_rp, 22.0_rp, 23.0_rp, 24.0_rp, 25.0_rp, &
+sr_mode_wake_in  = sr_mode_wake_struct (21.0_rp, 22.0_rp, 23.0_rp, 24.0_rp, 25.0_rp, &
                                                      26.0_rp, 27.0_rp, 28.0_rp)
-sr2_wake_out = sr2_wake_struct (31.0_rp, 32.0_rp, 33.0_rp, 34.0_rp, 35.0_rp, &
+sr_mode_wake_out = sr_mode_wake_struct (31.0_rp, 32.0_rp, 33.0_rp, 34.0_rp, 35.0_rp, &
                                                      36.0_rp, 37.0_rp, 38.0_rp)
 
 lr_wake_in  = lr_wake_struct(1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, &
@@ -139,23 +139,23 @@ lr_wake_in  = lr_wake_struct(1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, &
 lr_wake_out = lr_wake_struct(10.0_rp, 9.0_rp, 8.0_rp, 7.0_rp, 6, 5.0_rp, &
                               4.0_rp, 3.0_rp, 2.0_rp, 1, .false.)
 
-allocate (wake_in%sr1(0:1), wake_in%sr2_long(2), wake_in%sr2_trans(0), wake_in%lr(1))
-allocate (wake_out%sr1(0), wake_out%sr2_long(0), wake_out%sr2_trans(2), wake_out%lr(2))
+allocate (wake_in%sr_table(0:1), wake_in%sr_mode_long(2), wake_in%sr_mode_trans(0), wake_in%lr(1))
+allocate (wake_out%sr_table(0), wake_out%sr_mode_long(0), wake_out%sr_mode_trans(2), wake_out%lr(2))
 
 wake_in%sr_file = "ABCD"
 wake_in%lr_file = "XYZZY"
-wake_in%z_sr2_max = 100
-wake_in%sr1(0) = sr1_wake_in
-wake_in%sr1(1) = sr1_wake_out
-wake_in%sr2_long(1) = sr2_wake_in
-wake_in%sr2_long(2) = sr2_wake_out
+wake_in%z_sr_mode_max = 100
+wake_in%sr_table(0) = sr_table_wake_in
+wake_in%sr_table(1) = sr_table_wake_out
+wake_in%sr_mode_long(1) = sr_mode_wake_in
+wake_in%sr_mode_long(2) = sr_mode_wake_out
 wake_in%lr(1) = lr_wake_in
 
 wake_out%sr_file = "abcd"
 wake_out%lr_file = "xyzzy"
-wake_out%z_sr2_max = 101
-wake_out%sr2_trans(1) = sr2_wake_in
-wake_out%sr2_trans(2) = sr2_wake_out
+wake_out%z_sr_mode_max = 101
+wake_out%sr_mode_trans(1) = sr_mode_wake_in
+wake_out%sr_mode_trans(2) = sr_mode_wake_out
 wake_out%lr(1) = lr_wake_struct (-1.0_rp, -2.0_rp, -3.0_rp, -4.0_rp, -5.0_rp, &
                           -6.0_rp, -7.0_rp, -8.0_rp, -9.0_rp, 10, .true.)
 wake_out%lr(2) = lr_wake_struct (-11.0_rp, -12.0_rp, -13.0_rp, -14.0_rp, -15.0_rp, &
@@ -164,25 +164,25 @@ wake_out%lr(2) = lr_wake_struct (-11.0_rp, -12.0_rp, -13.0_rp, -14.0_rp, -15.0_r
 control_in  = control_struct(1.0_rp, 2, 3, 4)
 control_out = control_struct(4.0_rp, 3, 2, 1)
 
-param_in  = param_struct (1.0_rp, 2.0_rp, &
+param_in  = lat_param_struct (1.0_rp, 2.0_rp, &
       3.0_rp, mat6_a, mat6_b, 11, 12, 13, 14, 15, 16, T, F, T)
-param_out = param_struct (11.0_rp, 12.0_rp, &
+param_out = lat_param_struct (11.0_rp, 12.0_rp, &
       13.0_rp, mat6_b, mat6_a, 111, 112, 113, 114, 115, 116, F, F, F)
 
-amode_in  = amode_struct (1.0_rp, (/2.0_rp, 3.0_rp/), 4.0_rp, 5.0_rp, 6.0_rp, 7.0_rp)
-amode_out  = amode_struct (11.0_rp, (/12.0_rp, 13.0_rp/), 14.0_rp, 15.0_rp, 16.0_rp, 17.0_rp)
+amode_in  = anormal_mode_struct (1.0_rp, (/2.0_rp, 3.0_rp/), 4.0_rp, 5.0_rp, 6.0_rp, 7.0_rp)
+amode_out  = anormal_mode_struct (11.0_rp, (/12.0_rp, 13.0_rp/), 14.0_rp, 15.0_rp, 16.0_rp, 17.0_rp)
 
-linac_mode_in  = linac_mode_struct (1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, 6.0_rp, 7.0_rp)
-linac_mode_out = linac_mode_struct (11.0_rp, 12.0_rp, 13.0_rp, 14.0_rp, 15.0_rp, 16.0_rp, 17.0_rp)
+linac_mode_in  = linac_normal_mode_struct (1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, 6.0_rp, 7.0_rp)
+linac_mode_out = linac_normal_mode_struct (11.0_rp, 12.0_rp, 13.0_rp, 14.0_rp, 15.0_rp, 16.0_rp, 17.0_rp)
 
-modes_in  = modes_struct ((/1.0_rp, 2.0_rp, 3.0_rp/), 4.0_rp, 5.0_rp, 6.0_rp, 7.0_rp, &
+modes_in  = normal_modes_struct ((/1.0_rp, 2.0_rp, 3.0_rp/), 4.0_rp, 5.0_rp, 6.0_rp, 7.0_rp, &
                   amode_in, amode_out, amode_in, linac_mode_in)
-modes_out = modes_struct ((/11.0_rp, 12.0_rp, 13.0_rp/), 14.0_rp, 15.0_rp, 16.0_rp, 17.0_rp, &
+modes_out = normal_modes_struct ((/11.0_rp, 12.0_rp, 13.0_rp/), 14.0_rp, 15.0_rp, 16.0_rp, 17.0_rp, &
                   amode_out, amode_out, amode_in, linac_mode_out)
 
-bmad_com_in  = bmad_com_struct (2.0_rp, vec6_a, 3_rp, 4.0_rp, 5.0_rp, 6.0_rp, &
+bmad_com_in  = bmad_common_struct (2.0_rp, vec6_a, 3_rp, 4.0_rp, 5.0_rp, 6.0_rp, &
                                 7, 8, T, F, T, F, T, F, T, F, T, T, F, T)
-bmad_com_out = bmad_com_struct(12.0_rp, vec6_b, 13_rp, 14.0_rp, 15.0_rp, 16.0_rp, &
+bmad_com_out = bmad_common_struct(12.0_rp, vec6_b, 13_rp, 14.0_rp, 15.0_rp, 16.0_rp, &
                                 17, 18, T, T, F, F, T, T, F, F, T, F, T, F)
 
 em_field_in  = em_field_struct (vec3_a, vec3_b, vec3_c, mat3_a, mat3_b, mat3_c, 77)
@@ -240,8 +240,8 @@ ele_in%on_an_i_beam = T
 ele_in%csr_calc_on = F
 
 ele_in%floor = floor_position_in
-ele_in%x = twiss_in
-ele_in%y = twiss_out
+ele_in%a = twiss_in
+ele_in%b = twiss_out
 ele_in%z = twiss_in
 
 ele_out = ele_in
@@ -260,8 +260,8 @@ ele_in%taylor(1) = taylor_in
 ele_in%taylor(2) = taylor_out
 ele_in%r = mat3_c(1:2,1:3)
 forall (i = 0:n_pole_maxx)
-  ele_in%a(i) = -i - 100
-  ele_in%b(i) = -i - 200
+  ele_in%a_pole(i) = -i - 100
+  ele_in%b_pole(i) = -i - 200
 end forall
 
 ring_in%name = "abc"
@@ -269,25 +269,25 @@ ring_in%lattice = "def"
 ring_in%input_file_name = "123"
 ring_in%title = "title"
 ring_in%version = 21
-ring_in%n_ele_use = 22
+ring_in%n_ele_track = 22
 ring_in%n_ele_max = 1
 ring_in%n_control_max = 2
 ring_in%n_ic_max = 6
 ring_in%input_taylor_order = 34
 
-allocate (ring_in%ele_(0:1))
-ring_in%ele_(0) = ele_in
-ring_in%ele_(1) = ele_out
-allocate (ring_in%control_(ring_in%n_control_max))
-ring_in%control_(1) = control_in
-ring_in%control_(2) = control_out
-allocate(ring_in%ic_(6))
-ring_in%ic_ = nint(vec6_a)
+allocate (ring_in%ele(0:1))
+ring_in%ele(0) = ele_in
+ring_in%ele(1) = ele_out
+allocate (ring_in%control(ring_in%n_control_max))
+ring_in%control(1) = control_in
+ring_in%control(2) = control_out
+allocate(ring_in%ic(6))
+ring_in%ic = nint(vec6_a)
 ring_in%ele_init = ele_in
 ring_in%ele_init%name = 'ele_init'
-ring_in%beam_energy => ring_in%ele_(0)%value(beam_energy$)
-ring_in%ele_(0)%ix_ele = 0
-ring_in%ele_(1)%ix_ele = 1
+ring_in%E_TOT => ring_in%ele(0)%value(E_TOT$)
+ring_in%ele(0)%ix_ele = 0
+ring_in%ele(1)%ix_ele = 1
 
 ring_out = ring_in
 
@@ -312,19 +312,19 @@ type (floor_position_struct) floor_position1, floor_position2
 type (wig_term_struct)       wig_term1, wig_term2
 type (taylor_term_struct)    taylor_term1, taylor_term2
 type (taylor_struct)         taylor1, taylor2
-type (sr1_wake_struct)       sr1_wake1, sr1_wake2
-type (sr2_wake_struct)       sr2_wake1, sr2_wake2
+type (sr_table_wake_struct)       sr_table_wake1, sr_table_wake2
+type (sr_mode_wake_struct)       sr_mode_wake1, sr_mode_wake2
 type (lr_wake_struct)        lr_wake1, lr_wake2
 type (wake_struct)           wake1, wake2
 type (control_struct)        control1, control2
-type (param_struct)          param1, param2
-type (amode_struct)          amode1, amode2
-type (linac_mode_struct)     linac_mode1, linac_mode2
-type (modes_struct)          modes1, modes2
+type (lat_param_struct)          param1, param2
+type (anormal_mode_struct)          amode1, amode2
+type (linac_normal_mode_struct)     linac_mode1, linac_mode2
+type (normal_modes_struct)          modes1, modes2
 type (em_field_struct)       em_field1, em_field2
 type (ele_struct)            ele1, ele2
 type (mode_info_struct)      mode_info1, mode_info2
-type (ring_struct)           ring1, ring2
+type (lat_struct)           ring1, ring2
 
 integer :: c_ok = 1
 
@@ -429,34 +429,34 @@ else
 endif
 
 !------------------------------------------------
-! sr1_wake Check
+! sr_table_wake Check
 
-sr1_wake1 = sr1_wake_in
+sr_table_wake1 = sr_table_wake_in
 
 print *
-call test_c_sr1_wake (sr1_wake1, sr1_wake2, c_ok)
+call test_c_sr_table_wake (sr_table_wake1, sr_table_wake2, c_ok)
 all_ok = all_ok .and. f_logic(c_ok)
 
-if (sr1_wake2 == sr1_wake_out) then
-  print *, 'C_side_convert: sr1_wake C to F: OK'
+if (sr_table_wake2 == sr_table_wake_out) then
+  print *, 'C_side_convert: sr_table_wake C to F: OK'
 else
-  print *, 'C_SIDE_CONVERT: sr1_wake C to F: FAILED!!'
+  print *, 'C_SIDE_CONVERT: sr_table_wake C to F: FAILED!!'
   all_ok = .false.
 endif
 
 !------------------------------------------------
-! sr2_wake Check
+! sr_mode_wake Check
 
-sr2_wake1 = sr2_wake_in
+sr_mode_wake1 = sr_mode_wake_in
 
 print *
-call test_c_sr2_wake (sr2_wake1, sr2_wake2, c_ok)
+call test_c_sr_mode_wake (sr_mode_wake1, sr_mode_wake2, c_ok)
 all_ok = all_ok .and. f_logic(c_ok)
 
-if (sr2_wake2 == sr2_wake_out) then
-  print *, 'C_side_convert: sr2_wake C to F: OK'
+if (sr_mode_wake2 == sr_mode_wake_out) then
+  print *, 'C_side_convert: sr_mode_wake C to F: OK'
 else
-  print *, 'C_SIDE_CONVERT: sr2_wake C to F: FAILED!!'
+  print *, 'C_SIDE_CONVERT: sr_mode_wake C to F: FAILED!!'
   all_ok = .false.
 endif
 
@@ -645,7 +645,7 @@ endif
 ring1 = ring_in
 
 print *
-call test_c_ring (ring1, ring2, c_ok)
+call test_C_lat (ring1, ring2, c_ok)
 all_ok = all_ok .and. f_logic(c_ok)
 
 if (ring2 == ring_out) then
@@ -852,7 +852,7 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine test_f_sr1_wake (c1, c2)
+subroutine test_f_sr_table_wake (c1, c2)
 
 use bmad_and_cpp
 use equality_mod
@@ -861,28 +861,28 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (sr1_wake_struct) f1, f2
+type (sr_table_wake_struct) f1, f2
 
 !
 
-call sr1_wake_to_f (c1, f1)
+call sr_table_wake_to_f (c1, f1)
 
-if (f1 == sr1_wake_in) then
-  print *, 'F_side_convert: sr1_wake C to F: OK'
+if (f1 == sr_table_wake_in) then
+  print *, 'F_side_convert: sr_table_wake C to F: OK'
 else
-  print *, 'F_SIDE_CONVERT: sr1_wake C TO F: FAILED!!'
+  print *, 'F_SIDE_CONVERT: sr_table_wake C TO F: FAILED!!'
   all_ok = .false.
 endif
 
-f2 = sr1_wake_out
-call sr1_wake_to_c (f2, c2)
+f2 = sr_table_wake_out
+call sr_table_wake_to_c (f2, c2)
 
 end subroutine
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine test_f_sr2_wake (c1, c2)
+subroutine test_f_sr_mode_wake (c1, c2)
 
 use bmad_and_cpp
 use equality_mod
@@ -891,21 +891,21 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (sr2_wake_struct) f1, f2
+type (sr_mode_wake_struct) f1, f2
 
 !
 
-call sr2_wake_to_f (c1, f1)
+call sr_mode_wake_to_f (c1, f1)
 
-if (f1 == sr2_wake_in) then
-  print *, 'F_side_convert: sr2_wake C to F: OK'
+if (f1 == sr_mode_wake_in) then
+  print *, 'F_side_convert: sr_mode_wake C to F: OK'
 else
-  print *, 'F_SIDE_CONVERT: sr2_wake C TO F: FAILED!!'
+  print *, 'F_SIDE_CONVERT: sr_mode_wake C TO F: FAILED!!'
   all_ok = .false.
 endif
 
-f2 = sr2_wake_out
-call sr2_wake_to_c (f2, c2)
+f2 = sr_mode_wake_out
+call sr_mode_wake_to_c (f2, c2)
 
 end subroutine
 
@@ -1011,7 +1011,7 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (param_struct) f1, f2
+type (lat_param_struct) f1, f2
 
 !
 
@@ -1041,7 +1041,7 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (amode_struct) f1, f2
+type (anormal_mode_struct) f1, f2
 
 !
 
@@ -1071,7 +1071,7 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (linac_mode_struct) f1, f2
+type (linac_normal_mode_struct) f1, f2
 
 !
 
@@ -1101,7 +1101,7 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (modes_struct) f1, f2
+type (normal_modes_struct) f1, f2
 
 !
 
@@ -1244,7 +1244,7 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine test_f_ring (c1, c2)
+subroutine test_f_lat (c1, c2)
 
 use bmad_and_cpp
 use equality_mod
@@ -1253,7 +1253,7 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (ring_struct) f1, f2
+type (lat_struct) f1, f2
 
 !
 
@@ -1267,7 +1267,7 @@ else
 endif
 
 f2 = ring_out
-call ring_to_c (f2, c2)
+call lat_to_c (f2, c2)
 
 end subroutine
 

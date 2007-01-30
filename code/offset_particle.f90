@@ -20,7 +20,7 @@
 !   coord     -- Coord_struct: Coordinates of the particle.
 !     %vec(6)            -- Energy deviation dE/E. 
 !                          Used to modify %vec(2) and %vec(4)
-!   param     -- Param_struct:
+!   param     -- lat_param_struct:
 !     %particle   -- What kind of particle (for elseparator elements).
 !   set       -- Logical: 
 !                   T (= set$)   -> Translate from lab coords to the local 
@@ -56,7 +56,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
   implicit none
 
   type (ele_struct), intent(in) :: ele
-  type (param_struct), intent(in) :: param
+  type (lat_param_struct), intent(in) :: param
   type (coord_struct), intent(inout) :: coord
 
   real(rp), optional, intent(in) :: s_pos
@@ -166,7 +166,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
 ! Set: Multipoles
 
-    if (set_multi .and. associated(ele%a)) then
+    if (set_multi .and. associated(ele%a_pole)) then
       call multipole_ele_to_kt(ele, param%particle, knl, tilt, .true.)
       knl = knl / 2
       do n = 0, n_pole_maxx
@@ -268,7 +268,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
 ! Unset: Multipoles
 
-    if (set_multi .and. associated(ele%a)) then
+    if (set_multi .and. associated(ele%a_pole)) then
       do n = 0, n_pole_maxx
         call multipole_kick (knl(n), tilt(n), n, coord)
       enddo

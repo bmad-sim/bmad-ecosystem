@@ -20,7 +20,7 @@
 !
 ! Input:
 !   ele         -- Ele_struct: Element to slice and dice.
-!   param       -- Param_struct: Lattice parameters
+!   param       -- lat_param_struct: Lattice parameters
 !   i_slice     -- Integer: Slice index
 !   n_slice_tot -- Integer: Total number of slices.
 !
@@ -35,7 +35,7 @@ use bookkeeper_mod
 implicit none
 
 type (ele_struct) ele, sliced_ele
-type (param_struct) param
+type (lat_param_struct) param
 
 integer i_slice, n_slice_tot
 real(rp) phase, s_start, E
@@ -73,9 +73,9 @@ if (ele%key == lcavity$) then
   sliced_ele%value(e_loss$) = sliced_ele%value(e_loss$) / n_slice_tot
   phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
   s_start = (i_slice - 1) * ele%value(l$) / n_slice_tot
-  E = ele%value(beam_energy$) + ele%value(gradient$) * s_start * cos(phase)
+  E = ele%value(E_TOT$) + ele%value(gradient$) * s_start * cos(phase)
   E = E - sliced_ele%value(e_loss$) * param%n_part * e_charge
-  sliced_ele%value(energy_start$) = E 
+  sliced_ele%value(E_TOT_START$) = E 
   call convert_total_energy_to (E, param%particle, pc = sliced_ele%value(p0c_start$))
   bookit = .true.
 endif

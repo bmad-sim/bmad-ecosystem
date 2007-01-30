@@ -16,7 +16,7 @@
 !                             A good value would be, say, 1e-5.
 !     %value(abs_tol$)    -- Real(rp): absolute error. 
 !                             A good value would be, say, 1e-8.
-!   param      -- Param_struct: Beam parameters.
+!   param      -- lat_param_struct: Beam parameters.
 !     %enegy     -- Energy in GeV
 !     %particle  -- Particle type [positron$, or electron$]
 !   track      -- Track_struct: Structure holding the track information.
@@ -41,7 +41,7 @@ subroutine track1_runge_kutta (start, ele, param, end, track)
 
   type (coord_struct) :: start
   type (coord_struct) :: end
-  type (param_struct), target, intent(inout) :: param
+  type (lat_param_struct), target, intent(inout) :: param
   type (ele_struct), target, intent(inout) :: ele
   type (track_struct) track
 

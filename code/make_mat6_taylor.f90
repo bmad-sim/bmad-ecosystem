@@ -8,7 +8,7 @@
 !
 ! Input:
 !   ele    -- Ele_struct: Element with transfer matrix
-!   param  -- Param_struct: Parameters are needed for some elements.
+!   param  -- lat_param_struct: Parameters are needed for some elements.
 !   orb_in -- Coord_struct: Coordinates at the beginning of element. 
 !
 ! Output:
@@ -28,7 +28,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) :: orb0, orb_in, orb_out
-type (param_struct)  param
+type (lat_param_struct)  param
 
 !
 

@@ -19,7 +19,7 @@ module integration_timer_mod
 !
 ! Input:
 !   ele      -- Ele_struct: Element to track through.
-!   param    -- Param_struct:
+!   param    -- lat_param_struct:
 !   start    -- Coord_struct: Starting orbit.
 !   orb_max  -- Coord_struct: maximum orbit.
 !   tol      -- Real(rp): Tolerance for the map coefs. 
@@ -51,7 +51,7 @@ subroutine integration_timer_ele (ele, param, start, orb_max, tol)
   type (ele_struct) ele
   type (fibre), pointer :: a_fibre
   type (coord_struct), intent(in) :: start, orb_max
-  type (param_struct) param
+  type (lat_param_struct) param
   
   real(rp) tol
   real(dp) tol_dp, orbit(6), orbit_max(6)

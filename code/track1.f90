@@ -10,7 +10,7 @@
 ! Input:
 !   start  -- Coord_struct: Starting position.
 !   ele    -- Ele_struct: Element to track through.
-!   param  -- Param_struct:
+!   param  -- lat_param_struct:
 !     %aperture_limit_on -- If True check if particle is lost by going outside
 !                of the element aperture. 
 !
@@ -41,7 +41,7 @@ subroutine track1 (start, ele, param, end)
   type (coord_struct) :: end
   type (coord_struct) :: orb
   type (ele_struct)   :: ele
-  type (param_struct) :: param
+  type (lat_param_struct) :: param
 
   integer tracking_method, plane_lost
 

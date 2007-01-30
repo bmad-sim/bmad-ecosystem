@@ -56,7 +56,7 @@ contains
 !                           Default if zero: 1e-6.
 !     %value(abs_tol$) -- Real: Absolute error tolerance.
 !                           Default if zero: 1e-7.
-!   param    -- Param_struct: Beam parameters.
+!   param    -- lat_param_struct: Beam parameters.
 !     %particle    -- Particle type [positron$, or electron$]
 !   track    -- Track_struct: Structure holding the track information.
 !     %save_track -- Logical: Set True if track is to be saved.
@@ -75,7 +75,7 @@ subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
   type (coord_struct), intent(in) :: start
   type (coord_struct), intent(out) :: end
   type (ele_struct) ele, loc_ele
-  type (param_struct) param
+  type (lat_param_struct) param
   type (coord_struct) here, orb1, orb2
   type (track_struct) :: track
 
@@ -238,7 +238,7 @@ end subroutine track1_adaptive_boris
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field
 !     %value(ds_step$) -- Step size.
-!   param    -- Param_struct: Beam parameters.
+!   param    -- lat_param_struct: Beam parameters.
 !     %particle    -- Particle type [positron$, or electron$]
 !   track      -- Track_struct: Structure holding the track information.
 !     %save_track -- Logical: Set True if track is to be saved.
@@ -258,7 +258,7 @@ subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
   type (coord_struct), intent(in) :: start
   type (coord_struct), intent(out) :: end
   type (ele_struct) ele, loc_ele
-  type (param_struct) param
+  type (lat_param_struct) param
   type (track_struct) track
   type (coord_struct) here
 
@@ -349,7 +349,7 @@ end subroutine
 ! Input:
 !   start -- Coord_struct: Starting coordinates.
 !   ele   -- Ele_struct: Element that we are tracking through.
-!   param -- Param_struct: 
+!   param -- lat_param_struct: 
 !     %particle    -- Particle type [positron$, electron$, etc.]
 !     %spin_tracking_on -- If True then also track the spin
 !   s     -- Real(rp): Starting point relative to element beginning.
@@ -364,7 +364,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
   implicit none
 
   type (ele_struct), intent(in) :: ele
-  type (param_struct) param
+  type (lat_param_struct) param
   type (coord_struct) :: start, end  
   type (em_field_struct) :: field
 
@@ -421,8 +421,8 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
   f = ds * charge * c_light / (2 * ele%value(p0c$))
 
-  end%vec(2) = end%vec(2) - field%b(2) * f
-  end%vec(4) = end%vec(4) + field%b(1) * f
+  end%vec(2) = end%vec(2) - field%B(2) * f
+  end%vec(4) = end%vec(4) + field%B(1) * f
   U_tot = U_tot + field%e(3) * f / c_light
   p_tot = sqrt (U_tot**2 - mass**2)
   p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2)
@@ -432,8 +432,8 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
   d2 = ds * charge * c_light / (2 * p_z * ele%value(p0c$)) 
 
   if (field%e(1) == 0 .and. field%e(2) == 0) then
-    if (field%b(3) /= 0) then
-      d2 = d2 * field%b(3)
+    if (field%B(3) /= 0) then
+      d2 = d2 * field%B(3)
       alpha = 2 * d2 / (1 + d2**2)
       dxv = -d2 * end%vec(2) + end%vec(4)
       dyv = -end%vec(2) - d2 * end%vec(4)
@@ -443,7 +443,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
   else
     ex = field%e(1) / c_light;     ex2 = ex**2
     ey = field%e(2) / c_light;     ey2 = ey**2
-    bz = field%b(3);               bz2 = bz**2
+    bz = field%B(3);               bz2 = bz**2
     exy = ex * ey
     alpha = 2 * d2 / (1 + d2**2 * (bz2 - ex2 - ey2))
     r(1,1:3) = (/ d2 * (ex2 - bz2), bz + d2*exy,      ex + d2*bz*ey    /)
@@ -457,8 +457,8 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
 ! 5) Push the momenta a 1/2 step using only the "b" term.
 
-  end%vec(2) = end%vec(2) - field%b(2) * f
-  end%vec(4) = end%vec(4) + field%b(1) * f
+  end%vec(2) = end%vec(2) - field%B(2) * f
+  end%vec(4) = end%vec(4) + field%B(1) * f
   U_tot = U_tot + field%e(3) * f / c_light
   p_tot = sqrt (U_tot**2 - mass**2)
 
@@ -507,7 +507,7 @@ end subroutine
 !
 ! Input:
 !   ele               -- Ele_struct: Element being tracked through.
-!   param             -- Param_struct:
+!   param             -- lat_param_struct:
 !   final_correction  -- If True, then will adjust the final vec(6) component to
 !         what it should be for the average gradient in the cavity.
 !
@@ -520,7 +520,7 @@ subroutine boris_energy_correction (ele, param, here, final_correction)
   implicit none
 
   type (ele_struct), intent(in) :: ele
-  type (param_struct), intent(in) :: param
+  type (lat_param_struct), intent(in) :: param
   type (coord_struct) :: here
 
   real(rp) p0, p1, e_start
@@ -535,17 +535,17 @@ subroutine boris_energy_correction (ele, param, here, final_correction)
     select case (ele%key)
     case (lcavity$) 
       vec6_start = here%vec(6)
-      call convert_total_energy_to (ele%value(energy_start$), param%particle, pc = p0)
-      call convert_total_energy_to (ele%value(beam_energy$), param%particle, pc = p1)
+      call convert_total_energy_to (ele%value(E_TOT_START$), param%particle, pc = p0)
+      call convert_total_energy_to (ele%value(E_TOT$), param%particle, pc = p1)
       here%vec(2) = here%vec(2) * p0 / p1
       here%vec(4) = here%vec(4) * p0 / p1
       here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
  
     case (custom$)
       vec6_start = here%vec(6)
-      e_start = ele%value(beam_energy$)-ele%value(gradient$)*ele%value(l$)
+      e_start = ele%value(E_TOT$)-ele%value(gradient$)*ele%value(l$)
       call convert_total_energy_to (e_start, param%particle, pc = p0)
-      call convert_total_energy_to (ele%value(beam_energy$), param%particle, pc = p1)
+      call convert_total_energy_to (ele%value(E_TOT$), param%particle, pc = p1)
       here%vec(2) = here%vec(2) * p0 / p1
       here%vec(4) = here%vec(4) * p0 / p1
       here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
@@ -573,7 +573,7 @@ subroutine track_solenoid_edge (ele, param, set, orb)
   implicit none
 
   type (ele_struct), intent(in) :: ele
-  type (param_struct), intent(in) :: param
+  type (lat_param_struct), intent(in) :: param
   type (coord_struct) :: orb
 
   logical, intent(in) :: set

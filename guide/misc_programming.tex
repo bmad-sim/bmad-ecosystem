@@ -10,7 +10,7 @@
 {\bf NOTE: THIS CHAPTER IS UNDER CONSTRUCTION!}
 
 There are two common structures used by Bmad for communication between
-routines. These are \vn{bmad_com} which is a \vn{bmad_com_struct}
+routines. These are \vn{bmad_com} which is a \vn{bmad_common_struct}
 structure and \vn{bmad_status} which is a \vn{bmad_status_struct}
 structure.
 
@@ -24,9 +24,9 @@ structure.
 \index{trans_space_charge_on}\index{coherent_synch_rad_on}
 \index{spin_tracking_on}\index{radiation_damping_on}
 \index{radiation_fluctuations_on}\index{compute_ref_energy}
-The \vn{bmad_com_struct} structure is:
+The \vn{bmad_common_struct} structure is:
 \begin{example}
-  type bmad_com_struct
+  type bmad_common_struct
     real(rp) :: max_aperture_limit = 1e3       ! Max Aperture.
     real(rp) :: d_orb(6)           = 1e-5      ! for the make_mat6_tracking routine.
     real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.

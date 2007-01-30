@@ -457,7 +457,7 @@ end subroutine quaternion_track
 ! Input :
 !   start      -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct: Element to track through.
-!   param      -- Param_struct: Beam parameters.
+!   param      -- lat_param_struct: Beam parameters.
 !     %particle     -- Type of particle used
 !
 ! Output:
@@ -473,7 +473,7 @@ type (coord_struct), intent(in) :: start
 type (coord_struct) :: temp
 type (coord_struct) :: end
 type (ele_struct) :: ele
-type (param_struct), intent(in) :: param
+type (lat_param_struct), intent(in) :: param
 type (spin_map_struct), pointer :: map
 
 real(rp) a(4) ! quaternion four-vector
@@ -530,7 +530,7 @@ integer key
     u = sign(1.0, ele%value(k1$)) * omega1*ele%value(l$)
 
     xi = 1 + g_factor * &
-          ((1+start%vec(6)) * ele%value(beam_energy$)) / m_particle
+          ((1+start%vec(6)) * ele%value(E_TOT$)) / m_particle
     
     map => maps(quadrupole$)
     
@@ -556,9 +556,9 @@ integer key
 
   case (sbend$)
 
-    gamma0 = ((1+start%vec(6)) * ele%value(beam_energy$)) / m_particle
+    gamma0 = ((1+start%vec(6)) * ele%value(E_TOT$)) / m_particle
     xi = 1 + g_factor * &
-          ((1+start%vec(6)) * ele%value(beam_energy$)) / m_particle
+          ((1+start%vec(6)) * ele%value(E_TOT$)) / m_particle
     v = ele%value(g$)*ele%value(l$)
     x = g_factor*gamma0*v
     
@@ -622,10 +622,10 @@ integer key
     ! For now, just set to one
     g_ratio = 1
 
-    gamma0 = ((1+start%vec(6)) * ele%value(beam_energy$)) / m_particle
+    gamma0 = ((1+start%vec(6)) * ele%value(E_TOT$)) / m_particle
   
-    if (ele%value(energy_start$) == 0) then
-      print *, 'ERROR IN TRACK1_BMAD: ENERGY_START IS 0 FOR A LCAVITY!'
+    if (ele%value(E_TOT_START$) == 0) then
+      print *, 'ERROR IN TRACK1_BMAD: E_TOT_START IS 0 FOR A LCAVITY!'
       call err_exit
     endif
 
@@ -829,8 +829,8 @@ end subroutine track1_spin
 !   field      -- em_field_struct: E and B fields
 !   coord      -- coord_struct: particle momentum
 !   ele        -- ele_struct: element evauluated in
-!      %value(beam_energy$) -- reaL(rp): needed to find momentum
-!   param      -- Param_struct: Beam parameters.
+!      %value(E_TOT$) -- reaL(rp): needed to find momentum
+!   param      -- lat_param_struct: Beam parameters.
 !     %particle     -- Type of particle used
 !   omega(3)   -- Real(rp): Omega in cartesian coordinates
 !   s          -- Real(rp): evaluate at position s in element
@@ -843,7 +843,7 @@ implicit none
 type (em_field_struct) :: field
 type (coord_struct) :: coord
 type (ele_struct) :: ele
-type (param_struct) :: param
+type (lat_param_struct) :: param
 
 real(rp) omega(3),  p_vec(3)
 real(rp) g_factor, charge, m_particle, p_z, gamma0

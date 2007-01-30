@@ -6,13 +6,13 @@ module radiation_mod
   use bmad_interface
   use runge_kutta_mod
 
-  type synch_rad_com_struct
+  type synch_rad_common_struct
     real(rp) :: scale = 1.0               ! used to scale the radiation
     real(rp) :: i2 = 0, i3 = 0            ! radiation integrals
     logical :: i_calc_on = .false.        ! For calculating i2 and i3    
   end type
 
-  type (synch_rad_com_struct), save :: synch_rad_com
+  type (synch_rad_common_struct), save :: synch_rad_com
 
 contains
 
@@ -90,7 +90,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   type (coord_struct), intent(in) :: start
   type (ele_struct), intent(in) :: ele
-  type (param_struct), intent(in) :: param
+  type (lat_param_struct), intent(in) :: param
   type (coord_struct), intent(out) :: end
   type (coord_struct) start2
 
@@ -202,7 +202,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
 ! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
 ! where xi is a random number with sigma = 1.
 
-  gamma_0 = ele%value(beam_energy$) / m_electron
+  gamma_0 = ele%value(E_TOT$) / m_electron
 
   fact_d = 0
   if (bmad_com%radiation_damping_on) fact_d = 2 * r_e * gamma_0**3 * g2 * s_len / 3
@@ -231,21 +231,21 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine setup_radiation_tracking (ring, closed_orb,
+! Subroutine setup_radiation_tracking (lat, closed_orb,
 !                                        fluctuations_on, damping_on) 
 !
 ! Subroutine to compute synchrotron radiation parameters prior to tracking.
 !
-! Note: The fluctuations_on and damping_on switches need to be set for 
-! each ring if multiple rings are used. The default if not present is to
-! not change the settings for a ring. Initially a ring is set for fluctuations
+! Note: The fluctuations_on and damping_on switches need to be set for each 
+! lattice if multiple lattices are used. The default if not present is to
+! not change the settings for a lat. Initially a lat is set for fluctuations
 ! and damping off.
 !
 ! Modules needed:
 !   use radiation_mod
 !
 ! Input:
-!   ring            -- Ring_struct:
+!   lat            -- lat_struct:
 !   closed_orb(0:)  -- Coord_struct: Closed_orbit.
 !   fluctuations_on -- Logical, optional: If True then radiation fluctuations
 !                        will be present. 
@@ -253,17 +253,17 @@ end subroutine
 !                        will be present. 
 !
 ! Output:
-!   ring           -- Ring_struct: Lattice with radiation parameters computed. 
+!   lat           -- lat_struct: Lattice with radiation parameters computed. 
 !-
 
-subroutine setup_radiation_tracking (ring, closed_orb, &
+subroutine setup_radiation_tracking (lat, closed_orb, &
                                         fluctuations_on, damping_on)
 
   use symp_lie_mod
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (lat_struct), target :: lat
   type (coord_struct), intent(in) :: closed_orb(0:)
   type (coord_struct) start0, start1, start, end
   type (track_struct), save :: track
@@ -287,33 +287,33 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
 ! start0 is in local coords                    
 ! start1 is lab coords with vec(6) = dE/E = 0 
 
-  do i = 1, ring%n_ele_use
+  do i = 1, lat%n_ele_track
 
-    if (ring%ele_(i)%key /= wiggler$) cycle
-    if (ring%ele_(i)%sub_key /= map_type$) cycle
+    if (lat%ele(i)%key /= wiggler$) cycle
+    if (lat%ele(i)%sub_key /= map_type$) cycle
 
     track%save_track = .true.
 
     start0 = closed_orb(i-1)
-    call offset_particle (ring%ele_(i), ring%param, start0, set$)
+    call offset_particle (lat%ele(i), lat%param, start0, set$)
 
     start1 = closed_orb(i-1)
     start1%vec(2) = start0%vec(2)
     start1%vec(4) = start0%vec(4)
     start1%vec(6) = 0
 
-    if (.not. associated(ring%ele_(i)%const)) allocate (ring%ele_(i)%const(1:26))
-    ring%ele_(i)%const(1:6) = start0%vec  ! Local coords
-    call symp_lie_bmad (ring%ele_(i), ring%param, start1, end, .false., track)
-    call calc_g (track, ring%ele_(i)%const(10), ring%ele_(i)%const(20))
+    if (.not. associated(lat%ele(i)%const)) allocate (lat%ele(i)%const(1:26))
+    lat%ele(i)%const(1:6) = start0%vec  ! Local coords
+    call symp_lie_bmad (lat%ele(i), lat%param, start1, end, .false., track)
+    call calc_g (track, lat%ele(i)%const(10), lat%ele(i)%const(20))
 
     do j = 1, 4
       start = start1
       start%vec(j) = start%vec(j) + del_orb(j)
-      call symp_lie_bmad (ring%ele_(i), ring%param, start, end, .false., track)
+      call symp_lie_bmad (lat%ele(i), lat%param, start, end, .false., track)
       call calc_g (track, g2, g3)
-      ring%ele_(i)%const(j+10) = (g2 - ring%ele_(i)%const(10)) / del_orb(j)
-      ring%ele_(i)%const(j+20) = (g3 - ring%ele_(i)%const(20)) / del_orb(j)
+      lat%ele(i)%const(j+10) = (g2 - lat%ele(i)%const(10)) / del_orb(j)
+      lat%ele(i)%const(j+20) = (g3 - lat%ele(i)%const(20)) / del_orb(j)
     enddo
 
   enddo
@@ -335,7 +335,7 @@ subroutine calc_g (track, g2, g3)
   n1 = track%n_pt
   do j = n0, n1
 
-    call derivs_bmad (ring%ele_(i), ring%param, track%pt(j)%s, &
+    call derivs_bmad (lat%ele(i), lat%param, track%pt(j)%s, &
                                             track%pt(j)%orb%vec, kick)
 
     k2 = kick(2)**2 + kick(4)**2

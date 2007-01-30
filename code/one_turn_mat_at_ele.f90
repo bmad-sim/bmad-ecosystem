@@ -9,8 +9,8 @@
 !
 ! Input:
 !   ele   -- ele_struct: Reference element.
-!     %x       -- "a" mode Twiss parameter structure.
-!     %y       -- "b" mode Twiss parameter structure.
+!     %a       -- "a" mode Twiss parameter structure.
+!     %b       -- "b" mode Twiss parameter structure.
 !     %c_mat   -- 2x2 C matrix.
 !     %gamma_c -- gamma associated with C matrix.
 !   phi_a -- Real(rp): "a" mode tune in radians.
@@ -35,8 +35,8 @@ subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
 
 !
 
-  call twiss_to_1_turn_mat (ele%x, phi_a, a)
-  call twiss_to_1_turn_mat (ele%y, phi_b, b)
+  call twiss_to_1_turn_mat (ele%a, phi_a, a)
+  call twiss_to_1_turn_mat (ele%b, phi_b, b)
   call mat_symp_conj (ele%c_mat, c_conj)
   c = ele%c_mat
   g = ele%gamma_c

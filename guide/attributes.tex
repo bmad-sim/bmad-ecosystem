@@ -19,22 +19,22 @@ are set by the \vn{parameter} statement (See
 lattice is read in.
 
 \index{BBI_const}\index{Charge}\index{Sig_x}\index{Sig_y}
-\index{Beam_energy}\index{N_part}\index{E_field}\index{Voltage}
+\index{E_tot}\index{N_part}\index{E_field}\index{Voltage}
 \index{Hkick}\index{Vkick}\index{Gap}\index{L}
-\index{Beam_energy}\index{E_loss}\index{Delta_e}\index{Gradient}
+\index{E_tot}\index{E_loss}\index{Delta_e}\index{Gradient}
 \index{L}\index{Rho}\index{Angle}\index{L_chord}
 \index{G}\index{L}\index{K1}\index{Rho}
-\index{B_max}\index{Beam_energy}\index{BeamBeam}\index{Elseparator}
+\index{B_max}\index{E_tot}\index{BeamBeam}\index{Elseparator}
 \index{Lcavity}\index{Rbend}\index{Sbend}\index{Wiggler}
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
 {\em Element}                 & {\em Dependent Variables}    & {\em Independent Variables}  \HH
- \vn{BeamBeam}                & \vn{bbi_const}               & \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{beam_energy}, \vn{n_part} \HH
- \vn{Elseparator}             & \vn{e_field}, \vn{voltage}   & \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{beam_energy}    \HH
+ \vn{BeamBeam}                & \vn{bbi_const}               & \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{E_tot}, \vn{n_part} \HH
+ \vn{Elseparator}             & \vn{e_field}, \vn{voltage}   & \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{E_tot}    \HH
  \vn{Lcavity}                 & \vn{e_loss}, \vn{delta_e}    & \vn{gradient}, \vn{l}                           \HH
  \vn{Rbend}, \vn{Sbend} & \vn{rho}, \vn{angle}, \vn{l_chord} & \vn{g}, \vn{l}                                  \HH
- \vn{Wiggler} (periodic type) & \vn{k1}, \vn{rho}            & \vn{b_max}, \vn{beam_energy}                    \HH
+ \vn{Wiggler} (periodic type) & \vn{k1}, \vn{rho}            & \vn{b_max}, \vn{E_tot}                    \HH
  All elements                 & \vn{num_steps}               & \vn{ds_step}                                    \HH
 \end{tabular}
 }
@@ -62,12 +62,12 @@ that it will never be set by the bookkeeping routine.
 \centering {
 \begin{tabular}{|l|l|l|} \hline
 {\em Element}                  & {\em Dependent Variable Set}  &  {\em Independent Variables Not Set} \HH
-  \vn{Lcavity}                 & \vn{delta_e}       & \vn{gradient}  \HH
-  \vn{Rbend}, \vn{Sbend}       & \vn{rho}           & \vn{g}         \HH
-  \vn{Rbend}, \vn{Sbend}       & \vn{angle}         & \vn{g}         \HH
-  \vn{Rbend}, \vn{Sbend}       & \vn{k2}            & \vn{b2}        \HH
-  \vn{RFcavity}                & \vn{rf_frequency}  & \vn{harmon}    \HH
-  \vn{Wiggler} (periodic type) & \vn{n_pole}        & \vn{l_pole}    \HH
+  \vn{Lcavity}                 & \vn{delta_e}       & \vn{gradient}      \HH
+  \vn{Rbend}, \vn{Sbend}       & \vn{rho}           & \vn{g}             \HH
+  \vn{Rbend}, \vn{Sbend}       & \vn{angle}         & \vn{g}, or \vn{l}  \HH
+  \vn{Rbend}, \vn{Sbend}       & \vn{k2}            & \vn{b2}            \HH
+  \vn{RFcavity}                & \vn{rf_frequency}  & \vn{harmon}        \HH
+  \vn{Wiggler} (periodic type) & \vn{n_pole}        & \vn{l_pole}        \HH
 \end{tabular}
 }
 \caption {Dependent variables that can be set in a primary lattice file.}
@@ -151,26 +151,26 @@ comma (,) or the end of the line marks the end of the string. Example:
 %-----------------------------------------------------------------
 \section{Beam\_Energy and P0C Attributes}
 \label{s:energy}
-\index{Parameter statement}\index{Beam_energy}
-\index{Energy_start}\index{P0c_start}
+\index{Parameter statement}\index{E_tot}
+\index{E_tot_start}\index{P0c_start}
 \index{Patch}\index{Lcavity}\index{P0c}
 The attributes that define the reference energy and momentum at an element are:
 \begin{example}
-  beam_energy = <Real>  ! Total energy in eV.
+  E_tot = <Real>  ! Total energy in eV.
   p0c         = <Real>  ! Momentum in eV.
 \end{example}
 The energy and momentum are defined at the exit end of the element.
 For ultra--relativistic particles these two values are the same.
 See~\sref{s:phase_space_coords}. These attributes are dependent and thus
 cannot be set for an element directly in the lattice input
-file. The value of \vn{beam_energy} and \vn{p0c} for an element is calculated by
+file. The value of \vn{E_tot} and \vn{p0c} for an element is calculated by
 \bmad to be the same as the previous element except for \vn{Lcavity}
-and \vn{Patch} elements. To set the \vn{beam_energy} or \vn{p0c} at the start of
+and \vn{Patch} elements. To set the \vn{E_tot} or \vn{p0c} at the start of
 the lattice use the \vn{beginning} or \vn{parameter} statements.
 See~\sref{s:param}. Since the energy changes from the start to the end
 of an \vn{Lcavity}, An \vn{Lcavity} has the attributes
 \begin{example}
-  energy_start
+  E_tot_start
   p0c_start
 \end{example}
 which is just the reference energy and momentum at the start of the element.

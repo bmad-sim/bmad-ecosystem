@@ -1,5 +1,5 @@
 !+
-! Subroutine closed_orbit_from_tracking (ring, closed_orb, i_dim, 
+! Subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, 
 !                                                eps_rel, eps_abs, init_guess)
 !
 ! Subroutine to find the closed orbit via tracking. 
@@ -16,7 +16,7 @@
 !   use bmad
 !
 ! Input:
-!   ring     -- Ring_struct: Ring to track through.
+!   lat     -- lat_struct: Lat to track through.
 !   i_dim    -- Integer: 
 !       = 2,4  Transverse closed orbit at constant energy (dE/E = CO.Z.VEL)
 !       = 6    Full closed orbit using the entire transfer 6x6 matrix.
@@ -25,7 +25,7 @@
 !   eps_abs(6) -- Real(rp), optional: Absolute allowed error.
 !                   Default is bmad_com%abs_tolerance
 !   init_guess -- [Optional] Coord_struct: Starting guess for the closed 
-!                orbit at the start of the ring. If not present then
+!                orbit at the start of the lat. If not present then
 !                the origin will be used. 
 !   bmad_status -- BMAD status common block:
 !         %exit_on_error -- If True then subroutine will terminate program
@@ -43,7 +43,7 @@
 
 #include "CESR_platform.inc" 
 
-subroutine closed_orbit_from_tracking (ring, closed_orb, i_dim, &
+subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
                                                  eps_rel, eps_abs, init_guess)
 
   use bmad_struct
@@ -52,7 +52,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb, i_dim, &
 
   implicit none
 
-  type (ring_struct) ring
+  type (lat_struct) lat
   type (coord_struct), allocatable :: closed_orb(:)
   type (coord_struct) :: start(100), end(100)
   type (coord_struct), optional :: init_guess
@@ -76,34 +76,34 @@ subroutine closed_orbit_from_tracking (ring, closed_orb, i_dim, &
   abs_err = bmad_com%abs_tolerance
   if (present(eps_abs)) abs_err = eps_abs
 
-! make sure orb_ has the correct size
+! make sure orb has the correct size
 
-  call reallocate_coord (closed_orb, ring%n_ele_max)
+  call reallocate_coord (closed_orb, lat%n_ele_max)
 
   fluct_saved = bmad_com%radiation_fluctuations_on
   bmad_com%radiation_fluctuations_on = .false.  
 
-  aperture_saved = ring%param%aperture_limit_on
-  ring%param%aperture_limit_on = .false.
+  aperture_saved = lat%param%aperture_limit_on
+  lat%param%aperture_limit_on = .false.
 
 ! make a unit matrix
 
   call mat_make_unit (mat6_unit)
 
-  n_ele = ring%n_ele_use
+  n_ele = lat%n_ele_track
   nd = i_dim
 
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
 ! Make sure RF is on if i_dim = 6
 
   if (nd == 2 .or. nd == 4) then
-    call set_on_off (rfcavity$, ring, save_state$)
-    call set_on_off (rfcavity$, ring, off$)
+    call set_on_off (rfcavity$, lat, save_state$)
+    call set_on_off (rfcavity$, lat, off$)
   elseif (nd == 6) then
     rf_on = .false.
-    do i = 1, ring%n_ele_use
-      if (ring%ele_(i)%key == rfcavity$ .and. &
-                        ring%ele_(i)%value(voltage$) /= 0) rf_on = .true.
+    do i = 1, lat%n_ele_track
+      if (lat%ele(i)%key == rfcavity$ .and. &
+                        lat%ele(i)%value(voltage$) /= 0) rf_on = .true.
     enddo
     if (.not. rf_on) then
       print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: ', &
@@ -131,8 +131,8 @@ subroutine closed_orbit_from_tracking (ring, closed_orb, i_dim, &
 
 ! track the current guess
 
-    call track_all (ring, closed_orb)
-    if (ring%param%lost) exit
+    call track_all (lat, closed_orb)
+    if (lat%param%lost) exit
 
 ! save start and end coords.
 
@@ -147,9 +147,9 @@ subroutine closed_orbit_from_tracking (ring, closed_orb, i_dim, &
     if (all( abs(orb_diff(1:nd)) < abs_err(1:nd) + &
                                          rel_err(1:nd) * amp(1:nd) ) ) then
       if (nd == 2 .or. nd == 4) &
-                          call set_on_off (rfcavity$, ring, restore_state$)
+                          call set_on_off (rfcavity$, lat, restore_state$)
       bmad_com%radiation_fluctuations_on = fluct_saved  ! restore state
-      ring%param%aperture_limit_on = aperture_saved
+      lat%param%aperture_limit_on = aperture_saved
       return
     endif
 

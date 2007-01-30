@@ -14,47 +14,47 @@ Before any Twiss parameters can be calculated the transfer matrices
 stored in the lattice elements must be computed. \vnr{bmad_parser} does
 this automatically about the zero orbit. If, to see nonlinear effects,
 a different orbit needs to be used for the reference, The routine
-\vnr{ring_make_mat6} can be used. For example
+\vnr{lat_make_mat6} can be used. For example
 \begin{example}
-  type (ring_struct) ring
+  type (lat_struct) lat
   type (coord_struct), allocatable :: orbit(:)
-  call bmad_parser ('my_lattice', ring)
-  call closed_orbit_calc (ring, orbit, 4)
-  call ring_make_mat6 (ring, -1, orbit)
+  call bmad_parser ('my_lattice', lat)
+  call closed_orbit_calc (lat, orbit, 4)
+  call lat_make_mat6 (lat, -1, orbit)
 \end{example}
 This example reads in a lattice, finds the closed orbit which may be
 non--zero due to, say, kicks due to a separator, and then remakes the
-transfer matrices (which are stored in \vn{ring%ele_(i)%mat6} around
+transfer matrices (which are stored in \vn{lat%ele(i)%mat6} around
 the closed orbit.
 
 Once the transfer matrices are calculated the Twiss parameters at the
 start of the lattice need to be defined. The Twiss parameters at the
-start are in \vn{ring%ele_(0)}. If the lattice is open then generally
+start are in \vn{lat%ele(0)}. If the lattice is open then generally
 the Twiss parameters are set in the lattice file or may easily be set
 in a program. For example
 \begin{example}
-  ring%ele_(0)%x%beta = 1.2
-  ring%ele_(0)%x%alpha = 0.1
-  ring%ele_(0)%x%gamma = (1 + ring%ele_(0)%x%alpha**2) / ring%ele_(0)%beta
-  ring%ele_(0)%x%eta  = 0
+  lat%ele(0)%x%beta = 1.2
+  lat%ele(0)%x%alpha = 0.1
+  lat%ele(0)%x%gamma = (1 + lat%ele(0)%x%alpha**2) / lat%ele(0)%beta
+  lat%ele(0)%x%eta  = 0
 \end{example}
 Note that \vn{%beta}, \vn{%alpha}, and \vn{%gamma} all must be specified.
 
 If the lattice is closed then \vnr{twiss_at_start} may be used to
 calculate the self--consistent starting Twiss parameters:
 \begin{example}
-  type (ring_struct) ring
-  call bmad_parser ('my_lattice', ring)
-  call twiss_at_start (ring)
+  type (lat_struct) lat
+  call bmad_parser ('my_lattice', lat)
+  call twiss_at_start (lat)
 \end{example}
 
 Once the starting Twiss parameters are set, \vnr{twiss_propagate_all}
 can be used to propagate the Twiss parameters to the rest of the
 elements
 \begin{example}
-  call twiss_propagate_all (ring)
+  call twiss_propagate_all (lat)
 \end{example}
-It is important to keep in mind that \vn{ring%ele_(i)%x%eta} is the $a$--mode
+It is important to keep in mind that \vn{lat%ele(i)%x%eta} is the $a$--mode
 dispersion, not the dispersion along the $x$--axis (\sref{s:ele_twiss}).
 
 The routine \vnr{twiss_and_track_at_s} can be used to calculate the
@@ -68,19 +68,19 @@ the the routine \vnr{twiss_and_track_partial}.
 \label{s:tune}
 \index{Tune Calculation}
 
-For a closed ring the tune is calculated via the routine \vnr{twiss_at_start}.
+For a closed lat the tune is calculated via the routine \vnr{twiss_at_start}.
 This routine multiplies the transfer matrices of the elements together to form
 the one--turn transfer matrix. From this the routine extracts the initial Twiss
 parameters and the tune. The tune is placed in the variables
 \begin{example}
-  type (ring_struct) ring 
-  ring%x%tune     ! a-mode tune
-  ring%y%tune     ! b-mode tune
+  type (lat_struct) lat 
+  lat%x%tune     ! a-mode tune
+  lat%y%tune     ! b-mode tune
 \end{example}
 
-The routine \vnr{set_tune} To set the transverse tunes of a closed ring:
+The routine \vnr{set_tune} To set the transverse tunes of a closed lat:
 \begin{example}
-  set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
+  set_tune (phi_a_set, phi_b_set, dk1, lat, orb_, ok)
 \end{example}
 \vn{set_tune} varies quadrupole strengths until the desired tunes are
 achieved. As input \vn{set_tune} takes an argument \vn{dk1(:)} which is an array
@@ -94,7 +94,7 @@ is achieved.
 \section{Chromaticity Calculation}
 \label{s:chrom}
 
-For a closed ring \vnr{chrom_calc} calculates the chromaticity by calculating
+For a closed lat \vnr{chrom_calc} calculates the chromaticity by calculating
 the tune change with change in beam energy.
 
 \vnr{chrom_tune} sets the chromaticity by varying the sextupoles. This is a 
@@ -146,7 +146,7 @@ custom calculations.
 \label{s:particle}
 \index{Particle!information}
 
-In a \vn{ring_struct} structure the particle type is stored in the
+In a \vn{lat_struct} structure the particle type is stored in the
 integer variable \vn{%param%particle}. The value of this variable will
 correspond to one of the constants:
 \index{positron}\index{electron}\index{proton}\index{antiproton}
@@ -162,7 +162,7 @@ the functions \vnr{mass_of} and \vnr{charge_of} respectively.
 \vn{charge_of} returns the particle's charge in units of the fundamental
 electron charge. Example:
 \begin{example}
-  type (ring_struct) lat
+  type (lat_struct) lat
   call bmad_parser (input_file_name, lat)
   print *, 'Beam Particles are: ', particle_name(lat%param%particle)
   if (lat%param%particle == proton\$) print *, 'I do not like protons!'

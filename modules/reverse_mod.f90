@@ -12,71 +12,71 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine ring_reverse (ring_in, ring_rev)
+! Subroutine lat_reverse (lat_in, lat_rev)
 !
-! Subroutine to construct a ring structure with the elements in reversed order.
-! This may be used for backward tracking through the ring. 
+! Subroutine to construct a lat structure with the elements in reversed order.
+! This may be used for backward tracking through the lat. 
 !
-! The correspondence between elements in the two rings is as follows:
-!     ring_rev%ele_(ring%n_ele_use+1-i) = ring_in%ele_(i)  
-!                                                for 0 < i <= ring%n_ele_use
-!     ring_rev%ele_(i)                   = ring_in%ele_(i)   
-!                                                for ring%n_ele_use < i 
+! The correspondence between elements in the two lattices is as follows:
+!     lat_rev%ele(lat%n_ele_track+1-i) = lat_in%ele(i)  
+!                                                for 0 < i <= lat%n_ele_track
+!     lat_rev%ele(i)                   = lat_in%ele(i)   
+!                                                for lat%n_ele_track < i 
 !
 ! All longitudial quantities (for example, the value of ks for a solenoid) 
-! are flipped in sign for the reversed ring. 
+! are flipped in sign for the reversed lat. 
 ! This means that the appropriate transformation from particle coordinates
-! in one ring the corrisponding coordinates in the other is:
+! in one lat the corrisponding coordinates in the other is:
 !     (x, P_x, y, P_y, z, P_z) -> (x, -P_x, y, -P_y, -z, P_z)
 !
-! Note: The Twiss parameters will not be correct for the reversed ring.
+! Note: The Twiss parameters will not be correct for the reversed lat.
 ! You will need to compute them.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ring_in -- Ring_struct: Input ring.
+!   lat_in -- lat_struct: Input lat.
 !
 ! Output:
-!   ring_rev -- Ring_struct: Ring with the elements in reversed order.
+!   lat_rev -- lat_struct: Lat with the elements in reversed order.
 !-
 
-subroutine ring_reverse (ring_in, ring_rev)
+subroutine lat_reverse (lat_in, lat_rev)
 
   implicit none
 
-  type (ring_struct), intent(in) :: ring_in
-  type (ring_struct), intent(out), target :: ring_rev
-  type (ring_struct), save :: lat
+  type (lat_struct), intent(in) :: lat_in
+  type (lat_struct), intent(out), target :: lat_rev
+  type (lat_struct), save :: lat
   type (ele_struct), pointer :: lord
   type (control_struct), pointer :: con
 
   integer i, n, i1, i2, nr, n_con
-  integer :: ix_con(size(ring_in%control_))
+  integer :: ix_con(size(lat_in%control))
 
-! Transfer info from ring_in to ring_rev.
-! the lat lattice is used since the actual arguments of ring_in and ring_rev
+! Transfer info from lat_in to lat_rev.
+! the lat lattice is used since the actual arguments of lat_in and lat_rev
 ! may be the same
 
-  n_con = size(ring_in%control_)
+  n_con = size(lat_in%control)
 
-  lat = ring_in 
-  ring_rev = lat
+  lat = lat_in 
+  lat_rev = lat
 
-  nr = ring_rev%n_ele_use
-  ring_rev%ele_(1:nr) = lat%ele_(nr:1:-1)
+  nr = lat_rev%n_ele_track
+  lat_rev%ele(1:nr) = lat%ele(nr:1:-1)
 
 ! Flip longitudinal stuff, maps
 
-  do i = 1, ring_rev%n_ele_max
-    call reverse_ele (ring_rev%ele_(i))
+  do i = 1, lat_rev%n_ele_max
+    call reverse_ele (lat_rev%ele(i))
   enddo
 
 ! Correct control information
 
-  do i = 1, ring_rev%n_control_max
-    con => ring_rev%control_(i)
+  do i = 1, lat_rev%n_control_max
+    con => lat_rev%control(i)
     if (con%ix_slave <= nr) con%ix_slave = nr+1-con%ix_slave
     if (con%ix_lord <= nr)  con%ix_lord  = nr+1-con%ix_lord
   enddo
@@ -87,26 +87,26 @@ subroutine ring_reverse (ring_in, ring_rev)
 
   forall (i = 1:n_con) ix_con(i) = i 
 
-  do i = nr+1, ring_rev%n_ele_max
-    lord => ring_rev%ele_(i)
+  do i = nr+1, lat_rev%n_ele_max
+    lord => lat_rev%ele(i)
     if (lord%control_type /= super_lord$) cycle
     i1 = lord%ix1_slave
     i2 = lord%ix2_slave
-    ring_rev%control_(i1:i2) = ring_rev%control_(i2:i1:-1)
+    lat_rev%control(i1:i2) = lat_rev%control(i2:i1:-1)
     ix_con(i1:i2) = ix_con(i2:i1:-1)
-    lord%s = ring_rev%param%total_length - lord%s + lord%value(l$)
+    lord%s = lat_rev%param%total_length - lord%s + lord%value(l$)
   enddo
 
-  n = ring_rev%n_ic_max
-  ring_rev%ic_(1:n) = ix_con(ring_rev%ic_(1:n))
+  n = lat_rev%n_ic_max
+  lat_rev%ic(1:n) = ix_con(lat_rev%ic(1:n))
 
 ! Cleanup
 
-  ring_rev%param%t1_with_RF = 0  ! Init
-  ring_rev%param%t1_no_RF = 0    ! Init
+  lat_rev%param%t1_with_RF = 0  ! Init
+  lat_rev%param%t1_no_RF = 0    ! Init
 
-  call s_calc (ring_rev) 
-  call check_ring_controls (ring_rev, .true.)
+  call s_calc (lat_rev) 
+  call check_lat_controls (lat_rev, .true.)
 
 end subroutine
 
@@ -119,7 +119,7 @@ end subroutine
 ! Subroutine to "reverse" an element for backward tracking.
 !
 ! All longitudial quantities (for example, the value of ks for a solenoid) 
-! are flipped in sign for the reversed ring. 
+! are flipped in sign for the reversed lat. 
 ! This means that the appropriate transformation that corresponds to the 
 ! reverse transformation is:
 !     (x, P_x, y, P_y, z, P_z) -> (x, -P_x, y, -P_y, -z, P_z)

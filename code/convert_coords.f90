@@ -97,7 +97,7 @@ subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
     if (in_type == lab$) then
       call make_v_mats (ele, mat, mat_inv)
       coord_out%vec(1:4) = matmul (mat_inv, coord_out%vec(1:4))
-      eta_vec = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
+      eta_vec = (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
       coord_out%vec(1:4) = coord_out%vec(1:4) - eta_vec * coord_out%vec(6)
       if (out_type == mode$) return
       in_type = mode$
@@ -148,7 +148,7 @@ subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
 
 ! normal mode to lab
 
-  eta_vec = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
+  eta_vec = (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
   coord_out%vec(1:4) = coord_out%vec(1:4) + eta_vec * coord_out%vec(6)
   call make_v_mats (ele, mat, mat_inv)
   coord_out%vec(1:4) = matmul (mat, coord_out%vec(1:4))

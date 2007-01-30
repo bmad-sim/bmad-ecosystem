@@ -46,7 +46,7 @@ contains
 !
 ! Input:
 !   ele    -- Ele_struct: Element with transfer matrix.
-!   param  -- Param_struct: Lattice parameters.
+!   param  -- lat_param_struct: Lattice parameters.
 !     %particle -- particle species.
 !   map    -- mad_map_struct: 2nd order map.
 !   c0     -- Coord_struct: Coordinates at the beginning of element.
@@ -63,7 +63,7 @@ subroutine make_mat6_mad (ele, param, c0, c1)
   implicit none
 
   type (ele_struct) ele
-  type (param_struct) param
+  type (lat_param_struct) param
   type (mad_map_struct) map
   type (coord_struct) c0, c1
 
@@ -113,7 +113,7 @@ subroutine make_mad_map (ele, particle, map)
 
 ! energy structure
 
-    energy%total = ele%value(beam_energy$)
+    energy%total = ele%value(E_TOT$)
     energy%particle = particle
     call convert_total_energy_to (energy%total, energy%particle, energy%gamma, &
                                     energy%kinetic, energy%beta, energy%p0c)
@@ -196,7 +196,7 @@ subroutine mad_add_offsets_and_multipoles (ele, map)
 
   if (val(s_offset_tot$) == 0 .and. val(x_offset_tot$) == 0 .and. &
       val(x_pitch_tot$) == 0  .and. val(y_offset_tot$) == 0 .and. &
-      val(y_pitch_tot$) == 0 .and. .not. associated(ele%a) .and. &
+      val(y_pitch_tot$) == 0 .and. .not. associated(ele%a_pole) .and. &
       ((val(hkick$) == 0 .and. val(vkick$) == 0) .or. &
                                        ele%key == elseparator$)) return
 
@@ -234,21 +234,21 @@ subroutine mad_add_offsets_and_multipoles (ele, map)
 
 ! Front side: Multipoles.
 
-  if (associated(ele%a)) then
+  if (associated(ele%a_pole)) then
     print *, "ERROR IN MAD_MOD: YOUR MOTHER DOESN'T WORK HERE! CLEAN UP THIS MESS!"
     call err_exit
-    map2%k(2) = map2%k(2) - ele%b(0) / 2
-    map2%k(4) = map2%k(4) + ele%a(0) / 2
-    map2%r(2,1) = -ele%b(1) / 2
-    map2%r(2,3) =  ele%a(1) / 2
-    map2%r(4,1) =  ele%a(1) / 2
-    map2%r(4,3) =  ele%b(1) / 2
-    map2%t(2,1,1) = -ele%b(2) / 2
-    map2%t(2,3,3) =  ele%b(2) / 2
-    map2%t(4,1,3) =  ele%b(2) / 2
-    map2%t(2,1,3) =  ele%a(2) / 2
-    map2%t(4,1,1) =  ele%a(2) / 2
-    map2%t(4,3,3) = -ele%a(2) / 2
+    map2%k(2) = map2%k(2) - ele%b_pole(0) / 2
+    map2%k(4) = map2%k(4) + ele%a_pole(0) / 2
+    map2%r(2,1) = -ele%b_pole(1) / 2
+    map2%r(2,3) =  ele%a_pole(1) / 2
+    map2%r(4,1) =  ele%a_pole(1) / 2
+    map2%r(4,3) =  ele%b_pole(1) / 2
+    map2%t(2,1,1) = -ele%b_pole(2) / 2
+    map2%t(2,3,3) =  ele%b_pole(2) / 2
+    map2%t(4,1,3) =  ele%b_pole(2) / 2
+    map2%t(2,1,3) =  ele%a_pole(2) / 2
+    map2%t(4,1,1) =  ele%a_pole(2) / 2
+    map2%t(4,3,3) = -ele%a_pole(2) / 2
     call mad_tmsymm (map2%t)
   endif
 
@@ -262,21 +262,21 @@ subroutine mad_add_offsets_and_multipoles (ele, map)
 
 ! Back side: Multipoles.
 
-  if (associated(ele%a)) then
+  if (associated(ele%a_pole)) then
     print *, "ERROR IN MAD_MOD: YOUR MOTHER DOESN'T WORK HERE! CLEAN UP THIS MESS!"
     call err_exit
-    map2%k(2) = map2%k(2) - ele%b(0) / 2
-    map2%k(4) = map2%k(4) + ele%a(0) / 2
-    map2%r(2,1) = -ele%b(1) / 2
-    map2%r(2,3) =  ele%a(1) / 2
-    map2%r(4,1) =  ele%a(1) / 2
-    map2%r(4,3) =  ele%b(1) / 2
-    map2%t(2,1,1) = -ele%b(2) / 2
-    map2%t(2,3,3) =  ele%b(2) / 2
-    map2%t(4,1,3) =  ele%b(2) / 2
-    map2%t(2,1,3) =  ele%a(2) / 2
-    map2%t(4,1,1) =  ele%a(2) / 2
-    map2%t(4,3,3) = -ele%a(2) / 2
+    map2%k(2) = map2%k(2) - ele%b_pole(0) / 2
+    map2%k(4) = map2%k(4) + ele%a_pole(0) / 2
+    map2%r(2,1) = -ele%b_pole(1) / 2
+    map2%r(2,3) =  ele%a_pole(1) / 2
+    map2%r(4,1) =  ele%a_pole(1) / 2
+    map2%r(4,3) =  ele%b_pole(1) / 2
+    map2%t(2,1,1) = -ele%b_pole(2) / 2
+    map2%t(2,3,3) =  ele%b_pole(2) / 2
+    map2%t(4,1,3) =  ele%b_pole(2) / 2
+    map2%t(2,1,3) =  ele%a_pole(2) / 2
+    map2%t(4,1,1) =  ele%a_pole(2) / 2
+    map2%t(4,3,3) = -ele%a_pole(2) / 2
     call mad_tmsymm (map2%t)
   endif
 
@@ -1423,7 +1423,7 @@ subroutine mad_sol_quad (ele, energy, map)
 
 !
 
-  call mat_unit(re, 6, 6)
+  call mat_make_unit(re)
 
   re(1,1) = 2*ug * (fp*C + fm*Csh)
   re(1,2) = (2*ug/k1) * (q*S1 - r*Snh1)
@@ -1805,7 +1805,7 @@ end subroutine
 ! Input:
 !   start  -- Coord_struct: Starting coords.
 !   ele    -- Ele_struct: Element to track through.
-!   param  -- Param_struct: Lattice parameters.
+!   param  -- lat_param_struct: Lattice parameters.
 !
 ! Output:
 !   end   -- Coord_struct: Ending coords.
@@ -1816,7 +1816,7 @@ subroutine track1_mad (start, ele, param, end)
   implicit none
 
   type (ele_struct) ele
-  type (param_struct) param
+  type (lat_param_struct) param
   type (coord_struct) start, end
   type (energy_struct) energy
   type (mad_map_struct) map

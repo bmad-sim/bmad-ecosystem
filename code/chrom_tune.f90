@@ -1,7 +1,7 @@
 !+
-! Subroutine chrom_tune (ring, delta_e, target_x, target_y, err_tol, err_flag)
+! Subroutine chrom_tune (lat, delta_e, target_x, target_y, err_tol, err_flag)
 !
-! Subroutine to set the sextupole strengths so that the ring has the desired
+! Subroutine to set the sextupole strengths so that the lat has the desired
 ! chormaticities.
 ! This routine sorts the sextupoles into verticle and horizontal
 ! groups and varies the two groups to match the desired chromaticities.
@@ -10,7 +10,7 @@
 !   use bmad
 !
 ! Input:
-!   ring     -- Ring_struct: Ring to use, 
+!   lat     -- lat_struct: Lat to use, 
 !   delta_e  -- Real(rp): Delta energy used for the calculation.
 !                    If 0 then default of 1.0e-4 is used.
 !   target_x -- Real(rp): Target X Chromaticity
@@ -20,7 +20,7 @@
 !               A good number is: err_tol = 0.05_rp
 !
 ! Output:
-!   ring     -- Ring_struct: Ring with sextupole set
+!   lat     -- lat_struct: Lat with sextupole set
 !   delta_e  -- Real(rp): Set to 1.0e-4 if on input DELTA_E =< 0.
 !   err_flag -- Logical: .false. if match successful, .true. if failed
 !                   Fails if takes longer than 100 iterations.  If it 
@@ -34,7 +34,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine chrom_tune(ring, delta_e, target_x, target_y, err_tol, err_flag)
+subroutine chrom_tune(lat, delta_e, target_x, target_y, err_tol, err_flag)
   
   use bmad_struct
   use bmad_interface, except => chrom_tune
@@ -42,7 +42,7 @@ subroutine chrom_tune(ring, delta_e, target_x, target_y, err_tol, err_flag)
 
   implicit none
   
-  type (ring_struct) ring
+  type (lat_struct) lat
 
   integer i, j, n_sex, n_x_sex, n_y_sex
   integer, pointer :: ix_sex(:)
@@ -53,7 +53,7 @@ subroutine chrom_tune(ring, delta_e, target_x, target_y, err_tol, err_flag)
   real(rp), allocatable :: sex_y_values(:), sex_x_values(:)
   real(rp) target_x, target_y, chrom_x, chrom_y
   real(rp) delta_x, delta_y, d_chrom, chrom_x0
-  real(rp) chrom_y0, chrom_(2,1), matrix(2,2)
+  real(rp) chrom_y0, chrom(2,1), matrix(2,2)
   real(rp) delta_e, err_tol
  
   logical err_flag, debug
@@ -62,15 +62,15 @@ subroutine chrom_tune(ring, delta_e, target_x, target_y, err_tol, err_flag)
  
   debug = .false.
 
-  call elements_locator(sextupole$, ring, ix_sex)
+  call elements_locator(sextupole$, lat, ix_sex)
   allocate (sex_type(size(ix_sex)))
 
   do i = 1, size(ix_sex)
     ix = ix_sex(i)
-    if (ring%ele_(ix)%value(tilt_tot$) /= 0) then
+    if (lat%ele(ix)%value(tilt_tot$) /= 0) then
       sex_type(i) = n_plane$  ! do not use tilted sextupoles 
-    elseif ((ring%ele_(ix_sex(i))%x%beta) > & 
-                      (ring%ele_(ix_sex(i))%y%beta)) then
+    elseif ((lat%ele(ix_sex(i))%a%beta) > & 
+                      (lat%ele(ix_sex(i))%b%beta)) then
       sex_type(i) = x_plane$
     else
       sex_type(i) = y_plane$
@@ -93,10 +93,10 @@ subroutine chrom_tune(ring, delta_e, target_x, target_y, err_tol, err_flag)
         
   do j = 1, 100
 
-    sex_x_values(:) = ring%ele_(ix_x_sex(:))%value(k2$)
-    sex_y_values(:) = ring%ele_(ix_y_sex(:))%value(k2$)
+    sex_x_values(:) = lat%ele(ix_x_sex(:))%value(k2$)
+    sex_y_values(:) = lat%ele(ix_y_sex(:))%value(k2$)
 
-    call chrom_calc(ring, delta_e, chrom_x0, chrom_y0)
+    call chrom_calc(lat, delta_e, chrom_x0, chrom_y0)
 
     if (debug) then
       print *
@@ -119,27 +119,27 @@ subroutine chrom_tune(ring, delta_e, target_x, target_y, err_tol, err_flag)
       return
     end if
 
-    ring%ele_(ix_x_sex(:))%value(k2$) = sex_x_values(:)*(1 + delta_x)
-    ring%ele_(ix_y_sex(:))%value(k2$) = sex_y_values(:)
-    call chrom_calc(ring, delta_e, chrom_x, chrom_y)
+    lat%ele(ix_x_sex(:))%value(k2$) = sex_x_values(:)*(1 + delta_x)
+    lat%ele(ix_y_sex(:))%value(k2$) = sex_y_values(:)
+    call chrom_calc(lat, delta_e, chrom_x, chrom_y)
      
     matrix(1,1) = (chrom_x - chrom_x0) / delta_x
     matrix(1,2) = (chrom_y - chrom_y0) / delta_x
      
-    ring%ele_(ix_x_sex(:))%value(k2$) = sex_x_values(:)
-    ring%ele_(ix_y_sex(:))%value(k2$) = sex_y_values(:)*(1 + delta_y)
-    call chrom_calc(ring, delta_e, chrom_x, chrom_y)
+    lat%ele(ix_x_sex(:))%value(k2$) = sex_x_values(:)
+    lat%ele(ix_y_sex(:))%value(k2$) = sex_y_values(:)*(1 + delta_y)
+    call chrom_calc(lat, delta_e, chrom_x, chrom_y)
      
     matrix(2,1) = (chrom_x - chrom_x0) / delta_y
     matrix(2,2) = (chrom_y - chrom_y0) / delta_y
 
-    chrom_(1,1) = (target_x - chrom_x0)
-    chrom_(2,1) = (target_y - chrom_y0)
+    chrom(1,1) = (target_x - chrom_x0)
+    chrom(2,1) = (target_y - chrom_y0)
 
-    call gaussj(matrix, chrom_)
+    call gaussj(matrix, chrom)
      
-    ring%ele_(ix_x_sex(:))%value(k2$) = sex_x_values(:)*(1 + chrom_(1,1))
-    ring%ele_(ix_y_sex(:))%value(k2$) = sex_y_values(:)*(1 + chrom_(2,1))
+    lat%ele(ix_x_sex(:))%value(k2$) = sex_x_values(:)*(1 + chrom(1,1))
+    lat%ele(ix_y_sex(:))%value(k2$) = sex_y_values(:)*(1 + chrom(2,1))
         
   end do
 

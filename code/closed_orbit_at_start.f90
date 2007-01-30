@@ -7,9 +7,9 @@
 ! ***********************************************************************
 ! ***********************************************************************
 !                        
-! Subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
+! Subroutine closed_orbit_at_start (lat, co, i_dim, iterate)
 !
-! Subroutine to calculate the closed orbit at the beginning of the ring.
+! Subroutine to calculate the closed orbit at the beginning of the lat.
 ! The Subroutine works by first guessing the closed orbit based upon 
 ! the 1-turn matrix and tracking for 1-turn.
 !
@@ -19,22 +19,22 @@
 ! always be set True unless you *know* you have a linear lattice and you
 ! need to save time.
 !
-! Note: This routine uses the 1-turn matrix ring%param%t1_no_RF or 
-! ring%param%t1_with_RF in the computations. If you have changed conditions 
+! Note: This routine uses the 1-turn matrix lat%param%t1_no_RF or 
+! lat%param%t1_with_RF in the computations. If you have changed conditions 
 ! significantly enough you might want to force a remake of the 1-turn matrices
-! by calling clear_ring_1turn_mats.
+! by calling clear_lat_1turn_mats.
 !
 ! Note: See also closed_orbit_from_tracking as an alternative method
 ! of finding the closed orbit.
 !
 ! Note: Use TRACK_ALL to propagate the closed orbit through the rest
-! of the ring.
+! of the lat.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ring   -- Ring_struct: Ring to track through.
+!   lat   -- lat_struct: Lat to track through.
 !   i_dim  -- Integer: Dimensions to use
 !     = 4  Transverse closed orbit at constant energy (dE/E = CO.Z.VEL)
 !     = 6  Full closed orbit for 6x6 matrix.
@@ -54,7 +54,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
+subroutine closed_orbit_at_start (lat, co, i_dim, iterate)
 
   use bmad_struct
   use bmad_interface, except => closed_orbit_at_start
@@ -62,10 +62,10 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
   implicit none
 
-  type (ring_struct)  ring
+  type (lat_struct)  lat
   type (coord_struct)  orbit_end, del_co, del_orb
   type (coord_struct)  co
-  type (coord_struct), allocatable, save :: orbit_(:)
+  type (coord_struct), allocatable, save :: orbit(:)
 
   real(rp) s_mat(6,6), mat2(6,6), mat(6,6)
   real(rp) :: amp_co, amp_del, factor = 1.0, t1(6,6)
@@ -79,13 +79,13 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 ! allocate storage
 ! Random fluctuations must be turned off to find the closed orbit.
 
-  call reallocate_coord (orbit_, ring%n_ele_max)
+  call reallocate_coord (orbit, lat%n_ele_max)
 
   fluct_saved = bmad_com%radiation_fluctuations_on
   bmad_com%radiation_fluctuations_on = .false.  
 
-  aperture_saved = ring%param%aperture_limit_on
-  ring%param%aperture_limit_on = .false.
+  aperture_saved = lat%param%aperture_limit_on
+  lat%param%aperture_limit_on = .false.
 
 ! Error check
 
@@ -94,14 +94,14 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   n = i_dim
 
   if (i_dim == 4) then
-    if (all(ring%param%t1_no_RF == 0)) &
-                call transfer_matrix_calc (ring, .false., ring%param%t1_no_RF)
-    t1 = ring%param%t1_no_RF
+    if (all(lat%param%t1_no_RF == 0)) &
+                call transfer_matrix_calc (lat, .false., lat%param%t1_no_RF)
+    t1 = lat%param%t1_no_RF
 
   elseif (i_dim == 6) then
-    if (all(ring%param%t1_with_RF == 0)) &
-                call transfer_matrix_calc (ring, .true., ring%param%t1_with_RF)
-    t1 = ring%param%t1_with_RF
+    if (all(lat%param%t1_with_RF == 0)) &
+                call transfer_matrix_calc (lat, .true., lat%param%t1_with_RF)
+    t1 = lat%param%t1_with_RF
 
     if (t1(6,5) == 0) then
       print *, 'ERROR IN CLOSED_ORBIT_AT_START: CANNOT DO FULL 6-DIMENSIONAL'
@@ -122,24 +122,24 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   s_mat(2,2) = -1.0
   s_mat(4,4) = -1.0
 
-  orbit_(0)%vec(:) = 0.0
-  orbit_(0)%vec(6) = co%vec(6)
+  orbit(0)%vec(:) = 0.0
+  orbit(0)%vec(6) = co%vec(6)
 
-  n_ele = ring%n_ele_use
+  n_ele = lat%n_ele_track
 
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
 
   if (n == 4) then
-    call set_on_off (rfcavity$, ring, save_state$)
-    call set_on_off (rfcavity$, ring, off$)
+    call set_on_off (rfcavity$, lat, save_state$)
+    call set_on_off (rfcavity$, lat, off$)
   endif
 
 !---------------------------------------------------------------------
 !----------------------------------------------------------------------
 ! X = (Mat-1)^-1 * orbit_end
 
-  call track_all (ring, orbit_)
-  orbit_end = orbit_(n_ele)
+  call track_all (lat, orbit)
+  orbit_end = orbit(n_ele)
   call mat_make_unit (mat(1:n,1:n))
   mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
 
@@ -158,10 +158,10 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
                                                    
     do i = 1, 100
 
-      orbit_(0) = co
-      call track_all (ring, orbit_)
+      orbit(0) = co
+      call track_all (lat, orbit)
 
-      del_orb%vec(1:n) = orbit_(n_ele)%vec(1:n) - co%vec(1:n)
+      del_orb%vec(1:n) = orbit(n_ele)%vec(1:n) - co%vec(1:n)
       del_co%vec(1:n) = matmul(mat2(1:n,1:n), del_orb%vec(1:n)) 
       co%vec(1:n) = co%vec(1:n) + factor * del_co%vec(1:n)
 
@@ -183,10 +183,10 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
 ! return rf cavities to original state
 
-  if (n == 4) call set_on_off (rfcavity$, ring, restore_state$)
+  if (n == 4) call set_on_off (rfcavity$, lat, restore_state$)
 
   bmad_com%radiation_fluctuations_on = fluct_saved  ! restore state
-  ring%param%aperture_limit_on = aperture_saved
+  lat%param%aperture_limit_on = aperture_saved
 
 end subroutine
 

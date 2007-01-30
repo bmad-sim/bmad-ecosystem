@@ -31,14 +31,14 @@ contains
 !   ele -- Ele_struct: Element holding the aperture
 !     %value(x_limit$) -- Horizontal aperture.
 !     %value(y_limit$) -- Vertical aparture.
-!   param -- Param_struct: Parameter structure
+!   param -- lat_param_struct: Parameter structure
 !     %aperture_limit_on -- The aperture limit is only checked if this is true.
 !               The exception is when the orbit is larger than 
 !               bmad_com%max_aperture_limit. In this case param%lost will
 !               be set to True.
 !
 ! Output:
-!   param -- Param_struct: Parameter structure:
+!   param -- lat_param_struct: Parameter structure:
 !     %lost -- Set True if the orbit is outside the aperture. 
 !              Note: %lost is NOT set False if the orbit is inside 
 !                the aperture.
@@ -52,7 +52,7 @@ subroutine check_aperture_limit (orb, ele, param, plane_lost)
 
   type (coord_struct), intent(in) :: orb
   type (ele_struct),   intent(in)  :: ele
-  type (param_struct), intent(inout) :: param
+  type (lat_param_struct), intent(inout) :: param
 
   real(rp) x_lim, y_lim, x_beam, y_beam, l2
   integer plane_lost
@@ -149,7 +149,7 @@ end subroutine
 ! Input:
 !   start  -- Coord_struct: Starting position.
 !   ele    -- Ele_struct: Bend element.
-!   param  -- Param_struct: Lattice parameters.
+!   param  -- lat_param_struct: Lattice parameters.
 !
 ! Output:
 !   end     -- Coord_struct: End position.
@@ -162,7 +162,7 @@ subroutine track_a_bend (start, ele, param, end)
   type (coord_struct), intent(in)  :: start
   type (coord_struct), intent(out) :: end
   type (ele_struct),   intent(inout)  :: ele
-  type (param_struct), intent(inout) :: param
+  type (lat_param_struct), intent(inout) :: param
 
   real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t
   real(rp) rel_p, rel_p2, Dxy, Dy, px_t, factor, rho, g, dg

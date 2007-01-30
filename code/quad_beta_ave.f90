@@ -1,5 +1,5 @@
 !+
-! Subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
+! Subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 !
 ! Subroutine to compute the average betas in a quad
 !
@@ -7,35 +7,35 @@
 !   use bmad
 !
 ! Input:
-!   ring   -- Ring_struct: Ring structure
+!   lat   -- lat_struct: Lat structure
 !   ix_ele -- Integer: Index of quadrupole
 !
 ! Output:
-!   beta_x_ave, beta_y_ave -- Real(rp): Average betas in the quad.
+!   beta_a_ave, beta_b_ave -- Real(rp): Average betas in the quad.
 !
 ! NOTE: This subroutine is only valid if there is no local coupling
 !-
 
 #include "CESR_platform.inc"
 
-subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
+subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 
   use bmad_struct
   use bmad_interface, except => quad_beta_ave
 
   implicit none
 
-  type (ring_struct)  ring
+  type (lat_struct)  lat
   type (ele_struct), save ::  ele
 
   integer ix_ele, ix
 
-  real(rp) beta_x_ave, beta_y_ave, k_quad
+  real(rp) beta_a_ave, beta_b_ave, k_quad
 
 ! Since the beta stored in the ELE is at the end we need
 ! to invert alpha for BEAVE routine
 
-  ele = ring%ele_(ix_ele)
+  ele = lat%ele(ix_ele)
 
   if (ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. &
         ele%key /= wiggler$) then
@@ -47,18 +47,18 @@ subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
 ! if a controller element just use the value at the end of the first
 ! controlled element
 
-  if (ix_ele > ring%n_ele_use) then
-    ix = ring%control_(ele%ix1_slave)%ix_slave
-    beta_x_ave = ring%ele_(ix)%x%beta
-    beta_y_ave = ring%ele_(ix)%y%beta
+  if (ix_ele > lat%n_ele_track) then
+    ix = lat%control(ele%ix1_slave)%ix_slave
+    beta_a_ave = lat%ele(ix)%a%beta
+    beta_b_ave = lat%ele(ix)%b%beta
     return
   endif
 
 ! otherwise proceed as normal
 
-  if (ele%x%beta == 0 .or. ele%y%beta == 0) then
+  if (ele%a%beta == 0 .or. ele%b%beta == 0) then
     print *, 'ERROR IN QUAD_BETA_AVE: BETA IS ZERO AT END:',  &
-                                             ele%x%beta, ele%y%beta
+                                             ele%a%beta, ele%b%beta
     print *, ele%name, '  ', key_name(ele%key)
     call err_exit
   endif
@@ -66,11 +66,11 @@ subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
   k_quad = ele%value(k1$)
   
   if( ele%key == wiggler$)then
-    beta_x_ave = b_ave(ele%x%beta, -ele%x%alpha,  0.0_rp, ele%value(l$))
-    beta_y_ave = b_ave(ele%y%beta, -ele%y%alpha, -k_quad, ele%value(l$))
+    beta_a_ave = b_ave(ele%a%beta, -ele%a%alpha,  0.0_rp, ele%value(l$))
+    beta_b_ave = b_ave(ele%b%beta, -ele%b%alpha, -k_quad, ele%value(l$))
   else
-    beta_x_ave = b_ave(ele%x%beta, -ele%x%alpha,  k_quad, ele%value(l$))
-    beta_y_ave = b_ave(ele%y%beta, -ele%y%alpha, -k_quad, ele%value(l$))
+    beta_a_ave = b_ave(ele%a%beta, -ele%a%alpha,  k_quad, ele%value(l$))
+    beta_b_ave = b_ave(ele%b%beta, -ele%b%alpha, -k_quad, ele%value(l$))
   endif
 
 contains

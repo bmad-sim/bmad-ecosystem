@@ -8,8 +8,8 @@ using namespace std;
 
 class C_coord;
 class C_taylor_term;
-class C_sr1_wake;
-class C_sr2_wake;
+class C_sr_table_wake;
+class C_sr_mode_wake;
 class C_lr_wake;
 class C_control;
 class C_ele;
@@ -28,8 +28,8 @@ typedef valarray<bool>                  Bool_Array;
 typedef valarray<int>                   Int_Array;
 typedef valarray<C_taylor_term>         C_taylor_term_array;
 typedef valarray<C_wig_term>            C_wig_term_array;
-typedef valarray<C_sr1_wake>            C_sr1_wake_array;
-typedef valarray<C_sr2_wake>            C_sr2_wake_array;
+typedef valarray<C_sr_table_wake>       C_sr_table_wake_array;
+typedef valarray<C_sr_mode_wake>        C_sr_mode_wake_array;
 typedef valarray<C_lr_wake>             C_lr_wake_array;
 typedef valarray<C_control>             C_control_array;
 typedef valarray<C_ele>                 C_ele_array;
@@ -250,37 +250,37 @@ void operator>> (C_taylor&, taylor_struct*);
 void operator>> (taylor_struct*, C_taylor&);
 
 //--------------------------------------------------------------------
-// SR1_wake 
+// sr_table_wake 
 
-class sr1_wake_struct {};
+class sr_table_wake_struct {};
 
-class C_sr1_wake {
+class C_sr_table_wake {
 public:
   double z;                 // Longitudinal distance
   double longitudinal;      // Longitudinal wake in V/C/m
   double transverse;        // Transverse wake in V/C/m^2
 
-  C_sr1_wake (double zz, double lw, double tw) :
+  C_sr_table_wake (double zz, double lw, double tw) :
       z(zz), longitudinal(lw), transverse(tw) {}
 
-  C_sr1_wake (double zz = 0) :
+  C_sr_table_wake (double zz = 0) :
       z(zz), longitudinal(0), transverse(0) {}
 };    // End Class
 
-extern "C" void sr1_wake_to_c_(sr1_wake_struct*, C_sr1_wake&);
-extern "C" void sr1_wake_to_f_(C_sr1_wake&, sr1_wake_struct*);
+extern "C" void sr_table_wake_to_c_(sr_table_wake_struct*, C_sr_table_wake&);
+extern "C" void sr_table_wake_to_f_(C_sr_table_wake&, sr_table_wake_struct*);
 
-bool operator== (const C_sr1_wake&, const C_sr1_wake&);
+bool operator== (const C_sr_table_wake&, const C_sr_table_wake&);
 
-void operator>> (C_sr1_wake&, sr1_wake_struct*);
-void operator>> (sr1_wake_struct*, C_sr1_wake&);
+void operator>> (C_sr_table_wake&, sr_table_wake_struct*);
+void operator>> (sr_table_wake_struct*, C_sr_table_wake&);
 
 //--------------------------------------------------------------------
-// SR2_wake 
+// sr_mode_wake 
 
-class sr2_wake_struct {};
+class sr_mode_wake_struct {};
 
-class C_sr2_wake {
+class C_sr_mode_wake {
 public:
   double amp;         // Amplitude
   double damp;        // damping factor
@@ -292,24 +292,24 @@ public:
   double skew_cos;    // skew cos-like component of the wake
 
 
-  C_sr2_wake (double a, double d, double kk, double p, double n_sin = 0, 
+  C_sr_mode_wake (double a, double d, double kk, double p, double n_sin = 0, 
                   double n_cos = 0, double s_sin = 0, double s_cos = 0) :
       amp(a), damp(d), k(kk), phi(p), norm_sin(n_sin), 
       norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos) {}
 
-  C_sr2_wake (double a = 0) :
+  C_sr_mode_wake (double a = 0) :
       amp(0), damp(0), k(0), phi(0), norm_sin(0), norm_cos(0), 
       skew_sin(0), skew_cos(0) {}
 
 };    // End Class
 
-extern "C" void sr2_wake_to_c_(sr2_wake_struct*, C_sr2_wake&);
-extern "C" void sr2_wake_to_f_(C_sr2_wake&, sr2_wake_struct*);
+extern "C" void sr_mode_wake_to_c_(sr_mode_wake_struct*, C_sr_mode_wake&);
+extern "C" void sr_mode_wake_to_f_(C_sr_mode_wake&, sr_mode_wake_struct*);
 
-bool operator== (const C_sr2_wake&, const C_sr2_wake&);
+bool operator== (const C_sr_mode_wake&, const C_sr_mode_wake&);
 
-void operator>> (C_sr2_wake&, sr2_wake_struct*);
-void operator>> (sr2_wake_struct*, C_sr2_wake&);
+void operator>> (C_sr_mode_wake&, sr_mode_wake_struct*);
+void operator>> (sr_mode_wake_struct*, C_sr_mode_wake&);
 
 //--------------------------------------------------------------------
 // LR_wake  
@@ -358,21 +358,21 @@ class C_wake {
 public:
   string sr_file;
   string lr_file;
-  C_sr1_wake_array sr1;        // size = variable
-  C_sr2_wake_array sr2_long;   // size = variable
-  C_sr2_wake_array sr2_trans;  // size = variable
+  C_sr_table_wake_array sr_table;        // size = variable
+  C_sr_mode_wake_array sr_mode_long;   // size = variable
+  C_sr_mode_wake_array sr_mode_trans;  // size = variable
   C_lr_wake_array lr;          // size = variable
-  double z_sr2_max;             // Cutoff between sr1 and sr2
+  double z_sr_mode_max;             // Cutoff between sr_table and sr_mode
 
-  C_wake (const char* srf, const char* lrf, int n_sr1, int n_sr2_long, int n_sr2_trans, int n_lr) : 
-      sr1(C_sr1_wake(), n_sr1), sr2_long(C_sr2_wake(), n_sr2_long), 
-      sr2_trans(C_sr2_wake(), n_sr2_trans), lr(C_lr_wake(), n_lr),
+  C_wake (const char* srf, const char* lrf, int n_sr_table, int n_sr_mode_long, int n_sr_mode_trans, int n_lr) : 
+      sr_table(C_sr_table_wake(), n_sr_table), sr_mode_long(C_sr_mode_wake(), n_sr_mode_long), 
+      sr_mode_trans(C_sr_mode_wake(), n_sr_mode_trans), lr(C_lr_wake(), n_lr),
       sr_file(string(srf, strlen(srf))),
       lr_file(string(lrf, strlen(lrf))) {}
 
-  C_wake (string srf, string lrf, int n_sr1, int n_sr2_long, int n_sr2_trans, int n_lr) : 
-      sr_file(srf), lr_file(lrf), sr1(C_sr1_wake(), n_sr1), sr2_long(C_sr2_wake(), n_sr2_long), 
-      sr2_trans(C_sr2_wake(), n_sr2_trans), lr(C_lr_wake(), n_lr) {}
+  C_wake (string srf, string lrf, int n_sr_table, int n_sr_mode_long, int n_sr_mode_trans, int n_lr) : 
+      sr_file(srf), lr_file(lrf), sr_table(C_sr_table_wake(), n_sr_table), sr_mode_long(C_sr_mode_wake(), n_sr_mode_long), 
+      sr_mode_trans(C_sr_mode_wake(), n_sr_mode_trans), lr(C_lr_wake(), n_lr) {}
 
   C_wake () : sr_file(""), lr_file("") {}
 
@@ -418,7 +418,7 @@ void operator>> (control_struct*, C_control&);
 //--------------------------------------------------------------------
 // Param 
 
-class param_struct {};
+class lat_param_struct {};
 
 class C_param {
 public:
@@ -451,18 +451,18 @@ public:
         ran_seed(r_seed), stable(st), aperture_limit_on(alo), lost(lo) {}
 };    // End Class
 
-extern "C" void param_to_c_(param_struct*, C_param&);
-extern "C" void param_to_f_(C_param&, param_struct*);
+extern "C" void param_to_c_(lat_param_struct*, C_param&);
+extern "C" void param_to_f_(C_param&, lat_param_struct*);
 
 bool operator== (const C_param&, const C_param&);
 
-void operator>> (C_param&, param_struct*);
-void operator>> (param_struct*, C_param&);
+void operator>> (C_param&, lat_param_struct*);
+void operator>> (lat_param_struct*, C_param&);
 
 //--------------------------------------------------------------------
 // Amode 
 
-class amode_struct {};
+class anormal_mode_struct {};
 
 class C_amode {
 public:
@@ -485,18 +485,18 @@ public:
 
 };    // End Class
 
-extern "C" void amode_to_c_(amode_struct*, C_amode&);
-extern "C" void amode_to_f_(C_amode&, amode_struct*);
+extern "C" void amode_to_c_(anormal_mode_struct*, C_amode&);
+extern "C" void amode_to_f_(C_amode&, anormal_mode_struct*);
 
 bool operator== (const C_amode&, const C_amode&);
 
-void operator>> (C_amode&, amode_struct*);
-void operator>> (amode_struct*, C_amode&);
+void operator>> (C_amode&, anormal_mode_struct*);
+void operator>> (anormal_mode_struct*, C_amode&);
 
 //--------------------------------------------------------------------
 // linac_mode 
 
-class linac_mode_struct {};
+class linac_normal_mode_struct {};
 
 class C_linac_mode {
 public:
@@ -519,18 +519,18 @@ public:
 
 };    // End Class
 
-extern "C" void linac_mode_to_c_(linac_mode_struct*, C_linac_mode&);
-extern "C" void linac_mode_to_f_(C_linac_mode&, linac_mode_struct*);
+extern "C" void linac_mode_to_c_(linac_normal_mode_struct*, C_linac_mode&);
+extern "C" void linac_mode_to_f_(C_linac_mode&, linac_normal_mode_struct*);
 
 bool operator== (const C_linac_mode&, const C_linac_mode&);
 
-void operator>> (C_linac_mode&, linac_mode_struct*);
-void operator>> (linac_mode_struct*, C_linac_mode&);
+void operator>> (C_linac_mode&, linac_normal_mode_struct*);
+void operator>> (linac_normal_mode_struct*, C_linac_mode&);
 
 //--------------------------------------------------------------------
 // Modes 
 
-class modes_struct {};
+class normal_modes_struct {};
 
 class C_modes {
 public:
@@ -557,18 +557,18 @@ public:
 
 };    // End Class
 
-extern "C" void modes_to_c_(modes_struct*, C_modes&);
-extern "C" void modes_to_f_(C_modes&, modes_struct*);
+extern "C" void modes_to_c_(normal_modes_struct*, C_modes&);
+extern "C" void modes_to_f_(C_modes&, normal_modes_struct*);
 
 bool operator== (const C_modes&, const C_modes&);
 
-void operator>> (C_modes&, modes_struct*);
-void operator>> (modes_struct*, C_modes&);
+void operator>> (C_modes&, normal_modes_struct*);
+void operator>> (normal_modes_struct*, C_modes&);
 
 //--------------------------------------------------------------------
 // Bmad_com 
 
-class bmad_com_struct {};
+class bmad_common_struct {};
 class C_bmad_com;
 
 extern "C" void bmad_com_to_c_(C_bmad_com&);
@@ -704,7 +704,7 @@ public:
   int ic2_lord;                 // Stop  index for lord elements
   int ix_pointer;               // For general use. Not used by Bmad.
   int ixx;                      // Index for Bmad internal use
-  int ix_ele;                   // Index in ring%ele_(:) array
+  int ix_ele;                   // Index in ring%ele(:) array
   int mat6_calc_method;         // bmad_standard$, taylor$, etc.
   int tracking_method;          // bmad_standard$, taylor$, etc.
   int field_calc;               // Used with Boris, Runge-Kutta integrators.
@@ -767,9 +767,9 @@ void operator>> (mode_info_struct*, C_mode_info&);
 //--------------------------------------------------------------------
 // Ring 
 
-class ring_struct {};
+class lat_struct {};
 
-class C_ring {
+class C_lat {
 public:
   string name;               // Name of ring given by USE statement
   string lattice;            // Lattice
@@ -786,21 +786,21 @@ public:
   C_ele ele_init;            // For use by any program
   C_ele_array ele;           // Array of elements
   C_control_array control;   // control list
-  Int_Array ic;              // index to %control_(:)
+  Int_Array ic;              // index to %control(:)
 
-  C_ring () {}
+  C_lat () {}
 
-  C_ring& operator= (const C_ring&);
+  C_lat& operator= (const C_lat&);
 
 };    // End Class
 
-extern "C" void ring_to_c_(ring_struct*, C_ring&);
-extern "C" void ring_to_f_(C_ring&, ring_struct*);
+extern "C" void lat_to_c_(lat_struct*, C_lat&);
+extern "C" void ring_to_f_(C_lat&, lat_struct*);
 
-bool operator== (const C_ring&, const C_ring&);
+bool operator== (const C_lat&, const C_lat&);
 
-void operator>> (C_ring&, ring_struct*);
-void operator>> (ring_struct*, C_ring&);
+void operator>> (C_lat&, lat_struct*);
+void operator>> (lat_struct*, C_lat&);
 
 #define CPP_AND_BMAD
 #endif

@@ -9,7 +9,7 @@ module dynamic_aperture_mod
     type (coord_struct)  closed_orbit
     real(rp) x, y
     integer plane
-    integer ix_ring
+    integer ix_lat
     integer i_turn
   end type
 
@@ -25,7 +25,7 @@ contains
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
+! Subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture)
 !
 ! Subroutine to determine the dynamic aperture of a lattice by tracking.
 ! The subroutine works by determining where on a radial line y = const * x
@@ -35,7 +35,7 @@ contains
 !   use dynamic_aperture_mod
 !
 ! Input:
-!   ring        -- Ring_struct: Ring containing the lattice.
+!   lat        -- lat_struct: Lat containing the lattice.
 !   orb0        -- Coord_struct: Closed orbit at the start.
 !     %vec(6)      -- Energy offset.
 !   theta_xy    -- Real(rp): Angle of radial line (in radians) in x-y space.
@@ -49,24 +49,24 @@ contains
 ! Output:
 !     aperture  -- Aperture_struct:
 !       %closed_orbit -- Closed orbit coordinates
-!       %x            -- X at aperture limit
-!       %y            -- Y at aperture limit
+!       %a            -- X at aperture limit
+!       %b            -- Y at aperture limit
 !       %plane        -- Plane in which lost (X_PLANE$ or Y_PLANE$)
-!       %ix_ring      -- Index where lost
+!       %ix_lat      -- Index where lost
 !       %i_turn       -- Turn where lost
 !
 ! Note: The radial lines are spaced equally in angle using coordinates
 !       normalized by %X_INIT and %Y_INIT
 !-
 
-subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
+subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture)
 
   implicit none
 
-  type (ring_struct)  ring
-  type (param_struct)  param_save
+  type (lat_struct)  lat
+  type (lat_param_struct)  param_save
   type (coord_struct)  orb0
-  type (coord_struct), save, allocatable :: orbit_(:)
+  type (coord_struct), save, allocatable :: orbit(:)
   type (aperture_struct)  aperture
   type (track_input_struct)  track_input
 
@@ -84,10 +84,10 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
     call err_exit
   endif
 
-  param_save = ring%param
-  ring%param%aperture_limit_on = .true.
+  param_save = lat%param
+  lat%param%aperture_limit_on = .true.
 
-  call reallocate_coord (orbit_, ring%n_ele_max)
+  call reallocate_coord (orbit, lat%n_ele_max)
 
 ! Find starting point
 
@@ -102,34 +102,34 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
 
   test_loop: do
 
-    orbit_(0) = orb0
-    orbit_(0)%vec(1) = orbit_(0)%vec(1) + x1 
-    orbit_(0)%vec(3) = orbit_(0)%vec(3) + y1 
+    orbit(0) = orb0
+    orbit(0)%vec(1) = orbit(0)%vec(1) + x1 
+    orbit(0)%vec(3) = orbit(0)%vec(3) + y1 
 
 
 ! Include correction for nonzero dispersion at IP   29 Sep 04 jac
 ! Make sure eta values have been calculated
-    call twiss_at_start(ring)
+    call twiss_at_start(lat)
 
-    orbit_(0)%vec(1) = orbit_(0)%vec(1) + orbit_(0)%vec(6)*ring%ele_(0)%x%eta
-    orbit_(0)%vec(3) = orbit_(0)%vec(3) + orbit_(0)%vec(6)*ring%ele_(0)%y%eta
+    orbit(0)%vec(1) = orbit(0)%vec(1) + orbit(0)%vec(6)*lat%ele(0)%a%eta
+    orbit(0)%vec(3) = orbit(0)%vec(3) + orbit(0)%vec(6)*lat%ele(0)%b%eta
 
 ! track n_turns
 
     do it = 1, track_input%n_turn
-      call track_all (ring, orbit_)
-      if (ring%param%lost) exit
-      orbit_(0) = orbit_(ring%n_ele_use)
+      call track_all (lat, orbit)
+      if (lat%param%lost) exit
+      orbit(0) = orbit(lat%n_ele_track)
     enddo
 
 ! change search interval end
 
-    if (ring%param%lost) then
+    if (lat%param%lost) then
       x2 = x1
       y2 = y1
       turn_lost = it
       aperture_bracketed = .true.
-      aperture%ix_ring = ring%param%ix_lost
+      aperture%ix_lat = lat%param%ix_lost
     else
       x0 = x1
       y0 = y1
@@ -169,19 +169,19 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
   aperture%i_turn = turn_lost
   aperture%closed_orbit = orb0
 
-  ixr = aperture%ix_ring
-  if (ring%ele_(ixr)%value(x_limit$) /= 0 .and.  &
-                abs(orbit_(ixr)%vec(1)) > ring%ele_(ixr)%value(x_limit$)) then
+  ixr = aperture%ix_lat
+  if (lat%ele(ixr)%value(x_limit$) /= 0 .and.  &
+                abs(orbit(ixr)%vec(1)) > lat%ele(ixr)%value(x_limit$)) then
     aperture%plane = x_plane$
   else
     aperture%plane = y_plane$
   endif
 
-  if (ring%ele_(ixr)%key == drift$) ixr = ixr + 1
+  if (lat%ele(ixr)%key == drift$) ixr = ixr + 1
 
 !
 
-  ring%param = param_save
+  lat%param = param_save
 
 end subroutine
 
