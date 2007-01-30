@@ -91,14 +91,14 @@ subroutine res_line_calc (param, res)
     type *, 'ERROR param%X_MAX LESS THAN OR EQUAL TO param%X_MIN'
     type *, 'param%X_MAX =', param%x_max
     type *, 'param%X_MIN =', param%x_min
-    call exit
+    stop
   endif
 
   if (param%x_max <= param%x_min) then
     type *, 'ERROR param%X_MAX LESS THAN OR EQUAL TO param%X_MIN'
     type *, 'param%X_MAX =', param%x_max
     type *, 'param%X_MIN =', param%x_min
-    call exit
+    stop
   endif
 
   res%num_line = 0
@@ -113,6 +113,7 @@ subroutine res_line_calc (param, res)
     param%places = 2
   else
     type *, 'ERROR: BAD "param%UNITS" PARAMETER'
+    stop
   endif
 
   param%x_min = param%x_min / param%scale
@@ -124,7 +125,7 @@ subroutine res_line_calc (param, res)
   if (max(param%x_min-param%x_max, param%y_min-param%y_max) > 2 .or. param%q_s > 2) then
     type *,  &
       'ERROR: param%X_MIN, param%X_MAX, param%Y_MIN, param%Y_MAX, OR param%Q_S NOT MATCHED TO AXIS_TOGGLE'
-    call exit
+    stop
   endif
 
   res_offset = .002 * max((param%x_max-param%x_min), (param%y_max-param%y_min))
