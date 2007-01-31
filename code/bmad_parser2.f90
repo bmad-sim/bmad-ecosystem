@@ -490,6 +490,8 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
     call add_all_superimpose (lat, ele, plat%ele(ixx))
   enddo
 
+  call remove_all_null_ele_elements (lat)
+
 ! Go through and create the overlay, i_beam, and group lord elements.
 
   call parser_add_lord (lat2, ele_num, plat, lat)

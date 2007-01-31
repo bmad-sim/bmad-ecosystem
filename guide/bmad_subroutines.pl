@@ -5,6 +5,13 @@ use File::Find;
 #---------------------------------------------------------
 # List of subroutines too low level to be mentioned
 
+$pl_hash{"form_digested_bmad_file_name"} = "bmad_parser_mod.f90";
+$pl_hash{"reuse_taylor_elements"} = "bmad_parser_mod.f90";
+$pl_hash{"add_this_multipass"} = "bmad_parser_mod.f90";
+$pl_hash{"settable_dep_var_bookkeeping"} = "bmad_parser_mod.f90";
+$pl_hash{"find_this_file"} = "bmad_parser_mod.f90";
+$pl_hash{"parser_set_ele_defaults"} = "bmad_parser_mod.f90";
+$pl_hash{"save_taylor_elements"} = "bmad_parser_mod.f90";
 $pl_hash{"initialize_pauli_vector"} = "spin_mod.f90";
 $pl_hash{"track1_macro_sr_trans_wake"} = "macroparticle_mod.f90";
 $pl_hash{"track1_macro_lr_wake"} = "macroparticle_mod.f90";

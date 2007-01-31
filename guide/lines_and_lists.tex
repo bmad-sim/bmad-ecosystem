@@ -21,6 +21,7 @@ lattice are always converted to upper case.
 
 %-----------------------------------------------------------------------------
 \section{Beam Lines without Arguments}
+\label{s:lines_wo_arg}
 \index{Line|textbf}
 
 A Beam Line without arguments has the format
@@ -42,6 +43,13 @@ definition of \vn{line1} will be inserted in to produce the following
 lattice for analysis
 \begin{example}
   (d, a, b, c, e)
+\end{example}
+Note: In the expanded lattice, any \vn{Null_Ele} type elements
+(\sref{s:null_ele}) will be discarded. For example, if element \vn{b}
+in the above example is a \vn{Null_Ele} then the actual expanded
+lattice will be:
+\begin{example}
+  (d, a, c, e)
 \end{example}
 
 A member that is a Line or List can be reflected 

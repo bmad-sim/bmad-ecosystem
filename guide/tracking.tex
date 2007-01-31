@@ -287,6 +287,7 @@ The number of slices used for the integration is given by
 \section{Macroparticle Tracking}
 \index{Macroparticles!tracking}
 \index{Tracking!Macroparticles}
+\label{s:macro_track}
 
 \begin{figure}[!tb]
 \small
@@ -345,6 +346,14 @@ end program
 \caption{Example program showing macroparticle tracking.}
 \label{f:macro_program}
 \end{figure}
+
+Macroparticles are particles that also have an associated size. 
+See \sref{s:macro} for more details. Note: Macroparticles where implemented 
+into \bmad when bunch tracking was first introduced. Macroparticles have the
+theoretical advantage over particle tracking since the number of macroparticles
+needed to characterize a bunch is smaller. However, transport of the macroparticle
+sigma matrix adds complexity and recent development in \bmad in terms of tracking
+bunches have generally focused on striaght particle tracking (\sref{s:part_track}).
 
 The definition of the \vn{macro_struct} structure that defines a
 macroparticle is shown in Figure~\ref{f:macro_struct}.  

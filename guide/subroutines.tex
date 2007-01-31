@@ -5,24 +5,25 @@ functionality.  Use the \vn{getf} and \vn{listf} (\sref{s:getf})
 scripts for more information on individual routines.
 This list includes low level routines that are not generally used in
 writing code for a program but may be useful in certain unique
-situations.  Excluded from the list are low level routines that are
-solely meant for \bmad internal use and specialized routines not of
-general interest.
+situations.  Excluded from the list are very low level routines that are
+solely meant for \bmad internal use.
 
 
 \toffset
 \begin{center}
 \begin{tabular}{|l|l|} \hline
 {\em Routine Type} & {\em Section} \\ \hline
- 	Reading/Writing Lattice Files           & \ref{r:read}       \\ \hline
+ 	Reading and Writing Lattice Files       & \ref{r:read}       \\ \hline
  	Choosing a Lattice                      & \ref{r:lat}        \\ \hline
- 	Twiss etc.                              & \ref{r:twiss}      \\ \hline
+ 	Twiss and Other Calculations            & \ref{r:twiss}      \\ \hline
  	Matrices                                & \ref{r:mat}        \\ \hline
  	Routines called by \vn{make_mat6}       & \ref{r:mat6}       \\ \hline
  	Low level matrix routines               & \ref{r:low_mat}    \\ \hline
  	Tracking, Closed Orbit                  & \ref{r:track}      \\ \hline
   Macroparticle Tracking                  & \ref{r:macro}      \\ \hline
   Particle Distribution (Beam) Tracking   & \ref{r:part_dist}  \\ \hline
+  Low Level Particle Distribution (Beam) Tracking  
+                                          & \ref{r:low_part_track} \\ hline
   Spin Tracking                           & \ref{r:spin_track} \\ \hline
   Wake Fields                             & \ref{r:wake}       \\ \hline
   Synchrotron Radiation                   & \ref{r:synch_rad}  \\ \hline  
@@ -35,6 +36,8 @@ general interest.
  	Long Range Beam--Beam Interaction       & \ref{r:lrbbi}      \\ \hline
   \cpp interface                          & \ref{r:cpp}        \\ \hline
  	Tracking Routines called by \vn{track1} & \ref{r:track1}     \\ \hline
+  Inter-Beam Scattering (IBS)             & \ref{r:ibs}        \\ \hline
+  Coherent Synchrotron Radiation (CSR)    & \ref{r:csr}        \\ \hline
 	Collective Effects                      & \ref{r:collective} \\ \hline
  	Helper Routines: Informational          & \ref{r:info}       \\ \hline
  	Helper Routines: Elemental              & \ref{r:elem}       \\ \hline
@@ -54,7 +57,7 @@ general interest.
 \toffset
 
 %------------------------------------------------------------------------
-\section{Reading/Writing Lattice Files} 
+\section{Reading and Writing Lattice Files} 
 \label{r:read}
 \index{Lattice files!reading and writing routines}
 
@@ -114,7 +117,7 @@ Subroutine to get the names of the lattices of the form: directory/bmad\_*.lat
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Twiss etc}
+\section{Twiss and Other Calculations}
 \label{r:twiss}
 \index{Twiss!list of routines}
 
@@ -336,6 +339,11 @@ Subroutine to form the 2x2 1-turn transfer matrix from the Twiss parameters.
 %------------------------------------------------------------------------
 \section{Routines called by make\_mat6}
 \label{r:mat6}
+ 
+\vn{Make_mat6} is the routine for calculating the transfer matrix (Jacobin)
+through an element. The routines listed below are used by \vn{make_mat6}.
+In general a program should call \vn{make_mat6} rather than using these
+routines directly.
 
 \begin{description}
 
@@ -369,6 +377,8 @@ tracking 7 particle with different starting conditions.
 \section{Low Level Matrix Routines}
 \label{r:low_mat}  
 
+Listed below are helper routines that are not meant for general use.
+
 \begin{description}
 
 \index{Routine!drift_mat6_calc}
@@ -394,6 +404,8 @@ tilted in (x, Px, y, Py) with respect to the old reference frame.
 \section{Tracking, Closed Orbit}
 \label{r:track}    
 \index{Tracking!list of routines}
+
+The following routines perform tracking and closed orbit calculations.
 
 \begin{description}
 
@@ -497,6 +509,9 @@ for every element in the lat.
 \label{r:macro}    
 \index{Macroparticle!list of routines}
 
+See sections \sref{s:macro} and \sref{s:macro_track} for a discussion of macroparticles
+and macroparticle tracking.
+
 \begin{description}
 
 \index{Routine!calc_macro_bunch_params}
@@ -552,6 +567,9 @@ Subroutine to track a macroparticle through an element.
 \label{r:part_dist}    
 \index{Particle distribution!list of routines}
 
+See \sref{s:part_track} for a discussion of using a collection of particles to simulate
+a bunch.
+
 \begin{description}
 
 \index{Routine!angle_to_canonical_coords}
@@ -559,18 +577,13 @@ Subroutine to track a macroparticle through an element.
 Subroutine to convert particle coords from 
     (x, x', y, y', z, E)
 
-\index{Routine!beam_equal_beam}
-\item[beam\_equal\_beam (beam1, beam2)] \Newline 
-Subroutine to set one particle beam equal to another taking care of
-pointers so that they don't all point to the same place.
-
 \index{Routine!calc_bunch_params}
 \item[calc\_bunch\_params (bunch, ele, params)] \Newline 
 Finds all bunch parameters defined in bunch\_params\_struct, both normal-mode
 and projected
 
 \index{Routine!calc_bunch_params_slice}
-\item[calc\_bunch\_params (bunch, ele, params, plane, slice_center, slice_spread)] \Newline 
+\item[calc\_bunch\_params (bunch, ele, params, plane, slice\_center, slice\_spread)] \Newline 
 Finds all bunch parameters for a slice through the beam distribution.
 
 \index{Routine!canonical_to_angle_coords}
@@ -583,11 +596,6 @@ Subroutine to convert particleparticle coords from
 Subroutine to initialize a distribution of particles matched to
 the Twiss parameters, centroid position, and Energy - z correlation
 
-\index{Routine!order_particles_in_z}
-\item[order\_particles\_in\_z (bunch)] \Newline 
-Subroutine to order the particles longitudinally 
-The ordering uses the centroid of the particles:
-
 \index{Routine!reallocate_beam}
 \item[reallocate\_beam (beam, n\_bunch, n\_particle)] \Newline 
 Subroutine to reallocate memory within a beam\_struct.
@@ -595,6 +603,35 @@ Subroutine to reallocate memory within a beam\_struct.
 \index{Routine!track1_beam}
 \item[track1\_beam (beam\_start, ele, param, beam\_end)] \Newline 
 Subroutine to track a beam of particles through a single element.
+
+\index{Routine!track1_bunch}
+\item[track1\_bunch] \Newline 
+Subroutine to track a bunch of particles through an element.
+
+\index{Routine!track_beam}
+\item[track\_beam (lat, beam, ix1, ix2)] \Newline 
+     Subroutine to track a beam of macroparticles from the end of
+     lat%ele(ix1) Through to the end of lat%ele(ix2).
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Low Level Particle Distribution (Beam) Tracking}
+\label{r:low_part_track}    
+
+The following helper routines are generally not useful for general use.
+
+\begin{description}
+
+\index{Routine!beam_equal_beam}
+\item[beam\_equal\_beam (beam1, beam2)] \Newline 
+Subroutine to set one particle beam equal to another taking care of
+pointers so that they don't all point to the same place.
+
+\index{Routine!order_particles_in_z}
+\item[order\_particles\_in\_z (bunch)] \Newline 
+Subroutine to order the particles longitudinally 
+The ordering uses the centroid of the particles:
 
 \index{Routine!track1_beam_lat}
 \item[track1\_beam\_lat (beam\_start, lat, ix\_ele, beam\_end)] \Newline 
@@ -606,10 +643,6 @@ Overloaded by \vn{track1_beam}.
 Subroutine to track a beam of particles through a single element.
 Overloaded by \vn{track1_beam}.
 
-\index{Routine!track1_bunch}
-\item[track1\_bunch] \Newline 
-Subroutine to track a bunch of particles through an element.
-
 \index{Routine!track1_bunch_lat}
 \item[track1\_bunch\_lat (bunch\_start, lat, ix\_ele, bunch\_end)] \Newline 
 Subroutine to track a bunch of particles through an element.
@@ -619,7 +652,6 @@ Overloaded by \vn{track1_bunch}.
 \item[track1\_bunch\_ele (bunch\_start, ele, param, bunch\_end)] \Newline 
 Subroutine to track a bunch of particles through an element.
 Overloaded by \vn{track1_bunch}.
-
 
 \index{Routine!track1_sr_wake}
 \item[track1\_sr\_wake (bunch, ele)] \Newline 
@@ -633,10 +665,21 @@ Subroutine to put in the long-range wakes for particle tracking.
 \item[track1\_particle (start, ele, param, end)] \Newline 
 Subroutine to track a particle through an element.
 
-\index{Routine!track_beam}
-\item[track\_beam (lat, beam, ix1, ix2)] \Newline 
-     Subroutine to track a beam of macroparticles from the end of
-     lat%ele(ix1) Through to the end of lat%ele(ix2).
+\index{Routine!add_sr_long_wake}
+\item[add\_sr\_long\_wake (ele, bunch, num\_in\_front, follower)] \Newline 
+Adds the longitudinal wake for all particles in front of the follower.
+
+\index{Routine!init_spin_distribution}
+\item[init\_spin\_distribution (beam\_init, bunch)] \Newline 
+Initializes a spin distribution according to init\_beam%spin
+
+\index{Routine!calc_bunch_params_slice}
+\item[calc\_bunch\_params\_slice (bunch, ele, params, plane, slice\_center, slice\_spread)] \Newline 
+Finds all bunch parameters for a slice through the beam distribution.
+
+\index{Routine!find_bunch_sigma_matrix}
+\item[find\_bunch\_sigma\_matrix (particle, ave, sigma)] \Newline 
+Routine to find the sigma matrix elements of a particle distribution.
 
 \end{description}
 
@@ -741,13 +784,13 @@ Subroutine to put in the long-range wakes for particle tracking.
 \begin{description}
 
 \index{Routine!calculate_sr_power}
-\item[calculate\_sr\_power (lat, orb, direction, power, &] \Newline 
+\item[calculate\_sr\_power (lat, orb, direction, power,] \Newline 
                                  inside, outside, gen)
 subroutine to calculate the synch radiation power
 hitting wall segments from all elements in the lat
 
 \index{Routine!ele_sr_power}
-\item[ele\_sr\_power (lat, ie, orb, direction, ] \Newline 
+\item[ele\_sr\_power (lat, ie, orb, direction,] \Newline 
                             power, inside, outside, gen)
 subroutine to calculate the synch radiation power from
 one element of the lat
@@ -1362,6 +1405,81 @@ Subroutine to track through an element using the elements taylor series.
 \index{Routine!track1_wiedemann_wiggler}
 \item[track1\_wiedemann\_wiggler (start, ele, param, end)] \Newline
 Subroutine to track through the body of a wiggler. 
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Inter-Beam Scattering (IBS)}
+\label{r:ibs}
+
+\begin{description}
+
+\index{Routine!ibs_lifetime}
+\item[ibs\_lifetime(lat, mode, lifetime, formula)] \Newline 
+ This module computes the beam lifetime due to
+ the diffusion process according to equation 12
+
+\index{Routine!bjmt}
+\item[bjmt(lat, mode, rates)] \Newline 
+ This is a private subroutine.  To access this subroutine, call
+ ibs\_rates.
+
+\index{Routine!bane}
+\item[bane(lat, mode, rates)] \Newline 
+ This is a private subroutine. To access this subroutine, call
+ ibs\_rates.
+
+\index{Routine!cimp}
+\item[cimp(lat, mode, rates)] \Newline 
+ This is a private subroutine. To access this subroutine, call
+ ibs\_rates.
+
+\index{Routine!g}
+\item[g(u)] \Newline 
+ This is an 13-degree piecewise polynomial interpolation of the
+ integral for the CIMP ibs formulation (equation 34 in "Intrabeam 
+
+\index{Routine!mtto}
+\item[mtto(lat, mode, rates)] \Newline 
+ NOTE:  The Mtingwa-Tollerstrup formula gives different from the other
+ formulations in this module.
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Coherent Synchrotron Radiation (CSR)}
+\label{r:csr}
+
+\begin{description}
+
+\index{Routine!csr_bin_particles}
+\item[csr\_bin\_particles (particle, bin)] \Newline 
+Routine to bin the particles longitudinally in s. 
+
+\index{Routine!subroutine csr_bin_kicks}
+\item[subroutine csr\_bin\_kicks (lat, ix\_ele, s\_travel, bin)] \Newline 
+Routine to cache intermediate values needed for the csr calculations.
+
+\index{Routine!i_csr}
+\item[i\_csr (z, d, val, bin) result (i\_this)] \Newline 
+Routine to calculate the CSR kick integral.
+
+\index{Routine!z_calc_csr}
+\item[z\_calc\_csr (d, val, bin, dz\_dd) result (z\_this)] \Newline 
+Routine to calculate the distance between the source particle and the
+kicked particle.
+
+\index{Routine!d_calc_csr}
+\item[d\_calc\_csr (dz\_particles, val, bin) result (d\_this)] \Newline 
+Routine to calculate the distance between source and kick points.
+
+\index{Routine!lsc_kick}
+\item[lsc\_kick (bin, particle)] \Newline 
+Routine to calculate the longitudinal space charge kick.
+
+\index{Routine!lcsr_kick}
+\item[lcsr\_kick (bin, particle)] \Newline 
+Routine to calculate the longitudinal coherent synchrotron radiation kick.
 
 \end{description}
 
@@ -1997,6 +2115,11 @@ Subroutine to return the calibration constants for the CESR quads.
      Subroutine to clear all drawing from the current box.
      That is, white out the box region.
 
+\index{Routine!qp_draw_circle}
+\item[qp\_draw\_circle (x0, y0, r, angle0, del\_angle, ] \Newline 
+                                   units, width, color, style, clip)
+Subroutine to plot a section of an ellipse.
+
 \index{Routine!qp_draw_ellipse}
 \item[qp\_draw\_ellipse (x0, y0, r\_x, r\_y, theta\_xy, angle1, angle2, 
                      units, width, color, style, clip) ] \Newline 
@@ -2128,6 +2251,12 @@ See also: qp\_draw\_text.
      Subroutine to calculate the offsets for the graph.
      This subroutine also sets the PGPLOT window size equal to the graph size.
 
+\index{Routine!qp_set_graph_placement}
+\item[qp\_set\_graph\_placement (x1\_marg, x\_graph\_len, y1\_marg, ] \Newline 
+                                                       y\_graph\_len, units)
+Subroutine to set the placement of the current graph inside the box. 
+This routine can be used in place of QP\_SET\_MARGIN.
+
 \index{Routine!qp_set_layout}
 \item[qp\_set\_layout (x\_axis, y\_axis, x2\_axis, y2\_axis, ...] \Newline 
      Subroutine to set various attributes. This routine can be used
@@ -2230,12 +2359,21 @@ Subroutine to get various quick\_plot parameters.
 Function to convert from a text height in points to a text height in
 inches taking into account the text\_scale.
 
-\index{Routine!qp_to_inches_rel}
+\index{Routine!qp_to_inch_rel}
 \item[qp\_to\_inch\_rel (x, y, x\_inch, y\_inch, units)] \Newline 
+Subroutine to convert a relative (x, y) into inches.
+
+\index{Routine!qp_to_inch_abs}
+\item[qp\_to\_inch\_abs (x, y, x\_inch, y\_inch, units)] \Newline 
+Subroutine to convert an absolute position (x, y) into inches referenced
+to the Left Bottom corner of the page.
+
+\index{Routine!qp_to_inches_rel}
+\item[qp\_to\_inches\_rel (x, y, x\_inch, y\_inch, units)] \Newline 
      Subroutine to convert a relative (x, y) into inches.
 
 \index{Routine!qp_to_inches_abs}
-\item[qp\_to\_inch\_abs (x, y, x\_inch, y\_inch, units)] \Newline 
+\item[qp\_to\_inches\_abs (x, y, x\_inch, y\_inch, units)] \Newline 
      Subroutine to convert an absolute position (x, y) into inches referenced
      to the left bottom corner of the page.
 
@@ -2290,6 +2428,10 @@ This subroutine is not for general use.
 \item[qp\_open\_page\_basic (page\_type, x\_len, y\_len, plot\_file] \Newline 
       x\_page, y\_page, i\_chan)
 Subroutine to Initialize a page (window) for plotting.
+
+\index{Routine!qp_pointer_to_axis}
+\item[qp\_pointer\_to\_axis (axis, axis\_ptr)] \Newline 
+Subroutine to return a pointer to an common block axis.
 
 \index{Routine!qp_restore_state}
 \item[qp\_restore\_state] \Newline 

@@ -3,6 +3,7 @@ module io_mod
   use bmad_struct
   use bmad_interface
   use multipole_mod
+  use output_mod
 
   private str, rchomp, write_out, element_out
 
@@ -34,8 +35,8 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
   implicit none
 
   type (lat_struct), target :: lat
-  type (ele_struct), pointer :: ele, slave
-  type (ele_struct) ele_init
+  type (ele_struct), pointer :: ele, slave, lord
+  type (ele_struct) ele_init, super_marker
   type (wig_term_struct) wt
   type (control_struct) ctl
   type (taylor_term_struct) tm
@@ -45,13 +46,13 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
   character(*) bmad_file
   character(4000) line
   character(4) last
-  character(16) name
-  character(16), allocatable :: names(:)
+  character(40) name
+  character(40), allocatable :: names(:)
  
   integer i, j, k, ix, iu, ios, ixs, ix1
   integer unit(6), ix_names, ix_match
 
-  logical slave_here, unit_found, write_term, match_found
+  logical unit_found, write_term, match_found
 
 ! Init
 
@@ -136,7 +137,6 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
   write (iu, *) '!-------------------------------------------------------'
   write (iu, *)
 
-  slave_here = .false.
   ixs = 0
   ix_names = 0
   allocate (names(lat%n_ele_max))
@@ -153,20 +153,13 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
       write (iu, *)
     endif
 
+! For a super_slave just create a dummy drift. 
+
     if (ele%control_type == super_slave$) then
-      ele%ixx = 0
-      if (slave_here) cycle
-      s0 = lat%ele(i-1)%s
       ixs = ixs + 1
       ele%ixx = ixs
-      slave_here = .true.
+      write (iu, '(a, i3.3, 2a)') ' slave_drift_', ixs, ': drift, l = ', trim(str(ele%value(l$)))
       cycle
-    endif
-
-    if (slave_here) then
-      s0 = lat%ele(i-1)%s - s0
-      write (iu, '(a, i3.3, 2a)') ' slave_drift_', ixs, ': drift, l = ', trim(str(s0))
-      slave_here = .false.
     endif
 
 ! Do not write anything for elements that have a duplicate name.
@@ -240,8 +233,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
     if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
 
     if (ele%control_type == super_lord$) then
-      line = trim(line) // ', superimpose, offset = ' // &
-                                             trim(str(ele%s-ele%value(l$)/2))
+      line = trim(line) // ', superimpose, ele_beginning, ref = x__' // trim(ele%name)
     endif
 
     if (associated(ele%descrip)) line = trim(line) // &
@@ -352,7 +344,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
         stop
       endif
 
-    enddo
+    enddo ! attribute loop
 
     if (ele%mat6_calc_method /= bmad_standard$) line = trim(line) // &
             ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
@@ -408,7 +400,16 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
       call write_out (line, iu, .true.)  
     endif
 
+    ! Create a null_ele element for a superposition.
+
+    if (ele%control_type == super_lord$) then
+      line = "x__" // trim(ele%name) // ": null_ele"
+      call write_out (line, iu, .true.)
+    endif
+
   enddo ele_loop
+
+! Write superimpose markers which are just zero length drifts.
 
 
 ! Lattice Layout
@@ -421,9 +422,21 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
 
   do i = 1, lat%n_ele_track
     ele => lat%ele(i)
+
     if (ele%control_type == super_slave$) then
-      if (ele%ixx == 0) cycle
+
+      ! If a super_lord element starts at the beginning of this slave element,
+      !  put in the null_ele marker 'X__' + lord_name for the superposition.
+
+      do j = ele%ic1_lord, ele%ic2_lord
+        ix = lat%control(lat%ic(j))%ix_lord
+        lord => lat%ele(ix)
+        if (lat%control(lord%ix1_slave)%ix_slave == i) then
+          write (line, '(4a)') trim(line), ' X__', trim(lord%name), ',' 
+        endif
+      enddo
       write (line, '(2a, i3.3, a)') trim(line), ' slave_drift_', ele%ixx, ','
+
     else
       write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
     endif
@@ -594,8 +607,8 @@ end subroutine
 ! alphabetical order.
 !
 ! Input:
-!   name     -- Character(16): Name to match to.
-!   names(:) -- Character(16): Array of sorted names.
+!   name     -- Character(40): Name to match to.
+!   names(:) -- Character(40): Array of sorted names.
 !   n_max    -- Integer Only names(1:n_max) are used.   
 !
 ! Output:
@@ -615,8 +628,8 @@ subroutine find1_indexx (name, names, n_max, ix_match, match_found)
 
   integer ix1, ix2, ix3, n_max, ix_match
 
-  character(16) name, names(:)
-  character(16) this_name
+  character(40) name, names(:)
+  character(40) this_name
 
   logical match_found
 
@@ -697,13 +710,14 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
 
   integer, optional :: ix_start, ix_end
   integer i, j, i_line, ix, iout, n, ix1, ix2, iu, ie1, ie2, n_list
+  integer i_unique
 
   character(*) mad_file 
   character(300) line
   character(6) line_name(10)
-  character(16) name
-  character(16), allocatable :: name_list(:)
-
+  character(40) name
+  character(40), allocatable :: name_list(:)
+  character(16) :: r_name = 'bmad_to_mad'
   logical init_needed, parsing
 
 ! open file
@@ -728,7 +742,6 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
 
   allocate (name_list(2*(ie2-ie1+1))) ! list of unique names
   n_list = 0                     ! number of names stored in the list
-
 
   ele = lat%ele(ie1-1)
 
@@ -766,8 +779,6 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
     endif
   enddo
 
-  deallocate (name_list)
-
 ! Write the MAD lattice line
 ! mad has a limit of 5000 characters so we may need to break the lat into
 ! pieces
@@ -776,6 +787,7 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
   line_name(2) = 'line_2'
   line_name(3) = 'line_3'
 
+  i_unique = 1000
   i_line = 0
   init_needed = .true.
   line = ' '
@@ -785,18 +797,25 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
     ele = lat%ele(n)
     ix = len_trim(line)
 
-! replace element name containing "/" with "_"
+! Replace element name containing "/" with "_"
 
-    parsing = .true.
     name = ele%name
-    do while (parsing)
+    do
       i = index (name, '\')         ! '
-      if (i /= 0) then
-        name(i:i) = '_'
-      else
-        parsing = .false.
-      endif
+      if (i == 0) exit
+      name(i:i) = '_'
     enddo
+
+! If the name has more than 16 characters then replace the name by something shorter and unique.
+
+    if (len_trim(name) > 16) then
+      call out_io (s_warn$, r_name, 'Shortening element name: ' // ele%name)
+      do 
+        i_unique = i_unique + 1
+        write (name, '(a4, i0)') key_name(ele%key), i_unique
+        if (all(name /= name_list(1:n_list))) exit
+      enddo      
+    endif
 
 !
 
@@ -849,6 +868,8 @@ subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
 
   print *, 'Written MAD lattice file: ', trim(mad_file)
 
+  deallocate (name_list)
+
 end subroutine
 
 !------------------------------------------------------------------------
@@ -885,8 +906,8 @@ subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end)
   character(*) xsif_file 
   character(300) line
   character(6) line_name(3)
-  character(16) name
-  character(16), allocatable :: name_list(:)
+  character(40) name
+  character(40), allocatable :: name_list(:)
 
   logical init_needed, parsing
 
@@ -1047,8 +1068,8 @@ subroutine element_out (ele, lat, name_list, n_list, iu)
   integer i, n_list, ix, iu
 
   character(300) line
-  character(16) name
-  character(16), allocatable :: name_list(:)
+  character(40) name
+  character(40), allocatable :: name_list(:)
   character(8) str
 
   real(rp) field, hk, vk, tilt

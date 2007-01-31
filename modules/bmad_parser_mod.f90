@@ -3043,7 +3043,6 @@ recursive subroutine seq_expand1 (sequence, iseq_tot, lat, top_level)
 
     n = size(s_ele)
     ix_ele = ix_ele + 1
-    this_ele => s_ele(ix_ele)
 
     if (ix_ele > n) then
       allocate (s_ele2(n))      
@@ -3053,6 +3052,8 @@ recursive subroutine seq_expand1 (sequence, iseq_tot, lat, top_level)
       s_ele(1:n) = s_ele2
       deallocate(s_ele2)
     endif
+
+    this_ele => s_ele(ix_ele)
 
     if (delim == ')') exit
 
@@ -3734,4 +3735,84 @@ subroutine reuse_taylor_elements (lat, ele_array)
 
 end subroutine
 
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine remove_all_null_ele_elements (lat)
+!
+! Subroutine to remove all null_ele elements.
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine remove_all_null_ele_elements (lat)
+
+  implicit none
+
+  type (lat_struct) lat
+  integer i
+
+!
+
+  i = 1
+  do
+    if (lat%ele(i)%key == null_ele$) then
+      call remove_ele_from_lat (lat, i)
+      cycle
+    endif
+    i = i + 1
+    if (i > lat%n_ele_max) return
+  enddo
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine remove_ele_from_lat (lat, ix_ele)
+!
+! Subroutine to remove an element from the lattice.
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine remove_ele_from_lat (lat, ix_ele)
+
+  implicit none
+
+  type (lat_struct) lat
+  integer ix_ele
+  integer i, j
+
+! Rectify the lord/slave bookkeeping.
+
+  do i = 1, lat%n_control_max
+    if (lat%control(i)%ix_lord == ix_ele .or. lat%control(i)%ix_slave == ix_ele) then
+      call warning ('ELEMENT TO BE REMOVED FROM LATTICE IS CONTROLLED:' // lat%ele(ix_ele)%name)
+    endif
+    if (lat%control(i)%ix_lord > ix_ele) lat%control(i)%ix_lord = lat%control(i)%ix_lord - 1
+    if (lat%control(i)%ix_slave > ix_ele) lat%control(i)%ix_slave = lat%control(i)%ix_slave - 1
+  enddo
+
+! Remove the element.
+
+  do i = ix_ele+1, lat%n_ele_max
+    lat%ele(i-1) = lat%ele(i)
+  enddo
+
+  call init_ele (lat%ele(lat%n_ele_max))
+
+! More bookkeeping adjustment
+
+  if (ix_ele <= lat%n_ele_track) lat%n_ele_track = lat%n_ele_track - 1
+  lat%n_ele_max = lat%n_ele_max - 1
+
+end subroutine
+
 end module
+
+

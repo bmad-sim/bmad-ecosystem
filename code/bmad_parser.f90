@@ -968,12 +968,14 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   call s_calc (lat)              ! calc longitudinal distances
 
-! Next superpositions
+! Now put in the superpositions and remove the null_ele elements
 
   do i = 1, n_max
     if (in_lat%ele(i)%control_type /= super_lord$) cycle
     call add_all_superimpose (lat, in_lat%ele(i), plat%ele(i))
   enddo
+
+  call remove_all_null_ele_elements (lat)
 
 ! Now put in the overlay_lord, i_beam, and group elements
 

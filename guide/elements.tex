@@ -22,21 +22,21 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
   {\it Element}   & {\it Section}     & {\it Element} & {\it Section}    \HH
   AB\_Multipole   & \ref{s:ab_m}      &  Monitor      & \ref{s:monitor}  \HH
   Accel\_Sol      & \ref{s:accel_sol} &  Multipole    & \ref{s:mult}     \HH
-  BeamBeam        & \ref{s:bbi}       &  Octupole     & \ref{s:oct}      \HH
-  Bend\_Sol\_Quad & \ref{s:bsq}       &  Overlay      & \ref{s:overlay}  \HH
-  Custom          & \ref{s:custom}    &  Patch        & \ref{s:patch}    \HH
-  Drift           & \ref{s:drift}     &  Quadrupole   & \ref{s:quad}     \HH
-  Ecollimator     & \ref{s:col}       &  Rbend        & \ref{s:bend}     \HH
-  ElSeparator     & \ref{s:elsep}     &  Rcollimator  & \ref{s:col}      \HH
-  Group           & \ref{s:group}     &  RFcavity     & \ref{s:rfcav}    \HH
-  HKicker         & \ref{s:hvkicker}  &  Sbend        & \ref{s:bend}     \HH
-  Hybrid          & \ref{s:hybrid}    &  Sextupole    & \ref{s:sex}      \HH
-  I\_Beam         & \ref{s:i_beam}    &  Solenoid     & \ref{s:sol}      \HH
-  Instrument      & \ref{s:monitor}   &  Sol\_Quad    & \ref{s:sq}       \HH
-  Kicker          & \ref{s:kicker}    &  Taylor       & \ref{s:tay}      \HH
-  Lcavity         & \ref{s:lcav}      &  VKicker      & \ref{s:hvkicker} \HH
-  Marker          & \ref{s:mark}      &  Wiggler      & \ref{s:wiggler}  \HH
-  Match           & \ref{s:match}     &               &                  \HH
+  BeamBeam        & \ref{s:bbi}       &  Null\_Ele    & \ref{s:null_ele} \HH
+  Bend\_Sol\_Quad & \ref{s:bsq}       &  Octupole     & \ref{s:oct}      \HH
+  Custom          & \ref{s:custom}    &  Overlay      & \ref{s:overlay}  \HH
+  Drift           & \ref{s:drift}     &  Patch        & \ref{s:patch}    \HH
+  Ecollimator     & \ref{s:col}       &  Quadrupole   & \ref{s:quad}     \HH
+  ElSeparator     & \ref{s:elsep}     &  Rbend        & \ref{s:bend}     \HH
+  Group           & \ref{s:group}     &  Rcollimator  & \ref{s:col}      \HH
+  HKicker         & \ref{s:hvkicker}  &  RFcavity     & \ref{s:rfcav}    \HH
+  Hybrid          & \ref{s:hybrid}    &  Sbend        & \ref{s:bend}     \HH
+  I\_Beam         & \ref{s:i_beam}    &  Sextupole    & \ref{s:sex}      \HH
+  Instrument      & \ref{s:monitor}   &  Solenoid     & \ref{s:sol}      \HH
+  Kicker          & \ref{s:kicker}    &  Sol\_Quad    & \ref{s:sq}       \HH
+  Lcavity         & \ref{s:lcav}      &  Taylor       & \ref{s:tay}      \HH
+  Marker          & \ref{s:mark}      &  VKicker      & \ref{s:hvkicker} \HH  
+  Match           & \ref{s:match}     &  Wiggler      & \ref{s:wiggler}  \HH
   
 \end{tabular}
 }
@@ -1072,6 +1072,18 @@ Example:
 \begin{example}
   m1: multipole, k1l = 0.034e-2, t1, k3l = 4.5, t3 = 0.31*pi
 \end{example}
+
+%-----------------------------------------------------------------
+\section{Null\_Ele}
+\label{s:null_ele}
+\index{Null_Ele|textbf}
+
+A \vn{Null_Ele} is a special type of element. It is like a \vn{Marker}
+but it has the property that when the lattice is expanded
+(\sref{s:lines_wo_arg}) all \vn{Null_Ele} elements are removed. The
+primary use of a \vn{Null_Ele} is in computer generated lattices where
+it can be used to serve as a reference point for element
+superpositions (\sref{s:super}). It is not generally useful otherwise.
 
 %-----------------------------------------------------------------
 \section{Octupole}
