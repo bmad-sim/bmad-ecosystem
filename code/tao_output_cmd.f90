@@ -26,9 +26,10 @@ character(20) action
 character(20) :: r_name = 'tao_output_cmd'
 character(100) file_name
 
-character(20) :: names(8) = (/ &
+character(20) :: names(9) = (/ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
-      'lattice          ', 'derivative_matrix', 'digested         ', 'curve            ' /)
+      'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
+      'mad_lattice      ' /)
 
 integer i, j, ix, iu, nd, ii
 logical err
@@ -105,12 +106,12 @@ case ('variable')
   endif
 
 !---------------------------------------------------
-!lattice
+! bmad_lattice
 
-case ('lattice')
+case ('bmad_lattice')
   do i = 1, size(s%u)
     file_name = arg1
-    if (file_name == ' ') file_name = 'lat_universe_#.bmad'
+    if (file_name == ' ') file_name = 'lat_#.bmad'
     ix = index(file_name, '#')
     if (size(s%u) > 1 .and. ix == 0) then
       call out_io (s_info$, r_name, 'FILE_NAME DOES NOT HAVE A "#" CHARACTER!', &
@@ -119,6 +120,24 @@ case ('lattice')
     endif
     if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
     call write_bmad_lattice_file (file_name, s%u(i)%model%lat)
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  enddo
+
+!---------------------------------------------------
+! mad_lattice
+
+case ('mad_lattice')
+  do i = 1, size(s%u)
+    file_name = arg1
+    if (file_name == ' ') file_name = 'lat_#.mad'
+    ix = index(file_name, '#')
+    if (size(s%u) > 1 .and. ix == 0) then
+      call out_io (s_info$, r_name, 'FILE_NAME DOES NOT HAVE A "#" CHARACTER!', &
+        ' YOU NEED THIS TO GENERATE A UNIQUE FILE NAME FOR EACH UNIVERSE!')
+      return
+    endif
+    if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
+    call bmad_to_mad (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
 

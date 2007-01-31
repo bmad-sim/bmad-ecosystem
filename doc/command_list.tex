@@ -364,26 +364,30 @@ Examples
 
 Format:
 \begin{example}
+  output bmad_lattice \{<file_name>\} ! Write a Bmad lattice file of the model
   output curve <curve_name> \{<file_name>\} ! Write the curve data
   output derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
-  output digested \{<file_name>\}  ! Write a digested Bmad lattice file of the model.
-  output gif \{<file_name>\}       ! create a gif file of the plot window.
-  output hard                    ! print the plot window to a printer.
-  output lattice \{<file_name>\}   ! Write a Bmad lattice file of the model
-  output ps \{<file_name>\}        ! create a postscript file of the plot window.
-  output var \{<file_name>\}       ! Write a Bmad file of variable values.
+  output digested \{<file_name>\}     ! Write a digested Bmad lattice file of the model.
+  output gif \{<file_name>\}          ! create a gif file of the plot window.
+  output hard                       ! print the plot window to a printer.
+  output mad_lattice \{<file_name>\}  ! Write a Mad lattice file of the model
+  output ps \{<file_name>\}           ! create a postscript file of the plot window.
+  output var \{<file_name>\}          ! Write a Bmad file of variable values.
 \end{example}
 
 \vskip 0.2in The \vn{output} command creates various files. If \vn{<file_name>} is
 not given then the defaults are:
 \begin{example}
-  curve                           ! output curve
-  derivative_matrix.dat           ! output derivative_matrix
-  digested8_lat_universe_#.bmad   ! output digested
-  tao.gif                         ! output gif
-  lat_universe_#.bmad             ! output lattice
-  tao.ps                          ! output ps
-  global%var_out_file             ! optput var
+  Command                         Default File Name
+  ------------------              ------------------
+  output bmad_lattice             lat_#.bmad
+  output curve                    curve
+  output derivative_mat           derivative_matrix.dat rix               
+  output digested                 digested8_lat_universe_#.bmad
+  output gif                      tao.gif
+  output mad_lattice              lat_#.mad
+  output ps                       tao.ps
+  optput var                      global%var_out_file
 \end{example}
 where \vn{\#} is replaced by the universe number. For \vn{output
 curve} there are two files produced: A file
