@@ -136,6 +136,7 @@ s%var(:)%good_user = .true.
 
 s%n_var_used = 0
 s%n_v1_var_used = 0       ! size of s%v1_var(:) array
+s%beam_save%ix_universe = -1
 
 !-----------------------------------------------------------------------
 ! Seed random number generator
