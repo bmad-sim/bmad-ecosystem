@@ -1154,6 +1154,24 @@ subroutine element_out (ele, lat, name_list, n_list, iu)
     call value_to_line (line, val(vkick$), 'vkick', 'es13.5', 'R')
     call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
 
+! hkicker
+
+  case (hkicker$)
+
+    write (line, '(a, es13.5)') trim(name) // ': hkicker, l =', val(l$)
+
+    call value_to_line (line, val(hkick$), 'kick', 'es13.5', 'R')
+    call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
+
+! vkicker
+
+  case (vkicker$)
+
+    write (line, '(a, es13.5)') trim(name) // ': vkicker, l =', val(l$)
+
+    call value_to_line (line, val(vkick$), 'kick', 'es13.5', 'R')
+    call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
+
 ! marker
 
   case (marker$)
