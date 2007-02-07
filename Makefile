@@ -15,6 +15,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.5  2007/02/07 22:09:42  dcs
+# added bmad_to_mad_and_xsif
+#
 # Revision 1.4  2007/01/30 16:14:30  dcs
 # merged with branch_bmad_1.
 #
@@ -76,11 +79,11 @@
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS := code 
-OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack
+OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif
 CONFIG_DIRS  := 
 LOCAL_INCS   :=
 SRC_EXCLUDE  := beambeam_scan.f90 # only with lahey it can be compiled
-M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer M.tune_plane_res_plot
+M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif
 ifeq "$(CESR_F90)" "lahey"
   SRC_EXCLUDE  :=
 #  M_FILE_LIST  += M.beambeam  
