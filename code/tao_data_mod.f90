@@ -848,24 +848,6 @@ case ('dpz_dz')
     datum_value = 0.0
   endif
 
-case ('dpa_da') 
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%sigma_normal(s12$) / tao_lat%bunch_params(ix1)%sigma_normal(s11$)
-  elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%a%dpx_dx
-  else
-    datum_value = 0.0
-  endif
-
-case ('dpb_db') 
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%sigma_normal(s34$) / tao_lat%bunch_params(ix1)%sigma_normal(s33$)
-  elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%b%dpx_dx
-  else
-    datum_value = 0.0
-  endif
-
 case ('sigma.x')  
   if (track_type == "beam") then
     datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s11$))
