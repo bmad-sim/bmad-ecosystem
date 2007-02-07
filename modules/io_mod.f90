@@ -761,7 +761,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
   type (ele_struct) drift_ele
 
   integer, optional :: ix_start, ix_end
-  integer i, j, n, ix, i_unique, i_line, iout, iu, n_list
+  integer i, j, n, ix, i_unique, i_line, iout, iu, n_list, j_wig
   integer ie1, ie2
 
   character(*) out_type, out_file_name
@@ -789,7 +789,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
   call init_ele (drift_ele)
   drift_ele%key = drift$
 
-  j = 0    ! drift around solenoid or sol_quad index
+  j_wig = 0    ! drift around solenoid or sol_quad index
 
   ie1 = 1    ! element index
   if (present(ix_start)) ie1 = ix_start
@@ -841,8 +841,8 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
     ! add drifts before and after wigglers and sol_quads so total length is invariant
 
     if (ele%key == wiggler$ .or. ele%key == sol_quad$) then
-      j = j + 1
-      write (drift_ele%name, '(a, i3.3)') 'DZ', j
+      j_wig = j_wig + 1
+      write (drift_ele%name, '(a, i3.3)') 'DZ', j_wig
       drift_ele%value(l$) = ele%value(l$) / 2
       call element_out (drift_ele, drift_ele%name, lat, name_list, n_list, iu)
 
@@ -947,9 +947,9 @@ subroutine element_out (ele, ele_name, lat, name_list, n_list, iu)
   type (ele_struct), target :: ele
   type (lat_struct) lat
 
-  integer i, n_list, ix, iu
+  integer i, j, n_list, ix, iu
 
-  character(300) line
+  character(1000) line
   character(40) ele_name
   character(40), allocatable :: name_list(:)
   character(8) str
@@ -1117,36 +1117,13 @@ subroutine element_out (ele, ele_name, lat, name_list, n_list, iu)
 
   case (wiggler$, sol_quad$, match$)
 
-    write (iu, '(2a)') trim(ele_name), ': matrix, &'
-    write (iu, '(5x, 6(a, es13.5))') 'rm(1,1) =', ele%mat6(1,1),  &
-          ', rm(1,2) =', ele%mat6(1,2), ', rm(1,3) =', ele%mat6(1,3), ', &'
-    write (iu, '(5x, 6(a, es13.5))') 'rm(1,4) =', ele%mat6(1,4),  &
-          ', rm(1,5) =', ele%mat6(1,5), ', rm(1,6) =', ele%mat6(1,6), ', &'
-
-    write (iu, '(5x, 6(a, es13.5))') 'rm(2,1) =', ele%mat6(2,1),  &
-          ', rm(2,2) =', ele%mat6(2,2), ', rm(2,3) =', ele%mat6(2,3), ', &'
-    write (iu, '(5x, 6(a, es13.5))') 'rm(2,4) =', ele%mat6(2,4),  &
-          ', rm(2,5) =', ele%mat6(2,5), ', rm(2,6) =', ele%mat6(2,6), ', &'
-
-    write (iu, '(5x, 6(a, es13.5))') 'rm(3,1) =', ele%mat6(3,1),  &
-          ', rm(3,2) =', ele%mat6(3,2), ', rm(3,3) =', ele%mat6(3,3), ', &'
-    write (iu, '(5x, 6(a, es13.5))') 'rm(3,4) =', ele%mat6(3,4),  &
-          ', rm(3,5) =', ele%mat6(3,5), ', rm(3,6) =', ele%mat6(3,6), ', &'
-
-    write (iu, '(5x, 6(a, es13.5))') 'rm(4,1) =', ele%mat6(4,1),  &
-          ', rm(4,2) =', ele%mat6(4,2), ', rm(4,3) =', ele%mat6(4,3), ', &'
-    write (iu, '(5x, 6(a, es13.5))') 'rm(4,4) =', ele%mat6(4,4),  &
-          ', rm(4,5) =', ele%mat6(4,5), ', rm(4,6) =', ele%mat6(4,6), ', &'
-
-    write (iu, '(5x, 6(a, es13.5))') 'rm(5,1) =', ele%mat6(5,1),  &
-          ', rm(5,2) =', ele%mat6(5,2), ', rm(5,3) =', ele%mat6(5,3), ', &'
-    write (iu, '(5x, 6(a, es13.5))') 'rm(5,4) =', ele%mat6(5,4),  &
-          ', rm(5,5) =', ele%mat6(5,5), ', rm(5,6) =', ele%mat6(5,6), ', &'
-
-    write (iu, '(5x, 6(a, es13.5))') 'rm(6,1) =', ele%mat6(6,1),  &
-          ', rm(6,2) =', ele%mat6(6,2), ', rm(6,3) =', ele%mat6(6,3), ', &'
-    write (iu, '(5x, 6(a, es13.5))') 'rm(6,4) =', ele%mat6(6,4),  &
-          ', rm(6,5) =', ele%mat6(6,5), ', rm(6,6) =', ele%mat6(6,6)
+    line = trim(ele_name) // ': matrix'
+    do i = 1, 6
+      do j = 1, 6
+        write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', j, ')'
+        call value_to_line (line, ele%mat6(i,j), str, 'es13.5', 'R')
+      enddo
+    enddo
 
 ! multipole
 
