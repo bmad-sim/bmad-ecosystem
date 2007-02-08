@@ -1,4 +1,4 @@
-\chapter{The lat\_struct}
+\chapter{The lat_struct}
 \label{c:lat_struct}
 \index{Lat_struct|textbf}
 
@@ -8,7 +8,7 @@ makes no assumption about whether an \vn{lat_struct} is circular as
 with a storage ring or open as with a LINAC.
 
 %----------------------------------------------------------------------------
-\section{Elements Within the lat\_struct}
+\section{Elements Within the lat_struct}
 \label {s:lat_struct}
 
 \begin{figure}[htb]
@@ -35,7 +35,7 @@ type lat_struct
   real(rp), pointer :: E_tot ! = %ele(0)%value(E_tot$)
 end type
 \end{verbatim}
-\caption{Definition of the \vn{lat\_struct}.}
+\caption{Definition of the \vn{lat_struct}.}
 \label{f:lat_struct}
 \end{figure}
 
@@ -80,7 +80,7 @@ The \vn{%ele_init} component within the \vn{lat_struct} is not used
 by \bmad\ and is available for general program use.
 
 %----------------------------------------------------------------------------
-\section{Param\_struct Component}
+\section{Param_struct Component}
 \index{lat_param_struct}
 
 The \vn{%param} component within the \vn{lat_struct} is a
@@ -105,7 +105,7 @@ Figure~\ref{f:lat_param_struct}
     logical lost                ! for use in tracking
   end type
 \end{verbatim}
-\caption{Definition of the \vn{param\_struct}.}
+\caption{Definition of the \vn{param_struct}.}
 \label{f:lat_param_struct}
 \end{figure}
 
@@ -153,7 +153,7 @@ growth rate per turn of the unstable mode.  \vn{%param%t1_with_RF} and
 these matrices as input for calculations.
 
 %----------------------------------------------------------------------------
-\section{Bunch\_start Component}
+\section{Bunch_start Component}
 \label{s:lat_beam_start}
 
 The \vn{%beam_start} component within the \vn{lat_struct} is a

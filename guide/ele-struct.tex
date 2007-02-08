@@ -1,4 +1,4 @@
-\chapter{The Ele\_struct}
+\chapter{The Ele_struct}
 \label{c:ele_struct}
 \index{Ele_struct|textbf}
 
@@ -49,7 +49,7 @@ generally hidden  by the \bmad bookkeeping routines.
     logical csr_calc_on          ! Coherent synchrotron radiation calculation
   end type
 \end{verbatim}
-\caption[The \vn{ele\_struct}.]{The \vn{ele\_struct}. Only part of the 
+\caption[The \vn{ele_struct}.]{The \vn{ele_struct}. Only part of the 
   substructure is shown.}
 \label{f:ele_struct}
 \end{figure}
@@ -193,12 +193,12 @@ are stored in the \vnes{%a(:)} and \vnes{%b(:)} arrays. The full list
 of real attributes not in \vn{%value(:)} is:
 \begin{center}
 \begin{tabular}{|l|l|} \hline
-  {\em Attribute} & {\em Component in Ele\_struct} \\ \hline
+  {\em Attribute} & {\em Component in Ele_struct} \\ \hline
   a$n$, b$n$      & \%a(:), \%b(:)     \\ \hline
   K$n$L, T$n$     & \%a(:), \%b(:)     \\ \hline
   Taylor term     & \%taylor(:)        \\ \hline
   wakes           & \%wake             \\ \hline
-  wiggler terms   & \%wig\_term(:)      \\ \hline
+  wiggler terms   & \%wig_term(:)      \\ \hline
 \end{tabular}
 \end{center}
 
@@ -256,7 +256,7 @@ approbriate attribute. For example:
 \end{example}
 
 %--------------------------------------------------------------------------
-\section{Control\_type}
+\section{Control_type}
 \index{control_type}
 \label{s:control_type}
 
@@ -283,33 +283,33 @@ other elements). Possible values for \vn{%control_type} are:
 \end{example}
 
 \begin{description}
-\item[free\_element] 
+\item[free_element] 
 A \vn{free_element} is just that, An element that is neither
 controlls or is controlled. The exception is that attributes of this element
 may be controlled by a \vn{group_lord}.
 
-\item[super\_lord and super\_slave]
+\item[super_lord and super_slave]
 \vn{super_lord} and \vn{super_slave} elements
 come from superimposing elements on top of other elements (\sref{s:super}).
 
-\item[overlay\_lord, overlay\_slave]
+\item[overlay_lord, overlay_slave]
 An \vn{overlay_lord} is an \vn{overlay} element and the elements it
 controlls are \vn{overlay_slave}s (\sref{s:overlay}).
 
-\item[group\_lord]
+\item[group_lord]
 A \vn{group_lord} is a \vn{group} element (\sref{s:group}). Since a
 \vn{group_lord} element only modifies the attributes of the elements
 it is linked to when the \vn{command} attribute of the \vn{group_lord}
 is modified, there is no corresponding \vn{group_slave} designation
 for the corresponding ``slave'' elements.
 
-\item[i\_beam\_lord]
+\item[i_beam_lord]
 \index{on_an_i_beam}
 An \vn{i_beam_lord} is an \vn{i_beam} element. In this case, the slaves
 are marked by setting the \vn{%on_an_i_beam} component in the
 \vn{ele_struct}.
 
-\item{multipass\_lord, multipass\_slave}
+\item{multipass_lord, multipass_slave}
 \vn{multipass_lord}s and \vn{multipass_slave}s are created when
 multipass lines are present (\sref{s:multipass}). In the example in
 \sref{s:multipass}, Element \vn{A} would be a \vn{multipass_lord} and

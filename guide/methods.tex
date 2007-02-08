@@ -30,7 +30,7 @@ discussed in \sref{s:symp} and \sref{s:mapoff} respectively.
 
 
 %----------------------------------------------------------------------------
-\section{tracking\_method Switches}
+\section{tracking_method Switches}
 \label{s:tkm}
 \index{Tracking method|textbf}
 
@@ -54,7 +54,7 @@ a fixed step size.
 
 \begin{description}
 \index{Adaptive_Boris}
-\item[\vn{Adaptive\_Boris}]
+\item[\vn{Adaptive_Boris}]
 Second order Boris integration\cite{b:boris} with adaptive step size control.
 This should be nearly symplectic but slow.
 
@@ -67,7 +67,7 @@ not assume that the particle is ultra--relativistic. \vn{Boris} preserves
 conserved quantities more accurately than \vn{Runge_Kutta}.
 
 \index{Bmad_Standard}
-\item[\vn{Bmad\_Standard}]
+\item[\vn{Bmad_Standard}]
 Uses formulas for tracking. The emphasis here is on speed.
 
 \index{Custom}
@@ -96,14 +96,14 @@ it prevents the matrix from being computed in the first place.
 Typically \vn{None} is used internally in a program to prevent recomputation.
 
 \index{Runge_Kutta}
-\item[\vn{Runge\_Kutta}]
+\item[\vn{Runge_Kutta}]
 This uses a 4\Th\ order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially the \vn{ODEINT} subroutine
 from Numerical Recipes\cite{b:nr}. This may be slow but it should be
 accurate. This method is non-symplectic.
 
 \index{Symp_Lie_Bmad}
-\item[\vn{Symp\_Lie\_Bmad}]
+\item[\vn{Symp_Lie_Bmad}]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 \bmad\ routine. By bypassing some of the generality inherent in PTC's routines
@@ -112,13 +112,13 @@ This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 currently only implemented for Wigglers.
 
 \index{Symp_Lie_PTC}
-\item[\vn{Symp\_Lie\_PTC}]
+\item[\vn{Symp_Lie_PTC}]
 Symplectic tracking using a Hamiltonian with Lie operator techniques.
 This uses Etienne's PTC software for the calculation. This method is
 symplectic but can be slow.
 
 \index{Symp_Map}
-\item[\vn{Symp\_Map}]
+\item[\vn{Symp_Map}]
 This uses a partially inverted, implicit Taylor map. The calculation
 uses Etienne's PTC software.  Since the map is implicit, a Newton
 search method must be used. This will slow things down from the Taylor
@@ -205,8 +205,8 @@ that it can be used for long term tracking.
   \vn{wiggler} (map type)      & X & D & X & X & X &   & X & X & X & X & X &   \\ \hline
 \end{tabular}
 }
-\caption[Table of available {\bf tracking\_method}\ switches for a
-given element class.]{Table of available {\bf tracking\_method}\
+\caption[Table of available {\bf tracking_method}\ switches for a
+given element class.]{Table of available {\bf tracking_method}\
 switches for a given element class. D denotes the default method. X
 denotes an available method.}
 \label{t:track_methods}
@@ -215,7 +215,7 @@ denotes an available method.}
 \vfill\break
 
 %----------------------------------------------------------------------------
-\section{mat6\_calc\_method Switches}
+\section{mat6_calc_method Switches}
 \label{s:xfer}
 \index{Mat6_calc_method|textbf}
 
@@ -247,7 +247,7 @@ integration order does not necessarily imply higher accuracy.
 \begin{description}
 
 \index{Bmad_Standard}
-\item[\vn{Bmad\_Standard}]
+\item[\vn{Bmad_Standard}]
 Uses formulas for the calculation. The emphasis here is on speed
 
 \index{Custom}
@@ -270,7 +270,7 @@ it prevents the matrix from being computed in the first place.
 Typically \vn{None} is used internally in a program to prevent recomputation.
 
 \index{Symp_Lie_Bmad}
-\item[\vn{Symp\_Lie\_Bmad}]
+\item[\vn{Symp_Lie_Bmad}]
 A Symplectic calculation using a Hamiltonian with Lie operator techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 \bmad\ routine. By bypassing some of the generality inherent in PTC's routines
@@ -279,7 +279,7 @@ This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 currently only implemented for Wigglers.
 
 \index{Symp_Lie_PTC}
-\item[\vn{Symp\_Lie\_PTC}]
+\item[\vn{Symp_Lie_PTC}]
 Symplectic integration using a Hamiltonian and Lie operators.
 This uses Etienne's PTC software for the calculation.
 This method is symplectic but can be slow.
@@ -355,8 +355,8 @@ is that it is directly related to any tracking results.
 \end{tabular}
 }
 
-\caption[Table of available \vn{mat6\_calc\_method}\ switches for a
-given element class.]{Table of available \vn{mat6\_calc\_method}\
+\caption[Table of available \vn{mat6_calc_method}\ switches for a
+given element class.]{Table of available \vn{mat6_calc_method}\
 switches for a given element class. D denotes the default method.  X
 denotes an available method.}
 
@@ -487,7 +487,7 @@ defaults to true. Examples:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Map\_with\_offsets Attribute}
+\section{Map_with_offsets Attribute}
 \label{s:mapoff}
 \index{Map_with_offsets|textbf}
 
