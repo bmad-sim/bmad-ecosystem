@@ -5,7 +5,7 @@ module io_mod
   use multipole_mod
   use output_mod
 
-  private str, rchomp, write_out, element_out
+  private str, rchomp, write_out, element_out, bmad_to_mad_or_xsif
 
 contains
 
