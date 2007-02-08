@@ -10,6 +10,11 @@
 \usepackage{xspace}
 \usepackage{makeidx}
 
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage{ae,aecompl}
+
+\usepackage[strings]{underscore}    % to use "_" in text
+
 \input{macros.tex}
 
 \setlength{\textwidth}{6.25in}
@@ -48,7 +53,7 @@
 \index{Tn|see{Multipole, tn}}
 
 %----------------------------------------------------------------
-\include{cover_page}
+\include{cover-page}
 
 %----------------------------------------------------------------
 {
@@ -79,36 +84,32 @@
 \include{elements}
 \include{control}
 \include{attributes}
-\include{lines_and_lists}
-\include{misc_statements}
+\include{lines-and-lists}
+\include{misc-statements}
 \include{methods}
 
 %----------------------------------------------------------------
 \part{Programmer's Guide}
 %----------------------------------------------------------------
 \include{programming}
-\include{cvs_gmake}
-\include{example_program}
-\include{ele_struct}
-\include{lat_struct}
-\include{reading_and_writing_lattices}
+\include{cvs-gmake}
+\include{example-program}
+\include{ele-struct}
+\include{lat-struct}
+\include{reading-and-writing-lattices}
 \include{twiss}
 \include{tracking}
-\include{misc_programming}
+\include{misc-programming}
 \include{etienne}
-\include{cpp_interface}
-\include{quick_plot}
-\include{helper_routines}
+\include{cpp-interface}
+\include{quick-plot}
+\include{helper-routines}
 \include{subroutines}
 
 %----------------------------------------------------------------
 
 \include{bibliography}
 
-%\begingroup\catcode`\_=11
-%\texttt{
 \printindex
-%}
-%\endgroup
 
 \end{document}

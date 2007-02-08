@@ -127,7 +127,7 @@ each \bmad structure. These classes should never be instantiated like:
 The \cpp compiler would not allocate any storage for this variable and
 the use of this variable will (hopefully) lead to the program bombing.
 
-The \vn{>>} operator on the \cpp side has been overloaded to do the
+The \vn{>{>}} operator on the \cpp side has been overloaded to do the
 Fortran to \cpp conversion.  The only exception is with the
 \vn{bmad_common_struct} structure where the data on the Fortran side
 comes directly from the \bmad \vn{bmad_common_struct} common block.  In
@@ -180,7 +180,7 @@ figures~\ref{f:f/cf} and \ref{f:c/cf}. \vn{lat_to_f} and
 In general the routines names to convert between a \vn{xyz_struct}
 structure and a \vn{C_xyz} class are called \vn{xyz_to_f} and
 \vn{xyz_to_c} on the Fortran side.  On the \cpp side these routines
-get a trailing underscore \vn{_} and are overloded by the \vn{>>}
+get a trailing underscore \vn{_} and are overloded by the \vn{>{>}}
 operator.
 
 In general it is not possible to call an arbitrary Fortran routine
