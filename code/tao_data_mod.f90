@@ -282,18 +282,18 @@ case ('beta.x')
   if (track_type == "single") then
     call load_it (lat%ele(:)%a%beta, ix0, ix1, datum_value, datum, lat)
   elseif (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%a%beta
+    datum_value = tao_lat%bunch_params(ix1)%x%beta
   elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%a%beta
+    datum_value = u%macro_beam%params%x%beta
   endif
     
 case ('beta.y')
   if (track_type == "single") then
     call load_it (lat%ele(:)%b%beta, ix0, ix1, datum_value, datum, lat)
   elseif (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%b%beta
+    datum_value = tao_lat%bunch_params(ix1)%y%beta
   elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%b%beta
+    datum_value = u%macro_beam%params%y%beta
   endif
 
 case ('beta.z')
@@ -442,18 +442,18 @@ case ('gamma.c')
 
 case ('eta.x')
   if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%a%eta
+    datum_value = tao_lat%bunch_params(ix1)%x%eta
   elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%a%eta
+    datum_value = u%macro_beam%params%x%eta
   else
     call load_it (lat%ele(:)%a%eta_lab, ix0, ix1, datum_value, datum, lat)
   endif
 
 case ('eta.y')
   if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%b%eta
+    datum_value = tao_lat%bunch_params(ix1)%y%eta
   elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%b%eta
+    datum_value = u%macro_beam%params%y%eta
   else
     call load_it (lat%ele(:)%b%eta_lab, ix0, ix1, datum_value, datum, lat)
   endif
@@ -469,18 +469,18 @@ case ('eta.z')
 
 case ('etap.x')
   if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%a%etap
+    datum_value = tao_lat%bunch_params(ix1)%x%etap
   elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%a%etap
+    datum_value = u%macro_beam%params%x%etap
   else
     call load_it (lat%ele(:)%a%etap_lab, ix0, ix1, datum_value, datum, lat)
   endif
 
 case ('etap.y')
   if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%b%etap
+    datum_value = tao_lat%bunch_params(ix1)%y%etap
   elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%b%etap
+    datum_value = u%macro_beam%params%y%etap
   else
     call load_it (lat%ele(:)%b%etap_lab, ix0, ix1, datum_value, datum, lat)
   endif
@@ -745,16 +745,16 @@ case ('beam_emittance.c')
   
 case ('norm_beam_emittance.x')
   if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%a%norm_emitt
+    datum_value = tao_lat%bunch_params(ix1)%x%norm_emitt
   elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%a%norm_emitt
+    datum_value = u%macro_beam%params%x%norm_emitt
   else
     datum_value = 0.0
   endif
   
 case ('norm_beam_emittance.y')  
   if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%b%norm_emitt
+    datum_value = tao_lat%bunch_params(ix1)%y%norm_emitt
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%b%norm_emitt
   else
