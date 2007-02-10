@@ -135,7 +135,8 @@ character(20) :: r_name = "spinor_to_polar"
   endif
 
   polar%xi = phi(1)
-  polar%phi = modulo(phi(2) - phi(1), 2.0*pi)
+! polar%phi = modulo(phi(2) - phi(1), 2.0*pi)
+  polar%phi = phi(2) - phi(1)
 
   if (abs(coord%spin(1)) .gt. 1.0) then
     polar%theta = 0.0
@@ -522,12 +523,7 @@ integer key
 
     ! initial:
     omega1 = sqrt(abs(ele%value(k1$)))
-!   u = omega1*ele%value(l$)
-
-    ! test
-!   omega1 = sign(1.0, ele%value(k1$)) * sqrt(abs(ele%value(k1$)))
-!   u = omega1*ele%value(l$)
-    u = sign(1.0, ele%value(k1$)) * omega1*ele%value(l$)
+    u = omega1*ele%value(l$)
 
     xi = 1 + g_factor * &
           ((1+start%vec(6)) * ele%value(E_TOT$)) / m_particle
@@ -538,11 +534,15 @@ integer key
 
     map%gamma1(1)%exp(:) = (/ 0, 0, 1, 0, 0, 0 /)
     map%gamma1(1)%coef   = -(1.0/2.0) * xi * omega1 * sinh(u)
+    ! take into account sign of quadrupole (focusing or defocusing)
+    map%gamma1(1)%coef   = sign(1.0, ele%value(k1$)) * map%gamma1(1)%coef
     map%gamma1(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
     map%gamma1(2)%coef   = -xi * (sinh (u / 2.0))**2
 
     map%gamma2(1)%exp(:) = (/ 1, 0, 0, 0, 0, 0 /)
     map%gamma2(1)%coef   = -(1.0/2.0) * xi * omega1 * sin(u)
+    ! take into account sign of quadrupole (focusing or defocusing)
+    map%gamma2(1)%coef   = sign(1.0, ele%value(k1$)) * map%gamma2(1)%coef
     map%gamma2(2)%exp(:) = (/ 0, 1, 0, 0, 0, 0 /)
     map%gamma2(2)%coef   = -xi * (sin (u / 2.0))**2
 
