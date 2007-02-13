@@ -200,11 +200,11 @@ sub searchit {
 
 sub routine_here {
 
-  if (/^ *subroutine /i || /^ *recursive subroutine /i || 
-      /^ *elemental subroutine /i ||
-      /^ *function /i || /^ *recursive function /i ||
-      /^ *real\(rp\) *function /i || /^ *integer *function /i ||
-      /^ *logical *function /i || /^ *type /i || /^ *interface /i) {
+  if (/^\s*subroutine /i || /^\s*recursive subroutine /i || 
+      /^\s*elemental subroutine /i ||
+      /^\s*function /i || /^\s*recursive function /i ||
+      /^\s*real\(rp\) *function /i || /^\s*integer *function /i ||
+      /^\s*logical *function /i || /^\s*type /i || /^\s*interface /i) {
     $routine_name = $';              #' strip off "routine" string
     return 1;
   }
