@@ -114,14 +114,11 @@ find(\&searchit, $bmad_dir);
 find(\&searchit, $dcslib_dir);
 find(\&searchit, $cesr_utils_dir);
 find(\&searchit, $tao_dir);
-
-# find(\&searchit, $recipes_dir);
-# find(\&searchit, $forest_dir);
+## find(\&searchit, $recipes_dir);
+## find(\&searchit, $forest_dir);
 
 if ($found_one == 0) {print "Cannot match String! $str";}
 print "\n";
-
-
 
 #---------------------------------------------------------
 
@@ -178,18 +175,29 @@ sub searchit {
       if (/^!\+/) {      # if match to "!+" start recording comment lines
         @comments = ($_);
         $recording = 1;
-      }
-      elsif ($recording == 1 && /^!\-/) {
+
+      } elsif ($recording == 1 && /^!\-/) {
         @comments = (@comments, $_);
         $recording = 0;
-      }
-      elsif ($recording == 1) {
+
+      } elsif ($recording == 1) {
         @comments = (@comments, $_)
-      }
-      elsif (/^ *subroutine /i || /^ *recursive subroutine /i || 
-             /^ *function /i || /^ *elemental subroutine /i ||
-             /^ *real\(rp\) *function /i || /^ *interface /i) {
-        $_ = $';     # strip off "subroutine"
+
+      # match to type statement
+
+      } elsif (/^ *type +$str[ \n]/i) {
+        $found_one = 1;
+        print "\n$File::Find::name\n";
+        print $_;
+        while (<F_IN>) {
+          print $_;
+          if (/^ *end type/i) {last;}
+        }
+
+      # match to subroutine, function, etc.
+
+      } elsif (&routine_here) {
+        $_ = $routine_name;     # strip off "subroutine"
         if (/^\s*$str[ |\(\n]/i) {
           $found_one = 1;
           print "\n$File::Find::name\n";
@@ -203,14 +211,12 @@ sub searchit {
         $count = 1;
         while (<F_IN>) {
           if (/^ *end /i) {
-            $_ = $';  
+            $_ = $';     #' 
             if (/^ *subroutine/i || /^ *function/i || /^ *interface/i) {
               $count = $count - 1;
             }
           }
-          elsif (/^ *subroutine /i || /^ *recursive subroutine /i || 
-                /^ *function /i || /^ *elemental subroutine /i ||
-                /^ *real\(rp\) *function /i || /^ *interface /i) {
+          elsif (&routine_here) {
             $count = $count + 1;
           }
           if ($count == 0) {last;}
@@ -218,17 +224,6 @@ sub searchit {
 
       }
 
-      # match to type statement
-
-      elsif (/^ *type +$str[ \n]/i) {
-        $found_one = 1;
-        print "\n$File::Find::name\n";
-        print $_;
-        while (<F_IN>) {
-          print $_;
-          if (/^ *end type/i) {last;}
-        }
-      }
     }
     close (F_IN);
 
@@ -267,5 +262,19 @@ sub searchit {
 
 }
 
+#---------------------------------------------------------
 
+sub routine_here {
 
+  if (/^ *subroutine /i || /^ *recursive subroutine /i || 
+      /^ *elemental subroutine /i ||
+      /^ *function /i || /^ *recursive function /i ||
+      /^ *real\(rp\) *function /i || /^ *integer *function /i ||
+      /^ *interface /i) {
+    $routine_name = $';              #' strip off "routine" string
+    return 1;
+  }
+
+  return 0;
+
+}

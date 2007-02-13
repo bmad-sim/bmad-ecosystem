@@ -81,6 +81,8 @@ find(\&searchit, $bmad_dir);
 find(\&searchit, $dcslib_dir);
 find(\&searchit, $cesr_utils_dir);
 find(\&searchit, $tao_dir);
+## find(\&searchit, $recipes_dir);
+## find(\&searchit, $forest_dir);
 
 if ($found_one == 0) {print "Cannot match String! $str";}
 print "\n";
@@ -117,14 +119,11 @@ sub searchit {
 
       # if a routine then look for match
 
-      if (/^ *subroutine /i || /^ *recursive subroutine /i || 
-            /^ *function /i || /^ *type /i || /^ *elemental subroutine /i ||
-            /^ *real\(rp\) *function /i || /^ *interface /i) {
-        $name = $';              # strip off "routine" string
+      if (&routine_here) {
 
         # If a match then print info
 
-        if ($name =~ /^\s*$str[ \(\n]/i) {
+        if ($routine_name =~ /^\s*$str[ \(\n]/i) {
           if ($found_in_file == 0) {print "File: $File::Find::name\n";}
           $found_one = 1;
           $found_in_file = 1;
@@ -141,13 +140,11 @@ sub searchit {
         while (<F_IN>) {
           if (/^ *type *\(/i) {next;}   # ignore "type (" constructs
           if (/^ *end/i) {
-            $_ = $';  
+            $_ = $';  #'
             if (/^ *subroutine/i || /^ *function/i ||
                 /^ *type/i || /^ *interface/i) {$count = $count - 1;}
           }
-          elsif (/^ *subroutine /i || /^ *recursive subroutine /i || 
-                /^ *function /i || /^ *elemental subroutine /i ||
-                /^ *real\(rp\) *function /i || /^ *type/i) {
+          elsif (&routine_here) {
             $count = $count + 1;
           }
           if ($count == 0) {last;}
@@ -196,5 +193,22 @@ sub searchit {
 #
 
   $_ = $file;
+
+}
+
+#---------------------------------------------------------
+
+sub routine_here {
+
+  if (/^ *subroutine /i || /^ *recursive subroutine /i || 
+      /^ *elemental subroutine /i ||
+      /^ *function /i || /^ *recursive function /i ||
+      /^ *real\(rp\) *function /i || /^ *integer *function /i ||
+      /^ *type /i || /^ *interface /i) {
+    $routine_name = $';              #' strip off "routine" string
+    return 1;
+  }
+
+  return 0;
 
 }
