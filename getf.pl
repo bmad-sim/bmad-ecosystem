@@ -270,7 +270,7 @@ sub routine_here {
       /^ *elemental subroutine /i ||
       /^ *function /i || /^ *recursive function /i ||
       /^ *real\(rp\) *function /i || /^ *integer *function /i ||
-      /^ *interface /i) {
+      /^ *logical *function /i || /^ *interface /i) {
     $routine_name = $';              #' strip off "routine" string
     return 1;
   }
