@@ -383,7 +383,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine subroutine csr_bin_kicks (lat, ix_ele, s_travel, bin)
+! Subroutine csr_bin_kicks (lat, ix_ele, s_travel, bin)
 !
 ! Routine to cache intermediate values needed for the csr calculations.
 !

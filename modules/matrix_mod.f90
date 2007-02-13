@@ -243,7 +243,7 @@ end subroutine
 !+
 ! Subroutine mat6_dispersion (e_vec, mat6)
 !
-! Subroutine to put the dispersion into ele.mat6 given the eta vector e_vec
+! Subroutine to put the dispersion into ele%mat6 given the eta vector e_vec
 !
 ! Input:
 !   e_vec(4) -- Real(rp): Dispersion vector

@@ -50,7 +50,8 @@ solely meant for \bmad internal use.
  	CESR Specific                           & \ref{r:cesr}       \\ \hline
   Quick Plot                              & \ref{r:qp}         \\ \hline
   Nonlinear Optimizers                    & \ref{r:opti}       \\ \hline
-  Miscellaneous DCSLIB Routines           & \ref{r:dcs_misc}   \\ \hline
+  Miscellaneous DCSLIB and CESR_UTILS Routines           
+                                          & \ref{r:dcs_misc}   \\ \hline
  	Obsolete                                & \ref{r:obs}        \\ \hline
  	\end{tabular}
 \end{center}
@@ -256,6 +257,10 @@ and the 0th order transfer vector.
 \item[mat_det (mat, det)] \Newline 
      Subroutine to take the determinant of a square matrix
 
+\index{Routine!mat_eigen}
+\item[mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, error)] \Newline 
+Routine for determining the eigen vectors and eigen values of a matrix.
+
 \index{Routine!mat_inverse}
 \item[mat_inverse (mat, mat_inv)] \Newline
 Subroutine to take the inverse of a square matrix. 
@@ -276,6 +281,10 @@ Subroutine to form a symplectic matrix that is approximately equal to the input 
 \index{Routine!mat_symp_check}
 \item[mat_symp_check (mat, error)] \Newline
 Subroutine to check the symplecticity of a square matrix 
+
+\index{Routine!mat_symp_conj}
+\item[mat_symp_conj (mat1, mat2)] \Newline 
+Subroutine to take the symplectic conjugate of a square matrix.
 
 \index{Routine!mat_symp_decouple}
 \item[mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g, twiss1, twiss2, type_out)] \Newline
@@ -387,7 +396,7 @@ Subroutine to calculate a drift transfer matrix with a possible kick.
 
 \index{Routine!mat6_dispersion}
 \item[mat6_dispersion (mat6, e_vec)] \Newline
-Subroutine to put the dispersion into ELE%MAT6 given the dispersion vector E_VEC 
+Subroutine to put the dispersion into ele\%mat6 given the dispersion vector E_VEC 
 
 \index{Routine!sol_quad_mat6_calc}
 \item[sol_quad_mat6_calc (ks, k1, length, mat6, orb)] \Newline
@@ -474,7 +483,7 @@ Subroutine to track through a single element.
 
 \index{Routine!track1_bunch_csr}
 \item[track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)] \Newline 
-Routine to track a bunch of particles through the element lat%ele(ix_ele)
+Routine to track a bunch of particles through the element lat\%ele(ix_ele)
 with csr radiation effects.
 
 \index{Routine!track_all}
@@ -554,7 +563,7 @@ Subroutine to track a beam of macroparticles through an element.
 \index{Routine!track_macro_beam}
 \item[track_macro_beam (lat, beam, ix1, ix2)] \Newline 
 Subroutine to track a beam of macroparticles from the end of
-lat%ele(ix1) Through to the end of lat%ele(ix2).
+lat\%ele(ix1) Through to the end of lat\%ele(ix2).
 
 \index{Routine!track1_macroparticle}
 \item[track1_macroparticle (start, ele, param, end)] \Newline 
@@ -611,7 +620,7 @@ Subroutine to track a bunch of particles through an element.
 \index{Routine!track_beam}
 \item[track_beam (lat, beam, ix1, ix2)] \Newline 
      Subroutine to track a beam of macroparticles from the end of
-     lat%ele(ix1) Through to the end of lat%ele(ix2).
+     lat\%ele(ix1) Through to the end of lat\%ele(ix2).
 
 \end{description}
 
@@ -671,7 +680,7 @@ Adds the longitudinal wake for all particles in front of the follower.
 
 \index{Routine!init_spin_distribution}
 \item[init_spin_distribution (beam_init, bunch)] \Newline 
-Initializes a spin distribution according to init_beam%spin
+Initializes a spin distribution according to init_beam\%spin
 
 \index{Routine!calc_bunch_params_slice}
 \item[calc_bunch_params_slice (bunch, ele, params, plane, slice_center, slice_spread)] \Newline 
@@ -736,6 +745,10 @@ Subroutine to track the particle spin through one element.
 \index{Wake fields!list of routines}
 
 \begin{description}
+
+\index{Routine!init_wake}
+\item[init_wake (wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)] \Newline 
+Subroutine to initialize a wake struct.
 
 \index{Routine!lr_wake_apply_kick}
 \item[lr_wake_apply_kick (ele, s_ref, orbit)] \Newline 
@@ -997,7 +1010,7 @@ Subroutine to convert from PTC to Bmad coordinates.
 \index{Routine!make_mat6_mad}
 \item[make_mat6_mad (ele, param, map, c0, c1)] \Newline 
      Subroutine to make the 6x6 transfer matrix for an element from the 
-     2nd order MAD transport map. The map is stored in ele%taylor.
+     2nd order MAD transport map. The map is stored in ele\%taylor.
 
 \index{Routine!make_mad_map}
 \item[make_mad_map (ele, particle, map)] \Newline 
@@ -1456,8 +1469,8 @@ Subroutine to track through the body of a wiggler.
 \item[csr_bin_particles (particle, bin)] \Newline 
 Routine to bin the particles longitudinally in s. 
 
-\index{Routine!subroutine csr_bin_kicks}
-\item[subroutine csr_bin_kicks (lat, ix_ele, s_travel, bin)] \Newline 
+\index{Routine!csr_bin_kicks}
+\item[csr_bin_kicks (lat, ix_ele, s_travel, bin)] \Newline 
 Routine to cache intermediate values needed for the csr calculations.
 
 \index{Routine!i_csr}
@@ -1488,6 +1501,11 @@ Routine to calculate the longitudinal coherent synchrotron radiation kick.
 \label{r:collective}
 
 \begin{description}
+
+\index{Routine!setup_trans_space_charge_calc}
+\item[setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)] \Newline 
+Subroutine to initialize constants needed by the transverse space charge 
+tracking routine track1_space_charge. This routine must be called if 
 
 \index{Routine!touschek_lifetime}
 \item[touschek_lifetime (mode, lifetime, lat, orb)] \Newline
@@ -1552,6 +1570,10 @@ that their Taylor Maps, if they existed, would be the same.
 \index{Routine!find_element_ends}
 \item[find_element_ends (lat, ix_ele, ix_start, ix_end)] \Newline
 Subroutine to find the end points of an element. 
+
+\index{Routine!get_element_slave_list}
+\item[get_element_slave_list (lat, ix_ele, slave_list, n_slave)] \Newline 
+Subroutine to get the list of slaves for an element.
 
 \index{Routine!type_ele}
 \item[type_ele (ele, type_zero_attrib, type_mat6, type_twiss, 
@@ -1636,6 +1658,12 @@ Subroutine to create a new control element.
 \\ \hspace*{2in} ptr_attrib, ix_attrib, err_flag, err_print_flag)}] \Newline
 Returns a pointer to an attribute of an element with name attrib_name. 
 
+\index{Routine!pointers_to_attribute}
+\item[pointers_to_attribute (lat, ele_name, attrib_name, do_allocation,] \Newline 
+                    ptr_array, err_flag, err_print_flag, ix_eles, ix_attrib)
+Returns an array of pointers to an attribute with name attrib_name within 
+elements with name ele_name.
+
 \index{Routine!split_lat}
 \item[split_lat (lat, s_split, ix_split, split_done)] \Newline
 Subroutine to split a lat at a point.
@@ -1655,7 +1683,7 @@ hyberdized by \vn{make_hybrid_lat}.
 
 \index{Routine!allocate_lat_ele}
 \item[allocate_lat_ele(lat, des_size)] \Newline 
-Subroutine to allocate or re-allocate the lat%ele(:) pointer in a lat.
+Subroutine to allocate or re-allocate the lat\%ele(:) pointer in a lat.
 
 \index{Routine!control_bookkeeper}
 \item[control_bookkeeper (lat, ix_ele)] \Newline
@@ -1732,6 +1760,10 @@ lat\%param, etc.) from one lat to another.
 Subroutine to transfer the taylor maps from the elements of one lat to
 the elements of another. 
 
+\index{Routine!zero_ele_offsets}
+\item[zero_ele_offsets (ele)] \Newline 
+Subroutine to zero the offsets, pitches and tilt of an element.
+
 \end{description}
 
 %------------------------------------------------------------------------
@@ -1740,6 +1772,10 @@ the elements of another.
 \index{Multipole!list of routines}
 
 \begin{description}
+
+\index{Routine!ab_multipole_kick}
+\item[ab_multipole_kick (a, b, n, coord, kx, ky)] \Newline 
+Subroutine to put in the kick due to an ab_multipole.
 
 \index{Routine!mexp}
 \item[mexp (x, m) result (this_exp)] \Newline 
@@ -1777,6 +1813,10 @@ Subroutine to convert kt (MAD standard) multipoles to ab type multipoles.
 \label{r:misc_help}
 
 \begin{description}
+
+\index{Routine!cross_product}
+\item[cross_product (vec1, vec2)] \Newline 
+Returns the cross product of vec1 x vec2
 
 \index{Routine!c_multi}
 \item[c_multi (n, m)] \Newline
@@ -2022,6 +2062,14 @@ Subroutine to find which array in DB is associated with DB_NAME.
 \index{Routine!lattice_to_bmad_file_name}
 \item[lattice_to_bmad_file_name (lattice, bmad_file_name)] \Newline
 Subroutine to convert a lattice name to the appropriate Bmad file name. 
+
+\index{Routine!location_decode}
+\item[location_decode (string, array, ix_min, num)] \Newline 
+Subroutine to set a list of locations in a logical array to True.
+
+\index{Routine!location_encode}
+\item[location_encode (string, loc, exists, ix_min)] \Newline 
+Subroutine to encode a list of locations.
 
 \index{Routine!quad_calib}
 \item[\protect\parbox{6in}{quad_calib (lattice, k_theory, k_base, len_quad, 
@@ -2548,7 +2596,7 @@ This optimizer is based upon the work of Storn and Price.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Miscellaneous DCSLIB Routines}
+\section{Miscellaneous DCSLIB and CESR_UTILS Routines}
 \label{r:dcs_misc}      
 
 \begin{description}
@@ -2561,6 +2609,101 @@ This optimizer is based upon the work of Storn and Price.
 \item[bbi_kick (x, y, r, kx, ky)] \Newline 
 Subroutine to compute the normalized kick due to the beam-beam
 interaction using the normalized position for input.
+
+\index{Routine!cesr_iargc}
+\item[cesr_iargc ()] \Newline 
+Platform independent function to return the number of command
+line arguments. Use this with cesr_getarg.
+
+\index{Routine!cesr_getarg}
+\item[cesr_getarg (i_arg, arg)] \Newline 
+Platform independent function to return the i'th command
+line argument. Use this with cesr_iargc.
+
+\index{Routine!complex_error_function}
+\item[complex_error_function (wr, wi, zr, zi)] \Newline 
+This routine evaluates the function w(z) in the first quadrant of
+the complex plane. 
+
+\index{Routine!date_and_time_stamp}
+\item[date_and_time_stamp (string, numeric_month)] \Newline 
+Subroutine to return the current date and time in a character string.
+
+\index{Routine!downcase_string}
+\item[downcase_string (string)] \Newline 
+Routine to convert a string to lowercase:
+
+\index{Routine!err_exit}
+\item[err_exit] \Newline 
+Subroutine to first show the stack call list before exiting.
+This routine is typically used when a program detects an error condition.
+
+\index{Routine!get_tty_char}
+\item[get_tty_char (this_char, wait, flush)] \Newline 
+Subroutine for getting a single character from the terminal.
+Also see: get_a_char
+
+\index{Routine!get_a_char}
+\item[get_a_char (this_char, wait, ignore_this)] \Newline 
+Subroutine for getting a single character from the terminal.
+Also see: get_tty_char
+
+\index{Routine!indexx_char}
+\item[indexx_char (arr, index)] \Newline 
+Subroutine to sort a character array.
+This subroutine is used to overload the generic name indexx.
+
+\index{Routine!index_nocase}
+\item[index_nocase (string, match_str) result (indx)] \Newline 
+Function to look for a sub-string of string that matches match_str.
+This routine is similar to the fortran INDEX function
+
+\index{Routine!integer_option}
+\item[integer_option (integer_default, opt_integer)] \Newline 
+Function to retrun True or False dependending upon the state of an 
+optional integer.
+
+\index{Routine!is_integer}
+\item[is_integer (string)] \Newline 
+Function to tell if the first word in a string is a valid integer.
+
+\index{Routine!is_real}
+\item[is_real (string, ignore) result (good)] \Newline 
+Function to test if a string represents a real number.
+
+\index{Routine!linear_fit}
+\item[linear_fit (x, y, n_data, a, b, sig_a, sig_b)] \Newline 
+Subroutine to fit to y = A + B x
+
+\index{Routine!logic_option}
+\item[logic_option (logic_default, opt_logic)] \Newline 
+Function to retrun True or False dependending upon the state of an 
+optional logical.
+
+\index{Routine!lunget}
+\item[lunget()] \Newline 
+Function to return a free file unit number to be used with an open statement.
+
+\index{Routine!match_reg}
+\item[match_reg (str, pat)] \Newline 
+Function for matching with regular expressions.
+Note: strings are trimmed before comparison.
+
+\index{Routine!match_wild}
+\item[match_wild (string, template) result (this_match)] \Newline 
+Function to do wild card matches. Note: trailing blanks will be discarded
+before any matching is done.
+
+\index{Routine!modulo2}
+\item[modulo2 (x, amp)] \Newline 
+Function to return y = x + 2 * n * amp, n is an integer, such that y is 
+in the interval [-amp, amp].
+
+\index{Routine!out_io}
+\item[out_io] \Newline 
+Subroutine to print to the terminal for command line type programs.
+The idea is that for programs with a gui this routine can be easily
+replaced with another routine.
 
 \index{Routine!ran_gauss}
 \item[ran_gauss (harvest)] \Newline 
@@ -2579,11 +2722,6 @@ Subroutine to return the seed used for the random number generator.
 Subroutine to return a random number uniformly distributed in the 
 interval [0, 1]. This routine uses the same algorithm as ran from
 
-\index{Routine!modulo2}
-\item[modulo2 (x, amp)] \Newline 
-Function to return y = x + 2 * n * amp, n is an integer, such that y is 
-in the interval [-amp, amp].
-
 \index{Routine!re_allocate}
 \item[re_allocate (ptr_to_array, n)] \Newline 
 Function to reallocate a pointer to an array of strings, integers, reals, or logicals.
@@ -2592,13 +2730,38 @@ Function to reallocate a pointer to an array of strings, integers, reals, or log
 \item[re_associate (array, n)] \Newline 
 Function to reassociate an allocatable array of strings, integers, reals, or logicals.
 
+\index{Routine!real_option}
+\item[real_option (real_default, opt_real)] \Newline 
+Function to retrun True or False dependending upon the state of an 
+optional real.
+
 \index{Routine!skip_header}
 \item[skip_header (unit_, error_flag)] \Newline 
 Subroutine to find the first line of data in a file. 
 
-\index{Routine!string_tri}
+\index{Routine!splitfilename}
+\item[splitfilename(filename, path, basename, is_relative) result (ix_char)] \Newline 
+Routine to take filename and splits it into its constituent parts, 
+the directory path and the base file name.  
+
+\index{Routine!str_match_wild}
+\item[str_match_wild(str, pat) result (a_match)] \Newline 
+Function to match a character string against a regular expression pattern.
+This is a replacement for the VMS function str\$match_wild.
+
+\index{Routine!string_to_int}
+\item[string_to_int (line, default, value, err_flag)] \Newline 
+Subroutine to convert a string to an integer.
+
+\index{Routine!string_trim}
 \item[string_trim(in_string, out_string, word_len)] \Newline 
 Subroutine to trim a string of leading blanks and/or tabs and also to return the
+length of the first word.
+
+\index{Routine!string_trim2}
+\item[string_trim2 (in_str, delimitors, out_str,] \Newline 
+                                     ix_word, delim, ix_next)
+Subroutine to trim a string of leading delimitors and also to return the
 length of the first word.
 
 \index{Routine!spline_akima}
@@ -2609,6 +2772,14 @@ This subroutine computes the semi-hermite cubic spline developed by akima
 \index{Routine!spline_evaluate}
 \item[spline_evaluate (spline, x, ok, y, dy)] \Newline 
 Subroutine to evaluate a spline at a set of points.
+
+\index{Routine!type_this_file}
+\item[type_this_file (filename)] \Newline 
+Subroutine to type out a file to the screen.
+
+\index{Routine!upcase_string}
+\item[upcase_string (string)] \Newline 
+Routine to convert a string to uppercase:
 
 \end{description}
 
@@ -2622,17 +2793,9 @@ Subroutine to evaluate a spline at a set of points.
 \item[closed_orbit_at_start (lat, co, i_dim, iterate)] \Newline
 Subroutine to calculate the closed orbit at the beginning of the lat. 
 
-\index{Routine!mat_unit}
-\item[mat_unit (mat, size, psize)] \Newline 
-Routine to create a unit matrix.
-
 \index{Routine!set_on}
 \item[set_on (key, lat, on_switch, orb)] \Newline
 Subroutine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a lat. 
-
-\index{Routine!twiss_at_s}
-\item[twiss_at_s (lat, s, ele)] \Newline
-Obsolete. Use twiss_and_track_at_s instead. 
 
 \end{description}
 

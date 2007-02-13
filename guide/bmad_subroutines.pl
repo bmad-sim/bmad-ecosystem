@@ -148,7 +148,6 @@ $pl_hash{"ion_kick"} =                "ion_kick.f90";
 $pl_hash{"get_file_number"} =         "get_file_number.f90";
 $pl_hash{"doubleup_quotes"} =         "doubleup_quotes.f90";
 $pl_hash{"qrsolv"} =                  "lmdif_mod.f90";
-$pl_hash{"string_to_int"} =           "string_to_int.f90";
 $pl_hash{"match_word"} =              "match_word.f90";
 $pl_hash{"ask"} =                     "ask.f90";
 $pl_hash{"file_suffixer"} =           "file_suffixer.f90";
@@ -165,7 +164,115 @@ $pl_hash{"ran_gauss_vector"} = "random_mod.f90";
 $pl_hash{"ran_gauss_scaler"} = "random_mod.f90";
 $pl_hash{"plot_it"} = "plot_example.f90";
 $pl_hash{"compute_slave_aperture"} = "bookkeeper_mod.f90";
-
+$pl_hash{"delete_overlapping_wall_points"} = "delete_overlapping_wall_points.f90";
+$pl_hash{"delete_lattice_control_struct"} = "delete_lattice_control_struct.f90";
+$pl_hash{"test_f_sr_mode_wake"} = "test_f_side.f90";
+$pl_hash{"norm66"} = "eigen_mod.f90";
+$pl_hash{"find_format"} = "output_mod.f90";
+$pl_hash{"icm_typ"} = "icm_typ.f90";
+$pl_hash{"bjmt_int_v"} = "ibs_mod.f90";
+$pl_hash{"probability_funct"} = "probability_funct.f90";
+$pl_hash{"slice_ele_calc"} = "slice_ele_calc.f90";
+$pl_hash{"get_ini_set_num"} = "cesr_route_mod.f90";
+$pl_hash{"bmad_to_mad_or_xsif"} = "io_mod.f90";
+$pl_hash{"integer_read"} = "integer_read.f90";
+$pl_hash{"output_real"} = "output_mod.f90";
+$pl_hash{"convert_blanks_to_underscore"} = "convert_blanks_to_underscore.f90";
+$pl_hash{"re_associate_real"} = "reallocate_mod.f90";
+$pl_hash{"run_timer"} = "run_timer.f90";
+$pl_hash{"str_upcase"} = "str_upcase.f90";
+$pl_hash{"mat6_add_pitch"} = "bmad_utils_mod.f90";
+$pl_hash{"write_power_results"} = "write_power_results.f90";
+$pl_hash{"boris_energy_correction"} = "boris_mod.f90";
+$pl_hash{"re_associate_string"} = "reallocate_mod.f90";
+$pl_hash{"sbend_body_with_k1_map"} = "make_mat6_mod.f90";
+$pl_hash{"remove_ele_from_lat"} = "bmad_parser_mod.f90";
+$pl_hash{"fullfilename"} = "fullfilename.f90";
+$pl_hash{"bjmt_int_p"} = "ibs_mod.f90";
+$pl_hash{"output_int"} = "output_mod.f90";
+$pl_hash{"transfer_map_calc"} = "transfer_map_calc.f90";
+$pl_hash{"init_wall"} = "init_wall.f90";
+$pl_hash{"re_allocate_real"} = "reallocate_mod.f90";
+$pl_hash{"transfer_wake"} = "bmad_utils_mod.f90";
+$pl_hash{"ordersys"} = "eigen_mod.f90";
+$pl_hash{"i_size"} = "bmad_and_cpp.f90";
+$pl_hash{"indexx"} = "indexx_mod.f90";
+$pl_hash{"output_lines"} = "output_mod.f90";
+$pl_hash{"lmpar"} = "lmdif_mod.f90";
+$pl_hash{"create_nir_shuntcur_elements"} = "cesr_basic_mod.f90";
+$pl_hash{"brent2"} = "brent2.f90";
+$pl_hash{"read_control"} = "cesr_route_mod.f90";
+$pl_hash{"ety"} = "eigen_mod.f90";
+$pl_hash{"save_bunch_track"} = "save_bunch_track.f90";
+$pl_hash{"normalized_quaternion"} = "spin_mod.f90";
+$pl_hash{"bjmt_int_h"} = "ibs_mod.f90";
+$pl_hash{"value_to_line"} = "io_mod.f90";
+$pl_hash{"track_it"} = "symp_lie_mod.f90";
+$pl_hash{"spin_omega_at"} = "spin_mod.f90";
+$pl_hash{"eigensys"} = "eigen_mod.f90";
+$pl_hash{"re_allocate_string"} = "reallocate_mod.f90";
+$pl_hash{"query_string"} = "query_string.f90";
+$pl_hash{"output_direct"} = "output_mod.f90";
+$pl_hash{"header_io"} = "output_mod.f90";
+$pl_hash{"output_line4"} = "output_mod.f90";
+$pl_hash{"element_out"} = "io_mod.f90";
+$pl_hash{"output_logical"} = "output_mod.f90";
+$pl_hash{"r_size"} = "bmad_and_cpp.f90";
+$pl_hash{"track1_trans_space_charge"} = "trans_space_charge_mod.f90";
+$pl_hash{"get_ini_set"} = "cesr_route_mod.f90";
+$pl_hash{"operator"} = "equality_mod.f90";
+$pl_hash{"integrand"} = "ibs_mod.f90";
+$pl_hash{"make_mat6_trans_space_charge"} = "trans_space_charge_mod.f90";
+$pl_hash{"exp_bessi0"} = "touschek_mod.f90";
+$pl_hash{"re_associate_logical"} = "reallocate_mod.f90";
+$pl_hash{"transfer_rad_int_struct"} = "rad_int_common.f90";
+$pl_hash{"eval_logical"} = "utilities_mod.f90";
+$pl_hash{"file_get"} = "file_get.f90";
+$pl_hash{"real_read"} = "real_read.f90";
+$pl_hash{"check_end"} = "check_end.f90";
+$pl_hash{"lmdif"} = "lmdif_mod.f90";
+$pl_hash{"grad_loss_macro_sr_wake_calc"} = "macroparticle_mod.f90";
+$pl_hash{"sr_table_add_long_kick"} = "wake_mod.f90";
+$pl_hash{"to_word"} = "to_word.f90";
+$pl_hash{"csr_bell"} = "csr_bell.f90";
+$pl_hash{"word_len"} = "word_len.f90";
+$pl_hash{"add_lattice_control_structs"} = "add_lattice_control_structs.f90";
+$pl_hash{"propagate_ray"} = "propagate_ray.f90";
+$pl_hash{"reallocate"} = "bmad_utils_mod.f90";
+$pl_hash{"create_alley"} = "create_alley.f90";
+$pl_hash{"ety2"} = "eigen_mod.f90";
+$pl_hash{"check_wall"} = "check_wall.f90";
+$pl_hash{"init_coord_struct"} = "bmad_and_cpp.f90";
+$pl_hash{"etyt"} = "eigen_mod.f90";
+$pl_hash{"break_wall_into_segments"} = "break_wall_into_segments.f90";
+$pl_hash{"out_io_line_out"} = "output_mod.f90";
+$pl_hash{"etdiv"} = "eigen_mod.f90";
+$pl_hash{"check_version"} = "cesr_route_mod.f90";
+$pl_hash{"mp_slice_equal_mp_slice"} = "macroparticle_mod.f90";
+$pl_hash{"insert_numbers"} = "output_mod.f90";
+$pl_hash{"int_typ"} = "int_typ.f90";
+$pl_hash{"name_read"} = "name_read.f90";
+$pl_hash{"print_eq_ele"} = "equality_mod.f90";
+$pl_hash{"inverse"} = "inverse.f90";
+$pl_hash{"track1_macro_bunch"} = "macroparticle_mod.f90";
+$pl_hash{"re_allocate_integer"} = "reallocate_mod.f90";
+$pl_hash{"get_ini_set_name"} = "cesr_route_mod.f90";
+$pl_hash{"next_pt"} = "next_pt.f90";
+$pl_hash{"remove_all_null_ele_elements"} = "bmad_parser_mod.f90";
+$pl_hash{"calc_wiggler_g_params"} = "rad_int_common.f90";
+$pl_hash{"find1_indexx"} = "io_mod.f90";
+$pl_hash{"mp_bunch_equal_mp_bunch"} = "macroparticle_mod.f90";
+$pl_hash{"get_ini_config"} = "cesr_route_mod.f90";
+$pl_hash{"ele_geometry"} = "lat_geometry.f90";
+$pl_hash{"write_power_header"} = "write_power_header.f90";
+$pl_hash{"hit_spot_calc"} = "hit_spot_calc.f90";
+$pl_hash{"get_route_set_info"} = "cesr_route_mod.f90";
+$pl_hash{"re_allocate_logical"} = "reallocate_mod.f90";
+$pl_hash{"mat6_add_offsets"} = "mat6_add_offsets.f90";
+$pl_hash{"find_file"} = "find_file.f90";
+$pl_hash{"assignment"} = "bmad_taylor_mod.f90";
+$pl_hash{"re_associate_integer"} = "reallocate_mod.f90";
+$pl_hash{"logical_typ"} = "logical_typ.f90";
 
 #---------------------------------------------------------
 # make a list of names from bmad_subroutines.html
@@ -274,16 +381,15 @@ sub searchit {
           $this2 = $this; 
           $this2 =~ s/\s*\(.*//;
           print "\\index\{Routine\!$this2\}\n";
-          $this =~ s/_/\\_/g;      # "_"   -->  "\_"
           print "\\item\[$this\] \\Newline \n";
           $l2 = <F_IN>; 
-          $l2 =~ s/_/\\_/g;      # "_"   -->  "\_"
+          $l2 =~ s/\%/\\\%/g;
           if (! ($l2 =~ /^\! *[\n]$/)) {$l2 =~ s/^\! //; print "$l2"; $temp = <F_IN>;}
           $l2 = <F_IN>; 
-          $l2 =~ s/_/\\_/g;      # "_"   -->  "\_"
+          $l2 =~ s/\%/\\\%/g;
           if (! ($l2 =~ /^\! *[\n]$/)) {$l2 =~ s/^\! //; print "$l2";}
           $l2 = <F_IN>; 
-          $l2 =~ s/_/\\_/g;      # "_"   -->  "\_"
+          $l2 =~ s/\%/\\\%/g;
           if (! ($l2 =~ /^\! *[\n]$/)) {$l2 =~ s/^\! //; print "$l2";}
         }
       }
@@ -291,9 +397,11 @@ sub searchit {
 
 # Look for "subroutine ..." to get name list.
 
-    if (/^ *subroutine /i || /^ *recursive subroutine /i || 
-        /^ *function /i   || /^ *real\(rp\) *function /i || 
-        /^ *elemental subroutine /i || /^ *interface /i) {
+    if (/^\s*subroutine /i || /^\s*recursive *subroutine /i || 
+        /^\s*function /i   || /^\s*recursive *function /i || 
+        /^\s*integer *function /i || /^\s*real\(rp\) *function /i || 
+        /^\s*logical *function /i || 
+        /^\s*elemental *subroutine /i || /^\s*interface /i) {
       $name = $';              #' strip off "subroutine"
       $name =~ s/ *\(.*//;     # strip off " (..."
       $name =~ s/ +$//;        # strip off trailing blank if no arg list
@@ -306,15 +414,15 @@ sub searchit {
 
       $count = 1;
       while (<F_IN>) {
-        if (/^ *end /i) {
+        if (/^\s*end /i) {
           $_ = $';  #'
-          if (/^ *subroutine/i || /^ *function/i || /^ *interface/i) {
+          if (/^\s*subroutine/i || /^\s*function/i || /^\s*interface/i) {
             $count = $count - 1;
           }
         }
-        elsif (/^ *subroutine /i || /^ *recursive subroutine /i || 
-              /^ *function /i || /^ *elemental subroutine /i ||
-              /^ *real\(rp\) *function /i || /^ *interface /i) {
+        elsif (/^\s*subroutine /i || /^\s*recursive subroutine /i || 
+              /^\s*function /i || /^\s*elemental subroutine /i ||
+              /^\s*real\(rp\) *function /i || /^\s*interface /i) {
           $count = $count + 1;
         }
         if ($count == 0) {last;}
