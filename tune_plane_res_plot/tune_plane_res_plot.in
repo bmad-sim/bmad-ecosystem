@@ -13,10 +13,10 @@
     param%units = 'kHz'        ! Axis & Q_s units: 'kHz' or '1' ('1' == tune units)
 
     param%pqr_max = 5          ! max resonance order (= max (|p| + |q| + |r|)) 
-    param%p_max  = -1          ! max |p|, -1 => ignore this line
-    param%q_max  = -1          ! max |q|, -1 => ignore this line
+    param%p_max  = -1          ! max |p|, -1 => ignore this restriction
+    param%q_max  = -1          ! max |q|, -1 => ignore this restriction
     param%r_max  = 2           ! max synchrotron order (= max (|r|))
-    param%pq_max = -1          ! max (|p| + |q|),  -1 => ignore this line
+    param%pq_max = -1          ! max (|p| + |q|),  -1 => ignore this restriction
 
     param%p_restrict = -1      ! p restriction: -1 => ignore, 0 => plot even p only, 
                                !                 1 => plot odd p only

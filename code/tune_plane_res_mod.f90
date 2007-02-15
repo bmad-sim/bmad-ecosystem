@@ -164,7 +164,7 @@ subroutine res_line_calc (param, res)
 
       if (param%p_max >= 0 .and. abs(p) > param%p_max) cycle p_loop
       if (param%q_max >= 0 .and. abs(q) > param%q_max) cycle p_loop
-      if (param%q_max >= 0 .and. abs(p)+abs(q) > param%q_max) cycle p_loop
+      if (param%pq_max >= 0 .and. abs(p)+abs(q) > param%pq_max) cycle p_loop
 
       if (.not. param%plot_all_1st_and_2nd .or. abs(p) + abs(q) > 2) then
         if (param%p_restrict == 0 .and. mod(abs(p), 2) == 1) cycle p_loop
