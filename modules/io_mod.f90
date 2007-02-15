@@ -758,10 +758,10 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
 
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: ele
-  type (ele_struct) drift_ele
+  type (ele_struct) drift_ele, ab_ele
 
   integer, optional :: ix_start, ix_end
-  integer i, j, n, ix, i_unique, i_line, iout, iu, n_list, j_wig
+  integer i, j, n, ix, i_unique, i_line, iout, iu, n_list, j_count
   integer ie1, ie2
 
   character(*) out_type, out_file_name
@@ -789,7 +789,10 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
   call init_ele (drift_ele)
   drift_ele%key = drift$
 
-  j_wig = 0    ! drift around solenoid or sol_quad index
+  call init_ele(ab_ele)
+  ab_ele%key = ab_multipole$
+
+  j_count = 0    ! drift around solenoid or sol_quad index
 
   ie1 = 1    ! element index
   if (present(ix_start)) ie1 = ix_start
@@ -838,11 +841,20 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
       ele_name(j:j) = '_'
     enddo
 
-    ! add drifts before and after wigglers and sol_quads so total length is invariant
+    ! If there is a multipole component then put half at the beginning and half at the end
+
+    if (associated(ele%a_pole) .and. ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
+      ab_ele%a_pole = ele%a_pole / 2
+      ab_ele%b_pole = ele%b_pole / 2
+      write (ab_ele%name, '(a, i3.3)') 'MULTIPOLE_Z', j_count
+      call element_out (ab_ele, ab_ele%name, lat, name_list, n_list, iu)
+    endif
+
+    ! Add drifts before and after wigglers and sol_quads so total length is invariant
 
     if (ele%key == wiggler$ .or. ele%key == sol_quad$) then
-      j_wig = j_wig + 1
-      write (drift_ele%name, '(a, i3.3)') 'DZ', j_wig
+      j_count = j_count + 1
+      write (drift_ele%name, '(a, i3.3)') 'DRIFT_Z', j_count
       drift_ele%value(l$) = ele%value(l$) / 2
       call element_out (drift_ele, drift_ele%name, lat, name_list, n_list, iu)
 
@@ -856,6 +868,10 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
 
     else
       call element_out (ele, ele_name, lat, name_list, n_list, iu)
+    endif
+
+    if (associated(ele%a_pole) .and. ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
+      call element_out(ab_ele, ab_ele%name, lat, name_list, n_list, iu)
     endif
 
   enddo
@@ -1149,7 +1165,7 @@ subroutine element_out (ele, ele_name, lat, name_list, n_list, iu)
 
   end select
 
-! write element spec to xsif file
+! write element spec to file
 
   do
     if (len_trim(line) < 76) exit
