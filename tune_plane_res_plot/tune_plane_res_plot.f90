@@ -31,10 +31,7 @@ program tune_plane_res_plot
   implicit none
 
   type (res_params_struct) param
-  type (res_struct), target :: res
-  type (res_line_struct), pointer :: line
-
-  integer i
+  type (res_struct) res
 
   character(1) ans
 
@@ -52,38 +49,12 @@ program tune_plane_res_plot
 
   call res_line_calc (param, res)
 
+! Write results to a file.
   
   open (1, file = 'tune_plane_res_plot.dat')
-
-  write (1, '(a)')        '&res_params'
-  write (1, '(a, f12.6)') '  param%x_min = ', param%x_min
-  write (1, '(a, f12.6)') '  param%x_max = ', param%x_max
-  write (1, '(a, f12.6)') '  param%y_min = ', param%y_min
-  write (1, '(a, f12.6)') '  param%y_max = ', param%y_max
-  write (1, '(a, i0)')    '  param%x_div = ', param%x_div
-  write (1, '(a, i0)')    '  param%y_div = ', param%y_div
-  write (1, '(a, f12.6)') '  param%Q_s   = ', param%Q_s
-  write (1, '(a, a)')     '  param%units = ', param%units
-  write (1, '(a, i0)')    '  param%pqr_max = ', param%pqr_max
-  write (1, '(a, i0)')    '  param%pq_max  = ', param%pq_max
-  write (1, '(a, i0)')    '  param%p_max   = ', param%p_max  
-  write (1, '(a, i0)')    '  param%q_max   = ', param%q_max  
-  write (1, '(a, i0)')    '  param%r_max   = ', param%r_max  
-  write (1, '(a, i0)')    '  param%p_restrict = ', param%p_restrict
-  write (1, '(a, i0)')    '  param%q_restrict = ', param%q_restrict
-  write (1, '(a, i0)')    '  param%sum_diff   = ', param%sum_diff
-  write (1, '(a, l1)')    '  param%plot_all_1st_and_2nd = ', param%plot_all_1st_and_2nd
-  write (1, '(a, l1)')    '  param%show_labels          = ', param%show_labels
-  write (1, '(a)')        '/'
-  write (1, *)
-
-  write (1, *) '    P     Q     R     N'
-  do i = 1, res%num_line
-    line => res%line(i)
-    write (1, '(4i6)') line%p, line%q, line%r, line%n
-  enddo
-  print *, 'Resonance Line list in: tune_plane_res_plot.dat'
+  call res_line_write_list (1, param, res)
   close (1)
+  print *, 'Resonance Line list in: tune_plane_res_plot.dat'
 
 ! plot results
 

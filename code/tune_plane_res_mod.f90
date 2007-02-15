@@ -419,6 +419,52 @@ end subroutine
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
+subroutine res_line_write_list (i_unit, param, res)
+
+  implicit none
+
+  type (res_params_struct) param
+  type (res_struct), target :: res
+  type (res_line_struct), pointer :: line
+
+  integer i_unit, i
+
+!
+
+  write (i_unit, '(a)')        '&res_params'
+  write (i_unit, '(a, f12.6)') '  param%x_min = ', param%x_min
+  write (i_unit, '(a, f12.6)') '  param%x_max = ', param%x_max
+  write (i_unit, '(a, f12.6)') '  param%y_min = ', param%y_min
+  write (i_unit, '(a, f12.6)') '  param%y_max = ', param%y_max
+  write (i_unit, '(a, i0)')    '  param%x_div = ', param%x_div
+  write (i_unit, '(a, i0)')    '  param%y_div = ', param%y_div
+  write (i_unit, '(a, f12.6)') '  param%Q_s   = ', param%Q_s
+  write (i_unit, '(a, a)')     '  param%units = ', param%units
+  write (i_unit, '(a, i0)')    '  param%pqr_max = ', param%pqr_max
+  write (i_unit, '(a, i0)')    '  param%pq_max  = ', param%pq_max
+  write (i_unit, '(a, i0)')    '  param%p_max   = ', param%p_max  
+  write (i_unit, '(a, i0)')    '  param%q_max   = ', param%q_max  
+  write (i_unit, '(a, i0)')    '  param%r_max   = ', param%r_max  
+  write (i_unit, '(a, i0)')    '  param%p_restrict = ', param%p_restrict
+  write (i_unit, '(a, i0)')    '  param%q_restrict = ', param%q_restrict
+  write (i_unit, '(a, i0)')    '  param%sum_diff   = ', param%sum_diff
+  write (i_unit, '(a, l1)')    '  param%plot_all_1st_and_2nd = ', param%plot_all_1st_and_2nd
+  write (i_unit, '(a, l1)')    '  param%show_labels          = ', param%show_labels
+  write (i_unit, '(a)')        '/'
+  write (i_unit, *)
+
+  write (i_unit, *) '    P     Q     R     N'
+  do i = 1, res%num_line
+    line => res%line(i)
+    write (i_unit, '(4i6)') line%p, line%q, line%r, line%n
+  enddo
+
+end subroutine
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
 subroutine res_line_plot (plot_type, param, res)
 
   implicit none
