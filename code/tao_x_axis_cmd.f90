@@ -99,9 +99,7 @@ endif
 
 p1 = nint(0.7 * plot%x_divisions)  ! Used to be 8
 p2 = nint(1.3 * plot%x_divisions)  ! Used to be 15
-call qp_calc_and_set_axis ('X', minn, maxx, p1, p2, 'GENERAL', plot%x%type)
-call qp_get_axis ('X', a_min = plot%x%min, a_max = plot%x%max)
-
+call qp_calc_axis_params (minn, maxx, p1, p2, plot%x)
 
 end subroutine
 

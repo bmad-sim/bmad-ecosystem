@@ -481,7 +481,7 @@ case ('lattice')
   
   if (word(1) .eq. ' ') then
     nl=nl+1; write (lines(nl), '(a, i3)') 'Universe: ', s%global%u_view
-    nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Regular elements:', &
+    nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Number of elements to track through:', &
                                           1, '  through', u%model%lat%n_ele_track
     if (u%model%lat%n_ele_max .gt. u%model%lat%n_ele_track) then
       nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Lord elements:   ', &
@@ -489,6 +489,9 @@ case ('lattice')
     else
       nl=nl+1; write (lines(nl), '(a)') "there are NO Lord elements"
     endif
+
+    nl=nl+1; write (lines(nl), '(a, f0.3)') "Lattice length: ", u%model%lat%param%total_length
+
     if (u%is_on) then
       nl=nl+1; write (lines(nl), '(a)') 'This universe is turned ON'
     else
@@ -508,64 +511,64 @@ case ('lattice')
                                   u%model%orb, u%model%modes, u%ix_rad_int_cache)
     call radiation_integrals (u%design%lat, &
                                   u%design%orb, u%design%modes, u%ix_rad_int_cache)
-    if (u%model%lat%param%lattice_type .eq. circular_lattice$) then
+    if (u%model%lat%param%lattice_type == circular_lattice$) then
       call chrom_calc (u%model%lat, delta_e, &
                           u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
       call chrom_calc (u%design%lat, delta_e, &
                           u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
     endif
 
-    write (lines(nl+1), *)
-    write (lines(nl+2), '(17x, a)') '       X          |            Y'
-    write (lines(nl+3), '(17x, a)') 'Model     Design  |     Model     Design'
+    nl=nl+1; write (lines(nl), *)
+    nl=nl+1; write (lines(nl), '(17x, a)') '       X          |            Y'
+    nl=nl+1; write (lines(nl), '(17x, a)') 'Model     Design  |     Model     Design'
     fmt = '(1x, a10, 1p 2e11.3, 2x, 2e11.3, 2x, a)'
     fmt2 = '(1x, a10, 2f11.3, 2x, 2f11.3, 2x, a)'
     fmt3 = '(1x, a10, 2f11.4, 2x, 2f11.4, 2x, a)'
     f_phi = 1 / twopi
     l_lat = u%model%lat%param%total_length
     n = u%model%lat%n_ele_track
-    write (lines(nl+4), fmt2) 'Q', f_phi*u%model%lat%ele(n)%a%phi, &
+    if (u%model%lat%param%lattice_type == circular_lattice$) then
+      nl=nl+1; write (lines(nl), fmt2) 'Q', f_phi*u%model%lat%ele(n)%a%phi, &
             f_phi*u%design%lat%ele(n)%a%phi, f_phi*u%model%lat%ele(n)%b%phi, &
             f_phi*u%design%lat%ele(n)%b%phi,  '! Tune'
-    write (lines(nl+5), fmt2) 'Chrom', u%model%a%chrom, & 
+      nl=nl+1; write (lines(nl), fmt2) 'Chrom', u%model%a%chrom, & 
             u%design%a%chrom, u%model%b%chrom, u%design%b%chrom, '! dQ/(dE/E)'
-    write (lines(nl+6), fmt2) 'J_damp', u%model%modes%a%j_damp, &
+      nl=nl+1; write (lines(nl), fmt2) 'J_damp', u%model%modes%a%j_damp, &
           u%design%modes%a%j_damp, u%model%modes%b%j_damp, &
           u%design%modes%b%j_damp, '! Damping Partition #'
-    write (lines(nl+7), fmt) 'Emittance', u%model%modes%a%emittance, &
+      nl=nl+1; write (lines(nl), fmt) 'Emittance', u%model%modes%a%emittance, &
           u%design%modes%a%emittance, u%model%modes%b%emittance, &
           u%design%modes%b%emittance, '! Meters'
-    write (lines(nl+8), fmt) 'Alpha_damp', u%model%modes%a%alpha_damp, &
+    endif
+    nl=nl+1; write (lines(nl), fmt) 'Alpha_damp', u%model%modes%a%alpha_damp, &
           u%design%modes%a%alpha_damp, u%model%modes%b%alpha_damp, &
           u%design%modes%b%alpha_damp, '! Damping per turn'
-    write (lines(nl+9), fmt) 'I4', u%model%modes%a%synch_int(4), &
+    nl=nl+1; write (lines(nl), fmt) 'I4', u%model%modes%a%synch_int(4), &
           u%design%modes%a%synch_int(4), u%model%modes%b%synch_int(4), &
           u%design%modes%b%synch_int(4), '! Radiation Integral'
-    write (lines(nl+10), fmt) 'I5', u%model%modes%a%synch_int(5), &
+    nl=nl+1; write (lines(nl), fmt) 'I5', u%model%modes%a%synch_int(5), &
           u%design%modes%a%synch_int(5), u%model%modes%b%synch_int(5), &
           u%design%modes%b%synch_int(5), '! Radiation Integral'
-    nl = nl + 10
 
-    write (lines(nl+1), *)
-    write (lines(nl+2), '(19x, a)') 'Model     Design'
+    nl=nl+1; write (lines(nl), *)
+    nl=nl+1; write (lines(nl), '(19x, a)') 'Model     Design'
     fmt = '(1x, a12, 1p2e11.3, 3x, a)'
-    write (lines(nl+3), fmt) 'Sig_E/E:', u%model%modes%sigE_E, &
+    nl=nl+1; write (lines(nl), fmt) 'Sig_E/E:', u%model%modes%sigE_E, &
               u%design%modes%sigE_E
-    write (lines(nl+4), fmt) 'Energy Loss:', u%model%modes%e_loss, &
+    nl=nl+1; write (lines(nl), fmt) 'Energy Loss:', u%model%modes%e_loss, &
               u%design%modes%e_loss, '! Energy_Loss (eV / Turn)'
-    write (lines(nl+5), fmt) 'J_damp:', u%model%modes%z%j_damp, &
+    nl=nl+1; write (lines(nl), fmt) 'J_damp:', u%model%modes%z%j_damp, &
           u%design%modes%z%j_damp, '! Longitudinal Damping Partition #'
-    write (lines(nl+6), fmt) 'Alpha_damp:', u%model%modes%z%alpha_damp, &
+    nl=nl+1; write (lines(nl), fmt) 'Alpha_damp:', u%model%modes%z%alpha_damp, &
           u%design%modes%z%alpha_damp, '! Longitudinal Damping per turn'
-    write (lines(nl+7), fmt) 'Alpha_p:', u%model%modes%synch_int(1)/l_lat, &
+    nl=nl+1; write (lines(nl), fmt) 'Alpha_p:', u%model%modes%synch_int(1)/l_lat, &
                  u%design%modes%synch_int(1)/l_lat, '! Momentum Compaction'
-    write (lines(nl+8), fmt) 'I1:', u%model%modes%synch_int(1), &
+    nl=nl+1; write (lines(nl), fmt) 'I1:', u%model%modes%synch_int(1), &
                  u%design%modes%synch_int(1), '! Radiation Integral'
-    write (lines(nl+9), fmt) 'I2:', u%model%modes%synch_int(2), &
+    nl=nl+1; write (lines(nl), fmt) 'I2:', u%model%modes%synch_int(2), &
                  u%design%modes%synch_int(2), '! Radiation Integral'
-    write (lines(nl+10), fmt) 'I3:', u%model%modes%synch_int(3), &
+    nl=nl+1; write (lines(nl), fmt) 'I3:', u%model%modes%synch_int(3), &
                  u%design%modes%synch_int(3), '! Radiation Integral'
-    nl = nl + 10
 
     call out_io (s_blank$, r_name, lines(1:nl))
     return
@@ -878,9 +881,9 @@ case ('plot')
       nl=nl+1; lines(nl) = ' '
       nl=nl+1; lines(nl) = 'Element Shapes:'
       nl=nl+1; lines(nl) = &
-            ' Key             Ele_Name        Shape         Color        dy_pix   Draw_Name?'
+            'Key             Ele_Name        Shape         Color        dy_pix   Draw_Name?'
       nl=nl+1; lines(nl) = &
-            ' -----------     ------------    --------      -----        -------  ---------'
+            '-----------     ------------    --------      -----        -------  ---------'
 
       do i = 1, size(s%plot_page%ele_shape)
         shape => s%plot_page%ele_shape(i)
