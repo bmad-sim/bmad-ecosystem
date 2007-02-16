@@ -323,8 +323,9 @@ subroutine get_attribute (how, ele, lat, plat, &
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                       lat, delim, delim_found, err_flag) 
     if (err_flag) return
-    call pointers_to_attribute (lat, ele%name, word, .false., r_ptrs, err_flag)
+    call pointers_to_attribute (lat, ele%name, word, .false., r_ptrs, err_flag, .false.)
     if (err_flag) then
+      call warning ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
       bp_com%error_flag = .true.
       return
     endif
