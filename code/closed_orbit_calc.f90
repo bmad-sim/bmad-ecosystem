@@ -22,26 +22,27 @@
 !
 ! Input:
 !   lat            -- lat_struct: Lat to track through.
-!   closed_orb(0:)  -- Coord_struct, allocatable: closed_orb(0) is the 
-!                       initial guess. closed_orb(0)%vec(6) is used
-!                       as the energy around which the closed orbit
-!                       is calculated if i_dim = 4 and varialbe_energy = False.
-!   i_dim           -- Integer: Dimensions to use
+!   closed_orb(0:) -- Coord_struct, allocatable: closed_orb(n0) 
+!                      is the initial guess where n0 = 0 for direction = 1 and 
+!                      n0 = lat%n_ele_track for direction = -1. Additionally, 
+!                      if i_dim = 4, then closed_orb(n0)%vec(6) is used as the energy 
+!                      around which the closed orbit is calculated.
+!   i_dim          -- Integer: Dimensions to use:
 !                     = 4  Transverse closed orbit at constant energy 
-!                          (dE/E = closed_orb(0)%vec(6))
+!                          (dE/E = closed_orb(n0)%vec(6))
 !                     = 5 Transverse closed orbit at constant energy with the
 !                          energy adjusted so that vec(5) is the same 
 !                          at the beginning and at the end.
 !                     = 6  Full closed orbit for 6x6 matrix.
-!   direction       -- Integer, optional: Direction of tracking. 
+!   direction      -- Integer, optional: Direction of tracking. 
 !                       +1 --> forwad (default), -1 --> backward.
 !                       The closed orbit will be dependent on direction only
 !                       in the case that radiation damping is turned on.
-!   exit_on_error   -- Logical, optional: If True then subroutine will terminate 
+!   exit_on_error  -- Logical, optional: If True then subroutine will terminate 
 !                         programif the orbit does not converge. Default is
 !                         determined by bmad_status%exit_on_error
 !
-!   bmad_status -- Bmad status common block
+!   bmad_status    -- Bmad status common block
 !     %exit_on_error -- Default for exit_on_error argument.
 !     %type_out      -- If True then the subroutine will type out
 !                         a warning message if the orbit does not converge.
