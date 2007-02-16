@@ -143,7 +143,7 @@ do
     print *, 'Error: "INSERT_LATTICE_AND_BUNCH_PARAMS_HERE" line not found."'
     stop
   endif
-  write (2, '(a)') line
+  write (2, '(a)') trim(line)
 enddo
 
 ! Now insert the lattice info.
@@ -225,7 +225,7 @@ do i = ix_start, ix_end
                         "horizontal_offset", "vertical_offset" /)
     prop_value(1:4) = (/ ele%value(k1$), ele%value(tilt$)*deg, &
                           ele%value(x_offset$), ele%value(y_offset$) /)
-    prop_fmt(1:4) = (/ "f10.6", "f10.4", "f10.6", "f10.6" /)
+    prop_fmt(1:4) = (/ "f0.6", "f0.4", "f0.6", "f0.6" /)
 
   case (sextupole$)
     csr_type = "multipole"
@@ -234,7 +234,7 @@ do i = ix_start, ix_end
                         "poles            " /)
     prop_value(1:5) = (/ ele%value(k2$), ele%value(tilt$)*deg, &
                           ele%value(x_offset$), ele%value(y_offset$), 6.0_rp /)
-    prop_fmt(1:5) = (/ "f10.6", "f10.4", "f10.6", "f10.6", "i3   " /)
+    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3   " /)
 
   case (octupole$)
     csr_type = "multipole"
@@ -243,7 +243,7 @@ do i = ix_start, ix_end
                         "poles            " /)
     prop_value(1:5) = (/ ele%value(k3$), ele%value(tilt$)*deg, &
                           ele%value(x_offset$), ele%value(y_offset$), 8.0_rp /)
-    prop_fmt(1:5) = (/ "f10.6", "f10.4", "f10.6", "f10.6", "i3   " /)
+    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3   " /)
 
   case (hkicker$)
     if (ele%value(kick$) == 0) cycle
@@ -254,7 +254,7 @@ do i = ix_start, ix_end
                         "poles            " /)
     prop_value(1:5) = (/ ele%value(kick$), ele%value(tilt$)*deg, &
                           ele%value(x_offset$), ele%value(y_offset$), 2.0_rp /)
-    prop_fmt(1:5) = (/ "f10.6", "f10.4", "f10.6", "f10.6", "i3   " /)
+    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3   " /)
 
   case (vkicker$)
     if (ele%value(kick$) == 0) cycle
@@ -265,7 +265,7 @@ do i = ix_start, ix_end
                         "poles            " /)
     prop_value(1:5) = (/ ele%value(kick$), ele%value(tilt$)*deg + 90, &
                           ele%value(x_offset$), ele%value(y_offset$), 2.0_rp /)
-    prop_fmt(1:5) = (/ "f10.6", "f10.4", "f10.6", "f10.6", "i3   " /)
+    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3   " /)
 
 
   case (kicker$)
@@ -279,7 +279,7 @@ do i = ix_start, ix_end
                         "poles            " /)
     prop_value(1:5) = (/ sqrt(hk**2 + vk**2), ele%value(tilt$)*deg + atan2d(vk, hk), &
                           ele%value(x_offset$), ele%value(y_offset$), 2.0_rp /)
-    prop_fmt(1:5) = (/ "f10.6", "f10.4", "f10.6", "f10.6", "i3   " /)
+    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3   " /)
 
   case default
     print *, 'Error: Bmad lattice element: ', trim(ele%name)
@@ -296,13 +296,13 @@ do i = ix_start, ix_end
 
   if (i == ix_start) then
     write (2, '(6x, 8a)') &
-              'position {rho = ', trim(to_str(ds * cos(delta_psi1), 'f10.3')), &
-              ', psi = ', trim(to_str(delta_psi1, 'f10.4')), &
+              'position {rho = ', trim(to_str(ds * cos(delta_psi1), 'f0.3')), &
+              ', psi = ', trim(to_str(delta_psi1, 'f0.4')), &
               ', marker = ', trim(marker1), '}'
   else
     write (2, '(6x, 8a)') &
-              'position {delta_s = ', trim(to_str(ds, 'f10.3')), &
-              ', delta_psi = ', trim(to_str(delta_psi1, 'f10.4')), &
+              'position {delta_s = ', trim(to_str(ds, 'f0.3')), &
+              ', delta_psi = ', trim(to_str(delta_psi1, 'f0.4')), &
               ', marker = ', trim(marker1), '}'
   endif
 
@@ -315,8 +315,8 @@ do i = ix_start, ix_end
   write (2, '(6x, a)') '}'
 
   write (2, '(6x, 8a)') &
-              'position {delta_s = ', trim(to_str(ele%value(l$), 'f10.3')), &
-              ', delta_psi = ', trim(to_str(delta_psi2, 'f10.4')), &
+              'position {delta_s = ', trim(to_str(ele%value(l$), 'f0.3')), &
+              ', delta_psi = ', trim(to_str(delta_psi2, 'f0.4')), &
               ', marker = ', trim(marker2), '}'
 
   write (2, '(3x, a)') '}' 
@@ -351,7 +351,7 @@ write (2, '(a)')  "}"
 do 
   read (1, '(a)', iostat = ios) line
   if (ios /= 0) exit
-  write (2, '(a)') line
+  write (2, '(a)') trim(line)
 enddo
 
 close(2)
