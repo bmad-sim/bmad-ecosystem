@@ -205,7 +205,6 @@ end subroutine
 !   csr_com     -- Csr_common_struct: CSR common block (not an argument).
 !     %n_bin               -- Number of bins.
 !     %particle_bin_span   -- Particle length / dz_bin. 
-!                               Default is particle_bin_span = 2.
 !
 ! Output:
 !   bin     -- Csr_bin_struct: The bin structure.
