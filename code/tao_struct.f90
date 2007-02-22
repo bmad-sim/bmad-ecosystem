@@ -31,14 +31,6 @@ end interface
 
 !----------------------------------------------------------------------
 
-type tao_beam_save_struct
-  type (beam_struct) beam
-  integer ix_universe ! universe to take the data from. 0 => use s%global%u_view
-  integer ix_ele      ! element index
-end type
-
-!----------------------------------------------------------------------
-
 type tao_ele_shape_struct    ! for the element layout plot
   character(40) key_name     ! Element key name
   character(40) ele_name     ! element name
@@ -79,7 +71,6 @@ type tao_curve_struct
   character(40) :: data_source             ! "calculation", "data_array", or "var_array"
   character(40) :: data_type = ' '         ! "orbit.x", etc.
   character(40) :: ele_ref_name            ! Reference element.
-  type (tao_beam_save_struct), pointer :: beam_save ! for phase-space plotting
   type (tao_graph_struct), pointer :: g    ! pointer to parent graph 
   real(rp), allocatable :: x_line(:)       ! coords for drawing a curve
   real(rp), allocatable :: y_line(:) 
@@ -394,11 +385,16 @@ type tao_global_struct
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   integer :: random_seed = 0             ! use system clock by default
   integer :: n_write_file = 0            ! used for indexing 'show write' files
-  character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
+  character(16) :: track_type    = 'single'    ! or 'beam' or 'macro' 
   character(16) :: prompt_string = 'Tao'
-  character(16) :: optimizer = 'de'      ! optimizer to use.
+  character(16) :: optimizer     = 'de'        ! optimizer to use.
   character(16) :: default_key_merit_type 
-  character(80) :: write_file = 'tao_show.dat'
+  character(80) :: write_file    = 'tao_show.dat'
+  character(16) :: valid_plot_who(10)          ! model, base, ref etc...
+  character(40) :: print_command = 'awprint'
+  character(80) :: init_file     = 'tao.init'  ! used with 'reinitialize' command
+  character(80) :: beam_file     = ''          ! 
+  character(80) :: var_out_file  = 'var#.out'
   logical :: var_limits_on = .true.      ! Respect the variable limits?
   logical :: plot_on = .true.            ! Do plotting?
   logical :: auto_scale = .false.        ! Automatically scale and x-scale the plots?
@@ -413,11 +409,8 @@ type tao_global_struct
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
   logical :: matrix_recalc_on = .true.       ! calc linear transfer matrix
-  character(16) :: valid_plot_who(10)        ! model, base, ref etc...
-  character(40) :: print_command = 'awprint'
-  character(80) :: default_init_file = 'tao.init' ! used with 'reinitialize' command
-  character(80) :: current_init_file = 'tao.init' ! used with 'reinitialize' command
-  character(80) :: var_out_file = 'var#.out'
+  logical :: save_beam_everywhere = .false.  ! Save the beam info at all elements?
+  logical :: use_saved_beam_in_tracking = .false.
 end type
 
 !------------------------------------------------------------------------
@@ -445,16 +438,6 @@ end type
     ! list of all datums evaluated at this ele
     integer, pointer :: ix_datum(:) => null()
   endtype
-
-!-----------------------------------------------------------------------
-! Particle beam structures
-
-type tao_beam_struct
-  type (beam_struct) beam
-  type (beam_init_struct) :: beam_init ! beam distrubution
-                                       !  at beginning of lattice
-  logical calc_emittance               ! for a lat calculate emittance
-end type
 
 !-----------------------------------------------------------------------
 ! Macroparticle beam structures
@@ -495,8 +478,11 @@ end type
 
 type tao_universe_struct
   type (tao_lattice_struct) model, design, base
+  type (beam_struct), allocatable :: beam_at_element(:) ! beam at element.
+  type (beam_struct) current_beam                  ! beam at the current position
+  type (beam_init_struct) :: beam_init             ! beam distrubution
+                                                   !  at beginning of lattice
   type (tao_macro_beam_struct) macro_beam          ! macroparticle beam 
-  type (tao_beam_struct) beam                      ! particle beam
   type (tao_coupled_uni_struct)   :: coupling      !used for coupled lattices
   type (tao_d2_data_struct), pointer :: d2_data(:) => null()  ! The data types 
   type (tao_data_struct), pointer :: data(:) => null()        ! array of all data.
@@ -510,6 +496,7 @@ type tao_universe_struct
   logical do_synch_rad_int_calc
   logical do_chrom_calc
   logical is_on                                    ! universe turned on
+  logical calc_beam_emittance                      ! for a lat calculate emittance
 end type
 
 ! The super_universe is the structure that holds an array of universes.
@@ -523,7 +510,6 @@ type tao_super_universe_struct
   type (tao_var_struct), pointer :: var(:) => null()       ! array of all variables.
   type (tao_universe_struct), pointer :: u(:) => null()    ! array of universes.
   type (tao_keyboard_struct), pointer :: key(:) => null()
-  type (tao_beam_save_struct) beam_save(20)                ! Save beam info for plotting.
   integer n_var_used
   integer n_v1_var_used
 end type

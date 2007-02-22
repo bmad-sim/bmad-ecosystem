@@ -275,34 +275,25 @@ case ('read')
 
 case ('reinitialize')
 
-  call tao_cmd_split(cmd_line, 2, cmd_word, .false., err)
+  call tao_cmd_split(cmd_line, 10, cmd_word, .false., err)
+  if (err) return
 
-    ! quit the plot window so it will be recreated    
-    if (s%global%plot_on) then
-      call tao_destroy_plot_window
-      s%global%init_plot_needed = .true.
-    endif
+  call tao_parse_command_args (err, cmd_word)
+  if (err) return
 
+  ! quit the plot window so it will be recreated    
+
+  if (s%global%plot_on) then
+    call tao_destroy_plot_window
+    s%global%init_plot_needed = .true.
+  endif
     
   ! quit the plot window so it will be recreated    
   call tao_destroy_plot_window
   s%global%init_plot_needed = .true.
   
-  if (cmd_word(1) .eq. ' ') then
-    call out_io (s_info$, r_name, 'Reinitializing with ' // &
-                                       s%global%current_init_file)
-    call tao_init (s%global%current_init_file)
-  elseif (index(cmd_word(1), 'default') .ne. 0) then
-    call out_io (s_info$, r_name, 'Reinitializing with ' // &
-                                       s%global%default_init_file)
-    call tao_init (s%global%default_init_file)
-    s%global%current_init_file = s%global%default_init_file
-  else
-    call out_io (s_info$, r_name, 'Reinitializing with ' // &
-                                       cmd_word(1))
-    call tao_init (cmd_word(1))
-    s%global%current_init_file = cmd_word(1)
-  endif
+  call out_io (s_info$, r_name, 'Reinitializing with ' // s%global%init_file)
+  call tao_init ()
     
 !--------------------------------
 ! RUN, FLATTEN

@@ -2522,5 +2522,99 @@ integer i_var, i_this, ix_this
 
 end subroutine tao_update_var_values
 
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function tao_universe_number (i_uni) result (i_this_uni)
+!
+! Fnction to return the universe number.
+!
+! Input:
+!   i_uni -- Integer: Nominal universe number.
+!
+! Output:
+!   i_this_uni -- Integer Universe number. Equal to i_uni except when 
+!                   i_uni is zero. In this case i_this_uni = s%global%u_view.
+!-
+
+function tao_universe_number (i_uni) result (i_this_uni)
+
+implicit none
+
+integer i_uni, i_this_uni
+
+i_this_uni = i_uni
+if (i_uni == 0) i_this_uni = s%global%u_view
+
+end function
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine tao_parse_command_args (error, cmd_words)
+!
+! Subroutine to parse the command line arguments.
+!
+! Input:
+!   cmd_words(:) -- Character(*), optional: If present then this is used
+!                    in place of the command line.
+! Output:
+!   error -- Logical: Set True if there is an error. False otherwise.
+!-
+
+subroutine tao_parse_command_args (error, cmd_words)
+
+  implicit none
+
+  character(*), optional :: cmd_words(:)
+  character(80) arg1, arg2, init_file, beam_file
+  character(24) :: r_name = 'tao_parse_command_args'
+
+  integer i, n_arg
+  logical error
+
+! Get command line input
+
+  error = .false.
+  init_file = s%global%init_file
+  beam_file = s%global%beam_file
+
+  if (present(cmd_words)) then
+    n_arg = size(cmd_words)
+  else
+    n_arg = cesr_iargc()
+  endif
+
+  do i = 1, n_arg-1, 2
+
+    if (present(cmd_words)) then
+      arg1 = cmd_words(i)
+      arg2 = cmd_words(i+1)
+    else
+      call cesr_getarg(i, arg1)
+      call cesr_getarg (i+1, arg2)
+    endif
+
+    select case (arg1)
+    case ('init')
+      init_file = arg2
+
+    case ('beam')
+      beam_file = arg2
+
+    case default
+      call out_io (s_fatal$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg1)
+      error = .true.
+      return
+    end select
+
+  enddo
+
+  s%global%init_file = init_file
+  s%global%beam_file = beam_file
+      
+end subroutine
 
 end module tao_utils

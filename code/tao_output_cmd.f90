@@ -19,6 +19,8 @@ implicit none
 
 type (tao_curve_array_struct), allocatable, save :: curve(:)
 type (tao_curve_struct), pointer :: c
+type (beam_struct), pointer :: beam
+type (tao_universe_struct), pointer :: u
 
 character(*) what
 character(*) arg1, arg2
@@ -26,12 +28,12 @@ character(20) action
 character(20) :: r_name = 'tao_output_cmd'
 character(100) file_name
 
-character(20) :: names(9) = (/ &
+character(20) :: names(10) = (/ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
-      'mad_lattice      ' /)
+      'mad_lattice      ', 'beam            ' /)
 
-integer i, j, ix, iu, nd, ii
+integer i, j, ix, iu, nd, ii, i_uni, n_write, ib, ip, n_skip, ios
 logical err
 
 !
@@ -46,6 +48,7 @@ elseif (ix < 0) then
   return
 endif
 action = names(ix)
+iu = lunget()
 
 select case (action)
 
@@ -158,7 +161,6 @@ case ('derivative_matrix')
 
   file_name = arg1
   if (file_name == ' ') file_name = 'derivative_matrix.dat'
-  iu = lunget()
   open (iu, file = file_name)
 
   write (iu, *) count(s%var%useit_opt), '  ! n_var'
@@ -229,19 +231,19 @@ case ('curve')
     return
   endif
 
-  iu = lunget()
-
   file_name = 'curve'
   if (arg2 /= ' ') file_name = arg2
   c => curve(1)%c
 
-  if (associated(c%beam_save)) then
+  if (c%g%type == "phase_space") then
+    i_uni = c%ix_universe
+    if (i_uni == 0) i_uni = s%global%u_view
+    beam => s%u(i_uni)%beam_at_element(c%ix_ele_ref)
     call file_suffixer (file_name, file_name, 'particle_dat', .true.)
     open (iu, file = file_name)
     write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'p_x', '  y', 'p_y', '  z', 'p_z'
-    do i = 1, size(c%beam_save%beam%bunch(1)%particle)
-      write (iu, '(i6, 6es15.7)') i, &
-                        (c%beam_save%beam%bunch(1)%particle(i)%r%vec(j), j = 1, 6)
+    do i = 1, size(beam%bunch(1)%particle)
+      write (iu, '(i6, 6es15.7)') i, (beam%bunch(1)%particle(i)%r%vec(j), j = 1, 6)
     enddo
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
     close(iu)
@@ -264,6 +266,47 @@ case ('curve')
   enddo
   call out_io (s_info$, r_name, 'Writen: ' // file_name)
   close(iu)
+
+!---------------------------------------------------
+! beam
+
+case ('beam')
+
+  n_write = 0
+  read (arg1, *, iostat = ios) n_skip
+  if (arg1 == ' ' .or. ios /= 0 .or. n_skip < 1) then
+    call out_io (s_error$, r_name, '"beam" needs to be followed by a skip number: ' // arg1)
+    return
+  endif
+  file_name = arg2
+  if (file_name == ' ') file_name = 'beam.dat'
+  open (iu, file = file_name, form = 'unformatted')
+
+  do i = 1, size(s%u)
+    u => s%u(i)
+    write (iu) u%beam_init
+    write (iu) 1 + (u%beam_init%n_particle - 1) / n_skip
+
+    do j = lbound(u%beam_at_element, 1), ubound(u%beam_at_element, 1)
+      beam => u%beam_at_element(j)
+      if (.not. allocated(beam%bunch)) cycle
+      n_write = n_write + 1
+      write (iu) j
+      do ib = 1, size(beam%bunch)
+        write (iu) beam%bunch(ib)%charge
+        write (iu) beam%bunch(ib)%z_center
+        write (iu) beam%bunch(ib)%t_center
+        do ip = 1, size(beam%bunch(ib)%particle), n_skip
+          write (iu) beam%bunch(ib)%particle(ip)
+        enddo
+      enddo
+    enddo 
+
+    write (iu) -1
+  enddo
+
+  call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  close (iu)
 
 !---------------------------------------------------
 ! error

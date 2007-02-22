@@ -231,7 +231,7 @@ call tao_load_data_array (s%u(uni), 0, s%global%track_type)
 do i = 1, lat%n_ele_track
 
   ! if doing linear tracking, first compute transfer matrix
-  if (s%global%matrix_recalc_on .and. lat%ele(i)%tracking_method .eq. linear$) &
+  if (s%global%matrix_recalc_on .and. lat%ele(i)%tracking_method == linear$) &
            call make_mat6 (lat%ele(i), lat%param) 
 
   call track1 (tao_lat%orb(i-1), lat%ele(i), lat%param, tao_lat%orb(i))
@@ -302,8 +302,8 @@ calc_ok = .true.
 call re_allocate (ix_ele,1)
 
 u => s%u(uni)
-beam => u%beam%beam
-beam_init => u%beam%beam_init
+beam => u%current_beam
+beam_init => u%beam_init
 lat => tao_lat%lat
 
 all_lost_already = .false.
@@ -333,7 +333,7 @@ if (.not. u%coupling%coupled) then
   ! no beam tracking in lattices
   if (lat%param%lattice_type == circular_lattice$) then
     call tao_single_track (uni, tao_lat, calc_ok) 
-    if (u%beam%calc_emittance) then
+    if (u%calc_beam_emittance) then
       call radiation_integrals (lat, tao_lat%orb, modes)
       if (extract_at_ix_ele .ne. -1) then
         f = lat%ele(extract_at_ix_ele)%value(E_TOT$) * &
@@ -366,26 +366,25 @@ call tao_load_data_array (u, 0, s%global%track_type)
 do j = 1, lat%n_ele_track
 
   ! if doing linear tracking, first compute transfer matrix
-  if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method .eq. linear$) &
+  if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
            call make_mat6 (lat%ele(j), lat%param) 
 
-  ! track to the element
-  if (j /= 0) call track_beam (lat, beam, j-1, j)
+  ! track to the element and save for phase space plot
+
+  if (s%global%use_saved_beam_in_tracking) then
+    beam = u%beam_at_element(j)
+
+  else
+    if (j /= 0) call track_beam (lat, beam, j-1, j)
+
+    if (s%global%save_beam_everywhere .or. allocated(u%beam_at_element(j)%bunch)) &
+                          u%beam_at_element(j) = beam
+  endif
  
   ! Save beam at location if injecting into another lattice
   if (extract_at_ix_ele == j) then
-    call beam_equal_beam (s%u(i_uni_to)%coupling%injecting_beam, beam)
+    s%u(i_uni_to)%coupling%injecting_beam = beam
   endif
-
-  ! save for phase space plot
-  do ip = 1, size(s%beam_save)
-    i_uni = s%beam_save(ip)%ix_universe
-    if (i_uni == 0) i_uni = s%global%u_view
-    if (i_uni /= uni) cycle
-    if (s%beam_save(ip)%ix_ele == j) then
-      s%beam_save(ip)%beam = beam
-    endif
-  enddo
 
   ! compute centroid orbit
   call tao_find_beam_centroid (beam, tao_lat%orb(j), uni, j, lat%ele(j))
@@ -514,7 +513,7 @@ call tao_load_data_array (u, 0, s%global%track_type)
 do j = 1, lat%n_ele_track
 
   ! if doing linear tracking, first compute transfer matrix
-  if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method .eq. linear$) &
+  if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
            call make_mat6 (lat%ele(j), lat%param) 
 
   ! track to the element
@@ -738,8 +737,8 @@ character(20) :: r_name = "inject_particle"
 
 if (.not. u%coupling%coupled) then
   orb(0) = u%model%orb(0)
-  polar%theta = u%beam%beam_init%spin%theta
-  polar%phi = u%beam%beam_init%spin%phi
+  polar%theta = u%beam_init%spin%theta
+  polar%phi = u%beam_init%spin%phi
 
   call polar_to_spinor (polar, orb(0))
 else
@@ -810,15 +809,18 @@ character(20) :: r_name = "tao_inject_beam"
 
 !
 
+if (s%global%use_saved_beam_in_tracking) return
+
 if (.not. u%coupling%coupled) then
-  u%beam%beam_init%center = u%model%lat%beam_start%vec
-  if (u%beam%beam_init%n_bunch < 1 .or. u%beam%beam_init%n_particle < 1) then
+  u%beam_init%center = u%model%lat%beam_start%vec
+  if (u%beam_init%n_bunch < 1 .or. u%beam_init%n_particle < 1) then
     call out_io (s_fatal$, r_name, &
       'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
     call err_exit
   endif
-  call init_beam_distribution (lat%ele(0), u%beam%beam_init, u%beam%beam)
-  call tao_find_beam_centroid (u%beam%beam, orb(0))
+  call init_beam_distribution (lat%ele(0), u%beam_init, u%current_beam)
+  call tao_find_beam_centroid (u%current_beam, orb(0))
+
 else
    
   if (.not. s%u(u%coupling%from_uni)%is_on) then
@@ -853,10 +855,15 @@ else
   lat%ele(0)%c_mat   = extract_ele%c_mat
   lat%ele(0)%gamma_c = extract_ele%gamma_c
   lat%ele(0)%floor   = extract_ele%floor
-  call beam_equal_beam (u%beam%beam, u%coupling%injecting_beam)
+  u%current_beam = u%coupling%injecting_beam
   call tao_find_beam_centroid (u%coupling%injecting_beam, orb(0))
 endif
+
+! record this beam
   
+if (s%global%save_beam_everywhere .or. allocated(u%beam_at_element(0)%bunch)) &
+                          u%beam_at_element(0) = u%current_beam
+
 end subroutine tao_inject_beam
 
 !------------------------------------------------------------------------------
@@ -970,7 +977,7 @@ call init_ele (inject_ele)
   
 ! set up coupling%injecting_beam or macro_beam 
 if (s%global%track_type == 'beam') then
-  injecting_beam => s%u(u%coupling%from_uni)%beam%beam
+  injecting_beam => s%u(u%coupling%from_uni)%current_beam
   call reallocate_beam (u%coupling%injecting_beam, size(injecting_beam%bunch), &
             size(injecting_beam%bunch(1)%particle))
 elseif (s%global%track_type == 'macro') then

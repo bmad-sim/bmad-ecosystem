@@ -37,10 +37,29 @@ included by using an exclamation mark ``!''.
 Note: string variables are case sensitive.
 
 %-----------------------------------------------------------------
+\section{Initialization from the Command Line}
+\index{Command line}
+\label{s:command_line} 
+
+The syntax of the command line is:
+\begin{example}
+  tao \{init <init_file_name>\} \{beam <beam_file_name>\}
+\end{example}
+The \vn{init} optional argument replaces the default initialization file 
+name (\vn{tao.init}) with \vn{<init_file_name>}. 
+
+The \vn{beam} optional argument reads in a beam data file created with the
+\vn{output beam} command. This file contains the particle coordinates of the
+tracked beam at the end of any element where the  When this is done, \tao sets 
+the variable \vn{global%use_saved_beam_in_tracking} to \vn{True}. 
+This causes \tao to use the data from the beam data file in lieu of tracking.
+This can be helpful when the time for \tao to track a bunch through the 
+lattice becomes long. 
+
+%-----------------------------------------------------------------
 \section{Beginning Initialization}
 \index{Initialization!beginning}
 \label{s:init_global} 
-
 
 \index{tao_start}
 \index{tao.init}
@@ -52,16 +71,17 @@ Note: string variables are case sensitive.
 \index{startup_file}
 \index{n_universes}
 \index{startup_single_mode}
-The initialization starts with an initialization file named
-\vn{tao.init}.  \vn{tao.init} needs to have a \vn{tao_start} namelist
+The initialization starts with an initialization file. The default name for
+this file is \vn{tao.init} (See \sref{s:command_line}).
+The initialization file needs to have a \vn{tao_start} namelist
 block with the following syntax:
 \begin{example}
   &tao_start
-    lattice_file      = "<file_name>"  ! Default = this file.
-    data_file         = "<file_name>"  ! Default = this file.
-    var_file          = "<file_name>"  ! Default = this file.
-    plot_file         = "<file_name>"  ! Default = this file.
-    single_mode_file  = "<file_name>"  ! Default = this file.
+    lattice_file      = "<file_name>"  ! Default = Initialization file.
+    data_file         = "<file_name>"  ! Default = Initialization file.
+    var_file          = "<file_name>"  ! Default = Initialization file.
+    plot_file         = "<file_name>"  ! Default = Initialization file.
+    single_mode_file  = "<file_name>"  ! Default = Initialization file.
     startup_file      = "<file_name>"  ! Default = "tao.startup"
     n_universes       = <integer>            ! Number of universes. Default = 1.
     init_name      = "<init_name>" !Default = 'Tao"
@@ -213,9 +233,13 @@ type tao_global_struct
   integer :: n_write_file = 0            ! used for indexing 'show write' files
   character(16) :: track_type = 'single' ! or 'beam', 'csr', or 'macro' 
   character(16) :: prompt_string = 'Tao'
-  character(16) :: optimizer = 'de'      ! optimizer to use.
+  character(16) :: optimizer     = 'de'      ! optimizer to use.
   character(16) :: default_key_merit_type
-  character(80) :: write_file = 'tao_show.dat'
+  character(80) :: write_file    = 'tao_show.dat'
+  character(16) :: valid_plot_who(10)        ! model, base, ref etc...
+  character(40) :: print_command = 'awprint'
+  character(80) :: init_file     = 'tao.init'
+  character(80) :: var_out_file  = 'var#.out'
   logical :: var_limits_on = .true.      ! Respect the variable limits?
   logical :: plot_on = .true.            ! Do plotting?
   logical :: auto_scale = .false.        ! Automatically scale and x-scale the plots?
@@ -230,11 +254,7 @@ type tao_global_struct
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: matrix_recalc_on = .true.       ! calc linear transfer matrix?  
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
-  character(16) :: valid_plot_who(10)        ! model, base, ref etc...
-  character(40) :: print_command = 'awprint'
-  character(80) :: default_init_file = 'tao.init'
-  character(80) :: current_init_file = 'tao.init'
-  character(80) :: var_out_file = 'var#.out'
+  logical :: save_beam_everywhere = .false.  ! Save the beam info at all elements?
 end type
 \end{example}
 

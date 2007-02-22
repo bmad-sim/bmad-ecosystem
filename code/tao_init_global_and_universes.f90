@@ -97,6 +97,8 @@ namelist / tao_var / v1_var, var, default_weight, default_step, &
 global = default_global         ! establish defaults
 global%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
 global%default_key_merit_type = 'limit'
+global%init_file = s%global%init_file
+global%beam_file = s%global%beam_file
 
 call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
@@ -136,7 +138,6 @@ s%var(:)%good_user = .true.
 
 s%n_var_used = 0
 s%n_v1_var_used = 0       ! size of s%v1_var(:) array
-s%beam_save%ix_universe = -1
 
 !-----------------------------------------------------------------------
 ! Seed random number generator
@@ -1476,14 +1477,14 @@ elseif (calc_emittance) then
   call out_io (s_blank$, r_name, "***")
 endif
   
-u%beam%beam_init = beam_init
+u%beam_init = beam_init
 u%design%orb(0)%vec = beam_init%center
 
 ! No initialization for a circular lattice
 if (u%design%lat%param%lattice_type == circular_lattice$) return
   
 ! This is just to get things allocated
-call init_beam_distribution (u%design%lat%ele(0), beam_init, u%beam%beam)
+call init_beam_distribution (u%design%lat%ele(0), beam_init, u%current_beam)
 if (u%coupling%coupled) &
     call init_beam_distribution (u%design%lat%ele(0), beam_init, u%coupling%injecting_beam)
 

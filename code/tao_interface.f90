@@ -176,9 +176,8 @@ interface
 end interface
 
 interface
-  subroutine tao_init (init_file)
+  subroutine tao_init ()
     implicit none
-    character(*) init_file
   end subroutine
 end interface
  

@@ -52,7 +52,7 @@ endif
 !
 
 if (s%global%track_type == "beam") then
-  call calc_bunch_params (u%beam%beam%bunch(s%global%bunch_to_plot), &
+  call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
                                 lat%ele(ix_ele), u%model%bunch_params(ix_ele))
 
 elseif (s%global%track_type == "macro") then

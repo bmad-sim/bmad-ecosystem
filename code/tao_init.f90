@@ -1,14 +1,14 @@
 !+
-! Subroutine tao_init (init_file)
+! Subroutine tao_init ()
 !
 ! Subroutine to initialize the tao structures.
 !
 ! Input:
-!   init_file -- Character(*): Initialization file.
+!
 ! Output:
 !-
 
-subroutine tao_init (init_file)
+subroutine tao_init ()
 
   use tao_mod
   use tao_lattice_calc_mod
@@ -21,15 +21,18 @@ subroutine tao_init (init_file)
   type (tao_var_struct), pointer :: var_ptr
   type (tao_this_var_struct), pointer :: this
   type (tao_plot_struct), pointer :: p
+  type (beam_struct), pointer :: beam
+
   real(rp), pointer :: ptr_attrib
 
-  character(*) init_file
+  character(80) arg, arg2, startup_file
   character(200) lattice_file, plot_file, data_file, var_file, file_name
-  character(200) single_mode_file, startup_file
+  character(200) single_mode_file
   character(40) name1, name2
   character(16) :: r_name = 'tao_init'
   character(16) init_name
-  integer i, j, i2, j2, n_universes, iu, ix, ix_attrib
+
+  integer i, j, i2, j2, n_universes, iu, ix, ix_attrib, n_arg, ib, ip
 
   logical err, calc_ok
 
@@ -39,15 +42,16 @@ subroutine tao_init (init_file)
 
 ! Find namelist files
 
-  lattice_file     = init_file      ! set default
-  plot_file        = init_file      ! set default
-  data_file        = init_file      ! set default
-  var_file         = init_file      ! set default
-  single_mode_file = init_file      ! set default
-  startup_file     = 'tao.startup'  ! set default
-  n_universes      = 1              ! set default
-  init_name        = "Tao"          ! set default
-  call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
+  lattice_file       = s%global%init_file      ! set default
+  plot_file          = s%global%init_file      ! set default
+  data_file          = s%global%init_file      ! set default
+  var_file           = s%global%init_file      ! set default
+  single_mode_file   = s%global%init_file      ! set default
+  s%global%init_file = s%global%init_file
+  n_universes        = 1              ! set default
+  init_name          = "Tao"          ! set default
+  startup_file       = "tao.startup"
+  call tao_open_file ('TAO_INIT_DIR', s%global%init_file, iu, file_name)
   read (iu, nml = tao_start)
   close (iu)
   tao_com%init_name = init_name
@@ -58,11 +62,40 @@ subroutine tao_init (init_file)
 ! Init
 
   call tao_init_design_lattice (lattice_file) 
-  call tao_init_global_and_universes (init_file, data_file, var_file)
+  call tao_init_global_and_universes (s%global%init_file, data_file, var_file)
   call tao_init_single_mode (single_mode_file)
-  call tao_hook_init (init_file)
+  call tao_hook_init (s%global%init_file)
 
   bmad_status%exit_on_error = .false.
+
+! Read beam info
+
+  if (s%global%beam_file /= '') then
+    iu = lunget()
+    open (iu, file = s%global%beam_file, form = 'unformatted', status = 'old')
+    do i = 1, size(s%u)
+      u => s%u(i)
+      read (iu) u%beam_init
+      read (iu) u%beam_init%n_particle
+      do
+        read (iu) j
+        if (j == -1) exit
+        beam => u%beam_at_element(j)
+        call reallocate_beam(beam, u%beam_init%n_bunch, u%beam_init%n_particle)
+        do ib = 1, size(beam%bunch)
+          read (iu) beam%bunch(ib)%charge
+          read (iu) beam%bunch(ib)%z_center
+          read (iu) beam%bunch(ib)%t_center
+          do ip = 1, size(beam%bunch(ib)%particle)
+            read (iu) beam%bunch(ib)%particle(ip)
+          enddo
+        enddo
+      enddo
+    enddo  
+    close(1)
+    s%global%use_saved_beam_in_tracking = .true.
+    call out_io (s_info$, r_name, 'Read beam distribution from: ' // s%global%beam_file)
+  endif
 
 ! check variables
 ! check if vars are good
@@ -214,7 +247,6 @@ subroutine deallocate_everything ()
       ! radiation integrals cache
       if (u%ix_rad_int_cache /= 0) call release_rad_int_cache(u%ix_rad_int_cache)
 
-
       ! Orbits
       deallocate(u%model%orb, stat=istat)
       deallocate(u%design%orb, stat=istat)
@@ -223,8 +255,14 @@ subroutine deallocate_everything ()
       ! Beams
       deallocate (u%macro_beam%ix_lost, stat=istat)
       call reallocate_macro_beam (u%macro_beam%beam, 0, 0, 0)
-      call reallocate_beam (u%beam%beam, 0, 0)
-  
+
+      do j = 1, size(u%beam_at_element)
+        call reallocate_beam(u%beam_at_element(j), 0, 0)
+      enddo
+      deallocate (u%beam_at_element)
+
+      call reallocate_beam(u%current_beam, 0, 0)
+
       ! Coupling
       call deallocate_ele_pointers (u%coupling%coupling_ele)
       call reallocate_macro_beam (u%coupling%injecting_macro_beam, 0, 0, 0)

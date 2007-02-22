@@ -300,7 +300,6 @@ select case (component)
     call tao_locate_element (this_curve%ele_ref_name, i_uni, ix_ele, .true.)
     if (ix_ele(1) < 0) return
     this_curve%ix_ele_ref = ix_ele(1)
-    if (this_curve%g%type == 'phase_space') this_curve%beam_save%ix_ele = ix_ele(1)
 
   case ('ix_ele_ref')
     read (set_value, '(i)', iostat = ios) ix
@@ -326,7 +325,6 @@ select case (component)
       return
     endif
     this_curve%ix_universe = ix      
-    if (this_curve%g%type == 'phase_space') this_curve%beam_save%ix_universe = ix
 
   case default
     

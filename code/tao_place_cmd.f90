@@ -20,14 +20,17 @@ subroutine tao_place_cmd (where, who)
 use tao_mod
 use tao_x_scale_mod
 use quick_plot
+use beam_mod
 
 implicit none
 
 type (tao_plot_array_struct), allocatable, save :: template(:)
 type (qp_axis_struct), pointer :: ax
+type (tao_universe_struct), pointer :: u
 type (tao_plot_region_struct), pointer :: region
+type (tao_curve_struct), pointer :: curve
 
-integer i, j, k
+integer i, j, k, i_uni
 logical err
 
 character(*) who, where
@@ -38,15 +41,6 @@ character(20) :: r_name = 'tao_place_cmd'
 
 call tao_find_plot_region (err, where, region)
 if (err) return
-
-! free up any s%beam_save structures.
-
-do i = 1, size(region%plot%graph)
-  if (region%plot%graph(i)%type /= 'phase_space') cycle
-  do j = 1, size(region%plot%graph(i)%curve)
-    region%plot%graph(i)%curve(j)%beam_save%ix_universe = -1  ! free-up
-  enddo
-enddo
 
 ! If who = 'none' then no plot is wanted here so just turn off
 ! plotting in the region
@@ -72,18 +66,15 @@ region%plot%r => region
 
 do i = 1, size(region%plot%graph)
   if (region%plot%graph(i)%type /= 'phase_space') cycle
-  s%global%lattice_recalc = .true.
-  curve_loop: do j = 1, size(region%plot%graph(i)%curve)
-    do k = 1, size(s%beam_save)
-      if (s%beam_save(k)%ix_universe > -1) cycle ! look for unused
-      region%plot%graph(i)%curve(j)%beam_save => s%beam_save(k)
-      s%beam_save(k)%ix_universe = region%plot%graph(i)%curve(j)%ix_universe
-      s%beam_save(k)%ix_ele = region%plot%graph(i)%curve(j)%ix_ele_ref
-      cycle curve_loop
-    enddo
-    print *, 'ERROR IN TAO_PLACE_CMD: NO AVAILABLE BEAM_SAVE SLOTS!'
-    call err_exit
-  enddo curve_loop
+  do j = 1, size(region%plot%graph(i)%curve)
+    curve => region%plot%graph(i)%curve(j)
+    u => s%u(tao_universe_number(curve%ix_universe))
+    if (.not. allocated(u%beam_at_element(curve%ix_ele_ref)%bunch)) then
+      call reallocate_beam (u%beam_at_element(curve%ix_ele_ref), &
+                              u%beam_init%n_bunch, u%beam_init%n_particle)
+      s%global%lattice_recalc = .true.
+    endif
+  enddo
 enddo
 
 end subroutine

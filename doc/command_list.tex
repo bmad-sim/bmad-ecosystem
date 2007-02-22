@@ -12,21 +12,22 @@ on one line using the ``;'' character as a separator.
 \begin{table}[h]
 \centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\it Command} & {\it Section}  & {\it Command} & {\it Section} \\ \hline
-  alias      & \ref{s:alias}    & read         & \ref{s:read}    \\ \hline
-  call       & \ref{s:call}     & restore      & \ref{s:restore} \\ \hline 
-  change     & \ref{s:change}   & reinitialize & \ref{s:reinit}  \\ \hline 
-  clip       & \ref{s:clip}     & run          & \ref{s:run}     \\ \hline 
-  derivative & \ref{s:deriv}    & scale        & \ref{s:scale}   \\ \hline 
-  exit       & \ref{s:exit}     & set          & \ref{s:set}     \\ \hline  
-  flatten    & \ref{s:flatten}  & show         & \ref{s:show}    \\ \hline 
-  help       & \ref{s:help}     & single-mode  & \ref{s:sing}    \\ \hline 
-  history    & \ref{s:history}  & spawn        & \ref{s:spawn}   \\ \hline 
-  misalign   & \ref{s:misalign} & use          & \ref{s:use}     \\ \hline 
-  output     & \ref{s:output}   & veto         & \ref{s:veto}    \\ \hline 
-  place      & \ref{s:place}    & view         & \ref{s:view}    \\ \hline 
-  plot       & \ref{s:plot}     & x-axis       & \ref{s:x-axis}  \\ \hline 
-  quit       & \ref{s:quit}     & x-scale      & \ref{s:x-scale} \\ \hline 
+  {\it Command} & {\it Section}  & {\it Command} & {\it Section}  \\ \hline
+  alias      & \ref{s:alias}    & read         & \ref{s:read}     \\ \hline
+  call       & \ref{s:call}     & restore      & \ref{s:restore}  \\ \hline 
+  change     & \ref{s:change}   & reinitialize & \ref{s:reinit}   \\ \hline 
+  clip       & \ref{s:clip}     & run          & \ref{s:run}      \\ \hline 
+  derivative & \ref{s:deriv}    & scale        & \ref{s:scale}    \\ \hline 
+  exit       & \ref{s:exit}     & set          & \ref{s:set}      \\ \hline  
+  flatten    & \ref{s:flatten}  & show         & \ref{s:show}     \\ \hline 
+  help       & \ref{s:help}     & single-mode  & \ref{s:sing}     \\ \hline 
+  history    & \ref{s:history}  & spawn        & \ref{s:spawn}    \\ \hline 
+  misalign   & \ref{s:misalign} & use          & \ref{s:use}      \\ \hline 
+  output     & \ref{s:output}   & veto         & \ref{s:veto}     \\ \hline 
+  place      & \ref{s:place}    & view         & \ref{s:view}     \\ \hline 
+  plot       & \ref{s:plot}     & x-axis       & \ref{s:x-axis}   \\ \hline 
+  quit       & \ref{s:quit}     & x-scale      & \ref{s:x-scale}  \\ \hline 
+             &                  & xy-scale     & \ref{s:xy-scale} \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -365,6 +366,7 @@ Examples
 Format:
 \begin{example}
   output bmad_lattice \{<file_name>\} ! Write a Bmad lattice file of the model
+  output bunch \{<file_name>\}              ! Write bunch distributsion data.
   output curve <curve_name> \{<file_name>\} ! Write the curve data
   output derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
   output digested \{<file_name>\}     ! Write a digested Bmad lattice file of the model.
@@ -381,6 +383,7 @@ not given then the defaults are:
   Command                         Default File Name
   ------------------              ------------------
   output bmad_lattice             lat_#.bmad
+  output bunch                    bunch.dat
   output curve                    curve
   output derivative_mat           derivative_matrix.dat rix               
   output digested                 digested8_lat_universe_#.bmad
@@ -396,6 +399,12 @@ curve} there are two files produced: A file
 (possibly smooth) curve through the symbols. A third file named
 \vn{<file_name>.particle_dat} may be produced if there is particle
 data plotted.
+
+\vn{output bunch} will create a binary file of the saved particle positions when
+bunch tracking is being used. The variable \vn{global%save_beam_everywhere} 
+should be set in the initialization file to force the
+saving of the bunch particle positions at the end of every element. This file
+can be used to initialize \tao (\sref{s:command_line})
 
 Note: PGPLOT does a poor job producing gif files so consider
 making a postscript file instead and using the pstogif unix command to
@@ -499,20 +508,21 @@ Examples:
 
 Format:
 \begin{example}
-  reinitialize \{<init_file>\}
+  reinitialize  \{init <init_file_name>\} \{beam <beam_file_name>\}
 \end{example}
 
-\vskip 0.2in Reinitializes \tao. This can be useful to reset everything to
+\vskip 0.2in 
+Reinitializes \tao. This can be useful to reset everything to
 initial conditions or to perform analysis with more than one initialization file.
-If \vn{<init_file>} is not given then 
-the current initialization file is used. If \vn{init_file} = \vn{default} then
-the default initialization file \vn{tao.init} is used.
+See section \sref{s:command_line} for details on the arguments. In this case
+The default \vn{<init_file>} is what was used with the last reinitialization or, if
+this is the first reinitialization, what was used at startup.
 
 Examples:
 \begin{example}
   reinitialize 
-  reinit tao_special.init !reinitializes \tao with the initialization file 
-                           \vn{tao_special.init}
+  reinit init tao_special.init  ! Reinitializes \tao with the initialization file 
+                                  \vn{tao_special.init}
 \end{example}
 
 
@@ -1068,7 +1078,7 @@ Format:
 
 \vskip 0.2in \vn{xy-scale} sets the lower and upper bounds for both
 the horizontal vertical axes.  This is just a shortcut for doing an
-\vn{x-scale} followed by a \vn{y-scale}.  If both \vn{<bound1>} and
+\vn{x-scale} followed by a \vn{scale}.  If both \vn{<bound1>} and
 \vn{<bound2>} are present then \vn{<bound1>} is taken to be the lower
 (left) bound and \vn{<bound2>} is the upper (right) bound. If only
 \vn{<bound1>} is present then the bounds will be from -\vn{<bound1>}

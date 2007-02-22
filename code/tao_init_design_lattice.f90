@@ -21,6 +21,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   implicit none
 
   type (tao_design_lat_input)  design_lattice(100)
+  type (tao_universe_struct), pointer :: u
 
   character(*) tao_design_lattice_file
   character(200) complete_file_name
@@ -59,49 +60,54 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   
   if (custom_init) return
 
+  ! TAO does its own bookkeeping
+
+  bmad_com%auto_bookkeeper = .false.
+
+  ! Loop over all universes
   
   do i = 1, size(s%u)
+    u => s%u(i)
+
     if (design_lattice(i)%file == ' ') design_lattice(i)%file = &
                                               design_lattice(1)%file
     select case (design_lattice(i)%parser)
     case ('bmad')
-      call bmad_parser (design_lattice(i)%file, s%u(i)%design%lat)
-      s%u(i)%design%modes%a%emittance = s%u(i)%design%lat%a%emit
-      s%u(i)%design%modes%b%emittance = s%u(i)%design%lat%b%emit
+      call bmad_parser (design_lattice(i)%file, u%design%lat)
+      u%design%modes%a%emittance = u%design%lat%a%emit
+      u%design%modes%b%emittance = u%design%lat%b%emit
     case ('xsif')
-      call xsif_parser (design_lattice(i)%file, s%u(i)%design%lat)
+      call xsif_parser (design_lattice(i)%file, u%design%lat)
     case ('digested')
       call out_io (s_blank$, r_name, &
                   "Reading digested BMAD file " // trim(design_lattice(i)%file))
-      call read_digested_bmad_file (design_lattice(i)%file, s%u(i)%design%lat, version)
+      call read_digested_bmad_file (design_lattice(i)%file, u%design%lat, version)
     case default
       call out_io (s_abort$, r_name, 'PARSER NOT RECOGNIZED: ' // &
                                                 design_lattice(i)%parser)
       call err_exit
     end select
-  enddo
 
-  ! Initialize calibration array
-  ! This must be performed or tao_read_bpm and tao_do_wire_scan will crash.
-  ! r(1,:) is for bpm and steering callibration
-  ! r(2,:) is for saving ele parameters
-  do i = 1, size(s%u)
-    do j = 1, s%u(i)%design%lat%n_ele_max
-        allocate(s%u(i)%design%lat%ele(j)%r(2,5))
-        s%u(i)%design%lat%ele(j)%r = 0.0
+    ! Initialize calibration array
+    ! This must be performed or tao_read_bpm and tao_do_wire_scan will crash.
+    ! r(1,:) is for bpm and steering callibration
+    ! r(2,:) is for saving ele parameters
+
+    do j = 1, u%design%lat%n_ele_max
+        allocate(u%design%lat%ele(j)%r(2,5))
+        u%design%lat%ele(j)%r = 0.0
     enddo
-  enddo
 
-  ! TAO does its own bookkeeping
-  bmad_com%auto_bookkeeper = .false.
-
-  ! turn off rfcavities in lattices
-  do i = 1, size(s%u)
-    if (s%u(i)%design%lat%param%lattice_type .eq. circular_lattice$) then
+    if (u%design%lat%param%lattice_type .eq. circular_lattice$) then
       call out_io (s_blank$, r_name, &
                   "RFCavities will be turned off in lattices")
-      call set_on_off (rfcavity$, s%u(i)%design%lat, off$)
+      call set_on_off (rfcavity$, u%design%lat, off$)
     endif
+
+    ! Init beam save
+
+    allocate (u%beam_at_element(0:u%design%lat%n_ele_track))
+
   enddo
 
 end subroutine tao_init_design_lattice

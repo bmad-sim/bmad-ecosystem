@@ -914,7 +914,7 @@ case ('sigma.xy')
 case ('wire.')  
   if (track_type == "beam") then
     read (data_type(6:), '(a)') angle
-    datum_value = tao_do_wire_scan (lat%ele(ix1), angle, u%beam%beam)
+    datum_value = tao_do_wire_scan (lat%ele(ix1), angle, u%current_beam)
   elseif (track_type == "macro") then
     datum_value = 0.0
   else

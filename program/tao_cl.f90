@@ -13,11 +13,14 @@ program tao_cl
 
   logical end_flag, found, err
   character(100) cmd_line
+  logical error
 
 ! init
 
-  call tao_init (s%global%default_init_file)
-
+  call tao_parse_command_args (error)
+  if (error) stop
+  call tao_init ()
+  
 ! loop over commands.
 
   end_flag = .false.

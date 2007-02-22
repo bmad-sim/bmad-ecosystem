@@ -168,6 +168,7 @@ type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 type (tao_universe_struct), pointer :: u
 type (ele_struct), pointer :: ele
+type (beam_struct), pointer :: beam
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_x, d1_y
 
@@ -223,16 +224,16 @@ do k = 1, size(graph%curve)
   if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
   if (curve%data_source == 'beam_tracking') then
-
-    if (.not. allocated(curve%beam_save%beam%bunch)) then
+    beam => u%beam_at_element(curve%ix_ele_ref)
+    if (.not. allocated(beam%bunch)) then
       call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
       return
     endif
 
     n = 0
-    do ib = 1,  size(curve%beam_save%beam%bunch)
-      n = size(curve%beam_save%beam%bunch(ib)%particle)
+    do ib = 1,  size(beam%bunch)
+      n = size(beam%bunch(ib)%particle)
     enddo
 
     call re_allocate (curve%ix_symb, n)
@@ -240,10 +241,10 @@ do k = 1, size(graph%curve)
     call re_allocate (curve%y_symb, n)
 
     n = 0
-    do ib = 1, size(curve%beam_save%beam%bunch)
-      m = size(curve%beam_save%beam%bunch(ib)%particle)
-      curve%x_symb(n+1:n+m) = curve%beam_save%beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
-      curve%y_symb(n+1:n+m) = curve%beam_save%beam%bunch(ib)%particle(:)%r%vec(ix2_ax)
+    do ib = 1, size(beam%bunch)
+      m = size(beam%bunch(ib)%particle)
+      curve%x_symb(n+1:n+m) = beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
+      curve%y_symb(n+1:n+m) = beam%bunch(ib)%particle(:)%r%vec(ix2_ax)
       n = n + m
     enddo
 
