@@ -12,7 +12,6 @@
 ! marker names will be:
 !   <ele_name>_m1_r<n>
 !   <ele_name>_m2_r<n>
-! Where <n> is
 !
 ! Input:
 !   A file named bmad_to_csrtrack.in containing the following:
@@ -45,6 +44,8 @@
 !         INSERT_LATTICE_AND_BUNCH_PARAMS_HERE
 !      and the lattice and particle sections will be inserted at this place.
 !
+!      Note: Every place the string "$end_marker" is found the name of the last
+!      marker in the lattice will be substituted.
 !
 ! Output:
 !  1) A "csrtrk.in" file that can be used as the input for CSRtrack.
@@ -64,7 +65,7 @@ type (beam_struct), target :: beam
 type (ele_struct), pointer :: ele
 type (bunch_struct), pointer :: bunch
 
-integer i, j, n, ix_start, ix_end, n_arg, ios, n_list
+integer i, j, n, ix, ix_start, ix_end, n_arg, ios, n_list
 integer, allocatable :: repeat(:)
 
 character(100) bmad_lattice, input_file, particle_out_file
@@ -293,6 +294,7 @@ do i = ix_start, ix_end
   write (2, '(3x, 3a)') trim(csr_type), ' {   ! ', trim(ele%name)
 
   ds = lat%ele(i-1)%s - s_old
+  if (ds == 0) ds = 1e-6  ! So CSRTrack does not complain.
 
   if (i == ix_start) then
     write (2, '(6x, 8a)') &
@@ -337,7 +339,7 @@ write (2, '(a)') "!---------------------------------------------"
 write (2, '(a)') "! Particle distribution"
 write (2, *)
 write (2, '(a)')  "particles {"
-write (2, '(2a)') "   reference_momentum  = ", trim(to_str(p0, 'es15.6'))
+write (2, '(2a)') "   reference_momentum  = reference_particle"  !, trim(to_str(p0, 'es15.6'))
 write (2, '(a)')  "   reference_point_x   = 0.0"
 write (2, '(a)')  "   reference_point_y   = 0.0"
 write (2, '(a)')  "   reference_point_phi = 0.0"
@@ -350,6 +352,8 @@ write (2, '(a)')  "}"
 
 do 
   read (1, '(a)', iostat = ios) line
+  ix = index(line, '$end_marker')
+  if (ix > 0) line = line(1:ix-1) // trim(marker2) // trim(line(ix+11:))
   if (ios /= 0) exit
   write (2, '(a)') trim(line)
 enddo

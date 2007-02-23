@@ -61,7 +61,7 @@ forces{type=projected
              duty_steps=yes
             }
 
-  tracker{end_time_marker=d4b,end_time_shift_c0=1.00}
+  tracker{end_time_marker=$end_marker,end_time_shift_c0=1.00}
 
 !---------------------------------------------------
 ! offline monitors
