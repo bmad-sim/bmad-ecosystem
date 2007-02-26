@@ -150,6 +150,7 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
       if (ix_attrib == k1$) free = .false.
     case (sbend$)
       if (ix_attrib == g$) free = .false.
+      if (ix_attrib == g_err$) free = .false.
     case (hkicker$, vkicker$)
       if (ix_attrib == kick$) free = .false.
     end select
@@ -172,6 +173,7 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
       if (ix_attrib == b_gradient$) free = .false.
     case (sbend$)
       if (ix_attrib == b_field$) free = .false.
+      if (ix_attrib == b_field_err$) free = .false.
     case (hkicker$, vkicker$)
       if (ix_attrib == bl_kick$) free = .false.
     end select

@@ -630,7 +630,7 @@ subroutine get_attribute (how, ele, lat, plat, &
       bp_com%ran_function_was_called = .true.
     else
       ele%value(ix_attrib) = value
-      if (any (ix_attrib == (/ b_field$, b_gradient$, e_field$, e_field$, &
+      if (any (ix_attrib == (/ b_field$, b_field_err$, b_gradient$, e_field$, e_field$, &
                 bl_hkick$, bl_vkick$, bl_kick$ /))) ele%field_master = .true.
       if (ele%key == custom$ .and. ix_attrib == l$) ele%value(l_original$) = value
     endif

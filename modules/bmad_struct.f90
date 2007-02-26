@@ -352,7 +352,7 @@ integer, parameter :: BL_vkick$=24
 integer, parameter :: x_offset$=25
 integer, parameter :: y_offset$=26
 integer, parameter :: s_offset$=27, z_offset$=27
-integer, parameter :: dE_offset$=28, check_sum$=28
+integer, parameter :: dE_offset$=28, check_sum$=28, B_field_err$=28
 integer, parameter :: x_limit$=29
 integer, parameter :: y_limit$=30
 integer, parameter :: aperture$=31

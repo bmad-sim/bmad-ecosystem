@@ -29,13 +29,16 @@ lattice is read in.
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
-{\em Element}                 & {\em Dependent Variables}    & {\em Independent Variables}  \HH
- \vn{BeamBeam}                & \vn{bbi_const}               & \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{E_tot}, \vn{n_part} \HH
- \vn{Elseparator}             & \vn{e_field}, \vn{voltage}   & \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{E_tot}    \HH
- \vn{Lcavity}                 & \vn{e_loss}, \vn{delta_e}    & \vn{gradient}, \vn{l}                           \HH
- \vn{Rbend}, \vn{Sbend} & \vn{rho}, \vn{angle}, \vn{l_chord} & \vn{g}, \vn{l}                                  \HH
- \vn{Wiggler} (periodic type) & \vn{k1}, \vn{rho}            & \vn{b_max}, \vn{E_tot}                    \HH
- All elements                 & \vn{num_steps}               & \vn{ds_step}                                    \HH
+ {\em Element}                & {\em Dependent Variables}    & {\em Independent Variables}        \HH
+ \vn{BeamBeam}                & \vn{bbi_const}               & 
+                                     \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{E_tot}, \vn{n_part} \HH
+ \vn{Elseparator}             & \vn{e_field}, \vn{voltage}   & 
+                                          \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{E_tot}    \HH
+ \vn{Lcavity}                 & \vn{e_loss}, \vn{delta_e}    & \vn{gradient}, \vn{l}              \HH
+ \vn{Rbend}, \vn{Sbend}       & \vn{rho}, \vn{angle}, \vn{l_chord} 
+                                                             & \vn{g}, \vn{l}                     \HH
+ \vn{Wiggler} (periodic type) & \vn{k1}, \vn{rho}            & \vn{b_max}, \vn{E_tot}             \HH
+ All elements                 & \vn{num_steps}               & \vn{ds_step}                       \HH
 \end{tabular}
 }
 \caption[Table of dependent variables.]{Table of dependent variables and 
@@ -74,7 +77,7 @@ that it will never be set by the bookkeeping routine.
 \label{t:dep_except}
 \end{table}
 
-\index{G}\index{B_field}
+\index{G}\index{G_err}\index{B_field}\index{B_field_err}
 \index{B_gradient}\index{Ks}
 \index{K1}\index{K2}\index{K3}
 \index{BL_kick}\index{BL_hkick}\index{BL_vkick}
@@ -94,6 +97,7 @@ Table~\ref{t:dep_field}.
 \begin{tabular}{|l|l|l|} \hline
   {\em Element} & {\em Normalized Strength Attribute} & {\em Field Attribute} \HH
   \vn{Sbend}, \vn{Rbend}     & \vn{g}      &  \vn{b_field}       \HH
+  \vn{Sbend}, \vn{Rbend}     & \vn{g_err}  &  \vn{b_field_err}   \HH
   \vn{Solenoid}              & \vn{ks}     &  \vn{b_field}       \HH
   \vn{Sol_quad}              & \vn{ks}     &  \vn{b_field}       \HH
   \vn{Sol_quad}              & \vn{k1}     &  \vn{b_gradient}    \HH

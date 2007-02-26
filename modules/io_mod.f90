@@ -296,6 +296,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
           if (j == k1$) cycle
         case (sbend$)
           if (j == g$) cycle
+          if (j == g_err$) cycle
         case (hkicker$)
           if (j == kick$) cycle
         case (vkicker$)
@@ -320,6 +321,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
           if (j == b_gradient$) cycle
         case (sbend$)
           if (j == b_field$) cycle
+          if (j == b_field_err$) cycle
         case (hkicker$)
           if (j == bl_kick$) cycle
         case (vkicker$)
