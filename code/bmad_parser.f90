@@ -946,7 +946,6 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   n_ele_max = lat%n_ele_max
   do i = 1, n_ele_max
     if (used_line(i)%ix_multipass /= 0) then 
-      if (lat%ele(i)%key == drift$) cycle
       n_multi = 0  ! number of elements to slave together
       ix_multipass = used_line(i)%ix_multipass
       do j = i, n_ele_max
