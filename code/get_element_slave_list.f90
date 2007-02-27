@@ -1,14 +1,14 @@
 !+
-! Subroutine get_element_slave_list (lat, ix_ele, slave_list, n_slave)
+! Subroutine get_element_slave_list (lat, ix_lord, slave_list, n_slave)
 !
-! Subroutine to get the list of slaves for an element.
+! Subroutine to get the list of slaves for a lord element.
 !
 ! This is a list of ultimate slaves. That is, slaves in the tracking part 
-! of the lattice. Thus if the element lat%ele(ix_ele) controls an
-! element ix_ele2 which controlls an element ix_ele3 then ix_ele3 will
-! show up in the slave_list but ix_ele2 will not.
+! of the lattice. Thus if the element lat%ele(ix_lord) controls an
+! element ix_lord2 which controlls an element ix_lord3 then ix_lord3 will
+! show up in the slave_list but ix_lord2 will not.
 !
-! If the ix_ele element is in the tracking part of the lattice 
+! If the ix_lord element is in the tracking part of the lattice 
 ! then the slave_list will just be that element.
 !
 ! This routine will increase the size of slave_list if needed but will
@@ -19,14 +19,14 @@
 !
 ! Input:
 !   lat     -- lat_struct: Lattice
-!   ix_ele  -- Integer: Index element in the lattice.
+!   ix_lord  -- Integer: Index of lord element in the lattice.
 !
 ! Output:
 !   slave_list(:) -- Integer, allocatable: Array of slave elements.
 !   n_slave       -- Integer: Number of slaves.
 !-
 
-subroutine get_element_slave_list (lat, ix_ele, slave_list, n_slave)
+subroutine get_element_slave_list (lat, ix_lord, slave_list, n_slave)
 
   use bmad_struct
   use bmad_interface
@@ -35,7 +35,7 @@ subroutine get_element_slave_list (lat, ix_ele, slave_list, n_slave)
 
   type (lat_struct) lat
 
-  integer ix_ele, n_slave
+  integer ix_lord, n_slave
   integer, allocatable :: slave_list(:)
 
 !
@@ -43,7 +43,7 @@ subroutine get_element_slave_list (lat, ix_ele, slave_list, n_slave)
   n_slave = 0
   if (.not. allocated(slave_list)) call re_allocate (slave_list, 10)
 
-  call get_slaves (lat%ele(ix_ele))
+  call get_slaves (lat%ele(ix_lord))
 
 !--------------------------------------------------------------------------
 contains
