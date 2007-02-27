@@ -1,7 +1,7 @@
 !+
 ! Subroutine Insert_Element (lat, insert_ele, insert_index)
 !
-! Insert a new element into the regular part of the lat structure.
+! Insert a new element into the tracking part of the lattice list.
 ! The existing elements from INSERT_INDEX to N_ELE_MAX get shoved up 1
 ! in the element array.
 !

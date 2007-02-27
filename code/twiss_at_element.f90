@@ -56,7 +56,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
     return
   endif        
 
-! Regular elements are also easy.
+! Elements in the tracking part of the lattice are also easy.
 
   if (ix_ele <= lat%n_ele_track) then
     if (present(start)) start = lat%ele(ix_ele - 1)
@@ -70,7 +70,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
     return
   endif
 
-! start and end calculation for the lord elements
+! Start and end calculation for the lord elements
 
   select case (ele%control_type)
   case (super_lord$, multipass_lord$, i_beam_lord$)
@@ -80,6 +80,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
     if (present(end)) end = lat%ele(lat%control(ix2)%ix_slave)
 
   case default   ! overlay_lord$ or group_lord$
+
     call get_element_slave_list (lat, ix_ele, slave_list, n_slave)
     ix1 = minval (slave_list(1:n_slave))
     ix2 = maxval (slave_list(1:n_slave))

@@ -67,7 +67,7 @@ subroutine check_lat_controls (lat, exit_on_error)
           t_type == overlay_slave$ .or. t_type == multipass_slave$) then
         print *, 'ERROR IN check_lat_controls: ELEMENT: ', ele%name
         print *, '      WHICH IS A: ', control_name(t_type)
-        print *, '      IS *NOT* IN THE REGULAR PART OF LAT LIST AT', i_t
+        print *, '      IS *NOT* IN THE TRACKING PART OF LAT LIST AT', i_t
         found_err = .true.
       endif                                             
     else                                                         
@@ -76,7 +76,7 @@ subroutine check_lat_controls (lat, exit_on_error)
           t_type == multipass_lord$) then
         print *, 'ERROR IN check_lat_controls: ELEMENT: ', ele%name
         print *, '      WHICH IS A: ', control_name(t_type)
-        print *, '      IS IN THE REGULAR PART OF LAT LIST AT', i_t
+        print *, '      IS IN THE TRACKING PART OF LAT LIST AT', i_t
         found_err = .true.
       endif
     endif

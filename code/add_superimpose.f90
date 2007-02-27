@@ -77,7 +77,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   endif
  
 !-------------------------------------------------------------------------
-! if element has zero length then just insert it in the regular lat list
+! if element has zero length then just insert it in the tracking part of the lattice list
 
   if (sup_ele%value(l$) == 0) then
     call split_lat (lat, s1, ix1_split, split1_done)
@@ -142,7 +142,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   call delete_double_slash (ix2_split)
   call delete_double_slash (ix2_split+1)
 
-! if element overlays a drift then just insert it in the regular lat list
+! if element overlays a drift then just insert it in the tracking part of the lat list
 
   if (ix2_split == ix1_split + 1 .and. lat%ele(ix2_split)%key == drift$) then
     ix_super = ix2_split

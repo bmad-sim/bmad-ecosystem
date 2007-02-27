@@ -248,7 +248,7 @@ type lat_struct
   type (control_struct), pointer :: control(:) => null() ! control list
   type (coord_struct) beam_start  ! Starting coords
   integer version                  ! Version number
-  integer n_ele_track                ! Number of regular lat elements
+  integer n_ele_track              ! Number of lat elements to track through.
   integer n_ele_max                ! Index of last element used
   integer n_control_max            ! Last index used in CONTROL_array
   integer n_ic_max                 ! Last index used in IC_array

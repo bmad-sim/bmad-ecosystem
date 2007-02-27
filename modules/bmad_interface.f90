@@ -314,6 +314,15 @@ interface
 end interface
 
 interface
+  subroutine get_element_lord_list (lat, ix_ele, lord_list, n_lord)
+    use bmad_struct, only: lat_struct
+    type (lat_struct) lat
+    integer ix_ele, n_lord
+    integer, allocatable :: lord_list(:)
+  end subroutine
+end interface
+
+interface
   subroutine get_element_slave_list (lat, ix_ele, slave_list, n_slave)
     use bmad_struct, only: lat_struct
     type (lat_struct) lat

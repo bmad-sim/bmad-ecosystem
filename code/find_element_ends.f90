@@ -1,8 +1,8 @@
 !+
 ! Subroutine find_element_ends (lat, ix_ele, ix_start, ix_end)
 !
-! Subroutine to find the end points of an element in the regular part of the 
-! lat.
+! Subroutine to find the end points of an element in the tracking part of the 
+! lattice.
 !
 ! Modules Needed:
 !   use bmad

@@ -232,12 +232,18 @@ used to do bookkeeping for the entire lattice:
 \section{Elements Controlling Other Elements}
 \label{s:lat_control}
 
-Generally anyone using \bmad routines will not need to bother with
-the details of how elements control other elements (\sref{s:lat_ele_change}).
-It is always safer to use the bookkeeping routines provided by \bmad rather 
-than directly manipulating the control information. The following is thus
-meant for those unusual situations where knowledge of how \bmad implements
-control is needed.
+\index{Routine!get_element_lord_list}
+\index{Routine!get_element_slave_list}
+Generally anyone using \bmad routines will not need to bother with the
+details of how elements control other elements
+(\sref{s:lat_ele_change}).  It is always safer to use the bookkeeping
+routines provided by \bmad rather than directly manipulating the
+control information.  To simply find the slaves and lords of a given
+element use the routines \vn{get_element_lord_list} and
+\vn{get_element_slave_list}.  The following is thus meant for those
+unusual situations where knowledge of how \bmad implements control is
+needed.
+
 
 The element control information is stored in the \vn{%control(:)} array, 
 Each element of this array is a \vn{control_struct} structure 

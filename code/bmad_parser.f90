@@ -1088,7 +1088,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
     if (index(bp_com%debug_line, 'SLAVE') /= 0) then
       print *
       print *, '----------------------------------------'
-      print *, 'Number of Elements in Regular Lat:', lat%n_ele_track
+      print *, 'Number of Elements in Tracking Lattice:', lat%n_ele_track
       do i = 1, lat%n_ele_track
         print *, '-------------'
         print *, 'Ele #', i

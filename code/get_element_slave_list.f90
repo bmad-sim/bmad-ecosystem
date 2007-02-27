@@ -3,13 +3,13 @@
 !
 ! Subroutine to get the list of slaves for an element.
 !
-! This is a list of ultimate slaves. That is, slaves in the regular part 
+! This is a list of ultimate slaves. That is, slaves in the tracking part 
 ! of the lattice. Thus if the element lat%ele(ix_ele) controls an
 ! element ix_ele2 which controlls an element ix_ele3 then ix_ele3 will
 ! show up in the slave_list but ix_ele2 will not.
 !
-! If the ix_ele element is in the regular part of the lattice 
-! then slave_list will just be that element.
+! If the ix_ele element is in the tracking part of the lattice 
+! then the slave_list will just be that element.
 !
 ! This routine will increase the size of slave_list if needed but will
 ! not decrease it.
@@ -41,7 +41,7 @@ subroutine get_element_slave_list (lat, ix_ele, slave_list, n_slave)
 !
 
   n_slave = 0
-  if (.not. allocated(slave_list)) call re_allocate (slave_list, 100)
+  if (.not. allocated(slave_list)) call re_allocate (slave_list, 10)
 
   call get_slaves (lat%ele(ix_ele))
 
@@ -62,7 +62,7 @@ recursive subroutine get_slaves (lord)
     else
       n_slave = n_slave + 1
       if (n_slave > size(slave_list)) &
-                              call re_allocate(slave_list, n_slave + 100)
+                              call re_allocate(slave_list, n_slave + 10)
       slave_list(n_slave) = ix
     endif
   enddo

@@ -137,7 +137,7 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
 
   call control_bookkeeper (lat, i_ele)
 
-! for a regular element
+! For an element in the tracking part of the lattice
 
   if (i_ele <= lat%n_ele_track) then
      if (present(coord)) then
