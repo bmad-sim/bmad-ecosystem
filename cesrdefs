@@ -45,6 +45,15 @@ if ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then
   CESRF90=${CESRF90:-absoft}
 fi
 
+# Only here for temporary fix of stalled login scripts
+# for users sourcing this script on x86_64 architecture  
+# machines.  This provides no other functionality.
+if ( "${PLATFORM_TAG}" == "Linux_x86_64" ) then
+  if ( $?CESRF90    == 0 ) setenv CESRF90 intel  
+endif
+
+
+
 #
 # Set Accelerator Code Libraries base areas:
 # Presently have Unix/Linux and Cygwin versions
@@ -189,6 +198,9 @@ fi
 # $Id$
 #
 # $Log$
+# Revision 1.14  2007/03/06 22:04:52  cesrulib
+# Added an additional platform check to accomodate 'Linux_x86_64' machines because some user scripts might prematurely terminate with a variable definition error when the platform does not match.  This does not provide full functionality in that intel and lahey compilers are not available on the x86_64 machines, so defining one of those to be the default is meaningless.
+#
 # Revision 1.13  2006/09/15 21:33:17  cesrulib
 # Error-checking and documentation adjustments
 #
