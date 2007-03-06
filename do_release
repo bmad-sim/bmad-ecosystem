@@ -53,6 +53,9 @@
 #          -test          Perform executable testing on build products,
 #                          detailed results will be logged to build_status 
 #                          files and summarized in the output of this script.
+#          -one-shot      Run this release as a standalone verification.
+#                          Do not rotate, or update the last_built indicator so
+#                          that subsequent build rotations and deletions function as usual.
 #          
 #         variables:
 #           REL=<release_name>  Specify a specific CESR release
@@ -95,6 +98,13 @@
 # $Id$
 #
 # $Log$
+# Revision 1.38  2007/03/06 21:59:28  cesrulib
+# Changed way the executable-testing script is handled and displayed.
+# Tests are not initiated from this stage in the build process anymore.  They are
+# initiated from within the build_release script on a given platform.
+# do_release now only runs a summary extraction script on the logfiles, one
+# for each platform and displays the output at the end of the release build process.
+#
 # Revision 1.37  2007/01/03 20:29:47  cesrulib
 # Finishing tweaks to get VMS preparation tasks to complete correctly.
 #
@@ -216,6 +226,7 @@ myprint_help () {
     echo "   -ntly               Nightly build, rotate library links when done"
     echo "   -devel              Run a DEVEL build, rotate release and apply CVS tag."
     echo "   -curr               Run a CURRENT build, rotate release and apply special CVS tag."
+    echo "   -one-shot           Standalone verification build, do not rotate or update last built indicators"
     echo "   -test               Run test jobs on all binary build products. Summarize results."
     echo ""
     echo "   -BRANCH=<br name>   Build a release using modules taken from a specific CESR development branch."
@@ -231,6 +242,11 @@ myprint_help () {
     echo ""
     echo "   PATH =  $PATH "
 }
+
+# Save display environment variable and then obliterate to facilitate 
+# proper opration of test suite with X-enabled apps
+DISP=$DISPLAY
+export DISPLAY=none
 
 # Function to convert an elapsed seconds number into Hour Minute and Second
 # values, stored in the variables HRS   MINS   SECS
@@ -290,6 +306,7 @@ SHOW_STATUS=1
 NIGHTLY_BUILD=0
 DEVEL_BUILD=0
 CURRENT_BUILD=0
+ONE_SHOT=0
 TEST_EXEC=0
 
 DO_TAG_RELEASE=0
@@ -361,6 +378,7 @@ do arg_list="${arg_list} ${i}";
      "-devel"   ) DEVEL_BUILD=1; DO_TAG_RELEASE=1;;
      "-curr"    ) CURRENT_BUILD=1; DO_TAG_RELEASE=1;;
      "-test"    ) TEST_EXEC=1;;
+     "-one-shot") ONE_SHOT=1;;
      TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
@@ -920,29 +938,47 @@ fi
 # with tagging/rotation but still notify of failure?
 #####################################################################################
 if ( [ ${TEST_EXEC} -eq 1 ] ) then
-    echo "======================== Binary testing summary: =======================" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+    echo "=============== Output Binary testing summary: ==============" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
     for platform in ${BASE_AREA_LIST}
       do
       statfile=${BUILD_DIR}/log/${platform}/${REL_NAME}.build_status
       if ( ! [ ${platform} = "VMS_alpha_hp" ] && ! [ ${platform} = "CYGWIN_NT_i686_intel" ] ) then
-          echo "${platform}:" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
-          ecode=`grep 'BMADZ TEST COMP' ${statfile} | cut -d' ' -f6`
-          tsec1=`grep 'BEGIN bmadz' ${statfile} | cut -d'(' -f2 | cut -d')' -f1`
-          tsec2=`grep 'END bmadz' ${statfile} | cut -d'(' -f2 | cut -d')' -f1`
-          tseconds=`expr ${tsec2} - ${tsec1}`
-          seconds_to_HMS ${tseconds}
-          if ( [ "${ecode}" -eq 0 ] ) then
-              echo -e "  BMADZ:  OK!\t\t\t\tTest lasted: ${HRS} hrs ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+          echo ""
+          echo "${platform}:"
+          if ( [ "${platform}" = "Linux_i686_intel" ] ) then
+              ffile=${LINUX_INTEL_STAT}
+              #echo ${ffile}
+          elif ( [ "${platform}" = "Linux_i686_lahey" ] ) then
+              ffile=${LINUX_LAHEY_STAT}
+              #echo ${ffile}
           else
-              echo -e "  BMADZ exited with code:  ${ecode}\t\tTest lasted: ${HRS} hrs ${MINS} min ${SECS} sec"  | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+              ffile=${OSF_HP_STAT}
+              #echo ${ffile}
           fi
+          ${use_cesr_bin}/util/extract_test_summary ${ffile} | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+          echo ""
+
+          #echo "${platform}:" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
+          #ecode=`grep 'BMADZ TEST COMP' ${statfile} | cut -d' ' -f6`
+          #tsec1=`grep 'BEGIN bmadz' ${statfile} | cut -d'(' -f2 | cut -d')' -f1`
+          #tsec2=`grep 'END bmadz' ${statfile} | cut -d'(' -f2 | cut -d')' -f1`
+          #tseconds=`expr ${tsec2} - ${tsec1}`
+          #seconds_to_HMS ${tseconds}
+          #if ( [ "${ecode}" -eq 0 ] ) then
+          #    echo -e "  BMADZ:  OK!\t\t\t\tTest lasted: ${HRS} hrs ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+          #else
+          #    echo -e "  BMADZ exited with code:  ${ecode}\t\tTest lasted: ${HRS} hrs ${MINS} min ${SECS} sec"  | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+          #fi
       else
           echo "No data available for ${platform}." | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
       fi
     done
     echo "" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
 fi
-echo "========================================================================" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+echo "==================================================================================" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+
+# Reset display environment variable back to previous value
+export DISPLAY=${DISP}
 
 #####################################################################################
 # If all build jobs complete successfully and this is 
@@ -996,13 +1032,13 @@ else
     echo "ERROR: Not rotating release due to build errors or timeout!" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
 fi
 
-########################################################
+##############################################################
 # If this is a nightly, and we've rotated successfully
 # by having no other errors, delete the previous night's
 # build as long as it hasn't been promoted to a devel
-# or current release.  (Checking done within
-# DELETE_release script.)
-########################################################
+# or current release, and as long as this isn't a 'one-shot'.  
+# build (Checking done within DELETE_release script.)
+##############################################################
 if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
     if ( [ $rotation_success = "true" ] ) then
         if ( [ -e ${PREV_BUILT} ] ) then
@@ -1014,7 +1050,8 @@ if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
     fi    
 fi
 
-if ( [ $DO_REL -eq 1 ] ) then
+# Update the previously built indicator if this is a release and NOT a one-shot
+if ( [ $DO_REL -eq 1 ] && [ $ONE_SHOT -ne 1 ] ) then
     chmod u+w ${PREV_BUILT}
     echo "${REL_NAME}" > ${PREV_BUILT}
     chmod u-w ${PREV_BUILT}
@@ -1031,9 +1068,6 @@ kdestroy
 TIME_2=`date +%s`
 TIME_TOTAL=`expr ${TIME_2} - ${TIME_1}`
 seconds_to_HMS ${TIME_TOTAL}
-## HRS=`expr ${TIME_TOTAL} / 3600`
-## MINS=`expr \( ${TIME_TOTAL} % 3600 \) / 60`
-## SECS=`expr \( ${TIME_TOTAL} % 60 \)`
 echo "Total elapsed time for this build:    ${HRS} hr ${MINS} min ${SECS} sec" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
 echo "EOF" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
 
