@@ -94,7 +94,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%who(1) = 'model', +1
   graph%who(2) = 'design', -1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_type = 'phase.x'
+  curve(1)%data_type = 'phase.a'
   curve(1)%y_axis_scale_factor = 57.29578
 /
 
@@ -112,7 +112,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%who(1) = 'model', +1
   graph%who(2) = 'design', -1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_type = 'phase.y'
+  curve(1)%data_type = 'phase.b'
   curve(1)%y_axis_scale_factor = 57.29578
 /
 
@@ -140,7 +140,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_type   = 'beta.x'
+  curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
 /
 
@@ -156,7 +156,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_type   = 'beta.y'
+  curve(1)%data_type   = 'beta.b'
   curve(1)%y_axis_scale_factor = 1
 /
 

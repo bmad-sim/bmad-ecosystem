@@ -264,10 +264,10 @@ case ('orbit.p_y')
 case ('orbit.p_z')
   call load_it (tao_lat%orb(:)%vec(6), ix0, ix1, datum_value, datum, lat)
 
-case ('phase.x')
+case ('phase.a')
   datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
   if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%a%phi + lat%ele(n_lat)%a%phi 
-case ('phase.y')
+case ('phase.b')
   datum_value = lat%ele(ix1)%b%phi - lat%ele(ix0)%b%phi
   if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%b%phi + lat%ele(n_lat)%b%phi 
 
@@ -279,21 +279,25 @@ case ('phase_frac_diff')
   datum_value = modulo (px, twopi) - modulo (py, twopi)
 
 case ('beta.x')
-  if (track_type == "single") then
-    call load_it (lat%ele(:)%a%beta, ix0, ix1, datum_value, datum, lat)
-  elseif (track_type == "beam") then
+  if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%x%beta
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%x%beta
+  else
+    call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
+                                   'WITH TRACK_TYPE: ' // track_type)
+    call err_exit
   endif
     
 case ('beta.y')
-  if (track_type == "single") then
-    call load_it (lat%ele(:)%b%beta, ix0, ix1, datum_value, datum, lat)
-  elseif (track_type == "beam") then
+  if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%y%beta
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%y%beta
+  else
+    call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
+                                   'WITH TRACK_TYPE: ' // track_type)
+    call err_exit
   endif
 
 case ('beta.z')
@@ -333,21 +337,25 @@ case ('beta.c')
   endif
 
 case ('alpha.x')
-  if (track_type == "single") then
-    call load_it (lat%ele(:)%a%alpha, ix0, ix1, datum_value, datum, lat)
-  elseif (track_type == "beam") then
+  if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%alpha
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%a%alpha
+  else
+    call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
+                                   'WITH TRACK_TYPE: ' // track_type)
+    call err_exit
   endif
   
 case ('alpha.y')
-  if (track_type == "single") then
-    call load_it (lat%ele(:)%b%alpha, ix0, ix1, datum_value, datum, lat)
-  elseif (track_type == "beam") then
+  if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%b%alpha
   elseif (track_type == "macro") then
     datum_value = u%macro_beam%params%b%alpha
+  else
+    call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
+                                   'WITH TRACK_TYPE: ' // track_type)
+    call err_exit
   endif
 
 case ('alpha.z')

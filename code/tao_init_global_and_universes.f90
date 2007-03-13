@@ -59,7 +59,7 @@ integer, allocatable :: found_one(:)
 
 character(*) init_file, data_file, var_file
 character(40) :: r_name = 'tao_init_global_and_universes'
-character(200) file_name
+character(200) file_name, beam_init_file
 character(40) name,  universe, default_universe, default_data_type
 character(40) default_merit_type, default_attribute
 character(100) line
@@ -75,7 +75,7 @@ namelist / tao_params / global, bmad_com, csr_com, &
   
 namelist / tao_coupled_uni_init / ix_universe, coupled
   
-namelist / tao_beam_init / ix_universe, calc_emittance, beam_init
+namelist / tao_beam_init / ix_universe, calc_emittance, beam_init_file, beam_init
          
 namelist / tao_macro_init / ix_universe, calc_emittance, macro_init
          
@@ -223,12 +223,14 @@ if (s%global%track_type /= 'macro') then
     beam_init%renorm_center = .true.
     beam_init%renorm_sigma = .true.
     beam_init%n_bunch = 1
-    beam_init%n_particle  = 1
+    beam_init%n_particle  = -1
+    beam_init_file = ''
     calc_emittance = .false.
     read (iu, nml = tao_beam_init, iostat = ios)
 
     if (ios == 0) then
-      if (beam_init%a_norm_emitt == -1 .and. s%global%track_type == "beam") then
+      if (beam_init%a_norm_emitt == -1 .and. s%global%track_type == "beam" .and. &
+          beam_init_file == '') then
         call out_io (s_abort$, r_name, &
               'TAO_BEAM_INIT NAMELIST: BEAM_INIT%A_NORM_EMITT NOT SET !')
         call err_exit
@@ -237,11 +239,11 @@ if (s%global%track_type /= 'macro') then
               'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
       if (ix_universe == -1) then
         do i = 1, size(s%u)
-          call init_beam(s%u(i), beam_init, calc_emittance)
+          call init_beam(s%u(i), beam_init, beam_init_file, calc_emittance)
         enddo
       else
         i = ix_universe
-        call init_beam(s%u(i), beam_init, calc_emittance)
+        call init_beam(s%u(i), beam_init, beam_init_file, calc_emittance)
       endif
       cycle
     elseif (ios > 0 .and. s%global%track_type == "beam") then
@@ -1445,12 +1447,17 @@ end subroutine init_coupled_uni
 ! Initialize the beams. Determine which element to track beam to
 !
 
-subroutine init_beam (u, beam_init, calc_emittance)
+subroutine init_beam (u, beam_init, beam_init_file, calc_emittance)
 
 implicit none
 
 type (tao_universe_struct) u
 type (beam_init_struct) beam_init
+
+real v(6)
+integer i, iu, n_part
+
+character(*) beam_init_file
 logical calc_emittance
 
 !
@@ -1478,15 +1485,16 @@ elseif (calc_emittance) then
 endif
   
 u%beam_init = beam_init
+u%beam_init_file = beam_init_file
 u%design%orb(0)%vec = beam_init%center
 
 ! No initialization for a circular lattice
 if (u%design%lat%param%lattice_type == circular_lattice$) return
   
 ! This is just to get things allocated
+
 call init_beam_distribution (u%design%lat%ele(0), beam_init, u%current_beam)
-if (u%coupling%coupled) &
-    call init_beam_distribution (u%design%lat%ele(0), beam_init, u%coupling%injecting_beam)
+if (u%coupling%coupled) u%coupling%injecting_beam = u%current_beam
 
 end subroutine init_beam
 

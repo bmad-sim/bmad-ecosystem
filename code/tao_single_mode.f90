@@ -66,7 +66,6 @@ subroutine tao_single_mode (char)
 
   case ('g')
 
-    s%global%init_opt_wrapper = .true.
     s%global%optimizer_running = .true.
     do
       call tao_run_cmd (' ')

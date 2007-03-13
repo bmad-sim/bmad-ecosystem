@@ -403,6 +403,7 @@ The syntax is as follows:
   &tao_beam_init
     ix_universe             = <integer>
     calc_emittance          = <logical>   ! calculate emittance for rings
+    beam_init_file          = <string>    ! Particle initialization file.
     beam_init%a_norm_emit   = <number>    ! A-mode emittance
     beam_init%b_norm_emit   = <number>    ! B-mode emittance
     beam_init%dPz_dZ        = <number>    ! Energy-Z correlation
@@ -428,11 +429,23 @@ The syntax is as follows:
   /
 \end{example}
 \vn{ix_universe} refers to the universe index. See \bmad documentation on what
-the \vn{beam_init} parameters refer to.  The charge per particle is set to
+the \vn{beam_init} parameters refer to. The charge per particle is set to
 $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield
 effects.
 
-The twiss parameters at the beginning of the lattice are used in
+If a \vn{beam_init_file} is specified then \vn{beam_init} is ignored and
+the initial particle positions of the beam are read from the file. However,
+\vn{beam_init%bunch_charge} will be used to set the bunch charge and
+\vn{beam_init%n_particle}, if set, will be used to determine the number of
+particles in a bunch. In this case \vn{beam_init%n_particle} must not be
+greater then the number of particles specified in the file. It is assumed
+that the beam has a single bunch. and that the file columns are:
+\begin{example}
+  x    y    z   px   py   pz
+\end{example}
+
+When there is no \vn{beam_init_file} the twiss parameters 
+at the beginning of the lattice are used in
 initializing the beam distribution.  For circular lattices the twiss
 parameters will be found from the closed orbit, and the emittance will
 be calculated using the \bmad routine \vn{radiation_integrals} unless
@@ -828,16 +841,20 @@ For example:
     data(0:)%ele_name = "DET_00W", " ", "DET_02W", ...
   /
 \end{example}
-Alternatively, one can specify a datum in a single line. For example:
+Alternatively, one can specify a datum in a single line. For example, 
 \begin{example}
-  !         name   data_      ele0_     ele_     merit_   meas_    weight good_
-  !                  type       name      name     type     value           user
   &tao_d1_data
-  data( 1) = ' '   'beta.x'   'Q09_1'   'Q16_1'  'max'      30      0.1     T
-  data( 2) = ' '   'phase.y'  'Q09_1'   'Q16_1'  'max'      30      0.1     T
-  data( 3) = ' '   'floor.x'  ' '       'end'    'target'    3      0.01    T       
-  data( 4) = ' '   'floor.x'  'B1'      'B2'     'target'    3      0.01    T       
-  ...
+    ix_d1_data        = 1 
+    d1_data%name      = "t"  
+    ix_min_data       = 1
+    ix_max_data       = 20
+    !         name   data_      ele0_     ele_     merit_   meas_    weight good_
+    !                  type       name      name     type     value           user
+    data( 1) = ' '   'beta.a'   'Q09_1'   'Q16_1'  'max'      30      0.1     T
+    data( 2) = ' '   'phase.b'  'Q09_1'   'Q16_1'  'max'      30      0.1     T
+    data( 3) = ' '   'floor.x'  ' '       'end'    'target'    3      0.01    T       
+    data( 4) = ' '   'floor.x'  'B1'      'B2'     'target'    3      0.01    T       
+    ... etc. ...
   /
 \end{example}
 
@@ -862,8 +879,8 @@ relative to element\vn{B1}.
 The relative data types are noted in Table~\ref{t:data_types}. With
 these relative data types if \vn{ele0_name} is left blank then the
 beginning of the lattice is assumed. For the particular case when a
-\vn{d1_data} structure has a \vn{d2_data.d1_data} name of \vn{phase.x}
-or \vn{phase.y} there is a subtle difference between using a blank
+\vn{d1_data} structure has a \vn{d2_data.d1_data} name of \vn{phase.a}
+or \vn{phase.b} there is a subtle difference between using a blank
 \vn{ele0_name} and specifying \vn{ele0_name} to be \vn{BEGINNING}
 which is the name of the first element that is automatically inserted
 in all lattices. With a blank \vn{ele0_name} the average phase or

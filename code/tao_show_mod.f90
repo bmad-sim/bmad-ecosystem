@@ -19,6 +19,7 @@ recursive subroutine tao_show_cmd (what, stuff)
 use tao_mod
 use tao_top10_mod
 use tao_command_mod, only: tao_cmd_split
+use random_mod
 
 implicit none
 
@@ -452,11 +453,20 @@ case ('ele', 'taylor')
 
 case ('global')
 
-  nl=nl+1; write (lines(nl), rmt) 'de_lm_step_ratio     = ', s%global%de_lm_step_ratio
   nl=nl+1; write (lines(nl), imt) 'n_universes          = ', size(s%u)
+  nl=nl+1; write (lines(nl), rmt) 'de_lm_step_ratio     = ', s%global%de_lm_step_ratio
+  nl=nl+1; write (lines(nl), rmt) 'lm_opt_deriv_reinit  = ', s%global%lm_opt_deriv_reinit
+  nl=nl+1; write (lines(nl), rmt) 'lmdif_eps            = ', s%global%lmdif_eps
+  nl=nl+1; write (lines(nl), rmt) 'y_axis_plot_dmin     = ', s%global%y_axis_plot_dmin
   nl=nl+1; write (lines(nl), imt) 'u_view               = ', s%global%u_view
   nl=nl+1; write (lines(nl), imt) 'n_opti_cycles        = ', s%global%n_opti_cycles
-  nl=nl+1; write (lines(nl), imt) 'bunch_to_plot:       = ', s%global%bunch_to_plot
+  nl=nl+1; write (lines(nl), imt) 'bunch_to_plot        = ', s%global%bunch_to_plot
+  nl=nl+1; write (lines(nl), imt) 'random_seed          = ', s%global%random_seed
+  if (s%global%random_seed == 0) then
+    call ran_seed_get(ix)
+    nl=nl+1; write (lines(nl), imt) 'random_seed (generated) = ', ix
+  endif
+  nl=nl+1; write (lines(nl), imt) 'n_curve_pts          = ', s%global%n_curve_pts
   nl=nl+1; write (lines(nl), amt) 'track_type           = ', s%global%track_type
   nl=nl+1; write (lines(nl), amt) 'phase_units          = ', &
                               frequency_units_name(s%global%phase_units)
@@ -466,6 +476,11 @@ case ('global')
   nl=nl+1; write (lines(nl), amt) 'print_command        = ', s%global%print_command
   nl=nl+1; write (lines(nl), amt) 'init_file            = ', s%global%init_file
   nl=nl+1; write (lines(nl), amt) 'beam_file            = ', s%global%beam_file
+  nl=nl+1; write (lines(nl), lmt) 'auto_scale           = ', s%global%auto_scale
+  nl=nl+1; write (lines(nl), lmt) 'label_lattice_elements = ', s%global%label_lattice_elements
+  nl=nl+1; write (lines(nl), lmt) 'label_keys           = ', s%global%label_keys
+  nl=nl+1; write (lines(nl), lmt) 'derivative_recalc    = ', s%global%derivative_recalc
+  nl=nl+1; write (lines(nl), lmt) 'var_limits_on        = ', s%global%var_limits_on
   nl=nl+1; write (lines(nl), lmt) 'var_limits_on        = ', s%global%var_limits_on
   nl=nl+1; write (lines(nl), lmt) 'opt_with_ref         = ', s%global%opt_with_ref 
   nl=nl+1; write (lines(nl), lmt) 'opt_with_base        = ', s%global%opt_with_base
@@ -1034,6 +1049,7 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) '%do_synch_rad_int_calc = ', u%do_synch_rad_int_calc
   nl=nl+1; write(lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
   nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
+  nl=nl+1; write(lines(nl), amt) '%beam_init_file        = ', u%beam_init_file
 
   call out_io (s_blank$, r_name, lines(1:nl)) 
 

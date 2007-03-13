@@ -14,6 +14,7 @@ to start with ``out of the box'' \tao while getting to know the
 program. This tutorial starts here and will then show you how to
 customize \tao for your specific purposes.
 
+%----------------------------------------------------------------
 \subsection{Getting and Compiling Tao}
 \index{Compiling Tao}
 \label{s:get_and_compile}
@@ -93,6 +94,7 @@ contains all the configuration files to get everything working. The
 first time you run the program it will need to create a digested \bmad
 lattice file for the included lattice. This may take a few minutes.
 
+%----------------------------------------------------------------
 \subsection{Customizing Tao}
 \index{customizing Tao}
 
@@ -397,14 +399,14 @@ the output should look like:
                                     1  x                      0    99
                                     2  y                      0    99
      phase
-                                    1  x                      0    99
-                                    2  y                      0    99
+                                    1  a                      0    99
+                                    2  b                      0    99
      eta
                                     1  x                      0    99
                                     2  y                      0    99
      beta
-                                    1  x                      0    99
-                                    2  y                      0    99
+                                    1  a                      0    99
+                                    2  b                      0    99
      cbar
                                     1  11                     0    99
                                     2  12                     0    99
@@ -429,16 +431,16 @@ CESR so there are 100 data points.
 To see the data values for the horizontal beta function for \cesr BPMs
 1 through 50 type
 \begin{example}
-  show data beta.x[1:50]
+  show data beta.a[1:50]
 \end{example}
 Since we haven't changed any elements in the lattice yet the model
-values equal the design values. Also note that \vn{beta.x} is actually
+values equal the design values. Also note that \vn{beta.a} is actually
 the a-mode betatron function. In regions with little or no coupling,
 the a-mode is almost completely in the horizontal plane.
 
 A significant point: The convention in \bmad is to label the twiss
 parameters as \vn{x} and \vn{y} but they are actually the \vn{a} and
-\vn{b} normal modes. So in regions of strong coupling \vn{beta.x} does
+\vn{b} normal modes. So in regions of strong coupling \vn{beta.a} does
 not correspond to \vn{orbit.x} which is always in the true horizontal
 lab frame.  However, if you wish, you can re-label your twiss data
 planes as \vn{a} and \vn{b}.  Section~\ref{c:init} shows you how to do
@@ -513,6 +515,7 @@ where \vn{<command_name>} is the command you want help with.
 \section{Modifying the Lattice}
 \label{s:modify_lattice}
 
+%----------------------------------------------------------------
 \subsection{Changing a Variable}
 \label{ss:change_variable}
 
@@ -545,6 +548,7 @@ value. So, to change this quadrupole k1 to -0.348 type
   change var quad\_k1[5] @-0.348
 \end{example}
 
+%----------------------------------------------------------------
 \subsection{Putting things back where you found them}
 \label{ss:put_it_back}
 
@@ -578,23 +582,25 @@ bookkeeping is done for you.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\section{Running the Optimizer}\index{Optimization!running the optimizer}
+\section{Using the Optimizer for Lattice Correction and Design}
+\index{Optimization}
 \label{s:optimizer}
 
 \index{lm!optimizer}\index{de!optimizer}
-There are two non-linear optimizers included with \tao: Levenburg -
-Marquardt, referred to as `\vn{lm}', and Differential Evolution, or
-`\vn{de}'. This example will use the Levenburg - Marquardt optimizer
-which first uses steepest decent to zero in on the region containing
-the minimum then uses the inverse-Hessian to converge on the
-minimum. See Numerical Recipes in Fortran (or C or C++) for a detailed
-explanation. There's no need to know the details in order to use
-either optimizer. Once you set up the problem \tao has the proper
-wrapper routines to do the optimization. Of course, you are not
-limited to using the included optimizers. Custom analysis can be done
-using custom routines but these two optimizers have been integrated
-`out of the box' with the \tao data and variable structures to make
-quick optimization possible.
+There are three non-linear optimizers included with \tao: Two
+optimizers are based on the Levenburg-Marquardt method. These are
+referred to as `\vn{lm}', and \vn{lmdif}', the third optimizer is
+based upon \vn{Differential Evolution} and is called `\vn{de}'. This example
+will use the Levenburg-Marquardt optimizer which first uses steepest
+decent to zero in on the region containing the minimum then uses the
+inverse-Hessian to converge on the minimum. See Numerical Recipes in
+Fortran (or C or C++) for a detailed explanation. There's no need to
+know the details in order to use either optimizer. Once you set up the
+problem \tao has the proper wrapper routines to do the
+optimization. Of course, you are not limited to using the included
+optimizers. Custom analysis can be done using custom routines but
+these two optimizers have been integrated `out of the box' with the
+\tao data and variable structures to make quick optimization possible.
 
 Basically, the `\vn{lm}' is typically faster since it uses a Jacobian
 or ``dmerit'' matrix to find the data derivatives versus each variable
@@ -604,6 +610,7 @@ spaces the `\vn{de}' may work better. But because `\vn{lm}' typically
 converges much faster (for functions it can handle) it is recommended
 to try this one first and only use `\vn{de}' if it fails.
 
+%----------------------------------------------------------------
 \subsection{Fix a Messed Up lattice}
 \label{ss:fix_it}
 
@@ -698,6 +705,7 @@ top10}.  The top 3 derivatives were not the quadrupoles we
 adjusted. Nevertheless, the final result was a darn near perfect
 match!
 
+%----------------------------------------------------------------
 \subsection{Now Not Using all of the Variables}
 \label{ss:fix_it_not_all}
 
@@ -718,15 +726,36 @@ Different quadrupoles than the ones we initially changed were still
 adjusted by the optimizer. The end result is again very close to the
 design lattice.
 
+%----------------------------------------------------------------
 \subsection{Lattice Design}
 \label{ss:lattice_design}
 
-You may wish to constrain beam parameters instead of ``fitting'' to
-data. For example, you could want the beta function not to exceed a
-value in a certain part of the machine. \tao will also perform this
-type of optimization.
+In \vn{lattice design} (\sref{s:lattice_design}) it is generally
+easyest to specify constraint data using the ``\vn{single line}''
+input format (\sref{s:init_data}. For example:
+\begin{example}
+&tao_d2_data
+  d2_data%name = 'c1' 
+  universe = '1'
+  default_merit_type = "max"
+  n_d1_data = 1
+/
 
-\fbox{this subsection is yet to be completed!} 
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = 'xx'
+  default_weight = 0.1
+  ix_min_data = 1
+  ix_max_data = 50
+  data( 1) = ' '  'beta.a'  'end_arc' 'end_lin3' 'max'    60   1.0   T
+  data( 2) = ' '  'beta.b'  'end_arc' 'end_lin3' 'max'    60   1.0   T
+  data( 3) = ' '  'beta.a'  ' '       'end_lin3' 'max'    60   1.0   T
+  data( 4) = ' '  'beta.b'  ' '       'end_lin3' 'max'    60   1.0   T
+  data( 5) = ' '  'alpha.a' ' '       'end_lin3' 'max'   -0.6  1e3   T 
+  data( 6) = ' '  'alpha.b' ' '       'end_lin3' 'max'   -0.6  1e3   T 
+/
+\end{example}
+
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------

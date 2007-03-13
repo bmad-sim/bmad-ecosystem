@@ -97,7 +97,7 @@
 
 &tao_d1_data
   ix_d1_data = 1
-  d1_data%name = "x"  
+  d1_data%name = "a"  
   default_weight = 1e6
   ix_min_data = 0 
   ix_max_data = 99  
@@ -107,7 +107,7 @@
 
 &tao_d1_data
   ix_d1_data = 2
-  d1_data%name = "y"  
+  d1_data%name = "b"  
   default_weight = 1e6
   ix_min_data = 0 
   ix_max_data = 99  
@@ -154,7 +154,7 @@
 
 &tao_d1_data
   ix_d1_data = 1
-  d1_data%name = "x"  
+  d1_data%name = "a"  
   default_weight = 1
   ix_min_data = 0 
   ix_max_data = 99  
@@ -164,7 +164,7 @@
 
 &tao_d1_data
   ix_d1_data = 2
-  d1_data%name = "y"  
+  d1_data%name = "b"  
   default_weight = 1
   ix_min_data = 0 
   ix_max_data = 99  

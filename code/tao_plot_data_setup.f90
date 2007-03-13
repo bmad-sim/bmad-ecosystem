@@ -995,17 +995,17 @@ do ii = 1, size(curve%x_line)
     value = here%vec(4)
   case ('orbit.p_z')
     value = here%vec(6)
-  case ('phase.x')
+  case ('phase.a')
     value = ele%a%phi
-  case ('phase.y')
+  case ('phase.b')
     value = ele%b%phi
-  case ('beta.x', 'beta.a')
+  case ('beta.a')
     value = ele%a%beta
-  case ('beta.y', 'beta.b')
+  case ('beta.b')
     value = ele%b%beta
-  case ('alpha.x', 'alpha.a')
+  case ('alpha.a')
     value = ele%a%alpha
-  case ('alpha.y', 'alpha.b')
+  case ('alpha.b')
     value = ele%b%alpha
   case ('eta.x')
     value = ele%a%eta_lab

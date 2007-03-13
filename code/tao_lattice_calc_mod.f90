@@ -803,15 +803,54 @@ type (ele_struct), save :: extract_ele
 
 type (lat_param_struct), pointer :: param
 
-integer n_bunch, n_part
+real(rp) v(6)
+integer i, iu, ios, n_bunch, n_part, n_in_file, n_in
 
 character(20) :: r_name = "tao_inject_beam"
+character(100) line
 
 !
 
 if (s%global%use_saved_beam_in_tracking) return
 
-if (.not. u%coupling%coupled) then
+! If there is an init file then read from the file
+
+if (u%beam_init_file /= '') then
+
+  iu = lunget()
+  open (iu, file = u%beam_init_file, status = "old")
+  n_in_file = 0
+  ! read number of particles
+  do
+    read (iu, *, iostat = ios) line
+    if (ios < 0) exit
+    n_in_file = n_in_file + 1
+  enddo
+
+  n_part = n_in_file
+  if (u%beam_init%n_particle > 0) n_part = u%beam_init%n_particle
+  call reallocate_beam (u%current_beam, 1, n_part)
+  u%current_beam%bunch(1)%charge = u%beam_init%bunch_charge
+  u%current_beam%bunch(1)%z_center = 0
+  u%current_beam%bunch(1)%t_center = 0
+
+  rewind (iu)
+  n_in = 0
+  do i = 1, n_in_file
+    read (iu, *) v
+    if (n_in > (n_part * i * 1d0) / n_in_file) cycle 
+    if (n_in == n_part) cycle
+    n_in = n_in + 1
+    u%current_beam%bunch(1)%particle(n_in)%r%vec = (/ v(1), v(4), v(2), v(5), v(3), v(6) /)
+    u%current_beam%bunch(1)%particle(n_in)%charge = u%beam_init%bunch_charge / n_part
+    u%current_beam%bunch(1)%particle(n_in)%ix_lost = not_lost$
+  enddo
+
+  close (iu)
+
+  call tao_find_beam_centroid (u%current_beam, orb(0))  
+
+elseif (.not. u%coupling%coupled) then
   u%beam_init%center = u%model%lat%beam_start%vec
   if (u%beam_init%n_bunch < 1 .or. u%beam_init%n_particle < 1) then
     call out_io (s_fatal$, r_name, &

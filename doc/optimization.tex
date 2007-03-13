@@ -1,15 +1,48 @@
-\chapter{Optimization}\index{Optimization}
+\chapter{Lattice Correction and Design Via Optimization of a Merit Function}
 \label{c:opti}
 
-%------------------------------------------------------------------------
-\section{Lattice Corrections}\index{Optimization!Lattice Corrections}
+This chapter covers using minimization (called \vn{optimization}) of a
+\vn{Merit Function} to correct and and to design lattices. Examples
+of \vn{lattice corrections} include flattening the orbit and adjusting
+quadrupoles to correct the measured betatron phase. \vn{Lattice
+design} involves creating a lattice that conforms to a set of
+desireable properties. For example, requireing that the beta fuction
+in a certain region never exceeds a given value.
+Section~\sref{s:optimizer} gives a tutorial on how to setup the merit
+function and run the \vn{optimizer} in \tao.  In this chapter
+Section~\sref{s:lattice_correction} presents the merit function in the
+context of lattice corrections while Section~\sref{s:lattice_design}
+discuses the merit function in the context of lattice design. Since
+the concepts used in \vn{lattice corrections} and \vn{lattice design} are
+similar, \tao combines the two into one generalized merit function as 
+discussed in Section~\sref{s:generalized_design}.
 
-Examples of lattice corrections include flattening the orbit and
-adjusting quadrupoles to correct the measured betatron phase. The
-general idea is to vary an appropriate set of \vn{variables} with the
-aim of minimizing a merit function \vn{M} that is a measure of how
-well \vn{data_model}, the data as calculated from the \vn{model} fits
-\vn{data_meas}, the measured data\index{Optimization!Merit Function}
+%------------------------------------------------------------------------
+\section{Lattice Corrections}
+\label{s:lattice_corrections}
+\index{Modeling Data}
+\index{Lattice Corrections}
+
+\index{Optimization!Merit Function}
+Consider the problem of problem of modifying the orbit of a beam
+through a lattice to conform to some desired orbit. The process
+generally goes through three stages: First the orbit is measured, then
+corrections to the steering elements are calculated and finally the
+corrections are applied to the machine. Since these are necessarily
+machine specific, \tao has no specific routines to measure orbits or
+to load steering corrections but they could be implemented as
+discussed in Chapter~\sref{c:prog_customizing}. \tao does, however,
+implement a generalized algorithim procedure for minimizing a
+\vn{merit function} which can be used to calculate the corrections.
+The idea is to vary a set of variables (steerings in the case of an
+orbit correction) within the \vn{model} lattice (\sref{1.2.2}) with
+the aim to make the measured \vn{data} (position data from BPMs for an
+orbit correction) correspond to the values as calculated from the
+\vn{model} lattice.  
+
+The merit function \vn{M} that is a measure of how
+well \vn{data_model}, the data as calculated from the \vn{model}, fits
+\vn{data_meas}, the measured data, is
 \Begineq
   {\cal M} \equiv \sum_{i} w_i \,
     \bigl[ \data\_\model(i) -  \data\_\meas(i) \bigr]^2 + 
@@ -19,18 +52,19 @@ well \vn{data_model}, the data as calculated from the \vn{model} fits
 \Endeq
 \vn{var_model} is the value of a variable in the \vn{model} and
 \vn{var_meas} is the value as measured at the time the data was taken
-and the sum \vn{j} runs over all variables that are allowed to be
-varied to minimize \vn{M}. The second term in the merit function
-prevents degeneracies (or near degeneracies) in the problem which
-would allow \tao to find solutions where \vn{data_model} matches
-\vn{data_measured} with the \vn{var_model} having ``unphysical''
-values (values far from \vn{var_meas}). The weights $w_i$ and $w_j$
-need to be set depending upon how accurate the measured data is
-relative to how accurate the calibrations for measuring the
-\vn{var_meas} values are. With the second term in the merit function
-the number of constraints (number of terms in the merit function) is
-always larger than the number of variables and degeneracies can never
-occur. 
+(for example, by measureing the current through a steering and using a
+calibration factor to calculate the kick) and the sum \vn{j} runs over
+all variables that are allowed to be varied to minimize \vn{M}.  The
+second term in the merit function prevents degeneracies (or near
+degeneracies) in the problem which would allow \tao to find solutions
+where \vn{data_model} matches \vn{data_measured} with the
+\vn{var_model} having ``unphysical'' values (values far from
+\vn{var_meas}). The weights $w_i$ and $w_j$ need to be set depending
+upon how accurate the measured data is relative to how accurate the
+calibrations for measuring the \vn{var_meas} values are. With the
+second term in the merit function the number of constraints (number of
+terms in the merit function) is always larger than the number of
+variables and degeneracies can never occur.
 
 \index{Optimization!Optimizer}
 The algorithm used to vary the \vn{var_model} variables to minimize
@@ -102,14 +136,16 @@ process is controlled by the \vn{use}, \vn{veto}, \vn{restore}, and
 \vn{clip} commands.
 
 %------------------------------------------------------------------------
-\section{Lattice Design}\index{Optimization!Lattice Design}
+\section{Lattice Design}
+\label{s:lattice_design}
+\index{Optimization!Lattice Design}
 \index{Optimization!Constraints}
 
 Lattice design is the process of calculating \vn{variable} strengths
 to meet a number of criteria called constraints. For example, one
 constraint could be that the beta function in some part of the lattice
 not exceed a certain value. In this case we can proceed as was done
-for lattice correction and define a merit function to be minimized:
+for lattice corrections and define a merit function to be minimized:
 \Begineq
   {\cal M} = \sum_{i} w_i \, C_i^2
 \Endeq
@@ -133,10 +169,12 @@ optimization process is in deciding what the values should be for any
 \vn{target} or \vn{limit}.
 
 %------------------------------------------------------------------------
-\section{Generalized Design}\index{Optimization!Generalized Merit function}
+\section{Generalized Design}
+\label{s:generalized_design}
+\index{Optimization!Generalized Merit function}
 
-Since lattice design and lattice corrections are similar, \tao
-combines the two into one generalized correction process. In this
+Since lattice correction and design are similar, \tao
+combines the two into one generalized process. In this
 generalized process The merit function becomes
 \Begineq
   {\cal M} = \sum_i w_i \, D_i^2 + \sum_j w_j \, V_j^2

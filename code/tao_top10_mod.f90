@@ -220,8 +220,8 @@ end type
 
 type (constraint_struct), allocatable :: con(:)
 
-!
-
+! Init
+ 
 call re_allocate (line, 200, 100)
 this_merit = tao_merit()
 top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
@@ -231,6 +231,8 @@ do i = 1, size(s%u)
   nc = nc + count (s%u(i)%data(:)%useit_opt)
 enddo
 allocate (con(nc), ixm(nc))
+
+! Data constraints
 
 nc = 0
 do i = 1, size(s%u)
@@ -272,13 +274,14 @@ do i = 1, size(s%u)
   enddo
 enddo
 
+! Variable constraints
+
 do i = 1, size(s%var(:))
   var => s%var(i)
   if (.not. var%useit_opt) cycle
-!!  if (var%merit == 0) cycle
   nc = nc + 1
   write (con(nc)%d2_d1_name, '(2a, i0, a)') trim(var%v1%name), '[', var%ix_v1, ']'
-  con(nc)%name       = var%name
+  con(nc)%name       = var%attrib_name
   iu = var%this(1)%ix_uni
   con(nc)%loc1 = s%u(iu)%model%lat%ele(var%this(1)%ix_ele)%name
   con(nc)%loc0 = '-'

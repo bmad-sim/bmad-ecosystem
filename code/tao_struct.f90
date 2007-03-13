@@ -393,7 +393,8 @@ type tao_global_struct
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: init_file     = 'tao.init'  ! used with 'reinitialize' command
-  character(80) :: beam_file     = ''          ! 
+  character(80) :: beam_file     = ''          ! Used to read in previously computed
+                                               !  beam distributions.
   character(80) :: var_out_file  = 'var#.out'
   logical :: var_limits_on = .true.      ! Respect the variable limits?
   logical :: plot_on = .true.            ! Do plotting?
@@ -402,7 +403,6 @@ type tao_global_struct
   logical :: opt_with_base = .false.     ! use base data in optimization?
   logical :: single_mode = .false.
   logical :: optimizer_running 
-  logical :: init_opt_wrapper = .true.
   logical :: label_lattice_elements = .true. ! For lat_layout plots
   logical :: label_keys = .true.             ! For lat_layout plots
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
@@ -488,6 +488,7 @@ type tao_universe_struct
   type (tao_data_struct), pointer :: data(:) => null()        ! array of all data.
   type (tao_ix_data_struct), pointer :: ix_data(:) ! which data to evaluate at this ele
   real(rp), pointer :: dModel_dVar(:,:) => null()             ! Derivative matrix.
+  character(200) beam_init_file                    ! Particle init file.
   integer ix_uni                                   ! Universe index.
   integer n_d2_data_used
   integer n_data_used
