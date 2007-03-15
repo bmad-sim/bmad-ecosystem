@@ -1,0 +1,56 @@
+#!/usr/bin/python
+#####################
+# This script extracts the results of the test_suite script from a
+# file to which the output has been directed into a text file and
+# prints a summary of the success or failure of each program.
+#
+# This need only run properly under Linux to generate test
+# summaries out of concatenated test job output.
+#
+# Useage : extract_test_summary <test_output_file>
+#
+# Author : Matt Rendina
+# Date   : 5 March 2007
+####################################################################
+
+import os
+import sys
+import shutil
+import string
+import time
+
+if len(sys.argv) == 1:
+  print "\nUsage: " + sys.argv[0] + " <file where test_suite output resides>"
+  sys.exit(0)
+elif len(sys.argv) > 2:
+  print "Invalid number of arguments."
+  sys.exit(2)
+else:
+  file = sys.argv[1]
+
+pad = ""
+f = open(file, 'r')
+lines = f.readlines()
+
+for line in lines:
+  if line.find("TEST COMPLETED") != -1:
+    idx = lines.index(line)
+    line = line.strip()
+    chunks = line.split()
+    if chunks[3] == "SUCCESSFULLY!":
+      status = "OK"
+    else:
+      status = "FAILED!"
+    name = chunks[0]
+    for i in range( 0,22-len(name) ):
+      name = name + ' '
+    name = name + " : " + status
+    time = int( chunks[-2] )
+    for i in range( 0,40-len(name) ):
+      name = name + ' '
+    name = name + ' '
+    
+    string = "  " + name + "Test lasted: "+str( time ) + " s"
+    print string
+
+    
