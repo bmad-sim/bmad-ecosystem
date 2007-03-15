@@ -98,6 +98,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.39  2007/03/15 17:19:54  cesrulib
+# Adjusted formatting of test suite summary output.
+#
 # Revision 1.38  2007/03/06 21:59:28  cesrulib
 # Changed way the executable-testing script is handled and displayed.
 # Tests are not initiated from this stage in the build process anymore.  They are
@@ -943,7 +946,6 @@ if ( [ ${TEST_EXEC} -eq 1 ] ) then
       do
       statfile=${BUILD_DIR}/log/${platform}/${REL_NAME}.build_status
       if ( ! [ ${platform} = "VMS_alpha_hp" ] && ! [ ${platform} = "CYGWIN_NT_i686_intel" ] ) then
-          echo ""
           echo "${platform}:"
           if ( [ "${platform}" = "Linux_i686_intel" ] ) then
               ffile=${LINUX_INTEL_STAT}
@@ -957,7 +959,6 @@ if ( [ ${TEST_EXEC} -eq 1 ] ) then
           fi
           ${use_cesr_bin}/util/extract_test_summary ${ffile} | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
           echo ""
-
           #echo "${platform}:" | tee -a ${BUILD_DIR}/log/${REL_NAME}.genlog
           #ecode=`grep 'BMADZ TEST COMP' ${statfile} | cut -d' ' -f6`
           #tsec1=`grep 'BEGIN bmadz' ${statfile} | cut -d'(' -f2 | cut -d')' -f1`
