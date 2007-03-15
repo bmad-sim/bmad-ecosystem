@@ -1,13 +1,15 @@
 #!/usr/bin/python
-#####################
+####################################################################
 # This script extracts the results of the test_suite script from a
-# file to which the output has been directed into a text file and
-# prints a summary of the success or failure of each program.
+# file to which the output has been directed and prints a summary of
+# the success or failure of each program execution.
 #
 # This need only run properly under Linux to generate test
-# summaries out of concatenated test job output.
+# summaries out of concatenated test job output.  It is called from
+# the do_release script near the very end of a CESR build process.
 #
 # Useage : extract_test_summary <test_output_file>
+#     i.e. extract_test_summary cesr_2007_0305_d.build.status
 #
 # Author : Matt Rendina
 # Date   : 5 March 2007
@@ -20,7 +22,7 @@ import string
 import time
 
 if len(sys.argv) == 1:
-  print "\nUsage: " + sys.argv[0] + " <file where test_suite output resides>"
+  print "\nUsage: " + sys.argv[0] + " <file where test suite output resides>"
   sys.exit(0)
 elif len(sys.argv) > 2:
   print "Invalid number of arguments."

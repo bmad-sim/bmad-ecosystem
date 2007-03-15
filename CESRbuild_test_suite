@@ -1,12 +1,27 @@
 #!/usr/bin/python
 ################################################################################
-# Executes a verification suite on the executable applications produced
-# during a CESR Release build.
+# Executes a verification suite on the executable applications produced during
+# a CESR Release build.
 #
 # The names of the applications to test are defined in the dictionary 'progs'
 # just below.  The integer after each program name is whether or not
 # pseudo-terminal magic needs to be performed in order for this script to
 # interact with the program to get it to produce verifiable output.
+# The actual return codes from each program execution are not available, so
+# the text output of the program is checked against expected strings to verify
+# successful completion.
+#
+# NOTE: This program uses the external utility 'empty' to enable the pseudo TTY
+#       process interaction capabilities.  This script originally supports
+#       Linux_i686 and OSF1_alpha with external 'empty' binaries called
+#       'empty' and 'empty-osf' that have been build specifically for those
+#       two platforms respectively.
+#
+#    Those two utility programs must exist in the same
+#       directory as this test suite (or in a PATH directory as described by the
+#       shell running this test program) for everything to work on
+#       all supported platforms.
+#
 #
 # Usage  : test_suite <release> (<platform>)
 #            release   is of the form cesr_YYYY_MMDD_d_N and
