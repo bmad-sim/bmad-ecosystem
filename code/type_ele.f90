@@ -1,6 +1,6 @@
 !+
 ! Subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, 
-!                              twiss_out, type_control, lattice, type_wake)
+!                   twiss_out, type_control, lattice, type_wake, type_floor_coords)
 !
 ! Subroutine to type out information on an element. 
 ! See also the subroutine type2_ele.
@@ -32,12 +32,15 @@
 !                       short-range wakes information. If False then just print
 !                       how many terms the wake has. Default is True.
 !                       If ele%wake is not allocated then this is ignored.
+!   type_floor_coords -- Logical, optional: If True then print the global ("floor")
+!                          coordinates at the exit end of the element.
+!                          Default is False.
 !-
 
 #include "CESR_platform.inc"
 
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
-                                  twiss_out, type_control, lattice, type_wake)
+                     twiss_out, type_control, lattice, type_wake, type_floor_coords)
 
   use bmad_struct
   use bmad_interface, except => type_ele
@@ -51,6 +54,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
   integer, optional :: type_mat6, twiss_out
 
   logical, optional :: type_control, type_zero_attrib, type_taylor, type_wake
+  logical, optional :: type_floor_coords
 
   character(100), pointer :: lines(:) 
 
@@ -59,7 +63,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
   nullify (lines)
 
   call type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
-                         type_taylor, twiss_out, type_control, lattice, type_wake)
+         type_taylor, twiss_out, type_control, lattice, type_wake, type_floor_coords)
 
   do i = 1, n_lines
     print '(1x, a)', trim(lines(i))

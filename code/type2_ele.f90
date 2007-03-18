@@ -1,6 +1,6 @@
 !+
 ! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, 
-!                      type_taylor, twiss_out, type_control, lattice, type_wake)
+!          type_taylor, twiss_out, type_control, lattice, type_wake, type_floor_coords)
 !
 ! Subroutine to put information on an element in a string array. 
 ! See also the subroutine: type_ele.
@@ -32,6 +32,9 @@
 !                       short-range wakes information. If False then just print
 !                       how many terms the wake has. Default is True.
 !                       If ele%wake is not allocated then this is ignored.
+!   type_floor_coords -- Logical, optional: If True then print the global ("floor")
+!                          coordinates at the exit end of the element.
+!                          Default is False.
 !
 ! Output       
 !   lines(:)     -- Character(100), pointer: Character array to hold the 
@@ -44,7 +47,7 @@
 #include "CESR_platform.inc"
 
 subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
-                        type_taylor, twiss_out, type_control, lattice, type_wake)
+             type_taylor, twiss_out, type_control, lattice, type_wake, type_floor_coords)
 
 use bmad_struct
 use bmad_interface, except => type2_ele
@@ -78,6 +81,7 @@ character(2) str_i
 
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
+logical, optional :: type_floor_coords
 logical type_zero
 
 ! init
@@ -486,6 +490,15 @@ if (associated(ele%wake)) then
     endif
   endif
 
+endif
+
+! Encode Floor coords
+
+if (logic_option(.false., type_floor_coords)) then
+  nl=nl+1; li(nl) = ''
+  nl=nl+1; li(nl) = 'Global Floor Coords:'
+  nl=nl+1; write (li(nl), '(3(a, f10.5, 5x))') 'X =    ', ele%floor%x,     'Y =  ', ele%floor%y,   'Z =  ', ele%floor%z 
+  nl=nl+1; write (li(nl), '(3(a, f10.5, 5x))') 'Theta =', ele%floor%theta, 'Phi =', ele%floor%phi, 'Psi =', ele%floor%psi   
 endif
 
 ! finish
