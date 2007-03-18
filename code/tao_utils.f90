@@ -2604,6 +2604,9 @@ subroutine tao_parse_command_args (error, cmd_words)
     case ('beam')
       beam_file = arg2
 
+    case ('')
+      exit
+
     case default
       call out_io (s_fatal$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg1)
       error = .true.

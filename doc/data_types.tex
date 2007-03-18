@@ -118,16 +118,16 @@ associated with them.
 {\tt
 \begin{tabular}{|l|l|l|} \hline
   {\it Data\_Type}              & {\it Description}                  &          \\ \hline 
-    alpha.x, alpha.y, alpha.z   & Projected Alpha Function           &          \\ \hline 
-    alpha.a, alpha.b, alpha.c   & Normal-Mode Alpha Function         &          \\ \hline 
+    alpha.x, alpha.y            & Projected Alpha Function           &          \\ \hline 
+    alpha.a, alpha.b, alpha.z   & Normal-Mode Alpha Function         &          \\ \hline 
     beam\_energy                & Beam Kinetic Energy                &          \\ \hline
-    beta.x, beta.y, beta.z      & Projected Beta Function            &          \\ \hline 
-    beta.a, beta.b, beta.c      & Normal-Mode Beta Function          &          \\ \hline 
+    beta.x, beta.y              & Projected Beta Function            &          \\ \hline 
+    beta.a, beta.b, beta.z      & Normal-Mode Beta Function          &          \\ \hline 
     bpm.x, bpm.y                & Transverse BPM reading             &          \\ \hline 
-    eta.x, eta.y, eta.z         & Projected Dispersion               &          \\ \hline 
-    eta.a, eta.b, eta.c         & Normal-Mode Dispersion             &          \\ \hline 
-    etap.x, etap.y, etap.z      & Projected Dispersion derivative    &          \\ \hline 
-    etap.a, etap.b, etap.c      & Normal-Mode Dispersion derivative  &          \\ \hline 
+    eta.x, eta.y                & Projected Dispersion               &          \\ \hline 
+    eta.a, eta.b                & Normal-Mode Dispersion             &          \\ \hline 
+    etap.x, etap.y              & Projected Dispersion derivative    &          \\ \hline 
+    etap.a, etap.b              & Normal-Mode Dispersion derivative  &          \\ \hline 
     momentum\_compaction        & Momentum compaction factor         & relative \\ \hline
     orbit.x, orbit.y            & Transverse orbit                   &          \\ \hline 
     orbit.p\_x, orbit.p\_y      & Tranverse momenta                  &          \\ \hline 
@@ -177,7 +177,7 @@ associated with them.
     \begin{tabular}{@{}l}
       lat\_emittance.a \\
       lat\_emittance.b \\
-      lat\_emittance.c \\
+      lat\_emittance.z \\
     \end{tabular}
                           & Emittance for a ring              & global   \\ \hline
     \begin{tabular}{@{}l}
@@ -191,7 +191,6 @@ associated with them.
       beam\_emittance.z \\
       beam\_emittance.a \\
       beam\_emittance.b \\
-      beam\_emittance.c \\
     \end{tabular} 
                           & Beam Emittance         &          \\ \hline 
     \begin{tabular}{@{}l}  
@@ -200,7 +199,6 @@ associated with them.
       norm\_beam\_emittance.z \\
       norm\_beam\_emittance.a \\
       norm\_beam\_emittance.b \\
-      norm\_beam\_emittance.c \\
     \end{tabular} 
                           & Normalized Beam Emittance         &          \\ \hline 
     \begin{tabular}{@{}l}   

@@ -231,11 +231,15 @@ type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
-type (floor_position_struct) end1, end2
+type (floor_position_struct) end1, end2, floor
 
-integer i, j, ix_ptr, icol, ix1, ix2, isu
+integer i, j, ix_ptr, icol, ix1, ix2, isu, n_bend
 
-real(rp) y, y1, y2, angle, theta1_perp, rho, x0, y0, dx1, dy1, dx2, dy2
+real(rp) off, off1, off2, angle, rho, x0, y0, dx1, dy1, dx2, dy2
+real(rp) dt_x, dt_y
+real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
+real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
+real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a
 
 character(80) str
 character(20) :: r_name = 'tao_plot_lat_layout'
@@ -284,22 +288,51 @@ do i = 1, lat%n_ele_max
   graph%y_max = max(graph%y_max, end1%y, end2%y)
   graph%y_min = min(graph%y_min, end1%y, end2%y)
 
-  ! Only draw those element that are within bounds.
+  ! Only draw those element that have at least one point in bounds.
+  
+  if ((end1%x < plot%x%min .or. plot%x%max < end1%x .or. &
+      end1%y < graph%y%min .or. graph%y%max < end1%y) .and. &
+      (end2%x < plot%x%min .or. plot%x%max < end2%x .or. &
+      end2%y < graph%y%min .or. graph%y%max < end2%y)) cycle
 
-  if (min(end1%x, end2%x) > plot%x%max) cycle
-  if (max(end1%x, end2%x) < plot%x%min) cycle
-
-  if (min(end1%y, end2%y) > graph%y%max) cycle
-  if (max(end1%y, end2%y) < graph%y%min) cycle
-
-  angle = ele%value(angle$)
-  theta1_perp = end1%theta + pi / 2  ! angle of outward pointing vector
+  ! Bends can be tricky if they are not in the X-Z plane. 
+  ! Thus bends are parameterized by a set of points along their centerline
 
   if (ele%key == sbend$) then
-    rho = ele%value(rho$)
-    if (ele%value(g$) < 0) theta1_perp = end1%theta - pi / 2
-    x0 = end1%x - rho * cos(theta1_perp)
-    y0 = end1%y - rho * sin(theta1_perp)
+    if (ele%value(g$) == 0) then
+      n_bend = 1
+      x_bend(0) = end1%x; y_bend(0) = end1%y
+      x_bend(1) = end2%x; y_bend(1) = end2%y
+
+    else
+      floor = lat%ele(ix1)%floor
+      v_old = (/ floor%x, floor%y, floor%z /)
+      cos_t = cos(floor%theta)
+      sin_t = sin(floor%theta)
+      cos_p = cos(floor%phi)
+      sin_p = sin(floor%phi)
+      w_old(1, 1:3) = (/  cos_t,  -sin_t * sin_p, sin_t * cos_p /)
+      w_old(2, 1:3) = (/ 0.0_rp,   cos_p,         sin_p /)
+      w_old(3, 1:3) = (/ -sin_t,  -cos_t * sin_p, cos_t * cos_p /)
+
+      rho = ele%value(rho$)
+
+      n_bend = int(100 * ele%value(angle$)) + 1
+       do j = 0, n_bend
+        angle = j * ele%value(angle$) / n_bend
+        cos_t = cos(ele%value(tilt$))
+        sin_t = sin(ele%value(tilt$))
+        cos_a = cos(angle)
+        sin_a = sin(angle)
+        r_vec = rho * (/ cos_t * (cos_a - 1), sin_t * (cos_a - 1), sin_a /)
+        dr_vec = rho * (/ -cos_t * sin_a, -sin_t * sin_a, cos_a /)
+        v_vec = matmul (w_old, r_vec) + v_old
+        dv_vec = matmul (w_old, dr_vec) 
+        call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
+        call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx_bend(j), dy_bend(j))
+      enddo
+    endif
+
   endif
 
   ! Only those elements with ele%ix_pointer > 0 are to be drawn.
@@ -307,7 +340,7 @@ do i = 1, lat%n_ele_max
 
   if (ix_ptr < 1) then
     if (ele%key == sbend$) then
-      call qp_draw_circle(x0, y0, rho, theta1_perp, -angle) 
+      call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
     else
       call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
     endif
@@ -327,45 +360,70 @@ do i = 1, lat%n_ele_max
 
   shape = s%plot_page%ele_shape(ix_ptr)%shape
 
-  y = s%plot_page%ele_shape(ix_ptr)%dy_pix/2
-  y1 = y
-  y2 = y
+  off = s%plot_page%ele_shape(ix_ptr)%dy_pix/2
+  off1 = off
+  off2 = off
   if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
     select case (ele%key)
     case (quadrupole$)
-      y1 = y * ele%value(k1$)
+      off1 = off * ele%value(k1$)
     case (sextupole$)
-      y1 = y * ele%value(k2$)
+      off1 = off * ele%value(k2$)
     case (octupole$)
-      y1 = y * ele%value(k3$)
+      off1 = off * ele%value(k3$)
     case (solenoid$)
-      y1 = y * ele%value(ks$)
+      off1 = off * ele%value(ks$)
     end select
-    y2 = y1
-    if (shape == 'ASYM_VAR_BOX') y1 = 0
+    off2 = off1
+    if (shape == 'ASYM_VAR_BOX') off1 = 0
   end if
 
-  ! Draw the shape
+  ! Draw the shape. Since the conversion from floor coords and screen pixels can
+  ! be different along x and y we convert to pixels to make sure that rectangles
+  ! remain rectangualr.
 
-  dx1 = y1 * cos(theta1_perp)
-  dy1 = y1 * sin(theta1_perp)
-  dx2 = y2 * cos(theta1_perp-angle)
-  dy2 = y2 * sin(theta1_perp-angle)
+  call qp_convert_point_abs (end1%x, end1%y, 'DATA', end1%x, end1%y, 'POINTS')
+  call qp_convert_point_abs (end2%x, end2%y, 'DATA', end2%x, end2%y, 'POINTS')
 
-  call qp_draw_line (end1%x+dx1, end1%x-dx2, end1%y+dy1, end1%y-dy2, color = icol)
-  call qp_draw_line (end2%x+dx1, end2%x-dx2, end2%y+dy1, end2%y-dy2, color = icol)
+  ! dx1, etc. are offsets perpendicular to the refernece orbit
+
+  call qp_convert_point_rel (cos(end1%theta), sin(end1%theta), 'DATA', dt_x, dt_y, 'POINTS')
+  dx1 =  off1 * dt_y / sqrt(dt_x**2 + dt_y**2)
+  dy1 = -off1 * dt_x / sqrt(dt_x**2 + dt_y**2)
+
+  call qp_convert_point_rel (cos(end2%theta), sin(end2%theta), 'DATA', dt_x, dt_y, 'POINTS')
+  dx2 =  off2 * dt_y / sqrt(dt_x**2 + dt_y**2)
+  dy2 = -off2 * dt_x / sqrt(dt_x**2 + dt_y**2)
+
+  call qp_draw_line (end1%x+dx1, end1%x-dx1, end1%y+dy1, end1%y-dy1, &
+                                                    units = 'POINTS', color = icol)
+  call qp_draw_line (end2%x+dx2, end2%x-dx2, end2%y+dy2, end2%y-dy2, &
+                                                    units = 'POINTS', color = icol)
 
   if (ele%key == sbend$) then
-    call qp_draw_circle (x0, y0, rho+y1, theta1_perp, -angle, color = icol) 
-    call qp_draw_circle (x0, y0, rho-y2, theta1_perp, -angle, color = icol) 
+    do j = 0, n_bend
+      call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', x_bend(j), y_bend(j), 'POINTS')
+      call qp_convert_point_rel (dx_bend(j), dy_bend(j), 'DATA', dt_x, dt_y, 'POINTS')
+      dx_bend(j) =  off * dt_y / sqrt(dt_x**2 + dt_y**2)
+      dy_bend(j) = -off * dt_x / sqrt(dt_x**2 + dt_y**2)
+    enddo
+    call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
+                          y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
+    call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
+                          y_bend(:n_bend) - dy_bend(:n_bend), units = 'POINTS', color = icol)
+
   else
-    call qp_draw_line (end1%x+dx1, end2%x+dx1, end1%y+dy1, end2%y+dy1, color = icol)
-    call qp_draw_line (end1%x-dx2, end2%x-dx2, end1%y-dy2, end2%y-dy2, color = icol)
+    call qp_draw_line (end1%x+dx1, end2%x+dx2, end1%y+dy1, end2%y+dy2, &
+                                                    units = 'POINTS', color = icol)
+    call qp_draw_line (end1%x-dx1, end2%x-dx2, end1%y-dy1, end2%y-dy2, &
+                                                    units = 'POINTS', color = icol)
   endif
 
   if (s%plot_page%ele_shape(ix_ptr)%shape == 'XBOX') then
-    call qp_draw_line (end1%x+dx1, end2%x+dx1, end1%y+dy1, end2%y+dy1, color = icol)
-    call qp_draw_line (end1%x-dx2, end2%x-dx2, end1%y-dy2, end2%y-dy2, color = icol)
+    call qp_draw_line (end1%x+dx1, end2%x-dx2, end1%y+dy1, end2%y-dy2, &
+                                                    units = 'POINTS', color = icol)
+    call qp_draw_line (end1%x-dx1, end2%x+dx2, end1%y-dy1, end2%y+dy2, &
+                                                    units = 'POINTS', color = icol)
   endif
 
 enddo
@@ -373,20 +431,31 @@ enddo
 !--------------------------------------------------------------------------
 contains
 
-subroutine floor_to_screen_coords (floor_pt, screen_pt)
+subroutine floor_to_screen_coords (floor, screen)
 
-type (floor_position_struct) floor_pt, screen_pt
+type (floor_position_struct) floor, screen
 
 !
+
+call floor_to_screen (floor%x, floor%y, floor%z, screen%x, screen%y)
+screen%theta = pi + floor%theta
+
+end subroutine
+
+!--------------------------------------------------------------------------
+! contains
+
+subroutine floor_to_screen (x_floor, y_floor, z_floor, x_screen, y_screen)
+
+real(rp) x_floor, y_floor, z_floor, x_screen, y_screen
 
 ! Mapping from floor coords to screen coords is:
 !   Floor   Screen 
 !    z   ->  -x
 !    x   ->  -y
 
-screen_pt%x = -floor_pt%z
-screen_pt%y = -floor_pt%x
-screen_pt%theta = pi + floor_pt%theta
+x_screen = -z_floor
+y_screen = -x_floor
 
 end subroutine
 

@@ -366,7 +366,7 @@ Examples
 Format:
 \begin{example}
   output bmad_lattice \{<file_name>\} ! Write a Bmad lattice file of the model
-  output bunch \{<file_name>\}              ! Write bunch distributsion data.
+  output beam \{<file_name>\}              ! Write beam distributsion data.
   output curve <curve_name> \{<file_name>\} ! Write the curve data
   output derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
   output digested \{<file_name>\}     ! Write a digested Bmad lattice file of the model.
@@ -383,7 +383,7 @@ not given then the defaults are:
   Command                         Default File Name
   ------------------              ------------------
   output bmad_lattice             lat_#.bmad
-  output bunch                    bunch.dat
+  output beam                     beam.dat
   output curve                    curve
   output derivative_mat           derivative_matrix.dat rix               
   output digested                 digested8_lat_universe_#.bmad
@@ -748,7 +748,8 @@ The format for this is:
 
 Format:
 \begin{example}
-  show alias                     
+  show alias 
+  show beam                    
   show constraints
   show data \{<data_name>\} 
   show ele <ele_name>
@@ -785,6 +786,9 @@ used.
   \item[show alias]
 Shows a list of defined aliases. See the \vn{alias} command for more
 details.
+
+  \item[show beam]
+Shows parameters used with beam tracking including the number of particles in a bunch, etc.
 
   \item[show constraints]
 Lists data and variable constraints.

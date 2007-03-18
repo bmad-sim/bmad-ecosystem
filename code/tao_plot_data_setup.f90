@@ -174,6 +174,7 @@ type (tao_d1_data_struct), pointer :: d1_x, d1_y
 
 real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
 real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
+real(rp) emit_a, emit_b
 
 integer k, n, m, ib, ix1_ax, ix2_ax, ix, i_uni, i
 
@@ -308,11 +309,16 @@ do k = 1, size(graph%curve)
     call make_g_mats (ele, g_mat, g_inv_mat)
 
     mat4 = matmul(v_mat, g_inv_mat)
+    emit_a = u%model%lat%a%emit
+    if (emit_a == 0) emit_a = 1e-6  ! default value
+    emit_b = u%model%lat%b%emit
+    if (emit_b == 0) emit_b = 1e-6  ! default value
+
     sigma_mat =  0
-    sigma_mat(1,1) = u%model%lat%a%emit
-    sigma_mat(2,2) = u%model%lat%a%emit
-    sigma_mat(3,3) = u%model%lat%b%emit
-    sigma_mat(4,4) = u%model%lat%b%emit
+    sigma_mat(1,1) = emit_a
+    sigma_mat(2,2) = emit_a
+    sigma_mat(3,3) = emit_b
+    sigma_mat(4,4) = emit_b
     sigma_mat = matmul (matmul (mat4, sigma_mat), transpose(mat4))
 
     if (ix1_ax > 4 .or. ix2_ax > 4) then
@@ -323,8 +329,8 @@ do k = 1, size(graph%curve)
 
     rx = sqrt(sigma_mat(ix1_ax, ix1_ax))
     ry = sqrt(sigma_mat(ix2_ax, ix2_ax))
-    write (graph%legend(1), '(a, f10.6)') 'r_x:', rx
-    write (graph%legend(2), '(a, f10.6)') 'r_y:', ry
+    write (graph%legend(1), '(a, es9.2)') 'emit_a:', emit_a
+    write (graph%legend(2), '(a, es9.2)') 'emit_b:', emit_b
 
     if(rx == 0 .or. ry == 0) then
       theta_xy = 0
@@ -938,6 +944,15 @@ endif
 
 if (curve%data_source == 'calculation') then
   track_type = 'single'
+  select case (data_type(1:5))
+  case ('sigma', 'emitt', 'norm_')
+    call out_io (s_fatal$, r_name, &
+              'CURVE%DATA_SOURCE = "calculation" IS NOT COMPATABLE WITH DATA_TYPE: ' &
+              // data_type)
+    call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
+    err = .true.
+    return
+  end select 
 else
   track_type = s%global%track_type
 endif
@@ -1069,18 +1084,18 @@ do ii = 1, size(curve%x_line)
     value = sqrt(bunch_params%sigma(s55$))
   case ('sigma.p_z')
     value = sqrt(bunch_params%sigma(s66$))
-  case ('norm_emittance.x')
+  case ('norm_beam_emittance.a')
     value = bunch_params%a%norm_emitt
-  case ('norm_emittance.y')
+  case ('norm_beam_emittance.b')
     value = bunch_params%b%norm_emitt
   case ('norm_emittance.z')
     value = bunch_params%z%norm_emitt
-  case ('emittance.x')
+  case ('emittance.a')
     value = bunch_params%a%norm_emitt
     call convert_total_energy_to (ele%value(E_tot$), &
                                               lat%param%particle, gamma)
     value = value / gamma
-  case ('emittance.y')
+  case ('emittance.b')
     value = bunch_params%b%norm_emitt
     call convert_total_energy_to (ele%value(E_tot$), &
                                               lat%param%particle, gamma)
@@ -1123,9 +1138,9 @@ do ii = 1, size(curve%x_line)
     value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
 
   case default
-   call out_io (s_fatal$, r_name, &
+    call out_io (s_fatal$, r_name, &
                   'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // data_type)
-   call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
+    call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
     err = .true.
     return
   end select

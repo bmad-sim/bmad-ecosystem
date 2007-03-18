@@ -382,8 +382,8 @@ The syntax is as follows:
 \index{ix_universe}
 \index{calc_emittance}
 \index{beam_init}
-\index{beam_init!a_norm_emit}
-\index{beam_init!b_norm_emit}
+\index{beam_init!a_norm_emitt}
+\index{beam_init!b_norm_emitt}
 \index{beam_init!dPz_dZ}
 \index{beam_init!center}
 \index{beam_init!sig_e}
@@ -396,16 +396,16 @@ The syntax is as follows:
 \index{beam_init!renorm_sigma}
 \index{beam_init!center_jitter}
 \index{beam_init!emitt_jitter}
-\index{beam_init!siz_z_jitter}
-\index{beam_init!siz_e_jitter}
+\index{beam_init!sig_z_jitter}
+\index{beam_init!sig_e_jitter}
 \index{beam_init!polarization}
 \begin{example}
   &tao_beam_init
     ix_universe             = <integer>
     calc_emittance          = <logical>   ! calculate emittance for rings
     beam_init_file          = <string>    ! Particle initialization file.
-    beam_init%a_norm_emit   = <number>    ! A-mode emittance
-    beam_init%b_norm_emit   = <number>    ! B-mode emittance
+    beam_init%a_norm_emitt  = <number>    ! A-mode emittance
+    beam_init%b_norm_emitt  = <number>    ! B-mode emittance
     beam_init%dPz_dZ        = <number>    ! Energy-Z correlation
     beam_init%center        = <number>*6  ! Bunch center offset relative to
                                           ! reference particle (BMAD coords)
@@ -419,8 +419,8 @@ The syntax is as follows:
     beam_init%renorm_sigma  = <logical>   ! Default is .false.
     beam_init%center_jitter = <number>*6  ! Bunch center rms jitter (meters)
     beam_init%emitt_jitter  = <bumber>*2  ! a and b emittance rms jitter (depsilon/epsilon)
-    beam_init%siz_z_jitter  = <number>    ! bunch length rms jitter (dz/z)
-    beam_init%siz_e_jitter  = <number>    ! bunch energy spread rms jitter (dE/E)
+    beam_init%sig_z_jitter  = <number>    ! bunch length rms jitter (dz/z)
+    beam_init%sig_e_jitter  = <number>    ! bunch energy spread rms jitter (dE/E)
     beam_init%spin%polarization = <number> ! spin polarization (1.0 = %100 polarizaed)
     beam_init%spin%theta    = <number> ! spin orientation  (polar coordinate)
     beam_init%spin%phi      = <number> ! spin orientation  (polar coordinate)
@@ -1242,6 +1242,7 @@ specified, is for the graph will show \vn{model} values.
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
 \index{data}\index{lat_layout}\index{key_table}\index{phase_space}
+\index{floor_plan}
 \begin{example}
   "data"         ! Data plots (default) 
   "floor_plan"   ! A 2-dimensional birds-eye view of the machine.
@@ -1251,6 +1252,22 @@ following types:
 \end{example}
 The \vn{key_table} is drawn with respect to the upper left hand corner
 of the region in which it is placed.
+
+With \vn{graph%type} set to \vn{floor_plan}, the layout of the machine
+is drawn. The \bmad global reference system are covered in Chapter~1
+of the \bmad reference manual. With the \bmad global reference system
+the $X-Z$ axes define the horizontal plane The conversion between
+\bmad global axes and \tao graph axes is:
+\begin{example}
+  Bmad      Tao
+  X    ->   -y
+  Z    ->   -x
+\end{example}
+Unless there is an offset specified in the lattice file, a lattice
+will start at $(x, y) = (0, 0)$. Assuming that the mchine lies in the
+plane with no negative bends, the reference orbit will start out
+pointing in the negative $x$ direction and will circle clockwise in
+the $(x, y)$ plane.
 
 \vn{graph%box} sets the layout of the box which the \vn{graph} is
 placed in. For a definition of what a box is see the Quick Plot
@@ -1303,20 +1320,22 @@ must be either:
   "twiss"
 \end{example} 
 \vn{"beam_tracking"} indicates that the points of the phase space plot
-will be obtained correspond to the positions of the particles within
-a tracked beam. \vn{multi_turn_orbit"} is used for rings where a
-single particle is tracked multiple turns and the position of this 
-particle is recorded each turn. In this case, a \vn{d2_data} structure
-must have been set up to hold the turn--by--turn orbit. This \vn{d2_data}
-structure must be called \vn{multi_turn_orbit} and must have \vn{d1_data}
-data arrays for the phase space planes to be plotted. For example, if
-the phase space plot is \vn{x} verses \vn{p_x}, then there must be 
-\vn{d1_data} arrays named \vn{"x"} and \vn{"p_x"}. The number of turns is determined
-by the setting of \vn{ix_max_data} in the \vn{tao_d1_data} namelist 
-(\sref{s:init_data}). Using \vn{"twiss"} as the \vn{curve%data_source}
-indicates that the phase space plot will be an ellipse whose shape is
-based upon the Twiss
-and coupling parameters, and the normal mode emittances.
+will be obtained correspond to the positions of the particles within a
+tracked beam. \vn{multi_turn_orbit"} is used for rings where a single
+particle is tracked multiple turns and the position of this particle
+is recorded each turn. In this case, a \vn{d2_data} structure must
+have been set up to hold the turn--by--turn orbit. This \vn{d2_data}
+structure must be called \vn{multi_turn_orbit} and must have
+\vn{d1_data} data arrays for the phase space planes to be plotted. For
+example, if the phase space plot is \vn{x} verses \vn{p_x}, then there
+must be \vn{d1_data} arrays named \vn{"x"} and \vn{"p_x"}. The number
+of turns is determined by the setting of \vn{ix_max_data} in the
+\vn{tao_d1_data} namelist (\sref{s:init_data}). Using \vn{"twiss"} as
+the \vn{curve%data_source} indicates that the phase space plot will be
+an ellipse whose shape is based upon the Twiss and coupling
+parameters, and the normal mode emittances. If the normal mode
+emittances have not been computed then a nominal value of 1e-6~m-rad
+is used.
 
 Additionally, for a \vn{"phase_space"} type graph, \vn{curve%data_type}
 determines what planes are plotted. A plane is either:
@@ -1334,6 +1353,9 @@ For example:
   curve%data_type = "x-p_x"  ! x-axis - y-axis
 \end{example}
 The dash \vn{-} is mandatory as the separator between the plane names. 
+
+To change the place at which the \vn{phase_space} curve is drawn use
+the \vn{set curve ele_ref_name} or \vn{set curve ix_ele_ref} commands.
 
 \vn{curve%convert} is a logical that is only used
 with \vn{curve%data_name} = "coupling" and tells \tao to convert the

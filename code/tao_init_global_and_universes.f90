@@ -209,6 +209,11 @@ if (s%global%track_type /= 'macro') then
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
 
+  do i = 1, size(s%u)
+    s%u(i)%beam_init%a_norm_emitt = -1
+    s%u(i)%beam_init_file = ''
+  enddo
+
   ! defaults
   do 
     ix_universe = -1

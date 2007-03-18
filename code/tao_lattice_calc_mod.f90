@@ -815,7 +815,7 @@ if (s%global%use_saved_beam_in_tracking) return
 
 ! If there is an init file then read from the file
 
-if (u%beam_init_file /= '') then
+if (u%beam_init_file /= "") then
 
   iu = lunget()
   open (iu, file = u%beam_init_file, status = "old")
@@ -827,8 +827,15 @@ if (u%beam_init_file /= '') then
     n_in_file = n_in_file + 1
   enddo
 
+  ! if beam_init%n_particle is set then prune input to only use this number
+
   n_part = n_in_file
-  if (u%beam_init%n_particle > 0) n_part = u%beam_init%n_particle
+
+  if (u%beam_init%n_particle > 0) then
+    if (u%beam_init%n_particle <= n_part) n_part = u%beam_init%n_particle
+  endif
+
+  u%beam_init%n_particle = n_part
   call reallocate_beam (u%current_beam, 1, n_part)
   u%current_beam%bunch(1)%charge = u%beam_init%bunch_charge
   u%current_beam%bunch(1)%z_center = 0
@@ -872,9 +879,11 @@ else
   
   ! beam from previous universe at end of extracting element should already be set
   ! but we still need the twiss parameters and everything else
+
   extract_ele = s%u(u%coupling%from_uni)%model%lat%ele(u%coupling%from_uni_ix_ele)
   
-  !track through coupling element
+  ! track through coupling element
+
   if (u%coupling%use_coupling_ele) then
     param => s%u(u%coupling%from_uni)%model%lat%param
     if (s%global%matrix_recalc_on) call make_mat6 (u%coupling%coupling_ele, param)

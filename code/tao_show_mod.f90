@@ -20,6 +20,7 @@ use tao_mod
 use tao_top10_mod
 use tao_command_mod, only: tao_cmd_split
 use random_mod
+use csr_mod, only: csr_com
 
 implicit none
 
@@ -68,10 +69,11 @@ character(200) stuff2
 character(40) ele_name, name, sub_name
 character(60) nam
 
-character(16) :: show_names(15) = (/ &
+character(16) :: show_names(16) = (/ &
    'data        ', 'var         ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'ele         ', 'lattice     ', 'constraints ', 'plot        ', &
-   'write       ', 'hom         ', 'opt_vars    ', 'universe    ', 'taylor      ' /)
+   'write       ', 'hom         ', 'opt_vars    ', 'universe    ', 'taylor      ', &
+   'beam        ' /)
 
 character(200), allocatable, save :: lines(:)
 character(200) line, line1, line2, line3
@@ -135,6 +137,57 @@ call tao_cmd_split (stuff, 2, word, .false., err)
 
 
 select case (show_names(ix))
+
+!----------------------------------------------------------------------
+! beam
+
+case ('beam')
+
+  u => s%u(s%global%u_view)
+
+  nl=nl+1; write(lines(nl), '(a, i3)') 'Universe: ', s%global%u_view
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%a_norm_emitt      = ', u%beam_init%a_norm_emitt
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%b_norm_emitt      = ', u%beam_init%b_norm_emitt
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%dPz_dz            = ', u%beam_init%dPz_dz
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%center            = ', u%beam_init%center
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%ds_bunch          = ', u%beam_init%ds_bunch
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z             = ', u%beam_init%sig_z
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e             = ', u%beam_init%sig_e
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%bunch_charge      = ', u%beam_init%bunch_charge
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%center_jitter     = ', u%beam_init%center_jitter
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%emitt_jitter      = ', u%beam_init%emitt_jitter
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z_jitter      = ', u%beam_init%sig_z_jitter
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e_jitter      = ', u%beam_init%sig_e_jitter
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%polarization = ', u%beam_init%spin%polarization
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%theta        = ', u%beam_init%spin%theta
+  nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%phi          = ', u%beam_init%spin%phi
+  nl=nl+1; write(lines(nl), imt) 'beam_init%n_particle        = ', u%beam_init%n_particle
+  nl=nl+1; write(lines(nl), imt) 'beam_init%n_bunch           = ', u%beam_init%n_bunch
+  nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_center     = ', u%beam_init%renorm_center
+  nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_sigma      = ', u%beam_init%renorm_sigma
+  nl=nl+1; write(lines(nl), lmt) 'beam_init%preserve_dist     = ', u%beam_init%preserve_dist
+  nl=nl+1; write(lines(nl), lmt) 'beam_init%init_spin         = ', u%beam_init%init_spin
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; write(lines(nl), lmt) 'bmad_com%sr_wakes_on               = ', bmad_com%sr_wakes_on
+  nl=nl+1; write(lines(nl), lmt) 'bmad_com%lr_wakes_on               = ', bmad_com%lr_wakes_on
+  nl=nl+1; write(lines(nl), lmt) 'bmad_com%trans_space_charge_on     = ', bmad_com%trans_space_charge_on
+  nl=nl+1; write(lines(nl), lmt) 'bmad_com%coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
+  nl=nl+1; write(lines(nl), lmt) 'bmad_com%spin_tracking_on          = ', bmad_com%spin_tracking_on
+  nl=nl+1; write(lines(nl), lmt) 'bmad_com%radiation_damping_on      = ', bmad_com%radiation_damping_on
+  nl=nl+1; write(lines(nl), lmt) 'bmad_com%radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; write(lines(nl), rmt) 'csr_com%ds_track_step      = ', csr_com%ds_track_step
+  nl=nl+1; write(lines(nl), imt) 'csr_com%n_bin              = ', csr_com%n_bin
+  nl=nl+1; write(lines(nl), imt) 'csr_com%particle_bin_span  = ', csr_com%particle_bin_span
+  nl=nl+1; write(lines(nl), lmt) 'csr_com%lcsr_component_on  = ', csr_com%lcsr_component_on
+  nl=nl+1; write(lines(nl), lmt) 'csr_com%lsc_component_on   = ', csr_com%lsc_component_on
+  nl=nl+1; write(lines(nl), lmt) 'csr_com%tsc_component_on   = ', csr_com%tsc_component_on
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', s%global%track_type
+  nl=nl+1; write(lines(nl), lmt) 'global%save_beam_everywhere = ', s%global%save_beam_everywhere
+
+  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! optimized_vars
@@ -410,15 +463,18 @@ case ('ele', 'taylor')
     ! Show the element info
     if (show_names(ix) == 'ele') then
       call type2_ele (u%model%lat%ele(loc), ptr_lines, n, .true., 6, .false., &
-                                        s%global%phase_units, .true., u%model%lat)
+                        s%global%phase_units, .true., u%model%lat, .true., .true.)
     else
       call type2_ele (u%model%lat%ele(loc), ptr_lines, n, .true., 6, .true., &
-                                        s%global%phase_units, .true., u%model%lat)
+                             s%global%phase_units, .true., u%model%lat, .false., .false.)
     endif
     if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100)
     lines(nl+1:nl+n) = ptr_lines(1:n)
     nl = nl + n
     deallocate (ptr_lines)
+    if (show_names(ix) == 'ele') then
+      nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (-X, -Y)]'
+    endif
 
     orb = u%model%orb(loc)
     fmt = '(2x, a, 3p2f11.4)'

@@ -273,12 +273,15 @@ case ('curve')
 case ('beam')
 
   n_write = 0
-  read (arg1, *, iostat = ios) n_skip
-  if (arg1 == ' ' .or. ios /= 0 .or. n_skip < 1) then
-    call out_io (s_error$, r_name, '"beam" needs to be followed by a skip number: ' // arg1)
-    return
-  endif
-  file_name = arg2
+  n_skip = 1
+
+!  read (arg1, *, iostat = ios) n_skip
+!  if (arg1 == ' ' .or. ios /= 0 .or. n_skip < 1) then
+!    call out_io (s_error$, r_name, '"beam" needs to be followed by a skip number: ' // arg1)
+!    return
+!  endif
+
+  file_name = arg1
   if (file_name == ' ') file_name = 'beam.dat'
   open (iu, file = file_name, form = 'unformatted')
 

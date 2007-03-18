@@ -241,6 +241,10 @@ if (data_type == 'r.' .or. data_type == 't.' .or. data_type == 'tt.') then
   endif
 endif
 
+if (data_type(1:9) == 'norm_beam') call convert_total_energy_to ( &
+                    lat%ele(ix1)%value(E_TOT$), lat%param%particle, gamma)
+
+
 !---------------------------------------------------
 
 select case (data_type)
@@ -327,15 +331,6 @@ case ('beta.b')
     datum_value = u%macro_beam%params%b%beta
   endif
 
-case ('beta.c')
-  if (track_type == "single") then
-    datum_value = 0.0
-  elseif (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%c%beta
-  elseif (track_type == "macro") then
-    datum_value = 0.0
-  endif
-
 case ('alpha.x')
   if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%alpha
@@ -385,15 +380,6 @@ case ('alpha.b')
     datum_value = u%macro_beam%params%b%alpha
   endif
 
-case ('alpha.c')
-  if (track_type == "single") then
-    datum_value = 0.0
-  elseif (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%c%alpha
-  elseif (track_type == "macro") then
-    datum_value = 0.0
-  endif
-
 case ('gamma.x')
   if (track_type == "single") then
     call load_it (lat%ele(:)%a%gamma, ix0, ix1, datum_value, datum, lat)
@@ -439,15 +425,6 @@ case ('gamma.b')
     datum_value = u%macro_beam%params%b%gamma
   endif
 
-case ('gamma.c')
-  if (track_type == "single") then
-    datum_value = 0.0
-  elseif (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%c%gamma
-  elseif (track_type == "macro") then
-    datum_value = 0.0
-  endif
-
 case ('eta.x')
   if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%x%eta
@@ -464,15 +441,6 @@ case ('eta.y')
     datum_value = u%macro_beam%params%y%eta
   else
     call load_it (lat%ele(:)%b%eta_lab, ix0, ix1, datum_value, datum, lat)
-  endif
-
-case ('eta.z')
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%z%eta
-  elseif (track_type == "macro") then
-    datum_value = 0.0
-  else
-    datum_value = 0.0
   endif
 
 case ('etap.x')
@@ -493,15 +461,6 @@ case ('etap.y')
     call load_it (lat%ele(:)%b%etap_lab, ix0, ix1, datum_value, datum, lat)
   endif
 
-case ('etap.z')
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%z%etap
-  elseif (track_type == "macro") then
-    datum_value = 0.0
-  else
-    datum_value = 0.0
-  endif
-
 case ('eta.a')
   if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%eta
@@ -520,15 +479,6 @@ case ('eta.b')
     call load_it (lat%ele(:)%b%eta, ix0, ix1, datum_value, datum, lat)
   endif
 
-case ('eta.c')
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%c%eta
-  elseif (track_type == "macro") then
-    datum_value = 0.0
-  else
-    datum_value = 0.0
-  endif
-
 case ('etap.a')
   if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%etap
@@ -545,15 +495,6 @@ case ('etap.b')
     datum_value = u%macro_beam%params%b%etap
   else
     call load_it (lat%ele(:)%b%etap, ix0, ix1, datum_value, datum, lat)
-  endif
-
-case ('etap.c')
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%c%etap
-  elseif (track_type == "macro") then
-    datum_value = 0.0
-  else
-    datum_value = 0.0
   endif
 
 case ('e_tot')
@@ -677,90 +618,17 @@ case ('s_position')
 !---------------------------------------------------------
 ! Beam Emittance
   
-case ('beam_emittance.x')
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%a%norm_emitt
-  elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%a%norm_emitt
-  else
-    datum_value = 0.0
-  endif
-  call convert_total_energy_to (lat%ele(ix1)%value(E_TOT$), &
-                                              lat%param%particle, gamma)
-  datum_value = datum_value / gamma
-  
-case ('beam_emittance.y')  
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%b%norm_emitt
-  elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%b%norm_emitt
-  else
-    datum_value = 0.0
-  endif
-  call convert_total_energy_to (lat%ele(ix1)%value(E_TOT$), &
-                                              lat%param%particle, gamma)
-  datum_value = datum_value / gamma
-  
-case ('beam_emittance.z')  
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%z%norm_emitt
-  elseif (track_type == "macro") then
-    datum_value = 0.0
-  else
-    datum_value = 0.0
-  endif
-  call convert_total_energy_to (lat%ele(ix1)%value(E_TOT$), &
-                                              lat%param%particle, gamma)
-  datum_value = datum_value / gamma
-
-case ('beam_emittance.a')
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%a%norm_emitt
-  elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%a%norm_emitt
-  else
-    call orbit_amplitude_calc (lat%ele(ix1), tao_lat%orb(ix1), &
-                               amp_na = datum_value, particle = electron$)
-  endif
-  call convert_total_energy_to (lat%ele(ix1)%value(E_TOT$), &
-                                              lat%param%particle, gamma)
-  datum_value = datum_value / gamma
-  
-case ('beam_emittance.b')  
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%b%norm_emitt
-  elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%b%norm_emitt
-  else
-    call orbit_amplitude_calc (lat%ele(ix1), tao_lat%orb(ix1), &
-                               amp_nb = datum_value, particle = electron$)
-  endif
-  call convert_total_energy_to (lat%ele(ix1)%value(E_TOT$), &
-                                              lat%param%particle, gamma)
-  datum_value = datum_value / gamma
-  
-case ('beam_emittance.c')  
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%c%norm_emitt
-  elseif (track_type == "macro") then
-    datum_value = 0
-  else
-    datum_value = 0
-  endif
-  call convert_total_energy_to (lat%ele(ix1)%value(E_TOT$), &
-                                              lat%param%particle, gamma)
-  datum_value = datum_value / gamma
-  
-case ('norm_beam_emittance.x')
+case ('beam_emittance.x', 'norm_beam_emittance.x')
   if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%x%norm_emitt
   elseif (track_type == "macro") then
-    datum_value = u%macro_beam%params%x%norm_emitt
+    datum_value = u%macro_beam%params%a%norm_emitt
   else
     datum_value = 0.0
   endif
-  
-case ('norm_beam_emittance.y')  
+  if (data_type(1:4) == 'beam') datum_value = datum_value / gamma
+
+case ('beam_emittance.y', 'norm_beam_emittance.y')  
   if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%y%norm_emitt
   elseif (track_type == "macro") then
@@ -768,8 +636,9 @@ case ('norm_beam_emittance.y')
   else
     datum_value = 0.0
   endif
-  
-case ('norm_beam_emittance.z')  
+  if (data_type(1:4) == 'beam') datum_value = datum_value / gamma
+
+case ('beam_emittance.z', 'norm_beam_emittance.z')
   if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%z%norm_emitt
   elseif (track_type == "macro") then
@@ -777,8 +646,9 @@ case ('norm_beam_emittance.z')
   else
     datum_value = 0.0
   endif
+  if (data_type(1:4) == 'beam') datum_value = datum_value / gamma
 
-case ('norm_beam_emittance.a')
+case ('beam_emittance.a', 'norm_beam_emittance.a')
   if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%norm_emitt
   elseif (track_type == "macro") then
@@ -787,8 +657,9 @@ case ('norm_beam_emittance.a')
     call orbit_amplitude_calc (lat%ele(ix1), tao_lat%orb(ix1), &
                                amp_na = datum_value, particle = electron$)
   endif
+  if (data_type(1:4) == 'beam') datum_value = datum_value / gamma
   
-case ('norm_beam_emittance.b')  
+case ('beam_emittance.b', 'norm_beam_emittance.b')  
   if (track_type == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%b%norm_emitt
   elseif (track_type == "macro") then
@@ -797,15 +668,7 @@ case ('norm_beam_emittance.b')
     call orbit_amplitude_calc (lat%ele(ix1), tao_lat%orb(ix1), &
                                amp_nb = datum_value, particle = electron$)
   endif
-  
-case ('norm_beam_emittance.c')  
-  if (track_type == "beam") then
-    datum_value = tao_lat%bunch_params(ix1)%c%norm_emitt
-  elseif (track_type == "macro") then
-    datum_value = 0
-  else
-    datum_value = 0
-  endif
+  if (data_type(1:4) == 'beam') datum_value = datum_value / gamma
   
 !---------------------------------------------------------
 ! Lattice Emittance
@@ -816,7 +679,7 @@ case ('lat_emittance.a')
 case ('lat_emittance.b')
   datum_value = tao_lat%modes%b%emittance
 
-case ('lat_emittance.c')
+case ('lat_emittance.z')
   datum_value = tao_lat%modes%z%emittance
 
 !---------------------------------------------------------
