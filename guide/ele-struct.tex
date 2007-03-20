@@ -21,6 +21,7 @@ generally hidden  by the \bmad bookkeeping routines.
     character(16) alias               ! Another name
     character(200), pointer :: descrip => null()     ! For general use
     type (twiss_struct)  a, b, z      ! Twiss parameters at end of element
+    type (xy_disp_struct) x, y        ! Projected dispersion
     type (floor_position_struct) position
     real(rp) value(n_attrib_maxx)     ! attribute values
     real(rp) vec0(6)                  ! 0th order transport vector
@@ -119,6 +120,7 @@ the value at the exit end of the element. Such variables are:
 \index{Ele_struct!%a}
 \begin{example}
   type (twiss_struct)  a, b, z          ! Twiss parameters
+  type (xy_disp_struct) x, y        ! Projected dispersion
   type (floor_position_struct) position ! Floor position
   real(rp) c_mat(2,2)                   ! Coupling c matrix
   real(rp) gamma_c                      ! Coupling parameter
@@ -136,25 +138,31 @@ routines \vn{twiss_and_track_at_s} or \vn{twiss_and_track_partial}.
 \index{Normal Mode!in Ele_struct}
 The \vnes{%a}, \vnes{%b}, and \vnes{%z} components are
 \vn{twiss_struct} structures that hold the Twiss parameters for the
-$a$, $b$ and $z$ modes respectively. [Yes it is known that the labeling
-is misleading. Unfortunately it is a bit entrenched now.] The definition of
+$a$, $b$ and $z$ modes respectively. The definition of
 the \vn{twiss_struct} structure is
 \index{Ele_struct!twiss_struct substruct}
 \begin{example}
   type twiss_struct
     real(rp) beta, alpha, gamma, phi, eta, etap
-    real(rp) eta_lab, etap_lab   ! dispersion along the x or y axis
-    real(rp) sigma
+    real(rp) sigma, emit
   end type 
 \end{example} 
-\vn{eta} and \vn{etap} are also the normal mode dispersion and dispersion derivative.
-The true horizontal and vertical dispersions are given by \vn{eta_lab}
-and \vn{etap_lab}. The relationship between the normal mode and lab dispersions 
-is given by \Eq{etaavx}.
+\vn{eta} and \vn{etap} are also the normal mode dispersion and
+dispersion derivative. The projected horizontal and vertical dispersions
+are given in the \vn{xy_disp_struct}
+\begin{example}
+  type xy_disp_struct
+    real(rp) eta, etap
+  end type 
+\end{example} 
+The relationship between the projected and normal mode dispersions are
+given in \Eq{avx}. When there is no coupling (\vn{%c_mat} = 0) the
+normal mode dispersions are the same as the projected horizontal and
+vertical dispersions.
 
-\vn{%c_mat} is the coupling \vn{C} matrix given by \Eq{vgicc1} and \vn{%gamma_c}
-is the $\gamma$ factor in \Eq{vgicc1}. There are several routines to manipulate
-the coupling factors. For example:
+\vn{%c_mat} is the coupling \vn{C} matrix given by \Eq{vgicc1} and
+\vn{%gamma_c} is the $\gamma$ factor in \Eq{vgicc1}. There are several
+routines to manipulate the coupling factors. For example:
 \begin{example}
   C_to_Cbar(ele, cbar_mat)             ! Form Cbar(2,2) matrix
   Make_V_Mats(ele, v_mat, v_inv_mat)   ! Form V matrices.
