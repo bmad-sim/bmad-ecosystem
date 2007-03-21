@@ -61,16 +61,15 @@ you need so that you can then do your customization.
 Before one can begin writing code one must understand the structures
 that \tao uses. The structures are defined in a file
 \vn{tao/code/tao_struct.f90}. It is a good idea to have a copy of
-\vn{tao/code/tao_struct.f90} easily accessible. It will be refered to frequently
-when customizing \tao. Examine the \vn{tao_super_universe_struct} and
-\vn{tao_universe_struct} structures in particular. They reference all other
-structures, either directly or indirectly, in \vn{tao_struct}. 
-\tao is based upon the \bmad software
+\vn{tao/code/tao_struct.f90} easily accessible. In particular, examine
+the \vn{tao_super_universe_struct} and \vn{tao_universe_struct}
+structures. They reference all other structures, either directly or
+indirectly, in \vn{tao_struct}.  \tao is based upon the \bmad software
 package for the simulation of relativistic charged particles and the
 \tao structures have components that are defined in \bmad. For
-information on these structures see the \bmad Reference Manual. Any hook 
-structures can be defined in the file \vn{tao_hook_mod.f90} but see the entry
-below on this file before adding any structures.
+information on these structures see the \bmad Reference Manual. Any
+hook structures can be defined in the file \vn{tao_hook_mod.f90} but
+see the entry below on this file before adding any structures.
 
 Also, to get a good idea of how \tao works it is recommended to spend a
 little bit of time going through the \cmd{tao/code/*.f90} files. This may also

@@ -430,7 +430,6 @@ logical err, smooth_curve, found, zero_average_phase
 
 character(12)  :: u_view_char
 character(30) :: r_name = 'tao_data_plot_data_setup'
-character(40) track_type
 
 call re_allocate (ix_ele, 1)
 
@@ -492,7 +491,7 @@ do k = 1, size(graph%curve)
   select case (curve%data_source)
 
 !----------------------------------------------------------------------------
-! Case: data_source is a data array
+! Case: data_source is a data_array
 
   case ('data_array')
     call tao_find_data (err, curve%data_type, d2_ptr, d1_ptr, ix_uni = i_uni)
@@ -587,7 +586,7 @@ do k = 1, size(graph%curve)
 
 
 !----------------------------------------------------------------------------
-! Case: data_source is a var array
+! Case: data_source is a var_array
 
   case ('var_array')
     call tao_find_var (err, curve%data_type, v1_ptr)
@@ -710,9 +709,9 @@ do k = 1, size(graph%curve)
 
 
 !----------------------------------------------------------------------------
-! Case: data source is from the lattice_layout
+! Case: data_source is from lattice, or beam_tracking
 
-  case ('calculation', 'beam_tracking')
+  case ('lattice', 'beam_tracking')
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
       i_min = 1
@@ -751,15 +750,11 @@ do k = 1, size(graph%curve)
     ! calculate the y-axis data point values.
 
     curve%y_symb = 0
-    datum%ix_ele0 = curve%ix_ele_ref
-    datum%merit_type = 'target'
-    datum%data_type = curve%data_type
-    datum%ele0_name = curve%ele_ref_name
-    if (curve%data_source == 'calculation') then
-      track_type = 'single'
-    else
-      track_type = s%global%track_type
-    endif
+    datum%ix_ele0     = curve%ix_ele_ref
+    datum%merit_type  = 'target'
+    datum%data_type   = curve%data_type
+    datum%ele0_name   = curve%ele_ref_name
+    datum%data_source = curve%data_source
 
     do m = 1, size(graph%who)
       do ie = 1, n_dat
@@ -778,11 +773,11 @@ do k = 1, size(graph%curve)
         case (' ') 
           cycle
         case ('model')   
-          call tao_evaluate_a_datum (datum, u, u%model, track_type, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%model, y_val, t_map)
         case ('base')  
-          call tao_evaluate_a_datum (datum, u, u%base, track_type, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%base, y_val, t_map)
         case ('design')  
-          call tao_evaluate_a_datum (datum, u, u%design, track_type, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%design, y_val, t_map)
         case ('ref', 'meas')
           call out_io (s_error$, r_name, &
                   'PLOT "WHO" WHICH IS: ' // graph%who(m)%name, &
@@ -838,9 +833,8 @@ do k = 1, size(graph%curve)
 
   case ('s')
 
-    smooth_curve = (curve%data_source == 'calculation') .or. &
-                   (s%global%track_type == 'single') .or. &
-                   (s%global%track_type == 'beam' .and. allocated(u%model%bunch_params2))
+    smooth_curve = (curve%data_source == 'lattice') .or. &
+                   (curve%data_source == 'beam' .and. allocated(u%model%bunch_params2))
     smooth_curve = smooth_curve .and. curve%draw_interpolated_curve
     do m = 1, size(graph%who)
       if (graph%who(m)%name == 'meas' .or. graph%who(m)%name == 'ref') smooth_curve = .false.
@@ -922,7 +916,7 @@ real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma
 
 integer i, ii, j, k, expnt(6), ix_ele, ix0
 character(40) data_type
-character(40) data_type_select, track_type
+character(40) data_type_select, data_source
 character(20) ::r_name = 'calc_data_at_s'
 logical err
 
@@ -942,19 +936,16 @@ if (lat%param%lattice_type == circular_lattice$ .and. .not. lat%param%stable) th
   return
 endif
 
-if (curve%data_source == 'calculation') then
-  track_type = 'single'
+if (curve%data_source == 'lattice') then
   select case (data_type(1:5))
   case ('sigma', 'emitt', 'norm_')
     call out_io (s_fatal$, r_name, &
-              'CURVE%DATA_SOURCE = "calculation" IS NOT COMPATABLE WITH DATA_TYPE: ' &
+              'CURVE%DATA_SOURCE = "lattice" IS NOT COMPATABLE WITH DATA_TYPE: ' &
               // data_type)
     call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
     err = .true.
     return
   end select 
-else
-  track_type = s%global%track_type
 endif
 
 x1 = u%model%lat%ele(0)%s
@@ -981,17 +972,17 @@ do ii = 1, size(curve%x_line)
   curve%x_line(ii) = s_now
   value = 0
 
-  select case (track_type)
-  case ('single')   
+  select case (curve%data_source)
+  case ('lattice')   
     call twiss_and_track_at_s (lat, s_now, ele, orb, here)
-  case ('beam')
+  case ('beam_tracking')
     call find_nearest_bunch_params (tao_lat, s_now, bunch_params)
     call ele_at_s (lat, s_now, ix_ele)
     ele = lat%ele(ix_ele)
     here = bunch_params%centroid
   case default
     call out_io (s_fatal$, r_name, &
-            'I DO NOT KNOW HOW TO HANDLE THIS TRACK TYPE: ' // track_type)
+            'I DO NOT KNOW HOW TO HANDLE THIS curve%data_source: ' // curve%data_source)
     call err_exit
   end select
 
@@ -1023,13 +1014,13 @@ do ii = 1, size(curve%x_line)
   case ('alpha.b')
     value = ele%b%alpha
   case ('eta.x')
-    value = ele%a%eta_lab
+    value = ele%x%eta
   case ('eta.y')
-    value = ele%b%eta_lab
+    value = ele%y%eta
   case ('etap.x')
-    value = ele%a%etap_lab
+    value = ele%x%etap
   case ('etap.y')
-    value = ele%b%etap_lab
+    value = ele%y%etap
   case ('eta.a')
     value = ele%a%eta
   case ('eta.b')
@@ -1084,9 +1075,9 @@ do ii = 1, size(curve%x_line)
     value = sqrt(bunch_params%sigma(s55$))
   case ('sigma.p_z')
     value = sqrt(bunch_params%sigma(s66$))
-  case ('norm_beam_emittance.a')
+  case ('norm_emittance.a')
     value = bunch_params%a%norm_emitt
-  case ('norm_beam_emittance.b')
+  case ('norm_emittance.b')
     value = bunch_params%b%norm_emitt
   case ('norm_emittance.z')
     value = bunch_params%z%norm_emitt

@@ -86,12 +86,6 @@ where \vn{i} goes from the \vn{ele} index to the \vn{ele0} index.
 \label{s:data_types}
 
 Table~\ref{t:data_types} lists the predefined data types in \tao.
-Table~\ref{t:data_calc_method} lists how each data type is calculated depending
-on the tracking type. A ``L'' means that the lattice determines the data type.
-In \bmad the twiss parameters are calculated about a reference orbit so the
-centroid orbit (or particle orbit for single particle tracking) is also used.
-A ``B'' means the beam particle distribution determines the data type. A ``X''
-means this data type is not available for this tracking type.
 
 \vn{wire} data simulates the measurement of a wire scanner. The angle specified
 is the angle of the wire with respect to the horizontal axis. The measurement
@@ -115,12 +109,12 @@ associated with them.
 \index{dpb_db}
 \begin{table}[ht] 
 \centering 
-{\tt
+{\tt\small
 \begin{tabular}{|l|l|l|} \hline
   {\it Data\_Type}              & {\it Description}                  &          \\ \hline 
     alpha.x, alpha.y            & Projected Alpha Function           &          \\ \hline 
     alpha.a, alpha.b, alpha.z   & Normal-Mode Alpha Function         &          \\ \hline 
-    beam\_energy                & Beam Kinetic Energy                &          \\ \hline
+    e\_tot                      & Beam Total Energy                  &          \\ \hline
     beta.x, beta.y              & Projected Beta Function            &          \\ \hline 
     beta.a, beta.b, beta.z      & Normal-Mode Beta Function          &          \\ \hline 
     bpm.x, bpm.y                & Transverse BPM reading             &          \\ \hline 
@@ -172,35 +166,23 @@ associated with them.
                                                               & relative \\ \hline 
     i5a\_e6, i5b\_e6      & Normalized I5 radiation integral  &          \\ \hline
     s\_position           & longitudinal length constraint    & relative \\ \hline 
-    beam\_energy          & Beam energy                       &          \\ \hline
     unstable\_ring        & Nonzero if a ring is unstable     & global   \\ \hline
     \begin{tabular}{@{}l}
-      lat\_emittance.a \\
-      lat\_emittance.b \\
-      lat\_emittance.z \\
+      emittance.x, emittance.a \\
+      emittance.y, emittance.b \\
+      emittance.z \\
     \end{tabular}
-                          & Emittance for a ring              & global   \\ \hline
-    \begin{tabular}{@{}l}
-      chrom.a  \\
-      chrom.b  \\
-    \end{tabular}
-                          & Chromaticity for a ring           & global   \\ \hline
+                          & Emittance                        & global   \\ \hline
     \begin{tabular}{@{}l}  
-      beam\_emittance.x \\ 
-      beam\_emittance.y \\
-      beam\_emittance.z \\
-      beam\_emittance.a \\
-      beam\_emittance.b \\
-    \end{tabular} 
-                          & Beam Emittance         &          \\ \hline 
-    \begin{tabular}{@{}l}  
-      norm\_beam\_emittance.x \\ 
-      norm\_beam\_emittance.y \\
-      norm\_beam\_emittance.z \\
-      norm\_beam\_emittance.a \\
-      norm\_beam\_emittance.b \\
+      norm\_emittance.x, norm\_emittance.a \\
+      norm\_emittance.y, norm\_emittance.b \\
+      norm\_emittance.z \\
     \end{tabular} 
                           & Normalized Beam Emittance         &          \\ \hline 
+    \begin{tabular}{@{}l}
+      chrom.a, chrom.b  \\
+    \end{tabular}
+                          & Chromaticity for a ring           & global   \\ \hline
     \begin{tabular}{@{}l}   
       sigma.x, sigma.p\_x \\ 
       sigma.y, sigma.p\_y \\
@@ -214,11 +196,9 @@ associated with them.
     \end{tabular} 
                           & Bunch size                        &          \\ \hline 
     \begin{tabular}{@{}l}  
-      dpx\_dx \\ 
-      dpy\_dy \\
+      dpx\_dx, dpa\_da \\
+      dpy\_dy, dpb\_db \\
       dpz\_dz \\
-      dpa\_da \\
-      dpb\_db \\
     \end{tabular} 
                           & <x p\_x> / <x\^2> \& Etc...       &          \\ \hline 
     wire.<angle>                & Wire Scanner with wire angle <angle>
@@ -232,50 +212,4 @@ associated with them.
 \vfill \break
 {\vfill}
 
-\index{i5a_e6}\index{i5b_e6}\index{dpx_dx}\index{dpy_dy}
-\index{Element!table of data calculation methods}
-\begin{table}[ht] 
-\centering {
-\begin{tabular}{|l|c|c|c|} \hline
-\rule{0pt}{80pt} 
-\vni{Data_Type}       &
-\begin{sideways}\vni{Single}\end{sideways} &
-\begin{sideways}\vni{Particle Beam}\end{sideways} &
-\begin{sideways}\vni{Macroparticle Beam}\end{sideways} 
-\\ \hline
-%   data type             & Single & Beam & Macroparticle
-    \vni{alpha}            &   L    &   B  &   B   \\ \hline
-    \vni{beta}             &   L    &   B  &   B   \\ \hline
-    \vni{bpm}              &   B    &   B  &   B   \\ \hline
-    \vni{eta}              &   L    &   B  &   B   \\ \hline
-    \vni{etap}             &   L    &   B  &   B   \\ \hline
-    \vni{orbit}            &   B    &   B  &   B   \\ \hline
-    \vni{phase}            &   L    &   L  &   L   \\ \hline
-    \vni{spin}             &   B    &   B  &   X   \\ \hline
-    \vni{cbar}             &   L    &   L  &   L   \\ \hline
-    \vni{coupling}         &   L    &   L  &   L   \\ \hline
-    \vni{floor}            &   L    &   L  &   L   \\ \hline
-    \vni{r}                &   L    &   L  &   L   \\ \hline
-    \vni{t}                &   L    &   L  &   L   \\ \hline
-    \vni{tt}               &   L    &   L  &   L   \\ \hline
-    \vn{i5a_e6, i5b_e6}    &   L    &   L  &   L   \\ \hline      
-    \vni{s_position}       &   L    &   L  &   L   \\ \hline           
-    \vni{e_tot}            &   L    &   L  &   L   \\ \hline  
-    \vni{lat_emittance}    &   L    &   L  &   L   \\ \hline
-    \vni{beam_emittance}   &   B\footnote{Uses the Courant-Snyder Invariant} 
-                                    &   B  &   B   \\ \hline
-    \vni{norm_beam_emittance}   &   B\footnote{Uses the Courant-Snyder Invariant} 
-                                    &   B  &   B   \\ \hline
-    \vni{bunch_sigma}      &   X    &   B  &   B   \\ \hline
-    \vn{dpx_dx,dpy_dy,...} &   X    &   B  &   B   \\ \hline
-    \vni{wire}             &   X    &   B  &   X   \\ \hline
-\end{tabular}
-}
-\caption{Data\_type Calculation method. L means this data type uses 
-lattice parameters, B means this data type uses beam parameters. 
-X mean this data is unavailable for this tracking type.}
-\label{t:data_calc_method}
-\end{table}
-
-\vfill\break
 

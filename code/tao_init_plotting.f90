@@ -149,6 +149,7 @@ do
     graph%y2%draw_numbers = .false.
     graph%ix_universe = 0
     graph%clip = .true.
+    graph%draw_axes = .true.
     graph%who%name  = ' '                               ! set default
     graph%who(1) = tao_plot_who_struct('model', +1)     ! set default
     graph%box    = (/ 1, 1, 1, 1 /)
@@ -157,6 +158,7 @@ do
     do j = 1, size(curve)
       write (curve(j)%name, '(a, i0)') 'c', j
     enddo
+    curve(:)%data_source = 'lattice'
     curve(:)%x_axis_scale_factor = 1
     curve(:)%y_axis_scale_factor = 1
     curve(:)%convert = .false.                             ! set default
@@ -196,6 +198,7 @@ do
     grph%y2            = graph%y2
     grph%ix_universe   = graph%ix_universe
     grph%clip          = graph%clip
+    grph%draw_axes     = graph%draw_axes
     grph%title_suffix = ' '
     grph%legend = ' '
     grph%y2_mirrors_y = .true.

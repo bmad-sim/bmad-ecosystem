@@ -331,6 +331,7 @@ case ('data')
     nl=nl+1; write(lines(nl), amt)  '%Ele0_name         = ', d_ptr%ele0_name
     nl=nl+1; write(lines(nl), amt)  '%Ele_name          = ', d_ptr%ele_name
     nl=nl+1; write(lines(nl), amt)  '%Data_type         = ', d_ptr%data_type
+    nl=nl+1; write(lines(nl), amt)  '%Data_source       = ', d_ptr%data_source
     nl=nl+1; write(lines(nl), imt)  '%Ix_ele0           = ', d_ptr%ix_ele0
     nl=nl+1; write(lines(nl), imt)  '%Ix_ele            = ', d_ptr%ix_ele
     nl=nl+1; write(lines(nl), imt)  '%Ix_ele_merit      = ', d_ptr%ix_ele_merit
@@ -1037,6 +1038,8 @@ case ('plot')
     nl=nl+1; write (lines(nl), lmt) 'y2%draw_label        = ', g%y2%draw_label
     nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers      = ', g%y2%draw_numbers
     nl=nl+1; write (lines(nl), lmt) 'limited              = ', g%limited
+    nl=nl+1; write (lines(nl), lmt) 'clip                 = ', g%clip
+    nl=nl+1; write (lines(nl), lmt) 'draw_axes              = ', g%draw_axes
     nl=nl+1; lines(nl) = 'Curves:'
     do i = 1, size(g%curve)
       nl=nl+1; write (lines(nl), amt) '   ', g%curve(i)%name

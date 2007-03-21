@@ -142,7 +142,7 @@ do i = 1, size(s%u)
     calc_ok = .false.
   endif
 
-  call tao_load_data_array (u, -1, s%global%track_type)
+  call tao_load_data_array (u, -1)
 
   ! do multi-turn tracking if needed
 
@@ -226,7 +226,7 @@ endif
 
 lat%param%ix_lost = not_lost$
 
-call tao_load_data_array (s%u(uni), 0, s%global%track_type)
+call tao_load_data_array (s%u(uni), 0)
 
 do i = 1, lat%n_ele_track
 
@@ -250,7 +250,7 @@ do i = 1, lat%n_ele_track
   endif
 
   call tao_calc_params (s%u(uni), i)
-  call tao_load_data_array (s%u(uni), i, s%global%track_type)
+  call tao_load_data_array (s%u(uni), i)
     
 enddo
   
@@ -359,7 +359,7 @@ endif
 
 ! beginning element calculations
 
-call tao_load_data_array (u, 0, s%global%track_type) 
+call tao_load_data_array (u, 0) 
 
 ! track through every element
 
@@ -395,7 +395,7 @@ do j = 1, lat%n_ele_track
   call tao_calc_params (u, j)
     
   ! load data
-  call tao_load_data_array (u, j, s%global%track_type) 
+  call tao_load_data_array (u, j) 
 enddo
 
 ! only post total lost if no extraction or extracting to a turned off lattice
@@ -507,7 +507,7 @@ if (.not. u%coupling%coupled) then
 endif
 
 ! beginning element calculations
-call tao_load_data_array (u, 0, s%global%track_type) 
+call tao_load_data_array (u, 0) 
 
 ! track through every element
 do j = 1, lat%n_ele_track
@@ -533,7 +533,7 @@ do j = 1, lat%n_ele_track
   call tao_calc_params (u, j)
     
   ! load data
-  call tao_load_data_array (u, j, s%global%track_type) 
+  call tao_load_data_array (u, j) 
 enddo
 
 ! only post total lost if no extraction or extracting to a turned off lattice

@@ -434,6 +434,14 @@ select case (comp)
     endif
     this_graph%clip = logic
 
+  case ('draw_axes')
+    read (set_value, '(l)', iostat = ios) logic
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'BAD CLIP VALUE.')
+      return
+    endif
+    this_graph%draw_axes = logic
+
   case ('ix_universe')
     read (set_value, '(i)', iostat = ios) iset
     if (ios /= 0) then

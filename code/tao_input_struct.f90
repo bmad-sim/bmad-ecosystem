@@ -107,6 +107,7 @@ type tao_graph_input
   type (qp_axis_struct) y
   type (qp_axis_struct) y2
   logical clip
+  logical draw_axes
 end type 
 
 type tao_plot_input

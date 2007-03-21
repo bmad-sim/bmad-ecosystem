@@ -68,7 +68,7 @@ end type
 
 type tao_curve_struct
   character(40) :: name                    ! Name identifying the curve.
-  character(40) :: data_source             ! "calculation", "data_array", or "var_array"
+  character(40) :: data_source             ! "lattice", "data_array", "var_array", etc.
   character(40) :: data_type = ' '         ! "orbit.x", etc.
   character(40) :: ele_ref_name            ! Reference element.
   type (tao_graph_struct), pointer :: g    ! pointer to parent graph 
@@ -88,7 +88,7 @@ type tao_curve_struct
   logical draw_line            ! draw a line through the data points?
   logical draw_symbols         ! draw a line through the data points?
   logical convert              ! Eg: covert coupling to cbar?
-  logical draw_interpolated_curve
+  logical draw_interpolated_curve  ! Interpolate between element edge points?
 end type
 
 ! A graph is a collection of overlayed curves with associated graph title, etc.
@@ -116,6 +116,7 @@ type tao_graph_struct
   logical valid                ! valid if all curve y_dat computed OK.
   logical y2_mirrors_y         ! Y2-axis same as Y-axis?
   logical limited              ! True if at least one data point past graph bounds.
+  logical draw_axes            ! Draw axes, labels, etc?
 end type
 
 ! A plot is collection of graphs.
@@ -209,6 +210,7 @@ type tao_data_struct
   character(40) ele0_name   ! Name lattice element when there is a range 
   character(40) data_type   ! Type of data: "orbit.x", etc.
   character(16) merit_type  ! Type of constraint: 'target', 'max', 'min', etc.
+  character(16) data_source ! 'lattice', or 'beam_tracking'
   integer ix_ele            ! Index of the element in the lattice element array.
   integer ix_ele0           ! Index of lattice elment when there is a range or reference.
   integer ix_ele_merit      ! Index of lattice elment where merit is evaluated.

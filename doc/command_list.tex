@@ -728,12 +728,13 @@ still vary in the turned off universe.
 
 Examples:
 \begin{example}
-  set data *|ref = *|meas                   ! Set all ref data = measured data in current universe.
-  set data 2@orbit.x|base = 2@orbit.x|model ! Set the ref orbit.x data in universe 2 to meas
-  set graph orbit.x who(1) = model          ! Plot the model orbit in the graph
-  set graph orbit.x who(2) = design, -1     ! With the previous line: Plot model - design 
-  set var quad\_k1 weight = 0.1             ! Set quad\_k1 weights. 
-  set lattice *&|model = *&|design          ! Resets model lattice to the design in all universes
+  set data *|ref = *|meas               ! Set ref data = measured in current universe.
+  set data 2@orbit.x|base = 2@orbit.x|model 
+                                        ! Set the base orbit.x in universe 2 to model
+  set graph orbit.x who(1) = model      ! Plot the model orbit in the graph
+  set graph orbit.x who(2) = design, -1 ! With the previous line: Plot model - design 
+  set var quad\_k1 weight = 0.1          ! Set quad\_k1 weights. 
+  set lattice *&|model = *&|design      ! Reset model to the design in all universes
 \end{example}
 
 %% show --------------------------------------------------------------
@@ -1077,7 +1078,8 @@ Example:
 
 Format:
 \begin{example}
-  xy-scale \{<where>\} \{<bound1>\} \{<bound2>\} \{force\} ! sets horizontal and vertical axis bounds.
+  xy-scale \{<where>\} \{<bound1>\} \{<bound2>\} \{force\} 
+                                        ! Sets horizontal and vertical axis bounds.
 \end{example}
 
 \vskip 0.2in \vn{xy-scale} sets the lower and upper bounds for both

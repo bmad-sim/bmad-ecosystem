@@ -250,9 +250,11 @@ character(16) shape
 
 call qp_set_layout (x_axis = plot%x, y_axis = graph%y, &
                     box = graph%box, margin = graph%margin)
-call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
-call qp_draw_axes
-  
+if (graph%draw_axes) then
+  call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+  call qp_draw_axes
+endif
+
 isu = graph%ix_universe
 ! if garph%ix_universe .eq. 0 then graph currently viewed universe
 if (isu .eq. 0) then
