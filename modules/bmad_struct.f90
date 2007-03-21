@@ -124,6 +124,10 @@ type trans_space_charge_struct
   real(rp) sig_z
 endtype    
 
+type xy_disp_struct
+  real(rp) eta, etap
+end type
+
 ! Ele_struct:
 ! REMEMBER: If this struct is changed you have to:
 !     Increase bmad_inc_version by 1.
@@ -133,23 +137,24 @@ endtype
 !     Modify ele_equal_ele
 
 type ele_struct
-  character(40) name              ! name of element.
-  character(40) type              ! type name.
-  character(40) alias             ! Another name.
-  character(40) attribute_name    ! Used by overlays.
-  type (twiss_struct)  a, b, z       ! Twiss parameters at end of element
-  type (floor_position_struct) floor  ! Global floor position at end of ele.
-  real(rp) value(n_attrib_maxx)    ! attribute values.
-  real(rp) closed_orb(6)           ! For Bmad internal use only.
-  real(rp) gen0(6)                 ! constant part of the genfield map.
-  real(rp) vec0(6)                 ! 0th order transport vector.
-  real(rp) mat6(6,6)               ! 1st order transport matrix.
-  real(rp) c_mat(2,2)              ! 2x2 C coupling matrix
-  real(rp) gamma_c                 ! gamma associated with C matrix
-  real(rp) s                       ! longitudinal position at the end
+  character(40) name                     ! name of element.
+  character(40) type                     ! type name.
+  character(40) alias                    ! Another name.
+  character(40) attribute_name           ! Used by overlays.
+  type (twiss_struct)  a, b, z           ! Twiss parameters at end of element
+  type (xy_disp_struct) x, y             ! Projected dispersions.
+  type (floor_position_struct) floor     ! Global floor position at end of ele.
+  real(rp) value(n_attrib_maxx)          ! attribute values.
+  real(rp) closed_orb(6)                 ! For Bmad internal use only.
+  real(rp) gen0(6)                       ! constant part of the genfield map.
+  real(rp) vec0(6)                       ! 0th order transport vector.
+  real(rp) mat6(6,6)                     ! 1st order transport matrix.
+  real(rp) c_mat(2,2)                    ! 2x2 C coupling matrix
+  real(rp) gamma_c                       ! gamma associated with C matrix
+  real(rp) s                             ! longitudinal position at the end
   real(rp), pointer :: r(:,:) => null()  ! For general use. Not used by Bmad.
-  real(rp), pointer :: a_pole(:) => null()              ! multipole
-  real(rp), pointer :: b_pole(:) => null()              ! multipoles
+  real(rp), pointer :: a_pole(:) => null()         ! multipole
+  real(rp), pointer :: b_pole(:) => null()         ! multipoles
   real(rp), pointer :: const(:) => null()          ! Working constants.
   character(200), pointer :: descrip => null()     ! For general use
   type (genfield), pointer :: gen_field => null()  ! For symp_map$

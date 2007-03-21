@@ -10,6 +10,7 @@ void ele_comp (const C_ele& x, const C_ele& y);
 
 extern "C" void test_f_coord_(C_coord& c1, C_coord& c2);
 extern "C" void test_f_twiss_(C_twiss& c1, C_twiss& c2);
+extern "C" void test_f_xy_disp_(C_xy_disp& c1, C_xy_disp& c2);
 extern "C" void test_f_floor_position_(C_floor_position& c1, C_floor_position& c2);
 extern "C" void test_f_wig_term_(C_wig_term& c1, C_wig_term& c2);
 extern "C" void test_f_taylor_term_(C_taylor_term& c1, C_taylor_term& c2);
@@ -31,8 +32,10 @@ extern "C" void test_f_lat_(C_lat& c1, C_lat& c2);
 
 C_coord           c_coord_in(101, 102, 103, 104, 105, 106);
 C_coord           c_coord_out(201, 202, 203, 204, 205, 206);
-C_twiss           c_twiss_in(1, 2, 3, 4, 5, 6, 7, 8, 9);
-C_twiss           c_twiss_out(9, 8, 7, 6, 5, 4, 3, 2, 1);
+C_twiss           c_twiss_in(1, 2, 3, 4, 5, 6, 7, 8);
+C_twiss           c_twiss_out(8, 7, 6, 5, 4, 3, 2, 1);
+C_xy_disp         c_xy_disp_in(1, 2);
+C_xy_disp         c_xy_disp_out(2, 1);
 C_floor_position  c_floor_position_in(1, 2, 3, 4, 5, 6);
 C_floor_position  c_floor_position_out(6, 5, 4, 3, 2, 1);
 C_wig_term        c_wig_term_in(1, 2, 3, 4, 5, 6);
@@ -41,10 +44,10 @@ C_taylor_term     c_taylor_term_in(1, 2, 3, 4, 5, 6, 7);
 C_taylor_term     c_taylor_term_out(7, 6, 5, 4, 3, 2, 1);
 C_taylor          c_taylor_in(2, -1);
 C_taylor          c_taylor_out(2, 1);
-C_sr_table_wake        c_sr_table_wake_in(1, 2, 3);
-C_sr_table_wake        c_sr_table_wake_out(3, 2, 1);
-C_sr_mode_wake        c_sr_mode_wake_in(21, 22, 23, 24, 25, 26, 27, 28);
-C_sr_mode_wake        c_sr_mode_wake_out(31, 32, 33, 34, 35, 36, 37, 38);
+C_sr_table_wake   c_sr_table_wake_in(1, 2, 3);
+C_sr_table_wake   c_sr_table_wake_out(3, 2, 1);
+C_sr_mode_wake    c_sr_mode_wake_in(21, 22, 23, 24, 25, 26, 27, 28);
+C_sr_mode_wake    c_sr_mode_wake_out(31, 32, 33, 34, 35, 36, 37, 38);
 C_lr_wake         c_lr_wake_in(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1);
 C_lr_wake         c_lr_wake_out(10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 C_wake            c_wake_in("ABCD", "XYZZY", 2, 2, 0, 1);
@@ -58,9 +61,9 @@ C_amode           c_amode_out(11, 12, 13, 14, 15, 16, 17);
 C_linac_mode      c_linac_mode_in(1, 2, 3, 4, 5, 6, 7);
 C_linac_mode      c_linac_mode_out(11, 12, 13, 14, 15, 16, 17);
 C_modes           c_modes_in(1, 2, 3, 4, 5, 6, 7,
-                      c_amode_in, c_amode_out, c_amode_in, c_linac_mode_in);
+                  c_amode_in, c_amode_out, c_amode_in, c_linac_mode_in);
 C_modes           c_modes_out(11, 12, 13, 14, 15, 16, 17, 
-                      c_amode_out, c_amode_out, c_amode_in, c_linac_mode_out);
+                  c_amode_out, c_amode_out, c_amode_in, c_linac_mode_out);
 C_bmad_com        c_bmad_com_in;
 C_bmad_com        c_bmad_com_out;
 C_em_field        c_em_field_in;
@@ -69,8 +72,8 @@ C_ele             c_ele_in;
 C_ele             c_ele_out;
 C_mode_info       c_mode_info_in(1, 2, 3);
 C_mode_info       c_mode_info_out(-1, -2, -3);
-C_lat            C_lat_in;
-C_lat            C_lat_out;
+C_lat             c_lat_in;
+C_lat             c_lat_out;
 
 //---------------------------------------------------------------------------
 
@@ -186,8 +189,10 @@ void init_all_c_structs () {
   c_ele_in.on_an_i_beam = T;
   c_ele_in.csr_calc_on = F;
   c_ele_in.floor = c_floor_position_in;
-  c_ele_in.x = c_twiss_in;
-  c_ele_in.y = c_twiss_out;
+  c_ele_in.x = c_xy_disp_in;
+  c_ele_in.y = c_xy_disp_out;
+  c_ele_in.a = c_twiss_in;
+  c_ele_in.b = c_twiss_out;
   c_ele_in.z = c_twiss_in;
 
   c_ele_out = c_ele_in;
@@ -210,41 +215,41 @@ void init_all_c_structs () {
   c_ele_in.wig_term.resize(2);
   c_ele_in.wig_term[0] = c_wig_term_in;
   c_ele_in.wig_term[1] = c_wig_term_out;
-  c_ele_in.a.resize(Bmad::N_POLE_MAXX+1);
-  c_ele_in.b.resize(Bmad::N_POLE_MAXX+1);
+  c_ele_in.a_pole.resize(Bmad::N_POLE_MAXX+1);
+  c_ele_in.b_pole.resize(Bmad::N_POLE_MAXX+1);
   for (int i = 0; i < Bmad::N_POLE_MAXX + 1; i++) {
-    c_ele_in.a[i] = -i - 100;
-    c_ele_in.b[i] = -i - 200;
+    c_ele_in.a_pole[i] = -i - 100;
+    c_ele_in.b_pole[i] = -i - 200;
   }
 
 
 
-  C_lat_in.name = "abc";
-  C_lat_in.lattice = "def";
-  C_lat_in.input_file_name = "123";
-  C_lat_in.title = "title";
-  C_lat_in.version = 21;
-  C_lat_in.n_ele_use = 22;
-  C_lat_in.n_ele_max = 1;
-  C_lat_in.n_control_max = 2;
-  C_lat_in.n_ic_max = 6;
-  C_lat_in.input_taylor_order = 34;
+  c_lat_in.name = "abc";
+  c_lat_in.lattice = "def";
+  c_lat_in.input_file_name = "123";
+  c_lat_in.title = "title";
+  c_lat_in.version = 21;
+  c_lat_in.n_ele_use = 22;
+  c_lat_in.n_ele_max = 1;
+  c_lat_in.n_control_max = 2;
+  c_lat_in.n_ic_max = 6;
+  c_lat_in.input_taylor_order = 34;
 
-  C_lat_in.ele.resize(2);
-  C_lat_in.ele[0] = c_ele_in;
-  C_lat_in.ele[0].ix_ele = 0;
-  C_lat_in.ele[1] = c_ele_out;
-  C_lat_in.ele[1].ix_ele = 1;
-  C_lat_in.control.resize(2);
-  C_lat_in.control[0] = c_control_in;
-  C_lat_in.control[1] = c_control_out;
-  C_lat_in.ic.resize(6);
-  C_lat_in.ic = i6a;
+  c_lat_in.ele.resize(2);
+  c_lat_in.ele[0] = c_ele_in;
+  c_lat_in.ele[0].ix_ele = 0;
+  c_lat_in.ele[1] = c_ele_out;
+  c_lat_in.ele[1].ix_ele = 1;
+  c_lat_in.control.resize(2);
+  c_lat_in.control[0] = c_control_in;
+  c_lat_in.control[1] = c_control_out;
+  c_lat_in.ic.resize(6);
+  c_lat_in.ic = i6a;
 
-  C_lat_in.ele_init = c_ele_in;
-  C_lat_in.ele_init.name = "ele_init";
+  c_lat_in.ele_init = c_ele_in;
+  c_lat_in.ele_init.name = "ele_init";
 
-  C_lat_out = C_lat_in;
+  c_lat_out = c_lat_in;
 
 }
 
@@ -303,6 +308,35 @@ extern "C" void test_c_twiss_(twiss_struct* f1, twiss_struct* f2, int& c_ok) {
     cout << " F_side_convert: Twiss F to C: OK" << endl;
   } else {
     cout << " F_SIDE_CONVERT: TWISS F TO C: FAILED!!" << endl;
+    c_ok = 0;
+  }
+
+  c2 >> f2;
+
+}
+
+//---------------------------------------------------------------------------
+
+extern "C" void test_c_xy_disp_(xy_disp_struct* f1, xy_disp_struct* f2, int& c_ok) {
+
+  C_xy_disp c1, c2;
+
+  f1 >> c1; 
+
+  if (c1 == c_xy_disp_in) {
+    cout << " C_side_convert: Xy_Disp F to C: OK" << endl;
+  } else {
+    cout << " C_SIDE_CONVERT: XY_DISP F TO C: FAILED!!" << endl;
+    c_ok = 0;
+  }
+
+
+  test_f_xy_disp_(c1, c2);
+
+  if (c2 == c_xy_disp_out) {
+    cout << " F_side_convert: Xy_Disp F to C: OK" << endl;
+  } else {
+    cout << " F_SIDE_CONVERT: XY_DISP F TO C: FAILED!!" << endl;
     c_ok = 0;
   }
 
@@ -813,7 +847,7 @@ extern "C" void test_c_lat_(lat_struct* f1, lat_struct* f2, int& c_ok) {
 
   f1 >> c1; 
 
-  if (c1 == C_lat_in) {
+  if (c1 == c_lat_in) {
     cout << " C_side_convert: ring F to C: OK" << endl;
   } else {
     cout << " C_SIDE_CONVERT: ring F TO C: FAILED!!" << endl;
@@ -823,7 +857,7 @@ extern "C" void test_c_lat_(lat_struct* f1, lat_struct* f2, int& c_ok) {
 
   test_f_lat_(c1, c2);
 
-  if (c2 == C_lat_out) {
+  if (c2 == c_lat_out) {
     cout << " F_side_convert: ring F to C: OK" << endl;
   } else {
     cout << " F_SIDE_CONVERT: ring F TO C: FAILED!!" << endl;

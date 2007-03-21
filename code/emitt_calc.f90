@@ -199,7 +199,7 @@ subroutine emitt_calc (lat, what, mode)
       t1 = eta_ax0 * sin_kl / k_1 + etap_ax0 * (1 - cos_kl) / k_2
       t2 = gamma_c**2 * (kl - sin_kl) * g / k_3
       
-      end_4  = (eta_x0 * tan_e1 + ele%a%eta_lab * tan_e2) * g**2
+      end_4  = (eta_x0 * tan_e1 + ele%x%eta * tan_e2) * g**2
       end_4a = (eta_ax0 * tan_e1 + gamma_c * ele%a%eta * tan_e2) * g**2
 
       i4a_bend = (t1 + t2) * g**3 - end_4a

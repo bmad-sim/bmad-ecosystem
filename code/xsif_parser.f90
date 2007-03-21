@@ -494,10 +494,10 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
     ele%a%etap  = pdata(dat_indx+7)
     ele%b%eta   = pdata(dat_indx+8)
     ele%b%etap  = pdata(dat_indx+9)
-    ele%a%eta_lab   = ele%a%eta  
-    ele%a%etap_lab  = ele%a%etap 
-    ele%b%eta_lab   = ele%b%eta  
-    ele%b%etap_lab  = ele%b%etap 
+    ele%x%eta   = ele%a%eta  
+    ele%x%etap  = ele%a%etap 
+    ele%y%eta   = ele%b%eta  
+    ele%y%etap  = ele%b%etap 
     lat%beam_start%vec(1) =  pdata(dat_indx+10)
     lat%beam_start%vec(2) =  pdata(dat_indx+11)
     lat%beam_start%vec(3) =  pdata(dat_indx+12)

@@ -955,8 +955,8 @@ subroutine init_ele (ele)
   ele%a%gamma    = 0
   ele%a%eta      = 0
   ele%a%etap     = 0
-  ele%a%eta_lab  = 0
-  ele%a%etap_lab = 0
+  ele%x%eta  = 0
+  ele%x%etap = 0
   ele%a%phi      = 0
   ele%a%sigma    = 0
 
@@ -965,8 +965,8 @@ subroutine init_ele (ele)
   ele%b%gamma    = 0
   ele%b%eta      = 0
   ele%b%etap     = 0
-  ele%b%eta_lab  = 0
-  ele%b%etap_lab = 0
+  ele%y%eta  = 0
+  ele%y%etap = 0
   ele%b%phi      = 0
   ele%b%sigma    = 0
 
@@ -975,8 +975,6 @@ subroutine init_ele (ele)
   ele%z%gamma    = 0
   ele%z%eta      = 0
   ele%z%etap     = 0
-  ele%z%eta_lab  = 0
-  ele%z%etap_lab = 0
   ele%z%phi      = 0
   ele%z%sigma    = 0
 

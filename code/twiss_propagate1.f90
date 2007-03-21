@@ -59,6 +59,8 @@ subroutine twiss_propagate1 (ele1, ele2)
 ! markers are easy
 
   if (ele2%key == marker$) then
+    ele2%x = ele1%x
+    ele2%y = ele1%y
     ele2%a = ele1%a
     ele2%b = ele1%b
     ele2%z = ele1%z
@@ -157,6 +159,8 @@ subroutine twiss_propagate1 (ele1, ele2)
   call twiss_decoupled_propagate (ele1, ele_temp)  
   ele2%a = ele_temp%a                     ! transfer twiss to ele2
   ele2%b = ele_temp%b
+  ele2%x = ele_temp%x                     ! transfer twiss to ele2
+  ele2%y = ele_temp%y
 
 ! Comming out of a flipped state correct phase by twopi.
 ! This is a kludge but factors of twopi are not physically meaningful.
@@ -171,8 +175,8 @@ subroutine twiss_propagate1 (ele1, ele2)
 ! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
 ! This is just 1.0 (except for RF cavities).
 
-  eta1_vec = (/ ele1%a%eta_lab, ele1%a%etap_lab, &
-           ele1%b%eta_lab, ele1%b%etap_lab, ele1%z%eta_lab, 1.0_rp /)
+  eta1_vec = (/ ele1%x%eta, ele1%x%etap, &
+           ele1%y%eta, ele1%y%etap, ele1%z%eta, 1.0_rp /)
 
   if (ele2%key == rfcavity$) then
     eta1_vec(5) = 0
@@ -190,11 +194,11 @@ subroutine twiss_propagate1 (ele1, ele2)
   eta_vec(3) = eta_vec(3) + mat6(3,2) * orb(2) + mat6(3,4) * orb(4)
   eta_vec(4) = eta_vec(4) - mat6(4,1) * orb(1) - mat6(4,3) * orb(3) - ele2%vec0(4)
 
-  ele2%a%eta_lab  = eta_vec(1)
-  ele2%a%etap_lab = eta_vec(2)
-  ele2%b%eta_lab  = eta_vec(3)
-  ele2%b%etap_lab = eta_vec(4)
-  ele2%z%eta_lab  = eta_vec(5)
+  ele2%x%eta  = eta_vec(1)
+  ele2%x%etap = eta_vec(2)
+  ele2%y%eta  = eta_vec(3)
+  ele2%y%etap = eta_vec(4)
+  ele2%z%eta  = eta_vec(5)
 
   call make_v_mats (ele2, v_mat, v_inv_mat)
   eta_vec(1:4) = matmul (v_inv_mat, eta_vec(1:4))
@@ -203,7 +207,6 @@ subroutine twiss_propagate1 (ele1, ele2)
   ele2%a%etap = eta_vec(2)
   ele2%b%eta  = eta_vec(3)
   ele2%b%etap = eta_vec(4)
-  ele2%z%eta  = ele2%z%eta_lab
 
   ele2%closed_orb(1:4) = &
           matmul(ele2%mat6(1:4,1:4), ele1%closed_orb(1:4)) + ele2%vec0(1:4)

@@ -43,7 +43,7 @@
 !     %sigE_E         -- Sigma_E/E energy spread
 !     %sig_z          -- Bunch Length
 !     %e_loss         -- Energy loss in eV per turn
-!     %a_pole, %b_pole, %z      -- Anormal_mode_struct: Substructure
+!     %a, %b, %z      -- Anormal_mode_struct: Substructure
 !       %emittance      -- Emittance
 !       %synch_int(4:5) -- Synchrotron integrals
 !       %j_damp         -- Damping partition factor
@@ -67,13 +67,21 @@
 !      are saved. To access this common block a use statement is needed:
 !         use rad_int_common
 !      In the common block:
-!         ric%i1(:)  -- I1 integral for each element.
-!         ric%i2(:)  -- I2 integral for each element.
-!         ric%i3(:)  -- I3 integral for each element.
-!         ric%i4a(:) -- "A" mode I4 integral for each element.
-!         ric%i4b(:) -- "B" mode I4 integral for each element.
-!         ric%i5a(:) -- "A" mode I5 integral for each element.
-!         ric%i5b(:) -- "B" mode I5 integral for each element.
+!         ric%i1(:)           -- I1 integral for each element.
+!         ric%i2(:)           -- I2 integral for each element.
+!         ric%i3(:)           -- I3 integral for each element.
+!         ric%i4a(:)          -- "A" mode I4 integral for each element.
+!         ric%i4b(:)          -- "B" mode I4 integral for each element.
+!         ric%i5a(:)          -- "A" mode I5 integral for each element.
+!         ric%i5b(:)          -- "B" mode I5 integral for each element.
+!         ric%lin_i2_E4(:)    -- I2 * gamma^4 integral
+!         ric%lin_i3_E7(:)    -- I3 * gamma^7 integral
+!         ric%lin_i5a_E6(:)   -- I5a * gamma^6 integral
+!         ric%lin_i5b_E6(:)   -- I5b * gamma^6 integral
+!         ric%lin_norm_emittance_a(:)  ! Running sum
+!         ric%lin_norm_emittance_b(:)  ! Running sum
+!     Note: The lin_norm_emittance values are running sums from the beginning 
+!     of the lattice.
 !-       
 
 #include "CESR_platform.inc"
@@ -103,7 +111,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
   real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
   real(rp) v(4,4), v_inv(4,4), f0, f1, del_z, z_here, mc2, gamma, gamma4, gamma6
-  real(rp) kz, fac, c, s
+  real(rp) kz, fac, c, s, factor, emit_a, emit_b
 
   integer, optional :: ix_cache
   integer i, j, k, ir, key, n_step, ie1, ie2
@@ -139,6 +147,8 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
       deallocate (ric%lin_i3_E7)
       deallocate (ric%lin_i5a_E6)
       deallocate (ric%lin_i5b_E6)
+      deallocate (ric%lin_norm_emittance_a)
+      deallocate (ric%lin_norm_emittance_b)
       do_alloc = .true.
     else
       do_alloc = .false.
@@ -160,6 +170,8 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
     allocate (ric%lin_i3_E7(lat%n_ele_max))
     allocate (ric%lin_i5a_E6(lat%n_ele_max))
     allocate (ric%lin_i5b_E6(lat%n_ele_max))
+    allocate (ric%lin_norm_emittance_a(lat%n_ele_max))
+    allocate (ric%lin_norm_emittance_b(lat%n_ele_max))
   endif
 
   ric%lat => lat
@@ -483,6 +495,10 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   mode%lin%i5a_E6 = 0
   mode%lin%i5b_E6 = 0
 
+  factor = 2 * c_q * r_e / 3
+  emit_a = 0
+  emit_b = 0
+
   do i = ie1, ie2
     gamma = lat%ele(i)%value(E_TOT$) / mc2
     gamma4 = gamma**4
@@ -495,11 +511,15 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
     mode%lin%i3_E7  = mode%lin%i3_E7  + ric%lin_i3_E7(i)
     mode%lin%i5a_E6 = mode%lin%i5a_E6 + ric%lin_i5a_E6(i)
     mode%lin%i5b_E6 = mode%lin%i5b_E6 + ric%lin_i5b_E6(i)
+    emit_a = emit_a + factor * ric%lin_i5a_E6(i)
+    ric%lin_norm_emittance_a(i) = emit_a
+    emit_b = emit_b + factor * ric%lin_i5b_E6(i)
+    ric%lin_norm_emittance_b(i) = emit_b
   enddo
 
-  mode%lin%sig_E1 = mc2 * sqrt (4 * c_q * r_e * mode%lin%i3_E7 / 3)
-  mode%lin%a_emittance_end = 2 * c_q * r_e * mode%lin%i5a_e6 / (3 * gamma_f)
-  mode%lin%b_emittance_end = 2 * c_q * r_e * mode%lin%i5b_e6 / (3 * gamma_f)
+  mode%lin%sig_E1 = mc2 * sqrt (2 * factor * mode%lin%i3_E7)
+  mode%lin%a_emittance_end = factor * mode%lin%i5a_e6 / gamma_f
+  mode%lin%b_emittance_end = factor * mode%lin%i5b_e6 / gamma_f
 
 ! Normal integrals
 

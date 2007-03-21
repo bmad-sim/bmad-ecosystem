@@ -43,7 +43,8 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
   type (normal_modes_struct) mode
   type (trans_space_charge_struct), pointer :: sc
   type (ele_struct), pointer :: ele
-  type (twiss_struct) a, b
+  type (twiss_struct), pointer :: a, b
+  type (xy_disp_struct), pointer :: x, y
 
   real(rp) c11, c12, c22, g, g2, xx_ave, xy_ave, yy_ave, phi
   real(rp) xx_rot_ave, yy_rot_ave, a_emit, b_emit, length, g3
@@ -82,8 +83,10 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 ! sc%sig_x and sc%sig_y are the x and y sigmas in the rotated frame.
 
     c11 = ele%c_mat(1,1); c12 = ele%c_mat(1,2); c22 = ele%c_mat(2,2)
-    a = ele%a
-    b = ele%b
+    a => ele%a
+    b => ele%b
+    x => ele%x
+    y => ele%y
     g = ele%gamma_c
     g2 = ele%gamma_c**2
     a_emit = mode%a%emittance
@@ -91,15 +94,15 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 
     xx_ave = g2 * a_emit * a%beta + b_emit * (c11**2 * b%beta - &
                      2 * c11 * c12 * b%alpha + c12**2 * b%gamma) + &
-                     (a%eta_lab * mode%sigE_E)**2
+                     (x%eta * mode%sigE_E)**2
 
     xy_ave = g * (a_emit * (-c22 * a%beta - c12 * a%alpha) + &
                   b_emit * ( c11 * b%beta - c12 * b%alpha)) + &
-                   a%eta_lab * b%eta_lab * mode%sigE_E**2
+                   x%eta * y%eta * mode%sigE_E**2
 
     yy_ave = g2 * b_emit * b%beta + a_emit * (c22**2 * a%beta + &
                   2 * c22 * c12 * a%alpha + c12**2 * a%gamma) + &
-                  (b%eta_lab * mode%sigE_E)**2
+                  (y%eta * mode%sigE_E)**2
 
     phi = atan2(2 * xy_ave, xx_ave - yy_ave) / 2
 

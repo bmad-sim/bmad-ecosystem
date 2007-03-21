@@ -401,31 +401,81 @@ type (c_dummy_struct) c_twiss
 
 f => f_twiss
 call twiss_to_c2 (c_twiss, f%beta, f%alpha, f%gamma, &
-      f%phi, f%eta, f%etap, f%eta_lab, f%etap_lab, f%sigma)
+                                      f%phi, f%eta, f%etap, f%sigma, f%emit)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, &
-!            phi, eta, etap, eta_lab, etap_lab, sigma)
+! Subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, sigma, emit)
 !
 ! Subroutine used by twiss_to_f to convert a C++ C_twiss into
 ! a Bmad twiss_struct. This routine is not for general use.
 !-
 
-subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, &
-            phi, eta, etap, eta_lab, etap_lab, sigma)
+subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, sigma, emit)
 
 use bmad_and_cpp
 
 implicit none
 
 type (twiss_struct) f_twiss
-real(rp) beta, alpha, gamma, phi, eta, etap, eta_lab, etap_lab, sigma
+real(rp) beta, alpha, gamma, phi, eta, etap, sigma, emit
 
-f_twiss = twiss_struct(beta, alpha, gamma, phi, eta, etap, eta_lab, etap_lab, sigma)
+f_twiss = twiss_struct(beta, alpha, gamma, phi, eta, etap, sigma, emit)
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine xy_disp_to_c (f_xy_disp, c_xy_disp)
+!
+! Subroutine to convert a Bmad xy_disp_struct to a C++ C_xy_disp.
+!
+! Input:
+!   f_xy_disp -- Xy_disp_struct: Input Bmad xy_disp_struct.
+!
+! Output:
+!   c_xy_disp -- c_dummy_struct: Output C_xy_disp.
+!-
+
+subroutine xy_disp_to_c (f_xy_disp, c_xy_disp)
+
+use bmad_and_cpp
+
+implicit none
+
+type (xy_disp_struct), target :: f_xy_disp
+type (xy_disp_struct), pointer :: f
+type (c_dummy_struct) c_xy_disp
+
+f => f_xy_disp
+call xy_disp_to_c2 (c_xy_disp, f%eta, f%etap)
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine xy_disp_to_f2 (f_xy_disp, eta, etap)
+!
+! Subroutine used by xy_disp_to_f to convert a C++ C_xy_disp into
+! a Bmad xy_disp_struct. This routine is not for general use.
+!-
+
+subroutine xy_disp_to_f2 (f_xy_disp, eta, etap)
+
+use bmad_and_cpp
+
+implicit none
+
+type (xy_disp_struct) f_xy_disp
+real(rp) eta, etap
+
+f_xy_disp = xy_disp_struct(eta, etap)
 
 end subroutine
 
@@ -1514,7 +1564,7 @@ value(1:) = f%value
 
 
 call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
-      c_str(f%attribute_name), f%a, f%b, f%z, f%floor, value, f%gen0, &
+      c_str(f%attribute_name), f%x, f%y, f%a, f%b, f%z, f%floor, value, f%gen0, &
       f%vec0, mat2arr(f%mat6), mat2arr(f%c_mat), f%gamma_c, f%s, &
       r_arr, nr1, nr2, f%a_pole, f%b_pole, r_size(f%a_pole), f%const, r_size(f%const), &
       c_str(descrip), f%gen_field, f%taylor(1), f%taylor(2), f%taylor(3), &
@@ -1543,8 +1593,8 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
-!    n_attrib, x, y, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
-!    a, b, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
+!    n_attrib, x, y, a, b, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
+!    a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
 !    tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, n_wig, key, sub, &
 !    con_tp, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
 !    ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, int_ord, &
@@ -1556,8 +1606,8 @@ end subroutine
 !-
 
 subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
-    n_attrib, x, y, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
-    a, b, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
+    n_attrib, x, y, a, b, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
+    a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
     tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, n_wig, key, sub, &
     con_tp, ixv, nsl, ix1s, ix2s, &
     nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
@@ -1570,7 +1620,7 @@ use multipole_mod
 implicit none
 
 type (ele_struct) f
-type (c_dummy_struct) x, y, z, floor, wake, wig
+type (c_dummy_struct) a, b, x, y, z, floor, wake, wig
 type (c_dummy_struct) tlr1, tlr2, tlr3, tlr4, tlr5, tlr6
 type (genfield), target :: gen
 
@@ -1581,7 +1631,7 @@ integer n_nam, nr1, nr2, n_ab, n_const, key, sub, con_tp, ixv, nsl, ix1s, &
     n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, coupler_at
 
 real(rp) val(n_attrib_maxx), g0(6), v0(6), m6(36), c2(4), gam, s
-real(rp) a(n_ab), b(n_ab), r_arr(nr1*nr2), const(n_const)
+real(rp) a_pole(n_ab), b_pole(n_ab), r_arr(nr1*nr2), const(n_const)
 
 character(n_nam)  nam
 character(n_typ)  typ
@@ -1596,9 +1646,11 @@ f%type  = typ
 f%alias = ali
 f%attribute_name = attrib
 
-call twiss_to_f (x, f%a)
-call twiss_to_f (y, f%b)
+call twiss_to_f (a, f%a)
+call twiss_to_f (b, f%b)
 call twiss_to_f (z, f%z)
+call xy_disp_to_f (x, f%x)
+call xy_disp_to_f (y, f%y)
 call floor_position_to_f (floor, f%floor)
 
 f%value               = val
@@ -1659,8 +1711,8 @@ if (n_ab == 0) then
   if (associated (f%a_pole)) deallocate (f%a_pole, f%b_pole)
 else
   call multipole_init(f)
-  f%a_pole = a
-  f%b_pole = b
+  f%a_pole = a_pole
+  f%b_pole = b_pole
 endif
 
 if (n_const == 0) then

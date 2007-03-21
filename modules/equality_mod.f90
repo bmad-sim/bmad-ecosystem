@@ -3,8 +3,8 @@ module equality_mod
 use bmad_struct
 
 interface operator (==)
-  module procedure eq_coord, eq_twiss, eq_floor_position, eq_wig_term
-  module procedure eq_taylor_term, eq_taylor
+  module procedure eq_coord, eq_twiss, eq_xy_disp, eq_floor_position
+  module procedure eq_taylor_term, eq_taylor, eq_wig_term
   module procedure eq_sr_table_wake, eq_sr_mode_wake, eq_lr_wake
   module procedure eq_wake, eq_control, eq_param, eq_amode, eq_linac_mode
   module procedure eq_modes, eq_bmad_com, eq_em_field, eq_ele, eq_mode_info
@@ -48,8 +48,25 @@ logical is_eq
 is_eq = (f1%beta == f2%beta) .and. (f1%alpha == f2%alpha) .and. &
           (f1%gamma == f2%gamma) .and. (f1%phi == f2%phi) .and. &
           (f1%eta == f2%eta) .and. (f1%etap == f2%etap) .and. &
-          (f1%eta_lab == f2%eta_lab) .and. (f1%etap_lab == f2%etap_lab) .and. &
-          (f1%sigma == f2%sigma)
+          (f1%sigma == f2%sigma) .and. (f1%emit == f2%emit)
+
+end function
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+elemental function eq_xy_disp (f1, f2) result (is_eq)
+
+use bmad_struct
+
+implicit none
+
+type (xy_disp_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = (f1%eta == f2%eta) .and. (f1%etap == f2%etap)
 
 end function
 

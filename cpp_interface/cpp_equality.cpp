@@ -61,7 +61,11 @@ bool operator== (const C_coord& x, const C_coord& y) {
 bool operator== (const C_twiss& x, const C_twiss& y) {
   return (x.beta == y.beta) && (x.alpha == y.alpha) && (x.gamma == y.gamma) &&
      (x.phi == y.phi) && (x.eta == y.eta) && (x.etap == y.etap) &&
-     (x.eta_lab == y.eta_lab) && (x.etap_lab == y.etap_lab) && (x.sigma == y.sigma);
+     (x.sigma == y.sigma) && (x.emit == y.emit);
+};
+
+bool operator== (const C_xy_disp& x, const C_xy_disp& y) {
+  return (x.eta == y.eta) && (x.etap == y.etap);
 };
 
 bool operator== (const C_floor_position& x, const C_floor_position& y) {
@@ -184,11 +188,12 @@ bool operator== (const C_em_field& x, const C_em_field& y) {
 bool operator== (const C_ele& x, const C_ele& y) {
   return (x.name == y.name) && (x.type == y.type) && (x.alias == y.alias) && 
     (x.attribute_name == y.attribute_name) && (x.x == y.x) && (x.y == y.y) && 
+    (x.a == y.a) && (x.b == y.b) && 
     (x.z == y.z) && (x.floor == y.floor) && is_all_true(x.value, y.value) && 
     is_all_true(x.gen0, y.gen0) && is_all_true(x.vec0, y.vec0) && 
     is_all_true(x.mat6, y.mat6) && is_all_true(x.c_mat, y.c_mat) && 
     (x.gamma_c == y.gamma_c) && (x.s == y.s) && is_all_true(x.r, y.r) && 
-    is_all_true(x.a, y.a) && is_all_true(x.b, y.b) && 
+    is_all_true(x.a_pole, y.a_pole) && is_all_true(x.b_pole, y.b_pole) && 
     is_all_true(x.const_arr, y.const_arr) && (x.descrip == y.descrip) && 
     is_all_true(x.taylor, y.taylor) && 
     is_all_true(x.wig_term, y.wig_term) && (x.wake == y.wake) && 
@@ -268,15 +273,16 @@ void ele_comp (const C_ele& x, const C_ele& y) {
       (x.is_on == y.is_on) && (x.internal_logic == y.internal_logic) && 
       (x.logic == y.logic) && (x.on_an_i_beam == y.on_an_i_beam)) << endl;
 
-  cout << "xyz:    " << ((x.x == y.x) && (x.y == y.y) && (x.z == y.z)) << endl;
+  cout << "xy:     " << ((x.x == y.x) && (x.y == y.y)) << endl;
+  cout << "abz:    " << ((x.a == y.a) && (x.b == y.b) && (x.z == y.z)) << endl;
   cout << "floor:  " << ((x.floor == y.floor)) << endl;
   cout << "value:  " << is_all_true(x.value, y.value) << endl;
   cout << "gen0:   " << is_all_true(x.gen0, y.gen0) << endl;
   cout << "vec0:   " << is_all_true(x.vec0, y.vec0) << endl;
   cout << "mat6:   " << is_all_true(x.mat6, y.mat6) << endl; 
   cout << "c_mat:  " << is_all_true(x.c_mat, y.c_mat) << endl;
-  cout << "a:      " << is_all_true(x.a, y.a) << endl;
-  cout << "b:      " << is_all_true(x.b, y.b) << endl;
+  cout << "a_pole: " << is_all_true(x.a_pole, y.a_pole) << endl;
+  cout << "b_pole: " << is_all_true(x.b_pole, y.b_pole) << endl;
   cout << "const:  " << is_all_true(x.const_arr, y.const_arr) << endl;
   cout << "taylor: " << is_all_true(x.taylor, y.taylor) << endl;
   cout << "wig:    " << is_all_true(x.wig_term, y.wig_term)  << endl;

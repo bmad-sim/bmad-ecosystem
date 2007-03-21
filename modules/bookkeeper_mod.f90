@@ -1463,7 +1463,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 
 real(rp), pointer :: a_ptr
-real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_lab_vec(4)
+real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4)
 
 integer ix_ele
 
@@ -1497,12 +1497,12 @@ if (ix_ele > -1) then
       coupling_change = .true.
     endif
 
-    if (associated(a_ptr, ele%a%eta_lab) .or. associated(a_ptr, ele%a%etap_lab) .or. &
-        associated(a_ptr, ele%b%eta_lab) .or. associated(a_ptr, ele%b%etap_lab) .or. &
+    if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%x%etap) .or. &
+        associated(a_ptr, ele%y%eta) .or. associated(a_ptr, ele%y%etap) .or. &
         coupling_change) then 
       call make_v_mats (ele, v_mat, v_inv_mat)
-      eta_lab_vec = (/ ele%a%eta_lab, ele%a%etap_lab, ele%b%eta_lab, ele%b%etap_lab /)
-      eta_vec = matmul (v_inv_mat, eta_lab_vec)
+      eta_xy_vec = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
+      eta_vec = matmul (v_inv_mat, eta_xy_vec)
       ele%a%eta  = eta_vec(1)
       ele%a%etap = eta_vec(2)
       ele%b%eta  = eta_vec(3)
@@ -1514,11 +1514,11 @@ if (ix_ele > -1) then
         associated(a_ptr, ele%b%eta) .or. associated(a_ptr, ele%b%etap)) then 
       call make_v_mats (ele, v_mat, v_inv_mat)
       eta_vec = (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
-      eta_lab_vec = matmul (v_mat, eta_vec)
-      ele%a%eta_lab  = eta_lab_vec(1)
-      ele%a%etap_lab = eta_lab_vec(2)
-      ele%b%eta_lab  = eta_lab_vec(3)
-      ele%b%etap_lab = eta_lab_vec(4)
+      eta_xy_vec = matmul (v_mat, eta_vec)
+      ele%x%eta  = eta_xy_vec(1)
+      ele%x%etap = eta_xy_vec(2)
+      ele%y%eta  = eta_xy_vec(3)
+      ele%y%etap = eta_xy_vec(4)
       return
     endif
 

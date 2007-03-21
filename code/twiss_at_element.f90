@@ -144,8 +144,8 @@ subroutine zero_ave (ave)
   ave%a%eta      = 0;   ave%b%eta      = 0
   ave%a%etap     = 0;   ave%b%etap     = 0
   ave%a%sigma    = 0;   ave%b%sigma    = 0
-  ave%a%eta_lab  = 0;   ave%b%eta_lab  = 0
-  ave%a%etap_lab = 0;   ave%b%etap_lab = 0
+  ave%x%eta  = 0;   ave%y%eta  = 0
+  ave%x%etap = 0;   ave%y%etap = 0
   ave%c_mat      = 0
   ave%gamma_c    = 0                                            
   ave%value(l$)  = 0
@@ -172,8 +172,8 @@ subroutine twiss_ave (ave, e1, r)
   ave%a%eta      = ave%a%eta      + r * e1%a%eta      
   ave%a%etap     = ave%a%etap     + r * e1%a%etap     
   ave%a%sigma    = ave%a%sigma    + r * e1%a%sigma    
-  ave%a%eta_lab  = ave%a%eta_lab  + r * e1%a%eta_lab  
-  ave%a%etap_lab = ave%a%etap_lab + r * e1%a%etap_lab 
+  ave%x%eta  = ave%x%eta  + r * e1%x%eta  
+  ave%x%etap = ave%x%etap + r * e1%x%etap 
   ave%b%phi      = ave%b%phi      + r * e1%b%phi      
   ave%b%alpha    = ave%b%alpha    + r * e1%b%alpha    
   ave%b%beta     = ave%b%beta     + r * e1%b%beta     
@@ -181,8 +181,8 @@ subroutine twiss_ave (ave, e1, r)
   ave%b%eta      = ave%b%eta      + r * e1%b%eta      
   ave%b%etap     = ave%b%etap     + r * e1%b%etap     
   ave%b%sigma    = ave%b%sigma    + r * e1%b%sigma    
-  ave%b%eta_lab  = ave%b%eta_lab  + r * e1%b%eta_lab  
-  ave%b%etap_lab = ave%b%etap_lab + r * e1%b%etap_lab 
+  ave%y%eta  = ave%y%eta  + r * e1%y%eta  
+  ave%y%etap = ave%y%etap + r * e1%y%etap 
 
 end subroutine
 

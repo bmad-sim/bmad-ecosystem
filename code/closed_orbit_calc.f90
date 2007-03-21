@@ -136,7 +136,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
         ele => lat%ele(i)
         if (ele%key == sbend$) then
           i1_int = i1_int + ele%value(l$) * &
-              ele%value(g$) * (lat%ele(i-1)%a%eta_lab + ele%a%eta_lab) / 2
+              ele%value(g$) * (lat%ele(i-1)%x%eta + ele%x%eta) / 2
         endif
       enddo
     endif

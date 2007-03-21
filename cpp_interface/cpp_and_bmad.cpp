@@ -112,16 +112,15 @@ void operator>> (orbit_struct* f, C_orbit& c) {
 //---------------------------------------------------------------------------
 // Twiss
 
-extern "C" void twiss_to_f2_(twiss_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void twiss_to_f2_(twiss_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
 extern "C" void twiss_to_f_(const C_twiss& c, twiss_struct* f) {
-  twiss_to_f2_(f, c.beta, c.alpha, c.gamma, c.phi, c.eta, c.etap, 
-                                           c.eta_lab, c.etap_lab, c.sigma);
+  twiss_to_f2_(f, c.beta, c.alpha, c.gamma, c.phi, c.eta, c.etap, c.sigma, c.emit);
 }
 
 extern "C" void twiss_to_c2_(C_twiss& c, Re& beta, Re& alpha, Re& gamma, Re& phi, 
-                          Re& eta, Re& etap, Re& eta_lab, Re& etap_lab, Re& sigma) {
-  c = C_twiss(beta, alpha, gamma, phi, eta, etap, eta_lab, etap_lab, sigma);
+                          Re& eta, Re& etap, Re& sigma, Re& emit) {
+  c = C_twiss(beta, alpha, gamma, phi, eta, etap, sigma, emit);
 }
 
 void operator>> (C_twiss& c, twiss_struct* f) {
@@ -130,6 +129,28 @@ void operator>> (C_twiss& c, twiss_struct* f) {
 
 void operator>> (twiss_struct* f, C_twiss& c) {
   twiss_to_c_(f, c);
+}
+
+
+//---------------------------------------------------------------------------
+// XY_Disp
+
+extern "C" void xy_disp_to_f2_(xy_disp_struct*, Re&, Re&);
+
+extern "C" void xy_disp_to_f_(const C_xy_disp& c, xy_disp_struct* f) {
+  xy_disp_to_f2_(f, c.eta, c.etap);
+}
+
+extern "C" void xy_disp_to_c2_(C_xy_disp& c, Re& eta, Re& etap) {
+  c = C_xy_disp(eta, etap);
+}
+
+void operator>> (C_xy_disp& c, xy_disp_struct* f) {
+  xy_disp_to_f_(c, f);
+}
+
+void operator>> (xy_disp_struct* f, C_xy_disp& c) {
+  xy_disp_to_c_(f, c);
 }
 
 
@@ -582,7 +603,8 @@ void operator>> (em_field_struct* f, C_em_field& c) {
 // ele
 
 extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char, 
-  Int&, C_twiss&, C_twiss&, C_twiss&, C_floor_position&, ReArr, ReArr, ReArr, 
+  Int&, C_xy_disp, C_xy_disp, C_twiss&, C_twiss&, C_twiss&, C_floor_position&, 
+  ReArr, ReArr, ReArr, 
   ReArr, ReArr, Re&, Re&, ReArr, Int&, Int&, ReArr, ReArr, Int&, ReArr, Int&, 
   Char, Int&, void*, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, 
   C_taylor&, C_wake&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
@@ -598,7 +620,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   const char* des = c.descrip.data();    int n_des = c.descrip.length();
   const char* attrib = c.attribute_name.data(); 
                                     int n_attrib = c.attribute_name.length();
-  int n_ab = c.a.size(), n_const = c.const_arr.size();
+  int n_ab = c.a_pole.size(), n_const = c.const_arr.size();
   int n_sr_table = c.wake.sr_table.size(), n_sr_mode_long = c.wake.sr_mode_long.size();
   int n_sr_mode_trans = c.wake.sr_mode_trans.size(), n_lr = c.wake.lr.size();
   int n_wig = c.wig_term.size();
@@ -612,8 +634,8 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   matrix_to_array (c.c_mat, c_mat);
   matrix_to_array (c.r, r_arr);
   ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, n_attrib,
-    c.x, c.y, c.z, c.floor, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat, 
-    c.gamma_c, c.s, r_arr, nr1, nr2, &c.a[0], &c.b[0], n_ab, &c.const_arr[0], 
+    c.x, c.y, c.a, c.b, c.z, c.floor, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat, 
+    c.gamma_c, c.s, r_arr, nr1, nr2, &c.a_pole[0], &c.b_pole[0], n_ab, &c.const_arr[0], 
     n_const, des, n_des, c.gen_field, c.taylor[0], c.taylor[1], c.taylor[2], 
     c.taylor[3], c.taylor[4], c.taylor[5], c.wake, n_sr_table, n_sr_mode_long, 
     n_sr_mode_trans, n_lr, n_wig, c.key, 
@@ -633,11 +655,12 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
 }
 
 extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
-    char* attrib, twiss_struct* x, twiss_struct* y, twiss_struct* z,
+    char* attrib, xy_disp_struct* x, xy_disp_struct* y, 
+    twiss_struct* a, twiss_struct* b, twiss_struct* z,
     floor_position_struct* floor, ReArr val, ReArr gen0, ReArr vec0,
     ReArr mat6, ReArr c_mat, Re& gamma_c, Re& s, ReArr r_arr, Int& nr1, 
-    Int& nr2,
-    ReArr a, ReArr b, Int& n_ab, ReArr const_arr, Int& n_const, char* descrip, 
+    Int& nr2, ReArr a_pole, ReArr b_pole, 
+    Int& n_ab, ReArr const_arr, Int& n_const, char* descrip, 
     void* gen, taylor_struct* tlr0, taylor_struct* tlr1, taylor_struct* tlr2,
     taylor_struct* tlr3, taylor_struct* tlr4, taylor_struct* tlr5, 
     wake_struct* wake, Int& wake_here, Int& n_wig, Int& key, Int& sub_key, 
@@ -706,7 +729,8 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     c.r << r_arr;
   }
 
-  x >> c.x;  y >> c.y;  z >> c.z;
+  x >> c.x;  y >> c.y;
+  a >> c.a;  b >> c.b;  z >> c.z;
   floor >> c.floor;
 
   tlr0 >> c.taylor[0];   tlr1 >> c.taylor[1];   tlr2 >> c.taylor[2]; 
@@ -716,10 +740,10 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   if (wake_here) wake >> c.wake;  
   c.gen_field = gen;
   if (n_ab > 0) {
-    c.a.resize(Bmad::N_POLE_MAXX+1);
-    c.b.resize(Bmad::N_POLE_MAXX+1);
-    c.a = Real_Array(a, Bmad::N_POLE_MAXX+1);
-    c.b = Real_Array(b, Bmad::N_POLE_MAXX+1);
+    c.a_pole.resize(Bmad::N_POLE_MAXX+1);
+    c.b_pole.resize(Bmad::N_POLE_MAXX+1);
+    c.a_pole = Real_Array(a_pole, Bmad::N_POLE_MAXX+1);
+    c.b_pole = Real_Array(b_pole, Bmad::N_POLE_MAXX+1);
   }
 }
 
@@ -743,6 +767,8 @@ C_ele& C_ele::operator= (const C_ele& c) {
   attribute_name      = c.attribute_name;
   x                   = c.x;
   y                   = c.y;
+  a                   = c.a;
+  b                   = c.b;
   z                   = c.z;
   floor               = c.floor;
   value               << c.value;
@@ -753,8 +779,8 @@ C_ele& C_ele::operator= (const C_ele& c) {
   gamma_c             = c.gamma_c;
   s                   = c.s;
   r                   << c.r;
-  a                   << c.a;
-  b                   << c.b;
+  a_pole              << c.a_pole;
+  b_pole              << c.b_pole;
   const_arr           << c.const_arr;
   descrip             = c.descrip;
   gen_field           = c.gen_field;

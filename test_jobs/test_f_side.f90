@@ -28,24 +28,25 @@ use spin_mod
 
 type (coord_struct), save ::           coord_in, coord_out
 type (twiss_struct), save ::           twiss_in, twiss_out
+type (xy_disp_struct), save ::         xy_disp_in, xy_disp_out
 type (floor_position_struct), save ::  floor_position_in, floor_position_out
 type (wig_term_struct), save ::        wig_term_in, wig_term_out
 type (taylor_term_struct), save ::     taylor_term_in, taylor_term_out
 type (taylor_struct), save ::          taylor_in, taylor_out
-type (sr_table_wake_struct), save ::        sr_table_wake_in, sr_table_wake_out
-type (sr_mode_wake_struct), save ::        sr_mode_wake_in, sr_mode_wake_out
+type (sr_table_wake_struct), save ::   sr_table_wake_in, sr_table_wake_out
+type (sr_mode_wake_struct), save ::    sr_mode_wake_in, sr_mode_wake_out
 type (lr_wake_struct), save ::         lr_wake_in, lr_wake_out
 type (wake_struct), save, target ::    wake_in, wake_out
 type (control_struct), save ::         control_in, control_out
-type (lat_param_struct), save ::           param_in, param_out
-type (anormal_mode_struct), save ::           amode_in, amode_out
-type (linac_normal_mode_struct), save ::      linac_mode_in, linac_mode_out
-type (normal_modes_struct), save ::           modes_in, modes_out
-type (bmad_common_struct), save ::        bmad_com_in, bmad_com_out
+type (lat_param_struct), save ::       param_in, param_out
+type (anormal_mode_struct), save ::    amode_in, amode_out
+type (linac_normal_mode_struct), save :: linac_mode_in, linac_mode_out
+type (normal_modes_struct), save ::    modes_in, modes_out
+type (bmad_common_struct), save ::     bmad_com_in, bmad_com_out
 type (em_field_struct), save ::        em_field_in, em_field_out
 type (ele_struct), save ::             ele_in, ele_out
 type (mode_info_struct), save ::       mode_info_in, mode_info_out
-type (lat_struct), save ::            ring_in, ring_out
+type (lat_struct), save ::             lat_in, lat_out
 
 logical, save :: all_ok = .true.
 
@@ -103,9 +104,12 @@ coord_in  = coord_struct(vec6_a, spinor2_a)
 coord_out = coord_struct(vec6_b, spinor2_b)
 
 twiss_in  = twiss_struct(1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, 6.0_rp, &
-                                      7.0_rp, 8.0_rp, 9.0_rp)
-twiss_out = twiss_struct(9.0_rp, 8.0_rp, 7.0_rp, 6.0_rp, 5.0_rp, &
+                                      7.0_rp, 8.0_rp)
+twiss_out = twiss_struct(8.0_rp, 7.0_rp, 6.0_rp, 5.0_rp, &
                                       4.0_rp, 3.0_rp, 2.0_rp, 1.0_rp)
+
+xy_disp_in  = xy_disp_struct(1.0_rp, 2.0_rp)
+xy_disp_out = xy_disp_struct(2.0_rp, 1.0_rp)
 
 floor_position_in  = floor_position_struct(1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, 6.0_rp)
 floor_position_out = floor_position_struct(6.0_rp, 5.0_rp, 4.0_rp, 3.0_rp, 2.0_rp, 1.0_rp)
@@ -243,6 +247,8 @@ ele_in%floor = floor_position_in
 ele_in%a = twiss_in
 ele_in%b = twiss_out
 ele_in%z = twiss_in
+ele_in%x = xy_disp_in
+ele_in%y = xy_disp_out
 
 ele_out = ele_in
 ele_out%ix_ele = ele_in%ix_ele
@@ -264,32 +270,32 @@ forall (i = 0:n_pole_maxx)
   ele_in%b_pole(i) = -i - 200
 end forall
 
-ring_in%name = "abc"
-ring_in%lattice = "def"
-ring_in%input_file_name = "123"
-ring_in%title = "title"
-ring_in%version = 21
-ring_in%n_ele_track = 22
-ring_in%n_ele_max = 1
-ring_in%n_control_max = 2
-ring_in%n_ic_max = 6
-ring_in%input_taylor_order = 34
+lat_in%name = "abc"
+lat_in%lattice = "def"
+lat_in%input_file_name = "123"
+lat_in%title = "title"
+lat_in%version = 21
+lat_in%n_ele_track = 22
+lat_in%n_ele_max = 1
+lat_in%n_control_max = 2
+lat_in%n_ic_max = 6
+lat_in%input_taylor_order = 34
 
-allocate (ring_in%ele(0:1))
-ring_in%ele(0) = ele_in
-ring_in%ele(1) = ele_out
-allocate (ring_in%control(ring_in%n_control_max))
-ring_in%control(1) = control_in
-ring_in%control(2) = control_out
-allocate(ring_in%ic(6))
-ring_in%ic = nint(vec6_a)
-ring_in%ele_init = ele_in
-ring_in%ele_init%name = 'ele_init'
-ring_in%E_TOT => ring_in%ele(0)%value(E_TOT$)
-ring_in%ele(0)%ix_ele = 0
-ring_in%ele(1)%ix_ele = 1
+allocate (lat_in%ele(0:1))
+lat_in%ele(0) = ele_in
+lat_in%ele(1) = ele_out
+allocate (lat_in%control(lat_in%n_control_max))
+lat_in%control(1) = control_in
+lat_in%control(2) = control_out
+allocate(lat_in%ic(6))
+lat_in%ic = nint(vec6_a)
+lat_in%ele_init = ele_in
+lat_in%ele_init%name = 'ele_init'
+lat_in%E_TOT => lat_in%ele(0)%value(E_TOT$)
+lat_in%ele(0)%ix_ele = 0
+lat_in%ele(1)%ix_ele = 1
 
-ring_out = ring_in
+lat_out = lat_in
 
 end subroutine
 
@@ -308,23 +314,24 @@ implicit none
 
 type (coord_struct)          coord1, coord2
 type (twiss_struct)          twiss1, twiss2
+type (xy_disp_struct)        xy_disp1, xy_disp2
 type (floor_position_struct) floor_position1, floor_position2
 type (wig_term_struct)       wig_term1, wig_term2
 type (taylor_term_struct)    taylor_term1, taylor_term2
 type (taylor_struct)         taylor1, taylor2
-type (sr_table_wake_struct)       sr_table_wake1, sr_table_wake2
-type (sr_mode_wake_struct)       sr_mode_wake1, sr_mode_wake2
+type (sr_table_wake_struct)  sr_table_wake1, sr_table_wake2
+type (sr_mode_wake_struct)   sr_mode_wake1, sr_mode_wake2
 type (lr_wake_struct)        lr_wake1, lr_wake2
 type (wake_struct)           wake1, wake2
 type (control_struct)        control1, control2
-type (lat_param_struct)          param1, param2
-type (anormal_mode_struct)          amode1, amode2
+type (lat_param_struct)      param1, param2
+type (anormal_mode_struct)   amode1, amode2
 type (linac_normal_mode_struct)     linac_mode1, linac_mode2
-type (normal_modes_struct)          modes1, modes2
+type (normal_modes_struct)   modes1, modes2
 type (em_field_struct)       em_field1, em_field2
 type (ele_struct)            ele1, ele2
 type (mode_info_struct)      mode_info1, mode_info2
-type (lat_struct)           ring1, ring2
+type (lat_struct)           lat1, lat2
 
 integer :: c_ok = 1
 
@@ -361,6 +368,22 @@ if (twiss2 == twiss_out) then
   print *, 'C_side_convert: Twiss C to F: OK'
 else
   print *, 'C_SIDE_CONVERT: TWISS C TO F: FAILED!!'
+  all_ok = .false.
+endif
+
+!------------------------------------------------
+! Xy_disp Check
+
+xy_disp1 = xy_disp_in
+
+print *
+call test_c_xy_disp (xy_disp1, xy_disp2, c_ok)
+all_ok = all_ok .and. f_logic(c_ok)
+
+if (xy_disp2 == xy_disp_out) then
+  print *, 'C_side_convert: Xy_disp C to F: OK'
+else
+  print *, 'C_SIDE_CONVERT: XY_DISP C TO F: FAILED!!'
   all_ok = .false.
 endif
 
@@ -640,18 +663,18 @@ else
 endif
 
 !------------------------------------------------
-! ring Check
+! lat Check
 
-ring1 = ring_in
+lat1 = lat_in
 
 print *
-call test_C_lat (ring1, ring2, c_ok)
+call test_C_lat (lat1, lat2, c_ok)
 all_ok = all_ok .and. f_logic(c_ok)
 
-if (ring2 == ring_out) then
-  print *, 'C_side_convert: ring C to F: OK'
+if (lat2 == lat_out) then
+  print *, 'C_side_convert: lat C to F: OK'
 else
-  print *, 'C_SIDE_CONVERT: ring C to F: FAILED!!'
+  print *, 'C_SIDE_CONVERT: lat C to F: FAILED!!'
   all_ok = .false.
 endif
 
@@ -726,6 +749,37 @@ endif
 
 f2 = twiss_out
 call twiss_to_c (f2, c2)
+
+end subroutine
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+subroutine test_f_xy_disp (c1, c2)
+
+use bmad_and_cpp
+use equality_mod
+use test_mod
+
+implicit none
+
+type (c_dummy_struct) c1, c2
+type (xy_disp_struct) f1, f2
+
+!
+
+call xy_disp_to_f (c1, f1)
+
+if (f1 == xy_disp_in) then
+  print *, 'F_side_convert: Xy_disp C to F: OK'
+else
+  print *, 'F_SIDE_CONVERT: XY_DISP C TO F: FAILED!!'
+  all_ok = .false.
+endif
+
+
+f2 = xy_disp_out
+call xy_disp_to_c (f2, c2)
 
 end subroutine
 
@@ -1257,16 +1311,16 @@ type (lat_struct) f1, f2
 
 !
 
-call ring_to_f (c1, f1)
+call lat_to_f (c1, f1)
 
-if (f1 == ring_in) then
-  print *, 'F_side_convert: ring C to F: OK'
+if (f1 == lat_in) then
+  print *, 'F_side_convert: lat C to F: OK'
 else
-  print *, 'F_SIDE_CONVERT: ring C TO F: FAILED!!'
+  print *, 'F_SIDE_CONVERT: lat C TO F: FAILED!!'
   all_ok = .false.
 endif
 
-f2 = ring_out
+f2 = lat_out
 call lat_to_c (f2, c2)
 
 end subroutine

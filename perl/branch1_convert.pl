@@ -142,6 +142,10 @@ foreach $file (@ARGV) {
     s/\%b([\;\(\,\)\s])/\%b_pole\1/ig;
     s/\%x([\;\%\s\)\,])/\%a\1/ig;
     s/\%y([\;\%\s\)\,])/\%b\1/ig;
+    s/a\%eta_lab/x\%eta/ig;
+    s/b\%eta_lab/y\%eta/ig;
+    s/a\%etap_lab/x\%etap/ig;
+    s/b\%etap_lab/y\%etap/ig;    
 
     print (F_OUT);
 

@@ -39,8 +39,8 @@ type rad_int_cache_struct
   logical :: set = .false.   ! is being used?
 end type
 
-! This structure stores the radiation integrals for the individual elements
-! eta_a(4) is the a-mode dispersion in the lab frame.
+! This structure stores the radiation integrals for the individual elements except
+! lin_norm_emittance_a and lin_norm_emittance_b are running sums.
 
 type rad_int_common_struct
   type (lat_struct), pointer :: lat
@@ -59,6 +59,8 @@ type rad_int_common_struct
   real(rp), allocatable :: lin_i3_E7(:) 
   real(rp), allocatable :: lin_i5a_E6(:) 
   real(rp), allocatable :: lin_i5b_E6(:) 
+  real(rp), allocatable :: lin_norm_emittance_a(:)  ! Running sum
+  real(rp), allocatable :: lin_norm_emittance_b(:)  ! Running sum
 end type
 
 type (rad_int_common_struct), target, save :: ric

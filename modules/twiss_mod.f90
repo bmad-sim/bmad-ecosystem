@@ -4,12 +4,9 @@ module twiss_mod
 
   use matrix_mod
 
-! eta and etap are the normal mode dispersions.
-
   type twiss_struct
     real(rp) beta, alpha, gamma, phi, eta, etap
-    real(rp) eta_lab, etap_lab   ! dispersion along the x or y axis
-    real(rp) sigma
+    real(rp) sigma, emit
   end type
 
 contains

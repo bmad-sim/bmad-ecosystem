@@ -118,17 +118,16 @@ class twiss_struct {};
 class C_twiss {
 public:
   double beta, alpha, gamma, phi, eta, etap;
-  double eta_lab, etap_lab;
-  double sigma;
+  double sigma, emit;
 
   C_twiss(double b, double a, double g, double p, double e, double ep, 
-                                         double el, double epl, double s) : 
-    beta(b), alpha(a), gamma(g), phi(p), eta(e), etap(ep), eta_lab(el),
-    etap_lab(epl), sigma(s) {}
+                                         double s, double em) : 
+    beta(b), alpha(a), gamma(g), phi(p), eta(e), etap(ep), 
+    sigma(s), emit(em) {}
 
   C_twiss(double z = 0) : 
     beta(z), alpha(z), gamma(z), phi(z), eta(z), 
-    etap(z), eta_lab(z), etap_lab(z), sigma(z) {}
+    etap(z), sigma(z), emit(z) {}
 
 };    // End Class
 
@@ -140,6 +139,30 @@ bool operator== (const C_twiss&, const C_twiss&);
 void operator>> (C_twiss&, twiss_struct*);
 void operator>> (twiss_struct*, C_twiss&);
 
+//--------------------------------------------------------------------
+// Xy_Disp 
+
+class xy_disp_struct {}; 
+
+class C_xy_disp {
+public:
+  double eta, etap;
+
+  C_xy_disp(double e, double ep) : 
+    eta(e), etap(ep) {}
+
+  C_xy_disp(double z = 0) : 
+    eta(z), etap(z) {}
+
+};    // End Class
+
+extern "C" void xy_disp_to_c_(xy_disp_struct*, C_xy_disp&);
+extern "C" void xy_disp_to_f_(const C_xy_disp&, xy_disp_struct*);
+
+bool operator== (const C_xy_disp&, const C_xy_disp&);
+
+void operator>> (C_xy_disp&, xy_disp_struct*);
+void operator>> (xy_disp_struct*, C_xy_disp&);
 
 //--------------------------------------------------------------------
 // Floor_position 
@@ -674,7 +697,8 @@ public:
   string type;                  // type name
   string alias;                 // Another name
   string attribute_name;        // Used by overlays
-  C_twiss  x, y, z;             // Twiss parameters at end of element
+  C_xy_disp x, y;               // Projected dispersion
+  C_twiss  a, b, z;             // Twiss parameters at end of element
   C_floor_position floor;       // Global floor position at end of ele.
   Real_Array value;             // attribute values. size = N_ATTRIB_MAXX
   Real_Array gen0;              // constant part of the genfield map. size = 6
@@ -684,8 +708,8 @@ public:
   double gamma_c;               // gamma associated with C matrix
   double s;                     // longitudinal position at the end
   Real_Matrix r;                // For general use. Not used by Bmad.
-  Real_Array a;                 // multipole
-  Real_Array b;                 // multipoles
+  Real_Array a_pole;            // multipole
+  Real_Array b_pole;            // multipoles
   Real_Array const_arr;         // Working constants.
   string descrip;               // For general use
   void* gen_field;              // Pointer to a PTC genfield
