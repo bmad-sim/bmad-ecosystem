@@ -338,6 +338,7 @@ case ('data')
     nl=nl+1; write(lines(nl), imt)  '%Ix_dModel         = ', d_ptr%ix_dModel
     nl=nl+1; write(lines(nl), imt)  '%Ix_d1             = ', d_ptr%ix_d1
     nl=nl+1; write(lines(nl), imt)  '%Ix_data           = ', d_ptr%ix_data
+    nl=nl+1; write(lines(nl), imt)  '%Ix_bunch          = ', d_ptr%ix_bunch
     nl=nl+1; write(lines(nl), rmt)  '%meas_value        = ', d_ptr%meas_value
     nl=nl+1; write(lines(nl), rmt)  '%Ref_value         = ', d_ptr%ref_value
     nl=nl+1; write(lines(nl), rmt)  '%Model_value       = ', d_ptr%model_value
@@ -996,6 +997,7 @@ case ('plot')
     nl=nl+1; write (lines(nl), amt) 'data_type               = ', c%data_type
     nl=nl+1; write (lines(nl), amt) 'ele_ref_name            = ', c%ele_ref_name
     nl=nl+1; write (lines(nl), imt) 'ix_ele_ref              = ', c%ix_ele_ref
+    nl=nl+1; write (lines(nl), imt) 'ix_bunch                = ', c%ix_bunch
     nl=nl+1; write (lines(nl), imt) 'ix_universe             = ', c%ix_universe
     nl=nl+1; write (lines(nl), imt) 'symbol_every            = ', c%symbol_every
     nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor     = ', c%x_axis_scale_factor

@@ -32,6 +32,7 @@ type tao_data_input
   real(rp) :: data_noise ! not used by most data types
   real(rp) :: scale_error ! not used by most data types
   logical :: good_user
+  integer ix_bunch
 end type
 
 !-------------------------------------------------------------
@@ -92,6 +93,7 @@ type tao_curve_input
   logical convert  
   character(40) ele_ref_name
   integer ix_ele_ref
+  integer ix_bunch
 end type
 
 type tao_graph_input

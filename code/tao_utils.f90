@@ -192,6 +192,8 @@ subroutine tao_locate_element (string, ix_universe, ix_ele, ignore_blank)
 
 implicit none
 
+type (tao_universe_struct), pointer :: u
+
 integer ios, ix, ix_universe, ix_ele_temp, num, i, i_ix_ele
 integer, allocatable :: ix_ele(:)
 
@@ -220,14 +222,13 @@ if (ix == 0) then
   return
 endif
 
-ix = ix_universe
-if (ix == 0) ix = s%global%u_view
+call tao_pointer_to_universe (ix_universe, u)
 
 if (is_integer(ele_name)) then
   read (ele_name, *, iostat = ios) ix_ele_temp
   call re_allocate (ix_ele, 1)
   ix_ele(1) = ix_ele_temp
-  if (ix_ele(1) < 0 .or. ix_ele(1) > s%u(ix)%model%lat%n_ele_max) then
+  if (ix_ele(1) < 0 .or. ix_ele(1) > u%model%lat%n_ele_max) then
     ix_ele(1) = -1
     call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE: ' // ele_name)
   endif
@@ -236,7 +237,7 @@ endif
 
 if (is_integer(ele_name(1:1))) then ! must be an array of numbers
   if (allocated (here)) deallocate(here)
-  allocate(here(0:s%u(ix)%model%lat%n_ele_max))
+  allocate(here(0:u%model%lat%n_ele_max))
   call location_decode(ele_name, here, 0, num) 
   call re_allocate (ix_ele, num)
   i_ix_ele = 1
@@ -250,7 +251,7 @@ if (is_integer(ele_name(1:1))) then ! must be an array of numbers
 endif
 
 call re_allocate (ix_ele, 1)
-call element_locator (ele_name, s%u(ix)%model%lat, ix_ele(1))
+call element_locator (ele_name, u%model%lat, ix_ele(1))
 
 if (ix_ele(1) < 0) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // string)
 
@@ -2618,6 +2619,54 @@ subroutine tao_parse_command_args (error, cmd_words)
   s%global%init_file = init_file
   s%global%beam_file = beam_file
       
+end subroutine
+
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine tao_pointer_to_universe (ix_uni, u, error)
+!
+! Subroutine to set a pointer to a universe.
+! If ix_uni is 0 then s%global%u_view will be used
+!
+! Input:
+!   ix_uni -- Integer: Index to the s%u(:) array
+!   error  -- Logical, optional: Set to True is ix_uni is out of range.
+!               If not present then print a message and exit program.
+!
+! Output:
+!   u      -- Tao_universe_struct, pointer: Universe pointer.
+!-
+
+Subroutine tao_pointer_to_universe (ix_uni, u, error)
+
+implicit none
+
+type (tao_universe_struct), pointer :: u
+integer ix_uni, ix
+character(28) :: r_name = 'tao_pointer_to_universe'
+
+logical, optional :: error
+
+!
+
+if (ix_uni < 0 .or. ix_uni > size(s%u)) then
+  if (present(error)) then
+    call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_uni)
+    call err_exit
+  endif
+  error = .true.
+  return
+endif
+
+ix = ix_uni
+if (ix_uni == 0) ix = s%global%u_view
+u => s%u(ix)
+
+if (present(error)) error = .false.
+
 end subroutine
 
 end module tao_utils

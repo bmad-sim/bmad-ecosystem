@@ -84,6 +84,7 @@ type tao_curve_struct
   integer ix_universe          ! universe to take the data from. 0 => use s%global%u_view
   integer symbol_every         ! symbol every how many points.
   integer ix_ele_ref           ! Index in lattice of reference element.
+  integer ix_bunch             ! Bunch to plot.
   logical use_y2               ! Use y2 axis?
   logical draw_line            ! draw a line through the data points?
   logical draw_symbols         ! draw a line through the data points?
@@ -217,6 +218,7 @@ type tao_data_struct
   integer ix_d1             ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
   integer ix_data           ! Index of this datum in the u%data(:) array of data_structs.
   integer ix_dModel         ! Row number in the dModel_dVar derivative matrix.
+  integer ix_bunch          ! Bunch number to get the data from.
   real(rp) meas_value       ! Measured datum value. 
   real(rp) ref_value        ! Measured datum value from the reference data set.
   real(rp) model_value      ! Datum value as calculated from the model.

@@ -286,7 +286,9 @@ contains
 subroutine set_this_curve (this_curve)
 
 type (tao_curve_struct) this_curve
+type (tao_universe_struct), pointer :: u
 integer ix
+logical error
 
 !
 
@@ -302,29 +304,18 @@ select case (component)
     this_curve%ix_ele_ref = ix_ele(1)
 
   case ('ix_ele_ref')
-    read (set_value, '(i)', iostat = ios) ix
-    if (ios /= 0) then
-      call out_io (s_error$, r_name, 'BAD IX_ELE_REF VALUE.')
-      return
-    endif
-    if (ix < 0 .or. ix > s%u(i_uni)%model%lat%n_ele_max) then
-      call out_io (s_error$, r_name, 'IX_ELE_REF VALUE OUT OF RANGE.')
-      return
-    endif
-    this_curve%ix_ele_ref = ix      
+    call tao_integer_set_value (this_curve%ix_ele_ref, component, &
+                                 set_value, error, 0, s%u(i_uni)%model%lat%n_ele_max)
     this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele(this_curve%ix_ele_ref)%name
 
   case ('ix_universe')
-    read (set_value, '(i)', iostat = ios) ix
-    if (ios /= 0) then
-      call out_io (s_error$, r_name, 'BAD IX_UNIVERSE VALUE.')
-      return
-    endif
-    if (ix < 0 .or. ix > size(s%u)) then
-      call out_io (s_error$, r_name, 'IX_UNIVERSE VALUE OUT OF RANGE.')
-      return
-    endif
-    this_curve%ix_universe = ix      
+    call tao_integer_set_value (this_curve%ix_universe, component, &
+                                            set_value, error, 0, size(s%u))
+ 
+  case ('ix_bunch')
+    call tao_pointer_to_universe (this_curve%ix_universe, u)
+    call tao_integer_set_value (this_curve%ix_bunch, component, &
+                                              set_value, error, -1, u%beam_init%n_bunch)
 
   case default
     
@@ -754,5 +745,58 @@ if (recalc) s%global%lattice_recalc = .true.
   
 end subroutine tao_set_uni_cmd
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_integer_set_value (var, var_str, value_str, error, min_val, max_val)
+!
+! Subroutine to read and set the value of an integer varialbe.
+!
+! If the value is out of the range [min_val, max_val] then an error message will
+! be generated and the variable will not be set.
+!
+! Input:
+!   var_str   -- Character(*): Used for error messages.
+!   value_str -- Character(*): String with encoded value.
+!   min_val   -- Integer, optional: Minimum value. 
+!   max_val   -- Integer, optional: Maximum value.
+!
+! Output:
+!   var   -- Integer: Variable to set.
+!   error -- Logical: Set True on an error. False otherwise.
+!-
+
+subroutine tao_integer_set_value (var, var_str, value_str, error, min_val, max_val)
+
+implicit none
+
+integer var
+integer, optional :: min_val, max_val
+integer ios, ix
+
+character(*) var_str, value_str
+character(20) :: r_name = 'tao_integer_set_value'
+logical error
+
+!
+
+error = .true.
+read (value_str, '(i)', iostat = ios) ix
+
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'BAD ' // trim(var_str) // ' VALUE.')
+  return
+endif
+
+if (ix < min_val .or. ix > max_val) then
+  call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
+  return
+endif
+
+var = ix      
+error = .false.
+
+end subroutine
 
 end module tao_set_mod

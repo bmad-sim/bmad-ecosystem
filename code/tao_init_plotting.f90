@@ -161,6 +161,7 @@ do
     curve(:)%data_source = 'lattice'
     curve(:)%x_axis_scale_factor = 1
     curve(:)%y_axis_scale_factor = 1
+    curve(:)%ix_bunch = 0
     curve(:)%convert = .false.                             ! set default
     curve(:)%symbol_every = 1
     curve(:)%ix_universe = 0
@@ -247,6 +248,7 @@ do
       crv%ele_ref_name            = curve(j)%ele_ref_name
       call str_upcase (crv%ele_ref_name, crv%ele_ref_name)
       crv%ix_ele_ref              = curve(j)%ix_ele_ref
+      crv%ix_bunch                = curve(j)%ix_bunch
 
       i_uni = crv%ix_universe
       if (i_uni == 0) i_uni = s%global%u_view

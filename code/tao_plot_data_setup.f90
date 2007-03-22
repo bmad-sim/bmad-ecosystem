@@ -176,7 +176,7 @@ real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
 real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
 real(rp) emit_a, emit_b
 
-integer k, n, m, ib, ix1_ax, ix2_ax, ix, i_uni, i
+integer k, n, m, ib, ix1_ax, ix2_ax, ix, i
 
 logical err
 
@@ -186,11 +186,8 @@ character(40) :: r_name = 'tao_phase_space_plot_data_setup'
 ! Set up the graph suffix
 
 curve => graph%curve(1)
-
-i_uni = curve%ix_universe
-if (i_uni == 0) i_uni = s%global%u_view
-u => s%u(i_uni)
-ele => s%u(i_uni)%model%lat%ele(curve%ix_ele_ref)
+call tao_pointer_to_universe (curve%ix_universe, u)
+ele => u%model%lat%ele(curve%ix_ele_ref)
 
 name = curve%ele_ref_name
 if (name == ' ') name = ele%name
@@ -232,28 +229,37 @@ do k = 1, size(graph%curve)
       return
     endif
 
-    n = 0
-    do ib = 1,  size(beam%bunch)
-      n = size(beam%bunch(ib)%particle)
-    enddo
+    if (curve%ix_bunch == 0) then
+      n = 0
+      do ib = 1,  size(beam%bunch)
+        n = n + size(beam%bunch(ib)%particle)
+      enddo
+    else
+      n = size(beam%bunch(curve%ix_bunch)%particle)
+    endif
 
     call re_allocate (curve%ix_symb, n)
     call re_allocate (curve%x_symb, n)
     call re_allocate (curve%y_symb, n)
 
-    n = 0
-    do ib = 1, size(beam%bunch)
-      m = size(beam%bunch(ib)%particle)
-      curve%x_symb(n+1:n+m) = beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
-      curve%y_symb(n+1:n+m) = beam%bunch(ib)%particle(:)%r%vec(ix2_ax)
-      n = n + m
-    enddo
+    if (curve%ix_bunch == 0) then
+      n = 0
+      do ib = 1, size(beam%bunch)
+        m = size(beam%bunch(ib)%particle)
+        curve%x_symb(n+1:n+m) = beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
+        curve%y_symb(n+1:n+m) = beam%bunch(ib)%particle(:)%r%vec(ix2_ax)
+        n = n + m
+      enddo
+    else
+      curve%x_symb = beam%bunch(curve%ix_bunch)%particle(:)%r%vec(ix1_ax)
+      curve%y_symb = beam%bunch(curve%ix_bunch)%particle(:)%r%vec(ix2_ax)
+    endif
 
   !----------------------------
 
   elseif (curve%data_source == 'multi_turn_orbit') then
     
-    call tao_find_data (err, curve%data_source, d2_ptr, ix_uni = i_uni)
+    call tao_find_data (err, curve%data_source, d2_ptr, ix_uni = curve%ix_universe)
     if (err) then
       call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
@@ -465,10 +471,7 @@ graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
 do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
-
-  i_uni = s%global%u_view  ! universe where the data comes from
-  if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
-  u => s%u(i_uni)
+  call tao_pointer_to_universe (curve%ix_universe, u)
 
   if (curve%ele_ref_name == ' ') then
     zero_average_phase = .true.

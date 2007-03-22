@@ -808,6 +808,7 @@ there must be a \vn{tao_d1_data} namelist which has the form:
 \index{data!weight}
 \index{data!data_noise}
 \index{data!good_user}
+\index{data!ix_bunch}
 \begin{example}
   &tao_d1_data
     ix_d1_data         = <integer>       ! d1_data index
@@ -828,6 +829,7 @@ there must be a \vn{tao_d1_data} namelist which has the form:
     data(j)%scale_error = <number"       ! RMS scale erorr
     data(j)%good_user   = Logical        ! Use for optimization and plotting?
     data(j)%data_source = "<source>"     ! "lattice", or "beam_tracking"
+    data(j)%ix_bunch    = <integer>      ! Bunch index. Default = 0 (all bunches).
   /
 \end{example}
 For example:
@@ -904,7 +906,9 @@ component. Possibilities are:
   "lattice" (Default)  !  Calculation using the lattice layout
   "beam_tracking"      ! Calculation using the beam distribution
 \end{example}
-\vn{"lattice"} is the default.
+\vn{"lattice"} is the default. With \vn{"beam_tracking"}, the particular
+bunch that the data is extracted from can be specified via \vn{data(:)%ix_bunch}.
+The default is \vn{0} which combines all the bunches for the datum calculation.
 
 If elements in the \vn{data} array do not exist the
 corresponding \vn{var%name} and \vn{data%ele_name} should be left
@@ -1178,6 +1182,7 @@ namelists should be placed directly after their respective
 \index{curve!use_y2}\index{curve!line}\index{curve!ele_ref_name}
 \index{curve!draw_line}\index{curve!draw_symbols}\index{curve!ix_universe}
 \index{curve!symbol}\index{curve!symbol_every}\index{curve!convert}
+\index{curve!ix_bunch}
 \begin{example}
   &tao_template_graph
     graph_index           = <number>
@@ -1201,9 +1206,10 @@ namelists should be placed directly after their respective
     curve(i)%draw_line    = <logical>
     curve(i)%draw_symbols = <logical>
     curve(i)%ix_universe  = <universe_number> ! default = 0 => use viewed universe
+    curve(i)%ix_bunch     = <integer>         ! Bunch index. Default = 0 (all bunches).
     curve(i)%line         = <qp_line_struct>
     curve(i)%symbol       = <qp_symbol_struct>
-    curve(i)%symbol_every = <integer>       ! plot symbol every # datums
+    curve(i)%symbol_every = <integer>         ! plot symbol every # datums
     curve(i)%convert      = <Logical>
     curve(i)%draw_interpolated_curve = <Logical>
     curve(i)%ele_ref_name = "<element_name>"     ! reference element.
@@ -1312,7 +1318,11 @@ points come from a \vn{v1_var} array structure. \vn{lattice} means
 that the curve data points are calculated from the lattice without
 regard to any data structures. \vn{beam_tracking} is used when
 tracking beams of particles or macroparticles. In this case the curve
-points are calculated from the tracking. For example, with
+points are calculated from the tracking. With \vn{beam_tracking}, the particular
+bunch that the data is extracted from can be specified via \vn{curve%ix_bunch}.
+The default is \vn{0} which combines all the bunches for the calculation.
+
+Example: With
 \vn{curve%data_type} set to \vn{beta.x}, the setting of
 \vn{curve%data_source} to \vn{lattice} gives the beta as calculated
 from the lattice and \vn{beam_tracking} gives the beta as calculated

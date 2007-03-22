@@ -376,6 +376,7 @@ do
     data(:)%ele0_name  = ' '
     data(:)%meas_value = real_garbage$  ! used to tag when %meas_value is set in file
     data(:)%weight     = 0.0
+    data(:)%ix_bunch   = 0
     data(:)%data_noise  = real_garbage$
     data(:)%scale_error = real_garbage$
     data(:)%good_user  = .true.
@@ -755,6 +756,7 @@ else
   u%data(n1:n2)%weight     = data(ix1:ix2)%weight
   u%data(n1:n2)%ele_name   = data(ix1:ix2)%ele_name
   u%data(n1:n2)%ele0_name  = data(ix1:ix2)%ele0_name
+  u%data(n1:n2)%ix_bunch   = data(ix1:ix2)%ix_bunch
 
   ! Find elements associated with the data
 
