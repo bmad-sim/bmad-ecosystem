@@ -33,9 +33,17 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 
   implicit none
 
+
+  type old_twiss_struct
+    real(rp) beta, alpha, gamma, phi, eta, etap
+    real(rp) eta_lab, etap_lab   ! dispersion along the x or y axis
+    real(rp) sigma
+  end type  
+
   type (lat_struct), target, intent(inout) :: lat
   type (ele_struct), pointer :: ele
-  
+  type (old_twiss_struct) old_a, old_b
+
   integer d_unit, n_files, version, i, j, k, ix, dum1, dum2
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios
   integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
@@ -166,8 +174,8 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
     if (v80) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%a, &
-            ele%b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), &
+            old_a, old_b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -181,8 +189,8 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
     elseif (v81) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%a, &
-            ele%b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, old_a, &
+            old_b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -196,8 +204,8 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
     elseif (v82) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%a, &
-            ele%b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, old_a, &
+            old_b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -223,6 +231,32 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_an_i_beam, ele%csr_calc_on
+    endif
+
+    ! Transfer twiss
+
+    if (v80 .or. v81 .or. v82) then
+      ele%x%eta   = old_a%eta_lab
+      ele%x%etap  = old_a%etap_lab
+
+      ele%a%eta   = old_a%eta
+      ele%a%etap  = old_a%etap
+      ele%a%beta  = old_a%beta
+      ele%a%alpha = old_a%alpha
+      ele%a%phi   = old_a%phi
+      ele%a%gamma = old_a%gamma
+      ele%a%sigma = old_a%sigma
+
+      ele%y%eta   = old_b%eta_lab
+      ele%y%etap  = old_b%etap_lab
+
+      ele%b%eta   = old_b%eta
+      ele%b%etap  = old_b%etap
+      ele%b%beta  = old_b%beta
+      ele%b%alpha = old_b%alpha
+      ele%b%phi   = old_b%phi
+      ele%b%gamma = old_b%gamma
+      ele%b%sigma = old_b%sigma
     endif
 
     ! l_pole$ attribute did not exist before now.
