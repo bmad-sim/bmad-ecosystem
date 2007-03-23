@@ -46,7 +46,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
   character(200), allocatable :: file_names(:)
   character(25) :: r_name = 'read_digested_bmad_file'
 
-  logical found_it, v77, v78, v79, v80, v81, v_old, v_now
+  logical found_it, v80, v81, v82, v_old, v_now
 
 ! init all elements in lat
 
@@ -67,13 +67,11 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 
   read (d_unit, err = 9100) n_files, version
 
-  v77 = (version == 77)
-  v78 = (version == 78)
-  v79 = (version == 79)
   v80 = (version == 80)
   v81 = (version == 81)
-  v_old = v77 .or. v78 .or. v79 .or. v80 .or. v81
-  v_now = (version == bmad_inc_version$)  ! v82
+  v82 = (version == 82)
+  v_old = v80 .or. v81 .or. v82
+  v_now = (version == bmad_inc_version$)  ! v83
 
   if (version < bmad_inc_version$) then
     if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -165,39 +163,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 
     ele => lat%ele(i)
 
-    if (v77) then
-      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%a, &
-            ele%b, ele%z, ele%value(1:49), ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
-            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
-            ele%taylor_order, ele%symplectify, ele%mode_flip, &
-            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
-            ele%on_an_i_beam
-
-    elseif (v78) then
-      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%a, &
-            ele%b, ele%z, ele%value(1:49), ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
-            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
-            ele%taylor_order, ele%symplectify, ele%mode_flip, &
-            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_an_i_beam
-
-    elseif (v79 .or. v80) then
+    if (v80) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%a, &
@@ -227,7 +193,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_an_i_beam
-    elseif (v_now) then
+    elseif (v82) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%a, &
@@ -242,20 +208,25 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_an_i_beam, ele%csr_calc_on
-    endif
-
-!
-
-    ! In an sbend g$ got moved to make way for k2$
-    if (v77 .or. v78 .or. v79) then
-      if (ele%key == sbend$) then
-        ele%value(7) = ele%value(5)
-        ele%value(5) = 0
-      endif
+    elseif (v_now) then
+      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
+            ele%a, ele%b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
+            ele%taylor_order, ele%symplectify, ele%mode_flip, &
+            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+            ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
+            ele%coupler_at, ele%on_an_i_beam, ele%csr_calc_on
     endif
 
     ! l_pole$ attribute did not exist before now.
-    if (v77 .or. v78 .or. v79 .or. v80) then
+    if (v80) then
       if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
         if (ele%value(n_pole$) /= 0) ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$)
       endif

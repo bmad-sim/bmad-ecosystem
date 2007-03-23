@@ -145,8 +145,8 @@ subroutine write_digested_bmad_file (digested_name, lat,  &
 
     write (d_unit) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%a, &
-            ele%b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
+            ele%a, ele%b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &

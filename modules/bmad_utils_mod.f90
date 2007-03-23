@@ -950,25 +950,29 @@ subroutine init_ele (ele)
   ele%c_mat = 0
   ele%gamma_c = 1.0
 
+  ele%x%eta  = 0
+  ele%x%etap = 0
+
+  ele%y%eta  = 0
+  ele%y%etap = 0
+
   ele%a%beta     = 0
   ele%a%alpha    = 0
   ele%a%gamma    = 0
   ele%a%eta      = 0
   ele%a%etap     = 0
-  ele%x%eta  = 0
-  ele%x%etap = 0
   ele%a%phi      = 0
   ele%a%sigma    = 0
+  ele%a%emit     = 0
 
   ele%b%beta     = 0
   ele%b%alpha    = 0
   ele%b%gamma    = 0
   ele%b%eta      = 0
   ele%b%etap     = 0
-  ele%y%eta  = 0
-  ele%y%etap = 0
   ele%b%phi      = 0
   ele%b%sigma    = 0
+  ele%b%emit     = 0
 
   ele%z%beta     = 0
   ele%z%alpha    = 0
@@ -977,6 +981,7 @@ subroutine init_ele (ele)
   ele%z%etap     = 0
   ele%z%phi      = 0
   ele%z%sigma    = 0
+  ele%z%emit     = 0
 
 ! This is needed because of a compiler and/or totalview bug
 
