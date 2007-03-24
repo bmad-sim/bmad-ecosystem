@@ -203,30 +203,28 @@ character(20) :: r_name = 'tao_locate_element'
 
 logical, optional :: ignore_blank
 logical, allocatable, save :: here(:)
+logical error
 
 ! If it is a number translate it:
 
 call str_upcase (ele_name, string)
 call string_trim (ele_name, ele_name, ix)
 
-if (ix == 0 .and. logic_option(.false., ignore_blank)) then
-  call re_allocate (ix_ele, 1)
-  ix_ele = -1
-  return
-endif
+call re_allocate (ix_ele, 1)
+ix_ele = -1
+
+if (ix == 0 .and. logic_option(.false., ignore_blank)) return
 
 if (ix == 0) then
-  call re_allocate (ix_ele, 1)
-  ix_ele = -1
   call out_io (s_error$, r_name, 'ELEMENT NAME IS BLANK')
   return
 endif
 
-call tao_pointer_to_universe (ix_universe, u)
+call tao_pointer_to_universe (ix_universe, u, error)
+if (error) return
 
 if (is_integer(ele_name)) then
   read (ele_name, *, iostat = ios) ix_ele_temp
-  call re_allocate (ix_ele, 1)
   ix_ele(1) = ix_ele_temp
   if (ix_ele(1) < 0 .or. ix_ele(1) > u%model%lat%n_ele_max) then
     ix_ele(1) = -1
@@ -250,7 +248,6 @@ if (is_integer(ele_name(1:1))) then ! must be an array of numbers
   return
 endif
 
-call re_allocate (ix_ele, 1)
 call element_locator (ele_name, u%model%lat, ix_ele(1))
 
 if (ix_ele(1) < 0) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // string)
@@ -791,6 +788,7 @@ type (tao_d1_data_struct), pointer, optional :: d1_ptr
 type (tao_data_array_struct), allocatable, optional    :: d_array(:)
 type (tao_real_array_struct), allocatable, optional    :: r_array(:)
 type (tao_logical_array_struct), allocatable, optional    :: l_array(:)
+type (tao_universe_struct), pointer :: u
 
 character(*) :: data_name
 character(*), optional :: component
@@ -807,7 +805,7 @@ integer, optional :: ix_uni
 integer :: data_num, ios
 integer i, ix, iu
 
-logical err, component_here, this_err, print_error
+logical err, component_here, this_err, print_error, error
 logical, optional :: print_err, all_elements, blank_is_null
 
 ! Init
@@ -868,12 +866,9 @@ ix = index(dat_name, '@')
 
 if (ix == 0) then ! No universe specified. Use default
   iu = integer_option (s%global%u_view, ix_uni)
-  if (iu == 0) iu = s%global%u_view
-  if (iu < 1 .or. iu > size(s%u)) then
-    if (print_error) call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_name)
-    return
-  endif
-  call find_this_d2 (s%u(iu), dat_name, this_err)
+  call tao_pointer_to_universe (iu, u, error)
+  if (error) return
+  call find_this_d2 (u, dat_name, this_err)
 
 else ! read universe number
 
@@ -891,12 +886,9 @@ else ! read universe number
       if (print_error) call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_name)
       return
     endif
-    if (iu == 0) iu = s%global%u_view
-    if (iu < 1 .or. iu > size(s%u)) then
-      if (print_error) call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_name)
-      return
-    endif
-    call find_this_d2 (s%u(iu), dat_name(ix+1:), this_err)
+    call tao_pointer_to_universe (iu, u, error)
+    if (error) return
+    call find_this_d2 (u, dat_name(ix+1:), this_err)
   endif
 endif
 
@@ -2633,11 +2625,11 @@ end subroutine
 !
 ! Input:
 !   ix_uni -- Integer: Index to the s%u(:) array
-!   error  -- Logical, optional: Set to True is ix_uni is out of range.
-!               If not present then print a message and exit program.
 !
 ! Output:
 !   u      -- Tao_universe_struct, pointer: Universe pointer.
+!   error  -- Logical, optional: Set to True is ix_uni is out of range.
+!               If not present then print a message and exit program.
 !-
 
 Subroutine tao_pointer_to_universe (ix_uni, u, error)
@@ -2653,10 +2645,8 @@ logical, optional :: error
 !
 
 if (ix_uni < 0 .or. ix_uni > size(s%u)) then
-  if (present(error)) then
-    call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_uni)
-    call err_exit
-  endif
+  call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_uni)
+  if (.not. present(error)) call err_exit
   error = .true.
   return
 endif

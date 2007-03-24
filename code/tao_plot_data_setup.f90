@@ -428,7 +428,7 @@ type (tao_var_struct), pointer :: v_ptr
 real(rp) f, y_val, eps, gs
 real(rp), pointer :: value(:)
 
-integer ii, k, m, n_dat, i_uni, ie, jj, iv, ic
+integer ii, k, m, n_dat, ie, jj, iv, ic
 integer ix, ir, jg, i, i_max, i_min, ix_this
 integer, allocatable, save :: ix_ele(:)
 
@@ -478,7 +478,7 @@ do k = 1, size(graph%curve)
     curve%ix_ele_ref = 0
   else
     zero_average_phase = .false.
-    call tao_locate_element (curve%ele_ref_name, i_uni, ix_ele, .true.)
+    call tao_locate_element (curve%ele_ref_name, curve%ix_universe, ix_ele, .true.)
     if (ix_ele(1) < 0) then
       graph%valid = .false.
       return
@@ -497,7 +497,7 @@ do k = 1, size(graph%curve)
 ! Case: data_source is a data_array
 
   case ('data_array')
-    call tao_find_data (err, curve%data_type, d2_ptr, d1_ptr, ix_uni = i_uni)
+    call tao_find_data (err, curve%data_type, d2_ptr, d1_ptr, ix_uni = curve%ix_universe)
     if (err) then
       call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
