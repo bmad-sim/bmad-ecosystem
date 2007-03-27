@@ -100,6 +100,8 @@ if (.not. s%global%lattice_recalc) return
 
 do i = 1, size(s%u)
   u => s%u(i)
+  u%data(:)%good_model = .false. ! reset
+
   if (.not. u%is_on .or. hook_used(i)) cycle
   ! zero data array
   u%data%model_value = tiny(1.0_rp)
@@ -225,28 +227,28 @@ if (lat%param%lattice_type == circular_lattice$) then
 endif
 
 lat%param%ix_lost = not_lost$
+lat%param%lost = .false.
 
 call tao_load_data_array (s%u(uni), 0)
 
-do i = 1, lat%n_ele_track
-
-  ! if doing linear tracking, first compute transfer matrix
-  if (s%global%matrix_recalc_on .and. lat%ele(i)%tracking_method == linear$) &
-           call make_mat6 (lat%ele(i), lat%param) 
-
-  call track1 (tao_lat%orb(i-1), lat%ele(i), lat%param, tao_lat%orb(i))
+do i = 0, lat%n_ele_track
 
   if (i /= 0) then
-    call track1 (tao_lat%orb(i-1), lat%ele(i), lat%param, tao_lat%orb(i))
+    ! if doing linear tracking, first compute transfer matrix
+    if (s%global%matrix_recalc_on .and. lat%ele(i)%tracking_method == linear$) &
+                                             call make_mat6 (lat%ele(i), lat%param) 
 
-    if (lat%param%lost) then
-      lat%param%ix_lost = i
-      calc_ok = .false.
-      do ii = i+1, lat%n_ele_track
-        tao_lat%orb(ii)%vec = 0
-      enddo
-      return
-    endif
+    call track1 (tao_lat%orb(i-1), lat%ele(i), lat%param, tao_lat%orb(i))
+  endif
+
+  if (lat%param%lost) then
+    lat%param%ix_lost = i
+    calc_ok = .false.
+    do ii = i+1, lat%n_ele_track
+      tao_lat%orb(ii)%vec = 0
+    enddo
+    call out_io (s_blank$, r_name, "particle lost at element \I\.", lat%param%ix_lost)
+    return
   endif
 
   call tao_calc_params (s%u(uni), i)
@@ -254,8 +256,6 @@ do i = 1, lat%n_ele_track
     
 enddo
   
-if (lat%param%lost) call out_io (s_blank$, &
-                r_name, "particle lost at element \I\.", lat%param%ix_lost)
 
 end subroutine tao_single_track
 
@@ -357,17 +357,9 @@ if (.not. u%coupling%coupled) then
   endif
 endif
 
-! beginning element calculations
-
-call tao_load_data_array (u, 0) 
-
 ! track through every element
 
-do j = 1, lat%n_ele_track
-
-  ! if doing linear tracking, first compute transfer matrix
-  if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
-           call make_mat6 (lat%ele(j), lat%param) 
+do j = 0, lat%n_ele_track
 
   ! track to the element and save for phase space plot
 
@@ -375,7 +367,12 @@ do j = 1, lat%n_ele_track
     beam = u%beam_at_element(j)
 
   else
-    if (j /= 0) call track_beam (lat, beam, j-1, j)
+    if (j /= 0) then 
+      ! if doing linear tracking, first compute transfer matrix
+      if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
+             call make_mat6 (lat%ele(j), lat%param) 
+      call track_beam (lat, beam, j-1, j)
+    endif
 
     if (s%global%save_beam_everywhere .or. allocated(u%beam_at_element(j)%bunch)) &
                           u%beam_at_element(j) = beam
@@ -391,10 +388,9 @@ do j = 1, lat%n_ele_track
 
   if (all_lost_already) exit
 
-  ! Find lattice and beam parameters
-  call tao_calc_params (u, j)
-    
-  ! load data
+  ! Find lattice and beam parameters and load data
+
+  call tao_calc_params (u, j)    
   call tao_load_data_array (u, j) 
 enddo
 
@@ -537,11 +533,13 @@ do j = 1, lat%n_ele_track
 enddo
 
 ! only post total lost if no extraction or extracting to a turned off lattice
+
 post = .false.
 if (extract_at_ix_ele == -1) post = .true.
 if (uni .lt. size(s%u)) then
   if (.not. s%u(uni+1)%is_on) post = .true.
 endif
+
 if (post) then
   n_lost = 0 
   do n_bunch = 1, size(beam%bunch)
@@ -549,7 +547,7 @@ if (post) then
       do n_macro = 1, size(beam%bunch(n_bunch)%slice(n_slice)%macro)
         if (beam%bunch(n_bunch)%slice(n_slice)%macro(n_macro)%lost) &
                                                         n_lost = n_lost + 1
-enddo
+      enddo
     enddo
   enddo
   if (n_lost .ne. 0) &

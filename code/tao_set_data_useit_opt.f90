@@ -24,7 +24,7 @@ do i = 1, size(s%u)
   d => s%u(i)%data
   if (s%u(i)%is_on) then
     d(:)%useit_opt = d(:)%good_opt .and. d(:)%exists .and. &
-                              d(:)%good_user .and. d(:)%good_meas
+                          d(:)%good_user .and. d(:)%good_meas .and. d(:)%good_model
     if (s%global%opt_with_ref) d(:)%useit_opt = &
                           d(:)%useit_opt .and. d(:)%good_ref
   ! data in off universes does not get used in optimizations.

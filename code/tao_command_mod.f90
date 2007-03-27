@@ -180,12 +180,12 @@ end subroutine
 !   cmd_line       -- Character(*): The command line.
 !   n_word         -- integer: number of words to split command line into
 !   no_extra_words -- logical: are extra words allowed at the end?
-!   err            -- logical: error in splitting words
 !   separator      -- character(*): a list of characters that, besides a blank space,
 !                                  signify a word boundary. 
 !
 ! Output:
 !   cmd_word(n_word) -- character(*): The individual words.
+!   err              -- logical: error in splitting words
 !
 ! For example: 
 !   separator = '-+' 
@@ -212,6 +212,7 @@ subroutine tao_cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separ
 
 !
 
+  err = .false.
   cmd_word(:) = ' '
   line = cmd_line
 

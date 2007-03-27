@@ -186,6 +186,8 @@ end type
 !
 ! %exists     -- The datum can exist. Non-existant datums can serve 
 !                  as place holders in the u%data array.
+! %good_model -- A valid model value was computed. For example, good_model would 
+!                  be False for some orbit data if the particle being tracked is lost.
 ! %good_meas  -- Set by the routine that reads in a data set. Good_meas may be 
 !                  false, say, if a detector amplifyer is overloaded.
 ! %good_ref   -- Like good_meas this is set for a reference data set.
@@ -232,6 +234,7 @@ type tao_data_struct
   real(rp) conversion_factor ! Typically used to convert coupling to cbar
   real(rp) s                ! longitudinal position of ele.
   logical exists            ! See above
+  logical good_model        ! See above
   logical good_meas         ! See above
   logical good_ref          ! See above
   logical good_user         ! See above

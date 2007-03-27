@@ -117,6 +117,7 @@ ix_datum => u%ix_data(ix_ele)%ix_datum
 do i = 1, size(ix_datum)
   datum => u%data(ix_datum(i))
   call tao_evaluate_a_datum (datum, u, u%model, datum%model_value)
+  datum%good_model = .true.
   if (datum%ix_ele_merit > -1) datum%s = &
                                     u%model%lat%ele(datum%ix_ele_merit)%s
 enddo

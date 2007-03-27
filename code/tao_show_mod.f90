@@ -353,6 +353,7 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)  '%Weight            = ', d_ptr%weight
     nl=nl+1; write(lines(nl), amt)  '%Merit_type        = ', d_ptr%merit_type
     nl=nl+1; write(lines(nl), lmt)  '%Exists            = ', d_ptr%exists
+    nl=nl+1; write(lines(nl), lmt)  '%Good_model        = ', d_ptr%good_model
     nl=nl+1; write(lines(nl), lmt)  '%Good_meas         = ', d_ptr%good_meas
     nl=nl+1; write(lines(nl), lmt)  '%Good_ref          = ', d_ptr%good_ref
     nl=nl+1; write(lines(nl), lmt)  '%Good_user         = ', d_ptr%good_user

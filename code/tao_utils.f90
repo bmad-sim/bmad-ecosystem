@@ -673,11 +673,13 @@ type (tao_data_struct) data(:)
 
 !
 
-data%useit_plot = data%exists .and. data%good_plot
+data%useit_plot = data%exists .and. data%good_plot .and. data%good_user
 if (any(graph%who%name == 'meas')) &
-         data%useit_plot = data%useit_plot .and. data%good_user .and. data%good_meas
+         data%useit_plot = data%useit_plot .and. data%good_meas
 if (any(graph%who%name == 'ref'))  &
-         data%useit_plot = data%useit_plot .and. data%good_user .and. data%good_ref
+         data%useit_plot = data%useit_plot .and. data%good_ref
+if (any(graph%who%name == 'model'))  &
+         data%useit_plot = data%useit_plot .and. data%good_model
 
 end subroutine
 
@@ -707,8 +709,6 @@ type (tao_var_struct) var(:)
 
 var%useit_plot = var%exists .and. var%good_user .and. var%good_plot &
                                                 .and. var%good_var
-if (any(graph%who%name == 'meas')) var%useit_plot = var%useit_plot
-if (any(graph%who%name == 'ref'))  var%useit_plot = var%useit_plot
 
 end subroutine
 
