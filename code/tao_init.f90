@@ -256,7 +256,7 @@ subroutine deallocate_everything ()
       deallocate (u%macro_beam%ix_lost, stat=istat)
       call reallocate_macro_beam (u%macro_beam%beam, 0, 0, 0)
 
-      do j = 1, size(u%beam_at_element)
+      do j = lbound(u%beam_at_element, 1), ubound(u%beam_at_element, 1)
         call reallocate_beam(u%beam_at_element(j), 0, 0)
       enddo
       deallocate (u%beam_at_element)
