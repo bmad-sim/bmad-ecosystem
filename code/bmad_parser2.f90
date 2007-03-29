@@ -11,10 +11,11 @@
 !     b) Define new overlays and groups.
 !     c) Superimpose new elements upon the lattice.
 !
-! If the digested_file_name argument is present then bmad_parser2 will: If it exists
-! and is up-to-date, use this digested file instead of parsing lat_file. If it doesn't
+! If the digested_file_name argument is present then bmad_parser2 will, If it exists
+! and is up-to-date, set lat to the lattice in this digested file instead of modifying 
+! lat using lat_file. If the digested file doesn't
 ! exist or is not up-to-date then a new digested file will be created. If this 
-! argument is '*' then the digested file name is:
+! argument is '*' then the new digested file name is:
 !               'digested_' // lat_file   ! for single precision BMAD version
 !               'digested8_' // lat_file  ! for double precision BMAD version
 !
@@ -74,12 +75,12 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, found, doit
-  logical file_end, err_flag, finished
+  logical file_end, err_flag, finished, write_digested
 
 ! init
 
   bmad_status%ok = .true.
-  bp_com%write_digested = .false.
+  write_digested = .false.
   bp_com%parser_name = 'BMAD_PARSER2'
   call file_stack('push', lat_file, finished)   ! open file on stack
   if (.not. bmad_status%ok) return
@@ -124,7 +125,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
     endif
     call save_taylor_elements (lat2, old_ele)
     call deallocate_lat_pointers (lat2)
-    bp_com%write_digested = .true.
+    write_digested = .true.
     if (bmad_status%type_out) &
              call out_io (s_info$, r_name, 'Creating new digested file...')
   endif
@@ -161,7 +162,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 ! NO_DIGESTED
 
     if (word_1(:ix_word) == 'NO_DIGESTED') then
-      bp_com%write_digested = .false.
+      write_digested = .false.
       print *, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED'
       cycle parsing_loop
     endif
@@ -537,7 +538,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 
 ! write to digested file
 
-  if (bp_com%write_digested .and. .not. bp_com%parser_debug .and. &
+  if (write_digested .and. .not. bp_com%parser_debug .and. &
       digested_version <= bmad_inc_version$) call write_digested_bmad_file  &
              (digested_name, lat, bp_com%num_lat_files, bp_com%lat_file_names)
 

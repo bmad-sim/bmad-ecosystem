@@ -84,13 +84,13 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, arg_list_found, doit
   logical file_end, found, err_flag, finished, exit_on_error
-  logical detected_expand_lattice_cmd, multipass
+  logical detected_expand_lattice_cmd, multipass, write_digested
 
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
 
   bp_com%parser_name = 'BMAD_PARSER'  ! Used for error messages.
-  bp_com%write_digested = .true.
+  write_digested = .true.
 
   call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
   call read_digested_bmad_file (digested_file, lat, digested_version)
@@ -117,7 +117,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
              i_array = (/ lat%input_taylor_order, bmad_com%taylor_order /) )
       endif
       if (lat%input_taylor_order > bmad_com%taylor_order) &
-                                           bp_com%write_digested = .false.
+                                           write_digested = .false.
     endif
   endif
 
@@ -209,7 +209,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 ! NO_DIGESTED
 
     if (word_1(:ix_word) == 'NO_DIGESTED') then
-      bp_com%write_digested = .false.
+      write_digested = .false.
       call out_io (s_info$, r_name, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED')
       cycle parsing_loop
     endif
@@ -1196,7 +1196,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
 ! write to digested file
 
-  if (bp_com%write_digested .and. .not. bp_com%parser_debug .and. &
+  if (write_digested .and. .not. bp_com%parser_debug .and. &
       digested_version <= bmad_inc_version$) call write_digested_bmad_file  &
              (digested_file, lat, bp_com%num_lat_files, bp_com%lat_file_names)
 

@@ -149,7 +149,7 @@ type bp_common_struct
   character(200) :: dirs(3) = (/ &
                       './           ', './           ', '$BMAD_LAYOUT:' /)
   logical :: bmad_parser_calling = .false.     ! used for expand_lattice
-  logical parser_debug, write_digested, error_flag
+  logical parser_debug, error_flag
   logical input_line_meaningful
   logical ran_function_was_called
 end type

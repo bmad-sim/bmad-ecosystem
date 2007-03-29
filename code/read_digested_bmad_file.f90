@@ -42,7 +42,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 
   type (lat_struct), target, intent(inout) :: lat
   type (ele_struct), pointer :: ele
-  type (old_twiss_struct) old_a, old_b
+  type (old_twiss_struct) old_a, old_b, old_z
 
   integer d_unit, n_files, version, i, j, k, ix, dum1, dum2
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios
@@ -175,7 +175,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), &
-            old_a, old_b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            old_a, old_b, old_z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -190,7 +190,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, old_a, &
-            old_b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            old_b, old_z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -205,7 +205,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, old_a, &
-            old_b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            old_b, old_z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -257,6 +257,14 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
       ele%b%phi   = old_b%phi
       ele%b%gamma = old_b%gamma
       ele%b%sigma = old_b%sigma
+
+      ele%z%eta   = old_z%eta
+      ele%z%etap  = old_z%etap
+      ele%z%beta  = old_z%beta
+      ele%z%alpha = old_z%alpha
+      ele%z%phi   = old_z%phi
+      ele%z%gamma = old_z%gamma
+      ele%z%sigma = old_z%sigma
     endif
 
     ! l_pole$ attribute did not exist before now.
