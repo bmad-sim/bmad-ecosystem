@@ -427,15 +427,19 @@ type (tao_var_struct), pointer :: v_ptr
 
 real(rp) f, y_val, eps, gs
 real(rp), pointer :: value(:)
+real(rp), allocatable, save :: ix_symb(:), x_symb(:), y_symb(:)
 
 integer ii, k, m, n_dat, ie, jj, iv, ic
 integer ix, ir, jg, i, i_max, i_min, ix_this
 integer, allocatable, save :: ix_ele(:)
 
-logical err, smooth_curve, found, zero_average_phase
+logical err, smooth_curve, found, zero_average_phase, valid
+logical, allocatable, save :: valid_value(:)
 
 character(12)  :: u_view_char
 character(30) :: r_name = 'tao_data_plot_data_setup'
+
+!
 
 call re_allocate (ix_ele, 1)
 
@@ -736,23 +740,26 @@ do k = 1, size(graph%curve)
       n_dat = count (u%base%lat%ele(:)%logic)
     endif
 
-    call re_allocate (curve%ix_symb, n_dat)
-    call re_allocate (curve%y_symb, n_dat) ! allocate space for the data
-    call re_allocate (curve%x_symb, n_dat) ! allocate space for the data
+    call re_allocate (ix_symb, n_dat)
+    call re_allocate (y_symb, n_dat) ! allocate space for the data
+    call re_allocate (x_symb, n_dat) ! allocate space for the data
+    call re_allocate (valid_value, n_dat) ! allocate space for the data
 
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
-      if (n_dat > 0) curve%ix_symb = (/ (i, i = i_min, i_max) /)
-      curve%x_symb = curve%ix_symb
+      if (n_dat > 0) ix_symb = (/ (i, i = i_min, i_max) /)
+      x_symb = ix_symb
     elseif (plot%x_axis_type == 's') then
-      curve%ix_symb = pack(u%base%lat%ele(:)%ix_pointer, &
+      ix_symb = pack(u%base%lat%ele(:)%ix_pointer, &
                                                   mask = u%base%lat%ele(:)%logic)
-      curve%x_symb = u%model%lat%ele(curve%ix_symb)%s
+      x_symb = u%model%lat%ele(ix_symb)%s
     endif
 
     ! calculate the y-axis data point values.
 
-    curve%y_symb = 0
+    y_symb = 0
+    valid_value = .true.
+
     datum%ix_ele0     = curve%ix_ele_ref
     datum%merit_type  = 'target'
     datum%data_type   = curve%data_type
@@ -770,17 +777,17 @@ do k = 1, size(graph%curve)
           endif
         endif
 
-        datum%ix_ele = curve%ix_symb(ie)
+        datum%ix_ele = ix_symb(ie)
 
         select case (graph%who(m)%name)
         case (' ') 
           cycle
         case ('model')   
-          call tao_evaluate_a_datum (datum, u, u%model, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%model, y_val, valid, t_map)
         case ('base')  
-          call tao_evaluate_a_datum (datum, u, u%base, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%base, y_val, valid, t_map)
         case ('design')  
-          call tao_evaluate_a_datum (datum, u, u%design, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%design, y_val, valid, t_map)
         case ('ref', 'meas')
           call out_io (s_error$, r_name, &
                   'PLOT "WHO" WHICH IS: ' // graph%who(m)%name, &
@@ -795,7 +802,8 @@ do k = 1, size(graph%curve)
           graph%valid = .false.
           return
         end select
-        curve%y_symb(ie) = curve%y_symb(ie) + graph%who(m)%sign * y_val
+        y_symb(ie) = y_symb(ie) + graph%who(m)%sign * y_val
+        if (.not. valid) valid_value(ie) = .false.
 
         if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
           if (datum%ix_ele < datum%ix_ele0) datum%ix_ele0 = datum%ix_ele
@@ -803,6 +811,15 @@ do k = 1, size(graph%curve)
 
       enddo
     enddo
+
+    n_dat = count(valid_value)
+    call re_allocate (curve%x_symb, n_dat) ! allocate space for the data
+    call re_allocate (curve%y_symb, n_dat) ! allocate space for the data
+    call re_allocate (curve%ix_symb, n_dat)
+
+    curve%x_symb  = pack(x_symb, mask = valid_value)
+    curve%y_symb  = pack(y_symb, mask = valid_value)
+    curve%ix_symb = pack(ix_symb, mask = valid_value)
 
 !----------------------------------------------------------------------------
 ! Case: Bad data_source
