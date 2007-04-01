@@ -1155,7 +1155,8 @@ information see the \vn{Quick Plot} documentation on the
 \end{example}
 
 \vn{plot%name} is the name that is used with \tao commands to identify
-the plot.  
+the plot. It is important that this name not contain any blank spaces since
+\tao uses this fact is parsing the command line. 
 
 \vn{plot%x_axis_type} sets what is plotted along the
 \vn{x-axis}. Possibilities are:
@@ -1243,6 +1244,8 @@ commands. The default names are just the letter \vn{g} or \vn{c} with
 the index of the graph or curve. 
 Thus, in the example above, the name of the curve defaults to
 \vn{c1} and it would be referred to as \vn{orbit.x.c1}.
+It is important that these names do not contain any blank spaces since
+\tao uses this fact is parsing the command line. 
 
 \vn{graph%who(i)} sets what is plotted. In the above example, what will be
 plotted is \vn{model - design}. Possible \vn{graph%who}

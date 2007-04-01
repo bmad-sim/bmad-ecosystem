@@ -286,14 +286,15 @@ contains
 subroutine set_this_curve (this_curve)
 
 type (tao_curve_struct) this_curve
+type (tao_graph_struct), pointer :: this_graph
 type (tao_universe_struct), pointer :: u
 integer ix
 logical error
 
 !
 
-i_uni = this_curve%ix_universe
-if (i_uni == 0) i_uni = s%global%u_view
+this_graph => this_curve%g
+i_uni = tao_universe_number(this_curve%ix_universe)
 
 select case (component)
 
@@ -323,6 +324,17 @@ select case (component)
     return
     
 end select
+
+! Enable
+
+if (this_graph%type == 'phase_space') then
+  u => s%u(i_uni)
+  if (.not. allocated(u%beam_at_element(this_curve%ix_ele_ref)%bunch)) then
+    call reallocate_beam (u%beam_at_element(this_curve%ix_ele_ref), &
+                              u%beam_init%n_bunch, u%beam_init%n_particle)
+    s%global%lattice_recalc = .true.
+  endif
+endif
 
 s%global%lattice_recalc = .true.
 
