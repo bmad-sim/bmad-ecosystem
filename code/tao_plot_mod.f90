@@ -685,6 +685,7 @@ have_data = .false.
 
 do k = 1, size(graph%curve)
   curve => graph%curve(k)
+  if (curve%use_y2) call qp_use_axis (y = 'Y2')
   call qp_set_symbol (curve%symbol)
   call qp_set_line ('PLOT', curve%line) 
   if (curve%draw_symbols .and. allocated(curve%x_symb)) then
@@ -699,6 +700,7 @@ do k = 1, size(graph%curve)
       have_data = .true.
     endif
   endif
+  call qp_use_axis (y = 'Y')  ! reset
 enddo
 
 if (.not. have_data) call qp_draw_text ('**No Plottable Data**', &

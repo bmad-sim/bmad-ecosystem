@@ -114,6 +114,13 @@ close (iu)
 
 s%global = global  ! transfer global to s%global
   
+if (s%global%track_type == "macro") then
+  call out_io (s_error$, r_name, &
+             'MACROPARTICLE TRACKING IS NOT ACTIVELY SUPPORTED!', &
+             'PLEASE USE "beam" TRACKING INSTEAD.', &
+             'IF YOU NEED MACROPARTICLE TRACKING PLEASE SEE DAVID SAGAN.')
+endif
+
 n = size(s%u)
 n_max = 0
 do i = 1, size(s%u)
@@ -379,6 +386,7 @@ do
     data(:)%ix_bunch   = 0
     data(:)%data_noise  = real_garbage$
     data(:)%scale_error = real_garbage$
+    data(:)%data_source = 'lattice'
     data(:)%good_user  = .true.
     read (iu, nml = tao_d1_data, err = 9150)
     if (ix_d1_data /= k) then
@@ -750,13 +758,14 @@ else
 
   ! Transfer info from the input structure
 
-  u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
-  u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
-  u%data(n1:n2)%good_user  = data(ix1:ix2)%good_user
-  u%data(n1:n2)%weight     = data(ix1:ix2)%weight
-  u%data(n1:n2)%ele_name   = data(ix1:ix2)%ele_name
-  u%data(n1:n2)%ele0_name  = data(ix1:ix2)%ele0_name
-  u%data(n1:n2)%ix_bunch   = data(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_type   = data(ix1:ix2)%data_type
+  u%data(n1:n2)%merit_type  = data(ix1:ix2)%merit_type
+  u%data(n1:n2)%good_user   = data(ix1:ix2)%good_user
+  u%data(n1:n2)%weight      = data(ix1:ix2)%weight
+  u%data(n1:n2)%ele_name    = data(ix1:ix2)%ele_name
+  u%data(n1:n2)%ele0_name   = data(ix1:ix2)%ele0_name
+  u%data(n1:n2)%ix_bunch    = data(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_source = data(ix1:ix2)%data_source
 
   ! Find elements associated with the data
 

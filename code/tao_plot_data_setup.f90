@@ -78,20 +78,26 @@ plot_loop: do ir = 1, size(s%plot_page%region)
   do jg = 1, size(plot%graph)
     graph => plot%graph(jg)
     call tao_graph_data_setup (plot, graph)
-    if (graph%y%min == graph%y%max) call tao_scale_graph (graph, 0.0_rp, 0.0_rp)
+    if (graph%y%min == graph%y%max) call tao_scale_graph (graph, '', 0.0_rp, 0.0_rp)
     graph%limited = .false.
     if (allocated(graph%curve)) then
-      ax_min = graph%y%min + 1e-6 * (graph%y%min - graph%y%max)
-      ax_max = graph%y%max + 1e-6 * (graph%y%max - graph%y%min)
       do ic = 1, size(graph%curve)
         curve => graph%curve(ic)
+        if (curve%use_y2) then
+          ax_min = graph%y2%min + 1e-6 * (graph%y2%min - graph%y2%max)
+          ax_max = graph%y2%max + 1e-6 * (graph%y2%max - graph%y2%min)
+        else
+          ax_min = graph%y%min + 1e-6 * (graph%y%min - graph%y%max)
+          ax_max = graph%y%max + 1e-6 * (graph%y%max - graph%y%min)
+        endif
+
         if (allocated(curve%y_symb)) then
-          if (any(curve%y_symb < ax_min .or. &
-                    curve%y_symb > ax_max)) graph%limited = .true.
+          if (any(curve%y_symb < ax_min)) graph%limited = .true.
+          if (any(curve%y_symb > ax_max)) graph%limited = .true.
         endif
         if (allocated(curve%y_line)) then
-          if (any(curve%y_line < ax_min .or. &
-                    curve%y_line > ax_max)) graph%limited = .true.
+          if (any(curve%y_line < ax_min)) graph%limited = .true.
+          if (any(curve%y_line > ax_max)) graph%limited = .true.
         endif
       enddo
     endif

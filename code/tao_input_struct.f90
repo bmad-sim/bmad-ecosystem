@@ -29,10 +29,11 @@ type tao_data_input
   character(16) :: merit_type
   real(rp) :: meas_value
   real(rp) :: weight
+  logical :: good_user
+  character(40) data_source
+  integer ix_bunch
   real(rp) :: data_noise ! not used by most data types
   real(rp) :: scale_error ! not used by most data types
-  logical :: good_user
-  integer ix_bunch
 end type
 
 !-------------------------------------------------------------

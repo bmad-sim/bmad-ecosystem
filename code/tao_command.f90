@@ -40,7 +40,7 @@ character(*) :: command_line
 character(140) cmd_line
 character(20) :: r_name = 'tao_command'
 character(80) :: cmd_word(12)
-character(16) cmd_name, set_word
+character(16) cmd_name, set_word, axis_name
 
 character(16) :: cmd_names(29) = (/  &
     'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
@@ -62,6 +62,14 @@ logical quit_tao, err, force
 
 call string_trim (command_line, cmd_line, ix_line)
 if (ix_line == 0 .or. cmd_line(1:1) == '!') return
+
+! '/' denotes an option so put a space before it so it does not look like part of the command.
+
+ix = index(cmd_line(1:ix_line), '/')
+if (ix /= 0) then
+  cmd_line = cmd_line(1:ix-1) // ' ' // trim(cmd_line(ix:))
+  ix_line = ix - 1
+endif
 
 ! strip the command line of comments
 
@@ -366,9 +374,16 @@ case ('scale')
     return
   endif
 
-  call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err, '/'); if (err) return
+
+  axis_name = ''
+  if (cmd_word(1) == '/') then
+   axis_name = cmd_word(2)
+   cmd_word(1:3) = cmd_word(3:5)
+  endif 
+
   if (cmd_word(2) == ' ') then
-    call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
+    call tao_scale_cmd (cmd_word(1), axis_name, 0.0_rp, 0.0_rp) 
   else
     call tao_to_real (cmd_word(2), value1, err);  if (err) return
     if (cmd_word(3) /= ' ') then
@@ -377,7 +392,7 @@ case ('scale')
       value2 = value1
       value1 = -value1
     endif
-    call tao_scale_cmd (cmd_word(1), value1, value2)
+    call tao_scale_cmd (cmd_word(1), axis_name, value1, value2)
   endif
 
 !--------------------------------
@@ -482,7 +497,7 @@ case ('xy-scale')
   if (cmd_word(3) .eq. 'force') force = .true.
   if (cmd_word(2) == ' ') then
     call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err, force)
-    call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
+    call tao_scale_cmd (cmd_word(1), '', 0.0_rp, 0.0_rp) 
   else
     call tao_to_real (cmd_word(2), value1, err);  if (err) return
     if (cmd_word(3) /= ' ') then
@@ -492,7 +507,7 @@ case ('xy-scale')
       value1 = -value1
     endif
     call tao_x_scale_cmd (cmd_word(1), value1, value2, err, force)
-    call tao_scale_cmd (cmd_word(1), value1, value2)
+    call tao_scale_cmd (cmd_word(1), '', value1, value2)
   endif
 
 !--------------------------------

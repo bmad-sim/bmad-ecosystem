@@ -243,6 +243,12 @@ endif
 if (data_type(1:9) == 'norm_emit') call convert_total_energy_to ( &
                     lat%ele(ix1)%value(E_TOT$), lat%param%particle, gamma)
 
+if (data_source /= "lattice" .and. data_source /= "beam_tracking") then
+  call out_io (s_error$, r_name, &
+          'UNKNOWN DATA_SOURCE: ' // data_source, &
+          'FOR DATUM: ' // datum%d1%d2%name)
+  call err_exit
+endif
 
 !---------------------------------------------------
 
@@ -667,9 +673,13 @@ case ('emittance.a', 'norm_emittance.a')
     datum_value = tao_lat%bunch_params(ix1)%a%norm_emitt
   elseif (data_source == "macro") then
     datum_value = u%macro_beam%params%a%norm_emitt
-  else
-    call orbit_amplitude_calc (lat%ele(ix1), tao_lat%orb(ix1), &
-                               amp_na = datum_value, particle = electron$)
+  elseif (data_source == "lattice") then
+    if (.not. allocated(tao_lat%rad_int%lin_norm_emit_a)) then
+      call out_io (s_fatal$, r_name, 'tao_lat%rad_int not allocated')
+      call err_exit
+    endif
+    call load_it (tao_lat%rad_int%lin_norm_emit_a, &
+                              ix0, ix1, datum_value, valid_value, datum, lat)
   endif
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
   
@@ -678,9 +688,13 @@ case ('emittance.b', 'norm_emittance.b')
     datum_value = tao_lat%bunch_params(ix1)%b%norm_emitt
   elseif (data_source == "macro") then
     datum_value = u%macro_beam%params%b%norm_emitt
-  else
-    call orbit_amplitude_calc (lat%ele(ix1), tao_lat%orb(ix1), &
-                               amp_nb = datum_value, particle = electron$)
+  elseif (data_source == "lattice") then
+    if (.not. allocated(tao_lat%rad_int%lin_norm_emit_b)) then
+      call out_io (s_fatal$, r_name, 'tao_lat%rad_int not allocated')
+      call err_exit
+    endif
+    call load_it (tao_lat%rad_int%lin_norm_emit_b, &
+                              ix0, ix1, datum_value, valid_value, datum, lat)
   endif
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
   

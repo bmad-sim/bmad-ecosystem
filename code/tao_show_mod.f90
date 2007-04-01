@@ -1110,8 +1110,9 @@ case ('universe')
   nl=nl+1; write(lines(nl), imt) '%n_data_used           = ', u%n_data_used
   nl=nl+1; write(lines(nl), lmt) '%do_synch_rad_int_calc = ', u%do_synch_rad_int_calc
   nl=nl+1; write(lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
+  nl=nl+1; write(lines(nl), lmt) '%calc_beam_emittance   = ', u%calc_beam_emittance
   nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
-  nl=nl+1; write(lines(nl), amt) '%beam_init_file        = ', u%beam_init_file
+  nl=nl+1; write(lines(nl), amt) '%beam_init_file        = ', trim(u%beam_init_file)
 
   call out_io (s_blank$, r_name, lines(1:nl)) 
 

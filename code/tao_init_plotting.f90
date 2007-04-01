@@ -204,6 +204,8 @@ do
     grph%legend = ' '
     grph%y2_mirrors_y = .true.
 
+    if (grph%y2%min == grph%y2%max) grph%y2 = grph%y
+
     if (grph%y%min /= grph%y%max) call qp_calc_axis_places (grph%y)
     if (grph%y2%min /= grph%y2%max) call qp_calc_axis_places (grph%y2)
 
@@ -239,7 +241,6 @@ do
       crv%draw_line               = curve(j)%draw_line
       crv%draw_symbols            = curve(j)%draw_symbols
       crv%use_y2                  = curve(j)%use_y2
-!      if (crv%use_y2) grph%y2_mirrors_y = .false.
       crv%symbol                  = curve(j)%symbol
       crv%line                    = curve(j)%line
       crv%convert                 = curve(j)%convert
@@ -252,7 +253,25 @@ do
 
       i_uni = crv%ix_universe
       if (i_uni == 0) i_uni = s%global%u_view
- 
+
+      ! Turn on the y2 axis numbering if needed.
+
+      if (crv%use_y2) then
+        grph%y2%draw_numbers = .true.
+        grph%y2_mirrors_y = .false.
+      endif
+
+      ! Enable the radiation integrals calculation if needed.
+
+      if ((crv%data_type(1:10) == 'emittance.' .or. crv%data_type(1:15) == 'norm_emittance.') .and. &
+                                                                         crv%data_source == 'lattice') then
+        if (crv%ix_universe == 0) then
+          s%u%do_synch_rad_int_calc = .true.
+        else
+          s%u(i_uni)%do_synch_rad_int_calc = .true.
+        endif
+      endif
+
       ! Find the ele_ref info if either ele_ref_name or ix_ele_ref has been set.
       ! If plotting something like the phase then the default is for ele_ref 
       ! to be the beginning element.

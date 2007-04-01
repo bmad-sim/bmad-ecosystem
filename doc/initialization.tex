@@ -1202,7 +1202,7 @@ namelists should be placed directly after their respective
     curve(i)%data_source  = "<source_name>" !source for the data curve points
     curve(i)%x_axis_scale_factor = <factor> ! scale the x-axis by this.
     curve(i)%y_axis_scale_factor = <factor> ! scale the y-axis by this.
-    curve(i)%use_y2       = <logical> 
+    curve(i)%use_y2       = <logical>       ! Use left-axis scale?
     curve(i)%draw_line    = <logical>
     curve(i)%draw_symbols = <logical>
     curve(i)%ix_universe  = <universe_number> ! default = 0 => use viewed universe
@@ -1392,6 +1392,17 @@ data points. The size, shape and color of the symbols is determined by
 \vn{curve%draw_line} determines whether a curve is drawn through the
 data points. The thickness, style (solid, dashed, etc.), and color
 is determined by \vn{curve%line}
+
+A graph has two vertical axes. The one on the left is called \vn{"y"}
+and the one on the right is called \vn{"y2"}. For example,
+\vn{graph%y%label} sets the axis label for the \vn{y} axis and
+\vn{graph%y2%label} sets the axis label for the \vn{y2} axis. Normally
+there is only one vertical scale for a graph and this is associated
+with the \vn{y} axis. However, if any curve of a given graph has
+\vn{curve%use_y2} set to \vn{True} then the \vn{y2} axis will have an
+independent second scale. In this case, the \vn{y2} axis numbers will
+be drawn. Notice that simply giving the \vn{y2} axis a label does {\em
+not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 
 %-----------------------------------------------------------------
 \subsection{Lattice Layout}\index{Initialization!Lattice Layout}

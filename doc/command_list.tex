@@ -559,7 +559,7 @@ Examples:
 
 Format:
 \begin{example}
-  scale \{<where> <value1> <value2>\}
+  scale\{/axis\} \{<where> <value1> <value2>\}
 \end{example}
 
 \vskip 0.2in 
@@ -570,13 +570,22 @@ so that all the data points are within the graph region.  If only
 -\vn{<value1>} to +\vn{<value1>}. If both are present than the scale
 is from \vn{<value1>} to \vn{<value2>}.  The graphs that are scaled is
 determined by the \vn{<where>} switch. If \vn{<where>} is not present
-or \vn{<where>} is ``all'' then all graphs are scaled.
+or \vn{<where>} is \vn{all} then all graphs are scaled.
+
+A graph can have a \vn{y2} (left) axis scale that is separate from the \vn{y} (right) 
+axis. Normally, the \vn{scale} command will scale both axes.  Scaling of just one of these
+axes can be achieved by using the \vn{/axis} switch. Possible values for \vn{/axis} are:
+\begin{example}
+  /y                 ! Scale only the y axis.
+  /y2                ! Scale only the y2 axis.
+\end{example}
 
 Examples:
 \begin{example}
-  scale top.x -3  7  ! scale the x graph in the top region
-  scale bottom       ! scale the graphs in the bottom region
-  scale              ! scale everything
+  scale top.x -3  7  ! Scale the x graph in the top region
+  scale/y2 top.x     ! Scale only the y2 axis of the top.x graph.
+  scale bottom       ! Scale the graphs in the bottom region
+  scale              ! Scale everything
 \end{example}
 
 
@@ -895,13 +904,13 @@ Examples:
   show write data             ! Same as previous except results are also written
                               !   to a file.
   show data orbit.x           ! list all orbit.x data elements
-  show data orbit.x[35]       ! show details for orbit.x element 35
+  show data orbit.x[35]       ! Show details for orbit.x element 35
   show data orbit.x[35,86:95] ! list orbit.x elements 35 and 86 through 95
   show data orbit.x[1:100:5]  ! list every fifth orbit.x element between 1 and 100  
   show ele q*                 ! list all elements with names beginning with "q".
-  show ele q10w               ! show a particular lattice element
-  show ele 105                ! show element #105 in the lattice
-  show lattice 50:100         ! show lattice elements 50 to 100
+  show ele q10w               ! Show a particular lattice element
+  show ele 105                ! Show element #105 in the lattice
+  show lattice 50:100         ! Show lattice elements 50 to 100
   show var *                  ! list variables in Bmad lattice format.
   show var 2@                 ! List all variables that control attributes in universe 2.
 \end{example}
@@ -1049,7 +1058,7 @@ Examples:
 
 Format:
 \begin{example}
-  x-scale \{<where>\} \{<bound1>\} \{<bound2>\} \{force\} ! sets horizontal axis bounds.
+  x-scale \{<where>\} \{<bound1>\} \{<bound2>\} \{force\} ! Sets horizontal axis bounds.
 \end{example}
 
 \vskip 0.2in \vn{x-scale} sets the lower and upper bounds for the
@@ -1067,7 +1076,7 @@ specified ranges will be used and QuickPlot will not try to find
 Example:
 \begin{example}
   x-scale                   ! Autoscale all x-axes.
-  x-scale all 0 100         ! scale all x-axes to go from 0 to 100.
+  x-scale all 0 100         ! Scale all x-axes to go from 0 to 100.
   x-scale top 101 257 force ! forces the x-axis in the top region to
                             ! go from 101 to 257
 \end{example}
@@ -1096,6 +1105,6 @@ try to find ``nice'' plot scales.
 Example:
 \begin{example}
   xy-scale            ! Autoscale all axes.
-  xy-scale all -1 1  ! scale all axes to go from -1 to 1.
+  xy-scale all -1 1   ! Scale all axes to go from -1 to 1.
 \end{example}
 

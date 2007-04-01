@@ -407,7 +407,7 @@ subroutine scale_it_all (ix_plot, factor, a_min, a_max)
 ! if factor = 0 then use min/max
 
   if (factor == 0) then
-    call tao_scale_cmd ('all', a_min, a_max)
+    call tao_scale_cmd ('all', '', a_min, a_max)
     return
   endif
 
@@ -418,7 +418,7 @@ subroutine scale_it_all (ix_plot, factor, a_min, a_max)
       graph => plot%graph(j) 
       graph%y2%max = graph%y2%max * factor 
       graph%y2%min = graph%y2%min * factor 
-      call tao_scale_graph (graph, graph%y%min * factor, graph%y%max * factor)
+      call tao_scale_graph (graph, ' ', graph%y%min * factor, graph%y%max * factor)
     enddo
   enddo
 

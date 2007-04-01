@@ -178,14 +178,14 @@ end subroutine
 !
 ! Input: 
 !   cmd_line       -- Character(*): The command line.
-!   n_word         -- integer: number of words to split command line into
-!   no_extra_words -- logical: are extra words allowed at the end?
-!   separator      -- character(*): a list of characters that, besides a blank space,
-!                                  signify a word boundary. 
+!   n_word         -- Integer: number of words to split command line into
+!   no_extra_words -- Logical: are extra words allowed at the end?
+!   separator      -- Character(*), optional: a list of characters that,
+!                        besides a blank space, signify a word boundary. 
 !
 ! Output:
-!   cmd_word(n_word) -- character(*): The individual words.
-!   err              -- logical: error in splitting words
+!   cmd_word(n_word) -- Character(*): The individual words.
+!   err              -- Logical: error in splitting words
 !
 ! For example: 
 !   separator = '-+' 
