@@ -47,20 +47,20 @@ type rad_int_common_struct
   type (coord_struct), pointer :: orb0, orb1
   type (track_point_cache_struct) pt
   real(rp) eta_a(4), eta_b(4), eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
-  real(rp), allocatable :: i1(:) 
+  real(rp), allocatable :: i1(:)          ! Noe: All arrays are indexed from 0
   real(rp), allocatable :: i2(:) 
   real(rp), allocatable :: i3(:) 
   real(rp), allocatable :: i4a(:)
   real(rp), allocatable :: i4b(:)
   real(rp), allocatable :: i5a(:) 
   real(rp), allocatable :: i5b(:) 
-  real(rp), allocatable :: n_steps(:)      ! number of qromb steps needed
   real(rp), allocatable :: lin_i2_E4(:) 
   real(rp), allocatable :: lin_i3_E7(:) 
   real(rp), allocatable :: lin_i5a_E6(:) 
   real(rp), allocatable :: lin_i5b_E6(:) 
-  real(rp), allocatable :: lin_norm_emittance_a(:)  ! Running sum
-  real(rp), allocatable :: lin_norm_emittance_b(:)  ! Running sum
+  real(rp), allocatable :: lin_norm_emit_a(:)  ! Running sum
+  real(rp), allocatable :: lin_norm_emit_b(:)  ! Running sum
+  real(rp), allocatable :: n_steps(:)      ! number of qromb steps needed
 end type
 
 type (rad_int_common_struct), target, save :: ric

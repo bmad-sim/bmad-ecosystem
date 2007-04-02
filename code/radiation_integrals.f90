@@ -63,25 +63,30 @@
 ! Notes:
 !   1) %synch_int(1) = momentum_compaction * lat_length
 !
-!   2) There is a common block where the integrals for the individual elements
+!   2) There is a common block structure "ric" where the integrals for the individual elements
 !      are saved. To access this common block a use statement is needed:
 !         use rad_int_common
 !      In the common block:
-!         ric%i1(:)           -- I1 integral for each element.
-!         ric%i2(:)           -- I2 integral for each element.
-!         ric%i3(:)           -- I3 integral for each element.
-!         ric%i4a(:)          -- "A" mode I4 integral for each element.
-!         ric%i4b(:)          -- "B" mode I4 integral for each element.
-!         ric%i5a(:)          -- "A" mode I5 integral for each element.
-!         ric%i5b(:)          -- "B" mode I5 integral for each element.
-!         ric%lin_i2_E4(:)    -- I2 * gamma^4 integral
-!         ric%lin_i3_E7(:)    -- I3 * gamma^7 integral
-!         ric%lin_i5a_E6(:)   -- I5a * gamma^6 integral
-!         ric%lin_i5b_E6(:)   -- I5b * gamma^6 integral
-!         ric%lin_norm_emittance_a(:)  ! Running sum
-!         ric%lin_norm_emittance_b(:)  ! Running sum
-!     Note: The lin_norm_emittance values are running sums from the beginning 
-!     of the lattice.
+!         ric%i1(0:)              -- I1 integral for each element.
+!         ric%i2(0:)              -- I2 integral for each element.
+!         ric%i3(0:)              -- I3 integral for each element.
+!         ric%i4a(0:)             -- "A" mode I4 integral for each element.
+!         ric%i4b(0:)             -- "B" mode I4 integral for each element.
+!         ric%i5a(0:)             -- "A" mode I5 integral for each element.
+!         ric%i5b(0:)             -- "B" mode I5 integral for each element.
+!         ric%lin_i2_E4(0:)       -- I2 * gamma^4 integral
+!         ric%lin_i3_E7(0:)       -- I3 * gamma^7 integral
+!         ric%lin_i5a_E6(0:)      -- I5a * gamma^6 integral
+!         ric%lin_i5b_E6(0:)      -- I5b * gamma^6 integral
+!         ric%lin_norm_emit_a(0:) -- "A" mode emittance. Running sum
+!         ric%lin_norm_emit_b(0:) -- "B" mode emittance. Running sum
+!
+!     Note: "ric" is of type rad_int_common_struct. To transfer the data from one
+!     rad_int_common_struct block to another use the routine:
+!            transfer_rad_int_struct
+!
+!     Note: The lin_norm_emit values are running sums from the beginning 
+!     of the lattice and include the beginning emittance stored in lat%a%emit and lat%b%emit.
 !-       
 
 #include "CESR_platform.inc"
@@ -114,7 +119,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   real(rp) kz, fac, c, s, factor, emit_a, emit_b
 
   integer, optional :: ix_cache
-  integer i, j, k, ir, key, n_step, ie1, ie2
+  integer i, j, k, ir, key, n_step, ie2
 
   character(20) :: r_name = 'radiation_integrals'
 
@@ -130,7 +135,6 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   bmad_com%radiation_damping_on = .false.
   bmad_com%trans_space_charge_on = .false.
 
-  ie1 = 1
   ie2 = lat%n_ele_track
 
   if (allocated(ric%i1)) then
@@ -147,8 +151,8 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
       deallocate (ric%lin_i3_E7)
       deallocate (ric%lin_i5a_E6)
       deallocate (ric%lin_i5b_E6)
-      deallocate (ric%lin_norm_emittance_a)
-      deallocate (ric%lin_norm_emittance_b)
+      deallocate (ric%lin_norm_emit_a)
+      deallocate (ric%lin_norm_emit_b)
       do_alloc = .true.
     else
       do_alloc = .false.
@@ -158,20 +162,20 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   endif
 
   if (do_alloc) then
-    allocate (ric%i1(lat%n_ele_max))
-    allocate (ric%i2(lat%n_ele_max))
-    allocate (ric%i3(lat%n_ele_max))
-    allocate (ric%i4a(lat%n_ele_max))
-    allocate (ric%i4b(lat%n_ele_max))
-    allocate (ric%i5a(lat%n_ele_max))
-    allocate (ric%i5b(lat%n_ele_max))
-    allocate (ric%n_steps(lat%n_ele_max))
-    allocate (ric%lin_i2_E4(lat%n_ele_max))
-    allocate (ric%lin_i3_E7(lat%n_ele_max))
-    allocate (ric%lin_i5a_E6(lat%n_ele_max))
-    allocate (ric%lin_i5b_E6(lat%n_ele_max))
-    allocate (ric%lin_norm_emittance_a(lat%n_ele_max))
-    allocate (ric%lin_norm_emittance_b(lat%n_ele_max))
+    allocate (ric%i1(0:lat%n_ele_max))
+    allocate (ric%i2(0:lat%n_ele_max))
+    allocate (ric%i3(0:lat%n_ele_max))
+    allocate (ric%i4a(0:lat%n_ele_max))
+    allocate (ric%i4b(0:lat%n_ele_max))
+    allocate (ric%i5a(0:lat%n_ele_max))
+    allocate (ric%i5b(0:lat%n_ele_max))
+    allocate (ric%n_steps(0:lat%n_ele_max))
+    allocate (ric%lin_i2_E4(0:lat%n_ele_max))
+    allocate (ric%lin_i3_E7(0:lat%n_ele_max))
+    allocate (ric%lin_i5a_E6(0:lat%n_ele_max))
+    allocate (ric%lin_i5b_E6(0:lat%n_ele_max))
+    allocate (ric%lin_norm_emit_a(0:lat%n_ele_max))
+    allocate (ric%lin_norm_emit_b(0:lat%n_ele_max))
   endif
 
   ric%lat => lat
@@ -213,7 +217,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
       allocate (cache%ix_ele(lat%n_ele_max))
 
       j = 0  ! number of elements to cache
-      do i = ie1, ie2
+      do i = 1, ie2
         key = lat%ele(i)%key
         if (key == quadrupole$ .or. key == sol_quad$ .or. key == sbend$ .or. &
                  key == wiggler$ .or. lat%ele(i)%value(hkick$) /= 0 .or. &
@@ -229,7 +233,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
       ! Now cache the information
 
       j = 0 
-      do i = ie1, ie2
+      do i = 1, ie2
 
         if (cache%ix_ele(i) == -1) cycle
 
@@ -319,7 +323,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 ! Loop over all elements
 ! We do the non-wiggler elements first since we can do this quickly.
 
-  do ir = ie1, ie2
+  do ir = 1, ie2
 
     ele => lat%ele(ir)
     if (.not. ele%is_on) cycle
@@ -444,7 +448,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 !----------------------------------------------------------
 ! For map type wigglers
 
-  do ir = ie1, ie2
+  do ir = 1, ie2
 
     ele => lat%ele(ir)
     if (ele%key /= wiggler$) cycle
@@ -496,10 +500,10 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   mode%lin%i5b_E6 = 0
 
   factor = 2 * c_q * r_e / 3
-  emit_a = 0
-  emit_b = 0
+  emit_a = lat%a%emit
+  emit_b = lat%b%emit
 
-  do i = ie1, ie2
+  do i = 0, ie2
     gamma = lat%ele(i)%value(E_TOT$) / mc2
     gamma4 = gamma**4
     gamma6 = gamma4 * gamma**2
@@ -512,9 +516,9 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
     mode%lin%i5a_E6 = mode%lin%i5a_E6 + ric%lin_i5a_E6(i)
     mode%lin%i5b_E6 = mode%lin%i5b_E6 + ric%lin_i5b_E6(i)
     emit_a = emit_a + factor * ric%lin_i5a_E6(i)
-    ric%lin_norm_emittance_a(i) = emit_a
+    ric%lin_norm_emit_a(i) = emit_a
     emit_b = emit_b + factor * ric%lin_i5b_E6(i)
-    ric%lin_norm_emittance_b(i) = emit_b
+    ric%lin_norm_emit_b(i) = emit_b
   enddo
 
   mode%lin%sig_E1 = mc2 * sqrt (2 * factor * mode%lin%i3_E7)
