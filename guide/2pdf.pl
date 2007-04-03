@@ -17,14 +17,14 @@ if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 `latex bmad-manual`; 
 `dvips -o bmad-manual.ps bmad-manual`; 
 `ps2pdf bmad-manual.ps`;
-`rm /home/dcs/public_html/bmad/bmad-manual-*pdf`;
-`rm /home/dcs/public_html/bmad/bmad-manual-*ps`;
-`scp bmad-manual.pdf dcs@lnx209:/home/dcs/public_html/bmad/bmad-manual-$rev.pdf`; 
+`rm bmad-manual-*pdf`;
+`rm bmad-manual-*ps`;
+`mv bmad-manual.pdf bmad-manual-$rev.pdf`; 
 `dvips -o bmad-manual.ps bmad-manual`;
-`scp bmad-manual.ps dcs@lnx209:/home/dcs/public_html/bmad/bmad-manual-$rev.ps`; 
+`mv bmad-manual.ps bmad-manual-$rev.ps`; 
 
 open (F_OUT, ">temp.out") || die ("Cannot open temparary file\n");
-$file = "dcs@lnx209:/home/dcs/public_html/bmad/manual.html";
+$file = "manual.html";
 open (FM, $file) || die ("Cannot open File: $file\n");
 while (<FM>) {
   if (/bmad-manual-(\S+?)\.p+/) {s/$1/$rev/g;}

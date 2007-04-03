@@ -1,0 +1,5 @@
+scp lnx209:/home/dcs/public_html/bmad/manual.html .
+./2pdf.pl
+scp manual.html       lnx209:/home/dcs/public_html/bmad
+scp bmad-manual-*.pdf lnx209:/home/dcs/public_html/bmad
+scp bmad-manual-*.ps  lnx209:/home/dcs/public_html/bmad
