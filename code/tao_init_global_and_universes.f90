@@ -705,10 +705,11 @@ if (data(0)%ele_name(1:6) == 'SEARCH') then
     u%data(jj)%exists   = .true.
     jj = jj + 1
   enddo
-  u%data(n1:n2)%meas_value = 0 
-  u%data(n1:n2)%data_type  = default_data_type
-  u%data(n1:n2)%merit_type = default_merit_type 
-  u%data(n1:n2)%good_meas  = .false.
+  u%data(n1:n2)%meas_value  = 0 
+  u%data(n1:n2)%data_type   = default_data_type
+  u%data(n1:n2)%merit_type  = default_merit_type 
+  u%data(n1:n2)%good_meas   = .false.
+  u%data(n1:n2)%data_source = data(0)%data_source
 
 ! SAME:
 
@@ -730,16 +731,17 @@ elseif (data(0)%ele_name(1:5) == 'SAME:') then
     call err_exit
   endif
 
-  u%data(n1:n2)%ele_name   = d1_ptr%d%ele_name
-  u%data(n1:n2)%ix_ele     = d1_ptr%d%ix_ele
-  u%data(n1:n2)%ele0_name  = d1_ptr%d%ele0_name
-  u%data(n1:n2)%ix_ele0    = d1_ptr%d%ix_ele0
-  u%data(n1:n2)%exists     = d1_ptr%d%exists
+  u%data(n1:n2)%ele_name    = d1_ptr%d%ele_name
+  u%data(n1:n2)%ix_ele      = d1_ptr%d%ix_ele
+  u%data(n1:n2)%ele0_name   = d1_ptr%d%ele0_name
+  u%data(n1:n2)%ix_ele0     = d1_ptr%d%ix_ele0
+  u%data(n1:n2)%exists      = d1_ptr%d%exists
+  u%data(n1:n2)%data_source = d1_ptr%d%data_source
 
-  u%data(n1:n2)%merit_type = default_merit_type
-  u%data(n1:n2)%weight     = default_weight
-  u%data(n1:n2)%data_type  = default_data_type
-  u%data(n1:n2)%meas_value = 0 
+  u%data(n1:n2)%merit_type  = default_merit_type
+  u%data(n1:n2)%weight      = default_weight
+  u%data(n1:n2)%data_type   = default_data_type
+  u%data(n1:n2)%meas_value  = 0 
 
 ! Not SEARCH or SAME:
 
