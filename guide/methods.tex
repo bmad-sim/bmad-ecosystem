@@ -24,7 +24,7 @@ set the \vn{tracking_method} for an entire class of elements.
 
 \index{Sympliectify}
 \index{Map_with_offsets}
-Two attributes that can affect the way the transfer matrix is
+Two element attributes that can affect the way the transfer matrix is
 calculated are \vn{symplectify} and \vn{map_with_offsets}. These are
 discussed in \sref{s:symp} and \sref{s:mapoff} respectively.
 
@@ -34,10 +34,10 @@ discussed in \sref{s:symp} and \sref{s:mapoff} respectively.
 \label{s:tkm}
 \index{Tracking method|textbf}
 
-The algorithm used for single particle tracking through a given
-element is set by that element's \vn{tracking_method} attribute. A
-table giving which methods are available with which element classes is
-give in Table~\ref{t:track_methods}.
+The \vn{tracking_method} attribute of an element sets the algorithm that is
+used for single particle tracking through that element.
+A table giving which methods are available with which element classes is
+given in Table~\ref{t:track_methods}.
 
 A note on terminology: Adaptive step size control used with the
 \vn{Adaptive_Boris} and \vn{Runge_Kutta} integrators means that 

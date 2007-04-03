@@ -46,7 +46,6 @@ solely meant for \bmad internal use.
  	Helper Routines: Miscellaneous          & \ref{r:misc_help}  \\ \hline
  	Helper Routines: Low Level Stuff        & \ref{r:low_help}   \\ \hline
  	Overload Equal Sign Routines.           & \ref{r:equal}      \\ \hline
- 	Linac Stuff (out of date)               & \ref{r:linac}      \\ \hline
  	CESR Specific                           & \ref{r:cesr}       \\ \hline
   Quick Plot                              & \ref{r:qp}         \\ \hline
   Nonlinear Optimizers                    & \ref{r:opti}       \\ \hline
@@ -457,8 +456,7 @@ Subroutine to analyze 1-turn tracking data to find the 1-turn transfer
 matrix and the closed orbit offset.
 
 \index{Routine!offset_particle}
-\item[\protect\parbox{6in}{offset_particle (ele, param, coord, set, 
-set_canonical, \\
+\item[\protect\parbox{6in}{offset_particle (ele, param, coord, set, set_canonical, \\
 \hspace*{2in} set_tilt, set_multipoles, set_hvkicks, s_pos)}] \Newline
 Subroutine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
@@ -1580,13 +1578,13 @@ Subroutine to get the list of lords for an element.
 Subroutine to get the list of slaves for an element.
 
 \index{Routine!type_ele}
-\item[type_ele (ele, type_zero_attrib, type_mat6, type_twiss, 
-type_control, type_wake)] \Newline
+\item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, \\ 
+\hspace*{1in} type_twiss, type_control, type_wake, type_floor_coords)}] \Newline
 Subroutine to print the contents of an element at the terminal. 
 
 \index{Routine!type2_ele}
-\item[type2_ele (ele, type_zero_attrib, type_mat6, type_twiss, 
-type_control, lines, n_lines, type_wake)] \Newline
+\item[\protect\parbox{6in}{type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, \\
+\hspace*{1in} type_twiss, type_control, type_wake, type_floor_coords)}] \Newline
 Like \vn{type_ele} but the output is stored in a string array. 
 
 \index{Routine!type_twiss}
@@ -1981,22 +1979,6 @@ Subroutine to overload "=" in expressions bmad_taylor = real_8 (PTC)
 \item[universal_equal_universal (universal1, universal2)] \Newline
 Subroutine that is used to set one PTC universal_taylor 
 structure equal to another. 
-
-\end{description}
-
-%------------------------------------------------------------------------
-\section{Linac}
-\label{r:linac}    
-
-Note: These routines are antiquated: Do not use.
-
-\begin{description}
-
-\index{Routine!accel_sol_mat_calc}
-\item[accel_sol_mat_calc (ls, c_m, c_e, gamma_old, gamma_new, 
-b_x, b_y, coord, mat4, vec_st)] \Newline
-Subroutine to calculate the 4x4 transfer matrix (excluding steerings) for a 
-segment of an accelerating solenoid. 
 
 \end{description}
 

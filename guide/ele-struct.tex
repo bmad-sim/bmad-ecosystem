@@ -427,7 +427,7 @@ calculations.  Wakefields are stored in the \vnes{%wake} struct:
   type wake_struct
     character(200) :: sr_file = ' '
     character(200) :: lr_file = ' '
-    type (sr_table_wake_struct), pointer :: sr_table(:) => null()
+    type (sr_table_wake_struct), pointer :: sr_table(0:) => null()
     type (sr_mode_wake_struct), pointer :: sr_mode_long(:) => null()
     type (sr_mode_wake_struct), pointer :: sr_mode_trans(:) => null()
     type (lr_wake_struct), pointer :: lr(:) => null()
@@ -448,11 +448,10 @@ is assumed that all the sub--components (\vn{%wake%sr_table}, etc.) are
 associated. This simplifies programming in that you do not have to
 test directly the association status of the sub--components.
 
-The short--range wake is parameterized using three arrays:
-\vn{%wake%sr_table} stores the tabular form of the short--range wake
-(see~\sref{s:wiggler}).\vn{%wake%sr_mode_long}, and \vn{%wake%sr_mode_trans}
-store the longitudinal and transverse pseudo--modes. The structure
-definition for \vn{%wake%sr_table} is
+The short--range wake can be parameterized in either of two ways.
+One parameterization uses a table of wake verses z position. 
+If this parameterization utilizes the \vn{%wake%sr_table(0:)} array
+The structure of each element in this array is:
 \begin{example}
   type sr_table_wake_struct  ! Tabular short-Range Wake struct
     real(rp) z               ! Distance behind the leading particle
@@ -460,12 +459,13 @@ definition for \vn{%wake%sr_table} is
     real(rp) trans           ! Transverse wake in V/C/m^2
   end type
 \end{example}
-All \vn{%wake%sr_table(0:)%z} will be negative. Notice that the array lower
-bounds is zero since \vn{%wake%sr_table(0)%z} = 0. Wakefield kicks are
-applied using \Eqs{delvp} and \eq{pelqxw}.
+All \vn{%wake%sr_table(0:)%z} must be negative except \vn{%wake%sr_table(0)%z} 
+= 0. Wakefield kicks are applied using \Eqs{delvp} and \eq{pelqxw}.
 
-The \vn{%wake%sr_mode_long} and \vn{%wake%sr_mode_trans} pseudo--mode
-structures are the same:
+The alternitive short--range wake parameterization uses pseudo--modes (\Eq{wadzk}).
+This parameterization utilizes the \vn{%wake%sr_mode_long}, and \vn{%wake%sr_mode_trans}
+arrays for the longitudinal and transvere modes respectively.
+The structure used for the elements of these arrays are:
 \begin{example}
   type sr_mode_wake_struct  ! Psudo-mode short-range wake struct 
     real(rp) amp        ! Amplitude
@@ -478,7 +478,7 @@ structures are the same:
     real(rp) skew_cos   ! skew cos-like component of the wake
   end type
 \end{example}
-The wakefield kick is calculated from \Eq{wadzk}.  \vn{%amp},
+The wakefield kick is calculated from \Eq{wadzk}. \vn{%amp},
 \vn{%damp}, \vn{%freq}, and \vn{%phi} are the input parameters from
 the lattice file. the last four components (\vn{%norm_sin}, etc.)
 store the accumulated wake: Before the bunch passes through these are
