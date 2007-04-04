@@ -262,22 +262,16 @@ logical err
 
 !
 
-call tao_find_plots (err, curve_name, 'REGION', graph = graph, curve = curve)
+call tao_find_plots (err, curve_name, 'REGION', curve = curve, always_allocate = .true.)
 if (err) return
 
-if (allocated(curve)) then
+if (.not. allocated(curve) .or. size(curve) == 0) then
+  call out_io (s_error$, r_name, 'CURVE OR GRAPH NOT SPECIFIED')
+  return
+else
   do i = 1, size(curve)
     call set_this_curve (curve(i)%c)
   enddo
-elseif (allocated(graph)) then
-  do i = 1, size(graph)
-    do j = 1, size(graph(i)%g%curve)
-      call set_this_curve (graph(i)%g%curve(j))
-    enddo
-  enddo
-else
-  call out_io (s_error$, r_name, 'CURVE OR GRAPH NOT SPECIFIED')
-  return
 endif
 
 !---------------------------------------------
@@ -318,6 +312,10 @@ select case (component)
     call tao_integer_set_value (this_curve%ix_bunch, component, &
                                               set_value, error, -1, u%beam_init%n_bunch)
 
+  case ('symbol_every')
+    call tao_integer_set_value (this_curve%symbol_every, component, &
+                                            set_value, error, 0, size(this_curve%x_symb))
+
   case default
     
     call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
@@ -332,11 +330,11 @@ if (this_graph%type == 'phase_space') then
   if (.not. allocated(u%beam_at_element(this_curve%ix_ele_ref)%bunch)) then
     call reallocate_beam (u%beam_at_element(this_curve%ix_ele_ref), &
                               u%beam_init%n_bunch, u%beam_init%n_particle)
-    s%global%lattice_recalc = .true.
+    if (.not. s%global%use_saved_beam_in_tracking) s%global%lattice_recalc = .true.
   endif
 endif
 
-s%global%lattice_recalc = .true.
+if (.not. s%global%use_saved_beam_in_tracking) s%global%lattice_recalc = .true.
 
 end subroutine
 

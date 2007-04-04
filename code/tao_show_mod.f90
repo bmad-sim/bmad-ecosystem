@@ -1042,7 +1042,7 @@ case ('plot')
     nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers      = ', g%y2%draw_numbers
     nl=nl+1; write (lines(nl), lmt) 'limited              = ', g%limited
     nl=nl+1; write (lines(nl), lmt) 'clip                 = ', g%clip
-    nl=nl+1; write (lines(nl), lmt) 'draw_axes              = ', g%draw_axes
+    nl=nl+1; write (lines(nl), lmt) 'draw_axes            = ', g%draw_axes
     nl=nl+1; lines(nl) = 'Curves:'
     do i = 1, size(g%curve)
       nl=nl+1; write (lines(nl), amt) '   ', g%curve(i)%name

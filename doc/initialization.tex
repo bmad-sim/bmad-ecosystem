@@ -43,18 +43,18 @@ Note: string variables are case sensitive.
 
 The syntax of the command line is:
 \begin{example}
-  tao \{init <init_file_name>\} \{beam <beam_file_name>\}
+  tao \{-init <init_file_name>\} \{-beam <beam_file_name>\}
 \end{example}
-The \vn{init} optional argument can be used to replace the default
+The \vn{-init} optional argument can be used to replace the default
 initialization file name (\vn{tao.init}) with \vn{<init_file_name>}.
 
-The \vn{beam} optional argument reads in a beam data file created with the
+The \vn{-beam} optional argument reads in a beam data file created with the
 \vn{output beam} command. This file contains the particle coordinates of the
 tracked beam at the end of any element where the  When this is done, \tao sets 
 the variable \vn{global%use_saved_beam_in_tracking} to \vn{True}. 
 This causes \tao to use the data from the beam data file in lieu of tracking.
 This can be helpful when the time for \tao to track a bunch through the 
-lattice becomes long. 
+lattice becomes long.
 
 %-----------------------------------------------------------------
 \section{Beginning Initialization}
@@ -240,21 +240,22 @@ type tao_global_struct
   character(40) :: print_command = 'awprint'
   character(80) :: init_file     = 'tao.init'
   character(80) :: var_out_file  = 'var#.out'
-  logical :: var_limits_on = .true.      ! Respect the variable limits?
-  logical :: plot_on = .true.            ! Do plotting?
-  logical :: auto_scale = .false.        ! Automatically scale and x-scale the plots?
-  logical :: opt_with_ref = .false.      ! use reference data in optimization?
-  logical :: opt_with_base = .false.     ! use base data in optimization?
-  logical :: single_mode = .false.
+  logical :: var_limits_on = T         ! Respect the variable limits?
+  logical :: plot_on = T               ! Do plotting?
+  logical :: auto_scale = F            ! Automatically scale and x-scale the plots?
+  logical :: opt_with_ref = F          ! use reference data in optimization?
+  logical :: opt_with_base = F         ! use base data in optimization?
+  logical :: single_mode = F
   logical :: optimizer_running 
-  logical :: init_opt_wrapper = .true.
-  logical :: label_lattice_elements = .true. ! For lat_layout plots
-  logical :: label_keys = .true.             ! For lat_layout plots
-  logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
-  logical :: lattice_recalc = .true.         ! recalculate the lattice?
-  logical :: matrix_recalc_on = .true.       ! calc linear transfer matrix?  
-  logical :: init_plot_needed = .true.       ! reinitialize plotting?
-  logical :: save_beam_everywhere = .false.  ! Save the beam info at all elements?
+  logical :: init_opt_wrapper = T
+  logical :: label_lattice_elements = T ! For lat_layout plots
+  logical :: label_keys = T             ! For lat_layout plots
+  logical :: derivative_recalc = T      ! Recalc before each optimizer run?
+  logical :: lattice_recalc = T         ! recalculate the lattice?
+  logical :: matrix_recalc_on = T       ! calc linear transfer matrix?  
+  logical :: init_plot_needed = T       ! reinitialize plotting?
+  logical :: save_beam_everywhere = F   ! Save the beam info at all elements?
+  logical :: use_save_beam_in_tracking = F
 end type
 \end{example}
 
@@ -267,18 +268,18 @@ The \vn{bmad_com_struct} holds bmad global variables.
     real(rp) :: max_aperture_limit = 1e3    
     real(rp) :: rel_tolerance = 1e-5
     real(rp) :: abs_tolerance = 1e-8
-    integer :: taylor_order = 3              ! 3rd order is default
-    logical :: use_liar_lcavity = .false.    ! Liar like tracking?
-    logical :: sr_wakes_on = .true.          ! Short range wakefields?
-    logical :: lr_wakes_on = .true.          ! Long range wakefields
-    logical :: mat6_track_symmetric = .true. ! symmetric offsets
-    logical :: auto_bookkeeper = .true.      ! Automatic bookkeeping?
-    logical :: radiation_damping_on = .false.       ! Damping toggle.
-    logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
-    logical :: compute_ref_energy = .true.          ! Enable recomputation?
-    logical :: trans_space_charge_on = .false.      ! Space charge switch
-    logical :: coherent_synch_rad_on = .false.      ! Longitudinal csr 
-    logical :: spin_tracking_on = .true.            ! Do particle spin tracking
+    integer :: taylor_order = 3               ! 3rd order is default
+    logical :: use_liar_lcavity = F           ! Liar like tracking?
+    logical :: sr_wakes_on = T                ! Short range wakefields?
+    logical :: lr_wakes_on = T                ! Long range wakefields
+    logical :: mat6_track_symmetric = T       ! symmetric offsets
+    logical :: auto_bookkeeper = T            ! Automatic bookkeeping?
+    logical :: radiation_damping_on = F       ! Damping toggle.
+    logical :: radiation_fluctuations_on = F  ! Fluctuations toggle.
+    logical :: compute_ref_energy = T         ! Enable recomputation?
+    logical :: trans_space_charge_on = F      ! Space charge switch
+    logical :: coherent_synch_rad_on = F      ! Longitudinal csr 
+    logical :: spin_tracking_on = T           ! Do particle spin tracking
   end type
 \end{example}
 
@@ -286,12 +287,12 @@ The \vn{csr_common_struct} holds global variables for the coherent
 synchrotron radiation calculations.
 \begin{example}
   type csr_common_struct
-    real(rp) ds_track_step                   ! Tracking step size
-    integer n_bin                            ! Number of bins (slices) used
-    integer particle_bin_span = 2            ! Longitudinal particle length / bin width
-    logical :: lcsr_component_on = .true.    ! Longitudinal csr component
-    logical :: lsc_component_on = .true.     ! Longitudinal space charge component
-    logical :: tsc_component_on = .true.     ! Transverse space charge component
+    real(rp) ds_track_step              ! Tracking step size
+    integer n_bin                       ! Number of bins (slices) used
+    integer particle_bin_span = 2       ! Longitudinal particle length / bin width
+    logical :: lcsr_component_on = T    ! Longitudinal csr component
+    logical :: lsc_component_on = T     ! Longitudinal space charge component
+    logical :: tsc_component_on = T     ! Transverse space charge component
   end type
 \end{example}
 
@@ -311,7 +312,7 @@ damping ring a pre-accelerator to a linac. The syntax is as follows:
 \index{coupled!match_to_design}
 \begin{example}
   &tao_coupled_uni_init
-    ix_universe                = <Integer>         ! Universe index.
+    ix_universe             = <Integer>         ! Universe index.
     coupled%from_universe   = <universe_number> ! coupled from this universe
     coupled%at_element      = <ele_name>        ! coupled at end of element 
     coupled%at_ele_index    = <ele_index>       ! coupled at end of ele with this index
@@ -415,8 +416,8 @@ The syntax is as follows:
     beam_init%ds_bunch      = <number>    ! distance between bunches (meters)
     beam_init%n_particle    = <number>    ! Number of particles per bunch
     beam_init%bunch_charge  = <number>    ! charge per bunch (Coulombs)
-    beam_init%renorm_center = <logical>   ! Default is .true.
-    beam_init%renorm_sigma  = <logical>   ! Default is .false.
+    beam_init%renorm_center = <logical>   ! Default is T
+    beam_init%renorm_sigma  = <logical>   ! Default is F
     beam_init%center_jitter = <number>*6  ! Bunch center rms jitter (meters)
     beam_init%emitt_jitter  = <bumber>*2  ! Emittance rms jitter (depsilon/epsilon)
     beam_init%sig_z_jitter  = <number>    ! bunch length rms jitter (dz/z)
@@ -1195,8 +1196,8 @@ namelists should be placed directly after their respective
     graph%y               = <qp_axis_struct>
     graph%y2              = <qp_axis_struct>
     graph%n_curve         = <number_of_curves>
-    graph%clip            = <logical> ! Clip plot at grpah boundary. default = .true.
-    graph%draw_axes       = <logical> ! Default = .true.
+    graph%clip            = <logical> ! Clip plot at grpah boundary. default = T
+    graph%draw_axes       = <logical> ! Default = T
     graph%who(i)          = "<who_to_plot>", <sign>
     curve(i)%name         = "<curve_name>"
     curve(i)%data_type    = "<data_type>"
@@ -1235,7 +1236,7 @@ For example:
     curve(1)%data_source  = 'data_array'
     curve(1)%data_type    = "orbit.x"
     curve(1)%units_factor = 1000
-    curve(1)%use_y2       = .false.
+    curve(1)%use_y2       = F
   /
 \end{example}
 
@@ -1290,7 +1291,7 @@ will start at $(x, y) = (0, 0)$. Assuming that the mchine lies in the
 plane with no negative bends, the reference orbit will start out
 pointing in the negative $x$ direction and will circle clockwise in
 the $(x, y)$ plane. To prevent the drawing of the axes set 
-\vn{graph%draw_axes} to .false.
+\vn{graph%draw_axes} to F
 
 \vn{graph%box} sets the layout of the box which the \vn{graph} is
 placed in. For a definition of what a box is see the Quick Plot

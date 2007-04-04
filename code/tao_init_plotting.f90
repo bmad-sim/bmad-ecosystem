@@ -204,10 +204,7 @@ do
     grph%legend = ' '
     grph%y2_mirrors_y = .true.
 
-    if (grph%y2%min == grph%y2%max) grph%y2 = grph%y
-
     if (grph%y%min /= grph%y%max) call qp_calc_axis_places (grph%y)
-    if (grph%y2%min /= grph%y2%max) call qp_calc_axis_places (grph%y2)
 
     if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
@@ -293,9 +290,13 @@ do
         plt%x_axis_type = 'none'
       endif
 
-    enddo
-  enddo
-enddo
+    enddo  ! curve
+
+    if (grph%y2%min /= grph%y2%max) call qp_calc_axis_places (grph%y2)
+    if (grph%y2%min == grph%y2%max .and. .not. grph%y2_mirrors_y) grph%y2 = grph%y
+
+  enddo  ! graph
+enddo  ! plot
 
 ! read in shapes
 

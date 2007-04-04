@@ -415,17 +415,20 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag)
+! Subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, always_allocate)
 !
 ! Routine to find a plot using the region or plot name.
 ! A region or plot name is something like: name = "top"
 ! A graph name is something like: name  = "top.x"
 ! A curve name is something like: name  = "top.x.c1"
-! The wild car "*" can be used so name = "top.*.c1" could 
+! The wild card "*" can be used so name = "top.*.c1" could 
 !   return "top.x.c1" and "top.y.c1".
-! The graph(:) array will only be allocated if the graph portion of name is not blank.
+!
+! Unless always_allocate = T, The graph(:) array will only be allocated if 
+! the graph portion of name is not blank.
 !   For example: name = "top" will leave graph(:) unallocated.
-! The curve(:) array will only be allocated if the curve portion of name is not blank.
+! Unless always_allocate = T, The curve(:) array will only be allocated if 
+! the curve portion of name is not blank.
 !   For example: name = "top.x" will leave curve(:) unallocated.
 !
 ! Input:
@@ -433,6 +436,9 @@ end subroutine
 !   where      -- Character(*): Where to look: 'TEMPLATE', 'REGION', or 'BOTH'
 !   print_flag -- Logical, optional: If present and False then surpress error
 !                   messages. Default is True.
+!   always_allocate 
+!              -- Logical, optional: If present and True then always allocate 
+!                   graph(:) and curve(:) arrays except if there is an error. 
 !
 ! Output:
 !   err      -- logical: Set True on error. False otherwise.
@@ -441,7 +447,7 @@ end subroutine
 !   curve(:) -- Tao_curve_array_struct, allocatable, optional: Array of curves.
 !-
 
-subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag)
+subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, always_allocate)
 
 implicit none
 
@@ -458,7 +464,7 @@ character(*) name, where
 character(40) plot_name, graph_name, curve_name
 character(28) :: r_name = 'tao_find_plots'
 
-logical, optional :: print_flag
+logical, optional :: print_flag, always_allocate
 logical err
 
 ! Init
@@ -574,6 +580,7 @@ else
   graph_name = graph_name(1:ix-1)
 endif
 
+if (logic_option(.false., always_allocate) .and. graph_name == ' ') graph_name = '*'
 if (graph_name == ' ') return
 
 ng = 0
@@ -609,6 +616,7 @@ if (present(graph)) graph = g
 
 ! Find number of curves that match
 
+if (logic_option(.false., always_allocate) .and. curve_name == ' ') curve_name = '*'
 if (curve_name == ' ') return
 
 nc = 0
