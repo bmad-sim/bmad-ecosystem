@@ -32,6 +32,7 @@ end type
 type (pauli_struct) pauli(3)
 
 logical :: init_pauli_vector = .true. ! Does pauli vector needs to be set up?
+logical :: do_print = .true.
 
 ! taylor maps for elements
 ! Keeping map allocationg between calls should speed things up
@@ -615,7 +616,10 @@ integer key
 !-----------------------------------------------
 ! LCavity
 !
-! Right now, this just applied the edge field kick
+! Simulates the cavity edge field kicks as electrostatic quadrupoles
+! since the quaternions for these have already been found.
+!
+! Uses the fringe field as calulcated by Hartman and Rosenzweig
 
   case (lcavity$)
 
@@ -655,10 +659,11 @@ integer key
     e_end = e_start + gradient * ele%value(l$)
     gammaf = gamma0 * (e_end / e_start)
 
-    ! entrance kick
+    ! entrance kick is a focusing kick
     
-    k_el = abs((pc_start * gradient * g_ratio) / (2 * e_charge * gamma0 * ele%value(l$)))
-    omega_el = sqrt((e_charge * k_el) / pc_start)
+    k_el = gradient / (2 * pc_start)
+    omega_el = sqrt(k_el)
+    
     k_el_tilde = (e_charge * k_el * (1 + g_factor + (g_factor*gamma0))) / &
                    (omega_el * e_mass * c_light**2 * (1 + gamma0))
     ! The edge field length of a cavity is about 1 quarter wavelength
@@ -678,26 +683,26 @@ integer key
     map%gamma2(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
     map%gamma2(2)%coef   = - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
 
-    ! exit kick (just add to the entrance kick)
+    ! exit kick is a defocusing kick (just add to the entrance kick)
     
     call convert_total_energy_to (e_end, param%particle, &
                                              pc = pc_end, beta = beta_end)
-    k_el = abs((pc_end * gradient * g_ratio) / (2 * e_charge * gammaf * ele%value(l$)))
-    omega_el = sqrt((e_charge * k_el) / pc_end)
+    k_el = gradient / (2 * pc_end)
+    omega_el = sqrt(k_el)
     k_el_tilde = (e_charge * k_el * (1 + g_factor + (g_factor*gammaf))) / &
                    (omega_el * e_mass * c_light**2 * (1 + gammaf))
 
-!   map%gamma1(1)%exp(:) = (/ 0, 0, 1, 0, 0, 0 /)
-    map%gamma1(1)%coef   = map%gamma1(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
-!   map%gamma1(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
-    map%gamma1(2)%coef   = map%gamma1(2)%coef + &
-                                 (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
-
-!   map%gamma2(1)%exp(:) = (/ 0, 0, 1, 0, 0, 0 /)
-    map%gamma2(1)%coef   = map%gamma2(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
-!   map%gamma2(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
-    map%gamma2(2)%coef   = map%gamma2(2)%coef + &
-                                 (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
+ !   map%gamma1(1)%exp(:) = (/ 0, 0, 1, 0, 0, 0 /)
+     map%gamma1(1)%coef   = map%gamma1(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
+ !   map%gamma1(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
+     map%gamma1(2)%coef   = map%gamma1(2)%coef + &
+                                  (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
+ 
+ !   map%gamma2(1)%exp(:) = (/ 0, 0, 1, 0, 0, 0 /)
+     map%gamma2(1)%coef   = map%gamma2(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
+ !   map%gamma2(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
+     map%gamma2(2)%coef   = map%gamma2(2)%coef + &
+                                  (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
 
 !-----------------------------------------------
 ! everything else, just use a drift
