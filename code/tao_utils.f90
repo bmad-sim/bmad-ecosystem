@@ -2599,10 +2599,10 @@ subroutine tao_parse_command_args (error, cmd_words)
     endif
 
     select case (arg1)
-    case ('init')
+    case ('-init')
       init_file = arg2
 
-    case ('beam')
+    case ('-beam')
       beam_file = arg2
 
     case ('')
