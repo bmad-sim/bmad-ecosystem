@@ -1,6 +1,6 @@
 #!/bin/sh
 # Script about to be deprecated.  Testing notification script messages
-# with this commit.##
+# with this commit.###
 ############################################################################################
 # This script will tag the code-tree in CVS that was used to build an existing 
 # CESR release with its name (cesr_YYYY_MMDD_d) by default or a custom string if specified.
