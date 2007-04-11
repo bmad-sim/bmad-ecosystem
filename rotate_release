@@ -94,8 +94,7 @@ myprint_help () {
 # Main script starts here  |
 #--------------------------+
 
-BASE_DIRECTORY="/nfs/cesr/libs"
-#BASE_DIRECTORY="/home/cesrulib/temp/utilities"
+BASE_DIRECTORY="/nfs/acc/libs"
 BASE_AREA_LIST="OSF1_alpha_hp Linux_i686_intel Linux_i686_lahey"
 
 current_idx_file=${BASE_DIRECTORY}/current.index
@@ -235,7 +234,8 @@ Accelerator Code Support Links -
 Documentation      : https://wiki.lepp.cornell.edu/lepp/bin/view/CESR/ACL/WebHome
 Bug Reports        : cesr-libraries@rt.lepp.cornell.edu
 Librarian Email    : cesrulib@mail.lepp.cornell.edu
-Repository Viewing : http://cesrelog.lns.cornell.edu/cgi/viewcvs/viewcvs.cgi/" > mail_tempfile
+Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/" 
+> mail_tempfile
 
 mail -s "Accelerator Libraries Rotation" cesr-code-l@mail.lns.cornell.edu < mail_tempfile
 rm -f mail_tempfile
