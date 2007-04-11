@@ -6,6 +6,7 @@
 # each architecture in the release as well as a grand total.
 # FWIW, it also includes the .log and .build_status file sizes
 # in its totals.
+#
 ###############################################################
 # Usage: rel_disk_total release-name
 ###############################################################
