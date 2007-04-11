@@ -1,5 +1,5 @@
 #!/bin/sh
-#
+##
 #-------------------------------------------------------------------------
 #
 # This is the master script to rotate filesystem links to the code 
