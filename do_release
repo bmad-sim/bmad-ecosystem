@@ -53,9 +53,6 @@
 #          -test          Perform executable testing on build products,
 #                          detailed results will be logged to build_status 
 #                          files and summarized in the output of this script.
-#          -one-shot      Run this release as a standalone verification.
-#                          Do not rotate, or update the last_built indicator so
-#                          that subsequent build rotations and deletions function as usual.
 #          
 #         variables:
 #           REL=<release_name>  Specify a specific CESR release
@@ -97,17 +94,7 @@
 #
 # $Id$
 #
-# $Log$
-# Revision 1.39  2007/03/15 17:19:54  cesrulib
-# Adjusted formatting of test suite summary output.
-#
-# Revision 1.38  2007/03/06 21:59:28  cesrulib
-# Changed way the executable-testing script is handled and displayed.
-# Tests are not initiated from this stage in the build process anymore.  They are
-# initiated from within the build_release script on a given platform.
-# do_release now only runs a summary extraction script on the logfiles, one
-# for each platform and displays the output at the end of the release build process.
-#
+# $Log: do_release,v $
 # Revision 1.37  2007/01/03 20:29:47  cesrulib
 # Finishing tweaks to get VMS preparation tasks to complete correctly.
 #
@@ -229,7 +216,7 @@ myprint_help () {
     echo "   -ntly               Nightly build, rotate library links when done"
     echo "   -devel              Run a DEVEL build, rotate release and apply CVS tag."
     echo "   -curr               Run a CURRENT build, rotate release and apply special CVS tag."
-    echo "   -one-shot           Standalone verification build, do not rotate or update last built indicators"
+    echo "   -oneshot            Standalone verification build, do not rotate or update last-built indicators"
     echo "   -test               Run test jobs on all binary build products. Summarize results."
     echo ""
     echo "   -BRANCH=<br name>   Build a release using modules taken from a specific CESR development branch."
@@ -246,8 +233,8 @@ myprint_help () {
     echo "   PATH =  $PATH "
 }
 
-# Save display environment variable and then obliterate to facilitate 
-# proper opration of test suite with X-enabled apps
+# Save display environment variable and then obliterate to facilitate
+# proper operation of test suite with X-enabled apps.
 DISP=$DISPLAY
 export DISPLAY=none
 
@@ -343,10 +330,15 @@ LNX=0
 VMS=0
 WIN=0
 
-OSF_HOST=cesr68.lns.cornell.edu
-LNX_HOST=lnx209.lns.cornell.edu
-VMS_HOST=cesr68.lns.cornell.edu
-WIN_HOST=pc6115.lns.cornell.edu
+#OSF_HOST=cesr68.lns.cornell.edu
+#LNX_HOST=lnx209.lns.cornell.edu
+#VMS_HOST=cesr68.lns.cornell.edu
+#WIN_HOST=pc6115.lns.cornell.edu
+
+OSF_HOST=cesrbuild2.lepp.cornell.edu
+LNX_HOST=lnx6166.lepp.cornell.edu
+VMS_HOST=cesrbuild2.lepp.cornell.edu
+WIN_HOST=cesrbuild3.lepp.cornell.edu
 
 CURRENT_HOST="`uname -n`"
 
@@ -380,8 +372,8 @@ do arg_list="${arg_list} ${i}";
      "-ntly"    ) NIGHTLY_BUILD=1;;
      "-devel"   ) DEVEL_BUILD=1; DO_TAG_RELEASE=1;;
      "-curr"    ) CURRENT_BUILD=1; DO_TAG_RELEASE=1;;
+     "-oneshot" ) ONE_SHOT=1;;
      "-test"    ) TEST_EXEC=1;;
-     "-one-shot") ONE_SHOT=1;;
      TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
@@ -595,6 +587,7 @@ if ( [ $DO_REL -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     else
       branch_arg=""
     fi
+    echo "Running gmake from ${BIN_DIR}"
     gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BASE_AREA_LIST="${BASE_AREA_LIST}" BUILD="" ${branch_arg} >> ${BUILD_DIR}/log/${REL_IDENT}.genlog 2>&1
     co_rel_status=$?
 fi
@@ -941,7 +934,7 @@ fi
 # with tagging/rotation but still notify of failure?
 #####################################################################################
 if ( [ ${TEST_EXEC} -eq 1 ] ) then
-    echo "=============== Output Binary testing summary: ==============" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+    echo "================== Output Binary testing summary: =================" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
     for platform in ${BASE_AREA_LIST}
       do
       statfile=${BUILD_DIR}/log/${platform}/${REL_NAME}.build_status
@@ -976,7 +969,7 @@ if ( [ ${TEST_EXEC} -eq 1 ] ) then
     done
     echo "" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
 fi
-echo "==================================================================================" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
+echo "========================================================================" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
 
 # Reset display environment variable back to previous value
 export DISPLAY=${DISP}
@@ -1033,13 +1026,13 @@ else
     echo "ERROR: Not rotating release due to build errors or timeout!" | tee -a ${BUILD_DIR}/log/${REL_IDENT}.genlog
 fi
 
-##############################################################
+########################################################
 # If this is a nightly, and we've rotated successfully
 # by having no other errors, delete the previous night's
 # build as long as it hasn't been promoted to a devel
-# or current release, and as long as this isn't a 'one-shot'.  
-# build (Checking done within DELETE_release script.)
-##############################################################
+# or current release.  (Checking done within
+# DELETE_release script.)
+########################################################
 if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
     if ( [ $rotation_success = "true" ] ) then
         if ( [ -e ${PREV_BUILT} ] ) then
@@ -1050,8 +1043,7 @@ if ( [ $NIGHTLY_BUILD -eq 1 ] ) then
         fi
     fi    
 fi
-
-# Update the previously built indicator if this is a release and NOT a one-shot
+# Update the previously-built indicator if this is a release and NOT a one-shot
 if ( [ $DO_REL -eq 1 ] && [ $ONE_SHOT -ne 1 ] ) then
     chmod u+w ${PREV_BUILT}
     echo "${REL_NAME}" > ${PREV_BUILT}
