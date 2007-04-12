@@ -32,6 +32,8 @@ myprint_help () {
     echo "Optional -NOLOCK flag will allow you to delete otherwise protected"
     echo "DEVEL and/or CURRENT releases.  Use with caution."
     echo ""
+    echo " -quiet does it without the beep."
+    echo ""
     exit 1
 }
 
@@ -44,6 +46,7 @@ myprint_help () {
 arg_list=""
 REL_NAME=""
 FORCE=0      # Delete without interactive confirmation.
+QUIET=0
 
 BASEPATH="/home/cesrulib/cesr_libs/"
 
@@ -61,6 +64,7 @@ do arg_list="${arg_list} ${i}"
      REL=*       ) REL_NAME=`echo $i | cut -d= -f2` ;;
      "-FORCE"    ) FORCE=1 ;;
      "-NOLOCK"   ) NOLOCK=1;;
+     "-quiet"  ) QUIET=1;;
      *           ) myprint_help;
      exit 1;;
    esac
@@ -147,7 +151,11 @@ done
 
 if ( [ ! $FORCE -eq 1 ] ) then
     echo ""
-    echo -e " DELETE_release - \a "
+    if ( [ ${QUIET} -eq 1 ] ) then
+        echo "DELETE release - "
+    else
+        echo -e " DELETE_release - \a "
+    fi
     echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
     echo " @  WARNING    WARNING    WARNING    WARNING    WARNING  @"
     echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
@@ -168,7 +176,11 @@ if ( [ ! $FORCE -eq 1 ] ) then
         exit 1
     fi
 
-    echo -e " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\a"
+    if ( [ $QUIET -eq 1 ] ) then
+        echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+    else
+        echo -e " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\a"
+    fi
     echo " @                                                       @"
     echo " @ Hit  <CNTRL><C>  _NOW_ IF YOU DO NOT WANT TO DO THIS. @"
     echo " @                (You have 10 seconds)                  @"
@@ -181,11 +193,11 @@ echo -n "DELETING release ${REL_NAME}..."
 #  Paths are long and explicit here so there is no doubt as to
 #  what is going to happen in terms of data loss.
 #################################################################
-rm -r /home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME}
-rm -r /home/cesrulib/cesr_libs/Linux_i686_lahey/${REL_NAME}
-rm -r /home/cesrulib/cesr_libs/OSF1_alpha_hp/${REL_NAME}
-rm -r /home/cesrulib/cesr_libs/VMS_alpha_hp/${REL_NAME}
-rm -r /home/cesrulib/cesr_libs/CYGWIN_NT_i686_intel/${REL_NAME}
+rm -rf /home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME}
+rm -rf /home/cesrulib/cesr_libs/Linux_i686_lahey/${REL_NAME}
+rm -rf /home/cesrulib/cesr_libs/OSF1_alpha_hp/${REL_NAME}
+rm -rf /home/cesrulib/cesr_libs/VMS_alpha_hp/${REL_NAME}
+rm -rf /home/cesrulib/cesr_libs/CYGWIN_NT_i686_intel/${REL_NAME}
 
 rm /home/cesrulib/cesr_libs/log/Linux_i686_intel/${REL_NAME}.log
 rm /home/cesrulib/cesr_libs/log/Linux_i686_intel/${REL_NAME}.build_status
@@ -202,7 +214,6 @@ rm /home/cesrulib/cesr_libs/log/VMS_alpha_hp/${REL_NAME}.build_status
 ## rm /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.log
 rm /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.build_status
 
-#rm /home/cesrulib/cesr_libs/log/${REL_NAME}.genlog
 
 echo "  DONE."
 echo ""
