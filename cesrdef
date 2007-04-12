@@ -55,6 +55,7 @@ if ( "${PLATFORM_TAG}" == "Linux_x86_64" ) then
   if ( $?CESRF90    == 0 ) setenv CESRF90 intel
 endif
 
+
 #
 # Specify CESR Librarian base areas
 # Presently have Unix/Linux and Cygwin versions
@@ -164,13 +165,17 @@ unset users_done
 unset users_file
 unset max_count
 
+if ( "${CESR_REL}" == "${CESR_BASE}/current" ) then
+  setenv CESR_SRC ${CESR_REL}/cvssrc
+else
+  setenv CESR_SRC ${CESR_REL}/src
+endif
+setenv CESR_INC ${CESR_SRC}/include
+
 #
 # $Id$
 #
-# $Log$
-# Revision 1.12  2007/03/06 22:04:52  cesrulib
-# Added an additional platform check to accomodate 'Linux_x86_64' machines because some user scripts might prematurely terminate with a variable definition error when the platform does not match.  This does not provide full functionality in that intel and lahey compilers are not available on the x86_64 machines, so defining one of those to be the default is meaningless.
-#
+# $Log: cesrdef,v $
 # Revision 1.11  2006/09/11 20:47:01  cesrulib
 # Updates for new library build tree (supporting multiple compiler combinations).
 #

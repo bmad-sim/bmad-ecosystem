@@ -46,8 +46,10 @@ setenv CESR_DOC     $CESR_/doc
 setenv CESR_F90 $CESRF90
 
 #
-#---  CESR CVS Repository  ---
-setenv CESR_CVSROOT $CESR_/cvsroot
+#---  CESR Repository (formerly CESR CVS Repository) ---
+#setenv CESR_REPO $CESR_/webdb/svn/acc_libs/trunk/
+setenv CESR_REPO https://accserv.lepp.cornell.edu/svn/
+setenv ACCR https://accserv.lepp.cornell.edu/svn/
 
 #
 #----  CESR_REL subtrees  ----
@@ -55,14 +57,15 @@ setenv CESR_CVSROOT $CESR_/cvsroot
 setenv CESR_REL     $CESR_BASE/$CESRLIB
 #
 setenv CESR_CONFIG  $CESR_REL/config
-setenv CESR_CVSSRC  $CESR_REL/cvssrc
+setenv CESR_SRC     $CESR_REL/cvssrc
+#setenv CESR_CVSSRC  $CESR_REL/cvssrc
 setenv CESR_EXE     $CESR_REL/bin
 setenv CESR_GMAKE   $CESR_REL/Gmake
 setenv CESR_LIB     $CESR_REL/lib
 setenv CESR_MOD     $CESR_REL/modules
 setenv CESR_RUN     $CESR_REL/run
 setenv CESR_UTIL    $CESR_REL/util
-setenv CESR_INC     $CESR_CVSSRC/include
+setenv CESR_INC     $CESR_SRC/include
 setenv CESR_PKG     $CESR_REL/packages
 
 #
@@ -89,12 +92,12 @@ setenv BMAD_LAYOUT  $CESR_CONFIG/bmad/layout
 #
 #-- TOAD help file search path --
 #
-setenv TOAD_DIR     $CESR_CVSSRC/toad
+setenv TOAD_DIR     $CESR_SRC/toad
 
 #
 # $Id$
 #
-# $Log$
+# $Log: cesrenv,v $
 # Revision 1.16  2006/08/13 22:28:45  cesrulib
 # Update environment variables so that directory trees for each OS/compiler combination are unique.
 #

@@ -53,7 +53,6 @@ if ( [ "${PLATFORM_TAG}" == "Linux_x86_64" ] ) then
 fi
 
 
-
 #
 # Set Accelerator Code Libraries base areas:
 # Presently have Unix/Linux and Cygwin versions
@@ -70,7 +69,13 @@ if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then
 fi
 
 CESRLIB_BASE=${CESRLIB_BASE:-${BASE_DIR_DEF}}
+########################################################
+######### Change this hardcoding here ##################
+
 CESRLIB_BIN=${CESRLIB_BIN:-${CESRLIB_BASE}/bin}
+
+########################################################
+########################################################
 
 #
 #       Switchable version
@@ -194,16 +199,18 @@ if ( [ -z "${CESR_REL}" ] && [ -z "${CESR_F90}" ] ) then
   echo "*******************************************"
 fi
 
+# Logic here to use the new <release>/src path instead of cvssrc
+# if the old-build current release is chosen, otherwise use the new path
+if ( [ "${CESR_REL}" = "${CESR_BASE}/current" ] ) then
+  export CESR_SRC="${CESR_REL}/cvssrc"
+else
+  export CESR_SRC="${CESR_REL}/src"
+fi
+export CESR_INC="${CESR_SRC}/include"
 #
 # $Id$
 #
-# $Log$
-# Revision 1.15  2007/03/06 22:08:48  cesrulib
-# Syntax must match shell type.
-#
-# Revision 1.14  2007/03/06 22:04:52  cesrulib
-# Added an additional platform check to accomodate 'Linux_x86_64' machines because some user scripts might prematurely terminate with a variable definition error when the platform does not match.  This does not provide full functionality in that intel and lahey compilers are not available on the x86_64 machines, so defining one of those to be the default is meaningless.
-#
+# $Log: cesrdefs,v $
 # Revision 1.13  2006/09/15 21:33:17  cesrulib
 # Error-checking and documentation adjustments
 #
