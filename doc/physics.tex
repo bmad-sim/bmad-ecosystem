@@ -475,6 +475,39 @@ A symplectic matrix $\Bf F$ is now obtained by inverting \eq{e:vsimi}
 \Endeq
 
 %-----------------------------------------------------------------
+\section{LINAC Accelerating Cavities (Lcavity)}
+\label{s:lcav_phys}
+
+The transverse trajectory through an \vn{Lcavity} is modeled using equations
+developed by Rosenzweig and Serafini\cite{b:rosenzweig} with
+\Begineqs
+  b_0 &= 1 \CRNO
+  b_{-1} &= 1 \nonumber
+\Endeqs
+and all other $b_n$ set to zero.
+
+The transport through the body (R\&S Eq.~(9)) has been modified to give the 
+correct phase-space area at non ultra-relativistic energies:
+\Begineq
+  \begin{pmatrix}
+    x \\ 
+    x'
+  \end{pmatrix}_f = 
+  \begin{pmatrix}
+    m_{11}                      & \beta_i \, m_{12} \\
+    \frac{1}{\beta_f} \, m_{21} & \frac{\beta_i}{\beta_f} \, m_{22} 
+  \end{pmatrix}
+  \,
+  \begin{pmatrix}
+    x \\ 
+    x'
+  \end{pmatrix}_i
+\Endeq
+where the $m_{ij}$ are the matrix elements from R\&S Eq.~(9) and the 
+$\beta$ are the standard relativistic factors. With this, the determinate 
+of the matrix is $\beta_i \, \gamma_i / \beta_f \, \gamma_f$.
+
+%-----------------------------------------------------------------
 \section{Wigglers}
 \label{s:wiggler_phys}
 
@@ -1124,9 +1157,6 @@ To make life more interesting different people define $R/Q$
 differently. A common practice is to define an $R/Q$ ``at the beam
 pipe radius''. In this case the above equations must be modified to
 include factors of the beam pipe radius.
-
-
-
 
 %-----------------------------------------------------------------
 \section{Synchrotron Integrals}

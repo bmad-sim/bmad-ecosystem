@@ -754,9 +754,12 @@ Example:
 \toffset
 
 An \vn{Lcavity} is a LINAC accelerating cavity.
-Tracking through an \vn{Lcavity} is modeled using the equations
-developed by Rosenzweig and Serafini\cite{b:rosenzweig}. The
-attributes specific to an \vn{Lcavity} are 
+The transverse trajectory through an \vn{Lcavity} is modeled using equations
+developed by Rosenzweig and Serafini\cite{b:rosenzweig} modified to give the 
+correct phase-space area at non ultra-relativistic energies. 
+See Section \sref{s:lcav_phys} for more details.
+
+The attributes specific to an \vn{Lcavity} are 
 \index{Gradient}
 \index{Phi0}
 \index{Dphi0}
