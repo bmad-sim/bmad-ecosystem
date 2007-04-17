@@ -1,0 +1,773 @@
+#!/usr/bin/python
+####################################################################
+#
+#############################
+# exit code key:
+# 10  - command-line argument problem
+# 15  - release specified on cmd line already exists
+# 25  - kerberos error
+# 30  - insufficient disk space
+# 35  - no release platforms specified on cmd line
+# 40  - build name not specified
+# 45  - all builds failed with make errors
+# 50  - svn access failed for revision retrieval
+####################################################################
+
+# Standard modules
+import os
+import sys
+import time
+import string
+import getopt
+import socket
+import popen2
+
+# Will need to use these env vars if SWIG python bindings are desired
+#export PYTHONPATH=${PYTHONPATH}:/nfs/opt/svn/lib/svn-python
+#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/nfs/opt/svn/lib
+#import svn                        # are SWIG bindings availabile from this node? looks as if they are, how to use?
+
+# 3rd party modules              (PUT these in the same directory for the time-being.
+from standout import StandOut  # figure out where to consolidate all 3rd party modules later)
+                               # standout module for logging capabilities
+
+#========= VARIABLE SETUP ==========================================
+#===================================================================
+#== Node names =========================================
+osf_host      = "cesr68.lns.cornell.edu"
+lnx_host      = "lnx209.lns.cornell.edu"
+vms_host      = "cesr68.lns.cornell.edu"
+win_host      = "pc6115.lns.cornell.edu"
+hostname      = socket.gethostname()
+
+platform_combos = { "linuxi": ["Linux_i686",      'intel', lnx_host ],
+                    "linuxl": ["Linux_i686",      'lahey', lnx_host ],
+                    "osfhp":  ["OSF1_alpha",      'hp',     osf_host ],
+                    "vmshp":  ["VMS_alpha" ,      'hp',     vms_host ],
+                    "win":    ["CYGWIN_NT_i686", 'intel', win_host ] }
+
+repo_loc      = "https://accserv.lepp.cornell.edu/svn/"
+repo_modules  = ["util", "Gmake", "src"]
+#repo_modules  = ["util"]
+pkg_modules   = ["cfortran", "forest", "num_recipes/recipes_f-90", "num_recipes/recipes_c-ansi", "xsif", "PGPLOT"]
+#pkg_modules   = ["cfortran"]
+# work out how to sync this list with the pkg build list in the M.release makefile... keeping them sync'd manually is not so hot
+
+release       = ""
+build_release = 1              # default to building a CESR release only
+custom_relflag= 0              # flag system to allow three cmd-line possibilities; pkg, rel, or both
+rel_name      = "none"
+build_packages= 0
+custom_pkgflag= 0
+pkg_name      = "none"
+space_needed  = 2500000        # rough estimate 2.5 Gig needed for a (future) full build
+lnx           = 0              # flags to indicate which OSs are meant to host this build 
+osf           = 0              # |
+vms           = 0              # |
+win           = 0              # |
+dump          = 1              # Dump a list of all the key configuration parameters used in this script
+show_status   = 1              # Flag to indicate if periodic status updates of all the remote builds will be shown during execution
+nightly       = 0              # Build is a nightly.  If successful, this will delete the previously-built release.
+prec          = "DBL"         # precision flag
+isolated_build= "NO"
+run_tests     = "NO"          # Whether or not a test suite will be run on the products of this build.
+#=== Paths =========================================================
+bin_dir       = "/home/cesrulib/bin"               
+build_sys_dir = bin_dir + "/Gmake"
+util_dir      = bin_dir + "/util"
+libs_dir      = "/nfs/acc/libs"           # may change to ACC?
+prev_blt_path = libs_dir + "/log/prev_built"           # path to file logging last built release
+build_script  = util_dir + "/build_release.py"
+
+#=== Function to print usage information ===========================
+def print_help():
+  print ""
+  print "Usage is:  do_release.py [options] [var. defs] [<precision>]"
+  print ""
+  print "Inputs:"
+  print "   <precision>         SGL (single) or DBL (double) numeric precision (optional) [default is DBL]"
+  print "Options:"
+  print "   -cesr               Flag to checkout and/or build a cesr release"
+  print "   -pkg                Flag to checkout and/or build a packages release"
+  print "   -build_only         If you want to forgo the checkout and creation"
+  print "                       of the release directory tree, use this flag."
+  print "   -dump               Dump this script's configuration information"
+   #    echo "   -tagr               Tag this cesr release in the CVS repository" necessary?
+  print "   -tagp               packages release tagging (not implemented)"
+  print "   -osf                Remote exec OSF1 build"
+  print "   -lnx                Remote exec linux builds"
+  print "   -vms                Prepare VMS build for transfer"
+  print "   -win                Remote exec of Windows build not yet operational"
+  print "   -nobs               Suppress periodic build-status messages."
+  print "   -ntly               Nightly build, rotate library links when done"
+  print "   -devel              Run a DEVEL build, rotate release and apply CVS tag."
+  print "   -curr               Run a CURRENT build, rotate release and apply special CVS tag."
+  print "   -oneshot            Run a one-shot testing build with no prev_build indicator update"
+  print "   -test               Run test jobs on all binary build products. Summarize results."
+  print "" 
+  print "Variable definitions:"
+  print "   REL=<release_name>  Specify a custom CESR release name"
+  print "   PKG=<packages_name> Specify a custom packages release name"
+  print "   F90=<f90_compiler>  Specify a 3rd-party fortran compiler"
+  print "   TAG=<release_tag>   Specify a custom tag for the release"
+  print "   GMAKE=<gmake_dir>   Specify a custom CESR_GMAKE directory"
+  print "   UTIL=<util_dir>     Specify a custom CESR_UTIL  directory"
+  print "   BIN=<bin_dir>       Specify a custom CESR_BIN   directory"
+  print ""
+  print "   PATH =  $PATH "
+
+#=== Get Command Line Arguments and set vars =======================
+#print sys.argv
+for opt in sys.argv:
+  if opt in ("DBL", "dbl", "Dbl"):
+    prec                = "double"
+    continue
+  elif opt in ("SGL", "sgl", "Sgl"):
+    prec                = "single"
+  elif opt == "-rel":
+    custom_relflag      = 1
+    build_release       = 1
+  elif opt == "-pkg":
+    custom_pkgflag      = 1
+    build_packages      = 1
+  elif opt == "-build_only":
+    checkout            = "NO"                # WAS do_checkout
+  elif opt == "-nodump":
+    dump                = 0
+  elif opt == "-osf":
+    osf                 = 1
+  elif opt == "-lnx":
+    lnx                 = 1
+  elif opt == "-vms":
+    vms                 = 1
+  elif opt == "-win":
+    win                 = 1
+  elif opt == "-nobs":
+    show_status         = 0
+  elif opt == "-isol":
+    isolated_build      = "YES"
+  elif opt == "-ntly":
+    nightly             = 1
+    build_rank          = 3
+  elif opt == "-devel":
+    devel               = 1
+    tag_release         = 1
+  elif opt == "-curr":
+    current             = 1
+    tag_release         = 1
+  elif opt == "-test":
+    run_tests           = "YES"
+  elif opt == "-isolat":                      # Flag to request an isolated build (for testing. Not nightly, no rotation, etc)
+    isolat              = 1
+  elif opt.find("TAG=") != -1:
+    rel_tag             = opt.split('=')[1]
+    print rel_tag
+  elif opt.find("PKG=") != -1:
+    pkg_name            = opt.split('=')[1]
+    if os.path.exists(libs_dir + "/Linux_i686_intel/" + pkg_name):   # if packages name specified, AND it already exists,
+      print "Pack exists!"                                            # build a requested release and LINK to the packages.
+      build_packages      = 0                                            # Check in Linux(intel) area first, change this to be
+      custom_pkgflag      = 0
+    else:                                                                # more general later.  If only PKG option is used
+      build_packages      = 1                                            # AND the packages already exist, initiate a RELEASE
+      custom_pkgflag      = 1                                            # and link aginst the packages specified.
+  elif opt.find("REL=") != -1:
+    rel_name            = opt.split('=')[1]
+  elif opt.find("GMAKE=") != -1:
+    bld_sys_area        = opt.split('=')[1]
+  elif opt.find("UTIL=") != -1:
+    util_dir            = opt.split('=')[1]
+  elif opt.find("BIN=") != -1:
+    bin_dir             = opt.split('=')[1]
+  elif opt != sys.argv[0]:
+    print_help()
+    print "\nYou might want to check your command line argument spelling and syntax.\n"
+    sys.exit(10)
+
+if custom_pkgflag and not custom_relflag:             # accomodate an isolated packages build
+  build_release = 0
+rquant = lnx*2 + osf + vms + win                      # tally of releases to build
+if rquant == 0:
+  print "You have not requested any releases to be built."
+  print "Specify at least one platform flag on the command line."
+  sys.exit(35)
+
+if os.environ['CESR_GMAKE']:
+  bld_sys_area = os.environ['CESR_GMAKE']
+else:
+  print "Environment variable \'CESR_GMAKE\' not set, testing for default"
+  
+
+#=== Set up timing apparatus ============================
+TIME1      = time.clock()
+TIME2      = 0
+TIME_TOTAL = 0
+timetuple  = time.localtime()
+year       = str(timetuple[0])
+if timetuple[1] < 10:                   # Clean this up with leading zeroes
+  month      = '0' + str(timetuple[1])  # in original date retrieval?
+else:
+  month      = str(timetuple[1])
+if timetuple[2] < 10:
+  day        = '0' + str(timetuple[2])
+else:
+  day        = str(timetuple[2])
+datecode   = year + '_' + month + day
+
+
+
+#=== Generic Parameters ================================
+
+rel_prefix    = "cesr"                                  # WAS rel_tag
+pkg_prefix    = "packages"                             # WAS pkg_tag
+general_log   = ""
+checkout      = 1
+build         = 1
+devel         = 0
+current       = 0
+one_shot      = 0
+test_exec     = 0
+tag_release   = 0                                       # WAS do_tag_release
+tag_packages  = 0                                       # WAS do_tag_packages
+
+revision      = 0
+tagname       = ""                                      # WAS CVS_tagname
+branch        = "TRUNK"
+gmake_override= 0                                       # needed?
+util_override = 0                                       
+gmake         = "gmake"
+
+
+## These should probably go into the individual build object for a given platform
+#if platform == "CYGWIN_NT_i686":
+#  use_cesr_bin = "/cygdrive/z/cesrulib/bin"
+#  libs_dir     = "/cygdrive/c/user_local/cesrulib/cesr_libs"
+#  gmake        = "make"
+
+
+#=====================================================================
+# Global Support Function definitions
+#=====================================================================
+
+## Function to convert elapsed seconds number into Hour Minute Seond values
+def seconds_to_HMS(seconds):
+  hrs  = seconds / 3600
+  mins = (seconds % 3600) / 60
+  secs = seconds % 60
+  return hrs, mins, secs
+
+
+## Function to generate a unique release name
+## Accepts: 'RELEASE', 'PACKAGES', or 'RELEASE & PACKAGES' and generates an appropriate unique name.
+def get_build_names(type, rel_name, pkg_name):
+  basename = ""
+  build_list    = []
+  if type == "RELEASE & PACKAGES":
+    build_list = [rel_name, pkg_name]
+  if type == "RELEASE":
+    build_list = [rel_name, "N/A"]
+  elif type == "PACKAGES":
+    build_list = ["N/A", pkg_name]
+
+  loop = 1                                    # 1st time: checks and sets up RELEASE name, 2nd time: PACKAGES
+  for build_name in build_list:               # loop one time each for possible release build or packages build
+    #print "build name : " + build_name
+    full_test_logname = libs_dir + '/log/' + build_name + '.genlog'
+    #print full_test_logname
+    if build_name != "N/A":                  # if the build_type for this loop needs a name
+      if build_name == "":                    # if the command line was messed up, inform and abort
+        print "Build name not specified."
+        sys.exit(40)
+      
+      if os.path.exists(full_test_logname) and loop == 1:   # otherwise, if the RELEASE specified on cmd line already exists, quit
+        print "\nA release with the name "+build_name+" already exists."
+        print "Specify a different name on the command line."
+        print "\nNote: If no release name is provided, a unique one guaranteed to work will be"
+        print "generated automatically.\n"
+        sys.exit(15)
+
+      
+      elif build_name == "none":             # otherwise, a name was not specified, so proceed with unique name generation  
+        if loop == 1:                         # depending on which loop this is, set prefix accordingly
+          prefix = rel_prefix
+          #print "REL PREFIX SET"
+        elif loop == 2:
+          prefix = pkg_prefix
+          #print "PACKAGE PREFIX SET"
+        else:
+          loop = loop + 1
+          continue
+        basename      = prefix + '_' + datecode + '_' + prec.lower()[0]  # unadorned 1st iteration generated name
+        build_already_exists = 0
+        
+        for plat in platform_combos:          # check if the name already exists in any platform area
+          #print libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
+          full_buildname = libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
+          if os.path.exists(full_buildname):
+            build_already_exists = 1
+        if build_already_exists:              # if it does, make it okay by appending a unique suffix
+          #print "Build already exists"
+          uniq_suffix    = 1
+          build_name     = basename +'_'+ str(uniq_suffix)
+          full_buildname = libs_dir+'/'+platform_combos["linuxi"][0]+'_'+platform_combos["linuxi"][1]+'/'+build_name
+          while os.path.exists(full_buildname):
+            uniq_suffix    = uniq_suffix + 1
+            build_name     = basename + '_' + str(uniq_suffix)
+            full_buildname = libs_dir+'/'+platform_combos["linuxi"][0]+'_'+platform_combos["linuxi"][1]+'/'+build_name
+            #print build_name
+        else:
+          build_name = basename
+          
+      ##elif os.path.exists(full_name) and loop == 2:
+      #  print "Linking against pre-existing packages build " + build_name
+      #  build_packages = 0                  # Packages specified are to be linked against, not built.
+
+    else:
+      #print "Loop increment"
+      loop = loop + 1   #// end N/A check
+      continue
+    
+    if loop == 1:                 # return the name(s) generated in the proper order, taking into account
+      rel_name = build_name             # loop iteration responsbility.
+      #print "rel name set: " + build_name
+    else:
+      pkg_name = build_name
+      #print "pkg name set: " + build_name
+    loop = loop + 1
+      
+  return rel_name, pkg_name
+
+
+## Function to print out a summary of all the build parameters being used.
+def dump_parameters():
+  print "---- Common Configuration Dump ----"
+  print "          -- General --"
+  print "Build Type        : " + build_type
+  if prec == "DBL":
+    precision = "double"
+  else:
+    precision = "single"
+    
+  if rel_name != "none":
+    print "Release name      : " + rel_name
+  if pkg_name != "none":
+    print "Packages name     : " + pkg_name
+  print "Float Precision   : " + precision
+  print "Branch            : " + branch
+  print "Revision          : " + revision
+  if show_status:
+    show_stat = "YES"
+  else:
+    show_stat = "NO"
+  print "Realtime status   : " + show_stat
+  print "Run test suite    : " + run_tests
+  print "Build rank        : "                            # nightly, devel, or current (rising rank)
+  print "Current host      : " + hostname
+  print ""
+  print "           -- Paths --"
+  print "CESR libs dir     : " + libs_dir
+  print "Build system dir  : " + build_sys_dir
+  print "Util dir          : " + util_dir
+  print "Binary dir        : " + bin_dir
+  print "General log file  : " + genlog
+  print ""
+  print "   --  Platforms and Hosts  --"
+  print str(rquant) +" "+ build_type.lower() +" builds."
+  print "  OS   (compiler)      Build Host"
+  print "-------------------------------------------"
+  if lnx:
+    print "Linux   (Intel)  " + lnx_host
+    print "Linux   (Lahey)  " + lnx_host
+  if osf:
+    print "OSF     (HP)     " + osf_host
+  if vms:
+    print "VMS     (HP)     " + vms_host
+  if win:
+    print "Windows (?)      " + win_host
+
+
+
+#=== Class defninitions ============================================================================
+#===================================================================================================
+
+#===================================================================================================
+#== This class will allow the creation of a builder object, the responsibility of which will
+#== be to set up all the variables needed to initiate a build process on a remote machine.
+#== This involves, checking out the necessary code for either a release build, a packages build
+#== or both initiating the build, monitoring it to completion or abort due to error, and optionally
+#== making realtime reports of the status of the build.
+#====================================================================================================
+class builder:
+  libs_dir_loc         = libs_dir      # global to all class instantiations
+  precision            = prec
+  rev                  = 0
+  
+  # Initialize all the relevant variables local to this class, check out the necessary code, initiate (remote) builds.
+  # May not be needed if first use provides a local variable instantiation.  Check it out!
+  def __init__(self, build_names, revision, build_type, pcombo, print_co, stout):
+    time_1           = 0
+    time_2           = 0
+    
+    rel_name         = ""
+    full_rel_name    = ""
+    full_rel_logfile = ""
+    __rel_param_list = []
+    checkout_release = 0
+    
+    pkg_name         = ""
+    full_pkg_name    = ""        # clean these up
+    full_pkg_logfile = ""
+    __pkg_param_list = []
+    checkout_packages= 0
+
+    __param_list      = []
+    __lines           = []
+    qline             = ""
+    status_lsit       = []
+
+    self.rel_name, self.pkg_name = build_names
+    self.rev        = revision
+    self.OS         = platform_combos[pcombo][0]
+    self.f90        = platform_combos[pcombo][1]
+    self.platform   = self.OS + '_' + self.f90
+    self.base_dir   = self.libs_dir_loc + '/' + self.platform
+    self.build_host = platform_combos[pcombo][2]
+    self.build_type = build_type
+    
+    if self.platform == "Cygwin_i686_intel":
+      cyg_build_dir = "/cygdrive/c/user_local/cesrulib/cesr_libs"
+    print time.asctime() + " -- Checking out code for " + self.platform
+    if print_co:
+      print "The full checkout manifest is available in the general log file."
+      sys.stdout.write("Checkout manifest:", 4)   # Message Priority 4 goes ONLY to logfile
+      
+    #=== Variable Setup =================================
+    __param_list.append("Build Type         : " + self.build_type + '\n')
+    __param_list.append("Repository branch  : " + branch + '\n')
+    __param_list.append("Revision           : " + str(self.rev) + '\n')    
+    __param_list.append("F90 Compiler       : " + self.f90 + '\n')
+    __param_list.append("Platform           : " + self.platform + '\n')
+    __param_list.append("Float Precision    : " + self.precision + '\n')
+    __param_list.append("Link against packs : " + self.pkg_name + '\n')
+    __param_list.append("Build Host         : " + self.build_host + '\n')
+    __param_list.append("Build System Dir   : " + build_sys_dir + '\n')
+    __param_list.append("Bin dir            : " + bin_dir + '\n')
+
+
+    ####################################################################################
+    if self.build_type == "PACKAGES" or self.build_type == "RELEASE & PACKAGES":
+      self.full_pkg_name = self.base_dir + '/' + self.pkg_name
+      self.full_pkg_logfile   = self.libs_dir_loc + "/log/" + self.platform + '/' + self.pkg_name + ".log"
+      
+      __param_list.append("Full Packages name : " + self.full_pkg_name + '\n')
+    
+      self.plog = open(self.full_pkg_logfile, "w")
+      self.plog.writelines( __param_list )
+      self.plog.close()
+
+      # Perform the actual checkout using a call to the SVN client
+      for package in pkg_modules:
+        loc_package = package.split('/')[-1]
+        svn_cmd = "svn co "+repo_loc+'/'+branch.lower()+"/packages/"+package+'@'+str(self.rev)+' '+self.full_pkg_name+'/'+loc_package
+        #print svn_cmd
+        print "Retrieving package " + package
+        svnlines = os.popen(svn_cmd).readlines()
+        for line in svnlines:
+          __lines.append(line)
+      if print_co:
+        for line in __lines:
+          sys.stdout.write(line, 4)  # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
+      self.lines = []
+      # REMOTE-EXECUTE build process
+      if self.build_type == "RELEASE & PACKAGES":
+        print "Building packages before linking to release. Please be patient."  # wait for build to complete if packages
+        self.PID = os.spawnlp(os.P_WAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",build_script,self.full_pkg_logfile)
+      else:
+        print "Spawning build process..."
+        self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",build_script,self.full_pkg_logfile)
+      time.sleep(3)
+      print "Spawned build process with PID : " + str(self.PID) + '\n'      
+      
+    ####################################################################################  
+    if self.build_type == "RELEASE" or self.build_type == "RELEASE & PACKAGES":
+      self.full_rel_name = self.base_dir + '/' + self.rel_name
+      self.full_rel_logfile   = self.libs_dir_loc + "/log/" + self.platform + '/' + self.rel_name + ".log"
+      
+      __param_list.append("Full Release name  : " + self.full_rel_name + '\n')
+      __param_list.append("Config Dir         : " + self.full_rel_name + "/config\n")
+      __param_list.append("--> BUILD STATUS: HANDING CONTROL TO REMOTE SUBSCRIPT\n")
+      
+      self.rlog = open(self.full_rel_logfile, "w")
+      self.rlog.writelines( __param_list )
+      self.rlog.close()
+
+      # Perform the actual checkout using a call to the SVN client
+      for module in repo_modules:
+        print "Retrieving module " + module
+        svn_cmd = "svn co "+repo_loc+'/'+branch.lower()+'/'+module+"@"+str(self.rev)+' '+self.full_rel_name+'/'+module
+ 
+        svnlines = os.popen(svn_cmd).readlines()
+        for line in svnlines:
+          __lines.append(line)
+      if print_co:
+        for line in __lines:
+          sys.stdout.write(line, 4)    # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
+      self.lines = []
+      ## REMOTE-EXECUTE build process
+      #self.PID = os.spawnlp(os.P_NOWAIT, "rsh", "rsh", "-x", self.build_host, build_release, self.full_rel_logfile)
+      print "Spawning build process..."
+      self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",build_script,self.full_rel_logfile)
+      time.sleep(3)
+      print time.asctime() + " -- Spawned build process with PID : " + str(self.PID) + '\n'
+    #####################################################################################  
+
+
+
+  def status(self):    ## return the value of the most recently-stamped status message in logfile passed to this method
+    build_status = 0
+    if self.build_type == "RELEASE":
+      file_to_check = self.full_rel_logfile
+    elif self.build_type == "PACKAGES":
+      file_to_check = self.full_pkg_logfile
+      
+    self.lq = open(file_to_check, "r")
+    self.qline = self.lq.readline()
+    self.status_list = []
+    while self.qline:
+      if self.qline.find("BUILD STATUS:") != -1:
+        self.qline = self.qline.strip()
+        self.status_list.append(self.qline)
+      self.qline = self.lq.readline()
+      
+    self.lq.close()
+    #print self.status_list
+
+    #if self.STATUS == "ERROR(S) DETECTED":         ## generalize error code pickup here?  for more specific contingencies?
+    if self.status_list[-1].find("ERROR") != -1:
+      build_status = -1                                # any errors give return value of 1
+    elif self.status_list[-1].find("COMPLETE") != -1:
+      build_status = 1                                 # code 1 means complete with no errors
+      #break
+    #self.qline = self.lq.readline()
+    #self.lq.close()
+    self.status_list = []
+    return build_status                                    # still building will return value of 0
+
+    
+#======================================================================================================================  
+#======================================================================================================================
+# Main Script Starts Here
+#==========================================================================
+if build_release and build_packages:
+  build_type  = "RELEASE & PACKAGES"
+  build_names = get_build_names(build_type, rel_name, pkg_name) #obtains tuple of up to 2 unique build names
+  genlog      = "rel-pack_" + datecode +"_"+ prec.lower()[0] + ".genlog"
+  full_genlog = libs_dir + "/log/" + genlog
+elif build_release and (build_packages == 0):
+  build_type = "RELEASE"
+  build_names = get_build_names(build_type, rel_name, pkg_name) 
+  genlog      = build_names[0]+".genlog"
+  full_genlog = libs_dir + "/log/" + genlog
+else:
+  build_type = "PACKAGES"
+  build_names = get_build_names(build_type, rel_name, pkg_name) 
+  genlog      = build_names[1]+".genlog"
+  full_genlog = libs_dir + "/log/" + genlog
+
+rel_name = build_names[0]
+pkg_name = build_names[1]
+
+stout = StandOut(full_genlog, unbuffered=True)   # This transparently applies to all print stmnts and directs all the printed output of
+                                   # this program to stdout AND to the general log file defined above.  Set verbosity here?
+                                   # That can control the status output as well.
+stout.outThreshold        = 5      # These logging threshold values are used to selectively direct normal output of this
+stout.outLogfileThreshold = 4      # script to any combination of the screen or general logfile
+
+
+
+#== Request KRB credentials so remote-shell calls work later ==============
+print "Obtaining Kerberos 5 credentials..."
+(krbout, krbin) = popen2.popen4("kinit -k -t /etc/cesrulib-keytab cesrulib/" + hostname)
+krblines = krbout.readlines()
+for line in krblines:
+  print line
+  if line[0:5] == "kinit":
+    print "Problem obtaining Kerberos 5 credentials, terminating."
+    print "Verify that your current shell is a login shell.\n"
+    sys.exit(25)  # commented out so I can use a su'd terminal for testing
+
+
+#== Determine which revision to check out, default is most recent ==
+infolist = os.popen("svn info "+repo_loc).readlines()       # adjust here for getting stderr as well
+for line in infolist:
+  if line.find("Revision") != -1:
+    revision = line.split(':')[1].strip()
+  elif line.find("failed") != -1:
+    print "SVN repository access failed!  Quitting."
+    sys.exit(50)
+
+
+#== Print out all the configuration information collected or derived up to this point ===
+print ""
+print time.asctime()
+if dump:
+  dump_parameters()
+print ""
+
+
+#== Check available disk space ========
+spaceline    = os.popen("df " + libs_dir).readlines()[1]
+space_free   = int(spaceline.split()[3])            # Bytes free
+if space_free <= space_needed:
+  print "Insufficient disk space in " + libs_dir + "!"
+  print "Disk free space = %i" % space_free
+  print "Space required  = %i" % space_needed
+  sys.exit(30)
+
+
+#== Instantiate a builder object for each process that needs to be initiated
+#== a total of rquant builds will be executed.
+#== This starts the build processes on their respective hosts. Also only prints out the
+#== svn list of files being checked out a single time to reduce clutter in genlog file.   LOOP HERE for generality?
+print_co = True      # flag to allow only the first build initiated to print its checkout list, preventing redundancy of output
+if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does one or the other, need both SEQUENTIALLY as well
+  if lnx:
+    t_LIN    = time.time()
+    LINBUILD = builder(build_names, revision, build_type, "linuxi", print_co, stout)  # Initialize a builder object for given platform.
+    t_LLA    = int(time.time())
+    LLABUILD = builder(build_names, revision, build_type, "linuxl", print_co, stout)  # Linux intel and lahey are always together
+    print_co = False
+  if osf:
+    t_OSF    = int(time.time())
+    OSFBUILD = builder(build_names, revision, build_type, "osfhp", print_co, stout)
+    print_co = False
+  if vms:
+    t_VMS    = int(time.time())
+    VMSBUILD = builder(build_names, revision, build_type, "vmshp", print_co, stout)
+    print_co = False
+  if win:
+    t_WIN    = int(time.time())
+    WINBUILD = builder(build_names, revision, build_type, "win", print_co, stout)
+
+  print "\nAll build processes initiated.  Builds proceeding.\n"
+
+  ##  Package phase initiation complete here.
+  loop             = 0
+  complete_fraction= 0.0
+  complete_tally   = 0
+  error_fraction   = 0.0
+  max_loops        = 450
+  error_fraction   = 0
+  lin_donelatch    = 0
+  lla_donelatch    = 0
+  osf_donelatch    = 0
+
+  ####
+  print "Waiting for a few seconds for builds to fully initiate."
+  time.sleep(30)
+  if not show_status:
+    print "Builds initiated.  Status output supressed.  This will take a while."
+  ####
+
+  while complete_fraction < 1 and loop < max_loops:     # poll for errors for the duration of packages build, errors are negative values
+    error_fraction    = 0
+    if show_status:
+      print "\nRealtime status info:   (loop " + str(loop) + ")"
+
+    if lnx:
+      lin_stat = LINBUILD.status()
+      lla_stat = LLABUILD.status()
+      
+      if lin_stat > 0 and lin_donelatch == 0:
+        complete_tally = complete_tally + 1
+        #complete_fraction = complete_tally / float(rquant)
+        lin_donelatch = 1
+      elif lin_stat < 0:
+        error_fraction = error_fraction + float( lin_stat )
+ 
+      if lla_stat > 0 and lla_donelatch == 0:
+        complete_tally = complete_tally + 1
+        #complete_fraction = complete_tally / float(rquant)
+        lla_donelatch = 1
+      elif lla_stat < 0:
+        error_fraction = error_fraction + float( lla_stat )
+
+      if show_status:
+        print "  Linux Intel status: " + str( lin_stat )
+        print "  Linux Lahey status: " + str( lla_stat )        
+
+        
+    if osf:
+      osf_stat = OSFBUILD.status()
+
+      if osf_stat > 0 and osf_donelatch == 0:
+        complete_tally = complete_tally + 1
+        osf_donelatch = 1
+      elif osf_stat < 0:
+        error_fraction = error_fraction + float( osf_stat )
+
+      if show_status:
+          print "  OSF1 HP  status   : " + str( osf_stat )
+
+
+    complete_fraction = complete_tally / float(rquant)
+    error_fraction     = abs ( error_fraction / float(rquant) )
+    #print "Completion percentage: %" + str(int(complete_fraction*100))
+    #print "Failure percentage: %" + str(int(error_fraction*100))
+
+    #complete_fraction  = complete_fraction / float(rquant)  # condense all completion info into this average for testing at top of loop
+    if complete_fraction == 1.0:
+      print time.asctime() + "All Builds completed successfully.\n"
+      break
+
+    if error_fraction == 1.0:
+      print "All builds have failed.  Stopping."
+      sys.exit(45)
+
+    #if complete_fraction == 1.0:
+    #  print "all_complete after loop: "+ str(complete_fraction)
+
+    if loop < 10:
+      time.sleep(5)
+    else:
+      time.sleep(30)
+    loop = loop + 1
+
+
+##== Build has completed successfully, compute and summarize relevant statistics ==========================================
+t_END = int(time.time() )
+print "          ======== Statistics for this build process ========"
+print "============================ Time summary: ==============================="
+
+if lnx:
+  print "Linux intel build : %i hr %i min %i sec" % seconds_to_HMS(t_END - t_LIN)
+  print "Linux lahey build : %i hr %i min %i sec" % seconds_to_HMS(t_END - t_LLA)
+if osf:
+  print "OSF1 alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_END - t_OSF)
+
+if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
+  lines = os.popen(util_dir + "/rel_disk_total " + rel_name).readlines()
+  for line in lines:
+    print line.strip()
+else:
+  print "Disk utilization summary for packages builds has not yet been implemented."
+
+print "=========================================================================="
+print "          =============  End Statistics Summary ============="
+
+
+#== If nightly build has been requested, rotate this one into position and delete the previous.
+if nightly and ( build_type == "RELEASE" or build_type == "RELEASE & PACKAGES" ):
+  print "This is a nightly build, proceeding with replacement of previous build."
+  lines = os.popen(bin_dir + "/rotate_release -ntly " + rel_name).readlines()
+  for line in lines:
+    print line
+  print "Rotation successful, so deleting previous night's build."
+
+
+#== Print status summary if all builds are complete
+
+
+
+stout.close()                          # Close stream to logfile before quitting
+
