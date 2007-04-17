@@ -48,7 +48,7 @@ fi
 # Only here for temporary fix of stalled login scripts
 # for users sourcing this script on x86_64 architecture  
 # machines.  This provides no other functionality.
-if ( [ "${PLATFORM_TAG}" == "Linux_x86_64" ] ) then
+if ( [ "${PLATFORM_TAG}" = "Linux_x86_64" ] ) then
   CESRF90=${CESRF90:-intel}  
 fi
 
@@ -202,11 +202,16 @@ fi
 # Logic here to use the new <release>/src path instead of cvssrc
 # if the old-build current release is chosen, otherwise use the new path
 if ( [ "${CESR_REL}" = "${CESR_BASE}/current" ] ) then
-  export CESR_SRC="${CESR_REL}/cvssrc"
+  CESR_SRC="${CESR_REL}/cvssrc"
+  export CESR_SRC
 else
-  export CESR_SRC="${CESR_REL}/src"
+  CESR_SRC="${CESR_REL}/src"
+  export CESR_SRC
 fi
-export CESR_INC="${CESR_SRC}/include"
+
+CESR_INC="${CESR_SRC}/include"
+export CESR_INC
+
 #
 # $Id$
 #
