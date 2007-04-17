@@ -77,7 +77,7 @@ build_sys_dir = bin_dir + "/Gmake"
 util_dir      = bin_dir + "/util"
 libs_dir      = "/nfs/acc/libs"           # may change to ACC?
 prev_blt_path = libs_dir + "/log/prev_built"           # path to file logging last built release
-build_script  = util_dir + "/build_release.py"
+build_script  = util_dir + "/build_serf"
 
 #=== Function to print usage information ===========================
 def print_help():
