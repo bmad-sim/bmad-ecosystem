@@ -34,9 +34,9 @@ from standout import StandOut  # figure out where to consolidate all 3rd party m
 #========= VARIABLE SETUP ==========================================
 #===================================================================
 #== Node names =========================================
-osf_host      = "cesr68.lns.cornell.edu"
-lnx_host      = "lnx209.lns.cornell.edu"
-vms_host      = "cesr68.lns.cornell.edu"
+osf_host      = "cesrbuild2.lns.cornell.edu"
+lnx_host      = "cesrbuild1.lns.cornell.edu"
+vms_host      = "cesrbuild2.lns.cornell.edu"
 win_host      = "pc6115.lns.cornell.edu"
 hostname      = socket.gethostname()
 
@@ -165,7 +165,7 @@ for opt in sys.argv:
   elif opt.find("PKG=") != -1:
     pkg_name            = opt.split('=')[1]
     if os.path.exists(libs_dir + "/Linux_i686_intel/" + pkg_name):   # if packages name specified, AND it already exists,
-      print "Pack exists!"                                            # build a requested release and LINK to the packages.
+      #print "Pack exists!"                                            # build a requested release and LINK to the packages.
       build_packages      = 0                                            # Check in Linux(intel) area first, change this to be
       custom_pkgflag      = 0
     else:                                                                # more general later.  If only PKG option is used
