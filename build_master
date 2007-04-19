@@ -10,6 +10,7 @@
 # 35  - no release platforms specified on cmd line
 # 40  - build name not specified
 # 45  - all builds failed with make errors
+# 47  - all builds have stopped, but some due to failure
 # 50  - svn access failed for revision retrieval
 ####################################################################
 
@@ -660,6 +661,7 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
   error_fraction   = 0.0
   max_loops        = 450
   error_fraction   = 0
+  error_tally      = 0
   lin_donelatch    = 0
   lla_donelatch    = 0
   osf_donelatch    = 0
@@ -671,8 +673,10 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
     print "Builds initiated.  Status output supressed.  This will take a while."
   ####
 
-  while complete_fraction < 1 and loop < max_loops:     # poll for errors for the duration of packages build, errors are negative values
+  while complete_fraction < 1 and loop < max_loops: 
     error_fraction    = 0
+    error_tally       = 0
+
     if show_status:
       print "\nRealtime status info:   (loop " + str(loop) + ")"
 
@@ -685,14 +689,16 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
         t_end_LIN = int(time.time() )
         lin_donelatch = 1
       elif lin_stat < 0:
-        error_fraction = error_fraction + float( lin_stat )
+        #error_fraction = error_fraction + float( lin_stat )
+        error_tally = error_tally + 1
  
       if lla_stat > 0 and lla_donelatch == 0:
         complete_tally = complete_tally + 1
         t_end_LLA = int(time.time() )
         lla_donelatch = 1
       elif lla_stat < 0:
-        error_fraction = error_fraction + float( lla_stat )
+        #error_fraction = error_fraction + float( lla_stat )
+        error_tally = error_tally + 1
 
       if show_status:
         print "  Linux Intel status: " + str( lin_stat )
@@ -707,18 +713,20 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
         t_end_OSF = int(time.time() )
         osf_donelatch = 1
       elif osf_stat < 0:
-        error_fraction = error_fraction + float( osf_stat )
+        #error_fraction = error_fraction + float( osf_stat )
+        error_tally = error_tally + 1
 
       if show_status:
           print "  OSF1 HP  status   : " + str( osf_stat )
 
 
     complete_fraction = complete_tally / float(rquant)
-    error_fraction     = abs ( error_fraction / float(rquant) )
+    #error_fraction    = abs ( error_fraction / float(rquant) )
+    error_fraction    = error_tally / float(rquant)
+
     #print "Completion percentage: %" + str(int(complete_fraction*100))
     #print "Failure percentage: %" + str(int(error_fraction*100))
 
-    #complete_fraction  = complete_fraction / float(rquant)  # condense all completion info into this average for testing at top of loop
     if complete_fraction == 1.0:
       print "\n" + time.asctime() + " All Builds completed successfully.\n"
       break
@@ -726,6 +734,10 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
     if error_fraction == 1.0:
       print "All builds have failed.  Stopping."
       sys.exit(45)
+
+    if (complete_tally + error_tally) == rquant:
+      print "All builds have ceased, with some due to failure."
+      sys.exit(47)
 
     #if complete_fraction == 1.0:
     #  print "all_complete after loop: "+ str(complete_fraction)
@@ -761,10 +773,11 @@ if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
     if plat == "linuxi" or plat == "linuxl":
       platform = platform_combos[plat][0] + '_' + platform_combos[plat][1]
       print "Testing summary for " + platform
-      logfile = libs_dir + '/log/'+ platform + '/cesr_2007_0419_d_2.log'
+      logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
       lines = os.popen(util_dir + "/extract_test_summary " + logfile).readlines()
       for line in lines:
         print line.strip()
+      print ""
 
 print "=========================================================================="
 print "          =============  End Statistics Summary ============="
