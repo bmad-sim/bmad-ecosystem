@@ -452,6 +452,7 @@ class builder:
     __param_list.append("Build Host         : " + self.build_host + '\n')
     __param_list.append("Build System Dir   : " + build_sys_dir + '\n')
     __param_list.append("Bin dir            : " + bin_dir + '\n')
+    __param_list.append("Run test suite     : " + run_tests + '\n')
 
 
     ####################################################################################
@@ -586,7 +587,6 @@ stout.outLogfileThreshold = 4      # script to any combination of the screen or 
 
 
 #== Request KRB credentials so remote-shell calls work later ==============
-print "Obtaining Kerberos 5 credentials..."
 (krbout, krbin) = popen2.popen4("kinit -k -t /etc/cesrulib-keytab cesrulib/" + hostname)
 krblines = krbout.readlines()
 for line in krblines:
@@ -625,6 +625,8 @@ if space_free <= space_needed:
   sys.exit(30)
 
 
+
+
 #== Instantiate a builder object for each process that needs to be initiated
 #== a total of rquant builds will be executed.
 #== This starts the build processes on their respective hosts. Also only prints out the
@@ -632,13 +634,13 @@ if space_free <= space_needed:
 print_co = True      # flag to allow only the first build initiated to print its checkout list, preventing redundancy of output
 if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does one or the other, need both SEQUENTIALLY as well
   if lnx:
-    t_LIN    = time.time()
+    t_begin_LIN = time.time()
     LINBUILD = builder(build_names, revision, build_type, "linuxi", print_co, stout)  # Initialize a builder object for given platform.
-    t_LLA    = int(time.time())
+    t_begin_LLA = int(time.time())
     LLABUILD = builder(build_names, revision, build_type, "linuxl", print_co, stout)  # Linux intel and lahey are always together
     print_co = False
   if osf:
-    t_OSF    = int(time.time())
+    t_begin_OSF = int(time.time())
     OSFBUILD = builder(build_names, revision, build_type, "osfhp", print_co, stout)
     print_co = False
   if vms:
@@ -680,14 +682,14 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
       
       if lin_stat > 0 and lin_donelatch == 0:
         complete_tally = complete_tally + 1
-        #complete_fraction = complete_tally / float(rquant)
+        t_end_LIN = int(time.time() )
         lin_donelatch = 1
       elif lin_stat < 0:
         error_fraction = error_fraction + float( lin_stat )
  
       if lla_stat > 0 and lla_donelatch == 0:
         complete_tally = complete_tally + 1
-        #complete_fraction = complete_tally / float(rquant)
+        t_end_LLA = int(time.time() )
         lla_donelatch = 1
       elif lla_stat < 0:
         error_fraction = error_fraction + float( lla_stat )
@@ -702,6 +704,7 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
 
       if osf_stat > 0 and osf_donelatch == 0:
         complete_tally = complete_tally + 1
+        t_end_OSF = int(time.time() )
         osf_donelatch = 1
       elif osf_stat < 0:
         error_fraction = error_fraction + float( osf_stat )
@@ -717,7 +720,7 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
 
     #complete_fraction  = complete_fraction / float(rquant)  # condense all completion info into this average for testing at top of loop
     if complete_fraction == 1.0:
-      print time.asctime() + "All Builds completed successfully.\n"
+      print "\n" + time.asctime() + " All Builds completed successfully.\n"
       break
 
     if error_fraction == 1.0:
@@ -735,15 +738,14 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
 
 
 ##== Build has completed successfully, compute and summarize relevant statistics ==========================================
-t_END = int(time.time() )
 print "          ======== Statistics for this build process ========"
 print "============================ Time summary: ==============================="
 
 if lnx:
-  print "Linux intel build : %i hr %i min %i sec" % seconds_to_HMS(t_END - t_LIN)
-  print "Linux lahey build : %i hr %i min %i sec" % seconds_to_HMS(t_END - t_LLA)
+  print "Linux intel build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LIN - t_begin_LIN)
+  print "Linux lahey build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LLA - t_begin_LLA)
 if osf:
-  print "OSF1 alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_END - t_OSF)
+  print "OSF1 alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_end_OSF - t_begin_OSF)
 
 if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
   lines = os.popen(util_dir + "/rel_disk_total " + rel_name).readlines()
@@ -751,6 +753,18 @@ if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
     print line.strip()
 else:
   print "Disk utilization summary for packages builds has not yet been implemented."
+
+print "=========================  Test Suite Summary  ==========================="
+if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
+  for plat in platform_combos:
+    print plat
+    if plat == "linuxi" or plat == "linuxl":
+      platform = platform_combos[plat][0] + '_' + platform_combos[plat][1]
+      print "Testing summary for " + platform
+      logfile = libs_dir + '/log/'+ platform + '/cesr_2007_0419_d_2.log'
+      lines = os.popen(util_dir + "/extract_test_summary " + logfile).readlines()
+      for line in lines:
+        print line.strip()
 
 print "=========================================================================="
 print "          =============  End Statistics Summary ============="

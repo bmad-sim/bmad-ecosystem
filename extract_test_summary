@@ -6,7 +6,7 @@
 #
 # This need only run properly under Linux to generate test
 # summaries out of concatenated test job output.  It is called from
-# the do_release script near the very end of a CESR build process.
+# the build_master script near the very end of a CESR build process.
 #
 # Useage : extract_test_summary <test_output_file>
 #     i.e. extract_test_summary cesr_2007_0305_d.build.status

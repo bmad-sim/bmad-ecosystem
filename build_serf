@@ -76,6 +76,8 @@ for line in lines:
     if line[0:10] == "Config Dir":
         #config_dir = line.split(':')[1].strip()
         config_dir = line[21:-1]
+    if line [0:14] == "Run test suite":
+        run_tests = line[21:-1]
 
 logfile.close()                            # Close logfile.
 
@@ -89,6 +91,7 @@ print "\nSuccessfully launched remote build process.\n"
 
 cesrdefs = ". " + bin_dir + "/cesrdefs; "               # command to source the cesrdefs:cesrenv environment setup scripts 
 env_setup3 = ""
+test_script = bin_dir + "/util/CESRbuild_test_suite"
 
 build_args.append("PACKAGE_NAME="+pkg_name)
 build_args.append(" CESR_PRECISION=_"+precision)
@@ -143,12 +146,30 @@ if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
     while line:                                      # print output as it is generated
         print line.strip()
         #if line.find("Error") != -1:               # be on the lookout for errors in the build
-        if line[0:9] == "make: ***":
+        if line[0:10] == "gmake: ***":
             errors = 1
         line = build_process.fromchild.readline()
+        
+    if errors:
+        print "--> BUILD STATUS: ERROR(S) DETECTED"
+    else:
+        print "--> BUILD STATUS: COMPLETE!"
+        if run_tests == "YES":
+            print "About to execute test suite."
+            test_cmd = env_setup1 + cesrdefs + env_setup2 + test_script + " " + rel_name
+            print test_cmd
+            test_process = popen2.Popen4(test_cmd)
+            pid = test_process.pid
+            tline = test_process.fromchild.readline()
+            while tline:
+                print tline.strip()
+                tline = test_process.fromchild.readline()
+        
+        
 ## ## ## ## ##
 
 
+## -- implement workaround for crummy ancient Python version on cesrbuild2
 if platform == "OSF1_alpha_hp":
     print "OSF1 workaround testing..."
     build_process = popen2.Popen3(build_cmd, capturestderr=1)
@@ -165,17 +186,14 @@ if platform == "OSF1_alpha_hp":
         line = build_process.fromchild.readline()
         #if build_process.childerr.readline() != None:
         #    errline = build_process.childerr.readline()
-        
-## -- implement workaround for crummy ancient Python version on cesrbuild2
+    if errors:
+        #print "--> BUILD STATUS:(%i) ERROR(S) DETECTED" % return_code
+        print "--> BUILD STATUS: ERROR(S) DETECTED"
+    else:
+        #print "--> BUILD STATUS:(%i) COMPLETE!" % return_code
+        print "--> BUILD STATUS: COMPLETE!"
 
-#return_code = build_process.wait()
-if errors:
-    #print "--> BUILD STATUS:(%i) ERROR(S) DETECTED" % return_code
-    print "--> BUILD STATUS: ERROR(S) DETECTED"
-else:
-    #print "--> BUILD STATUS:(%i) COMPLETE!" % return_code
-    print "--> BUILD STATUS: COMPLETE!"
-#print "Return code : " + str( return_code )
+
 
 
 ## Set group to cesr and add write permissions to the files in the config area
@@ -202,5 +220,4 @@ os.system(bin_dir + "/create_fdb.pl")
 
 
 sys.exit(0)
-
 

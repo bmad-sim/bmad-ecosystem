@@ -58,7 +58,7 @@ progs = {
                               # dicts, so the X.keys() method is needed when looping
 ########################################################################################
 
-src = "cvssrc"
+src = "src"
 testlist = []
 HOST = ""
 libdir   = "/home/cesrulib/cesr_libs"
