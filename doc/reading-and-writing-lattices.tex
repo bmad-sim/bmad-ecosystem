@@ -4,10 +4,14 @@
 \section{Reading in Lattices}
 \index{Lattice files!reading}
 
+\index{XSIF}\index{Routine!xsif_parser}
+\index{Routine!bmad_parser}\index{Routine!bmad_parser2}
+
+\bmad has routines for reading XSIF (\sref{s:lattice_file_formats})
+and \bmad format files.
 The subroutine to read in an XSIF lattice file is \vn{xsif_parser}.
 There are two subroutines in \bmad\ to read in a \bmad standard
 lattice file: \vn{bmad_parser} and \vn{bmad_parser2}.
-
 \vn{bmad_parser} is used to initialize a \vn{lat_struct}
 structure from scratch using the information from a lattice
 file. Unless told otherwise, after reading in the lattice
@@ -78,6 +82,8 @@ digested file that has elements with the correct Taylor Maps, then to
 save on the map computation time simply make a copy of the digested
 file with the digested file name corresponding to the first lattice.
 
+\index{Routine!read_digested_bmad_file}
+\index{Routine!write_digested_bmad_file}
 The digested file is in binary format and is not human readable but it
 provides a convenient mechanism for transporting lattices between
 programs. For example, say you have read in a lattice, changed
@@ -95,18 +101,20 @@ An alternative to writing a digested file is to write a lattice file
 using \vn{write_bmad_lattice_file}
 
 %----------------------------------------------------------------------------
-\section{Writing MAD files}
+\section{Writing Lattice files}
 \index{Lattice files!MAD files}
 \index{MAD}
 
-\index{MAD!MAD-8}
+\index{MAD!MAD-8}\index{Routine!bmad_to_mad}
 \mad--8 compatible lattice files can be created using the routine \vnr{bmad_to_mad}:
 \begin{example}
   type (lat_struct) lat             ! lattice
   ...
   call bmad_to_mad ('lat.mad', lat)  ! create MAD file
 \end{example}
-
 Since \mad has no concept of things such as \vn{overlay}s and \vn{group}s, such 
 information is lost in translation.
+
+\index{Routine!write_bmad_lattice_file}
+To write \bmad lattice files use the routine \vn{write_bmad_lattice_file}.
 
