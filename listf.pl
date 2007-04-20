@@ -21,7 +21,7 @@ if (-d catdir( $curdir, "bmad", "modules" )) {
 } elsif (-d catdir( $updir, "$updir", "bmad", "modules" )) {
   $bmad_dir = catdir( $updir, "$updir", "bmad" );
 } else {
-  $bmad_dir = catdir( $ENV{"CESR_CVSSRC"}, "bmad" );
+  $bmad_dir = catdir( $ENV{"CESR_SRC"}, "bmad" );
 }
 
 if (-d catdir( $curdir, "cesr_utils", "modules" )) {
@@ -31,7 +31,7 @@ if (-d catdir( $curdir, "cesr_utils", "modules" )) {
 } elsif (-d catdir( $updir, "$updir", "cesr_utils", "modules" )) {
   $cesr_utils_dir = catdir( $updir, "$updir", "cesr_utils" );
 } else {
-  $cesr_utils_dir = catdir( $ENV{"CESR_CVSSRC"}, "cesr_utils" );
+  $cesr_utils_dir = catdir( $ENV{"CESR_SRC"}, "cesr_utils" );
 }
 
 if (-d catdir( $curdir, "dcslib", "modules" )) {
@@ -41,7 +41,7 @@ if (-d catdir( $curdir, "dcslib", "modules" )) {
 } elsif (-d catdir( $updir, "$updir", "dcslib", "modules" )) {
   $dcslib_dir = catdir( $updir, "$updir", "dcslib" );
 } else {
-  $dcslib_dir = catdir( $ENV{"CESR_CVSSRC"}, "dcslib" );
+  $dcslib_dir = catdir( $ENV{"CESR_SRC"}, "dcslib" );
 }
 
 if (-d catdir( $curdir, "recipes_f-90_LEPP" )) {
@@ -51,7 +51,7 @@ if (-d catdir( $curdir, "recipes_f-90_LEPP" )) {
 } elsif (-d catdir( $updir, "$updir", "recipes_f-90_LEPP" )) {
   $recipes_dir = catdir( $updir, "$updir", "recipes_f-90_LEPP" );
 } else {
-  $recipes_dir = catdir( $ENV{"CESR_CVSSRC"}, "recipes_f-90_LEPP" );
+  $recipes_dir = catdir( $ENV{"CESR_SRC"}, "recipes_f-90_LEPP" );
 }
 
 if (-d catdir( $curdir, "forest", "basic" )) {
@@ -71,7 +71,7 @@ if (-d catdir( $curdir, "tao", "code" )) {
 } elsif (-d catdir( $updir, "$updir", "tao", "code" )) {
   $tao_dir = catdir( $updir, "$updir", "tao" );
 } else {
-  $tao_dir = catdir( $ENV{"CESR_CVSSRC"}, "tao" );
+  $tao_dir = catdir( $ENV{"CESR_SRC"}, "tao" );
 }
 
 $str = @ARGV[0];
