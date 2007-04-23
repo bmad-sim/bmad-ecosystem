@@ -10,7 +10,7 @@
 @tps_list=qw(h inc c cc cpp cxx f F f90 F90); #file extensions in use
 open FILE1, ">".$ENV{"CESR_CONFIG"}."/cesr_file.fdb" || die "can not open file cesr_file.fdb";
 #take all of the directories except CVS and make loop on them
-foreach $dir (`ls -R \$CESR_CVSSRC \$CESR_PKG | grep \':\'|grep -v CVS`) {
+foreach $dir (`ls -R \$CESR_SRC \$CESR_PKG | grep \':\'|grep -v .svn`) {
     chomp $dir;
     chop $dir;
     $ff=3;
