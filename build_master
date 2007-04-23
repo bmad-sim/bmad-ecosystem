@@ -35,10 +35,10 @@ from standout import StandOut  # figure out where to consolidate all 3rd party m
 #========= VARIABLE SETUP ==========================================
 #===================================================================
 #== Node names =========================================
-osf_host      = "cesrbuild2.lns.cornell.edu"
-lnx_host      = "cesrbuild1.lns.cornell.edu"
-vms_host      = "cesrbuild2.lns.cornell.edu"
-win_host      = "pc6115.lns.cornell.edu"
+osf_host      = "cesrbuild2.lepp.cornell.edu"
+lnx_host      = "lnx6166.lepp.cornell.edu"
+vms_host      = "cesrbuild2.lepp.cornell.edu"
+win_host      = "pc6115.lepp.cornell.edu"
 hostname      = socket.gethostname()
 
 platform_combos = { "linuxi": ["Linux_i686",      'intel', lnx_host ],
@@ -765,6 +765,7 @@ if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
     print line.strip()
 else:
   print "Disk utilization summary for packages builds has not yet been implemented."
+
 
 print "=========================  Test Suite Summary  ==========================="
 if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
