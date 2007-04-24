@@ -242,24 +242,24 @@ end type
 !     lat_equal_lat
 
 type lat_struct
-  character(40) name               ! Name of lat given by USE statement
-  character(40) lattice            ! Lattice
-  character(200) input_file_name   ! Name of the lattice input file
-  character(80) title              ! General title
-  type (mode_info_struct) a, b, z  ! Tunes, etc.
-  type (lat_param_struct) param        ! Parameters
-  type (ele_struct)  ele_init      ! For use by any program
+  character(40) name                  ! Name of lat given by USE statement
+  character(40) lattice               ! Lattice
+  character(200) input_file_name      ! Name of the lattice input file
+  character(80) title                 ! General title
+  type (mode_info_struct) a, b, z     ! Tunes, etc.
+  type (lat_param_struct) param       ! Parameters
+  type (ele_struct)  ele_init         ! For use by any program
   type (ele_struct), pointer ::  ele(:) => null()        ! Array of elements
   type (control_struct), pointer :: control(:) => null() ! control list
-  type (coord_struct) beam_start  ! Starting coords
-  integer version                  ! Version number
-  integer n_ele_track              ! Number of lat elements to track through.
-  integer n_ele_max                ! Index of last element used
-  integer n_control_max            ! Last index used in CONTROL_array
-  integer n_ic_max                 ! Last index used in IC_array
-  integer input_taylor_order       ! As set in the input file
-  integer, pointer :: ic(:) => null()                ! index to %control(:)
-  real(rp), pointer :: E_TOT ! points to lat%ele(0)%value(E_TOT$)
+  type (coord_struct) beam_start      ! Starting coords
+  integer version                     ! Version number
+  integer n_ele_track                 ! Number of lat elements to track through.
+  integer n_ele_max                   ! Index of last valid element in %ele(:) array
+  integer n_control_max               ! Last index used in CONTROL_array
+  integer n_ic_max                    ! Last index used in IC_array
+  integer input_taylor_order          ! As set in the input file
+  integer, pointer :: ic(:) => null() ! Index to %control(:)
+  real(rp), pointer :: E_TOT          ! points to lat%ele(0)%value(E_TOT$)
 end type
 
 !

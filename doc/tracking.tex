@@ -16,12 +16,14 @@ For single particle tracking the starting point is the
 \vn{coord_struct} whose definition is 
 \begin{example}
   type coord_struct
-    real(rp) vec(6)   ! (x, p_x, y, p_y, z, p_z)
+    real(rp) vec(6)     ! (x, p_x, y, p_y, z, p_z)
+    complex(rp) spin(2) ! particle spin in spinor notation
   end type
 \end{example}
 The \vn{coord_struct} defines the phase
 space vector of the particle at a certain longitudinal location.
 
+\index{Lat_struct!%n_ele_max}
 To get an orbit, that is, the particle position at every element in a
 lattice, you will need an array of \vn{coord_struct}s. Since the
 number of elements in the lattice is not known in advance the array
@@ -43,14 +45,17 @@ An example of how to do multi-turn tracking (assuming a circular lattice) is
     orbit(0) = orbit(lattice%n_ele_track)
   end do
 \end{example}
+\index{Super_lord}
 \vn{orbit(n)} holds the particle's position at the exit end of the
-$n$\Th element. With \vn{lat%n_ele_max} elements in the lattice
-(\sref{s:lat_struct}) the \vn{orbit(:)} array needs to be made this
-large. The call to \vn{reallocate_coords} does this allocation. Since
-\vn{lat%ele(0)} is essentially a marker element \vn{orbit(0)} is the
-orbit at the start of the lattice.  \vn{track_all} takes \vn{orbit(0)}
-and tracks through the list of lattice elements until it gets to the
-last trackable element \vn{lattice%n_ele_track} (\sref{s:lat_struct}).
+$n$\Th element. Since \vn{super_lord} (\sref{s:control_type}) elements
+have an associated particle position, the upper bound of the
+\vn{orbit(:)} array must be at least \vn{lattice%n_ele_max}
+(\sref{s:lat_struct}).  The call to \vn{reallocate_coords} does the
+allocation for the \vn{orbit(:)} array. Since \vn{lat%ele(0)} is
+essentially a marker element \vn{orbit(0)} is the orbit at the start
+of the lattice.  \vn{track_all} takes \vn{orbit(0)} and tracks through
+the list of lattice elements until it gets to the last trackable
+element \vn{lattice%n_ele_track} (\sref{s:lat_struct}).
 
 If you are writing a routine where the \vn{coord_struct} array is
 local (not passed as an argument to the routine) then you have to
