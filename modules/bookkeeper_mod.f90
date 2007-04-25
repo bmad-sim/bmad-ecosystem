@@ -1324,6 +1324,7 @@ subroutine attribute_bookkeeper (ele, param)
 
 
 ! Wiggler
+! Periodic_type wigglers have a single %wig_term for use with tracking, etc.
 
   case (wiggler$) 
 

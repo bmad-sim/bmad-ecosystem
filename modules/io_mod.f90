@@ -387,7 +387,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
       enddo
     endif
     
-    if (associated(ele%wig_term)) then
+    if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
       line = trim(line) // ', &'
       call write_out (line, iu, .true.)  
       do j = 1, size(ele%wig_term)

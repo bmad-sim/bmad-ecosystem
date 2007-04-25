@@ -516,6 +516,41 @@ indecates whether the the mode has a polarization angle. If so, then
 \vn{%angle} is the polarization angle.
 
 %--------------------------------------------------------------------------
+\section {Wiggler Types}
+\index{Wiggler!types}
+
+The \vn{%sub_key} component of the \vn{ele_struct} is used to distinguish
+between \vn{map type} and \vn{periodic type} wigglers (\sref{s:wiggler}):
+\begin{example}
+  if (ele%key == wiggler\$ .and. ele%sub_key == map_type$) ...
+  if (ele%key == wiggler\$ .and. ele%sub_key == periodic_type$) ...
+\end{example}
+For a \vn{map} type wiggler, the wiggler field terms
+(\sref{s:wiggler_phys}) are stored in the \vn{%wig_term(:)} array of
+the \vn{element_struct}. This is an array of \vn{wig_term_struct}
+structure. A \vn{wig_term_struct} looks like:
+\index{Wig_term_struct}
+\begin{example}
+  type wig_term_struct
+    real(rp) coef
+    real(rp) kx, ky, kz
+    real(rp) phi_z
+    integer type      ! hyper_y\$, hyper_xy\$, or hyper_x\$
+  end type
+\end{example}
+A \vn{periodic} wiggler will have a single \vn{%wig_term(:)} term that
+can be used for tracking purposes, etc. The setting for this
+\vn{wig_term} element is
+\begin{example}
+  ele%wig_term(1)%ky     = pi / ele%value(l_pole$)
+  ele%wig_term(1)%coef   = ele%value(b_max$)
+  ele%wig_term(1)%kx     = 0
+  ele%wig_term(1)%kz     = ele%wig_term(1)%ky
+  ele%wig_term(1)%phi_z  = (ele%value(l_pole$) - ele%value(l$)) / 2
+  ele%wig_term(1)%type   = hyper_y$
+\end{example}
+
+%--------------------------------------------------------------------------
 \section {Multipoles}
 \index{Ele_struct!multipoles}
 

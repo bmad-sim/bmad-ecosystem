@@ -3529,6 +3529,7 @@ case (lcavity$)
   endif
 
 ! for a periodic_type wiggler n_pole is a dependent attribute
+! Periodic_type wigglers have a single %wig_term for use with tracking, etc.
 
 case (wiggler$)
   if (ele%sub_key == periodic_type$) then
