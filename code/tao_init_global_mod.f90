@@ -1,3 +1,9 @@
+module tao_init_global_mod
+
+use tao_mod
+
+contains
+
 !+
 ! Subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 !
@@ -16,7 +22,6 @@
 
 subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 
-use tao_mod
 use tao_data_mod
 use tao_lattice_calc_mod
 use tao_input_struct
@@ -34,6 +39,7 @@ type (tao_d1_data_input) d1_data
 type (tao_data_input) data(n_data_minn:n_data_maxx) ! individual weight 
 type (tao_v1_var_input) v1_var
 type (tao_var_struct), pointer :: var_ptr
+type (tao_v1_var_struct), pointer :: v1_var_ptr
 type (tao_this_var_struct), pointer :: this
 type (tao_var_input) var(n_var_minn:n_var_maxx)
 type (tao_global_struct), save :: global, default_global
@@ -52,7 +58,7 @@ real(rp) :: default_scale_error        ! default noise for data type
 integer ios, iu, i, j, i2, j2, k, ix, n_uni
 integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
 integer n, n_universes, iostat, ix_universe, n_max
-integer ix_min_var, ix_max_var, n_d1_data
+integer ix_min_var, ix_max_var, n_d1_data, ix_ele
 integer ix_min_data, ix_max_data, ix_d1_data, n_found
 integer, parameter :: ele_name$ = 1, ele_key$ = 2
 integer, allocatable :: found_one(:)
@@ -470,16 +476,20 @@ do
 
   if (default_universe == 'clone') then
     do i = 1, size(s%u)
-      call var_stuffit_common
-      write (s%v1_var(s%n_v1_var_used)%name, '(2a, i0)') &
-                                trim(s%v1_var(s%n_v1_var_used)%name), '_u', i
-      call var_stuffit_1_uni (i)
+      call var_stuffit_common (v1_var_ptr)
+      write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
+      do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
+        ix_ele = found_one(j+1-lbound(v1_var_ptr%v, 1))
+        call var_stuffit_1_uni (v1_var_ptr%v(j), i, var(j)%universe, searching, ix_ele)
+      enddo
     enddo
 
   elseif (default_universe == 'gang') then
-    call var_stuffit_common
-    call var_stuffit_all_uni
-
+    call var_stuffit_common (v1_var_ptr)
+    do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
+      ix_ele = found_one(j+1-lbound(v1_var_ptr%v, 1))
+      call var_stuffit_all_uni (v1_var_ptr%v(j), searching, ix_ele)
+    enddo
   else
     if (default_universe == ' ') then
       n = -1
@@ -492,8 +502,11 @@ do
         call err_exit
       endif
     endif
-    call var_stuffit_common
-    call var_stuffit_1_uni (n)
+    call var_stuffit_common (v1_var_ptr)
+    do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
+      ix_ele = found_one(j+1-lbound(v1_var_ptr%v, 1))
+      call var_stuffit_1_uni (v1_var_ptr%v(j), n, var(j)%universe, searching, ix_ele)
+    enddo
   endif
 
 enddo
@@ -915,7 +928,9 @@ end subroutine d1_data_stuffit
 !
 ! stuff common to all universes
 
-subroutine var_stuffit_common
+subroutine var_stuffit_common (v1_var_ptr)
+
+type (tao_v1_var_struct), pointer :: v1_var_ptr
 
 character(20) count_name1, count_name2, ix_char
 character(20) fmt
@@ -929,7 +944,8 @@ logical all_uni
 
 s%n_v1_var_used = s%n_v1_var_used + 1
 nn = s%n_v1_var_used
-s%v1_var(nn)%name = v1_var%name
+v1_var_ptr => s%v1_var(nn)
+v1_var_ptr%name = v1_var%name
 
 ! are we searching for and counting elements?
 
@@ -1067,135 +1083,7 @@ endif
 ! now for some family guidance...
 ! point the v1_var mother to the appropriate children in the big data array
 
-call tao_point_v1_to_var (s%v1_var(nn), s%var(n1:n2), ix_min_var, n1)
-
-end subroutine
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-
-subroutine var_stuffit_1_uni (ix_u_in)
-
-type (tao_var_struct), pointer :: s_var
-integer i, j, ix_u, n, ios, ix_u_in, ie, n_ele, i_found
-
-! point the children back to the mother
-
-n = s%n_v1_var_used
-
-i_found = 0
-do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
-  s_var => s%v1_var(n)%v(i)
-
-  if (allocated(s_var%this)) deallocate (s_var%this)
-  if (s_var%ele_name == ' ') then
-    allocate (s_var%this(0))
-    s_var%exists = .false.
-    cycle
-  endif
-
-  ! universe to use
-  ix_u = ix_u_in
-  if (.not. searching) then
-    if (var(i)%universe /= ' ') then
-      read (var(i)%universe, *, iostat = ios) ix_u
-      if (ios /= 0) then
-        call out_io (s_abort$, r_name, &
-              'CANNOT READ DEFAULT_UNIVERSE INDEX: ' // default_universe, &
-              'FOR VARIABLE: ' // v1_var%name)
-        call err_exit
-      endif
-    endif
-    call tao_locate_elements (s_var, ix_u, n_ele)
-    if (n_ele == 0) then
-      call out_io (s_error$, r_name, 'ELEMENT DOES NOT EXIST: ' // s_var%ele_name)
-      s_var%exists = .false.
-      cycle
-    endif
-    allocate (s_var%this(n_ele))
-    do ie = 1, n_ele
-      call tao_pointer_to_var_in_lattice (s_var, s_var%this(ie), ix_u, &
-                                      ix_ele = s%u(ix_u)%model%lat%ele(ie)%ixx)
-    enddo
-
-  else ! use found_one array
-    i_found = i_found + 1
-    j = found_one(i_found)
-    allocate (s_var%this(1))
-    call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u, ix_ele = j)
-  endif
-     
-  s_var%model_value = s_var%this(1)%model_ptr
-  s_var%design_value = s_var%model_value
-  s_var%base_value = s_var%this(1)%base_ptr
-  s_var%exists = .true.
-enddo
-
-end subroutine var_stuffit_1_uni
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-
-subroutine var_stuffit_all_uni 
-
-type (tao_var_struct), pointer :: s_var
-
-integer i, j, n1, n2, iu, n_tot, n_ele, ie, i_found
-logical err
-
-! point the children back to the mother
-
-
-n = s%n_v1_var_used
-i_found = 0
-  
-s_loop: do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
-  s_var => s%v1_var(n)%v(i)
-  if (allocated(s_var%this)) deallocate (s_var%this)
-  if (s_var%ele_name == ' ') then
-    allocate (s_var%this(0))
-    s_var%exists = .false.
-    cycle
-  endif
-  if (.not. searching) then
-    n_tot = 0
-    do iu = 1, size(s%u)
-      call tao_locate_elements (s_var, iu, n_ele)
-      s%u(iu)%ixx = n_ele
-      n_tot = n_tot + n_ele
-    enddo
-    if (n_tot == 0) then
-      call out_io (s_error$, r_name, 'ELEMENT DOES NOT EXIST: ' // s_var%ele_name)
-      s_var%exists = .false.
-      cycle
-    endif
-    allocate (s_var%this(n_tot))
-    n_tot = 0
-    do iu = 1, size(s%u)
-      do ie = 1, s%u(iu)%ixx
-        call tao_pointer_to_var_in_lattice (s_var, s_var%this(ie+n_tot), iu, &
-                                          ix_ele = s%u(iu)%model%lat%ele(ie)%ixx)
-      enddo
-      n_tot = n_tot + s%u(iu)%ixx
-    enddo
-
-  else
-    i_found = i_found + 1
-    j = found_one(i_found)
-    allocate (s_var%this(size(s%u)))
-    do iu = 1, size(s%u)
-      call tao_pointer_to_var_in_lattice (s_var, s_var%this(iu), iu, ix_ele = j)
-    enddo
-  endif
-
-  s_var%model_value = s_var%this(1)%model_ptr
-  s_var%design_value = s_var%this(1)%model_ptr
-  s_var%base_value = s_var%this(1)%base_ptr
-  s_var%exists = .true.
-
-enddo s_loop
+call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
 
 end subroutine
 
@@ -1650,3 +1538,124 @@ enddo
 end subroutine init_ix_data
 
 end subroutine tao_init_global_and_universes
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+
+subroutine var_stuffit_1_uni (var, ix_u_in, universe, searching, ix_ele)
+
+implicit none
+
+type (tao_var_struct) var
+integer i, ix_u, n, ios, ix_u_in, ie, n_ele, ix_ele
+character(*) universe
+character(20) :: r_name = 'var_stuffit_1_uni'
+logical searching
+
+! point the children back to the mother
+
+if (allocated(var%this)) deallocate (var%this)
+if (var%ele_name == ' ') then
+  allocate (var%this(0))
+  var%exists = .false.
+  return
+endif
+
+ix_u = ix_u_in    ! universe to use
+if (searching) then
+  allocate (var%this(1))
+  call tao_pointer_to_var_in_lattice (var, var%this(1), ix_u, ix_ele = ix_ele)
+
+else
+  if (universe /= ' ') then
+    read (universe, *, iostat = ios) ix_u
+    if (ios /= 0) then
+      call out_io (s_abort$, r_name, &
+            'CANNOT READ UNIVERSE INDEX: ' // universe, &
+            'FOR VARIABLE: ' // var%v1%name)
+      call err_exit
+    endif
+  endif
+  call tao_locate_elements (var, ix_u, n_ele)
+  if (n_ele == 0) then
+    call out_io (s_error$, r_name, 'ELEMENT DOES NOT EXIST: ' // var%ele_name)
+    var%exists = .false.
+    return
+  endif
+  allocate (var%this(n_ele))
+  do ie = 1, n_ele
+    call tao_pointer_to_var_in_lattice (var, var%this(ie), ix_u, &
+                                      ix_ele = s%u(ix_u)%model%lat%ele(ie)%ixx)
+  enddo
+
+endif
+     
+var%model_value = var%this(1)%model_ptr
+var%design_value = var%model_value
+var%base_value = var%this(1)%base_ptr
+var%exists = .true.
+
+end subroutine var_stuffit_1_uni
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+
+subroutine var_stuffit_all_uni (var, searching, ix_ele)
+
+implicit none
+
+type (tao_var_struct) :: var
+
+integer i, j, n, n1, n2, iu, n_tot, n_ele, ie, ix_ele
+character(20) :: r_name = 'var_stuffit_all_uni'
+logical err, searching
+
+! point the children back to the mother
+
+if (allocated(var%this)) deallocate (var%this)
+if (var%ele_name == ' ') then
+  allocate (var%this(0))
+  var%exists = .false.
+  return
+endif
+
+if (searching) then
+  allocate (var%this(size(s%u)))
+  do iu = 1, size(s%u)
+    call tao_pointer_to_var_in_lattice (var, var%this(iu), iu, ix_ele = ix_ele)
+  enddo
+
+else
+  n_tot = 0
+  do iu = 1, size(s%u)
+    call tao_locate_elements (var, iu, n_ele)
+    s%u(iu)%ixx = n_ele
+    n_tot = n_tot + n_ele
+  enddo
+  if (n_tot == 0) then
+    call out_io (s_error$, r_name, 'ELEMENT DOES NOT EXIST: ' // var%ele_name)
+    var%exists = .false.
+    return
+  endif
+  allocate (var%this(n_tot))
+  n_tot = 0
+  do iu = 1, size(s%u)
+    do ie = 1, s%u(iu)%ixx
+      call tao_pointer_to_var_in_lattice (var, var%this(ie+n_tot), iu, &
+                                          ix_ele = s%u(iu)%model%lat%ele(ie)%ixx)
+    enddo
+    n_tot = n_tot + s%u(iu)%ixx
+  enddo
+
+endif
+
+var%model_value = var%this(1)%model_ptr
+var%design_value = var%this(1)%model_ptr
+var%base_value = var%this(1)%base_ptr
+var%exists = .true.
+
+end subroutine
+
+end module

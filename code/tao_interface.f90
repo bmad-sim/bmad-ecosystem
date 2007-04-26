@@ -189,13 +189,6 @@ interface
 end interface
 
 interface
-  subroutine tao_init_global_and_universes (init_file, data_file, var_file)
-    implicit none
-    character(*) init_file, data_file, var_file
-  end subroutine
-end interface
-
-interface
   subroutine tao_init_plotting (plot_file)
     implicit none
     character(*) plot_file

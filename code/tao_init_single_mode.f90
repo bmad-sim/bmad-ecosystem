@@ -16,7 +16,8 @@ subroutine tao_init_single_mode (single_mode_file)
 
   use tao_mod
   use tao_input_struct
-  
+  use tao_init_global_mod
+
   implicit none
 
   type (tao_key_input) key(500)
@@ -111,21 +112,11 @@ subroutine tao_init_single_mode (single_mode_file)
     endif
 
     if (ix_u == 0) then
-      allocate (s%var(n)%this(size(s%u)))
-      do j = 1, size(s%u)
-        call tao_pointer_to_var_in_lattice (s%var(n), s%var(n)%this(j), j)
-      enddo
+      call var_stuffit_all_uni (s%var(n), .false., 0)
     else
-      allocate (s%var(n)%this(1))
-      call tao_pointer_to_var_in_lattice (s%var(n), s%var(n)%this(1), ix_u)
+      call var_stuffit_1_uni (s%var(n), ix_u, ' ', .false., 0)
     endif
-
-    s%var(n)%model_value = s%var(n)%this(1)%model_ptr
-    s%var(n)%design_value = s%var(n)%model_value
-    s%var(n)%base_value = s%var(n)%this(1)%base_ptr
-    s%var(n)%exists = .true.
-
-
+ 
     s%key(i)%val0 = s%var(n)%model_value
     s%key(i)%delta = key(i)%delta
     s%key(i)%ix_var = n
