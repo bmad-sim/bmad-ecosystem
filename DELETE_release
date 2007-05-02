@@ -199,20 +199,15 @@ rm -rf /home/cesrulib/cesr_libs/OSF1_alpha_hp/${REL_NAME}
 rm -rf /home/cesrulib/cesr_libs/VMS_alpha_hp/${REL_NAME}
 rm -rf /home/cesrulib/cesr_libs/CYGWIN_NT_i686_intel/${REL_NAME}
 
-rm /home/cesrulib/cesr_libs/log/Linux_i686_intel/${REL_NAME}.log
-rm /home/cesrulib/cesr_libs/log/Linux_i686_intel/${REL_NAME}.build_status
+rm -f /home/cesrulib/cesr_libs/log/Linux_i686_intel/${REL_NAME}.log
 
-rm /home/cesrulib/cesr_libs/log/Linux_i686_lahey/${REL_NAME}.log
-rm /home/cesrulib/cesr_libs/log/Linux_i686_lahey/${REL_NAME}.build_status
+rm -f /home/cesrulib/cesr_libs/log/Linux_i686_lahey/${REL_NAME}.log
 
-rm /home/cesrulib/cesr_libs/log/OSF1_alpha_hp/${REL_NAME}.log
-rm /home/cesrulib/cesr_libs/log/OSF1_alpha_hp/${REL_NAME}.build_status
+rm -f /home/cesrulib/cesr_libs/log/OSF1_alpha_hp/${REL_NAME}.log
 
-## rm /home/cesrulib/cesr_libs/log/VMS_alpha_hp/${REL_NAME}.log
-rm /home/cesrulib/cesr_libs/log/VMS_alpha_hp/${REL_NAME}.build_status
+rm -f /home/cesrulib/cesr_libs/log/VMS_alpha_hp/${REL_NAME}.log
 
-## rm /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.log
-rm /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.build_status
+rm -f /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.log
 
 
 echo "  DONE."
