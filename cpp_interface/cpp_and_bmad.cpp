@@ -842,7 +842,7 @@ void operator>> (mode_info_struct* f, C_mode_info& c) {
 }
 
 //---------------------------------------------------------------------------
-// ring
+// lat
 
 extern "C" void lat_to_f2_(lat_struct*, Char, Int&, Char, Int&, Char, Int&,
     Char, Int&, C_mode_info&, C_mode_info&, C_mode_info&, C_param&, 
@@ -853,7 +853,7 @@ extern "C" void ele_from_lat_to_f2_(lat_struct*, Int&, C_ele&);
 extern "C" void control_from_lat_to_f2_(lat_struct*, Int&, C_control&);
 
 
-extern "C" void ring_to_f_(C_lat& c, lat_struct* f) {
+extern "C" void lat_to_f_(C_lat& c, lat_struct* f) {
   const char* name  = c.name.data();            int n_name = c.name.size();
   const char* lat   = c.lattice.data();         int n_lat = c.lattice.size();
   const char* file  = c.input_file_name.data(); int n_file = c.input_file_name.size();
@@ -900,8 +900,8 @@ extern "C" void lat_to_c2_(C_lat& c, char* name, char* lat, char* file,
 }
 
 
-extern "C" void ele_from_lat_to_c2_(C_lat& ring, Int& it, ele_struct* ele) {
-  ele >> ring.ele[it];
+extern "C" void ele_from_lat_to_c2_(C_lat& lat, Int& it, ele_struct* ele) {
+  ele >> lat.ele[it];
 }
 
 extern "C" void control_from_lat_to_c2_(C_lat& c, Int& it, control_struct* control) {
@@ -909,7 +909,7 @@ extern "C" void control_from_lat_to_c2_(C_lat& c, Int& it, control_struct* contr
 }
 
 void operator>> (C_lat& c, lat_struct* f) {
-  ring_to_f_(c, f);
+  lat_to_f_(c, f);
 }
 
 void operator>> (lat_struct* f, C_lat& c) {

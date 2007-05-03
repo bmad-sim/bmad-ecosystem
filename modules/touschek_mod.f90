@@ -43,18 +43,18 @@ CONTAINS
 !
 ! Input:
 !   mode            -- normal_modes_struct: beam properties
-!     %pz_aperture    -- Real: momentum apperature of lattice
-!     %sigE_E         -- Real: deltaE/E
-!     %a%emittance    -- Real: horizontal emittance
-!     %b%emittance    -- Real: vertical emittance, should be set to 
+!     %pz_aperture    -- Real(rp): momentum apperature of lattice
+!     %sigE_E         -- Real(rp): deltaE/E
+!     %a%emittance    -- Real(rp): horizontal emittance
+!     %b%emittance    -- Real(rp): vertical emittance, should be set to 
 !                          a%emittance * coupling_constant
-!     %sig_z          -- Real: bunch length
+!     %sig_z          -- Real(rp): bunch length
 !   ring            -- lat_struct: Lattice for tracking
-!     %param$n_part   -- Real: Number of particles in bunch, must be set 
+!     %param$n_part   -- Real(rp): Number of particles in bunch, must be set 
 !                          prior to calling touschek_lifetime
 !   orb             -- Coord_struct array: closed orbit
 ! Output:
-!   Tl              -- Real: Touschek lifetime in seconds
+!   Tl              -- Real(rp): Touschek lifetime in seconds
 !
 !-
 

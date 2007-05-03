@@ -66,11 +66,11 @@ CONTAINS
 !
 !  Input:
 !    lat             -- lat_struct: lattice for tracking
-!      %param$n_part  -- Real: number of particles in bunch
+!      %param$n_part  -- Real(rp): number of particles in bunch
 !    inmode           -- normal_modes_struct: natural beam parameters 
 !    formula          -- character*4: IBS formulation to use (see ibs_rates)
-!    ratio            -- Real: Ratio of vert_emit_coupling / vert_emit_total
-!    initial_blow_up  -- Real: Factor multiplied to all 3 bunch dimensions
+!    ratio            -- Real(rp): Ratio of vert_emit_coupling / vert_emit_total
+!    initial_blow_up  -- Real(rp): Factor multiplied to all 3 bunch dimensions
 !                              prior to starting iteration.
 !
 !  Output:
@@ -214,7 +214,7 @@ END SUBROUTINE ibsequilibrium2
 !
 !  Input:
 !    lat             -- lat_struct: lattice for tracking
-!      %param$n_part  -- Real: number of particles in bunch
+!      %param$n_part  -- Real(rp): number of particles in bunch
 !    inmode           -- normal_modes_struct: natural beam parameters 
 !    formula          -- character*4: IBS formulation to use (see ibs_rates)
 !    coupling         -- real: horizontal to vertical emittanc coupling
@@ -380,7 +380,7 @@ END SUBROUTINE ibs_lifetime
 !
 !  Input:
 !    lat             -- lat_struct: lattice for tracking
-!      %param$n_part  -- Real: number of particles in bunch
+!      %param$n_part  -- Real(rp): number of particles in bunch
 !    mode             -- normal_modes_struct: beam parameters 
 !    formula          -- character*4: IBS formulation to use
 !

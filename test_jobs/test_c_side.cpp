@@ -848,9 +848,9 @@ extern "C" void test_c_lat_(lat_struct* f1, lat_struct* f2, int& c_ok) {
   f1 >> c1; 
 
   if (c1 == c_lat_in) {
-    cout << " C_side_convert: ring F to C: OK" << endl;
+    cout << " C_side_convert: lat F to C: OK" << endl;
   } else {
-    cout << " C_SIDE_CONVERT: ring F TO C: FAILED!!" << endl;
+    cout << " C_SIDE_CONVERT: lat F TO C: FAILED!!" << endl;
     c_ok = 0;
   }
 
@@ -858,9 +858,9 @@ extern "C" void test_c_lat_(lat_struct* f1, lat_struct* f2, int& c_ok) {
   test_f_lat_(c1, c2);
 
   if (c2 == c_lat_out) {
-    cout << " F_side_convert: ring F to C: OK" << endl;
+    cout << " F_side_convert: lat F to C: OK" << endl;
   } else {
-    cout << " F_SIDE_CONVERT: ring F TO C: FAILED!!" << endl;
+    cout << " F_SIDE_CONVERT: lat F TO C: FAILED!!" << endl;
     c_ok = 0;
   }
 
