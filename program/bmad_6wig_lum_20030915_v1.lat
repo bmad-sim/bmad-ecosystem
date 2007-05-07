@@ -1,8 +1,7 @@
 ! BMAD input file
 
 lattice := 6wig_lum_20030915_v1
-!call, file=BMAD_LAYOUT:cesr_c1_layout.bmad
-call, file=BMAD_LAYOUT:layout_c_6wig_2003_07_08.bmad
+call, file=layout_c_6wig_2003_07_08.bmad
 
 taylor_order = 3
 
@@ -21,7 +20,7 @@ wig_damp_drift: drift, l=1.6
 dwig: drift, l=0.065
 
 !species:= electron
-call, file=BMAD_LAYOUT:6wig_track.bmad
+call, file=6wig_track.bmad
 
 
 ! element attributes
