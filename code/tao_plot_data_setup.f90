@@ -771,6 +771,7 @@ do k = 1, size(graph%curve)
     datum%data_type   = curve%data_type
     datum%ele0_name   = curve%ele_ref_name
     datum%data_source = curve%data_source
+    datum%name        = tao_curve_name(curve)
 
     do m = 1, size(graph%who)
       do ie = 1, n_dat

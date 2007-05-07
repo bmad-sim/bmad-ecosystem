@@ -246,7 +246,7 @@ if (data_type(1:9) == 'norm_emit') call convert_total_energy_to ( &
 if (data_source /= "lattice" .and. data_source /= "beam_tracking") then
   call out_io (s_error$, r_name, &
           'UNKNOWN DATA_SOURCE: ' // data_source, &
-          'FOR DATUM: ' // datum%d1%d2%name)
+          'FOR DATUM: ' // tao_datum_name(datum))
   call err_exit
 endif
 
@@ -972,7 +972,7 @@ else
       ix_m = maxloc (abs(vec(ix0:ix1)), 1) + ix0 - 1
     case default
       call out_io (s_abort$, r_name, &
-                    'SINCE THIS DATUM: ' // datum%data_type, &
+                    'SINCE THIS DATUM: ' // tao_datum_name(datum), &
                     'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
                     'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
       call err_exit

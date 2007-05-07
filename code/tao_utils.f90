@@ -2390,10 +2390,47 @@ implicit none
 type (tao_data_struct) datum
 character(60) datum_name
 
+! If this datum is "isolated". That is, it does not have an associated d1_data 
+! structure then just use it's name.
+! This can happen if the datum is derived from a curve.
+
+if (.not. associated(datum%d1)) then
+  datum_name = datum%name
+else
+  write (datum_name, '(4a, i0, a)') &
+      trim(datum%d1%d2%name), '.', trim(datum%d1%name), '[', datum%ix_d1, ']'
+endif
+
+end function
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+! Function tao_curve_name (curve) result (curve_name)
+!
+! Function to return the curve name in the form:
+!   plot_name.graph_name.curve_name
+! For example:
+!   orbit.x.c1
+!
+! Input:
+!   curve -- Tao_curve_struct: Curve
+!
+! Output:
+!   curve_name -- Character(60): Appropriate name.
+!-
+
+function tao_curve_name(curve) result (curve_name)
+
+implicit none
+
+type (tao_curve_struct) curve
+character(60) curve_name
+
 !
 
-write (datum_name, '(4a, i0, a)') &
-      trim(datum%d1%d2%name), '.', trim(datum%d1%name), '[', datum%ix_d1, ']'
+write (curve_name, '(5a)') &
+      trim(curve%g%p%name), '.', trim(curve%g%name), '.', trim(curve%name)
 
 end function
 
