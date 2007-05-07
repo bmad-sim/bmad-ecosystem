@@ -238,7 +238,7 @@ case ('curve')
   if (c%g%type == "phase_space") then
     i_uni = c%ix_universe
     if (i_uni == 0) i_uni = s%global%u_view
-    beam => s%u(i_uni)%beam_at_element(c%ix_ele_ref)
+    beam => s%u(i_uni)%beam_at_element(c%ix_ele_ref_track)
     call file_suffixer (file_name, file_name, 'particle_dat', .true.)
     open (iu, file = file_name)
     write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'p_x', '  y', 'p_y', '  z', 'p_z'

@@ -998,6 +998,7 @@ case ('plot')
     nl=nl+1; write (lines(nl), amt) 'data_type               = ', c%data_type
     nl=nl+1; write (lines(nl), amt) 'ele_ref_name            = ', c%ele_ref_name
     nl=nl+1; write (lines(nl), imt) 'ix_ele_ref              = ', c%ix_ele_ref
+    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref_track        = ', c%ix_ele_ref_track
     nl=nl+1; write (lines(nl), imt) 'ix_bunch                = ', c%ix_bunch
     nl=nl+1; write (lines(nl), imt) 'ix_universe             = ', c%ix_universe
     nl=nl+1; write (lines(nl), imt) 'symbol_every            = ', c%symbol_every

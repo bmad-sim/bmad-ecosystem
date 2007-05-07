@@ -230,16 +230,6 @@ if (data_type(1:2) == 't.') data_type = 't.'
 if (data_type(1:3) == 'tt.') data_type = 'tt.'
 if (data_type(1:5) == 'wire.') data_type = 'wire.'
 
-if (data_type == 'r.' .or. data_type == 't.' .or. data_type == 'tt.') then
-  if (ix0 > ix1 .and. lat%param%lattice_type == linear_lattice$) then
-    call out_io (s_error$, r_name, &
-            'ERROR: ELEMENTS ARE REVERSED FOR: ' // tao_datum_name(datum), &
-            'STARTING ELEMENT: ' // lat%ele(ix0)%name, &
-            'IS AFTER ENDING ELEMENT: ' // lat%ele(ix1)%name)
-    return
-  endif
-endif
-
 if (data_type(1:9) == 'norm_emit') call convert_total_energy_to ( &
                     lat%ele(ix1)%value(E_TOT$), lat%param%particle, gamma)
 
@@ -577,10 +567,10 @@ case ('t.')
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
   k = tao_read_this_index (datum%data_type, 5); if (k == 0) return
   if (present(taylor_in)) then
-    call tao_transfer_map_calc (lat, taylor_in, ix0, ix1, unit_start = .false.)
+    call transfer_map_calc (lat, taylor_in, ix0, ix1, unit_start = .false.)
     datum_value = taylor_coef (taylor_in(i), j, k)
   else
-    call tao_transfer_map_calc (lat, taylor, ix0, ix1)
+    call transfer_map_calc (lat, taylor, ix0, ix1)
     datum_value = taylor_coef (taylor(i), j, k)
   endif
 
@@ -593,10 +583,10 @@ case ('tt.')
     expnt(k) = expnt(k) + 1
   enddo
   if (present(taylor_in)) then
-    call tao_transfer_map_calc (lat, taylor_in, ix0, ix1, unit_start = .false.)
+    call transfer_map_calc (lat, taylor_in, ix0, ix1, unit_start = .false.)
     datum_value = taylor_coef (taylor_in(i), expnt)
   else
-    call tao_transfer_map_calc (lat, taylor, ix0, ix1)
+    call transfer_map_calc (lat, taylor, ix0, ix1)
     datum_value = taylor_coef (taylor(i), expnt)
   endif
 
@@ -1113,122 +1103,19 @@ end subroutine tao_read_bpm
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine tao_transfer_map_calc (lat, t_map, ix1, ix2, &
-!                                         integrate, one_turn, unit_start)
-!
-! Subroutine to calculate the transfer map between two elements.
-!
-! The transfer map is from the end of element ix1 to the end of element ix2.
-! If ix1 and ix2 are not present, the full 1-turn map is calculated.
-! If ix2 < ix1 then the calculation will "wrap around" the lattice end.
-! For example if ix1 = 900 and ix2 = 10 then the t_mat is the map from
-! element 900 to the lattice end plus from 0 through 10. 
-!
-! If ix2 = ix1 then you get the unit map except if one_turn = True.
-!
-! Note: If integrate = False and if a taylor map does not exist for an 
-! element this routine will make one and store it in the element.
-!
-! Modules Needed:
-!   use bmad
-!
-! Input:
-!   lat        -- Lat_struct: Lattice used in the calculation.
-!   t_map(6)   -- Taylor_struct: Initial map (used when unit_start = False)
-!   ix1        -- Integer, optional: Element start index for the calculation.
-!                   Default is 0.
-!   ix2        -- Integer, optional: Element end index for the calculation.
-!                   Default is lat%n_ele_track.
-!   integrate  -- Logical, optional: If present and True then do symplectic
-!                   integration instead of concatenation. 
-!                   Default = False.
-!   one_turn   -- Logical, optional: If present and True then construct the
-!                   one-turn map from ix1 back to ix1 (ignolat ix2).
-!                   Default = False.
-!   unit_start -- Logical, optional: If present and False then t_map will be
-!                   used as the starting map instead of the unit map.
-!                   Default = True
-!
-! Output:
-!    t_map(6) -- Taylor_struct: Transfer map.
-!-
-
-subroutine tao_transfer_map_calc (lat, t_map, ix1, ix2, &
-                                      integrate, one_turn, unit_start)
-
-  use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1
-
-  implicit none
-
-  type (lat_struct) lat
-
-  type (taylor_struct) :: t_map(:), taylor2(6)
-
-  integer, intent(in), optional :: ix1, ix2
-  integer i, i1, i2
-
-  logical, optional :: integrate, one_turn, unit_start
-  logical integrate_this, one_turn_this
-
-!
-
-  integrate_this = logic_option (.false., integrate)
-  one_turn_this = logic_option (.false., one_turn)
-
-  i1 = integer_option(0, ix1) 
-  i2 = integer_option(lat%n_ele_track, ix2)
-  if (one_turn_this) i2 = i1
- 
-  if (logic_option(.true., unit_start)) call taylor_make_unit (t_map)
-
-
-  if (i2 < i1 .or. one_turn_this) then
-    do i = i1+1, lat%n_ele_track
-      call add_on_to_t_map
-    enddo
-    do i = 1, i2
-      call add_on_to_t_map
-    enddo
-
-  else
-    do i = i1+1, i2
-      call add_on_to_t_map
-    enddo
-  endif
-
-!--------------------------------------------------------
-contains
-
-subroutine add_on_to_t_map
-
-  if (integrate_this) then
-    call taylor_propagate1 (t_map, lat%ele(i), lat%param)
-  else
-    if (.not. associated(lat%ele(i)%taylor(1)%term)) then
-      call ele_to_taylor (lat%ele(i), lat%param)
-    endif
-
-    call concat_taylor (t_map, lat%ele(i)%taylor, t_map)
-  endif
-
-end subroutine
-
-end subroutine
-                                          
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+         
 ! Subroutine tao_transfer_map_calc_at_s (lat, t_map, s1, s2, &
 !                                         integrate, one_turn, unit_start)
 !
-! Subroutine to calculate the transfer map between two elements.
+! Subroutine to calculate the transfer map between longitudinal positions
+! s1 to s2.
 !
-! The transfer map is from longitudinal position s1 to s2.
-! If s1 and s2 are not present, the full 1-turn map is calculated.
-! If s2 < s1 then the calculation will "wrap around" the lattice end.
-! For example if s1 = 900 and s2 = 10 then the t_mat is the map from
-! s = 900 to the lattice end plus from 0 through s = 10. 
+! If s2 < s1 and lat%param%lattice_type is circular_lattice$ then the
+! calculation will "wrap around" the lattice end.
+! For example, if s1 = 900 and s2 = 10 then the xfer_mat is the matrix from
+! element 900 to the lattice end plus from 0 through 10.
+!
+! If s2 < s1 and lat%param%lattice_type is linear_lattice$ then the backwards
+! transfer matrix is computed.
 !
 ! If s2 = s1 then you get the unit map except if one_turn = True.
 !
@@ -1249,7 +1136,7 @@ end subroutine
 !                   integration instead of concatenation. 
 !                   Default = False.
 !   one_turn   -- Logical, optional: If present and True then construct the
-!                   one-turn map from s1 back to s1 (ignolat s2).
+!                   one-turn map from s1 back to s1 (ignoring s2).
 !                   Default = False.
 !   unit_start -- Logical, optional: If present and False then t_map will be
 !                   used as the starting map instead of the unit map.
@@ -1275,26 +1162,44 @@ subroutine tao_transfer_map_calc_at_s (lat, t_map, s1, s2, &
   real(rp) ss1, ss2
 
   logical, optional :: integrate, one_turn, unit_start
-  logical integrate_this, one_turn_this
+  logical integrate_this, one_turn_this, unit_start_this
+
+  character(24) :: r_name = "transfer_map_calc_at_s"
 
 !
 
-  integrate_this = logic_option (.false., integrate)
-  one_turn_this = logic_option (.false., one_turn)
+  integrate_this  = logic_option (.false., integrate)
+  one_turn_this   = logic_option (.false., one_turn)
+  unit_start_this = logic_option(.true., unit_start)
 
   ss1 = 0;                       if (present(s1)) ss1 = s1
   ss2 = lat%param%total_length;  if (present(s2)) ss2 = s2
   if (one_turn_this) ss2 = ss1
  
-  if (logic_option(.true., unit_start)) call taylor_make_unit (t_map)
+  if (unit_start_this) call taylor_make_unit (t_map)
 
+! Normal case
 
-  if (ss2 < ss1 .or. one_turn_this) then
-    call transfer_this (ss1, lat%param%total_length)
-    call transfer_this (0.0_rp, ss2)
-  else
-    call transfer_this (ss1, ss2)
+if (ss1 < ss2 .or. (ss1 == ss2 .and. one_turn_this)) then
+  call transfer_this (ss1, ss2)
+
+! For a circular lattice push through the origin.
+
+elseif (lat%param%lattice_type == circular_lattice$) then
+  call transfer_this (ss1, lat%param%total_length)
+  call transfer_this (0.0_rp, ss2)
+
+! For a linear lattice compute the backwards matrix
+
+else
+  if (.not. unit_start_this) then
+    call out_io (s_fatal$, r_name, 'Backwards propagation with a non-unit starting map!')
+    call err_exit
   endif
+
+  call transfer_this (ss2, ss1)
+  call taylor_inverse (t_map, t_map)
+endif
 
 !--------------------------------------------------------
 ! Known problems:
@@ -1368,15 +1273,18 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine tao_mat6_calc_at_s (lat, mat6, s1, s2, one_turn, unit_start)
+! Subroutine tao_mat6_calc_at_s (lat, mat6, vec0, s1, s2, one_turn, unit_start)
 !
-! Subroutine to calculate the transfer matrix between two elements.
+! Subroutine to calculate the transfer map between longitudinal positions
+! s1 to s2.
 !
-! The transfer matrix is from longitudinal position s1 to s2.
-! If s1 and s2 are not present, the full 1-turn map is calculated.
-! If s2 < s1 then the calculation will "wrap around" the lattice end.
-! For example if s1 = 900 and s2 = 10 then the t_mat is the map from
-! s = 900 to the lattice end plus from 0 through s = 10. 
+! If s2 < s1 and lat%param%lattice_type is circular_lattice$ then the
+! calculation will "wrap around" the lattice end.
+! For example, if s1 = 900 and s2 = 10 then the xfer_mat is the matrix from
+! element 900 to the lattice end plus from 0 through 10.
+!
+! If s2 < s1 and lat%param%lattice_type is linear_lattice$ then the backwards
+! transfer matrix is computed.
 !
 ! If s2 = s1 then you get the unit matrix except if one_turn = True.
 !
@@ -1385,7 +1293,8 @@ end subroutine
 !
 ! Input:
 !   lat        -- Lat_struct: Lattice used in the calculation.
-!   mat6(6,6)  -- Taylor_struct: Initial map (used when unit_start = False)
+!   mat6(6,6)  -- Real(rp): Initial matrix (used when unit_start = False)
+!   vec0(6)    -- Real(rp): Initial 0th order map (used when unit_start = False)
 !   s1         -- Real(rp), optional: Element start index for the calculation.
 !                   Default is 0.
 !   s2         -- Real(rp), optional: Element end index for the calculation.
@@ -1398,42 +1307,57 @@ end subroutine
 !                   Default = True
 !
 ! Output:
-!    t_map(6) -- Taylor_struct: Transfer map.
+!    mat6(6,6) -- Real(rp): Transfer matrix.
+!    vec0(6)   -- Real(rp): 0th order part of the map.
 !-
 
-subroutine tao_mat6_calc_at_s (lat, mat6, s1, s2, one_turn, unit_start)
+subroutine tao_mat6_calc_at_s (lat, mat6, vec0, s1, s2, one_turn, unit_start)
 
-  use bmad_struct
-  use bmad_interface
+use bmad_struct
+use bmad_interface
 
-  implicit none
+implicit none
 
-  type (lat_struct) lat
+type (lat_struct) lat
 
-  real(rp) mat6(:,:)
-  real(rp), intent(in), optional :: s1, s2
-  real(rp) ss1, ss2
+real(rp) mat6(:,:), vec0(:)
+real(rp), intent(in), optional :: s1, s2
+real(rp) ss1, ss2
 
-  logical, optional :: one_turn, unit_start
-  logical one_turn_this
+logical, optional :: one_turn, unit_start
+logical one_turn_this
 
 !
 
-  one_turn_this = logic_option (.false., one_turn)
+one_turn_this = logic_option (.false., one_turn)
 
-  ss1 = 0;                       if (present(s1)) ss1 = s1
-  ss2 = lat%param%total_length;  if (present(s2)) ss2 = s2
-  if (one_turn_this) ss2 = ss1
+ss1 = 0;                       if (present(s1)) ss1 = s1
+ss2 = lat%param%total_length;  if (present(s2)) ss2 = s2
  
-  if (logic_option(.true., unit_start)) call mat_make_unit (mat6)
+if (logic_option(.true., unit_start)) then
+  call mat_make_unit (mat6)
+  vec0 = 0
+endif
 
+! Normal case
 
-  if (ss2 < ss1 .or. one_turn_this) then
-    call transfer_this (ss1, lat%param%total_length)
-    call transfer_this (0.0_rp, ss2)
-  else
-    call transfer_this (ss1, ss2)
-  endif
+if (ss1 < ss2 .or. (ss1 == ss2 .and. one_turn_this)) then
+  call transfer_this (ss1, ss2)
+
+! For a circular lattice push through the origin.
+
+elseif (lat%param%lattice_type == circular_lattice$) then
+  call transfer_this (ss1, lat%param%total_length)
+  call transfer_this (0.0_rp, ss2)
+
+! For a linear lattice compute the backwards matrix
+
+else
+  call transfer_this (ss2, ss1)
+  call mat_inverse (mat6, mat6)
+  vec0 = -matmul(mat6, vec0)
+
+endif
 
 
 !--------------------------------------------------------
@@ -1445,33 +1369,35 @@ contains
 
 subroutine transfer_this (s_1, s_2)
 
-  type (ele_struct), save :: ele
-  real(rp) s_1, s_2, s_end, s_now, ds
-  integer ix_ele
+type (ele_struct), save :: ele
+real(rp) s_1, s_2, s_end, s_now, ds
+integer ix_ele
 
 !
 
-  call ele_at_s (lat, s_1, ix_ele)
+call ele_at_s (lat, s_1, ix_ele)
+ele = lat%ele(ix_ele)
+s_now = s_1
+
+do
+  s_end = min(s_2, ele%s)
+  ds = s_end - s_now
+  ele%value(l$) = ds
+  if (ele%key == sbend$) then
+    if (s_now /= lat%ele(ix_ele-1)%s) ele%value(e1$) = 0
+    if (s_end /= ele%s) ele%value(e2$) = 0
+  endif
+
+  if (s%global%matrix_recalc_on) call make_mat6 (ele, lat%param)
+
+  mat6 = matmul (ele%mat6, mat6)
+  vec0 = matmul (ele%mat6, vec0) + ele%vec0
+
+  if (s_end == s_2) return
+  s_now = s_end
+  ix_ele = ix_ele + 1
   ele = lat%ele(ix_ele)
-  s_now = s_1
-
-  do
-    s_end = min(s_2, ele%s)
-    ds = s_end - s_now
-    ele%value(l$) = ds
-    if (ele%key == sbend$) then
-      if (s_now /= lat%ele(ix_ele-1)%s) ele%value(e1$) = 0
-      if (s_end /= ele%s) ele%value(e2$) = 0
-    endif
-
-    if (s%global%matrix_recalc_on) call make_mat6 (ele, lat%param)
-    mat6 = matmul (ele%mat6, mat6)
-
-    if (s_end == s_2) return
-    s_now = s_end
-    ix_ele = ix_ele + 1
-    ele = lat%ele(ix_ele)
-  enddo
+enddo
 
 end subroutine
 

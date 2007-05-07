@@ -2704,4 +2704,54 @@ if (present(error)) error = .false.
 
 end subroutine
 
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine tao_ele_ref_to_ele_ref_track (ix_universe, ix_ele_ref, ix_ele_ref_track)
+!
+! Subroutine to compute ix_ele_ref_track:
+!   = ix_ele_ref             if ix_ele_ref <= lat%n_ele_track
+!   = ix_slave_at_exit_end   if ix_ele_ref is a super_lord  
+!   = -1                     otherwise
+!
+! Input:
+!   ix_universe -- Integer: Universe index.
+!   ix_ele_ref  -- Integer: Element index
+!
+! Output:
+!   ix_ele_ref_track -- Integer: Corresponding element in the tracking 
+!                         part of the lattice.
+!-
+
+subroutine tao_ele_ref_to_ele_ref_track (ix_universe, ix_ele_ref, ix_ele_ref_track)
+
+implicit none
+
+type (lat_struct), pointer :: lat
+
+integer ix_universe, ix_ele_ref, ix_ele_ref_track
+integer i_uni, ix_c
+
+!
+
+i_uni = tao_universe_number(ix_universe)
+lat => s%u(i_uni)%model%lat
+
+if (ix_ele_ref < 0) then
+  ix_ele_ref_track = -1
+
+elseif (ix_ele_ref <= lat%n_ele_track) then
+  ix_ele_ref_track = ix_ele_ref
+
+elseif (lat%ele(ix_ele_ref)%control_type == super_lord$) then
+  ix_c = lat%ele(ix_ele_ref)%ix2_slave
+  ix_ele_ref_track = lat%control(ix_c)%ix_slave ! element at exit end.
+
+else  ! overlays, multipass_lords, etc.
+  ix_ele_ref_track = -1
+endif
+
+end subroutine
+
 end module tao_utils

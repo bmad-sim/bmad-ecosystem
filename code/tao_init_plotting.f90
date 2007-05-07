@@ -248,9 +248,6 @@ do
       crv%ix_ele_ref              = curve(j)%ix_ele_ref
       crv%ix_bunch                = curve(j)%ix_bunch
 
-      i_uni = crv%ix_universe
-      if (i_uni == 0) i_uni = s%global%u_view
-
       ! Turn on the y2 axis numbering if needed.
 
       if (crv%use_y2) then
@@ -259,6 +256,8 @@ do
       endif
 
       ! Enable the radiation integrals calculation if needed.
+
+      i_uni = tao_universe_number (crv%ix_universe)
 
       if ((crv%data_type(1:10) == 'emittance.' .or. crv%data_type(1:15) == 'norm_emittance.') .and. &
                                                                          crv%data_source == 'lattice') then
@@ -289,6 +288,8 @@ do
       elseif (graph%type == 'key_table') then
         plt%x_axis_type = 'none'
       endif
+
+      call tao_ele_ref_to_ele_ref_track (crv%ix_universe, crv%ix_ele_ref, crv%ix_ele_ref_track)
 
     enddo  ! curve
 

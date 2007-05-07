@@ -251,6 +251,7 @@ implicit none
 
 type (tao_curve_array_struct), allocatable, save :: curve(:)
 type (tao_graph_array_struct), allocatable, save :: graph(:)
+type (lat_struct), pointer :: lat
 
 integer i, j, ios, i_uni
 integer, allocatable :: ix_ele(:)
@@ -290,37 +291,55 @@ logical error
 this_graph => this_curve%g
 i_uni = tao_universe_number(this_curve%ix_universe)
 
+! if the universe is changed then need to check ele_ref
+
 select case (component)
 
-  case ('ele_ref_name')
-    this_curve%ele_ref_name = set_value
-    call tao_locate_element (this_curve%ele_ref_name, i_uni, ix_ele, .true.)
-    if (ix_ele(1) < 0) return
-    this_curve%ix_ele_ref = ix_ele(1)
-
-  case ('ix_ele_ref')
-    call tao_integer_set_value (this_curve%ix_ele_ref, component, &
+case ('ele_ref_name')
+  this_curve%ele_ref_name = set_value
+  call tao_locate_element (this_curve%ele_ref_name, i_uni, ix_ele, .true.)
+  if (ix_ele(1) < 0) return
+  this_curve%ix_ele_ref = ix_ele(1)
+  call tao_ele_ref_to_ele_ref_track (this_curve%ix_universe, this_curve%ix_ele_ref, &
+                                                                 this_curve%ix_ele_ref_track)
+  
+case ('ix_ele_ref')
+  call tao_integer_set_value (this_curve%ix_ele_ref, component, &
                                  set_value, error, 0, s%u(i_uni)%model%lat%n_ele_max)
-    this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele(this_curve%ix_ele_ref)%name
+  this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele(this_curve%ix_ele_ref)%name
+  call tao_ele_ref_to_ele_ref_track (this_curve%ix_universe, this_curve%ix_ele_ref, &
+                                                                 this_curve%ix_ele_ref_track)
 
-  case ('ix_universe')
-    call tao_integer_set_value (this_curve%ix_universe, component, &
+case ('ix_universe')
+  call tao_integer_set_value (this_curve%ix_universe, component, &
                                             set_value, error, 0, size(s%u))
- 
-  case ('ix_bunch')
-    call tao_pointer_to_universe (this_curve%ix_universe, u)
-    call tao_integer_set_value (this_curve%ix_bunch, component, &
+  if (error) return
+  call tao_locate_element (this_curve%ele_ref_name, this_curve%ix_universe, ix_ele, .true.)
+  if (ix_ele(1) < 0) return
+  this_curve%ix_ele_ref = ix_ele(1)
+  call tao_ele_ref_to_ele_ref_track (this_curve%ix_universe, this_curve%ix_ele_ref, &
+                                                                 this_curve%ix_ele_ref_track)
+
+case ('ix_bunch')
+  call tao_pointer_to_universe (this_curve%ix_universe, u)
+  call tao_integer_set_value (this_curve%ix_bunch, component, &
                                               set_value, error, -1, u%beam_init%n_bunch)
 
-  case ('symbol_every')
-    call tao_integer_set_value (this_curve%symbol_every, component, &
+case ('symbol_every')
+  call tao_integer_set_value (this_curve%symbol_every, component, &
                                             set_value, error, 0, size(this_curve%x_symb))
 
-  case default
+case default
+  call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
+  return
     
-    call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
-    return
-    
+end select
+
+! Set ix_ele_ref_track if necessary
+
+select case (component)
+case ('ele_ref_name', 'ix_ele_ref', 'ix_universe')
+
 end select
 
 ! Enable

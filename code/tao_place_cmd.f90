@@ -68,9 +68,15 @@ do i = 1, size(region%plot%graph)
   if (region%plot%graph(i)%type /= 'phase_space') cycle
   do j = 1, size(region%plot%graph(i)%curve)
     curve => region%plot%graph(i)%curve(j)
+    if (curve%ix_ele_ref_track < 0) then
+      call out_io (s_error$, r_name, &
+                'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name, &
+                'CANNOT PLOT PHASE SPACE FOR: ' // tao_curve_name(curve))
+      return
+    endif
     u => s%u(tao_universe_number(curve%ix_universe))
-    if (.not. allocated(u%beam_at_element(curve%ix_ele_ref)%bunch)) then
-      call reallocate_beam (u%beam_at_element(curve%ix_ele_ref), &
+    if (.not. allocated(u%beam_at_element(curve%ix_ele_ref_track)%bunch)) then
+      call reallocate_beam (u%beam_at_element(curve%ix_ele_ref_track), &
                               u%beam_init%n_bunch, u%beam_init%n_particle)
       s%global%lattice_recalc = .true.
     endif

@@ -84,6 +84,7 @@ type tao_curve_struct
   integer ix_universe          ! universe to take the data from. 0 => use s%global%u_view
   integer symbol_every         ! symbol every how many points.
   integer ix_ele_ref           ! Index in lattice of reference element.
+  integer ix_ele_ref_track     ! = ix_ele_ref except for super_lord elements.
   integer ix_bunch             ! Bunch to plot.
   logical use_y2               ! Use y2 axis?
   logical draw_line            ! draw a line through the data points?

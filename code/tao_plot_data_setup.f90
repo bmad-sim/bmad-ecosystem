@@ -191,9 +191,19 @@ character(40) :: r_name = 'tao_phase_space_plot_data_setup'
 
 ! Set up the graph suffix
 
+graph%valid = .false.
+
 curve => graph%curve(1)
 call tao_pointer_to_universe (curve%ix_universe, u)
-ele => u%model%lat%ele(curve%ix_ele_ref)
+
+if (curve%ix_ele_ref_track < 0) then
+  call out_io (s_error$, r_name, &
+                'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name, &
+                'CANNOT PLOT PHASE SPACE FOR: ' // tao_curve_name(curve))
+  return
+endif
+
+ele => u%model%lat%ele(curve%ix_ele_ref_track)
 
 name = curve%ele_ref_name
 if (name == ' ') name = ele%name
@@ -201,8 +211,6 @@ if (name == ' ') name = ele%name
 write (graph%title_suffix, '(a, i0, 3a)') '[', curve%ix_ele_ref, ': ', trim(name), ']'
 
 ! loop over all curves
-
-graph%valid = .false.
 
 do k = 1, size(graph%curve)
 
@@ -228,7 +236,7 @@ do k = 1, size(graph%curve)
   if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
   if (curve%data_source == 'beam_tracking') then
-    beam => u%beam_at_element(curve%ix_ele_ref)
+    beam => u%beam_at_element(curve%ix_ele_ref_track)
     if (.not. allocated(beam%bunch)) then
       call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
@@ -486,6 +494,7 @@ do k = 1, size(graph%curve)
   if (curve%ele_ref_name == ' ') then
     zero_average_phase = .true.
     curve%ix_ele_ref = 0
+    curve%ix_ele_ref_track = 0
   else
     zero_average_phase = .false.
     call tao_locate_element (curve%ele_ref_name, curve%ix_universe, ix_ele, .true.)
@@ -494,6 +503,7 @@ do k = 1, size(graph%curve)
       return
     endif
     curve%ix_ele_ref = ix_ele(1)
+    call tao_ele_ref_to_ele_ref_track(curve%ix_universe, ix_ele(1), curve%ix_ele_ref_track)
   endif
 
 
@@ -766,7 +776,7 @@ do k = 1, size(graph%curve)
     y_symb = 0
     valid_value = .true.
 
-    datum%ix_ele0     = curve%ix_ele_ref
+    datum%ix_ele0     = curve%ix_ele_ref_track
     datum%merit_type  = 'target'
     datum%data_type   = curve%data_type
     datum%ele0_name   = curve%ele_ref_name
@@ -938,7 +948,7 @@ type (ele_struct), pointer :: ele0
 type (coord_struct) here
 type (taylor_struct) t_map(6)
 
-real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6)
+real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma
 
 integer i, ii, j, k, expnt(6), ix_ele, ix0
@@ -955,7 +965,7 @@ data_type = curve%data_type
 
 lat => tao_lat%lat
 orb => tao_lat%orb
-ix0 = curve%ix_ele_ref
+ix0 = curve%ix_ele_ref_track
 if (ix0 < 0) ix0 = 0
 
 if (lat%param%lattice_type == circular_lattice$ .and. .not. lat%param%stable) then
@@ -1123,7 +1133,7 @@ do ii = 1, size(curve%x_line)
     if (s_now < s_last) cycle
     i = tao_read_this_index (data_type, 3); if (i == 0) return
     j = tao_read_this_index (data_type, 4); if (j == 0) return
-    call tao_mat6_calc_at_s (lat, mat6, s_last, s_now, unit_start = .false.)
+    call tao_mat6_calc_at_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
     value = mat6(i, j)
   case ('t.')
     if (ii == 1) call taylor_make_unit (t_map)
@@ -1146,7 +1156,7 @@ do ii = 1, size(curve%x_line)
     call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
     value = taylor_coef (t_map(i), expnt)
   case ('momentum_compaction')
-    call tao_mat6_calc_at_s (lat, mat6, s_last, s_now, unit_start = .false.)
+    call tao_mat6_calc_at_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
     call make_v_mats (ele0, v_mat, v_inv_mat)
     eta_vec = (/ ele0%a%eta, ele0%a%etap, ele0%b%eta, ele0%b%etap /)
     eta_vec = matmul (v_mat, eta_vec)
