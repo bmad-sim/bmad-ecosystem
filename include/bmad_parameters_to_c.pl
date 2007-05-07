@@ -32,7 +32,7 @@ while (<F_IN>) {
   if (m@\(/@) {next;}
 
   $_ = uc;  # upper case
-  s/INTEGER, *PARAMETER *::/const int/;
+  s/INTEGER, *PARAMETER *::/  const int/;
   s/\$//g;
 
   if (/\&/) {

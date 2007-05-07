@@ -573,12 +573,14 @@ interface
 end interface
 
 interface
-  subroutine transfer_map_calc (lat, t_map, ix1, ix2)
+  subroutine transfer_map_calc (lat, t_map, ix1, ix2, &
+                                           integrate, one_turn, unit_start)
     use bmad_struct, only: lat_struct, rp, taylor_struct
     implicit none
     type (lat_struct) lat
     type (taylor_struct) :: t_map(:)
     integer, intent(in), optional :: ix1, ix2
+    logical, optional :: integrate, one_turn, unit_start
   end subroutine
 end interface
 
