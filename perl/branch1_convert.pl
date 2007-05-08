@@ -1,7 +1,11 @@
 #!/usr/bin/perl   
 
+use File::Copy;
+
 foreach $file (@ARGV) {  
   print "Converting: $file\n";
+  copy( $file, "$file~" ) or warn "Couldn't copy $file to $file~:\n $!\n"; 
+  print "Copied current version to $file~\n";
   open (F_IN, $file) || die ("Cannot Open File");
   open (F_OUT, ">temp.out");
 
@@ -155,6 +159,6 @@ foreach $file (@ARGV) {
   close (F_OUT);
 
   $file2 = $file;
-  rename "temp.out", $file2;
+  move( "temp.out", $file2 ) or warn "Couldn't move temp.out to $file2: $!\n";
 
 }
