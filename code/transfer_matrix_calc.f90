@@ -68,7 +68,7 @@ i2 = integer_option(lat%n_ele_track, ix2)
 
 ! Normal case
 
-if (i1 >= i2) then  
+if (i1 <= i2) then  
   do i = i1+1, i2
     call add_on_to_xfer_mat
   enddo
