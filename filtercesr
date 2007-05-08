@@ -21,10 +21,10 @@ $F90_MOD_RULE="\t\@\$(ECHO) \"F90_MOD_RULE: Compiling :  \$< --> \$\@\"
 
 ###########################################################
 $absrelname=$ARGV[0];
-$cvssrc="cvssrc";
-$cvssrcdot="cvssrc.";
-if ($absrelname=~m/packages/g){$cvssrc=""; $cvssrcdot=""}
-if ($absrelname=~m/PACKAGES/g){$cvssrc=""; $cvssrcdot=""}
+$src="src";
+$srcdot="src.";
+if ($absrelname=~m/packages/g){$src=""; $srcdot=""}
+if ($absrelname=~m/PACKAGES/g){$src=""; $srcdot=""}
 $libname=$ARGV[1];
 print "Converting to VMS-style dependencies for $libname \n";
 gendepfullname();
@@ -222,7 +222,7 @@ sub take_care_of_some_variables {
 #        $varP =~ s/\$\(CESR_MOD\)\//\$\(MOD_OUT_DIR\)/g;
         $varP =~ s/\$\(CESR_PKG\)\/modules\//\$\(PBASE\)\.Modules\]/g;
         $varP =~ s/\$\(CESR_PKG\)\/cfortran\/include\//\$\(PBASE\)\.cfortran\.include\]/g;
-        $varP =~ s/\.\.\/c_utils\/include\//\$\(CLBASE\)\.cvssrc\.c_utils\.include\]/g;
+        $varP =~ s/\.\.\/c_utils\/include\//\$\(CLBASE\)\.src\.c_utils\.include\]/g;
     }
     $smlist = join " ",@prereqs;
     @prereqs =  split " " ,$smlist;
@@ -236,21 +236,23 @@ sub take_care_of_some_variables {
 sub gendepfullname {
 #    print "gendepfullname called\n";
 #    local ($x,$snd);
-    system "ls -Ra $absrelname/$cvssrc/$libname |grep ':'|grep -v CVS > subdir_list.tmp";
+    #system "ls -Ra $absrelname/$src/$libname |grep ':'|grep -v CVS > subdir_list.tmp";
+    system "ls -Ra $absrelname/$src/$libname |grep ':'> subdir_list.tmp";
     open (FILE04,"subdir_list.tmp") || die "cannot open file subdir_list.tmp";
     while ($subdir = <FILE04>){           # for each subdirectory of a library dir...
         chomp($subdir);
         chop($subdir);
         $subdir=~s/.*$libname/\/$libname/g;
-        system "ls  $absrelname/$cvssrc/$subdir |grep -v CVS > tmp03.tmp"; # grab a list of every file in subdir
+        #system "ls  $absrelname/$src/$subdir |grep -v CVS > tmp03.tmp"; # grab a list of every file in subdir
+        system "ls  $absrelname/$src/$subdir > tmp03.tmp"; # grab a list of every file in subdir
         open (BASELIST_FILE,"tmp03.tmp") || die "cannot open file tmp03.tmp";
         while ($file = <BASELIST_FILE>){            # for each file in subdir, convert it's full name to VMS-friendly format
             chomp($file);
             $listfilek{$file}="$subdir";
-            $listfilek{$file}=~s/\B\//\$(CLBASE)\.$cvssrcdot/g;		# replace 
+            $listfilek{$file}=~s/\B\//\$(CLBASE)\.$srcdot/g;		# replace 
             $listfilek{$file}=~s/\//\./g;   				# replace / with .
             $listfilek{$file}=~s/\-/\_/g;				# replace - with _ if it exists
-            $listfilek{$file}=~s/\B\$\(CLBASE\)\.cvssrc\./\[--\./g;	# replace 
+            $listfilek{$file}=~s/\B\$\(CLBASE\)\.src\./\[--\./g;	# replace 
             $listfilek{$file}="$listfilek{$file}]$file";
         }
         close (BASELIST_FILE)|| die "can not close file tmp03.tmp";
