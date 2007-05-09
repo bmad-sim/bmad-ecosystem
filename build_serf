@@ -172,7 +172,9 @@ if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
 ## -- implement workaround for crummy ancient Python version on cesrbuild2
 if platform == "OSF1_alpha_hp":
     print "OSF1 workaround testing..."
-    build_process = popen2.Popen3(build_cmd, capturestderr=1)
+    #build_process = popen2.Popen3(build_cmd, capturestderr=1)
+    print build_cmd
+    build_process = popen2.Popen3(build_cmd)
     pid = build_process.pid
     line = build_process.fromchild.readline()
     #if build_process.childerr.readline() != None:
@@ -200,8 +202,9 @@ if platform == "OSF1_alpha_hp":
 #chgrp_err = 0
 #chmod_err = 0
 #fdb_error = 0
-os.system("chgrp -R cesr " + config_dir)
-os.system("chmod -R g+w " + config_dir)
+if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
+    os.system("chgrp -R cesr " + config_dir)
+    os.system("chmod -R g+w " + config_dir)
 #if chgrp_error != 0 or chmod_err != 0:
 #    print "Error setting group or permissions in config area. Exiting."
 #    sys.exit(60)
