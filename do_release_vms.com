@@ -35,85 +35,85 @@ $!--------------------------------------------------
 $!
 $ write sys$output "========== Building c_utils =========="
 $ par1="RELEASE=''p2'"
-$ gmake --directory=[.cvssrc.c_utils] "''par1'" "''par2'"
+$ gmake --directory=[.src.c_utils] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building cesr_utils
 $!--------------------------------------------------
 $!
 $ write sys$output "========== Building cesr_utils =========="  
-$ gmake --directory=[.cvssrc.cesr_utils] "''par1'" "''par2'"
+$ gmake --directory=[.src.cesr_utils] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building RECIPES_F_90_LEPP
 $!--------------------------------------------------
 $!  
 $ write sys$output "========== Building RECIPES_F_90_LEPP =========="
-$ gmake --directory=[.cvssrc.RECIPES_F_90_LEPP] "''par1'" "''par2'"
+$ gmake --directory=[.src.RECIPES_F_90_LEPP] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building dcslib
 $!--------------------------------------------------
 $!  
 $ write sys$output "========== Building dcslib =========="
-$ gmake --directory=[.cvssrc.dcslib] "''par1'" "''par2'"
+$ gmake --directory=[.src.dcslib] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building bmad
 $!--------------------------------------------------
 $!  
 $ write sys$output "========== Building bmad =========="
-$ gmake --directory=[.cvssrc.bmad] "''par1'" "''par2'"
+$ gmake --directory=[.src.bmad] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building CesrBPM
 $!--------------------------------------------------
 $!  
 $ write sys$output "========== Building CesrBPM =========="
-$ gmake --directory=[.cvssrc.CesrBPM] "''par1'" "''par2'"
+$ gmake --directory=[.src.CesrBPM] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building bmadz
 $!--------------------------------------------------
 $!  
 $ write sys$output "========== Building bmadz =========="
-$ gmake --directory=[.cvssrc.bmadz] "''par1'" "''par2'"
+$ gmake --directory=[.src.bmadz] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building odysseus
 $!--------------------------------------------------
 $!  
 $ write sys$output "========== Building odysseus =========="
-$ gmake --directory=[.cvssrc.odysseus] "''par1'" "''par2'"
+$ gmake --directory=[.src.odysseus] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building toad
 $!--------------------------------------------------
 $!  
 $ write sys$output "========== Building toad =========="
-$! gmake --directory=[.cvssrc.toad] "''par1'" "''par2'"
+$! gmake --directory=[.src.toad] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building nonlin_bpm
 $!--------------------------------------------------
 $!  
 $ write sys$output "========== Building nonlin_bpm =========="
-$ gmake --directory=[.cvssrc.nonlin_bpm] "''par1'" "''par2'"
+$ gmake --directory=[.src.nonlin_bpm] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building BeamInstSupport
 $!--------------------------------------------------
 $!  
 $ write sys$output "========== Building BeamInstSupport =========="
-$ gmake --directory=[.cvssrc.BEAMINSTSUPPORT] "''par1'" "''par2'"
+$ gmake --directory=[.src.BEAMINSTSUPPORT] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building MPMnet
 $!--------------------------------------------------
 $!  
 $ write sys$output "========== Building MPMnet =========="
-$ gmake --directory=[.cvssrc.MPMnet] "''par1'" "''par2'"
-$ gmake --directory=[.cvssrc.MPMnet] --file=MAKEFILE_MPMEQ.VMS  "''par1'" "''par2'"
+$ gmake --directory=[.src.MPMnet] "''par1'" "''par2'"
+$ gmake --directory=[.src.MPMnet] --file=MAKEFILE_MPMEQ.VMS  "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $ set def 'crsdir'
