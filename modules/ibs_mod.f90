@@ -57,8 +57,8 @@ CONTAINS
 !  ratio is a statement about how much of the vertical beam size is expected
 !  to be due to dispersion, and how much from coupling.  Ratios between
 !  .50 and .85 are commonly used.
-!  This method generally requires that the initial beam parameters be larger
-!  than the expected equilibrium.  An initial_blow_up of 3 to 5 is generally
+!  This method requires that the initial beam parameters be larger
+!  than the expected equilibrium.  An initial_blow_up of 3 to 5 is 
 !  a good place to start.
 !
 !  Modules needed:
@@ -66,11 +66,11 @@ CONTAINS
 !
 !  Input:
 !    lat             -- lat_struct: lattice for tracking
-!      %param$n_part  -- Real(rp): number of particles in bunch
+!      %param$n_part  -- Real: number of particles in bunch
 !    inmode           -- normal_modes_struct: natural beam parameters 
 !    formula          -- character*4: IBS formulation to use (see ibs_rates)
-!    ratio            -- Real(rp): Ratio of vert_emit_coupling / vert_emit_total
-!    initial_blow_up  -- Real(rp): Factor multiplied to all 3 bunch dimensions
+!    ratio            -- Real: Ratio of vert_emit_coupling / vert_emit_total
+!    initial_blow_up  -- Real: Factor multiplied to all 3 bunch dimensions
 !                              prior to starting iteration.
 !
 !  Output:
@@ -101,8 +101,14 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
   REAL(rp) sigE_E, sigma_z, L_ratio
   REAL(rp) sigE_E0, sigma_z0
   REAL(rp) fpw
+  REAL(rp) dex, d2ex, dey, d2ey, deE, d2eE
+  REAL(rp) running_emit_x(1:10), running_emit_y(1:10), running_sigE_E(1:10)
+  !REAL(rp) running_emit_x(1:3), running_emit_y(1:3), running_sigE_E(1:3)
+  INTEGER half
+  REAL(rp) runavg_emit_x_A, runavg_emit_y_A, runavg_sigE_E_A
+  REAL(rp) runavg_emit_x_B, runavg_emit_y_B, runavg_sigE_E_B
   LOGICAL converged
-  INTEGER counter
+  INTEGER counter, i
 
   CHARACTER(20) :: r_name = 'ibs_equilibrium2'
 
@@ -115,14 +121,13 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
   !fpw is a simple way of modeling potential well bunch lengthing.
   !This factor is multiplied by the zero current L_ratio when 
   !determining bunch length from energy spread.
-  fpw = 1.0 ! + .21/(12.0E9) * lat%param%n_part
+  fpw = 1.0 !+ .21/(12.0E9) * lat%param%n_part
   sigma_z0 = inmode%sig_z
   sigE_E0 = inmode%sigE_E 
   L_ratio = sigma_z0 / sigE_E0
   emit_x0 = inmode%a%emittance
   emit_y0 = inmode%b%emittance 
 
-  !CALL ibs_equilibrium(lat,inmode,ibsmode,formula)
   ibsmode%a%emittance = emit_x0 * initial_blow_up
   ibsmode%b%emittance = emit_y0 * initial_blow_up
   ibsmode%sig_z = sigma_z0      * sqrt(initial_blow_up)
@@ -137,11 +142,19 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
   advance = .05
   !Changes in emittance between iterations less than threshold
   !indicate convergence.
-  threshold = advance * .0001
+  threshold = advance * .001
+
+  DO i=1, SIZE(running_emit_x)
+    running_emit_x(i) = 0.0
+    running_emit_y(i) = 0.0
+    running_sigE_E(i) = 0.0
+  ENDDO
+  half = SIZE(running_emit_x) / 2
+
   DO WHILE(.not.converged)
     CALL ibs_rates(lat,ibsmode,rates,formula)
     counter = counter + 1
-    !It is possible that method can give negative emittances
+    !It is possible that this method can give negative emittances
     !at some point in the iterative process, in which case the case
     !structure below will terminate the program.  If this happens, try
     !using different values for initial_blow_up.
@@ -182,15 +195,52 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
     emit_y = ibsmode%b%emittance + advance*( &
              ((1.0-ratio)*yfactor+ratio*xfactor)*emit_y0 - ibsmode%b%emittance )
     emit_x = ibsmode%a%emittance + advance*( xfactor*emit_x0 - ibsmode%a%emittance )
-    sigE_E = ibsmode%sigE_E      + advance*( (zfactor)*sigE_E0 - ibsmode%sigE_E )
+    sigE_E = ibsmode%sigE_E      + advance*( zfactor*sigE_E0 - ibsmode%sigE_E )
 
-    IF( abs(emit_y/ibsmode%b%emittance-1.) .lt. threshold ) THEN
-      IF( abs(emit_x/ibsmode%a%emittance-1.) .lt. threshold ) THEN
-        IF( abs(sigE_E/ibsmode%sigE_E-1.) .lt. threshold ) THEN
-          converged = .true.
+    running_emit_x = CSHIFT(running_emit_x, -1)
+    running_emit_y = CSHIFT(running_emit_y, -1)
+    running_sigE_E = CSHIFT(running_sigE_E, -1)
+    running_emit_x(1) = emit_x
+    running_emit_y(1) = emit_y
+    running_sigE_E(1) = sigE_E
+    runavg_emit_x_A = SUM(running_emit_x(1:half))/(half)
+    runavg_emit_y_A = SUM(running_emit_y(1:half))/(half)
+    runavg_sigE_E_A = SUM(running_sigE_E(1:half))/(half)
+    runavg_emit_x_B = SUM(running_emit_x(half+1:))/(half)
+    runavg_emit_y_B = SUM(running_emit_y(half+1:))/(half)
+    runavg_sigE_E_B = SUM(running_sigE_E(half+1:))/(half)
+
+    IF(counter .gt. SIZE(running_emit_x)) THEN
+      IF( abs(runavg_emit_x_A/runavg_emit_x_B - 1.) .lt. threshold ) THEN
+        IF( abs(runavg_emit_y_A/runavg_emit_y_B - 1.) .lt. threshold ) THEN
+          IF( abs(runavg_sigE_E_A/runavg_sigE_E_B - 1.) .lt. threshold ) THEN
+            converged = .true.
+          ENDIF
         ENDIF
-      ENDIF
+      ENDIF        
     ENDIF        
+
+    !dex = running_emit_x(1) - running_emit_x(2)
+    !dey = running_emit_y(1) - running_emit_y(2)
+    !deE = running_sigE_E(1) - running_sigE_E(2)
+    !d2ex = running_emit_x(1) - 2.0*running_emit_x(2) + running_emit_x(3)
+    !d2ey = running_emit_y(1) - 2.0*running_emit_y(2) + running_emit_y(3)
+    !d2eE = running_sigE_E(1) - 2.0*running_sigE_E(2) + running_sigE_E(3)
+    !IF(counter .gt. SIZE(running_emit_x)) THEN
+    !  IF( abs(dex) .lt. threshold ) THEN
+    !  IF( abs(dey) .lt. threshold ) THEN
+    !  IF( abs(deE) .lt. threshold ) THEN
+    !  IF( abs(d2ex) .lt. threshold ) THEN
+    !  IF( abs(d2ey) .lt. threshold ) THEN
+    !  IF( abs(d2eE) .lt. threshold ) THEN
+    !    converged = .true.
+    !  ENDIF
+    !  ENDIF
+    !  ENDIF        
+    !  ENDIF
+    !  ENDIF
+    !  ENDIF        
+    !ENDIF        
 
     IF(.not.converged) THEN
       ibsmode%a%emittance = emit_x
@@ -198,7 +248,10 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
       ibsmode%sigE_E = sigE_E 
       ibsmode%sig_z = L_ratio * sigE_E * fpw
     ENDIF
-    
+
+!    WRITE(55,'(4e20.11)') emit_x, emit_y, &
+!               sigE_E, L_ratio * sigE_E * fpw
+
   ENDDO
 
 END SUBROUTINE ibsequilibrium2
@@ -214,7 +267,7 @@ END SUBROUTINE ibsequilibrium2
 !
 !  Input:
 !    lat             -- lat_struct: lattice for tracking
-!      %param$n_part  -- Real(rp): number of particles in bunch
+!      %param$n_part  -- Real: number of particles in bunch
 !    inmode           -- normal_modes_struct: natural beam parameters 
 !    formula          -- character*4: IBS formulation to use (see ibs_rates)
 !    coupling         -- real: horizontal to vertical emittanc coupling
@@ -295,12 +348,6 @@ SUBROUTINE ibs_equilibrium(lat,inmode,ibsmode,formula,coupling)
     dydt = -(emit_y-ka_small*emit_x)*2./tau_y + emit_y*2./Ty
     dzdt = -(emit_z-emit_z0)*2./tau_z + 2./Tz*emit_z
 
-    !dxdt = emit_x/Tx - (emit_x-emit_x0)/tau_x
-    !dydt = emit_y/Ty + ka*emit_x/Tx - (emit_y-emit_y0)/tau_y
-    !dzdt = emit_z/Tz - (emit_z-emit_z0)/tau_z
-
-    !WRITE(123,*) dxdt,dydt,dzdt
-
     IF( (dxdt*dT)/emit_x .lt. threshold ) THEN
       IF( (dydt*dT)/emit_y .lt. threshold ) THEN
         IF( (dzdt*dT)/emit_z .lt. threshold ) THEN
@@ -315,17 +362,18 @@ SUBROUTINE ibs_equilibrium(lat,inmode,ibsmode,formula,coupling)
       ibsmode%sig_z =  SQRT(emit_z*L_ratio)
       ibsmode%sigE_E = emit_z / ibsmode%sig_z
     ENDIF
+
   ENDDO
 
 END SUBROUTINE ibs_equilibrium
 
 !+
-!  Subroutine ibs_lifetime(lat, mode, lifetime, formula)
+!  Subroutine ibs_lifetime(lat, mode, maxratio, lifetime, formula)
 !
 !  This module computes the beam lifetime due to
 !  the diffusion process according to equation 12
 !  from page 129 of The Handbook for Accelerator
-!  Physics and Engineelat.
+!  Physics and Engineering 2nd edition.
 !
 !  Input:
 !    lat             -- lat_struct: lattice for tracking
@@ -375,12 +423,12 @@ END SUBROUTINE ibs_lifetime
 !  Available IBS formulas:
 !    cimp - Modified Piwinski
 !    bane - Bane approximation of Bjorken-Mtingwa formulation
-!    bjmt - General Bjorken-Mtingwa formulation for bunched beams (slow)
+!    bjmt - Bjorken-Mtingwa formulation general to bunched beams (time consuming)
 !    mtto - Mtingwa-Tollerstrup formulation
 !
 !  Input:
 !    lat             -- lat_struct: lattice for tracking
-!      %param$n_part  -- Real(rp): number of particles in bunch
+!      %param$n_part  -- Real: number of particles in bunch
 !    mode             -- normal_modes_struct: beam parameters 
 !    formula          -- character*4: IBS formulation to use
 !
@@ -738,6 +786,7 @@ SUBROUTINE bane(lat, mode, rates)
                                                                                                      
     Hx = ( (Dx**2) + (beta_a*Dxp + alpha_a*Dx)**2 ) / beta_a
     Hy = ( (Dy**2) + (beta_b*Dyp + alpha_b*Dy)**2 ) / beta_b
+    !-for atf-! Hy = 5.13E-7
     sigma_H = 1.0/SQRT(1.0/(sigma_p**2) + Hx/emit_x + Hy/emit_y)
 
     a = sigma_H/gamma*SQRT(beta_a/emit_x)
@@ -899,65 +948,73 @@ FUNCTION g(u)
                                                                                    
 REAL(rp), INTENT(IN) :: u
 REAL(rp) :: g
-REAL(rp), DIMENSION(0:10) ::  o,p,pa
-REAL(rp), DIMENSION(0:13) ::  pb,qb,qa,q,ra,rb,r
+REAL(rp), DIMENSION(0:13) ::  o,p,pa,pb,qb,qa,q,ra,rb,r
 
-o = (/ 0.233741, -0.00096173, 2.39076E-6, -3.82308E-9, 4.11144E-12, -3.039E-15, &
-   1.5480865E-18, -5.3409137E-22, 1.1915518E-25, -1.550695E-29, 8.9365157E-34 /)
+o = (/ 0.27537408880308967,-0.0014411559647655005,4.760237316963749E-6,-1.056200254057877E-8, &
+       1.652957676252096E-11,-1.8807607644579788E-14,1.582497859744359E-17,-9.911417850544026E-21, &
+       4.606212267581107E-24,-1.5661683056801226E-27,3.7836532348260456E-31,-6.148053455724941E-35, &
+       6.021954146486214E-29,-2.6856345839264216E-33 /) !last two terms have E-10 multiplied in function
 
-p = (/ 1.21744, -0.0453023, 0.00109043, -0.000017262, 1.85617E-7, -1.3792E-9, &
-   7.08546E-12, -2.47044E-14, 5.57813E-17, -7.35484E-20, 4.2976E-23 /)
+p = (/ 1.3728514796955633,-0.06329159139596323,0.0019843996282577487,-0.00004282113130209425, &
+       6.588299268041797E-7,-7.411644739022654E-9,6.186473337975396E-11,-3.851874112809632E-13, &
+       1.7820926145729545E-15,-6.038143148108221E-18,1.454670683108795E-20,-2.358356775328005E-23, &
+       2.305700018891372E-26,-1.026694954987225E-29 /)
 
-pa = (/ 2.4384485, -0.3342655, 0.0377896, -0.0032197625, .000203807, -9.5103569E-6, &
-   3.22441912E-7, -7.7195818E-9, 1.2365680E-10, -1.1888946E-12, 5.1862247E-15 /)
+pa = (/ 2.4560269972177395,-0.34483385959575796,0.04060452194930618,-0.0036548931452558006, &
+        0.00024651396218017436,-0.000012205596049761074,4.224156486889531E-7,-8.746709793365587E-9, &
+	2.0010958003696878E-11,5.293109492480939E-12,-1.8692549451553078E-13,3.313011636321362E-15, &
+        -3.191257818162888E-17,1.333629848206322E-19 /)
 
 pb = (/ 0.2509305915339517, 3.655027986910339, -3.538178517122364, 2.0378515154003622, &
-   -0.8131215410970869, 0.23600479506508648, -0.0508941392205539, 0.008214142113823073, &
-   -0.000988882504551898, 0.00008751565040446301, -5.526659141312207E-6, &
-   2.3564088895171855E-7, -6.0770418816204626E-9, 7.15762060347684E-11 /)
+        -0.8131215410970869, 0.23600479506508648, -0.0508941392205539, 0.008214142113823073, &
+        -0.000988882504551898, 0.00008751565040446301, -5.526659141312207E-6, &
+        2.3564088895171855E-7, -6.0770418816204626E-9, 7.15762060347684E-11 /)
 
 qb = (/ -4.5128859976303835, 44.038623289844345, -201.50265131380843, 685.7422921643122, &
-   -1733.9460775721304, 3272.7093350374225, -4637.724347309373, 4940.122242846527, &
-   -3931.6350463124686, 2301.047404938234, -960.7211908043258, 270.6618330819612, &
-   -46.088423620894815, 3.581345541476106 /)
+        -1733.9460775721304, 3272.7093350374225, -4637.724347309373, 4940.122242846527, &
+        -3931.6350463124686, 2301.047404938234, -960.7211908043258, 270.6618330819612, &
+        -46.088423620894815, 3.581345541476106 /)
 
 qa= (/ -7.9542527228302164, 207.51519155414007, -4406.431743148087, 75592.0699189963, &
-   -992747.0161009694, 9.983494244578896E6, -7.72264540055081E7, 4.593887542691004E8, &
-   -2.0856924957059484E9, 7.103526742990105E9, -1.758262228582309E10, 2.9881056304916122E10, &
-   -3.11970246734184E10, 1.5092353688380434E10 /)
+       -992747.0161009694, 9.983494244578896E6, -7.72264540055081E7, 4.593887542691004E8, &
+       -2.0856924957059484E9, 7.103526742990105E9, -1.758262228582309E10, 2.9881056304916122E10, &
+       -3.11970246734184E10, 1.5092353688380434E10 /)
 
 q = (/ -10.427660034546474, 614.5741414073021, -37752.0301748355, 1.8467024380709291E6, &
-   -6.787056202900247E7, 1.87800146779508E9, -3.9344782189063065E10, 6.245185690585099E11, &
-   -7.460242970344108E12, 6.596837840619067E13, -4.186282233147678E14, 1.8023052362000775E15, &
-   -4.713009373619726E15, 5.649407049035322E15 /)
+       -6.787056202900247E7, 1.87800146779508E9, -3.9344782189063065E10, 6.245185690585099E11, &
+       -7.460242970344108E12, 6.596837840619067E13, -4.186282233147678E14, 1.8023052362000775E15, &
+       -4.713009373619726E15, 5.649407049035322E15 /)
 
 ra = (/ -13.151132987122772, 2076.0767607226853, -439312.2888781302, 7.549171067948443E7, &
-   -9.918579267112797E9, 9.97612075477821E11, -7.717556597617397E13, 4.591087739048907E15, &
-   -2.0844941927298595E17, 7.099636713666537E18, -1.757338267407412E20, 2.986592440773308E21, &
-   -3.1181759869417024E22, 1.5085206738847978E23 /)
+        -9.918579267112797E9, 9.97612075477821E11, -7.717556597617397E13, 4.591087739048907E15, &
+        -2.0844941927298595E17, 7.099636713666537E18, -1.757338267407412E20, 2.986592440773308E21, &
+        -3.1181759869417024E22, 1.5085206738847978E23 /)
 
 rb = (/ -16.158250737444753, 7653.567961683397, -5.677248220833501E6, 3.2736621037820387E9, &
-   -1.3885723919300298E12, 4.356123741560311E14, -1.018979723977809E17, 1.782083486703034E19, &
-   -2.31837909173977E21, 2.209799968074478E23, -1.4978388984105023E25, 6.831861840241021E26, &
-   -1.878873461985899E28, 2.3529610201488045E29 /)
+        -1.3885723919300298E12, 4.356123741560311E14, -1.018979723977809E17, 1.782083486703034E19, &
+        -2.31837909173977E21, 2.209799968074478E23, -1.4978388984105023E25, 6.831861840241021E26, &
+        -1.878873461985899E28, 2.3529610201488045E29 /)
 
 r = (/ -21.460085854969584, 80412.06002488811, -6.294777676054858E8, 3.84371292991909E12, &
-   -1.7311478313121348E16, 5.7791722579515556E19, -1.4411700564165495E23, +2.6910329100895636E26, &
-   -3.742607580627404E29, 3.8178627111416235E32, -2.7722017774216816E35, 1.3556698189607729E38, &
-   -4.000249119089512E30, 5.378513442816346E32 /) ! E10 added to these last two in formula
+        -1.7311478313121348E16, 5.7791722579515556E19, -1.4411700564165495E23, +2.6910329100895636E26, &
+        -3.742607580627404E29, 3.8178627111416235E32, -2.7722017774216816E35, 1.3556698189607729E38, &
+        -4.000249119089512E30, 5.378513442816346E32 /) ! E10 added to these last two in formula
 
 IF    (u .gt. 3000.0) THEN
   WRITE(*,*) "CRITICAL WARNING: interpolation range exceeded"
   g = 0.
 ELSEIF(u .gt. 300.0) THEN
   g = o(0)+o(1)*u+o(2)*(u**2)+o(3)*(u**3)+o(4)*(u**4)+o(5)*(u**5)+ &
-      o(6)*(u**6)+o(7)*(u**7)+o(8)*(u**8)+o(9)*(u**9)+o(10)*(u**10)
+      o(6)*(u**6)+o(7)*(u**7)+o(8)*(u**8)+o(9)*(u**9)+o(10)*(u**10)+ &
+      o(11)*(u**11)+o(12)*(1.0E-10)*(u**12)+o(13)*(1.0E-10)*(u**13)
 ELSEIF(u .gt. 30.0)  THEN
   g = p(0)+p(1)*u+p(2)*(u**2)+p(3)*(u**3)+p(4)*(u**4)+p(5)*(u**5)+ &
-      p(6)*(u**6)+p(7)*(u**7)+p(8)*(u**8)+p(9)*(u**9)+p(10)*(u**10)
+      p(6)*(u**6)+p(7)*(u**7)+p(8)*(u**8)+p(9)*(u**9)+p(10)*(u**10)+ &
+      p(11)*(u**11)+p(12)*(u**12)+p(13)*(u**13)
 ELSEIF(u .gt. 10.0)  THEN
   g = pa(0)+pa(1)*u+pa(2)*(u**2)+pa(3)*(u**3)+pa(4)*(u**4)+pa(5)*(u**5)+ &
-      pa(6)*(u**6)+pa(7)*(u**7)+pa(8)*(u**8)+pa(9)*(u**9)+pa(10)*(u**10)
+      pa(6)*(u**6)+pa(7)*(u**7)+pa(8)*(u**8)+pa(9)*(u**9)+pa(10)*(u**10)+ &
+      pa(11)*(u**11)+pa(12)*(u**12)+pa(13)*(u**13)
 ELSEIF(u .gt. 1.6)   THEN
   g = pb(0)+pb(1)*u+pb(2)*(u**2)+pb(3)*(u**3)+pb(4)*(u**4)+pb(5)*(u**5)+ &
       pb(6)*(u**6)+pb(7)*(u**7)+pb(8)*(u**8)+pb(9)*(u**9)+pb(10)*(u**10)+ &
@@ -997,21 +1054,16 @@ END FUNCTION g
 !+
 !  subroutine mtto(lat, mode, rates)
 !
-!  NOTE:  The Mtingwa-Tollerstrup formula gives different from the other
-!  formulations in this module.
+!  This is a private subroutine. To access this subroutine, call
+!  ibs_rates.
 !
 !  This subroutine is an implementation of equations 54-56 from
 !  "Intrabeam Scattering Formulae for Asymptotic Beams with
 !  Unequal Horizontal and Vertical Emittances" by Mtingwa and
-!  Tollerstrup.  This code is different from the other codes
-!  in this module in that is computes the IBS rates from the 
-!  average lattice functions, rather than compute the IBS rate
-!  at every element in the lattice and averaging.  The formula
-!  can also be more transparent when examining the IBS properties
-!  of a lattice.
+!  Tollerstrup.  This formula is useful in that it can be
+!  nicely transparent when you're figuring out how the lattice
+!  properties contribute to the IBS rates.
 !
-!  This is a private subroutine. To access this subroutine, call
-!  ibs_rates.
 !-
 SUBROUTINE mtto(lat, mode, rates)
 
