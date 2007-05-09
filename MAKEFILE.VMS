@@ -46,7 +46,7 @@ absrcdir := U:[CESRULIB.TEMP.TRY3.BMAD]
 CESRLIB  :=
 
 ifneq "$(strip $(RELEASE))" ""
-  absrcdir := CESR_PORTING:[cesr_libs.$(strip $(RELEASE)).cvssrc.$(LIBNAME)]
+  absrcdir := CESR_PORTING:[cesr_libs.$(strip $(RELEASE)).src.$(LIBNAME)]
   CESRLIB  := $(strip $(RELEASE))
 endif
 
