@@ -100,12 +100,13 @@ build_args.append(" BUILD=\"do_build\"")    # Common options to be passed to mak
 
 print "BUILD TYPE IS:" + build_type + "<<"
 
-if build_type == "PACKAGES" or build_type == "RELEASE & PACKAGES":  # make gets slightly different args depending on type
+if build_type == "PACKAGES":  # make gets slightly different args depending on type
     build_args.append(" DO_PKG=1")
     env_setup1 = " CESRLIB="+pkg_name + "; CESRF90=" + f90 +'; '
-    env_setup2 = " export CESR_GMAKE="+build_sys_dir + " ; export CESR_UTIL=" + bin_dir + "/util; "
+    #env_setup2 = " export CESR_GMAKE="+build_sys_dir + " ; export CESR_UTIL=" + bin_dir + "/util; "
+    env_setup2 = " CESR_GMAKE="+build_sys_dir + " ; CESR_UTIL=" + bin_dir + "/util; "
 
-if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
+if build_type == "RELEASE":
     build_args.append(" DO_REL=1")
     build_args.append(" BRANCH="+branch)
     ## Short snippet here to get rel_name from full_rel name without using .split method (counteracting OSF lameness)
