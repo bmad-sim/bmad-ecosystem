@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_de_optimizer ()
+! Subroutine tao_de_optimizer (abort)
 !
 ! Subrutine to minimize the merit function by varying variables until
 ! the "data" as calculated from the model matches the measured data.
@@ -8,12 +8,11 @@
 ! 'de' stands for 'differential evolution' see opti_de routine for
 ! more details.
 !
-! Input:
-!
 ! Output:
+!   abort -- Logical: Set True if an user stop signal detected.
 !-
 
-subroutine tao_de_optimizer ()
+subroutine tao_de_optimizer (abort)
 
 use tao_mod
 use tao_top10_mod
@@ -32,9 +31,12 @@ integer i, n, gen, pop, n_var, population
 character(20) :: r_name = 'tao_de_optimizer'
 character(80) line
 
+logical abort
+
 ! setup
 
 tao_com%opti_init = .true.
+tao_com%opti_abort = .false.
 
 ! put the variable values into an array for the optimizer
 
@@ -61,6 +63,7 @@ write (line, *) 'Merit end:', merit_end
 call out_io (s_blank$, r_name, line)
 
 call tao_var_write (s%global%var_out_file)
+abort = tao_com%opti_abort
 
 end subroutine
 
@@ -123,6 +126,7 @@ do
     end_flag = 1     ! signal stop
     call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', &
                                                              'Stopping now.')
+    tao_com%opti_abort = .true.
     s%global%optimizer_running = .false.
   endif
   if (char == achar(0)) exit   ! only exit if there is no more input

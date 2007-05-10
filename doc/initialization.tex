@@ -223,6 +223,7 @@ type tao_global_struct
   real(rp) :: de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
+  integer :: n_opti_cycles = 1           ! number of optimization loops
   integer :: ix_key_bank = 0             ! For single mode.
   integer :: n_key_table_max = 0         ! Maximum key table index.
   integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
@@ -296,6 +297,22 @@ synchrotron radiation calculations.
   end type
 \end{example}
 
+%------------------------------------------------------------------------
+\section{Optimization Parameters}
+\label{s:opt_params}
+\index{Optimization!Parameters}
+
+When the optimizer is run in \tao (using the \vn{run} command), The
+optimizer, after it initializes itself, take take a number of
+\vn{cycles}. Each cycle consists of changing the values of the
+variables the optimizer is allowed to change. The number of steps that
+the optimizer will take is determined by the parameter
+\vn{global%n_opti_cycles}. When the optimizer initializes itself and
+goes through \vn{global%n_opti_cycles}, it is said to have gone
+through one \vn{loop}. The optimizer, after going through through
+\vn{global%n_opti_loops}, will automatically stop.
+To immediately stop the optimizer the period key
+\vn{``.''} may be pressed.
 
 %-----------------------------------------------------------------
 \section{Initializing Coupled Universes}\index{Initialization!Coupling}
@@ -721,7 +738,7 @@ the number of hashes. For example:
 This will search for all lattice elements whose names begin with 'Q'
 followed by any set of characters and will name the data elements as
 \vn{'Q_'} followed by the variable number in the \vn{v1_var} array starting
-with 0001. Alternitively if \vn{"*"} is present in \vn{var(0)%name} then
+with 0001. Alternatively if \vn{"*"} is present in \vn{var(0)%name} then
 the corresponding lattice element name will be used. For example, 
 \begin{example}
   var(0)%name = "*[K1]"
@@ -788,7 +805,7 @@ the BPM scale error in the form
 \begin{equation}
   x_{BPM} = (1+a) x_real.
 \end{equation}
-Where $a$ is a gaussian distribution of RMS specified by \vn{scale_error}.
+Where $a$ is a Gaussian distribution of RMS specified by \vn{scale_error}.
 
 \vn{n_d1_data} defines how many \vn{d1_data} structures are associated
 with the \vn{d2_data} structure. For each \vn{n_d1_data} structure
@@ -805,7 +822,7 @@ there must be a \vn{tao_d1_data} namelist which has the form:
 \index{data!ele_name}
 \index{data!ele0_name}
 \index{data!merit_type}
-\index{data!meas_value}
+\index{data!meas}
 \index{data!weight}
 \index{data!data_noise}
 \index{data!good_user}
@@ -824,7 +841,7 @@ there must be a \vn{tao_d1_data} namelist which has the form:
     data(j)%ele_name    = "<ele_name>"   ! Lattice element names.
     data(j)%ele0_name   = "<ele0_name>"  ! Reference lattice element names.
     data(j)%merit_type  = "<merit_type>" ! Sets how the merit is calculated.
-    data(j)%meas_value  = "<number>"     ! Datum "measured" value
+    data(j)%meas        = "<number>"     ! Datum "measured" value
     data(j)%weight      = "<weight>"     ! Merit function weight.
     data(j)%data_noise  = <number"       ! RMS data noise
     data(j)%scale_error = <number"       ! RMS scale erorr
@@ -985,7 +1002,7 @@ the number of hashes. For example:
 \end{example}
 will name the data elements as \vn{'BPM_'}
 followed by the data number in the d1\_data array starting with 0001. 
-Alternitively if \vn{"*"} is present in \vn{data(0)%name} then
+Alternatively if \vn{"*"} is present in \vn{data(0)%name} then
 the corresponding lattice element name will be used. For example, 
 \begin{example}
   var(0)%name = "*[x-orbit]"
@@ -1287,7 +1304,7 @@ the $X-Z$ axes define the horizontal plane The conversion between
   Z    ->   -x
 \end{example}
 Unless there is an offset specified in the lattice file, a lattice
-will start at $(x, y) = (0, 0)$. Assuming that the mchine lies in the
+will start at $(x, y) = (0, 0)$. Assuming that the machine lies in the
 plane with no negative bends, the reference orbit will start out
 pointing in the negative $x$ direction and will circle clockwise in
 the $(x, y)$ plane. To prevent the drawing of the axes set 

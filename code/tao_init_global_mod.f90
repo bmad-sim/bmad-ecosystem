@@ -381,19 +381,21 @@ do
   do k = 1, n_d1_data
     default_weight = 0      ! set default
     default_data_type  = ' '
-    data(:)%data_type  = default_data_type
+    data(:)%data_type  = ' '
     data(:)%merit_type = default_merit_type 
     data(:)%name       = ' '
     data(:)%merit_type = ' '
     data(:)%ele_name   = ' '
     data(:)%ele0_name  = ' '
-    data(:)%meas_value = real_garbage$  ! used to tag when %meas_value is set in file
+    data(:)%meas       = real_garbage$  ! used to tag when %meas_value is set in file
     data(:)%weight     = 0.0
     data(:)%ix_bunch   = 0
     data(:)%data_noise  = real_garbage$
     data(:)%scale_error = real_garbage$
     data(:)%data_source = 'lattice'
     data(:)%good_user  = .true.
+    ix_min_data = int_garbage$
+    ix_max_data = int_garbage$
     read (iu, nml = tao_d1_data, err = 9150)
     if (ix_d1_data /= k) then
       write (line, '(a, 2i4)') ', k, ix_d1_data'
@@ -698,8 +700,9 @@ if (data(0)%ele_name(1:6) == 'SEARCH') then
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + n_found
   u%n_data_used = n2
+  if (ix_min_data == int_garbage$) ix_min_data = 1
   ix1 = ix_min_data
-  ix2 = ix_min_data + (n2 - n1)
+  ix2 = ix1 + (n2 - n1)
   if (n2 > size(u%data)) then
     call out_io (s_abort$, r_name, &
                   'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
@@ -718,10 +721,7 @@ if (data(0)%ele_name(1:6) == 'SEARCH') then
     u%data(jj)%exists   = .true.
     jj = jj + 1
   enddo
-  u%data(n1:n2)%meas_value  = 0 
-  u%data(n1:n2)%data_type   = default_data_type
-  u%data(n1:n2)%merit_type  = default_merit_type 
-  u%data(n1:n2)%good_meas   = .false.
+
   u%data(n1:n2)%data_source = data(0)%data_source
 
 ! SAME:
@@ -736,8 +736,9 @@ elseif (data(0)%ele_name(1:5) == 'SAME:') then
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + size(d1_ptr%d)
   u%n_data_used = n2
+  ix_min_data = lbound(d1_ptr%d, 1)
   ix1 = ix_min_data
-  ix2 = ix_min_data + (n2 - n1)
+  ix2 = ix1 + (n2 - n1)
   if (n2 > size(u%data)) then
     call out_io (s_abort$, r_name, &
                 'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
@@ -751,14 +752,17 @@ elseif (data(0)%ele_name(1:5) == 'SAME:') then
   u%data(n1:n2)%exists      = d1_ptr%d%exists
   u%data(n1:n2)%data_source = d1_ptr%d%data_source
 
-  u%data(n1:n2)%merit_type  = default_merit_type
-  u%data(n1:n2)%weight      = default_weight
-  u%data(n1:n2)%data_type   = default_data_type
-  u%data(n1:n2)%meas_value  = 0 
-
 ! Not SEARCH or SAME:
 
 else
+
+  if (ix_min_data == int_garbage$) ix_min_data = 1
+  if (ix_max_data == int_garbage$) then
+    do i = ubound(data, 1), lbound(data, 1), -1
+      if (data(i)%ele_name /= ' ') ix_max_data = i
+      exit
+    enddo
+  endif
 
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + ix_max_data - ix_min_data + 1
@@ -773,8 +777,6 @@ else
 
   ! Transfer info from the input structure
 
-  u%data(n1:n2)%data_type   = data(ix1:ix2)%data_type
-  u%data(n1:n2)%merit_type  = data(ix1:ix2)%merit_type
   u%data(n1:n2)%good_user   = data(ix1:ix2)%good_user
   u%data(n1:n2)%weight      = data(ix1:ix2)%weight
   u%data(n1:n2)%ele_name    = data(ix1:ix2)%ele_name
@@ -811,18 +813,25 @@ else
     u%data(j)%ix_ele0 = ix
   enddo
 
-  ! If %meas_value was set then %good_meas is set to True
-  u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
-  where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
-    u%data(n1:n2)%meas_value = 0  
-  elsewhere
-    u%data(n1:n2)%good_meas = .true.
-  end where
-
 endif
+
+!-----------------------------------------------------------
+! If %meas_value was set then %good_meas is set to True
+
+u%data(n1:n2)%data_type   = data(ix1:ix2)%data_type
+u%data(n1:n2)%merit_type  = data(ix1:ix2)%merit_type
+u%data(n1:n2)%weight      = data(ix1:ix2)%weight
+
+u%data(n1:n2)%meas_value = data(ix1:ix2)%meas
+where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
+  u%data(n1:n2)%meas_value = 0  
+elsewhere
+  u%data(n1:n2)%good_meas = .true.
+end where
 
 !--------------------------------------------
 ! use default_data_type if given, if not, auto-generate the data_type
+
 if (default_data_type == ' ') then
   where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
                             trim(d2_data%name) // '.' // d1_data%name

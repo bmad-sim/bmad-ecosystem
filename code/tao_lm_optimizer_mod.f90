@@ -15,7 +15,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_lm_optimizer ()
+! Subroutine tao_lm_optimizer (abort)
 !
 ! Subrutine to minimize the merit function by varying variables until
 ! the "data" as calculated from the model matches the measured data.
@@ -24,14 +24,11 @@ contains
 ! See the Numerical Recipes writeup for more details.
 ! 'lm' stands for Levenburg - Marquardt. Otherwise known as LMDIF. 
 !
-! Note: LM assumes 
-!
-! Input:
-!
 ! Output:
+!   abort -- Logical: Set True if an user stop signal detected.
 !-
 
-subroutine tao_lm_optimizer ()
+subroutine tao_lm_optimizer (abort)
 
 implicit none
 
@@ -48,7 +45,7 @@ integer i, j, k
 integer n_data, n_var
 
 logical :: finished, init_needed = .true.
-logical limited, limited2
+logical limited, limited2, abort
 
 character(20) :: r_name = 'tao_lm_optimizer'
 character(80) line
@@ -57,6 +54,7 @@ character(1) char
 ! setup
 
 a_lambda = -1
+abort = .false.
 
 call tao_get_vars (var_value, var_weight = var_weight, var_meas_value = var_meas_value)
 n_var = size(var_value)
@@ -127,6 +125,7 @@ do i = 1, s%global%n_opti_cycles+1
       s%global%optimizer_running = .false.
       call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', &
                                                              'Stopping now.')
+      abort = .true.
       finished = .true.
       exit
     endif

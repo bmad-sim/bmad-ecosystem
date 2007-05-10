@@ -725,11 +725,12 @@ end subroutine
 !----------------------------------------------------------------------------
 !+
 ! Subroutine tao_find_data (err, data_name, d2_ptr, d1_ptr, d_array, 
-!        r_array, l_array, ix_uni, print_err, all_elements, blank_is_null, component)
+!                           re_array, log_array, str_array, ix_uni, print_err, 
+!                           all_elements, blank_is_null, component)
 !
 ! Routine to set data pointers to the correct data structures. 
 !
-! The r_array will be used if the component is one of:
+! The re_array will be used if the component is one of:
 !   model, base, design, meas, ref, old, fit, weight
 ! The l_array will be used if the component is one of:
 !   exists, good_meas, good_ref, good_user, good_opt, good_plot
@@ -749,13 +750,13 @@ end subroutine
 !   data_name = '*@orbit.x'
 ! In this case d2_ptr and d1_ptr will be nullifed since the data can refer to
 ! more than one universe. 
-! r_array & l_array will also be nullified since there is no data component specified.
+! re_array & l_array will also be nullified since there is no data component specified.
 !
 ! Example:
 !   data_name = 'orbit'
 ! In this case the default universe will be used. The d1_ptr will be nullified 
 ! unless there is only one d1_data struct associated with 'orbit'. 
-! r_array & l_array will also be nullified since there is no data component specified.
+! re_array & l_array will also be nullified since there is no data component specified.
 !
 ! Example:
 !   data_name = '2@orbit.x[3,7:9]|meas'
@@ -774,28 +775,32 @@ end subroutine
 !   blank_is_null -- Logical, optional: See above for sxpanation.
 !
 ! Output:
-!   err        -- Logical: Err condition
-!   d2_ptr     -- Tao_d2_data_struct, optional, Pointer: to the d2 data
-!   d1_ptr     -- Tao_d1_data_struct, optional: Pointer to the d1 data
-!   d_array(:) -- Tao_data_array_struct, allocatable, optional: Pointers to all the matching
-!                   tao_data_structs.
-!   r_array(:) -- Tao_real_array_struct, allocatable, optional: Pointers to all the 
-!                   corresponding values.
-!   l_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers logical data
-!   component  -- Character(*), optional: Name of the component. E.G: 'good_user'
-!                   set to ' ' if no component present.
+!   err          -- Logical: Err condition
+!   d2_ptr       -- Tao_d2_data_struct, optional, Pointer: to the d2 data
+!   d1_ptr       -- Tao_d1_data_struct, optional: Pointer to the d1 data
+!   d_array(:)   -- Tao_data_array_struct, allocatable, optional: Pointers to all 
+!                   the matching tao_data_structs.
+!   re_array(:)  -- Tao_real_array_struct, allocatable, optional: Pointers to real 
+!                     component values.
+!   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers to
+!                     logical component values.
+!   str_array(:) -- Tao_string_array_struct, allocatable, optional: Pointers to 
+!                     character component values.
+!   component    -- Character(*), optional: Name of the component. E.G: 'good_user'
+!                     set to ' ' if no component present.
 !-
 
-subroutine tao_find_data (err, data_name, d2_ptr, d1_ptr, d_array, &
-           r_array, l_array, ix_uni, print_err, all_elements, blank_is_null, component)
+subroutine tao_find_data (err, data_name, d2_ptr, d1_ptr, d_array, re_array, &
+     log_array, str_array, ix_uni, print_err, all_elements, blank_is_null, component)
 
 implicit none
 
 type (tao_d2_data_struct), pointer, optional :: d2_ptr
 type (tao_d1_data_struct), pointer, optional :: d1_ptr
 type (tao_data_array_struct), allocatable, optional    :: d_array(:)
-type (tao_real_array_struct), allocatable, optional    :: r_array(:)
-type (tao_logical_array_struct), allocatable, optional    :: l_array(:)
+type (tao_real_array_struct), allocatable, optional    :: re_array(:)
+type (tao_logical_array_struct), allocatable, optional :: log_array(:)
+type (tao_string_array_struct), allocatable, optional  :: str_array(:)
 type (tao_universe_struct), pointer :: u
 
 character(*) :: data_name
@@ -808,6 +813,7 @@ character(16), parameter :: real_components(8) = &
 character(16), parameter :: logic_components(6) = &
           (/ 'exists   ', 'good_meas', 'good_ref ', 'good_user', 'good_opt ', &
              'good_plot' /)
+character(16), parameter :: string_components(1) = (/ 'merit_type' /)
 
 integer, optional :: ix_uni
 integer :: data_num, ios
@@ -825,11 +831,15 @@ if (present(d1_ptr)) nullify(d1_ptr)
 if (present(d_array)) then
   if (allocated (d_array)) deallocate (d_array)
 endif
-if (present(r_array)) then
-  if (allocated (r_array)) deallocate (r_array)
+if (present(re_array)) then
+  if (allocated (re_array)) deallocate (re_array)
 endif
-if (present(l_array)) then
-  if (allocated (l_array)) deallocate (l_array)
+if (present(log_array)) then
+  if (allocated (log_array)) deallocate (log_array)
+endif
+
+if (present(str_array)) then
+  if (allocated (str_array)) deallocate (str_array)
 endif
 
 err = .true.
@@ -862,7 +872,8 @@ call string_trim (dat_name, dat_name, ix)
 if (component_here) then
   call string_trim (component_name, component_name, ix)
   if (.not. any(component_name == real_components) .and. &
-      .not. any(component_name == logic_components)) then
+      .not. any(component_name == logic_components) .and. &
+      .not. any(component_name == string_components)) then
     if (print_error) call out_io (s_error$, r_name, "BAD COMPONENT NAME: " // data_name)
     return            
   endif
@@ -1005,6 +1016,7 @@ type (tao_d1_data_struct) :: d1
 type (tao_data_array_struct), allocatable, save :: da(:)
 type (tao_real_array_struct), allocatable, save :: ra(:)
 type (tao_logical_array_struct), allocatable, save :: la(:)
+type (tao_string_array_struct), allocatable, save  :: sa(:)
 
 integer i, j, nd, nl, i1, i2, num
 
@@ -1070,19 +1082,19 @@ endif
 
 ! real component array
 
-if (present(r_array) .and.  any(component_name == real_components)) then
+if (present(re_array) .and.  any(component_name == real_components)) then
 
-  if (allocated(r_array)) then
-    nd = size(r_array)
+  if (allocated(re_array)) then
+    nd = size(re_array)
     allocate (ra(nd))
-    ra = r_array
-    deallocate(r_array)
-    allocate (r_array(nl+nd))
+    ra = re_array
+    deallocate(re_array)
+    allocate (re_array(nl+nd))
     j = nd
-    r_array(1:nd) = ra
+    re_array(1:nd) = ra
     deallocate(ra)
   else
-    allocate (r_array(nl))
+    allocate (re_array(nl))
     j = 0
   endif
 
@@ -1091,23 +1103,24 @@ if (present(r_array) .and.  any(component_name == real_components)) then
       j = j + 1
       select case (component_name)
       case ('model')
-        r_array(j)%r => d1%d(i)%model_value
+        re_array(j)%r => d1%d(i)%model_value
       case ('base')
-        r_array(j)%r => d1%d(i)%base_value
+        re_array(j)%r => d1%d(i)%base_value
       case ('design')
-        r_array(j)%r => d1%d(i)%design_value
+        re_array(j)%r => d1%d(i)%design_value
       case ('meas')
-        r_array(j)%r => d1%d(i)%meas_value
+        re_array(j)%r => d1%d(i)%meas_value
       case ('ref')
-        r_array(j)%r => d1%d(i)%ref_value
+        re_array(j)%r => d1%d(i)%ref_value
       case ('old')
-        r_array(j)%r => d1%d(i)%old_value
+        re_array(j)%r => d1%d(i)%old_value
       case ('fit')
-        r_array(j)%r => d1%d(i)%fit_value
+        re_array(j)%r => d1%d(i)%fit_value
       case ('weight')
-        r_array(j)%r => d1%d(i)%weight
+        re_array(j)%r => d1%d(i)%weight
       case default
-        call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL")
+        call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL DATA")
+        call err_exit
       end select
     endif
   enddo
@@ -1116,19 +1129,19 @@ endif
 
 ! logical component array
 
-if (present(l_array) .and. any(component_name == logic_components)) then
+if (present(log_array) .and. any(component_name == logic_components)) then
 
-  if (allocated(l_array) .and. component_here) then
-    nd = size(l_array)
+  if (allocated(log_array) .and. component_here) then
+    nd = size(log_array)
     allocate (la(nd))
-    la = l_array
-    deallocate(l_array)
-    allocate (l_array(nl+nd))
+    la = log_array
+    deallocate(log_array)
+    allocate (log_array(nl+nd))
     j = nd
-    l_array(1:nd) = la
+    log_array(1:nd) = la
     deallocate(la)
   else
-    allocate (l_array(nl))
+    allocate (log_array(nl))
     j = 0
   endif
 
@@ -1137,19 +1150,53 @@ if (present(l_array) .and. any(component_name == logic_components)) then
       j = j + 1
       select case (component_name)
       case ('exists')
-        l_array(j)%l => d1%d(i)%exists
+        log_array(j)%l => d1%d(i)%exists
       case ('good_meas')
-        l_array(j)%l => d1%d(i)%good_meas
+        log_array(j)%l => d1%d(i)%good_meas
       case ('good_ref')
-        l_array(j)%l => d1%d(i)%good_ref
+        log_array(j)%l => d1%d(i)%good_ref
       case ('good_user')
-        l_array(j)%l => d1%d(i)%good_user
+        log_array(j)%l => d1%d(i)%good_user
       case ('good_opt')
-        l_array(j)%l => d1%d(i)%good_opt
+        log_array(j)%l => d1%d(i)%good_opt
       case ('good_plot')
-        l_array(j)%l => d1%d(i)%good_plot
+        log_array(j)%l => d1%d(i)%good_plot
       case default
-        call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC")
+        call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC DATA")
+        call err_exit
+      end select
+    endif
+  enddo
+
+endif
+
+! string component array
+
+if (present(str_array) .and. any(component_name == string_components)) then
+
+  if (allocated(str_array) .and. component_here) then
+    nd = size(str_array)
+    allocate (sa(nd))
+    sa = str_array
+    deallocate(str_array)
+    allocate (str_array(nl+nd))
+    j = nd
+    str_array(1:nd) = sa
+    deallocate(sa)
+  else
+    allocate (str_array(nl))
+    j = 0
+  endif
+
+  do i = i1, i2
+    if (list(i)) then
+      j = j + 1
+      select case (component_name)
+      case ('merit_type')
+        str_array(j)%s => d1%d(i)%merit_type
+      case default
+        call out_io (s_fatal$, r_name, "INTERNAL ERROR: STRING DATA")
+        call err_exit
       end select
     endif
   enddo
@@ -1164,14 +1211,14 @@ end subroutine tao_find_data
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine: tao_find_var (err, var_name, v1_ptr, v_array, r_array, l_array,  
-!                             print_err, all_elements, blank_is_null, component)
+! Subroutine: tao_find_var (err, var_name, v1_ptr, v_array, re_array, log_array,  
+!                    str_array, print_err, all_elements, blank_is_null, component)
 !
 ! Find a v1 variable type, and variable data then point to it.
 !
-! The r_array will be used if the component is one of:
+! The re_array will be used if the component is one of:
 !   model, base, design, meas, ref, old, step, weight, high_lim, low_lim 
-! The l_array will be used if the component is one of:
+! The log_array will be used if the component is one of:
 !   exists, good_var, good_user, good_opt, good_plot
 ! 
 ! Setting all_elements = .true. forces something like:
@@ -1197,26 +1244,30 @@ end subroutine tao_find_data
 !   blank_is_null -- Logical, optional: See above for sxpanation.
 !
 ! Output:
-!   err        -- Logical: err condition
-!   v1_ptr     -- Tao_v1_var_struct: pointer to the v1 variable
-!   v_array(:) -- Tao_var_array_struct, allocatable, optional: Pointers to the 
-!                   variable data point
-!   r_array(:) -- Tao_real_array_struct, allocatable, optional: Pointers to all the 
-!                   corresponding values.
-!   l_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers logical data.
-!   component  -- Character(*), optional: Name of the component. E.G: 'good_user'
+!   err          -- Logical: err condition
+!   v1_ptr       -- Tao_v1_var_struct: pointer to the v1 variable
+!   v_array(:)   -- Tao_var_array_struct, allocatable, optional: Pointers to the 
+!                     variable data point
+!   re_array(:)  -- Tao_real_array_struct, allocatable, optional: Pointers to real 
+!                     component values.
+!   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers to
+!                     logical component values.
+!   str_array(:) -- Tao_string_array_struct, allocatable, optional: Pointers to 
+!                     character component values.
+!   component    -- Character(*), optional: Name of the component. E.G: 'good_user'
 !                   set to ' ' if no component present.
 !-
 
-subroutine tao_find_var (err, var_name, v1_ptr, v_array, r_array, l_array, &
-                               print_err, all_elements, blank_is_null, component)
+subroutine tao_find_var (err, var_name, v1_ptr, v_array, re_array, log_array, &
+                    str_array, print_err, all_elements, blank_is_null, component)
 
 implicit none
 
-type (tao_v1_var_struct), pointer, optional :: v1_ptr
-type (tao_var_array_struct), allocatable, optional    :: v_array(:)
-type (tao_real_array_struct), allocatable, optional    :: r_array(:)
-type (tao_logical_array_struct), allocatable, optional    :: l_array(:)
+type (tao_v1_var_struct), pointer, optional            :: v1_ptr
+type (tao_var_array_struct), allocatable, optional     :: v_array(:)
+type (tao_real_array_struct), allocatable, optional    :: re_array(:)
+type (tao_logical_array_struct), allocatable, optional :: log_array(:)
+type (tao_string_array_struct), allocatable, optional  :: str_array(:)
 
 integer i, ix, n_var, ios
 
@@ -1225,6 +1276,7 @@ character(16), parameter :: real_components(10) = &
              'old     ', 'step    ', 'weight  ', 'high_lim', 'low_lim ' /)
 character(16), parameter :: logic_components(5) = &
           (/ 'exists   ', 'good_var ', 'good_user', 'good_opt ', 'good_plot' /)
+character(16), parameter :: string_components(1) = (/ 'merit_type' /)
 
 character(*) :: var_name
 character(*), optional :: component
@@ -1242,11 +1294,14 @@ if (present(v1_ptr)) nullify (v1_ptr)
 if (present(v_array)) then
   if (allocated (v_array)) deallocate (v_array)
 endif
-if (present(r_array)) then
-  if (allocated (r_array)) deallocate (r_array)
+if (present(re_array)) then
+  if (allocated (re_array)) deallocate (re_array)
 endif
-if (present(l_array)) then
-  if (allocated (l_array)) deallocate (l_array)
+if (present(log_array)) then
+  if (allocated (log_array)) deallocate (log_array)
+endif
+if (present(str_array)) then
+  if (allocated (str_array)) deallocate (str_array)
 endif
 
 err = .true.
@@ -1278,7 +1333,8 @@ call string_trim (component_name, component_name, ix)
 
 if (component_here) then
   if (.not. any(component_name == real_components) .and. &
-      .not. any(component_name == logic_components)) then
+      .not. any(component_name == logic_components) .and. &
+      .not. any(component_name == string_components)) then
     if (print_error) call out_io (s_error$, r_name, "BAD COMPONENT NAME: " // var_name)
     return            
   endif
@@ -1339,6 +1395,7 @@ type (tao_v1_var_struct) :: v1
 type (tao_var_array_struct), allocatable, save :: va(:)
 type (tao_real_array_struct), allocatable, save :: ra(:)
 type (tao_logical_array_struct), allocatable, save :: la(:)
+type (tao_string_array_struct), allocatable, save  :: sa(:)
 
 integer i, j, nd, nl, i1, i2, num
 
@@ -1404,19 +1461,19 @@ endif
 
 ! real component array
 
-if (present(r_array) .and.  any(component_name == real_components)) then
+if (present(re_array) .and.  any(component_name == real_components)) then
 
-  if (allocated(r_array)) then
-    nd = size(r_array)
+  if (allocated(re_array)) then
+    nd = size(re_array)
     allocate (ra(nd))
-    ra = r_array
-    deallocate(r_array)
-    allocate (r_array(nl+nd))
+    ra = re_array
+    deallocate(re_array)
+    allocate (re_array(nl+nd))
     j = nd
-    r_array(1:nd) = ra
+    re_array(1:nd) = ra
     deallocate(ra)
   else
-    allocate (r_array(nl))
+    allocate (re_array(nl))
     j = 0
   endif
 
@@ -1425,27 +1482,28 @@ if (present(r_array) .and.  any(component_name == real_components)) then
       j = j + 1
       select case (component_name)
       case ('model')
-        r_array(j)%r => v1%v(i)%model_value
+        re_array(j)%r => v1%v(i)%model_value
       case ('base')
-        r_array(j)%r => v1%v(i)%base_value
+        re_array(j)%r => v1%v(i)%base_value
       case ('design')
-        r_array(j)%r => v1%v(i)%design_value
+        re_array(j)%r => v1%v(i)%design_value
       case ('meas')
-        r_array(j)%r => v1%v(i)%meas_value
+        re_array(j)%r => v1%v(i)%meas_value
       case ('ref')
-        r_array(j)%r => v1%v(i)%ref_value
+        re_array(j)%r => v1%v(i)%ref_value
       case ('old')
-        r_array(j)%r => v1%v(i)%old_value
+        re_array(j)%r => v1%v(i)%old_value
       case ('step')
-        r_array(j)%r => v1%v(i)%step
+        re_array(j)%r => v1%v(i)%step
       case ('weight')
-        r_array(j)%r => v1%v(i)%weight
+        re_array(j)%r => v1%v(i)%weight
       case ('high_lim')
-        r_array(j)%r => v1%v(i)%high_lim
+        re_array(j)%r => v1%v(i)%high_lim
       case ('low_lim')
-        r_array(j)%r => v1%v(i)%low_lim
+        re_array(j)%r => v1%v(i)%low_lim
       case default
-        call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL")
+        call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL VAR")
+        call err_exit
       end select
     endif
   enddo
@@ -1454,19 +1512,19 @@ endif
 
 ! logical component array
 
-if (present(l_array) .and. any(component_name == logic_components)) then
+if (present(log_array) .and. any(component_name == logic_components)) then
 
-  if (allocated(l_array) .and. component_here) then
-    nd = size(l_array)
+  if (allocated(log_array) .and. component_here) then
+    nd = size(log_array)
     allocate (la(nd))
-    la = l_array
-    deallocate(l_array)
-    allocate (l_array(nl+nd))
+    la = log_array
+    deallocate(log_array)
+    allocate (log_array(nl+nd))
     j = nd
-    l_array(1:nd) = la
+    log_array(1:nd) = la
     deallocate(la)
   else
-    allocate (l_array(nl))
+    allocate (log_array(nl))
     j = 0
   endif
 
@@ -1475,17 +1533,51 @@ if (present(l_array) .and. any(component_name == logic_components)) then
       j = j + 1
       select case (component_name)
       case ('exists')
-        l_array(j)%l => v1%v(i)%exists
+        log_array(j)%l => v1%v(i)%exists
       case ('good_var')
-        l_array(j)%l => v1%v(i)%good_var
+        log_array(j)%l => v1%v(i)%good_var
       case ('good_user')
-        l_array(j)%l => v1%v(i)%good_user
+        log_array(j)%l => v1%v(i)%good_user
       case ('good_opt')
-        l_array(j)%l => v1%v(i)%good_opt
+        log_array(j)%l => v1%v(i)%good_opt
       case ('good_plot')
-        l_array(j)%l => v1%v(i)%good_plot
+        log_array(j)%l => v1%v(i)%good_plot
       case default
-        call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC")
+        call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC VAR")
+        call err_exit
+      end select
+    endif
+  enddo
+
+endif
+
+! string component array
+
+if (present(str_array) .and. any(component_name == string_components)) then
+
+  if (allocated(str_array) .and. component_here) then
+    nd = size(str_array)
+    allocate (sa(nd))
+    sa = str_array
+    deallocate(str_array)
+    allocate (str_array(nl+nd))
+    j = nd
+    str_array(1:nd) = sa
+    deallocate(sa)
+  else
+    allocate (str_array(nl))
+    j = 0
+  endif
+
+  do i = i1, i2
+    if (list(i)) then
+      j = j + 1
+      select case (component_name)
+      case ('merit_type')
+        str_array(j)%s => v1%v(i)%merit_type
+      case default
+        call out_io (s_fatal$, r_name, "INTERNAL ERROR: STRING VAR")
+        call err_exit
       end select
     endif
   enddo
@@ -2213,7 +2305,7 @@ subroutine read_this_value (str, stack)
 
 character(*) str
 type (eval_stack_struct) stack
-type (tao_real_array_struct), allocatable :: r_array(:)
+type (tao_real_array_struct), allocatable :: re_array(:)
 
 !
 
@@ -2229,17 +2321,17 @@ if (is_real(str)) then
   endif
 
 else
-  if (allocated(r_array)) deallocate(r_array)
+  if (allocated(re_array)) deallocate(re_array)
   if (wild_type == 'DATA' .or. wild_type == 'BOTH') &
-               call tao_find_data (err_flag, str, r_array = r_array, print_err = .false.)
-  if (.not. allocated(r_array) .and. (wild_type == 'VAR' .or. wild_type == 'BOTH')) &
-               call tao_find_var (err_flag, str, r_array = r_array, print_err = .false.)
+               call tao_find_data (err_flag, str, re_array = re_array, print_err = .false.)
+  if (.not. allocated(re_array) .and. (wild_type == 'VAR' .or. wild_type == 'BOTH')) &
+               call tao_find_var (err_flag, str, re_array = re_array, print_err = .false.)
 
-  if (allocated(r_array)) then
-    n = size(r_array)
+  if (allocated(re_array)) then
+    n = size(re_array)
     allocate (stack%value(n))
     do i = 1, n
-      stack%value(i) = r_array(i)%r
+      stack%value(i) = re_array(i)%r
     enddo
   else
     call out_io (s_warn$, r_name, "This doesn't seem to be datum or variable value: " // str)

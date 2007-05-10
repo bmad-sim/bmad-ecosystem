@@ -63,8 +63,9 @@ interface
 end interface
 
 interface
-  subroutine tao_de_optimizer ()
+  subroutine tao_de_optimizer (abort)
     implicit none
+    logical abort
   end subroutine
 end interface
  
@@ -138,8 +139,9 @@ interface
 end interface
 
 interface
-  subroutine tao_hook_optimizer ()
+  subroutine tao_hook_optimizer (abort)
     implicit none
+    logical abort
   end subroutine
 end interface
  
@@ -210,8 +212,9 @@ interface
 end interface
 
 interface
-  subroutine tao_lmdif_optimizer ()
+  subroutine tao_lmdif_optimizer (abort)
     implicit none
+    logical abort
   end subroutine
 end interface
  

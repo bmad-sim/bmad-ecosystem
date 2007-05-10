@@ -26,8 +26,8 @@ type tao_data_input
   character(40) :: data_type
   character(40) :: ele0_name
   character(40) :: ele_name
-  character(16) :: merit_type
-  real(rp) :: meas_value
+  character(40) :: merit_type
+  real(rp) :: meas
   real(rp) :: weight
   logical :: good_user
   character(40) data_source
@@ -52,7 +52,7 @@ type tao_var_input
   real(rp) :: step
   real(rp) low_lim
   real(rp) high_lim
-  character(16) :: merit_type
+  character(40) :: merit_type
   logical :: good_user
 end type
 
@@ -147,7 +147,7 @@ type tao_key_input
   real(rp) high_lim
   real(rp) weight
   logical good_opt
-  character(16) merit_type
+  character(40) merit_type
 end type
 
 end module

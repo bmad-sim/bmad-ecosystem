@@ -634,6 +634,7 @@ For \vn{set data}, the \vn{<component>}s that can be set are:
   good_opt    ! Good for using in the merit function for optimization?
   good_plot   ! Good for using in a plot?
   good_user   ! This is what is set by the use, veto, and restore commands.
+  merit_type  ! How merit contribution is calculated.
 \end{example}
 Besides a numeric value \vn{<value>} can be any of the above along with:
 \begin{example}
@@ -653,7 +654,8 @@ For \vn{set graph}, the \vn{component}s that can be set are:
 For \vn{set global}, the \vn{<component>}s that can be set are:
 \begin{example}
   y_axis_plot_dmin   = <number> ! Minimum y_max-y_min allowed for a graph.
-  n_opti_cycles      = <number> ! Number of optimization cycles
+  n_opti_cycles      = <number> ! Number of optimization cycles.
+  n_opti_loops       = <number> ! Number of optimization loops.
   lun_command_file   = <number> ! Unit number for a command file.
                                 !  0 -> no command file.
   bunch_to_plot      = <number> ! View data for this bunch
@@ -713,7 +715,8 @@ For \vn{set var}, the \vn{<component>}s that can be set are:
   good_opt    ! Good for using in the merit function for optimization?
   good_plot   ! Good for using in a plot?
   good_user   ! This is what is set by the use, veto, and restore commands.
-  step       ! Sets what a "small" variation of the variable is.
+  step        ! Sets what a "small" variation of the variable is.
+  merit_type  ! How merit contribution is calculated.
 \end{example}
 \vskip 0.2in
 

@@ -28,6 +28,8 @@ integer n_data, i
 character(*)  which
 character(40) :: r_name = 'tao_run_cmd', my_opti
 
+logical abort
+
 !
 
 call tao_set_var_useit_opt()
@@ -63,21 +65,27 @@ endif
 
 !
 
-select case (s%global%optimizer)
+do i = 1, s%global%n_opti_loops
 
-case ('de') 
-  call tao_de_optimizer ()
+  select case (s%global%optimizer)
 
-case ('lm') 
-  call tao_lm_optimizer ()
+  case ('de') 
+    call tao_de_optimizer (abort)
 
-case ('lmdif')
-  call tao_lmdif_optimizer ()
+  case ('lm') 
+    call tao_lm_optimizer (abort)
 
-case ('custom')
-  call tao_hook_optimizer ()
+  case ('lmdif')
+    call tao_lmdif_optimizer (abort)
 
-end select
+  case ('custom')
+    call tao_hook_optimizer (abort)
+
+  end select
+
+  if (abort) exit
+
+enddo
 
 end subroutine
 

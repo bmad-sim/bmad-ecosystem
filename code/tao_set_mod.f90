@@ -489,112 +489,121 @@ end subroutine
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_var_cmd (var_str, set_str)
+! Subroutine tao_set_var_cmd (var_str, value_str)
 !
 ! Routine to set var values.
 !
 ! Input:
 !   var_str  -- Character(*): Which var name to set.
-!   set_str  -- Character(*): What value to set it to.
+!   value_str  -- Character(*): What value to set it to.
 !
 !  Output:
 !-
 
-subroutine tao_set_var_cmd (var_str, set_str)
+subroutine tao_set_var_cmd (var_str, value_str)
 
 implicit none
 
 type (tao_v1_var_struct), pointer :: v1_ptr
-type (tao_real_array_struct), allocatable, save    :: r_dat(:), r_set(:)
-type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
-type (tao_var_array_struct), allocatable, save     :: v_dat(:)
+type (tao_real_array_struct), allocatable, save    :: r_var(:), r_set(:)
+type (tao_logical_array_struct), allocatable, save :: l_var(:), l_set(:)
+type (tao_var_array_struct), allocatable, save     :: v_var(:)
+type (tao_string_array_struct), allocatable, save :: s_var(:), s_set(:)
 
 real(rp), allocatable :: r_value(:)
 real(rp) value
 integer i, j
 
-character(*) var_str, set_str
+character(*) var_str, value_str
 character(20) :: r_name = 'tao_set_var_cmd'
 character(20) set_is, component
+character(40) :: merit_type_names(2) = (/ 'target ', 'limit ' /)
 
 logical err, l_value, err_flag
 
-! Decode set_str.
-! It might be a number or it might be a datum value.
+! Decode variable component to set.
 
-if (is_logical(set_str)) then
-  read (set_str, *) l_value
-  set_is = 'LOGICAL-SCALER'
-else
-  call tao_find_var (err, set_str, &
-                r_array=r_set, l_array=l_set, print_err = .false.)
-  if (allocated(l_set)) then
-    set_is = 'LOGICAL-VECTOR'
+call tao_find_var (err, var_str, v_array = v_var, re_array=r_var, &
+                   log_array=l_var, str_array = s_var, component = component)
+
+! A logical value_str is either a logical or an array of datum values.
+
+if (allocated(l_var)) then
+  if (is_logical(value_str)) then
+    read (value_str, *) l_value
+    do i = 1, size(l_var)
+      l_var(i)%l = l_value
+    enddo
+
   else
-    set_is = 'REAL'
-    call tao_to_real_vector (set_str, 'VAR', r_value, err_flag)
-    if (err_flag) then
-      call out_io (s_error$, r_name, 'BAD SET VALUE ' // set_str)
+    call tao_find_var (err, value_str, log_array=l_set)
+    if (.not. allocated (l_set)) then
+      call out_io (s_error$, r_name, 'BAD LOGICAL VALUES')
       return
     endif
-  endif
-endif
-
-! select value and set.
-
-call tao_find_var (err, var_str, v_array = v_dat, r_array=r_dat, &
-                                    l_array=l_dat, component = component)
-if (err) return
-
-if (allocated(r_dat)) then
-  if (set_is /= 'REAL') then
-    call out_io (s_error$, r_name, 'BAD: REAL = LOGICAL: ' // &
-                                          var_str // ' = ' // set_str)
-    return
-  endif
-
-  if (size(r_value) > 1 .and. size(r_dat) /= size(r_value)) then
-    call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
-                                          var_str // ' = ' // set_str)
-    return
-  endif
-
-  do i = 1, size(r_dat)
-    if (size(r_value) == 1) then
-      value = r_value(1)
-    else
-      value = r_value(i)
+    if (size(l_set) /= size(l_var)) then
+      call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
+      return
     endif
-    r_dat(i)%r = value
-    if (component == 'model') call tao_set_var_model_value (v_dat(i)%v, value)
-  enddo
-
-!
-
-elseif (allocated(l_dat)) then
-  if (set_is(1:7) /= 'LOGICAL') then
-    call out_io (s_error$, r_name, 'BAD: LOGICAL = REAL: ' // &
-                                          var_str // ' = ' // set_str)
+    do i = 1, size(l_var)
+      l_var(i)%l = l_set(i)%l
+    enddo
   endif
 
-  do i = 1, size(l_dat)
-    if (set_is == 'LOGICAL-SCALER') then
-      l_dat(i)%l = l_value
-    elseif (set_is == 'LOGICAL-VECTOR') then
-      if (size(l_set) == 1) then
-        l_dat(i)%l = l_set(1)%l
-      elseif (size(l_set) == size(l_dat)) then
-        l_dat(i)%l = l_set(i)%l
-      else
-        call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
-                                          var_str // ' = ' // set_str)
-        return
-      endif   
-    endif 
-  enddo
+! Must be merit_type for a string.
+! If value_string has "|" then it must be a datum array
 
-else
-  call out_io (s_error$, r_name, 'BAD DATA NAME ' // var_str)
+elseif (allocated(s_var)) then
+  if (index(value_str, '|') == 0) then
+    if (all (value_str /= merit_type_names)) then
+      call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
+      return
+    endif
+    do i = 1, size(s_var)
+      s_var(i)%s = value_str
+    enddo
+
+  else
+    call tao_find_var (err, value_str, str_array=s_set)
+    if (.not. allocated (l_set)) then
+      call out_io (s_error$, r_name, 'BAD STRING VALUES')
+      return
+    endif
+    if (size(l_set) /= size(l_var)) then
+      call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
+      return
+    endif
+    do i = 1, size(s_var)
+      s_var(i)%s = s_set(i)%s
+    enddo
+  endif
+
+! Only possibility left is real/ The value_str might be a number or it might 
+! be a mathematical expression involving datum values or array of values.
+
+elseif (allocated(r_var)) then
+  call tao_to_real_vector (value_str, 'DATA', r_value, err)
+  if (err) then
+    call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
+    return
+  endif
+  if (size(r_value) == 1) then  ! scaler
+    do i = 1, size(r_var)
+      r_var(i)%r = r_value(1)
+      if (component == 'model') call tao_set_var_model_value (v_var(i)%v, value)
+    enddo
+  else
+    if (size(r_var) /= size(r_value)) then
+      call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
+                                          var_str // ' = ' // value_str)
+      return
+    endif
+    do i = 1, size(r_var)
+      r_var(i)%r = r_value(i)
+      if (component == 'model') call tao_set_var_model_value (v_var(i)%v, value)
+    enddo
+  endif
+
 endif
 
 end subroutine tao_set_var_cmd
@@ -603,108 +612,122 @@ end subroutine tao_set_var_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_data_cmd (data_str, set_str)
+! Subroutine tao_set_data_cmd (who_str, value_str)
 !
 ! Routine to set data values.
 !
 ! Input:
-!   data_str -- Character(*): Which data name to set.
-!   set_str  -- Character(*): What value to set it to.
+!   who_str   -- Character(*): Which data component(s) to set.
+!   value_str -- Character(*): What value to set it to.
 !
 !  Output:
 !-
 
-subroutine tao_set_data_cmd (data_str, set_str)
+subroutine tao_set_data_cmd (who_str, value_str)
 
 implicit none
 
 type (tao_real_array_struct), allocatable, save    :: r_dat(:), r_set(:)
 type (tao_data_array_struct), allocatable, save    :: d_dat(:)
 type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
+type (tao_string_array_struct), allocatable, save :: s_dat(:), s_set(:)
 
 real(rp), allocatable :: r_value(:)
 integer i
 
-character(*) data_str, set_str
-character(20) set_is, component
+character(*) who_str, value_str
+character(20) component
 character(20) :: r_name = 'tao_set_data_cmd'
-
+character(40) :: merit_type_names(5) = &
+              (/ 'target ', 'min    ', 'max    ', 'abs_min', 'abs_max' /)
 logical err, l_value
 
-! Decode set_str.
-! It might be a number or it might be a datum value.
+! Decode data component to set.
 
-if (is_logical(set_str)) then
-  read (set_str, *) l_value
-  set_is = 'LOGICAL-SCALER'
-else
-  call tao_find_data (err, set_str, &
-                r_array=r_set, l_array=l_set, print_err = .false.)
-  if (allocated(l_set)) then
-    set_is = 'LOGICAL-VECTOR'
-  else
-    set_is = 'REAL'
-    call tao_to_real_vector (set_str, 'DATA', r_value, err)
-    if (err) then
-      call out_io (s_error$, r_name, 'BAD SET VALUE ' // set_str)
-      return
-    endif
-  endif
-endif
-
-! select value and set.
-
-call tao_find_data (err, data_str, d_array = d_dat, r_array=r_dat, l_array=l_dat, &
-                                                        component = component)
+call tao_find_data (err, who_str, d_array = d_dat, re_array=r_dat, &
+          log_array=l_dat, str_array = s_dat, component = component)
 if (err) return
 
-if (allocated(r_dat)) then
-  if (set_is /= 'REAL') then
-    call out_io (s_error$, r_name, 'BAD: REAL = LOGICAL: ' // &
-                                          data_str // ' = ' // set_str)
-    return
-  endif
+! A logical value_str is either a logical or an array of datum values.
 
-  if (size(r_value) > 1 .and. size(r_dat) /= size(r_value)) then
-    call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
-                                          data_str // ' = ' // set_str)
-    return
-  endif
-
-  do i = 1, size(r_dat)
-    if (size(r_value) == 1) then
-      r_dat(i)%r = r_value(1)
-    else
-      r_dat(i)%r = r_value(i)
-    endif
-    if (component == 'meas') d_dat(i)%d%good_meas = .true.
-    if (component == 'ref')  d_dat(i)%d%good_ref = .true.
-  enddo
-
-!
-
-elseif (allocated(l_dat)) then
-  do i = 1, size(l_dat)
-    if (set_is == 'LOGICAL-SCALER') then
+if (allocated(l_dat)) then
+  if (is_logical(value_str)) then
+    read (value_str, *) l_value
+    do i = 1, size(l_dat)
       l_dat(i)%l = l_value
-    elseif (set_is == 'LOGICAL-VECTOR') then
-      if (size(l_set) == 1) then
-        l_dat(i)%l = l_set(1)%l
-      elseif (size(l_set) == size(l_dat)) then
-        l_dat(i)%l = l_set(i)%l
-      else
-        call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
-                                          data_str // ' = ' // set_str)
-        return
-      endif    
-    else
-      call out_io (s_error$, r_name, 'BAD: LOGICAL = REAL: ' // &
-                                          data_str // ' = ' // set_str)
-    endif
-  enddo
+    enddo
 
-else
-  call out_io (s_error$, r_name, 'BAD DATA NAME ' // data_str)
+  else
+    call tao_find_data (err, value_str, log_array=l_set)
+    if (.not. allocated (l_set)) then
+      call out_io (s_error$, r_name, 'BAD LOGICAL VALUES')
+      return
+    endif
+    if (size(l_set) /= size(l_dat)) then
+      call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
+      return
+    endif
+    do i = 1, size(l_dat)
+      l_dat(i)%l = l_set(i)%l
+    enddo
+  endif
+
+! Must be merit_type for a string.
+! If value_string has "|" then it must be a datum array
+
+elseif (allocated(s_dat)) then
+  if (index(value_str, '|') == 0) then
+    if (all (value_str /= merit_type_names)) then
+      call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
+      return
+    endif
+    do i = 1, size(s_dat)
+      s_dat(i)%s = value_str
+    enddo
+
+  else
+    call tao_find_data (err, value_str, str_array=s_set)
+    if (.not. allocated (l_set)) then
+      call out_io (s_error$, r_name, 'BAD STRING VALUES')
+      return
+    endif
+    if (size(l_set) /= size(l_dat)) then
+      call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
+      return
+    endif
+    do i = 1, size(s_dat)
+      s_dat(i)%s = s_set(i)%s
+    enddo
+  endif
+
+! Only possibility left is real/ The value_str might be a number or it might 
+! be a mathematical expression involving datum values or array of values.
+
+elseif (allocated(r_dat)) then
+  call tao_to_real_vector (value_str, 'DATA', r_value, err)
+  if (err) then
+    call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
+    return
+  endif
+  if (size(r_value) == 1) then  ! scaler
+    do i = 1, size(r_dat)
+      r_dat(i)%r = r_value(1)
+      if (component == 'meas') d_dat(i)%d%good_meas = .true.
+      if (component == 'ref')  d_dat(i)%d%good_ref = .true.
+    enddo
+  else
+    if (size(r_dat) /= size(r_value)) then
+      call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
+                                          who_str // ' = ' // value_str)
+      return
+    endif
+    do i = 1, size(r_dat)
+      r_dat(i)%r = r_value(i)
+      if (component == 'meas') d_dat(i)%d%good_meas = .true.
+      if (component == 'ref')  d_dat(i)%d%good_ref = .true.
+    enddo
+  endif
+
 endif
 
 end subroutine tao_set_data_cmd

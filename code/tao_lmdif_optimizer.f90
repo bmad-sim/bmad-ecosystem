@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_lmdif_optimizer ()
+! Subroutine tao_lmdif_optimizer (abort)
 !
 ! Subrutine to minimize the merit function by varying variables until
 ! the "data" as calculated from the model matches the measured data.
@@ -8,14 +8,11 @@
 ! See the Numerical Recipes writeup for more details.
 ! 'lm' stands for Levenburg - Marquardt. Otherwise known as LMDIF. 
 !
-! Note: LM assumes 
-!
-! Input:
-!
 ! Output:
+!   abort -- Logical: Set True if an user stop signal detected.
 !-
 
-subroutine tao_lmdif_optimizer ()
+subroutine tao_lmdif_optimizer (abort)
 
 use tao_mod
 use tao_dmerit_mod
@@ -35,7 +32,7 @@ real(rp) merit, merit_at_min
 integer i, j, k, n
 integer n_data, n_var
 
-logical :: abort_detected, init_needed = .true.
+logical :: abort, init_needed = .true.
 logical at_end
 
 character(20) :: r_name = 'tao_lmdif_optimizer'
@@ -60,7 +57,7 @@ allocate (merit_vec(n_data))
 
 ! run optimizer mrqmin from Numerical Recipes.
 
-abort_detected = .false.
+abort = .false.
 call initial_lmdif
 
 merit = tao_merit()
@@ -101,10 +98,11 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
   do
     call get_tty_char (char, .false., .false.) 
     if (char == '.') then
-      abort_detected = .true.
+      abort = .true.
       call out_io (s_blank$, r_name, line)
       call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', &
                                                              'Stopping now.')
+      abort = .true.
       exit cycle_loop
     endif
     if (char == achar(0)) exit   ! only exit if there is no more input
@@ -115,7 +113,7 @@ enddo cycle_loop
 
 ! cleanup
 
-if (.not. abort_detected .and. i < s%global%n_opti_cycles) then
+if (.not. abort .and. i < s%global%n_opti_cycles) then
   call out_io (s_blank$, r_name, 'Optimizer at minimum. Stopping now.')
 endif
 

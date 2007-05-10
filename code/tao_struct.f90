@@ -213,8 +213,8 @@ type tao_data_struct
   character(40) ele_name    ! Name of the element in the Lattice corresponding to the datum.
   character(40) ele0_name   ! Name lattice element when there is a range 
   character(40) data_type   ! Type of data: "orbit.x", etc.
-  character(16) merit_type  ! Type of constraint: 'target', 'max', 'min', etc.
-  character(16) data_source ! 'lattice', or 'beam_tracking'
+  character(40) merit_type  ! Type of constraint: 'target', 'max', 'min', etc.
+  character(40) data_source ! 'lattice', or 'beam_tracking'
   integer ix_ele            ! Index of the element in the lattice element array.
   integer ix_ele0           ! Index of lattice elment when there is a range or reference.
   integer ix_ele_merit      ! Index of lattice elment where merit is evaluated.
@@ -297,6 +297,10 @@ type tao_logical_array_struct
   logical, pointer :: l
 end type
 
+type tao_string_array_struct
+  character(40), pointer :: s
+end type
+
 !-----------------------------------------------------------------------
 ! The var_struct defined the fundamental variable structure.
 ! The super_universe_struct will hold an array of var_structs: s%var(:).
@@ -346,7 +350,7 @@ type tao_var_struct
   real(rp) dMerit_dVar      ! Merit derivative.     
   real(rp) conversion_factor! Not currently used for anything
   real(rp) s                ! longitudinal position of ele.
-  character(16) merit_type  ! 'target' or 'limit'
+  character(40) merit_type  ! 'target' or 'limit'
   logical exists            ! See above
   logical good_var          ! See above
   logical good_user         ! See above
@@ -385,6 +389,7 @@ type tao_global_struct
   real(rp) :: lmdif_eps = 1e-12          ! tollerance for lmdif optimizer.
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
+  integer :: n_opti_loops = 1            ! number of optimization loops
   integer :: ix_key_bank = 0             ! For single mode.
   integer :: n_key_table_max = 0         ! Maximum key table index.
   integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
@@ -536,6 +541,7 @@ type tao_common_struct
   type (tao_alias_struct) alias(100)
   logical opti_init        ! init needed?
   logical opti_at_limit    ! Variable at limit?
+  logical opti_abort       ! Abort loops?
   character(40) cmd_arg(9) ! Command file arguments.
   character(100) cmd       ! Used for the cmd history
   character(16) :: init_name = "Tao"  !label for initialization

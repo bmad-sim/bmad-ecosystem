@@ -327,40 +327,40 @@ case ('data')
     if (size(s%u) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d_ptr%d1%d2%ix_uni
     endif
-    nl=nl+1; write(lines(nl), amt)  '%Name              = ', d_ptr%name
-    nl=nl+1; write(lines(nl), amt)  '%Ele0_name         = ', d_ptr%ele0_name
-    nl=nl+1; write(lines(nl), amt)  '%Ele_name          = ', d_ptr%ele_name
-    nl=nl+1; write(lines(nl), amt)  '%Data_type         = ', d_ptr%data_type
-    nl=nl+1; write(lines(nl), amt)  '%Data_source       = ', d_ptr%data_source
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele0           = ', d_ptr%ix_ele0
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele            = ', d_ptr%ix_ele
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele_merit      = ', d_ptr%ix_ele_merit
-    nl=nl+1; write(lines(nl), imt)  '%Ix_dModel         = ', d_ptr%ix_dModel
-    nl=nl+1; write(lines(nl), imt)  '%Ix_d1             = ', d_ptr%ix_d1
-    nl=nl+1; write(lines(nl), imt)  '%Ix_data           = ', d_ptr%ix_data
-    nl=nl+1; write(lines(nl), imt)  '%Ix_bunch          = ', d_ptr%ix_bunch
-    nl=nl+1; write(lines(nl), rmt)  '%meas_value        = ', d_ptr%meas_value
-    nl=nl+1; write(lines(nl), rmt)  '%Ref_value         = ', d_ptr%ref_value
-    nl=nl+1; write(lines(nl), rmt)  '%Model_value       = ', d_ptr%model_value
-    nl=nl+1; write(lines(nl), rmt)  '%base_value        = ', d_ptr%base_value
+    nl=nl+1; write(lines(nl), amt)  '%name              = ', d_ptr%name
+    nl=nl+1; write(lines(nl), amt)  '%ele0_name         = ', d_ptr%ele0_name
+    nl=nl+1; write(lines(nl), amt)  '%ele_name          = ', d_ptr%ele_name
+    nl=nl+1; write(lines(nl), amt)  '%data_type         = ', d_ptr%data_type
+    nl=nl+1; write(lines(nl), amt)  '%data_source       = ', d_ptr%data_source
+    nl=nl+1; write(lines(nl), imt)  '%ix_ele0           = ', d_ptr%ix_ele0
+    nl=nl+1; write(lines(nl), imt)  '%ix_ele            = ', d_ptr%ix_ele
+    nl=nl+1; write(lines(nl), imt)  '%ix_ele_merit      = ', d_ptr%ix_ele_merit
+    nl=nl+1; write(lines(nl), imt)  '%ix_dmodel         = ', d_ptr%ix_dModel
+    nl=nl+1; write(lines(nl), imt)  '%ix_d1             = ', d_ptr%ix_d1
+    nl=nl+1; write(lines(nl), imt)  '%ix_data           = ', d_ptr%ix_data
+    nl=nl+1; write(lines(nl), imt)  '%ix_bunch          = ', d_ptr%ix_bunch
+    nl=nl+1; write(lines(nl), rmt)  '%model             = ', d_ptr%model_value
+    nl=nl+1; write(lines(nl), rmt)  '%design            = ', d_ptr%design_value
+    nl=nl+1; write(lines(nl), rmt)  '%meas              = ', d_ptr%meas_value
+    nl=nl+1; write(lines(nl), rmt)  '%ref               = ', d_ptr%ref_value
+    nl=nl+1; write(lines(nl), rmt)  '%base              = ', d_ptr%base_value
+    nl=nl+1; write(lines(nl), rmt)  '%old               = ', d_ptr%old_value   
+    nl=nl+1; write(lines(nl), rmt)  '%fit               = ', d_ptr%fit_value
+    nl=nl+1; write(lines(nl), rmt)  '%conversion_factor = ', d_ptr%conversion_factor
+    nl=nl+1; write(lines(nl), rmt)  '%s                 = ', d_ptr%s
+    nl=nl+1; write(lines(nl), amt)  '%merit_type        = ', d_ptr%merit_type
+    nl=nl+1; write(lines(nl), rmt)  '%merit             = ', d_ptr%merit
     nl=nl+1; write(lines(nl), rmt)  '%delta_merit       = ', d_ptr%delta_merit
-    nl=nl+1; write(lines(nl), rmt)  '%Design_value      = ', d_ptr%design_value
-    nl=nl+1; write(lines(nl), rmt)  '%Old_value         = ', d_ptr%old_value
-    nl=nl+1; write(lines(nl), rmt)  '%Fit_value         = ', d_ptr%fit_value
-    nl=nl+1; write(lines(nl), rmt)  '%Merit             = ', d_ptr%merit
-    nl=nl+1; write(lines(nl), rmt)  '%Conversion_factor = ', d_ptr%conversion_factor
-    nl=nl+1; write(lines(nl), rmt)  '%S                 = ', d_ptr%s
-    nl=nl+1; write(lines(nl), rmt)  '%Weight            = ', d_ptr%weight
-    nl=nl+1; write(lines(nl), amt)  '%Merit_type        = ', d_ptr%merit_type
-    nl=nl+1; write(lines(nl), lmt)  '%Exists            = ', d_ptr%exists
-    nl=nl+1; write(lines(nl), lmt)  '%Good_model        = ', d_ptr%good_model
-    nl=nl+1; write(lines(nl), lmt)  '%Good_meas         = ', d_ptr%good_meas
-    nl=nl+1; write(lines(nl), lmt)  '%Good_ref          = ', d_ptr%good_ref
-    nl=nl+1; write(lines(nl), lmt)  '%Good_user         = ', d_ptr%good_user
-    nl=nl+1; write(lines(nl), lmt)  '%Good_opt          = ', d_ptr%good_opt
-    nl=nl+1; write(lines(nl), lmt)  '%Good_plot         = ', d_ptr%good_plot
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot        = ', d_ptr%useit_plot
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt         = ', d_ptr%useit_opt
+    nl=nl+1; write(lines(nl), rmt)  '%weight            = ', d_ptr%weight
+    nl=nl+1; write(lines(nl), lmt)  '%exists            = ', d_ptr%exists
+    nl=nl+1; write(lines(nl), lmt)  '%good_model        = ', d_ptr%good_model
+    nl=nl+1; write(lines(nl), lmt)  '%good_meas         = ', d_ptr%good_meas
+    nl=nl+1; write(lines(nl), lmt)  '%good_ref          = ', d_ptr%good_ref
+    nl=nl+1; write(lines(nl), lmt)  '%good_user         = ', d_ptr%good_user
+    nl=nl+1; write(lines(nl), lmt)  '%good_opt          = ', d_ptr%good_opt
+    nl=nl+1; write(lines(nl), lmt)  '%good_plot         = ', d_ptr%good_plot
+    nl=nl+1; write(lines(nl), lmt)  '%useit_plot        = ', d_ptr%useit_plot
+    nl=nl+1; write(lines(nl), lmt)  '%useit_opt         = ', d_ptr%useit_opt
 
 ! Else show the d1_data info.
 
@@ -520,6 +520,7 @@ case ('global')
   nl=nl+1; write (lines(nl), rmt) 'lmdif_eps            = ', s%global%lmdif_eps
   nl=nl+1; write (lines(nl), rmt) 'y_axis_plot_dmin     = ', s%global%y_axis_plot_dmin
   nl=nl+1; write (lines(nl), imt) 'u_view               = ', s%global%u_view
+  nl=nl+1; write (lines(nl), imt) 'n_opti_loops         = ', s%global%n_opti_loops
   nl=nl+1; write (lines(nl), imt) 'n_opti_cycles        = ', s%global%n_opti_cycles
   nl=nl+1; write (lines(nl), imt) 'bunch_to_plot        = ', s%global%bunch_to_plot
   nl=nl+1; write (lines(nl), imt) 'random_seed          = ', s%global%random_seed
