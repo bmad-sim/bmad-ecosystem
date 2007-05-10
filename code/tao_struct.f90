@@ -419,6 +419,7 @@ type tao_global_struct
   logical :: matrix_recalc_on = .true.       ! calc linear transfer matrix
   logical :: save_beam_everywhere = .false.  ! Save the beam info at all elements?
   logical :: use_saved_beam_in_tracking = .false.
+  logical :: show_ele_wig_terms = .false.
 end type
 
 !------------------------------------------------------------------------

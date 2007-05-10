@@ -652,26 +652,27 @@ For \vn{set graph}, the \vn{component}s that can be set are:
 
 For \vn{set global}, the \vn{<component>}s that can be set are:
 \begin{example}
-  y_axis_plot_dmin  = <number> ! Minimum y_max-y_min allowed for a graph.
-  n_opti_cycles     = <number> ! Number of optimization cycles
-  lun_command_file  = <number> ! Unit number for a command file.
-                               !  0 -> no command file.
-  bunch_to_plot     = <number> ! View data for this bunch
-  n_curve_pts       = <number> ! Number of points used to draw a "smooth" curve.
-  prompt_string     = <string> ! Prompt String
-  optimizer         = <string> ! Optimizer to use: 'de', 'lm' or 'lmdif'
-  var_limits_on     = T/F      ! Respect the variable limits?
-  plot_on           = T/F      ! Update plot window?
-  opt_with_ref      = T/F      ! Use reference data in optimization?
-  opt_with_base     = T/F      ! Use base data in optimization?
-  label_lattice_elements = T/F ! For lat_layout plots
-  label_keys        = T/F      ! For lat_layout plots
-  derivative_recalc = T/F      ! Recalc before each optimizer run?
-  lattice_recalc    = T/F      ! Recalculate the lattice parameters?
-  matrix_recalc_on  = T/F      ! Recalculate the transfer matrix?
-  print_command     = <string> ! Command used to print plot page
-  default_init_file = <string> ! When reinitializing use this init file
-  var_out_file      = <string> ! Variable output data in this file
+  y_axis_plot_dmin   = <number> ! Minimum y_max-y_min allowed for a graph.
+  n_opti_cycles      = <number> ! Number of optimization cycles
+  lun_command_file   = <number> ! Unit number for a command file.
+                                !  0 -> no command file.
+  bunch_to_plot      = <number> ! View data for this bunch
+  n_curve_pts        = <number> ! Number of points used to draw a "smooth" curve.
+  prompt_string      = <string> ! Prompt String
+  optimizer          = <string> ! Optimizer to use: 'de', 'lm' or 'lmdif'
+  var_limits_on      = T/F      ! Respect the variable limits?
+  plot_on            = T/F      ! Update plot window?
+  opt_with_ref       = T/F      ! Use reference data in optimization?
+  opt_with_base      = T/F      ! Use base data in optimization?
+  label_lattice_elements = T/F  ! For lat_layout plots
+  label_keys         = T/F      ! For lat_layout plots
+  derivative_recalc  = T/F      ! Recalc before each optimizer run?
+  lattice_recalc     = T/F      ! Recalculate the lattice parameters?
+  matrix_recalc_on   = T/F      ! Recalculate the transfer matrix?
+  show_ele_wig_terms = T/F      ! Show the wiggler terms with show ele?
+  print_command      = <string> ! Command used to print plot page
+  default_init_file  = <string> ! When reinitializing use this init file
+  var_out_file       = <string> ! Variable output data in this file
 \end{example}
 \vskip 0.2in
 
@@ -820,7 +821,10 @@ listed. \vn{<ele_name>} is a number $n$ then the $n$\Th element in the
 lattice list will be shown.
 
 \vn{show ele} does not show the Taylor map associated with an element
-even if it has one. To see this map use the \vn{show taylor} command.
+even if it has one. To see this map use the \vn{show taylor}
+command. Additionaly, by default the wiggler terms of a \vn{map_type}
+\vn{wiggler} element will not be printed. To change this use the command:
+\vn{set global show_ele_wig_terms = T}.
 
   \item[show global]
 Shows global information.

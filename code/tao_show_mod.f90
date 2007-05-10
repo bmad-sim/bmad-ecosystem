@@ -466,10 +466,12 @@ case ('ele', 'taylor')
     ! Show the element info
     if (show_names(ix) == 'ele') then
       call type2_ele (u%model%lat%ele(loc), ptr_lines, n, .true., 6, .false., &
-                        s%global%phase_units, .true., u%model%lat, .true., .true.)
+              s%global%phase_units, .true., u%model%lat, .true., .true., &
+              s%global%show_ele_wig_terms)
     else
       call type2_ele (u%model%lat%ele(loc), ptr_lines, n, .true., 6, .true., &
-                             s%global%phase_units, .true., u%model%lat, .false., .false.)
+              s%global%phase_units, .true., u%model%lat, .false., .false., &
+              s%global%show_ele_wig_terms)
     endif
     if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100)
     lines(nl+1:nl+n) = ptr_lines(1:n)
@@ -549,6 +551,7 @@ case ('global')
   nl=nl+1; write (lines(nl), lmt) 'save_beam_everywhere = ', s%global%save_beam_everywhere
   nl=nl+1; write (lines(nl), lmt) 'use_saved_beam_in_tracking = ', &
                                               s%global%use_saved_beam_in_tracking
+  nl=nl+1; write (lines(nl), lmt) 'show_ele_wig_terms   = ', s%global%show_ele_wig_terms
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
