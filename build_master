@@ -36,8 +36,8 @@ from standout import StandOut  # figure out where to consolidate all 3rd party m
 #===================================================================
 #== Node names =========================================
 osf_host      = "cesrbuild2.lepp.cornell.edu"
-lnx_host      = "lnx6166.lepp.cornell.edu"
-vms_host      = "cesrbuild2.lepp.cornell.edu"
+lnx_host      = "lnx209.lepp.cornell.edu"
+vms_host      = "cesrbuild1.lepp.cornell.edu"
 win_host      = "pc6115.lepp.cornell.edu"
 hostname      = socket.gethostname()
 
@@ -53,6 +53,8 @@ repo_modules  = ["util", "Gmake", "src"]
 pkg_modules   = ["cfortran", "forest", "num_recipes/recipes_f-90", "num_recipes/recipes_c-ansi", "xsif", "PGPLOT"]
 #pkg_modules   = ["cfortran"]
 # work out how to sync this list with the pkg build list in the M.release makefile... keeping them sync'd manually is not so hot
+
+statuses      = {0 : "Building", 1 : "Complete", -1 : "ERROR"}
 
 release       = ""
 build_release = 1              # default to building a CESR release only
@@ -141,13 +143,14 @@ for opt in sys.argv:
     lnx                 = 1
   elif opt == "-vms":
     vms                 = 1
+    osf                 = 1
   elif opt == "-win":
     win                 = 1
   elif opt == "-nobs":
     show_status         = 0
   elif opt == "-isol":
     isolated_build      = "YES"
-  elif opt == "-ntly":
+  elif opt == "-ntly" or opt == "-nightly":
     nightly             = 1
     build_rank          = 3
   elif opt == "-devel":
@@ -505,7 +508,7 @@ class builder:
 
       # Perform the actual checkout using a call to the SVN client
       for module in repo_modules:
-        print "Retrieving module " + module
+        #print "Retrieving module " + module
         svn_cmd = "svn co "+repo_loc+'/'+branch.lower()+'/'+module+"@"+str(self.rev)+' '+self.full_rel_name+'/'+module
  
         svnlines = os.popen(svn_cmd).readlines()
@@ -537,6 +540,7 @@ class builder:
     self.status_list = []
     while self.qline:
       if self.qline.find("BUILD STATUS:") != -1:
+        #print self.qline
         self.qline = self.qline.strip()
         self.status_list.append(self.qline)
       self.qline = self.lq.readline()
@@ -544,9 +548,9 @@ class builder:
     self.lq.close()
     #print self.status_list
 
-    #if self.STATUS == "ERROR(S) DETECTED":         ## generalize error code pickup here?  for more specific contingencies?
+    #if self.STATUS == "ERROR(S) DETECTED":         ## code pickup here for more specific contingencies?
     if self.status_list[-1].find("ERROR") != -1:
-      build_status = -1                                # any errors give return value of 1
+      build_status = -1                                # any errors give return value of -1
     elif self.status_list[-1].find("COMPLETE") != -1:
       build_status = 1                                 # code 1 means complete with no errors
       #break
@@ -642,12 +646,13 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
     print_co = False
   if osf:
     t_begin_OSF = int(time.time())
+    t_begin_VMS = int(time.time())
     OSFBUILD = builder(build_names, revision, build_type, "osfhp", print_co, stout)
     print_co = False
-  if vms:
-    t_VMS    = int(time.time())
-    VMSBUILD = builder(build_names, revision, build_type, "vmshp", print_co, stout)
-    print_co = False
+ # if vms:
+ #   t_VMS    = int(time.time())
+ #   VMSBUILD = builder(build_names, revision, build_type, "vmshp", print_co, stout)
+ #   print_co = False
   if win:
     t_WIN    = int(time.time())
     WINBUILD = builder(build_names, revision, build_type, "win", print_co, stout)
@@ -665,10 +670,11 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
   lin_donelatch    = 0
   lla_donelatch    = 0
   osf_donelatch    = 0
+  vms_donelatch    = 0
 
   ####
-  print "Waiting for a few seconds for builds to fully initiate."
-  time.sleep(30)
+  print "Waiting for builds to fully initiate."
+  time.sleep(40)
   if not show_status:
     print "Builds initiated.  Status output supressed.  This will take a while."
   ####
@@ -701,30 +707,50 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
         error_tally = error_tally + 1
 
       if show_status:
-        print "  Linux Intel status: " + str( lin_stat )
-        print "  Linux Lahey status: " + str( lla_stat )        
+        print "  Linux Intel status : (" + str( lin_stat ) + ') ' + statuses[lin_stat]
+        print "  Linux Lahey status : (" + str( lla_stat ) + ') ' + statuses[lla_stat]
 
         
-    if osf:
+    if osf:                        # VMS build depends on successful OSF build
       osf_stat = OSFBUILD.status()
 
-      if osf_stat > 0 and osf_donelatch == 0:
+      if osf_stat > 0 and osf_donelatch == 0: # if OSF build has completed
         complete_tally = complete_tally + 1
-        t_end_OSF = int(time.time() )
+        t_end_OSF = int(time.time())
         osf_donelatch = 1
+        # Put call to VMS builder here, it will check out, and then this will copy OSF deps over.
+        if vms:
+
+          print ""
+          VMSBUILD = builder(build_names, revision, build_type, "vmshp", print_co, stout)
+          #t_end_VMS = int(time.time() )
+          #complete_tally = complete_tally + 1  # VMS has finished as well, so update tally.
       elif osf_stat < 0:
         #error_fraction = error_fraction + float( osf_stat )
         error_tally = error_tally + 1
 
       if show_status:
-          print "  OSF1 HP  status   : " + str( osf_stat )
+        print "  OSF1   HP   status : (" + str( osf_stat ) + ') ' + statuses[osf_stat]
+        if vms and osf_donelatch == 0:   # if VMS release is to be prepared and OSF is still running
+          print "  VMS    HP   status : (0) WAITING for OSF1"
 
 
+    if vms and osf_donelatch:   # if VMS release is to be prepared AND OSF is done building
+      vms_stat = VMSBUILD.status()
+      if vms_stat > 0 and vms_donelatch == 0:  # if VMS preparations have completed
+        complete_tally = complete_tally + 1
+        t_end_VMS = int(time.time())
+        vms_donelatch = 1
+      if show_status:
+        print "  VMS    HP  status  : (" + str(vms_stat) + ") PREPARING TO TRANSFER"
+      
+    
     complete_fraction = complete_tally / float(rquant)
     #error_fraction    = abs ( error_fraction / float(rquant) )
     error_fraction    = error_tally / float(rquant)
 
-    #print "Completion percentage: %" + str(int(complete_fraction*100))
+    if show_status:
+      print "Completion percentage: %" + str(int(complete_fraction*100))
     #print "Failure percentage: %" + str(int(error_fraction*100))
 
     if complete_fraction == 1.0:
@@ -758,6 +784,8 @@ if lnx:
   print "Linux lahey build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LLA - t_begin_LLA)
 if osf:
   print "OSF1 alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_end_OSF - t_begin_OSF)
+if vms:
+  print "VMS  alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_end_VMS - t_begin_VMS)
 
 if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
   lines = os.popen(util_dir + "/rel_disk_total " + rel_name).readlines()
@@ -770,7 +798,7 @@ else:
 print "=========================  Test Suite Summary  ==========================="
 if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
   for plat in platform_combos:
-    print plat
+    #print plat
     if plat == "linuxi" or plat == "linuxl":
       platform = platform_combos[plat][0] + '_' + platform_combos[plat][1]
       print "Testing summary for " + platform
@@ -781,21 +809,32 @@ if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
       print ""
 
 print "=========================================================================="
-print "          =============  End Statistics Summary ============="
+print "          =============  End Statistics Summary =============\n"
 
 
 #== If nightly build has been requested, rotate this one into position and delete the previous.
 if nightly and ( build_type == "RELEASE" or build_type == "RELEASE & PACKAGES" ):
   print "This is a nightly build, proceeding with replacement of previous build."
-  lines = os.popen(bin_dir + "/rotate_release -ntly " + rel_name).readlines()
+  lines = os.popen(util_dir + "/rotate_release -nightly " + rel_name).readlines()
   for line in lines:
     print line
   print "Rotation successful, so deleting previous night's build."
 
+  #== If everything has completed successfully so far, delete previous build, as long as it hasn't
+  #== been promoted.
+  prevfile = open(prev_blt_path, 'r')
+  previously_built = prevfile.readline().strip()
+  prevfile.close()
+  lines = os.popen(util_dir + "/DELETE_release -FORCE REL=" + previously_built)
+  for line in lines:
+    print line
+  print "Deletion successful.  Updating previous build marker."
+  os.chmod(prev_blt_path, 0644)         # set permissions to writable
+  prevfile = open(prev_blt_path, 'w')
+  prevfile.write(rel_name + '\n')      # write the name of the release just built to file
+  prevfile.close()
+  os.chmod(prev_blt_path, 0444)         # reset permissions to disallow writes
 
-#== Print status summary if all builds are complete
 
-
-
-stout.close()                          # Close stream to logfile before quitting
+stout.close()                           # Close stream to logfile before quitting
 
