@@ -42,6 +42,7 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
                                          
   type (lat_struct), target :: lat
   type (coord_struct), optional, volatile :: coord(0:)
+  type (coord_struct) orb_start, orb_end
   type (ele_struct), pointer :: ele
 
   integer, optional :: ix_ele
@@ -72,18 +73,22 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
   if (bmad_com%auto_bookkeeper) call compute_reference_energy (lat)
 
 !--------------------------------------------------------------
-! make entire lat if i_ele < 0
-! first do the inter element bookkeeping
+! Make entire lat if i_ele < 0.
+! First do the inter-element bookkeeping.
 
   if (i_ele < 0) then         
 
     if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
-! now make the transfer matrices.
-! for speed if a element needs a taylor series then check if we can use
+! Now make the transfer matrices.
+! For speed if a element needs a taylor series then check if we can use
 ! one from a previous element.
 
+! For consistancy, if no orbit is given, the starting coords in a super_slave
+! will be taken as the ending coords of the previous super_slave.
+
     n_taylor = 0  ! number of taylor series found
+    orb_end%vec = 0
 
     do i = 1, lat%n_ele_track
 
@@ -112,8 +117,13 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
 
       if (present(coord)) then
         call make_mat6(ele, lat%param, coord(i-1), coord(i), .true.)
+      elseif (ele%control_type == super_slave$) then
+        orb_start = orb_end
+        call make_mat6(ele, lat%param, orb_start, orb_end)
       else
         call make_mat6(ele, lat%param)
+        ! Reset orb_end if not in a superposition block.
+        if (ele%value(l$) /= 0) orb_end%vec = 0  
       endif
 
       ! save this taylor in the list if it is a new one. 

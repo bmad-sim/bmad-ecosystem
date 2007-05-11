@@ -999,22 +999,16 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   call parser_add_lord (in_lat, n_max, plat, lat)
 
-! make matrices for entire lat
-
-  call control_bookkeeper (lat)       ! need this for lat_geometry
-  call s_calc (lat)                      ! calc longitudinal distances
-  call lat_geometry (lat)                ! lat layout
-  lat%input_taylor_order = bmad_com%taylor_order
-  call compute_reference_energy (lat, .true.)
-
+! global computations
 ! Reuse the old taylor series if they exist
 ! and the old taylor series has the same attributes.
 
+  call lattice_bookkeeper (lat)
+  lat%input_taylor_order = bmad_com%taylor_order
+
   call reuse_taylor_elements (lat, old_ele)
 
-! global computations
-
-  if (.not. bmad_com%auto_bookkeeper) call lattice_bookkeeper (lat)
+! make matrices for entire lat
 
   doit = .true.
   if (present(make_mats6)) doit = make_mats6

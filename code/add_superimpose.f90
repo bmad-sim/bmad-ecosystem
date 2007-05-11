@@ -35,11 +35,11 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   real(rp) s1, s2, length, s1_lat, s2_lat
 
-  integer j, jj, k, ix, n, i2, ic, n_con
+  integer i, j, jj, k, ix, n, i2, ic, n_con
   integer ix1_split, ix2_split, ix_super, ix_super_con
   integer ix_slave, ixn, ixc, ix_slave_name
 
-  logical setup_lord, split1_done, split2_done
+  logical setup_lord, split1_done, split2_done, all_drift
 
   character(20) fmt
   character(20) :: r_name = "add_superimpose"
@@ -145,10 +145,20 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   call delete_double_slash (ix2_split)
   call delete_double_slash (ix2_split+1)
 
-! if element overlays a drift then just insert it in the tracking part of the lat list
+! If element overlays only drifts and null_eles then just 
+! insert it in the tracking part of the lat list
 
-  if (ix2_split == ix1_split + 1 .and. lat%ele(ix2_split)%key == drift$) then
-    ix_super = ix2_split
+  all_drift = (ix2_split > ix1_split)
+  do i = ix1_split+1, ix2_split
+    if (lat%ele(i)%key /= drift$ .and. lat%ele(i)%key /= null_ele$) all_drift = .false.
+    if (.not. all_drift) exit
+  enddo
+
+  if (all_drift) then  
+    do i = ix2_split, ix1_split+2, -1 ! remove all drifts but one
+      call remove_ele_from_lat(lat, i)
+    enddo
+    ix_super = ix1_split + 1
     lat%ele(ix_super) = sup_ele
     lat%ele(ix_super)%control_type = free$
     return

@@ -715,6 +715,15 @@ interface
 end interface
 
 interface
+  subroutine remove_ele_from_lat (lat, ix_ele)
+    use bmad_struct, only: lat_struct
+    implicit none
+    type (lat_struct) lat
+    integer ix_ele
+  end subroutine
+end interface
+
+interface
   subroutine read_digested_bmad_file (in_file_name, lat, version)
     use bmad_struct, only: lat_struct
     implicit none

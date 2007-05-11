@@ -1666,6 +1666,11 @@ Returns a pointer to an attribute of an element with name attrib_name.
 Returns an array of pointers to an attribute with name attrib_name within 
 elements with name ele_name.
 
+\index{Routine!remove_ele_from_lat}
+\item[remove_ele_from_lat (lat, ix_ele)] \Newline 
+Subroutine to remove an element from the lattice.
+This subroutine assumes that the element has no controllers.
+
 \index{Routine!split_lat}
 \item[split_lat (lat, s_split, ix_split, split_done)] \Newline
 Subroutine to split a lat at a point.
@@ -1915,11 +1920,6 @@ Subroutine to calculate the attributes of overlay slave elements.
 \index{Routine!orbit_to_dispersion}
 \item[orbit_to_dispersion (orb_diff, ele)] \Newline
 Subroutine to take an orbit vector difference and calculate the dispersion. 
-
-\index{Routine!superimpose_key}
-\item[superimpose_key (key1, key2) result (key12)] \Newline 
-Function to decide what the element key (key12) should be when
-an element with key1 is superimposed upon with an element.
 
 \index{Routine!twiss_decoupled_propagate}
 \item[twiss_decoupled_propagate (ele1, ele2)] \Newline

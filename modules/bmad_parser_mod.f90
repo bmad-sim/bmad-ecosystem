@@ -3171,7 +3171,7 @@ subroutine parser_add_lord (in_lat, n2, plat, lat)
 
   integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ix1, ns, ixs
   integer ix_lord, ix_slave(1000), k_slave, k_slave_original
-  integer, allocatable, save :: r_indexx(:)
+  integer, allocatable :: r_indexx(:)
 
   character(40), allocatable :: name_list(:)
   character(40) name, name1, slave_name, attrib_name
@@ -3769,51 +3769,6 @@ subroutine remove_all_null_ele_elements (lat)
     i = i + 1
     if (i > lat%n_ele_max) return
   enddo
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine remove_ele_from_lat (lat, ix_ele)
-!
-! Subroutine to remove an element from the lattice.
-!
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
-subroutine remove_ele_from_lat (lat, ix_ele)
-
-  implicit none
-
-  type (lat_struct) lat
-  integer ix_ele
-  integer i, j
-
-! Rectify the lord/slave bookkeeping.
-
-  do i = 1, lat%n_control_max
-    if (lat%control(i)%ix_lord == ix_ele .or. lat%control(i)%ix_slave == ix_ele) then
-      call warning ('ELEMENT TO BE REMOVED FROM LATTICE IS CONTROLLED:' // lat%ele(ix_ele)%name)
-    endif
-    if (lat%control(i)%ix_lord > ix_ele) lat%control(i)%ix_lord = lat%control(i)%ix_lord - 1
-    if (lat%control(i)%ix_slave > ix_ele) lat%control(i)%ix_slave = lat%control(i)%ix_slave - 1
-  enddo
-
-! Remove the element.
-
-  do i = ix_ele+1, lat%n_ele_max
-    lat%ele(i-1) = lat%ele(i)
-  enddo
-
-  call init_ele (lat%ele(lat%n_ele_max))
-
-! More bookkeeping adjustment
-
-  if (ix_ele <= lat%n_ele_track) lat%n_ele_track = lat%n_ele_track - 1
-  lat%n_ele_max = lat%n_ele_max - 1
 
 end subroutine
 
