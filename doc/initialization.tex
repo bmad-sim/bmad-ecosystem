@@ -24,15 +24,33 @@ blocks. The first line of a namelist block starts with an ampersand
 using an equal sign ``='' and the end of the block is denoted by a
 slash ``/'' For example:
 \begin{example}
-  &this_block_name
+  &namelist_block_name
     var1 = 0.123   ! exclamation marks are used for comments
     var2 = 0.456
   /
 \end{example}
 Variables that have default values can be omitted from the block.  The
-order of the variables inside a block is irrelevant.  In between
-namelist blocks all text is ignored. Inside a block comments may be
+order of the variables inside a block is irrelevant except if the
+same variable appears twice in which case the last occurance is determative.
+In between namelist blocks all text is ignored. Inside a block comments may be
 included by using an exclamation mark ``!''.
+
+Care must be taken when setting arrays in a namelist as the following example
+shows:
+\begin{example}
+  &namelist_name
+    var_array(8:11) = 34             ! Only sets var_array(8)
+    var_array(8:11) = 34 34 81 81    ! OK. Sets all 4 values
+    var_array(8:11) = 2*34 2*81      ! Equivalent to the preceeding line
+    var_array(8:)   = 2*34 2*81      ! Also equivalent
+    var_array(1:2) = 1 2 3           ! Error: Too many RHS values
+  /
+\end{example}
+The first line to set the \vn{var_array} may look like it is setting 
+the four values \vn{var_array(8:13)} but the general rule is that with \vn{n}
+values on the RHS, only \vn{n} values in the array are set. Notice the notation
+\vn{n*number} does not denote multiplication but instead can be used to denote
+multiple values.
 
 Note: string variables are case sensitive.
 
