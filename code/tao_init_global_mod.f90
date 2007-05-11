@@ -394,8 +394,8 @@ do
     data(:)%scale_error = real_garbage$
     data(:)%data_source = 'lattice'
     data(:)%good_user  = .true.
-    ix_min_data = int_garbage$
-    ix_max_data = int_garbage$
+    ix_min_data        = int_garbage$
+    ix_max_data        = int_garbage$
     read (iu, nml = tao_d1_data, err = 9150)
     if (ix_d1_data /= k) then
       write (line, '(a, 2i4)') ', k, ix_d1_data'
