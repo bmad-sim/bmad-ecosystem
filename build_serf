@@ -8,6 +8,7 @@ import time
 import string
 import socket
 import popen2
+import shutil
 
 build_type    = ""
 f90           = ""
@@ -173,9 +174,9 @@ if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
 ## -- implement workaround for crummy ancient Python version on cesrbuild2
 if platform == "OSF1_alpha_hp":
     print "OSF1 workaround testing..."
-    #build_process = popen2.Popen3(build_cmd, capturestderr=1)
+    build_process = popen2.Popen3(build_cmd, capturestderr=1)
     print build_cmd
-    build_process = popen2.Popen3(build_cmd)
+    #build_process = popen2.Popen3(build_cmd)
     pid = build_process.pid
     line = build_process.fromchild.readline()
     #if build_process.childerr.readline() != None:
@@ -197,27 +198,50 @@ if platform == "OSF1_alpha_hp":
         print "--> BUILD STATUS: COMPLETE!"
 
 
+if platform == "VMS_alpha_hp": #assumes files and dependencies generated and in place from OSF process (tighten all this up.)
+    if build_type == "RELEASE":
+        OSF_reldir = full_rel_name.replace("VMS_alpha_hp", "OSF1_alpha_hp")
+        print "Waiting for OSF1 build to complete so dependencies can be copied to VMS area."
+        dirlist = os.listdir(OSF_reldir + "/src")  # get list of OSF release src directory
+        print dirlist
+        for dir in dirlist:   # copy over the hidden directory .depend and file .f90_module_rules
+            #dep_process = popen2.Popen4(bin_dir + "/filtercesr
+            if os.path.exists(OSF_reldir + "/src/" + dir + "/.depend"):
+                print "Copying .depend directory from OSF1 " + dir + " area." 
+                shutil.copytree(OSF_reldir + "/src/" + dir + "/.depend", full_rel_name + "/src/" + dir + "/.depend")
+                print "Generating .depvms file..."
+                dep_process = popen2.Popen4(bin_dir + "/util/filtercesr " + full_rel_name + ' ' + dir)
+            if os.path.exists(OSF_reldir + "/src/" + dir + "/.f90_module_rules"):
+                print "Copying .f90_module_rules file from OSF1 " + dir + " area."
+                shutil.copyfile(OSF_reldir+"/src/"+dir+"/.f90_module_rules", full_rel_name+"/src/"+dir+"/.f90_module_rules")
+        print "Copying config directory from OSF1 area."
+        shutil.copytree(OSF_reldir + "/config", full_rel_name + "/config")
+        build_process = popen2.Popen3(bin_dir + "/util/cesr_to_vms " + full_rel_name) # FTP upload to VMS cluster
+        print "--> BUILD STATUS: COMPLETE!"
+
+    if build_type == "PACKAGES":
+        OSF_pkgdir = full_pkg_name.replace("VMS_alpha_hp", "OSF1_alpha_hp")
+        dirlist = os.listdir(OSF_pkgdir)
+        for dir in dirlist:
+            if os.path.exists(OSF_pkgdir +'/'+ dir +"/.depend"):
+                print "Copying .depend directory from OSF1 " + dir + " area."
+                shutil.copytree(OSF_pkgdir +'/'+ dir + "/.depend", full_pkg_name +'/'+ dir + "/.depend")
+                print "Generating .depvms file..."
+                dep_process = popen2.Popen4(bin_dir + "/util/filtercesr " + full_pkg_name + ' ' + dir)
+            if os.path.exists(OSF_pkgdir +'/'+ dir +"/.f90_module_rules"):
+                print "Copying .f90_module_rules file..."
+                shutil.copyfile(OSF_pkgdir +'/'+ dir + "/.f90_module_rules", full_pkg_name +'/'+ dir + "/.f90_module_rules")
+        build_process = popen2.Popen3(bin_dir + "/util/cesr_to_vms " + full_pkg_name) # FTP upload to VMS cluster
+        print "--> BUILD STATUS: COMPLETE!"
 
 
 ## Set group to cesr and add write permissions to the files in the config area
-#chgrp_err = 0
-#chmod_err = 0
-#fdb_error = 0
+
 if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
     os.system("chgrp -R cesr " + config_dir)
     os.system("chmod -R g+w " + config_dir)
-#if chgrp_error != 0 or chmod_err != 0:
-#    print "Error setting group or permissions in config area. Exiting."
-#    sys.exit(60)
-#else:
-#    print "Set config area permissions."
-## Create the database of files and functions for this release
+    
 os.system(bin_dir + "/create_fdb.pl")
-#if fdb_err != 0:
-#    print "Error creating database of files and functions."
-#    sys.exit(65)
-#else:
-#    print "Database of files and functions created in config area."
 
 
 
