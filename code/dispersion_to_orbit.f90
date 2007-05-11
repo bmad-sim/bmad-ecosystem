@@ -36,7 +36,7 @@ Subroutine dispersion_to_orbit (ele, disp_orb)
 
   implicit none
 
-  type (ele_struct), intent(in) :: ele
+  type (ele_struct) :: ele
   type (coord_struct), intent(out) :: disp_orb
 
   real(rp) v_mat(4,4), v_inv_mat(4,4)

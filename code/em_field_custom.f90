@@ -26,7 +26,7 @@ subroutine em_field_custom (ele, param, s, orb, field, calc_dfield)
 
   implicit none
 
-  type (ele_struct), intent(in) :: ele
+  type (ele_struct) :: ele
   type (lat_param_struct) param
   type (coord_struct), intent(in) :: orb
   real(rp), intent(in) :: s

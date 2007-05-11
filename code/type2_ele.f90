@@ -1,6 +1,6 @@
 !+
-! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, 
-!          type_taylor, twiss_out, type_control, lattice, type_wake, type_floor_coords)
+! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, 
+!        twiss_out, type_control, lattice, type_wake, type_floor_coords, type_wig_terms)
 !
 ! Subroutine to put information on an element in a string array. 
 ! See also the subroutine: type_ele.
@@ -35,6 +35,8 @@
 !   type_floor_coords -- Logical, optional: If True then print the global ("floor")
 !                          coordinates at the exit end of the element.
 !                          Default is False.
+!   type_wig_terms -- Logical, optional: If True then print the wiggler terms for
+!                        a map_type wiggler. Default is False.
 !
 ! Output       
 !   lines(:)     -- Character(100), pointer: Character array to hold the 
@@ -47,7 +49,8 @@
 #include "CESR_platform.inc"
 
 subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
-             type_taylor, twiss_out, type_control, lattice, type_wake, type_floor_coords)
+                type_taylor, twiss_out, type_control, lattice, type_wake, &
+                type_floor_coords, type_wig_terms)
 
 use bmad_struct
 use bmad_interface, except => type2_ele
@@ -55,8 +58,8 @@ use multipole_mod
 
 implicit none
 
-type (ele_struct), target, intent(in) :: ele
-type (lat_struct), optional, intent(in) :: lattice
+type (ele_struct), target :: ele
+type (lat_struct), optional :: lattice
 type (wig_term_struct), pointer :: term
 type (lr_wake_struct), pointer :: lr
 type (sr_table_wake_struct), pointer :: sr_table
@@ -81,7 +84,7 @@ character(2) str_i
 
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
-logical, optional :: type_floor_coords
+logical, optional :: type_floor_coords, type_wig_terms
 logical type_zero
 
 ! init
@@ -209,14 +212,18 @@ endif
 ! wiggler terms
 
 if (associated(ele%wig_term)) then
-  nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 7x, a)') ' Term#', &
-                              'Coef', 'K_x', 'K_y', 'K_z', 'phi_z   Type'
-  do i = 1, size(ele%wig_term)
-    term => ele%wig_term(i)
-    write (li(nl+i), '(i4, 5f12.6, 3x, a)') i, term%coef, &
-          term%kx, term%ky, term%kz, term%phi_z, wig_term_type_name(term%type)
-  enddo
-  nl = nl + size(ele%wig_term)
+  if (logic_option(.false., type_wig_terms)) then
+    nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 7x, a)') ' Term#', &
+                                'Coef', 'K_x', 'K_y', 'K_z', 'phi_z   Type'
+    do i = 1, size(ele%wig_term)
+      term => ele%wig_term(i)
+      write (li(nl+i), '(i4, 5f12.6, 3x, a)') i, term%coef, &
+            term%kx, term%ky, term%kz, term%phi_z, wig_term_type_name(term%type)
+    enddo
+    nl = nl + size(ele%wig_term)
+  else
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of wiggler terms:', size(ele%wig_term)
+  endif
 endif
 
 ! Encode on/off status and s_position

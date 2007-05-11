@@ -89,7 +89,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
   implicit none
 
   type (coord_struct), intent(in) :: start
-  type (ele_struct), intent(in) :: ele
+  type (ele_struct) :: ele
   type (lat_param_struct), intent(in) :: param
   type (coord_struct), intent(out) :: end
   type (coord_struct) start2

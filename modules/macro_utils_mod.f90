@@ -83,7 +83,7 @@ subroutine calc_macro_bunch_params (bunch, ele, params)
 
   type (macro_bunch_struct), intent(in) :: bunch
   type (macro_beam_struct), save :: a_beam ! converted to normal modes
-  type (ele_struct), intent(in) :: ele
+  type (ele_struct) :: ele
   type (macro_bunch_params_struct) params
   type (macro_struct), pointer :: macro(:)
 

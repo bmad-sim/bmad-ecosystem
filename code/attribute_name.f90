@@ -401,6 +401,8 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(wiggler$, radius$)         = 'RADIUS'
     attrib_array(wiggler$, field_calc$)     = 'FIELD_CALC'
     attrib_array(wiggler$, x_ray_line_len$) = 'X_RAY_LINE_LEN'
+    attrib_array(wiggler$, l_start$)        = 'L_START'
+    attrib_array(wiggler$, l_end$)          = 'L_END'
 
     attrib_array(sol_quad$, l$)          = 'L'
     attrib_array(sol_quad$, k1$)         = 'K1'

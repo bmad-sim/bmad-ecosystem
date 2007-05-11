@@ -120,6 +120,8 @@ type (ri_struct) ri(7)
 
 !
 
+call init_ele(runt)
+
 eps_int = 1e-4
 eps_sum = 1e-6
 
@@ -251,8 +253,8 @@ subroutine propagate_part_way (ele0, ele, runt, z_here, j_loop, n_pt, cache_ele)
 implicit none
 
 type (coord_struct) orb, orb_0
-type (ele_struct) ele0, ele
-type (ele_struct) runt, e0, e1
+type (ele_struct) ele0, ele, runt
+type (twiss_struct) a0, b0, a1, b1
 type (track_point_cache_struct) pt0, pt1
 type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
 
@@ -314,7 +316,7 @@ if (associated(cache_ele)) then
   runt%vec0 = pt0%vec0
   if (.not. ele%map_with_offsets) call mat6_add_offsets (runt)
   call twiss_propagate1 (ele0, runt)
-  e0%a = runt%a; e0%b = runt%b
+  a0 = runt%a; b0 = runt%b
   call make_v_mats (runt, v, v_inv)
   ric%eta_a0 = &
     matmul(v, (/ runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp    /))
@@ -325,24 +327,24 @@ if (associated(cache_ele)) then
   runt%vec0 = pt1%vec0
   if (.not. ele%map_with_offsets) call mat6_add_offsets (runt)
   call twiss_propagate1 (ele0, runt)
-  e1%a = runt%a; e1%b = runt%b
+  a1 = runt%a; b1 = runt%b
   call make_v_mats (runt, v, v_inv)
   ric%eta_a1 = &
     matmul(v, (/ runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp    /))
   ric%eta_b1 = &
     matmul(v, (/ 0.0_rp,   0.0_rp,    runt%b%eta, runt%b%etap /))
 
-  runt%a%beta  = e0%a%beta  * f0 + e1%a%beta  * f1
-  runt%a%alpha = e0%a%alpha * f0 + e1%a%alpha * f1
-  runt%a%gamma = e0%a%gamma * f0 + e1%a%gamma * f1
-  runt%a%eta   = e0%a%eta   * f0 + e1%a%eta   * f1
-  runt%a%etap  = e0%a%etap  * f0 + e1%a%etap  * f1
+  runt%a%beta  = a0%beta  * f0 + a1%beta  * f1
+  runt%a%alpha = a0%alpha * f0 + a1%alpha * f1
+  runt%a%gamma = a0%gamma * f0 + a1%gamma * f1
+  runt%a%eta   = a0%eta   * f0 + a1%eta   * f1
+  runt%a%etap  = a0%etap  * f0 + a1%etap  * f1
 
-  runt%b%beta  = e0%b%beta  * f0 + e1%b%beta  * f1
-  runt%b%alpha = e0%b%alpha * f0 + e1%b%alpha * f1
-  runt%b%gamma = e0%b%gamma * f0 + e1%b%gamma * f1
-  runt%b%eta   = e0%b%eta   * f0 + e1%b%eta   * f1
-  runt%b%etap  = e0%b%etap  * f0 + e1%b%etap  * f1
+  runt%b%beta  = b0%beta  * f0 + b1%beta  * f1
+  runt%b%alpha = b0%alpha * f0 + b1%alpha * f1
+  runt%b%gamma = b0%gamma * f0 + b1%gamma * f1
+  runt%b%eta   = b0%eta   * f0 + b1%eta   * f1
+  runt%b%etap  = b0%etap  * f0 + b1%etap  * f1
 
   ric%eta_a = ric%eta_a0 * f0 + ric%eta_a1 * f1
   ric%eta_b = ric%eta_b0 * f0 + ric%eta_b1 * f1

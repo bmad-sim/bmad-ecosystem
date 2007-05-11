@@ -468,6 +468,7 @@ subroutine init_lat (lat, n)
   lat%param%stable = .true.
 
   lat%beam_start%vec = 0
+
   call init_mode_info (lat%a)
   call init_mode_info (lat%b)
   call init_mode_info (lat%z)
@@ -510,7 +511,7 @@ function equivalent_eles (ele1, ele2) result (equiv)
 
   implicit none
 
-  type (ele_struct), intent(in) :: ele1, ele2
+  type (ele_struct) :: ele1, ele2
 
   integer it
 
@@ -536,6 +537,7 @@ function equivalent_eles (ele1, ele2) result (equiv)
               y_pitch$, x_offset_tot$, y_offset_tot$, s_offset_tot$, &
               tilt_tot$, x_pitch_tot$, y_pitch_tot$/) ) = .false.
   endif
+
   if (any(ele1%value /= ele2%value .and. vmask)) return
 
   if (associated(ele1%wig_term) .neqv. associated(ele2%wig_term)) return
@@ -609,8 +611,8 @@ end subroutine
 
 subroutine transfer_ele (ele1, ele2)
 
-  type (ele_struct), intent(in) :: ele1
-  type (ele_struct), intent(out) :: ele2
+  type (ele_struct) :: ele1
+  type (ele_struct) :: ele2
 
   ele2 = ele1
 
@@ -640,8 +642,8 @@ end subroutine
 
 subroutine transfer_eles (ele1, ele2)
 
-  type (ele_struct), intent(in) :: ele1(:)
-  type (ele_struct), intent(out) :: ele2(:)
+  type (ele_struct) :: ele1(:)
+  type (ele_struct) :: ele2(:)
 
   ele2 = ele1
 

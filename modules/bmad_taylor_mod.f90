@@ -85,10 +85,10 @@ contains
 !		taylor1 = taylor2
 !
 ! Input:
-!   taylor2 -- Ele_struct: Input taylor.
+!   taylor2 -- Taylor_struct: Input taylor.
 !
 ! Output:
-!   taylor1 -- Ele_struct: Output taylor.
+!   taylor1 -- Taylor_struct: Output taylor.
 !-
 
 subroutine taylor_equal_taylor (taylor1, taylor2)

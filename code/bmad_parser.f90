@@ -960,27 +960,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
     endif
   enddo
 
-
-
 !-------------------------------------------------------------------------
-! Go through the IN_LAT elements and put in the superpositions, groups, etc.
-
-  call s_calc (lat)              ! calc longitudinal distances
-
-! Now put in the superpositions and remove the null_ele elements
-
-  do i = 1, n_max
-    if (in_lat%ele(i)%control_type /= super_lord$) cycle
-    call add_all_superimpose (lat, in_lat%ele(i), plat%ele(i))
-  enddo
-
-  call remove_all_null_ele_elements (lat)
-
-! Now put in the overlay_lord, i_beam, and group elements
-
-  call parser_add_lord (in_lat, n_max, plat, lat)
-
-! Beam energy bookkeeping.
+! energy bookkeeping.
 
   energy_beam  = 1d9 * beam_ele%value(energy_gev$)  
   energy_param = param_ele%value(E_TOT$)
@@ -1001,15 +982,28 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   call convert_total_energy_to (lat%E_TOT, lat%param%particle, &
                                              pc = lat%ele(0)%value(p0c$))
 
-! make matrices for entire lat
+  call set_ptc (lat%E_TOT, lat%param%particle)
 
-  do i = 1, lat%n_ele_max
-    call control_bookkeeper (lat, i)      ! need this for lat_geometry
+! Go through the IN_LAT elements and put in the superpositions, groups, etc.
+! First put in the superpositions and remove the null_ele elements
+
+  call s_calc (lat)              ! calc longitudinal distances
+  do i = 1, n_max
+    if (in_lat%ele(i)%control_type /= super_lord$) cycle
+    call add_all_superimpose (lat, in_lat%ele(i), plat%ele(i))
   enddo
 
-  call s_calc (lat)                       ! calc longitudinal distances
+  call remove_all_null_ele_elements (lat)
+
+! Now put in the overlay_lord, i_beam, and group elements
+
+  call parser_add_lord (in_lat, n_max, plat, lat)
+
+! make matrices for entire lat
+
+  call control_bookkeeper (lat)       ! need this for lat_geometry
+  call s_calc (lat)                      ! calc longitudinal distances
   call lat_geometry (lat)                ! lat layout
-  call set_ptc (lat%E_TOT, lat%param%particle)
   lat%input_taylor_order = bmad_com%taylor_order
   call compute_reference_energy (lat, .true.)
 
@@ -1025,12 +1019,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   doit = .true.
   if (present(make_mats6)) doit = make_mats6
   if (doit) then
-    call lat_make_mat6(lat, -1)      ! make 6x6 transport matrices
-  else
-    call compute_reference_energy (lat, .true.)
-    do i = 1, lat%n_ele_max
-      call attribute_bookkeeper (lat%ele(i), lat%param)
-    enddo
+    call lat_make_mat6(lat)      ! make 6x6 transport matrices
   endif
 
 ! store the random number seed used for this lattice

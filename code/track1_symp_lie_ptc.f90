@@ -36,6 +36,8 @@ subroutine track1_symp_lie_ptc (start, ele, param, end)
   real(dp) re(6)
   integer charge
 
+  character(20) :: r_name = 'track1_symp_lie_ptc'
+
 ! Construct a PTC fibre out of the ele element.
 ! A fibre is PTC's structure analogous to BMAD's ele_struct.  
 
@@ -48,18 +50,12 @@ subroutine track1_symp_lie_ptc (start, ele, param, end)
     charge = -1
   endif
 
-! Calc the z_patch for a wiggler if it doesn't have it.
-
-  if (ele%key == wiggler$ .and. any(start%vec /= 0) .and. &
-                                      ele%value(z_patch$) == 0) then
-    re = 0                   
-    call ptc_track (fibre_ele, re, DEFAULT, charge)  ! "track" in PTC
-    call vec_ptc_to_bmad (re, end%vec)
-    ele%value(z_patch$) = end%vec(5)
-    if (ele%sub_key == periodic_type$) ele%value(x_patch$) = end%vec(1)
-  endif
-
 ! call the PTC routines to track through the fibre.
+
+  if (ele%value(z_patch$) == 0) then
+    call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
+    call err_exit 
+  endif
 
   call vec_bmad_to_ptc (start%vec, re)  ! convert BMAD coords to PTC coords
   call ptc_track (fibre_ele, re, DEFAULT, charge)  ! "track" in PTC

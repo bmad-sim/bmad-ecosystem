@@ -117,16 +117,19 @@ subroutine this_bookkeeper (ix_ele)
       call makeup_group_slaves (lattice, ix)
       call attribute_bookkeeper (slave, lattice%param)
 
-    elseif (slave%control_type == super_lord$ .and. slave%n_lord > 0) then
-      k =  lattice%ic(slave%ic1_lord)
-      lord => lattice%ele(lattice%control(k)%ix_lord)
-      if (lord%control_type == multipass_lord$) then
-        call makeup_multipass_slave (lattice, ix)
-      else
-        call adjust_super_lord_s_position (lattice, ix)
-        call makeup_overlay_and_i_beam_slave (lattice, ix)
+    elseif (slave%control_type == super_lord$) then
+
+      if (slave%n_lord > 0) then
+        k =  lattice%ic(slave%ic1_lord)
+        lord => lattice%ele(lattice%control(k)%ix_lord)
+        if (lord%control_type == multipass_lord$) then
+          call makeup_multipass_slave (lattice, ix)
+        else
+          call adjust_super_lord_s_position (lattice, ix)
+          call makeup_overlay_and_i_beam_slave (lattice, ix)
+        endif
+        call attribute_bookkeeper (slave, lattice%param)
       endif
-      call attribute_bookkeeper (slave, lattice%param)
 
     elseif (slave%control_type == multipass_lord$ .and. slave%n_lord > 0) then
       call makeup_overlay_and_i_beam_slave (lattice, ix)
@@ -399,7 +402,7 @@ subroutine makeup_super_slave (lattice, ix_slave)
   type (ele_struct), pointer :: lord, slave
   type (ele_struct), save :: sol_quad
 
-  integer i, ix_con, j, ix, ix_slave
+  integer i, j, ix_con, ix, ix_slave
 
   real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
   real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
@@ -407,7 +410,7 @@ subroutine makeup_super_slave (lattice, ix_slave)
   real(rp) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
   real(rp) a_tot(0:n_pole_maxx), b_tot(0:n_pole_maxx)
   real(rp) sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
-  real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4)
+  real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng
   real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
   real(rp) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
@@ -492,9 +495,16 @@ subroutine makeup_super_slave (lattice, ix_slave)
     if (slave%key == wiggler$) then
       slave%value(n_pole$) = lord%value(n_pole$) * coef
       slave%value(l_original$) = lord%value(l$)
-      slave%value(l_start$)    = (slave%s - slave%value(l$)) - &
-                                                   (lord%s - lord%value(l$))
+
+      leng = 0 ! length of all slaves before this one
+      do i = lord%ix1_slave, ix_con-1
+        j = lattice%control(i)%ix_slave
+        leng = leng + lattice%ele(j)%value(l$)
+      enddo
+      slave%value(l_start$)    = leng
       slave%value(l_end$)      = slave%value(l_start$) + slave%value(l$)
+      slave%value(z_patch$)    = lord%value(z_patch$) * slave%value(l$) / lord%value(l$)
+      slave%value(x_patch$)    = lord%value(x_patch$) * slave%value(l$) / lord%value(l$)
 
       if (associated(lord%wig_term)) then
         if (.not. associated (slave%wig_term) .or. &
@@ -1129,6 +1139,7 @@ end subroutine
 !     k1$  = -0.5 * (c_light * b_max$ / p0c$)**2
 !     rho$ = p0c$ / (c_light * b_max$)
 !     n_pole$ = L$ / l_pole$
+!     z_patch$
 !
 ! Modules needed:
 !   use bmad
@@ -1146,10 +1157,13 @@ end subroutine
 
 subroutine attribute_bookkeeper (ele, param)
 
+  use symp_lie_mod, only: symp_lie_bmad
+
   implicit none
 
   type (ele_struct) ele
   type (lat_param_struct) param
+  type (coord_struct) start, end
 
   real(rp) factor, check_sum, phase, E_TOT
   
@@ -1348,6 +1362,8 @@ subroutine attribute_bookkeeper (ele, param)
     endif
 
     if (ele%sub_key == periodic_type$) then
+      if (.not. associated(ele%wig_term)) allocate (ele%wig_term(1))
+
       if (ele%value(l_pole$) == 0) then
         ele%wig_term(1)%ky = 0
       else
@@ -1431,6 +1447,18 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(x_patch$) = 0
     endif
 
+  endif
+
+! compute the z_patch for a wiggler if needed
+! z_patch for a wiggler super_slave comes from the lord and is not computed here.
+
+  if (ele%key == wiggler$ .and. ele%sub_key == map_type$ .and. &
+      ele%value(z_patch$) == 0 .and. ele%value(p0c$) /= 0 .and. &
+      ele%control_type /= super_slave$) then
+    start%vec = 0
+    call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
+    ele%value(z_patch$) = end%vec(5)
+    if (ele%sub_key == periodic_type$) ele%value(x_patch$) = end%vec(1)
   endif
 
 end subroutine

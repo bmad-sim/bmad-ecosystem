@@ -1247,7 +1247,7 @@ implicit none
 
 type (bunch_struct), intent(in) :: bunch
 type (beam_struct) :: beam
-type (ele_struct), intent(in) :: ele
+type (ele_struct) :: ele
 type (bunch_params_struct) params
 
 real(rp) slice_center, slice_spread
@@ -1322,7 +1322,7 @@ subroutine calc_bunch_params (bunch, ele, params)
 implicit none
 
 type (bunch_struct), intent(in) :: bunch
-type (ele_struct), intent(in) :: ele
+type (ele_struct) :: ele
 type (bunch_params_struct) params
 
 real(rp) exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d

@@ -16,7 +16,7 @@ type save_computations_struct
   real(rp) c_x, s_x, c_y, s_y, c_z, s_z, s_x_kx, s_y_ky, c1_ky2
 end type
 
-private track_it, save_coef_struct, save_computations_struct
+private save_coef_struct, save_computations_struct
 
 contains
 
@@ -24,7 +24,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
+! Subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track, offset_ele)
 !
 ! Subroutine to track through an element (which gives the 0th order map) 
 ! and optionally make the 6x6 transfer matrix (1st order map) as well.
@@ -33,59 +33,34 @@ contains
 !   use bmad
 !
 ! Input:
-!   ele       -- Ele_struct: Element with transfer matrix
-!   param     -- lat_param_struct: Parameters are needed for some elements.
-!   start     -- Coord_struct: Coordinates at the beginning of element. 
-!   calc_mat6 -- Logical: If True then make the 6x6 transfer matrix.
-!   track      -- Track_struct: Structure holding the track information.
+!   ele        -- Ele_struct: Element with transfer matrix
+!   param      -- lat_param_struct: Parameters are needed for some elements.
+!   start      -- Coord_struct: Coordinates at the beginning of element. 
+!   calc_mat6  -- Logical: If True then make the 6x6 transfer matrix.
+!   track      -- Track_struct, optional: Structure holding the track information.
 !     %save_track -- Logical: Set True if track is to be saved.
+!   offset_ele -- Logical, optional: Offset the element using ele%value(x_offset$), etc.
+!                   Default is True.
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
 !     %mat6(6,6) -- 6x6 transfer matrix.
 !     %vec0(6)   -- 0th order part of the transfer matrix.
 !   end    -- Coord_struct: Coordinates at the end of element.
-!   track      -- Track_struct: Structure holding the track information.
+!   track      -- Track_struct, optional: Structure holding the track information.
 !-
 
-subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
+subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track, offset_ele)
 
   implicit none
 
   type (ele_struct), target :: ele
-  type (coord_struct) :: start, end, start0
-  type (lat_param_struct)  param
-  type (track_struct) track
-
-  logical calc_mat6
-
-! If z_patch has not been calculated we need to track the reference orbit.
-
-  if (ele%key == wiggler$ .and. any(start%vec /= 0) .and. &
-                                      ele%value(z_patch$) == 0) then
-    start0%vec = 0
-    call track_it (ele, param, start0, end, .false., track, .false.)
-  endif
-
-! now do the real tracking
-
-  call track_it (ele, param, start, end, calc_mat6, track, .true.)
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-
-subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
-
-  type (save_computations_struct), allocatable, save :: tm(:)
-
-  type (ele_struct), target :: ele
   type (coord_struct) :: start, end
   type (lat_param_struct)  param
+  type (track_struct), optional :: track
+
+  type (save_computations_struct), allocatable, save :: tm(:)
   type (wig_term_struct), pointer :: wt
-  type (track_struct) track
 
   real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), x_pitch, y_pitch
   real(rp) g_x, g_y, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds
@@ -94,10 +69,14 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
 
   integer i, j, n_step
 
-  logical calc_mat6, real_track, err, save_track
+  logical calc_mat6, err, save_track, do_offset
+  logical, optional :: offset_ele
+
+  character(16) :: r_name = 'symp_lie_bmad'
 
 ! init
 
+  do_offset = logic_option (.true., offset_ele)
   rel_E = (1 + start%vec(6))
   rel_E2 = rel_E**2
   rel_E3 = rel_E**3
@@ -108,7 +87,8 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
   x_pitch = ele%value(x_pitch_tot$)
   y_pitch = ele%value(y_pitch_tot$)
 
-  save_track = track%save_track .and. real_track
+  save_track = present(track)
+  if (save_track) save_track = track%save_track 
 
 ! element offset 
 
@@ -117,7 +97,7 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
     call drift_mat6_calc (mat6, ele%value(s_offset_tot$), end%vec)
   endif
 
-  if (real_track) call offset_particle (ele, param, end, set$, set_canonical = .false.)
+  if (do_offset) call offset_particle (ele, param, end, set$, set_canonical = .false.)
 
 ! init
 
@@ -205,13 +185,14 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
     enddo
 
 ! z_patch
+! This should have been computed if doing tracking with an offset.
 
-  if (all(start%vec == 0)) then
-    ele%value(z_patch$) = end%vec(5)
-    end%vec(5) = 0
-  else
+    if (ele%value(z_patch$) == 0 .and. do_offset) then
+      call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
+      call err_exit 
+    endif
+
     end%vec(5) = end%vec(5) - ele%value(z_patch$)
-  endif
 
 !----------------------------------------------------------------------------
 ! bend_sol_quad
@@ -291,7 +272,7 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
     if (x_pitch /= 0 .or. y_pitch /= 0) call mat6_add_pitch (ele, mat6)
   endif
 
-  if (real_track) call offset_particle (ele, param, end, unset$, set_canonical = .false.)
+  if (do_offset) call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
 ! Correct for finite pitches & calc vec0
 

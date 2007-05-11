@@ -3,7 +3,6 @@ module io_mod
   use bmad_struct
   use bmad_interface
   use multipole_mod
-  use output_mod
 
   private str, rchomp, write_out, element_out, bmad_to_mad_or_xsif
 
@@ -36,7 +35,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
 
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: ele, slave, lord
-  type (ele_struct) ele_init, super_marker
+  type (ele_struct), save :: ele_init
   type (wig_term_struct) wt
   type (control_struct) ctl
   type (taylor_term_struct) tm
@@ -760,7 +759,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
 
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: ele
-  type (ele_struct) drift_ele, ab_ele
+  type (ele_struct), save :: drift_ele, ab_ele
 
   integer, optional :: ix_start, ix_end
   integer i, j, n, ix, i_unique, i_line, iout, iu, n_list, j_count

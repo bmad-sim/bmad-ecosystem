@@ -29,14 +29,15 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   implicit none
 
   type (lat_struct)  lat
-  type (ele_struct)  super_ele, sup_ele, slave_ele, drift
+  type (ele_struct)  super_ele
+  type (ele_struct), save :: sup_ele, slave_ele, drift
   type (control_struct)  sup_con(100)
 
   real(rp) s1, s2, length, s1_lat, s2_lat
 
   integer j, jj, k, ix, n, i2, ic, n_con
   integer ix1_split, ix2_split, ix_super, ix_super_con
-  integer ix_slave, ixn, ixc, superimpose_key, ix_slave_name
+  integer ix_slave, ixn, ixc, ix_slave_name
 
   logical setup_lord, split1_done, split2_done
 
@@ -47,11 +48,13 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 ! We need a copy of super_ele since the actual argument may be in the lat
 ! and split_lat can then overwrite it.
 
-  sup_ele = super_ele
-  ix_slave_name = 0
-
+  call init_ele (sup_ele)
+  call init_ele (slave_ele)
   call init_ele (drift)
   drift%key = drift$
+
+  sup_ele = super_ele
+  ix_slave_name = 0
 
 ! s1 is the left edge of the superimpose.
 ! s2 is the right edge of the superimpose.
@@ -248,7 +251,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
 ! change the element key
 
-    lat%ele(ix_slave)%key = superimpose_key(slave_ele%key, sup_ele%key)
+    call calc_superimpose_key(slave_ele, sup_ele, lat%ele(ix_slave))
     if (lat%ele(ix_slave)%key <= 0) then
       print *, 'ERROR IN ADD_SUPERIMPOSE: BAD SUPERIMPOSE FOR ',  &
                                         sup_ele%name
@@ -323,64 +326,73 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function superimpose_key (key1, key2) result (key12)
+! Subroutine calc_superimpose_key (ele1, ele2) result (ele3)
 !
-! Function to decide what the element key (key12) should be when
-! an element with key1 is superimpsed upon with an element
-! with key2. 
+! Function to decide what ele3%key and ele3%sub_key should be
+! when two elements, ele1, and ele2, are superimposed.
 !
 ! This function is not meant for general use.
 !-
 
-function superimpose_key (key1, key2) result (key12)
+subroutine calc_superimpose_key (ele1, ele2, ele3)
 
   use bmad_struct
   use bmad_interface
 
   implicit none
 
-  integer key1, key2, key12
+  type (ele_struct), target :: ele1, ele2, ele3
+  integer, pointer :: key1, key2, key3
 
 !
 
-  key12 = -1  ! Default if no superimpse possible
+  key1 => ele1%key
+  key2 => ele2%key
+  key3 => ele3%key
+
+  key3 = -1  ! Default if no superimpse possible
+  ele3%sub_key = 0
 
   if (key1 == key2) then
-    key12 = key1
+    if (key1 == wiggler$ .and. ele1%sub_key /= ele2%sub_key) return  ! Bad combo
+    key3 = key1
+    if (key1 == wiggler$) ele3%sub_key = ele1%sub_key
     return
   endif
 
   if (key1 == drift$) then
-    key12 = key2
+    key3 = key2
+    ele3%sub_key = ele2%sub_key
     return
   endif
 
   if (key2 == drift$) then
-    key12 = key1
+    key3 = key1
+    ele3%sub_key = ele1%sub_key
     return
   endif
 
   if (any(key1 == (/ rcollimator$, monitor$, instrument$ /))) then
-    key12 = key2
+    key3 = key2
     return
   endif
 
   if (any(key2 == (/ rcollimator$, monitor$, instrument$ /))) then
-    key12 = key1
+    key3 = key1
     return
   endif
 
   if (any(key1 == (/ kicker$, hkicker$, vkicker$ /))) then
     if (any(key2 == (/ kicker$, hkicker$, vkicker$ /))) then
-      key12 = kicker$
+      key3 = kicker$
     else
-      key12 = key2
+      key3 = key2
     endif
     return
   endif
 
   if (any(key2 == (/ kicker$, hkicker$, vkicker$ /))) then
-    key12 = key1
+    key3 = key1
     return
   endif
 
@@ -391,22 +403,22 @@ function superimpose_key (key1, key2) result (key12)
 
   case (quadrupole$,  solenoid$, sol_quad$) 
     select case (key2)
-    case (quadrupole$);    key12 = sol_quad$
-    case (solenoid$);      key12 = sol_quad$
-    case (sol_quad$);      key12 = sol_quad$
-    case (bend_sol_quad$); key12 = bend_sol_quad$
-    case (sbend$);         key12 = bend_sol_quad$
+    case (quadrupole$);    key3 = sol_quad$
+    case (solenoid$);      key3 = sol_quad$
+    case (sol_quad$);      key3 = sol_quad$
+    case (bend_sol_quad$); key3 = bend_sol_quad$
+    case (sbend$);         key3 = bend_sol_quad$
     end select
 
   case (bend_sol_quad$)
     select case (key2)
-    case (quadrupole$);    key12 = bend_sol_quad$
-    case (solenoid$);      key12 = bend_sol_quad$
-    case (sol_quad$);      key12 = bend_sol_quad$
-    case (sbend$);         key12 = bend_sol_quad$
+    case (quadrupole$);    key3 = bend_sol_quad$
+    case (solenoid$);      key3 = bend_sol_quad$
+    case (sol_quad$);      key3 = bend_sol_quad$
+    case (sbend$);         key3 = bend_sol_quad$
     end select
   end select
 
 !
 
-end function
+end subroutine

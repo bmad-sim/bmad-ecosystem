@@ -74,7 +74,8 @@ subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
 
   type (coord_struct), intent(in) :: start
   type (coord_struct), intent(out) :: end
-  type (ele_struct) ele, loc_ele
+  type (ele_struct) ele
+  type (ele_struct), save :: loc_ele
   type (lat_param_struct) param
   type (coord_struct) here, orb1, orb2
   type (track_struct) :: track
@@ -87,7 +88,14 @@ subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
 
   integer :: n_step
 
+  logical, save :: init_needed = .false.
+
 ! init
+
+  if (init_needed) then
+    call init_ele(loc_ele)
+    init_needed = .false.
+  endif
 
   if (present(s_start)) then
     s1 = s_start
@@ -257,7 +265,8 @@ subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
 
   type (coord_struct), intent(in) :: start
   type (coord_struct), intent(out) :: end
-  type (ele_struct) ele, loc_ele
+  type (ele_struct) ele
+  type (ele_struct), save :: loc_ele
   type (lat_param_struct) param
   type (track_struct) track
   type (coord_struct) here
@@ -267,7 +276,14 @@ subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
 
   integer i, n_step
 
+  logical, save :: init_needed = .false.
+
 ! init
+
+  if (init_needed) then
+    call init_ele(loc_ele)
+    init_needed = .false.
+  endif
 
   if (present(s_start)) then
     s1 = s_start
@@ -363,7 +379,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
   implicit none
 
-  type (ele_struct), intent(in) :: ele
+  type (ele_struct) :: ele
   type (lat_param_struct) param
   type (coord_struct) :: start, end  
   type (em_field_struct) :: field
@@ -519,7 +535,7 @@ subroutine boris_energy_correction (ele, param, here, final_correction)
 
   implicit none
 
-  type (ele_struct), intent(in) :: ele
+  type (ele_struct) :: ele
   type (lat_param_struct), intent(in) :: param
   type (coord_struct) :: here
 
@@ -572,7 +588,7 @@ subroutine track_solenoid_edge (ele, param, set, orb)
 
   implicit none
 
-  type (ele_struct), intent(in) :: ele
+  type (ele_struct) :: ele
   type (lat_param_struct), intent(in) :: param
   type (coord_struct) :: orb
 

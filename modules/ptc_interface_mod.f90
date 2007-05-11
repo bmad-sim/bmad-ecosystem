@@ -1472,6 +1472,8 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
   logical, optional :: map_with_offsets
   logical :: init_needed = .true., use_offsets
 
+  character(16) :: r_name = 'ele_to_taylor'
+
 ! Init
 
   if (init_needed) then
@@ -1539,20 +1541,14 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
 
   if (ele%key == wiggler$) then
 
-    if (ele%value(z_patch$) == 0 .and. .not. all(x == 0)) then
-      start0%vec = 0
-      call track1_symp_lie_ptc (start0, ele, param, end0) ! calc z_patch$
+    if (ele%value(z_patch$) == 0) then
+      call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
+      call err_exit 
     endif
 
     do i = 1, size(ele%taylor(5)%term)
       if (all(ele%taylor(5)%term(i)%exp == 0)) then
-        if (all(x == 0)) then    ! an on-axis particle defines the z_patch
-          ele%value(z_patch$) = ele%taylor(5)%term(i)%coef
-          ele%taylor(5)%term(i)%coef = 0
-        else                     ! take out the z_patch
-          ele%taylor(5)%term(i)%coef = ele%taylor(5)%term(i)%coef - &
-                                                       ele%value(z_patch$)
-        endif
+        ele%taylor(5)%term(i)%coef = ele%taylor(5)%term(i)%coef - ele%value(z_patch$)
         exit
       endif
     enddo
@@ -1560,13 +1556,7 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
     if (ele%sub_key == periodic_type$) then
       do i = 1, size(ele%taylor(1)%term)
         if (all(ele%taylor(1)%term(i)%exp == 0)) then
-          if (all(x == 0)) then    ! an on-axis particle defines the z_patch
-            ele%value(x_patch$) = ele%taylor(1)%term(i)%coef
-            ele%taylor(1)%term(i)%coef = 0
-          else                     ! take out the z_patch
-            ele%taylor(1)%term(i)%coef = ele%taylor(1)%term(i)%coef - &
-                                                         ele%value(x_patch$)
-          endif
+          ele%taylor(1)%term(i)%coef = ele%taylor(1)%term(i)%coef - ele%value(x_patch$)
           exit
         endif
       enddo

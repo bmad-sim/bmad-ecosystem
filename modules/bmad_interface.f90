@@ -248,7 +248,7 @@ interface
   Subroutine dispersion_to_orbit (ele, disp_orb)
     use bmad_struct, only: ele_struct, coord_struct
     implicit none
-    type (ele_struct), intent(in) :: ele
+    type (ele_struct) :: ele
     type (coord_struct), intent(out) :: disp_orb
   end subroutine
 end interface
@@ -550,7 +550,7 @@ interface
            set_canonical, set_tilt, set_multipoles, set_hvkicks, s_pos)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, rp
     implicit none
-    type (ele_struct), intent(in) :: ele
+    type (ele_struct) :: ele
     type (lat_param_struct), intent(in) :: param
     type (coord_struct), intent(inout) :: coord
     logical, intent(in) :: set
@@ -1082,7 +1082,7 @@ end interface
 
 interface
   subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
-              twiss_type, type_control, lattice, type_wake, type_floor_coords)
+        twiss_type, type_control, lattice, type_wake, type_floor_coords, type_wig_terms)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (ele_struct) ele
@@ -1091,6 +1091,7 @@ interface
     integer, optional :: twiss_type
     logical, optional :: type_zero_attrib, type_floor_coords
     logical, optional :: type_control, type_taylor, type_wake
+    logical, optional :: type_wig_terms
   end subroutine
 end interface
 
@@ -1105,16 +1106,18 @@ end interface
  
 interface
   subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
-        type_taylor, twiss_type, type_control, lattice, type_wake, type_floor_coords)
+        type_taylor, twiss_type, type_control, lattice, type_wake, &
+        type_floor_coords, type_wig_terms)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
-    type (ele_struct), target, intent(in) :: ele
-    type (lat_struct), optional, intent(in) :: lattice
+    type (ele_struct), target :: ele
+    type (lat_struct), optional :: lattice
     integer, optional, intent(in) :: type_mat6
     integer, intent(out) :: n_lines
     integer, optional, intent(in) :: twiss_type
     logical, optional, intent(in) :: type_control, type_taylor, type_floor_coords
     logical, optional, intent(in) :: type_zero_attrib, type_wake
+    logical, optional :: type_wig_terms
     character(100), pointer :: lines(:)
   end subroutine
 end interface

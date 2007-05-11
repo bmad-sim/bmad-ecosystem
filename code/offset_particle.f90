@@ -55,7 +55,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
   implicit none
 
-  type (ele_struct), intent(in) :: ele
+  type (ele_struct) :: ele
   type (lat_param_struct), intent(in) :: param
   type (coord_struct), intent(inout) :: coord
 

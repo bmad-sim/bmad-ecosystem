@@ -21,7 +21,7 @@ module em_field_mod
     subroutine em_field_custom (ele, param, s, orb, field, calc_dfield)
       use bmad_struct
       implicit none
-      type (ele_struct), intent(in) :: ele
+      type (ele_struct) :: ele
       type (lat_param_struct) param
       type (coord_struct), intent(in) :: orb
       real(rp), intent(in) :: s
@@ -82,7 +82,7 @@ subroutine save_a_step (track, ele, param, s, here, s_sav)
   implicit none
 
   type (track_struct) track
-  type (ele_struct), intent(in) :: ele
+  type (ele_struct) :: ele
   type (lat_param_struct), intent(in) :: param
   type (coord_struct) orb
   integer n_pt
@@ -143,7 +143,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
 
   implicit none
 
-  type (ele_struct), target, intent(in) :: ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   type (coord_struct) :: here
   type (wig_term_struct), pointer :: t

@@ -51,7 +51,7 @@ subroutine check_aperture_limit (orb, ele, param, plane_lost)
   implicit none
 
   type (coord_struct), intent(in) :: orb
-  type (ele_struct),   intent(in)  :: ele
+  type (ele_struct) :: ele
   type (lat_param_struct), intent(inout) :: param
 
   real(rp) x_lim, y_lim, x_beam, y_beam, l2

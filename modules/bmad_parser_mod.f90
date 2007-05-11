@@ -185,7 +185,8 @@ subroutine get_attribute (how, ele, lat, plat, &
 
   type (lat_struct)  lat
   type (parser_lat_struct) plat
-  type (ele_struct), target ::  ele, ele0
+  type (ele_struct), target ::  ele
+  type (ele_struct), target, save ::  ele0
   type (wig_term_struct), pointer :: wig_term(:)
   type (real_array_struct), allocatable, save :: r_ptrs(:)
 
@@ -2469,7 +2470,8 @@ subroutine add_all_superimpose (lat, ele_in, pele)
   implicit none
 
   type (lat_struct), target :: lat
-  type (ele_struct)  ele, ele_in, ele2
+  type (ele_struct) ele_in
+  type (ele_struct), save :: ele, ele2
   type (ele_struct), pointer :: this_ele
   type (parser_ele_struct) pele
   type (ele_struct), pointer :: eles(:)
@@ -2486,6 +2488,9 @@ subroutine add_all_superimpose (lat, ele_in, pele)
   logical have_inserted
 
 ! init
+
+  call init_ele(ele)
+  call init_ele(ele2)
 
   eles => lat%ele
   control => lat%control
@@ -2671,7 +2676,7 @@ subroutine compute_super_lord_s (lat, i_ref, ele, pele)
   implicit none
 
   type (lat_struct)  lat
-  type (ele_struct)  ele
+  type (ele_struct) ele
   type (parser_ele_struct) pele
 
   integer i_ref, i, ix, ct
@@ -3529,7 +3534,6 @@ case (lcavity$)
   endif
 
 ! for a periodic_type wiggler n_pole is a dependent attribute
-! Periodic_type wigglers have a single %wig_term for use with tracking, etc.
 
 case (wiggler$)
   if (ele%sub_key == periodic_type$) then
@@ -3537,8 +3541,6 @@ case (wiggler$)
     if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
       ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 
     endif
-
-    allocate (ele%wig_term(1))
 
   endif
 

@@ -4,7 +4,7 @@ use File::Find;
 
 $found_one = 0;
 
-find (\&searchit, '/home/dcs/new_lib/bmad/modules');
+find (\&searchit, './modules');
 
 #foreach $module (keys %table) {
 #  print "\n$module\n"; 

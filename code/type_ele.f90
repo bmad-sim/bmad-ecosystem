@@ -1,6 +1,6 @@
 !+
-! Subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, 
-!                   twiss_out, type_control, lattice, type_wake, type_floor_coords)
+! Subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, 
+!                type_control, lattice, type_wake, type_floor_coords, type_wig_terms)
 !
 ! Subroutine to type out information on an element. 
 ! See also the subroutine type2_ele.
@@ -35,12 +35,14 @@
 !   type_floor_coords -- Logical, optional: If True then print the global ("floor")
 !                          coordinates at the exit end of the element.
 !                          Default is False.
+!   type_wig_terms -- Logical, optional: If True then print the wiggler terms for
+!                        a map_type wiggler. Default is False.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
-                     twiss_out, type_control, lattice, type_wake, type_floor_coords)
+subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
+               type_control, lattice, type_wake, type_floor_coords, type_wig_terms)
 
   use bmad_struct
   use bmad_interface, except => type_ele
@@ -54,7 +56,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
   integer, optional :: type_mat6, twiss_out
 
   logical, optional :: type_control, type_zero_attrib, type_taylor, type_wake
-  logical, optional :: type_floor_coords
+  logical, optional :: type_floor_coords, type_wig_terms
 
   character(100), pointer :: lines(:) 
 
@@ -62,8 +64,8 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
 
   nullify (lines)
 
-  call type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
-         type_taylor, twiss_out, type_control, lattice, type_wake, type_floor_coords)
+  call type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, &
+        twiss_out, type_control, lattice, type_wake, type_floor_coords, type_wig_terms)
 
   do i = 1, n_lines
     print '(1x, a)', trim(lines(i))
