@@ -145,12 +145,12 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   call delete_double_slash (ix2_split)
   call delete_double_slash (ix2_split+1)
 
-! If element overlays only drifts and null_eles then just 
-! insert it in the tracking part of the lat list
+! If element overlays only drifts then just 
+! insert it in the tracking part of the lat list.
 
   all_drift = (ix2_split > ix1_split)
   do i = ix1_split+1, ix2_split
-    if (lat%ele(i)%key /= drift$ .and. lat%ele(i)%key /= null_ele$) all_drift = .false.
+    if (lat%ele(i)%key /= drift$) all_drift = .false.
     if (.not. all_drift) exit
   enddo
 

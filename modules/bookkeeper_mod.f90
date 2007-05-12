@@ -199,12 +199,14 @@ subroutine lattice_bookkeeper (lattice)
   type (lat_struct) lattice
   integer i
 
-!
+! Control bookkeeper is called twice to make sure that the z_patch for a 
+! wiggler super_lord is computed.
 
   call s_calc (lattice)
   call lat_geometry (lattice)
   call control_bookkeeper (lattice)
   call compute_reference_energy (lattice)
+  call control_bookkeeper (lattice)
 
   do i = 1, lattice%n_ele_track
     call attribute_bookkeeper (lattice%ele(i), lattice%param)
