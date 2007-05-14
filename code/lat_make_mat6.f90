@@ -1,10 +1,10 @@
 !+
-! Subroutine lat_make_mat6 (lat, ix_ele, coord)
+! Subroutine lat_make_mat6 (lat, ix_ele, ref_orb)
 !
 ! Subroutine to make the first order transfer map for an element:
 !   r_out = M * r_in + vec0
 ! M is the 6x6 linear transfer matrix (Jacobian) about the 
-! reference orbit coord.
+! reference orbit ref_orb.
 !
 ! If the element lat%ele(ix_ele) is a lord element then the martices of 
 ! all the slave elements will be recomputed.
@@ -16,10 +16,10 @@
 !   use bmad
 !
 ! Input:
-!   lat       -- lat_struct: Lat containing the elements.
-!   ix_ele    -- Integer, optional: Index of the element. if not present
-!                   or negative then the entire lattice will be made.
-!   coord(0:) -- Coord_struct, optional: Coordinates of the reference orbit
+!   lat         -- lat_struct: Lat containing the elements.
+!   ix_ele      -- Integer, optional: Index of the element. if not present
+!                    or negative then the entire lattice will be made.
+!   ref_orb(0:) -- Coord_struct, optional: Coordinates of the reference orbit
 !                   around which the matrix is calculated. If not present 
 !                   then the referemce is taken to be the origin.
 !
@@ -31,7 +31,7 @@
 
 #include "CESR_platform.inc"
 
-recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
+recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb)
 
   use bmad_struct
   use bmad_utils_mod
@@ -41,7 +41,7 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
   implicit none
                                          
   type (lat_struct), target :: lat
-  type (coord_struct), optional, volatile :: coord(0:)
+  type (coord_struct), optional, volatile :: ref_orb(0:)
   type (coord_struct) orb_start, orb_end
   type (ele_struct), pointer :: ele
 
@@ -49,7 +49,7 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
   integer i, j, ie, i1, n_taylor, i_ele
   integer, save, allocatable :: ix_taylor(:)
 
-  logical transferred, want_taylor
+  logical transferred, want_taylor, zero_orbit
 
 ! Error check
 
@@ -63,14 +63,26 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
     return
   endif
 
-  if (present(coord)) then
-    if (ubound(coord, 1) < lat%n_ele_track) then
-      print *, 'ERROR IN lat_make_mat6: coord(:) ARGUMENT SIZE IS TOO SMALL!'
+  if (present(ref_orb)) then
+    if (ubound(ref_orb, 1) < lat%n_ele_track) then
+      print *, 'ERROR IN lat_make_mat6: ref_orb(:) ARGUMENT SIZE IS TOO SMALL!'
       call err_exit
     endif
   endif
 
   if (bmad_com%auto_bookkeeper) call compute_reference_energy (lat)
+
+! Is the reference orbit zero?
+
+  zero_orbit = .true.
+  if (present(ref_orb)) then
+    do i = 0, lat%n_ele_track
+      if (any(ref_orb(i)%vec /= 0)) then
+        zero_orbit = .false.
+        exit
+      endif
+    enddo
+  endif
 
 !--------------------------------------------------------------
 ! Make entire lat if i_ele < 0.
@@ -104,8 +116,8 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
           do j = 1, n_taylor
             ie = ix_taylor(j)
             if (.not. equivalent_eles (ele, lat%ele(ie))) cycle
-            if (present(coord)) then
-              if (any(coord(i-1)%vec /= coord(ie-1)%vec)) cycle
+            if (present(ref_orb)) then
+              if (any(ref_orb(i-1)%vec /= ref_orb(ie-1)%vec)) cycle
             endif
             call transfer_ele_taylor (lat%ele(ie), ele, &
                                                  lat%ele(ie)%taylor_order)
@@ -115,15 +127,17 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
         endif
       endif
 
-      if (present(coord)) then
-        call make_mat6(ele, lat%param, coord(i-1), coord(i), .true.)
-      elseif (ele%control_type == super_slave$) then
-        orb_start = orb_end
-        call make_mat6(ele, lat%param, orb_start, orb_end)
-      else
-        call make_mat6(ele, lat%param)
-        ! Reset orb_end if not in a superposition block.
-        if (ele%value(l$) /= 0) orb_end%vec = 0  
+      if (zero_orbit) then 
+        if (ele%control_type == super_slave$) then
+          orb_start = orb_end
+          call make_mat6(ele, lat%param, orb_start, orb_end)
+        else
+          call make_mat6(ele, lat%param)
+          ! Reset orb_end if not in a superposition block.
+          if (ele%value(l$) /= 0) orb_end%vec = 0  
+        endif
+      else  ! else ref_orb must be present
+        call make_mat6(ele, lat%param, ref_orb(i-1), ref_orb(i), .true.)
       endif
 
       ! save this taylor in the list if it is a new one. 
@@ -149,9 +163,9 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
 ! For an element in the tracking part of the lattice
 
   if (i_ele <= lat%n_ele_track) then
-     if (present(coord)) then
+     if (present(ref_orb)) then
         call make_mat6(lat%ele(i_ele), lat%param, &
-                                  coord(i_ele-1), coord(i_ele), .true.)
+                                  ref_orb(i_ele-1), ref_orb(i_ele), .true.)
      else
         call make_mat6(lat%ele(i_ele), lat%param)
      endif
@@ -163,8 +177,8 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
 
   do i1 = lat%ele(i_ele)%ix1_slave, lat%ele(i_ele)%ix2_slave
     i = lat%control(i1)%ix_slave
-     if (present(coord)) then
-        call lat_make_mat6 (lat, i, coord)
+     if (present(ref_orb)) then
+        call lat_make_mat6 (lat, i, ref_orb)
      else
         call lat_make_mat6 (lat, i)
      endif
