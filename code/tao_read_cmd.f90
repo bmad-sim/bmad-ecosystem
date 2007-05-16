@@ -46,6 +46,8 @@ case ('lattice')
 
   iu = s%global%u_view
   call bmad_parser2 (file_name, s%u(iu)%model%lat)
+  s%global%lattice_recalc = .true.
+  
 
 end select
 

@@ -74,13 +74,6 @@ calc_ok = .true.
 hook_used(:) = .false.
 initing_design = logic_option (.false., init_design)
 
-! make sure useit is up-to-date
-
-if (.not. initing_design) then
-  call tao_set_var_useit_opt
-  call tao_set_data_useit_opt
-endif
-  
 ! do a custom lattice calculation if desired
 
 if (s%global%lattice_recalc) then
@@ -186,6 +179,11 @@ enddo
 call tao_hook_post_process_data ()
 s%global%lattice_recalc = .false.
 
+if (.not. initing_design) then
+  call tao_set_var_useit_opt
+  call tao_set_data_useit_opt
+endif
+  
 end subroutine tao_lattice_calc
 
 !------------------------------------------------------------------------------
