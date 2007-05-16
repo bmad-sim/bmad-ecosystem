@@ -105,8 +105,8 @@ subroutine lat_reverse (lat_in, lat_rev)
   lat_rev%param%t1_with_RF = 0  ! Init
   lat_rev%param%t1_no_RF = 0    ! Init
 
-  call s_calc (lat_rev) 
   call check_lat_controls (lat_rev, .true.)
+  call lattice_bookkeeper (lat_rev)
 
 end subroutine
 
@@ -139,6 +139,7 @@ subroutine reverse_ele (ele)
   implicit none
 
   type (ele_struct) ele
+  type (lat_param_struct) param
 
   integer i, j, sum245
 
@@ -208,6 +209,7 @@ subroutine reverse_ele (ele)
                                         ele%wig_term(i)%kz * ele%value(l$)
       enddo
       ele%value(z_patch$) = 0
+      call attribute_bookkeeper (ele, param)
     endif
 
   end select
