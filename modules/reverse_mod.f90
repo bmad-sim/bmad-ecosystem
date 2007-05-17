@@ -2,6 +2,7 @@
 
 module reverse_mod
 
+  use bookkeeper_mod
   use bmad_struct
   use bmad_interface
   use ptc_interface_mod, only: taylor_inverse
