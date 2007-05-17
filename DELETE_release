@@ -84,7 +84,7 @@ if ( [ ! -d /home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME} ] ) then
 fi
 
 if ( [ "${REL_NAME}" = "" ] ) then
-    echo "Please specify a release name after REL= on the command line."
+    echo "Please specify a build name after REL= on the command line."
     exit 1
 fi
 
