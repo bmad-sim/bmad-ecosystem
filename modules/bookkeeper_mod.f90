@@ -8,6 +8,8 @@ module bookkeeper_mod
 
   integer, parameter :: off$ = 1, on$ = 2
   integer, parameter :: save_state$ = 3, restore_state$ = 4
+
+  private this_bookkeeper
         
 contains
 
@@ -37,7 +39,6 @@ subroutine control_bookkeeper (lattice, ix_ele)
   implicit none
 
   type (lat_struct), target :: lattice
-  type (ele_struct), pointer :: lord, slave
 
   integer, optional :: ix_ele
   integer ie
@@ -45,33 +46,49 @@ subroutine control_bookkeeper (lattice, ix_ele)
 ! If ix_ele is present we only do bookkeeping for this one element
 
   if (present(ix_ele)) then
-    call this_bookkeeper (ix_ele)
+    call this_bookkeeper (lattice, ix_ele)
 
 ! Else we need to make up all the lords. 
 ! The group lords must be done last since their slaves don't know about them.
 
   else
     do ie = lattice%n_ele_track+1, lattice%n_ele_max
-      if (lattice%ele(ie)%control_type /= group_lord$) call this_bookkeeper (ie)
+      if (lattice%ele(ie)%control_type /= group_lord$) call this_bookkeeper (lattice, ie)
     enddo
 
     do ie = lattice%n_ele_track+1, lattice%n_ele_max
-      if (lattice%ele(ie)%control_type == group_lord$) call this_bookkeeper (ie)
+      if (lattice%ele(ie)%control_type == group_lord$) call this_bookkeeper (lattice, ie)
     enddo
 
   endif
 
-!--------------------------------------------------------------------------
-contains
+end subroutine
 
-subroutine this_bookkeeper (ix_ele)
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine this_bookkeeper (lattice, ix_ele)
+!
+! This subroutine is only to be called from control_bookkeeper and is
+! not meant for general use.
+!-
+
+subroutine this_bookkeeper (lattice, ix_ele)
+
+  type (lat_struct), target :: lattice
+  type (ele_struct), pointer :: lord, slave
+
+  real(rp) ref_orb_out(4)
 
   integer ix_ele, j, k, ix, ix1, ix2, ix_lord
-  integer, allocatable, save :: ix_slaves(:)
+  integer, allocatable, save :: ix_slaves(:), ix_super(:)
 
 ! Init
 
-  if (.not. allocated(ix_slaves)) allocate (ix_slaves(300))
+  call re_allocate (ix_slaves, lattice%n_ele_max)
+  call re_allocate (ix_super, lattice%n_ele_max)
+  ix_super = 0
 
 ! Attribute bookkeeping for this element
 
@@ -88,7 +105,6 @@ subroutine this_bookkeeper (ix_ele)
 
   do
     ix1 = ix1 + 1
-    if (ix1 > size(ix_slaves)) call re_allocate(ix_slaves, ix1+100)
     ix_lord = ix_slaves(ix1)
     lord => lattice%ele(ix_lord)
     do j = lord%ix1_slave, lord%ix2_slave
@@ -96,8 +112,8 @@ subroutine this_bookkeeper (ix_ele)
       if (lord%control_type == group_lord$ .and. lattice%ele(ix)%control_type == free$) cycle
       if (ix == ix_slaves(ix2)) cycle   ! do not use duplicates
       ix2 = ix2 + 1
-      if (ix2 > size(ix_slaves)) call re_allocate(ix_slaves, ix2+100)
       ix_slaves(ix2) = ix
+      if (lord%control_type == super_lord$) ix_super(ix2) = ix_lord
     enddo
     if (ix1 == ix2) exit
   enddo
@@ -144,15 +160,23 @@ subroutine this_bookkeeper (ix_ele)
   enddo
 
 ! Second: Makeup all slaves but group slaves.
+! For wiggler super_slaves we need to keep track of the reference orbit for the z_patch calc.
+
+  ref_orb_out = 0
 
   do j = 1, ix2
 
     ix = ix_slaves(j)
     slave => lattice%ele(ix)       
 
+    if (ix_super(j) == 0) ref_orb_out = 0   ! reset
+
     if (slave%control_type == super_slave$) then
+      ! Only change slave%value(ref_orb$:ref_orb+3) if attribute_bookkeeper has given us
+      ! the ending orbit of the previous super_slave.
+      if (any(ref_orb_out /= 0)) slave%value(ref_orb$:ref_orb$+3) = ref_orb_out
       call makeup_super_slave (lattice, ix)
-      call attribute_bookkeeper (slave, lattice%param)
+      call attribute_bookkeeper (slave, lattice%param, ref_orb_out)
 
     elseif (slave%control_type == overlay_slave$) then
       call makeup_overlay_and_i_beam_slave (lattice, ix)
@@ -165,8 +189,6 @@ subroutine this_bookkeeper (ix_ele)
     endif
 
   enddo
-
-end subroutine
 
 end subroutine
 
@@ -454,6 +476,10 @@ subroutine makeup_super_slave (lattice, ix_slave)
     value = lord%value
     value(check_sum$) = slave%value(check_sum$) ! do not change the check_sum
     value(l$) = slave%value(l$)                 ! do not change slave length
+    if (lord%key == wiggler$) then
+      value(z_patch$) = slave%value(z_patch$)
+      value(ref_orb$:ref_orb$+3) = slave%value(ref_orb$:ref_orb$+3)
+    endif
     if (lord%key == hkicker$ .or. lord%key == vkicker$) then
       value(kick$) = lord%value(kick$) * coef
     else
@@ -505,8 +531,6 @@ subroutine makeup_super_slave (lattice, ix_slave)
       enddo
       slave%value(l_start$)    = leng
       slave%value(l_end$)      = slave%value(l_start$) + slave%value(l$)
-      slave%value(z_patch$)    = lord%value(z_patch$) * slave%value(l$) / lord%value(l$)
-      slave%value(x_patch$)    = lord%value(x_patch$) * slave%value(l$) / lord%value(l$)
 
       if (associated(lord%wig_term)) then
         if (.not. associated (slave%wig_term) .or. &
@@ -1108,7 +1132,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine attribute_bookkeeper (ele, param)
+! Subroutine attribute_bookkeeper (ele, param, ref_orb_out)
 !
 ! Subroutine to recalculate the dependent attributes of an element.
 ! If the attributes have changed then any Taylor Maps will be killed.
@@ -1142,22 +1166,26 @@ end subroutine
 !     rho$ = p0c$ / (c_light * b_max$)
 !     n_pole$ = L$ / l_pole$
 !     z_patch$
+!     x_patch$ (for a periodic wiggler)
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ele   -- Ele_struct: Element with attributes 
-!   param -- lat_param_struct: 
+!   ele        -- Ele_struct: Element with attributes 
+!   param      -- lat_param_struct: 
 !
 ! Output:
-!   ele  -- Ele_struct: Element with self-consistant attributes.
+!   ele            -- Ele_struct: Element with self-consistant attributes.
+!   ref_orb_out(4) -- Real(rp), optional: Reference orbit to be used for the next
+!                       super_slave wiggler z_patch calculation. 
+!                       This is to be only used by the control_bookkeeper routine.
 !
 ! Programming Note: If the dependent attributes are changed then 
-!       attribute_free must be modified.
+!       the attribute_free routine must be modified.
 !-
 
-subroutine attribute_bookkeeper (ele, param)
+subroutine attribute_bookkeeper (ele, param, ref_orb_out)
 
   use symp_lie_mod, only: symp_lie_bmad
 
@@ -1167,7 +1195,8 @@ subroutine attribute_bookkeeper (ele, param)
   type (lat_param_struct) param
   type (coord_struct) start, end
 
-  real(rp) factor, check_sum, phase, E_TOT
+  real(rp), optional :: ref_orb_out(4) 
+  real(rp) factor, check_sum, phase, E_tot
   
   character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -1181,6 +1210,8 @@ subroutine attribute_bookkeeper (ele, param)
     ele%value(x_pitch_tot$)  = ele%value(x_pitch$)
     ele%value(y_pitch_tot$)  = ele%value(y_pitch$)
   endif
+
+  if (present(ref_orb_out)) ref_orb_out = 0  ! reset to mark that it has not been computed
 
 ! field_master
 
@@ -1393,8 +1424,8 @@ subroutine attribute_bookkeeper (ele, param)
   select case (ele%key)
 
   case (wiggler$)
-    if (ele%sub_key == periodic_type$) return
     check_sum = ele%value(polarity$)
+    check_sum = check_sum + sum(ele%value(ref_orb$:ref_orb$+3))
 
   case (quadrupole$)
     check_sum = ele%value(k1$) 
@@ -1434,7 +1465,11 @@ subroutine attribute_bookkeeper (ele, param)
         ele%value(y_offset$) + ele%value(x_pitch$) + ele%value(y_pitch$) + &
         ele%value(s_offset$) + ele%value(tilt$)
 
-  if (ele%value(check_sum$) /= check_sum) then
+  ! For some very strange reason there can be round off error in the check sum.
+  ! Hence we use a non-exact test.
+
+  if (abs(ele%value(check_sum$) - check_sum) > &
+                      1d-14 * (abs(check_sum) + abs(ele%value(check_sum$)))) then
 
     if (ele%value(check_sum$) == 0) then
       ele%value(check_sum$) = check_sum
@@ -1451,16 +1486,18 @@ subroutine attribute_bookkeeper (ele, param)
 
   endif
 
-! compute the z_patch for a wiggler if needed
-! z_patch for a wiggler super_slave comes from the lord and is not computed here.
+! compute the z_patch for a wiggler if needed.
+! The starting reference orbit is in ele%value(ref_orb$:ref_orb$+3).
+! This is normally zero except for split wiggler sections.
 
   if (ele%key == wiggler$ .and. ele%sub_key == map_type$ .and. &
-      ele%value(z_patch$) == 0 .and. ele%value(p0c$) /= 0 .and. &
-      ele%control_type /= super_slave$) then
+      ele%value(z_patch$) == 0 .and. ele%value(p0c$) /= 0) then
     start%vec = 0
+    start%vec(1:4) = ele%value(ref_orb$:ref_orb$+3)
     call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
     ele%value(z_patch$) = end%vec(5)
     if (ele%sub_key == periodic_type$) ele%value(x_patch$) = end%vec(1)
+    if (present(ref_orb_out)) ref_orb_out = end%vec(1:4)  ! save for next super_slave
   endif
 
 end subroutine

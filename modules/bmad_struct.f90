@@ -380,6 +380,7 @@ integer, parameter :: coupler_phase$ = 47
 integer, parameter :: coupler_angle$ = 48
 integer, parameter :: kick_tilt$ = 49
 integer, parameter :: ds_step$ = 50
+integer, parameter :: ref_orb$ = 51 ! 51 through 54 are reserved for the reference orbit
 
 integer, parameter :: symmetric_edge$ = 56 ! this is 1 + n_attrib_maxx
 integer, parameter :: mat6_calc_method$ = 57
