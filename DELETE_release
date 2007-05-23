@@ -4,11 +4,11 @@
 #####################################################################
 #        USE     WITH     CAUTION   
 #####################################################################
-# Reasonable and very conservative measures have been taken to 
+# Conservative measures have been taken to 
 # prevent the accidental deletion of an important release, but if
 # you make it through all the error checking and interlocks, this
 # script WILL completely delete the entire release that you specify,
-# including all log and build_status files.
+# including the build log file.
 #   --It will be as if it had never been built in the first place.
 #   --You have been warned.
 ##############################
@@ -78,8 +78,8 @@ fi
 #  Begin error-checking paranoia
 ################################################
 
-if ( [ ! -d /home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME} ] ) then
-   echo "Release with name ${REL_NAME} does not exist. (Linux intel check)"
+if ( [ ! -e /home/cesrulib/cesr_libs/log/${REL_NAME}.genlog ] ) then
+   echo "Release with name ${REL_NAME} does not exist. (.genlog check)"
    exit 1
 fi
 
