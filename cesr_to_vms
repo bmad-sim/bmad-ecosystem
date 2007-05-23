@@ -28,7 +28,7 @@
 #
 #---------------------------------------------------------------
 # Inputs
-LIBRARY=$1
+FULL_DIR_NAME=$1
 
 if ( [ $# -ne 1 ] ) then
 		echo "[cesr_to_vms]:  Incorrect number of parameters specified.  Exiting!"
@@ -36,22 +36,25 @@ if ( [ $# -ne 1 ] ) then
 fi
 
 # Initializations
-LIB_NAME=`basename ${LIBRARY}`
-INTEL_LIB_DIR=`dirname ${LIBRARY}`
-MAIN_LIB_DIR=`dirname ${INTEL_LIB_DIR}`
+DIR_NAME=`basename ${FULL_DIR_NAME}`
+#INTEL_LIB_DIR=`dirname ${FULL_DIR_NAME}`
+#MAIN_LIB_DIR=`dirname ${INTEL_LIB_DIR}`
 
-VMS_LIB_DIR=${MAIN_LIB_DIR}/VMS_alpha_hp
-VMS_LOG_DIR=${MAIN_LIB_DIR}/log/VMS_alpha_hp
-VMS_LOG_FILE=${VMS_LOG_DIR}/${LIB_NAME}.build_status
+#VMS_LIB_DIR=${MAIN_LIB_DIR}/VMS_alpha_hp
+#VMS_LOG_DIR=${MAIN_LIB_DIR}/log/VMS_alpha_hp
+#VMS_LOG_FILE=${VMS_LOG_DIR}/${DIR_NAME}.build_status
 
+# Remote path on VMS cluster where library archives are kept.
 WORKDIR=CESR2f'$'DKB200:[CESR_LIBS.ZIP]
 
 # Now make a copy for transport to VMS
-echo "Preparing ${LIB_NAME} for transport to vms"
-cd ${VMS_LIB_DIR}
+echo "Preparing ${DIR_NAME} for transport to vms"
+#cd ${VMS_LIB_DIR}
+cd ${FULL_DIR_NAME}
 
 # Zip up the source-tree
-/usr/bin/zip -r ${LIB_NAME} ${LIB_NAME} >> ${VMS_LOG_FILE}
+#/usr/bin/zip -r ${LIB_NAME} ${LIB_NAME} >> ${VMS_LOG_FILE}
+/usr/bin/zip -r ${DIR_NAME} . ${DIR_NAME}
 if ( [ ${?} -ne 0 ] ) then
     echo "Zipping operation failed in VMS preparation job!"
     exit 55
@@ -59,20 +62,20 @@ fi
 echo "Zipping operation complete in VMS preparation job."
 
 # Now ftp the library to the [cesrulib.cesr_libs] area on CESR2f
-echo "Transferring file ${LIB_NAME}.zip to VMS machine CESR2f via FTP... "
-echo $WORKDIR
+echo "Transferring file ${DIR_NAME}.zip to VMS machine CESR2f via FTP... "
+echo "Destination = ${WORKDIR}"
 ftp cesr2f <<EOF
 		binary
 		cd $WORKDIR
-		put ${LIB_NAME}.zip
+		put ${DIR_NAME}.zip
 EOF
 ftp_success=${?}
 
 # Notify of completion
 if ( [ ${ftp_success} -eq 0 ] ) then
-    echo "Transfer of ${LIB_NAME} to CESR2f::${WORKDIR} complete!"
+    echo "Transfer of ${DIR_NAME} to CESR2f::${WORKDIR} complete!"
 else
-    echo "***ERROR! Transfer of ${LIB_NAME} to CESR2F FAILED!" 
+    echo "***ERROR! Transfer of ${DIR_NAME} to CESR2F FAILED!" 
     exit 0
 fi
 
