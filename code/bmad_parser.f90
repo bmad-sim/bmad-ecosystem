@@ -863,8 +863,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   lat%version            = bmad_inc_version$
   lat%input_file_name    = full_lat_file_name             ! save input file
   lat%param%particle     = nint(beam_ele%value(particle$))
-  lat%n_ele_track          = n_ele_use
-  lat%n_ele_track         = n_ele_use
+  lat%n_ele_track        = n_ele_use
   lat%n_ele_max          = n_ele_use
   lat%n_ic_max           = 0                     
   lat%n_control_max      = 0    
@@ -872,7 +871,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   lat%param%stable            = .true.
   lat%param%aperture_limit_on = .true.
 
-  lat%ele(0)    = in_lat%ele(0)    ! Beginning element
+  lat%ele(0)     = in_lat%ele(0)    ! Beginning element
   lat%beam_start = in_lat%beam_start
   lat%a          = in_lat%a
   lat%b          = in_lat%b

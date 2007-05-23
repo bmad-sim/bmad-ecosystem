@@ -52,13 +52,14 @@ they are calculated from.}
 No attempt should be made to set or vary within a program dependent
 attributes. It should be remarked that this is not an iron clad rule.
 If a program properly bypasses \bmad's attribute bookkeeping routine
-then anything is possible. Before lattice expansion \bmad allows the
-setting of a select group of dependent variables if the appropriate
-independent is left unspecified.  The list of settable dependent
-variables is given in Table~\ref{t:dep_except}.  After reading in the
-lattice \bmad will set the appropriate independent variable based
-upon the value of the dependent variable. \vn{harmon} is the exception in 
-that it will never be set by the bookkeeping routine.
+then anything is possible. In a lattice file, before lattice expansion
+(\sref{s:expand}), \bmad allows the setting of a select group of
+dependent attributes if the appropriate independent attributes are
+not set. The list of settable dependent variables is given in
+Table~\ref{t:dep_except}.  After reading in the lattice \bmad will set
+the appropriate independent variable based upon the value of the
+dependent variable. \vn{harmon} is the exception in that it will never
+be set by the bookkeeping routine.
 \index{Lcavity}\index{Rbend}
 \index{Sbend}\index{RFcavity}
 \begin{table}[ht]

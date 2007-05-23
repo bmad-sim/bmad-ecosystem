@@ -473,6 +473,15 @@ subroutine init_lat (lat, n)
   call init_mode_info (lat%b)
   call init_mode_info (lat%z)
 
+  lat%n_ele_track = 0
+  lat%n_ele_max = 0
+  lat%n_control_max = 0
+  lat%n_ic_max = 0
+
+  lat%input_taylor_order = -1
+  lat%version = -1
+
+
 !----------------------------------------
 contains
 
