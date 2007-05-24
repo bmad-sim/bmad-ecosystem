@@ -201,13 +201,17 @@ fi
 
 # Logic here to use the new <release>/src path instead of cvssrc
 # if the old-build current release is chosen, otherwise use the new path
-if ( [ "${CESR_REL}" = "${CESR_BASE}/current" ] ) then
-  CESR_SRC="${CESR_REL}/cvssrc"
-  export CESR_SRC
-else
-  CESR_SRC="${CESR_REL}/src"
-  export CESR_SRC
-fi
+# current release as of 24-May-2007 negates this mechanism as the
+# most recent builds for current and devel are both of the /src style.
+#if ( [ "${CESR_REL}" = "${CESR_BASE}/current" ] ) then
+#  CESR_SRC="${CESR_REL}/cvssrc"
+#  export CESR_SRC
+#else
+
+CESR_SRC="${CESR_REL}/src"
+export CESR_SRC
+
+#fi
 
 CESR_INC="${CESR_SRC}/include"
 export CESR_INC
