@@ -57,7 +57,8 @@ setenv ACCR https://accserv.lepp.cornell.edu/svn/
 setenv CESR_REL     $CESR_BASE/$CESRLIB
 #
 setenv CESR_CONFIG  $CESR_REL/config
-setenv CESR_SRC     $CESR_REL/cvssrc
+#setenv CESR_SRC     $CESR_REL/cvssrc
+setenv CESR_SRC     $CESR_REL/src
 #setenv CESR_CVSSRC  $CESR_REL/cvssrc
 setenv CESR_EXE     $CESR_REL/bin
 setenv CESR_GMAKE   $CESR_REL/Gmake

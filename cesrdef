@@ -165,11 +165,12 @@ unset users_done
 unset users_file
 unset max_count
 
-if ( "${CESR_REL}" == "${CESR_BASE}/current" ) then
-  setenv CESR_SRC ${CESR_REL}/cvssrc
-else
-  setenv CESR_SRC ${CESR_REL}/src
-endif
+#if ( "${CESR_REL}" == "${CESR_BASE}/current" ) then
+#  setenv CESR_SRC ${CESR_REL}/cvssrc
+#else
+setenv CESR_SRC ${CESR_REL}/src
+#endif
+
 setenv CESR_INC ${CESR_SRC}/include
 
 #
