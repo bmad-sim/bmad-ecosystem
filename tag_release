@@ -66,23 +66,26 @@ echo "-----------------------------------------"
 
 OLD_CESR_REL=${CESR_REL}
 
-# Set ENV variable CESR_REL to the full path 
-# of the release specified on the command line.
-export CESR_REL=/home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME}
+FULL_REL_NAME=/home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME}
 
 if ( [ ! -d ${CESR_REL} ] ) then
     echo "The release ${REL_NAME} does not exist. Aborting."
     exit 1
 fi
 
-echo "Updated environment variable values:"
-echo "CESR_REL = "${CESR_REL}
-echo "-----------------------------------------"
+#echo "Updated environment variable values:"
+#echo "CESR_REL = "${CESR_REL}
+#echo "-----------------------------------------"
 
+#gmake -f /home/cesrulib/bin/Gmake/M.release PACKAGE_NAME=${CESR_PKG} TAGNAME=${TAG} DO_REL="" CHECKOUT="" BUILD=""
 
-#Call gmake to actually do the tagging.
-gmake -f /home/cesrulib/bin/Gmake/M.release PACKAGE_NAME=${CESR_PKG} TAGNAME=${TAG} DO_REL="" CHECKOUT="" BUILD=""
+#svn mkdir ${ACCR}/tags/${REL_NAME}
+#svn copy ${FULL_REL_NAME}/Gmake ${ACCR}/tags/${REL_NAME}
+svn copy ${FULL_REL_NAME}/util ${ACCR}/tags/${REL_NAME}
+svn copy ${FULL_REL_NAME}/src ${ACCR}/tags/${REL_NAME}
 
 # Put things back the way they were before running this script.
-export CESR_REL=${OLD_CESR_REL}
+#export CESR_REL=${OLD_CESR_REL}
+
+
 exit 0
