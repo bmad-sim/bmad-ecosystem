@@ -343,20 +343,16 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
         endif
       enddo
 
-! check for valid element key name
+! Check for valid element key name or if element is part of a element key.
+! If none of the above then we have an error.
 
-      found = .false.
+      found = .false.  ! found a match?
 
-      do i = 1, n_key
-        if (word_2(:ix_word) == key_name(i)(:ix_word)) then
-          lat%ele(n_max)%key = i
-          call preparse_element_init (lat%ele(n_max))
-          found = .true.
-          exit
-        endif
-      enddo
-
-! check if element part of a element key
+      lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
+      if (lat%ele(n_max)%key > 0) then
+        call preparse_element_init (lat%ele(n_max))
+        found = .true.
+      endif
 
       if (.not. found) then
         do i = 1, n_max-1
@@ -368,8 +364,6 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
           endif
         enddo
       endif
-
-! if none of the above then we have an error
 
       if (.not. found) then
         call warning ('KEY NAME NOT RECOGNIZED: ' // word_2,  &

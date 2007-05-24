@@ -25,6 +25,59 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function key_name_to_key_index (key_str, abbrev_allowed) result (key_index)
+!
+! Function to convert a character string  (eg: "drift") to an index (eg: drift$).
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   key_str        -- Character(*): Name of the key. Result is case insensitive.
+!   abbrev_allowed -- Logical, optional: Abbreviations (eg: "quad") allowed?
+!                       Default is False.
+!
+! Output:
+!   key_index -- Integer: Index of the key. Set to -1 if key_name not recognized.
+!-
+
+function key_name_to_key_index (key_str, abbrev_allowed) result (key_index)
+
+implicit none
+
+character(*) key_str
+character(16) name
+
+logical, optional :: abbrev_allowed
+logical abbrev
+
+integer key_index
+integer i, n_name
+
+!
+
+call str_upcase (name, key_str)
+call string_trim (name, name, n_name)
+
+abbrev = logic_option(.false., abbrev_allowed)
+
+do i = 1, n_key
+  key_index = i
+  if (abbrev) then
+    if (name(:n_name) == key_name(i)(1:n_name)) return
+  else
+    if (name == key_name(i)) return
+  endif
+enddo
+
+key_index = -1
+
+end function
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine zero_ele_offsets (ele)
 !
 ! Subroutine to zero the offsets, pitches and tilt of an element.
@@ -477,8 +530,7 @@ subroutine init_lat (lat, n)
   lat%n_ele_max = 0
   lat%n_control_max = 0
   lat%n_ic_max = 0
-
-  lat%input_taylor_order = -1
+  lat%input_taylor_order = 0
   lat%version = -1
 
 
