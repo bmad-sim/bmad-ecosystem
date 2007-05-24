@@ -82,7 +82,7 @@ build_sys_dir = bin_dir + "/Gmake"
 util_dir      = bin_dir + "/util"
 libs_dir      = "/nfs/acc/libs"           # may change to ACC?
 prev_blt_path = libs_dir + "/log/prev_built"           # path to file logging last built release
-build_script  = util_dir + "/build_serf"
+build_serf    = util_dir + "/build_serf"
 
 #=== Function to print usage information ===========================
 def print_help():
@@ -439,10 +439,10 @@ class builder:
     self.build_type   = build_type
 
     # use newer python custom built on cesr68 for more current functionality.
-    #if self.platform == "OSF1_alpha_hp":
-    #  self.build_script = osf_bin_dir + '/python ' + util_dir + "/build_serf"
-    #else:
-    #  self.build_script = build_script
+    if self.platform == "OSF1_alpha_hp":
+      self.build_script = osf_bin_dir + '/python ' + build_serf
+    else:
+      self.build_script = build_serf
 
     # Set up special paths for building on a Windows machine.
     if self.platform == "Cygwin_i686_intel":
@@ -493,10 +493,10 @@ class builder:
       # REMOTE-EXECUTE build process
       if self.build_type == "RELEASE & PACKAGES":
         print "Building packages before linking to release. Please be patient."  # wait for build to complete if packages
-        self.PID = os.spawnlp(os.P_WAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",build_script,self.full_pkg_logfile)
+        self.PID = os.spawnlp(os.P_WAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_pkg_logfile)
       else:
         print "Spawning build process..."
-        self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",build_script,self.full_pkg_logfile)
+        self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_pkg_logfile)
       time.sleep(3)
       print "Spawned build process with PID : " + str(self.PID) + '\n'      
       
@@ -528,7 +528,7 @@ class builder:
       ## REMOTE-EXECUTE build process
       #self.PID = os.spawnlp(os.P_NOWAIT, "rsh", "rsh", "-x", self.build_host, build_release, self.full_rel_logfile)
       print "Spawning build process..."
-      self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",build_script,self.full_rel_logfile)
+      self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_rel_logfile)
       time.sleep(3)
       print time.asctime() + " -- Spawned build process with PID : " + str(self.PID) + '\n'
     #####################################################################################  

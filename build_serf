@@ -22,7 +22,7 @@ branch        = ""
 build_args    = []
 errors        = 0
 
-#print sys.argv
+print sys.argv
 if len(sys.argv) != 2:
     print "[build_serf] Incorrect number of arguments provided."
     sys.exit(5)
@@ -85,6 +85,8 @@ logfile.close()                            # Close logfile.
 sys.stdout      = open(logname, "a")      # Reopen log file as standard output stream for appending new data.
 
 print "--> BUILD STATUS: INITIALIZING"
+print "\nPython version is:"
+print sys.version           # dump Python version to platform logfile.
 
 #print "\n[build_release.py] rel name : " + rel_name
 
@@ -99,14 +101,14 @@ build_args.append(" CESR_PRECISION=_"+precision)
 build_args.append(" CHECKOUT=\"\"")
 build_args.append(" BUILD=\"do_build\"")    # Common options to be passed to makefile, regardless of packages or release
 
-print "BUILD TYPE IS:" + build_type + "<<"
+#print "BUILD TYPE IS:" + build_type + "<<"
 
 if build_type == "PACKAGES":  # make gets slightly different args depending on type
     build_args.append(" DO_PKG=1")
     env_setup1 = " CESRLIB="+pkg_name + "; CESRF90=" + f90 +'; '
     #env_setup2 = " export CESR_GMAKE="+build_sys_dir + " ; export CESR_UTIL=" + bin_dir + "/util; "
     #env_setup2 = " CESR_GMAKE="+build_sys_dir + "; CESR_UTIL=" + bin_dir + "/util; "
-    env_setup2 = " export XERCESCROOT="+full_pkg_name+"/xerces; CESR_GMAKE="+build_sys_dir + " ; CESR_UTIL=" + bin_dir + "/util; "
+    env_setup2 = " XERCESCROOT="+full_pkg_name+"/xerces; export XERCESCROOT; CESR_GMAKE="+build_sys_dir + " ; CESR_UTIL=" + bin_dir + "/util; "
 
 if build_type == "RELEASE":
     build_args.append(" DO_REL=1")
@@ -142,8 +144,8 @@ print "--> BUILD STATUS: BUILDING"
 
 ##  Works for recent pythons, Popen4 does not exist on OSF1 python!
 #build_process = popen2.Popen4(build_cmd)         # spawn gmake process
-if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
-#if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform == "OSF1_alpha_hp":
+#if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
+if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform == "OSF1_alpha_hp":
     build_process = popen2.Popen4(build_cmd)
     pid = build_process.pid
     line = build_process.fromchild.readline()
@@ -174,30 +176,30 @@ if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
 
 
 ## -- implement workaround for crummy ancient Python version on cesrbuild2
-if platform == "OSF1_alpha_hp":
-    print "OSF1 workaround testing..."
-    build_process = popen2.Popen3(build_cmd, capturestderr=1)
-    #print build_cmd
-    #build_process = popen2.Popen3(build_cmd)
-    pid = build_process.pid
-    line = build_process.fromchild.readline()
-    #if build_process.childerr.readline() != None:
-    #    errline = build_process.childerr.readline()
-    while line:
-        print line[:-1]                         # snip off trailing newline character so output isn't double spaced
-        #if errline != "":
-        #    print errline[:-1]
-        if line[0:9] == "make: ***":
-            errors = 1
-        line = build_process.fromchild.readline()
-        #if build_process.childerr.readline() != None:
-        #    errline = build_process.childerr.readline()
-    if errors:
-        #print "--> BUILD STATUS:(%i) ERROR(S) DETECTED" % return_code
-        print "--> BUILD STATUS: ERROR(S) DETECTED"
-    else:
-        #print "--> BUILD STATUS:(%i) COMPLETE!" % return_code
-        print "--> BUILD STATUS: COMPLETE!"
+#if platform == "OSF1_alpha_hp":
+#    print "OSF1 workaround testing..."
+#    build_process = popen2.Popen3(build_cmd, capturestderr=1)
+#    #print build_cmd
+#    #build_process = popen2.Popen3(build_cmd)
+#    pid = build_process.pid
+#    line = build_process.fromchild.readline()
+#    #if build_process.childerr.readline() != None:
+#    #    errline = build_process.childerr.readline()
+#    while line:
+#        print line[:-1]                         # snip off trailing newline character so output isn't double spaced
+#        #if errline != "":
+#        #    print errline[:-1]
+#        if line[0:9] == "make: ***":
+#            errors = 1
+#        line = build_process.fromchild.readline()
+#        #if build_process.childerr.readline() != None:
+#        #    errline = build_process.childerr.readline()
+#    if errors:
+#        #print "--> BUILD STATUS:(%i) ERROR(S) DETECTED" % return_code
+#        print "--> BUILD STATUS: ERROR(S) DETECTED"
+#    else:
+#        #print "--> BUILD STATUS:(%i) COMPLETE!" % return_code
+#        print "--> BUILD STATUS: COMPLETE!"
 
 
 if platform == "VMS_alpha_hp": #assumes files and dependencies generated and in place from OSF process (tighten all this up.)
