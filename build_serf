@@ -105,7 +105,8 @@ if build_type == "PACKAGES":  # make gets slightly different args depending on t
     build_args.append(" DO_PKG=1")
     env_setup1 = " CESRLIB="+pkg_name + "; CESRF90=" + f90 +'; '
     #env_setup2 = " export CESR_GMAKE="+build_sys_dir + " ; export CESR_UTIL=" + bin_dir + "/util; "
-    env_setup2 = " CESR_GMAKE="+build_sys_dir + " ; CESR_UTIL=" + bin_dir + "/util; "
+    #env_setup2 = " CESR_GMAKE="+build_sys_dir + "; CESR_UTIL=" + bin_dir + "/util; "
+    env_setup2 = " export XERCESCROOT="+full_pkg_name+"/xerces; CESR_GMAKE="+build_sys_dir + " ; CESR_UTIL=" + bin_dir + "/util; "
 
 if build_type == "RELEASE":
     build_args.append(" DO_REL=1")
@@ -134,7 +135,7 @@ build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake -f" + build_sys_dir + "/
 for arg in build_args:
     build_cmd = build_cmd + arg                  # compose build command by appending the options determined above
 
-print build_cmd
+#print build_cmd
 print ""
 print "--> BUILD STATUS: BUILDING"
 
@@ -142,6 +143,7 @@ print "--> BUILD STATUS: BUILDING"
 ##  Works for recent pythons, Popen4 does not exist on OSF1 python!
 #build_process = popen2.Popen4(build_cmd)         # spawn gmake process
 if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
+#if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform == "OSF1_alpha_hp":
     build_process = popen2.Popen4(build_cmd)
     pid = build_process.pid
     line = build_process.fromchild.readline()
@@ -175,7 +177,7 @@ if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
 if platform == "OSF1_alpha_hp":
     print "OSF1 workaround testing..."
     build_process = popen2.Popen3(build_cmd, capturestderr=1)
-    print build_cmd
+    #print build_cmd
     #build_process = popen2.Popen3(build_cmd)
     pid = build_process.pid
     line = build_process.fromchild.readline()
