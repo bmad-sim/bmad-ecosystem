@@ -289,6 +289,8 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (lcavity$)
 
+    if (length == 0) return
+
     if (ele%value(E_TOT_START$) == 0) then
       print *, 'ERROR IN TRACK1_BMAD: E_TOT_START IS 0 FOR A LCAVITY!'
       call err_exit
@@ -320,7 +322,7 @@ subroutine track1_bmad (start, ele, param, end)
     pc_start = ele%value(p0c_start$) * rel_pc
     call convert_pc_to (pc_start, param%particle, &
                                       E_tot = e_start, beta = beta_start)
-    e_end = e_start + gradient * ele%value(l$)
+    e_end = e_start + gradient * length
     if (e_end < mass_of(param%particle)) then
       param%lost = .true.
       return

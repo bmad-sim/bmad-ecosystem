@@ -7,12 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    ## if (/calculation/) {print "Calc found: $_";}
-    s/a\%eta_lab/x\%eta/g;
-    s/a\%etap_lab/x\%etap/g;
-    s/b\%eta_lab/y\%eta/g;
-    s/b\%etap_lab/y\%etap/g;
-
+    s/B_GRADIENT/B1_GRADIENT/ig;
     print (F_OUT);
 
   }

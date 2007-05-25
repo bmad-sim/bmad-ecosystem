@@ -456,6 +456,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
   case (lcavity$)
 
+    if (length == 0) return
+
     f = twopi * ele%value(rf_frequency$) / c_light
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + &
                               ele%value(phi0_err$)) - f * c0%vec(5)
@@ -484,7 +486,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     pc_start = p0c_start * (1 + c0%vec(6))
     call convert_pc_to (pc_start, param%particle, &
                                       E_tot = e_start, beta = beta_start)
-    e_end = e_start + gradient * ele%value(l$)
+    e_end = e_start + gradient * length
     if (e_end <= 0) then
       call out_io (s_fatal$, r_name, 'END ENERGY IS NEGATIVE!')
       mat6 = 0   ! garbage.
@@ -495,7 +497,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     p0c_end = ele%value(p0c$)
     e_ratio = e_end / e_start
 
-    mat6(6,5) = (e_end / pc_end) * ele%value(gradient$) * ele%value(l$) * &
+    mat6(6,5) = (e_end / pc_end) * ele%value(gradient$) * length * &
                                               f * sin(phase) / ele%value(p0c$) 
     mat6(6,6) = e_end * pc_start * p0c_start / (e_start * pc_end * p0c_end)
 
