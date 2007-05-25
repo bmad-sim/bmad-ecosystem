@@ -1109,11 +1109,11 @@ superpositions (\sref{s:super}). It is not generally useful otherwise.
 \toffset
 
 \index{K3}
-\index{B_gradient}
+\index{B3_gradient}
 Attributes specific to an \vn{Octupole} element are:
 \begin{example}
-  k3         = <Real>   ! Octupole strength.
-  b_gradient = <Real>   ! Field strength. (\sref{s:depend}).
+  k3          = <Real>   ! Octupole strength.
+  b3_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
 An \vn{Octupole} has a cubic field dependence.
@@ -1195,11 +1195,11 @@ Example:
 \toffset
 
 \index{K1}
-\index{B_gradient}
+\index{B1_gradient}
 Attributes specific to a \vn{Quadrupole} element are:
 \begin{example}
-  k1         = <Real>   ! Quadrupole strength.
-  b_gradient = <Real>   ! Field strength. (\sref{s:depend}).
+  k1          = <Real>   ! Quadrupole strength.
+  b1_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
 \index{Tilt}
@@ -1290,11 +1290,11 @@ Example:
 \toffset
 
 \index{K2}
-\index{B_gradient}
+\index{B2_gradient}
 Attributes specific to an \vn{Sextupole} element are:
 \begin{example}
-  k2         = <Real>   ! Sextupole strength.
-  b_gradient = <Real>   ! Field strength. (\sref{s:depend}).
+  k2          = <Real>   ! Sextupole strength.
+  b2_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
 A \vn{Sextupole} is an element with a magnetic field that varies
@@ -1328,11 +1328,11 @@ Example:
 \toffset
 
 \index{KS}
-\index{B_gradient}
+\index{Bs_gradient}
 Attributes specific to an \vn{Solenoid} element are:
 \begin{example}
   ks         = <Real>   ! Solenoid strength.
-  b_field    = <Real>   ! Field strength. (\sref{s:depend}).
+  bs_field   = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
 A \vn{Solenoid} is an element with a longitudinal magnetic field.
@@ -1360,13 +1360,13 @@ Example:
 \end{center}
 \toffset
 
-\index{K1}\index{KS}\index{B_field}\index{B_gradient}
+\index{K1}\index{KS}\index{Bs_field}\index{B1_gradient}
 Attributes specific to a \vn{Sol_Quad} element are:
 \begin{example}
-  k1         = <Real>    ! Quadrupole strength.
-  ks         = <Real>    ! Solenoid strength.
-  b_field    = <Real>    ! Solenoid Field strength.
-  b_gradient = <Real>    ! Quadrupole Field strength.
+  k1          = <Real>    ! Quadrupole strength.
+  ks          = <Real>    ! Solenoid strength.
+  bs_field    = <Real>    ! Solenoid Field strength.
+  b1_gradient = <Real>    ! Quadrupole Field strength.
 \end{example}
 
 A \vn{Sol_Quad} is a combination solenoid/quadrupole.

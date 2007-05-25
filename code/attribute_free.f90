@@ -132,7 +132,7 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
     return
   endif
 
-! field_master on means that the b_field and b_gradient values control
+! field_master on means that the b_field and bn_gradient values control
 ! the strength.
 
   if (ele%field_master) then
@@ -161,16 +161,16 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
   else
     select case (ele%key)
     case (quadrupole$)
-      if (ix_attrib == b_gradient$) free = .false.
+      if (ix_attrib == b1_gradient$) free = .false.
     case (sextupole$)
-      if (ix_attrib == b_gradient$) free = .false.
+      if (ix_attrib == b2_gradient$) free = .false.
     case (octupole$)
-      if (ix_attrib == b_gradient$) free = .false.
+      if (ix_attrib == b3_gradient$) free = .false.
     case (solenoid$)
-      if (ix_attrib == b_field$) free = .false.
+      if (ix_attrib == bs_field$) free = .false.
     case (sol_quad$)
-      if (ix_attrib == b_field$) free = .false.
-      if (ix_attrib == b_gradient$) free = .false.
+      if (ix_attrib == bs_field$) free = .false.
+      if (ix_attrib == b1_gradient$) free = .false.
     case (sbend$)
       if (ix_attrib == b_field$) free = .false.
       if (ix_attrib == b_field_err$) free = .false.

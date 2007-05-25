@@ -78,8 +78,8 @@ be set by the bookkeeping routine.
 \label{t:dep_except}
 \end{table}
 
-\index{G}\index{G_err}\index{B_field}\index{B_field_err}
-\index{B_gradient}\index{Ks}
+\index{G}\index{G_err}\index{B_field}\index{Bs_field}\index{B_field_err}
+\index{B1_gradient}\index{B2_gradient}\index{B3_gradient}\index{Ks}
 \index{K1}\index{K2}\index{K3}
 \index{BL_kick}\index{BL_hkick}\index{BL_vkick}
 \index{Kick}\index{HKick}\index{VKick}
@@ -97,17 +97,17 @@ Table~\ref{t:dep_field}.
 \centering {
 \begin{tabular}{|l|l|l|} \hline
   {\em Element} & {\em Normalized Strength Attribute} & {\em Field Attribute} \HH
-  \vn{Sbend}, \vn{Rbend}     & \vn{g}      &  \vn{b_field}       \HH
-  \vn{Sbend}, \vn{Rbend}     & \vn{g_err}  &  \vn{b_field_err}   \HH
-  \vn{Solenoid}              & \vn{ks}     &  \vn{b_field}       \HH
-  \vn{Sol_quad}              & \vn{ks}     &  \vn{b_field}       \HH
-  \vn{Sol_quad}              & \vn{k1}     &  \vn{b_gradient}    \HH
-  \vn{Quadrupole}            & \vn{k1}     &  \vn{b_gradient}    \HH
-  \vn{Sextupole}             & \vn{k2}     &  \vn{b_gradient}    \HH
-  \vn{Octupole}              & \vn{k3}     &  \vn{b_gradient}    \HH
-  \vn{HKicker}, \vn{VKicker} & \vn{kick}   &  \vn{bl_kick}       \HH
-  Most                       & \vn{hkick}  &  \vn{bl_hkick}      \HH
-  Most                       & \vn{vkick}  &  \vn{bl_vkick}      \HH
+  \vn{Sbend}, \vn{Rbend}     & \vn{g}      &  \vn{b_field}        \HH
+  \vn{Sbend}, \vn{Rbend}     & \vn{g_err}  &  \vn{b_field_err}    \HH
+  \vn{Solenoid}              & \vn{ks}     &  \vn{bs_field}       \HH
+  \vn{Sol_quad}              & \vn{ks}     &  \vn{bs_field}       \HH
+  \vn{Sol_quad}              & \vn{k1}     &  \vn{b1_gradient}    \HH
+  \vn{Quadrupole}            & \vn{k1}     &  \vn{b1_gradient}    \HH
+  \vn{Sextupole}             & \vn{k2}     &  \vn{b2_gradient}    \HH
+  \vn{Octupole}              & \vn{k3}     &  \vn{b3_gradient}    \HH
+  \vn{HKicker}, \vn{VKicker} & \vn{kick}   &  \vn{bl_kick}        \HH
+  Most                       & \vn{hkick}  &  \vn{bl_hkick}       \HH
+  Most                       & \vn{vkick}  &  \vn{bl_vkick}       \HH
 \end{tabular}
 }
 \caption {Field and Strength Attributes.}
@@ -116,7 +116,7 @@ Table~\ref{t:dep_field}.
 Using both field strength and normalized strength as the independent
 variable for a given element is not permitted. For example, for a quadrupole the 
 normalized strengths \vn{k1}, \vn{hkick}, and \vn{vkick} can be used as the
-independent variable or the field strengths \vn{b_gradient}, \vn{bl_hkick} and
+independent variable or the field strengths \vn{b1_gradient}, \vn{bl_hkick} and
 \vn{bl_vkick}. but the mixing of the two is not valid
 \begin{example}
   Q1: quadrupole, k1 = 0.6, bl_hkick = 37.5  ! NO. Not VALID.
@@ -124,7 +124,7 @@ independent variable or the field strengths \vn{b_gradient}, \vn{bl_hkick} and
 To define an element with the field strength as the independent
 attribute without setting the strength just set the strength to zero. For example
 \begin{example}
-  Q1: quadrupole, b_gradient = 0   ! Field strengths now the independent variables
+  Q1: quadrupole, b1_gradient = 0   ! Field strengths now the independent variables
 \end{example}
 
 

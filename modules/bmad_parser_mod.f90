@@ -251,6 +251,8 @@ subroutine get_attribute (how, ele, lat, plat, &
 
   if (ele%key == overlay$) then
     i = attribute_index(ele, word)       ! general attribute search
+    if (word == 'B_GRADIENT') call b_grad_warning(ele)
+
     if (i < 1) then
       call warning ('BAD OVERLAY ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
       return
@@ -283,8 +285,10 @@ subroutine get_attribute (how, ele, lat, plat, &
     if (how == def$) then
       ele0%key = overlay$
       i = attribute_index(ele0, word)       ! general attribute search
+      if (word == 'B_GRADIENT') call b_grad_warning(ele0)
     else   ! how == redef$
       i = attribute_index(ele, word)
+      if (word == 'B_GRADIENT') call b_grad_warning(ele)
     endif
 
     if (i < 1) then
@@ -360,6 +364,7 @@ subroutine get_attribute (how, ele, lat, plat, &
 ! if not an ordinary attribute then might be a superimpose switch
 
   ix_attrib = attribute_index(ele, word)
+  if (word == 'B_GRADIENT') call b_grad_warning (ele)
 
   if (ix_attrib < 1) then          ! if not an ordinary attribute...
 
@@ -654,6 +659,32 @@ subroutine get_logical (name, this_logic)
   this_logic = evaluate_logical (word, ios)
   if (ios /= 0 .or. ix_word == 0) then
     call warning ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name)
+  endif
+
+end subroutine
+
+!--------------------------------------------------------
+! contains
+
+subroutine b_grad_warning (ele)
+
+  type (ele_struct) ele
+
+  print *, trim(bp_com%parser_name), ' WARNING!'
+
+  if (ele%key == group$ .or. ele%key == overlay$) then
+    print *, '      B_GRADIENT NEEDS TO BE REPLACED BY B1_GRADIENT, B2_GRADIENT, OR B3_GRAIENT.'
+  else
+    print *, '      B_GRADIENT NEEDS TO BE REPLACED BY: ', trim(attribute_name(ele, b_gradient$))
+  endif
+
+  if (bp_com%current_file%full_name /= ' ') then
+    if (bp_com%input_line_meaningful) then
+      print *, '      IN FILE: ', trim(bp_com%current_file%full_name)
+      print *, '      AT OR BEFORE LINE:', bp_com%current_file%i_line
+    else
+      print *, '      ROOT FILE: ', trim(bp_com%current_file%full_name)
+    endif
   endif
 
 end subroutine

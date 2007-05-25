@@ -601,7 +601,7 @@ integer key
     ! This is a simple zeroeth order transfer matrix
     
     ! rotation angle
-    alpha = - (1-g_factor)*ele%value(b_field$)*ele%value(l$) / (ele%value(p0c$)/c_light)
+    alpha = - (1-g_factor)*ele%value(bs_field$)*ele%value(l$) / (ele%value(p0c$)/c_light)
     
     map => maps(solenoid$)
     

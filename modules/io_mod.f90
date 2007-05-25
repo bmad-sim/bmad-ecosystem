@@ -308,16 +308,16 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
       else
         select case (ele%key)
         case (quadrupole$)
-          if (j == b_gradient$) cycle
+          if (j == b1_gradient$) cycle
         case (sextupole$)
-          if (j == b_gradient$) cycle
+          if (j == b2_gradient$) cycle
         case (octupole$)
-          if (j == b_gradient$) cycle
+          if (j == b3_gradient$) cycle
         case (solenoid$)
-          if (j == b_field$) cycle
+          if (j == bs_field$) cycle
         case (sol_quad$) 
-          if (j == b_field$) cycle
-          if (j == b_gradient$) cycle
+          if (j == bs_field$) cycle
+          if (j == b1_gradient$) cycle
         case (sbend$)
           if (j == b_field$) cycle
           if (j == b_field_err$) cycle

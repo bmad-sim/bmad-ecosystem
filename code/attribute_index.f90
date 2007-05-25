@@ -67,9 +67,6 @@ function attribute_index (ele, name) result (at_index)
 
   endif
 
-!-----------------------------------------------------------------------
-! search for name
-
   name40 = name          ! make sure we have 40 characters
   key = ele%key
   at_index = 0           ! match not found
@@ -77,6 +74,20 @@ function attribute_index (ele, name) result (at_index)
   ilen = len_trim(name)
   if (ilen == 0) return
   n_abbrev = 0            ! number of abbreviation matches
+
+!-----------------------------------------------------------------------
+! Support old "B_GRADIENT" notation
+
+  if (name == 'B_GRADIENT') then
+    select case (key)
+    case (quadrupole$, sextupole$, octupole$, sol_quad$, overlay$, group$)
+      at_index = b_gradient$
+    end select
+    return
+  endif
+
+!-----------------------------------------------------------------------
+! search for name
 
 ! Overlays search all types of elements
 
