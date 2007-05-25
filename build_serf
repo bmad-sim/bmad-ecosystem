@@ -22,7 +22,6 @@ branch        = ""
 build_args    = []
 errors        = 0
 
-print sys.argv
 if len(sys.argv) != 2:
     print "[build_serf] Incorrect number of arguments provided."
     sys.exit(5)
@@ -88,8 +87,6 @@ print "--> BUILD STATUS: INITIALIZING"
 print "\nPython version is:"
 print sys.version           # dump Python version to platform logfile.
 
-#print "\n[build_release.py] rel name : " + rel_name
-
 print "\nSuccessfully launched remote build process.\n"
 
 cesrdefs = ". " + bin_dir + "/cesrdefs; "               # command to source the cesrdefs:cesrenv environment setup scripts 
@@ -101,14 +98,12 @@ build_args.append(" CESR_PRECISION=_"+precision)
 build_args.append(" CHECKOUT=\"\"")
 build_args.append(" BUILD=\"do_build\"")    # Common options to be passed to makefile, regardless of packages or release
 
-#print "BUILD TYPE IS:" + build_type + "<<"
-
 if build_type == "PACKAGES":  # make gets slightly different args depending on type
     build_args.append(" DO_PKG=1")
     env_setup1 = " CESRLIB="+pkg_name + "; CESRF90=" + f90 +'; '
     #env_setup2 = " export CESR_GMAKE="+build_sys_dir + " ; export CESR_UTIL=" + bin_dir + "/util; "
-    #env_setup2 = " CESR_GMAKE="+build_sys_dir + "; CESR_UTIL=" + bin_dir + "/util; "
-    env_setup2 = " XERCESCROOT="+full_pkg_name+"/xerces; export XERCESCROOT; CESR_GMAKE="+build_sys_dir + " ; CESR_UTIL=" + bin_dir + "/util; "
+    env_setup2 = " CESR_GMAKE="+build_sys_dir + "; CESR_UTIL=" + bin_dir + "/util; "
+    #env_setup2 = " XERCESCROOT="+full_pkg_name+"/xerces; export XERCESCROOT; CESR_GMAKE="+build_sys_dir + " ; CESR_UTIL=" + bin_dir + "/util; "
 
 if build_type == "RELEASE":
     build_args.append(" DO_REL=1")
@@ -123,12 +118,11 @@ if build_type == "RELEASE":
         i = i - 1
     rel_name = reduce(lambda x,y: y+x, rel_name)  # reverse the string
     rel_name = rel_name[1:]                       # snip off leading '/' character
-    #
     #name_chunk_list = full_rel_name.split('/')
     #rel_name        = name_chunk_list[-1]
     env_setup1 = " CESRLIB=" + rel_name + "; CESRF90=" + f90 +'; '
     env_setup2 = ""
-    print "\nEnvironment setup\n"
+    print "\nEnvironment setup"
     
     #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 CESR_PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
     #build_cmd = env_setup + "make -f " + build_sys_dir + "/M.release " + build_args + "; echo $PATH"
@@ -142,14 +136,13 @@ print ""
 print "--> BUILD STATUS: BUILDING"
 
 
-##  Works for recent pythons, Popen4 does not exist on OSF1 python!
-#build_process = popen2.Popen4(build_cmd)         # spawn gmake process
+##  Works for recent pythons, Popen4 does not exist on OSF1 1.5 python!
 #if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
 if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform == "OSF1_alpha_hp":
     build_process = popen2.Popen4(build_cmd)
     pid = build_process.pid
     line = build_process.fromchild.readline()
-    while line:                                      # print output as it is generated
+    while line:                                     # print output as it is generated
         print line.strip()
         #if line.find("Error") != -1:               # be on the lookout for errors in the build
         if line[0:10] == "gmake: ***":
@@ -173,8 +166,6 @@ if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform 
         
         
 ## ## ## ## ##
-
-
 ## -- implement workaround for crummy ancient Python version on cesrbuild2
 #if platform == "OSF1_alpha_hp":
 #    print "OSF1 workaround testing..."
