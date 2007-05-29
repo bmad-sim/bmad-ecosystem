@@ -166,7 +166,7 @@ subroutine track_a_bend (start, ele, param, end)
 
   real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t
   real(rp) rel_p, rel_p2, Dxy, Dy, px_t, factor, rho, g, dg
-  real(rp) length, g_tot, dP, re_xy
+  real(rp) length, g_tot, dP, re_xy, eps
   real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 
 ! simple case
@@ -240,7 +240,14 @@ subroutine track_a_bend (start, ele, param, end)
 
     factor = (asin(px/Dy) - asin(px_t/Dy)) / b1
 
-    end%vec(1) = (sqrt(rel_p2 - px_t**2 -py**2) - rho*dpx_t - rho*b1) / b1
+    eps = px_t**2 + py**2
+    if (eps < 1e-5 * rel_p2 ) then  ! use small angle approximation
+      eps = eps / (2 * rel_p)
+      end%vec(1) = (dP - dg / g - rho*dpx_t + eps * (eps / (2 * rel_p) - 1)) / b1
+    else
+      end%vec(1) = (sqrt(rel_p2 - eps) - rho*dpx_t - rho*b1) / b1
+    endif
+
     end%vec(2) = px_t
     end%vec(3) = y + py * (angle/b1 + factor)
     end%vec(4) = py

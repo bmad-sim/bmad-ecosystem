@@ -61,7 +61,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
   real(rp), optional, intent(in) :: s_pos
   real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rp) del_x_vel, del_y_vel, angle, s_here, xp, yp
+  real(rp), save :: del_x_vel, del_y_vel, angle, s_here, xp, yp
 
   integer n
 
