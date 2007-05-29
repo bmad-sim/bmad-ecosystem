@@ -61,7 +61,9 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
   real(rp), optional, intent(in) :: s_pos
   real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rp), save :: del_x_vel, del_y_vel, angle, s_here, xp, yp
+  real(rp), save :: old_angle = 0, old_roll = 0
+  real(rp), save :: del_x_vel = 0, del_y_vel = 0
+  real(rp) angle, s_here, xp, yp
 
   integer n
 
@@ -82,27 +84,12 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 !   are not canonical, the sense of set_canon must be inverted to get 
 !   the right output
 
-  if (present(set_canonical)) then
-    set_canon = set_canonical
-  else
-    set_canon = .true.
-  endif
-
+  set_canon = logic_option(.true., set_canonical)
   if (.not. bmad_com%canonical_coords) set_canon = .not. set_canon
 
-!
-
-  if (present(set_multipoles)) then
-    set_multi = set_multipoles
-  else
-    set_multi = .true.
-  endif
-
-  if (present(set_hvkicks)) then
-    set_hv = set_hvkicks .and. ele%is_on
-  else
-    set_hv = ele%is_on
-  endif
+  set_multi = logic_option (.true., set_multipoles)
+  set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on
+  set_t     = logic_option (.true., set_tilt)
 
   if (set_hv) then
     select case (ele%key)
@@ -118,10 +105,22 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
     set_hv2 = .false.
   endif
 
-  if (present(set_tilt)) then
-    set_t = set_tilt
-  else
-    set_t = .true.
+  if (set_t .and. ele%key == sbend$) then
+    angle = ele%value(l$) * ele%value(g$)
+    if (angle /= old_angle .or. ele%value(roll$) /= old_roll) then
+      if (ele%value(roll$) == 0) then
+        del_x_vel = 0
+        del_y_vel = 0
+      else if (abs(ele%value(roll$)) < 0.001) then
+        del_x_vel = angle * ele%value(roll$)**2 / 4
+        del_y_vel = -angle * sin(ele%value(roll$)) / 2
+      else
+        del_x_vel = angle * (1 - cos(ele%value(roll$))) / 2
+        del_y_vel = -angle * sin(ele%value(roll$)) / 2
+      endif
+      old_angle = angle
+      old_roll = ele%value(roll$)
+    endif
   endif
 
 !----------------------------------------------------------------
@@ -180,14 +179,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
     if (set_t) then
 
       if (ele%key == sbend$) then
-        angle = ele%value(l$) * ele%value(g$)
         if (ele%value(roll$) /= 0) then
-          if (abs(ele%value(roll$)) < 0.001) then
-            del_x_vel = angle * ele%value(roll$)**2 / 4
-          else
-            del_x_vel = angle * (1 - cos(ele%value(roll$))) / 2
-          endif
-          del_y_vel = -angle * sin(ele%value(roll$)) / 2
           coord%vec(2) = coord%vec(2) + del_x_vel
           coord%vec(4) = coord%vec(4) + del_y_vel
         endif
