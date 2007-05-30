@@ -51,8 +51,9 @@ platform_combos = { "linuxi": ["Linux_i686",      'intel', lnx_host ],
 repo_loc      = "https://accserv.lepp.cornell.edu/svn/"
 repo_modules  = ["util", "Gmake", "src"]
 #repo_modules  = ["util"]
-#pkg_modules   = ["cfortran", "forest", "num_recipes/recipes_f-90", "num_recipes/recipes_c-ansi", "xsif", "PGPLOT"]
-pkg_modules   = ["xerces"]
+# Have this list pushed to the build_serf script, and the Makefile instead of manually synchronizing them?
+pkg_modules   = ["cfortran", "forest", "num_recipes/recipes_f-90", "num_recipes/recipes_c-ansi", "xsif", "PGPLOT", "xerces"]
+#pkg_modules   = ["xerces"]
 # work out how to sync this list with the pkg build list in the M.release makefile... keeping them sync'd manually is not so hot
 
 statuses      = {0 : "Building", 1 : "Complete", -1 : "ERROR"}
