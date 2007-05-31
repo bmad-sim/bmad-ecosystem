@@ -64,9 +64,9 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   integer, allocatable :: seq_indexx(:), in_indexx(:)
   character(40), allocatable ::  in_name(:), seq_name(:)
 
-  integer ix_word, i_use, i, j, k, n, ix, i_lev, ixm(100)
+  integer ix_word, i_use, i, j, k, n, ix, ix1, ix2, i_lev, ixm(100)
   integer n_ele_use, digested_version, key, n0_multi, loop_counter
-  integer ix1, ix2, iseq_tot, ix_multipass, n_ele_max, n_multi
+  integer  iseq_tot, ix_multipass, n_ele_max, n_multi
   integer, pointer :: n_max
 
   character(*) lat_file
@@ -167,6 +167,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   param_ele%name = 'PARAMETER'           ! For parameters 
   param_ele%key = def_parameter$
   param_ele%value(lattice_type$) = circular_lattice$  ! Default
+  param_ele%value(particle$)     = positron$  ! default
 
   beam_start_ele => in_lat%ele(3)
   call init_ele (beam_start_ele)
@@ -856,8 +857,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   call allocate_lat_ele(lat, n_ele_use+100)
 
   lat%version            = bmad_inc_version$
-  lat%input_file_name    = full_lat_file_name             ! save input file
-  lat%param%particle     = nint(beam_ele%value(particle$))
+  lat%input_file_name    = full_lat_file_name             ! save input file  
   lat%n_ele_track        = n_ele_use
   lat%n_ele_max          = n_ele_use
   lat%n_ic_max           = 0                     
@@ -872,13 +872,16 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   lat%b          = in_lat%b
   lat%z          = in_lat%z
 
-  if (beam_ele%value(n_part$) /= 0 .and. param_ele%value(n_part$) /= 0) then
-    call warning ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
-  elseif (beam_ele%value(n_part$) /= 0) then
-    lat%param%n_part = beam_ele%value(n_part$)
-  else
-    lat%param%n_part = param_ele%value(n_part$)
-  endif
+  if (beam_ele%value(n_part$) /= 0 .and. param_ele%value(n_part$) /= 0) &
+            call warning ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
+  lat%param%n_part = max(beam_ele%value(n_part$), param_ele%value(n_part$))
+
+  ix1 = nint(param_ele%value(particle$))
+  ix2 = nint(beam_ele%value(particle$))
+  if (ix1 /= positron$ .and. ix2 /= positron$) &
+          call warning ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
+  lat%param%particle = ix1
+  if (ix2 /=  positron$) lat%param%particle = ix2
 
 ! The lattice name from a "parameter[lattice] = ..." line is 
 ! stored the param_ele%descrip string

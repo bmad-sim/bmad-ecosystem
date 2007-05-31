@@ -144,12 +144,13 @@ function attribute_name (ele, ix_att) result (at_name)
       end select
     enddo
 
-    attrib_array(def_parameter$, E_TOT$)  = 'E_TOT'
+    attrib_array(def_parameter$, E_TOT$)        = 'E_TOT'
     attrib_array(def_parameter$, lattice_type$) = 'LATTICE_TYPE'
     attrib_array(def_parameter$, lattice$)      = 'LATTICE'
     attrib_array(def_parameter$, taylor_order$) = 'TAYLOR_ORDER'
     attrib_array(def_parameter$, ran_seed$)     = 'RAN_SEED'
     attrib_array(def_parameter$, n_part$)       = 'N_PART'
+    attrib_array(def_parameter$, particle$)     = 'PARTICLE'
 
     attrib_array(def_beam$, particle$)   = 'PARTICLE'
     attrib_array(def_beam$, energy_gev$) = 'ENERGY'

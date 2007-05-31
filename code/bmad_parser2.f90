@@ -60,7 +60,9 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
   type (parser_lat_struct) plat
   type (ele_struct), allocatable, save :: old_ele(:) 
 
-  integer ix_word, i, ix, last_con, ixx, ele_num
+  real(rp) v1, v2
+
+  integer ix_word, i, ix, ix1, ix2, last_con, ixx, ele_num
   integer key, n_max_old, digested_version
   integer, pointer :: n_max
 
@@ -97,9 +99,9 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
   call init_ele(beam_ele)
   beam_ele%name = 'BEAM'              ! fake beam element
   beam_ele%key = def_beam$            ! "definition of beam"
-  beam_ele%value(particle$)   = lat%param%particle 
   beam_ele%value(energy_gev$) = 0
   beam_ele%value(n_part$)     = lat%param%n_part
+  beam_ele%value(particle$)   = lat%param%particle
 
   call init_ele (param_ele)
   param_ele%name = 'PARAMETER'
@@ -108,6 +110,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
   param_ele%value(E_TOT$)  = 0
   param_ele%value(taylor_order$) = lat%input_taylor_order
   param_ele%value(n_part$)       = lat%param%n_part
+  param_ele%value(particle$)     = lat%param%particle
 
   call init_ele (beam_start_ele)
   beam_start_ele%name = 'BEAM_START'
@@ -436,7 +439,6 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 
   bp_com%input_line_meaningful = .false.
 
-  lat%param%particle    = nint(beam_ele%value(particle$))
   lat%param%lattice_type = nint(param_ele%value(lattice_type$))
   lat%input_taylor_order = nint(param_ele%value(taylor_order$))
 
@@ -446,11 +448,23 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
     lat%ele(0)%value(E_TOT$) = param_ele%value(E_TOT$)
   endif
 
-  if (lat%param%n_part /= param_ele%value(n_part$)) then
-    lat%param%n_part = param_ele%value(n_part$)
+  v1 = param_ele%value(n_part$)
+  v2 = beam_ele%value(n_part$)
+  if (lat%param%n_part /= v1 .and. lat%param%n_part /= v2) then
+    call warning ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
+  else if (v1 /= lat%param%n_part) then
+    lat%param%n_part = v1
   else
-    lat%param%n_part = beam_ele%value(n_part$)
+    lat%param%n_part = v2
   endif
+
+  ix1 = nint(param_ele%value(particle$))
+  ix2 = nint(beam_ele%value(particle$))
+  if (ix1 /= lat%param%particle .and. ix2 /= lat%param%particle) &
+          call warning ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
+  lat%param%particle = ix1
+  if (ix2 /=  lat%param%particle) lat%param%particle = ix2
+
 
 ! Transfer the new elements to a safe_place
 
