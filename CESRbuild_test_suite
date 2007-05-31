@@ -278,7 +278,7 @@ elif platform == "CYGWIN_i686_intel":
   HOST = "pc6115"
   flag = "CI"
 
-testdir = "/tmp/release_test_suite_area-" + release + "_" +flag
+testdir = "/home/cesrulib/temp/release_test_suite_area-" + release + "_" +flag
 
 #=========================================================================
 # Compose list of test objects and format status strings for the log file
