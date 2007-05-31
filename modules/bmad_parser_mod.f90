@@ -145,11 +145,10 @@ type bp_common_struct
   character(n_parse_line) input_line1          ! For debug messages
   character(n_parse_line) input_line2          ! For debug messages
   character(40) parser_name
-  character(72) debug_line
   character(200) :: dirs(3) = (/ &
                       './           ', './           ', '$BMAD_LAYOUT:' /)
   logical :: bmad_parser_calling = .false.     ! used for expand_lattice
-  logical parser_debug, error_flag
+  logical error_flag
   logical input_line_meaningful
   logical ran_function_was_called
 end type
@@ -923,7 +922,6 @@ subroutine file_stack (how, file_name_in, finished)
     if (i_level == 0) then   ! if we are just starting out then init some vars.
       bp_com%num_lat_files = 0           ! total number of files opened
       bp_com%error_flag = .false.  ! set to true on an error
-      bp_com%parser_debug = .false.
       bp_com%current_file%full_name = ' '
       bp_com%input_line_meaningful = .false.
       call init_bmad_parser_common
@@ -3799,6 +3797,104 @@ subroutine remove_all_null_ele_elements (lat)
     i = i + 1
     if (i > lat%n_ele_max) return
   enddo
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine parser_debug_print_info (debug_line)
+!
+! Subroutine to remove all null_ele elements.
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine parser_debug_print_info (lat, debug_line)
+
+type (lat_struct) lat
+character(*) debug_line
+integer i, ix
+
+!
+
+call str_upcase (debug_line, debug_line)
+
+if (index(debug_line, 'VAR') /= 0) then
+  print *
+  print *, '----------------------------------------'
+  print *, 'Number of Defined Variables:', bp_com%ivar_tot - bp_com%ivar_init
+  do i = bp_com%ivar_init+1, bp_com%ivar_tot
+    print *
+    print *, 'Var #', i
+    print *, 'Name: ', bp_com%var_name(i)
+    print *, 'Value:', bp_com%var_value(i)
+  enddo
+endif
+
+if (index(debug_line, 'SLAVE') /= 0) then
+  print *
+  print *, '----------------------------------------'
+  print *, 'Number of Elements in Tracking Lattice:', lat%n_ele_track
+  do i = 1, lat%n_ele_track
+    print *, '-------------'
+    print *, 'Ele #', i
+    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat)
+  enddo
+endif
+
+if (index(debug_line, 'LORD') /= 0) then
+  print *
+  print *, '----------------------------------------'
+  print *, 'LORD elements: ', lat%n_ele_max - lat%n_ele_track
+  do i = lat%n_ele_track+1, lat%n_ele_max
+    print *, '-------------'
+    print *, 'Ele #', i
+    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat)
+  enddo
+endif
+
+if (index(debug_line, 'LATTICE') /= 0) then  
+  print *
+  print *, '----------------------------------------'
+  print *, 'Lattice Used: ', lat%name
+  print *, 'Number of lattice elements:', lat%n_ele_track
+  print *, 'List:                                 Key                 Length         S'
+  do i = 1, lat%n_ele_track
+    print '(i4, 2a, 3x, a, 2f10.2)', i, ') ', lat%ele(i)%name(1:30),  &
+      key_name(lat%ele(i)%key), lat%ele(i)%value(l$), lat%ele(i)%s
+  enddo
+  print *, '---- Lord Elements ----'
+  do i = lat%n_ele_track+1, lat%n_ele_max
+    print '(2x, i4, 2a, 3x, a, 2f10.2)', i, ') ', lat%ele(i)%name(1:30),  &
+           key_name(lat%ele(i)%key), lat%ele(i)%value(l$), lat%ele(i)%s
+  enddo
+endif
+
+ix = index(debug_line, 'ELE')
+if (ix /= 0) then
+  print *
+  print *, '----------------------------------------'
+  call string_trim (debug_line(ix+3:), debug_line, ix)
+  do
+    if (ix == 0) exit
+    read (debug_line, *) i
+    print *
+    print *, '----------------------------------------'
+    print *, 'Element #', i
+    call type_ele (lat%ele(i), .false., 0, .true., 0, .true., lat)
+    call string_trim (debug_line(ix+1:), debug_line, ix)
+  enddo
+endif
+
+if (index(debug_line, 'BEAM_START') /= 0) then
+  print *
+  print *, '----------------------------------------'
+  print *, 'beam_start:'
+  print '(3x, 6es13.4)', lat%beam_start%vec      
+endif
 
 end subroutine
 

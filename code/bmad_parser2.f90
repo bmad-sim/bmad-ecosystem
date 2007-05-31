@@ -26,9 +26,9 @@
 !   use bmad
 !
 ! Input:
-!   lat_file    -- Character(*): Input file name
+!   lat_file    -- Character(*): Input file name.
 !   lat         -- lat_struct: lattice with existing layout.
-!   orbit(0:)  -- Coord_struct, optional: closed orbit for when
+!   orbit(0:)   -- Coord_struct, optional: closed orbit for when
 !                           bmad_parser2 calls lat_make_mat6
 !   make_mats6  -- Logical, optional: Make the 6x6 transport matrices for then
 !                   Elements? Default is True.
@@ -72,6 +72,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
   character(32) word_1
   character(40) this_name
   character(280) parse_line_save, digested_name
+  character(80) debug_line
 
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, found, doit
@@ -85,6 +86,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
   call file_stack('push', lat_file, finished)   ! open file on stack
   if (.not. bmad_status%ok) return
 
+  debug_line = ''
   n_max => lat%n_ele_max
   n_max_old = n_max
 
@@ -153,8 +155,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 ! PARSER_DEBUG
 
     if (word_1(:ix_word) == 'PARSER_DEBUG') then
-      bp_com%parser_debug = .true.
-      bp_com%debug_line = bp_com%parse_line
+      debug_line = bp_com%parse_line
       print *, 'FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON'
       cycle parsing_loop
     endif
@@ -509,6 +510,8 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 !-----------------------------------------------------------------------------
 ! error check
 
+  if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
+
   if (bp_com%error_flag .and. bmad_status%exit_on_error) then
     print *, 'BMAD_PARSER2 FINISHED. EXITING ON ERRORS'
     stop
@@ -532,8 +535,8 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 
 ! write to digested file
 
-  if (write_digested .and. .not. bp_com%parser_debug .and. &
-      digested_version <= bmad_inc_version$) call write_digested_bmad_file  &
-             (digested_name, lat, bp_com%num_lat_files, bp_com%lat_file_names)
+  write_digested = write_digested .and. digested_version <= bmad_inc_version$
+  if (write_digested) call write_digested_bmad_file (digested_name, &
+                             lat, bp_com%num_lat_files, bp_com%lat_file_names)
 
 end subroutine

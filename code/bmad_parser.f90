@@ -78,6 +78,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   character(40) this_name, word_1
   character(200) full_lat_file_name, digested_file
   character(280) parse_line_save
+  character(80) debug_line
 
   real(rp) energy_beam, energy_param, energy_0
 
@@ -91,6 +92,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   bp_com%parser_name = 'BMAD_PARSER'  ! Used for error messages.
   write_digested = .true.
+  debug_line = ''
 
   call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
   call read_digested_bmad_file (digested_file, lat, digested_version)
@@ -199,9 +201,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 ! PARSER_DEBUG
 
     if (word_1(:ix_word) == 'PARSER_DEBUG') then
-      bp_com%parser_debug = .true.
-      bp_com%debug_line = bp_com%parse_line
-      call str_upcase (bp_com%debug_line, bp_com%debug_line)
+      debug_line = bp_com%parse_line
       call out_io (s_info$, r_name, 'FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON')
       cycle parsing_loop
     endif
@@ -1027,105 +1027,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 !-------------------------------------------------------------------------
 ! write out if debug is on
 
-  if (bp_com%parser_debug) then
-    
-    if (index(bp_com%debug_line, 'VAR') /= 0) then
-      print *
-      print *, '----------------------------------------'
-      print *, 'Number of Defined Variables:', &
-                                      bp_com%ivar_tot - bp_com%ivar_init
-      do i = bp_com%ivar_init+1, bp_com%ivar_tot
-        print *
-        print *, 'Var #', i
-        print *, 'Name: ', bp_com%var_name(i)
-        print *, 'Value:', bp_com%var_value(i)
-      enddo
-    endif
+  if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 
-    if (index(bp_com%debug_line, 'SEQ') /= 0) then
-      print *
-      print *, '----------------------------------------'
-      print *, 'Number of Lines/Lists defined:', iseq_tot
-      do i = 1, iseq_tot
-        print *
-        print *, 'Sequence #', i
-        print *, 'Name: ', sequence(i)%name
-        print *, 'Type:', sequence(i)%type
-        print *, 'Number of elements:', size(sequence(i)%ele)
-        print *, 'List:'
-        do j = 1, size(sequence(i)%ele(:))
-          print '(4x, a, l3, 2i3)', sequence(i)%ele(j)%name, &
-              sequence(i)%ele(j)%reflect, sequence(i)%ele(j)%rep_count, &
-              sequence(i)%ele(j)%ix_arg
-        enddo
-      enddo
-    endif
-
-    if (index(bp_com%debug_line, 'SLAVE') /= 0) then
-      print *
-      print *, '----------------------------------------'
-      print *, 'Number of Elements in Tracking Lattice:', lat%n_ele_track
-      do i = 1, lat%n_ele_track
-        print *, '-------------'
-        print *, 'Ele #', i
-        call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat)
-      enddo
-    endif
-
-    if (index(bp_com%debug_line, 'LORD') /= 0) then
-      print *
-      print *, '----------------------------------------'
-      print *, 'LORD elements: ', lat%n_ele_max - lat%n_ele_track
-      do i = lat%n_ele_track+1, lat%n_ele_max
-        print *, '-------------'
-        print *, 'Ele #', i
-        call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat)
-      enddo
-    endif
-
-    if (index(bp_com%debug_line, 'LATTICE') /= 0) then  
-      print *
-      print *, '----------------------------------------'
-      print *, 'Lattice Used: ', lat%name
-      print *, 'Number of lattice elements:', lat%n_ele_track
-      print *, 'List:                                 Key                 Length         S'
-      do i = 1, lat%n_ele_track
-        print '(i4, 2a, 3x, a, 2f10.2)', i, ') ', lat%ele(i)%name(1:30),  &
-          key_name(lat%ele(i)%key), lat%ele(i)%value(l$), lat%ele(i)%s
-      enddo
-      print *, '---- Lord Elements ----'
-      do i = lat%n_ele_track+1, lat%n_ele_max
-        print '(2x, i4, 2a, 3x, a, 2f10.2)', i, ') ', lat%ele(i)%name(1:30),  &
-          key_name(lat%ele(i)%key), lat%ele(i)%value(l$), lat%ele(i)%s
-      enddo
-    endif
-
-    ix = index(bp_com%debug_line, 'ELE')
-    if (ix /= 0) then
-      print *
-      print *, '----------------------------------------'
-      call string_trim (bp_com%debug_line(ix+3:), bp_com%debug_line, ix)
-      do
-        if (ix == 0) exit
-        read (bp_com%debug_line, *) i
-        print *
-        print *, '----------------------------------------'
-        print *, 'Element #', i
-        call type_ele (lat%ele(i), .false., 0, .true., 0, .true., lat)
-        call string_trim (bp_com%debug_line(ix+1:), bp_com%debug_line, ix)
-      enddo
-    endif
-
-    if (index(bp_com%debug_line, 'BEAM_START') /= 0) then
-      print *
-      print *, '----------------------------------------'
-      print *, 'beam_start:'
-      print '(3x, 6es13.4)', lat%beam_start%vec      
-    endif
-
-  endif
-
-!-----------------------------------------------------------------------------
 ! deallocate pointers
 
   do i = lbound(plat%ele, 1) , ubound(plat%ele, 1)
@@ -1149,11 +1052,11 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   enddo
 
   if (associated (in_lat%ele))     call deallocate_lat_pointers (in_lat)
-  if (associated (plat%ele))        deallocate (plat%ele)
-  if (allocated (ix_lat))           deallocate (ix_lat)
-  if (allocated (seq_indexx))        deallocate (seq_indexx, seq_name)
-  if (allocated (in_indexx))         deallocate (in_indexx, in_name)
-  if (allocated (used_line))         deallocate (used_line)
+  if (associated (plat%ele))       deallocate (plat%ele)
+  if (allocated (ix_lat))          deallocate (ix_lat)
+  if (allocated (seq_indexx))      deallocate (seq_indexx, seq_name)
+  if (allocated (in_indexx))       deallocate (in_indexx, in_name)
+  if (allocated (used_line))       deallocate (used_line)
   if (associated (in_lat%control)) deallocate (in_lat%control)
   if (associated (in_lat%ic))      deallocate (in_lat%ic)
 
@@ -1173,8 +1076,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
 ! write to digested file
 
-  if (write_digested .and. .not. bp_com%parser_debug .and. &
-      digested_version <= bmad_inc_version$) call write_digested_bmad_file  &
-             (digested_file, lat, bp_com%num_lat_files, bp_com%lat_file_names)
+  write_digested = write_digested .and. digested_version <= bmad_inc_version$
+  if (write_digested) call write_digested_bmad_file (digested_file, &
+                              lat, bp_com%num_lat_files, bp_com%lat_file_names)
 
 end subroutine
