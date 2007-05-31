@@ -17,12 +17,13 @@ This chapter deals with the statements not covered in the previous chapters.
 The \vn{parameter} statement is used to set the \vn{lattice} name and
 other variables.  The variables that can be set by \vn{parameter} is
 \begin{example}
-  parameter[lattice]      = <String>      ! Lattice name 
-  parameter[lattice_type] = <Switch>      ! 
-  parameter[taylor_order] = <Integer>     ! Default: 3
-  parameter[E_tot]  = <Real>        ! Total Energy. Default: 0
-  parameter[n_part]       = <Real>        ! Number of particles in a bunch.
-  parameter[ran_seed]     = <Integer>     ! Random number generator init.
+  parameter[lattice]      = <String>        ! Lattice name 
+  parameter[lattice_type] = <Switch>        ! 
+  parameter[taylor_order] = <Integer>       ! Default: 3
+  parameter[E_tot]        = <Real>          ! Total Energy. Default: 0
+  parameter[n_part]       = <Real>          ! Number of particles in a bunch.
+  parameter[ran_seed]     = <Integer>       ! Random number generator init.
+  parameter[particle]     = <particle_type> ! Eg: positron, antiproton, etc.
 \end{example}
 
 \noindent
@@ -35,6 +36,15 @@ Examples
 \end{example}
 
 For more information on \vn{parameter[ran_seed]} see \sref{s:functions}.
+
+Valid \vn{particle} switches are:
+\index{positron}\index{electron}\index{proton}\index{antiproton}
+\begin{example}
+  positron  ! default
+  electron
+  proton
+  antiproton
+\end{example}
 
 The \vn{parameter[E_tot]} is the reference energy at the start of the
 lattice.  Each element in a lattice has an individual reference
@@ -130,14 +140,7 @@ For example
 \end{example}
 Setting the reference energy using the \vn{energy} attribute is the same
 as using \vn{parameter[E_tot]}. Valid \vn{particle}
-switches are
-\index{positron}\index{electron}\index{proton}\index{antiproton}
-\begin{example}
-  positron  ! default
-  electron
-  proton
-  antiproton
-\end{example}
+switches are the same as \vn{parameter[particle]}.
 
 %-----------------------------------------------------------------------------
 \section{Title Statement}
