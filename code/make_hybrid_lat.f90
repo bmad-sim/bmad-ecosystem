@@ -269,8 +269,7 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
     if (ele_out%n_slave == 0) cycle
 
     n_con = n_con + ele_out%n_slave
-    if (n_con > size(r_out%control)) &
-        r_out%control => reallocate_control(r_out%control, n_con + 500)
+    if (n_con > size(r_out%control)) call reallocate_control(r_out, n_con + 500)
 
     do j = ele_out%ix1_slave, ele_out%ix2_slave
       k = n_con + j - ele_out%ix2_slave
@@ -299,7 +298,6 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
 ! correct r_out%ic array
 
   n_ic = 0
-  call re_associate (r_out%ic, size(r_out%control))
 
   do i_out = 1, r_out%n_ele_max
     

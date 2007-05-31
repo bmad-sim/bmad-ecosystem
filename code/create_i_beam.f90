@@ -57,8 +57,7 @@ subroutine create_i_beam (lat, ix_i_beam, ix_slave, ele_init)
   ix = lat%n_control_max
   n_con2 = ix + n_slave
 
-  if (n_con2 > size(lat%control)) &
-                      lat%control => reallocate (lat%control, n_con2+500)
+  if (n_con2 > size(lat%control)) call reallocate_control (lat, n_con2+500)
 
   do j = 1, n_slave
     lat%control(ix+j)%ix_slave  = ix_slave(j)

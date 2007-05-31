@@ -66,8 +66,7 @@ subroutine create_overlay (lat, ix_overlay, attrib_name, contl)
 
   ix = lat%n_control_max
   n_con2 = ix + n_slave
-  if (n_con2 > size(lat%control)) &
-                      lat%control => reallocate (lat%control, n_con2+500)
+  if (n_con2 > size(lat%control)) call reallocate_control (lat, n_con2+500)
 
   do j = 1, n_slave
     lat%control(ix+j) = contl(j)

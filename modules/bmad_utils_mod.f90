@@ -15,10 +15,6 @@ module bmad_utils_mod
 use bmad_struct
 use make_mat6_mod
 
-interface reallocate
-  module procedure reallocate_control
-end interface
-
 contains
 
 !---------------------------------------------------------------------------
@@ -797,40 +793,55 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Fuunction reallocate_control(control, n) result (new_control)
+! Subroutine reallocate_control(lat, n) 
 !
-! Function to reallocate the lat%control(:) array.
-! This data in the array will be saved.
+! Function to reallocate the lat%control(:) and lat%ic(:) arrays.
+! The old data in the arrays will be saved.
 ! 
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   control(:) -- Control_struct, pointer: Control Array
-!   n           -- Integer: Array size for control(:)
+!   lat  -- Lat_struct: Lattice.
+!   n    -- Integer: Array size for lat%control(:) and lat%ic(:).
 !
 ! Output:
-!   new_control(:) -- Control_struct, pointer: Allocated array.
+!   lat  -- Lat_struct: Lattice.
+!     %control(:) -- Control Array with size at least n.
+!     %ic(:)      -- Control Array with size at least n.
 !-
 
-function reallocate_control(control, n) result (new_control)
+subroutine reallocate_control(lat, n)
 
   implicit none
 
-  type (control_struct), pointer :: control(:), new_control(:)
+  type (lat_struct) lat
+  type (control_struct), allocatable :: control(:)
+  real(rp), allocatable :: ic(:)
   integer, intent(in) :: n
-  integer nn
+  integer n_old
 
 !
 
-  allocate (new_control(n))
-  if (associated(control)) then
-    nn = min(n, size(control))
-    new_control(1:nn) = control(1:nn)
-    deallocate (control)
+  if (.not. associated(lat%control)) then
+    allocate (lat%control(n), lat%ic(n))
+    return
   endif
 
-end function
+  n_old = size(lat%control)
+  if (n_old <= n) return
+
+  allocate (control(n_old), ic(n_old))
+  control = lat%control
+  ic = lat%ic
+  deallocate (lat%control, lat%ic)
+  allocate (lat%control(n), lat%ic(n))
+  lat%control(1:n_old) = control
+  lat%ic(1:n_old) = ic
+
+  deallocate (control, ic)
+
+end subroutine
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------

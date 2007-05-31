@@ -211,7 +211,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
       lat%ele(ixn)%control_type = super_lord$
       lat%n_ele_max = ixn
       ixc = lat%n_control_max + 1
-      if (ixc > size(lat%control)) lat%control => reallocate(lat%control, ixc+500)
+      if (ixc > size(lat%control)) call reallocate_control(lat, ixc+100)
       lat%ele(ixn)%ix1_slave = ixc
       lat%ele(ixn)%ix2_slave = ixc
       lat%ele(ixn)%n_slave = 1
@@ -230,7 +230,6 @@ subroutine add_superimpose (lat, super_ele, ix_super)
       lat%ele(ix_slave)%ic2_lord = ic + 1
       lat%ele(ix_slave)%n_lord = 2
       lat%n_ic_max = ic + 1
-      if (ic+1 > size(lat%ic)) call re_associate (lat%ic, ic+500)
       lat%ic(ic) = ixc 
 
     else
@@ -284,7 +283,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   ixc = lat%n_control_max + 1
   n_con = ixc + ix_super_con - 1
-  if (n_con > size(lat%control)) lat%control => reallocate(lat%control, n_con+500) 
+  if (n_con > size(lat%control)) call reallocate_control(lat, n_con+500) 
   lat%ele(ix_super)%ix1_slave = ixc
   lat%ele(ix_super)%ix2_slave = n_con
   lat%ele(ix_super)%n_slave = ix_super_con

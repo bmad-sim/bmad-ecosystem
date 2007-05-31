@@ -169,7 +169,6 @@ subroutine split_lat (lat, s_split, ix_split, split_done)
     ele1%ic1_lord = ixc + 1
     ele1%ic2_lord = n_ic2
     lat%n_ic_max = n_ic2
-    if (n_ic2 > size(lat%ic)) call re_associate (lat%ic, n_ic2+500)
 
     do j = 1, ele%n_lord
 
@@ -223,7 +222,7 @@ subroutine split_lat (lat, s_split, ix_split, split_done)
   lat%ele(ix_super_lord)%control_type = super_lord$
   lat%ele(ix_super_lord)%value(l$) = len_orig
   ixc = lat%n_control_max + 1
-  if (ixc+1 > size(lat%control)) lat%control => reallocate (lat%control, ixc+500)
+  if (ixc+1 > size(lat%control)) call reallocate_control (lat, ixc+500)
   lat%ele(ix_super_lord)%ix1_slave = ixc
   lat%ele(ix_super_lord)%ix2_slave = ixc + 1
   lat%ele(ix_super_lord)%n_slave = 2

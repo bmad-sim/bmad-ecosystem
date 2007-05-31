@@ -203,8 +203,7 @@ subroutine create_group (lat, ix_ele, contrl)
     else
 
       n_con = n_con + 1
-      if (n_con > size(lat%control)) &
-                      lat%control => reallocate (lat%control, n_con+500)
+      if (n_con > size(lat%control)) call reallocate_control (lat, n_con+500)
       lat%control(n_con) = contrl(i)
       lat%control(n_con)%ix_lord = ix_ele
 
@@ -227,8 +226,7 @@ subroutine bookit (i_ele, scale)
   integer scale, i_ele
 
   n_con = n_con + 1
-  if (n_con > size(lat%control)) &
-                      lat%control => reallocate (lat%control, n_con+500)
+  if (n_con > size(lat%control)) call reallocate_control (lat, n_con+500)
   lat%control(n_con)%ix_lord = ix_ele
   lat%control(n_con)%ix_slave = i_ele
   lat%control(n_con)%ix_attrib = l$
