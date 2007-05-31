@@ -2,7 +2,7 @@
 
 ###############################################################
 # This is a script to validate the bmadz binary using
-# various test cases.
+# various test cases.  DEPRECATED.
 ###############################################################
 # Usage:
 #  test_bmadz REL=release_name PLAT=platform
