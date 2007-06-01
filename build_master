@@ -24,7 +24,9 @@ import getopt
 import socket
 import popen2
 
-# Will need to use these env vars if SWIG python bindings are desired
+# Will need to use these env vars if SWIG python bindings are desired.
+# It is probably easier to just use external process calls as they stand, to
+# avoid the added complexity of needing the bindings installed and maintained by the CG.
 #export PYTHONPATH=${PYTHONPATH}:/nfs/opt/svn/lib/svn-python
 #export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/nfs/opt/svn/lib
 #import svn                        # are SWIG bindings availabile from this node? looks as if they are, how to use?
@@ -50,13 +52,12 @@ platform_combos = { "linuxi": ["Linux_i686",      'intel', lnx_host ],
 
 repo_loc      = "https://accserv.lepp.cornell.edu/svn/"
 repo_modules  = ["util", "Gmake", "src"]
-#repo_modules  = ["util"]
 # Have this list pushed to the build_serf script, and the Makefile instead of manually synchronizing them?
 pkg_modules   = ["cfortran", "forest", "num_recipes/recipes_f-90", "num_recipes/recipes_c-ansi", "xsif", "PGPLOT", "xerces"]
-#pkg_modules   = ["xerces"]
-# work out how to sync this list with the pkg build list in the M.release makefile... keeping them sync'd manually is not so hot
+# Work out how to sync this list with the pkg build list in the M.release makefile... keeping them sync'd manually is not so hot.
 
 statuses      = {0 : "Building", 1 : "Complete", -1 : "ERROR"}
+ranks         = {0 : "Isolated", 1 : "Nightly (w/ rotation)"} 
 
 release       = ""
 build_release = 1              # default to building a CESR release only
@@ -74,14 +75,15 @@ dump          = 1              # Dump a list of all the key configuration parame
 show_status   = 1              # Flag to indicate if periodic status updates of all the remote builds will be shown during execution
 nightly       = 0              # Build is a nightly.  If successful, this will delete the previously-built release.
 prec          = "DBL"         # precision flag
-isolated_build= "NO"
+rank          = 0
+#isolated_build= "NO"
 run_tests     = "NO"          # Whether or not a test suite will be run on the products of this build.
 #=== Paths =========================================================
 bin_dir       = "/home/cesrulib/bin"
 osf_bin_dir   = "/home/cesrulib/bin/osf"
 build_sys_dir = bin_dir + "/Gmake"
 util_dir      = bin_dir + "/util"
-libs_dir      = "/nfs/acc/libs"           # may change to ACC?
+libs_dir      = "/nfs/acc/libs"
 prev_blt_path = libs_dir + "/log/prev_built"           # path to file logging last built release
 build_serf    = util_dir + "/build_serf"
 
@@ -150,11 +152,11 @@ for opt in sys.argv:
     win                 = 1
   elif opt == "-nobs":
     show_status         = 0
-  elif opt == "-isol":
-    isolated_build      = "YES"
+#  elif opt == "-isol":
+#    isolated_build      = "YES"
   elif opt == "-ntly" or opt == "-nightly":
     nightly             = 1
-    build_rank          = 3
+    rank                = 1
   elif opt == "-devel":
     devel               = 1
     tag_release         = 1
@@ -163,8 +165,8 @@ for opt in sys.argv:
     tag_release         = 1
   elif opt == "-test":
     run_tests           = "YES"
-  elif opt == "-isolat":                      # Flag to request an isolated build (for testing. Not nightly, no rotation, etc)
-    isolat              = 1
+#  elif opt == "-isolat":                      # Flag to request an isolated build (for testing. Not nightly, no rotation, etc)
+#    isolat              = 1
   elif opt.find("TAG=") != -1:
     rel_tag             = opt.split('=')[1]
     print rel_tag
@@ -265,6 +267,8 @@ def seconds_to_HMS(seconds):
 
 ## Function to generate a unique release name
 ## Accepts: 'RELEASE', 'PACKAGES', or 'RELEASE & PACKAGES' and generates an appropriate unique name.
+## Clean this routine up.  Two loops not needed.  Opted to make release builds always separate from packages builds
+## to simplify operation.
 def get_build_names(type, rel_name, pkg_name):
   basename = ""
   build_list    = []
@@ -291,7 +295,6 @@ def get_build_names(type, rel_name, pkg_name):
         print "\nNote: If no release name is provided, a unique one guaranteed to work will be"
         print "generated automatically.\n"
         sys.exit(15)
-
       
       elif build_name == "none":             # otherwise, a name was not specified, so proceed with unique name generation  
         if loop == 1:                         # depending on which loop this is, set prefix accordingly
@@ -334,7 +337,7 @@ def get_build_names(type, rel_name, pkg_name):
       continue
     
     if loop == 1:                 # return the name(s) generated in the proper order, taking into account
-      rel_name = build_name             # loop iteration responsbility.
+      rel_name = build_name       # loop iteration responsbility.
       #print "rel name set: " + build_name
     else:
       pkg_name = build_name
@@ -366,7 +369,7 @@ def dump_parameters():
     show_stat = "NO"
   print "Realtime status   : " + show_stat
   print "Run test suite    : " + run_tests
-  print "Build rank        : "                            # nightly, devel, or current (rising rank)
+  print "Build rank        : " + ranks[ rank ] # See ranks dict. above for possible values.
   print "Current host      : " + hostname
   print ""
   print "           -- Paths --"
@@ -439,7 +442,7 @@ class builder:
     self.build_host   = platform_combos[pcombo][2]
     self.build_type   = build_type
 
-    # use newer python custom built on cesr68 for more current functionality.
+    # Use newer python custom built on cesr68 for more current functionality.
     if self.platform == "OSF1_alpha_hp":
       self.build_script = osf_bin_dir + '/python ' + build_serf
     else:
@@ -684,7 +687,7 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
   print "Waiting for builds to fully initiate."
   time.sleep(50)       # Long wait here to allow OSF1 builds to eventually dump the output of the
   if not show_status:  # gmake call to a file for status parsing. 
-    print "Builds initiated.  Status output supressed.  This will take a while."
+    print "Builds initiated.  Status output supressed.  This will take a while.\n"
   ####
 
   while complete_fraction < 1 and loop < max_loops: 
@@ -804,8 +807,8 @@ else:
   print "Disk utilization summary for packages builds has not yet been implemented."
 
 
-print "=========================  Test Suite Summary  ==========================="
 if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
+  print "=========================  Test Suite Summary  ==========================="
   for plat in platform_combos:
     #print plat
     if plat == "linuxi" or plat == "linuxl":
