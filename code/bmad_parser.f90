@@ -166,7 +166,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   call init_ele (param_ele)
   param_ele%name = 'PARAMETER'           ! For parameters 
   param_ele%key = def_parameter$
-  param_ele%value(lattice_type$) = circular_lattice$  ! Default
+  param_ele%value(lattice_type$) = -1
   param_ele%value(particle$)     = positron$  ! default
 
   beam_start_ele => in_lat%ele(3)
@@ -891,33 +891,38 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
     deallocate (param_ele%descrip)
   endif
 
-! New way of doing things
-
-  lat%param%lattice_type = nint(param_ele%value(lattice_type$))
-
-  if (nint(param_ele%value(taylor_order$)) /= 0) &
-            lat%input_taylor_order = nint(param_ele%value(taylor_order$))
-
-! old way of doing things
+! Make sure that taylor order and lattice_type are not being set via
+! the old way of doing things.
 
   do i = 1, bp_com%ivar_tot
-    if (bp_com%var_name(i) == 'LATTICE_TYPE')  &
-                          lat%param%lattice_type = nint(bp_com%var_value(i))
+    if (bp_com%var_name(i) == 'LATTICE_TYPE') &
+      call warning ('ILLEGAL TO SET THE LATTICE_TYPE USING "LATTICE_TYPE = ..." SYNTAX.', &
+                    'USE "PARAMETER[LATTICE_TYPE] = ..." INSTEAD.')
     if (bp_com%var_name(i) == 'TAYLOR_ORDER') &
-                          lat%input_taylor_order = nint(bp_com%var_value(i))
+      call warning ('ILLEGAL TO SET THE TAYLOR_ORDER USING "TAYLOR_ORDER = ..." SYNTAX.', &
+                    'USE "PARAMETER[TAYLOR_ORDER] = ..." INSTEAD.')
   enddo
 
-! Set taylor order and lattice_type
+! Set lattice_type.
+
+  ix = nint(param_ele%value(lattice_type$))
+  if (ix > 0) then  ! lattice_type has been set.
+    lat%param%lattice_type = ix
+  else              ! else use default
+    lat%param%lattice_type = circular_lattice$      ! default 
+    if (any(in_lat%ele(:)%key == lcavity$)) then    !   except...
+      print *, 'Note in BMAD_PARSER: This lattice has a LCAVITY.'
+      print *, '     Setting the LATTICE_TYPE to LINEAR_LATTICE.'
+      lat%param%lattice_type = linear_lattice$
+    endif
+  endif
+
+! Set taylor_order
+
+  lat%input_taylor_order = nint(param_ele%value(taylor_order$))
 
   if (lat%input_taylor_order /= 0) &
        call set_taylor_order (lat%input_taylor_order, .false.)
-
-  if (any(in_lat%ele(:)%key == lcavity$) .and. &
-                          lat%param%lattice_type /= linear_lattice$) then
-    print *, 'Note in BMAD_PARSER: This lattice has a LCAVITY.'
-    print *, '     Setting the LATTICE_TYPE to LINEAR_LATTICE.'
-    lat%param%lattice_type = linear_lattice$
-  endif
 
 ! Do bookkeeping for settable dependent variables.
 

@@ -107,13 +107,13 @@ subroutine check_lat_controls (lat, exit_on_error)
 
     if (t_type == overlay_slave$ .and. ele%n_lord == 0) then
       print *, 'ERROR IN check_lat_controls: OVERLAY_SLAVE: ', ele%name, i_t
-      print *, '      DOES HAS ZERO LORDS'
+      print *, '      HAS ZERO LORDS!'
       found_err = .true.
     endif
 
     if (t_type == super_slave$ .and. ele%n_lord == 0) then
       print *, 'ERROR IN check_lat_controls: OVERLAY_SLAVE: ', ele%name, i_t
-      print *, '      DOES HAS ZERO LORDS'
+      print *, '      HAS ZERO LORDS!'
       found_err = .true.
     endif
 
