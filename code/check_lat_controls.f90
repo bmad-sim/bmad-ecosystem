@@ -65,7 +65,7 @@ subroutine check_lat_controls (lat, exit_on_error)
     if (i_t > lat%n_ele_track) then
       if (t_type == free$ .or. t_type == super_slave$ .or. &
           t_type == overlay_slave$ .or. t_type == multipass_slave$) then
-        print *, 'ERROR IN check_lat_controls: ELEMENT: ', ele%name
+        print *, 'ERROR IN check_lat_controls: ELEMENT: ', trim(ele%name)
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      IS *NOT* IN THE TRACKING PART OF LAT LIST AT', i_t
         found_err = .true.
@@ -74,7 +74,7 @@ subroutine check_lat_controls (lat, exit_on_error)
       if (t_type == super_lord$ .or. t_type == overlay_lord$ .or. &
           t_type == group_lord$ .or. t_type == i_beam_lord$ .or. &
           t_type == multipass_lord$) then
-        print *, 'ERROR IN check_lat_controls: ELEMENT: ', ele%name
+        print *, 'ERROR IN check_lat_controls: ELEMENT: ', trim(ele%name)
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      IS IN THE TRACKING PART OF LAT LIST AT', i_t
         found_err = .true.
@@ -84,13 +84,13 @@ subroutine check_lat_controls (lat, exit_on_error)
     if (.not. any( (/ free$, super_slave$, overlay_slave$, i_beam_lord$, &
                       super_lord$, overlay_lord$, group_lord$, multipass_lord$, &
                       multipass_slave$ /) == t_type)) then
-      print *, 'ERROR IN check_lat_controls: ELEMENT: ', ele%name, i_t
+      print *, 'ERROR IN check_lat_controls: ELEMENT: ', trim(ele%name), i_t
       print *, '      HAS UNKNOWN CONTROL INDEX: ', t_type
       found_err = .true.
     endif
 
     if (ele%n_slave /= ele%ix2_slave - ele%ix1_slave + 1) then
-      print *, 'ERROR IN check_lat_controls: LORD: ', ele%name, i_t
+      print *, 'ERROR IN check_lat_controls: LORD: ', trim(ele%name), i_t
       print *, '      HAS SLAVE NUMBER MISMATCH:', &
                                   ele%n_slave, ele%ix1_slave, ele%ix2_slave
       found_err = .true.
@@ -98,7 +98,7 @@ subroutine check_lat_controls (lat, exit_on_error)
     endif
 
     if (ele%n_lord /= ele%ic2_lord - ele%ic1_lord + 1) then
-      print *, 'ERROR IN check_lat_controls: SLAVE: ', ele%name, i_t
+      print *, 'ERROR IN check_lat_controls: SLAVE: ', trim(ele%name), i_t
       print *, '      HAS LORD NUMBER MISMATCH:', &
                                   ele%n_lord, ele%ic1_lord, ele%ic2_lord
       found_err = .true.
@@ -106,13 +106,13 @@ subroutine check_lat_controls (lat, exit_on_error)
     endif
 
     if (t_type == overlay_slave$ .and. ele%n_lord == 0) then
-      print *, 'ERROR IN check_lat_controls: OVERLAY_SLAVE: ', ele%name, i_t
+      print *, 'ERROR IN check_lat_controls: OVERLAY_SLAVE: ', trim(ele%name), i_t
       print *, '      HAS ZERO LORDS!'
       found_err = .true.
     endif
 
     if (t_type == super_slave$ .and. ele%n_lord == 0) then
-      print *, 'ERROR IN check_lat_controls: OVERLAY_SLAVE: ', ele%name, i_t
+      print *, 'ERROR IN check_lat_controls: OVERLAY_SLAVE: ', trim(ele%name), i_t
       print *, '      HAS ZERO LORDS!'
       found_err = .true.
     endif
@@ -137,7 +137,7 @@ subroutine check_lat_controls (lat, exit_on_error)
         else
           print *, 'ERROR IN check_lat_controls: DUPLICATE SUPER_SLAVES: ', &
                                                       lat%ele(ix1)%name, ii
-          print *, '      FOR SUPER_LORD: ', ele%name, i_t
+          print *, '      FOR SUPER_LORD: ', trim(ele%name), i_t
           found_err = .true.
         endif
       enddo
@@ -152,7 +152,7 @@ subroutine check_lat_controls (lat, exit_on_error)
           print *, 'ERROR IN check_lat_controls: SLAVE OF A MULTIPASS_LORD: ', &
                                                           lat%ele(ii)%name, ii
           print *, '      HAS MORE THAN ONE LORD.'
-          print *, '      FOR MULTIPASS_LORD: ', ele%name, i_t
+          print *, '      FOR MULTIPASS_LORD: ', trim(ele%name), i_t
           found_err = .true.
         endif
       enddo
@@ -163,14 +163,14 @@ subroutine check_lat_controls (lat, exit_on_error)
     do j = ele%ix1_slave, ele%ix2_slave
 
       if (j < 1 .or. j > lat%n_control_max) then
-        print *, 'ERROR IN check_lat_controls: LORD: ', ele%name, i_t
+        print *, 'ERROR IN check_lat_controls: LORD: ', trim(ele%name), i_t
         print *, '      HAS IX_SLAVE INDEX OUT OF BOUNDS:', &
                                   ele%ix1_slave, ele%ix2_slave
         found_err = .true.
       endif
 
       if (lat%control(j)%ix_lord /= i_t) then
-        print *, 'ERROR IN check_lat_controls: LORD: ', ele%name, i_t
+        print *, 'ERROR IN check_lat_controls: LORD: ', trim(ele%name), i_t
         print *, '      HAS A %IX_LORD POINTER MISMATCH:', &
                                                  lat%control(j)%ix_lord
         print *, '      AT:', j
@@ -180,7 +180,7 @@ subroutine check_lat_controls (lat, exit_on_error)
       i_t2 = lat%control(j)%ix_slave
 
       if (i_t2 < 1 .or. i_t2 > lat%n_ele_max) then
-        print *, 'ERROR IN check_lat_controls: LORD: ', ele%name, i_t
+        print *, 'ERROR IN check_lat_controls: LORD: ', trim(ele%name), i_t
         print *, '      HAS A SLAVE INDEX OUT OF RANGE:', i_t2
         print *, '      AT:', j
         found_err = .true.
@@ -192,7 +192,7 @@ subroutine check_lat_controls (lat, exit_on_error)
 
       if (.not. good_control(t_type, t2_type) .and. &
                         lat%control(j)%ix_attrib /= l$) then
-        print *, 'ERROR IN check_lat_controls: LORD: ', ele%name, i_t
+        print *, 'ERROR IN check_lat_controls: LORD: ', trim(ele%name), i_t
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      HAS A SLAVE: ', slave%name, i_t2
         print *, '      WHICH IS A: ', control_name(t2_type)
@@ -205,7 +205,7 @@ subroutine check_lat_controls (lat, exit_on_error)
         if (.not. any(lat%control(cc(1:n))%ix_lord == i_t)) then
           print *, 'ERROR IN check_lat_controls: SLAVE: ', slave%name, i_t2
           print *, '      WHICH IS A: ', control_name(t2_type)
-          print *, '      DOES NOT HAVE A POINTER TO ITS LORD: ', ele%name, i_t
+          print *, '      DOES NOT HAVE A POINTER TO ITS LORD: ', trim(ele%name), i_t
           found_err = .true.
         endif
       endif
@@ -219,7 +219,7 @@ subroutine check_lat_controls (lat, exit_on_error)
     do ix = ele%ic1_lord, ele%ic2_lord
 
       if (ix < 1 .or. ix > lat%n_control_max) then
-        print *, 'ERROR IN check_lat_controls: SLAVE: ', ele%name, i_t
+        print *, 'ERROR IN check_lat_controls: SLAVE: ', trim(ele%name), i_t
         print *, '      HAS IC_LORD INDEX OUT OF BOUNDS:', &
                                   ele%ic1_lord, ele%ic2_lord
         found_err = .true.
@@ -228,7 +228,7 @@ subroutine check_lat_controls (lat, exit_on_error)
       j = lat%ic(ix)
 
       if (j < 1 .or. j > lat%n_control_max) then
-        print *, 'ERROR IN check_lat_controls: SLAVE: ', ele%name, i_t
+        print *, 'ERROR IN check_lat_controls: SLAVE: ', trim(ele%name), i_t
         print *, '      HAS IC INDEX OUT OF BOUNDS:', ix, j
         found_err = .true.
       endif
@@ -236,14 +236,14 @@ subroutine check_lat_controls (lat, exit_on_error)
       i_t2 = lat%control(j)%ix_lord
 
       if (i_t2 < 1 .or. i_t2 > lat%n_ele_max) then
-        print *, 'ERROR IN check_lat_controls: SLAVE: ', ele%name, i_t
+        print *, 'ERROR IN check_lat_controls: SLAVE: ', trim(ele%name), i_t
         print *, '      HAS A LORD INDEX OUT OF RANGE:', ix, j, i_t2
         found_err = .true.
         cycle
       endif
 
       if (lat%control(j)%ix_slave /= i_t) then
-        print *, 'ERROR IN check_lat_controls: SLAVE: ', ele%name, i_t
+        print *, 'ERROR IN check_lat_controls: SLAVE: ', trim(ele%name), i_t
         print *, '      HAS A %IX_SLAVE POINTER MISMATCH:', &
                                                  lat%control(j)%ix_slave
           print *, '      AT:', ix, j
@@ -254,7 +254,7 @@ subroutine check_lat_controls (lat, exit_on_error)
       t2_type = lord%control_type
 
       if (.not. good_control(t2_type, t_type)) then
-        print *, 'ERROR IN check_lat_controls: SLAVE: ', ele%name, i_t
+        print *, 'ERROR IN check_lat_controls: SLAVE: ', trim(ele%name), i_t
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      HAS A LORD: ', lord%name, i_t2
         print *, '      WHICH IS A: ', control_name(t2_type)
@@ -263,7 +263,7 @@ subroutine check_lat_controls (lat, exit_on_error)
 
       if (t2_type == i_beam_lord$) then
         if (i_beam_here) then
-          print *, 'ERROR IN check_lat_controls: SLAVE: ', ele%name, i_t
+          print *, 'ERROR IN check_lat_controls: SLAVE: ', trim(ele%name), i_t
           print *, '      HAS MORE THAN ONE I_BEAM_LORD.'
           found_err = .true.
         endif
@@ -285,7 +285,7 @@ subroutine check_lat_controls (lat, exit_on_error)
 
   print *, 'ERROR IN check_lat_controls: SUPER_SLAVES: ', &
                                 lat%ele(ix1)%name, lat%ele(ix2)%name
-  print *, '      NOT IN CORRECT ORDER FOR SUPER_LORD: ', ele%name, i_t
+  print *, '      NOT IN CORRECT ORDER FOR SUPER_LORD: ', trim(ele%name), i_t
 
   if (exit_on_error) call err_exit
 
