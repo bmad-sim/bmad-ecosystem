@@ -829,7 +829,7 @@ subroutine reallocate_control(lat, n)
   endif
 
   n_old = size(lat%control)
-  if (n_old <= n) return
+  if (n_old >= n) return
 
   allocate (control(n_old), ic(n_old))
   control = lat%control
