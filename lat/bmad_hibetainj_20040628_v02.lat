@@ -41,7 +41,7 @@ call, file=BMAD_LAYOUT:layout_c_12wig_2004_07_21.bmad
 !call, file=BMAD_LAYOUT:multi_wig.bmad 
 call, file=BMAD_LAYOUT:wig_polarity.bmad
  
-taylor_order = 3 
+parameter[taylor_order] = 3 
  
 ! cleo solenoid 
  

@@ -36,7 +36,7 @@
  wig_15w[is_on] = false 
  wig_15e[is_on] = false 
 
- taylor_order = 3
+ parameter[taylor_order] = 3
 
  ! cleo solenoid
 

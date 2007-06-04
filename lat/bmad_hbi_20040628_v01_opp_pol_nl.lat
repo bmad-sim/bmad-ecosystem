@@ -37,7 +37,7 @@ call, file=BMAD_LAYOUT:LAYOUT_Q03W_SHIFT_FOR_FLM_CONJECTURE.BMAD
 
 !call, file=BMAD_LAYOUT:multi_wig.bmad
 
-taylor_order = 3
+parameter[taylor_order] = 3
 
 ! cleo solenoid
 

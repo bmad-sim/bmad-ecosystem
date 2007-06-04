@@ -51,7 +51,7 @@ lattice := 6wig_1835mev_20031222_v1
 !call, file=BMAD_LAYOUT:cesr_c1_layout.bmad
 call, file=BMAD_LAYOUT:layout_c_6wig_2003_07_08.bmad
 
-taylor_order = 3
+parameter[taylor_order] = 3
 
 ! cleo solenoid
 

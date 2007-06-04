@@ -10,7 +10,7 @@ call, file=BMAD_LAYOUT:cesr_c_12wig_8e_11e_8pole_sym.bmad
  
 !call, file=BMAD_LAYOUT:multi_wig.bmad 
  
-taylor_order = 3 
+parameter[taylor_order] = 3 
  
 ! cleo solenoid 
  

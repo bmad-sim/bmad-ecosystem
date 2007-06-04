@@ -37,7 +37,7 @@
 !-
  parameter[lattice] = FIT_POSTOP_20070116
  parameter[lattice_type] = CIRCULAR_LATTICE
- parameter[taylor_order] =           3
+ parameter[parameter[taylor_order]] =           3
  
  parameter[beam_energy] =1.885E9
  beam, particle = POSITRON        

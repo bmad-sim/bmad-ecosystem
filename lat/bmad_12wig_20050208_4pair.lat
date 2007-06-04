@@ -34,7 +34,7 @@
 
  call, file = BMAD_LAYOUT:layout_c_12wig_2005_03_23.bmad 
 
- taylor_order = 3 
+ parameter[taylor_order] = 3 
 
  ! cleo solenoid 
 

@@ -43,7 +43,7 @@ call, file=BMAD_LAYOUT:layout_antisol_2005_11_22.bmad
 
 !call, file=BMAD_LAYOUT:multi_wig.bmad
 
-taylor_order = 3
+parameter[taylor_order] = 3
 
 ! cleo solenoid
 

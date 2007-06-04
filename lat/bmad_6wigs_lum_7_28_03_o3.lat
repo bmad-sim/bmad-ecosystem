@@ -4,7 +4,7 @@ lattice := 6wigs_lum_7_28_03_o3
 call, file=BMAD_LAYOUT:cesr_c1_layout.bmad
 !this is the layout as of 3/18/03	
 
-taylor_order = 3
+parameter[taylor_order] = 3
 
 ! cleo solenoid
 

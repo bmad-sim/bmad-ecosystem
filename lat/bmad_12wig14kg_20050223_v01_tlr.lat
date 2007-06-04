@@ -37,7 +37,7 @@
  beam, energy =   1.89
 
  call, file=BMAD_LAYOUT:layout_c_12wig_2005_03_23_14kg.bmad
- taylor_order = 3
+ parameter[taylor_order] = 3
  call, file=BMAD_LAYOUT:12wig_track.bmad
 
 
