@@ -164,7 +164,7 @@ if ( [ ! $FORCE -eq 1 ] ) then
     echo " @                                                       @"
     echo " @              *** ${REL_NAME} ***"
     echo " @                                                       @"
-    echo " @ FROM ALL PLATFORM DIRECTORIES.  ALL LOG FILES WILL BE @"
+    echo " @ FROM ALL PLATFORM DIRECTORIES.  THE .LOG FILE WILL BE @"
     echo " @                   REMOVED AS WELL!                    @"
     echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
     echo " Press ENTER to continue with this operation, "
