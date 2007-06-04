@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/B_GRADIENT/B1_GRADIENT/ig;
+    s/taylor_order/parameter\[taylor_order\]/;
     print (F_OUT);
 
   }
