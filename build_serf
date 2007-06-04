@@ -34,7 +34,7 @@ else:
 logfile = open(logname, "r")         # Open logfile to read variables from header.
 lines = logfile.readlines()
 for line in lines:
-    if line[0:10] == "Build Type":   # no find on crappy OSF python (!) fix this script to be portable
+    if line[0:10] == "Build Type":   # B/c of no find on older 1.5 Python on OSF1.  
         #build_type = line.split(':')[1].strip()
         build_type = line[21:-1]
     if line[0:8]  == "Platform":
@@ -79,7 +79,7 @@ for line in lines:
     if line [0:14] == "Run test suite":
         run_tests = line[21:-1]
 
-logfile.close()                            # Close logfile.
+logfile.close()                            # Done with input parameter parsing. Close logfile.
 
 sys.stdout      = open(logname, "a")      # Reopen log file as standard output stream for appending new data.
 
@@ -118,12 +118,11 @@ if build_type == "RELEASE":
         i = i - 1
     rel_name = reduce(lambda x,y: y+x, rel_name)  # reverse the string
     rel_name = rel_name[1:]                       # snip off leading '/' character
+    ## End snippet.
     #name_chunk_list = full_rel_name.split('/')
     #rel_name        = name_chunk_list[-1]
     env_setup1 = " CESRLIB=" + rel_name + "; CESRF90=" + f90 +'; '
     env_setup2 = ""
-    print "\nEnvironment setup"
-    
     #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 CESR_PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
     #build_cmd = env_setup + "make -f " + build_sys_dir + "/M.release " + build_args + "; echo $PATH"
 
@@ -148,7 +147,6 @@ if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform 
         if line[0:10] == "gmake: ***":
             errors = 1
         line = build_process.fromchild.readline()
-        
     if errors:
         print "--> BUILD STATUS: ERROR(S) DETECTED"
     else:
@@ -163,35 +161,7 @@ if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform 
             while tline:
                 print tline.strip()
                 tline = test_process.fromchild.readline()
-        
-        
-## ## ## ## ##
-## -- implement workaround for crummy ancient Python version on cesrbuild2
-#if platform == "OSF1_alpha_hp":
-#    print "OSF1 workaround testing..."
-#    build_process = popen2.Popen3(build_cmd, capturestderr=1)
-#    #print build_cmd
-#    #build_process = popen2.Popen3(build_cmd)
-#    pid = build_process.pid
-#    line = build_process.fromchild.readline()
-#    #if build_process.childerr.readline() != None:
-#    #    errline = build_process.childerr.readline()
-#    while line:
-#        print line[:-1]                         # snip off trailing newline character so output isn't double spaced
-#        #if errline != "":
-#        #    print errline[:-1]
-#        if line[0:9] == "make: ***":
-#            errors = 1
-#        line = build_process.fromchild.readline()
-#        #if build_process.childerr.readline() != None:
-#        #    errline = build_process.childerr.readline()
-#    if errors:
-#        #print "--> BUILD STATUS:(%i) ERROR(S) DETECTED" % return_code
-#        print "--> BUILD STATUS: ERROR(S) DETECTED"
-#    else:
-#        #print "--> BUILD STATUS:(%i) COMPLETE!" % return_code
-#        print "--> BUILD STATUS: COMPLETE!"
-
+                
 
 if platform == "VMS_alpha_hp": #assumes files and dependencies generated and in place from OSF process (tighten all this up.)
     if build_type == "RELEASE":
@@ -251,11 +221,11 @@ if platform == "VMS_alpha_hp": #assumes files and dependencies generated and in 
 if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
     os.system("chgrp -R cesr " + config_dir)
     os.system("chmod -R g+w " + config_dir)
-    
-os.system(bin_dir + "/create_fdb.pl")
 
-
-
+## Create the 'database' of files and functions.
+if build_type == "RELEASE":
+    os.chdir(full_rel_name)
+    os.system(bin_dir + "/create_fdb.pl")
 
 
 sys.exit(0)
