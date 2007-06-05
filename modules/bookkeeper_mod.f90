@@ -1471,18 +1471,16 @@ subroutine attribute_bookkeeper (ele, param, ref_orb_out)
   if (abs(ele%value(check_sum$) - check_sum) > &
                       1d-14 * (abs(check_sum) + abs(ele%value(check_sum$)))) then
 
-    if (ele%value(check_sum$) == 0) then
-      ele%value(check_sum$) = check_sum
-      return
+    if (ele%value(check_sum$) /= 0) then
+      if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
+      if (associated(ele%gen_field)) call kill_gen_field(ele%gen_field)
+      if (ele%key == wiggler$) then
+        ele%value(z_patch$) = 0
+        ele%value(x_patch$) = 0
+      endif
     endif
 
     ele%value(check_sum$) = check_sum
-    if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
-    if (associated(ele%gen_field)) call kill_gen_field(ele%gen_field)
-    if (ele%key == wiggler$) then
-      ele%value(z_patch$) = 0
-      ele%value(x_patch$) = 0
-    endif
 
   endif
 
@@ -1490,7 +1488,7 @@ subroutine attribute_bookkeeper (ele, param, ref_orb_out)
 ! The starting reference orbit is in ele%value(ref_orb$:ref_orb$+3).
 ! This is normally zero except for split wiggler sections.
 
-  if (ele%key == wiggler$ .and. ele%sub_key == map_type$ .and. &
+  if (ele%key == wiggler$ .and. &
       ele%value(z_patch$) == 0 .and. ele%value(p0c$) /= 0) then
     start%vec = 0
     start%vec(1:4) = ele%value(ref_orb$:ref_orb$+3)
