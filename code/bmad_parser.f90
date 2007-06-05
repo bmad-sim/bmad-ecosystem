@@ -153,9 +153,6 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   in_lat%ele(0)%name = 'BEGINNING'     ! Beginning element
   in_lat%ele(0)%key = init_ele$
 
-  call mat_make_unit (in_lat%ele(0)%mat6)
-  call clear_lat_1turn_mats (in_lat)
-
   beam_ele => in_lat%ele(1)
   call init_ele (beam_ele)
   beam_ele%name = 'BEAM'                 ! fake beam element
@@ -871,6 +868,9 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   lat%a          = in_lat%a
   lat%b          = in_lat%b
   lat%z          = in_lat%z
+
+  call mat_make_unit (lat%ele(0)%mat6)
+  call clear_lat_1turn_mats (lat)
 
   if (beam_ele%value(n_part$) /= 0 .and. param_ele%value(n_part$) /= 0) &
             call warning ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
