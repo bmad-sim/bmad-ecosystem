@@ -88,7 +88,9 @@ subroutine close_vertical(ring, i_dim, final_pos_in, final_pos_out)
   
 ! find vertical separators
   i=0
-  do while ((ix_w == 0 .or. ix_e == 0) .and. i <= ring%n_ele_max)
+!  do while ((ix_w == 0 .or. ix_e == 0) .and. i <= ring%n_ele_max)
+! Always look for ring indices
+  do while (i <= ring%n_ele_max)
      i=i+1
      if(ring%ele(i)%name == 'V_SEP_48W') ix_w=i
      if(ring%ele(i)%name == 'V_SEP_48E') ix_e=i
