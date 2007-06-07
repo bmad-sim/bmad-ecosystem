@@ -365,7 +365,7 @@ integer, parameter :: radius$=32
 integer, parameter :: E_TOT$=33
 integer, parameter :: rel_tol$=34
 integer, parameter :: abs_tol$=35
-integer, parameter :: B_field$=36, Bs_field$ = 46, E_field$=36
+integer, parameter :: B_field$=36, Bs_field$ = 36, E_field$=36
 integer, parameter :: B_gradient$=37, B1_gradient$=37, B2_gradient$=37, B3_gradient$=37
 integer, parameter :: E_gradient$=37, E1_gradient$=37, E2_gradient$=37, E3_gradient$=37
 integer, parameter :: tilt_tot$=38
