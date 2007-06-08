@@ -273,13 +273,13 @@ can control the attributes of other elements. The \vn{%control_type}
 component of an element identifies whether the element is a slave
 element (it is being controlled or is a lord element (it controls
 other elements). Possible values for \vn{%control_type} are:
-\index{Free_element}\index{Super_lord}
+\index{Free}\index{Super_lord}
 \index{Group_lord}\index{I_beam_lord}
 \index{Multipass_lord}\index{Super_slave}
 \index{Overlay_slave}\index{Overlay_lord}
 \index{Multipass_slave}
 \begin{example}
-  free_element\$
+  free\$
   super_lord\$
   group_lord\$
   i_beam_lord\$
@@ -291,8 +291,8 @@ other elements). Possible values for \vn{%control_type} are:
 \end{example}
 
 \begin{description}
-\item[free_element] 
-A \vn{free_element} is just that, An element that is neither
+\item[free element] 
+A \vn{free} element is just that, An element that is neither
 controlls or is controlled. The exception is that attributes of this element
 may be controlled by a \vn{group_lord}.
 
