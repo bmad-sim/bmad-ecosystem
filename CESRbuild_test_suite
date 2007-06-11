@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/home/cesrulib/EXT/Python-2.5.1/python
 ################################################################################
 # Executes a verification suite on the executable applications produced during
 # a CESR Release build.
@@ -20,7 +20,7 @@
 #       'empty' can be obtained along with documentation at
 #       http://empty.sourceforge.net/
 #
-# Developer note: If Python versions >= 2.5 can be used on the major build
+# Developer note: If Python versions >= 2.4 can be used on all major build
 #                 machines, then the new subprocess module might make process
 #                 interaction much easier and help standardize behavior across
 #                 platforms.  This is under investigation.
@@ -34,38 +34,39 @@
 #
 # Usage  : test_suite <release> (<platform>)
 #            release   is of the form cesr_YYYY_MMDD_d_N and
-#            platform  is optional and should take the form 'Linux_i686_linux'
+#            platform  is optional and should take the form 'Linux_i686_intel'
 #
 # Author : Matt Rendina
 # Date   : 5 March 2007
 ################################################################################
 
-import os
-import sys
-import shutil
-import string
-import time
-import popen2
+import os, sys, string, time, shutil
+import subprocess as sub
+import pexpect
+
+print ""
+print sys.version
 
 ########################################################################################
-# Dictionary that defines the group of programs to test and the mode required for each.
+# Dictionaries that define the group of programs to test, based on mode. Int or non-int.
 ########################################################################################
-progs = {
-         'bmadz':0,                 # good
-         'bmad_to_mad_and_xsif':0,  # good
-         'analyzer':1,              # good
-         'closed_orbit':1,          # good
-         'dynamic_aperture_test':1, # good
-         'tune_scan':1,             # good
-         'tune_plane_res_plot':0,   # good though, X error, grep output for key phrase
-         'tao':0                    # good, X error, same as tune_plane_res_plot
-         
-#         'nonlin_bpm_test':?,       # dies reading phase.03378 file
-#         'toad':1?                  # dies trying to parse the presumably correct file
-          }
-                              # NOTE: python 1.5.x on OSF doesn't support iterating over
-                              # dicts, so the X.keys() method is needed when looping
-########################################################################################
+cmd  = []
+icmd = ""
+
+# NO or YES flag indicates whether or not the program to test requires console interaction.
+prog_list = {
+    "bmadz"                 : ["NO", "cons_nonlin.in", "bmad_4170_2ma_20051220.lat"], # OK
+    "bmad_to_mad_and_xsif"  : ["NO", "bmad_4170_2ma_20051220.lat"],                   # OK
+    "tao"                   : ["NO"],                                                 # OK w/ no DISPLAY set
+    "tune_plane_res_plot"   : ["NO"],                                                 # OK
+    "toad"                  : ["NO"],                                                 # 0 stat, but ERROR text
+    "nonlin_bpm_test"       : ["NO"],                                                 # Errors.. who knows.  
+    "closed_orbit"          : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
+    "analyzer"              : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
+    "dynamic_aperture_test" : ["YES"],                                                # OK
+    "tune_scan"             : ["YES"]                                                 # OK
+    }
+###############################################################################################
 
 src = "src"
 testlist = []
@@ -78,10 +79,8 @@ namestrings = []
 if sys.platform == "linux2":
   compiler = os.environ['CESR_F90']
   platform = "Linux_i686_" + compiler
-  empty = "empty"
 elif sys.platform == "osf1V4":
   platform = "OSF1_alpha_hp"
-  empty = "empty-osf"
 
 # Grab command line argument(s)
 if len(sys.argv) == 2 or len(sys.argv) == 3:
@@ -97,24 +96,12 @@ else:
 
 srcpath = libdir +'/'+ platform +'/'+ release +'/'+ src
 
-#Disable X display
+#Disable X display for unattended operation
 os.environ['DISPLAY'] = "none"
 
 #================================================================================
 # Support functions for formatting output and preparing for test object spawning
 #================================================================================
-def print_lines(list):
-  for line in list:       
-    print line[:-1]
-
-def print_out_and_err(outobj, errobj):
-  olist = outobj.readlines()
-  elist = errobj.readlines()
-  for line in elist:
-    olist.append( line )
-  print_lines( olist )
-  return olist
-
 def borderpad_string( string ):
   pad = 62 - len(string) - 3
   string = "* " + string
@@ -124,16 +111,19 @@ def borderpad_string( string ):
   return string
 
 def prep_for_tests(progs, testdir):
-  shutil.copytree(srcpath + "/bmadz/test_jobs", testdir+"/")          # copy test input files
+  shutil.copytree(srcpath + "/bmadz/test_jobs", testdir + "/")          # copy test input files
+  shutil.copy(srcpath + "/tao/program/layout_c_6wig_2003_07_08.bmad", testdir + "/")
   shutil.copy(srcpath + "/bsim/dynamic_aperture/da_test.in", testdir) # copy da_test.in file over
   shutil.copy(srcpath + "/bsim/tune_plane_res_plot/tune_plane_res_plot.in", testdir)
   shutil.copy(srcpath + "/bsim/tune_scan/tunescan.in", testdir)
   shutil.copy(srcpath + "/tao/program/tao.init", testdir)
   shutil.copy(srcpath + "/tao/program/tao_plot.init", testdir)
   shutil.copy(srcpath + "/tao/program/bmad_6wig_lum_20030915_v1.lat", testdir)
-  for prog in progs.keys():
+  shutil.copy(srcpath + "/tao/program/wiggler_def_6wig_negpol.bmad", testdir)
+  shutil.copy(srcpath + "/toad/example/toad.in", testdir)
+  shutil.copy(srcpath + "/toad/example/toad.lat", testdir)
+  for prog in progs:
     shutil.copy(libdir +'/'+ platform+"/"+ release + "/bin/" + prog, testdir)
-  shutil.copy(utilpath + empty, testdir)
   return testdir
 
 #=====================================================================================
@@ -147,7 +137,7 @@ class testobject:
   t1 = 0
   t1 = 0
   interactive = "" #boolean
-  
+
   def execute(self, testdir):
     ret = -1
     header = ""
@@ -172,104 +162,64 @@ class testobject:
     os.chdir(testdir)
     print "\n================================================="
     
-    if self.interactive:
-      os.system("./"+empty+" -f -i ./in -o ./out ./" + self.name + " 2>&1")
-      
-      if self.name == "dynamic_aperture_test":
-        (sout, sin, serr)=popen2.popen3("./"+empty+" -w -v -i ./out -o ./in -t 20 \": \" \
-                                        \"da_test.in\n\"; echo da_test.in; cat ./out")
-        outlist = print_out_and_err( sout, serr )
-        for line in outlist:
-          if line[0:20] == " After second qtune:":  # Possibly fragile test here in literal
-            ret = 0                                 # output checking.
-          else:
-            ret = -1
+    if self.interactive: # Program is interactive, pexpect is needed to respond to prompts.
+      icmd = ""
+      icmd = icmd + self.name
+      for arg in prog_list[self.name][1:]:
+        icmd = icmd + " " + arg
+      print icmd
+      child = pexpect.spawn(icmd, timeout=300)
+      child.logfile = sys.stdout
+      if self.name == "dynamic_aperture_test": # Customized interaction steps
+        child.expect("IN>:")
+        child.sendline("da_test.in")
+        lines = child.readlines()
+        for line in lines:
+            print line.strip()
+      if self.name == "tune_scan":             # Customized interaction steps
+        child.expect("in>:")
+        child.sendline("tunescan.in")
+        lines = child.readlines()
+        for line in lines:
+            print line.strip()
+      if self.name == "closed_orbit" or self.name == "analyzer": # Customized interaction steps
+        child.expect("GO> ")
+        child.sendline("go")
+        child.expect("DIFF")
+        child.sendline("")
+        child.expect("GO> ")
+        child.sendline("quit")
+      icmd = ""
+      lines = []
+      while child.isalive():
+        time.sleep(1)
+      child.close()
+      returncode = child.exitstatus
+      print "\nReturn code: " + str(returncode)
+      time.sleep(2)
 
-
-      elif self.name == "tune_scan":
-        (sout, sin, serr)=popen2.popen3("./"+empty+" -w -v -i ./out -o ./in -t 4 \"in>:\" \
-                                        \"tunescan.in\n\"; cat ./out")
-        outlist = print_out_and_err( sout, serr )
-        if outlist[-2][0:21] == " Track: max amplitude":
-          ret = 0
-        else:
-          ret = -1
-
-        
-      elif self.name == "closed_orbit" or self.name == "analyzer":
-        (sout, sin, serr) = popen2.popen3("./"+empty+" -w -v -i ./out -o ./in -t 300 \")\" \
-                            \"bmad_4170_2ma_20051220.lat\n\"; echo bmad_4170_2ma_20051220.lat ")
-        outlist = print_out_and_err( sout, serr )        
-        (sout, sin, serr) = popen2.popen3("./"+empty+" -w -v -i ./out -o ./in -t 300 \">\"  \
-                                          \"go\n\"; echo \"go\" ")
-        templist = print_out_and_err( sout, serr )
-        for line in templist:
-          outlist.append(line)
-        (sout, sin, serr) = popen2.popen3("./"+empty+" -w -v -i ./out -o ./in -t 300 \"])\" \
-                                          \"quit\n\"; echo \"quit\" ")
-        templist = print_out_and_err( sout, serr )
-        for line in templist:
-          outlist.append(line)
-        (sout, sin, serr) = popen2.popen3("./"+empty+" -w -v -i ./out -o ./in -t 300 \">\"  \
-                                          \"quit\n\"")               ###; echo \"quit\" ")
-        templist = print_out_and_err( sout, serr )
-        for line in templist:
-          outlist.append( line )
-        if outlist[-1][0:14]==" CLOSED_ORBIT:"or outlist[-1][0:10]==" ANALYZER:"or outlist[-2][0:7]==" Plot ?":
-          ret = 0
-        else:
-          ret = -1
-        time.sleep(4)
- 
-          
-    else:
-      if self.name == "tune_plane_res_plot":
-        outlist = os.popen(testdir+"/"+self.name).readlines()
-        print_lines( outlist )
-        ret = -1
-        if outlist[-1][0:23] == " Written: quick_plot.ps":
-          ret = 0
-        else:
-          ret = -1
-  
-            
-      elif self.name == "tao":                # actually interactive, but runs like a single-shot w/o X
-        outlist = os.popen(testdir+"/"+self.name).readlines()
-        print_lines( outlist )
-        if outlist[-1][0:45] == " Init: Read tao_template_graph namelist: this":
-          ret = 0
-        else:
-          ret = -1
-          
-      elif self.name == "bmad_to_mad_and_xsif":
-        (sout, sin, serr)=popen2.popen3(testdir+"/"+self.name+" "+testdir+"/bmad_4170_2ma_20051220.lat")
-        outlist = print_out_and_err( sout, serr )
-        if outlist[-2][0:20] == " Written MAD lattice" or outlist[-1][0:20] == " Written MAD lattice":
-          ret = 0
-        else:
-          ret = -1
-        
-      elif self.name == "bmadz":
-        (sout, sin, serr)=popen2.popen3(testdir+"/"+self.name+" cons_nonlin.in bmad_4170_2ma_20051220.lat")
-        outlist = print_out_and_err( sout, serr)
-        if outlist[-3][0:17] == " figure of merit:":
-          ret = 0
-        else:
-          ret = -1
+    else:   # Program is not of the interactive type, just run it and log output.
+      cmd = []
+      cmd.append(self.name)
+      for arg in prog_list[self.name][1:]:
+        cmd.append(arg)
+      print cmd
+      p = sub.Popen(cmd)
+      returncode = p.wait()
+      print "\nReturn code: " + str(returncode) + '\n'
+      time.sleep(2)
+      cmd = []
 
     print "=================================================\n"
     t2 = time.time()
     print str(t2) + " END "
-    if ret == 0:
-      print self.name + " TEST COMPLETED SUCCESSFULLY!     Elapsed time: %i s" % (t2-t1)
-    else:
-      print self.name + " TEST COMPLETED WITH STATUS: %s   Elapsed time: %i s" % (ret, (t2-t1) )
-    
+    print self.name + " TEST COMPLETED WITH STATUS: %s   Elapsed time: %i s" % (returncode, (t2-t1) )
     print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n"
 
 # END class def
 ################################################################################################
-  
+# Main starts here
+#######################################
 
 if platform == "Linux_i686_intel":
   HOST = "lnx209"
@@ -292,16 +242,17 @@ testdir = "/home/cesrulib/temp/test_suite_area-" + release + "_" +flag
 #=========================================================================
 # Compose list of test objects and format status strings for the log file
 #=========================================================================
-for prog in progs.keys():
+for prog in prog_list:
   namestrings.append( borderpad_string('Setting up '+prog) )
   T = testobject()
   T.name = prog
-  if progs[prog] == 0:
-   T.interactive = 0
+  if prog_list[prog][0] == "YES":
+    T.interactive = 1
   else:
-   T.interactive = 1
+    T.interactive = 0
   testlist.append( T )
 
+prep_for_tests(prog_list, testdir)
 
 #================================================================================
 # Encapsulate the output of each test, delimiting where the separate
@@ -323,7 +274,7 @@ for string in namestrings:
   print string
   
 # Initialize testing location and copy all necessary .in and .lat files.
-prep_for_tests(progs, testdir)
+#prep_for_tests(progs, testdir)
 
 print "*                                                            *"
 print "* Starting tests...                                          *"
