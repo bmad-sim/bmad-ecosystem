@@ -51,7 +51,7 @@ if ( [ ! -d ${LIBS_PATH}/Linux_i686_intel/${REL_NAME} ] ) then
 fi
 
 echo ""
-echo "========================== Disk space summary: ========================="
+echo "=========================== Disk space summary: =========================="
 echo "                      For release ${REL_NAME}"
 
 TOTAL=0
@@ -74,7 +74,7 @@ do
    SUBTOTAL=0
 done
 TOTALMEG=`expr ${TOTAL} / 1048576`
-echo "------------------------------------------------------------------------"
+echo "--------------------------------------------------------------------------"
 echo -e "${TOTAL} B\t(${TOTALMEG} M)\t: TOTAL"
 echo ""
 
