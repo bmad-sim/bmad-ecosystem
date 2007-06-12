@@ -132,8 +132,8 @@ t_begin_master= int(time.time())
 
 #=== Paths =========================================================
 bin_dir       = "/home/cesrulib/bin"
-osf_bin_dir   = "/home/cesrulib/bin/osf-specific"
-lin_bin_dir   = "/home/cesrulib/bin/lin-specific"
+osf_py_dir    = "/home/cesrulib/EXT/Python-2.5.1/OSF1"
+lin_py_dir    = "/home/cesrulib/EXT/Python-2.5.1/Linux"
 build_sys_dir = bin_dir + "/Gmake"
 util_dir      = bin_dir + "/util"
 libs_dir      = "/nfs/acc/libs"
@@ -306,7 +306,8 @@ gmake         = "gmake"
 # Global Support Function definitions
 #=====================================================================
 
-## Function to convert elapsed seconds number into Hour Minute Seond values
+## Function to convert elapsed seconds number into Hour Minute Second values
+## Returns a tuple
 def seconds_to_HMS(seconds):
   hrs  = seconds / 3600
   mins = (seconds % 3600) / 60
@@ -491,13 +492,12 @@ class builder:
     self.build_host   = platform_combos[pcombo][2]
     self.build_type   = build_type
 
-    # Force newer custom-built Python versions (2.5.1) for Linux AND OSF1
+    # Force newer Python versions (2.5.1) for Linux AND OSF1
     # to allow for possible subprocess module use among other amenities.
     if self.platform == "OSF1_alpha_hp":
-      self.build_script = osf_bin_dir + '/python ' + build_serf
+      self.build_script = osf_py_dir + '/python ' + build_serf
     else:
-      #self.build_script = build_serf
-      self.build_script = lin_bin_dir + '/python ' + build_serf
+      self.build_script = lin_py_dir + '/python ' + build_serf
 
     # Set up special paths for building on a Windows machine.
     if self.platform == "Cygwin_i686_intel":
@@ -608,7 +608,7 @@ class builder:
       self.qline = self.lq.readline()
       
     self.lq.close()
-    print self.status_list
+    #print self.status_list
 
     #if self.STATUS == "ERROR(S) DETECTED":         ## code pickup here for more specific contingencies?
     if self.status_list[-1].find("ERROR") != -1:
@@ -857,7 +857,7 @@ if build_type == "RELEASE" and run_tests == "YES":
   print "=========================  Test Suite Summary  ==========================="
   for plat in platform_combos:
     #print plat
-    if plat == "linuxi" or plat == "linuxl":
+    if plat == "linuxi" or plat == "linuxl" or plat == "osfhp":
       platform = platform_combos[plat][0] + '_' + platform_combos[plat][1]
       print "Testing summary for " + platform
       logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'

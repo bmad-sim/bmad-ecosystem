@@ -2,12 +2,9 @@
 #####################################################
 
 # Standard modules
-import os
-import sys
-import time
-import string
-import socket
+import os, sys, string, time, socket
 import popen2
+import subprocess as sub
 import shutil
 
 build_type    = ""
@@ -153,7 +150,12 @@ if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform 
         print "--> BUILD STATUS: COMPLETE!"
         if run_tests == "YES":
             print "About to execute test suite."
-            test_cmd = env_setup1 + cesrdefs + env_setup2 + test_script + " " + rel_name
+            if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
+                Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/Linux/python"
+            else:
+                Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/OSF1/python"
+            #test_cmd = env_setup1 + cesrdefs + env_setup2 + test_script + " " + rel_name
+            test_cmd = env_setup1 + cesrdefs + env_setup2 + Py_interpreter +' '+ test_script + " " + rel_name
             print test_cmd
             test_process = popen2.Popen4(test_cmd)
             pid = test_process.pid
