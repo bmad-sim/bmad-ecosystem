@@ -31,7 +31,7 @@ In any case help may be obtained by contacting David Sagan
 Before running \tao at Cornell the appropriate environmental variables
 must be set. The way \tao is developed is that the source code is kept
 in a central ``repository'' which is controlled by a software package
-called \vn{CVS}. Every so often (typically about once a week) a copy
+called \vn{Subversion}. Every so often (typically about once a week) a copy
 of the source code in the repository is made and a version of \tao is
 compiled from this copy. This is called a ``release''. There are two
 major releases: One called ``devel'' is made from the very latest
@@ -40,44 +40,35 @@ code. The general idea is that devel should have the latest stuff but
 current should be more stable (have less bugs). In practice, since
 \tao is new and the bugs are still being worked out, the devel release
 is typically less buggy and hence is devel is what is recommended. To
-set the environmental variables to point to the devel release do the
-following.  If you are using the bash shell put the following in your
-\vn{.login} file:
+set the environmental variables to point to the devel release, Follow the
+directions on the web documentation at:
 \begin{example}
-  CESRLIB=devel
-  . /home/cesrulib/bin/cesrdefs
+  http://www.lepp.cornell.edu/~dcs/bmad
 \end{example}
-If you are using tcsh put in your \vn{.login} file: 
-\begin{example} 
-  setenv CESRLIB devel
-  source /home/cesrulib/bin/cesrdef
-\end{example}
-This sets the appropriate environmental variables to point to the
-``devel'' ``release
+And click on the \vn{``Local Setup''} link.
 
 After setting up the environmental variables \tao is run with the command
 \begin{example}
   \$CESR_EXE/tao
 \end{example}
-If there has been a bug fix that you need which is in the CVS
-repository but not yet in the devel release, you need to create and
-use a local copy of \tao. To checkout a copy of \tao from the CVS
-repository use the command \cmd{'cesrcvs co tao'} in the directory
-from where you want to run \tao, (hereto referred to as
-\vn{ROOT}). The checked out copy of \tao will be put in a directory
+This will run the \vn{devel} version of \tao.  If there has been a bug
+fix that you need which is in the Subversion repository but not yet in
+the \vn{devel} release, you need to create and use a local copy of
+\tao. See the web documentation to checkout a copy of \tao from the
+Subversion repository. The drawback of having a local copy of \tao is
+that you will then be responsible for updating your local copy as
+needed when updates are made in the repository.
+
+Let \cs{Root} be the name of the root directory for your local copy of Tao.
+The checked out copy of \tao will be put in a directory
 \cs{ROOT/tao}. Basically the only time a local copy of \tao is needed
-is when there have been changes made to CVS that are needed that
+is when there have been changes made to Subversion that are needed that
 haven't found their way to the released version. Once you have created
 a local copy of \tao you may need to update it from time to time when
 changes to the repository have been made by the maintainers of
-\tao. To do this use the command \cmd{'cesrcvs update'} in the
+\tao. To do this use the command \cmd{'svn update'} in the
 \cs{ROOT/tao} directory. Note: Unless you are a maintainer, you do not
 have privileges to modify the repository.
-
-
-
-If you already have a
-local copy of \tao and want to update
 
 From the newly created \cs{ROOT/tao} directory type `\cmd{gmake}' to
 create the libraries and then type `\cmd{gmake -f M.tao}' to create

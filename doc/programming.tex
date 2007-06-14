@@ -1,8 +1,5 @@
-%-----------------------------------------------------------------
-%\chapter{Introduction}
-%\label{c:prog_intro} 
-
-\chapter{Creating a Custom Version of \tao}\index{customizing}
+\chapter{Creating a Custom Version of \tao}
+\index{customizing}
 \label{c:prog_customizing} 
 
 \tao has been designed to be readily extensible with a minimum of
@@ -14,8 +11,8 @@ discussion assume that the directory that you are developing \tao in
 is called \vn{ROOT}. 
 \begin{enumerate}
 \item 
-The first step is to checkout from CVS (or download a
-copy) of \tao. You will now have \tao in
+The first step is to checkout a
+copy of \tao. See the \tao documentation on the web. You will now have \tao in
 \vn{ROOT/tao}. The library source code will be sitting in \vn{ROOT/tao/code}
 and the vanilla \tao program is \vn{ROOT/tao/program/tao_cl.f90}
 \item 
@@ -35,6 +32,7 @@ You can compile and link your routines with the \tao routines using
 The tutorial in Part I of this manual gave an example of how to carry out the
 above steps.
 
+%-----------------------------------------------------------------
 \section{Creating the Tao Library and a Custom Tao Directory}
 
 After obtaining the \tao distribution the \tao library is created by typing
@@ -44,8 +42,9 @@ the second is a debug version. If you then type \cmd{gmake -f M.tao} "vanilla"
 \tao will be compiled into the executables called \cmd{tao} and \cmd{tao_g} and
 placed in \cmd{ROOT/bin}
 
-
-\section{Modifying the Hook Routines and Structures}\index{Customizing!Hook Routines}
+%-----------------------------------------------------------------
+\section{Modifying the Hook Routines and Structures}
+\index{Customizing!Hook Routines}
 
 The golden rule when writing routines to extend \tao is that you are
 only allowed to replace routines or redefine structures that have the
@@ -89,6 +88,7 @@ routine is in a separate file called
 headers and plenty of comments throughout the dummy code to aid in the
 modification of these subroutines.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_command}\index{Customizing!tao_hook_commad}
 
 Any custom commands are placed here. The dummy subroutine already has
@@ -108,6 +108,7 @@ perform all of the steps listed in Section~\ref{s:lat_calc}. If this
 isn't called than whatever is performed in the custom command will not
 show up until a standard command is performed.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_does\_data\_exist}
 \index{Customizing!tao_hook_does_data_exist}
 
@@ -117,6 +118,7 @@ associated datum%ele_name. This is necessary since otherwise
 \vn{tao_init_global_and_universes} will flag the datum as
 not existing.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_evaluate\_a\_datum}
 \index{Customizing!tao_hook_evaluate_a_datum}
 
@@ -162,11 +164,13 @@ is passed to \vn{load_it} for each \vn{orbit.x} datum.
 If the only merit type that is going to be used is \vn{target} then
 \vn{load_it} can be ignored.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_graph\_data\_setup}
 \index{Customizing!tao_hook_graph_data_setup}
 
 Use this to setup custom graph data for a plot.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_init}\index{Customizing!tao_hook_init}
 
 After the lattice and all global and universe structures are
@@ -174,6 +178,7 @@ intialized then \vn{tao_hook_init} is called. Here, any further
 intializations can be added. In paricular, if any custom hook
 structures need to be initialized, here's the place to do it.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_init\_design\_lattice}
 \index{Customizing!tao_hook_init_design_lattice}
 
@@ -192,6 +197,7 @@ inserted then modify this routine and recompile. You can alternatively
 create a custom initialization file used by this routine that reads in
 any elements to be inserted.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_lattice\_calc}
 \index{Customizing!tao_hook_lattice_calc}
 
@@ -204,6 +210,7 @@ can be performed on any lattice separately, this allows for the
 possibility of, for example, tracking a single particle for one
 lattice and macroparticles in another.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_merit\_data}
 \index{Customizing!tao_hook_merit_data}
 
@@ -216,6 +223,7 @@ order for the custom \vn{load_it} to be used.  See
 \vn{tao/code/tao_merit.f90} for how the standard merit types are
 calculated.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_merit\_var}
 \index{Customizing!tao_hook_merit_var}
 
@@ -224,6 +232,7 @@ there is no corresponding data transfer, no \vn{load_it} routine needs
 to be modified.  See \vn{tao/code/tao_merit.f90} for how the standard
 merit types are calculated.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_optimizer}
 \index{Customizing!tao_hook_optimizer}
 
@@ -231,6 +240,7 @@ If a non standard optimizer is needed then it can be implemented
 here. See the \vn{tao/code/tao_*_optimizer.f90} files for how the
 standard optimizers are implemented.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_plot\_graph}
 \index{Customizing!tao_hook_plot_graph}
 
@@ -238,6 +248,7 @@ This will customize the plotting of a graph. See the \tao module
 \vn{tao_plot_mod} for details on what it normally done. You will also need to know how
 DCSLIB's \vn{quick_plot} works.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_plot\_data\_setup}
 \index{Customizing!tao_hook_plot_data_setup}
 
@@ -247,6 +258,7 @@ to the \vn{s%plot_page%region(:)%plot%graph(:)%curve(:)} arrays. This
 may be useful if you want to make a plot that isn't simply the
 information in a data or variable array.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_post\_process\_data}
 \index{Customizing!tao_hook_post_process_data}
 
@@ -255,6 +267,7 @@ arrays are loaded. This routine is called immediately after the data
 arrays are called and before the optimizer or plotting is done, so any
 final modifications to the lattice or data can be performed here.
 
+%-----------------------------------------------------------------
 \subsection{tao\_hook\_mod}\index{Customizing!tao_hook_mod}
 
 Here any custom structures are defined. In the dummy hook routine

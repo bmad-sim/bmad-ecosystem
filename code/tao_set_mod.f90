@@ -582,25 +582,31 @@ elseif (allocated(s_var)) then
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (allocated(r_var)) then
-  call tao_to_real_vector (value_str, 'DATA', r_value, err)
+  call tao_to_real_vector (value_str, 'VAR', r_value, err)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
     return
   endif
   if (size(r_value) == 1) then  ! scaler
     do i = 1, size(r_var)
-      r_var(i)%r = r_value(1)
-      if (component == 'model') call tao_set_var_model_value (v_var(i)%v, value)
+      if (component == 'model') then
+        call tao_set_var_model_value (v_var(i)%v, r_value(1))
+      else
+        r_var(i)%r = r_value(1)
+      endif
     enddo
   else
     if (size(r_var) /= size(r_value)) then
       call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
-                                          var_str // ' = ' // value_str)
+                                          trim(var_str) // ' = ' // value_str)
       return
     endif
     do i = 1, size(r_var)
-      r_var(i)%r = r_value(i)
-      if (component == 'model') call tao_set_var_model_value (v_var(i)%v, value)
+      if (component == 'model') then
+        call tao_set_var_model_value (v_var(i)%v, r_value(i))
+      else
+        r_var(i)%r = r_value(i)
+      endif
     enddo
   endif
 
