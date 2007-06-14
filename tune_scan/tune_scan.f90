@@ -18,6 +18,11 @@
 ! $Id$
 !
 ! $Log$
+!
+!Revision 2007/06/08 Jim Shanks
+!Added support for space charge module
+!
+!
 ! Revision 1.2  2007/01/30 16:14:32  dcs
 ! merged with branch_bmad_1.
 !
@@ -39,6 +44,7 @@ program scan_driver
   use bmadz_interface
   use bsim_interface
   use scan_parameters
+  use trans_space_charge_mod
  
   implicit none
 
@@ -46,8 +52,11 @@ program scan_driver
   type (coord_struct), allocatable :: orb(:)
   type (coord_struct) init(100)
   type (scan_params_struct) scan_params
-  
+!mode declared for radiation integrals
+  type (normal_modes_struct) mode
 
+
+!Local variables for scan_params removed
   integer i, j, ie
   integer n_x, n_y, i_x, i_y, i_ele, n_z
   integer i_z
@@ -55,33 +64,33 @@ program scan_driver
   integer kx
   integer ios
   integer version
-  integer n_part, n_turn, particle, i_train, j_car, n_trains_tot, n_cars, slices 
+  integer ix_cache
 
-  real(rdef), allocatable :: dk1(:) 
-  real(rdef) phi_x, phi_y
-  real(rdef) a(6,6), wr(6), wi(6), tune(6)
-  real(rdef) test
-  real(rdef)  Q_x0, Q_x1, dQ_x, Q_y0, Q_y1, dQ_y
-  real(rdef) Q_z, current
-  real(rdef) Q_x, Q_y, Q_z0, Q_z1, dQ_z
-  real(rdef) min_sig
-  real(rdef) Q_x_init, Q_y_init
-  real(rdef) coupling_sb, coupling_wb
+  real(rp), allocatable :: dk1(:) 
+  real(rp) phi_x, phi_y
+  real(rp) a(6,6), wr(6), wi(6), tune(6)
+  real(rp) test
+  real(rp)  Q_x0, Q_x1, dQ_x, Q_y0, Q_y1, dQ_y
+  real(rp) Q_z
+  real(rp) Q_x, Q_y, Q_z0, Q_z1, dQ_z
+  real(rp) Q_x_init, Q_y_init
+!New real(rp) allowing the user to define the a- and b-mode (horizontal and vertical) emittance
+  real(rp) a_emittance, b_emittance
 
-  character lat_file*80, file_name*80, out_file*80, new_lat_file*80
-  character date*10, time*10
-  character*2 wordx, wordy
+  character(80) file_name, out_file, new_lat_file
+  character(10) date, time
+  character(2) wordx, wordy
 
   logical ok, found
-  logical lrbbi, beambeam_ip, close_pretz, close_vert, rec_taylor, radiation
+!New logical for user to switch space charge module on
+  logical trans_space_charge_on
 
-  namelist / parameters / Q_x0, Q_x1, dQ_x, n_x, Q_y0, Q_y1, dQ_y, n_y, &
-                Q_z, Q_z0, Q_z1, dQ_z, n_part, lat_file, n_turn, particle, &
-                i_train, j_car, n_trains_tot, n_cars, current, &
-                lrbbi, beambeam_ip, close_pretz,  &
-                close_vert, slices, rec_taylor, n_part, min_sig, Q_x_init, Q_y_init, &
-                coupling_sb, coupling_wb, radiation, init
 
+!Now setting scan_params here, instead of local variables to be input into scan_params
+  namelist / parameters / scan_params, Q_x0, Q_x1, dQ_x, n_x, Q_y0, Q_y1, dQ_y, n_y, &
+                Q_z0, Q_z1, dQ_z, Q_x_init, Q_y_init, trans_space_charge_on, &
+                a_emittance, b_emittance
+                
 
 ! read in the parameters
 
@@ -91,7 +100,7 @@ program scan_driver
     print '(a, $)', ' Input command file <CR=tunescan.in>: '
     read(*, '(a)') file_name
     call string_trim (file_name, file_name, ix)
-    if (ix .eq. 0) file_name = 'tunescan.in'
+    if (ix .eq. 0) file_name = 'tune_scan.in'
 
     open (unit= 1, file = file_name, status = 'old', iostat = ios)
 
@@ -104,43 +113,28 @@ program scan_driver
 
   enddo
 
-  particle = positron$
-  beambeam_ip = .false.
-  close_pretz = .false.
-  close_vert = .false.
-  rec_taylor = .false.
-  slices = 1
-  min_sig = 0.
-  coupling_sb = 0.01
+  scan_params%particle = positron$
+  scan_params%beambeam_ip = .false.
+  scan_params%close_pretz = .false.
+  scan_params%close_vert = .false.
+  scan_params%rec_taylor = .false.
+  scan_params%slices = 1
+  scan_params%min_sig = 0.
+  scan_params%coupling_sb = 0.01
   n_x =1
   n_y=1
   n_z = 1
-  radiation = .false.
+  scan_params%radiation = .false.
+!Initialize the use of space charge module to 'false'
+  trans_space_charge_on = .false.
+  a_emittance = 0
+  b_emittance = 0
+  ix_cache = 0
+
 
   read(1, nml = parameters)
 
-  scan_params%Q_z    =        Q_z 
-  scan_params%n_part =        n_part 
-  scan_params%lat_file =      lat_file 
-  scan_params%n_turn =        n_turn 
-  scan_params%particle =      particle
-  scan_params%i_train =       i_train 
-  scan_params%j_car =         j_car 
-  scan_params%n_trains_tot =  n_trains_tot 
-  scan_params%n_cars =        n_cars 
-  scan_params%current =       current
-  scan_params%lrbbi =         lrbbi
-  scan_params%beambeam_ip =   beambeam_ip 
-  scan_params%close_pretz =   close_pretz
-  scan_params%close_vert =    close_vert 
-  scan_params%slices =        slices 
-  scan_params%rec_taylor =    rec_taylor
-  scan_params%min_sig    =    min_sig
-  scan_params%coupling_sb =   coupling_sb
-  scan_params%coupling_wb =   coupling_wb
-  scan_params%radiation  =    radiation
-  scan_params%init(1:n_part)  =    init(1:n_part)
-  scan_params%particle    = particle
+
 
   if (n_x == 1 .and. dQ_x /= 0.)n_x = nint(abs((Q_x1 - Q_x0) / dQ_x)) + 1
   if (n_y == 1 .and. dQ_y /= 0.)n_y = nint(abs((Q_y1 - Q_y0) / dQ_y)) + 1
@@ -168,13 +162,15 @@ program scan_driver
   if(Q_z0 == 0.)Q_z0 = Q_z
 ! init lattice
 
-  if(lat_file(1:8) == 'digested')then
-    call read_digested_bmad_file (lat_file, ring, version)
+  if(scan_params%lat_file(1:8) == 'digested')then
+    call read_digested_bmad_file (scan_params%lat_file, ring, version)
    else
-    call bmad_parser (lat_file, ring)
+    call bmad_parser (scan_params%lat_file, ring)
   endif
 
+!Set the bunch size from the user-defined ring current
 
+  ring%param%n_part   = scan_params%current*0.001*(ring%param%total_length/c_light)/e_charge
 
 ! find how many starting points there are
 
@@ -185,10 +181,10 @@ program scan_driver
   ix = index(file_name,'.')
   out_file = file_name(1:ix)//'hed'
 
-  ixx = max(index(lat_file,'/'),1)
-  ixxx = len_trim(lat_file)
+  ixx = max(index(scan_params%lat_file,'/'),1)
+  ixxx = len_trim(scan_params%lat_file)
   kx = ixxx-ixx+1
-  new_lat_file = lat_file(ixx:ixxx)
+  new_lat_file = scan_params%lat_file(ixx:ixxx)
   new_lat_file(kx+1:kx+1) = "'"
 
   call date_and_time(date, time)
@@ -199,8 +195,8 @@ program scan_driver
   write (21, *) 'File_name = `', trim(file_name)// "'"
   write (21, '(a13,1x,a4,a1,a2,a1,a2,1x,a2,a1,a2,a1,a2,a1)') 'data_date = `', &
                    date(1:4),'-',date(5:6),'-',date(7:8),time(1:2),':',time(3:4),':',time(5:6), "'"
-  write (21,'(a11,i5)' )'  n_part = ',n_part
-  write (21,'(a11, i7)')'  n_turn = ',n_turn
+  write (21,'(a11,i5)' )'  n_part = ',scan_params%n_part
+  write (21,'(a11, i7)')'  n_turn = ',scan_params%n_turn
   write (21, *) 'Return'
   close( unit=21)
 
@@ -212,10 +208,9 @@ program scan_driver
                    date(1:4),'-',date(5:6),'-',date(7:8),time(1:2),':',time(3:4),':',time(5:6), "'"
   write (21, *) 'Return'
   write (21, *)
-  write(21,1) Q_x0, Q_y0, Q_x1, Q_y1, ring%z%tune/twopi
-1    format(1x,'!','  Q_x0 = ',f5.3, '  Q_y0 = ',f5.3, '  Q_x1 = ',f5.3, &
-                           '  Q_y1 = ', f5.3,' Q_z = ',f5.3)
-2  format(1x,'! Traj',i3,' start ',2x,6e10.2)
+
+  write(21, '(5(a, f5.3))') '!  Q_x0 = ', Q_x0, '  Q_y0 = ', Q_y0, &
+                            '  Q_x1 = ', Q_x1, '  Q_y1 = ', Q_y1, '  Q_z = ', ring%z%tune/twopi
 
   write(21,*)
   write(21,'(a78,a10)')'!   Q_x       Q_y       Q_z      x_end       y_end      amp_x_max   amp_y_max ',&
@@ -240,40 +235,59 @@ program scan_driver
 
 ! find which quads to change
 
-  call twiss_at_start(ring)
-  orb(0)%vec=0
-  call closed_orbit_at_start(ring, orb(0), 4, .true.)
-  call track_all(ring, orb)
-  call lat_make_mat6(ring, -1, orb)
-  call twiss_at_start(ring)
-  call twiss_propagate_all(ring)
+  call twiss_and_track(ring, orb)
+
   call choose_quads(ring, dk1)
   int_Q_x = int(ring%ele(ring%n_ele_track)%a%phi / twopi)
   int_Q_y = int(ring%ele(ring%n_ele_track)%b%phi / twopi)
   phi_x = (int_Q_x + Q_x_init) * twopi
   phi_y = (int_Q_y + Q_y_init) * twopi
 
+
+! Call radiation integrals -- ix_cache initialized to zero
+! to account for wiggler-dominated emittance
+    call radiation_integrals(ring, orb, mode,ix_cache)
+
+ !If a-mode emittance is defined by the user,
+ !otherwise use user-defined a-mode emittance value
+
+  if(a_emittance .ne. 0)then
+     mode%a%emittance = a_emittance
+  endif
+
+! Set b-mode emittance from user-defined value
+! (will initialize to 1% coupling to horizontal if no user input)
+
+  if(b_emittance == 0)then
+     mode%b%emittance = 0.01 * mode%a%emittance
+    else
+     mode%b%emittance = b_emittance
+  endif
+
+write(*,*) "A-MODE EMITTANCE: ", mode%a%emittance
+write(*,*) "B-MODE EMITTANCE: ", mode%b%emittance
+
+
+!Call setup_trans_space_charge_calc
+  call setup_trans_space_charge_calc(trans_space_charge_on, ring, mode)
+
   call custom_set_tune(phi_x, phi_y, dk1, ring, orb, ok)    
 
 ! scan the tune
+
   ring_ok = ring
 
-! find how many starting points there are
-
-!  do n_part = 0, size(init)
-!    if (all(init(size(init))%vec == 0)) exit
-!  enddo
-
-  type *, 'Number of starting positions:', n_part
+  type *, 'Number of starting positions:', scan_params%n_part
   type *, 'n_x, n_y, n_z:', n_x, n_y, n_z
   type *, 'dQ_x, dQ_y, dQ_z:', dQ_x, dQ_y, dQ_z
 
-  if (n_part == 0) then
+  if (scan_params%n_part == 0) then
     type *, 'ERROR: NO INITIAL POSITIONS SPECIFIED'
     stop
   endif
 
   do i_z = 1, n_z
+
     Q_z = Q_z0 + dQ_z * i_z
     ring%z%tune = Q_z * twopi
     call set_z_tune(ring)
@@ -286,28 +300,14 @@ program scan_driver
         Q_y = Q_y0 + dQ_y * i_y
         phi_y = (int_Q_y + Q_y) * twopi
 
-
-!       write(wordx,'(i2.2)')i_x
-!       write(wordy,'(i2.2)')i_y
-!       scan_params%file_name = file_name(1:ix-1)//'_'//wordx//'_'//wordy
-!       type *,' scan_params%file_name ',scan_params%file_name
-
        ring_in = ring
        call beambeam_initialize(ring_in, scan_params, phi_x, phi_y)
 
-!
-!       open(unit=21, file = out_file,status='old', access='append' )
-!       write(21,'(2f10.5,2x,2f10.5,3e12.4,2x,3e12.4,2x,i5,2x,e12.4)')Q_x,Q_y, &
-!            ring_in%a%tune/twopi, ring_in%b%tune/twopi, &
-!                     scan_params%sig_in(1:3), &
-!                                    scan_params%sig_out(1:3), scan_params%n_part_out, scan_params%lum
-!       close(unit=21)
-!       print *,Q_x, Q_y, scan_params%lum
       enddo
 
     enddo
 
-  end do
+  enddo
 
   close(unit = 21)
   deallocate(orb)
