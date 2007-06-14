@@ -38,7 +38,7 @@ integer nl, i, ixa, ix, err_num, n
 
 character(*) name, num_str
 character(20) :: r_name = 'tao_change_var'
-character(20) abs_or_rel
+character(20) abs_or_rel, component
 character(100) l1, num, fmt
 character(200), allocatable, save :: lines(:)
 
@@ -51,10 +51,16 @@ call to_number (num_str, change_number, abs_or_rel, err);  if (err) return
 old_merit = tao_merit()
 nl = 0
 
-call tao_find_var (err, name, v_array = v_array)
+call tao_find_var (err, name, v_array = v_array, component = component)
 if (err) return
 if (.not. allocated(v_array)) then
   call out_io (s_error$, r_name, 'BAD VARIABLE NAME: ' // name)
+  return
+endif
+if (component /= "" .and. component /= "model") then
+  call out_io (s_error$, r_name, &
+            '"change var" ONLY MODIFIES THE "model" COMPONENT.', &
+            'USE "set var" INSTEAD.')
   return
 endif
 
@@ -98,7 +104,7 @@ else
   fmt = '(5x, I5, 2x, f12.6, a, 4f12.6)'
 endif
 
-l1 = '     Index           Old             New       Delta  Old-Design  New-Design'
+l1 = '     Index     Old_Model       New_Model       Delta  Old-Design  New-Design'
 nl=nl+1; lines(nl) = l1
 
 n = size(v_array)
