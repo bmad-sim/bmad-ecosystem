@@ -11,7 +11,8 @@
 # Example 1:
 #  build_master -lnx -osf -vms PKG=packages_2006_1031_d
 #
-# Will build a CESR libraries release for all supported Linux platforms
+# Will build a CESR libraries release for all supported Linux
+# platforms
 #    - Linux_i686_intel
 #    - Linux_i686_lahey
 # the OSF1 alpha platform
@@ -36,21 +37,22 @@
 # automatically-generated one.
 #
 #---
+#
+# Other variations are possible as well.
+#
 # Other notes:
 # The VMS build depends directly on the OSF1 build for dependency
 # information (the compilers are nearly identical).  Therefore,
 # -vms by itself is the same as simultaneous -osf and -vms flags.
 #
-# Other variations are possible as well.
-#
-# This script is meant to either build a CESR libraries release, OR a
-# packages release, but not both during the same execution.
+# This script is meant to build either a CESR libraries release, OR
+# a packages release, but _not_both_ during the same execution.
 #
 # Author : Matt Rendina
 # Date   : 17-April-2007
 #
 ####################################################################
-# Document Standout logcodes for output direction.
+# Document Standout logcodes for output redirection.
 ####################################################################
 # exit code key:
 # 10  - command-line argument problem
@@ -61,8 +63,8 @@
 # 40  - build name not specified
 # 45  - all builds failed with make errors
 # 47  - all builds have stopped, but some due to failure
-# 50  - svn access failed for revision retrieval
-# 55  = builds ceased due to timeout
+# 50  - svn access failed for file retrieval
+# 55  - builds ceased due to timeout
 ####################################################################
 
 # Standard modules
@@ -70,9 +72,9 @@ import os
 import sys
 import time
 import string
-import getopt
+import getopt  #
 import socket
-import popen2
+import popen2  # For subprocess calls to build_serf.
 
 # Will need to use these env vars if SWIG python bindings are desired.
 # It is probably easier to just use external process calls as they stand, to
@@ -274,7 +276,6 @@ datecode   = year + '_' + month + day
 
 
 #=== Generic Parameters ================================
-
 rel_prefix    = "cesr"                                  # WAS rel_tag
 pkg_prefix    = "packages"                             # WAS pkg_tag
 general_log   = ""
@@ -293,13 +294,6 @@ branch        = "TRUNK"
 gmake_override= 0                                       # needed?
 util_override = 0                                       
 gmake         = "gmake"
-
-
-## These should probably go into the individual build object for a given platform
-#if platform == "CYGWIN_NT_i686":
-#  use_cesr_bin = "/cygdrive/z/cesrulib/bin"
-#  libs_dir     = "/cygdrive/c/user_local/cesrulib/cesr_libs"
-#  gmake        = "make"
 
 
 #=====================================================================
@@ -451,9 +445,9 @@ def dump_parameters():
 #===================================================================================================
 #== This class will allow the creation of a builder object, the responsibility of which will
 #== be to set up all the variables needed to initiate a build process on a remote machine.
-#== This involves, checking out the necessary code for either a release build, a packages build
-#== or both initiating the build, monitoring it to completion or abort due to error, and optionally
-#== making realtime reports of the status of the build.
+#== This involves checking out the necessary code for either a release build, a packages build
+#== or both(NO) initiating the build, monitoring it to completion or abort due to error, and
+#== optionally making realtime reports of the status of the build.
 #===================================================================================================
 class builder:
   libs_dir_loc         = libs_dir      # global to all class instantiations
@@ -501,6 +495,7 @@ class builder:
 
     # Set up special paths for building on a Windows machine.
     if self.platform == "Cygwin_i686_intel":
+      #  use_cesr_bin = "/cygdrive/z/cesrulib/bin"
       cyg_build_dir = "/cygdrive/c/user_local/cesrulib/cesr_libs"
     print time.asctime() + " -- Checking out code for " + self.platform
     if print_co:
@@ -745,7 +740,7 @@ if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does on
     if show_status:
       t_cur_master = int(time.time())
       print "\n\nBuild status info:   (loop " + str(loop) + ")"
-      print "%i hr %i min %i sec elapsed" % seconds_to_HMS(t_cur_master - t_begin_master)
+      print "  %i hr %i min %i sec elapsed" % seconds_to_HMS(t_cur_master - t_begin_master)
       print "----------------------------------------"
 
     if lnx:
@@ -855,16 +850,29 @@ else:
 
 if build_type == "RELEASE" and run_tests == "YES":
   print "=========================  Test Suite Summary  ==========================="
-  for plat in platform_combos:
-    #print plat
-    if plat == "linuxi" or plat == "linuxl" or plat == "osfhp":
-      platform = platform_combos[plat][0] + '_' + platform_combos[plat][1]
-      print "Testing summary for " + platform
-      logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
-      lines = os.popen(util_dir + "/extract_test_summary " + logfile).readlines()
-      for line in lines:
-        print line.strip()
-      print ""
+  if lnx:
+    platform = platform_combos['linuxi'][0] + '_' + platform_combos['linuxi'][1]
+    print "Testing summary for " + platform
+    logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
+    lines = os.popen(util_dir + "/extract_test_summary " + logfile).readlines()
+    for line in lines:
+      print line.strip()
+    print ""
+    platform = platform_combos['linuxl'][0] + '_' + platform_combos['linuxl'][1]
+    print "Testing summary for " + platform
+    logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
+    lines = os.popen(util_dir + "/extract_test_summary " + logfile).readlines()
+    for line in lines:
+      print line.strip()
+    print ""
+  if osf:
+    platform = platform_combos['osfhp'][0] + '_' + platform_combos['osfhp'][1]
+    print "Testing summary for " + platform
+    logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
+    lines = os.popen(util_dir + "/extract_test_summary " + logfile).readlines()
+    for line in lines:
+      print line.strip()
+    print ""
 
 print "=========================================================================="
 print "          =============  End Statistics Summary =============\n"

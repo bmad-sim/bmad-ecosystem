@@ -1,11 +1,15 @@
-#!/usr/bin/python
-#####################################################
-
+#!/home/cesruilb/EXT/Python-2.5.1/Linux/python
+############################################################
+# The shebang above needn't really be present, as this
+# script is only meant to be called from the build_master
+# script.  It is left there as a reminder of the Python
+# interpreter version used to properly execute this script.
+############################################################
 # Standard modules
 import os, sys, string, time, socket
 import popen2
-import subprocess as sub
-import shutil
+import subprocess as sub     
+import shutil                # For file copying routines.
 
 build_type    = ""
 f90           = ""
@@ -147,23 +151,30 @@ if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform 
     if errors:
         print "--> BUILD STATUS: ERROR(S) DETECTED"
     else:
-        print "--> BUILD STATUS: COMPLETE!"
         if run_tests == "YES":
             print "About to execute test suite."
             if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
                 Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/Linux/python"
             else:
                 Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/OSF1/python"
-            #test_cmd = env_setup1 + cesrdefs + env_setup2 + test_script + " " + rel_name
-            test_cmd = env_setup1 + cesrdefs + env_setup2 + Py_interpreter +' '+ test_script + " " + rel_name
+            #test_cmd = env_setup1 + cesrdefs + env_setup2 + Py_interpreter +' '+ test_script +" "+ rel_name
+            test_cmd = [Py_interpreter, test_script, rel_name, platform]
             print test_cmd
-            test_process = popen2.Popen4(test_cmd)
+            #o test_process = popen2.Popen4(test_cmd)
+            #o2 test_process = sub.Popen(test_cmd)
+            test_process = sub.Popen(test_cmd, stdout=sub.PIPE, stderr=sub.STDOUT)
+            lines = test_process.stdout.readlines()
+            for line in lines:
+                print line.strip()
             pid = test_process.pid
-            tline = test_process.fromchild.readline()
-            while tline:
-                print tline.strip()
-                tline = test_process.fromchild.readline()
-                
+            returncode = test_process.wait()
+            print "\n Test Suite Return code: " + str(returncode) + '\n'
+            time.sleep(2)
+            #o tline = test_process.fromchild.readline()
+            #o while tline:
+            #o     print tline.strip()
+            #o     tline = test_process.fromchild.readline()
+        print "--> BUILD STATUS: COMPLETE!"       
 
 if platform == "VMS_alpha_hp": #assumes files and dependencies generated and in place from OSF process (tighten all this up.)
     if build_type == "RELEASE":

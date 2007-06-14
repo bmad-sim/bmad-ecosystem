@@ -1,36 +1,28 @@
-#!/home/cesrulib/EXT/Python-2.5.1/python
+#!/home/cesrulib/EXT/Python-2.5.1/Linux/python
+################################################################################
+# This script uses the above Python interpreter which is more recent than the
+# standard interpreter installed on LEPP Linux systems (2.2.3).
 ################################################################################
 # Executes a verification suite on the executable applications produced during
-# a CESR Release build.
+# a CESR Release build.  This will ultimately be easily extensible to allow for
+# more thorough testing of application functionality instead of a simple
+# run/no-run check.
 #
-# The names of the applications to test are defined in the dictionary 'progs'
-# just below.  The integer after each program name is whether or not
-# pseudo-terminal magic needs to be performed in order for this script to
-# interact with the program to get it to produce verifiable output.
-# The actual return codes from each program execution are not available, so
-# the text output of the program is checked against expected strings to verify
-# successful completion.
+# --The names of the applications to test are defined in the dictionary
+# 'prog_list' just below.  The YES:NO flag after each program name is whether
+# or not pseudo-terminal magic needs to be performed in order for this script to
+# interact with the program and get it to produce verifiable output (by using
+# the pexpect module, an all-python analogue to the classic unix utility
+# 'expect'.)  The PTY stuff is required if the application depends on any
+# keyboard interaction from the user during operation.
 #
-# NOTE: This program uses the external utility 'empty' to enable the pseudo TTY
-#       process interaction capabilities.  This script originally supports
-#       Linux_i686 and OSF1_alpha with external 'empty' binaries called
-#       'empty' and 'empty-osf' that have been built specifically for those
-#       two platforms.
+# --Any remaining list entries are command line arguments to be passed to said
+# application.
+# 
+# The return codes from each sub-process are now available in this version of
+# the script and are output in a standardized way for secondary parsing.
 #
-#       'empty' can be obtained along with documentation at
-#       http://empty.sourceforge.net/
-#
-# Developer note: If Python versions >= 2.4 can be used on all major build
-#                 machines, then the new subprocess module might make process
-#                 interaction much easier and help standardize behavior across
-#                 platforms.  This is under investigation.
-#
-#
-#    Those two utility programs must exist in the same
-#       directory as this test suite (or in a PATH directory as described by the
-#       shell running this test program) for everything to work on
-#       all supported platforms.
-#
+# Python 2.4 or greater MUST be used to allow access to the subprocess module. 
 #
 # Usage  : test_suite <release> (<platform>)
 #            release   is of the form cesr_YYYY_MMDD_d_N and
@@ -44,14 +36,14 @@ import os, sys, string, time, shutil
 import subprocess as sub
 import pexpect
 
-print ""
+print "\nUsing Python interpreter:"
 print sys.version
 
 ########################################################################################
 # Dictionaries that define the group of programs to test, based on mode. Int or non-int.
 ########################################################################################
-cmd  = []
-icmd = ""
+cmd  = []  # Command for non-interactive processes. A list of command components, as per subprocess module operation.
+icmd = ""  # Command for processes requiring 'keyboard' interactin.  A string, as per pexpect module operation.
 
 # NO or YES flag indicates whether or not the program to test requires console interaction.
 prog_list = {
@@ -102,6 +94,8 @@ os.environ['DISPLAY'] = "none"
 #================================================================================
 # Support functions for formatting output and preparing for test object spawning
 #================================================================================
+#==Function to pad out an arbitrary string to conform to cosmetic requirements in output.
+#==Pads out line with spaces and terminates with an * to allow for ASCII-art box output.
 def borderpad_string( string ):
   pad = 62 - len(string) - 3
   string = "* " + string
@@ -110,16 +104,21 @@ def borderpad_string( string ):
   string = string + '*'
   return string
 
+#==Copies the host of ancillary test input files, lattices, etc... to the test directory 
+#==and copies over the complement of binaries to execute.
 def prep_for_tests(progs, testdir):
   shutil.copytree(srcpath + "/bmadz/test_jobs", testdir + "/")          # copy test input files
   shutil.copy(srcpath + "/tao/program/layout_c_6wig_2003_07_08.bmad", testdir + "/")
-  shutil.copy(srcpath + "/bsim/dynamic_aperture/da_test.in", testdir) # copy da_test.in file over
-  shutil.copy(srcpath + "/bsim/tune_plane_res_plot/tune_plane_res_plot.in", testdir)
-  shutil.copy(srcpath + "/bsim/tune_scan/tunescan.in", testdir)
   shutil.copy(srcpath + "/tao/program/tao.init", testdir)
   shutil.copy(srcpath + "/tao/program/tao_plot.init", testdir)
   shutil.copy(srcpath + "/tao/program/bmad_6wig_lum_20030915_v1.lat", testdir)
   shutil.copy(srcpath + "/tao/program/wiggler_def_6wig_negpol.bmad", testdir)
+  shutil.copy(srcpath + "/tao/program/wig_7pole_plus.bmad", testdir)
+  shutil.copy(srcpath + "/tao/program/wig_8pole_plus.bmad", testdir)
+  shutil.copy(srcpath + "/tao/program/6wig_track.bmad", testdir)
+  shutil.copy(srcpath + "/bsim/dynamic_aperture/da_test.in", testdir) # copy da_test.in file over
+  shutil.copy(srcpath + "/bsim/tune_plane_res_plot/tune_plane_res_plot.in", testdir)
+  shutil.copy(srcpath + "/bsim/tune_scan/tunescan.in", testdir)
   shutil.copy(srcpath + "/toad/example/toad.in", testdir)
   shutil.copy(srcpath + "/toad/example/toad.lat", testdir)
   for prog in progs:
@@ -158,57 +157,51 @@ class testobject:
     t1 = time.time()
     print str(t1) + "  --  BEGIN "+ self.name + " test for "+ platform
 
-    print "Changing working directory."
+    print "Setting working directory."
     os.chdir(testdir)
     print "\n================================================="
     
-    if self.interactive: # Program is interactive, pexpect is needed to respond to prompts.
-      icmd = ""
-      icmd = icmd + self.name
-      for arg in prog_list[self.name][1:]:
-        icmd = icmd + " " + arg
-      print icmd
-      child = pexpect.spawn(icmd, timeout=300)
-      child.logfile = sys.stdout
-      if self.name == "dynamic_aperture_test": # Customized interaction steps
-        child.expect("IN>:")
-        child.sendline("da_test.in")
-        lines = child.readlines()
-        for line in lines:
-            print line.strip()
-      if self.name == "tune_scan":             # Customized interaction steps
-        child.expect("in>:")
-        child.sendline("tunescan.in")
-        lines = child.readlines()
-        for line in lines:
-            print line.strip()
-      if self.name == "closed_orbit" or self.name == "analyzer": # Customized interaction steps
-        child.expect("GO> ")
-        child.sendline("go")
-        child.expect("DIFF")
-        child.sendline("")
-        child.expect("GO> ")
-        child.sendline("quit")
-      icmd = ""
-      lines = []
-      while child.isalive():
-        time.sleep(1)
-      child.close()
-      returncode = child.exitstatus
-      print "\nReturn code: " + str(returncode)
-      time.sleep(2)
+    icmd = ""
+    icmd = icmd + self.name
+    for arg in prog_list[self.name][1:]:
+      icmd = icmd + " " + arg
+    print icmd
+    child = pexpect.spawn(icmd, timeout=300)
+    child.logfile = sys.stdout
+    
+    if self.name == "dynamic_aperture_test": # Customized interaction steps
+      child.expect("IN>:")
+      child.sendline("da_test.in")
+      lines = child.readlines()
+      for line in lines:
+        print line.strip()
+    if self.name == "tune_scan":                # Customized interaction steps
+      child.expect("in>:")
+      child.sendline("tunescan.in")
+      lines = child.readlines()
+      for line in lines:
+        print line.strip()
+    if self.name == "closed_orbit" or self.name == "analyzer": # Customized interaction steps
+      child.expect("GO> ")
+      child.sendline("go")
+      child.expect("DIFF")
+      child.sendline("")
+      child.expect("GO> ")
+      child.sendline("quit")
+    else:                       #Program is not of an interactive type, just run it and log output.
+      lines = child.readlines()
+      for line in lines:
+         print line.strip()
 
-    else:   # Program is not of the interactive type, just run it and log output.
-      cmd = []
-      cmd.append(self.name)
-      for arg in prog_list[self.name][1:]:
-        cmd.append(arg)
-      print cmd
-      p = sub.Popen(cmd)
-      returncode = p.wait()
-      print "\nReturn code: " + str(returncode) + '\n'
-      time.sleep(2)
-      cmd = []
+    icmd = ""
+    lines = []
+    while child.isalive():
+      time.sleep(1)
+    child.close()
+    returncode = child.exitstatus
+    print "\nReturn code: " + str(returncode)
+    time.sleep(2)
+    
 
     print "=================================================\n"
     t2 = time.time()
