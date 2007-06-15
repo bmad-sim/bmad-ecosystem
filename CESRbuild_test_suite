@@ -48,15 +48,15 @@ icmd = ""  # Command for processes requiring 'keyboard' interactin.  A string, a
 
 # NO or YES flag indicates whether or not the program to test requires console interaction.
 prog_list = {
-#    "bmadz"                    : ["NO", "cons_nonlin.in", "bmad_4170_2ma_20051220.lat"], # OK
-#    "bmad_to_mad_and_xsif"  : ["NO", "bmad_4170_2ma_20051220.lat"],                   # OK
-#    "tao"                      : ["NO"],                                                 # OK w/ no DISPLAY set
-#    "tune_plane_res_plot"   : ["NO"],                                                 # OK
-#    "toad"                     : ["NO"],                                                 # 0 stat, but ERROR text
+    "bmadz"                    : ["NO", "cons_nonlin.in", "bmad_4170_2ma_20051220.lat"], # OK
+    "bmad_to_mad_and_xsif"  : ["NO", "bmad_4170_2ma_20051220.lat"],                   # OK
+    "tao"                      : ["NO"],                                                 # OK w/ no DISPLAY set
+    "tune_plane_res_plot"   : ["NO"],                                                 # OK
+    "toad"                     : ["NO"],                                                 # 0 stat, but ERROR text
     "nonlin_bpm_test"       : ["NO"],                                                 # Errors.. who knows.  
-#    "closed_orbit"           : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
-#    "analyzer"                 : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
-#    "dynamic_aperture_test" : ["YES"],                                                # OK
+    "closed_orbit"           : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
+    "analyzer"                 : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
+    "dynamic_aperture_test" : ["YES"],                                                # OK
     "tune_scan"               : ["YES"]                                                 # OK
     }
 ###############################################################################################
