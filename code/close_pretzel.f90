@@ -81,9 +81,10 @@ subroutine close_pretzel (ring, i_dim, final_pos_in, final_pos_out)
 
 ! find separators
   i=0
-!  do while ((ix_w == 0 .or. ix_e == 0) .and. i <= ring%n_ele_max)
 ! Always look for ring indices
-  do while (i <= ring%n_ele_max)
+  ix_w = 0
+  ix_e = 0
+  do while ((ix_w == 0 .or. ix_e == 0) .and. i <= ring%n_ele_max)
      i=i+1
      if(ring%ele(i)%name == 'H_SEP_08W') ix_w=i
      if(ring%ele(i)%name == 'H_SEP_08E') ix_e=i
