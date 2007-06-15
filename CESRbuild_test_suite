@@ -22,7 +22,8 @@
 # The return codes from each sub-process are now available in this version of
 # the script and are output in a standardized way for secondary parsing.
 #
-# Python 2.4 or greater MUST be used to allow access to the subprocess module. 
+# Python 2.4 or greater MUST be used to allow access to the 'subprocess' and
+# 'pexpect' modules. 
 #
 # Usage  : test_suite <release> (<platform>)
 #            release   is of the form cesr_YYYY_MMDD_d_N and
@@ -47,16 +48,16 @@ icmd = ""  # Command for processes requiring 'keyboard' interactin.  A string, a
 
 # NO or YES flag indicates whether or not the program to test requires console interaction.
 prog_list = {
-    "bmadz"                 : ["NO", "cons_nonlin.in", "bmad_4170_2ma_20051220.lat"], # OK
-    "bmad_to_mad_and_xsif"  : ["NO", "bmad_4170_2ma_20051220.lat"],                   # OK
-    "tao"                   : ["NO"],                                                 # OK w/ no DISPLAY set
-    "tune_plane_res_plot"   : ["NO"],                                                 # OK
-    "toad"                  : ["NO"],                                                 # 0 stat, but ERROR text
+#    "bmadz"                    : ["NO", "cons_nonlin.in", "bmad_4170_2ma_20051220.lat"], # OK
+#    "bmad_to_mad_and_xsif"  : ["NO", "bmad_4170_2ma_20051220.lat"],                   # OK
+#    "tao"                      : ["NO"],                                                 # OK w/ no DISPLAY set
+#    "tune_plane_res_plot"   : ["NO"],                                                 # OK
+#    "toad"                     : ["NO"],                                                 # 0 stat, but ERROR text
     "nonlin_bpm_test"       : ["NO"],                                                 # Errors.. who knows.  
-    "closed_orbit"          : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
-    "analyzer"              : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
-    "dynamic_aperture_test" : ["YES"],                                                # OK
-    "tune_scan"             : ["YES"]                                                 # OK
+#    "closed_orbit"           : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
+#    "analyzer"                 : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
+#    "dynamic_aperture_test" : ["YES"],                                                # OK
+    "tune_scan"               : ["YES"]                                                 # OK
     }
 ###############################################################################################
 
@@ -67,6 +68,7 @@ libdir   = "/home/cesrulib/cesr_libs"
 utilpath = "/home/cesrulib/bin/util/"
 wd = os.getcwd()
 namestrings = []
+env_var = ""
 
 if sys.platform == "linux2":
   compiler = os.environ['CESR_F90']
@@ -108,6 +110,7 @@ def borderpad_string( string ):
 #==and copies over the complement of binaries to execute.
 def prep_for_tests(progs, testdir):
   shutil.copytree(srcpath + "/bmadz/test_jobs", testdir + "/")          # copy test input files
+  shutil.copy(srcpath + "/bmad/lat/bmad_hibetainj_20040628_v01.lat", testdir)
   shutil.copy(srcpath + "/tao/program/layout_c_6wig_2003_07_08.bmad", testdir + "/")
   shutil.copy(srcpath + "/tao/program/tao.init", testdir)
   shutil.copy(srcpath + "/tao/program/tao_plot.init", testdir)
@@ -118,13 +121,19 @@ def prep_for_tests(progs, testdir):
   shutil.copy(srcpath + "/tao/program/6wig_track.bmad", testdir)
   shutil.copy(srcpath + "/bsim/dynamic_aperture/da_test.in", testdir) # copy da_test.in file over
   shutil.copy(srcpath + "/bsim/tune_plane_res_plot/tune_plane_res_plot.in", testdir)
-  shutil.copy(srcpath + "/bsim/tune_scan/tunescan.in", testdir)
+  shutil.copy(srcpath + "/bsim/tune_scan/tune_scan.in", testdir)
   shutil.copy(srcpath + "/toad/example/toad.in", testdir)
   shutil.copy(srcpath + "/toad/example/toad.lat", testdir)
+  shutil.copytree(srcpath + "/nonlin_bpm/nonlin_bpm_resource", testdir + "/nonlin_bpm_resource")
+  print os.listdir(srcpath + "/nonlin_bpm/test")
+  for file in os.listdir(srcpath + "/nonlin_bpm/test"): # Grab all files in nbpm test dir
+    if file.find("svn") == -1:  #Don't grab the SVN administration directory.
+      shutil.copy(srcpath + "/nonlin_bpm/test/" + file, testdir)
   for prog in progs:
     shutil.copy(libdir +'/'+ platform+"/"+ release + "/bin/" + prog, testdir)
   return testdir
 
+  
 #=====================================================================================
 ## Class that represents an individual release binary test event
 ## This contains the procedures for properly initiating and interacting with each
@@ -138,6 +147,10 @@ class testobject:
   interactive = "" #boolean
 
   def execute(self, testdir):
+    ##Set up any necessary environment variables needed for test jobs.
+    # An environment variable needs to be set to the resource directory in order for the
+    # nonlin_bpm_test program to run.
+    os.putenv("L_NONLIN_BPM", testdir +"/nonlin_bpm_resource")
     ret = -1
     header = ""
     print ""
@@ -166,7 +179,8 @@ class testobject:
     for arg in prog_list[self.name][1:]:
       icmd = icmd + " " + arg
     print icmd
-    child = pexpect.spawn(icmd, timeout=300)
+    #child = pexpect.spawn(icmd, timeout=300)
+    child = pexpect.spawn(env_var + icmd, timeout=300)
     child.logfile = sys.stdout
     
     if self.name == "dynamic_aperture_test": # Customized interaction steps
@@ -177,7 +191,7 @@ class testobject:
         print line.strip()
     if self.name == "tune_scan":                # Customized interaction steps
       child.expect("in>:")
-      child.sendline("tunescan.in")
+      child.sendline("tune_scan.in")
       lines = child.readlines()
       for line in lines:
         print line.strip()
