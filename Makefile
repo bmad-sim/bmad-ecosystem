@@ -83,7 +83,7 @@ OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_p
 CONFIG_DIRS  := 
 LOCAL_INCS   :=
 SRC_EXCLUDE  := beambeam_scan.f90 # only with lahey it can be compiled
-M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif
+M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif M.synrad
 ifeq "$(CESR_F90)" "lahey"
   SRC_EXCLUDE  :=
 #  M_FILE_LIST  += M.beambeam  
