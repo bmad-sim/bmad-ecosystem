@@ -1,4 +1,4 @@
-program sr
+program synrad
 ! Example program for getting synch radiation 
 !   power results for a lattice
 !
@@ -153,4 +153,4 @@ program sr
   deallocate(orb)
   deallocate(power)
 
-end program sr
+end program synrad
