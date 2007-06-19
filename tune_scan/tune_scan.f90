@@ -61,7 +61,7 @@ program scan_driver
   integer n_x, n_y, i_x, i_y, i_ele, n_z
   integer i_z
   integer int_Q_x, int_Q_y, ix, ixx,ixxx
-  integer kx
+  integer kx, n_arg
   integer ios
   integer version
   integer ix_cache
@@ -94,24 +94,23 @@ program scan_driver
 
 ! read in the parameters
 
+  file_name = 'tune_scan.in'
+  n_arg = cesr_iargc()
+  if (n_arg > 1) then
+    print *, 'Usage: tune_scan <input_file>'
+    print *, 'Default: <input_file> = tune_scan.in'
+    stop
+  endif
 
-  do 
+  if (n_arg == 1) call cesr_getarg(1, file_name)
 
-    print '(a, $)', ' Input command file <CR=tunescan.in>: '
-    read(*, '(a)') file_name
-    call string_trim (file_name, file_name, ix)
-    if (ix .eq. 0) file_name = 'tune_scan.in'
+  if (n_arg == 0) then
+    print '(a, $)', ' Input command file <CR=tune_scan.in>: '
+    read (*, '(a)') file_name
+  endif
 
-    open (unit= 1, file = file_name, status = 'old', iostat = ios)
-
-    if (ios == 0) then
-      exit
-    else
-      type *
-      type *, 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
-    endif
-
-  enddo
+  print *, 'Opening: ', trim(file_name)
+  open (unit= 1, file = file_name, status = 'old')
 
   scan_params%particle = positron$
   scan_params%beambeam_ip = .false.
