@@ -44,13 +44,13 @@ subroutine twiss_and_track (lat, orb)
 
 ! We need to know the orbit first before we can compute the linear
 ! transfer matrices for the elements.
-! However closed_orbit_at_start needs some crude notion of the 1-turn transfer
+! However closed_orbit_calc needs some crude notion of the 1-turn transfer
 ! matrix in order for it to do the calculation.
 
   if (lat%param%lattice_type == circular_lattice$) then
     call lat_make_mat6 (lat, -1)
     call twiss_at_start (lat)
-    call closed_orbit_at_start (lat, orb(0), 4, .true.)
+    call closed_orbit_calc (lat, orb, 4)
   endif
 
   call track_all (lat, orb)
