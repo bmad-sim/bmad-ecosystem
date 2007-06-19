@@ -1,0 +1,8 @@
+&synrad_params
+	sr_param%lattice = "lat.bmad"    ! Input lattice.
+	sr_param%i_beam = 0.1            ! Beam current.
+	sr_param%epsilon_y = 10e-12      ! Vertical emittance.
+	seg_len = 0.1                    ! Segment length for calculation.
+	wall_file = "NONE"               ! "NONE" => Use a wall with a fixed offset from the beam.
+	wall_offset = 0.0448             ! Used when wall_file is set to "NONE"
+/
