@@ -36,6 +36,7 @@ program synrad
   in_file = 'synrad.in'
   if (n_arg == 1) call cesr_getarg(1, in_file)
 
+  print *, 'Opening: ', trim(in_file)
   open (1, file = in_file, status = "old")
   read (1, nml = synrad_params)
   close (1)

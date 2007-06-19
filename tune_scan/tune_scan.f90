@@ -1,5 +1,5 @@
 !+
-! Program       : SCAN_DRIVER
+! Program       : TUNE_SCAN
 !
 ! Description : Program to simulate a tunescan.
 !
@@ -37,7 +37,7 @@
 !
 #include "CESR_platform.h"
 
-program scan_driver
+program tune_scan
 
   use bmad_struct
   use bmad_interface
@@ -227,7 +227,7 @@ program scan_driver
   ring.param.aperture_limit_on = .true.
 
   allocate(dk1(ring%n_ele_max))
-  allocate(orb(0:ring%n_ele_max))
+  call reallocate_coord (orb, ring%n_ele_max)
 
   if(Q_x_init == 0)Q_x_init = Q_x0
   if(Q_y_init == 0)Q_y_init = Q_y0
