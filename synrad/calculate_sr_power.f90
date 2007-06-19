@@ -19,7 +19,7 @@
 !                         -1 for against s
 !   inside  -- wall_struct: inside wall with outline ready
 !   outside -- wall_struct: outside wall with outline ready
-!   gen    -- general_lat_param_struct: Contains lat name,
+!   gen    -- synrad_param_struct: Contains lat name,
 !                     vert emittance, and beam current
 !
 ! Output:
@@ -40,7 +40,7 @@ subroutine calculate_sr_power (lat, orb, direction, power, &
   type (lat_struct) lat
   type (coord_struct) orb(0:*)
   type (wall_struct) inside, outside
-  type (general_lat_param_struct) gen
+  type (synrad_param_struct) gen
   type (ele_power_struct) power(*)
 
   integer direction, ie

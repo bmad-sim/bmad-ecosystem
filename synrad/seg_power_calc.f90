@@ -17,7 +17,7 @@
 !   lat    -- lat_struct: with twiss propagated and mat6s made
 !   inside  -- wall_struct: inside wall with outline ready
 !   outside -- wall_struct: outside wall with outline ready
-!   gen    -- general_lat_param_struct: Contains lat name,
+!   gen    -- synrad_param_struct: Contains lat name,
 !                     vert emittance, and beam current
 !
 ! Output:
@@ -37,7 +37,7 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
   type (wall_struct) inside, outside
   type (wall_struct), pointer :: wall
   type (ray_struct) :: ray
-  type (general_lat_param_struct) gen
+  type (synrad_param_struct) gen
   type (lat_struct) lat
   type (sr_power_struct), pointer :: ep
   type (ele_power_struct) power

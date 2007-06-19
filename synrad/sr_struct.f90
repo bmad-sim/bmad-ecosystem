@@ -12,7 +12,7 @@ module sr_struct
 ! call a phantom.
 
   type wall_pt_struct   ! struct for input points
-    character*16 name   ! name of element (sliding_joint, etc.)
+    character(16) name   ! name of element (sliding_joint, etc.)
     real(rp) x, s           ! position of wall point
     integer n_seg       ! how many segments it will be broken up into
     integer ix_seg      ! index to seg(:) array. From ix_seg+1 to ix_seg+n_seg
@@ -57,13 +57,10 @@ module sr_struct
 
 ! a wall is just a collection of points and segments
 
-  integer n_wall_pt_maxx
-  parameter (n_wall_pt_maxx = 2000)
-
   type wall_struct           ! either an inside or outside wall
     integer side             ! inside$ or outside$ 
-    type (wall_pt_struct) :: pt(0:n_wall_pt_maxx)
-    type (wall_seg_struct) :: seg(200000)
+    type (wall_pt_struct), allocatable :: pt(:)
+    type (wall_seg_struct), allocatable :: seg(:)
     type (alley_struct) :: alley(100)
     integer n_pt_tot
     integer n_seg_tot
@@ -99,22 +96,22 @@ module sr_struct
     real(rp) radiated             ! power radiated
   end type
 
-  type general_lat_param_struct
-    character*40 lattice
+  type synrad_param_struct
+    character(40) lat_file
     real(rp) epsilon_y     ! vertical emit
     real(rp) i_beam        ! beam current
   end type
 
   type outline_pt_struct
-    character*16 name
-    character*16 blueprint
+    character(16) name
+    character(16) blueprint
     real(rp) s, x
     logical phantom
   end type
 
   type outline_struct
-    character*16 name
-    character*16 blueprint
+    character(16) name
+    character(16) blueprint
     type (outline_pt_struct) in(200), out(200)
     integer n_out, n_in
     integer ix_out_slide, ix_in_slide
@@ -125,18 +122,18 @@ module sr_struct
   end type
 
   type wall_list_struct
-    character*16 name
+    character(16) name
     integer ix_outline
     real(rp) s, len
   end type
 
   type concat_part_struct
-    character*16 name
+    character(16) name
     integer direction
   end type
 
   type concat_struct
-    character*16 name
+    character(16) name
     type (concat_part_struct) part(50)
     logical overlay
   end type

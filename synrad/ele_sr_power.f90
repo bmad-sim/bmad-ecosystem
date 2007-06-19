@@ -20,7 +20,7 @@
 !                         -1 for against s
 !   inside  -- wall_struct: inside wall with outline ready
 !   outside -- wall_struct: outside wall with outline ready
-!   gen    -- general_lat_param_struct: Contains lat name,
+!   gen    -- synrad_param_struct: Contains lat name,
 !                     vert emittance, and beam current
 !
 ! Output:
@@ -41,7 +41,7 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
   type (ele_struct), pointer :: ele
   type (wall_struct) inside, outside
   type (ray_struct) rays(3000), ray, ray_temp
-  type (general_lat_param_struct) gen
+  type (synrad_param_struct) gen
   type (ele_power_struct) power(*)
 
   integer direction, ie, i_ray, n_slice, ns

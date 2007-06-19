@@ -1,11 +1,7 @@
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
 subroutine outline_reverse (outline1, outline2)
 
-  use synch_power_struct
-  use synch_power_interface
+  use sr_struct
+  use sr_interface
 
   implicit none
 

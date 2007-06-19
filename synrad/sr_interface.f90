@@ -7,7 +7,7 @@ module sr_interface
       use sr_struct
       implicit none
       type (wall_struct), target :: wall
-      type (general_lat_param_struct) gen_params
+      type (synrad_param_struct) gen_params
       type (lat_struct) lat
     end subroutine
   end interface
@@ -30,7 +30,7 @@ module sr_interface
       type (coord_struct) orb(0:*)
       type (wall_struct) inside
       type (wall_struct) outside
-      type (general_lat_param_struct) gen
+      type (synrad_param_struct) gen
       type (ele_power_struct) power(*)
       integer direction
     end subroutine
@@ -45,7 +45,7 @@ module sr_interface
       type (coord_struct) orb(0:*)
       type (wall_struct) inside
       type (wall_struct) outside
-      type (general_lat_param_struct) gen
+      type (synrad_param_struct) gen
       type (ele_power_struct) power(*)
       integer direction, ie
     end subroutine
@@ -164,13 +164,24 @@ module sr_interface
   end interface
 
   interface
+    subroutine read_outline (outside, inside, ring, type_warning)
+      use sr_struct
+      implicit none
+      type (wall_struct) inside
+      type (wall_struct) outside
+      type (lat_struct) ring
+      logical type_warning
+    end subroutine
+  end interface
+
+  interface
     subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
       use sr_struct
       implicit none
       type (ray_struct) :: rays(*)
       type (wall_struct)          inside
       type (wall_struct)          outside
-      type (general_lat_param_struct) gen
+      type (synrad_param_struct) gen
       type (lat_struct)          lat
       type (ele_power_struct)     power
       integer i_ray
@@ -210,7 +221,7 @@ module sr_interface
     subroutine write_power_header (iu, file, gen_params)
       use sr_struct
       implicit none
-      type (general_lat_param_struct) gen_params
+      type (synrad_param_struct) gen_params
       character*(*) file
       integer iu
     end subroutine

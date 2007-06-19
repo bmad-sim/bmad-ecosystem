@@ -1,11 +1,7 @@
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
 subroutine outline_concat (outline1, outline2, outline3)
 
-  use synch_power_struct
-  use synch_power_interface
+  use sr_struct
+  use sr_interface
 
   implicit none
 

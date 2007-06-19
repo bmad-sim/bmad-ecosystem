@@ -12,7 +12,7 @@ subroutine write_power_results (wall, lat, gen_params)
   type (wall_struct), target :: wall
   type (wall_seg_struct), pointer :: seg
   type (sr_power_struct), pointer :: ep
-  type (general_lat_param_struct) gen_params
+  type (synrad_param_struct) gen_params
   type (lat_struct) lat
 
   integer i

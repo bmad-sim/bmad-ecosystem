@@ -6,10 +6,18 @@ use make_mat6_mod
 use beam_def_struct
 use bookkeeper_mod, only: attribute_bookkeeper
 
-!
+!+
+! See the paper:
+!   "An Efficient Formalism for Simulating Coherent Synchrotorn Radiaion"
+!   D. Sagan
+!-
 
-type csr_values_struct
-  real(rp) g, v1, v3, w2, theta
+type csr_kick_location_struct
+  real(rp) g            ! Bending strength = 1 / R at source.
+  real(rp) v1, v3
+  real(rp) h2           ! Height of source particle.
+  real(rp) w2
+  real(rp) theta
 end type
 
 ! Binning structures for the csr calculation.
@@ -50,13 +58,16 @@ type tsc_struct   ! transverse space charge structure
   real(rp) kick_const
   real(rp) sig_x
   real(rp) sig_y
+  real(rp) sig_z
   real(rp) phi      ! Rotation angle to go from lab frame to rotated frame.
   real(rp) sin_phi
   real(rp) cos_phi
-  real(rp) sig_z
-endtype    
+end type    
 
-!
+!+
+! Note: Shielding is simulated via the image current due to the 
+! top and bottom walls. The side walls are neglected.
+!-
 
 type csr_common_struct                  ! Common block for csr calc
   real(rp) :: ds_track_step = 0         ! Tracking step size
@@ -65,6 +76,8 @@ type csr_common_struct                  ! Common block for csr calc
   logical :: lcsr_component_on = .true. ! Longitudinal csr component
   logical :: lsc_component_on = .true.  ! Longitudinal space charge component
   logical :: tsc_component_on = .true.  ! Transverse space charge component
+  logical :: shielding_on = .false.     ! Shielding by the beam chamber wall.          
+  real(rp) :: beam_chamber_height = 0   ! Used in shielding calculation.
 end type
 
 type (csr_common_struct), save, target :: csr_com
@@ -409,7 +422,7 @@ implicit none
 type (csr_bin_struct), target :: bin
 type (lat_struct), target :: lat
 type (csr_kick_bin_struct), pointer :: kick1
-type (csr_values_struct) val
+type (csr_kick_location_struct) kick_loc
 
 real(rp) s_travel, s_kick, s0_kick_ele
 
@@ -424,7 +437,7 @@ character(16) :: r_name = 'csr_cache_setup'
 ! next_element_params_calc as we go from one bin to the next.
 
 n_ele_pp = -1
-call next_element_params_calc (n_ele_pp, s0_kick_ele, val)
+call next_element_params_calc (n_ele_pp, s0_kick_ele, kick_loc)
 s_kick = s0_kick_ele + s_travel  ! absolute s value at point P.
 
 call convert_total_energy_to (lat%ele(ix_ele)%value(E_TOT$), &
@@ -446,25 +459,25 @@ do i = 0, csr_com%n_bin
   ! Calculate what element the kick point is in.
 
   do
-    kick1%d = d_calc_csr(kick1%dz_particles, val, bin)
-    kick1%s_prime = s_kick - (kick1%d + val%v1)     ! s value at P'
+    kick1%d = d_calc_csr(kick1%dz_particles, kick_loc, bin)
+    kick1%s_prime = s_kick - (kick1%d + kick_loc%v1)     ! s value at P'
     if (kick1%s_prime > s0_kick_ele) exit       ! If in element exit loop
-    call next_element_params_calc (n_ele_pp, s0_kick_ele, val)
+    call next_element_params_calc (n_ele_pp, s0_kick_ele, kick_loc)
   enddo
 
   ! calculate csr
   
-  kick1%I_csr = I_csr (kick1%dz_particles, kick1%d, val, bin)
+  kick1%I_csr = I_csr (kick1%dz_particles, kick1%d, kick_loc, bin)
 
 enddo
 
 !-----------------------------------------------
 contains
 
-subroutine next_element_params_calc (n_ele_pp, s0_kick_ele, val)
+subroutine next_element_params_calc (n_ele_pp, s0_kick_ele, kick_loc)
 
-type (csr_values_struct) val
-type (ele_struct), pointer :: ele
+type (csr_kick_location_struct) kick_loc
+type (ele_struct), pointer :: source_ele
 
 integer i, n_ele_pp, ix_source
 
@@ -478,7 +491,7 @@ real(rp), allocatable, save :: g_i(:), d_i(:)
 n_ele_pp = n_ele_pp + 1
 ix_source = ix_ele - n_ele_pp  ! Index of current P' element
 
-ele => lat%ele(ix_source)  ! Pointer to the P' element
+source_ele => lat%ele(ix_source)  ! Pointer to the P' element
 
 ! Assume a drift before the first element if needed.
 
@@ -492,8 +505,8 @@ endif
 ! d_i(i) is the length of the ith element
 ! g_i(i) is the bending radius of the ith element
 
-val%g = 0
-if (ele%key == sbend$) val%g = ele%value(g$)
+kick_loc%g = 0
+if (source_ele%key == sbend$) kick_loc%g = source_ele%value(g$)
 
 if (.not. allocated(g_i)) allocate(g_i(100), d_i(100))
 if (size(g_i) <= n_ele_pp) then
@@ -501,23 +514,23 @@ if (size(g_i) <= n_ele_pp) then
   call re_allocate (d_i, 2*size(d_i))
 endif
 
-g_i(n_ele_pp+1) = val%g
-d_i(n_ele_pp+1) = ele%value(l$)
+g_i(n_ele_pp+1) = kick_loc%g
+d_i(n_ele_pp+1) = source_ele%value(l$)
 
 if (n_ele_pp == 0) d_i(1) = s_travel
 
 ! calculate new v1, v3, etc.
 
-val%v1 = 0; val%v3 = 0
-val%w2 = 0
-val%theta = 0
+kick_loc%v1 = 0; kick_loc%v3 = 0
+kick_loc%w2 = 0
+kick_loc%theta = 0
 
 do i = n_ele_pp, 1, -1
   dphi = d_i(i) * g_i(i)
-  val%v1 = val%v1 + d_i(i)
-  val%v3 = val%v3 + d_i(i) * (val%theta**2 + val%theta*dphi + dphi**2 / 3) / 2
-  val%w2 = val%w2 + d_i(i) * (val%theta + dphi/2)
-  val%theta = val%theta + dphi
+  kick_loc%v1 = kick_loc%v1 + d_i(i)
+  kick_loc%v3 = kick_loc%v3 + d_i(i) * (kick_loc%theta**2 + kick_loc%theta*dphi + dphi**2 / 3) / 2
+  kick_loc%w2 = kick_loc%w2 + d_i(i) * (kick_loc%theta + dphi/2)
+  kick_loc%theta = kick_loc%theta + dphi
 enddo
 
 end subroutine
@@ -528,7 +541,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function I_csr (z, d, val, bin) result (I_this)
+! Function I_csr (z, d, kick_loc, bin) result (I_this)
 !
 ! Routine to calculate the CSR kick integral.
 !
@@ -536,20 +549,20 @@ end subroutine
 !   use csr_mod
 !
 ! Input:
-!   z   -- Real(rp): Distance between source and kicked particles.
-!   d   -- Real(rp): Distance between source and kick points.
-!   val -- Csr_values_struct: Other parameters needed in the calculation.
-!   bin -- Csr_bin_struct:
+!   z        -- Real(rp): Distance between source and kicked particles.
+!   d        -- Real(rp): Distance between source and kick points.
+!   kick_loc -- Csr_kick_location_struct: Other parameters needed in the calculation.
+!   bin      -- Csr_bin_struct:
 !
 ! Output:
 !   I_this -- Real(rp): CSR kick integral.
 !-
 
-function I_csr (z, d, val, bin) result (i_this)
+function I_csr (z, d, kick_loc, bin) result (i_this)
 
 implicit none
 
-type (csr_values_struct) val
+type (csr_kick_location_struct) kick_loc
 type (csr_bin_struct) bin
 
 real(rp) z, d
@@ -562,10 +575,10 @@ real(rp) phi, t, a, k, i_this
     return
   endif
 
-  phi = val%g * d
-  t = bin%gamma * (d + val%v1)
-  a = bin%gamma2 * (val%w2 + phi * val%v1 + phi * d / 2)
-  k = bin%gamma * (val%theta + phi)
+  phi = kick_loc%g * d
+  t = bin%gamma * (d + kick_loc%v1)
+  a = bin%gamma2 * (kick_loc%w2 + phi * kick_loc%v1 + phi * d / 2)
+  k = bin%gamma * (kick_loc%theta + phi)
   I_this = -2 * bin%gamma * (t + a * k) / (t**2 + a**2) + 1 / (bin%gamma2 * z) 
 
 end function
@@ -574,59 +587,7 @@ end function
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function z_calc_csr (d, val, bin, dz_dd) result (z_this)
-!
-! Routine to calculate the distance between the source particle and the
-! kicked particle.
-!
-! Modules needed:
-!   use csr_mod
-!
-! Input:
-!   d   -- Real(rp): Distance between the source point and the kick point.
-!   val -- Csr_values_struct: Other parameters needed in the calculation.
-!   bin -- Csr_bin_struct:
-!
-! Output:
-!   z_this -- Real(rp), Distance between source and kick particles.
-!   dz_dd  -- Real(rp), optional: Derivative: dz/dp.
-!-
-
-function z_calc_csr (d, val, bin, dz_dd) result (z_this)
-
-implicit none
-
-type (csr_values_struct) val
-type (csr_bin_struct) bin
-
-real(rp) d, phi, z_this, v1d, w2d
-real(rp), optional :: dz_dd
-
-! Special case
-
-if (val%v1 == 0 .and. d == 0) then
-  z_this = 0
-  if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2)
-  return
-endif
-
-! General case
-
-phi = val%g * d
-v1d = val%v1 + d
-w2d = 2*val%w2 - phi*d
-z_this = v1d / (2 * bin%gamma2) + (val%v3 + phi**2 * d / 6 - w2d**2/(8*v1d))
-
-if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2) + &
-                      (phi**2/2 + phi*w2d/(2*v1d) + w2d**2/(8*v1d**2))
-
-end function
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Function d_calc_csr (dz_particles, val, bin) result (d_this)
+! Function d_calc_csr (dz_particles, kick_loc, bin) result (d_this)
 !
 ! Routine to calculate the distance between source and kick points.
 !
@@ -635,22 +596,22 @@ end function
 !
 ! Input:
 !   dz_particles -- Real(rp): Distance between source and kicked particles
-!   val          -- Csr_valuse_struct: 
+!   kick_loc     -- Csr_kick_location_struct: Value
 !   bin          -- Csr_bin_struct:
 !
 ! Output:
 !   d_this -- Real(rp): Distance between source and kick points.
 !-
 
-function d_calc_csr (dz_particles, val, bin) result (d_this)
+function d_calc_csr (dz_particles, kick_loc, bin) result (d_this)
 
 implicit none
 
-type (csr_values_struct) val
+type (csr_kick_location_struct) kick_loc
 type (csr_bin_struct) bin
 
 real(rp) dz_particles, z1, z2, dz_dd, dz1_dd, dz2_dd
-real(rp) eps, d_this, delta_d_old, delta_d, z_this, d_old
+real(rp) eps, d_this, delta_d_old, delta_d, dz_calc, d_old
 real(rp) d1, d2, a, b, c
 
 integer j
@@ -659,11 +620,11 @@ character(8) :: r_name = 'd_calc_csr'
 
 ! If not in a bend then can do the calculation exactly
 
-if (val%g == 0) then
+if (kick_loc%g == 0) then
   a = 1 / bin%gamma2
-  b = 2 * (val%v3 - dz_particles)
-  c = -val%w2**2
-  d_this = (-b + sqrt(b**2 - 4 * a * c)) / (2 * a) - val%v1
+  b = 2 * (kick_loc%v3 - dz_particles)
+  c = -(kick_loc%w2**2 + kick_loc%h2**2)
+  d_this = (-b + sqrt(b**2 - 4 * a * c)) / (2 * a) - kick_loc%v1
   return
 endif
 
@@ -672,11 +633,11 @@ endif
 
 eps = 1e-10 * abs(dz_particles) + 1e-14
 z2 = 0
-d1 = min(2 * bin%gamma2 * dz_particles, (6 * dz_particles / val%g**2) ** (0.3333))
+d1 = min(2 * bin%gamma2 * dz_particles, (6 * dz_particles / kick_loc%g**2) ** (0.3333))
 
 do 
 
-  z1 = z_calc_csr (d1, val, bin, dz1_dd) - dz_particles
+  z1 = z_calc_csr (d1, kick_loc, bin, dz1_dd) - dz_particles
   if (abs(z1) < eps) then
     d_this = d1
     return
@@ -684,7 +645,7 @@ do
   if (z1 * z2 < 0) exit  ! have bracket
 
   d2 = d1 - z1 / dz1_dd 
-  z2 = z_calc_csr (d2, val, bin, dz2_dd) - dz_particles
+  z2 = z_calc_csr (d2, kick_loc, bin, dz2_dd) - dz_particles
   if (abs(z2) < eps) then
     d_this = d2
     return
@@ -706,14 +667,14 @@ endif
 d_this = (d1 + d2) / 2
 delta_d_old = abs (d2 - d1)
 delta_d     = delta_d_old
-z_this = z_calc_csr(d_this, val, bin, dz_dd) - dz_particles
+dz_calc = z_calc_csr(d_this, kick_loc, bin, dz_dd) - dz_particles
 
 do j = 1, 100
 
   ! Bisect if Newton out of range or not decreasing fast enough
 
-  if (((d_this-d2)*dz_dd-z_this) * ((d_this-d1)*dz_dd-z_this) > 0 .or. &
-                              abs(2*z_this) > abs(delta_d_old * dz_dd)) then
+  if (((d_this-d2)*dz_dd-dz_calc) * ((d_this-d1)*dz_dd-dz_calc) > 0 .or. &
+                              abs(2*dz_calc) > abs(delta_d_old * dz_dd)) then
     delta_d_old = delta_d
     delta_d = (d2 - d1) / 2
     d_this = d1 + delta_d
@@ -721,16 +682,16 @@ do j = 1, 100
 
   else
     delta_d_old = delta_d
-    delta_d = z_this / dz_dd
+    delta_d = dz_calc / dz_dd
     d_old = d_this
     d_this = d_this - delta_d
     if (d_this == d_old) return
   endif
 
-  if (abs(z_this) < eps) return
-  z_this = z_calc_csr(d_this, val, bin, dz_dd) - dz_particles
+  if (abs(dz_calc) < eps) return
+  dz_calc = z_calc_csr(d_this, kick_loc, bin, dz_dd) - dz_particles
 
-  if (z_this < 0) then
+  if (dz_calc < 0) then
     d1 = d_this
   else
     d2 = d_this
@@ -740,6 +701,58 @@ enddo
 
 call out_io (s_abort$, r_name, 'ALGORITHM NOT CONVERGING.')
 call err_exit
+
+end function
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function z_calc_csr (d, kick_loc, bin, dz_dd) result (z_this)
+!
+! Routine to calculate the distance between the source particle and the
+! kicked particle.
+!
+! Modules needed:
+!   use csr_mod
+!
+! Input:
+!   d   -- Real(rp): Distance between the source point and the kick point.
+!   kick_loc -- Csr_kick_location_struct: Other parameters needed in the calculation.
+!   bin -- Csr_bin_struct:
+!
+! Output:
+!   z_this -- Real(rp), Distance between source and kick particles.
+!   dz_dd  -- Real(rp), optional: Derivative: dz/dp.
+!-
+
+function z_calc_csr (d, kick_loc, bin, dz_dd) result (z_this)
+
+implicit none
+
+type (csr_kick_location_struct) kick_loc
+type (csr_bin_struct) bin
+
+real(rp) d, phi, z_this, v1d, w2d
+real(rp), optional :: dz_dd
+
+! Special case
+
+if (kick_loc%v1 == 0 .and. d == 0) then
+  z_this = 0
+  if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2)
+  return
+endif
+
+! General case
+
+phi = kick_loc%g * d
+v1d = kick_loc%v1 + d
+w2d = 2*kick_loc%w2 - phi*d
+z_this = v1d / (2 * bin%gamma2) + (kick_loc%v3 + phi**2 * d / 6 - w2d**2/(8*v1d))
+
+if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2) + &
+                      (phi**2/2 + phi*w2d/(2*v1d) + w2d**2/(8*v1d**2))
 
 end function
 

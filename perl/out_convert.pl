@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/taylor_order/parameter\[taylor_order\]/;
+    s/general_lat_param_struct/synrad_param_struct/g;
     print (F_OUT);
 
   }
