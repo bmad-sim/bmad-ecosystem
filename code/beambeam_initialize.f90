@@ -99,8 +99,7 @@
 
   call twiss_at_start(ring)
   co(0)%vec = 0.
-  call closed_orbit_at_start(ring, co(0), 4, .true.)
-  call track_all (ring, co)
+  call closed_orbit_calc(ring, co, 4)
   call lat_make_mat6(ring,-1,co)
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)  
@@ -129,8 +128,7 @@
 
    call twiss_at_start(ring)
    co(0)%vec = 0.
-   call closed_orbit_at_start(ring, co(0), 4, .true.)
-   call track_all(ring, co)
+   call closed_orbit_calc(ring, co, 4)
    call lat_make_mat6(ring,-1, co)
    call twiss_at_start(ring)
 
@@ -150,9 +148,8 @@
 
     call twiss_at_start(ring)
     co(0)%vec = 0.
-    call closed_orbit_at_start(ring, co(0), 4, .true.)
+    call closed_orbit_calc(ring, co, 4)
    type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
-    call track_all(ring, co)
     call lat_make_mat6(ring, -1, co)
     call twiss_at_start(ring)
 
@@ -194,8 +191,7 @@
     final_pos_out%vec(:) = 0.
     call close_pretzel (ring, i_dim, final_pos_in, final_pos_out) 
     call twiss_at_start(ring)
-    call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-    call track_all(ring, co)
+    call closed_orbit_calc(ring, co, i_dim)
     call lat_make_mat6(ring, -1, co)
     call twiss_at_start(ring)
     type*,' after close pretzel but before close vertical: '
@@ -206,8 +202,7 @@
     call twiss_at_start(ring)
 
     forall( i=0:ring%n_ele_track) co(i)%vec = 0.
-    call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-    call track_all(ring, co)
+    call closed_orbit_calc(ring, co, i_dim)
     call lat_make_mat6(ring, -1, co)
     call twiss_at_start(ring)
     call twiss_propagate_all(ring)
@@ -249,8 +244,7 @@
       if(scan_params%close_pretz)then
         call close_pretzel (ring, i_dim, final_pos_in, final_pos_out)
 !        call twiss_at_start(ring)
-        call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-        call track_all(ring, co)
+        call closed_orbit_calc(ring, co, i_dim)
         call lat_make_mat6(ring, -1, co)
         call twiss_at_start(ring)
         type *,' beam beam at IP is off'
@@ -260,8 +254,7 @@
       if(scan_params%close_vert)then
         call close_vertical(ring,i_dim, final_pos_in, final_pos_out)
 !        call twiss_at_start(ring)
-        call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-        call track_all(ring, co)
+        call closed_orbit_calc(ring, co, i_dim)
         call lat_make_mat6(ring, -1, co)
         call twiss_at_start(ring)
         type*,' after qtune with pretzel and vert closed but beam beam at IP off: '
@@ -270,8 +263,7 @@
 ! Turn beambeam back on
   if(ix_ip /= 0)ring%ele(ix_ip)%value(charge$) = charge
   call twiss_at_start(ring)
-  call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-  call track_all(ring, co)
+  call closed_orbit_calc(ring, co, i_dim)
   call lat_make_mat6(ring, -1, co)
   call twiss_at_start(ring)
   call beambeam_separation(ring, delta_ip, i_dim)

@@ -76,8 +76,7 @@ subroutine close_pretzel (ring, i_dim, final_pos_in, final_pos_out)
   call reallocate_coord( co_oppos, ring%n_ele_max )
   
   co(0)%vec=0
-  call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-  call track_all(ring, co)
+  call closed_orbit_calc(ring, co, i_dim)
 
 ! find separators
   i=0

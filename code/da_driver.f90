@@ -163,8 +163,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   type '(a26,f12.4,a9,f12.4)',' After second qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
 
-  call closed_orbit_at_start (ring, co(0), 4, .true.)
-  call track_all(ring, co)
+  call closed_orbit_calc (ring, co, 4)
 
 !  eps_rel(:) = 0.000001
 !  eps_abs(:) = 0.000001

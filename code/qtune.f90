@@ -48,8 +48,7 @@
 
        call reallocate_coord(orb, ring%n_ele_max)       
        allocate(dk1(ring%n_ele_max))
-       call closed_orbit_at_start(ring, orb(0), 4, .true.)
-       call track_all(ring, orb)
+       call closed_orbit_calc(ring, orb, 4)
 
        call choose_quads(ring, dk1)
        int_Q_x = int(ring%ele(ring%n_ele_track)%a%phi / twopi)

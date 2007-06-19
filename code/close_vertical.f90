@@ -81,10 +81,7 @@ subroutine close_vertical(ring, i_dim, final_pos_in, final_pos_out)
   call reallocate_coord(co_oppos,ring%n_ele_max)
   
   co(0)%vec=0
-  call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-! routine CLOSED_ORBIT_AT_START is obselete, replacing with:
-!  call closed_orbit_calc (ring, co(0), i_dim, direction)
-  call track_all(ring, co)
+  call closed_orbit_calc(ring, co, i_dim)
   
 ! find vertical separators
   i=0

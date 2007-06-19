@@ -145,8 +145,7 @@ program dynamic_aperture_test
 
   call twiss_at_start(ring)
   co(0)%vec = 0.
-  call closed_orbit_at_start(ring, co(0), 4, .true.)
-  call track_all (ring, co)
+  call closed_orbit_calc(ring, co, 4)
   call lat_make_mat6(ring,-1,co)
   call twiss_at_start(ring)
   call twiss_propagate_all (ring)
@@ -163,8 +162,7 @@ program dynamic_aperture_test
 
    call twiss_at_start(ring)
    co(0)%vec = 0.
-   call closed_orbit_at_start(ring, co(0), 4, .true.)
-   call track_all(ring, co)
+   call closed_orbit_calc(ring, co, 4)
    call lat_make_mat6(ring,-1, co)
    call twiss_at_start(ring)
 

@@ -342,8 +342,7 @@ end if
 
   orb(0)%vec = 0.
   call twiss_at_start(ring)
-  call closed_orbit_at_start(ring, orb(0), 4, .true.)
-  call track_all(ring, orb)
+  call closed_orbit_calc(ring, orb, 4)
   call lat_make_mat6(ring, -1, orb)
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)

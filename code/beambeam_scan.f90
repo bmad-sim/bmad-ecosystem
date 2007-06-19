@@ -157,8 +157,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 
   call twiss_at_start(ring)
   co(0)%vec = 0.
-  call closed_orbit_at_start(ring, co(0), 4, .true.)
-  call track_all (ring, co)
+  call closed_orbit_calc(ring, co, 4)
   call lat_make_mat6(ring,-1,co)
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)  
@@ -198,8 +197,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      
      call twiss_at_start(ring)
      co(0)%vec = 0.
-     call closed_orbit_at_start(ring, co(0), 4, .true.)
-     call track_all(ring, co)
+     call closed_orbit_calc(ring, co, 4)
      call lat_make_mat6(ring,-1, co)
      call twiss_at_start(ring)
      
@@ -226,12 +224,11 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      
      call twiss_at_start(ring)
      co(0)%vec = 0.
-     call closed_orbit_at_start(ring, co(0), 4, .true.)
+     call closed_orbit_calc(ring, co, 4)
 !only 0 talks to the world
      if(rank.eq.0) then
         type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
      endif
-     call track_all(ring, co)
      call lat_make_mat6(ring, -1, co)
      call twiss_at_start(ring)
 
@@ -270,8 +267,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   if(scan_params%close_pretz)then
      call close_pretzel (ring, i_dim, scan_params%final_pos_in, final_pos_out) 
      call twiss_at_start(ring)
-     call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-     call track_all(ring, co)
+     call closed_orbit_calc(ring, co, i_dim)
      call lat_make_mat6(ring, -1, co)
      call twiss_at_start(ring)
      if(rank.eq.0) then
@@ -285,8 +281,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   call twiss_at_start(ring)
   
   forall( i=0:ring%n_ele_track) co(i)%vec = 0.
-  call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-  call track_all(ring, co)
+  call closed_orbit_calc(ring, co, i_dim)
   call lat_make_mat6(ring, -1, co)
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)
@@ -332,8 +327,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   if(scan_params%close_pretz)then
      call close_pretzel (ring,i_dim, scan_params%final_pos_in, final_pos_out)
 !        call twiss_at_start(ring)
-     call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-     call track_all(ring, co)
+     call closed_orbit_calc(ring, co, i_dim)
      call lat_make_mat6(ring, -1, co)
      call twiss_at_start(ring)
      if(rank.eq.0) then
@@ -346,8 +340,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   if(scan_params%close_vert)then
      call close_vertical(ring,i_dim,scan_params%final_pos_in,final_pos_out)
 !        call twiss_at_start(ring)
-     call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-     call track_all(ring, co)
+     call closed_orbit_calc(ring, co, i_dim)
      call lat_make_mat6(ring, -1, co)
      call twiss_at_start(ring)
      if(rank.eq.0) then
@@ -369,8 +362,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   ! Turn beambeam back on
   ring%ele(ix_ip)%value(charge$) = charge
   call twiss_at_start(ring)
-  call closed_orbit_at_start(ring, co(0), i_dim, .true.)
-  call track_all(ring, co)
+  call closed_orbit_calc(ring, co, i_dim)
   call lat_make_mat6(ring, -1, co)
   call twiss_at_start(ring)
   call beambeam_separation(ring, delta_ip, i_dim)

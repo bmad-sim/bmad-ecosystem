@@ -283,9 +283,9 @@
 
     if(.not. transfer_line)then
      call twiss_at_start(ring)
-     call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+     call closed_orbit_calc(ring, co, i_dim)
     endif
-     call track_all (ring, co)
+
       type *, ' '
       type *,ring%input_file_name
       type '(a  ,6f10.5)',' positron closed_orbit (mm, mr)         i=0 ', &
@@ -311,7 +311,7 @@
      n_part_save = ring%param%n_part
      ring%param%n_part = 0.
     if(.not. transfer_line) &
-     call closed_orbit_at_start(ring, co_electron(0), i_dim, .true.)
+     call closed_orbit_calc(ring, co_electron, i_dim)
       type '(a  ,6f10.5)',' electron closed_orbit (mm, mr) ', &
         (co_electron(0)%vec(i)*1000.,i=1,6)
 
@@ -340,8 +340,7 @@
       do i = -1,1,2
        co_off(0)%vec(6) = de *i
       if(.not. transfer_line) &
-       call closed_orbit_at_start(ring_two(i), co_off(0),i_dim,.true.)
-       call track_all(ring_two(i), co_off)
+       call closed_orbit_calc(ring_two(i), co_off,i_dim)
        call lat_make_mat6(ring_two(i), -1, co_off)
       if(.not. transfer_line) &
        call twiss_at_start(ring_two(i))

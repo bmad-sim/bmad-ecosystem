@@ -296,9 +296,9 @@ interface
 
     if(.not. transfer_line)then
      call twiss_at_start(ring)
-     call closed_orbit_at_start(ring, co(0), i_dim, .true.)
+     call closed_orbit_calc(ring, co, i_dim)
     endif
-     call track_all (ring, co)
+
       print *, ' '
       print *,ring%input_file_name
       print '(a42,a12,1x,6f9.4)',' e+ orbit at start (mm/mr)       Element: ', &
@@ -324,7 +324,7 @@ interface
      n_part_save = ring%param%n_part
      ring%param%n_part = 0.
     if(.not. transfer_line) &
-     call closed_orbit_at_start(ring, co_electron(0), i_dim, .true.)
+     call closed_orbit_calc(ring, co_electron, i_dim)
       print '(a42,a12,1x,6f9.4)',' e- closed orbit (mm/mr) at end, Element: ', & 
                ring%ele(ring%n_ele_track)%name, (co_electron(0)%vec(i)*1000.,i=1,6)
       print *, ' '
@@ -372,12 +372,9 @@ interface
       ring_two(-1) = ring
       do i = -1,1,2
        co_off(0)%vec(6) = de *i
-      if(.not. transfer_line) &
-       call closed_orbit_at_start(ring_two(i), co_off(0),i_dim,.true.)
-       call track_all(ring_two(i), co_off)
+       if(.not. transfer_line) call closed_orbit_calc(ring_two(i), co_off,i_dim)
        call lat_make_mat6(ring_two(i), -1, co_off)
-      if(.not. transfer_line) &
-       call twiss_at_start(ring_two(i))
+       if(.not. transfer_line) call twiss_at_start(ring_two(i))
        call twiss_propagate_all(ring_two(i))
        if(i == -1)forall(j=0:ring%n_ele_track)co_low(j)%vec = co_off(j)%vec
        if(i ==  1)forall(j=0:ring%n_ele_track)co_high(j)%vec = co_off(j)%vec

@@ -171,8 +171,7 @@
 
   call twiss_at_start(ring)
   co(0)%vec = 0.
-  call closed_orbit_at_start(ring, co(0), 4, .true.)
-  call track_all (ring, co)
+  call closed_orbit_calc(ring, co, 4)
   call lat_make_mat6(ring,-1,co)
 
 
@@ -191,7 +190,7 @@
    
   call twiss_at_start(ring)
   co(0)%vec = 0.
-  call closed_orbit_at_start(ring, co(0), 4, .true.)
+  call closed_orbit_calc(ring, co, 4)
 
   type *
   type *,' FREQ_MAP: After parasitic added '
@@ -203,7 +202,7 @@
 
   call twiss_at_start(ring)
   co(0)%vec = 0.
-  call closed_orbit_at_start(ring, co(0), 4, .true.)
+  call closed_orbit_calc(ring, co, 4)
 
   type *
   type *,' FREQ_MAP: After beambeam added '
@@ -221,8 +220,7 @@
    type *
    type *,' After CLOSE PRETZEL ' 
   type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
-  call closed_orbit_at_start(ring, orbit(0), 4, .true.)
-  call track_all (ring, orbit)
+  call closed_orbit_calc(ring, orbit, 4)
   call lat_make_mat6(ring, -1, orbit)
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)

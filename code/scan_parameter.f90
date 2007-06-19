@@ -130,9 +130,8 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
   call twiss_at_start(ring)
 !  type *,' beambeam_setup:1 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
   co(0)%vec = 0.
-  call closed_orbit_at_start(ring, co(0), 4, .true.)
+  call closed_orbit_calc(ring, co, 4)
 !  type *, ' closed_orbit: co_',co(0)%vec(1:4)
-  call track_all (ring, co)
   call lat_make_mat6(ring,-1,co)
   call twiss_at_start(ring)
 !  type *,' beambeam_setup:2 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
@@ -153,8 +152,7 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
 
   call lat_make_mat6(ring_oppos,-1)
   co_oppos(0)%vec = 0.
-  call closed_orbit_at_start(ring_oppos, co_oppos(0), 4, .true.)
-  call track_all (ring_oppos, co_oppos)
+  call closed_orbit_calc(ring_oppos, co_oppos, 4)
   call lat_make_mat6(ring_oppos,-1,co_oppos)
   call twiss_at_start(ring_oppos)
 !  type *,' beambeam_setup:3 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
