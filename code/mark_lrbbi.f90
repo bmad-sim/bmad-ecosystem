@@ -141,17 +141,14 @@ subroutine mark_lrbbi (master_lat, master_lat_oppos, lat, crossings)
   call reallocate_coord (orbit,master_lat%n_ele_max)
   call reallocate_coord (orbit_oppos,master_lat%n_ele_max)
 
-  call closed_orbit_at_start (master_lat, orbit(0), 4, .true.)
-  call track_all(master_lat, orbit)
-  call closed_orbit_at_start(master_lat_oppos, orbit_oppos(0), 4, .true.)
-  call track_all(master_lat_oppos, orbit_oppos)
+  call closed_orbit_calc (master_lat, orbit, 4)
+  call closed_orbit_calc(master_lat_oppos, orbit_oppos, 4)
   
   call lat_make_mat6 (master_lat, -1, orbit)
   call lat_make_mat6 (master_lat_oppos, -1, orbit_oppos)
   
   do i = 1, size(lat)
-     call closed_orbit_at_start(lat(i), orbit(0), 4, .true.)
-     call track_all(lat(i), orbit)
+     call closed_orbit_calc(lat(i), orbit, 4)
      call lat_make_mat6(lat(i), -1, orbit)
   enddo
 

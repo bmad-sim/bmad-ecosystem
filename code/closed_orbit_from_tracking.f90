@@ -4,10 +4,10 @@
 !
 ! Subroutine to find the closed orbit via tracking. 
 !
-! See closed_orbit_at_start for an alternative routine.
+! See closed_orbit_calc for an alternative routine.
 ! This routine has the advantage of not using the 1-turn transfer matrix 
 ! (which is calculated from the transfer matrices of the elements).
-! This routine is probably slower than closed_orbit_at_start (especially for 
+! This routine is probably slower than closed_orbit_calc (especially for 
 ! linear lattices) but (hopefully) will be better behaved when there
 ! are strong nonlinearities. Possible convergence porblems with this 
 ! routine occurs when the initial guess is far from the true closed orbit.

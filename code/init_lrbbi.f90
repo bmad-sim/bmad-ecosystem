@@ -71,8 +71,7 @@ subroutine init_LRBBI(lat, oppos_lat, LRBBI_ele, ix_LRBBI, ix_oppos)
 
   call twiss_at_start(lat)
   call twiss_propagate_all(lat)
-  call closed_orbit_at_start(lat, orbit(0), 4, .true.)
-  call track_all(lat, orbit)
+  call closed_orbit_calc(lat, orbit, 4)
 
 ! Get additional needed parameter values.
 
@@ -100,8 +99,7 @@ subroutine init_LRBBI(lat, oppos_lat, LRBBI_ele, ix_LRBBI, ix_oppos)
 
   call twiss_at_start(oppos_lat)
   call twiss_propagate_all(oppos_lat)
-  call closed_orbit_at_start(oppos_lat, oppos_orbit(0), 4, .true.)
-  call track_all (oppos_lat, oppos_orbit)
+  call closed_orbit_calc(oppos_lat, oppos_orbit, 4)
 
   LRBBI_ele%value(x_offset$) = oppos_orbit(ix_oppos)%vec(1)
   LRBBI_ele%value(y_offset$) = oppos_orbit(ix_oppos)%vec(3)

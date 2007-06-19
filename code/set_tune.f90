@@ -48,10 +48,9 @@ subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
 
 ! q_tune
 
-  call closed_orbit_at_start (lat, orb(0), 4, .true.)
+  call closed_orbit_calc (lat, orb, 4)
   ok = bmad_status%ok
   if (.not. ok) return
-  call track_all (lat, orb)
 
   do i = 1, 10
 
@@ -62,10 +61,9 @@ subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
     if (.not. ok) return
 
     call twiss_propagate_all(lat)
-    call closed_orbit_at_start (lat, orb(0), 4, .true.)
+    call closed_orbit_calc (lat, orb, 4)
     ok = bmad_status%ok
     if (.not. ok) return
-    call track_all (lat, orb)
 
     phi_a = lat%ele(lat%n_ele_track)%a%phi
     phi_b = lat%ele(lat%n_ele_track)%b%phi

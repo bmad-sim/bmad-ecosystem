@@ -73,9 +73,8 @@ subroutine MAKE_LRBBI(master_lat_oppos, lat, ix_LRBBI, master_ix_LRBBI_oppos)
 !  master_lat_oppos%param%n_part = 0.
   call twiss_at_start(master_lat_oppos)
   call twiss_propagate_all(master_lat_oppos)
-  call closed_orbit_at_start(master_lat_oppos, orbit_oppos(0), 4, .true.)
+  call closed_orbit_calc(master_lat_oppos, orbit_oppos, 4)
   if (.not. bmad_status%ok) return
-  call track_all(master_lat_oppos, orbit_oppos)
   call twiss_at_start(master_lat_oppos)
   if (.not. bmad_status%ok) return
   call twiss_propagate_all(master_lat_oppos)
