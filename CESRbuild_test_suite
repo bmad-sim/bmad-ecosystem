@@ -125,7 +125,6 @@ def prep_for_tests(progs, testdir):
   shutil.copy(srcpath + "/toad/example/toad.in", testdir)
   shutil.copy(srcpath + "/toad/example/toad.lat", testdir)
   shutil.copytree(srcpath + "/nonlin_bpm/nonlin_bpm_resource", testdir + "/nonlin_bpm_resource")
-  print os.listdir(srcpath + "/nonlin_bpm/test")
   for file in os.listdir(srcpath + "/nonlin_bpm/test"): # Grab all files in nbpm test dir
     if file.find("svn") == -1:  #Don't grab the SVN administration directory.
       shutil.copy(srcpath + "/nonlin_bpm/test/" + file, testdir)
@@ -186,15 +185,9 @@ class testobject:
     if self.name == "dynamic_aperture_test": # Customized interaction steps
       child.expect("IN>:")
       child.sendline("da_test.in")
-      lines = child.readlines()
-      for line in lines:
-        print line.strip()
     if self.name == "tune_scan":                # Customized interaction steps
       child.expect("in>:")
       child.sendline("tune_scan.in")
-      lines = child.readlines()
-      for line in lines:
-        print line.strip()
     if self.name == "closed_orbit" or self.name == "analyzer": # Customized interaction steps
       child.expect("GO> ")
       child.sendline("go")
@@ -203,9 +196,7 @@ class testobject:
       child.expect("GO> ")
       child.sendline("quit")
     else:                       #Program is not of an interactive type, just run it and log output.
-      lines = child.readlines()
-      for line in lines:
-         print line.strip()
+      lines = child.readlines() # Readlines needed to force buffering.
 
     icmd = ""
     lines = []
@@ -213,7 +204,7 @@ class testobject:
       time.sleep(1)
     child.close()
     returncode = child.exitstatus
-    print "\nReturn code: " + str(returncode)
+    #print "\nReturn code: " + str(returncode)
     time.sleep(2)
     
 
@@ -225,6 +216,7 @@ class testobject:
 
 # END class def
 ################################################################################################
+
 # Main starts here
 #######################################
 
@@ -280,9 +272,6 @@ print borderpad_string("")
 for string in namestrings:
   print string
   
-# Initialize testing location and copy all necessary .in and .lat files.
-#prep_for_tests(progs, testdir)
-
 print "*                                                            *"
 print "* Starting tests...                                          *"
 print "*                                                            *"
