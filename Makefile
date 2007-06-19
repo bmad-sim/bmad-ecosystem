@@ -79,7 +79,7 @@
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS := code 
-OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif
+OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif synrad
 CONFIG_DIRS  := 
 LOCAL_INCS   :=
 SRC_EXCLUDE  := beambeam_scan.f90 # only with lahey it can be compiled
