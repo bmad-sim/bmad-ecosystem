@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/home/cesrulib/EXT/Python-2.5.1/Linux/python
 ####################################################################
 # This script is the front-end machinery behind initiating a
 # CESR Accelerator Physics libraries release build or a CESR
@@ -75,6 +75,8 @@ import string
 import getopt  #
 import socket
 import popen2  # For subprocess calls to build_serf.
+import subprocess as sub  # Use this instead, try to avoid possible buffer freezes?
+##import pexpect
 
 # Will need to use these env vars if SWIG python bindings are desired.
 # It is probably easier to just use external process calls as they stand, to
@@ -112,6 +114,7 @@ statuses      = {0 : "Building", 1 : "Complete", -1 : "ERROR"}
 ranks         = {0 : "Isolated", 1 : "Nightly (w/ rotation)"} 
 
 release       = ""
+revision      = 0
 build_release = 1              # default to building a CESR release only
 custom_relflag= 0              # flag system to allow three cmd-line possibilities; pkg, rel, or both
 rel_name      = "none"
@@ -218,6 +221,8 @@ for opt in sys.argv:
     tag_release         = 1
   elif opt == "-test":
     run_tests           = "YES"
+  elif opt.find("rev=") != -1:
+    revision            = opt.split('=')[1]
   elif opt.find("TAG=") != -1:
     rel_tag             = opt.split('=')[1]
     print rel_tag
@@ -288,7 +293,6 @@ test_exec     = 0
 tag_release   = 0                                       # WAS do_tag_release
 tag_packages  = 0                                       # WAS do_tag_packages
 
-revision      = 0
 tagname       = ""                                      # WAS CVS_tagname
 branch        = "TRUNK"
 gmake_override= 0                                       # needed?
@@ -517,7 +521,7 @@ class builder:
 
 
     ####################################################################################
-    if self.build_type == "PACKAGES" or self.build_type == "RELEASE & PACKAGES":
+    if self.build_type == "PACKAGES":
       self.full_pkg_name = self.base_dir + '/' + self.pkg_name
       self.full_pkg_logfile   = self.libs_dir_loc + "/log/" + self.platform + '/' + self.pkg_name + ".log"
       
@@ -530,7 +534,8 @@ class builder:
       # Perform the actual checkout using a call to the SVN client
       for package in pkg_modules:
         loc_package = package.split('/')[-1]
-        svn_cmd = "svn co "+repo_loc+'/'+branch.lower()+"/packages/"+package+'@'+str(self.rev)+' '+self.full_pkg_name+'/'+loc_package
+        svn_cmd = "svn co "+repo_loc+'/'+ \
+                  branch.lower()+"/packages/"+package+'@'+str(self.rev)+' '+self.full_pkg_name+'/'+loc_package
         #print svn_cmd
         print "Retrieving package " + package
         svnlines = os.popen(svn_cmd).readlines()
@@ -540,18 +545,16 @@ class builder:
         for line in __lines:
           sys.stdout.write(line, 4)  # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
       self.lines = []
-      # REMOTE-EXECUTE build process
-      if self.build_type == "RELEASE & PACKAGES":
-        print "Building packages before linking to release. Please be patient."  # wait for build to complete if packages
-        self.PID = os.spawnlp(os.P_WAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_pkg_logfile)
-      else:
-        print "Spawning build process..."
-        self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_pkg_logfile)
+      print "Spawning build process..."
+      cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_rel_logfile +"\""
+      #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_pkg_logfile)
+      self.PID = sub.Popen(cmd , shell=True).pid
+      cmd = ""
       time.sleep(3)
       print "Spawned build process with PID : " + str(self.PID) + '\n'      
       
     ####################################################################################  
-    if self.build_type == "RELEASE" or self.build_type == "RELEASE & PACKAGES":
+    if self.build_type == "RELEASE":
       self.full_rel_name = self.base_dir + '/' + self.rel_name
       self.full_rel_logfile   = self.libs_dir_loc + "/log/" + self.platform + '/' + self.rel_name + ".log"
       
@@ -576,9 +579,11 @@ class builder:
           sys.stdout.write(line, 4)    # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
       self.lines = []
       ## REMOTE-EXECUTE build process
-      #self.PID = os.spawnlp(os.P_NOWAIT, "rsh", "rsh", "-x", self.build_host, build_release, self.full_rel_logfile)
       print "Spawning build process..."
-      self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_rel_logfile)
+      #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_rel_logfile)
+      cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_rel_logfile +"\""
+      self.PID = sub.Popen(cmd , shell=True).pid
+      cmd = ""
       time.sleep(3)
       print time.asctime() + " -- Spawned build process with PID : " + str(self.PID) + '\n'
     #####################################################################################  
@@ -659,13 +664,14 @@ for line in krblines:
 
 
 #== Determine which revision to check out, default is most recent ==
-infolist = os.popen("svn info "+repo_loc).readlines()       # adjust here for getting stderr as well
-for line in infolist:
-  if line.find("Revision") != -1:
-    revision = line.split(':')[1].strip()
-  elif line.find("failed") != -1:
-    print "SVN repository access failed!  Quitting."
-    sys.exit(50)
+if revision == 0:
+  infolist = os.popen("svn info "+repo_loc).readlines()       # adjust here for getting stderr as well
+  for line in infolist:
+    if line.find("Revision") != -1:
+      revision = line.split(':')[1].strip()
+    elif line.find("failed") != -1:
+      print "SVN repository access failed!  Quitting."
+      sys.exit(50)
 
 
 #== Print out all the configuration information collected or derived up to this point ===
@@ -840,7 +846,7 @@ if osf:
 if vms:
   print "VMS  alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_end_VMS - t_begin_VMS)
 
-if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
+if build_type == "RELEASE":
   lines = os.popen(util_dir + "/rel_disk_total " + rel_name).readlines()
   for line in lines:
     print line.strip()
@@ -879,7 +885,7 @@ print "          =============  End Statistics Summary =============\n"
 
 
 #== If nightly build has been requested, rotate this one into position and delete the previous.
-if nightly and ( build_type == "RELEASE" or build_type == "RELEASE & PACKAGES" ):
+if nightly and build_type == "RELEASE":
   print "This is a nightly build, proceeding with replacement of previous build."
   lines = os.popen(util_dir + "/rotate_release -nightly " + rel_name).readlines()
   for line in lines:
