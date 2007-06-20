@@ -12,7 +12,7 @@ program synrad
 
   type (ele_power_struct), allocatable :: power(:)
 
-  integer i, n, ix, n_arg, n_wall_pt_max
+  integer i, n, ix, n_arg, n_wall_pt_max, ios
 
   character(80) this_lat, line, temp
   character(80) lat_file, in_file, wall_file
@@ -21,7 +21,7 @@ program synrad
 
   logical err_flag
 
-  namelist / synrad_params / sr_param, seg_len, wall_file
+  namelist / synrad_params / sr_param, seg_len, wall_file, wall_offset
   namelist / wall_params / n_wall_pt_max
 
 ! get parameters
@@ -92,26 +92,29 @@ program synrad
     open (1, file = wall_file, status = 'old')
     read (1, nml = wall_params)
     allocate (outside%pt(0:n_wall_pt_max), inside%pt(0:n_wall_pt_max))
-    outside%n_pt_tot = n_wall_pt_max
-    inside%n_pt_tot = n_wall_pt_max
     call skip_header (1, err_flag)
-    do  i = 0, n_wall_pt_max
-      read (1, '(a)') line
-      read (line, *) ix, s, x_in, x_out
-      if (ix /= i) then
-        print *, 'ERROR: IN WALL FILE: ', trim(wall_file)
-        print *, '       WALL INDEX NOT IN ORDER:', I
+    i = -1
+    do 
+      read (1, '(a)', iostat = ios) line
+      if (ios < 0) exit
+      if (ios > 0) then
+        print *, 'READ ERROR IN FILE: ', trim(wall_file)
         call err_exit
       endif
-      outside%pt(ix)%s = s
-      outside%pt(ix)%x = x_out
-      outside%pt(ix)%name = 'OUTSIDE'
-      outside%pt(ix)%ix_pt = ix
-      inside%pt(ix)%s = s
-      inside%pt(ix)%x = x_in
-      inside%pt(ix)%name = 'INSIDE'
-      inside%pt(ix)%ix_pt = ix
+      if (line == '') cycle
+      i = i + 1
+      read (line, *) s, x_in, x_out
+      outside%pt(i)%s = s
+      outside%pt(i)%x = x_out
+      outside%pt(i)%name = 'OUTSIDE'
+      outside%pt(i)%ix_pt = ix
+      inside%pt(i)%s = s
+      inside%pt(i)%x = x_in
+      inside%pt(i)%name = 'INSIDE'
+      inside%pt(i)%ix_pt = ix
     enddo
+    outside%n_pt_tot = i
+    inside%n_pt_tot = i
     close (1)
   endif
 

@@ -1,0 +1,14 @@
+&wall_params
+  n_wall_pt_max = 5
+/
+
+! Note: x_inside should be negative.
+! Note: First s_position should be 0.
+
+!s_position   x_inside   x_outside
+  0.0          -0.045     0.045
+  9.0036       -0.045     0.045
+ 14.1827       -0.045     14.20
+ 14.1827       -0.045     0.045
+ 768.4363      -0.045     0.045
+
