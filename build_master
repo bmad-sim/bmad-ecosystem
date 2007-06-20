@@ -111,11 +111,13 @@ pkg_modules   = ["cfortran", "forest", "num_recipes/recipes_f-90", "num_recipes/
 # Work out how to sync this list with the pkg build list in the M.release makefile... keeping them sync'd manually is not so hot.
 
 statuses      = {0 : "Building", 1 : "Complete", -1 : "ERROR"}
-ranks         = {0 : "Isolated", 1 : "Nightly (w/ rotation)"} 
+ranks         = {0 : "Isolated", 1 : "Periodic (w/ rotation)"} 
 
 release       = ""
 revision      = 0
 build_release = 1              # default to building a CESR release only
+bmad_dist     = 0
+bmad_name     = "none"
 custom_relflag= 0              # flag system to allow three cmd-line possibilities; pkg, rel, or both
 rel_name      = "none"
 build_packages= 0
@@ -194,7 +196,10 @@ for opt in sys.argv:
     build_release       = 1
   elif opt == "-pkg":
     custom_pkgflag      = 1
-    build_packages      = 1
+    build_packages      = 0  # no packages builds simultaneous with release builds
+  elif opt == "-bmad":
+    bmad_dist           = 1
+    build_release       = 0
   elif opt == "-build_only":
     checkout            = "NO"                # WAS do_checkout
   elif opt == "-nodump":
@@ -283,6 +288,7 @@ datecode   = year + '_' + month + day
 #=== Generic Parameters ================================
 rel_prefix    = "cesr"                                  # WAS rel_tag
 pkg_prefix    = "packages"                             # WAS pkg_tag
+bmad_prefix   = "bmad_dist"
 general_log   = ""
 checkout      = 1
 build         = 1
@@ -314,85 +320,58 @@ def seconds_to_HMS(seconds):
 
 
 ## Function to generate a unique release name
-## Accepts: 'RELEASE', 'PACKAGES', or 'RELEASE & PACKAGES' and generates an appropriate unique name.
+## Accepts: 'RELEASE' or 'PACKAGES' and generates an appropriate unique name.
 ## Clean this routine up.  Two loops not needed.  Opted to make release builds always separate from packages builds
 ## to simplify operation.
-def get_build_names(type, rel_name, pkg_name):
-  basename = ""
+
+def get_build_name (type, initial_name):
+  basename   = ""
+  build_name = initial_name
   build_list    = []
-  if type == "RELEASE & PACKAGES":
-    build_list = [rel_name, pkg_name]
   if type == "RELEASE":
-    build_list = [rel_name, "N/A"]
+    print "Release requested"
+    prefix = rel_prefix
   elif type == "PACKAGES":
-    build_list = ["N/A", pkg_name]
+    print "Pakcages requested"
+    prefix = pkg_prefix
+  elif type == "BMAD DISTRIBUTION":
+    print "Bmad distribution requested"
+    prefix = bmad_prefix
 
-  loop = 1                                    # 1st time: checks and sets up RELEASE name, 2nd time: PACKAGES
-  for build_name in build_list:               # loop one time each for possible release build or packages build
-    #print "build name : " + build_name
-    full_test_logname = libs_dir + '/log/' + build_name + '.genlog'
-    #print full_test_logname
-    if build_name != "N/A":                  # if the build_type for this loop needs a name
-      if build_name == "":                    # if the command line was messed up, inform and abort
-        print "Build name not specified."
-        sys.exit(40)
-      
-      if os.path.exists(full_test_logname) and loop == 1:   # otherwise, if the RELEASE specified on cmd line already exists, quit
-        print "\nA release with the name "+build_name+" already exists."
-        print "Specify a different name on the command line."
-        print "\nNote: If no release name is provided, a unique one guaranteed to work will be"
-        print "generated automatically.\n"
-        sys.exit(15)
-      
-      elif build_name == "none":             # otherwise, a name was not specified, so proceed with unique name generation  
-        if loop == 1:                         # depending on which loop this is, set prefix accordingly
-          prefix = rel_prefix
-          #print "REL PREFIX SET"
-        elif loop == 2:
-          prefix = pkg_prefix
-          #print "PACKAGE PREFIX SET"
-        else:
-          loop = loop + 1
-          continue
-        basename      = prefix + '_' + datecode + '_' + prec.lower()[0]  # unadorned 1st iteration generated name
-        build_already_exists = 0
-        
-        for plat in platform_combos:          # check if the name already exists in any platform area
-          #print libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
-          full_buildname = libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
-          if os.path.exists(full_buildname):
-            build_already_exists = 1
-        if build_already_exists:              # if it does, make it okay by appending a unique suffix
-          #print "Build already exists"
-          uniq_suffix    = 1
-          build_name     = basename +'_'+ str(uniq_suffix)
-          full_buildname = libs_dir+'/'+platform_combos["linuxi"][0]+'_'+platform_combos["linuxi"][1]+'/'+build_name
-          while os.path.exists(full_buildname):
-            uniq_suffix    = uniq_suffix + 1
-            build_name     = basename + '_' + str(uniq_suffix)
-            full_buildname = libs_dir+'/'+platform_combos["linuxi"][0]+'_'+platform_combos["linuxi"][1]+'/'+build_name
-            #print build_name
-        else:
-          build_name = basename
-          
-      ##elif os.path.exists(full_name) and loop == 2:
-      #  print "Linking against pre-existing packages build " + build_name
-      #  build_packages = 0                  # Packages specified are to be linked against, not built.
+  print "build name : " + build_name
+  full_logname_to_test = libs_dir + '/log/' + build_name + '.genlog'
+  print full_logname_to_test
 
+  if build_name == "":                    # if the command line was messed up, inform and abort
+    print "Build name not specified."
+    sys.exit(40)
+  if os.path.exists(full_logname_to_test):   # otherwise, if the RELEASE specified on cmd line already exists, quit
+    print "\nA release with the name "+build_name+" already exists."
+    print "Specify a different name on the command line."
+    print "\nNote: If no release name is provided, a unique one guaranteed to work will be"
+    print "generated automatically.\n"
+    sys.exit(15)
+  elif build_name == "none":             # otherwise, a name was not specified, so proceed with unique name generation  
+    basename = prefix + '_' + datecode + '_' + prec.lower()[0]  # unadorned 1st iteration generated name
+    build_already_exists = 0
+    for plat in platform_combos:          # check if the name already exists in any platform area
+      #print libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
+      full_buildname = libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
+      if os.path.exists(full_buildname):
+        build_already_exists = 1
+    if build_already_exists:              # if it does, make it okay by appending a unique suffix
+      #print "Build already exists"
+      uniq_suffix    = 1
+      build_name     = basename +'_'+ str(uniq_suffix)
+      full_buildname = libs_dir+'/'+platform_combos["linuxi"][0]+'_'+platform_combos["linuxi"][1]+'/'+build_name
+      while os.path.exists(full_buildname):
+        uniq_suffix    = uniq_suffix + 1
+        build_name     = basename + '_' + str(uniq_suffix)
+        full_buildname = libs_dir+'/'+platform_combos["linuxi"][0]+'_'+platform_combos["linuxi"][1]+'/'+build_name
+        #print build_name
     else:
-      #print "Loop increment"
-      loop = loop + 1   #// end N/A check
-      continue
-    
-    if loop == 1:                 # return the name(s) generated in the proper order, taking into account
-      rel_name = build_name       # loop iteration responsbility.
-      #print "rel name set: " + build_name
-    else:
-      pkg_name = build_name
-      #print "pkg name set: " + build_name
-    loop = loop + 1
-      
-  return rel_name, pkg_name
+      build_name = basename
+  return build_name
 
 
 ## Function to print out a summary of all the build parameters being used.
@@ -460,7 +439,7 @@ class builder:
   
   # Initialize all the relevant variables local to this class, check out the necessary code, initiate (remote) builds.
   # May not be needed if first use provides a local variable instantiation.  Check it out!
-  def __init__(self, build_names, revision, build_type, pcombo, print_co, stout):
+  def __init__(self, release_names, revision, build_type, pcombo, print_co, stout):
     time_1           = 0
     time_2           = 0
     
@@ -481,7 +460,8 @@ class builder:
     qline             = ""
     status_lsit       = []
 
-    self.rel_name, self.pkg_name = build_names
+    self.rel_name, self.pkg_name = release_names
+    self.bld_name     = build_name
     self.rev          = revision
     self.OS           = platform_combos[pcombo][0]
     self.f90          = platform_combos[pcombo][1]
@@ -587,7 +567,14 @@ class builder:
       time.sleep(3)
       print time.asctime() + " -- Spawned build process with PID : " + str(self.PID) + '\n'
     #####################################################################################  
+    if self.build_type == "BMAD DISTRIBUTION":
+      print "Check out code for bmad distribution\n"
 
+      self.base_dir = "/home/cesrulib/distribution"
+      self.full_rel_name    = self.base_dir
+      self.full_rel_logfile = self.base_dir + "/log/" + self.platform
+
+      print "Build bmad dist here.\n"      
 
 
   def status(self):    ## return the value of the most recently-stamped status message in logfile passed to this method
@@ -620,29 +607,33 @@ class builder:
     self.status_list = []
     return build_status                                    # still building will return value of 0
 
+
+
     
 #======================================================================================================================  
 #======================================================================================================================
 # Main Script Starts Here
-#==========================================================================
-if build_release and build_packages:
-  build_type  = "RELEASE & PACKAGES"
-  build_names = get_build_names(build_type, rel_name, pkg_name) #obtains tuple of up to 2 unique build names
-  genlog      = "rel-pack_" + datecode +"_"+ prec.lower()[0] + ".genlog"
-  full_genlog = libs_dir + "/log/" + genlog
-elif build_release and (build_packages == 0):
-  build_type = "RELEASE"
-  build_names = get_build_names(build_type, rel_name, pkg_name) 
-  genlog      = build_names[0]+".genlog"
-  full_genlog = libs_dir + "/log/" + genlog
-else:
-  build_type = "PACKAGES"
-  build_names = get_build_names(build_type, rel_name, pkg_name) 
-  genlog      = build_names[1]+".genlog"
-  full_genlog = libs_dir + "/log/" + genlog
+#======================================================================================================================
 
-rel_name = build_names[0]
-pkg_name = build_names[1]
+if build_release:
+  build_type  = "RELEASE"
+  build_name  = get_build_name(build_type, rel_name)
+  rel_name    = build_name
+  release_names = (rel_name, pkg_name)
+elif build_packages:
+  build_type  = "PACKAGES"
+  build_name  = get_build_name(build_type, pkg_name)
+  pkg_name    = build_name
+  release_names = (rel_name, pkg_name)
+elif bmad_dist:
+  build_type  = "BMAD DISTRIBUTION"
+  build_name  = get_build_name(build_type, bmad_name)
+  rel_name    = build_name
+  release_names = (rel_name, "")
+  
+genlog      = build_name + ".genlog"
+full_genlog = libs_dir + "/log/" + genlog
+
 
 stout = StandOut(full_genlog, unbuffered=True)   # This transparently applies to all print stmnts and directs all the printed output of
                                    # this program to stdout AND to the general log file defined above.  Set verbosity here?
@@ -699,21 +690,21 @@ if space_free <= space_needed:
 #== This starts the build processes on their respective hosts. Also only prints out the
 #== svn list of files being checked out a single time to reduce clutter in genlog file.   LOOP HERE for generality?
 print_co = True      # flag to allow only the first build initiated to print its checkout list, preventing redundancy of output
-if build_type == "PACKAGES" or build_type == "RELEASE":    # so far only does one or the other, need both SEQUENTIALLY as well
+if build_type == "PACKAGES" or build_type == "RELEASE" or build_type == "BMAD DISTRIBUTION":
   if lnx:
     t_begin_LIN = time.time()
-    LINBUILD = builder(build_names, revision, build_type, "linuxi", print_co, stout)  # Initialize a builder object for given platform.
+    LINBUILD = builder(release_names, revision, build_type,"linuxi", print_co, stout)  # Initialize a builder object for given platform.
     t_begin_LLA = int(time.time())
-    LLABUILD = builder(build_names, revision, build_type, "linuxl", print_co, stout)  # Linux intel and lahey are always together
+    LLABUILD = builder(release_names, revision, build_type, "linuxl", print_co, stout)  # Linux intel and lahey are always together
     print_co = False
   if osf:
     t_begin_OSF = int(time.time())
     t_begin_VMS = int(time.time())
-    OSFBUILD = builder(build_names, revision, build_type, "osfhp", print_co, stout)
+    OSFBUILD = builder(release_names, revision, build_type, "osfhp", print_co, stout)
     print_co = False
   if win:
     t_WIN    = int(time.time())
-    WINBUILD = builder(build_names, revision, build_type, "win", print_co, stout)
+    WINBUILD = builder(release_names, revision, build_type, "win", print_co, stout)
 
   ##  Package phase initiation complete here.
   loop             = 0
@@ -909,4 +900,3 @@ if nightly and build_type == "RELEASE":
   print "EOF"
 
 stout.close()                           # Close stream to logfile before quitting
-
