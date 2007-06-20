@@ -14,8 +14,8 @@ program synrad
 
   integer i, n, ix, n_arg, n_wall_pt_max, ios
 
-  character(80) this_lat, line, temp
-  character(80) lat_file, in_file, wall_file
+  character(100) this_lat, line, temp
+  character(100) lat_file, in_file, wall_file
 
   real(rp) end_s, wall_offset, s, x_in, x_out, seg_len
 
@@ -62,6 +62,9 @@ program synrad
   n = 2 * end_s / seg_len + 2
   allocate (outside%seg(n), inside%seg(n))
 
+  inside%side  = inside$
+  outside%side = outside$
+
   if (wall_file == 'NONE') then
 
     allocate (outside%pt(0:1), inside%pt(0:1))
@@ -107,15 +110,20 @@ program synrad
       outside%pt(i)%s = s
       outside%pt(i)%x = x_out
       outside%pt(i)%name = 'OUTSIDE'
-      outside%pt(i)%ix_pt = ix
+      outside%pt(i)%ix_pt = i
       inside%pt(i)%s = s
       inside%pt(i)%x = x_in
       inside%pt(i)%name = 'INSIDE'
-      inside%pt(i)%ix_pt = ix
+      inside%pt(i)%ix_pt = i
     enddo
+    close (1)
+
     outside%n_pt_tot = i
     inside%n_pt_tot = i
-    close (1)
+
+    inside%pt(i)%s  = lat%ele(lat%n_ele_track)%s
+    outside%pt(i)%s = lat%ele(lat%n_ele_track)%s
+ 
   endif
 
   call delete_overlapping_wall_points(outside)

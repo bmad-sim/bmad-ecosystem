@@ -1,9 +1,11 @@
 &wall_params
-  n_wall_pt_max = 5
+  n_wall_pt_max = 5   ! Must be at least the number of rows in the table below
 /
 
 ! Note: x_inside should be negative.
 ! Note: First s_position should be 0.
+! Note: Last s_position will be changed to the length of the ring 
+! so you don't have to set this number correctly.
 
 !s_position   x_inside   x_outside
   0.0          -0.045     0.045
