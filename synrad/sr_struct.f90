@@ -97,7 +97,7 @@ module sr_struct
   end type
 
   type synrad_param_struct
-    character(40) lat_file
+    character(100) lat_file
     real(rp) epsilon_y     ! vertical emit
     real(rp) i_beam        ! beam current
   end type
