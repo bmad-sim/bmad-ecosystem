@@ -108,7 +108,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
   type (normal_modes_struct) mode
   type (bmad_common_struct) bmad_com_save
   type (rad_int_cache_struct), pointer :: cache
-  type (track_struct) track
+  type (track_struct), save :: track
   type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
 
   real(rp) :: int_tot(7)
