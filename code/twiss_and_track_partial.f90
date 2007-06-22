@@ -72,11 +72,11 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
     call err_exit
   endif
 
-! Easy case when ele2 has zero length
+! Easy case when del_s is zero.
 
-  if (l_orig == 0) then
+  if (del_s == 0) then
 
-    if (present(ele3)) ele3 = ele2
+    if (present(ele3)) ele3 = ele1
 
     if (present(end)) then
       if (present(start)) then

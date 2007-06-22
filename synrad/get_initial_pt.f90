@@ -46,24 +46,14 @@ subroutine get_initial_pt (ray, wall, ix_wall, lat)
 ! edge cases
 
   if (ray%now%vec(5) == lat%param%total_length) then
-    if (ray%direction == 1) then
-      ix_wall = 0
-      wall%ix_pt = 0
-    else
-      ix_wall = wall%n_pt_tot
-      wall%ix_pt = wall%n_pt_tot
-    endif
+    ix_wall = wall%n_pt_tot
+    wall%ix_pt = wall%n_pt_tot
     return
   endif
 
   if (ray%now%vec(5) == 0) then
-    if (ray%direction == 1) then
-      ix_wall = wall%n_pt_tot
-      wall%ix_pt = wall%n_pt_tot
-    else
-      ix_wall = 0
-      wall%ix_pt = 0
-    endif
+    ix_wall = 0
+    wall%ix_pt = 0
     return
   endif
 

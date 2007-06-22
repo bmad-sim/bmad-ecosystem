@@ -52,22 +52,10 @@ subroutine init_ray (ray, lat, ix_ele, l_offset, orb, direction)
 
   ! set the ray's initial twiss values
 
-  if (l_offset == 0) then    ! use twiss from end of prev ele
-    ray%x_twiss = ele0%a
-    ray%y_twiss = ele0%b
-    orb0 = orb(ix_ele-1)
-  else                       ! make a runt_ele of l_offset length
-                             ! and generate twiss values at the 
-                             ! end of it
-    if (ele%key == sbend$) runt_ele%value(angle$) = &
-                     ele%value(angle$) * l_offset / ele%value(l$)
-    runt_ele%value(l$) = l_offset       
-    call make_mat6( runt_ele, lat%param, orb(ix_ele-1), orb(ix_ele))
-    call track1 (orb(ix_ele-1), runt_ele, lat%param, orb0)
-    call twiss_propagate1 (ele0, runt_ele)
-    ray%x_twiss = runt_ele%a
-    ray%y_twiss = runt_ele%b
-  endif
+  call twiss_and_track_partial (ele0, ele, lat%param, l_offset, runt_ele, & 
+                                                      orb(ix_ele-1), orb0)
+  ray%x_twiss = runt_ele%a
+  ray%y_twiss = runt_ele%b
 
   ! set the ray's g_bend value (inverse bending radius at src pt) 
 

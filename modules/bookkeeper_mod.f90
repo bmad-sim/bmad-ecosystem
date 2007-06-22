@@ -1494,6 +1494,7 @@ subroutine attribute_bookkeeper (ele, param, ref_orb_out)
     start%vec(1:4) = ele%value(ref_orb$:ref_orb$+3)
     call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
     ele%value(z_patch$) = end%vec(5)
+    if (ele%value(z_patch$) == 0) ele%value(z_patch$) = 1e-30 ! something non-zero.
     if (ele%sub_key == periodic_type$) ele%value(x_patch$) = end%vec(1)
     if (present(ref_orb_out)) ref_orb_out = end%vec(1:4)  ! save for next super_slave
   endif
