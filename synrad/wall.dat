@@ -1,6 +1,3 @@
-&wall_params
-  n_wall_pt_max = 5   ! Must be at least the number of rows in the table below
-/
 
 ! Note: x_inside should be negative.
 ! Note: First s_position should be 0.
