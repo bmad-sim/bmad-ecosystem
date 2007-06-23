@@ -78,14 +78,15 @@
 # SRC_EXCLUDE     - Source files to exclude from compilation (just the base 
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := code 
-OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif synrad
-CONFIG_DIRS  := 
+LIB_SRC_DIRS := code synrad
+OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif synrad_program
+CONFIG_DIRS  :=
 LOCAL_INCS   :=
 SRC_EXCLUDE  := beambeam_scan.f90 # only with lahey it can be compiled
 M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif M.synrad
+
 ifeq "$(CESR_F90)" "lahey"
-  SRC_EXCLUDE  :=
+  SRC_EXCLUDE  := 
 #  M_FILE_LIST  += M.beambeam  
   OBJ_SRC_DIRS += beambeam
 endif

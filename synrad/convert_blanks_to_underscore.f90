@@ -10,7 +10,7 @@ subroutine convert_blanks_to_underscore (string_in, string_out)
   implicit none
 
   integer n
-  character*(*) string_in, string_out
+  character(*) string_in, string_out
 
 !
 

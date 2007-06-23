@@ -1,7 +1,3 @@
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
 subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
 
   use sr_struct
@@ -179,7 +175,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
     else
       ray1%direction = +1
     endif
-    call propagate_ray (ray1, s1, lat)
+    call propagate_ray (ray1, s1, lat, .false.)
 
     del1 = (dx_wall*(ray1%now%vec(5) - pt(ix0)%s) - &
                         ds_wall*(ray1%now%vec(1) - pt(ix0)%x)) / denom
@@ -213,11 +209,15 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
   ray%now = ray1%now
   ray%r_wall = r_wall
 
+  ! We assume that the travel length cannot be greater then half the circumference.
+
   del_s = ray%now%vec(5) - ray%start%vec(5)
-  if (ray%crossed_end) then
+  if (abs(del_s) > lat%param%total_length / 2) then
     ray%track_len = lat%param%total_length - abs(del_s)
+    ray%crossed_end = .true.
   else
     ray%track_len = abs(del_s)
+    ray%crossed_end = .false.
   endif
 
   ray%wall => wall

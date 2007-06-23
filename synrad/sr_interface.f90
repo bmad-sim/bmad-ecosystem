@@ -3,6 +3,16 @@ module sr_interface
   use sr_struct
 
   interface
+    function theta_floor (s, lat, theta_base) result (theta_fl)
+      use sr_struct
+      implicit none
+      type (lat_struct) lat
+      real(rp) s, theta_fl
+      real(rp), optional :: theta_base
+    end function
+  end interface
+
+  interface
     subroutine write_power_results (wall, lat, gen_params)
       use sr_struct
       implicit none
@@ -27,11 +37,11 @@ module sr_interface
       use sr_struct
       implicit none
       type (lat_struct), target :: lat
-      type (coord_struct) orb(0:*)
+      type (coord_struct) orb(0:)
       type (wall_struct) inside
       type (wall_struct) outside
       type (synrad_param_struct) gen
-      type (ele_power_struct) power(*)
+      type (ele_power_struct) power(:)
       integer direction
     end subroutine
   end interface
@@ -42,11 +52,11 @@ module sr_interface
       use sr_struct
       implicit none
       type (lat_struct), target :: lat
-      type (coord_struct) orb(0:*)
+      type (coord_struct) orb(0:)
       type (wall_struct) inside
       type (wall_struct) outside
       type (synrad_param_struct) gen
-      type (ele_power_struct) power(*)
+      type (ele_power_struct) power(:)
       integer direction, ie
     end subroutine
   end interface
@@ -67,9 +77,9 @@ module sr_interface
     subroutine check_end (point, ix, string_in)
       use sr_struct
       implicit none
-      type (outline_pt_struct) point(*)
+      type (outline_pt_struct) point(:)
       integer ix
-      character*(*) string_in
+      character(*) string_in
     end subroutine
   end interface
 
@@ -100,8 +110,8 @@ module sr_interface
     subroutine convert_blanks_to_underscore (string_in, string_out)
       use sr_struct
       implicit none
-      character*(*) string_in
-      character*(*) string_out
+      character(*) string_in
+      character(*) string_out
     end subroutine
   end interface
 
@@ -154,12 +164,13 @@ module sr_interface
   end interface
 
   interface
-    subroutine propagate_ray (ray, s_end, lat)
+    subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
       use sr_struct
       implicit none
       type (lat_struct), target :: lat
       type (ray_struct), target :: ray
       real(rp) s_end
+      logical stop_at_extremum
     end subroutine
   end interface
 
@@ -178,7 +189,7 @@ module sr_interface
     subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
       use sr_struct
       implicit none
-      type (ray_struct) :: rays(*)
+      type (ray_struct) :: rays(:)
       type (wall_struct)          inside
       type (wall_struct)          outside
       type (synrad_param_struct) gen
@@ -222,7 +233,7 @@ module sr_interface
       use sr_struct
       implicit none
       type (synrad_param_struct) gen_params
-      character*(*) file
+      character(*) file
       integer iu
     end subroutine
   end interface

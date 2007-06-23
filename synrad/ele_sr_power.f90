@@ -12,9 +12,9 @@
 !   use sr_mod
 !
 ! Input:
-!   lat   -- lat_struct: with twiss propagated and mat6s made
-!   ie     -- integer: index of the current element in lat
-!   orb(0:*) -- coord_struct: orbit of particles to use as 
+!   lat     -- lat_struct: with twiss propagated and mat6s made
+!   ie      -- integer: index of the current element in lat
+!   orb(0:) -- coord_struct: orbit of particles to use as 
 !                             source of ray
 !   direction -- integer: +1 for in direction of s
 !                         -1 for against s
@@ -24,9 +24,9 @@
 !                     vert emittance, and beam current
 !
 ! Output:
-!   power(*)  -- ele_power_struct: power radiated from a lat ele
-!   inside  -- wall_struct: inside wall with power information
-!   outside -- wall_struct: outside wall with power information
+!   power(:) -- ele_power_struct: power radiated from a lat ele
+!   inside   -- wall_struct: inside wall with power information
+!   outside  -- wall_struct: outside wall with power information
 !-
 
 subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
@@ -37,12 +37,13 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
   implicit none
 
   type (lat_struct), target :: lat
-  type (coord_struct) orb(0:*)
+  type (coord_struct) orb(0:)
   type (ele_struct), pointer :: ele
   type (wall_struct) inside, outside
-  type (ray_struct) rays(3000), ray, ray_temp
+  type (ray_struct), allocatable, save :: rays(:)
+  type (ray_struct) ray, ray_temp
   type (synrad_param_struct) gen
-  type (ele_power_struct) power(*)
+  type (ele_power_struct) power(:)
 
   integer direction, ie, i_ray, n_slice, ns
 
@@ -87,18 +88,20 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
     endif      
   endif
 
+  if (.not. allocated (rays)) allocate(rays(n_slice+1))
+  if (n_slice+1 > size(rays)) then
+    deallocate(rays)
+    allocate(rays(n_slice+1))
+  endif
+
   ! each change in position is the element length / n_slice
+
   del_l = ele%value(l$) / n_slice
 
   do ns = 0, n_slice
 
     l_off = ns * del_l
     i_ray = i_ray + 1
-    if (i_ray > 3000) then
-      print *, 'The # of rays per element has been exceeded!'
-      print *, 'You may need to modify ele_sr_power'
-      call err_exit
-    endif
 
     ! start a ray from each slice location
     call init_ray (rays(i_ray), lat, ie, l_off, orb, direction)

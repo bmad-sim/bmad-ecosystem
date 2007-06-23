@@ -9,9 +9,9 @@ subroutine check_end (point, ix, string_in)
 
   implicit none
 
-  type (outline_pt_struct) point(*)
+  type (outline_pt_struct) point(:)
   integer ix
-  character*(*) string_in
+  character(*) string_in
 
 !
 

@@ -23,9 +23,9 @@
 !                     vert emittance, and beam current
 !
 ! Output:
-!   power(*)  -- ele_power_struct: power radiated from a lat ele
-!   inside  -- wall_struct: inside wall with power information
-!   outside -- wall_struct: outside wall with power information
+!   power(:) -- ele_power_struct: power radiated from a lat ele
+!   inside   -- wall_struct: inside wall with power information
+!   outside  -- wall_struct: outside wall with power information
 !                         
 !-
 
@@ -38,10 +38,10 @@ subroutine calculate_sr_power (lat, orb, direction, power, &
   implicit none
 
   type (lat_struct) lat
-  type (coord_struct) orb(0:*)
+  type (coord_struct) orb(0:)
   type (wall_struct) inside, outside
   type (synrad_param_struct) gen
-  type (ele_power_struct) power(*)
+  type (ele_power_struct) power(:)
 
   integer direction, ie
 

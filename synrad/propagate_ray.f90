@@ -1,8 +1,4 @@
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
-subroutine propagate_ray (ray, s_end, lat)
+subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
 
   use sr_struct
   use sr_interface
@@ -13,7 +9,9 @@ subroutine propagate_ray (ray, s_end, lat)
   type (ray_struct), target :: ray
 
   real(rp) s_end, s_next, del_s, s_target
-  real(rp) rho, new_x, theta0, theta1, c_t0, c_t1
+  real(rp) g, new_x, theta0, theta1, c_t0, c_t1
+
+  logical stop_at_extremum
 
 ! find the target
 
@@ -98,14 +96,22 @@ subroutine propagate_ray (ray, s_end, lat)
 ! In a bend: Exact formula is:
 ! new_x = (rho * (cos(theta0) - cos(theta1)) + ray%now%vec(1) * cos(theta0)) /
 !                                                              cos(theta1)
+! We stop then theta = 0 since that is an extremum.
 
-    if (lat%ele(ray%ix_ele)%key == sbend$) then
-      rho = lat%ele(ray%ix_ele)%value(rho$)
+    if (lat%ele(ray%ix_ele)%key == sbend$ .and. lat%ele(ray%ix_ele)%value(g$) /= 0) then
+      g = lat%ele(ray%ix_ele)%value(g$)
       theta0 = ray%now%vec(2)
-      theta1 = ray%now%vec(2) + del_s / rho
+      theta1 = ray%now%vec(2) + del_s * g
+      ! if theta has changed sign then there is an extremum 
+      if (stop_at_extremum .and. theta0 * theta1 < 0) then 
+        del_s = -theta0 / g            ! step to extremum
+        theta1 = 0
+        s_next = ray%now%vec(5) + del_s
+        s_target = s_next
+      endif
       c_t0 = -(theta0**2)/2 + theta0**4/24
       c_t1 = -(theta1**2)/2 + theta1**4/24
-      new_x = (rho * (c_t0 - c_t1) + ray%now%vec(1) * cos(theta0)) / cos(theta1)
+      new_x = ((c_t0 - c_t1) / g + ray%now%vec(1) * cos(theta0)) / cos(theta1)
       ray%now%vec(1) = new_x
       ray%now%vec(2) = theta1
     else

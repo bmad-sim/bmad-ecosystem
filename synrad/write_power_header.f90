@@ -10,7 +10,7 @@ subroutine write_power_header (iu, file, gen_params)
   implicit none
 
   type (synrad_param_struct) gen_params
-  character*(*) file
+  character(*) file
   integer iu
 
 !

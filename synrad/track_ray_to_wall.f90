@@ -70,7 +70,7 @@ subroutine track_ray_to_wall (ray, lat, inside, outside, hit_flag, track_max)
                                                  ray%now%vec(5) - 1.0)
     endif
 
-    call propagate_ray (ray, s_next, lat)
+    call propagate_ray (ray, s_next, lat, .true.)
 
 ! See if we are outside the beam pipe.
 ! If so we calculate the exact hit spot where the ray crossed the

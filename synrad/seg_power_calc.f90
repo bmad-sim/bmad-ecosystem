@@ -1,6 +1,3 @@
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
 !+
 ! subroutine seg_power_calc (rays, i_ray, inside, outside, 
 !                             lat, gen, power)
@@ -33,7 +30,7 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
 
   implicit none
 
-  type (ray_struct) :: rays(*)
+  type (ray_struct) :: rays(:)
   type (wall_struct) inside, outside
   type (wall_struct), pointer :: wall
   type (ray_struct) :: ray
@@ -47,7 +44,7 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
   real(rp) rr, dr2, dr1, theta, factor
   real(rp) dx_wall, ds_wall, r1, r2, dpower, track_len
   real(rp) r_i1, r_i2, frac_illum
-
+  real(rp) theta_base, theta_floor1, theta_floor2, theta_floor_seg
   integer i_ray, iw, i, ip, is, iss
   integer type0, type1, i1_pt, i2_pt
 
@@ -110,7 +107,7 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
 ! fill the segment array by interpolating between fan rays.
 ! theta_rel is the relative angle between the ray and the wall
 ! Note: the power at a wall segment could be due to more than one source.
-! The probram tries to set %ix_ele_source and %s_source to reflect the
+! The code tries to set %ix_ele_source and %s_source to reflect the
 ! largest source
 
   do i = 2, i_ray
@@ -155,10 +152,19 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
       else
         rr = dr1 / (dr1 - dr2)
       endif
-      if (rr > 1) rr = 1
-      if (rr < 0) rr = 0
 
-      theta = rays(i-1)%now%vec(2) * (1 - rr) + rays(i)%now%vec(2) * rr
+      ! In a bend, the angle w.r.t. the center line can change rapidly with s.
+      ! For the interpolation it is therefore better to use the floor angle.
+      ! Since increasing floor angle is opposite the bend angle, there is 
+      ! a plus sign.
+
+      theta_base = theta_floor(rays(i-1)%now%vec(5), lat)
+      theta_floor1 = rays(i-1)%now%vec(2) + theta_base
+      theta_floor2 = rays(i)%now%vec(2) + &
+                                theta_floor(rays(i)%now%vec(5), lat, theta_base)
+      theta_floor_seg = (1 - rr) * theta_floor1 + rr * theta_floor2
+      theta = theta_floor_seg - theta_floor(wall%seg(is)%s_mid, lat, theta_base)
+
       dx_wall = wall%pt(ip)%x - wall%pt(ip-1)%x
       ds_wall = wall%pt(ip)%s - wall%pt(ip-1)%s
       theta_rel = theta - atan2(dx_wall, ds_wall)
@@ -171,8 +177,6 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
       if (wall%side == outside$ .and. theta_rel*rays(i)%direction < 0) cycle
       if (wall%side == inside$ .and. theta_rel*rays(i)%direction > 0) cycle
 !      if (rr < 0 .or. rr > 1) cycle  ! not in fan
-      if (rr < 0) rr = 0
-      if (rr > 1) rr = 1
 
       type0 = wall%pt(ip-1)%type
       type1 = wall%pt(ip)%type
@@ -198,13 +202,18 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
       ray%crossed_end = rays(i)%crossed_end
       track_len = abs((1 - rr)*rays(i-1)%start%vec(5) + &
                              rr*rays(i)%start%vec(5) - wall%seg(is)%s_mid)
+      ! We assume that the travel length cannot be greater then half the circumference.
+      if (abs(track_len) > lat%param%total_length / 2) track_len = lat%param%total_length - track_len 
       call track_ray_to_wall (ray, lat, inside, outside, hit_flag, track_len)
-      if (hit_flag) cycle
-
-
+      ! Do not count if shadowed. 
+      ! Because of inaccuracies test if hit is on opposite side. 
+      ! If so then this is not a real shaddow
+      if (hit_flag .and. ray%start%vec(1) * ray%now%vec(1) > 0) then
+        track_len = 0
+        cycle
+      endif
 
       ep => wall%seg(is)%sr_power
-
 
 ! frac_illum is the fraction of the segment illuminated by the fan
 
@@ -214,9 +223,6 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
 
 ! only change ep%ix_ele_source and ep%s_source if the contribution to the
 ! power is larger than what has so far been accumulated.
-
-      if (track_len > lat%param%total_length / 2) &
-                             track_len = lat%param%total_length - track_len
 
       dpower = ((1 - rr)*rays(i-1)%p1_factor + rr*rays(i)%p1_factor) * &
                         abs(sin(theta_rel)) * frac_illum / track_len
@@ -239,14 +245,14 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
       ep%n_source = ep%n_source + 1
 
       if (associated(ep%rays)) then
-	temp_size = size(ep%rays)
+        temp_size = size(ep%rays)
         if (temp_size < ep%n_source) then
-	  allocate(temp_rays(temp_size))
-	  temp_rays = ep%rays
+          allocate(temp_rays(temp_size))
+          temp_rays = ep%rays
           deallocate(ep%rays)
           allocate (ep%rays(ep%n_source))
-	  ep%rays(1:temp_size) = temp_rays(1:temp_size)
-	  deallocate(temp_rays)
+          ep%rays(1:temp_size) = temp_rays(1:temp_size)
+          deallocate(temp_rays)
         endif
       else
         allocate (ep%rays(5))

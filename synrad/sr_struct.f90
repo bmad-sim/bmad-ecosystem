@@ -44,9 +44,9 @@ module sr_struct
 
   type wall_seg_struct       ! segment struct
     integer ix_pt            ! index to which point owns this segment
-    real(rp) s, x                ! s, x position of the segment at the endpoint
-    real(rp) s_mid, x_mid        ! s, x position of the segment at the midpoint
-    real(rp) len                 ! length of segment
+    real(rp) s, x            ! s, x position of the segment at the endpoint
+    real(rp) s_mid, x_mid    ! s, x position of the segment at the midpoint
+    real(rp) len             ! length of segment
     type (sr_power_struct) sr_power
   end type
 
