@@ -43,7 +43,7 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
   real(rp) sig_y, sig_yp, sig_y_eff, dx, ds, theta_rel
   real(rp) rr, dr2, dr1, theta, factor
   real(rp) dx_wall, ds_wall, r1, r2, dpower, track_len
-  real(rp) r_i1, r_i2, frac_illum
+  real(rp) r_i1, r_i2, frac_illum, gamma
   real(rp) theta_base, theta_floor1, theta_floor2, theta_floor_seg
   integer i_ray, iw, i, ip, is, iss
   integer type0, type1, i1_pt, i2_pt
@@ -90,8 +90,10 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
     ! sig_y is the sqrt of the vert emitt * vert beta
     sig_y = sqrt(gen%epsilon_y * rays(i)%y_twiss%beta)
 
-    ! sig_yprime is the sqrt of the vert emitt * vert gamma
-    sig_yp = sqrt(gen%epsilon_y * rays(i)%y_twiss%gamma)
+    ! sig_yprime is the vertical opening angle
+
+    call convert_total_energy_to (lat%e_tot, lat%param%particle, gamma)
+    sig_yp = sqrt(gen%epsilon_y * rays(i)%y_twiss%gamma + 1 / gamma**2)
 
     ! the effective sig_y includes the increase from sig_yp
     sig_y_eff = sqrt(sig_y**2 + (rays(i)%track_len * sig_yp)**2)
@@ -135,6 +137,11 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
       is = mod(iss-1, wall%n_seg_tot) + 1
       ip = wall%seg(is)%ix_pt
 
+      theta_base = theta_floor(rays(i-1)%now%vec(5), lat)
+      theta_floor1 = rays(i-1)%now%vec(2) + theta_base
+      theta_floor2 = rays(i)%now%vec(2) + &
+                                theta_floor(rays(i)%now%vec(5), lat, theta_base)
+
       dx = wall%seg(is)%x_mid - rays(i-1)%now%vec(1)
       ds = wall%seg(is)%s_mid - rays(i-1)%now%vec(5)
       if (ds >  lat%param%total_length/2) ds = ds - lat%param%total_length
@@ -153,15 +160,14 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
         rr = dr1 / (dr1 - dr2)
       endif
 
+      if (rr > 1) rr = 1
+      if (rr < 0) rr = 0
+
       ! In a bend, the angle w.r.t. the center line can change rapidly with s.
       ! For the interpolation it is therefore better to use the floor angle.
       ! Since increasing floor angle is opposite the bend angle, there is 
       ! a plus sign.
 
-      theta_base = theta_floor(rays(i-1)%now%vec(5), lat)
-      theta_floor1 = rays(i-1)%now%vec(2) + theta_base
-      theta_floor2 = rays(i)%now%vec(2) + &
-                                theta_floor(rays(i)%now%vec(5), lat, theta_base)
       theta_floor_seg = (1 - rr) * theta_floor1 + rr * theta_floor2
       theta = theta_floor_seg - theta_floor(wall%seg(is)%s_mid, lat, theta_base)
 
