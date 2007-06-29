@@ -1109,9 +1109,9 @@ sigma(4) = sqrt(b_emitt / ele%b%beta)
 sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran(3))
 sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran(4))
 
-if (sigma(6) == 0 .and. dpz_dz == 0) then
+if (sigma(6) == 0 .or. dpz_dz == 0) then
   a = 0
-else if (sigma(6) > abs(dpz_dz * sigma(5))) then
+else if (abs(dpz_dz * sigma(5)) > sigma(6)) then
   call out_io (s_abort$, r_name, &
               "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
   call err_exit
