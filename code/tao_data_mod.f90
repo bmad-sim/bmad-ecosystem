@@ -194,7 +194,7 @@ type (normal_modes_struct) mode
 type (taylor_struct), save :: taylor(6)
 type (taylor_struct), optional :: taylor_in(6)
 type (spin_polar_struct) polar
-type (ele_struct), pointer :: ele0
+type (ele_struct), pointer :: ele, ele0
 type (coord_struct), pointer :: orb0
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py
@@ -209,22 +209,37 @@ character(40) data_type, data_source
 
 logical found, valid_value
 
-!
+! See if there is a hook for this datum
 
 call tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value)
 if (found) return
 
-data_source = datum%data_source
+! Check range
 
-ix0 = datum%ix_ele0
-ix1 = datum%ix_ele
-n_lat = tao_lat%lat%n_ele_track
-datum_value = 0           ! default
-datum%ix_ele_merit = ix1  ! default
+data_source = datum%data_source
+data_type = datum%data_type
 lat => tao_lat%lat
 valid_value = .true.
 
-data_type = datum%data_type
+ix0 = datum%ix_ele0
+ix1 = datum%ix_ele
+
+if (datum%ele_name /= '') then
+  ix1 = tao_valid_datum_index (lat, ix1, valid_value)
+  if (.not. valid_value) return
+endif
+
+if (datum%ele0_name /= '') then
+  ix0 = tao_valid_datum_index (lat, ix0, valid_value)
+  if (.not. valid_value) return
+endif
+
+!
+
+n_lat = tao_lat%lat%n_ele_track
+datum_value = 0           ! default
+datum%ix_ele_merit = ix1  ! default
+
 if (data_type(1:2) == 'r.') data_type = 'r.'
 if (data_type(1:2) == 't.') data_type = 't.'
 if (data_type(1:3) == 'tt.') data_type = 'tt.'
@@ -326,37 +341,6 @@ case ('beta.b')
     datum_value = u%macro_beam%params%b%beta
   endif
 
-case ('alpha.x')
-  if (data_source == "beam_tracking") then
-    datum_value = tao_lat%bunch_params(ix1)%a%alpha
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%alpha
-  else
-    call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
-                                   'WITH data_source: ' // data_source)
-    call err_exit
-  endif
-  
-case ('alpha.y')
-  if (data_source == "beam_tracking") then
-    datum_value = tao_lat%bunch_params(ix1)%b%alpha
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%alpha
-  else
-    call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
-                                   'WITH data_source: ' // data_source)
-    call err_exit
-  endif
-
-case ('alpha.z')
-  if (data_source == "lattice") then
-    valid_value = .false.
-  elseif (data_source == "beam_tracking") then
-    datum_value = tao_lat%bunch_params(ix1)%z%alpha
-  elseif (data_source == "macro") then
-    valid_value = .false.
-  endif
-
 case ('alpha.a')
   if (data_source == "lattice") then
     call load_it (lat%ele(:)%a%alpha, ix0, ix1, datum_value, valid_value, datum, lat)
@@ -375,29 +359,11 @@ case ('alpha.b')
     datum_value = u%macro_beam%params%b%alpha
   endif
 
-case ('gamma.x')
+case ('alpha.z')
   if (data_source == "lattice") then
     valid_value = .false.
   elseif (data_source == "beam_tracking") then
-    datum_value = tao_lat%bunch_params(ix1)%a%gamma
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%gamma
-  endif
-  
-case ('gamma.y')
-  if (data_source == "lattice") then
-    valid_value = .false.
-  elseif (data_source == "beam_tracking") then
-    datum_value = tao_lat%bunch_params(ix1)%b%gamma
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%gamma
-  endif
-
-case ('gamma.z')
-  if (data_source == "lattice") then
-    valid_value = .false.
-  elseif (data_source == "beam_tracking") then
-    datum_value = tao_lat%bunch_params(ix1)%z%gamma
+    datum_value = tao_lat%bunch_params(ix1)%z%alpha
   elseif (data_source == "macro") then
     valid_value = .false.
   endif
@@ -418,6 +384,15 @@ case ('gamma.b')
     datum_value = tao_lat%bunch_params(ix1)%b%gamma
   elseif (data_source == "macro") then
     datum_value = u%macro_beam%params%b%gamma
+  endif
+
+case ('gamma.z')
+  if (data_source == "lattice") then
+    valid_value = .false.
+  elseif (data_source == "beam_tracking") then
+    datum_value = tao_lat%bunch_params(ix1)%z%gamma
+  elseif (data_source == "macro") then
+    valid_value = .false.
   endif
 
 case ('eta.x')
@@ -591,28 +566,28 @@ case ('tt.')
   endif
 
 case ('floor.x')
-  if (ix0 >= 0) then
+  if (datum%ix_ele0 /= '') then
     datum_value = lat%ele(ix1)%floor%x - lat%ele(ix0)%floor%x
   else
     datum_value = lat%ele(ix1)%floor%x
   endif
 
 case ('floor.y')
-  if (ix0 >= 0) then
+  if (datum%ix_ele0 /= '') then
     datum_value = lat%ele(ix1)%floor%y - lat%ele(ix0)%floor%y
   else
     datum_value = lat%ele(ix1)%floor%y 
   endif
 
 case ('floor.z')
-  if (ix0 >= 0) then
+  if (datum%ix_ele0 /= '') then
     datum_value = lat%ele(ix1)%floor%z - lat%ele(ix0)%floor%z
   else
     datum_value = lat%ele(ix1)%floor%z 
   endif
 
 case ('floor.theta')
-  if (ix0 >= 0) then
+  if (datum%ix_ele0 /= '') then
     datum_value = lat%ele(ix1)%floor%theta - lat%ele(ix0)%floor%theta
   else
     datum_value = lat%ele(ix1)%floor%theta 
@@ -1469,5 +1444,62 @@ real(rp) avg
 !         / count (beam%bunch(1)%particle%ix_lost == not_lost$)
 
 end function tao_do_wire_scan
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+         
+! Function tao_valid_datum_index (lat, ix_ele, valid) result (ix_loc)
+! 
+! Routine to see if an element index corresponds to an element with a definite 
+! location such as an overlay or multipass element. 
+!
+! If the element is a super_lord then the super_slave element at the exit end
+! will be returned. Otherwise ix_loc will be set to ix_ele.
+!
+! Input:
+!   lat    -- Lat_struct: Lattice
+!   ix_ele -- Integer: Index of element.
+!
+!   valid  -- Logical: Set false if element does not have a definite location.
+!   ix_loc -- Integer: Location of element in the tracking part of the lat%ele(:) array.
+!-
+
+function tao_valid_datum_index (lat, ix_ele, valid) result (ix_loc)
+
+implicit none
+
+type (lat_struct) lat
+integer ix_ele, ix_loc, ixc
+logical valid
+character(40) :: r_name = 'tao_valid_datum_index'
+
+!
+
+ix_loc = ix_ele
+valid = .true.
+
+if (ix_ele < 0 .or. ix_ele > lat%n_ele_max) then
+  call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE! \i5\ ', ix_ele)
+  valid = .false.
+  return
+endif
+
+if (ix_ele <= lat%n_ele_track) return
+
+if (lat%ele(ix_ele)%control_type == super_lord$) then
+  ixc = lat%ele(ix_ele)%ix2_slave
+  ix_loc = lat%control(ixc)%ix_slave
+  return
+endif
+
+valid = .false.
+call out_io (s_error$, r_name, &
+            'ELEMENT: ' // lat%ele(ix_ele)%name, &
+            'WHICH IS A: ' // control_name(lat%ele(ix_ele)%control_type), &
+            'CANNOT BE USED IN DEFINING A DATUM SINCE IT DOES NOT HAVE ', &
+            '   A DEFINITE LOCATION IN THE LATTICE.')
+
+end function
 
 end module tao_data_mod
