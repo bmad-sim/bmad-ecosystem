@@ -1148,6 +1148,7 @@ end do
      
 ! set particle charge
 
+bunch%charge = beam_init%bunch_charge
 bunch%particle(:)%charge = beam_init%bunch_charge / beam_init%n_particle
 bunch%particle(:)%ix_lost = not_lost$
     

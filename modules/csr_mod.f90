@@ -802,18 +802,18 @@ do i = 1, csr_com%n_bin
   sg = bin%gamma * abs(dz)
   sx = bunch1%sig_x
   sy = bunch1%sig_y
-  if (sx == 0 .or. sy == 0) then
-    a = 0
-    b = 0
-  else
-    a = sx * sy * exp(((x/sx)**2 + (y/sy)**2) / 2)
-    b = bin%gamma * (sx**2 + sy**2) / (sx + sy)
-  endif
+
+  ! if x or y is large then the kick is essentially zero.
+
+  if (abs(x) >= 3 * sx .or. abs(y) >= 3 * sy) return
+
+  a = sx * sy * exp(((x/sx)**2 + (y/sy)**2) / 2)
+  b = bin%gamma * (sx**2 + sy**2) / (sx + sy)
 
   f = bunch1%charge * bin%ds_track_step / (a + b * sg + bin%gamma2 * sg**2)   
   f = f * r_e / (e_charge * bin%gamma)
 
-! If the particle position is within the bin then use a linear interpolation.
+  ! If the particle position is within the bin then use a linear interpolation.
 
   if (particle%r%vec(5) < bunch1%z0_edge) then
     particle%r%vec(6) = particle%r%vec(6) - f
