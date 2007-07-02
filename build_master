@@ -65,6 +65,8 @@
 # 47  - all builds have stopped, but some due to failure
 # 50  - svn access failed for file retrieval
 # 55  - builds ceased due to timeout
+# 60  - TAR ERROR in BMAD DISTRIBUTION
+# 65  - gzip ERROR in BMAD DISTRIBUTION
 ####################################################################
 
 # Standard modules
@@ -104,8 +106,13 @@ platform_combos = { "linuxi": ["Linux_i686",      'intel', lnx_host ],
                     "vmshp":  ["VMS_alpha" ,      'hp',     vms_host ],
                     "win":    ["CYGWIN_NT_i686", 'intel', win_host ] }
 
-repo_loc      = "https://accserv.lepp.cornell.edu/svn/"
-repo_modules  = ["util", "Gmake", "src"]
+repo_loc          = "https://accserv.lepp.cornell.edu/svn/"
+repo_modules      = ["util", "Gmake", "src"]
+bmad_dist_modules = ["util", "Gmake", "documents", "src/include", "src/bmad", "src/dcslib",
+                       "src/recipes_f-90_LEPP", "src/cesr_utils", "packages/forest",
+                       "packages/PGPLOT", "packages/xsif", "examples/twiss_track_test", #change ttt soon?
+                       "src/bmadz", "src/toad", "src/tao", "src/bsim", "src/ilcv"]
+
 # Have this list pushed to the build_serf script, and the Makefile instead of manually synchronizing them?
 pkg_modules   = ["cfortran", "forest", "num_recipes/recipes_f-90", "num_recipes/recipes_c-ansi", "xsif", "PGPLOT", "xerces"]
 # Work out how to sync this list with the pkg build list in the M.release makefile... keeping them sync'd manually is not so hot.
@@ -116,7 +123,7 @@ ranks         = {0 : "Isolated", 1 : "Periodic (w/ rotation)"}
 release       = ""
 revision      = 0
 build_release = 1              # default to building a CESR release only
-bmad_dist     = 0
+bmad          = 0
 bmad_name     = "none"
 custom_relflag= 0              # flag system to allow three cmd-line possibilities; pkg, rel, or both
 rel_name      = "none"
@@ -131,6 +138,8 @@ win           = 0              # |
 dump          = 1              # Dump a list of all the key configuration parameters used in this script
 show_status   = 1              # Flag to indicate if periodic status updates of all the remote builds will be shown during execution
 nightly       = 0              # Build is a nightly.  If successful, this will delete the previously-built release.
+rotate        = 0              # EXPERIMENTAL: if -rotate flag given, ATTEMPT a DEVEL rotation IF certain repository
+                               #               characteristics are present. i.e. commits in critical areas in last X days.
 prec          = "DBL"         # precision flag
 rank          = 0
 #isolated_build= "NO"
@@ -198,7 +207,7 @@ for opt in sys.argv:
     custom_pkgflag      = 1
     build_packages      = 0  # no packages builds simultaneous with release builds
   elif opt == "-bmad":
-    bmad_dist           = 1
+    bmad                = 1
     build_release       = 0
   elif opt == "-build_only":
     checkout            = "NO"                # WAS do_checkout
@@ -255,7 +264,7 @@ for opt in sys.argv:
 
 if custom_pkgflag and not custom_relflag:             # accomodate an isolated packages build
   build_release = 0
-rquant = lnx*2 + osf + vms + win                      # tally of releases to build
+rquant = lnx*2 + osf + vms + win + bmad               # tally of releases to build
 if rquant == 0:
   print "You have not requested any releases to be built."
   print "Specify at least one platform flag on the command line."
@@ -329,18 +338,18 @@ def get_build_name (type, initial_name):
   build_name = initial_name
   build_list    = []
   if type == "RELEASE":
-    print "Release requested"
+    #print "Release requested"
     prefix = rel_prefix
   elif type == "PACKAGES":
-    print "Pakcages requested"
+    #print "Pakcages requested"
     prefix = pkg_prefix
   elif type == "BMAD DISTRIBUTION":
-    print "Bmad distribution requested"
+    #print "Bmad distribution requested"
     prefix = bmad_prefix
 
-  print "build name : " + build_name
+  #print "build name : " + build_name
   full_logname_to_test = libs_dir + '/log/' + build_name + '.genlog'
-  print full_logname_to_test
+  #print "full logname to test: " + full_logname_to_test
 
   if build_name == "":                    # if the command line was messed up, inform and abort
     print "Build name not specified."
@@ -351,13 +360,19 @@ def get_build_name (type, initial_name):
     print "\nNote: If no release name is provided, a unique one guaranteed to work will be"
     print "generated automatically.\n"
     sys.exit(15)
-  elif build_name == "none":             # otherwise, a name was not specified, so proceed with unique name generation  
+  elif build_name == "none":             # otherwise, a name was not specified, so proceed with unique name generation
+    print "NONEtest build_name: " + build_name
+    print "basename: " + basename
     basename = prefix + '_' + datecode + '_' + prec.lower()[0]  # unadorned 1st iteration generated name
+    print "new basename: " + basename
     build_already_exists = 0
     for plat in platform_combos:          # check if the name already exists in any platform area
       #print libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
       full_buildname = libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
-      if os.path.exists(full_buildname):
+      #print "full buildname: " + full_buildname
+      if os.path.exists("/nfs/acc/libs/distribution/" + basename) and type == "BMAD DISTRIBUTION":
+        build_already_exists = 1
+      elif os.path.exists(full_buildname):
         build_already_exists = 1
     if build_already_exists:              # if it does, make it okay by appending a unique suffix
       #print "Build already exists"
@@ -532,6 +547,7 @@ class builder:
       cmd = ""
       time.sleep(3)
       print "Spawned build process with PID : " + str(self.PID) + '\n'      
+
       
     ####################################################################################  
     if self.build_type == "RELEASE":
@@ -566,16 +582,80 @@ class builder:
       cmd = ""
       time.sleep(3)
       print time.asctime() + " -- Spawned build process with PID : " + str(self.PID) + '\n'
+
+      
     #####################################################################################  
     if self.build_type == "BMAD DISTRIBUTION":
       print "Check out code for bmad distribution\n"
 
       self.base_dir = "/home/cesrulib/distribution"
-      self.full_rel_name    = self.base_dir
-      self.full_rel_logfile = self.base_dir + "/log/" + self.platform
+      self.full_rel_name    = self.base_dir + '/' + self.rel_name
+      self.full_rel_logfile = self.base_dir + "/log/" + self.rel_name + ".log"
 
-      print "Build bmad dist here.\n"      
+      __param_list.append("Full Release name  : " + self.full_rel_name + '\n')
+      __param_list.append("Config Dir         : " + self.full_rel_name + "/config\n")
+      __param_list.append("--> BUILD STATUS: HANDING CONTROL TO REMOTE SUBSCRIPT\n")
 
+      self.rlog = open(self.full_rel_logfile, "w")
+      self.rlog.writelines( __param_list )
+      self.rlog.close()
+
+      # Perform the actual checkout using a call to the SVN client
+      os.mkdir(self.full_rel_name)
+      os.chdir(self.full_rel_name)
+      for module in bmad_dist_modules:
+        print "Retrieving module " + module
+        svn_cmd = "svn co "+repo_loc+'/'+branch.lower()+'/'+module+"@"+str(self.rev)
+ 
+        svnlines = os.popen(svn_cmd).readlines()
+        for line in svnlines:
+          __lines.append(line)
+      if print_co:
+        for line in __lines:
+          sys.stdout.write(line, 4)    # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
+      self.lines = []
+
+      ## Create the distribution source tarball
+      print "\nCreating distribution tarball..."
+      os.chdir(self.base_dir) # possibly not needed.
+      print "Current dir: " + os.getcwd()
+      tar_cmd_list = ["tar", "-cvf", self.rel_name+".tar", "./"+self.rel_name]
+      #print tar_cmd_list
+      t       = sub.Popen(tar_cmd_list, cwd=self.base_dir)
+      t_rcode = t.wait()
+      print "TAR retcode: " + str(t_rcode)
+      if t_rcode != 0:
+        print "ERROR during TAR operation!  Quitting."
+        sys.exit(60)
+        
+      print "Compressing tar file..."
+      gzip_cmd_list = ["gzip", "-v", self.full_rel_name+".tar"]
+      #print gzip_cmd_list
+      t       = sub.Popen(gzip_cmd_list, cwd=self.base_dir)
+      t_rcode = t.wait()
+      print "GZIP retcode: " + str(t_rcode)
+      if t_rcode != 0:
+        print "ERROR during gzip operation!  Quitting."
+        sys.exit(65)
+        
+
+      ## REMOTE-EXECUTE build process
+      print "Spawning build process..."
+      #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_rel_logfile)
+      print "Build bmad dist here.\n"
+      # Build it locally, don't use the build_serf script, have all log output in the genlog file?
+      cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_rel_logfile +"\""
+      self.PID = sub.Popen(cmd , shell=True).pid
+      cmd = ""
+      time.sleep(3)
+      print time.asctime() + " -- Spawned build process with PID : " + str(self.PID) + '\n'
+
+
+
+
+
+
+    ##########################################
 
   def status(self):    ## return the value of the most recently-stamped status message in logfile passed to this method
     build_status = 0
@@ -583,6 +663,8 @@ class builder:
       file_to_check = self.full_rel_logfile
     elif self.build_type == "PACKAGES":
       file_to_check = self.full_pkg_logfile
+    elif self.build_type == "BMAD DISTRIBUTION":
+      file_to_check = self.full_rel_logfile
       
     self.lq = open(file_to_check, "r")
     self.qline = self.lq.readline()
@@ -625,7 +707,7 @@ elif build_packages:
   build_name  = get_build_name(build_type, pkg_name)
   pkg_name    = build_name
   release_names = (rel_name, pkg_name)
-elif bmad_dist:
+elif bmad:
   build_type  = "BMAD DISTRIBUTION"
   build_name  = get_build_name(build_type, bmad_name)
   rel_name    = build_name
@@ -690,7 +772,11 @@ if space_free <= space_needed:
 #== This starts the build processes on their respective hosts. Also only prints out the
 #== svn list of files being checked out a single time to reduce clutter in genlog file.   LOOP HERE for generality?
 print_co = True      # flag to allow only the first build initiated to print its checkout list, preventing redundancy of output
-if build_type == "PACKAGES" or build_type == "RELEASE" or build_type == "BMAD DISTRIBUTION":
+if build_type == "BMAD DISTRIBUTION":
+  t_begin_LIN = time.time()
+  LINBUILD = builder(release_names, revision, build_type,"linuxi", print_co, stout) 
+
+if build_type == "PACKAGES" or build_type == "RELEASE":
   if lnx:
     t_begin_LIN = time.time()
     LINBUILD = builder(release_names, revision, build_type,"linuxi", print_co, stout)  # Initialize a builder object for given platform.
@@ -706,123 +792,141 @@ if build_type == "PACKAGES" or build_type == "RELEASE" or build_type == "BMAD DI
     t_WIN    = int(time.time())
     WINBUILD = builder(release_names, revision, build_type, "win", print_co, stout)
 
-  ##  Package phase initiation complete here.
-  loop             = 0
-  max_loops        = 450
-  complete_fraction= 0.0
-  complete_tally   = 0
-  error_fraction   = 0.0
-  error_fraction   = 0
-  error_tally      = 0
-  lin_donelatch    = 0
-  lla_donelatch    = 0
-  osf_donelatch    = 0
-  vms_donelatch    = 0
-  t_end_LIN        = 0
-  t_end_LLA        = 0
-  t_end_OSF        = 0
-  t_end_VMS        = 0
-  elapsed          = 0
+##  Package phase initiation complete here.
+loop             = 0
+max_loops        = 450
+complete_fraction= 0.0
+complete_tally   = 0
+error_fraction   = 0.0
+error_fraction   = 0
+error_tally      = 0
+lin_donelatch    = 0
+lla_donelatch    = 0
+osf_donelatch    = 0
+vms_donelatch    = 0
+t_end_LIN        = 0
+t_end_LLA        = 0
+t_end_OSF        = 0
+t_end_VMS        = 0
+elapsed          = 0
 
-  ####
-  print "Waiting for builds to fully initiate."
-  time.sleep(60)       # Long wait here to allow OSF1 builds to eventually dump the output of the
-  if not show_status:  # gmake call to a file for status parsing. Buffer clearing is slow or something.
-    print "Builds initiated.  Status output supressed.  This will take a while.\n"
-  ####
+####
+print "Waiting for builds to fully initiate."
+time.sleep(60)       # Long wait here to allow OSF1 builds to eventually dump the output of the
+if not show_status:  # gmake call to a file for status parsing. Buffer clearing is slow or something.
+  print "Builds initiated.  Status output supressed.  This will take a while.\n"
+####
 
-  while complete_fraction < 1 and loop < max_loops: 
-    error_fraction    = 0
-    error_tally       = 0
+while complete_fraction < 1 and loop < max_loops: 
+  error_fraction    = 0
+  error_tally       = 0
+  if show_status:
+    t_cur_master = int(time.time())
+    print "\n\nBuild status info:   (loop " + str(loop) + ")"
+    print "  %i hr %i min %i sec elapsed" % seconds_to_HMS(t_cur_master - t_begin_master)
+    print "----------------------------------------"
+
+  if lnx:
+    lin_stat = LINBUILD.status()
+    lla_stat = LLABUILD.status()
+    #===Check if Intel is done==============
+    if lin_stat > 0 and lin_donelatch == 0:
+      complete_tally = complete_tally + 1
+      t_end_LIN = int(time.time() )
+      lin_donelatch = 1
+    elif lin_stat < 0:
+      error_tally = error_tally + 1
+    #===Check if Lahey is done==============
+    if lla_stat > 0 and lla_donelatch == 0:
+      complete_tally = complete_tally + 1
+      t_end_LLA = int(time.time() )
+      lla_donelatch = 1
+    elif lla_stat < 0:
+      error_tally = error_tally + 1
     if show_status:
-      t_cur_master = int(time.time())
-      print "\n\nBuild status info:   (loop " + str(loop) + ")"
-      print "  %i hr %i min %i sec elapsed" % seconds_to_HMS(t_cur_master - t_begin_master)
-      print "----------------------------------------"
+      print "  Linux Intel : (" + str( lin_stat ) + ') ' + statuses[lin_stat]
+      print "  Linux Lahey : (" + str( lla_stat ) + ') ' + statuses[lla_stat]
 
-    if lnx:
-      lin_stat = LINBUILD.status()
-      lla_stat = LLABUILD.status()
-      #===Check if Intel is done==============
-      if lin_stat > 0 and lin_donelatch == 0:
-        complete_tally = complete_tally + 1
-        t_end_LIN = int(time.time() )
-        lin_donelatch = 1
-      elif lin_stat < 0:
-        error_tally = error_tally + 1
-      #===Check if Lahey is done==============
-      if lla_stat > 0 and lla_donelatch == 0:
-        complete_tally = complete_tally + 1
-        t_end_LLA = int(time.time() )
-        lla_donelatch = 1
-      elif lla_stat < 0:
-        error_tally = error_tally + 1
-      if show_status:
-        print "  Linux Intel : (" + str( lin_stat ) + ') ' + statuses[lin_stat]
-        print "  Linux Lahey : (" + str( lla_stat ) + ') ' + statuses[lla_stat]
 
+  if bmad:
+    lin_stat = LINBUILD.status()
+    #===Check if Intel is done==============
+    if lin_stat > 0 and lin_donelatch == 0:
+      complete_tally = complete_tally + 1
+      t_end_LIN = int(time.time() )
+      lin_donelatch = 1
+    elif lin_stat < 0:
+      error_tally = error_tally + 1
+    #===Check if Lahey is done==============
+    #if lla_stat > 0 and lla_donelatch == 0:
+    #  complete_tally = complete_tally + 1
+    #  t_end_LLA = int(time.time() )
+    #  lla_donelatch = 1
+    #elif lla_stat < 0:
+    #  error_tally = error_tally + 1
+    if show_status:
+      print "  Linux(bmad) Intel : (" + str( lin_stat ) + ') ' + statuses[lin_stat]
+    #  print "  Linux Lahey : (" + str( lla_stat ) + ') ' + statuses[lla_stat]
+      
         
-    if osf:                        
-      osf_stat = OSFBUILD.status()
-      #===Check if HP is done=================
-      if osf_stat > 0 and osf_donelatch == 0:
-        complete_tally = complete_tally + 1
-        t_end_OSF = int(time.time())
-        osf_donelatch = 1
-        # Put call to VMS builder here, it will check out, and then this will copy OSF deps over.
-        if vms:
-          print ""
-          VMSBUILD = builder(build_names, revision, build_type, "vmshp", print_co, stout)
-          time.sleep(20)  # is this needed?
-      elif osf_stat < 0:
-        error_tally = error_tally + 1
-      if show_status:
-        print "  OSF1   HP   : (" + str( osf_stat ) + ') ' + statuses[osf_stat]
-        if vms and osf_donelatch == 0:   # if VMS release is to be prepared and OSF is still running
-          print "  VMS    HP   : (0) WAITING for OSF1"
+  if osf:                        
+    osf_stat = OSFBUILD.status()
+    #===Check if HP is done=================
+    if osf_stat > 0 and osf_donelatch == 0:
+      complete_tally = complete_tally + 1
+      t_end_OSF = int(time.time())
+      osf_donelatch = 1
+      # Put call to VMS builder here, it will check out, and then this will copy OSF deps over.
+      if vms:
+        print ""
+        VMSBUILD = builder(release_names, revision, build_type, "vmshp", print_co, stout)
+        time.sleep(20)  # is this needed?
+    elif osf_stat < 0:
+      error_tally = error_tally + 1
+    if show_status:
+      print "  OSF1   HP   : (" + str( osf_stat ) + ') ' + statuses[osf_stat]
+      if vms and osf_donelatch == 0:   # if VMS release is to be prepared and OSF is still running
+        print "  VMS    HP   : (0) WAITING for OSF1"
 
 
     # VMS build depends on successful OSF build
-    if vms and osf_donelatch:   # if VMS release is to be prepared AND OSF is done building
-      vms_stat = VMSBUILD.status()
-      if vms_stat > 0 and vms_donelatch == 0:  # if VMS preparations have completed
-        complete_tally = complete_tally + 1
-        t_end_VMS = int(time.time())
-        vms_donelatch = 1
-      if show_status:
-        print "  VMS    HP  status  : (" + str(vms_stat) + ") PREPARING TO TRANSFER"
+  if vms and osf_donelatch:   # if VMS release is to be prepared AND OSF is done building
+    vms_stat = VMSBUILD.status()
+    if vms_stat > 0 and vms_donelatch == 0:  # if VMS preparations have completed
+      complete_tally = complete_tally + 1
+      t_end_VMS = int(time.time())
+      vms_donelatch = 1
+    if show_status:
+      print "  VMS    HP  status  : (" + str(vms_stat) + ") PREPARING TO TRANSFER"
       
     
-    complete_fraction = complete_tally / float(rquant)
-    error_fraction    = error_tally / float(rquant)
+  complete_fraction = complete_tally / float(rquant)
+  error_fraction    = error_tally / float(rquant)
 
-    #if show_status:
-    #  print "Completion percentage: %" + str(int(complete_fraction*100))
+  if complete_fraction == 1.0:
+    print "\n" + time.asctime() + " All Builds completed successfully.\n"
+    break
 
-    if complete_fraction == 1.0:
-      print "\n" + time.asctime() + " All Builds completed successfully.\n"
-      break
+  if error_fraction == 1.0:
+    print "All builds have failed.  Stopping."
+    sys.exit(45)
 
-    if error_fraction == 1.0:
-      print "All builds have failed.  Stopping."
-      sys.exit(45)
+  if (complete_tally + error_tally) == rquant:
+    print "All builds have ceased, with some due to failure."
+    sys.exit(47)
 
-    if (complete_tally + error_tally) == rquant:
-      print "All builds have ceased, with some due to failure."
-      sys.exit(47)
-
-    if (loop == max_loops):
-      print "Builds have ceased due to timeout!"
-      sys.exit(55)
+  if (loop == max_loops):
+    print "Builds have ceased due to timeout!"
+    sys.exit(55)
       
-    #if complete_fraction == 1.0:
-    #  print "all_complete after loop: "+ str(complete_fraction)
+  if loop < 10:
+    time.sleep(5)
+  else:
+    time.sleep(30)
+  loop = loop + 1
+  
+##End while loop [ while complete_fraction < 1 and loop < max_loops: ]
 
-    if loop < 10:
-      time.sleep(5)
-    else:
-      time.sleep(30)
-    loop = loop + 1
 
 
 ##== Build has completed successfully, compute and summarize relevant statistics ==========================================
@@ -832,6 +936,8 @@ print "============================ Time summary: ==============================
 if lnx:
   print "Linux intel build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LIN - t_begin_LIN)
   print "Linux lahey build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LLA - t_begin_LLA)
+if bmad:
+  print "Linux (bmad) intel build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LIN - t_begin_LIN)
 if osf:
   print "OSF1 alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_end_OSF - t_begin_OSF)
 if vms:

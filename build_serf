@@ -22,6 +22,7 @@ full_rel_name = "none"
 branch        = ""
 build_args    = []
 errors        = 0
+dist_web_dir  = "/home/cesrulib/public_html/downloads/tarballs"
 
 if len(sys.argv) != 2:
     print "[build_serf] Incorrect number of arguments provided."
@@ -36,48 +37,49 @@ logfile = open(logname, "r")         # Open logfile to read variables from heade
 lines = logfile.readlines()
 for line in lines:
     if line[0:10] == "Build Type":   # B/c of no find on older 1.5 Python on OSF1.  
-        #build_type = line.split(':')[1].strip()
-        build_type = line[21:-1]
+        build_type = line.split(':')[1].strip()
+        #build_type = line[21:-1]
     if line[0:8]  == "Platform":
         platform   = line[21:-1]
     if line[0:12] == "F90 Compiler":
-        #f90        = line.split(':')[1].strip()
-        f90        = line[21:-1]
+        f90        = line.split(':')[1].strip()
+        #f90        = line[21:-1]
     if line[0:15] == "Float Precision":
-        #precision  = line.split(':')[1].strip()
-        precision  = line[21:-1]
+        precision  = line.split(':')[1].strip()
+        #precision  = line[21:-1]
         if precision == "double":
             precision = "DBL"
         else:
             precison = "SGL"
     if line[0:8] == "Revision":
-        #revision   = line.split(':')[1].strip()
-        revision   = line[21:-1]
+        revision   = line.split(':')[1].strip()
+        #revision   = line[21:-1]
     if line[0:10] == "Build Host":
-        #build_host = line.split(':')[1].strip()
-        build_host = line[21:-1]
+        build_host = line.split(':')[1].strip()
+        #build_host = line[21:-1]
     if line[0:18] == "Full Packages name":
-        #full_pkg_name = line.split(':')[1].strip()
-        full_pkg_name = line[21:-1]
+        full_pkg_name = line.split(':')[1].strip()
+        #full_pkg_name = line[21:-1]
     if line[0:17] == "Full Release name":
-        #full_rel_name = line.split(':')[1].strip()
-        full_rel_name = line[21:-1]
+        full_rel_name = line.split(':')[1].strip()
+        #full_rel_name = line[21:-1]
     if line[0:12] == "Link against":
-        #pkg_name = line.split(':')[1].strip()
-        pkg_name = line[21:-1]
+        pkg_name = line.split(':')[1].strip()
+        #pkg_name = line[21:-1]
     if line[0:16] == "Build System Dir":
-        #build_sys_dir = line.split(':')[1].strip()
-        build_sys_dir = line[21:-1]
+        build_sys_dir = line.split(':')[1].strip()
+        #build_sys_dir = line[21:-1]
     if line[0:17] == "Repository branch":
-        #branch = line.split(':')[1].strip()
-        branch = line[21:-1]
+        branch = line.split(':')[1].strip()
+        #branch = line[21:-1]
     if line[0:7] == "Bin dir":
-        #bin_dir = line.split(':')[1].strip()
-        bin_dir = line[21:-1]
+        bin_dir = line.split(':')[1].strip()
+        #bin_dir = line[21:-1]
     if line[0:10] == "Config Dir":
-        #config_dir = line.split(':')[1].strip()
-        config_dir = line[21:-1]
+        config_dir = line.split(':')[1].strip()
+        #config_dir = line[21:-1]
     if line [0:14] == "Run test suite":
+        run_tests = line.split(':')[1].strip()
         run_tests = line[21:-1]
 
 logfile.close()                            # Done with input parameter parsing. Close logfile.
@@ -90,14 +92,18 @@ print sys.version           # dump Python version to platform logfile.
 
 print "\nSuccessfully launched remote build process.\n"
 
-cesrdefs = ". " + bin_dir + "/cesrdefs; "               # command to source the cesrdefs:cesrenv environment setup scripts 
+cesrdefs  = ". " + bin_dir + "/cesrdefs; "               # command to source the cesrdefs:cesrenv environment setup scripts
+bmad_defs = ". " + bin_dir + "/bmad_defs; "
 env_setup3 = ""
 test_script = bin_dir + "/util/CESRbuild_test_suite"
+
 
 build_args.append("PACKAGE_NAME="+pkg_name)
 build_args.append(" CESR_PRECISION=_"+precision)
 build_args.append(" CHECKOUT=\"\"")
 build_args.append(" BUILD=\"do_build\"")    # Common options to be passed to makefile, regardless of packages or release
+
+## Build-type command customization
 
 if build_type == "PACKAGES":  # make gets slightly different args depending on type
     build_args.append(" DO_PKG=1")
@@ -105,6 +111,10 @@ if build_type == "PACKAGES":  # make gets slightly different args depending on t
     #env_setup2 = " export CESR_GMAKE="+build_sys_dir + " ; export CESR_UTIL=" + bin_dir + "/util; "
     env_setup2 = " CESR_GMAKE="+build_sys_dir + "; CESR_UTIL=" + bin_dir + "/util; "
     #env_setup2 = " XERCESCROOT="+full_pkg_name+"/xerces; export XERCESCROOT; CESR_GMAKE="+build_sys_dir + " ; CESR_UTIL=" + bin_dir + "/util; "
+    build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
+    for arg in build_args:
+        build_cmd = build_cmd + arg                  # compose build command by appending the options determined above
+
 
 if build_type == "RELEASE":
     build_args.append(" DO_REL=1")
@@ -125,11 +135,28 @@ if build_type == "RELEASE":
     env_setup1 = " CESRLIB=" + rel_name + "; CESRF90=" + f90 +'; '
     env_setup2 = ""
     #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 CESR_PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
-    #build_cmd = env_setup + "make -f " + build_sys_dir + "/M.release " + build_args + "; echo $PATH"
+    #build_cmd = env_setup + "make -f " + build_sys_dir + "/M.release " + build_args + "; echo $PATH"    
+    build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
+    for arg in build_args:
+        build_cmd = build_cmd + arg                  # compose build command by appending the options determined above
 
-build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
-for arg in build_args:
-    build_cmd = build_cmd + arg                  # compose build command by appending the options determined above
+
+if build_type == "BMAD DISTRIBUTION":
+    print "IN BUILD_SERF... BMAD"
+    os.chdir(full_rel_name)
+    print "Changing directory to: " + os.getcwd()
+    env_setup1 = " CESRF90=" + f90 + "; BMAD_="+full_rel_name + '; '  # Set BMAD_ var before invoking bmad_defs
+    #env_setup2 = " BMAD_="+full_rel_name + '; '
+    env_setup2 = ""
+    print "env_setup2: " + env_setup2
+    build_cmd = env_setup1 + bmad_defs + env_setup2 + "gmake -f" + build_sys_dir + "/M.distribution "
+    for arg in build_args:
+        build_cmd = build_cmd + arg
+
+    
+## END Build-type command customization
+    
+
 
 #print build_cmd
 print ""
@@ -139,6 +166,7 @@ print "--> BUILD STATUS: BUILDING"
 ##  Works for recent pythons, Popen4 does not exist on OSF1 1.5 python!
 #if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
 if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform == "OSF1_alpha_hp":
+    print build_cmd
     build_process = popen2.Popen4(build_cmd)
     pid = build_process.pid
     line = build_process.fromchild.readline()
@@ -174,7 +202,11 @@ if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform 
             #o while tline:
             #o     print tline.strip()
             #o     tline = test_process.fromchild.readline()
-        print "--> BUILD STATUS: COMPLETE!"       
+        print "--> BUILD STATUS: COMPLETE!"
+        if build_type == "BMAD DISTRIBUTION":   # if build completes successfully,
+            shutil.copy(full_rel_name+".tar.gz", dist_web_dir) # copy tarball to dist web page
+
+
 
 if platform == "VMS_alpha_hp": #assumes files and dependencies generated and in place from OSF process (tighten all this up.)
     if build_type == "RELEASE":
@@ -202,6 +234,7 @@ if platform == "VMS_alpha_hp": #assumes files and dependencies generated and in 
         shutil.copytree(OSF_reldir + "/config", full_rel_name + "/config")
         build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_rel_name) # FTP upload to VMS cluster
         print "--> BUILD STATUS: COMPLETE!"
+
 
     if build_type == "PACKAGES":
         OSF_pkgdir = full_pkg_name.replace("VMS_alpha_hp", "OSF1_alpha_hp")
@@ -236,7 +269,7 @@ if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
     os.system("chmod -R g+w " + config_dir)
 
 ## Create the 'database' of files and functions.
-if build_type == "RELEASE":
+if build_type == "RELEASE" or build_type == "BMAD DISTRIBUTION":
     os.chdir(full_rel_name)
     os.system(bin_dir + "/create_fdb.pl")
 
