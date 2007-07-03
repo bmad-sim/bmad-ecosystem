@@ -1,10 +1,10 @@
-! BMAD input file                                                               
+! BMAD input file
 !+
 ! Tue Jul  3 11:34:53 2007 => Documented by latdoc.
 ! Beam energy is  5.289 GeV
 ! 	 Qx	 Qy	 Fx	 Fy	 Emitt(nm rad)
-! e+	 10.30	 9.56	 117.0	 217.6	 149.7	
-! e-	 0.31	 0.55	 121.8	 215.3	 114.2	
+! e+	 10.30	 9.56	 117.0	 217.6	 149.7
+! e-	 0.31	 0.55	 121.8	 215.3	 114.2
 !
 !  Bx* 	 By*	 Eta*	Alphax*	Alphay*	 Eta'*	 Cr_ang(mrad)
 !  1.38	 0.0273	 0.510	 0.143	-0.141	 0.068	-2.458
@@ -42,22 +42,22 @@ lattice=CHESS_20070619
  call, file=BMAD_LAYOUT:layout_antisol_2007_02_27_19kg.bmad
                                                                                 
                                                                                 
-!Turn off wigglers:                                                             
-call, file=BMAD_LAYOUT:12wig_off.bmad                                           
+!Turn off wigglers:
+call, file=BMAD_LAYOUT:12wig_off.bmad
                                                                                 
-! cleo solenoid                                                                 
+! cleo solenoid
                                                                                 
-beam, energy =   5.28900                                                        
-solenoid_tesla = 1.0                                                            
-ks_solenoid    = -1.0e-9 * clight * solenoid_tesla / beam[energy]               
-cleo_sol: solenoid, l = 3.51, ks = ks_solenoid, superimpose                     
-! element attributes                                                            
+beam, energy =   5.28900
+solenoid_tesla = 1.0
+ks_solenoid    = -1.0e-9 * clight * solenoid_tesla / beam[energy]
+cleo_sol: solenoid, l = 3.51, ks = ks_solenoid, superimpose
+! element attributes
                                                                                 
-sc_q01W[K1]=  -2.277500                                                         
-sc_q01E[K1]=  -2.277500                                                         
+sc_q01W[K1]=  -2.277500
+sc_q01E[K1]=  -2.277500
                                                                                 
-sc_q02W[K1]=   1.318630                                                         
-sc_q02E[K1]=   1.318630                                                         
+sc_q02W[K1]=   1.318630
+sc_q02E[K1]=   1.318630
                                                                                 
  Q03W[k1]= -0.216014
  Q04W[k1]=  0.446459
@@ -161,177 +161,177 @@ sc_q02E[K1]=   1.318630
  Q04E[k1]=  0.440177
  Q03E[k1]= -0.221124
                                                                                 
-!-----------------------------------------------------                          
-! overlays                                                                      
+!-----------------------------------------------------
+! overlays
                                                                                 
                                                                                 
-sk_q02W[K1]=  -0.044534                                                         
-sk_q02E[K1]=   0.044534                                                         
-SK_Q03W[K1]=  -0.044534                                                         
-SK_Q03E[K1]=   0.044534                                                         
+sk_q02W[K1]=  -0.044534
+sk_q02E[K1]=   0.044534
+SK_Q03W[K1]=  -0.044534
+SK_Q03E[K1]=   0.044534
                                                                                 
-sc_sk_q02W[K1]=   0.080075                                                      
-sc_sk_q02E[K1]=   0.080075                                                      
-sc_sk_q01W[K1]=  -0.000100                                                      
-sc_sk_q01E[K1]=  -0.000100                                                      
-                                                                                
-                                                                                
-                                                                                
-!-----------------------------------------------------                          
-                                                                                
-SK_Q04W[k1]=  0.0                                                               
-SK_Q04E[K1]=  0.0                                                               
-                                                                                
-H_SEP_08W[HKICK] =   0.0E-04                                                
-H_SEP_08E[HKICK] =   0.0E-04                                                
-h_sep_45W[HKICK]=  -0.00065                                                  
-h_sep_45E[HKICK]=   0.00065                                                  
-v_sep_48W[VKICK]=   0.00                                                  
-v_sep_48E[VKICK]=   0.00                                                  
-                                                                                
-!! wig_w[k1] = -0.0592 / beam[energy]^2   ! use average to maintain E/W symm    
-!! wig_e[k1] = -0.0592 / beam[energy]^2                                         
-                                                                                
-k1_00 = -9.57309 / beam[energy]                                                 
-                                                                                
-Q00W[K1] =  k1_00 ; Q00E[K1] = Q00W[K1]                                         
+sc_sk_q02W[K1]=   0.080075
+sc_sk_q02E[K1]=   0.080075
+sc_sk_q01W[K1]=  -0.000100
+sc_sk_q01E[K1]=  -0.000100
                                                                                 
                                                                                 
-XQUNE1 : group={ &                                                              
-SEX_09W,SEX_09E,SEX_11W,SEX_11E,SEX_13W,SEX_12E,SEX_14W,SEX_14E, &              
-SEX_17W,SEX_17E,SEX_19W,SEX_19E,SEX_21W,SEX_21E,SEX_23W,SEX_23E, &              
-SEX_25W,SEX_25E,SEX_27W,SEX_27E,SEX_29W,SEX_29E,SEX_31W,SEX_31E, &              
-SEX_33W,SEX_33E,SEX_35W,SEX_35E,SEX_37W,SEX_37E,SEX_39W,SEX_39E, &              
-SEX_41W,SEX_41E,SEX_43W,SEX_43E,SEX_44W,SEX_44E}, K2                            
                                                                                 
-XQUNE2 : group={ &                                                              
-SEX_08W,SEX_08E,SEX_10W,SEX_10E,SEX_12W,SEX_12E,SEX_14W,SEX_14E, &              
-SEX_16W,SEX_16E,SEX_18W,SEX_18E,SEX_20W,SEX_20E,SEX_22W,SEX_22E, &              
-SEX_24W,SEX_24E,SEX_26W,SEX_26E,SEX_28W,SEX_28E,SEX_30W,SEX_30E, &              
-SEX_32W,SEX_32E,SEX_34W,SEX_34E,SEX_36W,SEX_36E,SEX_38W,SEX_38E, &              
-SEX_40W,SEX_40E,SEX_42W,SEX_42E,SEX_45W,SEX_45E}, K2                            
+!-----------------------------------------------------
+                                                                                
+SK_Q04W[k1]=  0.0
+SK_Q04E[K1]=  0.0
+                                                                                
+H_SEP_08W[HKICK] =   0.0E-04
+H_SEP_08E[HKICK] =   0.0E-04
+h_sep_45W[HKICK]=  -0.00065
+h_sep_45E[HKICK]=   0.00065
+v_sep_48W[VKICK]=   0.00
+v_sep_48E[VKICK]=   0.00
+                                                                                
+!! wig_w[k1] = -0.0592 / beam[energy]^2   ! use average to maintain E/W symm
+!! wig_e[k1] = -0.0592 / beam[energy]^2
+                                                                                
+k1_00 = -9.57309 / beam[energy]
+                                                                                
+Q00W[K1] =  k1_00 ; Q00E[K1] = Q00W[K1]
+                                                                                
+                                                                                
+XQUNE1 : group={ &
+SEX_09W,SEX_09E,SEX_11W,SEX_11E,SEX_13W,SEX_12E,SEX_14W,SEX_14E, &
+SEX_17W,SEX_17E,SEX_19W,SEX_19E,SEX_21W,SEX_21E,SEX_23W,SEX_23E, &
+SEX_25W,SEX_25E,SEX_27W,SEX_27E,SEX_29W,SEX_29E,SEX_31W,SEX_31E, &
+SEX_33W,SEX_33E,SEX_35W,SEX_35E,SEX_37W,SEX_37E,SEX_39W,SEX_39E, &
+SEX_41W,SEX_41E,SEX_43W,SEX_43E,SEX_44W,SEX_44E}, K2
+                                                                                
+XQUNE2 : group={ &
+SEX_08W,SEX_08E,SEX_10W,SEX_10E,SEX_12W,SEX_12E,SEX_14W,SEX_14E, &
+SEX_16W,SEX_16E,SEX_18W,SEX_18E,SEX_20W,SEX_20E,SEX_22W,SEX_22E, &
+SEX_24W,SEX_24E,SEX_26W,SEX_26E,SEX_28W,SEX_28E,SEX_30W,SEX_30E, &
+SEX_32W,SEX_32E,SEX_34W,SEX_34E,SEX_36W,SEX_36E,SEX_38W,SEX_38E, &
+SEX_40W,SEX_40E,SEX_42W,SEX_42E,SEX_45W,SEX_45E}, K2
 
 
 sexh=.45e+00
-sexv=-.82e+00                                                                                
+sexv=-.82e+00
 !
-!SEX_08 : overlay = {SEX_08W, SEX_08E}, K2 = -1.10926E-01 
-SEX_08W[K2]:=  SEXH                                                                          
-SEX_08E[K2]:=  sexh                                                                          
-!SEX_09 : overlay = {SEX_09W, SEX_09E}, K2 = -5.77385E-02 
-SEX_09W[K2]:= sexv                                                                          
-SEX_09E[K2]:= sexv                                                                       
-!SEX_10 : overlay = {SEX_10W, SEX_10E}, K2 =  4.02282E-01 
-SEX_10W[K2]:=  sexh                                                                     
-SEX_10E[K2]:=  sexh                                                                    
-!SEX_11 : overlay = {SEX_11W, SEX_11E}, K2 =  7.89151E-01 
-SEX_11W[K2]:= sexv                                                                          
-SEX_11E[K2]:= sexv                                                                       
-!SEX_12 : overlay = {SEX_12W, SEX_12E}, K2 =  2.29206E+00 
-SEX_12W[K2]:=  sexh                                                                     
-SEX_12E[K2]:=  sexh                                                                    
-!SEX_13 : overlay = {SEX_13W, SEX_13E}, K2 = -1.98423E+00 
-SEX_13W[K2]:= sexv                                                                          
-SEX_13E[K2]:= SEXV                                                                          
-!SEX_14 : overlay = {SEX_14W, SEX_14E}, K2 =  7.14497E-01 
-SEX_14W[K2]:= sexh                                                                         
-SEX_14E[K2]:= sexh                                                                         
-!SEX_15 : overlay = {SEX_15W, SEX_15E}, K2 = -2.01689E+00 
-SEX_15W[K2]:= sexv                                                                          
-SEX_15E[K2]:= SEXV                                                                          
-!SEX_16 : overlay = {SEX_16W, SEX_16E}, K2 =  1.02182E+00 
-SEX_16W[K2]:= sexh                                                                         
-SEX_16E[K2]:= sexh                                                                         
-!SEX_17 : overlay = {SEX_17W, SEX_17E}, K2 = -1.13156E+00 
-SEX_17W[K2]:= sexv                                                                          
-SEX_17E[K2]:= SEXV                                                                          
-!SEX_18 : overlay = {SEX_18W, SEX_18E}, K2 =  1.17622E+00 
-SEX_18W[K2]:= sexh                                                                         
-SEX_18E[K2]:= sexh                                                                         
-!SEX_19 : overlay = {SEX_19W, SEX_19E}, K2 = -1.75084E+00 
-SEX_19W[K2]:= sexv                                                                          
-SEX_19E[K2]:= SEXV                                                                          
-!SEX_20 : overlay = {SEX_20W, SEX_20E}, K2 =  1.97825E-01 
-SEX_20W[K2]:= sexh                                                                         
-SEX_20E[K2]:= sexh                                                                         
-!SEX_21 : overlay = {SEX_21W, SEX_21E}, K2 = -2.00037E+00 
-SEX_21W[K2]:= sexv                                                                          
-SEX_21E[K2]:= sexv                                                                       
-!SEX_22 : overlay = {SEX_22W, SEX_22E}, K2 = -7.13488E-03 
-SEX_22W[K2]:=  sexh                                                                     
-SEX_22E[K2]:=  sexh                                                                    
-!SEX_23 : overlay = {SEX_23W, SEX_23E}, K2 = -7.45218E-01 
-SEX_23W[K2]:= sexv                                                                          
-SEX_23E[K2]:= sexv                                                                       
-!SEX_24 : overlay = {SEX_24W, SEX_24E}, K2 =  8.67377E-04 
-SEX_24W[K2]:=  sexh                                                                     
-SEX_24E[K2]:=  sexh                                                                    
-!SEX_25 : overlay = {SEX_25W, SEX_25E}, K2 = -5.74136E-01 
-SEX_25W[K2]:= sexv                                                                          
-SEX_25E[K2]:= sexv                                                                       
-!SEX_26 : overlay = {SEX_26W, SEX_26E}, K2 =  6.50047E-01 
-SEX_26W[K2]:=  sexh                                                                     
-SEX_26E[K2]:=  sexh                                                                    
-!SEX_27 : overlay = {SEX_27W, SEX_27E}, K2 =  1.54840E-01 
-SEX_27W[K2]:= sexv                                                                          
-SEX_27E[K2]:= sexv                                                                       
-!SEX_28 : overlay = {SEX_28W, SEX_28E}, K2 =  3.80233E-01 
-SEX_28W[K2]:=  sexh                                                                     
-SEX_28E[K2]:=  sexh                                                                    
-!SEX_29 : overlay = {SEX_29W, SEX_29E}, K2 = -8.09351E-01 
-SEX_29W[K2]:= sexv                                                                          
-SEX_29E[K2]:= sexv                                                                       
-!SEX_30 : overlay = {SEX_30W, SEX_30E}, K2 =  2.04809E-01 
-SEX_30W[K2]:=  sexh                                                                     
-SEX_30E[K2]:=  sexh                                                                    
-!SEX_31 : overlay = {SEX_31W, SEX_31E}, K2 = -1.68740E+00 
-SEX_31W[K2]:= sexv                                                                          
-SEX_31E[K2]:= sexv                                                                       
-!SEX_32 : overlay = {SEX_32W, SEX_32E}, K2 =  1.72406E+00 
-SEX_32W[K2]:=  sexh                                                                     
-SEX_32E[K2]:=  sexh                                                                    
-!SEX_33 : overlay = {SEX_33W, SEX_33E}, K2 = -1.44895E+00 
-SEX_33W[K2]:= sexv                                                                          
-SEX_33E[K2]:= sexv                                                                       
-!SEX_34 : overlay = {SEX_34W, SEX_34E}, K2 =  8.53781E-01 
-SEX_34W[K2]:=  sexh                                                                     
-SEX_34E[K2]:=  sexh                                                                    
-!SEX_35 : overlay = {SEX_35W, SEX_35E}, K2 = -2.73833E-01 
-SEX_35W[K2]:= sexv                                                                          
-SEX_35E[K2]:= sexv                                                                       
-!SEX_36 : overlay = {SEX_36W, SEX_36E}, K2 = -2.56734E-02 
-SEX_36W[K2]:=  sexh                                                                     
-SEX_36E[K2]:=  sexh                                                                    
-!SEX_37 : overlay = {SEX_37W, SEX_37E}, K2 = -9.44835E-01 
-SEX_37W[K2]:= sexv                                                                          
-SEX_37E[K2]:= sexv                                                                       
-!SEX_38 : overlay = {SEX_38W, SEX_38E}, K2 =  1.32664E+00 
-SEX_38W[K2]:=  sexh                                                                     
-SEX_38E[K2]:=  sexh                                                                    
-!SEX_39 : overlay = {SEX_39W, SEX_39E}, K2 = -2.09046E+00 
-SEX_39W[K2]:= sexv                                                                          
-SEX_39E[K2]:= sexv                                                                       
-!SEX_40 : overlay = {SEX_40W, SEX_40E}, K2 =  5.27465E-01 
-SEX_40W[K2]:=  sexh                                                                     
-SEX_40E[K2]:=  sexh                                                                    
-!SEX_41 : overlay = {SEX_41W, SEX_41E}, K2 =  3.83521E-01 
-SEX_41W[K2]:= sexv                                                                          
-SEX_41E[K2]:= sexv                                                                       
-!SEX_42 : overlay = {SEX_42W, SEX_42E}, K2 = -1.28750E-01 
-SEX_42W[K2]:=  sexh                                                                     
-SEX_42E[K2]:=  sexh                                                                    
-!SEX_43 : overlay = {SEX_43W, SEX_43E}, K2 = -6.14749E-01 
-SEX_43W[K2]:= sexv                                                                          
-SEX_43E[K2]:= sexv                                                                       
-!SEX_44 : overlay = {SEX_44W, SEX_44E}, K2 = -3.83031E-01 
-SEX_44W[K2]:=  sexv                                                                     
-SEX_44E[K2]:=  sexv                                                                    
-!SEX_45 : overlay = {SEX_45W, SEX_45E}, K2 =  5.62669E-01 
-SEX_45W[K2]:= sexh                                                                          
-SEX_45E[K2]:= sexh                                                                       
-!SEX_47 : overlay = {SEX_47W, SEX_47E}, K2 =  4.09357E-01 
-SEX_47W[K2]:=  sexh                                                                     
-SEX_47E[K2]:=  sexh                                                                    
+!SEX_08 : overlay = {SEX_08W, SEX_08E}, K2 = -1.10926E-01
+SEX_08W[K2]:=  SEXH
+SEX_08E[K2]:=  sexh
+!SEX_09 : overlay = {SEX_09W, SEX_09E}, K2 = -5.77385E-02
+SEX_09W[K2]:= sexv
+SEX_09E[K2]:= sexv
+!SEX_10 : overlay = {SEX_10W, SEX_10E}, K2 =  4.02282E-01
+SEX_10W[K2]:=  sexh
+SEX_10E[K2]:=  sexh
+!SEX_11 : overlay = {SEX_11W, SEX_11E}, K2 =  7.89151E-01
+SEX_11W[K2]:= sexv
+SEX_11E[K2]:= sexv
+!SEX_12 : overlay = {SEX_12W, SEX_12E}, K2 =  2.29206E+00
+SEX_12W[K2]:=  sexh
+SEX_12E[K2]:=  sexh
+!SEX_13 : overlay = {SEX_13W, SEX_13E}, K2 = -1.98423E+00
+SEX_13W[K2]:= sexv
+SEX_13E[K2]:= SEXV
+!SEX_14 : overlay = {SEX_14W, SEX_14E}, K2 =  7.14497E-01
+SEX_14W[K2]:= sexh
+SEX_14E[K2]:= sexh
+!SEX_15 : overlay = {SEX_15W, SEX_15E}, K2 = -2.01689E+00
+SEX_15W[K2]:= sexv
+SEX_15E[K2]:= SEXV
+!SEX_16 : overlay = {SEX_16W, SEX_16E}, K2 =  1.02182E+00
+SEX_16W[K2]:= sexh
+SEX_16E[K2]:= sexh
+!SEX_17 : overlay = {SEX_17W, SEX_17E}, K2 = -1.13156E+00
+SEX_17W[K2]:= sexv
+SEX_17E[K2]:= SEXV
+!SEX_18 : overlay = {SEX_18W, SEX_18E}, K2 =  1.17622E+00
+SEX_18W[K2]:= sexh
+SEX_18E[K2]:= sexh
+!SEX_19 : overlay = {SEX_19W, SEX_19E}, K2 = -1.75084E+00
+SEX_19W[K2]:= sexv
+SEX_19E[K2]:= SEXV
+!SEX_20 : overlay = {SEX_20W, SEX_20E}, K2 =  1.97825E-01
+SEX_20W[K2]:= sexh
+SEX_20E[K2]:= sexh
+!SEX_21 : overlay = {SEX_21W, SEX_21E}, K2 = -2.00037E+00
+SEX_21W[K2]:= sexv
+SEX_21E[K2]:= sexv
+!SEX_22 : overlay = {SEX_22W, SEX_22E}, K2 = -7.13488E-03
+SEX_22W[K2]:=  sexh
+SEX_22E[K2]:=  sexh
+!SEX_23 : overlay = {SEX_23W, SEX_23E}, K2 = -7.45218E-01
+SEX_23W[K2]:= sexv
+SEX_23E[K2]:= sexv
+!SEX_24 : overlay = {SEX_24W, SEX_24E}, K2 =  8.67377E-04
+SEX_24W[K2]:=  sexh
+SEX_24E[K2]:=  sexh
+!SEX_25 : overlay = {SEX_25W, SEX_25E}, K2 = -5.74136E-01
+SEX_25W[K2]:= sexv
+SEX_25E[K2]:= sexv
+!SEX_26 : overlay = {SEX_26W, SEX_26E}, K2 =  6.50047E-01
+SEX_26W[K2]:=  sexh
+SEX_26E[K2]:=  sexh
+!SEX_27 : overlay = {SEX_27W, SEX_27E}, K2 =  1.54840E-01
+SEX_27W[K2]:= sexv
+SEX_27E[K2]:= sexv
+!SEX_28 : overlay = {SEX_28W, SEX_28E}, K2 =  3.80233E-01
+SEX_28W[K2]:=  sexh
+SEX_28E[K2]:=  sexh
+!SEX_29 : overlay = {SEX_29W, SEX_29E}, K2 = -8.09351E-01
+SEX_29W[K2]:= sexv
+SEX_29E[K2]:= sexv
+!SEX_30 : overlay = {SEX_30W, SEX_30E}, K2 =  2.04809E-01
+SEX_30W[K2]:=  sexh
+SEX_30E[K2]:=  sexh
+!SEX_31 : overlay = {SEX_31W, SEX_31E}, K2 = -1.68740E+00
+SEX_31W[K2]:= sexv
+SEX_31E[K2]:= sexv
+!SEX_32 : overlay = {SEX_32W, SEX_32E}, K2 =  1.72406E+00
+SEX_32W[K2]:=  sexh
+SEX_32E[K2]:=  sexh
+!SEX_33 : overlay = {SEX_33W, SEX_33E}, K2 = -1.44895E+00
+SEX_33W[K2]:= sexv
+SEX_33E[K2]:= sexv
+!SEX_34 : overlay = {SEX_34W, SEX_34E}, K2 =  8.53781E-01
+SEX_34W[K2]:=  sexh
+SEX_34E[K2]:=  sexh
+!SEX_35 : overlay = {SEX_35W, SEX_35E}, K2 = -2.73833E-01
+SEX_35W[K2]:= sexv
+SEX_35E[K2]:= sexv
+!SEX_36 : overlay = {SEX_36W, SEX_36E}, K2 = -2.56734E-02
+SEX_36W[K2]:=  sexh
+SEX_36E[K2]:=  sexh
+!SEX_37 : overlay = {SEX_37W, SEX_37E}, K2 = -9.44835E-01
+SEX_37W[K2]:= sexv
+SEX_37E[K2]:= sexv
+!SEX_38 : overlay = {SEX_38W, SEX_38E}, K2 =  1.32664E+00
+SEX_38W[K2]:=  sexh
+SEX_38E[K2]:=  sexh
+!SEX_39 : overlay = {SEX_39W, SEX_39E}, K2 = -2.09046E+00
+SEX_39W[K2]:= sexv
+SEX_39E[K2]:= sexv
+!SEX_40 : overlay = {SEX_40W, SEX_40E}, K2 =  5.27465E-01
+SEX_40W[K2]:=  sexh
+SEX_40E[K2]:=  sexh
+!SEX_41 : overlay = {SEX_41W, SEX_41E}, K2 =  3.83521E-01
+SEX_41W[K2]:= sexv
+SEX_41E[K2]:= sexv
+!SEX_42 : overlay = {SEX_42W, SEX_42E}, K2 = -1.28750E-01
+SEX_42W[K2]:=  sexh
+SEX_42E[K2]:=  sexh
+!SEX_43 : overlay = {SEX_43W, SEX_43E}, K2 = -6.14749E-01
+SEX_43W[K2]:= sexv
+SEX_43E[K2]:= sexv
+!SEX_44 : overlay = {SEX_44W, SEX_44E}, K2 = -3.83031E-01
+SEX_44W[K2]:=  sexv
+SEX_44E[K2]:=  sexv
+!SEX_45 : overlay = {SEX_45W, SEX_45E}, K2 =  5.62669E-01
+SEX_45W[K2]:= sexh
+SEX_45E[K2]:= sexh
+!SEX_47 : overlay = {SEX_47W, SEX_47E}, K2 =  4.09357E-01
+SEX_47W[K2]:=  sexh
+SEX_47E[K2]:=  sexh
                                                                                 
 
 
@@ -456,27 +456,27 @@ RAW_XQUNEING_4  : GROUP = {SEX_08W/ 0.019398,SEX_09W/ 0.235073, &
         SEX_47E/ 0.336510}, K2, &
          Type = "CSR XQUNEING   4"
                                                                                 
-H_SEP_08W[HKICK] =   0.0E-04                                                
-H_SEP_08E[HKICK] =   0.0E-04                                                
-h_sep_45W[HKICK]=  -0.00065                                                  
-h_sep_45E[HKICK]=   0.00065                                                  
+H_SEP_08W[HKICK] =   0.0E-04
+H_SEP_08E[HKICK] =   0.0E-04
+h_sep_45W[HKICK]=  -0.00065
+h_sep_45E[HKICK]=   0.00065
 raw_pretzing_1 : group = {H_SEP_08W/0., H_SEP_45W/-0.65E-3, &
           H_SEP_45E/0.65E-03, H_SEP_08E/0.}, HKICK
-raw_pretzing_1[type]:="CSR PRETZING   1"                                        
+raw_pretzing_1[type]:="CSR PRETZING   1"
                                                                                 
 raw_pretzing_13 : group = {H_SEP_45W/0.65E-03, H_SEP_08E/0.65E-03}, HKICK
-raw_pretzing_13[type]:="CSR PRETZING  13"                                       
+raw_pretzing_13[type]:="CSR PRETZING  13"
                                                                                 
-use, cesr                                                                       
+use, cesr
                                                                                 
- ! Vars not in original file                                                    
-RF_W1[VOLT] := 1.5e6                                                            
-RF_W2[VOLT] := 1.5e6                                                            
-RF_E1[VOLT] := 1.5e6                                                            
-RF_E2[VOLT] := 1.5e6                                                            
-RF_W1[HARMON] := 1281                                                           
-RF_W2[HARMON] := 1281                                                           
-RF_E1[HARMON] := 1281                                                           
-RF_E2[HARMON] := 1281                                                           
+ ! Vars not in original file
+RF_W1[VOLT] := 1.5e6
+RF_W2[VOLT] := 1.5e6
+RF_E1[VOLT] := 1.5e6
+RF_E2[VOLT] := 1.5e6
+RF_W1[HARMON] := 1281
+RF_W2[HARMON] := 1281
+RF_E1[HARMON] := 1281
+RF_E2[HARMON] := 1281
                                                                                 
- ! Vars not in original file                                                    
+ ! Vars not in original file
