@@ -1,26 +1,56 @@
 #!/bin/sh
-############################################################################################
-# This script will tag the code-tree in CVS that was used to build an existing 
-# CESR release with its name (cesr_YYYY_MMDD_d) by default or a custom string if specified.
-############################################################################################
-#  Not completed
-####################################
+###########################################################################
+# This script will tag the code tree in SVN that was used 
+# to build an existing libraries release with its name 
+# (usually cesr_YYYY_MMDD_d) by default or a custom string if specified.
+#
+# This script needs to be run on the machine 'accserv' (lnx209) as the 
+# rsvn.py script needs file-level access to the repository.
+# (put a krsh call in to guarantee that it is always run on the proper host?)
+###########################################################################
+#
+#
+# Set up environment variables to allow the use of the rsvn.py script
+# that needs to know where the Subversion Python bindings are located.
+# CAUTION: Those bindings are Python-version dependent!  They were built
+# to be compatible with the Python interpreter version 2.2.3.
+###########################################################################
+export PYTHONPATH=${PYTHONPATH}:/nfs/opt/svn/lib/svn-python
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/nfs/opt/svn/lib
 
-# Script help function
+################################
+#  Set up other local variables
+################################
+bindir=/home/cesrulib/bin
+repo_path=/mnt/svn
+tmpdir=/tmp
+tmpfile=tmp_svn_tag_operation_list
+hostname=`hostname`
+
+
+if ( [ $hostname != "lnx209.lns.cornell.edu" ] ) then
+    echo "This script must be run on the same machine that serves the"
+    echo "ACC Subversion repository, ie. "
+    echo "                               lnx209.lepp.cornell.edu"
+    echo "a.k.a.                        accserv.lepp.cornell.edu"
+    exit 1
+fi
+
+
 myprint_help () {
 #       Print help info
     echo ""
-    echo "Usage is: tag_release  [-current] release-name [TAG=optional_tagname]"
+    echo "Usage: tag_release [-current] release-name [TAG=optional_tagname]"
     echo ""
     echo " Absence of TAG= specifier will use the release name itself as the tag."
     echo " Using the -current flag will automatically append   _current   to the release"
     echo " name and use that as the tag."
-    exit 1
+    exit 2
 }
 
-##########################
+###########################
 #  Main script starts here
-##########################
+###########################
 arg_list=""
 REL_NAME=""
 TAG_CURRENT=0
@@ -28,12 +58,11 @@ TAG=""
 
 if ( [ $# = 0 ] ) then
     myprint_help
-    exit 1
+    exit 3
 fi
 
 ################################################
-#  Get command-line arguments.  Make sure
-#  var values are set up as needed by makefile.
+#  Get command-line arguments.
 ################################################
 for i
 do 
@@ -43,7 +72,7 @@ do
      -current   ) TAG_CURRENT=1;;
      TAG=*      ) TAG=`echo $i|cut -d= -f2`;;
      *          ) myprint_help;
-     exit 1;;
+     exit 4;;
    esac
 done
 
@@ -54,36 +83,52 @@ fi
 echo ""
 echo "tag_release called with the following arguments --"
 echo "  ${arg_list}"
-echo ""
-echo "Existing pertinent environment variables:" 
-echo "CESR_REL =       "${CESR_REL}
-echo "CESR_CVSROOT =   "${CESR_CVSROOT}
-echo "CESR_PKG =       "${CESR_PKG}
-echo "TAG =            "${TAG}
-echo "-----------------------------------------"
 
-OLD_CESR_REL=${CESR_REL}
-
-FULL_REL_NAME=/home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME}
-
-if ( [ ! -d ${CESR_REL} ] ) then
-    echo "The release ${REL_NAME} does not exist. Aborting."
-    exit 1
+######################################################################
+#  Determine if the release actually exists before attempting to tag.
+#  Currently only checks in the Linux Intel archive area.
+######################################################################
+if ( [ -d /nfs/acc/libs/Linux_i686_intel/${REL_NAME} ] ) then
+    echo "Release found in Linux intel area."
+    FULL_REL_NAME=/nfs/acc/libs/Linux_i686_intel/${REL_NAME}
+else
+    echo "The release ${REL_NAME} does not exist."
+    exit 5
 fi
 
-#echo "Updated environment variable values:"
-#echo "CESR_REL = "${CESR_REL}
-#echo "-----------------------------------------"
+######################################################################
+#  Obtain the revision number for the release to be tagged.
+######################################################################
+cd $FULL_REL_NAME
+rev=`svnversion ./src`
+if ( [ $? != 0 ] ) then
+    echo "Problem getting revision number from checked-out files."
+    exit 6
+fi
 
-#gmake -f /home/cesrulib/bin/Gmake/M.release PACKAGE_NAME=${CESR_PKG} TAGNAME=${TAG} DO_REL="" CHECKOUT="" BUILD=""
+echo "Revision # of ${FULL_REL_NAME} is ${rev}."
 
-#svn mkdir ${ACCR}/tags/${REL_NAME}
-#svn copy ${FULL_REL_NAME}/Gmake ${ACCR}/tags/${REL_NAME}
-svn copy ${FULL_REL_NAME}/util ${ACCR}/tags/${REL_NAME}
-svn copy ${FULL_REL_NAME}/src ${ACCR}/tags/${REL_NAME}
 
-# Put things back the way they were before running this script.
-#export CESR_REL=${OLD_CESR_REL}
+######################################################################
+#  Create temporary file holding the sequence of SVN operations to be
+#  performed within this ONE transaction.
+######################################################################
+echo "rmkdir /tags/${REL_NAME}" > ${tmpdir}/${tmpfile}
+echo "rcopy /trunk/Gmake/ /tags/${REL_NAME}/Gmake/" >> ${tmpdir}/${tmpfile}
+echo "rcopy /trunk/src/ /tags/${REL_NAME}/src/" >> ${tmpdir}/${tmpfile}
+echo "rcopy /trunk/util/ /tags/${REL_NAME}/util/" >> ${tmpdir}/${tmpfile}
 
+
+######################################################################
+#  Call rsvn.py with the operations defined in the temporary file to
+#  initiate the SVN transaction. rsvn.py allows multiple repository 
+#  operations to all be executed within the same transaction.
+######################################################################
+${bindir}/rsvn.py --message="Tagging DEVEL release ${REL_NAME}" --revision=${rev} --username=cesrulib /mnt/svn < ${tmpdir}/${tmpfile}
+
+
+
+rm -f ${tmpdir}/${tmpfile}
+echo "Done!"
 
 exit 0
