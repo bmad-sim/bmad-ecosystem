@@ -39,7 +39,7 @@
  parameter[lattice_type] = CIRCULAR_LATTICE
  parameter[taylor_order] =           3
  
- parameter[beam_energy] =1.885E9
+ beam, energy = 1.885E9
  beam, particle = POSITRON        
  
  !-------------------------------------------------------
