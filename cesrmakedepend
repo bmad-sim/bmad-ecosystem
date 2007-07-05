@@ -63,6 +63,11 @@ sub run_command {
 sub setup_commands {
     @os=`uname`;
     $command="makedepend @includes $cpp -o'$suffix' -p'$prefix' -f$out_file $src_file";
+    if($os[0]=~/Darwin/i) {
+        print "Setting makedepend path correctly for Darwin.\n";
+        $command="/usr/X11R6/bin/makedepend @includes $cpp -o'$suffix' -p'$prefix' -f$out_file $src_file";
+    }
+
     if($cplusplus) {
         if($os[0]=~/osf1/i) {
             $command="cxx -M @includes $src_file";
@@ -70,6 +75,10 @@ sub setup_commands {
         elsif($os[0]=~/linux/i) {
             $command="g++ -M -Wno-deprecated @includes $src_file";
         }
+        elsif($os[0]=~/Darwin/i) {
+            $command="g++ -M -Wno-deprecated @includes $src_file";
+        }
+
     }
     elsif($fortran) {
 #        $cesrdep_args="@includes -PRE'$prefix' -SUF'$suffix' -f$out_file $local_mods -MP'$mod_out_dir' -cpfile'$cpp_file' -cpt'$cpp_ftail' -fort_cpp'$fort_cpp' $cpp $src_file";
@@ -164,7 +173,7 @@ sub get_args {
 ##            MAP  11/09/03
 ##################################################################
 sub cesr_make_depend {
-#   print "arguments: $_[0]\n";
+   print "arguments: $_[0]\n";
 #    print "1: $_[0]\n";
     @ARGUMENTOS= split(/\s+/,$_[0]);
     @local_mods= split(/\s+/,$local_mods0);
@@ -178,6 +187,7 @@ get_input();
 get_used_file_tree();
 print_d_file();
 }
+
 # Function to parse input arguments
 sub parse_args {
     @search_dirs_4subs     =();
