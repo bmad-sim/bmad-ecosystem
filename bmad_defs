@@ -37,7 +37,9 @@
 #
 # THE FOLLOWING LINE SHOULD BE MODIFIED TO REFLECT THE 
 # USER'S LOCAL INSTALLATION
+
 BMAD_=${BMAD_-/home/cesrulib/cesr_libs/bmad_dist}
+
 #BMAD_=/cygdrive/w/cesr_libs/bmad_dist
 #
 # Specify the BMAD distribution bin area
@@ -47,7 +49,11 @@ BMAD_BIN=${BMAD_}/bin
 #
 # Get platform/OS tags
 #
+
 PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
+if ( [ PLATFORM_TAG = "Darwin_Power Macintosh" ] ) then
+  PLATFORM_TAG="Darwin_Power_Macintosh"
+fi
 
 #
 # Set BMAD fortran compiler:
@@ -72,7 +78,7 @@ fi
 if ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
   BMADF90=${BMADF90:-hp}
 fi
-if ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then 
+if ( [ "${PLATFORM_TAG}" = "Darwin_Power_Macintosh" ] ) then 
   BMADF90=${BMADF90:-absoft}
 fi
 #
