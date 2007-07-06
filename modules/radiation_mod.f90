@@ -105,6 +105,8 @@ subroutine track1_radiation (start, ele, param, end, edge)
   logical set
   logical :: init_needed = .true.
 
+  character(20) :: r_name = 'track1_radiation'
+
 ! Init
 
   if (init_needed) then
@@ -138,7 +140,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
     s_len = ele%value(l$)/2 + (start%vec(5) - z_start)
     direc = -1
   else
-    print *, 'ERROR IN RADIATION_MOD: BAD EDGE ARGUMENT:', set
+    call out_io (s_fatal$, r_name, 'BAD EDGE ARGUMENT:', set)
     call err_exit
   endif
 
@@ -185,6 +187,10 @@ subroutine track1_radiation (start, ele, param, end, edge)
     endif
 
   case (wiggler$)
+    if (.not. associated(ele%const)) then
+      call out_io (s_fatal$, r_name, 'SETUP_RADIATION_TRACKING HAS NOT BEEN CALLED FOR THIS LATTICE!')
+      call err_exit
+    endif
     if (ele%sub_key == map_type$) then
       g2 = ele%const(10) + &
                   dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(11:14))
@@ -236,10 +242,10 @@ end subroutine
 !
 ! Subroutine to compute synchrotron radiation parameters prior to tracking.
 !
-! Note: The fluctuations_on and damping_on switches need to be set for each 
-! lattice if multiple lattices are used. The default if not present is to
-! not change the settings for a lat. Initially a lat is set for fluctuations
-! and damping off.
+! Note: The fluctuations_on and damping_on flags are global and are applied
+! to all lattices. If either fluctuations or damping is turned on then this
+! routine must be called for each lattice in use.
+! Initially, fluctuations and damping are turned off.
 !
 ! Modules needed:
 !   use radiation_mod
