@@ -25,7 +25,7 @@ contains
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture)
+! Subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture, e_init)
 !
 ! Subroutine to determine the dynamic aperture of a lattice by tracking.
 ! The subroutine works by determining where on a radial line y = const * x
@@ -37,7 +37,7 @@ contains
 ! Input:
 !   lat        -- lat_struct: Lat containing the lattice.
 !   orb0        -- Coord_struct: Closed orbit at the start.
-!     %vec(6)      -- Energy offset.
+!     %vec(6)      -- Energy offset of closed orbit.
 !   theta_xy    -- Real(rp): Angle of radial line (in radians) in x-y space.
 !                    Angle is "normalized" by %x_init, %y_init.
 !   track_input -- Track_input_struct: Structure holding the input data:
@@ -45,6 +45,7 @@ contains
 !     %x_init     -- Initial x coordinate to start with for theta_xy = 0.
 !     %y_init     -- Initial y coordinate to start with for theta_xy = pi/2.
 !     %accuracy   -- Accuracy needed of aperture results.
+!   e_init      -- Real(rp): Additional energy offset. Added 6/25/07 as optional argument
 !
 ! Output:
 !     aperture  -- Aperture_struct:
@@ -59,13 +60,14 @@ contains
 !       normalized by %X_INIT and %Y_INIT
 !-
 
-subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture)
+subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture, e_init)
 
   implicit none
 
   type (lat_struct)  lat
   type (lat_param_struct)  param_save
   type (coord_struct)  orb0
+  real(rp), optional ::  e_init
   type (coord_struct), save, allocatable :: orbit(:)
   type (aperture_struct)  aperture
   type (track_input_struct)  track_input
@@ -107,12 +109,20 @@ subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture)
     orbit(0)%vec(3) = orbit(0)%vec(3) + y1 
 
 
-! Include correction for nonzero dispersion at IP   29 Sep 04 jac
-! Make sure eta values have been calculated
+! Make sure eta values have been calculated. 
     call twiss_at_start(lat)
 
-    orbit(0)%vec(1) = orbit(0)%vec(1) + orbit(0)%vec(6)*lat%ele(0)%a%eta
-    orbit(0)%vec(3) = orbit(0)%vec(3) + orbit(0)%vec(6)*lat%ele(0)%b%eta
+! Corrected dispersion correction to use the additional energy offset, omitting the
+! intrinsic energy offset of the closed orbit.
+! Also included the contribution of the energy offset to the initial x,y angles.
+! 21 June 2007 JAC
+
+if ( present (e_init) ) then
+    orbit(0)%vec(1) = orbit(0)%vec(1) + e_init*lat%ele(0)%a%eta
+    orbit(0)%vec(3) = orbit(0)%vec(3) + e_init*lat%ele(0)%b%eta
+    orbit(0)%vec(2) = orbit(0)%vec(2) + e_init*lat%ele(0)%a%etap
+    orbit(0)%vec(4) = orbit(0)%vec(4) + e_init*lat%ele(0)%b%etap
+endif
 
 ! track n_turns
 
