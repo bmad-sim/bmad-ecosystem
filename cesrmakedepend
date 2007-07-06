@@ -118,6 +118,9 @@ sub get_args {
 #            $cpp="-cpp\"$1\"";
              $cpp="$1";
         }
+        elsif($arg=~/^-out(.+)/) {
+            $out_file=$1;
+        } 
         elsif($arg=~/^-o(.+)/) {
             $suffix=$1;
 #            $suffix=~s/\s//g;
@@ -128,9 +131,9 @@ sub get_args {
         elsif($arg=~/^-fort_cpp(.+)/) {
             $fort_cpp=$1;
         }
-        elsif($arg=~/^-f(.+)/) {
-            $out_file=$1;
-        } 
+        #elsif($arg=~/^-f(.+)/) {  #removed because of anomalous behavior on Darwin
+        #    $out_file=$1;         # replaced with -out (_BEFORE -o_ for proper short-circuit eval) above.
+        #} 
         elsif($arg=~/^-CASE(.+)/) {
             $CASE=$1;
         } 
