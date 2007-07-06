@@ -41,6 +41,7 @@ integer graph_index
 integer, allocatable :: ix_ele(:)
 
 character(200) file_name, plot_file
+character(100) graph_name
 character(20) :: r_name = 'tao_init_plotting'
 
 logical lat_layout_here
@@ -142,6 +143,7 @@ do
   do i = 1, ng
     write (graph%name, '(a, i0)') 'g', i
     graph_index = 0                 ! setup defaults
+    graph%title = ''
     graph%type  = 'data'
     graph%legend_origin = qp_point_struct(1.0_rp, 1.0_rp, '%GRAPH')
     graph%y  = init_axis
@@ -179,11 +181,11 @@ do
                 (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)
     curve(2:7)%line%color = curve(2:7)%symbol%color
     read (iu, nml = tao_template_graph, err = 9200)
+    graph_name = trim(plot%name) // '.' // graph%name
     call out_io (s_blank$, r_name, &
-                 'Init: Read tao_template_graph namelist: ' // graph%name)
+            'Init: Read tao_template_graph namelist: ' // graph_name)
     if (graph_index /= i) then
-      call out_io (s_error$, r_name, &
-                                  'BAD "GRAPH_INDEX" FOR: ' // graph%name)
+      call out_io (s_error$, r_name, 'BAD "GRAPH_INDEX" FOR: ' // graph_name)
       call err_exit
     endif
     grph => plt%graph(i)
@@ -208,8 +210,7 @@ do
 
     if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
-      call out_io (s_blank$, r_name, &
-       'OUT OF RANGE FOR PLOT:GRAPH: ' // trim(plot%name) // '.' // graph%name)
+      call out_io (s_blank$, r_name, 'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name)
       call err_exit
     endif
 

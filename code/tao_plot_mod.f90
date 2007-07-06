@@ -53,9 +53,10 @@ enddo
 
 ! Draw view universe
 
-write (view_str, '(i3)') s%global%u_view
-call qp_draw_text ('View Universe:' // view_str, &
-              -2.0_rp, -2.0_rp, 'POINTS/PAGE/RT', 'RT')
+if (size(s%u) > 1) then
+  write (view_str, '(i3)') s%global%u_view
+  call qp_draw_text ('View Universe:' // view_str, -2.0_rp, -2.0_rp, 'POINTS/PAGE/RT', 'RT')
+endif
 
 ! loop over all plots
 
@@ -242,7 +243,7 @@ real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a
 
 character(80) str
-character(20) :: r_name = 'tao_plot_lat_layout'
+character(20) :: r_name = 'tao_plot_floor_plan'
 character(16) shape
 
 ! Each graph is a separate lattice layout (presumably for different universes). 
@@ -475,6 +476,7 @@ type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 
 real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, height
+real(rp) lat_len
 
 integer i, j, ix_ptr, k, kk, ix, ix1, ix2, isu
 integer icol, ix_var, ixv, j_label
@@ -499,6 +501,7 @@ if (isu == 0) then
 else
   lat => s%u(isu)%model%lat
 endif
+lat_len = lat%param%total_length
   
 ! Figure out x axis
 ! If it's not 's' then just draw a vertical line at the proper index
@@ -538,14 +541,22 @@ do i = 1, lat%n_ele_max
     call find_element_ends (lat, i, ix1, ix2)
     x1 = lat%ele(ix1)%s
     x2 = lat%ele(ix2)%s
+    ! If out of range then try a negative position
+    if (lat%param%lattice_type == circular_lattice$ .and. x1 > plot%x%max) then
+      x1 = x1 - lat_len
+      x2 = x2 - lat_len
+    endif
+
   elseif (plot%x_axis_type .eq. 'index') then
     ! shouldn't be here!
     call out_io (s_error$, r_name, "Shouldn't be here!")
     graph%valid = .false.
     return
+
   elseif (plot%x_axis_type .eq. 'ele_index') then
     x1 = i
     x2 = i
+
   else
     call out_io (s_warn$, r_name, "Unknown x_axis_type")
     graph%valid = .false.
@@ -613,7 +624,9 @@ do i = 1, lat%n_ele_max
     if (j_label == s%global%n_lat_layout_label_rows) j_label = 0
     y_off = y_bottom   ! + 12.0_rp * j_label 
     height = 0.8 * s%plot_page%text_height 
-    call qp_draw_text (ele%name, ele%s-ele%value(l$)/2, y_off, &
+    s_pos = ele%s - ele%value(l$)/2
+    if (s_pos > plot%x%max .and. s_pos-lat_len > plot%x%min) s_pos = s_pos - lat_len
+    call qp_draw_text (ele%name, s_pos, y_off, &
                                  height = height, justify = 'CB', ANGLE = 90.0_rp)
   endif
 
@@ -637,6 +650,7 @@ if (s%global%label_keys) then
         do j = lat%ele(ix)%ix1_slave, lat%ele(ix)%ix2_slave
           ix1 = lat%control(j)%ix_slave
           s_pos = lat%ele(ix1)%s - lat%ele(ix1)%value(l$)/2
+          if (s_pos > plot%x%max .and. s_pos-lat_len > plot%x%min) s_pos = s_pos - lat_len
           call qp_draw_text (trim(str), s_pos, y_top, &
                               justify = 'CT', height = 10.0_rp)  
         enddo
