@@ -19,11 +19,9 @@ setenv BMAD_        $BMAD_
 setenv BMAD_CONFIG  $BMAD_/config
 setenv BMAD_EXE     $BMAD_/bin
 setenv BMAD_GMAKE   $BMAD_/Gmake
-#setenv BMAD_GMAKE   /home/cesrulib/bin/Gmake
 setenv BMAD_LIB     $BMAD_/lib
 setenv BMAD_MOD     $BMAD_/modules
 setenv BMAD_UTIL    $BMAD_/util
-#setenv BMAD_UTIL    /home/cesrulib/bin/util
 setenv BMAD_INC     $BMAD_/include
 
 #
