@@ -36,7 +36,10 @@
 #
 # THE FOLLOWING LINE SHOULD BE MODIFIED TO REFLECT THE 
 # USER'S LOCAL INSTALLATION
-if ( $?BMAD_ == 0 ) setenv BMAD_ /home/cesrulib/cesr_libs/bmad_dist
+
+setenv BMAD_ /home/cesrulib/cesr_libs/bmad_dist
+
+#if ( $?BMAD_ == 0 ) setenv BMAD_ /home/cesrulib/cesr_libs/bmad_dist
 
 #
 # Specify the BMAD distribution bin directory
