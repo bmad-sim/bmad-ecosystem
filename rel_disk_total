@@ -20,7 +20,7 @@ BASE_AREA_LIST="Linux_i686_intel Linux_i686_lahey OSF1_alpha_hp VMS_alpha_hp CYG
 myprint_help ()  {
 #       Print help info
     echo ""
-    echo "Usage is: rel_disk_total release-name"
+    echo "Usage is: rel_disk_total <release-name>"
     echo ""
     exit 1
 }
@@ -34,21 +34,18 @@ fi
 #  Get command-line arguments.  Make sure
 #  var values are set up as needed by makefile.
 ################################################
-for i
-do 
-   arg_list="${arg_list} ${i}"
-   case $i in
-     cesr_*     ) REL_NAME=`echo $i`;;
-     
-     *          ) myprint_help;
-     exit 1;;
-   esac
-done
+#for i
+#do 
+#   arg_list="${arg_list} ${i}"
+#   case $i in
+#     cesr_*     ) REL_NAME=`echo $i`;;
+#     *          ) myprint_help;
+#     exit 1;;
+#   esac
+#done
 
-if ( [ ! -d ${LIBS_PATH}/Linux_i686_intel/${REL_NAME} ] ) then
-    echo "${LIBS_PATH}/Linux_i686_intel/${REL_NAME} does not exist.  Quitting."
-    exit 1
-fi
+REL_NAME=$1
+
 
 echo ""
 echo "=========================== Disk space summary: =========================="
@@ -64,18 +61,24 @@ do
    if ( [ ${j} != "VMS_alpha_hp" ] && [ ${j} != "CYGWIN_NT_i686_intel" ] ) then
        TEMP=`du -cb ${LIBS_PATH}/log/${j}/${REL_NAME}.log 2> /dev/null | tail -n1 | cut -f1`
        SUBTOTAL=`expr ${SUBTOTAL} + ${TEMP}`
-       TEMP=`du -cb ${LIBS_PATH}/log/${j}/${REL_NAME}.build_status 2> /dev/null | tail -n1 | cut -f1`
-       SUBTOTAL=`expr ${SUBTOTAL} + ${TEMP}`
+       #TEMP=`du -cb ${LIBS_PATH}/log/${j}/${REL_NAME}.build_status 2> /dev/null | tail -n1 | cut -f1`
+       #SUBTOTAL=`expr ${SUBTOTAL} + ${TEMP}`
    fi
    TOTAL=`expr ${TOTAL} + ${SUBTOTAL}`
    SUBTOTALMEG=`expr ${SUBTOTAL} / 1048576`
-   echo -e "${SUBTOTAL} B\t(${SUBTOTALMEG} M)\t\t: ${j}"
+   if ( [ $SUBTOTAL -ne 0 ] ) then
+       echo -e "${SUBTOTAL} B\t(${SUBTOTALMEG} M)\t\t: ${j}"
+   fi
    TEMP=0
    SUBTOTAL=0
 done
 TOTALMEG=`expr ${TOTAL} / 1048576`
-echo "--------------------------------------------------------------------------"
-echo -e "${TOTAL} B\t(${TOTALMEG} M)\t: TOTAL"
-echo ""
+if ( [ $TOTAL -eq 0 ] ) then
+    echo "Release doesn't exist in archive.  No total generated."
+else
+    echo "--------------------------------------------------------------------------"
+    echo -e "${TOTAL} B\t(${TOTALMEG} M)\t: TOTAL"
+    echo ""
+fi
 
 exit 0
