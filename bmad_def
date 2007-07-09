@@ -69,8 +69,8 @@ if ( "${PLATFORM_TAG}" == "OSF1_alpha" ) then
   if ( $?BMADF90    == 0 ) setenv BMADF90 hp
 endif
 
-if ( "${PLATFORM_TAG}" == "Darwin_powerpc" ) then
-  if ( $?BMADF90    == 0 ) setenv BMADF90 absoft
+if ( "${PLATFORM_TAG}" == "Darwin_Power_Macintosh" ) then
+  if ( $?BMADF90    == 0 ) setenv BMADF90 g95
 endif
 
 #
