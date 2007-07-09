@@ -1,82 +1,9 @@
-ring_struct       -> lat_struct
-ring%control_     -> ring%control
-ring%ic_          -> ring%ic
-ring%ele_         -> ring%ele
-ring%n_ele_ring   -> ring%n_ele_use
-
-ele%x                -> ring%a  Except: eta_lab, etap_lab 
-ele%y                -> ring%b
-
-ele%value            -> ele%val  ?
-
-beam_energy  -> E_tot
-energy_start -> E_tot_start
-
-sr1_wake_struct -> sr_table_wake_struct
-sr2_wake_struct -> sr_mode_wake_struct
-
-bmad_com_struct -> bmad_common_struct
-bp_com_struct -> bp_common_struct
-ptc_com_struct -> ptc_common_struct
-synch_rad_com_struct -> synch_rad_common_struct
-modes_struct -> normal_modes_struct
-mode_struct  -> normal_mode_struct
-param_struct -> lat_param_struct
-
-sr1_wake_struct -> tabular_sr_wake_struct
-sr2_wake_struct -> mode_sr_wake_struct
-
-type wake_struct
-  sr1(:) -> table_sr_table(:)
-  sr2_long(:) -> mode_sr_long(:)
-  sr2_trans(:) -> mode_sr_trans(:)
-
-a0/b0 -> a1/b1
+a0/b0 -> a_1/b_1
+ele%value(ref_orb$:ref_orb$+4) -> ele%ref_orb(6)
+extend ele%value() array and add general0$, ..., general9$
 
 -----------------
 
 add: ring%param%s_start
 add: ring%param%s_end
 
------------------
-
-     subroutine transfer_ring_taylors (lattice_in, lattice_out, type_out, transfered_all)
-     subroutine test_f_ring (c1, c2)
-     type parser_ring_struct
-     type ring_struct
-     subroutine transfer_ring_parameters (ring_in, ring_out)
-     subroutine init_ring (ring, n)
-     subroutine clear_ring_1turn_mats (ring)
-     subroutine transfer_ring (ring1, ring2)
-     subroutine allocate_ring_ele_ (ring, des_size)
-     subroutine deallocate_ring_pointers (ring)
-     subroutine transfer_ring_taylors (lattice_in, lattice_out, type_out, transfered_all)
-     subroutine ring_equal_ring (ring_out, ring_in)
-     subroutine ring_vec_equal_ring_vec (ring1, ring2)
-     subroutine mad_sbend_fringe (ele, energy, into, map) 
-     subroutine ring_to_layout (ring, ptc_layout)
-     subroutine ring_reverse (ring_in, ring_rev)
-     class C_ring {
-     subroutine ring_to_c (f_ring, c_ring)
-     subroutine ring_to_f2 (f, name, n_name, lat, n_lat, file, n_file, title, &
-     subroutine ele_from_ring_to_f2 (f_ring, it, c_ele)
-     subroutine control_from_ring_to_f2 (f_ring, it, c_control)
-     subroutine ring_geometry (ring)
-     recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
-     subroutine check_ring_controls (ring, exit_on_error)
-     subroutine split_ring (ring, s_split, ix_split, split_done)
-     subroutine compress_ring (ring, ok)
-     subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
-     subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
-     type ring_master_struct
-
------------------
-
-
-
-
-1) Changed by hand:
-			bmad_struct.f90 
-			beam_mod.f90
-2) Change any cpp routines
-3) Rerun f90 to Cpp parameter list setup.

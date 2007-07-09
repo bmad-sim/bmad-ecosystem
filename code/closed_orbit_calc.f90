@@ -77,7 +77,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
   integer i, n, n_ele, i_dim, i_max, dir, nc
 
   logical, optional :: exit_on_error
-  logical fluct_saved, aperture_saved
+  logical fluct_saved, aperture_saved, damp_saved
 
 !----------------------------------------------------------------------
 ! init
@@ -119,6 +119,10 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
 
   case (4, 5)
+
+    damp_saved  = bmad_com%radiation_damping_on
+    bmad_com%radiation_fluctuations_on = .false.  ! Want constant energy
+
     if (all(lat%param%t1_no_RF == 0)) &
                 call transfer_matrix_calc (lat, .false., lat%param%t1_no_RF)
     t1 = lat%param%t1_no_RF
@@ -223,7 +227,10 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
 
 ! return rf cavities to original state
 
-  if (n == 4) call set_on_off (rfcavity$, lat, restore_state$)
+  if (n == 4 .or. n == 5) then
+    call set_on_off (rfcavity$, lat, restore_state$)
+    bmad_com%radiation_damping_on = damp_saved   ! restore state
+  endif
 
   bmad_com%radiation_fluctuations_on = fluct_saved  ! restore state
   lat%param%aperture_limit_on = aperture_saved
