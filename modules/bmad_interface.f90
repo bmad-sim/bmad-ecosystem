@@ -147,17 +147,6 @@ interface
 end interface
 
 interface
-  subroutine closed_orbit_at_start (lat, co, i_dim, iterate)
-    use bmad_struct, only: lat_struct, coord_struct
-    implicit none
-    type (lat_struct) lat
-    type (coord_struct) co
-    integer i_dim
-    logical iterate
-  end subroutine
-end interface
-
-interface
   subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
