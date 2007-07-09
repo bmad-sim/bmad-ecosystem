@@ -50,10 +50,10 @@ BMAD_BIN=${BMAD_}/bin
 # Get platform/OS tags
 #
 
-PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
-if ( [ PLATFORM_TAG = "Darwin_Power Macintosh" ] ) then
-  PLATFORM_TAG="Darwin_Power_Macintosh"
-fi
+PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
+#if ( [ PLATFORM_TAG = "Darwin_Power Macintosh" ] ) then
+#  PLATFORM_TAG="Darwin_Power_Macintosh"
+#fi
 
 #
 # Set BMAD fortran compiler:
@@ -78,8 +78,8 @@ fi
 if ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
   BMADF90=${BMADF90:-hp}
 fi
-if ( [ "${PLATFORM_TAG}" = "Darwin_Power_Macintosh" ] ) then 
-  BMADF90=${BMADF90:-absoft}
+if ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then 
+  BMADF90=${BMADF90:-g95}
 fi
 #
 # Export the BMAD environment variable structure

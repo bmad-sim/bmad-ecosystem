@@ -47,9 +47,9 @@ set BMAD_BIN=${BMAD_}/bin
 # Get platform/OS tags
 #
 set PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
-if ( "${PLATFORM_TAG}" == "Darwin_Power Macintosh" ) then
-  setenv PLATFORM_TAG Darwin_Power_Macintosh
-endif
+#if ( "${PLATFORM_TAG}" == "Darwin_Power Macintosh" ) then
+#  setenv PLATFORM_TAG Darwin_Power_Macintosh
+#endif
 #
 # Set BMAD fortran compiler:
 # BMADF90 = intel (or lahey, hp, absoft, ibm, gnu)
@@ -72,7 +72,7 @@ if ( "${PLATFORM_TAG}" == "OSF1_alpha" ) then
   if ( $?BMADF90    == 0 ) setenv BMADF90 hp
 endif
 
-if ( "${PLATFORM_TAG}" == "Darwin_Power_Macintosh" ) then
+if ( "${PLATFORM_TAG}" == "Darwin_powerpc" ) then
   if ( $?BMADF90    == 0 ) setenv BMADF90 g95
 endif
 
