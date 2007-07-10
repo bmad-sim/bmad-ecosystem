@@ -78,9 +78,11 @@ subroutine transfer_map_calc (lat, t_map, ix1, ix2, &
  
   if (unit_start_this) call taylor_make_unit (t_map)
 
-  ! Normal: i1 < i2.
+  if (i1 == i2 .and. .not. one_turn_this) return
 
-  if (i1 < i2 .or. (i1 == i2 .and. .not. one_turn_this)) then
+! Normal: i1 < i2.
+
+  if (i1 < i2) then 
     do i = i1+1, i2
       call add_on_to_t_map
     enddo
