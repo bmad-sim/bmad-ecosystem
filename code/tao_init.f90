@@ -185,6 +185,11 @@ subroutine tao_init ()
     call tao_call_cmd (file_name)
   endif
 
+! Bookkeeping
+
+  call tao_set_data_useit_opt()
+  call tao_set_var_useit_opt()
+
 contains
 !------------------------------------------------------------------------------
 ! every pointer and allocatable needs to be deallocated now before the universe

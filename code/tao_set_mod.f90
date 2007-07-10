@@ -612,6 +612,8 @@ elseif (allocated(r_var)) then
 
 endif
 
+call tao_set_var_useit_opt()
+
 end subroutine tao_set_var_cmd
 
 !-----------------------------------------------------------------------------
@@ -735,6 +737,8 @@ elseif (allocated(r_dat)) then
   endif
 
 endif
+
+call tao_set_data_useit_opt()
 
 end subroutine tao_set_data_cmd
 
