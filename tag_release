@@ -4,12 +4,23 @@
 # to build an existing libraries release with its name 
 # (usually cesr_YYYY_MMDD_d) by default or a custom string if specified.
 #
-# This script needs to be run on the machine 'accserv' (lnx209) as the 
+# This script must be run on the machine 'accserv' (lnx209) as the 
 # rsvn.py script needs file-level access to the repository.
 # (put a krsh call in to guarantee that it is always run on the proper host?)
+#
+#
+# Requires: rsvn.py -- 3rd-party support script.  It allows multiple
+#           SVN operations to all be executed within the same transaction.
+#
+# Usage:  tag_release <release_name>
+#
+# Date   : 26 September 2006
+# Author : Matt Rendina
+#
 ###########################################################################
-#
-#
+
+
+###########################################################################
 # Set up environment variables to allow the use of the rsvn.py script
 # that needs to know where the Subversion Python bindings are located.
 # CAUTION: Those bindings are Python-version dependent!  They were built
@@ -45,6 +56,9 @@ myprint_help () {
     echo " Absence of TAG= specifier will use the release name itself as the tag."
     echo " Using the -current flag will automatically append   _current   to the release"
     echo " name and use that as the tag."
+    echo ""
+    echo "Currently, the SVN log entry will always be of the form:"
+    echo "  \"Tagging DEVEL[CURRENT] release <release_name>\" "
     exit 2
 }
 
@@ -81,16 +95,20 @@ if ( [ ${TAG_CURRENT} = 1 ] ) then
 fi
 
 echo ""
-echo "tag_release called with the following arguments --"
-echo "  ${arg_list}"
 
 ######################################################################
 #  Determine if the release actually exists before attempting to tag.
 #  Currently only checks in the Linux Intel archive area.
 ######################################################################
 if ( [ -d /nfs/acc/libs/Linux_i686_intel/${REL_NAME} ] ) then
-    echo "Release found in Linux intel area."
+    #echo "Release found in Linux Intel area."
     FULL_REL_NAME=/nfs/acc/libs/Linux_i686_intel/${REL_NAME}
+elif ( [ -d /nfs/acc/libs/Linux_i686_lahey/${REL_NAME} ] ) then
+    #echo "Release found in Linux Lahey area."
+    FULL_REL_NAME=/nfs/acc/libs/Linux_i686_lahey/${REL_NAME}
+elif ( [ -d /nfs/acc/libs/OSF1_alpha_hp/${REL_NAME} ] ) then
+    #echo "Release found in OSF1 HP area."
+    FULL_REL_NAME=/nfs/acc/libs/OSF1_alpha_hp/${REL_NAME}
 else
     echo "The release ${REL_NAME} does not exist."
     exit 5
@@ -102,7 +120,7 @@ fi
 cd $FULL_REL_NAME
 rev=`svnversion ./src`
 if ( [ $? != 0 ] ) then
-    echo "Problem getting revision number from checked-out files."
+    echo "Problem getting revision number from working copy of files."
     exit 6
 fi
 
@@ -124,11 +142,16 @@ echo "rcopy /trunk/util/ /tags/${REL_NAME}/util/" >> ${tmpdir}/${tmpfile}
 #  initiate the SVN transaction. rsvn.py allows multiple repository 
 #  operations to all be executed within the same transaction.
 ######################################################################
-${bindir}/rsvn.py --message="Tagging DEVEL release ${REL_NAME}" --revision=${rev} --username=cesrulib /mnt/svn < ${tmpdir}/${tmpfile}
+if ( [ ${TAG_CURRENT} -eq 0 ] ) then
+    TYPE="CURRENT"
+else
+    TYPE="DEVEL"
+fi
+
+${bindir}/rsvn.py --message="Tagging ${TYPE} release ${REL_NAME}" --revision=${rev} --username=cesrulib /mnt/svn < ${tmpdir}/${tmpfile}
 
 
 
 rm -f ${tmpdir}/${tmpfile}
-echo "Done!"
 
 exit 0
