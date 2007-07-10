@@ -121,7 +121,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
   case (4, 5)
 
     damp_saved  = bmad_com%radiation_damping_on
-    bmad_com%radiation_fluctuations_on = .false.  ! Want constant energy
+    bmad_com%radiation_damping_on = .false.  ! Want constant energy
 
     if (all(lat%param%t1_no_RF == 0)) &
                 call transfer_matrix_calc (lat, .false., lat%param%t1_no_RF)
