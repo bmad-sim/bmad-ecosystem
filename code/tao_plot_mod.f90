@@ -234,10 +234,10 @@ type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 type (floor_position_struct) end1, end2, floor
 
-integer i, j, ix_ptr, icol, ix1, ix2, isu, n_bend
+integer i, j, ix_ptr, icol, ix1, ix2, isu, n_bend, n
 
 real(rp) off, off1, off2, angle, rho, x0, y0, dx1, dy1, dx2, dy2
-real(rp) dt_x, dt_y
+real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, height
 real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a
@@ -245,6 +245,7 @@ real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a
 character(80) str
 character(20) :: r_name = 'tao_plot_floor_plan'
 character(16) shape
+character(2) justify
 
 ! Each graph is a separate lattice layout (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
@@ -383,7 +384,7 @@ do i = 1, lat%n_ele_max
 
   ! Draw the shape. Since the conversion from floor coords and screen pixels can
   ! be different along x and y we convert to pixels to make sure that rectangles
-  ! remain rectangualr.
+  ! remain rectangular.
 
   call qp_convert_point_abs (end1%x, end1%y, 'DATA', end1%x, end1%y, 'POINTS')
   call qp_convert_point_abs (end2%x, end2%y, 'DATA', end2%x, end2%y, 'POINTS')
@@ -402,6 +403,7 @@ do i = 1, lat%n_ele_max
                                                     units = 'POINTS', color = icol)
   call qp_draw_line (end2%x+dx2, end2%x-dx2, end2%y+dy2, end2%y-dy2, &
                                                     units = 'POINTS', color = icol)
+
 
   if (ele%key == sbend$) then
     do j = 0, n_bend
@@ -429,7 +431,34 @@ do i = 1, lat%n_ele_max
                                                     units = 'POINTS', color = icol)
   endif
 
+  ! draw the label
+
+  if (s%plot_page%ele_shape(ix_ptr)%draw_name) then
+    height = 0.8 * s%plot_page%text_height 
+    if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
+      x_center = (end1%x + end2%x) / 2 
+      y_center = (end1%y + end2%y) / 2 
+      dx = -2 * off2 * dt_y / sqrt(dt_x**2 + dt_y**2)
+      dy =  2 * off2 * dt_x / sqrt(dt_x**2 + dt_y**2)
+    else
+      n = n_bend / 2
+      x_center = x_bend(n) 
+      y_center = y_bend(n) 
+      dx = 2 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
+      dy = 2 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
+    endif
+    theta = modulo2 (atan2d(dy, dx), 90.0_rp)
+    if (dx > 0) then
+      justify = 'LC'
+    else
+      justify = 'RC'
+    endif
+    call qp_draw_text (ele%name, x_center+dx, y_center+dy, units = 'POINTS', &
+                                 height = height, justify = justify, ANGLE = theta)    
+  endif
+
 enddo
+
 
 !--------------------------------------------------------------------------
 contains
@@ -627,7 +656,7 @@ do i = 1, lat%n_ele_max
     s_pos = ele%s - ele%value(l$)/2
     if (s_pos > plot%x%max .and. s_pos-lat_len > plot%x%min) s_pos = s_pos - lat_len
     call qp_draw_text (ele%name, s_pos, y_off, &
-                                 height = height, justify = 'CB', ANGLE = 90.0_rp)
+                                 height = height, justify = 'CC', ANGLE = 90.0_rp)
   endif
 
   call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)

@@ -1103,15 +1103,15 @@ end subroutine tao_read_bpm
 ! Input:
 !   lat        -- Lat_struct: Lattice used in the calculation.
 !   t_map(6)   -- Taylor_struct: Initial map (used when unit_start = False)
-!   s1         -- Real(rp), optional: Element start index for the calculation.
+!   s1         -- Real(rp), optional: Element start position for the calculation.
 !                   Default is 0.
-!   s2         -- Real(rp), optional: Element end index for the calculation.
+!   s2         -- Real(rp), optional: Element end position for the calculation.
 !                   Default is lat%param%total_length.
 !   integrate  -- Logical, optional: If present and True then do symplectic
 !                   integration instead of concatenation. 
 !                   Default = False.
-!   one_turn   -- Logical, optional: If present and True then construct the
-!                   one-turn map from s1 back to s1 (ignoring s2).
+!   one_turn   -- Logical, optional: If present and True and s1 = s2 then 
+!                   construct the one-turn map from s1 back to s1.
 !                   Default = False.
 !   unit_start -- Logical, optional: If present and False then t_map will be
 !                   used as the starting map instead of the unit map.
@@ -1139,7 +1139,7 @@ subroutine tao_transfer_map_calc_at_s (lat, t_map, s1, s2, &
   logical, optional :: integrate, one_turn, unit_start
   logical integrate_this, one_turn_this, unit_start_this
 
-  character(24) :: r_name = "transfer_map_calc_at_s"
+  character(40) :: r_name = "tao_transfer_map_calc_at_s"
 
 !
 
@@ -1149,13 +1149,14 @@ subroutine tao_transfer_map_calc_at_s (lat, t_map, s1, s2, &
 
   ss1 = 0;                       if (present(s1)) ss1 = s1
   ss2 = lat%param%total_length;  if (present(s2)) ss2 = s2
-  if (one_turn_this) ss2 = ss1
  
   if (unit_start_this) call taylor_make_unit (t_map)
 
+  if (ss1 == ss2 .and. .not. one_turn_this) return
+
 ! Normal case
 
-if (ss1 < ss2 .or. (ss1 == ss2 .and. one_turn_this)) then
+if (ss1 < ss2) then 
   call transfer_this (ss1, ss2)
 
 ! For a circular lattice push through the origin.

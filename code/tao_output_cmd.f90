@@ -28,10 +28,10 @@ character(20) action
 character(20) :: r_name = 'tao_output_cmd'
 character(100) file_name
 
-character(20) :: names(10) = (/ &
+character(20) :: names(12) = (/ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
-      'mad_lattice      ', 'beam            ' /)
+      'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ' /)
 
 integer i, j, ix, iu, nd, ii, i_uni, n_write, ib, ip, n_skip, ios
 logical err
@@ -55,8 +55,12 @@ select case (action)
 !---------------------------------------------------
 ! hard
 
-case ('hard')
-  call qp_open_page ('PS')
+case ('hard', 'hard-l')
+  if (action == 'hard') then
+    call qp_open_page ('PS')
+  else
+    call qp_open_page ('PS-L')
+  endif
   call tao_plot_out ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
@@ -88,10 +92,14 @@ case ('gif')
 !---------------------------------------------------
 ! ps
 
-case ('ps')
+case ('ps', 'ps-l')
   file_name = arg1
   if (file_name == "") file_name = "tao.ps"
-  call qp_open_page ('PS', plot_file = file_name)
+  if (action == 'ps') then
+    call qp_open_page ('PS', plot_file = file_name)
+  else
+    call qp_open_page ('PS-L', plot_file = file_name)
+  endif
   call tao_plot_out ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows

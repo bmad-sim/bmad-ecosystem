@@ -15,74 +15,27 @@ program. This tutorial starts here and will then show you how to
 customize \tao for your specific purposes.
 
 %----------------------------------------------------------------
-\subsection{Getting and Compiling Tao}
-\index{Compiling Tao}
+\subsection{Getting Tao}
 \label{s:get_and_compile}
 
-The following instructions are for Cornell people. If you are not at
-Cornell then the source files can be obtained at:
-\begin{example}
-  http://www.lepp.cornell.edu/bmad
-\end{example}
-
-In any case help may be obtained by contacting David Sagan
-\cmd{<dcs16@cornell.edu>} or Jeff Smith \cmd{<js344@cornell.edu>}.
-
-Before running \tao at Cornell the appropriate environmental variables
-must be set. The way \tao is developed is that the source code is kept
-in a central ``repository'' which is controlled by a software package
-called \vn{Subversion}. Every so often (typically about once a week) a copy
-of the source code in the repository is made and a version of \tao is
-compiled from this copy. This is called a ``release''. There are two
-major releases: One called ``devel'' is made from the very latest
-code. There is also a ``current'' release which comes from older
-code. The general idea is that devel should have the latest stuff but
-current should be more stable (have less bugs). In practice, since
-\tao is new and the bugs are still being worked out, the devel release
-is typically less buggy and hence is devel is what is recommended. To
-set the environmental variables to point to the devel release, Follow the
-directions on the web documentation at:
+Instructions for setting up Tao and obtaining the source files can be
+found at:
 \begin{example}
   http://www.lepp.cornell.edu/~dcs/bmad
 \end{example}
-And click on the \vn{``Local Setup''} link.
 
-After setting up the environmental variables \tao is run with the command
+Briefly, if you are at Cornell, after setting up the appropriate environmental 
+variables, you should be able to run \tao using the command
 \begin{example}
   \$CESR_EXE/tao
 \end{example}
-This will run the \vn{devel} version of \tao.  If there has been a bug
-fix that you need which is in the Subversion repository but not yet in
-the \vn{devel} release, you need to create and use a local copy of
-\tao. See the web documentation to checkout a copy of \tao from the
-Subversion repository. The drawback of having a local copy of \tao is
-that you will then be responsible for updating your local copy as
-needed when updates are made in the repository.
 
-Let \cs{Root} be the name of the root directory for your local copy of Tao.
+To get an example set of input files to run, check out a copy of the \tao code.
+Let \cs{Root} be the name of the root directory for the code.
 The checked out copy of \tao will be put in a directory
-\cs{ROOT/tao}. Basically the only time a local copy of \tao is needed
-is when there have been changes made to Subversion that are needed that
-haven't found their way to the released version. Once you have created
-a local copy of \tao you may need to update it from time to time when
-changes to the repository have been made by the maintainers of
-\tao. To do this use the command \cmd{'svn update'} in the
-\cs{ROOT/tao} directory. Note: Unless you are a maintainer, you do not
-have privileges to modify the repository.
-
-From the newly created \cs{ROOT/tao} directory type `\cmd{gmake}' to
-create the libraries and then type `\cmd{gmake -f M.tao}' to create
-the ``vanilla'' \tao program. Vanilla \tao is the basic \tao program
-without any user customizations. If you are using a custom version of
-\tao then follow the compiling directions from the custom \tao
-author. Keep in mind that command syntax and usage may vary between
-custom versions of \tao (this is a \textit{feature}, \textbf{not} a
-bug!).
-
-Once \tao has compiled go to the subdirectory \cs{ROOT/tao/program}
-and type \cmd{../../bin/tao} to run ``vanilla'' \tao. This directory
-contains all the configuration files to get everything working. The
-first time you run the program it will need to create a digested \bmad
+\cs{ROOT/tao}. The example is in the \cs{Root/tao/program} directory.
+Note: The
+first time you run \tao it will need to create a digested \bmad
 lattice file for the included lattice. This may take a few minutes.
 
 %----------------------------------------------------------------
@@ -100,7 +53,7 @@ first explore the basic functionality of the program.
 \label{s:beginning}
 
 %----------------------------------------------------------------
-\subsection{there was the user.}
+\subsection{There was the user.}
 
 This tutorial assumes you are already familiar with basic particle
 beam dynamics and its formalism. There are several books that

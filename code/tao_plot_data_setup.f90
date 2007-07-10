@@ -480,11 +480,11 @@ graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
 ! attach x-axis type to title suffix 
  
  if (plot%x_axis_type == 'index') then
-   graph%title_suffix = trim(graph%title_suffix) // ', X-axis: index, '
+   graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: index'
  elseif (plot%x_axis_type == 'ele_index') then
-   graph%title_suffix = trim(graph%title_suffix) // ', X-axis: ele_index, '
+   graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: ele_index'
  elseif (plot%x_axis_type == 's') then
-   graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, '
+   graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: s'
  endif  
 
 !-------------------------------------------------------------------------------
