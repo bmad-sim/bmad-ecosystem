@@ -9,7 +9,8 @@
 ! 'lm' stands for Levenburg - Marquardt. Otherwise known as LMDIF. 
 !
 ! Output:
-!   abort -- Logical: Set True if an user stop signal detected.
+!   abort -- Logical: Set True if an user stop signal detected or there is 
+!            a problem with calculating the merit function.
 !-
 
 subroutine tao_lmdif_optimizer (abort)
@@ -33,13 +34,23 @@ integer i, j, k, n
 integer n_data, n_var
 
 logical :: abort, init_needed = .true.
-logical at_end
+logical at_end, calc_ok
 
 character(20) :: r_name = 'tao_lmdif_optimizer'
 character(80) :: line
 character(1) char
 
 ! setup
+
+abort = .false.
+merit = tao_merit(calc_ok)
+if (.not. calc_ok) then
+  abort = .true.
+  call out_io (s_info$, r_name, 'MERIT FUNCTION COULD NOT BE COMPUTED. ABORTING.')
+  return
+endif
+
+merit_at_min = merit
 
 call tao_get_vars (var_value, var_delta = var_delta, var_weight = weight)
 n_var = size(var_delta)
@@ -57,11 +68,7 @@ allocate (merit_vec(n_data))
 
 ! run optimizer mrqmin from Numerical Recipes.
 
-abort = .false.
 call initial_lmdif
-
-merit = tao_merit()
-merit_at_min = merit
 
 call out_io (s_blank$, r_name, '   Loop      Merit')
 
@@ -82,7 +89,12 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
 
   call suggest_lmdif (var_value, merit_vec, s%global%lmdif_eps, s%global%n_opti_cycles, at_end)
   call tao_set_vars (var_value)
-  merit = tao_merit()
+  merit = tao_merit(calc_ok)
+  if (.not. calc_ok) then
+    abort = .true.
+    call out_io (s_info$, r_name, 'MERIT FUNCTION COULD NOT BE COMPUTED. ABORTING.')
+    exit
+  endif
   if (merit < merit_at_min) then
     merit_at_min = merit
     var_at_min = var_value
@@ -98,7 +110,6 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
   do
     call get_tty_char (char, .false., .false.) 
     if (char == '.') then
-      abort = .true.
       call out_io (s_blank$, r_name, line)
       call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', &
                                                              'Stopping now.')
@@ -120,7 +131,7 @@ endif
 if (merit > merit_at_min) then
   call out_io (s_blank$, r_name, 'Setting to minimum.')
   call tao_set_vars (var_at_min)
-  merit = tao_merit()
+  merit = tao_merit(calc_ok)
   write (line, '(i5, es14.4, es10.2)') i+1, merit
   call out_io (s_blank$, r_name, line)
 endif
