@@ -455,7 +455,6 @@ public:
   int end_lost_at;          // entrance_end$ or exit_end$
   int lattice_type;         // linear_lattice$, etc...
   int ixx;                  // Int for general use
-  int ran_seed;             // Random number generator seed
   bool stable;              // is closed ring stable?
   bool aperture_limit_on;   // use apertures in tracking?
   bool lost;                // for use in tracking
@@ -463,15 +462,15 @@ public:
   C_param () : n_part(0), total_length(0), growth_rate(0),
       t1_with_RF(V6_array, 6), t1_no_RF(V6_array, 6), 
       particle(0), ix_lost(0), end_lost_at(0), lattice_type(0), ixx(0),
-      ran_seed(0), stable(1), aperture_limit_on(1), lost(0) {}
+      stable(1), aperture_limit_on(1), lost(0) {}
 
   C_param (double np, double tl, double gr, Real_Matrix t1w,
     Real_Matrix t1n, int pa, int il, int ela, int lt, int ix, 
-    int r_seed, int st, int alo, int lo) :
+    int st, int alo, int lo) :
         n_part(np), total_length(tl), growth_rate(gr),
         t1_with_RF(t1w), t1_no_RF(t1n), particle(pa), 
         ix_lost(il), end_lost_at(ela), lattice_type(lt), ixx(ix),
-        ran_seed(r_seed), stable(st), aperture_limit_on(alo), lost(lo) {}
+        stable(st), aperture_limit_on(alo), lost(lo) {}
 };    // End Class
 
 extern "C" void param_to_c_(lat_param_struct*, C_param&);

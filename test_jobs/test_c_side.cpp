@@ -133,8 +133,8 @@ void init_all_c_structs () {
   c_wake_out.lr[0] = C_lr_wake(-1, -2, -3, -4, 5, -6, -7, -8, -9, 10, 1);
   c_wake_out.lr[1] = C_lr_wake(-11, -12, -13, -14, -15, -16, -17, -18, -19, 20, 0);
 
-  c_param_in  = C_param(1, 2, 3, m6a, m6b, 11, 12, 13, 14, 15, 16, 1, 0, 1);
-  c_param_out = C_param(11, 12, 13, m6b, m6a, 111, 112, 113, 114, 115, 116, 0, 0, 0);
+  c_param_in  = C_param(1, 2, 3, m6a, m6b, 11, 12, 13, 14, 15, 1, 0, 1);
+  c_param_out = C_param(11, 12, 13, m6b, m6a, 111, 112, 113, 114, 115, 0, 0, 0);
 
   c_bmad_com_in  = C_bmad_com(2, v6a, 3, 4, 5, 6, 7, 8, 
                                   1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1);

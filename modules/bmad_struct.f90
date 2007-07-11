@@ -218,7 +218,6 @@ type lat_param_struct
   integer end_lost_at         ! entrance_end$ or exit_end$
   integer lattice_type        ! linear_lattice$, etc...
   integer ixx                 ! Integer for general use
-  integer ran_seed            ! Random number seed used.
   logical stable              ! is closed lat stable?
   logical aperture_limit_on   ! use apertures in tracking?
   logical lost                ! for use in tracking

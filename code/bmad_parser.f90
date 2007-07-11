@@ -1027,9 +1027,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
     call lat_make_mat6(lat)      ! make 6x6 transport matrices
   endif
 
-! store the random number seed used for this lattice
-
-  call ran_seed_get (lat%param%ran_seed)
+! Do we need to expand the lattice and call bmad_parser2?
 
   if (detected_expand_lattice_cmd) then
     exit_on_error = bmad_status%exit_on_error

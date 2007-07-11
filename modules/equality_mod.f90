@@ -295,7 +295,7 @@ is_eq = (f1%n_part == f2%n_part) .and. (f1%total_length == f2%total_length) .and
      all(f1%t1_no_RF == f2%t1_no_RF) .and. &
      (f1%particle == f2%particle) .and. (f1%ix_lost == f2%ix_lost) .and. &
      (f1%end_lost_at == f2%end_lost_at) .and. &
-     (f1%lattice_type == f2%lattice_type) .and. (f1%ran_seed == f2%ran_seed) .and. & 
+     (f1%lattice_type == f2%lattice_type) .and. & 
      (f1%ixx == f2%ixx) .and. (f1%stable .eqv. f2%stable) .and. &
      (f1%aperture_limit_on .eqv. f2%aperture_limit_on) .and. (f1%lost .eqv. f2%lost) 
 
