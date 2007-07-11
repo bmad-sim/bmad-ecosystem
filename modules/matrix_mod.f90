@@ -71,10 +71,10 @@ subroutine mat_inverse (mat, mat_inv, err_flag, print_err)
   if (any(vec(1:n) == 0)) then
     if (logic_option(.false., print_err)) &
                                 call out_io (s_error$, r_name, 'SINGULAR MATRIX.')
-    if (present(err_flag)) err_flag = .false.
+    if (present(err_flag)) err_flag = .true.
     return
   endif
-  if (present(err_flag)) err_flag = .true.
+  if (present(err_flag)) err_flag = .false.
 
   call ludcmp (mat2, indx, d)
 
