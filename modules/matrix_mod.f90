@@ -20,7 +20,7 @@ contains
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine mat_inverse (mat, mat_inv, err_flag, print_error)
+! Subroutine mat_inverse (mat, mat_inv, ok, print_error)
 !
 ! Takes the inverse of a square matrix using LU Decomposition from
 ! Numerical Recipes.
@@ -34,10 +34,10 @@ contains
 !                         a warning message. Default is False.
 ! Output:
 !   mat_inv(:,:) -- Real(rp): inverse of mat1
-!   err_flag     -- Logical, optional: Set true for a singular input matrix.
+!   ok           -- Logical, optional: Set true for a singular input matrix.
 !-
 
-subroutine mat_inverse (mat, mat_inv, err_flag, print_err)
+subroutine mat_inverse (mat, mat_inv, ok, print_err)
 
   use nr
 
@@ -51,7 +51,7 @@ subroutine mat_inverse (mat, mat_inv, err_flag, print_err)
   real(rp) d
 
   integer n, i
-  logical, optional :: err_flag, print_err
+  logical, optional :: ok, print_err
   character(16) :: r_name = 'mat_inverse'
 
 !
@@ -71,10 +71,10 @@ subroutine mat_inverse (mat, mat_inv, err_flag, print_err)
   if (any(vec(1:n) == 0)) then
     if (logic_option(.false., print_err)) &
                                 call out_io (s_error$, r_name, 'SINGULAR MATRIX.')
-    if (present(err_flag)) err_flag = .true.
+    if (present(ok)) ok = .false.
     return
   endif
-  if (present(err_flag)) err_flag = .false.
+  if (present(ok)) ok = .true.
 
   call ludcmp (mat2, indx, d)
 

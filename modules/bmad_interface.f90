@@ -942,11 +942,12 @@ interface
 end interface
 
 interface
-  subroutine twiss_and_track (lat, orb)
+  subroutine twiss_and_track (lat, orb, ok)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     type (lat_struct) lat
     type (coord_struct), allocatable :: orb(:)
+    logical, optional :: ok
   end subroutine
 end interface
 

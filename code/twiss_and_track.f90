@@ -1,5 +1,5 @@
 !+
-! Subroutine twiss_and_track (lat, orb)
+! Subroutine twiss_and_track (lat, orb, ok)
 !
 ! Subroutine to calculate the twiss parameters and orbit for a lattice.
 ! Note: This is not necessarily the fastest way to do things.
@@ -23,12 +23,14 @@
 !
 ! Output:
 !   lat                -- lat_struct: Lat with computed twiss parameters.
-!   orb(0:)             -- Coord_struct: Computed orbit.
+!   orb(0:)            -- Coord_struct: Computed orbit.
+!   ok                 -- Logical, optional: Set True if everything ok. 
+!                           False otherwise
 !-
 
 #include "CESR_platform.inc"
 
-subroutine twiss_and_track (lat, orb)
+subroutine twiss_and_track (lat, orb, ok)
 
   use bmad_struct
   use bmad_interface, except => twiss_and_track
@@ -37,6 +39,7 @@ subroutine twiss_and_track (lat, orb)
 
   type (lat_struct) lat
   type (coord_struct), allocatable :: orb(:)
+  logical, optional :: ok
 
 !
 
@@ -47,10 +50,14 @@ subroutine twiss_and_track (lat, orb)
 ! However closed_orbit_calc needs some crude notion of the 1-turn transfer
 ! matrix in order for it to do the calculation.
 
+  ok = .false.
+
   if (lat%param%lattice_type == circular_lattice$) then
     call lat_make_mat6 (lat, -1)
     call twiss_at_start (lat)
+    if (.not. bmad_status%ok) return
     call closed_orbit_calc (lat, orb, 4)
+    if (.not. bmad_status%ok) return
   endif
 
   call track_all (lat, orb)
@@ -58,7 +65,15 @@ subroutine twiss_and_track (lat, orb)
 ! now we can compute the Twiss parameters.
 
   call lat_make_mat6 (lat, -1, orb)
-  if (lat%param%lattice_type == circular_lattice$) call twiss_at_start (lat)
+
+  if (lat%param%lattice_type == circular_lattice$) then
+    call twiss_at_start (lat)
+    if (.not. bmad_status%ok) return
+  endif
+
   call twiss_propagate_all (lat)
+  if (.not. bmad_status%ok) return
+
+  if (present(ok)) ok = .true.
 
 end subroutine

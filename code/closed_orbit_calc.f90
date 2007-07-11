@@ -243,17 +243,17 @@ contains
 subroutine make_mat2 
 
   real(rp) mat(6,6)
-  logical err1_flag, err2_flag
+  logical ok1, ok2
 
 !
 
-  err1_flag = .false.
-  if (dir == -1)  call mat_inverse (t1(1:n,1:n), t1(1:n,1:n), err1_flag)
+  ok1 = .true.
+  if (dir == -1)  call mat_inverse (t1(1:n,1:n), t1(1:n,1:n), ok1)
   call mat_make_unit (mat(1:n,1:n))
   mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
-  call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n), err2_flag)
+  call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n), ok2)
 
-  if (err1_flag .or. err2_flag) then 
+  if (.not. ok1 .or. .not. ok2) then 
     if (bmad_status%type_out) &
                  call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
     if (logic_option(bmad_status%exit_on_error, exit_on_error)) call err_exit
