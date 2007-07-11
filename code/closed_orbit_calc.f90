@@ -79,6 +79,8 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
   logical, optional :: exit_on_error
   logical fluct_saved, aperture_saved, damp_saved
 
+  character(20) :: r_name = 'closed_orbit_calc'
+
 !----------------------------------------------------------------------
 ! init
 ! Random fluctuations must be turned off to find the closed orbit.
@@ -103,7 +105,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
     start => closed_orb(n_ele)
     end   => closed_orb(0)
   else
-    print *, 'ERROR IN CLOSED_ORBIT_CALC: BAD DIRECTION ARGUMENT.'
+    call out_io (s_error$, r_name, 'BAD DIRECTION ARGUMENT.')
     call err_exit
   endif
 
@@ -153,8 +155,8 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
     t1 = lat%param%t1_with_RF
 
     if (t1(6,5) == 0) then
-      print *, 'ERROR IN CLOSED_ORBIT_CALC: CANNOT DO FULL 6-DIMENSIONAL'
-      print *, '      CALCULATION WITH NO RF VOLTAGE!'
+      call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
+                                     'CALCULATION WITH NO RF VOLTAGE!')
       bmad_status%ok = .false. 
       call err_exit
     endif
@@ -164,7 +166,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
 ! Error
 
   case default
-    print *, 'ERROR IN CLOSED_ORBIT_CALC: BAD I_DIM ARGUMENT:', i_dim
+    call out_io (s_error$, r_name, 'BAD I_DIM ARGUMENT: \i4\ ', i_dim)
     bmad_status%ok = .false. 
     call err_exit
   end select
@@ -190,9 +192,9 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
     if (i == i_max .or. lat%param%lost) then
       if (bmad_status%type_out) then
         if (lat%param%lost) then
-          print *, 'ERROR IN CLOSED_ORBIT_CALC: ORBIT DIVERGING TO INFINITY!'
+          call out_io (s_error$, r_name, 'ORBIT DIVERGING TO INFINITY!')
         else
-          print *, 'ERROR IN CLOSED_ORBIT_CALC: NONLINEAR ORBIT NOT CONVERGING!'
+          call out_io (s_error$, r_name, 'NONLINEAR ORBIT NOT CONVERGING!')
         endif
       endif
       if (logic_option(bmad_status%exit_on_error, exit_on_error)) call err_exit
@@ -241,13 +243,23 @@ contains
 subroutine make_mat2 
 
   real(rp) mat(6,6)
+  logical err1_flag, err2_flag
 
 !
 
-  if (dir == -1) call mat_inverse (t1(1:n,1:n), t1(1:n,1:n))
+  if (dir == -1)  call mat_inverse (t1(1:n,1:n), t1(1:n,1:n), err1_flag)
   call mat_make_unit (mat(1:n,1:n))
   mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
-  call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n))
+  call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n), err2_flag)
+
+  if (err1_flag .or. err2_flag) then 
+    if (bmad_status%type_out) &
+                 call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
+    if (logic_option(bmad_status%exit_on_error, exit_on_error)) call err_exit
+    bmad_status%ok = .false.
+    return
+  endif
+
 
 end subroutine
 

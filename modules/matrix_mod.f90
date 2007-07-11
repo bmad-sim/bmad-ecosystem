@@ -20,7 +20,7 @@ contains
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine mat_inverse (mat, mat_inv)
+! Subroutine mat_inverse (mat, mat_inv, err_flag, print_error)
 !
 ! Takes the inverse of a square matrix using LU Decomposition from
 ! Numerical Recipes.
@@ -29,39 +29,52 @@ contains
 !   bmad_interface
 !
 ! Input:
-!   mat(:,:) -- Real(rp): Input matrix array
-!
+!   mat(:,:)     -- Real(rp): Input matrix array
+!   print_err    -- Logical, optional: If True then the subroutine will type out
+!                         a warning message. Default is False.
 ! Output:
 !   mat_inv(:,:) -- Real(rp): inverse of mat1
+!   err_flag     -- Logical, optional: Set true for a singular input matrix.
 !-
 
-subroutine mat_inverse (mat, mat_inv)
+subroutine mat_inverse (mat, mat_inv, err_flag, print_err)
 
   use nr
 
   implicit none
 
-  real(rp), intent(in) :: mat(:,:)
-  real(rp), intent(out) :: mat_inv(:,:)
+  real(rp) :: mat(:,:)
+  real(rp) :: mat_inv(:,:)
 
-  real(rp), allocatable, save :: mat2(:,:)
+  real(rp), allocatable, save :: mat2(:,:), vec(:)
   integer, allocatable, save :: indx(:)
   real(rp) d
 
   integer n, i
+  logical, optional :: err_flag, print_err
+  character(16) :: r_name = 'mat_inverse'
 
 !
 
   n = size (mat, 1)
 
   if (.not. allocated(indx)) then
-    allocate (mat2(n,n), indx(n))
+    allocate (mat2(n,n), indx(n), vec(n))
   elseif (size(indx) /= n) then
-    deallocate (mat2, indx)
-    allocate (mat2(n,n), indx(n))
+    deallocate (mat2, indx, vec)
+    allocate (mat2(n,n), indx(n), vec(n))
   endif
 
   mat2 = mat  ! use temp mat so as to not change mat
+
+  vec(1:n) = maxval(abs(mat), dim = 2)
+  if (any(vec(1:n) == 0)) then
+    if (logic_option(.false., print_err)) &
+                                call out_io (s_error$, r_name, 'SINGULAR MATRIX.')
+    if (present(err_flag)) err_flag = .false.
+    return
+  endif
+  if (present(err_flag)) err_flag = .true.
 
   call ludcmp (mat2, indx, d)
 
