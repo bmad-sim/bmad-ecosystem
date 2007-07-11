@@ -247,6 +247,7 @@ subroutine make_mat2
 
 !
 
+  err1_flag = .false.
   if (dir == -1)  call mat_inverse (t1(1:n,1:n), t1(1:n,1:n), err1_flag)
   call mat_make_unit (mat(1:n,1:n))
   mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
