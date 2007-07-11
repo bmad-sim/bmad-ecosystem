@@ -1,0 +1,4 @@
+#!/bin/tcsh
+#to be run from the ./test directory
+../../bin/ring_ma ring_ma.in
+diff ring_ma.compare ring_ma.out

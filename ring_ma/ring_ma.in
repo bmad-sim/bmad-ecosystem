@@ -1,0 +1,56 @@
+&ring_ma_init
+   lattice_file = "CTF_LAT:bmad_2gevdr_102105.lat"
+   comment = ""
+   write_orbits = .false.
+
+   key_value1 = 0.
+   key_value2 = 0.
+
+! Keys:   sbend=2; quad=3; sextupole=5; wiggler=12
+! Params: tilt=2; k1=4; roll=15; x_offset=25; y_offset=26;
+!         x_pitch=19, y_pitch=20; s_offset=27; 
+
+   alignment_multiplier = 1.
+   sigma_cutoff = 3.
+
+! Nominal misalignment...
+! Quads
+   ma(1)  = 3, "^Q", 25, 150.e-6
+   ma(2)  = 3, "^Q", 26, 150.e-6
+   ma(3)  = 3, "^Q", 2,  100.e-6
+   ma(4)  = 3, "^Q", 4,    4.e-4
+! Sextupoles
+   ma(5)  = 5, "", 25, 300.e-6
+   ma(6)  = 5, "", 26, 300.e-6
+   ma(7)  = 5, "", 2,  100.e-6
+! Bends
+   ma(8)  = 2, "", 25, 150.e-6
+   ma(9)  = 2, "", 26, 150.e-6
+   ma(10) = 2, "", 15, 100.e-6
+! Wigglers
+   ma(11) = 12, "", 25, 150.e-6
+   ma(12) = 12, "", 26, 150.e-6
+   ma(13) = 12, "", 2,  100.e-6
+
+   det_abs_res   = 0.
+   det_diff_res  = 0.
+   det_rot_res   = 0.
+
+   seed          = -1
+
+   n_iterations    = 200
+   n_lm_iterations = 10
+
+!    Detector keys: orbit_x=1, orbit_y=2, eta_x=3, eta_y=4
+!                   phi_x=5, phi_y=6, cbar12=7
+! Correcter params: k1=4, hkick=21, vkick=22, a1=(-1)
+!    Detector spec: {mask}, {quantity to correct}, {weight}
+!   Corrector spec: {mask}, {parameter to adjust}, {weight}
+
+    correct(1)%det(1) = "^DET", 2, 1
+    correct(1)%cor(1) = "^V(KICK|[0-9])", 22, 1.
+!   correct(1)%det(1) = "^DET", 7, 100
+!   correct(1)%cor(1) = "^SK",  4, 1
+!   correct(1)%cor(1) = "^SEX.*(E|W)",  -1, 1
+
+/

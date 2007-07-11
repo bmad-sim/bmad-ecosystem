@@ -1,0 +1,12 @@
+- RING_MA - 
+
+A program for simulating element misalignment and optics
+correction in damping rings.
+
+Usage:
+ring_ma <input_file>
+
+All parameters are given in the input file - see the sample file
+ring_ma.in for details.
+
+This program needs the CESR libraries and Numerical Recipes.
