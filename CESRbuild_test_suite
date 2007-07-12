@@ -183,18 +183,23 @@ class testobject:
     child.logfile = sys.stdout
     
     if self.name == "dynamic_aperture_test": # Customized interaction steps
-      child.expect("IN>:")
-      child.sendline("da_test.in")
+      if child.isalive():
+        child.expect("IN>:")
+        child.sendline("da_test.in")
     if self.name == "tune_scan":                # Customized interaction steps
-      child.expect("in>:")
-      child.sendline("tune_scan.in")
+      if child.isalive():
+        child.expect("in>:")
+        child.sendline("tune_scan.in")
     if self.name == "closed_orbit" or self.name == "analyzer": # Customized interaction steps
-      child.expect("GO> ")
-      child.sendline("go")
-      child.expect("DIFF")
-      child.sendline("")
-      child.expect("GO> ")
-      child.sendline("quit")
+      if child.isalive():
+        child.expect("GO> ")
+        child.sendline("go")
+      if child.isalive():
+        child.expect("DIFF")
+        child.sendline("")
+      if child.isalive():
+        child.expect("GO> ")
+        child.sendline("quit")
     else:                       #Program is not of an interactive type, just run it and log output.
       lines = child.readlines() # Readlines needed to force buffering.
 
