@@ -505,7 +505,8 @@ case ('i5a_e6')
   if (ix0 > 0 .or. ix1 > 0) then
     if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) then
       call out_io (s_fatal$, r_name, 'tao_lat%rad_int not allocated')
-      call err_exit
+      valid_value = .false.
+      return
     endif
     ix0 = max(1, ix0)
     if (ix1 < 1) ix1 = lat%n_ele_track
@@ -520,7 +521,8 @@ case ('i5b_e6')
   if (ix0 > 0 .or. ix1 > 0) then
     if (.not. allocated(tao_lat%rad_int%lin_i5b_e6)) then
       call out_io (s_fatal$, r_name, 'tao_lat%rad_int not allocated')
-      call err_exit
+      valid_value = .false.
+      return
     endif
     ix0 = max(1, ix0)
     if (ix1 < 1) ix1 = lat%n_ele_track
@@ -641,7 +643,8 @@ case ('emittance.a', 'norm_emittance.a')
   elseif (data_source == "lattice") then
     if (.not. allocated(tao_lat%rad_int%lin_norm_emit_a)) then
       call out_io (s_fatal$, r_name, 'tao_lat%rad_int not allocated')
-      call err_exit
+      valid_value = .false.
+      return
     endif
     call load_it (tao_lat%rad_int%lin_norm_emit_a, &
                               ix0, ix1, datum_value, valid_value, datum, lat)
@@ -656,7 +659,8 @@ case ('emittance.b', 'norm_emittance.b')
   elseif (data_source == "lattice") then
     if (.not. allocated(tao_lat%rad_int%lin_norm_emit_b)) then
       call out_io (s_fatal$, r_name, 'tao_lat%rad_int not allocated')
-      call err_exit
+      valid_value = .false.
+      return
     endif
     call load_it (tao_lat%rad_int%lin_norm_emit_b, &
                               ix0, ix1, datum_value, valid_value, datum, lat)

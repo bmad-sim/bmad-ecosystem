@@ -59,8 +59,9 @@ init_axis%max = 0
 
 ! Read in the plot page parameters
 
-call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // file_name)
+call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
+if (iu == 0) call err_exit
 
 place%region = ' '
 region%name = ' '       ! a region exists only if its name is not blank 
