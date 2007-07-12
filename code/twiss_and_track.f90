@@ -50,7 +50,7 @@ subroutine twiss_and_track (lat, orb, ok)
 ! However closed_orbit_calc needs some crude notion of the 1-turn transfer
 ! matrix in order for it to do the calculation.
 
-  ok = .false.
+  if (present(ok)) ok = .false.
 
   if (lat%param%lattice_type == circular_lattice$) then
     call lat_make_mat6 (lat, -1)

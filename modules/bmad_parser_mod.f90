@@ -3700,6 +3700,8 @@ subroutine save_taylor_elements (lat, ele_array)
 
 !
 
+  if (.not. associated(lat%ele)) return
+
   ix = 0
   do i = 1, lat%n_ele_max
     if (associated(lat%ele(i)%taylor(1)%term)) ix = ix + 1
