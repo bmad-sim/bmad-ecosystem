@@ -187,11 +187,11 @@ subroutine track1_radiation (start, ele, param, end, edge)
     endif
 
   case (wiggler$)
-    if (.not. associated(ele%const)) then
-      call out_io (s_fatal$, r_name, 'SETUP_RADIATION_TRACKING HAS NOT BEEN CALLED FOR THIS LATTICE!')
-      call err_exit
-    endif
     if (ele%sub_key == map_type$) then
+      if (.not. associated(ele%const)) then
+        call out_io (s_fatal$, r_name, 'SETUP_RADIATION_TRACKING HAS NOT BEEN CALLED FOR THIS LATTICE!')
+        call err_exit
+      endif
       g2 = ele%const(10) + &
                   dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(11:14))
       g3 = ele%const(20) + &
