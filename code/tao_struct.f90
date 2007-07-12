@@ -204,9 +204,10 @@ end type
 !                  = %exists & %good_plot & %good_user & %good_ref (w/ reference data)
 !                  = %exists & %good_plot & %good_user & %good_meas & %good_ref 
 !                                                        (w/ measured & reference data)
-! %useit_opt  -- Datum is valid for optimizing (minimizing the merit function):
-!                  = %exists & %good_meas & %good_user & %good_opt (w/o reference data)
-!                  = %exists & %good_meas & %good_user & %good_opt & %good_ref (otherwise)
+! %useit_opt  -- Datum is possibly valid for optimization (minimizing the merit function):
+!                  = %exists & %good_user & %good_opt (w/o reference data)
+!                  = %exists & %good_user & %good_opt & %good_ref (w/ ref data)
+! A datum is used in the optimization if both %useit_opt & %good_meas are true.
 
 type tao_data_struct
   character(40) name        ! Datum name. Eg: "X Orbit @ Det 10"

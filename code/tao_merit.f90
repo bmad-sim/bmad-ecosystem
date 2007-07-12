@@ -82,6 +82,7 @@ do i = 1, size(s%u)
   
   do j = 1, size(data)
     if (.not. data(j)%useit_opt) cycle
+    if (.not. data(j)%good_model) cycle
     if (s%global%opt_with_ref .and. s%global%opt_with_base) then
       if (data(j)%merit_type(1:3) == 'abs') then
         data(j)%delta_merit = abs(data(j)%model_value) - &
@@ -120,18 +121,18 @@ do i = 1, size(s%u)
 
   call tao_find_data (err, 'phase.x', d1_ptr = d1, ix_uni = i, print_err = .false.)
   if (.not. err) then
-    n = count(d1%d%useit_opt)
+    n = count(d1%d%useit_opt .and. d1%d%good_model)
     if (n /= 0 .and. all(d1%d%ele0_name == ' ')) then
-      ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt) / n
+      ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt .and. d1%d%good_model) / n
       d1%d%delta_merit = d1%d%delta_merit - ave
     endif
   endif
 
   call tao_find_data (err, 'phase.y', d1_ptr = d1, ix_uni = i, print_err = .false.)
   if (.not. err) then
-    n = count(d1%d%useit_opt)
+    n = count(d1%d%useit_opt .and. d1%d%good_model)
     if (n /= 0 .and. all(d1%d%ele0_name == ' ')) then
-      ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt) / count(d1%d%useit_opt)
+      ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt) / n
       d1%d%delta_merit = d1%d%delta_merit - ave
     endif
   endif
@@ -150,8 +151,8 @@ do i = 1, size(s%u)
     end select
   enddo
 
-  where (data%useit_opt) data%merit = data%weight * data%delta_merit**2
-  this_merit = this_merit + sum (data%merit, mask = data%useit_opt)
+  where (data%useit_opt .and. data%good_model) data%merit = data%weight * data%delta_merit**2
+  this_merit = this_merit + sum (data%merit, mask = data%useit_opt .and. data%good_model)
 
 enddo
 

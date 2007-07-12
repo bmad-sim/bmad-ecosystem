@@ -52,18 +52,19 @@ if (size(var_vec) == 0) then
   return
 endif
 
+! See if there are any constraints
+
 n_data = 0
 do i = 1, size(s%u)
   n_data = n_data + count(s%u(i)%data(:)%useit_opt)
 enddo
 if (n_data == 0) then
-  call out_io (s_fatal$, r_name, 'No constraints defined for the merit function!')
+  call out_io (s_error$, r_name, 'No data constraints defined for the merit function!')
   s%global%optimizer_running = .false.
   return
 endif
 
-
-!
+! Optimize...
 
 do i = 1, s%global%n_opti_loops
 

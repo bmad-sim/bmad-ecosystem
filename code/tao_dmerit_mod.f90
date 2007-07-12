@@ -36,11 +36,12 @@ character(20) :: r_name = 'tao_dmodel_dvar_calc'
 logical reinit, force_calc, calc_ok
 
 ! make sure size of matrices are correct.
+! We only compute the derivitive matrix if needed or if force_calc is set.
 
 call tao_set_var_useit_opt
 call tao_set_data_useit_opt
 
-reinit = force_calc
+reinit = force_calc 
 
 do i = 1, size(s%u)
 
@@ -61,6 +62,7 @@ do i = 1, size(s%u)
   if (size(u%dModel_dVar, 1) /= n_data .or. size(u%dModel_dVar, 2) /= n_var) then
     deallocate (u%dModel_dVar)
     allocate (u%dModel_dVar(n_data, n_var))
+    u%dModel_dVar = 0
     reinit = .true.
   endif
 
@@ -69,8 +71,14 @@ do i = 1, size(s%u)
     if (.not. u%data(j)%useit_opt) cycle
     nd = nd + 1
     if (u%data(j)%ix_dModel /= nd) reinit = .true.
+    if (u%data(j)%good_model .and. &
+            any (u%dModel_dVar(nd,:) == real_garbage$)) reinit = .true.
     u%data(j)%ix_dModel = nd
-    u%data(j)%old_value = u%data(j)%delta_merit
+    if (u%data(j)%good_model) then
+      u%data(j)%old_value = u%data(j)%delta_merit
+    else
+      u%data(j)%old_value = real_garbage$
+    endif
   enddo
 
 enddo
@@ -130,7 +138,11 @@ do j = 1, s_var_size
     do k = 1, size(u%data)
       if (.not. u%data(k)%useit_opt) cycle
       nd = u%data(k)%ix_dmodel
-      u%dModel_dVar(nd,nv) = (u%data(k)%delta_merit - u%data(k)%old_value) / s%var(j)%step
+      if (u%data(k)%good_model .and. u%data(k)%old_value /= real_garbage$) then
+        u%dModel_dVar(nd,nv) = (u%data(k)%delta_merit - u%data(k)%old_value) / s%var(j)%step
+      else
+        u%dModel_dVar(nd,nv) = real_garbage$
+      endif
     enddo
   enddo
 

@@ -69,7 +69,8 @@ n_var = size(var_value)
 n_data = n_var
 do i = 1, size(s%u)
   if (.not. s%u(i)%is_on) cycle
-  n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0)
+  n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0 .and. &
+                          s%u(i)%data(:)%good_model)
 enddo
 
 if (allocated(y)) deallocate(y, weight, a, covar, alpha, y_fit, dy_da)
@@ -90,6 +91,7 @@ do j = 1, size(s%u)
   if (.not. u%is_on) cycle
   do i = 1, size(u%data)
     if (.not. u%data(i)%useit_opt) cycle
+    if (.not. u%data(j)%good_model) cycle
     if (u%data(i)%weight == 0) cycle
     k = k + 1
     weight(k) = u%data(i)%weight
@@ -207,6 +209,7 @@ do j = 1, size(s%u)
   if (.not. u%is_on) cycle
   do i = 1, size(u%data)
     if (.not. u%data(i)%useit_opt) cycle
+    if (.not. u%data(j)%good_model) cycle
     if (u%data(i)%weight == 0) cycle
     k = k + 1
     y_fit(k) = u%data(i)%delta_merit

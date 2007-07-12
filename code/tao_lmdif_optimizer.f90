@@ -60,7 +60,8 @@ var_at_min = var_value
 n_data = n_var
 do i = 1, size(s%u)
   if (.not. s%u(i)%is_on) cycle
-  n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0)
+  n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0 .and. &
+                          s%u(i)%data(:)%good_model)
 enddo
 
 if (allocated(merit_vec)) deallocate(merit_vec)
@@ -81,6 +82,7 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
     if (.not. u%is_on) cycle
     do j = 1, size(u%data)
       if (.not. u%data(j)%useit_opt) cycle
+      if (.not. u%data(j)%good_model) cycle
       if (u%data(j)%weight == 0) cycle
       k = k + 1
       merit_vec(k) = sqrt(u%data(j)%weight) * u%data(j)%delta_merit
