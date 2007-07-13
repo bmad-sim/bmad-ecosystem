@@ -74,6 +74,7 @@ import os
 import sys
 import time
 import string
+import shutil
 import getopt  #
 import socket
 import popen2  # For subprocess calls to build_serf.
@@ -107,6 +108,9 @@ platform_combos = { "linuxi": ["Linux_i686",      'intel', lnx_host ],
                     "win":    ["CYGWIN_NT_i686", 'intel', win_host ] }
 
 repo_loc          = "https://accserv.lepp.cornell.edu/svn/"
+# For UAP project kept on Sourceforge.net
+offsite_repo_loc  = "https://accelerator-ml.svn.sourceforge.net/svnroot/accelerator-ml/uap/" 
+
 repo_modules      = ["util", "Gmake", "src"]
 bmad_dist_modules = ["util", "Gmake", "documents", "src/include", "src/bmad", "src/dcslib",
                        "src/recipes_f-90_LEPP", "src/cesr_utils", "packages/forest",
@@ -114,7 +118,11 @@ bmad_dist_modules = ["util", "Gmake", "documents", "src/include", "src/bmad", "s
                        "src/bmadz", "src/toad", "src/tao", "src/bsim", "src/ilcv"]
 
 # Have this list pushed to the build_serf script, and the Makefile instead of manually synchronizing them?
-pkg_modules   = ["cfortran", "forest", "num_recipes/recipes_f-90", "num_recipes/recipes_c-ansi", "xsif", "PGPLOT", "xerces"]
+pkg_modules   = ["cfortran", "forest", "num_recipes/recipes_f-90", "num_recipes/recipes_c-ansi", \
+                 "xsif", "PGPLOT", "xerces"]
+pkg_modules   = ["xerces"]
+offsite_pkg_modules = ["trunk"]
+
 # Work out how to sync this list with the pkg build list in the M.release makefile... keeping them sync'd manually is not so hot.
 
 statuses      = {0 : "Building", 1 : "Complete", -1 : "ERROR"}
@@ -161,27 +169,25 @@ def print_help():
   print ""
   print "Usage is:  do_release.py [options] [var. defs] [<precision>]"
   print ""
-  print "Inputs:"
-  print "   <precision>         SGL (single) or DBL (double) numeric precision (optional) [default is DBL]"
+
   print "Options:"
-  print "   -cesr               Flag to checkout and/or build a cesr release"
+  print "   -cesr               Flag to checkout and/or build a cesr release (optional) [default behavior]"
   print "   -pkg                Flag to checkout and/or build a packages release"
   print "   -build_only         If you want to forgo the checkout and creation"
-  print "                       of the release directory tree, use this flag."
+  print "                       of the release directory tree, use this flag. [Not implemented.]"
   print "   -dump               Dump this script's configuration information"
-  print "   -tagp               packages release tagging (not implemented)"
-  print "   -osf                Remote exec OSF1 build"
-  print "   -lnx                Remote exec linux builds"
+  print "   -osf                Perform a remote execution of an OSF1 build"
+  print "   -lnx                Perform a remote execution of linux builds"
   print "   -vms                Prepare VMS build for transfer"
-  print "   -win                Remote exec of Windows build not yet operational"
+  print "   -win                Remote exec of Windows build [Not yet operational]"
   print "   -nobs               Suppress periodic build-status messages."
   print "   -ntly               Nightly build, rotate library links when done"
-  print "   -devel              Run a DEVEL build, rotate release and apply CVS tag."
-  print "   -curr               Run a CURRENT build, rotate release and apply special CVS tag."
+  print "   -devel              Run a DEVEL build, rotate release and tag in SVN."
   print "   -oneshot            Run a one-shot testing build with no prev_build indicator update"
-  print "   -test               Run test jobs on all binary build products. Summarize results."
+  print "   -test               Run test jobs on all executable build products and summarize the results."
   print "" 
   print "Variable definitions:"
+  print "   <precision>         SGL (single) or DBL (double) numeric precision (optional) [default is DBL]"
   print "   REL=<release_name>  Specify a custom CESR release name"
   print "   PKG=<packages_name> Specify a custom packages release name"
   print "   F90=<f90_compiler>  Specify a 3rd-party fortran compiler"
@@ -193,7 +199,6 @@ def print_help():
   print "   PATH =  $PATH "
 
 #=== Get Command Line Arguments and set vars =======================
-#print sys.argv
 for opt in sys.argv:
   if opt in ("DBL", "dbl", "Dbl"):
     prec                = "double"
@@ -210,7 +215,7 @@ for opt in sys.argv:
     bmad                = 1
     build_release       = 0
   elif opt == "-build_only":
-    checkout            = "NO"                # WAS do_checkout
+    checkout            = "NO"
   elif opt == "-nodump":
     dump                = 0
   elif opt == "-osf":
@@ -243,12 +248,12 @@ for opt in sys.argv:
   elif opt.find("PKG=") != -1:
     pkg_name            = opt.split('=')[1]
     if os.path.exists(libs_dir + "/Linux_i686_intel/" + pkg_name):   # if packages name specified, AND it already exists,
-      #print "Pack exists!"                                            # build a requested release and LINK to the packages.
+      #print "Pack exists!"                                              # build a requested release and LINK to the packages.
       build_packages      = 0                                            # Check in Linux(intel) area first, change this to be
       custom_pkgflag      = 0
     else:                                                                # more general later.  If only PKG option is used
       build_packages      = 1                                            # AND the packages already exist, initiate a RELEASE
-      custom_pkgflag      = 1                                            # and link aginst the packages specified.
+      custom_pkgflag      = 1                                            # build and link aginst the packages specified.
   elif opt.find("REL=") != -1:
     rel_name            = opt.split('=')[1]
   elif opt.find("GMAKE=") != -1:
@@ -334,6 +339,7 @@ def seconds_to_HMS(seconds):
 ## to simplify operation.
 
 def get_build_name (type, initial_name):
+  uniq_suffix = 0
   basename   = ""
   build_name = initial_name
   build_list    = []
@@ -365,25 +371,29 @@ def get_build_name (type, initial_name):
     #d print "basename: " + basename
     basename = prefix + '_' + datecode + '_' + prec.lower()[0]  # unadorned 1st iteration generated name
     #d print "new basename: " + basename
-    build_already_exists = 0
-    for plat in platform_combos:          # check if the name already exists in any platform area
-      #print libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
-      full_buildname = libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
-      #print "full buildname: " + full_buildname
-      if os.path.exists("/nfs/acc/libs/distribution/" + basename) and type == "BMAD DISTRIBUTION":
-        build_already_exists = 1
-      elif os.path.exists(full_buildname):
-        build_already_exists = 1
+    build_already_exists = 0   # move up to top of this function?
+    if os.path.exists("/nfs/acc/libs/distribution/" + basename) and type == "BMAD DISTRIBUTION":
+      #d print "Dist already exists"
+      build_already_exists = 1
+      full_buildname = libs_dir +"/distribution/" + basename
+      #d print full_buildname
+    else:
+      for plat in platform_combos:          # check if the name already exists in any platform area
+        #d print libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
+        full_buildname = libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
+        #d print "full buildname (gen): " + full_buildname
+        if os.path.exists(full_buildname):
+          build_already_exists = 1
     if build_already_exists:              # if it does, make it okay by appending a unique suffix
-      #print "Build already exists"
-      uniq_suffix    = 1
-      build_name     = basename +'_'+ str(uniq_suffix)
-      full_buildname = libs_dir+'/'+platform_combos["linuxi"][0]+'_'+platform_combos["linuxi"][1]+'/'+build_name
+      #d print "Build already exists"
       while os.path.exists(full_buildname):
         uniq_suffix    = uniq_suffix + 1
         build_name     = basename + '_' + str(uniq_suffix)
-        full_buildname = libs_dir+'/'+platform_combos["linuxi"][0]+'_'+platform_combos["linuxi"][1]+'/'+build_name
-        #print build_name
+        if type == "BMAD DISTRIBUTION":
+          full_buildname = "/nfs/acc/libs/distribution/" + build_name
+        else:
+          full_buildname = libs_dir+'/'+platform_combos["linuxi"][0]+'_'+platform_combos["linuxi"][1]+'/'+build_name
+        #d print build_name
     else:
       build_name = basename
   return build_name
@@ -422,9 +432,9 @@ def dump_parameters():
   print "General log file  : " + genlog
   print ""
   print "   --  Platforms and Hosts  --"
-  print str(rquant) +" "+ build_type.lower() +" builds."
+  print "      " + str(rquant) +" "+ build_type.lower() +" builds."
   print "  OS   (compiler)      Build Host"
-  print "-------------------------------------------"
+  print "--------------------------------------------"
   if lnx:
     print "Linux   (Intel)  " + lnx_host
     print "Linux   (Lahey)  " + lnx_host
@@ -547,6 +557,27 @@ class builder:
         for line in __lines:
           sys.stdout.write(line, 4)  # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
       self.lines = []
+
+      # Check out 3rd-party files from offsite repository.
+      print "Obtaining 3rd-party files from off-site repository:"
+      print "  " + offsite_repo_loc
+      for package in offsite_pkg_modules:
+        loc_package = package.split('/')[-1]
+        if loc_package == "trunk":
+          loc_package = "UAP"
+        if loc_package == "xerces":
+          loc_package = "xerces-c-src_2_7_0"
+        svn_cmd = "svn co " + offsite_repo_loc + package + ' ' + self.full_pkg_name + '/' + loc_package
+        #print svn_cmd
+        print "Retrieving package " + package
+        svnlines = os.popen(svn_cmd).readlines()
+        for line in svnlines:
+          __lines.append(line)
+      if print_co:
+        for line in __lines:
+          sys.stdout.write(line, 4)  # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
+      self.lines = []       
+      
       print "Spawning build process..."
       cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
       #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_pkg_logfile)
@@ -622,6 +653,13 @@ class builder:
           sys.stdout.write(line, 4)    # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
       self.lines = []
 
+      # Copy the bmad distribution environment setup scripts
+      os.mkdir(self.full_rel_name + "/bin")
+      shutil.copy(util_dir + "/bmadenv", self.full_rel_name + "/bin")
+      shutil.copy(util_dir + "/bmad_def", self.full_rel_name + "/bin")
+      shutil.copy(util_dir + "/bmad_defs", self.full_rel_name + "/bin")
+      print "Environment scripts copied to distribution bin directory."
+      
       ## Create the distribution source tarball
       print "\nCreating distribution tarball..."
       os.chdir(self.base_dir) # possibly not needed.
@@ -630,7 +668,7 @@ class builder:
       #print tar_cmd_list
       t       = sub.Popen(tar_cmd_list, cwd=self.base_dir)
       t_rcode = t.wait()
-      print "TAR retcode: " + str(t_rcode)
+      print "TAR operation completed with status: " + str(t_rcode)
       if t_rcode != 0:
         print "ERROR during TAR operation!  Quitting."
         sys.exit(60)
@@ -640,7 +678,7 @@ class builder:
       #print gzip_cmd_list
       t       = sub.Popen(gzip_cmd_list, cwd=self.base_dir)
       t_rcode = t.wait()
-      print "GZIP retcode: " + str(t_rcode)
+      print "GZIP operation completed with status: " + str(t_rcode)
       if t_rcode != 0:
         print "ERROR during gzip operation!  Quitting."
         sys.exit(65)
@@ -821,7 +859,7 @@ elapsed          = 0
 print "Waiting for builds to fully initiate."
 time.sleep(60)       # Long wait here to allow OSF1 builds to eventually dump the output of the
 if not show_status:  # gmake call to a file for status parsing. Buffer clearing is slow or something.
-  print "Builds initiated.  Status output supressed.  This will take a while.\n"
+  print "Builds initiated.  Status output suppressed.  This will take a while.\n"
 ####
 
 while complete_fraction < 1 and loop < max_loops: 
@@ -951,12 +989,12 @@ if osf:
 if vms:
   print "VMS  alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_end_VMS - t_begin_VMS)
 
-if build_type == "RELEASE":
-  lines = os.popen(util_dir + "/rel_disk_total " + rel_name).readlines()
-  for line in lines:
-    print line.strip()
-else:
-  print "Disk utilization summary for packages builds has not yet been implemented."
+#if build_type == "RELEASE":
+lines = os.popen(util_dir + "/rel_disk_total " + rel_name).readlines()
+for line in lines:
+  print line.strip()
+#else:
+#  print "Disk utilization summary for packages builds has not yet been implemented."
 
 
 if build_type == "RELEASE" and run_tests == "YES":
@@ -995,7 +1033,7 @@ if nightly and build_type == "RELEASE":
   lines = os.popen(util_dir + "/rotate_release -nightly " + rel_name).readlines()
   for line in lines:
     print line.strip()
-  print "Rotation successful, so deleting previous night's build."
+  print "Rotation successful-- deleting previous night's build."
 
   #== If everything has completed successfully so far, delete previous build, as long as it hasn't
   #== been promoted.
@@ -1005,12 +1043,13 @@ if nightly and build_type == "RELEASE":
   lines = os.popen(util_dir + "/DELETE_release -FORCE REL=" + previously_built)
   for line in lines:
     print line.strip()
-  print "Deletion successful.  Updating previous build marker."
+  print "Deletion successful.  Updating previously-built indicator."
   os.chmod(prev_blt_path, 0644)         # set permissions to writable
   prevfile = open(prev_blt_path, 'w')
   prevfile.write(rel_name + '\n')      # write the name of the release just built to file
   prevfile.close()
   os.chmod(prev_blt_path, 0444)         # reset permissions to disallow writes
-  print "EOF"
+
+print "\n================= Build process finished completely. ====================="
 
 stout.close()                           # Close stream to logfile before quitting
