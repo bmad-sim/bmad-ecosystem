@@ -28,7 +28,7 @@
 #
 #---------------------------------------------------------------
 # Inputs
-FULL_DIR_NAME=$1
+NAME=$1
 
 if ( [ $# -ne 1 ] ) then
 		echo "[cesr_to_vms]:  Incorrect number of parameters specified.  Exiting!"
@@ -36,25 +36,24 @@ if ( [ $# -ne 1 ] ) then
 fi
 
 # Initializations
-DIR_NAME=`basename ${FULL_DIR_NAME}`
-#INTEL_LIB_DIR=`dirname ${FULL_DIR_NAME}`
-#MAIN_LIB_DIR=`dirname ${INTEL_LIB_DIR}`
+FULL_NAME=/nfs/acc/libs/VMS_alpha_hp/${NAME}
 
-#VMS_LIB_DIR=${MAIN_LIB_DIR}/VMS_alpha_hp
-#VMS_LOG_DIR=${MAIN_LIB_DIR}/log/VMS_alpha_hp
-#VMS_LOG_FILE=${VMS_LOG_DIR}/${DIR_NAME}.build_status
+if ( [ ! -d ${FULL_NAME} ] ) then
+  echo "A processed VMS source tree directory with "
+  echo "the name ${FULL_NAME} does not exist."
+  exit 2
+fi
 
 # Remote path on VMS cluster where library archives are kept.
 WORKDIR=CESR2f'$'DKB200:[CESR_LIBS.ZIP]
 
 # Now make a copy for transport to VMS
 echo "Preparing ${DIR_NAME} for transport to vms"
-#cd ${VMS_LIB_DIR}
-cd ${FULL_DIR_NAME}
+cd ${FULL_NAME}
 
 # Zip up the source-tree
 #/usr/bin/zip -r ${LIB_NAME} ${LIB_NAME} >> ${VMS_LOG_FILE}
-/usr/bin/zip -r ${DIR_NAME} . ${DIR_NAME}
+/usr/bin/zip -r ${NAME} . ${NAME}
 if ( [ ${?} -ne 0 ] ) then
     echo "Zipping operation failed in VMS preparation job!"
     exit 55
@@ -73,6 +72,7 @@ ftp_success=${?}
 
 # Notify of completion
 if ( [ ${ftp_success} -eq 0 ] ) then
+    mv ${NAME}.zip ..
     echo "Transfer of ${DIR_NAME} to CESR2f::${WORKDIR} complete!"
 else
     echo "***ERROR! Transfer of ${DIR_NAME} to CESR2F FAILED!" 
