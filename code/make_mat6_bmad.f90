@@ -142,6 +142,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       mat6(3,3) =  cos_a ; mat6(4,4) =  cos_a
     endif
 
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+
 !--------------------------------------------------------
 ! sbend
 ! if k1 /= 0 then just use the MAD 2nd order map.
@@ -650,6 +652,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(6,6) = 1 + pxy2*k*L/(2*E2*E)
 
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! beam-beam interaction
