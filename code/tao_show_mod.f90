@@ -61,7 +61,7 @@ character(*) :: what, stuff
 character(24) :: var_name
 character(24)  :: plane, imt, lmt, amt, rmt, irmt, iimt
 character(80) :: word(2), fmt, fmt2, fmt3
-character(8) :: r_name = "tao_show_cmd"
+character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(100), pointer :: ptr_lines(:)
 character(100) file_name
@@ -706,7 +706,7 @@ case ('lattice')
   else
     call location_decode (stuff2, show_here, 0, num_locations)
     if (num_locations .eq. -1) then
-      call out_io (s_error$, r_name, "Syntax error in range list!")
+      call out_io (s_error$, r_name, "Syntax error in range list:" // stuff2)
       deallocate(show_here)
       return
     endif

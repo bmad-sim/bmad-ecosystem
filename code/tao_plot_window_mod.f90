@@ -60,7 +60,7 @@ implicit none
 
 character(24) :: r_name = 'tao_destroy_plot_window'
 
-  if (has_been_created) return
+  if (.not. has_been_created) return
 
   call qp_close_page
   has_been_created = .false.
