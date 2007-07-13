@@ -25,6 +25,7 @@
 # that needs to know where the Subversion Python bindings are located.
 # CAUTION: Those bindings are Python-version dependent!  They were built
 # to be compatible with the Python interpreter version 2.2.3.
+# Those binding have been installed on lnx209 (accserv).
 ###########################################################################
 export PYTHONPATH=${PYTHONPATH}:/nfs/opt/svn/lib/svn-python
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/nfs/opt/svn/lib
@@ -148,10 +149,14 @@ else
     TYPE="DEVEL"
 fi
 
+######################################################################
+# Create the transaction, execute the operations, close repository.
+# All handled by rsvn.py script.
+######################################################################
 ${bindir}/rsvn.py --message="Tagging ${TYPE} release ${REL_NAME}" --revision=${rev} --username=cesrulib /mnt/svn < ${tmpdir}/${tmpfile}
 
 
-
+# Clean up
 rm -f ${tmpdir}/${tmpfile}
 
 exit 0
