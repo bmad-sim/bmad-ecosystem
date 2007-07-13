@@ -132,6 +132,7 @@ release       = ""
 revision      = 0
 build_release = 1              # default to building a CESR release only
 bmad          = 0
+bmad_build    = 0
 bmad_name     = "none"
 custom_relflag= 0              # flag system to allow three cmd-line possibilities; pkg, rel, or both
 rel_name      = "none"
@@ -167,36 +168,44 @@ build_serf    = util_dir + "/build_serf"
 #=== Function to print usage information ===========================
 def print_help():
   print ""
-  print "Usage is:  do_release.py [options] [var. defs] [<precision>]"
+  print "Usage is:  build_master [options] [var. defs]"
   print ""
 
   print "Options:"
-  print "   -cesr               Flag to checkout and/or build a cesr release (optional) [default behavior]"
-  print "   -pkg                Flag to checkout and/or build a packages release"
-  print "   -build_only         If you want to forgo the checkout and creation"
-  print "                       of the release directory tree, use this flag. [Not implemented.]"
-  print "   -dump               Dump this script's configuration information"
-  print "   -osf                Perform a remote execution of an OSF1 build"
-  print "   -lnx                Perform a remote execution of linux builds"
-  print "   -vms                Prepare VMS build for transfer"
-  print "   -win                Remote exec of Windows build [Not yet operational]"
-  print "   -nobs               Suppress periodic build-status messages."
-  print "   -ntly               Nightly build, rotate library links when done"
-  print "   -devel              Run a DEVEL build, rotate release and tag in SVN."
-  print "   -oneshot            Run a one-shot testing build with no prev_build indicator update"
-  print "   -test               Run test jobs on all executable build products and summarize the results."
+  print "--Platform Flags--"
+  print "   -lnx          Check out and build an ACC Libraries release"
+  print "                 for all supported Linux platforms."
+  print "   -osf          Check out and build an ACC Libraries release"
+  print "                 for the OSF1 platform."
+  print "   -vms          Generate VMS dependency files, package up and "
+  print "                 deliver source tree to VMS cluster. (Automatically selects -osf)"
+  print "   -win          Check out and build an ACC Libraries release"
+  print "                 for the Windows platform. [Not yet operational]"
+  print "----- Others -----"
+  print "   -cesr         Checkout and build an ACC Libraries release [default behavior]"
+  print "   -pkg          Checkout and build a 3rd-party packages release"
+  print "   -bmad         Checkout and produce a BMAD distribution tar.gz file"
+  print "   -build_only   Build using previously checked-out files [Not implemented]"
+  print "   -dump         Dump this script's configuration information."
+  print "   -nobs         Suppress periodic build-status messages."
+  print "   -ntly         Nightly build, rotate library links when done"
+  print "   -devel        Run a DEVEL build, rotate release and tag in SVN."
+  print "   -oneshot      Run a one-shot testing build with no prev_build indicator update."
+  print "   -test         Run test jobs on all executable build products and summarize the results."
   print "" 
   print "Variable definitions:"
-  print "   <precision>         SGL (single) or DBL (double) numeric precision (optional) [default is DBL]"
-  print "   REL=<release_name>  Specify a custom CESR release name"
-  print "   PKG=<packages_name> Specify a custom packages release name"
-  print "   F90=<f90_compiler>  Specify a 3rd-party fortran compiler"
-  print "   TAG=<release_tag>   Specify a custom tag for the release"
-  print "   GMAKE=<gmake_dir>   Specify a custom CESR_GMAKE directory"
-  print "   UTIL=<util_dir>     Specify a custom CESR_UTIL  directory"
-  print "   BIN=<bin_dir>       Specify a custom CESR_BIN   directory"
+
+  print "   REL=<release_name>    Specify a custom release name"
+  print "   PKG=<packages_name>   Specify a custom packages release name"
+  print "   F90=<f90_compiler>    Specify a 3rd-party fortran compiler"
+  print "   GMAKE=<gmake_dir>     Specify a custom CESR_GMAKE directory"
+  print "   UTIL=<util_dir>       Specify a custom CESR_UTIL  directory"
+  print "   BIN=<bin_dir>         Specify a custom CESR_BIN   directory"
+  print "   <DBL/SGL>             Double or Single numeric precision [default is DBL]"
+  print "   REV=<revision num>    Specify a SVN revision number to check out."
+  print "                          [Default is the most recent revision]"
   print ""
-  print "   PATH =  $PATH "
+  #print "   PATH =  $PATH "
 
 #=== Get Command Line Arguments and set vars =======================
 for opt in sys.argv:
@@ -214,6 +223,11 @@ for opt in sys.argv:
   elif opt == "-bmad":
     bmad                = 1
     build_release       = 0
+    build_packages      = 0
+  elif opt == "-bmad_build":
+    bmad_build          = 1
+    build_release       = 0
+    build_packages      = 0
   elif opt == "-build_only":
     checkout            = "NO"
   elif opt == "-nodump":
@@ -240,7 +254,7 @@ for opt in sys.argv:
     tag_release         = 1
   elif opt == "-test":
     run_tests           = "YES"
-  elif opt.find("rev=") != -1:
+  elif opt.find("REV=") != -1:
     revision            = opt.split('=')[1]
   elif opt.find("TAG=") != -1:
     rel_tag             = opt.split('=')[1]
@@ -264,16 +278,22 @@ for opt in sys.argv:
     bin_dir             = opt.split('=')[1]
   elif opt != sys.argv[0]:
     print_help()
-    print "\nYou might want to check your command line argument spelling and syntax.\n"
+    print "\nYou might want to check the number of command line arguments and their syntax.\n"
     sys.exit(10)
 
 if custom_pkgflag and not custom_relflag:             # accomodate an isolated packages build
   build_release = 0
-rquant = lnx*2 + osf + vms + win + bmad               # tally of releases to build
+rquant = lnx*2 + osf + vms + win + bmad + bmad_build  # tally of releases to build
 if rquant == 0:
-  print "You have not requested any releases to be built."
-  print "Specify at least one platform flag on the command line."
+  print_help()
+  print "\nYou have not requested any releases to be built."
+  print "Specify at least one platform flag on the command line.\n"
   sys.exit(35)
+
+if rquant > 1:
+  plural = "s"
+else:
+  plural = ""
 
 if os.environ['CESR_GMAKE']:
   bld_sys_area = os.environ['CESR_GMAKE']
@@ -432,7 +452,7 @@ def dump_parameters():
   print "General log file  : " + genlog
   print ""
   print "   --  Platforms and Hosts  --"
-  print "      " + str(rquant) +" "+ build_type.lower() +" builds."
+  print "      " + str(rquant) +" "+ build_type.lower() +" build"+ plural +"."
   print "  OS   (compiler)      Build Host"
   print "--------------------------------------------"
   if lnx:
@@ -444,6 +464,8 @@ def dump_parameters():
     print "VMS     (HP)     " + vms_host
   if win:
     print "Windows (?)      " + win_host
+  if bmad:
+    print "  N/A -- Source-only distribution"
 
 
 
@@ -668,9 +690,9 @@ class builder:
       #print tar_cmd_list
       t       = sub.Popen(tar_cmd_list, cwd=self.base_dir)
       t_rcode = t.wait()
-      print "TAR operation completed with status: " + str(t_rcode)
+      print "TAR operation completed successfully."
       if t_rcode != 0:
-        print "ERROR during TAR operation!  Quitting."
+        print "ERROR during TAR operation!  Status: " + str(t_rcode) + " Quitting."
         sys.exit(60)
         
       print "Compressing tar file..."
@@ -678,29 +700,26 @@ class builder:
       #print gzip_cmd_list
       t       = sub.Popen(gzip_cmd_list, cwd=self.base_dir)
       t_rcode = t.wait()
-      print "GZIP operation completed with status: " + str(t_rcode)
+      print "GZIP operation completed successfully."
       if t_rcode != 0:
-        print "ERROR during gzip operation!  Quitting."
+        print "ERROR during gzip operation!  Status: " + str(t_rcode) + " Quitting.\n"
         sys.exit(65)
         
 
       ## REMOTE-EXECUTE build process
-      print "Spawning build process..."
-      #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_rel_logfile)
-      print "Build bmad dist here.\n"
-      # Build it locally, don't use the build_serf script, have all log output in the genlog file?
-      cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
-      self.PID = sub.Popen(cmd , shell=True).pid
-      cmd = ""
-      time.sleep(3)
-      print time.asctime() + " -- Spawned build process with PID : " + str(self.PID) + '\n'
+      if bmad_build:
+        print "Spawning build process..."
+        #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_rel_logfile)
+        print "Build bmad dist here.\n"
+        # Build it locally, don't use the build_serf script, have all log output in the genlog file?
+        cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
+        self.PID = sub.Popen(cmd , shell=True).pid
+        cmd = ""
+        time.sleep(3)
+        print time.asctime() + " -- Spawned build process with PID : " + str(self.PID) + '\n'
 
 
-
-
-
-
-    ##########################################
+  ############################################
 
   def status(self):    ## return the value of the most recently-stamped status message in logfile passed to this method
     build_status = 0
@@ -752,7 +771,7 @@ elif build_packages:
   build_name  = get_build_name(build_type, pkg_name)
   pkg_name    = build_name
   release_names = (rel_name, pkg_name)
-elif bmad:
+elif bmad or bmad_build:
   build_type  = "BMAD DISTRIBUTION"
   build_name  = get_build_name(build_type, bmad_name)
   rel_name    = build_name
@@ -856,15 +875,18 @@ t_end_VMS        = 0
 elapsed          = 0
 
 ####
-print "Waiting for builds to fully initiate."
-time.sleep(60)       # Long wait here to allow OSF1 builds to eventually dump the output of the
-if not show_status:  # gmake call to a file for status parsing. Buffer clearing is slow or something.
-  print "Builds initiated.  Status output suppressed.  This will take a while.\n"
+if not bmad:
+  print "Waiting for builds to fully initiate."
+  time.sleep(60)       # Long wait here to allow OSF1 builds to eventually dump the output of the
+  if not show_status:  # gmake call to a file for status parsing. Buffer clearing is slow or something.
+    print "Builds initiated.  Status output suppressed.  This will take a while.\n"
 ####
 
 while complete_fraction < 1 and loop < max_loops: 
   error_fraction    = 0
   error_tally       = 0
+  if bmad:
+    break
   if show_status:
     t_cur_master = int(time.time())
     print "\n\nBuild status info:   (loop " + str(loop) + ")"
@@ -893,7 +915,7 @@ while complete_fraction < 1 and loop < max_loops:
       print "  Linux Lahey : (" + str( lla_stat ) + ') ' + statuses[lla_stat]
 
 
-  if bmad:
+  if bmad_build:
     lin_stat = LINBUILD.status()
     #===Check if Intel is done==============
     if lin_stat > 0 and lin_donelatch == 0:
@@ -912,8 +934,8 @@ while complete_fraction < 1 and loop < max_loops:
     if show_status:
       print "  Linux(bmad) Intel : (" + str( lin_stat ) + ') ' + statuses[lin_stat]
     #  print "  Linux Lahey : (" + str( lla_stat ) + ') ' + statuses[lla_stat]
-      
-        
+
+            
   if osf:                        
     osf_stat = OSFBUILD.status()
     #===Check if HP is done=================
@@ -977,12 +999,12 @@ t_end_master = int(time.time())
 ##== Build has completed successfully, compute and summarize relevant statistics ==========================================
 print "          ======== Statistics for this build process ========"
 print "============================ Time summary: ==============================="
-print "Overall:     %i hr %i min %i sec elapsed" % seconds_to_HMS(t_end_master - t_begin_master)
+print "         Overall:     %i hr %i min %i sec elapsed" % seconds_to_HMS(t_end_master - t_begin_master)
 
 if lnx:
   print "Linux intel build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LIN - t_begin_LIN)
   print "Linux lahey build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LLA - t_begin_LLA)
-if bmad:
+if bmad or bmad_build:
   print "Linux (bmad) intel build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LIN - t_begin_LIN)
 if osf:
   print "OSF1 alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_end_OSF - t_begin_OSF)
@@ -1040,7 +1062,7 @@ if nightly and build_type == "RELEASE":
   prevfile = open(prev_blt_path, 'r')
   previously_built = prevfile.readline().strip()
   prevfile.close()
-  lines = os.popen(util_dir + "/DELETE_release -FORCE REL=" + previously_built)
+  lines = os.popen(util_dir + "/DELETE_release -QUIET REL=" + previously_built)
   for line in lines:
     print line.strip()
   print "Deletion successful.  Updating previously-built indicator."
@@ -1050,6 +1072,6 @@ if nightly and build_type == "RELEASE":
   prevfile.close()
   os.chmod(prev_blt_path, 0444)         # reset permissions to disallow writes
 
-print "\n================= Build process finished completely. ====================="
+print "\n================== Build process finished completely. ===================="
 
 stout.close()                           # Close stream to logfile before quitting
