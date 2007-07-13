@@ -724,11 +724,11 @@ case ('lattice')
   line2 = ""
   line3 = ""
   do i = 1, size(column)
-    if (column(i)%name == "") exit
+    if (column(i)%name == "") cycle
     ix2 = ix + column(i)%field_width
     select case (column(i)%name)
     case ("index")
-      line2(ix:) = "Index" 
+      line2(ix:) = "Ix" 
     case ("name")
       line2(ix:) = "Name" 
     case ("key")
@@ -783,6 +783,8 @@ case ('lattice')
     case ("orbit_pz")
       line2(ix2-5:) = "Orbit" 
       line3(ix2-5:) = "  Pz "
+    case ("x")
+      
     case default
       call out_io (s_error$, r_name, 'BAD NAME FOUND IN COLUMN SPEC: ' // column(i)%name)
       return
@@ -813,7 +815,7 @@ case ('lattice')
     line = ""
     ix = 1
     do i = 1, size(column)
-      if (column(i)%name == "") exit
+      if (column(i)%name == "") cycle
       select case (column(i)%name)
       case ("index")
         write (line(ix:), column(i)%format, iostat = ios) ie
@@ -855,10 +857,13 @@ case ('lattice')
         write (line(ix:), column(i)%format, iostat = ios) orb%vec(5)
       case ("orbit_pz")
         write (line(ix:), column(i)%format, iostat = ios) orb%vec(6)
+      case ("x")
+
       end select
       ix  = ix + column(i)%field_width
       if (ios /= 0) then
-        call out_io (s_error$, r_name, 'BAD FORMAT: ' // column(i)%format, 'FOR DISPLAYING: ' // column(i)%name)
+        call out_io (s_error$, r_name, 'BAD FORMAT: ' // column(i)%format, &
+                                       'FOR DISPLAYING: ' // column(i)%name)
         return
       endif
     enddo

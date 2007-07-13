@@ -848,17 +848,19 @@ use the command \vn{show lattice custom <file_name>}. The custimization
 file looks like:
 \begin{example}
   &custom_show_lat
-    column(1) = "index",   "i6",     7 
-    column(2) = "name",    "a24",   25
-    column(3) = "key",     "a16",   16
-    column(4) = "s",       "f10.3", 10
-    column(5) = "beta_a",  "f7.2",   7
-    column(6) = "orbit_x", "3p, f8.3", 8   ! "3p" -> convert meters to mm.
+    column(1) = "index",   "i6",     6 
+    column(2) = "x"        "x"       1
+    column(3) = "name",    "a24",   24
+    column(4) = "key",     "a16",   16
+    column(5) = "s",       "f10.3", 10
+    column(6) = "beta_a",  "f7.2",   7
+    column(7) = "orbit_x", "3p, f8.3", 8   ! "3p" -> convert meters to mm.
   /
 \end{example}
 each \vn{column(1)} has three components. The first component is what is to be 
 displayed in that column. Possibilities are:
 \begin{example}
+  x                  ! Add spaces
   index              ! Index nuber of element.
   name               ! Name of element.
   key                ! Type of element (quadrupole, etc.)
@@ -873,8 +875,9 @@ displayed in that column. Possibilities are:
   orbit_z, orbit_pz  ! Horizontal position and momentum deviation.
 \end{example}
 The second component is the Fortran edit descriptor. The third column is the total
-width of the field.
-
+width of the field. Notice that strings (like the element name) are left justified and
+numbers are right justified. In the case of a number followed by a string, 
+there will be no white space inbetween. The use of an "x" column can solve this problem.
 
   \item[show optimizer]
 Shows information pertinent to optimization: Data and variables used, etc.
