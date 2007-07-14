@@ -145,7 +145,7 @@ type ele_struct
   type (xy_disp_struct) x, y             ! Projected dispersions.
   type (floor_position_struct) floor     ! Global floor position at end of ele.
   real(rp) value(n_attrib_maxx)          ! attribute values.
-  real(rp) closed_orb(6)                 ! For Bmad internal use only.
+  real(rp) ref_orb(6)                    ! Reference orbit. For Bmad internal use only.
   real(rp) gen0(6)                       ! constant part of the genfield map.
   real(rp) vec0(6)                       ! 0th order transport vector.
   real(rp) mat6(6,6)                     ! 1st order transport matrix.

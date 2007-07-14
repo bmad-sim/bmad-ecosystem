@@ -123,8 +123,9 @@ subroutine make_mat6 (ele, param, start, end, end_in)
 
   if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6)
 
-! 
+! Finish up
 
+!  ele%ref_orb = a_end%vec
   if (present(end) .and. .not. end_input) end = a_end
 
 end subroutine

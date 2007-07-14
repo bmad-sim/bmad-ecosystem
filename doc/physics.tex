@@ -812,6 +812,23 @@ where $(x_1, p_{x1}, y_1, p_{y1}$ are the closed orbit coordinates at
 point 1 and it has been assumed that the closed orbit $p_z$ is zero.
 
 %-----------------------------------------------------------------
+\section{Dispersion Propagation}
+\label{s:dispersion}
+\index{Dispersion|textbf}
+
+The dispersion ($\eta$) and the dispersion derivative are defined by the equation
+\begin{align}
+  \eta_x &\equiv \frac{dx}{dp_z} \CRNO
+  \eta'_x &\equiv \frac{d\eta_x}{ds} = \frac{dx'}{dp_z} \\
+  \eta_y &\equiv \frac{dy}{dp_z} \CRNO
+  \eta'_y &\equiv \frac{d\eta_y}{ds} = \frac{dy'}{dp_z} \CRNO
+\end{align}
+Here the independent variables are $(x, x', y, y')$. Since \bmad uses
+canonical coordinates (\sref{s:phase_space_coords}), care must be taken
+in propagating the dispersion from one element to another.
+
+
+%-----------------------------------------------------------------
 \section{Macroparticles}
 \label{s:macro}
 \index{Macroparticles|textbf}

@@ -66,7 +66,7 @@ subroutine twiss_propagate1 (ele1, ele2)
     ele2%z = ele1%z
     ele2%gamma_c = ele1%gamma_c
     ele2%c_mat = ele1%c_mat
-    ele2%closed_orb = ele1%closed_orb
+    ele2%ref_orb = ele1%ref_orb
     return
   endif
 
@@ -186,7 +186,7 @@ subroutine twiss_propagate1 (ele1, ele2)
   endif
 
   mat6 => ele2%mat6
-  orb => ele1%closed_orb
+  orb => ele1%ref_orb
 
   eta_vec(1:5) = matmul (ele2%mat6(1:5,:), eta1_vec) / pz_2
   eta_vec(1) = eta_vec(1) + mat6(1,2) * orb(2) + mat6(1,4) * orb(4)
@@ -208,8 +208,9 @@ subroutine twiss_propagate1 (ele1, ele2)
   ele2%b%eta  = eta_vec(3)
   ele2%b%etap = eta_vec(4)
 
-  ele2%closed_orb(1:4) = &
-          matmul(ele2%mat6(1:4,1:4), ele1%closed_orb(1:4)) + ele2%vec0(1:4)
+  ele2%ref_orb(1:4) = &
+          matmul(ele2%mat6(1:4,1:4), ele1%ref_orb(1:4)) + ele2%vec0(1:4)
+
 
 end subroutine
 
