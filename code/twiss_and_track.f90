@@ -58,9 +58,9 @@ subroutine twiss_and_track (lat, orb, ok)
     if (.not. bmad_status%ok) return
     call closed_orbit_calc (lat, orb, 4)
     if (.not. bmad_status%ok) return
+  else
+    call track_all (lat, orb)
   endif
-
-  call track_all (lat, orb)
 
 ! now we can compute the Twiss parameters.
 
