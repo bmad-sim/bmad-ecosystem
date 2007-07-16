@@ -122,7 +122,7 @@ the value at the exit end of the element. Such variables are:
 \index{Ele_struct!%a}
 \begin{example}
   type (twiss_struct)  a, b, z          ! Twiss parameters
-  type (xy_disp_struct) x, y        ! Projected dispersion
+  type (xy_disp_struct) x, y            ! Projected dispersion
   type (floor_position_struct) position ! Floor position
   real(rp) c_mat(2,2)                   ! Coupling c matrix
   real(rp) gamma_c                      ! Coupling parameter
@@ -170,6 +170,20 @@ routines to manipulate the coupling factors. For example:
   Make_V_Mats(ele, v_mat, v_inv_mat)   ! Form V matrices.
 \end{example}
 See \sref{r:mat} for a complete listing of such routines.
+
+If the Twiss parameters need to be transfored from 
+one element to another The three components \vn{%a}, \vn{%b}, and \vn{%c}
+need to be copied. Additionally, to transfer the dispersion, the two
+components \vn{%x} and \vn{%y} need to be copied since the standard
+dispersion propagation routine, \vn{twiss_propagate1}, computes normal mode
+dispersions from the projected ones. Thus a full transfer looks like
+\begin{example}
+  ele2%a = ele1%a
+  ele2%b = ele1%b
+  ele2%x = ele1%x
+  ele2%y = ele1%y
+  ele2%z = ele1%z
+\end{example}
 
 %--------------------------------------------------------------------------
 \section{Attribute Values: Dependent and Otherwise}
