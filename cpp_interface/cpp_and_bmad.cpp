@@ -645,7 +645,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.num_steps, c.integrator_order, c.ptc_kind, c.taylor_order, 
     c.aperture_at, c.coupler_at,
     c.symplectify, c.mode_flip, c.multipoles_on, c.map_with_offsets,
-    c.field_master, c.is_on, c.old_is_on, c.logic, c.on_an_i_beam, c.csr_calc_on);
+    c.field_master, c.is_on, c.old_is_on, c.logic, c.on_an_girder, c.csr_calc_on);
   for (int i = 0; i < n_wig; i++) {
     wig_term_in_ele_to_f2_(f, i+1, c.wig_term[i].coef, 
             c.wig_term[i].kx, c.wig_term[i].ky, c.wig_term[i].kz, 
@@ -669,7 +669,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     Int& tracking, Int& f_calc, Int& num_s, Int& int_ord, 
     Int& ptc, Int& t_ord, Int& aperture_at, Int& coupler_at, Int& symp, 
     Int& flip, Int& multi, Int& rad, Int& f_master, Int& is_on, 
-    Int& internal, Int& logic, Int& i_beam, Int& csr_calc) {
+    Int& internal, Int& logic, Int& girder, Int& csr_calc) {
 
   c.name                = name;
   c.type                = type;
@@ -711,7 +711,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.is_on               = is_on;
   c.old_is_on      = internal;
   c.logic               = logic;
-  c.on_an_i_beam        = i_beam;
+  c.on_an_girder        = girder;
   c.csr_calc_on         = csr_calc;
 
   if (c.const_arr.size() != n_const) c.const_arr.resize(n_const);
@@ -816,7 +816,7 @@ C_ele& C_ele::operator= (const C_ele& c) {
   is_on               = c.is_on;
   old_is_on      = c.old_is_on;
   logic               = c.logic;
-  on_an_i_beam        = c.on_an_i_beam;
+  on_an_girder        = c.on_an_girder;
   return *this;
 }
 

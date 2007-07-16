@@ -745,7 +745,7 @@ public:
   bool is_on;                   // For turning element on/off.
   bool old_is_on;          // For Bmad internal use only.
   bool logic;                   // For general use. Not used by Bmad.
-  bool on_an_i_beam;            // Have an I_Beam overlay_lord?
+  bool on_an_girder;            // Have an I_Beam overlay_lord?
   bool csr_calc_on;             // Coherent synchrotron radiation calculation.
 
   C_ele () : value(double(0), Bmad::N_ATTRIB_MAXX+1), taylor(C_taylor(0), 6),

@@ -186,7 +186,7 @@ void init_all_c_structs () {
   c_ele_in.is_on = F;
   c_ele_in.old_is_on = T;
   c_ele_in.logic = F;
-  c_ele_in.on_an_i_beam = T;
+  c_ele_in.on_an_girder = T;
   c_ele_in.csr_calc_on = F;
   c_ele_in.floor = c_floor_position_in;
   c_ele_in.x = c_xy_disp_in;

@@ -240,7 +240,7 @@ ele_in%field_master = T
 ele_in%is_on = F
 ele_in%old_is_on = T
 ele_in%logic = F
-ele_in%on_an_i_beam = T
+ele_in%on_an_girder = T
 ele_in%csr_calc_on = F
 
 ele_in%floor = floor_position_in

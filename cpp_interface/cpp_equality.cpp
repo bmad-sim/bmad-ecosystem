@@ -213,7 +213,7 @@ bool operator== (const C_ele& x, const C_ele& y) {
     (x.map_with_offsets == y.map_with_offsets) && 
     (x.field_master == y.field_master) && 
     (x.is_on == y.is_on) && (x.old_is_on == y.old_is_on) && 
-    (x.logic == y.logic) && (x.on_an_i_beam == y.on_an_i_beam) && 
+    (x.logic == y.logic) && (x.on_an_girder == y.on_an_girder) && 
     (x.csr_calc_on == y.csr_calc_on);
 }
 
@@ -271,7 +271,7 @@ void ele_comp (const C_ele& x, const C_ele& y) {
       (x.map_with_offsets == y.map_with_offsets) && 
       (x.field_master == y.field_master) && 
       (x.is_on == y.is_on) && (x.old_is_on == y.old_is_on) && 
-      (x.logic == y.logic) && (x.on_an_i_beam == y.on_an_i_beam)) << endl;
+      (x.logic == y.logic) && (x.on_an_girder == y.on_an_girder)) << endl;
 
   cout << "xy:     " << ((x.x == y.x) && (x.y == y.y)) << endl;
   cout << "abz:    " << ((x.a == y.a) && (x.b == y.b) && (x.z == y.z)) << endl;

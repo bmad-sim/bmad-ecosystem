@@ -16,7 +16,7 @@ namespace Bmad {
   const int NULL_ELE = 27, INIT_ELE = 28, HOM = 29;
   const int MATCH = 30, MONITOR = 31, INSTRUMENT = 32;
   const int HKICKER = 33, VKICKER = 34, RCOLLIMATOR = 35;
-  const int ECOLLIMATOR = 36, I_BEAM = 37, BEND_SOL_QUAD = 38;
+  const int ECOLLIMATOR = 36, GIRDER = 37, BEND_SOL_QUAD = 38;
   const int DEF_BEAM_START = 39;
   const int N_KEY = 39;
   const int PARTICLE = 1, N_PART   = 2, TAYLOR_ORDER = 3;
@@ -121,7 +121,7 @@ namespace Bmad {
   const int CIRCULAR_LATTICE = 12;
   const int FREE = 1, SUPER_SLAVE = 2, OVERLAY_SLAVE = 3;
   const int GROUP_LORD = 4, SUPER_LORD = 5, OVERLAY_LORD = 6;
-  const int I_BEAM_LORD = 7, MULTIPASS_LORD = 8, MULTIPASS_SLAVE = 9;
+  const int GIRDER_LORD = 7, MULTIPASS_LORD = 8, MULTIPASS_SLAVE = 9;
   const int X_PLANE = 1, Y_PLANE = 2;
   const int Z_PLANE = 3, N_PLANE = 4, S_PLANE = 5;
   const int INT_GARBAGE = -9876;
