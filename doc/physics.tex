@@ -44,10 +44,10 @@ compatibility with \mad.
 \begin{table}
 \centering
 \begin{tabular}{|l|l|l|l|} \hline
-  {\em Symbol}   & {\em Value}       & {\em Units} &  {\em Name}     \\ \hline
-  pi             & 3.14159265359          &        &                   \\
-  twopi          & 2 * pi                 &        &                   \\
-  fourpi         & 4 * pi                 &        &                   \\
+  {\em Symbol}  & {\em Value}       & {\em Units} &  {\em Name}     \\ \hline
+  pi            & 3.14159265359          &        &                   \\
+  twopi         & 2 * pi                 &        &                   \\
+  fourpi        & 4 * pi                 &        &                   \\
   sqrt_2        & 1.4142135623731        &        &                   \\
   m_electron    & $0.51099906 \pow{6}$   & eV     & Electron mass     \\
   m_proton      & $0.938271998 \pow{9}$  & eV     & Proton mass       \\
@@ -56,7 +56,7 @@ compatibility with \mad.
   r_p           & $1.5346980 \pow{-18}$  & m      & Proton radius     \\
   e_charge      & $1.6021892 \pow{-19}$  & C      & Electron charge   \\
   h_planck      & $6.626196 \pow{-34}$   & J/Hz   & Planck's constant \\
-  h_bar_planck & $1.054591 \pow{-34}$   & J s    & Planck / $2\pi$   \\
+  h_bar_planck  & $1.054591 \pow{-34}$   & J s    & Planck / $2\pi$   \\
   e_mass        & $0.51099906 \pow{-3}$  & GeV    & Electron mass     \\
   p_mass        & $0.938271998$          & GeV    & Proton mass     \\ \hline
 \end{tabular}
@@ -763,7 +763,6 @@ the laboratory frame via
     {\bf a} = \bfV\inv \, {\bf x}
     . \label{avx}
   \Endeq 
-\index{Dispersion}
 In particular the normal mode dispersion $\bfeta_a = (\eta_a,
 \eta'_a, \eta_b, \eta'_b)$ is related to the laboratory frame
 dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
@@ -798,17 +797,20 @@ let $\bV$ be a vector defined by the equation
 \Endeq
 Define the dispersion vector $\bfeta$ by
 \Begineq
-  \bfeta = \left( \eta_x, \eta'_x \, (1 + p_z), \eta_y, \eta'_y \, (1 + p_z), \eta_z, 1)
+  \bfeta = 
+  \left( 
+    \eta_x, \eta'_x \, (1 + p_z), \eta_y, \eta'_y \, (1 + p_z), \eta_z, 1
+  \right)
 \Endeq
 Then differentiating \Eq{rmrv} with respect to energy, 
 the dispersion at point 2 in terms of the dispersion at point 1 is
 \Begineq
-  \bfeta_2 = \frac{dp_{z1}{dp_{z2}} \left[ \bM \, \bfeta_1 \right] + \bV_\eta 
+  \bfeta_2 = \frac{dp_{z1}}{dp_{z2}} \left[ \bM \, \bfeta_1 \right] + \bV_\eta 
 \Endeq
 where
 \Begineq
-  \bV_\eta = \frac{dp_{z1}{dp_{z2}} \, \frac{1}{1 + p_{z1}}
-  \begin{array}
+  \bV_\eta = \frac{dp_{z1}}{dp_{z2}} \, \frac{1}{1 + p_{z1}}
+  \begin{array}{c}
     M_{12} \, p_{x1} + M_{14} \, p_{y1} \\
     M_{22} \, p_{x1} + M_{24} \, p_{y1} \\
     M_{32} \, p_{x1} + M_{34} \, p_{y1} \\
@@ -817,19 +819,19 @@ where
     M_{62} \, p_{x1} + M_{64} \, p_{y1} \\
   \end{array}
   -
-  \begin{array}
-    0 //
+  \begin{array}{c}
+    0 \\
     \frac{p_{x2}}{1 + p_{z2}} \\
-    0 //
+    0 \\
     \frac{p_{y2}}{1 + p_{z2}} \\
-    0 //
+    0 \\
     0 
   \end{array}
 \Endeq
 The sixth row of the matrix equation gives $dp_{z1}/dp_{z2}$. 
 Explicitly
 \Begineq
-  \left[ \frac{dp_{z1}{dp_{z2}} \right]^{-1} =
+  \left[ \frac{dp_{z1}}{dp_{z2}} \right]^{-1} =
   M_{66} + 
   M_{61} \, \eta_{x1} + M_{62} \, \eta'_{x1} \, (1 + p_{z1}) +
   M_{63} \, \eta_{y1} + M_{64} \, \eta'_{y1} \, (1 + p_{z1}) +

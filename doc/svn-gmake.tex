@@ -53,15 +53,15 @@ source code for a program.
 A single repository can hold multipole \vn{projects} so
 there is no reason to create multiple repositories. 
 
-You don't need to setup a \svn repository for \bmad (it already
-exists) but \svn can, in general, be useful for projects of all
-stripes from writing a book to maintaining code. Therefore, this
+You don't need to setup a \svn repository for \bmad. it already
+exists. However, \svn can, in general, be useful for projects of all
+stripes and therefore, this
 section gives a brief overview of how to setup your own \svn
 repository. Warning: Never modify a repository directly. Always use
 the appropriate software tools.
 
 The \svn repository is setup by creating a ``root'' directory
-to hold everything using the command
+to hold the repository using the command
 \begin{example}
   svnadmin create <repository_root_dir> 
 \end{example}
@@ -83,15 +83,15 @@ When starting a project, the first step is to store in the repository
 the initial version of the 
 files that are to be maintained using the command
 \begin{example}
-  svn import <import_dir> <repository_project_dir> import -m "<comment>" 
+  svn import <import_dir> <repos_dir> import -m "<comment>" 
 \end{example}
 \vn{<comment>} is the comment string associated with the initial source
 files. Everything in the <import_dir> directory including all
 subdirectories will be put into the \svn repository at
-\vn{<repository_project_dir>}. \vn{<repository_project_dir>} must be a
-sub-directory of \vn{<repository_root_dir>}.
-\vn{<repository_project_dir>} must be an absolute path name. If the \svn
-repository is local then \vn{<repository_project_dir>} must be have
+\vn{<repos_dir>}. \vn{<repos_dir>} must be a
+sub-directory of \vn{<repository_root_dir>}. Also
+\vn{<repos_dir>} must be an absolute path name. If the \svn
+repository is local then \vn{<repos_dir>} must be have
 \vn{file://} prepended to its name. For importing via the internet the
 string \vn{https://} or \vn{http://} must be prepended. For example:
 \begin{example}
@@ -115,7 +115,7 @@ Once a project has been set in the repository,
 a local copy of the files in the
 repository can be created using the ``checkout'' command
 \begin{example}
-  svn co <repository_project_dir> <local_project_dir>
+  svn co <repos_dir> <local_project_dir>
 \end{example}
 This will make a directory \vn{<local_project_dir>} with everything in it.
 Following the example of the previous section, the command
@@ -126,11 +126,14 @@ will create a \vn{my_novel} directory in your working directory.
 In addition the local copy of the project  will contain directories
 named \vn{.svn} which contains information necessary for maintanance.
 The files in the \vn{.svn} directory should never be touched since
-this could cause \svn to misbehave. 
+this could cause \svn to misbehave. Here the \vn{file://} prefix
+tells svn to look for a repository on the local disk. For internet
+access, there are the \vn{http://} and \vn{https://} prefixes.
 
 You are free to modify the files you have checked out from the
 repository. The files in the repository will not be affected by this.
-At some point you may want to put your modified files into the
+At some point, if you have write access, 
+you may want to put your modified files into the
 repository. The command to check--in the files is
 \begin{example}
   svn ci -m <comment> <file_or_dir_name>
@@ -149,25 +152,26 @@ and if \vn{my_novel} is the current directory, the command
 will check-in \vn{file1} to the repository. The information printed to
 the terminal when this command is executed looks like:
 \begin{example}
-  Sending    file1
-  Transmitting file data ...
-  Committed revision 2.
+  Sending        modules/bmad_parser_mod.f90
+  Sending        perl/out_convert.pl
+  Sending        test_jobs/test_f_side.f90
+  Transmitting file data ......................
+  Committed revision 4753.
 \end{example}
 The latest state of this project in the repository is labeled 
-revision \vn{2}.
+revision \vn{4753}.
 
-If you want to know what files have been modified from what is in the
-repository you use the command
+If you want to know what files you have modified use the command
 \begin{example}
-  svn stat -u
+  svn stat
 \end{example}
 For an explanation of the output of this command use the command:
 \begin{example}
   svn help stat
 \end{example}
 
-To see how a local file has been modified from what was checked out use
-the command
+To see how a local file has been modified 
+use the command
 \begin{example}
   svn diff <file_name>
 \end{example}
@@ -176,7 +180,7 @@ to the repository by other people.
 To see how a local file has been modified from what is in the repository use the
 command
 \begin{example}
-  svn diff -r HEAD <file_name>
+  svn diff
 \end{example}
 The output of this command is in \vn{unified diff format} which is what you
 would see using the Unix \vn{diff -u} command.
@@ -187,6 +191,9 @@ The command to delete a file is
 \end{example}
 The file will not actually be deleted from the repository until you do a
 \vn{svn ci}.
+
+This section gives a flavor of how \svn works. For more information see
+the subversion manual.
 
 %----------------------------------------------------------------------------
 \Section{Using SVN with Bmad}
