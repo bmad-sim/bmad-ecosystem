@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 
-`latex tao_manual`;
-`makeindex tao_manual`;
+`latex tao`;
+`makeindex tao`;
 
-open (FC, "tao_manual.ind") || die ("Cannot open File: tao_manual.idx\n");
+open (FC, "tao.ind") || die ("Cannot open File: tao.idx\n");
 open (F_OUT, ">temp.out") || die ("Cannot open temparary file\n");
 
 while (<FC>) {
@@ -14,7 +14,7 @@ while (<FC>) {
 
 close (FC);
 close (F_OUT);
-`mv temp.out tao_manual.ind`;
+`mv temp.out tao.ind`;
 
 
-`latex tao_manual`;
+`latex tao`;
