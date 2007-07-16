@@ -1576,7 +1576,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%num_steps, f%integrator_order, f%ptc_kind, f%taylor_order, &
       f%aperture_at, f%coupler_at, f%symplectify, f%mode_flip, &
       f%multipoles_on, f%map_with_offsets, &
-      f%field_master, f%is_on, f%internal_logic, f%logic, f%on_an_i_beam, &
+      f%field_master, f%is_on, f%old_is_on, f%logic, f%on_an_i_beam, &
       f%csr_calc_on)
 
 if (associated(f%r)) deallocate(r_arr)
@@ -1688,7 +1688,7 @@ f%multipoles_on       = f_logic(mult)
 f%map_with_offsets  = f_logic(ex_rad)
 f%field_master        = f_logic(f_master)
 f%is_on               = f_logic(on)
-f%internal_logic      = f_logic(intern)
+f%old_is_on      = f_logic(intern)
 f%logic               = f_logic(logic)
 f%on_an_i_beam        = f_logic(i_beam)
 f%csr_calc_on         = f_logic(csr_calc)

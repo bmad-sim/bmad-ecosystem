@@ -645,7 +645,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.num_steps, c.integrator_order, c.ptc_kind, c.taylor_order, 
     c.aperture_at, c.coupler_at,
     c.symplectify, c.mode_flip, c.multipoles_on, c.map_with_offsets,
-    c.field_master, c.is_on, c.internal_logic, c.logic, c.on_an_i_beam, c.csr_calc_on);
+    c.field_master, c.is_on, c.old_is_on, c.logic, c.on_an_i_beam, c.csr_calc_on);
   for (int i = 0; i < n_wig; i++) {
     wig_term_in_ele_to_f2_(f, i+1, c.wig_term[i].coef, 
             c.wig_term[i].kx, c.wig_term[i].ky, c.wig_term[i].kz, 
@@ -709,7 +709,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.map_with_offsets  = rad;
   c.field_master        = f_master;
   c.is_on               = is_on;
-  c.internal_logic      = internal;
+  c.old_is_on      = internal;
   c.logic               = logic;
   c.on_an_i_beam        = i_beam;
   c.csr_calc_on         = csr_calc;
@@ -814,7 +814,7 @@ C_ele& C_ele::operator= (const C_ele& c) {
   map_with_offsets  = c.map_with_offsets;
   field_master        = c.field_master;
   is_on               = c.is_on;
-  internal_logic      = c.internal_logic;
+  old_is_on      = c.old_is_on;
   logic               = c.logic;
   on_an_i_beam        = c.on_an_i_beam;
   return *this;

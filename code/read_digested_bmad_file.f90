@@ -44,7 +44,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
   type (ele_struct), pointer :: ele
   type (old_twiss_struct) old_a, old_b, old_z
 
-  integer d_unit, n_files, version, i, j, k, ix, dum1, dum2
+  integer d_unit, n_files, version, i, j, k, ix
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios
   integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
   integer stat_b(12), idate_old
@@ -54,7 +54,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
   character(200), allocatable :: file_names(:)
   character(25) :: r_name = 'read_digested_bmad_file'
 
-  logical found_it, v80, v81, v82, v_old, v_now
+  logical found_it, v80, v81, v82, v83, v_old, v_now
 
 ! init all elements in lat
 
@@ -78,8 +78,9 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
   v80 = (version == 80)
   v81 = (version == 81)
   v82 = (version == 82)
-  v_old = v80 .or. v81 .or. v82
-  v_now = (version == bmad_inc_version$)  ! v83
+  v83 = (version == 83)
+  v_old = v80 .or. v81 .or. v82 .or. v83
+  v_now = (version == bmad_inc_version$)  ! v84
 
   if (version < bmad_inc_version$) then
     if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -175,7 +176,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), &
-            old_a, old_b, old_z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            old_a, old_b, old_z, ele%value(1:55), ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -184,13 +185,13 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%num_steps, ele%integrator_order, ele%ptc_kind, &
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
+            ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_an_i_beam
     elseif (v81) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, old_a, &
-            old_b, old_z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            old_b, old_z, ele%value(1:55), ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -199,13 +200,13 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%num_steps, ele%integrator_order, ele%ptc_kind, &
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
+            ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_an_i_beam
     elseif (v82) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, old_a, &
-            old_b, old_z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            old_b, old_z, ele%value(1:55), ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -214,7 +215,22 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%num_steps, ele%integrator_order, ele%ptc_kind, &
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
+            ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+            ele%coupler_at, ele%on_an_i_beam, ele%csr_calc_on
+    elseif (v83) then
+      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
+            ele%a, ele%b, ele%z, ele%value(1:55), ele%gen0, ele%vec0, ele%mat6, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
+            ele%taylor_order, ele%symplectify, ele%mode_flip, &
+            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+            ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_an_i_beam, ele%csr_calc_on
     elseif (v_now) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
@@ -229,8 +245,10 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%num_steps, ele%integrator_order, ele%ptc_kind, &
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_an_i_beam, ele%csr_calc_on
+            ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+            ele%coupler_at, ele%on_an_i_beam, ele%csr_calc_on, &
+            ele%ref_orb_in, ele%ref_orb_out
+
     endif
 
     ! Transfer twiss

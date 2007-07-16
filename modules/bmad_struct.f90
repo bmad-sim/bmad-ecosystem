@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 83
+integer, parameter :: bmad_inc_version$ = 84
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -27,7 +27,7 @@ integer, parameter :: bmad_inc_version$ = 83
 
 ! Size of ele%value(:) array
 
-integer, parameter :: n_attrib_maxx = 55
+integer, parameter :: n_attrib_maxx = 60
 
 ! coordinate def
 
@@ -137,29 +137,30 @@ end type
 !     Modify ele_equal_ele
 
 type ele_struct
-  character(40) name                     ! name of element.
-  character(40) type                     ! type name.
-  character(40) alias                    ! Another name.
-  character(40) attribute_name           ! Used by overlays.
-  type (twiss_struct)  a, b, z           ! Twiss parameters at end of element
-  type (xy_disp_struct) x, y             ! Projected dispersions.
-  type (floor_position_struct) floor     ! Global floor position at end of ele.
-  real(rp) value(n_attrib_maxx)          ! attribute values.
-  real(rp) ref_orb(6)                    ! Reference orbit. For Bmad internal use only.
-  real(rp) gen0(6)                       ! constant part of the genfield map.
-  real(rp) vec0(6)                       ! 0th order transport vector.
-  real(rp) mat6(6,6)                     ! 1st order transport matrix.
-  real(rp) c_mat(2,2)                    ! 2x2 C coupling matrix
-  real(rp) gamma_c                       ! gamma associated with C matrix
-  real(rp) s                             ! longitudinal position at the end
-  real(rp), pointer :: r(:,:) => null()  ! For general use. Not used by Bmad.
-  real(rp), pointer :: a_pole(:) => null()         ! multipole
-  real(rp), pointer :: b_pole(:) => null()         ! multipoles
-  real(rp), pointer :: const(:) => null()          ! Working constants.
-  character(200), pointer :: descrip => null()     ! For general use
-  type (genfield), pointer :: gen_field => null()  ! For symp_map$
-  type (taylor_struct) :: taylor(6)                ! Taylor terms
-  type (wake_struct), pointer :: wake => null()    ! Wakefields
+  character(40) name                 ! name of element.
+  character(40) type                 ! type name.
+  character(40) alias                ! Another name.
+  character(40) attribute_name       ! Used by overlays.
+  type (twiss_struct)  a, b, z       ! Twiss parameters at end of element
+  type (xy_disp_struct) x, y         ! Projected dispersions.
+  type (floor_position_struct) floor ! Global floor position at end of ele.
+  real(rp) value(n_attrib_maxx)      ! attribute values.
+  real(rp) ref_orb_in(6)             ! Reference orbit for mat6 calc at entrance of element.
+  real(rp) ref_orb_out(6)            ! Reference orbit at exit of element.
+  real(rp) gen0(6)                   ! constant part of the genfield map.
+  real(rp) vec0(6)                   ! 0th order transport vector.
+  real(rp) mat6(6,6)                 ! 1st order transport matrix.
+  real(rp) c_mat(2,2)                ! 2x2 C coupling matrix
+  real(rp) gamma_c                   ! gamma associated with C matrix
+  real(rp) s                         ! longitudinal position at the end
+  real(rp), pointer :: r(:,:) => null()           ! For general use. Not used by Bmad.
+  real(rp), pointer :: a_pole(:) => null()        ! multipole
+  real(rp), pointer :: b_pole(:) => null()        ! multipoles
+  real(rp), pointer :: const(:) => null()         ! Working constants.
+  character(200), pointer :: descrip => null()    ! For general use
+  type (genfield), pointer :: gen_field => null() ! For symp_map$
+  type (taylor_struct) :: taylor(6)               ! Taylor terms
+  type (wake_struct), pointer :: wake => null()   ! Wakefields
   type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
   type (trans_space_charge_struct), pointer :: trans_sc => null()
   integer key                ! key value
@@ -190,7 +191,7 @@ type ele_struct
   logical map_with_offsets   ! Taylor map calculated with element offsets?
   logical field_master       ! Calculate strength from the field value?
   logical is_on              ! For turning element on/off.
-  logical internal_logic     ! For Bmad internal use only.
+  logical old_is_on          ! For saving the element on/off state.
   logical logic              ! For general use. Not used by Bmad.
   logical on_an_i_beam       ! Have an I_Beam overlay_lord?
   logical csr_calc_on        ! Coherent synchrotron radiation calculation
@@ -380,14 +381,13 @@ integer, parameter :: coupler_phase$ = 47
 integer, parameter :: coupler_angle$ = 48
 integer, parameter :: kick_tilt$ = 49
 integer, parameter :: ds_step$ = 50
-integer, parameter :: ref_orb$ = 51 ! 51 through 54 are reserved for the reference orbit
+integer, parameter :: general1$ = 51   ! For general use
+integer, parameter :: general2$ = 52   ! For general use
+integer, parameter :: general3$ = 53   ! For general use
+integer, parameter :: general4$ = 54   ! For general use
+integer, parameter :: general5$ = 55   ! For general use
 
-integer, parameter :: symmetric_edge$ = 56 ! this is 1 + n_attrib_maxx
-integer, parameter :: mat6_calc_method$ = 57
-integer, parameter :: tracking_method$  = 58
-integer, parameter :: num_steps$ = 59
-integer, parameter :: integrator_order$ = 60
-integer, parameter :: term$ = 61
+integer, parameter :: term$ = 61       ! this is 1 + n_attrib_maxx
 integer, parameter :: ptc_kind$ = 62
 integer, parameter :: symplectify$ = 63
 integer, parameter :: descrip$ = 64
@@ -406,14 +406,19 @@ integer, parameter :: lattice$ = 76
 integer, parameter :: coupler_at$ = 77
 integer, parameter :: map_with_offsets$ = 78
 integer, parameter :: csr_calc_on$ = 79
+integer, parameter :: symmetric_edge$ = 80 
+integer, parameter :: mat6_calc_method$ = 81
+integer, parameter :: tracking_method$  = 82
+integer, parameter :: num_steps$ = 83
+integer, parameter :: integrator_order$ = 84
 
-integer, parameter :: a0$  =  80, k0l$  =  80
-integer, parameter :: a20$ = 100, k20l$ = 100
+integer, parameter :: a0$  =  90, k0l$  =  90
+integer, parameter :: a20$ = 110, k20l$ = 110
 
-integer, parameter :: b0$  = 110, t0$  = 110
-integer, parameter :: b20$ = 130, t20$ = 130 
+integer, parameter :: b0$  = 120, t0$  = 120
+integer, parameter :: b20$ = 140, t20$ = 140 
 
-integer, parameter :: n_attrib_special_maxx = 130
+integer, parameter :: n_attrib_special_maxx = 140
 
 character(40), parameter :: null_name = '!NULL' 
 character(40), parameter :: blank_name = ' '

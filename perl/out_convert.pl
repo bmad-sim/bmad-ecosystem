@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/general_lat_param_struct/synrad_param_struct/g;
+    s/internal_logic/old_is_on/g;
     print (F_OUT);
 
   }

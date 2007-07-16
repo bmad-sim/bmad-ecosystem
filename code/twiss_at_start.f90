@@ -36,6 +36,7 @@ subroutine twiss_at_start (lat)
 
   use bmad_struct
   use bmad_interface, except => twiss_at_start
+  use bookkeeper_mod
 
   implicit none
 
@@ -47,6 +48,7 @@ subroutine twiss_at_start (lat)
   integer i, j, n, iu, n_lines
 
   logical :: debug = .false. 
+  logical saved_state
 
   character(100), pointer :: lines(:)
 
@@ -66,6 +68,9 @@ subroutine twiss_at_start (lat)
     iu = lunget()
     open (iu, file = 'twiss_at_start.dat')
   endif
+
+  call set_on_off (rfcavity$, lat, save_state$)
+  call set_on_off (rfcavity$, lat, off$, use_ref_orb = .true.)
 
   do n = 1, lat%n_ele_track
     ele => lat%ele(n)
@@ -90,6 +95,8 @@ subroutine twiss_at_start (lat)
       enddo
     endif
   enddo
+
+  call set_on_off (rfcavity$, lat, restore_state$, use_ref_orb = .true.)
 
   if (debug) close (iu)
 

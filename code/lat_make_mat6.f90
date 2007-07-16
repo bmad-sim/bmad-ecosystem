@@ -92,12 +92,12 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb)
 
     if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
-! Now make the transfer matrices.
-! For speed if a element needs a taylor series then check if we can use
-! one from a previous element.
+    ! Now make the transfer matrices.
+    ! For speed if a element needs a taylor series then check if we can use
+    ! one from a previous element.
 
-! For consistancy, if no orbit is given, the starting coords in a super_slave
-! will be taken as the ending coords of the previous super_slave.
+    ! For consistancy, if no orbit is given, the starting coords in a super_slave
+    ! will be taken as the ending coords of the previous super_slave.
 
     n_taylor = 0  ! number of taylor series found
     orb_end%vec = 0

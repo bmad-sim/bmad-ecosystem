@@ -212,7 +212,7 @@ bool operator== (const C_ele& x, const C_ele& y) {
     (x.mode_flip == y.mode_flip) && (x.multipoles_on == y.multipoles_on) && 
     (x.map_with_offsets == y.map_with_offsets) && 
     (x.field_master == y.field_master) && 
-    (x.is_on == y.is_on) && (x.internal_logic == y.internal_logic) && 
+    (x.is_on == y.is_on) && (x.old_is_on == y.old_is_on) && 
     (x.logic == y.logic) && (x.on_an_i_beam == y.on_an_i_beam) && 
     (x.csr_calc_on == y.csr_calc_on);
 }
@@ -270,7 +270,7 @@ void ele_comp (const C_ele& x, const C_ele& y) {
       (x.mode_flip == y.mode_flip) && (x.multipoles_on == y.multipoles_on) && 
       (x.map_with_offsets == y.map_with_offsets) && 
       (x.field_master == y.field_master) && 
-      (x.is_on == y.is_on) && (x.internal_logic == y.internal_logic) && 
+      (x.is_on == y.is_on) && (x.old_is_on == y.old_is_on) && 
       (x.logic == y.logic) && (x.on_an_i_beam == y.on_an_i_beam)) << endl;
 
   cout << "xy:     " << ((x.x == y.x) && (x.y == y.y)) << endl;

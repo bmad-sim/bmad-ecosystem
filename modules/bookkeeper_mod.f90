@@ -79,8 +79,6 @@ subroutine this_bookkeeper (lattice, ix_ele)
   type (lat_struct), target :: lattice
   type (ele_struct), pointer :: lord, slave
 
-  real(rp) ref_orb_out(4)
-
   integer ix_ele, j, k, ix, ix1, ix2, ix_lord
   integer, allocatable, save :: ix_slaves(:), ix_super(:)
 
@@ -160,23 +158,15 @@ subroutine this_bookkeeper (lattice, ix_ele)
   enddo
 
 ! Second: Makeup all slaves but group slaves.
-! For wiggler super_slaves we need to keep track of the reference orbit for the z_patch calc.
-
-  ref_orb_out = 0
 
   do j = 1, ix2
 
     ix = ix_slaves(j)
     slave => lattice%ele(ix)       
 
-    if (ix_super(j) == 0) ref_orb_out = 0   ! reset
-
     if (slave%control_type == super_slave$) then
-      ! Only change slave%value(ref_orb$:ref_orb+3) if attribute_bookkeeper has given us
-      ! the ending orbit of the previous super_slave.
-      if (any(ref_orb_out /= 0)) slave%value(ref_orb$:ref_orb$+3) = ref_orb_out
       call makeup_super_slave (lattice, ix)
-      call attribute_bookkeeper (slave, lattice%param, ref_orb_out)
+      call attribute_bookkeeper (slave, lattice%param)
 
     elseif (slave%control_type == overlay_slave$) then
       call makeup_overlay_and_i_beam_slave (lattice, ix)
@@ -473,12 +463,19 @@ subroutine makeup_super_slave (lattice, ix_slave)
     lord => lattice%ele(ix)
     coef = lattice%control(ix_con)%coef  ! = len_slave / len_lord
 
+    ! If this is not the first slave: Transfer reference orbit from previous slave
+
+    if (ix_con /= lord%ix1_slave) then
+      slave%ref_orb_in = lattice%ele(ix_slave-1)%ref_orb_out
+    endif
+
+    !
+
     value = lord%value
     value(check_sum$) = slave%value(check_sum$) ! do not change the check_sum
     value(l$) = slave%value(l$)                 ! do not change slave length
     if (lord%key == wiggler$) then
       value(z_patch$) = slave%value(z_patch$)
-      value(ref_orb$:ref_orb$+3) = slave%value(ref_orb$:ref_orb$+3)
     endif
     if (lord%key == hkicker$ .or. lord%key == vkicker$) then
       value(kick$) = lord%value(kick$) * coef
@@ -497,16 +494,16 @@ subroutine makeup_super_slave (lattice, ix_slave)
       call compute_slave_coupler (value, slave, lord, ix_con)
     endif
 
-! s_del is the distance between lord and slave centers
+    ! s_del is the distance between lord and slave centers
 
     s_del = (slave%s - slave%value(l$)/2) - &
                   (lord%s + lord%value(s_offset$) - lord%value(l$)/2)
     s_del = modulo2 (s_del, lattice%param%total_length/2)
-    value(x_pitch$) = value(x_pitch_tot$)
-    value(y_pitch$) = value(y_pitch_tot$)
+    value(x_pitch$)  = value(x_pitch_tot$)
+    value(y_pitch$)  = value(y_pitch_tot$)
     value(x_offset$) = value(x_offset_tot$) + s_del * value(x_pitch_tot$)
     value(y_offset$) = value(y_offset_tot$) + s_del * value(y_pitch_tot$)
-    value(tilt$)         = value(tilt_tot$)
+    value(tilt$)     = value(tilt_tot$)
 
     slave%value = value
     slave%is_on = lord%is_on
@@ -636,6 +633,14 @@ subroutine makeup_super_slave (lattice, ix_slave)
             'LORD:  ' //  lord%name  // '  \i\ ', i_array = (/ ix_slave, ix /) )
       call err_exit
     endif
+
+    ! If this is not the first slave: Transfer reference orbit from previous slave
+
+    if (ix_con /= lord%ix1_slave) then
+      slave%ref_orb_in = lattice%ele(ix_slave-1)%ref_orb_out
+    endif
+
+    !
 
     call compute_slave_aperture (value, slave, lord, ix_con)
     if (slave%key == lcavity$) call compute_slave_coupler (value, slave, lord, ix_con)
@@ -1132,7 +1137,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine attribute_bookkeeper (ele, param, ref_orb_out)
+! Subroutine attribute_bookkeeper (ele, param)
 !
 ! Subroutine to recalculate the dependent attributes of an element.
 ! If the attributes have changed then any Taylor Maps will be killed.
@@ -1177,15 +1182,15 @@ end subroutine
 !
 ! Output:
 !   ele            -- Ele_struct: Element with self-consistant attributes.
-!   ref_orb_out(4) -- Real(rp), optional: Reference orbit to be used for the next
-!                       super_slave wiggler z_patch calculation. 
-!                       This is to be only used by the control_bookkeeper routine.
+!     %ref_orb_out -- Reference orbit to be used for the next
+!                         super_slave wiggler z_patch calculation. 
+!                         This is to be only used by the control_bookkeeper routine.
 !
 ! Programming Note: If the dependent attributes are changed then 
 !       the attribute_free routine must be modified.
 !-
 
-subroutine attribute_bookkeeper (ele, param, ref_orb_out)
+subroutine attribute_bookkeeper (ele, param)
 
   use symp_lie_mod, only: symp_lie_bmad
 
@@ -1195,7 +1200,6 @@ subroutine attribute_bookkeeper (ele, param, ref_orb_out)
   type (lat_param_struct) param
   type (coord_struct) start, end
 
-  real(rp), optional :: ref_orb_out(4) 
   real(rp) factor, check_sum, phase, E_tot
   
   character(20) ::  r_name = 'attribute_bookkeeper'
@@ -1210,8 +1214,6 @@ subroutine attribute_bookkeeper (ele, param, ref_orb_out)
     ele%value(x_pitch_tot$)  = ele%value(x_pitch$)
     ele%value(y_pitch_tot$)  = ele%value(y_pitch$)
   endif
-
-  if (present(ref_orb_out)) ref_orb_out = 0  ! reset to mark that it has not been computed
 
 ! field_master
 
@@ -1425,7 +1427,7 @@ subroutine attribute_bookkeeper (ele, param, ref_orb_out)
 
   case (wiggler$)
     check_sum = ele%value(polarity$)
-    check_sum = check_sum + sum(ele%value(ref_orb$:ref_orb$+3))
+    check_sum = check_sum
 
   case (quadrupole$)
     check_sum = ele%value(k1$) 
@@ -1491,12 +1493,13 @@ subroutine attribute_bookkeeper (ele, param, ref_orb_out)
   if (ele%key == wiggler$ .and. &
       ele%value(z_patch$) == 0 .and. ele%value(p0c$) /= 0) then
     start%vec = 0
-    start%vec(1:4) = ele%value(ref_orb$:ref_orb$+3)
+    start%vec = ele%ref_orb_in
     call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
     ele%value(z_patch$) = end%vec(5)
     if (ele%value(z_patch$) == 0) ele%value(z_patch$) = 1e-30 ! something non-zero.
     if (ele%sub_key == periodic_type$) ele%value(x_patch$) = end%vec(1)
-    if (present(ref_orb_out)) ref_orb_out = end%vec(1:4)  ! save for next super_slave
+    end%vec(5) = end%vec(5) - ele%value(z_patch$)
+    ele%ref_orb_out = end%vec             ! save for next super_slave
   endif
 
 end subroutine
@@ -1703,71 +1706,85 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_on_off (key, lattice, switch, orb)
+! Subroutine set_on_off (key, lat, switch, orb, use_ref_orb)
 !
 ! Subroutine to turn on or off a set of elements (quadrupoles, rfcavities,
 ! etc.) in a lattice. An element that is turned off acts like a drift.
-! lat_make_mat6 will be called to remake lattice%ele()%mat6.
-!
+! lat_make_mat6 will be called to remake lat%ele()%mat6.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   key      -- Integer: Key name of elements to be turned on or off.
-!                  [Key = quadrupole$, etc.]
-!   lattice     -- lat_struct: lattice structure holding the elements
-!   switch   -- Integer: 
-!                 on$            => Turn elements on.  
-!                 off$           => Turn elements off. 
-!                 save_state$    => Save present on/off state. 
-!                                     No turning on or off is done.
-!                 restore_state$ => Restore saved on/off state.
-!   orb(0:) -- Coord_struct, optional: Needed for lat_make_mat6
+!   key          -- Integer: Key name of elements to be turned on or off.
+!                      [Key = quadrupole$, etc.]
+!   lat             -- lat_struct: lattice structure holding the elements
+!   switch       -- Integer: 
+!                     on$            => Turn elements on.  
+!                     off$           => Turn elements off. 
+!                     save_state$    => Save present on/off state. 
+!                                         No turning on or off is done.
+!                     restore_state$ => Restore saved on/off state.
+!   orb(0:)     -- Coord_struct, optional: Needed for lat_make_mat6
+!   use_ref_orb -- Logical, optional: If present and true then use the
+!                    present ele%ref_orb. Default is false.
 !
 ! Output:
-!   lattice -- lat_struct: Modified lattice.
+!   lat -- lat_struct: Modified lattice.
 !-
 
 #include "CESR_platform.inc"
                                     
-subroutine set_on_off (key, lattice, switch, orb)
+subroutine set_on_off (key, lat, switch, orb, use_ref_orb)
 
   use bmad_struct
   use bmad_interface
 
   implicit none
 
-  type (lat_struct) lattice
+  type (lat_struct) lat
   type (coord_struct), optional :: orb(0:)
+  type (coord_struct) ref_orb
 
   integer i, key               
   integer, intent(in) :: switch
+
+  logical, optional :: use_ref_orb
+  logical old_state
 
   character(20) :: r_name = 'set_on_off'
 
 !
 
-  do i = 1, lattice%n_ele_max
+  do i = 1, lat%n_ele_max
 
-    if (lattice%ele(i)%key /= key) cycle
+    if (lat%ele(i)%key /= key) cycle
+
+    old_state = lat%ele(i)%is_on
 
     select case (switch)
     case (on$) 
-      lattice%ele(i)%is_on = .true.
+      lat%ele(i)%is_on = .true.
     case (off$)
-      lattice%ele(i)%is_on = .false.
+      lat%ele(i)%is_on = .false.
     case (save_state$)
-      lattice%ele(i)%internal_logic = lattice%ele(i)%is_on
+      lat%ele(i)%old_is_on = lat%ele(i)%is_on
       cycle
     case (restore_state$)
-      lattice%ele(i)%is_on = lattice%ele(i)%internal_logic
+      lat%ele(i)%is_on = lat%ele(i)%old_is_on
     case default
       call out_io (s_abort$, r_name, 'BAD SWITCH: \i\ ', switch)
       call err_exit
     end select
 
-    call lat_make_mat6(lattice, i, orb)
+    if (old_state /= lat%ele(i)%is_on) then
+      if (logic_option (.false., use_ref_orb)) then
+        ref_orb%vec = lat%ele(i)%ref_orb_in
+        call make_mat6(lat%ele(i), lat%param, ref_orb)
+      else
+        call lat_make_mat6(lat, i, orb)
+      endif
+    endif
 
   enddo
 

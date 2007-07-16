@@ -1,8 +1,10 @@
 !+
 ! Subroutine twiss_and_track (lat, orb, ok)
 !
-! Subroutine to calculate the twiss parameters and orbit for a lattice.
-! Note: This is not necessarily the fastest way to do things.
+! Subroutine to calculate the twiss parameters, transport matrices and orbit 
+! for a lattice at constant energy.
+! Note: This is not necessarily the fastest way to do things since this
+! routine does the entire calculation from scratch.
 !
 ! For a closed lat the computed orbit will be the closed orbit.
 ! For an open lat the orbit will be computed using orb(0) as 
@@ -23,6 +25,7 @@
 !
 ! Output:
 !   lat                -- lat_struct: Lat with computed twiss parameters.
+!     %mat6(6,6)       -- Transport matrices.
 !   orb(0:)            -- Coord_struct: Computed orbit.
 !   ok                 -- Logical, optional: Set True if everything ok. 
 !                           False otherwise
@@ -40,6 +43,7 @@ subroutine twiss_and_track (lat, orb, ok)
   type (lat_struct) lat
   type (coord_struct), allocatable :: orb(:)
   logical, optional :: ok
+  logical rf_state
 
 !
 

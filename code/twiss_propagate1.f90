@@ -34,11 +34,11 @@ subroutine twiss_propagate1 (ele1, ele2)
   type (ele_struct), target :: ele1, ele2
   type (ele_struct), save :: ele_temp
 
-  real(rp), pointer :: mat6(:,:), orb(:)
+  real(rp), pointer :: mat6(:,:), orb(:), orb_out(:)
   real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det
   real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
   real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
-  real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), pz_2
+  real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), dpz2_dpz1, rel_p1, rel_p2
   real(rp) mat4(4,4), det_factor, det_original
 
 !---------------------------------------------------------------------
@@ -66,7 +66,6 @@ subroutine twiss_propagate1 (ele1, ele2)
     ele2%z = ele1%z
     ele2%gamma_c = ele1%gamma_c
     ele2%c_mat = ele1%c_mat
-    ele2%ref_orb = ele1%ref_orb
     return
   endif
 
@@ -175,24 +174,38 @@ subroutine twiss_propagate1 (ele1, ele2)
 ! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
 ! This is just 1.0 (except for RF cavities).
 
-  eta1_vec = (/ ele1%x%eta, ele1%x%etap, &
-           ele1%y%eta, ele1%y%etap, ele1%z%eta, 1.0_rp /)
+  mat6 => ele2%mat6
+  orb => ele2%ref_orb_in
+  orb_out => ele2%ref_orb_out
+  rel_p1 = 1 + orb(6)               ! reference energy 
+  rel_p2 = 1 + orb_out(6)
+
+  eta1_vec = (/ ele1%x%eta, ele1%x%etap * rel_p1, &
+                ele1%y%eta, ele1%y%etap * rel_p1, ele1%z%eta, 1.0_rp /)
 
   if (ele2%key == rfcavity$) then
     eta1_vec(5) = 0
-    pz_2 = dot_product (ele2%mat6(6,1:4), eta1_vec(1:4)) + 1
+    dpz2_dpz1 = dot_product (mat6(6,1:4), eta1_vec(1:4)) + 1
   else
-    pz_2 = dot_product (ele2%mat6(6,:), eta1_vec)
+    dpz2_dpz1 = dot_product (mat6(6,:), eta1_vec) + &
+                  (mat6(6,2) * orb(2) + mat6(6,4) * orb(4)) / rel_p1
   endif
 
-  mat6 => ele2%mat6
-  orb => ele1%ref_orb
+  eta_vec(1:5) = matmul (ele2%mat6(1:5,:), eta1_vec) / dpz2_dpz1
 
-  eta_vec(1:5) = matmul (ele2%mat6(1:5,:), eta1_vec) / pz_2
-  eta_vec(1) = eta_vec(1) + mat6(1,2) * orb(2) + mat6(1,4) * orb(4)
-  eta_vec(2) = eta_vec(2) - mat6(2,1) * orb(1) - mat6(2,3) * orb(3) - ele2%vec0(2)
-  eta_vec(3) = eta_vec(3) + mat6(3,2) * orb(2) + mat6(3,4) * orb(4)
-  eta_vec(4) = eta_vec(4) - mat6(4,1) * orb(1) - mat6(4,3) * orb(3) - ele2%vec0(4)
+  eta_vec(1) = eta_vec(1) + &
+                (mat6(1,2) * orb(2) + mat6(1,4) * orb(4)) / (dpz2_dpz1 * rel_p1)
+  eta_vec(2) = eta_vec(2) - orb_out(2) / rel_p2 + &
+                (mat6(2,2) * orb(2) + mat6(2,4) * orb(4)) / (dpz2_dpz1 * rel_p1)
+  eta_vec(3) = eta_vec(3) + &
+                (mat6(3,2) * orb(2) + mat6(3,4) * orb(4)) / (dpz2_dpz1 * rel_p1)
+  eta_vec(4) = eta_vec(4) - orb_out(4) / rel_p2 + &
+                (mat6(4,2) * orb(2) + mat6(4,4) * orb(4)) / (dpz2_dpz1 * rel_p1)
+  eta_vec(5) = eta_vec(5) + &
+                (mat6(5,2) * orb(2) + mat6(5,4) * orb(4)) / (dpz2_dpz1 * rel_p1)
+
+  eta_vec(2) = eta_vec(2) / rel_p2
+  eta_vec(4) = eta_vec(4) / rel_p2
 
   ele2%x%eta  = eta_vec(1)
   ele2%x%etap = eta_vec(2)
@@ -207,10 +220,6 @@ subroutine twiss_propagate1 (ele1, ele2)
   ele2%a%etap = eta_vec(2)
   ele2%b%eta  = eta_vec(3)
   ele2%b%etap = eta_vec(4)
-
-  ele2%ref_orb(1:4) = &
-          matmul(ele2%mat6(1:4,1:4), ele1%ref_orb(1:4)) + ele2%vec0(1:4)
-
 
 end subroutine
 

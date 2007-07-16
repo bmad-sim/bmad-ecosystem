@@ -2528,7 +2528,7 @@ subroutine add_all_superimpose (lat, ele_in, pele)
   ele = ele_in   ! in case ele changes
   ele2 = ele
   n_inserted = 0
-  lat%ele%internal_logic = .false.    ! to keep track of where we have inserted
+  lat%ele%old_is_on = .false.    ! to keep track of where we have inserted
 
 ! If no refrence point then superposition is simple
 
@@ -2554,7 +2554,7 @@ subroutine add_all_superimpose (lat, ele_in, pele)
        
       if (ic == group_lord$ .or. ic == super_slave$) cycle
       if (ic == i_beam_lord$) cycle
-      if (this_ele%internal_logic) cycle
+      if (this_ele%old_is_on) cycle
 
       if (match_wild(this_ele%name, pele%ref_name)) then
 
@@ -2562,7 +2562,7 @@ subroutine add_all_superimpose (lat, ele_in, pele)
           if (this_ele%name == matched_name(i)) cycle ele_loop
         enddo
        
-        this_ele%internal_logic = .true.
+        this_ele%old_is_on = .true.
 
         ! If superimposing on a multipass_lord then the superposition
         ! must be done at all multipass locations

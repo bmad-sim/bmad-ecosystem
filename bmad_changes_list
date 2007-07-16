@@ -1,9 +1,12 @@
 a0/b0 -> a_1/b_1
-ele%value(ref_orb$:ref_orb$+4) -> ele%ref_orb(6)
-extend ele%value() array and add general0$, ..., general9$
+
+Put RF on warning in 
+  a) closed_orbit_calc with i_dim = 4
+  b) twiss_propagate1  ?!
+  c) twiss_at_start    ?!
 
 -----------------
 
-add: ring%param%s_start
-add: ring%param%s_end
+add function to calc: ring%param%s_start
+add function to calc: ring%param%s_end
 

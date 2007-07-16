@@ -743,7 +743,7 @@ public:
   bool map_with_offsets;        // Exact radiation integral calculation?
   bool field_master;            // Calculate strength from the field value?
   bool is_on;                   // For turning element on/off.
-  bool internal_logic;          // For Bmad internal use only.
+  bool old_is_on;          // For Bmad internal use only.
   bool logic;                   // For general use. Not used by Bmad.
   bool on_an_i_beam;            // Have an I_Beam overlay_lord?
   bool csr_calc_on;             // Coherent synchrotron radiation calculation.

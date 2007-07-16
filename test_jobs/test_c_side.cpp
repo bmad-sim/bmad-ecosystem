@@ -184,7 +184,7 @@ void init_all_c_structs () {
   c_ele_in.map_with_offsets = F;
   c_ele_in.field_master = T;
   c_ele_in.is_on = F;
-  c_ele_in.internal_logic = T;
+  c_ele_in.old_is_on = T;
   c_ele_in.logic = F;
   c_ele_in.on_an_i_beam = T;
   c_ele_in.csr_calc_on = F;

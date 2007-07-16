@@ -96,7 +96,6 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
   call mat_inverse (mat4, mat4)
 
   orb = matmul(mat4, map0(1:4))
-  ele%ref_orb(1:4) = orb
 
   vec(1) = mat6(1,6) + mat6(1,2) * orb(2) + mat6(1,4) * orb(4)
   vec(2) = mat6(2,6) - mat6(2,1) * orb(1) - mat6(2,3) * orb(3) - map0(2)

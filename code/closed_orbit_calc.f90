@@ -5,9 +5,17 @@
 ! Closed_orbit_calc uses the 1-turn transfer matrix to converge upon a  
 ! solution. 
 !
+! For i_dim = 4 this routine tracks through the lattice with the RF turned off.
+! This means that if lat has RFcavities turned on, the closed orbit as computed
+! from this routine, will not correspond to the actual closed orbit. The
+! z component (closed_orb(i)%vec(5)) will be set to zero at i = 0 and will generally
+! not be zero at the end of the lattice.
+!
 ! i_dim = 5 simulates the affect of the RF that makes the beam change 
 ! its energy until the change of path length in the closed orbit over 
-! one turn is zero.
+! one turn is zero. Tracking is done with RF off. This can be useful in
+! determining the affect of kicks on the beam energy (this can, of course,
+! also be done with i_dim = 6).
 !
 ! Note: This routine uses the 1-turn matrix lat%param%t1_no_RF or 
 ! lat%param%t1_with_RF in the computations. If you have changed conditions 
@@ -28,12 +36,12 @@
 !                      if i_dim = 4, then closed_orb(n0)%vec(6) is used as the energy 
 !                      around which the closed orbit is calculated.
 !   i_dim          -- Integer: Dimensions to use:
-!                     = 4  Transverse closed orbit at constant energy 
-!                          (dE/E = closed_orb(n0)%vec(6))
+!                     = 4  Transverse closed orbit at constant energy (RF off).
+!                          (dE/E = closed_orb(0)%vec(6))
 !                     = 5 Transverse closed orbit at constant energy with the
 !                          energy adjusted so that vec(5) is the same 
 !                          at the beginning and at the end.
-!                     = 6  Full closed orbit for 6x6 matrix.
+!                     = 6 True closed orbit.
 !   direction      -- Integer, optional: Direction of tracking. 
 !                       +1 --> forwad (default), -1 --> backward.
 !                       The closed orbit will be dependent on direction only
