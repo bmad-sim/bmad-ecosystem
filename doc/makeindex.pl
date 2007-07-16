@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 
-`latex bmad-manual`;
-`makeindex bmad-manual`;
+`latex bmad`;
+`makeindex bmad`;
 
-#open (FC, "bmad-manual.ind") || die ("Cannot open File: bmad-manual.idx\n");
+#open (FC, "bmad.ind") || die ("Cannot open File: bmad.idx\n");
 #open (F_OUT, ">temp.out") || die ("Cannot open temparary file\n");
 #while (<FC>) {
 #  s/_/\\_/g;
@@ -12,6 +12,6 @@
 #}
 #close (FC);
 #close (F_OUT);
-#`mv temp.out bmad-manual.ind`;
+#`mv temp.out bmad.ind`;
 
-`latex bmad-manual`;
+`latex bmad`;

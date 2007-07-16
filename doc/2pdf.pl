@@ -16,14 +16,14 @@ close (FC);
 if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 
 
-`latex bmad-manual`; 
-`dvips -o bmad-manual.ps bmad-manual`; 
-`ps2pdf bmad-manual.ps`;
-`rm bmad-manual-*pdf`;
-`rm bmad-manual-*ps`;
-`mv bmad-manual.pdf bmad-manual-$rev.pdf`; 
-`dvips -o bmad-manual.ps bmad-manual`;
-`mv bmad-manual.ps bmad-manual-$rev.ps`; 
+`latex bmad`; 
+`dvips -o bmad.ps bmad`; 
+`ps2pdf bmad.ps`;
+`rm bmad-*pdf`;
+`rm bmad-*ps`;
+`mv bmad.pdf bmad-manual-$rev.pdf`; 
+`dvips -o bmad.ps bmad`;
+`mv bmad.ps bmad-manual-$rev.ps`; 
 
 open (F_OUT, ">temp.out") || die ("Cannot open temparary file\n");
 $file = "manual.html";
