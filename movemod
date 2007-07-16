@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# Script to use on a Darwin/powerpc system during a build process to test
+# for the presence of any '.mod' files in the current directory, and then
+# move them to the directory given in the first command-line argument.  
+# 
+# To be called from within M.tail g95 (Darwin/powerpc) section.
+#
+# Perhaps if something better can be found to work within the makefile
+# itself, this script can be abandoned as having yet another external 
+# support script is not ideal.
+##########################################################################
+
+## For every file in the current working directory
+for file in `ls`
+do
+  ## Get the last three characters of the file name
+  SFX=`echo "${file}" | rev | cut -b 1-4 | rev`
+  if ( [ "${SFX}" = ".mod" ] ) then
+      ## if the last three characters are "mod", move the file.
+      mv ${file} ${1}
+      #echo "Moved ${file} to ${1}"
+  fi
+done
