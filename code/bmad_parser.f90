@@ -492,7 +492,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
       call parser_set_ele_defaults (in_lat%ele(n_max))
 
       key = in_lat%ele(n_max)%key
-      if (key == overlay$ .or. key == group$ .or. key == i_beam$) then
+      if (key == overlay$ .or. key == group$ .or. key == girder$) then
         if (delim /= '=') then
           call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
                       'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
@@ -501,12 +501,12 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
         if (key == overlay$) in_lat%ele(n_max)%control_type = overlay_lord$
         if (key == group$)   in_lat%ele(n_max)%control_type = group_lord$
-        if (key == i_beam$)  in_lat%ele(n_max)%control_type = i_beam_lord$
+        if (key == girder$)  in_lat%ele(n_max)%control_type = girder_lord$
 
         call get_overlay_group_names(in_lat%ele(n_max), in_lat, &
                                                     plat, delim, delim_found)
 
-        if (key /= i_beam$ .and. .not. delim_found) then
+        if (key /= girder$ .and. .not. delim_found) then
           call warning ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
                         'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
           cycle parsing_loop
@@ -951,7 +951,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
 ! First work on multipass before overlays, groups, and usuperimpose. 
 ! This is important since the elements in the lattice get
-! renamed and if not done first would confuse any overlays, i_beams, etc.
+! renamed and if not done first would confuse any overlays, girders, etc.
 ! Multipass elements are paired by multipass index and multipass line name
 
   n_ele_max = lat%n_ele_max
@@ -1006,7 +1006,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   call remove_all_null_ele_elements (lat)
 
-! Now put in the overlay_lord, i_beam, and group elements
+! Now put in the overlay_lord, girder, and group elements
 
   call parser_add_lord (in_lat, n_max, plat, lat)
 

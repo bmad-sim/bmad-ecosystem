@@ -382,18 +382,18 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
       call parser_set_ele_defaults (lat%ele(n_max))
 
       key = lat%ele(n_max)%key
-      if (key == overlay$ .or. key == group$ .or. key == i_beam$) then
+      if (key == overlay$ .or. key == group$ .or. key == girder$) then
         if (delim /= '=') then
           call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
                       'FOR ELEMENT: ' // lat%ele(n_max)%name)
         else
           if (key == overlay$) lat%ele(n_max)%control_type = overlay_lord$
           if (key == group$)   lat%ele(n_max)%control_type = group_lord$
-          if (key == i_beam$)  lat%ele(n_max)%control_type = i_beam_lord$
+          if (key == girder$)  lat%ele(n_max)%control_type = girder_lord$
           call get_overlay_group_names(lat%ele(n_max), lat,  &
                                               plat, delim, delim_found)
         endif
-        if (key /= i_beam$ .and. .not. delim_found) then
+        if (key /= girder$ .and. .not. delim_found) then
           call warning ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
                         'FOR ELEMENT: ' // lat%ele(n_max)%name)
           n_max = n_max - 1
@@ -502,7 +502,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 
   call remove_all_null_ele_elements (lat)
 
-! Go through and create the overlay, i_beam, and group lord elements.
+! Go through and create the overlay, girder, and group lord elements.
 
   call parser_add_lord (lat2, ele_num, plat, lat)
 

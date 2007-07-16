@@ -140,17 +140,17 @@ subroutine this_bookkeeper (lattice, ix_ele)
           call makeup_multipass_slave (lattice, ix)
         else
           call adjust_super_lord_s_position (lattice, ix)
-          call makeup_overlay_and_i_beam_slave (lattice, ix)
+          call makeup_overlay_and_girder_slave (lattice, ix)
         endif
         call attribute_bookkeeper (slave, lattice%param)
       endif
 
     elseif (slave%control_type == multipass_lord$ .and. slave%n_lord > 0) then
-      call makeup_overlay_and_i_beam_slave (lattice, ix)
+      call makeup_overlay_and_girder_slave (lattice, ix)
       call attribute_bookkeeper (slave, lattice%param)
 
     elseif (slave%control_type == overlay_lord$ .and. slave%n_lord > 0) then
-      call makeup_overlay_and_i_beam_slave (lattice, ix)
+      call makeup_overlay_and_girder_slave (lattice, ix)
       call attribute_bookkeeper (slave, lattice%param)
 
     endif
@@ -169,7 +169,7 @@ subroutine this_bookkeeper (lattice, ix_ele)
       call attribute_bookkeeper (slave, lattice%param)
 
     elseif (slave%control_type == overlay_slave$) then
-      call makeup_overlay_and_i_beam_slave (lattice, ix)
+      call makeup_overlay_and_girder_slave (lattice, ix)
       call attribute_bookkeeper (slave, lattice%param)
 
     elseif (slave%control_type == multipass_slave$) then
@@ -1050,12 +1050,12 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_overlay_and_i_beam_slave (lattice, ix_ele)
+! Subroutine makeup_overlay_and_girder_slave (lattice, ix_ele)
 !
 ! This routine is not meant for general use.
 !-
 
-subroutine makeup_overlay_and_i_beam_slave (lattice, ix_ele)
+subroutine makeup_overlay_and_girder_slave (lattice, ix_ele)
 
   implicit none
 
@@ -1066,7 +1066,7 @@ subroutine makeup_overlay_and_i_beam_slave (lattice, ix_ele)
   integer i, j, ix, iv, ix_ele, icom, ct
   logical used(n_attrib_maxx)
 
-  character(40) :: r_name = 'makeup_overlay_and_i_beam_slave'
+  character(40) :: r_name = 'makeup_overlay_and_girder_slave'
 
 !
                                
@@ -1082,7 +1082,7 @@ subroutine makeup_overlay_and_i_beam_slave (lattice, ix_ele)
 
   value = 0
   used = .false.
-  slave%on_an_i_beam = .false.
+  slave%on_an_girder = .false.
 
   do i = slave%ic1_lord, slave%ic2_lord
     j = lattice%ic(i)
@@ -1091,7 +1091,7 @@ subroutine makeup_overlay_and_i_beam_slave (lattice, ix_ele)
 
     if (lord%control_type == multipass_lord$) cycle
 
-    if (lord%control_type == i_beam_lord$) then
+    if (lord%control_type == girder_lord$) then
       ds = (slave%s - slave%value(l$)/2) - lord%value(s_center$) 
       slave%value(x_offset_tot$) = slave%value(x_offset$) + &
                      ds * lord%value(x_pitch$) + lord%value(x_offset$)
@@ -1101,7 +1101,7 @@ subroutine makeup_overlay_and_i_beam_slave (lattice, ix_ele)
       slave%value(x_pitch_tot$)  = slave%value(x_pitch$)  + lord%value(x_pitch$)
       slave%value(y_pitch_tot$)  = slave%value(y_pitch$)  + lord%value(y_pitch$)
       slave%value(tilt_tot$)     = slave%value(tilt$)     + lord%value(tilt$)
-      slave%on_an_i_beam = .true.
+      slave%on_an_girder = .true.
       cycle
     endif
 
@@ -1120,9 +1120,9 @@ subroutine makeup_overlay_and_i_beam_slave (lattice, ix_ele)
 
   where (used) slave%value = value
 
-! If no i_beam then simply transfer tilt to tilt_tot, etc.
+! If no girder then simply transfer tilt to tilt_tot, etc.
 
-  if (.not. slave%on_an_i_beam) then
+  if (.not. slave%on_an_girder) then
     slave%value(tilt_tot$)     = slave%value(tilt$)
     slave%value(x_offset_tot$) = slave%value(x_offset$)
     slave%value(y_offset_tot$) = slave%value(y_offset$)
@@ -1206,7 +1206,7 @@ subroutine attribute_bookkeeper (ele, param)
 
 ! Transfer tilt to tilt_tot, etc.
 
-  if (.not. ele%on_an_i_beam .and. ele%key /= match$) then
+  if (.not. ele%on_an_girder .and. ele%key /= match$) then
     ele%value(tilt_tot$)     = ele%value(tilt$)
     ele%value(x_offset_tot$) = ele%value(x_offset$)
     ele%value(y_offset_tot$) = ele%value(y_offset$)

@@ -31,7 +31,7 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
   Group          & \ref{s:group}     &  Rcollimator   & \ref{s:col}      \HH
   HKicker        & \ref{s:hvkicker}  &  RFcavity      & \ref{s:rfcav}    \HH
   Hybrid         & \ref{s:hybrid}    &  Sbend         & \ref{s:bend}     \HH
-  I_Beam         & \ref{s:i_beam}    &  Sextupole     & \ref{s:sex}      \HH
+  I_Beam         & \ref{s:girder}    &  Sextupole     & \ref{s:sex}      \HH
   Instrument     & \ref{s:monitor}   &  Solenoid      & \ref{s:sol}      \HH
   Kicker         & \ref{s:kicker}    &  Sol_Quad      & \ref{s:sq}       \HH
   Lcavity        & \ref{s:lcav}      &  Taylor        & \ref{s:tay}      \HH
@@ -594,7 +594,7 @@ lattice file but are created by a program, usually for speed purposes.
 
 %-----------------------------------------------------------------
 \section{I_Beam}
-\label{s:i_beam}
+\label{s:girder}
 \index{I_Beam|textbf}
 
 \begin{center}
@@ -608,7 +608,7 @@ lattice file but are created by a program, usually for speed purposes.
 
 Attributes specific to an \vn{I_Beam} are:
 \begin{example}
-  i_beam = \{<List>\}   ! List of elements on the I_Beam
+  girder = \{<List>\}   ! List of elements on the I_Beam
 \end{example}
 
 An \vn{I_Beam} is a support structure that orients the elements that
@@ -624,7 +624,7 @@ the element with respect to the \vn{I_Beam}. An example will make this clear:
 \begin{example}
   q1: quad, l = 10
   q2: quad, l = 5, x_offset = 0.2, x_pitch = 0.01
-  ib: i_beam = \{q1, q2\}, x_pitch = 0.1, x_offset = 0.3
+  ib: girder = \{q1, q2\}, x_pitch = 0.1, x_offset = 0.3
   this_line: line = (q1, q2)
   use, this
 \end{example}
@@ -646,7 +646,7 @@ however, take six \vn{Overlays} to simulate the effect of a single
 
 The \vn{I_Beam} statement syntax is:
 \begin{example}
-  beam_name: I_BEAM = \{ele1, ele2, ... \}, ...
+  beam_name: GIRDER = \{ele1, ele2, ... \}, ...
 \end{example}
 An \vn{I_Beam} element will be created for each \vn{ele1} element in
 the lattice. The elements \vn{ele2}, \vn{ele3}, etc. do not have to be
@@ -658,7 +658,7 @@ For example:
   q2: quad
   s0: sextupole
   s1: sextupole
-  ib: i_beam = \{q1, s1, q2\}
+  ib: girder = \{q1, s1, q2\}
   this_line: line = (q1, s0, s1, q2, ..., q1, s0, s1, q2)
   use, this
 \end{example}

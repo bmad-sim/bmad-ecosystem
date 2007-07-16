@@ -2553,7 +2553,7 @@ subroutine add_all_superimpose (lat, ele_in, pele)
       ic = this_ele%control_type
        
       if (ic == group_lord$ .or. ic == super_slave$) cycle
-      if (ic == i_beam_lord$) cycle
+      if (ic == girder_lord$) cycle
       if (this_ele%old_is_on) cycle
 
       if (match_wild(this_ele%name, pele%ref_name)) then
@@ -2727,7 +2727,7 @@ subroutine compute_super_lord_s (lat, i_ref, ele, pele)
 ! Find the refernce point in the lattice.
 
   ct = lat%ele(i_ref)%control_type
-  if (ct == overlay_lord$ .or. ct == i_beam_lord$) then
+  if (ct == overlay_lord$ .or. ct == girder_lord$) then
     s_ref_begin = 1e10
     s_ref_end = 0
     do i = lat%ele(i_ref)%ix1_slave, lat%ele(i_ref)%ix2_slave
@@ -3180,7 +3180,7 @@ end subroutine
 !+
 ! Subroutine parser_add_lord (in_lat, n2, plat, lat)
 !
-! Subroutine to add overlay, group, and i_beam lords to the lattice.
+! Subroutine to add overlay, group, and girder lords to the lattice.
 ! For overlays and groups: If multiple elements have the same name then 
 ! use all of them.
 !
@@ -3305,18 +3305,18 @@ subroutine parser_add_lord (in_lat, n2, plat, lat)
       end select
 
 !-----------------------------------------------------
-! i_beam
-! Create an i_beam element for each element whose name matches the
+! girder
+! Create an girder element for each element whose name matches the
 ! first name in the slave list.
 
-    case (i_beam_lord$) 
+    case (girder_lord$) 
 
       ixx = lord%ixx
       name1 = plat%ele(ixx)%name(1)
 
       call find_indexx (name1, name_list, r_indexx, ix1, k_slave, k2)
       if (k_slave == 0) then
-        call warning ('CANNOT FIND START ELEMENT FOR I_BEAM: ' // lord%name, &
+        call warning ('CANNOT FIND START ELEMENT FOR GIRDER: ' // lord%name, &
                       'CANNOT FIND: '// name)
         cycle
       endif
@@ -3357,17 +3357,17 @@ subroutine parser_add_lord (in_lat, n2, plat, lat)
             k_slave = k_slave + 1  
             if (k_slave == lat%n_ele_track + 1) k_slave = 1
             if (k_slave == k_slave_original) then
-              call warning ('CANNOT FIND END ELEMENT FOR I_BEAM: ' // &
+              call warning ('CANNOT FIND END ELEMENT FOR GIRDER: ' // &
                                      lord%name, 'CANNOT FIND: ' // slave_name)
               cycle main_loop
             endif
           enddo 
         enddo slave_loop
 
-! create the i_beam element
+! create the girder element
 
         call new_control (lat, ix_lord)
-        call create_i_beam (lat, ix_lord, ix_slave(1:lord%n_slave), lord)
+        call create_girder (lat, ix_lord, ix_slave(1:lord%n_slave), lord)
 
         k2 = k2 + 1
         k_slave = r_indexx(k2)

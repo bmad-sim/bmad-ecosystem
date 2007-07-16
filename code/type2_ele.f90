@@ -319,7 +319,7 @@ if (logic_option(present(lattice), type_control)) then
         iv = lattice%control(i)%ix_attrib
         coef = lattice%control(i)%coef
         select case (con_type)
-        case (super_lord$, i_beam_lord$, multipass_lord$) 
+        case (super_lord$, girder_lord$, multipass_lord$) 
           a_name = '--------'
         case default
           if (lattice%ele(j)%control_type == overlay_lord$) then
@@ -349,7 +349,7 @@ if (logic_option(present(lattice), type_control)) then
         coef = lattice%control(ic)%coef
         con_type = ele%control_type
         if (con_type == super_slave$ .or. con_type == multipass_slave$ .or. &
-                          lattice%ele(j)%control_type == i_beam_lord$) then
+                          lattice%ele(j)%control_type == girder_lord$) then
           a_name = '--------'
           val_str = '    --------'
         else
@@ -374,7 +374,7 @@ endif
 
 con_type = ele%control_type
 if (con_type /= overlay_lord$ .and. con_type /= multipass_lord$ .and. &
-    con_type /= group_lord$ .and. con_type /= i_beam_lord$) then
+    con_type /= group_lord$ .and. con_type /= girder_lord$) then
 
   if (integer_option(radians$, twiss_out) /= 0) then
     nl=nl+1; li(nl) = ' '

@@ -193,7 +193,7 @@ type ele_struct
   logical is_on              ! For turning element on/off.
   logical old_is_on          ! For saving the element on/off state.
   logical logic              ! For general use. Not used by Bmad.
-  logical on_an_i_beam       ! Have an I_Beam overlay_lord?
+  logical on_an_girder       ! Have an I_Beam overlay_lord?
   logical csr_calc_on        ! Coherent synchrotron radiation calculation
 end type
 
@@ -282,7 +282,7 @@ integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
 integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
 integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
-integer, parameter :: ecollimator$ = 36, i_beam$ = 37, bend_sol_quad$ = 38
+integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
 integer, parameter :: def_beam_start$ = 39
 
 integer, parameter :: n_key = 39
@@ -297,7 +297,7 @@ character(16) :: key_name(n_key) = (/ &
     'LCAVITY      ', 'DEF_PARAMETER', 'NULL_ELE     ', 'INIT_ELE     ', &
     'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
-    'I_BEAM       ', 'BEND_SOL_QUAD', 'BEAM_START   ' /)
+    'GIRDER       ', 'BEND_SOL_QUAD', 'BEAM_START   ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -453,12 +453,12 @@ logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 
 integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
-integer, parameter :: i_beam_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
+integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 
 character(16) :: control_name(10) = (/ &
             'FREE_ELEMENT   ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
             'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
-            'I_BEAM_LORD    ', 'MULTIPASS_LORD ', 'MULTIPASS_SLAVE', &
+            'GIRDER_LORD    ', 'MULTIPASS_LORD ', 'MULTIPASS_SLAVE', &
             '               ' /)
 
 ! plane list, etc

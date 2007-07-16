@@ -48,7 +48,7 @@ generally hidden  by the \bmad bookkeeping routines.
     logical map_with_offsets     ! Taylor map calculated with element offsets?
     logical field_master         ! Calculate strength from the field value?
     logical is_on                ! For turning element on/off.
-    logical on_an_i_beam         ! Have an I_Beam lord?
+    logical on_an_girder         ! Have an I_Beam lord?
     logical csr_calc_on          ! Coherent synchrotron radiation calculation
   end type
 \end{verbatim}
@@ -276,7 +276,7 @@ component of an element identifies whether the element is a slave
 element (it is being controlled or is a lord element (it controls
 other elements). Possible values for \vn{%control_type} are:
 \index{Free}\index{Super_lord}
-\index{Group_lord}\index{I_beam_lord}
+\index{Group_lord}\index{Girder_lord}
 \index{Multipass_lord}\index{Super_slave}
 \index{Overlay_slave}\index{Overlay_lord}
 \index{Multipass_slave}
@@ -284,7 +284,7 @@ other elements). Possible values for \vn{%control_type} are:
   free\$
   super_lord\$
   group_lord\$
-  i_beam_lord\$
+  girder_lord\$
   multipass_lord\$
   overlay_lord\$
   multipass_slave\$
@@ -313,10 +313,10 @@ it is linked to when the \vn{command} attribute of the \vn{group_lord}
 is modified, there is no corresponding \vn{group_slave} designation
 for the corresponding ``slave'' elements.
 
-\item[i_beam_lord]
-\index{on_an_i_beam}
-An \vn{i_beam_lord} is an \vn{i_beam} element. In this case, the slaves
-are marked by setting the \vn{%on_an_i_beam} component in the
+\item[girder_lord]
+\index{on_an_girder}
+An \vn{girder_lord} is an \vn{girder} element. In this case, the slaves
+are marked by setting the \vn{%on_an_girder} component in the
 \vn{ele_struct}.
 
 \item{multipass_lord, multipass_slave}

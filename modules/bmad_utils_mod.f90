@@ -1011,7 +1011,7 @@ subroutine init_ele (ele)
   ele%multipoles_on     = .true.
   ele%symplectify       = .false.
   ele%map_with_offsets  = .true.
-  ele%on_an_i_beam      = .false.
+  ele%on_an_girder      = .false.
   ele%csr_calc_on       = .true.
 
   ele%field_master = .false.

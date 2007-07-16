@@ -186,7 +186,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_an_i_beam
+            ele%coupler_at, ele%on_an_girder
     elseif (v81) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
@@ -201,7 +201,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_an_i_beam
+            ele%coupler_at, ele%on_an_girder
     elseif (v82) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
@@ -216,7 +216,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_an_i_beam, ele%csr_calc_on
+            ele%coupler_at, ele%on_an_girder, ele%csr_calc_on
     elseif (v83) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
@@ -231,7 +231,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_an_i_beam, ele%csr_calc_on
+            ele%coupler_at, ele%on_an_girder, ele%csr_calc_on
     elseif (v_now) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
@@ -246,7 +246,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_an_i_beam, ele%csr_calc_on, &
+            ele%coupler_at, ele%on_an_girder, ele%csr_calc_on, &
             ele%ref_orb_in, ele%ref_orb_out
 
     endif

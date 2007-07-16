@@ -276,7 +276,7 @@ subroutine split_lat (lat, s_split, ix_split, split_done)
 
   do i = lat%n_ele_track+1, lat%n_ele_max
     ct = lat%ele(i)%control_type
-    if (ct == group_lord$ .or. ct == i_beam_lord$) then
+    if (ct == group_lord$ .or. ct == girder_lord$) then
       do j = lat%ele(i)%ix1_slave, lat%ele(i)%ix2_slave
         if (lat%control(j)%ix_slave == ix_split+1) then
           if (lat%control(j)%ix_attrib == l$) then

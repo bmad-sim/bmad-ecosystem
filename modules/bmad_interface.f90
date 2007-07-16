@@ -203,7 +203,7 @@ interface
 end interface
 
 interface
-  subroutine create_i_beam (lat, ix_ele, ix_slave, init_ele)
+  subroutine create_girder (lat, ix_ele, ix_slave, init_ele)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (lat_struct) lat

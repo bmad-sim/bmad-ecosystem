@@ -210,10 +210,10 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
       cycle
     endif
 
-! I_beam
+! Girder
 
-    if (ele%control_type == i_beam$) then
-      write (line, '(2a)') trim(ele%name), ': i_beam = {'
+    if (ele%control_type == girder$) then
+      write (line, '(2a)') trim(ele%name), ': girder = {'
       do j = ele%ix1_slave, ele%ix2_slave
         ix1 = lat%control(j)%ix_slave
         if (j == ele%ix2_slave) then

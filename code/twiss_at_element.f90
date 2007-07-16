@@ -73,7 +73,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
 ! Start and end calculation for the lord elements
 
   select case (ele%control_type)
-  case (super_lord$, multipass_lord$, i_beam_lord$)
+  case (super_lord$, multipass_lord$, girder_lord$)
     ix1 = ele%ix1_slave
     ix2 = ele%ix2_slave
     if (present(start)) start = lat%ele(lat%control(ix1)%ix_slave - 1)

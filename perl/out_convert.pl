@@ -7,7 +7,10 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/internal_logic/old_is_on/g;
+    s/i_beam/girder/g;
+    s/I_beam/Girder/g;
+    s/I_BEAM/GIRDER/g;
+
     print (F_OUT);
 
   }

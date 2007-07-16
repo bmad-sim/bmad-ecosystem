@@ -65,7 +65,7 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == init_ele$) cycle
       if (i == group$)    cycle
       if (i == overlay$)  cycle
-      if (i == i_beam$)   cycle
+      if (i == girder$)   cycle
 
       attrib_array(i, x_limit$)           = 'X_LIMIT'
       attrib_array(i, y_limit$)           = 'Y_LIMIT'
@@ -191,13 +191,13 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(match$, eta_b1$)        = 'ETA_B1'
     attrib_array(match$, etap_b1$)       = 'ETAP_B1'
 
-    attrib_array(i_beam$, x_offset$)     = 'X_OFFSET'
-    attrib_array(i_beam$, y_offset$)     = 'Y_OFFSET'
-    attrib_array(i_beam$, s_offset$)     = 'S_OFFSET'
-    attrib_array(i_beam$, x_pitch$)      = 'X_PITCH'
-    attrib_array(i_beam$, y_pitch$)      = 'Y_PITCH'
-    attrib_array(i_beam$, s_center$)     = 'S_CENTER'
-    attrib_array(i_beam$, tilt$)         = 'TILT'
+    attrib_array(girder$, x_offset$)     = 'X_OFFSET'
+    attrib_array(girder$, y_offset$)     = 'Y_OFFSET'
+    attrib_array(girder$, s_offset$)     = 'S_OFFSET'
+    attrib_array(girder$, x_pitch$)      = 'X_PITCH'
+    attrib_array(girder$, y_pitch$)      = 'Y_PITCH'
+    attrib_array(girder$, s_center$)     = 'S_CENTER'
+    attrib_array(girder$, tilt$)         = 'TILT'
 
     attrib_array(lcavity$, l$)             = 'L'
     attrib_array(lcavity$, tilt$)          = 'TILT'

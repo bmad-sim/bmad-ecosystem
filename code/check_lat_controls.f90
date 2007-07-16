@@ -27,7 +27,7 @@ subroutine check_lat_controls (lat, exit_on_error)
   integer ix1, ix2, ii
 
   logical exit_on_error, found_err, good_control(12,12)
-  logical i_beam_here
+  logical girder_here
 
 ! check energy
 
@@ -41,11 +41,11 @@ subroutine check_lat_controls (lat, exit_on_error)
 
   good_control = .false.
   good_control(group_lord$, (/ group_lord$, overlay_lord$, super_lord$, &
-                i_beam_lord$, free$, overlay_slave$, multipass_lord$ /)) = .true.
-  good_control(i_beam_lord$, (/ super_lord$, overlay_slave$, &
+                girder_lord$, free$, overlay_slave$, multipass_lord$ /)) = .true.
+  good_control(girder_lord$, (/ super_lord$, overlay_slave$, &
                 multipass_lord$ /)) = .true.
   good_control(overlay_lord$, (/ overlay_lord$, &
-                i_beam_lord$, overlay_slave$, super_lord$, multipass_lord$ /)) = .true.
+                girder_lord$, overlay_slave$, super_lord$, multipass_lord$ /)) = .true.
   good_control(super_lord$, (/ super_slave$ /)) = .true.
   good_control(multipass_lord$, (/ super_lord$, multipass_slave$ /)) = .true.
 
@@ -72,7 +72,7 @@ subroutine check_lat_controls (lat, exit_on_error)
       endif                                             
     else                                                         
       if (t_type == super_lord$ .or. t_type == overlay_lord$ .or. &
-          t_type == group_lord$ .or. t_type == i_beam_lord$ .or. &
+          t_type == group_lord$ .or. t_type == girder_lord$ .or. &
           t_type == multipass_lord$) then
         print *, 'ERROR IN check_lat_controls: ELEMENT: ', trim(ele%name)
         print *, '      WHICH IS A: ', control_name(t_type)
@@ -81,7 +81,7 @@ subroutine check_lat_controls (lat, exit_on_error)
       endif
     endif
 
-    if (.not. any( (/ free$, super_slave$, overlay_slave$, i_beam_lord$, &
+    if (.not. any( (/ free$, super_slave$, overlay_slave$, girder_lord$, &
                       super_lord$, overlay_lord$, group_lord$, multipass_lord$, &
                       multipass_slave$ /) == t_type)) then
       print *, 'ERROR IN check_lat_controls: ELEMENT: ', trim(ele%name), i_t
@@ -199,7 +199,7 @@ subroutine check_lat_controls (lat, exit_on_error)
         found_err = .true.
       endif
 
-      if (t_type /= group_lord$ .and. t_type /= i_beam_lord$) then
+      if (t_type /= group_lord$ .and. t_type /= girder_lord$) then
         n = slave%ic2_lord - slave%ic1_lord + 1
         cc(1:n) = (/ (lat%ic(i), i = slave%ic1_lord, slave%ic2_lord) /)
         if (.not. any(lat%control(cc(1:n))%ix_lord == i_t)) then
@@ -214,7 +214,7 @@ subroutine check_lat_controls (lat, exit_on_error)
 
 ! check lords
 
-    i_beam_here = .false.
+    girder_here = .false.
 
     do ix = ele%ic1_lord, ele%ic2_lord
 
@@ -261,13 +261,13 @@ subroutine check_lat_controls (lat, exit_on_error)
         found_err = .true.
       endif
 
-      if (t2_type == i_beam_lord$) then
-        if (i_beam_here) then
+      if (t2_type == girder_lord$) then
+        if (girder_here) then
           print *, 'ERROR IN check_lat_controls: SLAVE: ', trim(ele%name), i_t
-          print *, '      HAS MORE THAN ONE I_BEAM_LORD.'
+          print *, '      HAS MORE THAN ONE GIRDER_LORD.'
           found_err = .true.
         endif
-        i_beam_here = .true.
+        girder_here = .true.
       endif
 
 
