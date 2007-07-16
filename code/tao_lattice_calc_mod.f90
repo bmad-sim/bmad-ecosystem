@@ -318,7 +318,7 @@ inject_loop: do i_uni_to = uni+1, size(s%u)
       else
         call out_io (s_abort$, r_name, &
              "Must specify an element when coupling lattices with a beam.")
-    ! set initial beam centroid
+        ! set initial beam centroid
         call err_exit
       endif
     endif
@@ -769,6 +769,8 @@ else
   ! transfer to this lattice
   lat%ele(0)%a = extract_ele%a
   lat%ele(0)%b = extract_ele%b
+  lat%ele(0)%x = extract_ele%x
+  lat%ele(0)%y = extract_ele%y
   lat%ele(0)%z = extract_ele%z
   lat%ele(0)%value(E_TOT$) = extract_ele%value(E_TOT$)
   lat%ele(0)%c_mat   = extract_ele%c_mat

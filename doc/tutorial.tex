@@ -27,7 +27,14 @@ found at:
 Briefly, if you are at Cornell, after setting up the appropriate environmental 
 variables, you should be able to run \tao using the command
 \begin{example}
-  \$CESR_EXE/tao
+  \$CESR_EXE/tao \{-file <tao_input_file>\} \{-beam <beam_input_file>\}
+\end{example}
+The \vn{tao_input_file} is the file \tao reads to start \tao's
+initialization process. If not present, \vn{<tao_input_file>} defaults
+to \vn{tao.init}. The \vn{<beam_input_file>} is for reading in data
+generated from beam tracking (\sref{s:command_line}). Example:
+\begin{example}
+  \$CESR_EXE/tao -file my.init
 \end{example}
 
 To get an example set of input files to run, check out a copy of the \tao code.
@@ -166,13 +173,13 @@ here. Part III will tell you all about these other structures.
 \index{Initializing!Files}
 \label{s:initializing}
 
-Initialization occurs at startup. There are \emph{six} files used to
-initialize \tao.
-  \vspace*{-3ex}
+Initialization occurs at startup. The initialization information can reside
+in one file or it can be spread out and put into up to six differnt files.
+  \vspace*{-2ex}
 \begin{enumerate}
   \item \textbf{\textit{your lattice file}} \Newline
     This is your lattice file. ``Vanilla'' \tao comes with its own for
-demonstration purposes.
+    demonstration purposes.
   \item \textbf{tao.init} \Newline 
     This is where global environment variables and key bindings are specified.
   \item \textbf{tao\_plot.init} \Newline
@@ -183,11 +190,12 @@ demonstration purposes.
     This is where variables are initialized.
   \item \textbf{tao.startup (optional)} \Newline
     This is a command file that is read in after initialization. 
-Any commands you
-want entered in \tao every time you start up are put here.
+    Any commands you
+    want entered in \tao every time you start up are put here.
 \end{enumerate}
-\textbf{tao\_plot.init}, \textbf{tao\_data.init} and \textbf{tao\_var.init} do
-not need to be separate files and can all reside in \textbf{tao.init}.
+\textbf{tao\_plot.init}, \textbf{tao\_data.init} and
+\textbf{tao\_var.init} do not need to be separate files and can all
+reside in \textbf{tao.init}.
 
 There is no need to go into the details of the initialization files
 here. If using Vanilla \tao these are already set up for you in
@@ -197,8 +205,9 @@ here. If using Vanilla \tao these are already set up for you in
 not then it looks like you'll need to read Chapter~\ref{c:custom_tao}
 of this tutorial and make your own initialization files.
 
-\textbf{NOTE: the following sections will work with vanilla \tao. The commands
-entered and plotting output may be different for custom versions.}
+\textbf{NOTE: the following sections will work with vanilla \tao. The
+commands entered and plotting output may be different for custom
+versions.}
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------

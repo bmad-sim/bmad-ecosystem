@@ -2699,17 +2699,15 @@ subroutine tao_parse_command_args (error, cmd_words)
   implicit none
 
   character(*), optional :: cmd_words(:)
-  character(80) arg1, arg2, init_file, beam_file
+  character(80) arg0
   character(24) :: r_name = 'tao_parse_command_args'
 
-  integer i, n_arg
+  integer n_arg, i_arg
   logical error
 
 ! Get command line input
 
   error = .false.
-  init_file = s%global%init_file
-  beam_file = s%global%beam_file
 
   if (present(cmd_words)) then
     n_arg = size(cmd_words)
@@ -2717,37 +2715,56 @@ subroutine tao_parse_command_args (error, cmd_words)
     n_arg = cesr_iargc()
   endif
 
-  do i = 1, n_arg-1, 2
+  i_arg = 0
+  do 
 
-    if (present(cmd_words)) then
-      arg1 = cmd_words(i)
-      arg2 = cmd_words(i+1)
-    else
-      call cesr_getarg(i, arg1)
-      call cesr_getarg (i+1, arg2)
-    endif
+    if (i_arg == n_arg) exit
+    call get_next_arg (arg0)
 
-    select case (arg1)
+    select case (arg0)
     case ('-init')
-      init_file = arg2
+      call get_next_arg (s%global%init_file)
 
     case ('-beam')
-      beam_file = arg2
-
+      call get_next_arg (s%global%beam_file)
+      
     case ('')
       exit
 
     case default
-      call out_io (s_fatal$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg1)
+      call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
       error = .true.
       return
     end select
 
   enddo
 
-  s%global%init_file = init_file
-  s%global%beam_file = beam_file
-      
+!-----------------------------
+contains
+
+subroutine get_next_arg(arg)
+
+  character(*) arg
+
+!
+
+  if (i_arg == n_arg) then
+    call out_io (s_error$, r_name, &
+                      'MISSING COMMAND LINE ARGUMENT FOR: ' // arg0)
+    error = .true.
+    return
+  endif
+
+  i_arg = i_arg + 1
+
+  if (present(cmd_words)) then
+    arg = cmd_words(i_arg)
+  else
+    call cesr_getarg(i_arg, arg)
+  endif
+
+end subroutine
+
 end subroutine
 
 
