@@ -24,6 +24,8 @@ generally hidden  by the \bmad bookkeeping routines.
     type (xy_disp_struct) x, y        ! Projected dispersion
     type (floor_position_struct) position
     real(rp) value(n_attrib_maxx)     ! attribute values
+    real(rp) ref_orb_start(6)         ! Reference orbit for mat6 calc at entrance of element.
+    real(rp) ref_orb_end(6)           ! Reference orbit at exit of element.
     real(rp) vec0(6)                  ! 0th order transport vector
     real(rp) mat6(6,6)                ! 1st order transport matrix
     real(rp) c_mat(2,2)               ! 2x2 C coupling matrix
@@ -359,15 +361,25 @@ read the position of an element a program should look at
 \section{Transfer Maps}
 \index{Ele_struct!transfer maps}
 \index{Transfer map!in ele_struct}
+\index{mat6}
+\index(vec0}
+\index{ref_orb}
 
-The first order transfer map through a element is stored in \vn{vec0}
-and \vn{mat6}. Thus with \vn{Linear} tracking the appropriate formula is
+The routine \vn{make_mat6} computes the linear transfer matrix (Jacobian). 
+This matrix is stored in \vn{%mat6(6,6)}. The reference orbit at
+the entrance end of the element about
+which the transfer matrix is computed is stored in \vn{%ref_orb_start}
+and the the reference orbit at the exit end is stored in \vn{%ref_orb_end}.
+Finally, \vn{make_mat6} stores in \vn{%vec0} a vector such that
 \begin{example}
-  orbit_out = %vec0 + %mat6 * orbit_in
+  ref_orb_end = %mat6 * ref_orbit_start + %vec0
 \end{example}
-The \bmad routines that compute \vn{%mat6} (for example \vn{lat_make_mat6})
-take a reference orbit as an argument and the resulting \vn{%mat6} matrix
-is the Jacobian about the reference orbit.
+Notice that \vn{%vec0} only corresponds to the zeroth
+order part of the transport map when the transport map is linear.
+The reason redundant information is stored in the element is to save
+computation time.
+
+To compute the transfer maps for an entire lattice use the routine \vn{lat_make_mat6}.
 
 %--------------------------------------------------------------------------
 \section{Taylor Maps}

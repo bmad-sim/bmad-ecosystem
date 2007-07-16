@@ -445,9 +445,9 @@ it can be shown that the linear part of any transport map (the Jacobian)
 must obey the symplectic condition. If a matrix $\Bf M$ is not symplectic,
 Healy\cite{b:healy} has provided an elegant method for finding a symplectic 
 matrix that is ``close'' to $\Bf M$. The procedure is as follows:
-From $\Bf M$ a matrix $\Bf V$ is formed via
+From $\Bf M$ a matrix $\bV$ is formed via
 \begin{equation}
-  \Bf V = \Bf S (\Bf I - \Bf M)(\Bf I + \Bf M)^{-1} 
+  \bV = \Bf S (\Bf I - \Bf M)(\Bf I + \Bf M)^{-1} 
   \label{e:vsimi}
 \end{equation}
 where $\Bf S$ is the matrix
@@ -463,11 +463,11 @@ where $\Bf S$ is the matrix
   \end{pmatrix}
   \label{s0100}
 \Endeq
-$\Bf V$ is symmetric if and only if $\Bf M$ is symplectic. In any case,
-a symmetric matrix $\Bf W$ near $\Bf V$ can be
+$\bV$ is symmetric if and only if $\Bf M$ is symplectic. In any case,
+a symmetric matrix $\Bf W$ near $\bV$ can be
 formed via
 \begin{equation}
-  \Bf W = \frac{\Bf V + \Bf V^t}{2}
+  \Bf W = \frac{\bV + \bV^t}{2}
 \end{equation}
 A symplectic matrix $\Bf F$ is now obtained by inverting \eq{e:vsimi}
 \Begineq
@@ -771,61 +771,73 @@ dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
     {\bfeta_a} = \bfV\inv \, {\bfeta_x}
     . \label{etaavx}
   \Endeq 
-The dispersion itself is defined by
-\begin{align}
-  \eta_x &= \frac{dx}{dp_z} \CRNO
-  \eta'_x &= \frac{d}{ds} \, \eta_x = \frac{dx'}{dp_z} \\
-  \eta_y &= \frac{dy}{dp_z} \CRNO
-  \eta'_y &= \frac{d}{ds} \, \eta_y = \frac{dy'}{dp_z} \nonumber
-\end{align}
-Notice that $\eta'_x$ and $eta'_y$ are essentially defined in terms of
-derivatives of $x'$ and $y'$ and not the canonical coordinates $p_x$
-and $p_y$. This fact makes complicates the calculation of the
-dispersion when the closed orbit does not coincide with the reference
-trajectory. Given the first order transport map between points 1 and
-2:
-\Begineq
-  \Bf x_2 = \Bf M \, \Bf x_1 + \Bf k
-\Endeq
-where $\Bf x_1$ and $\Bf x_2$ are expressed in canonical coordinates,
-The transformation of the dispersion between points 1 and 2 is given
-by:
-\begin{align}
-  \eta_{x2} &= 
-    M_{11} \, \eta_{x1} + M_{12} \, \eta'_{x1} + 
-    M_{13} \, \eta_{y1} + M_{14} \, \eta'_{y1} +
-    M_{16} + M_{12} \, p_{x1} + M_{14} \, p_{y1} \CRNO
-  \eta'_{x2} &=     
-    M_{21} \, \eta_{x1} + M_{22} \, \eta'_{x1} + 
-    M_{23} \, \eta_{y1} + M_{24} \, \eta'_{y1} +
-    M_{26} - M_{21} \, x_1 - M_{23} \, y_1 - k_2 \\
-  \eta_{y2} &= 
-    M_{31} \, \eta_{x1} + M_{32} \, \eta'_{x1} + 
-    M_{33} \, \eta_{y1} + M_{34} \, \eta'_{y1} +
-    M_{36} + M_{32} \, p_{x1} + M_{34} \, p_{y1} \CRNO
-  \eta'_{y2} &=     
-    M_{41} \, \eta_{x1} + M_{42} \, \eta'_{x1} + 
-    M_{43} \, \eta_{y1} + M_{44} \, \eta'_{y1} +
-    M_{46} - M_{41} \, x_1 - M_{43} \, y_1 - k_4 \CRNO
-\end{align}
-where $(x_1, p_{x1}, y_1, p_{y1}$ are the closed orbit coordinates at
-point 1 and it has been assumed that the closed orbit $p_z$ is zero.
 
 %-----------------------------------------------------------------
-\section{Dispersion Propagation}
+\section{Dispersion Calculation}
 \label{s:dispersion}
 \index{Dispersion|textbf}
 
-The dispersion ($\eta$) and the dispersion derivative are defined by the equation
+The dispersion ($\eta$) and the dispersion derivative ($\eta'$) are 
+defined by the equations
 \begin{align}
   \eta_x &\equiv \frac{dx}{dp_z} \CRNO
-  \eta'_x &\equiv \frac{d\eta_x}{ds} = \frac{dx'}{dp_z} \\
-  \eta_y &\equiv \frac{dy}{dp_z} \CRNO
+  \eta'_x &\equiv \frac{d\eta_x}{ds} = \frac{dx'}{dp_z} \CRNO
+  \eta_y &\equiv \frac{dy}{dp_z} \\
   \eta'_y &\equiv \frac{d\eta_y}{ds} = \frac{dy'}{dp_z} \CRNO
+  \eta_z &\equiv \frac{dz}{dp_z} \CRNO
 \end{align}
-Here the independent variables are $(x, x', y, y')$. Since \bmad uses
-canonical coordinates (\sref{s:phase_space_coords}), care must be taken
-in propagating the dispersion from one element to another.
+
+The dispersion calculation is as follows: 
+Let $\bf r$ be the reference orbit, in canonical coordinates,
+around which the dispersion is to be calculated. 
+Let $\bf M$ be the transfer matrix between two points labeled 1 and 2, and
+let $\bV$ be a vector defined by the equation
+\Begineq
+  \Bf r_2 = \bM \, \Bf r_1 + \bV
+  \label{rmrv}
+\Endeq
+Define the dispersion vector $\bfeta$ by
+\Begineq
+  \bfeta = \left( \eta_x, \eta'_x \, (1 + p_z), \eta_y, \eta'_y \, (1 + p_z), \eta_z, 1)
+\Endeq
+Then differentiating \Eq{rmrv} with respect to energy, 
+the dispersion at point 2 in terms of the dispersion at point 1 is
+\Begineq
+  \bfeta_2 = \frac{dp_{z1}{dp_{z2}} \left[ \bM \, \bfeta_1 \right] + \bV_\eta 
+\Endeq
+where
+\Begineq
+  \bV_\eta = \frac{dp_{z1}{dp_{z2}} \, \frac{1}{1 + p_{z1}}
+  \begin{array}
+    M_{12} \, p_{x1} + M_{14} \, p_{y1} \\
+    M_{22} \, p_{x1} + M_{24} \, p_{y1} \\
+    M_{32} \, p_{x1} + M_{34} \, p_{y1} \\
+    M_{42} \, p_{x1} + M_{44} \, p_{y1} \\
+    M_{52} \, p_{x1} + M_{54} \, p_{y1} \\
+    M_{62} \, p_{x1} + M_{64} \, p_{y1} \\
+  \end{array}
+  -
+  \begin{array}
+    0 //
+    \frac{p_{x2}}{1 + p_{z2}} \\
+    0 //
+    \frac{p_{y2}}{1 + p_{z2}} \\
+    0 //
+    0 
+  \end{array}
+\Endeq
+The sixth row of the matrix equation gives $dp_{z1}/dp_{z2}$. 
+Explicitly
+\Begineq
+  \left[ \frac{dp_{z1}{dp_{z2}} \right]^{-1} =
+  M_{66} + 
+  M_{61} \, \eta_{x1} + M_{62} \, \eta'_{x1} \, (1 + p_{z1}) +
+  M_{63} \, \eta_{y1} + M_{64} \, \eta'_{y1} \, (1 + p_{z1}) +
+  M_{62} \, p_{x1} + M_{64} \, p_{y1}
+\Endeq
+For everything except \vn{RFcavity} and \vn{Lcavity} elements, 
+$dp_{z1}/dp_{z2}$ is 1.
+
 
 
 %-----------------------------------------------------------------
@@ -848,9 +860,9 @@ defines the ellipsoid at a distance of $n$--sigma from the centroid is
 where the $t$ superscript denotes the transpose. Given the sigma matrix
 at some point $s = s_1$, the sigma matrix at a different point $s_2$ is
 \Begineq
-  \bfsig_2 = \Bf M_{21} \, \bfsig_1 \, \Bf M_{21}^t
+  \bfsig_2 = \bM_{21} \, \bfsig_1 \, \bM_{21}^t
 \Endeq
-where $\Bf M_{21}$ is the Jacobian of the transport map between points
+where $\bM_{21}$ is the Jacobian of the transport map between points
 $s_1$ and $s_2$.
 
 \index{dispersion}
