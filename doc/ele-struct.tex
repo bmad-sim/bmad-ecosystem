@@ -197,6 +197,18 @@ The list of attributes for a given element
 type is given in the writeup for the different element in
 Chapter~\ref{c:elements}. 
 
+There are also 5 slots in the \vn{%value(:)} array for general use.
+they have indexes labeled \vn{general1\$} through \vn{general5\$}. These
+slots are not used by \bmad so a program can take advantage of them.
+The index names can be redefined to fit a particular need. For example, suppose
+a program needs to store a time stamp number. The code to do this could look
+like:
+\begin{example}
+  iteger, parameter :: time_stamp\$ = general1\$
+  ...
+  lat%ele(i)%value(time_stamp$) = ...
+\end{example}
+
 Certain real valued attributes are {\em not}
 found in the \vnes{%value(:)} array. For example, multipole components
 are stored in the \vnes{%a(:)} and \vnes{%b(:)} arrays. The full list
