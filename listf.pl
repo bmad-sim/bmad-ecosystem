@@ -6,6 +6,7 @@ use File::Find;
 use File::Spec::Functions;
 
 # Following two lines should be uncommented on VMS to check the master_list:
+
 #my @args = ("list_list", @ARGV);
 #system(@args) == 0 or warn "system @args failed: $!\n";
 
@@ -14,64 +15,67 @@ $found_one = 0;
 my $curdir = curdir();
 my $updir  = updir();
 
-if (-d catdir( $curdir, "bmad", "modules" )) {
-  $bmad_dir = catdir( $curdir, "bmad" );
-} elsif (-d catdir( $updir, "bmad", "modules" )) {
-  $bmad_dir = catdir( $updir, "bmad" );
-} elsif (-d catdir( $updir, "$updir", "bmad", "modules" )) {
-  $bmad_dir = catdir( $updir, "$updir", "bmad" );
+if (-r catfile( $curdir, "bmad", "modules", "bmad_struct.f90" )) {
+  $bmad_dir = catfile( $curdir, "bmad" );
+} elsif (-r catfile( $updir, "bmad", "modules", "bmad_struct.f90")) {
+  $bmad_dir = catfile( $updir, "bmad" );
+} elsif (-r catfile( $updir, $updir, "bmad", "modules", "bmad_struct.f90")) {
+  $bmad_dir = catfile( $updir, $updir, "bmad" );
 } else {
-  $bmad_dir = catdir( $ENV{"CESR_SRC"}, "bmad" );
+  $bmad_dir = catfile( $ENV{"CESR_SRC"}, "bmad" );
 }
 
-if (-d catdir( $curdir, "cesr_utils", "modules" )) {
-  $cesr_utils_dir = catdir( $curdir, "cesr_utils" );
-} elsif (-d catdir( $updir, "cesr_utils", "modules" )) {
-  $cesr_utils_dir = catdir( $updir, "cesr_utils" );
-} elsif (-d catdir( $updir, "$updir", "cesr_utils", "modules" )) {
-  $cesr_utils_dir = catdir( $updir, "$updir", "cesr_utils" );
+if (-r catfile( $curdir, "cesr_utils", "modules", "cesr_utils.f90" )) {
+  $cesr_utils_dir = catfile( $curdir, "cesr_utils" );
+} elsif (-r catfile( $updir, "cesr_utils", "modules", "cesr_utils.f90")) {
+  $cesr_utils_dir = catfile( $updir, "cesr_utils" );
+} elsif (-r catfile( $updir, $updir, "cesr_utils", "modules", "cesr_utils.f90")) {
+  $cesr_utils_dir = catfile( $updir, $updir, "cesr_utils" );
 } else {
-  $cesr_utils_dir = catdir( $ENV{"CESR_SRC"}, "cesr_utils" );
+  $cesr_utils_dir = catfile( $ENV{"CESR_SRC"}, "cesr_utils" );
 }
 
-if (-d catdir( $curdir, "dcslib", "modules" )) {
-  $dcslib_dir = catdir( $curdir, "dcslib" );
-} elsif (-d catdir( $updir, "dcslib", "modules" )) {
-  $dcslib_dir = catdir( $updir, "dcslib" );
-} elsif (-d catdir( $updir, "$updir", "dcslib", "modules" )) {
-  $dcslib_dir = catdir( $updir, "$updir", "dcslib" );
+
+if (-r catfile( $curdir, "dcslib", "modules", "dcslib.f90" )) {
+  $dcslib_dir = catfile( $curdir, "dcslib" );
+} elsif (-r catfile( $updir, "dcslib", "modules", "dcslib.f90")) {
+  $dcslib_dir = catfile( $updir, "dcslib" );
+} elsif (-r catfile( $updir, $updir, "dcslib", "modules", "dcslib.f90")) {
+  $dcslib_dir = catfile( $updir, $updir, "dcslib" );
 } else {
-  $dcslib_dir = catdir( $ENV{"CESR_SRC"}, "dcslib" );
+  $dcslib_dir = catfile( $ENV{"CESR_SRC"}, "dcslib" );
 }
 
-if (-d catdir( $curdir, "recipes_f-90_LEPP" )) {
-  $recipes_dir = catdir( $curdir, "recipes_f-90_LEPP" );
-} elsif (-d catdir( $updir, "recipes_f-90_LEPP" )) {
-  $recipes_dir = catdir( $updir, "recipes_f-90_LEPP" );
-} elsif (-d catdir( $updir, "$updir", "recipes_f-90_LEPP" )) {
-  $recipes_dir = catdir( $updir, "$updir", "recipes_f-90_LEPP" );
+
+if (-r catfile( $curdir, "recipes_f-90_LEPP", "lib_src", "nr.f90" )) {
+  $recipes_dir = catfile( $curdir, "recipes_f-90_LEPP" );
+} elsif (-r catfile( $updir, "recipes_f-90_LEPP", "lib_src", "nr.f90")) {
+  $recipes_dir = catfile( $updir, "recipes_f-90_LEPP" );
+} elsif (-r catfile( $updir, $updir, "recipes_f-90_LEPP", "lib_src", "nr.f90")) {
+  $recipes_dir = catfile( $updir, $updir, "recipes_f-90_LEPP" );
 } else {
-  $recipes_dir = catdir( $ENV{"CESR_SRC"}, "recipes_f-90_LEPP" );
+  $recipes_dir = catfile( $ENV{"CESR_SRC"}, "recipes_f-90_LEPP" );
 }
 
-if (-d catdir( $curdir, "forest", "basic" )) {
-  $forest_dir = catdir( $curdir, "forest", "basic" );
-} elsif (-d catdir( $updir, "forest", "basic" )) {
-  $forest_dir = catdir( $updir, "forest", "basic" );
-} elsif (-d catdir( $updir, "$updir", "forest", "basic" )) {
-  $forest_dir = catdir( $updir, "$updir", "forest", "basic" );
+
+if (-r catfile( $curdir, "forest", "code", "i_tpsa.f90" )) {
+  $forest_dir = catfile( $curdir, "forest" );
+} elsif (-r catfile( $updir, "forest", "code", "i_tpsa.f90")) {
+  $forest_dir = catfile( $updir, "forest" );
+} elsif (-r catfile( $updir, $updir, "forest", "code", "i_tpsa.f90")) {
+  $forest_dir = catfile( $updir, $updir, "forest" );
 } else {
-  $forest_dir = catdir( $ENV{"CESR_PKG"}, "forest", "basic" );
+  $forest_dir = catfile( $ENV{"CESR_SRC"}, "forest" );
 }
 
-if (-d catdir( $curdir, "tao", "code" )) {
-  $tao_dir = catdir( $curdir, "tao" );
-} elsif (-d catdir( $updir, "tao", "code" )) {
-  $tao_dir = catdir( $updir, "tao" );
-} elsif (-d catdir( $updir, "$updir", "tao", "code" )) {
-  $tao_dir = catdir( $updir, "$updir", "tao" );
+if (-r catfile( $curdir, "tao", "code", "tao_struct.f90" )) {
+  $tao_dir = catfile( $curdir, "tao" );
+} elsif (-r catfile( $updir, "tao", "code", "tao_struct.f90")) {
+  $tao_dir = catfile( $updir, "tao" );
+} elsif (-r catfile( $updir, $updir, "tao", "code", "tao_struct.f90")) {
+  $tao_dir = catfile( $updir, $updir, "tao" );
 } else {
-  $tao_dir = catdir( $ENV{"CESR_SRC"}, "tao" );
+  $tao_dir = catfile( $ENV{"CESR_SRC"}, "tao" );
 }
 
 $str = @ARGV[0];
