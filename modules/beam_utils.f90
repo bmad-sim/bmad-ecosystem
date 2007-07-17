@@ -1,6 +1,6 @@
 module beam_utils
 
-  use beam_struct
+  use beam_def_struct
   use bmad_interface
 
 contains

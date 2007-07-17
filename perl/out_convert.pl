@@ -7,9 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/i_beam/girder/g;
-    s/I_beam/Girder/g;
-    s/I_BEAM/GIRDER/g;
+    s/use beam_struct/use beam_def_struct/g;
 
     print (F_OUT);
 

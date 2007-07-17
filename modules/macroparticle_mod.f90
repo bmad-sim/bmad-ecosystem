@@ -3,7 +3,7 @@ module macroparticle_mod
 use bmad_struct
 use bmad_interface
 use wake_mod
-use beam_struct
+use beam_def_struct
 
 ! Remember: If any of the macroparticle structures change you will need to modify:
 !   mp_beam_equal_mp_beam, mp_slice_equal_mp_slice, and mp_bunch_equal_mp_bunch

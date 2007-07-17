@@ -1,4 +1,4 @@
-module beam_struct
+module beam_def_struct
 
 use bmad_struct
 
