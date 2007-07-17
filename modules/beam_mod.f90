@@ -264,7 +264,10 @@ integer i, j, n, ix_ele
 !------------------------------------------------
 ! space charge tracking will also include wakes if they are on too.
 
-if (bmad_com%coherent_synch_rad_on .and. lat%ele(ix_ele)%csr_calc_on) then
+if (lat%ele(ix_ele)%tracking_method == custom$) then
+  call track1_bunch_custom (bunch_start, lat, ix_ele, bunch_end)
+
+elseif (bmad_com%coherent_synch_rad_on .and. lat%ele(ix_ele)%csr_calc_on) then
   call track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)
 
 else

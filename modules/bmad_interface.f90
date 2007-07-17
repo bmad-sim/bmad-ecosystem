@@ -10,6 +10,7 @@ use matrix_mod
 use bmad_basic_mod
 use equal_mod
 use nrutil, only: reallocate
+use custom_bmad_interface
 
 !---------------------------------------------------------
 
@@ -225,15 +226,6 @@ interface
 end interface
 
 interface
-  subroutine custom_emitt_calc (lat, ir, i2, i3, i5a, i5b)
-    use bmad_struct, only: lat_struct, rp
-    type (lat_struct) lat
-    integer ir
-    real(rp) i2, i3, i5a, i5b
-  end subroutine
-end interface
-
-interface
   Subroutine dispersion_to_orbit (ele, disp_orb)
     use bmad_struct, only: ele_struct, coord_struct
     implicit none
@@ -417,16 +409,6 @@ interface
 end interface
 
 interface
-  subroutine make_mat6_custom (ele, param, start, end)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
-    implicit none
-    type (ele_struct), target :: ele
-    type (coord_struct) :: start, end
-    type (lat_param_struct) param
-  end subroutine
-end interface
-
-interface
   subroutine make_mat6_taylor (ele, param, start)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
@@ -474,16 +456,6 @@ interface
     type (ele_struct), target :: ele
     type (coord_struct) :: start, end
     type (lat_param_struct) param
-  end subroutine
-end interface
-
-interface
-  subroutine custom_radiation_integrals (lat, ir, orb)
-    use bmad_struct, only: lat_struct, coord_struct
-    implicit none
-    type (lat_struct) lat
-    type (coord_struct) orb(0:)
-    integer ir
   end subroutine
 end interface
 
@@ -877,17 +849,6 @@ end interface
 
 interface
   subroutine track1_taylor (start, ele, param, end)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
-    implicit none
-    type (coord_struct) :: start
-    type (coord_struct) :: end
-    type (ele_struct) :: ele
-    type (lat_param_struct) :: param
-  end subroutine
-end interface
-
-interface
-  subroutine track1_custom (start, ele, param, end)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (coord_struct) :: start
