@@ -1,22 +1,20 @@
 !+
-! Subroutine track1_custom (start, ele, param, end)
+! Subroutine track1_bunch_custom (bunch_start, lat, ix_ele, bunch_end)
 !
-! Dummy routine for custom tracking. 
+! Dummy routine for custom bunch tracking. 
 ! If called, this routine will generate an error message and quit.
 ! This routine needs to be replaced for a custom calculation.
 !
 ! Modules Needed:
-!   use bmad
+!   use beam_def_struct
 !
 ! Input:
-!   start  -- Coord_struct: Starting position.
-!   ele    -- Ele_struct: Element.
-!   param  -- lat_param_struct: Lattice parameters.
+!   bunch_start -- bunch_struct: Starting bunch position.
+!   lat         -- lat_struct: Lattice containing element to be tracked through.
+!   ix_ele      -- Integer: Index of element to track through.
 !
 ! Output:
-!   end   -- Coord_struct: End position.
-!   param -- lat_param_struct: Lattice parameters.
-!     %lost -- Logical. Set to true if a particle is lost.
+!   bunch_end -- Bunch_struct: Ending bunch position.
 !-
 
 #include "CESR_platform.inc"

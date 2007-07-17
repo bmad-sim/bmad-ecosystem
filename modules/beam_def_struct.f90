@@ -1,7 +1,6 @@
 module beam_def_struct
 
 use bmad_struct
-use bmad_interface
 
 ! Sigma matrix elements (21 total)
 integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5
@@ -80,52 +79,7 @@ end type
  real(rp), parameter, private ::  sigma_theta = 1e-3 ! 1 milliradian
  real(rp), parameter, private ::  sigma_phi = 1e-3
 
-contains
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine track1_particle (start, ele, param, end)
-!
-! Subroutine to track a particle through an element.
-!
-! Modules needed:
-!   use beam_mod
-!
-! Input:
-!   start  -- struct: Starting coords.
-!   ele    -- Ele_struct: Element to track through.
-!   param  -- lat_param_struct: Global parameters.
-!
-! Output:
-!   end    -- struct: Ending coords.
-!-
-
-subroutine track1_particle (start, ele, param, end)
-
-  implicit none
-
-  type (particle_struct) :: start
-  type (particle_struct) :: end
-  type (ele_struct) :: ele
-  type (lat_param_struct), intent(inout) :: param
-
-! transfer z-order index, charge, etc
-
-  end = start
-  if (start%ix_lost /= not_lost$) return
-  if (ele%key == marker$) return
-
-  call track1 (start%r, ele, param, end%r)
-  if (param%lost) end%ix_lost = ele%ix_ele
-
-  if (end%ix_lost /= not_lost$) then
-    end%r%vec = 0
-    end%charge = 0
-    return
-  endif
-
-end subroutine
+! This is to suppress the ranlib "has no symbols" message
+integer, private :: private_dummy
 
 end module
