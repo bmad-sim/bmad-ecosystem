@@ -151,6 +151,9 @@ rotate        = 0              # EXPERIMENTAL: if -rotate flag given, ATTEMPT a 
                                #               characteristics are present. i.e. commits in critical areas in last X days.
 prec          = "DBL"         # precision flag
 rank          = 0
+devel         = 0
+tag_release   = 0
+tag_packages  = 0
 #isolated_build= "NO"
 run_tests     = "NO"          # Whether or not a test suite will be run on the products of this build.
 t_begin_master= int(time.time())
@@ -189,7 +192,7 @@ def print_help():
   print "   -dump         Dump this script's configuration information."
   print "   -nobs         Suppress periodic build-status messages."
   print "   -ntly         Nightly build, rotate library links when done"
-  print "   -devel        Run a DEVEL build, rotate release and tag in SVN."
+  print "   -devel        Determine if release is a DEVEL candidate, rotate if it passes the check."
   print "   -oneshot      Run a one-shot testing build with no prev_build indicator update."
   print "   -test         Run test jobs on all executable build products and summarize the results."
   print "" 
@@ -248,9 +251,6 @@ for opt in sys.argv:
     rank                = 1
   elif opt == "-devel":
     devel               = 1
-    tag_release         = 1
-  elif opt == "-curr":
-    current             = 1
     tag_release         = 1
   elif opt == "-test":
     run_tests           = "YES"
@@ -325,13 +325,6 @@ pkg_prefix    = "packages"                             # WAS pkg_tag
 bmad_prefix   = "bmad_dist"
 general_log   = ""
 checkout      = 1
-build         = 1
-devel         = 0
-current       = 0
-one_shot      = 0
-test_exec     = 0
-tag_release   = 0                                       # WAS do_tag_release
-tag_packages  = 0                                       # WAS do_tag_packages
 
 tagname       = ""                                      # WAS CVS_tagname
 branch        = "TRUNK"
@@ -352,13 +345,14 @@ def seconds_to_HMS(seconds):
   secs = seconds % 60
   return hrs, mins, secs
 
+#def get_packages_name():
+#  
 
 ## Function to generate a unique release name
 ## Accepts: 'RELEASE' or 'PACKAGES' and generates an appropriate unique name.
 ## Clean this routine up.  Two loops not needed.  Opted to make release builds always separate from packages builds
 ## to simplify operation.
-
-def get_build_name (type, initial_name):
+def get_build_name(type, initial_name):
   uniq_suffix = 0
   basename   = ""
   build_name = initial_name
@@ -887,6 +881,7 @@ while complete_fraction < 1 and loop < max_loops:
   error_tally       = 0
   if bmad:
     break
+  
   if show_status:
     t_cur_master = int(time.time())
     print "\n\nBuild status info:   (loop " + str(loop) + ")"
@@ -964,7 +959,7 @@ while complete_fraction < 1 and loop < max_loops:
       t_end_VMS = int(time.time())
       vms_donelatch = 1
     if show_status:
-      print "  VMS    HP  status  : (" + str(vms_stat) + ") PREPARING TO TRANSFER"
+      print "  VMS    HP   : (" + str(vms_stat) + ") PREPARING TO TRANSFER"
       
     
   complete_fraction = complete_tally / float(rquant)
@@ -974,7 +969,10 @@ while complete_fraction < 1 and loop < max_loops:
     print "\n" + time.asctime() + " All Builds completed successfully.\n"
     break
 
-  if error_fraction == 1.0:
+  if vms and error_fraction == 1 - (1/rquant):    # Mark as failed if all but VMS fail.
+    print "All builds have failed.  Stopping."
+    sys.exit(45)
+  elif error_fraction == 1.0:
     print "All builds have failed.  Stopping."
     sys.exit(45)
 
@@ -1073,5 +1071,12 @@ if nightly and build_type == "RELEASE":
   os.chmod(prev_blt_path, 0444)         # reset permissions to disallow writes
 
 print "\n================== Build process finished completely. ===================="
+
+
+# Ask if this newly-built release is a candidate for promotion to DEVEL.
+if devel:
+  qr = sub.popen([util_dir + "/query_rotate", rel_name])
+  recommendation = qr.wait()
+  print "Recommendation is: " + str(recommendation)
 
 stout.close()                           # Close stream to logfile before quitting
