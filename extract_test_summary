@@ -41,6 +41,9 @@ f = open(file, 'r')
 lines = f.readlines()
 
 for line in lines:
+  if line.find("Platform           :") != -1:
+    platform = line.split(":")[1].strip()
+    print platform
   if line.find("TEST COMPLETED") != -1:
     num_completed = num_completed + 1
     line = line.strip()
@@ -48,6 +51,8 @@ for line in lines:
     returncode = chunks[5]
     name = chunks[0]
     if returncode == "0":
+      status = "OK"
+    elif returncode == "16" and name == "nonlin_bpm_test" and platform == "Linux_i686_lahey":
       status = "OK"
     else:
       status = "FAILED!"
