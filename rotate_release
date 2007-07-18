@@ -1,28 +1,21 @@
 #!/bin/sh
-###
-#-------------------------------------------------------------------------
+##########################################################################
 #
-# This is the master script to rotate filesystem links to the code 
-# releases across the supported computer systems at CLASSE.  
-# 
-# Supporting scripts:  - M.release makefile
-#                      - build_release script to execute individual builds
-#                      - test_release script to validate the functionality 
-#                        of the code builds
-#                      - tag_release script to tag releases in the CVS 
-#                        repository
-#                            
-#
-# argument:  release_name (eg, cesr_2003_0728_d)
+# This script rotates the filesystem links to the accelerator libraries 
+# releases across the supported platforms at CLASSE to point at a new
+# release build.
 #
 # usage :    rotate_release [options] <release_name>
 #
-#         flags:
+# argument:  release_name (eg, cesr_2003_0728_d)
+#
+#         options:
 #          -current       Rotate CURRENT release
 #          -devel         Rotate DEVEL release (DEFAULT)
 #          -nightly       Rotate NIGHTLY release 
 #          -mail          Send notification to the 
-#                          cesr-code-l list upon rotation
+#                          cesr-code-l list upon successful rotation
+#          -tag           Tag the specified release in the repository.
 #
 # examples: Update the DEVEL release -
 #             rotate_release cesr_2003_0728_d
@@ -31,6 +24,13 @@
 #           Update the NIGHTLY release - will most often be used
 #                                        in an automated fashion.
 #             rotate_release -nightly cesr_2006_0912_d
+#
+# Exit codes:
+#   3 - release doesn't meet existence criteria
+#  50 - problem tagging release
+#
+# Date   : 11 September 2006
+# Author : Matt Rendina
 #             
 ################################################################
 #
@@ -83,72 +83,104 @@ myprint_help () {
     echo "Variables:"
     echo "   <release_name>      cesr_xxxx_yyyy_d"
     echo "Options:"
-    echo "   -devel              Flag to rotate DEVEL release (DEFAULT)"
-    echo "   -nightly            Flag to rotate NIGHTLY release"
-    echo "   --current           Flag to rotate CURRENT release"
+    echo "   -devel              Flag to rotate release into DEVEL position (DEFAULT)"
+    echo "   -nightly            Flag to rotate release into NIGHTLY position"
+    echo "   -current            Flag to rotate release into CURRENT position"
     echo "   -mail               Send notification to the cesr-code-l listserv"
+    echo "   -tag                Tag the specified release in the repository."
 }
 
 
-#--------------------------+
-# Main script starts here  |
-#--------------------------+
+#############################################################
+# Main script starts here                                   #
+#############################################################
 
-BASE_DIRECTORY="/nfs/acc/libs"
+TO_ADDRESS=mcr@mail.lepp.cornell.edu
+##TO_ADDRESS=cesr-code-l@mail.lns.cornell.edu
+
+##############################################
+
+
+LIBS_DIRECTORY="/nfs/acc/libs"
+DIST_DIRECTORY="/nfs/acc/libs/distribution"
+DIST_WEB_DIR="/home/cesrulib/public_html/downloads/tarballs"
+
 BASE_AREA_LIST="OSF1_alpha_hp Linux_i686_intel Linux_i686_lahey"
+BASE_DIRECTORY=""
+TAGGER="/home/cesrulib/bin/util/tag_release"
+mail_tempfile="/tmp/RR_automail.tmp"
 
 current_idx_file=${BASE_DIRECTORY}/current.index
 devel_idx_file=${BASE_DIRECTORY}/devel.index
-
 
 # Set default inputs
 REL=""
 ROTATE_DEVEL=1
 ROTATE_CURRENT=0
 ROTATE_NIGHTLY=0
+ROTATE_BMAD=0
+TAG_RELEASE=0
 REL_TYPE=""
 MAIL=0
 
-if ( [ $# = 0 ] ) then
+#############################################
+# Get inputs
+#############################################
+if ( [ $# = 0 ] || [ $# -gt 4 ] ) then
+    echo "Check the number of command-line arguments."
     myprint_help
     exit 1
 fi
 
-# Get inputs
 arg_list=""
 for i 
 do arg_list="${arg_list} ${i}";
    case $i in
-     "-current" ) ROTATE_CURRENT=1; ROTATE_DEVEL=0;;
-     "-devel"   ) ROTATE_DEVEL=1;;
-     "-nightly" ) ROTATE_NIGHTLY=1; ROTATE_DEVEL=0;;
+     "-current" ) ROTATE_CURRENT=1; ROTATE_DEVEL=0; ROTATE_NIGHTLY=0; ROTATE_BMAD=0;;
+     "-devel"   ) ROTATE_DEVEL=1; ROTATE_CURRENT=0; ROTATE_NIGHTLY=0; ROTATE_BMAD=0;;
+     "-nightly" ) ROTATE_NIGHTLY=1; ROTATE_CURRENT=0; ROTATE_DEVEL=0; ROTATE_BMAD=0;;
+     "-bmad"    ) ROTATE_BMAD=1; ROTATE_CURRENT=0; ROTATE_DEVEL=0; ROTATE_NIGHTLY=0;;
+     "-tag"     ) TAG_RELEASE=1;;
      "-mail"    ) MAIL=1;;
-     cesr_*     ) REL=`echo $i`;;
-     *          ) myprint_help;
-     exit 1;;
+     cesr_*      ) REL=`echo $i`;;
+     bmad_dist_* ) REL=`echo $i`;;
+     *           ) myprint_help;
+     exit 2;;
    esac
 done
 
-echo "=*= rotate_release called:  ${arg_list}" 
-
+##############################################
 # Verify that the specified release is valid
-good_release=1
-for dir in ${BASE_AREA_LIST}; do
-  REL_DIR=${BASE_DIRECTORY}/${dir}/${REL}
-  if ( [ ! -e ${REL_DIR} ] ) then
-    good_release=0
-    echo "Specified release not found in:  ${BASE_DIRECTORY}/${dir}"
+##############################################
+rel_exists=1
+if ( [ ${ROTATE_BMAD} -eq 0 ] ) then
+  BASE_DIRECTORY=${LIBS_DIRECTORY}
+  for dir in ${BASE_AREA_LIST}; do
+    REL_DIR=${BASE_DIRECTORY}/${dir}/${REL}
+    if ( [ ! -e ${REL_DIR} ] ) then
+      rel_exists=0
+      echo "Release ${REL} not found in:  ${BASE_DIRECTORY}/${dir}"
+    fi
+  done
+elif ( [ ${ROTATE_BMAD} -eq 1 ] ) then
+  BASE_DIRECTORY=${DIST_DIRECTORY}
+  if ( [ ! -f ${BASE_DIRECTORY}/${REL}.tar.gz ] ) then
+      rel_exists=0
+      echo "Archive file ${REL}.tar.gz not found in:  ${BASE_DIRECTORY}"
+      echo "NOTE: This script only accepts the RELEASE name,"
+      echo "not the .tar.gz name of the release to rotate."
   fi
-done
-
-if ( [ ${good_release} -eq 0 ] ) then
-  echo ""
-  echo "Aborting rotation!!"
-  echo ""
-  exit 1
 fi
 
+
+if ( [ ${rel_exists} -eq 0 ] ) then
+  echo ""; echo""
+  exit 3
+fi
+
+##############################################
 # Get old release index
+##############################################
 if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
   if ( [ -e ${current_idx_file} ] ) then
     current_index=`head -n1 ${current_idx_file} | awk '// {print $1}'`
@@ -173,74 +205,118 @@ if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
   devel_old="devel_${devel_index}"
 fi
 
+##############################################
 # Rotate specified release
-echo -n "Rotating links..."
-for dir in ${BASE_AREA_LIST}; do
-  BASE_DIR=${BASE_DIRECTORY}/${dir}
-  cd ${BASE_DIR}
-#  echo ${BASE_DIR}
-  if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
-    present_rel=`ls -l current | cut -d\> -f2`
-    mv -f current ${current_old}
-    ln -s ${REL} current
-  fi
-  if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
-    present_rel=`ls -l devel | cut -d\> -f2`
-    mv -f devel ${devel_old}
-    ln -s ${REL} devel
-  fi
-  if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
-    present_rel=`ls -l nightly | cut -d\> -f2`
+##############################################
+if ( [ ${ROTATE_BMAD} = 0 ] ) then
+  for dir in ${BASE_AREA_LIST}; do
+    BASE_DIR=${BASE_DIRECTORY}/${dir}
+    cd ${BASE_DIR}
+    if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
+      present_rel=`ls -l current | cut -d\> -f2`
+      mv -f current ${current_old}
+      ln -s ${REL} current
+    fi
+    if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
+      present_rel=`ls -l devel | cut -d\> -f2`
+      mv -f devel ${devel_old}
+      ln -s ${REL} devel
+    fi
+    if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
+      present_rel=`ls -l nightly | cut -d\> -f2`
       rm -fv nightly > /dev/null
       ln -s ${REL} nightly 
-  fi
+    fi 
 done
-echo "  Done."
+fi
+
+if ( [ ${ROTATE_BMAD} -eq 1 ] ) then
+  cd ${DIST_DIRECTORY}
+  present_rel=`ls -l latest | cut -d\> -f2`
+  rm -fv latest > /dev/null
+  ln -s ${REL} latest
+  cp ${DIST_DIRECTORY}/${REL}.tar.gz ${DIST_WEB_DIR}
+  cd ${DIST_WEB_DIR}/latest_tgz
+  ln -s ../${REL}.tar.gz ${DIST_WEB_DIR}/latest_tgz/${REL}.tar.gz
+fi
 
 
+
+##############################################
 # Print out rotation summary
+##############################################
 if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
   echo "CURRENT Release Rotation for:  ${BASE_AREA_LIST}"
-  REL_TYPE="CURRENT"
+  REL_TYPE="* CURRENT *"
 fi
 if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
   echo "DEVEL Release Rotation for:  ${BASE_AREA_LIST}"
-  REL_TYPE="-DEVEL-"
+  REL_TYPE=" DEVEL "
 fi
 if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
   echo "NIGHTLY Release Rotation for:  ${BASE_AREA_LIST}"
   REL_TYPE="NIGHTLY"
 fi
-  echo ""
-  echo "OLD:  ${present_rel}   -->   NEW:  ${REL}"
-  echo ""
+if ( [ ${ROTATE_BMAD} -eq 1 ] ) then
+  echo "BMAD Distribution Rotation:"
+  REL_TYPE="BMAD DISTRIBUTION"
+fi
+echo ""
+echo "OLD:  ${present_rel}   -->   NEW:  ${REL}"
+echo ""
 
-if ( [ ${MAIL} -eq 1 ] ) then
-  echo "Mailing notification message to LIST: cesr-code-l@mail.lns.cornell.edu."
-  echo "Hello Everyone,
+###############################################
+#  Tag the release
+###############################################
+if ( [ ${TAG_RELEASE} -eq 1 ] ) then
+    $TAGGER ${REL}
+    if ( [ $? -ne 0 ] ) then
+        echo "Problem tagging release from within rotate_release."
+        exit 50
+    fi
+fi
+
+
+###############################################
+# E-Mail message composition machinery here.
+###############################################
+if ( [ ${MAIL} -eq 1 ] && [ ${ROTATE_BMAD} -ne 1 ] ) then
+    hour=`date | cut --delimiter=' ' -f4 | cut -d: -f1`
+    if ( [ $hour -lt 12 ] ) then
+        time_of_day="morning"
+    else
+        time_of_day="afternoon"
+    fi
+
+    echo "Mailing notification message to: ${TO_ADDRESS}."
+
+  ################## Message Body ###################
+    echo "Good ${time_of_day} everyone,
  
-A release has been updated on the Unix/Linux platforms indicated below.
+The accelerator physics libraries have been rotated as follows:
 
-    --Matt
+ ${REL_TYPE} Release Rotation for:" > ${mail_tempfile}
 
---------------------------------------------------------------------------------
+for i in ${BASE_AREA_LIST}
+do
+  echo "                               ${i}" >> ${mail_tempfile}
+done
 
- ${REL_TYPE} Release Rotation for:  ${BASE_AREA_LIST}
-
+echo " 
  OLD:  ${present_rel}   -->   NEW:  ${REL}
+
+   -=Matt
 
 --------------------------------------------------------------------------------
 Accelerator Code Support Links -
 Documentation      : https://wiki.lepp.cornell.edu/lepp/bin/view/CESR/ACL/WebHome
 Bug Reports        : cesr-libraries@rt.lepp.cornell.edu
 Librarian Email    : cesrulib@mail.lepp.cornell.edu
-Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/" 
-> mail_tempfile
-
-mail -s "Accelerator Libraries Rotation" cesr-code-l@mail.lns.cornell.edu < mail_tempfile
-rm -f mail_tempfile
+Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/" >> ${mail_tempfile}
+  ################ End Message Body ################# 
+    mail -s "Accelerator Libraries Rotation" ${TO_ADDRESS} < ${mail_tempfile}
+    rm -f mail_tempfile
 fi
 
-# Should tag releases here....
 
 exit 0
