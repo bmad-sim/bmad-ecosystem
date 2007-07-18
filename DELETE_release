@@ -13,8 +13,8 @@
 #   --You have been warned.
 ##############################
 #   Usage:
-#          DELETE_release REL=release-name [-FORCE]
-# Optional -FORCE flag will perform the deletion without 
+#          DELETE_release REL=release-name [-QUIET]
+# Optional -QUIET flag will perform the deletion without 
 # interactively prompting for confirmation.  This is used primarily
 # for automatic scripts.
 #####################################################################
@@ -24,15 +24,31 @@
 myprint_help () {
 #       Print help info
     echo ""
-    echo "Usage is: DELETE_release  REL=release-name [-FORCE]"
+    echo "Usage is: DELETE_release [flag] REL=release-name"
     echo ""
-    echo "Optional -FORCE flag will delete without prompting you"
-    echo "for confirmation."
+    echo "Using no flags will prompt for confirmation."
     echo ""
-    echo "Optional -NOLOCK flag will allow you to delete otherwise protected"
-    echo "DEVEL and/or CURRENT releases.  Use with caution."
+    echo "-quiet     Prompt with no terminal beeping."
+    echo "-QUIET     Delete without prompting for confirmation."
+    echo "-help      Print full list of command-line flags."
     echo ""
-    echo " -quiet does it without the beep."
+    exit 1
+}
+
+myprint_help2 () {
+#       Print help info
+    echo ""
+    echo "Usage is: DELETE_release  [flag] REL=release-name"
+    echo ""
+    echo "Using no flags will prompt for confirmation."
+    echo ""
+    echo "-quiet     Prompt with no terminal beeping."
+    echo "-QUIET     Delete without prompting for confirmation."
+    echo "-help      Print this usage summary."
+    echo ""
+    echo "-NOLOCK    Allow deletion of otherwise protected"
+    echo "           DEVEL and/or CURRENT releases."
+    echo "               USE WITH CAUTION"
     echo ""
     exit 1
 }
@@ -45,10 +61,13 @@ myprint_help () {
 
 arg_list=""
 REL_NAME=""
-FORCE=0      # Delete without interactive confirmation.
+quiet=0      # Delete without interactive confirmation.
 QUIET=0
+NOLOCK=0
 
 BASEPATH="/home/cesrulib/cesr_libs/"
+# Path on VMS cluster where release .zip archives are kept
+VMS_ZIPDIR=CESR2f'$'DKB200:[CESR_LIBS.ZIP]
 
 if ( [ $# = 0 ] ) then
     myprint_help
@@ -62,15 +81,16 @@ for i
 do arg_list="${arg_list} ${i}"
    case $i in
      REL=*       ) REL_NAME=`echo $i | cut -d= -f2` ;;
-     "-FORCE"    ) FORCE=1 ;;
+     "-quiet"    ) quiet=1 ;;
+     "-QUIET"   ) QUIET=1;;
      "-NOLOCK"   ) NOLOCK=1;;
      "-quiet"  ) QUIET=1;;
-     *           ) myprint_help;
-     exit 1;;
+     "-help"   ) myprint_help2; exit 1;;
+     *           ) myprint_help; exit 1;;
    esac
 done
 
-if ( [ ${FORCE} -eq 1 ] && [ ! ${#} -eq 2 ] ) then
+if ( [ ${QUIET} -eq 1 ] && [ ! ${#} -eq 2 ] ) then
     myprint_help
 fi
 
@@ -121,7 +141,7 @@ do
       else
           echo ""
           echo "The release you have requested to delete is an older CURRENT release."
-          echo "This is not currently allowed.  Aborting."
+          echo "This is not currently allowed."
           echo ""
           exit 1
       fi
@@ -142,16 +162,16 @@ do
       else
           echo ""
           echo "The release you have requested to delete is an older DEVEL release."
-          echo "This is not currently allowed.  Aborting."
+          echo "This is not currently allowed."
           echo ""
           exit 1
       fi
   fi
 done
 
-if ( [ ! $FORCE -eq 1 ] ) then
+if ( [ ! ${QUIET} -eq 1 ] ) then
     echo ""
-    if ( [ ${QUIET} -eq 1 ] ) then
+    if ( [ ${quiet} -eq 1 ] ) then
         echo "DELETE release - "
     else
         echo -e " DELETE_release - \a "
@@ -164,7 +184,7 @@ if ( [ ! $FORCE -eq 1 ] ) then
     echo " @                                                       @"
     echo " @              *** ${REL_NAME} ***"
     echo " @                                                       @"
-    echo " @ FROM ALL PLATFORM DIRECTORIES.  THE .LOG FILE WILL BE @"
+    echo " @ FROM ALL PLATFORM DIRECTORIES.  ALL LOG FILES WILL BE @"
     echo " @                   REMOVED AS WELL!                    @"
     echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
     echo " Press ENTER to continue with this operation, "
@@ -176,7 +196,7 @@ if ( [ ! $FORCE -eq 1 ] ) then
         exit 1
     fi
 
-    if ( [ $QUIET -eq 1 ] ) then
+    if ( [ ${quiet} -eq 1 ] ) then
         echo " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
     else
         echo -e " @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\a"
@@ -199,6 +219,8 @@ rm -rf /home/cesrulib/cesr_libs/OSF1_alpha_hp/${REL_NAME}
 rm -rf /home/cesrulib/cesr_libs/VMS_alpha_hp/${REL_NAME}
 rm -rf /home/cesrulib/cesr_libs/CYGWIN_NT_i686_intel/${REL_NAME}
 
+rm -f /home/cesrulib/cesr_libs/log/${REL_NAME}.genlog
+
 rm -f /home/cesrulib/cesr_libs/log/Linux_i686_intel/${REL_NAME}.log
 
 rm -f /home/cesrulib/cesr_libs/log/Linux_i686_lahey/${REL_NAME}.log
@@ -208,6 +230,11 @@ rm -f /home/cesrulib/cesr_libs/log/OSF1_alpha_hp/${REL_NAME}.log
 rm -f /home/cesrulib/cesr_libs/log/VMS_alpha_hp/${REL_NAME}.log
 
 rm -f /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.log
+
+##################################################################
+# 
+#
+##################################################################
 
 
 echo "  DONE."
