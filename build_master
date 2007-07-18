@@ -75,11 +75,9 @@ import sys
 import time
 import string
 import shutil
-import getopt  #
 import socket
 import popen2  # For subprocess calls to build_serf.
 import subprocess as sub  # Use this instead, try to avoid possible buffer freezes?
-##import pexpect
 
 # Will need to use these env vars if SWIG python bindings are desired.
 # It is probably easier to just use external process calls as they stand, to
@@ -107,6 +105,7 @@ platform_combos = { "linuxi": ["Linux_i686",      'intel', lnx_host ],
                     "vmshp":  ["VMS_alpha" ,      'hp',     vms_host ],
                     "win":    ["CYGWIN_NT_i686", 'intel', win_host ] }
 
+# Local lab repository
 repo_loc          = "https://accserv.lepp.cornell.edu/svn/"
 # For UAP project kept on Sourceforge.net
 offsite_repo_loc  = "https://accelerator-ml.svn.sourceforge.net/svnroot/accelerator-ml/uap/" 
@@ -126,7 +125,8 @@ offsite_pkg_modules = ["trunk"]
 # Work out how to sync this list with the pkg build list in the M.release makefile... keeping them sync'd manually is not so hot.
 
 statuses      = {0 : "Building", 1 : "Complete", -1 : "ERROR"}
-ranks         = {0 : "Isolated", 1 : "Periodic (w/ rotation)"} 
+ranks         = {0 : "Isolated", 1 : "Nightly",
+                 2 : "Nightly with DEVEL attempt", 3 : "Isolated with DEVEL attempt"}
 
 release       = ""
 revision      = 0
@@ -154,7 +154,6 @@ rank          = 0
 devel         = 0
 tag_release   = 0
 tag_packages  = 0
-#isolated_build= "NO"
 run_tests     = "NO"          # Whether or not a test suite will be run on the products of this build.
 t_begin_master= int(time.time())
 
@@ -165,7 +164,8 @@ lin_py_dir    = "/home/cesrulib/EXT/Python-2.5.1/Linux"
 build_sys_dir = bin_dir + "/Gmake"
 util_dir      = bin_dir + "/util"
 libs_dir      = "/nfs/acc/libs"
-prev_blt_path = libs_dir + "/log/prev_built"           # path to file logging last built release
+prev_blt      = libs_dir + "/log/prev_built"           # path to file logging last built release
+prev_blt_pkg  = libs_dir + "/log/prev_built_pkg"
 build_serf    = util_dir + "/build_serf"
 
 #=== Function to print usage information ===========================
@@ -187,9 +187,10 @@ def print_help():
   print "----- Others -----"
   print "   -cesr         Checkout and build an ACC Libraries release [default behavior]"
   print "   -pkg          Checkout and build a 3rd-party packages release"
-  print "   -bmad         Checkout and produce a BMAD distribution tar.gz file"
+  print "   -bmad         Checkout and produce a BMAD distribution .tar.gz file"
+  print "   -bmad_build   Checkout, build, and if successful, produce a BMAD distribution .tar.gz file."
   print "   -build_only   Build using previously checked-out files [Not implemented]"
-  print "   -dump         Dump this script's configuration information."
+  print "   -nodump       Do not display this script's configuration information. [default is display]"
   print "   -nobs         Suppress periodic build-status messages."
   print "   -ntly         Nightly build, rotate library links when done"
   print "   -devel        Determine if release is a DEVEL candidate, rotate if it passes the check."
@@ -290,6 +291,18 @@ if rquant == 0:
   print "Specify at least one platform flag on the command line.\n"
   sys.exit(35)
 
+if build_release and pkg_name == "none":
+  prevfile = open(prev_blt_pkg, 'r')
+  pkg_name = prevfile.readline().strip()
+  prevfile.close()
+
+if nightly and devel:  # Select proper build rank for descriptive configuration summary.
+  rank = 2
+elif nightly:
+  rank = 1
+elif devel:
+  rank = 3
+
 if rquant > 1:
   plural = "s"
 else:
@@ -358,13 +371,10 @@ def get_build_name(type, initial_name):
   build_name = initial_name
   build_list    = []
   if type == "RELEASE":
-    #print "Release requested"
     prefix = rel_prefix
   elif type == "PACKAGES":
-    #print "Pakcages requested"
     prefix = pkg_prefix
   elif type == "BMAD DISTRIBUTION":
-    #print "Bmad distribution requested"
     prefix = bmad_prefix
 
   #print "build name : " + build_name
@@ -983,7 +993,7 @@ while complete_fraction < 1 and loop < max_loops:
     sys.exit(47)
 
   if (loop == max_loops):
-    print "Builds have ceased due to timeout!"
+    print "One or more builds have ceased due to timeout!"
     sys.exit(55)
       
   if loop < 10:
@@ -1059,26 +1069,38 @@ if nightly and build_type == "RELEASE":
 
   #== If everything has completed successfully so far, delete previous build, as long as it hasn't
   #== been promoted.
-  prevfile = open(prev_blt_path, 'r')
+  prevfile = open(prev_blt, 'r')
   previously_built = prevfile.readline().strip()
   prevfile.close()
   lines = os.popen(util_dir + "/DELETE_release -QUIET REL=" + previously_built)
   for line in lines:
     print line.strip()
   print "Deletion successful.  Updating previously-built indicator."
-  os.chmod(prev_blt_path, 0644)         # set permissions to writable
-  prevfile = open(prev_blt_path, 'w')
+  os.chmod(prev_blt, 0644)         # set permissions to writable
+  prevfile = open(prev_blt, 'w')
   prevfile.write(rel_name + '\n')      # write the name of the release just built to file
   prevfile.close()
-  os.chmod(prev_blt_path, 0444)         # reset permissions to disallow writes
+  os.chmod(prev_blt, 0444)         # reset permissions to disallow writes
+
+if build_type == "PACKAGES":
+  print "Updating previously-built packages indicator."
+  os.chmod(prev_blt, 0644)         # set permissions to writable
+  prevfile = open(prev_blt_pkg, 'w')
+  prevfile.write(rel_name + '\n')      # write the name of the release just built to file
+  prevfile.close()
+  os.chmod(prev_blt_pkg, 0444)         # reset permissions to disallow writes
+
+# Ask if this newly-built release is a candidate for promotion to DEVEL.
+if devel:
+  print "Checking to see whether " + rel_name + " is a DEVEL candidate."
+  qr = sub.Popen([util_dir + "/query_rotate", "-r", rel_name])
+  recommendation = qr.wait()
+  if recommendation == 0:
+    print "Perform rotation here."
 
 print "\n================== Build process finished completely. ===================="
 
 
-# Ask if this newly-built release is a candidate for promotion to DEVEL.
-if devel:
-  qr = sub.Popen([util_dir + "/query_rotate", rel_name])
-  recommendation = qr.wait()
-  print "Recommendation is: " + str(recommendation)
+
 
 stout.close()                           # Close stream to logfile before quitting
