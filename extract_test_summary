@@ -1,15 +1,15 @@
 #!/usr/bin/python
 ####################################################################
 # This script extracts the results of the test_suite script from a
-# file to which the output has been directed and prints a summary of
-# the success or failure of each program execution.
+# file to which that output has been directed and prints a summary
+# of the success or failure of each program execution.
 #
 # This need only run properly under Linux to generate test
 # summaries out of concatenated test job output.  It is called from
 # the build_master script near the very end of a CESR build process.
 #
 # Useage : extract_test_summary <test_output_file>
-#     i.e. extract_test_summary cesr_2007_0305_d.build.status
+#     i.e. extract_test_summary cesr_2007_0305_d.log
 #
 # Author : Matt Rendina
 # Date   : 5 March 2007
@@ -30,12 +30,19 @@ elif len(sys.argv) > 2:
 else:
   file = sys.argv[1]
 
+test_list = ["closed_orbit", "tune_plane_res_plot", "toad", "dynamic_aperture_test",
+             "analyzer", "bmadz", "bmad_to_mad_and_xsif", "tao", "nonlin_bpm_test",
+             "tune_scan"]
+num_tests     = len(test_list)
+num_completed = 0
+
 pad = ""
 f = open(file, 'r')
 lines = f.readlines()
 
 for line in lines:
   if line.find("TEST COMPLETED") != -1:
+    num_completed = num_completed + 1
     line = line.strip()
     chunks = line.split()
     returncode = chunks[5]
@@ -57,4 +64,7 @@ for line in lines:
     string = name + "Test lasted: "+str( time ) + " s"
     print string
 
+if num_completed < num_tests:
+  print "\nERROR!  Could only obtain %i out of %i requested test results!" % (num_completed, num_tests)
+  sys.exit(5)
     
