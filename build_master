@@ -967,10 +967,12 @@ while complete_fraction < 1 and loop < max_loops:
 
   if complete_fraction == 1.0:
     print "\n" + time.asctime() + " All Builds completed successfully.\n"
+    successful_build = 1
     break
 
-  if vms and error_fraction == 1 - (1/rquant):    # Mark as failed if all but VMS fail.
-    print "All builds have failed.  Stopping."
+  if vms and error_fraction == float(1.0 - (1.0/float(rquant))):    # Mark as failed if all but VMS fail.
+    print "All conventional builds have failed."
+    print "VMS preparation will not be attempted.  Stopping."
     sys.exit(45)
   elif error_fraction == 1.0:
     print "All builds have failed.  Stopping."
@@ -1075,7 +1077,7 @@ print "\n================== Build process finished completely. =================
 
 # Ask if this newly-built release is a candidate for promotion to DEVEL.
 if devel:
-  qr = sub.popen([util_dir + "/query_rotate", rel_name])
+  qr = sub.Popen([util_dir + "/query_rotate", rel_name])
   recommendation = qr.wait()
   print "Recommendation is: " + str(recommendation)
 
