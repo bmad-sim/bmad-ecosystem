@@ -95,7 +95,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 
   use nr
   use rad_int_common, except => radiation_integrals
-  use radiation_mod
+  use radiation_mod, except => radiation_integrals
   use symp_lie_mod, only: symp_lie_bmad
   
   implicit none

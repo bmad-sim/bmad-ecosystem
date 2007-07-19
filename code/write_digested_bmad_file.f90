@@ -24,7 +24,7 @@ subroutine write_digested_bmad_file (digested_name, lat,  &
   use bmad_struct
   use bmad_interface, except => write_digested_bmad_file
   use equality_mod, only: operator(==)
-  use bmad_parser_mod
+  use bmad_parser_mod, except => write_digested_bmad_file
 
   implicit none
 

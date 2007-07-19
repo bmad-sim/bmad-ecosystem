@@ -50,7 +50,7 @@ subroutine transfer_map_calc (lat, t_map, ix1, ix2, &
                                            integrate, one_turn, unit_start)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => transfer_map_calc
   use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1, taylor_inverse
 
   implicit none

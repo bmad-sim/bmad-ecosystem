@@ -246,7 +246,7 @@ end subroutine
 subroutine twiss_decoupled_propagate (ele1, ele2)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => twiss_decoupled_propagate
 
   implicit none
 

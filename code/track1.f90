@@ -32,8 +32,8 @@ subroutine track1 (start, ele, param, end)
   use bmad, except => track1
   use mad_mod, only: track1_mad
   use boris_mod, only: track1_boris, track1_adaptive_boris
-  use trans_space_charge_mod
-  use spin_mod
+  use trans_space_charge_mod, except => track1
+  use spin_mod, except => track1
 
   implicit none
 
