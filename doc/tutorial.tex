@@ -27,14 +27,14 @@ found at:
 Briefly, if you are at Cornell, after setting up the appropriate environmental 
 variables, you should be able to run \tao using the command
 \begin{example}
-  \$CESR_EXE/tao \{-file <tao_input_file>\} \{-beam <beam_input_file>\}
+  \$CESR_EXE/tao \{-init <tao_input_file>\} \{-beam <beam_input_file>\}
 \end{example}
 The \vn{tao_input_file} is the file \tao reads to start \tao's
 initialization process. If not present, \vn{<tao_input_file>} defaults
 to \vn{tao.init}. The \vn{<beam_input_file>} is for reading in data
 generated from beam tracking (\sref{s:command_line}). Example:
 \begin{example}
-  \$CESR_EXE/tao -file my.init
+  \$CESR_EXE/tao -init my.init
 \end{example}
 
 To get an example set of input files to run, check out a copy of the \tao code.

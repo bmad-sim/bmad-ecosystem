@@ -760,7 +760,7 @@ Examples:
 The \vn{show} command has an optional argument to write the results to a file.
 The format for this is:
 \begin{example}
-  show -file <file_name> <rest_of_the_command>
+  show -init <file_name> <rest_of_the_command>
 \end{example}
 
 Format:
@@ -910,7 +910,7 @@ the format: \vn{show var n@}.
 Examples:
 \begin{example}
   show data orbit             ! Show orbit data.
-  show -file orb.dat orbit    ! Write orbit data to the file "orb.dat".
+  show -init orb.dat orbit    ! Write orbit data to the file "orb.dat".
   show curve r2.g1.c3         ! Show the attributes of a curve named "c3" which is 
                               !   in the graph "g1" which is plotted in region "r2".
   show data                   ! lists d2_data arrays.
