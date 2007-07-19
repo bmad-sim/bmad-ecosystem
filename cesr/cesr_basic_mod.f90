@@ -979,7 +979,7 @@ subroutine do_setup_nir_shuntcur (quad, ix_quad, ix_nir)
   type (ele_struct) quad
   type (control_struct)  contl(1)
 
-  integer ix_quad, ix_nir, ix_lord, i, j, i_con
+  integer ix_quad, ix_nir, ix_lord, i, j, i_con, endj
 
   real(rp) k1
 
@@ -1006,7 +1006,9 @@ subroutine do_setup_nir_shuntcur (quad, ix_quad, ix_nir)
   lat%ele(i_con)%value(k1$) = k1
   lat%ele(i_con)%type = lat%ele(ix_quad)%type
   lat%ele(i_con)%name = lat%ele(i_con)%type
-  do j = 1, len(lat%ele(i_con)%name)
+  endj = len(lat%ele(i_con)%name)
+  if (endj > 16) endj = 16
+  do j = 1, endj
      if (lat%ele(i_con)%name(j:j) == ' ') lat%ele(i_con)%name(j:j) = '_'
   enddo
   lat%ele(ix_quad)%type = ' '
@@ -1017,7 +1019,9 @@ subroutine do_setup_nir_shuntcur (quad, ix_quad, ix_nir)
   call create_overlay (lat, i_con, 'K1', contl(1:1))
   write (lat%ele(i_con)%type, '(a12, i4)') 'NIR SHUNTCUR', ix_nir
   lat%ele(i_con)%name = lat%ele(i_con)%type
-  do j = 1, len(lat%ele(i_con)%name)
+  endj = len(lat%ele(i_con)%name)
+  if (endj > 16) endj = 16
+  do j = 1, endj
      if (lat%ele(i_con)%name(j:j) == ' ') lat%ele(i_con)%name(j:j) = '_'
   enddo
 

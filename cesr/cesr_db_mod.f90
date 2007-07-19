@@ -620,6 +620,7 @@ subroutine db_group_to_bmad_group (group_name, group_num, &
   type (db_struct) db
 
   integer n_con, group_num, ix_ele, biggrp_set, ix, ixs(1), csr_set
+  integer j, endj
   character(12) group_name
   logical ok, type_err
 
@@ -637,10 +638,10 @@ subroutine db_group_to_bmad_group (group_name, group_num, &
   write (lat%ele(ix_ele)%type, '(a, i4)') group_name, group_num
 
   lat%ele(ix_ele)%name = lat%ele(ix_ele)%type
-  do
-    ix = index(lat%ele(ix_ele)%name, ' ')
-    if (ix == 0) exit
-    lat%ele(ix_ele)%name(ix:ix) = '_'
+  endj = len(lat%ele(ix_ele)%name)
+  if (endj > 16) endj = 16
+  do j = 1, endj
+     if (lat%ele(ix_ele)%name(j:j) == ' ') lat%ele(ix_ele)%name(j:j) = '_'
   enddo
 
   call create_group (lat, ix_ele, con(1:n_con))
