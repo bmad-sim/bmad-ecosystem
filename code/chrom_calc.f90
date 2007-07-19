@@ -32,7 +32,7 @@
 
 subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, exit_on_error)
 
-  use bookkeeper_mod, except => chrom_calc
+  use bookkeeper_mod, except_dummy => chrom_calc
 
   implicit none
 

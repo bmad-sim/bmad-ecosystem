@@ -15,7 +15,7 @@
 subroutine type_coord (coord)
 
   use bmad_struct
-  use bmad_interface, except => type_coord
+  use bmad_interface, except_dummy => type_coord
 
   implicit none
   type (coord_struct)  coord

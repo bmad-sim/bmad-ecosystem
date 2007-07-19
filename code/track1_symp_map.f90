@@ -23,7 +23,7 @@
 
 subroutine track1_symp_map (start, ele, param, end)
 
-use ptc_interface_mod, except => track1_symp_map
+use ptc_interface_mod, except_dummy => track1_symp_map
 use tpsalie_analysis, only: assignment(=), operator(*), lnv
 
 implicit none

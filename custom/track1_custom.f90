@@ -23,7 +23,7 @@
 
 subroutine track1_custom (start, ele, param, end)
 
-  use bmad_interface, except => track1_custom
+  use bmad_interface, except_dummy => track1_custom
 
   implicit none
 

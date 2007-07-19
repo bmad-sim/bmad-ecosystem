@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/use beam_struct/use beam_def_struct/g;
+    s/except \=\>/except_dummy \=\>/g;
 
     print (F_OUT);
 

@@ -29,7 +29,7 @@
 subroutine get_element_slave_list (lat, ix_lord, slave_list, n_slave)
 
   use bmad_struct
-  use bmad_interface, except => get_element_slave_list
+  use bmad_interface, except_dummy => get_element_slave_list
 
   implicit none
 

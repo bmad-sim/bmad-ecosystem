@@ -35,7 +35,7 @@
 
 subroutine track1_runge_kutta (start, ele, param, end, track)
 
-  use runge_kutta_mod, except => track1_runge_kutta
+  use runge_kutta_mod, except_dummy => track1_runge_kutta
 
   implicit none
 

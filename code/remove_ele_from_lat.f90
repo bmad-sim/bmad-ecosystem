@@ -18,7 +18,7 @@
 subroutine remove_ele_from_lat (lat, ix_ele)
 
   use bmad_struct
-  use bmad_interface, except => remove_ele_from_lat
+  use bmad_interface, except_dummy => remove_ele_from_lat
 
   implicit none
 

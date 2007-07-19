@@ -43,7 +43,7 @@
 subroutine twiss_propagate_many (lat, ix_start, ix_end, direction)
 
   use bmad_struct
-  use bmad_interface, except => twiss_propagate_many
+  use bmad_interface, except_dummy => twiss_propagate_many
 
   implicit none
 

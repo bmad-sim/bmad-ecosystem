@@ -24,7 +24,7 @@
 
 subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
-  use bmad, except => make_mat6_bmad
+  use bmad, except_dummy => make_mat6_bmad
 
   implicit none
 
@@ -926,7 +926,7 @@ end subroutine
 subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
 
   use bmad_struct
-  use bmad_interface, except => bbi_kick_matrix
+  use bmad_interface, except_dummy => bbi_kick_matrix
 
   implicit none
 

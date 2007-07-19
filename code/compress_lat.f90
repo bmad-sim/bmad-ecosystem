@@ -21,7 +21,7 @@
 subroutine compress_lat (lat, ok)
 
   use bmad_struct
-  use bmad_interface, except => compress_lat
+  use bmad_interface, except_dummy => compress_lat
 
   implicit none
                            

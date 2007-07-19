@@ -32,7 +32,7 @@
 Subroutine dispersion_to_orbit (ele, disp_orb)
 
   use bmad_struct
-  use bmad_interface, except => dispersion_to_orbit
+  use bmad_interface, except_dummy => dispersion_to_orbit
 
   implicit none
 

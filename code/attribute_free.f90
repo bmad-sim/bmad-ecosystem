@@ -31,7 +31,7 @@
 function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
 
   use bmad_struct
-  use bmad_interface, except => attribute_free
+  use bmad_interface, except_dummy => attribute_free
 
   implicit none
 

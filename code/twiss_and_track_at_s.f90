@@ -32,7 +32,7 @@
 subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s)
 
   use bmad_struct
-  use bmad_interface, except => twiss_and_track_at_s
+  use bmad_interface, except_dummy => twiss_and_track_at_s
 
   implicit none
 

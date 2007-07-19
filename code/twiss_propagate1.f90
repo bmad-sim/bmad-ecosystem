@@ -28,7 +28,7 @@
 subroutine twiss_propagate1 (ele1, ele2)
 
   use bmad_struct
-  use bmad_interface, except => twiss_propagate1
+  use bmad_interface, except_dummy => twiss_propagate1
 
   implicit none
   type (ele_struct), target :: ele1, ele2
@@ -246,7 +246,7 @@ end subroutine
 subroutine twiss_decoupled_propagate (ele1, ele2)
 
   use bmad_struct
-  use bmad_interface, except => twiss_decoupled_propagate
+  use bmad_interface, except_dummy => twiss_decoupled_propagate
 
   implicit none
 

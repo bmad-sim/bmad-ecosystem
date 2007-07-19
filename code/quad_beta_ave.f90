@@ -21,7 +21,7 @@
 subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 
   use bmad_struct
-  use bmad_interface, except => quad_beta_ave
+  use bmad_interface, except_dummy => quad_beta_ave
 
   implicit none
 

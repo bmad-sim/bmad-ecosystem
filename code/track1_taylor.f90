@@ -19,7 +19,7 @@
 
 subroutine track1_taylor (start, ele, param, end)
 
-  use ptc_interface_mod, except => track1_taylor
+  use ptc_interface_mod, except_dummy => track1_taylor
 
   implicit none
 

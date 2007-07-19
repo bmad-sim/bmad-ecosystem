@@ -48,7 +48,7 @@
 subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
                                            digested_file_name, digested_read_ok)
 
-  use bmad_parser_mod, except => bmad_parser2
+  use bmad_parser_mod, except_dummy => bmad_parser2
 
   implicit none
     

@@ -35,8 +35,8 @@
 subroutine twiss_at_start (lat)
 
   use bmad_struct
-  use bmad_interface, except => twiss_at_start
-  use bookkeeper_mod, except => twiss_at_start
+  use bmad_interface, except_dummy1 => twiss_at_start
+  use bookkeeper_mod, except_dummy2 => twiss_at_start
 
   implicit none
 

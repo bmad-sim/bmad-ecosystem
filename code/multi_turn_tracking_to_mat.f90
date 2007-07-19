@@ -27,7 +27,7 @@
 subroutine multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)
 
   use bmad_struct
-  use bmad_interface, except => multi_turn_tracking_to_mat
+  use bmad_interface, except_dummy => multi_turn_tracking_to_mat
   use nr
 
   implicit none

@@ -42,7 +42,7 @@
 subroutine MAKE_LRBBI(master_lat_oppos, lat, ix_LRBBI, master_ix_LRBBI_oppos)
 
   use bmad_struct
-  use bmad_interface, except => MAKE_LRBBI
+  use bmad_interface, except_dummy => MAKE_LRBBI
 
   implicit none
 

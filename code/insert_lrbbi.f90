@@ -23,7 +23,7 @@
 subroutine insert_LRBBI (lat, oppos_lat, cross_positions, ix_LRBBI)
 
   use bmad_struct
-  use bmad_interface, except => insert_LRBBI
+  use bmad_interface, except_dummy => insert_LRBBI
 
   implicit none
 

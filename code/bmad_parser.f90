@@ -40,7 +40,7 @@
 
 subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
-  use bmad_parser_mod, except => bmad_parser
+  use bmad_parser_mod, except_dummy => bmad_parser
   use cesr_utils
   use multipole_mod
   use random_mod

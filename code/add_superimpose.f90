@@ -24,7 +24,7 @@
 subroutine add_superimpose (lat, super_ele, ix_super)
 
   use bmad_struct
-  use bmad_interface, except => add_superimpose
+  use bmad_interface, except_dummy => add_superimpose
 
   implicit none
 

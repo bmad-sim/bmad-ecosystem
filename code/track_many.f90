@@ -51,7 +51,7 @@
 subroutine track_many (lat, orbit, ix_start, ix_end, direction)
 
   use bmad_struct
-  use bmad_interface, except => track_many
+  use bmad_interface, except_dummy => track_many
   use bookkeeper_mod, only: control_bookkeeper
   use reverse_mod, only: reverse_ele
 

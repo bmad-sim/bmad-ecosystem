@@ -26,7 +26,7 @@
 subroutine insert_element (lat, insert_ele, insert_index)
 
   use bmad_struct
-  use bmad_interface, except => insert_element
+  use bmad_interface, except_dummy => insert_element
 
   implicit none
 

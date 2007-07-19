@@ -30,7 +30,7 @@
 
 subroutine slice_ele_calc (ele, param, i_slice, n_slice_tot, sliced_ele)
 
-use bookkeeper_mod, except => slice_ele_calc
+use bookkeeper_mod, except_dummy => slice_ele_calc
 
 implicit none
 

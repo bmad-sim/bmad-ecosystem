@@ -20,7 +20,7 @@
 subroutine calc_z_tune ( lat)
 
   use bmad_struct
-  use bmad_interface, except => calc_z_tune
+  use bmad_interface, except_dummy => calc_z_tune
   use nrtype
   use nr
 

@@ -32,7 +32,7 @@
 function attribute_name (ele, ix_att) result (at_name)
 
   use bmad_struct
-  use bmad_interface, except => attribute_name
+  use bmad_interface, except_dummy => attribute_name
 
   implicit none
 

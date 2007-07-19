@@ -28,7 +28,7 @@
 subroutine read_digested_bmad_file (digested_name, lat, version)
 
   use bmad_struct
-  use bmad_interface, except => read_digested_bmad_file
+  use bmad_interface, except_dummy => read_digested_bmad_file
   use multipole_mod
 
   implicit none

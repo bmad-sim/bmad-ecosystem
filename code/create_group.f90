@@ -82,7 +82,7 @@
 subroutine create_group (lat, ix_ele, contrl)
 
   use bmad_struct
-  use bmad_interface, except => create_group
+  use bmad_interface, except_dummy => create_group
 
   implicit none
 

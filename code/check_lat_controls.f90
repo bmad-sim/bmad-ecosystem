@@ -16,7 +16,7 @@
 subroutine check_lat_controls (lat, exit_on_error)
 
   use bmad_struct
-  use bmad_interface, except => check_lat_controls
+  use bmad_interface, except_dummy => check_lat_controls
 
   implicit none
        

@@ -24,7 +24,7 @@
 subroutine do_mode_flip (ele, ele_flip)
 
   use bmad_struct
-  use bmad_interface, except => do_mode_flip
+  use bmad_interface, except_dummy => do_mode_flip
 
   implicit none
 

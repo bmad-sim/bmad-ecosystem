@@ -53,7 +53,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
                 type_floor_coords, type_wig_terms)
 
 use bmad_struct
-use bmad_interface, except => type2_ele
+use bmad_interface, except_dummy => type2_ele
 use multipole_mod
 
 implicit none

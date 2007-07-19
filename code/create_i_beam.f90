@@ -35,7 +35,7 @@
 subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
 
   use bmad_struct
-  use bmad_interface, except => create_girder
+  use bmad_interface, except_dummy => create_girder
 
   implicit none
 

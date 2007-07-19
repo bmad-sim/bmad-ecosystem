@@ -79,8 +79,10 @@ end type
 !-
 
 type csr_common_struct                   ! Common block for csr calc
-  real(rp) :: ds_track_step = 0           ! Tracking step size
+  real(rp) :: ds_track_step = 0          ! Tracking step size
   real(rp) :: beam_chamber_height = 0    ! Used in shielding calculation.
+  real(rp) :: sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
+                                         !  is < cutoff * sigma_ave then ignore.
   integer :: n_bin = 0                   ! Number of bins used
   integer :: particle_bin_span = 2       ! Longitudinal particle length / dz_bin
   integer :: n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
@@ -88,7 +90,6 @@ type csr_common_struct                   ! Common block for csr calc
   logical :: lsc_component_on = .true.   ! Longitudinal space charge component
   logical :: tsc_component_on = .true.   ! Transverse space charge component
   logical :: small_angle_approx = .true. ! Use lcsr small angle approximation?
-!!  logical :: shielding_on = .false.      ! Shielding by the beam chamber wall.          
 end type
 
 type (csr_common_struct), save, target :: csr_com
@@ -487,15 +488,15 @@ bin%gamma2 = bin%gamma**2
 ! Loop over all kick1 bins and compute the kick or kick integral.
 ! The loop steps in increasing dz since that is what next_element_params_calc expects.
 
-do i = ubound(bin%kick1, 1), lbound(bin%kick1, 1), -1
+do i = lbound(bin%kick1, 1), ubound(bin%kick1, 1)
 
   kick1 => bin%kick1(i)
-  kick1%dz_particles = -i * bin%dz_bin   ! Notice negative sign.
+  kick1%dz_particles = i * bin%dz_bin   ! Notice negative sign.
 
   ! Calculate what element the kick point is in.
 
   do
-    kick1%d = d_calc_csr(kick1%dz_particles, k_factor, bin, csr_com%small_angle_approx)
+    kick1%d = d_calc_csr(kick1%dz_particles, k_factor, bin, small_angle_approx)
     kick1%s_prime = s_kick - (kick1%d + k_factor%v1)     ! s value at P'
     if (kick1%s_prime > s0_kick_ele) exit       ! If in element exit loop
     call next_element_params_calc (n_ele_pp, s0_kick_ele, k_factor)
@@ -517,18 +518,21 @@ enddo
 coef = bin%ds_track_step * r_e / (e_charge * bin%gamma)
 n_bin = csr_com%n_bin
 
-if (bin%y2 == 0) call lsc_bin_kicks_y0 (bin)
-do i = 1, n_bin
-  if (bin%y2 == 0) then
+if (bin%y2 == 0) then
+  call lsc_bin_kicks_y0 (bin)
+  do i = 1, n_bin
     bin%bin1(i)%kick_csr = coef * &
-                  dot_product(bin%kick1(1-i:0)%I_csr, bin%bin1(1:i)%dcharge_ds)
-  else
+                  dot_product(bin%kick1(i-1:0:-1)%I_csr, bin%bin1(1:i)%dcharge_ds)
+  enddo
+
+else
+  do i = 1, n_bin
     bin%bin1(i)%kick_csr = coef * &
-                  dot_product(bin%kick1(1-i:n_bin-i)%kick_csr, bin%bin1(1:n_bin)%charge)
+                  dot_product(bin%kick1(i-1:i-n_bin:-1)%kick_csr, bin%bin1(1:n_bin)%charge)
     bin%bin1(i)%kick_lsc = coef * &
-                  dot_product(bin%kick1(1-i:n_bin-i)%kick_lsc, bin%bin1(1:n_bin)%charge)
-  endif
-enddo
+                  dot_product(bin%kick1(i-1:i-n_bin:-1)%kick_lsc, bin%bin1(1:n_bin)%charge)
+  enddo
+endif
 
 !----------------------------------------------------------------------------
 contains
@@ -642,22 +646,31 @@ implicit none
 type (csr_bin_struct), target :: bin
 type (csr_bin1_struct), pointer :: bin1
 
-real(rp) sx, sy, a, b, c, dz, factor
+real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave
 
 integer i, j
 
 character(16) :: r_name = 'lsc_bin_kicks'
 
-!
+! If there are too few particles in a bin the sigma calc may give a bad value.
+! This can be a problem if the computed sigma is small to ignore any bins
+! with a very small sigma. 
+! To know what is "small" compute the average sigma
+
+sig_x_ave = dot_product(bin%bin1(:)%sig_x, bin%bin1(:)%charge) / sum(bin%bin1(:)%charge)
+sig_y_ave = dot_product(bin%bin1(:)%sig_y, bin%bin1(:)%charge) / sum(bin%bin1(:)%charge)
+
+! Compute the kick at the center of each bin
 
 bin%bin1(:)%kick_lsc = 0
 if (.not. csr_com%lcsr_component_on) return
 
 do i = 1, csr_com%n_bin
   bin1 => bin%bin1(i)
-  if (bin1%charge == 0) cycle
   sx = bin1%sig_x
   sy = bin1%sig_y
+  if (sx < sig_x_ave * csr_com%sigma_cutoff .or. &
+                          sy < sig_y_ave * csr_com%sigma_cutoff) cycle
   a = sx * sy
   b = bin%gamma * (sx**2 + sy**2) / (sx + sy)
   c = bin%gamma**2
@@ -710,15 +723,12 @@ type (csr_bin_struct) bin
 real(rp) z, d
 real(rp) phi, t, a, k
 
-! At z = 0 I_csr is discontinuous. Use 1/2 the value at 0+
+! 
 
 z = kick1%dz_particles
 d = kick1%d
 
-if (z == 0) then
-  kick1%I_csr = 2 * bin%gamma**4 * k_factor%g**2 / 3
-  return
-elseif (z < 0) then
+if (z <= 0) then
   kick1%I_csr = 0
   return
 endif

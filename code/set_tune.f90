@@ -27,7 +27,7 @@
 subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
 
   use bmad_struct
-  use bmad_interface, except => set_tune
+  use bmad_interface, except_dummy => set_tune
 
   implicit none
 

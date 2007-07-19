@@ -29,7 +29,7 @@
 subroutine lat_geometry (lat)
 
 use bmad_struct
-use bmad_interface, except => lat_geometry
+use bmad_interface, except_dummy => lat_geometry
 
 implicit none
 

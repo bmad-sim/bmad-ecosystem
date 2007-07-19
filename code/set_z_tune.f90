@@ -27,7 +27,7 @@
 subroutine set_z_tune (lat)
 
   use bmad_struct
-  use bmad_interface, except => set_z_tune
+  use bmad_interface, except_dummy => set_z_tune
 
   implicit none
 

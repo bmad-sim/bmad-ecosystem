@@ -23,7 +23,7 @@
 subroutine mat6_add_offsets (ele)
 
 use bmad_struct
-use bmad_interface, except => mat6_add_offsets
+use bmad_interface, except_dummy => mat6_add_offsets
 use bmad_utils_mod
 
 implicit none

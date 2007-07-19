@@ -27,7 +27,7 @@
 recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
 
   use bmad_struct
-  use bmad_interface, except => twiss_at_element
+  use bmad_interface, except_dummy => twiss_at_element
   use nr
   
   implicit none

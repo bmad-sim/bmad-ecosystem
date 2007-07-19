@@ -45,7 +45,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
                type_control, lattice, type_wake, type_floor_coords, type_wig_terms)
 
   use bmad_struct
-  use bmad_interface, except => type_ele
+  use bmad_interface, except_dummy => type_ele
 
   implicit none
 

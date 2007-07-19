@@ -19,7 +19,7 @@
 subroutine delete_lattice_control_struct (lat, ix_con)
 
   use bmad_struct
-  use bmad_interface, except => delete_lattice_control_struct
+  use bmad_interface, except_dummy => delete_lattice_control_struct
 
   implicit none
 

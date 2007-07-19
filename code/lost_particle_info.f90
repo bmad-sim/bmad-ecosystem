@@ -33,7 +33,7 @@
 subroutine lost_particle_info (lattice, orbit, ix_lost, plane_lost)
 
   use bmad_struct
-  use bmad_interface, except => lost_particle_info
+  use bmad_interface, except_dummy => lost_particle_info
 
   implicit none
 

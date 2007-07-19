@@ -37,7 +37,7 @@ subroutine make_mat6 (ele, param, start, end, end_in)
   use bookkeeper_mod, only: attribute_bookkeeper
   use mad_mod, only: make_mat6_mad
   use em_field_mod, only: track_com
-  use trans_space_charge_mod, except => make_mat6
+  use trans_space_charge_mod, except_dummy => make_mat6
 
   implicit none
 

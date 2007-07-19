@@ -51,7 +51,7 @@
 subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
                                        r_out, ix_out, use_taylor, orb0)
 
-  use ptc_interface_mod, except => make_hybrid_lat
+  use ptc_interface_mod, except_dummy => make_hybrid_lat
   use bmad_utils_mod
 
   implicit none

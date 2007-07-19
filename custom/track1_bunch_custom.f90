@@ -21,7 +21,7 @@
 
 subroutine track1_bunch_custom (bunch_start, lat, ix_ele, bunch_end)
 
-use bmad_interface, except => track1_bunch_custom
+use bmad_interface, except_dummy => track1_bunch_custom
 use bmad_struct
 use beam_def_struct
 

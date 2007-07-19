@@ -22,7 +22,7 @@
 
 subroutine ele_at_s (lat, s, ix_ele)
 
-  use bmad, except => ele_at_s
+  use bmad, except_dummy => ele_at_s
 
   implicit none
 

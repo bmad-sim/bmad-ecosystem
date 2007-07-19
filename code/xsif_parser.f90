@@ -33,7 +33,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
   use xsif_elements
   use xsif_size_pars
   use xsif_elem_pars
-  use bmad_parser_mod, except => xsif_parser
+  use bmad_parser_mod, except_dummy => xsif_parser
 
   implicit none
 

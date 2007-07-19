@@ -25,7 +25,7 @@
 subroutine split_lat (lat, s_split, ix_split, split_done)
 
   use bmad_struct
-  use bmad_interface, except => split_lat
+  use bmad_interface, except_dummy => split_lat
   use bookkeeper_mod, only: control_bookkeeper
 
   implicit none

@@ -33,7 +33,7 @@
 subroutine twiss_propagate_all (lat, set_match)
 
   use bmad_struct
-  use bmad_interface, except => twiss_propagate_all
+  use bmad_interface, except_dummy => twiss_propagate_all
 
   implicit none
 

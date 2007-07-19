@@ -41,7 +41,7 @@
 subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
 
   use bmad_struct
-  use bmad_interface, except => convert_coords
+  use bmad_interface, except_dummy => convert_coords
 
   implicit none
 

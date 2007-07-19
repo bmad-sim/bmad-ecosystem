@@ -44,7 +44,7 @@
 subroutine mark_lrbbi (master_lat, master_lat_oppos, lat, crossings)
 
   use bmad_struct
-  use bmad_interface, except => mark_lrbbi
+  use bmad_interface, except_dummy => mark_lrbbi
 
   implicit none
 

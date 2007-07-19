@@ -29,7 +29,7 @@
 function attribute_index (ele, name) result (at_index)
 
   use bmad_struct
-  use bmad_interface, except => attribute_index
+  use bmad_interface, except_dummy => attribute_index
 
   implicit none
 

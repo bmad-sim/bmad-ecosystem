@@ -18,7 +18,7 @@
 subroutine new_control (lat, ix_ele)
 
   use bmad_struct
-  use bmad_interface, except => new_control
+  use bmad_interface, except_dummy => new_control
 
   implicit none
 

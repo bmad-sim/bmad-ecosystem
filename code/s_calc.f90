@@ -19,7 +19,7 @@
 subroutine s_calc (lat)
 
   use bmad_struct
-  use bmad_interface, except => s_calc
+  use bmad_interface, except_dummy => s_calc
   
   implicit none
 

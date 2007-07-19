@@ -28,7 +28,7 @@
 subroutine track_all (lat, orbit)
 
   use bmad_struct
-  use bmad_interface, except => track_all
+  use bmad_interface, except_dummy => track_all
   use bookkeeper_mod, only: control_bookkeeper
 
   implicit none

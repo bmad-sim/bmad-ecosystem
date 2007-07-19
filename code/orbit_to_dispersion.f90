@@ -31,7 +31,7 @@
 Subroutine orbit_to_dispersion (orb_diff, ele)
 
   use bmad_struct
-  use bmad_interface, except => orbit_to_dispersion
+  use bmad_interface, except_dummy => orbit_to_dispersion
 
   implicit none
 

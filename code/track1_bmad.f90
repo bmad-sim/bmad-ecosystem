@@ -27,7 +27,7 @@
 
 subroutine track1_bmad (start, ele, param, end)
 
-  use bmad, except => track1_bmad
+  use bmad, except_dummy => track1_bmad
 
   implicit none
 

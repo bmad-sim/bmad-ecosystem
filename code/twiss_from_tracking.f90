@@ -41,7 +41,7 @@
 subroutine twiss_from_tracking (lat, ref_orb0, error, d_orb)
 
   use bmad_struct
-  use bmad_interface, except => twiss_from_tracking
+  use bmad_interface, except_dummy => twiss_from_tracking
   use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
 
   implicit none

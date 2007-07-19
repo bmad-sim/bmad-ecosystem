@@ -33,7 +33,7 @@
 subroutine set_on (key, lat, on_switch, orb)
 
   use bmad_struct
-  use bmad_interface, except => set_on
+  use bmad_interface, except_dummy => set_on
 
   implicit none
 

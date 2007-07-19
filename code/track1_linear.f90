@@ -22,7 +22,7 @@
 subroutine track1_linear (start, ele, param, end)
 
   use bmad_struct
-  use bmad_interface, except => track1_linear
+  use bmad_interface, except_dummy => track1_linear
 
   implicit none
 
