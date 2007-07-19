@@ -21,7 +21,7 @@
 subroutine get_element_lord_list (lat, ix_slave, lord_list, n_lord)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => get_element_lord_list
 
   implicit none
 

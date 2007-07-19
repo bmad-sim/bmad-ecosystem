@@ -536,14 +536,14 @@ integer key
     map%gamma1(1)%exp(:) = (/ 0, 0, 1, 0, 0, 0 /)
     map%gamma1(1)%coef   = -(1.0/2.0) * xi * omega1 * sinh(u)
     ! take into account sign of quadrupole (focusing or defocusing)
-    map%gamma1(1)%coef   = sign(1.0, ele%value(k1$)) * map%gamma1(1)%coef
+    map%gamma1(1)%coef   = sign(1.0_rp, ele%value(k1$)) * map%gamma1(1)%coef
     map%gamma1(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
     map%gamma1(2)%coef   = -xi * (sinh (u / 2.0))**2
 
     map%gamma2(1)%exp(:) = (/ 1, 0, 0, 0, 0, 0 /)
     map%gamma2(1)%coef   = -(1.0/2.0) * xi * omega1 * sin(u)
     ! take into account sign of quadrupole (focusing or defocusing)
-    map%gamma2(1)%coef   = sign(1.0, ele%value(k1$)) * map%gamma2(1)%coef
+    map%gamma2(1)%coef   = sign(1.0_rp, ele%value(k1$)) * map%gamma2(1)%coef
     map%gamma2(2)%exp(:) = (/ 0, 1, 0, 0, 0, 0 /)
     map%gamma2(2)%coef   = -xi * (sin (u / 2.0))**2
 

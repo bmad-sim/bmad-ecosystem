@@ -173,7 +173,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   end select
 
   charge = charge_of(param%particle)
-  sign_charge = sign(1.0, charge)
+  sign_charge = sign(1.0_rp, charge)
   
 !----------------------------------------------------------------------------
 ! convert to local coords

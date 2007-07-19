@@ -1777,7 +1777,7 @@ subroutine set_on_off (key, lat, switch, orb, use_ref_orb)
       call err_exit
     end select
 
-    if (old_state /= lat%ele(i)%is_on) then
+    if (old_state .neqv. lat%ele(i)%is_on) then
       if (logic_option (.false., use_ref_orb)) then
         ref_orb%vec = lat%ele(i)%ref_orb_in
         call make_mat6(lat%ele(i), lat%param, ref_orb)
