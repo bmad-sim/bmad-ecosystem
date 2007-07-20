@@ -688,6 +688,8 @@ case ('chrom.b')
 
 case ('unstable_ring')
   datum_value = lat%param%growth_rate
+  ! unstable_penalty is needed since at the meta stable borderline the growth rate is zero.
+  if (.not. lat%param%stable) datum_value = datum_value + s%global%unstable_penalty
 
 case ('dpx_dx') 
   if (data_source == "beam_tracking") then

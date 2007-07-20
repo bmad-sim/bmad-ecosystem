@@ -45,7 +45,7 @@ integer i, j, k
 integer n_data, n_var
 
 logical :: finished, init_needed = .true.
-logical limited, limited2, abort, calc_ok, calc_ok2
+logical limited, limited2, abort
 
 character(20) :: r_name = 'tao_lm_optimizer'
 character(80) line
@@ -56,12 +56,7 @@ character(1) char
 a_lambda = -1
 abort = .false.
 
-merit0 = tao_merit(calc_ok)
-if (.not. calc_ok) then
-  abort = .true.
-  call out_io (s_info$, r_name, 'MERIT FUNCTION COULD NOT BE COMPUTED. ABORTING.')
-  return
-endif
+merit0 = tao_merit()
 
 call tao_get_vars (var_value, var_weight = var_weight, var_meas_value = var_meas_value)
 n_var = size(var_value)
@@ -114,13 +109,12 @@ do i = 1, s%global%n_opti_cycles+1
     call tao_var_write (s%global%var_out_file)
   endif
 
-  call tao_mrqmin (y, weight, a, covar, alpha, chi_sq, a_lambda, limited, calc_ok) 
-  call tao_mrq_func (a, y_fit, dy_da, limited2, calc_ok2)  ! put a -> model
-  write (line, '(i5, es14.4, es10.2)') i, tao_merit(calc_ok), a_lambda
+  call tao_mrqmin (y, weight, a, covar, alpha, chi_sq, a_lambda, limited) 
+  call tao_mrq_func (a, y_fit, dy_da, limited2)  ! put a -> model
+  write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)
 
-  if (.not. calc_ok) abort = .true.
-  if (finished .or. limited .or. .not. calc_ok) return
+  if (finished .or. limited) return
 
 ! look for keyboard input to end optimization
 
@@ -153,11 +147,11 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_mrq_func (a, y_fit, dy_da, limited, calc_ok)
+! Subroutine tao_mrq_func (a, y_fit, dy_da, limited)
 ! 
 ! Subroutine to be called by the Numerical Recipes routine mrqmin
 
-subroutine tao_mrq_func (a, y_fit, dy_da, limited, calc_ok)
+subroutine tao_mrq_func (a, y_fit, dy_da, limited)
 
 implicit none
 
@@ -171,7 +165,7 @@ real(rp), allocatable :: var_delta(:)
 
 integer i, j, k, n, nn, im, iv, n_var
 
-logical limited, calc_ok
+logical limited
 character(80) line
 
 ! transfer "a" array to model
@@ -189,7 +183,7 @@ endif
 
 ! calculate derivatives
 
-merit0 = tao_merit(calc_ok)
+merit0 = tao_merit()
 
 dy_da = 0
 n_var = size(a)
@@ -227,7 +221,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_mrqmin(y,weight,a,covar,alpha,chisq,alamda, limited, calc_ok)
+subroutine tao_mrqmin(y,weight,a,covar,alpha,chisq,alamda, limited)
 
 implicit none
 
@@ -239,7 +233,7 @@ real(rp) :: alamda
 integer(i4b) :: ma,ndata
 integer(i4b), save :: mfit
 logical, save, allocatable :: mask(:)
-logical limited, calc_ok
+logical limited
 
 real(rp), save :: ochisq
 real(rp), dimension(:), allocatable, save :: atry,beta
@@ -263,8 +257,8 @@ endif
 if (alamda < 0.0) then
   allocate(atry(ma),beta(ma),da(ma,1))
   alamda=0.001_rp
-  call tao_mrqcof(a, y, alpha, beta, weight, chisq, limited, calc_ok)
-  if (limited .or. .not. calc_ok) then
+  call tao_mrqcof(a, y, alpha, beta, weight, chisq, limited)
+  if (limited) then
     deallocate(atry,beta,da)
     return
   endif
@@ -283,8 +277,8 @@ da(1:mfit,1)=beta(1:mfit)
 call gaussj(covar(1:mfit,1:mfit),da(1:mfit,1:1))
 
 atry=a+unpack(da(1:mfit,1),mask,0.0_rp)
-call tao_mrqcof(atry, y, covar, da(1:mfit,1), weight, chisq, limited, calc_ok)
-if (limited .or. .not. calc_ok) return
+call tao_mrqcof(atry, y, covar, da(1:mfit,1), weight, chisq, limited)
+if (limited) return
 
 if (chisq < ochisq) then
   alamda=0.1_rp*alamda
@@ -301,7 +295,7 @@ end subroutine tao_mrqmin
 
 !-----------------------------------------------------------
 
-subroutine tao_mrqcof(a, y, alpha, beta, weight, chisq, limited, calc_ok)
+subroutine tao_mrqcof(a, y, alpha, beta, weight, chisq, limited)
 
 implicit none
 
@@ -312,7 +306,7 @@ real(rp) chisq
 integer(i4b) :: j,k,l,m, nv, nd
 real(rp), allocatable, save :: dyda(:,:)
 real(rp), allocatable, save :: dy(:),wt(:),ymod(:)
-logical limited, calc_ok
+logical limited
 
 !
 
@@ -329,7 +323,7 @@ endif
 
 !
 
-call tao_mrq_func(a, ymod, dyda, limited, calc_ok)
+call tao_mrq_func(a, ymod, dyda, limited)
 if (limited) return
 
 dy=y-ymod
