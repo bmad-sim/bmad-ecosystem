@@ -48,18 +48,17 @@ merit = tao_merit()
 merit_at_min = merit
 
 call tao_get_vars (var_value, var_delta = var_delta, var_weight = weight)
-n_var = size(var_delta)
-allocate (var_at_min(n_var))
-var_at_min = var_value
 
+n_var = size(var_delta)
 n_data = n_var
 do i = 1, size(s%u)
   if (.not. s%u(i)%is_on) cycle
   n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0)
 enddo
 
-if (allocated(merit_vec)) deallocate(merit_vec)
-allocate (merit_vec(n_data))
+call re_allocate (merit_vec, n_data)
+call re_allocate (var_at_min, n_var)
+var_at_min = var_value
 
 ! run optimizer mrqmin from Numerical Recipes.
 

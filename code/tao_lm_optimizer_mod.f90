@@ -161,7 +161,7 @@ real(rp), intent(in) :: a(:)
 real(rp), intent(out) :: y_fit(:)
 real(rp), intent(out) :: dy_da(:, :)
 real(rp) merit0
-real(rp), allocatable :: var_delta(:)
+real(rp), allocatable, save :: var_delta(:)
 
 integer i, j, k, n, nn, im, iv, n_var
 
