@@ -777,8 +777,10 @@ real(rp) z, d
 real(rp) N_vec(3), G_vec(3), B_vec(3), Bp_vec(3), NBp_vec(3), NBpG_vec(3), rad_cross_vec(3)
 real(rp) phi, sin_phi, cos_phi, OneNBp, OneNBp3, radiate, coulomb1, coulomb2
 
-
 !
+
+kick1%kick_csr = 0
+kick1%kick_lsc = 0
 
 z = kick1%dz_particles
 d = kick1%d
@@ -800,8 +802,7 @@ NBp_vec = N_vec - Bp_vec
 NBpG_vec = cross(NBp_vec, G_vec)
 rad_cross_vec = cross(N_vec, NBpG_vec)
 
-kick1%kick_csr = 0
-kick1%kick_lsc = 0
+coulomb2 = bin%gamma * z / ((bin%gamma * z)**2 + bin%y2**2)**(1.5)
 
 if (csr_com%lcsr_component_on) then
   radiate  = dot_product (B_vec, rad_cross_vec) / (kf%L * OneNBp3)
@@ -810,8 +811,7 @@ if (csr_com%lcsr_component_on) then
 endif
 
 if (csr_com%lsc_component_on) then
-  coulomb2 = bin%gamma * z / ((bin%gamma * z)**2 + bin%y2**2)**(1.5)
-  kick1%kick_lsc = -bin%kick_factor * coulomb2
+  kick1%kick_lsc = bin%kick_factor * coulomb2
 endif
 
 !-----------------------------------------------------------------------------
@@ -882,11 +882,15 @@ endif
 
 eps = 1e-10 * abs(dz_particles) + 1e-14
 z2 = 0
-if (dz_particles >= 0) then
+if (bin%y2 /= 0) then
+  d1 = sqrt(3 * bin%y2 / k_factor%g)
+elseif (dz_particles >= 0) then
   d1 = min(2 * bin%gamma2 * dz_particles, (6 * dz_particles / k_factor%g**2) ** (0.3333))
 else
   d1 = (bin%y2**2 + dz_particles**2) / (2 * dz_particles)
 endif
+
+! Now bracket the root
 
 do 
 
@@ -909,7 +913,8 @@ do
 
 enddo
 
-! Use rtsafe from Numerical Recipes
+! Find the bracketed root.
+! This follows rtsafe from Numerical Recipes.
 
 if (z1 > 0) then
   d_this = d1
@@ -992,14 +997,14 @@ type (csr_kick_factor_struct), pointer :: kf
 type (csr_bin_struct) bin
 
 real(rp) d, phi, phi2, onec, z_this, v1d, w2d, y22
-real(rp) RoneMCos, Rsin, L
+real(rp) RoneMCos, Rsin
 real(rp), optional :: dz_dd
 
 logical small_angle_approx
 
 ! Special case
 
-if (k_factor%v1 == 0 .and. d == 0) then
+if (k_factor%v1 == 0 .and. d == 0 .and. bin%y2 == 0) then
   z_this = 0
   if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2)
   return
@@ -1042,7 +1047,7 @@ else
   z_this = v1d / (2 * bin%gamma2) + (v1d - kf%L)
 
   if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2) + &
-                          1 - (kf%L_vec(1) * cos(phi) + kf%L_vec(2) * sin(phi)) / L
+               1 - (kf%L_vec(1) * cos(phi) + kf%L_vec(2) * sin(phi)) / kf%L
                 
 
 endif

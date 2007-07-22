@@ -5,6 +5,9 @@ Put RF on warning in
   b) twiss_propagate1  ?!
   c) twiss_at_start    ?!
 
+twiss_struct:
+	Add sigma_p
+
 -----------------
 
 add function to calc: ring%param%s_start
