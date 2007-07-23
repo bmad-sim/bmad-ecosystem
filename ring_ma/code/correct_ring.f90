@@ -66,47 +66,71 @@ contains
 
     integer n_p_ele, n_det, loc
 
+    type(lat_struct) :: hybrid_ring
     type(coord_struct), allocatable :: co(:)
     type(ele_struct), pointer :: ele, ma_ele
-    integer i_ele, i_det_grp, i_cor_grp, i_det
+    integer i_ele, i_det_grp, i_cor_grp, i_det, i, i_ele2
     real(rp) harvest(7), cbar(2,2), chisq, alamda, old_chisq, d_chisq
     real(rp), allocatable, dimension(:) :: x, y, sig, a
     logical, allocatable, dimension(:) :: maska
     real(rp), allocatable, dimension(:,:) :: alpha, covar
     integer size_y, iy, iter, ip
 
-    ! Setup model ring
-
     ! Locate detectors
     n_det  = 0
     do i_det_grp = 1, n_detcor_groups
        if (correct%det(i_det_grp)%param == 0) cycle
-       do i_ele = 1, ring%n_ele_track
+       ele_loop: do i_ele = 1, ring%n_ele_track
           ele => ring%ele(i_ele)
           if (match_reg(ele%name, correct%det(i_det_grp)%mask)) then
-             if (correct_ring_params%skip_dup_ele .and. i_ele > 1) then
-                if (ring%ele(i_ele)%name == ring%ele(i_ele-1)%name) cycle
+
+
+             ! If skipping duplicates, then loop backward around the ring, find the first
+             ! element with nonzero length, and if it has the same name as our current
+             ! element, move on.
+             if (correct_ring_params%skip_dup_ele) then
+                do i = 1, ring%n_ele_track
+                   i_ele2 = mod(ring%n_ele_track + i_ele - i, ring%n_ele_track)
+                   if (ring%ele(i_ele2)%value(l$) == 0) then
+                      cycle
+                   else if (ring%ele(i_ele)%name == ring%ele(i_ele2)%name) then
+                      cycle ele_loop
+                   else
+                      exit
+                   end if
+                end do
              end if
+
              n_det = n_det + 1
              det(n_det)%name = ele%name
              det(n_det)%loc = i_ele
              det(n_det)%param = correct%det(i_det_grp)%param
              det(n_det)%wt  = correct%det(i_det_grp)%wt
           end if
-       end do
+       end do ele_loop
     end do
 
-! Locate elements to be varied for a particular correction
+    ! Locate elements to be varied for a particular correction
     n_p_ele = 0
     do i_cor_grp = 1, n_detcor_groups
        if (correct%cor(i_cor_grp)%param == 0) cycle
-       do i_ele = 1, ring%n_ele_max
+       ele_loop2: do i_ele = 1, ring%n_ele_max
           if (match_reg(ring%ele(i_ele)%name, correct%cor(i_cor_grp)%mask)) then
              if (.not. any(ring%ele(i_ele)%control_type == (/free$, overlay_lord$/))) cycle
-             ! Skip adjacent duplicated elements
-             if (correct_ring_params%skip_dup_ele .and. i_ele > 1) then
-                if (ring%ele(i_ele)%name == ring%ele(i_ele-1)%name) cycle
+
+             ! Check for duplicates. We don't skip zero-length elements, so you can never
+             ! have two adjacent, same-name detectors.
+             if (correct_ring_params%skip_dup_ele .and. i_ele <= ring%n_ele_track) then
+                do i = 1, ring%n_ele_track
+                   i_ele2 = mod(ring%n_ele_track + i_ele - i, ring%n_ele_track)
+                   if (ring%ele(i_ele)%name == ring%ele(i_ele2)%name) then
+                      cycle ele_loop2
+                   else
+                      exit
+                   end if
+                end do
              end if
+
              n_p_ele = n_p_ele + 1
              p_ele(n_p_ele)%name  = ring%ele(i_ele)%name
              p_ele(n_p_ele)%loc   = i_ele
@@ -123,7 +147,7 @@ contains
                 p_ele(n_p_ele)%orig_val = cr_model_ring%ele(i_ele)%a_pole(1)
              end if
           end if
-       end do
+       end do ele_loop2
 
        ! Check for too many parameter elements
        if (n_p_ele == size(p_ele)) then
@@ -132,30 +156,9 @@ contains
        end if
     end do
 
-! Hybridize
-!    allocate (keep_ele(cr_model_ring%n_ele_track), ix_out(cr_model_ring%n_ele_track))
-!    keep_ele = .false.
-!    do i_det = 1, n_det
-!       keep_ele(det(i_det)%loc) = .true.
-!    end do
-!    do i_ele = 1, n_p_ele
-!       keep_ele(p_ele(i_ele)%loc) = .true.
-!    end do
-!    call make_hybrid_lat (cr_model_ring, keep_ele, .false., cr_model_ring_hyb, ix_out, use_taylor = .true.)
-!    do i_det = 1, n_det
-!       det(i_det)%loc = ix_out(det(i_det)%loc)
-!    end do
-!    do i_ele = 1, n_p_ele
-!       p_ele(i_ele)%loc = ix_out(p_ele(i_ele)%loc)
-!    end do
-!    cr_model_ring = cr_model_ring_hyb
-    
- 
-       
-
-
 !==========================================================================
 ! Write out list of detectors and parameter elements
+
     if (correct_ring_params%write_elements) then
        write(*,*) "Found ", n_det, " detectors."
        do i_ele = 1, n_det
@@ -219,11 +222,12 @@ contains
     allocate(a(n_p_ele), maska(n_p_ele), alpha(n_p_ele,n_p_ele), covar(n_p_ele,n_p_ele))
 
     iy = 1
+    y = 0.
+    a = 0.
+
   ! Load element values
     do i_ele = 1, n_p_ele
        x(iy) = iy
-       y(iy) = 0.
-       a(iy) = 0.
        sig(iy) = 1./sqrt(p_ele(i_ele)%wt)
        maska(iy) = .true.
        iy = iy + 1
@@ -265,6 +269,7 @@ contains
   write (*,'(A8,2A12)') "Iter", "Chisq", "D_Chisq"
   write(*,'(i8,e12.4)') iter, chisq
   old_chisq = 999.
+  alamda = .1
   do while (iter < correct_ring_params%n_lm_iterations)
      iter = iter + 1
      old_chisq = chisq
@@ -279,6 +284,7 @@ contains
 ! Apply correction to misaligned ring, i.e., put in the negative of the
 ! parameter values calculated by the minimization.
 
+  write(*,*) "Loading correction..."
   do i_ele = 1, n_p_ele
      select case(p_ele(i_ele)%param)
      case(hkick$,vkick$,k1$)
@@ -292,9 +298,10 @@ contains
         call err_exit
      end select
   end do
-  call control_bookkeeper(ring)
+  call twiss_and_track(ring, co)
+  write(*,*) "Correction loaded."
 
-! Clean up
+  ! Clean up
   deallocate(x, y, sig, a, maska, alpha, covar, co)
 
 contains
@@ -375,8 +382,6 @@ contains
     integer ia, iy, ip, i_det
     real(rp) cbar(2,2)
 
-    bmad_com%auto_bookkeeper = .false.
-    
     ! Put the values A into the right places in the ring
     do ia = 1, size(a)
        select case(p_ele(ia)%param)
@@ -390,33 +395,10 @@ contains
           write(*,*) "Invalid parameter key"
           call err_exit
        end select
-       if (cr_model_ring%ele(p_ele(ia)%loc)%control_type /= free$) &
-            call control_bookkeeper(cr_model_ring, p_ele(ia)%loc)
-       call lat_make_mat6(cr_model_ring, p_ele(ia)%loc)
     end do
 
     ! Recalculate the ring parameters
-    call clear_lat_1turn_mats(cr_model_ring)
-    call closed_orbit_calc(cr_model_ring, cr_model_co, 4)
-    call lat_make_mat6(cr_model_ring, -1, cr_model_co)
-    call twiss_at_start(cr_model_ring)
-
-    ! Try to catch bad steps
-    if (.not. bmad_status%ok) then
-       iy = 1
-       ! Load element values
-       do ip = 1, n_p_ele
-          y(iy) = a(ip)
-          iy = iy + 1
-       end do
-       ! Load measurement information
-       y(iy:) = -999
-       return
-    end if
-       
-    call twiss_propagate_all(cr_model_ring)
-    
-    bmad_com%auto_bookkeeper = .true.
+    call twiss_and_track(cr_model_ring, cr_model_co)
 
     ! Stick everything back into Y
     iy = 1
@@ -455,33 +437,6 @@ contains
     if (present(rms_param)) rms_param = sqrt(dot_product(a, a)/size(a))
   end subroutine ring_to_y
 
-  subroutine closest_quad(ring, ix_ele, ix_closest)
-    implicit none
-    type(lat_struct), intent(in) :: ring
-    integer, intent(in) :: ix_ele
-    integer, intent(out) :: ix_closest
-    integer i, i_ele
-
-    ix_closest = ix_ele
-    do i_ele = ix_ele, ring%n_ele_track
-       if (ring%ele(i_ele)%key == quadrupole$ .and. &
-            ring%ele(i_ele)%value(tilt$)==0) then
-          ix_closest = i_ele
-          exit
-       end if
-    end do
-
-    do i_ele = ix_ele - 1, 1, -1
-       if (ring%ele(i_ele)%key == quadrupole$ .and. &
-            ring%ele(i_ele)%value(tilt$)==0) then
-          if (ring%ele(ix_ele)%s - ring%ele(i_ele)%s .lt. &
-               ring%ele(ix_closest)%s - ring%ele(ix_ele)%s) &
-               ix_closest = i_ele
-          exit
-       end if
-    end do
-  end subroutine closest_quad
-    
-
 end subroutine correct_ring
+
 end module correct_ring_mod

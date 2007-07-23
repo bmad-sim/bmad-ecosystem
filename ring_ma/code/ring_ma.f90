@@ -89,7 +89,14 @@ program ring_ma
 !==========================================================================
 ! Read in design ring from lattice and do some intialization
 
-  call bmad_parser(lattice_file, design_ring)
+
+  if (match_wild(lattice_file, "*.xsif")) then
+     call fullfilename(lattice_file, lattice_file)
+     call xsif_parser(lattice_file, design_ring)
+  else
+     call bmad_parser(lattice_file, design_ring)
+  end if
+
   do i_ele = 1, design_ring%n_ele_max
      if (design_ring%ele(i_ele)%key == wiggler$) &
           design_ring%ele(i_ele)%map_with_offsets = .false.
@@ -205,16 +212,16 @@ contains
     integer i_ele
     real(rp) cbar(2,2)
 
-    write(2,'(A5,8A13,A18)') '# ele', 's', 'x', 'y', 'eta_x', 'eta_y', &
-         'phi_a', 'phi_b', 'cbar12', 'name'
+    write(2,'(2A5,9A13,A18)') '# cor', 'ele', 's', 'x', 'y', 'eta_x', 'eta_y', &
+         'phi_a', 'phi_b', 'cbar12', 'length', 'name'
     do i_ele = 1, ring%n_ele_track
        call c_to_cbar(ring%ele(i_ele), cbar)
-       write(2,'(i5,8e13.4,a18)') i_ele, ring%ele(i_ele)%s, &
+       write(2,'(2i5,9e13.4,a18)') i_correction, i_ele, ring%ele(i_ele)%s, &
             co(i_ele)%vec(1), co(i_ele)%vec(3), &
             ring%ele(i_ele)%x%eta, ring%ele(i_ele)%y%eta, &
             ring%ele(i_ele)%a%phi - design_ring%ele(i_ele)%a%phi, &
             ring%ele(i_ele)%b%phi - design_ring%ele(i_ele)%b%phi, &
-            cbar(1,2), trim(ring%ele(i_ele)%name)
+            cbar(1,2), ring%ele(i_ele)%value(l$), trim(ring%ele(i_ele)%name)
     end do
     write(2,*)
     write(2,*)
