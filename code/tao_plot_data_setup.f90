@@ -428,6 +428,7 @@ subroutine tao_data_plot_data_setup (plot, graph)
 
 use tao_data_mod
 use tao_mod
+use nrutil, only: swap
 
 implicit none
 
@@ -448,7 +449,7 @@ real(rp), pointer :: value(:)
 real(rp), allocatable, save :: ix_symb(:), x_symb(:), y_symb(:)
 
 integer ii, k, m, n_dat, ie, jj, iv, ic
-integer ix, ir, jg, i, i_max, i_min, ix_this
+integer ix, ir, jg, i, j, i_max, i_min, ix_this
 integer, allocatable, save :: ix_ele(:)
 
 logical err, smooth_curve, found, zero_average_phase, valid, in_graph
@@ -523,6 +524,9 @@ do k = 1, size(graph%curve)
 ! Case: data_source is a data_array
 
   case ('data_array')
+
+    ! point d1_ptr to the data to be plotted
+
     call tao_find_data (err, curve%data_type, d2_ptr, d1_ptr, ix_uni = curve%ix_universe)
     if (err) then
       call out_io (s_error$, r_name, &
@@ -538,6 +542,8 @@ do k = 1, size(graph%curve)
         zero_average_phase = .false.
       endif
     endif
+
+    ! Set %good_plot True for all data that is within the x-axis limits
 
     d1_ptr%d%good_plot = .false.
     if (plot%x%min /= plot%x%max) then
@@ -561,6 +567,7 @@ do k = 1, size(graph%curve)
     endif
 
     ! make sure %useit_plot up-to-date & count the number of data points
+
     call tao_data_useit_plot_calc (graph, d1_ptr%d) 
     if (plot%x_axis_type == 's') then
       ! veto non-regular elements when plotting s
@@ -571,9 +578,13 @@ do k = 1, size(graph%curve)
     endif
     n_dat = count (d1_ptr%d%useit_plot)       
 
+    ! resize the curve data arrays
+
     call re_allocate (curve%ix_symb, n_dat)
     call re_allocate (curve%y_symb, n_dat) ! allocate space for the data
     call re_allocate (curve%x_symb, n_dat) ! allocate space for the data
+
+    ! 
 
     curve%ix_symb = pack(d1_ptr%d%ix_d1, mask = d1_ptr%d%useit_plot)
 
@@ -583,7 +594,7 @@ do k = 1, size(graph%curve)
       curve%x_symb = d1_ptr%d(curve%ix_symb)%ix_ele
     elseif (plot%x_axis_type == 's') then
       curve%x_symb = lat%ele(d1_ptr%d(curve%ix_symb)%ix_ele)%s
-      ! If there is a wrap-aroundthe reorder data
+      ! If there is a wrap-around then reorder data
       do i = 1, n_dat
         if (curve%x_symb(i) > plot%x%max+eps) then
           curve%ix_symb = (/ curve%ix_symb(i:), curve%ix_symb(:i-1) /)
@@ -591,6 +602,18 @@ do k = 1, size(graph%curve)
           exit
         endif
       enddo
+      ! Super lords will be out of order so reorder in increasing s.
+      do i = 2, n_dat
+        do j = i, 2, -1
+          if (curve%x_symb(j-1) > curve%x_symb(j)) then
+            call swap(curve%x_symb(j-1), curve%x_symb(j))
+            call swap(curve%ix_symb(j-1), curve%ix_symb(j))
+          else
+            exit
+          endif
+        enddo
+      enddo
+
     else
       call out_io (s_error$, r_name, "Unknown axis type!")
       graph%valid = .false.
@@ -794,13 +817,24 @@ do k = 1, size(graph%curve)
     elseif (plot%x_axis_type == 's') then
       ix_symb = pack(base_lat%ele(:)%ix_pointer, mask = lat%ele(:)%logic)
       x_symb = lat%ele(ix_symb)%s
-      ! If there is a wrap-aroundthe reorder data
+      ! If there is a wrap-around then reorder the data
       do i = 1, n_dat
         if (x_symb(i)-l_tot > plot%x%min) then
           ix_symb = (/ ix_symb(i:), ix_symb(:i-1) /)
           x_symb = (/ x_symb(i:)-l_tot, x_symb(:i-1) /)
           exit
         endif
+      enddo
+      ! Super lords will be out of order so reorder in increasing s.
+      do i = 2, n_dat
+        do j = i, 2, -1
+          if (x_symb(j-1) > x_symb(j)) then
+            call swap(x_symb(j-1), x_symb(j))
+            call swap(ix_symb(j-1), ix_symb(j))
+          else
+            exit
+          endif
+        enddo
       enddo
     endif
 
