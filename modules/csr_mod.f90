@@ -1040,7 +1040,7 @@ else
   endif
 
   kf%L_vec(1) = Rsin + kf%v
-  kf%L_vec(2) = RoneMCos - kf%w2
+  kf%L_vec(2) = kf%w2 - RoneMCos 
   kf%L_vec(3) = bin%y2
   kf%L = sqrt(sum(kf%L_vec * kf%L_vec))
 
