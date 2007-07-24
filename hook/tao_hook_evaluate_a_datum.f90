@@ -1,7 +1,7 @@
 !+
-! Subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value)
+! Subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value)
 !
-!  See the Programmer's manual for how to add custom data types here.
+! See the Programmer's manual for how to add custom data types here.
 !
 ! Input:
 !   datum        -- tao_data_struct: the current datum to evaluate
@@ -12,9 +12,10 @@
 !   datum_value  -- real(rp): which datum value to compute (model_value,
 !                             design_value, etc...)
 !   Found        -- Logical: TRUE if  this datum is evaluated in this subroutine.
+!   valid_value  -- Logical: Set false when there is a problem. Set true otherwise.
 !-
 
-subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value)
+subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value)
 
 use tao_mod
 
@@ -25,7 +26,7 @@ type (tao_data_struct) datum
 type (tao_lattice_struct) tao_lat
 
 real(rp) datum_value
-logical found
+logical found, valid_value
 
 integer ix1, ix0
 type (ele_struct), pointer :: ele

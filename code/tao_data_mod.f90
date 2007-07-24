@@ -211,7 +211,7 @@ logical found, valid_value
 
 ! See if there is a hook for this datum
 
-call tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value)
+call tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value)
 if (found) return
 
 ! Check range

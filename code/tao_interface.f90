@@ -108,7 +108,7 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value)
+  subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value)
     use tao_struct, only: tao_data_struct, tao_universe_struct, tao_lattice_struct
     use precision_def, only: rp
     implicit none
@@ -116,7 +116,7 @@ interface
     type (tao_universe_struct) u
     type (tao_lattice_struct) tao_lat
     real(rp) datum_value
-    logical found
+    logical found, valid_value
   end subroutine
 end interface
 
