@@ -1,5 +1,5 @@
 &ring_ma_init
-   lattice_file = "CTF_LAT:bmad_2gevdr_102105.lat"
+   lattice_file = "bmad_2gevdr_102105.lat"
    comment = ""
    write_orbits = .false.
 
