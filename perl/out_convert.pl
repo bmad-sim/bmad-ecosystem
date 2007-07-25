@@ -7,7 +7,8 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/except \=\>/except_dummy \=\>/g;
+    s/BMAD_LAYOUT://g;
+    s/BMAD_LAT://g;
 
     print (F_OUT);
 

@@ -55,7 +55,7 @@ type csr_bin_struct             ! Structurture for binning particle averages
   real(rp) :: dz_bin = 0        ! Bin width
   real(rp) ds_track_step        ! True step size
   real(rp) y2                   ! Height of source particle.
-  integer kick_factor           ! Coefficient to scale the kick
+  real(rp) kick_factor           ! Coefficient to scale the kick
   type (csr_bin1_struct), allocatable :: bin1(:)  
   type (csr_kick_bin_struct), allocatable :: kick1(:) ! Array of caches
 end type
@@ -163,10 +163,10 @@ if (csr_com%ds_track_step == 0) then
   call err_exit
 endif
 
-! make sure that l / track_step is an integer.
+! make sure that ele_len / track_step is an integer.
 
-n_step = ele%value(l$) / csr_com%ds_track_step
-bin%ds_track_step = ele%value(l$) / n_step  
+n_step = max (1, nint(ele%value(l$) / csr_com%ds_track_step))
+bin%ds_track_step = ele%value(l$) / n_step
 
 auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
 bmad_com%auto_bookkeeper = .false.   ! make things go faster
@@ -174,11 +174,11 @@ bmad_com%auto_bookkeeper = .false.   ! make things go faster
 ! Loop over the tracking steps
 ! runt is the element that is tracked through at each step.
 
-do i = 1, n_step
+do i = 0, n_step
 
   call slice_ele_calc (ele, lat%param, i, n_step, runt)
 
-  s_start = bin%ds_track_step * (i - 1)
+  s_start = i * bin%ds_track_step
 
   call csr_bin_particles (bunch_end%particle, bin)    
 
@@ -187,12 +187,19 @@ do i = 1, n_step
 
   do ns = 0, csr_com%n_shield_images
 
+    ! %kick_factor takes into account that at the endpoints we are only putting in a half kick.
+    bin%kick_factor = 1
+    if (i == 0 .or. i == n_step) bin%kick_factor = 0.5
+
     bin%y2 = ns * csr_com%beam_chamber_height
+
     if (ns == 0) then
-      bin%kick_factor = 1
       call csr_bin_kicks (lat, ix_ele, s_start, bin, csr_com%small_angle_approx)
+
     else
-      bin%kick_factor = 2 * (-1)**ns
+      ! The factor of two is due to there being image currents both above and below.
+      ! The factor of -1^ns accounts for the sign of the image currents
+      bin%kick_factor = bin%kick_factor * 2 * (-1)**ns
       call csr_bin_kicks (lat, ix_ele, s_start, bin, .false.)
     endif
 
@@ -207,10 +214,12 @@ do i = 1, n_step
 
   ! track through the runt
 
-  do j = 1, size(bunch_end%particle)
-    pt => bunch_end%particle(j)
-    call track1_particle (pt, runt, lat%param, pt)
-  enddo
+  if (i /= n_step) then
+    do j = 1, size(bunch_end%particle)
+      pt => bunch_end%particle(j)
+      call track1_particle (pt, runt, lat%param, pt)
+    enddo
+  endif
 
   call save_bunch_track (bunch_end, ele, s_start)
 
@@ -684,7 +693,7 @@ do i = 1, csr_com%n_bin
 
 enddo
 
-factor = bin%ds_track_step * r_e / (e_charge * bin%gamma)
+factor = bin%kick_factor * bin%ds_track_step * r_e / (e_charge * bin%gamma)
 bin%bin1(:)%kick_lsc = factor * bin%bin1(:)%kick_lsc
 
 end subroutine
@@ -737,7 +746,8 @@ phi = k_factor%g * d
 t = bin%gamma * (d + k_factor%v1)
 a = bin%gamma2 * (k_factor%w2 + phi * k_factor%v1 + phi * d / 2)
 k = bin%gamma * (k_factor%theta + phi)
-kick1%I_csr = -2 * bin%gamma * (t + a * k) / (t**2 + a**2) + 1 / (bin%gamma2 * z) 
+kick1%I_csr = -2 * bin%kick_factor * &
+                  bin%gamma * (t + a * k) / (t**2 + a**2) + 1 / (bin%gamma2 * z) 
 
 end subroutine
 

@@ -16,9 +16,10 @@ use runge_kutta_mod
 ! up the calculation.
 
 type track_point_cache_struct
-  type (coord_struct) orb
   real(rp) mat6(6,6)
   real(rp) vec0(6)
+  real(rp) ref_orb_in(6)
+  real(rp) ref_orb_out(6)
   real(rp) g, g2          ! bending strength (1/bending_radius)
   real(rp) g_x0, g_y0     ! components on the reference orb.
   real(rp) g_x, g_y       ! components in x-y plane
@@ -64,7 +65,7 @@ type rad_int_common_struct
 end type
 
 type (rad_int_common_struct), target, save :: ric
-type (rad_int_cache_struct), target, save :: rad_int_cache_common(10)
+type (rad_int_cache_struct), target, save :: rad_int_cache_common(0:10)
 
 contains
 
@@ -132,9 +133,14 @@ rad_int = 0
 ll = ele%value(l$)
 
 runt = ele
-if (runt%tracking_method  == taylor$) runt%tracking_method  = bmad_standard$
-if (runt%mat6_calc_method == taylor$) runt%mat6_calc_method = bmad_standard$
-
+if (runt%key == sbend$) runt%value(e2$) = 0
+if (runt%key == wiggler$ .and. runt%sub_key == map_type$) then
+  runt%tracking_method  = symp_lie_bmad$ 
+  runt%mat6_calc_method = symp_lie_bmad$ 
+else
+  if (runt%tracking_method  == taylor$) runt%tracking_method  = bmad_standard$
+  if (runt%mat6_calc_method == taylor$) runt%mat6_calc_method = bmad_standard$
+endif
 
 ! Loop until integrals converge.
 ! ri(k) holds the info for the k^th integral.
@@ -314,6 +320,9 @@ if (associated(cache_ele)) then
 
   runt%mat6 = pt0%mat6
   runt%vec0 = pt0%vec0
+  runt%ref_orb_in  = pt0%ref_orb_in
+  runt%ref_orb_out = pt0%ref_orb_out
+
   if (.not. ele%map_with_offsets) call mat6_add_offsets (runt)
   call twiss_propagate1 (ele0, runt)
   a0 = runt%a; b0 = runt%b
@@ -325,6 +334,9 @@ if (associated(cache_ele)) then
 
   runt%mat6 = pt1%mat6
   runt%vec0 = pt1%vec0
+  runt%ref_orb_in  = pt1%ref_orb_in
+  runt%ref_orb_out = pt1%ref_orb_out
+
   if (.not. ele%map_with_offsets) call mat6_add_offsets (runt)
   call twiss_propagate1 (ele0, runt)
   a1 = runt%a; b1 = runt%b
@@ -351,38 +363,10 @@ if (associated(cache_ele)) then
 
   return
 
-!-------------------------------------
-! no caching, map type wiggler
-
-elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then 
-
-  f0 = (ele%value(l$) - z_here) / ele%value(l$)
-  f1 = z_here / ele%value(l$)
-
-  orb%vec = ric%orb0%vec * f0 + ric%orb1%vec * f1
-  call calc_wiggler_g_params (ele, z_here, orb, ric%pt)
-
-  runt%a%beta  = ele0%a%beta  * f0 + ele%a%beta  * f1
-  runt%a%alpha = ele0%a%alpha * f0 + ele%a%alpha * f1
-  runt%a%gamma = ele0%a%gamma * f0 + ele%a%gamma * f1
-  runt%a%eta   = ele0%a%eta   * f0 + ele%a%eta   * f1
-  runt%a%etap  = ele0%a%etap  * f0 + ele%a%etap  * f1
-
-  runt%b%beta  = ele0%b%beta  * f0 + ele%b%beta  * f1
-  runt%b%alpha = ele0%b%alpha * f0 + ele%b%alpha * f1
-  runt%b%gamma = ele0%b%gamma * f0 + ele%b%gamma * f1
-  runt%b%eta   = ele0%b%eta   * f0 + ele%b%eta   * f1
-  runt%b%etap  = ele0%b%etap  * f0 + ele%b%etap  * f1
-
-  ric%eta_a = ric%eta_a0 * f0 + ric%eta_a1 * f1
-  ric%eta_b = ric%eta_b0 * f0 + ric%eta_b1 * f1
-
-  return
-
 endif
 
 !--------------------------------------
-! No caching, Not a map type wiggler
+! No caching
 
 if (j_loop == 1 .and. n_pt == 1) then  ! z_here = 0
   runt%a       = ele0%a
@@ -400,7 +384,6 @@ elseif (j_loop == 1 .and. n_pt == 2) then  ! z_here = l$
 
 else
   runt%value(l$) = z_here
-  if (ele%key == sbend$) runt%value(e2$) = 0
   call track1 (ric%orb0, runt, ric%lat%param, orb)
   call make_mat6 (runt, ric%lat%param, ric%orb0, orb, .true.)
   call twiss_propagate1 (ele0, runt)
@@ -414,14 +397,18 @@ call make_v_mats (runt, v, v_inv)
 ric%eta_a = matmul(v, (/ runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp /))
 ric%eta_b = matmul(v, (/ 0.0_rp,   0.0_rp,    runt%b%eta, runt%b%etap /))
 
-ric%pt%g_x = ric%pt%g_x0 + orb%vec(1) * ric%pt%k1 + orb%vec(3) * ric%pt%s1
-ric%pt%g_y = ric%pt%g_y0 - orb%vec(3) * ric%pt%k1 + orb%vec(1) * ric%pt%s1
+if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then 
+  call calc_wiggler_g_params (ele, z_here, orb, ric%pt)
+else
+  ric%pt%g_x = ric%pt%g_x0 + orb%vec(1) * ric%pt%k1 + orb%vec(3) * ric%pt%s1
+  ric%pt%g_y = ric%pt%g_y0 - orb%vec(3) * ric%pt%k1 + orb%vec(1) * ric%pt%s1
 
-ric%pt%dg2_x = 2 * (ric%pt%g_x * ric%pt%k1 + ric%pt%g_y * ric%pt%s1)
-ric%pt%dg2_y = 2 * (ric%pt%g_x * ric%pt%s1 - ric%pt%g_y * ric%pt%k1) 
+  ric%pt%dg2_x = 2 * (ric%pt%g_x * ric%pt%k1 + ric%pt%g_y * ric%pt%s1)
+  ric%pt%dg2_y = 2 * (ric%pt%g_x * ric%pt%s1 - ric%pt%g_y * ric%pt%k1) 
 
-ric%pt%g2 = ric%pt%g_x**2 + ric%pt%g_y**2
-ric%pt%g = sqrt(ric%pt%g2)
+  ric%pt%g2 = ric%pt%g_x**2 + ric%pt%g_y**2
+  ric%pt%g = sqrt(ric%pt%g2)
+endif
 
 end subroutine
 
