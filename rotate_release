@@ -70,6 +70,9 @@
 #
 #
 ################################################################
+# One hardcoded line here necessary for subsequent getting of config vars.
+UTIL_DIR=`/home/cesrulib/bin/util/getcfg Paths UTIL_DIR`
+
 #---------------------------------+
 # Set up some internal functions  |
 #---------------------------------+
@@ -96,23 +99,18 @@ myprint_help () {
 # Main script starts here                                   #
 #############################################################
 
-TO_ADDRESS=mcr@mail.lepp.cornell.edu
-##TO_ADDRESS=cesr-code-l@mail.lns.cornell.edu
+TO_ADDRESS=`${UTIL_DIR}/getcfg Notification list_address`
+LIBS_DIRECTORY=`${UTIL_DIR}/getcfg Paths LIBS_DIR`
+DIST_DIRECTORY=`${UTIL_DIR}/getcfg Paths DIST_DIR`
+DIST_WEB_DIR=`${UTIL_DIR}/getcfg Paths DIST_WEB_DIR`
 
-##############################################
-
-
-LIBS_DIRECTORY="/nfs/acc/libs"
-DIST_DIRECTORY="/nfs/acc/libs/distribution"
-DIST_WEB_DIR="/home/cesrulib/public_html/downloads/tarballs"
-
-BASE_AREA_LIST="OSF1_alpha_hp Linux_i686_intel Linux_i686_lahey"
+PLATFORMS=`${UTIL_DIR}/getcfg Platforms FULL`
 BASE_DIRECTORY=""
-TAGGER="/home/cesrulib/bin/util/tag_release"
+TAGGER=${UTIL_DIR}/`${UTIL_DIR}/getcfg Scripts tagger`
 mail_tempfile="/tmp/RR_automail.tmp"
 
-current_idx_file=${BASE_DIRECTORY}/current.index
-devel_idx_file=${BASE_DIRECTORY}/devel.index
+current_idx_file=${LIBS_DIRECTORY}/current.index
+devel_idx_file=${LIBS_DIRECTORY}/devel.index
 
 # Set default inputs
 REL=""
@@ -128,8 +126,9 @@ MAIL=0
 # Get inputs
 #############################################
 if ( [ $# = 0 ] || [ $# -gt 4 ] ) then
-    echo "Check the number of command-line arguments."
     myprint_help
+    echo ""
+    echo "Check the number of command-line arguments."
     exit 1
 fi
 
@@ -156,7 +155,7 @@ done
 rel_exists=1
 if ( [ ${ROTATE_BMAD} -eq 0 ] ) then
   BASE_DIRECTORY=${LIBS_DIRECTORY}
-  for dir in ${BASE_AREA_LIST}; do
+  for dir in ${PLATFORMS}; do
     REL_DIR=${BASE_DIRECTORY}/${dir}/${REL}
     if ( [ ! -e ${REL_DIR} ] ) then
       rel_exists=0
@@ -210,7 +209,7 @@ fi
 # Rotate specified release
 ##############################################
 if ( [ ${ROTATE_BMAD} = 0 ] ) then
-  for dir in ${BASE_AREA_LIST}; do
+  for dir in ${PLATFORMS}; do
     BASE_DIR=${BASE_DIRECTORY}/${dir}
     cd ${BASE_DIR}
     if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
@@ -247,15 +246,15 @@ fi
 # Print out rotation summary
 ##############################################
 if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
-  echo "CURRENT Release Rotation for:  ${BASE_AREA_LIST}"
+  echo "CURRENT Release Rotation for:  ${PLATFORMS}"
   REL_TYPE="* CURRENT *"
 fi
 if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
-  echo "DEVEL Release Rotation for:  ${BASE_AREA_LIST}"
+  echo "DEVEL Release Rotation for:  ${PLATFORMS}"
   REL_TYPE=" DEVEL "
 fi
 if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
-  echo "NIGHTLY Release Rotation for:  ${BASE_AREA_LIST}"
+  echo "NIGHTLY Release Rotation for:  ${PLATFORMS}"
   REL_TYPE="NIGHTLY"
 fi
 if ( [ ${ROTATE_BMAD} -eq 1 ] ) then
@@ -296,9 +295,9 @@ if ( [ ${MAIL} -eq 1 ] && [ ${ROTATE_BMAD} -ne 1 ] ) then
  
 The accelerator physics libraries have been rotated as follows:
 
- ${REL_TYPE} Release Rotation for:" > ${mail_tempfile}
+ ${REL_TYPE} release rotation for:" > ${mail_tempfile}
 
-for i in ${BASE_AREA_LIST}
+for i in ${PLATFORMS}
 do
   echo "                               ${i}" >> ${mail_tempfile}
 done

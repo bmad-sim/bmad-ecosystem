@@ -65,36 +65,44 @@
 # 47  - all builds have stopped, but some due to failure
 # 50  - svn access failed for file retrieval
 # 55  - builds ceased due to timeout
+# 56  - one or more builds failed, w/ summary
 # 60  - TAR ERROR in BMAD DISTRIBUTION
 # 65  - gzip ERROR in BMAD DISTRIBUTION
 ####################################################################
 
 # Standard modules
-import os
-import sys
-import time
-import string
-import shutil
-import socket
-import popen2  # For subprocess calls to build_serf.
+import os, sys, time, string, shutil, socket, ConfigParser
+import popen2             # For subprocess calls to build_serf.
 import subprocess as sub  # Use this instead, try to avoid possible buffer freezes?
+# 3rd party modules            # (PUT these in the same directory for the time-being.
+from standout import StandOut  # figure out where to consolidate all 3rd party modules later)
+                               # StandOut module is for advanced logging capabilities.
+
+#============================================================================
+# Set up Configuration Parser
+#============================================================================
+cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
+config   = ConfigParser.ConfigParser()
+config.optionxform = lambda x: x   # Obtain all values without changing case
+config.read(cfg_file)              # Overrides default ConfigParser behavior
+
 
 # Will need to use these env vars if SWIG python bindings are desired.
 # It is probably easier to just use external process calls as they stand, to
 # avoid the added complexity of needing the bindings installed and maintained by the CG.
 #export PYTHONPATH=${PYTHONPATH}:/nfs/opt/svn/lib/svn-python
 #export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/nfs/opt/svn/lib
-#import svn                        # are SWIG bindings availabile from this node? looks as if they are, how to use?
+#import svn  # are SWIG bindings availabile from this node? looks as if they are, how to use?
 
-# 3rd party modules              (PUT these in the same directory for the time-being.
-from standout import StandOut  # figure out where to consolidate all 3rd party modules later)
-                               # standout module for logging capabilities
+
 
 #========= VARIABLE SETUP ==========================================
 #===================================================================
+platforms = config.options("Platforms")
+
 #== Node names =========================================
 osf_host      = "cesrbuild2.lepp.cornell.edu"
-lnx_host      = "lnx209.lepp.cornell.edu"
+lnx_host      = "accserv.lepp.cornell.edu"
 vms_host      = "cesrbuild1.lepp.cornell.edu"
 win_host      = "pc6115.lepp.cornell.edu"
 hostname      = socket.gethostname()
@@ -103,7 +111,7 @@ platform_combos = { "linuxi": ["Linux_i686",      'intel', lnx_host ],
                     "linuxl": ["Linux_i686",      'lahey', lnx_host ],
                     "osfhp":  ["OSF1_alpha",      'hp',     osf_host ],
                     "vmshp":  ["VMS_alpha" ,      'hp',     vms_host ],
-                    "win":    ["CYGWIN_NT_i686", 'intel', win_host ] }
+                    "win":    ["CYGWIN_NT_i686", 'intel',  win_host ] }
 
 # Local lab repository
 repo_loc          = "https://accserv.lepp.cornell.edu/svn/"
@@ -118,8 +126,8 @@ bmad_dist_modules = ["util", "Gmake", "documents", "src/include", "src/bmad", "s
 
 # Have this list pushed to the build_serf script, and the Makefile instead of manually synchronizing them?
 pkg_modules   = ["cfortran", "forest", "num_recipes/recipes_f-90", "num_recipes/recipes_c-ansi", \
-                 "xsif", "PGPLOT", "xerces"]
-pkg_modules   = ["xerces"]
+                 "xsif", "PGPLOT"]
+#pkg_modules   = ["xerces"]
 offsite_pkg_modules = ["trunk"]
 
 # Work out how to sync this list with the pkg build list in the M.release makefile... keeping them sync'd manually is not so hot.
@@ -158,15 +166,17 @@ run_tests     = "NO"          # Whether or not a test suite will be run on the p
 t_begin_master= int(time.time())
 
 #=== Paths =========================================================
-bin_dir       = "/home/cesrulib/bin"
-osf_py_dir    = "/home/cesrulib/EXT/Python-2.5.1/OSF1"
-lin_py_dir    = "/home/cesrulib/EXT/Python-2.5.1/Linux"
-build_sys_dir = bin_dir + "/Gmake"
-util_dir      = bin_dir + "/util"
-libs_dir      = "/nfs/acc/libs"
+bin_dir       = config.get("Paths", "BIN_DIR")
+lin_py_dir    = config.get("Paths", "LIN_PY_DIR")
+osf_py_dir    = config.get("Paths", "OSF_PY_DIR")
+makefile_dir  = config.get("Paths", "MAKEFILE_DIR")
+util_dir      = config.get("Paths", "UTIL_DIR")
+libs_dir      = config.get("Paths", "LIBS_DIR")
+build_serf    = util_dir + '/' + config.get("Scripts", "serf")
+rot_querier   = util_dir + '/' + config.get("Scripts", "rot_querier")
 prev_blt      = libs_dir + "/log/prev_built"           # path to file logging last built release
 prev_blt_pkg  = libs_dir + "/log/prev_built_pkg"
-build_serf    = util_dir + "/build_serf"
+
 
 #=== Function to print usage information ===========================
 def print_help():
@@ -175,7 +185,7 @@ def print_help():
   print ""
 
   print "Options:"
-  print "--Platform Flags--"
+  print "--Platform Flags------------------------------------------------------------------"
   print "   -lnx          Check out and build an ACC Libraries release"
   print "                 for all supported Linux platforms."
   print "   -osf          Check out and build an ACC Libraries release"
@@ -184,21 +194,22 @@ def print_help():
   print "                 deliver source tree to VMS cluster. (Automatically selects -osf)"
   print "   -win          Check out and build an ACC Libraries release"
   print "                 for the Windows platform. [Not yet operational]"
-  print "----- Others -----"
+  print "   -all or -a    Check out and build an ACC Libraries release on "
+  print "                 ALL supported platforms."
+  print "---- Others ----------------------------------------------------------------------"
   print "   -cesr         Checkout and build an ACC Libraries release [default behavior]"
-  print "   -pkg          Checkout and build a 3rd-party packages release"
-  print "   -bmad         Checkout and produce a BMAD distribution .tar.gz file"
-  print "   -bmad_build   Checkout, build, and if successful, produce a BMAD distribution .tar.gz file."
+  print "   -pkg          Checkout and build a 3rd-party packages release."
+  print "   -bmad         Checkout and assemble a BMAD distribution .tar.gz file"
+  print "   -bmad_build   Checkout, build, and if successful, create BMAD dist .tar.gz file."
   print "   -build_only   Build using previously checked-out files [Not implemented]"
-  print "   -nodump       Do not display this script's configuration information. [default is display]"
+  print "   -nodump       Disable display this script's configuration information."
   print "   -nobs         Suppress periodic build-status messages."
   print "   -ntly         Nightly build, rotate library links when done"
-  print "   -devel        Determine if release is a DEVEL candidate, rotate if it passes the check."
-  print "   -oneshot      Run a one-shot testing build with no prev_build indicator update."
-  print "   -test         Run test jobs on all executable build products and summarize the results."
+  print "   -devel        Determine if release is a DEVEL candidate and rotate if it is."
+  print "   -oneshot      One-shot testing build with no prev_build indicator update."
+  print "   -test         Run test jobs on all executable products and summarize results."
   print "" 
   print "Variable definitions:"
-
   print "   REL=<release_name>    Specify a custom release name"
   print "   PKG=<packages_name>   Specify a custom packages release name"
   print "   F90=<f90_compiler>    Specify a 3rd-party fortran compiler"
@@ -245,6 +256,10 @@ for opt in sys.argv:
     osf                 = 1
   elif opt == "-win":
     win                 = 1
+  elif opt in ("-all", "-a"):
+    lnx                 = 1
+    osf                 = 1
+    vms                 = 1
   elif opt == "-nobs":
     show_status         = 0
   elif opt == "-ntly" or opt == "-nightly":
@@ -272,7 +287,7 @@ for opt in sys.argv:
   elif opt.find("REL=") != -1:
     rel_name            = opt.split('=')[1]
   elif opt.find("GMAKE=") != -1:
-    bld_sys_area        = opt.split('=')[1]
+    makefile_area        = opt.split('=')[1]
   elif opt.find("UTIL=") != -1:
     util_dir            = opt.split('=')[1]
   elif opt.find("BIN=") != -1:
@@ -309,7 +324,7 @@ else:
   plural = ""
 
 if os.environ['CESR_GMAKE']:
-  bld_sys_area = os.environ['CESR_GMAKE']
+  makefile_area = os.environ['CESR_GMAKE']
 else:
   print "Environment variable \'CESR_GMAKE\' not set, testing for default"
   
@@ -450,7 +465,7 @@ def dump_parameters():
   print ""
   print "           -- Paths --"
   print "CESR libs dir     : " + libs_dir
-  print "Build system dir  : " + build_sys_dir
+  print "Build system dir  : " + makefile_dir
   print "Util dir          : " + util_dir
   print "Binary dir        : " + bin_dir
   print "General log file  : " + genlog
@@ -553,7 +568,7 @@ class builder:
     __param_list.append("Float Precision    : " + self.precision + '\n')
     __param_list.append("Link against packs : " + self.pkg_name + '\n')
     __param_list.append("Build Host         : " + self.build_host + '\n')
-    __param_list.append("Build System Dir   : " + build_sys_dir + '\n')
+    __param_list.append("Build System Dir   : " + makefile_dir + '\n')
     __param_list.append("Bin dir            : " + bin_dir + '\n')
     __param_list.append("Run test suite     : " + run_tests + '\n')
 
@@ -792,7 +807,6 @@ stout.outThreshold        = 5      # These logging threshold values are used to 
 stout.outLogfileThreshold = 4      # script to any combination of the screen or general logfile
 
 
-
 #== Request KRB credentials so remote-shell calls work later ==============
 (krbout, krbin) = popen2.popen4("kinit -k -t /etc/cesrulib-keytab cesrulib/" + hostname)
 krblines = krbout.readlines()
@@ -849,7 +863,7 @@ if build_type == "PACKAGES" or build_type == "RELEASE":
     t_begin_LIN = time.time()
     LINBUILD = builder(release_names, revision, build_type,"linuxi", print_co, stout)  # Initialize a builder object for given platform.
     t_begin_LLA = int(time.time())
-    LLABUILD = builder(release_names, revision, build_type, "linuxl", print_co, stout)  # Linux intel and lahey are always together
+    LLABUILD = builder(release_names, revision, build_type, "linuxl", print_co, stout) # Linux intel and lahey are always together
     print_co = False
   if osf:
     t_begin_OSF = int(time.time())
@@ -876,6 +890,7 @@ t_end_LIN        = 0
 t_end_LLA        = 0
 t_end_OSF        = 0
 t_end_VMS        = 0
+failure          = 0
 elapsed          = 0
 
 ####
@@ -986,16 +1001,29 @@ while complete_fraction < 1 and loop < max_loops:
     sys.exit(45)
   elif error_fraction == 1.0:
     print "All builds have failed.  Stopping."
-    sys.exit(45)
+    failure = 1
+    #sys.exit(45)
 
   if (complete_tally + error_tally) == rquant:
     print "All builds have ceased, with some due to failure."
-    sys.exit(47)
+    failure = 1
+    #sys.exit(47)
 
   if (loop == max_loops):
     print "One or more builds have ceased due to timeout!"
-    sys.exit(55)
-      
+    failure = 1
+    #sys.exit(55)
+
+  if failure:           # TODO: generalize looping through platforms in both success and failure summaries
+    print "Summary:"
+    if lin_stat != 0:
+      print "Linux_i686_intel : BUILD FAILED"
+    if lla_stat != 0:
+      print "Linux_i686_lahey : BUILD FAILED"
+    if osf_stat != 0:
+      print "OSF1_alpha_hp    : BUILD FAILED"
+    sys.exit(56)
+  
   if loop < 10:
     time.sleep(5)
   else:
@@ -1092,8 +1120,8 @@ if build_type == "PACKAGES":
 
 # Ask if this newly-built release is a candidate for promotion to DEVEL.
 if devel:
-  print "Checking to see whether " + rel_name + " is a DEVEL candidate."
-  qr = sub.Popen([util_dir + "/query_rotate", "-r", rel_name])
+  print "Checking to see whether release is a DEVEL candidate."
+  qr = sub.Popen( [rot_querier, "-r", rel_name] )
   recommendation = qr.wait()
   if recommendation == 0:
     print "Perform rotation here."

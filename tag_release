@@ -6,8 +6,8 @@
 #
 # This script must be run on the machine 'accserv' (lnx209) as the 
 # rsvn.py script needs file-level access to the repository.
-# (put a krsh call in to guarantee that it is always run on the proper host?)
-#
+# (put a krsh call in to guarantee that it is always run on the 
+#  proper host?)
 #
 # Requires: rsvn.py -- 3rd-party support script.  It allows multiple
 #           SVN operations to all be executed within the same transaction.
@@ -33,8 +33,16 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/nfs/opt/svn/lib
 ################################
 #  Set up other local variables
 ################################
-bindir=/home/cesrulib/bin
-repo_path=/mnt/svn
+#BIN_DIR=/home/cesrulib/bin
+#repo_path=/mnt/svn
+
+# One hardcoded line here necessary for subsequent getting of config vars.
+UTIL_DIR=`/home/cesrulib/bin/util/getcfg Paths UTIL_DIR`
+
+repo_path=`${UTIL_DIR}/getcfg Repository path`
+platforms=`${UTIL_DIR}/getcfg Platforms FULL`
+
+# Local vars
 tmpdir=/tmp
 tmpfile=tmp_svn_tag_operation_list
 hostname=`hostname`
@@ -83,7 +91,7 @@ for i
 do 
    arg_list="${arg_list} ${i}"
    case $i in
-     cesr_*     ) REL_NAME=`echo $i`; TAG=${REL_NAME};;
+     cesr_*     ) REL_NAME=`echo $i`; TAG=${REL_NAME}; TAG_CURRENT=0;;
      -current   ) TAG_CURRENT=1;;
      TAG=*      ) TAG=`echo $i|cut -d= -f2`;;
      *          ) myprint_help;
@@ -99,21 +107,18 @@ echo ""
 
 ######################################################################
 #  Determine if the release actually exists before attempting to tag.
-#  Currently only checks in the Linux Intel archive area.
+#  Checks for existence in any FULLY ACTIVE platform area.  See 
+#  BUILD_SYSTEM.conf for details.
 ######################################################################
-if ( [ -d /nfs/acc/libs/Linux_i686_intel/${REL_NAME} ] ) then
-    #echo "Release found in Linux Intel area."
-    FULL_REL_NAME=/nfs/acc/libs/Linux_i686_intel/${REL_NAME}
-elif ( [ -d /nfs/acc/libs/Linux_i686_lahey/${REL_NAME} ] ) then
-    #echo "Release found in Linux Lahey area."
-    FULL_REL_NAME=/nfs/acc/libs/Linux_i686_lahey/${REL_NAME}
-elif ( [ -d /nfs/acc/libs/OSF1_alpha_hp/${REL_NAME} ] ) then
-    #echo "Release found in OSF1 HP area."
-    FULL_REL_NAME=/nfs/acc/libs/OSF1_alpha_hp/${REL_NAME}
-else
-    echo "The release ${REL_NAME} does not exist."
-    exit 5
-fi
+for platform in ${platforms}; do    
+    if ( [ -d /nfs/acc/libs/${platform}/${REL_NAME} ] ) then
+        FULL_REL_NAME=/nfs/acc/libs/${platform}/${REL_NAME}
+    else
+        echo "The release ${REL_NAME} does not exist."
+        exit 5
+    fi
+done
+
 
 ######################################################################
 #  Obtain the revision number for the release to be tagged.
@@ -125,7 +130,7 @@ if ( [ $? != 0 ] ) then
     exit 6
 fi
 
-echo "Revision # of ${FULL_REL_NAME} is ${rev}."
+echo "Revision # of ${REL_NAME} is ${rev}."
 
 
 ######################################################################
@@ -143,7 +148,7 @@ echo "rcopy /trunk/util/ /tags/${REL_NAME}/util/" >> ${tmpdir}/${tmpfile}
 #  initiate the SVN transaction. rsvn.py allows multiple repository 
 #  operations to all be executed within the same transaction.
 ######################################################################
-if ( [ ${TAG_CURRENT} -eq 0 ] ) then
+if ( [ ${TAG_CURRENT} -eq 1 ] ) then
     TYPE="CURRENT"
 else
     TYPE="DEVEL"
@@ -153,7 +158,7 @@ fi
 # Create the transaction, execute the operations, close repository.
 # All handled by rsvn.py script.
 ######################################################################
-${bindir}/rsvn.py --message="Tagging ${TYPE} release ${REL_NAME}" --revision=${rev} --username=cesrulib /mnt/svn < ${tmpdir}/${tmpfile}
+${UTIL_DIR}/rsvn.py --message="Tagging ${TYPE} release ${REL_NAME}" --revision=${rev} --username=cesrulib /mnt/svn < ${tmpdir}/${tmpfile}
 
 
 # Clean up

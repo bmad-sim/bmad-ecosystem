@@ -1,6 +1,6 @@
 #!/bin/sh
 #####################################################################
-# This is a script to delete an ENTIRE previously built CESR release
+# This is a script to delete an ENTIRE previously-built CESR release
 #####################################################################
 #        USE     WITH     CAUTION   
 #####################################################################
@@ -11,39 +11,40 @@
 # including the build log file.
 #   --It will be as if it had never been built in the first place.
 #   --You have been warned.
-##############################
+#####################################################################
 #   Usage:
-#          DELETE_release REL=release-name [-QUIET]
+#          DELETE_release [-QUIET] [-quiet] REL=release-name 
+#
 # Optional -QUIET flag will perform the deletion without 
 # interactively prompting for confirmation.  This is used primarily
 # for automatic scripts.
 #####################################################################
 
 
-# Script help function
+# Script help functions
 myprint_help () {
-#       Print help info
+# Print help info
     echo ""
     echo "Usage is: DELETE_release [flag] REL=release-name"
     echo ""
     echo "Using no flags will prompt for confirmation."
     echo ""
-    echo "-quiet     Prompt with no terminal beeping."
-    echo "-QUIET     Delete without prompting for confirmation."
+    echo "-quiet -q  Prompt with no terminal beeping."
+    echo "-QUIET -Q  Delete without prompting for confirmation."
     echo "-help      Print full list of command-line flags."
     echo ""
     exit 1
 }
 
 myprint_help2 () {
-#       Print help info
+# Print help info
     echo ""
     echo "Usage is: DELETE_release  [flag] REL=release-name"
     echo ""
     echo "Using no flags will prompt for confirmation."
     echo ""
-    echo "-quiet     Prompt with no terminal beeping."
-    echo "-QUIET     Delete without prompting for confirmation."
+    echo "-quiet -q  Prompt with no terminal beeping."
+    echo "-QUIET -Q  Delete without prompting for confirmation."
     echo "-help      Print this usage summary."
     echo ""
     echo "-NOLOCK    Allow deletion of otherwise protected"
@@ -56,18 +57,18 @@ myprint_help2 () {
 ##########################
 #  Main script starts here
 ##########################
-
-# Get command arguments
-
 arg_list=""
 REL_NAME=""
-quiet=0      # Delete without interactive confirmation.
+quiet=0
 QUIET=0
 NOLOCK=0
 
-BASEPATH="/home/cesrulib/cesr_libs/"
+LIBS_DIR=`/home/cesrulib/bin/util/getcfg Paths LIBS_DIR`
+LIBS_DIR="${LIBS_DIR}/"
 # Path on VMS cluster where release .zip archives are kept
-VMS_ZIPDIR=CESR2f'$'DKB200:[CESR_LIBS.ZIP]
+VMS_ZIPDIR=`/home/cesrulib/bin/util/getcfg Paths VMS_ZIPDIR`
+
+PLATFORMS=`/home/cesrulib/bin/util/getcfg Platforms`
 
 if ( [ $# = 0 ] ) then
     myprint_help
@@ -81,9 +82,11 @@ for i
 do arg_list="${arg_list} ${i}"
    case $i in
      REL=*       ) REL_NAME=`echo $i | cut -d= -f2` ;;
-     "-quiet"    ) quiet=1 ;;
-     "-QUIET"   ) QUIET=1;;
-     "-NOLOCK"   ) NOLOCK=1;;
+     "-quiet"  ) quiet=1 ;;
+     "-q"       ) quiet=1;;
+     "-QUIET"  ) QUIET=1;;
+     "-Q"       ) QUIET=1;;
+     "-NOLOCK" ) NOLOCK=1;;
      "-quiet"  ) QUIET=1;;
      "-help"   ) myprint_help2; exit 1;;
      *           ) myprint_help; exit 1;;
@@ -110,14 +113,15 @@ fi
 
 # check here to determine if requested release has either
 # a current pointer or a devel pointer filesystem link.  If so, abort.
-if ( [ ${BASEPATH}Linux_i686_intel/current -ef ${BASEPATH}Linux_i686_intel/${REL_NAME} ] ) then
+# Generalize here to avoid the need to hardcode any platform name.
+if ( [ ${LIBS_DIR}Linux_i686_intel/current -ef ${LIBS_DIR}Linux_i686_intel/${REL_NAME} ] ) then
      echo ""
      echo "The release you have requested to delete is the CURRENT release."
      echo "This is not allowed.  Aborting."
      echo ""
      exit 1
 fi
-if ( [ ${BASEPATH}Linux_i686_intel/devel -ef ${BASEPATH}Linux_i686_intel/${REL_NAME} ] ) then
+if ( [ ${LIBS_DIR}Linux_i686_intel/devel -ef ${LIBS_DIR}Linux_i686_intel/${REL_NAME} ] ) then
      echo ""
      echo "The release you have requested to delete is the DEVEL release."
      echo "This is not allowed.  Aborting."
@@ -127,9 +131,9 @@ fi
 
 # Test requested release against all older devel and current links.
 # Don't delete if the requested release matches any of them.
-for j in ${BASEPATH}Linux_i686_intel/current*
+for j in ${LIBS_DIR}Linux_i686_intel/current*
 do
-  if ( [ ${j} -ef ${BASEPATH}Linux_i686_intel/${REL_NAME} ] ) then
+  if ( [ ${j} -ef ${LIBS_DIR}Linux_i686_intel/${REL_NAME} ] ) then
       if ( [ ${NOLOCK} -eq 1 ] ) then
 	  echo "You have requested to delete a CURRENT release!  Make sure"
 	  echo "this is really what you want to do, then press <ENTER> to continue."
@@ -148,9 +152,9 @@ do
   fi
 done
 
-for k in ${BASEPATH}Linux_i686_intel/devel*
+for k in ${LIBS_DIR}Linux_i686_intel/devel*
 do
-  if ( [ ${k} -ef ${BASEPATH}Linux_i686_intel/${REL_NAME} ] ) then
+  if ( [ ${k} -ef ${LIBS_DIR}Linux_i686_intel/${REL_NAME} ] ) then
       if ( [ ${NOLOCK} -eq 1 ] ) then
 	  echo "You have requested to delete a DEVEL release!  Make sure"
 	  echo "this is really what you want to do, then press <ENTER> to continue."
@@ -209,30 +213,20 @@ if ( [ ! ${QUIET} -eq 1 ] ) then
 fi
 echo -n "DELETING release ${REL_NAME}..."
 
-#################################################################
-#  Paths are long and explicit here so there is no doubt as to
-#  what is going to happen in terms of data loss.
-#################################################################
-rm -rf /home/cesrulib/cesr_libs/Linux_i686_intel/${REL_NAME}
-rm -rf /home/cesrulib/cesr_libs/Linux_i686_lahey/${REL_NAME}
-rm -rf /home/cesrulib/cesr_libs/OSF1_alpha_hp/${REL_NAME}
-rm -rf /home/cesrulib/cesr_libs/VMS_alpha_hp/${REL_NAME}
-rm -rf /home/cesrulib/cesr_libs/CYGWIN_NT_i686_intel/${REL_NAME}
 
+#################################################################
+#  Perform the deletion across all platform archive areas.
+#################################################################
+for platform in ${PLATFORMS}; do
+    rm -rf /home/cesrulib/cesr_libs/${platform}/${REL_NAME}
+
+    rm -f /home/cesrulib/cesr_libs/log/${platform}/${REL_NAME}.log
+done
 rm -f /home/cesrulib/cesr_libs/log/${REL_NAME}.genlog
 
-rm -f /home/cesrulib/cesr_libs/log/Linux_i686_intel/${REL_NAME}.log
-
-rm -f /home/cesrulib/cesr_libs/log/Linux_i686_lahey/${REL_NAME}.log
-
-rm -f /home/cesrulib/cesr_libs/log/OSF1_alpha_hp/${REL_NAME}.log
-
-rm -f /home/cesrulib/cesr_libs/log/VMS_alpha_hp/${REL_NAME}.log
-
-rm -f /home/cesrulib/cesr_libs/log/CYGWIN_NT_i686_intel/${REL_NAME}.log
 
 ##################################################################
-# 
+# Code here to delete the release .zip file on the VMS cluster
 #
 ##################################################################
 

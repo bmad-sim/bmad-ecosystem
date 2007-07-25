@@ -1,0 +1,277 @@
+#!/home/cesrulib/EXT/Python-2.5.1/Linux/python
+##########################################################################
+#
+# This script produces a rotation recommendation (GO / NO GO value) after
+# examining all the build areas of a given release.  This value is then
+# used as the determining criterium for an automated release rotation and
+# tagging.
+#          The checks performed:
+#
+#*1) Today is the day to attempt to rotate DEVEL, days are obtained
+#    from the config file.
+#
+#*2) Release has not already been promoted to DEVEL
+#
+#*3) Another release has not been promoted to DEVEL since the release
+#    in question was created.
+#
+#*4) Release in question completed fully with NO errors.
+#    (taken care of by 5)
+#
+#*5) ALL the post-build tests requested in the
+#   CESRbuild_test_suite program returned a success value.
+#   (Examines the output of extract_test_summary to do this.)
+#
+#*6) if there has been commit activity in the designated areas of the 
+#    repository since the last DEVEL rotation.
+#
+# 7) Others to be added if necessary.
+#
+#
+# usage :    query_rotation <release_name>
+#
+# argument:  release_name (eg, cesr_2003_0728_d)
+#
+##########################################################################
+# Exit codes:
+#  1 - too few command line arguments
+#  5 - release not found
+#
+#
+#  0 - OK to rotate release
+# 99 - Recommend NOT rotating release
+#
+# Date   : 12 July 2007
+# Author : Matt Rendina
+#             
+##########################################################################
+
+import sys, os, string, time, ConfigParser
+import subprocess as sub
+
+#============================================================================
+# Set up Configuration Parser
+#============================================================================
+cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
+config   = ConfigParser.ConfigParser()
+config.optionxform = lambda x: x   # Obtain all values without changing case
+config.read(cfg_file)              # Overrides default ConfigParser behavior
+#============================================================================
+# Grab necessary values from the Config file.
+#============================================================================
+BIN_DIR    = config.get("Paths", "BIN_DIR")
+UTIL_DIR   = config.get("Paths", "UTIL_DIR")
+LIBS_DIR   = config.get("Paths", "LIBS_DIR")
+LOG_DIR    = config.get("Paths", "LOG_DIR")
+repository = config.get("Repository", "path")
+summarizer = config.get("Scripts", "summarizer")
+DAYS       = config.get("Scheduling", "DEVEL_ATTEMPT_DAYS").upper()
+platforms  = []
+for plat in config.options("Platforms"):
+    if config.get("Platforms", plat).find("FULL") != -1:
+        platforms.append(plat)
+
+
+
+#===========================
+# Vars local to this script
+#===========================
+DEVEL_path     = LIBS_DIR + "/" + platforms[0] + "/devel"
+DEVEL_src_path = DEVEL_path + "/src"
+day         = 0
+activity    = 0
+tests       = 0
+verbose     = 0
+show_reason = 0
+release     = "NONE"
+rel_time    = 0
+reasons     = []
+
+if len(sys.argv) == 1:
+    print "Specify a release name."
+    sys.exit(1)
+
+#release = sys.argv[1]
+for opt in sys.argv:
+    if opt in ("-verbose", "-Verbose", "-v", "-V"):
+        verbose = 1
+    if opt in ("-reason", "-Reason", "-r", "-R"):
+        show_reason = 1
+    else:
+        release = opt
+
+
+###############################################
+# The queries to perform
+###############################################
+
+# Determine if the release exists on ALL key platforms.
+#==================================================================================
+def check_existence():
+    exists = 0
+    for platform in platforms:
+        if os.path.exists(LIBS_DIR + '/' + platform + "/" + release):
+            exists = exists + 1
+    if exists == len(platforms):
+        return 1 # OK to rotate
+    else:
+        return 0 # VETO rotation
+#=================================================
+# Functions below are only executed if the
+# check_existence function above returns success.
+#=================================================
+
+
+# Determines if a rotation should be attempted today.
+#==================================================================================
+def check_day():
+    date = time.asctime()
+    if DAYS.find( date.split()[0].upper() ) != -1:
+        return 1 # OK to rotate
+    else:
+        return 0 # VETO rotation
+
+# Determines if the release has already been promoted to DEVEL at some other time.
+#==================================================================================
+def check_duplicate():
+    val   = 0
+    lines = ""
+    for platform in platforms:
+        os.chdir(LIBS_DIR + '/' + platform)
+        lines = os.popen("ls -l devel* | cut -d'>' -f2")
+        for line in lines:
+            if line.strip() == release: # if a symlink to a devel has already been made to this release
+                val = 0 # VETO rotation
+                break                   # return without checking further
+            else:
+                val = 1 # OK to rotate
+    return val
+
+
+# Determines if a DEVEl rotation has occurred since this release was created.
+#==================================================================================
+def check_subsequent():
+    val      = 1   # OK to rotate
+    lines    = ""
+    for platform in platforms:
+        os.chdir(LIBS_DIR + '/' + platform)
+        rel_time = os.stat(release).st_ctime
+        files = os.listdir(".")
+        for file in files:
+            file = file.strip()
+            if os.path.islink(file) and os.readlink(file) != release and os.readlink(file) != "devel_ifort" \
+               and os.readlink(file) != "devel_intel" and file.find("devel") != -1 and os.stat(file).st_ctime > rel_time:
+                    val = 0 # VETO rotation
+                    break         # Check failed, return without chekcking further
+    return val
+
+
+# Determines if all the post-build tests on every platform returned
+# a success value.
+#======================================================================
+def check_tests():
+    for platform in platforms:
+        cmd = UTIL_DIR +'/'+ summarizer + " " + LOG_DIR +'/'+ platform + '/' + release + ".log"
+        if verbose:
+            print platform + ':'
+        lines = os.popen(cmd).readlines()
+        for line in lines:
+            line = line.strip()
+            if verbose:
+                print line
+            if line.find(": FAILED!") != -1:
+                return 0 # VETO rotate b/c of failed tests.
+            if line.find("ERROR!") != -1:
+                return 0 # VETO rotate b/c of missing tests.
+        if verbose:
+            print "\n"
+    return 1 # OK to rotate
+
+
+# Determines if there has been relevant repository activity since the
+# last DEVEL rotation which would warrant a release rotation at this time.
+#==============================================================================
+def check_activity():
+    changes = []  # master list of all changes that have taken place between
+                  # the last DEVEL release and the youngest revision in the repository.
+    youngest = os.popen("svnlook youngest " + repository).readline()
+    
+    # Double check existence of most recent DEVEL and go there
+    if os.path.exists(DEVEL_src_path):
+        os.chdir(DEVEL_src_path)
+    else:
+        print "Release " + release + " was not found."
+        sys.exit(5)
+    if verbose:
+        print "Current directory: " + os.getcwd()
+
+    # Get revision number of the most recent DEVEL
+    lines = os.popen("svn info").readlines()
+    for line in lines:
+        if line.find("Revision: ") != -1:
+            revision = line[ line.find(":")+1 : ].strip()
+    if verbose:
+        print "REV: " + revision + " -> " + youngest
+
+    # Get list of repository changes that have occurred AFTER the most recent
+    # DEVEL up to and including the most recent change to the repository.
+    for i in range( int(revision)+1 , int(youngest)+1 ):
+        lines = os.popen("svnlook changed -r " + str(i) + " " + repository).readlines()
+        if verbose:
+            print str(i)
+        for line in lines:
+            if verbose:
+                print line.strip()
+            changes.append(line)
+    for change in changes:
+        if change.find("trunk/src/") != -1:
+            return 1 # OK to rotate
+        else:
+            return 0 # VETO rotation
+
+#################################################
+# Collect the check results
+#################################################
+existence = check_existence()
+
+if existence:
+    day        = check_day()
+    duplicate  = check_duplicate()
+    subsequent = check_subsequent()
+    activity   = check_activity()
+    tests      = check_tests()
+else:              
+    day        = 1
+    duplicate  = 1
+    subsequent = 1
+    activity   = 1
+    tests      = 1
+
+#################################################
+# Output recommendation - exit code for OK is 0
+#                        exit code for NOT is 99
+#################################################
+if existence and day and activity and tests and duplicate and subsequent:
+    print "\nRelease " + release + " is OK to rotate."
+    sys.exit(0)
+else:
+    print "\nRelease " + release + " should _NOT_ be rotated at this time."
+    if not existence:
+        reasons.append("Release does not exist in ALL key platform areas.")
+    if not duplicate:
+        reasons.append("The release has already been promoted to DEVEL.")
+    if not subsequent:
+        reasons.append("A release built after this one has already been promoted to DEVEL.")
+    if not day:
+        reasons.append("No rotation attempt scheduled for today.")
+    if not tests:
+        reasons.append("One or more post-build executable tests failed to complete successfully.")
+    if not activity:
+        reasons.append("")
+        reasons.append("No critical changes have occurred in the repository between \n \
+           the latest DEVEL (" + os.readlink(DEVEL_path) + ") and the head revision.")
+    if verbose or show_reason:    
+        print "\nReason(s): " + reasons[0]
+        for i in range(1, len(reasons) ):
+            print "           " + reasons[i]
+    sys.exit(99)

@@ -1,0 +1,61 @@
+#!/home/cesrulib/EXT/Python-2.5.1/Linux/python
+##########################################################################
+# This is a small wrapper script to the python ConfigParser interface.
+# It has been hardcoded to the file specified in the cfg_file var below.
+#
+# Its purpose is to allow (ba)sh build system scripts to take advantage
+# of the Python ConfigParser module to obtain variables and
+# configuration information from the BUILD_SYSTEM.conf configuration file.
+#
+# Usage: getcfg Section_Name Option_Name -- Obtains the value of 
+#                                           Option_Name from witin 
+#                                           section Section_Name.
+#
+#        getcfg Section_Name Value       -- Obtains list of all Options
+#                                          in a given section that have
+#                                          the value 'Value'.
+#
+#        getcfg Section_Name             -- Gets lits of option names
+#                                           from the section provided.
+##########################################################################
+
+import sys, ConfigParser
+
+#============================================================================
+# Setup config file machinery
+#============================================================================
+cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
+config   = ConfigParser.ConfigParser()
+config.optionxform = lambda x: x   # Obtain all values without changing case
+config.read(cfg_file)              # Overrides default ConfigParser behavior
+
+#==========================================================
+# Get command line arguments and obtain values accordingly
+#==========================================================
+section = ""
+to_print = []
+if len(sys.argv) == 2:
+    # If only one argument supplied, assume it's a section,
+    # print list of all options that exist in that section.
+    for option in config.options(sys.argv[1]):
+        print option
+        
+if len(sys.argv) == 3:
+    section = sys.argv[1]
+    # If section / 2nd arg combination is a valid section / option
+    # combination, print out the value of that combination...
+    if sys.argv[2] in config.options(section):
+        print config.get(section, sys.argv[2])
+    # otherwise, if the section-2nd arg combination is a valid
+    # section-VALUE combination, print out all options in the
+    # given section that contain the VALUE text.
+    else:
+        for option in config.options(section):
+            if config.get(section, option).find(sys.argv[2]) != -1:
+                to_print.append(option)
+        for i in to_print:
+            print i
+    
+if len(sys.argv) > 3:
+    print "Accepts a maximum of 2 arguments"
+

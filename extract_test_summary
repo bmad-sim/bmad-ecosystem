@@ -15,12 +15,11 @@
 # Date   : 5 March 2007
 ####################################################################
 
-import os
-import sys
-import shutil
-import string
-import time
+import sys, os, string, shutil, time, ConfigParser
 
+#================================
+# Command line argument handling
+#================================
 if len(sys.argv) == 1:
   print "\nUsage: " + sys.argv[0] + " <file where test suite output resides>"
   sys.exit(0)
@@ -30,10 +29,30 @@ elif len(sys.argv) > 2:
 else:
   file = sys.argv[1]
 
-test_list = ["closed_orbit", "tune_plane_res_plot", "toad", "dynamic_aperture_test",
-             "analyzer", "bmadz", "bmad_to_mad_and_xsif", "tao", "nonlin_bpm_test",
-             "tune_scan"]
-num_tests     = len(test_list)
+
+#============================================================================
+# Set up config file machinery
+#============================================================================
+cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
+config   = ConfigParser.ConfigParser()
+config.optionxform = lambda x: x   # Obtain all values without changing case
+config.read(cfg_file)              # Overrides default ConfigParser behavior
+#============================================================================
+# Grab necessary values from the Config files.
+#============================================================================
+UTIL_DIR = config.get("Paths", "UTIL_DIR")
+suite_cfg_file = UTIL_DIR +'/'+ config.get("Test_Suite", "CONFIG_FILE")
+sconfig = ConfigParser.ConfigParser()
+sconfig.optionxform = lambda x: x
+sconfig.read(suite_cfg_file)
+test_list  = sconfig.sections()
+test_list.remove("files")
+
+
+#============
+# Local vars
+#============
+num_tests = len(test_list)
 num_completed = 0
 
 pad = ""
@@ -43,7 +62,6 @@ lines = f.readlines()
 for line in lines:
   if line.find("Platform           :") != -1:
     platform = line.split(":")[1].strip()
-    print platform
   if line.find("TEST COMPLETED") != -1:
     num_completed = num_completed + 1
     line = line.strip()

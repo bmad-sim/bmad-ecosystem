@@ -33,12 +33,41 @@
 # Date   : 5 March 2007
 ################################################################################
 
-import os, sys, string, time, shutil
+import os, sys, string, time, shutil, ConfigParser
 import subprocess as sub
-import pexpect
+import pexpect      # 3rd-party pure Pyton module for expect-like functionality
 
 print "\nUsing Python interpreter:"
 print sys.version
+
+#============================================================================
+# Set up Configuration Parser
+#============================================================================
+cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
+config   = ConfigParser.ConfigParser()
+config.optionxform = lambda x: x   # Obtain all values without changing case-
+config.read(cfg_file)              #  overrides default ConfigParser behavior
+#============================================================================
+# Grab necessary values from the Config files.
+#============================================================================
+UTIL_DIR   = config.get("Paths", "UTIL_DIR")
+# Set up parser for 2nd level test suite config file
+suite_cfg_file = UTIL_DIR +'/'+ config.get("Test_Suite", "CONFIG_FILE")
+sconfig = ConfigParser.ConfigParser()
+sconfig.optionxform = lambda x: x
+sconfig.read(suite_cfg_file)
+#============================================================================
+
+test_list  = sconfig.sections().remove("files")
+BIN_DIR    = config.get("Paths", "BIN_DIR")
+LIBS_DIR   = config.get("Paths", "LIBS_DIR")
+LOG_DIR    = config.get("Paths", "LOG_DIR")
+repository = config.get("Repository", "path")
+platforms  = []
+for plat in config.options("Platforms"):
+    if config.get("Platforms", plat) == "FULL":
+        platforms.append(plat)
+
 
 ########################################################################################
 # Dictionaries that define the group of programs to test, based on mode. Int or non-int.
@@ -64,8 +93,8 @@ prog_list = {
 src = "src"
 testlist = []
 HOST = ""
-libdir   = "/home/cesrulib/cesr_libs"
-utilpath = "/home/cesrulib/bin/util/"
+#libdir   = "/home/cesrulib/cesr_libs"
+#utilpath = "/home/cesrulib/bin/util/"
 wd = os.getcwd()
 namestrings = []
 env_var = ""
@@ -81,14 +110,14 @@ if len(sys.argv) == 2 or len(sys.argv) == 3:
   release = sys.argv[1]
   if len(sys.argv) == 3:
     platform = sys.argv[2]
-  if os.access(libdir + '/' + platform + '/' + release, 4) == 0:
+  if os.access(LIBS_DIR + '/' + platform + '/' + release, 4) == 0:
     print "The release " +release+ " does not exist in the "+ platform + " archive."
     sys.exit(2)
 else:
   print "Incorrect number or arguments provided to " + sys.argv[0]
   sys.exit(3)
 
-srcpath = libdir +'/'+ platform +'/'+ release +'/'+ src
+srcpath = LIBS_DIR +'/'+ platform +'/'+ release +'/'+ src
 
 #Disable X display for unattended operation
 os.environ['DISPLAY'] = "none"
@@ -129,7 +158,7 @@ def prep_for_tests(progs, testdir):
     if file.find("svn") == -1:  #Don't grab the SVN administration directory.
       shutil.copy(srcpath + "/nonlin_bpm/test/" + file, testdir)
   for prog in progs:
-    shutil.copy(libdir +'/'+ platform+"/"+ release + "/bin/" + prog, testdir)
+    shutil.copy(LIBS_DIR +'/'+ platform+"/"+ release + "/bin/" + prog, testdir)
   return testdir
 
   
