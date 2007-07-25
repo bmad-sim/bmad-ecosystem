@@ -933,20 +933,16 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   if (lat%input_taylor_order /= 0) &
        call set_taylor_order (lat%input_taylor_order, .false.)
 
-! Do bookkeeping for settable dependent variables.
 
-  do i = 1, n_max
-    ele => in_lat%ele(i)
-    call settable_dep_var_bookkeeping (ele)
-  enddo
-
-! Transfer the ele information from the in_lat to lat
+! Transfer the ele information from the in_lat to lat and
+! do the bookkeeping for settable dependent variables.
 
   do i = 1, n_ele_use
     ele => lat%ele(i)
     ele = in_lat%ele(ix_lat(i)) 
     ele%name = used_line(i)%name
     if (used_line(i)%tag /= '') ele%name = trim(used_line(i)%tag) // '.' // ele%name
+    call settable_dep_var_bookkeeping (ele)
   enddo
 
 ! First work on multipass before overlays, groups, and usuperimpose. 

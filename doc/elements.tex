@@ -938,11 +938,11 @@ index. An example input file is:
 \end{example}
 If no polarization angle is given the mode is taken to be unpolarized.
 
-\vn{freq_spread} is used to randomly spread out the mode frequencies
-among different cavities. The spread is Gaussian in shape with an RMS
-of \vn{freq_spread} * $F$ where $F$ is the frequency of a mode.  After
-the long--range modes have been defined they can be referenced or
-redefined using the notation
+\vn{freq_spread} is used to randomly spread out the long range mode
+frequencies among different cavities. The spread is Gaussian in shape
+with an RMS of \vn{freq_spread} * $F$ where $F$ is the frequency of a
+mode.  After the long--range modes have been defined they can be
+referenced or redefined using the notation
 \begin{example}
   lr(n).freq      ! Frequency
   lr(n).r_over_q  ! R/Q

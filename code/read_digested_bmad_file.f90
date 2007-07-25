@@ -125,7 +125,8 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 
     if (fname1 == '!RAN FUNCTION WAS CALLED') then
       if (bmad_status%type_out) call out_io(s_warn$, r_name, &
-                'NOTE: RANDOM NUMBER FUNCTION WAS USED IN LATTICE FILE.')
+                'NOTE: THE RANDOM NUMBER FUNCTION WAS USED IN THE LATTICE FILE SO THIS', &
+                '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')
       bmad_status%ok = .false.
       cycle
     endif
