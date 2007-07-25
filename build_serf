@@ -2,8 +2,9 @@
 ############################################################
 # The shebang above needn't really be present, as this
 # script is only meant to be called from the build_master
-# script.  It is left there as a reminder of the Python
-# interpreter version used to properly execute this script.
+# script prepended with the appropriate platform-specific
+# Python interpreter.  It is left there as a reminder of the
+# Python interpreter version needed for this to execute.
 ############################################################
 # Standard modules
 import os, sys, string, time, socket
@@ -38,46 +39,34 @@ lines = logfile.readlines()
 for line in lines:
     if line[0:10] == "Build Type":   # B/c of no find on older 1.5 Python on OSF1.  
         build_type = line.split(':')[1].strip()
-        #build_type = line[21:-1]
     if line[0:8]  == "Platform":
         platform   = line[21:-1]
     if line[0:12] == "F90 Compiler":
         f90        = line.split(':')[1].strip()
-        #f90        = line[21:-1]
     if line[0:15] == "Float Precision":
         precision  = line.split(':')[1].strip()
-        #precision  = line[21:-1]
         if precision == "double":
             precision = "DBL"
         else:
             precison = "SGL"
     if line[0:8] == "Revision":
         revision   = line.split(':')[1].strip()
-        #revision   = line[21:-1]
     if line[0:10] == "Build Host":
         build_host = line.split(':')[1].strip()
-        #build_host = line[21:-1]
     if line[0:18] == "Full Packages name":
         full_pkg_name = line.split(':')[1].strip()
-        #full_pkg_name = line[21:-1]
     if line[0:17] == "Full Release name":
         full_rel_name = line.split(':')[1].strip()
-        #full_rel_name = line[21:-1]
     if line[0:12] == "Link against":
         pkg_name = line.split(':')[1].strip()
-        #pkg_name = line[21:-1]
     if line[0:16] == "Build System Dir":
         build_sys_dir = line.split(':')[1].strip()
-        #build_sys_dir = line[21:-1]
     if line[0:17] == "Repository branch":
         branch = line.split(':')[1].strip()
-        #branch = line[21:-1]
     if line[0:7] == "Bin dir":
         bin_dir = line.split(':')[1].strip()
-        #bin_dir = line[21:-1]
     if line[0:10] == "Config Dir":
         config_dir = line.split(':')[1].strip()
-        #config_dir = line[21:-1]
     if line [0:14] == "Run test suite":
         run_tests = line.split(':')[1].strip()
         run_tests = line[21:-1]
@@ -142,7 +131,7 @@ if build_type == "RELEASE":
 
 
 if build_type == "BMAD DISTRIBUTION":
-    print "IN BUILD_SERF... BMAD"
+    #print "IN BUILD_SERF... BMAD"
     os.chdir(full_rel_name)
     print "Changing directory to: " + os.getcwd()
     env_setup1 = " CESRF90=" + f90 + "; BMAD_="+full_rel_name + '; '  # Set BMAD_ var before invoking bmad_defs
@@ -232,8 +221,20 @@ if platform == "VMS_alpha_hp": #assumes files and dependencies generated and in 
                 line = dep_process.fromchild.readline()
         print "Copying config directory from OSF1 area."
         shutil.copytree(OSF_reldir + "/config", full_rel_name + "/config")
-        build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_rel_name) # FTP upload to VMS cluster
+        #build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_rel_name) # FTP upload to VMS cluster
+        xfer_cmd = bin_dir + "/util/cesr_to_vms " + full_rel_name
+        print "Executing transfer of archive file to VMS cluster. Disabled."
+        #xfer_process = sub.Popen(xfer_cmd, stdout=sub.PIPE, stderr=sub.STDOUT)
+        #lines = xfer_process.stdout.readlines()
+        #for line in lines:
+        #    print line.strip()
+        #pid = xfer_process.pid
+        #returncode = xfer_process.wait()
         print "--> BUILD STATUS: COMPLETE!"
+        #if returncode != 0:
+        #    print "--> BUILD STATUS: ERROR(S) DETECTED"
+        #else:
+        #    print "--> BUILD STATUS: COMPLETE!"
 
 
     if build_type == "PACKAGES":
