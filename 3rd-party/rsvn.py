@@ -1,5 +1,12 @@
 #!/usr/bin/env python2
-
+#######################################################################
+#
+# Reviewed for fitness by M.Rendina 3-July-2007
+# Modified by mcr to expand flexibility in choosing
+# an arbitrary revision number from which copies
+# can be made.
+#
+#######################################################################
 # LICENSE
 #
 # Copyright (c) 2004, Francois Beausoleil
@@ -38,7 +45,7 @@ import re
 import traceback
 from svn import core, repos, fs
 
-VERSION='$Id$'
+VERSION='$Id: rsvn.py 20 2005-09-23 15:08:08Z fbos $'
 RCOPY_RE    = re.compile('^\s*rcopy\s+(.+)\s+(.+)$')
 RMOVE_RE    = re.compile('^\s*rmove\s+(.+)\s+(.+)$')
 RMKDIR_RE   = re.compile('^\s*rmkdir\s+(.+)$')
@@ -51,16 +58,17 @@ def usage(error=None):
   print 'USAGE: %s --message=MESSAGE repos_path [--username=USERNAME]' % (
           os.path.basename(sys.argv[0]))
   print ''
-  print '  --help, -h           print this usage message and exit with success'
-  print '  --version            print the version number'
-  print '  --username=USERNAME  Username to execute the commands under'
-  print '  --message=LOG_MSG    Log message to execute the commit with'
+  print '  --help, -h            print this usage message and exit with success'
+  print '  --version             print the version number'
+  print '  --username=USERNAME   Username to execute the commands under'
+  print '  --message=LOG_MSG     Log message to execute the commit with'
+  print '  --revision=REVISION_# Repository revision number to operate upon.'
   print ''
   print 'Reads STDIN and parses the following commands, to execute them on the server, '
   print 'all within the same transaction:'
   print ''
-  print '  rcopy SRC DEST       Copy the HEAD revision of a file or folder'
-  print '  rmove SRC DEST       Copy + delete the HEAD revision of a file or folder'
+  print '  rcopy SRC DEST       Copy the HEAD/[or # with --revision] revision of a file or folder'
+  print '  rmove SRC DEST       Copy + delete the HEAD/[or # with --revision] revision of a file or folder'
   print '  rdelete TARGET       Deletes something from the repository'
   print '  rmkdir TARGET        Creates a new folder (must create parents first)'
   print '  #                    Initiates a comment'
@@ -124,7 +132,7 @@ class Repository:
   """Represents a Subversion repository, and allows common operations
      on it."""
 
-  def __init__(self, repos_path, pool, logger=None):
+  def __init__(self, repos_path, revision, pool, logger=None):
     if logger:
       self.logger = logger
     else:
@@ -134,15 +142,23 @@ class Repository:
 
     self.repo = repos.svn_repos_open(repos_path, self.pool)
     self.fsptr = repos.svn_repos_fs(self.repo)
+    self.revis = revision
 
   def get_youngest(self):
     """Returns the youngest revision in the repository."""
     return fs.youngest_rev(self.fsptr, self.pool)
 
   def begin(self, username, log_msg):
+    if username == "":
+      username = "cesrulib"
     """Initiate a new Transaction"""
-    return Transaction(self.repo, self.get_youngest(), username,
-            log_msg, self.pool, self.logger)
+    ## print "self.revis (in Repository class): " + str(self.revis)
+    if self.revis != 0:
+      return Transaction(self.repo, self.revis, username,
+                         log_msg, self.pool, self.logger)
+    else:
+      return Transaction(self.repo, self.get_youngest(), username,
+                         log_msg, self.pool, self.logger)
 
   def close(self):
     """Close the repository, aborting any uncommitted transactions"""
@@ -160,11 +176,12 @@ class Repository:
     return None
 
 def rsvn(pool):
+  revision = 0
   log_msg = None
 
   try:
     opts, args = getopt.getopt(sys.argv[1:], 'vh',
-                ["help", "username=", "message=", "version"])
+                ["help", "username=", "message=", "revision=", "version"])
   except getopt.GetoptError, e:
     sys.stderr.write(str(e) + '\n\n')
     usage()
@@ -181,6 +198,8 @@ def rsvn(pool):
       username = value
     elif opt == '--message':
       log_msg = value
+    elif opt == '--revision':
+      revision = int(value)
   
   if log_msg == None:
     usage('Missing --message argument')
@@ -193,7 +212,7 @@ def rsvn(pool):
   repos_path = args[0]
   print 'Accessing repository at [%s]' % repos_path
 
-  repository = Repository(repos_path, pool)
+  repository = Repository(repos_path, revision, pool)
   sub = repository.subpool()
   
   try:
