@@ -117,14 +117,14 @@ fi
 if ( [ ${LIBS_DIR}Linux_i686_intel/current -ef ${LIBS_DIR}Linux_i686_intel/${REL_NAME} ] ) then
      echo ""
      echo "The release you have requested to delete is the CURRENT release."
-     echo "This is not allowed.  Aborting."
+     echo "This is not allowed.  Skipping."
      echo ""
      exit 1
 fi
 if ( [ ${LIBS_DIR}Linux_i686_intel/devel -ef ${LIBS_DIR}Linux_i686_intel/${REL_NAME} ] ) then
      echo ""
      echo "The release you have requested to delete is the DEVEL release."
-     echo "This is not allowed.  Aborting."
+     echo "This is not allowed.  Skipping."
      echo ""
      exit 1
 fi

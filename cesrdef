@@ -15,13 +15,13 @@
 #   alias cesrdef "source /home/cesrulib/bin/cesrdef" 
 #   alias current "setenv CESRLIB current ; source /home/cesrulib/bin/cesrdef"
 #   alias devel   "setenv CESRLIB devel ; source /home/cesrulib/bin/cesrdef"
-#-------------------------------------
 #
+#=======================================================================
 # Get platform/OS tags
-#
+#=======================================================================
 set PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
 
-#
+#=======================================================================
 # Set CESR fortran compiler:
 # CESRF90 = intel (or lahey, hp, absoft, ibm, gnu)
 # intel   -- ifort          default on Linux_i686
@@ -30,8 +30,7 @@ set PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
 # ibm     -- xlf
 # absoft  -- f95            default on Darwin_powerpc
 # gnu     -- g77/g95
-#
-
+#=======================================================================
 if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
   if ( $?CESRF90    == 0  ) then setenv CESRF90 intel
 endif
@@ -48,18 +47,20 @@ if ( "${PLATFORM_TAG}" == "Darwin_powerpc" ) then
   if ( $?CESRF90    == 0 ) setenv CESRF90 absoft
 endif
 
+#=======================================================================
 # Only here for temporary fix of stalled login scripts
 # for users sourcing this script on x86_64 architecture
 # machines.  This provides no other functionality.
+#=======================================================================
 if ( "${PLATFORM_TAG}" == "Linux_x86_64" ) then
   if ( $?CESRF90    == 0 ) setenv CESRF90 intel
 endif
 
 
-#
+#=======================================================================
 # Specify CESR Librarian base areas
 # Presently have Unix/Linux and Cygwin versions
-#
+#=======================================================================
 set BASE_DIR_DEF=/home/cesrulib
 if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
   set BASE_DIR_DEF=//lns101/cesrulib
@@ -68,26 +69,25 @@ endif
 if ( $?CESRLIB_BASE == 0 ) set CESRLIB_BASE=${BASE_DIR_DEF}
 if ( $?CESRLIB_BIN  == 0 ) set CESRLIB_BIN=${CESRLIB_BASE}/bin
 
-#
+#=======================================================================
 #	Switchable version
-#
+#=======================================================================
 if ( $?CESRLIB    == 0 ) setenv CESRLIB     current
 if ( $?CERN_LEVEL == 0 ) setenv CERN_LEVEL  pro
 
-#
+#=======================================================================
 #	Root names
-#
+#=======================================================================
 if ( $?CONST    == 0 ) setenv CONST     ${CESRLIB_BASE}/constants
 if ( $?CESR_    == 0 ) setenv CESR_     ${CESRLIB_BASE}/cesr_libs
 if ( $?CERN     == 0 ) setenv CERN      /nfs/cern
 
-#
-# Source the CESR environment script#
+#=======================================================================
+# Source the CESR environment script
 # Now clear all override variables that, by default, use a 
 # derivative path from $CESRLIB_BASE.  This does NOT need 
 # to be done for the "version" variables
-#
-#
+#=======================================================================
 if ( $?CESRENV  == 0 ) setenv CESRENV ${CESRLIB_BIN}/cesrenv
 if ( -f "$CESRENV" )  then
 	source $CESRENV
@@ -95,9 +95,9 @@ else
 	echo File $CESRENV not found.
 endif
 
-#
+#==============================================================================
 #-----  Add CESR Librarian bin area to user's PATH if not already present ----
-#
+#==============================================================================
 set PATH_LIST=`echo ${PATH} | sed s/:/\ /g`
 set found=0
 foreach dir (${PATH_LIST})
@@ -105,22 +105,22 @@ foreach dir (${PATH_LIST})
 end
 if ( $found == 0 ) setenv PATH ${PATH}:${CESRLIB_BIN}
 
-#
+#==============================================================================
 # Add hook to support OLD style of environment variables
 # Clear variable when done
-#
+#==============================================================================
 if ( $?CESR_ENV_OLD == 1 ) setenv CESR_LIB ${CESR_REL}
 unset    CESR_ENV_OLD
 unsetenv CESR_ENV_OLD
 
-#
+#==============================================================================
 # Now clear all override environment variables that, by default, use a 
 # derivative path from $CESRLIB_BASE.  This does NOT need to be done 
 # for the "version" variables.  ALSO, clear all shell variables with 
 # names corresponding to the override environment variables to be safe 
 # (NOTE:  for variable substitutions in csh-like shells, shell variable 
 # assignments take precedence over environment variable assignments)
-#
+#==============================================================================
 unset    CESRLIB_BASE
 unset    CESRLIB_BIN
 unset    CESRLIB
@@ -137,11 +137,11 @@ unsetenv CESR_
 unsetenv CESRENV
 unsetenv CESRF90
 
-#
+#=============================================================================
 # Log users who are setting up the CESR accelerator code 
 # libraries environment.  This is so that notifications of 
 # changes can be sent to all active users. 
-#
+#=============================================================================
 set lock_count=0
 set lock_file=/home/cesrulib/user_log/users.lock
 set users_done=0
@@ -149,7 +149,7 @@ set users_file=/home/cesrulib/user_log/users.list
 set max_count=2
 while ( ${lock_count} < ${max_count} )
     if ( `filetest -e ${lock_file}` ) then
-#      echo "Waiting for ACL setup lock!"
+      #echo "Waiting for ACL setup lock!"
       sleep 1
       set lock_count=`expr ${lock_count} + 1`
     else
@@ -164,6 +164,9 @@ unset lock_file
 unset users_done
 unset users_file
 unset max_count
+
+# Relic from repository migration period when two release types existed,
+# those with 'cvssrc' paths in them and the newer 'src' paths.
 
 #if ( "${CESR_REL}" == "${CESR_BASE}/current" ) then
 #  setenv CESR_SRC ${CESR_REL}/cvssrc

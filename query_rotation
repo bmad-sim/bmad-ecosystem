@@ -269,7 +269,7 @@ else:
     if not activity:
         reasons.append("")
         reasons.append("No critical changes have occurred in the repository between \n \
-           the latest DEVEL (" + os.readlink(DEVEL_path) + ") and the head revision.")
+            the latest DEVEL (" + os.readlink(DEVEL_path) + ") and the head revision.")
     if verbose or show_reason:    
         print "\nReason(s): " + reasons[0]
         for i in range(1, len(reasons) ):

@@ -68,15 +68,15 @@
 # 56  - one or more builds failed, w/ summary
 # 60  - TAR ERROR in BMAD DISTRIBUTION
 # 65  - gzip ERROR in BMAD DISTRIBUTION
+# 70  - problem with rotation command
 ####################################################################
-
+#===========================================================================
 # Standard modules
-import os, sys, time, string, shutil, socket, ConfigParser
+#===========================================================================
+import os, sys, time, string, shutil, socket, random, ConfigParser
 import popen2             # For subprocess calls to build_serf.
 import subprocess as sub  # Use this instead, try to avoid possible buffer freezes?
-# 3rd party modules            # (PUT these in the same directory for the time-being.
-from standout import StandOut  # figure out where to consolidate all 3rd party modules later)
-                               # StandOut module is for advanced logging capabilities.
+
 
 #============================================================================
 # Set up Configuration Parser
@@ -88,16 +88,38 @@ config.read(cfg_file)              # Overrides default ConfigParser behavior
 
 
 # Will need to use these env vars if SWIG python bindings are desired.
-# It is probably easier to just use external process calls as they stand, to
-# avoid the added complexity of needing the bindings installed and maintained by the CG.
+# It is probably easier to just use external process calls as they stand
+# to avoid the added complexity.
 #export PYTHONPATH=${PYTHONPATH}:/nfs/opt/svn/lib/svn-python
 #export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/nfs/opt/svn/lib
-#import svn  # are SWIG bindings availabile from this node? looks as if they are, how to use?
+#import svn
+
+#=== Paths ==================================================================
+bin_dir       = config.get("Paths", "BIN_DIR")
+util_dir      = config.get("Paths", "UTIL_DIR")
+lin_py_dir    = config.get("Paths", "LIN_PY_DIR")
+osf_py_dir    = config.get("Paths", "OSF_PY_DIR")
+makefile_dir  = config.get("Paths", "MAKEFILE_DIR")
+libs_dir      = config.get("Paths", "LIBS_DIR")
+prev_blt      = libs_dir + "/log/prev_built"  # path to file logging last built release
+prev_blt_pkg  = libs_dir + "/log/prev_built_pkg"
+
+#============================================================================
+# 3rd-party module search path set up and importation
+#============================================================================
+sys.path.append(util_dir + "/3rd-party")
+from standout import StandOut    # StandOut module is for advanced logging capabilities.
+
+#=== Support Scripts ========================================================
+build_serf    = util_dir + '/' + config.get("Scripts", "serf")
+rot_querier   = util_dir + '/' + config.get("Scripts", "rot_querier")
+deleter       = util_dir + '/' + config.get("Scripts", "deleter")
+rotator       = util_dir + '/' + config.get("Scripts", "rotator")
 
 
-
-#========= VARIABLE SETUP ==========================================
-#===================================================================
+#============================================================================
+#   VARIABLE SETUP
+#============================================================================
 platforms = config.options("Platforms")
 
 #== Node names =========================================
@@ -165,17 +187,7 @@ tag_packages  = 0
 run_tests     = "NO"          # Whether or not a test suite will be run on the products of this build.
 t_begin_master= int(time.time())
 
-#=== Paths =========================================================
-bin_dir       = config.get("Paths", "BIN_DIR")
-lin_py_dir    = config.get("Paths", "LIN_PY_DIR")
-osf_py_dir    = config.get("Paths", "OSF_PY_DIR")
-makefile_dir  = config.get("Paths", "MAKEFILE_DIR")
-util_dir      = config.get("Paths", "UTIL_DIR")
-libs_dir      = config.get("Paths", "LIBS_DIR")
-build_serf    = util_dir + '/' + config.get("Scripts", "serf")
-rot_querier   = util_dir + '/' + config.get("Scripts", "rot_querier")
-prev_blt      = libs_dir + "/log/prev_built"           # path to file logging last built release
-prev_blt_pkg  = libs_dir + "/log/prev_built_pkg"
+
 
 
 #=== Function to print usage information ===========================
@@ -373,8 +385,6 @@ def seconds_to_HMS(seconds):
   secs = seconds % 60
   return hrs, mins, secs
 
-#def get_packages_name():
-#  
 
 ## Function to generate a unique release name
 ## Accepts: 'RELEASE' or 'PACKAGES' and generates an appropriate unique name.
@@ -556,8 +566,8 @@ class builder:
       cyg_build_dir = "/cygdrive/c/user_local/cesrulib/cesr_libs"
     print time.asctime() + " -- Checking out code for " + self.platform
     if print_co:
-      print "The full checkout manifest is available in the general log file."
-      sys.stdout.write("Checkout manifest:", 4)   # Message Priority 4 goes ONLY to logfile
+      sys.stdout.write("The full checkout manifest is available in the general log file.", 5)
+      sys.stdout.write("Checkout manifest:\n", 4)   # Message Priority 4 goes ONLY to logfile
       
     #=== Variable Setup =================================
     __param_list.append("Build Type         : " + self.build_type + '\n')
@@ -619,7 +629,7 @@ class builder:
           sys.stdout.write(line, 4)  # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
       self.lines = []       
       
-      print "Spawning build process..."
+      #print "Spawning build process..."
       cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
       #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_pkg_logfile)
       self.PID = sub.Popen(cmd , shell=True).pid
@@ -754,21 +764,17 @@ class builder:
     self.status_list = []
     while self.qline:
       if self.qline.find("BUILD STATUS:") != -1:
-        #print self.qline
         self.qline = self.qline.strip()
         self.status_list.append(self.qline)
       self.qline = self.lq.readline()
       
     self.lq.close()
-    #print self.status_list
 
     #if self.STATUS == "ERROR(S) DETECTED":         ## code pickup here for more specific contingencies?
     if self.status_list[-1].find("ERROR") != -1:
       build_status = -1                                # any errors give return value of -1
     elif self.status_list[-1].find("COMPLETE") != -1:
       build_status = 1                                 # code 1 means complete with no errors
-    #self.qline = self.lq.readline()
-    #self.lq.close()
     self.status_list = []
     return build_status                                    # still building will return value of 0
 
@@ -802,7 +808,7 @@ full_genlog = libs_dir + "/log/" + genlog
 
 stout = StandOut(full_genlog, unbuffered=True)   # This transparently applies to all print stmnts and directs all the printed output of
                                    # this program to stdout AND to the general log file defined above.  Set verbosity here?
-                                   # That can control the status output as well.
+                                   # Default priority for all messages is _5_.
 stout.outThreshold        = 5      # These logging threshold values are used to selectively direct normal output of this
 stout.outLogfileThreshold = 4      # script to any combination of the screen or general logfile
 
@@ -899,7 +905,11 @@ if not bmad:
   time.sleep(60)       # Long wait here to allow OSF1 builds to eventually dump the output of the
   if not show_status:  # gmake call to a file for status parsing. Buffer clearing is slow or something.
     print "Builds initiated.  Status output suppressed.  This will take a while.\n"
+    
 ####
+stout.outThreshold        = 4      # Swap stdout and logfile thresholds to allow for writing
+stout.outLogfileThreshold = 5      # build-status messages to the screen and not to logfile.
+stout.priority            = 4
 
 while complete_fraction < 1 and loop < max_loops: 
   error_fraction    = 0
@@ -1032,6 +1042,11 @@ while complete_fraction < 1 and loop < max_loops:
   
 ##End while loop [ while complete_fraction < 1 and loop < max_loops: ]
 
+stout.outThreshold        = 5      # Swap stdout and logfile thresholds again to return everything
+stout.outLogfileThreshold = 4      # the initially set up state.
+stout.priority            = 5      # Set priority back to default value.
+
+
 t_end_master = int(time.time())
 
 ##== Build has completed successfully, compute and summarize relevant statistics ==========================================
@@ -1094,16 +1109,20 @@ if nightly and build_type == "RELEASE":
   for line in lines:
     print line.strip()
   print "Rotation successful-- deleting previous night's build."
-
   #== If everything has completed successfully so far, delete previous build, as long as it hasn't
   #== been promoted.
   prevfile = open(prev_blt, 'r')
   previously_built = prevfile.readline().strip()
   prevfile.close()
-  lines = os.popen(util_dir + "/DELETE_release -QUIET REL=" + previously_built)
-  for line in lines:
-    print line.strip()
-  print "Deletion successful.  Updating previously-built indicator."
+  dr = sub.Popen( [deleter, "-QUIET", "REL="+previously_built], stdout=sub.PIPE, stderr=sub.STDOUT )
+  (outstream, errstream) = dr.communicate()
+  del_exit = dr.wait()
+  print str(outstream)
+  if del_exit != 0:
+    print "ERROR: There was a problem deleting the previous release."
+  #lines = os.popen(util_dir + "/DELETE_release -QUIET REL=" + previously_built)
+  #for line in lines:
+  #  print line.strip()
   os.chmod(prev_blt, 0644)         # set permissions to writable
   prevfile = open(prev_blt, 'w')
   prevfile.write(rel_name + '\n')      # write the name of the release just built to file
@@ -1112,23 +1131,43 @@ if nightly and build_type == "RELEASE":
 
 if build_type == "PACKAGES":
   print "Updating previously-built packages indicator."
-  os.chmod(prev_blt, 0644)         # set permissions to writable
+  os.chmod(prev_blt, 0644)           # set permissions to writable
   prevfile = open(prev_blt_pkg, 'w')
-  prevfile.write(rel_name + '\n')      # write the name of the release just built to file
+  prevfile.write(rel_name + '\n')   # write the name of the release just built to file
   prevfile.close()
-  os.chmod(prev_blt_pkg, 0444)         # reset permissions to disallow writes
+  os.chmod(prev_blt_pkg, 0444)       # reset permissions to disallow writes
 
-# Ask if this newly-built release is a candidate for promotion to DEVEL.
+#=Ask if this newly-built release is a candidate for promotion to DEVEL.
 if devel:
   print "Checking to see whether release is a DEVEL candidate."
-  qr = sub.Popen( [rot_querier, "-r", rel_name] )
+  qr = sub.Popen( [rot_querier, "-r", rel_name], stdout=sub.PIPE, stderr=sub.STDOUT )
+  (outstream, errstream) = qr.communicate()
   recommendation = qr.wait()
-  if recommendation == 0:
-    print "Perform rotation here."
+  print str(outstream)
+  if recommendation == 0:  # If there has been a recommendation to rotate
+    tmpname = "/tmp/tmp_atfile_01"
+    atfile = open(tmpname, 'w')
+    atfile.write(rotator + " -devel -tag -mail " + rel_name)
+    atfile.close()
+    minuteval = random.randint(0,59)
+    min_str   = str( minuteval )
+    if minuteval < 10:
+      min_str = "0" + min_str
+    at = sub.Popen( ["at", "8:"+ min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
+    os.remove(tmpname)
+    #rot = sub.Popen( [rotator, "-devel", "-tag", "-mail", rel_name], stdout=sub.PIPE, stderr=sub.STDOUT )
+    (outstream, errstream) = at.communicate()
+    atval = at.wait()
+    if atval == 0:
+      print "Will rotate release : " + str(outstream)
+    else:
+      print "ERROR: There was a problem with the -at- command"
+      sys.exit(70)
+    #=Request a bmad distribution build and rotation
+    
 
-print "\n================== Build process finished completely. ===================="
-
-
+print "\n================== Build process finished completely. ====================\n"
 
 
 stout.close()                           # Close stream to logfile before quitting
+sys.exit(0)
