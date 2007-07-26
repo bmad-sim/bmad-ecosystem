@@ -1,0 +1,29 @@
+#!/bin/sh
+####################################################################
+# This script is a tiny wrapper around the third-party rsvn.py 
+# script.  It sets some crucial environment variables so that 
+# rsvn.py can use the subversion python bindings.
+#
+# The variables below refer to SVN python bindings that were built
+# against Python 2.2.3 on lnx209 (accserv).  The rsvn.py script
+# throws several API version mismatch warnings when run on a system
+# that has bindings built for a different version of Python.
+####################################################################
+
+# This first line will check the situation and prevent execution
+# of rsvn.py on systems other than lnx209, until behavior can be
+# tested.
+
+HOSTNAME=`hostname`
+if ( [ ${HOSTNAME} != "lnx209.lns.cornell.edu" ] ) then
+  echo "This script uses SVN Python bindings that have been built for Python 2.2.3 on lnx209."
+  echo "The behavior of this utility has not been tested on other systems and has been disallowed"
+  echo "on the current host, ${HOSTNAME}."
+  exit 1
+fi
+
+export PYTHONPATH=${PYTHONPATH}:/nfs/opt/svn/lib/svn-python
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/nfs/opt/svn/lib
+
+/home/cesrulib/bin/util/3rd-party/rsvn.py
+
