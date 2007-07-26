@@ -233,3 +233,5 @@ rm -f /home/cesrulib/cesr_libs/log/${REL_NAME}.genlog
 
 echo "  DONE."
 echo ""
+
+exit 0
