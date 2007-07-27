@@ -223,6 +223,9 @@ for platform in ${PLATFORMS}; do
     rm -f /home/cesrulib/cesr_libs/log/${platform}/${REL_NAME}.log
 done
 rm -f /home/cesrulib/cesr_libs/log/${REL_NAME}.genlog
+rm -rf /home/cesrulib/cesr_libs/distribution/${REL_NAME}
+rm -f /home/cesrulib/cesr_libs/distribution/${REL_NAME}.tar.gz
+rm -f /home/cesrulib/cesr_libs/distribution/log/${REL_NAME}.log
 
 
 ##################################################################
