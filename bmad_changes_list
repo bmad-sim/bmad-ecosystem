@@ -8,6 +8,10 @@ Put RF on warning in
 twiss_struct:
 	Add sigma_p
 
+Structure name changes:
+	bmad_com  --> bmad_parameters
+	etc...
+
 -----------------
 
 add function to calc: ring%param%s_start

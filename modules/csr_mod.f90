@@ -78,7 +78,7 @@ end type
 ! top and bottom walls. The side walls are neglected.
 !-
 
-type csr_common_struct                   ! Common block for csr calc
+type csr_parameter_struct                ! Common block for csr calc
   real(rp) :: ds_track_step = 0          ! Tracking step size
   real(rp) :: beam_chamber_height = 0    ! Used in shielding calculation.
   real(rp) :: sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
@@ -92,7 +92,7 @@ type csr_common_struct                   ! Common block for csr calc
   logical :: small_angle_approx = .true. ! Use lcsr small angle approximation?
 end type
 
-type (csr_common_struct), save, target :: csr_com
+type (csr_parameter_struct), save, target :: csr_param
 
 interface 
   subroutine save_bunch_track (bunch, ele, s_travel)
@@ -152,20 +152,20 @@ bunch_end = bunch_start
 ! n_step is the number of steps to take when tracking through the element.
 ! bin%ds_step is the true step length.
 
-if (csr_com%n_bin <= csr_com%particle_bin_span + 1) then
+if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
   call out_io (s_fatal$, r_name, &
-            'CSR_COM%N_BIN MUST BE GREATER THAN CSR_COM%PARTICLE_BIN_SPAN+1!')
+            'CSR_PARAM%N_BIN MUST BE GREATER THAN CSR_PARAM%PARTICLE_BIN_SPAN+1!')
   call err_exit
 endif
 
-if (csr_com%ds_track_step == 0) then
-  call out_io (s_fatal$, r_name, 'CSR_COM%DS_TRACK_STEP NOT SET!')
+if (csr_param%ds_track_step == 0) then
+  call out_io (s_fatal$, r_name, 'CSR_PARAM%DS_TRACK_STEP NOT SET!')
   call err_exit
 endif
 
 ! make sure that ele_len / track_step is an integer.
 
-n_step = max (1, nint(ele%value(l$) / csr_com%ds_track_step))
+n_step = max (1, nint(ele%value(l$) / csr_param%ds_track_step))
 bin%ds_track_step = ele%value(l$) / n_step
 
 auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
@@ -185,16 +185,16 @@ do i = 0, n_step
   ! ns = 0 is the unshielded kick.
   ! For the shielding image currents never use the small angle approximation
 
-  do ns = 0, csr_com%n_shield_images
+  do ns = 0, csr_param%n_shield_images
 
     ! %kick_factor takes into account that at the endpoints we are only putting in a half kick.
     bin%kick_factor = 1
     if (i == 0 .or. i == n_step) bin%kick_factor = 0.5
 
-    bin%y2 = ns * csr_com%beam_chamber_height
+    bin%y2 = ns * csr_param%beam_chamber_height
 
     if (ns == 0) then
-      call csr_bin_kicks (lat, ix_ele, s_start, bin, csr_com%small_angle_approx)
+      call csr_bin_kicks (lat, ix_ele, s_start, bin, csr_param%small_angle_approx)
 
     else
       ! The factor of two is due to there being image currents both above and below.
@@ -239,7 +239,7 @@ end subroutine
 !
 ! To avoid noise in the cacluation, every particle is considered to have a 
 ! triangular distribution with a base length  given by 
-!   csr_com%particle_bin_span * bin%dz_bin. 
+!   csr_param%particle_bin_span * bin%dz_bin. 
 ! That is, particles will, in general, overlap multiple bins. 
 !
 ! Modules needed:
@@ -247,7 +247,7 @@ end subroutine
 !
 ! Input:
 !   particle(:)          -- Particle_struct: Array of particles
-!   csr_com              -- Csr_common_struct: CSR common block (not an argument).
+!   csr_param            -- Csr_parameter_struct: CSR common block (not an argument).
 !     %n_bin             -- Number of bins.
 !     %particle_bin_span -- Particle length / dz_bin. 
 !
@@ -284,29 +284,29 @@ character(20) :: r_name = 'csr_bin_particles'
 ! The left edge of bin%bin1(1) is at z_min
 ! The right edge of bin%bin1(n_bin) is at z_max
 
-if (.not. csr_com%lcsr_component_on .and. .not. csr_com%lsc_component_on) return
+if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on) return
 
 dz = maxval(particle(:)%r%vec(5)) - minval(particle(:)%r%vec(5)) 
-bin%dz_bin = dz / (csr_com%n_bin - (csr_com%particle_bin_span + 1))
+bin%dz_bin = dz / (csr_param%n_bin - (csr_param%particle_bin_span + 1))
 bin%dz_bin = 1.0000001 * bin%dz_bin     ! to prevent round off problems
 dz_bin2 = bin%dz_bin / 2
 z_min = (maxval(particle(:)%r%vec(5)) + minval(particle(:)%r%vec(5))) / 2
-z_min = z_min - csr_com%n_bin * bin%dz_bin / 2
-z_max = z_min + csr_com%n_bin * bin%dz_bin / 2
-dz_particle = csr_com%particle_bin_span * bin%dz_bin
+z_min = z_min - csr_param%n_bin * bin%dz_bin / 2
+z_max = z_min + csr_param%n_bin * bin%dz_bin / 2
+dz_particle = csr_param%particle_bin_span * bin%dz_bin
 
 ! allocate memeory for the bins
 
 if (allocated(bin%bin1)) then
-  if (size(bin%bin1, 1) < csr_com%n_bin) deallocate (bin%bin1)
+  if (size(bin%bin1, 1) < csr_param%n_bin) deallocate (bin%bin1)
 endif
 
 if (.not. allocated(bin%bin1)) &
-    allocate (bin%bin1(csr_com%n_bin), bin%kick1(-csr_com%n_bin:csr_com%n_bin))
+    allocate (bin%bin1(csr_param%n_bin), bin%kick1(-csr_param%n_bin:csr_param%n_bin))
 
 ! Fill in some z information
 
-do i = 1, csr_com%n_bin
+do i = 1, csr_param%n_bin
   bin%bin1(i)%z0_edge  = z_min + (i - 1) * bin%dz_bin
   bin%bin1(i)%z_center = bin%bin1(i)%z0_edge + bin%dz_bin / 2
   bin%bin1(i)%z1_edge  = bin%bin1(i)%z0_edge + bin%dz_bin
@@ -316,7 +316,7 @@ enddo
 ! Each particle is distributed longitudinally in a triangular fashion.
 ! The tloc records how much charge for a given particle is in a bin.
 
-n = size(particle) * (csr_com%particle_bin_span + 2)
+n = size(particle) * (csr_param%particle_bin_span + 2)
 if (allocated(tloc)) then
   if (size(tloc) < n) deallocate (tloc)
 endif
@@ -350,7 +350,7 @@ do i = 1, size(particle)
   zp0 = zp_center - dz_particle / 2       ! particle left edge 
   zp1 = zp_center + dz_particle / 2       ! particle right edge 
   ix0 = nint((zp0 - z_min) / bin%dz_bin)  ! left most bin index
-  do j = 0, csr_com%particle_bin_span+1
+  do j = 0, csr_param%particle_bin_span+1
     ib = j + ix0
     bin1 => bin%bin1(ib)
     zb0 = bin%bin1(ib)%z0_edge
@@ -370,7 +370,7 @@ do i = 1, size(particle)
   enddo
 enddo
 
-do ib = 1, csr_com%n_bin
+do ib = 1, csr_param%n_bin
   if (bin%bin1(ib)%charge == 0) cycle
   bin%bin1(ib)%x0 = bin%bin1(ib)%x0 / bin%bin1(ib)%charge
   bin%bin1(ib)%y0 = bin%bin1(ib)%y0 / bin%bin1(ib)%charge
@@ -388,7 +388,7 @@ do ic = 1, size(tloc)
 enddo
 
 f = sqrt(pi/2)
-do ib = 1, csr_com%n_bin
+do ib = 1, csr_param%n_bin
   bin1 => bin%bin1(ib)
   if (bin1%charge == 0) cycle
   bin1%sig_x = f * bin1%sig_x / bin1%charge
@@ -484,7 +484,7 @@ character(16) :: r_name = 'csr_bin_kicks'
 ! elements containing P and P'. n_ele_pp will be incremented by
 ! next_element_params_calc as we go from one bin to the next.
 
-if (.not. csr_com%lcsr_component_on) return
+if (.not. csr_param%lcsr_component_on) return
 
 n_ele_pp = -1
 call next_element_params_calc (n_ele_pp, s0_kick_ele, k_factor)
@@ -525,7 +525,7 @@ enddo
 ! Now calculate the kick for a particle at the center of a bin.
 
 coef = bin%ds_track_step * r_e / (e_charge * bin%gamma)
-n_bin = csr_com%n_bin
+n_bin = csr_param%n_bin
 
 if (bin%y2 == 0) then
   call lsc_bin_kicks_y0 (bin)
@@ -672,19 +672,19 @@ sig_y_ave = dot_product(bin%bin1(:)%sig_y, bin%bin1(:)%charge) / sum(bin%bin1(:)
 ! Compute the kick at the center of each bin
 
 bin%bin1(:)%kick_lsc = 0
-if (.not. csr_com%lcsr_component_on) return
+if (.not. csr_param%lcsr_component_on) return
 
-do i = 1, csr_com%n_bin
+do i = 1, csr_param%n_bin
   bin1 => bin%bin1(i)
   sx = bin1%sig_x
   sy = bin1%sig_y
-  if (sx < sig_x_ave * csr_com%sigma_cutoff .or. &
-                          sy < sig_y_ave * csr_com%sigma_cutoff) cycle
+  if (sx < sig_x_ave * csr_param%sigma_cutoff .or. &
+                          sy < sig_y_ave * csr_param%sigma_cutoff) cycle
   a = sx * sy
   b = bin%gamma * (sx**2 + sy**2) / (sx + sy)
   c = bin%gamma**2
 
-  do j = 1, csr_com%n_bin
+  do j = 1, csr_param%n_bin
     if (i == j) cycle
     dz = bin%bin1(j)%z_center - bin%bin1(i)%z_center
     bin%bin1(j)%kick_lsc = bin%bin1(j)%kick_lsc + &
@@ -814,13 +814,13 @@ rad_cross_vec = cross(N_vec, NBpG_vec)
 
 coulomb2 = bin%gamma * z / ((bin%gamma * z)**2 + bin%y2**2)**(1.5)
 
-if (csr_com%lcsr_component_on) then
+if (csr_param%lcsr_component_on) then
   radiate  = dot_product (B_vec, rad_cross_vec) / (kf%L * OneNBp3)
   coulomb1 = dot_product (B_vec, NBp_vec) / (bin%gamma2 * kf%L**2 * OneNBp3)
   kick1%kick_csr = bin%kick_factor * (radiate + coulomb1 - coulomb2)
 endif
 
-if (csr_com%lsc_component_on) then
+if (csr_param%lsc_component_on) then
   kick1%kick_lsc = bin%kick_factor * coulomb2
 endif
 
@@ -1102,17 +1102,17 @@ i0 = int((zp - bin%bin1(1)%z_center) / bin%dz_bin) + 1
 r1 = (zp - bin%bin1(i0)%z_center) / bin%dz_bin
 r2 = 1 - r1
 
-if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= csr_com%n_bin) then
+if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= csr_param%n_bin) then
   print *, 'CSR INTERNAL ERROR!'
   call err_exit
 endif
 
-if (csr_com%lcsr_component_on) then
+if (csr_param%lcsr_component_on) then
   particle%r%vec(6) = particle%r%vec(6) + &
               r2 * bin%bin1(i0)%kick_csr + r1 * bin%bin1(i0+1)%kick_csr
 endif
 
-if (csr_com%lsc_component_on) then
+if (csr_param%lsc_component_on) then
   particle%r%vec(6) = particle%r%vec(6) + &
               r2 * bin%bin1(i0)%kick_lsc + r1 * bin%bin1(i0+1)%kick_lsc
 endif
