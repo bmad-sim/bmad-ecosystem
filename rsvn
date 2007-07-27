@@ -1,8 +1,12 @@
 #!/bin/sh
 ####################################################################
-# This script is a tiny wrapper around the third-party rsvn.py 
+# This script is a wrapper around the third-party rsvn.py 
 # script.  It sets some crucial environment variables so that 
 # rsvn.py can use the subversion python bindings.
+#
+# This is meant to be used manually from the command line, but it 
+# could also be called from within another script to set the 
+# environment variable paths.
 #
 # The variables below refer to SVN python bindings that were built
 # against Python 2.2.3 on lnx209 (accserv).  The rsvn.py script
