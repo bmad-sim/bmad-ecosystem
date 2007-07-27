@@ -51,11 +51,11 @@ type macro_init_struct
   integer n_macro      ! Number of macroparticles per slice.
 end type
 
-type macroparticle_com_struct
+type macroparticle_common_struct
   real(rp) ::  sig_z_min = 5e-6 ! min effective macroparticle length.
 end type
 
-type (macroparticle_com_struct), save :: mp_com
+type (macroparticle_common_struct), save :: mp_com
 
 interface assignment (=)
   module procedure mp_slice_equal_mp_slice

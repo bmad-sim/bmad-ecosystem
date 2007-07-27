@@ -193,7 +193,7 @@ type ele_struct
   logical is_on              ! For turning element on/off.
   logical old_is_on          ! For saving the element on/off state.
   logical logic              ! For general use. Not used by Bmad.
-  logical on_an_girder       ! Have an I_Beam overlay_lord?
+  logical on_an_girder       ! Have an Girder overlay_lord?
   logical csr_calc_on        ! Coherent synchrotron radiation calculation
 end type
 

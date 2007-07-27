@@ -12,7 +12,7 @@
 !   ix_girder    -- Integer: Index of girder element.
 !   ix_slave(:)  -- Index of element to control
 !   ele_init     -- Element containing attributes to be transfered
-!                   to the I_Beam element:
+!                   to the Girder element:
 !                       ele_init%name        
 !                       ele_init%alias
 !                       ele_init%descrip
@@ -23,7 +23,7 @@
 !
 ! Note: Use NEW_CONTROL to get an index for the girder element
 !
-! Example: Create an I_Beam supporting elements 
+! Example: Create the Girder supporting elements 
 ! lat%ele(10) and lat%ele(12)
 !
 !   call new_control (lat, ix_ele)        ! get IX_ELE index
