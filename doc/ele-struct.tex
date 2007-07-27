@@ -48,7 +48,7 @@ generally hidden  by the \bmad bookkeeping routines.
     logical map_with_offsets     ! Taylor map calculated with element offsets?
     logical field_master         ! Calculate strength from the field value?
     logical is_on                ! For turning element on/off.
-    logical on_an_girder         ! Have an I_Beam lord?
+    logical on_an_girder         ! Have an Girder lord?
     logical csr_calc_on          ! Coherent synchrotron radiation calculation
   end type
 \end{verbatim}
@@ -366,9 +366,10 @@ The positional offsets for an element are stored in:
   %value(y_pitch\$)
   %value(tilt\$)
 \end{example}
-\index{I_Beam}
-If the element is supported by an \vn{I_Beam} then the \vn{I_Beam}
-offsets are added on and the total offset with respect to the
+\index{Girder}
+If the element is supported by an \vn{Girder} then the \vn{Girder}
+offsets are added to the element offsets 
+and the total offset with respect to the
 reference coordinate system is stored in:
 \begin{example}
   %value(x_offset_tot\$)
@@ -377,8 +378,9 @@ reference coordinate system is stored in:
   %value(y_pitch_tot\$)
   %value(tilt_tot\$)
 \end{example}
-
-The important point is that to vary the position of an individual
+If there is no \vn{Girder}, the values for \vn{%value(x_offset_tot\$)}, etc.
+are set to the corresponding values in \vn{%value(x_offset\$)}, etc.
+Thus, to vary the position of an individual
 element the values of \vn{%value(x_offset\$)}, etc. are changed and to
 read the position of an element a program should look at
 \vn{%value(x_offset_tot\$)}, etc.

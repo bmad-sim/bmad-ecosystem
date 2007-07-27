@@ -43,7 +43,7 @@ end type
 \index{Lat_struct!%n_ele_track}
 \index{Lat_struct!%n_ele_max}
 \index{Ele_struct!in lat_struct} 
-\index{I_Beam}
+\index{Girder}
 \index{Overlay}
 \index{Group}
 The definition of the \vn{lat_struct} is shown in
@@ -56,7 +56,7 @@ part (also called the ``tracking'' part) and a ``control'' part (also
 called the ``lord'' part). The physical part of this array holds the
 elements that are tracked through. The physical part has \vn{free},
 \vn{overlay_slave}, and \vn{multipass_slave} \vn{control_type} elements. The
-control part holds the \vn{Overlay_lord}, \vn{I_Beam_lord},
+control part holds the \vn{Overlay_lord}, \vn{Girder_lord},
 \vn{multipass_lord}, \vn{super_lord}, and \vn{Group_lord}
 \vn{control_type} elements (\sref{s:control_type}).  The bounds of
 these two parts is given in Table~\ref{tab:part_extent}.
@@ -255,7 +255,7 @@ Each element of this array is a \vn{control_struct} structure
     integer ix_attrib              ! index of attribute controlled
   end type
 \end{example}
-\index{I_Beam}
+\index{Girder}
 \index{Overlay}
 \index{Group}
 \vn{%ix_lord} and \vn{%ix_slave} give the indices in the \vn{%ele(:)}

@@ -284,9 +284,13 @@ using symplectic integration.
 \index{Ds_step}
 \index{Integrator_order}
 Symplectic integration is typically much slower than concatination.
-The number of slices used for the integration is given by
-\vn{%ele%value(n_step\$)}. The order of the integrator is given by
-\vn{%ele%integrator_order}
+The width of an integration step is given by \vn{%ele%value(ds_step\$}.
+The attribute \vn{%ele%value(num_steps\$)}, which gives the number
+of integration steps, is a depenent variable 
+(\sref{s:depend}) and should not be set directly.
+The order of the integrator (\sref{s:taylor_phys})
+is given by \vn{%ele%integrator_order}. 
+PTC (\sref{c:etienne}) currently implements integrators of order 2, 4, or 6.
 
 %----------------------------------------------------------------
 \section{Macroparticle Tracking}

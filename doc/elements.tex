@@ -31,7 +31,7 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
   Group          & \ref{s:group}     &  Rcollimator   & \ref{s:col}      \HH
   HKicker        & \ref{s:hvkicker}  &  RFcavity      & \ref{s:rfcav}    \HH
   Hybrid         & \ref{s:hybrid}    &  Sbend         & \ref{s:bend}     \HH
-  I_Beam         & \ref{s:girder}    &  Sextupole     & \ref{s:sex}      \HH
+  Girder         & \ref{s:girder}    &  Sextupole     & \ref{s:sex}      \HH
   Instrument     & \ref{s:monitor}   &  Solenoid      & \ref{s:sol}      \HH
   Kicker         & \ref{s:kicker}    &  Sol_Quad      & \ref{s:sq}       \HH
   Lcavity        & \ref{s:lcav}      &  Taylor        & \ref{s:tay}      \HH
@@ -593,9 +593,9 @@ other element together. \vn{Hybrid} elements are not part of the input
 lattice file but are created by a program, usually for speed purposes.
 
 %-----------------------------------------------------------------
-\section{I_Beam}
+\section{Girder}
 \label{s:girder}
-\index{I_Beam|textbf}
+\index{Girder|textbf}
 
 \begin{center}
 \tt
@@ -606,21 +606,21 @@ lattice file but are created by a program, usually for speed purposes.
 \end{center}
 \toffset
 
-Attributes specific to an \vn{I_Beam} are:
+Attributes specific to an \vn{Girder} are:
 \begin{example}
-  girder = \{<List>\}   ! List of elements on the I_Beam
+  girder = \{<List>\}   ! List of elements on the Girder
 \end{example}
 
-An \vn{I_Beam} is a support structure that orients the elements that
+An \vn{Girder} is a support structure that orients the elements that
 are attached to it in space.
 
 \index{X_offset}
 \index{Y_pitch}
 \index{Tilt}
-When an \vn{I_Beam} overlays an element, then that elements
+When an \vn{Girder} overlays an element, then that elements
 orientation attributes (\vn{x_offset}, \vn{y_pitch}, \vn{tilt}, etc.) 
 give the orientation of
-the element with respect to the \vn{I_Beam}. An example will make this clear:
+the element with respect to the \vn{Girder}. An example will make this clear:
 \begin{example}
   q1: quad, l = 10
   q2: quad, l = 5, x_offset = 0.2, x_pitch = 0.01
@@ -633,24 +633,24 @@ In this example \vn{ib} supports elements \vn{q1} and \vn{q2}. The
 center of \vn{ib} is at $s = 7.5$ (\vn{ib} starts at $s = 0$ which is
 the beginning of \vn{q1} and ends at $s = 15$ which is the end of
 \vn{q2}). Like other elements, pitch is calculated from the center of
-an \vn{I_Beam} element (see Sec.~\ref{s:offset}). The center of
+an \vn{Girder} element (see Sec.~\ref{s:offset}). The center of
 \vn{q2} is at $s = 12.5$ so the distance between the center of \vn{ib}
 and \vn{q2} is $ds = 5$. The pitch of \vn{ib} produces an offset at
 the center of \vn{q2} of $0.5 = 0.1 * 5$. This, added to the offsets
 of \vn{ib} and \vn{q2}, give the total offset of \vn{q2} to be $1.0 =
 0.5 + 0.3 + 0.2$. The total \vn{x_pitch} of \vn{q2} is $0.11 = 0.1 +
-0.01$. From the above example it can be seen that an \vn{I_Beam} looks
+0.01$. From the above example it can be seen that an \vn{Girder} looks
 similar to an \vn{Overlay} (see Sec.~\ref{s:overlay}). It would,
 however, take six \vn{Overlays} to simulate the effect of a single
-\vn{I_Beam}.
+\vn{Girder}.
 
-The \vn{I_Beam} statement syntax is:
+The \vn{Girder} statement syntax is:
 \begin{example}
   beam_name: GIRDER = \{ele1, ele2, ... \}, ...
 \end{example}
-An \vn{I_Beam} element will be created for each \vn{ele1} element in
+An \vn{Girder} element will be created for each \vn{ele1} element in
 the lattice. The elements \vn{ele2}, \vn{ele3}, etc. do not have to be
-consecutive but, if more than one \vn{I_Beam} is to be created, need
+consecutive but, if more than one \vn{Girder} is to be created, need
 to be in order of increasing \vn{s}.
 For example:
 \begin{example}
@@ -662,7 +662,7 @@ For example:
   this_line: line = (q1, s0, s1, q2, ..., q1, s0, s1, q2)
   use, this
 \end{example}
-In this example two \vn{I_Beam} elements will be created.
+In this example two \vn{Girder} elements will be created.
 
 Note to programmers: The total horizontal offset of any element is
 stored in the element component \vn{%value(x_offset_tot\$)}. Similarly
@@ -1499,7 +1499,8 @@ For the periodic type \vn{Wiggler}s the attributes are:
   b_max    = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline. 
   polarity = <Real>  ! Used to scale the field strength.
   l_pole   = <Real>  ! Wiggler pole length. The period is then 2 * l_pole.
-  n_pole   = <Real>  ! The number of poles (L / L_POLE). A settable Dependent attribute (\sref{s:depend}).
+  n_pole   = <Real>  ! The number of poles (L / L_POLE). 
+                     !   A settable Dependent attribute (\sref{s:depend}).
   k1                 ! Vertical focusing strength. Dependent attribute (\sref{s:depend}).
   rho                ! Bending radius. Dependent attribute (\sref{s:depend}).
 \end{example}
