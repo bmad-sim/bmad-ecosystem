@@ -20,7 +20,7 @@ use tao_mod
 use tao_top10_mod
 use tao_command_mod, only: tao_cmd_split
 use random_mod
-use csr_mod, only: csr_com
+use csr_mod, only: csr_param
 
 implicit none
 
@@ -177,12 +177,12 @@ case ('beam')
   nl=nl+1; write(lines(nl), lmt) 'bmad_com%radiation_damping_on      = ', bmad_com%radiation_damping_on
   nl=nl+1; write(lines(nl), lmt) 'bmad_com%radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), rmt) 'csr_com%ds_track_step      = ', csr_com%ds_track_step
-  nl=nl+1; write(lines(nl), imt) 'csr_com%n_bin              = ', csr_com%n_bin
-  nl=nl+1; write(lines(nl), imt) 'csr_com%particle_bin_span  = ', csr_com%particle_bin_span
-  nl=nl+1; write(lines(nl), lmt) 'csr_com%lcsr_component_on  = ', csr_com%lcsr_component_on
-  nl=nl+1; write(lines(nl), lmt) 'csr_com%lsc_component_on   = ', csr_com%lsc_component_on
-  nl=nl+1; write(lines(nl), lmt) 'csr_com%tsc_component_on   = ', csr_com%tsc_component_on
+  nl=nl+1; write(lines(nl), rmt) 'csr_param%ds_track_step        = ', csr_param%ds_track_step
+  nl=nl+1; write(lines(nl), imt) 'csr_param%n_bin                = ', csr_param%n_bin
+  nl=nl+1; write(lines(nl), imt) 'csr_param%particle_bin_span    = ', csr_param%particle_bin_span
+  nl=nl+1; write(lines(nl), lmt) 'csr_param%lcsr_component_on    = ', csr_param%lcsr_component_on
+  nl=nl+1; write(lines(nl), lmt) 'csr_param%lsc_component_on     = ', csr_param%lsc_component_on
+  nl=nl+1; write(lines(nl), lmt) 'csr_param%tsc_component_on     = ', csr_param%tsc_component_on
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', s%global%track_type
   nl=nl+1; write(lines(nl), lmt) 'global%save_beam_everywhere = ', s%global%save_beam_everywhere

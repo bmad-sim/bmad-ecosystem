@@ -202,9 +202,9 @@ namelist block named \vn{tao_params} The syntax of this block is:
     n_d2_data_max = <integer>   ! number of d2 data structures.
     n_data_max    = <integer>   ! Total number of data points
     n_var_max     = <integer>   ! Total number of variables.
-    global        = <tao_global_struct>  ! global parameters
-    bmad_com      = <bmad_com_struct> ! Bmad global parameters
-    csr_com       = <csr_common_struct>  ! CSR global parameters
+    global        = <tao_global_struct>     ! global parameters
+    bmad_com      = <bmad_com_struct>       ! Bmad global parameters
+    csr_param     = <csr_parameter_struct>  ! CSR global parameters
   /
 \end{example}
 Example:
@@ -301,19 +301,26 @@ The \vn{bmad_com_struct} holds bmad global variables.
     logical :: spin_tracking_on = T           ! Do particle spin tracking
   end type
 \end{example}
+See the Bmad manual for more details.
 
-The \vn{csr_common_struct} holds global variables for the coherent
-synchrotron radiation calculations.
+The \vn{csr_parameter_struct} holds global variables for the coherent
+synchrotron radiation calculations. 
 \begin{example}
-  type csr_common_struct
-    real(rp) ds_track_step              ! Tracking step size
-    integer n_bin                       ! Number of bins (slices) used
-    integer particle_bin_span = 2       ! Longitudinal particle length / bin width
-    logical :: lcsr_component_on = T    ! Longitudinal csr component
-    logical :: lsc_component_on = T     ! Longitudinal space charge component
-    logical :: tsc_component_on = T     ! Transverse space charge component
+  type csr_parameter_struct
+    real(rp) :: ds_track_step = 0          ! Tracking step size
+    real(rp) :: beam_chamber_height = 0    ! Used in shielding calculation.
+    real(rp) :: sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
+                                           !  is < cutoff * sigma_ave then ignore.
+    integer :: n_bin = 0                   ! Number of bins used
+    integer :: particle_bin_span = 2       ! Longitudinal particle length / dz_bin
+    integer :: n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
+    logical :: lcsr_component_on = .true.  ! Longitudinal csr component
+    logical :: lsc_component_on = .true.   ! Longitudinal space charge component
+    logical :: tsc_component_on = .true.   ! Transverse space charge component
+    logical :: small_angle_approx = .true. ! Use lcsr small angle approximation?
   end type
 \end{example}
+See the Bmad manual for more details.
 
 %------------------------------------------------------------------------
 \section{Optimization Parameters}

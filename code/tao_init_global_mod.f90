@@ -28,7 +28,7 @@ use tao_input_struct
 use macroparticle_mod
 use bmad_parser_mod
 use random_mod
-use csr_mod, only: csr_com
+use csr_mod, only: csr_param
 use spin_mod
   
 implicit none
@@ -76,7 +76,7 @@ logical calc_emittance
 logical, allocatable :: mask(:)
 
 
-namelist / tao_params / global, bmad_com, csr_com, &
+namelist / tao_params / global, bmad_com, csr_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max, spin
   
 namelist / tao_coupled_uni_init / ix_universe, coupled
