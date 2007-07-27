@@ -44,7 +44,7 @@ compatibility with \mad.
 \begin{table}
 \centering
 \begin{tabular}{|l|l|l|l|} \hline
-  {\em Symbol}  & {\em Value}       & {\em Units} &  {\em Name}     \\ \hline
+  {\em Symbol}  & {\em Value}       & {\em Units} &  {\em Name}       \\ \hline
   pi            & 3.14159265359          &        &                   \\
   twopi         & 2 * pi                 &        &                   \\
   fourpi        & 4 * pi                 &        &                   \\
@@ -58,7 +58,7 @@ compatibility with \mad.
   h_planck      & $6.626196 \pow{-34}$   & J/Hz   & Planck's constant \\
   h_bar_planck  & $1.054591 \pow{-34}$   & J s    & Planck / $2\pi$   \\
   e_mass        & $0.51099906 \pow{-3}$  & GeV    & Electron mass     \\
-  p_mass        & $0.938271998$          & GeV    & Proton mass     \\ \hline
+  p_mass        & $0.938271998$          & GeV    & Proton mass       \\ \hline
 \end{tabular}
 \caption{Physical and mathematical constants recognized by \bmad.}
 \label{t:constants}
@@ -84,8 +84,10 @@ components have been ignored here. Assuming that the
 reference orbit is locally straight (there are correction terms if the
 Reference Orbit is locally curved), the field up to $3^{rd}$ order is
 \begin{alignat}{5}
-  B_x &=           &&B_1 y \plus         &&B_2 \, xy       && \plus && \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \\
-  B_y &= B_0 \plus &&B_1 x + \frac{1}{2} &&B_2 (x^2 - y^2) && \plus && \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
+  B_x &=           &&B_1 y \plus         &&B_2 \, xy       
+                   && \plus && \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \\
+  B_y &= B_0 \plus &&B_1 x + \frac{1}{2} &&B_2 (x^2 - y^2) 
+                   && \plus && \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
 \end{alignat}
 The normalized integrated multipole $K_nL$ is used when specifying magnetic
 multipole components
@@ -779,11 +781,11 @@ dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
 The dispersion ($\eta$) and the dispersion derivative ($\eta'$) are 
 defined by the equations
 \begin{align}
-  \eta_x &\equiv \frac{dx}{dp_z} \CRNO
-  \eta'_x &\equiv \frac{d\eta_x}{ds} = \frac{dx'}{dp_z} \CRNO
-  \eta_y &\equiv \frac{dy}{dp_z} \\
-  \eta'_y &\equiv \frac{d\eta_y}{ds} = \frac{dy'}{dp_z} \CRNO
-  \eta_z &\equiv \frac{dz}{dp_z} \CRNO
+  \eta_x &\equiv \frac{dx}{dp_z} \comma \qquad
+    \eta'_x \equiv \frac{d\eta_x}{ds} = \frac{dx'}{dp_z} \CRNO
+  \eta_y &\equiv \frac{dy}{dp_z} \comma \qquad
+    \eta'_y \equiv \frac{d\eta_y}{ds} = \frac{dy'}{dp_z} \\
+  \eta_z &\equiv \frac{dz}{dp_z} \nonumber
 \end{align}
 
 The dispersion calculation is as follows: 
@@ -810,6 +812,7 @@ the dispersion at point 2 in terms of the dispersion at point 1 is
 where
 \Begineq
   \bV_\eta = \frac{dp_{z1}}{dp_{z2}} \, \frac{1}{1 + p_{z1}}
+  \left(
   \begin{array}{c}
     M_{12} \, p_{x1} + M_{14} \, p_{y1} \\
     M_{22} \, p_{x1} + M_{24} \, p_{y1} \\
@@ -818,7 +821,9 @@ where
     M_{52} \, p_{x1} + M_{54} \, p_{y1} \\
     M_{62} \, p_{x1} + M_{64} \, p_{y1} \\
   \end{array}
+  \right)
   -
+  \left(
   \begin{array}{c}
     0 \\
     \frac{p_{x2}}{1 + p_{z2}} \\
@@ -827,6 +832,7 @@ where
     0 \\
     0 
   \end{array}
+  \right)
 \Endeq
 The sixth row of the matrix equation gives $dp_{z1}/dp_{z2}$. 
 Explicitly
@@ -982,6 +988,7 @@ to the charge associated with the slice.
 
 %-----------------------------
 \subsection{Short--Range Wakes}
+\index{Wakefields|short-range}
 
 Wakefield effects are divided into short--range (within a bunch) and
 long--range (between bunches).
@@ -1052,6 +1059,7 @@ modes are used.
 
 %-----------------------------
 \subsection{Long--Range Wakes}
+\index{Wakefields|long-range}
 
 Following Chao\cite{b:chao} Eq.~2.88, The long--range wakefields are
 characterized by a set of cavity modes. The wake function $W$ for a
@@ -1350,9 +1358,9 @@ at the end of the linac is
 Where $\gamma_f$ is the final gamma
 
 %-----------------------------------------------------------------   
- \section{Spin Dynamics}   
- \label{s:spin_dyn}   
- \index{Spin tracking!Spin dynamics}   
+\section{Spin Dynamics}   
+\label{s:spin_dyn}   
+\index{Spin tracking!Spin dynamics}   
     
  The matrix representation of the observable corresponding to the measurement of   
  spin along the unit vector $\Bf u$ in the ${ |+> = \left(\begin{matrix}1 \\ 0   
@@ -1433,7 +1441,7 @@ basis is
  $\alpha$ around a unit vector $\Bf e$ represented as   
    \Begineqs   
      \Psi &=& e^{-i \frac{\alpha}{2} \Bf e \cdot \Bf \sigma} \Psi_{i} \\   
-          &=& \left( a_{0} \Bf 1_{2} - i \boldsymbol{a} \cdot \Bf \sigma \right) \Psi_{i} \\   
+          &=& \left( a_{0} \Bf 1_{2} - i \boldsymbol{a} \cdot \Bf \sigma \right) \Psi_{i} \\
           &=& \Bf A \Psi_{i}.   
    \Endeqs   
  The SU(2) matrix $\Bf A$ is called a \textit{quaternion} and has the   
@@ -1441,4 +1449,70 @@ basis is
  $\left(a_{1}, a_{2}, a_{3}\right)$, along with the normalization condition,   
  describes the transport of spin between any two points in an accelerator. 
  
-% LocalWords: rcr
+%-----------------------------------------------------------------   
+\section{Coherent Synchrotron Radiation}
+\label{s:csr}   
+\index{Coherent Synchrotron Radiation}   
+
+\begin{figure}[!b]
+\centering
+\includegraphics[height=8.4cm]{csr.eps}
+\caption[CSR Calculation]
+{The Coherent Synchrotron Radiation kick is calculated by dividing
+longitudinally a bunch into a number of bins. To smooth the computed
+densities, each particle of the bunch is considered to have a
+triangular density distribution.}
+\label{f:local_coords}
+\end{figure}
+
+First a definition of some terms to avoid confusion: \vn{space charge} (SC)
+and \vn{Coherent Synchrotron Radiation} (CSR) deal with the same problem
+which is the direct interaction between the particles of a bunch. This is
+to be differentiated from the indirect \vn{wakefield} effects which are
+mediated by the vacuum chamber within which a particle beam moves. The
+difference between SC and CSR is that a CSR calculation takes into account
+the fact that there is a delay time, due to the finite velocity of the
+speed of light, so that the field felt by some particle at time $t$ due to
+another (source) particle is based on the source particle's position at
+some retarted time $t' \ne t$. A SC calculation, on the other hand, assumes
+that the field produced by a prticle at time $t$ can be can be computed
+from that particle's positions at time $t$. Which type of calculation is
+better depends upon what is to be simulated. Generally, the SC calculation
+is preferred at lower energies where a particle's velocity is significantly
+different from the speed of light.
+
+\bmad simulates coherent synchrotron radiation (CSR) using the formalism
+developed by Sagan\cite{b:csr}. 
+This formalism divides the total kick
+received by a particle due to another particle into two parts: One part is
+called the \vn{Coulomb} kick and the other component is the \vn{coherent
+synchrotron radiation} (CSR) kick. By definition, the Coulomb component is
+the kick that would result if both particles were travelling in a straight
+line. The CSR component is what is left when the Coulomb kick is subtracted
+off from the total kick. Generally, the Coulomb kick is negligible compared
+to the CSR kick at large enough particle energies.
+
+
+Transport through a lattice element involves a beam of particles. The
+lattice element is divided up into a number of slices. Transport
+through a slice is a two step process.  The first step is to give all
+the particles a kick due to the CSR. The second step is transport of
+all particles without any interaction between particles. Note that
+only the longitudinal CSR kick is implemented and transverse kicks are
+ignored.
+
+The particle-particle kick is calculated by dividing the bunch
+longitudinally into a number of bins. To smooth the computed bin
+densities, each particle of the bunch is considered to have a
+triangular density distribution as shown in Figure~\ref{f:csr_bin}.
+The particle density of a bin is calculated by summing the
+contribution from all the particles. The contribution of a given
+particle to a given bin is calculated from the overlap of the
+particle's triangular density distribution with the bin. For the CSR
+kick, the density is actually calculated for a set of bins that have
+been shifted by 1/2 the bin width. This gives the density at the edges
+of the original set of bins. The density is cosidered to vary linearly
+between the computed density points. For a description of the
+parameters that affect the CSR calculation see
+Section~\sref{s:csr_params}.
+ 
