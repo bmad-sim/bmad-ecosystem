@@ -6,17 +6,72 @@ access to some of these parameters so, in order to allow the intelligent
 setting of these parameters, this chapter gives an in-depth description.
 
 A set of global parameters are grouped that affect a particular type
-of calculation are grouped into \vn{``structures''}. Each
-structure has a \vn{``type name''} which the user can ignore but is 
-important to programmers and an \vn{``instance name''} which is what the
-user uses to refer to this \vn{structure}.
+of calculation are grouped into \vn{``structures''}. Each structure
+has a \vn{``structure name''} (also called a \vn{``type name''}) which
+the user can ignore but is important to programmers and an
+\vn{``instance name''} which is what the user uses to refer to this
+\vn{structure}. To refer to a particular parameter use the syntax
+\begin{example}
+  instance_name%parameter_name
+\end{example}
+For example, To refer to the \vn{max_aperture_limit} parameter in
+Section~\sref{s:bmad_params} the syntax is
+\begin{example}
+  bmad_com%max_aperture_limit
+\end{example}
+
+%-----------------------------------------------------------------
+\section{Bmad General Parameters}
+\label{s:bmad_params}
+\index{Bmad general parameters|textbf}
+
+Some overall parameters are stored in the \vn{bmad_common_struct}
+structure. The instance name here is \vn{bmad_com}. The parameters of
+this structre are:
+\begin{example}
+  type bmad_common_struct
+    real(rp) :: max_aperture_limit = 1e3       ! Max Aperture.
+    real(rp) :: d_orb(6)           = 1e-5      ! for the make_mat6_tracking routine.
+    real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.
+    real(rp) :: default_ds_step    = 0.2       ! Integration step size.  
+    real(rp) :: rel_tolerance = 1e-5           ! Runge-Kutta: Relative tolerance.
+    real(rp) :: abs_tolerance = 1e-8           ! Runge-Kutta: Absolute tolerance.
+    integer :: taylor_order = 3                ! 3rd order is default
+    integer :: default_integ_order = 2         ! PTC integration order
+    logical :: canonical_coords = .true.       ! Use (x, px) [not (x, x')]
+    logical :: use_liar_lcavity = .false.      ! Liar like tracking?
+    logical :: sr_wakes_on = .true.            ! Short range wake fields?
+    logical :: lr_wakes_on = .true.            ! Long range wake fields
+    logical :: mat6_track_symmetric = .true.   ! symmetric offsets
+    logical :: auto_bookkeeper = .true.        ! Automatic bookkeeping?
+    logical :: trans_space_charge_on = .false. ! Space charge switch
+    logical :: coherent_synch_rad_on = .false. ! csr 
+    logical :: spin_tracking_on = .false.      ! spin tracking?
+    logical :: radiation_damping_on = .false.       ! Damping toggle.
+    logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
+    logical :: compute_ref_energy = .true.          ! Enable recomputation?
+  end type
+\end{example}
+
+\vn{max_aperture_limit} is the maximum amplitude a particle can have
+during tracking. If this amplitude is exceeded that particle is
+decleared lost even there is no element aperture set. Having a maximum
+aperture limit helps prevent numerical overflow in the calculations.
+
+\vn{d_orb} is the orbit displacement used in the routine that
+calculates the transfer matrix through an element via tracking.
 
 %-----------------------------------------------------------------
 \section{CSR Parameters}
 \label{s:csr_params}
+\index{CSR Parameters|textbf}
 
 The Coherent Synchrotron Radiation (CSR) calculation is discussed in
-Section~\sref{s:csr}. The CSR parameter structure has a \vn{type name}
+Section~\sref{s:csr}. Besides the parameters discussed below, the
+\vn{coherent_synch_rad_on} parameter in Section~\sref{s:bmad_params}
+must be set True to enable the CSR calculation.
+
+The CSR parameter structure has a \vn{type name}
 of \vn{csr_common_struct} and an \vn{instance name} of \vn{csr_com}.
 This structure has components
 \begin{example}
@@ -39,7 +94,47 @@ The values for the various quantities shown above are their default values.
 \vn{ds_track_step} is the nominal longitudinal distance traveled by
 the bunch between CSR kicks. The actual distance between kicks within
 a lattice element is adjusted so that there is an integer number of
-steps from steps from the element entrance to the element
-exit. An error will result if \vn{ds_track_step} is not set to a positive value.
+steps from steps from the element entrance to the element exit.  This
+parameter must be set to something positive otherwise an error will
+result. Larger values will speed up the calculation at the expense of
+accuracy.
 
-\vn{beam_chamber_height} is the height of the beam chamber 
+\vn{beam_chamber_height} is the height of the beam chamber in
+meters. This parameter is used when shielding is taken into account.
+See also the description of the parameter \vn{n_shield_images}.
+
+\vn{sigma_cutoff} is used in the longitudinal space charge (LSC)
+calculation and is used to prevent bins with only a few particles in
+them to give a large contribution to the kick when the computed
+transverse sigmas are abnormally low.
+
+\vn{n_bin} is the number of bins used. The bind width is dynamically
+adjusted at each kick point so that the bins will span the bunch
+length.  This parameter must be set to something positive. Larger
+values will slow the calculation while smaller values will lead to
+inaccuraces and loss of resolution. \vn{n_bin} should also not be set
+so large that the average number of particles in a bin is too small. 
+``Typical'' values are in the range 100 --- 1000.
+
+\vn{particle_bin_span} is the width of a particle's triangular density
+distribution (cf.~\sref{s:csr}) in multiples of the bin width. A
+larger span will give better smoothing of the computed particle
+density with an attendant loss in resolution.
+
+\vn{n_shield_images} is the number of shielding current layers used in
+the shieldling calculation. A value of zero results in no
+shielding. See also the description of the parameter
+\vn{beam_chamber_height}. The proper setting of this parameter depends
+upon how strong the shielding is. Larger values give better accuracy
+at the expense of computation speed. ``Typical'' values are in the
+range 0 --- 5.
+
+\vn{lcsr_component_on} toggles on or off the (longitudinal) CSR kick.
+
+\vn{lsc_component_on} toggles on or off the transverse space charge
+kick. Currently this calculation is not implemented so this parameter
+does not have any affect.
+
+\vn{small_angle_approx} toggles whether the small angle approximation
+is used in the calculation. This is generally an excellant
+approximation.

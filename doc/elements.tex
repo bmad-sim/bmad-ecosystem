@@ -775,7 +775,7 @@ The attributes specific to an \vn{Lcavity} are
                           !   respect to the RF. phi0 = 0 is on crest.
   dphi0        = <Real>   ! Phase with respect to a multipass lord (rad/2\(\pi\)).
   phi0_err     = <Real>   ! Phase error (rad/2\(\pi\))
-  e_loss       = <Real>   ! Loss parameter for short range wakefields (V/Coulomb).
+  e_loss       = <Real>   ! Loss parameter for short range wake fields (V/Coulomb).
   rf_frequency = <Real>   ! Rf frequency (Hz).
   delta_e                 ! Change in energy of an on-crest particle. 
                           !   Dependent attribute (\sref{s:depend}).
@@ -806,7 +806,7 @@ where
 lord. See \sref{s:multipass}.
 
 The \vn{e_loss} attribute in the formula for \vn{dE} represents the
-energy loss due to short--range wakefields. \vn{n_part} is set using
+energy loss due to short--range wake fields. \vn{n_part} is set using
 the \vn{parameter} statement (\sref{s:param}) and represents the
 number of particles in a bunch. \vn{e_charge} is the charge on an
 electron (Table~\ref{t:constants}). Notice that the energy kick is
@@ -856,10 +856,10 @@ For \vn{coupler_angle} = 0 the transverse kick due to the coupler is
 
 
 
-\index{Wakefields!in Lcavity}
-The formulas used to compute the wakefield are given in
-\sref{s:wakefields}.  The input file name for the short--range
-wakefields is specified using the \vn{sr_wake_file} attribute. The
+\index{Wake fields!in Lcavity}
+The formulas used to compute the wake field are given in
+\sref{s:wake fields}.  The input file name for the short--range
+wake fields is specified using the \vn{sr_wake_file} attribute. The
 file gives both monopole longitudinal and dipole transverse
 wakes. Comment lines may be included by starting a line with an
 exclamation mark (!). Blank lines are also ignored.  An example input
@@ -895,7 +895,7 @@ file is:
 The file is divided into two sections with a line containing the word
 \vn{END_SECTION} marking the division between the sections.  Wakes can
 be specified via a table of wake versus longitudinal position $z$
-and/or using a set of ``pseudo'' modes (\sref{s:wakefields}). The
+and/or using a set of ``pseudo'' modes (\sref{s:wake fields}). The
 first section gives the wake vs $z$ table, and the second section
 gives the longitudinal monopole and transverse dipole pseudo modes.
 The range of the table is from $0$ to $z_{cut}$ where $z_{cut}$ is the
@@ -910,16 +910,16 @@ longitudinal distance $z$. $z$ must start at 0 and must increment by the a
 constant amount from row to row. $z$ is negative since the wake extends behind
 a particle. The second column is the longitudinal wake function in $V/C/m$. The
 third column is the transverse wake in $V/C/m^2$. Any additional columns are
-ignored.  Wakefield formulas are to be found in \sref{s:wakefields}.  The
-wakefield file is only used with macroparticle and particle distribution
-tracking.  When the short--range wakefield file is used with either of these
+ignored.  Wake field formulas are to be found in \sref{s:wake fields}.  The
+wake field file is only used with macroparticle and particle distribution
+tracking.  When the short--range wake field file is used with either of these
 the \vn{e_loss} attribute is ignored. However, even in this case, a finite
 \vn{e_loss} value will affect the reference energy. Since the quantities like
 quadrupole k1 strengths and bend strengths are referenced to the reference
 energy, The value of \vn{e_loss} will affect the results even with a
-short--range wakefield file.
+short--range wake field file.
 
-The input file name for the long--range wakefields is specified using
+The input file name for the long--range wake fields is specified using
 the \vn{lr_wake_file} attribute. The file gives the
 wake modes by specifying the frequency (in Hz), R/Q (in
 $\Omega$/meter$^{2m}$), Q, and m (order number), and optionally the

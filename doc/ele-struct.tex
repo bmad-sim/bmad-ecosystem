@@ -33,7 +33,7 @@ generally hidden  by the \bmad bookkeeping routines.
     real(rp) s                        ! longitudinal position at the end
     real(rp), pointer :: a_pole(:) => null()  ! skew multipole component
     real(rp), pointer :: b_pole(:) => null()  ! normal multipole component
-    type (wake_struct), pointer :: wake => null() ! Wakefields
+    type (wake_struct), pointer :: wake => null() ! Wake fields
     type (taylor_struct) :: taylor(6)             ! Taylor terms
     integer key                  ! key value
     integer sub_key              ! For wigglers: map_type$, periodic_type$
@@ -458,11 +458,11 @@ calculations. However, The Taylor map itself will depend upon what
 reference point is chosen (\sref{s:taylor_phys}).
 
 %--------------------------------------------------------------------------
-\section {Wakefields}
-\index{Wakefields!in ele_struct}
+\section {Wake fields}
+\index{Wake fields!in ele_struct}
 
-See \sref{s:wakefields} for the equations used in wakefield
-calculations.  Wakefields are stored in the \vnes{%wake} struct:
+See \sref{s:wake fields} for the equations used in wake field
+calculations.  Wake fields are stored in the \vnes{%wake} struct:
 \begin{example}
   type wake_struct
     character(200) :: sr_file = ' '
@@ -500,7 +500,7 @@ The structure of each element in this array is:
   end type
 \end{example}
 All \vn{%wake%sr_table(0:)%z} must be negative except \vn{%wake%sr_table(0)%z} 
-= 0. Wakefield kicks are applied using \Eqs{delvp} and \eq{pelqxw}.
+= 0. Wake field kicks are applied using \Eqs{delvp} and \eq{pelqxw}.
 
 The alternitive short--range wake parameterization uses pseudo--modes (\Eq{wadzk}).
 This parameterization utilizes the \vn{%wake%sr_mode_long}, and \vn{%wake%sr_mode_trans}
@@ -518,7 +518,7 @@ The structure used for the elements of these arrays are:
     real(rp) skew_cos   ! skew cos-like component of the wake
   end type
 \end{example}
-The wakefield kick is calculated from \Eq{wadzk}. \vn{%amp},
+The wake field kick is calculated from \Eq{wadzk}. \vn{%amp},
 \vn{%damp}, \vn{%freq}, and \vn{%phi} are the input parameters from
 the lattice file. the last four components (\vn{%norm_sin}, etc.)
 store the accumulated wake: Before the bunch passes through these are
