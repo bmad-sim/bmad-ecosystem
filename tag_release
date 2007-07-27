@@ -158,7 +158,7 @@ fi
 # Create the transaction, execute the operations, close repository.
 # All handled by rsvn.py script.
 ######################################################################
-${UTIL_DIR}/rsvn.py --message="Tagging ${TYPE} release ${REL_NAME}" --revision=${rev} --username=cesrulib /mnt/svn < ${tmpdir}/${tmpfile}
+${UTIL_DIR}/3rd-party/rsvn.py --message="Tagging ${TYPE} release ${REL_NAME}" --revision=${rev} --username=cesrulib /mnt/svn < ${tmpdir}/${tmpfile}
 
 
 # Clean up
