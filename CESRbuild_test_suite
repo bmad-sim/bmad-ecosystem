@@ -35,7 +35,6 @@
 
 import os, sys, string, time, shutil, ConfigParser
 import subprocess as sub
-import pexpect      # 3rd-party pure Pyton module for expect-like functionality
 
 print "\nUsing Python interpreter:"
 print sys.version
@@ -45,29 +44,44 @@ print sys.version
 #============================================================================
 cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
 config   = ConfigParser.ConfigParser()
-config.optionxform = lambda x: x   # Obtain all values without changing case-
+config.optionxform = lambda x: x   # <-Obtain values without changing case --
 config.read(cfg_file)              #  overrides default ConfigParser behavior
 #============================================================================
-# Grab necessary values from the Config files.
+# Grab the UTIL path value from the Config file here to facilitate 2nd-tier
 #============================================================================
 UTIL_DIR   = config.get("Paths", "UTIL_DIR")
-# Set up parser for 2nd level test suite config file
+#============================================================================
+# Set up parser for 2nd-tier test suite config file
+#============================================================================
 suite_cfg_file = UTIL_DIR +'/'+ config.get("Test_Suite", "CONFIG_FILE")
 sconfig = ConfigParser.ConfigParser()
-sconfig.optionxform = lambda x: x
-sconfig.read(suite_cfg_file)
-#============================================================================
+sconfig.optionxform = lambda x: x  # <-Obtain values without changing case --
+sconfig.read(suite_cfg_file)       #  overrides default ConfigParser behavior
 
+
+#=== Paths ==================================================================
 test_list  = sconfig.sections().remove("files")
 BIN_DIR    = config.get("Paths", "BIN_DIR")
 LIBS_DIR   = config.get("Paths", "LIBS_DIR")
 LOG_DIR    = config.get("Paths", "LOG_DIR")
 repository = config.get("Repository", "path")
 platforms  = []
+
+
+#============================================================================
+# Third party module search path set up and importation
+#============================================================================
+sys.path.append(UTIL_DIR + "/3rd-party")
+import pexpect # Pexpect module for controlling spawned interactive processes.
+
+
+#============================================================================
+#   VARIABLE SETUP
+#============================================================================
+platforms  = []
 for plat in config.options("Platforms"):
     if config.get("Platforms", plat) == "FULL":
         platforms.append(plat)
-
 
 ########################################################################################
 # Dictionaries that define the group of programs to test, based on mode. Int or non-int.
