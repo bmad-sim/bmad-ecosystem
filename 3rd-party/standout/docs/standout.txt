@@ -1,0 +1,837 @@
+=======================================
+ StandOut - The Flexible Output Object
+=======================================
+----------------------------
+ Logging and Output Control
+----------------------------
+
+:Author: Michael Foord
+:Contact: fuzzyman@voidspace.org.uk
+:Version: 3.0.0
+:Date: 2006/08/26
+:License: `BSD License`_ [#]_
+:Online Version: `standout online`_
+:Support: `Mailing List`_
+
+.. _Mailing List: http://groups.google.com/group/pythonutils/
+.. _`standout online`: http://www.voidspace.org.uk/python/standout.html
+.. _BSD License: BSD-LICENSE.txt
+
+.. contents:: StandOut Manual
+
+
+Introduction
+============
+
+*standout* is a module that provides a single class ``StandOut`` - the flexible output object. It provides a simple way of adding logging to a program, *and* an easy way of adding verbosity levels.
+
+By assigning a priority level to each message, it makes it trivially easy to allow your users to choose their own verbosity level. Verbosity levels for normal output and the log file can be different.
+
+Alternatively you can just use StandOut for logging ``stdout`` and ``stderr`` to a file.
+
+As an added bonus it includes a software unbuffered mode. In this mode all writes to ``stdout`` and ``stderr`` are flushed immediately.
+
+This module is a part of the pythonutils_ [#]_ package. Many of the modules in this package can be seen at the `Voidspace Modules Page`_ or the `Voidspace Python Recipebook`_.
+
+.. _pythonutils: pythonutils.html
+.. _Voidspace Modules Page: http://www.voidspace.org.uk/python/modules.shtml
+.. _Voidspace Python Recipebook: http://www.voidspace.org.uk/python/recipebook.shtml
+
+If you find any bugs in StandOut, or have any feature requests, then please contact me, or send them to the `Mailing List`_.
+
+If you use StandOut in your programs, then let me know and I will put a link in this manual.
+   
+
+Downloading
+-----------
+
+As well as being included in the pythonutils_ package, you can download **standout** directly from :
+
+* `standout.py (8.5kB) <http://www.voidspace.org.uk/cgi-bin/voidspace/downman.py?file=standout.py>`_
+* `standout.zip (108kB) <http://www.voidspace.org.uk/cgi-bin/voidspace/downman.py?file=standout.zip>`_
+
+The zip file includes documentation and unit tests.
+
+.. note::
+
+    StandOut 3 is a complete rewrite of previous versions, with a much improved API.
+    
+    The previous version is still available :
+    
+        * `standout2.zip (70.4kB) <http://www.voidspace.org.uk/cgi-bin/voidspace/downman.py?file=standout2.zip>`_ 
+
+
+Subversion
+----------
+
+StandOut lives in the `Pythonutils Subversion Repository <http://svn.pythonutils.python-hosting.com>`_. This repository is generously hosted by the folks at `Webfaction <http://www.webfaction.com>`_. Occasionally a more recent development version of StandOut will be available in subversion. There you can also obtain the unit tests and documentation (this document).
+
+* `StandOut from Subversion <http://svn.pythonutils.python-hosting.com/trunk/pythonutils/standout.py>`_
+* `StandOut Unit Tests from Subversion <http://svn.pythonutils.python-hosting.com/trunk/pythonutils/standout_test.py>`_
+* `StandOut Documentation from Subversion <http://svn.pythonutils.python-hosting.com/trunk/docs/standout.txt>`_
+
+
+StandOut Reference
+==================
+
+::
+
+    stout = StandOut(logfile=None, logmode="w", stdout=True, stderr=True,
+                    errPrefix='[err] ', priority=5, threshold=None,
+                    errThreshold=None, outThreshold=None, errLogfileThreshold=None,
+                    outLogfileThreshold=None, outStreamThreshold=None, 
+                    errStreamThreshold=None, unbuffered=False)
+
+Instantiating ``StandOut`` diverts standard output and / or the standard error
+streams, depending on the arguments specified.
+
+Properties on your instance then control hw it behaves.
+
+Methods
+-------
+
+The only useful method on ` ``StandOut`` instance is ``close``. This closes a
+logfile (if one is open), and restores any diverted streams.
+
+
+Keyword Options & Properties
+----------------------------
+
+*All* the keywords are otpional.
+
+* ``logfile`` - Keyword option only
+
+    A filename to log all diverted streams through.
+
+    Default is not to log to a file.
+
+* ``logmode`` - Keyword options only.
+    
+    The log mode for the logging file. 'w' for write, or 'a' for append.
+
+    Default is 'w' mode.
+
+* ``stdout`` - Keyword option only.
+
+    Whether to divert the standard out stream.
+
+    Default is ``True``.
+
+* ``stderr`` - Keyword option only.
+
+    Whether to divert the standard error stream.
+
+    Default is ``True``.
+
+* ``errPrefix`` - Keyword option only.
+
+    The prefix to put before all lines output on the standard error stream.
+
+    Default is ``'[err] '``.
+    
+* ``priority`` - Keyword option and property.
+
+    The message priority for all messages without an explicit priority.
+    
+    Default is five.
+
+* ``threshold`` - Keyword option and property.
+
+    The threshold for all message streams (output and error streams and
+    out/error to the logfile).
+    
+    No default. (Separate thresholds for the different streams.)
+
+* ``errThreshold`` - Keyword option and property.
+
+    The threshold for the error stream and logging the error output to the
+    logfile.
+    
+    Default is zero. (Everything forwarded.)
+
+* ``outThreshold`` - Keyword option and property.
+
+    The threshold for the output stream and logging normal output to the
+    logfile.
+    
+    Default is five. (Only messages with a priority of five or higher
+    forwarded.)
+
+* ``outStreamThreshold`` - Keyword option and property.
+
+    The threshold for forwarding messages on the standard output stream.
+    
+    Default is five. (Only messages with a priority of five or higher
+    forwarded.)
+
+* ``errStreamThreshold`` - Keyword option and property.
+
+    The threshold for forwarding messages on the error stream.
+    
+    Default is zero. (All messages forwarded.)
+
+* ``errLogfileThreshold`` - Keyword option and property.
+
+    The threshold for logging error output to the logfile.
+    
+    Default is zero. (All messages forwarded.)
+    
+* ``outLogfileThreshold`` - Keyword option and property.
+
+    The threshold for logging normal output to the logfile.
+    
+    Default is five. (Only messages with a priority of five or higher
+    forwarded.)
+
+* ``unbuffered`` - Keyword only.
+
+    If enabled, writes to ``stdout`` and ``stderr`` are flushed immediately.
+    
+    Default is ``False``.
+
+
+sys.stdout and sys.stderr
+-------------------------
+
+Streams diverted by ``StandOut`` allow an extra argument to the ``write``
+method.
+
+This is an optional integer argument specifying the priority of the message.
+
+See `Explicit Message Priority`_ for details.
+
+
+StandOut for Logging
+====================
+
+The most basic use of StandOut is for logging output to a file. You set it up to log ``stdout`` and/or ``stderr`` and give it a filename - and that's it.  Because it intercepts the normal streams you don't need to do *anything* in your program to use it (it transparently logs print statements and error messages).
+
+Just close the output objects to restore normality and close your log file.
+
+Because ``StandOut`` has lots of different options it could be wiser to always use keywords explicitly. *All* the options are optional, but instantiating ``StandOut`` with none of them doesn't make much sense. {sm;:-)}
+
+
+Basic Usage
+-----------
+
+The first option is the log filename. As this is always the first option, if you just want to log your program output to a file you do it like this :
+
+.. raw:: html
+
+    {+coloring}
+    
+    from standout import StandOut
+    stout = StandOut('log.txt')
+    
+    # body of program
+    main()
+    
+    # then close the log file
+    # and restore normal output/error streams
+    stout.close()
+    
+    {-coloring}
+
+This is equivalent to :
+
+.. raw:: html
+
+    {+coloring}
+    
+    from standout import StandOut
+    stout = StandOut(logfile='log.txt')
+    
+    # body of program
+    main()
+    
+    # then close the log file
+    # and restore normal output/error streams
+    stout.close()
+    
+    {-coloring}
+
+This imports and then instantiates ``StandOut``. This automatically diverts both the ``stdout`` and ``stderr`` streams. Everything that is printed by your program, or output on the error stream, will be logged to *log.txt*.
+
+Using other options you can get StandOut to only divert ``stdout`` *or* ``stderr``, but we'll look at these in a moment. (`stdout and stderr`_.)
+
+.. note::
+
+    **StandOut** works on the Python level. It doesn't divert the underlying C streams.
+    
+    All normal output that uses ``sys.stdout`` or ``sys.stderr`` will go through StandOut. Anything more esoteric may not. {sm;:-)}
+
+
+To differentiate between output on the error stream (using the Python ``sys.stderr``) from output on the normal output stream (``sys.stdout``), everything on the error stream will be prefixed with ``[err]``. Like this : ::
+
+    [err] Traceback (most recent call last):
+    [err]   File "<pyshell#2>", line 1, in -toplevel-
+    [err]    raise StupidMistake("You didn't really want to do that!")
+    [err] StupidMistake: You didn't really want to do that!
+
+Again this is configurable using `The Error Prefix`_.
+
+
+logmode Option
+--------------
+
+When logging to file, StandOut can open the file in either *write* mode or *append* mode.
+
+In *write* mode, StandOut will overwrite the file if it already exists. This is the default. You can specify this explicitly by passing in the keyword ``logmode``, with the value ``w``.
+
+In *append* mode, output will be appended to the file if it already exists. If it doesn't already exist then it will be created. You specify append mode by passing in the keyword ``logmode``, with the value ``a``.
+
+.. raw:: html
+
+    {+coloring}
+    
+    from standout import StandOut
+    stout = StandOut(logfile='log.txt', logmode='a')
+    
+    print 'This text is appended to the file'
+    
+    # then close the log file
+    # and restore normal output/error streams
+    stout.close()
+    
+    {-coloring}
+
+
+stdout and stderr
+=================
+
+The default is for StandOut to divert both the stdout stream *and* the stderr stream.
+
+If you only want to divert *one* of these streams, for example to log errors only to a file, then you use the ``stdout`` and ``stderr`` keywords. These both default to ``True``.
+
+.. raw:: html
+
+    {+coloring}
+    
+    import sys
+    from standout import StandOut
+    stout = StandOut(logfile='log.txt', stdout=True, stderr=True)
+    
+    print 'This text is logged'
+    print >> sys.stderr, 'This text is logged as an error.'
+    
+    # then close the log file
+    # and restore normal output/error streams
+    stout.close()
+    
+    {-coloring}
+
+So to just log errors, you can instantiate StandOut with the keyword argument ``stdout=False``. There is no need to explicitly set ``stderr=True`` unless you really want to. {sm;:-)}
+
+
+.. raw:: html
+
+    {+coloring}
+    
+    import sys
+    from standout import StandOut
+    stout = StandOut(filename='log.txt', stdout=False)
+    
+    print 'This text is *not* logged'
+    print >> sys.stderr, 'But this text is logged as an error.'
+    
+    # then close the log file
+    # and restore normal output/error streams
+    stout.close()
+    
+    {-coloring}
+
+
+The Error Prefix
+================
+
+Some consoles show output on the error stream in a different colour to output on the normal output stream. Obviously when logging to a text file this isn't possible. The normal Windows console *doesn't* distinguish between the two. If a program emits more than a very small amount of text, it is hard to differentiate between warnings and normal output.
+
+StandOut prefixes every line on the error stream (assuming that ``stderr`` wasn't set to ``False``) with something that identifies the ouput. This defaults to ``[err]`` [#]_, but is configurable through the ``errPrefix`` keyword.
+
+
+.. raw:: html
+
+    {+coloring}
+    
+    import sys
+    from standout import StandOut
+    stout = StandOut(filename='log.txt', errPrefix='[Mistake] ')
+    
+    print >> sys.stderr, 'This text will be displayed and logged,'
+    print >> sys.stderr, 'With the error prefix.'
+    
+    # then close the log file
+    # and restore normal output/error streams
+    stout.close()
+    
+    {-coloring}
+
+If you don't want an error prefix (perhaps you are *just* logging errors), set ``errPrefix=''``.
+
+
+Priority and Threshold
+======================
+
+So far we have looked at using StandOut to log the output of programs to a file. StandOut can also be used to implement different verbosity levels in a program. This uses the ideas 'priority' and 'threshold'.
+
+Every message has a priority. You can set the priority of all messages by using a property on StandOut, or set individual priority levels.
+
+All the output methods have a threshold. The message is only passed to the output if its priority is equal to or greater than the threshold of the ouput methods.
+
+You can individually set the threshold on all four of the output methods, or you can use a higher level interface for setting them together. To remind you, the four different output methods are :
+
+* The normal output stream (``sys.stdout``)
+* Logging normal output to the logfile
+* The error stream (``sys.stderr``)
+* Logging the error stream to the logfile
+
+If you set a different threshold on the different streams (see `Threshold Levels`_), then it is very easy (for example) to log a lot of runtime information to the file, whilst only displaying the more important information on the screen.
+
+By assigning different priorities to different messages that your program emits, you can allow your user to specify the 'verbosity level' by choosing what priority of messages they want to see displayed.
+
+
+Priority
+--------
+
+By default the error stream and error logfile have a threshold of zero. This means that everything passes through. By default the output stream and logfile have a threshold of five. This means that only messages with a priority of five or greater will be passed through.
+
+In a minute we will look at how to change the thresholds on these streams. First of all we will look at how to specify the priority of individual messages.
+
+
+The Priority Keyword and Property
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The default priority is five. This means that all messages will have a priority of five.
+
+This is a global priority level, and applies to all messages that don't have an explicit priority set.
+
+You can change this setting when you instantiate StandOut, by passing in the ``priority`` keyword with an appropriate value.
+
+You can change it at any time by setting the ``priority`` property of your StandOut object.
+
+.. raw:: html
+
+    {+coloring}
+    import sys
+    from standout import StandOut
+
+    stout = StandOut('log.txt', priority=3)
+    
+    print 'These messages have a priority of 3.'
+    print 'They won\'t be displayed, because'
+    print 'the default output threshold is 5.'
+    
+    print >> sys.stderr, 'These messages will be displayed,'
+    print >> sys.stderr, 'Because the default error threshold is 0.'
+    
+    stout.priority = 5
+    print 'Output messages now have a priority of 5.'
+    print 'So they will be displayed. 
+    
+    stout.close()
+    {-coloring}
+
+.. note::
+
+    All the properties on your StandOut object (including the `Threshold Levels`_ discussed below), can be used to *get* the priority or threshold they refer to, as well as set it.
+
+
+Explicit Message Priority
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As well as using the global priority setting, you can set an explicit priority for each message. This is more convenient if you want to filter messages based on a user setting for the threshold.
+
+You set an explicit priority for a message by passing in an extra parameter to ``sys.stdout.write``, or sys.stderr.write``. The extra parameter should be an integer, which is the priority level for the message.
+
+See `Example for Setting Verbosity Levels`_ to see an easy way this can be conveniently wrapped in a function and used throughout your program.
+
+.. raw:: html
+
+    {+coloring}
+    import sys
+    from standout import StandOut
+
+    stout = StandOut('log.txt')
+
+    sys.stdout.write('This message has priority five.', 5)
+    sys.stdout.write('And this one three.', 3)
+
+    stout.close()
+    {-coloring}
+
+
+Threshold Levels
+================
+
+The threshold level determines what priority of message will be passed to each of the different output methods. There are four different ways that StandOut can output messages, and you can set the threshold level independently for each of them :
+
+* The normal output stream
+* Normal output logged to a file
+* The error stream
+* Error messages logged to a file
+
+These can be set using keyword options when you instantiate StandOut, or changed at any time using the corresponding properties on your StandOut instance.
+
+It is likely that you will set these up once when you create your StandOut object, and then use message priorities to determine which messages are forwarded to which of the output methods.
+
+The four keywords and properties for setting the threshold are :
+
+* ``outStreamThreshold`` - Output Stream, default 5
+* ``outLogfileThreshold`` - Output logfile, default 5
+* ``errStreamThreshold`` - Error Stream, default 0
+* ``errLogfileThreshold`` - Error Logfile, default 0
+
+So the default is that only messages with a priority of five or more are forwarded to standard out and its logfile, but that all messages are forwarded on the error stream.
+
+As well as being able to set the thresholds independently, there is a higher level interface for setting the threshold in groups. (These can also be passed in as keyword options, or used as properties on your instance.)
+
+.. note::
+
+    If you *get* the threshold using these higher level properties, and the underlying methods have different thresholds, they will return -1.
+
+    If you pass in contradictory settings as keyword options at instantiation time, the lower level options *should* be used in preference to the higher level ones. This logic *is* tested, but no guarantees. {sm;:-p}
+
+The higher level keywords and properties are :
+
+* ``threshold`` - gets or sets the threshold for *all* the output methods
+* ``errThreshold`` - gets or sets the threshold for both the ``errLogfile`` and the ``errStream``.
+* ``outThreshold`` - gets or sets the threshold for both the ``outLogfile`` and the ``outStream``.
+
+.. raw:: html
+
+    {+coloring}
+    import sys
+    from standout import StandOut
+
+    # Instantiate StandOut and set message priority to six
+    stout = StandOut('log.txt', priority=6)
+
+    # Set the threshold on all output streams to five
+    stout.threshold = 5
+
+    print 'Hello world'
+    print >> sys.stderr, 'I\'m an error.'
+
+    # Set the threshold for the normal output stream and logfile to seven
+    stout.outThreshold = 7
+    print 'You can\t see me.'
+    print >> sys.stderr, 'But you can see me.'
+
+    # Set it so that all normal output goes to the logfile
+    # But only messages with a priority of seven go to the screen
+    stout.outLogfileThreshold = 0
+    print 'This will be logged.'
+    print 'But not sent to the screen.'
+    sys.stdout.write('And I go to both.', 8)
+
+    stout.close()
+    {-coloring}
+    
+
+Unbuffered Mode
+===============
+
+In unbuffered mode, StandOut will flush the standard out and standard error
+streams immediately after every write.
+
+To switch on unbuffered mode, pass in ``unbuffered=True``.
+
+
+stdout and stderr Attributes
+============================
+
+StandOut works by diverting the streams ``sys.stdout`` and ``sys.stderr``. It replaces them with custom objects, and restores them when you call close.
+
+StandOut does 'proxy' attribute access for ``sys.stdout`` and ``sys.stderr``. This means that all normal attribute access for 'getting' *should* work as normal. Currently you can't *set* attributes on streams diverted by StandOut. The only attribute this might affect is ``softspace``.
+
+The exception to this is that ``next`` is not proxied, because (as a new style class)
+
+
+Example for Setting Verbosity Levels
+====================================
+
+This example code is taken from the application `rest2web <http://www.voidspace.org.uk/python/rest2web/>`_. **rest2web** builds static HTML, for websites or project documentation, from templates and `ReStructured Text <http://docutils.sourceforge.net>`_ and HTML source documents. It has three different verbosity levels, which can be set at the command line, and can also log to a file. Needless to say, it uses StandOut to implement this.
+
+Instead of using ``print`` directly, rest2web has a print function (called ``out``) which takes a priority parameter. Three constants are defined, which determine which messages will be displayed at which priority level.
+
+The code is very simple, and is a nice example of how to use StandOut to implement different verbosity levels.
+
+``out`` takes an additional optional parameter called ``newline``, which defaults to ``True``. If this is ``True``, out sends a newline after the message. If ``newline`` is ``False``, out sends a space instead. This allows it to more closely follow the behaviour of the normal print statement.
+
+The three rest2web verbosity levels are :
+
+* ``-v`` : Verbose, the default (display all messages)
+* ``-a`` : Actions and warnings only
+* ``-w`` : Warnings only
+
+Messages can have one of three priority levels : **INFO**, **WARNING** or **ACTION**.
+
+Following is a simplified version of the code that does all this :
+
+.. raw:: html
+
+    {+coloring}
+    from standout import StandOut
+
+    # Our three possible message priorities
+    INFO = 3
+    ACTION = 5
+    WARNING = 7
+
+    def out(line, priority, newline=True):
+        """Print a message with a specified priority."""
+        sys.stdout.write(line, priority)
+        if newline:
+            sys.stdout.write('\n', priority)
+        else:
+            sys.stdout.write(' ', priority)
+
+    # will be None if no logfile is specified
+    logfile = config.get('logfile')
+    # Should be 'v', 'a', or 'w'
+    verbosity = config.get('verbosity')
+
+    verbosityToThreshold = {
+        'v': 0,
+        'a': 5,
+        'w': 7
+    }
+
+    stout = StandOut(logfile)
+
+    # Set the threshold on the output stream
+    stout.outStreamThreshold = verbosityToThreshold[verbosity] 
+    # Log everything, whatever the verbosity
+    stout.outLogfileThreshold = 0
+
+    # Note that the default setting for the error stream
+    # and logfile is 0, which is fine here.
+
+    # Now some messages
+    out('Welcome to my program', INFO)
+    out('I\'m doing something', ACTION)
+    out('Something has gone wrong', WARNING)
+
+    sentence = ['This', 'is', 'a', 'sentence']
+    for word in sentence:
+        out(word, INFO, newline=False)
+
+    # Terminate the sentence with a newline
+    out('', INFO)
+
+    out('I\'m finished!', INFO)
+
+    # Close the logfile before exiting
+    stout.close()
+    {-coloring}
+
+
+Unhandled Exceptions
+====================
+
+If your code exits with an error, then the exception traceback is emitted on the error stream. This would be logged as normal by StandOut, and your program exits. At this point the logfile object held by StandOut would be garbage collected and the file closed. You needn't explicitly handle this in your code.
+
+If you want your error handling code to call close on your instance of StandOut, you may want to trap the exception text and print it before close is called.
+
+A common mistake is code that looks like this :
+
+.. raw:: html
+
+    {+coloring}
+    from standout import StandOut
+
+    stout = StandOut('log.txt')
+
+    try:
+        main()
+    finally:
+        stout.close()
+    {-coloring}
+
+If an exception is raised in main, ``stout`` is closed *before* the exception is re-raised and the traceback sent to the error stream. That means that the traceback won't appear in your logfile.
+
+Instead you can use something like this :
+
+
+.. raw:: html
+
+    {+coloring}
+    import sys
+    import traceback
+    from standout import StandOut
+
+    stout = StandOut('log.txt')
+
+    try:
+        main()
+    finally:
+        # Print the traceback on sys.stderr
+        traceback.print_exc(file=sys.stderr)
+        stout.close()
+    {-coloring}
+
+
+Separate Logfiles for Output and Errors
+=======================================
+
+If you wanted to log output and errors to separate files, the simplest way of achieving this is with two instances of StandOut. For one set ``stdout=False``, and for the other set ``stderr=False``. {sm;:-)}
+
+.. raw:: html
+
+    {+coloring}
+    import sys
+    from standout import StandOut
+
+    stout = StandOut('log.txt', stderr=False)
+    sterr = StandOut('errLog.txt', stdout=False)
+
+    print 'This is logged to "log.txt".'
+    print >> sys.stderr, 'This is logged to "errLog.txt".'
+
+    stout.close()
+    sterr.close()
+    {-coloring}
+
+
+Known Bugs and Limitations
+==========================
+
+See `stdout and stderr Attributes`_ for some limitations in the way that StandOut manages normal attribute access for ``sys.stdout`` and ``sys.stderr``.
+
+`IPython <http://ipython.scipy.org/>`_ ouput is garbled by StandOut. This is possibly because setting softspace is not supported by StandOut. This will be addressed by a future update of StandOut.
+
+
+CHANGELOG
+=========
+
+2006/08/26      Version 3.0.0
+-----------------------------
+
+Another complete rewrite.
+
+API trimmed a great deal and made simpler and more intuitive.
+
+Can now transparently redirect both standard out and standard error streams (by using a private stream object for both under the hood).
+
+Provides an unbuffered mode.
+
+
+2005/01/06      Version 2.1.0
+-----------------------------
+
+Added flush and writelines method.
+Added the 'stream' keyword for diverting the sys.stderr stream as well.
+Added __getattr__ for any undefined methods.
+Added the 'share' and 'error_marker' keywords for logging sys.stderr to the same file as sys.stdout.
+
+2004/07/04      Version 2.0.0
+-----------------------------
+
+A complete rewrite. It now redirects the stdout stream so that normal print statements can be used.
+
+Much better.
+
+2004/04/06      Version 1.1.0
+-----------------------------
+
+Fixed a bug in passing in newfunc. Previously it only worked if you had a dummy variable for self.
+
+
+LICENSE
+=======
+
+standout, and related files, are licensed under the BSD license. This is a
+very unrestrictive license, but it comes with the usual disclaimer. This is
+free software: test it, break it, just don't blame me if it eats your data !
+Of course if it does, let me know and I'll fix the problem so it doesn't
+happen to anyone else {sm;:-)}. ::
+
+    Copyright (c) 2004 - 2006, Michael Foord
+    All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are
+    met:
+
+
+        * Redistributions of source code must retain the above copyright
+          notice, this list of conditions and the following disclaimer.
+
+        * Redistributions in binary form must reproduce the above
+          copyright notice, this list of conditions and the following
+          disclaimer in the documentation and/or other materials provided
+          with the distribution.
+
+        * Neither the name of Michael Foord nor Nicola Larosa
+          may be used to endorse or promote products derived from this
+          software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+You should also be able to find a copy of this license at : `BSD License`__
+
+__  http://www.voidspace.org.uk/python/license.shtml
+
+
+--------------------------------
+
+Footnotes
+=========
+
+.. [#] Online at http://www.voidspace.org.uk/python/license.shtml
+.. [#] Online at http://www.voidspace.org.uk/python/pythonutils.html
+.. [#] Followed by a space, but it doesn't show up here.
+
+.. note::
+
+    Rendering this document with docutils also needs the
+    textmacros module and the PySrc CSS stuff. See
+    http://www.voidspace.org.uk/python/firedrop2/textmacros.shtml
+
+.. raw:: html
+
+    <div align="center">
+        <p>
+            <a href="http://www.python.org">
+                <img src="images/new_python.gif" width="100" height="103" border="0" 
+                    alt="Powered by Python" />
+            </a>
+            <a href="http://sourceforge.net">
+                <img src="http://sourceforge.net/sflogo.php?group_id=123265&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" />
+            </a>
+            <a href="http://www.opensource.org">
+                <img src="images/osi-certified-120x100.gif" width="120" height="100" border="0"
+                    alt="Certified Open Source"/>
+            </a>
+        </p>
+        <p>
+            <a href="http://www.voidspace.org.uk/python/index.shtml">
+                <img src="images/pythonbanner.gif" width="468" height="60" 
+                alt="Python on Voidspace" border="0" />
+            </a>
+        </p>
+        <p>
+            <a href="http://sourceforge.net/donate/index.php?group_id=123265">
+                <img src="http://images.sourceforge.net/images/project-support.jpg" width="88" height="32" border="0" alt="Support This Project" /> 
+            </a>
+        </p>
+        <p>
+            <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+            </script>
+            <script type="text/javascript">
+            _uacct = "UA-203625-1";
+            urchinTracker();
+            </script>
+        </p>
+
+    </div>

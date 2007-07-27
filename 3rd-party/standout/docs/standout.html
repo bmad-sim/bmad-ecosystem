@@ -1,0 +1,715 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
+<title>StandOut - The Flexible Output Object</title>
+<meta name="author" content="Michael Foord" />
+<meta name="date" content="2006/08/26" />
+<link rel="stylesheet" href="stylesheets/voidspace_docutils.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="standout-the-flexible-output-object">
+<h1 class="title">StandOut - The Flexible Output Object</h1>
+<h2 class="subtitle" id="logging-and-output-control">Logging and Output Control</h2>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr><th class="docinfo-name">Author:</th>
+<td>Michael Foord</td></tr>
+<tr><th class="docinfo-name">Contact:</th>
+<td><a class="first last reference" href="mailto:fuzzyman&#37;&#52;&#48;voidspace&#46;org&#46;uk">fuzzyman<span>&#64;</span>voidspace<span>&#46;</span>org<span>&#46;</span>uk</a></td></tr>
+<tr><th class="docinfo-name">Version:</th>
+<td>3.0.0</td></tr>
+<tr><th class="docinfo-name">Date:</th>
+<td>2006/08/26</td></tr>
+<tr class="field"><th class="docinfo-name">License:</th><td class="field-body"><a class="reference" href="BSD-LICENSE.txt">BSD License</a> <a class="footnote-reference" href="#id5" id="id1" name="id1">[1]</a></td>
+</tr>
+<tr class="field"><th class="docinfo-name">Online Version:</th><td class="field-body"><a class="reference" href="http://www.voidspace.org.uk/python/standout.html">standout online</a></td>
+</tr>
+<tr class="field"><th class="docinfo-name">Support:</th><td class="field-body"><a class="reference" href="http://groups.google.com/group/pythonutils/">Mailing List</a></td>
+</tr>
+</tbody>
+</table>
+<div class="contents topic">
+<p class="topic-title first"><a id="standout-manual" name="standout-manual">StandOut Manual</a></p>
+<ul class="simple">
+<li><a class="reference" href="#introduction" id="id8" name="id8">Introduction</a><ul>
+<li><a class="reference" href="#downloading" id="id9" name="id9">Downloading</a></li>
+<li><a class="reference" href="#subversion" id="id10" name="id10">Subversion</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#standout-reference" id="id11" name="id11">StandOut Reference</a><ul>
+<li><a class="reference" href="#methods" id="id12" name="id12">Methods</a></li>
+<li><a class="reference" href="#keyword-options-properties" id="id13" name="id13">Keyword Options &amp; Properties</a></li>
+<li><a class="reference" href="#sys-stdout-and-sys-stderr" id="id14" name="id14">sys.stdout and sys.stderr</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#standout-for-logging" id="id15" name="id15">StandOut for Logging</a><ul>
+<li><a class="reference" href="#basic-usage" id="id16" name="id16">Basic Usage</a></li>
+<li><a class="reference" href="#logmode-option" id="id17" name="id17">logmode Option</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#stdout-and-stderr" id="id18" name="id18">stdout and stderr</a></li>
+<li><a class="reference" href="#the-error-prefix" id="id19" name="id19">The Error Prefix</a></li>
+<li><a class="reference" href="#priority-and-threshold" id="id20" name="id20">Priority and Threshold</a><ul>
+<li><a class="reference" href="#priority" id="id21" name="id21">Priority</a><ul>
+<li><a class="reference" href="#the-priority-keyword-and-property" id="id22" name="id22">The Priority Keyword and Property</a></li>
+<li><a class="reference" href="#explicit-message-priority" id="id23" name="id23">Explicit Message Priority</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference" href="#threshold-levels" id="id24" name="id24">Threshold Levels</a></li>
+<li><a class="reference" href="#unbuffered-mode" id="id25" name="id25">Unbuffered Mode</a></li>
+<li><a class="reference" href="#stdout-and-stderr-attributes" id="id26" name="id26">stdout and stderr Attributes</a></li>
+<li><a class="reference" href="#example-for-setting-verbosity-levels" id="id27" name="id27">Example for Setting Verbosity Levels</a></li>
+<li><a class="reference" href="#unhandled-exceptions" id="id28" name="id28">Unhandled Exceptions</a></li>
+<li><a class="reference" href="#separate-logfiles-for-output-and-errors" id="id29" name="id29">Separate Logfiles for Output and Errors</a></li>
+<li><a class="reference" href="#known-bugs-and-limitations" id="id30" name="id30">Known Bugs and Limitations</a></li>
+<li><a class="reference" href="#changelog" id="id31" name="id31">CHANGELOG</a><ul>
+<li><a class="reference" href="#version-3-0-0" id="id32" name="id32">2006/08/26      Version 3.0.0</a></li>
+<li><a class="reference" href="#version-2-1-0" id="id33" name="id33">2005/01/06      Version 2.1.0</a></li>
+<li><a class="reference" href="#version-2-0-0" id="id34" name="id34">2004/07/04      Version 2.0.0</a></li>
+<li><a class="reference" href="#version-1-1-0" id="id35" name="id35">2004/04/06      Version 1.1.0</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#license" id="id36" name="id36">LICENSE</a></li>
+<li><a class="reference" href="#footnotes" id="id37" name="id37">Footnotes</a></li>
+</ul>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id8" id="introduction" name="introduction">Introduction</a></h1>
+<p><em>standout</em> is a module that provides a single class <tt class="docutils literal"><span class="pre">StandOut</span></tt> - the flexible output object. It provides a simple way of adding logging to a program, <em>and</em> an easy way of adding verbosity levels.</p>
+<p>By assigning a priority level to each message, it makes it trivially easy to allow your users to choose their own verbosity level. Verbosity levels for normal output and the log file can be different.</p>
+<p>Alternatively you can just use StandOut for logging <tt class="docutils literal"><span class="pre">stdout</span></tt> and <tt class="docutils literal"><span class="pre">stderr</span></tt> to a file.</p>
+<p>As an added bonus it includes a software unbuffered mode. In this mode all writes to <tt class="docutils literal"><span class="pre">stdout</span></tt> and <tt class="docutils literal"><span class="pre">stderr</span></tt> are flushed immediately.</p>
+<p>This module is a part of the <a class="reference" href="pythonutils.html">pythonutils</a> <a class="footnote-reference" href="#id6" id="id2" name="id2">[2]</a> package. Many of the modules in this package can be seen at the <a class="reference" href="http://www.voidspace.org.uk/python/modules.shtml">Voidspace Modules Page</a> or the <a class="reference" href="http://www.voidspace.org.uk/python/recipebook.shtml">Voidspace Python Recipebook</a>.</p>
+<p>If you find any bugs in StandOut, or have any feature requests, then please contact me, or send them to the <a class="reference" href="http://groups.google.com/group/pythonutils/">Mailing List</a>.</p>
+<p>If you use StandOut in your programs, then let me know and I will put a link in this manual.</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id9" id="downloading" name="downloading">Downloading</a></h2>
+<p>As well as being included in the <a class="reference" href="pythonutils.html">pythonutils</a> package, you can download <strong>standout</strong> directly from :</p>
+<ul class="simple">
+<li><a class="reference" href="http://www.voidspace.org.uk/cgi-bin/voidspace/downman.py?file=standout.py">standout.py (8.5kB)</a></li>
+<li><a class="reference" href="http://www.voidspace.org.uk/cgi-bin/voidspace/downman.py?file=standout.zip">standout.zip (108kB)</a></li>
+</ul>
+<p>The zip file includes documentation and unit tests.</p>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p>StandOut 3 is a complete rewrite of previous versions, with a much improved API.</p>
+<p>The previous version is still available :</p>
+<blockquote class="last">
+<ul class="simple">
+<li><a class="reference" href="http://www.voidspace.org.uk/cgi-bin/voidspace/downman.py?file=standout2.zip">standout2.zip (70.4kB)</a></li>
+</ul>
+</blockquote>
+</div>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id10" id="subversion" name="subversion">Subversion</a></h2>
+<p>StandOut lives in the <a class="reference" href="http://svn.pythonutils.python-hosting.com">Pythonutils Subversion Repository</a>. This repository is generously hosted by the folks at <a class="reference" href="http://www.webfaction.com">Webfaction</a>. Occasionally a more recent development version of StandOut will be available in subversion. There you can also obtain the unit tests and documentation (this document).</p>
+<ul class="simple">
+<li><a class="reference" href="http://svn.pythonutils.python-hosting.com/trunk/pythonutils/standout.py">StandOut from Subversion</a></li>
+<li><a class="reference" href="http://svn.pythonutils.python-hosting.com/trunk/pythonutils/standout_test.py">StandOut Unit Tests from Subversion</a></li>
+<li><a class="reference" href="http://svn.pythonutils.python-hosting.com/trunk/docs/standout.txt">StandOut Documentation from Subversion</a></li>
+</ul>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id11" id="standout-reference" name="standout-reference">StandOut Reference</a></h1>
+<pre class="literal-block">
+stout = StandOut(logfile=None, logmode=&quot;w&quot;, stdout=True, stderr=True,
+                errPrefix='[err] ', priority=5, threshold=None,
+                errThreshold=None, outThreshold=None, errLogfileThreshold=None,
+                outLogfileThreshold=None, outStreamThreshold=None,
+                errStreamThreshold=None, unbuffered=False)
+</pre>
+<p>Instantiating <tt class="docutils literal"><span class="pre">StandOut</span></tt> diverts standard output and / or the standard error
+streams, depending on the arguments specified.</p>
+<p>Properties on your instance then control hw it behaves.</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id12" id="methods" name="methods">Methods</a></h2>
+<p>The only useful method on ` <tt class="docutils literal"><span class="pre">StandOut</span></tt> instance is <tt class="docutils literal"><span class="pre">close</span></tt>. This closes a
+logfile (if one is open), and restores any diverted streams.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id13" id="keyword-options-properties" name="keyword-options-properties">Keyword Options &amp; Properties</a></h2>
+<p><em>All</em> the keywords are otpional.</p>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">logfile</span></tt> - Keyword option only</p>
+<blockquote>
+<p>A filename to log all diverted streams through.</p>
+<p>Default is not to log to a file.</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">logmode</span></tt> - Keyword options only.</p>
+<blockquote>
+<p>The log mode for the logging file. 'w' for write, or 'a' for append.</p>
+<p>Default is 'w' mode.</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">stdout</span></tt> - Keyword option only.</p>
+<blockquote>
+<p>Whether to divert the standard out stream.</p>
+<p>Default is <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">stderr</span></tt> - Keyword option only.</p>
+<blockquote>
+<p>Whether to divert the standard error stream.</p>
+<p>Default is <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">errPrefix</span></tt> - Keyword option only.</p>
+<blockquote>
+<p>The prefix to put before all lines output on the standard error stream.</p>
+<p>Default is <tt class="docutils literal"><span class="pre">'[err]</span> <span class="pre">'</span></tt>.</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">priority</span></tt> - Keyword option and property.</p>
+<blockquote>
+<p>The message priority for all messages without an explicit priority.</p>
+<p>Default is five.</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">threshold</span></tt> - Keyword option and property.</p>
+<blockquote>
+<p>The threshold for all message streams (output and error streams and
+out/error to the logfile).</p>
+<p>No default. (Separate thresholds for the different streams.)</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">errThreshold</span></tt> - Keyword option and property.</p>
+<blockquote>
+<p>The threshold for the error stream and logging the error output to the
+logfile.</p>
+<p>Default is zero. (Everything forwarded.)</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">outThreshold</span></tt> - Keyword option and property.</p>
+<blockquote>
+<p>The threshold for the output stream and logging normal output to the
+logfile.</p>
+<p>Default is five. (Only messages with a priority of five or higher
+forwarded.)</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">outStreamThreshold</span></tt> - Keyword option and property.</p>
+<blockquote>
+<p>The threshold for forwarding messages on the standard output stream.</p>
+<p>Default is five. (Only messages with a priority of five or higher
+forwarded.)</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">errStreamThreshold</span></tt> - Keyword option and property.</p>
+<blockquote>
+<p>The threshold for forwarding messages on the error stream.</p>
+<p>Default is zero. (All messages forwarded.)</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">errLogfileThreshold</span></tt> - Keyword option and property.</p>
+<blockquote>
+<p>The threshold for logging error output to the logfile.</p>
+<p>Default is zero. (All messages forwarded.)</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">outLogfileThreshold</span></tt> - Keyword option and property.</p>
+<blockquote>
+<p>The threshold for logging normal output to the logfile.</p>
+<p>Default is five. (Only messages with a priority of five or higher
+forwarded.)</p>
+</blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">unbuffered</span></tt> - Keyword only.</p>
+<blockquote>
+<p>If enabled, writes to <tt class="docutils literal"><span class="pre">stdout</span></tt> and <tt class="docutils literal"><span class="pre">stderr</span></tt> are flushed immediately.</p>
+<p>Default is <tt class="docutils literal"><span class="pre">False</span></tt>.</p>
+</blockquote>
+</li>
+</ul>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id14" id="sys-stdout-and-sys-stderr" name="sys-stdout-and-sys-stderr">sys.stdout and sys.stderr</a></h2>
+<p>Streams diverted by <tt class="docutils literal"><span class="pre">StandOut</span></tt> allow an extra argument to the <tt class="docutils literal"><span class="pre">write</span></tt>
+method.</p>
+<p>This is an optional integer argument specifying the priority of the message.</p>
+<p>See <a class="reference" href="#explicit-message-priority">Explicit Message Priority</a> for details.</p>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id15" id="standout-for-logging" name="standout-for-logging">StandOut for Logging</a></h1>
+<p>The most basic use of StandOut is for logging output to a file. You set it up to log <tt class="docutils literal"><span class="pre">stdout</span></tt> and/or <tt class="docutils literal"><span class="pre">stderr</span></tt> and give it a filename - and that's it.  Because it intercepts the normal streams you don't need to do <em>anything</em> in your program to use it (it transparently logs print statements and error messages).</p>
+<p>Just close the output objects to restore normality and close your log file.</p>
+<p>Because <tt class="docutils literal"><span class="pre">StandOut</span></tt> has lots of different options it could be wiser to always use keywords explicitly. <em>All</em> the options are optional, but instantiating <tt class="docutils literal"><span class="pre">StandOut</span></tt> with none of them doesn't make much sense.  <img src="smilies/smile.gif" alt="Smile" height="15" width="15" /> </p>
+<div class="section">
+<h2><a class="toc-backref" href="#id16" id="basic-usage" name="basic-usage">Basic Usage</a></h2>
+<p>The first option is the log filename. As this is always the first option, if you just want to log your program output to a file you do it like this :</p>
+<div class="pysrc"><span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pystring">'log.txt'</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pycomment"># body of program<br />
+</span><span class="pytext">main</span><span class="pyoperator">(</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pycomment"># then close the log file<br />
+</span><span class="pycomment"># and restore normal output/error streams<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div><p>This is equivalent to :</p>
+<div class="pysrc"><span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pytext">logfile</span><span class="pyoperator">=</span><span class="pystring">'log.txt'</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pycomment"># body of program<br />
+</span><span class="pytext">main</span><span class="pyoperator">(</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pycomment"># then close the log file<br />
+</span><span class="pycomment"># and restore normal output/error streams<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div><p>This imports and then instantiates <tt class="docutils literal"><span class="pre">StandOut</span></tt>. This automatically diverts both the <tt class="docutils literal"><span class="pre">stdout</span></tt> and <tt class="docutils literal"><span class="pre">stderr</span></tt> streams. Everything that is printed by your program, or output on the error stream, will be logged to <em>log.txt</em>.</p>
+<p>Using other options you can get StandOut to only divert <tt class="docutils literal"><span class="pre">stdout</span></tt> <em>or</em> <tt class="docutils literal"><span class="pre">stderr</span></tt>, but we'll look at these in a moment. (<a class="reference" href="#stdout-and-stderr">stdout and stderr</a>.)</p>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p><strong>StandOut</strong> works on the Python level. It doesn't divert the underlying C streams.</p>
+<p class="last">All normal output that uses <tt class="docutils literal"><span class="pre">sys.stdout</span></tt> or <tt class="docutils literal"><span class="pre">sys.stderr</span></tt> will go through StandOut. Anything more esoteric may not.  <img src="smilies/smile.gif" alt="Smile" height="15" width="15" /> </p>
+</div>
+<p>To differentiate between output on the error stream (using the Python <tt class="docutils literal"><span class="pre">sys.stderr</span></tt>) from output on the normal output stream (<tt class="docutils literal"><span class="pre">sys.stdout</span></tt>), everything on the error stream will be prefixed with <tt class="docutils literal"><span class="pre">[err]</span></tt>. Like this :</p>
+<pre class="literal-block">
+[err] Traceback (most recent call last):
+[err]   File &quot;&lt;pyshell#2&gt;&quot;, line 1, in -toplevel-
+[err]    raise StupidMistake(&quot;You didn't really want to do that!&quot;)
+[err] StupidMistake: You didn't really want to do that!
+</pre>
+<p>Again this is configurable using <a class="reference" href="#the-error-prefix">The Error Prefix</a>.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id17" id="logmode-option" name="logmode-option">logmode Option</a></h2>
+<p>When logging to file, StandOut can open the file in either <em>write</em> mode or <em>append</em> mode.</p>
+<p>In <em>write</em> mode, StandOut will overwrite the file if it already exists. This is the default. You can specify this explicitly by passing in the keyword <tt class="docutils literal"><span class="pre">logmode</span></tt>, with the value <tt class="docutils literal"><span class="pre">w</span></tt>.</p>
+<p>In <em>append</em> mode, output will be appended to the file if it already exists. If it doesn't already exist then it will be created. You specify append mode by passing in the keyword <tt class="docutils literal"><span class="pre">logmode</span></tt>, with the value <tt class="docutils literal"><span class="pre">a</span></tt>.</p>
+<div class="pysrc"><span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pytext">logfile</span><span class="pyoperator">=</span><span class="pystring">'log.txt'</span><span class="pyoperator">,</span> <span class="pytext">logmode</span><span class="pyoperator">=</span><span class="pystring">'a'</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pykeyword">print</span> <span class="pystring">'This text is appended to the file'</span><br />
+<br />
+<span class="pycomment"># then close the log file<br />
+</span><span class="pycomment"># and restore normal output/error streams<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div></div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id18" id="stdout-and-stderr" name="stdout-and-stderr">stdout and stderr</a></h1>
+<p>The default is for StandOut to divert both the stdout stream <em>and</em> the stderr stream.</p>
+<p>If you only want to divert <em>one</em> of these streams, for example to log errors only to a file, then you use the <tt class="docutils literal"><span class="pre">stdout</span></tt> and <tt class="docutils literal"><span class="pre">stderr</span></tt> keywords. These both default to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+<div class="pysrc"><span class="pykeyword">import</span> <span class="pytext">sys</span><br />
+<span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pytext">logfile</span><span class="pyoperator">=</span><span class="pystring">'log.txt'</span><span class="pyoperator">,</span> <span class="pytext">stdout</span><span class="pyoperator">=</span><span class="pytext">True</span><span class="pyoperator">,</span> <span class="pytext">stderr</span><span class="pyoperator">=</span><span class="pytext">True</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pykeyword">print</span> <span class="pystring">'This text is logged'</span><br />
+<span class="pykeyword">print</span> <span class="pyoperator">&gt;&gt;</span> <span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stderr</span><span class="pyoperator">,</span> <span class="pystring">'This text is logged as an error.'</span><br />
+<br />
+<span class="pycomment"># then close the log file<br />
+</span><span class="pycomment"># and restore normal output/error streams<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div><p>So to just log errors, you can instantiate StandOut with the keyword argument <tt class="docutils literal"><span class="pre">stdout=False</span></tt>. There is no need to explicitly set <tt class="docutils literal"><span class="pre">stderr=True</span></tt> unless you really want to.  <img src="smilies/smile.gif" alt="Smile" height="15" width="15" /> </p>
+<div class="pysrc"><span class="pykeyword">import</span> <span class="pytext">sys</span><br />
+<span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pytext">filename</span><span class="pyoperator">=</span><span class="pystring">'log.txt'</span><span class="pyoperator">,</span> <span class="pytext">stdout</span><span class="pyoperator">=</span><span class="pytext">False</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pykeyword">print</span> <span class="pystring">'This text is *not* logged'</span><br />
+<span class="pykeyword">print</span> <span class="pyoperator">&gt;&gt;</span> <span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stderr</span><span class="pyoperator">,</span> <span class="pystring">'But this text is logged as an error.'</span><br />
+<br />
+<span class="pycomment"># then close the log file<br />
+</span><span class="pycomment"># and restore normal output/error streams<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div></div>
+<div class="section">
+<h1><a class="toc-backref" href="#id19" id="the-error-prefix" name="the-error-prefix">The Error Prefix</a></h1>
+<p>Some consoles show output on the error stream in a different colour to output on the normal output stream. Obviously when logging to a text file this isn't possible. The normal Windows console <em>doesn't</em> distinguish between the two. If a program emits more than a very small amount of text, it is hard to differentiate between warnings and normal output.</p>
+<p>StandOut prefixes every line on the error stream (assuming that <tt class="docutils literal"><span class="pre">stderr</span></tt> wasn't set to <tt class="docutils literal"><span class="pre">False</span></tt>) with something that identifies the ouput. This defaults to <tt class="docutils literal"><span class="pre">[err]</span></tt> <a class="footnote-reference" href="#id7" id="id3" name="id3">[3]</a>, but is configurable through the <tt class="docutils literal"><span class="pre">errPrefix</span></tt> keyword.</p>
+<div class="pysrc"><span class="pykeyword">import</span> <span class="pytext">sys</span><br />
+<span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pytext">filename</span><span class="pyoperator">=</span><span class="pystring">'log.txt'</span><span class="pyoperator">,</span> <span class="pytext">errPrefix</span><span class="pyoperator">=</span><span class="pystring">'[Mistake] '</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pykeyword">print</span> <span class="pyoperator">&gt;&gt;</span> <span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stderr</span><span class="pyoperator">,</span> <span class="pystring">'This text will be displayed and logged,'</span><br />
+<span class="pykeyword">print</span> <span class="pyoperator">&gt;&gt;</span> <span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stderr</span><span class="pyoperator">,</span> <span class="pystring">'With the error prefix.'</span><br />
+<br />
+<span class="pycomment"># then close the log file<br />
+</span><span class="pycomment"># and restore normal output/error streams<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div><p>If you don't want an error prefix (perhaps you are <em>just</em> logging errors), set <tt class="docutils literal"><span class="pre">errPrefix=''</span></tt>.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id20" id="priority-and-threshold" name="priority-and-threshold">Priority and Threshold</a></h1>
+<p>So far we have looked at using StandOut to log the output of programs to a file. StandOut can also be used to implement different verbosity levels in a program. This uses the ideas 'priority' and 'threshold'.</p>
+<p>Every message has a priority. You can set the priority of all messages by using a property on StandOut, or set individual priority levels.</p>
+<p>All the output methods have a threshold. The message is only passed to the output if its priority is equal to or greater than the threshold of the ouput methods.</p>
+<p>You can individually set the threshold on all four of the output methods, or you can use a higher level interface for setting them together. To remind you, the four different output methods are :</p>
+<ul class="simple">
+<li>The normal output stream (<tt class="docutils literal"><span class="pre">sys.stdout</span></tt>)</li>
+<li>Logging normal output to the logfile</li>
+<li>The error stream (<tt class="docutils literal"><span class="pre">sys.stderr</span></tt>)</li>
+<li>Logging the error stream to the logfile</li>
+</ul>
+<p>If you set a different threshold on the different streams (see <a class="reference" href="#threshold-levels">Threshold Levels</a>), then it is very easy (for example) to log a lot of runtime information to the file, whilst only displaying the more important information on the screen.</p>
+<p>By assigning different priorities to different messages that your program emits, you can allow your user to specify the 'verbosity level' by choosing what priority of messages they want to see displayed.</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id21" id="priority" name="priority">Priority</a></h2>
+<p>By default the error stream and error logfile have a threshold of zero. This means that everything passes through. By default the output stream and logfile have a threshold of five. This means that only messages with a priority of five or greater will be passed through.</p>
+<p>In a minute we will look at how to change the thresholds on these streams. First of all we will look at how to specify the priority of individual messages.</p>
+<div class="section">
+<h3><a class="toc-backref" href="#id22" id="the-priority-keyword-and-property" name="the-priority-keyword-and-property">The Priority Keyword and Property</a></h3>
+<p>The default priority is five. This means that all messages will have a priority of five.</p>
+<p>This is a global priority level, and applies to all messages that don't have an explicit priority set.</p>
+<p>You can change this setting when you instantiate StandOut, by passing in the <tt class="docutils literal"><span class="pre">priority</span></tt> keyword with an appropriate value.</p>
+<p>You can change it at any time by setting the <tt class="docutils literal"><span class="pre">priority</span></tt> property of your StandOut object.</p>
+<div class="pysrc"><span class="pykeyword">import</span> <span class="pytext">sys</span><br />
+<span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pystring">'log.txt'</span><span class="pyoperator">,</span> <span class="pytext">priority</span><span class="pyoperator">=</span><span class="pynumber">3</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pykeyword">print</span> <span class="pystring">'These messages have a priority of 3.'</span><br />
+<span class="pykeyword">print</span> <span class="pystring">'They won\'t be displayed, because'</span><br />
+<span class="pykeyword">print</span> <span class="pystring">'the default output threshold is 5.'</span><br />
+<br />
+<span class="pykeyword">print</span> <span class="pyoperator">&gt;&gt;</span> <span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stderr</span><span class="pyoperator">,</span> <span class="pystring">'These messages will be displayed,'</span><br />
+<span class="pykeyword">print</span> <span class="pyoperator">&gt;&gt;</span> <span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stderr</span><span class="pyoperator">,</span> <span class="pystring">'Because the default error threshold is 0.'</span><br />
+<br />
+<span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">priority</span> <span class="pyoperator">=</span> <span class="pynumber">5</span><br />
+<span class="pykeyword">print</span> <span class="pystring">'Output messages now have a priority of 5.'</span><br />
+<span class="pykeyword">print</span><span class="pyerror"> </span><span class="pyerror">'</span><span class="pytext">So</span> <span class="pytext">they</span> <span class="pytext">will</span> <span class="pytext">be</span> <span class="pytext">displayed</span><span class="pyoperator">.</span><br />
+<br />
+<span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div><div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">All the properties on your StandOut object (including the <a class="reference" href="#threshold-levels">Threshold Levels</a> discussed below), can be used to <em>get</em> the priority or threshold they refer to, as well as set it.</p>
+</div>
+</div>
+<div class="section">
+<h3><a class="toc-backref" href="#id23" id="explicit-message-priority" name="explicit-message-priority">Explicit Message Priority</a></h3>
+<p>As well as using the global priority setting, you can set an explicit priority for each message. This is more convenient if you want to filter messages based on a user setting for the threshold.</p>
+<p>You set an explicit priority for a message by passing in an extra parameter to <tt class="docutils literal"><span class="pre">sys.stdout.write</span></tt>, or sys.stderr.write``. The extra parameter should be an integer, which is the priority level for the message.</p>
+<p>See <a class="reference" href="#example-for-setting-verbosity-levels">Example for Setting Verbosity Levels</a> to see an easy way this can be conveniently wrapped in a function and used throughout your program.</p>
+<div class="pysrc"><span class="pykeyword">import</span> <span class="pytext">sys</span><br />
+<span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pystring">'log.txt'</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stdout</span><span class="pyoperator">.</span><span class="pytext">write</span><span class="pyoperator">(</span><span class="pystring">'This message has priority five.'</span><span class="pyoperator">,</span> <span class="pynumber">5</span><span class="pyoperator">)</span><br />
+<span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stdout</span><span class="pyoperator">.</span><span class="pytext">write</span><span class="pyoperator">(</span><span class="pystring">'And this one three.'</span><span class="pyoperator">,</span> <span class="pynumber">3</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div></div>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id24" id="threshold-levels" name="threshold-levels">Threshold Levels</a></h1>
+<p>The threshold level determines what priority of message will be passed to each of the different output methods. There are four different ways that StandOut can output messages, and you can set the threshold level independently for each of them :</p>
+<ul class="simple">
+<li>The normal output stream</li>
+<li>Normal output logged to a file</li>
+<li>The error stream</li>
+<li>Error messages logged to a file</li>
+</ul>
+<p>These can be set using keyword options when you instantiate StandOut, or changed at any time using the corresponding properties on your StandOut instance.</p>
+<p>It is likely that you will set these up once when you create your StandOut object, and then use message priorities to determine which messages are forwarded to which of the output methods.</p>
+<p>The four keywords and properties for setting the threshold are :</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">outStreamThreshold</span></tt> - Output Stream, default 5</li>
+<li><tt class="docutils literal"><span class="pre">outLogfileThreshold</span></tt> - Output logfile, default 5</li>
+<li><tt class="docutils literal"><span class="pre">errStreamThreshold</span></tt> - Error Stream, default 0</li>
+<li><tt class="docutils literal"><span class="pre">errLogfileThreshold</span></tt> - Error Logfile, default 0</li>
+</ul>
+<p>So the default is that only messages with a priority of five or more are forwarded to standard out and its logfile, but that all messages are forwarded on the error stream.</p>
+<p>As well as being able to set the thresholds independently, there is a higher level interface for setting the threshold in groups. (These can also be passed in as keyword options, or used as properties on your instance.)</p>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p>If you <em>get</em> the threshold using these higher level properties, and the underlying methods have different thresholds, they will return -1.</p>
+<p class="last">If you pass in contradictory settings as keyword options at instantiation time, the lower level options <em>should</em> be used in preference to the higher level ones. This logic <em>is</em> tested, but no guarantees.  <img src="smilies/razz.gif" alt="Razz" height="15" width="15" /> </p>
+</div>
+<p>The higher level keywords and properties are :</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">threshold</span></tt> - gets or sets the threshold for <em>all</em> the output methods</li>
+<li><tt class="docutils literal"><span class="pre">errThreshold</span></tt> - gets or sets the threshold for both the <tt class="docutils literal"><span class="pre">errLogfile</span></tt> and the <tt class="docutils literal"><span class="pre">errStream</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">outThreshold</span></tt> - gets or sets the threshold for both the <tt class="docutils literal"><span class="pre">outLogfile</span></tt> and the <tt class="docutils literal"><span class="pre">outStream</span></tt>.</li>
+</ul>
+<div class="pysrc"><span class="pykeyword">import</span> <span class="pytext">sys</span><br />
+<span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<br />
+<span class="pycomment"># Instantiate StandOut and set message priority to six<br />
+</span><span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pystring">'log.txt'</span><span class="pyoperator">,</span> <span class="pytext">priority</span><span class="pyoperator">=</span><span class="pynumber">6</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pycomment"># Set the threshold on all output streams to five<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">threshold</span> <span class="pyoperator">=</span> <span class="pynumber">5</span><br />
+<br />
+<span class="pykeyword">print</span> <span class="pystring">'Hello world'</span><br />
+<span class="pykeyword">print</span> <span class="pyoperator">&gt;&gt;</span> <span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stderr</span><span class="pyoperator">,</span> <span class="pystring">'I\'m an error.'</span><br />
+<br />
+<span class="pycomment"># Set the threshold for the normal output stream and logfile to seven<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">outThreshold</span> <span class="pyoperator">=</span> <span class="pynumber">7</span><br />
+<span class="pykeyword">print</span> <span class="pystring">'You can\t see me.'</span><br />
+<span class="pykeyword">print</span> <span class="pyoperator">&gt;&gt;</span> <span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stderr</span><span class="pyoperator">,</span> <span class="pystring">'But you can see me.'</span><br />
+<br />
+<span class="pycomment"># Set it so that all normal output goes to the logfile<br />
+</span><span class="pycomment"># But only messages with a priority of seven go to the screen<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">outLogfileThreshold</span> <span class="pyoperator">=</span> <span class="pynumber">0</span><br />
+<span class="pykeyword">print</span> <span class="pystring">'This will be logged.'</span><br />
+<span class="pykeyword">print</span> <span class="pystring">'But not sent to the screen.'</span><br />
+<span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stdout</span><span class="pyoperator">.</span><span class="pytext">write</span><span class="pyoperator">(</span><span class="pystring">'And I go to both.'</span><span class="pyoperator">,</span> <span class="pynumber">8</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div></div>
+<div class="section">
+<h1><a class="toc-backref" href="#id25" id="unbuffered-mode" name="unbuffered-mode">Unbuffered Mode</a></h1>
+<p>In unbuffered mode, StandOut will flush the standard out and standard error
+streams immediately after every write.</p>
+<p>To switch on unbuffered mode, pass in <tt class="docutils literal"><span class="pre">unbuffered=True</span></tt>.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id26" id="stdout-and-stderr-attributes" name="stdout-and-stderr-attributes">stdout and stderr Attributes</a></h1>
+<p>StandOut works by diverting the streams <tt class="docutils literal"><span class="pre">sys.stdout</span></tt> and <tt class="docutils literal"><span class="pre">sys.stderr</span></tt>. It replaces them with custom objects, and restores them when you call close.</p>
+<p>StandOut does 'proxy' attribute access for <tt class="docutils literal"><span class="pre">sys.stdout</span></tt> and <tt class="docutils literal"><span class="pre">sys.stderr</span></tt>. This means that all normal attribute access for 'getting' <em>should</em> work as normal. Currently you can't <em>set</em> attributes on streams diverted by StandOut. The only attribute this might affect is <tt class="docutils literal"><span class="pre">softspace</span></tt>.</p>
+<p>The exception to this is that <tt class="docutils literal"><span class="pre">next</span></tt> is not proxied, because (as a new style class)</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id27" id="example-for-setting-verbosity-levels" name="example-for-setting-verbosity-levels">Example for Setting Verbosity Levels</a></h1>
+<p>This example code is taken from the application <a class="reference" href="http://www.voidspace.org.uk/python/rest2web/">rest2web</a>. <strong>rest2web</strong> builds static HTML, for websites or project documentation, from templates and <a class="reference" href="http://docutils.sourceforge.net">ReStructured Text</a> and HTML source documents. It has three different verbosity levels, which can be set at the command line, and can also log to a file. Needless to say, it uses StandOut to implement this.</p>
+<p>Instead of using <tt class="docutils literal"><span class="pre">print</span></tt> directly, rest2web has a print function (called <tt class="docutils literal"><span class="pre">out</span></tt>) which takes a priority parameter. Three constants are defined, which determine which messages will be displayed at which priority level.</p>
+<p>The code is very simple, and is a nice example of how to use StandOut to implement different verbosity levels.</p>
+<p><tt class="docutils literal"><span class="pre">out</span></tt> takes an additional optional parameter called <tt class="docutils literal"><span class="pre">newline</span></tt>, which defaults to <tt class="docutils literal"><span class="pre">True</span></tt>. If this is <tt class="docutils literal"><span class="pre">True</span></tt>, out sends a newline after the message. If <tt class="docutils literal"><span class="pre">newline</span></tt> is <tt class="docutils literal"><span class="pre">False</span></tt>, out sends a space instead. This allows it to more closely follow the behaviour of the normal print statement.</p>
+<p>The three rest2web verbosity levels are :</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">-v</span></tt> : Verbose, the default (display all messages)</li>
+<li><tt class="docutils literal"><span class="pre">-a</span></tt> : Actions and warnings only</li>
+<li><tt class="docutils literal"><span class="pre">-w</span></tt> : Warnings only</li>
+</ul>
+<p>Messages can have one of three priority levels : <strong>INFO</strong>, <strong>WARNING</strong> or <strong>ACTION</strong>.</p>
+<p>Following is a simplified version of the code that does all this :</p>
+<div class="pysrc"><span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<br />
+<span class="pycomment"># Our three possible message priorities<br />
+</span><span class="pytext">INFO</span> <span class="pyoperator">=</span> <span class="pynumber">3</span><br />
+<span class="pytext">ACTION</span> <span class="pyoperator">=</span> <span class="pynumber">5</span><br />
+<span class="pytext">WARNING</span> <span class="pyoperator">=</span> <span class="pynumber">7</span><br />
+<br />
+<span class="pykeyword">def</span> <span class="pytext">out</span><span class="pyoperator">(</span><span class="pytext">line</span><span class="pyoperator">,</span> <span class="pytext">priority</span><span class="pyoperator">,</span> <span class="pytext">newline</span><span class="pyoperator">=</span><span class="pytext">True</span><span class="pyoperator">)</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pystring">"""Print a message with a specified priority."""</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stdout</span><span class="pyoperator">.</span><span class="pytext">write</span><span class="pyoperator">(</span><span class="pytext">line</span><span class="pyoperator">,</span> <span class="pytext">priority</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">if</span> <span class="pytext">newline</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stdout</span><span class="pyoperator">.</span><span class="pytext">write</span><span class="pyoperator">(</span><span class="pystring">'\n'</span><span class="pyoperator">,</span> <span class="pytext">priority</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">else</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stdout</span><span class="pyoperator">.</span><span class="pytext">write</span><span class="pyoperator">(</span><span class="pystring">' '</span><span class="pyoperator">,</span> <span class="pytext">priority</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pycomment"># will be None if no logfile is specified<br />
+</span><span class="pytext">logfile</span> <span class="pyoperator">=</span> <span class="pytext">config</span><span class="pyoperator">.</span><span class="pytext">get</span><span class="pyoperator">(</span><span class="pystring">'logfile'</span><span class="pyoperator">)</span><br />
+<span class="pycomment"># Should be 'v', 'a', or 'w'<br />
+</span><span class="pytext">verbosity</span> <span class="pyoperator">=</span> <span class="pytext">config</span><span class="pyoperator">.</span><span class="pytext">get</span><span class="pyoperator">(</span><span class="pystring">'verbosity'</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pytext">verbosityToThreshold</span> <span class="pyoperator">=</span> <span class="pyoperator">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pystring">'v'</span><span class="pyoperator">:</span> <span class="pynumber">0</span><span class="pyoperator">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pystring">'a'</span><span class="pyoperator">:</span> <span class="pynumber">5</span><span class="pyoperator">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pystring">'w'</span><span class="pyoperator">:</span> <span class="pynumber">7</span><br />
+<span class="pyoperator">}</span><br />
+<br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pytext">logfile</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pycomment"># Set the threshold on the output stream<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">outStreamThreshold</span> <span class="pyoperator">=</span> <span class="pytext">verbosityToThreshold</span><span class="pyoperator">[</span><span class="pytext">verbosity</span><span class="pyoperator">]</span><br />
+<span class="pycomment"># Log everything, whatever the verbosity<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">outLogfileThreshold</span> <span class="pyoperator">=</span> <span class="pynumber">0</span><br />
+<br />
+<span class="pycomment"># Note that the default setting for the error stream<br />
+</span><span class="pycomment"># and logfile is 0, which is fine here.<br />
+</span><br />
+<span class="pycomment"># Now some messages<br />
+</span><span class="pytext">out</span><span class="pyoperator">(</span><span class="pystring">'Welcome to my program'</span><span class="pyoperator">,</span> <span class="pytext">INFO</span><span class="pyoperator">)</span><br />
+<span class="pytext">out</span><span class="pyoperator">(</span><span class="pystring">'I\'m doing something'</span><span class="pyoperator">,</span> <span class="pytext">ACTION</span><span class="pyoperator">)</span><br />
+<span class="pytext">out</span><span class="pyoperator">(</span><span class="pystring">'Something has gone wrong'</span><span class="pyoperator">,</span> <span class="pytext">WARNING</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pytext">sentence</span> <span class="pyoperator">=</span> <span class="pyoperator">[</span><span class="pystring">'This'</span><span class="pyoperator">,</span> <span class="pystring">'is'</span><span class="pyoperator">,</span> <span class="pystring">'a'</span><span class="pyoperator">,</span> <span class="pystring">'sentence'</span><span class="pyoperator">]</span><br />
+<span class="pykeyword">for</span> <span class="pytext">word</span> <span class="pykeyword">in</span> <span class="pytext">sentence</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">out</span><span class="pyoperator">(</span><span class="pytext">word</span><span class="pyoperator">,</span> <span class="pytext">INFO</span><span class="pyoperator">,</span> <span class="pytext">newline</span><span class="pyoperator">=</span><span class="pytext">False</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pycomment"># Terminate the sentence with a newline<br />
+</span><span class="pytext">out</span><span class="pyoperator">(</span><span class="pystring">''</span><span class="pyoperator">,</span> <span class="pytext">INFO</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pytext">out</span><span class="pyoperator">(</span><span class="pystring">'I\'m finished!'</span><span class="pyoperator">,</span> <span class="pytext">INFO</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pycomment"># Close the logfile before exiting<br />
+</span><span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div></div>
+<div class="section">
+<h1><a class="toc-backref" href="#id28" id="unhandled-exceptions" name="unhandled-exceptions">Unhandled Exceptions</a></h1>
+<p>If your code exits with an error, then the exception traceback is emitted on the error stream. This would be logged as normal by StandOut, and your program exits. At this point the logfile object held by StandOut would be garbage collected and the file closed. You needn't explicitly handle this in your code.</p>
+<p>If you want your error handling code to call close on your instance of StandOut, you may want to trap the exception text and print it before close is called.</p>
+<p>A common mistake is code that looks like this :</p>
+<div class="pysrc"><span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pystring">'log.txt'</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pykeyword">try</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">main</span><span class="pyoperator">(</span><span class="pyoperator">)</span><br />
+<span class="pykeyword">finally</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div><p>If an exception is raised in main, <tt class="docutils literal"><span class="pre">stout</span></tt> is closed <em>before</em> the exception is re-raised and the traceback sent to the error stream. That means that the traceback won't appear in your logfile.</p>
+<p>Instead you can use something like this :</p>
+<div class="pysrc"><span class="pykeyword">import</span> <span class="pytext">sys</span><br />
+<span class="pykeyword">import</span> <span class="pytext">traceback</span><br />
+<span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pystring">'log.txt'</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pykeyword">try</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">main</span><span class="pyoperator">(</span><span class="pyoperator">)</span><br />
+<span class="pykeyword">finally</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment"># Print the traceback on sys.stderr<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">traceback</span><span class="pyoperator">.</span><span class="pytext">print_exc</span><span class="pyoperator">(</span><span class="pytext">file</span><span class="pyoperator">=</span><span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stderr</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div></div>
+<div class="section">
+<h1><a class="toc-backref" href="#id29" id="separate-logfiles-for-output-and-errors" name="separate-logfiles-for-output-and-errors">Separate Logfiles for Output and Errors</a></h1>
+<p>If you wanted to log output and errors to separate files, the simplest way of achieving this is with two instances of StandOut. For one set <tt class="docutils literal"><span class="pre">stdout=False</span></tt>, and for the other set <tt class="docutils literal"><span class="pre">stderr=False</span></tt>.  <img src="smilies/smile.gif" alt="Smile" height="15" width="15" /> </p>
+<div class="pysrc"><span class="pykeyword">import</span> <span class="pytext">sys</span><br />
+<span class="pykeyword">from</span> <span class="pytext">standout</span> <span class="pykeyword">import</span> <span class="pytext">StandOut</span><br />
+<br />
+<span class="pytext">stout</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pystring">'log.txt'</span><span class="pyoperator">,</span> <span class="pytext">stderr</span><span class="pyoperator">=</span><span class="pytext">False</span><span class="pyoperator">)</span><br />
+<span class="pytext">sterr</span> <span class="pyoperator">=</span> <span class="pytext">StandOut</span><span class="pyoperator">(</span><span class="pystring">'errLog.txt'</span><span class="pyoperator">,</span> <span class="pytext">stdout</span><span class="pyoperator">=</span><span class="pytext">False</span><span class="pyoperator">)</span><br />
+<br />
+<span class="pykeyword">print</span> <span class="pystring">'This is logged to "log.txt".'</span><br />
+<span class="pykeyword">print</span> <span class="pyoperator">&gt;&gt;</span> <span class="pytext">sys</span><span class="pyoperator">.</span><span class="pytext">stderr</span><span class="pyoperator">,</span> <span class="pystring">'This is logged to "errLog.txt".'</span><br />
+<br />
+<span class="pytext">stout</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><br />
+<span class="pytext">sterr</span><span class="pyoperator">.</span><span class="pytext">close</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div></div>
+<div class="section">
+<h1><a class="toc-backref" href="#id30" id="known-bugs-and-limitations" name="known-bugs-and-limitations">Known Bugs and Limitations</a></h1>
+<p>See <a class="reference" href="#stdout-and-stderr-attributes">stdout and stderr Attributes</a> for some limitations in the way that StandOut manages normal attribute access for <tt class="docutils literal"><span class="pre">sys.stdout</span></tt> and <tt class="docutils literal"><span class="pre">sys.stderr</span></tt>.</p>
+<p><a class="reference" href="http://ipython.scipy.org/">IPython</a> ouput is garbled by StandOut. This is possibly because setting softspace is not supported by StandOut. This will be addressed by a future update of StandOut.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id31" id="changelog" name="changelog">CHANGELOG</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id32" id="version-3-0-0" name="version-3-0-0">2006/08/26      Version 3.0.0</a></h2>
+<p>Another complete rewrite.</p>
+<p>API trimmed a great deal and made simpler and more intuitive.</p>
+<p>Can now transparently redirect both standard out and standard error streams (by using a private stream object for both under the hood).</p>
+<p>Provides an unbuffered mode.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id33" id="version-2-1-0" name="version-2-1-0">2005/01/06      Version 2.1.0</a></h2>
+<p>Added flush and writelines method.
+Added the 'stream' keyword for diverting the sys.stderr stream as well.
+Added __getattr__ for any undefined methods.
+Added the 'share' and 'error_marker' keywords for logging sys.stderr to the same file as sys.stdout.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id34" id="version-2-0-0" name="version-2-0-0">2004/07/04      Version 2.0.0</a></h2>
+<p>A complete rewrite. It now redirects the stdout stream so that normal print statements can be used.</p>
+<p>Much better.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id35" id="version-1-1-0" name="version-1-1-0">2004/04/06      Version 1.1.0</a></h2>
+<p>Fixed a bug in passing in newfunc. Previously it only worked if you had a dummy variable for self.</p>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id36" id="license" name="license">LICENSE</a></h1>
+<p>standout, and related files, are licensed under the BSD license. This is a
+very unrestrictive license, but it comes with the usual disclaimer. This is
+free software: test it, break it, just don't blame me if it eats your data !
+Of course if it does, let me know and I'll fix the problem so it doesn't
+happen to anyone else  <img src="smilies/smile.gif" alt="Smile" height="15" width="15" /> .</p>
+<pre class="literal-block">
+Copyright (c) 2004 - 2006, Michael Foord
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+    * Neither the name of Michael Foord nor Nicola Larosa
+      may be used to endorse or promote products derived from this
+      software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+&quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</pre>
+<p>You should also be able to find a copy of this license at : <a class="reference" href="http://www.voidspace.org.uk/python/license.shtml">BSD License</a></p>
+</div>
+<hr class="docutils" />
+<div class="section">
+<h1><a class="toc-backref" href="#id37" id="footnotes" name="footnotes">Footnotes</a></h1>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1" name="id5">[1]</a></td><td>Online at <a class="reference" href="http://www.voidspace.org.uk/python/license.shtml">http://www.voidspace.org.uk/python/license.shtml</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2" name="id6">[2]</a></td><td>Online at <a class="reference" href="http://www.voidspace.org.uk/python/pythonutils.html">http://www.voidspace.org.uk/python/pythonutils.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3" name="id7">[3]</a></td><td>Followed by a space, but it doesn't show up here.</td></tr>
+</tbody>
+</table>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">Rendering this document with docutils also needs the
+textmacros module and the PySrc CSS stuff. See
+<a class="reference" href="http://www.voidspace.org.uk/python/firedrop2/textmacros.shtml">http://www.voidspace.org.uk/python/firedrop2/textmacros.shtml</a></p>
+</div>
+<div align="center">
+    <p>
+        <a href="http://www.python.org">
+            <img src="images/new_python.gif" width="100" height="103" border="0"
+                alt="Powered by Python" />
+        </a>
+        <a href="http://sourceforge.net">
+            <img src="http://sourceforge.net/sflogo.php?group_id=123265&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" />
+        </a>
+        <a href="http://www.opensource.org">
+            <img src="images/osi-certified-120x100.gif" width="120" height="100" border="0"
+                alt="Certified Open Source"/>
+        </a>
+    </p>
+    <p>
+        <a href="http://www.voidspace.org.uk/python/index.shtml">
+            <img src="images/pythonbanner.gif" width="468" height="60"
+            alt="Python on Voidspace" border="0" />
+        </a>
+    </p>
+    <p>
+        <a href="http://sourceforge.net/donate/index.php?group_id=123265">
+            <img src="http://images.sourceforge.net/images/project-support.jpg" width="88" height="32" border="0" alt="Support This Project" />
+        </a>
+    </p>
+    <p>
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+        </script>
+        <script type="text/javascript">
+        _uacct = "UA-203625-1";
+        urchinTracker();
+        </script>
+    </p>
+
+</div></div>
+</div>
+<div class="footer">
+<hr class="footer" />
+<a class="reference" href="standout.txt">View document source</a>.
+Generated on: 2006-08-27 23:44 UTC.
+Generated by <a class="reference" href="http://docutils.sourceforge.net/">Docutils</a> from <a class="reference" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> source.
+
+</div>
+</body>
+</html>
