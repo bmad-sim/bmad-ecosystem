@@ -27,7 +27,7 @@ type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 type (qp_rect_struct) border1, border2
 
-real(rp) location(4), dx, dy
+real(rp) location(4), dx, dy, h
 
 integer i, j, k
 
@@ -39,16 +39,27 @@ logical found
 ! inits
 
 if (.not. s%global%plot_on) return
+
+h = s%plot_page%text_height
+call qp_set_text_attrib ('TEXT', height = h)
+call qp_set_text_attrib ('MAIN_TITLE', height = h * s%plot_page%main_title_text_scale)
+call qp_set_text_attrib ('GRAPH_TITLE', height = h * s%plot_page%graph_title_text_scale)
+call qp_set_text_attrib ('LEGEND', height = h * s%plot_page%legend_text_scale)
+call qp_set_text_attrib ('AXIS_NUMBERS', height = h * s%plot_page%axis_number_text_scale)
+call qp_set_text_attrib ('AXIS_LABEL', height = h * s%plot_page%axis_label_text_scale)
+
 call tao_create_plot_window () ! This routine knows not to create multiple windows.
 
 call qp_clear_page
 
 ! print the title 
+
+h = s%plot_page%text_height * s%plot_page%main_title_text_scale
 do i = 1, size(s%plot_page%title)
   if (s%plot_page%title(i)%draw_it)                                         &
     call qp_draw_text (s%plot_page%title(i)%string, s%plot_page%title(i)%x, &
                      s%plot_page%title(i)%y, s%plot_page%title(i)%units,    &
-                     s%plot_page%title(i)%justify)
+                     s%plot_page%title(i)%justify, height = h)
 enddo
 
 ! Draw view universe
@@ -60,14 +71,14 @@ endif
 
 ! loop over all plots
 
-do i = 1, size(s%plot_page%region)
+do i = 1, size(s%plot_region)
 
-  plot => s%plot_page%region(i)%plot
-  if (.not. s%plot_page%region(i)%visible) cycle
+  plot => s%plot_region(i)%plot
+  if (.not. s%plot_region(i)%visible) cycle
 
 ! set the s%plot_page border for this particular region
 
-  location = s%plot_page%region(i)%location
+  location = s%plot_region(i)%location
   border1%units = '%PAGE'
   call qp_convert_rectangle_rel (s%plot_page%border, border1)
   dx = 1 - (border1%x2 - border1%x1)
@@ -127,7 +138,7 @@ type (tao_keyboard_struct), pointer :: key
 
 integer i, j, k, n, m, p, j_ele, j_att, ix_var
 real(rp) :: y_here, norm, v, x1, x2, y1, y2
-real(rp) :: dy_key, text_scale
+real(rp) :: height
 character(120) str, str2
 character(60) fmt, fmt2
 character(12) model_str, val0_str, delta_str
@@ -145,8 +156,7 @@ call qp_set_layout (box = graph%box, margin = graph%margin)
 call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
 y_here = y2  ! start from the top of the graph
 
-call qp_get_qp_parameters (text_scale = text_scale)
-dy_key = 12 * text_scale
+height = s%plot_page%text_height * s%plot_page%key_table_text_scale
 
 do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
   if (k > ubound(s%key, 1)) cycle
@@ -162,15 +172,15 @@ write (str, fmt) 'ix  Name', 'Attrib', &
                          'Value      Value0       Delta   Uni  useit_opt'
 
 call qp_draw_text (str, 5.0_rp, y_here, 'POINTS/GRAPH', &
-                             height = dy_key-1.0_rp, uniform_spacing = .true.)
+                             height = height, uniform_spacing = .true.)
   
 write (fmt, '(a, i2.2, a, i2.2, a)') &
         '(i2, 2x, a', j_ele, ', 2x, a', j_att, ', 3a12, 2x, a, 3x, l)'
 
 write (str, '(i2, a)') s%global%ix_key_bank/10, ':'
-y_here = y_here - dy_key
+y_here = y_here - 1.1 * height
 call qp_draw_text (str, 5.0_rp, y_here, 'POINTS/GRAPH', &
-                          height = dy_key-1.0_rp, uniform_spacing = .true.)
+                          height = height, uniform_spacing = .true.)
 
 do i = 1, 10
 
@@ -216,7 +226,7 @@ do i = 1, 10
   endif
 
   call qp_draw_text (str, 25.0_rp, y_here, 'POINTS/GRAPH', &
-                          height = dy_key-1.0_rp, uniform_spacing = .true.)
+                          height = height, uniform_spacing = .true.)
   y_here = y_here - dy_key
 enddo
 
@@ -237,10 +247,10 @@ type (floor_position_struct) end1, end2, floor
 integer i, j, ix_ptr, icol, ix1, ix2, isu, n_bend, n
 
 real(rp) off, off1, off2, angle, rho, x0, y0, dx1, dy1, dx2, dy2
-real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, height
+real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta
 real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
-real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a
+real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
 
 character(80) str
 character(20) :: r_name = 'tao_plot_floor_plan'
@@ -434,7 +444,6 @@ do i = 1, lat%n_ele_max
   ! draw the label
 
   if (s%plot_page%ele_shape(ix_ptr)%draw_name) then
-    height = 0.8 * s%plot_page%text_height 
     if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
       x_center = (end1%x + end2%x) / 2 
       y_center = (end1%y + end2%y) / 2 
@@ -453,6 +462,7 @@ do i = 1, lat%n_ele_max
     else
       justify = 'RC'
     endif
+    height = s%plot_page%text_height * s%plot_page%legend_text_scale
     call qp_draw_text (ele%name, x_center+dx, y_center+dy, units = 'POINTS', &
                                  height = height, justify = justify, ANGLE = theta)    
   endif
@@ -504,8 +514,8 @@ type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 
-real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, height
-real(rp) lat_len
+real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top
+real(rp) lat_len, height
 
 integer i, j, ix_ptr, k, kk, ix, ix1, ix2, isu
 integer icol, ix_var, ixv, j_label
@@ -522,7 +532,8 @@ call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
 y_bottom = -(y2 + 12 * (s%global%n_lat_layout_label_rows - 1)) / 2
 y_top = y_bottom + y2
 call qp_set_axis ('Y', y_bottom, y_top, 1, 0)
-  
+height = s%plot_page%text_height * s%plot_page%legend_text_scale
+
 isu = graph%ix_universe
 ! if garph%ix_universe .eq. 0 then graph currently viewed universe
 if (isu == 0) then
@@ -652,7 +663,6 @@ do i = 1, lat%n_ele_max
     j_label = j_label + 1
     if (j_label == s%global%n_lat_layout_label_rows) j_label = 0
     y_off = y_bottom   ! + 12.0_rp * j_label 
-    height = 0.8 * s%plot_page%text_height 
     s_pos = ele%s - ele%value(l$)/2
     if (s_pos > plot%x%max .and. s_pos-lat_len > plot%x%min) s_pos = s_pos - lat_len
     call qp_draw_text (ele%name, s_pos, y_off, &

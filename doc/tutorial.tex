@@ -24,12 +24,13 @@ found at:
   http://www.lepp.cornell.edu/~dcs/bmad
 \end{example}
 
-Briefly, if you are at Cornell, after setting up the appropriate environmental 
-variables, you should be able to run \tao using the command
+Briefly, if you are at Cornell, after setting up the appropriate
+environmental variables, you should be able to run \tao using the
+command
 \begin{example}
   \$CESR_EXE/tao \{-init <tao_input_file>\} \{-beam <beam_input_file>\}
 \end{example}
-The \vn{tao_input_file} is the file \tao reads to start \tao's
+The \vn{<tao_input_file>} is the file \tao reads to start \tao's
 initialization process. If not present, \vn{<tao_input_file>} defaults
 to \vn{tao.init}. The \vn{<beam_input_file>} is for reading in data
 generated from beam tracking (\sref{s:command_line}). Example:
@@ -37,13 +38,13 @@ generated from beam tracking (\sref{s:command_line}). Example:
   \$CESR_EXE/tao -init my.init
 \end{example}
 
-To get an example set of input files to run, check out a copy of the \tao code.
-Let \cs{Root} be the name of the root directory for the code.
-The checked out copy of \tao will be put in a directory
+To get an example set of input files to run, check out a copy of the
+\tao code. Let \cs{Root} be the name of the root directory for the
+code. The checked out copy of \tao will be put in a directory
 \cs{ROOT/tao}. The example is in the \cs{Root/tao/program} directory.
-Note: The
-first time you run \tao it will need to create a digested \bmad
-lattice file for the included lattice. This may take a few minutes.
+Note: The first time you run \tao it will need to create a digested
+\bmad lattice file for the included lattice. This may take a minute if
+the lattice contains wiggler elements.
 
 %----------------------------------------------------------------
 \subsection{Customizing Tao}

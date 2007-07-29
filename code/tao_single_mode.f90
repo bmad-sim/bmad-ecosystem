@@ -411,8 +411,8 @@ subroutine scale_it_all (ix_plot, factor, a_min, a_max)
     return
   endif
 
-  do i = 1, size(s%plot_page%region)
-    plot => s%plot_page%region(i)%plot
+  do i = 1, size(s%plot_region)
+    plot => s%plot_region(i)%plot
     if (.not. allocated (plot%graph)) cycle
     do j = 1, size(plot%graph)
       graph => plot%graph(j) 

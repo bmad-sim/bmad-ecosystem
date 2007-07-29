@@ -224,7 +224,7 @@ subroutine deallocate_everything ()
 
 ! Plotting  
 
-  nullify(s%plot_page%region)
+  nullify(s%plot_region)
 
   do i = 1, size(s%template_plot)
     plot => s%template_plot(i)

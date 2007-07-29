@@ -933,6 +933,14 @@ case ('plot')
 
   if (word(1) == ' ') then
 
+    nl=nl+1; write (lines(nl), lmt) 'plot_page%text_height            = ', s%plot_page%text_height 
+    nl=nl+1; write (lines(nl), lmt) 'plot_page%main_title_text_scale  = ', s%plot_page%main_title_text_scale 
+    nl=nl+1; write (lines(nl), lmt) 'plot_page%graph_title_text_scale = ', s%plot_page%graph_title_text_scale 
+    nl=nl+1; write (lines(nl), lmt) 'plot_page%axis_number_text_scale = ', s%plot_page%axis_number_text_scale 
+    nl=nl+1; write (lines(nl), lmt) 'plot_page%axis_label_text_scale  = ', s%plot_page%axis_label_text_scale 
+    nl=nl+1; write (lines(nl), lmt) 'plot_page%key_table_text_scale   = ', s%plot_page%key_table_text_scale 
+
+
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Templates:        Plot.Graph'
     nl=nl+1; lines(nl) = '             --------- ----------'
@@ -956,8 +964,8 @@ case ('plot')
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = '[Visible]     Plot Region         <-->  Template' 
     nl=nl+1; lines(nl) = '---------     -----------               ------------'
-    do i = 1, size(s%plot_page%region)
-      region => s%plot_page%region(i)
+    do i = 1, size(s%plot_region)
+      region => s%plot_region(i)
       nl=nl+1; write (lines(nl), '(3x l1, 10x, a20, 2a)') region%visible, &
                                     region%name, '<-->  ', region%plot%name
     enddo

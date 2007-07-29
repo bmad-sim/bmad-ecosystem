@@ -400,8 +400,8 @@ endif
 
 err = .false.
 
-do i = 1, size(s%plot_page%region)
-  region => s%plot_page%region(i)
+do i = 1, size(s%plot_region)
+  region => s%plot_region(i)
   if (plot_name == region%name) return
 enddo
 
@@ -518,9 +518,9 @@ endif
 np = 0
 
 if (where == 'REGION' .or. where == 'BOTH') then
-  do i = 1, size(s%plot_page%region)
-    if (s%plot_page%region(i)%name == plot_name .or. plot_name == '*') np = np + 1
-    if (s%plot_page%region(i)%plot%name == plot_name .or. plot_name == '*') np = np + 1
+  do i = 1, size(s%plot_region)
+    if (s%plot_region(i)%name == plot_name .or. plot_name == '*') np = np + 1
+    if (s%plot_region(i)%plot%name == plot_name .or. plot_name == '*') np = np + 1
   enddo
 endif
 
@@ -547,14 +547,14 @@ if (present(plot)) allocate(plot(np))
 np = 0
 
 if (where == 'REGION' .or. where == 'BOTH') then
-  do i = 1, size(s%plot_page%region)
-    if (s%plot_page%region(i)%name == plot_name .or. plot_name == '*') then
+  do i = 1, size(s%plot_region)
+    if (s%plot_region(i)%name == plot_name .or. plot_name == '*') then
       np = np + 1
-      p(np)%p => s%plot_page%region(i)%plot
+      p(np)%p => s%plot_region(i)%plot
     endif
-    if (s%plot_page%region(i)%plot%name == plot_name .or. plot_name == '*') then
+    if (s%plot_region(i)%plot%name == plot_name .or. plot_name == '*') then
       np = np + 1
-      p(np)%p => s%plot_page%region(i)%plot
+      p(np)%p => s%plot_region(i)%plot
     endif
   enddo
 endif

@@ -43,18 +43,18 @@ logical, optional :: force
 if (len_trim(where) == 0 .or. where == 'all' .or. where == 's') then
   if (allocated(plot)) deallocate(plot)
   n = 0
-  do j = 1, size(s%plot_page%region)
-    if (.not. s%plot_page%region(j)%visible) cycle
-    if (where == 's' .and. s%plot_page%region(j)%plot%x_axis_type /= 's') cycle
+  do j = 1, size(s%plot_region)
+    if (.not. s%plot_region(j)%visible) cycle
+    if (where == 's' .and. s%plot_region(j)%plot%x_axis_type /= 's') cycle
     n = n + 1
   enddo
   allocate (plot(n))
   n = 0
-  do j = 1, size(s%plot_page%region)
-    if (.not. s%plot_page%region(j)%visible) cycle
-    if (where == 's' .and. s%plot_page%region(j)%plot%x_axis_type /= 's') cycle
+  do j = 1, size(s%plot_region)
+    if (.not. s%plot_region(j)%visible) cycle
+    if (where == 's' .and. s%plot_region(j)%plot%x_axis_type /= 's') cycle
     n = n + 1
-    plot(n)%p => s%plot_page%region(j)%plot
+    plot(n)%p => s%plot_region(j)%plot
   enddo
 else
   call tao_find_plots (err, where, 'REGION', plot)

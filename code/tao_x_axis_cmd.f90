@@ -35,9 +35,9 @@ endif
 ! If the where argument is blank then axis all graphs
 
 if (len_trim(where) == 0 .or. where == 'all') then
-  do j = 1, size(s%plot_page%region)
-    if (.not. s%plot_page%region(j)%visible) cycle
-    call set_axis (s%plot_page%region(j)%plot)
+  do j = 1, size(s%plot_region)
+    if (.not. s%plot_region(j)%visible) cycle
+    call set_axis (s%plot_region(j)%plot)
   enddo
   return
 endif

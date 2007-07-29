@@ -49,9 +49,9 @@ endif
 ! If the where argument is blank or 'all' then scale all plots.
 
 if (len_trim(where) == 0 .or. where(1:3) == 'all') then
-  do j = 1, size(s%plot_page%region)
-    if (.not. s%plot_page%region(j)%visible) cycle
-    call tao_scale_plot (s%plot_page%region(j)%plot, axis, y_min, y_max)
+  do j = 1, size(s%plot_region)
+    if (.not. s%plot_region(j)%visible) cycle
+    call tao_scale_plot (s%plot_region(j)%plot, axis, y_min, y_max)
   enddo
   return
 endif

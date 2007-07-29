@@ -60,9 +60,9 @@ enddo
 ! Find plot for the region given by "where"
 
 if (where == 'all') then
-  do i = 1, size(s%plot_page%region)
-    do j = 1, size(s%plot_page%region(i)%plot%graph)
-      s%plot_page%region(i)%plot%graph(j)%who = p_who
+  do i = 1, size(s%plot_region)
+    do j = 1, size(s%plot_region(i)%plot%graph)
+      s%plot_region(i)%plot%graph(j)%who = p_who
     enddo
   enddo
 

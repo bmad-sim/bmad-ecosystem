@@ -36,9 +36,9 @@ logical err
 ! If the where argument is blank then clip all graphs
 
 if (len_trim(where) == 0) then
-  do j = 1, size(s%plot_page%region)
-    p => s%plot_page%region(j)%plot
-    if (.not. s%plot_page%region(j)%visible) cycle
+  do j = 1, size(s%plot_region)
+    p => s%plot_region(j)%plot
+    if (.not. s%plot_region(j)%visible) cycle
     do i = 1, size(p%graph)
       call clip_graph (p, p%graph(i))
     enddo

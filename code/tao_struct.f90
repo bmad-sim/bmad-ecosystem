@@ -156,13 +156,17 @@ end type
 
 type tao_plot_page_struct               
   type (tao_title_struct) title(2)   ! Titles at top of page.
-  type (tao_plot_region_struct), pointer :: region(:) => null() 
   type (qp_rect_struct) border       ! Border around plots edge of page.
   type (tao_ele_shape_struct) ele_shape(20)
   character(80) ps_scale             ! scaling when creating PS files.
   real(rp) size(2)                   ! width and height of window in pixels.
-  real(rp) text_height
-  real(rp) :: text_scale = 1
+  real(rp) :: text_height = 12              ! In points. Scales the height of all text
+  real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
+  real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
+  real(rp) :: axis_number_text_scale = 0.9  ! Relative to text_height
+  real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
+  real(rp) :: legend_text_scale      = 0.8  ! Relative to text_height
+  real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
   integer id_window                  ! X window id number.
 end type
 
@@ -523,6 +527,7 @@ type tao_super_universe_struct
   type (tao_global_struct) global                          ! global variables.
   type (tao_plot_struct) :: template_plot(n_template_maxx) ! Templates for the plots.
   type (tao_plot_page_struct) :: plot_page                 ! Defines the plot window.
+  type (tao_plot_region_struct), pointer :: plot_region(:) => null() 
   type (tao_v1_var_struct), pointer :: v1_var(:) => null() ! The variable types
   type (tao_var_struct), pointer :: var(:) => null()       ! array of all variables.
   type (tao_universe_struct), pointer :: u(:) => null()    ! array of universes.

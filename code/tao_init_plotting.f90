@@ -27,7 +27,7 @@ type (tao_graph_struct), pointer :: grph
 type (tao_curve_struct), pointer :: crv
 type (tao_plot_input) plot
 type (tao_graph_input) graph
-type (tao_plot_page_input) plot_page
+type (tao_plot_page_struct) plot_page, plot_page_default
 type (tao_region_input) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx)
 type (tao_place_input) place(10)
@@ -65,6 +65,7 @@ if (iu == 0) call err_exit
 
 place%region = ' '
 region%name = ' '       ! a region exists only if its name is not blank 
+plot_page = plot_page_default
 plot_page%title(:)%draw_it = .false.
 plot_page%title(:)%string = ' '
 plot_page%title(:)%justify = 'CC'
@@ -73,19 +74,14 @@ plot_page%title(:)%y = 0.990
 plot_page%title(1)%y = 0.996
 plot_page%title(2)%y = 0.97
 plot_page%title(:)%units = '%PAGE'
-plot_page%text_scale = 1
 call out_io (s_blank$, r_name, 'Init: Reading tao_plot_page namelist')
 read (iu, nml = tao_plot_page, err = 9000)
 
+s%plot_page = plot_page
 page => s%plot_page
-page%size = plot_page%size
-page%border = plot_page%border
-page%text_scale = plot_page%text_scale
 
 ! title
 
-page%text_height = plot_page%text_height
-page%title = plot_page%title
 forall (i = 1:size(page%title), (page%title(i)%string .ne. ' ')) &
             page%title(i)%draw_it = .true.
 
@@ -93,11 +89,11 @@ forall (i = 1:size(page%title), (page%title(i)%string .ne. ' ')) &
 ! transfer the info from the input region structure.
 
 n = count(region%name /= ' ')
-allocate (page%region(n))
+allocate (s%plot_region(n))
 
 do i = 1, n
-  page%region(i)%name     = region(i)%name
-  page%region(i)%location = region(i)%location
+  s%plot_region(i)%name     = region(i)%name
+  s%plot_region(i)%location = region(i)%location
 enddo
 
 ! Read in the plot templates and transfer the info to the 
@@ -352,7 +348,6 @@ do i = 1, size(place)
 enddo
 
 call tao_create_plot_window
-if (s%global%plot_on) call qp_set_qp_parameters (text_scale = page%text_scale)
 
 return
 

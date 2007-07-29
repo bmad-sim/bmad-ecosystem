@@ -195,7 +195,7 @@ Global variables are initialized in the \vn{data_and_var_file} using a
 namelist block named \vn{tao_params} The syntax of this block is:
 \index{tao_params}\index{n_v1_var_max}\index{n_d2_data_max}
 \index{n_data_max}\index{n_var_max}\index{global}\index{bmad_com}
-\index{csr_com}
+\index{csr_param}
 \begin{example}
   &tao_params
     n_v1_var_max  = <integer>   ! number of v1 data structures.
@@ -250,7 +250,7 @@ type tao_global_struct
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   integer :: random_seed = 0             ! use system clock by default
   integer :: n_write_file = 0            ! used for indexing 'show write' files
-  character(16) :: track_type = 'single' ! or 'beam', 'csr', or 'macro' 
+  character(16) :: track_type = 'single' ! or 'beam', or 'macro' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'      ! optimizer to use.
   character(16) :: default_key_merit_type
@@ -320,6 +320,7 @@ synchrotron radiation calculations.
     logical :: small_angle_approx = .true. ! Use lcsr small angle approximation?
   end type
 \end{example}
+the \vn{global%track_type} must be set to \vn{"beam"} for the CSR computation.
 See the Bmad manual for more details.
 
 %------------------------------------------------------------------------
@@ -1081,7 +1082,13 @@ plots go. The syntax of this block is:
   &tao_plot_page
     plot_page%size        = <x_size>, <y_size>         ! size in POINTS 
     plot_page%border      = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
-    plot_page%text_height = <text_height>              !height in POINTS
+    plot_page%text_height = 12             ! height in POINTS
+    plot_page%main_title_text_scale  = 1.3  ! Relative to text_height
+    plot_page%graph_title_text_scale = 1.1  ! Relative to text_height
+    plot_page%axis_number_text_scale = 0.9  ! Relative to text_height
+    plot_page%axis_label_text_scale  = 1.0  ! Relative to text_height
+    plot_page%legend_text_scale      = 0.8  ! Relative to text_height
+    plot_page%key_table_text_scale   = 0.9  ! Relative to text_height
     plot_page%title(i)    = <string>, {<x>, <y>, "<justify>", "<units>"}
     region(i)%name        = "<region_name>"
     region(i)%location    = <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
@@ -1107,6 +1114,15 @@ For example:
 \vn{plot_page%size} sets the horizontal and vertical size of the plot
 window in \vn{POINTS} units (72 points = 1 inch. Roughly 1 point = 1
 pixel). 
+
+\vn{plot_page%text_height} sets the baseline height of the text that is drawn.
+\vn{plot_page%main_title_text_scale} scales the height of the main title text
+relative to this baseline. Similarly \vn{plot_page%graph_title_text_scale} scales
+the height of the titles of any graph. The axis numbers and axis label are scalled
+by \vn{plot_page%axis_number_text_scale} and \vn{plot_page%axis_label_text_scale}
+respectively. \vn{plot_page%key_table_text_scale} scales the text in a \vn{key table}
+and \vn{plot_page%legend_text_scale} scales the text in a \vn{lat layout} or 
+a \vn{floor plan}.
 
 \vn{plot_page%border} sets a border around the edges of the
 window. As shown in Figure~\ref{f:plot_page} \vn{b_x1}, \vn{b_x2} are
