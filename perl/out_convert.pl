@@ -7,8 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/BMAD_LAYOUT://g;
-    s/BMAD_LAT://g;
+    s/plot_page\%region/plot_region/g;
 
     print (F_OUT);
 
