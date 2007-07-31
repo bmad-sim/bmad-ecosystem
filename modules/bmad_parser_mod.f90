@@ -1800,7 +1800,8 @@ subroutine read_sr_wake (ele, sr_file_name)
   type (ele_struct) ele
   type (sr_mode_wake_struct) longitudinal(100), transverse(100)
 
-  real(rp) dz, col1(500), col2(500), col3(500), z_max
+  real(rp) dz, z_max
+  real(rp), allocatable :: col1(:), col2(:), col3(:)
   integer n_row, n, j, iu, ios, ix, i
 
   character(*) sr_file_name
@@ -1827,6 +1828,22 @@ subroutine read_sr_wake (ele, sr_file_name)
   ele%wake%sr_file = sr_file_name
   call find_this_file (iu, sr_file_name, full_file_name)
   if (iu < 0) return
+
+
+! count number of lines in the file
+
+  i = 0
+  do
+    read (iu, '(a)', iostat = ios) line
+    if (ios < 0) then   ! end-of-file
+      allocate (col1(i), col2(i), col3(i))
+      exit
+    endif
+    i = i + 1
+  enddo
+  rewind (iu)
+
+!
 
   i = 0
 
@@ -1862,6 +1879,8 @@ subroutine read_sr_wake (ele, sr_file_name)
   ele%wake%sr_table%z     = col1(1:n_row)
   ele%wake%sr_table%long  = col2(1:n_row)
   ele%wake%sr_table%trans = col3(1:n_row)
+
+  deallocate (col1, col2, col3)
 
   ! err check
 

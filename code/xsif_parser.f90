@@ -440,7 +440,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
           allocate (ele%wake%sr_mode_long(0), ele%wake%sr_mode_trans(0), ele%wake%lr(0))
           name1 = arr_to_str(lwake_file(ix1)%fnam_ptr)
           name2 = arr_to_str(twake_file(ix2)%fnam_ptr)
-          ele%wake%sr_file = trim(name1) // ' | ' // name2
+          ele%wake%sr_file = '...XSIF: ' // trim(name1) // ' | ' // trim(name2)
           call read_xsif_wake (ele%wake%sr_table, name1, 'LONG')
           call read_xsif_wake (ele%wake%sr_table, name2, 'TRANS')
           ele%wake%z_sr_mode_max = 0

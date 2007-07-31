@@ -46,28 +46,46 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
   character(4000) line
   character(4) last
   character(40) name
+  character(200) wake_name
   character(40), allocatable :: names(:)
- 
-  integer i, j, k, ix, iu, ios, ixs, ix1
+  character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
+  character(40) :: r_name = 'write_bmad_lattice_file'
+
+  integer i, j, k, n, ix, iu, iuw, ios, ixs, ix1, n_sr, n_lr
   integer unit(6), ix_names, ix_match
 
-  logical unit_found, write_term, match_found
+  logical unit_found, write_term, match_found, found
 
-! Init
+  ! Init...
+  ! Count the number of foreign wake files
 
   call init_ele (ele_init)
 
-! Open the file
+  n_sr = 0
+  n_lr = 0
+  do i = 1, lat%n_ele_max
+    ele => lat%ele(i)
+    if (.not. associated(ele%wake)) cycle
+    if (ele%wake%sr_file(1:3) == '...') n_sr = n_sr + 1 
+    if (ele%wake%lr_file(1:3) == '...') n_lr = n_lr + 1  
+  enddo
+  call re_allocate(sr_wake_name, n_sr, 200)
+  call re_allocate(lr_wake_name, n_lr, 200)
+
+  n_sr = 0
+  n_lr = 0
+
+  ! Open the file
 
   iu = lunget()
   open (iu, file = bmad_file, iostat = ios)
   if (ios /= 0) then
-    print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE: CANNOT OPEN FILE: ', &
-                                                          trim(bmad_file)
+    call out_io (s_error$, r_name, &
+        'ERROR IN WRITE_BMAD_LATTICE_FILE: CANNOT OPEN FILE: ' // trim(bmad_file))
     return
   endif
 
-! Non-elemental stuff
+  ! Non-elemental stuff
 
   if (lat%title /= ' ') &
             write (iu, *) 'title, "', trim(lat%title), '"'
@@ -130,7 +148,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
         write (iu, *) 'beginning[c22] = ', trim(str(ele%c_mat(2,2)))
   endif
 
-! Element stuff
+  ! Element stuff
 
   write (iu, *)
   write (iu, *) '!-------------------------------------------------------'
@@ -152,7 +170,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
       write (iu, *)
     endif
 
-! For a super_slave just create a dummy drift. 
+    ! For a super_slave just create a dummy drift. 
 
     if (ele%control_type == super_slave$) then
       ixs = ixs + 1
@@ -161,7 +179,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
       cycle
     endif
 
-! Do not write anything for elements that have a duplicate name.
+    ! Do not write anything for elements that have a duplicate name.
 
     call find1_indexx (ele%name, names, ix_names, ix_match, match_found)
     if (match_found) cycle
@@ -170,7 +188,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
     names(ix_match) = ele%name
     ix_names = ix_names + 1
 
-! Overlays and groups
+    ! Overlays and groups
 
     if (ele%control_type == overlay_lord$ .or. ele%control_type == group_lord$) then
       if (ele%control_type == overlay_lord$) then
@@ -210,7 +228,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
       cycle
     endif
 
-! Girder
+    ! Girder
 
     if (ele%control_type == girder$) then
       write (line, '(2a)') trim(ele%name), ': girder = {'
@@ -226,7 +244,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
       line = trim(ele%name) // ': ' // key_name(ele%key)
     endif
 
-! other elements
+    ! other elements
 
     if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
     if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
@@ -238,16 +256,101 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
     if (associated(ele%descrip)) line = trim(line) // &
                               ', descrip = "' // trim(ele%descrip) // '"'
 
+    ! If the wake file is not BMAD Format (Eg: XSIF format) then create a new wake file.
+    ! If first three characters of the file name are '...' then it is a foreign file.
+
     if (associated(ele%wake)) then
-      if (ele%wake%sr_file /= ' ') line = &
-            trim(line) // ',  sr_file = "' // trim(ele%wake%sr_file) // '"'
-      if (ele%wake%lr_file /= ' ') line = &
-            trim(line) // ',  lr_file = "' // trim(ele%wake%lr_file) // '"'
+
+      ! Short-range
+
+      if (ele%wake%sr_file /= ' ') then
+
+        wake_name = ele%wake%sr_file
+
+        if (wake_name(1:3) == '...') then
+          found = .false.
+          do n = 1, n_sr
+            if (wake_name == sr_wake_name(n)) then
+              found = .true.
+              exit
+            endif
+          enddo
+          if (.not. found) then
+            n = n_sr + 1
+            n_sr = n
+            sr_wake_name(n_sr) = wake_name
+          endif
+          write (wake_name, '(a, i0, a)') 'sr_wake_file_', n, '.bmad'
+          if (.not. found) then
+            call out_io (s_info$, r_name, 'Creating SR Wake file: ' // trim(wake_name))
+            iuw = lunget()
+            open (iuw, file = wake_name)
+            write (iuw, *) '!      z           Wz             Wt'
+            write (iuw, *) '!     [m]       [V/C/m]       [V/C/m^2]'
+            do n = lbound(ele%wake%sr_table, 1), ubound(ele%wake%sr_table, 1)
+              write (iuw, '(3es14.5)') ele%wake%sr_table(n)%z, &
+                                    ele%wake%sr_table(n)%long, ele%wake%sr_table(n)%trans
+            enddo
+            close(iuw)
+          endif
+        endif
+
+        line = trim(line) // ',  sr_wake_file = "' // trim(wake_name) // '"'
+
+      endif
+
+      ! Long-range
+
+      if (ele%wake%lr_file /= ' ') then
+
+        wake_name = ele%wake%lr_file
+
+        if (wake_name(1:3) == '...') then
+          found = .false.
+          do n = 1, n_lr
+            if (wake_name == lr_wake_name(n)) then
+              found = .true.
+              exit
+            endif
+          enddo
+          if (.not. found) then
+            n = n_lr + 1
+            n_lr = n
+            lr_wake_name(n_lr) = wake_name
+          endif
+          write (wake_name, '(a, i0, a)') 'lr_wake_file_', n, '.bmad'
+          if (.not. found) then
+            call out_io (s_info$, r_name, 'Creating LR Wake file: ' // trim(wake_name))
+            iuw = lunget()
+            open (iuw, file = wake_name)
+            write (iuw, *) '              Freq       R/Q      Q       m  Polarization_Angle'
+            write (iuw, *) '              [Hz]  [Ohm/m^(2m)]             [Radians/2pi]'
+            do n = lbound(ele%wake%lr, 1), ubound(ele%wake%lr, 1)
+              if (ele%wake%lr(n)%polarized) then
+                write (iuw, '(a, i0, a, 3es14.5, i6, f10.6)') 'lr(', n, ') =', &
+                      ele%wake%lr(n)%freq_in, ele%wake%lr(n)%R_over_Q, &
+                       ele%wake%lr(n)%Q, ele%wake%lr(n)%m, ele%wake%lr(n)%angle
+              else
+                write (iuw, '(a, i0, a, 3es14.5, i6, f10.6)') 'lr(', n, ') =', &
+                      ele%wake%lr(n)%freq_in, ele%wake%lr(n)%R_over_Q, &
+                      ele%wake%lr(n)%Q, ele%wake%lr(n)%m
+              endif
+            enddo
+            close(iuw)
+          endif
+        endif
+
+        line = trim(line) // ',  lr_wake_file = "' // trim(wake_name) // '"'
+
+      endif
+
     endif
+
+    ! Now for the rest of the element attributes.
 
     do j = 1, n_attrib_maxx
 
-! Exclude dependent variables
+      ! Exclude dependent variables
 
       if (j == check_sum$ .and. ele%key /= patch$) cycle
       if (j == E_TOT$) cycle
@@ -410,10 +513,10 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
 
   enddo ele_loop
 
-! Write superimpose markers which are just zero length drifts.
+  ! Write superimpose markers which are just zero length drifts.
 
 
-! Lattice Layout
+  ! Lattice Layout
 
   write (iu, *)
   write (iu, *) '!-------------------------------------------------------'
@@ -450,7 +553,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
   write (iu, *)
   write (iu, *) 'use, main_line'
 
-! cleanup
+  ! cleanup
 
   close(iu)
   deallocate (names)
@@ -948,7 +1051,8 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
 
 !
 
-  print *, 'Written ', out_type, ' lattice file: ', trim(out_file_name)
+  call out_io (s_info$, r_name, 'Written ' // trim(out_type) // &
+                                  ' lattice file: ' // trim(out_file_name))
 
   deallocate (name_list)
 

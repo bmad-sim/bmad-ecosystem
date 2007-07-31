@@ -504,8 +504,8 @@ endif
 if (logic_option(.false., type_floor_coords)) then
   nl=nl+1; li(nl) = ''
   nl=nl+1; li(nl) = 'Global Floor Coords:'
-  nl=nl+1; write (li(nl), '(3(a, f10.5, 5x))') 'X =    ', ele%floor%x,     'Y =  ', ele%floor%y,   'Z =  ', ele%floor%z 
-  nl=nl+1; write (li(nl), '(3(a, f10.5, 5x))') 'Theta =', ele%floor%theta, 'Phi =', ele%floor%phi, 'Psi =', ele%floor%psi   
+  nl=nl+1; write (li(nl), '(3(a, f12.5, 5x))') 'X =    ', ele%floor%x,     'Y =  ', ele%floor%y,   'Z =  ', ele%floor%z 
+  nl=nl+1; write (li(nl), '(3(a, f12.5, 5x))') 'Theta =', ele%floor%theta, 'Phi =', ele%floor%phi, 'Psi =', ele%floor%psi   
 endif
 
 ! finish
