@@ -67,6 +67,19 @@ end type
 type (rad_int_common_struct), target, save :: ric
 type (rad_int_cache_struct), target, save :: rad_int_cache_common(0:10)
 
+!
+
+type synch_rad_common_struct
+  real(rp) :: scale = 1.0               ! used to scale the radiation
+  real(rp) :: i2 = 0, i3 = 0            ! radiation integrals
+  logical :: i_calc_on = .false.        ! For calculating i2 and i3    
+end type
+
+type (synch_rad_common_struct), save :: synch_rad_com
+
+real(rp), parameter :: rad_fluct_const = 55 * r_e * h_bar_planck * c_light / &
+                                                       (24 * 3.0**0.5 * m_electron * e_charge)
+
 contains
 
 !---------------------------------------------------------------------

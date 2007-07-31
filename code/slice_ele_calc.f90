@@ -80,7 +80,6 @@ if (ele%key == lcavity$) then
   bookit = .true.
 endif
 
-if (bookit .and. .not. bmad_com%auto_bookkeeper) &
-                              call attribute_bookkeeper (sliced_ele, param)
+if (bookit) call attribute_bookkeeper (sliced_ele, param)
 
 end subroutine

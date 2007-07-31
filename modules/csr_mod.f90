@@ -180,6 +180,10 @@ do i = 0, n_step
 
   s_start = i * bin%ds_track_step
 
+  call convert_total_energy_to (runt%value(E_TOT$), &
+                                   lat%param%particle, bin%gamma, beta = bin%beta)
+  bin%gamma2 = bin%gamma**2
+
   call csr_bin_particles (bunch_end%particle, bin)    
 
   ! ns = 0 is the unshielded kick.
@@ -273,7 +277,7 @@ type (csr_bin_struct), target :: bin
 type (this_local_struct), save, allocatable :: tloc(:)
 type (csr_bin1_struct), pointer :: bin1
 
-real(rp) z_min, z_max, f, dz_particle, dz
+real(rp) z_min, z_max, f, dz_particle, dz, z_maxval, z_minval
 real(rp) zp_center, zp0, zp1, dz_bin2, zb0, zb1, charge, dcharge_ds
 
 integer i, j, n, ix0, ib, ic
@@ -286,11 +290,13 @@ character(20) :: r_name = 'csr_bin_particles'
 
 if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on) return
 
-dz = maxval(particle(:)%r%vec(5)) - minval(particle(:)%r%vec(5)) 
+z_maxval = maxval(particle(:)%r%vec(5), mask = (particle(:)%ix_lost == not_lost$))
+z_minval = minval(particle(:)%r%vec(5), mask = (particle(:)%ix_lost == not_lost$))
+dz = z_maxval - z_minval
 bin%dz_bin = dz / (csr_param%n_bin - (csr_param%particle_bin_span + 1))
 bin%dz_bin = 1.0000001 * bin%dz_bin     ! to prevent round off problems
 dz_bin2 = bin%dz_bin / 2
-z_min = (maxval(particle(:)%r%vec(5)) + minval(particle(:)%r%vec(5))) / 2
+z_min = (z_maxval + z_minval) / 2
 z_min = z_min - csr_param%n_bin * bin%dz_bin / 2
 z_max = z_min + csr_param%n_bin * bin%dz_bin / 2
 dz_particle = csr_param%particle_bin_span * bin%dz_bin
@@ -489,10 +495,6 @@ if (.not. csr_param%lcsr_component_on) return
 n_ele_pp = -1
 call next_element_params_calc (n_ele_pp, s0_kick_ele, k_factor)
 s_kick = s0_kick_ele + s_travel  ! absolute s value at point P.
-
-call convert_total_energy_to (lat%ele(ix_ele)%value(E_TOT$), &
-                                   lat%param%particle, bin%gamma, beta = bin%beta)
-bin%gamma2 = bin%gamma**2
 
 ! Loop over all kick1 bins and compute the kick or kick integral.
 ! The loop steps in increasing dz since that is what next_element_params_calc expects.

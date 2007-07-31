@@ -5,14 +5,7 @@ module radiation_mod
   use bmad_struct
   use bmad_interface
   use runge_kutta_mod
-
-  type synch_rad_common_struct
-    real(rp) :: scale = 1.0               ! used to scale the radiation
-    real(rp) :: i2 = 0, i3 = 0            ! radiation integrals
-    logical :: i_calc_on = .false.        ! For calculating i2 and i3    
-  end type
-
-  type (synch_rad_common_struct), save :: synch_rad_com
+  use rad_int_common
 
 contains
 
@@ -36,8 +29,6 @@ contains
 !-
 
 subroutine release_rad_int_cache (ix_cache)
-
-  use rad_int_common
 
   implicit none
 
@@ -96,7 +87,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   integer, intent(in) :: edge
 
-  real(rp), save :: h_bar, fluct_const, z_start
+  real(rp), save :: z_start
   real(rp) s_len, g, g2, g3, g_x, g_y, this_ran
   real(rp) x_ave, y_ave, gamma_0, dE_p, fact_d, fact_f
 
@@ -107,19 +98,11 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   character(20) :: r_name = 'track1_radiation'
 
-! Init
+! If not a magnetic element then nothing to do.
+! Also symplectic tracking handles the radiation.
 
-  if (init_needed) then
-    h_bar = h_bar_planck / e_charge  ! h_bar in eV*sec
-    fluct_const = 55 * r_e * h_bar * c_light / &
-                               (24 * sqrt(3.0) * m_electron)
-    init_needed = .false.
-  endif
-
-! If not a magnetic element then nothing to do
-
-  if (.not. any (ele%key == (/ quadrupole$, sextupole$, octupole$, sbend$, &
-                                                sol_quad$, wiggler$ /))) then
+  if (ele%tracking_method == symp_lie_bmad$ .or. .not. any (ele%key == &
+        (/ quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$ /))) then
     end = start
     return
   endif
@@ -216,12 +199,11 @@ subroutine track1_radiation (start, ele, param, end, edge)
   fact_f = 0
   if (bmad_com%radiation_fluctuations_on) then
     call ran_gauss (this_ran)
-    fact_f = sqrt(fluct_const * s_len * gamma_0**5 * g3) * this_ran
+    fact_f = sqrt(rad_fluct_const * s_len * gamma_0**5 * g3) * this_ran
   endif
 
   dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
 
-  end = start
   end%vec(2) = end%vec(2) * (1 - dE_p)
   end%vec(4) = end%vec(4) * (1 - dE_p)
   end%vec(6) = end%vec(6)  - dE_p * (1 + end%vec(6))
@@ -283,8 +265,7 @@ subroutine setup_radiation_tracking (lat, closed_orb, &
 
 ! Set logicals.
 
-  if (present(fluctuations_on)) &
-                  bmad_com%radiation_fluctuations_on = fluctuations_on
+  if (present(fluctuations_on)) bmad_com%radiation_fluctuations_on = fluctuations_on
   if (present(damping_on)) bmad_com%radiation_damping_on = damping_on
 
 ! Compute for a map_type wiggler the change in g2 and g3 
