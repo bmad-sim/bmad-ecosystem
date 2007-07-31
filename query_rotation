@@ -220,14 +220,16 @@ def check_activity():
         if verbose:
             print str(i)
         for line in lines:
+            changes.append(line)
             if verbose:
                 print line.strip()
-            changes.append(line)
     for change in changes:
         if change.find("trunk/src/") != -1:
-            return 1 # OK to rotate
+            retval = 1 # OK to rotate
+            return retval
         else:
-            return 0 # VETO rotation
+            retval = 0 # VETO rotation
+    return retval
 
 #################################################
 # Collect the check results
