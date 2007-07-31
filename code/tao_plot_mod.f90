@@ -131,6 +131,8 @@ end subroutine
 
 subroutine tao_plot_key_table (plot, graph)
 
+implicit none
+
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (tao_var_struct), pointer :: var
@@ -144,7 +146,6 @@ character(60) fmt, fmt2
 character(12) model_str, val0_str, delta_str
 character(4) exp_str
 character(24) :: r_name = 'tao_plot_key_table'
-
 
 !
 
@@ -227,7 +228,7 @@ do i = 1, 10
 
   call qp_draw_text (str, 25.0_rp, y_here, 'POINTS/GRAPH', &
                           height = height, uniform_spacing = .true.)
-  y_here = y_here - dy_key
+  y_here = y_here - 1.1 * height
 enddo
 
 end subroutine
@@ -237,6 +238,8 @@ end subroutine
 !--------------------------------------------------------------------------
 
 subroutine tao_plot_floor_plan (plot, graph)
+
+implicit none
 
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
@@ -508,6 +511,8 @@ end subroutine
 !--------------------------------------------------------------------------
 
 subroutine tao_plot_lat_layout (plot, graph)
+
+implicit none
 
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
