@@ -73,9 +73,9 @@ if (ele%key == lcavity$) then
   sliced_ele%value(e_loss$) = sliced_ele%value(e_loss$) / n_slice_tot
   phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
   s_start = (i_slice - 1) * ele%value(l$) / n_slice_tot
-  E = ele%value(E_TOT$) + ele%value(gradient$) * s_start * cos(phase)
+  E = ele%value(E_tot_start$) + ele%value(gradient$) * s_start * cos(phase)
   E = E - sliced_ele%value(e_loss$) * param%n_part * e_charge
-  sliced_ele%value(E_TOT_START$) = E 
+  sliced_ele%value(E_tot_start$) = E 
   call convert_total_energy_to (E, param%particle, pc = sliced_ele%value(p0c_start$))
   bookit = .true.
 endif
