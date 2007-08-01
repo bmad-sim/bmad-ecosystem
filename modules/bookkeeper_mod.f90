@@ -368,11 +368,11 @@ subroutine makeup_multipass_slave (lattice, ix_slave)
   slave%value = lord%value
   if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
     slave%value(dphi0$)        = val(dphi0$)
-    slave%value(E_TOT_START$) = val(E_TOT_START$)
+    slave%value(E_tot_start$) = val(E_tot_start$)
     slave%value(p0c_start$)    = val(p0c_start$)
   endif
 
-  slave%value(E_TOT$) = val(E_TOT$)
+  slave%value(E_tot$) = val(E_tot$)
   slave%value(p0c$)         = val(p0c$)
 
   if (associated (slave%a_pole)) then
@@ -610,7 +610,7 @@ subroutine makeup_super_slave (lattice, ix_slave)
 
   value = 0
   value(l$) = slave%value(l$)
-  value(E_TOT$) = slave%value(E_TOT$)
+  value(E_tot$) = slave%value(E_tot$)
   value(p0c$) = slave%value(p0c$)
   value(check_sum$) = slave%value(check_sum$) ! do not change the check_sum
 
@@ -1153,9 +1153,9 @@ end subroutine
 !     voltage$ = e_field$ * gap$ 
 !
 ! LCAVITY:    
-!     delta_e$     = gradient$ * L$ 
-!     E_TOT$ = E_TOT$ + gradient$ * l$ * cos(phase)
-!     p0c$         = sqrt(E_TOT$**2 - mc2^2)
+!     delta_e$ = gradient$ * L$ 
+!     E_tot$   = E_tot$ + gradient$ * l$ * cos(phase)
+!     p0c$     = sqrt(E_tot$**2 - mc2^2)
 ! 
 ! RFCAVITY:   
 !     rf_frequency$ = harmon$ * c_light / param%total_length (only if harmon$ /= 0)
@@ -1319,14 +1319,14 @@ subroutine attribute_bookkeeper (ele, param)
 ! attribute_bookkeeper can be called before the attributes are set.
 
   case (lcavity$)
-    if (ele%value(E_TOT_START$) /= 0) then
+    if (ele%value(E_tot_start$) /= 0) then
       ele%value(delta_e$) = ele%value(gradient$) * ele%value(L$) 
       phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-      E_TOT = ele%value(E_TOT_START$) + ele%value(gradient$) * &
+      E_tot = ele%value(E_tot_start$) + ele%value(gradient$) * &
                                                 ele%value(l$) * cos(phase)
-      E_TOT = E_TOT - ele%value(e_loss$) * param%n_part * e_charge
-      ele%value(E_TOT$) = E_TOT
-      call convert_total_energy_to (E_TOT, param%particle, pc = ele%value(p0c$))
+      E_tot = E_tot - ele%value(e_loss$) * param%n_part * e_charge
+      ele%value(E_tot$) = E_tot
+      call convert_total_energy_to (E_tot, param%particle, pc = ele%value(p0c$))
     endif
 
 ! RFcavity
@@ -1648,11 +1648,11 @@ subroutine transfer_lat_taylors (lattice_in, lattice_out, type_out, transfered_a
 
   if (present(transfered_all)) transfered_all = .true.
 
-  if (lattice_in%ele(0)%value(E_TOT$) /= &
-                              lattice_out%ele(0)%value(E_TOT$)) then
+  if (lattice_in%ele(0)%value(E_tot$) /= &
+                              lattice_out%ele(0)%value(E_tot$)) then
     if (type_out) then
        call out_io (s_warn$, r_name, &
-              'THE lattice ENERGIES ARE DIFFERENT. TAYLOR MAPS NOT TRANSFERED.')
+              'THE LATTICE ENERGIES ARE DIFFERENT. TAYLOR MAPS NOT TRANSFERED.')
     endif
     if (present(transfered_all)) transfered_all = .false.
     return
