@@ -7,6 +7,7 @@ use bmad_interface
 use make_mat6_mod
 use em_field_mod   
 use rad_int_common
+use random_mod
 
 type save_coef_struct
   real(rp) coef, dx_coef, dy_coef
