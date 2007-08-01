@@ -886,7 +886,7 @@ else
     param => s%u(u%coupling%from_uni)%model%lat%param
     if (s%global%matrix_recalc_on) call make_mat6 (u%coupling%coupling_ele, param)
     call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
-    call track1_beam (u%coupling%injecting_beam, u%coupling%coupling_ele, &
+    call track1_beam_ele (u%coupling%injecting_beam, u%coupling%coupling_ele, &
                         param, u%coupling%injecting_beam)
     u%coupling%coupling_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
     u%coupling%coupling_ele%floor = extract_ele%floor
