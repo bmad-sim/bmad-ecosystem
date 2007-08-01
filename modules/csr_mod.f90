@@ -138,7 +138,7 @@ type (ele_struct), pointer :: ele
 type (ele_struct), save :: runt
 type (csr_bin_struct), save :: bin
 
-real(rp) s_start
+real(rp) s_start, e_tot
 integer i, j, ns, nb, ix_ele, n_step
 
 character(20) :: r_name = 'track1_bunch_sc'
@@ -147,10 +147,19 @@ logical auto_bookkeeper
 ! Init
 
 ele => lat%ele(ix_ele)
-bunch_end = bunch_start
+
+! No CSR for a zero length element.
+
+if (ele%value(l$) == 0) then
+  ele%csr_calc_on = .false.
+  call track1_bunch_ele (bunch_end, ele, lat%param, bunch_end)
+  return
+endif
 
 ! n_step is the number of steps to take when tracking through the element.
 ! bin%ds_step is the true step length.
+
+bunch_end = bunch_start
 
 if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
   call out_io (s_fatal$, r_name, &
@@ -176,12 +185,20 @@ bmad_com%auto_bookkeeper = .false.   ! make things go faster
 
 do i = 0, n_step
 
-  call slice_ele_calc (ele, lat%param, i, n_step, runt)
+  ! track through the runt
+
+  if (i == 0) then
+    e_tot = lat%ele(ix_ele-1)%value(e_tot$)
+  else
+    call slice_ele_calc (ele, lat%param, i, n_step, runt)
+    runt%csr_calc_on = .false.
+    call track1_bunch_ele (bunch_end, runt, lat%param, bunch_end)
+    e_tot = runt%value(e_tot$)
+  endif
 
   s_start = i * bin%ds_track_step
 
-  call convert_total_energy_to (runt%value(E_TOT$), &
-                                   lat%param%particle, bin%gamma, beta = bin%beta)
+  call convert_total_energy_to (e_tot, lat%param%particle, bin%gamma, beta = bin%beta)
   bin%gamma2 = bin%gamma**2
 
   call csr_bin_particles (bunch_end%particle, bin)    
@@ -215,15 +232,6 @@ do i = 0, n_step
     enddo
 
   enddo
-
-  ! track through the runt
-
-  if (i /= n_step) then
-    do j = 1, size(bunch_end%particle)
-      pt => bunch_end%particle(j)
-      call track1_particle (pt, runt, lat%param, pt)
-    enddo
-  endif
 
   call save_bunch_track (bunch_end, ele, s_start)
 
