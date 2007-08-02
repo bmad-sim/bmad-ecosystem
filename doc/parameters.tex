@@ -1,11 +1,11 @@
-\chapter{Global Parameters}
+\chapter{Bmad Parameter Structures}
 
-\bmad has various global parameters which affect various
+\bmad has various parameters which affect various
 calculations that \bmad performs. A given program may give the user
 access to some of these parameters so, in order to allow the intelligent
 setting of these parameters, this chapter gives an in-depth description.
 
-A set of global parameters are grouped that affect a particular type
+A set of parameters are grouped that affect a particular type
 of calculation are grouped into \vn{``structures''}. Each structure
 has a \vn{``structure name''} (also called a \vn{``type name''}) which
 the user can ignore but is important to programmers and an
@@ -21,7 +21,7 @@ Section~\sref{s:bmad_params} the syntax is
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Bmad General Parameters}
+\section{Bmad Global Parameters}
 \label{s:bmad_params}
 \index{Bmad general parameters|textbf}
 
@@ -60,6 +60,14 @@ aperture limit helps prevent numerical overflow in the calculations.
 
 \vn{d_orb} is the orbit displacement used in the routine that
 calculates the transfer matrix through an element via tracking.
+
+%-----------------------------------------------------------------
+\section{Beam Initialization Parameters}
+\label{s:beam_init}
+\index{Beam Initialization Parameters|textbf}
+
+\begin{example}
+\end{example}
 
 %-----------------------------------------------------------------
 \section{CSR Parameters}
@@ -138,3 +146,4 @@ does not have any affect.
 \vn{small_angle_approx} toggles whether the small angle approximation
 is used in the calculation. This is generally an excellant
 approximation.
+
