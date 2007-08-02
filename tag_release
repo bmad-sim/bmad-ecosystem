@@ -134,28 +134,30 @@ echo "Revision # of ${REL_NAME} is ${rev}."
 
 
 ######################################################################
-#  Create temporary file holding the sequence of SVN operations to be
-#  performed within this ONE transaction.
-######################################################################
-echo "rmkdir /tags/${REL_NAME}" > ${tmpdir}/${tmpfile}
-echo "rcopy /trunk/Gmake/ /tags/${REL_NAME}/Gmake/" >> ${tmpdir}/${tmpfile}
-echo "rcopy /trunk/src/ /tags/${REL_NAME}/src/" >> ${tmpdir}/${tmpfile}
-echo "rcopy /trunk/util/ /tags/${REL_NAME}/util/" >> ${tmpdir}/${tmpfile}
-
-
-######################################################################
-#  Call rsvn.py with the operations defined in the temporary file to
-#  initiate the SVN transaction. rsvn.py allows multiple repository 
-#  operations to all be executed within the same transaction.
+#  Set release type.
 ######################################################################
 if ( [ ${TAG_CURRENT} -eq 1 ] ) then
     TYPE="CURRENT"
+    TYPE_SPEC="_current"
 else
     TYPE="DEVEL"
+    TYPE_SPEC=""
 fi
 
+
 ######################################################################
-# Create the transaction, execute the operations, close repository.
+#  Create temporary file holding the sequence of SVN operations to be
+#  performed within this ONE transaction.
+######################################################################
+echo "rmkdir /tags/${REL_NAME}${TYPE_SPEC}" > ${tmpdir}/${tmpfile}
+echo "rcopy /trunk/Gmake/ /tags/${REL_NAME}${TYPE_SPEC}/Gmake/" >> ${tmpdir}/${tmpfile}
+echo "rcopy /trunk/src/ /tags/${REL_NAME}${TYPE_SPEC}/src/" >> ${tmpdir}/${tmpfile}
+echo "rcopy /trunk/util/ /tags/${REL_NAME}${TYPE_SPEC}/util/" >> ${tmpdir}/${tmpfile}
+
+
+######################################################################
+# Create the SVN transaction, execute the operations defined in the 
+# temporary file,  close repository.
 # All handled by rsvn.py script.
 ######################################################################
 ${UTIL_DIR}/3rd-party/rsvn.py --message="Tagging ${TYPE} release ${REL_NAME}" --revision=${rev} --username=cesrulib /mnt/svn < ${tmpdir}/${tmpfile}
