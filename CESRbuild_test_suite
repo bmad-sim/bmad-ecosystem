@@ -65,7 +65,6 @@ BIN_DIR    = config.get("Paths", "BIN_DIR")
 LIBS_DIR   = config.get("Paths", "LIBS_DIR")
 LOG_DIR    = config.get("Paths", "LOG_DIR")
 repository = config.get("Repository", "path")
-platforms  = []
 
 
 #============================================================================
@@ -82,42 +81,53 @@ platforms  = []
 for plat in config.options("Platforms"):
     if config.get("Platforms", plat) == "FULL":
         platforms.append(plat)
-
-########################################################################################
-# Dictionaries that define the group of programs to test, based on mode. Int or non-int.
-########################################################################################
-cmd  = []  # Command for non-interactive processes. A list of command components, as per subprocess module operation.
-icmd = ""  # Command for processes requiring 'keyboard' interactin.  A string, as per pexpect module operation.
-
-# NO or YES flag indicates whether or not the program to test requires console interaction.
-prog_list = {
-    "bmadz"                    : ["NO", "cons_nonlin.in", "bmad_4170_2ma_20051220.lat"], # OK
-    "bmad_to_mad_and_xsif"  : ["NO", "bmad_4170_2ma_20051220.lat"],                   # OK
-    "tao"                      : ["NO"],                                                 # OK w/ no DISPLAY set
-    "tune_plane_res_plot"   : ["NO"],                                                 # OK
-    "toad"                     : ["NO"],                                                 # 0 stat, but ERROR text
-    "nonlin_bpm_test"       : ["NO"],                                                 # Errors.. who knows.  
-    "closed_orbit"           : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
-    "analyzer"                 : ["YES", "bmad_4170_2ma_20051220.lat"],                  # OK
-    "dynamic_aperture_test" : ["YES"],                                                # OK
-    "tune_scan"               : ["YES"]                                                 # OK
-    }
-###############################################################################################
-
 src = "src"
 testlist = []
 HOST = ""
-#libdir   = "/home/cesrulib/cesr_libs"
-#utilpath = "/home/cesrulib/bin/util/"
 wd = os.getcwd()
 namestrings = []
 env_var = ""
 
-if sys.platform == "linux2":
-  compiler = os.environ['CESR_F90']
-  platform = "Linux_i686_" + compiler
-elif sys.platform == "osf1V4":
-  platform = "OSF1_alpha_hp"
+#if sys.platform == "linux2":
+plat_val = os.environ['CESR_PLATFORM']
+compiler = os.environ['CESR_F90']
+platform = plat_val + "_" + compiler
+#elif sys.platform == "osf1V4":
+#  platform = "OSF1_alpha_hp"
+
+#============================================================================
+# Dictionary of macros available for expansion in the config file.
+#============================================================================
+#macros = {
+
+        
+#============================================================================
+# Populate the dictionary the defines the group of programs to test.
+# Slurp up the arguments to use, any interaction dialog needed, and
+# any environment variable definitions provided in the config file.
+#============================================================================
+tests  = {}
+for section in sconfig.sections():
+    if section != "files":
+        interact = []
+        args     = []
+        dialog   = []
+        evars    = []
+        if "ARGS" in sconfig.options(section):
+            for arg in sconfig.get(section, "ARGS").split(' '):    ## 0
+                args.append( arg )
+        if "DIALOG" in sconfig.options(section):
+            for arg in sconfig.get(section, "DIALOG").split():     ## 1
+                dialog.append( arg )
+            if len(dialog)%2 != 0:
+                print "Prompt-response dialog sequence for " + prog + " must have an even number of entries."
+                sys.exit(20)
+        if "ENV_VARS" in sconfig.options(section):                 ## 2
+            for var in sconfig.get(section, "ENV_VARS").split():
+                evars.append( var )
+        entry = [args, dialog, evars]
+        tests[section] = entry
+
 
 # Grab command line argument(s)
 if len(sys.argv) == 2 or len(sys.argv) == 3:
@@ -137,10 +147,26 @@ srcpath = LIBS_DIR +'/'+ platform +'/'+ release +'/'+ src
 os.environ['DISPLAY'] = "none"
 
 #================================================================================
-# Support functions for formatting output and preparing for test object spawning
+# Support functions
 #================================================================================
+
+#----------------------------------------------------------------
+# Function accepts a string and performs macro substution on it
+# according to the macros defined in the dictionary above.
+#----------------------------------------------------------------
+def expand_macros(string):
+    tok1 = string.find("{")
+    tok2 = string.find("}")
+    if tok1 > 0 and tok2 > 0:
+        macro = string[tok1+1 : tok2]
+        if macro == "testdir":
+            string = string.replace("${"+macro+"}", testdir)
+    return string
+
+#-----------------------------------------------------------------------------------------
 #==Function to pad out an arbitrary string to conform to cosmetic requirements in output.
 #==Pads out line with spaces and terminates with an * to allow for ASCII-art box output.
+#-----------------------------------------------------------------------------------------
 def borderpad_string( string ):
   pad = 62 - len(string) - 3
   string = "* " + string
@@ -149,33 +175,31 @@ def borderpad_string( string ):
   string = string + '*'
   return string
 
-#==Copies the host of ancillary test input files, lattices, etc... to the test directory 
-#==and copies over the complement of binaries to execute.
+
+#==Copies the host of ancillary test input files, lattices, etc... to the
+#==test directory and copies over the complement of binaries to execute.
 def prep_for_tests(progs, testdir):
-  shutil.copytree(srcpath + "/bmadz/test_jobs", testdir + "/")          # copy test input files
-  shutil.copy(srcpath + "/bmad/lat/bmad_hibetainj_20040628_v01.lat", testdir)
-  shutil.copy(srcpath + "/tao/program/layout_c_6wig_2003_07_08.bmad", testdir + "/")
-  shutil.copy(srcpath + "/tao/program/tao.init", testdir)
-  shutil.copy(srcpath + "/tao/program/tao_plot.init", testdir)
-  shutil.copy(srcpath + "/tao/program/bmad_6wig_lum_20030915_v1.lat", testdir)
-  shutil.copy(srcpath + "/tao/program/wiggler_def_6wig_negpol.bmad", testdir)
-  shutil.copy(srcpath + "/tao/program/wig_7pole_plus.bmad", testdir)
-  shutil.copy(srcpath + "/tao/program/wig_8pole_plus.bmad", testdir)
-  shutil.copy(srcpath + "/tao/program/6wig_track.bmad", testdir)
-  shutil.copy(srcpath + "/bsim/dynamic_aperture/da_test.in", testdir) # copy da_test.in file over
-  shutil.copy(srcpath + "/bsim/tune_plane_res_plot/tune_plane_res_plot.in", testdir)
-  shutil.copy(srcpath + "/bsim/tune_scan/tune_scan.in", testdir)
-  shutil.copy(srcpath + "/toad/example/toad.in", testdir)
-  shutil.copy(srcpath + "/toad/example/toad.lat", testdir)
-  shutil.copytree(srcpath + "/nonlin_bpm/nonlin_bpm_resource", testdir + "/nonlin_bpm_resource")
-  for file in os.listdir(srcpath + "/nonlin_bpm/test"): # Grab all files in nbpm test dir
-    if file.find("svn") == -1:  #Don't grab the SVN administration directory.
-      shutil.copy(srcpath + "/nonlin_bpm/test/" + file, testdir)
+  # Create directory where testing will take place for this platform.
+  os.mkdir(testdir)
+  # Copy all the files / directories specified in config file to test dir
+  for entry in sconfig.options("files"):
+      destination = expand_macros(sconfig.get("files", entry))
+      if not os.path.exists( destination ):
+          os.mkdir(destination)
+      if entry[-1] == "/":
+          for name in os.listdir(srcpath + entry):
+              if name.find("svn") == -1:  # exclude SVN admin dirs
+                  #print srcpath + entry + name
+                  #print "-->" 
+                  shutil.copy(srcpath + entry + name,  destination )
+      else:
+          shutil.copy( srcpath + entry,  destination  )
   for prog in progs:
     shutil.copy(LIBS_DIR +'/'+ platform+"/"+ release + "/bin/" + prog, testdir)
   return testdir
 
-  
+
+
 #=====================================================================================
 ## Class that represents an individual release binary test event
 ## This contains the procedures for properly initiating and interacting with each
@@ -186,14 +210,18 @@ class testobject:
   name = ""        #Name of program to test
   t1 = 0
   t1 = 0
-  interactive = "" #boolean
+  params = []
 
   def execute(self, testdir):
     ##Set up any necessary environment variables needed for test jobs.
     # An environment variable needs to be set to the resource directory in order for the
     # nonlin_bpm_test program to run.
-    os.putenv("L_NONLIN_BPM", testdir +"/nonlin_bpm_resource")
-    ret = -1
+    for var in self.params[2]:
+        varname = var.split("=")[0]      # TODO: support for multiple macros in one
+        varval  = var.split("=")[1]      # line?
+        varval = expand_macros(varval)
+        os.putenv(varname, varval)
+        
     header = ""
     print ""
     print "**********************************************************************************************"
@@ -216,43 +244,29 @@ class testobject:
     os.chdir(testdir)
     print "\n================================================="
     
-    icmd = ""
-    icmd = icmd + self.name
-    for arg in prog_list[self.name][1:]:
-      icmd = icmd + " " + arg
-    print icmd
-    #child = pexpect.spawn(icmd, timeout=300)
-    child = pexpect.spawn(env_var + icmd, timeout=300)
+    cmd = self.name
+    for arg in self.params[0]:
+      cmd = cmd + " " + arg
+    child = pexpect.spawn(env_var + cmd, timeout=300)
     child.logfile = sys.stdout
-    
-    if self.name == "dynamic_aperture_test": # Customized interaction steps
-      if child.isalive():
-        child.expect("IN>:")
-        child.sendline("da_test.in")
-    if self.name == "tune_scan":                # Customized interaction steps
-      if child.isalive():
-        child.expect("in>:")
-        child.sendline("tune_scan.in")
-    if self.name == "closed_orbit" or self.name == "analyzer": # Customized interaction steps
-      if child.isalive():
-        child.expect("GO> ")
-        child.sendline("go")
-      if child.isalive():
-        child.expect("DIFF")
-        child.sendline("")
-      if child.isalive():
-        child.expect("GO> ")
-        child.sendline("quit")
+
+    # Is there a dialog to execute? If so, determine its length.
+    diag_len = len( self.params[1] )
+    if diag_len > 0:         # If there is a dialog to execute
+        for i in range(diag_len / 2): # Send each pair through pexpect
+            if child.isalive():
+                child.expect( self.params[1][i] )
+                child.sendline( self.params[1][i+1] )
+                i = i + 2
     else:                       #Program is not of an interactive type, just run it and log output.
       lines = child.readlines() # Readlines needed to force buffering.
-
-    icmd = ""
+    cmd = ""
     lines = []
     while child.isalive():
+      child.readlines()
       time.sleep(1)
     child.close()
     returncode = child.exitstatus
-    #print "\nReturn code: " + str(returncode)
     time.sleep(2)
     
 
@@ -268,38 +282,38 @@ class testobject:
 # Main starts here
 #######################################
 
-if platform == "Linux_i686_intel":
-  HOST = "lnx209"
-  flag = "LI"
-elif platform == "Linux_i686_lahey":
-  HOST = "lnx209"
-  flag = "LL"
-elif platform == "OSF1_alpha_hp":
-  HOST = "cesr68"
-  flag = "OH"
-elif platform == "VMS_alpha_hp":
-  HOST = "cesr68"
-  flag = "VH"
-elif platform == "CYGWIN_i686_intel":
-  HOST = "pc6115"
-  flag = "CI"
+#if platform == "Linux_i686_intel":
+#  flag = "LI"
+#elif platform == "Linux_i686_lahey":
+#  flag = "LL"
+#elif platform == "OSF1_alpha_hp":
+#  flag = "OH"
+#elif platform == "VMS_alpha_hp":
+#  flag = "VH"
+#elif platform == "CYGWIN_i686_intel":
+#  flag = "CI"
+
+flag = string.upper( platform[0] + platform.split("_")[2][0] )
 
 testdir = "/home/cesrulib/temp/test_suite_area-" + release + "_" +flag
+
+# vars available by macro substitution in the .conf file
+#============================================================================
+
 
 #=========================================================================
 # Compose list of test objects and format status strings for the log file
 #=========================================================================
-for prog in prog_list:
-  namestrings.append( borderpad_string('Setting up '+prog) )
+for test in tests:
+  namestrings.append( borderpad_string('Setting up '+ test) )
+  #T = testobject(test, tests[test])
   T = testobject()
-  T.name = prog
-  if prog_list[prog][0] == "YES":
-    T.interactive = 1
-  else:
-    T.interactive = 0
+  #print test + "--" + str( tests[test] ) + "\n"
+  T.params = tests[test]
+  T.name      = test
   testlist.append( T )
 
-prep_for_tests(prog_list, testdir)
+prep_for_tests(tests, testdir)
 
 #================================================================================
 # Encapsulate the output of each test, delimiting where the separate
@@ -323,17 +337,16 @@ for string in namestrings:
 print "*                                                            *"
 print "* Starting tests...                                          *"
 print "*                                                            *"
-print "*                                                             *"
-print "*                                                              ******************************"
-print "**********************************************************************************************\n"
+print "*                                                            **"
+print "****************************************************************\n"
 
 # Run each test
 for test in testlist:
   test.execute( testdir )
 
 # Clean up
-print "**********************************************************************************************"
-print "*                                                            ********************************"
+print "****************************************************************"
+print "*                                                            **"
 print "*                                                            *"
 print "* Test suite complete for CESR Release build                 *"
 print borderpad_string(release + " on " + platform)
@@ -341,6 +354,6 @@ print "*                                                            *"
 print "* Cleaning up... DONE.                                       *"
 print "*                                                            *"
 print "**************************************************************"
-os.system("rm -rf "+testdir)
+os.system("rm -rf " + testdir)
 
 
