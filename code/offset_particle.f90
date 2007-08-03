@@ -36,6 +36,7 @@
 !   set_multipoles -- Logical, optional: Default is True.
 !                   T -> 1/2 of the multipole is applied.
 !   set_hvkicks    -- Logical, optional: Default is True.
+!                   T -> Apply 1/2 any hkick or vkick.
 !   s_pos          -- Real(rp), optional: Longitudinal position of the
 !                   particle. If not present then s_pos = 0 is assumed when
 !                   set = T and s_pos = ele%value(l$) when set = F
@@ -152,7 +153,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
                                     (xp**2 + yp**2) * ele%value(l$) / 4
     endif
 
-! Set: HV kicks for quads, etc.
+! Set: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
 ! HV kicks must come after s_offset but before any tilts are applied.
 ! Note: Change in %vel is NOT dependent upon energy since we are using
 ! canonical momentum.
