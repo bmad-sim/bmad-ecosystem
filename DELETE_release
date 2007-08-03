@@ -221,18 +221,32 @@ for platform in ${PLATFORMS}; do
     rm -rf /home/cesrulib/cesr_libs/${platform}/${REL_NAME}
 
     rm -f /home/cesrulib/cesr_libs/log/${platform}/${REL_NAME}.log
+
+    rm -f /home/cesrulib/cesr_libs/${platform}/${REL_NAME}.zip  # VMS area only
 done
-rm -f /home/cesrulib/cesr_libs/log/${REL_NAME}.genlog
 rm -rf /home/cesrulib/cesr_libs/distribution/${REL_NAME}
 rm -f /home/cesrulib/cesr_libs/distribution/${REL_NAME}.tar.gz
 rm -f /home/cesrulib/cesr_libs/distribution/log/${REL_NAME}.log
 
 
 ##################################################################
-# Code here to delete the release .zip file on the VMS cluster
-#
+# Delete the release .zip file on the VMS cluster.
 ##################################################################
+ftp cesr2f <<EOF
+    binary
+    cd CESR2f'$'DKB200:[CESR_LIBS.ZIP]
+    delete ${REL_NAME}.zip
+EOF
+ftp_success=${?}
+if ( [ ${ftp_success} -ne 0 ] ) then
+    echo "ERROR deleting release zip file on VMS cluster."
+    exit 15
+fi
 
+##################################################
+# Delete .genlog file last to ensure thoroughness
+##################################################
+rm -f /home/cesrulib/cesr_libs/log/${REL_NAME}.genlog
 
 echo "  DONE."
 echo ""

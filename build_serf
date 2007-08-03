@@ -4,7 +4,8 @@
 # script is only meant to be called from the build_master
 # script prepended with the appropriate platform-specific
 # Python interpreter.  It is left there as a reminder of the
-# Python interpreter version needed for this to execute.
+# Python interpreter version needed for this to execute
+# properly.
 ############################################################
 # Standard modules
 import os, sys, string, time, socket
@@ -222,19 +223,19 @@ if platform == "VMS_alpha_hp": #assumes files and dependencies generated and in 
         print "Copying config directory from OSF1 area."
         shutil.copytree(OSF_reldir + "/config", full_rel_name + "/config")
         #build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_rel_name) # FTP upload to VMS cluster
-        xfer_cmd = bin_dir + "/util/cesr_to_vms " + full_rel_name
-        print "Executing transfer of archive file to VMS cluster. Disabled."
-        #xfer_process = sub.Popen(xfer_cmd, stdout=sub.PIPE, stderr=sub.STDOUT)
-        #lines = xfer_process.stdout.readlines()
-        #for line in lines:
-        #    print line.strip()
-        #pid = xfer_process.pid
-        #returncode = xfer_process.wait()
-        print "--> BUILD STATUS: COMPLETE!"
-        #if returncode != 0:
-        #    print "--> BUILD STATUS: ERROR(S) DETECTED"
-        #else:
-        #    print "--> BUILD STATUS: COMPLETE!"
+        xfer_cmd = [bin_dir + "/util/cesr_to_vms", rel_name]
+        print "Executing transfer of archive file to VMS cluster. "
+        print "xfer: " + str(xfer_cmd)
+        xfer_process = sub.Popen(xfer_cmd, stdout=sub.PIPE, stderr=sub.STDOUT)
+        lines = xfer_process.stdout.readlines()
+        for line in lines:
+            print line.strip()
+        pid = xfer_process.pid
+        returncode = xfer_process.wait()
+        if returncode != 0:
+            print "--> BUILD STATUS: ERROR(S) DETECTED"
+        else:
+            print "--> BUILD STATUS: COMPLETE!"
 
 
     if build_type == "PACKAGES":

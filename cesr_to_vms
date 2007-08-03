@@ -1,12 +1,11 @@
 #!/bin/sh
 #---------------------------------------------------------------
-# cesr_to_vms - Script to move a specfied library directory from 
-#            Unix to VMS
+# cesr_to_vms - Script to move a specfied release directory from 
+#               Unix to VMS
 #
-# Usage:  cesr_to_vms <library_directory full path>
+# Usage:  cesr_to_vms <release name>
 #
-# Inputs:  library_directory  -  full path to the directory to 
-#                                zip and move
+# Inputs: (1)  Name of the release to compress and transfer
 #
 # Author:  M. Palmer  01/09/02
 #
@@ -27,6 +26,9 @@
 #
 #
 #---------------------------------------------------------------
+# One hardcoded line here necessary for subsequent getting of config vars.
+UTIL_DIR=`/home/cesrulib/bin/util/getcfg Paths UTIL_DIR`
+
 # Inputs
 NAME=$1
 
@@ -44,15 +46,15 @@ if ( [ ! -d ${FULL_NAME} ] ) then
   exit 2
 fi
 
-# Remote path on VMS cluster where library archives are kept.
-WORKDIR=CESR2f'$'DKB200:[CESR_LIBS.ZIP]
+# Get remote path on VMS cluster where library archives are kept.
+VMS_ZIPDIR=`${UTIL_DIR}/getcfg Paths VMS_ZIPDIR`
+
 
 # Now make a copy for transport to VMS
 echo "Preparing ${DIR_NAME} for transport to vms"
 cd ${FULL_NAME}
 
 # Zip up the source-tree
-#/usr/bin/zip -r ${LIB_NAME} ${LIB_NAME} >> ${VMS_LOG_FILE}
 /usr/bin/zip -r ${NAME} . ${NAME}
 if ( [ ${?} -ne 0 ] ) then
     echo "Zipping operation failed in VMS preparation job!"
@@ -62,18 +64,18 @@ echo "Zipping operation complete in VMS preparation job."
 
 # Now ftp the library to the [cesrulib.cesr_libs] area on CESR2f
 echo "Transferring file ${DIR_NAME}.zip to VMS machine CESR2f via FTP... "
-echo "Destination = ${WORKDIR}"
+echo "Destination = ${VMS_ZIPDIR}"
 ftp cesr2f <<EOF
 		binary
-		cd $WORKDIR
-		put ${DIR_NAME}.zip
+		cd $VMS_ZIPDIR
+		put ${NAME}.zip
 EOF
 ftp_success=${?}
 
 # Notify of completion
 if ( [ ${ftp_success} -eq 0 ] ) then
     mv ${NAME}.zip ..
-    echo "Transfer of ${DIR_NAME} to CESR2f::${WORKDIR} complete!"
+    echo "Transfer of ${DIR_NAME} to CESR2f::${VMS_ZIPDIR} complete!"
 else
     echo "***ERROR! Transfer of ${DIR_NAME} to CESR2F FAILED!" 
     exit 0
