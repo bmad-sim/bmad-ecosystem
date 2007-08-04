@@ -14,7 +14,7 @@ subroutine tao_single_mode (char)
 
   type (lat_struct), pointer :: lat
 
-  integer i, j, ix, ix_plot, ie, iv, factor, ix_key, ios, ir
+  integer i, j, ix, ix2, ix_plot, ie, iv, factor, ix_key, ios, ir
   integer n1, n2, i_ele, ix_var
 
   real(rdef) this_factor, value, this_min, this_max, this_merit
@@ -86,19 +86,24 @@ subroutine tao_single_mode (char)
 ! v: Set variable at given value
 
   case ('v')
+    if (.not. associated(s%key)) then
+      call out_io (s_error$, r_name, 'THE KEY TABLE HAS NOT BEEN SET UP IN THE INIT FILES!')
+      return
+    endif
     write (*, '(a, $)', advance = "NO") ' Enter Key# and Value: '
-    read (*, *, iostat = ios) ix, value
-    if (ios /= 0) then
-      write (*, *) 'ERROR: I DO NOT UNDERSTAND THIS. NOTHING CHANGED.'
+    read (*, '(a)') line
+    read (line, *, iostat = ios) ix, value
+    if (ios /= 0 .or. .not. is_integer(line)) then
+      call out_io (s_error$, r_name, 'I DO NOT UNDERSTAND THIS. NOTHING CHANGED.')
       return
     endif
     if (ix == 0) ix = 10
-    if (ix < 0 .or. ix > 10) then
-      write (*, *) 'ERROR KEY NUMBER OUT OF RANGE (0 - 9).'
+    ix2 = ix + s%global%ix_key_bank
+    if (ix < 0 .or. ix > 10 .or. ix2 > size(s%key)) then
+      call out_io (s_error$, r_name, 'KEY NUMBER OUT OF RANGE (0 - 9).')
       return
     endif
-    ix = ix + s%global%ix_key_bank
-    ix_var = s%key(ix)%ix_var
+    ix_var = s%key(ix2)%ix_var
     call tao_set_var_model_value (s%var(ix_var), value)
 
 ! V: Show variables
