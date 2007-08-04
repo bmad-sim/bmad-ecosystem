@@ -59,7 +59,7 @@ program synrad
 
   call bmad_parser(sr_param%lat_file, lat)
 
-  allocate(orb(0:lat%n_ele_max))
+  call reallocate_coord (orb, lat%n_ele_max)
   allocate(back_power(lat%n_ele_max), fwd_power(lat%n_ele_max))
 
 ! create a wall outline and break into segments
