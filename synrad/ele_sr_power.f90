@@ -56,6 +56,11 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
   if (ele%key /= sbend$ .and. ele%key /= quadrupole$ .and. &
                      ele%key /= wiggler$ .and. ele%key /= sol_quad$) return
 
+  ! check if periodic wiggler has non-zero b_field
+  if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ &
+       .and. ele%value(b_max$) == 0.) return
+
+
   ! check if ele is on
   if (ele%is_on == .false.) return
 
