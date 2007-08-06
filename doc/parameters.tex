@@ -7,10 +7,16 @@ setting of these parameters, this chapter gives an in-depth description.
 
 A set of parameters are grouped that affect a particular type
 of calculation are grouped into \vn{``structures''}. Each structure
-has a \vn{``structure name''} (also called a \vn{``type name''}) which
-the user can ignore but is important to programmers and an
+has a \vn{``structure name''} (also called a \vn{``type name''}) which identifies
+the list of parameters in the structure. 
+Additionally, there will be an
 \vn{``instance name''} which is what the user uses to refer to this
-\vn{structure}. To refer to a particular parameter use the syntax
+\vn{structure}. For global parameters there will be a unique instance name.
+For non-global parameters the instance name will be program specific. 
+It is possible to have multiple instance names. For example, in the situation
+where a program is simulating multiple particle beams, there could be
+multiple \vn{beam_init_struct} (\sref{s:beam_init}) instances. 
+To refer to a particular parameter use the syntax
 \begin{example}
   instance_name%parameter_name
 \end{example}
@@ -66,8 +72,35 @@ calculates the transfer matrix through an element via tracking.
 \label{s:beam_init}
 \index{Beam Initialization Parameters|textbf}
 
+Beams of particles are used for simulating inter-bunch intra-bunch effects.
+The \vn{beam_init_struct} structure holds parameters which are used to initialize
+the beam. The parameters of this structure are:
 \begin{example}
+  type beam_init_struct
+    real(rp) a_norm_emitt     ! a-mode emittance
+    real(rp) b_norm_emitt     ! b-mode emittance
+    real(rp) :: dPz_dz = 0    ! Correlation of Pz with long position.
+    real(rp) :: center(6) = 0 ! Bench center offset relative to reference.
+    real(rp) ds_bunch         ! Distance between bunches.
+    real(rp) sig_z            ! Z sigma in m.
+    real(rp) sig_e            ! e_sigma in dE/E.
+    real(rp) bunch_charge     ! charge in a bunch.
+    real(rp) :: center_jitter(6) = 0.0 ! Bunch center rms jitter
+    real(rp) :: emitt_jitter(2)  = 0.0 ! a and b normalized rms emittance jitter
+    real(rp) :: sig_z_jitter     = 0.0 ! bunch length RMS jitter 
+    real(rp) :: sig_e_jitter     = 0.0 ! energy spread RMS jitter 
+    type(beam_spin_struct)  spin       ! Initialize the spin
+    integer :: n_particle = 0          ! Number of simulated particles per bunch.
+    integer :: n_bunch = 0             ! Number of bunches.
+    logical :: renorm_center = .true.  ! Renormalize centroid?
+    logical :: renorm_sigma = .true.   ! Renormalize sigma?
+    logical :: preserve_dist = .false. ! use the same grid distributon each time
+    logical :: init_spin     = .false. ! initialize beam spinors
+  end type
 \end{example}
+The number of bunches in the beam is set by \vn{n_bunch}. 
+The number of simulation particles in a bunch is set by \vn{n_particle}.
+
 
 %-----------------------------------------------------------------
 \section{CSR Parameters}

@@ -979,8 +979,8 @@ subroutine init_ele (ele)
   ele%sub_key = 0
 
   ele%value(:) = 0
-  ele%ref_orb_in  = 0
-  ele%ref_orb_out = 0
+  ele%ref_orb_in%vec  = 0
+  ele%ref_orb_out%vec = 0
 
   ele%control_type = free$
   ele%ix_value = 0

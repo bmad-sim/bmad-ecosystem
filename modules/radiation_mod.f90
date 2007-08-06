@@ -322,8 +322,8 @@ subroutine calc_g (track, g2, g3)
   n1 = track%n_pt
   do j = n0, n1
 
-    call derivs_bmad (lat%ele(i), lat%param, track%pt(j)%s, &
-                                            track%pt(j)%orb%vec, kick)
+    call em_field_kick (lat%ele(i), lat%param, track%pt(j)%s, &
+                                    track%pt(j)%orb%vec, .false., kick)
 
     k2 = kick(2)**2 + kick(4)**2
     k3 = sqrt(k2)**3

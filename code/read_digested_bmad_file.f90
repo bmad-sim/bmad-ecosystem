@@ -248,7 +248,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_an_girder, ele%csr_calc_on, &
-            ele%ref_orb_in, ele%ref_orb_out
+            ele%ref_orb_in%vec, ele%ref_orb_out%vec
 
     endif
 

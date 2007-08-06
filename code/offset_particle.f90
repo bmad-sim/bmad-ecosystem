@@ -3,6 +3,11 @@
 !                               set_tilt, set_multipoles, set_hvkicks, s_pos)
 ! Subroutine to effectively offset an element by instead offsetting
 ! the particle position to correspond to the local element coordinates.
+! 
+! set = set$ assumes the particle is at the entrance end of the element.
+! set = unset$ assumes the particle is at the exit end of the element.
+! However: This can be overridden by using the s_pos argument.
+!
 ! Options:
 !   Conversion between angle (x', y') and canonical (P_x, P_y) momenta.
 !   Using the element tilt in the offset.
@@ -191,7 +196,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
     endif
 
-! Set: HV kicks for kickers and separators.
+! Set: HV kicks for kickers and separators only.
 ! Note: Since this is applied after tilt_coords, kicks are dependent on any tilt.
 
     if (set_hv2) then
@@ -227,7 +232,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
       coord%vec(4) = coord%vec(4) * E_rel
     endif
 
-! Unset: HV kicks for kickers and separators
+! Unset: HV kicks for kickers and separators only.
 
     if (set_hv2) then
       if (ele%key == elseparator$ .and. param%particle < 0) then
@@ -267,7 +272,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
       enddo
     endif
 
-! UnSet: HV kicks for quads, etc.
+! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
 ! HV kicks must come after s_offset but before any tilts are applied.
 ! Note: Change in %vel is NOT dependent upon energy since we are using
 ! canonical momentum.

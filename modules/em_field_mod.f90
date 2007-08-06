@@ -18,13 +18,14 @@ module em_field_mod
 ! Interface for custom field calc
 
   interface 
-    subroutine em_field_custom (ele, param, s, orb, field, calc_dfield)
+    subroutine em_field_custom (ele, param, s, orb, local_ref_frame, field, calc_dfield)
       use bmad_struct
       implicit none
       type (ele_struct) :: ele
       type (lat_param_struct) param
       type (coord_struct), intent(in) :: orb
       real(rp), intent(in) :: s
+      logical local_ref_frame
       type (em_field_struct), intent(out) :: field
       logical, optional :: calc_dfield
     end subroutine
@@ -112,18 +113,9 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
+! Subroutine em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_dfield)
 !
-! Subroutine to calculate the E and B fields for an element
-! in the local frame of reference.
-!
-! Note: The position and fields are calculated in the frame of referene of
-!   the element. Not the Laboratory frame.
-!
-! The variables in Boris tracking are:
-!     here%vec = (x, p_x, y, p_y, s_pos-c*t, dE/E)
-! At high energy s-c*t = z which is the distance of the particle from the 
-! reference particle.
+! Subroutine to calculate the E and B fields for an element.
 !
 ! Modules needed:
 !   use bmad
@@ -132,20 +124,24 @@ end subroutine save_a_step
 !   ele    -- Ele_struct: Element
 !   s_pos  -- Real(rp): Longitudinal position.
 !   here   -- Coord_struct: Transverse coordinates.
-!   calc_dfield -- Optional, logical: If present 
-!        and True then calculate the field derivatives.
+!   local_ref_frame 
+!          -- Logical, If True then take the input coordinates and output fields 
+!                as being with respect to the frame of referene of the element. 
+!   calc_dfield     
+!         -- Logical, optional: If present and True 
+!                then calculate the field derivatives.
 !
 ! Output:
 !   field -- em_field_struct: E and B fields
 !-
 
-subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
+subroutine em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_dfield)
 
   implicit none
 
   type (ele_struct), target :: ele
   type (lat_param_struct) param
-  type (coord_struct) :: here
+  type (coord_struct) :: here, local_here
   type (wig_term_struct), pointer :: t
   type (em_field_struct), intent(out) :: field
 
@@ -156,15 +152,17 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
 
   integer i, sign_charge
 
+  logical :: local_ref_frame
   logical, optional :: calc_dfield
+
   logical offset, df_calc
-  character(20) :: r_name = 'em_field'
+  character(20) :: r_name = 'em_field_calc'
 
 ! custom field_calc
 
   select case (ele%field_calc)
   case (custom$) 
-    call em_field_custom (ele, param, s_pos, here, field, calc_dfield)
+    call em_field_custom (ele, param, s_pos, here, local_ref_frame, field, calc_dfield)
     return
   case (bmad_standard$)
   case default
@@ -178,27 +176,17 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
 !----------------------------------------------------------------------------
 ! convert to local coords
 
-  x = here%vec(1)
-  y = here%vec(3)
+  local_here = here
+  if (.not. local_ref_frame) then
+    call offset_particle (ele, param, local_here, set$, &
+            set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
+  endif
+
+  x = local_here%vec(1)
+  y = local_here%vec(3)
   s = s_pos
 
-  offset = .false.
-  if (ele%value(x_offset_tot$) /= 0 .or. ele%value(y_offset_tot$) /= 0 .or. &
-       ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0) offset = .true.
-
-  if (offset) then
-    s_rel = s_pos - ele%value(l$) / 2  ! position relative to center.
-    x = x - ele%value(x_offset_tot$) - ele%value(x_pitch_tot$) * s_rel
-    y = y - ele%value(y_offset_tot$) - ele%value(y_pitch_tot$) * s_rel
-  endif
-
-  if (ele%value(tilt_tot$) /= 0) then
-    cos_ang = cos(ele%value(tilt_tot$))
-    sin_ang = sin(ele%value(tilt_tot$))
-    xx = x; yy = y
-    x =  cos_ang * xx + sin_ang * yy
-    y = -sin_ang * xx + cos_ang * yy
-  endif
+! Init
 
   field%e = 0
   field%B = 0
@@ -222,7 +210,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   case(wiggler$)
 
     if (ele%sub_key /= map_type$) then
-      print *, 'ERROR IN EM_FIELD: PERIODIC WIGGLER NOT YET IMPLEMENTED!'
+      print *, 'ERROR IN EM_FIELD_CALC: PERIODIC WIGGLER NOT YET IMPLEMENTED!'
       call err_exit
     endif
 
@@ -308,7 +296,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
     field%b(2) = - (1/2.0) * sign_charge * ele%value(k2$) * f * (x**2 - y**2)
 
     if (df_calc) then
-      print *, 'ERROR IN EM_FIELD: dFIELD NOT YET IMPLEMENTED FOR SEXTUPOLE!'
+      print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR SEXTUPOLE!'
       call err_exit
     endif
 
@@ -323,7 +311,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
     field%b(3) = sign_charge * ele%value(ks$) * f
 
     if (df_calc) then
-      print *, 'ERROR IN EM_FIELD: dFIELD NOT YET IMPLEMENTED FOR SOL_QUAD!'
+      print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR SOL_QUAD!'
       call err_exit
     endif
 
@@ -336,7 +324,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
     field%b(3) = sign_charge * ele%value(ks$) * f
 
     if (df_calc) then
-      print *, 'ERROR IN EM_FIELD: dFIELD NOT YET IMPLEMENTED FOR SOLENOID!'
+      print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR SOLENOID!'
       call err_exit
     endif
 
@@ -351,7 +339,6 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
 
    case (lcavity$)
 
-     !***
      ! This is taken from track1_bmad
      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
                         here%vec(5) * ele%value(rf_frequency$) / c_light)
@@ -398,7 +385,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
      field%B(2) = - B_phi * sin (phi)
 
     if (df_calc) then
-      print *, 'ERROR IN EM_FIELD: dFIELD NOT YET IMPLEMENTED FOR LCAVITY!'
+      print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR LCAVITY!'
       call err_exit
     endif
 
@@ -406,7 +393,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
 ! Error
 
   case default
-    print *, 'ERROR IN EM_FIELD: ELEMENT NOT YET CODED: ', key_name(ele%key)
+    print *, 'ERROR IN EM_FIELD_CALC: ELEMENT NOT YET CODED: ', key_name(ele%key)
     print *, '      FOR: ', ele%name
     call err_exit
   end select
@@ -458,10 +445,10 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
+! Subroutine em_field_kick (ele, param, s, r, local_ref_frame, dr_ds, dkick)
 !
 ! Subroutine to essentially calculate the kick felt by a particle in a
-! element. This routine is used by the Runge-Kutta integrater.
+! element. 
 !
 ! Modules needed:
 !   use bmad
@@ -471,6 +458,9 @@ end subroutine
 !   param -- lat_param_struct: Lattice parameters.
 !   s     -- Real(rp): Distance from the start of the element to the particle.
 !   r(6)  -- Real(rp): Position vector: (x, x', y, y', z, Pz)
+!   local_ref_frame 
+!         -- Logical, If True then take the input coordinates and output fields 
+!               as being with respect to the frame of referene of the element. 
 !
 ! Output:
 !   dr_ds(6) -- Real(rp):Kick vector: 
@@ -478,7 +468,7 @@ end subroutine
 !   dkick(3,3) -- Real(rp), optional: dKick/dx
 !-
 
-subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
+subroutine em_field_kick (ele, param, s, r, local_ref_frame, dr_ds, dkick)
 
   implicit none
 
@@ -496,13 +486,15 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
   real(rp) energy
   real(rp) vel_x, vel_y, vel_s, dvel_x, dvel_y, dvel_s, f
 
+  logical :: local_ref_frame
+
 ! calculate the field
 
   here%vec = r
   if (present (dkick)) then
-    call em_field (ele, param, s, here, field, .true.)
+    call em_field_calc (ele, param, s, here, local_ref_frame, field, .true.)
   else
-    call em_field (ele, param, s, here, field, .false.)
+    call em_field_calc (ele, param, s, here, local_ref_frame, field, .false.)
   endif
 
 ! if this is a kick field then field gives us directly dr_ds

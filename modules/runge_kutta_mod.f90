@@ -10,8 +10,8 @@ contains
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine odeint_bmad (start, ele, param, end, &
-!                                 s1, s2, rel_tol, abs_tol, h1, hmin, track)
+! Subroutine odeint_bmad (start, ele, param, end, s1, s2, &
+!                            rel_tol, abs_tol, h1, hmin, local_ref_frame, track)
 ! 
 ! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -21,7 +21,7 @@ contains
 ! is scalled by the step size to to able to relate it to the final accuracy.
 !
 ! Essentually (assuming random errors) one of these conditions holds:
-!             %error in tracking < rel_tol
+!      %error in tracking < rel_tol
 ! or
 !     absolute error in tracking < abs_tol
 !
@@ -46,18 +46,23 @@ contains
 !   abs_tol -- Real: Sets the absolute error of the result
 !   h1      -- Real: Initial guess for a step size.
 !   h_min   -- Real: Minimum step size (can be zero).
-!   track      -- Track_struct: Structure holding the track information.
+!   local_ref_frame 
+!           -- Logical: If True then take the 
+!                input and output coordinates as being with 
+!                respect to the frame of referene of the element. 
+!
+!   track   -- Track_struct: Structure holding the track information.
 !     %save_track -- Logical: Set True if track is to be saved.
 !
 ! Output:
-!   end        -- Coord_struct: Ending coords: (x, x', y, y', z, delta).
-!   track      -- Track_struct: Structure holding the track information.
+!   end     -- Coord_struct: Ending coords: (x, x', y, y', z, delta).
+!   track   -- Track_struct: Structure holding the track information.
 !
 ! Common block:
 !-
 
-subroutine odeint_bmad (start, ele, param, end, &
-                          s1, s2, rel_tol, abs_tol, h1, h_min, track)
+subroutine odeint_bmad (start, ele, param, end, s1, s2, &
+                    rel_tol, abs_tol, h1, h_min, local_ref_frame, track)
 
   implicit none
 
@@ -74,6 +79,8 @@ subroutine odeint_bmad (start, ele, param, end, &
 
   integer, parameter :: max_step = 10000
   integer :: n_step
+
+  logical local_ref_frame
 
 ! init
 
@@ -92,7 +99,7 @@ subroutine odeint_bmad (start, ele, param, end, &
 
   do n_step = 1, max_step
 
-    call derivs_bmad (ele, param, s, r, dr_ds)
+    call em_field_kick (ele, param, s, r, local_ref_frame, dr_ds)
 
     sqrt_N = sqrt(abs((s2-s1)/h))  ! number of steps we would take with this h
     rel_tol_eff = rel_tol / sqrt_N
@@ -104,7 +111,7 @@ subroutine odeint_bmad (start, ele, param, end, &
     if ((s+h-s2)*(s+h-s1) > 0.0) h = s2-s
 
     call rkqs_bmad (ele, param, r, dr_ds, s, h, rel_tol_eff, abs_tol_eff, &
-                                                       r_scal, h_did, h_next)
+                                               r_scal, h_did, h_next, local_ref_frame)
     if (.not. bmad_status%ok) return
 
     if (h_did == h) then
@@ -140,7 +147,7 @@ end subroutine odeint_bmad
 !-----------------------------------------------------------------
 
 subroutine rkqs_bmad (ele, param, r, dr_ds, s, h_try, rel_tol, abs_tol, &
-                                             r_scal, h_did, h_next)
+                                       r_scal, h_did, h_next, local_ref_frame)
 
   implicit none
 
@@ -158,13 +165,15 @@ subroutine rkqs_bmad (ele, param, r, dr_ds, s, h_try, rel_tol, abs_tol, &
   real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
   real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89e-4
 
+  logical local_ref_frame
+
 !
 
   h = h_try
 
   do
 
-    call rkck_bmad (ele, param, r, dr_ds, s, h, r_temp, r_err)
+    call rkck_bmad (ele, param, r, dr_ds, s, h, r_temp, r_err, local_ref_frame)
     err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
     if (err_max <=  1.0) exit
     h_temp = safety * h * (err_max**p_shrink)
@@ -197,7 +206,7 @@ end subroutine rkqs_bmad
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine rkck_bmad (ele, param, r, dr_ds, s, h, r_out, r_err)
+subroutine rkck_bmad (ele, param, r, dr_ds, s, h, r_out, r_err, local_ref_frame)
 
 	implicit none
 
@@ -221,18 +230,20 @@ subroutine rkck_bmad (ele, param, r, dr_ds, s, h, r_out, r_err)
 		dc3=c3-18575.0_rp/48384.0_rp, dc4=c4-13525.0_rp/55296.0_rp, &
 		dc5=-277.0_rp/14336.0_rp, dc6=c6-0.25_rp
 
+  logical local_ref_frame
+
 !
 
 	r_temp=r+b21*h*dr_ds
-	call derivs_bmad(ele, param, s+a2*h, r_temp, ak2)
+	call em_field_kick(ele, param, s+a2*h, r_temp, local_ref_frame, ak2)
 	r_temp=r+h*(b31*dr_ds+b32*ak2)
-	call derivs_bmad(ele, param, s+a3*h, r_temp, ak3)
+	call em_field_kick(ele, param, s+a3*h, r_temp, local_ref_frame, ak3) 
 	r_temp=r+h*(b41*dr_ds+b42*ak2+b43*ak3)
-	call derivs_bmad(ele, param, s+a4*h, r_temp, ak4)
+	call em_field_kick(ele, param, s+a4*h, r_temp, local_ref_frame, ak4)
 	r_temp=r+h*(b51*dr_ds+b52*ak2+b53*ak3+b54*ak4)
-	call derivs_bmad(ele, param, s+a5*h, r_temp, ak5)
+	call em_field_kick(ele, param, s+a5*h, r_temp, local_ref_frame, ak5)
 	r_temp=r+h*(b61*dr_ds+b62*ak2+b63*ak3+b64*ak4+b65*ak5)
-	call derivs_bmad(ele, param, s+a6*h, r_temp, ak6)
+	call em_field_kick(ele, param, s+a6*h, r_temp, local_ref_frame, ak6)
 	r_out=r+h*(c1*dr_ds+c3*ak3+c4*ak4+c6*ak6)
 	r_err=h*(dc1*dr_ds+dc3*ak3+dc4*ak4+dc5*ak5+dc6*ak6)
 

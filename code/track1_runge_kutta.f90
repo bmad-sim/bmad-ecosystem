@@ -69,7 +69,7 @@ subroutine track1_runge_kutta (start, ele, param, end, track)
   
   call offset_particle (ele, param, end, set$)
   call odeint_bmad (start, ele, param, end, 0.0_rp, ele%value(l$), &
-                          rel_tol, abs_tol, del_s_step, del_s_min, track)
+                          rel_tol, abs_tol, del_s_step, del_s_min, .true., track)
   call offset_particle (ele, param, end, unset$)
 
 end subroutine

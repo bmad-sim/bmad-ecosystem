@@ -23,8 +23,9 @@
 ! are multiple lattices. To release the memory
 ! associated with a cache call release_rad_int_cache(ix_cache).
 !
-! Note: The validity of the cache is dependent upon the orbit being (more or 
-! less) constant but is independent of the Twiss parameters.
+! Note: The validity of the cache is dependent upon the orbit and parameters like the
+! quadrupole strengths not varying too much but is independent of variations in
+! the Twiss parameters.
 !
 ! Note: Caching allows interpolation which improves the computation time through
 ! a wiggler even if radiation_integrals is only called once. To take advantage
@@ -68,39 +69,39 @@
 !                   is not changed.
 !
 ! Notes:
-!   1) %synch_int(1) = momentum_compaction * lat_length
 !
-!   2) There is a common block structure "ric" where the integrals for the individual elements
-!      are saved. To access this common block a use statement is needed:
-!         use rad_int_common
-!      In the common block:
-!         ric%i1(0:)              -- I1 integral for each element.
-!         ric%i2(0:)              -- I2 integral for each element.
-!         ric%i3(0:)              -- I3 integral for each element.
-!         ric%i4a(0:)             -- "A" mode I4 integral for each element.
-!         ric%i4b(0:)             -- "B" mode I4 integral for each element.
-!         ric%i5a(0:)             -- "A" mode I5 integral for each element.
-!         ric%i5b(0:)             -- "B" mode I5 integral for each element.
-!         ric%lin_i2_E4(0:)       -- I2 * gamma^4 integral
-!         ric%lin_i3_E7(0:)       -- I3 * gamma^7 integral
-!         ric%lin_i5a_E6(0:)      -- I5a * gamma^6 integral
-!         ric%lin_i5b_E6(0:)      -- I5b * gamma^6 integral
-!         ric%lin_norm_emit_a(0:) -- "A" mode emittance. Running sum
-!         ric%lin_norm_emit_b(0:) -- "B" mode emittance. Running sum
+! 1) %synch_int(1) = momentum_compaction * lat_length
 !
-!     Note: "ric" is of type rad_int_common_struct. To transfer the data from one
-!     rad_int_common_struct block to another use the routine:
-!            transfer_rad_int_struct
+! 2) There is a common block structure "ric" where the integrals for the individual 
+!    elements are saved. To access this common block a use statement is needed:
+!       use rad_int_common
+!    In the common block:
+!       ric%i1(0:)              -- I1 integral for each element.
+!       ric%i2(0:)              -- I2 integral for each element.
+!       ric%i3(0:)              -- I3 integral for each element.
+!       ric%i4a(0:)             -- "A" mode I4 integral for each element.
+!       ric%i4b(0:)             -- "B" mode I4 integral for each element.
+!       ric%i5a(0:)             -- "A" mode I5 integral for each element.
+!       ric%i5b(0:)             -- "B" mode I5 integral for each element.
+!       ric%lin_i2_E4(0:)       -- I2 * gamma^4 integral
+!       ric%lin_i3_E7(0:)       -- I3 * gamma^7 integral
+!       ric%lin_i5a_E6(0:)      -- I5a * gamma^6 integral
+!       ric%lin_i5b_E6(0:)      -- I5b * gamma^6 integral
+!       ric%lin_norm_emit_a(0:) -- "A" mode emittance. Running sum
+!       ric%lin_norm_emit_b(0:) -- "B" mode emittance. Running sum
 !
-!     Note: The lin_norm_emit values are running sums from the beginning 
-!     of the lattice and include the beginning emittance stored in lat%a%emit and lat%b%emit.
+!   Note: "ric" is of type rad_int_common_struct. To transfer the data from one
+!   rad_int_common_struct block to another use the routine:
+!          transfer_rad_int_struct
+!
+!   Note: The lin_norm_emit values are running sums from the beginning 
+!   of the lattice and include the beginning emittance stored in lat%a%emit and lat%b%emit.
 !-       
 
 #include "CESR_platform.inc"
 
 subroutine radiation_integrals (lat, orbit, mode, ix_cache)
 
-use nr
 use rad_int_common, except_dummy => radiation_integrals
 use radiation_mod, except_dummy2 => radiation_integrals
 use symp_lie_mod, only: symp_lie_bmad
@@ -108,26 +109,27 @@ use symp_lie_mod, only: symp_lie_bmad
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), save :: runt
-type (ele_struct), pointer :: ele, ele0
-type (ele_struct) :: ele2
-type (coord_struct), target :: orbit(0:), start, end, c2
+type (ele_struct), pointer :: ele
+type (ele_struct), save :: ele2, runt
+type (coord_struct), target :: orbit(0:), start, end, end1
 type (normal_modes_struct) mode
 type (bmad_common_struct) bmad_com_save
 type (rad_int_cache_struct), pointer :: cache
 type (track_struct), save :: track
+type (rad_int_info_struct), save :: ri_info
 type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
-type (track_point_cache_struct), pointer :: c_pt
+type (rad_int_track_point_struct), pointer :: c_pt
+type (rad_int_track_point_struct) pt
 
 real(rp) :: int_tot(7)
 real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
 real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
-real(rp) v(4,4), v_inv(4,4), f0, f1, del_z, z_here, mc2, gamma, gamma4, gamma6
-real(rp) kz, fac, c, s, factor, emit_a, emit_b
+real(rp) v(4,4), v_inv(4,4), del_z, z_here, mc2, gamma, gamma4, gamma6
+real(rp) kz, fac, c, s, factor, emit_a, emit_b, g2, g_x0, dz, z1
 
 integer, optional :: ix_cache
-integer i, j, k, ir, key, n_step, ix_this_cache
+integer i, j, k, ir, key, n_step
 
 character(20) :: r_name = 'radiation_integrals'
 
@@ -184,7 +186,8 @@ if (do_alloc) then
   allocate (ric%lin_norm_emit_b(0:lat%n_ele_max))
 endif
 
-ric%lat => lat
+ri_info%lat => lat
+ri_info%orbit => orbit
 
 ric%i1 = 0;   ric%i2 = 0;  ric%i3 = 0
 ric%i4a = 0;  ric%i4b = 0
@@ -213,7 +216,7 @@ elseif (ix_cache == 0) then
   do i = 1, ubound(rad_int_cache_common, 1)
     if (rad_int_cache_common(i)%set) cycle
     rad_int_cache_common(i)%set = .true.
-    ix_this_cache = i
+    ix_cache = i
     cache => rad_int_cache_common(i)
     exit
     if (i == size(rad_int_cache_common)) then
@@ -247,7 +250,7 @@ if (init_cache) then
     if ((key == wiggler$ .and. lat%ele(i)%sub_key == map_type$) .or. &
         (.not. cache_only_wig .and. (key == quadrupole$ .or. key == sol_quad$ .or. &
         key == sbend$ .or. key == wiggler$ .or. lat%ele(i)%value(hkick$) /= 0 .or. &
-        lat%ele(i)%value(vkick$) /= 0))) then
+        lat%ele(i)%value(vkick$) /= 0 .or. key == hkicker$ .or. key == vkicker$))) then
       j = j + 1
       cache%ix_ele(i) = j  ! mark element for caching
     else
@@ -260,7 +263,8 @@ if (init_cache) then
   endif
   if (.not. allocated(cache%ele)) allocate (cache%ele(j))  ! allocate cache memory
 
-  ! Now cache the information
+  ! Now cache the information.
+  ! The cache ri_info is computed with all offsets off
 
   j = 0 
   do i = 1, lat%n_ele_track
@@ -272,7 +276,10 @@ if (init_cache) then
     cache_ele%ix_ele = i
 
     ele2 = lat%ele(i)
-    if (.not. ele2%map_with_offsets) call zero_ele_offsets (ele2)
+    call zero_ele_offsets (ele2)
+    start = orbit(i-1)
+    call offset_particle (lat%ele(i), lat%param, start, set$, &
+       set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
 
     if (ele2%key == wiggler$ .and. ele2%sub_key == periodic_type$) then
       n_step = 10
@@ -288,62 +295,73 @@ if (init_cache) then
     endif
     if (.not. allocated (cache_ele%pt)) allocate (cache_ele%pt(0:n_step))
 
-    if (ele2%key == wiggler$) then
-      if (ele2%sub_key == map_type$) then
-        track%save_track = .true.
-        call symp_lie_bmad (ele2, lat%param, orbit(i-1), end, &
-                                      calc_mat6 = .true., track = track)
-        do k = 0, track%n_pt
-          c_pt => cache_ele%pt(k)
-          z_here = track%pt(k)%s 
-          end = track%pt(k)%orb
-          call calc_wiggler_g_params (ele2, z_here, end, c_pt)
-          c_pt%mat6        = track%pt(k)%mat6
-          c_pt%vec0        = track%pt(k)%vec0
-          c_pt%ref_orb_in  = orbit(i-1)%vec
-          c_pt%ref_orb_out = end%vec
-        enddo
+    ! map_type wiggler
 
-      else  ! periodic_type$
-        if (ele2%value(l_pole$) == 0) then
-          call out_io (s_error$, r_name, &
-                            'ERROR: PERIODIC_TYPE WIGGLER: ' // ele2%name, &
-                            '       HAS L_POLE = 0')
-          cycle
-        endif
-        kz = pi / ele2%value(l_pole$)
-        fac = sqrt(-2 * ele2%value(k1$))
-        do k = 0, n_step
-          c_pt => cache_ele%pt(k)
-          z_here = k * del_z
-          c = fac * cos (kz * z_here) 
-          s = fac * sin (kz * z_here)
-          end%vec = (/ (c - fac) / kz**2, -s / kz, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp /)
-          call mat_make_unit(c_pt%mat6)
-          c_pt%mat6(1,6)   = -end%vec(1)
-          c_pt%mat6(2,6)   = -end%vec(2)
-          c_pt%vec0        = end%vec
-          c_pt%ref_orb_in  = (/ 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp /)
-          c_pt%ref_orb_out = end%vec
-          c_pt%g = abs(c)
-          c_pt%g2 = c**2
-          c_pt%g_x = -c
-          c_pt%g_y = 0
-          c_pt%dg2_x = 0
-          c_pt%dg2_y = 0
-        enddo
+    if (ele2%key == wiggler$ .and. ele2%sub_key == map_type$) then
+      track%save_track = .true.
+      call symp_lie_bmad (ele2, lat%param, start, end, &
+                                      calc_mat6 = .true., track = track)
+      do k = 0, track%n_pt
+        c_pt => cache_ele%pt(k)
+        z_here = track%pt(k)%s 
+        end = track%pt(k)%orb
+        call calc_wiggler_g_params (ele2, z_here, end, c_pt, ri_info)
+        c_pt%mat6        = track%pt(k)%mat6
+        c_pt%vec0        = track%pt(k)%vec0
+        c_pt%ref_orb_in  = start
+        c_pt%ref_orb_out = end
+      enddo
+
+    ! non-wiggler element
+
+    else  
+
+      if (ele2%key == wiggler$) then   ! must be periodic_type
+        G_max = sqrt(2*abs(ele2%value(k1$)))       ! 1/rho at max B
+        g3_ave = 4 * G_max**3 / (3 * pi)
+        g_x0 = g3_ave**(1.0/3)
       endif
 
-    else  ! non wiggler elements
       do k = 0, n_step
-        c_pt => cache_ele%pt(k)
+
         z_here = k * cache_ele%del_z
+        dz = 1e-3
+        z1 = z_here + dz
+        if (z1 > ele2%value(l$)) z1 = max(0.0_rp, z_here - dz)
+
+        c_pt => cache_ele%pt(k)
+        if (ele2%key == wiggler$) start%vec = 0  ! keep things simple.
         call twiss_and_track_partial (lat%ele(i-1), ele2, lat%param, &
-                                                z_here, runt, orbit(i-1), end)
+                                                      z_here, runt, start, end)
+        call twiss_and_track_partial (lat%ele(i-1), ele2, lat%param, &
+                                                      z1, start = start, end = end1)
         c_pt%mat6 = runt%mat6
         c_pt%vec0 = runt%vec0
-        c_pt%ref_orb_in  = orbit(i-1)%vec
-        c_pt%ref_orb_out = end%vec
+        c_pt%ref_orb_in  = start
+        c_pt%ref_orb_out = end
+        c_pt%g_x0 = -(end1%vec(2) - end%vec(2)) / (z1 - z_here)
+        c_pt%g_y0 = -(end1%vec(4) - end%vec(4)) / (z1 - z_here)
+        c_pt%dgx_dx = 0
+        c_pt%dgx_dy = 0
+        c_pt%dgy_dx = 0
+        c_pt%dgy_dy = 0
+
+        if (ele2%key == quadrupole$ .or. ele2%key == sol_quad$) then
+          c_pt%dgx_dx =  ele2%value(k1$)
+          c_pt%dgy_dy = -ele2%value(k1$)
+
+
+        elseif (ele2%key == sbend$) then
+          c_pt%g_x0   =  c_pt%g_x0 + ele2%value(g$)
+          c_pt%dgx_dx =  ele2%value(k1$)
+          c_pt%dgy_dy = -ele2%value(k1$)
+
+        ! Twiss_and_track_partial does not put in the horizontal wiggler wiggles...
+        elseif (ele2%key == wiggler$) then   ! must be periodic_type
+          c_pt%g_x0 = c_pt%g_x0 + g_x0
+
+        endif
+
       enddo
     endif
 
@@ -360,14 +378,19 @@ do ir = 1, lat%n_ele_track
   ele => lat%ele(ir)
   if (.not. ele%is_on) cycle
 
-  nullify (cache_ele)
+  nullify (ri_info%cache_ele)
   if (use_cache) then
-    if (cache%ix_ele(ir) > 0) cache_ele => cache%ele(cache%ix_ele(ir))
+    if (cache%ix_ele(ir) > 0) ri_info%cache_ele => cache%ele(cache%ix_ele(ir))
   endif
 
-  ele0 => lat%ele(ir-1)
-  ric%orb0 => orbit(ir-1)
-  ric%orb1 => orbit(ir)
+  pt%g_x0 = 0
+  pt%g_y0 = 0
+  pt%dgx_dx = 0
+  pt%dgx_dy = 0
+  pt%dgy_dx = 0
+  pt%dgy_dy = 0
+
+  ri_info%ix_ele = ir
 
   key = ele%key
 
@@ -375,23 +398,6 @@ do ir = 1, lat%n_ele_track
 
   ll = ele%value(l$)
   if (ll == 0) cycle
-
-  ! If there is a non-zero hick$ or vkick$ attribute assume that the kick
-  ! is distributed evenly over the element. The element will then contribute
-  ! to the integrals like a bend.
-
-  if (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0) then
-    c2%vec = 0
-    call offset_particle (ele, lat%param, c2, set$, &
-                        set_canonical = .false., set_multipoles = .false.)
-    call offset_particle (ele, lat%param, c2, unset$, &
-                        set_canonical = .false., set_multipoles = .false.)
-    ric%pt%g_x0 = -c2%vec(2) / ll
-    ric%pt%g_y0 = -c2%vec(4) / ll
-  else
-    ric%pt%g_x0 = 0
-    ric%pt%g_y0 = 0
-  endif
 
   ! custom
 
@@ -417,12 +423,9 @@ do ir = 1, lat%n_ele_track
     ric%i4a(ir) = 0   ! Too complicated to calculate. Probably small
     ric%i4b(ir) = 0   ! Too complicated to calculate. Probably small
 
-    ric%pt%g_x0 = g3_ave**(1.0/3)
-    ric%pt%g_y0 = 0
-    ric%pt%k1   = 0
-    ric%pt%s1   = 0
+    pt%g_x0 = g3_ave**(1.0/3)
 
-    call qromb_rad_int (ele0, ele, (/ F, F, F, F, F, T, T /), ir, cache_ele, int_tot)
+    call qromb_rad_int ((/ F, F, F, F, F, T, T /), pt, ri_info, int_tot)
     cycle
 
   endif
@@ -430,50 +433,39 @@ do ir = 1, lat%n_ele_track
   ! Only possibilities left are quad, sol_quad and sbend elements, or there
   ! is a non-zero bend angle.
 
-  if (ric%pt%g_x0 == 0 .and. ric%pt%g_y0 == 0 .and. &
-          key /= quadrupole$ .and. key /= sol_quad$ .and. key /= sbend$) cycle
+  if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0 .and. &
+          key /= quadrupole$ .and. key /= sol_quad$ .and. key /= sbend$ .and. &
+          key /= hkicker$ .and. key /= vkicker$) cycle
 
   if (key == sbend$) then
     theta = ele%value(tilt_tot$) + ele%value(roll$)
-    ric%pt%g_x0 = ric%pt%g_x0 + cos(theta) * ele%value(g$)
-    ric%pt%g_y0 = ric%pt%g_y0 - sin(theta) * ele%value(g$)
+    pt%g_x0 =  cos(theta) * ele%value(g$)
+    pt%g_y0 = -sin(theta) * ele%value(g$)
+    g2 = ele%value(g$)**2
+    pt%dgx_dx = ele%value(k1$) * cos(2*theta)
+    pt%dgy_dx = ele%value(k1$) * sin(2*theta)
+    pt%dgx_dy = pt%dgy_dx
+    pt%dgy_dy = -pt%dgx_dx
+    ! Edge effects for a bend. In this case we ignore any rolls.
+    call propagate_part_way (orbit(i-1), orbit(i), pt, ri_info, 0.0_rp, 1, 1)
+    ric%i4a(ir) = -ri_info%eta_a(1) * g2 * tan(ele%value(e1$))
+    ric%i4b(ir) = -ri_info%eta_b(1) * g2 * tan(ele%value(e1$))
+    call propagate_part_way (orbit(i-1), orbit(i), pt, ri_info, ll, 1, 2)
+    ric%i4a(ir) = ric%i4a(ir) - ri_info%eta_a(1) * g2 * tan(ele%value(e2$))
+    ric%i4b(ir) = ric%i4a(ir) - ri_info%eta_b(1) * g2 * tan(ele%value(e2$))
   endif
-
-  ric%pt%g2 = ric%pt%g_x0**2 + ric%pt%g_y0**2
-  ric%pt%g = sqrt(ric%pt%g2)
-
-  ric%i2(ir)  = ric%pt%g2 * ll
-  ric%i3(ir)  = ric%pt%g2 * ric%pt%g * ll
 
   if (key == quadrupole$ .or. key == sol_quad$) then
     theta = ele%value(tilt_tot$)
-    ric%pt%k1 = ele%value(k1$) * cos(2*theta)
-    ric%pt%s1 = ele%value(k1$) * sin(2*theta)
-  elseif (key == sbend$) then
-    theta = ele%value(tilt_tot$) + ele%value(roll$)
-    ric%pt%k1 = ele%value(k1$) * cos(2*theta)
-    ric%pt%s1 = ele%value(k1$) * sin(2*theta)
-  else
-    ric%pt%k1 = 0
-    ric%pt%s1 = 0
-  endif
-
-  ! Edge effects for a bend. In this case we ignore any rolls.
-
-  if (key == sbend$) then
-    call propagate_part_way (ele0, ele, runt, 0.0_rp, 1, 1, cache_ele)
-    ric%i4a(ir) = -ric%eta_a(1) * ric%pt%g2 * tan(ele%value(e1$))
-    ric%i4b(ir) = -ric%eta_b(1) * ric%pt%g2 * tan(ele%value(e1$))
-    call propagate_part_way (ele0, ele, runt, ll, 1, 2, cache_ele)
-    ric%i4a(ir) = ric%i4a(ir) - &
-                         ric%eta_a(1) * ric%pt%g2 * tan(ele%value(e2$))
-    ric%i4b(ir) = ric%i4a(ir) - &
-                         ric%eta_b(1) * ric%pt%g2 * tan(ele%value(e2$))
+    pt%dgx_dx = ele%value(k1$) * cos(2*theta)
+    pt%dgy_dx = ele%value(k1$) * sin(2*theta)
+    pt%dgx_dy = pt%dgy_dx
+    pt%dgy_dy = -pt%dgx_dx
   endif
 
   ! Integrate for quads, bends and nonzero kicks
 
-  call qromb_rad_int (ele0, ele, (/ T, F, F, T, T, T, T /), ir, cache_ele, int_tot)
+  call qromb_rad_int ((/ T, T, T, T, T, T, T /), pt, ri_info, int_tot)
 
 enddo
 
@@ -482,39 +474,23 @@ enddo
 
 do ir = 1, lat%n_ele_track
 
+  ri_info%ix_ele = ir
   ele => lat%ele(ir)
+
   if (ele%key /= wiggler$) cycle
   if (ele%sub_key /= map_type$) cycle
   if (.not. ele%is_on) cycle
 
-  nullify (cache_ele)
+  nullify (ri_info%cache_ele)
   if (use_cache) then
-    if (cache%ix_ele(ir) > 0) cache_ele => cache%ele(cache%ix_ele(ir))
+    if (cache%ix_ele(ir) > 0) ri_info%cache_ele => cache%ele(cache%ix_ele(ir))
   endif
-
-  ele0 => lat%ele(ir-1)
-  ric%orb0 => orbit(ir-1)
-  ric%orb1 => orbit(ir)
 
   ll = ele%value(l$)
   if (ll == 0) cycle
 
-  ric%pt%g_x0 = -ele%value(hkick$) / ll
-  ric%pt%g_y0 = -ele%value(vkick$) / ll
-
-  call make_v_mats (ele0, v, v_inv)
-  ric%eta_a0 = &
-          matmul(v, (/ ele0%a%eta, ele0%a%etap, 0.0_rp, 0.0_rp /))
-  ric%eta_b0 = &
-          matmul(v, (/ 0.0_rp, 0.0_rp, ele0%b%eta, ele0%b%etap /))
-
-  call make_v_mats (ele, v, v_inv)
-  ric%eta_a1 = &
-          matmul(v, (/ ele%a%eta, ele%a%etap, 0.0_rp, 0.0_rp /))
-  ric%eta_b1 = &
-          matmul(v, (/ 0.0_rp, 0.0_rp, ele%b%eta, ele%b%etap /))
-
-  call qromb_rad_int (ele0, ele, (/ T, T, T, T, T, T, T /), ir, cache_ele, int_tot) 
+  ri_info%ix_ele = ir
+  call qromb_rad_int ((/ T, T, T, T, T, T, T /), pt, ri_info, int_tot) 
 
 enddo
 

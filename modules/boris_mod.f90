@@ -412,7 +412,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
 ! 2) Evaluate the fields.
 
-  call em_field (ele, param, s+ds/2, end, field)
+  call em_field_calc (ele, param, s+ds/2, end, .true., field)
   if (field%type /= em_field$) then
     print *, 'ERROR IN TRACK1_BORIS_PARTIAL: BORIS CAN ONLY TRACK WITH EM FIELDS.'
     print *, '      FOR ELEMENT: ', ele%name

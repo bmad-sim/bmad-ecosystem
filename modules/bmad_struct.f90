@@ -145,8 +145,8 @@ type ele_struct
   type (xy_disp_struct) x, y         ! Projected dispersions.
   type (floor_position_struct) floor ! Global floor position at end of ele.
   real(rp) value(n_attrib_maxx)      ! attribute values.
-  real(rp) ref_orb_in(6)             ! Reference orbit for mat6 calc at entrance of element.
-  real(rp) ref_orb_out(6)            ! Reference orbit at exit of element.
+  type (coord_struct) ref_orb_in     ! Reference orbit for mat6 calc at entrance of element.
+  type (coord_struct) ref_orb_out    ! Reference orbit at exit of element.
   real(rp) gen0(6)                   ! constant part of the genfield map.
   real(rp) vec0(6)                   ! 0th order transport vector.
   real(rp) mat6(6,6)                 ! 1st order transport matrix.

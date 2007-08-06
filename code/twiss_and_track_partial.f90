@@ -72,24 +72,6 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
     call err_exit
   endif
 
-! Easy case when del_s is zero.
-
-  if (del_s == 0) then
-
-    if (present(ele3)) ele3 = ele1
-
-    if (present(end)) then
-      if (present(start)) then
-        end = start 
-      else
-        end%vec = 0
-      endif
-    endif
-
-    return
-
-  endif
-
 ! The only real complication comes with a dipole where we have to negate
 ! the focusing of the exit face (we never get to the exit face since we are
 ! only partially tracking through).
@@ -105,6 +87,29 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
 
   ! Need to do bookkeeping if auto_bookkeeper is off
   if (.not. bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
+
+  ! Easy case when del_s is zero.
+
+  if (del_s == 0) then
+
+    if (present(ele3)) then
+      call mat_make_unit(ele3%mat6)
+      ele3%vec0 = 0
+    endif
+
+    if (present(end)) then
+      if (present(start)) then
+        end = start 
+      else
+        end%vec = 0
+      endif
+    endif
+
+    return
+
+  endif
+
+  ! If not easy case then do tracking...
 
   if (present(start)) then
     c0 = start

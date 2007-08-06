@@ -1487,19 +1487,17 @@ subroutine attribute_bookkeeper (ele, param)
   endif
 
 ! compute the z_patch for a wiggler if needed.
-! The starting reference orbit is in ele%value(ref_orb$:ref_orb$+3).
 ! This is normally zero except for split wiggler sections.
 
   if (ele%key == wiggler$ .and. &
-      ele%value(z_patch$) == 0 .and. ele%value(p0c$) /= 0) then
-    start%vec = 0
-    start%vec = ele%ref_orb_in
+                      ele%value(z_patch$) == 0 .and. ele%value(p0c$) /= 0) then
+    start = ele%ref_orb_in
     call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
     ele%value(z_patch$) = end%vec(5)
     if (ele%value(z_patch$) == 0) ele%value(z_patch$) = 1e-30 ! something non-zero.
     if (ele%sub_key == periodic_type$) ele%value(x_patch$) = end%vec(1)
     end%vec(5) = end%vec(5) - ele%value(z_patch$)
-    ele%ref_orb_out = end%vec             ! save for next super_slave
+    ele%ref_orb_out = end             ! save for next super_slave
   endif
 
 end subroutine
@@ -1779,7 +1777,7 @@ subroutine set_on_off (key, lat, switch, orb, use_ref_orb)
 
     if (old_state .neqv. lat%ele(i)%is_on) then
       if (logic_option (.false., use_ref_orb)) then
-        ref_orb%vec = lat%ele(i)%ref_orb_in
+        ref_orb = lat%ele(i)%ref_orb_in
         call make_mat6(lat%ele(i), lat%param, ref_orb)
       else
         call lat_make_mat6(lat, i, orb)
