@@ -248,11 +248,7 @@ subroutine synch_calc (direction, beam_type, power)
     lat%param%particle = positron$
   endif
 
-  call twiss_at_start(lat)
-  call closed_orbit_calc(lat, orb, 4)
-  call lat_make_mat6(lat, -1, orb)
-  call twiss_at_start(lat)
-  call twiss_propagate_all(lat)
+  call twiss_and_track (lat, orb)
 
   call calculate_sr_power(lat, orb, direction, power, &
                                 inside, outside, sr_param)
