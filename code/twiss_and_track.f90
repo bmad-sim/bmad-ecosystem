@@ -1,12 +1,12 @@
 !+
 ! Subroutine twiss_and_track (lat, orb, ok)
 !
-! Subroutine to calculate the twiss parameters, transport matrices and orbit 
-! for a lattice at constant energy.
+! Subroutine to calculate the twiss parameters, transport matrices and orbit.
+!
 ! Note: This is not necessarily the fastest way to do things since this
 ! routine does the entire calculation from scratch.
 !
-! For a closed lat the computed orbit will be the closed orbit.
+! For a circular ring the computed orbit will be the closed orbit.
 ! For an open lat the orbit will be computed using orb(0) as 
 ! starting conditions.
 !
