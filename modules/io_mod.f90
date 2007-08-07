@@ -66,8 +66,8 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
   do i = 1, lat%n_ele_max
     ele => lat%ele(i)
     if (.not. associated(ele%wake)) cycle
-    if (ele%wake%sr_file(1:3) == '...') n_sr = n_sr + 1 
-    if (ele%wake%lr_file(1:3) == '...') n_lr = n_lr + 1  
+    if (ele%wake%sr_file(1:3) == '...' .or. ele%wake%sr_file(1:6) == 'xsif::') n_sr = n_sr + 1 
+    if (ele%wake%lr_file(1:3) == '...' .or. ele%wake%sr_file(1:6) == 'xsif::') n_lr = n_lr + 1  
   enddo
   call re_allocate(sr_wake_name, n_sr, 200)
   call re_allocate(lr_wake_name, n_lr, 200)
