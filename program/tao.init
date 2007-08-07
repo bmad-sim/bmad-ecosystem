@@ -9,6 +9,7 @@
 
 &tao_design_lattice
   design_lattice(1)%file = "bmad_6wig_lum_20030915_v1.lat"
+  design_lattice(1)%parser = 'bmad'
 /
 
 

@@ -361,7 +361,7 @@ do j = 0, lat%n_ele_track
 
   ! track to the element and save for phase space plot
 
-  if (s%global%use_saved_beam_in_tracking) then
+  if (tao_com%use_saved_beam_in_tracking) then
     beam = u%beam_at_element(j)
 
   else
@@ -809,7 +809,7 @@ character(100) line
 
 !
 
-if (s%global%use_saved_beam_in_tracking) return
+if (tao_com%use_saved_beam_in_tracking) return
 
 ! If there is an init file then read from the file
 

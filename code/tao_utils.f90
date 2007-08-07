@@ -2702,7 +2702,7 @@ subroutine tao_parse_command_args (error, cmd_words)
   character(80) arg0
   character(24) :: r_name = 'tao_parse_command_args'
 
-  integer n_arg, i_arg
+  integer n_arg, i_arg, i_lat
   logical error
 
 ! Get command line input
@@ -2715,7 +2715,19 @@ subroutine tao_parse_command_args (error, cmd_words)
     n_arg = cesr_iargc()
   endif
 
+  if (n_arg == 0) return
+
+! since there are arguments reset things to their initial state
+
+  tao_com%init_tao_file  = 'tao.init'
+  tao_com%init_beam_file = ''
+  tao_com%init_lat_file  = ''
+
+! loop over all arguments
+
   i_arg = 0
+  i_lat = 0
+
   do 
 
     if (i_arg == n_arg) exit
@@ -2723,11 +2735,15 @@ subroutine tao_parse_command_args (error, cmd_words)
 
     select case (arg0)
     case ('-init')
-      call get_next_arg (s%global%init_file)
+      call get_next_arg (tao_com%init_tao_file)
 
     case ('-beam')
-      call get_next_arg (s%global%beam_file)
-      
+      call get_next_arg (tao_com%init_beam_file)
+
+    case ('-lat')
+      i_lat = i_lat + 1
+      call get_next_arg (tao_com%init_lat_file(i_lat))
+
     case ('')
       exit
 

@@ -24,11 +24,11 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   type (tao_universe_struct), pointer :: u
 
   character(*) tao_design_lattice_file
-  character(200) complete_file_name
+  character(200) complete_file_name, file_name
   character(40) :: r_name = 'tao_init_design_lattice'
-  integer i, j, iu, ios, version, taylor_order
+  integer i, j, iu, ios, version, taylor_order, ix
 
-  logical custom_init
+  logical custom_init, override
 
   namelist / tao_design_lattice / design_lattice, taylor_order
 
@@ -37,9 +37,10 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   call tao_open_file ('TAO_INIT_DIR', tao_design_lattice_file, iu, complete_file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // complete_file_name)
 
-  design_lattice%file = ' '
-  design_lattice%parser = 'bmad'
+  design_lattice%file = ''
+  design_lattice%parser = ''
   taylor_order = 0
+
   read (iu, nml = tao_design_lattice, iostat = ios)
   if (ios /= 0) then
     call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR.')
@@ -56,21 +57,44 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
 
   custom_init = .false.
   call tao_hook_init_design_lattice (design_lattice, custom_init)
-
-  
   if (custom_init) return
 
   ! TAO does its own bookkeeping
 
   bmad_com%auto_bookkeeper = .false.
 
-  ! Loop over all universes
-  
+  ! See what type of lattice file we have and issue a warning if old style syntax
+
+  override = .false.
+  if (tao_com%init_lat_file(1) /= '') override = .true.
+
   do i = 1, size(s%u)
+    if (design_lattice(i)%parser /= '') then
+      call out_io (s_error$, r_name, &
+          '***************************************************************************************', &
+          '***** OLD STYLE "DESIGN_LATTICE%PARSER" SYNTAX USED. PLEASE CONVERT TO NEW STYLE! *****', &
+          '***************************************************************************************')
+    endif
+
+    if (override) then
+      file_name = tao_com%init_lat_file(i)
+    else
+      file_name = design_lattice(i)%file
+      if (design_lattice(i)%parser /= '') file_name = trim(design_lattice(i)%parser) // '::' // trim(file_name)
+    endif
+
+    ix = index(file_name(1:10), '::')
+    if (ix == 0) then
+      design_lattice(i)%file = file_name
+      design_lattice(i)%parser = 'bmad'
+    else
+      design_lattice(i)%file = file_name(ix+2:)
+      design_lattice(i)%parser = file_name(1:ix-1)
+    endif
+
     u => s%u(i)
 
-    if (design_lattice(i)%file == ' ') design_lattice(i)%file = &
-                                              design_lattice(1)%file
+    if (design_lattice(i)%file == ' ') design_lattice(i) = design_lattice(1)
     select case (design_lattice(i)%parser)
     case ('bmad')
       call bmad_parser (design_lattice(i)%file, u%design%lat)

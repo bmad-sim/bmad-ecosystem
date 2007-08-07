@@ -61,8 +61,9 @@ Note: string variables are case sensitive.
 
 The syntax of the command line is:
 \begin{example}
-  tao \{-init <init_file_name>\} \{-beam <beam_file_name>\}
+  tao \{-init <tao_input_file>\} \{-beam <beam_input_file>\} \{-lat <lattice_file>\}
 \end{example}
+
 The \vn{-init} optional argument can be used to replace the default
 initialization file name (\vn{tao.init}) with \vn{<init_file_name>}.
 
@@ -72,7 +73,16 @@ tracked beam at the end of any element where the  When this is done, \tao sets
 the variable \vn{global%use_saved_beam_in_tracking} to \vn{True}. 
 This causes \tao to use the data from the beam data file in lieu of tracking.
 This can be helpful when the time for \tao to track a bunch through the 
-lattice becomes long.
+lattice becomes long. The default is to not read in a beam data file.
+
+The \vn{<lattice_file>} is used to override the lattice file specified
+in the root initialization file. To specify an XSIF lattice format
+file use the prefix \vn{xsif::} in the \vn{<lattice_file> name. To
+specify a digested file use the prefix \vn{digested::}. Example:
+\begin{example}
+  \$CESR_EXE/tao -init my.init -lat xsif::slac.xsif
+\end{example}
+multiple \vn{-lat} arguments can be used to specify multiple lattices.
 
 %-----------------------------------------------------------------
 \section{Beginning Initialization}
@@ -163,8 +173,7 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
 \begin{example}
   &tao_design_lattice
     taylor_order = <num>
-    design_lattice(i)%file = "<lattice_file>"
-    design_lattice(i)%parser = "<parser>"
+    design_lattice(i)%file = "<parser>::<lattice_file>"
   /
 \end{example}
 \vn{taylor_order} is the order of the Taylor maps. This will override
@@ -182,8 +191,8 @@ choices for \vn{<parser>} are:
 Example:
 \begin{example}
   &tao_design_lattice
-    design_lattice(1)%file = "this.lat"          ! Default: Use the bmad parser 
-    design_lattice(2)      = "that.lat", "xsif"  ! For universe \#2
+    design_lattice(1) = "this.lat"          ! Default: Bmad format lattice file.
+    design_lattice(2) = "xsif::that.lat"    ! XSIF file. For universe \#2
   /
 \end{example}
 
@@ -257,7 +266,6 @@ type tao_global_struct
   character(80) :: write_file    = 'tao_show.dat'
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
-  character(80) :: init_file     = 'tao.init'
   character(80) :: var_out_file  = 'var#.out'
   logical :: var_limits_on = T         ! Respect the variable limits?
   logical :: plot_on = T               ! Do plotting?

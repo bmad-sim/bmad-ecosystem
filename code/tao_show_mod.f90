@@ -59,7 +59,7 @@ real(rp) :: delta_e = 0
 
 character(*) :: what, stuff
 character(24) :: var_name
-character(24)  :: plane, imt, lmt, amt, rmt, irmt, iimt
+character(24)  :: plane, imt, lmt, amt, iamt, rmt, irmt, iimt
 character(80) :: word(2), fmt, fmt2, fmt3
 character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
@@ -108,6 +108,7 @@ imt  = '(a, 9i8)'
 iimt = '(a, i0, a, i8)'
 lmt  = '(a, 9l)'
 amt  = '(9a)'
+iamt = '(a, i0, 9a)'
 
 u => s%u(s%global%u_view)
 
@@ -514,46 +515,50 @@ case ('ele', 'taylor')
 
 case ('global')
 
-  nl=nl+1; write (lines(nl), imt) 'n_universes          = ', size(s%u)
-  nl=nl+1; write (lines(nl), rmt) 'de_lm_step_ratio     = ', s%global%de_lm_step_ratio
-  nl=nl+1; write (lines(nl), rmt) 'lm_opt_deriv_reinit  = ', s%global%lm_opt_deriv_reinit
-  nl=nl+1; write (lines(nl), rmt) 'lmdif_eps            = ', s%global%lmdif_eps
-  nl=nl+1; write (lines(nl), rmt) 'y_axis_plot_dmin     = ', s%global%y_axis_plot_dmin
-  nl=nl+1; write (lines(nl), imt) 'u_view               = ', s%global%u_view
-  nl=nl+1; write (lines(nl), imt) 'n_opti_loops         = ', s%global%n_opti_loops
-  nl=nl+1; write (lines(nl), imt) 'n_opti_cycles        = ', s%global%n_opti_cycles
-  nl=nl+1; write (lines(nl), imt) 'bunch_to_plot        = ', s%global%bunch_to_plot
-  nl=nl+1; write (lines(nl), imt) 'random_seed          = ', s%global%random_seed
+  nl=nl+1; write (lines(nl), imt) 'n_universes                = ', size(s%u)
+  nl=nl+1; write (lines(nl), rmt) 'de_lm_step_ratio           = ', s%global%de_lm_step_ratio
+  nl=nl+1; write (lines(nl), rmt) 'lm_opt_deriv_reinit        = ', s%global%lm_opt_deriv_reinit
+  nl=nl+1; write (lines(nl), rmt) 'lmdif_eps                  = ', s%global%lmdif_eps
+  nl=nl+1; write (lines(nl), rmt) 'y_axis_plot_dmin           = ', s%global%y_axis_plot_dmin
+  nl=nl+1; write (lines(nl), imt) 'u_view                     = ', s%global%u_view
+  nl=nl+1; write (lines(nl), imt) 'n_opti_loops               = ', s%global%n_opti_loops
+  nl=nl+1; write (lines(nl), imt) 'n_opti_cycles              = ', s%global%n_opti_cycles
+  nl=nl+1; write (lines(nl), imt) 'bunch_to_plot              = ', s%global%bunch_to_plot
+  nl=nl+1; write (lines(nl), imt) 'random_seed                = ', s%global%random_seed
+  nl=nl+1; write (lines(nl), imt) 'n_curve_pts                = ', s%global%n_curve_pts
+  nl=nl+1; write (lines(nl), amt) 'track_type                 = ', s%global%track_type
+  nl=nl+1; write (lines(nl), amt) 'phase_units                = ', &
+                                                  frequency_units_name(s%global%phase_units)
+  nl=nl+1; write (lines(nl), amt) 'optimizer                  = ', s%global%optimizer
+  nl=nl+1; write (lines(nl), amt) 'prompt_string              = ', s%global%prompt_string
+  nl=nl+1; write (lines(nl), amt) 'var_out_file               = ', s%global%var_out_file
+  nl=nl+1; write (lines(nl), amt) 'print_command              = ', s%global%print_command
+  nl=nl+1; write (lines(nl), lmt) 'auto_scale                 = ', s%global%auto_scale
+  nl=nl+1; write (lines(nl), lmt) 'label_lattice_elements     = ', s%global%label_lattice_elements
+  nl=nl+1; write (lines(nl), lmt) 'label_keys                 = ', s%global%label_keys
+  nl=nl+1; write (lines(nl), lmt) 'derivative_recalc          = ', s%global%derivative_recalc
+  nl=nl+1; write (lines(nl), lmt) 'var_limits_on              = ', s%global%var_limits_on
+  nl=nl+1; write (lines(nl), lmt) 'var_limits_on              = ', s%global%var_limits_on
+  nl=nl+1; write (lines(nl), lmt) 'opt_with_ref               = ', s%global%opt_with_ref 
+  nl=nl+1; write (lines(nl), lmt) 'opt_with_base              = ', s%global%opt_with_base
+  nl=nl+1; write (lines(nl), lmt) 'plot_on                    = ', s%global%plot_on
+  nl=nl+1; write (lines(nl), lmt) 'matrix_recalc_on           = ', s%global%matrix_recalc_on
+  nl=nl+1; write (lines(nl), lmt) 'var_limits_on              = ', s%global%var_limits_on
+  nl=nl+1; write (lines(nl), lmt) 'save_beam_everywhere       = ', s%global%save_beam_everywhere
+  nl=nl+1; write (lines(nl), lmt) 'show_ele_wig_terms         = ', s%global%show_ele_wig_terms
   if (s%global%random_seed == 0) then
     call ran_seed_get(ix)
-    nl=nl+1; write (lines(nl), imt) 'random_seed (generated) = ', ix
+    nl=nl+1; write (lines(nl), imt) 'random_seed (generated)    = ', ix
   endif
-  nl=nl+1; write (lines(nl), imt) 'n_curve_pts          = ', s%global%n_curve_pts
-  nl=nl+1; write (lines(nl), amt) 'track_type           = ', s%global%track_type
-  nl=nl+1; write (lines(nl), amt) 'phase_units          = ', &
-                              frequency_units_name(s%global%phase_units)
-  nl=nl+1; write (lines(nl), amt) 'optimizer            = ', s%global%optimizer
-  nl=nl+1; write (lines(nl), amt) 'prompt_string        = ', s%global%prompt_string
-  nl=nl+1; write (lines(nl), amt) 'var_out_file         = ', s%global%var_out_file
-  nl=nl+1; write (lines(nl), amt) 'print_command        = ', s%global%print_command
-  nl=nl+1; write (lines(nl), amt) 'init_file            = ', s%global%init_file
-  nl=nl+1; write (lines(nl), amt) 'beam_file            = ', s%global%beam_file
-  nl=nl+1; write (lines(nl), lmt) 'auto_scale           = ', s%global%auto_scale
-  nl=nl+1; write (lines(nl), lmt) 'label_lattice_elements = ', s%global%label_lattice_elements
-  nl=nl+1; write (lines(nl), lmt) 'label_keys           = ', s%global%label_keys
-  nl=nl+1; write (lines(nl), lmt) 'derivative_recalc    = ', s%global%derivative_recalc
-  nl=nl+1; write (lines(nl), lmt) 'var_limits_on        = ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), lmt) 'var_limits_on        = ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), lmt) 'opt_with_ref         = ', s%global%opt_with_ref 
-  nl=nl+1; write (lines(nl), lmt) 'opt_with_base        = ', s%global%opt_with_base
-  nl=nl+1; write (lines(nl), lmt) 'plot_on              = ', s%global%plot_on
-  nl=nl+1; write (lines(nl), lmt) 'matrix_recalc_on     = ', s%global%matrix_recalc_on
-  nl=nl+1; write (lines(nl), lmt) 'var_limits_on        = ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), lmt) 'save_beam_everywhere = ', s%global%save_beam_everywhere
-  nl=nl+1; write (lines(nl), lmt) 'use_saved_beam_in_tracking = ', &
-                                              s%global%use_saved_beam_in_tracking
-  nl=nl+1; write (lines(nl), lmt) 'show_ele_wig_terms   = ', s%global%show_ele_wig_terms
-
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file        = ', tao_com%init_tao_file
+  nl=nl+1; write (lines(nl), amt) 'tao_com%init_beam_file       = ', tao_com%init_beam_file
+  nl=nl+1; write (lines(nl), lmt) 'tao_com%use_saved_beam_in_tracking = ', &
+                                                    tao_com%use_saved_beam_in_tracking
+  do i = 1, size(tao_com%init_lat_file)
+    if (tao_com%init_lat_file(i) == '') exit
+    nl=nl+1; write (lines(nl), iamt) 'tao_com%init_lat_file(', i, ')     = ', tao_com%init_lat_file(i)
+  enddo
   call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------

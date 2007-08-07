@@ -43,16 +43,16 @@ subroutine tao_init ()
 
 ! Find namelist files
 
-  lattice_file       = s%global%init_file      ! set default
-  plot_file          = s%global%init_file      ! set default
-  data_file          = s%global%init_file      ! set default
-  var_file           = s%global%init_file      ! set default
-  single_mode_file   = s%global%init_file      ! set default
-  s%global%init_file = s%global%init_file
+  lattice_file       = tao_com%init_tao_file      ! set default
+  plot_file          = tao_com%init_tao_file      ! set default
+  data_file          = tao_com%init_tao_file      ! set default
+  var_file           = tao_com%init_tao_file      ! set default
+  single_mode_file   = tao_com%init_tao_file      ! set default
+  tao_com%init_tao_file = tao_com%init_tao_file
   n_universes        = 1              ! set default
   init_name          = "Tao"          ! set default
   startup_file       = "tao.startup"
-  call tao_open_file ('TAO_INIT_DIR', s%global%init_file, iu, file_name)
+  call tao_open_file ('TAO_INIT_DIR', tao_com%init_tao_file, iu, file_name)
   read (iu, nml = tao_start)
   close (iu)
   tao_com%init_name = init_name
@@ -63,17 +63,17 @@ subroutine tao_init ()
 ! Init
 
   call tao_init_design_lattice (lattice_file) 
-  call tao_init_global_and_universes (s%global%init_file, data_file, var_file)
+  call tao_init_global_and_universes (tao_com%init_tao_file, data_file, var_file)
   call tao_init_single_mode (single_mode_file)
-  call tao_hook_init (s%global%init_file)
+  call tao_hook_init (tao_com%init_tao_file)
 
   bmad_status%exit_on_error = .false.
 
 ! Read beam info
 
-  if (s%global%beam_file /= '') then
+  if (tao_com%init_beam_file /= '') then
     iu = lunget()
-    open (iu, file = s%global%beam_file, form = 'unformatted', status = 'old')
+    open (iu, file = tao_com%init_beam_file, form = 'unformatted', status = 'old')
     do i = 1, size(s%u)
       u => s%u(i)
       read (iu) u%beam_init
@@ -94,8 +94,8 @@ subroutine tao_init ()
       enddo
     enddo  
     close(1)
-    s%global%use_saved_beam_in_tracking = .true.
-    call out_io (s_info$, r_name, 'Read beam distribution from: ' // s%global%beam_file)
+    tao_com%use_saved_beam_in_tracking = .true.
+    call out_io (s_info$, r_name, 'Read beam distribution from: ' // tao_com%init_beam_file)
   endif
 
 ! check variables

@@ -411,9 +411,6 @@ type tao_global_struct
   character(80) :: write_file    = 'tao_show.dat'
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
-  character(80) :: init_file     = 'tao.init'  ! used with 'reinitialize' command
-  character(80) :: beam_file     = ''          ! Used to read in previously computed
-                                               !  beam distributions.
   character(80) :: var_out_file  = 'var#.out'
   logical :: var_limits_on = .true.      ! Respect the variable limits?
   logical :: plot_on = .true.            ! Do plotting?
@@ -429,8 +426,35 @@ type tao_global_struct
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
   logical :: matrix_recalc_on = .true.       ! calc linear transfer matrix
   logical :: save_beam_everywhere = .false.  ! Save the beam info at all elements?
-  logical :: use_saved_beam_in_tracking = .false.
   logical :: show_ele_wig_terms = .false.
+end type
+
+! tao_common_struct is for stuff the user should not have direct access to
+
+type tao_alias_struct
+  character(40) :: name
+  character(100) :: string
+end type
+
+type tao_common_struct
+  type (tao_alias_struct) alias(100)
+  logical opti_init        ! init needed?
+  logical opti_at_limit    ! Variable at limit?
+  logical opti_abort       ! Abort loops?
+  integer :: n_alias = 0
+  integer :: cmd_file_level = 0 ! for nested command files
+              ! unit numbers for a command files. 0 -> no command file.
+  integer, pointer :: lun_command_file(:) => null() 
+  logical :: use_cmd_here  = .false. ! Used for the cmd history stack
+  logical cmd_from_cmd_file ! was command from a command file?
+  logical :: use_saved_beam_in_tracking = .false.
+  character(40) cmd_arg(9) ! Command file arguments.
+  character(100) cmd       ! Used for the cmd history
+  character(16) :: init_name = "Tao"  !label for initialization
+  character(80) :: init_tao_file     = 'tao.init'  ! '-init' argument.
+  character(80) :: init_lat_file(10) = ''          ! '-lat' argument.
+  character(80) :: init_beam_file    = ''          ! '-beam' argument. Used to read in 
+                                                   !  previously computed beam distributions.
 end type
 
 !------------------------------------------------------------------------
@@ -537,29 +561,7 @@ type tao_super_universe_struct
 end type
 
 !-----------------------------------------------------------------------
-! Define common variables
-
-type tao_alias_struct
-  character(40) :: name
-  character(100) :: string
-end type
-
-type tao_common_struct
-  type (tao_alias_struct) alias(100)
-  logical opti_init        ! init needed?
-  logical opti_at_limit    ! Variable at limit?
-  logical opti_abort       ! Abort loops?
-  character(40) cmd_arg(9) ! Command file arguments.
-  character(100) cmd       ! Used for the cmd history
-  character(16) :: init_name = "Tao"  !label for initialization
-  integer :: n_alias = 0
-  integer :: cmd_file_level = 0 ! for nested command files
-              ! unit numbers for a command files. 0 -> no command file.
-  integer, pointer :: lun_command_file(:) => null() 
-  logical :: use_cmd_here  = .false. ! Used for the cmd history stack
-  logical cmd_from_cmd_file ! was command from a command file?
-end type
-
+! The grand global scheme
 
 type (tao_super_universe_struct), save, target :: s
 type (tao_common_struct), save :: tao_com

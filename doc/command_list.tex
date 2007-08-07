@@ -510,21 +510,26 @@ Examples:
 
 Format:
 \begin{example}
-  reinitialize  \{init <init_file_name>\} \{beam <beam_file_name>\}
+  reinitialize \{-init <tao_input_file>\} \{-beam <beam_input_file>\} \{-lat <lattice_file>\}
 \end{example}
 
 \vskip 0.2in 
-Reinitializes \tao. This can be useful to reset everything to
-initial conditions or to perform analysis with more than one initialization file.
-See section \sref{s:command_line} for details on the arguments. In this case
-The default \vn{<init_file>} is what was used with the last reinitialization or, if
-this is the first reinitialization, what was used at startup.
+
+Reinitializes \tao. This can be useful to reset everything to initial
+conditions or to perform analysis with more than one initialization
+file.  See section \sref{s:command_line} for details on the arguments.
+If there are no arguments, the \vn{reinitialize} command uses the same
+arguments that were used in the last \vn{reinitialize} command, or, if
+this is the first reinitialization, what was used to start \tao. If
+there are arguments, The defaults will be used.  The default
+\vn{<init_file>} is what was used with the last reinitialization or,
+if this is the first reinitialization, what was used at startup.
 
 Examples:
 \begin{example}
-  reinitialize 
-  reinit init tao_special.init  ! Reinitializes \tao with the initialization file 
-                                  \vn{tao_special.init}
+  reinit                         ! Reinit using previous agruments
+  reinit -init tao_special.init  ! Reinitializes \tao with the initialization file 
+                                   \vn{tao_special.init}
 \end{example}
 
 

@@ -103,8 +103,6 @@ namelist / tao_var / v1_var, var, default_weight, default_step, &
 global = default_global         ! establish defaults
 global%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
 global%default_key_merit_type = 'limit'
-global%init_file = s%global%init_file
-global%beam_file = s%global%beam_file
 
 call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
