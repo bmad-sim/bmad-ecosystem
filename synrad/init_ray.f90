@@ -94,7 +94,7 @@ subroutine init_ray (ray, lat, ix_ele, l_offset, orb, direction)
     ! for mapped wigglers, find the B field at the source point
     ! and extract the g_bend
     ! Note: assumes particles are relativistic!!
-    call em_field (runt_ele, lat%param, l_offset, orb0, field)
+    call em_field_calc (runt_ele, lat%param, l_offset, orb0, .false., field)
 
     ! changed to use the E_TOT at the ele 2006.11.24 mjf
     ray%g_bend = sqrt(sum(field%b(1:2)**2)) * c_light / ele%value(E_TOT$)

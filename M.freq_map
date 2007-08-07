@@ -160,7 +160,7 @@ endif
 #--------------------------------------------------------------
 LOCAL_LIBS :=
 CESR_LIBS  := bsim bmadz bmad dcslib cesr_utils recipes_f-90_LEPP
-PKG_LIBS   := forest pgplot
+PKG_LIBS   := forest pgplot xsif
 SYS_LIBS   :=
 CERN_LIBS  :=
 
