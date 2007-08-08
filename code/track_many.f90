@@ -61,7 +61,6 @@ subroutine track_many (lat, orbit, ix_start, ix_end, direction)
   type (coord_struct) orbit(0:)
 
   integer ix_start, ix_end, direction
-  integer n, i
 
   logical :: debug = .false.
 
@@ -116,7 +115,7 @@ contains
 
 subroutine track_fwd (ix1, ix2)
 
-  integer ix1, ix2
+  integer i, n, ix1, ix2
 
   do n = ix1, ix2
 
@@ -158,7 +157,7 @@ subroutine track_back (ix1, ix2)
 
   type (ele_struct), save :: ele
 
-  integer ix1, ix2, ix_last 
+  integer i, n, ix1, ix2, ix_last 
 
 ! flip to reversed coords
 
