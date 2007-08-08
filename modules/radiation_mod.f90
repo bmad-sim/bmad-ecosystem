@@ -204,6 +204,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
 
+  end = start
   end%vec(2) = end%vec(2) * (1 - dE_p)
   end%vec(4) = end%vec(4) * (1 - dE_p)
   end%vec(6) = end%vec(6)  - dE_p * (1 + end%vec(6))
