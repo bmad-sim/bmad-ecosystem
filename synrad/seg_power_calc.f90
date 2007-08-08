@@ -92,7 +92,7 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
 
     ! sig_yprime is the vertical opening angle
 
-    call convert_total_energy_to (lat%e_tot, lat%param%particle, gamma)
+    call convert_total_energy_to (energy, lat%param%particle, gamma)
     sig_yp = sqrt(gen%epsilon_y * rays(i)%y_twiss%gamma + 1 / gamma**2)
 
     ! the effective sig_y includes the increase from sig_yp
