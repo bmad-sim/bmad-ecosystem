@@ -61,7 +61,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   type (coord_struct), allocatable, save ::  start_coord(:), end_coord(:)
   type (coord_struct), allocatable, save :: co(:), orb(:)
   type (coord_struct), allocatable, save :: start(:), end(:)
-  type (coord_struct) orb, delta_ip
+  type (coord_struct) delta_ip
   type (normal_modes_struct) mode
   type (ele_struct) beambeam_ele
   type (scan_params_struct) scan_params
