@@ -200,6 +200,9 @@ do i = 0, n_step
   ! ns = 0 is the unshielded kick.
   ! For the shielding image currents never use the small angle approximation
 
+  bin%bin1(:)%kick_csr = 0
+  bin%bin1(:)%kick_lsc = 0
+
   do ns = 0, csr_param%n_shield_images
 
     ! %kick_factor takes into account that at the endpoints we are only putting in a half kick.
@@ -218,13 +221,12 @@ do i = 0, n_step
       call csr_bin_kicks (lat, ix_ele, s_start, bin, .false.)
     endif
 
-    ! loop over all particles and give them a kick
+  enddo
 
-    do j = 1, size(bunch_end%particle)
-      pt => bunch_end%particle(j)
-      call csr_kick_calc (bin, pt)
-    enddo
+  ! loop over all particles and give them a kick
 
+  do j = 1, size(bunch_end%particle)
+    call csr_kick_calc (bin, bunch_end%particle(j))
   enddo
 
   call save_bunch_track (bunch_end, ele, s_start)
@@ -547,9 +549,9 @@ if (bin%y2 == 0) then
 
 else
   do i = 1, n_bin
-    bin%bin1(i)%kick_csr = coef * &
+    bin%bin1(i)%kick_csr = bin%bin1(i)%kick_csr + coef * &
                   dot_product(bin%kick1(i-1:i-n_bin:-1)%kick_csr, bin%bin1(1:n_bin)%charge)
-    bin%bin1(i)%kick_lsc = coef * &
+    bin%bin1(i)%kick_lsc = bin%bin1(i)%kick_lsc + coef * &
                   dot_product(bin%kick1(i-1:i-n_bin:-1)%kick_lsc, bin%bin1(1:n_bin)%charge)
   enddo
 endif
@@ -624,8 +626,8 @@ do i = n_ele_pp, 1, -1
       k_factor%v = k_factor%v + d_i(i) * cos(phi)
       k_factor%w2 = k_factor%w2 + d_i(i) * sin(phi)
     else
-      k_factor%v = k_factor%v + (cos(phi + dphi) - cos(phi)) / g_i(i)
-      k_factor%w2 = k_factor%w2 + (sin(phi + dphi) - sin(phi)) / g_i(i)
+      k_factor%v = k_factor%v + (sin(phi + dphi) - sin(phi)) / g_i(i)
+      k_factor%w2 = k_factor%w2 + (cos(phi + dphi) - cos(phi)) / g_i(i)
     endif
     k_factor%v3 = k_factor%v1 - k_factor%v
   endif
