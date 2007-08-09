@@ -41,6 +41,8 @@
 !........................................................................
 !
 #include "CESR_platform.h"
+#if defined(CESR_UNIX) || defined(CESR_VMS)
+#else
 
 subroutine beambeam_scan(ring, scan_params, phi_x, phi_y) 
   
@@ -873,14 +875,10 @@ end subroutine lum_tracker
 
 
 
+#endif
 
 
-
-
-
-
-
-
+END
 
 
 

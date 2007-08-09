@@ -35,6 +35,8 @@
 !........................................................................
 !
 #include "CESR_platform.h"
+#if defined(CESR_UNIX) || defined(CESR_VMS)
+#else
 
 program beambeam_luminosity
 
@@ -392,7 +394,10 @@ end if
 
 
 
+#endif
 
+
+END
 
 
 
