@@ -77,12 +77,12 @@ lattice becomes long. The default is to not read in a beam data file.
 
 The \vn{<lattice_file>} is used to override the lattice file specified
 in the root initialization file. To specify an XSIF lattice format
-file use the prefix \vn{xsif::} in the \vn{<lattice_file> name. To
+file use the prefix \vn{xsif::} in the \vn{<lattice_file>} name. To
 specify a digested file use the prefix \vn{digested::}. Example:
 \begin{example}
   \$CESR_EXE/tao -init my.init -lat xsif::slac.xsif
 \end{example}
-multiple \vn{-lat} arguments can be used to specify multiple lattices.
+If there is more than one universe, multiple \vn{-lat} arguments can be used.
 
 %-----------------------------------------------------------------
 \section{Beginning Initialization}
