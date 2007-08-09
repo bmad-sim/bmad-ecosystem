@@ -138,7 +138,7 @@ type (ele_struct), pointer :: ele
 type (ele_struct), save :: runt
 type (csr_bin_struct), save :: bin
 
-real(rp) s_start, e_tot
+real(rp) s_start
 integer i, j, ns, nb, ix_ele, n_step
 
 character(20) :: r_name = 'track1_bunch_sc'
@@ -187,19 +187,13 @@ do i = 0, n_step
 
   ! track through the runt
 
-  if (i == 0) then
-    e_tot = lat%ele(ix_ele-1)%value(e_tot$)
-  else
+  if (i /= 0) then
     call slice_ele_calc (ele, lat%param, i, n_step, runt)
     runt%csr_calc_on = .false.
     call track1_bunch_ele (bunch_end, runt, lat%param, bunch_end)
-    e_tot = runt%value(e_tot$)
   endif
 
   s_start = i * bin%ds_track_step
-
-  call convert_total_energy_to (e_tot, lat%param%particle, bin%gamma, beta = bin%beta)
-  bin%gamma2 = bin%gamma**2
 
   call csr_bin_particles (bunch_end%particle, bin)    
 
@@ -484,7 +478,7 @@ type (lat_struct), target :: lat
 type (csr_kick_bin_struct), pointer :: kick1
 type (csr_kick_factor_struct) k_factor
 
-real(rp) s_travel, s_kick, s0_kick_ele, coef
+real(rp) s_travel, s_kick, s0_kick_ele, coef, e_tot, f1
 
 integer i, ix_ele, n_ele_pp, n_bin
 
@@ -492,13 +486,20 @@ logical small_angle_approx
 
 character(16) :: r_name = 'csr_bin_kicks'
 
+! Assume a linear energy gain
+
+f1 = s_travel / lat%ele(ix_ele)%value(l$)
+e_tot = f1 * lat%ele(ix_ele-1)%value(e_tot$) + (1 - f1) * lat%ele(ix_ele)%value(e_tot$)
+call convert_total_energy_to (e_tot, lat%param%particle, bin%gamma, beta = bin%beta)
+bin%gamma2 = bin%gamma**2
+
+if (.not. csr_param%lcsr_component_on) return
+
 ! The kick point P is fixed.
 ! The source point P' varies from bin to bin.
 ! n_ele_pp is the number of elements between P' and P excluding the 
 ! elements containing P and P'. n_ele_pp will be incremented by
 ! next_element_params_calc as we go from one bin to the next.
-
-if (.not. csr_param%lcsr_component_on) return
 
 n_ele_pp = -1
 call next_element_params_calc (n_ele_pp, s0_kick_ele, k_factor)

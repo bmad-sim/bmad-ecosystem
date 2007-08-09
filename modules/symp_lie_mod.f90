@@ -816,7 +816,6 @@ if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on)) the
 
   dE_p = (1 + start%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3)) * synch_rad_com%scale 
 
-  end = start
   end%vec(2) = end%vec(2) * (1 - dE_p)
   end%vec(4) = end%vec(4) * (1 - dE_p)
   end%vec(6) = end%vec(6)  - dE_p * (1 + end%vec(6))
