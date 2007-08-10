@@ -45,7 +45,7 @@ function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
 
 ! init & check
 
-  do_print = logic_option (err_print_flag, .true.)
+  do_print = logic_option (.true., err_print_flag)
   ix_ele0 = ix_ele
   ix_attrib0 = ix_attrib
   call check_this_attribute_free (ix_ele, ix_attrib)
