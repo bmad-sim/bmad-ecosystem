@@ -285,6 +285,9 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
                       bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
         call get_next_word (lat%lattice, ix_word, ',', &
                                                    delim, delim_found, .true.)
+        print *, 'BMAD_PARSER NOTE:'
+        print *, '    DEPRECATED USE OF SYNTAX: "LATTICE = ...".'
+        print *, '    USE "PARAMETER[LATTICE] = ..." SYNTAX INSTEAD.'
       endif
       cycle parsing_loop
     endif
@@ -897,14 +900,14 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   do i = 1, bp_com%ivar_tot
 
     if (bp_com%var_name(i) == 'LATTICE_TYPE') then
-      print *, 'Note in BMAD_PARSER:'
+      print *, 'BMAD_PARSER NOTE:'
       print *, '   DEPRECATED USE OF SYNTAX: "LATTICE_TYPE = ...".'
       print *, '   USE "PARAMETER[LATTICE_TYPE] = ..." SYNTAX INSTEAD.'
       lat%param%lattice_type = nint(bp_com%var_value(i))
     endif
 
     if (bp_com%var_name(i) == 'TAYLOR_ORDER') then
-      print *, 'Note in BMAD_PARSER:'
+      print *, 'BMAD_PARSER NOTE:'
       print *, '   DEPRECATED USE OF SYNTAX: "TAYLOR_ORDER = ...".'
       print *, '   USE "PARAMETER[TAYLOR_ORDER] = ..." SYNTAX INSTEAD.'
       lat%input_taylor_order = nint(bp_com%var_value(i))
@@ -920,8 +923,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   else              ! else use default
     lat%param%lattice_type = circular_lattice$      ! default 
     if (any(in_lat%ele(:)%key == lcavity$)) then    !   except...
-      print *, 'Note in BMAD_PARSER: This lattice has a LCAVITY.'
-      print *, '     Setting the LATTICE_TYPE to LINEAR_LATTICE.'
+      print *, 'BMAD_PARSER NOTE: THIS LATTICE HAS A LCAVITY.'
+      print *, '     SETTING THE LATTICE_TYPE TO LINEAR_LATTICE.'
       lat%param%lattice_type = linear_lattice$
     endif
   endif
