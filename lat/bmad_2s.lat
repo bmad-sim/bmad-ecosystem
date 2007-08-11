@@ -37,7 +37,7 @@
 ! Chrom x:-1.64  y:3.44    Tonality x:-0.00  y:-0.15
 !-
  
-lattice := 2s
+parameter[lattice] = 2s
  
 call, file=BMAD_LAYOUT:cesr_iii_layout.bmad
  

@@ -78,7 +78,7 @@
 ! 34e: e+ Bx:43.88  e- Bx:34.69  e- Eta:1.04
 !bbi-
 
- lattice := 3770_wip
+ parameter[lattice] = 3770_wip
 beam, energy =   1.885
 
 call, file = BMAD_LAYOUT:layout_antisol_2006_02_23.bmad

@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/plot_page\%region/plot_region/g;
+    s/^( *)lattice *\:?= *(\S+)/\1parameter\[lattice\] = \2/i;
 
     print (F_OUT);
 

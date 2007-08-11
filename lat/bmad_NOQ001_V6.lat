@@ -1,6 +1,6 @@
 ! BMAD input file
  
-lattice := NOQ001_V6-
+parameter[lattice] = NOQ001_V6-
 call, file=BMAD_LAYOUT:bmad_CESR_2GEV_NO_B14_HALF_STRENGTH_END.layout
  
 ! cleo solenoid

@@ -79,7 +79,7 @@
 ! 34e: e+ Bx:39.97  e- Bx:39.29  e- Eta:1.69
 !bbi-
 
- lattice := 3686_2p2ma_20060814
+ parameter[lattice] = 3686_2p2ma_20060814
  beam, energy =  1.843
 
  call, file = BMAD_LAYOUT:layout_antisol_2006_02_23_19kg.bmad

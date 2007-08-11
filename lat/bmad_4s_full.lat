@@ -37,7 +37,7 @@
 ! Chrom x:0.03  y:-0.44    Tonality x:-0.11  y:0.05
 !-
  
-lattice := 4s_full
+parameter[lattice] = 4s_full
  
 call, file=BMAD_LAYOUT:cesr_iii_layout.bmad
  

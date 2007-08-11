@@ -1,6 +1,6 @@
 ! BMAD input file
 
-lattice := 1843mev_lrbbi_1wig_ot
+parameter[lattice] = 1843mev_lrbbi_1wig_ot
 
 call, file=BMAD_LAYOUT:cesr_iii_1wig_corr_layout.bmad
 

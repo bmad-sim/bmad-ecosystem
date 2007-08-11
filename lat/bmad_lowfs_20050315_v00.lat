@@ -31,7 +31,7 @@
 ! Chrom x:1.67  y:2.43    Tonality x:0.28  y:-0.49
 !-
 
- lattice := lowfs_20050315_v00
+ parameter[lattice] = lowfs_20050315_v00
  beam, energy =   1.885
 
  call, file=BMAD_LAYOUT:layout_c_12wig_2005_03_23.bmad

@@ -36,7 +36,7 @@
 ! Chrom x:-0.29  y:-0.56    Tonality x:-0.25  y:0.41
 !-
 
-lattice := J9A17A5S_15_v3
+parameter[lattice] = J9A17A5S_15_v3
 
 call, file=BMAD_LAYOUT:cesr_iii_layout.bmad
 

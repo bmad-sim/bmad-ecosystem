@@ -50,7 +50,7 @@
 ! Chrom x:-0.00  y:-0.51    Tonality x:0.17  y:-0.02
 !-
 
-lattice := 5620mev
+parameter[lattice] = 5620mev
  
 call, file=BMAD_LAYOUT:cesr_iii_layout.bmad
  

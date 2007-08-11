@@ -43,7 +43,7 @@
 ! Chrom x:0.36  y:0.03    Tonality x:-0.13  y:1.91
 !-
 
- lattice := 4140_JUMP
+ parameter[lattice] = 4140_JUMP
  beam, energy =   2.070
 
  call, file = BMAD_LAYOUT:layout_c_12wig_2005_06_17_19kg.bmad

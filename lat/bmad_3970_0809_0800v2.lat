@@ -43,7 +43,7 @@
 ! Chrom x:1.22  y:2.40    Tonality x:1.31  y:0.82
 !-
                                                                                 
- lattice := 3970_0809.0800V2
+ parameter[lattice] = 3970_0809.0800V2
  beam, energy =   1.985                                                         
                                                                                 
  call, file = BMAD_LAYOUT:layout_c_12wig_2005_06_17_19kg.bmad                   

@@ -30,7 +30,7 @@
 !-
 
 
-lattice := hep_20040622_v00.
+parameter[lattice] = hep_20040622_v00.
 ! beta (septum) target 25, low bv*
 beam, energy =   1.885
 

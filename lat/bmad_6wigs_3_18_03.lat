@@ -1,6 +1,6 @@
 ! BMAD input file
 
-lattice := 6wigs_3_18_03
+parameter[lattice] = 6wigs_3_18_03
 call, file=/cdat/cesr38/disk1/dlr/bmad_devel/layout/cesr_c1_layout.bmad
 !this is the layout as of 3/18/03	
 

@@ -1,6 +1,6 @@
 ! BMAD input file
 
-lattice := 6wig_lum_20030915_v1
+parameter[lattice] = 6wig_lum_20030915_v1
 !call, file=BMAD_LAYOUT:cesr_c1_layout.bmad
 call, file=BMAD_LAYOUT:layout_c_6wig_2003_07_08.bmad
 

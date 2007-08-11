@@ -35,7 +35,7 @@
 ! Chrom x:-0.61  y:-2.98    Tonality x:0.18  y:-0.27
 !-
 
- lattice := 4170_asol_2p5mA_20060210
+ parameter[lattice] = 4170_asol_2p5mA_20060210
  beam, energy =   2.085
 
  call, file = BMAD_LAYOUT:layout_antisol_2006_01_23_19kg.bmad

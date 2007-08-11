@@ -29,7 +29,7 @@
 ! Chrom x:99.00  y:99.00    Tonality x:0.00  y:0.00
 !-
 
- lattice := 19kg_test
+ parameter[lattice] = 19kg_test
  beam, energy =   1.885
 
  call, file=BMAD_LAYOUT:layout_q03w_shift_for_flm_19kg.bmad

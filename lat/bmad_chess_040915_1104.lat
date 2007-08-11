@@ -31,7 +31,7 @@
 ! Chrom x:1.82  y:1.66    Tonality x:-0.10  y:0.14
 !-
 
-lattice := chess_040915_1104
+parameter[lattice] = chess_040915_1104
 
  call, file=BMAD_LAYOUT:layout_q03w_shift_for_flm_conjecture.bmad
 

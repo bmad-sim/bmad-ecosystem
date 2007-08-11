@@ -29,7 +29,7 @@
 ! Chrom x:-1.61  y:1.92    Tonality x:-0.06  y:0.35
 !-
 
-lattice := hibetainj_nosol_v01
+parameter[lattice] = hibetainj_nosol_v01
 beam, energy =   1.885
 
 call, file=BMAD_LAYOUT:cesr_c_12wig_20040603_notilt.bmad

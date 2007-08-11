@@ -1,6 +1,6 @@
 ! BMAD input file
  
-lattice := DHRMOVE_V27-
+parameter[lattice] = DHRMOVE_V27-
 call, file=BMAD_LAYOUT:bmad_CESR_2GEV_DHR_MOVE_SEP_WIG.layout
 	
  

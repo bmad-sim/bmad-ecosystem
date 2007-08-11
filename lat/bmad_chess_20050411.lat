@@ -30,7 +30,7 @@
 !-                                                                              
                                                                                 
 !lattice := chess_040928_0800                                       
-lattice := chess_20050208 
+parameter[lattice] = chess_20050208 
                                                                                 
 ! call, file=BMAD_LAYOUT:layout_c_12wig_2005_03_23.bmad
  call, file=BMAD_LAYOUT:layout_c_12wig_2005_03_23_noscwigs.bmad

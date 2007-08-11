@@ -2,7 +2,7 @@
 ! 
 ! This lattice ended up with 150 nmrad, and 2.44 mA/b w/9x5
 
-lattice := 12wig_cl
+parameter[lattice] = 12wig_cl
 beam, energy =   1.885
 
 call, file=BMAD_LAYOUT:cesr_c_12wig_20040128.bmad

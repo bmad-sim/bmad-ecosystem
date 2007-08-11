@@ -42,7 +42,7 @@
 !-
 
 
- lattice := 10WIG_NO15S_V01
+ parameter[lattice] = 10WIG_NO15S_V01
  beam, energy =   1.885
 
  call, file=BMAD_LAYOUT:layout_c_12wig_2005_03_23.bmad

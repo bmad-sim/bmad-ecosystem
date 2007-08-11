@@ -37,7 +37,7 @@
 ! Chrom x:3.08  y:0.07    Tonality x:-0.41  y:0.26
 !-
 
-lattice := cd_zsq1_15t_3s_3
+parameter[lattice] = cd_zsq1_15t_3s_3
 
 !call, file=/cdat/cesr38/disk1/dlr/bmad_devel/single_wig/cesr_iii_layout.bmad
 !call, file=BMAD_LAYOUT:cesr_iii_1wig_corr_layout.bmad

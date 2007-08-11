@@ -1,6 +1,6 @@
 ! BMAD input file
 
-lattice := chess_20030714_v2
+parameter[lattice] = chess_20030714_v2
 
 !call, file=BMAD_LAYOUT:cesr_iii_layout.bmad
 !call, file=BMAD_LAYOUT:cesr_c1_chess.bmad

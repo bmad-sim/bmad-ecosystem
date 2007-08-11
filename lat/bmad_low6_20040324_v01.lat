@@ -44,7 +44,7 @@
 !-
 
 
-lattice := low6_20040324_v01
+parameter[lattice] = low6_20040324_v01
 beam, energy =   1.835
 
 call, file=BMAD_LAYOUT:layout_c_6wig_2003_07_08.bmad

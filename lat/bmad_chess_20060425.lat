@@ -40,7 +40,7 @@
 ! Chrom x:0.95  y:0.60    Tonality x:0.29  y:0.18
 !-
 
-lattice := chess_20060425
+parameter[lattice] = chess_20060425
 
  call, file=BMAD_LAYOUT:layout_antisol_2006_02_23_19kg.bmad
 

@@ -1,6 +1,6 @@
 ! BMAD input file
  
-lattice :=  L9A18A000-_MOVEREC
+parameter[lattice] = L9A18A000-_MOVEREC
  
 call, file=BMAD_LAYOUT:bmad_CESR_RECMOVE.layout
  

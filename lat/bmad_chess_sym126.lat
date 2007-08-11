@@ -1,6 +1,6 @@
 ! BMAD input file
 
-lattice := chess_SYM126
+parameter[lattice] = chess_SYM126
 
  call, file=BMAD_LAYOUT:layout_c_12wig_2004_07_21.bmad
 

@@ -3,7 +3,7 @@
 ! Emittance is 102 nm rad. B_param for 9x5: 2.7 mA/bunch
 
 
-lattice := 12wig_cl
+parameter[lattice] = 12wig_cl
 beam, energy =   1.885
 
 call, file=BMAD_LAYOUT:cesr_c_12wig_20040128.bmad

@@ -37,7 +37,7 @@
 ! Chrom x:0.94  y:0.70    Tonality x:0.23  y:-0.19
 !-
 
-lattice := chess
+parameter[lattice] = chess
 
  call, file=BMAD_LAYOUT:layout_c_12wig_2005_06_17.bmad
 

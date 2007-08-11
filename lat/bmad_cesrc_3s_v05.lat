@@ -1,6 +1,6 @@
 ! BMAD input file
  
-lattice := CESRC_3S-
+parameter[lattice] = CESRC_3S-
  
 call, file=BMAD_LAYOUT:bmad_CESRIII_8W.layout
  

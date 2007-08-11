@@ -38,7 +38,7 @@
 ! Chrom x:0.05  y:0.64    Tonality x:0.00  y:-0.00
 !-
 
- lattice := 3686_2p2ma_wigramp
+ parameter[lattice] = 3686_2p2ma_wigramp
  beam, energy =  1.843
 
  call, file = BMAD_LAYOUT:layout_antisol_2006_02_23_19kg.bmad

@@ -35,7 +35,7 @@
 ! Chrom x:999.00  y:999.00    Tonality x:0.00  y:-0.00
 !-
 
-lattice := cesr2gevdampingring
+parameter[lattice] = cesr2gevdampingring
 beam, energy =   2.
 
 call, file=BMAD_LAYOUT:layout_cesrtf_v4.bmad

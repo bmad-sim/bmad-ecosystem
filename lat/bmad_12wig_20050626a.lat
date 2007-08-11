@@ -43,7 +43,7 @@
 ! Chrom x:2.94  y:1.68    Tonality x:-0.05  y:0.38
 !-
 
- lattice := 12WIG_20050626A
+ parameter[lattice] = 12WIG_20050626A
  beam, energy =   1.885 
 
  call, file = BMAD_LAYOUT:layout_antisol_2006_02_23.bmad 

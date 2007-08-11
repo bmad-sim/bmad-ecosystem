@@ -2,7 +2,7 @@
 
 beam, energy =    0.300
  
-lattice := SYNCH-
+parameter[lattice] = SYNCH-
  
 call, file=BMAD_LAYOUT:bmad_SYNCH_2.layout 
 

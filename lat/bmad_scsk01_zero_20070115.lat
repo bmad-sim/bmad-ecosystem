@@ -44,7 +44,7 @@
 ! Chrom x:99.00  y:99.00    Tonality x:0.05  y:0.40
 !-
 
- lattice := SCSK0_ZERO_20070115
+ parameter[lattice] = SCSK0_ZERO_20070115
  beam, energy =   1.885
 
  call, file = BMAD_LAYOUT:layout_antisol_2006_02_23.bmad

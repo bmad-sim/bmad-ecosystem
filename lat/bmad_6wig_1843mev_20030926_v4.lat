@@ -34,7 +34,7 @@
 ! Chrom x:-0.30  y:0.67    Tonality x:2.29  y:-0.56
 !-
 
-lattice := 6wig_1843mev_20030926_v4
+parameter[lattice] = 6wig_1843mev_20030926_v4
 !call, file=BMAD_LAYOUT:cesr_c1_layout.bmad
 call, file=BMAD_LAYOUT:layout_c_6wig_2003_07_08.bmad
 !this is the layout as of 3/18/03	
