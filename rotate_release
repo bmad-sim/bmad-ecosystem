@@ -281,13 +281,15 @@ fi
 # E-Mail message composition machinery here.
 ###############################################
 if ( [ ${MAIL} -eq 1 ] && [ ${ROTATE_BMAD} -ne 1 ] ) then
-    hour=`date | cut --delimiter=' ' -f4 | cut -d: -f1`
-    if ( [ $hour -lt 12 ] ) then
+    ##hour=`date | cut --delimiter=' ' -f4 | cut -d: -f1`
+    hour=`date -R | cut --delimiter=' ' -f5 | cut -d: -f1`
+    if ( [ ${hour} -lt 12 ] ) then
         time_of_day="morning"
     else
         time_of_day="afternoon"
     fi
-
+    #echo "hour : ${hour}"
+    #echo "tod  : ${time_of_day}"
     echo "Mailing notification message to: ${TO_ADDRESS}."
 
   ################## Message Body ###################
