@@ -57,18 +57,21 @@ myprint_help2 () {
 ##########################
 #  Main script starts here
 ##########################
+# One hardcoded line here necessary for subsequent getting of config vars.
+UTIL_DIR=`/home/cesrulib/bin/util/getcfg Paths UTIL_DIR`
+
 arg_list=""
 REL_NAME=""
 quiet=0
 QUIET=0
 NOLOCK=0
 
-LIBS_DIR=`/home/cesrulib/bin/util/getcfg Paths LIBS_DIR`
+LIBS_DIR=`${UTIL_DIR}/getcfg Paths LIBS_DIR`
 LIBS_DIR="${LIBS_DIR}/"
 # Path on VMS cluster where release .zip archives are kept
-VMS_ZIPDIR=`/home/cesrulib/bin/util/getcfg Paths VMS_ZIPDIR`
+VMS_ZIPDIR=`${UTIL_DIR}/getcfg Paths VMS_ZIPDIR`
 
-PLATFORMS=`/home/cesrulib/bin/util/getcfg Platforms`
+PLATFORMS=`${UTIL_DIR}/getcfg Platforms`
 
 if ( [ $# = 0 ] ) then
     myprint_help
@@ -234,7 +237,7 @@ rm -f /home/cesrulib/cesr_libs/distribution/log/${REL_NAME}.log
 ##################################################################
 ftp cesr2f <<EOF
     binary
-    cd CESR2f'$'DKB200:[CESR_LIBS.ZIP]
+    cd $VMS_ZIPDIR
     delete ${REL_NAME}.zip
 EOF
 ftp_success=${?}
