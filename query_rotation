@@ -225,8 +225,7 @@ def check_activity():
                 print line.strip()
     for change in changes:
         if change.find("trunk/src/") != -1:
-            retval = 1 # OK to rotate
-            return retval
+            return 1   # OK to rotate
         else:
             retval = 0 # VETO rotation
     return retval
