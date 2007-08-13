@@ -282,17 +282,6 @@ class testobject:
 # Main starts here
 #######################################
 
-#if platform == "Linux_i686_intel":
-#  flag = "LI"
-#elif platform == "Linux_i686_lahey":
-#  flag = "LL"
-#elif platform == "OSF1_alpha_hp":
-#  flag = "OH"
-#elif platform == "VMS_alpha_hp":
-#  flag = "VH"
-#elif platform == "CYGWIN_i686_intel":
-#  flag = "CI"
-
 flag = string.upper( platform[0] + platform.split("_")[2][0] )
 
 testdir = "/home/cesrulib/temp/test_suite_area-" + release + "_" +flag
