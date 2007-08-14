@@ -57,8 +57,8 @@ module sr_struct
 
 ! a wall is just a collection of points and segments
 
-  type wall_struct           ! either an inside or outside wall
-    integer side             ! inside$ or outside$ 
+  type wall_struct           ! either positive_x or negative_x side wall
+    integer side             ! positive_x$ or negative_x$ 
     type (wall_pt_struct), allocatable :: pt(:)
     type (wall_seg_struct), allocatable :: seg(:)
     type (alley_struct) :: alley(100)
@@ -138,8 +138,8 @@ module sr_struct
     logical overlay
   end type
 
-  character*8 wall_name(-1:1) / 'Inside', '???',  'Outside' /
-  integer inside$ / -1 /, outside$ / 1 /
+  character(20) wall_name(-1:1) / 'Positive_x_side', '???',  'Negative_x_side' /
+  integer negative_x$ / -1 /, positive_x$ / 1 /
 
   integer possible_alley$ / -1 /
   integer no_alley$ / 0 /, inner_wall$ / 1 /, open_end$ / 2 /

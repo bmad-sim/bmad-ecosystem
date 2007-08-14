@@ -3,7 +3,7 @@
 !-------------------------------------------------------------------------
 !+
 ! subroutine calculate_sr_power (lat, orb, direction, power, &
-!                                  inside, outside, gen)
+!                                  negative_x_wall, positive_x_wall, gen)
 !
 ! subroutine to calculate the synch radiation power
 !   hitting wall segments from all elements in the lat
@@ -17,20 +17,20 @@
 !                             source of ray
 !   direction -- integer: +1 for in direction of s
 !                         -1 for against s
-!   inside  -- wall_struct: inside wall with outline ready
-!   outside -- wall_struct: outside wall with outline ready
+!   negative_x_wall -- wall_struct: inside wall with outline ready
+!   positive_x_wall -- wall_struct: outside wall with outline ready
 !   gen    -- synrad_param_struct: Contains lat name,
 !                     vert emittance, and beam current
 !
 ! Output:
 !   power(:) -- ele_power_struct: power radiated from a lat ele
-!   inside   -- wall_struct: inside wall with power information
-!   outside  -- wall_struct: outside wall with power information
+!   negative_x_wall   -- wall_struct: inside wall with power information
+!   positive_x_wall -- wall_struct: outside wall with power information
 !                         
 !-
 
 subroutine calculate_sr_power (lat, orb, direction, power, &
-                                                       inside, outside, gen)
+                                                       negative_x_wall, positive_x_wall, gen)
 
   use sr_struct
   use sr_interface
@@ -39,7 +39,7 @@ subroutine calculate_sr_power (lat, orb, direction, power, &
 
   type (lat_struct) lat
   type (coord_struct) orb(0:)
-  type (wall_struct) inside, outside
+  type (wall_struct) negative_x_wall, positive_x_wall
   type (synrad_param_struct) gen
   type (ele_power_struct) power(:)
 
@@ -55,7 +55,7 @@ subroutine calculate_sr_power (lat, orb, direction, power, &
   do ie = 1, lat%n_ele_track
 !    print *, lat%ele(ie)%name,',',lat%ele(ie)%type, &
 !         ' ele ',ie,' of ',lat%n_ele_track
-    call ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
+    call ele_sr_power (lat, ie, orb, direction, power, negative_x_wall, positive_x_wall, gen)
   enddo
 
 end subroutine

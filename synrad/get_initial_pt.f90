@@ -12,7 +12,7 @@
 !
 ! Input:
 !   ray    -- ray_struct:
-!   wall   -- wall_struct: inside wall with outline ready
+!   wall   -- wall_struct: negative_x_wall side with outline ready
 !   ix_wall -- integer:
 !   lat   -- lat_struct with twiss propagated and mat6s made
 !

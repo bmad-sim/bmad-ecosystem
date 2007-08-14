@@ -33,13 +33,13 @@ module sr_interface
 
   interface
     subroutine calculate_sr_power (lat, orb, direction, power, &
-                                                     inside, outside, gen)
+                                                     negative_x_wall, positive_x_wall, gen)
       use sr_struct
       implicit none
       type (lat_struct), target :: lat
       type (coord_struct) orb(0:)
-      type (wall_struct) inside
-      type (wall_struct) outside
+      type (wall_struct) negative_x_wall
+      type (wall_struct) positive_x_wall
       type (synrad_param_struct) gen
       type (ele_power_struct) power(:)
       integer direction
@@ -48,13 +48,13 @@ module sr_interface
 
   interface
     subroutine ele_sr_power (lat, ie, orb, direction, power, &
-                                                     inside, outside, gen)
+                                                     negative_x_wall, positive_x_wall, gen)
       use sr_struct
       implicit none
       type (lat_struct), target :: lat
       type (coord_struct) orb(0:)
-      type (wall_struct) inside
-      type (wall_struct) outside
+      type (wall_struct) negative_x_wall
+      type (wall_struct) positive_x_wall
       type (synrad_param_struct) gen
       type (ele_power_struct) power(:)
       integer direction, ie
@@ -93,14 +93,14 @@ module sr_interface
   end interface
 
   interface
-    subroutine track_ray_to_wall (ray, lat, inside, outside, &
+    subroutine track_ray_to_wall (ray, lat, negative_x_wall, positive_x_wall, &
                                                hit_flag, track_max)
       use sr_struct
       implicit none
       type (lat_struct), target :: lat
       type (ray_struct), target :: ray
-      type (wall_struct) inside
-      type (wall_struct) outside
+      type (wall_struct) negative_x_wall
+      type (wall_struct) positive_x_wall
       logical, optional :: hit_flag
       real(rp), optional :: track_max
     end subroutine
@@ -175,23 +175,23 @@ module sr_interface
   end interface
 
   interface
-    subroutine read_outline (outside, inside, ring, type_warning)
+    subroutine read_outline (positive_x_wall, negative_x_wall, ring, type_warning)
       use sr_struct
       implicit none
-      type (wall_struct) inside
-      type (wall_struct) outside
+      type (wall_struct) negative_x_wall
+      type (wall_struct) positive_x_wall
       type (lat_struct) ring
       logical type_warning
     end subroutine
   end interface
 
   interface
-    subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
+    subroutine seg_power_calc (rays, i_ray, negative_x_wall, positive_x_wall, lat, gen, power)
       use sr_struct
       implicit none
       type (ray_struct) :: rays(:)
-      type (wall_struct)          inside
-      type (wall_struct)          outside
+      type (wall_struct)          negative_x_wall
+      type (wall_struct)          positive_x_wall
       type (synrad_param_struct) gen
       type (lat_struct)          lat
       type (ele_power_struct)     power

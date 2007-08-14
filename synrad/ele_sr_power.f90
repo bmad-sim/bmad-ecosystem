@@ -3,7 +3,7 @@
 !-------------------------------------------------------------------------
 !+
 ! subroutine ele_sr_power (lat, ie, orb, direction, 
-!                             power, inside, outside, gen)
+!                             power, negative_x_wall, positive_x_wall, gen)
 !
 ! subroutine to calculate the synch radiation power from
 !      one element of the lat
@@ -18,18 +18,19 @@
 !                             source of ray
 !   direction -- integer: +1 for in direction of s
 !                         -1 for against s
-!   inside  -- wall_struct: inside wall with outline ready
-!   outside -- wall_struct: outside wall with outline ready
+!   negative_x_wall -- wall_struct: negative-x wall side with outline ready
+!   positive_x_wall -- wall_struct: positive-x wall side with outline ready
 !   gen    -- synrad_param_struct: Contains lat name,
 !                     vert emittance, and beam current
 !
 ! Output:
 !   power(:) -- ele_power_struct: power radiated from a lat ele
-!   inside   -- wall_struct: inside wall with power information
-!   outside  -- wall_struct: outside wall with power information
+!   negative_x_wall -- wall_struct: negative_x wall side with power information
+!   positive_x_wall -- wall_struct: positive_x wall side with power information
 !-
 
-subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
+subroutine ele_sr_power (lat, ie, orb, direction, power, &
+                                          negative_x_wall, positive_x_wall, gen)
 
   use sr_struct
   use sr_interface
@@ -39,7 +40,7 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
   type (lat_struct), target :: lat
   type (coord_struct) orb(0:)
   type (ele_struct), pointer :: ele
-  type (wall_struct) inside, outside
+  type (wall_struct) negative_x_wall, positive_x_wall
   type (ray_struct), allocatable, save :: rays(:)
   type (ray_struct) ray, ray_temp
   type (synrad_param_struct) gen
@@ -69,8 +70,8 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
 ! radiation comming from the ends of the sections to see where they hit
 ! the wall
 
-! If different rays hit both inside and outside then we need to find the ray
-! that just misses the inside wall and break up the fan accordingly into
+! If different rays hit both negative_x_wall and positive_x_wall then we need to find the ray
+! that just misses the negative_x_wall side and break up the fan accordingly into
 ! two pieces
 
 !!      if (abs(ele%value(tilt$)) > 20*twopi/360) cycle   ! ignore skew quads
@@ -111,7 +112,7 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
     ! start a ray from each slice location
     call init_ray (rays(i_ray), lat, ie, l_off, orb, direction)
     ! track the ray until it hits something
-    call track_ray_to_wall (rays(i_ray), lat, inside, outside)
+    call track_ray_to_wall (rays(i_ray), lat, negative_x_wall, positive_x_wall)
 
 
     ! check if this ray hit a different wall than the previous ray
@@ -126,7 +127,7 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
         do
           l_try = (l0 + l1) / 2
           call init_ray (ray, lat, ie, l_try, orb, direction)
-          call track_ray_to_wall (ray, lat, inside, outside)
+          call track_ray_to_wall (ray, lat, negative_x_wall, positive_x_wall)
           if (ray%wall%side == rays(i_ray)%wall%side) then
             rays(i_ray) = ray
             l0 = l_try
@@ -141,7 +142,7 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
           if ((l1 - l0) .le. 5e-4) then
             if (abs(rays(i_ray)%start%vec(5) - &
                  rays(i_ray-1)%start%vec(5)) < 5e-4) i_ray = i_ray - 1
-            call seg_power_calc (rays, i_ray, inside, outside, &
+            call seg_power_calc (rays, i_ray, negative_x_wall, positive_x_wall, &
                  lat, gen, power(ie))
             rays(1) = ray_temp
             i_ray = 1
@@ -155,7 +156,7 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, inside, outside, gen)
 ! now compute the sr power hitting the wall using the tracking results
 ! and interpolating inbetween.
 
-  call seg_power_calc (rays, i_ray, inside, outside, lat, gen, &
+  call seg_power_calc (rays, i_ray, negative_x_wall, positive_x_wall, lat, gen, &
        power(ie))
 
 end subroutine ele_sr_power

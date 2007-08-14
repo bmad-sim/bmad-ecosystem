@@ -22,7 +22,7 @@ subroutine outline_concat (outline1, outline2, outline3)
   outline3%zero_is_center = outline1%zero_is_center .or. &
                                             outline22%zero_is_center
 
-! inside
+! negative_x_wall
 
   n1 = outline1%n_in
   n2 = outline22%n_in
@@ -44,7 +44,7 @@ subroutine outline_concat (outline1, outline2, outline3)
     outline3%n_in = n3 - 1
   endif
 
-! outside
+! positive_x_wall
 
   n1 = outline1%n_out
   n2 = outline22%n_out

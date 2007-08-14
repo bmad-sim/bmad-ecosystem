@@ -1,5 +1,5 @@
 !+
-! subroutine seg_power_calc (rays, i_ray, inside, outside, 
+! subroutine seg_power_calc (rays, i_ray, negative_x_wall, positive_x_wall, 
 !                             lat, gen, power)
 !
 ! subroutine to calculate the synch radiation power for
@@ -12,18 +12,18 @@
 !   rays(*) -- ray_struct: array of rays from one lat element
 !   i_ray   -- integer: index of highest ray used
 !   lat    -- lat_struct: with twiss propagated and mat6s made
-!   inside  -- wall_struct: inside wall with outline ready
-!   outside -- wall_struct: outside wall with outline ready
+!   negative_x_wall -- wall_struct: inside wall with outline ready
+!   positive_x_wall -- wall_struct: outside wall with outline ready
 !   gen    -- synrad_param_struct: Contains lat name,
 !                     vert emittance, and beam current
 !
 ! Output:
 !   power(*)  -- ele_power_struct: power radiated from a lat ele
-!   inside  -- wall_struct: inside wall with power information
-!   outside -- wall_struct: outside wall with power information
+!   negative_x_wall -- wall_struct: inside wall with power information
+!   positive_x_wall -- wall_struct: outside wall with power information
 !-
 
-subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
+subroutine seg_power_calc (rays, i_ray, negative_x_wall, positive_x_wall, lat, gen, power)
 
   use sr_struct
   use sr_interface
@@ -31,7 +31,7 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
   implicit none
 
   type (ray_struct) :: rays(:)
-  type (wall_struct) inside, outside
+  type (wall_struct) negative_x_wall, positive_x_wall
   type (wall_struct), pointer :: wall
   type (ray_struct) :: ray
   type (synrad_param_struct) gen
@@ -75,9 +75,6 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
                    (rays(i)%g_bend**2 + rays(i-1)%g_bend**2) / 2
   enddo
  
-! Let user determine cutoff from all data instead of 1 W cutoff:
-!  if (power%radiated < 1) return
-
 ! calculate the power factors for each ray 
 
   wall => rays(1)%wall
@@ -180,8 +177,8 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
 ! Track backwards to see if there is a shadow.
 ! If so cycle before we calculate the power
 
-      if (wall%side == outside$ .and. theta_rel*rays(i)%direction < 0) cycle
-      if (wall%side == inside$ .and. theta_rel*rays(i)%direction > 0) cycle
+      if (wall%side == positive_x$ .and. theta_rel*rays(i)%direction < 0) cycle
+      if (wall%side == negative_x$ .and. theta_rel*rays(i)%direction > 0) cycle
 !      if (rr < 0 .or. rr > 1) cycle  ! not in fan
 
       type0 = wall%pt(ip-1)%type
@@ -210,7 +207,7 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
                              rr*rays(i)%start%vec(5) - wall%seg(is)%s_mid)
       ! We assume that the travel length cannot be greater then half the circumference.
       if (abs(track_len) > lat%param%total_length / 2) track_len = lat%param%total_length - track_len 
-      call track_ray_to_wall (ray, lat, inside, outside, hit_flag, track_len)
+      call track_ray_to_wall (ray, lat, negative_x_wall, positive_x_wall, hit_flag, track_len)
       ! Do not count if shadowed. 
       ! Because of inaccuracies test if hit is on opposite side. 
       ! If so then this is not a real shaddow

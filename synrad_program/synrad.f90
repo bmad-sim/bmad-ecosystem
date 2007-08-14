@@ -7,7 +7,7 @@ program synrad
 
   type (lat_struct) :: lat
   type (coord_struct), allocatable :: orb(:)
-  type (wall_struct) :: inside, outside
+  type (wall_struct) :: negative_x_wall, positive_x_wall
   type (synrad_param_struct) :: sr_param
 
   type (ele_power_struct), allocatable :: fwd_power(:), back_power(:)
@@ -66,36 +66,36 @@ program synrad
 
   end_s = lat%ele(lat%n_ele_track)%s
   n = 2 * end_s / seg_len + 2
-  allocate (outside%seg(n), inside%seg(n))
+  allocate (positive_x_wall%seg(n), negative_x_wall%seg(n))
 
-  inside%side  = inside$
-  outside%side = outside$
+  negative_x_wall%side = negative_x$
+  positive_x_wall%side = positive_x$
 
   if (wall_file == 'NONE') then
 
-    allocate (outside%pt(0:1), inside%pt(0:1))
+    allocate (positive_x_wall%pt(0:1), negative_x_wall%pt(0:1))
 
-    outside%pt(0)%s = 0.0
-    outside%pt(0)%ix_pt = 0
-    outside%pt(1)%s = end_s
-    outside%pt(1)%ix_pt = 1
+    positive_x_wall%pt(0)%s = 0.0
+    positive_x_wall%pt(0)%ix_pt = 0
+    positive_x_wall%pt(1)%s = end_s
+    positive_x_wall%pt(1)%ix_pt = 1
 
-    outside%n_pt_tot = 1
-    outside%pt(:)%type = no_alley$
-    outside%pt(:)%name = 'OUTSIDE'
-    outside%pt(:)%x = wall_offset
-    outside%pt(:)%phantom = .false.
+    positive_x_wall%n_pt_tot = 1
+    positive_x_wall%pt(:)%type = no_alley$
+    positive_x_wall%pt(:)%name = 'POSITIVE_X_WALL'
+    positive_x_wall%pt(:)%x = wall_offset
+    positive_x_wall%pt(:)%phantom = .false.
 
-    inside%pt(0)%s = 0.0
-    inside%pt(0)%ix_pt = 0
-    inside%pt(1)%s = end_s
-    inside%pt(1)%ix_pt = 1
+    negative_x_wall%pt(0)%s = 0.0
+    negative_x_wall%pt(0)%ix_pt = 0
+    negative_x_wall%pt(1)%s = end_s
+    negative_x_wall%pt(1)%ix_pt = 1
 
-    inside%n_pt_tot = 1
-    inside%pt(:)%type = no_alley$
-    inside%pt(:)%name = 'INSIDE'
-    inside%pt(:)%x = -wall_offset
-    inside%pt(:)%phantom = .false.
+    negative_x_wall%n_pt_tot = 1
+    negative_x_wall%pt(:)%type = no_alley$
+    negative_x_wall%pt(:)%name = 'NEGATIVE_X_WALL'
+    negative_x_wall%pt(:)%x = -wall_offset
+    negative_x_wall%pt(:)%phantom = .false.
 
   else
     open (1, file = wall_file, status = 'old')
@@ -119,7 +119,7 @@ program synrad
     ! Allocate arrays read in data
 
     n_wall = i
-    allocate (outside%pt(0:n_wall), inside%pt(0:n_wall))
+    allocate (positive_x_wall%pt(0:n_wall), negative_x_wall%pt(0:n_wall))
     rewind (1)
     call skip_header (1, err_flag)
     i = -1
@@ -129,46 +129,46 @@ program synrad
       if (line == '') cycle
       i = i + 1
       read (line, *) s, x_in, x_out
-      outside%pt(i)%s = s
-      outside%pt(i)%x = x_out
-      outside%pt(i)%name = 'OUTSIDE'
-      outside%pt(i)%type = no_alley$
-      outside%pt(i)%phantom = .false.
-      outside%pt(i)%ix_pt = i
+      positive_x_wall%pt(i)%s = s
+      positive_x_wall%pt(i)%x = x_out
+      positive_x_wall%pt(i)%name = 'POSITIVE_X_WALL'
+      positive_x_wall%pt(i)%type = no_alley$
+      positive_x_wall%pt(i)%phantom = .false.
+      positive_x_wall%pt(i)%ix_pt = i
 
-      inside%pt(i)%s = s
-      inside%pt(i)%x = x_in
-      inside%pt(i)%name = 'INSIDE'
-      inside%pt(i)%type = no_alley$
-      inside%pt(i)%phantom = .false.
-      inside%pt(i)%ix_pt = i
+      negative_x_wall%pt(i)%s = s
+      negative_x_wall%pt(i)%x = x_in
+      negative_x_wall%pt(i)%name = 'NEGATIVE_X_WALL'
+      negative_x_wall%pt(i)%type = no_alley$
+      negative_x_wall%pt(i)%phantom = .false.
+      negative_x_wall%pt(i)%ix_pt = i
     enddo
     close (1)
 
-    outside%n_pt_tot = i
-    inside%n_pt_tot = i
+    positive_x_wall%n_pt_tot = i
+    negative_x_wall%n_pt_tot = i
 
-    inside%pt(i)%s  = lat%ele(lat%n_ele_track)%s
-    outside%pt(i)%s = lat%ele(lat%n_ele_track)%s
+    negative_x_wall%pt(i)%s  = lat%ele(lat%n_ele_track)%s
+    positive_x_wall%pt(i)%s = lat%ele(lat%n_ele_track)%s
  
   endif
 
-  do i = 0, inside%n_pt_tot
+  do i = 0, negative_x_wall%n_pt_tot
 
   enddo
 
 !
 
-  call delete_overlapping_wall_points(outside)
-  call delete_overlapping_wall_points(inside)
+  call delete_overlapping_wall_points(positive_x_wall)
+  call delete_overlapping_wall_points(negative_x_wall)
 
-  call break_wall_into_segments(inside, seg_len)
-  call break_wall_into_segments(outside, seg_len)
+  call break_wall_into_segments(negative_x_wall, seg_len)
+  call break_wall_into_segments(positive_x_wall, seg_len)
 
 ! calculate power densities
 
-  call init_wall(outside)
-  call init_wall(inside)
+  call init_wall(positive_x_wall)
+  call init_wall(negative_x_wall)
 
 ! Synch calculation
 
@@ -185,8 +185,8 @@ program synrad
 
 ! write out results
 
-  call write_power_results(outside, lat, sr_param)
-  call write_power_results(inside, lat, sr_param)
+  call write_power_results(positive_x_wall, lat, sr_param)
+  call write_power_results(negative_x_wall, lat, sr_param)
 
   open (unit = 1, file = 'element_power.dat', carriagecontrol = 'list')
 
@@ -251,7 +251,7 @@ subroutine synch_calc (direction, beam_type, power)
   call twiss_and_track (lat, orb)
 
   call calculate_sr_power(lat, orb, direction, power, &
-                                inside, outside, sr_param)
+                                negative_x_wall, positive_x_wall, sr_param)
 
 end subroutine
 
