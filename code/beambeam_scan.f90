@@ -41,8 +41,6 @@
 !........................................................................
 !
 #include "CESR_platform.h"
-#if defined(CESR_UNIX) || defined(CESR_VMS)
-#else
 
 subroutine beambeam_scan(ring, scan_params, phi_x, phi_y) 
   
@@ -55,9 +53,11 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   use beambeam_interface
   
   implicit none
-  
+
+#if defined(CESR_LINUX) || defined(CESR_WINCVF)
 #include "mpif.h"  
-  
+#endif
+
   type (lat_struct) ring
   type (lat_struct), save :: ring_in, ring_out
   type (coord_struct), allocatable, save ::  start_coord(:), end_coord(:)
@@ -103,7 +103,9 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   integer size, rank, ierr, mpi_type, request, tempreq
   integer idnum,num_rpt
   integer sib_i, sib_j, d_unit, l 
+#if defined(CESR_LINUX) || defined(CESR_WINCVF)
   integer status(MPI_STATUS_SIZE)
+#endif
   integer, parameter :: go = 5298
   logical, dimension(2) :: transmit  !changed to a two demensianal array to simplify update of strong beam
                                      !transmit(1) acts like the original transmit, transmit(2) says whether
@@ -462,10 +464,10 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   
 !MPI requires that mpi types be given in send and receive commands
 !but since the size of the reals we use varies, we need to tell it which MPI to pick
+#if defined(CESR_LINUX) || defined(CESR_WINCVF)
   if(rp.eq.4) mpi_type = MPI_REAL
   if(rp.eq.8) mpi_type = MPI_DOUBLE_PRECISION
   
-
   if(scan_params%parallel)then
   if(rank.eq.0) then
 
@@ -697,6 +699,8 @@ else
 
   return
 
+#endif
+
 else !not parallel
 
    do j=1,scan_params%n_turn
@@ -871,20 +875,4 @@ end subroutine lum_tracker
 !
 !    return
 !    end
-
-
-
-
-#endif
-
-
-END
-
-
-
-
-
-
-
-
 

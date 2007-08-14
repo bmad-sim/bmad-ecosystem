@@ -35,8 +35,6 @@
 !........................................................................
 !
 #include "CESR_platform.h"
-#if defined(CESR_UNIX) || defined(CESR_VMS)
-#else
 
 program beambeam_luminosity
 
@@ -50,7 +48,9 @@ program beambeam_luminosity
   implicit none
 
 !SIBREN
+#if defined(CESR_LINUX) || defined(CESR_WINCVF)
 #include "mpif.h"
+#endif
 
   type (lat_struct) ring, ring_ok, ring_in
   type (coord_struct), allocatable :: orb(:)
@@ -88,7 +88,10 @@ program beambeam_luminosity
   character*120 go
 
 !SIBREN
-  integer ierr,rank,size,status(MPI_STATUS_SIZE)
+#if defined(CESR_LINUX) || defined(CESR_WINCVF)
+  integer status(MPI_STATUS_SIZE)
+#endif
+  integer ierr,rank,size
   integer sib_i, lun, damping
 
 !ANDREW
@@ -207,6 +210,7 @@ size=2
   scan_params%damping    =    damping
 
 !SIBREN
+#if defined(CESR_LINUX) || defined(CESR_WINCVF)
 if(scan_params%parallel)then
    call MPI_INIT(ierr)
    call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
@@ -217,7 +221,13 @@ if(scan_params%parallel)then
 else
 print *,"Using non-parallel code"
 end if
+#else
 
+if(scan_params%parallel)then
+   print *,"Parallel operation requested on a platform that does not support it."
+   print *,"Using non-parallel code."
+end if
+#endif
 
 ! init lattice
   if(lat_file(1:8) == 'digested')then
@@ -256,17 +266,21 @@ end if
         
 
      end if
+#if defined (CESR_LINUX) || defined(CESR_WINCVF)
      if(scan_params%parallel)then
         call MPI_BCAST(line,120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
      end if
+#endif
      last_line = line
      
      call str_upcase(line,line)
      if(line(1:1) .eq. 'G')exit
      if(line(1:2) == 'EX' .or. line(1:2) == 'QU')then
+#if defined (CESR_LINUX) || defined(CESR_WINCVF)
         if(scan_params%parallel)then
            call MPI_FINALIZE(ierr)
         endif
+#endif
         stop
      endif
      
@@ -386,23 +400,10 @@ end if
        endif
     endif
     deallocate(orb)
+#if defined (CESR_LINUX) || defined(CESR_WINCVF)
     if(scan_params%parallel)then
        call MPI_FINALIZE(ierr)
     end if
+#endif
     
   end program beambeam_luminosity
-
-
-
-#endif
-
-
-END
-
-
-
-
-
-
-
-
