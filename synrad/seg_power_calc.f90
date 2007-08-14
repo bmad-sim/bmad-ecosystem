@@ -54,7 +54,6 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
   integer temp_size
 
 ! calculate power radiated
-! ignore anything that radiates less than 1 Watt
 
 
   ! get energy from source element
@@ -76,7 +75,8 @@ subroutine seg_power_calc (rays, i_ray, inside, outside, lat, gen, power)
                    (rays(i)%g_bend**2 + rays(i-1)%g_bend**2) / 2
   enddo
  
-  if (power%radiated < 1) return
+! Let user determine cutoff from all data instead of 1 W cutoff:
+!  if (power%radiated < 1) return
 
 ! calculate the power factors for each ray 
 
