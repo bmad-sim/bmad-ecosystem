@@ -261,7 +261,7 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb, ph
      t_unit=lunget()
      call file_suffixer (scan_params%file_name, turns_file, '.turns', .true.)
      open(unit=t_unit, file= turns_file, status='unknown',access='append')
-     write(t_unit,'(2f10.5,2x,2f10.5,3e12.4,2x,3e12.4,2x,i6,2x,e12.4,2x,i5,2x,e12.4,2x,i5)')phi_x/twopi-10, phi_y/twopi-9, &
+     write(t_unit,'(2f10.5,2x,2f10.5,3e12.4,2x,3e12.4,2x,i6,2x,e12.4,2x,i5,2x,e12.4,2x,i5)')phi_x/twopi-int(phi_x/twopi), phi_y/twopi-int(phi_y/twopi), &
           ring%a%tune/twopi, ring%b%tune/twopi, &
           ring%ele(1)%value(sig_x$), &
           ring%ele(1)%value(sig_y$), ring%ele(1)%value(sig_z$), &
