@@ -167,9 +167,11 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   call twiss_propagate_all(ring)  
   rank=0
 
+#if defined(CESR_LINUX) || defined(CESR_WINCVF)
   if(scan_params%parallel)then
      call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
   end if
+#endif
 
 !only rank 0 needs to talk to the outside world
   if(rank.eq.0) then
@@ -699,8 +701,6 @@ else
 
   return
 
-#endif
-
 else !not parallel
 
    do j=1,scan_params%n_turn
@@ -717,6 +717,8 @@ else !not parallel
 
   return
 end if
+
+#endif
 
 end subroutine beambeam_scan
 
