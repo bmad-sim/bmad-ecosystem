@@ -41,7 +41,7 @@ subroutine write_power_results (wall, lat, gen_params)
 
     call convert_blanks_to_underscore (wall%pt(seg%ix_pt)%name, seg_name)
 
-    fmt = '(i6,1x,a10,f8.3,f8.3,e12.2,e12.4,e12.4,e12.4)'
+    fmt = '(i6,1x,a10,f10.3,e11.3,e11.3,e12.4,e12.4,e12.4)'
     write (1, fmt) &
               i, seg_name, seg%s, seg%x, &
               ep%power_per_len, &

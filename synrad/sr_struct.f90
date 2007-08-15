@@ -100,6 +100,7 @@ module sr_struct
     character(100) lat_file
     real(rp) epsilon_y     ! vertical emit
     real(rp) i_beam        ! beam current
+    integer n_slice        ! # of slice per element or wiggler pole
   end type
 
   type outline_pt_struct

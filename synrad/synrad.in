@@ -2,6 +2,7 @@
   sr_param%lat_file = "lat.bmad"   ! Input lattice.
   sr_param%i_beam = 0.1            ! Beam current.
   sr_param%epsilon_y = 10e-12      ! Vertical emittance.
+  sr_param%n_slice = 20            ! # of slices per element or wiggler pole
   seg_len = 0.1                    ! Segment length for calculation.
   beam_direction = 0               ! -1 = track backwards only, 
                                    !  0 = track both directions, 1 = forward.

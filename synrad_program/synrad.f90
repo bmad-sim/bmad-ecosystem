@@ -45,8 +45,10 @@ program synrad
   wall_offset = 0.045
   sr_param%i_beam = 0.1
   sr_param%epsilon_y = 10e-12
+  sr_param%n_slice = 20
   forward_beam = "POSITRON"
   backward_beam = "ELECTRON"
+  
 
 ! Read file
 
