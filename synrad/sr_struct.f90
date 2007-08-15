@@ -12,8 +12,8 @@ module sr_struct
 ! call a phantom.
 
   type wall_pt_struct   ! struct for input points
-    character(16) name   ! name of element (sliding_joint, etc.)
-    real(rp) x, s           ! position of wall point
+    character(16) name  ! name of element (sliding_joint, etc.)
+    real(rp) x, s       ! position of wall point
     integer n_seg       ! how many segments it will be broken up into
     integer ix_seg      ! index to seg(:) array. From ix_seg+1 to ix_seg+n_seg
     integer type        ! no_alley$, outer_wall$, etc.
@@ -36,9 +36,9 @@ module sr_struct
     real(rp) power_per_len       ! power density (Watts / m)
     real(rp) power_per_area      ! power density (Watts / m^2)
     real(rp) photons_per_sec     ! flux hitting segment in photons per sec
-    integer ix_ele_source    ! element index for the largest source
+    integer ix_ele_source        ! element index for the largest source
     real(rp) s_source            ! s position of the largest source
-    integer n_source         ! number of source points
+    integer n_source             ! number of source points
     type (source_struct), pointer :: rays(:)
   end type
 
@@ -73,14 +73,14 @@ module sr_struct
 ! to the wall
 
   type ray_struct       ! struct for a light ray
-    integer direction   ! direction of travel, +1 = forward direction
-    integer ix_ele      ! index of element we are now tracking through
+    integer direction       ! direction of travel, +1 = forward direction
+    integer ix_ele          ! index of element we are now tracking through
     integer alley_status
     real(rp) track_len      ! length of the track from the start
     type (coord_struct) start, old, now  ! coords
-    logical crossed_end  ! ray crossed the lat end?
-    integer ix_source   ! element index at source of ray
-    integer ix_wall_pt  ! index of wall point where hit
+    logical crossed_end     ! ray crossed the lat end?
+    integer ix_source       ! element index at source of ray
+    integer ix_wall_pt      ! index of wall point where hit
     real(rp) p1_factor      ! factor for computing the power/length
     real(rp) p2_factor      ! factor for computing the power/area
     real(rp) r_wall         !

@@ -41,7 +41,7 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
   type (coord_struct) orb(0:)
   type (ele_struct), pointer :: ele
   type (wall_struct) negative_x_wall, positive_x_wall
-  type (ray_struct), allocatable, save :: rays(:)
+  type (ray_struct), allocatable, save :: fan(:)
   type (ray_struct) ray, ray_temp
   type (synrad_param_struct) gen
   type (ele_power_struct) power(:)
@@ -66,15 +66,14 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
   if (ele%is_on == .false.) return
 
 
-! partition the quad/bend/wiggler into sections and track the synch
-! radiation comming from the ends of the sections to see where they hit
-! the wall
+! Partition the quad/bend/wiggler into slices and track the synch
+! radiation comming from each slice to see where it hits the wall.
+! this is called a "ray".
 
-! If different rays hit both negative_x_wall and positive_x_wall then we need to find the ray
-! that just misses the negative_x_wall side and break up the fan accordingly into
-! two pieces
-
-!!      if (abs(ele%value(tilt$)) > 20*twopi/360) cycle   ! ignore skew quads
+! seg_power_calc takes a set of rays (called a "fan") from a set of consecutive slices.
+! seg_power_calc demands that all the rays of a fan are all hitting the same wall.
+! Thus, if one ray hits one wall and the ray from the next ray hits the other wall, 
+! then we need to divide the slace to find the "transition" ray.
 
   i_ray = 0
   n_slice = gen%n_slice 
@@ -95,10 +94,10 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
     endif      
   endif
 
-  if (.not. allocated (rays)) allocate(rays(n_slice+1))
-  if (n_slice+1 > size(rays)) then
-    deallocate(rays)
-    allocate(rays(n_slice+1))
+  if (.not. allocated (fan)) allocate(fan(n_slice+1))
+  if (n_slice+1 > size(fan)) then
+    deallocate(fan)
+    allocate(fan(n_slice+1))
   endif
 
   ! each change in position is the element length / n_slice
@@ -111,16 +110,16 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
     i_ray = i_ray + 1
 
     ! start a ray from each slice location
-    call init_ray (rays(i_ray), lat, ie, l_off, orb, direction)
+    call init_ray (fan(i_ray), lat, ie, l_off, orb, direction)
     ! track the ray until it hits something
-    call track_ray_to_wall (rays(i_ray), lat, negative_x_wall, positive_x_wall)
+    call track_ray_to_wall (fan(i_ray), lat, negative_x_wall, positive_x_wall)
 
 
     ! check if this ray hit a different wall than the previous ray
     if (i_ray > 1) then
-      if (rays(i_ray)%wall%side /= rays(i_ray-1)%wall%side) then
-        ray_temp = rays(i_ray)
-        rays(i_ray) = rays(i_ray-1)
+      if (fan(i_ray)%wall%side /= fan(i_ray-1)%wall%side) then
+        ray_temp = fan(i_ray)
+        fan(i_ray) = fan(i_ray-1)
         l0 = l_off - del_l
         l1 = l_off
 
@@ -129,23 +128,23 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
           l_try = (l0 + l1) / 2
           call init_ray (ray, lat, ie, l_try, orb, direction)
           call track_ray_to_wall (ray, lat, negative_x_wall, positive_x_wall)
-          if (ray%wall%side == rays(i_ray)%wall%side) then
-            rays(i_ray) = ray
+          if (ray%wall%side == fan(i_ray)%wall%side) then
+            fan(i_ray) = ray
             l0 = l_try
           else
             ray_temp = ray
             l1 = l_try
           endif
 
-          ! if the transition point has been found to within .5 mm,
+          ! if the transition point has been found to within 0.5 mm,
           ! calc the first wall's power then reset the ray array 
           ! for the second wall
           if ((l1 - l0) .le. 5e-4) then
-            if (abs(rays(i_ray)%start%vec(5) - &
-                 rays(i_ray-1)%start%vec(5)) < 5e-4) i_ray = i_ray - 1
-            call seg_power_calc (rays, i_ray, negative_x_wall, positive_x_wall, &
-                 lat, gen, power(ie))
-            rays(1) = ray_temp
+            if (abs(fan(i_ray)%start%vec(5) - &
+                          fan(i_ray-1)%start%vec(5)) < 5e-4) i_ray = i_ray - 1
+            call seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, &
+                                                               lat, gen, power(ie))
+            fan(1) = ray_temp  ! Reset fan. First ray in fan is the transition ray.
             i_ray = 1
             exit
           endif
@@ -154,10 +153,10 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
     endif
   enddo
 
-! now compute the sr power hitting the wall using the tracking results
-! and interpolating inbetween.
+! Final call to seg_power_calc to compute the sr power hitting the wall 
+! using the tracking results and interpolating in between.
 
-  call seg_power_calc (rays, i_ray, negative_x_wall, positive_x_wall, lat, gen, &
+  call seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, gen, &
        power(ie))
 
 end subroutine ele_sr_power
