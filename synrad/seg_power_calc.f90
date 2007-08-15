@@ -74,6 +74,9 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
                    (fan(i)%g_bend**2 + fan(i-1)%g_bend**2) / 2
   enddo
  
+  ! Ignore element if the radiated power is 0
+  if (power%radiated == 0) return
+
 
   ! wall is the side that is being hit by the radiation.
 
