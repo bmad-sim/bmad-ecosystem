@@ -48,7 +48,7 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
 
   logical hit_flag
 
-  type (source_struct), pointer :: temp_fan(:)
+  type (source_struct), pointer :: temp_sources(:)
   integer temp_size
 
   ! calculate power radiated
@@ -288,29 +288,29 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
 
       ep%n_source = ep%n_source + 1
 
-      if (associated(ep%fan)) then
-        temp_size = size(ep%fan)
+      if (associated(ep%sources)) then
+        temp_size = size(ep%sources)
         if (temp_size < ep%n_source) then
-          allocate(temp_fan(temp_size))
-          temp_fan = ep%fan
-          deallocate(ep%fan)
-          allocate (ep%fan(ep%n_source))
-          ep%fan(1:temp_size) = temp_fan(1:temp_size)
-          deallocate(temp_fan)
+          allocate(temp_sources(temp_size))
+          temp_sources = ep%sources
+          deallocate(ep%sources)
+          allocate (ep%sources(ep%n_source))
+          ep%sources(1:temp_size) = temp_sources(1:temp_size)
+          deallocate(temp_sources)
         endif
       else
-        allocate (ep%fan(5))
+        allocate (ep%sources(5))
       endif
 
       power%at_wall = power%at_wall + dpower * wall%seg(is)%len
-      ep%fan(ep%n_source)%start%vec = fan(i-1)%start%vec * &
+      ep%sources(ep%n_source)%start%vec = fan(i-1)%start%vec * &
                                          (1 - rr) + fan(i)%start%vec * rr
-      ep%fan(ep%n_source)%now%vec = fan(i-1)%now%vec * &
+      ep%sources(ep%n_source)%now%vec = fan(i-1)%now%vec * &
                                          (1 - rr) + fan(i)%now%vec * rr
-      ep%fan(ep%n_source)%ix_ele_source = fan(i)%ix_source
+      ep%sources(ep%n_source)%ix_ele_source = fan(i)%ix_source
       if (dpower > ep%power_per_len) then
         ep%ix_ele_source = fan(i)%ix_source
-        ep%s_source = ep%fan(ep%n_source)%start%vec(5)
+        ep%s_source = ep%sources(ep%n_source)%start%vec(5)
       endif
     enddo
 

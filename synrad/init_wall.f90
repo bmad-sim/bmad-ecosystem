@@ -23,7 +23,7 @@ subroutine init_wall (wall)
   wall%seg(:)%sr_power%n_source = 0
 
   do i = 1, size(wall%seg)
-    nullify (wall%seg(i)%sr_power%rays)
+    nullify (wall%seg(i)%sr_power%sources)
   enddo
 
 end subroutine

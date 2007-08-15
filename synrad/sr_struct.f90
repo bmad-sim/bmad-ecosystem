@@ -39,7 +39,8 @@ module sr_struct
     integer ix_ele_source        ! element index for the largest source
     real(rp) s_source            ! s position of the largest source
     integer n_source             ! number of source points
-    type (source_struct), pointer :: rays(:)
+    type (source_struct), pointer :: sources(:)
+                                 ! list of source info for rays hitting this seg
   end type
 
   type wall_seg_struct       ! segment struct
