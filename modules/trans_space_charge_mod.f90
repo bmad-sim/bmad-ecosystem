@@ -12,7 +12,7 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
+! Subroutine setup_trans_space_charge_calc (calc_on, lattice, n_part, mode, closed_orb)
 !
 ! Subroutine to initialize constants needed by the transverse space charge 
 ! tracking routine track1_space_charge. This routine must be called if 
@@ -24,7 +24,7 @@ contains
 ! Input:
 !   calc_on    -- Logical: True turns on the space charge calculation.
 !   lattice    -- lat_struct: Lattice for tracking.
-!     %param%n_part -- Number of particles in a bunch
+!   n_part     -- Real(rp): Number of particles in a bunch
 !   mode       -- normal_modes_struct: Structure holding the beam info.
 !     %a%emittance  -- a-mode emitance.
 !     %b%emittance  -- b-mode emittance.
@@ -34,7 +34,7 @@ contains
 !                       the closed orbit is taken to be zero. 
 !-
 
-subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
+subroutine setup_trans_space_charge_calc (calc_on, lattice, n_part, mode, closed_orb)
 
   implicit none
 
@@ -46,7 +46,7 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
   type (twiss_struct), pointer :: a, b
   type (xy_disp_struct), pointer :: x, y
 
-  real(rp) c11, c12, c22, g, g2, xx_ave, xy_ave, yy_ave, phi
+  real(rp) c11, c12, c22, g, g2, xx_ave, xy_ave, yy_ave, phi, n_part
   real(rp) xx_rot_ave, yy_rot_ave, a_emit, b_emit, length, g3
 
   integer i, m
@@ -133,7 +133,7 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 !   the bbi_kick routine used in track1_trans_space_charge.
 
     g3 = (ele%value(p0c$) / mass_of(lattice%param%particle))**3
-    sc%kick_const = length * r_e *  lattice%param%n_part / &
+    sc%kick_const = length * r_e * n_part / &
         (sqrt(twopi**3) * g3 * (sc%sig_x + sc%sig_y) * mode%sig_z)
 
   enddo
