@@ -72,12 +72,14 @@ real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3
 real(rp) dE_p, dpx, dpy
 integer i, j, n_step
 
-logical calc_mat6, err, save_track, do_offset
+logical calc_mat6, calculate_mat6, err, save_track, do_offset
 logical, optional :: offset_ele
 
 character(16) :: r_name = 'symp_lie_bmad'
 
 ! init
+
+calculate_mat6 = (calc_mat6 .or. synch_rad_com%i_calc_on)
 
 do_offset = logic_option (.true., offset_ele)
 rel_E = (1 + start%vec(6))
@@ -95,7 +97,7 @@ if (save_track) save_track = track%save_track
 
 ! element offset 
 
-if (calc_mat6) then
+if (calculate_mat6) then
   mat6 => ele%mat6
   call drift_mat6_calc (mat6, ele%value(s_offset_tot$), end%vec)
 endif
@@ -128,8 +130,9 @@ if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on)) the
 
   fact_f = 0
   if (bmad_com%radiation_fluctuations_on) then
-    call ran_gauss (this_ran)
-    fact_f = sqrt(rad_fluct_const * ele%value(l$) * gamma_0**5) * this_ran / n_step
+!    call ran_gauss (this_ran)
+!    fact_f = sqrt(rad_fluct_const * ele%value(l$) * gamma_0**5) * this_ran / n_step
+    fact_f = sqrt(rad_fluct_const * ds * gamma_0**5) 
   endif
 
 endif
@@ -151,7 +154,7 @@ Case (wiggler$)
     allocate (tm(size(ele%wig_term)))
   endif
 
-  call update_wig_coefs (calc_mat6)
+  call update_wig_coefs (calculate_mat6)
   call update_wig_y_terms (err); if (err) return
 
   ! loop over all steps
@@ -164,15 +167,15 @@ Case (wiggler$)
 
     ! Drift_1 = P_x^2 / (2 * (1 + dE))
 
-    call apply_p_x (calc_mat6)
+    call apply_p_x (calculate_mat6)
 
     ! Drift_2 = (P_y - a_y)**2 / (2 * (1 + dE))
 
     call update_wig_x_s_terms (err); if (err) return
-    call apply_wig_exp_int_ay (-1, calc_mat6)
-    call apply_p_y (calc_mat6)
+    call apply_wig_exp_int_ay (-1, calculate_mat6)
+    call apply_p_y (calculate_mat6)
     call update_wig_y_terms (err); if (err) return
-    call apply_wig_exp_int_ay (+1, calc_mat6)
+    call apply_wig_exp_int_ay (+1, calculate_mat6)
 
     ! Kick = a_z
 
@@ -183,7 +186,7 @@ Case (wiggler$)
 
     call radiation_kick()
 
-    if (calc_mat6) then
+    if (calculate_mat6) then
       mat6(2,1:6) = mat6(2,1:6) + ds * da_z_dx__dx() * mat6(1,1:6) + &
                                                 ds * da_z_dx__dy() * mat6(3,1:6)
       mat6(4,1:6) = mat6(4,1:6) + ds * da_z_dy__dx() * mat6(1,1:6) + &
@@ -192,14 +195,14 @@ Case (wiggler$)
 
     ! Drift_2
 
-    call apply_wig_exp_int_ay (-1, calc_mat6)
-    call apply_p_y (calc_mat6)
+    call apply_wig_exp_int_ay (-1, calculate_mat6)
+    call apply_p_y (calculate_mat6)
     call update_wig_y_terms (err); if (err) return
-    call apply_wig_exp_int_ay (+1, calc_mat6)
+    call apply_wig_exp_int_ay (+1, calculate_mat6)
 
     ! Drift_1
 
-    call apply_p_x (calc_mat6)
+    call apply_p_x (calculate_mat6)
 
     ! s half step
 
@@ -260,11 +263,11 @@ case (bend_sol_quad$, solenoid$, quadrupole$)
     s = s + ds2
     ks_tot_2 = (ks + dks_ds * s) / 2
 
-    call bsq_drift1 (calc_mat6)
-    call bsq_drift2 (calc_mat6)
-    call bsq_kick (calc_mat6)
-    call bsq_drift2 (calc_mat6)
-    call bsq_drift1 (calc_mat6)
+    call bsq_drift1 (calculate_mat6)
+    call bsq_drift2 (calculate_mat6)
+    call bsq_kick (calculate_mat6)
+    call bsq_drift2 (calculate_mat6)
+    call bsq_drift1 (calculate_mat6)
 
     s = s + ds2
     ks_tot_2 = (ks + dks_ds * s) / 2
@@ -286,7 +289,7 @@ end select
 
 ! element offset
 
-if (calc_mat6) then
+if (calculate_mat6) then
   call drift_mat6_calc (m6, -ele%value(s_offset_tot$), end%vec)
   mat6(1,1:6) = mat6(1,1:6) + m6(1,2) * mat6(2,1:6) + m6(1,6) * mat6(6,1:6)
   mat6(3,1:6) = mat6(3,1:6) + m6(3,4) * mat6(4,1:6) + m6(3,6) * mat6(6,1:6)
@@ -301,7 +304,7 @@ if (do_offset) call offset_particle (ele, param, end, unset$, set_canonical = .f
 
 ! Correct for finite pitches & calc vec0
 
-if (calc_mat6) then
+if (calculate_mat6) then
   ele%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
   ele%vec0(6) = 0
 endif
@@ -340,12 +343,12 @@ track%pt(ix)%s = s
 track%pt(ix)%orb = end
 call offset_particle (ele, param, track%pt(ix)%orb, unset$, set_canonical = .false.)
   
-if (calc_mat6) track%pt(ix)%mat6 = mat6
+if (calculate_mat6) track%pt(ix)%mat6 = mat6
 
 if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (track%pt(ix)%mat6, ele%value(tilt_tot$))
 if (x_pitch /= 0 .or. y_pitch /= 0) call mat6_add_pitch (ele, track%pt(ix)%mat6)
 
-if (calc_mat6) then
+if (calculate_mat6) then
   track%pt(ix)%vec0(1:5) = track%pt(ix)%orb%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
   track%pt(ix)%vec0(6) = 0
 endif
@@ -809,12 +812,19 @@ end function
 
 subroutine radiation_kick()
 
+type (ele_struct), save :: temp_ele
+
+!
+
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on)) then
 
   g2 = dpx**2 + dpy**2
   g3 = g2 * sqrt(g2)
 
-  dE_p = (1 + start%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3)) * synch_rad_com%scale 
+  !  dE_p = (1 + end%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3)) * synch_rad_com%scale
+  call ran_gauss (this_ran)
+  dE_p = (1 + end%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3) * this_ran) * &
+                                                                      synch_rad_com%scale 
 
   end%vec(2) = end%vec(2) * (1 - dE_p)
   end%vec(4) = end%vec(4) * (1 - dE_p)
@@ -823,6 +833,20 @@ if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on)) the
   if (synch_rad_com%i_calc_on) then
     synch_rad_com%i2 = synch_rad_com%i2 + g2 * ds
     synch_rad_com%i3 = synch_rad_com%i3 + g3 * ds
+    temp_ele%mat6 = mat6
+    temp_ele%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
+    temp_ele%vec0(6) = 0
+    temp_ele%ref_orb_in = start
+    temp_ele%ref_orb_out = end
+    call twiss_propagate1 (synch_rad_com%ele0, temp_ele)
+    synch_rad_com%i5a = synch_rad_com%i5a + g3 * ds * &
+                  (temp_ele%a%gamma * temp_ele%a%eta**2 + &
+                  2 * temp_ele%a%alpha * temp_ele%a%eta * temp_ele%a%etap + &
+                  temp_ele%a%beta * temp_ele%a%etap**2)
+    synch_rad_com%i5b = synch_rad_com%i5b + g3 * ds * &
+                  (temp_ele%b%gamma * temp_ele%b%eta**2 + &
+                  2 * temp_ele%b%alpha * temp_ele%b%eta * temp_ele%b%etap + &
+                  temp_ele%b%beta * temp_ele%b%etap**2)
   endif
 
 endif

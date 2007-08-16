@@ -7,8 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/^( *)lattice *\:?= *(\S+)/\1parameter\[lattice\] = \2/i;
-
+    s/on_an_girder/on_a_girder/g;
     print (F_OUT);
 
   }
