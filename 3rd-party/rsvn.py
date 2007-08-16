@@ -55,7 +55,7 @@ COMMENT_RE  = re.compile('(?:^\s*#)|(?:^\s*$)')
 def usage(error=None):
   if error:
     print 'Error: %s\n' % error
-  print 'USAGE: %s --message=MESSAGE repos_path [--username=USERNAME]' % (
+  print 'USAGE: %s --message=MESSAGE [--username=USERNAME] repos_path' % (
           os.path.basename(sys.argv[0]))
   print ''
   print '  --help, -h            print this usage message and exit with success'
