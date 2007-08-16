@@ -29,5 +29,4 @@ fi
 export PYTHONPATH=${PYTHONPATH}:/nfs/opt/svn/lib/svn-python
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/nfs/opt/svn/lib
 
-/home/cesrulib/bin/util/3rd-party/rsvn.py
-
+/home/cesrulib/bin/util/3rd-party/rsvn.py $*
