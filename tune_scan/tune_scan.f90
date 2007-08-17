@@ -267,8 +267,9 @@ write(*,*) "A-MODE EMITTANCE: ", mode%a%emittance
 write(*,*) "B-MODE EMITTANCE: ", mode%b%emittance
 
 
-!Call setup_trans_space_charge_calc
-  call setup_trans_space_charge_calc(trans_space_charge_on, ring, mode)
+! Call setup_trans_space_charge_calc
+
+  call setup_trans_space_charge_calc(trans_space_charge_on, ring, ring%param%n_part, mode)
 
   call custom_set_tune(phi_x, phi_y, dk1, ring, orb, ok)    
 
