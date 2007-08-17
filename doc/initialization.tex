@@ -1068,7 +1068,7 @@ this bpm.  If not present then \vn{default_bpm_noise} is used.
 
 \begin{figure}
   \centering
-  \includegraphics{plot_page.psfig}
+  \includegraphics{plot_page.eps}
   \caption{Regions define where on the plot page plots are placed.}
   \label{f:plot_page}
 \end{figure}
@@ -1591,21 +1591,21 @@ the element name is to be printed underneath the figure.
 \section{Initializing Key Bindings for Single Mode}\index{Initialization!Key Bindings}
 \label{s:init_single} 
 
-For single mode the bindings of variables to keys is defined with a
-\vn{key_bindings} namelist. There is a maximum of 500 key bindings.
-The syntax is:
+For \vn{Single Mode} (\sref{s:single} the bindings of variables to
+keys is defined with a \vn{key_bindings} namelist. There is a maximum
+of 500 key bindings.  The syntax is:
 \index{key_bindings}
 \index{key}
 \begin{example}
   &key_bindings
     key(i) = <ele_name> <attrib_name> <delta> <universe> 
-          <small_step> <low_lim> <high_lim> <weight> <good_opt> <merit_type>
+          <step> <low_lim> <high_lim> <weight> <good_opt> <merit_type>
   /
 \end{example}
 For example:
 \begin{example}
   &key_bindings
-  key(1) = "Q1"   "K1"    0.01 "U:*" 1e-5  -10  10  10  T
+  key(1) = "Q1"   "K1"    0.01 "U:0" 1e-5  -10  10  10  T
   key(2) = "DRFT" "L"     0.1  "U:1" 1e-3    0   3   1  F
   key(3) = "Q3"   "TILT"  0.01 "U:2" 1e-5   -1   1   3  T "target"
   /  
@@ -1614,8 +1614,8 @@ For the \vn{i}\Th key \vn{<ele_name>} is the name of a lattice element
 in universe \vn{<universe>} and \vn{<attrib_name>} is the attribute to
 be varied. If \vn{<universe>} is ``0'' then the key will vary elements
 in all universes. \vn{<delta>} is the change in value when the
-appropriate key is depressed. \vn{<small_step>} establishes what a 
-``small'' variation of the variable is. 
+appropriate key is depressed. \vn{<step>} establishes what the variation
+of the variable is when the associated key is depressed. 
 
 \vn{merit_type} sets how the contribution to the merit function due to
 the variable is calculated. See \sref{s:init_var} for more

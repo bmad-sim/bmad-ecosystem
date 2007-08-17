@@ -436,6 +436,11 @@ type tao_alias_struct
   character(100) :: string
 end type
 
+type tao_command_file_struct
+  integer :: ix_unit
+  character(40) cmd_arg(9) ! Command file arguments.
+end type
+
 type tao_common_struct
   type (tao_alias_struct) alias(100)
   logical opti_init        ! init needed?
@@ -444,11 +449,10 @@ type tao_common_struct
   integer :: n_alias = 0
   integer :: cmd_file_level = 0 ! for nested command files
               ! unit numbers for a command files. 0 -> no command file.
-  integer, pointer :: lun_command_file(:) => null() 
+  type (tao_command_file_struct), allocatable :: cmd_file(:)
   logical :: use_cmd_here  = .false. ! Used for the cmd history stack
   logical cmd_from_cmd_file ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
-  character(40) cmd_arg(9) ! Command file arguments.
   character(100) cmd       ! Used for the cmd history
   character(16) :: init_name = "Tao"  !label for initialization
   character(80) :: init_tao_file     = 'tao.init'  ! '-init' argument.

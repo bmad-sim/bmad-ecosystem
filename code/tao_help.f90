@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_help (cmd_line)
+! Subroutine tao_help (help_what)
 !
 ! Online help for TAO commmands. 
 ! Interfaces with the documentation.
@@ -38,7 +38,11 @@ else
   call fullfilename ('TAO_DIR:doc/command_list.tex', file_name)
 endif
 
+if (help_what == '') then
+  start_tag = '%% command_table'
+else
   start_tag = '%% ' // help_what
+endif
 
 ! Open the file 
 
@@ -64,6 +68,12 @@ enddo
 
 ! Print all lines to the next tag or the end of the file.
 
+if (help_what == '') then
+  call out_io (s_blank$, r_name, &
+                 "Type 'help <command>' for help on an individual command", &
+                 "Available commands:")
+endif
+
 blank_line_before = .true.
 do
   read (iu, '(a)', iostat = ios) line
@@ -78,13 +88,6 @@ do
   if (line(1:10) == '\centering') cycle
   if (line(1:8)  == '\caption') cycle
   
-  if (line(1:14)  == '  {\it Command') then
-    call out_io (s_blank$, r_name, &
-                 "Type 'help <command>' for help on an individual command")
-    call out_io (s_blank$, r_name, "Available commands:")
-    cycle
-  endif
-
   call substitute  ("``", '"')
   call substitute  ("''", '"')
   call substitute  ("$")

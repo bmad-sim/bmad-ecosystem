@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_init ()
+! Subroutine tao_init (err_flag)
 !
 ! Subroutine to initialize the tao structures.
 !
@@ -8,7 +8,7 @@
 ! Output:
 !-
 
-subroutine tao_init ()
+subroutine tao_init (err_flag)
 
   use tao_mod
   use tao_lattice_calc_mod
@@ -35,7 +35,8 @@ subroutine tao_init ()
 
   integer i, j, i2, j2, n_universes, iu, ix, ix_attrib, n_arg, ib, ip
 
-  logical err, calc_ok
+  logical err, calc_ok  
+  logical, optional :: err_flag
 
   namelist / tao_start / lattice_file, startup_file, &
                data_file, var_file, plot_file, single_mode_file, &
@@ -43,16 +44,18 @@ subroutine tao_init ()
 
 ! Find namelist files
 
+  if (present(err_flag)) err_flag = .true.
+  call tao_open_file ('TAO_INIT_DIR', tao_com%init_tao_file, iu, file_name)
+  if (iu == 0) return
+
   lattice_file       = tao_com%init_tao_file      ! set default
   plot_file          = tao_com%init_tao_file      ! set default
   data_file          = tao_com%init_tao_file      ! set default
   var_file           = tao_com%init_tao_file      ! set default
   single_mode_file   = tao_com%init_tao_file      ! set default
-  tao_com%init_tao_file = tao_com%init_tao_file
   n_universes        = 1              ! set default
   init_name          = "Tao"          ! set default
   startup_file       = "tao.startup"
-  call tao_open_file ('TAO_INIT_DIR', tao_com%init_tao_file, iu, file_name)
   read (iu, nml = tao_start)
   close (iu)
   tao_com%init_name = init_name
@@ -189,6 +192,7 @@ subroutine tao_init ()
 
   call tao_set_data_useit_opt()
   call tao_set_var_useit_opt()
+  if (present(err_flag)) err_flag = .false.
 
 contains
 !------------------------------------------------------------------------------

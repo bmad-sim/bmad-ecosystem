@@ -1,17 +1,36 @@
 \chapter{Single Mode}\index{Single mode}
 \label{c:single}
 
-In \vn{single mode} each key stroke is interpreted by \tao without the user having to press 
-the carriage control key (there are a few exceptions which are noted below). From \vn{line mode}
-use the \vn{single_mode} command to get into \vn{single_mode}. To go back to \vn{line mode} type
+\tao has two \vn{modes} for entering commands. In \vn{Single Mode},
+described in this chapter, each keystroke represents a command.  That
+is, the user does not have to press the carriage control key to signal
+the end of a command (there are a few exceptions which are noted
+below). Conversely, in \vn{Line Mode}, which is described in
+Chapter~\sref{c:command}, \tao waits until the \vn{return} key is
+depressed to execute a command. That is, in Line Mode a command
+consists of a single line of input.  Single Mode is useful for quickly
+varying parameters to see how they affect a lattice but the number of
+commands in Single Mode is limited.
+
+From \vn{line mode} use the \vn{single-mode} command (\sref{s:sing})
+to get into \vn{single mode}. To go back to \vn{line mode} type
 "\vn{Z}".
 
-Key bindings are established via the \vn{key_bindings} initialization namelist 
-(See Section~\ref{s:init_single}). 
-The variables are divided into banks of 10. The 0\Th bank uses variables 1
-through 10 the 1\St bank uses variables 11 through 20, etc. 
-At any one time only one bank is active. The relationship between
-the keys and a change in a variable is:
+The main purpose of Single Mode is to assocaite certain keys with
+certain variables so that the pressing of these keys will change their
+associated variable. This is called a \vn{key binding}.  Key bindings
+are established via the \vn{key_bindings} initialization namelist (See
+Section~\ref{s:init_single}). The variables are divided into banks of
+10. The 0\Th bank uses variables \vn{key(1)} through \vn{key(10)} from
+the \vn{key_bindings} namelist, the 1\St bank uses variables
+\vn{key(11)} through \vn{key(20)}, etc.  
+
+At any one time only one bank is active. To see the status of this
+bank, a \vn{key table} plot can be setup as shown in
+Figure~\ref{f:key_table}.
+
+The relationship between the keys and a change in a
+variable is:
 \begin{example}
                  Change by factor of:          
      Variable    -10  -1    1   10
@@ -28,8 +47,10 @@ the keys and a change in a variable is:
    10 + 10*ib     P    p    0    )   
 \end{example}
 In the above table ib is the bank number (0 for the 0\Th bank, etc.),
-and the change is in multiples of the \vn{delta} for a variable as
-specified in the \vn{key_bindings} namelist. Initially the 0Th bank is
+and the change is in multiples of the \vn{step} for a variable as
+specified in the \vn{key_bindings} namelist. 
+
+Initially the 0Th bank is
 active. The left arrow and right arrow are used to decrease or
 increase the bank number.  Additionally the "\vn{<}" and "$>$" keys
 can be used to change the deltas for the variables.
@@ -38,11 +59,12 @@ can be used to change the deltas for the variables.
 \section{List of Key Strokes}\index{Single Mode!List of Key Strokes}
 \label{s:keys}
 
-In the following list, commands that start with a slash (\vn{/}) or hyphen (\vn{-})
-use two key strokes. For example, the \vn{/v} command is involked by first pressing
-the slash (\vn{/}) key followed by the \vn{v} key. Commands that start with \vn{\W}
-indicate a control sequence. For example the \vn{\W v} command is involked by 
-pressing the \vn{v} key while holding down the \vn{control} key.
+In the following list, commands that start with a slash (\vn{/}) or
+hyphen (\vn{-}) use two key strokes. For example, the \vn{/v} command
+is involked by first pressing the slash (\vn{/}) key followed by the
+\vn{v} key. Commands that start with \vn{\W} indicate a control
+sequence. For example the \vn{\W v} command is involked by pressing
+the \vn{v} key while holding down the \vn{control} key.
 
 \begin{description}
 \item[?]

@@ -178,8 +178,9 @@ interface
 end interface
 
 interface
-  subroutine tao_init ()
+  subroutine tao_init (err_flag)
     implicit none
+    logical, optional :: err_flag
   end subroutine
 end interface
  

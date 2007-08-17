@@ -11,16 +11,22 @@ program tao_cl
 
   implicit none
 
-  logical end_flag, found, err
   character(100) cmd_line
-  logical error
+  character(16) :: r_name = 'tao_cl'
+
+  logical end_flag, found, err
 
 ! init
 
-  call tao_parse_command_args (error)
-  if (error) stop
-  call tao_init ()
-  
+  call tao_parse_command_args (err)
+  if (err) stop
+
+  call tao_init (err)
+  if (err) then
+    call out_io (s_fatal$, r_name, 'INIT FILE NOT FOUND. STOPPING.')
+    stop
+  endif
+
 ! loop over commands.
 
   end_flag = .false.

@@ -23,7 +23,7 @@ integer i, ix, ix2
 integer, save, allocatable :: indx(:), indx_start(:), indx_end(:), indx_step(:) ! for do loops
 integer, save, allocatable :: loop_line_count(:) ! lines in each nested loop
 integer, save :: in_loop = 0 ! in loop nest level
-integer ios
+integer ios, n_level
 character(10), save, allocatable :: indx_name(:) ! do loop index name
 character(*) :: cmd_line
 character(*), optional :: prompt_str
@@ -81,9 +81,9 @@ endif
 ! If a command file is open then read a line from the file.
 
 if (tao_com%cmd_file_level /= 0) then
-
+  n_level = tao_com%cmd_file_level
   if (.not. multi_commands_here) then
-    read (tao_com%lun_command_file(tao_com%cmd_file_level), '(a)', end = 8000) cmd_line
+    read (tao_com%cmd_file(n_level)%ix_unit, '(a)', end = 8000) cmd_line
     tao_com%cmd_from_cmd_file = .true.
     call string_trim (cmd_line, cmd_line, ix)
 
@@ -98,8 +98,8 @@ if (tao_com%cmd_file_level /= 0) then
 
     do i = 1, 9
       ix = index (cmd_line, sub_str(i))
-      if (ix /= 0) cmd_line = cmd_line(1:ix-1) // trim(tao_com%cmd_arg(i)) // &
-                              cmd_line(ix+5:)
+      if (ix /= 0) cmd_line = cmd_line(1:ix-1) // &
+                          trim(tao_com%cmd_file(n_level)%cmd_arg(i)) // cmd_line(ix+5:)
     enddo
     
     write (*, '(3a)') trim(prompt_string), ': ', trim(cmd_line)
@@ -115,9 +115,9 @@ if (tao_com%cmd_file_level /= 0) then
   return
 
   8000 continue
-  close (tao_com%lun_command_file(tao_com%cmd_file_level))
-  tao_com%lun_command_file(tao_com%cmd_file_level) = 0 
-  tao_com%cmd_file_level = tao_com%cmd_file_level - 1 ! signal that the file has been closed
+  close (tao_com%cmd_file(n_level)%ix_unit)
+  tao_com%cmd_file(n_level)%ix_unit = 0 
+  tao_com%cmd_file_level = n_level - 1 ! signal that the file has been closed
   if (tao_com%cmd_file_level .ne. 0) return ! still lower nested command file to complete
 endif
 
@@ -255,7 +255,7 @@ character(8) :: r_name = "do_loop"
     enddo_count = 0
     inner_loop_count = 0
     do 
-      read (tao_com%lun_command_file(tao_com%cmd_file_level), '(a)', end = 9000) cmd_line
+      read (tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit, '(a)', end = 9000) cmd_line
       write (*, '(3a)') trim(prompt_string), ': ', trim(cmd_line)
       call string_trim (cmd_line, cmd_line, ix)
       do_word = ' '
@@ -278,9 +278,9 @@ character(8) :: r_name = "do_loop"
     if (inner_loop_count .ne. 0) then
       ! There's an inner loop so rewind to beginning of first inner loop
       do i = 1, loop_line_count(in_loop) + 1
-        backspace (tao_com%lun_command_file(tao_com%cmd_file_level))
-        backspace (tao_com%lun_command_file(tao_com%cmd_file_level))
-        read (tao_com%lun_command_file(tao_com%cmd_file_level), '(a)', end = 9000) cmd_line
+        backspace (tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit)
+        backspace (tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit)
+        read (tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit, '(a)', end = 9000) cmd_line
         call string_trim (cmd_line, cmd_line, ix)
         do_word = ' '
         if (ix .le. len(do_word)) &
@@ -314,7 +314,7 @@ character(8) :: r_name = "do_loop"
     if (indx(in_loop) .le. indx_end(in_loop) .and. indx_step(in_loop) .gt. 0) then
       ! rewind
       do i = 1, loop_line_count(in_loop) + 1
-        backspace (tao_com%lun_command_file(tao_com%cmd_file_level))
+        backspace (tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit)
       enddo
     elseif (indx(in_loop) .ge. indx_end(in_loop) .and. indx_step(in_loop) .lt. 0) then
       call out_io (s_error$, r_name, &
@@ -323,13 +323,13 @@ character(8) :: r_name = "do_loop"
       ! looped correct number of times, now exit loop
       call set_loop_cmd_file_level (in_loop - 1)
       if (in_loop .ge. 1) then
-        read (tao_com%lun_command_file(tao_com%cmd_file_level), '(a)', end = 9000) cmd_line
+        read (tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit, '(a)', end = 9000) cmd_line
         goto 1001
       else
       endif
     endif
     ! read next line
-    read (tao_com%lun_command_file(tao_com%cmd_file_level), '(a)', end = 9100) cmd_line
+    read (tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit, '(a)', end = 9100) cmd_line
     goto 1001
   endif
   
@@ -358,8 +358,8 @@ character(8) :: r_name = "do_loop"
   call out_io (s_error$, r_name, &
        "No corresponding 'enddo' statment found, loop will be ignored")
   9100 continue
-  close (tao_com%lun_command_file(tao_com%cmd_file_level))
-  tao_com%lun_command_file(tao_com%cmd_file_level) = 0 
+  close (tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit)
+  tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit = 0 
   tao_com%cmd_file_level = tao_com%cmd_file_level - 1 ! signal that the file has been closed
   in_loop = 0
 

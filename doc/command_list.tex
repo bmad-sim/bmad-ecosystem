@@ -1,39 +1,46 @@
 \chapter{Tao Line Mode Commands}
 \label{c:command}
 
-This chapter gives a description of the commands that \tao knows about
-in \vn{line mode}. Commands are case sensitive. The list of commands
-is shown in Table~\ref{t:commands}.\index{Commands!Command List}
+\tao has two \vn{modes} for entering commands. In \vn{Line Mode},
+described in this chapter, \tao waits until the \vn{return} key is
+depressed to execute a command. That is, a command consists of a
+single line of input. Conversely, \vn{Single Mode}, which is described
+in Chapter~\sref{c:single}, interprets each keystroke as a
+command. Single Mode is useful for quickly varying parameters to see
+how they affect a lattice but the number of commands in Single Mode is
+limited.
 
-%%  ---------------------------------------------------------------------
-Multiple commands may be entered
-on one line using the ``;'' character as a separator.
+Commands are case sensitive. The list of commands is shown in
+Table~\ref{t:commands}.\index{Commands!Command List} Multiple commands
+may be entered on one line using the ``;'' character as a separator.
+
+%% command_table -----------------------------------------------------
 
 \begin{table}[h]
 \centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}  & {\it Command} & {\it Section}  \\ \hline
-  alias      & \ref{s:alias}    & read         & \ref{s:read}     \\ \hline
-  call       & \ref{s:call}     & restore      & \ref{s:restore}  \\ \hline 
-  change     & \ref{s:change}   & reinitialize & \ref{s:reinit}   \\ \hline 
-  clip       & \ref{s:clip}     & run          & \ref{s:run}      \\ \hline 
-  derivative & \ref{s:deriv}    & scale        & \ref{s:scale}    \\ \hline 
-  exit       & \ref{s:exit}     & set          & \ref{s:set}      \\ \hline  
-  flatten    & \ref{s:flatten}  & show         & \ref{s:show}     \\ \hline 
-  help       & \ref{s:help}     & single-mode  & \ref{s:sing}     \\ \hline 
-  history    & \ref{s:history}  & spawn        & \ref{s:spawn}    \\ \hline 
-  misalign   & \ref{s:misalign} & use          & \ref{s:use}      \\ \hline 
-  output     & \ref{s:output}   & veto         & \ref{s:veto}     \\ \hline 
-  place      & \ref{s:place}    & view         & \ref{s:view}     \\ \hline 
-  plot       & \ref{s:plot}     & x-axis       & \ref{s:x-axis}   \\ \hline 
-  quit       & \ref{s:quit}     & x-scale      & \ref{s:x-scale}  \\ \hline 
-             &                  & xy-scale     & \ref{s:xy-scale} \\ \hline
+  alias      & \ref{s:alias}    & restore      & \ref{s:restore}  \\ \hline 
+  call       & \ref{s:call}     & reinitialize & \ref{s:reinit}   \\ \hline 
+  change     & \ref{s:change}   & run          & \ref{s:run}      \\ \hline 
+  clip       & \ref{s:clip}     & scale        & \ref{s:scale}    \\ \hline 
+  derivative & \ref{s:deriv}    & set          & \ref{s:set}      \\ \hline  
+  exit       & \ref{s:exit}     & show         & \ref{s:show}     \\ \hline 
+  flatten    & \ref{s:flatten}  & single-mode  & \ref{s:sing}     \\ \hline 
+  help       & \ref{s:help}     & spawn        & \ref{s:spawn}    \\ \hline 
+  history    & \ref{s:history}  & use          & \ref{s:use}      \\ \hline 
+  misalign   & \ref{s:misalign} & veto         & \ref{s:veto}     \\ \hline 
+  output     & \ref{s:output}   & view         & \ref{s:view}     \\ \hline 
+  place      & \ref{s:place}    & x-axis       & \ref{s:x-axis}   \\ \hline 
+  plot       & \ref{s:plot}     & x-scale      & \ref{s:x-scale}  \\ \hline 
+  quit       & \ref{s:quit}     & xy-scale     & \ref{s:xy-scale} \\ \hline
+  read       & \ref{s:read}     &
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
 \end{table}
 
-%%Don't display anything after this by default!!! ---------------------
+%% Marker: "help" will not display anything after this  -----------
 
 \index{Arithmetic expressions} 
 The \tao command prompt parser can handle arithmetic expressions. 
@@ -122,9 +129,7 @@ found \tao will look in the directory pointed to by the
 the command file. The i\Th argument is substituted in place of the
 string ``[[i]]'' in the file. Nesting of command files (command files
 calling other command files) is allowed. There is no limit to the
-number of nestings, however, only one argument list is allowed. This
-argument list is specified by the call to the first command file. Any
-nested command files can use this argument list.
+number of nested files.
 
 Do loops are allowed with the following syntax:
 \begin{example}
@@ -150,7 +155,7 @@ In the above example the argument ``abc'' is substituted for any
 
 \begin{example}
   do i 1 100
-    call set_quad_misalignemnt [[i]] ! command file to misalign quadrupoles
+    call set_quad_misalignment [[i]] ! command file to misalign quadrupoles
     zero_quad 1e-5*2^([[i]]-1) ! Some user supplied command to zero quad number [[i]]
   enddo
 \end{example}
@@ -297,8 +302,8 @@ Examples:
 Format:
 \begin{example}
   history           ! Print the command history.
-  history <number>  ! Reinvoke a command by number.
-  history <string>  ! Reinvoke last command that begins with <string>.
+  history <number>  ! Re-execute a command by number.
+  history <string>  ! Re-execute last command that begins with <string>.
 \end{example}
 
 \vskip 0.2in
@@ -307,8 +312,8 @@ these commands can be viewed and reinvoked as needed.
 
 Examples
 \begin{example}
-  history 34   ! Reinvoke command number 34.
-  history set  ! Reinvoke last set command.  
+  history 34   ! Re-execute command number 34.
+  history set  ! Re-execute last set command.  
 \end{example}
 
 %% misalign --------------------------------------------------------------
@@ -360,13 +365,13 @@ Examples
 \end{example}
 
 %% output --------------------------------------------------------------
-\section{Output}\index{Commands!ouput}
+\section{Output}\index{Commands!output}
 \label{s:output}
 
 Format:
 \begin{example}
   output bmad_lattice \{<file_name>\} ! Write a Bmad lattice file of the model
-  output beam \{<file_name>\}              ! Write beam distributsion data.
+  output beam \{<file_name>\}              ! Write beam distribution data.
   output curve <curve_name> \{<file_name>\} ! Write the curve data
   output derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
   output digested \{<file_name>\}     ! Write a digested Bmad lattice file of the model.
@@ -387,12 +392,12 @@ not given then the defaults are:
   output bmad_lattice             lat_#.bmad
   output beam                     beam.dat
   output curve                    curve
-  output derivative_mat           derivative_matrix.dat rix               
+  output derivative_mat           derivative_matrix.dat              
   output digested                 digested8_lat_universe_#.bmad
   output gif                      tao.gif
   output mad_lattice              lat_#.mad
   output ps                       tao.ps
-  optput var                      global%var_out_file
+  output var                      global%var_out_file
 \end{example}
 where \vn{\#} is replaced by the universe number. For \vn{output
 curve} there are two files produced: A file
@@ -409,8 +414,7 @@ saving of the bunch particle positions at the end of every element. This file
 can be used to initialize \tao (\sref{s:command_line})
 
 Note: PGPLOT does a poor job producing gif files so consider
-making a postscript file instead and using the pstogif unix command to
-convert.
+making a postscript file instead and using a ps to gif converter.
 
 %% place --------------------------------------------------------------
 \section{Place}\index{Commands!place}
@@ -498,10 +502,10 @@ and \vn{veto} commands.
 
 Examples:
 \begin{example}
-  restore data orbit.x[23,34:56]   ! unveto orbit.x data.
-  restore data orbit.x[23,34:56:2] ! unveto orbit.x 23 and even datums between 34 and 56
-  restore data *@orbit[34]         ! unveto orbit data in all universes.
-  restore var quad_k1[67]          ! unveto variable
+  restore data orbit.x[23,34:56]   ! un-veto orbit.x 23 and 34 through 56.
+  restore data orbit.x[23,34:56:2] ! un-veto orbit.x 23 and even datums between 34 and 56
+  restore data *@orbit[34]         ! un-veto orbit data in all universes.
+  restore var quad_k1[67]          ! un-veto variable
 \end{example}
 
 %% reinitialize -------------------------------------------------------
@@ -527,7 +531,7 @@ if this is the first reinitialization, what was used at startup.
 
 Examples:
 \begin{example}
-  reinit                         ! Reinit using previous agruments
+  reinit                         ! Reinit using previous arguments
   reinit -init tao_special.init  ! Reinitializes \tao with the initialization file 
                                    \vn{tao_special.init}
 \end{example}
@@ -735,11 +739,11 @@ commands then turning off all universes will speed things up. To turn off
 the currently viewed universe use the command \vn{set universe 0 off}. 
 To turn off all universes use the command \vn{set universe * off}. 
 This flag only affects the lattice calculation. 
-Issueing \vn{change, use, veto,} etc...  commands to a turned off uinverse
+Issuing \vn{change, use, veto,} etc...  commands to a turned off universe
 will still affect the
 universe, however any lattice calculations will not be performed until
 the universe is turned back on.  To recalculate the turned on lattices
-when issueing a \vn{set universe} command then use \vn{set universe
+when issuing a \vn{set universe} command then use \vn{set universe
 <universe> <on/off> recalc}. Otherwise, no lattice calculation will
 be performed until an appropriate command is called afterwards.  If
 optimizing while one or more universes are turned off then the
@@ -797,7 +801,7 @@ the state of \tao.
 \vn{Show write} writes to a file as well as
 printing the information at the terminal. The file name is set by
 \vn{global%write_file} which has the default value of
-\vn{tao_show.dat}. Results are appended to the output file whan
+\vn{tao_show.dat}. Results are appended to the output file when
 \vn{show write} is used multiple times. If separate files are desired
 then if \vn{global%write_file} has a \vn{*} character in it, a three
 digit number is substituted for the \vn{*}. The value of the number
@@ -832,7 +836,7 @@ lattice list will be shown.
 
 \vn{show ele} does not show the Taylor map associated with an element
 even if it has one. To see this map use the \vn{show taylor}
-command. Additionaly, by default the wiggler terms of a \vn{map_type}
+command. Additionally, by default the wiggler terms of a \vn{map_type}
 \vn{wiggler} element will not be printed. To change this use the command:
 \vn{set global show_ele_wig_terms = T}.
 
@@ -848,8 +852,8 @@ regular element locations. If \vn{<locations>} is \vn{all} then the
 entire lattice will be shown. If \vn{<locations>} is not present then
 the length of the lattice will be shown. The default is to show the Twiss
 parameter at the exit end of the elements. To show the parameters in the 
-middle use the \vn{show lattice middle} command. To custimize the output
-use the command \vn{show lattice custom <file_name>}. The custimization
+middle use the \vn{show lattice middle} command. To customize the output
+use the command \vn{show lattice custom <file_name>}. The customization
 file looks like:
 \begin{example}
   &custom_show_lat
@@ -866,13 +870,13 @@ each \vn{column(1)} has three components. The first component is what is to be
 displayed in that column. Possibilities are:
 \begin{example}
   x                  ! Add spaces
-  index              ! Index nuber of element.
+  index              ! Index number of element.
   name               ! Name of element.
   key                ! Type of element (quadrupole, etc.)
   s                  ! Longitudinal position.
   beta_a,  beta_b    ! Twiss beta functions.
   alpha_a, alpha_b   ! Twiss alpha functions.
-  pha_a,   phi_b     ! Betatron phase.
+  phi_a,   phi_b     ! Betatron phase.
   eta_a,   eta_b     ! Dispersion functions.
   etap_a,  etap_b    ! Dispersion derivatives.
   orbit_x, orbit_px  ! Horizontal position and momentum deviation.
@@ -882,7 +886,7 @@ displayed in that column. Possibilities are:
 The second component is the Fortran edit descriptor. The third column is the total
 width of the field. Notice that strings (like the element name) are left justified and
 numbers are right justified. In the case of a number followed by a string, 
-there will be no white space inbetween. The use of an "x" column can solve this problem.
+there will be no white space in between. The use of an "x" column can solve this problem.
 
   \item[show optimizer]
 Shows information pertinent to optimization: Data and variables used, etc.
@@ -960,7 +964,7 @@ default shell is used. \vn{spawn} only works in Linux and Unix environments.
 
 Examples:
 \begin{example}
-  spawn gv quick_plot.ps &      ! view a postcript file with ghostview
+  spawn gv quick_plot.ps &      ! view a postscript file with ghostview
                                 ! (and return to the TAO prompt)
   spawn tcsh                    ! launch a new tcsh shell 
                                 ! (type 'exit' to return to TAO)
@@ -977,7 +981,7 @@ Format:
 \end{example}
 
 \vskip 0.2in 
-The \vn{use} command unvetoes data or variables and sets a veto for
+The \vn{use} command un-vetoes data or variables and sets a veto for
 the rest of the data. See also the \vn{restore} and \vn{veto}
 commands.
 
