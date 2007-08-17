@@ -24,6 +24,7 @@ subroutine tao_open_file (logical_dir, file, iunit, file_name)
   character(20) :: r_name = 'tao_open_file'
 
   integer iunit, ios
+  logical valid
 
 ! open file
 
@@ -35,15 +36,22 @@ subroutine tao_open_file (logical_dir, file, iunit, file_name)
 ! If we cannot open a file then try the the logical_dir 
 
   if (ios /= 0) then
-    call fullfilename (trim(logical_dir) // ':' // file, file_name)
-    open (iunit, file = file_name, status = 'old', &
+
+    call fullfilename (trim(logical_dir) // ':' // file, file_name, valid)
+    if (valid) then
+      open (iunit, file = file_name, status = 'old', &
                                       action = 'READ', iostat = ios)
+    endif
 
     ! If still nothing then this is an error.
 
     if (ios /= 0) then
-      call out_io (s_blank$, r_name, 'File not found: ' // file, &
-                                     '           Nor: ' // file_name)
+      if (valid) then
+         call out_io (s_blank$, r_name, 'File not found: ' // file, &
+                                       '           Nor: ' // file_name)
+      else
+         call out_io (s_blank$, r_name, 'File not found: ' // file)
+      endif
       iunit = 0
     endif
 
