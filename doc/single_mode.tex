@@ -16,6 +16,10 @@ From \vn{line mode} use the \vn{single-mode} command (\sref{s:sing})
 to get into \vn{single mode}. To go back to \vn{line mode} type
 "\vn{Z}".
 
+%% key_table ------------------------------------------------------------------------
+\section{Key Bindings}\index{Key Bindings}
+\label{s:key_bind}
+
 The main purpose of Single Mode is to assocaite certain keys with
 certain variables so that the pressing of these keys will change their
 associated variable. This is called a \vn{key binding}.  Key bindings
@@ -27,7 +31,7 @@ the \vn{key_bindings} namelist, the 1\St bank uses variables
 
 At any one time only one bank is active. To see the status of this
 bank, a \vn{key table} plot can be setup as shown in
-Figure~\ref{f:key_table}.
+Figure~\ref{f:layout_graph_table}.
 
 The relationship between the keys and a change in a
 variable is:
@@ -50,10 +54,10 @@ In the above table ib is the bank number (0 for the 0\Th bank, etc.),
 and the change is in multiples of the \vn{step} for a variable as
 specified in the \vn{key_bindings} namelist. 
 
-Initially the 0Th bank is
-active. The left arrow and right arrow are used to decrease or
-increase the bank number.  Additionally the "\vn{<}" and "$>$" keys
-can be used to change the deltas for the variables.
+Initially the 0Th bank is active. The left arrow and right arrow are
+used to decrease or increase the bank number.  Additionally the
+"\vn{<}" and "$>$" keys can be used to change the deltas for the
+variables.
 
 %% keys ------------------------------------------------------------------------
 \section{List of Key Strokes}\index{Single Mode!List of Key Strokes}

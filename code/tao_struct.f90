@@ -103,22 +103,23 @@ type tao_graph_struct
   character(80) title
   character(80) title_suffix 
   character(80) legend(n_legend_maxx) ! Array for holding descriptive info.
-  type (qp_point_struct) legend_origin
-  type (tao_plot_who_struct) who(n_who_maxx)  ! Who to plot. Eg: Data - Design
-  type (qp_axis_struct) y      ! Y-axis attributes.
-  type (qp_axis_struct) y2     ! Y-axis attributes.
-  type (qp_rect_struct) margin ! margin around the graph.
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
-  real(rp) x_min, x_max         ! min and max of floor_plan drawing.
-  real(rp) y_min, y_max         ! min and max of floor_plan drawing.
-  logical clip                 ! clip plot at graph boundary.
-  integer box(4)               ! Defines which box the plot is put in.
-  integer ix_universe          ! Used for lat_layout plots.
-  logical valid                ! valid if all curve y_dat computed OK.
-  logical y2_mirrors_y         ! Y2-axis same as Y-axis?
-  logical limited              ! True if at least one data point past graph bounds.
-  logical draw_axes            ! Draw axes, labels, etc?
+  type (qp_point_struct) legend_origin
+  type (tao_plot_who_struct) who(n_who_maxx)  ! Who to plot. Eg: Data - Design
+  type (qp_axis_struct) y       ! Y-axis attributes.
+  type (qp_axis_struct) y2      ! Y-axis attributes.
+  type (qp_rect_struct) margin  ! Margin around the graph.
+  real(rp) x_min, x_max         ! Min and max of floor_plan drawing.
+  real(rp) y_min, y_max         ! Min and max of floor_plan drawing.
+  logical clip                  ! Clip plot at graph boundary.
+  integer box(4)                ! Defines which box the plot is put in.
+  integer ix_universe           ! Used for lat_layout plots.
+  logical valid                 ! valid if all curve y_dat computed OK.
+  logical y2_mirrors_y          ! Y2-axis same as Y-axis?
+  logical limited               ! True if at least one data point past graph bounds.
+  logical draw_axes             ! Draw axes, labels, etc?
+  logical correct_xy_distortion ! T -> Shrink floor plan along one axis.
 end type
 
 ! A plot is collection of graphs.

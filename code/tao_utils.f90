@@ -2711,11 +2711,12 @@ subroutine tao_parse_command_args (error, cmd_words)
 
   if (present(cmd_words)) then
     n_arg = size(cmd_words)
+    if (cmd_words(1) == '') return
   else
     n_arg = cesr_iargc()
+    if (n_arg == 0) return
   endif
 
-  if (n_arg == 0) return
 
 ! since there are arguments reset things to their initial state
 

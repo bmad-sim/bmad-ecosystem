@@ -29,7 +29,7 @@ real(rp) ax_min, ax_max
 
 character(20) :: r_name = 'tao_plot_data_setup'
 
-! Find which elements are to be drawn for a lattice layout.
+! Find which elements are to be drawn for a lattice layout and floor plan plots.
 ! base%lat%ele%ix_pointer will be used for storing the shape index.
 ! model%lat%ele%ix_pointer will be used to store the element end points.
 
@@ -41,9 +41,9 @@ if (any(s%plot_page%ele_shape(:)%key /= 0)) then
     do ie = 1, lat%n_ele_max
       ele => lat%ele(ie)
       if (ele%control_type == group_lord$) cycle
+      if (ele%control_type == multipass_lord$) cycle
       if (ele%control_type == overlay_lord$) cycle
       if (ele%control_type == super_slave$) cycle
-      if (ele%control_type == multipass_lord$) cycle
       if (ie > lat%n_ele_track .and. ele%control_type == free$) cycle
       do k = 1, size(s%plot_page%ele_shape(:))
         if (s%plot_page%ele_shape(k)%key == 0) cycle

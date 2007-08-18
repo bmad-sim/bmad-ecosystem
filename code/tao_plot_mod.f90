@@ -247,15 +247,17 @@ type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 type (floor_position_struct) end1, end2, floor
 
-integer i, j, ix_ptr, icol, ix1, ix2, isu, n_bend, n
+integer i, j, ix_ptr, icol, ix1, ix2, isu, n_bend, n, ix
 
 real(rp) off, off1, off2, angle, rho, x0, y0, dx1, dy1, dx2, dy2
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta
 real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
+real(rp) x_inch, y_inch
 
 character(80) str
+character(40) name
 character(20) :: r_name = 'tao_plot_floor_plan'
 character(16) shape
 character(2) justify
@@ -265,6 +267,13 @@ character(2) justify
 
 call qp_set_layout (x_axis = plot%x, y_axis = graph%y, &
                     box = graph%box, margin = graph%margin)
+
+! Adjust the margins if there is to be no distortion of the drawing
+
+if (graph%correct_xy_distortion) call qp_eliminate_xy_distortion
+
+!
+
 if (graph%draw_axes) then
   call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
   call qp_draw_axes
@@ -290,7 +299,6 @@ do i = 1, lat%n_ele_max
   ele => lat%ele(i)
   ix_ptr = ele%ix_pointer
 
-  if (ele%control_type == multipass_lord$) cycle
   if (ele%control_type == super_slave$) cycle
   if (i > lat%n_ele_track .and. ix_ptr < 1) cycle
 
@@ -313,7 +321,8 @@ do i = 1, lat%n_ele_max
       end2%y < graph%y%min .or. graph%y%max < end2%y)) cycle
 
   ! Bends can be tricky if they are not in the X-Z plane. 
-  ! Thus bends are parameterized by a set of points along their centerline
+  ! Bends are parameterized by a set of points (x_bend, y_bend) along their  
+  ! centerline and a set of vectors (dx_bend, dy_bend) perpendicular to the centerline.
 
   if (ele%key == sbend$) then
     if (ele%value(g$) == 0) then
@@ -334,7 +343,7 @@ do i = 1, lat%n_ele_max
 
       rho = ele%value(rho$)
 
-      n_bend = int(100 * ele%value(angle$)) + 1
+      n_bend = abs(int(100 * ele%value(angle$))) + 1
        do j = 0, n_bend
         angle = j * ele%value(angle$) / n_bend
         cos_t = cos(ele%value(tilt$))
@@ -343,6 +352,8 @@ do i = 1, lat%n_ele_max
         sin_a = sin(angle)
         r_vec = rho * (/ cos_t * (cos_a - 1), sin_t * (cos_a - 1), sin_a /)
         dr_vec = rho * (/ -cos_t * sin_a, -sin_t * sin_a, cos_a /)
+        ! This keeps dr_vec pointing to the inside (important for the labels).
+        if (cos_t < 0) dr_vec = -dr_vec
         v_vec = matmul (w_old, r_vec) + v_old
         dv_vec = matmul (w_old, dr_vec) 
         call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
@@ -412,12 +423,6 @@ do i = 1, lat%n_ele_max
   dx2 =  off2 * dt_y / sqrt(dt_x**2 + dt_y**2)
   dy2 = -off2 * dt_x / sqrt(dt_x**2 + dt_y**2)
 
-  call qp_draw_line (end1%x+dx1, end1%x-dx1, end1%y+dy1, end1%y-dy1, &
-                                                    units = 'POINTS', color = icol)
-  call qp_draw_line (end2%x+dx2, end2%x-dx2, end2%y+dy2, end2%y-dy2, &
-                                                    units = 'POINTS', color = icol)
-
-
   if (ele%key == sbend$) then
     do j = 0, n_bend
       call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', x_bend(j), y_bend(j), 'POINTS')
@@ -425,6 +430,16 @@ do i = 1, lat%n_ele_max
       dx_bend(j) =  off * dt_y / sqrt(dt_x**2 + dt_y**2)
       dy_bend(j) = -off * dt_x / sqrt(dt_x**2 + dt_y**2)
     enddo
+  endif
+
+  ! Draw the element.
+
+  call qp_draw_line (end1%x+dx1, end1%x-dx1, end1%y+dy1, end1%y-dy1, &
+                                                    units = 'POINTS', color = icol)
+  call qp_draw_line (end2%x+dx2, end2%x-dx2, end2%y+dy2, end2%y-dy2, &
+                                                    units = 'POINTS', color = icol)
+
+  if (ele%key == sbend$) then
     call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
                           y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
     call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
@@ -444,9 +459,19 @@ do i = 1, lat%n_ele_max
                                                     units = 'POINTS', color = icol)
   endif
 
-  ! draw the label
+  ! Draw the label.
+  ! Since multipass slaves are on top of one another, just draw the multipass lord's name.
+  ! Also place a bend's label to the outside of the bend.
 
   if (s%plot_page%ele_shape(ix_ptr)%draw_name) then
+    if (ele%control_type == multipass_slave$) then
+      ix = ele%ic1_lord
+      ix = lat%control(lat%ic(ix))%ix_lord
+      name = lat%ele(ix)%name
+    else
+      name = ele%name
+    endif
+
     if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
       x_center = (end1%x + end2%x) / 2 
       y_center = (end1%y + end2%y) / 2 
@@ -456,8 +481,8 @@ do i = 1, lat%n_ele_max
       n = n_bend / 2
       x_center = x_bend(n) 
       y_center = y_bend(n) 
-      dx = 2 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
-      dy = 2 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
+      dx = -2 * off2 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
+      dy = -2 * off2 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
     endif
     theta = modulo2 (atan2d(dy, dx), 90.0_rp)
     if (dx > 0) then
@@ -466,7 +491,7 @@ do i = 1, lat%n_ele_max
       justify = 'RC'
     endif
     height = s%plot_page%text_height * s%plot_page%legend_text_scale
-    call qp_draw_text (ele%name, x_center+dx, y_center+dy, units = 'POINTS', &
+    call qp_draw_text (name, x_center+dx, y_center+dy, units = 'POINTS', &
                                  height = height, justify = justify, ANGLE = theta)    
   endif
 

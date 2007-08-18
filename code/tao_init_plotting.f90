@@ -37,11 +37,12 @@ type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
 
 integer iu, i, j, ip, n, ng, ios, i_uni
-integer graph_index
+integer graph_index, color
 integer, allocatable :: ix_ele(:)
 
 character(200) file_name, plot_file
 character(100) graph_name
+character(80) label
 character(20) :: r_name = 'tao_init_plotting'
 
 logical lat_layout_here
@@ -148,7 +149,9 @@ do
     graph%legend_origin = qp_point_struct(1.0_rp, 1.0_rp, '%GRAPH')
     graph%y  = init_axis
     graph%y2 = init_axis
+    graph%y2%label_color = blue$
     graph%y2%draw_numbers = .false.
+    graph%correct_xy_distortion = .false.
     graph%ix_universe = 0
     graph%clip = .true.
     graph%draw_axes = .true.
@@ -202,6 +205,7 @@ do
     grph%ix_universe   = graph%ix_universe
     grph%clip          = graph%clip
     grph%draw_axes     = graph%draw_axes
+    grph%correct_xy_distortion = graph%correct_xy_distortion
     grph%title_suffix = ' '
     grph%legend = ' '
     grph%y2_mirrors_y = .true.
@@ -254,6 +258,7 @@ do
       if (crv%use_y2) then
         grph%y2%draw_numbers = .true.
         grph%y2_mirrors_y = .false.
+        grph%y2%label_color = crv%symbol%color
       endif
 
       ! Enable the radiation integrals calculation if needed.
@@ -295,8 +300,13 @@ do
     enddo  ! curve
 
     if (grph%y2%min /= grph%y2%max) call qp_calc_axis_places (grph%y2)
-    if (grph%y2%min == grph%y2%max .and. .not. grph%y2_mirrors_y) grph%y2 = grph%y
-
+    if (grph%y2%min == grph%y2%max .and. .not. grph%y2_mirrors_y) then
+      label = grph%y2%label
+      color = grph%y2%label_color
+      grph%y2 = grph%y
+      grph%y2%label = label
+      grph%y2%label_color = color
+    endif
   enddo  ! graph
 enddo  ! plot
 

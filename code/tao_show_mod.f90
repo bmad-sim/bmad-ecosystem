@@ -1040,32 +1040,33 @@ case ('plot')
       nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(p%r%name) // '.' // trim(g%name)
     endif
     nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(p%name) // '.' // trim(g%name)
-    nl=nl+1; write (lines(nl), amt) 'name                 = ', g%name
-    nl=nl+1; write (lines(nl), amt) 'type                 = ', g%type
-    nl=nl+1; write (lines(nl), amt) 'title                = ', g%title
-    nl=nl+1; write (lines(nl), amt) 'title_suffix         = ', g%title_suffix
+    nl=nl+1; write (lines(nl), amt) 'name                  = ', g%name
+    nl=nl+1; write (lines(nl), amt) 'type                  = ', g%type
+    nl=nl+1; write (lines(nl), amt) 'title                 = ', g%title
+    nl=nl+1; write (lines(nl), amt) 'title_suffix          = ', g%title_suffix
     nl=nl+1; write (lines(nl), '(a, 4f10.2, 2x, a)') &
-                                    'margin               = ', g%margin
-    nl=nl+1; write (lines(nl), imt) 'box                  = ', g%box
-    nl=nl+1; write (lines(nl), imt) 'ix_universe          = ', g%ix_universe
-    nl=nl+1; write (lines(nl), imt) 'box                  = ', g%box
-    nl=nl+1; write (lines(nl), lmt) 'valid                = ', g%valid
-    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y         = ', g%y2_mirrors_y
-    nl=nl+1; write (lines(nl), rmt) 'y%max                = ', g%y%max
-    nl=nl+1; write (lines(nl), rmt) 'y%min                = ', g%y%min
-    nl=nl+1; write (lines(nl), imt) 'y%major_div          = ', g%y%major_div
-    nl=nl+1; write (lines(nl), imt) 'y%places             = ', g%y%places
-    nl=nl+1; write (lines(nl), lmt) 'y%draw_label         = ', g%y%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers       = ', g%y%draw_numbers
-    nl=nl+1; write (lines(nl), rmt) 'y2%max               = ', g%y2%max
-    nl=nl+1; write (lines(nl), rmt) 'y2%min               = ', g%y2%min
-    nl=nl+1; write (lines(nl), imt) 'y2%major_div         = ', g%y2%major_div
-    nl=nl+1; write (lines(nl), imt) 'y2%places            = ', g%y2%places
-    nl=nl+1; write (lines(nl), lmt) 'y2%draw_label        = ', g%y2%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers      = ', g%y2%draw_numbers
-    nl=nl+1; write (lines(nl), lmt) 'limited              = ', g%limited
-    nl=nl+1; write (lines(nl), lmt) 'clip                 = ', g%clip
-    nl=nl+1; write (lines(nl), lmt) 'draw_axes            = ', g%draw_axes
+                                    'margin                = ', g%margin
+    nl=nl+1; write (lines(nl), imt) 'box                   = ', g%box
+    nl=nl+1; write (lines(nl), imt) 'ix_universe           = ', g%ix_universe
+    nl=nl+1; write (lines(nl), imt) 'box                   = ', g%box
+    nl=nl+1; write (lines(nl), lmt) 'valid                 = ', g%valid
+    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y          = ', g%y2_mirrors_y
+    nl=nl+1; write (lines(nl), rmt) 'y%max                 = ', g%y%max
+    nl=nl+1; write (lines(nl), rmt) 'y%min                 = ', g%y%min
+    nl=nl+1; write (lines(nl), imt) 'y%major_div           = ', g%y%major_div
+    nl=nl+1; write (lines(nl), imt) 'y%places              = ', g%y%places
+    nl=nl+1; write (lines(nl), lmt) 'y%draw_label          = ', g%y%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers        = ', g%y%draw_numbers
+    nl=nl+1; write (lines(nl), rmt) 'y2%max                = ', g%y2%max
+    nl=nl+1; write (lines(nl), rmt) 'y2%min                = ', g%y2%min
+    nl=nl+1; write (lines(nl), imt) 'y2%major_div          = ', g%y2%major_div
+    nl=nl+1; write (lines(nl), imt) 'y2%places             = ', g%y2%places
+    nl=nl+1; write (lines(nl), lmt) 'y2%draw_label         = ', g%y2%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers       = ', g%y2%draw_numbers
+    nl=nl+1; write (lines(nl), lmt) 'limited               = ', g%limited
+    nl=nl+1; write (lines(nl), lmt) 'clip                  = ', g%clip
+    nl=nl+1; write (lines(nl), lmt) 'draw_axes             = ', g%draw_axes
+    nl=nl+1; write (lines(nl), lmt) 'correct_xy_distortion = ', g%correct_xy_distortion
     nl=nl+1; lines(nl) = 'Curves:'
     do i = 1, size(g%curve)
       nl=nl+1; write (lines(nl), amt) '   ', g%curve(i)%name
