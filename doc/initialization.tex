@@ -31,7 +31,7 @@ slash ``/'' For example:
 \end{example}
 Variables that have default values can be omitted from the block.  The
 order of the variables inside a block is irrelevant except if the
-same variable appears twice in which case the last occurance is determative.
+same variable appears twice in which case the last occurrence is determinative.
 In between namelist blocks all text is ignored. Inside a block comments may be
 included by using an exclamation mark ``!''.
 
@@ -41,7 +41,7 @@ shows:
   &namelist_name
     var_array(8:11) = 34             ! Only sets var_array(8)
     var_array(8:11) = 34 34 81 81    ! OK. Sets all 4 values
-    var_array(8:11) = 2*34 2*81      ! Equivalent to the preceeding line
+    var_array(8:11) = 2*34 2*81      ! Equivalent to the preceding line
     var_array(8:)   = 2*34 2*81      ! Also equivalent
     var_array(1:2) = 1 2 3           ! Error: Too many RHS values
   /
@@ -135,23 +135,23 @@ in table \ref{t:init_files}.
 \index{tao_template_graph}
 \index{element_shapes}
 \index{key_bindings}
-\begin{table}[h]
+\begin{table}[ht]
 \centering {\tt
 \begin{tabular}{|l|l|l|l|} \hline
   {\it Namelist} & {\it File Name} & {\it Initialized here}  & {\it Section} \\ \hline
-  \vn{tao_design_lattice}   & \vn{lattice_file} & lattice files       & \ref{s:init_lat}    \\ \hline
-  \vn{tao_params}           & 'tao.init' & Global Variables    & \ref{s:globals}     \\ \hline
-  \vn{tao_coupled_uni_init} & 'tao.init' & Coupled Universes   & \ref{s:coupled_uni} \\ \hline
-  \vn{tao_beam_init}        & 'tao.init' & Particle beam       & \ref{s:beam_init}   \\ \hline
-  \vn{tao_macro_init}       & 'tao.init' & Macroparticle beam  & \ref{s:macro_init}  \\ \hline
-  \vn{tao_var}              & \vn{var_file}     & Variables           & \ref{s:init_var}    \\ \hline
-  \vn{tao_d2_data}          & \vn{data_file}    & Data                & \ref{s:init_data}   \\ \hline
-  \vn{tao_d1_data}          & \vn{data_file}    & Data                & \ref{s:init_data}   \\ \hline
-  \vn{tao_plot_page}        & \vn{plot_file}    & Plotting            & \ref{s:init_plot}   \\ \hline
-  \vn{tao_template_plot}    & \vn{plot_file}    & Plotting            & \ref{s:init_plot}   \\ \hline
-  \vn{tao_template_graph}   & \vn{plot_file}    & Plotting            & \ref{s:init_plot}   \\ \hline
-  \vn{element_shapes}       & \vn{plot_file}    & Plotting            & \ref{s:init_plot}   \\ \hline
-  \vn{key_bindings}         & \vn{single_mode_file} & Single Mode     & \ref{s:init_single}   \\ \hline
+  \vn{tao_design_lattice}   & \vn{lattice_file} & lattice files    & \ref{s:init_lat}      \\ \hline
+  \vn{tao_params}           & 'tao.init' & Global Variables        & \ref{s:globals}       \\ \hline
+  \vn{tao_coupled_uni_init} & 'tao.init' & Coupled Universes       & \ref{s:coupled_uni}   \\ \hline
+  \vn{tao_beam_init}        & 'tao.init' & Particle beam           & \ref{s:beam_init}     \\ \hline
+  \vn{tao_macro_init}       & 'tao.init' & Macroparticle beam      & \ref{s:macro_init}    \\ \hline
+  \vn{tao_var}              & \vn{var_file}     & Variables        & \ref{s:init_var}      \\ \hline
+  \vn{tao_d2_data}          & \vn{data_file}    & Data             & \ref{s:init_data}     \\ \hline
+  \vn{tao_d1_data}          & \vn{data_file}    & Data             & \ref{s:init_data}     \\ \hline
+  \vn{tao_plot_page}        & \vn{plot_file}    & Plotting         & \ref{s:init_plot}     \\ \hline
+  \vn{tao_template_plot}    & \vn{plot_file}    & Plotting         & \ref{s:init_plot}     \\ \hline
+  \vn{tao_template_graph}   & \vn{plot_file}    & Plotting         & \ref{s:init_plot}     \\ \hline
+  \vn{element_shapes}       & \vn{plot_file}    & Plotting         & \ref{s:init_plot}     \\ \hline
+  \vn{key_bindings}         & \vn{single_mode_file} & Single Mode  & \ref{s:init_key_bind} \\ \hline
 \end{tabular}}
 \caption{Table of \vn{tao} Initialization Namelists}
 \label{t:init_files}
@@ -1061,14 +1061,12 @@ merit function. If not present then the default weight of
 this bpm.  If not present then \vn{default_bpm_noise} is used.
 
 %-----------------------------------------------------------------
-\section{Initializing Key Bindings for Single Mode}\index{Initialization!Key Bindings}
-\label{s:init_single} 
+\section{Initializing Key Bindings}\index{Key Bindings}
+\label{s:init_key_bind} 
 
-For \vn{Single Mode} (\sref{s:single} the bindings of variables to
+For \vn{Single Mode} (\sref{c:single} the bindings of variables to
 keys is defined with a \vn{key_bindings} namelist. There is a maximum
 of 500 key bindings. The syntax is:
-\index{key_bindings}
-\index{key}
 \begin{example}
   &key_bindings
     key(i) = <ele_name> <attrib_name> <delta> <universe> 
@@ -1106,7 +1104,7 @@ given by
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Initializing Plotting}\index{Initialization!Plotting}
+\section{Initializing Plotting}\index{Plotting Initializing}
 \label{s:init_plot} 
 
 \subsection{Plot Window}\index{Initialization!Plotting!Plot Window}
@@ -1168,16 +1166,17 @@ For example:
 window in \vn{POINTS} units (72 points = 1 inch. Roughly 1 point = 1
 pixel). 
 
-\vn{plot_page%text_height} sets the baseline height of the text that
-is drawn.  \vn{plot_page%main_title_text_scale} scales the height of
-the main title text relative to this baseline. Similarly
-\vn{plot_page%graph_title_text_scale} scales the height of the titles
-of any graph. The axis numbers and axis label are scalled by
-\vn{plot_page%axis_number_text_scale} and
-\vn{plot_page%axis_label_text_scale} respectively.
-\vn{plot_page%key_table_text_scale} scales the text in a \vn{key
-table} and \vn{plot_page%legend_text_scale} scales the text in a
-\vn{lat layout} or a \vn{floor plan}.
+\vn{plot_page%text_height} sets the overall height of the text that
+is drawn. Relative to this, various parameters can be used to scale individual types of text:
+\begin{example}
+  plot_page%main_title_text_scale  = 1.3 ! Main title height. 
+  plot_page%graph_title_text_scale = 1.1 ! Graph title height.
+  plot_page%axis_number_text_scale = 0.9 ! Axis number height
+  plot_page%axis_label_text_scale  = 1.0 ! Axis label height.
+  plot_page%key_table_text_scale   = 0.8 ! Key Table text (sref{s:key_table}).
+  plot_page%legend_text_scale      = 0.9 ! Lat Layout or floor plan text.
+\end{example}
+The default values for these scales are given above.
 
 \vn{plot_page%border} sets a border around the edges of the
 window. As shown in Figure~\ref{f:plot_page} \vn{b_x1}, \vn{b_x2} are
@@ -1209,7 +1208,7 @@ likes.
 \vn{place(i)} determines the initial placement of plots.
 
 %-----------------------------------------------------------------
-\subsection{Templates}\index{Initialization!Plotting!Templates}
+\subsection{Plot Templates}\index{Plot Templates}
 
 As shown in Figure~\ref{f:plot}, a ``plot'' is made up of a collection
 of ``graphs'' and a graph consists of axes plus a set of ``curves''.
@@ -1312,6 +1311,7 @@ namelists should be placed directly after their respective
     graph%clip            = <logical> ! Clip plot at grpah boundary. default = T
     graph%draw_axes       = <logical> ! Default = T
     graph%who(i)          = "<who_to_plot>", <sign>
+    graph%correct_xy_distortion = <logical>   ! For Floor Plan plots: Default = F
     curve(i)%name         = "<curve_name>"
     curve(i)%data_type    = "<data_type>"
     curve(i)%data_source  = "<source_name>" !source for the data curve points
@@ -1326,8 +1326,8 @@ namelists should be placed directly after their respective
     curve(i)%symbol       = <qp_symbol_struct>
     curve(i)%symbol_every = <integer>         ! plot symbol every # datums
     curve(i)%convert      = <Logical>
-    curve(i)%draw_interpolated_curve = <Logical>
     curve(i)%ele_ref_name = "<element_name>"     ! reference element.
+    curve(i)%draw_interpolated_curve = <Logical>
   /
 \end{example}
 For example:
@@ -1381,10 +1381,10 @@ following types:
 \index{floor_plan}
 \begin{example}
   "data"         ! Data plots (default) 
-  "floor_plan"   ! A 2-dimensional birds-eye view of the machine.
-  "key_table"    ! Key binding table for single mode.
-  "lat_layout"   ! Schematic showing placement of the lattice elements.
-  "phase_space"  ! Phase space plots
+  "floor_plan"   ! A 2-dimensional birds-eye view of the machine (\sref{s:floor_plan}).
+  "key_table"    ! Key binding table for single mode (\sref{s:key_table}).
+  "lat_layout"   ! Schematic showing placement of the lattice elements (\sref{s:lat_layout}).
+  "phase_space"  ! Phase space plots (\sref{s:phase_space}).
 \end{example}
 The \vn{key_table} is drawn with respect to the upper left hand corner
 of the region in which it is placed.
@@ -1453,51 +1453,6 @@ possible \vn{curve%data_type} values are the same as the possible
 what points the curve to the proper data so there needs to be a
 corresponding data or var type defined in the initialization file.  
 
-If \vn{graph%type} is \vn{"phase_space"} then \vn{curve%data_source} 
-must be either:
-\begin{example}
-  "beam_tracking"
-  "multi_turn_orbit"
-  "twiss"
-\end{example} 
-\vn{"beam_tracking"} indicates that the points of the phase space plot
-will be obtained correspond to the positions of the particles within a
-tracked beam. \vn{multi_turn_orbit"} is used for rings where a single
-particle is tracked multiple turns and the position of this particle
-is recorded each turn. In this case, a \vn{d2_data} structure must
-have been set up to hold the turn--by--turn orbit. This \vn{d2_data}
-structure must be called \vn{multi_turn_orbit} and must have
-\vn{d1_data} data arrays for the phase space planes to be plotted. For
-example, if the phase space plot is \vn{x} verses \vn{p_x}, then there
-must be \vn{d1_data} arrays named \vn{"x"} and \vn{"p_x"}. The number
-of turns is determined by the setting of \vn{ix_max_data} in the
-\vn{tao_d1_data} namelist (\sref{s:init_data}). Using \vn{"twiss"} as
-the \vn{curve%data_source} indicates that the phase space plot will be
-an ellipse whose shape is based upon the Twiss and coupling
-parameters, and the normal mode emittances. If the normal mode
-emittances have not been computed then a nominal value of 1e-6~m-rad
-is used.
-
-Additionally, for a \vn{"phase_space"} type graph, \vn{curve%data_type}
-determines what planes are plotted. A plane is either:
-\index{x}\index{p_x}\index{y}\index{p_y}\index{z}\index{p_z}
-\begin{example}
-  "x"
-  "p_x"
-  "y"
-  "p_y"
-  "z"
-  "p_z"
-\end{example}
-For example:
-\begin{example}
-  curve%data_type = "x-p_x"  ! x-axis - y-axis
-\end{example}
-The dash \vn{-} is mandatory as the separator between the plane names. 
-
-To change the place at which the \vn{phase_space} curve is drawn use
-the \vn{set curve ele_ref_name} or \vn{set curve ix_ele_ref} commands.
-
 \vn{curve%convert} is a logical that is only used
 with \vn{curve%data_name} = "coupling" and tells \tao to convert the
 coupling data into cbar data before plotting.
@@ -1522,7 +1477,8 @@ be drawn. Notice that simply giving the \vn{y2} axis a label does {\em
 not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 
 %-----------------------------------------------------------------
-\subsection{Lattice Layout}\index{Initialization!Lattice Layout}
+\subsection{Drawing a Lattice Layout}\index{Lattice Layout}
+\label{s:lat_layout}
 
 \begin{figure}
   \centering
@@ -1531,11 +1487,11 @@ not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 above a key table plot (bottom). The points on the curves in the data plot mark the edges
 of the elements displayed in the lattice layout. Elements that have attributes that
 are varied as shown in the key table have the corresponding key table number printed above
-in the lattice layout.}
+the element's glyph in the lattice layout.}
   \label{f:layout_table}
 \end{figure}
 
-A lattice layout template plot may be defined that draws the lattice
+A lattice layout plot draws the lattice
 along a straight line with colored rectangles representing the various elements.
 An example is shown in Figure~\ref{f:layout_table}.
 The \vn{tao_template_plot} needed to define a lattice layout looks like:
@@ -1585,9 +1541,8 @@ Example:
 
 \index{element_shapes}
 \index{shape}
-With a \vn{graph%type} of \vn{lat_layout} or \vn{floor_plan}, 
-the shapes to be drawn for the various lattice elements need to
-be defined using an \vn{element_shapes} namelist whose syntax is:
+Which elements are drawn is under user control and is defined 
+using an \vn{element_shapes} namelist whose syntax is:
 \begin{example}
   &element_shapes 
     shape(i) = "<key>", "<name>", "<shape>", "<color>", 
@@ -1597,15 +1552,15 @@ be defined using an \vn{element_shapes} namelist whose syntax is:
 For Example:                 
 \begin{example}
   &element_shapes
-    shape(1) = "Quadrupole", "Q*",      "Box",  "Red",      30,   T 
-    shape(2) = "Quadrupole", "*",       "XBox", "Red",      30,   F 
-    shape(3) = "SBend",      "*",       "Box",  "Blue",     15    F
-    shape(4) = "Wiggler",    "*",       "XBox", "Green",    20    T
+    !           Key          Name    Shape      Color     Size   Label?
+    shape(1) = "Quadrupole", "Q*",   "Box",     "Red",     30,    T 
+    shape(2) = "Quadrupole", "*",    "XBox",    "Red",     30,    F 
+    shape(3) = "SBend",      "*",    "Box",     "Blue",    15     F
+    shape(4) = "Wiggler",    "*",    "XBox",    "Green",   20     T
   /
 \end{example}
-
 A figure is drawn for each element in the lattice that matches a
-shape. A Match is made if the type of element matches the shape
+\vn{shape()}. A Match is made if the type of element matches the shape
 \vn{<key>} and the name of the element matches the shape
 \vn{<name>}. The wildcard ``*'' may be used to denote any number of
 characters. Thus, in the example above, \vn{shape(1)} will match to
@@ -1642,10 +1597,14 @@ the \vn{K1} focusing strength. Not all elements can be used with a
 \end{example}
 \vn{<v_size} is the vertical size of the shape in points (72 points =
 1 inch). Finally \vn{<print_label>} is a logical indicating whether
-the element name is to be printed underneath the corresponding rectangle.
+the element name is to be printed underneath the corresponding glyph.
+
+Note: The \vn{element_shapes} namelist is used for both a \vn{Lattice Layout}
+and a \vn{Floor Plan}.
 
 %-----------------------------------------------------------------
-\subsection{Key Table}\index{Initialization!Key Table}
+\subsection{Drawing a Key Table}\index{Key Table}
+\label{s:key_table}
 
 The \vn{key table} is explained more fully in Section~\sref{s:key_bind}.
 An example is shown in Figure~\ref{f:layout_table}. a template to create a key table
@@ -1661,4 +1620,176 @@ looks like:
     graph_index = 1
     graph%n_curve = 0
   /
-\end|example}
+\end{example}
+
+The number in the upper left corner, to the left of the first column, 
+(\vn{1} in Fig.~\ref{f:layout_table})
+shows the active \vn{key bank}. The columns in the Key Table are:
+\begin{example}
+  Ix         ! Key index.
+  Name       ! Element name whose attribute is bound.
+  Attrib     ! Name of the element attribute that is bound.
+  Value      ! Current value of bound attribute.
+  Value0     ! Initial value of bound attribute.
+  Delta      ! Change in value when the appropriate key is pressed.
+  Uni        ! Universe that contains the element.
+  Useit_opt  ! Shows if bound attribute is used in an optimization.
+\end{example}
+
+Note that in a \vn{Lattice Layout}, if a displayed element has a bound attribute, then
+the key index number will be displayed just above the element's glyph
+
+%-----------------------------------------------------------------
+\subsection{Floor Plan Drawing}\index{Floor Plan Drawing}
+\label{s:floor_plan}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{floor_plan.eps}
+  \caption{Example Floor Plan drawing.}
+  \label{f:floor_plan}
+\end{figure}
+
+A \vn{Floor Plan} drawing gives a display of the machine projected onto the 
+horizontal plane.
+An example is shown in Figure~\ref{f:floor_plan}. Like a \vn{Lattice Layout}
+(\sref{s:lat_layout}), Elements are represented by colored rectangles and
+which elements are drawn is determined by an \vn{element shapes} namelist 
+(see~\sref{s:lat_layout}). 
+
+The placement of an element in the drawing
+is determined by the element's coordinates in \vn{global reference system}. 
+See the Bmad manual for more information on the \vn{global reference system}.
+In the \vn{global reference system}, the $(X, Z)$ plane is horizontal plane.
+The conversion between the $(X, Z)$ coordinates of the
+\vn{global reference system} and the  $(x, y)$ coordinates of the Floor Plan plot
+are:
+\begin{example}
+Global        Plot
+  Z    <--->   -x
+  X    <--->   -y
+\end{example}
+The \vn{show ele} command (\sref{s:show}) can be used to view an element's
+global coordinates. Additionally, the global coordinates at the start of
+the lattice can be defined in the lattice file. See the Bmad manual for
+more details.
+
+Example Floor Plan template:
+\begin{example}
+  &tao_template_plot
+    plot%name = 'floor'
+    plot%x%min = -13  
+    plot%x%max = 0    
+    plot%x%major_div = 4
+    plot%x%minor_div = 3
+    plot%x%label = 'Meters'
+    plot%n_graph = 1
+  /
+
+  &tao_template_graph
+    graph_index = 1
+    graph%name = "1"
+    graph%type = "floor_plan"
+    graph%box = 1, 1, 1, 1
+    graph%margin = 0.10, 0.10, 0.10, 0.10, '%BOX'
+    graph%ix_universe = 1
+    graph%y%label = "Meters"
+    graph%y%max = 2  
+    graph%y%min = -1 
+    graph%correct_xy_distortion = T
+  /
+\end{example}
+
+If \vn{graph%correct_xy_distortion} is set to \vn{True} (default is
+\vn{False}), then the horizontal or vertical margins of the graph will be
+increased so that the horizontal scale (meters per plotting inch) is equal
+to the vertical scale.
+
+%-----------------------------------------------------------------
+\subsection{Phase Space Plotting}\index{Phase Space Plotting}
+\label{s:phase_space}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{phase_space.eps}
+  \caption{Example Phase Space plot.}
+  \label{f:phase_space}
+\end{figure}
+
+A \vn{Phase Space} plot displays a particle or particles phase space
+coordinates at a given location. An example is show in Figure~\ref{f:phase_space}.
+
+Example Phase Space template:
+\begin{example}
+  &tao_template_plot
+    plot%name = 'zphase'
+    plot%x%min =   -10e-3
+    plot%x%max = 10e-3
+    plot%x%major_div = 4
+    plot%x%label = 'z'
+    plot%n_graph = 1
+  /
+
+  &tao_template_graph
+    graph_index = 1
+    graph%name = 'z'
+    graph%type = 'phase_space'
+    graph%box = 1, 1, 1, 1
+    graph%title = 'Z-Pz'
+    graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
+    graph%y%label = 'Pz'
+    graph%y%max = 3
+    graph%y%min = -3
+    graph%y%major_div = 4
+    graph%n_curve = 1
+    curve(1)%data_type = 'z-p_z' 
+    curve(1)%data_source = 'beam_tracking'
+    curve(1)%ele_ref_name = "BEGINNING"
+  /
+\end{example}
+
+For a \vn{"phase_space"} type graph, \vn{curve%data_type}
+determines what planes are plotted. A plane is either:
+\index{x}\index{p_x}\index{y}\index{p_y}\index{z}\index{p_z}
+\begin{example}
+  "x"
+  "p_x"
+  "y"
+  "p_y"
+  "z"
+  "p_z"
+\end{example}
+For example:
+\begin{example}
+  curve%data_type = "x-p_x"  ! x-axis - y-axis
+\end{example}
+The dash \vn{-} is mandatory as the separator between the plane names. 
+
+To change the place at which the \vn{phase_space} curve is drawn use
+the \vn{set curve ele_ref_name} or \vn{set curve ix_ele_ref} commands.
+
+If \vn{graph%type} is \vn{"phase_space"} then \vn{curve%data_source} 
+must be either:
+\begin{example}
+  "beam_tracking"
+  "multi_turn_orbit"
+  "twiss"
+\end{example} 
+\vn{"beam_tracking"} indicates that the points of the phase space plot
+will be obtained correspond to the positions of the particles within a
+tracked beam. \vn{multi_turn_orbit"} is used for rings where a single
+particle is tracked multiple turns and the position of this particle
+is recorded each turn. In this case, a \vn{d2_data} structure must
+have been set up to hold the turn--by--turn orbit. This \vn{d2_data}
+structure must be called \vn{multi_turn_orbit} and must have
+\vn{d1_data} data arrays for the phase space planes to be plotted. For
+example, if the phase space plot is \vn{x} verses \vn{p_x}, then there
+must be \vn{d1_data} arrays named \vn{"x"} and \vn{"p_x"}. The number
+of turns is determined by the setting of \vn{ix_max_data} in the
+\vn{tao_d1_data} namelist (\sref{s:init_data}). Using \vn{"twiss"} as
+the \vn{curve%data_source} indicates that the phase space plot will be
+an ellipse whose shape is based upon the Twiss and coupling
+parameters, and the normal mode emittances. If the normal mode
+emittances have not been computed then a nominal value of 1e-6~m-rad
+is used.
+

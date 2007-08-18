@@ -20,35 +20,33 @@ to get into \vn{single mode}. To go back to \vn{line mode} type
 \section{Key Bindings}\index{Key Bindings}
 \label{s:key_bind}
 
-The main purpose of Single Mode is to assocaite certain keys with
+The main purpose of Single Mode is to associate certain keys with
 certain variables so that the pressing of these keys will change their
 associated variable. This is called a \vn{key binding}.  Key bindings
 are established via the \vn{key_bindings} initialization namelist (See
-Section~\ref{s:init_single}). The variables are divided into banks of
+Section~\ref{s:init_key_bind}). The variables are divided into banks of
 10. The 0\Th bank uses variables \vn{key(1)} through \vn{key(10)} from
 the \vn{key_bindings} namelist, the 1\St bank uses variables
 \vn{key(11)} through \vn{key(20)}, etc.  
 
-At any one time only one bank is active. To see the status of this
+At any one time, only one bank is active. To see the status of this
 bank, a \vn{key table} plot can be setup as shown in
-Figure~\ref{f:layout_graph_table}.
-
-The relationship between the keys and a change in a
-variable is:
+Figure~\ref{f:layout_table}. The relationship between the keys and a
+change in a variable is:
 \begin{example}
                  Change by factor of:          
-     Variable    -10  -1    1   10
-   ----------    ---  ---  ---  ---
-    1 + 10*ib     Q    q    1    !   
-    2 + 10*ib     W    w    2    @    
-    3 + 10*ib     E    e    3    \#   
-    4 + 10*ib     R    r    4    \$   
-    5 + 10*ib     T    t    5    %   
-    6 + 10*ib     Y    y    6    ^   
-    7 + 10*ib     U    u    7    \&
-    8 + 10*ib     I    i    8    *   
-    9 + 10*ib     O    o    9    (   
-   10 + 10*ib     P    p    0    )   
+     Variable    -10  -1    1     10
+   ----------    ---  ---  ---  -------
+    1 + 10*ib     Q    q    1   shift-1   ("!")
+    2 + 10*ib     W    w    2   shift-2   ("@")
+    3 + 10*ib     E    e    3   shift-3   ("\#")
+    4 + 10*ib     R    r    4   shift-4   ("\$")
+    5 + 10*ib     T    t    5   shift-5   ("%")
+    6 + 10*ib     Y    y    6   shift-6   ("^")
+    7 + 10*ib     U    u    7   shift-7   ("\&")
+    8 + 10*ib     I    i    8   shift-8   ("*")
+    9 + 10*ib     O    o    9   shift-9   ("(")
+   10 + 10*ib     P    p    0   shift-0   (")")
 \end{example}
 In the above table ib is the bank number (0 for the 0\Th bank, etc.),
 and the change is in multiples of the \vn{step} for a variable as
@@ -59,15 +57,36 @@ used to decrease or increase the bank number.  Additionally the
 "\vn{<}" and "$>$" keys can be used to change the deltas for the
 variables.
 
+For example, looking at Figure~\ref{f:layout_table}, the \vn{"1:"} in the upper
+left corner of the \vn{Key Table} shows that the 1\St bank is active which 
+corresponds to keys \vn{key(11)} through \vn{key(20)} from the \vn{key_bindings} namelist.
+Since, in this case, keys \vn{key(19)} and \vn{key(20)} have not been defined, the 
+corresponding rows in the \vn{Key Table} are blank.
+
+\vn{key(14)} is associated with the \vn{"4"} key and from the \vn{Key Table} it is
+seen that the bound attribute is the \vn{b1_gradient} of the element named \vn{Q15_2}.
+Thus, if the \vn{"4"} key is depressed in single mode, the value of the \vn{b1_gradient}
+of element \vn{Q15_2} will be increased by the given Delta (0.1000 in this case). Pressing
+the \vn{"r"} key (which is just below the \vn{"4"} key) will decrease the value of the
+\vn{b1_gradient} by 0.1000. Using the shift key, which is shift-4 (\vn{"\$"}) will 
+increase \vn{b1_gradient} by 10 times the given delta (1.000 in this case) and 
+\vn{"R"} will decrease by 10 time the given delta.
+
+Since element \vn{Q15_2} is also displayed in the \vn{Lattice Layout}, there is a \vn{"4"}
+drawn above this element that reflects the fact that the element 
+contains a bound attribute. Since, in this case, the Lattice Layout only shows part
+of the lattice, not all key indexes are present.
+
+
 %% keys ------------------------------------------------------------------------
 \section{List of Key Strokes}\index{Single Mode!List of Key Strokes}
 \label{s:keys}
 
 In the following list, commands that start with a slash (\vn{/}) or
 hyphen (\vn{-}) use two key strokes. For example, the \vn{/v} command
-is involked by first pressing the slash (\vn{/}) key followed by the
+is invoked by first pressing the slash (\vn{/}) key followed by the
 \vn{v} key. Commands that start with \vn{\W} indicate a control
-sequence. For example the \vn{\W v} command is involked by pressing
+sequence. For example the \vn{\W v} command is invoked by pressing
 the \vn{v} key while holding down the \vn{control} key.
 
 \begin{description}
@@ -89,7 +108,7 @@ variable of the current bank. \vn{<value>} is the value to set the
 variable to.
 
 \item[V]
-Show variable values in bmad compatable lattice format. See also the
+Show variable values in bmad compatible lattice format. See also the
 \vn{/w} and \vn{\W v} commands.
 
 \item[\W v] 

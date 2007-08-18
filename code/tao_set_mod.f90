@@ -404,7 +404,7 @@ elseif (allocated(plot)) then
     enddo
   enddo
 else
-  call out_io (s_error$, r_name, 'graph OR PLOT NOT SPECIFIED')
+  call out_io (s_error$, r_name, 'GRAPH OR PLOT NOT SPECIFIED')
   return
 endif
 
@@ -416,7 +416,7 @@ subroutine set_this_graph (this_graph)
 type (tao_graph_struct) this_graph
 character(40) comp
 integer iset, iw, ix
-logical logic
+logical logic, error
 
 !
 
@@ -463,16 +463,19 @@ select case (comp)
     this_graph%draw_axes = logic
 
   case ('ix_universe')
-    read (set_value, '(i)', iostat = ios) iset
-    if (ios /= 0) then
-      call out_io (s_error$, r_name, 'BAD IX_UNIVERSE VALUE.')
-      return
-    endif
-    if (iset < 0 .or. iset > size(s%u)) then
-      call out_io (s_error$, r_name, 'BAD IX_UNIVERSE VALUE OUT OF RANGE.')
-      return
-    endif
-    this_graph%ix_universe = iset     
+    call tao_integer_set_value (this_graph%ix_universe, comp, set_value, error, 1, size(s%u))
+
+  case ('margin%x1')
+    call tao_real_set_value(this_graph%margin%x1, comp, set_value, error)
+
+  case ('margin%x2')
+    call tao_real_set_value(this_graph%margin%x2, comp, set_value, error)
+
+  case ('margin%y1')
+    call tao_real_set_value(this_graph%margin%y1, comp, set_value, error)
+
+  case ('margin%y2')
+    call tao_real_set_value(this_graph%margin%y2, comp, set_value, error)
 
   case default
     call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
@@ -846,7 +849,7 @@ logical error
 error = .true.
 read (value_str, '(i)', iostat = ios) ix
 
-if (ios /= 0) then
+if (ios /= 0 .or. len_trim(value_str) == 0) then
   call out_io (s_error$, r_name, 'BAD ' // trim(var_str) // ' VALUE.')
   return
 endif
@@ -857,6 +860,60 @@ if (ix < min_val .or. ix > max_val) then
 endif
 
 var = ix      
+error = .false.
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_real_set_value (var, var_str, value_str, error, min_val, max_val)
+!
+! Subroutine to read and set the value of a real varialbe.
+!
+! If the value is out of the range [min_val, max_val] then an error message will
+! be generated and the variable will not be set.
+!
+! Input:
+!   var_str   -- Character(*): Used for error messages.
+!   value_str -- Character(*): String with encoded value.
+!   min_val   -- real(rp), optional: Minimum value. 
+!   max_val   -- real(rp), optional: Maximum value.
+!
+! Output:
+!   var   -- real(rp): Variable to set.
+!   error -- Logical: Set True on an error. False otherwise.
+!-
+
+subroutine tao_real_set_value (var, var_str, value_str, error, min_val, max_val)
+
+implicit none
+
+real(rp) var, var_value
+real(rp), optional :: min_val, max_val
+integer ios
+
+character(*) var_str, value_str
+character(20) :: r_name = 'tao_real_set_value'
+logical error
+
+!
+
+error = .true.
+read (value_str, *, iostat = ios) var_value
+
+if (ios /= 0 .or. len_trim(var_str) == 0) then
+  call out_io (s_error$, r_name, 'BAD ' // trim(var_str) // ' VALUE.')
+  return
+endif
+
+if (var_value < min_val .or. var_value > max_val) then
+  call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
+  return
+endif
+
+var = var_value
 error = .false.
 
 end subroutine

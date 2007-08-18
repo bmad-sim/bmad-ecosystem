@@ -33,7 +33,7 @@ subroutine tao_init (err_flag)
   character(16) :: r_name = 'tao_init'
   character(16) init_name
 
-  integer i, j, i2, j2, n_universes, iu, ix, ix_attrib, n_arg, ib, ip
+  integer i, j, i2, j2, n_universes, iu, ix, ix_attrib, n_arg, ib, ip, ios
 
   logical err, calc_ok  
   logical, optional :: err_flag
@@ -56,8 +56,14 @@ subroutine tao_init (err_flag)
   n_universes        = 1              ! set default
   init_name          = "Tao"          ! set default
   startup_file       = "tao.startup"
-  read (iu, nml = tao_start)
+  read (iu, nml = tao_start, iostat = ios)
   close (iu)
+
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'CANNOT READ "TAO_START" NAMELIST IN FILE: ' // file_name)
+    return
+  endif
+
   tao_com%init_name = init_name
 
   if (associated(s%u)) call deallocate_everything ()

@@ -1048,7 +1048,6 @@ case ('plot')
                                     'margin                = ', g%margin
     nl=nl+1; write (lines(nl), imt) 'box                   = ', g%box
     nl=nl+1; write (lines(nl), imt) 'ix_universe           = ', g%ix_universe
-    nl=nl+1; write (lines(nl), imt) 'box                   = ', g%box
     nl=nl+1; write (lines(nl), lmt) 'valid                 = ', g%valid
     nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y          = ', g%y2_mirrors_y
     nl=nl+1; write (lines(nl), rmt) 'y%max                 = ', g%y%max
