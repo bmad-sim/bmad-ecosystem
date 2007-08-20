@@ -140,7 +140,7 @@ module sr_struct
     logical overlay
   end type
 
-  character(20) wall_name(-1:1) / 'Positive_x_side', '???',  'Negative_x_side' /
+  character(20) wall_name(-1:1) / 'negative_x_side', '???',  'positive_x_side' /
   integer negative_x$ / -1 /, positive_x$ / 1 /
 
   integer possible_alley$ / -1 /
