@@ -944,14 +944,14 @@ with an RMS of \vn{freq_spread} * $F$ where $F$ is the frequency of a
 mode.  After the long--range modes have been defined they can be
 referenced or redefined using the notation
 \begin{example}
-  lr(n).freq      ! Frequency
-  lr(n).r_over_q  ! R/Q
-  lr(n).q         ! Q
-  lr(n).angle     ! Polarization Angle
+  lr(n)%freq      ! Frequency
+  lr(n)%r_over_q  ! R/Q
+  lr(n)%q         ! Q
+  lr(n)%angle     ! Polarization Angle
 \end{example}
 Example:
 \begin{example}
-  lcav[lr(2).freq] = 1.1 * lcav[lr(2).freq] ! Raise frequency by 10\%
+  lcav[lr(2)%freq] = 1.1 * lcav[lr(2)%freq] ! Raise frequency by 10\%
 \end{example}
 
 Example:
