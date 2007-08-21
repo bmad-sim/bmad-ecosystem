@@ -865,12 +865,15 @@ end subroutine
 !
 ! Input:
 !   dz_particles -- Real(rp): Distance between source and kicked particles
-!   k_factor     -- csr_kick_factor_struct: Value
+!   k_factor     -- csr_kick_factor_struct: Geometric values
 !   bin          -- Csr_bin_struct:
 !   small_angle_approx -- Logical: If True then use a small angle approximation.
 !
 ! Output:
-!   d_this -- Real(rp): Distance between source and kick points.
+!   d_this   -- Real(rp): Distance between source and kick points.
+!   k_factor -- csr_kick_factor_struct: Geometric values
+!     %l        -- L vector length.
+!     %l_vec(3) -- L vector components.
 !-
 
 function d_calc_csr (dz_particles, k_factor, bin, small_angle_approx) result (d_this)
@@ -897,6 +900,10 @@ if (k_factor%g == 0) then
   b = 2 * (k_factor%v3 - dz_particles)
   c = dz_particles**2 - (k_factor%w2**2 + bin%y2**2)
   d_this = (-b + sqrt(b**2 - 4 * a * c)) / (2 * a) - k_factor%v1
+  k_factor%l_vec(1) = d_this + k_factor%v
+  k_factor%l_vec(2) = k_factor%w2
+  k_factor%l_vec(3) = bin%y2
+  k_factor%L = sqrt(dot_product(k_factor%L_vec, k_factor%L_vec))
   return
 endif
 
@@ -1004,9 +1011,9 @@ end function
 !   small_angle_approx -- Logical: If True then use a small angle approximation.
 !
 ! Output:
-!   k_factor -- csr_kick_factor_struct: Other parameters needed in the calculation.
-!     %L        -- Only calculated in the non small angle approx case.
-!     %L_vec    -- Only calculated in the non small angle approx case.
+!   k_factor -- csr_kick_factor_struct: Geometric values
+!     %l        -- L vector length.
+!     %l_vec(3) -- L vector components.
 !   z_this -- Real(rp), Distance between source and kick particles.
 !   dz_dd  -- Real(rp), optional: Derivative: dz/dp.
 !-
@@ -1037,6 +1044,7 @@ endif
 
 phi = k_factor%g * d
 v1d = k_factor%v1 + d
+kf => k_factor
 
 ! General case with small angle approx
 
@@ -1052,7 +1060,6 @@ if (small_angle_approx) then
 ! General case without small angle approx
 
 else
-  kf => k_factor
   if (abs(phi) < 1e-2) then
     phi2 = phi**2
     RoneMCos = phi * d * (1.0/2 - phi2/24 + phi2**2/720)
@@ -1065,7 +1072,7 @@ else
   kf%L_vec(1) = Rsin + kf%v
   kf%L_vec(2) = kf%w2 - RoneMCos 
   kf%L_vec(3) = bin%y2
-  kf%L = sqrt(sum(kf%L_vec * kf%L_vec))
+  kf%L = sqrt(dot_product(kf%L_vec, kf%L_vec))
 
   z_this = v1d / (2 * bin%gamma2) + (v1d - kf%L)
 
