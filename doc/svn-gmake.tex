@@ -18,9 +18,9 @@ the web at
 \begin{example}
   http://subversion.tigris.org
 \end{example}
-In the case of \bmad, most of the
-documents are code files but, for example, the \bmad and \tao documentation is
-also maintained under \svn.
+In the case of \bmad, most of the documents are code files but, for
+example, the \bmad and \tao documentation is also maintained under
+\svn.
 
 \index{GNU}
 \vn{Gmake} is the \vn{GNU} version of the \vn{make} system. Gmake is a
@@ -190,7 +190,10 @@ The command to delete a file is
   svn delete <file>
 \end{example}
 The file will not actually be deleted from the repository until you do a
-\vn{svn ci}.
+\vn{svn ci}. Similarly, a file can be renamed 
+\begin{example}
+  svn mv <file>
+\end{example}
 
 This section gives a flavor of how \svn works. For more information see
 the subversion manual.
@@ -203,16 +206,16 @@ libraries (\sref{s:libs}). Periodically all the libraries are checked
 out and compiled. This is called a \vn{release}. Typically the release
 root directory is named after the creation date. For example, one release is:
 \begin{example}
-  /home/cesrulib/cesr_libs/OSF1_alpha/cesr_2005_0320_d
+  /home/cesrulib/cesr_libs/Linux_i686_intel/cesr_2007_0727_d
 \end{example}
-This is a release for the OSF True64 computers built on March 20,
-2005. There needs to be different releases for different platforms,
-and even with different compilers on the same platform, since the
-compiled binary files will be different. Thus, at this time, there are
-different releases on Linux for the two compilers in use
-(Lahey--Fujitsu and Intel). It is important that if you are developing on
+This is a release for the Intel compiler on Linux built on July 27,
+2007. There needs to be different releases for different platforms,
+and for different compilers on the same platform since the
+compiled binary files will be different. At this time, there are
+two releases on Linux for the two compilers in use:
+Lahey--Fujitsu and Intel. It is important that when developing on
 different platforms, or even developing with different compilers, that
-you keep your binaries separate as well.
+the binaries are kept separate.
 
 The latest release always has a soft link named \vn{devel}. There is
 also a \vn{current} soft link that points to the last "stable" release
