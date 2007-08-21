@@ -1741,7 +1741,7 @@ subroutine read_lr_wake (ele, lr_file_name)
   lr%freq = -1
   lr%angle = real_garbage$
   read (iu, nml = long_range_modes, iostat = ios)
-  close (1)
+  close (iu)
   if (ios /= 0) then
     call warning ('CANNOT READ LONG_RANGE_MODES NAMELIST FROM FILE: ' & 
                       // full_file_name, 'FOR ELEMENT: ' // ele%name)
