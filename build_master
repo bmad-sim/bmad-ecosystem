@@ -66,9 +66,10 @@
 # 50  - svn access failed for file retrieval
 # 55  - builds ceased due to timeout
 # 56  - one or more builds failed, w/ summary
-# 60  - TAR ERROR in BMAD DISTRIBUTION
-# 65  - gzip ERROR in BMAD DISTRIBUTION
+# 60  - tar error in Bmad distribution
+# 65  - gzip error in Bmad distribution
 # 70  - problem with rotation command
+# 75  - problem with automatic Bmad build initiation
 ####################################################################
 #===========================================================================
 # Standard modules
@@ -101,16 +102,18 @@ lin_py_dir    = config.get("Paths", "LIN_PY_DIR")
 osf_py_dir    = config.get("Paths", "OSF_PY_DIR")
 makefile_dir  = config.get("Paths", "MAKEFILE_DIR")
 libs_dir      = config.get("Paths", "LIBS_DIR")
-prev_blt      = libs_dir + "/log/prev_built"  # path to file logging last built release
-prev_blt_pkg  = libs_dir + "/log/prev_built_pkg"
+prev_blt      = libs_dir + "/log/prev_built"      # path to file naming the last built release
+prev_blt_pkg  = libs_dir + "/log/prev_built_pkg" # likewise for last build packages release
+stats_dir     = config.get("Paths", "STATS_DIR")
 
 #============================================================================
-# 3rd-party module search path set up and importation
+# Third party module search path set up and importation
 #============================================================================
 sys.path.append(util_dir + "/3rd-party")
 from standout import StandOut    # StandOut module is for advanced logging capabilities.
 
 #=== Support Scripts ========================================================
+master        = util_dir + '/' + config.get("Scripts", "master")
 build_serf    = util_dir + '/' + config.get("Scripts", "serf")
 rot_querier   = util_dir + '/' + config.get("Scripts", "rot_querier")
 deleter       = util_dir + '/' + config.get("Scripts", "deleter")
@@ -120,14 +123,17 @@ rotator       = util_dir + '/' + config.get("Scripts", "rotator")
 #============================================================================
 #   VARIABLE SETUP
 #============================================================================
-platforms = config.options("Platforms")
+hostname         = socket.gethostname()
+reporter         = config.get("Scripts", "reporter")
+platforms        = config.options("Platforms")
+repo_url         = config.get("Repository", "URL")
+offsite_repo_url = config.get("Repository", "UAP_URL")
 
 #== Node names =========================================
 osf_host      = "cesrbuild2.lepp.cornell.edu"
 lnx_host      = "accserv.lepp.cornell.edu"
 vms_host      = "cesrbuild1.lepp.cornell.edu"
 win_host      = "pc6115.lepp.cornell.edu"
-hostname      = socket.gethostname()
 
 platform_combos = { "linuxi": ["Linux_i686",      'intel', lnx_host ],
                     "linuxl": ["Linux_i686",      'lahey', lnx_host ],
@@ -135,10 +141,8 @@ platform_combos = { "linuxi": ["Linux_i686",      'intel', lnx_host ],
                     "vmshp":  ["VMS_alpha" ,      'hp',     vms_host ],
                     "win":    ["CYGWIN_NT_i686", 'intel',  win_host ] }
 
-# Local lab repository
-repo_loc          = "https://accserv.lepp.cornell.edu/svn/"
 # For UAP project kept on Sourceforge.net
-offsite_repo_loc  = "https://accelerator-ml.svn.sourceforge.net/svnroot/accelerator-ml/uap/" 
+offsite_repo_url  = "https://accelerator-ml.svn.sourceforge.net/svnroot/accelerator-ml/uap/" 
 
 repo_modules      = ["util", "Gmake", "src"]
 bmad_dist_modules = ["util", "Gmake", "documents", "src/include", "src/bmad", "src/dcslib",
@@ -212,7 +216,7 @@ def print_help():
   print "   -cesr         Checkout and build an ACC Libraries release [default behavior]"
   print "   -pkg          Checkout and build a 3rd-party packages release."
   print "   -bmad         Checkout and assemble a BMAD distribution .tar.gz file"
-  print "   -bmad_build   Checkout, build, and if successful, create BMAD dist .tar.gz file."
+  print "   -bmad_build   Checkout, build and if successful, publish BMAD dist .tar.gz file."
   print "   -build_only   Build using previously checked-out files [Not implemented]"
   print "   -nodump       Disable display this script's configuration information."
   print "   -nobs         Suppress periodic build-status messages."
@@ -566,7 +570,7 @@ class builder:
       cyg_build_dir = "/cygdrive/c/user_local/cesrulib/cesr_libs"
     print time.asctime() + " -- Checking out code for " + self.platform
     if print_co:
-      sys.stdout.write("The full checkout manifest is available in the general log file.", 5)
+      sys.stdout.write("The full checkout manifest is available in the general log file.\n", 5)
       sys.stdout.write("Checkout manifest:\n", 4)   # Message Priority 4 goes ONLY to logfile
       
     #=== Variable Setup =================================
@@ -597,7 +601,7 @@ class builder:
       # Perform the actual checkout using a call to the SVN client
       for package in pkg_modules:
         loc_package = package.split('/')[-1]
-        svn_cmd = "svn co "+repo_loc+'/'+ \
+        svn_cmd = "svn co "+repo_url+'/'+ \
                   branch.lower()+"/packages/"+package+'@'+str(self.rev)+' '+self.full_pkg_name+'/'+loc_package
         #print svn_cmd
         print "Retrieving package " + package
@@ -611,14 +615,14 @@ class builder:
 
       # Check out 3rd-party files from offsite repository.
       print "Obtaining 3rd-party files from off-site repository:"
-      print "  " + offsite_repo_loc
+      print "  " + offsite_repo_url
       for package in offsite_pkg_modules:
         loc_package = package.split('/')[-1]
         if loc_package == "trunk":
           loc_package = "UAP"
         if loc_package == "xerces":
           loc_package = "xerces-c-src_2_7_0"
-        svn_cmd = "svn co " + offsite_repo_loc + package + ' ' + self.full_pkg_name + '/' + loc_package
+        svn_cmd = "svn co " + offsite_repo_url + package + ' ' + self.full_pkg_name + '/' + loc_package
         #print svn_cmd
         print "Retrieving package " + package
         svnlines = os.popen(svn_cmd).readlines()
@@ -654,7 +658,7 @@ class builder:
       # Perform the actual checkout using a call to the SVN client
       for module in repo_modules:
         #print "Retrieving module " + module
-        svn_cmd = "svn co "+repo_loc+'/'+branch.lower()+'/'+module+"@"+str(self.rev)+' '+self.full_rel_name+'/'+module
+        svn_cmd = "svn co "+repo_url+'/'+branch.lower()+'/'+module+"@"+str(self.rev)+' '+self.full_rel_name+'/'+module
  
         svnlines = os.popen(svn_cmd).readlines()
         for line in svnlines:
@@ -664,7 +668,7 @@ class builder:
           sys.stdout.write(line, 4)    # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
       self.lines = []
       ## REMOTE-EXECUTE build process
-      print "Spawning build process..."
+      #print "Spawning build process..."
       #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_rel_logfile)
       cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
       self.PID = sub.Popen(cmd , shell=True).pid
@@ -694,7 +698,7 @@ class builder:
       os.chdir(self.full_rel_name)
       for module in bmad_dist_modules:
         print "Retrieving module " + module
-        svn_cmd = "svn co "+repo_loc+'/'+branch.lower()+'/'+module+"@"+str(self.rev)
+        svn_cmd = "svn co "+repo_url+'/'+branch.lower()+'/'+module+"@"+str(self.rev)
  
         svnlines = os.popen(svn_cmd).readlines()
         for line in svnlines:
@@ -739,8 +743,6 @@ class builder:
       if bmad_build:
         print "Spawning build process..."
         #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_rel_logfile)
-        print "Build bmad dist here.\n"
-        # Build it locally, don't use the build_serf script, have all log output in the genlog file?
         cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
         self.PID = sub.Popen(cmd , shell=True).pid
         cmd = ""
@@ -826,7 +828,7 @@ for line in krblines:
 
 #== Determine which revision to check out, default is most recent ==
 if revision == 0:
-  infolist = os.popen("svn info "+repo_loc).readlines()       # adjust here for getting stderr as well
+  infolist = os.popen("svn info "+repo_url).readlines()       # adjust here for getting stderr as well
   for line in infolist:
     if line.find("Revision") != -1:
       revision = line.split(':')[1].strip()
@@ -980,19 +982,23 @@ while complete_fraction < 1 and loop < max_loops:
         time.sleep(20)  # is this needed?
     elif osf_stat < 0:
       error_tally = error_tally + 1
+      if vms:
+        error_tally = error_tally + 1
     if show_status:
       print "  OSF1   HP   : (" + str( osf_stat ) + ') ' + statuses[osf_stat]
       if vms and osf_donelatch == 0:   # if VMS release is to be prepared and OSF is still running
         print "  VMS    HP   : (0) WAITING for OSF1"
 
 
-    # VMS build depends on successful OSF build
+  # VMS build depends on successful OSF build
   if vms and osf_donelatch:   # if VMS release is to be prepared AND OSF is done building
     vms_stat = VMSBUILD.status()
     if vms_stat > 0 and vms_donelatch == 0:  # if VMS preparations have completed
       complete_tally = complete_tally + 1
       t_end_VMS = int(time.time())
       vms_donelatch = 1
+    elif vms_stat < 0:
+      error_tally = error_tally + 1
     if show_status:
       print "  VMS    HP   : (" + str(vms_stat) + ") PREPARING TO TRANSFER"
       
@@ -1009,37 +1015,36 @@ while complete_fraction < 1 and loop < max_loops:
     print "All conventional builds have failed."
     print "VMS preparation will not be attempted.  Stopping."
     sys.exit(45)
-  elif error_fraction == 1.0:
+
+  if error_fraction == 1.0:
     print "All builds have failed.  Stopping."
     failure = 1
-    #sys.exit(45)
 
-  if (complete_tally + error_tally) == rquant:
+  if (complete_tally > 1 and error_tally > 1) and (complete_tally + error_tally == rquant):
     print "All builds have ceased, with some due to failure."
     failure = 1
-    #sys.exit(47)
 
   if (loop == max_loops):
     print "One or more builds have ceased due to timeout!"
     failure = 1
-    #sys.exit(55)
 
   if failure:           # TODO: generalize looping through platforms in both success and failure summaries
     print "Summary:"
-    if lin_stat != 0:
-      print "Linux_i686_intel : BUILD FAILED"
-    if lla_stat != 0:
-      print "Linux_i686_lahey : BUILD FAILED"
-    if osf_stat != 0:
-      print "OSF1_alpha_hp    : BUILD FAILED"
+    if lnx:
+      print "Linux_i686_intel : " + statuses[lin_stat]
+      print "Linux_i686_lahey : " + statuses[lla_stat]
+    if osf:
+      print "OSF1_alpha_hp    : " + statuses[osf_stat]
+    if vms:
+      print "VMS_alpha_hp     : " + statuses[osf_stat]
     sys.exit(56)
   
   if loop < 10:
     time.sleep(5)
   else:
     time.sleep(30)
-  loop = loop + 1
-  
+    
+  loop = loop + 1  
 ##End while loop [ while complete_fraction < 1 and loop < max_loops: ]
 
 stout.outThreshold        = 5      # Swap stdout and logfile thresholds again to return everything
@@ -1063,6 +1068,7 @@ if osf:
   print "OSF1 alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_end_OSF - t_begin_OSF)
 if vms:
   print "VMS  alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_end_VMS - t_begin_VMS)
+
 
 #if build_type == "RELEASE":
 lines = os.popen(util_dir + "/rel_disk_total " + rel_name).readlines()
@@ -1102,6 +1108,17 @@ print "=========================================================================
 print "          =============  End Statistics Summary =============\n"
 
 
+#==================================================
+#   Generate repository statistics reports
+#==================================================
+print "Generating and publishing HTML repository statistics reports:"
+sr = sub.Popen([util_dir + "/" + reporter, "src"], stdout=sub.PIPE, stderr=sub.STDOUT )
+(outstream, errstream) = sr.communicate()
+sr_exit = sr.wait()
+print str(outstream)
+if sr_exit != 0:
+  print "ERROR:  There was a problem generating the repository statistics reports."
+
 #== If nightly build has been requested, rotate this one into position and delete the previous.
 if nightly and build_type == "RELEASE":
   print "This is a nightly build, proceeding with replacement of previous build."
@@ -1137,33 +1154,75 @@ if build_type == "PACKAGES":
   prevfile.close()
   os.chmod(prev_blt_pkg, 0444)       # reset permissions to disallow writes
 
-#=Ask if this newly-built release is a candidate for promotion to DEVEL.
+if bmad_build:
+  print "Rotating Bmad distribution archive file into position."
+  rot = sub.Popen( [rotator, "-bmad", rel_name], stdout=sub.PIPE, stderr=sub.STDOUT )
+  (outstream, errstream) = rot.communicate()
+  exitval = rot.wait()
+  print str(outstream)
+
+  
+#========================================================================
+# Ask if this newly-built release is a candidate for promotion to DEVEL.
+#========================================================================
 if devel:
-  print "Checking to see whether release is a DEVEL candidate."
+  print "Checking to see if this release is a DEVEL candidate."
   qr = sub.Popen( [rot_querier, "-r", rel_name], stdout=sub.PIPE, stderr=sub.STDOUT )
   (outstream, errstream) = qr.communicate()
   recommendation = qr.wait()
   print str(outstream)
+  
   if recommendation == 0:  # If there has been a recommendation to rotate
-    tmpname = "/tmp/tmp_atfile_01"
-    atfile = open(tmpname, 'w')
-    atfile.write(rotator + " -devel -tag -mail " + rel_name)
-    atfile.close()
-    minuteval = random.randint(0,59)
-    min_str   = str( minuteval )
+    # Calculate deferral times
+    cur_hourval = int( time.asctime().split()[3].split(":")[0] )
+    def_hourval = 8
+    def_hourstr = str( def_hourval )
+    minuteval   = random.randint(0,59)
+    min_str     = str( minuteval )
     if minuteval < 10:
       min_str = "0" + min_str
-    at = sub.Popen( ["at", "8:"+ min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
-    os.remove(tmpname)
-    #rot = sub.Popen( [rotator, "-devel", "-tag", "-mail", rel_name], stdout=sub.PIPE, stderr=sub.STDOUT )
+
+    if cur_hourval < 8:  # If current time is before 8am and hence this
+      defer = 1         # was cron-initiated, use deferrals. Otherwise,
+    else:                # execute subtasks immediately in sequence.
+      defer = 0
+
+    #= Schedule this release to be promoted to DEVEL status.
+    tmpname = "/tmp/tmp_atfile_01"
+    atfile  = open(tmpname, 'w')
+    atfile.write(rotator + " -devel -tag -mail " + rel_name)
+    atfile.close()
+    at = sub.Popen( ["at", def_hourstr +':'+ min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
     (outstream, errstream) = at.communicate()
     atval = at.wait()
+    os.remove(tmpname)
     if atval == 0:
       print "Will rotate release : " + str(outstream)
     else:
-      print "ERROR: There was a problem with the -at- command"
+      print str(outstream)
+      print "ERROR: There was a problem with the rotation initiation."
       sys.exit(70)
-    #=Request a bmad distribution build and rotation
+
+    #= Schedule a Bmad distribution build and rotation.
+    if minuteval != 59:
+      minuteval = minuteval + 1
+    min_str   = str( minuteval )
+    if minuteval < 10:
+      min_str = "0" + min_str
+    tmpname   = "/tmp/tmp_atfile_02"
+    atfile    = open(tmpname, 'w')
+    atfile.write(master + " -bmad_build") # Call master script again
+    atfile.close()
+    at = sub.Popen( ["at", def_hourstr +':'+ min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
+    (outstream, errstream) = at.communicate()
+    atval = at.wait()
+    #os.remove(tmpname)
+    if atval == 0:
+      print "Will produce a Bmad distribution : " + str(outstream)
+    else:
+      print str(outstream)
+      print "ERROR: There was a problem with the Bmad dist. initiation."
+      sys.exit(75)
     
 
 print "\n================== Build process finished completely. ====================\n"
