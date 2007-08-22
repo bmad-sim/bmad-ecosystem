@@ -1,0 +1,70 @@
+#!/bin/sh
+##############################################################
+#
+# This script initiates a repository statistics update of the
+# /trunk/src tree in order to compile:
+#
+#   1) All-time statistics for the HEAD revision
+#   2) Stats for the period between the latest CURRENT 
+#      revision and the HEAD revision
+#
+# Accepts arguments:
+#   path under /trunk for which stats are to be computed
+#
+# Example:
+#   gen src    # Computes two statistics summaries for the
+#              # src module
+#
+##############################################################
+
+if ( [ $1 = "" ] ) then
+  echo "Check the number of arguments."
+  exit 1
+fi
+
+# One hardcoded line here necessary for subsequent getting of config vars
+UTIL_DIR=`/home/cesrulib/bin/util/getcfg Paths UTIL_DIR`
+
+# Grab the other necessary paths from config file.
+REPO_URL=`${UTIL_DIR}/getcfg Repository URL`
+VIEWVC_URL=http://accserv.lepp.cornell.edu/cgi-bin/view.cgi
+LIBS_DIR=`${UTIL_DIR}/getcfg Paths LIBS_DIR`
+CURRENT_PATH=${LIBS_DIR}/Linux_i686_intel/current
+
+startdir=/home/cesrulib/EXT/svn-stats
+
+cd /nfs/acc/libs/Linux_i686_intel/current/src
+
+#======================================
+# Get pertinent revision number info.
+#======================================
+HEAD_REV=`svn info ${REPO_URL} | grep Revision | cut -d: -f2 | cut -d' ' -f2`
+CURRENT_REV=`svn info ${CURRENT_PATH}/src | grep Revision | cut -d: -f2 | cut -d' ' -f2`
+
+#echo "HEAD revision number    = ${HEAD_REV}"
+#echo "CURRENT revision number = ${CURRENT_REV}"
+
+#======================================
+# Generate all-time statistics
+#======================================
+echo -n "   -All-time stats..."
+cd ${startdir}/${1}
+
+#===Bring stats-area copy of files up to youngest revision if not already there
+svn update &> /dev/null
+#===Dump log information into file for parsing by statSVN
+svn log -v --xml > ${1}.svnlog
+cd ${startdir}/${1}-stats
+#===Generate stats report
+java -jar ~/incoming/statsvn-0.3.1/statsvn.jar -viewvc ${VIEWVC_URL}/trunk/${1}/ -output-dir ${startdir}/${1}-stats/  -notes All-time.txt ${startdir}/${1}/${1}.svnlog ${startdir}/${1} &>/dev/null
+echo " done"
+
+#======================================
+# Generate statistics since CURRENT
+#======================================
+echo -n "   -Stats since CURRENT..."
+cd ${startdir}/${1}
+svn log -v --xml -r ${CURRENT_REV}:${HEAD_REV} > ${1}_sc.svnlog
+cd ${startdir}/${1}-stats-sc
+java -jar ~/incoming/statsvn-0.3.1/statsvn.jar -viewvc ${VIEWVC_URL}/trunk/${1}/ -output-dir ${startdir}/${1}-stats-sc  -title "/trunk/src/_stats_Since_CURRENT" -notes Since-CURRENT.txt ${startdir}/${1}/${1}_sc.svnlog ${startdir}/${1} &> /dev/null
+echo " done"
