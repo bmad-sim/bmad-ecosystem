@@ -75,9 +75,9 @@ ftp_success=${?}
 # Notify of completion
 if ( [ ${ftp_success} -eq 0 ] ) then
     mv ${NAME}.zip ..
-    echo "Transfer of ${DIR_NAME} to CESR2f::${VMS_ZIPDIR} complete!"
+    echo "Transfer of ${NAME} to CESR2f::${VMS_ZIPDIR} complete!"
 else
-    echo "***ERROR! Transfer of ${DIR_NAME} to CESR2F FAILED!" 
+    echo "***ERROR! Transfer of ${NAME} to CESR2F FAILED!" 
     exit 0
 fi
 
