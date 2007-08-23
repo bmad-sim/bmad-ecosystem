@@ -9,7 +9,7 @@
 #
 #---
 # Example 1:
-#  build_master -lnx -osf -vms PKG=packages_2006_1031_d
+#  build_master -lin -osf -vms PKG=packages_2006_1031_d
 #
 # Will build a CESR libraries release for all supported Linux
 # platforms
@@ -23,14 +23,14 @@
 #
 #---
 # Example 2:
-#  build_master -lnx -osf -pkg
+#  build_master -lin -osf -pkg
 #
 # Will build a CESR 3rd-party packages release, automatically
 # generating a unique name in the same manner as above.
 #
 #---
 # Example 3:
-#  build_master -lnx -osf -vms REL=<custom_release_name>
+#  build_master -lin -osf -vms REL=<custom_release_name>
 #
 # Will build a CESR libraries release as in Example 1, but with a
 # user-specified string as the name of the release, instead of an
@@ -74,7 +74,7 @@
 #===========================================================================
 # Standard modules
 #===========================================================================
-import os, sys, time, string, shutil, socket, random, ConfigParser
+import os, sys, time, string, shutil, socket, random, types, ConfigParser
 import popen2             # For subprocess calls to build_serf.
 import subprocess as sub  # Use this instead, try to avoid possible buffer freezes?
 
@@ -84,8 +84,8 @@ import subprocess as sub  # Use this instead, try to avoid possible buffer freez
 #============================================================================
 cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
 config   = ConfigParser.ConfigParser()
-config.optionxform = lambda x: x   # Obtain all values without changing case
-config.read(cfg_file)              # Overrides default ConfigParser behavior
+config.optionxform = lambda x: x   # Obtain all values without changing case;
+config.read(cfg_file)              # overrides default ConfigParser behavior
 
 
 # Will need to use these env vars if SWIG python bindings are desired.
@@ -123,42 +123,52 @@ rotator       = util_dir + '/' + config.get("Scripts", "rotator")
 #============================================================================
 #   VARIABLE SETUP
 #============================================================================
-hostname         = socket.gethostname()
-reporter         = config.get("Scripts", "reporter")
-platforms        = config.options("Platforms")
-repo_url         = config.get("Repository", "URL")
-offsite_repo_url = config.get("Repository", "UAP_URL")
+hostname          = socket.gethostname()
+reporter          = config.get("Scripts", "reporter")
+repo_url          = config.get("Repository", "URL")
+offsite_repo_url  = config.get("Repository", "UAP_URL")
+platforms         = config.options("Platforms")
 
-#== Node names =========================================
-osf_host      = "cesrbuild2.lepp.cornell.edu"
-lnx_host      = "accserv.lepp.cornell.edu"
-vms_host      = "cesrbuild1.lepp.cornell.edu"
-win_host      = "pc6115.lepp.cornell.edu"
-
-platform_combos = { "linuxi": ["Linux_i686",      'intel', lnx_host ],
-                    "linuxl": ["Linux_i686",      'lahey', lnx_host ],
-                    "osfhp":  ["OSF1_alpha",      'hp',     osf_host ],
-                    "vmshp":  ["VMS_alpha" ,      'hp',     vms_host ],
-                    "win":    ["CYGWIN_NT_i686", 'intel',  win_host ] }
-
-# For UAP project kept on Sourceforge.net
-offsite_repo_url  = "https://accelerator-ml.svn.sourceforge.net/svnroot/accelerator-ml/uap/" 
-
-repo_modules      = ["util", "Gmake", "src"]
-bmad_dist_modules = ["util", "Gmake", "documents", "src/include", "src/bmad", "src/dcslib",
-                       "src/recipes_f-90_LEPP", "src/cesr_utils", "packages/forest",
-                       "packages/PGPLOT", "packages/xsif", "examples/twiss_track_test", #change ttt soon?
-                       "src/bmadz", "src/toad", "src/tao", "src/bsim", "src/ilcv"]
-
+# These next few module lists have to be actual python lists, hence the split() call.
+repo_modules      = config.get("Repository", "modules").strip().split()
+bmad_dist_modules = config.get("Repository", "bmad_dist_mods").strip().split()
 # Have this list pushed to the build_serf script, and the Makefile instead of manually synchronizing them?
-pkg_modules   = ["cfortran", "forest", "num_recipes/recipes_f-90", "num_recipes/recipes_c-ansi", \
-                 "xsif", "PGPLOT"]
-#pkg_modules   = ["xerces"]
-offsite_pkg_modules = ["trunk"]
+pkg_modules       = config.get("Repository", "pkg_modules").strip().split()
+#pkg_modules       = ["xerces"]
+offsite_pkg_modules = config.get("Repository", "UAP_modules").strip().split()
+
+
+# Automatically populate the plat_combos dictionary and initialize fields used
+# for build-status checking.
+avail_cmd_labels   = [] # List of available command-line arg flags, generated from platform dict.
+poss_plat_combos   = {} # Dictionary of all possible platform combos direct from config file.
+plat_combos        = {} # Working dictionary of platform combos constructed after cmd line is parsed.
+
+
+
+for platform in platforms:
+  plat_llist = config.get("Platforms", platform).split(",")
+  if plat_llist[0].strip()[:4] == "FULL" or plat_llist[0].strip()[:4] == "PREP":
+    poss_plat_combos[platform]              = { "act" : plat_llist[0].strip() }  # Add Activity indicator 'act'
+    poss_plat_combos[platform]['host']     = plat_llist[1].strip()               # Add Host               'host'
+    poss_plat_combos[platform]['label']   = platform[:3].lower()                 # Add cmd_label          'label'
+    poss_plat_combos[platform]['builder'] = "NYI"                         # Fill with 'Not Yet Initiated'
+    poss_plat_combos[platform]['done'] = False                             # build-done flag
+    avail_cmd_labels.append( "-" + poss_plat_combos[platform]["label"] )  # Add '-augmented' cmd_label to it's own list
+                                                                             # for auto-documentation purposes and to
+                                                                             # allow command line inputs to be recognized.
+# Dictionary structure follows the form:
+#--------------------------------------------------------------------------------------
+#         plat_combos = { <platform_name> : {    'act' : "FULL or PREP-<platform_name>",
+#                                               'host' : <hostname>,
+#                                              'label' : automatically the first three characters of <platform_name>
+#                                            'builder' : To hold instance of builder class once build is initiated
+#                                               'done' : "True" or "False" - Whether or not the build has stopped for whatever reason
+#                                               'time' : integer used for build duration calculations  }         }
 
 # Work out how to sync this list with the pkg build list in the M.release makefile... keeping them sync'd manually is not so hot.
 
-statuses      = {0 : "Building", 1 : "Complete", -1 : "ERROR"}
+statuses      = {0 : "Building", 1 : "Complete", -1 : "ERROR", 'NYI' : "Not yet initiated"}
 ranks         = {0 : "Isolated", 1 : "Nightly",
                  2 : "Nightly with DEVEL attempt", 3 : "Isolated with DEVEL attempt"}
 
@@ -174,10 +184,6 @@ build_packages= 0
 custom_pkgflag= 0
 pkg_name      = "none"
 space_needed  = 2500000        # rough estimate 2.5 Gig needed for a (future) full build
-lnx           = 0              # flags to indicate which OSs are meant to host this build 
-osf           = 0              # |
-vms           = 0              # |
-win           = 0              # |
 dump          = 1              # Dump a list of all the key configuration parameters used in this script
 show_status   = 1              # Flag to indicate if periodic status updates of all the remote builds will be shown during execution
 nightly       = 0              # Build is a nightly.  If successful, this will delete the previously-built release.
@@ -202,16 +208,17 @@ def print_help():
 
   print "Options:"
   print "--Platform Flags------------------------------------------------------------------"
-  print "   -lnx          Check out and build an ACC Libraries release"
-  print "                 for all supported Linux platforms."
-  print "   -osf          Check out and build an ACC Libraries release"
-  print "                 for the OSF1 platform."
-  print "   -vms          Generate VMS dependency files, package up and "
-  print "                 deliver source tree to VMS cluster. (Automatically selects -osf)"
-  print "   -win          Check out and build an ACC Libraries release"
-  print "                 for the Windows platform. [Not yet operational]"
-  print "   -all or -a    Check out and build an ACC Libraries release on "
-  print "                 ALL supported platforms."
+  desc_list = []
+  for platform in poss_plat_combos:
+      line = "   -"+poss_plat_combos[platform]['label']+"          Check out and build an ACC release \n\
+                   for all supported " + platform.split("_")[0] + " platforms."
+      if line not in desc_list:
+        desc_list.append(line)
+  desc_list.sort()
+  for line in desc_list:
+    print line
+  print "   -all or -a    Check out and build an ACC Libraries release for"
+  print "                   ALL supported platforms."
   print "---- Others ----------------------------------------------------------------------"
   print "   -cesr         Checkout and build an ACC Libraries release [default behavior]"
   print "   -pkg          Checkout and build a 3rd-party packages release."
@@ -236,10 +243,9 @@ def print_help():
   print "   REV=<revision num>    Specify a SVN revision number to check out."
   print "                          [Default is the most recent revision]"
   print ""
-  #print "   PATH =  $PATH "
 
 #=== Get Command Line Arguments and set vars =======================
-for opt in sys.argv:
+for opt in sys.argv[1:]:
   if opt in ("DBL", "dbl", "Dbl"):
     prec                = "double"
     continue
@@ -252,10 +258,16 @@ for opt in sys.argv:
     custom_pkgflag      = 1
     build_packages      = 1  # no packages builds simultaneous with release builds
   elif opt == "-bmad":
+    for platform in poss_plat_combos:
+      if platform.split("_")[2] == "intel":
+        plat_combos[platform] = poss_plat_combos[platform]
     bmad                = 1
     build_release       = 0
     build_packages      = 0
   elif opt == "-bmad_build":
+    for platform in poss_plat_combos:
+      if platform.split("_")[2] == "intel":
+        plat_combos[platform] = poss_plat_combos[platform]
     bmad_build          = 1
     build_release       = 0
     build_packages      = 0
@@ -263,19 +275,12 @@ for opt in sys.argv:
     checkout            = "NO"
   elif opt == "-nodump":
     dump                = 0
-  elif opt == "-osf":
-    osf                 = 1
-  elif opt == "-lnx":
-    lnx                 = 1
-  elif opt == "-vms":
-    vms                 = 1
-    osf                 = 1
-  elif opt == "-win":
-    win                 = 1
+  elif opt in avail_cmd_labels:        # If platform request exists on command line,
+    for platform in poss_plat_combos:  # Search through all possible platforms
+      if poss_plat_combos[platform]['label'] == opt[1:]:   # if platform has the cmd label
+        plat_combos[platform] = poss_plat_combos[platform]  # move platform into active list
   elif opt in ("-all", "-a"):
-    lnx                 = 1
-    osf                 = 1
-    vms                 = 1
+    plat_combos = poss_plat_combos     # Copy over entire dictionary into the active one
   elif opt == "-nobs":
     show_status         = 0
   elif opt == "-ntly" or opt == "-nightly":
@@ -293,13 +298,8 @@ for opt in sys.argv:
     print rel_tag
   elif opt.find("PKG=") != -1:
     pkg_name            = opt.split('=')[1]
-    if os.path.exists(libs_dir + "/Linux_i686_intel/" + pkg_name):   # if packages name specified, AND it already exists,
-      #print "Pack exists!"                                              # build a requested release and LINK to the packages.
-      build_packages      = 0                                            # Check in Linux(intel) area first, change this to be
-      custom_pkgflag      = 0
-    else:                                                                # more general later.  If only PKG option is used
-      build_packages      = 1                                            # AND the packages already exist, initiate a RELEASE
-      custom_pkgflag      = 1                                            # build and link aginst the packages specified.
+    build_packages      = 1   # Tentatively set these both to 1. An existence check
+    custom_pkgflag      = 1   # is performed below and may revise these values.
   elif opt.find("REL=") != -1:
     rel_name            = opt.split('=')[1]
   elif opt.find("GMAKE=") != -1:
@@ -310,12 +310,20 @@ for opt in sys.argv:
     bin_dir             = opt.split('=')[1]
   elif opt != sys.argv[0]:
     print_help()
-    print "\nYou might want to check the number of command line arguments and their syntax.\n"
+    print "\nYou might want to check the number of command line arguments and/or their syntax.\n"
     sys.exit(10)
+
+for platform in plat_combos:
+  if os.path.exists(libs_dir + "/" + platform + "/" + pkg_name):  # if packages name already exists in any platform dir (user-spec'd),
+    build_packages      = 0                                        # do NOT build packages (release only).
+    custom_pkgflag      = 0                                       
+    break
 
 if custom_pkgflag and not custom_relflag:             # accomodate an isolated packages build
   build_release = 0
-rquant = lnx*2 + osf + vms + win + bmad + bmad_build  # tally of releases to build
+
+rquant = len( plat_combos )
+
 if rquant == 0:
   print_help()
   print "\nYou have not requested any releases to be built."
@@ -345,13 +353,14 @@ else:
   print "Environment variable \'CESR_GMAKE\' not set, testing for default"
   
 
+#===============================================================================================
 #=== Set up timing apparatus ============================
 TIME1      = time.clock()
 TIME2      = 0
 TIME_TOTAL = 0
 timetuple  = time.localtime()
 year       = str(timetuple[0])
-if timetuple[1] < 10:                   # Clean this up with leading zeroes
+if timetuple[1] < 10:                    # Clean this up with leading zeroes
   month      = '0' + str(timetuple[1])  # in original date retrieval?
 else:
   month      = str(timetuple[1])
@@ -406,9 +415,7 @@ def get_build_name(type, initial_name):
   elif type == "BMAD DISTRIBUTION":
     prefix = bmad_prefix
 
-  #print "build name : " + build_name
   full_logname_to_test = libs_dir + '/log/' + build_name + '.genlog'
-  #print "full logname to test: " + full_logname_to_test
 
   if build_name == "":                    # if the command line was messed up, inform and abort
     print "Build name not specified."
@@ -420,33 +427,24 @@ def get_build_name(type, initial_name):
     print "generated automatically.\n"
     sys.exit(15)
   elif build_name == "none":             # otherwise, a name was not specified, so proceed with unique name generation
-    #d print "NONEtest build_name: " + build_name
-    #d print "basename: " + basename
+    build_already_exists = 0
     basename = prefix + '_' + datecode + '_' + prec.lower()[0]  # unadorned 1st iteration generated name
-    #d print "new basename: " + basename
-    build_already_exists = 0   # move up to top of this function?
     if os.path.exists("/nfs/acc/libs/distribution/" + basename) and type == "BMAD DISTRIBUTION":
-      #d print "Dist already exists"
       build_already_exists = 1
       full_buildname = libs_dir +"/distribution/" + basename
-      #d print full_buildname
     else:
-      for plat in platform_combos:          # check if the name already exists in any platform area
-        #d print libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
-        full_buildname = libs_dir +'/'+ platform_combos[plat][0]+'_'+platform_combos[plat][1]+'/'+basename
-        #d print "full buildname (gen): " + full_buildname
+      for platform in plat_combos:          # check if the name already exists in any platform area
+        full_buildname = libs_dir +'/'+ platform +'/'+ basename
         if os.path.exists(full_buildname):
           build_already_exists = 1
     if build_already_exists:              # if it does, make it okay by appending a unique suffix
-      #d print "Build already exists"
       while os.path.exists(full_buildname):
         uniq_suffix    = uniq_suffix + 1
         build_name     = basename + '_' + str(uniq_suffix)
         if type == "BMAD DISTRIBUTION":
           full_buildname = "/nfs/acc/libs/distribution/" + build_name
         else:
-          full_buildname = libs_dir+'/'+platform_combos["linuxi"][0]+'_'+platform_combos["linuxi"][1]+'/'+build_name
-        #d print build_name
+          full_buildname = libs_dir+'/'+ "Linux_i686_intel" +'/'+build_name
     else:
       build_name = basename
   return build_name
@@ -486,20 +484,15 @@ def dump_parameters():
   print ""
   print "   --  Platforms and Hosts  --"
   print "      " + str(rquant) +" "+ build_type.lower() +" build"+ plural +"."
-  print "  OS   (compiler)      Build Host"
+  print "  OS   Arch   (compiler)      Build Host"
   print "--------------------------------------------"
-  if lnx:
-    print "Linux   (Intel)  " + lnx_host
-    print "Linux   (Lahey)  " + lnx_host
-  if osf:
-    print "OSF1    (HP)     " + osf_host
-  if vms:
-    print "VMS     (HP)     " + vms_host
-  if win:
-    print "Windows (?)      " + win_host
   if bmad:
     print "  N/A -- Source-only distribution"
-
+  else:
+    for platform in plat_combos:
+      name_list = platform.split("_")
+      print name_list[0] +"   "+ name_list[1] +"   "+ name_list[2] +"   "+ plat_combos[platform]['host']
+    
 
 
 #=== Class defninitions ============================================================================
@@ -550,15 +543,17 @@ class builder:
     self.rel_name, self.pkg_name = release_names
     self.bld_name     = build_name
     self.rev          = revision
-    self.OS           = platform_combos[pcombo][0]
-    self.f90          = platform_combos[pcombo][1]
-    self.platform     = self.OS + '_' + self.f90
+    self.platform     = pcombo
+    self.OS           = pcombo.split("_")[0]
+    self.f90          = pcombo.split("_")[2]
+
     self.base_dir     = self.libs_dir_loc + '/' + self.platform
-    self.build_host   = platform_combos[pcombo][2]
+    self.build_host   = plat_combos[pcombo]['host']
     self.build_type   = build_type
 
     # Force newer Python versions (2.5.1) for Linux AND OSF1
     # to allow for possible subprocess module use among other amenities.
+    # Define these assignments in the config file?
     if self.platform == "OSF1_alpha_hp":
       self.build_script = osf_py_dir + '/python ' + build_serf
     else:
@@ -603,7 +598,6 @@ class builder:
         loc_package = package.split('/')[-1]
         svn_cmd = "svn co "+repo_url+'/'+ \
                   branch.lower()+"/packages/"+package+'@'+str(self.rev)+' '+self.full_pkg_name+'/'+loc_package
-        #print svn_cmd
         print "Retrieving package " + package
         svnlines = os.popen(svn_cmd).readlines()
         for line in svnlines:
@@ -623,7 +617,6 @@ class builder:
         if loc_package == "xerces":
           loc_package = "xerces-c-src_2_7_0"
         svn_cmd = "svn co " + offsite_repo_url + package + ' ' + self.full_pkg_name + '/' + loc_package
-        #print svn_cmd
         print "Retrieving package " + package
         svnlines = os.popen(svn_cmd).readlines()
         for line in svnlines:
@@ -633,9 +626,7 @@ class builder:
           sys.stdout.write(line, 4)  # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
       self.lines = []       
       
-      #print "Spawning build process..."
       cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
-      #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_pkg_logfile)
       self.PID = sub.Popen(cmd , shell=True).pid
       cmd = ""
       time.sleep(3)
@@ -658,8 +649,7 @@ class builder:
       # Perform the actual checkout using a call to the SVN client
       for module in repo_modules:
         #print "Retrieving module " + module
-        svn_cmd = "svn co "+repo_url+'/'+branch.lower()+'/'+module+"@"+str(self.rev)+' '+self.full_rel_name+'/'+module
- 
+        svn_cmd = "svn co "+repo_url+'/'+branch.lower()+'/'+module+"@"+str(self.rev)+' '+self.full_rel_name+'/'+module 
         svnlines = os.popen(svn_cmd).readlines()
         for line in svnlines:
           __lines.append(line)
@@ -667,9 +657,7 @@ class builder:
         for line in __lines:
           sys.stdout.write(line, 4)    # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
       self.lines = []
-      ## REMOTE-EXECUTE build process
-      #print "Spawning build process..."
-      #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_rel_logfile)
+      ## REMOTE EXECUTION of build process
       cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
       self.PID = sub.Popen(cmd , shell=True).pid
       cmd = ""
@@ -720,7 +708,6 @@ class builder:
       os.chdir(self.base_dir) # possibly not needed.
       print "Current dir: " + os.getcwd()
       tar_cmd_list = ["tar", "-cvf", self.rel_name+".tar", "./"+self.rel_name]
-      #print tar_cmd_list
       t       = sub.Popen(tar_cmd_list, cwd=self.base_dir)
       t_rcode = t.wait()
       print "TAR operation completed successfully."
@@ -730,7 +717,6 @@ class builder:
         
       print "Compressing tar file..."
       gzip_cmd_list = ["gzip", "-v", self.full_rel_name+".tar"]
-      #print gzip_cmd_list
       t       = sub.Popen(gzip_cmd_list, cwd=self.base_dir)
       t_rcode = t.wait()
       print "GZIP operation completed successfully."
@@ -742,7 +728,6 @@ class builder:
       ## REMOTE-EXECUTE build process
       if bmad_build:
         print "Spawning build process..."
-        #o self.PID = os.spawnlp(os.P_NOWAIT,"rsh","rsh","-x",self.build_host,". .bash_profile;",self.build_script,self.full_rel_logfile)
         cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
         self.PID = sub.Popen(cmd , shell=True).pid
         cmd = ""
@@ -772,7 +757,6 @@ class builder:
       
     self.lq.close()
 
-    #if self.STATUS == "ERROR(S) DETECTED":         ## code pickup here for more specific contingencies?
     if self.status_list[-1].find("ERROR") != -1:
       build_status = -1                                # any errors give return value of -1
     elif self.status_list[-1].find("COMPLETE") != -1:
@@ -823,7 +807,7 @@ for line in krblines:
   if line[0:5] == "kinit":
     print "Problem obtaining Kerberos 5 credentials, terminating."
     print "Verify that your current shell is a login shell.\n"
-    sys.exit(25)  # commented out so I can use a su'd terminal for testing
+    sys.exit(25)
 
 
 #== Determine which revision to check out, default is most recent ==
@@ -855,33 +839,18 @@ if space_free <= space_needed:
   sys.exit(30)
 
 
-
-
 #== Instantiate a builder object for each process that needs to be initiated
 #== a total of rquant builds will be executed.
-#== This starts the build processes on their respective hosts. Also only prints out the
-#== svn list of files being checked out a single time to reduce clutter in genlog file.   LOOP HERE for generality?
-print_co = True      # flag to allow only the first build initiated to print its checkout list, preventing redundancy of output
-if build_type == "BMAD DISTRIBUTION":
-  t_begin_LIN = time.time()
-  LINBUILD = builder(release_names, revision, build_type,"linuxi", print_co, stout) 
+#== This starts the build processes on their respective hosts.
 
-if build_type == "PACKAGES" or build_type == "RELEASE":
-  if lnx:
-    t_begin_LIN = time.time()
-    LINBUILD = builder(release_names, revision, build_type,"linuxi", print_co, stout)  # Initialize a builder object for given platform.
-    t_begin_LLA = int(time.time())
-    LLABUILD = builder(release_names, revision, build_type, "linuxl", print_co, stout) # Linux intel and lahey are always together
+print_co = True      # allows only the first build initiated to print its checkout list, preventing redundancy of output
+for platform in plat_combos:
+  if plat_combos[platform]['act'] == "FULL":
+    plat_combos[platform]['builder'] = builder(release_names, revision, build_type, platform, print_co, stout)
+    plat_combos[platform]['time'] = time.time()  # Set start timestamp
     print_co = False
-  if osf:
-    t_begin_OSF = int(time.time())
-    t_begin_VMS = int(time.time())
-    OSFBUILD = builder(release_names, revision, build_type, "osfhp", print_co, stout)
-    print_co = False
-  if win:
-    t_WIN    = int(time.time())
-    WINBUILD = builder(release_names, revision, build_type, "win", print_co, stout)
 
+    
 ##  Package phase initiation complete here.
 loop             = 0
 max_loops        = 450
@@ -925,83 +894,46 @@ while complete_fraction < 1 and loop < max_loops:
     print "  %i hr %i min %i sec elapsed" % seconds_to_HMS(t_cur_master - t_begin_master)
     print "----------------------------------------"
 
-  if lnx:
-    lin_stat = LINBUILD.status()
-    lla_stat = LLABUILD.status()
-    #===Check if Intel is done==============
-    if lin_stat > 0 and lin_donelatch == 0:
-      complete_tally = complete_tally + 1
-      t_end_LIN = int(time.time() )
-      lin_donelatch = 1
-    elif lin_stat < 0:
-      error_tally = error_tally + 1
-    #===Check if Lahey is done==============
-    if lla_stat > 0 and lla_donelatch == 0:
-      complete_tally = complete_tally + 1
-      t_end_LLA = int(time.time() )
-      lla_donelatch = 1
-    elif lla_stat < 0:
-      error_tally = error_tally + 1
-    if show_status:
-      print "  Linux Intel : (" + str( lin_stat ) + ') ' + statuses[lin_stat]
-      print "  Linux Lahey : (" + str( lla_stat ) + ') ' + statuses[lla_stat]
+  for platform in plat_combos:
+    done   = plat_combos[platform]['done']
 
+    if not done:
+      if type( plat_combos[platform]['builder'] ) == types.InstanceType:
+        Status = plat_combos[platform]['builder'].status()    # -1 = ERROR :: 0 = building :: 1 = success
+      else:
+        Status = plat_combos[platform]['builder']
 
-  if bmad_build:
-    lin_stat = LINBUILD.status()
-    #===Check if Intel is done==============
-    if lin_stat > 0 and lin_donelatch == 0:
-      complete_tally = complete_tally + 1
-      t_end_LIN = int(time.time() )
-      lin_donelatch = 1
-    elif lin_stat < 0:
-      error_tally = error_tally + 1
-    #===Check if Lahey is done==============
-    #if lla_stat > 0 and lla_donelatch == 0:
-    #  complete_tally = complete_tally + 1
-    #  t_end_LLA = int(time.time() )
-    #  lla_donelatch = 1
-    #elif lla_stat < 0:
-    #  error_tally = error_tally + 1
-    if show_status:
-      print "  Linux(bmad) Intel : (" + str( lin_stat ) + ') ' + statuses[lin_stat]
-    #  print "  Linux Lahey : (" + str( lla_stat ) + ') ' + statuses[lla_stat]
+      if plat_combos[platform]['act'][:4] == "PREP":     # if this platform has a dependency, note it and build if dep is complete
+        depends_upon = plat_combos[platform]['act'].split('-')[1].strip()
+        if plat_combos[depends_upon]['builder'].status() == 1:
+          plat_combos[platform]['builder'] = builder(release_names, revision, build_type, platform, print_co, stout)
+          plat_combos[platform]['time'] = time.time()  # Set start timestamp
+          # Alter PREP string in the platform's 'act' field to prevent multiple initiations
+          plat_combos[platform]['act'] = "Building-->" + plat_combos[platform]['act']
+        if plat_combos[depends_upon]['builder'].status() == -1:
+          error_tally = error_tally + 1
+          plat_combos[platform]['done'] = True
+          plat_combos[platform]['time'] = time.time() - plat_combos[platform]['time'] # Calculate elapsed time and store
 
-            
-  if osf:                        
-    osf_stat = OSFBUILD.status()
-    #===Check if HP is done=================
-    if osf_stat > 0 and osf_donelatch == 0:
-      complete_tally = complete_tally + 1
-      t_end_OSF = int(time.time())
-      osf_donelatch = 1
-      # Put call to VMS builder here, it will check out, and then this will copy OSF deps over.
-      if vms:
-        print ""
-        VMSBUILD = builder(release_names, revision, build_type, "vmshp", print_co, stout)
-        time.sleep(20)  # is this needed?
-    elif osf_stat < 0:
-      error_tally = error_tally + 1
-      if vms:
+      if Status == 1:                                     # Completed successfully
+        complete_tally = complete_tally + 1
+        plat_combos[platform]['done'] = True
+        plat_combos[platform]['time'] = time.time() - plat_combos[platform]['time']
+
+      elif Status == -1:                                  # Stopped with error(s)
         error_tally = error_tally + 1
-    if show_status:
-      print "  OSF1   HP   : (" + str( osf_stat ) + ') ' + statuses[osf_stat]
-      if vms and osf_donelatch == 0:   # if VMS release is to be prepared and OSF is still running
-        print "  VMS    HP   : (0) WAITING for OSF1"
-
-
-  # VMS build depends on successful OSF build
-  if vms and osf_donelatch:   # if VMS release is to be prepared AND OSF is done building
-    vms_stat = VMSBUILD.status()
-    if vms_stat > 0 and vms_donelatch == 0:  # if VMS preparations have completed
-      complete_tally = complete_tally + 1
-      t_end_VMS = int(time.time())
-      vms_donelatch = 1
-    elif vms_stat < 0:
-      error_tally = error_tally + 1
-    if show_status:
-      print "  VMS    HP   : (" + str(vms_stat) + ") PREPARING TO TRANSFER"
+        plat_combos[platform]['done'] = True
+        plat_combos[platform]['time'] = time.time() - plat_combos[platform]['time']
       
+    if show_status:
+      if type( plat_combos[platform]['builder'] ) == types.InstanceType:
+        Status = plat_combos[platform]['builder'].status() # -1 = ERROR :: 0 = building :: 1 = success
+        print platform + " : " + str(Status) + "  " + statuses[Status]
+      else:
+        Status = plat_combos[platform]['builder']
+        print platform + " : " + str(Status)
+
+
     
   complete_fraction = complete_tally / float(rquant)
   error_fraction    = error_tally / float(rquant)
@@ -1010,11 +942,6 @@ while complete_fraction < 1 and loop < max_loops:
     print "\n" + time.asctime() + " All Builds completed successfully.\n"
     successful_build = 1
     break
-
-  if vms and error_fraction == float(1.0 - (1.0/float(rquant))):    # Mark as failed if all but VMS fail.
-    print "All conventional builds have failed."
-    print "VMS preparation will not be attempted.  Stopping."
-    sys.exit(45)
 
   if error_fraction == 1.0:
     print "All builds have failed.  Stopping."
@@ -1028,15 +955,15 @@ while complete_fraction < 1 and loop < max_loops:
     print "One or more builds have ceased due to timeout!"
     failure = 1
 
-  if failure:           # TODO: generalize looping through platforms in both success and failure summaries
+  if failure:
     print "Summary:"
-    if lnx:
-      print "Linux_i686_intel : " + statuses[lin_stat]
-      print "Linux_i686_lahey : " + statuses[lla_stat]
-    if osf:
-      print "OSF1_alpha_hp    : " + statuses[osf_stat]
-    if vms:
-      print "VMS_alpha_hp     : " + statuses[osf_stat]
+    for platform in plat_combos:
+      if type( plat_combos[platform]['builder'] ) == types.InstanceType:
+        Status = plat_combos[platform]['builder'].status()  # -1 = ERROR :: 0 = building :: 1 = success
+        print platform + " : " + statuses[ Status ]
+      else:
+        Status = plat_combos[platform]['builder']
+        print platform + " : " + Status
     sys.exit(56)
   
   if loop < 10:
@@ -1044,9 +971,13 @@ while complete_fraction < 1 and loop < max_loops:
   else:
     time.sleep(30)
     
-  loop = loop + 1  
+  loop = loop + 1
+##  
 ##End while loop [ while complete_fraction < 1 and loop < max_loops: ]
+##
 
+
+###########################################
 stout.outThreshold        = 5      # Swap stdout and logfile thresholds again to return everything
 stout.outLogfileThreshold = 4      # the initially set up state.
 stout.priority            = 5      # Set priority back to default value.
@@ -1054,21 +985,12 @@ stout.priority            = 5      # Set priority back to default value.
 
 t_end_master = int(time.time())
 
-##== Build has completed successfully, compute and summarize relevant statistics ==========================================
+##== Build has completed successfully, compute and summarize relevant statistics ====================================
 print "          ======== Statistics for this build process ========"
 print "============================ Time summary: ==============================="
 print "         Overall:     %i hr %i min %i sec elapsed" % seconds_to_HMS(t_end_master - t_begin_master)
-
-if lnx:
-  print "Linux intel build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LIN - t_begin_LIN)
-  print "Linux lahey build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LLA - t_begin_LLA)
-if bmad or bmad_build:
-  print "Linux (bmad) intel build : %i hr %i min %i sec" % seconds_to_HMS(t_end_LIN - t_begin_LIN)
-if osf:
-  print "OSF1 alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_end_OSF - t_begin_OSF)
-if vms:
-  print "VMS  alpha  build : %i hr %i min %i sec" % seconds_to_HMS(t_end_VMS - t_begin_VMS)
-
+for platform in plat_combos:
+  print platform + " build : %i hr %i min %i sec" % seconds_to_HMS( plat_combos[platform]['time'] )
 
 #if build_type == "RELEASE":
 lines = os.popen(util_dir + "/rel_disk_total " + rel_name).readlines()
@@ -1077,32 +999,16 @@ for line in lines:
 #else:
 #  print "Disk utilization summary for packages builds has not yet been implemented."
 
-
 if build_type == "RELEASE" and run_tests == "YES":
   print "=========================  Test Suite Summary  ==========================="
-  if lnx:
-    platform = platform_combos['linuxi'][0] + '_' + platform_combos['linuxi'][1]
-    print "Testing summary for " + platform
-    logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
-    lines = os.popen(util_dir + "/extract_test_summary " + logfile).readlines()
-    for line in lines:
-      print line.strip()
-    print ""
-    platform = platform_combos['linuxl'][0] + '_' + platform_combos['linuxl'][1]
-    print "Testing summary for " + platform
-    logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
-    lines = os.popen(util_dir + "/extract_test_summary " + logfile).readlines()
-    for line in lines:
-      print line.strip()
-    print ""
-  if osf:
-    platform = platform_combos['osfhp'][0] + '_' + platform_combos['osfhp'][1]
-    print "Testing summary for " + platform
-    logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
-    lines = os.popen(util_dir + "/extract_test_summary " + logfile).readlines()
-    for line in lines:
-      print line.strip()
-    print ""
+  for platform in plat_combos:
+    if plat_combos[platform]['act'] == "FULL":
+      print "Testing summary for " + platform
+      logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
+      lines = os.popen(util_dir + "/extract_test_summary " + logfile).readlines()
+      for line in lines:
+        print line.strip()
+      print ""
 
 print "=========================================================================="
 print "          =============  End Statistics Summary =============\n"
@@ -1137,9 +1043,6 @@ if nightly and build_type == "RELEASE":
   print str(outstream)
   if del_exit != 0:
     print "ERROR: There was a problem deleting the previous release."
-  #lines = os.popen(util_dir + "/DELETE_release -QUIET REL=" + previously_built)
-  #for line in lines:
-  #  print line.strip()
   os.chmod(prev_blt, 0644)         # set permissions to writable
   prevfile = open(prev_blt, 'w')
   prevfile.write(rel_name + '\n')      # write the name of the release just built to file
@@ -1165,6 +1068,7 @@ if bmad_build:
 #========================================================================
 # Ask if this newly-built release is a candidate for promotion to DEVEL.
 #========================================================================
+defer = False
 if devel:
   print "Checking to see if this release is a DEVEL candidate."
   qr = sub.Popen( [rot_querier, "-r", rel_name], stdout=sub.PIPE, stderr=sub.STDOUT )
@@ -1182,50 +1086,56 @@ if devel:
     if minuteval < 10:
       min_str = "0" + min_str
 
-    if cur_hourval < 8:  # If current time is before 8am and hence this
-      defer = 1         # was cron-initiated, use deferrals. Otherwise,
-    else:                # execute subtasks immediately in sequence.
-      defer = 0
+    if cur_hourval < 8: # If current time is before 8am and hence this
+      defer = True      # was cron-initiated, use deferrals. Otherwise,
+                        # execute subtasks immediately in sequence.
 
-    #= Schedule this release to be promoted to DEVEL status.
-    tmpname = "/tmp/tmp_atfile_01"
-    atfile  = open(tmpname, 'w')
-    atfile.write(rotator + " -devel -tag -mail " + rel_name)
-    atfile.close()
-    at = sub.Popen( ["at", def_hourstr +':'+ min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
-    (outstream, errstream) = at.communicate()
-    atval = at.wait()
-    os.remove(tmpname)
-    if atval == 0:
-      print "Will rotate release : " + str(outstream)
-    else:
-      print str(outstream)
-      print "ERROR: There was a problem with the rotation initiation."
-      sys.exit(70)
+    if defer:
+      #= Schedule this release to be promoted to DEVEL status.
+      tmpname = "/tmp/tmp_atfile_01"
+      atfile  = open(tmpname, 'w')
+      atfile.write(rotator + " -devel -tag -mail " + rel_name)
+      atfile.close()
+      at = sub.Popen( ["at", def_hourstr +':'+ min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
+      (outstream, errstream) = at.communicate()
+      atval = at.wait()
+      os.remove(tmpname)
+      if atval == 0:
+        print "Will rotate release : " + str(outstream)
+      else:
+        print str(outstream)
+        print "ERROR: There was a problem with the rotation initiation."
+        sys.exit(70)
 
-    #= Schedule a Bmad distribution build and rotation.
-    if minuteval != 59:
-      minuteval = minuteval + 1
-    min_str   = str( minuteval )
-    if minuteval < 10:
-      min_str = "0" + min_str
-    tmpname   = "/tmp/tmp_atfile_02"
-    atfile    = open(tmpname, 'w')
-    atfile.write(master + " -bmad_build") # Call master script again
-    atfile.close()
-    at = sub.Popen( ["at", def_hourstr +':'+ min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
-    (outstream, errstream) = at.communicate()
-    atval = at.wait()
-    #os.remove(tmpname)
-    if atval == 0:
-      print "Will produce a Bmad distribution : " + str(outstream)
-    else:
-      print str(outstream)
-      print "ERROR: There was a problem with the Bmad dist. initiation."
-      sys.exit(75)
-    
+      #= Schedule a Bmad distribution build and rotation.
+      if minuteval != 59:
+        minuteval = minuteval + 1
+      min_str   = str( minuteval )
+      tmpname   = "/tmp/tmp_atfile_02"
+      atfile    = open(tmpname, 'w')
+      atfile.write(master + " -bmad_build") # Call master script again
+      atfile.close()
+      at = sub.Popen( ["at", def_hourstr +':'+ min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
+      (outstream, errstream) = at.communicate()
+      atval = at.wait()
+      os.remove(tmpname)
+      if atval == 0:
+        print "Will produce a Bmad distribution : " + str(outstream)
+      else:
+        print str(outstream)
+        print "ERROR: There was a problem with the Bmad dist. initiation."
+        sys.exit(75)
+        
+      
 
 print "\n================== Build process finished completely. ====================\n"
+
+
+if recommendation == 0 and not defer:             
+  print "Starting sequential rotation and build processes"
+  print "as per rotation recommendation."
+  os.execv( rotator, ["-devel", "-tag", "-mail", rel_name] )
+  os.execv( master, ["-bmad_build"] )
 
 
 stout.close()                           # Close stream to logfile before quitting
