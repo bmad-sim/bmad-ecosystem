@@ -2721,7 +2721,8 @@ subroutine tao_parse_command_args (error, cmd_words)
 ! since there are arguments reset things to their initial state
 
   tao_com%init_tao_file  = 'tao.init'
-  tao_com%init_beam_file = ''
+  s%global%beam_file     = ''
+  s%global%beam0_file    = ''
   tao_com%init_lat_file  = ''
 
 ! loop over all arguments
@@ -2739,7 +2740,10 @@ subroutine tao_parse_command_args (error, cmd_words)
       call get_next_arg (tao_com%init_tao_file)
 
     case ('-beam')
-      call get_next_arg (tao_com%init_beam_file)
+      call get_next_arg (s%global%beam_file)
+
+    case ('-beam0')
+      call get_next_arg (s%global%beam0_file)
 
     case ('-lat')
       i_lat = i_lat + 1

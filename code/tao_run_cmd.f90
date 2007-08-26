@@ -48,7 +48,7 @@ call out_io (s_blank$, r_name, &
 call tao_get_vars (var_vec)
 if (size(var_vec) == 0) then
   call out_io (s_fatal$, r_name, 'No variables to vary!')
-  s%global%optimizer_running = .false.
+  tao_com%optimizer_running = .false.
   return
 endif
 
@@ -60,7 +60,7 @@ do i = 1, size(s%u)
 enddo
 if (n_data == 0) then
   call out_io (s_error$, r_name, 'No data constraints defined for the merit function!')
-  s%global%optimizer_running = .false.
+  tao_com%optimizer_running = .false.
   return
 endif
 

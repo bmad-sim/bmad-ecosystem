@@ -61,24 +61,23 @@ Note: string variables are case sensitive.
 
 The syntax of the command line is:
 \begin{example}
-  tao \{-init <tao_input_file>\} \{-beam <beam_input_file>\} \{-lat <lattice_file>\}
+  tao \{-init <tao_input_file>\} \{-beam <beam_file>\} \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
 \end{example}
 
 The \vn{-init} optional argument can be used to replace the default
 initialization file name (\vn{tao.init}) with \vn{<init_file_name>}.
 
-The \vn{-beam} optional argument reads in a beam data file created with the
-\vn{output beam} command. This file contains the particle coordinates of the
-tracked beam at the end of any element where the  When this is done, \tao sets 
-the variable \vn{global%use_saved_beam_in_tracking} to \vn{True}. 
-This causes \tao to use the data from the beam data file in lieu of tracking.
-This can be helpful when the time for \tao to track a bunch through the 
-lattice becomes long. The default is to not read in a beam data file.
+The \vn{-beam} optional argument reads in a beam data file for the
+entire lattice.  This overrides the \vn{global%beam_file} variable
+(\sref{s:globals}.
 
-The \vn{<lattice_file>} is used to override the lattice file specified
-in the root initialization file. To specify an XSIF lattice format
-file use the prefix \vn{xsif::} in the \vn{<lattice_file>} name. To
-specify a digested file use the prefix \vn{digested::}. Example:
+The \vn{-beam0} optional argument reads in a beam data file which is
+use to initialize the beam at the beginning of the lattice. This
+overrides the \vn{global%beam0_file} variable (\sref{s:globals}.
+
+The \vn{<lattice_file>} is used to override the \vn{design_lattice}
+lattice file specified in the initialization file
+(\sref{s:init_lat}). Example:
 \begin{example}
   \$CESR_EXE/tao -init my.init -lat xsif::slac.xsif
 \end{example}
@@ -267,13 +266,13 @@ type tao_global_struct
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: var_out_file  = 'var#.out'
+  character(80) :: beam_file = ''      ! Input beam data file for entire lattice.
+  character(80) :: beam0_file = ''     ! Input beam data file at start of lattice.
   logical :: var_limits_on = T         ! Respect the variable limits?
   logical :: plot_on = T               ! Do plotting?
   logical :: auto_scale = F            ! Automatically scale and x-scale the plots?
   logical :: opt_with_ref = F          ! use reference data in optimization?
   logical :: opt_with_base = F         ! use base data in optimization?
-  logical :: single_mode = F
-  logical :: optimizer_running 
   logical :: init_opt_wrapper = T
   logical :: label_lattice_elements = T ! For lat_layout plots
   logical :: label_keys = T             ! For lat_layout plots
@@ -281,10 +280,26 @@ type tao_global_struct
   logical :: lattice_recalc = T         ! recalculate the lattice?
   logical :: matrix_recalc_on = T       ! calc linear transfer matrix?  
   logical :: init_plot_needed = T       ! reinitialize plotting?
-  logical :: save_beam_everywhere = F   ! Save the beam info at all elements?
+  logical :: save_beam_everywhere = T   ! Save the beam info at all elements?
   logical :: use_save_beam_in_tracking = F
 end type
 \end{example}
+
+\vn{global%beam_file} specifies a beam data file (which can be created
+with the \vn{output beam} command) which contains the particle
+coordinates of the tracked beam at every element. This causes \tao to
+use the data from the file in lieu of actual tracking. This can be
+helpful when the time for \tao to track a bunch through the lattice
+becomes long.  The file name can be overridden by using the \vn{-beam}
+argument on the command line (\sref{s:command_line}. Note: \tao will
+set the variable \vn{global%use_saved_beam_in_tracking} to \vn{True}
+to prevent actual tracking.
+
+\vn{global%beam0_file} specifies a beam data file (which can be
+created with the \vn{output beam -at <ele_name>} command) which contains a beam's
+particle coordinates which are to be used at the start of the lattice. 
+
+Note: \vn{global%beam_file} and \vn{global%beam0_file} cannot both be set.
 
 The \vn{bmad_com_struct} holds bmad global variables. 
 \index{radiation_damping_on}

@@ -239,10 +239,9 @@ interface
 end interface
  
 interface
-  subroutine tao_output_cmd (what, arg1, arg2)
+  subroutine tao_output_cmd (what)
     implicit none
     character(*) :: what
-    character(*) :: arg1, arg2
   end subroutine
 end interface
  

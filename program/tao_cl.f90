@@ -34,7 +34,7 @@ program tao_cl
   do
     err = .false.
     call tao_get_user_input (cmd_line)
-    if (s%global%single_mode) then
+    if (tao_com%single_mode) then
       ! single mode
       call tao_single_mode (cmd_line(1:1))
       ! Do the standard calculations and plotting after command execution.

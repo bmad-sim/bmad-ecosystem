@@ -127,7 +127,7 @@ do
     call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', &
                                                              'Stopping now.')
     tao_com%opti_abort = .true.
-    s%global%optimizer_running = .false.
+    tao_com%optimizer_running = .false.
   endif
   if (char == achar(0)) exit   ! only exit if there is no more input
 enddo

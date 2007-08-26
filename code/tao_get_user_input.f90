@@ -52,7 +52,7 @@ endif
 
 ! If single character input wanted then...
 
-if (s%global%single_mode) then
+if (tao_com%single_mode) then
   call get_a_char (cmd_line(1:1), .true., (/ ' ' /))  ! ignore blanks
   tao_com%cmd_from_cmd_file = .false.
   return

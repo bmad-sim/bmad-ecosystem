@@ -127,7 +127,7 @@ if (merit > merit_at_min) then
   call out_io (s_blank$, r_name, line)
 endif
 
-s%global%optimizer_running = .false.
+tao_com%optimizer_running = .false.
 call tao_var_write (s%global%var_out_file)
 deallocate (var_at_min)
 

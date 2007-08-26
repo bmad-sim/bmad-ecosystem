@@ -370,8 +370,9 @@ Examples
 
 Format:
 \begin{example}
-  output bmad_lattice \{<file_name>\} ! Write a Bmad lattice file of the model
-  output beam \{<file_name>\}              ! Write beam distribution data.
+  output bmad_lattice \{<file_name>\}       ! Write a Bmad lattice file of the model
+  output beam \{-binary\} \{-at <element_name_or_index>\} \{<file_name>\} 
+                                          ! Write beam distribution data.
   output curve <curve_name> \{<file_name>\} ! Write the curve data
   output derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
   output digested \{<file_name>\}     ! Write a digested Bmad lattice file of the model.
@@ -399,18 +400,23 @@ not given then the defaults are:
   output ps                       tao.ps
   output var                      global%var_out_file
 \end{example}
-where \vn{\#} is replaced by the universe number. For \vn{output
-curve} there are two files produced: A file
+where \vn{\#} is replaced by the universe number. \vn{output
+curve} will produce two files: A file
 \vn{<file_name>.symbol_dat} file for the symbol coordinates and a
 \vn{<file_name>.line_dat} file for the coordinates used to draw the
 (possibly smooth) curve through the symbols. A third file named
-\vn{<file_name>.particle_dat} may be produced if there is particle
-data plotted.
+\vn{<file_name>.particle_dat} may be produced if particle
+data is associated with the curve.
 
-\vn{output bunch} will create a binary file of the saved particle positions when
-bunch tracking is being used. The variable \vn{global%save_beam_everywhere} 
+\vn{output beam} will create a file of the particle positions when
+beam tracking is being used. If the switch \vn{-at} is present then
+only the particle positions at the given element are written. Otherwise
+the positions at all elements will be written. In this case
+the variable \vn{global%save_beam_everywhere = T} 
 should be set in the initialization file to force the
-saving of the bunch particle positions at the end of every element. This file
+saving of the bunch particle positions at the end of every element. 
+The \vn{-binary} switch is for writing compressed binary files.
+Note: This file
 can be used to initialize \tao (\sref{s:command_line})
 
 Note: PGPLOT does a poor job producing gif files so consider
@@ -782,7 +788,7 @@ Format:
   show beam                    
   show constraints
   show data \{<data_name>\} 
-  show ele <ele_name>
+  show element <ele_name>
   show global
   show hom
   show lattice \{middle\} \{custom <file_name>\} \{<locations>\}
@@ -794,8 +800,8 @@ Format:
   show plot <curve_name>
   show taylor <ele_name>
   show top10
-  show var \{<var_name> <locations>\}
-  show var <universe_number>@
+  show variable \{<var_name> <locations>\}
+  show variable <universe_number>@
   show write ...
 \end{example}
 
@@ -827,7 +833,7 @@ Lists data and variable constraints.
 Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
 present shown is a list of d2\_data names.
 
-  \item[show ele]
+  \item[show element]
 This shows information on lattice elements. \vn{<ele_name>} can
 contain wild--card characters ``\%'' and ``*''. ``\%'' matches to any
 single character and ``*'' matches to any number of characters. If
@@ -911,7 +917,7 @@ Same as \vn{show ele} except that the elements taylor map is also printed.
 Shows top contributors to the merit function, dMerit/dVariable
 derivatives, and Largest changes in variable value.
 
-  \item[show var]
+  \item[show variable]
 Shows variable information. If \vn{<var_name>} \vn{<locations>} is not
 present shown is a list of v1\_var classes. If \vn{<var_name>} is
 \vn{*} then the variables will be printed in Bmad lattice format.

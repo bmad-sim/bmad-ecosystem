@@ -66,10 +66,10 @@ subroutine tao_single_mode (char)
 
   case ('g')
 
-    s%global%optimizer_running = .true.
+    tao_com%optimizer_running = .true.
     do
       call tao_run_cmd (' ')
-      if (.not. s%global%optimizer_running) exit
+      if (.not. tao_com%optimizer_running) exit
     enddo
 
 ! s: Show parameters
@@ -119,7 +119,7 @@ subroutine tao_single_mode (char)
 ! z: Quit single character input mode.
 
   case ('z')
-    s%global%single_mode = .false.
+    tao_com%single_mode = .false.
     call out_io (s_blank$, r_name, ' ', 'Entering line mode...')
 
 ! Z: Quit tao.
@@ -280,12 +280,12 @@ subroutine tao_single_mode (char)
 ! /p: Just create a postscript file.
 
     case ('p')
-      call tao_output_cmd ('ps', ' ', ' ')
+      call tao_output_cmd ('ps')
 
 ! /P: Print a hardcopy.
 
     case ('P')
-      call tao_output_cmd ('hard', ' ', ' ')
+      call tao_output_cmd ('hard')
   
 ! /v: View universe 
 

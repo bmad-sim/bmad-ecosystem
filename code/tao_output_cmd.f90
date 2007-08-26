@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_output_cmd (what, arg1, arg2)
+! Subroutine tao_output_cmd (what)
 !
 ! 
 ! Input:
@@ -7,7 +7,7 @@
 !  Output:
 !-
 
-subroutine tao_output_cmd (what, arg1, arg2)
+subroutine tao_output_cmd (what)
 
 use tao_mod
 use tao_top10_mod
@@ -21,9 +21,9 @@ type (tao_curve_array_struct), allocatable, save :: curve(:)
 type (tao_curve_struct), pointer :: c
 type (beam_struct), pointer :: beam
 type (tao_universe_struct), pointer :: u
+type (tao_arg_struct) arg(10)
 
 character(*) what
-character(*) arg1, arg2
 character(20) action
 character(20) :: r_name = 'tao_output_cmd'
 character(100) file_name
@@ -32,14 +32,28 @@ character(20) :: names(12) = (/ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ' /)
+integer :: n_arg_max(12) = (/ &
+      1, 2, 2, 2, &
+      2, 2, 2, 3, &
+      2, 4, 2, 2 /)      
 
-integer i, j, ix, iu, nd, ii, i_uni, n_write, ib, ip, n_skip, ios
-logical err
+character(20) :: arg_names(2) = (/ '-binary', '-at    ' /)
+integer :: n_arg_value(2) = (/ 0, 1 /)
+
+integer i, j, ix, iu, nd, ii, i_uni, ib, ip, ios, loc, n_arg_values
+integer n_arg
+integer, allocatable, save :: ix_ele_at(:)
+
+logical err, binary
 
 !
 
-call string_trim (what, action, ix)
-call match_word (action, names, ix)
+call tao_arg_split (what, arg_names, n_arg_values, arg, n_arg, err)
+if (err) return
+
+action = arg(1)%name
+call match_word (action, names, ix, .true.)
+
 if (ix == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED "WHAT": ' // action)
   return
@@ -50,12 +64,20 @@ endif
 action = names(ix)
 iu = lunget()
 
+! Make sure number of arguments is ok
+
+if (n_arg_max(ix) < n_arg) then
+  call out_io (s_error$, r_name, 'THERE ARE TOO MANY ARGUMENTS HERE.')
+  return
+endif
+
 select case (action)
 
 !---------------------------------------------------
 ! hard
 
 case ('hard', 'hard-l')
+
   if (action == 'hard') then
     call qp_open_page ('PS')
   else
@@ -79,8 +101,10 @@ case ('hard', 'hard-l')
 ! gif
 
 case ('gif')
-  file_name = arg1
-  if (file_name == "") file_name = "tao.gif"
+
+  file_name = "tao.gif"
+  if (n_arg == 2) file_name = arg(2)%name
+
   call qp_open_page ('GIF', x_len = s%plot_page%size(1), &
            y_len = s%plot_page%size(2), units = 'POINTS', plot_file = file_name)
   call tao_plot_out ()   ! Update the plotting window
@@ -93,8 +117,10 @@ case ('gif')
 ! ps
 
 case ('ps', 'ps-l')
-  file_name = arg1
-  if (file_name == "") file_name = "tao.ps"
+
+  file_name = "tao.ps"
+  if (n_arg == 2) file_name = arg(2)%name
+
   if (action == 'ps') then
     call qp_open_page ('PS', plot_file = file_name)
   else
@@ -110,18 +136,20 @@ case ('ps', 'ps-l')
 ! variables
 
 case ('variable')
-  if (arg1 == ' ') then
+
+  if (arg(2)%name == ' ') then
     call tao_var_write (s%global%var_out_file)
   else
-    call tao_var_write (arg1)
+    call tao_var_write (arg(2)%name)
   endif
 
 !---------------------------------------------------
 ! bmad_lattice
 
 case ('bmad_lattice')
+
   do i = 1, size(s%u)
-    file_name = arg1
+    file_name = arg(2)%name
     if (file_name == ' ') file_name = 'lat_#.bmad'
     ix = index(file_name, '#')
     if (size(s%u) > 1 .and. ix == 0) then
@@ -138,8 +166,9 @@ case ('bmad_lattice')
 ! mad_lattice
 
 case ('mad_lattice')
+
   do i = 1, size(s%u)
-    file_name = arg1
+    file_name = arg(2)%name
     if (file_name == ' ') file_name = 'lat_#.mad'
     ix = index(file_name, '#')
     if (size(s%u) > 1 .and. ix == 0) then
@@ -167,7 +196,7 @@ case ('derivative_matrix')
     endif
   enddo
 
-  file_name = arg1
+  file_name = arg(2)%name
   if (file_name == ' ') file_name = 'derivative_matrix.dat'
   open (iu, file = file_name)
 
@@ -215,7 +244,7 @@ case ('derivative_matrix')
 
 case ('digested')
   do i = 1, size(s%u)
-    file_name = arg1
+    file_name = arg(2)%name
     if (file_name == ' ') file_name = 'digested_lat_universe_#.bmad'
     ix = index(file_name, '#')
     if (size(s%u) > 1 .and. ix == 0) then
@@ -233,14 +262,14 @@ case ('digested')
 
 case ('curve')
 
-  call tao_find_plots (err, arg1, 'BOTH', curve = curve)
+  call tao_find_plots (err, arg(2)%name, 'BOTH', curve = curve)
   if (.not. allocated(curve)) then
     call out_io (s_error$, r_name, 'NO CURVE SPECIFIED.')
     return
   endif
 
   file_name = 'curve'
-  if (arg2 /= ' ') file_name = arg2
+  if (arg(3)%name /= ' ') file_name = arg(3)%name
   c => curve(1)%c
 
   if (c%g%type == "phase_space") then
@@ -280,41 +309,81 @@ case ('curve')
 
 case ('beam')
 
-  n_write = 0
-  n_skip = 1
+  binary = .false.
+  file_name = 'beam.dat'
+  loc = -1
 
-!  read (arg1, *, iostat = ios) n_skip
-!  if (arg1 == ' ' .or. ios /= 0 .or. n_skip < 1) then
-!    call out_io (s_error$, r_name, '"beam" needs to be followed by a skip number: ' // arg1)
-!    return
-!  endif
-
-  file_name = arg1
-  if (file_name == ' ') file_name = 'beam.dat'
-  open (iu, file = file_name, form = 'unformatted')
-
-  do i = 1, size(s%u)
-    u => s%u(i)
-    write (iu) u%beam_init
-    write (iu) 1 + (u%beam_init%n_particle - 1) / n_skip
-
-    do j = lbound(u%beam_at_element, 1), ubound(u%beam_at_element, 1)
-      beam => u%beam_at_element(j)
-      if (.not. allocated(beam%bunch)) cycle
-      n_write = n_write + 1
-      write (iu) j
-      do ib = 1, size(beam%bunch)
-        write (iu) beam%bunch(ib)%charge
-        write (iu) beam%bunch(ib)%z_center
-        write (iu) beam%bunch(ib)%t_center
-        do ip = 1, size(beam%bunch(ib)%particle), n_skip
-          write (iu) beam%bunch(ib)%particle(ip)
-        enddo
-      enddo
-    enddo 
-
-    write (iu) -1
+  do i = 2, n_arg
+    select case (arg(i)%name)
+    case ('-binary') 
+      binary = .true.
+    case ('-at')
+      call tao_locate_element (arg(i)%value(1), s%global%u_view, ix_ele_at)
+      loc = ix_ele_at(1)
+      if (loc < 0) return
+    case default
+      file_name = arg(i)%name
+    end select
   enddo
+
+  ! Write binary file
+
+  if (binary) then
+    open (iu, file = file_name, form = 'unformatted')
+    write (iu) 'BINARY'
+
+    do i = 1, size(s%u)
+      u => s%u(i)
+      write (iu) u%beam_init
+      write (iu) u%beam_init%n_particle
+
+      do j = lbound(u%beam_at_element, 1), ubound(u%beam_at_element, 1)
+        if (loc > -1 .and. loc /= j) cycle
+        beam => u%beam_at_element(j)
+        if (.not. allocated(beam%bunch)) cycle
+        write (iu) j
+        do ib = 1, size(beam%bunch)
+          write (iu) beam%bunch(ib)%charge
+          write (iu) beam%bunch(ib)%z_center
+          write (iu) beam%bunch(ib)%t_center
+          do ip = 1, size(beam%bunch(ib)%particle)
+            write (iu) beam%bunch(ib)%particle(ip)
+          enddo
+        enddo
+      enddo 
+
+      write (iu) -1
+    enddo
+
+  ! Write formatted file
+
+  else
+    open (iu, file = file_name, form = 'unformatted')
+
+    do i = 1, size(s%u)
+      u => s%u(i)
+      write (iu, *) u%beam_init
+      write (iu, *) u%beam_init%n_particle
+
+      do j = lbound(u%beam_at_element, 1), ubound(u%beam_at_element, 1)
+        if (loc > -1 .and. loc /= j) cycle
+        beam => u%beam_at_element(j)
+        if (.not. allocated(beam%bunch)) cycle
+        write (iu, *) j
+        do ib = 1, size(beam%bunch)
+          write (iu, *) beam%bunch(ib)%charge
+          write (iu, *) beam%bunch(ib)%z_center
+          write (iu, *) beam%bunch(ib)%t_center
+          do ip = 1, size(beam%bunch(ib)%particle)
+            write (iu, *) beam%bunch(ib)%particle(ip)
+          enddo
+        enddo
+      enddo 
+
+      write (iu, *) -1
+    enddo
+
+  endif
 
   call out_io (s_info$, r_name, 'Writen: ' // file_name)
   close (iu)

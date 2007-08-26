@@ -122,7 +122,7 @@ do i = 1, s%global%n_opti_cycles+1
   do
     call get_tty_char (char, .false., .false.) 
     if (char == '.') then
-      s%global%optimizer_running = .false.
+      tao_com%optimizer_running = .false.
       call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', 'Stopping now.')
       abort = .true.
       finished = .true.

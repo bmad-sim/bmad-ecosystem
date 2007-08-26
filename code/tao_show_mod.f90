@@ -70,8 +70,8 @@ character(40) ele_name, name, sub_name
 character(60) nam
 
 character(16) :: show_names(16) = (/ &
-   'data        ', 'var         ', 'global      ', 'alias       ', 'top10       ', &
-   'optimizer   ', 'ele         ', 'lattice     ', 'constraints ', 'plot        ', &
+   'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
+   'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    'write       ', 'hom         ', 'opt_vars    ', 'universe    ', 'taylor      ', &
    'beam        ' /)
 
@@ -436,7 +436,7 @@ case ('data')
 !----------------------------------------------------------------------
 ! ele
 
-case ('ele', 'taylor')
+case ('element', 'taylor')
 
   call str_upcase (ele_name, word(1))
 
@@ -533,6 +533,8 @@ case ('global')
   nl=nl+1; write (lines(nl), amt) 'prompt_string              = ', s%global%prompt_string
   nl=nl+1; write (lines(nl), amt) 'var_out_file               = ', s%global%var_out_file
   nl=nl+1; write (lines(nl), amt) 'print_command              = ', s%global%print_command
+  nl=nl+1; write (lines(nl), amt) 'beam_file                  = ', s%global%beam_file
+  nl=nl+1; write (lines(nl), amt) 'beam0_file                 = ', s%global%beam0_file
   nl=nl+1; write (lines(nl), lmt) 'auto_scale                 = ', s%global%auto_scale
   nl=nl+1; write (lines(nl), lmt) 'label_lattice_elements     = ', s%global%label_lattice_elements
   nl=nl+1; write (lines(nl), lmt) 'label_keys                 = ', s%global%label_keys
@@ -552,7 +554,6 @@ case ('global')
   endif
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file        = ', tao_com%init_tao_file
-  nl=nl+1; write (lines(nl), amt) 'tao_com%init_beam_file       = ', tao_com%init_beam_file
   nl=nl+1; write (lines(nl), lmt) 'tao_com%use_saved_beam_in_tracking = ', &
                                                     tao_com%use_saved_beam_in_tracking
   do i = 1, size(tao_com%init_lat_file)
@@ -1142,7 +1143,7 @@ case ('universe')
 !----------------------------------------------------------------------
 ! variable
     
-case ('var')
+case ('variable')
 
   if (.not. associated (s%v1_var)) then
     call out_io (s_error$, r_name, 'NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!')

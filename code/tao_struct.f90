@@ -29,6 +29,11 @@ end interface
 
   integer, parameter :: n_key_maxx = 200
 
+  type tao_arg_struct
+    character(100) name
+    character(100) value(3)
+  end type
+
 !----------------------------------------------------------------------
 
 type tao_ele_shape_struct    ! for the element layout plot
@@ -413,20 +418,20 @@ type tao_global_struct
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: var_out_file  = 'var#.out'
-  logical :: var_limits_on = .true.      ! Respect the variable limits?
-  logical :: plot_on = .true.            ! Do plotting?
-  logical :: auto_scale = .false.        ! Automatically scale and x-scale the plots?
-  logical :: opt_with_ref = .false.      ! use reference data in optimization?
-  logical :: opt_with_base = .false.     ! use base data in optimization?
-  logical :: single_mode = .false.
-  logical :: optimizer_running 
+  character(80) :: beam_file     = ''      ! Input beam data file for entire lattice.
+  character(80) :: beam0_file    = ''      ! Input beam data file at the start of the lattice.
+  logical :: var_limits_on = .true.        ! Respect the variable limits?
+  logical :: plot_on = .true.              ! Do plotting?
+  logical :: auto_scale = .false.          ! Automatically scale and x-scale the plots?
+  logical :: opt_with_ref = .false.        ! use reference data in optimization?
+  logical :: opt_with_base = .false.       ! use base data in optimization?
   logical :: label_lattice_elements = .true. ! For lat_layout plots
   logical :: label_keys = .true.             ! For lat_layout plots
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
   logical :: matrix_recalc_on = .true.       ! calc linear transfer matrix
-  logical :: save_beam_everywhere = .false.  ! Save the beam info at all elements?
+  logical :: save_beam_everywhere = .true.   ! Save the beam info at all elements?
   logical :: show_ele_wig_terms = .false.
 end type
 
@@ -454,12 +459,12 @@ type tao_common_struct
   logical :: use_cmd_here  = .false. ! Used for the cmd history stack
   logical cmd_from_cmd_file ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
+  logical :: single_mode = .false.
+  logical :: optimizer_running 
   character(100) cmd       ! Used for the cmd history
-  character(16) :: init_name = "Tao"  !label for initialization
+  character(16) :: init_name = "Tao"               ! label for initialization
   character(80) :: init_tao_file     = 'tao.init'  ! '-init' argument.
   character(80) :: init_lat_file(10) = ''          ! '-lat' argument.
-  character(80) :: init_beam_file    = ''          ! '-beam' argument. Used to read in 
-                                                   !  previously computed beam distributions.
 end type
 
 !------------------------------------------------------------------------

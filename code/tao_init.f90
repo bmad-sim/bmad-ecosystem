@@ -80,9 +80,9 @@ subroutine tao_init (err_flag)
 
 ! Read beam info
 
-  if (tao_com%init_beam_file /= '') then
+  if (s%global%beam_file /= '') then
     iu = lunget()
-    open (iu, file = tao_com%init_beam_file, form = 'unformatted', status = 'old')
+    open (iu, file = s%global%beam_file, form = 'unformatted', status = 'old')
     do i = 1, size(s%u)
       u => s%u(i)
       read (iu) u%beam_init
@@ -104,7 +104,7 @@ subroutine tao_init (err_flag)
     enddo  
     close(1)
     tao_com%use_saved_beam_in_tracking = .true.
-    call out_io (s_info$, r_name, 'Read beam distribution from: ' // tao_com%init_beam_file)
+    call out_io (s_info$, r_name, 'Read beam distribution from: ' // s%global%beam_file)
   endif
 
 ! check variables

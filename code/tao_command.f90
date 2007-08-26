@@ -78,7 +78,7 @@ if (ix /= 0) cmd_line = cmd_line(:ix-1)        ! strip off comments
 
 ! match first word to a command name
 
-call match_word (cmd_line, cmd_names, ix_cmd)
+call match_word (cmd_line, cmd_names, ix_cmd, .true.)
 if (ix_cmd == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED COMMAND: ' // cmd_line)
   return
@@ -201,8 +201,7 @@ case ('misalign')
 
 case ('output')
 
-  call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
-  call tao_output_cmd (cmd_word(1), cmd_word(2), cmd_word(3))
+  call tao_output_cmd (cmd_line)
   return
 
 !--------------------------------
@@ -259,7 +258,7 @@ case ('use', 'veto', 'restore')
 
   call tao_cmd_split(cmd_line, 3, cmd_word, .false., err)
   
-  call match_word (cmd_word(1), name$%data_or_var, which)
+  call match_word (cmd_word(1), name$%data_or_var, which, .true.)
   
   if (which .eq. data$) then
     call tao_use_data (cmd_name, cmd_word(2))
@@ -318,7 +317,7 @@ case ('set')
 
   call tao_cmd_split (cmd_line, 5, cmd_word, .false., err, '=')
 
-  call match_word (cmd_word(1), set_names, ix)
+  call match_word (cmd_word(1), set_names, ix, .true.)
   if (ix == 0) then
     call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
     return
@@ -422,7 +421,7 @@ case ('show')
 
 case ('single-mode')
 
-  s%global%single_mode = .true.
+  tao_com%single_mode = .true.
   call out_io (s_blank$, r_name, 'Entering Single Mode...')
   return
 
