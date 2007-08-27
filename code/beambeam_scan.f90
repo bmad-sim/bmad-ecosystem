@@ -702,6 +702,7 @@ else
   return
 
 else !not parallel
+#endif
 
    do j=1,scan_params%n_turn
       call lum_tracker(ring, scan_params%n_part, start, end) 
@@ -718,7 +719,7 @@ else !not parallel
   return
 end if
 
-#endif
+
 
 end subroutine beambeam_scan
 
