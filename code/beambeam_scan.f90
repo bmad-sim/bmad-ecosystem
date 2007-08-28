@@ -469,8 +469,11 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 #if defined(CESR_LINUX) || defined(CESR_WINCVF)
   if(rp.eq.4) mpi_type = MPI_REAL
   if(rp.eq.8) mpi_type = MPI_DOUBLE_PRECISION
-  
+#endif
+
+
   if(scan_params%parallel)then
+#if defined(CESR_LINUX) || defined(CESR_WINCVF)
   if(rank.eq.0) then
 
 !rank 0 will be in charge or keeping track of all particles as well as luminocity calculations
@@ -698,11 +701,14 @@ else
         
      enddo
   endif
-
   return
+#endif
+
+!Following lines executed if compiled on a non-MPI system
+write (*,*) "Parallel operation not an option on this operating system"
+return
 
 else !not parallel
-#endif
 
    do j=1,scan_params%n_turn
       call lum_tracker(ring, scan_params%n_part, start, end) 
