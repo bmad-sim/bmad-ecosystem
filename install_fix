@@ -1,0 +1,205 @@
+#!/bin/sh
+#############################################################################
+# Script allows authorized users (those in the svn hooks authorization list)
+# to copy updated fixed source files to a world-readable area so that 
+# users who need to build code against the fixed area can do so easily.
+#
+# This area is configured to be wiped clean of all contents upon every 
+# successful DEVEL rotation.
+#############################################################################
+
+#****************************************************************************
+# NOTE: If the user who runs this script has a username that is a substring 
+# at the END of another name in the authfile, the runner of this script will 
+# be given preliminary permissions even if their username doesn't properly 
+# appear in authfile.  The actual build initiation script checks more 
+# thoroughly than this script so it will not result in escalated privileges, 
+# just a possible extra e-mail message being sent to the person who ran this 
+# script telling them that their build initiation attempt has failed because 
+# they are not authorized.
+#****************************************************************************
+HOOKS_AREA=/nfs/acc/libs/hooks
+FIXAREA=/nfs/acc/libs/Fixes
+CTRL_AREA=${FIXAREA}/control
+AUTHFILE=${HOOKS_AREA}/authorization_list
+
+USERNAME=`whoami`
+
+USER_EXISTS=0
+SIMPLE_USER_PERM=0
+USERS_GROUP_PERM=0
+
+#======================================================================
+# Set the Internal Field Separator to be a NEWLINE character to make
+# iterating through the output of grep that has been stored in a
+# variable easier.
+#======================================================================
+IFS=$'\n'
+
+
+# Variable inits
+LIST=""
+GROUPLIST=""
+GROUPLINES=""
+
+# Argument quantity checking
+if ( [ $# -eq 0 ] ) then
+    echo ""
+    echo "Will initiate a rebuild of specified modules and install"
+    echo "them in the 'Fixes' area that is honored by the ACC build"
+    echo "system when the FIXES flag is used. "
+    echo ""
+    echo "This functionality is only available to developers."
+    echo ""
+    echo "Usage:"
+    echo "       install_fix <module-1> <module-2> ... <module-n>"
+    echo ""
+    exit 3
+fi
+
+#======================================================================
+# Usernames _should_ only ever appear followed by either a 
+# SPACE, NEWLINE, or COMMA.  Use those as default delimiters to avoid
+# picking up usernames who might be a substring of the username used
+# to run this script.  3 checks here, appending to master list. Ignore 
+# all lines containing a "#" for each check below.
+#======================================================================
+LIST=`grep -v "#" ${AUTHFILE} | grep "${USERNAME} "`
+LIST=${LIST}$'\n'`grep -v "#" ${AUTHFILE} | grep "${USERNAME}$'\n'"`
+LIST=${LIST}$'\n'`grep -v "#" ${AUTHFILE} | grep "${USERNAME},"`
+
+
+#============================================================================
+# Strip out all newline chars introduced in the construction of LIST
+# If list is empty after that, the user doesn't exist anywhere in auth file.
+#============================================================================
+if ( [ "${LIST//$'\n'/}" != "" ] ) then
+    USER_EXISTS=1
+fi
+
+
+#========================
+# Function definitions
+#=======================
+
+#============================================================================
+# Test hierarchy function.
+# Checks to see if the string passed in exists in a NON-comment line
+# of the authfile, then determines whether or not the string is on
+# a permissions line by itself, determines if those permissions include
+# write access (w).  If the string appears in one or more group definitions
+# those groups are gathered and then their permissions are tested for write
+# access.  If any of that comes back successfully, the user is allowed to
+# proceed.  This is just a preliminary check to filter out most cases.
+# The real test occurs on the server side in the fbuild_init script that does
+# more complete and strict checking.
+#============================================================================
+user_permission() {
+    # First a simple check for user existence
+    if ( [ $USER_EXISTS -eq 1 ] ) then
+        #Check for explicit single-user permission definitions
+        for line in $LIST;
+        do
+          #Is the user in one or more groups?
+          if ( [ "`echo ${line} | cut -d= -f2 | grep ${USERNAME}`" != "" ] ) then
+              GRP=`echo ${line} | cut -d= -f1 | cut -d' ' -f1`
+              GRPS=${GRPS}$'\n'${GRP}
+          fi
+          #Is the user in a simple explicit definition?
+          RESULT=`echo ${line} | cut -d= -f2 | grep w`
+          if ( [ "${RESULT}" != "" ] ) then
+              #echo "RESULT:${RESULT}."
+              SIMPLE_USER_PERM=1
+          fi
+        done
+        #If user does not have write perms in a simple definition but is in a group,
+        #check the group's perms.
+        if ( [ $SIMPLE_USER_PERM -ne 1 ] && [ "${GRP}" != "" ] ) then
+            # Compose list of all lines containing all
+            # group names of which the users is a member.
+            for G in $GRPS;
+            do
+              GROUPLINES=${GROUPLINES}$'\n'`grep -v "#" ${AUTHFILE} | grep "@${G}"`
+            done
+            # Check each line just obtained to see if any group has write perms
+            for line in $GROUPLINES;
+            do
+              RESULT=`echo ${line} | cut -d= -f2 | grep w`
+              if ( [ "${RESULT}" != "" ] ) then
+                  USERS_GROUP_PERM=1
+              fi
+            done
+        fi
+        if ( [ $SIMPLE_USER_PERM -eq 1 ] || [ $USERS_GROUP_PERM -eq 1 ] ) then
+            #echo "You have write permission."
+            return 1
+        else
+            echo "You do not have permission to write to the repository, and"
+            echo "therefore are not authorized to request a fixes build."
+            return 3
+        fi
+    else
+        echo "Your username was not found in the repository authorization list."
+        echo "Contact cesrulib@mail.lepp.cornell.edu if you have questions."
+        return 5
+    fi
+}
+
+#======================================================================
+# Write the formated list of module names into the control file.
+#======================================================================
+write_control_file() {
+    FILENAME=${CTRL_AREA}/${USERNAME}-`date +%Om_%Od-%OH:%OM:%OS`
+    echo -n "${USERNAME}" > ${FILENAME}
+    for arg in $*
+    do
+      echo -n ":${arg}" >> ${FILENAME}
+    done
+    echo "" >> ${FILENAME}
+    sleep 1
+}
+
+#======================================================================
+# Verify that the module names passed actually exist in the repository.
+#======================================================================
+verify_modules() {
+    retval=1
+    for arg in $*
+    do
+      svn list $ACCR/trunk/src/${arg} &> /dev/null
+      if ( [ $? -ne 0 ] ) then
+          retval=0
+      fi
+    done
+    return ${retval}
+}
+      
+
+
+#============================
+# Begin main action here
+#============================
+echo -n "Checking for developer permissions... "
+user_permission
+if ( [ $? -eq 1 ] ) then
+  echo "PASSED"
+  verify_modules $*
+  if ( [ $? -eq 1 ] ) then
+      echo "Module names verified."
+      echo "Proceeding with build."
+      echo ""
+      echo "This may take some time, depending on the module."
+      echo "You will be notified via e-mail when your build is complete."
+      write_control_file $*
+  else
+      echo "One or more modules could not be verified."
+      echo "Please check the validity of the module names specified."
+      exit 5
+  fi
+else
+  echo "FAILED"
+  echo ""
+  echo "You do not have developer permissions."
+  echo "If you think you have received this message in error"
+  echo "please contact cesrulib@mail.lepp.cornell.edu for assistance."
+fi

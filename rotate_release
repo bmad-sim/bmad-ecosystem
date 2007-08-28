@@ -103,6 +103,7 @@ TO_ADDRESS=`${UTIL_DIR}/getcfg Notification list_address`
 LIBS_DIRECTORY=`${UTIL_DIR}/getcfg Paths LIBS_DIR`
 DIST_DIRECTORY=`${UTIL_DIR}/getcfg Paths DIST_DIR`
 DIST_WEB_DIR=`${UTIL_DIR}/getcfg Paths DIST_WEB_DIR`
+FIXES_DIR=`${UTIL_DIR}/getcfg Paths FIXES_DIR`
 
 PLATFORMS=`${UTIL_DIR}/getcfg Platforms FULL`
 BASE_DIRECTORY=""
@@ -221,6 +222,12 @@ if ( [ ${ROTATE_BMAD} = 0 ] ) then
       present_rel=`ls -l devel | cut -d\> -f2`
       mv -f devel ${devel_old}
       ln -s ${REL} devel
+      # Purge the Fixes directory when DEVEL gets rotated
+      for dir in `ls ${FIXES_DIR}`; do
+          if ( [ ${dir} != "control" ] && [ ${dir} != "staging" ] ) then
+              rm -rf ${FIXES_DIR}/${dir}
+          fi
+      done
     fi
     if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
       present_rel=`ls -l nightly | cut -d\> -f2`

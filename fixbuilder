@@ -1,0 +1,181 @@
+#!/home/cesrulib/EXT/Python-2.5.1/Linux/python
+##############################################
+# Runs once a minute via cron, determines
+# if any fix-build control files exist in the
+# Fixes/control area.
+# 
+# Checks ownership of any control files
+# against list of users who are
+# permitted to spawn builds.
+#
+# If the owner is allowed, this will parse
+# the file, and then spawn appropriate builds
+# across each supported platform area in the
+# Fixes directory.
+##############################################
+
+import os, sys, string, shutil, time, ConfigParser
+import subprocess as sub
+#============================================================================
+# Set up Configuration Parser
+#============================================================================
+cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
+config   = ConfigParser.ConfigParser()
+config.optionxform = lambda x: x   # <-Obtain values without changing case --
+config.read(cfg_file)              #  overrides default ConfigParser behavior
+
+#=== Paths ==================================================================
+util_dir    = config.get("Paths", "UTIL_DIR")
+repository  = config.get("Repository", "path")
+src_url     = config.get("Repository", "URL") + "trunk/src/"
+hooks_dir   = repository + "/hooks"
+fixes_root  = config.get("Paths", "FIXES_DIR")
+ctrl_dir    = fixes_root + "/control"
+staging_dir = fixes_root + "/staging"
+
+#=== Support Scripts ========================================================
+master      = util_dir + '/' + config.get("Scripts", "master")
+
+#============================================================================
+# External module search path set up and importation
+#============================================================================
+sys.path.append( util_dir + "/3rd-party")
+from standout import StandOut    # StandOut module is for advanced logging capabilities.
+
+sys.path.append( hooks_dir )
+import email_list_gen            # Local custom script for authorization
+                                 # file querying.
+
+#============================================================================
+#   VARIABLE SETUP
+#============================================================================
+platforms  = {} # Dictionary holding platform names and build host names.
+for plat in config.options("Platforms"):
+    if config.get("Platforms", plat).split(",")[0].strip() == "FULL":
+        host = config.get("Platforms", plat).split(",")[1].strip()
+        #platforms.append( [plat, host] )
+        platforms[plat] = host
+
+#===================
+# Support functions
+#===================
+def is_valid_module(module):
+    line = os.popen("svn info " + src_url + module).readline()
+    if line[0:4] == "Path":
+        return True
+    else:
+        return False
+    
+#============================================================================
+# Main section
+#============================================================================
+dirlist = os.listdir( ctrl_dir )
+# For every file that happens to exist in the control directory
+for file in dirlist:
+    fullname = ctrl_dir + "/" + file
+    statinfo = os.stat( ctrl_dir + "/" + file )
+    user     = file.split("-")[0]
+    statuid  = statinfo.st_uid
+    statuid  = int(statuid)
+    textuid  = os.popen( "id -u " + user ).readline().strip()
+    textuid  = int(textuid)
+
+    nameline = os.popen("finger " + user).readline()
+    Fullname = nameline.split(":")[2].strip()
+    Name     = nameline.split(":")[2].split()[0]
+
+    # If the file hasn't already been parsed for build initiation,
+    if file[-8:] != "BUILDING" and file[-5:] != "ERROR" and file[-8:] and file[-4:] != "DONE":
+        print time.asctime()
+        if textuid != statuid:
+            print "Problem authenticating user ", Fullname, " ("+user+")."
+            os.rename( fullname, fullname + "_ERROR" )
+            sys.exit(1)
+        else:
+            print "Dead drop authenticated."
+            print "A FIXES build was requested by " + Fullname +" ("+user+")."    
+            print "Checking for authorization..."
+            if email_list_gen.has_perms( user, "w" ):
+                print "Authorized\n"
+            else:
+                print "User not authorized"
+                sys.exit(2)
+            f = open(fullname, 'r')
+            line = f.readline()
+            f.close()
+            llist = line.split(":")
+            modules = llist[1:]
+            print "Verifying requests..."
+            for module in modules:
+                module = module.strip()
+                if is_valid_module(module):
+                    print module + " is valid"
+                else:
+                    print "Module existence could not be verified."
+                    os.rename( fullname, fullname + "_ERROR" )
+                    sys.exit(3)
+        print "\nAll modules verified."
+        print "Starting build..."
+        
+        bld_fullname = fullname + "_BUILDING"
+        os.rename( fullname, bld_fullname )
+
+        # Compose build command and spawn master build process
+        bld_cmd = [ master, "-lin", "-osf", "-fixes", "FIX="+file+"_BUILDING" ]
+        build = sub.Popen( bld_cmd, stdout=sub.PIPE, stderr=sub.STDOUT )
+        (outstream, errstream) = build.communicate()
+        bldval = build.wait()
+        if bldval != 0:
+            print "ERROR: Build failed."
+            sys.exit(20)
+
+        print "\nAll modules built successfully."
+        
+
+
+        # Open a pipe to the mail program and
+        # write the message body to the pipe.
+        mail = os.popen("mail -s \"Fixes build request\" " + user+"@mail.lepp.cornell.edu", 'w')
+        mail.write("Hello " + Name + ",\n")
+        s = ""
+        many = False
+        if len(modules) > 1:
+            many = True
+            s='s'
+        mail.write("\nThis is an automatically-generated message to inform you that ")
+        mail.write("the fixes build you requested for the module"+s+ " ")
+        for module in modules:
+            if many and module != modules[-1]:
+                if module == modules[-2]:
+                    mail.write( module.strip() + ", and " )
+                else:
+                    mail.write( module.strip() + ", " )
+            else:
+                mail.write( module.strip() )
+        #mail.write(" has completed on the platforms")
+        mail.write(" has completed.\n")
+        #for platform in platforms:
+        #    if platform != platforms[-1]:
+        #        if module == modules[-2]:
+        #            mail.write( platform.strip() + ", and " )
+        #        else:
+        #            mail.write( platform.strip() + ", " )
+        #    else:
+        #        mail.write( platform.strip() + ".\n" )
+        mail.write("The binaries are available in " + fixes_root +".\n\n")
+        mail.write("To allow your users to incorporate the changes just built into their projects ")
+        mail.write("please instruct them to use the FIXES flag when building their code.\n")
+        mail.write("The build system will recognize this and link against your changes in lieu of the ")
+        mail.write("official version"+s+" of the module"+s+".\n\n")
+        mail.write(" -END OF LINE-")
+        exitcode = mail.close()
+        if exitcode:
+            print "Exit code: %s" % exitcode
+        else:
+            print "A notification message has been sent to the developer."
+            os.remove(bld_fullname)
+
+        # Copy files from the staging area to the official fixes area.
+        for platform in platforms:
+            os.popen("rsync -avz " + staging_dir+'/'+platform+' '+ fixes_root)
+
