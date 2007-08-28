@@ -14,6 +14,7 @@ use tao_top10_mod
 use quick_plot
 use tao_plot_mod
 use io_mod
+use tao_command_mod
 
 implicit none
 
@@ -38,9 +39,9 @@ integer :: n_arg_max(12) = (/ &
       2, 4, 2, 2 /)      
 
 character(20) :: arg_names(2) = (/ '-binary', '-at    ' /)
-integer :: n_arg_value(2) = (/ 0, 1 /)
+integer :: n_arg_values(2) = (/ 0, 1 /)
 
-integer i, j, ix, iu, nd, ii, i_uni, ib, ip, ios, loc, n_arg_values
+integer i, j, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer n_arg
 integer, allocatable, save :: ix_ele_at(:)
 
