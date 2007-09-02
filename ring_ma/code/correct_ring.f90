@@ -116,7 +116,9 @@ contains
        if (correct%cor(i_cor_grp)%param == 0) cycle
        ele_loop2: do i_ele = 1, ring%n_ele_max
           if (match_reg(ring%ele(i_ele)%name, correct%cor(i_cor_grp)%mask)) then
-             if (.not. any(ring%ele(i_ele)%control_type == (/free$, overlay_lord$/))) cycle
+             if (correct%cor(i_cor_grp)%param > 0) then
+                if (.not. attribute_free(i_ele, correct%cor(i_cor_grp)%param, ring, .false.)) cycle
+             end if
 
              ! Check for duplicates. We don't skip zero-length elements, so you can never
              ! have two adjacent, same-name detectors.
@@ -189,7 +191,6 @@ contains
 !==========================================================================
 ! Store simulated measurements with BPM errors
 
-    call reallocate_coord(co, ring%n_ele_track)
     call twiss_and_track(ring, co)
     do i_det = 1, n_det
        loc = det(i_det)%loc
@@ -353,6 +354,11 @@ contains
     integer ia
 
     call ring_to_y(a, y)
+    if (any(y==999)) then
+       dyda = 999
+       return
+    end if
+
     a2 = a
     do ia = 1, size(a)
        a2(ia) = a(ia) + delta
@@ -381,6 +387,7 @@ contains
 
     integer ia, iy, ip, i_det
     real(rp) cbar(2,2)
+    logical everything_ok
 
     ! Put the values A into the right places in the ring
     do ia = 1, size(a)
@@ -398,7 +405,13 @@ contains
     end do
 
     ! Recalculate the ring parameters
-    call twiss_and_track(cr_model_ring, cr_model_co)
+    if (allocated(cr_model_co)) cr_model_co(0)%vec = 0.
+    call twiss_and_track(cr_model_ring, cr_model_co, everything_ok)
+
+    if (.not. everything_ok) then
+       y = 999
+       return
+    end if
 
     ! Stick everything back into Y
     iy = 1

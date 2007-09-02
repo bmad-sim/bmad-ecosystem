@@ -2,7 +2,7 @@ program ring_ma
   use bmad
   use correct_ring_mod
   use dr_misalign_mod
-  use ran_state, only: ran_seed
+!  use ran_state, only: ran_seed
   implicit none
 
 
@@ -45,6 +45,7 @@ program ring_ma
   integer rad_cache, i_ele, i_correction, ix_suffix, time(8), i_iter
 
   character*200 init_file, base_name, out_file, opt_file
+  logical everything_ok
 
 !==========================================================================
 ! Get init file from command line
@@ -141,13 +142,9 @@ program ring_ma
      do
         ma_ring = design_ring
         call dr_misalign(ma_ring, ma)
-        call lat_make_mat6 (ma_ring, -1)
-        call twiss_at_start (ma_ring)
         co(0)%vec = 0.
-        call closed_orbit_calc (ma_ring, co, 4)
-        if (.not. bmad_status%ok) cycle
-        call track_all (ma_ring, co)
-        if (bmad_status%ok) exit
+        call twiss_and_track (ma_ring, co, everything_ok)
+        if (everything_ok) exit
         n_bad_seeds = n_bad_seeds + 1
         if (n_bad_seeds > 5) then
            write(*,'(A)') "Couldn't find any good seeds."
@@ -156,13 +153,10 @@ program ring_ma
         end if
      end do
 
-     call lat_make_mat6 (ma_ring, -1, co)
-     call twiss_at_start (ma_ring)
-     call twiss_propagate_all (ma_ring)
-
      call radiation_integrals(ma_ring, co, modes, rad_cache)
      call release_rad_int_cache(rad_cache)
 
+     i_correction = 0
      if (write_orbits) then
         write(opt_file, '(A,".opt.",i3.3)') trim(base_name), i_iter
         write(*,*) "Writing optimization file: ", trim(opt_file)
@@ -297,7 +291,7 @@ contains
     else
        write(1,*)
        write(1,'(a)') "# Summary"
-       write(1, '("#",a6,a10,6a14)') "cor", "param", "key_val1", "key_val2", "mean", "sigma", "90pct", "95pct"
+       write(1, '("#",a6,a10,6a14)') "cor", "param", "key_val1", "key_val2", "mean", "sigma", "50pct", "95pct"
        do i_cor = 0, n_corrections_max
           if (i_cor > 0) then
              if (all(correct(i_cor)%cor(:)%param == 0)) cycle
@@ -322,7 +316,7 @@ contains
 
     real(rp) :: data_line(4)
     real(rp), intent(in) :: array(:)
-    integer indx(size(array)), k90, k95
+    integer indx(size(array)), k50, k95
 
     ! Compute mean and standard deviation
     call avevar(array, data_line(1), data_line(2))
@@ -331,9 +325,9 @@ contains
     ! Compute quantiles if we have enough seeds
     if (size(array) > 10) then
        call indexx(array, indx)
-       k90 = ceiling(.90 * size(array))
+       k50 = ceiling(.50 * size(array))
        k95 = ceiling(.95 * size(array))
-       data_line(3) = array(indx(k90))
+       data_line(3) = array(indx(k50))
        data_line(4) = array(indx(k95))
     else
        data_line(3:4) = -1
