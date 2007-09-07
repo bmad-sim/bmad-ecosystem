@@ -2721,8 +2721,8 @@ subroutine tao_parse_command_args (error, cmd_words)
 ! since there are arguments reset things to their initial state
 
   tao_com%init_tao_file  = 'tao.init'
-  s%global%beam_file     = ''
-  s%global%beam0_file    = ''
+  tao_com%beam_all_file     = ''
+  tao_com%beam0_file    = ''
   tao_com%init_lat_file  = ''
 
 ! loop over all arguments
@@ -2739,11 +2739,11 @@ subroutine tao_parse_command_args (error, cmd_words)
     case ('-init')
       call get_next_arg (tao_com%init_tao_file)
 
-    case ('-beam')
-      call get_next_arg (s%global%beam_file)
+    case ('-beam_all')
+      call get_next_arg (tao_com%beam_all_file)
 
     case ('-beam0')
-      call get_next_arg (s%global%beam0_file)
+      call get_next_arg (tao_com%beam0_file)
 
     case ('-lat')
       i_lat = i_lat + 1
@@ -2881,6 +2881,70 @@ elseif (lat%ele(ix_ele_ref)%control_type == super_lord$) then
 else  ! overlays, multipass_lords, etc.
   ix_ele_ref_track = -1
 endif
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine tao_string_to_element_id (str, ix_class, ele_name, err)
+!
+! Routine to split a string in the form str = "xxx:yyy" into an element class
+! and an element name. Example: 
+!   str = "quad:q*".
+! gives
+!   ix_class = quadrupole$
+!   ele_name = "Q*"
+!
+! If ":" is not found then ix_class is set to 0 (all classes).
+! If str is of the form: "*:yyy" then ix_class is set to 0 (all classes).
+! Class abbreviations and lower case names accepted 
+! ele_name will be converted to upper case
+!
+! Input:
+!   str -- Character(*): Character string to parse.
+!
+! Output:
+!   ix_class  -- Integer: Element class.
+!   ele_name  -- Character(*): Element name.
+!   err       -- Set true if there is a problem translating the element class.
+!-
+
+subroutine tao_string_to_element_id (str, ix_class, ele_name, err)
+
+implicit none
+
+character(*) str, ele_name
+integer ix, ix_class
+logical err
+character(40) :: r_name = 'tao_string_to_element_id'
+character(20) class
+
+!
+
+  err = .false.
+
+  ix = index(str, ':')
+
+  if (ix == 0) then
+    ix_class = 0
+    ele_name = str
+    call str_upcase (ele_name, ele_name)
+    return
+  endif
+
+  class = str(:ix-1)
+  ele_name = str(ix+1:)
+  call str_upcase (ele_name, ele_name)
+
+  if (class == '*') then
+    ix_class = 0
+    return
+  endif
+
+  ix_class = key_name_to_key_index (class, .true.)
+  if (ix_class < 1) err = .true.
 
 end subroutine
 

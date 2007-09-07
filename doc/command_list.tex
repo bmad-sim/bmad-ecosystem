@@ -371,7 +371,7 @@ Examples
 Format:
 \begin{example}
   output bmad_lattice \{<file_name>\}       ! Write a Bmad lattice file of the model
-  output beam \{-binary\} \{-at <element_name_or_index>\} \{<file_name>\} 
+  output beam \{-ascii\} \{-at <element_name_or_index>\} \{<file_name>\} 
                                           ! Write beam distribution data.
   output curve <curve_name> \{<file_name>\} ! Write the curve data
   output derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
@@ -391,7 +391,7 @@ not given then the defaults are:
   Command                         Default File Name
   ------------------              ------------------
   output bmad_lattice             lat_#.bmad
-  output beam                     beam.dat
+  output beam                     beam_#.dat
   output curve                    curve
   output derivative_mat           derivative_matrix.dat              
   output digested                 digested8_lat_universe_#.bmad
@@ -410,14 +410,11 @@ data is associated with the curve.
 
 \vn{output beam} will create a file of the particle positions when
 beam tracking is being used. If the switch \vn{-at} is present then
-only the particle positions at the given element are written. Otherwise
-the positions at all elements will be written. In this case
-the variable \vn{global%save_beam_everywhere = T} 
-should be set in the initialization file to force the
-saving of the bunch particle positions at the end of every element. 
-The \vn{-binary} switch is for writing compressed binary files.
-Note: This file
-can be used to initialize \tao (\sref{s:command_line})
+only the particle positions at the given element are written. 
+Otherwise the positions at all elements will be written. The
+\vn{-ascii} switch is for writing text files. The default is to write
+with a compressed binary format.  Note: Beam files can be used to
+initialize \tao (\sref{s:command_line}). 
 
 Note: PGPLOT does a poor job producing gif files so consider
 making a postscript file instead and using a ps to gif converter.
@@ -788,7 +785,7 @@ Format:
   show beam                    
   show constraints
   show data \{<data_name>\} 
-  show element <ele_name>
+  show element <name>
   show global
   show hom
   show lattice \{middle\} \{custom <file_name>\} \{<locations>\}
@@ -834,17 +831,16 @@ Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
 present shown is a list of d2\_data names.
 
   \item[show element]
-This shows information on lattice elements. \vn{<ele_name>} can
-contain wild--card characters ``\%'' and ``*''. ``\%'' matches to any
-single character and ``*'' matches to any number of characters. If
-\vn{<ele_name>} contains a wild card then a list of elements that
-match the name are shown. If no wild--card is present then information
-about the element whose name matches \vn{<ele_name>} is shown. All
-data types associated with the element will also be
-listed. \vn{<ele_name>} is a number $n$ then the $n$\Th element in the
-lattice list will be shown.
+This shows information on lattice elements. \vn{name} is in
+\vn{Class:Name} syntax as explained in \sref{s:class:name}. If
+\vn{<name>} contains a wild card or a class name then a list of
+elements that match the name are shown. If no wild--card or class name
+is present then information about the element whose name matches
+\vn{<name>} is shown. All data types associated with the element
+will also be listed. \vn{<name>} is a number $n$ then the $n$\Th
+element in the lattice list will be shown.
 
-\vn{show ele} does not show the Taylor map associated with an element
+\vn{show element} does not show the Taylor map associated with an element
 even if it has one. To see this map use the \vn{show taylor}
 command. Additionally, by default the wiggler terms of a \vn{map_type}
 \vn{wiggler} element will not be printed. To change this use the command:
@@ -911,7 +907,7 @@ available templates. See \sref{s:plot_overview} for the syntax on plot, graph, a
 curve names.
 
   \item[show taylor]
-Same as \vn{show ele} except that the elements taylor map is also printed.
+Same as \vn{show element} except that the elements taylor map is also printed.
 
   \item[show top10]
 Shows top contributors to the merit function, dMerit/dVariable

@@ -69,21 +69,22 @@ character(200) stuff2
 character(40) ele_name, name, sub_name
 character(60) nam
 
-character(16) :: show_names(16) = (/ &
+character(16) :: show_what, show_names(17) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    'write       ', 'hom         ', 'opt_vars    ', 'universe    ', 'taylor      ', &
-   'beam        ' /)
+   'beam        ', 'e2          ' /)
 
 character(200), allocatable, save :: lines(:)
 character(200) line, line1, line2, line3
 character(9) angle
 
-integer :: data_number, ix_plane
+integer :: data_number, ix_plane, ix_class
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju
 integer num_locations
 integer, allocatable, save :: ix_ele(:)
+integer :: n_write_file = 0            ! used for indexing 'show write' files
 
 logical err, found, at_ends, first_time
 logical show_all, name_found
@@ -136,8 +137,8 @@ endif
 
 call tao_cmd_split (stuff, 2, word, .false., err)
 
-
-select case (show_names(ix))
+show_what = show_names(ix)
+select case (show_what)
 
 !----------------------------------------------------------------------
 ! beam
@@ -186,7 +187,6 @@ case ('beam')
   nl=nl+1; write(lines(nl), lmt) 'csr_param%tsc_component_on     = ', csr_param%tsc_component_on
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', s%global%track_type
-  nl=nl+1; write(lines(nl), lmt) 'global%save_beam_everywhere = ', s%global%save_beam_everywhere
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
@@ -231,9 +231,8 @@ case ('write')
   file_name = s%global%write_file
   ix = index(file_name, '*')
   if (ix /= 0) then
-    s%global%n_write_file = s%global%n_write_file + 1
-    write (file_name, '(a, i3.3, a)') file_name(1:ix-1), &
-                      s%global%n_write_file, trim(file_name(ix+1:))
+    n_write_file = n_write_file + 1
+    write (file_name, '(a, i3.3, a)') file_name(1:ix-1), n_write_file, trim(file_name(ix+1:))
   endif
 
   open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN')
@@ -436,14 +435,21 @@ case ('data')
 !----------------------------------------------------------------------
 ! ele
 
-case ('element', 'taylor')
+case ('element', 'taylor', 'e2')
 
   call str_upcase (ele_name, word(1))
 
-  if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0) then
-    write (lines(1), *) 'Matches to name:'
+  if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0 .or. &
+                                                     index(ele_name, ':') /= 0) then
+    call tao_string_to_element_id (ele_name, ix_class, ele_name, err)
+    if (err) then
+      call out_io (s_error$, r_name, 'BAD CLASS NAME')
+      return
+    endif
+    write (lines(1), *) 'Matches:'
     nl = 1
     do loc = 1, u%model%lat%n_ele_max
+      if (ix_class > 0 .and. ix_class /= u%model%lat%ele(loc)%key) cycle
       if (.not. match_wild(u%model%lat%ele(loc)%name, ele_name)) cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
       nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, u%model%lat%ele(loc)%name
@@ -460,17 +466,26 @@ case ('element', 'taylor')
     call tao_locate_element (ele_name, s%global%u_view, ix_ele)
     loc = ix_ele(1)
     if (loc < 0) return
+    ele => u%model%lat%ele(loc)
 
-    write (lines(nl+1), *) 'Element #', loc
-    nl = nl + 1
+    nl=nl+1; write (lines(nl), *) 'Element #', loc
 
     ! Show the element info
-    if (show_names(ix) == 'ele') then
-      call type2_ele (u%model%lat%ele(loc), ptr_lines, n, .true., 6, .false., &
+
+    if (show_what == 'e2') then
+      nl=nl+1; write (lines(nl), *) 'Element ', ele%name
+      nl=nl+1; write (lines(nl), *) 'Save_beam:', u%ele(loc)%save_beam
+      nl=nl+1; write (lines(nl), *) 'beam allocated:', allocated(u%ele(loc)%beam%bunch)
+      call out_io (s_blank$, r_name, lines(1:nl))
+      return
+    endif
+
+    if (show_what == 'element') then
+      call type2_ele (ele, ptr_lines, n, .true., 6, .false., &
               s%global%phase_units, .true., u%model%lat, .true., .true., &
               s%global%show_ele_wig_terms)
     else
-      call type2_ele (u%model%lat%ele(loc), ptr_lines, n, .true., 6, .true., &
+      call type2_ele (ele, ptr_lines, n, .true., 6, .true., &
               s%global%phase_units, .true., u%model%lat, .false., .false., &
               s%global%show_ele_wig_terms)
     endif
@@ -478,12 +493,13 @@ case ('element', 'taylor')
     lines(nl+1:nl+n) = ptr_lines(1:n)
     nl = nl + n
     deallocate (ptr_lines)
-    if (show_names(ix) == 'ele') then
+
+    if (show_what == 'element') then
       nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (-X, -Y)]'
     endif
 
     orb = u%model%orb(loc)
-    fmt = '(2x, a, 3p2f11.4)'
+    fmt = '(2x, a, 3p2f15.8)'
     write (lines(nl+1), *) ' '
     write (lines(nl+2), *)   'Orbit: [mm, mrad]'
     write (lines(nl+3), fmt) "X  X':", orb%vec(1:2)
@@ -497,7 +513,7 @@ case ('element', 'taylor')
     found = .false.
     do i = loc + 1, u%model%lat%n_ele_max
       if (u%model%lat%ele(i)%name /= ele_name) cycle
-      if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
+      if (size(lines) < nl+2) call re_allocate (lines, len(lines(1)), nl+10)
       if (found) then
         nl=nl+1; write (lines(nl), *)
         found = .true.
@@ -524,7 +540,7 @@ case ('global')
   nl=nl+1; write (lines(nl), imt) 'n_opti_loops               = ', s%global%n_opti_loops
   nl=nl+1; write (lines(nl), imt) 'n_opti_cycles              = ', s%global%n_opti_cycles
   nl=nl+1; write (lines(nl), imt) 'bunch_to_plot              = ', s%global%bunch_to_plot
-  nl=nl+1; write (lines(nl), imt) 'random_seed                = ', s%global%random_seed
+  nl=nl+1; write (lines(nl), '(a, i0)') 'random_seed                = ', s%global%random_seed
   nl=nl+1; write (lines(nl), imt) 'n_curve_pts                = ', s%global%n_curve_pts
   nl=nl+1; write (lines(nl), amt) 'track_type                 = ', s%global%track_type
   nl=nl+1; write (lines(nl), amt) 'phase_units                = ', &
@@ -533,8 +549,6 @@ case ('global')
   nl=nl+1; write (lines(nl), amt) 'prompt_string              = ', s%global%prompt_string
   nl=nl+1; write (lines(nl), amt) 'var_out_file               = ', s%global%var_out_file
   nl=nl+1; write (lines(nl), amt) 'print_command              = ', s%global%print_command
-  nl=nl+1; write (lines(nl), amt) 'beam_file                  = ', s%global%beam_file
-  nl=nl+1; write (lines(nl), amt) 'beam0_file                 = ', s%global%beam0_file
   nl=nl+1; write (lines(nl), lmt) 'auto_scale                 = ', s%global%auto_scale
   nl=nl+1; write (lines(nl), lmt) 'label_lattice_elements     = ', s%global%label_lattice_elements
   nl=nl+1; write (lines(nl), lmt) 'label_keys                 = ', s%global%label_keys
@@ -546,7 +560,6 @@ case ('global')
   nl=nl+1; write (lines(nl), lmt) 'plot_on                    = ', s%global%plot_on
   nl=nl+1; write (lines(nl), lmt) 'matrix_recalc_on           = ', s%global%matrix_recalc_on
   nl=nl+1; write (lines(nl), lmt) 'var_limits_on              = ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), lmt) 'save_beam_everywhere       = ', s%global%save_beam_everywhere
   nl=nl+1; write (lines(nl), lmt) 'show_ele_wig_terms         = ', s%global%show_ele_wig_terms
   if (s%global%random_seed == 0) then
     call ran_seed_get(ix)
@@ -554,8 +567,8 @@ case ('global')
   endif
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file        = ', tao_com%init_tao_file
-  nl=nl+1; write (lines(nl), lmt) 'tao_com%use_saved_beam_in_tracking = ', &
-                                                    tao_com%use_saved_beam_in_tracking
+  nl=nl+1; write (lines(nl), amt) 'tao_com%beam_all_file        = ', tao_com%beam_all_file
+  nl=nl+1; write (lines(nl), amt) 'tao_com%beam0_file           = ', tao_com%beam0_file
   do i = 1, size(tao_com%init_lat_file)
     if (tao_com%init_lat_file(i) == '') exit
     nl=nl+1; write (lines(nl), iamt) 'tao_com%init_lat_file(', i, ')     = ', tao_com%init_lat_file(i)
@@ -1136,7 +1149,8 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
   nl=nl+1; write(lines(nl), lmt) '%calc_beam_emittance   = ', u%calc_beam_emittance
   nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
-  nl=nl+1; write(lines(nl), amt) '%beam_init_file        = ', trim(u%beam_init_file)
+  nl=nl+1; write(lines(nl), amt) '%beam0_file            = ', trim(u%beam0_file)
+  nl=nl+1; write(lines(nl), amt) '%beam_all_file         = ', trim(u%beam_all_file)
 
   call out_io (s_blank$, r_name, lines(1:nl)) 
 

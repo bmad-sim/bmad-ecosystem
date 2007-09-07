@@ -21,13 +21,14 @@ implicit none
 type (tao_curve_array_struct), allocatable, save :: curve(:)
 type (tao_curve_struct), pointer :: c
 type (beam_struct), pointer :: beam
+type (bunch_struct), pointer :: bunch
 type (tao_universe_struct), pointer :: u
 type (tao_arg_struct) arg(10)
 
 character(*) what
 character(20) action
 character(20) :: r_name = 'tao_output_cmd'
-character(100) file_name
+character(100) file_name0, file_name
 
 character(20) :: names(12) = (/ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
@@ -38,14 +39,14 @@ integer :: n_arg_max(12) = (/ &
       2, 2, 2, 3, &
       2, 4, 2, 2 /)      
 
-character(20) :: arg_names(2) = (/ '-binary', '-at    ' /)
+character(20) :: arg_names(2) = (/ '-ascii', '-at    ' /)
 integer :: n_arg_values(2) = (/ 0, 1 /)
 
 integer i, j, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer n_arg
 integer, allocatable, save :: ix_ele_at(:)
 
-logical err, binary
+logical is_open, ascii, ok, err
 
 !
 
@@ -63,7 +64,6 @@ elseif (ix < 0) then
   return
 endif
 action = names(ix)
-iu = lunget()
 
 ! Make sure number of arguments is ok
 
@@ -149,16 +149,11 @@ case ('variable')
 
 case ('bmad_lattice')
 
+  file_name0 = arg(2)%name
+  if (file_name0 == ' ') file_name0 = 'lat_#.bmad'
+
   do i = 1, size(s%u)
-    file_name = arg(2)%name
-    if (file_name == ' ') file_name = 'lat_#.bmad'
-    ix = index(file_name, '#')
-    if (size(s%u) > 1 .and. ix == 0) then
-      call out_io (s_info$, r_name, 'FILE_NAME DOES NOT HAVE A "#" CHARACTER!', &
-        ' YOU NEED THIS TO GENERATE A UNIQUE FILE NAME FOR EACH UNIVERSE!')
-      return
-    endif
-    if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
+    if (.not. subin_uni_number (file_name0, i, file_name)) return
     call write_bmad_lattice_file (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
@@ -168,16 +163,11 @@ case ('bmad_lattice')
 
 case ('mad_lattice')
 
+  file_name0 = arg(2)%name
+  if (file_name0 == ' ') file_name0 = 'lat_#.mad'
+
   do i = 1, size(s%u)
-    file_name = arg(2)%name
-    if (file_name == ' ') file_name = 'lat_#.mad'
-    ix = index(file_name, '#')
-    if (size(s%u) > 1 .and. ix == 0) then
-      call out_io (s_info$, r_name, 'FILE_NAME DOES NOT HAVE A "#" CHARACTER!', &
-        ' YOU NEED THIS TO GENERATE A UNIQUE FILE NAME FOR EACH UNIVERSE!')
-      return
-    endif
-    if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
+    if (.not. subin_uni_number (file_name0, i, file_name)) return
     call bmad_to_mad (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
@@ -199,6 +189,8 @@ case ('derivative_matrix')
 
   file_name = arg(2)%name
   if (file_name == ' ') file_name = 'derivative_matrix.dat'
+
+  iu = lunget()
   open (iu, file = file_name)
 
   write (iu, *) count(s%var%useit_opt), '  ! n_var'
@@ -244,16 +236,12 @@ case ('derivative_matrix')
 ! digested
 
 case ('digested')
+
+  file_name0 = arg(2)%name
+  if (file_name0 == ' ') file_name0 = 'digested_lat_universe_#.bmad'
+
   do i = 1, size(s%u)
-    file_name = arg(2)%name
-    if (file_name == ' ') file_name = 'digested_lat_universe_#.bmad'
-    ix = index(file_name, '#')
-    if (size(s%u) > 1 .and. ix == 0) then
-      call out_io (s_info$, r_name, 'FILE_NAME DOES NOT HAVE A "#" CHARACTER!', &
-        ' YOU NEED THIS TO GENERATE A UNIQUE FILE NAME FOR EACH UNIVERSE!')
-      return
-    endif
-    if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
+    if (.not. subin_uni_number (file_name0, i, file_name)) return
     call write_digested_bmad_file (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
@@ -272,11 +260,12 @@ case ('curve')
   file_name = 'curve'
   if (arg(3)%name /= ' ') file_name = arg(3)%name
   c => curve(1)%c
+  iu = lunget()
 
   if (c%g%type == "phase_space") then
     i_uni = c%ix_universe
     if (i_uni == 0) i_uni = s%global%u_view
-    beam => s%u(i_uni)%beam_at_element(c%ix_ele_ref_track)
+    beam => s%u(i_uni)%ele(c%ix_ele_ref_track)%beam
     call file_suffixer (file_name, file_name, 'particle_dat', .true.)
     open (iu, file = file_name)
     write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'p_x', '  y', 'p_y', '  z', 'p_z'
@@ -310,84 +299,87 @@ case ('curve')
 
 case ('beam')
 
-  binary = .false.
-  file_name = 'beam.dat'
+  ascii = .false.
+  file_name0 = 'beam_#.dat'
   loc = -1
+  is_open = .false.
 
   do i = 2, n_arg
     select case (arg(i)%name)
-    case ('-binary') 
-      binary = .true.
+    case ('-ascii') 
+      ascii = .true.
     case ('-at')
       call tao_locate_element (arg(i)%value(1), s%global%u_view, ix_ele_at)
       loc = ix_ele_at(1)
       if (loc < 0) return
     case default
-      file_name = arg(i)%name
+      file_name0 = arg(i)%name
     end select
   enddo
 
-  ! Write binary file
+  iu = lunget()
 
-  if (binary) then
-    open (iu, file = file_name, form = 'unformatted')
-    write (iu) 'BINARY'
+  do i = 1, size(s%u)
 
-    do i = 1, size(s%u)
-      u => s%u(i)
-      write (iu) u%beam_init
-      write (iu) u%beam_init%n_particle
+    u => s%u(i)
+    if (.not. subin_uni_number (file_name0, i, file_name)) return
 
-      do j = lbound(u%beam_at_element, 1), ubound(u%beam_at_element, 1)
-        if (loc > -1 .and. loc /= j) cycle
-        beam => u%beam_at_element(j)
-        if (.not. allocated(beam%bunch)) cycle
-        write (iu) j
+  ! Write file
+
+    do j = lbound(u%ele, 1), ubound(u%ele, 1)
+      if (loc > -1 .and. loc /= j) cycle
+      beam => u%ele(j)%beam
+      if (.not. allocated(beam%bunch)) cycle
+
+      if (.not. is_open) then
+        if (ascii) then
+          open (iu, file = file_name)
+        else
+          open (iu, file = file_name, form = 'unformatted')
+          write (iu) '!BINARY'
+        endif
+        is_open = .true.
+      endif
+
+      if (ascii) then
+        write (iu, *) j, u%beam_init%n_bunch, &
+                              u%beam_init%n_particle
         do ib = 1, size(beam%bunch)
-          write (iu) beam%bunch(ib)%charge
-          write (iu) beam%bunch(ib)%z_center
-          write (iu) beam%bunch(ib)%t_center
-          do ip = 1, size(beam%bunch(ib)%particle)
-            write (iu) beam%bunch(ib)%particle(ip)
+          bunch => beam%bunch(ib)
+          write (iu, *) bunch%charge
+          write (iu, *) bunch%z_center
+          write (iu, *) bunch%t_center
+          do ip = 1, size(bunch%particle)
+            write (iu, '(6es24.15, i6, 4es24.15)') &
+                          bunch%particle(ip)%r%vec, bunch%particle(ip)%ix_lost, &
+                          bunch%particle(ip)%r%spin 
           enddo
         enddo
-      enddo 
-
-      write (iu) -1
-    enddo
-
-  ! Write formatted file
-
-  else
-    open (iu, file = file_name, form = 'unformatted')
-
-    do i = 1, size(s%u)
-      u => s%u(i)
-      write (iu, *) u%beam_init
-      write (iu, *) u%beam_init%n_particle
-
-      do j = lbound(u%beam_at_element, 1), ubound(u%beam_at_element, 1)
-        if (loc > -1 .and. loc /= j) cycle
-        beam => u%beam_at_element(j)
-        if (.not. allocated(beam%bunch)) cycle
-        write (iu, *) j
+      else
+        write (iu) j, u%beam_init%n_bunch, &
+                              u%beam_init%n_particle, u%beam_init%bunch_charge
         do ib = 1, size(beam%bunch)
-          write (iu, *) beam%bunch(ib)%charge
-          write (iu, *) beam%bunch(ib)%z_center
-          write (iu, *) beam%bunch(ib)%t_center
-          do ip = 1, size(beam%bunch(ib)%particle)
-            write (iu, *) beam%bunch(ib)%particle(ip)
+          bunch => beam%bunch(ib)
+          write (iu) bunch%charge
+          write (iu) bunch%z_center
+          write (iu) bunch%t_center
+          do ip = 1, size(bunch%particle)
+            write (iu) bunch%particle(ip)%r%vec, bunch%particle(ip)%ix_lost, &
+                       bunch%particle(ip)%r%spin
           enddo
         enddo
-      enddo 
+      endif
 
-      write (iu, *) -1
-    enddo
+    enddo 
 
-  endif
+    if (is_open) then
+      close (iu)
+      call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    else
+      call out_io (s_error$, r_name, 'NO ALLOCATED BEAM FOUND!')
+    endif
 
-  call out_io (s_info$, r_name, 'Writen: ' // file_name)
-  close (iu)
+  enddo
 
 !---------------------------------------------------
 ! error
@@ -397,5 +389,31 @@ case default
   call out_io (s_error$, r_name, 'UNKNOWN "WHAT": ' // what)
 
 end select
+
+!---------------------------------------------------
+contains
+
+function subin_uni_number (name_in, ix_uni, name_out) result (ok)
+
+  character(*) name_in, name_out
+  integer ix, ix_uni
+  logical ok
+
+!
+
+  ok = .true.
+  name_out = name_in
+
+  ix = index(name_out, '#')
+  if (size(s%u) > 1 .and. ix == 0) then
+    call out_io (s_info$, r_name, 'FILE NAME DOES NOT HAVE A "#" CHARACTER!', &
+      ' YOU NEED THIS TO GENERATE A UNIQUE FILE NAME FOR EACH UNIVERSE!')
+    ok = .false.
+  endif
+
+  if (ix /= 0) write (name_out, '(a, i0, a)') &
+                        name_out(1:ix-1), ix_uni, trim(name_out(ix+1:))
+
+end function
 
 end subroutine 

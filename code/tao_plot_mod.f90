@@ -159,7 +159,7 @@ y_here = y2  ! start from the top of the graph
 
 height = s%plot_page%text_height * s%plot_page%key_table_text_scale
 
-do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
+do k = tao_com%ix_key_bank+1, tao_com%ix_key_bank+10
   if (k > ubound(s%key, 1)) cycle
   ix_var = s%key(k)%ix_var
   if (ix_var == 0) cycle
@@ -178,14 +178,14 @@ call qp_draw_text (str, 5.0_rp, y_here, 'POINTS/GRAPH', &
 write (fmt, '(a, i2.2, a, i2.2, a)') &
         '(i2, 2x, a', j_ele, ', 2x, a', j_att, ', 3a12, 2x, a, 3x, l)'
 
-write (str, '(i2, a)') s%global%ix_key_bank/10, ':'
+write (str, '(i2, a)') tao_com%ix_key_bank/10, ':'
 y_here = y_here - 1.1 * height
 call qp_draw_text (str, 5.0_rp, y_here, 'POINTS/GRAPH', &
                           height = height, uniform_spacing = .true.)
 
 do i = 1, 10
 
-  k = i + s%global%ix_key_bank
+  k = i + tao_com%ix_key_bank
   if (k > ubound(s%key, 1)) cycle
   key => s%key(k)
   ix_var = key%ix_var
@@ -706,14 +706,14 @@ enddo
 ! This is for drawing the key numbers under the appropriate elements
 
 if (s%global%label_keys) then
-  do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
+  do k = tao_com%ix_key_bank+1, tao_com%ix_key_bank+10
     if (k > ubound(s%key, 1)) cycle
     ix_var = s%key(k)%ix_var
     if (ix_var < 1) cycle
     do ixv = 1, size(s%var(ix_var)%this)
       if (s%var(ix_var)%this(ixv)%ix_uni /= isu) cycle
       ix = s%var(ix_var)%this(ixv)%ix_ele
-      kk = mod(k - s%global%ix_key_bank, 10)
+      kk = mod(k - tao_com%ix_key_bank, 10)
       write (str, '(i1)') kk
       if (ix > lat%n_ele_track) then
         do j = lat%ele(ix)%ix1_slave, lat%ele(ix)%ix2_slave

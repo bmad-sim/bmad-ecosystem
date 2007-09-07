@@ -13,6 +13,10 @@ In general, the input files tell \tao:
   3) What to plot and where to plot it.
 \end{example}
 
+%-----------------------------------------------------------------
+\section{Format}
+\label{s:format}
+
 \tao first looks for input files in the current directory and then
 looks in a directory pointed to by the environmental variable
 \vn{TAO_INIT_DIR}.
@@ -52,7 +56,29 @@ values on the RHS, only \vn{n} values in the array are set. Notice the notation
 \vn{n*number} does not denote multiplication but instead can be used to denote
 multiple values.
 
-Note: string variables are case sensitive.
+Note: Some string variables are case sensitive.
+
+%-----------------------------------------------------------------
+\subsection{Class:Name Format}
+\label{s:class:name}
+
+Some input parameters require \vn{Class:Name} format where lattice
+elements are selected based upon their class (Eg: \vn{quadrupole},
+\vn{marker}, etc.), and their name. The syntax is:
+\begin{example}
+  <element class>:<element name>
+\end{example}
+where \vn{<element class>} is an element class and \vn{<element name>}
+is the name of the element.  The wild-card character \vn{'*'} will match
+to any number of characters and \vn{`\%'} matches to any
+single character.  For example
+\begin{example}
+  'quadrupole:q*'
+\end{example}
+will match to all quadrupole elements whose name starts with a
+\vn{'q'}. If there is no \vn{':'} in the name then this is equivalent
+to using \vn{'*'} as the class.  Thus \vn{'*'} is equivalent to
+\vn{'*:*'} which will match to all elements.
 
 %-----------------------------------------------------------------
 \section{Initialization from the Command Line}
@@ -61,19 +87,19 @@ Note: string variables are case sensitive.
 
 The syntax of the command line is:
 \begin{example}
-  tao \{-init <tao_input_file>\} \{-beam <beam_file>\} \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
+  tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
 \end{example}
 
 The \vn{-init} optional argument can be used to replace the default
 initialization file name (\vn{tao.init}) with \vn{<init_file_name>}.
 
-The \vn{-beam} optional argument reads in a beam data file for the
+The \vn{-beam_all} optional argument reads in a beam data file for the
 entire lattice.  This overrides the \vn{global%beam_file} variable
 (\sref{s:globals}.
 
 The \vn{-beam0} optional argument reads in a beam data file which is
 use to initialize the beam at the beginning of the lattice. This
-overrides the \vn{global%beam0_file} variable (\sref{s:globals}.
+overrides the \vn{global%beam0_file} variable (\sref{s:beam_init}.
 
 The \vn{<lattice_file>} is used to override the \vn{design_lattice}
 lattice file specified in the initialization file
@@ -250,14 +276,12 @@ type tao_global_struct
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: n_opti_cycles = 1           ! number of optimization loops
-  integer :: ix_key_bank = 0             ! For single mode.
   integer :: n_key_table_max = 0         ! Maximum key table index.
   integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
   integer :: phase_units = radians\$     ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   integer :: random_seed = 0             ! use system clock by default
-  integer :: n_write_file = 0            ! used for indexing 'show write' files
   character(16) :: track_type = 'single' ! or 'beam', or 'macro' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'      ! optimizer to use.
@@ -266,8 +290,6 @@ type tao_global_struct
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: var_out_file  = 'var#.out'
-  character(80) :: beam_file = ''      ! Input beam data file for entire lattice.
-  character(80) :: beam0_file = ''     ! Input beam data file at start of lattice.
   logical :: var_limits_on = T         ! Respect the variable limits?
   logical :: plot_on = T               ! Do plotting?
   logical :: auto_scale = F            ! Automatically scale and x-scale the plots?
@@ -280,26 +302,8 @@ type tao_global_struct
   logical :: lattice_recalc = T         ! recalculate the lattice?
   logical :: matrix_recalc_on = T       ! calc linear transfer matrix?  
   logical :: init_plot_needed = T       ! reinitialize plotting?
-  logical :: save_beam_everywhere = T   ! Save the beam info at all elements?
-  logical :: use_save_beam_in_tracking = F
 end type
 \end{example}
-
-\vn{global%beam_file} specifies a beam data file (which can be created
-with the \vn{output beam} command) which contains the particle
-coordinates of the tracked beam at every element. This causes \tao to
-use the data from the file in lieu of actual tracking. This can be
-helpful when the time for \tao to track a bunch through the lattice
-becomes long.  The file name can be overridden by using the \vn{-beam}
-argument on the command line (\sref{s:command_line}. Note: \tao will
-set the variable \vn{global%use_saved_beam_in_tracking} to \vn{True}
-to prevent actual tracking.
-
-\vn{global%beam0_file} specifies a beam data file (which can be
-created with the \vn{output beam -at <ele_name>} command) which contains a beam's
-particle coordinates which are to be used at the start of the lattice. 
-
-Note: \vn{global%beam_file} and \vn{global%beam0_file} cannot both be set.
 
 The \vn{bmad_com_struct} holds bmad global variables. 
 \index{radiation_damping_on}
@@ -469,30 +473,32 @@ The syntax is as follows:
 \begin{example}
   &tao_beam_init
     ix_universe             = <integer>
-    calc_emittance          = <logical>   ! calculate emittance for rings
-    beam_init_file          = <string>    ! Particle initialization file.
-    beam_init%a_norm_emitt  = <number>    ! A-mode emittance
-    beam_init%b_norm_emitt  = <number>    ! B-mode emittance
-    beam_init%dPz_dZ        = <number>    ! Energy-Z correlation
-    beam_init%center        = <number>*6  ! Bunch center offset relative to
-                                          ! reference particle (BMAD coords)
-    beam_init%sig_e         = <number>    ! e_sigma in dE/E0
-    beam_init%sig_z         = <number>    ! Z sigma in m
-    beam_init%n_bunch       = <integer>   ! Number of bunches
-    beam_init%ds_bunch      = <number>    ! distance between bunches (meters)
-    beam_init%n_particle    = <number>    ! Number of particles per bunch
-    beam_init%bunch_charge  = <number>    ! charge per bunch (Coulombs)
-    beam_init%renorm_center = <logical>   ! Default is T
-    beam_init%renorm_sigma  = <logical>   ! Default is F
-    beam_init%center_jitter = <number>*6  ! Bunch center rms jitter (meters)
-    beam_init%emitt_jitter  = <bumber>*2  ! Emittance rms jitter (depsilon/epsilon)
-    beam_init%sig_z_jitter  = <number>    ! bunch length rms jitter (dz/z)
-    beam_init%sig_e_jitter  = <number>    ! bunch energy spread rms jitter (dE/E)
-    beam_init%spin%polarization = <number> ! spin polarization (1.0 = %100 polarizaed)
-    beam_init%spin%theta    = <number> ! spin orientation  (polar coordinate)
-    beam_init%spin%phi      = <number> ! spin orientation  (polar coordinate)
-    beam_init%init_spin     = <logical> ! Initialize the spin (default: False)
-    beam_init%preserve_dist = <logical> ! Use the same particle distribution.
+    calc_emittance          = <logical>      ! calculate emittance for rings
+    beam0_file              = <string>       ! Particle initialization file used in place of beam_init
+    beam_all_file           = <string>       ! Particle file used in place of beam tracking.
+    save_beam_at(:)         = <element list> ! List of 
+    beam_init%a_norm_emitt  = <number>       ! A-mode emittance
+    beam_init%b_norm_emitt  = <number>       ! B-mode emittance
+    beam_init%dPz_dZ        = <number>       ! Energy-Z correlation
+    beam_init%center        = <number>*6     ! Bunch center offset relative to
+                                             ! reference particle (BMAD coords)
+    beam_init%sig_e         = <number>       ! e_sigma in dE/E0
+    beam_init%sig_z         = <number>       ! Z sigma in m
+    beam_init%n_bunch       = <integer>      ! Number of bunches
+    beam_init%ds_bunch      = <number>       ! distance between bunches (meters)
+    beam_init%n_particle    = <number>       ! Number of particles per bunch
+    beam_init%bunch_charge  = <number>       ! charge per bunch (Coulombs)
+    beam_init%renorm_center = <logical>      ! Default is T
+    beam_init%renorm_sigma  = <logical>      ! Default is F
+    beam_init%center_jitter = <number>*6     ! Bunch center rms jitter (meters)
+    beam_init%emitt_jitter  = <bumber>*2     ! Emittance rms jitter (depsilon/epsilon)
+    beam_init%sig_z_jitter  = <number>       ! bunch length rms jitter (dz/z)
+    beam_init%sig_e_jitter  = <number>       ! bunch energy spread rms jitter (dE/E)
+    beam_init%spin%polarization = <number>   ! spin polarization (1.0 = %100 polarizaed)
+    beam_init%spin%theta    = <number>       ! spin orientation  (polar coordinate)
+    beam_init%spin%phi      = <number>       ! spin orientation  (polar coordinate)
+    beam_init%init_spin     = <logical>      ! Initialize the spin (default: False)
+    beam_init%preserve_dist = <logical>      ! Use the same particle distribution.
   /
 \end{example}
 \vn{ix_universe} refers to the universe index. See \bmad documentation on what
@@ -500,18 +506,41 @@ the \vn{beam_init} parameters refer to. The charge per particle is set to
 $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield
 effects.
 
-If a \vn{beam_init_file} is specified then \vn{beam_init} is ignored and
+\vn{beam0_file} specifies a beam data file (which can be
+created with the \vn{output beam -at <ele_name>} command) which contains a beam's
+particle coordinates which are to be used at the start of the lattice. 
+The file name can be overridden by using the \vn{-beam0}
+argument on the command line (\sref{s:command_line}. 
+
+If a \vn{beam0_file} is specified then \vn{beam_init} is ignored and
 the initial particle positions of the beam are read from the file. However,
-\vn{beam_init%bunch_charge} will be used to set the bunch charge and
+\vn{beam_init%bunch_charge} can be used to set the bunch charge and
 \vn{beam_init%n_particle}, if set, will be used to determine the number of
 particles in a bunch. In this case \vn{beam_init%n_particle} must not be
-greater then the number of particles specified in the file. It is assumed
-that the beam has a single bunch. and that the file columns are:
+greater then the number of particles specified in the file. The file format is
 \begin{example}
-  x    y    z   px   py   pz
+  0  <n_bunch> <n_particle> <bunch_charge>
+  [Repeat block: bunch index: ib = 1 to n_bunch]
+    <bunch(ib) charge>
+    <bunch(ib) z_center>
+    <bunch(ib) t_center>
+    [Repeat block: particle index ip = 1 to n_particle]
+      <x>    <px>   <y>    <py>   <z>   <pz> 
 \end{example}
 
-When there is no \vn{beam_init_file} the twiss parameters 
+\vn{beam_all_file} specifies a beam data file (which can be created
+with the \vn{output beam} command) which contains the particle
+coordinates of the tracked beam at every element. This causes \tao to
+use the data from the file in lieu of actual tracking. This can be
+helpful when the time for \tao to track a bunch through the lattice
+becomes long. The file name can be overridden by using the \vn{-beam_all}
+argument on the command line (\sref{s:command_line}. Note: \tao will
+set the variable \vn{use_saved_beam_in_tracking} to \vn{True}
+to prevent actual tracking.
+
+Note: A \vn{beam_all_file} will superceed a \vn{beam0_file}
+
+When there is no \vn{beam0_file} the twiss parameters 
 at the beginning of the lattice are used in
 initializing the beam distribution.  For circular lattices the twiss
 parameters will be found from the closed orbit, and the emittance will
@@ -542,6 +571,13 @@ the \vn{tao_params} namelist above, for example,
     global%optimizer = "lm"  ! Set the default optimizer.
     global%track_type = 'beam'
   /
+
+\vn{save_beam_at} is used to specify at what elements the beam
+distribution is to be saved at. Each element in the \vn{save_beam_at}
+array is in \vn{class:ele_name} format as explained in \sref{s:Class:Name}.
+The \vn{BEGINNING} element (with index 0 in the lattice
+list) and the last element are automatically saved.
+
 \end{example}
 
 %-----------------------------------------------------------------

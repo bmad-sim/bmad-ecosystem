@@ -14,5 +14,6 @@ module tao_mod
   use tao_struct
   use tao_interface
   use tao_utils
+  use beam_mod
 
 end module

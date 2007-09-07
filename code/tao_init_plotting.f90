@@ -318,7 +318,6 @@ if (lat_layout_here) then
 
   rewind (iu)
   shape(:)%key_name = ' '
-  shape(:)%key = 0
   read (iu, nml = element_shapes, iostat = ios)
 
   if (ios /= 0) then
@@ -333,15 +332,9 @@ if (lat_layout_here) then
     call str_upcase (shape(i)%color,    shape(i)%color)
 
     if (shape(i)%key_name == ' ') cycle
+    shape(i)%key = key_name_to_key_index (shape(i)%key_name, .true.)
 
-    do j = 1, n_key
-      if (shape(i)%key_name == key_name(j)) then
-        shape(i)%key = j
-        exit
-      endif
-    enddo          
-
-    if (shape(i)%key == 0) then
+    if (shape(i)%key < 1) then
       print *, 'ERROR: CANNOT FIND KEY FOR: ', shape(i)%key_name
       call err_exit
     endif

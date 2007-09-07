@@ -362,7 +362,7 @@ do j = 0, lat%n_ele_track
   ! track to the element and save for phase space plot
 
   if (tao_com%use_saved_beam_in_tracking) then
-    beam = u%beam_at_element(j)
+    beam = u%ele(j)%beam
 
   else
     if (j /= 0) then 
@@ -372,8 +372,7 @@ do j = 0, lat%n_ele_track
       call track_beam (lat, beam, j-1, j)
     endif
 
-    if (s%global%save_beam_everywhere .or. allocated(u%beam_at_element(j)%bunch)) &
-                          u%beam_at_element(j) = beam
+    if (u%ele(j)%save_beam) u%ele(j)%beam = beam
   endif
  
   ! Save beam at location if injecting into another lattice
@@ -792,8 +791,10 @@ end subroutine tao_inject_particle
 
 subroutine tao_inject_beam (u, lat, orb)
 
+use tao_read_beam_mod
+
 implicit none
- 
+
 type (lat_struct) lat
 type (tao_universe_struct) u
 type (coord_struct) orb(0:)
@@ -801,8 +802,8 @@ type (ele_struct), save :: extract_ele
 
 type (lat_param_struct), pointer :: param
 
-real(rp) v(6)
-integer i, iu, ios, n_bunch, n_part, n_in_file, n_in
+real(rp) v(6), bunch_charge
+integer i, iu, ios, n_bunch, n_particle, n_in_file, n_in
 
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
@@ -813,45 +814,14 @@ if (tao_com%use_saved_beam_in_tracking) return
 
 ! If there is an init file then read from the file
 
-if (u%beam_init_file /= "") then
+if (u%beam0_file /= "") then
 
-  iu = lunget()
-  open (iu, file = u%beam_init_file, status = "old")
-  n_in_file = 0
-  ! read number of particles
-  do
-    read (iu, *, iostat = ios) line
-    if (ios < 0) exit
-    n_in_file = n_in_file + 1
-  enddo
-
-  ! if beam_init%n_particle is set then prune input to only use this number
-
-  n_part = n_in_file
-
-  if (u%beam_init%n_particle > 0) then
-    if (u%beam_init%n_particle <= n_part) n_part = u%beam_init%n_particle
-  endif
-
-  u%beam_init%n_particle = n_part
-  call reallocate_beam (u%current_beam, 1, n_part)
-  u%current_beam%bunch(1)%charge = u%beam_init%bunch_charge
-  u%current_beam%bunch(1)%z_center = 0
-  u%current_beam%bunch(1)%t_center = 0
-
-  rewind (iu)
-  n_in = 0
-  do i = 1, n_in_file
-    read (iu, *) v
-    if (n_in > (n_part * i * 1d0) / n_in_file) cycle 
-    if (n_in == n_part) cycle
-    n_in = n_in + 1
-    u%current_beam%bunch(1)%particle(n_in)%r%vec = (/ v(1), v(4), v(2), v(5), v(3), v(6) /)
-    u%current_beam%bunch(1)%particle(n_in)%charge = u%beam_init%bunch_charge / n_part
-    u%current_beam%bunch(1)%particle(n_in)%ix_lost = not_lost$
-  enddo
-
-  close (iu)
+  call open_beam_file (u%beam0_file)
+  call read_beam_params (i, n_bunch, n_particle, bunch_charge)
+  call set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, u%beam_init%bunch_charge)
+  call read_beam (u%current_beam)
+  call close_beam_file()
+  call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
 
   call tao_find_beam_centroid (u%current_beam, orb(0))  
 
@@ -907,8 +877,7 @@ endif
 
 ! record this beam
   
-if (s%global%save_beam_everywhere .or. allocated(u%beam_at_element(0)%bunch)) &
-                          u%beam_at_element(0) = u%current_beam
+if (u%ele(0)%save_beam) u%ele(0)%beam = u%current_beam
 
 end subroutine tao_inject_beam
 

@@ -346,14 +346,11 @@ end select
 
 if (this_graph%type == 'phase_space') then
   u => s%u(i_uni)
-  if (.not. allocated(u%beam_at_element(this_curve%ix_ele_ref)%bunch)) then
-    call reallocate_beam (u%beam_at_element(this_curve%ix_ele_ref), &
-                              u%beam_init%n_bunch, u%beam_init%n_particle)
-    if (.not. tao_com%use_saved_beam_in_tracking) s%global%lattice_recalc = .true.
+  if (.not. u%ele(this_curve%ix_ele_ref)%save_beam) then
+    s%global%lattice_recalc = .true.
+    u%ele(this_curve%ix_ele_ref)%save_beam = .true.
   endif
 endif
-
-if (.not. tao_com%use_saved_beam_in_tracking) s%global%lattice_recalc = .true.
 
 end subroutine
 

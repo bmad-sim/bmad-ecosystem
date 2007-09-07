@@ -39,6 +39,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
 
   design_lattice%file = ''
   design_lattice%parser = ''
+
   taylor_order = 0
 
   read (iu, nml = tao_design_lattice, iostat = ios)
@@ -70,17 +71,19 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
 
   do i = 1, size(s%u)
     if (design_lattice(i)%parser /= '') then
-      call out_io (s_error$, r_name, &
-          '***************************************************************************************', &
-          '***** OLD STYLE "DESIGN_LATTICE%PARSER" SYNTAX USED. PLEASE CONVERT TO NEW STYLE! *****', &
-          '***************************************************************************************')
+      call out_io (s_error$, r_name, (/ &
+          '**********************************************************', &
+          '***** OLD STYLE "DESIGN_LATTICE%PARSER" SYNTAX USED! *****', &
+          '*****        PLEASE CONVERT TO THE NEW STYLE!        *****', &
+          '**********************************************************' /) )
     endif
 
     if (override) then
       file_name = tao_com%init_lat_file(i)
     else
       file_name = design_lattice(i)%file
-      if (design_lattice(i)%parser /= '') file_name = trim(design_lattice(i)%parser) // '::' // trim(file_name)
+      if (design_lattice(i)%parser /= '') file_name = &
+                trim(design_lattice(i)%parser) // '::' // trim(file_name)
     endif
 
     ix = index(file_name(1:10), '::')
@@ -130,7 +133,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
 
     ! Init beam save
 
-    allocate (u%beam_at_element(0:u%design%lat%n_ele_track))
+    allocate (u%ele(0:u%design%lat%n_ele_max))
 
   enddo
 

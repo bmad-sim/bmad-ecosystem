@@ -78,35 +78,6 @@ subroutine tao_init (err_flag)
 
   bmad_status%exit_on_error = .false.
 
-! Read beam info
-
-  if (s%global%beam_file /= '') then
-    iu = lunget()
-    open (iu, file = s%global%beam_file, form = 'unformatted', status = 'old')
-    do i = 1, size(s%u)
-      u => s%u(i)
-      read (iu) u%beam_init
-      read (iu) u%beam_init%n_particle
-      do
-        read (iu) j
-        if (j == -1) exit
-        beam => u%beam_at_element(j)
-        call reallocate_beam(beam, u%beam_init%n_bunch, u%beam_init%n_particle)
-        do ib = 1, size(beam%bunch)
-          read (iu) beam%bunch(ib)%charge
-          read (iu) beam%bunch(ib)%z_center
-          read (iu) beam%bunch(ib)%t_center
-          do ip = 1, size(beam%bunch(ib)%particle)
-            read (iu) beam%bunch(ib)%particle(ip)
-          enddo
-        enddo
-      enddo
-    enddo  
-    close(1)
-    tao_com%use_saved_beam_in_tracking = .true.
-    call out_io (s_info$, r_name, 'Read beam distribution from: ' // s%global%beam_file)
-  endif
-
 ! check variables
 ! check if vars are good
 
@@ -272,10 +243,10 @@ subroutine deallocate_everything ()
       deallocate (u%macro_beam%ix_lost, stat=istat)
       call reallocate_macro_beam (u%macro_beam%beam, 0, 0, 0)
 
-      do j = lbound(u%beam_at_element, 1), ubound(u%beam_at_element, 1)
-        call reallocate_beam(u%beam_at_element(j), 0, 0)
+      do j = lbound(u%ele, 1), ubound(u%ele, 1)
+        call reallocate_beam(u%ele(j)%beam, 0, 0)
       enddo
-      deallocate (u%beam_at_element)
+      deallocate (u%ele)
 
       call reallocate_beam(u%current_beam, 0, 0)
 

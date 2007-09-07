@@ -391,7 +391,8 @@ end type
 
 
 !------------------------------------------------------------------------
-! global switches
+! global parameters that the user has direct access to.
+! Also see: tao_common_struct.
 
 type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
@@ -402,14 +403,12 @@ type tao_global_struct
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: n_opti_loops = 1            ! number of optimization loops
-  integer :: ix_key_bank = 0             ! For single mode.
   integer :: n_key_table_max = 0         ! Maximum key table index.
   integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
   integer :: phase_units = radians$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   integer :: random_seed = 0             ! use system clock by default
-  integer :: n_write_file = 0            ! used for indexing 'show write' files
   character(16) :: track_type    = 'single'    ! or 'beam' or 'macro' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'        ! optimizer to use.
@@ -418,8 +417,6 @@ type tao_global_struct
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: var_out_file  = 'var#.out'
-  character(80) :: beam_file     = ''      ! Input beam data file for entire lattice.
-  character(80) :: beam0_file    = ''      ! Input beam data file at the start of the lattice.
   logical :: var_limits_on = .true.        ! Respect the variable limits?
   logical :: plot_on = .true.              ! Do plotting?
   logical :: auto_scale = .false.          ! Automatically scale and x-scale the plots?
@@ -431,11 +428,12 @@ type tao_global_struct
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
   logical :: matrix_recalc_on = .true.       ! calc linear transfer matrix
-  logical :: save_beam_everywhere = .true.   ! Save the beam info at all elements?
   logical :: show_ele_wig_terms = .false.
 end type
 
-! tao_common_struct is for stuff the user should not have direct access to
+! tao_common_struct is for those global parameters that the user 
+! should not have direct access to.
+! Also see tao_global_struct.
 
 type tao_alias_struct
   character(40) :: name
@@ -455,6 +453,7 @@ type tao_common_struct
   integer :: n_alias = 0
   integer :: cmd_file_level = 0 ! for nested command files
               ! unit numbers for a command files. 0 -> no command file.
+  integer :: ix_key_bank = 0             ! For single mode.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   logical :: use_cmd_here  = .false. ! Used for the cmd history stack
   logical cmd_from_cmd_file ! was command from a command file?
@@ -465,6 +464,8 @@ type tao_common_struct
   character(16) :: init_name = "Tao"               ! label for initialization
   character(80) :: init_tao_file     = 'tao.init'  ! '-init' argument.
   character(80) :: init_lat_file(10) = ''          ! '-lat' argument.
+  character(80) :: beam_all_file = ''  ! Command line input beam data file.
+  character(80) :: beam0_file    = ''  ! Command line input beam data file.
 end type
 
 !------------------------------------------------------------------------
@@ -528,21 +529,31 @@ type tao_lattice_struct
 end type
 
 !-----------------------------------------------------------------------
+! tao_element_struct is for saving per-element information.
+
+type tao_element_struct
+  type (beam_struct) beam         ! Beam distribution at element.
+  logical save_beam               ! Save beam here?
+end type
+
+!-----------------------------------------------------------------------
 ! A universe is a snapshot of a machine
 
 type tao_universe_struct
   type (tao_lattice_struct) model, design, base
-  type (beam_struct), allocatable :: beam_at_element(:) ! beam at element.
-  type (beam_struct) current_beam                  ! beam at the current position
-  type (beam_init_struct) :: beam_init             ! beam distrubution
+  type (tao_element_struct), allocatable :: ele(:) ! Element information
+  type (beam_struct) current_beam                  ! Beam at the current position
+  type (beam_init_struct) :: beam_init             ! Beam distrubution
                                                    !  at beginning of lattice
-  type (tao_macro_beam_struct) macro_beam          ! macroparticle beam 
-  type (tao_coupled_uni_struct)   :: coupling      !used for coupled lattices
+  type (tao_macro_beam_struct) macro_beam          ! Macroparticle beam 
+  type (tao_coupled_uni_struct)   :: coupling      ! Used for coupled lattices
   type (tao_d2_data_struct), pointer :: d2_data(:) => null()  ! The data types 
-  type (tao_data_struct), pointer :: data(:) => null()        ! array of all data.
+  type (tao_data_struct), pointer :: data(:) => null()        ! Array of all data.
   type (tao_ix_data_struct), pointer :: ix_data(:) ! which data to evaluate at this ele
   real(rp), pointer :: dModel_dVar(:,:) => null()             ! Derivative matrix.
-  character(200) beam_init_file                    ! Particle init file.
+  character(80) :: beam_all_file = ''  ! Input beam data file for entire lattice.
+  character(80) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
+  character(60), allocatable :: save_beam_at(:)
   integer ix_uni                                   ! Universe index.
   integer n_d2_data_used
   integer n_data_used

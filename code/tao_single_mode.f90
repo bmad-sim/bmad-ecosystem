@@ -39,7 +39,7 @@ subroutine tao_single_mode (char)
     if (index(set_char(i), char) /= 0) then
       ix_key = index(set_char(i), char)
       this_factor = delta_factor(i)
-      ix = ix_key + s%global%ix_key_bank
+      ix = ix_key + tao_com%ix_key_bank
       if (ix > size(s%key)) then
         call out_io (s_error$, r_name, 'KEY NOT BOUND TO VARIABLE.')
         return
@@ -98,7 +98,7 @@ subroutine tao_single_mode (char)
       return
     endif
     if (ix == 0) ix = 10
-    ix2 = ix + s%global%ix_key_bank
+    ix2 = ix + tao_com%ix_key_bank
     if (ix < 0 .or. ix > 10 .or. ix2 > size(s%key)) then
       call out_io (s_error$, r_name, 'KEY NUMBER OUT OF RANGE (0 - 9).')
       return
@@ -159,12 +159,12 @@ subroutine tao_single_mode (char)
 ! <- (left arrow): Shift key bank down by 10
 
   case ('[D')
-    s%global%ix_key_bank = max(s%global%ix_key_bank-10, 0)
+    tao_com%ix_key_bank = max(tao_com%ix_key_bank-10, 0)
 
 ! -> (right arrow): Shift key bank up by 10
 
   case ('[C')
-    s%global%ix_key_bank = min(s%global%ix_key_bank+10, n_key_maxx-10)
+    tao_com%ix_key_bank = min(tao_com%ix_key_bank+10, n_key_maxx-10)
 
 ! ^ (up arrow): Scale plots by a factor of 0.5
 

@@ -75,10 +75,9 @@ do i = 1, size(region%plot%graph)
       return
     endif
     u => s%u(tao_universe_number(curve%ix_universe))
-    if (.not. allocated(u%beam_at_element(curve%ix_ele_ref_track)%bunch)) then
-      call reallocate_beam (u%beam_at_element(curve%ix_ele_ref_track), &
-                              u%beam_init%n_bunch, u%beam_init%n_particle)
+    if (.not. allocated(u%ele(curve%ix_ele_ref_track)%beam%bunch)) then
       s%global%lattice_recalc = .true.
+      u%ele(curve%ix_ele_ref_track)%save_beam = .true.
     endif
   enddo
 enddo

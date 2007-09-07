@@ -65,9 +65,10 @@ integer, allocatable :: found_one(:)
 
 character(*) init_file, data_file, var_file
 character(40) :: r_name = 'tao_init_global_and_universes'
-character(200) file_name, beam_init_file
+character(200) file_name, beam0_file, beam_all_file
 character(40) name,  universe, default_universe, default_data_type
 character(40) default_merit_type, default_attribute
+character(60) save_beam_at(100)
 character(100) line
 
 logical err, free
@@ -81,15 +82,16 @@ namelist / tao_params / global, bmad_com, csr_param, &
   
 namelist / tao_coupled_uni_init / ix_universe, coupled
   
-namelist / tao_beam_init / ix_universe, calc_emittance, beam_init_file, beam_init
+namelist / tao_beam_init / ix_universe, calc_emittance, beam0_file, &
+                          beam_all_file, beam_init, save_beam_at
          
 namelist / tao_macro_init / ix_universe, calc_emittance, macro_init
          
 namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe, &
-                           default_data_noise, default_scale_error
+                          default_data_noise, default_scale_error
   
 namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, &
-                           ix_max_data, default_weight, default_data_type
+                         ix_max_data, default_weight, default_data_type
                      
 namelist / tao_var / v1_var, var, default_weight, default_step, &
                     ix_min_var, ix_max_var, default_universe, default_attribute, &
@@ -222,7 +224,7 @@ if (s%global%track_type /= 'macro') then
 
   do i = 1, size(s%u)
     s%u(i)%beam_init%a_norm_emitt = -1
-    s%u(i)%beam_init_file = ''
+    s%u(i)%beam0_file = ''
   enddo
 
   ! defaults
@@ -240,13 +242,15 @@ if (s%global%track_type /= 'macro') then
     beam_init%renorm_sigma = .true.
     beam_init%n_bunch = 1
     beam_init%n_particle  = -1
-    beam_init_file = ''
+    beam0_file = ''
+    beam_all_file = ''
+    save_beam_at = ''
     calc_emittance = .false.
     read (iu, nml = tao_beam_init, iostat = ios)
 
     if (ios == 0) then
       if (beam_init%a_norm_emitt == -1 .and. s%global%track_type == "beam" .and. &
-          beam_init_file == '') then
+          beam0_file == '') then
         call out_io (s_abort$, r_name, &
               'TAO_BEAM_INIT NAMELIST: BEAM_INIT%A_NORM_EMITT NOT SET !')
         call err_exit
@@ -255,11 +259,10 @@ if (s%global%track_type /= 'macro') then
               'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
       if (ix_universe == -1) then
         do i = 1, size(s%u)
-          call init_beam(s%u(i), beam_init, beam_init_file, calc_emittance)
+          call init_beam(s%u(i))
         enddo
       else
-        i = ix_universe
-        call init_beam(s%u(i), beam_init, beam_init_file, calc_emittance)
+        call init_beam(s%u(ix_universe))
       endif
       cycle
     elseif (ios > 0 .and. s%global%track_type == "beam") then
@@ -861,7 +864,7 @@ if (data(0)%name(1:6) == 'COUNT:') then
   jj = ix1
   do j = n1, n2
     if (jj .gt. ix2) then
-      call out_io (s_abort$, r_name, "INTERNAL ERROR DULAT ELEMENT COUNTING")
+      call out_io (s_abort$, r_name, "INTERNAL ERROR IN ELEMENT COUNTING")
       call err_exit
     endif
     write(fmt, '(a,i0,a,i0,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
@@ -1279,7 +1282,7 @@ type (tao_universe_struct), pointer ::  from_uni
 type (tao_coupled_uni_input) coupled 
 integer this_uni_index
 
-character(40) ele_name
+character(40) class, ele_name
 
 integer j, ix
 
@@ -1360,18 +1363,17 @@ end subroutine init_coupled_uni
 ! Initialize the beams. Determine which element to track beam to
 !
 
-subroutine init_beam (u, beam_init, beam_init_file, calc_emittance)
+subroutine init_beam (u)
+
+use tao_read_beam_mod
 
 implicit none
 
 type (tao_universe_struct) u
-type (beam_init_struct) beam_init
 
-real v(6)
-integer i, iu, n_part
-
-character(*) beam_init_file
-logical calc_emittance
+real(rp) v(6), bunch_charge
+integer i, ix, iu, n_part, ix_class, n_bunch, n_particle
+character(60) at, class, ele_name
 
 !
   
@@ -1398,15 +1400,59 @@ elseif (calc_emittance) then
 endif
   
 u%beam_init = beam_init
-u%beam_init_file = beam_init_file
+u%beam0_file = beam0_file
+u%beam_all_file = beam_all_file
+if (tao_com%beam0_file /= '') u%beam0_file = tao_com%beam0_file
+if (tao_com%beam_all_file /= '') u%beam_all_file = tao_com%beam_all_file
 u%design%orb(0)%vec = beam_init%center
 
 ! No initialization for a circular lattice
 if (u%design%lat%param%lattice_type == circular_lattice$) return
-  
-! This is just to get things allocated
 
-call init_beam_distribution (u%design%lat%ele(0), beam_init, u%current_beam)
+! Find where to save the beam at
+
+u%ele%save_beam = .false.
+u%ele(0)%save_beam = .true.
+u%ele(u%design%lat%n_ele_track)%save_beam = .true.
+
+do i = 1, size(save_beam_at)
+  if (save_beam_at(i) == '') exit
+  call tao_string_to_element_id (save_beam_at(i), ix_class, ele_name, err)
+  if (err) then
+    call out_io (s_error$, r_name, 'BAD SAVE_BEAM_AT ELEMENT: ' // save_beam_at(i))
+    cycle
+  endif
+  do j = lbound(u%ele, 1), ubound(u%ele, 1)
+    if (ix_class /= 0 .and. u%design%lat%ele(j)%key /= ix_class) cycle
+    if (.not. match_wild (u%design%lat%ele(j)%name, ele_name)) cycle
+     u%ele(j)%save_beam = .true.
+  enddo
+enddo
+  
+if (allocated (u%save_beam_at)) deallocate (u%save_beam_at)
+allocate (u%save_beam_at(i-1))
+if (i > 1) u%save_beam_at(1:i-1) = save_beam_at(1:i-1)
+
+! If beam_all_file is set then read in the beam distributions.
+
+if (u%beam_all_file /= '') then
+  tao_com%use_saved_beam_in_tracking = .true.
+  call open_beam_file (beam_all_file)
+  
+  do
+    call read_beam_params (j, n_bunch, n_particle, bunch_charge)
+    if (j == -1) exit
+    u%beam_init%n_bunch = n_bunch
+    u%beam_init%n_particle = n_particle
+    u%beam_init%bunch_charge = bunch_charge
+    call read_beam (u%ele(j)%beam)
+  enddo  
+
+  call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam_all_file)
+  call close_beam_file ()
+
+endif
+
 if (u%coupling%coupled) u%coupling%injecting_beam = u%current_beam
 
 end subroutine init_beam
