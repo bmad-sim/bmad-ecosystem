@@ -133,6 +133,7 @@ do
   plt%x_divisions = plot%x%major_div
   plt%x_axis_type = plot%x_axis_type
   plt%independent_graphs = plot%independent_graphs
+  call qp_calc_axis_places (plt%x)
 
   ng = plot%n_graph
   if (ng == 0) then
@@ -210,7 +211,7 @@ do
     grph%legend = ' '
     grph%y2_mirrors_y = .true.
 
-    if (grph%y%min /= grph%y%max) call qp_calc_axis_places (grph%y)
+    call qp_calc_axis_places (grph%y)
 
     if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
@@ -299,7 +300,7 @@ do
 
     enddo  ! curve
 
-    if (grph%y2%min /= grph%y2%max) call qp_calc_axis_places (grph%y2)
+    call qp_calc_axis_places (grph%y2)
     if (grph%y2%min == grph%y2%max .and. .not. grph%y2_mirrors_y) then
       label = grph%y2%label
       color = grph%y2%label_color

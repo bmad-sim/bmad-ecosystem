@@ -87,7 +87,8 @@ to using \vn{'*'} as the class.  Thus \vn{'*'} is equivalent to
 
 The syntax of the command line is:
 \begin{example}
-  tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
+  tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
+                          \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
 \end{example}
 
 The \vn{-init} optional argument can be used to replace the default
@@ -382,12 +383,12 @@ damping ring a pre-accelerator to a linac. The syntax is as follows:
 \index{coupled!match_to_design}
 \begin{example}
   &tao_coupled_uni_init
-    ix_universe             = <Integer>         ! Universe index.
-    coupled%from_universe   = <universe_number> ! coupled from this universe
-    coupled%at_element      = <ele_name>        ! coupled at end of element 
-    coupled%at_ele_index    = <ele_index>       ! coupled at end of ele with this index
-    coupled%at_s            = <number>          ! coupled at poisiton s 
-    coupled%match_to_design = <logical>         ! match optics to design parameters
+    ix_universe           = <Integer>         ! Universe index.
+    coupled%from_universe = <universe_number> ! coupled from this universe
+    coupled%at_element    = <ele_name>        ! coupled at end of element 
+    coupled%at_ele_index  = <ele_index>       ! coupled at end of ele with this index
+    coupled%at_s          = <number>          ! coupled at poisiton s 
+    coupled%match_to_design = <logical>       ! match optics to design parameters
   /
 \end{example}
 \vn{ix_universe} refers to the universe to be coupled. Any of
@@ -574,14 +575,15 @@ the \vn{tao_params} namelist above, for example,
 
 \vn{save_beam_at} is used to specify at what elements the beam
 distribution is to be saved at. Each element in the \vn{save_beam_at}
-array is in \vn{class:ele_name} format as explained in \sref{s:Class:Name}.
+array is in \vn{class:ele_name} format as explained in \sref{s:class:name}.
 The \vn{BEGINNING} element (with index 0 in the lattice
 list) and the last element are automatically saved.
 
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Initializing Macroparticle Beams}\index{Initialization!Macroparticle Beams}
+\section{Initializing Macroparticle Beams}
+\index{Initialization!Macroparticle Beams}
 \label{s:macro_init}
 
 A macroparticle beam is initialized in the \vn{tao_macro_init} namelist block.
