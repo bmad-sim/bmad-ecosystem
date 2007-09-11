@@ -22,6 +22,22 @@
 #======================================================
 PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
 
+
+if ( [ "$CESRLIB" == "" ] ) then
+  CESRLIB=$ACCLIB
+fi
+if ( [ "$ACCLIB" == "" ] ) then
+  ACCLIB=$CESRLIB
+fi
+
+
+if ( [ "$CESRF90" == "" ] ) then
+  CESRF90=$ACCF90
+fi
+if ( [ "$ACCF90" == "" ] ) then
+  ACCF90=$CESRF90
+fi
+
 #======================================================
 # Set CESR fortran compiler:
 # CESRF90 = intel (or lahey, hp, absoft, ibm, gnu)
@@ -34,15 +50,19 @@ PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
 #======================================================
 if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then 
   CESRF90=${CESRF90:-intel}
+  ACCF90=${ACCF90:-intel}
 fi
 if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then 
   CESRF90=${CESRF90:-intel}
+  ACCF90=${ACCF90:-intel}
 fi
 if ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
   CESRF90=${CESRF90:-hp}
+  ACCF90=${ACCF90:-hp}
 fi
 if ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then 
   CESRF90=${CESRF90:-absoft}
+  ACCF90=${ACCF90:-absoft}
 fi
 
 #=======================================================
@@ -52,19 +72,23 @@ fi
 #=======================================================
 if ( [ "${PLATFORM_TAG}" = "Linux_x86_64" ] ) then
   CESRF90=${CESRF90:-intel}  
+  ACCF90=${ACCF90:-intel}
 fi
 
 
 #=======================================================
 # Set Accelerator Code Libraries base areas:
 # Presently have Unix/Linux and Cygwin versions
-#============================================= ==========
-BASE_DIR_DEF=/home/cesrulib
-###BASE_DIR_DEF=/nfs/acc
+#=======================================================
+BASE_DIR_DEF=/nfs/acc
+#=======================================================
+#
+#=======================================================
+
+
 if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then 
      BASE_DIR_DEF=/cygdrive/c/user_local/cesrulib
-#    BASE_DIR_DEF=/cygdrive/w
-#
+#=======================================================
 # set physical disk for CESR library area (here w:)
 # and  disk  for your local  working area (here c:) 
 #=======================================================
@@ -72,33 +96,38 @@ if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then
      export LOCAL_PD=c
 fi
 
-CESRLIB_BASE=${CESRLIB_BASE:-${BASE_DIR_DEF}}
-########################################################
-######### Change this hardcoding here ##################
+###CESRLIB_BASE=${CESRLIB_BASE:-${BASE_DIR_DEF}}
 
-CESRLIB_BIN=${CESRLIB_BIN:-${CESRLIB_BASE}/bin}
+CESRLIB_BASE=${BASE_DIR_DEF}
+ACCLIB_BASE=${BASE_DIR_DEF}
 
-########################################################
-########################################################
+###CESRLIB_BIN=${CESRLIB_BIN:-${CESRLIB_BASE}/bin}
+CESRLIB_BIN=${CESRLIB_BIN:-/home/cesrulib/bin}
+ACCLIB_BIN=${ACCLIB_BIN:-/home/cesrulib/bin}
+
 
 #==============================
 #       Switchable version
 #==============================
 CESRLIB=${CESRLIB:-current}
+ACCLIB=${ACCLIB:-current}
 CERN_LEVEL=${CERN_LEVEL:-pro}
 
 #==============================
 #       Root names
 #==============================
-CONST=${CONST:-${CESRLIB_BASE}/constants}
-CESR_=${CESR_:-${CESRLIB_BASE}/cesr_libs}
-###CESR_=${CESR_:-${CESRLIB_BASE}/libs}
+###CONST=${CONST:-${CESRLIB_BASE}/constants}
+
+
+CESR_=${CESR_:-${CESRLIB_BASE}/libs}
+ACC_=${ACC_:-${ACCLIB_BASE}/libs}
+
 CERN=${CERN:-/nfs/cern}
 
 #======================================================
 # Export the CESR environment variable structure
 #======================================================
-CESRENV=${CESRENV:-${CESRLIB_BIN}/cesrenv}
+CESRENV=${CESRENV:-${CESRLIB_BIN}/accenv}
 #
 if [ -f $CESRENV ]
 then
@@ -107,6 +136,19 @@ then
 else
   echo "File $CESRENV not found."
 fi
+
+
+
+ACCENV=${ACCENV:-${ACCLIB_BIN}/accenv-converted}
+#
+if [ -f $ACCENV ]
+then
+  eval `grep '^setenv' $ACCENV | while read cmd nam val ; 
+    do echo "$nam=$val ; export $nam ;"; done`
+else
+  echo "File $ACCENV not found."
+fi
+
 
 #======================================================
 #-----  Add cesrulib bin area to user's PATH  ----
@@ -123,16 +165,6 @@ if ( [ ${found} -eq 0 ] ) then
   export PATH
 fi
 
-#========================================================
-# Add hook to support OLD style of environment variables
-# Unset variable when done
-#========================================================
-#CESR_ENV_OLD=${CESR_ENV_OLD:+T}
-#if ( [ "${CESR_ENV_OLD}" = "T" ] ) then
-#  CESR_LIB=${CESR_REL}
-#  export CESR_LIB
-#fi
-#unset CESR_ENV_OLD
 
 #==========================================================
 # Now unset all override variables that, by default, use a 
@@ -141,11 +173,16 @@ fi
 # CESRENV variable.
 #==========================================================
 unset CESRLIB_BIN
-unset CONST
 unset CESR_
 unset CESRENV
 unset CESRF90
 unset CESRLIB
+
+unset ACCLIB_BIN
+unset ACC_
+unset ACCENV
+unset ACCF90
+unset ACCLIB
 
 #==========================================================
 # Log users who are setting up the CESR accelerator code 

@@ -21,6 +21,27 @@
 #=======================================================================
 set PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
 
+
+#================================================
+# For parallel CESR / ACC variable definitions
+# This will be deprecated after the next CURRENT
+# rotation.
+#================================================
+if ( $?CESRLIB ) then
+  setenv ACCLIB $CESRLIB
+endif
+if ( $?ACCLIB ) then
+  setenv CESRLIB $ACCLIB
+endif
+
+if ( $?CESRF90 ) then
+  setenv ACCF90 $CESRF90
+endif
+if ( $?ACCF90 ) then
+  setenv CESRF90 $ACCF90
+endif
+
+
 #=======================================================================
 # Set CESR fortran compiler:
 # CESRF90 = intel (or lahey, hp, absoft, ibm, gnu)
@@ -33,18 +54,22 @@ set PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
 #=======================================================================
 if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
   if ( $?CESRF90    == 0  ) then setenv CESRF90 intel
+  if ( $?ACCF90    == 0  ) then setenv ACCF90 intel
 endif
 
 if ( "${PLATFORM_TAG}" == "Linux_i686" ) then
   if ( $?CESRF90    == 0 ) setenv CESRF90 intel
+  if ( $?ACCF90    == 0 ) setenv ACCF90 intel
 endif
 
 if ( "${PLATFORM_TAG}" == "OSF1_alpha" ) then
   if ( $?CESRF90    == 0 ) setenv CESRF90 hp
+  if ( $?ACCF90    == 0 ) setenv ACCF90 hp
 endif
 
 if ( "${PLATFORM_TAG}" == "Darwin_powerpc" ) then
   if ( $?CESRF90    == 0 ) setenv CESRF90 absoft
+  if ( $?ACCF90    == 0 ) setenv ACCF90 absoft
 endif
 
 #=======================================================================
@@ -54,6 +79,7 @@ endif
 #=======================================================================
 if ( "${PLATFORM_TAG}" == "Linux_x86_64" ) then
   if ( $?CESRF90    == 0 ) setenv CESRF90 intel
+  if ( $?ACCF90    == 0 ) setenv ACCF90 intel
 endif
 
 
@@ -61,25 +87,36 @@ endif
 # Specify CESR Librarian base areas
 # Presently have Unix/Linux and Cygwin versions
 #=======================================================================
-set BASE_DIR_DEF=/home/cesrulib
+###set BASE_DIR_DEF=/home/cesrulib
+set BASE_DIR_DEF=/nfs/acc
+
+
 if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
   set BASE_DIR_DEF=//lns101/cesrulib
 endif
 
 if ( $?CESRLIB_BASE == 0 ) set CESRLIB_BASE=${BASE_DIR_DEF}
-if ( $?CESRLIB_BIN  == 0 ) set CESRLIB_BIN=${CESRLIB_BASE}/bin
+if ( $?ACCLIB_BASE == 0 ) set ACCLIB_BASE=${BASE_DIR_DEF}
+
+if ( $?CESRLIB_BIN  == 0 ) set CESRLIB_BIN=/home/cesrulib/bin
+if ( $?ACCLIB_BIN  == 0 ) set ACCLIB_BIN=/home/cesrulib/bin
 
 #=======================================================================
 #	Switchable version
 #=======================================================================
 if ( $?CESRLIB    == 0 ) setenv CESRLIB     current
+if ( $?ACCLIB    == 0 ) setenv ACCLIB     current
+
 if ( $?CERN_LEVEL == 0 ) setenv CERN_LEVEL  pro
 
 #=======================================================================
 #	Root names
 #=======================================================================
-if ( $?CONST    == 0 ) setenv CONST     ${CESRLIB_BASE}/constants
-if ( $?CESR_    == 0 ) setenv CESR_     ${CESRLIB_BASE}/cesr_libs
+###if ( $?CONST    == 0 ) setenv CONST     ${CESRLIB_BASE}/constants
+
+if ( $?CESR_    == 0 ) setenv CESR_     ${CESRLIB_BASE}/libs
+if ( $?ACC_    == 0 ) setenv ACC_     ${ACCLIB_BASE}/libs
+
 if ( $?CERN     == 0 ) setenv CERN      /nfs/cern
 
 #=======================================================================
@@ -88,11 +125,18 @@ if ( $?CERN     == 0 ) setenv CERN      /nfs/cern
 # derivative path from $CESRLIB_BASE.  This does NOT need 
 # to be done for the "version" variables
 #=======================================================================
-if ( $?CESRENV  == 0 ) setenv CESRENV ${CESRLIB_BIN}/cesrenv
+if ( $?CESRENV  == 0 ) setenv CESRENV ${CESRLIB_BIN}/accenv
 if ( -f "$CESRENV" )  then
 	source $CESRENV
 else
 	echo File $CESRENV not found.
+endif
+
+if ( $?ACCENV  == 0 ) setenv ACCENV ${ACCLIB_BIN}/accenv-converted
+if ( -f "$ACCENV" )  then
+	source $ACCENV
+else
+	echo File $ACCENV not found.
 endif
 
 #==============================================================================
@@ -125,17 +169,30 @@ unset    CESRLIB_BASE
 unset    CESRLIB_BIN
 unset    CESRLIB
 unset    CERN_LEVEL
-unset    CONST
 unset    CESR_
 unset    CERN
 unset    CESRENV
 unset    CESRF90
 
 unsetenv CESRLIB_BIN
-unsetenv CONST
 unsetenv CESR_
 unsetenv CESRENV
 unsetenv CESRF90
+
+
+unset    ACCLIB_BASE
+unset    ACCLIB_BIN
+unset    ACCLIB
+unset    CERN_LEVEL
+unset    ACC_
+unset    CERN
+unset    ACCENV
+unset    ACCF90
+
+unsetenv ACCLIB_BIN
+unsetenv ACC_
+unsetenv ACCENV
+unsetenv ACCF90
 
 #=============================================================================
 # Log users who are setting up the CESR accelerator code 
