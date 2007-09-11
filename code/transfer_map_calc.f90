@@ -117,7 +117,13 @@ contains
 
 subroutine add_on_to_t_map
 
-  if (integrate_this) then
+  integer k
+
+  ! match, lcavity and taylor elements do not have corresponding ptc fibre elements.
+  ! In this case we must concat.
+
+  k = lat%ele(i)%key
+  if (integrate_this .and. k /= lcavity$ .and. k /= match$ .and. k /= taylor$) then
     call taylor_propagate1 (t_map, lat%ele(i), lat%param)
   else
     if (.not. associated(lat%ele(i)%taylor(1)%term)) then

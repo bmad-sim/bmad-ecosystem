@@ -21,6 +21,10 @@ and replace with:
     if (ele%wake%sr_file(1:6) == 'xsif::') n_sr = n_sr + 1 
     if (ele%wake%sr_file(1:6) == 'xsif::') n_lr = n_lr + 1  
 
+Better bmad digested file compression: 
+  compress ele%value array.
+  compress names.
+
 -----------------
 
 add function to calc: ring%param%s_start
