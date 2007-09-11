@@ -222,17 +222,20 @@ if ( [ ${ROTATE_BMAD} = 0 ] ) then
       present_rel=`ls -l devel | cut -d\> -f2`
       mv -f devel ${devel_old}
       ln -s ${REL} devel
-      # Purge the Fixes directory when DEVEL gets rotated
+    fi
+    if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
+      present_rel=`ls -l nightly | cut -d\> -f2`
+      rm -fv nightly > /dev/null
+      ln -s ${REL} nightly
+      # Purge the Fixes directory when NIGHTLY gets rotated
       for dir in `ls ${FIXES_DIR}`; do
           if ( [ ${dir} != "control" ] && [ ${dir} != "staging" ] ) then
               rm -rf ${FIXES_DIR}/${dir}
           fi
       done
-    fi
-    if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
-      present_rel=`ls -l nightly | cut -d\> -f2`
-      rm -fv nightly > /dev/null
-      ln -s ${REL} nightly 
+      for dir in `ls ${FIXES_DIR}/staging`; do
+          rm -rf ${FIXES_DIR}/staging/${DIR}/*
+      done
     fi 
 done
 fi
@@ -276,7 +279,11 @@ echo ""
 #  Tag the release
 ###############################################
 if ( [ ${TAG_RELEASE} -eq 1 ] ) then
-    $TAGGER ${REL}
+    if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
+        ${TAGGER} -current ${REL}
+    else
+        ${TAGGER} ${REL}
+    fi
     if ( [ $? -ne 0 ] ) then
         echo "Problem tagging release from within rotate_release."
         exit 50

@@ -66,7 +66,7 @@ myprint_help () {
     echo " Using the -current flag will automatically append   _current   to the release"
     echo " name and use that as the tag."
     echo ""
-    echo "Currently, the SVN log entry will always be of the form:"
+    echo "The SVN log entry will always be of the form:"
     echo "  \"Tagging DEVEL[CURRENT] release <release_name>\" "
     exit 2
 }
@@ -89,18 +89,20 @@ fi
 ################################################
 for i
 do 
-   arg_list="${arg_list} ${i}"
+   arg_list="${arg_list} ${i}";
    case $i in
-     cesr_*     ) REL_NAME=`echo $i`; TAG=${REL_NAME}; TAG_CURRENT=0;;
-     -current   ) TAG_CURRENT=1;;
-     TAG=*      ) TAG=`echo $i|cut -d= -f2`;;
-     *          ) myprint_help;
+     "-current"   ) TAG_CURRENT=1;;
+     cesr_*         ) REL_NAME=`echo $i`;;
+     *              ) myprint_help;
      exit 4;;
    esac
 done
 
+echo ${TAG_CURRENT}
 if ( [ ${TAG_CURRENT} = 1 ] ) then
-    TAG=${TAG}_current
+    TAG="Tagging CURRENT release ${REL_NAME}"
+else
+    TAG="Tagging DEVEL release ${REL_NAME}"
 fi
 
 echo ""
@@ -137,6 +139,7 @@ echo "Revision # of ${REL_NAME} is ${rev}."
 #  Set release type.
 ######################################################################
 if ( [ ${TAG_CURRENT} -eq 1 ] ) then
+    echo "Tagging current"
     TYPE="CURRENT"
     TYPE_SPEC="_current"
 else
@@ -162,8 +165,9 @@ echo "rcopy /trunk/util/ /tags/${REL_NAME}${TYPE_SPEC}/util/" >> ${tmpdir}/${tmp
 ######################################################################
 ${UTIL_DIR}/3rd-party/rsvn.py --message="Tagging ${TYPE} release ${REL_NAME}" --revision=${rev} --username=cesrulib /mnt/svn < ${tmpdir}/${tmpfile}
 
-
-# Clean up
-rm -f ${tmpdir}/${tmpfile}
+if ( [ $? -eq 0 ] ) then
+  # Clean up
+  rm -f ${tmpdir}/${tmpfile}
+fi
 
 exit 0
