@@ -38,11 +38,13 @@ else:
 logfile = open(logname, "r")         # Open logfile to read variables from header.
 lines = logfile.readlines()
 for line in lines:
-    if line[0:10] == "Build Type":   # B/c of no find on older 1.5 Python on OSF1.  
+    if line.find("Build Type") != -1:  
         build_type = line.split(':')[1].strip()
-    if line[0:8]  == "Platform":
+    if line.find("Activity") != -1:
+        activity   = line.split(':')[1].strip()
+    if line.find("Platform") != -1:
         platform   = line[21:-1]
-    if line[0:12] == "F90 Compiler":
+    if line.find("F90 Compiler") != -1:
         f90        = line.split(':')[1].strip()
     if line[0:15] == "Float Precision":
         precision  = line.split(':')[1].strip()
@@ -68,15 +70,17 @@ for line in lines:
         bin_dir = line.split(':')[1].strip()
     if line[0:10] == "Config Dir":
         config_dir = line.split(':')[1].strip()
-    if line [0:14] == "Run test suite":
+    if line[0:14] == "Run test suite":
         run_tests = line.split(':')[1].strip()
         run_tests = line[21:-1]
+    if line[0:16] == "Modules to build":
+        modules = line.split(':')[1].split()
 
 logfile.close()                            # Done with input parameter parsing. Close logfile.
 
 sys.stdout      = open(logname, "a")      # Reopen log file as standard output stream for appending new data.
 
-print "--> BUILD STATUS: INITIALIZING"
+print "--> BUILD STATUS: INITIALIZING REMOTE SUBSCRIPT"
 print "\nPython version is:"
 print sys.version           # dump Python version to platform logfile.
 
@@ -87,158 +91,28 @@ bmad_defs = ". " + bin_dir + "/bmad_defs; "
 env_setup3 = ""
 test_script = bin_dir + "/util/CESRbuild_test_suite"
 
-
+# Common options to be passed to makefile, regardless of packages or release
 build_args.append("PACKAGE_NAME="+pkg_name)
 build_args.append(" CESR_PRECISION=_"+precision)
 build_args.append(" CHECKOUT=\"\"")
-build_args.append(" BUILD=\"do_build\"")    # Common options to be passed to makefile, regardless of packages or release
+build_args.append(" BUILD=\"do_build\"")
 
-## Build-type command customization
-
+## Build-type selection
+############################################################################################
 if build_type == "PACKAGES":  # make gets slightly different args depending on type
-    build_args.append(" DO_PKG=1")
-    env_setup1 = " CESRLIB="+pkg_name + "; CESRF90=" + f90 +'; '
-    #env_setup2 = " export CESR_GMAKE="+build_sys_dir + " ; export CESR_UTIL=" + bin_dir + "/util; "
-    env_setup2 = " CESR_GMAKE="+build_sys_dir + "; CESR_UTIL=" + bin_dir + "/util; "
-    #env_setup2 = " XERCESCROOT="+full_pkg_name+"/xerces; export XERCESCROOT; CESR_GMAKE="+build_sys_dir + " ; CESR_UTIL=" + bin_dir + "/util; "
-    build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
-    for arg in build_args:
-        build_cmd = build_cmd + arg                  # compose build command by appending the options determined above
-
-
-if build_type == "RELEASE":
-    build_args.append(" DO_REL=1")
-    build_args.append(" BRANCH="+branch)
-    ## Short snippet here to get rel_name from full_rel name without using .split method (counteracting OSF lameness)
-    char = ''
-    rel_name = ""
-    i = -1
-    while char != '/':
-        char = full_rel_name[i]
-        rel_name = rel_name + char
-        i = i - 1
-    rel_name = reduce(lambda x,y: y+x, rel_name)  # reverse the string
-    rel_name = rel_name[1:]                       # snip off leading '/' character
-    ## End snippet.
-    #name_chunk_list = full_rel_name.split('/')
-    #rel_name        = name_chunk_list[-1]
-    env_setup1 = " CESRLIB=" + rel_name + "; CESRF90=" + f90 +'; '
-    env_setup2 = ""
-    #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 CESR_PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
-    #build_cmd = env_setup + "make -f " + build_sys_dir + "/M.release " + build_args + "; echo $PATH"    
-    build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
-    for arg in build_args:
-        build_cmd = build_cmd + arg                  # compose build command by appending the options determined above
-
-
-if build_type == "BMAD DISTRIBUTION":
-    #print "IN BUILD_SERF... BMAD"
-    os.chdir(full_rel_name)
-    print "Changing directory to: " + os.getcwd()
-    env_setup1 = " CESRF90=" + f90 + "; BMAD_="+full_rel_name + '; '  # Set BMAD_ var before invoking bmad_defs
-    #env_setup2 = " BMAD_="+full_rel_name + '; '
-    env_setup2 = ""
-    print "env_setup2: " + env_setup2
-    build_cmd = env_setup1 + bmad_defs + env_setup2 + "gmake -f" + build_sys_dir + "/M.distribution "
-    for arg in build_args:
-        build_cmd = build_cmd + arg
-
-    
-## END Build-type command customization
-    
-
-
-#print build_cmd
-print ""
-print "--> BUILD STATUS: BUILDING"
-
-
-##  Works for recent pythons, Popen4 does not exist on OSF1 1.5 python!
-#if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
-if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform == "OSF1_alpha_hp":
-    print build_cmd
-    build_process = popen2.Popen4(build_cmd)
-    pid = build_process.pid
-    line = build_process.fromchild.readline()
-    while line:                                     # print output as it is generated
-        print line.strip()
-        #if line.find("Error") != -1:               # be on the lookout for errors in the build
-        if line[0:10] == "gmake: ***":
-            errors = 1
-        line = build_process.fromchild.readline()
-    if errors:
-        print "--> BUILD STATUS: ERROR(S) DETECTED"
-    else:
-        if run_tests == "YES":
-            print "About to execute test suite."
-            if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
-                Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/Linux/python"
-            else:
-                Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/OSF1/python"
-            #test_cmd = env_setup1 + cesrdefs + env_setup2 + Py_interpreter +' '+ test_script +" "+ rel_name
-            test_cmd = [Py_interpreter, test_script, rel_name, platform]
-            print test_cmd
-            #o test_process = popen2.Popen4(test_cmd)
-            #o2 test_process = sub.Popen(test_cmd)
-            test_process = sub.Popen(test_cmd, stdout=sub.PIPE, stderr=sub.STDOUT)
-            lines = test_process.stdout.readlines()
-            for line in lines:
-                print line.strip()
-            pid = test_process.pid
-            returncode = test_process.wait()
-            print "\n Test Suite Return code: " + str(returncode) + '\n'
-            time.sleep(2)
-            #o tline = test_process.fromchild.readline()
-            #o while tline:
-            #o     print tline.strip()
-            #o     tline = test_process.fromchild.readline()
-        print "--> BUILD STATUS: COMPLETE!"
-        if build_type == "BMAD DISTRIBUTION":   # if build completes successfully,
-            shutil.copy(full_rel_name+".tar.gz", dist_web_dir) # copy tarball to dist web page
-
-
-
-if platform == "VMS_alpha_hp": #assumes files and dependencies generated and in place from OSF process (tighten all this up.)
-    if build_type == "RELEASE":
-        OSF_reldir = full_rel_name.replace("VMS_alpha_hp", "OSF1_alpha_hp")
-        print "Waiting for OSF1 build to complete so dependencies can be copied to VMS area."
-        dirlist = os.listdir(OSF_reldir + "/src")  # get list of OSF release src directory
-        dirlist.remove(".svn")                     # Don't consider .svn administrative directory.
-        print dirlist
-        for dir in dirlist:           # copy over the hidden directory .depend and file .f90_module_rules
-            if os.path.exists(OSF_reldir + "/src/" + dir + "/.depend"):
-                print "Copying .depend directory from OSF1 " + dir + " area." 
-                shutil.copytree(OSF_reldir + "/src/" + dir + "/.depend", full_rel_name + "/src/" + dir + "/.depend")
-            if os.path.exists(OSF_reldir + "/src/" + dir + "/.f90_module_rules"):
-                print "Copying .f90_module_rules file from OSF1 " + dir + " area."
-                shutil.copyfile(OSF_reldir+"/src/"+dir+"/.f90_module_rules", full_rel_name+"/src/"+dir+"/.f90_module_rules")
-            os.chdir(full_rel_name +'/src/'+ dir)
-            print "Changed directory to: " + os.getcwd()
-            print "Generating .depvms file..."
-            dep_process = popen2.Popen4(bin_dir + "/util/filtercesr " + full_rel_name + ' ' + dir)
-            line = dep_process.fromchild.readline()
-            while line:
-                print line.strip()
-                line = dep_process.fromchild.readline()
-        print "Copying config directory from OSF1 area."
-        shutil.copytree(OSF_reldir + "/config", full_rel_name + "/config")
-        #build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_rel_name) # FTP upload to VMS cluster
-        xfer_cmd = [bin_dir + "/util/cesr_to_vms", rel_name]
-        print "Executing transfer of archive file to VMS cluster. "
-        print "xfer: " + str(xfer_cmd)
-        xfer_process = sub.Popen(xfer_cmd, stdout=sub.PIPE, stderr=sub.STDOUT)
-        lines = xfer_process.stdout.readlines()
-        for line in lines:
-            print line.strip()
-        pid = xfer_process.pid
-        returncode = xfer_process.wait()
-        if returncode != 0:
-            print "--> BUILD STATUS: ERROR(S) DETECTED"
-        else:
-            print "--> BUILD STATUS: COMPLETE!"
-
-
-    if build_type == "PACKAGES":
+    print ""
+    print "--> BUILD STATUS: BUILDING"
+    if activity[:4] == "FULL":
+        build_args.append(" DO_PKG=1")
+        env_setup1 = " CESRLIB="+pkg_name + "; CESRF90=" + f90 +'; '
+        #env_setup2 = " export CESR_GMAKE="+build_sys_dir + " ; export CESR_UTIL=" + bin_dir + "/util; "
+        env_setup2 = " CESR_GMAKE="+build_sys_dir + "; CESR_UTIL=" + bin_dir + "/util; "
+#env_setup2=" XERCESCROOT="+full_pkg_name+"/xerces; export XERCESCROOT; CESR_GMAKE="+build_sys_dir+" ; CESR_UTIL="+bin_dir "/util; "
+        build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
+        for arg in build_args:
+            build_cmd = build_cmd + arg   # compose build command by appending the options determined above
+            
+    if activity[:4] == "PREP":
         OSF_pkgdir = full_pkg_name.replace("VMS_alpha_hp", "OSF1_alpha_hp")
         dirlist = os.listdir(OSF_pkgdir)
         for dir in dirlist:
@@ -261,20 +135,311 @@ if platform == "VMS_alpha_hp": #assumes files and dependencies generated and in 
             shutil.move(full_pkg_name + "/recipes_c-ansi", full_pkg_name + "/recipes_c_ansi")
             shutil.move(full_pkg_name + "/recipes_f-90", full_pkg_name + "/recipes_f_90")
         build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_pkg_name) # FTP upload to VMS cluster
-        print "--> BUILD STATUS: COMPLETE!"
+
+        
+############################################################################################
+if build_type == "RELEASE":
+    print ""
+    print "--> BUILD STATUS: BUILDING"
+    name_chunk_list = full_rel_name.split('/')
+    rel_name        = name_chunk_list[-1]
+
+    if activity[:4] == "FULL":
+        build_args.append(" DO_REL=1")
+        build_args.append(" BRANCH="+branch)
+        #name_chunk_list = full_rel_name.split('/')
+        #rel_name        = name_chunk_list[-1]
+        env_setup1 = " CESRLIB=" + rel_name + "; CESRF90=" + f90 +'; '
+        env_setup2 = ""
+        #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 CESR_PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
+        #build_cmd = env_setup + "make -f " + build_sys_dir + "/M.release " + build_args + "; echo $PATH"
+        build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
+        for arg in build_args:
+            build_cmd = build_cmd + arg                  # compose build command by appending the options determined above
+
+        print build_cmd
+        build_process = popen2.Popen4(build_cmd)
+        pid = build_process.pid
+        line = build_process.fromchild.readline()
+        while line:                                     # print output as it is generated
+            print line.strip()
+            if line[0:10] == "gmake: ***":            # be on the lookout for errors in the build
+                errors = 1
+            line = build_process.fromchild.readline()
+        if errors:
+            print "--> BUILD STATUS: ERROR(S) DETECTED"
+            sys.exit(90)
+        else:
+            if run_tests == "YES":
+                print "About to execute test suite."
+                if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
+                    Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/Linux/python"
+                else:
+                    Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/OSF1/python"
+                #test_cmd = env_setup1 + cesrdefs + env_setup2 + Py_interpreter +' '+ test_script +" "+ rel_name
+                test_cmd = [Py_interpreter, test_script, rel_name, platform]
+                print test_cmd
+                #o test_process = popen2.Popen4(test_cmd)
+                #o2 test_process = sub.Popen(test_cmd)
+                test_process = sub.Popen(test_cmd, stdout=sub.PIPE, stderr=sub.STDOUT)
+                lines = test_process.stdout.readlines()
+                for line in lines:
+                    print line.strip()
+                pid = test_process.pid
+                returncode = test_process.wait()
+                print "\n Test Suite Return code: " + str(returncode) + '\n'
+                time.sleep(2)
+            if build_type == "BMAD DISTRIBUTION":                # if build completes successfully
+                shutil.copy(full_rel_name+".tar.gz", dist_web_dir) # copy tarball to dist web page
+                
+    if activity[:4] == "PREP":
+        OSF_reldir = full_rel_name.replace("VMS_alpha_hp", "OSF1_alpha_hp")
+        print "Waiting for OSF1 build to complete so dependencies can be copied to VMS area.\n"
+        dirlist = os.listdir(OSF_reldir + "/src")  # get list of OSF release src directory
+        dirlist.remove(".svn")                     # Don't consider .svn administrative directory.
+        print dirlist
+        for dir in dirlist:           # copy over the hidden directory .depend and file .f90_module_rules
+            if os.path.exists(OSF_reldir + "/src/" + dir + "/.depend"):
+                print "Copying .depend directory from OSF1 " + dir + " area.\n" 
+                shutil.copytree(OSF_reldir + "/src/" + dir + "/.depend", full_rel_name + "/src/" + dir + "/.depend")
+            if os.path.exists(OSF_reldir + "/src/" + dir + "/.f90_module_rules"):
+                print "Copying .f90_module_rules file from OSF1 " + dir + " area.\n"
+                shutil.copyfile(OSF_reldir+"/src/"+dir+"/.f90_module_rules", full_rel_name+"/src/"+dir+"/.f90_module_rules")
+            os.chdir(full_rel_name +'/src/'+ dir)
+            print "Changed directory to: " + os.getcwd()
+            print "Generating .depvms file..."
+            dep_process = popen2.Popen4(bin_dir + "/util/filtercesr " + full_rel_name + ' ' + dir)
+            line = dep_process.fromchild.readline()
+            while line:
+                print line.strip()
+                line = dep_process.fromchild.readline()
+            print ""
+        print "Copying config directory from OSF1 area.\n"
+        shutil.copytree(OSF_reldir + "/config", full_rel_name + "/config")
+        #build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_rel_name) # FTP upload to VMS cluster
+        xfer_cmd = [bin_dir + "/util/cesr_to_vms", rel_name]
+        print "Executing transfer of archive file to VMS cluster.\n"
+        print "xfer: " + str(xfer_cmd)
+        xfer_process = sub.Popen(xfer_cmd, stdout=sub.PIPE, stderr=sub.STDOUT)
+        lines = xfer_process.stdout.readlines()
+        for line in lines:
+            print line.strip()
+        pid = xfer_process.pid
+        returncode = xfer_process.wait()
+        if returncode != 0:
+            print "--> BUILD STATUS: ERROR(S) DETECTED"
+            sys.exit(91)
+            
+    os.system("chgrp -R cesr " + config_dir)
+    os.system("chmod -R g+w " + config_dir)
+    os.chdir(full_rel_name)
+    print "Creating DB of files & functions from within " + os.getcwd()
+    fdb_cmd = bin_dir + "/create_fdb.pl"
+    print [fdb_cmd, full_rel_name]
+    fdb_process = sub.Popen([fdb_cmd, full_rel_name], stdout=sub.PIPE, stderr=sub.STDOUT)
+    lines = fdb_process.stdout.readlines()
+    for line in lines:
+        print line.strip()
+    pid = fdb_process.pid
+    returncode = fdb_process.wait()
+    if returncode != 0:
+        print "--> BUILD STATUS: ERROR(S) DETECTED"
+        sys.exit(92)
+
+        
+############################################################################################
+if build_type == "FIXES":
+    print "IN BUILD SERF... FIXES"
+    os.chdir(full_rel_name)
+    print "Working dir: " + os.getcwd()
+    for module in modules:
+        os.chdir(full_rel_name +'/'+ module)
+        print "Working dir: " + os.getcwd()
+        #env_setup1 = " CESRLIB=" + rel_name + "; CESRF90=" + f90 +'; '
+        env_setup1 = " CESRLIB=devel" + "; CESRF90=" + f90 +'; '
+        env_setup2 = ""
+        #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 CESR_PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
+        #build_cmd = env_setup + "make -f " + build_sys_dir + "/M.release " + build_args + "; echo $PATH"
+        build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake"
+        #for arg in build_args:
+        #    build_cmd = build_cmd + arg                  # compose build command by appending the options determined above
+        print "Build command follows:"
+        print build_cmd
+
+        build_process = popen2.Popen4(build_cmd)
+        pid = build_process.pid
+        line = build_process.fromchild.readline()
+        while line:                                     # print output as it is generated
+            print line.strip()
+            if line[0:10] == "gmake: ***":            # be on the lookout for errors in the build
+                errors = 1
+            line = build_process.fromchild.readline()
+        if errors:
+            print "--> BUILD STATUS: ERROR(S) DETECTED"
+            sys.exit(97)
+        
+    
+############################################################################################
+if build_type == "BMAD DISTRIBUTION":
+    #print "IN BUILD_SERF... BMAD"
+    os.chdir(full_rel_name)
+    print "Changing directory to: " + os.getcwd()
+    env_setup1 = " CESRF90=" + f90 + "; BMAD_="+full_rel_name + '; '  # Set BMAD_ var before invoking bmad_defs
+    env_setup2 = ""
+    print "env_setup2: " + env_setup2
+    build_cmd = env_setup1 + bmad_defs + env_setup2 + "gmake -f" + build_sys_dir + "/M.distribution "
+    for arg in build_args:
+        build_cmd = build_cmd + arg
+    os.chdir(full_rel_name)
+    print "Creating DB of files & functions from within " + os.getcwd()
+    fdb_cmd = bin_dir + "/create_fdb.pl"
+    print [fdb_cmd, full_rel_name]
+    fdb_process = sub.Popen([fdb_cmd, full_rel_name], stdout=sub.PIPE, stderr=sub.STDOUT)
+    lines = fdb_process.stdout.readlines()
+    for line in lines:
+        print line.strip()
+    pid = fdb_process.pid
+    returncode = fdb_process.wait()
+    if returncode != 0:
+        print "--> BUILD STATUS: ERROR(S) DETECTED"
+        sys.exit(92)
+
+
+############################################################################################
+## END Build-type customization
+    
+
+
+#print build_cmd
+#r print ""
+#print "--> BUILD STATUS: BUILDING"
+#
+#
+#if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey" or platform == "OSF1_alpha_hp":
+#    print build_cmd
+#    build_process = popen2.Popen4(build_cmd)
+#    pid = build_process.pid
+#    line = build_process.fromchild.readline()
+#    while line:                                     # print output as it is generated
+#        print line.strip()
+#        if line[0:10] == "gmake: ***":            # be on the lookout for errors in the build
+#            errors = 1
+#        line = build_process.fromchild.readline()
+#    if errors:
+#        print "--> BUILD STATUS: ERROR(S) DETECTED"
+#        sys.exit(90)
+#    else:
+#        if run_tests == "YES":
+#            print "About to execute test suite."
+#            if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
+#                Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/Linux/python"
+#            else:
+#                Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/OSF1/python"
+#            #test_cmd = env_setup1 + cesrdefs + env_setup2 + Py_interpreter +' '+ test_script +" "+ rel_name
+#            test_cmd = [Py_interpreter, test_script, rel_name, platform]
+#            print test_cmd
+#            #o test_process = popen2.Popen4(test_cmd)
+#            #o2 test_process = sub.Popen(test_cmd)
+#            test_process = sub.Popen(test_cmd, stdout=sub.PIPE, stderr=sub.STDOUT)
+#            lines = test_process.stdout.readlines()
+#            for line in lines:
+#                print line.strip()
+#            pid = test_process.pid
+#            returncode = test_process.wait()
+#            print "\n Test Suite Return code: " + str(returncode) + '\n'
+#            time.sleep(2)
+#        if build_type == "BMAD DISTRIBUTION":                # if build completes successfully
+#r            shutil.copy(full_rel_name+".tar.gz", dist_web_dir) # copy tarball to dist web page
+
+
+
+#rif platform == "VMS_alpha_hp": #assumes files and dependencies generated and in place from OSF process (tighten all this up.)
+#    if build_type == "RELEASE":
+#        OSF_reldir = full_rel_name.replace("VMS_alpha_hp", "OSF1_alpha_hp")
+#        print "Waiting for OSF1 build to complete so dependencies can be copied to VMS area."
+#        dirlist = os.listdir(OSF_reldir + "/src")  # get list of OSF release src directory
+#        dirlist.remove(".svn")                     # Don't consider .svn administrative directory.
+#        print dirlist
+#        for dir in dirlist:           # copy over the hidden directory .depend and file .f90_module_rules
+#            if os.path.exists(OSF_reldir + "/src/" + dir + "/.depend"):
+#                print "Copying .depend directory from OSF1 " + dir + " area." 
+#                shutil.copytree(OSF_reldir + "/src/" + dir + "/.depend", full_rel_name + "/src/" + dir + "/.depend")
+#            if os.path.exists(OSF_reldir + "/src/" + dir + "/.f90_module_rules"):
+#                print "Copying .f90_module_rules file from OSF1 " + dir + " area."
+#                shutil.copyfile(OSF_reldir+"/src/"+dir+"/.f90_module_rules", full_rel_name+"/src/"+dir+"/.f90_module_rules")
+#            os.chdir(full_rel_name +'/src/'+ dir)
+#            print "Changed directory to: " + os.getcwd()
+#            print "Generating .depvms file..."
+#            dep_process = popen2.Popen4(bin_dir + "/util/filtercesr " + full_rel_name + ' ' + dir)
+#            line = dep_process.fromchild.readline()
+#            while line:
+#                print line.strip()
+#                line = dep_process.fromchild.readline()
+#        print "Copying config directory from OSF1 area."
+#        shutil.copytree(OSF_reldir + "/config", full_rel_name + "/config")
+#        #build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_rel_name) # FTP upload to VMS cluster
+#        xfer_cmd = [bin_dir + "/util/cesr_to_vms", rel_name]
+#        print "Executing transfer of archive file to VMS cluster. "
+#        print "xfer: " + str(xfer_cmd)
+#        xfer_process = sub.Popen(xfer_cmd, stdout=sub.PIPE, stderr=sub.STDOUT)
+#        lines = xfer_process.stdout.readlines()
+#        for line in lines:
+#            print line.strip()
+#        pid = xfer_process.pid
+#        returncode = xfer_process.wait()
+#        if returncode != 0:
+#            print "--> BUILD STATUS: ERROR(S) DETECTED"
+#            sys.exit(91)
+#
+#
+#    if build_type == "PACKAGES":
+#        OSF_pkgdir = full_pkg_name.replace("VMS_alpha_hp", "OSF1_alpha_hp")
+#        dirlist = os.listdir(OSF_pkgdir)
+#        for dir in dirlist:
+#            if os.path.exists(OSF_pkgdir +'/'+ dir +"/.depend"):
+#                print "Copying .depend directory from OSF1 " + dir + " area."
+#                shutil.copytree(OSF_pkgdir +'/'+ dir + "/.depend", full_pkg_name +'/'+ dir + "/.depend")
+#            if os.path.exists(OSF_pkgdir +'/'+ dir +"/.f90_module_rules"):
+#                print "Copying .f90_module_rules file..."
+#                shutil.copyfile(OSF_pkgdir +'/'+ dir + "/.f90_module_rules", full_pkg_name +'/'+ dir + "/.f90_module_rules")
+#            if dir == "forest":
+#                print "Was in: " + os.getcwd()
+#                os.chdir(full_pkg_name +'/'+ dir)
+#                print "Changed directory to: " + os.getcwd()
+#                print "Generating .depvms file..."
+#                dep_process = popen2.Popen4(bin_dir + "/util/filtercesr " + full_pkg_name + ' ' + dir)
+#                line = dep_process.fromchild.readline()
+#                while line:
+#                    print line.strip()
+#                    line = dep_process.fromchild.readline()
+#            shutil.move(full_pkg_name + "/recipes_c-ansi", full_pkg_name + "/recipes_c_ansi")
+#            shutil.move(full_pkg_name + "/recipes_f-90", full_pkg_name + "/recipes_f_90")
+#r        build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_pkg_name) # FTP upload to VMS cluster
 
 
 ## Set group to cesr and add write permissions to the files in the config area
 
-if build_type == "RELEASE" or build_type == "RELEASE & PACKAGES":
-    os.system("chgrp -R cesr " + config_dir)
-    os.system("chmod -R g+w " + config_dir)
+#rif build_type == "RELEASE":
+#    os.system("chgrp -R cesr " + config_dir)
+#r    os.system("chmod -R g+w " + config_dir)
 
 ## Create the 'database' of files and functions.
-if build_type == "RELEASE" or build_type == "BMAD DISTRIBUTION":
-    os.chdir(full_rel_name)
-    os.system(bin_dir + "/create_fdb.pl")
+#rif build_type == "RELEASE" or build_type == "BMAD DISTRIBUTION":
+#    os.chdir(full_rel_name)
+#    print "Creating DB of files & functions from within " + os.getcwd()
+#    fdb_cmd = bin_dir + "/create_fdb.pl"
+#    print [fdb_cmd, full_rel_name]
+#    fdb_process = sub.Popen([fdb_cmd, full_rel_name], stdout=sub.PIPE, stderr=sub.STDOUT)
+#    lines = fdb_process.stdout.readlines()
+#    for line in lines:
+#        print line.strip()
+#    pid = fdb_process.pid
+#    returncode = fdb_process.wait()
+#    if returncode != 0:
+#        print "--> BUILD STATUS: ERROR(S) DETECTED"
+#r        sys.exit(92)
 
+
+print "--> BUILD STATUS: COMPLETE!"
 
 sys.exit(0)
-
