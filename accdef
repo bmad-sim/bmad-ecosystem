@@ -140,7 +140,8 @@ else
 endif
 
 #==============================================================================
-#-----  Add CESR Librarian bin area to user's PATH if not already present ----
+# ----  Add librarian bin area to user's PATH if not already present ----
+# ----  Add standard applications area to user's PATH if not there already ---
 #==============================================================================
 set PATH_LIST=`echo ${PATH} | sed s/:/\ /g`
 set found=0
@@ -148,6 +149,12 @@ foreach dir (${PATH_LIST})
   if ( "${dir}" == "${CESRLIB_BIN}" ) set found=1
 end
 if ( $found == 0 ) setenv PATH ${PATH}:${CESRLIB_BIN}
+
+set found=0
+foreach dir (${PATH_LIST})
+  if ( "${dir}" == "${ACC_EXE}" ) set found=1
+end
+if ( $found == 0 ) setenv PATH ${PATH}:${ACC_EXE}
 
 #==============================================================================
 # Add hook to support OLD style of environment variables
@@ -233,6 +240,17 @@ setenv CESR_SRC ${CESR_REL}/src
 
 setenv CESR_INC ${CESR_SRC}/include
 
+#==============================================================
+# Centralized set up of Intel and Lahey compilers (Linux only)
+#==============================================================
+if ( "$HOST_TYPE" == "i686" && "$HOST_OS" == "Linux" ) then
+  source /nfs/opt/ifc/bin/ifortvars.csh
+  source /nfs/opt/lf9562/csh_setup
+endif
+
+
+###########################################################################
+###########################################################################
 #
 # $Id$
 #

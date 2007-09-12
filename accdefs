@@ -150,9 +150,10 @@ else
 fi
 
 
-#======================================================
-#-----  Add cesrulib bin area to user's PATH  ----
-#======================================================
+#=============================================================================
+# ----  Add cesrulib bin area to user's PATH ----
+# ----  Add standard applications area to user's PATH if not there already ---
+#=============================================================================
 PATH_LIST=`echo $PATH | sed s/:/\ /g`
 found=0
 for dir in ${PATH_LIST}; do
@@ -162,6 +163,17 @@ for dir in ${PATH_LIST}; do
 done
 if ( [ ${found} -eq 0 ] ) then
   PATH=${PATH}:${CESRLIB_BIN}
+  export PATH
+fi
+
+found=0
+for dir in ${PATH_LIST}; do
+  if ( [ "${dir}" = "${ACC_EXE}" ] ) then 
+    found=1
+  fi
+done
+if ( [ ${found} -eq 0 ] ) then
+  PATH=${PATH}:${ACC_EXE}
   export PATH
 fi
 
@@ -258,6 +270,17 @@ export CESR_SRC
 CESR_INC="${CESR_SRC}/include"
 export CESR_INC
 
+#==============================================================
+# Centralized set up of Intel and Lahey compilers (Linux only)
+#==============================================================
+if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then 
+    . /nfs/opt/ifc/bin/ifortvars.sh
+    . /nfs/opt/lf9562/bash_setup
+fi
+
+
+###########################################################################
+###########################################################################
 #
 # $Id$
 #
