@@ -86,7 +86,7 @@ print sys.version           # dump Python version to platform logfile.
 
 print "\nSuccessfully launched remote build process.\n"
 
-cesrdefs  = ". " + bin_dir + "/cesrdefs; "               # command to source the cesrdefs:cesrenv environment setup scripts
+accdefs  = ". " + bin_dir + "/accdefs; "               # command to source the cesrdefs:cesrenv environment setup scripts
 bmad_defs = ". " + bin_dir + "/bmad_defs; "
 env_setup3 = ""
 test_script = bin_dir + "/util/CESRbuild_test_suite"
@@ -108,7 +108,7 @@ if build_type == "PACKAGES":  # make gets slightly different args depending on t
         #env_setup2 = " export CESR_GMAKE="+build_sys_dir + " ; export CESR_UTIL=" + bin_dir + "/util; "
         env_setup2 = " CESR_GMAKE="+build_sys_dir + "; CESR_UTIL=" + bin_dir + "/util; "
 #env_setup2=" XERCESCROOT="+full_pkg_name+"/xerces; export XERCESCROOT; CESR_GMAKE="+build_sys_dir+" ; CESR_UTIL="+bin_dir "/util; "
-        build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
+        build_cmd = env_setup1 + accdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
         for arg in build_args:
             build_cmd = build_cmd + arg   # compose build command by appending the options determined above
             
@@ -153,7 +153,7 @@ if build_type == "RELEASE":
         env_setup2 = ""
         #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 CESR_PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
         #build_cmd = env_setup + "make -f " + build_sys_dir + "/M.release " + build_args + "; echo $PATH"
-        build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
+        build_cmd = env_setup1 + accdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
         for arg in build_args:
             build_cmd = build_cmd + arg                  # compose build command by appending the options determined above
 
@@ -191,7 +191,7 @@ if build_type == "RELEASE":
                 time.sleep(2)
             if build_type == "BMAD DISTRIBUTION":                # if build completes successfully
                 shutil.copy(full_rel_name+".tar.gz", dist_web_dir) # copy tarball to dist web page
-                
+
     if activity[:4] == "PREP":
         OSF_reldir = full_rel_name.replace("VMS_alpha_hp", "OSF1_alpha_hp")
         print "Waiting for OSF1 build to complete so dependencies can be copied to VMS area.\n"
@@ -229,7 +229,8 @@ if build_type == "RELEASE":
         if returncode != 0:
             print "--> BUILD STATUS: ERROR(S) DETECTED"
             sys.exit(91)
-            
+
+
     os.system("chgrp -R cesr " + config_dir)
     os.system("chmod -R g+w " + config_dir)
     os.chdir(full_rel_name)
@@ -260,7 +261,7 @@ if build_type == "FIXES":
         env_setup2 = ""
         #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 CESR_PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
         #build_cmd = env_setup + "make -f " + build_sys_dir + "/M.release " + build_args + "; echo $PATH"
-        build_cmd = env_setup1 + cesrdefs + env_setup2 + "gmake"
+        build_cmd = env_setup1 + accdefs + env_setup2 + "gmake"
         #for arg in build_args:
         #    build_cmd = build_cmd + arg                  # compose build command by appending the options determined above
         print "Build command follows:"

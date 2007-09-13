@@ -105,6 +105,7 @@ libs_dir      = config.get("Paths", "LIBS_DIR")
 prev_blt      = libs_dir + "/log/prev_built"      # path to file naming the last built release
 prev_blt_pkg  = libs_dir + "/log/prev_built_pkg" # likewise for last build packages release
 stats_dir     = config.get("Paths", "STATS_DIR")
+fixes_dir     = config.get("Paths", "FIXES_DIR")
 
 #============================================================================
 # Third party module search path set up and importation
@@ -154,6 +155,7 @@ for platform in platforms:
     poss_plat_combos[platform]['label']   = platform[:3].lower()                 # Add cmd_label          'label'
     poss_plat_combos[platform]['builder'] = "NYI"                         # Fill with 'Not Yet Initiated'
     poss_plat_combos[platform]['done'] = False                             # build-done flag
+    poss_plat_combos[platform]['time'] = 0                                 # Initialize time field
     avail_cmd_labels.append( "-" + poss_plat_combos[platform]["label"] )  # Add '-augmented' cmd_label to it's own list
                                                                              # for auto-documentation purposes and to
                                                                              # allow command line inputs to be recognized.
@@ -174,10 +176,12 @@ ranks         = {0 : "Isolated", 1 : "Nightly",
 
 release       = ""
 revision      = 0
-build_release = 1              # default to building a CESR release only
+build_release = 1              # default to building an ACC release only
 bmad          = 0
 bmad_build    = 0
+fixes         = 0
 bmad_name     = "none"
+fixes_name    = "none"
 custom_relflag= 0              # flag system to allow three cmd-line possibilities; pkg, rel, or both
 rel_name      = "none"
 build_packages= 0
@@ -224,6 +228,7 @@ def print_help():
   print "   -pkg          Checkout and build a 3rd-party packages release."
   print "   -bmad         Checkout and assemble a BMAD distribution .tar.gz file"
   print "   -bmad_build   Checkout, build and if successful, publish BMAD dist .tar.gz file."
+  print "   -fixes        Build the libraries requested by the fixes initiation file."
   print "   -build_only   Build using previously checked-out files [Not implemented]"
   print "   -nodump       Disable display this script's configuration information."
   print "   -nobs         Suppress periodic build-status messages."
@@ -239,6 +244,7 @@ def print_help():
   print "   GMAKE=<gmake_dir>     Specify a custom CESR_GMAKE directory"
   print "   UTIL=<util_dir>       Specify a custom CESR_UTIL  directory"
   print "   BIN=<bin_dir>         Specify a custom CESR_BIN   directory"
+  print "   FIX=<fixes_init_file> Specify the name of the fixes build init file."
   print "   <DBL/SGL>             Double or Single numeric precision [default is DBL]"
   print "   REV=<revision num>    Specify a SVN revision number to check out."
   print "                          [Default is the most recent revision]"
@@ -271,6 +277,9 @@ for opt in sys.argv[1:]:
     bmad_build          = 1
     build_release       = 0
     build_packages      = 0
+  elif opt == "-fixes":
+    fixes               = 1
+    build_release       = 0
   elif opt == "-build_only":
     checkout            = "NO"
   elif opt == "-nodump":
@@ -302,6 +311,8 @@ for opt in sys.argv[1:]:
     custom_pkgflag      = 1   # is performed below and may revise these values.
   elif opt.find("REL=") != -1:
     rel_name            = opt.split('=')[1]
+  elif opt.find("FIX=") != -1:
+    fixes_name          = opt.split('=')[1]
   elif opt.find("GMAKE=") != -1:
     makefile_area        = opt.split('=')[1]
   elif opt.find("UTIL=") != -1:
@@ -322,7 +333,11 @@ for platform in plat_combos:
 if custom_pkgflag and not custom_relflag:             # accomodate an isolated packages build
   build_release = 0
 
-rquant = len( plat_combos )
+rquant      = len( plat_combos )
+rquant_full = 0
+for platform in plat_combos:
+  if plat_combos[platform]['act'] == "FULL":
+    rquant_full = rquant_full + 1
 
 if rquant == 0:
   print_help()
@@ -341,6 +356,13 @@ elif nightly:
   rank = 1
 elif devel:
   rank = 3
+
+if fixes:
+  ffile = open(fixes_dir + "/control/"+ fixes_name, 'r')
+  fixline = ffile.readline()
+  ffile.close()
+  fix_modline = fixline.strip().split(";")[0]
+  fixlist     = fix_modline.strip().split(":")
 
 if rquant > 1:
   plural = "s"
@@ -376,6 +398,7 @@ datecode   = year + '_' + month + day
 rel_prefix    = "cesr"                                  # WAS rel_tag
 pkg_prefix    = "packages"                             # WAS pkg_tag
 bmad_prefix   = "bmad_dist"
+fixes_prefix  = "fixes"
 general_log   = ""
 checkout      = 1
 
@@ -414,6 +437,8 @@ def get_build_name(type, initial_name):
     prefix = pkg_prefix
   elif type == "BMAD DISTRIBUTION":
     prefix = bmad_prefix
+  #elif type == "FIXES":
+  #  prefix = fixes_prefix
 
   full_logname_to_test = libs_dir + '/log/' + build_name + '.genlog'
 
@@ -476,22 +501,22 @@ def dump_parameters():
   print "Current host      : " + hostname
   print ""
   print "           -- Paths --"
-  print "CESR libs dir     : " + libs_dir
+  print "ACC archive dir   : " + libs_dir
   print "Build system dir  : " + makefile_dir
   print "Util dir          : " + util_dir
-  print "Binary dir        : " + bin_dir
+  print "Scripts dir       : " + bin_dir
   print "General log file  : " + genlog
   print ""
   print "   --  Platforms and Hosts  --"
   print "      " + str(rquant) +" "+ build_type.lower() +" build"+ plural +"."
-  print "  OS   Arch   (compiler)      Build Host"
+  print "   OS   Arch   (compiler)   Build Host"
   print "--------------------------------------------"
   if bmad:
     print "  N/A -- Source-only distribution"
   else:
     for platform in plat_combos:
       name_list = platform.split("_")
-      print name_list[0] +"   "+ name_list[1] +"   "+ name_list[2] +"   "+ plat_combos[platform]['host']
+      print name_list[0].ljust(7), name_list[1].ljust(7), name_list[2].ljust(10), plat_combos[platform]['host']
     
 
 
@@ -570,8 +595,9 @@ class builder:
       
     #=== Variable Setup =================================
     __param_list.append("Build Type         : " + self.build_type + '\n')
+    __param_list.append("Activity           : " + plat_combos[self.platform]['act'] + '\n')
     __param_list.append("Repository branch  : " + branch + '\n')
-    __param_list.append("Revision           : " + str(self.rev) + '\n')    
+    __param_list.append("Revision           : " + str(self.rev) + '\n')
     __param_list.append("F90 Compiler       : " + self.f90 + '\n')
     __param_list.append("Platform           : " + self.platform + '\n')
     __param_list.append("Float Precision    : " + self.precision + '\n')
@@ -636,7 +662,7 @@ class builder:
     ####################################################################################  
     if self.build_type == "RELEASE":
       self.full_rel_name = self.base_dir + '/' + self.rel_name
-      self.full_logfile   = self.libs_dir_loc + "/log/" + self.platform + '/' + self.rel_name + ".log"
+      self.full_logfile  = self.libs_dir_loc + "/log/" + self.platform + '/' + self.rel_name + ".log"
       
       __param_list.append("Full Release name  : " + self.full_rel_name + '\n')
       __param_list.append("Config Dir         : " + self.full_rel_name + "/config\n")
@@ -663,7 +689,48 @@ class builder:
       cmd = ""
       time.sleep(3)
       print time.asctime() + " -- Spawned build process with PID : " + str(self.PID) + '\n'
+      
+      
+    #####################################################################################
+    if self.build_type == "FIXES":
+      #self.full_rel_name = self.base_dir + '/' + self.rel_name
+      #self.base_dir     = self.libs_dir_loc + "/fixes/staging"
+      self.base_dir     = fixes_dir + "/staging"
+      self.full_rel_name = self.base_dir + '/' + self.platform
+      self.full_logfile  = self.libs_dir_loc + "/log/" + self.platform + '/' + self.rel_name + ".log"
+      
+      __param_list.append("Full Release name  : " + self.full_rel_name + '\n')
+      self.aline = "Modules to build   :"
+      for module in fixlist:
+        self.aline = self.aline + " " + module
+      self.aline = self.aline + '\n'
+      __param_list.append(self.aline)
+      __param_list.append("--> BUILD STATUS: HANDING CONTROL TO REMOTE SUBSCRIPT\n")
 
+      self.rlog = open(self.full_logfile, "w")
+      self.rlog.writelines( __param_list )
+      self.rlog.close()
+
+      print "FIXLIST"
+      print fixlist
+      for module in fixlist:
+        module = module.strip()
+        print "Retrieving module " + module
+        svn_cmd = "svn co "+repo_url+'/'+branch.lower()+"/src/"+module+"@"+str(self.rev)+' '+self.full_rel_name+'/'+module 
+        svnlines = os.popen(svn_cmd).readlines()
+        for line in svnlines:
+          __lines.append(line)
+      if print_co:
+        for line in __lines:
+          sys.stdout.write(line, 4)    # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
+      self.lines = []
+      ## REMOTE EXECUTION of build process
+      cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
+      self.PID = sub.Popen(cmd , shell=True).pid
+      cmd = ""
+      time.sleep(3)
+      print time.asctime() + " -- Spawned build process with PID : " + str(self.PID) + '\n'
+      
       
     #####################################################################################  
     if self.build_type == "BMAD DISTRIBUTION":
@@ -739,12 +806,7 @@ class builder:
 
   def status(self):    ## return the value of the most recently-stamped status message in logfile passed to this method
     build_status = 0
-    if self.build_type == "RELEASE":
-      file_to_check = self.full_logfile
-    elif self.build_type == "PACKAGES":
-      file_to_check = self.full_logfile
-    elif self.build_type == "BMAD DISTRIBUTION":
-      file_to_check = self.full_logfile
+    file_to_check = self.full_logfile
       
     self.lq = open(file_to_check, "r")
     self.qline = self.lq.readline()
@@ -787,8 +849,15 @@ elif bmad or bmad_build:
   build_name  = get_build_name(build_type, bmad_name)
   rel_name    = build_name
   release_names = (rel_name, "")
+elif fixes:
+  build_type  = "FIXES"
+  #build_name  = get_build_name(build_type, fixes_name)
+  build_name  = fixes_name
+  rel_name    = fixes_prefix + "_" + fixes_name.replace("_BUILDING","")
+  release_names = (rel_name, "")
   
-genlog      = build_name + ".genlog"
+#genlog      = build_name + ".genlog"
+genlog      = rel_name + ".genlog"
 full_genlog = libs_dir + "/log/" + genlog
 
 
@@ -851,24 +920,13 @@ for platform in plat_combos:
     print_co = False
 
     
-##  Package phase initiation complete here.
 loop             = 0
 max_loops        = 450
 complete_fraction= 0.0
 complete_tally   = 0
 error_fraction   = 0.0
-error_fraction   = 0
 error_tally      = 0
-lin_donelatch    = 0
-lla_donelatch    = 0
-osf_donelatch    = 0
-vms_donelatch    = 0
-t_end_LIN        = 0
-t_end_LLA        = 0
-t_end_OSF        = 0
-t_end_VMS        = 0
 failure          = 0
-elapsed          = 0
 
 ####
 if not bmad:
@@ -883,8 +941,8 @@ stout.outLogfileThreshold = 5      # build-status messages to the screen and not
 stout.priority            = 4
 
 while complete_fraction < 1 and loop < max_loops: 
-  error_fraction    = 0
-  error_tally       = 0
+  error_fraction    = 0.0
+  # Skip all the status printing if this is just a bmad checkout & archival
   if bmad:
     break
   
@@ -898,29 +956,32 @@ while complete_fraction < 1 and loop < max_loops:
     done   = plat_combos[platform]['done']
 
     if not done:
+      # Grab status appropriately depending on whether the builder object for the given platform
+      # has been spawned already or not.
       if type( plat_combos[platform]['builder'] ) == types.InstanceType:
         Status = plat_combos[platform]['builder'].status()    # -1 = ERROR :: 0 = building :: 1 = success
       else:
         Status = plat_combos[platform]['builder']
 
-      if plat_combos[platform]['act'][:4] == "PREP":     # if this platform has a dependency, note it and build if dep is complete
+      # if this platform has a dependency, note it and build if dep's build is complete
+      if plat_combos[platform]['act'][:4] == "PREP":
         depends_upon = plat_combos[platform]['act'].split('-')[1].strip()
         if plat_combos[depends_upon]['builder'].status() == 1:
           plat_combos[platform]['builder'] = builder(release_names, revision, build_type, platform, print_co, stout)
           plat_combos[platform]['time'] = time.time()  # Set start timestamp
           # Alter PREP string in the platform's 'act' field to prevent multiple initiations
           plat_combos[platform]['act'] = "Building-->" + plat_combos[platform]['act']
-        if plat_combos[depends_upon]['builder'].status() == -1:
+        elif plat_combos[depends_upon]['builder'].status() == -1:
           error_tally = error_tally + 1
           plat_combos[platform]['done'] = True
           plat_combos[platform]['time'] = time.time() - plat_combos[platform]['time'] # Calculate elapsed time and store
 
-      if Status == 1:                                     # Completed successfully
+      if Status == 1:                                   # Completed successfully
         complete_tally = complete_tally + 1
         plat_combos[platform]['done'] = True
         plat_combos[platform]['time'] = time.time() - plat_combos[platform]['time']
 
-      elif Status == -1:                                  # Stopped with error(s)
+      if Status == -1:                                  # Stopped with error(s)
         error_tally = error_tally + 1
         plat_combos[platform]['done'] = True
         plat_combos[platform]['time'] = time.time() - plat_combos[platform]['time']
@@ -928,26 +989,27 @@ while complete_fraction < 1 and loop < max_loops:
     if show_status:
       if type( plat_combos[platform]['builder'] ) == types.InstanceType:
         Status = plat_combos[platform]['builder'].status() # -1 = ERROR :: 0 = building :: 1 = success
-        print platform + " : " + str(Status) + "  " + statuses[Status]
+        print platform.ljust(16), ":", str(Status), " ", statuses[Status]
       else:
         Status = plat_combos[platform]['builder']
-        print platform + " : " + str(Status)
+        print platform.ljust(16), ":", str(Status)
 
 
-    
   complete_fraction = complete_tally / float(rquant)
   error_fraction    = error_tally / float(rquant)
 
-  if complete_fraction == 1.0:
+  #if complete_fraction == 1.0:
+  if complete_tally == rquant:
     print "\n" + time.asctime() + " All Builds completed successfully.\n"
     successful_build = 1
     break
 
-  if error_fraction == 1.0:
+  #if error_fraction == 1.0:
+  if error_tally    == rquant:
     print "All builds have failed.  Stopping."
     failure = 1
 
-  if (complete_tally > 1 and error_tally > 1) and (complete_tally + error_tally == rquant):
+  if (complete_tally > 0 and error_tally > 0) and (complete_tally + error_tally == rquant):
     print "All builds have ceased, with some due to failure."
     failure = 1
 
@@ -992,10 +1054,10 @@ print "         Overall:     %i hr %i min %i sec elapsed" % seconds_to_HMS(t_end
 for platform in plat_combos:
   print platform + " build : %i hr %i min %i sec" % seconds_to_HMS( plat_combos[platform]['time'] )
 
-#if build_type == "RELEASE":
-lines = os.popen(util_dir + "/rel_disk_total " + rel_name).readlines()
-for line in lines:
-  print line.strip()
+if build_type != "FIXES":
+  lines = os.popen(util_dir + "/rel_disk_total " + rel_name).readlines()
+  for line in lines:
+    print line.strip()
 #else:
 #  print "Disk utilization summary for packages builds has not yet been implemented."
 
@@ -1014,24 +1076,87 @@ print "=========================================================================
 print "          =============  End Statistics Summary =============\n"
 
 
-#==================================================
-#   Generate repository statistics reports
-#==================================================
-print "Generating and publishing HTML repository statistics reports:"
-sr = sub.Popen([util_dir + "/" + reporter, "src"], stdout=sub.PIPE, stderr=sub.STDOUT )
-(outstream, errstream) = sr.communicate()
-sr_exit = sr.wait()
-print str(outstream)
-if sr_exit != 0:
-  print "ERROR:  There was a problem generating the repository statistics reports."
+  
+#========================================================================
+# If a devel attempt was requested, determine if this newly-built release
+# is a candidate for promotion to DEVEL.
+#========================================================================
+defer          = False
+recommendation = 9
+if devel:
+  print "\nChecking to see if this release is a DEVEL candidate."
+  qr = sub.Popen( [rot_querier, "-r", rel_name], stdout=sub.PIPE, stderr=sub.STDOUT )
+  (outstream, errstream) = qr.communicate()
+  recommendation = qr.wait()
+  print str(outstream)
 
-#== If nightly build has been requested, rotate this one into position and delete the previous.
+  if recommendation == 0:  # If there has been a recommendation to rotate rot_querier exit code.
+    # Calculate deferral times
+    cur_hourval = int( time.asctime().split()[3].split(":")[0] )
+    def_hourval = 8
+    def_hourstr = str( def_hourval )
+    minuteval   = random.randint(0,59)
+    min_str     = str( minuteval )
+    if minuteval < 10:
+      min_str = "0" + min_str
+
+    if cur_hourval < 8: # If current time is before 8am and hence this
+      defer  = True     # was cron-initiated, use deferrals. Otherwise,
+    else:               # execute subtasks immediately in sequence.
+      defer  = False
+
+    if defer:
+      #= Schedule this release to be promoted to DEVEL status.
+      tmpname = "/tmp/tmp_atfile_01"
+      atfile  = open(tmpname, 'w')
+      atfile.write(rotator + " -devel -tag -mail " + rel_name)
+      atfile.close()
+      at = sub.Popen( ["at", def_hourstr + ':' + min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
+      (outstream, errstream) = at.communicate()
+      atval = at.wait()
+      os.remove(tmpname)
+      if atval == 0:
+        print "Will rotate release : " + str(outstream)
+      else:
+        print str(outstream)
+        print "ERROR: There was a problem with the rotation initiation."
+        sys.exit(70)
+
+      #= Schedule a Bmad distribution build and rotation.
+      if minuteval != 59:
+        minuteval = minuteval + 1
+      else:
+        minuteval = 0
+        def_hourval = def_hourval + 1
+      if minuteval < 10:
+        min_str = "0" + min_str
+        min_str   = str( minuteval )
+        
+      tmpname   = "/tmp/tmp_atfile_02"
+      atfile    = open(tmpname, 'w')
+      atfile.write(master + " -bmad_build REV="+ revision) # Call master script again
+      atfile.close()
+      at = sub.Popen( ["at", def_hourstr + ':' + min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
+      (outstream, errstream) = at.communicate()
+      atval = at.wait()
+      os.remove(tmpname)
+      if atval == 0:
+        print "Will produce a Bmad distribution : " + str(outstream)
+      else:
+        print str(outstream)
+        print "ERROR: There was a problem with the Bmad dist. initiation."
+        sys.exit(75)
+
+
+#==============================================================================
+#== If this was a nightly build, rotate into position and delete the previous.
+#==============================================================================
 if nightly and build_type == "RELEASE":
-  print "This is a nightly build, proceeding with replacement of previous build."
+  print "This is a nightly build, proceeding with replacement of previous nightly."
   lines = os.popen(util_dir + "/rotate_release -nightly " + rel_name).readlines()
   for line in lines:
     print line.strip()
-  print "Rotation successful-- deleting previous night's build."
+  print "Rotation successful"
   #== If everything has completed successfully so far, delete previous build, as long as it hasn't
   #== been promoted.
   prevfile = open(prev_blt, 'r')
@@ -1042,7 +1167,7 @@ if nightly and build_type == "RELEASE":
   del_exit = dr.wait()
   print str(outstream)
   if del_exit != 0:
-    print "ERROR: There was a problem deleting the previous release."
+    print "Previously-built release not deleted."
   os.chmod(prev_blt, 0644)         # set permissions to writable
   prevfile = open(prev_blt, 'w')
   prevfile.write(rel_name + '\n')      # write the name of the release just built to file
@@ -1063,73 +1188,22 @@ if bmad_build:
   (outstream, errstream) = rot.communicate()
   exitval = rot.wait()
   print str(outstream)
-
   
-#========================================================================
-# Ask if this newly-built release is a candidate for promotion to DEVEL.
-#========================================================================
-defer = False
-if devel:
-  print "Checking to see if this release is a DEVEL candidate."
-  qr = sub.Popen( [rot_querier, "-r", rel_name], stdout=sub.PIPE, stderr=sub.STDOUT )
-  (outstream, errstream) = qr.communicate()
-  recommendation = qr.wait()
+
+#==================================================
+#   Generate repository statistics reports
+#==================================================
+if not fixes:
+  print "Generating and publishing HTML repository statistics reports:"
+  sr = sub.Popen([util_dir + "/" + reporter, "src"], stdout=sub.PIPE, stderr=sub.STDOUT )
+  (outstream, errstream) = sr.communicate()
+  sr_exit = sr.wait()
   print str(outstream)
-  
-  if recommendation == 0:  # If there has been a recommendation to rotate
-    # Calculate deferral times
-    cur_hourval = int( time.asctime().split()[3].split(":")[0] )
-    def_hourval = 8
-    def_hourstr = str( def_hourval )
-    minuteval   = random.randint(0,59)
-    min_str     = str( minuteval )
-    if minuteval < 10:
-      min_str = "0" + min_str
+  if sr_exit != 0:
+    print "ERROR:  There was a problem generating the repository statistics reports."
 
-    if cur_hourval < 8: # If current time is before 8am and hence this
-      defer = True      # was cron-initiated, use deferrals. Otherwise,
-                        # execute subtasks immediately in sequence.
-
-    if defer:
-      #= Schedule this release to be promoted to DEVEL status.
-      tmpname = "/tmp/tmp_atfile_01"
-      atfile  = open(tmpname, 'w')
-      atfile.write(rotator + " -devel -tag -mail " + rel_name)
-      atfile.close()
-      at = sub.Popen( ["at", def_hourstr +':'+ min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
-      (outstream, errstream) = at.communicate()
-      atval = at.wait()
-      os.remove(tmpname)
-      if atval == 0:
-        print "Will rotate release : " + str(outstream)
-      else:
-        print str(outstream)
-        print "ERROR: There was a problem with the rotation initiation."
-        sys.exit(70)
-
-      #= Schedule a Bmad distribution build and rotation.
-      if minuteval != 59:
-        minuteval = minuteval + 1
-      min_str   = str( minuteval )
-      tmpname   = "/tmp/tmp_atfile_02"
-      atfile    = open(tmpname, 'w')
-      atfile.write(master + " -bmad_build") # Call master script again
-      atfile.close()
-      at = sub.Popen( ["at", def_hourstr +':'+ min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
-      (outstream, errstream) = at.communicate()
-      atval = at.wait()
-      os.remove(tmpname)
-      if atval == 0:
-        print "Will produce a Bmad distribution : " + str(outstream)
-      else:
-        print str(outstream)
-        print "ERROR: There was a problem with the Bmad dist. initiation."
-        sys.exit(75)
-        
-      
 
 print "\n================== Build process finished completely. ====================\n"
-
 
 if recommendation == 0 and not defer:             
   print "Starting sequential rotation and build processes"
@@ -1138,5 +1212,5 @@ if recommendation == 0 and not defer:
   os.execv( master, ["-bmad_build"] )
 
 
-stout.close()                           # Close stream to logfile before quitting
+stout.close()   # Close stream to logfile before quitting
 sys.exit(0)
