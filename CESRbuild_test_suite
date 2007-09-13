@@ -82,6 +82,7 @@ for plat in config.options("Platforms"):
     if config.get("Platforms", plat) == "FULL":
         platforms.append(plat)
 src = "src"
+bin = "bin"
 testlist = []
 HOST = ""
 wd = os.getcwd()
@@ -100,15 +101,32 @@ platform = plat_val + "_" + compiler
 #============================================================================
 #macros = {
 
-        
+
+# Grab command line argument(s)
+if len(sys.argv) == 2 or len(sys.argv) == 3:
+  release = sys.argv[1]
+  if len(sys.argv) == 3:
+    platform = sys.argv[2]
+  if os.access(LIBS_DIR + '/' + platform + '/' + release, 4) == 0:
+    print "The release " +release+ " does not exist in the "+ platform + " archive."
+    sys.exit(2)
+else:
+  print "Incorrect number or arguments provided to " + sys.argv[0]
+  sys.exit(3)
+
+srcpath = LIBS_DIR +'/'+ platform +'/'+ release +'/'+ src
+bindir = LIBS_DIR +'/'+ platform +'/'+ release +'/'+ bin
+
 #============================================================================
-# Populate the dictionary the defines the group of programs to test.
+# Populate the dictionary that defines the group of programs to test.
 # Slurp up the arguments to use, any interaction dialog needed, and
 # any environment variable definitions provided in the config file.
 #============================================================================
 tests  = {}
 for section in sconfig.sections():
-    if section != "files":
+    # Only get program names, and make sure the program exists in the release's
+    # bin directory.
+    if section != "files" and section in os.listdir( bindir ):
         interact = []
         args     = []
         dialog   = []
@@ -129,19 +147,6 @@ for section in sconfig.sections():
         tests[section] = entry
 
 
-# Grab command line argument(s)
-if len(sys.argv) == 2 or len(sys.argv) == 3:
-  release = sys.argv[1]
-  if len(sys.argv) == 3:
-    platform = sys.argv[2]
-  if os.access(LIBS_DIR + '/' + platform + '/' + release, 4) == 0:
-    print "The release " +release+ " does not exist in the "+ platform + " archive."
-    sys.exit(2)
-else:
-  print "Incorrect number or arguments provided to " + sys.argv[0]
-  sys.exit(3)
-
-srcpath = LIBS_DIR +'/'+ platform +'/'+ release +'/'+ src
 
 #Disable X display for unattended operation
 os.environ['DISPLAY'] = "none"
