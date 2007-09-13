@@ -231,7 +231,7 @@ rm -f /home/cesrulib/cesr_libs/distribution/log/${REL_NAME}.log
 ##################################################################
 # Delete the release .zip file on the VMS cluster.
 ##################################################################
-ftp cesr2f <<EOF
+ftp cesr2f <<EOF &> /dev/null
     binary
     cd $VMS_ZIPDIR
     delete ${REL_NAME}.zip
