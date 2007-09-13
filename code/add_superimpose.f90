@@ -303,7 +303,6 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   call order_super_lord_slaves (lat, ix_super)
 
 !------------------------------------------------------------------------------
-
 contains
 
 subroutine delete_last_chars (ix_split)
@@ -318,6 +317,7 @@ subroutine delete_last_chars (ix_split)
 end subroutine
 
 !------------------------------------------------------------------------------
+! contains
 
 subroutine delete_double_slash(ix_ele)
 
@@ -329,18 +329,16 @@ subroutine delete_double_slash(ix_ele)
 
 end subroutine
 
-end subroutine
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+! contains
 
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
 !+
 ! Subroutine calc_superimpose_key (ele1, ele2) result (ele3)
 !
 ! Function to decide what ele3%key and ele3%sub_key should be
 ! when two elements, ele1, and ele2, are superimposed.
-!
-! This function is not meant for general use.
 !-
 
 subroutine calc_superimpose_key (ele1, ele2, ele3)
@@ -405,7 +403,6 @@ subroutine calc_superimpose_key (ele1, ele2, ele3)
     return
   endif
 
-
 !
 
   select case (key1)
@@ -428,6 +425,6 @@ subroutine calc_superimpose_key (ele1, ele2, ele3)
     end select
   end select
 
-!
+end subroutine
 
 end subroutine
