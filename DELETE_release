@@ -119,15 +119,13 @@ fi
 # Generalize here to avoid the need to hardcode any platform name.
 if ( [ ${LIBS_DIR}Linux_i686_intel/current -ef ${LIBS_DIR}Linux_i686_intel/${REL_NAME} ] ) then
      echo ""
-     echo "The release you have requested to delete is the CURRENT release."
-     echo "This is not allowed.  Skipping."
+     echo "The release will not be deleted.  It is the most recent CURRENT release."
      echo ""
      exit 1
 fi
 if ( [ ${LIBS_DIR}Linux_i686_intel/devel -ef ${LIBS_DIR}Linux_i686_intel/${REL_NAME} ] ) then
      echo ""
-     echo "The release you have requested to delete is the DEVEL release."
-     echo "This is not allowed.  Skipping."
+     echo "The release will not be deleted.  It is the most recent DEVEL release."
      echo ""
      exit 1
 fi
@@ -147,8 +145,7 @@ do
           fi
       else
           echo ""
-          echo "The release you have requested to delete is an older CURRENT release."
-          echo "This is not currently allowed."
+          echo "The release will not be deleted.  It is a protected older CURRENT release."
           echo ""
           exit 1
       fi
@@ -168,8 +165,7 @@ do
 	  fi
       else
           echo ""
-          echo "The release you have requested to delete is an older DEVEL release."
-          echo "This is not currently allowed."
+          echo "The release will not be deleted.  It is an older DEVEL release."
           echo ""
           exit 1
       fi
