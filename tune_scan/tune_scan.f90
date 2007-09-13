@@ -77,7 +77,7 @@ program tune_scan
 !New real(rp) allowing the user to define the a- and b-mode (horizontal and vertical) emittance
   real(rp) a_emittance, b_emittance
 
-  character(80) file_name, out_file, new_lat_file
+  character(80) :: file_name = '', out_file, new_lat_file
   character(10) date, time
   character(2) wordx, wordy
 
@@ -94,7 +94,6 @@ program tune_scan
 
 ! read in the parameters
 
-  file_name = 'tune_scan.in'
   n_arg = cesr_iargc()
   if (n_arg > 1) then
     print *, 'Usage: tune_scan <input_file>'
@@ -108,6 +107,8 @@ program tune_scan
     print '(a, $)', ' Input command file <CR=tune_scan.in>: '
     read (*, '(a)') file_name
   endif
+
+  if (file_name == '')   file_name = 'tune_scan.in'
 
   print *, 'Opening: ', trim(file_name)
   open (unit= 1, file = file_name, status = 'old')
