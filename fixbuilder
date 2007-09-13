@@ -14,7 +14,7 @@
 # Fixes directory.
 ##############################################
 
-import os, sys, string, shutil, time, ConfigParser
+import os, sys, string, shutil, time, sets, ConfigParser
 import subprocess as sub
 #============================================================================
 # Set up Configuration Parser
@@ -65,16 +65,29 @@ def is_valid_module(module):
         return True
     else:
         return False
-    
+
+def is_valid_user(username):
+    uchk_cmd = "ypcat passwd | grep " + username
+    uchk = sub.Popen( uchk_cmd, shell=True, stdout=sub.PIPE, stderr=sub.STDOUT )
+    (outstream, errstream) = uchk.communicate()
+    uchkval = uchk.wait()
+    if uchkval == 0:
+        return True
+    else:
+        return False
+
 #============================================================================
 # Main section
 #============================================================================
 dirlist = os.listdir( ctrl_dir )
 # For every file that happens to exist in the control directory
 for file in dirlist:
-    fullname = ctrl_dir + "/" + file
+    origname = ctrl_dir + "/" + file
+    fullname = origname
     statinfo = os.stat( ctrl_dir + "/" + file )
     user     = file.split("-")[0]
+    adds     = []  # To hold list of addresses made from all usernames in all requested modules
+    addstring = "" # To hold string version of the above, for mail command line purposes
     statuid  = statinfo.st_uid
     statuid  = int(statuid)
     textuid  = os.popen( "id -u " + user ).readline().strip()
@@ -85,40 +98,84 @@ for file in dirlist:
     Name     = nameline.split(":")[2].split()[0]
 
     # If the file hasn't already been parsed for build initiation,
-    if file[-8:] != "BUILDING" and file[-5:] != "ERROR" and file[-8:] and file[-4:] != "DONE":
+    if file[-8:] != "BUILDING" and file[-5:] != "ERROR" and file[-8:] and file[-6:] != "NOAUTH" and file[-8:] != "CHECKING":
         print time.asctime()
         if textuid != statuid:
             print "Problem authenticating user ", Fullname, " ("+user+")."
-            os.rename( fullname, fullname + "_ERROR" )
+            newname = origname + "_ERROR"
+            os.rename( fullname, newname )
+            fullname = newname
             sys.exit(1)
         else:
             print "Dead drop authenticated."
-            print "A FIXES build was requested by " + Fullname +" ("+user+")."    
-            print "Checking for authorization..."
-            if email_list_gen.has_perms( user, "w" ):
-                print "Authorized\n"
-            else:
-                print "User not authorized"
-                sys.exit(2)
+            print "A FIXES build was requested by " + Fullname +" ("+user+").\n"
+
             f = open(fullname, 'r')
             line = f.readline()
             f.close()
-            llist = line.split(":")
-            modules = llist[1:]
+            newname = origname + "_CHECKING"
+            os.rename( fullname, newname )
+            fullname = newname
+            llist     = line.split(";")
+            modules   = llist[0].strip().split(":")
+            tmp_aux_users = llist[1].strip().split(":")
+            
+            
             print "Verifying requests..."
             for module in modules:
                 module = module.strip()
                 if is_valid_module(module):
                     print module + " is valid"
+                    tmpadds = email_list_gen.get_email_list( "/trunk/src/"+module )
+                    for address in tmpadds:
+                        if address not in adds:
+                            adds.append(address)
                 else:
                     print "Module existence could not be verified."
-                    os.rename( fullname, fullname + "_ERROR" )
+                    newname = origname + "_ERROR"
+                    os.rename( fullname, newname )
+                    fullname = newname
                     sys.exit(3)
-        print "\nAll modules verified."
-        print "Starting build..."
-        
-        bld_fullname = fullname + "_BUILDING"
-        os.rename( fullname, bld_fullname )
+            print "All modules verified.\n"
+
+
+            print "Verifying supplemental notification list..."
+            aux_users = list(sets.Set(tmp_aux_users)) #Remove duplicate entries
+            for aux_user in aux_users:
+                aux_user = aux_user.strip()
+                if aux_user == "":
+                    aux_users.remove( aux_user )
+                    continue
+                if is_valid_user( aux_user ):
+                    print aux_user + " is OK"
+                else:
+                    aux_users.remove( aux_user )
+                    print "User",aux_user,"does not exist for supplemental notification.\n"
+                        
+
+
+            print "\nChecking for authorization..."
+            for module in modules:
+                module = module.strip()
+                if email_list_gen.has_perms( user, module, "w" ):
+                    print "Authorized for ", module
+                else:
+                    print "User not authorized for writes in", module
+                    newname = origname + "_NOAUTH"
+                    os.rename( fullname, newname )
+                    fullname = newname
+                    mail = os.popen("mail -s \"Fixes build request\" " + user+"@mail.lepp.cornell.edu", 'w')
+                    mail.write("Hello " + Name + ",\n\n")
+                    mail.write("The fixes build you requested has failed because you do not\n")
+                    mail.write("have write permission in one or more of the following modules:\n\n")
+                    for module in modules:
+                        mail.write(module + '\n')
+                    sys.exit(2)
+        print "\nStarting build..."
+
+        newname = origname + "_BUILDING"
+        os.rename( fullname, newname )
+        fullname = newname
 
         # Compose build command and spawn master build process
         bld_cmd = [ master, "-lin", "-osf", "-fixes", "FIX="+file+"_BUILDING" ]
@@ -127,23 +184,49 @@ for file in dirlist:
         bldval = build.wait()
         if bldval != 0:
             print "ERROR: Build failed."
+            newname = origname + "_ERROR"
+            os.rename( fullname, newname )
+            fullname = newname
+            # Mail just the initiating user here and inform of build failure
+            # Librarian account will receive the output of this script which will show messages to that effect.
+            
             sys.exit(20)
+            
 
         print "\nAll modules built successfully."
-        
+        # Set flag file here saying that the build was successful.
+        os.system("touch "+fixes_root+"/FIXES_OPERATIONAL")
 
+
+        # Copy files from the staging area to the official fixes area.
+        for platform in platforms:
+            os.popen("rsync -avz " + staging_dir+'/'+platform+' '+ fixes_root)
+        print "All files copied from staging to production area.\n"
+
+
+        # Form list of unique e-mail addresses
+        adds.append(user+"@mail.lepp.cornell.edu")
+        for auser in aux_users:
+            tmpadd = auser+"@mail.lepp.cornell.edu"
+            adds.append(tmpadd)
+
+        uniqadds = list(sets.Set(adds))  # Uniqueify the list
+        for add in uniqadds:
+            addstring = addstring + add + ' '
+        print addstring
+        #mail = os.popen("mail -s \"Fixes build request\" " + addstring, 'w')
 
         # Open a pipe to the mail program and
         # write the message body to the pipe.
         mail = os.popen("mail -s \"Fixes build request\" " + user+"@mail.lepp.cornell.edu", 'w')
-        mail.write("Hello " + Name + ",\n")
+        mail.write("Greetings!\n\n")
         s = ""
         many = False
         if len(modules) > 1:
             many = True
             s='s'
-        mail.write("\nThis is an automatically-generated message to inform you that ")
-        mail.write("the fixes build you requested for the module"+s+ " ")
+        mail.write("This is an automatically generated message to inform you that ")
+        mail.write("the fixes build requested by "+ Name +" ("+user+") for the module"+s+ " ")
         for module in modules:
             if many and module != modules[-1]:
                 if module == modules[-2]:
@@ -153,29 +236,18 @@ for file in dirlist:
             else:
                 mail.write( module.strip() )
         #mail.write(" has completed on the platforms")
-        mail.write(" has completed.\n")
-        #for platform in platforms:
-        #    if platform != platforms[-1]:
-        #        if module == modules[-2]:
-        #            mail.write( platform.strip() + ", and " )
-        #        else:
-        #            mail.write( platform.strip() + ", " )
-        #    else:
-        #        mail.write( platform.strip() + ".\n" )
-        mail.write("The binaries are available in " + fixes_root +".\n\n")
-        mail.write("To allow your users to incorporate the changes just built into their projects ")
-        mail.write("please instruct them to use the FIXES flag when building their code.\n")
-        mail.write("The build system will recognize this and link against your changes in lieu of the ")
-        mail.write("official version"+s+" of the module"+s+".\n\n")
+        mail.write(" has completed.\n\n")
+        mail.write("To incorporate the fixes just made available into local ")
+        mail.write("projects, once must use the 'FIXES=Y' flag when building code.\n\n")
+        mail.write("The build system will recognize this and link against \n")
+        mail.write("the new library or libraries in lieu of the official version"+s+".\n\n")
         mail.write(" -END OF LINE-")
         exitcode = mail.close()
         if exitcode:
             print "Exit code: %s" % exitcode
         else:
-            print "A notification message has been sent to the developer."
-            os.remove(bld_fullname)
+            print "A notification message has been sent to the development group and any supplemental users."
+            os.remove(fullname)
 
-        # Copy files from the staging area to the official fixes area.
-        for platform in platforms:
-            os.popen("rsync -avz " + staging_dir+'/'+platform+' '+ fixes_root)
+
 
