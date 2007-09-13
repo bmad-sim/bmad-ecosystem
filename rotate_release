@@ -227,14 +227,14 @@ if ( [ ${ROTATE_BMAD} = 0 ] ) then
       present_rel=`ls -l nightly | cut -d\> -f2`
       rm -fv nightly > /dev/null
       ln -s ${REL} nightly
-      # Purge the Fixes directory when NIGHTLY gets rotated
-      for dir in `ls ${FIXES_DIR}`; do
-          if ( [ ${dir} != "control" ] && [ ${dir} != "staging" ] ) then
-              rm -rf ${FIXES_DIR}/${dir}
+      # Wipe the fixes directory system when NIGHTLY gets rotated
+      for item in `ls ${FIXES_DIR}`; do
+          if ( [ ${item} != "control" ] && [ ${item} != "staging" ] ) then
+              rm -rf ${FIXES_DIR}/${item}
           fi
       done
-      for dir in `ls ${FIXES_DIR}/staging`; do
-          rm -rf ${FIXES_DIR}/staging/${DIR}/*
+      for item in `ls ${FIXES_DIR}/staging`; do
+          rm -rf ${FIXES_DIR}/staging/${item}
       done
     fi 
 done
