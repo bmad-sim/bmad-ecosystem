@@ -7,22 +7,26 @@
 # tagging.
 #          The checks performed:
 #
-#*1) Today is the day to attempt to rotate DEVEL, days are obtained
-#    from the config file.
+# 1a) Today is the day to attempt to rotate DEVEL.  Days are obtained
+#     from the config file.
+#                 -- OR --
+# 1b) The FIXES area has build products in it from the previous day.
 #
-#*2) Release has not already been promoted to DEVEL
+#                 -- AND --
 #
-#*3) Another release has not been promoted to DEVEL since the release
+# 2) Release has not already been promoted to DEVEL
+#
+# 3) Another release has not been promoted to DEVEL since the release
 #    in question was created.
 #
-#*4) Release in question completed fully with NO errors.
+# 4) Release in question completed fully with NO errors.
 #    (taken care of by 5)
 #
-#*5) ALL the post-build tests requested in the
+# 5) ALL the post-build tests requested in the
 #   CESRbuild_test_suite program returned a success value.
 #   (Examines the output of extract_test_summary to do this.)
 #
-#*6) if there has been commit activity in the designated areas of the 
+# 6) if there has been commit activity in the designated areas of the 
 #    repository since the last DEVEL rotation.
 #
 # 7) Others to be added if necessary.
@@ -63,6 +67,7 @@ BIN_DIR    = config.get("Paths", "BIN_DIR")
 UTIL_DIR   = config.get("Paths", "UTIL_DIR")
 LIBS_DIR   = config.get("Paths", "LIBS_DIR")
 LOG_DIR    = config.get("Paths", "LOG_DIR")
+FIXES_ROOT = config.get("Paths", "FIXES_DIR")
 repository = config.get("Repository", "path")
 summarizer = config.get("Scripts", "summarizer")
 DAYS       = config.get("Scheduling", "DEVEL_ATTEMPT_DAYS").upper()
@@ -122,16 +127,28 @@ def check_existence():
 #=================================================
 
 
-# Determines if a rotation should be attempted today.
+# 1a) Determines if a rotation should be attempted today.
 #==================================================================================
 def check_day():
     date = time.asctime()
     if DAYS.find( date.split()[0].upper() ) != -1:
         return 1 # OK to rotate
     else:
-        return 0 # VETO rotation
+        return 0
 
-# Determines if the release has already been promoted to DEVEL at some other time.
+
+
+# 1b) Determine if FIXES area has been used the previous day
+#==================================================================================
+def check_fixes():
+    if os.path.exists(FIXES_ROOT+"/FIXES_OPERATIONAL"):
+        return 1 # OK to rotate
+    else:
+        return 0
+        
+
+
+#  2) Determines if the release has already been promoted to DEVEL at some other time.
 #==================================================================================
 def check_duplicate():
     val   = 0
@@ -148,7 +165,7 @@ def check_duplicate():
     return val
 
 
-# Determines if a DEVEl rotation has occurred since this release was created.
+#  3) Determines if a DEVEl rotation has occurred since this release was created.
 #==================================================================================
 def check_subsequent():
     val      = 1   # OK to rotate
@@ -159,14 +176,18 @@ def check_subsequent():
         files = os.listdir(".")
         for file in files:
             file = file.strip()
-            if os.path.islink(file) and os.readlink(file) != release and os.readlink(file) != "devel_ifort" \
-               and os.readlink(file) != "devel_intel" and file.find("devel") != -1 and os.stat(file).st_ctime > rel_time:
-                    val = 0 # VETO rotation
-                    break         # Check failed, return without chekcking further
+            if os.path.islink(file) \
+                   and os.readlink(file) != release \
+                   and os.readlink(file) != "devel_ifort" \
+                   and os.readlink(file) != "devel_intel" \
+                   and file.find("devel_") != -1 \
+                   and os.stat(file).st_ctime > rel_time:
+                val = 0      # VETO rotation
+                return val   # Check failed, return without chekcking further
     return val
 
 
-# Determines if all the post-build tests on every platform returned
+# 4,5) Determines if all the post-build tests on every platform returned
 # a success value.
 #======================================================================
 def check_tests():
@@ -188,7 +209,7 @@ def check_tests():
     return 1 # OK to rotate
 
 
-# Determines if there has been relevant repository activity since the
+#  6) Determines if there has been relevant repository activity since the
 # last DEVEL rotation which would warrant a release rotation at this time.
 #==============================================================================
 def check_activity():
@@ -237,12 +258,14 @@ existence = check_existence()
 
 if existence:
     day        = check_day()
+    fixes      = check_fixes()
     duplicate  = check_duplicate()
     subsequent = check_subsequent()
     activity   = check_activity()
     tests      = check_tests()
 else:              
     day        = 1
+    fixes      = 1
     duplicate  = 1
     subsequent = 1
     activity   = 1
@@ -252,7 +275,7 @@ else:
 # Output recommendation - exit code for OK is 0
 #                        exit code for NOT is 99
 #################################################
-if existence and day and activity and tests and duplicate and subsequent:
+if existence and ( day or fixes ) and activity and tests and duplicate and subsequent:
     print "\nRelease " + release + " is OK to rotate."
     sys.exit(0)
 else:
@@ -263,8 +286,8 @@ else:
         reasons.append("The release has already been promoted to DEVEL.")
     if not subsequent:
         reasons.append("A release built after this one has already been promoted to DEVEL.")
-    if not day:
-        reasons.append("No rotation attempt scheduled for today.")
+    if not day and not fixes:
+        reasons.append("No rotation attempt scheduled for today and no FIXES use yesterday.")
     if not tests:
         reasons.append("One or more post-build executable tests failed to complete successfully.")
     if not activity:
