@@ -164,6 +164,37 @@ if ( $?CESR_ENV_OLD == 1 ) setenv CESR_LIB ${CESR_REL}
 unset    CESR_ENV_OLD
 unsetenv CESR_ENV_OLD
 
+
+
+#=============================================================================
+# Log users who are setting up the CESR accelerator code 
+# libraries environment.  This is so that notifications of 
+# changes can be sent to all active users. 
+#=============================================================================
+set lock_count=0
+set lock_file=/home/cesrulib/user_log/users.lock
+set users_done=0
+set users_file=/home/cesrulib/user_log/users.list
+set max_count=2
+while ( ${lock_count} < ${max_count} )
+    if ( `filetest -e ${lock_file}` ) then
+      #echo "Waiting for ACL setup lock!"
+      sleep 1
+      set lock_count=`expr ${lock_count} + 1`
+    else
+      touch ${lock_file}
+      echo "`date` - `whoami` `hostname -s` $SHELL:t ${ACC_PLATFORM}_${ACC_F90} ${ACCLIB}" >> ${users_file}
+      rm ${lock_file}
+      break
+    endif
+end 
+unset lock_count
+unset lock_file
+unset users_done
+unset users_file
+unset max_count
+
+
 #==============================================================================
 # Now clear all override environment variables that, by default, use a 
 # derivative path from $CESRLIB_BASE.  This does NOT need to be done 
@@ -201,33 +232,7 @@ unsetenv ACC_
 unsetenv ACCENV
 unsetenv ACCF90
 
-#=============================================================================
-# Log users who are setting up the CESR accelerator code 
-# libraries environment.  This is so that notifications of 
-# changes can be sent to all active users. 
-#=============================================================================
-set lock_count=0
-set lock_file=/home/cesrulib/user_log/users.lock
-set users_done=0
-set users_file=/home/cesrulib/user_log/users.list
-set max_count=2
-while ( ${lock_count} < ${max_count} )
-    if ( `filetest -e ${lock_file}` ) then
-      #echo "Waiting for ACL setup lock!"
-      sleep 1
-      set lock_count=`expr ${lock_count} + 1`
-    else
-      touch ${lock_file}
-      echo "`whoami`" >> ${users_file}
-      rm ${lock_file}
-      break
-    endif
-end 
-unset lock_count
-unset lock_file
-unset users_done
-unset users_file
-unset max_count
+
 
 # Relic from repository migration period when two release types existed,
 # those with 'cvssrc' paths in them and the newer 'src' paths.

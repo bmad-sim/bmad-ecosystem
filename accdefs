@@ -131,7 +131,7 @@ CESRENV=${CESRENV:-${CESRLIB_BIN}/accenv}
 #
 if [ -f $CESRENV ]
 then
-  eval `grep '^setenv' $CESRENV | while read cmd nam val ; 
+  eval `grep '^setenv' $CESRENV | while read cmd nam val ;
     do echo "$nam=$val ; export $nam ;"; done`
 else
   echo "File $CESRENV not found."
@@ -143,7 +143,7 @@ ACCENV=${ACCENV:-${ACCLIB_BIN}/accenv-converted}
 #
 if [ -f $ACCENV ]
 then
-  eval `grep '^setenv' $ACCENV | while read cmd nam val ; 
+  eval `grep '^setenv' $ACCENV | while read cmd nam val ;
     do echo "$nam=$val ; export $nam ;"; done`
 else
   echo "File $ACCENV not found."
@@ -179,6 +179,35 @@ fi
 
 
 #==========================================================
+# Log users who are setting up the CESR accelerator code 
+# libraries environment.  This is so that notifications of
+# changes can be sent to all active users.
+#==========================================================
+lock_count=0
+lock_file=/home/cesrulib/user_log/users.lock
+users_done=0
+users_file=/home/cesrulib/user_log/users.list
+max_count=2
+while ( [ ${users_done} -eq 0 ] && [ ${lock_count} -lt ${max_count} ] ) do
+    if ( [ -f ${lock_file} ] ) then
+      #echo "Waiting for ACL setup lock!"
+      sleep 1
+      lock_count=`expr ${lock_count} + 1`
+    else
+      touch ${lock_file}
+      echo "`date` - `whoami` `hostname -s` `basename ${SHELL}` ${ACC_PLATFORM}_${ACC_F90} ${ACCLIB}" >> ${users_file}
+      users_done=1
+      rm ${lock_file}
+    fi
+done
+unset lock_count
+unset lock_file
+unset users_done
+unset users_file
+unset max_count
+
+
+#==========================================================
 # Now unset all override variables that, by default, use a 
 # derivative path from $CESRLIB_BASE.  This does NOT need 
 # to be done for the "version" variables.  Also unset the 
@@ -196,33 +225,6 @@ unset ACCENV
 unset ACCF90
 unset ACCLIB
 
-#==========================================================
-# Log users who are setting up the CESR accelerator code 
-# libraries environment.  This is so that notifications of
-# changes can be sent to all active users. 
-#==========================================================
-lock_count=0
-lock_file=/home/cesrulib/user_log/users.lock
-users_done=0
-users_file=/home/cesrulib/user_log/users.list
-max_count=2
-while ( [ ${users_done} -eq 0 -a ${lock_count} -lt ${max_count} ] ) do
-    if ( [ -f ${lock_file} ] ) then
-      #echo "Waiting for ACL setup lock!"
-      sleep 1
-      lock_count=`expr ${lock_count} + 1`
-    else
-      touch ${lock_file}
-      echo "`whoami`" >> ${users_file}
-      users_done=1
-      rm ${lock_file}
-    fi
-done
-unset lock_count
-unset lock_file
-unset users_done
-unset users_file
-unset max_count
 
 #=======================================================
 # Verify whether CESR environment setup succeeded
