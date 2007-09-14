@@ -93,7 +93,7 @@ test_script = bin_dir + "/util/CESRbuild_test_suite"
 
 # Common options to be passed to makefile, regardless of packages or release
 build_args.append("PACKAGE_NAME="+pkg_name)
-build_args.append(" CESR_PRECISION=_"+precision)
+build_args.append(" PRECISION=_"+precision)
 build_args.append(" CHECKOUT=\"\"")
 build_args.append(" BUILD=\"do_build\"")
 
@@ -104,9 +104,9 @@ if build_type == "PACKAGES":  # make gets slightly different args depending on t
     print "--> BUILD STATUS: BUILDING"
     if activity[:4] == "FULL":
         build_args.append(" DO_PKG=1")
-        env_setup1 = " CESRLIB="+pkg_name + "; CESRF90=" + f90 +'; '
+        env_setup1 = " ACCLIB="+pkg_name + "; ACCF90=" + f90 +'; '
         #env_setup2 = " export CESR_GMAKE="+build_sys_dir + " ; export CESR_UTIL=" + bin_dir + "/util; "
-        env_setup2 = " CESR_GMAKE="+build_sys_dir + "; CESR_UTIL=" + bin_dir + "/util; "
+        env_setup2 = " ACC_GMAKE="+build_sys_dir + "; ACC_UTIL=" + bin_dir + "/util; "
 #env_setup2=" XERCESCROOT="+full_pkg_name+"/xerces; export XERCESCROOT; CESR_GMAKE="+build_sys_dir+" ; CESR_UTIL="+bin_dir "/util; "
         build_cmd = env_setup1 + accdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
         for arg in build_args:
@@ -149,9 +149,9 @@ if build_type == "RELEASE":
         build_args.append(" BRANCH="+branch)
         #name_chunk_list = full_rel_name.split('/')
         #rel_name        = name_chunk_list[-1]
-        env_setup1 = " CESRLIB=" + rel_name + "; CESRF90=" + f90 +'; '
+        env_setup1 = " ACCLIB=" + rel_name + "; ACCF90=" + f90 +'; '
         env_setup2 = ""
-        #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 CESR_PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
+        #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
         #build_cmd = env_setup + "make -f " + build_sys_dir + "/M.release " + build_args + "; echo $PATH"
         build_cmd = env_setup1 + accdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
         for arg in build_args:
@@ -247,7 +247,7 @@ if build_type == "RELEASE":
         print "--> BUILD STATUS: ERROR(S) DETECTED"
         sys.exit(92)
 
-        
+
 ############################################################################################
 if build_type == "FIXES":
     print "IN BUILD SERF... FIXES"
@@ -256,10 +256,9 @@ if build_type == "FIXES":
     for module in modules:
         os.chdir(full_rel_name +'/'+ module)
         print "Working dir: " + os.getcwd()
-        #env_setup1 = " CESRLIB=" + rel_name + "; CESRF90=" + f90 +'; '
-        env_setup1 = " CESRLIB=devel" + "; CESRF90=" + f90 +'; '
+        env_setup1 = " ACCLIB=devel" + "; ACCF90=" + f90 +'; '
         env_setup2 = ""
-        #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 CESR_PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
+        #build_args="PACKAGE_NAME="+pkg_name+" DO_REL=1 PRECISION=DBL CHECKOUT=\"\" BRANCH="+branch+" BUILD=\"do_build\""
         #build_cmd = env_setup + "make -f " + build_sys_dir + "/M.release " + build_args + "; echo $PATH"
         build_cmd = env_setup1 + accdefs + env_setup2 + "gmake"
         #for arg in build_args:
@@ -278,14 +277,14 @@ if build_type == "FIXES":
         if errors:
             print "--> BUILD STATUS: ERROR(S) DETECTED"
             sys.exit(97)
-        
-    
+
+
 ############################################################################################
 if build_type == "BMAD DISTRIBUTION":
     #print "IN BUILD_SERF... BMAD"
     os.chdir(full_rel_name)
     print "Changing directory to: " + os.getcwd()
-    env_setup1 = " CESRF90=" + f90 + "; BMAD_="+full_rel_name + '; '  # Set BMAD_ var before invoking bmad_defs
+    env_setup1 = " ACCF90=" + f90 + "; BMAD_="+full_rel_name + '; '  # Set BMAD_ var before invoking bmad_defs
     env_setup2 = ""
     print "env_setup2: " + env_setup2
     build_cmd = env_setup1 + bmad_defs + env_setup2 + "gmake -f" + build_sys_dir + "/M.distribution "
