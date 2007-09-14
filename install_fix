@@ -19,7 +19,7 @@
 # they are not authorized.
 #****************************************************************************
 HOOKS_AREA=/nfs/acc/libs/hooks
-FIXAREA=/nfs/acc/libs/Fixes
+FIXAREA=/nfs/acc/libs/fixes
 CTRL_AREA=${FIXAREA}/control
 AUTHFILE=${HOOKS_AREA}/authorization_list
 
@@ -52,7 +52,7 @@ if ( [ $# -eq 0 ] ) then
     echo "This functionality is only available to developers."
     echo ""
     echo "Usage:"
-    echo "       install_fix <module-1> <module-2> ... <module-n>"
+    echo "   install_fix module1 <module2> ... <modulen> username1,username2..."
     echo ""
     exit 3
 fi
@@ -69,6 +69,9 @@ LIST=${LIST}$'\n'`grep -v "#" ${AUTHFILE} | grep "${USERNAME}$'\n'"`
 LIST=${LIST}$'\n'`grep -v "#" ${AUTHFILE} | grep "${USERNAME},"`
 
 
+aux_users=""
+modules=""
+
 #============================================================================
 # Strip out all newline chars introduced in the construction of LIST
 # If list is empty after that, the user doesn't exist anywhere in auth file.
@@ -78,7 +81,7 @@ if ( [ "${LIST//$'\n'/}" != "" ] ) then
 fi
 
 
-#========================
+#=======================
 # Function definitions
 #=======================
 
@@ -148,49 +151,79 @@ user_permission() {
 #======================================================================
 # Write the formated list of module names into the control file.
 #======================================================================
-write_control_file() {
-    FILENAME=${CTRL_AREA}/${USERNAME}-`date +%Om_%Od-%OH:%OM:%OS`
-    echo -n "${USERNAME}" > ${FILENAME}
+write_to_control_file() {
+    #FILENAME=${CTRL_AREA}/${USERNAME}-`date +%Om_%Od-%OH:%OM:%OS`
+    #echo -n "${USERNAME} " > ${FILENAME}
+    firstitem="yes"
     for arg in $*
     do
-      echo -n ":${arg}" >> ${FILENAME}
+      if ( [ ${firstitem} == "yes" ] ) then
+          echo -n "${arg}" >> ${FILENAME}
+          firstitem="no"
+      else
+          echo -n ":${arg}" >> ${FILENAME}
+      fi
     done
-    echo "" >> ${FILENAME}
+    #echo "" >> ${FILENAME}
     sleep 1
 }
+
 
 #======================================================================
 # Verify that the module names passed actually exist in the repository.
 #======================================================================
-verify_modules() {
-    retval=1
+verify_arguments() {
+    argsOK=1
     for arg in $*
     do
+      ismodule=1
+      isuser=1
       svn list $ACCR/trunk/src/${arg} &> /dev/null
       if ( [ $? -ne 0 ] ) then
-          retval=0
+          ismodule=0
+      else
+          modules=${modules}$'\n'${arg}
+      fi
+      ypcat passwd | grep ${arg} &> /dev/null
+      if ( [ $? -ne 0 ] ) then
+          isuser=0
+      else
+          aux_users=${aux_users}$'\n'${arg}
+      fi
+      # If argument is neither a valid module or user, flag failure.
+      if ( [ ${ismodule} -eq 0 ] && [ ${isuser} -eq 0 ] ) then
+          return 0
       fi
     done
-    return ${retval}
+    return ${argsOK}
 }
-      
+
 
 
 #============================
 # Begin main action here
 #============================
-echo -n "Checking for developer permissions... "
+echo ""
+echo -n "Simple developer permission check... "
 user_permission
 if ( [ $? -eq 1 ] ) then
   echo "PASSED"
-  verify_modules $*
+  verify_arguments $*
   if ( [ $? -eq 1 ] ) then
+      echo ${aux_users}
       echo "Module names verified."
-      echo "Proceeding with build."
+      echo "Proceeding with build initiation."
       echo ""
-      echo "This may take some time, depending on the module."
-      echo "You will be notified via e-mail when your build is complete."
-      write_control_file $*
+      echo "This may take a while."
+      echo ""
+      echo "You and the development groups for the modules specified"
+      echo "will be notified via e-mail when the build is complete."
+      FILENAME=${CTRL_AREA}/${USERNAME}-`date +%Om_%Od-%OH:%OM:%OS`
+      #echo -n "${USERNAME} " > ${FILENAME}
+      write_to_control_file ${modules}
+      echo -n ";" >> ${FILENAME}
+      write_to_control_file ${aux_users}
+      echo "" >> ${FILENAME}
   else
       echo "One or more modules could not be verified."
       echo "Please check the validity of the module names specified."
