@@ -60,8 +60,9 @@ f = open(file, 'r')
 lines = f.readlines()
 
 for line in lines:
-  if line.find("Platform           :") != -1:
+  if line.find("Platform : ") != -1:
     platform = line.split(":")[1].strip()
+    print platform
   if line.find("TEST COMPLETED") != -1:
     num_completed = num_completed + 1
     line = line.strip()
