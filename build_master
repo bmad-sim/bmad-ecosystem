@@ -1090,7 +1090,11 @@ if devel:
   recommendation = qr.wait()
   print str(outstream)
 
-  if recommendation == 0:  # If there has been a recommendation to rotate rot_querier exit code.
+#  if recommendation == 0:  # If there has been a recommendation to rotate rot_querier exit code.
+#    print "TESTING fixes auto-rotation system.  Rotation REQUESTED.  Overridden."
+#    recommendation = 8
+
+  if recommendation == 0:
     # Calculate deferral times
     cur_hourval = int( time.asctime().split()[3].split(":")[0] )
     def_hourval = 8
