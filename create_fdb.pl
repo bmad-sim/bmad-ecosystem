@@ -1,16 +1,24 @@
 #!/usr/bin/perl -w
-
-#############################################################
-# it creates "data base file" which contain info where functions or
-# subroutine are. Format of each line in the file:
+###############################################################
+# Creates a "database file" which contain info on where 
+# functions and subroutine are within the release source tree. 
+#
+# Format of each line in the file:
+#
 # file.c : /dir/where/it/lives : name_of_function 
-# ussage:  ./create_fdb.pl
-# output: cesr_file.fdb
-#############################################################
+#
+# usage  : ./create_fdb.pl
+# output : cesr_file.fdb
+# 
+# Accepts one command-line argument, the full path of the
+# release for which the DB should be generated.
+#
+###############################################################
 @tps_list=qw(h inc c cc cpp cxx f F f90 F90); #file extensions in use
-open FILE1, ">".$ENV{"CESR_CONFIG"}."/cesr_file.fdb" || die "can not open file cesr_file.fdb";
-#take all of the directories except CVS and make loop on them
-foreach $dir (`ls -R \$CESR_SRC \$CESR_PKG | grep \':\'|grep -v .svn`) {
+#open FILE1, ">".$ENV{"CESR_CONFIG"}."/cesr_file.fdb" || die "can not open file cesr_file.fdb";
+open FILE1, ">" . $ARGV[0] . "/config/cesr_file.fdb" || die "Cannot create file cesr_file.fdb";
+#Loop over all the directories except the .svn ones
+foreach $dir (`ls -R \$ACC_SRC \$ACC_PKG | grep \':\'|grep -v .svn`) {
     chomp $dir;
     chop $dir;
     $ff=3;
