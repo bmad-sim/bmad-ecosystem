@@ -21,6 +21,37 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Subroutine init_coord (orb, vec)
+! 
+! Subroutine to initialize a coord_struct.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   vec(6) -- real(rp): Coordinate vector. If not present then taken to be zero.
+! Output:
+!   orb -- Coord_struct: Initialized coordinate.
+!-
+
+subroutine init_coord (orb, vec)
+
+type (coord_struct) orb
+real(rp), optional :: vec(:)
+
+!
+
+orb%vec = 0
+if (present(vec)) orb%vec = vec
+
+orb%spin = 0
+
+end subroutine
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Function key_name_to_key_index (key_str, abbrev_allowed) result (key_index)
 !
 ! Function to convert a character string  (eg: "drift") to an index (eg: drift$).
@@ -516,7 +547,7 @@ subroutine init_lat (lat, n)
   lat%input_file_name = ' '
   lat%param%stable = .true.
 
-  lat%beam_start%vec = 0
+  call init_coord(lat%beam_start)
 
   call init_mode_info (lat%a)
   call init_mode_info (lat%b)
@@ -777,13 +808,13 @@ subroutine reallocate_coord (coord, n_coord)
       allocate (coord(0:n_coord))
       coord(0) = start
       do i = 1, n_coord
-        coord(i)%vec = 0
+        call init_coord (coord(i))
       enddo
     endif
   else
     allocate (coord(0:n_coord))
     do i = 0, n_coord
-      coord(i)%vec = 0
+      call init_coord (coord(i))
     enddo
   endif
 
@@ -979,8 +1010,8 @@ subroutine init_ele (ele)
   ele%sub_key = 0
 
   ele%value(:) = 0
-  ele%ref_orb_in%vec  = 0
-  ele%ref_orb_out%vec = 0
+  call init_coord (ele%ref_orb_in)
+  call init_coord (ele%ref_orb_out)
 
   ele%control_type = free$
   ele%ix_value = 0

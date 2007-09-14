@@ -100,7 +100,7 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb)
     ! will be taken as the ending coords of the previous super_slave.
 
     n_taylor = 0  ! number of taylor series found
-    orb_end%vec = 0
+    call init_coord (orb_end)
 
     do i = 1, lat%n_ele_track
 
@@ -110,8 +110,8 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb)
                     (ele%tracking_method == taylor$) .or. &
                     (ele%tracking_method == symp_map$)
 
+      transferred = .false.
       if (want_taylor) then
-        transferred = .false.
         if (.not. associated(ele%taylor(1)%term)) then
           do j = 1, n_taylor
             ie = ix_taylor(j)

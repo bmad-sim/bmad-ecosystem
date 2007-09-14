@@ -56,7 +56,7 @@ subroutine track1 (start, ele, param, end)
                   call check_aperture_limit (start, ele, param, plane_lost)
   if (param%lost) then
     param%end_lost_at = entrance_end$
-    end%vec = 0       ! it never got to the end so zero this.
+    call init_coord (end)      ! it never got to the end so zero this.
     return
   endif
 

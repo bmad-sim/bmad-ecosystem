@@ -73,7 +73,7 @@ subroutine make_mat6 (ele, param, start, end, end_in)
   if (present(start)) then
     a_start = start
   else
-    a_start%vec = 0
+    call init_coord (a_start)
   endif
 
   if (end_input) a_end = end

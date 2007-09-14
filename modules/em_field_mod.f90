@@ -155,7 +155,7 @@ subroutine em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_
   logical :: local_ref_frame
   logical, optional :: calc_dfield
 
-  logical offset, df_calc
+  logical df_calc
   character(20) :: r_name = 'em_field_calc'
 
 ! custom field_calc
@@ -403,6 +403,9 @@ subroutine em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_
 
   if (ele%value(tilt_tot$) /= 0) then
 
+    sin_ang = sin(ele%value(tilt_tot$))
+    cos_ang = cos(ele%value(tilt_tot$))
+
     fd = field%B
     field%B(1) = cos_ang * fd(1) - sin_ang * fd(2)
     field%B(2) = sin_ang * fd(1) + cos_ang * fd(2)
@@ -432,12 +435,12 @@ subroutine em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_
     endif
   endif
 
-  if (offset) then
-    field%B(1) = field%B(1) + ele%value(x_pitch_tot$) * field%B(3)
-    field%B(2) = field%B(2) + ele%value(y_pitch_tot$) * field%B(3)
-    field%E(1) = field%E(1) + ele%value(x_pitch_tot$) * field%E(3)
-    field%E(2) = field%E(2) + ele%value(y_pitch_tot$) * field%E(3)
-  endif
+  !
+
+  field%B(1) = field%B(1) + ele%value(x_pitch_tot$) * field%B(3)
+  field%B(2) = field%B(2) + ele%value(y_pitch_tot$) * field%B(3)
+  field%E(1) = field%E(1) + ele%value(x_pitch_tot$) * field%E(3)
+  field%E(2) = field%E(2) + ele%value(y_pitch_tot$) * field%E(3)
 
 end subroutine
 
@@ -490,7 +493,7 @@ subroutine em_field_kick (ele, param, s, r, local_ref_frame, dr_ds, dkick)
 
 ! calculate the field
 
-  here%vec = r
+  call init_coord(here, r)
   if (present (dkick)) then
     call em_field_calc (ele, param, s, here, local_ref_frame, field, .true.)
   else
