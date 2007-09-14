@@ -222,51 +222,51 @@ do i = ix_start, ix_end
 
   case (quadrupole$)
     csr_type = "quadrupole"
-    prop_name(1:4) = (/ "strength         ", "alpha          ", &
-                        "horizontal_offset", "vertical_offset" /)
+    prop_name(1:4) = (/ "strength         ", "alpha            ", &
+                        "horizontal_offset", "vertical_offset  " /)
     prop_value(1:4) = (/ ele%value(k1$), ele%value(tilt$)*deg, &
                           ele%value(x_offset$), ele%value(y_offset$) /)
     prop_fmt(1:4) = (/ "f0.6", "f0.4", "f0.6", "f0.6" /)
 
   case (sextupole$)
     csr_type = "multipole"
-    prop_name(1:5) = (/ "strength         ", "alpha          ", &
-                        "horizontal_offset", "vertical_offset", &
+    prop_name(1:5) = (/ "strength         ", "alpha            ", &
+                        "horizontal_offset", "vertical_offset  ", &
                         "poles            " /)
     prop_value(1:5) = (/ ele%value(k2$), ele%value(tilt$)*deg, &
                           ele%value(x_offset$), ele%value(y_offset$), 6.0_rp /)
-    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3   " /)
+    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3  " /)
 
   case (octupole$)
     csr_type = "multipole"
-    prop_name(1:5) = (/ "strength         ", "alpha          ", &
-                        "horizontal_offset", "vertical_offset", &
+    prop_name(1:5) = (/ "strength         ", "alpha            ", &
+                        "horizontal_offset", "vertical_offset  ", &
                         "poles            " /)
     prop_value(1:5) = (/ ele%value(k3$), ele%value(tilt$)*deg, &
                           ele%value(x_offset$), ele%value(y_offset$), 8.0_rp /)
-    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3   " /)
+    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3  " /)
 
   case (hkicker$)
     if (ele%value(kick$) == 0) cycle
 
     csr_type = "multipole"
-    prop_name(1:5) = (/ "strength         ", "alpha          ", &
-                        "horizontal_offset", "vertical_offset", &
+    prop_name(1:5) = (/ "strength         ", "alpha            ", &
+                        "horizontal_offset", "vertical_offset  ", &
                         "poles            " /)
     prop_value(1:5) = (/ ele%value(kick$), ele%value(tilt$)*deg, &
                           ele%value(x_offset$), ele%value(y_offset$), 2.0_rp /)
-    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3   " /)
+    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3  " /)
 
   case (vkicker$)
     if (ele%value(kick$) == 0) cycle
 
     csr_type = "multipole"
-    prop_name(1:5) = (/ "strength         ", "alpha          ", &
-                        "horizontal_offset", "vertical_offset", &
+    prop_name(1:5) = (/ "strength         ", "alpha            ", &
+                        "horizontal_offset", "vertical_offset  ", &
                         "poles            " /)
     prop_value(1:5) = (/ ele%value(kick$), ele%value(tilt$)*deg + 90, &
                           ele%value(x_offset$), ele%value(y_offset$), 2.0_rp /)
-    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3   " /)
+    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3  " /)
 
 
   case (kicker$)
@@ -275,12 +275,12 @@ do i = ix_start, ix_end
     if (hk == 0 .and. vk == 0) cycle
 
     csr_type = "multipole"
-    prop_name(1:5) = (/ "strength         ", "alpha          ", &
-                        "horizontal_offset", "vertical_offset", &
+    prop_name(1:5) = (/ "strength         ", "alpha            ", &
+                        "horizontal_offset", "vertical_offset  ", &
                         "poles            " /)
     prop_value(1:5) = (/ sqrt(hk**2 + vk**2), ele%value(tilt$)*deg + atan2d(vk, hk), &
                           ele%value(x_offset$), ele%value(y_offset$), 2.0_rp /)
-    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3   " /)
+    prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3  " /)
 
   case default
     print *, 'Error: Bmad lattice element: ', trim(ele%name)

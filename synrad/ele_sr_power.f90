@@ -63,7 +63,7 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
 
 
   ! check if ele is on
-  if (ele%is_on == .false.) return
+  if (.not. ele%is_on) return
 
 
 ! Partition the quad/bend/wiggler into slices and track the synch
