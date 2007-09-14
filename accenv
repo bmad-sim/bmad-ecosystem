@@ -82,7 +82,7 @@ setenv PGPLOT_FONTS $CESR_PKG/PGPLOT
 #
 #------  CESR constants  ------
 #
-setenv CESR_CONST   $CONST
+###setenv CESR_CONST   $CONST
 
 #
 #-- BMAD configuration files --
