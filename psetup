@@ -1,0 +1,269 @@
+#!/bin/sh
+###########################################################
+# 'sh' set up script to allow users to easily configure 
+# a local area to run an accelerator analysis or 
+# simulation program.
+#
+# Also allows for the user to obtain the svn-decoupled
+# source of a particular official executable along with
+# a clean makefile to aid in customization / extension
+# of the code they might locally build. (Official makefile
+# is also included for reference.)
+#
+# Obtains the binary, the requisite .in and .init files
+# Lattices?
+###########################################################
+
+#==========================================
+# Subroutine definitions
+#==========================================
+
+# Usage notes and list of available programs in the user's active release.
+#--------------------------------------------------------------------------
+get_prog_list()
+{
+  echo ""
+  echo "Accelerator applications available for users:"
+  echo "----------------------------------------------"
+  for file in `ls ${CESR_EXE}`
+  do
+    namelen=${#file}
+    perms=`stat --format=%a ${CESR_EXE}/$file`
+    if ( [ ${perms} == "755" ] && [ ${file:${namelen}-2} != "_g" ] ) then
+        echo $file
+    fi
+  done
+  echo ""
+  echo "(This list is automatically kept up-to-date.)"
+  echo ""
+  echo "Obtains initialization and other files needed to run the"
+  echo "official physics analysis/simulation program that you specify."
+  echo "" 
+  echo "Usage:"
+  echo "       psetup [options] <program_name>"
+  echo ""
+  echo "Options may be one or more of:"
+  echo "               -s / -src     -- Obtain source code & init files."
+  echo "               -c / -cwd     -- Put all files in current working dir."
+  echo ""
+  echo "When just obtaining init files, any subdirectory created is named after the program."
+  echo "When obtaining source code, the subdirectory is called 'job'."
+  echo ""
+}
+
+# Standard usage message
+#-------------------------
+print_help()
+{
+  echo "Usage:"
+  echo "      psetup <program_name>"
+  echo ""
+  echo " When invoked with no arguments this will print a list of available programs."
+  echo ""
+  exit 3
+}     
+
+
+# Converts the contents of a variable to UPPER case.
+#----------------------------------------------------
+toUpper() {
+  echo $1 | tr "[:lower:]" "[:upper:]"
+} 
+
+
+
+# is_svn accepts a string and determines if
+# the pattern '.svn' appears anywhere in it.
+#
+# Returns 1 if pattern found
+#         0 otherwise
+#--------------------------------------------
+is_svn()
+{
+  file=$1
+  T1=${#file}        # Simplest way I could come up with to determine if a 
+  TS=${file//.svn}   # path string contains the pattern '.svn'.  Save length of path,
+  T2=${#TS}          # try to snip out '.svn' string, save THAT length and compare.
+  if ( [ $T1 -eq $T2 ] ) then
+      return 0       # Does not contain.
+  else
+      return 1       # Does.
+  fi
+}
+
+
+#===========================================
+# Var set up
+#===========================================
+CWD=0
+SRC=0
+svn=0
+startdir=`pwd`
+TYPELIST="*.init *.in *.lat layout* *.bmad *bmad. *.dat"
+
+#===========================================
+# Argument checking / var setup
+#===========================================
+if ( [ $# -eq 0 ] ) then
+    get_prog_list
+    exit 1
+fi
+arg_list=""
+for i
+do arg_list="${arg_list} ${i}";
+  case $i in
+      "-help"|"-h"  ) print_help  ;;
+      "-cwd"|"-c"   ) CWD=1       ;;
+      "-src"|"-s"   ) SRC=1       ;;
+      *               ) PROG=$i     ;;
+  esac
+done
+
+#===========================================
+# More var set up
+#===========================================
+if ( [ ${CWD} -eq 1 ] ) then
+    WORKDIR=.
+else
+    if ( [ $SRC -eq 1 ] ) then
+        WORKDIR=./job
+    else
+        WORKDIR=./${PROG}
+    fi
+    if ( [ -e ${WORKDIR} ] ) then
+        echo "A file or directory ${WORKDIR} already exists."
+        exit 10
+    fi
+fi
+
+#===========================================
+# Main
+#===========================================
+
+if ( [ -e ${ACC_REL}/bin/${PROG} ] ) then
+    if ( [ -d ${CESR_REL}/src/${PROG} ] ) then
+        FROMDIR=${ACC_REL}/src/${PROG}
+    fi
+    if ( [ -d ${ACC_REL}/src/${PROG%_test} ] ) then # Strip "_test" from end
+        FROMDIR=${ACC_REL}/src/${PROG%_test}
+    fi
+
+    if ( [ -d ${ACC_REL}/src/bsim/${PROG} ] ) then
+        FROMDIR=${ACC_REL}/src/bsim/${PROG}
+    fi
+    if ( [ -d ${ACC_REL}/src/bsim/${PROG%_test} ] ) then # Strip "_test" from end
+        FROMDIR=${ACC_REL}/src/bsim/${PROG%_test}
+    fi
+    PROGv2=${PROG%_test} # Munged version of program name to accomodate varied naming conventions
+
+    if ( [ ${WORKDIR} != "." ] ) then
+        mkdir ${WORKDIR}
+    fi
+
+    #-Set Link to Executable
+    REL_TYPE=`echo ${CESR_EXE} | cut -d/ -f6`
+    REL_STRING=`toUpper ${REL_TYPE}`
+    echo "Setting up ${PROG} executable from ${REL_STRING}."
+
+    if ( [ $SRC -eq 1 ] ) then   # <-- get the entire source dir if requested
+      echo "Obtaining the source tree.  Please wait."
+      rsync -avz ${FROMDIR}/ ${WORKDIR} &> /dev/null
+      #PID=$!
+      #echo "PID ${PID}"
+      #ps -A | grep ${PID} #&> /dev/null
+      #RET=$?
+      #echo "RET ${RET}"
+      # Print out status dots while copying to hold the user's interest.
+      #while [ $RET -eq 0 ]; do
+      #    echo -n "."
+      #    sleep 0.15
+      #    echo ""
+      #    echo ${PID}
+      #    ps -A | grep ${PID} #&> /dev/null; RET=$?
+      #    RET=$?
+      #    echo "ret ${RET}"
+      #done
+      echo ""
+
+      # Copy over Makefile
+      cd ${WORKDIR}
+      if ( [ -e ${FROMDIR}/M.${PROG} ] ) then
+          echo "1"
+          echo ${FROMDIR}/M.${PROG}
+          echo "copy cp ${FROMDIR}/M.${PROG} ${WORKDIR}/Makefile"
+          cp ${FROMDIR}/M.${PROG} ./Makefile #&> /dev/null
+
+      elif ( [ -e ${FROMDIR}/M.${PROGv2} ] ) then
+          echo "2"
+          echo ${FROMDIR}/M.${PROGv2}
+          cp ${FROMDIR}/M.${PROGv2} ./Makefile #&> /dev/null
+
+      elif ( [ -e ${FROMDIR}/../M.${PROG} ] ) then
+          echo "3"
+          echo ${FROMDIR}/../M.${PROG}
+          cp ${FROMDIR}/../M.${PROG} ./Makefile #&> /dev/null
+
+      elif ( [ -e ${FROMDIR}/../M.${PROGv2} ] ) then
+          echo "4"
+          echo ${FROMDIR}/../M.${PROGv2}
+          cp ${FROMDIR}/../M.${PROGv2} ./Makefile #&> /dev/null
+      fi
+
+      # Process Makefile here with Perl to comment out the
+      # MAKEFILE := ... and MAIN_FILE := ... lines.  This
+      # will force the build system to take the executable's name
+      # from the working directory name, instead of any filenames.
+      perl -i -p -e 's/^MAKEFILE/#MAKEFILE/g' Makefile
+      perl -i -p -e 's/^MAIN_FILE/#MAIN_FILE/g' Makefile
+      
+      # Get rid of M.<program> makefile
+      rm -f ./M.${PROG} $> /dev/null
+      # Get rid of all the .svn administive directories
+      rm -rf `find . -type d -name .svn`
+
+      for TYPE in ${TYPELIST}
+        do
+        TOLN=`find ${DIR} -name "${TYPE}" &2> /dev/null`
+        if ( [ "${TOLN}" != "" ] ) then
+          for file in $TOLN
+          do
+          is_svn $file     
+          if ( [ ${?} -eq 0 ] ) then  # ${?} is from is_svn check.
+            ln -s ${file} . &> /dev/null # Put a symlink in working dir to each init file
+          fi 
+        done
+        fi
+      done
+      message="The program is now set up along with sources in"
+
+    else  # <-- otherwise, scour an area of the release for files of the above types.
+      for TYPE in $TYPELIST  
+        do
+        #echo "FROMDIR = ${FROMDIR}"
+        TOCP=`find ${FROMDIR} -name "${TYPE}" &2> /dev/null`
+        if ( [ "${TOCP}" != "" ] ) then
+          for file in $TOCP
+          do
+          #echo $file
+          is_svn $file     
+          if ( [ ${?} -eq 0 ] ) then  # ${?} is from is_svn check.
+            cp ${file} ${WORKDIR}/
+          fi 
+        done
+        fi
+      done
+      message="The program is now set up in"
+    fi # <--
+
+    # Print finishing message
+    if ( [ ${WORKDIR} == "." ] ) then
+      echo "${message} the current working directory."
+    else
+      echo "${message} ${WORKDIR}"
+    fi
+    echo ""
+    REL=`echo ${CESR_REL} | cut -d/ -f6`
+else
+    echo "Program ${PROG} does not exist in the archive of available standard applications."
+    exit 5
+fi
