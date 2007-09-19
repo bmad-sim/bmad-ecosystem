@@ -164,7 +164,7 @@ program ring_ma
         call write_opt(ma_ring, co)
      end if
 
-     write(*,*) "Emittance:", modes%a%emittance, modes%b%emittance
+     write(*,'(A,2es12.4)') 'Emittance:', modes%a%emittance, modes%b%emittance
  
      ! Store initial values
      call ring_to_data(ma_ring, co, modes, datablock(i_iter, 0))
@@ -184,7 +184,7 @@ program ring_ma
         call release_rad_int_cache(rad_cache)
         call ring_to_data(ma_ring, co, modes, datablock(i_iter, i_correction))
         call write_data(datablock, i_iter, i_correction)
-        write(*,*) "Emittance:", modes%a%emittance, modes%b%emittance
+        write(*,'(A,2es12.4)') 'Emittance:', modes%a%emittance, modes%b%emittance
      end do
      if (write_orbits) close(2)
      correct_ring_params%write_elements = .false.
@@ -210,7 +210,7 @@ contains
          'phi_a', 'phi_b', 'cbar12', 'length', 'name'
     do i_ele = 1, ring%n_ele_track
        call c_to_cbar(ring%ele(i_ele), cbar)
-       write(2,'(2i5,9e13.4,a18)') i_correction, i_ele, ring%ele(i_ele)%s, &
+       write(2,'(2i5,9es13.4,a18)') i_correction, i_ele, ring%ele(i_ele)%s, &
             co(i_ele)%vec(1), co(i_ele)%vec(3), &
             ring%ele(i_ele)%x%eta, ring%ele(i_ele)%y%eta, &
             ring%ele(i_ele)%a%phi - design_ring%ele(i_ele)%a%phi, &
@@ -280,7 +280,7 @@ contains
           write(1,'(2a6,7a14)') "# iter", "cor", "emit_y", "rms_y", &
                "rms_eta_y", "rms_cbar12", "rms_phi_x", "rms_phi_y", "param_rms"
        end if
-       write(1,'(2i6,7e14.5)') iter, cor, &
+       write(1,'(2i6,7es14.5)') iter, cor, &
             data(iter, cor)%emit_y, &
             data(iter, cor)%rms_y, &
             data(iter, cor)%rms_eta_y, &
@@ -296,13 +296,13 @@ contains
           if (i_cor > 0) then
              if (all(correct(i_cor)%cor(:)%param == 0)) cycle
           end if
-          write(1, '(" ",i6,a10,6e14.5)') i_cor, "emit_y",  key_value1, key_value2, data_line(data(:,i_cor)%emit_y)
-          write(1, '(" ",i6,a10,6e14.5)') i_cor, "orbit_y", key_value1, key_value2, data_line(data(:,i_cor)%rms_y)
-          write(1, '(" ",i6,a10,6e14.5)') i_cor, "eta_y",   key_value1, key_value2, data_line(data(:,i_cor)%rms_eta_y)
-          write(1, '(" ",i6,a10,6e14.5)') i_cor, "cbar12",  key_value1, key_value2, data_line(data(:,i_cor)%rms_cbar12)
-          write(1, '(" ",i6,a10,6e14.5)') i_cor, "phi_x",   key_value1, key_value2, data_line(data(:,i_cor)%rms_phi_x)
-          write(1, '(" ",i6,a10,6e14.5)') i_cor, "phi_y",   key_value1, key_value2, data_line(data(:,i_cor)%rms_phi_y)
-          write(1, '(" ",i6,a10,6e14.5)') i_cor, "param",   key_value1, key_value2, data_line(data(:,i_cor)%rms_param)
+          write(1, '(" ",i6,a10,6es14.5)') i_cor, "emit_y",  key_value1, key_value2, data_line(data(:,i_cor)%emit_y)
+          write(1, '(" ",i6,a10,6es14.5)') i_cor, "orbit_y", key_value1, key_value2, data_line(data(:,i_cor)%rms_y)
+          write(1, '(" ",i6,a10,6es14.5)') i_cor, "eta_y",   key_value1, key_value2, data_line(data(:,i_cor)%rms_eta_y)
+          write(1, '(" ",i6,a10,6es14.5)') i_cor, "cbar12",  key_value1, key_value2, data_line(data(:,i_cor)%rms_cbar12)
+          write(1, '(" ",i6,a10,6es14.5)') i_cor, "phi_x",   key_value1, key_value2, data_line(data(:,i_cor)%rms_phi_x)
+          write(1, '(" ",i6,a10,6es14.5)') i_cor, "phi_y",   key_value1, key_value2, data_line(data(:,i_cor)%rms_phi_y)
+          write(1, '(" ",i6,a10,6es14.5)') i_cor, "param",   key_value1, key_value2, data_line(data(:,i_cor)%rms_param)
        end do
     end if
   end subroutine write_data

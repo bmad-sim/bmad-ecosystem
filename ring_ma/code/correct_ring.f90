@@ -269,7 +269,7 @@ contains
   call super_mrqmin(x,y,sig,a,maska,covar,alpha,chisq,lmfunc,alamda)
   iter = 0
   write (*,'(A8,2A12)') "Iter", "Chisq", "D_Chisq"
-  write(*,'(i8,e12.4)') iter, chisq
+  write(*,'(i8,es12.4)') iter, chisq
   old_chisq = 999.
   alamda = .1
   do while (iter < correct_ring_params%n_lm_iterations)
@@ -281,7 +281,7 @@ contains
         exit
      end if
      d_chisq = (chisq-old_chisq)
-     write(*,'(i8,2e12.4)') iter, chisq, d_chisq
+     write(*,'(i8,2es12.4)') iter, chisq, d_chisq
   end do
   alamda = 0.
   call super_mrqmin(x,y,sig,a,maska,covar,alpha,chisq,lmfunc,alamda)

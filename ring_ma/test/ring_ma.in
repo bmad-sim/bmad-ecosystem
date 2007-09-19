@@ -38,7 +38,7 @@
 
    seed          = -1
 
-   n_iterations    = 200
+   n_iterations    = 10
    n_lm_iterations = 10
 
 !    Detector keys: orbit_x=1, orbit_y=2, eta_x=3, eta_y=4
@@ -50,7 +50,7 @@
     correct(1)%det(1) = "^DET", 2, 1
     correct(1)%cor(1) = "^V(KICK|[0-9])", 22, 1.
 !   correct(1)%det(1) = "^DET", 7, 100
-!   correct(1)%cor(1) = "^SK",  4, 1
+!   correct(1)%cor(1) = "^SK_Q",  4, 1
 !   correct(1)%cor(1) = "^SEX.*(E|W)",  -1, 1
 
 /
