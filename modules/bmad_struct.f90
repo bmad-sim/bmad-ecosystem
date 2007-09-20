@@ -15,11 +15,11 @@ use tpsalie_analysis, only: genfield
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-! IF YOU CHANGE THE lat_struct OR ANY ASSOCIATED STRUCTURES YOU MUST 
-! INCREASE THE VERSION NUMBER !
+! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST 
+! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 84
+integer, parameter :: bmad_inc_version$ = 85
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -195,6 +195,8 @@ type ele_struct
   logical logic              ! For general use. Not used by Bmad.
   logical on_an_girder       ! Have an Girder overlay_lord?
   logical csr_calc_on        ! Coherent synchrotron radiation calculation
+  logical offset_moves_aperture  ! element offsets affects aperture?
+          
 end type
 
 ! struct for element to element control
@@ -358,11 +360,10 @@ integer, parameter :: x_offset$=25
 integer, parameter :: y_offset$=26
 integer, parameter :: s_offset$=27, z_offset$=27
 integer, parameter :: dE_offset$=28, check_sum$=28, B_field_err$=28
-integer, parameter :: x_limit$=29
-integer, parameter :: y_limit$=30
-integer, parameter :: aperture$=31
-integer, parameter :: radius$=32
-integer, parameter :: E_TOT$=33
+
+integer, parameter :: radius$=31
+integer, parameter :: p0c$ = 32
+integer, parameter :: e_tot$=33
 integer, parameter :: rel_tol$=34
 integer, parameter :: abs_tol$=35
 integer, parameter :: B_field$=36, Bs_field$ = 36, E_field$=36
@@ -374,7 +375,7 @@ integer, parameter :: y_pitch_tot$=40
 integer, parameter :: x_offset_tot$=41
 integer, parameter :: y_offset_tot$=42
 integer, parameter :: s_offset_tot$=43
-integer, parameter :: p0c$ = 44
+
 integer, parameter :: BL_kick$ = 45
 integer, parameter :: coupler_strength$ = 46
 integer, parameter :: coupler_phase$ = 47
@@ -386,8 +387,12 @@ integer, parameter :: general2$ = 52   ! For general use
 integer, parameter :: general3$ = 53   ! For general use
 integer, parameter :: general4$ = 54   ! For general use
 integer, parameter :: general5$ = 55   ! For general use
+integer, parameter :: x1_limit$ = 56
+integer, parameter :: x2_limit$ = 57
+integer, parameter :: y1_limit$ = 58
+integer, parameter :: y2_limit$ = 59
 
-integer, parameter :: term$ = 61       ! this is 1 + n_attrib_maxx
+integer, parameter :: term$ = 61       ! 61 = 1 + n_attrib_maxx
 integer, parameter :: ptc_kind$ = 62
 integer, parameter :: symplectify$ = 63
 integer, parameter :: descrip$ = 64
@@ -411,6 +416,9 @@ integer, parameter :: mat6_calc_method$ = 81
 integer, parameter :: tracking_method$  = 82
 integer, parameter :: num_steps$ = 83
 integer, parameter :: integrator_order$ = 84
+integer, parameter :: aperture$ = 85
+integer, parameter :: x_limit$ = 86
+integer, parameter :: y_limit$ = 87
 
 integer, parameter :: a0$  =  90, k0l$  =  90
 integer, parameter :: a20$ = 110, k20l$ = 110

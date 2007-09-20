@@ -997,9 +997,10 @@ subroutine compute_slave_aperture (value, slave, lord, ix_con)
   end select
 
   if (slave%aperture_at == no_end$) then
-    value(x_limit$) = 0
-    value(y_limit$) = 0
-    value(aperture$) = 0
+    value(x1_limit$) = 0
+    value(x2_limit$) = 0
+    value(y1_limit$) = 0
+    value(y2_limit$) = 0
   endif
 
 end subroutine

@@ -633,6 +633,17 @@ subroutine get_attribute (how, ele, lat, plat, &
     elseif (ix_attrib == ran_seed$) then
       call ran_seed (nint(value))  ! init random number generator
       bp_com%ran_function_was_called = .true.
+    elseif (ix_attrib == aperture$) then
+      ele%value(x1_limit$) = value
+      ele%value(x2_limit$) = value
+      ele%value(y1_limit$) = value
+      ele%value(y2_limit$) = value
+    elseif (ix_attrib == x_limit$) then
+      ele%value(x1_limit$) = value
+      ele%value(x2_limit$) = value
+    elseif (ix_attrib == y_limit$) then
+      ele%value(y1_limit$) = value
+      ele%value(y2_limit$) = value
     else
       ele%value(ix_attrib) = value
       if (any (ix_attrib == (/ b_field$, b_field_err$, b_gradient$, e_field$, e_field$, &
@@ -3625,14 +3636,6 @@ case (hkicker$, vkicker$)
        'BOTH STRENGTH AND BL_KICK SET FOR A H/VKICKER.')
 
 end select
-
-
-! aperture
-
-if (ele%value(aperture$) /= 0) then
-  ele%value(x_limit$) = ele%value(aperture$)
-  ele%value(y_limit$) = ele%value(aperture$)
-endif
 
 ! set ds_step if not already set.
 

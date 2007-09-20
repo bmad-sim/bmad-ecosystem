@@ -1046,8 +1046,9 @@ subroutine init_ele (ele)
   ele%csr_calc_on       = .true.
 
   ele%field_master = .false.
-  ele%aperture_at = exit_end$
   ele%coupler_at  = exit_end$
+  ele%aperture_at = exit_end$
+  ele%offset_affects_aperture = .false.
 
   call deallocate_ele_pointers (ele)
 

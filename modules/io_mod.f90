@@ -95,11 +95,11 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
   write (iu, *) 'parameter[taylor_order] =', lat%input_taylor_order
 
   write (iu, *)
-  write (iu, *) 'parameter[E_TOT] =', &
-                      trim(str(lat%ele(0)%value(E_TOT$)))
-  write (iu, *) 'beam, particle = ', particle_name(lat%param%particle)
+  write (iu, *) 'parameter[e_tot] =', &
+                      trim(str(lat%ele(0)%value(e_tot$)))
+  write (iu, *) 'parameter[particle] = ', particle_name(lat%param%particle)
   if (lat%param%n_part /= 0) &
-          write (iu, *) 'beam, n_part = ', lat%param%n_part
+          write (iu, *) 'parameter[n_part] = ', lat%param%n_part
 
   ele => lat%ele(0) 
 
@@ -912,7 +912,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
   ele => lat%ele(ie1-1)
 
   write (iu, '(2a, 2(a, es12.5))')  &
-        'BEAM, Particle = ', trim(particle_name(lat%param%particle)),  &
+        'beam_def: Beam, Particle = ', trim(particle_name(lat%param%particle)),  &
         ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', lat%param%n_part
 
   write (iu, *)
@@ -951,7 +951,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
       ab_ele%a_pole = ele%a_pole / 2
       ab_ele%b_pole = ele%b_pole / 2
       write (ab_ele%name, '(a, i3.3)') 'MULTIPOLE_Z', j_count
-      call element_out (ab_ele, ab_ele%name, lat, name_list, n_list, iu)
+      call element_out (out_type, ab_ele, ab_ele%name, lat, name_list, n_list, iu)
     endif
 
     ! Add drifts before and after wigglers and sol_quads so total length is invariant
@@ -960,22 +960,22 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
       j_count = j_count + 1
       write (drift_ele%name, '(a, i3.3)') 'DRIFT_Z', j_count
       drift_ele%value(l$) = ele%value(l$) / 2
-      call element_out (drift_ele, drift_ele%name, lat, name_list, n_list, iu)
+      call element_out (out_type, drift_ele, drift_ele%name, lat, name_list, n_list, iu)
 
       drift_ele%value(l$) = -drift_ele%value(l$)
       call make_mat6 (drift_ele, lat%param)
       ele%mat6 = matmul(matmul(drift_ele%mat6, ele%mat6), drift_ele%mat6)
-      call element_out (ele, ele_name, lat, name_list, n_list, iu)
+      call element_out (out_type, ele, ele_name, lat, name_list, n_list, iu)
 
       drift_ele%value(l$) = ele%value(l$) / 2
-      call element_out (drift_ele, drift_ele%name, lat, name_list, n_list, iu)
+      call element_out (out_type, drift_ele, drift_ele%name, lat, name_list, n_list, iu)
 
     else
-      call element_out (ele, ele_name, lat, name_list, n_list, iu)
+      call element_out (out_type, ele, ele_name, lat, name_list, n_list, iu)
     endif
 
     if (associated(ele%a_pole) .and. ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
-      call element_out(ab_ele, ab_ele%name, lat, name_list, n_list, iu)
+      call element_out(out_type, ab_ele, ab_ele%name, lat, name_list, n_list, iu)
     endif
 
   enddo
@@ -1031,6 +1031,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
   enddo
   line = trim(line) // ')'
   write (iu, *) trim(line)
+  write (iu, *) 'use, lat'
 
   ! Write twiss parameters for a linear lattice.
 
@@ -1063,13 +1064,14 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine element_out (ele, ele_name, lat, name_list, n_list, iu)
+subroutine element_out (out_type, ele, ele_name, lat, name_list, n_list, iu)
 
   type (ele_struct), target :: ele
   type (lat_struct) lat
 
   integer i, j, n_list, ix, iu
 
+  character(*) out_type
   character(1000) line
   character(40) ele_name
   character(40), allocatable :: name_list(:)
@@ -1241,7 +1243,14 @@ subroutine element_out (ele, ele_name, lat, name_list, n_list, iu)
     line = trim(ele_name) // ': matrix'
     do i = 1, 6
       do j = 1, 6
-        write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', j, ')'
+        if (out_type == 'MAD') then
+          write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', j, ')'
+        elseif (out_type == 'XSIF') then
+          write (str, '(a, i0, i0)') 'r', i, j
+        else
+          print *, 'ERROR: BMAD OUT_TYPE: ', out_type
+          call err_exit
+        endif
         call value_to_line (line, ele%mat6(i,j), str, 'es13.5', 'R')
       enddo
     enddo
