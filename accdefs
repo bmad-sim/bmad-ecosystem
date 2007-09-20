@@ -23,18 +23,23 @@
 PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
 
 
-if ( [ "$CESRLIB" == "" ] ) then
+#======================================================
+# Next two stanzas accomodate both the CESR_ and ACC_ 
+# type variable definitions regardless of which xxxLIB 
+# variable the user sets.
+#======================================================
+if ( [ "$CESRLIB" = "" ] ) then
   CESRLIB=$ACCLIB
 fi
-if ( [ "$ACCLIB" == "" ] ) then
+if ( [ "$ACCLIB" = "" ] ) then
   ACCLIB=$CESRLIB
 fi
 
 
-if ( [ "$CESRF90" == "" ] ) then
+if ( [ "$CESRF90" = "" ] ) then
   CESRF90=$ACCF90
 fi
-if ( [ "$ACCF90" == "" ] ) then
+if ( [ "$ACCF90" = "" ] ) then
   ACCF90=$CESRF90
 fi
 
@@ -96,12 +101,12 @@ if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then
      export LOCAL_PD=c
 fi
 
-###CESRLIB_BASE=${CESRLIB_BASE:-${BASE_DIR_DEF}}
-
 CESRLIB_BASE=${BASE_DIR_DEF}
 ACCLIB_BASE=${BASE_DIR_DEF}
 
+###CESRLIB_BASE=${CESRLIB_BASE:-${BASE_DIR_DEF}}
 ###CESRLIB_BIN=${CESRLIB_BIN:-${CESRLIB_BASE}/bin}
+
 CESRLIB_BIN=${CESRLIB_BIN:-/home/cesrulib/bin}
 ACCLIB_BIN=${ACCLIB_BIN:-/home/cesrulib/bin}
 
@@ -126,6 +131,8 @@ CERN=${CERN:-/nfs/cern}
 
 #======================================================
 # Export the CESR environment variable structure
+# double exports here to accomodate temporary parallel
+# variable collections during transition period.
 #======================================================
 CESRENV=${CESRENV:-${CESRLIB_BIN}/accenv}
 #
@@ -229,19 +236,6 @@ unset ACCLIB
 #=======================================================
 # Verify whether CESR environment setup succeeded
 #=======================================================
-#if ( [ -e ${CESR_REL} ] ) then
-#  echo "CESR setup complete for ${CESR_REL}"
-#fi
-#if ( [ ! -e ${CESR_REL} ] ) then
-#  echo "${CESR_REL} does NOT EXIST!!!"
-#  echo ""
-#  echo "**************  WARNING!!!!  **************"
-#  echo "*                                         *"
-#  echo "* CESR environment variable setup failed! *"  
-#  echo "*  Please check your inputs to cesrdefs!  *"
-#  echo "*                                         *"
-#  echo "*******************************************"
-#fi
 
 if ( [ -z "${CESR_REL}" ] && [ -z "${CESR_F90}" ] ) then
   echo "The critical variables CESR_REL and/or CESR_F90$"
@@ -264,13 +258,13 @@ fi
 #  export CESR_SRC
 #else
 
-CESR_SRC="${CESR_REL}/src"
-export CESR_SRC
+##CESR_SRC="${CESR_REL}/src"
+##export CESR_SRC
 
 #fi
 
-CESR_INC="${CESR_SRC}/include"
-export CESR_INC
+##CESR_INC="${CESR_SRC}/include"
+##export CESR_INC
 
 #==============================================================
 # Centralized set up of Intel and Lahey compilers (Linux only)

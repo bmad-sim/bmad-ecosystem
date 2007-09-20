@@ -23,7 +23,7 @@ setenv BMAD_DIST  FALSE
 #        to handle any ${CERN} platform dependence.
 #
 setenv CERN_ROOT    $CERN/$CERN_LEVEL
-#
+
 setenv CERNLIB      $CERN_ROOT/lib
 setenv CERNSRC      $CERN_ROOT/src
 
@@ -57,9 +57,7 @@ setenv ACCR https://accserv.lepp.cornell.edu/svn/
 setenv CESR_REL     $CESR_BASE/$CESRLIB
 #
 setenv CESR_CONFIG  $CESR_REL/config
-#setenv CESR_SRC     $CESR_REL/cvssrc
 setenv CESR_SRC     $CESR_REL/src
-#setenv CESR_CVSSRC  $CESR_REL/cvssrc
 setenv CESR_EXE     $CESR_REL/bin
 setenv CESR_GMAKE   $CESR_REL/Gmake
 setenv CESR_LIB     $CESR_REL/lib
@@ -95,6 +93,9 @@ setenv BMAD_LAYOUT  $CESR_CONFIG/bmad/layout
 #
 setenv TOAD_DIR     $CESR_SRC/toad
 
+
+##################################################################
+##################################################################
 #
 # $Id$
 #

@@ -156,6 +156,7 @@ foreach dir (${PATH_LIST})
 end
 if ( $found == 0 ) setenv PATH ${PATH}:${ACC_EXE}
 
+
 #==============================================================================
 # Add hook to support OLD style of environment variables
 # Clear variable when done
@@ -163,7 +164,6 @@ if ( $found == 0 ) setenv PATH ${PATH}:${ACC_EXE}
 if ( $?CESR_ENV_OLD == 1 ) setenv CESR_LIB ${CESR_REL}
 unset    CESR_ENV_OLD
 unsetenv CESR_ENV_OLD
-
 
 
 #=============================================================================
@@ -212,6 +212,7 @@ unset    CERN
 unset    CESRENV
 unset    CESRF90
 
+unsetenv CESRLIB
 unsetenv CESRLIB_BIN
 unsetenv CESR_
 unsetenv CESRENV
@@ -227,6 +228,7 @@ unset    CERN
 unset    ACCENV
 unset    ACCF90
 
+unsetenv ACCLIB
 unsetenv ACCLIB_BIN
 unsetenv ACC_
 unsetenv ACCENV
@@ -240,10 +242,12 @@ unsetenv ACCF90
 #if ( "${CESR_REL}" == "${CESR_BASE}/current" ) then
 #  setenv CESR_SRC ${CESR_REL}/cvssrc
 #else
-setenv CESR_SRC ${CESR_REL}/src
+
+##setenv CESR_SRC ${CESR_REL}/src
+
 #endif
 
-setenv CESR_INC ${CESR_SRC}/include
+##setenv CESR_INC ${CESR_SRC}/include
 
 #==============================================================
 # Centralized set up of Intel and Lahey compilers (Linux only)
