@@ -188,24 +188,24 @@ if ( [ -e ${ACC_REL}/bin/${PROG} ] ) then
       # Copy over Makefile
       cd ${WORKDIR}
       if ( [ -e ${FROMDIR}/M.${PROG} ] ) then
-          echo "1"
-          echo ${FROMDIR}/M.${PROG}
-          echo "copy cp ${FROMDIR}/M.${PROG} ${WORKDIR}/Makefile"
+          #echo "1"
+          #echo ${FROMDIR}/M.${PROG}
+          #echo "copy cp ${FROMDIR}/M.${PROG} ${WORKDIR}/Makefile"
           cp ${FROMDIR}/M.${PROG} ./Makefile #&> /dev/null
 
       elif ( [ -e ${FROMDIR}/M.${PROGv2} ] ) then
-          echo "2"
-          echo ${FROMDIR}/M.${PROGv2}
+          #echo "2"
+          #echo ${FROMDIR}/M.${PROGv2}
           cp ${FROMDIR}/M.${PROGv2} ./Makefile #&> /dev/null
 
       elif ( [ -e ${FROMDIR}/../M.${PROG} ] ) then
-          echo "3"
-          echo ${FROMDIR}/../M.${PROG}
+          #echo "3"
+          #echo ${FROMDIR}/../M.${PROG}
           cp ${FROMDIR}/../M.${PROG} ./Makefile #&> /dev/null
 
       elif ( [ -e ${FROMDIR}/../M.${PROGv2} ] ) then
-          echo "4"
-          echo ${FROMDIR}/../M.${PROGv2}
+          #echo "4"
+          #echo ${FROMDIR}/../M.${PROGv2}
           cp ${FROMDIR}/../M.${PROGv2} ./Makefile #&> /dev/null
       fi
 
