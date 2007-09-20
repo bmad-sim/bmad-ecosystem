@@ -19,7 +19,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine check_aperture_limit (orb, ele, param, plane_lost)
+! Subroutine check_aperture_limit (orb, ele, at, param)
 !
 ! Subroutine to check if an orbit is outside the aperture.
 !
@@ -27,10 +27,14 @@ contains
 !   use bmad
 !
 ! Input:
-!   orb -- Coord_struct: coordinates of a particle.
-!   ele -- Ele_struct: Element holding the aperture
-!     %value(x_limit$) -- Horizontal aperture.
-!     %value(y_limit$) -- Vertical aparture.
+!   orb   -- Coord_struct: coordinates of a particle.
+!   ele   -- Ele_struct: Element holding the aperture
+!     %value(x1_limit$) -- Horizontal negative side aperture.
+!     %value(x2_limit$) -- Horizontal positive side aparture.
+!     %value(y1_limit$) -- Vertical negative side aperture.
+!     %value(y2_limit$) -- Vertical positive side aparture.
+!     %offset_moves_aperture -- If True then aperture moves with the element.
+!   at    -- Integer: entrance_end$ or exit_end$
 !   param -- lat_param_struct: Parameter structure
 !     %aperture_limit_on -- The aperture limit is only checked if this is true.
 !               The exception is when the orbit is larger than 
@@ -42,36 +46,59 @@ contains
 !     %lost -- Set True if the orbit is outside the aperture. 
 !              Note: %lost is NOT set False if the orbit is inside 
 !                the aperture.
-!   plane_lost -- Integer: Plane where particle is lost:
+!     %plane_lost_at -- Integer: Plane where particle is lost:
 !                     x_plane$ or y_plane$
 !-
 
-subroutine check_aperture_limit (orb, ele, param, plane_lost)
+subroutine check_aperture_limit (orb, ele, at, param)
 
   implicit none
 
-  type (coord_struct), intent(in) :: orb
+  type (coord_struct) :: orb
+  type (coord_struct) orb2 
   type (ele_struct) :: ele
   type (lat_param_struct), intent(inout) :: param
 
-  real(rp) x_lim, y_lim, x_beam, y_beam, l2
-  integer plane_lost
+  real(rp) x_lim, y_lim, x_beam, y_beam, s_here
+  integer at
 
 !
 
-  x_lim = ele%value(x_limit$)
+  if (ele%offset_moves_aperture) then
+    orb2 = orb
+    s_here = 0
+    if (at == exit_end$) s_here = ele%value(l$)
+    call offset_particle (ele, param, orb2, set$, set_canonical = .false., &
+                 set_tilt = .false., set_multipoles = .false., set_hvkicks = .false., &
+                 s_pos = s_here)
+    x_beam = orb2%vec(1)
+    y_beam = orb2%vec(3)
+  else
+    x_beam = orb%vec(1)
+    y_beam = orb%vec(3)
+  endif
+
+!
+
+  if (x_beam < 0) then
+    x_lim = ele%value(x1_limit$)
+  else
+    x_lim = ele%value(x2_limit$)
+  endif
+
   if (x_lim <= 0 .or. .not. param%aperture_limit_on) &
                                     x_lim = bmad_com%max_aperture_limit
 
-  y_lim = ele%value(y_limit$)
+  if (y_beam < 0) then
+    y_lim = ele%value(y1_limit$)
+  else
+    y_lim = ele%value(y2_limit$)
+  endif
+
   if (y_lim <= 0 .or. .not. param%aperture_limit_on) &
                                     y_lim = bmad_com%max_aperture_limit
 
   if (x_lim == 0 .and. y_lim == 0) return
-
-  l2 = ele%value(l$) / 2
-  x_beam = orb%vec(1)
-  y_beam = orb%vec(3)
 
   if (ele%key == ecollimator$) then
     if (x_lim == 0 .or. y_lim == 0) then
@@ -82,19 +109,19 @@ subroutine check_aperture_limit (orb, ele, param, plane_lost)
     if ((x_beam / x_lim)**2 + (y_beam / y_lim)**2 > 1) then
       param%lost = .true.
       if (abs(x_beam / x_lim) > abs(y_beam / y_lim)) then
-        plane_lost = x_plane$
+        param%plane_lost_at = x_plane$
       else
-        plane_lost = y_plane$
+        param%plane_lost_at = y_plane$
       endif
     endif
   else
     if (abs(x_beam) > x_lim) then
       param%lost = .true.
-      plane_lost = x_plane$
+      param%plane_lost_at = x_plane$
     endif
     if (abs(y_beam) > y_lim) then
       param%lost = .true.
-      plane_lost = y_plane$
+      param%plane_lost_at = y_plane$
     endif
   endif
 

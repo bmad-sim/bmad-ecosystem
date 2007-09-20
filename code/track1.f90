@@ -43,7 +43,7 @@ subroutine track1 (start, ele, param, end)
   type (ele_struct)   :: ele
   type (lat_param_struct) :: param
 
-  integer tracking_method, plane_lost
+  integer tracking_method
 
 ! Init
 
@@ -53,7 +53,7 @@ subroutine track1 (start, ele, param, end)
 ! check for particles outside aperture
 
   if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$) &
-                  call check_aperture_limit (start, ele, param, plane_lost)
+                  call check_aperture_limit (start, ele, entrance_end$, param)
   if (param%lost) then
     param%end_lost_at = entrance_end$
     call init_coord (end)      ! it never got to the end so zero this.
@@ -137,7 +137,7 @@ subroutine track1 (start, ele, param, end)
 ! check for particles outside aperture
 
   if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$) &
-                    call check_aperture_limit (end, ele, param, plane_lost)
+                    call check_aperture_limit (end, ele, exit_end$, param)
   if (param%lost) then
     param%end_lost_at = exit_end$
     return

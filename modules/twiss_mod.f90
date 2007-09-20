@@ -6,7 +6,7 @@ module twiss_mod
 
   type twiss_struct
     real(rp) beta, alpha, gamma, phi, eta, etap
-    real(rp) sigma, emit
+    real(rp) sigma, sigma_p, emit
   end type
 
 contains

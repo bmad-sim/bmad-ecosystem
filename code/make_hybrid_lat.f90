@@ -201,9 +201,10 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
           ele_out%value(vkick$) = ele_out%value(vkick$) + c2%vec(4)
         endif
 
-        ele_out%value(x_limit$) = ele_in%value(x_limit$)
-        ele_out%value(y_limit$) = ele_in%value(y_limit$)
-        ele_out%value(aperture$) = ele_in%value(aperture$)
+        ele_out%value(x1_limit$) = ele_in%value(x1_limit$)
+        ele_out%value(x2_limit$) = ele_in%value(x2_limit$)
+        ele_out%value(y1_limit$) = ele_in%value(y1_limit$)
+        ele_out%value(y2_limit$) = ele_in%value(y2_limit$)
 
         o_key = ele_out%key 
         if (ele_in%key == drift$ .and. &

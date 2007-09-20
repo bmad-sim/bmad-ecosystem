@@ -130,6 +130,19 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
 
   case (4, 5)
 
+    ! Check if rf is on and if so issue a warning message
+
+    do i = 1, lat%n_ele_track
+      ele => lat%ele(i)
+      if (ele%key == rfcavity$ .and. ele%is_on .and. ele%value(voltage$) /= 0) then
+        call out_io (s_warn$, r_name, &
+                       'Inconsistant calculation: RF ON with i_dim = \i4\ ', i_dim)
+        exit
+      endif
+    enddo
+
+    !
+
     damp_saved  = bmad_com%radiation_damping_on
     bmad_com%radiation_damping_on = .false.  ! Want constant energy
 

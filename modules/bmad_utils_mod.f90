@@ -1042,13 +1042,13 @@ subroutine init_ele (ele)
   ele%multipoles_on     = .true.
   ele%symplectify       = .false.
   ele%map_with_offsets  = .true.
-  ele%on_an_girder      = .false.
+  ele%on_a_girder       = .false.
   ele%csr_calc_on       = .true.
 
   ele%field_master = .false.
   ele%coupler_at  = exit_end$
   ele%aperture_at = exit_end$
-  ele%offset_affects_aperture = .false.
+  ele%offset_moves_aperture = .false.
 
   call deallocate_ele_pointers (ele)
 

@@ -139,14 +139,14 @@ subroutine track_a_accel_sol (start, ele, param, end)
   s_grand_cum = 0
   x_beg_lim = ele%value(x_beg_limit$)
   y_beg_lim = ele%value(y_beg_limit$)
-  x_lim_chng_rate = (ele%value(x_limit$) - x_beg_lim) / length
-  y_lim_chng_rate = (ele%value(y_limit$) - y_beg_lim) / length
+  !!   x_lim_chng_rate = (ele%value(x_limit$) - x_beg_lim) / length
+  !!   y_lim_chng_rate = (ele%value(y_limit$) - y_beg_lim) / length
   check_x_ap = .false.
   check_y_ap = .false.
   if (abs(c_m) > 0.001) then
     l_over_gamma = pi / (10 * abs(c_m))
-    if (ele%value(x_limit$) * x_beg_lim /= 0) check_x_ap = .true.
-    if (ele%value(y_limit$) * y_beg_lim /= 0) check_y_ap = .true.
+    !!  if (ele%value(x_limit$) * x_beg_lim /= 0) check_x_ap = .true.
+    !!  if (ele%value(y_limit$) * y_beg_lim /= 0) check_y_ap = .true.
   else
     l_over_gamma = 100 * pi
   endif

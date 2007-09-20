@@ -193,7 +193,7 @@ type ele_struct
   logical is_on              ! For turning element on/off.
   logical old_is_on          ! For saving the element on/off state.
   logical logic              ! For general use. Not used by Bmad.
-  logical on_an_girder       ! Have an Girder overlay_lord?
+  logical on_a_girder        ! Have an Girder overlay_lord?
   logical csr_calc_on        ! Coherent synchrotron radiation calculation
   logical offset_moves_aperture  ! element offsets affects aperture?
           
@@ -219,6 +219,7 @@ type lat_param_struct
   integer particle            ! positron$, electron$, etc.
   integer ix_lost             ! Index of element particle was lost at.
   integer end_lost_at         ! entrance_end$ or exit_end$
+  integer plane_lost_at       ! x_plane$ or y_plane$
   integer lattice_type        ! linear_lattice$, etc...
   integer ixx                 ! Integer for general use
   logical stable              ! is closed lat stable?
@@ -419,6 +420,7 @@ integer, parameter :: integrator_order$ = 84
 integer, parameter :: aperture$ = 85
 integer, parameter :: x_limit$ = 86
 integer, parameter :: y_limit$ = 87
+integer, parameter :: offset_moves_aperture$ = 88
 
 integer, parameter :: a0$  =  90, k0l$  =  90
 integer, parameter :: a20$ = 110, k20l$ = 110

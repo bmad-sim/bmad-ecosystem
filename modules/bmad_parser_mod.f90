@@ -600,6 +600,10 @@ subroutine get_attribute (how, ele, lat, plat, &
     call get_logical ('MAP_WITH_OFFSETS', ele%map_with_offsets)
     if (ios /= 0 .or. ix_word == 0) return
 
+  case (offset_moves_aperture$)
+    call get_logical ('OFFSET_MOVES_APERTURE', ele%offset_moves_aperture)
+    if (ios /= 0 .or. ix_word == 0) return
+
   case default   ! normal attribute
 
     call evaluate_value (trim(ele%name) // ' ' // word, value, &

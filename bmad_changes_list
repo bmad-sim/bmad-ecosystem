@@ -1,25 +1,12 @@
 a0/b0 -> a_1/b_1
 
 Put RF on warning in 
-  a) closed_orbit_calc with i_dim = 4
   b) twiss_propagate1  ?!
   c) twiss_at_start    ?!
-
-twiss_struct:
-	Add sigma_p
 
 Structure name changes:
 	bmad_com  --> bmad_parameters
 	etc...
-
-read & write to digested entire ele%ref_orb_in/out
-
-With new bmad_version_number remove:
-    if (ele%wake%sr_file(1:3) == '...' .or. ele%wake%sr_file(1:6) == 'xsif::') n_sr = n_sr + 1 
-    if (ele%wake%lr_file(1:3) == '...' .or. ele%wake%sr_file(1:6) == 'xsif::') n_lr = n_lr + 1  
-and replace with:
-    if (ele%wake%sr_file(1:6) == 'xsif::') n_sr = n_sr + 1 
-    if (ele%wake%sr_file(1:6) == 'xsif::') n_lr = n_lr + 1  
 
 Better bmad digested file compression: 
   compress ele%value array.

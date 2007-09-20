@@ -161,10 +161,13 @@ else
       endif
     enddo
 
-    nl=nl+1; write (li(nl), '(9x, 2a)')   'APERTURE_AT      = ', &
+    nl=nl+1; write (li(nl), '(9x, 2a)')   'APERTURE_AT           = ', &
                                   element_end_name(ele%aperture_at)
+    nl=nl+1; write (li(nl), '(9x, 2a)')   'OFFSET_MOVES_APERTURE = ', &
+                                  ele%offset_moves_aperture
+
     if (ele%key == lcavity$) then
-      nl=nl+1; write (li(nl), '(9x, 2a)') 'COUPLER_AT       = ', &
+      nl=nl+1; write (li(nl), '(9x, 2a)') 'COUPLER_AT           = ', &
                                   element_end_name(ele%coupler_at)
     endif
 

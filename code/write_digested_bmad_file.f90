@@ -32,8 +32,10 @@ subroutine write_digested_bmad_file (digested_name, lat,  &
   type (taylor_struct), pointer :: tt(:)
   type (wake_struct), pointer :: wake
   
+  real(rp) value(n_attrib_maxx)
+
   integer, intent(in), optional :: n_files
-  integer d_unit, i, j, k, n_file
+  integer d_unit, i, j, k, n_file, ix_value(n_attrib_maxx)
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
   integer stat_b(12), stat, n_wake
   integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr
@@ -131,10 +133,10 @@ subroutine write_digested_bmad_file (digested_name, lat,  &
       enddo
 
       if (write_wake) then
-        if (associated(ele%wake%sr_table))       ix_sr_table       = size(ele%wake%sr_table)
+        if (associated(ele%wake%sr_table))      ix_sr_table      = size(ele%wake%sr_table)
         if (associated(ele%wake%sr_mode_long))  ix_sr_mode_long  = size(ele%wake%sr_mode_long)
         if (associated(ele%wake%sr_mode_trans)) ix_sr_mode_trans = size(ele%wake%sr_mode_trans)
-        if (associated(ele%wake%lr))        ix_lr        = size(ele%wake%lr)
+        if (associated(ele%wake%lr))            ix_lr            = size(ele%wake%lr)
         n_wake = n_wake + 1
         ix_wake(n_wake) = i
       endif
@@ -145,7 +147,7 @@ subroutine write_digested_bmad_file (digested_name, lat,  &
     write (d_unit) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
-            ele%a, ele%b, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -155,8 +157,22 @@ subroutine write_digested_bmad_file (digested_name, lat,  &
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_an_girder, ele%csr_calc_on, &
-            ele%ref_orb_in%vec, ele%ref_orb_out%vec
+            ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
+            ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture
+
+    ! This compresses the ele%value array
+
+    k = 0
+    do j = 1, size(ele%value)
+      if (ele%value(j) == 0) cycle
+      k = k + 1
+      value(k) = ele%value(j)
+      ix_value(k) = j
+    enddo
+    write (d_unit) k
+    write (d_unit) ix_value(1:k), value(1:k)
+
+    ! 
 
     do j = 1, ix_wig
       write (d_unit) ele%wig_term(j)

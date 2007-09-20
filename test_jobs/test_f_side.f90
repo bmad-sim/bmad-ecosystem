@@ -104,8 +104,8 @@ coord_in  = coord_struct(vec6_a, spinor2_a)
 coord_out = coord_struct(vec6_b, spinor2_b)
 
 twiss_in  = twiss_struct(1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, 6.0_rp, &
-                                      7.0_rp, 8.0_rp)
-twiss_out = twiss_struct(8.0_rp, 7.0_rp, 6.0_rp, 5.0_rp, &
+                                      7.0_rp, 8.0_rp, 9.0_rp)
+twiss_out = twiss_struct(9.0_rp, 8.0_rp, 7.0_rp, 6.0_rp, 5.0_rp, &
                                       4.0_rp, 3.0_rp, 2.0_rp, 1.0_rp)
 
 xy_disp_in  = xy_disp_struct(1.0_rp, 2.0_rp)
@@ -169,9 +169,9 @@ control_in  = control_struct(1.0_rp, 2, 3, 4)
 control_out = control_struct(4.0_rp, 3, 2, 1)
 
 param_in  = lat_param_struct (1.0_rp, 2.0_rp, &
-      3.0_rp, mat6_a, mat6_b, 11, 12, 13, 14, 15, T, F, T)
+      3.0_rp, mat6_a, mat6_b, 11, 12, 13, 14, 15, 16, T, F, T)
 param_out = lat_param_struct (11.0_rp, 12.0_rp, &
-      13.0_rp, mat6_b, mat6_a, 111, 112, 113, 114, 115, F, F, F)
+      13.0_rp, mat6_b, mat6_a, 111, 112, 113, 114, 115, 116, F, F, F)
 
 amode_in  = anormal_mode_struct (1.0_rp, (/2.0_rp, 3.0_rp/), 4.0_rp, 5.0_rp, 6.0_rp, 7.0_rp)
 amode_out  = anormal_mode_struct (11.0_rp, (/12.0_rp, 13.0_rp/), 14.0_rp, 15.0_rp, 16.0_rp, 17.0_rp)
@@ -240,8 +240,9 @@ ele_in%field_master = T
 ele_in%is_on = F
 ele_in%old_is_on = T
 ele_in%logic = F
-ele_in%on_an_girder = T
+ele_in%on_a_girder = T
 ele_in%csr_calc_on = F
+ele_in%offset_moves_aperture = T
 
 ele_in%floor = floor_position_in
 ele_in%a = twiss_in

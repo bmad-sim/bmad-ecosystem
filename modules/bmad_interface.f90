@@ -15,16 +15,6 @@ use custom_bmad_interface
 !---------------------------------------------------------
 
 interface
-  subroutine lost_particle_info (lattice, orbit, ix_lost, plane_lost)
-    use bmad_struct, only: lat_struct, coord_struct
-    implicit none
-    type (lat_struct) lattice
-    type (coord_struct) orbit(0:)
-    integer ix_lost, plane_lost
-  end subroutine
-end interface
-
-interface
   subroutine compute_reference_energy (lat, compute)
     use bmad_struct, only: lat_struct
     type (lat_struct) lat

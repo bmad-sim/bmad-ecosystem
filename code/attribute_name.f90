@@ -13,7 +13,7 @@
 !   ix_att -- Integer: Index of attribute (e.g. k1$)
 !
 ! Output:
-!   attribute_name -- Character(16): Name of attribute. 
+!   attribute_name -- Character(40): Name of attribute. 
 !              If %key is invalid then                   attribute_name = "!BAD ELE KEY"
 !              If ix_att is invalid then                 attribute_name = "!BAD INDEX"
 !              If ix_att is invalid for an overlay then  attribute_name = "!INVALID INDEX"
@@ -67,14 +67,19 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == overlay$)  cycle
       if (i == girder$)   cycle
 
-      attrib_array(i, x_limit$)           = 'X_LIMIT'
-      attrib_array(i, y_limit$)           = 'Y_LIMIT'
-      attrib_array(i, aperture$)          = 'APERTURE'
-      attrib_array(i, aperture_at$)       = 'APERTURE_AT'
-      attrib_array(i, E_tot$)             = 'E_TOT'
-      attrib_array(i, p0c$)               = 'P0C'
-      attrib_array(i, mat6_calc_method$)  = 'MAT6_CALC_METHOD'
-      attrib_array(i, tracking_method$)   = 'TRACKING_METHOD'
+      attrib_array(i, x_limit$)               = 'X_LIMIT'
+      attrib_array(i, x1_limit$)              = 'X1_LIMIT'
+      attrib_array(i, x2_limit$)              = 'X2_LIMIT'
+      attrib_array(i, y_limit$)               = 'Y_LIMIT'
+      attrib_array(i, y1_limit$)              = 'Y1_LIMIT'
+      attrib_array(i, y2_limit$)              = 'Y2_LIMIT'
+      attrib_array(i, aperture$)              = 'APERTURE'
+      attrib_array(i, aperture_at$)           = 'APERTURE_AT'
+      attrib_array(i, offset_moves_aperture$) = 'OFFSET_MOVES_APERTURE'
+      attrib_array(i, E_tot$)                 = 'E_TOT'
+      attrib_array(i, p0c$)                   = 'P0C'
+      attrib_array(i, mat6_calc_method$)      = 'MAT6_CALC_METHOD'
+      attrib_array(i, tracking_method$)       = 'TRACKING_METHOD'
 
       attrib_array(i, is_on$)       = 'IS_ON'
 

@@ -118,16 +118,16 @@ class twiss_struct {};
 class C_twiss {
 public:
   double beta, alpha, gamma, phi, eta, etap;
-  double sigma, emit;
+  double sigma, sigma_p, emit;
 
   C_twiss(double b, double a, double g, double p, double e, double ep, 
-                                         double s, double em) : 
+                                         double s, double sp, double em) : 
     beta(b), alpha(a), gamma(g), phi(p), eta(e), etap(ep), 
-    sigma(s), emit(em) {}
+    sigma(s), sigma_p(sp), emit(em) {}
 
   C_twiss(double z = 0) : 
     beta(z), alpha(z), gamma(z), phi(z), eta(z), 
-    etap(z), sigma(z), emit(z) {}
+    etap(z), sigma(z), sigma_p(z), emit(z) {}
 
 };    // End Class
 
@@ -453,6 +453,7 @@ public:
   int particle;             // positron$, electron$, etc.
   int ix_lost;              // Index of element particle was lost at.
   int end_lost_at;          // entrance_end$ or exit_end$
+  int plane_lost_at;        // x_plane$ or y_plane$
   int lattice_type;         // linear_lattice$, etc...
   int ixx;                  // Int for general use
   bool stable;              // is closed ring stable?
@@ -461,15 +462,15 @@ public:
 
   C_param () : n_part(0), total_length(0), growth_rate(0),
       t1_with_RF(V6_array, 6), t1_no_RF(V6_array, 6), 
-      particle(0), ix_lost(0), end_lost_at(0), lattice_type(0), ixx(0),
+      particle(0), ix_lost(0), end_lost_at(0), plane_lost_at(0), lattice_type(0), ixx(0),
       stable(1), aperture_limit_on(1), lost(0) {}
 
   C_param (double np, double tl, double gr, Real_Matrix t1w,
-    Real_Matrix t1n, int pa, int il, int ela, int lt, int ix, 
+    Real_Matrix t1n, int pa, int il, int ela, int pla, int lt, int ix, 
     int st, int alo, int lo) :
         n_part(np), total_length(tl), growth_rate(gr),
         t1_with_RF(t1w), t1_no_RF(t1n), particle(pa), 
-        ix_lost(il), end_lost_at(ela), lattice_type(lt), ixx(ix),
+        ix_lost(il), end_lost_at(ela), plane_lost_at(pla), lattice_type(lt), ixx(ix),
         stable(st), aperture_limit_on(alo), lost(lo) {}
 };    // End Class
 
@@ -743,10 +744,11 @@ public:
   bool map_with_offsets;        // Exact radiation integral calculation?
   bool field_master;            // Calculate strength from the field value?
   bool is_on;                   // For turning element on/off.
-  bool old_is_on;          // For Bmad internal use only.
+  bool old_is_on;               // For Bmad internal use only.
   bool logic;                   // For general use. Not used by Bmad.
-  bool on_an_girder;            // Have an I_Beam overlay_lord?
+  bool on_a_girder;             // Have an I_Beam overlay_lord?
   bool csr_calc_on;             // Coherent synchrotron radiation calculation.
+  bool offset_moves_aperture;   // element offsets affects aperture?
 
   C_ele () : value(double(0), Bmad::N_ATTRIB_MAXX+1), taylor(C_taylor(0), 6),
     mat6(M6_mat), c_mat(M2_mat), vec0(V6_array), gen0(V6_array) {}

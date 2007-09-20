@@ -401,29 +401,29 @@ type (c_dummy_struct) c_twiss
 
 f => f_twiss
 call twiss_to_c2 (c_twiss, f%beta, f%alpha, f%gamma, &
-                                      f%phi, f%eta, f%etap, f%sigma, f%emit)
+                             f%phi, f%eta, f%etap, f%sigma, f%sigma_p, f%emit)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, sigma, emit)
+! Subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, sigma, sigma_p, emit)
 !
 ! Subroutine used by twiss_to_f to convert a C++ C_twiss into
 ! a Bmad twiss_struct. This routine is not for general use.
 !-
 
-subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, sigma, emit)
+subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, sigma, sigma_p, emit)
 
 use bmad_and_cpp
 
 implicit none
 
 type (twiss_struct) f_twiss
-real(rp) beta, alpha, gamma, phi, eta, etap, sigma, emit
+real(rp) beta, alpha, gamma, phi, eta, etap, sigma, emit, sigma_p
 
-f_twiss = twiss_struct(beta, alpha, gamma, phi, eta, etap, sigma, emit)
+f_twiss = twiss_struct(beta, alpha, gamma, phi, eta, etap, sigma, sigma_p, emit)
 
 end subroutine
 
@@ -1176,7 +1176,7 @@ f => f_param
 
 call param_to_c2 (c_param, f%n_part, f%total_length, f%growth_rate, &
       mat2arr(f%t1_with_RF), mat2arr(f%t1_no_RF), &
-      f%particle, f%ix_lost, f%end_lost_at, f%lattice_type, &
+      f%particle, f%ix_lost, f%end_lost_at, f%plane_lost_at, f%lattice_type, &
       f%ixx, c_logic(f%stable), c_logic(f%aperture_limit_on), c_logic(f%lost))
 
 end subroutine
@@ -1185,7 +1185,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine param_to_f2 (f_param, n_part, total_length, &
-!      growth_rate, m1, m2, particle, ix_lost, end_lost_at, &
+!      growth_rate, m1, m2, particle, ix_lost, end_lost_at, plane_lost_at, &
 !      lat_type, ixx, stable, ap_limit_on, lost)
 !
 ! Subroutine used by param_to_f to convert a C++ C_param into
@@ -1193,7 +1193,7 @@ end subroutine
 !-
 
 subroutine param_to_f2 (f_param, n_part, total_length, &
-      growth_rate, m1, m2, particle, ix_lost, end_lost_at, &
+      growth_rate, m1, m2, particle, ix_lost, end_lost_at, plane_lost_at, &
       lat_type, ixx, stable, ap_limit_on, lost) 
 
 use bmad_and_cpp
@@ -1204,11 +1204,11 @@ type (lat_param_struct) f_param
 real(rp) n_part, total_length, growth_rate
 real(rp) m1(36), m2(36)
 integer particle, ix_lost, end_lost_at, lat_type, ixx, stable, &
-        ap_limit_on, lost
+        ap_limit_on, lost, plane_lost_at
 
 f_param = lat_param_struct(n_part, total_length, growth_rate, &
       arr2mat(m1, 6, 6), arr2mat(m2, 6, 6), particle, ix_lost, end_lost_at, &
-      lat_type, ixx, f_logic(stable), f_logic(ap_limit_on), &
+      plane_lost_at, lat_type, ixx, f_logic(stable), f_logic(ap_limit_on), &
       f_logic(lost))
 
 end subroutine
@@ -1576,7 +1576,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%num_steps, f%integrator_order, f%ptc_kind, f%taylor_order, &
       f%aperture_at, f%coupler_at, f%symplectify, f%mode_flip, &
       f%multipoles_on, f%map_with_offsets, &
-      f%field_master, f%is_on, f%old_is_on, f%logic, f%on_an_girder, &
+      f%field_master, f%is_on, f%old_is_on, f%logic, f%on_a_girder, &
       f%csr_calc_on)
 
 if (associated(f%r)) deallocate(r_arr)
@@ -1599,7 +1599,7 @@ end subroutine
 !    con_tp, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
 !    ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, int_ord, &
 !    ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad,  &
-!    f_master, on, intern, logic, girder, csr_calc)
+!    f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)
 !
 ! Subroutine used by ele_to_f to convert a C++ C_ele into
 ! a Bmad ele_struct. This routine is not for general use.
@@ -1612,7 +1612,7 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
     con_tp, ixv, nsl, ix1s, ix2s, &
     nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
     int_ord, ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad, &
-    f_master, on, intern, logic, girder, csr_calc)   
+    f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)   
 
 use bmad_and_cpp
 use multipole_mod
@@ -1628,7 +1628,7 @@ integer n_nam, nr1, nr2, n_ab, n_const, key, sub, con_tp, ixv, nsl, ix1s, &
     ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
     int_ord, ptc, tlr_ord, aperture_at, symp, mode, mult, ex_rad, f_master, &
     on, intern, logic, girder, csr_calc, n_typ, n_ali, n_attrib, n_des, &
-    n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, coupler_at
+    n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, coupler_at, offset_moves_ap
 
 real(rp) val(n_attrib_maxx), g0(6), v0(6), m6(36), c2(4), gam, s
 real(rp) a_pole(n_ab), b_pole(n_ab), r_arr(nr1*nr2), const(n_const)
@@ -1653,45 +1653,46 @@ call xy_disp_to_f (x, f%x)
 call xy_disp_to_f (y, f%y)
 call floor_position_to_f (floor, f%floor)
 
-f%value               = val
-f%gen0                = g0
-f%vec0                = v0
-f%mat6                = arr2mat(m6, 6, 6)
-f%c_mat               = arr2mat(c2, 2, 2) 
-f%gamma_c             = gam
-f%s                   = s
-f%key                 = key
-f%sub_key             = sub
-f%control_type        = con_tp
-f%ix_value            = ixv
-f%n_slave             = nsl
-f%ix1_slave           = ix1s
-f%ix2_slave           = ix2s
-f%n_lord              = nlrd
-f%ic1_lord            = ic1_l
-f%ic2_lord            = ic2_l
-f%ix_pointer          = ixp
-f%ixx                 = ixx
-f%ix_ele              = ixe
-f%mat6_calc_method    = m6_meth
-f%tracking_method     = tk_meth
-f%field_calc          = f_calc
-f%num_steps           = steps
-f%integrator_order     = int_ord
-f%ptc_kind            = ptc
-f%taylor_order        = tlr_ord
-f%aperture_at         = aperture_at
-f%coupler_at          = coupler_at
-f%symplectify         = f_logic(symp)
-f%mode_flip           = f_logic(mode)
-f%multipoles_on       = f_logic(mult)
-f%map_with_offsets  = f_logic(ex_rad)
-f%field_master        = f_logic(f_master)
-f%is_on               = f_logic(on)
-f%old_is_on      = f_logic(intern)
-f%logic               = f_logic(logic)
-f%on_an_girder        = f_logic(girder)
-f%csr_calc_on         = f_logic(csr_calc)
+f%value                 = val
+f%gen0                  = g0
+f%vec0                  = v0
+f%mat6                  = arr2mat(m6, 6, 6)
+f%c_mat                 = arr2mat(c2, 2, 2) 
+f%gamma_c               = gam
+f%s                     = s
+f%key                   = key
+f%sub_key               = sub
+f%control_type          = con_tp
+f%ix_value              = ixv
+f%n_slave               = nsl
+f%ix1_slave             = ix1s
+f%ix2_slave             = ix2s
+f%n_lord                = nlrd
+f%ic1_lord              = ic1_l
+f%ic2_lord              = ic2_l
+f%ix_pointer            = ixp
+f%ixx                   = ixx
+f%ix_ele                = ixe
+f%mat6_calc_method      = m6_meth
+f%tracking_method       = tk_meth
+f%field_calc            = f_calc
+f%num_steps             = steps
+f%integrator_order      = int_ord
+f%ptc_kind              = ptc
+f%taylor_order          = tlr_ord
+f%aperture_at           = aperture_at
+f%coupler_at            = coupler_at
+f%symplectify           = f_logic(symp)
+f%mode_flip             = f_logic(mode)
+f%multipoles_on         = f_logic(mult)
+f%map_with_offsets      = f_logic(ex_rad)
+f%field_master          = f_logic(f_master)
+f%is_on                 = f_logic(on)
+f%old_is_on             = f_logic(intern)
+f%logic                 = f_logic(logic)
+f%on_a_girder           = f_logic(girder)
+f%csr_calc_on           = f_logic(csr_calc)
+f%offset_moves_aperture = f_logic(offset_moves_ap)
 
 ! pointer stuff
 

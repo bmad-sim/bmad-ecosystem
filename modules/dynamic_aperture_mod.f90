@@ -178,14 +178,7 @@ endif
   aperture%y = y1
   aperture%i_turn = turn_lost
   aperture%closed_orbit = orb0
-
-  ixr = aperture%ix_lat
-  if (lat%ele(ixr)%value(x_limit$) /= 0 .and.  &
-                abs(orbit(ixr)%vec(1)) > lat%ele(ixr)%value(x_limit$)) then
-    aperture%plane = x_plane$
-  else
-    aperture%plane = y_plane$
-  endif
+  aperture%plane = lat%param%plane_lost_at
 
   if (lat%ele(ixr)%key == drift$) ixr = ixr + 1
 

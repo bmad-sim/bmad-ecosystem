@@ -45,7 +45,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
   integer ip0, n, it, ix, iep, id, n_names
   integer xsif_io_setup, parchk, ix1, ix2, digested_version
 
-  real(rp) k2, angle
+  real(rp) k2, angle, aperture
 
   character(*) :: xsif_file
   character(*), optional :: use_line
@@ -175,6 +175,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
     indx = item(ie) 
     if (indx > maxelm) cycle
 
+    aperture = 0
     dat_indx = iedat(indx,1)
     key = ietyp(indx)
 
@@ -220,21 +221,21 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
         ele%value(l$)        = pdata(dat_indx)
         ele%value(k1$)       = pdata(dat_indx+1)
         ele%value(tilt$)     = pdata(dat_indx+2)
-        ele%value(aperture$) = pdata(dat_indx+3)
+        aperture = pdata(dat_indx+3)
 
       case (mad_sext)
         call add_ele (sextupole$)
         ele%value(l$)        = pdata(dat_indx)
         ele%value(k2$)       = pdata(dat_indx+1)
         ele%value(tilt$)     = pdata(dat_indx+2)
-        ele%value(aperture$) = pdata(dat_indx+3)
+        aperture = pdata(dat_indx+3)
 
       case (mad_octu)
         call add_ele (octupole$)
         ele%value(l$)        = pdata(dat_indx)
         ele%value(k3$)       = pdata(dat_indx+1)
         ele%value(tilt$)     = pdata(dat_indx+2)
-        ele%value(aperture$) = pdata(dat_indx+3)
+        aperture = pdata(dat_indx+3)
 
       case (mad_multi, mad_dimu)
         call add_ele (multipole$)
@@ -242,7 +243,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
         ele%value(l$)        = pdata(dat_indx)
         ele%a_pole(0:20)          = pdata(dat_indx+1:dat_indx+41:2)
         ele%b_pole(0:20)          = pdata(dat_indx+2:dat_indx+42:2)
-        ele%value(aperture$) = pdata(dat_indx+44)
+        aperture = pdata(dat_indx+44)
         ele%value(tilt$)     = pdata(dat_indx+49)
 
         if (key == mad_dimu) then
@@ -267,7 +268,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
         ele%value(ks$)       = pdata(dat_indx+1)
         ele%value(k1$)       = pdata(dat_indx+2)
         ele%value(tilt$)     = pdata(dat_indx+3)
-        ele%value(aperture$) = pdata(dat_indx+4)
+        aperture = pdata(dat_indx+4)
         if (ele%value(k1$) /= 0) ele%key = sol_quad$
 
       case (mad_rfcav)
@@ -277,7 +278,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
         ele%value(phi0$)         = pdata(dat_indx+2)
         ele%value(harmon$)       = pdata(dat_indx+3)
         ele%value(rf_frequency$) = pdata(dat_indx+10)
-        ele%value(aperture$)     = pdata(dat_indx+11)
+        aperture     = pdata(dat_indx+11)
 
         if (pdata(dat_indx+4) /= 0) then
           call xsif_error ('ENERGY ATTRIBUTE WITH RFCAVITY: ' // ele%name, &
@@ -337,14 +338,18 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
       case (mad_ecoll)
         call add_ele (ecollimator$)
         ele%value(l$)       = pdata(dat_indx)
-        ele%value(x_limit$) = pdata(dat_indx+1)
-        ele%value(y_limit$) = pdata(dat_indx+2)
+        ele%value(x1_limit$) = pdata(dat_indx+1)
+        ele%value(x2_limit$) = pdata(dat_indx+1)
+        ele%value(y1_limit$) = pdata(dat_indx+2)
+        ele%value(y2_limit$) = pdata(dat_indx+2)
 
       case (mad_rcoll)
         call add_ele (rcollimator$)
         ele%value(l$)       = pdata(dat_indx)
-        ele%value(x_limit$) = pdata(dat_indx+1)
-        ele%value(y_limit$) = pdata(dat_indx+2)
+        ele%value(x1_limit$) = pdata(dat_indx+1)
+        ele%value(x2_limit$) = pdata(dat_indx+1)
+        ele%value(y1_limit$) = pdata(dat_indx+2)
+        ele%value(y2_limit$) = pdata(dat_indx+2)
 
 
       case (mad_quse)  ! Quad/Sextupole
@@ -353,7 +358,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
         ele%value(k1$)       = pdata(dat_indx+1)
         k2                   = pdata(dat_indx+2)
         ele%value(tilt$)     = pdata(dat_indx+3)
-        ele%value(aperture$) = pdata(dat_indx+4)
+        aperture = pdata(dat_indx+4)
 
         if (k2 /= 0) then
           call multipole_init (ele)
@@ -424,7 +429,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
         ele%value(phi0$)         = pdata(dat_indx+3)
         ele%value(rf_frequency$) = pdata(dat_indx+4) * 1e6
         ele%value(e_loss$)       = pdata(dat_indx+9) 
-        ele%value(aperture$)     = pdata(dat_indx+12)
+        aperture     = pdata(dat_indx+12)
 
         ix1 = nint(pdata(dat_indx+7))
         ix2 = nint(pdata(dat_indx+8))
@@ -474,8 +479,10 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
       ele%value(s_offset$) = pdata(id+2)
     endif
 
-    ele%value(x_limit$) = ele%value(aperture$)
-    ele%value(y_limit$) = ele%value(aperture$)
+    ele%value(x1_limit$) = aperture
+    ele%value(x2_limit$) = aperture
+    ele%value(y1_limit$) = aperture
+    ele%value(y2_limit$) = aperture
 
   enddo
 

@@ -103,14 +103,16 @@ subroutine split_lat (lat, s_split, ix_split, split_done)
 
   select case (ele%aperture_at)
   case (entrance_end$) 
-    ele2%value(x_limit$) = 0
-    ele2%value(y_limit$) = 0
-    ele2%value(aperture$) = 0
+    ele2%value(x1_limit$) = 0
+    ele2%value(x2_limit$) = 0
+    ele2%value(y1_limit$) = 0
+    ele2%value(y2_limit$) = 0
 
   case (exit_end$)
-    ele1%value(x_limit$) = 0
-    ele1%value(y_limit$) = 0
-    ele1%value(aperture$) = 0
+    ele2%value(x1_limit$) = 0
+    ele2%value(x2_limit$) = 0
+    ele2%value(y1_limit$) = 0
+    ele2%value(y2_limit$) = 0
 
   case (both_ends$)
     ele1%aperture_at = entrance_end$

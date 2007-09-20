@@ -61,7 +61,7 @@ bool operator== (const C_coord& x, const C_coord& y) {
 bool operator== (const C_twiss& x, const C_twiss& y) {
   return (x.beta == y.beta) && (x.alpha == y.alpha) && (x.gamma == y.gamma) &&
      (x.phi == y.phi) && (x.eta == y.eta) && (x.etap == y.etap) &&
-     (x.sigma == y.sigma) && (x.emit == y.emit);
+     (x.sigma == y.sigma) && (x.sigma_p == y.sigma_p) && (x.emit == y.emit);
 };
 
 bool operator== (const C_xy_disp& x, const C_xy_disp& y) {
@@ -213,8 +213,8 @@ bool operator== (const C_ele& x, const C_ele& y) {
     (x.map_with_offsets == y.map_with_offsets) && 
     (x.field_master == y.field_master) && 
     (x.is_on == y.is_on) && (x.old_is_on == y.old_is_on) && 
-    (x.logic == y.logic) && (x.on_an_girder == y.on_an_girder) && 
-    (x.csr_calc_on == y.csr_calc_on);
+    (x.logic == y.logic) && (x.on_a_girder == y.on_a_girder) && 
+    (x.csr_calc_on == y.csr_calc_on) && (x.offset_moves_aperture == y.offset_moves_aperture);
 }
 
 bool operator== (const C_mode_info& x, const C_mode_info& y) {
@@ -271,7 +271,8 @@ void ele_comp (const C_ele& x, const C_ele& y) {
       (x.map_with_offsets == y.map_with_offsets) && 
       (x.field_master == y.field_master) && 
       (x.is_on == y.is_on) && (x.old_is_on == y.old_is_on) && 
-      (x.logic == y.logic) && (x.on_an_girder == y.on_an_girder)) << endl;
+      (x.logic == y.logic) && (x.on_a_girder == y.on_a_girder) &&
+      (x.offset_moves_aperture == y.offset_moves_aperture)) << endl;
 
   cout << "xy:     " << ((x.x == y.x) && (x.y == y.y)) << endl;
   cout << "abz:    " << ((x.a == y.a) && (x.b == y.b) && (x.z == y.z)) << endl;

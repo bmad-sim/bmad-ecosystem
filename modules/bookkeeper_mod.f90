@@ -1083,7 +1083,7 @@ subroutine makeup_overlay_and_girder_slave (lattice, ix_ele)
 
   value = 0
   used = .false.
-  slave%on_an_girder = .false.
+  slave%on_a_girder = .false.
 
   do i = slave%ic1_lord, slave%ic2_lord
     j = lattice%ic(i)
@@ -1102,7 +1102,7 @@ subroutine makeup_overlay_and_girder_slave (lattice, ix_ele)
       slave%value(x_pitch_tot$)  = slave%value(x_pitch$)  + lord%value(x_pitch$)
       slave%value(y_pitch_tot$)  = slave%value(y_pitch$)  + lord%value(y_pitch$)
       slave%value(tilt_tot$)     = slave%value(tilt$)     + lord%value(tilt$)
-      slave%on_an_girder = .true.
+      slave%on_a_girder = .true.
       cycle
     endif
 
@@ -1123,7 +1123,7 @@ subroutine makeup_overlay_and_girder_slave (lattice, ix_ele)
 
 ! If no girder then simply transfer tilt to tilt_tot, etc.
 
-  if (.not. slave%on_an_girder) then
+  if (.not. slave%on_a_girder) then
     slave%value(tilt_tot$)     = slave%value(tilt$)
     slave%value(x_offset_tot$) = slave%value(x_offset$)
     slave%value(y_offset_tot$) = slave%value(y_offset$)
@@ -1207,7 +1207,7 @@ subroutine attribute_bookkeeper (ele, param)
 
 ! Transfer tilt to tilt_tot, etc.
 
-  if (.not. ele%on_an_girder .and. ele%key /= match$) then
+  if (.not. ele%on_a_girder .and. ele%key /= match$) then
     ele%value(tilt_tot$)     = ele%value(tilt$)
     ele%value(x_offset_tot$) = ele%value(x_offset$)
     ele%value(y_offset_tot$) = ele%value(y_offset$)

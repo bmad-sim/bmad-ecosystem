@@ -32,8 +32,8 @@ extern "C" void test_f_lat_(C_lat& c1, C_lat& c2);
 
 C_coord           c_coord_in(101, 102, 103, 104, 105, 106);
 C_coord           c_coord_out(201, 202, 203, 204, 205, 206);
-C_twiss           c_twiss_in(1, 2, 3, 4, 5, 6, 7, 8);
-C_twiss           c_twiss_out(8, 7, 6, 5, 4, 3, 2, 1);
+C_twiss           c_twiss_in(1, 2, 3, 4, 5, 6, 7, 8, 9);
+C_twiss           c_twiss_out(9, 8, 7, 6, 5, 4, 3, 2, 1);
 C_xy_disp         c_xy_disp_in(1, 2);
 C_xy_disp         c_xy_disp_out(2, 1);
 C_floor_position  c_floor_position_in(1, 2, 3, 4, 5, 6);
@@ -133,8 +133,8 @@ void init_all_c_structs () {
   c_wake_out.lr[0] = C_lr_wake(-1, -2, -3, -4, 5, -6, -7, -8, -9, 10, 1);
   c_wake_out.lr[1] = C_lr_wake(-11, -12, -13, -14, -15, -16, -17, -18, -19, 20, 0);
 
-  c_param_in  = C_param(1, 2, 3, m6a, m6b, 11, 12, 13, 14, 15, 1, 0, 1);
-  c_param_out = C_param(11, 12, 13, m6b, m6a, 111, 112, 113, 114, 115, 0, 0, 0);
+  c_param_in  = C_param(1, 2, 3, m6a, m6b, 11, 12, 13, 14, 15, 16, 1, 0, 1);
+  c_param_out = C_param(11, 12, 13, m6b, m6a, 111, 112, 113, 114, 115, 116, 0, 0, 0);
 
   c_bmad_com_in  = C_bmad_com(2, v6a, 3, 4, 5, 6, 7, 8, 
                                   1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1);
@@ -186,8 +186,10 @@ void init_all_c_structs () {
   c_ele_in.is_on = F;
   c_ele_in.old_is_on = T;
   c_ele_in.logic = F;
-  c_ele_in.on_an_girder = T;
+  c_ele_in.on_a_girder = T;
   c_ele_in.csr_calc_on = F;
+  c_ele_in.offset_moves_aperture = T;
+
   c_ele_in.floor = c_floor_position_in;
   c_ele_in.x = c_xy_disp_in;
   c_ele_in.y = c_xy_disp_out;
