@@ -760,7 +760,7 @@ class builder:
           __lines.append(line)
       if print_co:
         for line in __lines:
-          sys.stdout.write(line, 4)    # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
+          sys.stdout.write(line, 4)    # Message priority 4 here to send checkout list ONLY to log file and not clutter screen
       self.lines = []
 
       # Copy the bmad distribution environment setup scripts
@@ -775,7 +775,12 @@ class builder:
       os.chdir(self.base_dir) # possibly not needed.
       print "Current dir: " + os.getcwd()
       tar_cmd_list = ["tar", "-cvf", self.rel_name+".tar", "./"+self.rel_name]
-      t       = sub.Popen(tar_cmd_list, cwd=self.base_dir)
+      t            = sub.Popen(tar_cmd_list, cwd=self.base_dir, stdout=sub.PIPE, stderr=sub.STDOUT)
+      lines        = t.stdout.readlines()
+      for line in lines:
+        #print line.strip()
+        sys.stdout.write(line, 4)   # Only to log file
+      pid = t.pid      
       t_rcode = t.wait()
       print "TAR operation completed successfully."
       if t_rcode != 0:
@@ -1041,7 +1046,7 @@ while complete_fraction < 1 and loop < max_loops:
 
 ###########################################
 stout.outThreshold        = 5      # Swap stdout and logfile thresholds again to return everything
-stout.outLogfileThreshold = 4      # the initially set up state.
+stout.outLogfileThreshold = 4      # to the initially set up state.
 stout.priority            = 5      # Set priority back to default value.
 
 
