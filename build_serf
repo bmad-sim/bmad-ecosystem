@@ -176,12 +176,12 @@ if build_type == "RELEASE":
                     Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/Linux/python"
                 else:
                     Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/OSF1/python"
-                #test_cmd = env_setup1 + cesrdefs + env_setup2 + Py_interpreter +' '+ test_script +" "+ rel_name
-                test_cmd = [Py_interpreter, test_script, rel_name, platform]
+                #test_cmd = [Py_interpreter, test_script, rel_name, platform]
+                test_cmd = env_setup1 + accdefs + env_setup2 + Py_interpreter +' '+ test_script +" "+ rel_name
                 print test_cmd
                 #o test_process = popen2.Popen4(test_cmd)
                 #o2 test_process = sub.Popen(test_cmd)
-                test_process = sub.Popen(test_cmd, stdout=sub.PIPE, stderr=sub.STDOUT)
+                test_process = sub.Popen(test_cmd, shell=True, stdout=sub.PIPE, stderr=sub.STDOUT)
                 lines = test_process.stdout.readlines()
                 for line in lines:
                     print line.strip()
@@ -281,16 +281,25 @@ if build_type == "FIXES":
 
 ############################################################################################
 if build_type == "BMAD DISTRIBUTION":
-    #print "IN BUILD_SERF... BMAD"
     os.chdir(full_rel_name)
     print "Changing directory to: " + os.getcwd()
     env_setup1 = " ACCF90=" + f90 + "; BMAD_="+full_rel_name + '; '  # Set BMAD_ var before invoking bmad_defs
     env_setup2 = ""
-    print "env_setup2: " + env_setup2
     build_cmd = env_setup1 + bmad_defs + env_setup2 + "gmake -f" + build_sys_dir + "/M.distribution "
     for arg in build_args:
         build_cmd = build_cmd + arg
     os.chdir(full_rel_name)
+    build_process = popen2.Popen4(build_cmd)
+    pid = build_process.pid
+    line = build_process.fromchild.readline()
+    while line:                                     # print output as it is generated
+        print line.strip()
+        if line[0:10] == "gmake: ***":            # be on the lookout for errors in the build
+            errors = 1
+        line = build_process.fromchild.readline()
+        if errors:
+            print "--> BUILD STATUS: ERROR(S) DETECTED"
+            sys.exit(92)
     print "Creating DB of files & functions from within " + os.getcwd()
     fdb_cmd = bin_dir + "/create_fdb.pl"
     print [fdb_cmd, full_rel_name]
@@ -302,7 +311,7 @@ if build_type == "BMAD DISTRIBUTION":
     returncode = fdb_process.wait()
     if returncode != 0:
         print "--> BUILD STATUS: ERROR(S) DETECTED"
-        sys.exit(92)
+        sys.exit(93)
 
 
 ############################################################################################
