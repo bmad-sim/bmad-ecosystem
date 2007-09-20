@@ -98,6 +98,7 @@ Figure~\ref{f:lat_param_struct}
     integer particle            ! +1 = positrons, -1 = electrons
     integer ix_lost             ! If lost at what element?
     integer end_lost_at         ! entrance_end$ or exit_end$
+    integer plane_lost_at       ! x_plane$ or y_plane$
     integer lattice_type        ! linear_lattice$, circular_lattice$, etc...
     integer ixx                 ! Integer for general use
     logical stable              ! is closed lattice stable?
@@ -129,13 +130,15 @@ for wake field calculations.
 \index{lat_param_struct!%lost}
 \index{lat_param_struct!%end_lost_at}
 \index{lat_param_struct!%aperture_limit_on}
+\index{lat_param_struct!%plane_lost_at}
 When tracking particles through a lattice the variable
 \vn{%param%aperture_limit_on} determines if apertures are checked.
 \vn{%param%lost} is used to signal if a particle is lost and
 \vn{%param%ix_lost} gives the index of the element at which a particle
 is lost. Additionally, \vn{%param%end_lost_at} is used to indicate at
-which end the particle was lost at. See Chapter~\ref{c:tracking} for
-more details.
+which end the particle was lost at and \vn{%plane_lost_at} records whether
+the lost particle was lost horizontally or vertically.
+See Chapter~\ref{c:tracking} for more details.
 
 \index{lat_param_struct!%t1_with_RF}
 \index{lat_param_struct!%t1_no_RF}

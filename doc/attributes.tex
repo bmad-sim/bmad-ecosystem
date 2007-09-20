@@ -319,35 +319,58 @@ they appear in the lattice file (\sref{s:depend}).
 
 \index{Ecollimator}
 \index{Rcollimator}
-\index{X_limit}
-\index{Y_limit}
-\index{X1_limit}
-\index{Y1_limit}
-\index{X2_limit}
-\index{Y2_limit}
-\index{X_offset}
+\index{X_limit|textbf}
+\index{Y_limit|textbf}
+\index{X1_limit|textbf}
+\index{Y1_limit|textbf}
+\index{X2_limit|textbf}
+\index{Y2_limit|textbf}
+\index{X_offset|textbf}
+\index{Offset_moves_aperture|textbf}
 The aperture attributes are:
 \begin{example}
-  x_limit  = <Real>      ! Horizontal aperture limit
-  y_limit  = <Real>      ! Vertical aperture limit
-  aperture = <Real>      ! Alternative to specifying x_limit and y_limit
-  aperture_at = <Switch> ! What end aperture is at.
+  x1_limit    = <Real>      ! Horizontal, negative side, aperture limit
+  x2_limit    = <Real>      ! Horizontal, positive side, aperture limit
+  y1_limit    = <Real>      ! Vertical, negative side, aperture limit
+  y2_limit    = <Real>      ! Vertical, positive side, aperture limit
+  x_limit     = <Real>      ! Horizontal aperture limit
+  y_limit     = <Real>      ! Vertical aperture limit
+  aperture    = <Real>      ! Alternative to specifying x_limit and y_limit
+  aperture_at = <Switch>    ! What end aperture is at.
+  offset_moves_aperture = <Logical> ! Element offsets affect aperture position
 \end{example}
-\vn{x_limit}, \vn{y_limit} specify the half--width of the aperture of
-an element as shown in figure~\ref{f:limit}. Notice that an \vn{Ecollimator}
-has a elliptical aperture while a \vn{Rcollimator} and all other elements
-have rectangular apertures. A zero \vn{x_limit} or
-\vn{y_limit} is interpreted as no aperture in the $x$ or $y$
-direction. \vn{x_offset} and \vn{y_offset} move the aperture but not
-pitches or tilts.
+\vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, and \vn{y2_limit} specify
+the half--width of the aperture of an element as shown in
+figure~\ref{f:limit}. Apertures are assumed to be rectangular except
+that an \vn{Ecollimator} has a elliptical aperture. 
+A zero \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, or
+\vn{y2_limit} is interpreted as no aperture in the appropriate plane.
 
-An \vn{aperture} attribute supersedes
-any \vn{x_limit} and \vn{y_limit} values and sets \vn{x_limit} and
-\vn{y_limit} equal to the value of \vn{aperture}.
+For convenience, \vn{x_limit} can be used to set \vn{x1_limit} and
+\vn{x2_limit} to a common value. Similarly, \vn{y_limit} can be used
+to set \vn{y1_limit} and \vn{y2_limit}.  The \vn{aperture} attribute
+can be use to set all four \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}
+and \vn{y2_limit} to a common value.
 
-\index{Entrance_end}
-\index{Exit_end}
-\index{Aperture_at}
+\index{Tilt}
+\index{X_offset}
+\index{Y_offset}
+\index{X_pitch}
+\index{Y_pitch}
+Normally, whether a particle hits an aperture or not is evaluated
+independent of any element offsets (\sref{s:offset}). This is equivalent
+to the situation where a beam pipe containing an aperture is
+independent of the element the beam pipe passes through. This can be
+changed by setting the \vn{offset_moves_aperture} attribute to
+\vn{True}. In this case any offsets or pitches will be considered to
+have shifted the aperture boundary. Notice that even in this case
+\vn{tilt}s will not affect the aperture calculation. This is done, for
+example, so that the tilt of a skew quadrupole does not affect the
+aperture.
+
+\index{Entrance_end|textbf}
+\index{Exit_end|textbf}
+\index{Aperture_at|textbf}
 By default the aperture is evaluated at the exit face only of the
 element. This can be changed by setting the \vn{aperture_at} attribute.
 Possible settings for \vn{aperture_at} are:
@@ -363,10 +386,10 @@ and exits at the ``entrance end''.
 
 Example:
 \begin{example}
-  q1: quad, l = 0.6
-  q1[x_limit] = 0.03
-  q1[y_limit] = 0.03
-  q1[aperture] = 0.03  ! equivalent to the proceeding 2 lines.  
+  q1: quad, l = 0.6, x1_limit = 0.045, offset_moves_aperture = T
+  q1[y1_limit] = 0.03
+  q1[y2_limit] = 0.03
+  q1[y_limit] = 0.03  ! equivalent to the proceeding 2 lines.  
   q1[aperture_at] = both_ends
 \end{example}
 

@@ -35,21 +35,22 @@ generally hidden  by the \bmad bookkeeping routines.
     real(rp), pointer :: b_pole(:) => null()  ! normal multipole component
     type (wake_struct), pointer :: wake => null() ! Wake fields
     type (taylor_struct) :: taylor(6)             ! Taylor terms
-    integer key                  ! key value
-    integer sub_key              ! For wigglers: map_type$, periodic_type$
-    integer control_type         ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
-    integer mat6_calc_method     ! bmad_standard$, taylor$, etc.
-    integer tracking_method      ! bmad_standard$, taylor$, etc.
-    integer field_calc           ! Used with integrators (Runge-Kutta et. al)
-    integer num_steps            ! number of slices for DA_maps
-    integer integrator_order     ! For Etiennes' PTC: 2, 4, or 6.
-    logical symplectify          ! Symplectify mat6 matrices.
-    logical exact_rad_int_calc   ! Exact radiation integral calculation?
-    logical map_with_offsets     ! Taylor map calculated with element offsets?
-    logical field_master         ! Calculate strength from the field value?
-    logical is_on                ! For turning element on/off.
-    logical on_an_girder         ! Have an Girder lord?
-    logical csr_calc_on          ! Coherent synchrotron radiation calculation
+    integer key                    ! key value
+    integer sub_key                ! For wigglers: map_type$, periodic_type$
+    integer control_type           ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
+    integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
+    integer tracking_method        ! bmad_standard$, taylor$, etc.
+    integer field_calc             ! Used with integrators (Runge-Kutta et. al)
+    integer num_steps              ! number of slices for DA_maps
+    integer integrator_order       ! For Etiennes' PTC: 2, 4, or 6.
+    logical symplectify            ! Symplectify mat6 matrices.
+    logical exact_rad_int_calc     ! Exact radiation integral calculation?
+    logical map_with_offsets       ! Taylor map calculated with element offsets?
+    logical field_master           ! Calculate strength from the field value?
+    logical is_on                  ! For turning element on/off.
+    logical on_a_girder            ! Have an Girder lord?
+    logical csr_calc_on            ! Coherent synchrotron radiation calculation
+    logical offset_moves_aperture  ! element offsets affects aperture?
   end type
 \end{verbatim}
 \caption[The \vn{ele_struct}.]{The \vn{ele_struct}. Only part of the 
@@ -340,9 +341,9 @@ is modified, there is no corresponding \vn{group_slave} designation
 for the corresponding ``slave'' elements.
 
 \item[girder_lord]
-\index{on_an_girder}
+\index{on_a_girder}
 An \vn{girder_lord} is an \vn{girder} element. In this case, the slaves
-are marked by setting the \vn{%on_an_girder} component in the
+are marked by setting the \vn{%on_a_girder} component in the
 \vn{ele_struct}.
 
 \item{multipass_lord, multipass_slave}
