@@ -47,7 +47,7 @@ subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
   integer i, j, ix, ix2, ixc, n_con2
   integer ixs, slave_type, idel, n_slave
 
-  real(rdef) s_max, s_min
+  real(rp) s_max, s_min
 
 ! Mark element as an girder lord
 

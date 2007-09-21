@@ -7,7 +7,9 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/on_an_girder/on_a_girder/g;
+    s/\(rdef\)/\(rp\)/g;
+    s/_rdef/_rp/g;
+
     print (F_OUT);
 
   }
