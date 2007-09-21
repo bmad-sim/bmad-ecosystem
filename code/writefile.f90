@@ -36,7 +36,7 @@ subroutine writefile(in_file, parameters)
   use bmad_interface
   
   implicit none
-  real(rdef), dimension(1:,1:), intent(in) ::  parameters
+  real(rp), dimension(1:,1:), intent(in) ::  parameters
   character(*), intent(in) ::  in_file
   
 

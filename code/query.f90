@@ -36,7 +36,7 @@ subroutine query_real( parameter, default, fmt)
   character*10 string
   character*30 fm
   character prompt*10/' (default='/, close*3/') ?'/
-  real(rdef) default
+  real(rp) default
 
    fm = '(1x,a,a10,'//fmt//',a3,$)'
 !  fm = a,' (default=',fmt,') ?',$)

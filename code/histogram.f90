@@ -45,14 +45,14 @@ subroutine histogram (ele, coord, in_file, sig, a_out)
   
   type (coord_struct) coord(:)
   type (ele_struct) ele
-  real(rdef) sum(6), avg(6), rms(6)
-  real(rdef) disp_sum(6), disp_avg(6), disp_rms(6)
-  real(rdef) x, disp_x
-  real(rdef) a(6),a_out(1:3),y,f,fsum,ysum
-  real(rdef) disp_a(6),disp_fsum,disp_ysum
-  real(rdef), dimension(size(coord),3) :: amp, disp_amp
-  real(rdef) V_inv(4,4), temp_vec(4)
-  real(rdef) sig(3)
+  real(rp) sum(6), avg(6), rms(6)
+  real(rp) disp_sum(6), disp_avg(6), disp_rms(6)
+  real(rp) x, disp_x
+  real(rp) a(6),a_out(1:3),y,f,fsum,ysum
+  real(rp) disp_a(6),disp_fsum,disp_ysum
+  real(rp), dimension(size(coord),3) :: amp, disp_amp
+  real(rp) V_inv(4,4), temp_vec(4)
+  real(rp) sig(3)
 
   integer i,j,k, n, disp_n
   integer number(0:60,3),disp_number(-60:60,3)

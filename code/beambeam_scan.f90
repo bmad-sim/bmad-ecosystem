@@ -68,14 +68,14 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   type (ele_struct) beambeam_ele
   type (scan_params_struct) scan_params
   
-  real(rdef) current
-  real(rdef) Qx, Qy
-  real(rdef) rgamma, den, xi_v, xi_h
-  real(rdef) r_0/2.81794092e-15/
-  real(rdef) charge
-  real(rdef) phi_x, phi_y
-  real(rdef), allocatable :: dk1(:)
-  real(rdef) x_offset, y_offset
+  real(rp) current
+  real(rp) Qx, Qy
+  real(rp) rgamma, den, xi_v, xi_h
+  real(rp) r_0/2.81794092e-15/
+  real(rp) charge
+  real(rp) phi_x, phi_y
+  real(rp), allocatable :: dk1(:)
+  real(rp) x_offset, y_offset
 
   integer i, j
   integer ix
@@ -116,12 +116,12 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   character name*12 
 
 !ANDREW added these
-  real(rdef) :: param_sum, param_mean(1:3),A(1:3), variances(1:3)
-  real(rdef), allocatable :: past_params(:,:), parameters(:,:), past_lums(:)
-  real(rdef) :: t1, t2, t3, t4, t5, t6, t_wait, t_send
-  real(rdef) :: max_lum,min_lum 
-  real(rdef) :: Qx_in , Qy_in
-  real(rdef), parameter :: j_print_dist=10000
+  real(rp) :: param_sum, param_mean(1:3),A(1:3), variances(1:3)
+  real(rp), allocatable :: past_params(:,:), parameters(:,:), past_lums(:)
+  real(rp) :: t1, t2, t3, t4, t5, t6, t_wait, t_send
+  real(rp) :: max_lum,min_lum 
+  real(rp) :: Qx_in , Qy_in
+  real(rp), parameter :: j_print_dist=10000
   integer :: t_count, k, p_unit, e_unit, ti_unit, t_unit, g_unit
   integer :: damping
   integer :: mem_mean

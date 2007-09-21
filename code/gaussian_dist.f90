@@ -51,16 +51,16 @@
   type (coord_struct), allocatable :: coord(:)
   type (ele_struct) ele
 
-  real(rdef) a, b, z
+  real(rp) a, b, z
 
-  real(rdef) theta_a, theta_b, theta_z, dl, delta, a_amp, b_amp, z_amp
-  real(rdef) z_emit, beta_z
-!  real(rdef) ran
-  real(rdef) v(4,4), temp_vec(4)
-  real(rdef) mat(6,6)
-  real(rdef) mu, cosmu
-  real(rdef) min_sig
-  real(rdef) coupling
+  real(rp) theta_a, theta_b, theta_z, dl, delta, a_amp, b_amp, z_amp
+  real(rp) z_emit, beta_z
+!  real(rp) ran
+  real(rp) v(4,4), temp_vec(4)
+  real(rp) mat(6,6)
+  real(rp) mu, cosmu
+  real(rp) min_sig
+  real(rp) coupling
 
   integer i, idum,p
   integer j

@@ -60,17 +60,17 @@ program freq_map
   real(rp) phy_x_set, phy_y_set
   real(rp) chromx, chromy, qp_x, qp_y
   real(rp), allocatable :: dk1(:)
-  real(rdef) eps_rel(4), eps_abs(4)
-  real(rdef), allocatable :: tune(:,:,:)
-  real(rdef) Qx, Qy, Qz, current, Q, d, b, c, A
-  real(rdef) Qx_init, Qy_init
-  real(rdef) sig_in(3) !sigx, sigy, sigz, initial distribution
-  real(rdef) x0, y0, e0, x1, y1, e1, dx, dy, de
+  real(rp) eps_rel(4), eps_abs(4)
+  real(rp), allocatable :: tune(:,:,:)
+  real(rp) Qx, Qy, Qz, current, Q, d, b, c, A
+  real(rp) Qx_init, Qy_init
+  real(rp) sig_in(3) !sigx, sigy, sigz, initial distribution
+  real(rp) x0, y0, e0, x1, y1, e1, dx, dy, de
   real(rp), ALLOCATABLE :: fft1(:), fft2(:), fft3(:)
   real(rp), ALLOCATABLE :: fft4(:), fft5(:), fft6(:)
   complex(dpc), ALLOCATABLE ::  n1(:,:), m1(:,:),  n2(:,:), m2(:,:), n3(:,:), m3(:,:), n4(:,:)
   real(rp), ALLOCATABLE ::  rftxa(:), rftxb(:), rftya(:), rftyb(:), rftea(:), rfteb(:)
-  real(rdef) :: final_pos_in(1:4)
+  real(rp) :: final_pos_in(1:4)
   real(rp) hanning
   type(coord_struct) :: final_pos_out
 
@@ -266,9 +266,11 @@ program freq_map
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !This loop can be changed to set the default beampipe size
-  do i = 1, ring.n_ele_max
-    if(ring.ele(i).value(x_limit$) == 0.)ring.ele(i).value(x_limit$) = .0
-    if(ring.ele(i).value(y_limit$) == 0.)ring.ele(i).value(y_limit$) = .0
+  do i = 1, ring%n_ele_max
+    if(ring%ele(i)%value(x1_limit$) == 0) ring%ele(i)%value(x1_limit$) = 0
+    if(ring%ele(i)%value(x2_limit$) == 0) ring%ele(i)%value(x2_limit$) = 0
+    if(ring%ele(i)%value(y1_limit$) == 0) ring%ele(i)%value(y1_limit$) = 0
+    if(ring%ele(i)%value(y2_limit$) == 0) ring%ele(i)%value(y2_limit$) = 0
   enddo
 
   n_x = nint(abs((x1 - x0)/dx))+1

@@ -78,15 +78,15 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   integer particle
   integer len 
 
-  real(rdef) eps_rel(4), eps_abs(4)
-  real(rdef) e_init, theta                                   
-  real(rdef) x0, x1, x2, y0, y1, y2
-  real(rdef) energy(10)
-  real(rdef), allocatable :: dk1(:)
-  real(rdef) Qx, Qy, Qz
-  real(rdef) Qp_x, Qp_y
-  real(rdef) phy_x_set, phy_y_set
-  real(rdef) delta_e/1.e-4/, chrom_x, chrom_y
+  real(rp) eps_rel(4), eps_abs(4)
+  real(rp) e_init, theta                                   
+  real(rp) x0, x1, x2, y0, y1, y2
+  real(rp) energy(10)
+  real(rp), allocatable :: dk1(:)
+  real(rp) Qx, Qy, Qz
+  real(rp) Qp_x, Qp_y
+  real(rp) phy_x_set, phy_y_set
+  real(rp) delta_e/1.e-4/, chrom_x, chrom_y
 
   logical aperture_bracketed, track_on
   logical ok

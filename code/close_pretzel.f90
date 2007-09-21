@@ -63,8 +63,8 @@ subroutine close_pretzel (ring, i_dim, final_pos_in, final_pos_out)
   integer n
  
 
-  real(rdef) dx, dv, dv_0
-  real(rdef) kick_w, kick_e
+  real(rp) dx, dv, dv_0
+  real(rp) kick_w, kick_e
 
   character(20) :: r_name='close_pretzel'
   character(200) write_line

@@ -43,8 +43,8 @@ subroutine phase_space_amplitude (ele, orb, amp_x, amp_y)
   type (ele_struct) ele
   type (coord_struct) orb
 
-  real(rdef) amp_x, amp_y
-  real(rdef) V_inv(4,4), temp_vec(4)
+  real(rp) amp_x, amp_y
+  real(rp) V_inv(4,4), temp_vec(4)
 
   integer j
 

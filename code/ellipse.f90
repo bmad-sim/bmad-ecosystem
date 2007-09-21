@@ -41,8 +41,8 @@
 
       type(ele_struct) ele
 
-      real(rdef) bet, rootb, alp, gamma, A,B, q, r, s
-      real(rdef) theta, s2, c2, sc,  major, minor
+      real(rp) bet, rootb, alp, gamma, A,B, q, r, s
+      real(rp) theta, s2, c2, sc,  major, minor
 
       integer ix,n
  

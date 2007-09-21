@@ -1,4 +1,4 @@
-  program closed_orbit
+program closed_orbit
 
   use bmad_struct
   use bmad_interface
@@ -7,107 +7,105 @@
   use cbar_mod
  
   implicit none
-interface
-  subroutine psp(ring, co, traj, n_turns, istat2, ix_start, ix_end)
-  use bmad_struct, only: lat_struct, coord_struct
-  implicit none
 
-  type (lat_struct) ring
+  interface
+    subroutine psp(ring, co, traj, n_turns, istat2, ix_start, ix_end)
+      use bmad_struct, only: lat_struct, coord_struct
+      implicit none
+      type (lat_struct) ring
+      type (coord_struct) traj
+      type (coord_struct), allocatable :: co(:)
+      integer n_turns, i, pgopen, istat2
+      integer ix_start, ix_end
+    end subroutine
+  end interface
+
+  type (lat_struct) ring_1, ring_2
+  type (lat_struct), save :: ring, ring_two(-1:1)
+  type (coord_struct), allocatable, save :: co(:), cot(:), co_high(:), co_low(:)
+  type (coord_struct), allocatable, save :: co_off(:)
+  type (coord_struct), allocatable, save :: co_electron(:)
   type (coord_struct) traj
-  type (coord_struct), allocatable :: co(:)
+  type (coord_struct) dorb
+  type (normal_modes_struct) mode
+  type (coord_struct) track_start
 
-  integer n_turns, i, pgopen, istat2
-  integer ix_start, ix_end
-  end subroutine
- end interface
+  integer pgopen, istat1, istat2
+  integer i, j, k(6)/1,3,6,2,4,5/
+  integer ix
+  integer, allocatable :: track_meth(:)
+  integer ke
+  integer n/0/
+  integer nd
+  integer plot_flag, last
+  integer, parameter :: orbit$=1,beta$=2,cbar$=3,diff$=4, de_beta$=5
+  integer, parameter :: eta$=6, de_cbar$=7
+  integer ix_cache
+  integer, allocatable :: n_ele(:)
+  integer i_dim/4/
+  integer ix_ele
+  integer n_turns
+  integer nargs, iargc
+  integer n_all
+  integer l
+  integer ix_start/1/, ix_end/1/
+  integer io_stat
 
- type (lat_struct) ring_1, ring_2
- type (lat_struct), save :: ring, ring_two(-1:1)
- type (coord_struct), allocatable, save :: co(:), cot(:), co_high(:), co_low(:)
- type (coord_struct), allocatable, save :: co_off(:)
- type (coord_struct), allocatable, save :: co_electron(:)
- type (coord_struct) traj
- type (coord_struct) dorb
- type (normal_modes_struct) mode
- type (coord_struct) track_start
-
-      integer pgopen, istat1, istat2
-      integer i, j, k(6)/1,3,6,2,4,5/
-      integer ix
-      integer, allocatable :: track_meth(:)
-      integer ke
-      integer n/0/
-      integer nd
-      integer plot_flag, last
-      integer, parameter :: orbit$=1,beta$=2,cbar$=3,diff$=4, de_beta$=5
-      integer, parameter :: eta$=6, de_cbar$=7
-      integer ix_cache
-      integer, allocatable :: n_ele(:)
-      integer i_dim/4/
-      integer ix_ele
-      integer n_turns
-      integer nargs, iargc
-      integer n_all
-      integer l
-      integer ix_start/1/, ix_end/1/
-      integer io_stat
-
-      real*4, allocatable :: z(:), x(:), y(:), zz(:,:), xx(:,:), yy(:,:)
-      real*4, allocatable :: zz_diff(:), xx_diff(:), yy_diff(:)
-      real*4 width/7./, aspect/1./
-      real*4 xmax/0./, ymax/0./, xmax0, ymax0
-      real*4 xscale, yscale, x_low, y_low
-      real*4 xdet(1000), ydet(1000), zdet(1000)
-      real(rdef) cbar_mat(2,2), cbar_mat1(2,2), cbar_mat2(2,2)
-      real(rdef) de/8e-4/
-      real(rdef) rms_x, rms_y
-      real(rdef) frev
-      real*4 length, start, end     
-      real(rdef)rate_x, rate_y, rate_xq, rate_yq, rate_x_tot, rate_y_tot
-      real(rdef) d_amp_x, d_amp_y
-      real (rdef) p1, p2
-      real (rdef) f,p
-      real(rdef) axx, axy, ayy     
-      real(rdef) res_cos, res_sin, res_amp
-      real(rdef) n_part_save
-      real(rp) slopes(4)
+  real*4, allocatable :: z(:), x(:), y(:), zz(:,:), xx(:,:), yy(:,:)
+  real*4, allocatable :: zz_diff(:), xx_diff(:), yy_diff(:)
+  real*4 width/7./, aspect/1./
+  real*4 xmax/0./, ymax/0./, xmax0, ymax0
+  real*4 xscale, yscale, x_low, y_low
+  real*4 xdet(1000), ydet(1000), zdet(1000)
+  real(rp) cbar_mat(2,2), cbar_mat1(2,2), cbar_mat2(2,2)
+  real(rp) de/8e-4/
+  real(rp) rms_x, rms_y
+  real(rp) frev
+  real*4 length, start, end     
+  real(rp)rate_x, rate_y, rate_xq, rate_yq, rate_x_tot, rate_y_tot
+  real(rp) d_amp_x, d_amp_y
+  real (rp) p1, p2
+  real (rp) f,p
+  real(rp) axx, axy, ayy     
+  real(rp) res_cos, res_sin, res_amp
+  real(rp) n_part_save
+  real(rp) slopes(4)
      
-      character*40 lattice
-      character*120 lat_file
-      character*120 line, last_line, vec_start
-      character*16 x_or_y, answer, save_answer
-      character*72 comment
-      character*20 device_type, last_device_type/' '/
-      character*40 ele_names(4)
-      character*40 location
+  character*40 lattice
+  character*120 lat_file
+  character*120 line, last_line, vec_start
+  character*16 x_or_y, answer, save_answer
+  character*72 comment
+  character*20 device_type, last_device_type/' '/
+  character*40 ele_names(4)
+  character*40 location
 
-      logical keep_trying/.true./
-      logical write_orbit/.false./                                        
-      logical diff
-      logical radiation/.false./
-      logical transfer_line/.false./
-      logical track/.false./
-      logical cbarve/.false./
-
+  logical keep_trying/.true./
+  logical write_orbit/.false./                                        
+  logical diff
+  logical radiation/.false./
+  logical transfer_line/.false./
+  logical track/.false./
+  logical cbarve/.false./
 
 !
-      nargs = cesr_iargc()
-      if(nargs == 1)then
-         call cesr_getarg(1, lat_file)
-         print *, 'Using ', trim(lat_file)
-       else
+  nargs = cesr_iargc()
+  if (nargs == 1)then
+     call cesr_getarg(1, lat_file)
+     print *, 'Using ', trim(lat_file)
+  else
 
-      lat_file = 'bmad.'
-      print '(a,$)',' Lattice file name ? (default= bmad.) '
-      read(5,'(a)') line
-       call string_trim(line, line, ix)
-       lat_file = line
-       if(ix == 0) lat_file = 'bmad.'
-       print *, ' lat_file = ', lat_file
-     endif
+    lat_file = 'bmad.'
+    print '(a,$)',' Lattice file name ? (default= bmad.) '
+    read(5,'(a)') line
+    call string_trim(line, line, ix)
+    lat_file = line
+    if(ix == 0) lat_file = 'bmad.'
+    print *, ' lat_file = ', lat_file
+  endif
 
-      call bmad_parser (lat_file, ring_1)
-      ring  = ring_1
+  call bmad_parser (lat_file, ring_1)
+  ring  = ring_1
 
 !      do i=1,ring%n_ele_max
 !       if(index(ring%ele(i)%name, 'WIG_DAMP') /= 0)then
@@ -142,11 +140,11 @@ interface
   allocate(zz(0:ring%n_ele_max,1:5))
   allocate(n_ele(1:5))
 
-   length = ring%ele(ring%n_ele_track)%s
+  length = ring%ele(ring%n_ele_track)%s
   
-    last = 0
+  last = 0
 
- do while (.not. write_orbit)
+  do while (.not. write_orbit)
   do while (keep_trying)
 
 10  print '(a, $)', ' ANALYZER:  element change or GO> '
@@ -914,7 +912,7 @@ interface
 
  type (lat_struct) ring_high, ring_low
 
- real(rdef) de, rms_x, rms_y, avg_x, avg_y,sum_x,sum_y
+ real(rp) de, rms_x, rms_y, avg_x, avg_y,sum_x,sum_y
 
   integer i
 
@@ -973,11 +971,11 @@ interface
 
  type (lat_struct) ring
 
- real(rdef) rate_x, rate_y, delta_e, rate_xq, rate_yq
- real(rdef) xf, yf,sum_x_real, sum_x_imagine, sum_y_real, sum_y_imagine
- real(rdef) xfq, yfq,sum_x_realq, sum_x_imagineq, sum_y_realq, sum_y_imagineq
- real(rdef) rate_x_tot, rate_y_tot
- real(rdef) frev
+ real(rp) rate_x, rate_y, delta_e, rate_xq, rate_yq
+ real(rp) xf, yf,sum_x_real, sum_x_imagine, sum_y_real, sum_y_imagine
+ real(rp) xfq, yfq,sum_x_realq, sum_x_imagineq, sum_y_realq, sum_y_imagineq
+ real(rp) rate_x_tot, rate_y_tot
+ real(rp) frev
 
   integer i
 
@@ -1084,8 +1082,10 @@ interface
   end do
 
   do i = 1, ring%n_ele_max
-    if(ring%ele(i)%value(x_limit$) == 0.)ring%ele(i)%value(x_limit$) = 0.05
-    if(ring%ele(i)%value(y_limit$) == 0.)ring%ele(i)%value(y_limit$) = 0.05
+    if(ring%ele(i)%value(x1_limit$) == 0) ring%ele(i)%value(x1_limit$) = 0.05
+    if(ring%ele(i)%value(y2_limit$) == 0) ring%ele(i)%value(y2_limit$) = 0.05
+    if(ring%ele(i)%value(x1_limit$) == 0) ring%ele(i)%value(x1_limit$) = 0.05
+    if(ring%ele(i)%value(y2_limit$) == 0) ring%ele(i)%value(y2_limit$) = 0.05
   enddo
 
   ring%param%aperture_limit_on = .true.

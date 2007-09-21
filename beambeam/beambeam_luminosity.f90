@@ -65,16 +65,16 @@ program beambeam_luminosity
   integer version
   integer n_part, n_turn, particle, i_train, j_car, n_trains_tot, n_cars, slices 
 
-  real(rdef), allocatable :: dk1(:) 
-  real(rdef) phi_x, phi_y
-  real(rdef) a(6,6), wr(6), wi(6), tune(6)
-  real(rdef) test
-  real(rdef) Q_z, current
-  real(rdef) Q_x, Q_y
-  real(rdef) min_sig
-  real(rdef) Q_x_init, Q_y_init
-  real(rdef) coupling_sb, coupling_wb
-  real(rdef) sig_in(1:3)
+  real(rp), allocatable :: dk1(:) 
+  real(rp) phi_x, phi_y
+  real(rp) a(6,6), wr(6), wi(6), tune(6)
+  real(rp) test
+  real(rp) Q_z, current
+  real(rp) Q_x, Q_y
+  real(rp) min_sig
+  real(rp) Q_x_init, Q_y_init
+  real(rp) coupling_sb, coupling_wb
+  real(rp) sig_in(1:3)
 
   character lat_file*100, file_name*100, out_file*100, new_lat_file*100
   character date*10, time*10
@@ -98,7 +98,7 @@ program beambeam_luminosity
   character*5 fit
   integer readstatus
   integer :: arg_num,iargc
-  real(rdef) :: final_pos_in(1:4)   ! array in beambeam.in file giving closed orbit coord
+  real(rp) :: final_pos_in(1:4)   ! array in beambeam.in file giving closed orbit coord
 
   namelist / parameters / parallel, fit, Q_x, Q_y, &
                 Q_z, n_part, lat_file, n_turn, particle, &
@@ -342,8 +342,10 @@ end if
   endif
 
   do i = 1, ring.n_ele_max
-    if(ring.ele(i).value(x_limit$) == 0.)ring.ele(i).value(x_limit$) = 0.05
-    if(ring.ele(i).value(y_limit$) == 0.)ring.ele(i).value(y_limit$) = 0.05
+    if(ring.ele(i).value(x1_limit$) == 0.)ring.ele(i).value(x1_limit$) = 0.05
+    if(ring.ele(i).value(x2_limit$) == 0.)ring.ele(i).value(x2_limit$) = 0.05
+    if(ring.ele(i).value(y1_limit$) == 0.)ring.ele(i).value(y1_limit$) = 0.05
+    if(ring.ele(i).value(y2_limit$) == 0.)ring.ele(i).value(y2_limit$) = 0.05
   enddo
 
   ring.param.aperture_limit_on = .true.

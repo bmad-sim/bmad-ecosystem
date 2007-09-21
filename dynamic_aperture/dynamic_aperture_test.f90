@@ -40,8 +40,8 @@ program dynamic_aperture_test
 
   implicit none
 
-  type ( lat_struct ) ring
-  type ( lat_struct ), save :: ring_in, ring_out
+  type (lat_struct) ring
+  type (lat_struct), save :: ring_in, ring_out
   type (track_input_struct) track_input
   type (ele_struct) ele
   type (coord_struct), allocatable, save :: co(:)
@@ -56,13 +56,13 @@ program dynamic_aperture_test
   integer n
   integer int_Q_x, int_Q_y
 
-  real(rdef) x_init, y_init, e_max, accuracy, energy(10)
-  real(rdef) ap_mult, aperture_multiplier, Qx, Qy, Qz, Qx_ini, Qy_ini, Qp_x, Qp_y
-  real(rdef), dimension(:,:), allocatable :: crossings_1
-  real(rdef), dimension(:), allocatable :: cross_positions
-  real(rdef) current
-  real(rdef) phy_x_set, phy_y_set
-  real(rdef), allocatable :: dk1(:)
+  real(rp) x_init, y_init, e_max, accuracy, energy(10)
+  real(rp) ap_mult, aperture_multiplier, Qx, Qy, Qz, Qx_ini, Qy_ini, Qp_x, Qp_y
+  real(rp), dimension(:,:), allocatable :: crossings_1
+  real(rp), dimension(:), allocatable :: cross_positions
+  real(rp) current
+  real(rp) phy_x_set, phy_y_set
+  real(rp), allocatable :: dk1(:)
 
   character*60 da_file, in_file
   character*100 lat_file
@@ -84,7 +84,7 @@ program dynamic_aperture_test
     print '(a, $)', ' Input command file <CR = DA_TEST.IN>: '
     read(*, '(a)') in_file
     call string_trim (in_file, in_file, ix)
-    if (ix .eq. 0)in_file = 'da_test.in'
+    if (ix == 0)in_file = 'da_test.in'
     call file_suffixer (in_file, in_file, '.in', .false.)
 
     open (unit = 1, file = in_file, status = 'old', iostat = ios)
@@ -98,10 +98,10 @@ program dynamic_aperture_test
 
   enddo
 
-  Qx=0.
-  Qy=0.
-  Qx_ini=0.
-  Qy_ini=0.
+  Qx=0
+  Qy=0
+  Qx_ini=0
+  Qy_ini=0
   aperture_multiplier = 10.
   particle = positron$
   rec_taylor = .true.
@@ -123,18 +123,18 @@ program dynamic_aperture_test
 
   type '(a28,f12.6,a9,f12.6)', &
        ' Before initial Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
-  if(Qx_ini /= 0. .and. Qy_ini /= 0.)then 
+  if (Qx_ini /= 0. .and. Qy_ini /= 0.)then 
     int_Q_x = int(ring%ele(ring%n_ele_track)%a%phi / twopi)
     int_Q_y = int(ring%ele(ring%n_ele_track)%b%phi / twopi)
     phy_x_set = (int_Q_x + Qx_ini)*twopi
     phy_y_set = (int_Q_y + Qy_ini)*twopi
     call choose_quads(ring, dk1)
     do i=0,ring%n_ele_max
-     co(i)%vec(1:6)=0.
+     co(i)%vec = 0
     end do
    call set_on(elseparator$, ring, .false.) 
    call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
-    if(.not. ok) type *,' Qtune failed'
+    if (.not. ok) type *,' Qtune failed'
    call set_on(elseparator$, ring, .true.) 
   endif
 
@@ -144,7 +144,7 @@ program dynamic_aperture_test
 
 
   call twiss_at_start(ring)
-  co(0)%vec = 0.
+  co(0)%vec = 0
   call closed_orbit_calc(ring, co, 4)
   call lat_make_mat6(ring,-1,co)
   call twiss_at_start(ring)
@@ -155,13 +155,13 @@ program dynamic_aperture_test
 
 ! set up for lrbbi
 
-  if( i_train*j_car * n_cars * j_car * current /= 0)then
+  if (i_train*j_car * n_cars * j_car * current /= 0)then
    ring_in = ring
-   call lrbbi_setup ( ring_in, ring_out, particle, i_train, j_car, n_trains_tot, n_cars, current, rec_taylor)
+   call lrbbi_setup (ring_in, ring_out, particle, i_train, j_car, n_trains_tot, n_cars, current, rec_taylor)
    ring = ring_out
 
    call twiss_at_start(ring)
-   co(0)%vec = 0.
+   co(0)%vec = 0
    call closed_orbit_calc(ring, co, 4)
    call lat_make_mat6(ring,-1, co)
    call twiss_at_start(ring)
@@ -177,14 +177,18 @@ program dynamic_aperture_test
   call calc_z_tune (ring)
   call twiss_at_start(ring)
 
-  do i = 1, ring.n_ele_max
-    ring.ele(i).value(x_limit$) = ap_mult * ring.ele(i).value(x_limit$)
-    ring.ele(i).value(y_limit$) = ap_mult * ring.ele(i).value(y_limit$)
-    if(ring.ele(i).value(x_limit$) == 0.)ring.ele(i).value(x_limit$) = 0.3
-    if(ring.ele(i).value(y_limit$) == 0.)ring.ele(i).value(y_limit$) = 0.3
+  do i = 1, ring%n_ele_max
+    ring%ele(i)%value(x1_limit$) = ap_mult * ring%ele(i)%value(x1_limit$)
+    ring%ele(i)%value(x2_limit$) = ap_mult * ring%ele(i)%value(x2_limit$)
+    ring%ele(i)%value(y1_limit$) = ap_mult * ring%ele(i)%value(y1_limit$)
+    ring%ele(i)%value(y2_limit$) = ap_mult * ring%ele(i)%value(y2_limit$)
+    if (ring%ele(i)%value(x1_limit$) == 0) ring%ele(i)%value(x1_limit$) = 0.3
+    if (ring%ele(i)%value(x2_limit$) == 0) ring%ele(i)%value(x2_limit$) = 0.3
+    if (ring%ele(i)%value(y1_limit$) == 0) ring%ele(i)%value(y1_limit$) = 0.3
+    if (ring%ele(i)%value(y2_limit$) == 0) ring%ele(i)%value(y2_limit$) = 0.3
   enddo
 
-  ring.param.aperture_limit_on = .true.
+  ring%param%aperture_limit_on = .true.
 
 ! track                                                
 

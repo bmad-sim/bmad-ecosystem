@@ -42,9 +42,9 @@
   type (lat_struct) ring
   type (normal_modes_struct) mode
 
-  real(rdef) z_emit
-  real(rdef) a(6,6)
-  real(rdef) cosmu, mu, sinmu, beta_z
+  real(rp) z_emit
+  real(rp) a(6,6)
+  real(rp) cosmu, mu, sinmu, beta_z
 
 ! compute beta, alpha in longitudinal phase space
 

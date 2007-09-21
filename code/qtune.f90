@@ -40,9 +40,9 @@
   type (lat_struct) ring
   type (coord_struct), allocatable :: orb(:)
 
-  real(rdef) Q_x, Q_y
-  real(rdef), allocatable :: dk1(:) 
-  real(rdef) int_Q_x, int_Q_y, phi_x, phi_y
+  real(rp) Q_x, Q_y
+  real(rp), allocatable :: dk1(:) 
+  real(rp) int_Q_x, int_Q_y, phi_x, phi_y
 
   logical ok
 

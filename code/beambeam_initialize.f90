@@ -60,14 +60,14 @@
   type (ele_struct) beambeam_ele
   type (scan_params_struct) scan_params
 
-  real(rdef) current
-  real(rdef) Qx, Qy
-  real(rdef) rgamma, den, xi_v, xi_h
-  real(rdef) r_0/2.81794092e-15/
-  real(rdef) charge
-  real(rdef) phi_x, phi_y
-  real(rdef), allocatable :: dk1(:) 
-  real(rdef) a_out(1:3)  
+  real(rp) current
+  real(rp) Qx, Qy
+  real(rp) rgamma, den, xi_v, xi_h
+  real(rp) r_0/2.81794092e-15/
+  real(rp) charge
+  real(rp) phi_x, phi_y
+  real(rp), allocatable :: dk1(:) 
+  real(rp) a_out(1:3)  
   
   integer i, j
   integer ix

@@ -63,10 +63,10 @@ subroutine close_vertical(ring, i_dim, final_pos_in, final_pos_out)
   integer n
   integer i_dim
 
-  real(rdef) dy_5, dyp_5, dy_7, dyp_7, dv(2), dv_0, dvc7, vc7
-  real(rdef) kick_w, kick_e
-  real(rdef) mat_inv(2,2)
-  real(rdef) det
+  real(rp) dy_5, dyp_5, dy_7, dyp_7, dv(2), dv_0, dvc7, vc7
+  real(rp) kick_w, kick_e
+  real(rp) mat_inv(2,2)
+  real(rp) det
 
   character(20) :: r_name='close_vertical'
   character(200) write_line

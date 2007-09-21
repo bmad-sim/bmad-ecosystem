@@ -48,8 +48,8 @@ subroutine track_a_particle (closed_orbit, orb0, n_turn, ring, Q_x, Q_y, Q_z)
   integer n_turn
   integer n_ele, i
 
-  real(rdef) x_max, y_max, amp_x_max, amp_y_max, amp_x, amp_y, amp_x0, amp_y0
-  real(rdef) Q_x, Q_y, Q_z
+  real(rp) x_max, y_max, amp_x_max, amp_y_max, amp_x, amp_y, amp_x0, amp_y0
+  real(rp) Q_x, Q_y, Q_z
 
   call reallocate_coord(orb,ring%n_ele_max)
 

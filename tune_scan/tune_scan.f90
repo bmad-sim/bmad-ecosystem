@@ -220,9 +220,11 @@ program tune_scan
 
   close(unit=21)
 
-  do i = 1, ring.n_ele_max
-    if(ring.ele(i).value(x_limit$) == 0.)ring.ele(i).value(x_limit$) = 0.05
-    if(ring.ele(i).value(y_limit$) == 0.)ring.ele(i).value(y_limit$) = 0.05
+  do i = 1, ring%n_ele_max
+    if(ring%ele(i)%value(x1_limit$) == 0) ring%ele(i)%value(x1_limit$) = 0.05
+    if(ring%ele(i)%value(x2_limit$) == 0) ring%ele(i)%value(x2_limit$) = 0.05
+    if(ring%ele(i)%value(y1_limit$) == 0) ring%ele(i)%value(y1_limit$) = 0.05
+    if(ring%ele(i)%value(y2_limit$) == 0) ring%ele(i)%value(y2_limit$) = 0.05
   enddo
 
   ring.param.aperture_limit_on = .true.

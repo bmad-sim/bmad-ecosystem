@@ -44,14 +44,14 @@ module scan_parameters
   type scan_params_struct
     character*80 lat_file
     character*80 file_name
-    real(rdef) Q_z
-    real(rdef) current  !mA/bunch
-    real(rdef) sig_in(3)   !sigx, sigy, sigz, initial distribution
-    real(rdef) sig_out(3)  !sigx, sigy, sigz, final distribution
-    real(rdef) min_sig     !x/sigx + y/sigy + z/sigz > min_sig
-    real(rdef) lum         !luminosity
-    real(rdef) coupling_wb    !coupling of horizontal emittance into vertical weak beam
-    real(rdef) coupling_sb    !coupling of horizontal emittance into vertical strong beam
+    real(rp) Q_z
+    real(rp) current  !mA/bunch
+    real(rp) sig_in(3)   !sigx, sigy, sigz, initial distribution
+    real(rp) sig_out(3)  !sigx, sigy, sigz, final distribution
+    real(rp) min_sig     !x/sigx + y/sigy + z/sigz > min_sig
+    real(rp) lum         !luminosity
+    real(rp) coupling_wb    !coupling of horizontal emittance into vertical weak beam
+    real(rp) coupling_sb    !coupling of horizontal emittance into vertical strong beam
     integer n_turn, particle, i_train, j_car, n_trains_tot, n_cars 
     integer n_part !initial distribution
     integer slices 
@@ -114,9 +114,9 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
   integer, optional, intent(in) :: slices
 
 
-  real(rdef) current
-  real(rdef) major, minor, theta, vert_size_coupled, vert_size_emit
-  real(rdef) coupling
+  real(rp) current
+  real(rp) major, minor, theta, vert_size_coupled, vert_size_emit
+  real(rp) coupling
 
   character(20) :: r_name='BEAMBEAM_SETUP'
 

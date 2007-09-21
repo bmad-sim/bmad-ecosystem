@@ -42,11 +42,11 @@
 
   type (coord_struct) coord(:)
   type (ele_struct) ele
-         real(rdef) sum(6), avg(6), rms(6)
-         real(rdef) x
-         real(rdef) a(6),y,f,fsum,ysum
-         real(rdef), dimension(size(coord),3) :: amp
-         real(rdef) sig(3)
+         real(rp) sum(6), avg(6), rms(6)
+         real(rp) x
+         real(rp) a(6),y,f,fsum,ysum
+         real(rp), dimension(size(coord),3) :: amp
+         real(rp) sig(3)
 
          integer i,j,k, n
          integer number(0:60,3)

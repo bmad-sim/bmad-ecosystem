@@ -63,16 +63,16 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb, ph
   
   integer sib_j, n_typeout
 
-  real(rdef) :: phi_x, phi_y
-  real(rdef) :: past_params(:,:), past_lums(:), parameters(:,:)
+  real(rp) :: phi_x, phi_y
+  real(rp) :: past_params(:,:), past_lums(:), parameters(:,:)
 
   type(coord_struct) co_
   integer i,l,n_ok,j
-  real(rdef) :: param_sum, param_mean(1:3),A(1:3), variances(1:3)
-  real(rdef) :: t1, t2, t3, t4, t5, t6, t_wait, t_send
-  real(rdef) :: mean_lum,dev_lum,xsum,x2sum
-  real(rdef) :: Qx_in , Qy_in
-  real(rdef), parameter :: j_print_dist=10000
+  real(rp) :: param_sum, param_mean(1:3),A(1:3), variances(1:3)
+  real(rp) :: t1, t2, t3, t4, t5, t6, t_wait, t_send
+  real(rp) :: mean_lum,dev_lum,xsum,x2sum
+  real(rp) :: Qx_in , Qy_in
+  real(rp), parameter :: j_print_dist=10000
   integer :: t_count, k, p_unit, e_unit, ti_unit, t_unit, g_unit
   integer :: damping
   integer :: mem_mean
@@ -82,7 +82,7 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb, ph
   type(coord_struct) :: final_pos_out
   type (coord_struct), allocatable, save ::  end_coord(:)
 
-  real(rdef) x_offset, y_offset
+  real(rp) x_offset, y_offset
 
   call reallocate_coord(end_coord, scan_params%n_part)
   param_mean(:) = 0.0

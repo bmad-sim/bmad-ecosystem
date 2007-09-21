@@ -51,12 +51,12 @@
   type(coord_struct), allocatable :: coord(:)
   type(lat_param_struct) param
 
-  real(rdef) z_slice(100), sig_x0, sig_y0, sig_x, sig_y
-  real(rdef) s_pos, s_pos_old
-  real(rdef) vec(6)
-  real(rdef) lum, f
-  real(rdef) x,y
-  real(rdef) beta, kx, ky, coef
+  real(rp) z_slice(100), sig_x0, sig_y0, sig_x, sig_y
+  real(rp) s_pos, s_pos_old
+  real(rp) vec(6)
+  real(rp) lum, f
+  real(rp) x,y
+  real(rp) beta, kx, ky, coef
 
   integer i, n_slice, j
   integer psize

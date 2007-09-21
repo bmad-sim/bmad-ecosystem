@@ -84,17 +84,17 @@
       real*4 xmax/0./, ymax/0./, xmax0, ymax0
       real*4 xscale, yscale, x_low, y_low
       real*4 xdet(1000), ydet(1000), zdet(1000)
-      real(rdef) cbar_mat(2,2), cbar_mat1(2,2), cbar_mat2(2,2)
-      real(rdef) de/8e-4/
-      real(rdef) rms_x, rms_y
-      real(rdef) frev
+      real(rp) cbar_mat(2,2), cbar_mat1(2,2), cbar_mat2(2,2)
+      real(rp) de/8e-4/
+      real(rp) rms_x, rms_y
+      real(rp) frev
       real*4 length, start, end     
-      real(rdef)rate_x, rate_y, rate_xq, rate_yq, rate_x_tot, rate_y_tot
-      real(rdef) d_amp_x, d_amp_y
-      real (rdef) p1, p2
-      real (rdef) f,p
-      real(rdef) axx, axy, ayy
-      real(rdef) n_part_save
+      real(rp)rate_x, rate_y, rate_xq, rate_yq, rate_x_tot, rate_y_tot
+      real(rp) d_amp_x, d_amp_y
+      real (rp) p1, p2
+      real (rp) f,p
+      real(rp) axx, axy, ayy
+      real(rp) n_part_save
       real(rp) slopes(4)
      
       character*40 lattice
@@ -852,7 +852,7 @@
 
  type (lat_struct) ring_high, ring_low
 
- real(rdef) de, rms_x, rms_y, avg_x, avg_y,sum_x,sum_y
+ real(rp) de, rms_x, rms_y, avg_x, avg_y,sum_x,sum_y
 
   integer i
 
@@ -911,11 +911,11 @@
 
  type (lat_struct) ring
 
- real(rdef) rate_x, rate_y, delta_e, rate_xq, rate_yq
- real(rdef) xf, yf,sum_x_real, sum_x_imagine, sum_y_real, sum_y_imagine
- real(rdef) xfq, yfq,sum_x_realq, sum_x_imagineq, sum_y_realq, sum_y_imagineq
- real(rdef) rate_x_tot, rate_y_tot
- real(rdef) frev
+ real(rp) rate_x, rate_y, delta_e, rate_xq, rate_yq
+ real(rp) xf, yf,sum_x_real, sum_x_imagine, sum_y_real, sum_y_imagine
+ real(rp) xfq, yfq,sum_x_realq, sum_x_imagineq, sum_y_realq, sum_y_imagineq
+ real(rp) rate_x_tot, rate_y_tot
+ real(rp) frev
 
   integer i
 
