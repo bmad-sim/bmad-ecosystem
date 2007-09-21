@@ -861,7 +861,7 @@ end subroutine
 subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
 
   type (lat_struct), target :: lat
-  type (ele_struct), pointer :: ele
+  type (ele_struct), save :: ele
   type (ele_struct), save :: drift_ele, ab_ele
 
   integer, optional :: ix_start, ix_end
@@ -891,9 +891,10 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
 ! Init
 
   call init_ele (drift_ele)
-  drift_ele%key = drift$
+  call init_ele (ab_ele)
+  call init_ele (ele)
 
-  call init_ele(ab_ele)
+  drift_ele%key = drift$
   ab_ele%key = ab_multipole$
 
   j_count = 0    ! drift around solenoid or sol_quad index
@@ -909,7 +910,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
 
 ! beam definition
 
-  ele => lat%ele(ie1-1)
+  ele = lat%ele(ie1-1)
 
   write (iu, '(2a, 2(a, es12.5))')  &
         'beam_def: Beam, Particle = ', trim(particle_name(lat%param%particle)),  &
@@ -923,7 +924,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
 
   do i = ie1, ie2
 
-    ele => lat%ele(i)
+    ele = lat%ele(i)
 
     ! If the name has more than 16 characters then replace the name by something shorter and unique.
 
@@ -1035,7 +1036,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
 
   ! Write twiss parameters for a linear lattice.
 
-  ele => lat%ele(ie1-1)
+  ele = lat%ele(ie1-1)
   if (lat%param%lattice_type /= circular_lattice$) then
     write (iu, *)
     write (iu, *) '!---------------------------------'
