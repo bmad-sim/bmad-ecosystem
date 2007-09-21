@@ -17,10 +17,10 @@ subroutine tao_single_mode (char)
   integer i, j, ix, ix2, ix_plot, ie, iv, factor, ix_key, ios, ir
   integer n1, n2, i_ele, ix_var
 
-  real(rdef) this_factor, value, this_min, this_max, this_merit
-  real(rdef) m1, m2
+  real(rp) this_factor, value, this_min, this_max, this_merit
+  real(rp) m1, m2
 
-  real(rdef) :: delta_factor(4) = (/ 10, -10, 1, -1 /)
+  real(rp) :: delta_factor(4) = (/ 10, -10, 1, -1 /)
 
   character(10) :: set_char(4) = &
             (/'!@#$%^&*()', 'QWERTYUIOP', '1234567890', 'qwertyuiop' /)
@@ -169,12 +169,12 @@ subroutine tao_single_mode (char)
 ! ^ (up arrow): Scale plots by a factor of 0.5
 
   case ('[A')
-    call scale_it_all (0, 0.5_rdef)
+    call scale_it_all (0, 0.5_rp)
                                           
 ! v (down arrow): Scale plots by a factor of 2
 
   case ('[B')
-    call scale_it_all (0, 2.0_rdef)
+    call scale_it_all (0, 2.0_rp)
 
 ! Escape Error:
 
@@ -403,8 +403,8 @@ subroutine scale_it_all (ix_plot, factor, a_min, a_max)
   type (tao_plot_struct), pointer :: plot
   type (tao_graph_struct), pointer :: graph
 
-  real(rdef) factor
-  real(rdef), optional :: a_min, a_max
+  real(rp) factor
+  real(rp), optional :: a_min, a_max
 
   integer ix_plot
   character(40) name
