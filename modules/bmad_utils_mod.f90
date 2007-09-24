@@ -1478,4 +1478,114 @@ subroutine init_wake (wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
 
 end subroutine
 
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine calc_superimpose_key (ele1, ele2) result (ele3)
+!
+! Function to decide what ele3%key and ele3%sub_key should be
+! when two elements, ele1, and ele2, are superimposed.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele1 -- Ele_struct:
+!     %key
+!     %sub_key
+!   ele2 -- Ele_struct:
+!     %key
+!     %sub_key
+!
+! Output:
+!   ele3 -- Ele_struct:
+!     %key
+!     %sub_key
+!-
+
+subroutine calc_superimpose_key (ele1, ele2, ele3)
+
+  implicit none
+
+  type (ele_struct), target :: ele1, ele2, ele3
+  integer key1, key2
+  integer, pointer :: key3
+
+!
+
+  key1 = ele1%key
+  key2 = ele2%key
+  key3 => ele3%key
+
+  key3 = -1  ! Default if no superimpse possible
+  ele3%sub_key = 0
+
+  if (key1 == key2) then
+    if (key1 == wiggler$ .and. ele1%sub_key /= ele2%sub_key) return  ! Bad combo
+    key3 = key1
+    if (key1 == wiggler$) ele3%sub_key = ele1%sub_key
+    return
+  endif
+
+  if (key1 == drift$) then
+    key3 = key2
+    ele3%sub_key = ele2%sub_key
+    return
+  endif
+
+  if (key2 == drift$) then
+    key3 = key1
+    ele3%sub_key = ele1%sub_key
+    return
+  endif
+
+  if (any(key1 == (/ rcollimator$, monitor$, instrument$ /))) then
+    key3 = key2
+    return
+  endif
+
+  if (any(key2 == (/ rcollimator$, monitor$, instrument$ /))) then
+    key3 = key1
+    return
+  endif
+
+  if (any(key1 == (/ kicker$, hkicker$, vkicker$ /))) then
+    if (any(key2 == (/ kicker$, hkicker$, vkicker$ /))) then
+      key3 = kicker$
+    else
+      key3 = key2
+    endif
+    return
+  endif
+
+  if (any(key2 == (/ kicker$, hkicker$, vkicker$ /))) then
+    key3 = key1
+    return
+  endif
+
+!
+
+  select case (key1)
+
+  case (quadrupole$,  solenoid$, sol_quad$) 
+    select case (key2)
+    case (quadrupole$);    key3 = sol_quad$
+    case (solenoid$);      key3 = sol_quad$
+    case (sol_quad$);      key3 = sol_quad$
+    case (bend_sol_quad$); key3 = bend_sol_quad$
+    case (sbend$);         key3 = bend_sol_quad$
+    end select
+
+  case (bend_sol_quad$)
+    select case (key2)
+    case (quadrupole$);    key3 = bend_sol_quad$
+    case (solenoid$);      key3 = bend_sol_quad$
+    case (sol_quad$);      key3 = bend_sol_quad$
+    case (sbend$);         key3 = bend_sol_quad$
+    end select
+  end select
+
+end subroutine
+
 end module

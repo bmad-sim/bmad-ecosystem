@@ -106,9 +106,10 @@ type_zero = logic_option(.false., type_zero_attrib)
 ! Encode element name and type
 
 con_type = ele%control_type
-  
-write (li(1), *) 'Element Name: ', ele%name
-nl = 1
+
+nl = 0  
+nl=nl+1; write (li(nl), *) 'Element #', ele%ix_ele
+nl=nl+1; write (li(nl), *) 'Element Name: ', ele%name
 
 if (ele%type /= blank_name) then
   nl=nl+1; write (li(nl), *) 'Element Type: "', ele%type, '"'
@@ -161,10 +162,10 @@ else
       endif
     enddo
 
-    nl=nl+1; write (li(nl), '(9x, 2a)')   'APERTURE_AT           = ', &
-                                  element_end_name(ele%aperture_at)
-    nl=nl+1; write (li(nl), '(9x, 2a)')   'OFFSET_MOVES_APERTURE = ', &
-                                  ele%offset_moves_aperture
+    nl=nl+1; write (li(nl), '(9x, 2a)') &
+               'APERTURE_AT           = ', element_end_name(ele%aperture_at)
+    nl=nl+1; write (li(nl), '(9x, a, l1)') &
+               'OFFSET_MOVES_APERTURE = ', ele%offset_moves_aperture
 
     if (ele%key == lcavity$) then
       nl=nl+1; write (li(nl), '(9x, 2a)') 'COUPLER_AT           = ', &

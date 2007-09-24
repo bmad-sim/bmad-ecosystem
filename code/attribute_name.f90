@@ -57,16 +57,18 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == def_beam$)       cycle
       if (i == def_parameter$)  cycle
       if (i == def_beam_start$) cycle
+      if (i == init_ele$) cycle
 
       attrib_array(i, type$)     = 'TYPE'
       attrib_array(i, alias$)    = 'ALIAS'
       attrib_array(i, descrip$)  = 'DESCRIP'
 
-      if (i == init_ele$) cycle
       if (i == group$)    cycle
       if (i == overlay$)  cycle
       if (i == girder$)   cycle
 
+      attrib_array(i, E_tot$)                 = 'E_TOT'
+      attrib_array(i, p0c$)                   = 'P0C'
       attrib_array(i, x_limit$)               = 'X_LIMIT'
       attrib_array(i, x1_limit$)              = 'X1_LIMIT'
       attrib_array(i, x2_limit$)              = 'X2_LIMIT'
@@ -76,8 +78,6 @@ function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, aperture$)              = 'APERTURE'
       attrib_array(i, aperture_at$)           = 'APERTURE_AT'
       attrib_array(i, offset_moves_aperture$) = 'OFFSET_MOVES_APERTURE'
-      attrib_array(i, E_tot$)                 = 'E_TOT'
-      attrib_array(i, p0c$)                   = 'P0C'
       attrib_array(i, mat6_calc_method$)      = 'MAT6_CALC_METHOD'
       attrib_array(i, tracking_method$)       = 'TRACKING_METHOD'
 
@@ -148,6 +148,11 @@ function attribute_name (ele, ix_att) result (at_name)
                                        'B16', 'B17', 'B18', 'B19', 'B20' /)
       end select
     enddo
+
+!
+
+    attrib_array(init_ele$, E_tot$)       = 'E_TOT'
+    attrib_array(init_ele$, p0c$)         = 'P0C'
 
     attrib_array(def_parameter$, E_TOT$)        = 'E_TOT'
     attrib_array(def_parameter$, lattice_type$) = 'LATTICE_TYPE'
