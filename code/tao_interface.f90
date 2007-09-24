@@ -32,6 +32,13 @@ interface
 end interface
  
 interface
+  subroutine tao_cl (prompt_string)
+    implicit none
+    character(*), optional :: prompt_string
+  end subroutine
+end interface
+ 
+interface
   subroutine tao_clip_cmd (where, value1, value2)
     use precision_def
     implicit none

@@ -468,11 +468,10 @@ case ('element', 'taylor', 'e2')
     if (loc < 0) return
     ele => u%model%lat%ele(loc)
 
-    nl=nl+1; write (lines(nl), *) 'Element #', loc
-
     ! Show the element info
 
     if (show_what == 'e2') then
+      nl=nl+1; write (lines(nl), *) 'Element #', loc
       nl=nl+1; write (lines(nl), *) 'Element ', ele%name
       nl=nl+1; write (lines(nl), *) 'Save_beam:', u%ele(loc)%save_beam
       nl=nl+1; write (lines(nl), *) 'beam allocated:', allocated(u%ele(loc)%beam%bunch)

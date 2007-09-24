@@ -121,7 +121,7 @@ LOCAL_INCS    := include
 #           Then you can specify 
 #           MAIN_FILE := test_prog.f90
 #-------------------------------------------------------------
-MAIN_FILE := tao_cl.f90
+MAIN_FILE := tao_program.f90
 
 
 #--------------------------------------------------------------

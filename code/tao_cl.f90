@@ -1,10 +1,16 @@
 !+
-! Program tao_cl
+! Subroutine tao_cl (prompt_string)
 !
 ! Command Line version of tao.
+!
+! Modules needed:
+!   use tao_mod
+!
+! Input:
+!   prompt_string -- Character(*), optional: Prompt string. Default is 'Tao'.
 !-
 
-program tao_cl
+subroutine tao_cl (prompt_string)
 
   use tao_mod
   use tao_command_mod
@@ -13,6 +19,7 @@ program tao_cl
 
   character(100) cmd_line
   character(16) :: r_name = 'tao_cl'
+  character(*), optional :: prompt_string
 
   logical end_flag, found, err
 
@@ -26,6 +33,8 @@ program tao_cl
     call out_io (s_fatal$, r_name, 'INIT FILE NOT FOUND. STOPPING.')
     stop
   endif
+
+  if (present(prompt_string)) s%global%prompt_string = prompt_string
 
 ! loop over commands.
 
@@ -47,4 +56,4 @@ program tao_cl
     if (.not. err) call tao_cmd_history_record (cmd_line)
   enddo
 
-end program
+end subroutine
