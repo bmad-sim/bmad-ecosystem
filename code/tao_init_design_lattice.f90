@@ -72,10 +72,10 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   do i = 1, size(s%u)
     if (design_lattice(i)%parser /= '') then
       call out_io (s_error$, r_name, (/ &
-          '**********************************************************', &
-          '***** OLD STYLE "DESIGN_LATTICE%PARSER" SYNTAX USED! *****', &
-          '*****        PLEASE CONVERT TO THE NEW STYLE!        *****', &
-          '**********************************************************' /) )
+          '************************************************************', &
+          '***** OLD STYLE "DESIGN_LATTICE()%PARSER" SYNTAX USED! *****', &
+          '*****         PLEASE CONVERT TO THE NEW STYLE!         *****', &
+          '************************************************************' /) )
     endif
 
     if (override) then
@@ -105,6 +105,8 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
       u%design%modes%b%emittance = u%design%lat%b%emit
     case ('xsif')
       call xsif_parser (design_lattice(i)%file, u%design%lat)
+    case ('aml')
+      call aml_parser (design_lattice(i)%file, u%design%lat)
     case ('digested')
       call out_io (s_blank$, r_name, &
                   "Reading digested BMAD file " // trim(design_lattice(i)%file))
