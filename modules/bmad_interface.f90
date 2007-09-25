@@ -33,6 +33,18 @@ interface
 end interface
 
 interface
+  subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+    use bmad_struct, only: lat_struct
+    implicit none
+    character(*) lat_file
+    type (lat_struct), target :: lat
+    logical, optional :: make_mats6
+    logical, optional :: digested_read_ok
+    character(*), optional :: use_line
+  end subroutine
+end interface
+  
+interface
   function attribute_index (ele, name)
     use bmad_struct, only: ele_struct
     implicit none

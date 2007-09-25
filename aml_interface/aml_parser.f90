@@ -272,7 +272,7 @@ lat%param%lost = .false.
 
 ! Put lattice information into root_node
 
-call aml_parser_cpp (lat_file, expand_node, c_ok)
+call aml_parser_cpp (c_str(lat_file), expand_node, c_ok)
 
 bmad_status%ok = f_logic(c_ok)
 
