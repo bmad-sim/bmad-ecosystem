@@ -635,7 +635,7 @@ subroutine get_attribute (how, ele, lat, plat, &
     elseif (ix_attrib == coupler_at$) then
       ele%coupler_at = nint(value)
     elseif (ix_attrib == ran_seed$) then
-      call ran_seed (nint(value))  ! init random number generator
+      call ran_seed_put (nint(value))  ! init random number generator
       bp_com%ran_function_was_called = .true.
     elseif (ix_attrib == aperture$) then
       ele%value(x1_limit$) = value

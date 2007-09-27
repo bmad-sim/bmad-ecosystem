@@ -654,7 +654,7 @@ do i = lbound(param_node%children, 1), ubound(param_node%children, 1)
       lat%input_taylor_order = nint(value)
     case ("RAN_SEED")
       call read_parameter (child_node, value_str, value)
-      call ran_seed (nint(value))
+      call ran_seed_put (nint(value))
     case ("PARTICLE")
       call match_word(value_str, particle_name, ix)
       if (ix < 1) then
