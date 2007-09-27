@@ -155,7 +155,7 @@ s%n_v1_var_used = 0       ! size of s%v1_var(:) array
 !-----------------------------------------------------------------------
 ! Seed random number generator
 
-call ran_seed (s%global%random_seed)
+call ran_seed_put (s%global%random_seed)
 
 !-----------------------------------------------------------------------
 ! allocate lattice coord_structs and equate model and base to design
