@@ -447,10 +447,10 @@ do ir = 1, lat%n_ele_track
     pt%dgx_dy = pt%dgy_dx
     pt%dgy_dy = -pt%dgx_dx
     ! Edge effects for a bend. In this case we ignore any rolls.
-    call propagate_part_way (orbit(i-1), orbit(i), pt, ri_info, 0.0_rp, 1, 1)
+    call propagate_part_way (orbit(ir-1), orbit(ir), pt, ri_info, 0.0_rp, 1, 1)
     ric%i4a(ir) = -ri_info%eta_a(1) * g2 * tan(ele%value(e1$))
     ric%i4b(ir) = -ri_info%eta_b(1) * g2 * tan(ele%value(e1$))
-    call propagate_part_way (orbit(i-1), orbit(i), pt, ri_info, ll, 1, 2)
+    call propagate_part_way (orbit(ir-1), orbit(ir), pt, ri_info, ll, 1, 2)
     ric%i4a(ir) = ric%i4a(ir) - ri_info%eta_a(1) * g2 * tan(ele%value(e2$))
     ric%i4b(ir) = ric%i4a(ir) - ri_info%eta_b(1) * g2 * tan(ele%value(e2$))
   endif

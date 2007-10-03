@@ -41,6 +41,7 @@ end type
 
 type csr_kick_bin_struct ! Sub-structure for csr calculation cache
   real(rp) I_csr         ! Kick integral.
+  real(rp) I_int_csr     ! Integrated Kick integral.
   real(rp) kick_csr      ! Kick.
   real(rp) kick_lsc      ! Kick.
   real(rp) phi           ! Source point angle.
@@ -742,8 +743,8 @@ type (csr_kick_bin_struct) kick1
 type (csr_kick_factor_struct) k_factor
 type (csr_bin_struct) bin
 
-real(rp) z, d
-real(rp) phi, t, a, k
+real(rp) z, d, g
+real(rp) phi, t, a, k, gam, gam2
 
 ! 
 
@@ -752,16 +753,21 @@ d = kick1%d
 
 if (z <= 0) then
   kick1%I_csr = 0
+  kick1%I_int_csr = 0
   return
 endif
 
+gam = bin%gamma
+gam2 = bin%gamma2
+g = k_factor%g
 phi = k_factor%g * d
-t = bin%gamma * (d + k_factor%v1)
-a = bin%gamma2 * (k_factor%w2 + phi * k_factor%v1 + phi * d / 2)
-k = bin%gamma * (k_factor%theta + phi)
-kick1%I_csr = -2 * bin%kick_factor * &
-                  bin%gamma * (t + a * k) / (t**2 + a**2) + 1 / (bin%gamma2 * z) 
-
+t = gam * (d + k_factor%v1)
+a = gam2 * (k_factor%w2 + phi * k_factor%v1 + phi * d / 2)
+k = gam * (k_factor%theta + phi)
+kick1%I_csr = -2 * bin%kick_factor * gam * (t + a * k) / (t**2 + a**2) + 1 / (gam2 * z) 
+kick1%I_int_csr = bin%kick_factor * (4 * a * (k - g * t) + &
+           g * t * (d**2 * g * gam2 - 2 * d * gam * k - 2 * k * t + 2 * g * t**2) + &
+           2 * t * (g**2 * t**2 - 2 - 2 * a * g) * log(t / gam) + log(z) / gam2)
 end subroutine
 
 !----------------------------------------------------------------------------
