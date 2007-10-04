@@ -32,14 +32,14 @@ type csr_bin1_struct   ! Structure for a single particle bin.
   real(rp) lsc_d0
   real(rp) lsc_d1
   real(rp) charge      ! charge of the particles
-  real(rp) dcharge_ds  ! charge derivative
+  real(rp) dcharge_density_dz ! gradiant between this and preceeding bin
   real(rp) kick_csr    ! CSR kick
   real(rp) kick_lsc    ! LSC Kick.
 end type
 
 ! Kicks in this structure are a function of the particle separation
 
-type csr_kick_bin_struct ! Sub-structure for csr calculation cache
+type csr_kick1_struct ! Sub-structure for csr calculation cache
   real(rp) I_csr         ! Kick integral.
   real(rp) I_int_csr     ! Integrated Kick integral.
   real(rp) kick_csr      ! Kick.
@@ -58,7 +58,7 @@ type csr_bin_struct             ! Structurture for binning particle averages
   real(rp) y2                   ! Height of source particle.
   real(rp) kick_factor           ! Coefficient to scale the kick
   type (csr_bin1_struct), allocatable :: bin1(:)  
-  type (csr_kick_bin_struct), allocatable :: kick1(:) ! Array of caches
+  type (csr_kick1_struct), allocatable :: kick1(:) ! Array of caches
 end type
 
 !
@@ -283,7 +283,7 @@ type (this_local_struct), save, allocatable :: tloc(:)
 type (csr_bin1_struct), pointer :: bin1
 
 real(rp) z_min, z_max, f, dz_particle, dz, z_maxval, z_minval
-real(rp) zp_center, zp0, zp1, dz_bin2, zb0, zb1, charge, dcharge_ds
+real(rp) zp_center, zp0, zp1, dz_bin2, zb0, zb1, charge
 
 integer i, j, n, ix0, ib, ic
 
@@ -338,21 +338,17 @@ tloc%ib = -1
 ! Compute the particle distribution center in each bin
 
 bin%bin1(:)%charge = 0
-bin%bin1(:)%dcharge_ds = 0
 bin%bin1(:)%x0 = 0
 bin%bin1(:)%y0 = 0
 bin%bin1(:)%sig_x = 0
 bin%bin1(:)%sig_y = 0
-
+bin%bin1(:)%dcharge_density_dz = 0
 
 f = 2.0 / dz_particle**2
 
 ! The contribution to the charge in a bin from a particle is computed from the overlap
 ! between the particle and the bin.
  
-! The gradient of the charge, %dcharge_ds, is computed by using two bins shifted 
-! by one half the bin width and assuming a linear gradiant inbetween.
-
 ic = 0
 do i = 1, size(particle)
   p => particle(i)
@@ -367,10 +363,7 @@ do i = 1, size(particle)
     zb0 = bin%bin1(ib)%z0_edge
     zb1 = bin%bin1(ib)%z1_edge   ! edges of the bin
     charge = charge_in_bin (zb0, zb1)
-    dcharge_ds = (charge_in_bin (zb0+dz_bin2, zb1+dz_bin2) - &
-                    charge_in_bin (zb0-dz_bin2, zb1-dz_bin2)) / bin%dz_bin
     bin1%charge = bin1%charge + charge
-    bin1%dcharge_ds = bin1%dcharge_ds + dcharge_ds
     bin1%x0 = bin1%x0 + p%r%vec(1) * charge
     bin1%y0 = bin1%y0 + p%r%vec(3) * charge
     ic = ic + 1
@@ -385,6 +378,10 @@ do ib = 1, csr_param%n_bin
   if (bin%bin1(ib)%charge == 0) cycle
   bin%bin1(ib)%x0 = bin%bin1(ib)%x0 / bin%bin1(ib)%charge
   bin%bin1(ib)%y0 = bin%bin1(ib)%y0 / bin%bin1(ib)%charge
+  if (ib == 1) cycle
+  bin%bin1(ib)%dcharge_density_dz = &
+                  (bin%bin1(ib)%charge - bin%bin1(ib-1)%charge) / bin%dz_bin**2
+
 enddo
 
 ! Compute the particle distribution sigmas in each bin
@@ -478,7 +475,7 @@ implicit none
 
 type (csr_bin_struct), target :: bin
 type (lat_struct), target :: lat
-type (csr_kick_bin_struct), pointer :: kick1
+type (csr_kick1_struct), pointer :: kick1
 type (csr_kick_factor_struct) k_factor
 
 real(rp) s_travel, s_kick, s0_kick_ele, coef, e_tot, f1
@@ -514,7 +511,7 @@ s_kick = s0_kick_ele + s_travel  ! absolute s value at point P.
 do i = lbound(bin%kick1, 1), ubound(bin%kick1, 1)
 
   kick1 => bin%kick1(i)
-  kick1%dz_particles = i * bin%dz_bin   ! Notice negative sign.
+  kick1%dz_particles = i * bin%dz_bin
 
   ! Calculate what element the kick point is in.
 
@@ -529,7 +526,11 @@ do i = lbound(bin%kick1, 1), ubound(bin%kick1, 1)
   ! I_csr is only calculated for particles with y = 0 and not for image currents.
 
   if (bin%y2 == 0) then
-    call I_csr (kick1, k_factor, bin)
+    call I_csr (kick1, i, k_factor, bin)
+    if (bin%kick1(i)%I_int_csr == 0 .and. i /= lbound(bin%kick1, 1)) then
+      bin%kick1(i)%I_int_csr = &
+                          (bin%kick1(i)%I_csr + bin%kick1(i-1)%I_csr) * bin%dz_bin / 2
+    endif
   else
     call kick_csr (kick1, k_factor, bin)
   endif
@@ -545,7 +546,7 @@ if (bin%y2 == 0) then
   call lsc_bin_kicks_y0 (bin)
   do i = 1, n_bin
     bin%bin1(i)%kick_csr = coef * &
-                  dot_product(bin%kick1(i-1:0:-1)%I_csr, bin%bin1(1:i)%dcharge_ds)
+            dot_product(bin%kick1(i:1:-1)%I_int_csr, bin%bin1(1:i)%dcharge_density_dz)
   enddo
 
 else
@@ -716,7 +717,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine I_csr (kick1, k_factor, bin) 
+! Subroutine I_csr (kick1, i_bin, k_factor, bin) 
 !
 ! Routine to calculate the CSR kick integral.
 !
@@ -724,50 +725,58 @@ end subroutine
 !   use csr_mod
 !
 ! Input:
-!   kick1 -- Csr_kick_bin_struct: 
+!   kick1    -- Csr_kick1_struct: 
 !     %dz_particles -- Real(rp): Distance between source and kicked particles.
 !     %d            -- Real(rp): Distance between source and kick points.
-!   k_factor -- csr_kick_factor_struct: Other parameters needed in the calculation.
+!   i_bin    -- Integer: Bin index.
+!   k_factor -- Csr_kick_factor_struct: Other parameters needed in the calculation.
 !   bin      -- Csr_bin_struct:
 !
 ! Output:
-!   kick1 -- Csr_kick_bin_struct: 
-!     %I_csr -- Real(rp): CSR kick integral.
+!   kick1 -- Csr_kick1_struct: 
+!     %I_csr     -- Real(rp): CSR kick integral.
+!     %I_int_csr -- Real(rp): Integral of I_csr. Only calculated for i_bin = 1 since
+!                     it is not needed otherwise.
 !-
 
-subroutine I_csr (kick1, k_factor, bin)
+subroutine I_csr (kick1, i_bin, k_factor, bin)
 
 implicit none
 
-type (csr_kick_bin_struct) kick1
+type (csr_kick1_struct) kick1
 type (csr_kick_factor_struct) k_factor
 type (csr_bin_struct) bin
 
-real(rp) z, d, g
-real(rp) phi, t, a, k, gam, gam2
+real(rp) z, d
+real(rp) phi, t, a, k, gam, gam2, g
+
+integer i_bin
 
 ! 
 
 z = kick1%dz_particles
 d = kick1%d
 
+kick1%I_int_csr = 0
+
 if (z <= 0) then
   kick1%I_csr = 0
-  kick1%I_int_csr = 0
   return
 endif
 
 gam = bin%gamma
 gam2 = bin%gamma2
-g = k_factor%g
-phi = k_factor%g * d
-t = gam * (d + k_factor%v1)
-a = gam2 * (k_factor%w2 + phi * k_factor%v1 + phi * d / 2)
+g = k_factor%g 
+phi = g * d
+t = d + k_factor%v1
+a = gam * (k_factor%w2 + phi * k_factor%v1 + phi * d / 2)
 k = gam * (k_factor%theta + phi)
-kick1%I_csr = -2 * bin%kick_factor * gam * (t + a * k) / (t**2 + a**2) + 1 / (gam2 * z) 
-kick1%I_int_csr = bin%kick_factor * (4 * a * (k - g * t) + &
-           g * t * (d**2 * g * gam2 - 2 * d * gam * k - 2 * k * t + 2 * g * t**2) + &
-           2 * t * (g**2 * t**2 - 2 - 2 * a * g) * log(t / gam) + log(z) / gam2)
+
+kick1%I_csr = -2 * bin%kick_factor * (t + a * k) / (t**2 + a**2) + 1 / (gam2 * z) 
+if (i_bin == 1 .and.k_factor%v1 == 0) then
+  kick1%I_int_csr = -(d*g)**2 / 4 + log(2*gam2 * z / d) / gam2
+endif
+
 end subroutine
 
 !----------------------------------------------------------------------------
@@ -782,14 +791,14 @@ end subroutine
 !   use csr_mod
 !
 ! Input:
-!   kick1 -- Csr_kick_bin_struct: 
+!   kick1 -- Csr_kick1_struct: 
 !     %dz_particles -- Real(rp): Distance between source and kicked particles.
 !     %d            -- Real(rp): Distance between source and kick points.
 !   k_factor -- csr_kick_factor_struct: Other parameters needed in the calculation.
 !   bin      -- Csr_bin_struct:
 !
 ! Output:
-!   kick1 -- Csr_kick_bin_struct: 
+!   kick1 -- Csr_kick1_struct: 
 !     %kick_csr -- Real(rp): CSR kick.
 !-
 
@@ -797,7 +806,7 @@ subroutine kick_csr (kick1, k_factor, bin)
 
 implicit none
 
-type (csr_kick_bin_struct) kick1
+type (csr_kick1_struct) kick1
 type (csr_kick_factor_struct), target :: k_factor
 type (csr_kick_factor_struct), pointer :: kf
 type (csr_bin_struct) bin
