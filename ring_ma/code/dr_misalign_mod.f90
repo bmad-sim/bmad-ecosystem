@@ -14,7 +14,7 @@ module dr_misalign_mod
      character*40 mask
      integer param
      real amp
-     logical detector
+!    logical detector
   end type ma_struct
 
   type dr_misalign_params_struct

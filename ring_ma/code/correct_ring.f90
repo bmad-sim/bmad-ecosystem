@@ -45,7 +45,7 @@ contains
     type(correct_struct), intent(in) ::correct
     real(rp), optional, intent(out) :: rms_param
 
-    integer, parameter :: n_det_max = 1000
+    integer, parameter :: n_det_max = 3000
     type detector_struct
        character*40 name
        integer loc, param

@@ -2,7 +2,7 @@ program ring_ma
   use bmad
   use correct_ring_mod
   use dr_misalign_mod
-!  use ran_state, only: ran_seed
+  use ran_state, only: ran_seed
   implicit none
 
 
@@ -102,8 +102,12 @@ program ring_ma
      if (design_ring%ele(i_ele)%key == wiggler$) &
           design_ring%ele(i_ele)%map_with_offsets = .false.
   end do
-  call reallocate_coord(co, design_ring%n_ele_track)
-  call lat_make_mat6(design_ring)
+
+  write(*,'(A)') "--------------------------"
+  write(*,'(A)') "Turning off RF cavities..."
+  write(*,'(A)') "--------------------------"
+  call set_on_off(rfcavity$, design_ring, off$)
+
   call twiss_and_track(design_ring, co)
   if (write_orbits) then
      opt_file = trim(base_name)//".design"
@@ -277,17 +281,19 @@ contains
 
     if (present(iter)) then
        if (iter==1 .and. cor==0) then
-          write(1,'(2a6,7a14)') "# iter", "cor", "emit_y", "rms_y", &
-               "rms_eta_y", "rms_cbar12", "rms_phi_x", "rms_phi_y", "param_rms"
+          write(1,'("#",2a6,9a14)') "iter", "cor", "emit_y", "rms_y", &
+               "rms_eta_y", "rms_cbar12", "rms_phi_x", "rms_phi_y", &
+               "param_rms", "key_val1", "key_val2"
        end if
-       write(1,'(2i6,7es14.5)') iter, cor, &
+       write(1,'("D",2i6,9es14.5)') iter, cor, &
             data(iter, cor)%emit_y, &
             data(iter, cor)%rms_y, &
             data(iter, cor)%rms_eta_y, &
             data(iter, cor)%rms_cbar12, &
             data(iter, cor)%rms_phi_x, &
             data(iter, cor)%rms_phi_y, &
-            data(iter, cor)%rms_param
+            data(iter, cor)%rms_param, &
+            key_value1, key_value2
     else
        write(1,*)
        write(1,'(a)') "# Summary"
