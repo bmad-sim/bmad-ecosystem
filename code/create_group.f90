@@ -104,11 +104,11 @@ subroutine create_group (lat, ix_ele, contrl)
 
   do i = 1, n_control
 
-! For position control: We need to figure out the elements that
-! need to be controlled.
-! Find beginning and ending positions of element
-! if a super_lord then we must go to the slave elements to find the ends
-! else not a super lord so finding the ends is simple
+    ! For position control: We need to figure out the elements that
+    ! need to be controlled.
+    ! Find beginning and ending positions of element
+    ! if a super_lord then we must go to the slave elements to find the ends
+    ! else not a super lord so finding the ends is simple
 
     ixe = contrl(i)%ix_slave
     ixa = contrl(i)%ix_attrib
@@ -129,8 +129,8 @@ subroutine create_group (lat, ix_ele, contrl)
         call err_exit
       endif
 
-! now that we have the ends we find the elements to either side whose length
-! the group can adjust
+      ! now that we have the ends we find the elements to either side whose length
+      ! the group can adjust
 
       ix1 = ix_min - 1
       do 
@@ -170,7 +170,7 @@ subroutine create_group (lat, ix_ele, contrl)
         endif
       endif
 
-! put in coefficients
+      ! put in coefficients
 
       select case (ixa)
 
@@ -198,7 +198,38 @@ subroutine create_group (lat, ix_ele, contrl)
 
       end select
 
-! for all else without position control the group setup is simple.
+    ! x_limit and y_limit
+
+    elseif (ixa == x_limit$ .or. ixa == y_limit$) then
+
+      if (n_con+2 > size(lat%control)) call reallocate_control (lat, n_con+500)
+      lat%control(n_con+1) = contrl(i)
+      lat%control(n_con+2) = contrl(i)
+      lat%control(n_con+1)%ix_lord = ix_ele
+      lat%control(n_con+2)%ix_lord = ix_ele
+      if (ixa == x_limit$) then
+        lat%control(n_con+1)%ix_attrib = x1_limit$
+        lat%control(n_con+2)%ix_attrib = x2_limit$
+      else
+        lat%control(n_con+1)%ix_attrib = y1_limit$
+        lat%control(n_con+2)%ix_attrib = y2_limit$
+      endif
+      n_con = n_con + 2
+
+    ! x_limit and y_limit
+
+    elseif (ixa == aperture$) then
+
+      if (n_con+4 > size(lat%control)) call reallocate_control (lat, n_con+500)
+      lat%control(n_con+1:n_con+4) = contrl(i)
+      lat%control(n_con+1:n_con+4)%ix_lord = ix_ele
+      lat%control(n_con+1)%ix_attrib = x1_limit$
+      lat%control(n_con+2)%ix_attrib = x2_limit$
+      lat%control(n_con+3)%ix_attrib = y1_limit$
+      lat%control(n_con+4)%ix_attrib = y2_limit$
+      n_con = n_con + 4
+
+    ! For all else without position control the group setup is simple.
 
     else
 

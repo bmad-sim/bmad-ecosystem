@@ -252,17 +252,27 @@ subroutine get_attribute (how, ele, lat, plat, &
     i = attribute_index(ele, word)       ! general attribute search
     if (word == 'B_GRADIENT') call b_grad_warning(ele)
 
-    if (i < 1) then
+    if (i < 1 .or. i > n_attrib_maxx) then
       call warning ('BAD OVERLAY ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
       return
     endif
+
     if (i == type$ .or. i == alias$) then
       call type_get (ele, i, delim, delim_found)
+
     else
       if (how == def$) then
         ele%ix_value = i
         ele%attribute_name = word
       endif
+
+      if (ele%ix_value /= i) then
+        call warning ('BAD OVERLAY ATTRIBUTE SET FOR: ' // ele%name, &
+              'YOU ARE TRYING TO SET: ' // word, &
+              'BUT YOU SHOULD BE SETTING: ' // ele%attribute_name)
+        return
+      endif
+
       if (delim == '=') then  ! value
         call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                       lat, delim, delim_found, err_flag)

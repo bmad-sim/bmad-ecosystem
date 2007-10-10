@@ -12,6 +12,11 @@ Better bmad digested file compression:
   compress ele%value array.
   compress names.
 
+Enable overlay to control:
+	aperture
+	x_limit
+	y_limit
+
 -----------------
 
 add function to calc: ring%param%s_start

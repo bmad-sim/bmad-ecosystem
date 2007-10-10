@@ -26,7 +26,6 @@ solely meant for \bmad internal use.
                                           & \ref{r:low_part_track} \\ hline
   Spin Tracking                           & \ref{r:spin_track} \\ \hline
   Wake Fields                             & \ref{r:wake}       \\ \hline
-  Synchrotron Radiation                   & \ref{r:synch_rad}  \\ \hline  
  	Low Level Tracking Routines             & \ref{r:low_track}  \\ \hline
  	Particle Coordinate Stuff               & \ref{r:coord}      \\ \hline
  	Lattice Geometry                        & \ref{r:geom}       \\ \hline
@@ -439,10 +438,6 @@ integer number of steps spans the length.
 \item[dynamic_aperture (lat, track_input, aperture)] \Newline
 Subroutine to determine the dynamic aperture of a lattice via tracking. 
 
-\index{Routine!lost_particle_info}
-\item[lost_particle_info (lattice, orbit, ix_lost, plane_lost)] \Newline 
-Subroutine to show where in an orbit a particle hit an aperture and was lost.
-
 \index{Routine!multi_turn_tracking_analysis}
 \item[multi_turn_tracking_analysis (track, i_dim, track0, ele, 
 stable, growth_rate, chi)] \Newline
@@ -785,47 +780,6 @@ Subroutine to apply the short range wake fields to a bunch.
 \index{Routine!track1_lr_wake}
 \item[track1_lr_wake (bunch, ele)] \Newline 
 Subroutine to put in the long-range wakes for particle tracking.
-
-\end{description}
-
-%------------------------------------------------------------------------
-\section{Synchrotron Radiation}
-\label{r:synch_rad}
-
-\begin{description}
-
-\index{Routine!calculate_sr_power}
-\item[calculate_sr_power (lat, orb, direction, power,] \Newline 
-                                 inside, outside, gen)
-subroutine to calculate the synch radiation power
-hitting wall segments from all elements in the lat
-
-\index{Routine!ele_sr_power}
-\item[ele_sr_power (lat, ie, orb, direction,] \Newline 
-                            power, inside, outside, gen)
-subroutine to calculate the synch radiation power from
-one element of the lat
-
-\index{Routine!get_initial_pt}
-\item[get_initial_pt (ray, wall, ix_wall, lat)] \Newline 
-subroutine to
-
-\index{Routine!init_ray}
-\item[init_ray (ray, lat, ix_ele, l_offset, orb, direction)] \Newline 
-subroutine to start a new synch radiation ray
-
-\index{Routine!seg_power_calc}
-\item[seg_power_calc (rays, i_ray, inside, outside, ] \Newline 
-                            lat, gen, power)
-subroutine to calculate the synch radiation power for
-segments of the wall from one lat element
-
-\index{Routine!track_ray_to_wall}
-\item[track_ray_to_wall (ray, lat, inside, outside, ] \Newline 
-                               hit_flag, track_max)
-subroutine to propagate a synch radiation ray until it hits a wall.
-
-
 
 \end{description}
 
@@ -1484,14 +1438,6 @@ kicked particle.
 \item[d_calc_csr (dz_particles, val, bin) result (d_this)] \Newline 
 Routine to calculate the distance between source and kick points.
 
-\index{Routine!lsc_kick}
-\item[lsc_kick (bin, particle)] \Newline 
-Routine to calculate the longitudinal space charge kick.
-
-\index{Routine!lcsr_kick}
-\item[lcsr_kick (bin, particle)] \Newline 
-Routine to calculate the longitudinal coherent synchrotron radiation kick.
-
 \end{description}
 
 %------------------------------------------------------------------------
@@ -1846,10 +1792,6 @@ Dummy routine for the emittance calculation for CUSTOM elements.
 \item[custom_radiation_integrals (lat, ir, orb)] \Newline
 Dummy routine for the radiation_integrals calculation for CUSTOM elements. 
 
-\index{Routine!em_field}
-\item[em_field (ele, param, s_pos, here, field)] \Newline
-Subroutine to calculate the E and B fields for an element. 
-
 \index{Routine!convert_total_energy_to}
 \item[convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho)] \Newline
 Subroutine to calculate the momentum, etc. from a particle's toal energy. 
@@ -1907,10 +1849,6 @@ Subroutine to make an orbit vector proportional to the dispersion.
 
 \index{Routine!em_field_custom}
 \item[em_field_custom] \Newline
-Dummy routine that will generate an error if called. 
-
-\index{Routine!field_rk_custom}
-\item[field_rk_custom] \Newline
 Dummy routine that will generate an error if called. 
 
 \index{Routine!makeup_group_slaves}
@@ -2694,12 +2632,23 @@ Subroutine to print to the terminal for command line type programs.
 The idea is that for programs with a gui this routine can be easily
 replaced with another routine.
 
+\index{Routine!ran_engine}
+\item[ran_engine (set, get)] \Newline 
+Subroutine to set what random number generator algorithm is used.
+If this routine is never called then pseudo_random\$ is used.
+
 \index{Routine!ran_gauss}
 \item[ran_gauss (harvest)] \Newline 
 Subroutine to return a Gaussian distributed random number with unit sigma.
 
-\index{Routine!ran_seed}
-\item[ran_seed (seed)] \Newline 
+File: random_mod.f90
+\index{Routine!ran_gauss_converter}
+\item[ran_gauss_converter (set, get, sigma_cut)] \Newline 
+Subroutine to set what conversion routine is used for converting
+uniformly distributed random numbers to Gaussian distributed random numbers.
+
+\index{Routine!ran_seed_put}
+\item[ran_seed_put (seed)] \Newline 
 Subroutine to seed the random number generator. 
 
 \index{Routine!ran_seed_get}
@@ -2777,10 +2726,6 @@ Routine to convert a string to uppercase:
 \label{r:obs}      
 
 \begin{description}
-
-\index{Routine!closed_orbit_at_start}
-\item[closed_orbit_at_start (lat, co, i_dim, iterate)] \Newline
-Subroutine to calculate the closed orbit at the beginning of the lat. 
 
 \index{Routine!set_on}
 \item[set_on (key, lat, on_switch, orb)] \Newline
