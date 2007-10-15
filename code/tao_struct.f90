@@ -409,6 +409,9 @@ type tao_global_struct
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   integer :: random_seed = 0             ! use system clock by default
+  real(rp) :: random_gauss_cutoff = 4    ! cut-off in sigmas.
+  character(16) :: random_engine = 'pseudo' 
+  character(16) :: random_gauss_converter = 'exact'
   character(16) :: track_type    = 'single'    ! or 'beam' or 'macro' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'        ! optimizer to use.

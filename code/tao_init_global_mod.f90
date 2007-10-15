@@ -55,12 +55,11 @@ real(rp) default_low_lim, default_high_lim
 real(rp) :: default_data_noise         ! default noise for data type
 real(rp) :: default_scale_error        ! default noise for data type
 
-integer ios, iu, i, j, i2, j2, k, ix, n_uni
+integer ios, iu, i, j, i2, j2, k, ix, n_uni, num
 integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
 integer n, n_universes, iostat, ix_universe, n_max
 integer ix_min_var, ix_max_var, n_d1_data, ix_ele
 integer ix_min_data, ix_max_data, ix_d1_data, n_found
-integer, parameter :: ele_name$ = 1, ele_key$ = 2
 integer, allocatable :: found_one(:)
 
 character(*) init_file, data_file, var_file
@@ -71,10 +70,10 @@ character(40) default_merit_type, default_attribute
 character(60) save_beam_at(100)
 character(100) line
 
-logical err, free
+logical err, free, gang
 logical searching
 logical calc_emittance
-logical, allocatable :: mask(:)
+logical, allocatable :: mask(:), dflt_unis(:), unis(:)
 
 
 namelist / tao_params / global, bmad_com, csr_param, &
@@ -156,6 +155,26 @@ s%n_v1_var_used = 0       ! size of s%v1_var(:) array
 ! Seed random number generator
 
 call ran_seed_put (s%global%random_seed)
+
+select case (s%global%random_engine)
+case ('pseudo')
+  call ran_engine (pseudo_random$)
+case ('quasi')
+  call ran_engine (quasi_random$)
+case default
+  call out_io (s_error$, r_name, &
+        'BAD GLOBAL%RANDOM_ENGINE SWITCH: ' // s%global%random_engine)
+end select
+
+select case (s%global%random_gauss_converter)
+case ('exact')
+  call ran_gauss_converter (exact_gaussian$)
+case ('limited')
+  call ran_gauss_converter (limited_gaussian$, sigma_cut = s%global%random_gauss_cutoff)
+case default
+  call out_io (s_error$, r_name, &
+        'BAD GLOBAL%RANDOM_GAUSS_CONVERTER SWITCH: ' // s%global%random_gauss_converter)
+end select
 
 !-----------------------------------------------------------------------
 ! allocate lattice coord_structs and equate model and base to design
@@ -441,6 +460,7 @@ close (iu)
 
 call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
+allocate (dflt_unis(size(s%u)), unis(size(s%u)))
 
 do
   v1_var%name = " "         ! set default
@@ -474,47 +494,74 @@ do
 
   if (v1_var%name == ' ') cycle
 
-  if (default_universe == ' ' .and. all(var%universe == ' ')) &
-                                                  default_universe = 'gang'
+  ! Gang or clone?
 
-  if (default_universe == 'clone') then
-    do i = 1, size(s%u)
-      call var_stuffit_common (v1_var_ptr)
-      write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
-      do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
-        ix_ele = found_one(j+1-lbound(v1_var_ptr%v, 1))
-        call var_stuffit_1_uni (v1_var_ptr%v(j), i, var(j)%universe, searching, ix_ele)
-      enddo
-    enddo
+  gang = .true.
+  if (default_universe(1:5) == 'clone') then
+    gang = .false.
+    call string_trim (default_universe(6:), default_universe, ix)
+  endif
+  if (default_universe(1:4) == 'gang') then
+    call string_trim (default_universe(5:), default_universe, ix)
+  endif
 
-  elseif (default_universe == 'gang') then
-    call var_stuffit_common (v1_var_ptr)
-    do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
-      ix_ele = found_one(j+1-lbound(v1_var_ptr%v, 1))
-      call var_stuffit_all_uni (v1_var_ptr%v(j), searching, ix_ele)
-    enddo
+  ! Read universe numbers
+
+  if (default_universe == '*' .or. default_universe == '') then
+    dflt_unis = .true.
   else
-    if (default_universe == ' ') then
-      n = -1
-    else
-      read (default_universe, *, iostat = ios) n
-      if (ios /= 0) then
-        call out_io (s_abort$, r_name, &
-              'CANNOT READ DEFAULT_UNIVERSE INDEX: ' // default_universe, &
-              'FOR VARIABLE: ' // v1_var%name)
+    call location_decode (default_universe, dflt_unis, 1, num)
+    if (num == 0) dflt_unis = .true.  ! blank => all
+    if (num < 0) then
+      call out_io (s_error$, r_name, 'ERROR READING DEFAULT_UNIVERSE FOR: ' // v1_var%name)
+      cycle
+    endif
+  endif
+
+  ! Set up variable lists
+
+  if (gang) then
+    call var_stuffit_init (v1_var_ptr)
+    do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
+      ! Find which universes
+      unis = dflt_unis
+      if (var(j)%universe /= '') then
+        if (var(j)%universe == '*') then
+          unis = .true.
+        else
+          call location_decode (var(j)%universe, unis, 1, num)
+          if (num < 0) then
+            call out_io (s_error$, r_name, 'ERROR READING UNIVERSE FOR: ' // v1_var%name)
+            cycle
+          endif
+        endif
+      endif
+      if (count(unis) == 0) then
+        call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // v1_var%name)
         call err_exit
       endif
-    endif
-    call var_stuffit_common (v1_var_ptr)
-    do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
       ix_ele = found_one(j+1-lbound(v1_var_ptr%v, 1))
-      call var_stuffit_1_uni (v1_var_ptr%v(j), n, var(j)%universe, searching, ix_ele)
+      call var_stuffit (unis, v1_var_ptr%v(j), searching, ix_ele)
+    enddo
+
+  else   ! If clone...
+    do i = 1, size(s%u)
+      if (.not. dflt_unis(i)) cycle
+      call var_stuffit_init (v1_var_ptr)
+      write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
+      unis = .false.
+      unis(i) = .true.
+      do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
+        ix_ele = found_one(j+1-lbound(v1_var_ptr%v, 1))
+        call var_stuffit (unis, v1_var_ptr%v(j), searching, ix_ele)
+      enddo
     enddo
   endif
 
 enddo
 
 close (iu)
+deallocate (dflt_unis, unis)
 
 !-----------------------------------------------------------------------
 ! Init ix_data array
@@ -686,17 +733,9 @@ u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name    ! stuff in the data
 ! Check if we are searching for elements or repeating elements
 ! and record the element names in the data structs.
     
-if (data(0)%ele_name(1:6) == 'SEARCH') then
-  if (data(0)%ele_name(1:11) == 'SEARCH_KEY:') then
-    call string_trim(data(0)%ele_name(12:), search_string, ix)
-    call find_elements (u, search_string, ele_key$, data(0)%ele0_name, found_one, n_found)
-  elseif  (data(0)%ele_name(1:7) == 'SEARCH:') then
-    call string_trim(data(0)%ele_name(8:), search_string, ix)
-    call find_elements (u, search_string, ele_name$, data(0)%ele0_name, found_one, n_found)
-  else
-    call out_io (s_abort$, r_name, 'Syntax Error in data(0)%ele_name SEARCH string')
-    call err_exit
-  endif
+if (data(0)%ele_name(1:7) == 'SEARCH:') then
+  call string_trim(data(0)%ele_name(8:), search_string, ix)
+  call find_elements (u, search_string, data(0)%ele0_name, found_one, n_found)
   ! finish finding data array limits
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + n_found
@@ -938,17 +977,16 @@ end subroutine d1_data_stuffit
 !
 ! stuff common to all universes
 
-subroutine var_stuffit_common (v1_var_ptr)
+subroutine var_stuffit_init (v1_var_ptr)
 
 type (tao_v1_var_struct), pointer :: v1_var_ptr
 
 character(20) count_name1, count_name2, ix_char
 character(20) fmt
+character(40) search_string
 
 integer i, iu, j, jj, k, nn, n1, n2, ix1, ix2, num_hashes, ix
 integer num_ele, ios, ixx1, ixx2
-
-logical all_uni
 
 ! count number of v1 entries
 
@@ -959,38 +997,22 @@ v1_var_ptr%name = v1_var%name
 
 ! are we searching for and counting elements?
 
-if (var(0)%ele_name(1:6) == 'SEARCH') then
+if (var(0)%ele_name(1:7) == 'SEARCH:') then
   searching = .true.
-  ! search through all universes specified
-  if (default_universe == 'gang' .or. default_universe == 'clone') then
-    num_ele = 0
-    do iu = 1, size(s%u)
-      call search_for_vars (iu, found_one, n_found) 
-      num_ele = num_ele + n_found 
-    enddo
-    all_uni = .true.
-
-  elseif (any(var%universe /= ' ')) then
+  if (any(var%universe /= ' ')) then
     call out_io (s_abort$, r_name, &
-           "Cannot specify individual universes when searching for variables")
+           "CANNOT SPECIFY INDIVIDUAL UNIVERSES WHEN SEARCHING FOR VARIABLES")
     call err_exit
-
-  else
-    read (default_universe, '(i)', iostat = ios) iu
-    if (ios /= 0) then
-      call out_io (s_abort$, r_name, &
-            "DEFAULT_UNIVERSE MUST BE 'gang', 'clone' OR A NUMBER FOR: " // &
-            v1_var%name)
-      call err_exit
-    endif
-    if (iu < 1 .or. iu > size(s%u)) then
-      call out_io (s_abort$, r_name, &
-              'DEFAULT_UNIVERSE NUMBER OUT OF RANGE FOR: ' // v1_var%name)
-    endif
-    call search_for_vars (iu, found_one, num_ele)
-    all_uni = .false.
   endif
-
+  ! search through all universes specified
+  num_ele = 0
+  do iu = 1, size(s%u)
+    if (.not. dflt_unis(iu)) cycle
+    call string_trim(var(0)%ele_name(8:), search_string, ix)
+    call find_elements (s%u(iu), search_string, 'no_slaves', found_one, n_found)
+    num_ele = num_ele + n_found 
+  enddo
+ 
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + num_ele
   ix1 = ix_min_var
@@ -998,33 +1020,21 @@ if (var(0)%ele_name(1:6) == 'SEARCH') then
   s%n_var_used = n2
   jj = n1
 
-  if (all_uni) then
-    do iu = 1, size(s%u)
-      call search_for_vars (iu, found_one, n_found)
-      do j = 1, n_found
-        if (jj .gt. n2) then
-          call out_io (s_abort$, r_name, "INTERNAL ERROR DULAT ELEMENT SEARCHING")
-          call err_exit
-        endif
-        k = found_one(j)
-        s%var(jj)%ele_name = s%u(iu)%design%lat%ele(k)%name
-        s%var(jj)%s = s%u(iu)%design%lat%ele(k)%s
-        jj = jj + 1
-      enddo
-    enddo
-
-  else  
-    do j = 1, num_ele
-      k = found_one(j)
+  do iu = 1, size(s%u)
+    if (.not. dflt_unis(iu)) cycle
+    call string_trim(var(0)%ele_name(8:), search_string, ix)
+    call find_elements (s%u(iu), search_string, 'no_slaves', found_one, n_found)
+    do j = 1, n_found
       if (jj .gt. n2) then
         call out_io (s_abort$, r_name, "INTERNAL ERROR DULAT ELEMENT SEARCHING")
         call err_exit
       endif
+      k = found_one(j)
       s%var(jj)%ele_name = s%u(iu)%design%lat%ele(k)%name
       s%var(jj)%s = s%u(iu)%design%lat%ele(k)%s
       jj = jj + 1
     enddo
-  endif
+  enddo
 
   s%var(n1:n2)%attrib_name = default_attribute
   s%var(n1:n2)%weight = default_weight
@@ -1096,44 +1106,7 @@ endif
 call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
 
 end subroutine
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-!
-! This will search each universe for variables matching name or key
-!
-! The found_one array contains logicals for all universes to be searched
-! through
-
-subroutine search_for_vars (uni, found_one, n_found)
-
-implicit none
-
-integer uni, jj, ix1, ix2, n_found
-integer found_one(:)
-character(40) search_string
-
-ix2 = 0
-
-if (uni == 0) then
-  call out_io (s_abort$, r_name, 'UNIVERSE = 0!')
-  call err_exit
-endif
-
-if (index(var(0)%ele_name, 'SEARCH_KEY:') /= 0) then
-  call string_trim(var(0)%ele_name(12:), search_string, ix)
-  call find_elements (s%u(uni), search_string, ele_key$, 'no_slaves', found_one, n_found)
-elseif (index(var(0)%ele_name, 'SEARCH:') /= 0) then 
-  call string_trim(var(0)%ele_name(8:), search_string, ix)
-  call find_elements (s%u(uni), search_string, ele_name$, 'no_slaves', found_one, n_found)
-else
-  call out_io (s_abort$, r_name, 'Syntax Error in var(0)%ele_name SEARCH string')
-  call err_exit
-endif
-
   
-end subroutine
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 ! contains
@@ -1168,19 +1141,18 @@ end subroutine form_count_name
 ! contains
 !
 ! This searches the lattice for the specified element and flags found_one(:)
-!
-! Attribute can be either ele_name$ or ele_key$
 
-subroutine find_elements (u, search_string, attribute, restriction, found_one, n_found)
+subroutine find_elements (u, search_string, restriction, found_one, n_found)
 
 type (tao_universe_struct), target :: u
 type (ele_struct), pointer :: ele
 
 character(*) search_string, restriction
-integer attribute, key, found_key, n_found
+character(40) ele_name, key_name_in
+integer key, found_key, n_found
 integer found_one(:)
 
-integer i, ii, i2, j, n_max
+integer i, ix, ii, i2, j, n_max
 logical no_slaves
 
 !
@@ -1204,65 +1176,37 @@ endif
 
 !
 
-if (attribute == ele_name$) then
-  do j = 1, n_max
-    ele => u%design%lat%ele(j)
-    if (ele%control_type == super_slave$ .or. ele%control_type == multipass_slave$) then
-      do i = ele%ic1_lord, ele%ic2_lord
-        i2 = u%design%lat%ic(i)
-        ii = u%design%lat%control(i2)%ix_lord
-        if (match_wild(u%design%lat%ele(ii)%name, search_string)) then
-          if (ii <= n_max .and. all(found_one /= ii)) then
-            n_found = n_found + 1
-            found_one(n_found) = ii
-          endif
-        endif
-      enddo
-      if (no_slaves) cycle
-    endif
-    if (match_wild(ele%name, search_string)) then
-      if (all(found_one /= j)) then
-        n_found = n_found + 1
-        found_one(n_found) = j
-      endif
-    endif
-  enddo
-
-elseif (attribute == ele_key$) then
-  call match_word (search_string, key_name, key)
-  if (key < 1) then
-    call out_io (s_abort$, r_name, "Ambiguous or non-existant key name: " // search_string)
-    call err_exit
-  endif
-
-  do j = 1, n_max
-    ele => u%design%lat%ele(j)
-    if (ele%control_type == super_slave$ .or. ele%control_type == multipass_slave$) then
-      do i = ele%ic1_lord, ele%ic2_lord
-        i2 = u%design%lat%ic(i)
-        ii = u%design%lat%control(i2)%ix_lord
-        if (u%design%lat%ele(ii)%key == key) then
-          if (ii <= n_max .and. all(found_one /= ii)) then
-            n_found = n_found + 1
-            found_one(n_found) = ii
-          endif
-        endif
-      enddo
-      if (no_slaves) cycle
-    endif
-    if (ele%key == key) then
-      if (all(found_one /= j)) then
-        n_found = n_found + 1
-        found_one(n_found) = j
-      endif
-    endif
-  enddo
-
-else 
-  !bug in call to subroutine
-  call out_io (s_abort$, r_name, "Internal Error in find_elements!")
-  call err_exit
+ix = index(search_string, ':')
+if (ix == 0) then
+  key_name_in = '*'
+  ele_name = search_string
+else
+  key_name_in = search_string(1:ix-1)
+  ele_name = search_string(ix+1:)
 endif
+
+do j = 1, n_max
+  ele => u%design%lat%ele(j)
+  if (ele%control_type == super_slave$ .or. ele%control_type == multipass_slave$) then
+    do i = ele%ic1_lord, ele%ic2_lord
+      i2 = u%design%lat%ic(i)
+      ii = u%design%lat%control(i2)%ix_lord
+      if (.not. match_wild(u%design%lat%ele(ii)%name, ele_name)) cycle
+      if (.not. match_wild(key_name(u%design%lat%ele(ii)%key), key_name_in)) cycle
+      if (ii <= n_max .and. all(found_one /= ii)) then
+        n_found = n_found + 1
+        found_one(n_found) = ii
+      endif
+    enddo
+    if (no_slaves) cycle
+  endif
+  if (.not. match_wild(u%design%lat%ele(ii)%name, ele_name)) cycle
+  if (.not. match_wild(key_name(u%design%lat%ele(ii)%key), key_name_in)) cycle
+  if (all(found_one /= j)) then
+    n_found = n_found + 1
+    found_one(n_found) = j
+  endif
+enddo
 
 end subroutine find_elements
 
@@ -1596,66 +1540,7 @@ end subroutine tao_init_global_and_universes
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 
-subroutine var_stuffit_1_uni (var, ix_u_in, universe, searching, ix_ele)
-
-implicit none
-
-type (tao_var_struct) var
-integer i, ix_u, n, ios, ix_u_in, ie, n_ele, ix_ele
-character(*) universe
-character(20) :: r_name = 'var_stuffit_1_uni'
-logical searching
-
-! point the children back to the mother
-
-if (allocated(var%this)) deallocate (var%this)
-if (var%ele_name == ' ') then
-  allocate (var%this(0))
-  var%exists = .false.
-  return
-endif
-
-ix_u = ix_u_in    ! universe to use
-if (searching) then
-  allocate (var%this(1))
-  call tao_pointer_to_var_in_lattice (var, var%this(1), ix_u, ix_ele = ix_ele)
-
-else
-  if (universe /= ' ') then
-    read (universe, *, iostat = ios) ix_u
-    if (ios /= 0) then
-      call out_io (s_abort$, r_name, &
-            'CANNOT READ UNIVERSE INDEX: ' // universe, &
-            'FOR VARIABLE: ' // var%v1%name)
-      call err_exit
-    endif
-  endif
-  call tao_locate_elements (var, ix_u, n_ele)
-  if (n_ele == 0) then
-    call out_io (s_error$, r_name, 'ELEMENT DOES NOT EXIST: ' // var%ele_name)
-    var%exists = .false.
-    return
-  endif
-  allocate (var%this(n_ele))
-  do ie = 1, n_ele
-    call tao_pointer_to_var_in_lattice (var, var%this(ie), ix_u, &
-                                      ix_ele = s%u(ix_u)%model%lat%ele(ie)%ixx)
-  enddo
-
-endif
-     
-var%model_value = var%this(1)%model_ptr
-var%design_value = var%model_value
-var%base_value = var%this(1)%base_ptr
-var%exists = .true.
-
-end subroutine var_stuffit_1_uni
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-
-subroutine var_stuffit_all_uni (var, searching, ix_ele)
+subroutine var_stuffit (unis, var, searching, ix_ele)
 
 implicit none
 
@@ -1663,7 +1548,7 @@ type (tao_var_struct) :: var
 
 integer i, j, n, n1, n2, iu, n_tot, n_ele, ie, ix_ele
 character(20) :: r_name = 'var_stuffit_all_uni'
-logical err, searching
+logical err, searching, unis(:)
 
 ! point the children back to the mother
 
@@ -1674,15 +1559,19 @@ if (var%ele_name == ' ') then
   return
 endif
 
+!
+
 if (searching) then
-  allocate (var%this(size(s%u)))
+  allocate (var%this(count(unis)))
   do iu = 1, size(s%u)
+    if (.not. unis(iu)) cycle
     call tao_pointer_to_var_in_lattice (var, var%this(iu), iu, ix_ele = ix_ele)
   enddo
 
 else
   n_tot = 0
   do iu = 1, size(s%u)
+    if (.not. unis(iu)) cycle
     call tao_locate_elements (var, iu, n_ele)
     s%u(iu)%ixx = n_ele
     n_tot = n_tot + n_ele
@@ -1695,6 +1584,7 @@ else
   allocate (var%this(n_tot))
   n_tot = 0
   do iu = 1, size(s%u)
+    if (.not. unis(iu)) cycle
     do ie = 1, s%u(iu)%ixx
       call tao_pointer_to_var_in_lattice (var, var%this(ie+n_tot), iu, &
                                           ix_ele = s%u(iu)%model%lat%ele(ie)%ixx)

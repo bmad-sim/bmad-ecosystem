@@ -255,6 +255,17 @@ if (data_source /= "lattice" .and. data_source /= "beam_tracking") then
   call err_exit
 endif
 
+if (data_source == 'lattice') then
+  select case (data_type)
+  case ('beta.z', 'alpha.z', 'gamma.z', 'emittance.x', 'norm_emittance.x', &
+        'emittance.y', 'norm_emittance.y', 'emittance.z', 'norm_emittance.z', &
+        'dpx_dx', 'dpy_dy', 'dpz_dz', 'sigma.x', 'sigma.p_x', 'sigma.y', 'sigma.p_y', &
+        'sigma.z', 'sigma.p_z', 'sigma.xy', 'wire.')
+    call out_io (s_error$, r_name, 'DATA_SOURCE = "lattice" NOT VALID FOR DATUM: ' // &
+                                   tao_datum_name(datum))
+  end select
+endif
+
 !---------------------------------------------------
 
 select case (data_type)

@@ -401,12 +401,16 @@ not given then the defaults are:
   output var                      global%var_out_file
 \end{example}
 where \vn{\#} is replaced by the universe number. \vn{output
-curve} will produce two files: A file
-\vn{<file_name>.symbol_dat} file for the symbol coordinates and a
-\vn{<file_name>.line_dat} file for the coordinates used to draw the
-(possibly smooth) curve through the symbols. A third file named
-\vn{<file_name>.particle_dat} may be produced if particle
+curve} will produce two or three files: 
+\begin{example}
+  <file_name>.symbol_dat    ! Symbol coordinates file
+  <file_name>.line_dat      ! Curve coords.
+  <file_name>.particle_dat  ! Particle data file
+\end{example}
+The particle data file is only produced if particle
 data is associated with the curve.
+The curve coordinates are the the set of points that are used to draw the
+(possibly smooth) curve through the symbols.
 
 \vn{output beam} will create a file of the particle positions when
 beam tracking is being used. If the switch \vn{-at} is present then
@@ -573,7 +577,7 @@ Examples:
 
 Format:
 \begin{example}
-  scale\{/axis\} \{<where> <value1> <value2>\}
+  scale \{-axis\} \{<where> <value1> <value2>\}
 \end{example}
 
 \vskip 0.2in 
@@ -590,14 +594,14 @@ A graph can have a \vn{y2} (left) axis scale that is separate from the \vn{y} (r
 axis. Normally, the \vn{scale} command will scale both axes.  Scaling of just one of these
 axes can be achieved by using the \vn{/axis} switch. Possible values for \vn{/axis} are:
 \begin{example}
-  /y                 ! Scale only the y axis.
-  /y2                ! Scale only the y2 axis.
+  -y                 ! Scale only the y axis.
+  -y2                ! Scale only the y2 axis.
 \end{example}
 
 Examples:
 \begin{example}
   scale top.x -3  7  ! Scale the x graph in the top region
-  scale/y2 top.x     ! Scale only the y2 axis of the top.x graph.
+  scale -y2 top.x    ! Scale only the y2 axis of the top.x graph.
   scale bottom       ! Scale the graphs in the bottom region
   scale              ! Scale everything
 \end{example}

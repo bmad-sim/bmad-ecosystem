@@ -539,8 +539,11 @@ case ('global')
   nl=nl+1; write (lines(nl), imt) 'n_opti_loops               = ', s%global%n_opti_loops
   nl=nl+1; write (lines(nl), imt) 'n_opti_cycles              = ', s%global%n_opti_cycles
   nl=nl+1; write (lines(nl), imt) 'bunch_to_plot              = ', s%global%bunch_to_plot
-  nl=nl+1; write (lines(nl), '(a, i0)') 'random_seed                = ', s%global%random_seed
   nl=nl+1; write (lines(nl), imt) 'n_curve_pts                = ', s%global%n_curve_pts
+  nl=nl+1; write (lines(nl), '(a, i0)') 'random_seed                = ', s%global%random_seed
+  nl=nl+1; write (lines(nl), rmt) 'random_gauss_cutoff        = ', s%global%random_gauss_cutoff
+  nl=nl+1; write (lines(nl), amt) 'random_engine              = ', s%global%random_engine
+  nl=nl+1; write (lines(nl), amt) 'random_gauss_converter     = ', s%global%random_gauss_converter
   nl=nl+1; write (lines(nl), amt) 'track_type                 = ', s%global%track_type
   nl=nl+1; write (lines(nl), amt) 'phase_units                = ', &
                                                   frequency_units_name(s%global%phase_units)

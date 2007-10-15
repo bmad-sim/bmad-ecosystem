@@ -261,6 +261,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{y_axis_plot_dmin}\index{u_view}\index{n_opti_cycles}\index{ix_key_bank}
 \index{n_key_table_max}\index{n_lat_layout_label_rows}\index{phase_units}
 \index{bunch_to_plot}\index{n_curve_pts}\index{random_seed}\index{n_write_file}
+\index{random_engine}\index{random_gauss_converter}
 \index{track_type}\index{prompt_string}\index{Optimization!setting the optimizer}
 \index{default_key_merit_type}\index{write_file}\index{var_limits_on}
 \index{plot_on}\index{auto_scale}\index{opt_with_ref}\index{opt_with_base}
@@ -279,16 +280,19 @@ type tao_global_struct
   integer :: n_opti_cycles = 1           ! number of optimization loops
   integer :: n_key_table_max = 0         ! Maximum key table index.
   integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
-  integer :: phase_units = radians\$     ! Phase units on output.
+  integer :: phase_units = radians\$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
-  integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
+  integer :: n_curve_pts = 401           ! Num points used to construct a smooth curve
   integer :: random_seed = 0             ! use system clock by default
-  character(16) :: track_type = 'single' ! or 'beam', or 'macro' 
+  real(rp) :: random_gauss_limit = 4     ! cut-off in sigmas.
+  character(16) :: random_engine = 'pseudo'          ! 'pseudo' or 'quasi'
+  character(16) :: random_gauss_converter = 'exact'  ! 'exact' or 'limited'
+  character(16) :: track_type = 'single'             ! or 'beam', or 'macro' 
   character(16) :: prompt_string = 'Tao'
-  character(16) :: optimizer     = 'de'      ! optimizer to use.
+  character(16) :: optimizer     = 'de'              ! optimizer to use.
   character(16) :: default_key_merit_type
   character(80) :: write_file    = 'tao_show.dat'
-  character(16) :: valid_plot_who(10)        ! model, base, ref etc...
+  character(16) :: valid_plot_who(10)                ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: var_out_file  = 'var#.out'
   logical :: var_limits_on = T         ! Respect the variable limits?
@@ -305,6 +309,29 @@ type tao_global_struct
   logical :: init_plot_needed = T       ! reinitialize plotting?
 end type
 \end{example}
+
+Random numbers are used by \tao in various algorithims. For example in
+generating the initial coordinates of the particles in a beam. There
+are four parameters that govern how random numbers are generated.
+
+\vn{global%random_seed} sets the seed number for the pseudo-random
+number generator. A value of \vn{0} (the default) causes the seed
+number to be picked based upon the system clock. Use the \vn{show
+global} command to see what the seed number is.
+
+\vn{global%random_engine} selects the algorithm used for generating
+the random numbers. \vn{'pseudo'} causes \tao to use a pseudo-random
+number generator. \vn{'quasi'} uses Sobel quasi-random number
+generator which generates a distribution that is smoother then the
+pseudo-random number generator.
+
+\vn{global%random_gauss_converter} selects the alogithm used in the
+conversion from a uniform distribution to a Gaussian distribution.
+\vn{'exact'} is an exact conversion and \vn{'limited'} has a cut-off
+so that no particles are generated beyound. This cutoff is set by
+\vn{global%random_gauss_cutoff}.
+
+
 
 The \vn{bmad_com_struct} holds bmad global variables. 
 \index{radiation_damping_on}
@@ -363,8 +390,8 @@ variables the optimizer is allowed to change. The number of steps that
 the optimizer will take is determined by the parameter
 \vn{global%n_opti_cycles}. When the optimizer initializes itself and
 goes through \vn{global%n_opti_cycles}, it is said to have gone
-through one \vn{loop}. The optimizer, after going through through
-\vn{global%n_opti_loops}, will automatically stop.
+through one \vn{loop}. After going through through
+\vn{global%n_opti_loops} loops, the optimizer will automatically stop.
 To immediately stop the optimizer the period key
 \vn{``.''} may be pressed.
 
@@ -474,9 +501,9 @@ The syntax is as follows:
 \begin{example}
   &tao_beam_init
     ix_universe             = <integer>
-    calc_emittance          = <logical>      ! calculate emittance for rings
-    beam0_file              = <string>       ! Particle initialization file used in place of beam_init
-    beam_all_file           = <string>       ! Particle file used in place of beam tracking.
+    calc_emittance          = <logical>      ! Calculate emittance for rings.
+    beam0_file              = <string>       ! File used in place of beam_init.
+    beam_all_file           = <string>       ! Data file used in place of beam tracking.
     save_beam_at(:)         = <element list> ! List of 
     beam_init%a_norm_emitt  = <number>       ! A-mode emittance
     beam_init%b_norm_emitt  = <number>       ! B-mode emittance
@@ -495,7 +522,7 @@ The syntax is as follows:
     beam_init%emitt_jitter  = <bumber>*2     ! Emittance rms jitter (depsilon/epsilon)
     beam_init%sig_z_jitter  = <number>       ! bunch length rms jitter (dz/z)
     beam_init%sig_e_jitter  = <number>       ! bunch energy spread rms jitter (dE/E)
-    beam_init%spin%polarization = <number>   ! spin polarization (1.0 = %100 polarizaed)
+    beam_init%spin%polarization = <number>   ! spin polarization (1.0 = 100%)
     beam_init%spin%theta    = <number>       ! spin orientation  (polar coordinate)
     beam_init%spin%phi      = <number>       ! spin orientation  (polar coordinate)
     beam_init%init_spin     = <logical>      ! Initialize the spin (default: False)
@@ -709,7 +736,7 @@ Example:
 \begin{example}
   &tao_var
     v1_var%name      = "v_steer"   ! vertical steerings
-    default_universe  = "clone"
+    default_universe  = "clone 2,3"
     default_attribute = "vkick"     ! vertical kick attribute
     default_weight    = 1e3
     default_step      = 1e-5
@@ -740,25 +767,39 @@ particular variable then the default \vn{default_step} is
 used. 
 
 \vn{var(i)%universe} gives the universe that the
-lattice element lives in. If \vn{var(i)%universe} is not present 
-\vn{default_universe} is used instead. In addition to a number, 
+lattice element lives in. Multiple universes can be specified using a comma delimited list.
+For example:
+\begin{example}
+  var(10)%universe = "2, 3"
+\end{example}
+If \vn{var(i)%universe} is not present or is blank,
+\vn{default_universe} is used instead. If both \vn{var(i)%universe} and
+\vn{default_universe} are not present or blank then all universes are assumed.
+In addition to a number (or numbers), 
 \vn{default_universe} can have values:
 \index{gang}\index{clone}
 \begin{example}
   "gang"     -- Multiple universe control (default).
   "clone"    -- Make a var array block for each universe.
 \end{example}
-With both \vn{"gang"} and \vn{"clone"} individual \vn{var(i)%universe}
-may not be set in the namelist. \vn{"gang"} means that each variable
-will control the given attribute in each universe
-simultaneously. \vn{"clone"} means that an array of variables will be
-duplicated, one for each universe.  To differentiate variables from
-different universes \vn{_u<n>} will be appended to each \vn{v1_var%name}
-where \vn{<n>} is the universe number.  For example, if \vn{v1_var%name}
-is \vn{quad_k1} then the variable block name for the second universe
-will be \vn{quad_k1_u2}. The default if both \vn{default_universe} and
-all \vn{var(i)%universe} are not given is for \vn{default_universe} to
-be \vn{"gang"}
+\vn{"gang"} means that each variable will control the given attribute
+in each universe simultaneously. \vn{"clone"} means that the array of
+variables will be duplicated, one for each universe.  To differentiate
+variables from different universes \vn{_u<n>} will be appended to each
+\vn{v1_var%name} where \vn{<n>} is the universe number.  For example,
+if \vn{v1_var%name} is \vn{quad_k1} then the variable block name for
+the first universe will be \vn{quad_k1_u1}, 
+second universe will be \vn{quad_k1_u2}, etc. With \vn{"clone"},
+individual \vn{var(i)%universe} may not be set in the namelist. The
+default if both \vn{default_universe} and all \vn{var(i)%universe} are
+not given is for \vn{default_universe} to be \vn{"gang"}. Examples:
+\begin{example}
+  default_universe = "gang"        ! Gang all universes together.
+  default_universe = "gang 2, 3"   ! Gang universes 2 and 3 together.
+  default_universe = "2, 3"        ! Same as "gang 2, 3".
+  default_universe = "clone 2, 3"  ! Make two var arrays. 
+                                   !   One for universe 2 and one for universe 3. 
+\end{example}
 
 \vn{var(i)%weight} gives the weight coefficient for the contribution
 of a variable to the merit function.  If not present then the default
@@ -785,24 +826,18 @@ Instead of specifying a list of lattice element names for \vn{var(:)%ele_name},
 \tao can be told to search for the elements by name using the syntax:
 \index{COUNT}
 \begin{example}
-  var(0)%ele_name = "SEARCH: <search_string>"
+  var(0)%ele_name = "SEARCH: <element class>:<element name>"
 \end{example}
-Where \vn{<search_string>} can contain the wildcards
-\vn{*} and \vn{%}. For example, \vn{"SEARCH: Q*"} would search for all elements 
-whose name began with the letter "Q".
-
-Variables can also be searched using the \bmad element \textit{key}
-attribute using the syntax:
-\begin{example}
-  var(0)%ele_name = "SEARCH_KEY: <key>"
-\end{example}
-Where \vn{<key>} is the \bmad \textit{key} attribute. For example:
-\begin{example}
-  &tao_var
-    var(0)%ele_name = "SEARCH_KEY: quadrupole"
-  /
-\end{example}
-will search for all quadrupole elements in the lattice.
+\vn{<element class>} is the type of element (quadrupole, sbend, etc.)
+and \vn{<element name>} is the name of the element.  \vn{<element
+class>} or \vn{<element name>} can contain the wildcards \vn{*} and
+\vn{%}. For example, \vn{"SEARCH: QUADRUPOLE:Q*"} would search for all
+quadrupole elements whose name began with the letter "Q". and
+\vn{"SEARCH: *:BMM_\%\%"} would search for all elements whose name
+have exactly 6 letters and whose name begin with the string
+\vn{"BPM_"}.  If \vn{":"} is not present then all element classes are
+searched for. Therefore, for example, \vn{SEARCH: "*:Q*"} is equivalent to
+\vn{"SEARCH: Q*"}.
 
 The \vn{var(:)%name} names for this array of variables can be numbered using 
 the notation
@@ -1038,12 +1073,14 @@ For example:
 each data type by using the syntax:
 \index{COUNT}
 \begin{example}
-  data(0)%ele_name = "SEARCH: <search_string>"
+  data(0)%ele_name = "SEARCH: <element class>:<element name>"
   data(0)%ele0_name = "<restriction>"
 \end{example}
-Where \vn{<search_string>} can contain the wildcards \vn{*} and \vn{%},
-and \vn{restriction} is used to restrict the counting of lord or slave
-elements. The possible choices for \vn{restriction} are:
+\vn{<element class>} is the type of element (quadrupole, sbend, etc.)
+and \vn{<element name>} is the name of the element.  \vn{<element
+class>} or \vn{<element name>} can contain the wildcards \vn{*} and
+\vn{%}.  \vn{restriction} is used to restrict the counting of lord or
+slave elements. The possible choices for \vn{restriction} are:
 \begin{example}
   "no_lords"        ! No lord (control type) elements included.
   "no_slaves"       ! No superposition or multipass slave elements. 
@@ -1052,22 +1089,15 @@ elements. The possible choices for \vn{restriction} are:
 For example:
 \index{SEARCH}
 \begin{example}
-    data(0)%ele_name = "SEARCH: BPM*"
+    data(0)%ele_name = "SEARCH: MONITOR:BPM*"
 \end{example}
-will search for all lattice elements whose names contain 'BPM' followed
-by any set of characters 
+will search for all monitor lattice elements whose names begins with
+\vn{"BPM"} followed by any set of characters. Similarly, \vn{"SEARCH:
+*:AB\%"} will match to all elements whose names have three characters
+starting with the letters \vn{"AB"}. If \vn{":"} is not present then
+all element classes are searched for. Therefore, for example,
+\vn{"SEARCH: *:Q*"} is equivalent to \vn{"SEARCH: Q*"}.
 
-Data elements can also be searched using the \bmad element
-\textit{key} attribute using the syntax:
-\index{SEARCH_KEY}
-\begin{example}
-  data(0)%ele_name = "SEARCH_KEY: <key>"
-\end{example}
-Where \vn{<key>} is the \bmad \textit{key} attribute. For example:
-\begin{example}
-    data(0)%ele_name = "SEARCH_KEY: monitor"
-\end{example}
-will search for all monitor elements in the lattice.
 
 The \vn{var(:)%name} names for this data array can be numbered using 
 the notation
@@ -1083,7 +1113,7 @@ the number of hashes. For example:
     d1_data%name     = "x"
     ix_min_data      = 1  
     ...
-    data(0)%ele_name = "SEARCH: BPM*"
+    data(0)%ele_name = "SEARCH: *:BPM*"
     data(0)%name     = "COUNT: BPM_####"
   /
 \end{example}
@@ -1129,14 +1159,14 @@ of 500 key bindings. The syntax is:
 For example:
 \begin{example}
   &key_bindings
-  key(1) = "Q1"   "K1"    0.01 "U:0" 1e-5  -10  10  10  T
+  key(1) = "Q1"   "K1"    0.01 "U:*" 1e-5  -10  10  10  T
   key(2) = "DRFT" "L"     0.1  "U:1" 1e-3    0   3   1  F
   key(3) = "Q3"   "TILT"  0.01 "U:2" 1e-5   -1   1   3  T "target"
   /  
 \end{example}
 For the \vn{i}\Th key \vn{<ele_name>} is the name of a lattice element
 in universe \vn{<universe>} and \vn{<attrib_name>} is the attribute to
-be varied. If \vn{<universe>} is ``0'' then the key will vary elements
+be varied. If \vn{<universe>} is ``*'' then the key will vary elements
 in all universes. \vn{<delta>} is the change in value when the
 appropriate key is depressed. \vn{<step>} establishes what the variation
 of the variable is when the associated key is depressed. 

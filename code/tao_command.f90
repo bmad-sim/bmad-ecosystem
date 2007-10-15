@@ -373,12 +373,13 @@ case ('scale')
     return
   endif
 
-  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err, '/'); if (err) return
+  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) return
 
   axis_name = ''
-  if (cmd_word(1) == '/') then
-   axis_name = cmd_word(2)
-   cmd_word(1:3) = cmd_word(3:5)
+  if (cmd_word(1) == '-y' .or. cmd_word(1) == '-y2') then
+   axis_name = cmd_word(1)
+   axis_name = axis_name(2:)
+   cmd_word(1:3) = cmd_word(2:4)
   endif 
 
   if (cmd_word(2) == ' ') then

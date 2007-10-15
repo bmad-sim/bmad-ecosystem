@@ -22,7 +22,7 @@ subroutine tao_init_single_mode (single_mode_file)
 
   type (tao_key_input) key(500)
 
-  integer ios, iu, i, j, n, n1, n2, nn, i_max, ix_u, ix
+  integer ios, iu, i, j, n, n1, n2, nn, i_max, ix_u, ix, num
 
   character(*) single_mode_file
   character(40) :: r_name = 'tao_init_single_mode'
@@ -30,6 +30,7 @@ subroutine tao_init_single_mode (single_mode_file)
   character(16) name
 
   logical err
+  logical, allocatable :: unis(:)
 
   namelist / key_bindings / key
 
@@ -76,6 +77,7 @@ subroutine tao_init_single_mode (single_mode_file)
   n2 = s%n_var_used
   s%var(n1:n2)%exists = .false.
   s%key(:)%ix_var = 0
+  allocate (unis(size(s%u)))
 
   do i = 1, i_max
 
@@ -97,31 +99,24 @@ subroutine tao_init_single_mode (single_mode_file)
     s%var(n)%exists      = .true.
 
     if (key(i)%universe == '*') then
-      ix_u = 0
+      unis = .true.
     else
-      read (key(i)%universe, *, iostat = ios) ix_u
-      if (ios /= 0) then
+      call location_decode (key(i)%universe, unis, 1, num)
+      if (num < 0 .or. count(unis) == 0) then
         call out_io (s_abort$, r_name, 'BAD UNIVERSE INDEX FOR KEY: ' // key(i)%ele_name)
-        call err_exit
-      endif
-      if (ix_u == 0) then
-        call out_io (s_abort$, r_name, &
-            'UNIVERSE INDEX "0" NEEDS TO BE REPLACED BY "*" FOR KEY: ' // key(i)%ele_name)
         call err_exit
       endif
     endif
 
-    if (ix_u == 0) then
-      call var_stuffit_all_uni (s%var(n), .false., 0)
-    else
-      call var_stuffit_1_uni (s%var(n), ix_u, ' ', .false., 0)
-    endif
+    call var_stuffit (unis, s%var(n), .false., 0)
  
     s%key(i)%val0 = s%var(n)%model_value
     s%key(i)%delta = key(i)%delta
     s%key(i)%ix_var = n
 
   enddo
+
+  deallocate (unis)
 
 ! setup s%v1_var
 
