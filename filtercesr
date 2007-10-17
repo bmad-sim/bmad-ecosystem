@@ -218,7 +218,7 @@ sub rm_home_packages {
 sub take_care_of_some_variables {
     local($varP,$smlist);
     foreach $varP (@prereqs){
-#        $varP =~ s/\$\(CESR_INC\)\//\[--\.include\]/g;
+        $varP =~ s/\$\(CESR_INC\)\//\[--\.include\]/g;       # Reverted from comment
 #        $varP =~ s/\$\(CESR_MOD\)\//\$\(MOD_OUT_DIR\)/g;
         $varP =~ s/\$\(CESR_PKG\)\/modules\//\$\(PBASE\)\.Modules\]/g;
         $varP =~ s/\$\(CESR_PKG\)\/cfortran\/include\//\$\(PBASE\)\.cfortran\.include\]/g;
