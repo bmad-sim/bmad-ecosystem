@@ -493,7 +493,7 @@ e_tot = f1 * lat%ele(ix_ele-1)%value(e_tot$) + (1 - f1) * lat%ele(ix_ele)%value(
 call convert_total_energy_to (e_tot, lat%param%particle, bin%gamma, beta = bin%beta)
 bin%gamma2 = bin%gamma**2
 
-if (.not. csr_param%lcsr_component_on) return
+if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on) return
 
 ! The kick point P is fixed.
 ! The source point P' varies from bin to bin.
@@ -529,10 +529,10 @@ do i = lbound(bin%kick1, 1), ubound(bin%kick1, 1)
     call I_csr (kick1, i, k_factor, bin)
     if (bin%kick1(i)%I_int_csr == 0 .and. i /= lbound(bin%kick1, 1)) then
       bin%kick1(i)%I_int_csr = &
-                          (bin%kick1(i)%I_csr + bin%kick1(i-1)%I_csr) * bin%dz_bin / 2
+                            (bin%kick1(i)%I_csr + bin%kick1(i-1)%I_csr) * bin%dz_bin / 2
     endif
   else
-    call kick_csr (kick1, k_factor, bin)
+    call kick_csr_lsc (kick1, k_factor, bin)
   endif
 
 enddo
@@ -542,20 +542,30 @@ enddo
 coef = bin%ds_track_step * r_e / (e_charge * bin%gamma)
 n_bin = csr_param%n_bin
 
-if (bin%y2 == 0) then
-  call lsc_bin_kicks_y0 (bin)
-  do i = 1, n_bin
-    bin%bin1(i)%kick_csr = coef * &
-            dot_product(bin%kick1(i:1:-1)%I_int_csr, bin%bin1(1:i)%dcharge_density_dz)
-  enddo
+if (csr_param%lcsr_component_on) then
+  if (bin%y2 == 0) then
+    do i = 1, n_bin
+      bin%bin1(i)%kick_csr = coef * &
+              dot_product(bin%kick1(i:1:-1)%I_int_csr, bin%bin1(1:i)%dcharge_density_dz)
+    enddo
+  else
+    do i = 1, n_bin
+      bin%bin1(i)%kick_csr = bin%bin1(i)%kick_csr + coef * &
+                    dot_product(bin%kick1(i-1:i-n_bin:-1)%kick_csr, bin%bin1(1:n_bin)%charge)
+    enddo
+  endif
+endif
 
-else
-  do i = 1, n_bin
-    bin%bin1(i)%kick_csr = bin%bin1(i)%kick_csr + coef * &
-                  dot_product(bin%kick1(i-1:i-n_bin:-1)%kick_csr, bin%bin1(1:n_bin)%charge)
-    bin%bin1(i)%kick_lsc = bin%bin1(i)%kick_lsc + coef * &
+
+if (csr_param%lsc_component_on) then
+  if (bin%y2 == 0) then
+    call lsc_y0_kick_calc (bin)
+  else
+    do i = 1, n_bin
+      bin%bin1(i)%kick_lsc = bin%bin1(i)%kick_lsc + coef * &
                   dot_product(bin%kick1(i-1:i-n_bin:-1)%kick_lsc, bin%bin1(1:n_bin)%charge)
-  enddo
+    enddo
+  endif
 endif
 
 !----------------------------------------------------------------------------
@@ -646,7 +656,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine lsc_bin_kicks_y0 (bin)
+! Subroutine lsc_y0_kick_calc (bin)
 !
 ! Routine to cache intermediate values needed for the lsc calculation.
 ! This routine is not for image currents.
@@ -663,7 +673,7 @@ end subroutine
 !     %bin1(:)%kick_lsc -- Integrated kick.
 !-
 
-subroutine lsc_bin_kicks_y0 (bin)
+subroutine lsc_y0_kick_calc (bin)
 
 implicit none
 
@@ -687,7 +697,7 @@ sig_y_ave = dot_product(bin%bin1(:)%sig_y, bin%bin1(:)%charge) / sum(bin%bin1(:)
 ! Compute the kick at the center of each bin
 
 bin%bin1(:)%kick_lsc = 0
-if (.not. csr_param%lcsr_component_on) return
+if (.not. csr_param%lsc_component_on) return
 
 do i = 1, csr_param%n_bin
   bin1 => bin%bin1(i)
@@ -783,7 +793,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine kick_csr (kick1, k_factor, bin) result (kick_this)
+! Subroutine kick_csr_lsc (kick1, k_factor, bin) result (kick_this)
 !
 ! Routine to calculate the CSR kick integral.
 !
@@ -802,7 +812,7 @@ end subroutine
 !     %kick_csr -- Real(rp): CSR kick.
 !-
 
-subroutine kick_csr (kick1, k_factor, bin)
+subroutine kick_csr_lsc (kick1, k_factor, bin)
 
 implicit none
 
