@@ -285,7 +285,7 @@ type tao_global_struct
   integer :: n_curve_pts = 401           ! Num points used to construct a smooth curve
   integer :: random_seed = 0             ! use system clock by default
   real(rp) :: random_gauss_limit = 4     ! cut-off in sigmas.
-  character(16) :: random_engine = 'pseudo'          ! 'pseudo' or 'quasi'
+  character(16) :: random_engine = 'quasi'            ! 'pseudo' or 'quasi'
   character(16) :: random_gauss_converter = 'exact'  ! 'exact' or 'limited'
   character(16) :: track_type = 'single'             ! or 'beam', or 'macro' 
   character(16) :: prompt_string = 'Tao'
@@ -323,7 +323,7 @@ global} command to see what the seed number is.
 the random numbers. \vn{'pseudo'} causes \tao to use a pseudo-random
 number generator. \vn{'quasi'} uses Sobel quasi-random number
 generator which generates a distribution that is smoother then the
-pseudo-random number generator.
+pseudo-random number generator. \vn{'quasi'} is the default.
 
 \vn{global%random_gauss_converter} selects the alogithm used in the
 conversion from a uniform distribution to a Gaussian distribution.
@@ -568,24 +568,32 @@ to prevent actual tracking.
 
 Note: A \vn{beam_all_file} will superceed a \vn{beam0_file}
 
-When there is no \vn{beam0_file} the twiss parameters 
-at the beginning of the lattice are used in
-initializing the beam distribution.  For circular lattices the twiss
-parameters will be found from the closed orbit, and the emittance will
-be calculated using the \bmad routine \vn{radiation_integrals} unless
-\vn{calc_emittance = F} in which case the emittance specified in the
-initialization will be used. The state of \vn{calc_emittance} has no
-effect on Linear lattices where the initial emittance must be
-specified.
+When there is no \vn{beam0_file} the twiss parameters at the beginning
+of the lattice are used in initializing the beam distribution.  For
+circular lattices the twiss parameters will be found from the closed
+orbit, and the emittance will be calculated using the \bmad routine
+\vn{radiation_integrals} unless \vn{calc_emittance = F} in which case
+the emittance specified in the initialization will be used. The state
+of \vn{calc_emittance} has no effect on Linear lattices where the
+initial emittance must be specified.
 
-If spin tracking is desired then \vn{beam_init%init_spin} must be set to true.
-If it is desired to use the exact same distribution of particles for each time
-the beam is tracked then set \vn{beam_init%preserve_dist} to True. Otherwise, a
-new random distribution will be generated. The
-initialization routine does attempt to renormalize the beam to the specified
-parameters, nevertheless if tracking a small number of
-particles the distribution is subject to small random fluctuations unless
-\vn{beam_init%prserve_dist} is True. 
+If spin tracking is desired then \vn{beam_init%init_spin} must be set
+to true.  If it is desired to use the exact same distribution of
+particles for each time the beam is tracked then set
+\vn{beam_init%preserve_dist} to True. Otherwise, a new random
+distribution will be generated. The initialization routine does
+attempt to renormalize the beam to the specified parameters,
+nevertheless if tracking a small number of particles the distribution
+is subject to small random fluctuations unless
+\vn{beam_init%prserve_dist} is True.
+
+\tao retracks the beam through the lattice every time a lattice
+parameter is changed. For example, during optimizations or when the
+\vn{set} command (\sref{s:set}) is used. For the retracking, the
+particle distribution at the beginning of the lattice is fixed. That
+is, the a new random distribution is {\emph not} generated. To force a
+new distribution, use the \vn{reinitialize beam} command
+(\sref{s:reinit}).
 
 The default is single particle tracking. To turn on particle tracking the
 \vn{global%track_type} perameter must be set to 'beam.' This can be placed in
@@ -599,6 +607,7 @@ the \vn{tao_params} namelist above, for example,
     global%optimizer = "lm"  ! Set the default optimizer.
     global%track_type = 'beam'
   /
+\end{example}
 
 \vn{save_beam_at} is used to specify at what elements the beam
 distribution is to be saved at. Each element in the \vn{save_beam_at}
@@ -606,7 +615,6 @@ array is in \vn{class:ele_name} format as explained in \sref{s:class:name}.
 The \vn{BEGINNING} element (with index 0 in the lattice
 list) and the last element are automatically saved.
 
-\end{example}
 
 %-----------------------------------------------------------------
 \section{Initializing Macroparticle Beams}

@@ -231,7 +231,7 @@ do i = 1, size(d_ptr)
 
 enddo
 
-s%global%lattice_recalc = .true.
+tao_com%lattice_recalc = .true.
 
 !----------------------------------
 ! print results

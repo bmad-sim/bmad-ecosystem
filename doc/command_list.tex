@@ -510,7 +510,8 @@ and \vn{veto} commands.
 Examples:
 \begin{example}
   restore data orbit.x[23,34:56]   ! un-veto orbit.x 23 and 34 through 56.
-  restore data orbit.x[23,34:56:2] ! un-veto orbit.x 23 and even datums between 34 and 56
+  restore data orbit.x[23,34:56:2] ! un-veto orbit.x 23 and even datums between 34 
+                                   !                                          and 56
   restore data *@orbit[34]         ! un-veto orbit data in all universes.
   restore var quad_k1[67]          ! un-veto variable
 \end{example}
@@ -521,26 +522,37 @@ Examples:
 
 Format:
 \begin{example}
-  reinitialize \{-init <tao_input_file>\} \{-beam <beam_input_file>\} \{-lat <lattice_file>\}
+  reinitialize beam
+  reinitialize data
+  reinitialize tao \{-init <tao_input_file>\} 
+                       \{-beam <beam_input_file>\} \{-lat <lattice_file>\}
 \end{example}
 
-\vskip 0.2in 
+\vskip 0.2in \vn{reinitialize beam} reinitializes the beam at the
+start of the lattice.  That is, a new random distribution is
+generated. This also reinitializes the model data.
 
-Reinitializes \tao. This can be useful to reset everything to initial
-conditions or to perform analysis with more than one initialization
-file.  See section \sref{s:command_line} for details on the arguments.
-If there are no arguments, the \vn{reinitialize} command uses the same
-arguments that were used in the last \vn{reinitialize} command, or, if
-this is the first reinitialization, what was used to start \tao. If
-there are arguments, The defaults will be used.  The default
-\vn{<init_file>} is what was used with the last reinitialization or,
-if this is the first reinitialization, what was used at startup.
+\vn{reinitialize data} forces a recalculation of the model
+data. Normally, a recalculation is done automatically when any
+lattice parameter is changed so this command is generally only useful
+for debugging purposes.
+
+\vn{reinitializes tao} reinitializes \tao. This can be useful to reset
+everything to initial conditions or to perform analysis with more than
+one initialization file.  See section \sref{s:command_line} for
+details on the arguments.  If there are no arguments, the
+\vn{reinitialize} command uses the same arguments that were used in
+the last \vn{reinitialize} command, or, if this is the first
+reinitialization, what was used to start \tao. If there are arguments,
+The defaults will be used.  The default \vn{<init_file>} is what was
+used with the last reinitialization or, if this is the first
+reinitialization, what was used at startup.
 
 Examples:
 \begin{example}
-  reinit                         ! Reinit using previous arguments
-  reinit -init tao_special.init  ! Reinitializes \tao with the initialization file 
-                                   \vn{tao_special.init}
+  reinit tao                         ! Reinit using previous arguments
+  reinit tao -init tao_special.init  ! Reinitializes \tao with the initialization file 
+                                     !   tao_special.init
 \end{example}
 
 
@@ -691,7 +703,6 @@ For \vn{set global}, the \vn{<component>}s that can be set are:
   label_lattice_elements = T/F  ! For lat_layout plots
   label_keys         = T/F      ! For lat_layout plots
   derivative_recalc  = T/F      ! Recalc before each optimizer run?
-  lattice_recalc     = T/F      ! Recalculate the lattice parameters?
   matrix_recalc_on   = T/F      ! Recalculate the transfer matrix?
   show_ele_wig_terms = T/F      ! Show the wiggler terms with show ele?
   print_command      = <string> ! Command used to print plot page

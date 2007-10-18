@@ -76,20 +76,20 @@ initing_design = logic_option (.false., init_design)
 
 ! do a custom lattice calculation if desired
 
-if (s%global%lattice_recalc) then
+if (tao_com%lattice_recalc) then
   do i = 1, size(s%u)
     u => s%u(i)
     if (.not. u%is_on) cycle
     call tao_lat_bookkeeper (u, u%model)
     call tao_hook_lattice_calc (u, u%model, hook_used(i), calc_ok)
   enddo
-  if (all(hook_used)) s%global%lattice_recalc = .false.
+  if (all(hook_used)) tao_com%lattice_recalc = .false.
 endif
     
 ! Closed orbit and Twiss calculation.
 ! This can be slow for large lattices so only do it if the lattice changed.
 
-if (.not. s%global%lattice_recalc) return
+if (.not. tao_com%lattice_recalc) return
 
 do i = 1, size(s%u)
   u => s%u(i)
@@ -177,13 +177,14 @@ enddo
 ! do any post-processing
 
 call tao_hook_post_process_data ()
-s%global%lattice_recalc = .false.
+tao_com%lattice_recalc = .false.
+tao_com%init_beam0 = .false.
 
 if (.not. initing_design) then
   call tao_set_var_useit_opt
   call tao_set_data_useit_opt
 endif
-  
+
 end subroutine tao_lattice_calc
 
 !------------------------------------------------------------------------------
@@ -301,6 +302,7 @@ call re_allocate (ix_ele,1)
 
 u => s%u(uni)
 beam => u%current_beam
+beam = u%beam0
 beam_init => u%beam_init
 lat => tao_lat%lat
 
@@ -309,22 +311,20 @@ all_lost_already = .false.
 ! Find if injecting into another lattice
 
 extract_at_ix_ele = -1
-inject_loop: do i_uni_to = uni+1, size(s%u)
-  if (s%u(i_uni_to)%coupling%coupled) then
-    if (s%u(i_uni_to)%coupling%from_uni == uni) then
-      if (s%u(i_uni_to)%coupling%from_uni_ix_ele .ne. -1) then
-        extract_at_ix_ele = s%u(i_uni_to)%coupling%from_uni_ix_ele
-        exit inject_loop ! save i_uni_to for coupled universe
-      else
-        call out_io (s_abort$, r_name, &
-             "Must specify an element when coupling lattices with a beam.")
-        ! set initial beam centroid
-        call err_exit
-      endif
-    endif
+do i_uni_to = uni+1, size(s%u)
+  if (.not. s%u(i_uni_to)%coupling%coupled) cycle
+  if (s%u(i_uni_to)%coupling%from_uni /= uni) cycle
+  if (s%u(i_uni_to)%coupling%from_uni_ix_ele .ne. -1) then
+    extract_at_ix_ele = s%u(i_uni_to)%coupling%from_uni_ix_ele
+    exit ! save i_uni_to for coupled universe
+  else
+    call out_io (s_abort$, r_name, &
+         "Must specify an element when coupling lattices with a beam.")
+    ! set initial beam centroid
+    call err_exit
   endif
-enddo inject_loop
-  
+enddo
+
 ! If beam is injected into this lattice then no initialization wanted.
 
 if (.not. u%coupling%coupled) then
@@ -455,20 +455,18 @@ all_lost_already = .false.
 
 ! Find if injecting into another lattice
 extract_at_ix_ele = -1
-inject_loop: do i_uni = uni+1, size(s%u)
-  if (s%u(i_uni)%coupling%coupled) then
-    if (s%u(i_uni)%coupling%from_uni == uni) then
-if (s%u(i_uni)%coupling%from_uni_ix_ele .ne. -1) then
-  extract_at_ix_ele = s%u(i_uni)%coupling%from_uni_ix_ele
-  exit inject_loop ! save i_uni for coupled universe
-else
-  call out_io (s_abort$, r_name, &
-       "Must specify an element when coupling lattices with macroparticles")
-  call err_exit
-endif
-    endif
+do i_uni = uni+1, size(s%u)
+  if (.not. s%u(i_uni)%coupling%coupled) cycle
+  if (s%u(i_uni)%coupling%from_uni /= uni) cycle
+  if (s%u(i_uni)%coupling%from_uni_ix_ele .ne. -1) then
+    extract_at_ix_ele = s%u(i_uni)%coupling%from_uni_ix_ele
+    exit ! save i_uni for coupled universe
+  else
+    call out_io (s_abort$, r_name, &
+         "Must specify an element when coupling lattices with macroparticles")
+    call err_exit
   endif
-enddo inject_loop
+enddo 
   
 ! If beam is injected to here then no initialization wanted.
 if (.not. u%coupling%coupled) then
@@ -819,21 +817,23 @@ if (u%beam0_file /= "") then
   call open_beam_file (u%beam0_file)
   call read_beam_params (i, n_bunch, n_particle, bunch_charge)
   call set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, u%beam_init%bunch_charge)
-  call read_beam (u%current_beam)
+  call read_beam (u%beam0)
   call close_beam_file()
   call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
 
-  call tao_find_beam_centroid (u%current_beam, orb(0))  
+  call tao_find_beam_centroid (u%beam0, orb(0))  
 
 elseif (.not. u%coupling%coupled) then
-  u%beam_init%center = u%model%lat%beam_start%vec
-  if (u%beam_init%n_bunch < 1 .or. u%beam_init%n_particle < 1) then
-    call out_io (s_fatal$, r_name, &
-      'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
-    call err_exit
+  if (tao_com%init_beam0 .or. .not. allocated(u%beam0%bunch)) then
+    u%beam_init%center = u%model%lat%beam_start%vec
+    if (u%beam_init%n_bunch < 1 .or. u%beam_init%n_particle < 1) then
+      call out_io (s_fatal$, r_name, &
+        'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
+      call err_exit
+    endif
+    call init_beam_distribution (lat%ele(0), u%beam_init, u%beam0)
+    call tao_find_beam_centroid (u%beam0, orb(0))
   endif
-  call init_beam_distribution (lat%ele(0), u%beam_init, u%current_beam)
-  call tao_find_beam_centroid (u%current_beam, orb(0))
 
 else
    
@@ -871,13 +871,13 @@ else
   lat%ele(0)%c_mat   = extract_ele%c_mat
   lat%ele(0)%gamma_c = extract_ele%gamma_c
   lat%ele(0)%floor   = extract_ele%floor
-  u%current_beam = u%coupling%injecting_beam
+  u%beam0 = u%coupling%injecting_beam
   call tao_find_beam_centroid (u%coupling%injecting_beam, orb(0))
 endif
 
 ! record this beam
   
-if (u%ele(0)%save_beam) u%ele(0)%beam = u%current_beam
+if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
 
 end subroutine tao_inject_beam
 

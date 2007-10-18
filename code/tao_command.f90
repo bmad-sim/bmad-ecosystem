@@ -285,7 +285,24 @@ case ('reinitialize')
   call tao_cmd_split(cmd_line, 10, cmd_word, .false., err)
   if (err) return
 
-  call tao_parse_command_args (err, cmd_word)
+  if (cmd_word(1) == 'beam') then
+    tao_com%init_beam0 = .true.
+    tao_com%lattice_recalc = .true.
+    return
+  endif
+
+  if (cmd_word(1) == 'data') then
+    tao_com%lattice_recalc = .true.
+    return
+  endif
+
+
+  if (cmd_word(1) /= 'tao') then
+    call out_io (s_error$, r_name, 'REINIT WHAT? CHOICES ARE: "beam" OR "tao".')
+    return
+  endif
+
+  call tao_parse_command_args (err, cmd_word(2:))
   if (err) return
 
   ! quit the plot window so it will be recreated    

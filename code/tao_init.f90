@@ -144,7 +144,7 @@ call tao_init_plotting (plot_file)
 do i = 1, size(s%u)
   s%u(i)%model = s%u(i)%design; s%u(i)%model%orb = s%u(i)%design%orb
 enddo
-s%global%lattice_recalc = .true.
+tao_com%lattice_recalc = .true.
 call tao_lattice_calc (calc_ok, .true.) ! .true. => init design lattice
 do i = 1, size(s%u)
   s%u(i)%design = s%u(i)%model; s%u(i)%design%orb = s%u(i)%model%orb

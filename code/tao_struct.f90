@@ -410,7 +410,7 @@ type tao_global_struct
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   integer :: random_seed = 0             ! use system clock by default
   real(rp) :: random_gauss_cutoff = 4    ! cut-off in sigmas.
-  character(16) :: random_engine = 'pseudo' 
+  character(16) :: random_engine = 'quasi' 
   character(16) :: random_gauss_converter = 'exact'
   character(16) :: track_type    = 'single'    ! or 'beam' or 'macro' 
   character(16) :: prompt_string = 'Tao'
@@ -428,7 +428,6 @@ type tao_global_struct
   logical :: label_lattice_elements = .true. ! For lat_layout plots
   logical :: label_keys = .true.             ! For lat_layout plots
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
-  logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
   logical :: matrix_recalc_on = .true.       ! calc linear transfer matrix
   logical :: show_ele_wig_terms = .false.
@@ -450,20 +449,22 @@ end type
 
 type tao_common_struct
   type (tao_alias_struct) alias(100)
-  logical opti_init        ! init needed?
-  logical opti_at_limit    ! Variable at limit?
-  logical opti_abort       ! Abort loops?
+  logical opti_init             ! init needed?
+  logical opti_at_limit         ! Variable at limit?
+  logical opti_abort            ! Abort loops?
   integer :: n_alias = 0
   integer :: cmd_file_level = 0 ! for nested command files
               ! unit numbers for a command files. 0 -> no command file.
   integer :: ix_key_bank = 0             ! For single mode.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
-  logical :: use_cmd_here  = .false. ! Used for the cmd history stack
-  logical cmd_from_cmd_file ! was command from a command file?
+  logical :: use_cmd_here  = .false.     ! Used for the cmd history stack
+  logical cmd_from_cmd_file              ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
+  logical :: init_beam0 = .false.            ! Init beam
+  logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: optimizer_running 
-  character(100) cmd       ! Used for the cmd history
+  character(100) cmd                         ! Used for the cmd history
   character(16) :: init_name = "Tao"               ! label for initialization
   character(80) :: init_tao_file     = 'tao.init'  ! '-init' argument.
   character(80) :: init_lat_file(10) = ''          ! '-lat' argument.
@@ -546,6 +547,7 @@ type tao_universe_struct
   type (tao_lattice_struct) model, design, base
   type (tao_element_struct), allocatable :: ele(:) ! Element information
   type (beam_struct) current_beam                  ! Beam at the current position
+  type (beam_struct) beam0                         ! Beam at the beginning of lattice
   type (beam_init_struct) :: beam_init             ! Beam distrubution
                                                    !  at beginning of lattice
   type (tao_macro_beam_struct) macro_beam          ! Macroparticle beam 

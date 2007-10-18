@@ -83,7 +83,7 @@ end select
 select case (source_lat)
   case ('model')
     ! make sure model data is up to date
-    s%global%lattice_recalc = .true.
+    tao_com%lattice_recalc = .true.
     call tao_lattice_calc (calc_ok)
     source1_lat => u%model
     source_data => u%data%model_value
@@ -173,7 +173,7 @@ close (iu)
 
 if (ios == 0) then
   s%global = global
-  if (trim(who) == 'track_type') s%global%lattice_recalc = .true.
+  if (trim(who) == 'track_type') tao_com%lattice_recalc = .true.
 else
   call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
 endif
@@ -347,7 +347,7 @@ end select
 if (this_graph%type == 'phase_space') then
   u => s%u(i_uni)
   if (.not. u%ele(this_curve%ix_ele_ref)%save_beam) then
-    s%global%lattice_recalc = .true.
+    tao_com%lattice_recalc = .true.
     u%ele(this_curve%ix_ele_ref)%save_beam = .true.
   endif
 endif
@@ -480,7 +480,7 @@ select case (comp)
     
 end select
 
-s%global%lattice_recalc = .true.
+tao_com%lattice_recalc = .true.
 
 end subroutine
 end subroutine
@@ -803,7 +803,7 @@ endif
 
 ! make sure lattice calculation is up to date if turning lattice on
 call tao_set_data_useit_opt()
-if (recalc) s%global%lattice_recalc = .true.
+if (recalc) tao_com%lattice_recalc = .true.
   
 end subroutine tao_set_uni_cmd
 

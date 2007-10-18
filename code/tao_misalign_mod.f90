@@ -182,7 +182,7 @@ logical, allocatable :: action_logic(:)
     end if
   end do
 
-  s%global%lattice_recalc = .true.
+  tao_com%lattice_recalc = .true.
 
   999 continue
   

@@ -1664,7 +1664,7 @@ do i = 1, size(var%this)
   call changed_attribute_bookkeeper (s%u(t%ix_uni)%model%lat, t%ix_ele, t%model_ptr)
 enddo
 
-s%global%lattice_recalc = .true.
+tao_com%lattice_recalc = .true.
 
 end subroutine
 
