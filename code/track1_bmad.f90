@@ -323,7 +323,7 @@ subroutine track1_bmad (start, ele, param, end)
     call convert_pc_to (pc_start, param%particle, &
                                       E_tot = e_start, beta = beta_start)
     e_end = e_start + gradient * length
-    if (e_end < mass_of(param%particle)) then
+    if (e_end <= mass_of(param%particle)) then
       param%lost = .true.
       return
     endif
@@ -331,13 +331,6 @@ subroutine track1_bmad (start, ele, param, end)
     call convert_total_energy_to (e_end, param%particle, &
                                              pc = pc_end, beta = beta_end)
     e_ratio = e_end / e_start
-
-    if (e_end <= 0) then
-      param%lost = .true.
-      end%vec(1) = 2 * bmad_com%max_aperture_limit
-      end%vec(3) = 2 * bmad_com%max_aperture_limit
-      return
-    endif
 
     call offset_particle (ele, param, end, set$)
 
