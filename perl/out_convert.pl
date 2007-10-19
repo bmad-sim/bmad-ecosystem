@@ -7,8 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/\(rdef\)/\(rp\)/g;
-    s/_rdef/_rp/g;
+    s/s\%global\%lattice_recalc/tao_com\%lattice_recalc/g;
 
     print (F_OUT);
 

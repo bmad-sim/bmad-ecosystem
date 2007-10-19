@@ -1364,8 +1364,11 @@ end subroutine
 !+
 ! Subroutine taylor_propagate1 (tlr, ele, param)
 !
-! Subroutine to track a real_8 taylor map through an element.
-! The alternative routine if ele has a taylor series is concat_taylor.
+! Subroutine to track (symplectic integration) a taylor map through an element.
+! The alternative routine, if ele has a taylor map, is concat_taylor.
+!
+! This routine will fail if there is no corresponding ptc fibre for this
+! element. In general, the transfer_map_calc routine should be used instead.
 !
 ! Modules needed:
 !   use ptc_interface_mod
