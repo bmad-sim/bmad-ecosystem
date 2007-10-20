@@ -138,22 +138,24 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
     ptr_attrib => ele%b%eta
   case ('ETAP_B')
     ptr_attrib => ele%b%etap
-  case ('C11')
+  case ('CMAT_11')
     ptr_attrib => ele%c_mat(1,1)
-  case ('C12')
+  case ('CMAT_12')
     ptr_attrib => ele%c_mat(1,2)
-  case ('C21')
+  case ('CMAT_21')
     ptr_attrib => ele%c_mat(2,1)
-  case ('C22')
+  case ('CMAT_22')
     ptr_attrib => ele%c_mat(2,2)
   case ('S')
     ptr_attrib => ele%s
   end select
 
-  ix1 = index('123456', a_name(5:5))
-  ix2 = index('123456', a_name(6:6))
-  if (a_name(1:4) == "XMAT" .and. ix1 /= 0 .and. ix2 /= 0) then
-    ptr_attrib =>ele%mat6(ix1,ix2)
+  if (len(a_name) >= 6) then
+    ix1 = index('123456', a_name(6:6))
+    ix2 = index('123456', a_name(7:7))
+    if (a_name(1:5) == "XMAT_" .and. ix1 /= 0 .and. ix2 /= 0) then
+      ptr_attrib =>ele%mat6(ix1,ix2)
+    endif
   endif
 
   if (associated(ptr_attrib)) then
