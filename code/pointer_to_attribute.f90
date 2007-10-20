@@ -45,7 +45,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
   real(rp), pointer :: ptr_attrib
 
   integer, optional :: ix_attrib
-  integer ix_d, n, ios, n_lr, ix_a
+  integer ix_d, n, ios, n_lr, ix_a, ix1, ix2
 
   character(*) attrib_name
   character(40) a_name
@@ -94,7 +94,6 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
     case ('FREQ');      ptr_attrib => ele%wake%lr(n)%freq
     case ('R_OVER_Q');  ptr_attrib => ele%wake%lr(n)%r_over_q
     case ('Q');         ptr_attrib => ele%wake%lr(n)%q
-!    case ('M');         ptr_attrib => ele%wake%lr(n)%m
     case ('ANGLE');     ptr_attrib => ele%wake%lr(n)%angle
     case default;       goto 9000
     end select    
@@ -104,57 +103,60 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
   endif
 
-! Init_ele is special in that its attributes go in special places.
+! Special cases
 
-  if (ele%key == init_ele$) then
-    select case (a_name)
-    case ('X_POSITION')
-      ptr_attrib => ele%floor%x
-    case ('Y_POSITION')
-      ptr_attrib => ele%floor%y
-    case ('Z_POSITION')
-      ptr_attrib => ele%floor%z
-    case ('THETA_POSITION')
-      ptr_attrib => ele%floor%theta
-    case ('PHI_POSITION')
-      ptr_attrib => ele%floor%phi
-    case ('PSI_POSITION')
-      ptr_attrib => ele%floor%psi
-    case ('BETA_A')
-      ptr_attrib => ele%a%beta
-    case ('ALPHA_A')
-      ptr_attrib => ele%a%alpha
-    case ('PHI_A')
-      ptr_attrib => ele%a%phi
-    case ('ETA_A')
-      ptr_attrib => ele%a%eta
-    case ('ETAP_A')
-      ptr_attrib => ele%a%etap
-    case ('BETA_B')
-      ptr_attrib => ele%b%beta
-    case ('ALPHA_B')
-      ptr_attrib => ele%b%alpha
-    case ('PHI_B')
-      ptr_attrib => ele%b%phi
-    case ('ETA_B')
-      ptr_attrib => ele%b%eta
-    case ('ETAP_B')
-      ptr_attrib => ele%b%etap
-    case ('C11')
-      ptr_attrib => ele%c_mat(1,1)
-    case ('C12')
-      ptr_attrib => ele%c_mat(1,2)
-    case ('C21')
-      ptr_attrib => ele%c_mat(2,1)
-    case ('C22')
-      ptr_attrib => ele%c_mat(2,2)
-    case ('E_TOT')
-      ptr_attrib => ele%value(E_TOT$)
-    case ('S')
-      ptr_attrib => ele%s
-    case default
-      goto 9000 ! Error message and return
-    end select
+  select case (a_name)
+  case ('X_POSITION')
+    ptr_attrib => ele%floor%x
+  case ('Y_POSITION')
+    ptr_attrib => ele%floor%y
+  case ('Z_POSITION')
+    ptr_attrib => ele%floor%z
+  case ('THETA_POSITION')
+    ptr_attrib => ele%floor%theta
+  case ('PHI_POSITION')
+    ptr_attrib => ele%floor%phi
+  case ('PSI_POSITION')
+    ptr_attrib => ele%floor%psi
+  case ('BETA_A')
+    ptr_attrib => ele%a%beta
+  case ('ALPHA_A')
+    ptr_attrib => ele%a%alpha
+  case ('PHI_A')
+    ptr_attrib => ele%a%phi
+  case ('ETA_A')
+    ptr_attrib => ele%a%eta
+  case ('ETAP_A')
+    ptr_attrib => ele%a%etap
+  case ('BETA_B')
+    ptr_attrib => ele%b%beta
+  case ('ALPHA_B')
+    ptr_attrib => ele%b%alpha
+  case ('PHI_B')
+    ptr_attrib => ele%b%phi
+  case ('ETA_B')
+    ptr_attrib => ele%b%eta
+  case ('ETAP_B')
+    ptr_attrib => ele%b%etap
+  case ('C11')
+    ptr_attrib => ele%c_mat(1,1)
+  case ('C12')
+    ptr_attrib => ele%c_mat(1,2)
+  case ('C21')
+    ptr_attrib => ele%c_mat(2,1)
+  case ('C22')
+    ptr_attrib => ele%c_mat(2,2)
+  case ('S')
+    ptr_attrib => ele%s
+  end select
+
+  ix1 = index('123456', a_name(5:5))
+  ix2 = index('123456', a_name(6:6))
+  if (a_name(1:4) == "XMAT" .and. ix1 /= 0 .and. ix2 /= 0) then
+    ptr_attrib =>ele%mat6(ix1,ix2)
+  endif
+
+  if (associated(ptr_attrib)) then
     err_flag = .false.
     return
   endif
