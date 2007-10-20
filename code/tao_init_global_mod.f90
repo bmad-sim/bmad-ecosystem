@@ -74,6 +74,7 @@ logical err, free, gang
 logical searching
 logical calc_emittance
 logical, allocatable :: mask(:), dflt_unis(:), unis(:)
+logical, allocatable :: picked_ele(:)
 
 
 namelist / tao_params / global, bmad_com, csr_param, &
@@ -1361,15 +1362,14 @@ u%ele(u%design%lat%n_ele_track)%save_beam = .true.
 
 do i = 1, size(save_beam_at)
   if (save_beam_at(i) == '') exit
-  call tao_string_to_element_id (save_beam_at(i), ix_class, ele_name, err)
+  call tao_ele_locations_given_name(u%design%lat, save_beam_at(i), picked_ele, err, .false.)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SAVE_BEAM_AT ELEMENT: ' // save_beam_at(i))
     cycle
   endif
   do j = lbound(u%ele, 1), ubound(u%ele, 1)
-    if (ix_class /= 0 .and. u%design%lat%ele(j)%key /= ix_class) cycle
-    if (.not. match_wild (u%design%lat%ele(j)%name, ele_name)) cycle
-     u%ele(j)%save_beam = .true.
+    if (.not. picked_ele(j)) Cycle
+    u%ele(j)%save_beam = .true.
   enddo
 enddo
   

@@ -200,8 +200,8 @@ For circular lattices only the \vn{p_z} component is applicable.
 Also for linear lattices, \vn{change ele beginning <twiss>} can be used to
 vary the starting Twiss parameters where \vn{<twiss>} is one of:  
 \begin{example}
-  beta_x, beta_y, alpha_x, alpha_y 
-  eta_x, eta_y,etap_x, etap_y    
+  beta_a, beta_b, alpha_a, alpha_b 
+  eta_a, eta_b,etap_a, etap_b    
 \end{example}
 
 Examples:
@@ -780,8 +780,8 @@ Examples:
                                         ! Set the base orbit.x in universe 2 to model
   set graph orbit.x who(1) = model      ! Plot the model orbit in the graph
   set graph orbit.x who(2) = design, -1 ! With the previous line: Plot model - design 
-  set var quad\_k1 weight = 0.1          ! Set quad\_k1 weights. 
-  set lattice *&|model = *&|design      ! Reset model to the design in all universes
+  set var quad\_k1 weight = 0.1         ! Set quad\_k1 weights. 
+  set lattice *@*|model = *@*|design    ! Reset model to the design in all universes
 \end{example}
 
 %% show --------------------------------------------------------------
@@ -803,7 +803,7 @@ Format:
   show element <name>
   show global
   show hom
-  show lattice \{middle\} \{custom <file_name>\} \{<locations>\}
+  show lattice \{-middle\} \{-custom <file_name>\} \{-elements <name>\} \{<location_range>\}
   show optimizer
   show opt_vars
   show plot \{<template_plot_name>\}
@@ -812,6 +812,7 @@ Format:
   show plot <curve_name>
   show taylor <ele_name>
   show top10
+  show universe \{universe_number\}
   show variable \{<var_name> <locations>\}
   show variable <universe_number>@
   show write ...
@@ -836,7 +837,8 @@ Shows a list of defined aliases. See the \vn{alias} command for more
 details.
 
   \item[show beam]
-Shows parameters used with beam tracking including the number of particles in a bunch, etc.
+Shows parameters used with beam tracking including the number of
+particles in a bunch, etc.
 
   \item[show constraints]
 Lists data and variable constraints.
@@ -862,52 +864,86 @@ command. Additionally, by default the wiggler terms of a \vn{map_type}
 \vn{set global show_ele_wig_terms = T}.
 
   \item[show global]
-Shows global information.
+Shows information on the global parameter structure (\sref{s:global}).
 
   \item[show hom]
-Shows long--rang higher order mode information for linac accelerating cavities.
+Shows long--rang higher order mode information for linac accelerating
+cavities.
 
   \item[show lattice]
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
-regular element locations. If \vn{<locations>} is \vn{all} then the
-entire lattice will be shown. If \vn{<locations>} is not present then
-the length of the lattice will be shown. The default is to show the Twiss
-parameter at the exit end of the elements. To show the parameters in the 
-middle use the \vn{show lattice middle} command. To customize the output
-use the command \vn{show lattice custom <file_name>}. The customization
-file looks like:
+element locations. The default is to show the parameters at the exit
+end of the elements. To show the parameters in the middle use the
+\vn{-middle} switch.
+
+The locations to show can either be specified using
+the \vn{-elements} switch or by specifying a location range. 
+The \vn{-elements} switch is used specify elements using a
+\vn{class:name} format (\sref{s:class:name}). For example
+\begin{example}
+show lat -ele marker:bpm*
+\end{example}
+This will show the parameters at all marker elements whose name begin
+with \vn{"bpm"}. Alternatively, a range of elements can be specified
+using the element index with a \vn{":"} being used to separate the
+index. For example
+\begin{example}
+  show lat  45:76
+\end{example}
+If neither \vn{-elements} nor a location range is given then
+the entire lattice will be shown.
+
+To customize the output use the command \vn{show lattice -custom
+<file_name>}. The customization file looks like:
 \begin{example}
   &custom_show_lat
     column(1) = "index",   "i6",     6 
-    column(2) = "x"        "x"       1
-    column(3) = "name",    "a24",   24
+    column(2) = "x"        "x"       1       ! blank space
+    column(3) = "name",    "a",      0
     column(4) = "key",     "a16",   16
     column(5) = "s",       "f10.3", 10
     column(6) = "beta_a",  "f7.2",   7
-    column(7) = "orbit_x", "3p, f8.3", 8   ! "3p" -> convert meters to mm.
+    column(7) = "1e3 * orbit\_x", "f8.3", 8, "Orbit\_x| (mm)" 
   /
 \end{example}
-each \vn{column(1)} has three components. The first component is what is to be 
-displayed in that column. Possibilities are:
+each \vn{column(1)} has four components. The first component is what
+is to be displayed in that column. Algebraic expressions are
+permitted. Any element attribute is permitted ("show ele" will show
+element attributes or see the Bmad manual). Additionally, the following
+are recognized:
 \begin{example}
-  x                  ! Add spaces
-  index              ! Index number of element.
-  name               ! Name of element.
-  key                ! Type of element (quadrupole, etc.)
-  s                  ! Longitudinal position.
-  beta_a,  beta_b    ! Twiss beta functions.
-  alpha_a, alpha_b   ! Twiss alpha functions.
-  phi_a,   phi_b     ! Betatron phase.
-  eta_a,   eta_b     ! Dispersion functions.
-  etap_a,  etap_b    ! Dispersion derivatives.
-  orbit_x, orbit_px  ! Horizontal position and momentum deviation.
-  orbit_y, orbit_py  ! Horizontal position and momentum deviation.
-  orbit_z, orbit_pz  ! Horizontal position and momentum deviation.
+  x                      ! Add spaces
+  index                  ! Index number of element.
+  name                   ! Name of element.
+  key                    ! Type of element (quadrupole, etc.)
+  s                      ! Longitudinal position.
+  beta\_a,  beta\_b        ! Twiss beta functions.
+  alpha\_a, alpha\_b       ! Twiss alpha functions.
+  phi\_a,   phi\_b         ! Betatron phase.
+  eta\_a,   eta\_b         ! Dispersion functions.
+  etap\_a,  etap\_b        ! Dispersion derivatives.
+  orbit\_x, orbit\_px      ! Horizontal position and momentum deviation.
+  orbit\_y, orbit\_py      ! Vertical position and momentum deviation.
+  orbit\_z, orbit\_pz      ! Longitudinal position and momentum deviation.
+  xmat\_11, xmat\_12, etc. ! Element transfer matrix.
 \end{example}
-The second component is the Fortran edit descriptor. The third column is the total
-width of the field. Notice that strings (like the element name) are left justified and
-numbers are right justified. In the case of a number followed by a string, 
-there will be no white space in between. The use of an "x" column can solve this problem.
+The second component is the Fortran edit descriptor. The third column
+is the total width of the field. Notice that strings (like the element
+name) are left justified and numbers are right justified. In the case
+of a number followed by a string, there will be no white space in
+between. The use of an "x" column can solve this problem. A field width
+of 0 for \vn{name} indicates that the field width will be taken to be
+one greater then the maximum characters of any element name.
+
+The last component is column title name. This component is optional
+and if not present then \tao will choose something appropriate. The
+column title can be split into two lines using \vn{"|"} as a separator.
+In the example above, The column title corresponding to "Orbit\_x| (mm)" 
+is:
+\begin{example}
+  Orbit\_x
+   (mm)
+\end{example}
 
   \item[show optimizer]
 Shows information pertinent to optimization: Data and variables used, etc.
@@ -927,6 +963,12 @@ Same as \vn{show element} except that the elements taylor map is also printed.
   \item[show top10]
 Shows top contributors to the merit function, dMerit/dVariable
 derivatives, and Largest changes in variable value.
+
+  \item[show universe]
+Shows various parameters associated with a given universe. If no
+universe is specified then the current viewed universe is
+used. Parameters displayed include tune, chromaticity, radiation
+integrals, etc.
 
   \item[show variable]
 Shows variable information. If \vn{<var_name>} \vn{<locations>} is not
@@ -953,7 +995,7 @@ Examples:
   show ele q*                 ! list all elements with names beginning with "q".
   show ele q10w               ! Show a particular lattice element
   show ele 105                ! Show element #105 in the lattice
-  show lattice 50:100         ! Show lattice elements 50 to 100
+  show lattice 50:100         ! Show lattice elements with index 50 through 100
   show var *                  ! list variables in Bmad lattice format.
   show var 2@                 ! List all variables that control attributes in universe 2.
 \end{example}
@@ -1110,7 +1152,7 @@ then \vn{<bound1>} is taken to be the lower (left) bound and
 \vn{<bound2>} is the upper (right) bound. If only \vn{<bound1>} is
 present then the bounds will be from -\vn{<bound1>} to \vn{<bound1>}.
 If neither is present then autoscale will be invoked to give the
-largest bounds comensurate with the data. If \vn{<where>} is \vn{s}
+largest bounds commensurate with the data. If \vn{<where>} is \vn{s}
 then the scaling is done only to the plot where the x--axis scale is
 the longitudinal s-position. if \vn{force} is present then the
 specified ranges will be used and QuickPlot will not try to find
@@ -1141,7 +1183,7 @@ the horizontal vertical axes.  This is just a shortcut for doing an
 (left) bound and \vn{<bound2>} is the upper (right) bound. If only
 \vn{<bound1>} is present then the bounds will be from -\vn{<bound1>}
 to \vn{<bound1>}. If neither is present then autoscale will be invoked
-to give the largest bounds comensurate with the data.if \vn{force} is
+to give the largest bounds commensurate with the data.if \vn{force} is
 present then the specified ranges will be used and QuickPlot will not
 try to find ``nice'' plot scales.
 

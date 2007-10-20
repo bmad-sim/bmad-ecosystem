@@ -23,10 +23,7 @@ integer, parameter, private :: numeric$ = 100
 integer, parameter, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
                             9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
 
-type eval_stack_struct
-  integer type
-  real(rp), allocatable :: value(:)
-end type
+character(8), private :: wild_type_com
 
 contains
 
@@ -1750,6 +1747,8 @@ end subroutine tao_lat_bookkeeper
 
 subroutine tao_to_real (expression, value, err_flag)
 
+implicit none
+
 character(*), intent(in) :: expression
 real(rp) value
 real(rp), allocatable :: vec(:)
@@ -1757,7 +1756,8 @@ logical err_flag
 
 !
 
-call tao_to_real_vector (expression, 'BOTH', vec, err_flag)
+wild_type_com = 'BOTH'
+call tao_evaluate_expression (expression, vec, err_flag, tao_param_value_routine)
 if (err_flag) return
 value = vec(1)
 
@@ -1788,7 +1788,54 @@ use random_mod
 
 implicit none
 
-type (eval_stack_struct) stk(200)
+real(rp), allocatable :: value(:)
+
+character(*), intent(in) :: expression, wild_type
+character(16) :: r_name = "tao_to_real_vector"
+
+logical err_flag, err, wild
+
+!
+
+wild_type_com = wild_type
+call tao_evaluate_expression (expression, value, err_flag, tao_param_value_routine)
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine tao_evaluate_expression (expression, value, err_flag, param_value_routine)
+!
+! Mathematically evaluates a character expression.
+!
+! Input:
+!   expression          -- Character(*): Arithmetic expression.
+!   param_value_routine -- Subroutine: Routine to translate a variable to a value.
+!
+! Output:
+!   value(:)     -- Real(rp): Value of arithmetic expression.
+!   err_flag     -- Logical: TRUE on error.
+!-
+
+subroutine tao_evaluate_expression (expression, value, err_flag, param_value_routine)
+
+use random_mod
+
+implicit none
+
+interface
+  subroutine param_value_routine (str, value, err_flag)
+    use tao_struct
+    implicit none
+    character(*) str
+    real(rp), allocatable :: value(:)
+    logical err_flag
+  end subroutine
+end interface
+
+type (tao_eval_stack_struct) stk(200)
 
 integer i_lev, i_op, i, ios, n, n_size, p2, p2_1
 integer ptr(-1:200)
@@ -1797,11 +1844,11 @@ integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
 
 real(rp), allocatable :: value(:)
 
-character(*), intent(in) :: expression, wild_type
+character(*), intent(in) :: expression
 character(100) phrase
 character(1) delim
 character(40) word, word2
-character(16) :: r_name = "tao_to_real_vector"
+character(40) :: r_name = "tao_evaluate_expression"
 
 logical delim_found, split, ran_function_pending
 logical err_flag, err, wild
@@ -2012,7 +2059,7 @@ parsing_loop: do
       return
     else
       call pushit (stk%type, i_lev, numeric$)
-      call read_this_value (word, stk(i_lev))
+      call all_value_routine (word, stk(i_lev), err_flag)
       if (err_flag) return
     endif
 
@@ -2058,7 +2105,7 @@ parsing_loop: do
       return
     endif
     call pushit (stk%type, i_lev, numeric$)
-    call read_this_value (word, stk(i_lev))
+    call all_value_routine (word, stk(i_lev), err_flag)
     if (err_flag) return
   endif
 
@@ -2273,9 +2320,8 @@ if (allocated(value)) deallocate (value)
 allocate (value(n_size))
 value = stk(ptr(1))%value
 
-contains
-
 !-------------------------------------------------------------------------
+contains
 
 subroutine pushit (stack, i_lev, value)
 
@@ -2301,11 +2347,16 @@ end subroutine pushit
 !---------------------------------------------------------------------------
 ! contains
 
-subroutine read_this_value (str, stack)
+subroutine all_value_routine (str, stack, err_flag)
+
+type (tao_eval_stack_struct) stack
+type (tao_real_array_struct), allocatable :: re_array(:)
+
+integer ios, i, n
 
 character(*) str
-type (eval_stack_struct) stack
-type (tao_real_array_struct), allocatable :: re_array(:)
+
+logical err_flag
 
 !
 
@@ -2321,29 +2372,52 @@ if (is_real(str)) then
   endif
 
 else
-  if (allocated(re_array)) deallocate(re_array)
-  if (wild_type == 'DATA' .or. wild_type == 'BOTH') &
-               call tao_find_data (err_flag, str, re_array = re_array, print_err = .false.)
-  if (.not. allocated(re_array) .and. (wild_type == 'VAR' .or. wild_type == 'BOTH')) &
-               call tao_find_var (err_flag, str, re_array = re_array, print_err = .false.)
-
-  if (allocated(re_array)) then
-    n = size(re_array)
-    allocate (stack%value(n))
-    do i = 1, n
-      stack%value(i) = re_array(i)%r
-    enddo
-  else
-    call out_io (s_warn$, r_name, "This doesn't seem to be datum or variable value: " // str)
-    err_flag = .true.
-    return
-  endif
-
+  call param_value_routine (str, stack%value, err_flag)
 endif
 
 end subroutine
 
-end subroutine tao_to_real_vector
+end subroutine tao_evaluate_expression
+
+!---------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+subroutine tao_param_value_routine (str, value, err_flag)
+
+implicit none
+
+type (tao_real_array_struct), allocatable :: re_array(:)
+
+real(rp), allocatable :: value(:)
+integer ios, i, n
+
+character(*) str
+character(20) :: r_name = 'tao_read_this_value'
+
+logical err_flag
+
+!
+
+if (allocated(re_array)) deallocate(re_array)
+if (wild_type_com == 'DATA' .or. wild_type_com == 'BOTH') &
+               call tao_find_data (err_flag, str, re_array = re_array, print_err = .false.)
+if (.not. allocated(re_array) .and. (wild_type_com == 'VAR' .or. wild_type_com == 'BOTH')) &
+               call tao_find_var (err_flag, str, re_array = re_array, print_err = .false.)
+
+if (allocated(re_array)) then
+  n = size(re_array)
+  allocate (value(n))
+  do i = 1, n
+    value(i) = re_array(i)%r
+  enddo
+else
+  call out_io (s_warn$, r_name, "This doesn't seem to be datum or variable value: " // str)
+  err_flag = .true.
+  return
+endif
+
+end subroutine
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -2888,7 +2962,64 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_string_to_element_id (str, ix_class, ele_name, err)
+! Subroutine tao_ele_locations_given_name (lat, name, loc, err, print_err)
+!
+! Subroutine to find the locations of all elements in lat%ele(:)
+! that match name where name is in the form "class:ele_name".
+!
+! Input:
+!   lat       -- Lat_struct: Lattice holding the elements.
+!   name      -- Character(*): Name in the form "class:ele_name".
+!   print_err -- Logical: If True then print an error message if 
+!                 there is a problem
+!
+! Output:
+!   loc(0:) -- Logical, allocatable: loc(i) set to True if 
+!                lat%ele(i)%name corresponds to name. 
+!                loc will be allocated if needed and will
+!                be deallocated if there is an error.
+!   err     -- Logical: Set True if format of name is bad. 
+!                Set False otherwise.
+!-
+
+subroutine tao_ele_locations_given_name (lat, name, loc, err, print_err)
+
+implicit none
+
+type (lat_struct) lat
+
+integer i, ix_class
+
+character(*) name
+character(40) ele_name
+
+logical, allocatable :: loc(:)
+logical err, print_err
+
+!
+
+call re_allocate (loc, 0, lat%n_ele_max)
+
+call tao_string_to_element_id (name, ix_class, ele_name, err, print_err)
+if (err) then
+  deallocate(loc)
+  return
+endif
+
+loc = .false.
+do i = 0, lat%n_ele_max
+  if (ix_class /= lat%ele(i)%key) cycle
+  if (.not. match_wild(lat%ele(i)%name, ele_name)) cycle
+  loc(i) = .true.
+enddo
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine tao_string_to_element_id (str, ix_class, ele_name, err, print_err)
 !
 ! Routine to split a string in the form str = "xxx:yyy" into an element class
 ! and an element name. Example: 
@@ -2903,7 +3034,9 @@ end subroutine
 ! ele_name will be converted to upper case
 !
 ! Input:
-!   str -- Character(*): Character string to parse.
+!   str       -- Character(*): Character string to parse.
+!   print_err -- Logical: If True then print an error message if 
+!                 there is a problem
 !
 ! Output:
 !   ix_class  -- Integer: Element class.
@@ -2911,13 +3044,13 @@ end subroutine
 !   err       -- Set true if there is a problem translating the element class.
 !-
 
-subroutine tao_string_to_element_id (str, ix_class, ele_name, err)
+subroutine tao_string_to_element_id (str, ix_class, ele_name, err, print_err)
 
 implicit none
 
 character(*) str, ele_name
 integer ix, ix_class
-logical err
+logical err, print_err
 character(40) :: r_name = 'tao_string_to_element_id'
 character(20) class
 
@@ -2944,7 +3077,10 @@ character(20) class
   endif
 
   ix_class = key_name_to_key_index (class, .true.)
-  if (ix_class < 1) err = .true.
+  if (ix_class < 1) then
+    if (print_err) call out_io (s_error$, r_name, 'BAD CLASS NAME' // class)
+    err = .true.
+  endif
 
 end subroutine
 

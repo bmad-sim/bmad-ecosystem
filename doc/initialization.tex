@@ -1,4 +1,4 @@
-\chapter{Tao Initialization}\index{Initialization}
+chapter{Tao Initialization}\index{Initialization}
 \label{c:init}
 
 \tao is customized for specific machines and specific calculations
@@ -310,7 +310,7 @@ type tao_global_struct
 end type
 \end{example}
 
-Random numbers are used by \tao in various algorithims. For example in
+Random numbers are used by \tao in various algorithms. For example in
 generating the initial coordinates of the particles in a beam. There
 are four parameters that govern how random numbers are generated.
 
@@ -328,7 +328,7 @@ pseudo-random number generator. \vn{'quasi'} is the default.
 \vn{global%random_gauss_converter} selects the alogithm used in the
 conversion from a uniform distribution to a Gaussian distribution.
 \vn{'exact'} is an exact conversion and \vn{'limited'} has a cut-off
-so that no particles are generated beyound. This cutoff is set by
+so that no particles are generated beyond. This cutoff is set by
 \vn{global%random_gauss_cutoff}.
 
 
@@ -566,7 +566,7 @@ argument on the command line (\sref{s:command_line}. Note: \tao will
 set the variable \vn{use_saved_beam_in_tracking} to \vn{True}
 to prevent actual tracking.
 
-Note: A \vn{beam_all_file} will superceed a \vn{beam0_file}
+Note: A \vn{beam_all_file} will supersede a \vn{beam0_file}
 
 When there is no \vn{beam0_file} the twiss parameters at the beginning
 of the lattice are used in initializing the beam distribution.  For
@@ -587,9 +587,9 @@ nevertheless if tracking a small number of particles the distribution
 is subject to small random fluctuations unless
 \vn{beam_init%prserve_dist} is True.
 
-\tao retracks the beam through the lattice every time a lattice
+\tao re-tracks the beam through the lattice every time a lattice
 parameter is changed. For example, during optimizations or when the
-\vn{set} command (\sref{s:set}) is used. For the retracking, the
+\vn{set} command (\sref{s:set}) is used. For the re-tracking, the
 particle distribution at the beginning of the lattice is fixed. That
 is, the a new random distribution is {\emph not} generated. To force a
 new distribution, use the \vn{reinitialize beam} command
@@ -841,7 +841,7 @@ and \vn{<element name>} is the name of the element.  \vn{<element
 class>} or \vn{<element name>} can contain the wildcards \vn{*} and
 \vn{%}. For example, \vn{"SEARCH: QUADRUPOLE:Q*"} would search for all
 quadrupole elements whose name began with the letter "Q". and
-\vn{"SEARCH: *:BMM_\%\%"} would search for all elements whose name
+\vn{"SEARCH: *:BPM_\%\%"} would search for all elements whose name
 have exactly 6 letters and whose name begin with the string
 \vn{"BPM_"}.  If \vn{":"} is not present then all element classes are
 searched for. Therefore, for example, \vn{SEARCH: "*:Q*"} is equivalent to

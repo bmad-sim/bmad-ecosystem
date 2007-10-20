@@ -34,6 +34,11 @@ end interface
     character(100) value(3)
   end type
 
+  type tao_eval_stack_struct
+    integer type
+    real(rp), allocatable :: value(:)
+  end type
+
 !----------------------------------------------------------------------
 
 type tao_ele_shape_struct    ! for the element layout plot

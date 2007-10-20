@@ -10,17 +10,20 @@
 
 module tao_show_mod
 
-contains
-
-!--------------------------------------------------------------------
-
-recursive subroutine tao_show_cmd (what, stuff)
-
 use tao_mod
 use tao_top10_mod
 use tao_command_mod, only: tao_cmd_split
 use random_mod
 use csr_mod, only: csr_param
+
+type (ele_struct), pointer, private :: ele_common 
+type (coord_struct), pointer, private :: orbit_common 
+
+contains
+
+!--------------------------------------------------------------------
+
+recursive subroutine tao_show_cmd (what, stuff)
 
 implicit none
 
@@ -43,19 +46,21 @@ type (tao_ele_shape_struct), pointer :: shape
 
 type (lr_wake_struct), pointer :: lr
 type (ele_struct), pointer :: ele
-type (coord_struct) orb
-type (ele_struct) ele3
+type (coord_struct), target :: orb
+type (ele_struct), target :: ele3
 
 type show_lat_column_struct
-  character(16) name
+  character(80) name
   character(16) format
   integer field_width
+  character(32) label
 end type
 
 type (show_lat_column_struct) column(40)
 
 real(rp) f_phi, s_pos, l_lat
 real(rp) :: delta_e = 0
+real(rp), allocatable :: value(:)
 
 character(*) :: what, stuff
 character(24) :: var_name
@@ -89,7 +94,7 @@ integer :: n_write_file = 0            ! used for indexing 'show write' files
 logical err, found, at_ends, first_time
 logical show_all, name_found
 logical, automatic :: picked(size(s%u))
-logical, allocatable :: show_here(:)
+logical, allocatable :: picked_ele(:)
 
 namelist / custom_show_list / column
 
@@ -441,23 +446,22 @@ case ('element', 'taylor', 'e2')
 
   if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0 .or. &
                                                      index(ele_name, ':') /= 0) then
-    call tao_string_to_element_id (ele_name, ix_class, ele_name, err)
-    if (err) then
-      call out_io (s_error$, r_name, 'BAD CLASS NAME')
+    call tao_ele_locations_given_name (u%model%lat, ele_name, picked_ele, err, .true.)
+    if (err) return
+    if (count(picked_ele) == 0) then
+      call out_io (s_blank$, r_name, '*** No Matches to Name Found ***')
       return
     endif
+
     write (lines(1), *) 'Matches:'
     nl = 1
     do loc = 1, u%model%lat%n_ele_max
-      if (ix_class > 0 .and. ix_class /= u%model%lat%ele(loc)%key) cycle
-      if (.not. match_wild(u%model%lat%ele(loc)%name, ele_name)) cycle
+      if (.not. picked_ele(loc)) cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
       nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, u%model%lat%ele(loc)%name
-      name_found = .true.
     enddo
-    if (.not. name_found) then
-      nl=nl+1; write (lines(nl), *) '   *** No Matches to Name Found ***'
-    endif
+
+    deallocate(picked_ele)
 
 ! else no wild cards
 
@@ -582,126 +586,34 @@ case ('global')
 
 case ('lattice')
   
-  if (word(1) .eq. ' ') then
-    nl=nl+1; write (lines(nl), '(a, i3)') 'Universe: ', s%global%u_view
-    nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Number of elements to track through:', &
-                                          1, '  through', u%model%lat%n_ele_track
-    if (u%model%lat%n_ele_max .gt. u%model%lat%n_ele_track) then
-      nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Lord elements:   ', &
-                        u%model%lat%n_ele_track+1, '  through', u%model%lat%n_ele_max
-    else
-      nl=nl+1; write (lines(nl), '(a)') "there are NO Lord elements"
-    endif
-
-    nl=nl+1; write (lines(nl), '(a, f0.3)') "Lattice length: ", u%model%lat%param%total_length
-
-    if (u%is_on) then
-      nl=nl+1; write (lines(nl), '(a)') 'This universe is turned ON'
-    else
-      nl=nl+1; write (lines(nl), '(a)') 'This universe is turned OFF'
-    endif
-
-    if (.not. u%model%lat%param%stable .or. .not. u%model%lat%param%stable) then
-      nl=nl+1; write (lines(nl), '(a, l)') 'Model lattice stability: ', &
-                                                            u%model%lat%param%stable
-      nl=nl+1; write (lines(nl), '(a, l)') 'Design lattice stability:', &
-                                                            u%design%lat%param%stable
-      call out_io (s_blank$, r_name, lines(1:nl))
-      return
-    endif
- 
-    call radiation_integrals (u%model%lat, &
-                                  u%model%orb, u%model%modes, u%ix_rad_int_cache)
-    call radiation_integrals (u%design%lat, &
-                                  u%design%orb, u%design%modes, u%ix_rad_int_cache)
-    if (u%model%lat%param%lattice_type == circular_lattice$) then
-      call chrom_calc (u%model%lat, delta_e, &
-                          u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
-      call chrom_calc (u%design%lat, delta_e, &
-                          u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
-    endif
-
-    nl=nl+1; write (lines(nl), *)
-    nl=nl+1; write (lines(nl), '(17x, a)') '       X          |            Y'
-    nl=nl+1; write (lines(nl), '(17x, a)') 'Model     Design  |     Model     Design'
-    fmt = '(1x, a10, 1p 2e11.3, 2x, 2e11.3, 2x, a)'
-    fmt2 = '(1x, a10, 2f11.3, 2x, 2f11.3, 2x, a)'
-    fmt3 = '(1x, a10, 2f11.4, 2x, 2f11.4, 2x, a)'
-    f_phi = 1 / twopi
-    l_lat = u%model%lat%param%total_length
-    n = u%model%lat%n_ele_track
-    if (u%model%lat%param%lattice_type == circular_lattice$) then
-      nl=nl+1; write (lines(nl), fmt2) 'Q', f_phi*u%model%lat%ele(n)%a%phi, &
-            f_phi*u%design%lat%ele(n)%a%phi, f_phi*u%model%lat%ele(n)%b%phi, &
-            f_phi*u%design%lat%ele(n)%b%phi,  '! Tune'
-      nl=nl+1; write (lines(nl), fmt2) 'Chrom', u%model%a%chrom, & 
-            u%design%a%chrom, u%model%b%chrom, u%design%b%chrom, '! dQ/(dE/E)'
-      nl=nl+1; write (lines(nl), fmt2) 'J_damp', u%model%modes%a%j_damp, &
-          u%design%modes%a%j_damp, u%model%modes%b%j_damp, &
-          u%design%modes%b%j_damp, '! Damping Partition #'
-      nl=nl+1; write (lines(nl), fmt) 'Emittance', u%model%modes%a%emittance, &
-          u%design%modes%a%emittance, u%model%modes%b%emittance, &
-          u%design%modes%b%emittance, '! Meters'
-    endif
-    nl=nl+1; write (lines(nl), fmt) 'Alpha_damp', u%model%modes%a%alpha_damp, &
-          u%design%modes%a%alpha_damp, u%model%modes%b%alpha_damp, &
-          u%design%modes%b%alpha_damp, '! Damping per turn'
-    nl=nl+1; write (lines(nl), fmt) 'I4', u%model%modes%a%synch_int(4), &
-          u%design%modes%a%synch_int(4), u%model%modes%b%synch_int(4), &
-          u%design%modes%b%synch_int(4), '! Radiation Integral'
-    nl=nl+1; write (lines(nl), fmt) 'I5', u%model%modes%a%synch_int(5), &
-          u%design%modes%a%synch_int(5), u%model%modes%b%synch_int(5), &
-          u%design%modes%b%synch_int(5), '! Radiation Integral'
-
-    nl=nl+1; write (lines(nl), *)
-    nl=nl+1; write (lines(nl), '(19x, a)') 'Model     Design'
-    fmt = '(1x, a12, 1p2e11.3, 3x, a)'
-    nl=nl+1; write (lines(nl), fmt) 'Sig_E/E:', u%model%modes%sigE_E, &
-              u%design%modes%sigE_E
-    nl=nl+1; write (lines(nl), fmt) 'Energy Loss:', u%model%modes%e_loss, &
-              u%design%modes%e_loss, '! Energy_Loss (eV / Turn)'
-    nl=nl+1; write (lines(nl), fmt) 'J_damp:', u%model%modes%z%j_damp, &
-          u%design%modes%z%j_damp, '! Longitudinal Damping Partition #'
-    nl=nl+1; write (lines(nl), fmt) 'Alpha_damp:', u%model%modes%z%alpha_damp, &
-          u%design%modes%z%alpha_damp, '! Longitudinal Damping per turn'
-    nl=nl+1; write (lines(nl), fmt) 'Alpha_p:', u%model%modes%synch_int(1)/l_lat, &
-                 u%design%modes%synch_int(1)/l_lat, '! Momentum Compaction'
-    nl=nl+1; write (lines(nl), fmt) 'I1:', u%model%modes%synch_int(1), &
-                 u%design%modes%synch_int(1), '! Radiation Integral'
-    nl=nl+1; write (lines(nl), fmt) 'I2:', u%model%modes%synch_int(2), &
-                 u%design%modes%synch_int(2), '! Radiation Integral'
-    nl=nl+1; write (lines(nl), fmt) 'I3:', u%model%modes%synch_int(3), &
-                 u%design%modes%synch_int(3), '! Radiation Integral'
-
-    call out_io (s_blank$, r_name, lines(1:nl))
-    return
-  endif
-
-! Here to show info on particular elements
-
   column(:)%name = ""
-  column(1)  = show_lat_column_struct("index",   "i6",     7)
-  column(2)  = show_lat_column_struct("name",    "a24",   25)
-  column(3)  = show_lat_column_struct("key",     "a16",   16)
-  column(4)  = show_lat_column_struct("s",       "f10.3", 10)
-  column(5)  = show_lat_column_struct("beta_a",  "f7.2",   7)
-  column(6)  = show_lat_column_struct("phi_a",   "f8.3",   8)
-  column(7)  = show_lat_column_struct("eta_a",   "f5.1",   5)
-  column(8)  = show_lat_column_struct("orbit_x", "3p, f8.3",   8)
-  column(9)  = show_lat_column_struct("beta_b",  "f7.2",   7)
-  column(10) = show_lat_column_struct("phi_b",   "f8.3",   8)
-  column(11) = show_lat_column_struct("eta_b",   "f5.1",   5)
-  column(12) = show_lat_column_struct("orbit_y", "3p, f8.3",   8)
+  column(:)%label = ""
+  column(1)  = show_lat_column_struct("index",   "i6",       6, "")
+  column(2)  = show_lat_column_struct("x",       "x",        2, "")
+  column(3)  = show_lat_column_struct("name",    "a",        0, "")
+  column(4)  = show_lat_column_struct("key",     "a16",     16, "")
+  column(5)  = show_lat_column_struct("s",       "f10.3",   10, "")
+  column(6)  = show_lat_column_struct("beta_a",  "f7.2",     7, "Beta| A")
+  column(7)  = show_lat_column_struct("phi_a",   "f8.3",     8, "")
+  column(8)  = show_lat_column_struct("eta_a",   "f5.1",     5, "")
+  column(9)  = show_lat_column_struct("orbit_x", "3p, f8.3", 8, "")
+  column(10) = show_lat_column_struct("beta_b",  "f7.2",     7, "")
+  column(11) = show_lat_column_struct("phi_b",   "f8.3",     8, "")
+  column(12) = show_lat_column_struct("eta_b",   "f5.1",     5, "")
+  column(13) = show_lat_column_struct("orbit_y", "3p, f8.3", 8, "")
 
   call string_trim(stuff, stuff2, ix)
   at_ends = .true.
-  allocate (show_here(0:u%model%lat%n_ele_max))
+  ele_name = ''
+  allocate (picked_ele(0:u%model%lat%n_ele_max))
 
   do
-    if (stuff2(1:ix) == 'middle') then
+    if (ix == 0) exit
+    if (index('-middle', stuff2(1:ix)) /= 0) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
       at_ends = .false.
-    elseif (stuff2(1:ix) == 'custom') then
+
+    elseif (index('-custom', stuff2(1:ix)) /= 0) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
       file_name = stuff2(1:ix)
       call string_trim(stuff2(ix+1:), stuff2, ix)
@@ -717,18 +629,27 @@ case ('lattice')
         call out_io (s_error$, r_name, 'CANNOT READ "CUSTOM_SHOW_LIST" NAMELIST IN FILE: ' // file_name)
         return
       endif
+
+    elseif (index('-elements', stuff2(1:ix)) /= 0) then
+      call string_trim(stuff2(ix+1:), stuff2, ix)
+      ele_name = stuff2(1:ix)
+      call string_trim(stuff2(ix+1:), stuff2, ix)
+      
     else
       exit
     endif
   enddo
   
-  if (ix == 0 .or. stuff2(1:ix) == 'all') then
-    show_here = .true.
+  if (ele_name /= '') then
+    call tao_ele_locations_given_name (u%model%lat, ele_name, picked_ele, err, .true.)
+    if (err) return
+  elseif (ix == 0 .or. stuff2(1:ix) == 'all') then
+    picked_ele = .true.
   else
-    call location_decode (stuff2, show_here, 0, num_locations)
+    call location_decode (stuff2, picked_ele, 0, num_locations)
     if (num_locations .eq. -1) then
       call out_io (s_error$, r_name, "Syntax error in range list:" // stuff2)
-      deallocate(show_here)
+      deallocate(picked_ele)
       return
     endif
   endif
@@ -741,77 +662,59 @@ case ('lattice')
     write (line1, '(6x, a)') 'Model values at Center of Element:'
   endif
 
-  ix = 1
+  ix1 = 1
   line2 = ""
   line3 = ""
   do i = 1, size(column)
     if (column(i)%name == "") cycle
-    ix2 = ix + column(i)%field_width
-    select case (column(i)%name)
-    case ("index")
-      line2(ix:) = "Ix" 
-    case ("name")
-      line2(ix:) = "Name" 
-    case ("key")
-      line2(ix:) = "key" 
-    case ("s")
-      line2(ix2-3:) = "S" 
-    case ("beta_a")
-      line2(ix2-4:) = "Beta" 
-      line3(ix2-4:) = "  A "
-    case ("beta_b")
-      line2(ix2-4:) = "Beta" 
-      line3(ix2-4:) = "  B "
-    case ("alpha_a")
-      line2(ix2-5:) = "Alpha" 
-      line3(ix2-5:) = "   A "
-    case ("alpha_b")
-      line2(ix2-5:) = "Alpha" 
-      line3(ix2-5:) = "   B "
-    case ("phi_a")
-      line2(ix2-3:) = "Phi" 
-      line3(ix2-3:) = " A "
-    case ("phi_b")
-      line2(ix2-3:) = "Phi" 
-      line3(ix2-3:) = " B "
-    case ("eta_a")
-      line2(ix2-3:) = "Eta" 
-      line3(ix2-3:) = " A "
-    case ("eta_b")
-      line2(ix2-3:) = "Eta" 
-      line3(ix2-3:) = " B "
-    case ("etap_a")
-      line2(ix2-4:) = "Etap" 
-      line3(ix2-4:) = "  A "
-    case ("etap_b")
-      line2(ix2-4:) = "Etap" 
-      line3(ix2-4:) = "  B "
-    case ("orbit_x")
-      line2(ix2-5:) = "Orbit" 
-      line3(ix2-5:) = "   X "
-    case ("orbit_px")
-      line2(ix2-5:) = "Orbit" 
-      line3(ix2-5:) = "  Px "
-    case ("orbit_y")
-      line2(ix2-5:) = "Orbit" 
-      line3(ix2-5:) = "   Y "
-    case ("orbit_py")
-      line2(ix2-5:) = "Orbit" 
-      line3(ix2-5:) = "  Py "
-    case ("orbit_z")
-      line2(ix2-5:) = "Orbit" 
-      line3(ix2-5:) = "   Z "
-    case ("orbit_pz")
-      line2(ix2-5:) = "Orbit" 
-      line3(ix2-5:) = "  Pz "
-    case ("x")
-      
-    case default
-      call out_io (s_error$, r_name, 'BAD NAME FOUND IN COLUMN SPEC: ' // column(i)%name)
-      return
-    end select
+    if (column(i)%field_width == 0) then
+      do ie = 0, u%model%lat%n_ele_track
+        if (.not. picked_ele(ie)) cycle
+        column(i)%field_width = &
+                  max(column(i)%field_width, len_trim(u%model%lat%ele(ie)%name)+1)
+      enddo
+    endif
+    ix2 = ix1 + column(i)%field_width
+
+    if (column(i)%label == '') then
+      name = column(i)%name
+      call downcase_string(name)
+      select case (name)
+      case ("name")
+        line2(ix1:) = "Name" 
+      case ("key")
+        line2(ix1:) = "Key" 
+      case ("index")
+        line2(ix2-5:) = "Index"
+      case ("x")
+      case default
+        if (name(1:5) == "beta_" .or. name(1:6) == "alpha_" .or. name(1:4) == "phi_" .or. &
+            name(1:4) == "eta_" .or. name(1:5) == "etap_" .or. name(1:6) == "orbit_") then
+          ix = index(name, '_')
+          call upcase_string(name(1:1))
+          call upcase_string(name(ix+1:ix+1))
+          line2(ix2-ix+1:) = name(1:ix-1)
+          line3(ix2-ix+2:) = name(ix+1:)
+        else
+          ix = min (len_trim(name), ix2-ix1+2)
+          line2(ix2-ix-1:) = name(1:ix)
+        endif
+      end select
+    else
+      name = column(i)%label
+      ix = index(name, '|')
+      if (ix == 0) then
+        j = len_trim(name)
+        line2(ix2-j:) = name(1:j)
+      else
+        j = max(ix-1, len_trim(name(ix+1:)))
+        line2(ix2-j:) = name(1:ix-1)
+        line3(ix2-j:) = trim(name(ix+1:))
+      endif
+    endif
+
     column(i)%format = "(" // trim(column(i)%format) // ")"
-    ix = ix2
+    ix1 = ix2
   enddo
 
   lines(nl+1) = line1
@@ -820,17 +723,16 @@ case ('lattice')
   nl=nl+3
 
   do ie = 0, u%model%lat%n_ele_track
-    if (.not. show_here(ie)) cycle
+    if (.not. picked_ele(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
     ele => u%model%lat%ele(ie)
     if (ie == 0 .or. at_ends) then
       ele3 = ele
       orb = u%model%orb(ie)
-      s_pos = ele3%s
     else
       call twiss_and_track_partial (u%model%lat%ele(ie-1), ele, &
                 u%model%lat%param, ele%value(l$)/2, ele3, u%model%orb(ie-1), orb)
-      s_pos = ele%s-ele%value(l$)/2
+      ele3%s = ele%s-ele%value(l$)/2
     endif
 
     line = ""
@@ -844,49 +746,24 @@ case ('lattice')
         write (line(ix:), column(i)%format, iostat = ios) ele%name
       case ("key")
         write (line(ix:), column(i)%format, iostat = ios) key_name(ele%key)
-      case ("s")
-        write (line(ix:), column(i)%format, iostat = ios) s_pos
-      case ("beta_a")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%a%beta
-      case ("beta_b")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%b%beta
-      case ("alpha_a")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%a%alpha
-      case ("alpha_b")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%b%alpha
-      case ("phi_a")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%a%phi
-      case ("phi_b") 
-        write (line(ix:), column(i)%format, iostat = ios) ele3%b%phi
-      case ("eta_a")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%a%eta
-      case ("eta_b")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%b%eta
-      case ("etap_a")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%a%etap
-      case ("etap_b")
-        write (line(ix:), column(i)%format, iostat = ios) ele3%b%etap
-      case ("orbit_x")
-        write (line(ix:), column(i)%format, iostat = ios) orb%vec(1)
-      case ("orbit_px")
-        write (line(ix:), column(i)%format, iostat = ios) orb%vec(2)
-      case ("orbit_y")
-        write (line(ix:), column(i)%format, iostat = ios) orb%vec(3)
-      case ("orbit_py")
-        write (line(ix:), column(i)%format, iostat = ios) orb%vec(4)
-      case ("orbit_z")
-        write (line(ix:), column(i)%format, iostat = ios) orb%vec(5)
-      case ("orbit_pz")
-        write (line(ix:), column(i)%format, iostat = ios) orb%vec(6)
       case ("x")
-
+        ios = 0
+      case default
+        ele_common => ele3
+        orbit_common => orb
+        call tao_evaluate_expression (column(i)%name, value, err, tao_ele_value_routine)
+        if (err) return
+        write (line(ix:), column(i)%format, iostat = ios) value(1)
       end select
-      ix  = ix + column(i)%field_width
+
       if (ios /= 0) then
         call out_io (s_error$, r_name, 'BAD FORMAT: ' // column(i)%format, &
                                        'FOR DISPLAYING: ' // column(i)%name)
         return
       endif
+
+      ix  = ix + column(i)%field_width
+
     enddo
 
     nl=nl+1; lines(nl) = line
@@ -900,7 +777,7 @@ case ('lattice')
 
   first_time = .true.  
   do ie = u%model%lat%n_ele_track+1, u%model%lat%n_ele_max
-    if (.not. show_here(ie)) cycle
+    if (.not. picked_ele(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
     ele => u%model%lat%ele(ie)
     if (first_time) then
@@ -917,7 +794,7 @@ case ('lattice')
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
-  deallocate(show_here)
+  deallocate(picked_ele)
 
 !----------------------------------------------------------------------
 ! optimizer
@@ -1144,15 +1021,105 @@ case ('universe')
   u => s%u(ix_u)
 
   nl = 0
-  nl=nl+1; write(lines(nl), imt) '%ix_uni                = ', u%ix_uni
-  nl=nl+1; write(lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
-  nl=nl+1; write(lines(nl), imt) '%n_data_used           = ', u%n_data_used
-  nl=nl+1; write(lines(nl), lmt) '%do_synch_rad_int_calc = ', u%do_synch_rad_int_calc
-  nl=nl+1; write(lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
-  nl=nl+1; write(lines(nl), lmt) '%calc_beam_emittance   = ', u%calc_beam_emittance
-  nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
-  nl=nl+1; write(lines(nl), amt) '%beam0_file            = ', trim(u%beam0_file)
-  nl=nl+1; write(lines(nl), amt) '%beam_all_file         = ', trim(u%beam_all_file)
+  nl=nl+1; write (lines(nl), amt) 'Universe: ', ix_u
+  nl=nl+1; write (lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
+  nl=nl+1; write (lines(nl), imt) '%n_data_used           = ', u%n_data_used
+  nl=nl+1; write (lines(nl), lmt) '%do_synch_rad_int_calc = ', u%do_synch_rad_int_calc
+  nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
+  nl=nl+1; write (lines(nl), lmt) '%calc_beam_emittance   = ', u%calc_beam_emittance
+  nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
+  nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam0_file)
+  nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam_all_file)
+
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Number of elements to track through:', &
+                                        1, '  through', u%model%lat%n_ele_track
+  if (u%model%lat%n_ele_max .gt. u%model%lat%n_ele_track) then
+    nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Lord elements:   ', &
+                      u%model%lat%n_ele_track+1, '  through', u%model%lat%n_ele_max
+  else
+    nl=nl+1; write (lines(nl), '(a)') "there are NO Lord elements"
+  endif
+
+  nl=nl+1; write (lines(nl), '(a, f0.3)') "Lattice length: ", u%model%lat%param%total_length
+
+  if (u%is_on) then
+    nl=nl+1; write (lines(nl), '(a)') 'This universe is turned ON'
+  else
+    nl=nl+1; write (lines(nl), '(a)') 'This universe is turned OFF'
+  endif
+
+  if (.not. u%model%lat%param%stable .or. .not. u%model%lat%param%stable) then
+    nl=nl+1; write (lines(nl), '(a, l)') 'Model lattice stability: ', &
+                                                          u%model%lat%param%stable
+    nl=nl+1; write (lines(nl), '(a, l)') 'Design lattice stability:', &
+                                                          u%design%lat%param%stable
+    call out_io (s_blank$, r_name, lines(1:nl))
+    return
+  endif
+ 
+  call radiation_integrals (u%model%lat, &
+                                u%model%orb, u%model%modes, u%ix_rad_int_cache)
+  call radiation_integrals (u%design%lat, &
+                                u%design%orb, u%design%modes, u%ix_rad_int_cache)
+  if (u%model%lat%param%lattice_type == circular_lattice$) then
+    call chrom_calc (u%model%lat, delta_e, &
+                        u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
+    call chrom_calc (u%design%lat, delta_e, &
+                        u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
+  endif
+
+  nl=nl+1; write (lines(nl), *)
+  nl=nl+1; write (lines(nl), '(17x, a)') '       X          |            Y'
+  nl=nl+1; write (lines(nl), '(17x, a)') 'Model     Design  |     Model     Design'
+  fmt = '(1x, a10, 1p 2e11.3, 2x, 2e11.3, 2x, a)'
+  fmt2 = '(1x, a10, 2f11.3, 2x, 2f11.3, 2x, a)'
+  fmt3 = '(1x, a10, 2f11.4, 2x, 2f11.4, 2x, a)'
+  f_phi = 1 / twopi
+  l_lat = u%model%lat%param%total_length
+  n = u%model%lat%n_ele_track
+  if (u%model%lat%param%lattice_type == circular_lattice$) then
+    nl=nl+1; write (lines(nl), fmt2) 'Q', f_phi*u%model%lat%ele(n)%a%phi, &
+          f_phi*u%design%lat%ele(n)%a%phi, f_phi*u%model%lat%ele(n)%b%phi, &
+          f_phi*u%design%lat%ele(n)%b%phi,  '! Tune'
+    nl=nl+1; write (lines(nl), fmt2) 'Chrom', u%model%a%chrom, & 
+          u%design%a%chrom, u%model%b%chrom, u%design%b%chrom, '! dQ/(dE/E)'
+    nl=nl+1; write (lines(nl), fmt2) 'J_damp', u%model%modes%a%j_damp, &
+        u%design%modes%a%j_damp, u%model%modes%b%j_damp, &
+        u%design%modes%b%j_damp, '! Damping Partition #'
+    nl=nl+1; write (lines(nl), fmt) 'Emittance', u%model%modes%a%emittance, &
+        u%design%modes%a%emittance, u%model%modes%b%emittance, &
+        u%design%modes%b%emittance, '! Meters'
+  endif
+  nl=nl+1; write (lines(nl), fmt) 'Alpha_damp', u%model%modes%a%alpha_damp, &
+        u%design%modes%a%alpha_damp, u%model%modes%b%alpha_damp, &
+        u%design%modes%b%alpha_damp, '! Damping per turn'
+  nl=nl+1; write (lines(nl), fmt) 'I4', u%model%modes%a%synch_int(4), &
+        u%design%modes%a%synch_int(4), u%model%modes%b%synch_int(4), &
+        u%design%modes%b%synch_int(4), '! Radiation Integral'
+  nl=nl+1; write (lines(nl), fmt) 'I5', u%model%modes%a%synch_int(5), &
+        u%design%modes%a%synch_int(5), u%model%modes%b%synch_int(5), &
+        u%design%modes%b%synch_int(5), '! Radiation Integral'
+
+  nl=nl+1; write (lines(nl), *)
+  nl=nl+1; write (lines(nl), '(19x, a)') 'Model     Design'
+  fmt = '(1x, a12, 1p2e11.3, 3x, a)'
+  nl=nl+1; write (lines(nl), fmt) 'Sig_E/E:', u%model%modes%sigE_E, &
+            u%design%modes%sigE_E
+  nl=nl+1; write (lines(nl), fmt) 'Energy Loss:', u%model%modes%e_loss, &
+            u%design%modes%e_loss, '! Energy_Loss (eV / Turn)'
+  nl=nl+1; write (lines(nl), fmt) 'J_damp:', u%model%modes%z%j_damp, &
+        u%design%modes%z%j_damp, '! Longitudinal Damping Partition #'
+  nl=nl+1; write (lines(nl), fmt) 'Alpha_damp:', u%model%modes%z%alpha_damp, &
+        u%design%modes%z%alpha_damp, '! Longitudinal Damping per turn'
+  nl=nl+1; write (lines(nl), fmt) 'Alpha_p:', u%model%modes%synch_int(1)/l_lat, &
+               u%design%modes%synch_int(1)/l_lat, '! Momentum Compaction'
+  nl=nl+1; write (lines(nl), fmt) 'I1:', u%model%modes%synch_int(1), &
+               u%design%modes%synch_int(1), '! Radiation Integral'
+  nl=nl+1; write (lines(nl), fmt) 'I2:', u%model%modes%synch_int(2), &
+               u%design%modes%synch_int(2), '! Radiation Integral'
+  nl=nl+1; write (lines(nl), fmt) 'I3:', u%model%modes%synch_int(3), &
+               u%design%modes%synch_int(3), '! Radiation Integral'
 
   call out_io (s_blank$, r_name, lines(1:nl)) 
 
@@ -1385,5 +1352,52 @@ endif
 end subroutine show_ele_data
 
 end subroutine tao_show_cmd
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+
+subroutine tao_ele_value_routine (str, value, err_flag)
+
+implicit none
+
+real(rp), allocatable :: value(:)
+
+integer ios, i, n
+
+character(*) str
+character(40) name
+character(24) :: r_name = 'tao_ele_value_routine'
+
+real(rp), pointer :: real_ptr
+
+logical err_flag
+
+!
+
+call re_allocate (value, 1, .true.)
+name = str
+call upcase_string(name)
+select case (name)
+case ("ORBIT_X")
+  value(1) = orbit_common%vec(1)
+case ("ORBIT_PX")
+  value(1) = orbit_common%vec(2)
+case ("ORBIT_Y")
+  value(1) = orbit_common%vec(3)
+case ("ORBIT_PY")
+  value(1) = orbit_common%vec(4)
+case ("ORBIT_Z")
+  value(1) = orbit_common%vec(5)
+case ("ORBIT_PZ")
+  value(1) = orbit_common%vec(6)
+case default
+  call pointer_to_attribute (ele_common, name, .true., real_ptr, err_flag, .true.)
+  if (err_flag) return
+  value(1) = real_ptr
+end select
+
+
+end subroutine
 
 end module
