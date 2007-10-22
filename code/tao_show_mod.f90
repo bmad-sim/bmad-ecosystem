@@ -44,10 +44,13 @@ type (tao_plot_region_struct), pointer :: region
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_ele_shape_struct), pointer :: shape
 
+type (beam_struct), pointer :: beam
+type (bunch_struct), pointer :: bunch
 type (lr_wake_struct), pointer :: lr
 type (ele_struct), pointer :: ele
 type (coord_struct), target :: orb
 type (ele_struct), target :: ele3
+type (bunch_params_struct) bunch_params
 
 type show_lat_column_struct
   character(80) name
@@ -87,8 +90,8 @@ character(9) angle
 integer :: data_number, ix_plane, ix_class
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju
-integer num_locations
-integer, allocatable, save :: ix_ele(:)
+integer num_locations, ix_ele
+integer, allocatable, save :: ix_eles(:)
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
 logical err, found, at_ends, first_time
@@ -100,7 +103,7 @@ namelist / custom_show_list / column
 
 !
 
-call re_allocate (ix_ele,1)
+call re_allocate (ix_eles,1)
 call re_allocate (lines, 200, 500)
 
 err = .false.
@@ -152,46 +155,73 @@ case ('beam')
 
   u => s%u(s%global%u_view)
 
-  nl=nl+1; write(lines(nl), '(a, i3)') 'Universe: ', s%global%u_view
-  nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%a_norm_emitt      = ', u%beam_init%a_norm_emitt
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%b_norm_emitt      = ', u%beam_init%b_norm_emitt
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%dPz_dz            = ', u%beam_init%dPz_dz
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%center            = ', u%beam_init%center
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%ds_bunch          = ', u%beam_init%ds_bunch
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z             = ', u%beam_init%sig_z
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e             = ', u%beam_init%sig_e
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%bunch_charge      = ', u%beam_init%bunch_charge
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%center_jitter     = ', u%beam_init%center_jitter
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%emitt_jitter      = ', u%beam_init%emitt_jitter
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z_jitter      = ', u%beam_init%sig_z_jitter
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e_jitter      = ', u%beam_init%sig_e_jitter
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%polarization = ', u%beam_init%spin%polarization
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%theta        = ', u%beam_init%spin%theta
-  nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%phi          = ', u%beam_init%spin%phi
-  nl=nl+1; write(lines(nl), imt) 'beam_init%n_particle        = ', u%beam_init%n_particle
-  nl=nl+1; write(lines(nl), imt) 'beam_init%n_bunch           = ', u%beam_init%n_bunch
-  nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_center     = ', u%beam_init%renorm_center
-  nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_sigma      = ', u%beam_init%renorm_sigma
-  nl=nl+1; write(lines(nl), lmt) 'beam_init%preserve_dist     = ', u%beam_init%preserve_dist
-  nl=nl+1; write(lines(nl), lmt) 'beam_init%init_spin         = ', u%beam_init%init_spin
-  nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), lmt) 'bmad_com%sr_wakes_on               = ', bmad_com%sr_wakes_on
-  nl=nl+1; write(lines(nl), lmt) 'bmad_com%lr_wakes_on               = ', bmad_com%lr_wakes_on
-  nl=nl+1; write(lines(nl), lmt) 'bmad_com%trans_space_charge_on     = ', bmad_com%trans_space_charge_on
-  nl=nl+1; write(lines(nl), lmt) 'bmad_com%coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
-  nl=nl+1; write(lines(nl), lmt) 'bmad_com%spin_tracking_on          = ', bmad_com%spin_tracking_on
-  nl=nl+1; write(lines(nl), lmt) 'bmad_com%radiation_damping_on      = ', bmad_com%radiation_damping_on
-  nl=nl+1; write(lines(nl), lmt) 'bmad_com%radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
-  nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), rmt) 'csr_param%ds_track_step        = ', csr_param%ds_track_step
-  nl=nl+1; write(lines(nl), imt) 'csr_param%n_bin                = ', csr_param%n_bin
-  nl=nl+1; write(lines(nl), imt) 'csr_param%particle_bin_span    = ', csr_param%particle_bin_span
-  nl=nl+1; write(lines(nl), lmt) 'csr_param%lcsr_component_on    = ', csr_param%lcsr_component_on
-  nl=nl+1; write(lines(nl), lmt) 'csr_param%lsc_component_on     = ', csr_param%lsc_component_on
-  nl=nl+1; write(lines(nl), lmt) 'csr_param%tsc_component_on     = ', csr_param%tsc_component_on
-  nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', s%global%track_type
+  ! no element index
+
+  if (word(1) == '') then
+
+    nl=nl+1; write(lines(nl), '(a, i3)') 'Universe: ', s%global%u_view
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%a_norm_emitt      = ', u%beam_init%a_norm_emitt
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%b_norm_emitt      = ', u%beam_init%b_norm_emitt
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%dPz_dz            = ', u%beam_init%dPz_dz
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%center            = ', u%beam_init%center
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%ds_bunch          = ', u%beam_init%ds_bunch
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z             = ', u%beam_init%sig_z
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e             = ', u%beam_init%sig_e
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%bunch_charge      = ', u%beam_init%bunch_charge
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%center_jitter     = ', u%beam_init%center_jitter
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%emitt_jitter      = ', u%beam_init%emitt_jitter
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z_jitter      = ', u%beam_init%sig_z_jitter
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e_jitter      = ', u%beam_init%sig_e_jitter
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%polarization = ', u%beam_init%spin%polarization
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%theta        = ', u%beam_init%spin%theta
+    nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%phi          = ', u%beam_init%spin%phi
+    nl=nl+1; write(lines(nl), imt) 'beam_init%n_particle        = ', u%beam_init%n_particle
+    nl=nl+1; write(lines(nl), imt) 'beam_init%n_bunch           = ', u%beam_init%n_bunch
+    nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_center     = ', u%beam_init%renorm_center
+    nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_sigma      = ', u%beam_init%renorm_sigma
+    nl=nl+1; write(lines(nl), lmt) 'beam_init%preserve_dist     = ', u%beam_init%preserve_dist
+    nl=nl+1; write(lines(nl), lmt) 'beam_init%init_spin         = ', u%beam_init%init_spin
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write(lines(nl), lmt) 'bmad_com%sr_wakes_on               = ', bmad_com%sr_wakes_on
+    nl=nl+1; write(lines(nl), lmt) 'bmad_com%lr_wakes_on               = ', bmad_com%lr_wakes_on
+    nl=nl+1; write(lines(nl), lmt) 'bmad_com%trans_space_charge_on     = ', bmad_com%trans_space_charge_on
+    nl=nl+1; write(lines(nl), lmt) 'bmad_com%coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
+    nl=nl+1; write(lines(nl), lmt) 'bmad_com%spin_tracking_on          = ', bmad_com%spin_tracking_on
+    nl=nl+1; write(lines(nl), lmt) 'bmad_com%radiation_damping_on      = ', bmad_com%radiation_damping_on
+    nl=nl+1; write(lines(nl), lmt) 'bmad_com%radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write(lines(nl), rmt) 'csr_param%ds_track_step        = ', csr_param%ds_track_step
+    nl=nl+1; write(lines(nl), imt) 'csr_param%n_bin                = ', csr_param%n_bin
+    nl=nl+1; write(lines(nl), imt) 'csr_param%particle_bin_span    = ', csr_param%particle_bin_span
+    nl=nl+1; write(lines(nl), lmt) 'csr_param%lcsr_component_on    = ', csr_param%lcsr_component_on
+    nl=nl+1; write(lines(nl), lmt) 'csr_param%lsc_component_on     = ', csr_param%lsc_component_on
+    nl=nl+1; write(lines(nl), lmt) 'csr_param%tsc_component_on     = ', csr_param%tsc_component_on
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', s%global%track_type
+
+  ! have element index
+
+  else
+    call tao_to_int (word(1), ix_ele, err)
+    if (err) return
+    beam => u%ele(ix_ele)%beam
+    if (.not. allocated(beam%bunch)) then
+      call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM AT ELEMENT.')
+      if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
+      return
+    endif
+    bunch => beam%bunch(s%global%bunch_to_plot)
+    call calc_bunch_params (bunch, u%model%lat%ele(ix_ele), bunch_params)
+    nl=nl+1; write (lines(nl), imt) 'Parameters for bunch:       ', s%global%bunch_to_plot
+    nl=nl+1; write (lines(nl), imt) 'Particles surviving:        ', bunch_params%n_particle
+    nl=nl+1; write (lines(nl), imt) 'Particles lost:             ', size(bunch%particle) - bunch_params%n_particle
+    nl=nl+1; write (lines(nl), rmt) 'Particles lost (%):         ', &
+                               (size(bunch%particle) - bunch_params%n_particle) / size(bunch%particle)
+    nl=nl+1; write (lines(nl), rmt) 'Centroid:', bunch_params%centroid%vec
+    nl=nl+1; write (lines(nl), rmt) 'RMS:     ', sqrt(bunch_params%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
+
+  endif
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
@@ -467,8 +497,8 @@ case ('element', 'taylor', 'e2')
 
   else  
 
-    call tao_locate_element (ele_name, s%global%u_view, ix_ele)
-    loc = ix_ele(1)
+    call tao_locate_element (ele_name, s%global%u_view, ix_eles)
+    loc = ix_eles(1)
     if (loc < 0) return
     ele => u%model%lat%ele(loc)
 
@@ -751,7 +781,8 @@ case ('lattice')
       case default
         ele_common => ele3
         orbit_common => orb
-        call tao_evaluate_expression (column(i)%name, value, err, tao_ele_value_routine)
+        call tao_evaluate_expression (column(i)%name, value, &
+                                             .false., err, tao_ele_value_routine)
         if (err) return
         write (line(ix:), column(i)%format, iostat = ios) value(1)
       end select
@@ -1361,12 +1392,13 @@ subroutine tao_ele_value_routine (str, value, err_flag)
 
 implicit none
 
+type (ele_struct) ele
 real(rp), allocatable :: value(:)
 
 integer ios, i, n
 
 character(*) str
-character(40) name
+character(40) attribute
 character(24) :: r_name = 'tao_ele_value_routine'
 
 real(rp), pointer :: real_ptr
@@ -1376,9 +1408,9 @@ logical err_flag
 !
 
 call re_allocate (value, 1, .true.)
-name = str
-call upcase_string(name)
-select case (name)
+attribute = str
+call upcase_string(attribute)
+select case (attribute)
 case ("ORBIT_X")
   value(1) = orbit_common%vec(1)
 case ("ORBIT_PX")
@@ -1392,9 +1424,25 @@ case ("ORBIT_Z")
 case ("ORBIT_PZ")
   value(1) = orbit_common%vec(6)
 case default
-  call pointer_to_attribute (ele_common, name, .true., real_ptr, err_flag, .true.)
-  if (err_flag) return
-  value(1) = real_ptr
+  ! value defaults to zero if attribute for this element does not exist.
+  ! For example: voltage for a quadrupole.
+  value = 0
+  call pointer_to_attribute (ele_common, attribute, .true., real_ptr, err_flag, .false.)
+
+  ! Check that the attribute is not mis-spelled (as opposed 
+  ! to does not exist for this class of element)
+  if (err_flag) then
+    ele%key = overlay$
+    i = attribute_index(ele, attribute) 
+    if (i < 1 .or. i > n_attrib_maxx) then
+      call out_io (s_error$, r_name, 'BAD ATTRIBUTE: ' // str)
+    else  ! else attribute exists...
+      err_flag = .false.
+    endif
+  else
+    value(1) = real_ptr
+  endif
+
 end select
 
 

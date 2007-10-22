@@ -1757,7 +1757,8 @@ logical err_flag
 !
 
 wild_type_com = 'BOTH'
-call tao_evaluate_expression (expression, vec, err_flag, tao_param_value_routine)
+call tao_evaluate_expression (expression, vec, &
+                .true., err_flag, tao_param_value_routine)
 if (err_flag) return
 value = vec(1)
 
@@ -1798,7 +1799,8 @@ logical err_flag, err, wild
 !
 
 wild_type_com = wild_type
-call tao_evaluate_expression (expression, value, err_flag, tao_param_value_routine)
+call tao_evaluate_expression (expression, value, &
+                                .true., err_flag, tao_param_value_routine)
 
 end subroutine
 
@@ -1806,20 +1808,24 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_expression (expression, value, err_flag, param_value_routine)
+! Subroutine tao_evaluate_expression (expression, value, 
+!                         zero_divide_print_err, err_flag, param_value_routine)
 !
 ! Mathematically evaluates a character expression.
 !
 ! Input:
-!   expression          -- Character(*): Arithmetic expression.
-!   param_value_routine -- Subroutine: Routine to translate a variable to a value.
-!
+!   expression            -- Character(*): Arithmetic expression.
+!   zero_divide_print_err -- Logical: If False just return zero without printing
+!                             an error message.
+!   param_value_routine   -- Subroutine: Routine to translate a variable to a value.
+!   
 ! Output:
 !   value(:)     -- Real(rp): Value of arithmetic expression.
 !   err_flag     -- Logical: TRUE on error.
 !-
 
-subroutine tao_evaluate_expression (expression, value, err_flag, param_value_routine)
+subroutine tao_evaluate_expression (expression, value, &
+                          zero_divide_print_err, err_flag, param_value_routine)
 
 use random_mod
 
@@ -1851,7 +1857,7 @@ character(40) word, word2
 character(40) :: r_name = "tao_evaluate_expression"
 
 logical delim_found, split, ran_function_pending
-logical err_flag, err, wild
+logical err_flag, err, wild, zero_divide_print_err
 
 ! Don't destroy the input expression
 
@@ -2243,7 +2249,8 @@ do i = 1, i_lev
 
   case (divide$) 
     if (any(stk(i2)%value == 0)) then
-      call out_io  (s_warn$, r_name, 'DIVIDE BY 0 ON RHS')
+      stk(1)%value = 0
+      if (zero_divide_print_err) call out_io (s_warn$, r_name, 'DIVIDE BY 0 ON RHS')
       err_flag = .true.
       return
     endif

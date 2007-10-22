@@ -797,7 +797,7 @@ The format for this is:
 Format:
 \begin{example}
   show alias 
-  show beam                    
+  show beam \{<element_index>\}
   show constraints
   show data \{<data_name>\} 
   show element <name>
@@ -837,15 +837,17 @@ Shows a list of defined aliases. See the \vn{alias} command for more
 details.
 
   \item[show beam]
-Shows parameters used with beam tracking including the number of
-particles in a bunch, etc.
+If \vn{<element_index>} is absent, \vn{show beam} shows parameters 
+used with beam tracking including the number of particles in a bunch, etc.
+If \vn{<element_index>} is present, \vn{show beam} will show 
+beam prameters at the selected element.
 
   \item[show constraints]
 Lists data and variable constraints.
 
   \item[show data]
 Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
-present shown is a list of d2\_data names.
+present shown is a list of \vn{d2_data} names.
 
   \item[show element]
 This shows information on lattice elements. \vn{name} is in
@@ -903,7 +905,7 @@ To customize the output use the command \vn{show lattice -custom
     column(4) = "key",     "a16",   16
     column(5) = "s",       "f10.3", 10
     column(6) = "beta_a",  "f7.2",   7
-    column(7) = "1e3 * orbit\_x", "f8.3", 8, "Orbit\_x| (mm)" 
+    column(7) = "1e3 * orbit_x", "f8.3", 8, "Orbit_x| (mm)" 
   /
 \end{example}
 each \vn{column(1)} has four components. The first component is what
@@ -917,16 +919,21 @@ are recognized:
   name                   ! Name of element.
   key                    ! Type of element (quadrupole, etc.)
   s                      ! Longitudinal position.
-  beta\_a,  beta\_b        ! Twiss beta functions.
-  alpha\_a, alpha\_b       ! Twiss alpha functions.
-  phi\_a,   phi\_b         ! Betatron phase.
-  eta\_a,   eta\_b         ! Dispersion functions.
-  etap\_a,  etap\_b        ! Dispersion derivatives.
-  orbit\_x, orbit\_px      ! Horizontal position and momentum deviation.
-  orbit\_y, orbit\_py      ! Vertical position and momentum deviation.
-  orbit\_z, orbit\_pz      ! Longitudinal position and momentum deviation.
-  xmat\_11, xmat\_12, etc. ! Element transfer matrix.
+  beta_a,  beta_b        ! Twiss beta functions.
+  alpha_a, alpha_b       ! Twiss alpha functions.
+  phi_a,   phi_b         ! Betatron phase.
+  eta_a,   eta_b         ! Dispersion functions.
+  etap_a,  etap_b        ! Dispersion derivatives.
+  orbit_x, orbit_px      ! Horizontal position and momentum deviation.
+  orbit_y, orbit_py      ! Vertical position and momentum deviation.
+  orbit_z, orbit_pz      ! Longitudinal position and momentum deviation.
+  xmat_11, xmat_12, etc. ! Element transfer matrix.
 \end{example}
+If an attribute is does not exist for a given element then the
+attribute will be assigned a value of zero. For example, \vn{voltage}
+for a \vn{quadrupole} is taken to be zero. Also a divide by zero will
+give a value of zero.
+
 The second component is the Fortran edit descriptor. The third column
 is the total width of the field. Notice that strings (like the element
 name) are left justified and numbers are right justified. In the case
@@ -938,10 +945,10 @@ one greater then the maximum characters of any element name.
 The last component is column title name. This component is optional
 and if not present then \tao will choose something appropriate. The
 column title can be split into two lines using \vn{"|"} as a separator.
-In the example above, The column title corresponding to "Orbit\_x| (mm)" 
+In the example above, The column title corresponding to \vn{"Orbit_x| (mm)"} 
 is:
 \begin{example}
-  Orbit\_x
+  Orbit_x
    (mm)
 \end{example}
 
@@ -972,7 +979,7 @@ integrals, etc.
 
   \item[show variable]
 Shows variable information. If \vn{<var_name>} \vn{<locations>} is not
-present shown is a list of v1\_var classes. If \vn{<var_name>} is
+present shown is a list of \vn{v1_var} classes. If \vn{<var_name>} is
 \vn{*} then the variables will be printed in Bmad lattice format.
 To show variables associated with the \vn{n}th universe use
 the format: \vn{show var n@}.
