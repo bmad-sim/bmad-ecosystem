@@ -220,7 +220,11 @@ case ('beam')
                                (size(bunch%particle) - bunch_params%n_particle) / size(bunch%particle)
     nl=nl+1; write (lines(nl), rmt) 'Centroid:', bunch_params%centroid%vec
     nl=nl+1; write (lines(nl), rmt) 'RMS:     ', sqrt(bunch_params%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
-
+    nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
+    nl=nl+1; write (lines(nl), rmt) 'a:       ', bunch_params%a%norm_emitt, bunch_params%a%beta
+    nl=nl+1; write (lines(nl), rmt) 'b:       ', bunch_params%a%norm_emitt, bunch_params%a%beta
+    nl=nl+1; write (lines(nl), rmt) 'z:       ', bunch_params%a%norm_emitt, bunch_params%a%beta
+  
   endif
 
   call out_io (s_blank$, r_name, lines(1:nl))
