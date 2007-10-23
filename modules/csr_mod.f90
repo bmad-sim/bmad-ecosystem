@@ -938,7 +938,7 @@ endif
 eps = 1e-10 * abs(dz_particles) + 1e-14
 z2 = 0
 if (bin%y2 /= 0) then
-  d1 = sqrt(3 * bin%y2 / k_factor%g)
+  d1 = sqrt(3 * bin%y2 / abs(k_factor%g))
 elseif (dz_particles >= 0) then
   d1 = min(2 * bin%gamma2 * dz_particles, (6 * dz_particles / k_factor%g**2) ** (0.3333))
 else
@@ -1057,11 +1057,17 @@ real(rp), optional :: dz_dd
 
 logical small_angle_approx
 
-! Special case
+! Special cases
 
 if (k_factor%v1 == 0 .and. d == 0 .and. bin%y2 == 0) then
   z_this = 0
   if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2)
+  return
+endif
+
+if (bin%y2 == 0 .and. d < 0) then
+  z_this = 2 * d
+  if (present(dz_dd)) dz_dd = 2
   return
 endif
 
@@ -1102,7 +1108,7 @@ else
   z_this = v1d / (2 * bin%gamma2) + (v1d - kf%L)
 
   if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2) + &
-               1 - (kf%L_vec(1) * cos(phi) + kf%L_vec(2) * sin(phi)) / kf%L
+               1 - (kf%L_vec(1) * cos(phi) - kf%L_vec(2) * sin(phi)) / kf%L
                 
 
 endif
