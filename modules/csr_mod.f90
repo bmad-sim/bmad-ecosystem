@@ -909,7 +909,7 @@ type (csr_kick_factor_struct) k_factor
 type (csr_bin_struct) bin
 
 real(rp) dz_particles, z1, z2, dz_dd, dz1_dd, dz2_dd
-real(rp) eps, d_this, delta_d_old, delta_d, dz_calc, d_old
+real(rp) eps_z, eps_d, d_this, delta_d_old, delta_d, dz_calc, d_old
 real(rp) d1, d2, a, b, c
 
 integer j
@@ -935,7 +935,9 @@ endif
 ! Use Newton's method until root is bracketed.
 ! Initial d1 is just an approximate guess to get in the ball park.
 
-eps = 1e-10 * abs(dz_particles) + 1e-14
+eps_z = 1e-10 * abs(dz_particles) + 1e-14
+eps_d = 1e-10
+
 z2 = 0
 if (bin%y2 /= 0) then
   d1 = sqrt(3 * bin%y2 / abs(k_factor%g))
@@ -950,7 +952,7 @@ endif
 do 
 
   z1 = z_calc_csr (d1, k_factor, bin, small_angle_approx, dz1_dd) - dz_particles
-  if (abs(z1) < eps) then
+  if (abs(z1) < eps_z) then
     d_this = d1
     return
   endif
@@ -958,7 +960,7 @@ do
 
   d2 = d1 - z1 / dz1_dd 
   z2 = z_calc_csr (d2, k_factor, bin, small_angle_approx, dz2_dd) - dz_particles
-  if (abs(z2) < eps) then
+  if (abs(z2) < eps_z) then
     d_this = d2
     return
   endif
@@ -1001,7 +1003,8 @@ do j = 1, 100
     if (d_this == d_old) return
   endif
 
-  if (abs(dz_calc) < eps) return
+  if (abs(dz_calc) < eps_z) return
+  if (abs(d2-d1) < eps_d * k_factor%v) return
   dz_calc = z_calc_csr(d_this, k_factor, bin, small_angle_approx, dz_dd) - dz_particles
 
   if (dz_calc < 0) then
