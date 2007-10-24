@@ -67,6 +67,18 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == overlay$)  cycle
       if (i == girder$)   cycle
 
+
+      attrib_array(i, superimpose$)       = 'SUPERIMPOSE'
+      attrib_array(i, offset$)            = 'OFFSET'
+      attrib_array(i, reference$)         = 'REFERENCE'
+      attrib_array(i, ele_beginning$)     = 'ELE_BEGINNING'
+      attrib_array(i, ele_center$)        = 'ELE_CENTER'
+      attrib_array(i, ele_end$)           = 'ELE_END'
+      attrib_array(i, ref_beginning$)     = 'REF_BEGINNING'
+      attrib_array(i, ref_center$)        = 'REF_CENTER'
+      attrib_array(i, ref_end$)           = 'REF_END'
+      attrib_array(i, common_lord$)       = 'COMMON_LORD'
+
       attrib_array(i, E_tot$)                 = 'E_TOT'
       attrib_array(i, p0c$)                   = 'P0C'
       attrib_array(i, x_limit$)               = 'X_LIMIT'

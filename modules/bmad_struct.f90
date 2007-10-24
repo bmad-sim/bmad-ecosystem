@@ -422,13 +422,24 @@ integer, parameter :: x_limit$ = 86
 integer, parameter :: y_limit$ = 87
 integer, parameter :: offset_moves_aperture$ = 88
 
-integer, parameter :: a0$  =  90, k0l$  =  90
-integer, parameter :: a20$ = 110, k20l$ = 110
+integer, parameter :: superimpose$    = 90
+integer, parameter :: offset$         = 91
+integer, parameter :: reference$      = 92
+integer, parameter :: ele_beginning$  = 93
+integer, parameter :: ele_center$     = 94
+integer, parameter :: ele_end$        = 95
+integer, parameter :: ref_beginning$  = 96
+integer, parameter :: ref_center$     = 97
+integer, parameter :: ref_end$        = 98
+integer, parameter :: common_lord$    = 99
 
-integer, parameter :: b0$  = 120, t0$  = 120
-integer, parameter :: b20$ = 140, t20$ = 140 
+integer, parameter :: a0$  = 100, k0l$  = 100
+integer, parameter :: a20$ = 120, k20l$ = 120
 
-integer, parameter :: n_attrib_special_maxx = 140
+integer, parameter :: b0$  = 130, t0$  = 130
+integer, parameter :: b20$ = 150, t20$ = 150 
+
+integer, parameter :: n_attrib_special_maxx = t20$
 
 character(40), parameter :: null_name = '!NULL' 
 character(40), parameter :: blank_name = ' '

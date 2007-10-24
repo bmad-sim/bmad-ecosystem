@@ -69,7 +69,7 @@ end type
 
 type stack_file_struct
   character(200) logical_name
-  character(200) full_name
+  character(200) :: full_name = ''
   character(200) :: dir = './'
   integer i_line
   integer f_unit
@@ -132,8 +132,8 @@ parameter (redef$ = 2)
 integer, parameter :: n_parse_line = 280
 
 type bp_common_struct
-  type (stack_file_struct) current_file
-  type (stack_file_struct) calling_file
+  type (stack_file_struct), pointer :: current_file
+  type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
   character(40), pointer :: var_name(:) => null()    ! variable name
   real(rp), pointer :: var_value(:) => null()        ! variable value
@@ -195,14 +195,9 @@ subroutine get_attribute (how, ele, lat, plat, &
   integer i, ic, ix_word, how, ix_word1, ix_word2, ios, ix, i_out
   integer expn(6), ix_attrib
 
-  character(40) :: word, tilt_word = 'TILT', str_ix
+  character(40) :: word, str_ix
   character(1) delim, delim1, delim2
   character(80) str, err_str, line
-  character(40) :: super_names(12) = (/ &
-                'SUPERIMPOSE  ', 'OFFSET       ', 'REFERENCE    ',  &
-                'ELE_BEGINNING', 'ELE_CENTER   ', 'ELE_END      ',  &
-                'REF_BEGINNING', 'REF_CENTER   ', 'REF_END      ', &
-                'COMMON_LORD  ', '             ', '             ' /)
 
   logical delim_found, err_flag
 
@@ -373,64 +368,17 @@ subroutine get_attribute (how, ele, lat, plat, &
 ! if not an overlay then see if it is an ordinary attribute.
 ! if not an ordinary attribute then might be a superimpose switch
 
-  ix_attrib = attribute_index(ele, word)
+  if (word(:ix_word) == 'REF') word = 'REFERENCE' ! allowed abbrev
   if (word == 'B_GRADIENT') call b_grad_warning (ele)
 
-  if (ix_attrib < 1) then          ! if not an ordinary attribute...
-
-    if (ix_word == 0) then  ! no word
-      call warning  &
-            ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name)
-      return
-    else
-      if (word(:ix_word) == 'REF') word = 'REFERENCE' ! allowed abbrev
-      call match_word (word, super_names, ix_attrib)
-      if (ix_attrib < 1) then
-        call warning  &
-            ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
-        return
-      else    ! valid superimpose switch
-        if (ele%ixx == 0) then
-          call warning ('ELEMENT HAS NO ASSOCIATED INFO: ' // ele%name) 
-          return
-        endif
-      endif
-    endif
-
-    ic = ele%ixx
-    select case (super_names(ix_attrib))
-    case ('SUPERIMPOSE')
-      ele%control_type = super_lord$
-    case ('REF_BEGINNING')
-      plat%ele(ic)%ref_pt = begin$
-    case ('REF_CENTER')
-      plat%ele(ic)%ref_pt = center$
-    case ('REF_END')
-      plat%ele(ic)%ref_pt = end$
-    case ('ELE_BEGINNING')
-      plat%ele(ic)%ele_pt = begin$
-    case ('ELE_CENTER')
-      plat%ele(ic)%ele_pt = center$
-    case ('ELE_END')
-      plat%ele(ic)%ele_pt = end$
-    case ('COMMON_LORD')
-      plat%ele(ic)%common_lord = .true.
-    case ('REFERENCE')
-      call get_next_word(plat%ele(ic)%ref_name, ix_word,  &
-                                         ':=,', delim, delim_found, .true.)
-    case ('OFFSET')
-      call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                      lat, delim, delim_found, err_flag)
-      if (err_flag) return
-      plat%ele(ic)%s = value
-    case default
-      print *, 'ERROR IN BMAD_PARSER: INTERNAL ERROR. PLEASE GET HELP!'
-      call err_exit
-    end select
-
-    err_flag = .false.
+  ix_attrib = attribute_index(ele, word)
+  if (ix_word == 0) then  ! no word
+    call warning  ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name)
     return
-
+  endif
+  if (ix_attrib < 1) then
+    call warning  ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
+    return
   endif
 
 ! wiggler term attribute
@@ -542,12 +490,26 @@ subroutine get_attribute (how, ele, lat, plat, &
 
   endif
 
-! check that next delim is a "=". If not check for a possible default value
-! otherwise it is an error
+! Check that next delim is a "=". 
+! If not, it might be a flag attribute or an attribute that has a default value.
 
   if (delim /= '=')  then
     err_flag = .false.
-    if (word == tilt_word) then
+
+    if (ele%key == multipole$) then
+      if (ix_attrib >= t0$) then
+        if (.not. associated(ele%a_pole)) call multipole_init (ele)
+        ele%b_pole(ix_attrib-t0$) = pi / (2*(ix_attrib-t0$) + 2)
+      else
+        call warning ('EXPECTING "=" AFTER MULTIPOLE ATTRIBUTE: ' // word,  &
+                         'FOR ELEMENT: ' // ele%name)
+        err_flag = .true.
+      endif
+    endif
+
+    select case (ix_attrib)
+
+    case (tilt$)
       select case (ele%key)
       case (sbend$, rbend$)
         ele%value(tilt$) = pi / 2
@@ -561,24 +523,50 @@ subroutine get_attribute (how, ele, lat, plat, &
         call warning ('SORRY I''M NOT PROGRAMMED TO USE A "TILT" DEFAULT' // &
                 'FOR A: ' // key_name(ele%key), 'FOR: ' // ele%name)
       end select
-    elseif (word == 'FINT') then
+
+    case (fint$)
       ele%value(fint$) = 0.5
-    elseif (word == 'FINTX') then
+
+    case (fintx$)
       ele%value(fintx$) = 0.5
-    elseif (ele%key == multipole$) then
-      if (ix_attrib >= t0$) then
-        if (.not. associated(ele%a_pole)) call multipole_init (ele)
-        ele%b_pole(ix_attrib-t0$) = pi / (2*(ix_attrib-t0$) + 2)
-      else
-        call warning ('EXPECTING "=" AFTER MULTIPOLE ATTRIBUTE: ' // word,  &
-                         'FOR ELEMENT: ' // ele%name)
-        err_flag = .true.
-      endif
-    else
+
+    case (superimpose$)
+      ele%control_type = super_lord$
+
+    case (ref_beginning$)
+      ic = ele%ixx
+      plat%ele(ic)%ref_pt = begin$
+
+    case (ref_center$)
+      ic = ele%ixx
+      plat%ele(ic)%ref_pt = center$
+
+    case (ref_end$)
+      ic = ele%ixx
+      plat%ele(ic)%ref_pt = end$
+
+    case (ele_beginning$)
+      ic = ele%ixx
+      plat%ele(ic)%ele_pt = begin$
+
+    case (ele_center$)
+      ic = ele%ixx
+      plat%ele(ic)%ele_pt = center$
+
+    case (ele_end$)
+      ic = ele%ixx
+      plat%ele(ic)%ele_pt = end$
+
+    case (common_lord$)
+      ic = ele%ixx
+      plat%ele(ic)%common_lord = .true.
+
+    case default
       call warning ('EXPECTING "=" AFTER ATTRIBUTE: ' // word,  &
                          'FOR ELEMENT: ' // ele%name)
       err_flag = .true.
-    endif
+    end select
+
     return
   endif
 
@@ -587,6 +575,18 @@ subroutine get_attribute (how, ele, lat, plat, &
 ! are character strings
 
   select case (ix_attrib)
+
+  case (reference$)
+    ic = ele%ixx
+    call get_next_word(plat%ele(ic)%ref_name, ix_word,  &
+                                         ':=,', delim, delim_found, .true.)
+
+  case (offset$)
+    call evaluate_value (trim(ele%name) // ' ' // word, value, &
+                                      lat, delim, delim_found, err_flag)
+    if (err_flag) return
+    ic = ele%ixx
+    plat%ele(ic)%s = value
 
   case(type$, alias$, descrip$, sr_wake_file$, lr_wake_file$, lattice$)
     call type_get (ele, ix_attrib, delim, delim_found)
@@ -926,7 +926,7 @@ subroutine file_stack (how, file_name_in, finished)
   implicit none
 
   integer, parameter :: f_maxx = 20
-  type (stack_file_struct), save :: file(0:f_maxx)
+  type (stack_file_struct), save, target :: file(0:f_maxx)
 
   integer :: i_level = 0
   integer ix, ios
@@ -945,7 +945,16 @@ subroutine file_stack (how, file_name_in, finished)
 
     if (file_name_in == 'FROM: BMAD_PARSER') return 
 
-    if (i_level == 0) then   ! if we are just starting out then init some vars.
+    i_level = i_level + 1    ! number of files currently open
+    if (i_level > f_maxx) then
+      print *, 'ERROR: CALL NESTING GREATER THAN 20 LEVELS'
+      call err_exit
+    endif
+
+    bp_com%current_file => file(i_level)
+    bp_com%calling_file => file(i_level-1)
+
+    if (i_level == 1) then   ! if we are just starting out then init some vars.
       bp_com%num_lat_files = 0           ! total number of files opened
       bp_com%error_flag = .false.  ! set to true on an error
       bp_com%current_file%full_name = ' '
@@ -953,11 +962,6 @@ subroutine file_stack (how, file_name_in, finished)
       call init_bmad_parser_common
     endif
 
-    i_level = i_level + 1    ! number of files currently open
-    if (i_level > f_maxx) then
-      print *, 'ERROR: CALL NESTING GREATER THAN 20 LEVELS'
-      call err_exit
-    endif
     ix = splitfilename (file_name_in, file(i_level)%dir, basename, is_relative)
     if (is_relative) file(i_level)%dir = trim(file(i_level-1)%dir) // file(i_level)%dir
     bp_com%dirs(2) = file(i_level-1)%dir
@@ -981,14 +985,10 @@ subroutine file_stack (how, file_name_in, finished)
       return
     endif
 
-    bp_com%current_file = file(i_level)
-    bp_com%calling_file = file(i_level-1)
-    if (i_level /= 1) file(i_level-1)%i_line = bp_com%current_file%i_line
     bp_com%current_file%i_line = 0
 
     bp_com%num_lat_files = bp_com%num_lat_files + 1 
     inquire (file = file_name, name = bp_com%lat_file_names(bp_com%num_lat_files))
-
 
 ! "pop" means close the current file and pop its name off the stack
 
@@ -998,7 +998,8 @@ subroutine file_stack (how, file_name_in, finished)
     if (i_level < 0) then
       call error_exit ('BAD "RETURN"')
     elseif (i_level > 0) then
-      bp_com%current_file = file(i_level)
+      bp_com%current_file => file(i_level)
+      bp_com%calling_file => file(i_level-1)
     else    ! i_level == 0
       finished = .true.
     endif
