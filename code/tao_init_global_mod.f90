@@ -73,7 +73,7 @@ character(100) line
 logical err, free, gang
 logical searching
 logical calc_emittance
-logical, allocatable :: mask(:), dflt_unis(:), unis(:)
+logical, allocatable :: mask(:), dflt_good_unis(:), good_unis(:)
 logical, allocatable :: picked_ele(:)
 
 
@@ -461,7 +461,7 @@ close (iu)
 
 call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
-allocate (dflt_unis(size(s%u)), unis(size(s%u)))
+allocate (dflt_good_unis(size(s%u)), good_unis(size(s%u)))
 
 do
   v1_var%name = " "         ! set default
@@ -509,10 +509,10 @@ do
   ! Read universe numbers
 
   if (default_universe == '*' .or. default_universe == '') then
-    dflt_unis = .true.
+    dflt_good_unis = .true.
   else
-    call location_decode (default_universe, dflt_unis, 1, num)
-    if (num == 0) dflt_unis = .true.  ! blank => all
+    call location_decode (default_universe, dflt_good_unis, 1, num)
+    if (num == 0) dflt_good_unis = .true.  ! blank => all
     if (num < 0) then
       call out_io (s_error$, r_name, 'ERROR READING DEFAULT_UNIVERSE FOR: ' // v1_var%name)
       cycle
@@ -525,36 +525,36 @@ do
     call var_stuffit_init (v1_var_ptr)
     do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
       ! Find which universes
-      unis = dflt_unis
+      good_unis = dflt_good_unis
       if (var(j)%universe /= '') then
         if (var(j)%universe == '*') then
-          unis = .true.
+          good_unis = .true.
         else
-          call location_decode (var(j)%universe, unis, 1, num)
+          call location_decode (var(j)%universe, good_unis, 1, num)
           if (num < 0) then
             call out_io (s_error$, r_name, 'ERROR READING UNIVERSE FOR: ' // v1_var%name)
             cycle
           endif
         endif
       endif
-      if (count(unis) == 0) then
+      if (count(good_unis) == 0) then
         call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // v1_var%name)
         call err_exit
       endif
       ix_ele = found_one(j+1-lbound(v1_var_ptr%v, 1))
-      call var_stuffit (unis, v1_var_ptr%v(j), searching, ix_ele)
+      call var_stuffit (good_unis, v1_var_ptr%v(j), searching, ix_ele)
     enddo
 
   else   ! If clone...
     do i = 1, size(s%u)
-      if (.not. dflt_unis(i)) cycle
+      if (.not. dflt_good_unis(i)) cycle
       call var_stuffit_init (v1_var_ptr)
       write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
-      unis = .false.
-      unis(i) = .true.
+      good_unis = .false.
+      good_unis(i) = .true.
       do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
         ix_ele = found_one(j+1-lbound(v1_var_ptr%v, 1))
-        call var_stuffit (unis, v1_var_ptr%v(j), searching, ix_ele)
+        call var_stuffit (good_unis, v1_var_ptr%v(j), searching, ix_ele)
       enddo
     enddo
   endif
@@ -562,7 +562,7 @@ do
 enddo
 
 close (iu)
-deallocate (dflt_unis, unis)
+deallocate (dflt_good_unis, good_unis)
 
 !-----------------------------------------------------------------------
 ! Init ix_data array
@@ -737,6 +737,12 @@ u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name    ! stuff in the data
 if (data(0)%ele_name(1:7) == 'SEARCH:') then
   call string_trim(data(0)%ele_name(8:), search_string, ix)
   call find_elements (u, search_string, data(0)%ele0_name, found_one, n_found)
+  if (n_found == 0) then
+    call out_io (s_warn$, r_name, &
+      'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_string, &
+      'WHILE SETTING UP DATA ARRAY: ' // d1_data%name)
+    return
+  endif
   ! finish finding data array limits
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + n_found
@@ -754,7 +760,7 @@ if (data(0)%ele_name(1:7) == 'SEARCH:') then
   do i = 1, n_found
     j = found_one(i)
     if (jj .gt. n2) then
-      call out_io (s_abort$, r_name, "INTERNAL ERROR DULAT ELEMENT COUNTING")
+      call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
       call err_exit
     endif
     u%data(jj)%ele_name = u%design%lat%ele(j)%name
@@ -976,142 +982,6 @@ end subroutine d1_data_stuffit
 !----------------------------------------------------------------
 ! contains
 !
-! stuff common to all universes
-
-subroutine var_stuffit_init (v1_var_ptr)
-
-type (tao_v1_var_struct), pointer :: v1_var_ptr
-
-character(20) count_name1, count_name2, ix_char
-character(20) fmt
-character(40) search_string
-
-integer i, iu, j, jj, k, nn, n1, n2, ix1, ix2, num_hashes, ix
-integer num_ele, ios, ixx1, ixx2
-
-! count number of v1 entries
-
-s%n_v1_var_used = s%n_v1_var_used + 1
-nn = s%n_v1_var_used
-v1_var_ptr => s%v1_var(nn)
-v1_var_ptr%name = v1_var%name
-
-! are we searching for and counting elements?
-
-if (var(0)%ele_name(1:7) == 'SEARCH:') then
-  searching = .true.
-  if (any(var%universe /= ' ')) then
-    call out_io (s_abort$, r_name, &
-           "CANNOT SPECIFY INDIVIDUAL UNIVERSES WHEN SEARCHING FOR VARIABLES")
-    call err_exit
-  endif
-  ! search through all universes specified
-  num_ele = 0
-  do iu = 1, size(s%u)
-    if (.not. dflt_unis(iu)) cycle
-    call string_trim(var(0)%ele_name(8:), search_string, ix)
-    call find_elements (s%u(iu), search_string, 'no_slaves', found_one, n_found)
-    num_ele = num_ele + n_found 
-  enddo
- 
-  n1 = s%n_var_used + 1
-  n2 = s%n_var_used + num_ele
-  ix1 = ix_min_var
-  ix2 = num_ele - (1-ix_min_var)
-  s%n_var_used = n2
-  jj = n1
-
-  do iu = 1, size(s%u)
-    if (.not. dflt_unis(iu)) cycle
-    call string_trim(var(0)%ele_name(8:), search_string, ix)
-    call find_elements (s%u(iu), search_string, 'no_slaves', found_one, n_found)
-    do j = 1, n_found
-      if (jj .gt. n2) then
-        call out_io (s_abort$, r_name, "INTERNAL ERROR DULAT ELEMENT SEARCHING")
-        call err_exit
-      endif
-      k = found_one(j)
-      s%var(jj)%ele_name = s%u(iu)%design%lat%ele(k)%name
-      s%var(jj)%s = s%u(iu)%design%lat%ele(k)%s
-      jj = jj + 1
-    enddo
-  enddo
-
-  s%var(n1:n2)%attrib_name = default_attribute
-  s%var(n1:n2)%weight = default_weight
-  s%var(n1:n2)%step = default_step
-  s%var(n1:n2)%merit_type = default_merit_type
-  s%var(n1:n2)%low_lim = default_low_lim
-  s%var(n1:n2)%high_lim = default_high_lim
-
-! If not searching...
-
-else  
-  searching = .false.
-  n1 = s%n_var_used + 1
-  n2 = s%n_var_used + ix_max_var - ix_min_var + 1
-  ix1 = ix_min_var
-  ix2 = ix_max_var
- 
-  s%n_var_used = n2
- 
-  s%var(n1:n2)%ele_name    = var(ix1:ix2)%ele_name
-  s%var(n1:n2)%name        = var(ix1:ix2)%name
-  s%var(n1:n2)%good_user   = var(ix1:ix2)%good_user
-  s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
-
-  where (s%var(n1:n2)%attrib_name == ' ') s%var(n1:n2)%attrib_name = default_attribute
-
-  s%var(n1:n2)%weight = var(ix1:ix2)%weight
-  where (s%var(n1:n2)%weight == 0) s%var(n1:n2)%weight = default_weight
- 
-  s%var(n1:n2)%step = var(ix1:ix2)%step
-  where (s%var(n1:n2)%step == 0) s%var(n1:n2)%step = default_step
- 
-  s%var(n1:n2)%merit_type = var(ix1:ix2)%merit_type
-  where (s%var(n1:n2)%merit_type == ' ') s%var(n1:n2)%merit_type = default_merit_type
- 
-  s%var(n1:n2)%low_lim = var(ix1:ix2)%low_lim
-  where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
- 
-  s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
-  where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
-endif
- 
-! If counting...
-
-if (var(0)%name(1:6) == 'COUNT:') then
-  call form_count_name (var(0)%name(7:), num_hashes, count_name1, count_name2)
-  ! Create var names
-  jj = ix1
-  do j = n1, n2
-    if (jj .gt. ix2) then
-      call out_io (s_abort$, r_name, "INTERNAL ERROR DULAT ELEMENT COUNTING")
-      call err_exit
-    endif
-    write(fmt, '(a,i0,a,i0,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
-    write(s%var(j)%name, fmt) trim(count_name1), jj, trim(count_name2)
-    jj = jj + 1
-  enddo
-elseif (index(var(0)%name, '*') /= 0) then
-  ix  = index(var(0)%name, '*')
-  do j = n1, n2
-    s%var(j)%name = var(0)%name(1:ix-1) // &
-                              trim(s%var(j)%ele_name) // trim(var(0)%name(ix+1:))
-  enddo
-endif
-
-! now for some family guidance...
-! point the v1_var mother to the appropriate children in the big data array
-
-call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
-
-end subroutine
-  
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-!
 ! this forms the name used in the variable or data where the number of hashes is
 ! replaced by the element index
 
@@ -1153,27 +1023,26 @@ character(40) ele_name, key_name_in
 integer key, found_key, n_found
 integer found_one(:)
 
-integer i, ix, ii, i2, j, n_max
-logical no_slaves
+integer i, ix, ii, i2, j
+logical no_slaves, no_lords
 
 !
 
 n_found = 0
 found_one = -1
+no_slaves = .false.
+no_lords = .false.
 
-if (restriction == 'no_lords') then
-  n_max = u%design%lat%n_ele_track
-  no_slaves = .false.
-elseif (restriction == 'no_slaves') then
-  n_max = u%design%lat%n_ele_max
+select case (restriction)
+case ('no_lords') 
+  no_lords = .true.
+case ('no_slaves') 
   no_slaves = .true.
-elseif (restriction == ' ') then
-  n_max = u%design%lat%n_ele_max
-  no_slaves = .false.  
-else
+case (' ') 
+case default
   call out_io (s_abort$, r_name, "BAD SEARCH RESTRICTION: " // restriction)
   call err_exit
-endif
+end select
 
 !
 
@@ -1186,27 +1055,19 @@ else
   ele_name = search_string(ix+1:)
 endif
 
-do j = 1, n_max
+do j = 1, u%design%lat%n_ele_max
   ele => u%design%lat%ele(j)
-  if (ele%control_type == super_slave$ .or. ele%control_type == multipass_slave$) then
-    do i = ele%ic1_lord, ele%ic2_lord
-      i2 = u%design%lat%ic(i)
-      ii = u%design%lat%control(i2)%ix_lord
-      if (.not. match_wild(u%design%lat%ele(ii)%name, ele_name)) cycle
-      if (.not. match_wild(key_name(u%design%lat%ele(ii)%key), key_name_in)) cycle
-      if (ii <= n_max .and. all(found_one /= ii)) then
-        n_found = n_found + 1
-        found_one(n_found) = ii
-      endif
-    enddo
+  select case (ele%control_type)
+  case (multipass_slave$, super_slave$)
     if (no_slaves) cycle
-  endif
-  if (.not. match_wild(u%design%lat%ele(ii)%name, ele_name)) cycle
-  if (.not. match_wild(key_name(u%design%lat%ele(ii)%key), key_name_in)) cycle
-  if (all(found_one /= j)) then
-    n_found = n_found + 1
-    found_one(n_found) = j
-  endif
+  case (girder_lord$, overlay_lord$, super_lord$)
+    if (no_lords) cycle
+  end select
+  if (.not. match_wild(ele%name, ele_name)) cycle
+  if (.not. match_wild(key_name(ele%key), key_name_in)) cycle
+  if (any(found_one == j)) cycle
+  n_found = n_found + 1
+  found_one(n_found) = j
 enddo
 
 end subroutine find_elements
@@ -1534,13 +1395,155 @@ enddo
 
 end subroutine init_ix_data
 
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+!
+! stuff common to all universes
+
+subroutine var_stuffit_init (v1_var_ptr)
+
+type (tao_v1_var_struct), pointer :: v1_var_ptr
+
+character(20) count_name1, count_name2, ix_char
+character(20) fmt
+character(40) search_string
+
+integer i, iu, j, jj, k, nn, n1, n2, ix1, ix2, num_hashes, ix
+integer num_ele, ios, ixx1, ixx2
+
+! count number of v1 entries
+
+s%n_v1_var_used = s%n_v1_var_used + 1
+nn = s%n_v1_var_used
+v1_var_ptr => s%v1_var(nn)
+v1_var_ptr%name = v1_var%name
+
+! are we searching for and counting elements?
+
+if (var(0)%ele_name(1:7) == 'SEARCH:') then
+  searching = .true.
+  if (any(var%universe /= ' ')) then
+    call out_io (s_abort$, r_name, &
+           "CANNOT SPECIFY INDIVIDUAL UNIVERSES WHEN SEARCHING FOR VARIABLES")
+    call err_exit
+  endif
+  ! search through all universes specified
+  num_ele = 0
+  do iu = 1, size(s%u)
+    if (.not. dflt_good_unis(iu)) cycle
+    call string_trim(var(0)%ele_name(8:), search_string, ix)
+    call find_elements (s%u(iu), search_string, 'no_slaves', found_one, n_found)
+    num_ele = num_ele + n_found 
+  enddo
+  if (n_found == 0) then
+    call out_io (s_warn$, r_name, &
+                'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_string, &
+                'WHILE SETTING UP VARIABLE ARRAY: ' // v1_var%name)
+    return
+  endif
+
+  n1 = s%n_var_used + 1
+  n2 = s%n_var_used + num_ele
+  ix1 = ix_min_var
+  ix2 = num_ele - (1-ix_min_var)
+  s%n_var_used = n2
+  jj = n1
+
+  do iu = 1, size(s%u)
+    if (.not. dflt_good_unis(iu)) cycle
+    call string_trim(var(0)%ele_name(8:), search_string, ix)
+    call find_elements (s%u(iu), search_string, 'no_slaves', found_one, n_found)
+    do j = 1, n_found
+      if (jj .gt. n2) then
+        call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT SEARCHING")
+        call err_exit
+      endif
+      k = found_one(j)
+      s%var(jj)%ele_name = s%u(iu)%design%lat%ele(k)%name
+      s%var(jj)%s = s%u(iu)%design%lat%ele(k)%s
+      jj = jj + 1
+    enddo
+  enddo
+
+  s%var(n1:n2)%attrib_name = default_attribute
+  s%var(n1:n2)%weight = default_weight
+  s%var(n1:n2)%step = default_step
+  s%var(n1:n2)%merit_type = default_merit_type
+  s%var(n1:n2)%low_lim = default_low_lim
+  s%var(n1:n2)%high_lim = default_high_lim
+
+! If not searching...
+
+else  
+  searching = .false.
+  n1 = s%n_var_used + 1
+  n2 = s%n_var_used + ix_max_var - ix_min_var + 1
+  ix1 = ix_min_var
+  ix2 = ix_max_var
+ 
+  s%n_var_used = n2
+ 
+  s%var(n1:n2)%ele_name    = var(ix1:ix2)%ele_name
+  s%var(n1:n2)%name        = var(ix1:ix2)%name
+  s%var(n1:n2)%good_user   = var(ix1:ix2)%good_user
+  s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
+
+  where (s%var(n1:n2)%attrib_name == ' ') s%var(n1:n2)%attrib_name = default_attribute
+
+  s%var(n1:n2)%weight = var(ix1:ix2)%weight
+  where (s%var(n1:n2)%weight == 0) s%var(n1:n2)%weight = default_weight
+ 
+  s%var(n1:n2)%step = var(ix1:ix2)%step
+  where (s%var(n1:n2)%step == 0) s%var(n1:n2)%step = default_step
+ 
+  s%var(n1:n2)%merit_type = var(ix1:ix2)%merit_type
+  where (s%var(n1:n2)%merit_type == ' ') s%var(n1:n2)%merit_type = default_merit_type
+ 
+  s%var(n1:n2)%low_lim = var(ix1:ix2)%low_lim
+  where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
+ 
+  s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
+  where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
+endif
+ 
+! If counting...
+
+if (var(0)%name(1:6) == 'COUNT:') then
+  call form_count_name (var(0)%name(7:), num_hashes, count_name1, count_name2)
+  ! Create var names
+  jj = ix1
+  do j = n1, n2
+    if (jj .gt. ix2) then
+      call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+      call err_exit
+    endif
+    write(fmt, '(a,i0,a,i0,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
+    write(s%var(j)%name, fmt) trim(count_name1), jj, trim(count_name2)
+    jj = jj + 1
+  enddo
+elseif (index(var(0)%name, '*') /= 0) then
+  ix  = index(var(0)%name, '*')
+  do j = n1, n2
+    s%var(j)%name = var(0)%name(1:ix-1) // &
+                              trim(s%var(j)%ele_name) // trim(var(0)%name(ix+1:))
+  enddo
+endif
+
+! now for some family guidance...
+! point the v1_var mother to the appropriate children in the big data array
+
+call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
+
+end subroutine
+  
 end subroutine tao_init_global_and_universes
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 
-subroutine var_stuffit (unis, var, searching, ix_ele)
+subroutine var_stuffit (good_unis, var, searching, ix_ele)
 
 implicit none
 
@@ -1548,7 +1551,7 @@ type (tao_var_struct) :: var
 
 integer i, j, n, n1, n2, iu, n_tot, n_ele, ie, ix_ele
 character(20) :: r_name = 'var_stuffit_all_uni'
-logical err, searching, unis(:)
+logical err, searching, good_unis(:)
 
 ! point the children back to the mother
 
@@ -1562,16 +1565,18 @@ endif
 !
 
 if (searching) then
-  allocate (var%this(count(unis)))
+  allocate (var%this(count(good_unis)))
+  j = 0
   do iu = 1, size(s%u)
-    if (.not. unis(iu)) cycle
-    call tao_pointer_to_var_in_lattice (var, var%this(iu), iu, ix_ele = ix_ele)
+    if (.not. good_unis(iu)) cycle
+    j = j + 1
+    call tao_pointer_to_var_in_lattice (var, var%this(j), iu, ix_ele = ix_ele)
   enddo
 
 else
   n_tot = 0
   do iu = 1, size(s%u)
-    if (.not. unis(iu)) cycle
+    if (.not. good_unis(iu)) cycle
     call tao_locate_elements (var, iu, n_ele)
     s%u(iu)%ixx = n_ele
     n_tot = n_tot + n_ele
@@ -1584,7 +1589,7 @@ else
   allocate (var%this(n_tot))
   n_tot = 0
   do iu = 1, size(s%u)
-    if (.not. unis(iu)) cycle
+    if (.not. good_unis(iu)) cycle
     do ie = 1, s%u(iu)%ixx
       call tao_pointer_to_var_in_lattice (var, var%this(ie+n_tot), iu, &
                                           ix_ele = s%u(iu)%model%lat%ele(ie)%ixx)
