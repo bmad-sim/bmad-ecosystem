@@ -470,12 +470,12 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine set_ptc (E_TOT, particle, taylor_order, integ_order, &
+! Subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
 !                               n_step, no_cavity, exact_calc, exact_misalign)
 !
 ! Subroutine to initialize PTC.
 ! Note: At some point before you use PTC to compute Taylor maps etc.
-!   you have to call set_ptc with both E_TOT and particle args
+!   you have to call set_ptc with both e_tot and particle args
 !   present. Always supply both of these args together or not at all. 
 ! Note: If you just want to use FPP without PTC then call init directly.
 ! Note: This subroutine cannot be used if you want to have "knobs" 
@@ -489,7 +489,7 @@ end subroutine
 !   use ptc_interface_mod
 !
 ! Input:
-!   E_TOT  -- Real(rp), optional: Energy in eV.
+!   e_tot  -- Real(rp), optional: Energy in eV.
 !   particle     -- Integer, optional: Type of particle:
 !                     electron$, proton$, etc.
 !   taylor_order -- Integer, optional: Maximum order of the taylor polynomials.
@@ -510,7 +510,7 @@ end subroutine
 !                     See the PTC guide for more details.
 !-
 
-subroutine set_ptc (E_TOT, particle, taylor_order, integ_order, &
+subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
                                     n_step, no_cavity, exact_calc, exact_misalign) 
 
   use mad_like, only: make_states, exact_model, always_exactmis, &
@@ -523,8 +523,8 @@ subroutine set_ptc (E_TOT, particle, taylor_order, integ_order, &
   integer this_method, this_steps
   integer nd2
 
-  real(rp), optional :: E_TOT
-  real(rp), save :: old_E_TOT = 0
+  real(rp), optional :: e_tot
+  real(rp), save :: old_e_tot = 0
   real(dp) this_energy
 
   logical, optional :: no_cavity, exact_calc, exact_misalign
@@ -535,7 +535,7 @@ subroutine set_ptc (E_TOT, particle, taylor_order, integ_order, &
 
 ! do not call set_mad
 
-  params_present = present(E_TOT) .and. present(particle)
+  params_present = present(e_tot) .and. present(particle)
 
   if (init_needed .and. params_present) then
     if (particle == positron$ .or. particle == electron$) then
@@ -566,16 +566,16 @@ subroutine set_ptc (E_TOT, particle, taylor_order, integ_order, &
   endif
 
   if (params_present) then
-    if (init_needed .or. old_E_TOT /= E_TOT .or. &
+    if (init_needed .or. old_e_tot /= e_tot .or. &
                         present(integ_order) .or. present(n_step)) then
-      this_energy = 1e-9 * E_TOT
+      this_energy = 1e-9 * e_tot
       if (this_energy == 0) then
         call out_io (s_fatal$, r_name, 'E_TOT IS 0.')
         call err_exit
       endif
       call set_madx (energy = this_energy, method = this_method, &
                                                        step = this_steps)
-      old_E_TOT  = E_TOT
+      old_e_tot  = e_tot
       init_needed = .false.
     endif
   endif
@@ -1023,7 +1023,7 @@ end subroutine
 !+
 ! Subroutine concat_real_8 (y1, y2, y3)
 !
-! Subroutine to concatinate two real_8 taylor series.
+! Subroutine to concatinate two real_8 taylor maps.
 !       y3 = y2(y1)
 ! This subroutine assumes that y1, y2, and y3 have been allocated.
 !
@@ -1035,7 +1035,7 @@ end subroutine
 !   y2(6) -- real_8: Second Input map.
 !
 ! Output
-!   y3(6) -- real_8: Concatinated output.
+!   y3(6) -- real_8: Concatinated map.
 !-
 
 subroutine concat_real_8 (y1, y2, y3)
@@ -1305,18 +1305,18 @@ end subroutine
 !+
 ! Subroutine concat_taylor (taylor1, taylor2, taylor3)
 ! 
-! Subroutine to concatinate two taylor series:
-!   taylor3(x) = taylor2(taylor1(x))  
+! Subroutine to concatinate two taylor maps:
+!   taylor3[x] = taylor2(taylor1[x])
 !
 ! Modules needed:
 !   use ptc_interface_mod
 !
 ! Input:
-!   taylor1(6) -- Taylor_struct: Taylor series.
-!   taylor2(6) -- Taylor_struct: Taylor series.
+!   taylor1(6) -- Taylor_struct: Taylor map.
+!   taylor2(6) -- Taylor_struct: Taylor map.
 !
 ! Output
-!   taylor3(6) -- Taylor_struct: Concatinated series
+!   taylor3(6) -- Taylor_struct: Concatinated map
 !-
 
 subroutine concat_taylor (taylor1, taylor2, taylor3)
@@ -1329,7 +1329,7 @@ subroutine concat_taylor (taylor1, taylor2, taylor3)
   type (taylor_struct) :: taylor3(:)
   type (real_8) y1(6), y2(6), y3(6)
 
-! set the taylor order in PTC if not already done so
+! Set the taylor order in PTC if not already done so
 
   if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
                          call set_ptc (taylor_order = bmad_com%taylor_order)
@@ -1340,7 +1340,7 @@ subroutine concat_taylor (taylor1, taylor2, taylor3)
   call real_8_init (y2)
   call real_8_init (y3)
 
-! concat
+! Concat
 
   y1 = taylor1
   y2 = taylor2
@@ -1350,7 +1350,7 @@ subroutine concat_taylor (taylor1, taylor2, taylor3)
   taylor3 = y3
   taylor3(:)%ref = taylor1(:)%ref
 
-!
+! Cleanup
 
   call kill (y1)
   call kill (y2)
@@ -1443,7 +1443,7 @@ end subroutine
 !   orb0  -- Coord_struct, optional: Starting coords around which the Taylor series 
 !              is evaluated.
 !   param -- lat_param_struct: 
-!     %E_TOT -- Needed for wigglers.
+!     %e_tot -- Needed for wigglers.
 !   map_with_offsets -- Logical, optional: If present then overrides 
 !                         ele%map_with_offsets.
 !
@@ -1746,7 +1746,7 @@ end subroutine
 !     %map_with_offsets -- If False then the values for x_pitch, x_offset, 
 !                           tilt, etc. for the  fiber element will be zero.
 !   param       -- lat_param_struct: 
-!     %E_TOT     -- Beam energy (for wigglers).
+!     %particle     -- Particle type. Needed for elsep elements.
 !   use_offsets -- Logical: Does fiber include element offsets, pitches and tilt?
 !   integ_order -- Integer, optional: Order for the 
 !                    sympletic integrator. Possibilities are: 2, 4, or 6
@@ -1876,7 +1876,7 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
       endif
       ptc_key%tiltd = -atan2 (hk, vk) + ele%value(tilt_tot$)
     endif
-    ptc_key%list%volt = 1e-6 * ele%value(E_TOT$) * sqrt(hk**2 + vk**2)
+    ptc_key%list%volt = 1e-6 * ele%value(e_tot$) * sqrt(hk**2 + vk**2)
     call multipole_ele_to_ab (ele, +1, an0, bn0, .false.) 
     if (any(an0 /= 0) .or. any(bn0 /= 0)) then
       print *, 'ERROR IN ELE_TO_FIBRE: ', &
@@ -1966,7 +1966,7 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
     call init_sagan_pointers (fiber%mag%wi%w, n_term)   
 
     fiber%mag%wi%w%a(1:n_term) = c_light * &
-            ele%value(polarity$) * ele%wig_term%coef / ele%value(E_TOT$)
+            ele%value(polarity$) * ele%wig_term%coef / ele%value(e_tot$)
     fiber%mag%wi%w%k(1,1:n_term)  = ele%wig_term%kx
     fiber%mag%wi%w%k(2,1:n_term)  = ele%wig_term%ky
     fiber%mag%wi%w%k(3,1:n_term)  = ele%wig_term%kz

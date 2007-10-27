@@ -328,8 +328,7 @@ subroutine type2_taylors (bmad_taylor, lines, n_lines)
   fmt2 = '(i4, a, 1p, e20.11, 0p, 6i3, i9, f18.9)'
 
   do i = 1, 6
-    lines(nl+1) = '---------------------------------------------------'
-    nl = nl + 1
+    nl=nl+1; lines(nl) = ' ---------------------------------------------------'
 
     nullify (tlr%term)
     call sort_taylor_terms (bmad_taylor(i), tlr)
