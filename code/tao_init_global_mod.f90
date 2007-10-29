@@ -262,8 +262,8 @@ if (s%global%track_type /= 'macro') then
     beam_init%renorm_sigma = .true.
     beam_init%n_bunch = 1
     beam_init%n_particle  = -1
-    beam0_file = ''
-    beam_all_file = ''
+    beam0_file = tao_com%beam0_file        ! From the command line
+    beam_all_file = tao_com%beam_all_file  ! From the command line
     save_beam_at = ''
     calc_emittance = .false.
     read (iu, nml = tao_beam_init, iostat = ios)
@@ -272,7 +272,7 @@ if (s%global%track_type /= 'macro') then
       if (beam_init%a_norm_emitt == -1 .and. s%global%track_type == "beam" .and. &
           beam0_file == '') then
         call out_io (s_abort$, r_name, &
-              'TAO_BEAM_INIT NAMELIST: BEAM_INIT%A_NORM_EMITT NOT SET !')
+              'TAO_BEAM_INIT NAMELIST: BEAM_INIT%A_NORM_EMITT NOT SET!')
         call err_exit
       endif
       call out_io (s_blank$, r_name, &
@@ -1208,8 +1208,6 @@ endif
 u%beam_init = beam_init
 u%beam0_file = beam0_file
 u%beam_all_file = beam_all_file
-if (tao_com%beam0_file /= '') u%beam0_file = tao_com%beam0_file
-if (tao_com%beam_all_file /= '') u%beam_all_file = tao_com%beam_all_file
 u%design%orb(0)%vec = beam_init%center
 
 ! No initialization for a circular lattice

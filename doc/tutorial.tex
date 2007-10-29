@@ -28,14 +28,16 @@ Briefly, if you are at Cornell, after setting up the appropriate
 environmental variables, you should be able to run \tao using the
 command
 \begin{example}
-  \$CESR_EXE/tao \{-init <tao_input_file>\} \{-beam <beam_input_file>\} 
-                                                  \{-lat <lattice_file>\}
+  \$CESR_EXE/tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
+                          \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
 \end{example}
 The \vn{<tao_input_file>} is the root initialization file that \tao
 reads to start \tao's initialization process. If not present,
 \vn{<tao_input_file>} defaults to \vn{tao.init}. The
-\vn{<beam_input_file>} is for reading in data generated from beam
-tracking (\sref{s:command_line}). The \vn{<lattice_file>} is used to
+\vn{-beam_all} switch is for reading in data generated from beam
+tracking (\sref{s:command_line}). The \vn{-beam0} switch is for
+specifying the initial beam distribution. 
+The \vn{<lattice_file>} is used to
 override the lattice file specified in the root initialization
 file. See section~\sref{s:command_line} for more details. Example:
 \begin{example}
