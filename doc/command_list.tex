@@ -171,7 +171,8 @@ Format:
   change bunch_start <coordinate> <number>
 \end{example}
 
-\vskip 0.2in \vn{change} changes element attribute values or variable
+\vskip 0.2in 
+\vn{change} changes element attribute values or variable
 values in the \vn{model} lattice. To set, say, datum values, etc. use
 the \vn{set} command.
 
@@ -223,16 +224,19 @@ Format:
   clip \{<where> <limit1> <limit2>\}
 \end{example}
 
-\vskip 0.2in \vn{clip} vetoes data points for optimizing. If points are vetoed
-and either measured or reference data is being plotted then the points clipped
-will no longer be plotted. The points vetoed are those points whose $y$ values
-are outside a certain range defined by \vn{<limit1>} \vn{<limit2>}. If neither
-\vn{<limit1>} nor \vn{<limit2>} is present then the clip range is taken to be
-outside the graph minimum and maximum $y$--axis values. If only \vn{<limit1>} is
-present then the clip range is outside the range from -\vn{<limit1>} to
-+\vn{<limit1>}. If both are present than the range is from \vn{<limit1>} to
-\vn{<limit2>}.  The graphs that are clipped is determined by the \vn{<where>}
-switch.  If \vn{<where>} is not present all graphs are scaled.
+\vskip 0.2in 
+\vn{clip} vetoes data points for optimizing. If points are vetoed and
+either measured or reference data is being plotted then the points
+clipped will no longer be plotted. The points vetoed are those points
+whose $y$ values are outside a certain range defined by \vn{<limit1>}
+\vn{<limit2>}. If neither \vn{<limit1>} nor \vn{<limit2>} is present
+then the clip range is taken to be outside the graph minimum and
+maximum $y$--axis values. If only \vn{<limit1>} is present then the
+clip range is outside the range from -\vn{<limit1>} to
++\vn{<limit1>}. If both are present than the range is from
+\vn{<limit1>} to \vn{<limit2>}.  The graphs that are clipped is
+determined by the \vn{<where>} switch.  If \vn{<where>} is not present
+all graphs are scaled.
 
 Examples
 \begin{example}
@@ -261,7 +265,8 @@ Format:
   derivative
 \end{example}
 
-\vskip 0.2in \vn{Derivative} calculates the \vn{dModel_Data/dVar} derivative
+\vskip 0.2in 
+\vn{Derivative} calculates the \vn{dModel_Data/dVar} derivative
 matrix needed for the \vn{lm} optimizer.
 
 %% flatten --------------------------------------------------------------
@@ -326,17 +331,19 @@ Format:
 \end{example}
 
 \vskip 0.2in
-Misaligns a set of elements of type \vn{<ele_type>} at lattice locations \vn{<locations>}.
-The element attribute \vn{<ele_attrib>} is ``misaligned'' by the rms value
-\vn{<misalign_value>} with respect to the component \vn{<wrt>}. Any element
-attribute can be misaligned provided it is free to vary.
+Misaligns a set of elements of type \vn{<ele_type>} at lattice
+locations \vn{<locations>}.  The element attribute \vn{<ele_attrib>}
+is ``misaligned'' by the rms value \vn{<misalign_value>} with respect
+to the component \vn{<wrt>}. Any element attribute can be misaligned
+provided it is free to vary.
 
-If \vn{<ele_type>} begins with "*@" then choose all universes. If \vn{<ele_type>}
-begin with "n@" then choose universe n. Otherwise the viewed universe is used.
+If \vn{<ele_type>} begins with "*@" then choose all universes. If
+\vn{<ele_type>} begin with "n@" then choose universe n. Otherwise the
+viewed universe is used.
 
-\vn{<locations>} is a range of lattice indices and may contain elements not of
-type \vn{<ele_type>}. Only elements of type \vn{<ele_type>} will be misaligned
-within the range.
+\vn{<locations>} is a range of lattice indices and may contain
+elements not of type \vn{<ele_type>}. Only elements of type
+\vn{<ele_type>} will be misaligned within the range.
 
 If \vn{<misalign_value>} is prepended by 'x' then the misalignment value will be
 a relative misalignment with respect to the \vn{<wrt>} value. Otherwise, it's an 
@@ -385,8 +392,9 @@ Format:
   output var \{<file_name>\}          ! Write a Bmad file of variable values.
 \end{example}
 
-\vskip 0.2in The \vn{output} command creates various files. If \vn{<file_name>} is
-not given then the defaults are:
+\vskip 0.2in 
+The \vn{output} command creates various files. If
+\vn{<file_name>} is not given then the defaults are:
 \begin{example}
   Command                         Default File Name
   ------------------              ------------------
@@ -528,14 +536,15 @@ Format:
                        \{-beam <beam_input_file>\} \{-lat <lattice_file>\}
 \end{example}
 
-\vskip 0.2in \vn{reinitialize beam} reinitializes the beam at the
-start of the lattice.  That is, a new random distribution is
-generated. This also reinitializes the model data.
+\vskip 0.2in 
+\vn{reinitialize beam} reinitializes the beam at the start of the
+lattice.  That is, a new random distribution is generated. This also
+reinitializes the model data.
 
-\vn{reinitialize data} forces a recalculation of the model
-data. Normally, a recalculation is done automatically when any
-lattice parameter is changed so this command is generally only useful
-for debugging purposes.
+\vn{reinitialize data} forces a recalculation of the model data.
+Normally, a recalculation is done automatically when any lattice
+parameter is changed so this command is generally only useful for
+debugging purposes.
 
 \vn{reinitializes tao} reinitializes \tao. This can be useful to reset
 everything to initial conditions or to perform analysis with more than
@@ -566,11 +575,12 @@ Format:
 \end{example}
 
 \index{de!optimizer}\index{lm!optimizer}
-\vskip 0.2in The \vn{run} command runs an optimizer. If
-\vn{<optimizer>} is not given then the default optimizer is used. To
-stop the optimizer before it is finished press the period ``.''
-key. If you want the optimizer to run forever run the optimizer in
-\vn{single mode}. Valid optimizers are:
+\vskip 0.2in 
+The \vn{run} command runs an optimizer. If \vn{<optimizer>} is not
+given then the default optimizer is used. To stop the optimizer before
+it is finished press the period ``.''  key. If you want the optimizer
+to run forever run the optimizer in \vn{single mode}. Valid optimizers
+are:
 \begin{example}
   lm            ! Levenburg-Marquardt from Numerical Recipes 
   lmdif         ! Levenburg-Marquardt 
@@ -818,7 +828,8 @@ Format:
   show write ...
 \end{example}
 
-\vskip 0.2in \vn{Show} is used to display various information about
+\vskip 0.2in 
+\vn{Show} is used to display various information about
 the state of \tao. 
 
 \vn{Show write} writes to a file as well as

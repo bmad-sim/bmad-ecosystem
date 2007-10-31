@@ -274,7 +274,7 @@ case ('write')
     write (file_name, '(a, i3.3, a)') file_name(1:ix-1), n_write_file, trim(file_name(ix+1:))
   endif
 
-  open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN')
+  open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 160)
   call output_direct (iu)  ! tell out_io to write to a file
 
   call out_io (s_blank$, r_name, ' ', 'Tao> show ' // stuff, ' ')
