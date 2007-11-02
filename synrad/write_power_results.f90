@@ -2,7 +2,7 @@
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine write_power_results (wall, lat, gen_params)
+subroutine write_power_results (wall, lat, gen_params, use_ele_ix)
 
   use sr_struct
   use sr_interface
@@ -15,14 +15,19 @@ subroutine write_power_results (wall, lat, gen_params)
   type (synrad_param_struct) gen_params
   type (lat_struct) lat
 
-  integer i
+  integer use_ele_ix, i
   character*16 seg_name, ep_source_name, e_source_name, p_source_name
   character fmt*80, ep_name*2
-  character file1*40, file2*40, file3*40
+  character file1*50, ele_num*6
 
 !
 
-  file1 = 'synch_power_' // trim(wall_name(wall%side)) // '.dat'
+  file1 = 'synch_power_' // trim(wall_name(wall%side))
+  if (use_ele_ix .ne. 0) then
+    write (ele_num, '(i6.6)') use_ele_ix
+    file1 = trim(file1) // '_' // trim(ele_num)
+  endif
+  file1 = trim(file1) // '.dat'
   call downcase_string (file1)
   call write_power_header (1, file1, gen_params)
 

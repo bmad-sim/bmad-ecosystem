@@ -3,7 +3,7 @@
 !-------------------------------------------------------------------------
 !+
 ! subroutine calculate_sr_power (lat, orb, direction, power, &
-!                                  walls, gen)
+!                                  walls, gen, use_ele_ix)
 !
 ! subroutine to calculate the synch radiation power
 !   hitting wall segments from all elements in the lat
@@ -20,6 +20,7 @@
 !   walls  -- walls_struct: both walls with outlines ready
 !   gen    -- synrad_param_struct: Contains lat name,
 !                     vert emittance, and beam current
+!  use_ele_ix   -- calc power from only this element number, or all if 0
 !
 ! Output:
 !   power(:) -- ele_power_struct: power radiated from a lat ele
@@ -28,7 +29,7 @@
 !-
 
 subroutine calculate_sr_power (lat, orb, direction, power, &
-     walls, gen)
+     walls, gen, use_ele_ix)
 
   use sr_struct
   use sr_interface
@@ -42,7 +43,7 @@ subroutine calculate_sr_power (lat, orb, direction, power, &
   type (synrad_param_struct) gen
   type (ele_power_struct) power(:)
 
-  integer direction, ie
+  integer direction, use_ele_ix, ie
 
 ! set pointers
   positive_x_wall => walls%positive_x_wall
@@ -56,6 +57,7 @@ subroutine calculate_sr_power (lat, orb, direction, power, &
 ! loop over all elements
 
   do ie = 1, lat%n_ele_track
+    if ((use_ele_ix .ne. 0) .and. (ie .ne. use_ele_ix)) cycle
 !    print *, lat%ele(ie)%name,',',lat%ele(ie)%type, &
 !         ' ele ',ie,' of ',lat%n_ele_track
     call ele_sr_power (lat, ie, orb, direction, power, walls, gen)

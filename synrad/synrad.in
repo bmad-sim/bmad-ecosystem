@@ -10,4 +10,6 @@
   wall_offset = 0.045              ! Used when wall_file is set to "NONE"
   forward_beam  = "POSITRON"       ! "POSITRON" or "ELECTRON"
   backward_beam = "ELECTRON"       !  This is important if there are elsep elements.
+  use_ele_ix = 0   ! If using only a single element, this is the element index number to use
+        ! Otherwise, use 0 for power from all elements
 /

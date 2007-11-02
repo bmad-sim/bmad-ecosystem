@@ -13,12 +13,13 @@ module sr_interface
   end interface
 
   interface
-    subroutine write_power_results (wall, lat, gen_params)
+    subroutine write_power_results (wall, lat, gen_params, use_ele_ix)
       use sr_struct
       implicit none
       type (wall_struct), target :: wall
       type (synrad_param_struct) gen_params
       type (lat_struct) lat
+      integer use_ele_ix
     end subroutine
   end interface
 
@@ -33,7 +34,7 @@ module sr_interface
 
   interface
     subroutine calculate_sr_power (lat, orb, direction, power, &
-         walls, gen)
+         walls, gen, use_ele_ix)
       use sr_struct
       implicit none
       type (lat_struct), target :: lat
@@ -42,6 +43,7 @@ module sr_interface
       type (synrad_param_struct) gen
       type (ele_power_struct) power(:)
       integer direction
+      integer use_ele_ix
     end subroutine
   end interface
 
