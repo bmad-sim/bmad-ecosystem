@@ -7,7 +7,8 @@ program synrad
 
   type (lat_struct) :: lat
   type (coord_struct), allocatable :: orb(:)
-  type (wall_struct) :: negative_x_wall, positive_x_wall
+  type (walls_struct), target :: walls
+  type (wall_struct),pointer :: negative_x_wall, positive_x_wall
   type (synrad_param_struct) :: sr_param
 
   type (ele_power_struct), allocatable :: fwd_power(:), back_power(:)
@@ -24,6 +25,10 @@ program synrad
 
   namelist / synrad_params / sr_param, seg_len, wall_file, wall_offset, beam_direction, &
                              forward_beam, backward_beam
+
+! set pointers
+  positive_x_wall => walls%positive_x_wall
+  negative_x_wall => walls%negative_x_wall
 
 ! get parameters
 
@@ -72,6 +77,11 @@ program synrad
 
   negative_x_wall%side = negative_x$
   positive_x_wall%side = positive_x$
+  if (lat%param%lattice_type == circular_lattice$) then
+    walls%circular = .true.
+  else
+    walls%circular = .false.
+  endif
 
   if (wall_file == 'NONE') then
 
@@ -172,6 +182,8 @@ program synrad
   call init_wall(positive_x_wall)
   call init_wall(negative_x_wall)
 
+  call init_wall_ends(walls)
+
 ! Synch calculation
 
   if (beam_direction == 0) then
@@ -253,7 +265,7 @@ subroutine synch_calc (direction, beam_type, power)
   call twiss_and_track (lat, orb)
 
   call calculate_sr_power(lat, orb, direction, power, &
-                                negative_x_wall, positive_x_wall, sr_param)
+                                walls, sr_param)
 
 end subroutine
 

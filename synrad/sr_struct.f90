@@ -20,7 +20,7 @@ module sr_struct
     integer ix_pt       ! ordered (in s) index to pt() array
     integer closed_end_direct  ! For alleys: direction of the closed end
     logical phantom     ! is the face an opening?
-  end type
+  end type wall_pt_struct
 
 ! For the synch light power computation each face is broken up into segments.
 ! It is assumed that the power landing upon a segment is constant
@@ -29,7 +29,7 @@ module sr_struct
   type source_struct
     integer ix_ele_source    ! element index at source
     type (coord_struct) start, now    ! 
-  end type              
+  end type source_struct
 
   type sr_power_struct       ! substruct for a segment 
     real(rp) power               ! total power on segment (Watts)
@@ -41,7 +41,7 @@ module sr_struct
     integer n_source             ! number of source points
     type (source_struct), pointer :: sources(:)
                                  ! list of source info for rays hitting this seg
-  end type
+  end type sr_power_struct
 
   type wall_seg_struct       ! segment struct
     integer ix_pt            ! index to which point owns this segment
@@ -49,12 +49,12 @@ module sr_struct
     real(rp) s_mid, x_mid    ! s, x position of the segment at the midpoint
     real(rp) len             ! length of segment
     type (sr_power_struct) sr_power
-  end type
+  end type wall_seg_struct
 
   type alley_struct
     integer ix1, ix2, ix3    ! indexs of the three points
     logical where            ! closed_end$, open_end$, inbetween$
-  endtype
+  end type alley_struct
 
 ! a wall is just a collection of points and segments
 
@@ -68,7 +68,15 @@ module sr_struct
     integer n_alley_tot
     integer ix_pt            ! last ix_pt
     real(rp) seg_len_max
-  end type
+  end type wall_struct
+
+! Include both walls and ends in walls_struct
+! (Radiation could escape out ends if lattice is not circular.)
+  type walls_struct
+    type (wall_struct) :: positive_x_wall, negative_x_wall
+    type (wall_seg_struct) :: initial_end, final_end
+    logical circular
+  end type walls_struct
 
 ! The computation tracks a set of synchrotron light rays from their source
 ! to the wall
@@ -88,28 +96,28 @@ module sr_struct
     real(rp) g_bend         ! g = |1/rho|  bending radius inverse at source point
     type (twiss_struct) x_twiss, y_twiss    ! twiss at source point
     type (wall_struct), pointer :: wall     ! points to which wall we hit
-  end type
+  end type ray_struct
 
 ! misc stuff
 
   type ele_power_struct       ! power from a lat element
     real(rp) at_wall              ! power hitting the wall
     real(rp) radiated             ! power radiated
-  end type
+  end type ele_power_struct
 
   type synrad_param_struct
     character(100) lat_file
     real(rp) epsilon_y     ! vertical emit
     real(rp) i_beam        ! beam current
     integer n_slice        ! # of slice per element or wiggler pole
-  end type
+  end type synrad_param_struct
 
   type outline_pt_struct
     character(16) name
     character(16) blueprint
     real(rp) s, x
     logical phantom
-  end type
+  end type outline_pt_struct
 
   type outline_struct
     character(16) name
@@ -121,24 +129,24 @@ module sr_struct
     logical zero_is_center
     real(rp) s_center
     logical overlay
-  end type
+  end type outline_struct
 
   type wall_list_struct
     character(16) name
     integer ix_outline
     real(rp) s, len
-  end type
+  end type wall_list_struct
 
   type concat_part_struct
     character(16) name
     integer direction
-  end type
+  end type concat_part_struct
 
   type concat_struct
     character(16) name
     type (concat_part_struct) part(50)
     logical overlay
-  end type
+  end type concat_struct
 
   character(20) wall_name(-1:1) / 'negative_x_side', '???',  'positive_x_side' /
   integer negative_x$ / -1 /, positive_x$ / 1 /

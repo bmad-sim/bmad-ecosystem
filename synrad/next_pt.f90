@@ -2,7 +2,7 @@
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine next_pt (ray, wall, ix_wall)
+subroutine next_pt (ray, wall, ix_wall, circular, passed_end)
 
   use sr_struct
   use sr_interface
@@ -13,6 +13,9 @@ subroutine next_pt (ray, wall, ix_wall)
   type (wall_struct) wall
 
   integer ix_wall
+  logical circular
+  logical passed_end
+  
   real(rp) direct
 
 ! check
@@ -26,15 +29,19 @@ subroutine next_pt (ray, wall, ix_wall)
 
   direct = ray%direction
 
+	passed_end = .false.
+
   if (ix_wall == 0 .and. direct == -1) then
     ix_wall = wall%n_pt_tot
     wall%ix_pt = wall%n_pt_tot
+    passed_end = .true.
     return
   endif
 
   if (ix_wall == wall%n_pt_tot .and. direct == 1) then
     ix_wall = 0
     wall%ix_pt = 0
+	passed_end = .true.
     return
   endif
 

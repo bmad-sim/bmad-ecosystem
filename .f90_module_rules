@@ -1,0 +1,16 @@
+$(MOD_OUT_DIR)/beambeam_interface.mod: beambeam_interface.f90
+	$(F90_LMOD_RULE)
+$(MOD_OUT_DIR)/bsim_interface.mod: bsim_interface.f90
+	$(F90_LMOD_RULE)
+$(MOD_OUT_DIR)/column_mod.mod: column_mod.f90
+	$(F90_LMOD_RULE)
+$(MOD_OUT_DIR)/scan_parameters.mod: scan_parameter.f90
+	$(F90_LMOD_RULE)
+$(MOD_OUT_DIR)/tune_plane_res_mod.mod: tune_plane_res_mod.f90
+	$(F90_LMOD_RULE)
+$(MOD_OUT_DIR)/sr_interface.mod: sr_interface.f90
+	$(F90_LMOD_RULE)
+$(MOD_OUT_DIR)/sr_mod.mod: sr_mod.f90
+	$(F90_LMOD_RULE)
+$(MOD_OUT_DIR)/sr_struct.mod: sr_struct.f90
+	$(F90_LMOD_RULE)

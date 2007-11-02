@@ -3,7 +3,7 @@
 !-------------------------------------------------------------------------
 !+
 ! subroutine ele_sr_power (lat, ie, orb, direction, 
-!                             power, negative_x_wall, positive_x_wall, gen)
+!                             power, walls, gen)
 !
 ! subroutine to calculate the synch radiation power from
 !      one element of the lat
@@ -18,19 +18,17 @@
 !                             source of ray
 !   direction -- integer: +1 for in direction of s
 !                         -1 for against s
-!   negative_x_wall -- wall_struct: negative-x wall side with outline ready
-!   positive_x_wall -- wall_struct: positive-x wall side with outline ready
+!   walls  -- walls_struct: both walls with outline ready
 !   gen    -- synrad_param_struct: Contains lat name,
 !                     vert emittance, and beam current
 !
 ! Output:
 !   power(:) -- ele_power_struct: power radiated from a lat ele
-!   negative_x_wall -- wall_struct: negative_x wall side with power information
-!   positive_x_wall -- wall_struct: positive_x wall side with power information
+!   wall   -- walls_struct: both walls with power information
 !-
 
 subroutine ele_sr_power (lat, ie, orb, direction, power, &
-                                          negative_x_wall, positive_x_wall, gen)
+     walls, gen)
 
   use sr_struct
   use sr_interface
@@ -40,7 +38,8 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
   type (lat_struct), target :: lat
   type (coord_struct) orb(0:)
   type (ele_struct), pointer :: ele
-  type (wall_struct) negative_x_wall, positive_x_wall
+  type (walls_struct), target :: walls
+  type (wall_struct), pointer :: negative_x_wall, positive_x_wall
   type (ray_struct), allocatable, save :: fan(:)
   type (ray_struct) ray, ray_temp
   type (synrad_param_struct) gen
@@ -49,6 +48,10 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
   integer direction, ie, i_ray, n_slice, ns
 
   real(rp) l_off, del_l, l0, l1, l_try
+
+! set pointers
+  positive_x_wall => walls%positive_x_wall
+  negative_x_wall => walls%negative_x_wall
 
 ! power calculation is only for bends, quads and wigglers.
 
@@ -112,7 +115,7 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
     ! start a ray from each slice location
     call init_ray (fan(i_ray), lat, ie, l_off, orb, direction)
     ! track the ray until it hits something
-    call track_ray_to_wall (fan(i_ray), lat, negative_x_wall, positive_x_wall)
+    call track_ray_to_wall (fan(i_ray), lat, walls)
 
 
     ! check if this ray hit a different wall than the previous ray
@@ -127,7 +130,7 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
         do
           l_try = (l0 + l1) / 2
           call init_ray (ray, lat, ie, l_try, orb, direction)
-          call track_ray_to_wall (ray, lat, negative_x_wall, positive_x_wall)
+          call track_ray_to_wall (ray, lat, walls)
           if (ray%wall%side == fan(i_ray)%wall%side) then
             fan(i_ray) = ray
             l0 = l_try
@@ -142,8 +145,8 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
           if ((l1 - l0) .le. 5e-4) then
             if (abs(fan(i_ray)%start%vec(5) - &
                           fan(i_ray-1)%start%vec(5)) < 5e-4) i_ray = i_ray - 1
-            call seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, &
-                                                               lat, gen, power(ie))
+            call seg_power_calc (fan, i_ray, walls, &
+                 lat, gen, power(ie))
             fan(1) = ray_temp  ! Reset fan. First ray in fan is the transition ray.
             i_ray = 1
             exit
@@ -156,7 +159,7 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
 ! Final call to seg_power_calc to compute the sr power hitting the wall 
 ! using the tracking results and interpolating in between.
 
-  call seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, gen, &
+  call seg_power_calc (fan, i_ray, walls, lat, gen, &
        power(ie))
 
 end subroutine ele_sr_power

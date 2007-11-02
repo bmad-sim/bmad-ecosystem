@@ -1,5 +1,5 @@
 !+
-! subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, gen, power)
+! subroutine seg_power_calc (fan, i_ray, walls, lat, gen, power)
 !
 ! Subroutine to calculate the synch radiation power hitting a wall.
 ! It is assumed that the radiation is hitting only one wall.
@@ -11,17 +11,15 @@
 !   fan(:) -- ray_struct: array of rays from one lat element
 !   i_ray  -- integer: index of highest ray used
 !   lat    -- lat_struct: with twiss propagated and mat6s made
-!   negative_x_wall -- wall_struct: Right hand wall side
-!   positive_x_wall -- wall_struct: Left hand wall side
+!   walls  -- walls_struct: Both walls and ends
 !   gen    -- synrad_param_struct: Contains lat name, vert emittance, and beam current.
 !
 ! Output:
 !   power(*)  -- ele_power_struct: power radiated from a lat ele
-!   negative_x_wall -- wall_struct: Right hand wall with power information
-!   positive_x_wall -- wall_struct: Left hand wall with power information
+!   walls   -- wall_struct: both walls and ends with power information
 !-
 
-subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, gen, power)
+subroutine seg_power_calc (fan, i_ray, walls, lat, gen, power)
 
   use sr_struct
   use sr_interface
@@ -29,11 +27,13 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
   implicit none
 
   type (ray_struct) :: fan(:)
-  type (wall_struct) negative_x_wall, positive_x_wall
+  type (walls_struct), target :: walls
+  type (wall_struct), pointer :: negative_x_wall, positive_x_wall
   type (wall_struct), pointer :: wall
   type (ray_struct) :: ray
   type (synrad_param_struct) gen
   type (lat_struct) lat
+  type (wall_seg_struct), pointer :: ws
   type (sr_power_struct), pointer :: ep
   type (ele_power_struct) power
 
@@ -41,7 +41,7 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
   real(rp) sig_y, sig_yp, sig_y_eff, dx, ds, theta_rel
   real(rp) rr, dr2, dr1, theta, factor
   real(rp) dx_wall, ds_wall, r1, r2, dpower, track_len
-  real(rp) r_i1, r_i2, frac_illum, gamma
+  real(rp) r_i1, r_i2, frac_illum, gamma, end_s_scale, end_x_scale
   real(rp) theta_base, theta_floor1, theta_floor2, theta_floor_seg
   integer i_ray, iw, i, ip, is, iss
   integer type0, type1, i1_pt, i2_pt
@@ -51,8 +51,12 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
   type (source_struct), pointer :: temp_sources(:)
   integer temp_size
 
-  ! calculate power radiated
+  ! set pointers
+  positive_x_wall => walls%positive_x_wall
+  negative_x_wall => walls%negative_x_wall
 
+
+  ! calculate power radiated
 
   ! get energy from source element
   energy = lat%ele(fan(1)%ix_source)%value(E_TOT$)
@@ -130,7 +134,7 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
 
     if (fan(i-1)%crossed_end .xor. fan(i)%crossed_end) then
       r_i1 = max(r1, r2)
-      r_i2 = min(r1, r2) + wall%n_seg_tot
+      r_i2 = min(r1, r2) + wall%n_seg_tot   ! This addition will be "mod"ed out below
     else
       r_i1 = min(r1, r2)
       r_i2 = max(r1, r2)
@@ -238,6 +242,7 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
       ray%start%vec(5) = wall%seg(is)%s_mid
       ray%start%vec(2) = theta
       ray%ix_ele = fan(i)%ix_ele
+      ray%ix_source = fan(i)%ix_ele
       ray%direction = -fan(i)%direction  ! track backwards
       ray%now = ray%start
       ray%now%vec(1) = ray%start%vec(1) + 2.0e-4 * ray%direction * tan(theta)
@@ -249,7 +254,7 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
       ! We assume that the travel length cannot be greater then half the circumference.
       if (abs(track_len) > lat%param%total_length / 2) &
                                             track_len = lat%param%total_length - track_len 
-      call track_ray_to_wall (ray, lat, negative_x_wall, positive_x_wall, hit_flag, track_len)
+      call track_ray_to_wall (ray, lat, walls, hit_flag, track_len)
 
       ! Do not count if shadowed. 
       ! Because of inaccuracies, test if hit is on opposite side. 
@@ -260,13 +265,46 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
         cycle
       endif
 
-      ep => wall%seg(is)%sr_power
-
 ! frac_illum is the fraction of the segment illuminated by the fan
 
       frac_illum = 1.0
       if (r_i1 > iss) frac_illum = 1.0 - (r_i1 - iss)
       if (r_i2 < iss + 1) frac_illum = frac_illum - (iss + 1 - r_i2)
+
+! if the lattice is not circular, then rays that go past the end of the 
+! lattice should not wrap around
+
+     ws => wall%seg(is)
+      if (.not. walls%circular) then
+         if ( (fan(i)%direction == 1) .and. (iss > wall%n_seg_tot) ) then
+            
+            ws =>walls%final_end
+           
+		else if ( (fan(i)%direction == -1) .and. (iss <= wall%n_seg_tot) ) then
+       			ws =>walls%initial_end
+       			
+       	endif
+       	 if (  ((fan(i)%direction == 1) .and. (iss > wall%n_seg_tot)) .or.  &
+       	    ((fan(i)%direction == -1) .and. (iss <= wall%n_seg_tot))  ) then
+           end_s_scale = (ws%s_mid - fan(i)%start%vec(5)) / &
+                (ws%s_mid - fan(i)%start%vec(5) + fan(i)%now%vec(5))
+           end_x_scale = end_s_scale * (fan(i)%now%vec(1) - fan(i)%start%vec(1)) + fan(i)%start%vec(1)
+            theta_rel = pi/2.  + &
+                atan2( end_x_scale, ws%s_mid - fan(i)%start%vec(5) + fan(i)%now%vec(5) )
+           if (end_x_scale>0) then 
+                end_x_scale = walls%positive_x_wall%pt(walls%positive_x_wall%n_pt_tot)%x - end_x_scale
+            else
+                end_x_scale = ws%x - end_x_scale
+           endif 
+
+            frac_illum = abs(end_x_scale) / ws%len
+
+	    	endif
+
+	   endif
+    	ep => ws%sr_power
+
+
 
 ! only change ep%ix_ele_source and ep%s_source if the contribution to the
 ! power is larger than what has so far been accumulated.
@@ -278,13 +316,13 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
       ep%power_per_area = ep%power_per_area + &
             abs(sin(theta_rel)) * frac_illum * &
             ((1 - rr)*fan(i-1)%p2_factor + rr*fan(i)%p2_factor) / track_len
-      ep%power = ep%power + dpower * wall%seg(is)%len
+      ep%power = ep%power + dpower * ws%len
 
       ! from Sands and Chao/Tigner p188
       ! Flux is 3.248 * Power / critical photon energy 
       ! 3.248 is 15*sqrt(3)/8
       ep%photons_per_sec = ep%photons_per_sec + &
-            3.248 * (dpower * wall%seg(is)%len) / &
+            3.248 * (dpower * ws%len) / &
             (2.218 * (energy/1e9)**3 * &
             ( (1 - rr) * fan(i)%g_bend + rr * fan(i-1)%g_bend) &
             * 1.602e-16 ) ! Convert keV to Joules 
@@ -305,7 +343,7 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
         allocate (ep%sources(5))
       endif
 
-      power%at_wall = power%at_wall + dpower * wall%seg(is)%len
+      power%at_wall = power%at_wall + dpower * ws%len
       ep%sources(ep%n_source)%start%vec = fan(i-1)%start%vec * &
                                          (1 - rr) + fan(i)%start%vec * rr
       ep%sources(ep%n_source)%now%vec = fan(i-1)%now%vec * &
@@ -319,4 +357,4 @@ subroutine seg_power_calc (fan, i_ray, negative_x_wall, positive_x_wall, lat, ge
 
   enddo
 
-end subroutine
+end subroutine seg_power_calc

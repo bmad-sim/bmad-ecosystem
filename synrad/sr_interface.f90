@@ -33,13 +33,12 @@ module sr_interface
 
   interface
     subroutine calculate_sr_power (lat, orb, direction, power, &
-                                                     negative_x_wall, positive_x_wall, gen)
+         walls, gen)
       use sr_struct
       implicit none
       type (lat_struct), target :: lat
       type (coord_struct) orb(0:)
-      type (wall_struct) negative_x_wall
-      type (wall_struct) positive_x_wall
+      type (walls_struct), target :: walls
       type (synrad_param_struct) gen
       type (ele_power_struct) power(:)
       integer direction
@@ -48,13 +47,12 @@ module sr_interface
 
   interface
     subroutine ele_sr_power (lat, ie, orb, direction, power, &
-                                                     negative_x_wall, positive_x_wall, gen)
+         walls, gen)
       use sr_struct
       implicit none
       type (lat_struct), target :: lat
       type (coord_struct) orb(0:)
-      type (wall_struct) negative_x_wall
-      type (wall_struct) positive_x_wall
+      type (walls_struct), target :: walls
       type (synrad_param_struct) gen
       type (ele_power_struct) power(:)
       integer direction, ie
@@ -62,14 +60,14 @@ module sr_interface
   end interface
 
   interface
-    subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat)
+    subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat,circular)
       use sr_struct
       implicit none
       type (lat_struct) lat
       type (ray_struct) :: ray
       type (wall_struct), target :: wall
       integer ix_wall
-      logical has_hit
+      logical has_hit,circular
     end subroutine
   end interface
 
@@ -93,14 +91,13 @@ module sr_interface
   end interface
 
   interface
-    subroutine track_ray_to_wall (ray, lat, negative_x_wall, positive_x_wall, &
-                                               hit_flag, track_max)
+    subroutine track_ray_to_wall (ray, lat, walls, &
+         hit_flag, track_max)
       use sr_struct
       implicit none
       type (lat_struct), target :: lat
       type (ray_struct), target :: ray
-      type (wall_struct) negative_x_wall
-      type (wall_struct) positive_x_wall
+      type (walls_struct), target :: walls
       logical, optional :: hit_flag
       real(rp), optional :: track_max
     end subroutine
@@ -164,13 +161,13 @@ module sr_interface
   end interface
 
   interface
-    subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
+    subroutine propagate_ray (ray, s_end, lat, stop_at_extremum,circular)
       use sr_struct
       implicit none
       type (lat_struct), target :: lat
       type (ray_struct), target :: ray
       real(rp) s_end
-      logical stop_at_extremum
+      logical stop_at_extremum,circular
     end subroutine
   end interface
 
@@ -186,12 +183,11 @@ module sr_interface
   end interface
 
   interface
-    subroutine seg_power_calc (rays, i_ray, negative_x_wall, positive_x_wall, lat, gen, power)
+    subroutine seg_power_calc (rays, i_ray, walls, lat, gen, power)
       use sr_struct
       implicit none
       type (ray_struct) :: rays(:)
-      type (wall_struct)          negative_x_wall
-      type (wall_struct)          positive_x_wall
+      type (walls_struct), target :: walls
       type (synrad_param_struct) gen
       type (lat_struct)          lat
       type (ele_power_struct)     power
@@ -219,12 +215,22 @@ module sr_interface
   end interface
 
   interface
-    subroutine next_pt (ray, wall, ix_wall)
+    subroutine init_wall_ends (walls)
+      use sr_struct
+      implicit none
+      type (walls_struct) walls
+    end subroutine
+  end interface
+
+  interface
+    subroutine next_pt (ray, wall, ix_wall, circular, passed_end)
       use sr_struct
       implicit none
       type (ray_struct) ray
       type (wall_struct) wall
       integer ix_wall
+      logical circular
+  	  logical passed_end
     end subroutine
   end interface
 

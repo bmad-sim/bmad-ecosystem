@@ -1,4 +1,4 @@
-subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
+subroutine propagate_ray (ray, s_end, lat, stop_at_extremum, circular)
 
   use sr_struct
   use sr_interface
@@ -11,7 +11,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
   real(rp) s_end, s_next, del_s, s_target
   real(rp) g, new_x, theta0, theta1, c_t0, c_t1
 
-  logical stop_at_extremum
+  logical stop_at_extremum, circular
 
 ! find the target
 
@@ -26,7 +26,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
     call err_exit
   endif
 
-! update old (but only if we have moved or gone thorough the IP)
+! update old (but only if we have moved or gone through the IP)
 
   if (s_target == ray%now%vec(5) .and. &
             abs(s_end - ray%now%vec(5)) /= lat%param%total_length) return
@@ -38,9 +38,10 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
   propagation_loop: do
 
 ! If we are crossing over to a new element then update ray%ix_ele.
-! Additionally, if we cross the lat end we need to reset ray%now%vec(5) and ray%ix_ele.
-! Note: Since we can be going "backwards" to find a shadow then ray%crossed_end
-! can toggle from true to false.
+! Additionally, if we cross the lat end we need to 
+! reset ray%now%vec(5) and ray%ix_ele.
+! Note: Since we can be going "backwards" to find a shadow then 
+! ray%crossed_end can toggle from true to false.
 
     if (ray%direction == 1) then
       do
@@ -85,6 +86,8 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
       enddo
     endif
 
+
+
     if (ray%direction == 1) then
       s_next = min (s_target, lat%ele(ray%ix_ele)%s)
     else
@@ -92,7 +95,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
     endif
 
     del_s = s_next - ray%now%vec(5)
-
+    
 ! In a bend: Exact formula is:
 ! new_x = (rho * (cos(theta0) - cos(theta1)) + ray%now%vec(1) * cos(theta0)) /
 !                                                              cos(theta1)
@@ -122,6 +125,8 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
 
     ray%track_len = ray%track_len + abs(del_s)
     ray%now%vec(5) = s_next
+
+    if (ray%crossed_end .and. .not. circular) return
 
     if (s_next == s_target) return
 

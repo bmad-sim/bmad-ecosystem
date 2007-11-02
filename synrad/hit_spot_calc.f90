@@ -1,4 +1,4 @@
-subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
+subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
 
   use sr_struct
   use sr_interface
@@ -16,14 +16,14 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
   real(rp) dx_wall, ds_wall, del_s, s1, denom
   real(rp) del0, del1, del2, x, r_wall
 
-  logical is_hit
+  logical has_hit, circular
 
 ! init
 
   pt => wall%pt
   pt0 => pt(ix_wall)
 
-  is_hit = .false.  ! assume no hit
+  has_hit = .false.  ! assume no hit
 
 ! if the ray is on the opposite side of the beam centerline from the wall there
 ! is no hit
@@ -39,7 +39,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
     if (ray%now%vec(5) == pt0%s) then
       x = pt0%x
     else
-      x = pt0%x + (pt(ix1)%x - pt0%x) * &             ! interpolate to get x
+      x = pt0%x + (pt(ix1)%x - pt0%x) * &       ! interpolate to get x
                     (ray%now%vec(5) - pt0%s) / (pt(ix1)%s - pt0%s)
     endif
     if (abs(ray%now%vec(1)) < abs(x)) return  ! return if no hit.
@@ -83,11 +83,11 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
       if (abs(ray%now%vec(1)) < abs(pt0%x)) then
         ix1 = ix_wall + ray%direction
         if (pt(ix1)%type == closed_end$ .and. &
-                                     abs(ray%now%vec(1)) < abs(pt(ix1)%x)) return
+             abs(ray%now%vec(1)) < abs(pt(ix1)%x)) return
       else
         ix1 = ix_wall - ray%direction
         if (pt(ix1)%type == closed_end$ .and. &
-                                    abs(ray%now%vec(1)) > abs(pt(ix1)%x)) return
+             abs(ray%now%vec(1)) > abs(pt(ix1)%x)) return
       endif
 
     elseif (pt0%type == inner_wall$) then
@@ -119,7 +119,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
 
   ix0 = min(ix_wall, ix1)
   ix2 = max(ix_wall, ix1)
-  is_hit = .true.
+  has_hit = .true.
   ray%ix_wall_pt = ix2
 
 ! Here if we have a hit.
@@ -145,9 +145,9 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
   denom = sqrt (dx_wall**2 + ds_wall**2)
 
   del0 = (dx_wall*(ray0%now%vec(5) - pt(ix0)%s) - &
-                             ds_wall*(ray0%now%vec(1) - pt(ix0)%x)) / denom
+       ds_wall*(ray0%now%vec(1) - pt(ix0)%x)) / denom
   del2 = (dx_wall*(ray2%now%vec(5) - pt(ix0)%s) - &
-                             ds_wall*(ray2%now%vec(1) - pt(ix0)%x)) / denom
+       ds_wall*(ray2%now%vec(1) - pt(ix0)%x)) / denom
 
   do i = 1, 20
 
@@ -160,7 +160,8 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
     endif
 
     if (i == 20) then
-      type *, 'ERROR IN HIT_SPOT_CALC: CALCULATION IS NOT CONVERGING'
+      print *, 'ERROR IN HIT_SPOT_CALC: CALCULATION IS NOT CONVERGING'
+!      print *, del0,del1
       call err_exit
     endif
 
@@ -175,7 +176,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
     else
       ray1%direction = +1
     endif
-    call propagate_ray (ray1, s1, lat, .false.)
+    call propagate_ray (ray1, s1, lat, .false.,circular)
 
     del1 = (dx_wall*(ray1%now%vec(5) - pt(ix0)%s) - &
                         ds_wall*(ray1%now%vec(1) - pt(ix0)%x)) / denom
@@ -209,12 +210,14 @@ subroutine hit_spot_calc (ray, wall, ix_wall, is_hit, lat)
   ray%now = ray1%now
   ray%r_wall = r_wall
 
-  ! We assume that the travel length cannot be greater then half the circumference.
+  ! We assume that the travel length cannot be greater 
+  ! then half the circumference.
 
   del_s = ray%now%vec(5) - ray%start%vec(5)
-  if (abs(del_s) > lat%param%total_length / 2) then
+  if (del_s*ray%direction < 0) then
     ray%track_len = lat%param%total_length - abs(del_s)
     ray%crossed_end = .true.
+!    print *, "ray from ", lat%ele(ray%ix_source)%name, "crossed end."
   else
     ray%track_len = abs(del_s)
     ray%crossed_end = .false.
