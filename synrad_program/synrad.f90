@@ -14,6 +14,7 @@ program synrad
   type (ele_power_struct), allocatable :: fwd_power(:), back_power(:)
 
   integer i, n, ix, n_arg, n_wall, ios, beam_direction
+  integer use_ele_ix
 
   character(100) this_lat, line, temp
   character(100) lat_file, in_file, wall_file
@@ -24,7 +25,7 @@ program synrad
   logical err_flag
 
   namelist / synrad_params / sr_param, seg_len, wall_file, wall_offset, beam_direction, &
-                             forward_beam, backward_beam
+                             forward_beam, backward_beam, use_ele_ix
 
 ! set pointers
   positive_x_wall => walls%positive_x_wall
@@ -53,6 +54,7 @@ program synrad
   sr_param%n_slice = 20
   forward_beam = "POSITRON"
   backward_beam = "ELECTRON"
+  use_ele_ix = 0
   
 
 ! Read file
@@ -61,6 +63,8 @@ program synrad
   open (1, file = in_file, status = "old")
   read (1, nml = synrad_params)
   close (1)
+
+  if (use_ele_ix .ne. 0) print *, "Only calculating power for element #",use_ele_ix
 
 !
 
@@ -199,8 +203,8 @@ program synrad
 
 ! write out results
 
-  call write_power_results(positive_x_wall, lat, sr_param)
-  call write_power_results(negative_x_wall, lat, sr_param)
+  call write_power_results(positive_x_wall, lat, sr_param, use_ele_ix)
+  call write_power_results(negative_x_wall, lat, sr_param, use_ele_ix)
 
   open (unit = 1, file = 'element_power.dat', carriagecontrol = 'list')
 
@@ -265,7 +269,7 @@ subroutine synch_calc (direction, beam_type, power)
   call twiss_and_track (lat, orb)
 
   call calculate_sr_power(lat, orb, direction, power, &
-                                walls, sr_param)
+                                walls, sr_param, use_ele_ix)
 
 end subroutine
 
