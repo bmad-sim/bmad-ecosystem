@@ -1116,6 +1116,7 @@ if devel:
 
     if defer:
       #= Schedule this release to be promoted to DEVEL status.
+      print "sched. time:", def_hourstr, min_str
       tmpname = "/tmp/tmp_atfile_01"
       atfile  = open(tmpname, 'w')
       atfile.write(rotator + " -devel -tag -mail " + rel_name)
@@ -1140,10 +1141,11 @@ if devel:
       if minuteval < 10:
         min_str = "0" + min_str
         min_str   = str( minuteval )
-        
+
+      print "sched. time:", def_hourstr, min_str
       tmpname   = "/tmp/tmp_atfile_02"
       atfile    = open(tmpname, 'w')
-      atfile.write(master + " -bmad_build REV="+ revision) # Call master script again
+      atfile.write(master + " -nobs -bmad_build REV="+ revision) # Call master script again
       atfile.close()
       at = sub.Popen( ["at", def_hourstr + ':' + min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
       (outstream, errstream) = at.communicate()
@@ -1219,7 +1221,7 @@ if recommendation == 0 and not defer:
   print "as per rotation recommendation."
   os.execv( rotator, ["-devel", "-tag", "-mail", rel_name] )
   os.execv( master, ["-bmad_build"] )
-
+  
 
 stout.close()   # Close stream to logfile before quitting
 sys.exit(0)
