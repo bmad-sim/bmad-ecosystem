@@ -321,11 +321,11 @@ done
 echo " 
  OLD:  ${present_rel}   -->   NEW:  ${REL}
 
-   -=Matt
+   -Accelerator Code Librarian
 
 --------------------------------------------------------------------------------
 Accelerator Code Support Links -
-Documentation      : https://wiki.lepp.cornell.edu/lepp/bin/view/CESR/ACL/WebHome
+Documentation      : https://wiki.lepp.cornell.edu/lepp/bin/view/ACC/ACL/WebHome
 Bug Reports        : cesr-libraries@rt.lepp.cornell.edu
 Librarian Email    : cesrulib@mail.lepp.cornell.edu
 Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/" >> ${mail_tempfile}

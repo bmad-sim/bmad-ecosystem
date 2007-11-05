@@ -86,7 +86,8 @@ for line in lines:
     name = name + ' '
     
     string = name + "Test lasted: "+str( time ) + " s"
-    print string
+    print string    
+        
 
 if num_completed < num_tests:
   print "\nERROR!  Could only obtain %i out of %i requested test results!" % (num_completed, num_tests)
