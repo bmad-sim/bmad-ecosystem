@@ -1476,7 +1476,7 @@ subroutine attribute_bookkeeper (ele, param)
           abs(ele%value(check_sum$) - check_sum) < &
           1d-14 * (abs(check_sum) + abs(ele%value(check_sum$)))) then
     ele%map_with_offsets = .false.
-    call out_io (s_warn$, r_name, 'Element has been offset: ' // ele%name, &
+    call out_io (s_info$, r_name, 'Element has been offset: ' // ele%name, &
                                   'Will set %map_with_offsets = F')
   endif
 
