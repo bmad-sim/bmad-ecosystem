@@ -181,7 +181,7 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
                                                       ele_out%mat6(1:4,1:4))
         elseif (do_taylor) then
           if (associated(ele_in%taylor(1)%term)) then
-            call concat_taylor (ele_out%taylor, ele_in%taylor, ele_out%taylor)
+            call concat_ele_taylor (ele_out%taylor, ele_in, ele_out%taylor)
           else
             call taylor_propagate1 (ele_out%taylor, ele_in, r_in%param)
           endif

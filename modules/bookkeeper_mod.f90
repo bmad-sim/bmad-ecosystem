@@ -1201,7 +1201,7 @@ subroutine attribute_bookkeeper (ele, param)
   type (lat_param_struct) param
   type (coord_struct) start, end
 
-  real(rp) factor, check_sum, phase, E_tot
+  real(rp) factor, check_sum, phase, E_tot, offset_check_sum
   
   character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -1248,7 +1248,7 @@ subroutine attribute_bookkeeper (ele, param)
     case (lcavity$, drift$, monitor$, instrument$, &
           ecollimator$, rcollimator$, elseparator$)
     case default
-       call out_io(s_abort$,r_name,' "FIELD_MASTER" NOT IMPLEMENTED FOR: ' // trim(ele%name))
+       call out_io(s_abort$, r_name, '"FIELD_MASTER" NOT IMPLEMENTED FOR: ' // trim(ele%name))
       call err_exit
     end select
 
@@ -1463,10 +1463,24 @@ subroutine attribute_bookkeeper (ele, param)
   end select
 
   check_sum = check_sum + ele%value(l$) + ele%value(ds_step$)
-
-  if (ele%map_with_offsets) check_sum = check_sum + ele%value(x_offset$) + &
+  offset_check_sum = ele%value(x_offset$) + &
         ele%value(y_offset$) + ele%value(x_pitch$) + ele%value(y_pitch$) + &
         ele%value(s_offset$) + ele%value(tilt$)
+
+
+  ! If an element has just been offset and bmad_com%conserve_taylor_map = T then 
+  ! conserve the taylor map.
+
+  if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
+          offset_check_sum /= 0 .and. bmad_com%conserve_taylor_maps .and. &
+          abs(ele%value(check_sum$) - check_sum) < &
+          1d-14 * (abs(check_sum) + abs(ele%value(check_sum$)))) then
+    ele%map_with_offsets = .false.
+    call out_io (s_warn$, r_name, 'Element has been offset: ' // ele%name, &
+                                  'Will set %map_with_offsets = F')
+  endif
+
+  if (ele%map_with_offsets) check_sum = check_sum + offset_check_sum
 
   ! For some very strange reason there can be round off error in the check sum.
   ! Hence we use a non-exact test.

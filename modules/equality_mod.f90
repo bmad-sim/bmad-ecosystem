@@ -396,7 +396,8 @@ is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%coherent_synch_rad_on .eqv. f2%coherent_synch_rad_on) .and. &
       (f1%radiation_damping_on .eqv. f2%radiation_damping_on) .and. &
       (f1%radiation_fluctuations_on .eqv. f2%radiation_fluctuations_on) .and. &
-      (f1%compute_ref_energy .eqv. f2%compute_ref_energy)
+      (f1%compute_ref_energy .eqv. f2%compute_ref_energy) .and. &
+      (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 
 end function
 

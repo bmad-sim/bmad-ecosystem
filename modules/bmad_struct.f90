@@ -667,6 +667,8 @@ type bmad_common_struct
   logical :: radiation_damping_on = .false.       ! Damping toggle.
   logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
   logical :: compute_ref_energy = .true.          ! Enable recomputation?
+  logical :: conserve_taylor_maps = .true.        ! Enable bookkeeper to set
+                                                  ! ele%map_with_offsets = F?
 end type
   
 type (bmad_common_struct), save :: bmad_com

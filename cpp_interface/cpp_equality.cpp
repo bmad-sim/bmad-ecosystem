@@ -175,7 +175,8 @@ bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
       (x.spin_tracking_on == y.spin_tracking_on) &&
       (x.radiation_damping_on == y.radiation_damping_on) &&
       (x.radiation_fluctuations_on == y.radiation_fluctuations_on) &&
-      (x.compute_ref_energy == y.compute_ref_energy);
+      (x.compute_ref_energy == y.compute_ref_energy) &&
+      (x.conserve_taylor_maps == y.conserve_taylor_maps);
 }
 
 bool operator== (const C_em_field& x, const C_em_field& y) {

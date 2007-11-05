@@ -1165,13 +1165,13 @@ call find_bunch_sigma_matrix (bunch%particle, params%centroid%vec, params%sigma,
 !********
 ! Projected Parameters
 ! X
-call param_stuffit (params%x, params%sigma(s11$), params%sigma(s22$), &
+call projected_twiss_calc (params%x, params%sigma(s11$), params%sigma(s22$), &
                       params%sigma(s12$), params%sigma(s16$), params%sigma(s26$))
 ! Y
-call param_stuffit (params%y, params%sigma(s33$), params%sigma(s44$), &
+call projected_twiss_calc (params%y, params%sigma(s33$), params%sigma(s44$), &
                       params%sigma(s34$), params%sigma(s36$), params%sigma(s46$))
 ! Z
-call param_stuffit (params%z, params%sigma(s55$), params%sigma(s66$), &
+call projected_twiss_calc (params%z, params%sigma(s55$), params%sigma(s66$), &
                       params%sigma(s56$), params%sigma(s56$), params%sigma(s66$))
      
 !***
@@ -1299,26 +1299,30 @@ end subroutine switch_to_geometric
 !----------------------------------------------------------------------
 ! contains
 
-subroutine param_stuffit (param, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
+subroutine projected_twiss_calc (param, exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d)
 
 implicit none
 
 type (bunch_lat_param_struct), intent(out) :: param
-real(rp), intent(in) :: exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
-real(rp) emitt
+real(rp), intent(in) :: exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
+real(rp) emitt, x2, x_px, px2
 
-emitt = SQRT(exp_x2*exp_p_x2 - exp_x_p_x**2)
-
-param%alpha = -exp_x_p_x / emitt
-param%beta  = exp_x2 / emitt
-param%gamma = exp_p_x2 / emitt
-  
 param%eta   = exp_x_d / params%sigma(s66$)
 param%etap  = exp_px_d / params%sigma(s66$)
 
+x2   = exp_x2   - params%sigma(s66$) * param%eta**2 
+x_px = exp_x_px - params%sigma(s66$) * param%eta * param%etap
+px2  = exp_px2  - params%sigma(s66$) * param%etap**2
+
+emitt = sqrt(x2*px2 - x_px**2)
+
+param%alpha = -x_px / emitt
+param%beta  = x2 / emitt
+param%gamma = px2 / emitt
+
 param%norm_emitt = (avg_energy/m_electron) * emitt
 
-end subroutine param_stuffit
+end subroutine projected_twiss_calc
 
 !----------------------------------------------------------------------
 ! contains

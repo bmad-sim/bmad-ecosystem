@@ -1308,6 +1308,9 @@ end subroutine
 ! Subroutine to concatinate two taylor maps:
 !   taylor3[x] = taylor2(taylor1[x])
 !
+! Note: In general, if taylor2 is a component of an ele_struct, use
+! concat_ele_taylor instead.
+!
 ! Modules needed:
 !   use ptc_interface_mod
 !
@@ -1358,6 +1361,97 @@ subroutine concat_taylor (taylor1, taylor2, taylor3)
 
 end subroutine  
   
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine cacat_ele_taylor (taylor1, ele, taylor3)
+!
+! Routine to concatinate two taylor series.
+! If ele%map_with_offset = True then: 
+!   taylor3[x] = ele%taylor(taylor2[x])
+! If ele%map_with_offset = False then the misalignment will be added 
+! factored in.
+!
+! Modules needed:
+!   use ptc_interface_mod
+!
+! Input:
+!   taylor1(6) -- Taylor_struct: Taylor map.
+!   ele        -- ele_struct: Element containing the taylor series.
+!
+! Output
+!   taylor3(6) -- Taylor_struct: Concatinated map
+!-
+
+Subroutine concat_ele_taylor (taylor1, ele, taylor3)
+
+use s_tracking, only: mis_fib, alloc, kill, dtiltd, assignment(=)
+
+implicit none
+
+type (ele_struct) ele
+type (taylor_struct) taylor1(:), taylor3(:)
+type (lat_param_struct) param
+type (real_8) x_ele(6), x_body(6), x1(6), x3(6)
+type (fibre), pointer :: fib
+
+real(8) x_dp(6)
+
+! ele%map_with_offset = T means that misalignment effects are already included 
+! in ele%taylor.
+
+if (ele%map_with_offsets) then
+  call concat_taylor (taylor1, ele%taylor, taylor3)
+  return
+endif
+
+! Here when we need to include the misalignment effects.
+! First set the taylor order in PTC if not already done so
+
+if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
+                         call set_ptc (taylor_order = bmad_com%taylor_order)
+
+! Init
+
+call real_8_init(x_ele)
+call real_8_init(x_body)
+call real_8_init(x1)
+call real_8_init(x3)
+call alloc (fib)
+
+! Create a PTC fibre that holds the misalignment info
+
+param%particle = positron$  ! Actually this does not matter to the calculation
+call ele_to_fibre (ele, fib, param, use_offsets = .true.)
+
+x_dp = 0
+x_ele = x_dp
+
+call dtiltd (1, ele%value(tilt_tot$), 1, x_ele)
+call mis_fib (fib, x_ele, .true., entering = .true.)
+x_body = ele%taylor
+call concat_real_8 (x_ele, x_body, x_ele)
+call mis_fib (fib, x_ele, .true., entering = .false.)
+call dtiltd (1, ele%value(tilt_tot$), 2, x_ele)
+
+x1 = taylor1
+x3 = taylor3
+call concat_real_8 (x1, x_ele, x3)
+
+taylor3 = x3
+taylor3(:)%ref = taylor1(:)%ref
+
+! Cleanup
+
+call kill(fib)
+call kill(x_ele)
+call kill(x_body)
+call kill(x1)
+call kill(x3)
+
+end subroutine
+
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

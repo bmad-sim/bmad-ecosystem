@@ -1416,7 +1416,7 @@ call bmad_com_to_c2 (c_bmad_com, &
       c_logic(f%trans_space_charge_on), c_logic(f%coherent_synch_rad_on), &
       c_logic(f%spin_tracking_on), &
       c_logic(f%radiation_damping_on), c_logic(f%radiation_fluctuations_on), &
-      c_logic(f%compute_ref_energy))
+      c_logic(f%compute_ref_energy), c_logic(f%conserve_taylor_maps))
 
 end subroutine
 
@@ -1424,8 +1424,8 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, rel, 
-!                abs, taylor_ord, dflt_integ, cc, liar, &
-!                sr, lr, sym, a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e)
+!                abs, taylor_ord, dflt_integ, cc, liar, sr, lr, sym, &
+!                a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, conserve_t)
 !
 ! Subroutine used by bmad_com_to_f to transfer the data from a C++ 
 ! C_bmad_com variable into the Bmad bmad_com_stuct common block.
@@ -1433,8 +1433,8 @@ end subroutine
 !-
 
 subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, rel, &
-                abs, taylor_ord, dflt_integ, cc, liar, &
-                sr, lr, sym, a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e)
+                abs, taylor_ord, dflt_integ, cc, liar, sr, lr, sym, &
+                a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, conserve_t)
 
 use bmad_and_cpp
 
@@ -1443,12 +1443,13 @@ implicit none
 real(rp) orb(6), max_ap, grad_loss, rel, abs, ds_step
 integer taylor_ord, dflt_integ, cc, liar, sr, lr, sym
 integer st_on, rad_d, rad_f, ref_e, a_book, tsc_on, csr_on
+integer conserve_t
 
 bmad_com = bmad_common_struct(max_ap, orb, grad_loss, ds_step, &
     rel, abs, taylor_ord, dflt_integ, &
     f_logic(cc), f_logic(liar), f_logic(sr), f_logic(lr), f_logic(sym), &
     f_logic(a_book), f_logic(tsc_on), f_logic(csr_on), f_logic(st_on), &
-    f_logic(rad_d), f_logic(rad_f), f_logic(ref_e))
+    f_logic(rad_d), f_logic(rad_f), f_logic(ref_e), f_logic(conserve_t))
 
 end subroutine
 

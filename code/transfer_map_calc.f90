@@ -51,7 +51,8 @@ subroutine transfer_map_calc (lat, t_map, ix1, ix2, &
 
   use bmad_struct
   use bmad_interface, except_dummy => transfer_map_calc
-  use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1, taylor_inverse
+  use ptc_interface_mod, only: concat_ele_taylor, ele_to_taylor, &
+                               taylor_propagate1, taylor_inverse
 
   implicit none
 
@@ -130,7 +131,7 @@ subroutine add_on_to_t_map
       call ele_to_taylor (lat%ele(i), lat%param)
     endif
 
-    call concat_taylor (t_map, lat%ele(i)%taylor, t_map)
+    call concat_ele_taylor (t_map, lat%ele(i), t_map)
   endif
 
 end subroutine
