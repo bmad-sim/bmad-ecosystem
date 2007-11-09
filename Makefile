@@ -84,7 +84,7 @@
 LIB_SRC_DIRS := ./code ./custom ./cesr ./modules ./cpp_interface
 OBJ_SRC_DIRS := ./test_jobs
 
-CONFIG_DIRS   := ./lat ./layout
+CONFIG_DIRS   :=
 LOCAL_INCS    := ./include ../include
 LOCAL_MODS    := ../modules 
 
