@@ -1221,7 +1221,15 @@ if recommendation == 0 and not defer:
   print "as per rotation recommendation."
   os.execv( rotator, ["-devel", "-tag", "-mail", rel_name] )
   os.execv( master, ["-bmad_build"] )
-  
+
 
 stout.close()   # Close stream to logfile before quitting
+
+###
+#Generate a web-page with the summary (log files) of all builds
+###
+if (not bmad_build) and (not bmad) and (not fixes):
+  os.popen('/home/cesrulib/bin/util/generate_html '+rel_name)
+### 
+
 sys.exit(0)
