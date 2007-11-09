@@ -1,0 +1,28 @@
+#!/bin/sh
+####################################################
+# BASH utility script to allow switching between various 
+# lattice areas in the 'config' area of a user's
+# active release.
+####################################################
+
+if ( [ ${#} != 1 ] ) then
+  echo ""
+  echo "Allows you to specify a Bmad lattice "
+  echo "directory for a specific accelerator."
+  echo "(i.e. this sets the BMAD_LAT variable)"
+  echo ""
+  echo "Usage: latdefs <Accelerator label>"
+  echo ""
+  echo "This script must be SOURCED in order to work correctly."
+  exit 1
+fi
+
+
+if ( [ -d ${ACC_REL}/config/${1} ] ) then
+  BMAD_LAT=${ACC_REL}/config/${1}/bmad
+  export BMAD_LAT
+  echo "BMAD_LAT set to ${BMAD_LAT}"
+else
+  echo "Directory ${ACC_REL}/config/${1} not found!"
+fi
+
