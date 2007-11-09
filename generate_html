@@ -1,0 +1,173 @@
+#!/home/cesrulib/EXT/Python-2.5.1/Linux/python
+## This script generates the web-folder http://www.lepp.cornell.edu/~cesrulib/builds/ , which contains the summary
+## of the latest build in which the tests were requested.
+## Things done:
+## 1) File "../builds/index.html" gets overwritten
+## 2) a) File "../builds/part1.txt" gets written to index.html
+## 2) b) Release name gets written to the page
+## 2) c) File "../builds/part2.txt" gets written to the index.html
+## 3) The program extract_summary is called to get test results for the three platforms (all but OpenVMS)
+## 4) The results are written to index.html
+## 5) The file "../builds/part3.txt" gets written to index.html 
+## 6) The pages lil.html, lll.html, ohl.html, vhl.html, and main.html get build likewise, except that 
+## each page gets its own log file content instead of the test results
+
+## The call to this program is also contained in the program "build_master" in the ../bin/util directory, and this program is run under the condition that the requested build was not for bmad
+
+## Author: Siarhei Vishniakou
+## Last modified: Nov 9, 2007
+
+
+import string, os, sys
+
+
+#================================
+# Command line argument handling
+#================================
+if len(sys.argv) == 1:
+  print "\nUsage: " + sys.argv[0] + " <release_name>"
+  print "Example: ./generate_html cesr_2007_1103_d"
+  sys.exit(0)
+elif len(sys.argv) > 2:
+  print "Invalid number of arguments."
+  sys.exit(2)
+else:
+  rel_name = sys.argv[1]
+
+###########################
+#generating index.html   --- here lie all the summaries for the builds
+###########################
+index=open("/home/cesrulib/public_html/builds/index.html","w")
+part1=open("/home/cesrulib/public_html/builds/part1.txt")
+part2=open("/home/cesrulib/public_html/builds/part2.txt")
+part3=open("/home/cesrulib/public_html/builds/part3.txt")
+
+index.write(part1.read())
+index.write(rel_name)
+index.write(part2.read())
+
+index.write('=======================================================================<BR>')
+summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/Linux_i686_intel/'+rel_name+".log").readlines() #get a summary
+index.write("Summary for Linux_i686_intel<BR>")
+for s in summaryoutput:                        #write summary to the index file    
+    index.write(s[:-1]+"<BR>")
+
+
+index.write('=======================================================================<BR>')
+summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/Linux_i686_lahey/'+rel_name+".log").readlines() #get a summary
+
+index.write("Summary for Linux_i686_lahey<BR>")
+for s in summaryoutput:                        #write summary to the index file    
+    index.write(s[:-1]+"<BR>")
+
+
+index.write('=======================================================================<BR>')
+summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/OSF1_alpha_hp/'+rel_name+".log").readlines() #get a summary
+index.write("Summary for OSF1_alpha_hp<BR>")
+for s in summaryoutput:                        #write summary to the index file    
+    index.write(s[:-1]+"<BR>")
+
+
+index.write(part3.read())
+index.close()
+
+###########################
+#generating main.html 
+###########################
+part1.seek(0)
+part2.seek(0)
+part3.seek(0)
+log = open("/nfs/acc/libs/log/"+rel_name+".genlog")
+main=open("/home/cesrulib/public_html/builds/main.html","w")
+
+main.write(part1.read())
+main.write(rel_name)
+main.write(part2.read())
+
+for line in log:
+    main.write(line)
+
+main.write(part3.read())
+main.close()
+log.close()
+###########################
+#generating lil.html     /cesr_libs/Linux_i686_intel
+###########################
+part1.seek(0)
+part2.seek(0)
+part3.seek(0)
+
+log = open("/home/cesrulib/cesr_libs/log/Linux_i686_intel/"+rel_name+".log")
+
+lil=open("/home/cesrulib/public_html/builds/lil.html","w")
+
+lil.write(part1.read())
+lil.write(rel_name)
+lil.write(part2.read())
+
+for line in log:
+    lil.write(line)
+lil.write(part3.read())
+lil.close()
+log.close()
+###########################
+#generating ohl.html
+###########################
+part1.seek(0)
+part2.seek(0)
+part3.seek(0)
+
+log = open("/home/cesrulib/cesr_libs/log/OSF1_alpha_hp/"+rel_name+".log")
+
+ohl=open("/home/cesrulib/public_html/builds/ohl.html","w")
+
+ohl.write(part1.read())
+ohl.write(rel_name)
+ohl.write(part2.read())
+
+for line in log:
+    ohl.write(line)
+ohl.write(part3.read())
+ohl.close()
+log.close()
+###########################
+#generating lll.html
+###########################
+part1.seek(0)
+part2.seek(0)
+part3.seek(0)
+
+log = open("/home/cesrulib/cesr_libs/log/Linux_i686_lahey/"+rel_name+".log")
+
+lll=open("/home/cesrulib/public_html/builds/lll.html","w")
+
+lll.write(part1.read())
+lll.write(rel_name)
+lll.write(part2.read())
+
+for line in log:
+    lll.write(line)
+lll.write(part2.read())
+lll.close()
+log.close()
+
+###########################
+#generating vhl.html
+###########################
+part1.seek(0)
+part2.seek(0)
+part3.seek(0)
+
+log = open("/home/cesrulib/cesr_libs/log/VMS_alpha_hp/"+rel_name+".log")
+
+vhl=open("/home/cesrulib/public_html/builds/vhl.html","w")
+
+vhl.write(part1.read())
+vhl.write(rel_name)
+vhl.write(part2.read())
+
+for line in log:
+    vhl.write(line)
+vhl.write(part3.read())
+vhl.close()
+log.close()
