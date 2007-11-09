@@ -200,20 +200,23 @@ if build_type == "RELEASE":
         print dirlist
         for dir in dirlist:           # copy over the hidden directory .depend and file .f90_module_rules
             if os.path.exists(OSF_reldir + "/src/" + dir + "/.depend"):
+                flag1 = True
                 print "Copying .depend directory from OSF1 " + dir + " area.\n" 
                 shutil.copytree(OSF_reldir + "/src/" + dir + "/.depend", full_rel_name + "/src/" + dir + "/.depend")
             if os.path.exists(OSF_reldir + "/src/" + dir + "/.f90_module_rules"):
+                flag2 = True
                 print "Copying .f90_module_rules file from OSF1 " + dir + " area.\n"
                 shutil.copyfile(OSF_reldir+"/src/"+dir+"/.f90_module_rules", full_rel_name+"/src/"+dir+"/.f90_module_rules")
             os.chdir(full_rel_name +'/src/'+ dir)
-            print "Changed directory to: " + os.getcwd()
-            print "Generating .depvms file..."
-            dep_process = popen2.Popen4(bin_dir + "/util/filtercesr " + full_rel_name + ' ' + dir)
-            line = dep_process.fromchild.readline()
-            while line:
-                print line.strip()
+            if flag1 and flag2:
+                print "Changed directory to: " + os.getcwd()
+                print "Generating .depvms file..."
+                dep_process = popen2.Popen4(bin_dir + "/util/filtercesr " + full_rel_name + ' ' + dir)
                 line = dep_process.fromchild.readline()
-            print ""
+                while line:
+                    print line.strip()
+                    line = dep_process.fromchild.readline()
+                print ""
         print "Copying config directory from OSF1 area.\n"
         shutil.copytree(OSF_reldir + "/config", full_rel_name + "/config")
         #build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_rel_name) # FTP upload to VMS cluster
@@ -229,6 +232,14 @@ if build_type == "RELEASE":
         if returncode != 0:
             print "--> BUILD STATUS: ERROR(S) DETECTED"
             sys.exit(91)
+
+
+    # Copy relevant directories to the config area
+    to_copy = os.listdir(full_rel_name +"/src/lattice")    
+    for dir in to_copy:
+        print "Copying lattice directories to config area: config/" + dir
+        if not os.path.exists( full_rel_name + "/config/" + dir ):
+            shutil.copytree(full_rel_name + "/src/lattice/" + dir, full_rel_name + "/config/" + dir)
 
 
     os.system("chgrp -R cesr " + config_dir)
@@ -277,6 +288,23 @@ if build_type == "FIXES":
         if errors:
             print "--> BUILD STATUS: ERROR(S) DETECTED"
             sys.exit(97)
+
+        if os.path.exists( full_rel_name +'/'+ module + "/M." + module ):
+            build_cmd = env_setup1 + accdefs + env_setup2 + "gmake -f M." + module
+            print "Secondary build command follows:"
+            print build_cmd
+            build_process = popen2.Popen4(build_cmd)
+            pid = build_process.pid
+            line = build_process.fromchild.readline()
+            while line:                                     # print output as it is generated
+                print line.strip()
+                if line[0:10] == "gmake: ***":            # be on the lookout for errors in the build
+                    errors = 1
+                line = build_process.fromchild.readline()
+            if errors:
+                print "--> BUILD STATUS: ERROR(S) DETECTED"
+                sys.exit(98)
+        
 
 
 ############################################################################################
