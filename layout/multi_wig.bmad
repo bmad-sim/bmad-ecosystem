@@ -1,6 +1,0 @@
-!multipole representation of wig2_14e integrated field for b=1.2T, polarity=-1
-multi_wig1_14e : ab_multipole, superimpose, ref= WIG1_14E, ref_beg, &
-                 b1 = 0.0038069 *0.3/beam[energy], b2=(0.00031-0.203)*0.3/beam[energy] 
-!multi_wig2_14e : ab_multipole, superimpose, ref= WIG2_14E, ref_end, &
-!                 b2=-(0.203)*0.3/beam[energy]   !same as sextupole of theoretical 7-pole with polarity =1
-

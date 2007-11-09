@@ -1,6 +1,0 @@
-sex_02W : sextupole, L=0.272, superimpose, ref=det_01w,ref_end, offset= -.3
-sex_02E : sextupole, L=0.272, superimpose, ref=det_01e, ref_beginning, offset= 0.3
-sex_48w: sextupole, L=0.1, superimpose, ref=q48w, ref_end, offset=0.5
-sex_48e: sextupole, L=0.1, superimpose, ref=q48e, ref_beginning, offset=-0.5
-sex_49w: sextupole, L=0.1, superimpose, ref=q49w, ref_end, offset=0.3
-sex_49e: sextupole, L=0.1, superimpose, ref=q49e, ref_beginning, offset=-0.3
