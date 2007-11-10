@@ -1,5 +1,5 @@
 !+
-! Function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
+! Function attribute_free (ix_ele, ix_attrib, lat, err_print_flag, except_overlay) result (free)
 !
 ! Subroutine to check if an attribute is free to vary.
 !
@@ -19,6 +19,9 @@
 !   lat             -- lat_struct: Lattice structure.
 !   err_print_flag  -- Logical, optional: If present and False then supress
 !                       printing of an error message if attribute is not free.
+!   except_overlay  -- Logical, optional: If present and True then an attribute that
+!                       is an overlay_slave will be treated as free. This is used by
+!                       the create_overlay routine.
 !
 ! Output:
 !   free   -- Logical: Set True if attribtute not found or attriubte
@@ -28,7 +31,7 @@
 #include "CESR_platform.inc"
 
 
-function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
+function attribute_free (ix_ele, ix_attrib, lat, err_print_flag, except_overlay) result (free)
 
   use bmad_struct
   use bmad_interface, except_dummy => attribute_free
@@ -40,7 +43,7 @@ function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
   integer ix_attrib, ix_ele, ix_ele0, ix_attrib0
 
   logical free, do_print
-  logical, optional :: err_print_flag
+  logical, optional :: err_print_flag, except_overlay
   character(16) :: r_name = 'attribute_free'
 
 ! init & check
@@ -67,21 +70,25 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
 ! If the attribute is controled by an overlay lord then it cannot be varied.
 ! Exception: Multiple overlays can control the same attribute.
 
-  do i = ele%ic1_lord, ele%ic2_lord
-    ix = lat%ic(i)
-    ir = lat%control(ix)%ix_lord
-    if (present(ix_lord)) then
-      if (ix_lord == ir) cycle
-      if (lat%ele(ix_lord)%control_type == overlay_lord$) cycle
-    endif
-    if (lat%ele(ir)%control_type == overlay_lord$) then
-      if (lat%control(ix)%ix_attrib == ix_attrib) then
-        call print_error (ix_ele, ix_attrib, &
-            'IT IS CONTROLLED BY THE OVERLAY_LORD: ' // lat%ele(ir)%name)
-        return
+  if (.not. logic_option(.false., except_overlay)) then
+    do i = ele%ic1_lord, ele%ic2_lord
+      ix = lat%ic(i)
+      ir = lat%control(ix)%ix_lord
+      if (present(ix_lord)) then
+        if (ix_lord == ir) cycle
+        if (lat%ele(ix_lord)%control_type == overlay_lord$) cycle
       endif
-    endif
-  enddo
+      if (lat%ele(ir)%control_type == overlay_lord$) then
+        if (lat%control(ix)%ix_attrib == ix_attrib) then 
+          call print_error (ix_ele, ix_attrib, & 
+             'IT IS CONTROLLED BY THE OVERLAY_LORD: ' // lat%ele(ir)%name)
+          return
+        endif
+      endif
+    enddo
+  endif
+
+! Check for a super_slave
 
   if (ele%control_type == super_slave$) then
     call print_error (ix_ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')

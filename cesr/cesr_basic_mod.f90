@@ -868,8 +868,8 @@ subroutine do_vsp_eles (lat, i_vsep, vsp_index, ele_type)
   type (control_struct)  contl(1)
 
   integer i_vsep, vsp_index(3), ele_type, i, i_con
-
   real(rp) vkick
+  logical err
 
 !
                  
@@ -892,9 +892,11 @@ subroutine do_vsp_eles (lat, i_vsep, vsp_index, ele_type)
     write (lat%ele(i_con)%type, '(a, i4)') 'CSR VSP VOLT', vsp_index(i)
 
     if (ele_type == group$) then
-      call create_group (lat, i_con, contl(1:1))
+      call create_group (lat, i_con, contl(1:1), err)
+      if (err) call err_exit
     elseif (ele_type == overlay$) then
-      call create_overlay (lat, i_con, 'VKICK', contl(1:1))
+      call create_overlay (lat, i_con, 'VKICK', contl(1:1), err)
+      if (err) call err_exit
       if (i == 2 .or. i == 3) lat%ele(i_con)%value(vkick$) = vkick / 2
     else
       print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: BAD ELE_TYPE: ', ele_type
@@ -980,8 +982,8 @@ subroutine do_setup_nir_shuntcur (quad, ix_quad, ix_nir)
   type (control_struct)  contl(1)
 
   integer ix_quad, ix_nir, ix_lord, i, j, i_con, endj
-
   real(rp) k1
+  logical err
 
 !
                  
@@ -1002,7 +1004,8 @@ subroutine do_setup_nir_shuntcur (quad, ix_quad, ix_nir)
 ! create control for CSR_QUAD_CUR
 
   call new_control (lat, i_con)
-  call create_overlay (lat, i_con, 'K1', contl(1:1))
+  call create_overlay (lat, i_con, 'K1', contl(1:1), err)
+  if (err) call err_exit
   lat%ele(i_con)%value(k1$) = k1
   lat%ele(i_con)%type = lat%ele(ix_quad)%type
   lat%ele(i_con)%name = lat%ele(i_con)%type
@@ -1016,7 +1019,8 @@ subroutine do_setup_nir_shuntcur (quad, ix_quad, ix_nir)
 ! Create control for NIR_SHUNTCUR
 
   call new_control (lat, i_con)
-  call create_overlay (lat, i_con, 'K1', contl(1:1))
+  call create_overlay (lat, i_con, 'K1', contl(1:1), err)
+  if (err) call err_exit
   write (lat%ele(i_con)%type, '(a12, i4)') 'NIR SHUNTCUR', ix_nir
   lat%ele(i_con)%name = lat%ele(i_con)%type
   endj = len(lat%ele(i_con)%name)

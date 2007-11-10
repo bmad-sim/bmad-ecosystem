@@ -79,7 +79,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine create_group (lat, ix_ele, contrl)
+subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
 
   use bmad_struct
   use bmad_interface, except_dummy => create_group
@@ -91,6 +91,9 @@ subroutine create_group (lat, ix_ele, contrl)
 
   integer i, ix_ele, ixa, n_control, n_con
   integer ix1, ix2, ix_min, ix_max, ixe
+
+  logical err
+  logical, optional :: err_print_flag
 
 ! init
 
@@ -202,7 +205,7 @@ subroutine create_group (lat, ix_ele, contrl)
 
     elseif (ixa == x_limit$ .or. ixa == y_limit$) then
 
-      if (n_con+2 > size(lat%control)) call reallocate_control (lat, n_con+500)
+      if (n_con+2 > size(lat%control)) call reallocate_control (lat, n_con+100)
       lat%control(n_con+1) = contrl(i)
       lat%control(n_con+2) = contrl(i)
       lat%control(n_con+1)%ix_lord = ix_ele
@@ -220,7 +223,7 @@ subroutine create_group (lat, ix_ele, contrl)
 
     elseif (ixa == aperture$) then
 
-      if (n_con+4 > size(lat%control)) call reallocate_control (lat, n_con+500)
+      if (n_con+4 > size(lat%control)) call reallocate_control (lat, n_con+100)
       lat%control(n_con+1:n_con+4) = contrl(i)
       lat%control(n_con+1:n_con+4)%ix_lord = ix_ele
       lat%control(n_con+1)%ix_attrib = x1_limit$
@@ -233,8 +236,9 @@ subroutine create_group (lat, ix_ele, contrl)
 
     else
 
+      err = err .or. .not. attribute_free (contrl(i)%ix_slave, ixa, lat, err, err_print_flag)
       n_con = n_con + 1
-      if (n_con > size(lat%control)) call reallocate_control (lat, n_con+500)
+      if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
       lat%control(n_con) = contrl(i)
       lat%control(n_con)%ix_lord = ix_ele
 
@@ -257,7 +261,7 @@ subroutine bookit (i_ele, scale)
   integer scale, i_ele
 
   n_con = n_con + 1
-  if (n_con > size(lat%control)) call reallocate_control (lat, n_con+500)
+  if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
   lat%control(n_con)%ix_lord = ix_ele
   lat%control(n_con)%ix_slave = i_ele
   lat%control(n_con)%ix_attrib = l$

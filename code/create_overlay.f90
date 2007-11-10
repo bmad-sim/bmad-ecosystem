@@ -1,5 +1,5 @@
 !+
-! Subroutine create_overlay (lat, ix_overlay, attrib_name, contl)
+! Subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_flag)
 !
 ! Subroutine to add the controller information to slave elements of
 ! an overlay_lord.
@@ -8,14 +8,17 @@
 !   use bmad
 !
 ! Input:
-!   lat        -- lat_struct: Lat to modify.
-!   ix_overlay  -- Integer: Index of overlay element.
-!   attrib_name -- Character(40): Name of attribute in the overlay that is
+!   lat            -- lat_struct: Lat to modify.
+!   ix_overlay     -- Integer: Index of overlay element.
+!   attrib_name    -- Character(40): Name of attribute in the overlay that is
 !                     to be varied.
-!   contl(:)      -- Control_struct: control info. 1 element for each slave.
-!     %ix_slave   -- Index of element to control
-!     %ix_attrib  -- Index of attribute controlled
-!     %coef       -- Coefficient
+!   contl(:)       -- Control_struct: control info. 1 element for each slave.
+!     %ix_slave      -- Index of element to control
+!     %ix_attrib     -- Index of attribute controlled
+!     %coef          -- Coefficient
+!   err            -- Logical: Set True if an attribute is not free to be controlled.
+!   err_print_flag -- Logical, optional: If present and False then supress                                
+!                       printing of an error message if attribute is not free.  
 !
 ! Output:
 !   lat    -- lat_struct: Modified lat.
@@ -41,7 +44,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine create_overlay (lat, ix_overlay, attrib_name, contl)
+subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_flag)
 
   use bmad_struct
   use bmad_interface, except_dummy => create_overlay
@@ -53,32 +56,58 @@ subroutine create_overlay (lat, ix_overlay, attrib_name, contl)
   type (ele_struct), pointer :: slave, lord
   type (control_struct)  contl(:)
 
-  integer i, j, ix, ixc, ix_overlay, n_con2
+  integer i, j, nc0, ixc, ix_overlay, nc2
   integer ix_slave, n_slave, ix_attrib, slave_type
 
   character(*) attrib_name
   character(40) at_name
 
+  logical err
+  logical, optional :: err_print_flag
+
 ! Mark element as an overlay lord
 
+  err = .false.
   lord => lat%ele(ix_overlay)
   n_slave = size (contl)
 
-  ix = lat%n_control_max
-  n_con2 = ix + n_slave
-  if (n_con2 > size(lat%control)) call reallocate_control (lat, n_con2+500)
+  nc0 = lat%n_control_max
+  nc2 = nc0
 
   do j = 1, n_slave
-    lat%control(ix+j) = contl(j)
-    lat%control(ix+j)%ix_lord = ix_overlay
+    if (nc2+4 > size(lat%control)) call reallocate_control (lat, nc2+100)
+    if (contl(j)%ix_attrib == x_limit$) then
+      lat%control(nc2+1:nc2+2) = contl(j)
+      lat%control(nc2+1:nc2+2)%ix_lord = ix_overlay
+      lat%control(nc2+1)%ix_attrib = x1_limit$
+      lat%control(nc2+2)%ix_attrib = x2_limit$
+    elseif (contl(j)%ix_attrib == y_limit$) then
+      lat%control(nc2+1:nc2+2) = contl(j)
+      lat%control(nc2+1:nc2+2)%ix_lord = ix_overlay
+      lat%control(nc2+1)%ix_attrib = y1_limit$
+      lat%control(nc2+2)%ix_attrib = y2_limit$
+    elseif (contl(j)%ix_attrib == aperture$) then
+      lat%control(nc2+1:nc2+4) = contl(j)
+      lat%control(nc2+1:nc2+4)%ix_lord = ix_overlay
+      lat%control(nc2+1)%ix_attrib = x1_limit$
+      lat%control(nc2+2)%ix_attrib = x2_limit$
+      lat%control(nc2+3)%ix_attrib = y1_limit$
+      lat%control(nc2+4)%ix_attrib = y2_limit$
+      nc2 = nc2 + 4
+    else
+      err = err .or. .not. attribute_free (contl(j)%ix_slave, contl(j)%ix_attrib, lat, err_print_flag, .true.)
+      lat%control(nc2+1) = contl(j)
+      lat%control(nc2+1)%ix_lord = ix_overlay
+      nc2 = nc2 + 1
+    endif
   enddo
 
   lord%n_slave = n_slave
-  lord%ix1_slave = ix + 1
-  lord%ix2_slave = ix + n_slave
+  lord%ix1_slave = nc0 + 1
+  lord%ix2_slave = nc0 + n_slave
   lord%control_type = overlay_lord$
   lord%key = overlay$
-  lat%n_control_max = n_con2
+  lat%n_control_max = nc2
 
   call str_upcase (at_name, attrib_name)
   ix_attrib =  attribute_index (lord, at_name)

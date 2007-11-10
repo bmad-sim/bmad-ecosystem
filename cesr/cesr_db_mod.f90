@@ -622,7 +622,7 @@ subroutine db_group_to_bmad_group (group_name, group_num, &
   integer n_con, group_num, ix_ele, biggrp_set, ix, ixs(1), csr_set
   integer j, endj
   character(12) group_name
-  logical ok, type_err
+  logical ok, type_err, err
 
 !                                          
 
@@ -644,7 +644,8 @@ subroutine db_group_to_bmad_group (group_name, group_num, &
      if (lat%ele(ix_ele)%name(j:j) == ' ') lat%ele(ix_ele)%name(j:j) = '_'
   enddo
 
-  call create_group (lat, ix_ele, con(1:n_con))
+  call create_group (lat, ix_ele, con(1:n_con), err)
+  if (err) ok = .false.
 
 end subroutine
                                                              

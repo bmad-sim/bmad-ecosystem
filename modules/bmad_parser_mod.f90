@@ -3250,6 +3250,8 @@ subroutine parser_add_lord (in_lat, n2, plat, lat)
   character(40), allocatable :: name_list(:)
   character(40) name, name1, slave_name, attrib_name
 
+  logical err
+
 ! setup
 ! in_lat has the lords that are to be added to lat.
 ! we add an extra 1000 places to the arrays to give us some overhead.
@@ -3345,10 +3347,12 @@ subroutine parser_add_lord (in_lat, n2, plat, lat)
 
       select case (lord%control_type)
       case (overlay_lord$)
-        call create_overlay (lat, ix_lord, lord%attribute_name, cs(1:ns))
+        call create_overlay (lat, ix_lord, lord%attribute_name, cs(1:ns), err, .false.)
       case (group_lord$)
-        call create_group (lat, ix_lord, cs(1:ns))
+        call create_group (lat, ix_lord, cs(1:ns), err, .false.)
       end select
+      if (err) call warning ('ELEMENT OR GROUP: ' // lord%name, &
+                             'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!')
 
 !-----------------------------------------------------
 ! girder

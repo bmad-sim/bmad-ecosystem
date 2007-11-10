@@ -196,12 +196,14 @@ interface
 end interface
 
 interface
-  subroutine create_group (lat, ix_ele, con)
+  subroutine create_group (lat, ix_ele, con, err, err_print_flag)
     use bmad_struct, only: lat_struct, control_struct
     implicit none
     type (lat_struct) lat
     type (control_struct) con(:)
     integer ix_ele
+    logical err
+    logical, optional :: err_print_flag
   end subroutine
 end interface
 
@@ -217,13 +219,15 @@ interface
 end interface
 
 interface
-  subroutine create_overlay (lat, ix_overlay, attrib_value, contl)
+  subroutine create_overlay (lat, ix_overlay, attrib_value, contl, err, err_print_flag)
     use bmad_struct, only: lat_struct, control_struct
     implicit none
     type (lat_struct) lat
     integer ix_overlay
     character(*) attrib_value
     type (control_struct) contl(:)
+    logical err
+    logical, optional :: err_print_flag
   end subroutine
 end interface
 
@@ -645,13 +649,13 @@ interface
 end interface
 
 interface
-  function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
+  function attribute_free (ix_ele, ix_attrib, lat, err_print_flag, except_overlay) result (free)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (lat_struct), target :: lat
     integer ix_ele, ix_attrib
     logical free
-    logical, optional :: err_print_flag
+    logical, optional :: err_print_flag, except_overlay
   end function
 end interface
 
