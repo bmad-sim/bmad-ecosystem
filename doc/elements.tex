@@ -322,6 +322,17 @@ Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
 \index{L}
 \vn{Rbend} and \vn{Sbend} are dipole bends. The difference between
 the two is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
+To ease the bookkeeping burden, after reading in a lattice, \bmad will
+internally convert all \vn{Rbend}s into \vn{Sbend}s. 
+Additionally, the following conversion is done on all \vn{Rbend}s
+will be done
+\begin{example}
+  l_chord(internal) = l(input)
+  l(internal) = 2 * arcsin(l_chord * g / 2) / g
+  e1(internal) = e1(input) + theta / 2
+  e2(internal) = e2(input) + theta / 2
+\end{example}
+
 \begin{figure}[tb]
   \centering
   \subfigure[rbend]
@@ -336,10 +347,10 @@ the two is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
   \begin{description}
   \item[l, l_chord]  
 For a \vn{Rbend} \vn{l} is the chord length and not the arc length as
-it is for a \vn{Sbend}.  After reading in a lattice, \bmad will
-internally convert all \vn{Rbend}s into \vn{Sbend}s so internally
-\vn{l} will become the path length. The chord length will be stored in
-the \vn{l_chord} attribute.
+it is for a \vn{Sbend}.  However, after reading in a lattice, \bmad will
+internally convert all \vn{Rbend}s into \vn{Sbend}s, additionally, the
+\vn{l_chord} attribute will be set to the input \vn{l}, and \vn{l} 
+will be set to the true path length (see above).
   \item[h1, h2]
 The attributes \vn{h1} and \vn{h2} are the curvature of the entrance
 and exit pole faces. They are present for compatibility with MAD but
@@ -401,11 +412,22 @@ without any value then the value $\pi/2$ will be used. This makes for
 a downward vertical ($-y$) bend.
   \end{description}
 
-
-Note: \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are
+The attributes \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are
 specified for an element \bmad will calculate the appropriate value
 for the third.  After reading in a lattice, \vn{angle} is considered a
-dependent variable.
+dependent variable (\sref{s:depend}).
+
+Since internally all \vn{Rbend}s are converted to \vn{Sbend}s, if one wants to
+vary the \vn{g} attribute of a bend and still keep the bend rectangular, an
+overlay (\sref{s:overlay}) can be constructed to maintain the proper face angles.
+For example:
+\begin{example}
+  l_ch = 0.54
+  g_in = 1.52
+  coef = asin(l_ch * g_in / 2) / g_in
+  my_bend: rbend, l = l_ch, g = g_in
+  my_overlay: overlay = {my_bend, my_bend[e1]/coef, my_bend[e2]/coef}, g = g_in
+\end{example}
 
 Example:
 \begin{example}
