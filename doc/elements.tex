@@ -325,7 +325,6 @@ the two is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
 To ease the bookkeeping burden, after reading in a lattice, \bmad will
 internally convert all \vn{Rbend}s into \vn{Sbend}s. 
 Additionally, the following conversion is done on all \vn{Rbend}s
-will be done
 \begin{example}
   l_chord(internal) = l(input)
   l(internal) = 2 * asin(l_chord * g / 2) / g
@@ -346,7 +345,7 @@ will be done
 
   \begin{description}
   \item[l, l_chord]  
-For a \vn{Rbend} \vn{l} is the chord length and not the arc length as
+For a \vn{Rbend}, \vn{l} is the chord length and not the arc length as
 it is for a \vn{Sbend}.  However, after reading in a lattice, \bmad will
 internally convert all \vn{Rbend}s into \vn{Sbend}s, additionally, the
 \vn{l_chord} attribute will be set to the input \vn{l}, and \vn{l} 
@@ -362,7 +361,7 @@ gives a rectangular magnet  (Figure~\ref{f:bend}a). Zero \vn{e1} and \vn{e2}
 for a \vn{Sbend} gives a wedge shaped magnet (Figure~\ref{f:bend}b).
 An \vn{Sbend} with an \vn{e1} = \vn{e2} =
 \vn{angle}/2 is equivalent to an \vn{Rbend} with \vn{e1} = \vn{e2} =
-0.
+0 (see above).
   \item[angle]
 The total design bend angle. A positive \vn{angle} represents a
 bend towards negative $x$ values (see Figure~\ref{f:local_coords}).
@@ -429,7 +428,7 @@ For example:
   my_overlay: overlay = {my_bend, my_bend[e1]/coef, my_bend[e2]/coef}, g = g_in
 \end{example}
 
-Example:
+Example bend specification:
 \begin{example}
   b03w: sbend, l = 0.6, k1 = 0.003, fint  ! gives fint = fintx = 0.5
 \end{example}
