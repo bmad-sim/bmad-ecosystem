@@ -199,6 +199,7 @@ if build_type == "RELEASE":
         dirlist.remove(".svn")                     # Don't consider .svn administrative directory.
         print dirlist
         for dir in dirlist:           # copy over the hidden directory .depend and file .f90_module_rules
+            ( flag1 , flag2 ) = ( 0 , 0 )
             if os.path.exists(OSF_reldir + "/src/" + dir + "/.depend"):
                 flag1 = True
                 print "Copying .depend directory from OSF1 " + dir + " area.\n" 
