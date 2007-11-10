@@ -96,7 +96,7 @@ corresponding \vn{ele.value[]} array has goes from 0 to
 \begin{listing}{1}
   #include "cpp_and_bmad.h"
 
-  exteral "C" c_wrapper(lat_struct* f_lat) {
+  external "C" c_wrapper(lat_struct* f_lat) {
     using namespace Bmad;
     C_lat c_lat;          // Lattice on \cpp side 
     f_lat >> c_lat;        // Transfer info: F -> \cpp
@@ -112,12 +112,12 @@ corresponding \vn{ele.value[]} array has goes from 0 to
 A simple example of a Fortran routine calling a \cpp routine is shown
 in figures~\ref{f:f/fc} and \ref{f:c/fc}. The Fortran calling routine
 simply passes the \vn{lat_struct} structure to the \cpp routine. On
-the \cpp side the \cpp routine must be decleared as \vn{external "C"} to
-make sure the name mangling between \cpp and Fortran is consistant
+the \cpp side the \cpp routine must be declared as \vn{external "C"} to
+make sure the name mangling between \cpp and Fortran is consistent
 and to make sure the arguments are passed correctly. Notice that on
 the \cpp side the routine name has a trailing underscore \vn{_} while
 on the Fortran side it does not. In the \cpp routine the
-\vn{lat_struct} argument is decleared as a pointer. The
+\vn{lat_struct} argument is declared as a pointer. The
 \vn{lat_struct} class on the \cpp side holds no data and is simply
 meant as a place holder. There are corresponding ``dummy'' classes for
 each \bmad structure. These classes should never be instantiated like:
@@ -132,7 +132,7 @@ Fortran to \cpp conversion.  The only exception is with the
 \vn{bmad_common_struct} structure where the data on the Fortran side
 comes directly from the \bmad \vn{bmad_common_struct} common block.  In
 this case no structure variable is passed to the \cpp routine and the
-syntax on the \cpp side for transfering this common block data back and
+syntax on the \cpp side for transferring this common block data back and
 forth looks like:
 \begin{example}
     C_bmad_com c_com;      // Variable to hold Bmad common block data
@@ -180,13 +180,13 @@ figures~\ref{f:f/cf} and \ref{f:c/cf}. \vn{lat_to_f} and
 In general the routines names to convert between a \vn{xyz_struct}
 structure and a \vn{C_xyz} class are called \vn{xyz_to_f} and
 \vn{xyz_to_c} on the Fortran side.  On the \cpp side these routines
-get a trailing underscore \vn{_} and are overloded by the \vn{>{>}}
+get a trailing underscore \vn{_} and are overloaded by the \vn{>{>}}
 operator.
 
 In general it is not possible to call an arbitrary Fortran routine
 directly from \cpp or vice versa. There are certain restrictions that
 Fortran and \cpp routines must observe to be callable from the other
-language. In paracice this means that to use bmad from a \cpp main
+language. In practice this means that to use bmad from a \cpp main
 program the interface routine (in this example \vn{f_wrapper}) will be
 written in Fortran and the appropriate \bmad routines are called
 directly by the interface.

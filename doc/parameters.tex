@@ -33,12 +33,12 @@ Section~\sref{s:bmad_params} the syntax is
 
 Some overall parameters are stored in the \vn{bmad_common_struct}
 structure. The instance name here is \vn{bmad_com}. The parameters of
-this structre are:
+this structure are:
 \begin{example}
   type bmad_common_struct
     real(rp) :: max_aperture_limit = 1e3       ! Max Aperture.
     real(rp) :: d_orb(6)           = 1e-5      ! for the make_mat6_tracking routine.
-    real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.
+    real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for Cavities.
     real(rp) :: default_ds_step    = 0.2       ! Integration step size.  
     real(rp) :: rel_tolerance = 1e-5           ! Runge-Kutta: Relative tolerance.
     real(rp) :: abs_tolerance = 1e-8           ! Runge-Kutta: Absolute tolerance.
@@ -60,9 +60,9 @@ this structre are:
 \end{example}
 
 \vn{max_aperture_limit} is the maximum amplitude a particle can have
-during tracking. If this amplitude is exceeded that particle is
-decleared lost even there is no element aperture set. Having a maximum
-aperture limit helps prevent numerical overflow in the calculations.
+during tracking. If this amplitude is exceeded, the particle is
+lost even if there is no element aperture set. Having a maximum
+aperture limit helps prevent numerical overflow in the tracking calculations.
 
 \vn{d_orb} is the orbit displacement used in the routine that
 calculates the transfer matrix through an element via tracking.
@@ -94,7 +94,7 @@ the beam. The parameters of this structure are:
     integer :: n_bunch = 0             ! Number of bunches.
     logical :: renorm_center = .true.  ! Renormalize centroid?
     logical :: renorm_sigma = .true.   ! Renormalize sigma?
-    logical :: preserve_dist = .false. ! use the same grid distributon each time
+    logical :: preserve_dist = .false. ! use the same grid distribution each time
     logical :: init_spin     = .false. ! initialize beam spinors
   end type
 \end{example}
@@ -113,7 +113,7 @@ Section~\sref{s:csr}. Besides the parameters discussed below, the
 must be set True to enable the CSR calculation.
 
 The CSR parameter structure has a \vn{type name}
-of \vn{csr_prameter_struct} and an \vn{instance name} of \vn{csr_param}.
+of \vn{csr_parameter_struct} and an \vn{instance name} of \vn{csr_param}.
 This structure has components
 \begin{example}
   type csr_parameter_struct 
@@ -153,7 +153,7 @@ transverse sigmas are abnormally low.
 adjusted at each kick point so that the bins will span the bunch
 length.  This parameter must be set to something positive. Larger
 values will slow the calculation while smaller values will lead to
-inaccuraces and loss of resolution. \vn{n_bin} should also not be set
+inaccuracies and loss of resolution. \vn{n_bin} should also not be set
 so large that the average number of particles in a bin is too small. 
 ``Typical'' values are in the range 100 --- 1000.
 
@@ -163,7 +163,7 @@ larger span will give better smoothing of the computed particle
 density with an attendant loss in resolution.
 
 \vn{n_shield_images} is the number of shielding current layers used in
-the shieldling calculation. A value of zero results in no
+the shielding calculation. A value of zero results in no
 shielding. See also the description of the parameter
 \vn{beam_chamber_height}. The proper setting of this parameter depends
 upon how strong the shielding is. Larger values give better accuracy
@@ -177,6 +177,6 @@ kick. Currently this calculation is not implemented so this parameter
 does not have any affect.
 
 \vn{small_angle_approx} toggles whether the small angle approximation
-is used in the calculation. This is generally an excellant
+is used in the calculation. This is generally an excellent
 approximation.
 

@@ -5,7 +5,7 @@
 \bmad can do two types of tracking. One type uses a single particle
 and tracks its coordinates throughout the lattice. The other type
 takes a beam distribution and tracks the centroids and sigmas of
-``macroparticles''. Discussion of macroparicle tracking will be
+``macroparticles''. Discussion of macroparticle tracking will be
 deferred until the last section of this chapter.
 
 %----------------------------------------------------------------
@@ -95,7 +95,7 @@ particle. \vn{lattice%param%lost} is a logical that signals the
 calling routine whether a particle has been lost.  This generally
 happens when the particle's position is larger then the aperture. When
 a particle is lost \vn{lattice%param%ix_lost} is used to record in
-what element the loss occured.
+what element the loss occurred.
 
 \begin{figure}[htb]
 \begin{centering}
@@ -254,7 +254,7 @@ use the Fortran associated function:
     ...
 \end{example}
 
-To concatinate the Taylor maps in a set of elements the routine
+To concatenate the Taylor maps in a set of elements the routine
 \vnr{concat_taylor} can be used
 \begin{example}
   type (lat_struct) lat          ! lattice
@@ -268,7 +268,7 @@ To concatinate the Taylor maps in a set of elements the routine
 The above example forms the transfer Taylor map starting at the end of
 element \vn{i1} to the end of element \vn{i2}. Note: This example
 assumes that all the elements have a Taylor map. The problem with
-concatinating maps is that if there is a constant term in the map
+concatenating maps is that if there is a constant term in the map
 ``feed down'' can make the result inaccurate (\sref{s:taylor_phys}. To
 get around this one can ``track'' a taylor map through an element
 using symplectic integration.
@@ -283,10 +283,10 @@ using symplectic integration.
 \end{example}
 \index{Ds_step}
 \index{Integrator_order}
-Symplectic integration is typically much slower than concatination.
+Symplectic integration is typically much slower than concatenation.
 The width of an integration step is given by \vn{%ele%value(ds_step\$}.
 The attribute \vn{%ele%value(num_steps\$)}, which gives the number
-of integration steps, is a depenent variable 
+of integration steps, is a dependent variable 
 (\sref{s:depend}) and should not be set directly.
 The order of the integrator (\sref{s:taylor_phys})
 is given by \vn{%ele%integrator_order}. 
@@ -362,7 +362,7 @@ into \bmad when bunch tracking was first introduced. Macroparticles have the
 theoretical advantage over particle tracking since the number of macroparticles
 needed to characterize a bunch is smaller. However, transport of the macroparticle
 sigma matrix adds complexity and recent development in \bmad in terms of tracking
-bunches have generally focused on striaght particle tracking (\sref{s:part_track}).
+bunches have generally focused on straight particle tracking (\sref{s:part_track}).
 
 The definition of the \vn{macro_struct} structure that defines a
 macroparticle is shown in Figure~\ref{f:macro_struct}.  
@@ -516,8 +516,8 @@ damping or excitation breaks this symmetry.
 
 Initializing a distribution of particles to conform to some initial set of
 Twiss parameters and emittances can be done using the routine
-\vnr{init_beam_distribution}. Tracking is then performed similarily to
-macroparticle trakcing.
+\vnr{init_beam_distribution}. Tracking is then performed similarly to
+macroparticle tracking.
 
 %----------------------------------------------------------------
 \section{Spin Tracking}

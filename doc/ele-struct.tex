@@ -78,7 +78,7 @@ The \vnes{%key} integer component gives the type of element
 (\vn{Quadrupole}, \vn{RFcavity}, etc.). In general to get the
 corresponding integer parameter for an element class just add a ``\$''
 character to the type name. For example \vn{quadrupole\$} is the integer
-parameter for \vn{quadrupole} elements. The \vn{key_name} array convets from
+parameter for \vn{quadrupole} elements. The \vn{key_name} array converts from
 integer to the appropriate string. For example
 \begin{example}
   type (ele_struct) ele
@@ -98,7 +98,7 @@ The \vnes{%sub_key} component is only used for \vn{Wiggler} and \vn{Rbend} and
   map_type$ or
   periodic_type$
 \end{example}
-depending upon tye type of wiggler. For bends the parser routines
+depending upon the type of wiggler. For bends the parser routines
 turn all \vn{Sbend}s into \vn{Rbend}s. To keep track of what they
 were in the input lattice file, the \vn{%sub_key} is set to
 \begin{example}
@@ -127,7 +127,7 @@ the value at the exit end of the element. Such variables are:
   type (floor_position_struct) position ! Floor position
   real(rp) c_mat(2,2)                   ! Coupling c matrix
   real(rp) gamma_c                      ! Coupling parameter
-  real(rp) s                            ! Longitudinal positon
+  real(rp) s                            ! Longitudinal position
 \end{example}
 To get the Twiss parameters, floor (global) position, etc.\ for the beginning
 of the element you need to look at the preceding element in the
@@ -172,7 +172,7 @@ routines to manipulate the coupling factors. For example:
 \end{example}
 See \sref{r:mat} for a complete listing of such routines.
 
-If the Twiss parameters need to be transfored from 
+If the Twiss parameters need to be transfered from 
 one element to another The three components \vn{%a}, \vn{%b}, and \vn{%c}
 need to be copied. Additionally, to transfer the dispersion, the two
 components \vn{%x} and \vn{%y} need to be copied since the standard
@@ -206,7 +206,7 @@ from an index in the \vn{%value} array to a name use the
   ele%key = quadrupole$  ! Set element to be a quadrupole
   ele%value(k1$) = 0.3                                        ! Set K1 value
   print *, 'Index for Quad K1:  ', attribute_index(ele, 'K1') ! prints: `4' (= k1\$)
-  print *, 'Name for Quad k1\$: ', attrbute_name (ele, k1\$)    ! prints: `K1' 
+  print *, 'Name for Quad k1\$: ', attribute_name (ele, k1\$)    ! prints: `K1' 
 \end{example}
 The list of attributes for a given element
 type is given in the writeup for the different element in
@@ -219,7 +219,7 @@ The index names can be redefined to fit a particular need. For example, suppose
 a program needs to store a time stamp number. The code to do this could look
 like:
 \begin{example}
-  iteger, parameter :: time_stamp\$ = general1\$
+  integer, parameter :: time_stamp\$ = general1\$
   ...
   lat%ele(i)%value(time_stamp$) = ...
 \end{example}
@@ -244,7 +244,7 @@ dependent variables (See \sref{s:depend}) of an element are keep
 up--to--date. \vn{attribute_bookkeeper} is called behind the scenes
 when \vnf{make_mat6} is called to make transfer matrices and when
 \vnf{track1} is called to track through an element. As a general rule,
-to be safe, when elment attributes are changed, call
+to be safe, when element attributes are changed, call
 \vnf{attribute_bookkeeper}. If the element is part of a
 \vn{Lat_struct} (as it is in most cases), the routine
 \vnf{control_bookkeeper} (which calls \vn{attribute_bookkeeper})
@@ -265,9 +265,9 @@ the independent variable. See \sref{s:depend} for more details.
 In designing a program that will let a user input what
 attribute to vary, 
 
-With user input the routine \vn{pointer_to_attribute} is a covienient
+With user input the routine \vn{pointer_to_attribute} is a convenient
 way to obtain from an input string a pointer that points to the
-approbriate attribute. For example:
+appropriate attribute. For example:
 \begin{example}
   type (lat_struct) lat
   character(16) attrib_name, ele_name
@@ -322,7 +322,7 @@ other elements). Possible values for \vn{%control_type} are:
 \begin{description}
 \item[free element] 
 A \vn{free} element is just that, An element that is neither
-controlls or is controlled. The exception is that attributes of this element
+controls or is controlled. The exception is that attributes of this element
 may be controlled by a \vn{group_lord}.
 
 \item[super_lord and super_slave]
@@ -331,7 +331,7 @@ come from superimposing elements on top of other elements (\sref{s:super}).
 
 \item[overlay_lord, overlay_slave]
 An \vn{overlay_lord} is an \vn{overlay} element and the elements it
-controlls are \vn{overlay_slave}s (\sref{s:overlay}).
+controls are \vn{overlay_slave}s (\sref{s:overlay}).
 
 \item[group_lord]
 A \vn{group_lord} is a \vn{group} element (\sref{s:group}). Since a
@@ -447,12 +447,12 @@ As an example the following finds the order of a Taylor map.
       enddo
     enddo
   else  ! Taylor map does not exist
-    taylor_order = -1  ! flag non-existance
+    taylor_order = -1  ! flag non-existence
   endif
 \end{example}
 
 The Taylor map is made up around some reference phase space point
-corresponding to the coordinates at the enntrance of the element.
+corresponding to the coordinates at the entrance of the element.
 This reference point is saved in \vn{%taylor(1:6)%ref}.  Once a Taylor map is
 made the reference point is not needed in subsequent
 calculations. However, The Taylor map itself will depend upon what
@@ -503,14 +503,14 @@ The structure of each element in this array is:
 All \vn{%wake%sr_table(0:)%z} must be negative except \vn{%wake%sr_table(0)%z} 
 = 0. Wake field kicks are applied using \Eqs{delvp} and \eq{pelqxw}.
 
-The alternitive short--range wake parameterization uses pseudo--modes (\Eq{wadzk}).
+The alternative short--range wake parameterization uses pseudo--modes (\Eq{wadzk}).
 This parameterization utilizes the \vn{%wake%sr_mode_long}, and \vn{%wake%sr_mode_trans}
-arrays for the longitudinal and transvere modes respectively.
+arrays for the longitudinal and transverse modes respectively.
 The structure used for the elements of these arrays are:
 \begin{example}
-  type sr_mode_wake_struct  ! Psudo-mode short-range wake struct 
+  type sr_mode_wake_struct  ! Pseudo-mode short-range wake struct 
     real(rp) amp        ! Amplitude
-    real(rp) damp       ! Dampling factor.
+    real(rp) damp       ! Damping factor.
     real(rp) freq       ! Frequency in Hz
     real(rp) phi        ! Phase in radians/2pi
     real(rp) norm_sin   ! non-skew sin-like component of the wake
@@ -544,7 +544,7 @@ structure definition is:
     real(rp) norm_cos   ! non-skew cos-like component of the wake
     real(rp) skew_sin   ! skew sin-like component of the wake
     real(rp) skew_cos   ! skew cos-like component of the wake
-    logical polarized   ! Polaraized mode?
+    logical polarized   ! Polarized mode?
   end type
 \end{example}
 \index{Freq_spread}
@@ -553,7 +553,7 @@ actual frequency in the input file. \vnr{bmad_parser} will set
 \vn{%freq} to \vn{%freq_in} except when the \vn{freq_spread} attribute
 is non-zero in which case \vn{bmad_parser} will vary \vn{%freq} as
 explained in \sref{s:lcav}. \vn{%polarized} is a logical that
-indecates whether the the mode has a polarization angle. If so, then
+indicates whether the the mode has a polarization angle. If so, then
 \vn{%angle} is the polarization angle.
 
 %--------------------------------------------------------------------------
@@ -615,7 +615,7 @@ A list of \bmad routines for manipulating multipoles can be found in
 \index{Ele_struct!%r}
 \index{Ele_struct!%ix_pointer}
 \index{Ele_struct!%logic}
-There are three components of an \vn{ele_struct} that are gauranteed
+There are three components of an \vn{ele_struct} that are guaranteed
 to never be used by any \bmad routine and so are available for use by
 someone writing a program. These components are
 \begin{example}

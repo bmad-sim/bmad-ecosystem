@@ -131,7 +131,7 @@ attribute and this change will be added to the value of
 \vn{q1[k1]} is. It only knows it has to change it by the change in
 \vn{gr[command]}.
 
-\index{Accordian_edge}
+\index{Accordion_edge}
 \index{start_edge}
 \index{end_edge}
 \index{symmetric_edge}
@@ -145,7 +145,7 @@ using the attributes
   symmetric_edge  ! Varies element's overall s-position. Constant length.
   s_offset        ! Similar to symmetric_edge
 \end{example}
-With \vn{accordian_edge}, \vn{start_edge}, \vn{end_edge}, and
+With \vn{accordion_edge}, \vn{start_edge}, \vn{end_edge}, and
 \vn{symmetric_edge} the longitudinal position of an elements edges are
 varied. This is done by appropriate control of the element's length
 and the lengths of the elements to either side. With \vn{s_offset} the
@@ -288,7 +288,7 @@ The resulting lattice (first part) would be
 \end{example}
 and the second part of the lattice would have the \vn{Q} element.
  
-A superposition is illustrated in Fugure~\ref{f:superimpose} The
+A superposition is illustrated in Figure~\ref{f:superimpose} The
 placement of a superimposed element is determined by three factors: A
 reference point on the superimposed element, a reference point in the
 lattice line, and an offset between the points. The attributes that
@@ -326,13 +326,13 @@ point on the superimposed element. The default if not present is zero.
 \index{Girder}
 Superposition may be done with any element except \vn{Drift},
 \vn{Group}, \vn{Overlay}, and \vn{Girder} control elements. A superimposed element that
-extends beyound either end of the lattice will be wrapped around. For consistancy's sake
+extends beyond either end of the lattice will be wrapped around. For consistency's sake
 this is done even if the \vn{lattice_type} is set to \vn{linear_lattice} but in this case
 a warning message will be issued.
 
 When a superposition is made that overlaps a drift the drift, not being a "real" 
 element, vanishes. That is, it does not get put in the lord section of the lattice.
-Thus, it is an error if a second superposition uses the drift as the refernce element.
+Thus, it is an error if a second superposition uses the drift as the reference element.
 For example
 \begin{example}
   dft1: drift, l = 10
