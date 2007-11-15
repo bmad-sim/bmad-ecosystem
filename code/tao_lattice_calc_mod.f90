@@ -312,14 +312,14 @@ all_lost_already = .false.
 
 extract_at_ix_ele = -1
 do i_uni_to = uni+1, size(s%u)
-  if (.not. s%u(i_uni_to)%coupling%coupled) cycle
-  if (s%u(i_uni_to)%coupling%from_uni /= uni) cycle
-  if (s%u(i_uni_to)%coupling%from_uni_ix_ele .ne. -1) then
-    extract_at_ix_ele = s%u(i_uni_to)%coupling%from_uni_ix_ele
-    exit ! save i_uni_to for coupled universe
+  if (.not. s%u(i_uni_to)%connect%connected) cycle
+  if (s%u(i_uni_to)%connect%from_uni /= uni) cycle
+  if (s%u(i_uni_to)%connect%from_uni_ix_ele .ne. -1) then
+    extract_at_ix_ele = s%u(i_uni_to)%connect%from_uni_ix_ele
+    exit ! save i_uni_to for connected universe
   else
     call out_io (s_abort$, r_name, &
-         "Must specify an element when coupling lattices with a beam.")
+         "Must specify an element when connecting lattices with a beam.")
     ! set initial beam centroid
     call err_exit
   endif
@@ -327,7 +327,7 @@ enddo
 
 ! If beam is injected into this lattice then no initialization wanted.
 
-if (.not. u%coupling%coupled) then
+if (.not. u%connect%connected) then
   ! no beam tracking in lattices
   if (lat%param%lattice_type == circular_lattice$) then
     call tao_single_track (uni, tao_lat, calc_ok) 
@@ -345,7 +345,7 @@ if (.not. u%coupling%coupled) then
       beam_init%center  = tao_lat%lat%beam_start%vec
       ! other beam_init parameters will be as in tao.init, or as above
       call init_beam_distribution (lat%ele(extract_at_ix_ele), &
-                               beam_init, s%u(i_uni_to)%coupling%injecting_beam)
+                               beam_init, s%u(i_uni_to)%connect%injecting_beam)
     endif
     return
   elseif (lat%param%lattice_type .ne. linear_lattice$) then
@@ -377,7 +377,7 @@ do j = 0, lat%n_ele_track
  
   ! Save beam at location if injecting into another lattice
   if (extract_at_ix_ele == j) then
-    s%u(i_uni_to)%coupling%injecting_beam = beam
+    s%u(i_uni_to)%connect%injecting_beam = beam
   endif
 
   ! compute centroid orbit
@@ -456,20 +456,20 @@ all_lost_already = .false.
 ! Find if injecting into another lattice
 extract_at_ix_ele = -1
 do i_uni = uni+1, size(s%u)
-  if (.not. s%u(i_uni)%coupling%coupled) cycle
-  if (s%u(i_uni)%coupling%from_uni /= uni) cycle
-  if (s%u(i_uni)%coupling%from_uni_ix_ele .ne. -1) then
-    extract_at_ix_ele = s%u(i_uni)%coupling%from_uni_ix_ele
-    exit ! save i_uni for coupled universe
+  if (.not. s%u(i_uni)%connect%connected) cycle
+  if (s%u(i_uni)%connect%from_uni /= uni) cycle
+  if (s%u(i_uni)%connect%from_uni_ix_ele .ne. -1) then
+    extract_at_ix_ele = s%u(i_uni)%connect%from_uni_ix_ele
+    exit ! save i_uni for connected universe
   else
     call out_io (s_abort$, r_name, &
-         "Must specify an element when coupling lattices with macroparticles")
+         "Must specify an element when connecting lattices with macroparticles")
     call err_exit
   endif
 enddo 
   
 ! If beam is injected to here then no initialization wanted.
-if (.not. u%coupling%coupled) then
+if (.not. u%connect%connected) then
   ! no macroparticle tracking in lattices
   if (lat%param%lattice_type == circular_lattice$ ) then
     call tao_single_track (uni, tao_lat, calc_ok) 
@@ -486,7 +486,7 @@ if (.not. u%coupling%coupled) then
     if (extract_at_ix_ele .ne. -1) then
       macro_init%center  = tao_lat%lat%beam_start%vec
       ! other macro_init parameters will be as in init.tao, or as above
-      call init_macro_distribution (s%u(i_uni)%coupling%injecting_macro_beam, &
+      call init_macro_distribution (s%u(i_uni)%connect%injecting_macro_beam, &
                                 macro_init, lat%ele(extract_at_ix_ele), .true.)
     endif
     return
@@ -512,7 +512,7 @@ do j = 1, lat%n_ele_track
  
   ! Save beam at location if injecting into another lattice
   if (extract_at_ix_ele == j) then
-    s%u(i_uni)%coupling%injecting_macro_beam = beam
+    s%u(i_uni)%connect%injecting_macro_beam = beam
   endif
     
   ! compute centroid orbit
@@ -728,7 +728,7 @@ character(20) :: r_name = "inject_particle"
 
 !
 
-if (.not. u%coupling%coupled) then
+if (.not. u%connect%connected) then
   orb(0) = u%model%orb(0)
   polar%theta = u%beam_init%spin%theta
   polar%phi = u%beam_init%spin%phi
@@ -736,7 +736,7 @@ if (.not. u%coupling%coupled) then
   call polar_to_spinor (polar, orb(0))
 else
     
-  if (.not. s%u(u%coupling%from_uni)%is_on) then
+  if (.not. s%u(u%connect%from_uni)%is_on) then
     call out_io (s_error$, r_name, &
       "Injecting from a turned off universe! This will not do!")
     call out_io (s_blank$, r_name, &
@@ -747,20 +747,20 @@ else
   call init_ele (extract_ele)
   
   ! get particle perameters from previous universe at position s
-  call twiss_and_track_at_s (s%u(u%coupling%from_uni)%model%lat, &
-                             u%coupling%from_uni_s, extract_ele, &
-                             s%u(u%coupling%from_uni)%model%orb, pos)
+  call twiss_and_track_at_s (s%u(u%connect%from_uni)%model%lat, &
+                             u%connect%from_uni_s, extract_ele, &
+                             s%u(u%connect%from_uni)%model%orb, pos)
 
-  ! track through coupling element
-  if (u%coupling%use_coupling_ele) then
-    if (s%global%matrix_recalc_on) call make_mat6 (u%coupling%coupling_ele, &
-                                             s%u(u%coupling%from_uni)%model%lat%param)
-    call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
-    call track1 (pos, u%coupling%coupling_ele, &
-                    s%u(u%coupling%from_uni)%model%lat%param, pos)
-    u%coupling%coupling_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
-    u%coupling%coupling_ele%floor = extract_ele%floor
-    extract_ele = u%coupling%coupling_ele
+  ! track through connect element
+  if (u%connect%use_connect_ele) then
+    if (s%global%matrix_recalc_on) call make_mat6 (u%connect%connect_ele, &
+                                             s%u(u%connect%from_uni)%model%lat%param)
+    call twiss_propagate1 (extract_ele, u%connect%connect_ele)
+    call track1 (pos, u%connect%connect_ele, &
+                    s%u(u%connect%from_uni)%model%lat%param, pos)
+    u%connect%connect_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
+    u%connect%connect_ele%floor = extract_ele%floor
+    extract_ele = u%connect%connect_ele
   endif
   
   ! transfer to this lattice
@@ -785,7 +785,7 @@ end subroutine tao_inject_particle
 ! preparation for tracking. The lattice where the extraction occurs will have
 ! already been calculated.
 !
-! If there is no coupling between lattice then this will initialize the beam
+! If there is no connection between lattice then this will initialize the beam
 
 subroutine tao_inject_beam (u, lat, orb)
 
@@ -823,7 +823,7 @@ if (u%beam0_file /= "") then
 
   call tao_find_beam_centroid (u%beam0, orb(0))  
 
-elseif (.not. u%coupling%coupled) then
+elseif (.not. u%connect%connected) then
   if (tao_com%init_beam0 .or. .not. allocated(u%beam0%bunch)) then
     u%beam_init%center = u%model%lat%beam_start%vec
     if (u%beam_init%n_bunch < 1 .or. u%beam_init%n_particle < 1) then
@@ -837,7 +837,7 @@ elseif (.not. u%coupling%coupled) then
 
 else
    
-  if (.not. s%u(u%coupling%from_uni)%is_on) then
+  if (.not. s%u(u%connect%from_uni)%is_on) then
     call out_io (s_error$, r_name, &
       "Injecting from a turned off universe! This will not do!")
     call out_io (s_blank$, r_name, &
@@ -848,19 +848,19 @@ else
   ! beam from previous universe at end of extracting element should already be set
   ! but we still need the twiss parameters and everything else
 
-  extract_ele = s%u(u%coupling%from_uni)%model%lat%ele(u%coupling%from_uni_ix_ele)
+  extract_ele = s%u(u%connect%from_uni)%model%lat%ele(u%connect%from_uni_ix_ele)
   
-  ! track through coupling element
+  ! track through connection element
 
-  if (u%coupling%use_coupling_ele) then
-    param => s%u(u%coupling%from_uni)%model%lat%param
-    if (s%global%matrix_recalc_on) call make_mat6 (u%coupling%coupling_ele, param)
-    call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
-    call track1_beam_ele (u%coupling%injecting_beam, u%coupling%coupling_ele, &
-                        param, u%coupling%injecting_beam)
-    u%coupling%coupling_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
-    u%coupling%coupling_ele%floor = extract_ele%floor
-    extract_ele = u%coupling%coupling_ele
+  if (u%connect%use_connect_ele) then
+    param => s%u(u%connect%from_uni)%model%lat%param
+    if (s%global%matrix_recalc_on) call make_mat6 (u%connect%connect_ele, param)
+    call twiss_propagate1 (extract_ele, u%connect%connect_ele)
+    call track1_beam_ele (u%connect%injecting_beam, u%connect%connect_ele, &
+                        param, u%connect%injecting_beam)
+    u%connect%connect_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
+    u%connect%connect_ele%floor = extract_ele%floor
+    extract_ele = u%connect%connect_ele
   endif
     
   ! transfer to this lattice
@@ -871,8 +871,8 @@ else
   lat%ele(0)%c_mat   = extract_ele%c_mat
   lat%ele(0)%gamma_c = extract_ele%gamma_c
   lat%ele(0)%floor   = extract_ele%floor
-  u%beam0 = u%coupling%injecting_beam
-  call tao_find_beam_centroid (u%coupling%injecting_beam, orb(0))
+  u%beam0 = u%connect%injecting_beam
+  call tao_find_beam_centroid (u%connect%injecting_beam, orb(0))
 endif
 
 ! record this beam
@@ -888,7 +888,7 @@ end subroutine tao_inject_beam
 ! preparation for tracking. The lattice where the extraction occurs will have
 ! already been calculated.
 !
-! If there is no coupling between lattice then this will initialize the beam
+! If there is no connection between lattice then this will initialize the beam
 
 subroutine tao_inject_macro_beam (u, lat, orb)
 
@@ -907,14 +907,14 @@ character(20) :: r_name = "tao_inject_macro_beam"
 
 !
 
-if (.not. u%coupling%coupled) then
+if (.not. u%connect%connected) then
   u%macro_beam%macro_init%center = u%model%lat%beam_start%vec
   call init_macro_distribution (u%macro_beam%beam, u%macro_beam%macro_init, &
                                 lat%ele(0), .true.)
   u%macro_beam%ix_lost(:,:,:) = not_lost$
   call tao_find_macro_beam_centroid (u%macro_beam%beam, orb(0))
 else
-  if (.not. s%u(u%coupling%from_uni)%is_on) then
+  if (.not. s%u(u%connect%from_uni)%is_on) then
     call out_io (s_error$, r_name, &
       "Injecting from a turned off universe! This will not do!")
     call out_io (s_blank$, r_name, &
@@ -924,18 +924,18 @@ else
   
   ! beam from previous universe at end of element should already be set
   ! but we still need the twiss parameters and everything else
-  extract_ele = s%u(u%coupling%from_uni)%model%lat%ele(u%coupling%from_uni_ix_ele)
+  extract_ele = s%u(u%connect%from_uni)%model%lat%ele(u%connect%from_uni_ix_ele)
   
-  !track through coupling element
-  if (u%coupling%use_coupling_ele) then
-    param => s%u(u%coupling%from_uni)%model%lat%param
-    if (s%global%matrix_recalc_on) call make_mat6 (u%coupling%coupling_ele, param)
-    call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
-    call track1_macro_beam (u%coupling%injecting_macro_beam, u%coupling%coupling_ele, &
-                                              param, u%coupling%injecting_macro_beam)
-    u%coupling%coupling_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
-    u%coupling%coupling_ele%floor = extract_ele%floor
-    extract_ele = u%coupling%coupling_ele
+  !track through connection element
+  if (u%connect%use_connect_ele) then
+    param => s%u(u%connect%from_uni)%model%lat%param
+    if (s%global%matrix_recalc_on) call make_mat6 (u%connect%connect_ele, param)
+    call twiss_propagate1 (extract_ele, u%connect%connect_ele)
+    call track1_macro_beam (u%connect%injecting_macro_beam, u%connect%connect_ele, &
+                                              param, u%connect%injecting_macro_beam)
+    u%connect%connect_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
+    u%connect%connect_ele%floor = extract_ele%floor
+    extract_ele = u%connect%connect_ele
   endif
     
   ! transfer to this lattice
@@ -946,14 +946,14 @@ else
   lat%ele(0)%c_mat   = extract_ele%c_mat
   lat%ele(0)%gamma_c = extract_ele%gamma_c
   lat%ele(0)%floor   = extract_ele%floor
-  u%macro_beam%beam = u%coupling%injecting_macro_beam
-  call tao_find_macro_beam_centroid (u%coupling%injecting_macro_beam, orb(0))
+  u%macro_beam%beam = u%connect%injecting_macro_beam
+  call tao_find_macro_beam_centroid (u%connect%injecting_macro_beam, orb(0))
   
   ! deterine if macroparticle already lost
-  do n_bunch = 1, size(u%coupling%injecting_macro_beam%bunch)
-    do n_slice = 1, size(u%coupling%injecting_macro_beam%bunch(n_bunch)%slice)
-      do n_macro = 1, size(u%coupling%injecting_macro_beam%bunch(n_bunch)%slice(n_slice)%macro)
-  if (u%coupling%injecting_macro_beam%bunch(n_bunch)%slice(n_slice)%macro(n_macro)%lost) &
+  do n_bunch = 1, size(u%connect%injecting_macro_beam%bunch)
+    do n_slice = 1, size(u%connect%injecting_macro_beam%bunch(n_bunch)%slice)
+      do n_macro = 1, size(u%connect%injecting_macro_beam%bunch(n_bunch)%slice(n_slice)%macro)
+  if (u%connect%injecting_macro_beam%bunch(n_bunch)%slice(n_slice)%macro(n_macro)%lost) &
     u%macro_beam%ix_lost(n_bunch, n_slice, n_macro) = 0
       enddo
     enddo
@@ -976,7 +976,7 @@ implicit none
 type (tao_universe_struct), target :: u
 type (coord_struct) extract_pos
 type (ele_struct), save :: extract_ele, inject_ele
-type (ele_struct), pointer :: coupling_ele
+type (ele_struct), pointer :: connection_ele
 type (beam_struct), pointer :: injecting_beam
 type (macro_beam_struct), pointer :: injecting_macro_beam
 
@@ -984,36 +984,36 @@ character(20) :: r_name = "match_lats_init"
 
 !
 
-if (.not. (u%coupling%coupled .and. u%coupling%use_coupling_ele)) return
+if (.not. (u%connect%connected .and. u%connect%use_connect_ele)) return
 
-coupling_ele => u%coupling%coupling_ele
+connection_ele => u%connect%connect_ele
 call init_ele (extract_ele)
 call init_ele (inject_ele)
   
 ! set up coupling%injecting_beam or macro_beam 
 if (s%global%track_type == 'beam') then
-  injecting_beam => s%u(u%coupling%from_uni)%current_beam
-  call reallocate_beam (u%coupling%injecting_beam, size(injecting_beam%bunch), &
+  injecting_beam => s%u(u%connect%from_uni)%current_beam
+  call reallocate_beam (u%connect%injecting_beam, size(injecting_beam%bunch), &
             size(injecting_beam%bunch(1)%particle))
 elseif (s%global%track_type == 'macro') then
-  injecting_macro_beam => s%u(u%coupling%from_uni)%macro_beam%beam
-  call reallocate_macro_beam (u%coupling%injecting_macro_beam, &
+  injecting_macro_beam => s%u(u%connect%from_uni)%macro_beam%beam
+  call reallocate_macro_beam (u%connect%injecting_macro_beam, &
                                 size(injecting_macro_beam%bunch), &
                                 size(injecting_macro_beam%bunch(1)%slice), &
                                 size(injecting_macro_beam%bunch(1)%slice(1)%macro))
 endif
 
 ! match design lattices
-if (u%coupling%match_to_design) then
+if (u%connect%match_to_design) then
   ! get twiss parameters from extracted lattice
   if (s%global%track_type == 'single') then
-    call twiss_and_track_at_s (s%u(u%coupling%from_uni)%design%lat, &
-                     u%coupling%from_uni_s, extract_ele, &
-                     s%u(u%coupling%from_uni)%design%orb, extract_pos)
+    call twiss_and_track_at_s (s%u(u%connect%from_uni)%design%lat, &
+                     u%connect%from_uni_s, extract_ele, &
+                     s%u(u%connect%from_uni)%design%orb, extract_pos)
   elseif (s%global%track_type == 'beam') then
-    extract_ele = s%u(u%coupling%from_uni)%design%lat%ele(u%coupling%from_uni_ix_ele)
+    extract_ele = s%u(u%connect%from_uni)%design%lat%ele(u%connect%from_uni_ix_ele)
   elseif (s%global%track_type == 'macro') then
-    extract_ele = s%u(u%coupling%from_uni)%design%lat%ele(u%coupling%from_uni_ix_ele)
+    extract_ele = s%u(u%connect%from_uni)%design%lat%ele(u%connect%from_uni_ix_ele)
   endif
     
   ! get twiss parameters for injected lattice
@@ -1027,29 +1027,29 @@ else
 endif
 
 ! set up matching element
-coupling_ele%value( beta_a0$) = extract_ele%a%beta
-coupling_ele%value(alpha_a0$) = extract_ele%a%alpha
-coupling_ele%value(  eta_a0$) = extract_ele%a%eta
-coupling_ele%value( etap_a0$) = extract_ele%a%etap
-coupling_ele%value( beta_b0$) = extract_ele%b%beta
-coupling_ele%value(alpha_b0$) = extract_ele%b%alpha
-coupling_ele%value(  eta_b0$) = extract_ele%b%eta
-coupling_ele%value( etap_b0$) = extract_ele%b%etap
+connection_ele%value( beta_a0$) = extract_ele%a%beta
+connection_ele%value(alpha_a0$) = extract_ele%a%alpha
+connection_ele%value(  eta_a0$) = extract_ele%a%eta
+connection_ele%value( etap_a0$) = extract_ele%a%etap
+connection_ele%value( beta_b0$) = extract_ele%b%beta
+connection_ele%value(alpha_b0$) = extract_ele%b%alpha
+connection_ele%value(  eta_b0$) = extract_ele%b%eta
+connection_ele%value( etap_b0$) = extract_ele%b%etap
   
-coupling_ele%value( beta_a1$) = inject_ele%a%beta
-coupling_ele%value(alpha_a1$) = inject_ele%a%alpha
-coupling_ele%value(  eta_a1$) = inject_ele%a%eta
-coupling_ele%value( etap_a1$) = inject_ele%a%etap
-coupling_ele%value( beta_b1$) = inject_ele%b%beta
-coupling_ele%value(alpha_b1$) = inject_ele%b%alpha
-coupling_ele%value(  eta_b1$) = inject_ele%b%eta
-coupling_ele%value( etap_b1$) = inject_ele%b%etap
+connection_ele%value( beta_a1$) = inject_ele%a%beta
+connection_ele%value(alpha_a1$) = inject_ele%a%alpha
+connection_ele%value(  eta_a1$) = inject_ele%a%eta
+connection_ele%value( etap_a1$) = inject_ele%a%etap
+connection_ele%value( beta_b1$) = inject_ele%b%beta
+connection_ele%value(alpha_b1$) = inject_ele%b%alpha
+connection_ele%value(  eta_b1$) = inject_ele%b%eta
+connection_ele%value( etap_b1$) = inject_ele%b%etap
   
-coupling_ele%value(dphi_a$)   = mod(inject_ele%a%phi - extract_ele%a%phi,twopi)
-coupling_ele%value(dphi_b$)   = mod(inject_ele%b%phi - extract_ele%b%phi,twopi)
+connection_ele%value(dphi_a$)   = mod(inject_ele%a%phi - extract_ele%a%phi,twopi)
+connection_ele%value(dphi_b$)   = mod(inject_ele%b%phi - extract_ele%b%phi,twopi)
   
 ! it's a linear element so no orbit need be passed
-if (s%global%matrix_recalc_on) call make_mat6 (coupling_ele, s%u(u%coupling%from_uni)%design%lat%param)
+if (s%global%matrix_recalc_on) call make_mat6 (connection_ele, s%u(u%connect%from_uni)%design%lat%param)
   
 end subroutine  tao_match_lats_init
  

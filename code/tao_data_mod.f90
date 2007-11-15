@@ -613,6 +613,10 @@ case ('s_position')
     datum_value = lat%ele(ix1)%s 
   endif
 
+case ('wall')
+  print *, 'NOT YET IMPLEMENTED...'
+  call err_exit
+
 !---------------------------------------------------------
 ! Beam Emittance
   

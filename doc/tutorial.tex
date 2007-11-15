@@ -1,222 +1,92 @@
+\chapter{Tutorial}
+\label{c:tutorial}
 
-
-\chapter{``Vanilla'' Tao}
-\label{c:vanilla_tao}
-
-%----------------------------------------------------------------
-\section{Before we start...}
-\label{s:before_beginning}
-
-\tao is readily customizable. All the bookkeeping is taken care of
-automatically and all you need to do custom analysis is write the
-subroutines pertinent to your project. However beginners are advised
-to start with ``out of the box'' \tao while getting to know the
-program. This tutorial starts here and will then show you how to
-customize \tao for your specific purposes.
+This chapter gives a brief tutorial of \tao to get you, the user, up
+and running with \tao without needing to dredge through the entire
+reference manual. See Chapter~\sref{c:concepts} for a discussion of
+\tao terminology.
 
 %----------------------------------------------------------------
-\subsection{Getting Tao}
-\label{s:get_and_compile}
+\section{Obtaining Tao}
+\label{s:obtaining}
 
-Instructions for setting up Tao and obtaining the source files can be
-found at:
+Instructions for setting up the appropriate environmental variables
+and for obtaining the source files can be found at:
 \begin{example}
-  http://www.lepp.cornell.edu/~dcs/bmad
+  http://www.lepp.cornell.edu/~dcs/bmad/tao_entry_point.html
 \end{example}
 
-Briefly, if you are at Cornell, after setting up the appropriate
-environmental variables, you should be able to run \tao using the
-command
+Briefly, you should be able to run \tao using the command
 \begin{example}
   \$CESR_EXE/tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
-                          \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
+                                  \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
 \end{example}
-The \vn{<tao_input_file>} is the root initialization file that \tao
-reads to start \tao's initialization process. If not present,
-\vn{<tao_input_file>} defaults to \vn{tao.init}. The
-\vn{-beam_all} switch is for reading in data generated from beam
-tracking (\sref{s:command_line}). The \vn{-beam0} switch is for
-specifying the initial beam distribution. 
-The \vn{<lattice_file>} is used to
-override the lattice file specified in the root initialization
-file. See section~\sref{s:command_line} for more details. Example:
+\vn{\$CESR_EXE} is an environmental variable pointing to the directory
+the \tao executable is in.  The root initialization file
+\vn{<tao_input_file>} is the file that \tao reads to start \tao's
+initialization process. If not present, \vn{<tao_input_file>} defaults
+to \vn{tao.init}. The \vn{-beam_all} switch is for reading in data
+generated from beam tracking (\sref{s:command_line}). The \vn{-beam0}
+switch is for specifying the initial beam distribution.  The
+\vn{<lattice_file>} is used to override the lattice file specified in
+the root initialization file. See section~\sref{s:command_line} for
+more details. Example:
 \begin{example}
   \$CESR_EXE/tao -init my.init -lat xsif::slac.xsif
 \end{example}
 
-To get an example set of input files to run, check out a copy of the
-\tao code. Let \cs{Root} be the name of the root directory for the
-code. The checked out copy of \tao will be put in a directory
-\cs{ROOT/tao}. The example is in the \cs{Root/tao/program} directory.
-Note: The first time you run \tao it will need to create a digested
-\bmad lattice file for the included lattice. This may take a minute if
-the lattice contains wiggler elements.
+This tutorial uses the example set of input files that comes with the \tao library.
+These files can be viewd and/or downloaded at:
+\begin{example}
+  https://accserv.lepp.cornell.edu/cgi-bin/view.cgi/trunk/src/tao/program
+\end{example}
+On a unix machine with the Subversion \vn{svn} client program, 
+these files can be obtained more simply via the command:
+\begin{example}
+  svn co https://accserv.lepp.cornell.edu/svn/trunk/src/tao/program
+\end{example}
+this will create a sub-directory \vn{program} of your current directory with 
+the appropriate files.
 
-%----------------------------------------------------------------
-\subsection{Customizing Tao}
-\index{customizing Tao}
-
-After you are familiar with the basics of \tao you are ready to fully
-exploit the versatility of this wonderful program. See
-Chapter~\ref{c:custom_tao} to learn how to do this. But here we will
-first explore the basic functionality of the program.
-
-%----------------------------------------------------------------
-%----------------------------------------------------------------
-\section{In the Beginning...}
-\label{s:beginning}
-
-%----------------------------------------------------------------
-\subsection{There was the user.}
-
-This tutorial assumes you are already familiar with basic particle
-beam dynamics and its formalism. There are several books that
-introduce the topics very well. The best the author has found so far
-is \textit{The Physics of Particle Accelerators} by Klaus Wille.
-
-\tao is based on the \bmad subroutine library and you should have a
-working knowledge of the conventions used by \bmad. \tao can be used
-``out of the box'' so an understanding of the nitty-gritty details of
-\bmad is not necessary, however, one should be familiar with the
-material in Part I of the \bmad manual. This part will also summarize
-the particle beam dynamics used by \tao.
-
-So, what's \tao good for? A large variety of applications. It's
-versatility is that it's easily expandable. Think of it as an
-accelerator design and analysis environment. The entire \bmad library
-is at your disposal. But even without any customizations \tao will do
-much analysis. These problems fall into three main categories:
-
-\begin{itemize}
-\item 
-Design a lattice subject to various constraints.
-\item
-Simulate errors and changes in machine parameters. For example, you want to
-simulate what happens to the orbit, beta function, etc., when you change
-something in the machine. 
-\item 
-Simulate machine commissioning including simulating data measurement and
-correction. For example, you want to know what steering strength changes will
-make an orbit flat.
-\end{itemize}
-
-Programs that are written to solve these types of problems have common
-elements: You have variables you want to vary in your model of your
-machine, you have "data" that you want to view, and, in the first two
-categories above, you want to match the machine model to the data (in
-designing a lattice the constraints correspond to the data).
-
-This tutorial is designed to informally get you, the user, up and
-running with \tao without needing to dredge through the entire
-reference manual. Full command syntax or greater detail on any topic
-can be found in Part~\ref{ref_guide} and above.
-
-%----------------------------------------------------------------
-\subsection{Then there was the Super-universe.}\index{Super-universe}
-\label{s:super_universe}
-
-Everything known to \tao is placed in an area called the
-\textit{super-universe}. Within the \textit{super-universe} lies one
-or more universes each containing a particular machine lattice. This
-allows for the user to do analysis on multiple machines or multiple
-configurations of a single machine at the same time. A
-\textit{super-universe} consists of the following parts:
-
-\begin{enumerate}
-
-\item \textbf{A typical universe}\index{Universe}
-\Newline A universe contains a \bmad lattice plus whatever data one
-wishes to study within this lattice (i.e. twiss parameters, orbit,
-phase \&etc...). Actually, there are three lattices within each
-universe: the \textbf{design lattice}, \textbf{model lattice} and
-\textbf{base lattice}. \emph{All lattice changes specified during a
-\tao session are incurred on the model lattice.} The design lattice is
-set at initialization time and serves as a reference point for any
-elemental changes incurred during the \tao session. The base lattice
-also serves as a user specified reference point. The user can transfer
-the model lattice over to the base or design lattice at any time to
-create a reference lattice.
-
-Each data point (for example, the horizontal orbit at some detector)
-has 5 datum quantities associated with it: the \textbf{measured data},
-\textbf{reference data}, \textbf{model data}, \textbf{design data} and
-\textbf{base data}. The model, design and base data correspond to the
-appropriate quantity calculated in its respective lattice above. The
-measured data corresponds to data obtained during a measurement. If
-doing design work then the desired or goal value would be placed
-here. This data area is also referred to as the constraint during
-optimization. The reference data is for observing changes in the data
-with respect to a reference.
-
-\item \textbf{Variables}\index{Variables} \Newline
-Variables control attributes of elements in the model lattice of one
-or more universes. They are not the same thing as attributes in
-lattice elements.  Instead, they \textit{control} attributes in
-lattice elements. They are more akin to \bmad \textit{overlays}. A
-given variable may control a single attribute of one element in one or
-more universes. If you want a variable to control a collection of
-elements like a \bmad \textit{group} then you need to insert the
-appropriate group in your lattice. Variables are what you vary in
-order to change your model lattice. You can also change your model
-lattice by directly changing and lattice element attribute. However,
-if you plan on doing any optimization then you will need to use
-variables.
-
-\item \textbf{Key Bindings}\index{Key bindings} \Newline
-Key bindings are used in \textit{single mode} where each key stroke is
-interpreted without the user having to press the carriage control key.
-Each group of keys is bound to a different variable and pressing these
-keys will allow you to rapidly change your lattice optics.
-
-\item \textbf{Other things in the Super-universe} \Newline
-The super-universe also contains information pertaining to global
-environment variables and plotting. No need to go into the details
-here. Part III will tell you all about these other structures.
-\end{enumerate}
-
-%----------------------------------------------------------------
 %----------------------------------------------------------------
 \section{Initializing Tao}
 \index{Initializing!Files}
 \label{s:initializing}
 
-Initialization occurs at startup. The initialization information can reside
-in one file or it can be spread out and put into up to six different files.
-  \vspace*{-2ex}
-\begin{enumerate}
-  \item \textbf{\textit{your lattice file}} \Newline
-    This is your lattice file. ``Vanilla'' \tao comes with its own for
-    demonstration purposes.
-  \item \textbf{tao.init} \Newline 
-    This is where global environment variables and key bindings are specified.
-  \item \textbf{tao\_plot.init} \Newline
-    This is where plotting is set up.
-  \item \textbf{tao\_data.init} \Newline
-    This is where data types are initialized.
-  \item \textbf{tap\_var.init} \Newline
-    This is where variables are initialized.
-  \item \textbf{tao.startup (optional)} \Newline
-    This is a command file that is read in after initialization. 
-    Any commands you
-    want entered in \tao every time you start up are put here.
-\end{enumerate}
-\textbf{tao\_plot.init}, \textbf{tao\_data.init} and
-\textbf{tao\_var.init} do not need to be separate files and can all
-reside in \textbf{tao.init}.
+Initialization occurs when \tao is started. The initialization
+information can reside in one file or it can be split into a number of
+files as discussed in Section~\sref{s:init_global}.
 
-There is no need to go into the details of the initialization files
-here. If using Vanilla \tao these are already set up for you in
-\cs{ROOT/tao/program} and will setup \tao for use with the included
-\cesr lattice. If using a custom version of \tao then the customized
-\tao author should have already set something up for you to use. If
-not then it looks like you'll need to read Chapter~\ref{c:custom_tao}
-of this tutorial and make your own initialization files.
+Using the example files provided with \tao (\sref{s:obtaining}), \tao
+is started with the command:
+\begin{example}
+  \$CESR_EXE/tao
+\end{example}
+Since no initialization file is specified on the command line, the
+default file \vn{tao.init} is used. In the example \vn{tao.init} there
+is the following:
+\begin{example}
+  &tao_start
+    n_universes = 1
+    plot_file = 'tao_plot.init'
+  /
+\end{example}
+\tao will setup a single universe and the plotting information will
+come from the file \vn{tao_plot.init}. Since no other initialization
+files are specified (\sref{s:init_global}), \tao will look for the
+non-plotting information (except for the lattice file) in \vn{tao.init}.
 
-\textbf{NOTE: the following sections will work with vanilla \tao. The
-commands entered and plotting output may be different for custom
-versions.}
+The lattice file is specified in the \vn{tao_design_lattice} namelist
+in \vn{tao.init}:
+\begin{example}
+  &tao_design_lattice
+    design_lattice(1) = "bmad_L9A18A000-_MOVEREC.lat"
+  /
+\end{example}
+By default, \tao assumes that this lattice uses the \bmad lattice
+format.  With the above information, \tao has the information on what
+files it needs to read to initialize itself.
 
-%----------------------------------------------------------------
 %----------------------------------------------------------------
 \section{Getting information from Tao}
 \label{s:get_info}
@@ -224,8 +94,66 @@ versions.}
 %----------------------------------------------------------------
 \subsection{The Plotting Window}\index{Plotting}
 
-When \tao first starts up you will see a plot window and a command
-prompt.  Figure~\ref{f:plot_begin} shows what you will see in the plot
+When \tao first starts up, \tao will create a new window for
+displaying plots. This window will be called the \vn{plot}
+window. Commands to \tao can be typed in from the original window from
+which \tao was invoked. This will be called the \vn{command} window.
+
+As a first step, let us command \tao to display some plotting
+information using the command:
+\begin{example}
+  show plot
+\end{example}
+The information will be displayed in the command window. The
+first section shows information on font sizes:
+\begin{example}
+  plot_page%text_height            = 12.000
+  plot_page%main_title_text_scale  = 1.300
+  plot_page%graph_title_text_scale = 1.100
+  plot_page%axis_number_text_scale = 0.900
+  plot_page%axis_label_text_scale  = 1.000
+  plot_page%key_table_text_scale   = 0.900
+\end{example}
+See section~\sref{s:init_plot} for more details. The second section
+lists the plot \vn{tamplates} (\sref{s:plotting} and
+\sref{s:template}) that \tao knows about:
+\begin{example}
+ Templates:        Plot.Graph
+              --------- ----------
+                  orbit.x
+                       .y
+ 
+                  phase.x
+                       .y
+
+    ... etc. ...
+\end{example}
+In this case, these templates are defined in the \vn{tao_plot.init}
+file. There is an \vn{orbit} plot template which has two associated
+graphs: \vn{orbit.x} and \vn{orbit.y}, etc. To see more information on, for example,
+the \vn{phase} template plot, use the command
+\begin{example}
+  show plot phase
+\end{example}
+and to see more information on, for example, the \vn{orbit.y} graph use the command
+\begin{example}
+  show plot orbit.y
+\end{example}
+Similarly, the \vn{show plot} command can be used to display
+information about the curves within each graph.
+
+The next block of information in the \vn{show plot} command is:
+\begin{example}
+  [Visible]     Plot Region         <-->  Template
+  ---------     -----------               ------------
+     T          top                 <-->  orbit
+     T          bottom              <-->  phase
+\end{example}
+This shows that two plot regions have been defined called \vn{top} and
+\vn{bottom}. Each region contains a visible plot and the plot template
+associated with the \vn{top} region is the \vn{orbit} template, etc.
+
+Figure~\ref{f:plot_begin} shows what you will see in the plot
 window. In the top two plots you see the \vn{x} and \vn{y} model
 lattice orbit data. The horizontal axis is the \cesr BPM index. The
 horizontal pretzel and L03 vertical bump in CESR can be clearly
@@ -234,18 +162,17 @@ compensation can also be seen around the IP. The orbit data is for a
 closed orbit electron (this being a storage ring). The bottom two
 plots show the relative particle phase, that is, the difference
 between the model and design phases (as documented in the plot title
-as [model - design]). Two plot regions are defined in ``vanilla'' \tao
+as [model - design]). Two plot regions are defined in \tao
 \vn{top} and \vn{bottom}.
 
-As a first step let's view the absolute model phase. At the \cmd{TAO>}
-prompt type
 \index{Commands!plot}
+As a first step let's view the absolute model phase. Use the command:
 \begin{example}
   plot bottom model
 \end{example}
 This will change the data plotted in the bottom two graphs to just the
 model.  The plots are now way off scale. Let \tao automatically set
-the scale by typing
+the scale by typing:
 \index{Commands!scale}
 \begin{example}
   scale bottom
@@ -258,7 +185,6 @@ data. Lets' set this back to relative phase by typing
 \begin{example}
   plot bottom model - design
 \end{example}
-
 
 Let's now look at the beta function by typing
 \index{Commands!place}
@@ -313,7 +239,7 @@ have been replaced with \cmd{all}.
 
 Variables can also be plotted provided the proper plot template has
 been set up in the plot initialization file (See
-Section~\ref{s:init_plot} for details on initializing plotting). Type
+Section~\sref{s:init_plot} for details on initializing plotting). Type
 the following to view the quadrupole k1 values:
 \begin{example}
   place bottom quad_k1
@@ -343,7 +269,7 @@ the following to view the quadrupole k1 values:
 \end{figure}
 
 %----------------------------------------------------------------
-\subsection{The \cmd{Show} Command}
+\subsection{The Show Command}
 
 Anything in the super-universe can be displayed using the \cmd{show}
 command. To get a list of the data elements currently defined in \tao
@@ -752,275 +678,3 @@ However, you're not yet ready to customize \tao, but this is where the
 true versatility of \tao lies. So, onward to the next section and
 learn how to write your own custom routines to perform whatever
 accelerator calculations that strikes your fancy!
-
-%----------------------------------------------------------------
-%----------------------------------------------------------------
-%----------------------------------------------------------------
-%----------------------------------------------------------------
-\chapter{Customizing Tao}\index{Customizing}
-\label{c:custom_tao}
-
-%----------------------------------------------------------------
-\section{It's all a matter of Hooks}\index{Customizing!Hooks}
-
-The golden rule when extending \tao is that you are only allowed to
-replace routines or redefine structures that have the name ``hook'' in
-them.  If you have the source code then it's within your power to
-modify any routine in \tao as much as you like. However, as time goes
-by, and revisions are made to the \tao routines to extend the
-usefulness of \tao and to eliminate bugs, only modifying the ``hook''
-routines will ensure that custom changes will have a minimum impact on
-the specialized routines that will be written by various people.
-
-\tao is written in Fortran 95 and a knowledge of Fortran is
-required. However, if you know C then Fortran can be learned in a
-coupled of days. Because of the interoperability between C and Fortran
-once the wrapper routines are written to interface with \tao the rest
-of your coding can, in principle all be done in C.
-
-\tao relies on extensive use of pointers and logical flags. However,
-all of the structures you will need to use are contained in the
-\vn{tao_struct.f90} module. This module is heavily documented and
-provides all the information needed to use the intrinsic \tao
-structures on your customizations. It is also a very good idea to have
-a copy of \vn{bmad_struct.f90} handy as this contains most of the
-structures used by \bmad.
-
-%----------------------------------------------------------------
-\section{Compiling your custom Tao}
-\index{Customizing!Compiling}
-
-The \tao libraries can be compiled without compiling an
-executable. Here is where this comes in handy. Since the standard \tao
-subroutines have already been made into libraries, all you need to do
-is compile and link your custom routines with the standard \tao
-subroutines into an executable.
-
-There are 11 ``hook'' files located in the \cmd{ROOT/tao/hook}
-directory. These are the files you can customize. There are two
-options here.
-\begin{enumerate}
-  \item Change the files directly in \cmd{ROOT/tao/hook}, adding any extra
-    files you may need, then recompile from the \cmd{ROOT/tao} directory with
-  \cmd{gmake -f M.tao}.  \label{cust_option_one}
-  \item Copy the hook files to a separate directory say \cmd{ROOT/my_tao},
-    adding any extra files you may need, then write a Makefile to 
-    compile and link these
-    routines to the main \tao library. \label{cust_option_two}
-\end{enumerate}
-Option~\ref{cust_option_two} is HIGHLY recommended because it keeps
-the \tao distribution tree undisturbed and reserves the possibility to
-create multiple custom \tao programs using the same vanilla \tao
-library. This option is used in the following example.
-
-%----------------------------------------------------------------
-\section{An Example}\index{Customizing!Example}
-
-As an example let's include a new data type called
-\vn{particle_emittance}. This will be the non-normalized x and y
-emittance as found from the Courant-Snyder invariant. This data type
-will behave just like any other data type (i.e.  \vn{orbit},
-\vn{phase} etc...). First, we should copy all the hook files to a
-separate directory, call it \cmd{ROOT/my_tao}. Also include the main
-program file from the \cmd{ROOT/tao/program} directory.  (replace
-\vn{ROOT} with whatever top directory you placed the \vn{tao}
-directory.)
-\begin{example}
-  mkdir ROOT/my_tao
-  cp ROOT/tao/hook/*.f90 ROOT/my_tao
-  cp ROOT/tao/program/tao_cl.f90 ROOT/my_tao/my_tao_cl.f90
-\end{example}
-Next we need a Makefile. The \cmd{ROOT/tao/M.tao} 
-Makefile is a great starting point.
-\begin{example}
-  cp ROOT/tao/M.tao ROOT/my_tao/Makefile
-\end{example}
-Now change the following lines in your Makefile
-\begin{example}
-  LIB\_SRC\_DIRS := ./code ./hook
-  OBJ\_SRC\_DIRS := ./program
-\end{example}
-to
-\begin{example}
-  LIB\_SRC\_DIRS :=
-  OBJ\_SRC\_DIRS := ./
-\end{example}
-This Makefile will tell gmake to use the tao library that has already
-been created (from \cmd{../tao/code} but the actual library is located
-at \cmd{../lib/libtao.a})
- and then to compile
-all of the hook files, including the main program file
-(\cmd{my_tao_cl.f90}) into object files (everything in \cmd{./}, the
-current directory).  Routines and declarations in object files always
-override similarly named code in the \tao libraries so this allows for
-your local hook files to override the dummy hook files in the \tao
-library. The only downside to this method is it clutters your
-\cmd{my_tao} directory with object files. You can always remove these
-object files with \cmd{gmake clean}.
-
-There are two more lines to alter. change
-\begin{example}
-  MAIN\_FILE :=
-\end{example}
-to
-\begin{example}
-  MAIN\_FILE := ./my\_tao_cl.f90
-\end{example}
-and finally,
-\begin{example}
-  MAKEFILE := M.tao
-\end{example}
-to
-\begin{example}
-  #MAKEFILE := M.tao !using default name for Makefile
-\end{example}
-Notice that this line is just being commented out with a `\#'. You are
-now ready to make your customizations to the hook routines.
-
-This example will only require the modification of one file:
-\vn{tao_hook_evaluate_a_datum.f90}. The formula for single particle emittance is
-\Begineq
-  \epsilon = \gamma x^{2} + 2 \alpha x x' + \beta x'^{2}
-  \label{e:emittance}
-\Endeq
-Place the following code in \vn{tao_hook_evaluate_a_datum.f90} in the
-\cmd{case select} construct (also add the necessary type declarations)
-\begin{verbatim}
-  case ('particle_emittance.x') 
-
-    datum_value =  ( ele%x%gamma * tao_lat%orb(ix1)%vec(1)**2 + &
-		     2 * ele%x%alpha * tao_lat%orb(ix1)%vec(1) * tao_lat%orb(ix1)%vec(2) + &
-		     ele%x%beta * tao_lat%orb(ix1)%vec(2)**2)
-    
-  case ('particle_emittance.y')
-
-    datum_value = ( ele%y%gamma * tao_lat%orb(ix1)%vec(3)**2 + &
-		     2 * ele%y%alpha * tao_lat%orb(ix1)%vec(3) * tao_lat%orb(ix1)%vec(4) + &
-		     ele%y%beta * tao_lat%orb(ix1)%vec(4)**2)
-\end{verbatim}
-This defines what is to be calculated for each \vn{particle_emittance}
-datum.  There are two transverse coordinates, so two definitions need
-to be made, one for each dimension.
-
-Now you just need to declare the data types in the \cmd{tao.init} and
-\cmd{tao_plot.init} files. For the sake of this example, modify the
-initialization files used for this tutorial.
-\begin{example}
-  cp ROOT/tao/program/*.init ROOT/my_tao
-  cp ROOT/tao/program/*.lat ROOT/my_tao
-\end{example}
-
-In \cmd{ROOT/my_tao/tao.init} add the following lines to the data
-declarations section
-\begin{example}
-  &tao_d2_data
-    d2_data%name = "particle_emittance" 
-    universe = 0 
-    n_d1_data = 2
-  /
-
-  &tao_d1_data
-    ix_d1_data = 1
-    d1_data%name = "x"  
-    default_weight = 1
-    ix_min_data = 0 
-    ix_max_data = 99  
-    data(0)%name = "SAME: orbit.x"
-    data(0)%ele_name = "SAME: orbit.x"
-  /
-
-  &tao_d1_data
-    ix_d1_data = 2
-    d1_data%name = "y"  
-    default_weight = 1
-    ix_min_data = 0 
-    ix_max_data = 99  
-    data(0)%name = "SAME: orbit.x"
-    data(0)%ele_name = "SAME: orbit.x"
-  /
-\end{example}
-and increase \vn{n_d2_data_max} to 7 in the \vn{tao_params} declaration.
-
-In \cmd{ROOT/my_tao/tao_plot.init} add the following lines to the end
-of the file
-\begin{example}
-  &tao_template_plot
-    plot%name = 'particle_emittance'
-    plot%x%min =   0
-    plot%x%max = 100
-    plot%x%major_div = 10
-    plot%x%label = ' '
-    plot%x_axis_type = 'index'
-    plot%n_graph = 2
-  /
-  
-  &tao_template_graph
-    graph%name = 'x'
-    graph_index = 1
-    graph%box = 1, 2, 1, 2
-    graph%title = 'Horizontal Emittance (microns)'
-    graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
-    graph%y%label = 'x'
-    graph%y%max =  15
-    graph%y%min =  0.0
-    graph%y%major_div = 4
-    graph%n_curve = 1
-    curve(1)%data_source = 'data_array'
-    curve(1)%data_type   = 'particle_emittance.x'
-    curve(1)%y_axis_scale_factor = 1e6 !convert from meters to microns
-  /
-
-  &tao_template_graph
-    graph%name = 'y'
-    graph_index = 2
-    graph%box = 1, 1, 1, 2
-    graph%title = 'Vertical Emittance (microns)'
-    graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
-    graph%y%label = 'Y'
-    graph%y%max =  15
-    graph%y%min =  0.0
-    graph%y%major_div = 4
-    graph%n_curve = 1
-    curve(1)%data_source = 'data_array'
-    curve(1)%data_type = 'particle_emittance.y'
-    curve(1)%units_factor = 1e6 !convert from meters to microns
-  /
-\end{example}
-These namelists are described in detail in Chapter~\ref{c:init}.
-
-We are now ready to compile and then run the program. The \tao library
-should have already been created (in section~\ref{s:get_and_compile})
-so all you need to do is
-\begin{example}
-  cd ROOT/my_tao
-  gmake
-  ../bin/my_tao
-\end{example}
-Notice that the name of the custom \tao program is \cmd{my_tao}. If you run 
-`\cmd{../bin/tao}' then you will run ``vanilla'' \tao.
-
-After your custom \tao initializes type
-\begin{example}
-  place bottom particle_emittance
-  scale
-\end{example}
-Your plot should look like Figure~\ref{f:plot_emittance}.
-
-The emittance (as calculated) is not constant. This is due to
-dispersion and coupling throughout the ring. \bmad provides a routine
-to find the particle emittance from the twiss parameters that includes
-dispersion and coupling called \vn{orbit_amplitude_calc}.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=5in]{plot_emittance.eps}
-  \caption{Custom data type: non-normalized emittance}
-  \label{f:plot_emittance}
-\end{figure}
-
-\Section{Other Customizations}
-
-The above example just illustrates one of the customizations you can
-perform on \tao.  Part III, Programmer's Guide lays out all of the
-hook files and provides pointers for various customizations.
-

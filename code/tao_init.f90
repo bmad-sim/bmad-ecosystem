@@ -28,8 +28,8 @@ type (beam_struct), pointer :: beam
 real(rp), pointer :: ptr_attrib
 
 character(80) arg, arg2, startup_file
-character(200) lattice_file, plot_file, data_file, var_file, file_name
-character(200) single_mode_file
+character(100) lattice_file, plot_file, data_file, var_file, file_name
+character(100) single_mode_file, wall_file
 character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
@@ -39,7 +39,7 @@ integer i, j, i2, j2, n_universes, iu, ix, ix_attrib, n_arg, ib, ip, ios
 logical err, calc_ok  
 logical, optional :: err_flag
 
-namelist / tao_start / lattice_file, startup_file, &
+namelist / tao_start / lattice_file, startup_file, wall_file, &
                data_file, var_file, plot_file, single_mode_file, &
                n_universes, init_name
 
@@ -54,6 +54,7 @@ plot_file          = tao_com%init_tao_file      ! set default
 data_file          = tao_com%init_tao_file      ! set default
 var_file           = tao_com%init_tao_file      ! set default
 single_mode_file   = tao_com%init_tao_file      ! set default
+wall_file          = tao_com%init_tao_file      ! set default
 n_universes        = 1              ! set default
 init_name          = "Tao"          ! set default
 startup_file       = "tao.startup"
@@ -75,6 +76,8 @@ allocate (s%u(n_universes))
 call tao_init_design_lattice (lattice_file) 
 call tao_init_global_and_universes (tao_com%init_tao_file, data_file, var_file)
 call tao_init_single_mode (single_mode_file)
+call tao_init_wall (wall_file)
+
 call tao_hook_init (tao_com%init_tao_file)
 
 bmad_status%exit_on_error = .false.
@@ -204,6 +207,10 @@ type (tao_universe_struct), pointer :: u
 
 integer i, j, k, istat
 
+! Tunnel walls
+
+deallocate (s%wall)
+
 ! Variables  
 
 if (associated (s%v1_var)) then
@@ -268,10 +275,10 @@ if (associated (s%u)) then
 
     call reallocate_beam(u%current_beam, 0, 0)
 
-    ! Coupling
-    call deallocate_ele_pointers (u%coupling%coupling_ele)
-    call reallocate_macro_beam (u%coupling%injecting_macro_beam, 0, 0, 0)
-    call reallocate_beam (u%coupling%injecting_beam, 0, 0)
+    ! Connected universes
+    call deallocate_ele_pointers (u%connect%connect_ele)
+    call reallocate_macro_beam (u%connect%injecting_macro_beam, 0, 0, 0)
+    call reallocate_beam (u%connect%injecting_beam, 0, 0)
     
     ! d2_data
     do j = 1, size(u%d2_data)

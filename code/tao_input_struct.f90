@@ -122,11 +122,11 @@ type tao_design_lat_input
   character(16) :: parser = 'bmad'
 end type
 
-type tao_coupled_uni_input
+type tao_connected_uni_input
   integer from_universe
-  character(40) at_element !coupled at end of element
-  integer at_ele_index ! coupled at end of element
-  real(rp) :: at_s ! coupled at position s
+  character(40) at_element !connected at end of element
+  integer at_ele_index ! connected at end of element
+  real(rp) :: at_s ! connected at position s
   logical match_to_design
 end type
 

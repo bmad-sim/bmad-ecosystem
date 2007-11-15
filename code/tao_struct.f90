@@ -396,6 +396,23 @@ end type
 
 
 !------------------------------------------------------------------------
+! Tunnel wall structure
+
+integer, parameter :: arc$ = 1, point$ = 2
+integer, parameter :: left_side$ = 1, right_side$ = 2
+
+type tao_wall_point_struct
+  integer type              ! arc$ or point$
+  real(rp) z, x                 ! floor position
+  real(rp) r, theta1, theta2    ! For arcs
+end type
+
+type tao_wall_struct
+  integer side    ! left_side$ or right_side$
+  type (tao_wall_point_struct), allocatable :: point(:)
+end type
+
+!------------------------------------------------------------------------
 ! global parameters that the user has direct access to.
 ! Also see: tao_common_struct.
 
@@ -478,16 +495,16 @@ type tao_common_struct
 end type
 
 !------------------------------------------------------------------------
-! for coupling universes
+! for connected universes
 
-type tao_coupled_uni_struct
-  logical coupled   ! This universe us coupled from another
+type tao_connected_uni_struct
+  logical connected       ! This universe is connected to another
   logical match_to_design ! match the design lattices
-  logical use_coupling_ele ! to use the coupling_ele
-  integer from_uni   ! The universe whose beam injects into this universe
-  integer from_uni_ix_ele ! element index where coupling occurs
-  real(rp) from_uni_s ! s position in from_uni where coupling occurs
-  type (ele_struct) :: coupling_ele ! element used to match universes
+  logical use_connect_ele ! to use the connected_ele
+  integer from_uni        ! The universe whose beam injects into this universe
+  integer from_uni_ix_ele ! element index where the connection occurs
+  real(rp) from_uni_s     ! s position in from_uni where the connection occurs
+  type (ele_struct) :: connect_ele ! element used to match universes
   type (beam_struct) injecting_beam ! used for beam injection
   type (macro_beam_struct) injecting_macro_beam ! used for macroparticle injection
 end type
@@ -556,7 +573,7 @@ type tao_universe_struct
   type (beam_init_struct) :: beam_init             ! Beam distrubution
                                                    !  at beginning of lattice
   type (tao_macro_beam_struct) macro_beam          ! Macroparticle beam 
-  type (tao_coupled_uni_struct)   :: coupling      ! Used for coupled lattices
+  type (tao_connected_uni_struct)   :: connect     ! Used for connected lattices
   type (tao_d2_data_struct), pointer :: d2_data(:) => null()  ! The data types 
   type (tao_data_struct), pointer :: data(:) => null()        ! Array of all data.
   type (tao_ix_data_struct), pointer :: ix_data(:) ! which data to evaluate at this ele
@@ -587,6 +604,7 @@ type tao_super_universe_struct
   type (tao_var_struct), pointer :: var(:) => null()       ! array of all variables.
   type (tao_universe_struct), pointer :: u(:) => null()    ! array of universes.
   type (tao_keyboard_struct), pointer :: key(:) => null()
+  type (tao_wall_struct), allocatable :: wall(:)
   integer n_var_used
   integer n_v1_var_used
 end type

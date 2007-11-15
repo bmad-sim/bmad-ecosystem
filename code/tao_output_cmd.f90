@@ -43,7 +43,7 @@ character(20) :: arg_names(2) = (/ '-ascii', '-at    ' /)
 integer :: n_arg_values(2) = (/ 0, 1 /)
 
 integer i, j, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
-integer n_arg
+integer n_arg, i_chan
 integer, allocatable, save :: ix_ele_at(:)
 
 logical is_open, ascii, ok, err
@@ -106,8 +106,9 @@ case ('gif')
   file_name = "tao.gif"
   if (n_arg == 2) file_name = arg(2)%name
 
-  call qp_open_page ('GIF', x_len = s%plot_page%size(1), &
-           y_len = s%plot_page%size(2), units = 'POINTS', plot_file = file_name)
+  call qp_open_page ('GIF', i_chan, s%plot_page%size(1), &
+                       s%plot_page%size(2), 'POINTS', file_name)
+  call qp_select_page (i_chan)
   call tao_plot_out ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows

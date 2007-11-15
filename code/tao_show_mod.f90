@@ -67,7 +67,7 @@ real(rp), allocatable :: value(:)
 
 character(*) :: what, stuff
 character(24) :: var_name
-character(24)  :: plane, imt, lmt, amt, iamt, rmt, irmt, iimt
+character(24)  :: plane, imt, lmt, amt, iamt, f3mt, rmt, irmt, iimt
 character(80) :: word(2), fmt, fmt2, fmt3
 character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
@@ -112,6 +112,7 @@ lines = " "
 nl = 0
 
 rmt  = '(a, 9es16.8)'
+f3mt  = '(a, 9f0.3)'
 irmt = '(a, i0, a, es16.8)'
 imt  = '(a, 9i8)'
 iimt = '(a, i0, a, i8)'
@@ -866,12 +867,12 @@ case ('plot')
 
   if (word(1) == ' ') then
 
-    nl=nl+1; write (lines(nl), lmt) 'plot_page%text_height            = ', s%plot_page%text_height 
-    nl=nl+1; write (lines(nl), lmt) 'plot_page%main_title_text_scale  = ', s%plot_page%main_title_text_scale 
-    nl=nl+1; write (lines(nl), lmt) 'plot_page%graph_title_text_scale = ', s%plot_page%graph_title_text_scale 
-    nl=nl+1; write (lines(nl), lmt) 'plot_page%axis_number_text_scale = ', s%plot_page%axis_number_text_scale 
-    nl=nl+1; write (lines(nl), lmt) 'plot_page%axis_label_text_scale  = ', s%plot_page%axis_label_text_scale 
-    nl=nl+1; write (lines(nl), lmt) 'plot_page%key_table_text_scale   = ', s%plot_page%key_table_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) 'plot_page%text_height            = ', s%plot_page%text_height 
+    nl=nl+1; write (lines(nl), f3mt) 'plot_page%main_title_text_scale  = ', s%plot_page%main_title_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) 'plot_page%graph_title_text_scale = ', s%plot_page%graph_title_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) 'plot_page%axis_number_text_scale = ', s%plot_page%axis_number_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) 'plot_page%axis_label_text_scale  = ', s%plot_page%axis_label_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) 'plot_page%key_table_text_scale   = ', s%plot_page%key_table_text_scale 
 
 
     nl=nl+1; lines(nl) = ' '

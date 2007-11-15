@@ -1,92 +1,211 @@
-\chapter{Overview}
-\label{c:overview}
+\chapter{Tao Concepts}
+\label{c:concepts}
+
+\tao stands for ``Tool for Accelerator Optics''. \tao is a general
+purpose program for simulating high energy particle beams in
+accelerators and storage rings. This tutorial assumes you are already
+familiar with the basics of particle beam dynamics and its
+formalism. There are several books that introduce the topics very
+well. A good place to start is \textit{The Physics of Particle
+Accelerators} by Klaus Wille.
+
+\tao is based on the \bmad\cite{b:bmad} subroutine library. An
+understanding of the nitty-gritty details of the routines that
+comprise \bmad is not necessary, however, one should be familiar with
+the conventions that \bmad uses and this is covered in the \bmad
+manual.
+
+So, what is \tao good for? A large variety of applications. It's
+versatility is that it's easily expandable. Think of it as an
+accelerator design and analysis environment. But even without any
+customizations, \tao will do much analysis. 
+
+This chapter discusses how \tao is organized. After you are familiar
+with the basics of \tao, there is a hands-on tutorial in
+Chapter~\ref{c:tutorial}. After you get more familiar with \tao, you
+might be interested exploit its versatility by extending \tao to do
+custom calculations. For this, see Chapter~\ref{c:custom_tao}.
+
+%----------------------------------------------------------------
+\section{The Orginization of Tao: The Super\_Universe}
+\label{s:orginization}
+
+Many simulation problems fall into one of three categories: 
+\begin{itemize}
+\item 
+Design a lattice subject to various constraints.
+\item
+Simulate errors and changes in machine parameters. For example, you want to
+simulate what happens to the orbit, beta function, etc., when you change
+something in the machine. 
+\item 
+Simulate machine commissioning including simulating data measurement and
+correction. For example, you want to know what steering strength changes will
+make an orbit flat.
+\end{itemize}
+Programs that are written to solve these types of problems have common
+elements: You have variables you want to vary in your model of your
+machine, you have "data" that you want to view, and, in the first two
+categories above, you want to match the machine model to the data (in
+designing a lattice the constraints correspond to the data).
+
+With this in mind, \tao was structured to implement the essential
+ingredients needed to solve these simulation problems.  
+The information that \tao knows about can be divided into five
+categories:
+\begin{description}
+  \item[Lattice] \Newline   
+Machine layout and component strengths, and the beam orbit (\sref{s:lattice}).
+  \item[Data] \Newline
+Anything that can be measured.
+For example: The orbit of a particle or the lattice beta 
+functions, etc. (\sref{s:data})
+  \item[Variables] \Newline
+Essentially, any lattice parameter or initial condition that can be varied.
+For example: quadrupole strengths, etc. (\sref{s:variables}).
+  \item[Plotting]  \Newline
+Information used to draw graphs, display the lattice 
+floor plan, etc. (\sref{s:plotting}).
+  \item[Global] \Newline
+Global parameters.
+\end{description}
+
+\index{Super_universe}
+\index{Structure}
+The information in \tao deals is organized in a hierarchy of
+\vn{``structures''}. At the top level, everything known to \tao is
+placed in a structure called the \vn{super_universe}.
+
+Within the \vn{super_universe} lies one or more \vn{universes}
+(\sref{s:universe}), each \vn{universe} containing a particular
+machine lattice and its associated data. This allows for the user to
+do analysis on multiple machines or multiple configurations of a
+single machine at the same time. The \vn{super_universe} also contains
+\vn{variable}, \vn{plotting}, and \vn{global} information.
 
 %------------------------------------------------------------------------
-\section{The Known Universe}\index{Universe!Contents}
+\section{The Universe}
+\label{s:universe}
+\index{Universe}
 
-The information that \tao knows about can be divided into 5 categories: 
-\begin{example}
-  lattice   -- Machine layout and component strengths, and the beam orbit.
-  data      -- Anything that can be measured. 
-               For example: orbit data, dispersion data, etc.
-  variables -- Anything that will typically be varied or used with the optimizer. 
-               For example: quad strengths, etc.
-  plotting  -- Display data and other stuff.
-  global    -- Miscellaneous global parameters.
-\end{example}
-The \vn{lattice} and \vn{data} information is grouped into what is called a
-\vn{universe}. The entire collection of \vn{lattices}, \vn{data},
-\vn{variables}, \vn{plotting}, and \vn{global} information is called
-the \vn{super_universe} and is the sum of everything \tao knows.
+The \tao \vn{super_universe} (\sref{s:orginization}) contains one or
+more \vn{universes}.  A \vn{universe} contains a \vn{lattice}
+(\sref{s:lattice}) plus whatever data (\sref{s:data}) one wishes to
+study within this lattice (i.e. twiss parameters, orbit, phase,
+etc.). Actually, there are three lattices within each universe: the
+\textbf{design} lattice, \textbf{model} lattice and \textbf{base}
+lattice. Initially, when \tao is started, all three lattices are
+idential and correspond to the lattice read in from the lattice
+description file (\sref{s:init_lat}).
+
+There are several situations in which multipole universes are
+useful. One case is where there are multiple machines. For example, a
+transfer line connected to a storage ring. In this case, one universe
+will correspond to the transfer line and another universe will
+correspond to the storage ring. 
+
+Another case where multiple universes are useful is where data has
+been taken under different machine conditions. For example, Suppose
+that the beam orbit in a machine has been taken with a given steering
+element set at some value and then the orbit is again measured but
+this time with some other element set to some value. To determine what
+quadrupole settings will best reprodue the data, two universes can be
+setup. One universe associated with one set of data and the second
+universe associated with the other set of data. Variables can be
+defined to simultaneously vary the corresponding quadrupoles in each
+universe and \tao's built in optimizer can vary the variables until
+the data as determined from the \vn{model} lattice (\sref{s:lattice})
+matches the measured data.
 
 %------------------------------------------------------------------------
-\section{Lattices}\index{Lattice}\index{Universe!Lattice}
+\section{Lattices}
+\index{Lattice}
+\label{s:lattice}
 
 A \vn{lattice} consists of a machine description (the strength and
-placement of elements) along with the beam orbit through them. There
-are actually three types of lattices:
+placement of elements such as quadrupoles and bends) along with the
+beam orbit through them. There are actually three types of lattices:
   \vspace*{-3ex}
   \begin{description}
   \item[Design Lattice] \Newline 
-The \vn{design} lattice is the particular lattice that one wants the
-actual physical machine to conform to. The \vn{design} lattice is
-fixed. Nothing is alowed to vary in this lattice.
+The \vn{design} lattice corresponds to the lattice read in from the
+lattice description file (\sref{s:init_lat}). In many instances this
+is the particular lattice that one wants the actual physical machine
+to conform to. The \vn{design} lattice is fixed. Nothing is alowed to
+vary in this lattice.
   \item[Model Lattice] \Newline
-All \tao commands to vary lattice variables vary quantities in the
+Except for some commands that explicitly set the \vn{base} lattice,
+all \tao commands to vary lattice variables vary quantities in the
 \vn{model} lattice. In particular, things like orbit correction
 involve varying \vn{model} variables until the \vn{data} as calculated
 from the \vn{model} match the \vn{data} as actually measured.
   \item[Base Lattice] \Newline
 It is sometimes convenient to designate a reference lattice so that
 changes in the \vn{model} from the reference point can be examined.
-This reference lattice is called the \vn{base}.
+This reference lattice is called the \vn{base} lattice. The \vn{set}
+command (\sref{s:set}) is used to transfer information from the
+\vn{design} or \vn{model} lattices to the base lattice.
   \end{description}
 
-The \vn{model}, \vn{design}, and \vn{base} lattices along with any
-\vn{data} is bundled together to form what is called a
-\vn{universe}. \tao can simultaneously handle multiple universes. Why
-is this useful? It can be used, for example, to simulate both rings of
-a collider machine. This can be convenient if there are, say, steering
-elements in common and it is needed to simultaneously correct the
-orbit in both rings. Another case is where orbits in a machine have
-been measured under different conditions of, say, beam energy, and it
-is desired to fit all the data simultaneously.
-
 %------------------------------------------------------------------------
-\section{Data}\index{Data}\index{Universe!Data}
+\section{Data}
+\label{s:data}
+\index{Data}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=4in]{data_tree.eps}
+  \caption[Data tree structure]
+{A \vn{d2\_data} structure holds a set of \vn{d1\_data} structures. 
+A \vn{d1\_data} structure holds an array of datums.}
+  \label{f:data_tree}
+\end{figure}
 
 \index{d2_data}\index{d1_data}\index{Data}
-Blocks of like data are associated with what are called \vn{d1_data}
-structures and sets of \vn{d1_data} structures are collected into what
-are called \vn{d2_data} structures. For example, a \vn{d1_data}
-structure is typically associated with the horizontal orbit data and
-another \vn{d1_data} structure is typically associated with the
-vertical orbit data. These two structures can then be collected into a
-\vn{d2_data} structure representing all orbit data. The \vn{d1_data}
-and \vn{d2_data} structures are defined in the \tao initialization
-file (cf.~Chapter~\ref{c:init}).  When issuing \tao commands, all the
+The term \vn{``datum''} denotes anything that can be calculated. This
+includes the vertical orbit at a particular position or the horizontal
+emittance of a storage ring. For ease of manipulation, arrays of
+datums are grouped into what is called a \vn{d1_data}
+\vn{structure}. Furthermore, sets of \vn{d1_data} structures are
+grouped into what is called a \vn{d2_data} structure.  This is
+illustrated in Figure~\ref{f:data_tree}.  For example, a \vn{d2_data}
+structure for orbit data would contain two \vn{d1_data} structures ---
+one \vn{d1_data} structure for the horizontal orbit data and another
+\vn{d1_data} structure for the vertical orbit data. Each datum of,
+say, the horizontal orbit \vn{d1_data} structure would then correspond
+to the horizontal orbit at some point in the machine.
+
+When issuing \tao commands, all the
 data associated with a \vn{d2_data} structure is specified using the
 \vn{d2_data} structure's \vn{name}.  The data associated with a
 \vn{d1_data} structure is specified using the format
-\vn{d2_name.d1_name}. For example, if a \vn{d2_data} structure has the
+\begin{example}
+  d2_name.d1_name
+\end{example}
+For example, if a \vn{d2_data} structure has the
 name ``\vn{orbit}'', and one of its \vn{d1_data} structures has the
 name ``\vn{x}'', then \tao commands that refer to the data in this
 \vn{d1_data} structure use the name ``\vn{orbit.x}''. Sometimes there
 is only one \vn{d1_data} structure for a given \vn{d2_data}
 structure. In this case the data can be referred to simply by using
 the \vn{d2_data} structure's name. The individual datums can be
-referred to by index or name. For example, if \vn{orbit.x} is an array
-of data then the first datum can be referred to as
-\vn{orbit.x[1]}. Ranges of datams can be referred to using using a
-comma \vn{,} to separate the indexes combined with the notaion
-\vn{n1:n2} to specify all the datums between \vn{n1} and \vn{n2}
-inclusive. For example
+referred to using the notation
+\begin{example}
+  d2_name.d1_name[datum_index]
+\end{example}
+For example, \vn{orbit.x[10]} referrs to the horizontal orbit datum
+with index 10. Notice that the beginning (lowest) datum index is user
+selectable and is therefore not necessarily 1.
+
+Ranges of datams can be referred to using using a comma \vn{,} to
+separate the indexes combined with the notaion \vn{n1:n2} to specify
+all the datums between \vn{n1} and \vn{n2} inclusive. For example
 \begin{example}
   orbit.x[3:6,23]
 \end{example}
 refers to datums 3, 4, 5, 6, and 23. 
 
-If multiple universes (multiple lattices) are present then the prefix
+If multiple universes (\sref{s:universe}) are present, then the prefix
 \vn{n@} signifies the n\Th universe. For example
 \begin{example}
   2@orbit.x
@@ -109,9 +228,8 @@ a \vn{d1_data} structure the \vn{[*]} can be omitted. For example,
 something like \vn{orbit.x|meas} is equivalent to
 \vn{orbit.x[*]|meas}.
 
-Besides a name, Each datum (for example, the horizontal orbit at some
-detector) has a number of quantities associated with it:
-  \vspace*{-3ex}
+Each datum has a number of quantities associated with it:
+  \vspace*{-2ex}
   \index{Data!measured}\index{Data!reference}\index{Data!model}
   \index{Data!base}\index{Data!design}
   \begin{description}
@@ -132,9 +250,9 @@ The data as calculated from the \vn{design} lattice.
   \item[Base Data] \Newline
 The data as calculated from the \vn{base} lattice.
   \end{description}
-These components and others can be refered to using the notaion \vn{|name} where
-\vn{name} is the appropriate name for the component. The list of
-components that can be set or refered to are:
+These components and others can be refered to using the notaion
+\vn{|name} where \vn{name} is the appropriate name for the
+component. The list of components that can be set or refered to are:
 \begin{example}
   orbit.x[1]|meas      ! Measured data value
   orbit.x[1]|ref       ! Reference data value
@@ -152,22 +270,48 @@ components that can be set or refered to are:
   orbit.x[1]|good_plot ! Logical
 \end{example}
 
+The \vn{d1_data}
+and \vn{d2_data} structures are defined in the \tao initialization
+file (cf.~Chapter~\ref{c:init}).  
+
 See chapter \sref{c:data_types} for more details.  Use the \vn{show
-data} command to view information about any data type. 
+data} (\sref{s:data}) command to view information about any data type. 
 
-
-
-\vfill
-\break
 %------------------------------------------------------------------------
-\section{Variables}\index{Variables}
+\section{Variables}
+\label{s:variables}
+\index{Variables}
+
+
+A variable is anything that can be varied. For example, quadrupole
+strengths or the initial position of a particle in a LINAC. Any
+variable can be varied using the \vn{change} command
+(\sref{s:change}). However it can be convenient to set up within \tao
+predefined groups of variables. For example, the optimizer
+(\sref{s:optimizer}) will only work with such blocks.
+
+
+Variables control attributes of elements in the model lattice of one
+or more universes. They are not the same thing as attributes in
+lattice elements.  Instead, they \textit{control} attributes in
+lattice elements. They are more akin to \bmad \textit{overlays}. A
+given variable may control a single attribute of one element in one or
+more universes. If you want a variable to control a collection of
+elements like a \bmad \textit{group} then you need to insert the
+appropriate group in your lattice. Variables are what you vary in
+order to change your model lattice. You can also change your model
+lattice by directly changing and lattice element attribute. However,
+if you plan on doing any optimization then you will need to use
+variables.
 
 \index{v1_var}
+
+
 Blocks of variables are associated with what is called a \vn{v1_var}
 structure and each of these structures has a \vn{name} with which to
 refer to them in \tao commands. For example, if \vn{quad_k1} is the
-name of a \vn{v1_var} then the 5\Th variable of this block of
-variables is referred to as \vn{quad_k1[5]}. 
+name of a \vn{v1_var} then \vn{quad_k1[5]} referres to the variable 
+with index 5. 
 
 A given variable may control a single attribute of one element in a
 \vn{model} lattice of a single universe or it can be configured to
@@ -212,21 +356,17 @@ components that can be set or refered to are:
   quad_k1[1]|good_plot ! Logical
 \end{example}
 
+Use the \vn{show var} (\sref{s:show}) command to view variable information
 
-
-
-Use the \vn{show var} command to view variable information
-
-\vfill
-\break
 %------------------------------------------------------------------------
 \section{Plotting}\index{Plotting}
-\label{s:plot_overview}
+\label{s:plotting}
 
 \begin{figure}
   \centering
   \includegraphics{plot.eps}
-  \caption{A plot has is a collection of graphs and a graph has a 
+  \caption[A plot has a collection of graphs.]
+{A plot has a collection of graphs and a graph has a 
 collection of curves. A plot becomes visible when it is associated
 with some region on the page using the \vn{place} command. Note that
 on the actual page the plot/region border is not visible.}
@@ -361,23 +501,23 @@ the edges of the displayed elements in the \vn{lat_layout}.
 \vfill
 \break
 %------------------------------------------------------------------------
-\section{Single Character Input}\index{Single Mode}
+\section{Single Character Input}
+\index{Single Mode}
 
 Sometimes it is convenient to be able to vary variables using single
-key strokes without having to type a carriage return.  With \tao this
+key strokes without having to type a carriage return.  With \tao, this
 is possible using what is called \vn{single mode}. This is distinct
 from \vn{line mode} where commands to \tao are typed at the command
-line with a carriage return signaling the end of the command. As
-explained in the initialization chapter, \vn{single mode} uses a
-special initialization file.
+line with a carriage return signaling the end of the command. 
 
 The \vn{single mode} initialization file associates variables with
 certain keyboard keys so that when these keys are pressed the value of
 the variable is varied. This association between variables and keys is
-called a \vn{key table}.
+called a \vn{key table}. See Chapter~\sref{c:single} for more details.
 
 %------------------------------------------------------------------------
-\section{Tracking Types}\index{Tracking!Types}
+\section{Tracking Types}
+\index{Tracking!Types}
 
 \index{track_type}
 \index{tao_global_struct}
@@ -391,16 +531,18 @@ lattice, including any wakefields. Macroparticle tracking takes a beam
 distribution and tracks the centroids and sigmas of the
 ``macro-particles'' through the lattice, including any wakefields.
 Single particle tracking is used by default. The
-\vn{global%track_type} parameter, which is set in the \vn{tao_params}
-namelist input, is used to set the tracking set the
-\vn{tao_global_struct} (see \sref{s:globals}) sets the tracking
-method. See \sref{s:beam_init}~or~\sref{s:macro_init} for details on
-setting up particle bunch and macroparticle bunch tracking.
+\vn{global%track_type} parameter (\sref{s:globals}), which is set in
+the initialization file, is used to set the tracking.
 
 
 Particle spin tracking has also been set up for single particle and many
-particle tracking. See Sections~\ref{s:globals}~and~\ref{s:beam_init} for
+particle tracking. See Sections~\sref{s:globals} and \sref{s:beam_init} for
 details on setting up spin tracking.
+
+\vn{Note:} Macroparticle tracking has not been used for some time and
+the underlying code used for macroparticle tracking is dormant. The
+use of macroparticle tracking is thus discouraged. If you have a need
+for this please contact David Sagan.
 
 %------------------------------------------------------------------------
 \section{Lattice Calculation}\index{Lattice!calculation of}

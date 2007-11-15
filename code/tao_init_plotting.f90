@@ -40,8 +40,8 @@ integer iu, i, j, ip, n, ng, ios, i_uni
 integer graph_index, color
 integer, allocatable :: ix_ele(:)
 
-character(200) file_name, plot_file
-character(100) graph_name
+character(*) plot_file
+character(100) graph_name, file_name
 character(80) label
 character(20) :: r_name = 'tao_init_plotting'
 
@@ -60,7 +60,7 @@ init_axis%max = 0
 
 ! Read in the plot page parameters
 
-call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
 call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')

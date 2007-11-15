@@ -246,8 +246,9 @@ type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 type (floor_position_struct) end1, end2, floor
+type (tao_wall_point_struct), pointer :: pt(:)
 
-integer i, j, ix_ptr, icol, ix1, ix2, isu, n_bend, n, ix
+integer i, j, k, ix_ptr, icol, ix1, ix2, isu, n_bend, n, ix
 
 real(rp) off, off1, off2, angle, rho, x0, y0, dx1, dy1, dx2, dy2
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta
@@ -280,8 +281,8 @@ if (graph%draw_axes) then
 endif
 
 isu = graph%ix_universe
-! if garph%ix_universe .eq. 0 then graph currently viewed universe
-if (isu .eq. 0) then
+! if garph%ix_universe == 0 then graph currently viewed universe
+if (isu == 0) then
   lat => s%u(s%global%u_view)%model%lat
 else
   lat => s%u(isu)%model%lat
@@ -325,6 +326,7 @@ do i = 1, lat%n_ele_max
   ! centerline and a set of vectors (dx_bend, dy_bend) perpendicular to the centerline.
 
   if (ele%key == sbend$) then
+
     if (ele%value(g$) == 0) then
       n_bend = 1
       x_bend(0) = end1%x; y_bend(0) = end1%y
@@ -363,8 +365,8 @@ do i = 1, lat%n_ele_max
 
   endif
 
-  ! Only those elements with ele%ix_pointer > 0 are to be drawn.
-  ! All others are drawn with a line or arc
+  ! Only those elements with ele%ix_pointer > 0 are to be drawn in full.
+  ! All others are drawn with a simple line or arc
 
   if (ix_ptr < 1) then
     if (ele%key == sbend$) then
@@ -497,6 +499,35 @@ do i = 1, lat%n_ele_max
 
 enddo
 
+! Draw the tunnel wall
+
+do i = 1, size(s%wall)
+  pt => s%wall(i)%point
+
+  do j = 1, size(pt)
+
+    select case (pt(j)%type)
+    case (point$)
+      if (j == 1) cycle
+      call floor_to_screen (pt(j-1)%x, 0.0_rp, pt(j-1)%z, end1%x, end1%y)
+      call floor_to_screen (pt(j)%x, 0.0_rp, pt(j)%z, end2%x, end2%y)
+      call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
+
+    case (arc$)
+      n_bend = abs(int(100 * (pt(j)%theta2 - pt(j)%theta1))) + 1
+      do k = 0, n_bend
+        theta = pt(j)%theta1 + k * (pt(j)%theta2 - pt(j)%theta1) / n_bend
+        v_vec(1) = pt(j)%x + pt(j)%r * sin(theta)
+        v_vec(2) = 0
+        v_vec(3) = pt(j)%z + pt(j)%r * cos(theta)
+        call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
+      enddo
+      call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
+    end select
+
+  enddo
+
+end do
 
 !--------------------------------------------------------------------------
 contains
@@ -565,7 +596,7 @@ call qp_set_axis ('Y', y_bottom, y_top, 1, 0)
 height = s%plot_page%text_height * s%plot_page%legend_text_scale
 
 isu = graph%ix_universe
-! if garph%ix_universe .eq. 0 then graph currently viewed universe
+! if garph%ix_universe == 0 then graph currently viewed universe
 if (isu == 0) then
   lat => s%u(s%global%u_view)%model%lat
 else
@@ -576,13 +607,13 @@ lat_len = lat%param%total_length
 ! Figure out x axis
 ! If it's not 's' then just draw a vertical line at the proper index
 
-  if (plot%x_axis_type .eq. 's') then
+  if (plot%x_axis_type == 's') then
     ! continue
-  elseif (plot%x_axis_type .eq. 'index') then
+  elseif (plot%x_axis_type == 'index') then
     ! cannot plot layout in this case!
     graph%valid = .false.
     return
-  elseif (plot%x_axis_type .eq. 'ele_index') then
+  elseif (plot%x_axis_type == 'ele_index') then
     ! plot vertical line at ele_index
     ! temporarily turn this off until I get scaling working
     graph%valid = .false.
@@ -607,7 +638,7 @@ do i = 1, lat%n_ele_max
   if (ele%control_type == super_slave$) cycle
   if (i > lat%n_ele_track .and. ix_ptr < 1) cycle
 
-  if (plot%x_axis_type .eq. 's') then
+  if (plot%x_axis_type == 's') then
     call find_element_ends (lat, i, ix1, ix2)
     x1 = lat%ele(ix1)%s
     x2 = lat%ele(ix2)%s
@@ -617,13 +648,13 @@ do i = 1, lat%n_ele_max
       x2 = x2 - lat_len
     endif
 
-  elseif (plot%x_axis_type .eq. 'index') then
+  elseif (plot%x_axis_type == 'index') then
     ! shouldn't be here!
     call out_io (s_error$, r_name, "Shouldn't be here!")
     graph%valid = .false.
     return
 
-  elseif (plot%x_axis_type .eq. 'ele_index') then
+  elseif (plot%x_axis_type == 'ele_index') then
     x1 = i
     x2 = i
 

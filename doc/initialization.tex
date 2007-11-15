@@ -1,4 +1,5 @@
-chapter{Tao Initialization}\index{Initialization}
+\chapter{Tao Initialization}
+\index{Initialization}
 \label{c:init}
 
 \tao is customized for specific machines and specific calculations
@@ -8,9 +9,9 @@ covers the input files.
 
 In general, the input files tell \tao:
 \begin{example}
-  1) What the "standard" variables should be.
-  2) What the "standard" data is.
-  3) What to plot and where to plot it.
+  * What the "standard" variables should be.
+  * What the "standard" data is.
+  * What to plot and where to plot it.
 \end{example}
 
 %-----------------------------------------------------------------
@@ -141,16 +142,17 @@ block with the following syntax:
     init_name         = "<init_name>"  ! Default = 'Tao"
   /
 \end{example}
-\vn{n_universes} is the number of universes to be created.  \vn{init_name} is
-for naming the initialization. This is useful to distinguish between multiple
-initialization files with custom versions of \tao.  The other parameters specify
-which files to find the other initialization namelists. The following sections
-describe each of these initialization namelists and their locations are listed
-in table \ref{t:init_files}.
+\vn{n_universes} is the number of universes to be created.
+\vn{init_name} is for naming the initialization. This is useful to
+distinguish between multiple initialization files with custom versions
+of \tao. The other parameters specify which files to find the other
+initialization namelists. The following sections describe each of
+these initialization namelists and their locations are listed in table
+\ref{t:init_files}.
 
 \index{tao_design_lattice}
 \index{tao_params}
-\index{tao_coupled_uni_init}
+\index{tao_connected_uni_init}
 \index{tao_beam_init}
 \index{tao_macro_init}
 \index{tao_var}
@@ -165,24 +167,23 @@ in table \ref{t:init_files}.
 \centering {\tt
 \begin{tabular}{|l|l|l|l|} \hline
   {\it Namelist} & {\it File Name} & {\it Initialized here}  & {\it Section} \\ \hline
-  \vn{tao_design_lattice}   & \vn{lattice_file} & lattice files    & \ref{s:init_lat}      \\ \hline
-  \vn{tao_params}           & 'tao.init' & Global Variables        & \ref{s:globals}       \\ \hline
-  \vn{tao_coupled_uni_init} & 'tao.init' & Coupled Universes       & \ref{s:coupled_uni}   \\ \hline
-  \vn{tao_beam_init}        & 'tao.init' & Particle beam           & \ref{s:beam_init}     \\ \hline
-  \vn{tao_macro_init}       & 'tao.init' & Macroparticle beam      & \ref{s:macro_init}    \\ \hline
-  \vn{tao_var}              & \vn{var_file}     & Variables        & \ref{s:init_var}      \\ \hline
-  \vn{tao_d2_data}          & \vn{data_file}    & Data             & \ref{s:init_data}     \\ \hline
-  \vn{tao_d1_data}          & \vn{data_file}    & Data             & \ref{s:init_data}     \\ \hline
-  \vn{tao_plot_page}        & \vn{plot_file}    & Plotting         & \ref{s:init_plot}     \\ \hline
-  \vn{tao_template_plot}    & \vn{plot_file}    & Plotting         & \ref{s:init_plot}     \\ \hline
-  \vn{tao_template_graph}   & \vn{plot_file}    & Plotting         & \ref{s:init_plot}     \\ \hline
-  \vn{element_shapes}       & \vn{plot_file}    & Plotting         & \ref{s:init_plot}     \\ \hline
-  \vn{key_bindings}         & \vn{single_mode_file} & Single Mode  & \ref{s:init_key_bind} \\ \hline
+  \vn{tao_design_lattice}     & \vn{lattice_file} & lattice files    & \sref{s:init_lat}      \\ \hline
+  \vn{tao_params}             & 'tao.init' & Global Variables        & \sref{s:globals}       \\ \hline
+  \vn{tao_connected_uni_init} & 'tao.init' & Connected Universes     & \sref{s:connected_uni} \\ \hline
+  \vn{tao_beam_init}          & 'tao.init' & Particle beam           & \sref{s:beam_init}     \\ \hline
+  \vn{tao_macro_init}         & 'tao.init' & Macroparticle beam      & \sref{s:macro_init}    \\ \hline
+  \vn{tao_var}                & \vn{var_file}     & Variables        & \sref{s:init_var}      \\ \hline
+  \vn{tao_d2_data}            & \vn{data_file}    & Data             & \sref{s:init_data}     \\ \hline
+  \vn{tao_d1_data}            & \vn{data_file}    & Data             & \sref{s:init_data}     \\ \hline
+  \vn{tao_plot_page}          & \vn{plot_file}    & Plotting         & \sref{s:init_plot}     \\ \hline
+  \vn{tao_template_plot}      & \vn{plot_file}    & Plotting         & \sref{s:init_plot}     \\ \hline
+  \vn{tao_template_graph}     & \vn{plot_file}    & Plotting         & \sref{s:init_plot}     \\ \hline
+  \vn{element_shapes}         & \vn{plot_file}    & Plotting         & \sref{s:init_plot}     \\ \hline
+  \vn{key_bindings}           & \vn{single_mode_file} & Single Mode  & \sref{s:init_key_bind} \\ \hline
 \end{tabular}}
 \caption{Table of \vn{tao} Initialization Namelists}
 \label{t:init_files}
 \end{table}
-
 
 %-----------------------------------------------------------------
 \section{Lattice Initialization}\index{Initialization!Lattice}
@@ -396,29 +397,30 @@ To immediately stop the optimizer the period key
 \vn{``.''} may be pressed.
 
 %-----------------------------------------------------------------
-\section{Initializing Coupled Universes}\index{Initialization!Coupling}
-\label{s:coupled_uni}
+\section{Initializing Connected Universes}
+\index{Initialization!Connected Universes}
+\label{s:connected_uni}
 
-Universes can be coupled together. This can be useful, for example, to attach a
+Universes can be connected together. This can be useful, for example, to attach a
 damping ring a pre-accelerator to a linac. The syntax is as follows:
-\index{tao_coupled_uni_init}
-\index{coupled}
-\index{coupled!from_universe}
-\index{coupled!at_element}
-\index{coupled!at_ele_index}
-\index{coupled!at_s}
-\index{coupled!match_to_design}
+\index{tao_connected_uni_init}
+\index{connect}
+\index{connect!from_universe}
+\index{connect!at_element}
+\index{connect!at_ele_index}
+\index{connect!at_s}
+\index{connect!match_to_design}
 \begin{example}
-  &tao_coupled_uni_init
+  &tao_connected_uni_init
     ix_universe           = <Integer>         ! Universe index.
-    coupled%from_universe = <universe_number> ! coupled from this universe
-    coupled%at_element    = <ele_name>        ! coupled at end of element 
-    coupled%at_ele_index  = <ele_index>       ! coupled at end of ele with this index
-    coupled%at_s          = <number>          ! coupled at poisiton s 
-    coupled%match_to_design = <logical>       ! match optics to design parameters
+    connect%from_universe = <universe_number> ! connect from this universe
+    connect%at_element    = <ele_name>        ! connect at end of element 
+    connect%at_ele_index  = <ele_index>       ! connect at end of ele with this index
+    connect%at_s          = <number>          ! connect at poisiton s 
+    connect%match_to_design = <logical>       ! match optics to design parameters
   /
 \end{example}
-\vn{ix_universe} refers to the universe to be coupled. Any of
+\vn{ix_universe} refers to the universe to be connected. Any of
 \vn{at_element}, \vn{at_ele_index} or \vn{at_s} must be specified but
 not more than one. These refer to the location in the lattice where
 the beam/particle is extracted into this universe.  The injection is
@@ -427,17 +429,17 @@ always at the beginning of the lattice \vn{i}. Setting
 lattice. This must be set in the lattice file.  If there are more than
 one element named \vn{<ele_name>} then the last element named as such
 will be used. If \vn{ele_name = "end"} then the end of the injection
-lattice will be used as the coupling point. If \vn{universe_number =
+lattice will be used as the connection point. If \vn{universe_number =
 0} then universe \vn{i} is not injected into from any other universe
 
-\vn{match_to_design} will set up a coupling element that will match
+\vn{match_to_design} will set up a connection element that will match
 the design twiss parameters between the two lattices. This is
 performed by first finding the design twiss parameters for the
 extraction point for the first lattice then by use of a \bmad
 \vn{match} element match those twiss parameters to the design
 beginning twiss parameters for the second lattice. The matching
 element is not inserted into either lattice. Instead, it resides in
-the \tao coupling structure and is tracked through separately. Note
+the \tao connection structure and is tracked through separately. Note
 that the matching element is not an extraction kicker element. If an
 extraction kicker element is needed then it should be added to either
 the extraction point of the first lattice or the beginning of the
@@ -445,12 +447,12 @@ second lattice.
 
 When using coupled lattices then statements in the lattice file for
 the lattice begin injected into that refer to the \vn{BEGINNING}
-element are only used when setting up the coupling element, otherwise
+element are only used when setting up the connection element, otherwise
 the injected particle/beam is used to set up the \vn{BEGINNING}
 element. This goes for the \vn{tao_macro_init} namelist in the
 initialization file also.
 
-Even if the coupling point is not the end of a lattice the standard lattice
+Even if the connection point is not the end of a lattice the standard lattice
 calculations will still be performed through to the end of the
 lattice.  A universe can only inject into a universe with a greater
 universe index, so for example, universe 3 can inject into 4 or 5 but
@@ -458,12 +460,12 @@ not 1 or 2.
 
 Example:
 \begin{example}
-  &tao_coupled_uni_init
+  &tao_connected_uni_init
     ix_universe = 1
     coupled%from_universe = 0      ! no injection into this universe
     coupled%at_element    = "none"
   /
-  &tao_coupled_uni_init
+  &tao_connected_uni_init
     ix_universe = 2
     coupled%from_universe = 1      ! inject beam/particle form universe 1
     coupled%at_element    = "end"  ! inject from the end of universe 1
@@ -1198,7 +1200,8 @@ given by
 \section{Initializing Plotting}\index{Plotting Initializing}
 \label{s:init_plot} 
 
-\subsection{Plot Window}\index{Initialization!Plotting!Plot Window}
+\subsection{Plot Window}
+\index{Initialization!Plotting!Plot Window}
 
 \begin{figure}
   \centering
@@ -1299,7 +1302,9 @@ likes.
 \vn{place(i)} determines the initial placement of plots.
 
 %-----------------------------------------------------------------
-\subsection{Plot Templates}\index{Plot Templates}
+\subsection{Plot Templates}
+\label{s:template}
+\index{Plot Templates}
 
 As shown in Figure~\ref{f:plot}, a ``plot'' is made up of a collection
 of ``graphs'' and a graph consists of axes plus a set of ``curves''.
@@ -1574,11 +1579,13 @@ not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 \begin{figure}
   \centering
   \includegraphics[width=5in]{layout_graph_table.eps}
-  \caption{A lattice layout plot (top) above a data plot (middle) which in turn is 
-above a key table plot (bottom). The points on the curves in the data plot mark the edges
-of the elements displayed in the lattice layout. Elements that have attributes that
-are varied as shown in the key table have the corresponding key table number printed above
-the element's glyph in the lattice layout.}
+  \caption[Example lattice layout and data plots]
+{A lattice layout plot (top) above a data plot (middle) 
+which in turn is above a key table plot (bottom). The points on the
+curves in the data plot mark the edges of the elements displayed in
+the lattice layout. Elements that have attributes that are varied as
+shown in the key table have the corresponding key table number printed
+above the element's glyph in the lattice layout.}
   \label{f:layout_table}
 \end{figure}
 

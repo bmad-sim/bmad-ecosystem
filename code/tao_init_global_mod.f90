@@ -46,7 +46,7 @@ type (tao_global_struct), save :: global, default_global
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (beam_init_struct) beam_init
 type (macro_init_struct) macro_init
-type (tao_coupled_uni_input) coupled
+type (tao_connected_uni_input) connect
 type (spin_polar_struct) spin
 
 real(rp) :: default_weight        ! default merit function weight
@@ -80,7 +80,7 @@ logical, allocatable :: picked_ele(:)
 namelist / tao_params / global, bmad_com, csr_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max, spin
   
-namelist / tao_coupled_uni_init / ix_universe, coupled
+namelist / tao_connected_uni_init / ix_universe, connect
   
 namelist / tao_beam_init / ix_universe, calc_emittance, beam0_file, &
                           beam_all_file, beam_init, save_beam_at
@@ -183,47 +183,47 @@ end select
 call init_lattices ()
   
 !-----------------------------------------------------------------------
-! Init coupled universes
+! Init connected universes
 
 call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
 
 ! defaults
 do i = 1, size(s%u)
-  s%u(i)%coupling%coupled = .false.
-  s%u(i)%coupling%match_to_design = .false.
-  s%u(i)%coupling%use_coupling_ele = .false.
-  s%u(i)%coupling%from_uni = -1
-  s%u(i)%coupling%from_uni_s = -1
-  s%u(i)%coupling%from_uni_ix_ele = -1
+  s%u(i)%connect%connected = .false.
+  s%u(i)%connect%match_to_design = .false.
+  s%u(i)%connect%use_connect_ele = .false.
+  s%u(i)%connect%from_uni = -1
+  s%u(i)%connect%from_uni_s = -1
+  s%u(i)%connect%from_uni_ix_ele = -1
 enddo
 
 do
   ix_universe = -1
-  coupled%from_universe = -1
-  coupled%at_element = ' '
-  coupled%at_ele_index = -1
-  coupled%at_s = -1
-  coupled%match_to_design = .false.
+  connect%from_universe = -1
+  connect%at_element = ' '
+  connect%at_ele_index = -1
+  connect%at_s = -1
+  connect%match_to_design = .false.
 
-  read (iu, nml = tao_coupled_uni_init, iostat = ios)
+  read (iu, nml = tao_connected_uni_init, iostat = ios)
 
   if (ios == 0) then
     if (ix_universe == -1) then
       call out_io (s_abort$, r_name, &
-            'INIT: READ TAO_COUPLED_UNI_INIT NAMELIST HAS NOT SET IX_UNIVERSE!')
+            'INIT: READ TAO_CONNECTED_UNI_INIT NAMELIST HAS NOT SET IX_UNIVERSE!')
       call err_exit
     endif
     call out_io (s_blank$, r_name, &
-        'Init: Read tao_coupled_uni_init namelist for universe \i3\ ', ix_universe)
+        'Init: Read tao_connected_uni_init namelist for universe \i3\ ', ix_universe)
     i = ix_universe
-    call init_coupled_uni (s%u(i), coupled, i)
+    call init_connected_uni (s%u(i), connect, i)
     cycle
   elseif (ios > 0) then
-    call out_io (s_abort$, r_name, 'INIT: TAO_COUPLED_UNI_INIT NAMELIST READ ERROR!')
+    call out_io (s_abort$, r_name, 'INIT: TAO_CONNECTED_UNI_INIT NAMELIST READ ERROR!')
     rewind (iu)
     do
-      read (iu, nml = tao_coupled_uni_init)  ! generate an error message
+      read (iu, nml = tao_connected_uni_init)  ! generate an error message
     enddo
   endif
 
@@ -1076,16 +1076,16 @@ end subroutine find_elements
 !----------------------------------------------------------------
 ! contains
 !
-! Initialize universe coupling
+! Initialize universe connections
 !
 
-subroutine init_coupled_uni (u, coupled, this_uni_index)
+subroutine init_connected_uni (u, connect, this_uni_index)
 
 implicit none
 
 type (tao_universe_struct) u
 type (tao_universe_struct), pointer ::  from_uni
-type (tao_coupled_uni_input) coupled 
+type (tao_connected_uni_input) connect 
 integer this_uni_index
 
 character(40) class, ele_name
@@ -1093,74 +1093,74 @@ character(40) class, ele_name
 integer j, ix
 
 !
-if (coupled%from_universe .eq. 0 .or. coupled%at_element .eq. "none") then
-  u%coupling%coupled = .false.
+if (connect%from_universe .eq. 0 .or. connect%at_element .eq. "none") then
+  u%connect%connected = .false.
   return
 endif
 
-if (coupled%from_universe .ge. this_uni_index) then
+if (connect%from_universe .ge. this_uni_index) then
   call out_io (s_abort$, r_name, &
         "A universe can only inject into a universe with a greater universe index")
   call err_exit
 endif
   
-u%coupling%coupled = .true.
-u%coupling%from_uni = coupled%from_universe
-from_uni => s%u(coupled%from_universe)
+u%connect%connected = .true.
+u%connect%from_uni = connect%from_universe
+from_uni => s%u(connect%from_universe)
 
-call init_ele (u%coupling%coupling_ele)
-u%coupling%coupling_ele%key = match$
-u%coupling%match_to_design = coupled%match_to_design
-if (u%coupling%match_to_design) u%coupling%use_coupling_ele = .true.
+call init_ele (u%connect%connect_ele)
+u%connect%connect_ele%key = match$
+u%connect%match_to_design = connect%match_to_design
+if (u%connect%match_to_design) u%connect%use_connect_ele = .true.
           
 ! find extraction element
-call string_trim (coupled%at_element, ele_name, ix)
+call string_trim (connect%at_element, ele_name, ix)
 if (ix /= 0) then
-  if (coupled%at_s /= -1 .or. coupled%at_ele_index /= -1) then
+  if (connect%at_s /= -1 .or. connect%at_ele_index /= -1) then
     call out_io (s_error$, r_name, &
-        "INIT Coupling: cannot specify an element, it's index or position at same time!")
-    call out_io (s_blank$, r_name, "Will use element name.")
+        "INIT UNIVERSE CONNECTIONS: CANNOT SPECIFY AN ELEMENT, IT'S INDEX OR POSITION AT SAME TIME!", &
+        "Will use element name.")
   endif
   if (ele_name == "end") then
-    u%coupling%from_uni_s  = from_uni%design%lat%ele(from_uni%design%lat%n_ele_track)%s
-    u%coupling%from_uni_ix_ele = from_uni%design%lat%n_ele_track
+    u%connect%from_uni_s  = from_uni%design%lat%ele(from_uni%design%lat%n_ele_track)%s
+    u%connect%from_uni_ix_ele = from_uni%design%lat%n_ele_track
   else
     ! using element name 
     ! find last element with name
     do j = from_uni%design%lat%n_ele_track, 0, -1
       if (ele_name(1:ix) == trim(from_uni%design%lat%ele(j)%name)) then
-        u%coupling%from_uni_s = from_uni%design%lat%ele(j)%s
-        u%coupling%from_uni_ix_ele = j
+        u%connect%from_uni_s = from_uni%design%lat%ele(j)%s
+        u%connect%from_uni_ix_ele = j
         return
       endif
       if (j == 0) then
         call out_io (s_abort$, r_name, &
-                    "Couldn't find coupling element in universe \I\ ", &
-                     coupled%from_universe)
+                    "COULDN'T FIND CONNECTION ELEMENT IN UNIVERSE \I\ ", &
+                     connect%from_universe)
         call err_exit
       endif
     enddo
   endif
-elseif (coupled%at_ele_index /= -1) then
-  if (coupled%at_s /= -1) then
+elseif (connect%at_ele_index /= -1) then
+  if (connect%at_s /= -1) then
     call out_io (s_error$, r_name, &
-        "INIT Coupling: cannot specify an element, it's index or position at same time!")
-    call out_io (s_blank$, r_name, "Will use element index.")
+        "INIT UNIVERSE CONNECTION: CANNOT SPECIFY AN ELEMENT, IT'S INDEX OR POSITION AT SAME TIME!", &
+        "Will use element index.")
   endif
-    u%coupling%from_uni_s = from_uni%design%lat%ele(coupled%at_ele_index)%s
-    u%coupling%from_uni_ix_ele = coupled%at_ele_index
+    u%connect%from_uni_s = from_uni%design%lat%ele(connect%at_ele_index)%s
+    u%connect%from_uni_ix_ele = connect%at_ele_index
 else
   ! using s position
   if (s%global%track_type /= 'single' ) then
     call out_io (s_abort$, r_name, &
-     "Cannot specify arbitrary s position for coupling if not tracking a single particle")
+     "CANNOT SPECIFY ARBITRARY S POSITION FOR COUPLING IF NOT TRACKING A SINGLE PARTICLE")
     call err_exit
   endif
   !FIX_ME: get ix_ele for element right before this s position
-  u%coupling%from_uni_s = coupled%at_s
+  u%connect%from_uni_s = connect%at_s
 endif
 
-end subroutine init_coupled_uni
+end subroutine init_connected_uni
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
@@ -1256,7 +1256,7 @@ if (u%beam_all_file /= '') then
 
 endif
 
-if (u%coupling%coupled) u%coupling%injecting_beam = u%current_beam
+if (u%connect%connected) u%connect%injecting_beam = u%current_beam
 
 end subroutine init_beam
 
@@ -1307,8 +1307,8 @@ if (u%design%lat%param%lattice_type == circular_lattice$) return
     
 ! This is just to get things allocated
 call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%lat%ele(0), .true.)
-if (u%coupling%coupled) &
-  call init_macro_distribution (u%coupling%injecting_macro_beam, &
+if (u%connect%connected) &
+  call init_macro_distribution (u%connect%injecting_macro_beam, &
                                              macro_init, u%design%lat%ele(0), .true.)
 
 ! keep track of where macros are lost

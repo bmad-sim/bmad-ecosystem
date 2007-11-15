@@ -36,6 +36,10 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
 
   call tao_open_file ('TAO_INIT_DIR', tao_design_lattice_file, iu, complete_file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // complete_file_name)
+  if (iu == 0) then
+    call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')
+    call err_exit
+  endif
 
   design_lattice%file = ''
   design_lattice%parser = ''

@@ -20,21 +20,21 @@ may be entered on one line using the ``;'' character as a separator.
 \centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}  & {\it Command} & {\it Section}  \\ \hline
-  alias      & \ref{s:alias}    & restore      & \ref{s:restore}  \\ \hline 
-  call       & \ref{s:call}     & reinitialize & \ref{s:reinit}   \\ \hline 
-  change     & \ref{s:change}   & run          & \ref{s:run}      \\ \hline 
-  clip       & \ref{s:clip}     & scale        & \ref{s:scale}    \\ \hline 
-  derivative & \ref{s:deriv}    & set          & \ref{s:set}      \\ \hline  
-  exit       & \ref{s:exit}     & show         & \ref{s:show}     \\ \hline 
-  flatten    & \ref{s:flatten}  & single-mode  & \ref{s:sing}     \\ \hline 
-  help       & \ref{s:help}     & spawn        & \ref{s:spawn}    \\ \hline 
-  history    & \ref{s:history}  & use          & \ref{s:use}      \\ \hline 
-  misalign   & \ref{s:misalign} & veto         & \ref{s:veto}     \\ \hline 
-  output     & \ref{s:output}   & view         & \ref{s:view}     \\ \hline 
-  place      & \ref{s:place}    & x-axis       & \ref{s:x-axis}   \\ \hline 
-  plot       & \ref{s:plot}     & x-scale      & \ref{s:x-scale}  \\ \hline 
-  quit       & \ref{s:quit}     & xy-scale     & \ref{s:xy-scale} \\ \hline
-  read       & \ref{s:read}     &              &                  \\ \hline
+  alias      & \sref{s:alias}    & restore      & \sref{s:restore}  \\ \hline 
+  call       & \sref{s:call}     & reinitialize & \sref{s:reinit}   \\ \hline 
+  change     & \sref{s:change}   & run          & \sref{s:run}      \\ \hline 
+  clip       & \sref{s:clip}     & scale        & \sref{s:scale}    \\ \hline 
+  derivative & \sref{s:deriv}    & set          & \sref{s:set}      \\ \hline  
+  exit       & \sref{s:exit}     & show         & \sref{s:show}     \\ \hline 
+  flatten    & \sref{s:flatten}  & single-mode  & \sref{s:sing}     \\ \hline 
+  help       & \sref{s:help}     & spawn        & \sref{s:spawn}    \\ \hline 
+  history    & \sref{s:history}  & use          & \sref{s:use}      \\ \hline 
+  misalign   & \sref{s:misalign} & veto         & \sref{s:veto}     \\ \hline 
+  output     & \sref{s:output}   & view         & \sref{s:view}     \\ \hline 
+  place      & \sref{s:place}    & x-axis       & \sref{s:x-axis}   \\ \hline 
+  plot       & \sref{s:plot}     & x-scale      & \sref{s:x-scale}  \\ \hline 
+  quit       & \sref{s:quit}     & xy-scale     & \sref{s:xy-scale} \\ \hline
+  read       & \sref{s:read}     &              &                  \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -72,7 +72,7 @@ The following intrinsic functions are also recognized: \hfil\break
   \vn{ran_gauss}()  & Gaussian distributed random number with unit RMS \\
 \end{tabular} \newline
 Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
-Setting the seed is described in Section~\ref{s:globals}.
+Setting the seed is described in Section~\sref{s:globals}.
 
 For a description of \vn{single mode} commands see
 Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
@@ -972,7 +972,7 @@ Bmad standard lattice input format.
 
   \item[show plot]
 Shows which templates are being plotted and in which regions and also all
-available templates. See \sref{s:plot_overview} for the syntax on plot, graph, and
+available templates. See \sref{s:plotting} for the syntax on plot, graph, and
 curve names.
 
   \item[show taylor]

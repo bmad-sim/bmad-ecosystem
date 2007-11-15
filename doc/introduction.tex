@@ -1,34 +1,30 @@
-\section*{Tao: The Tool for Accelerator Optics}
+\section*{Introduction}
 
-Many simulation problems fall into one of three categories: 
+\tao stands for ``Tool for Accelerator Optics''. \tao is a general
+purpose program for simulating high energy particle beams in
+accelerators and storage rings. The simulation engine that \tao uses
+is the \bmad software library\cite{b:bmad}. \bmad was developed as an
+object-oriented library so that common tasks, such as reading in a
+lattice file and particle tracking, did not have to be coded from
+scratch every time someone wanted to develop a program to calculate
+this, that or whatever.
 
-\begin{itemize}
-\item 
-Design a lattice subject to various constraints.
-\item
-Simulate errors and changes in machine parameters. For example, you want to
-simulate what happens to the orbit, beta function, etc., when you change
-something in the machine. 
-\item 
-Simulate machine comissioning incliding simulating data measurment and
-correction. For example, you want to know what steering strength changes will
-make an orbit flat.
-\end{itemize}
- 
-Programs that are written to solve these types of problems have common
-elements: You have variables you want to vary in your model of your
-machine, you have "data" that you want to view, and, in the first two
-categories above, you want to match the machine model to the data (in
-designing a lattice the constraints correspond to the data).
+After the development of \bmad, it became apparent that many simulation
+programs had common needs: For example, plotting data, viewing machine
+parameters, etc. Because of this commonality, the \tao program was
+developed to reduce the time needed to develop a working programs
+without sacrificing flexibility. That is, while the ``vanilla''
+version of the \tao program is quite a powerful simulation tool, \tao
+has been designed to be easily customizable so that extending \tao to
+solve new and different problems is relatively straight forward.
 
-Because of this commonality of design, the \tao program was developed
-to reduce the time needed to develop working programs. \tao is a
-machine independent program that implements the essential ingredients
-needed to solve simulation problems. To make the connection, \tao uses
-configuration input files that can be tailored to specific
-machines. Additionally, \tao has been built to be easily customizable
-so that extending \tao to solve new and different problems is straight
-forward.
+This manual is divided into three parts. Part I gives an introduction
+and tutorial to \tao with examples of how to set-up tracking, do plotting,
+etc. Part II is the reference section which defines the terms used by
+\tao and explains in detail the syntax of the configuration files that
+\tao uses to make a connection with a specific machine. Finally, Part
+III is a programmer's guide which shows how to extend \tao's capabilities
+and incoporate custom calculations.
 
 More information, including the most up--to--date version of this
 manual, can be found at the \bmad web site at
