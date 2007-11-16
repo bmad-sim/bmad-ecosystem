@@ -3015,7 +3015,7 @@ endif
 
 loc = .false.
 do i = 0, lat%n_ele_max
-  if (ix_class /= lat%ele(i)%key) cycle
+  if (ix_class /= 0 .and. ix_class /= lat%ele(i)%key) cycle
   if (.not. match_wild(lat%ele(i)%name, ele_name)) cycle
   loc(i) = .true.
 enddo
@@ -3046,7 +3046,7 @@ end subroutine
 !                 there is a problem
 !
 ! Output:
-!   ix_class  -- Integer: Element class.
+!   ix_class  -- Integer: Element class. 0 => all classes.
 !   ele_name  -- Character(*): Element name.
 !   err       -- Set true if there is a problem translating the element class.
 !-
