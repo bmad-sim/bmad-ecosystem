@@ -817,6 +817,7 @@ if (beam_init%renorm_sigma) then
   ! The first step is to zero the off-diagonal elements.
   ! We have to do this in the correct order otherwise zeroing one element
   ! might unzero others that have already been zeroed.
+
   do i = 5, 1, -1
     do j = i+1, 6
       b = -sig_mat(i,j) / sig_mat(j,j)
@@ -833,6 +834,7 @@ if (beam_init%renorm_sigma) then
         sig_mat(i,j2) = sig_mat(i,j2) + b * sig_mat(j ,j2)
         sig_mat(j2,i) = sig_mat(i,j2)
       enddo
+
     enddo
   enddo
 
@@ -924,7 +926,7 @@ do i = 1, beam_init%n_particle
   p%r%vec = p%r%vec + center
       
 end do
-     
+
 ! set particle charge
 
 bunch%charge = beam_init%bunch_charge
@@ -1065,7 +1067,7 @@ end subroutine calc_bunch_params_slice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_params (bunch, ele, params)
+! Subroutine calc_bunch_params (bunch, ele, params, use_canonical_coords)
 !
 ! Finds all bunch parameters defined in bunch_params_struct, both normal-mode
 ! and projected. Projected parameters are found purely from the geometrical
@@ -1080,6 +1082,10 @@ end subroutine calc_bunch_params_slice
 ! Input:
 !   bunch     -- Bunch_struct
 !   ele       -- ele_struct: element to find parameters at
+!   use_canonical_coords 
+!             -- Logical, optional: If False then the calculations
+!                  use (x, x', y, y', z, p_z) coordinates.
+!                  Default is True   
 !
 ! Output     
 !   params -- bunch_params_struct:
@@ -1099,7 +1105,7 @@ end subroutine calc_bunch_params_slice
 !     %n_particle ! # particles not lost
 !-
 
-subroutine calc_bunch_params (bunch, ele, params)
+subroutine calc_bunch_params (bunch, ele, params, use_canonical_coords)
 
 implicit none
 
@@ -1124,6 +1130,7 @@ complex(rp) :: n(6,6), e(6,6), q(6,6)
 
 integer i, j
 
+logical, optional :: use_canonical_coords
 logical err
 
 character(18) :: r_name = "calc_bunch_params"
@@ -1158,7 +1165,8 @@ avg_energy = avg_energy * ele%value(E_TOT$) / params%n_particle
 
 ! Convert to geometric coords and find the sigma matrix
 
-call switch_to_geometric (bunch%particle, set$)
+if (.not. logic_option(.true., use_canonical_coords)) &
+                    call switch_to_geometric (bunch%particle, set$)
     
 call find_bunch_sigma_matrix (bunch%particle, params%centroid%vec, params%sigma, sigma_s)
 
@@ -1254,7 +1262,9 @@ params%c%etap = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
 if (bmad_com%spin_tracking_on) call calc_spin_params ()
   
 ! convert back to cannonical coords
-call switch_to_geometric (bunch%particle, unset$)
+
+if (.not. logic_option(.true., use_canonical_coords)) &
+                  call switch_to_geometric (bunch%particle, unset$)
   
 contains
 !----------------------------------------------------------------------
