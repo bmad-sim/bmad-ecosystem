@@ -214,17 +214,17 @@ case ('beam')
     endif
     bunch => beam%bunch(s%global%bunch_to_plot)
     call calc_bunch_params (bunch, u%model%lat%ele(ix_ele), bunch_params)
-    nl=nl+1; write (lines(nl), imt) 'Parameters for bunch:       ', s%global%bunch_to_plot
-    nl=nl+1; write (lines(nl), imt) 'Particles surviving:        ', bunch_params%n_particle
-    nl=nl+1; write (lines(nl), imt) 'Particles lost:             ', size(bunch%particle) - bunch_params%n_particle
-    nl=nl+1; write (lines(nl), rmt) 'Particles lost (%):         ', &
-                               (size(bunch%particle) - bunch_params%n_particle) / size(bunch%particle)
+    nl=nl+1; write (lines(nl), imt)  'Parameters for bunch:       ', s%global%bunch_to_plot
+    nl=nl+1; write (lines(nl), imt)  'Particles surviving:        ', bunch_params%n_particle
+    nl=nl+1; write (lines(nl), imt)  'Particles lost:             ', size(bunch%particle) - bunch_params%n_particle
+    nl=nl+1; write (lines(nl), f3mt) 'Particles lost (%):         ', &
+                               real(size(bunch%particle) - bunch_params%n_particle) / size(bunch%particle)
     nl=nl+1; write (lines(nl), rmt) 'Centroid:', bunch_params%centroid%vec
     nl=nl+1; write (lines(nl), rmt) 'RMS:     ', sqrt(bunch_params%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
     nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
     nl=nl+1; write (lines(nl), rmt) 'a:       ', bunch_params%a%norm_emitt, bunch_params%a%beta
-    nl=nl+1; write (lines(nl), rmt) 'b:       ', bunch_params%a%norm_emitt, bunch_params%a%beta
-    nl=nl+1; write (lines(nl), rmt) 'z:       ', bunch_params%a%norm_emitt, bunch_params%a%beta
+    nl=nl+1; write (lines(nl), rmt) 'b:       ', bunch_params%b%norm_emitt, bunch_params%b%beta
+    nl=nl+1; write (lines(nl), rmt) 'z:       ', bunch_params%z%norm_emitt, bunch_params%z%beta
   
   endif
 
@@ -1007,7 +1007,7 @@ case ('plot')
     endif
     nl=nl+1; lines(nl) = 'Plot:  ' // p%name
     nl=nl+1; write (lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
-    nl=nl+1; write (lines(nl), rmt) 'x_divisions          = ', p%x_divisions
+    nl=nl+1; write (lines(nl), rmt) 'x%major_div_nominal  = ', p%x%major_div_nominal
     nl=nl+1; write (lines(nl), rmt) 'x%max                = ', p%x%max
     nl=nl+1; write (lines(nl), rmt) 'x%min                = ', p%x%min
     nl=nl+1; write (lines(nl), imt) 'x%major_div          = ', p%x%major_div

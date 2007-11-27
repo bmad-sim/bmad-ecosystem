@@ -3085,7 +3085,7 @@ character(20) class
 
   ix_class = key_name_to_key_index (class, .true.)
   if (ix_class < 1) then
-    if (print_err) call out_io (s_error$, r_name, 'BAD CLASS NAME' // class)
+    if (print_err) call out_io (s_error$, r_name, 'BAD CLASS NAME: ' // class)
     err = .true.
   endif
 

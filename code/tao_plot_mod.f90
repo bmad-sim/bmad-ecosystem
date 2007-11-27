@@ -280,19 +280,9 @@ if (graph%draw_axes) then
   call qp_draw_axes
 endif
 
-isu = graph%ix_universe
-! if garph%ix_universe == 0 then graph currently viewed universe
-if (isu == 0) then
-  lat => s%u(s%global%u_view)%model%lat
-else
-  lat => s%u(isu)%model%lat
-endif
+isu = tao_universe_number(graph%ix_universe)
+lat => s%u(isu)%model%lat
 
-graph%x_max = -1e20
-graph%x_min =  1e20
-graph%y_max = -1e20
-graph%y_min =  1e20
-  
 ! loop over all elements in the lattice. 
 
 do i = 1, lat%n_ele_max
@@ -306,13 +296,6 @@ do i = 1, lat%n_ele_max
   call find_element_ends (lat, i, ix1, ix2)
   call floor_to_screen_coords (lat%ele(ix1)%floor, end1)
   call floor_to_screen_coords (lat%ele(ix2)%floor, end2)
-
-  ! Record min and max
-
-  graph%x_max = max(graph%x_max, end1%x, end2%x)
-  graph%x_min = min(graph%x_min, end1%x, end2%x)
-  graph%y_max = max(graph%y_max, end1%y, end2%y)
-  graph%y_min = min(graph%y_min, end1%y, end2%y)
 
   ! Only draw those element that have at least one point in bounds.
   
@@ -529,10 +512,15 @@ do i = 1, size(s%wall)
 
 end do
 
+end subroutine
+
 !--------------------------------------------------------------------------
-contains
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
 
 subroutine floor_to_screen_coords (floor, screen)
+
+implicit none
 
 type (floor_position_struct) floor, screen
 
@@ -544,9 +532,12 @@ screen%theta = pi + floor%theta
 end subroutine
 
 !--------------------------------------------------------------------------
-! contains
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
 
 subroutine floor_to_screen (x_floor, y_floor, z_floor, x_screen, y_screen)
+
+implicit none
 
 real(rp) x_floor, y_floor, z_floor, x_screen, y_screen
 
@@ -557,8 +548,6 @@ real(rp) x_floor, y_floor, z_floor, x_screen, y_screen
 
 x_screen = -z_floor
 y_screen = -x_floor
-
-end subroutine
 
 end subroutine
 

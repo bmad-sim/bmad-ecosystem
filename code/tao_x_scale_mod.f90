@@ -166,8 +166,8 @@ endif
 
 ! calculate divisions and places
 
-p1 = nint(0.7 * plot%x_divisions)  ! Used to be 8
-p2 = nint(1.3 * plot%x_divisions)  ! Used to be 15
+p1 = nint(0.7 * plot%x%major_div_nominal)  ! Used to be 8
+p2 = nint(1.3 * plot%x%major_div_nominal)  ! Used to be 15
 call qp_calc_and_set_axis ('X', x1, x2, p1, p2, 'GENERAL', plot%x%type)
 call qp_get_axis ('X', plot%x%min, plot%x%max, plot%x%major_div, plot%x%places)
 if (present(force)) then

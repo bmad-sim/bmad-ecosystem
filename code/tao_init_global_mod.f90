@@ -102,10 +102,6 @@ namelist / tao_var / v1_var, var, default_weight, default_step, &
 ! Init lattaces
 ! read global structure from tao_params namelist
 
-global = default_global         ! establish defaults
-global%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
-global%default_key_merit_type = 'limit'
-
 call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
 if (iu == 0) then
@@ -113,9 +109,22 @@ if (iu == 0) then
   call err_exit
 endif
 
-read (iu, nml = tao_params)
-call out_io (s_blank$, r_name, 'Init: Read tao_params namelist')
+global = default_global         ! establish defaults
+global%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
+global%default_key_merit_type = 'limit'
+n_var_max = 0
+n_data_max = 0
+n_d2_data_max = 0
+n_v1_var_max = 0
 
+call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
+read (iu, nml = tao_params, iostat = ios)
+if (ios > 0) then
+  call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST.')
+  rewind (iu)
+  read (iu, nml = tao_params, iostat = ios)  ! To give error message
+endif
+if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
 close (iu)
 
 s%global = global  ! transfer global to s%global

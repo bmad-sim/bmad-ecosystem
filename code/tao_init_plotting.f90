@@ -36,7 +36,7 @@ type (qp_symbol_struct) default_symbol
 type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
 
-integer iu, i, j, ip, n, ng, ios, i_uni
+integer iu, i, j, ix, ip, n, ng, ios, i_uni
 integer graph_index, color
 integer, allocatable :: ix_ele(:)
 
@@ -78,8 +78,15 @@ plot_page%title(:)%y = 0.990
 plot_page%title(1)%y = 0.996
 plot_page%title(2)%y = 0.97
 plot_page%title(:)%units = '%PAGE'
+
 call out_io (s_blank$, r_name, 'Init: Reading tao_plot_page namelist')
-read (iu, nml = tao_plot_page, err = 9000)
+read (iu, nml = tao_plot_page, iostat = ios)
+if (ios > 0) then
+  call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST.')
+  rewind (iu)
+  read (iu, nml = tao_plot_page)  ! To give error message
+endif
+if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_plot_page namelist found')
 
 s%plot_page = plot_page
 page => s%plot_page
@@ -110,6 +117,8 @@ do
   plot%name = ' '
   plot%x_axis_type = 'index'
   plot%x = init_axis
+  plot%x%minor_div_max = 6
+  plot%x%major_div = 6
   plot%independent_graphs = .false.
   plot%n_graph = 0
   read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
@@ -128,12 +137,20 @@ do
   
   plt => s%template_plot(ip)
   nullify(plt%r)
-  plt%name        = plot%name
-  plt%x           = plot%x
-  plt%x_divisions = plot%x%major_div
-  plt%x_axis_type = plot%x_axis_type
-  plt%independent_graphs = plot%independent_graphs
+  plt%name            = plot%name
+  plt%x_axis_type     = plot%x_axis_type
+  plt%x               = plot%x
+  plt%x%major_div_nominal = plot%x%major_div
+  plt%independent_graphs  = plot%independent_graphs
   call qp_calc_axis_places (plt%x)
+
+  do
+    ix = index(plt%name, '.')
+    if (ix == 0) exit
+    call out_io (s_error$, r_name, 'PLOT NAME HAS ".": ' // plt%name, &
+                 'SUBSTITUTING "-"')
+    plt%name(ix:ix) = '-'
+  enddo
 
   ng = plot%n_graph
   if (ng == 0) then
@@ -211,6 +228,14 @@ do
     grph%legend = ' '
     grph%y2_mirrors_y = .true.
 
+    do
+      ix = index(grph%name, '.')
+      if (ix == 0) exit
+      call out_io (s_error$, r_name, 'GRAPH NAME HAS ".": ' // grph%name, &
+                   'SUBSTITUTING "-"')
+      grph%name(ix:ix) = '-'
+    enddo
+
     call qp_calc_axis_places (grph%y)
 
     if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
@@ -253,6 +278,14 @@ do
       call str_upcase (crv%ele_ref_name, crv%ele_ref_name)
       crv%ix_ele_ref              = curve(j)%ix_ele_ref
       crv%ix_bunch                = curve(j)%ix_bunch
+
+      do
+        ix = index(crv%name, '.')
+        if (ix == 0) exit
+        call out_io (s_error$, r_name, 'CURVE NAME HAS ".": ' // crv%name, &
+                     'SUBSTITUTING "-"')
+        crv%name(ix:ix) = '-'
+      enddo
 
       ! Turn on the y2 axis numbering if needed.
 
@@ -357,17 +390,6 @@ enddo
 call tao_create_plot_window
 
 return
-
-!-----------------------------------------
-! Error handling
-
-9000 continue
-call out_io (s_error$, r_name, &
-        'TAO_PLOT_PAGE NAMELIST READ ERROR.', 'IN FILE: ' // file_name)
-rewind (iu)
-do
-  read (iu, nml = tao_plot_page)  ! force printing of error message
-enddo
 
 !-----------------------------------------
 

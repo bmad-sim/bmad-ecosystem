@@ -83,9 +83,12 @@ endif
 if (tao_com%cmd_file_level /= 0) then
   n_level = tao_com%cmd_file_level
   if (.not. multi_commands_here) then
-    read (tao_com%cmd_file(n_level)%ix_unit, '(a)', end = 8000) cmd_line
-    tao_com%cmd_from_cmd_file = .true.
-    call string_trim (cmd_line, cmd_line, ix)
+    do
+      read (tao_com%cmd_file(n_level)%ix_unit, '(a)', end = 8000) cmd_line
+      tao_com%cmd_from_cmd_file = .true.
+      call string_trim (cmd_line, cmd_line, ix)
+      if (ix /= 0) exit
+    enddo
 
     ! nothing more to do if an alias definition
 

@@ -1235,9 +1235,8 @@ plots go. The syntax of this block is:
     plot_page%legend_text_scale      = 0.8  ! Relative to text_height
     plot_page%key_table_text_scale   = 0.9  ! Relative to text_height
     plot_page%title(i)    = <string>, {<x>, <y>, "<justify>", "<units>"}
-    region(i)%name        = "<region_name>"
-    region(i)%location    = <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
-    place(i)              = "<region>", "<template>"
+    region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
+    place(i)  = "<region_name>", "<template_name>"
   /
 \end{example}
 For example:
@@ -1247,12 +1246,10 @@ For example:
     plot_page%border      = 0, 0, 0, 50, "POINTS"  
     plot_page%text_height = 12.0
     plot_page%title(1)    = "CESR Lattice"
-    region(1)%name        = "top"
-    region(1)%location    = 0.0, 1.0, 0.5, 1.0
-    region(2)%name        = "bottom"
-    region(2)%location    = 0.0, 1.0, 0.0, 0.5
-    place(1)              = "top", "orbit"
-    place(2)              = "bottom", "phase"
+    region(1) = "top"    0.0, 1.0, 0.5, 1.0
+    region(2) = "bottom" 0.0, 1.0, 0.0, 0.5
+    place(1)  = "top",    "orbit"
+    place(2)  = "bottom", "phase"
   /
 \end{example}
 
@@ -1286,10 +1283,15 @@ the \vn{justify} variable syntax.
 
 The plot area is divided up into rectangular regions where plots may
 be placed (what defines a plot is discussed below).
-\vn{region(i)%name} is the name of a region and my be any character
-string. \vn{l_x1}, and \vn{l_x2} define the location of the left and
+\vn{region(i)} is an array of five elements
+that defines the i\Th region. The
+first element of this array is the name of the resion. This name
+may not contain a dot ``.''.
+The second and third elements of the array, 
+\vn{l_x1}, and \vn{l_x2}, define the location of the left and
 right edges of the region as a fraction of the plot area width
-starting from the left edge of the plot area.  \vn{l_y1} and \vn{l_y2}
+starting from the left edge of the plot area.
+The final elements of the \vn{region(i)} array, \vn{l_y1} and \vn{l_y2}.
 define the location of the bottom and top edges of the region as a
 fraction of the height of the plot area with respect to the plot
 area's bottom edge. Thus, in the above example, region 1 extends from
@@ -1776,7 +1778,7 @@ Example Floor Plan template:
 \begin{example}
   &tao_template_plot
     plot%name = 'floor'
-    plot%x%min = -13  
+    plot%x%min = -12  
     plot%x%max = 0    
     plot%x%major_div = 4
     plot%x%minor_div = 3

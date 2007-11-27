@@ -13,6 +13,7 @@ subroutine tao_x_axis_cmd (where, what)
 
 use tao_mod
 use quick_plot
+use tao_plot_data_mod
 
 implicit none
 
@@ -97,8 +98,8 @@ endif
 
 !
 
-p1 = nint(0.7 * plot%x_divisions)  ! Used to be 8
-p2 = nint(1.3 * plot%x_divisions)  ! Used to be 15
+p1 = nint(0.7 * plot%x%major_div_nominal)  ! Used to be 8
+p2 = nint(1.3 * plot%x%major_div_nominal)  ! Used to be 15
 call qp_calc_axis_params (minn, maxx, p1, p2, plot%x)
 
 end subroutine

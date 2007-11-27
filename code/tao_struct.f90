@@ -142,7 +142,6 @@ type tao_plot_struct
                                 ! individual graphs of a plot
   type (qp_axis_struct) x       ! X-axis parameters.
   type (tao_plot_region_struct), pointer :: r ! pointer to parent.
-  real(rp) x_divisions          ! Nominal number of x-axis divisions.
   character(16) x_axis_type     ! 'index', 'ele_index', 's', 'none', or 'phase_space'
   logical independent_graphs    ! scale cmd scales graphs independently?
 end type
