@@ -87,7 +87,7 @@ subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s)
                    lat%param, s_use-lat%ele(i-1)%s, ele)
     endif
 
-    call ele_geometry (lat%ele(i-1), lat%ele(i), lat%param)
+    call ele_geometry (lat%ele(i-1), ele, lat%param)
 
     return
 

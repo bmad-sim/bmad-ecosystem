@@ -103,6 +103,7 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(dp) chord_len, angle, leng, rho
 real(dp) pos(3), theta, phi, psi, tlt
 real(dp), save :: old_theta = 100  ! garbage number
+real(dp), save :: old_phi, old_psi
 real(dp), save :: s_ang, c_ang, s_the, c_the, s_phi, c_phi, s_psi, c_psi
 real(dp), save :: w_mat(3,3), s_mat(3,3), r_mat(3), t_mat(3,3)
 real(dp), parameter :: twopi_dp = 2 * 3.14159265358979
@@ -135,7 +136,7 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
              (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0) .or. &
              (key == sbend$ .and. ele%value(tilt_tot$) /= 0)) then
 
-  if (old_theta /= theta) then
+  if (old_theta /= theta .or. old_phi /= phi .or. old_psi /= psi) then
     s_the = sin(theta); c_the = cos(theta)
     s_phi = sin(phi);   c_phi = cos(phi)
     s_psi = sin(psi);   c_psi = cos(psi)
@@ -243,6 +244,8 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
   endif
 
   old_theta = theta
+  old_phi   = phi
+  old_psi   = psi
 
 ! Simple case where the local reference frame stays in the horizontal plane.
 

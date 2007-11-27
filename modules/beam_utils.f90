@@ -1170,19 +1170,17 @@ if (.not. logic_option(.true., use_canonical_coords)) &
     
 call find_bunch_sigma_matrix (bunch%particle, params%centroid%vec, params%sigma, sigma_s)
 
-!********
 ! Projected Parameters
 ! X
 call projected_twiss_calc (params%x, params%sigma(s11$), params%sigma(s22$), &
-                      params%sigma(s12$), params%sigma(s16$), params%sigma(s26$))
+                      params%sigma(s12$), params%sigma(s16$), params%sigma(s26$), .false.)
 ! Y
 call projected_twiss_calc (params%y, params%sigma(s33$), params%sigma(s44$), &
-                      params%sigma(s34$), params%sigma(s36$), params%sigma(s46$))
+                      params%sigma(s34$), params%sigma(s36$), params%sigma(s46$), .false.)
 ! Z
 call projected_twiss_calc (params%z, params%sigma(s55$), params%sigma(s66$), &
-                      params%sigma(s56$), params%sigma(s56$), params%sigma(s66$))
+                      params%sigma(s56$), params%sigma(s56$), params%sigma(s66$), .true.)
      
-!***
 ! Normal-Mode Parameters
   
 ! Use Andy Wolski's eigemode method to find normal-mode beam parameters
@@ -1309,20 +1307,29 @@ end subroutine switch_to_geometric
 !----------------------------------------------------------------------
 ! contains
 
-subroutine projected_twiss_calc (param, exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d)
+subroutine projected_twiss_calc (param, exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d, is_z)
 
 implicit none
 
 type (bunch_lat_param_struct), intent(out) :: param
 real(rp), intent(in) :: exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
 real(rp) emitt, x2, x_px, px2
+logical is_z
+
+!
 
 param%eta   = exp_x_d / params%sigma(s66$)
 param%etap  = exp_px_d / params%sigma(s66$)
 
-x2   = exp_x2   - params%sigma(s66$) * param%eta**2 
-x_px = exp_x_px - params%sigma(s66$) * param%eta * param%etap
-px2  = exp_px2  - params%sigma(s66$) * param%etap**2
+if (is_z) then
+  x2   = exp_x2   
+  x_px = exp_x_px 
+  px2  = exp_px2  
+else
+  x2   = exp_x2   - params%sigma(s66$) * param%eta**2 
+  x_px = exp_x_px - params%sigma(s66$) * param%eta * param%etap
+  px2  = exp_px2  - params%sigma(s66$) * param%etap**2
+endif
 
 emitt = sqrt(x2*px2 - x_px**2)
 
