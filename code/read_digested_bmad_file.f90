@@ -72,7 +72,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
   character(200), allocatable :: file_names(:)
   character(25) :: r_name = 'read_digested_bmad_file'
 
-  logical found_it, v83, v84, v_old, v_now
+  logical found_it, v83, v84, v85, v_old, v_now
 
 ! init all elements in lat
 
@@ -95,6 +95,7 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
 
   v83 = (version == 83)
   v84 = (version == 84)
+  v85 = (version == 85)
   v_old = v83 .or. v84
   v_now = (version == bmad_inc_version$)  ! v85
 
