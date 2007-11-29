@@ -372,7 +372,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
         ele%value(y_offset$) = pdata(dat_indx+3)
         ele%value(y_pitch$)  = pdata(dat_indx+4)
         ele%value(l$)        = pdata(dat_indx+5)
-        ele%value(de_offset$)= pdata(dat_indx+6)
+        ele%value(pz_offset$)= pdata(dat_indx+6)
         ele%value(tilt$)     = pdata(dat_indx+7)
         ele%value(z_offset$) = pdata(dat_indx+8)
 
@@ -539,6 +539,8 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
     end select
 
     lat%param%n_part = pdata(dat_indx+14)
+    lat%a%emit = pdata(dat_indx+6)
+    lat%b%emit = pdata(dat_indx+8)
 
     if (pdata(dat_indx+3) /= 0) ele%value(E_TOT$) = &
                                                   pdata(dat_indx+3) * 1e9

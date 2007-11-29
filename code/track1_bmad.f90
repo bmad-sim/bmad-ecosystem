@@ -99,7 +99,7 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(1) = end%vec(1) - ele%value(x_offset$)
     end%vec(3) = end%vec(3) - ele%value(y_offset$)
     end%vec(5) = end%vec(5) - ele%value(z_offset$)
-    end%vec(6) = end%vec(6) - ele%value(dE_offset$)
+    end%vec(6) = end%vec(6) - ele%value(pz_offset$)
 
 !-----------------------------------------------
 ! match

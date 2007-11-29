@@ -258,9 +258,14 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
         ele%value(ix_value(k)) = value(k)
       enddo
 
-   endif
+    endif
 
     !
+
+    if (v83 .or. v84 .or. v85) then
+      if (ele%key == wiggler$ .and. ele%value(check_sum$) == 0) &
+                                        ele%value(check_sum$) = ele%value(28)
+    endif
 
     if (v83 .or. v84) then
       ele%value(radius$)   = ele%value(32)

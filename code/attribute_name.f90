@@ -348,7 +348,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(patch$, x_offset$)   = 'X_OFFSET'
     attrib_array(patch$, y_offset$)   = 'Y_OFFSET'
     attrib_array(patch$, z_offset$)   = 'Z_OFFSET'
-    attrib_array(patch$, dE_offset$)  = 'DE_OFFSET'
+    attrib_array(patch$, pz_offset$)  = 'PZ_OFFSET'
     attrib_array(patch$, tilt$)       = 'TILT'
 
     attrib_array(quadrupole$, l$)           = 'L'

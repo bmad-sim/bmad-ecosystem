@@ -17,6 +17,12 @@ Enable overlay to control:
 	x_limit
 	y_limit
 
+Put in mode_info_struct:
+	sigma
+	simgap
+and enable reading in sigmas in bmad_parser & xsif_parser
+
+
 -----------------
 
 add function to calc: ring%param%s_start

@@ -360,7 +360,7 @@ integer, parameter :: BL_vkick$=24
 integer, parameter :: x_offset$=25
 integer, parameter :: y_offset$=26
 integer, parameter :: s_offset$=27, z_offset$=27
-integer, parameter :: dE_offset$=28, check_sum$=28, B_field_err$=28
+integer, parameter :: B_field_err$=28
 
 integer, parameter :: radius$=31
 integer, parameter :: p0c$ = 32
@@ -378,7 +378,7 @@ integer, parameter :: y_offset_tot$=42
 integer, parameter :: s_offset_tot$=43
 
 integer, parameter :: BL_kick$ = 45
-integer, parameter :: coupler_strength$ = 46
+integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46
 integer, parameter :: coupler_phase$ = 47
 integer, parameter :: coupler_angle$ = 48
 integer, parameter :: kick_tilt$ = 49
@@ -392,6 +392,7 @@ integer, parameter :: x1_limit$ = 56
 integer, parameter :: x2_limit$ = 57
 integer, parameter :: y1_limit$ = 58
 integer, parameter :: y2_limit$ = 59
+integer, parameter :: check_sum$ = 60
 
 integer, parameter :: term$ = 61       ! 61 = 1 + n_attrib_maxx
 integer, parameter :: ptc_kind$ = 62
