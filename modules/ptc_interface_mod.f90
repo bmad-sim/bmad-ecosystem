@@ -1585,12 +1585,12 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
     call set_ptc (taylor_order = bmad_com%taylor_order)
   endif
 
-! LCavity and Match elements are not implemented in PTC so just use the matrix.
+! LCavity, Patch and Match elements are not implemented in PTC so just use the matrix.
 ! Also Taylor elements already have a taylor map.
 
   if (ele%key == taylor$) return
 
-  if (ele%key == lcavity$ .or. ele%key == match$) then
+  if (ele%key == lcavity$ .or. ele%key == match$ .or. ele%key == patch$) then
     call make_mat6 (ele, param)
     call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
     return
