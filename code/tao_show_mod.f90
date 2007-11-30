@@ -61,7 +61,7 @@ end type
 
 type (show_lat_column_struct) column(40)
 
-real(rp) f_phi, s_pos, l_lat
+real(rp) f_phi, s_pos, l_lat, gam
 real(rp) :: delta_e = 0
 real(rp), allocatable :: value(:)
 
@@ -199,7 +199,17 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt) 'csr_param%lsc_component_on     = ', csr_param%lsc_component_on
     nl=nl+1; write(lines(nl), lmt) 'csr_param%tsc_component_on     = ', csr_param%tsc_component_on
     nl=nl+1; lines(nl) = ''
+    call convert_total_energy_to (u%model%lat%e_tot, u%model%lat%param%particle, gamma = gam)
+    nl=nl+1; write(lines(nl), rmt) 'model%lat%a%emit               = ', u%model%lat%a%emit
+    nl=nl+1; write(lines(nl), rmt) '          a%emit (normalized)  = ', u%model%lat%a%emit * gam
+    nl=nl+1; write(lines(nl), rmt) 'model%lat%b%emit               = ', u%model%lat%b%emit
+    nl=nl+1; write(lines(nl), rmt) '          b%emit (normalized)  = ', u%model%lat%b%emit * gam
+    nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', s%global%track_type
+    nl=nl+1; write(lines(nl), amt) 'u%save_beam_at:'
+    do i = lbound(u%save_beam_at, 1), ubound(u%save_beam_at, 1)
+      nl=nl+1; write (lines(nl), '(a, i0, 2a)') '           (', i, ') = ', u%save_beam_at(i)
+    enddo
 
   ! have element index
 
@@ -488,7 +498,7 @@ case ('element', 'taylor', 'e2')
       return
     endif
 
-    write (lines(1), *) 'Matches:'
+    write (lines(1), *) 'Matches:', count(picked_ele)
     nl = 1
     do loc = 1, u%model%lat%n_ele_max
       if (.not. picked_ele(loc)) cycle
@@ -569,51 +579,49 @@ case ('element', 'taylor', 'e2')
 
 case ('global')
 
-  nl=nl+1; write (lines(nl), imt) 'n_universes                = ', size(s%u)
-  nl=nl+1; write (lines(nl), rmt) 'de_lm_step_ratio           = ', s%global%de_lm_step_ratio
-  nl=nl+1; write (lines(nl), rmt) 'lm_opt_deriv_reinit        = ', s%global%lm_opt_deriv_reinit
-  nl=nl+1; write (lines(nl), rmt) 'lmdif_eps                  = ', s%global%lmdif_eps
-  nl=nl+1; write (lines(nl), rmt) 'y_axis_plot_dmin           = ', s%global%y_axis_plot_dmin
-  nl=nl+1; write (lines(nl), imt) 'u_view                     = ', s%global%u_view
-  nl=nl+1; write (lines(nl), imt) 'n_opti_loops               = ', s%global%n_opti_loops
-  nl=nl+1; write (lines(nl), imt) 'n_opti_cycles              = ', s%global%n_opti_cycles
-  nl=nl+1; write (lines(nl), imt) 'bunch_to_plot              = ', s%global%bunch_to_plot
-  nl=nl+1; write (lines(nl), imt) 'n_curve_pts                = ', s%global%n_curve_pts
-  nl=nl+1; write (lines(nl), '(a, i0)') 'random_seed                = ', s%global%random_seed
-  nl=nl+1; write (lines(nl), rmt) 'random_gauss_cutoff        = ', s%global%random_gauss_cutoff
-  nl=nl+1; write (lines(nl), amt) 'random_engine              = ', s%global%random_engine
-  nl=nl+1; write (lines(nl), amt) 'random_gauss_converter     = ', s%global%random_gauss_converter
-  nl=nl+1; write (lines(nl), amt) 'track_type                 = ', s%global%track_type
-  nl=nl+1; write (lines(nl), amt) 'phase_units                = ', &
-                                                  frequency_units_name(s%global%phase_units)
-  nl=nl+1; write (lines(nl), amt) 'optimizer                  = ', s%global%optimizer
-  nl=nl+1; write (lines(nl), amt) 'prompt_string              = ', s%global%prompt_string
-  nl=nl+1; write (lines(nl), amt) 'var_out_file               = ', s%global%var_out_file
-  nl=nl+1; write (lines(nl), amt) 'print_command              = ', s%global%print_command
   nl=nl+1; write (lines(nl), lmt) 'auto_scale                 = ', s%global%auto_scale
+  nl=nl+1; write (lines(nl), imt) 'bunch_to_plot              = ', s%global%bunch_to_plot
+  nl=nl+1; write (lines(nl), rmt) 'de_lm_step_ratio           = ', s%global%de_lm_step_ratio
+  nl=nl+1; write (lines(nl), lmt) 'derivative_recalc          = ', s%global%derivative_recalc
   nl=nl+1; write (lines(nl), lmt) 'label_lattice_elements     = ', s%global%label_lattice_elements
   nl=nl+1; write (lines(nl), lmt) 'label_keys                 = ', s%global%label_keys
-  nl=nl+1; write (lines(nl), lmt) 'derivative_recalc          = ', s%global%derivative_recalc
-  nl=nl+1; write (lines(nl), lmt) 'var_limits_on              = ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), lmt) 'var_limits_on              = ', s%global%var_limits_on
+  nl=nl+1; write (lines(nl), rmt) 'lm_opt_deriv_reinit        = ', s%global%lm_opt_deriv_reinit
+  nl=nl+1; write (lines(nl), rmt) 'lmdif_eps                  = ', s%global%lmdif_eps
+  nl=nl+1; write (lines(nl), lmt) 'matrix_recalc_on           = ', s%global%matrix_recalc_on
+  nl=nl+1; write (lines(nl), imt) 'n_curve_pts                = ', s%global%n_curve_pts
+  nl=nl+1; write (lines(nl), imt) 'n_opti_loops               = ', s%global%n_opti_loops
+  nl=nl+1; write (lines(nl), imt) 'n_opti_cycles              = ', s%global%n_opti_cycles
+  nl=nl+1; write (lines(nl), imt) 'n_universes                = ', size(s%u)
   nl=nl+1; write (lines(nl), lmt) 'opt_with_ref               = ', s%global%opt_with_ref 
   nl=nl+1; write (lines(nl), lmt) 'opt_with_base              = ', s%global%opt_with_base
+  nl=nl+1; write (lines(nl), amt) 'optimizer                  = ', s%global%optimizer
+  nl=nl+1; write (lines(nl), amt) 'phase_units                = ', &
+                                                  frequency_units_name(s%global%phase_units)
   nl=nl+1; write (lines(nl), lmt) 'plot_on                    = ', s%global%plot_on
-  nl=nl+1; write (lines(nl), lmt) 'matrix_recalc_on           = ', s%global%matrix_recalc_on
-  nl=nl+1; write (lines(nl), lmt) 'var_limits_on              = ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), lmt) 'show_ele_wig_terms         = ', s%global%show_ele_wig_terms
+  nl=nl+1; write (lines(nl), amt) 'prompt_string              = ', s%global%prompt_string
+  nl=nl+1; write (lines(nl), amt) 'print_command              = ', s%global%print_command
+  nl=nl+1; write (lines(nl), amt) 'random_engine              = ', s%global%random_engine
+  nl=nl+1; write (lines(nl), rmt) 'random_gauss_cutoff        = ', s%global%random_gauss_cutoff
+  nl=nl+1; write (lines(nl), amt) 'random_gauss_converter     = ', s%global%random_gauss_converter
+  nl=nl+1; write (lines(nl), imt) 'random_seed                = ', s%global%random_seed
   if (s%global%random_seed == 0) then
     call ran_seed_get(ix)
     nl=nl+1; write (lines(nl), imt) 'random_seed (generated)    = ', ix
   endif
+  nl=nl+1; write (lines(nl), lmt) 'show_ele_wig_terms         = ', s%global%show_ele_wig_terms
+  nl=nl+1; write (lines(nl), amt) 'track_type                 = ', s%global%track_type
+  nl=nl+1; write (lines(nl), imt) 'u_view                     = ', s%global%u_view
+  nl=nl+1; write (lines(nl), lmt) 'var_limits_on              = ', s%global%var_limits_on
+  nl=nl+1; write (lines(nl), amt) 'var_out_file               = ', s%global%var_out_file
+  nl=nl+1; write (lines(nl), rmt) 'y_axis_plot_dmin           = ', s%global%y_axis_plot_dmin
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file        = ', tao_com%init_tao_file
   nl=nl+1; write (lines(nl), amt) 'tao_com%beam_all_file        = ', tao_com%beam_all_file
   nl=nl+1; write (lines(nl), amt) 'tao_com%beam0_file           = ', tao_com%beam0_file
   do i = 1, size(tao_com%init_lat_file)
     if (tao_com%init_lat_file(i) == '') exit
     nl=nl+1; write (lines(nl), iamt) 'tao_com%init_lat_file(', i, ')     = ', tao_com%init_lat_file(i)
   enddo
+  nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file        = ', tao_com%init_tao_file
   call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
@@ -873,7 +881,7 @@ case ('plot')
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%axis_number_text_scale = ', s%plot_page%axis_number_text_scale 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%axis_label_text_scale  = ', s%plot_page%axis_label_text_scale 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%key_table_text_scale   = ', s%plot_page%key_table_text_scale 
-
+    nl=nl+1; write (lines(nl), f3mt) 'plot_page%shape_height_max       = ', s%plot_page%shape_height_max  
 
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Templates:        Plot.Graph'
@@ -906,19 +914,34 @@ case ('plot')
 
     ! shapes
 
-    if (s%plot_page%ele_shape(1)%key > 0) then
+    if (size(tao_com%ele_shape_floor_plan) > 0) then
       nl=nl+1; lines(nl) = ' '
-      nl=nl+1; lines(nl) = 'Element Shapes:'
+      nl=nl+1; lines(nl) = 'Floor_plan Element Shapes:'
       nl=nl+1; lines(nl) = &
-            'Key             Ele_Name        Shape         Color        dy_pix   Draw_Name?'
+            'Ele_Name                        Shape         Color        dy_pix   Draw_Name?'
       nl=nl+1; lines(nl) = &
-            '-----------     ------------    --------      -----        -------  ---------'
+            '----------------------------    --------      -----        -------  ---------'
 
-      do i = 1, size(s%plot_page%ele_shape)
-        shape => s%plot_page%ele_shape(i)
-        if (shape%key < 1) cycle
-        nl=nl+1; write (lines(nl), '(4a, f10.4, l3)') shape%key_name(1:16), &
-                  shape%ele_name(1:16), shape%shape(1:14), shape%color(1:10), &
+      do i = 1, size(tao_com%ele_shape_floor_plan)
+        shape => tao_com%ele_shape_floor_plan(i)
+        nl=nl+1; write (lines(nl), '(3a, f10.4, l3)') &
+                  shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
+                  shape%dy_pix, shape%draw_name
+      enddo
+    endif
+
+    if (size(tao_com%ele_shape_lat_layout) > 0) then
+      nl=nl+1; lines(nl) = ' '
+      nl=nl+1; lines(nl) = 'Lat_layout Element Shapes:'
+      nl=nl+1; lines(nl) = &
+            'Ele_Name                        Shape         Color        dy_pix   Draw_Name?'
+      nl=nl+1; lines(nl) = &
+            '----------------------------    --------      -----        -------  ---------'
+
+      do i = 1, size(tao_com%ele_shape_lat_layout)
+        shape => tao_com%ele_shape_lat_layout(i)
+        nl=nl+1; write (lines(nl), '(3a, f10.4, l3)') &
+                  shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
                   shape%dy_pix, shape%draw_name
       enddo
     endif
@@ -1066,7 +1089,10 @@ case ('universe')
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
   nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam0_file)
   nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam_all_file)
-
+  nl=nl+1; write (lines(nl), amt) '%save_beam_at:'
+  do i = lbound(u%save_beam_at, 1), ubound(u%save_beam_at, 1)
+    nl=nl+1; write (lines(nl), '(a, i0, 2a)') '           (', i, ') = ', u%save_beam_at(i)
+  enddo
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Number of elements to track through:', &
                                         1, '  through', u%model%lat%n_ele_track

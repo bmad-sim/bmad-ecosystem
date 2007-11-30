@@ -21,20 +21,33 @@ use tao_plot_window_mod
 
 implicit none
 
+type old_tao_ele_shape_struct    ! for the element layout plot
+  character(40) key_name     ! Element key name
+  character(40) ele_name     ! element name
+  character(16) shape        ! plot shape
+  character(16) color        ! plot color
+  real(rp) dy_pix            ! plot vertical height 
+  Logical :: draw_name = .true.
+  integer key                ! Element key index to match to
+end type
+
 type (tao_plot_page_struct), pointer :: page
+type (tao_plot_page_struct) plot_page, plot_page_default
 type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
 type (tao_curve_struct), pointer :: crv
 type (tao_plot_input) plot
 type (tao_graph_input) graph
-type (tao_plot_page_struct) plot_page, plot_page_default
 type (tao_region_input) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx)
 type (tao_place_input) place(10)
-type (tao_ele_shape_struct) shape(20)
+type (old_tao_ele_shape_struct) shape(20)
+type (tao_ele_shape_struct) ele_shape(20)
 type (qp_symbol_struct) default_symbol
 type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
+
+real(rp) shape_height_max
 
 integer iu, i, j, ix, ip, n, ng, ios, i_uni
 integer graph_index, color
@@ -45,12 +58,14 @@ character(100) graph_name, file_name
 character(80) label
 character(20) :: r_name = 'tao_init_plotting'
 
-logical lat_layout_here
+logical element_shapes_needed
 
 namelist / tao_plot_page / plot_page, region, place
 namelist / tao_template_plot / plot
 namelist / tao_template_graph / graph, graph_index, curve
 namelist / element_shapes / shape
+namelist / element_shapes_floor_plan / ele_shape
+namelist / element_shapes_lat_layout / ele_shape
 
 ! See if this routine has been called before
 
@@ -111,7 +126,7 @@ enddo
 ! s%tamplate_plot structures
 
 ip = 0   ! number of template plots
-lat_layout_here = .false.
+element_shapes_needed = .false.
 
 do
   plot%name = ' '
@@ -244,9 +259,9 @@ do
       call err_exit
     endif
 
-    if (grph%type == 'floor_plan') lat_layout_here = .true.
+    if (grph%type == 'floor_plan') element_shapes_needed = .true.
     if (grph%type == 'lat_layout') then
-      lat_layout_here = .true.
+      element_shapes_needed = .true.
       if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
                 'A lat_layout must have x_axis_type = "s" for a visible plot!')
     endif
@@ -344,37 +359,72 @@ do
   enddo  ! graph
 enddo  ! plot
 
-! read in shapes
+! Read in element shapes
 
-s%plot_page%ele_shape%key = 0
-
-if (lat_layout_here) then
+if (element_shapes_needed) then
 
   rewind (iu)
-  shape(:)%key_name = ' '
+  shape(:)%key_name = ''
+  shape(:)%ele_name = ''
   read (iu, nml = element_shapes, iostat = ios)
 
-  if (ios /= 0) then
-    call out_io (s_error$, r_name, 'ERROR READING ELE_SHAPE NAMELIST IN FILE.')
-    call err_exit
+  if (ios > 0) then
+    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES NAMELIST IN FILE.')
+    rewind (iu)
+    read (iu, nml = element_shapes)  ! To generate error message
   endif
 
-  do i = 1, size(shape)
-    call str_upcase (shape(i)%key_name, shape(i)%key_name)
-    call str_upcase (shape(i)%ele_name, shape(i)%ele_name)
-    call str_upcase (shape(i)%shape,    shape(i)%shape)
-    call str_upcase (shape(i)%color,    shape(i)%color)
+  if (ios == 0) then
+!    call out_io (s_error$, r_name, 'DEPRECATED ELEMENT_SHAPES NAMELIST DETECTED.', &
+!                                   'PLEASE CHANGE TO THE NEW SYNTAX (SEE THE MANUAL)!')
+    do i = 1, size(shape)
+      ele_shape(i)%ele_name = shape(i)%ele_name
+      if (shape(i)%key_name /= '') &
+              ele_shape(i)%ele_name = trim(shape(i)%key_name) // ':' // ele_shape(i)%ele_name
+      ele_shape(i)%shape     = shape(i)%shape
+      ele_shape(i)%color     = shape(i)%color
+      ele_shape(i)%dy_pix    = shape(i)%dy_pix
+      ele_shape(i)%draw_name = shape(i)%draw_name
+    enddo
 
-    if (shape(i)%key_name == ' ') cycle
-    shape(i)%key = key_name_to_key_index (shape(i)%key_name, .true.)
+    call tao_uppercase_shapes (n)
+    allocate (tao_com%ele_shape_floor_plan(n), tao_com%ele_shape_lat_layout(n))
+    tao_com%ele_shape_floor_plan = ele_shape(1:n)
+    tao_com%ele_shape_lat_layout = ele_shape(1:n)
+  endif
 
-    if (shape(i)%key < 1) then
-      print *, 'ERROR: CANNOT FIND KEY FOR: ', shape(i)%key_name
-      call err_exit
+
+  if (ios < 0) then
+
+    rewind (iu)
+    ele_shape(:)%ele_name = ' '
+    read (iu, nml = element_shapes_floor_plan, iostat = ios)
+
+    if (ios > 0) then
+      call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_FLOOR_PLAN NAMELIST')
+      rewind (iu)
+      read (iu, nml = element_shapes_floor_plan)  ! To generate error message
     endif
 
-  enddo
-  s%plot_page%ele_shape = shape
+    call tao_uppercase_shapes (n)
+    allocate (tao_com%ele_shape_floor_plan(n))
+    tao_com%ele_shape_floor_plan = ele_shape(1:n)
+
+    rewind (iu)
+    shape(:)%key_name = ' '
+    read (iu, nml = element_shapes_lat_layout, iostat = ios)
+
+    if (ios > 0) then
+      call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_LAT_LAYOUT NAMELIST')
+      rewind (iu)
+      read (iu, nml = element_shapes_lat_layout)  ! To generate error message
+    endif
+
+    call tao_uppercase_shapes (n)
+    allocate (tao_com%ele_shape_lat_layout(n))
+    tao_com%ele_shape_lat_layout = ele_shape(1:n)
+
+  endif
 
 endif
 
@@ -410,5 +460,23 @@ rewind (iu)
 do
   read (iu, nml = tao_template_graph)  ! force printing of error message
 enddo
+
+!----------------------------------------------------------------------------------------
+contains
+
+subroutine tao_uppercase_shapes (n)
+
+  integer n
+
+  do n = 1, size(ele_shape)
+    call str_upcase (ele_shape(n)%ele_name, ele_shape(n)%ele_name)
+    call str_upcase (ele_shape(n)%shape,    ele_shape(n)%shape)
+    call str_upcase (ele_shape(n)%color,    ele_shape(n)%color)
+    if (ele_shape(n+1)%ele_name == '') exit
+  enddo
+
+  if (ele_shape(n)%ele_name == '') n = n - 1
+
+end subroutine
 
 end subroutine tao_init_plotting

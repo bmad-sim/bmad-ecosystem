@@ -56,7 +56,7 @@ character(16) :: set_names(8) = (/ &
 
 
 
-logical quit_tao, err, force
+logical quit_tao, err
 
 ! blank line => nothing to do
 
@@ -489,14 +489,12 @@ case ('x-scale')
   endif
 
   call tao_cmd_split (cmd_line, 4, cmd_word, .true., err); if (err) return
-  force = .false.
-  if (cmd_word(4) .eq. 'force') force = .true.
   if (cmd_word(2) == ' ') then
-    call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err, force)
+    call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err)
   else
     call tao_to_real (cmd_word(2), value1, err); if (err) return
     call tao_to_real (cmd_word(3), value2, err); if (err) return
-    call tao_x_scale_cmd (cmd_word(1), value1, value2, err, force)
+    call tao_x_scale_cmd (cmd_word(1), value1, value2, err)
   endif
 
 !--------------------------------
@@ -510,10 +508,8 @@ case ('xy-scale')
   endif
 
   call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
-  force = .false.
-  if (cmd_word(3) .eq. 'force') force = .true.
   if (cmd_word(2) == ' ') then
-    call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err, force)
+    call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err)
     call tao_scale_cmd (cmd_word(1), '', 0.0_rp, 0.0_rp) 
   else
     call tao_to_real (cmd_word(2), value1, err);  if (err) return
@@ -523,7 +519,7 @@ case ('xy-scale')
       value2 = value1
       value1 = -value1
     endif
-    call tao_x_scale_cmd (cmd_word(1), value1, value2, err, force)
+    call tao_x_scale_cmd (cmd_word(1), value1, value2, err)
     call tao_scale_cmd (cmd_word(1), '', value1, value2)
   endif
 

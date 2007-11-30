@@ -9,7 +9,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_x_scale_cmd (where, x_min, x_max, err, force)
+! Subroutine tao_x_scale_cmd (where, x_min, x_max, err)
 !
 ! Routine to scale a plot. If x_min = x_max
 ! Then the scales will be chosen to show all the data.
@@ -18,8 +18,6 @@ contains
 !   where -- Character(*): Region to scale. Eg: "top"
 !   x_min -- Real(rp): Plot x-axis min value.
 !   x_max -- Real(rp): Plot x-axis max value.
-!   force -- Logical: (Optional) If true then do not use nice x-scales but
-!                     exactly what is specified
 !
 !  Output:
 !   err -- Logical: Set to True if the plot cannot be found. False otherwise.
@@ -74,11 +72,7 @@ endif
 ! Set max and min
 
   do i = 1, size(plot)
-    if (present(force)) then
-      call tao_x_scale_plot (plot(i)%p, x_min, x_max, force)
-    else
-      call tao_x_scale_plot (plot(i)%p, x_min, x_max)
-    endif
+    call tao_x_scale_plot (plot(i)%p, x_min, x_max)
   enddo
 
 end subroutine
@@ -87,7 +81,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_x_scale_plot (plot, x_min, x_max, force)
+! Subroutine tao_x_scale_plot (plot, x_min, x_max)
 !
 ! Routine to scale a plot. If x_min = x_max
 ! Then the scales will be chosen to show all the data.
@@ -99,7 +93,7 @@ end subroutine
 !   force -- Logical: (Optional) forces the use of the specified min and max
 !-
 
-subroutine tao_x_scale_plot (plot, x_min, x_max, force)
+subroutine tao_x_scale_plot (plot, x_min, x_max)
 
 type (tao_plot_struct), target :: plot
 type (tao_graph_struct), pointer :: graph
@@ -108,7 +102,6 @@ integer j, k, n, p1, p2, iu, ix
 real(rp) x_min, x_max
 real(rp) x1, x2
 logical curve_here
-logical, optional :: force
 
 ! Check if the thing exists
 
@@ -159,24 +152,22 @@ if (x_max == x_min) then
 
   if (.not. curve_here) return
 
-else
-  x1 = x_min
-  x2 = x_max
-endif
-
-! calculate divisions and places
-
-p1 = nint(0.7 * plot%x%major_div_nominal)  ! Used to be 8
-p2 = nint(1.3 * plot%x%major_div_nominal)  ! Used to be 15
-call qp_calc_and_set_axis ('X', x1, x2, p1, p2, 'GENERAL', plot%x%type)
-call qp_get_axis ('X', plot%x%min, plot%x%max, plot%x%major_div, plot%x%places)
-if (present(force)) then
-  if (force) then
-    plot%x%min = x_min
-    plot%x%max = x_max
-  endif
-endif
+  p1 = nint(0.7 * plot%x%major_div_nominal)  
+  p2 = nint(1.3 * plot%x%major_div_nominal)  
+  call qp_calc_and_set_axis ('X', x1, x2, p1, p2, 'GENERAL', plot%x%type)
+  call qp_get_axis ('X', plot%x%min, plot%x%max, plot%x%major_div, plot%x%places)
   
+else
+  p1 = nint(0.6 * plot%x%major_div_nominal)  
+  p2 = nint(1.4 * plot%x%major_div_nominal)  
+  plot%x%min = x_min
+  plot%x%max = x_max
+  call qp_calc_axis_divisions (x_min, x_max, p1, p2, plot%x%major_div)
+  call qp_calc_axis_places (plot%x)
+  call qp_set_axis ('X', plot%x%min, plot%x%max, plot%x%major_div, plot%x%places)
+
+endif
+
 end subroutine 
 
 end module

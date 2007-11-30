@@ -15,10 +15,16 @@ the plot page) is broken up.
 /
 
 
-&element_shapes
-  shape(1) = 'LCavity'     '*'    'XBox'      'Red'    40  F
-  shape(2) = 'Quadrupole'  '*'    'XBox'  'Magenta'    30  T
-  shape(3) = 'SBend'       '*'     'Box'     'Blue'    15  F
+&element_shapes_lat_layout
+  ele_shape(1) = 'LCavity:*'       'XBox'      'Red'    40  F
+  ele_shape(2) = 'Quadrupole:*'    'XBox'  'Magenta'    30  T
+  ele_shape(3) = 'SBend"*'          'Box'     'Blue'    15  F
+/
+
+&element_shapes_floor_plan
+  ele_shape(1) = 'LCavity:*'       'XBox'      'Red'    40  F
+  ele_shape(2) = 'Quadrupole:*'    'XBox'  'Magenta'    30  T
+  ele_shape(3) = 'SBend"*'          'Box'     'Blue'    15  F
 /
 
 !----------------------------------------------------------------

@@ -24,40 +24,81 @@ type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 type (ele_struct), pointer :: ele
+type (tao_universe_struct), pointer :: u
+type (tao_ele_shape_struct), pointer :: shape(:)
 
 integer i, ii, k, m, i_uni, ie, jj, ic
 integer ix, ir, jg
 
 real(rp) ax_min, ax_max, slop
 
+logical, allocatable, save :: good_ele(:)
+logical err
+
 character(20) :: r_name = 'tao_plot_data_setup'
 
 ! Find which elements are to be drawn for a lattice layout and floor plan plots.
-! base%lat%ele%ix_pointer will be used for storing the shape index.
-! model%lat%ele%ix_pointer will be used to store the element end points.
 
 do i_uni = 1, size(s%u)
-  lat => s%u(i_uni)%model%lat
-  s%u(i_uni)%base%lat%ele(:)%ix_pointer = 0
-  lat%ele(:)%ix_pointer = 0
-  do ie = 1, lat%n_ele_max
-    ele => lat%ele(ie)
-    if (ele%control_type == group_lord$) cycle
-    if (ele%control_type == multipass_lord$) cycle
-    if (ele%control_type == overlay_lord$) cycle
-    if (ele%control_type == super_slave$) cycle
-    if (ie > lat%n_ele_track .and. ele%control_type == free$) cycle
-    do k = 1, size(s%plot_page%ele_shape(:))
-      if (s%plot_page%ele_shape(k)%key == 0) cycle
-      if (ele%key == s%plot_page%ele_shape(k)%key .and. &
-               match_wild(ele%name, s%plot_page%ele_shape(k)%ele_name)) then
-        ele%ix_pointer = k
-        s%u(i_uni)%base%lat%ele(ie)%ix_pointer = ie
-        s%u(i_uni)%base%lat%ele(ie-1)%ix_pointer = ie-1
-        exit
-      endif
+
+  u => s%u(i_uni)
+  lat => u%model%lat
+
+  u%ele%ix_shape_lat_layout = 0
+  u%ele%ix_ele_end_lat_layout = 0
+  u%ele%ix_shape_floor_plan = 0
+  u%ele%ix_ele_end_floor_plan = 0
+
+  ! floor_plan
+
+  shape => tao_com%ele_shape_floor_plan
+  do k = 1, size(shape)
+    call tao_ele_locations_given_name (lat, shape(k)%ele_name, good_ele, err, .false.)
+    if (err) then
+      call out_io (s_error$, r_name, 'BAD ELEMENT KEY IN SHAPE: ' // shape(k)%ele_name)
+      cycle
+    endif
+
+    do ie = 1, lat%n_ele_max
+      if (.not. good_ele(ie)) cycle
+      ele => lat%ele(ie)
+      if (ele%control_type == group_lord$) cycle
+      if (ele%control_type == multipass_lord$) cycle
+      if (ele%control_type == overlay_lord$) cycle
+      if (ele%control_type == super_slave$) cycle
+      if (ie > lat%n_ele_track .and. ele%control_type == free$) cycle
+
+      u%ele(ie)%ix_shape_floor_plan = k
+      u%ele(ie)%ix_ele_end_floor_plan = ie
+      u%ele(ie-1)%ix_ele_end_floor_plan = ie-1
     enddo
   enddo
+
+! lat_layout
+
+  shape => tao_com%ele_shape_lat_layout
+  do k = 1, size(shape)
+    call tao_ele_locations_given_name (lat, shape(k)%ele_name, good_ele, err, .false.)
+    if (err) then
+      call out_io (s_error$, r_name, 'BAD ELEMENT KEY IN SHAPE: ' // shape(k)%ele_name)
+      cycle
+    endif
+
+    do ie = 1, lat%n_ele_max
+      if (.not. good_ele(ie)) cycle
+      ele => lat%ele(ie)
+      if (ele%control_type == group_lord$) cycle
+      if (ele%control_type == multipass_lord$) cycle
+      if (ele%control_type == overlay_lord$) cycle
+      if (ele%control_type == super_slave$) cycle
+      if (ie > lat%n_ele_track .and. ele%control_type == free$) cycle
+
+      u%ele(ie)%ix_shape_lat_layout = k
+      u%ele(ie)%ix_ele_end_lat_layout = ie
+      u%ele(ie-1)%ix_ele_end_lat_layout = ie-1
+    enddo
+  enddo
+
 enddo
 
 ! setup the plots

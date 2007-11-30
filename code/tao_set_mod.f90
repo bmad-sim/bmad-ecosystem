@@ -201,31 +201,60 @@ implicit none
 
 character(*) component, set_value1
 character(*), optional :: set_value2
-character(20) :: r_name = 'tao_set_plot_page_cmd'
+character(24) :: r_name = 'tao_set_plot_page_cmd'
 
 real(rp) x, y
 integer ix
+logical error
 
 select case (component)
 
-  case ('title')
-    s%plot_page%title(1)%string = trim(set_value1)
+case ('title')
+  s%plot_page%title(1)%string = trim(set_value1)
 
-  case ('subtitle')
-    s%plot_page%title(2)%string = trim(set_value1)
-    s%plot_page%title(2)%draw_it = .true.
+case ('subtitle')
+  s%plot_page%title(2)%string = trim(set_value1)
+  s%plot_page%title(2)%draw_it = .true.
 
-  case ('subtitle_loc')
-    
-    if (.not. present(set_value2)) then
-      call out_io(s_info$, r_name, "subtitle_loc requires two numbers.")
-      return
-    endif
-    
-    read(set_value1, '(f15.10)') x
-    read(set_value2, '(f15.10)') y
-    s%plot_page%title(2)%x = x
-    s%plot_page%title(2)%y = y
+case ('subtitle_loc')
+
+  if (.not. present(set_value2)) then
+    call out_io(s_info$, r_name, "subtitle_loc requires two numbers.")
+    return
+  endif
+
+  read(set_value1, '(f15.10)') x
+  read(set_value2, '(f15.10)') y
+  s%plot_page%title(2)%x = x
+  s%plot_page%title(2)%y = y
+
+case ('shape_height_max')
+  call tao_real_set_value (s%plot_page%shape_height_max, component, set_value1, error)
+
+case ('text_height')
+  call tao_real_set_value (s%plot_page%text_height, component, set_value1, error)
+
+case ('main_title_text_scale')
+  call tao_real_set_value (s%plot_page%main_title_text_scale, component, set_value1, error)
+
+case ('graph_title_text_scale')
+  call tao_real_set_value (s%plot_page%graph_title_text_scale, component, set_value1, error)
+
+case ('axis_number_text_scale')
+  call tao_real_set_value (s%plot_page%axis_number_text_scale, component, set_value1, error)
+
+case ('axis_label_text_scale')
+  call tao_real_set_value (s%plot_page%axis_label_text_scale, component, set_value1, error)
+
+case ('legend_text_scale')
+  call tao_real_set_value (s%plot_page%legend_text_scale, component, set_value1, error)
+
+case ('key_table_text_scale')
+  call tao_real_set_value (s%plot_page%key_table_text_scale, component, set_value1, error)
+
+
+case default
+  call out_io (s_error$, r_name, 'PLOT COMPONENT NOT RECOGNIZED: ' // component)
 
 end select
 

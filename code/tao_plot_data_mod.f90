@@ -675,10 +675,10 @@ do k = 1, size(graph%curve)
       endif 
       n_dat = max(0, i_max+1-i_min)
     elseif (plot%x_axis_type == 's') then
-      ! %ix_pointer has been set to the element index for displayed elements
+      ! Symbols are to be put at the ends of displayed elements in the lat_layout
       eps = 1e-4 * (plot%x%max - plot%x%min)             ! a small number
       do i = 1, lat%n_ele_max
-        lat%ele(i)%logic = (base_lat%ele(i)%ix_pointer > 0)
+        lat%ele(i)%logic = (u%ele(i)%ix_ele_end_lat_layout > 0)
         if (plot%x%min == plot%x%max) cycle
         s0 = lat%ele(i)%s - lat%ele(i)%value(l$)
         s1 = lat%ele(i)%s
@@ -702,7 +702,7 @@ do k = 1, size(graph%curve)
       if (n_dat > 0) ix_symb = (/ (i, i = i_min, i_max) /)
       x_symb = ix_symb
     elseif (plot%x_axis_type == 's') then
-      ix_symb = pack(base_lat%ele(:)%ix_pointer, mask = lat%ele(:)%logic)
+      ix_symb = pack(u%ele(:)%ix_ele_end_lat_layout, mask = lat%ele(:)%logic)
       x_symb = lat%ele(ix_symb)%s
       ! If there is a wrap-around then reorder the data
       do i = 1, n_dat

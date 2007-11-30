@@ -334,15 +334,15 @@ Format:
 Misaligns a set of elements of type \vn{<ele_type>} at lattice
 locations \vn{<locations>}.  The element attribute \vn{<ele_attrib>}
 is ``misaligned'' by the rms value \vn{<misalign_value>} with respect
-to the component \vn{<wrt>}. Any element attribute can be misaligned
-provided it is free to vary.
+to the setting of \vn{<wrt>}. Any element attribute can be misaligned
+provided the attribute is free to vary.
 
 If \vn{<ele_type>} begins with "*@" then choose all universes. If
 \vn{<ele_type>} begin with "n@" then choose universe n. Otherwise the
 viewed universe is used.
 
-\vn{<locations>} is a range of lattice indices and may contain
-elements not of type \vn{<ele_type>}. Only elements of type
+\vn{<locations>} is a range of lattice indices in the form
+\vn{nnn:mmm} or the work \vn{ALL}. Only elements of type
 \vn{<ele_type>} will be misaligned within the range.
 
 If \vn{<misalign_value>} is prepended by 'x' then the misalignment value will be
@@ -353,7 +353,7 @@ In the special case where sbend strengths are misaligned then use
 \vn{<ele_attrib> = g_err}. However, if a relative error is specified it will be 
 relative to 'g'.
 
-The possible with respect to components are:
+The possible values of \vn{<wrt>} are:
 \begin{example}
   wrt_model          ! Misalign about the current model value
   wrt_design         ! Misalign about the design value
@@ -695,30 +695,8 @@ For \vn{set graph}, the \vn{component}s that can be set are:
 \end{example}
 \vskip 0.2in
 
-For \vn{set global}, the \vn{<component>}s that can be set are:
-\begin{example}
-  y_axis_plot_dmin   = <number> ! Minimum y_max-y_min allowed for a graph.
-  n_opti_cycles      = <number> ! Number of optimization cycles.
-  n_opti_loops       = <number> ! Number of optimization loops.
-  lun_command_file   = <number> ! Unit number for a command file.
-                                !  0 -> no command file.
-  bunch_to_plot      = <number> ! View data for this bunch
-  n_curve_pts        = <number> ! Number of points used to draw a "smooth" curve.
-  prompt_string      = <string> ! Prompt String
-  optimizer          = <string> ! Optimizer to use: 'de', 'lm' or 'lmdif'
-  var_limits_on      = T/F      ! Respect the variable limits?
-  plot_on            = T/F      ! Update plot window?
-  opt_with_ref       = T/F      ! Use reference data in optimization?
-  opt_with_base      = T/F      ! Use base data in optimization?
-  label_lattice_elements = T/F  ! For lat_layout plots
-  label_keys         = T/F      ! For lat_layout plots
-  derivative_recalc  = T/F      ! Recalc before each optimizer run?
-  matrix_recalc_on   = T/F      ! Recalculate the transfer matrix?
-  show_ele_wig_terms = T/F      ! Show the wiggler terms with show ele?
-  print_command      = <string> ! Command used to print plot page
-  default_init_file  = <string> ! When reinitializing use this init file
-  var_out_file       = <string> ! Variable output data in this file
-\end{example}
+For \vn{set global}, the \vn{show global} will give a list of the
+\vn{<component>}s that can be set are
 \vskip 0.2in
 
 For \vn{set lattice}, the \vn{<component>}s that can be set are:
@@ -1161,7 +1139,7 @@ Examples:
 
 Format:
 \begin{example}
-  x-scale \{<where>\} \{<bound1>\} \{<bound2>\} \{force\} ! Sets horizontal axis bounds.
+  x-scale \{<where>\} \{<bound1>\} \{<bound2>\} ! Sets horizontal axis bounds.
 \end{example}
 
 \vskip 0.2in \vn{x-scale} sets the lower and upper bounds for the
@@ -1171,17 +1149,13 @@ then \vn{<bound1>} is taken to be the lower (left) bound and
 present then the bounds will be from -\vn{<bound1>} to \vn{<bound1>}.
 If neither is present then autoscale will be invoked to give the
 largest bounds commensurate with the data. If \vn{<where>} is \vn{s}
-then the scaling is done only to the plot where the x--axis scale is
-the longitudinal s-position. if \vn{force} is present then the
-specified ranges will be used and QuickPlot will not try to find
-``nice'' plot scales.
+then the scaling is done only for the plots where the x--axis scale is
+the longitudinal s-position.
 
 Example:
 \begin{example}
   x-scale                   ! Autoscale all x-axes.
   x-scale all 0 100         ! Scale all x-axes to go from 0 to 100.
-  x-scale top 101 257 force ! forces the x-axis in the top region to
-                            ! go from 101 to 257
 \end{example}
 
 %% xy-scale --------------------------------------------------------------

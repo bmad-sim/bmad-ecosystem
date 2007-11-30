@@ -161,7 +161,8 @@ these initialization namelists and their locations are listed in table
 \index{tao_plot_page}
 \index{tao_template_plot}
 \index{tao_template_graph}
-\index{element_shapes}
+\index{element_shapes_lat_layout}
+\index{element_shapes_floor_plan}
 \index{key_bindings}
 \begin{table}[ht]
 \centering {\tt
@@ -178,7 +179,10 @@ these initialization namelists and their locations are listed in table
   \vn{tao_plot_page}          & \vn{plot_file}    & Plotting         & \sref{s:init_plot}     \\ \hline
   \vn{tao_template_plot}      & \vn{plot_file}    & Plotting         & \sref{s:init_plot}     \\ \hline
   \vn{tao_template_graph}     & \vn{plot_file}    & Plotting         & \sref{s:init_plot}     \\ \hline
-  \vn{element_shapes}         & \vn{plot_file}    & Plotting         & \sref{s:init_plot}     \\ \hline
+  \vn{element_shapes_lat_layout}         
+                              & \vn{plot_file}    & Plotting         & \sref{s:ele_shape}     \\ \hline
+  \vn{element_shapes_floor_plan}         
+                              & \vn{plot_file}    & Plotting         & \sref{s:ele_shape}     \\ \hline
   \vn{key_bindings}           & \vn{single_mode_file} & Single Mode  & \sref{s:init_key_bind} \\ \hline
 \end{tabular}}
 \caption{Table of \vn{tao} Initialization Namelists}
@@ -1201,6 +1205,7 @@ given by
 \label{s:init_plot} 
 
 \subsection{Plot Window}
+\label{s:plot_page}
 \index{Initialization!Plotting!Plot Window}
 
 \begin{figure}
@@ -1235,6 +1240,7 @@ plots go. The syntax of this block is:
     plot_page%legend_text_scale      = 0.8  ! Relative to text_height
     plot_page%key_table_text_scale   = 0.9  ! Relative to text_height
     plot_page%title(i)    = <string>, {<x>, <y>, "<justify>", "<units>"}
+    plot_page%shape_height_max = 40  ! maximum half height for drawing elements.
     region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
     place(i)  = "<region_name>", "<template_name>"
   /
@@ -1282,24 +1288,26 @@ are set to the defaults \vn{x} = 0.5, \vn{y} = 0.995, \vn{justify} =
 the \vn{justify} variable syntax.
 
 The plot area is divided up into rectangular regions where plots may
-be placed (what defines a plot is discussed below).
-\vn{region(i)} is an array of five elements
-that defines the i\Th region. The
-first element of this array is the name of the resion. This name
-may not contain a dot ``.''.
-The second and third elements of the array, 
-\vn{l_x1}, and \vn{l_x2}, define the location of the left and
-right edges of the region as a fraction of the plot area width
-starting from the left edge of the plot area.
-The final elements of the \vn{region(i)} array, \vn{l_y1} and \vn{l_y2}.
-define the location of the bottom and top edges of the region as a
-fraction of the height of the plot area with respect to the plot
-area's bottom edge. Thus, in the above example, region 1 extends from
-the left border of the plot area (\vn{region(1)%l_x1} = 0) to the
-right border (\vn{region(1)%l_x2} = 0) and vertically from the center
+be placed (what defines a plot is discussed below).  \vn{region(i)} is
+an array of five elements that defines the i\Th region. The first
+element of this array is the name of the resion. This name may not
+contain a dot ``.''.  The second and third elements of the array,
+\vn{l_x1}, and \vn{l_x2}, define the location of the left and right
+edges of the region as a fraction of the plot area width starting from
+the left edge of the plot area.  The final elements of the
+\vn{region(i)} array, \vn{l_y1} and \vn{l_y2}.  define the location of
+the bottom and top edges of the region as a fraction of the height of
+the plot area with respect to the plot area's bottom edge. Thus, in
+the above example, region 1 extends from the left border of the plot
+area (\vn{region(1)%l_x1} = 0) to the right border
+(\vn{region(1)%l_x2} = 0) and vertically from the center
 (\vn{region(1)%l_y1} = 0.5) to the top edge (\vn{region(1)%l_x2} =
 1.0). Regions may overlap any one can define as many regions as one
 likes.
+
+\vn{shape_height_max} sets the maximum size for drawing shapes in
+\vn{floor_plan}, and \vn{lat_layout} drawings. See
+Section~\sref{s:lat_layout} for more details.
 
 \vn{place(i)} determines the initial placement of plots.
 
@@ -1639,71 +1647,13 @@ Example:
   /
 \end{example}
 
-\index{element_shapes}
-\index{shape}
 Which elements are drawn is under user control and is defined 
-using an \vn{element_shapes} namelist whose syntax is:
-\begin{example}
-  &element_shapes 
-    shape(i) = "<key>", "<name>", "<shape>", "<color>", 
-                                      "<v_size>", "<print_Label>"
-  /
-\end{example}
-For Example:                 
-\begin{example}
-  &element_shapes
-    !           Key          Name    Shape      Color     Size   Label?
-    shape(1) = "Quadrupole", "Q*",   "Box",     "Red",     30,    T 
-    shape(2) = "Quadrupole", "*",    "XBox",    "Red",     30,    F 
-    shape(3) = "SBend",      "*",    "Box",     "Blue",    15     F
-    shape(4) = "Wiggler",    "*",    "XBox",    "Green",   20     T
-  /
-\end{example}
-A figure is drawn for each element in the lattice that matches a
-\vn{shape()}. A Match is made if the type of element matches the shape
-\vn{<key>} and the name of the element matches the shape
-\vn{<name>}. The wildcard ``*'' may be used to denote any number of
-characters. Thus, in the example above, \vn{shape(1)} will match to
-all quadrupoles whose name begins with ``Q'' and \vn{shape(2)} will
-match all quadrupoles. If an element matches more than one shape the
-first shape matched will be used. \vn{<shape>} is the shape of the
-figure drawn. Valid Shapes are:
-\index{box}\index{xbox}
-\begin{example}
-  "BOX"             -- Rectangular box
-  "XBOX"            -- Rectangular box with an x through it.
-  "VAR_BOX"         -- Rectangular box with variable height. 
-                        The box is symmetric about the center line.
-  "ASYM_VAR_BOX"    -- Like VAR_BOX but is not symmetric about the center line. 
-\end{example}
-The height of a \vn{VAR_HEIGHT_BOX} is proportional to the element
-strength. For example, for a quadrupole the height is proportional to
-the \vn{K1} focusing strength. Not all elements can be used with a
-\vn{VAR_HEIGHT_BOX}.
-
-\vn{<color>} is the color of the shape. Good colors to use are:
-\index{black}\index{Red}\index{orange}\index{magenta}\index{yellow}
-\index{green}\index{cyan}\index{blue}\index{purple}
-\begin{example}
-  "BLACK"
-  "RED"
-  "ORANGE"
-  "MAGENTA"
-  "YELLOW"
-  "GREEN"
-  "CYAN"
-  "BLUE"
-  "PURPLE"
-\end{example}
-\vn{<v_size} is the vertical size of the shape in points (72 points =
-1 inch). Finally \vn{<print_label>} is a logical indicating whether
-the element name is to be printed underneath the corresponding glyph.
-
-Note: The \vn{element_shapes} namelist is used for both a \vn{Lattice Layout}
-and a \vn{Floor Plan}.
+using an \vn{element_shapes_lat_layout} namelist. See Section~\sref{s:ele_shape}
+for more details.
 
 %-----------------------------------------------------------------
-\subsection{Drawing a Key Table}\index{Key Table}
+\subsection{Drawing a Key Table}
+\index{Key Table}
 \label{s:key_table}
 
 The \vn{key table} is explained more fully in Section~\sref{s:key_bind}.
@@ -1740,7 +1690,8 @@ Note that in a \vn{Lattice Layout}, if a displayed element has a bound attribute
 the key index number will be displayed just above the element's glyph
 
 %-----------------------------------------------------------------
-\subsection{Floor Plan Drawing}\index{Floor Plan Drawing}
+\subsection{Floor Plan Drawing}
+\index{Floor Plan Drawing}
 \label{s:floor_plan}
 
 \begin{figure}
@@ -1750,20 +1701,20 @@ the key index number will be displayed just above the element's glyph
   \label{f:floor_plan}
 \end{figure}
 
-A \vn{Floor Plan} drawing gives a display of the machine projected onto the 
-horizontal plane.
-An example is shown in Figure~\ref{f:floor_plan}. Like a \vn{Lattice Layout}
-(\sref{s:lat_layout}), Elements are represented by colored rectangles and
-which elements are drawn is determined by an \vn{element shapes} namelist 
-(see~\sref{s:lat_layout}). 
+A \vn{Floor Plan} drawing gives a display of the machine projected
+onto the horizontal plane.  An example is shown in
+Figure~\ref{f:floor_plan}. Like a \vn{Lattice Layout}
+(\sref{s:lat_layout}), Elements are represented by colored rectangles
+and which elements are drawn is determined by an
+\vn{element_shapes_floor_plan} namelist (see~\sref{s:ele_shape}).
 
-The placement of an element in the drawing
-is determined by the element's coordinates in \vn{global reference system}. 
-See the Bmad manual for more information on the \vn{global reference system}.
-In the \vn{global reference system}, the $(X, Z)$ plane is horizontal plane.
-The conversion between the $(X, Z)$ coordinates of the
-\vn{global reference system} and the  $(x, y)$ coordinates of the Floor Plan plot
-are:
+The placement of an element in the drawing is determined by the
+element's coordinates in \vn{global reference system}.  See the Bmad
+manual for more information on the \vn{global reference system}.  In
+the \vn{global reference system}, the $(X, Z)$ plane is horizontal
+plane.  The conversion between the $(X, Z)$ coordinates of the
+\vn{global reference system} and the $(x, y)$ coordinates of the Floor
+Plan plot are:
 \begin{example}
 Global        Plot
   Z    <--->   -x
@@ -1804,6 +1755,82 @@ If \vn{graph%correct_xy_distortion} is set to \vn{True} (default is
 \vn{False}), then the horizontal or vertical margins of the graph will be
 increased so that the horizontal scale (meters per plotting inch) is equal
 to the vertical scale.
+
+%-----------------------------------------------------------------
+\subsection{Element Shapes}
+\index{Element Shapes}
+\label{s:ele_shape}
+
+\vn{Floor plan} (\sref{s:floor_plan}) and \vn{lattice layout} drawings
+use various shapes, sizes, and colors to represent lattice
+elements. The association of a particular element with a given shape
+is determined via two namelists: \vn{element_shapes_lat_layout} for
+the lattice layout and \vn{element_shapes_floor_plan} for floor plan
+drawings.  Two different namelists are used since it is sometimes
+artistically pleasing to use, say, a different size for floor plans
+and lattice layouts.
+
+The namelist syntax is the same for both:
+\begin{example}
+  &element_shapes_lat_layout
+    ele_shape(i) = "<class:name>" "<shape>" "<color>" "<v_size>" "<print_Label>"
+  /
+\end{example}
+For Example:                 
+\begin{example}
+  &element_shapes_floor_plan
+    !               Class:Name       Shape     Color     Size   Label?
+    ele_shape(1) = "Quadrupole:Q*"   "Box"     "Red"     30     T 
+    ele_shape(2) = "Quadrupole:*"    "XBox"    "Red"     30     F 
+    ele_shape(3) = "SBend:*"         "Box"     "Blue"    15     F
+    ele_shape(4) = "Wiggler:*"       "XBox"    "Green"   20     T
+  /
+\end{example}
+A figure is drawn for each element in the lattice that matches a
+\vn{<class:name>} (\sref{s:class:name} of any \vn{ele_shape(:)}. 
+Thus, in the
+example above, \vn{ele_shape(1)} will match to all quadrupoles whose name
+begins with ``Q'' and \vn{ele_shape(2)} will match all quadrupoles. If an
+element matches more than one shape the last shape matched will be
+used. \vn{<shape>} is the shape of the figure drawn. Valid Shapes are:
+\index{Box}\index{Xbox}
+\begin{example}
+  "box"             -- Rectangular box
+  "xbox"            -- Rectangular box with an x through it.
+  "var_box"         -- Rectangular box with variable height. 
+                        The box is symmetric about the center line.
+  "asym_var_box"    -- Like var_box but is not symmetric about the center line. 
+\end{example}
+The height of a \vn{var_height_box} is proportional to the element
+strength. For example, for a quadrupole the height is proportional to
+the \vn{K1} focusing strength. Not all elements can be used with a
+\vn{var_height_box}.
+
+\vn{<color>} is the color of the shape. Good colors to use are:
+\index{black}\index{Red}\index{orange}\index{magenta}\index{yellow}
+\index{green}\index{cyan}\index{blue}\index{purple}
+\begin{example}
+  "BLACK"
+  "RED"
+  "ORANGE"
+  "MAGENTA"
+  "YELLOW"
+  "GREEN"
+  "CYAN"
+  "BLUE"
+  "PURPLE"
+\end{example}
+
+\vn{<v_size} is the vertical size of the shape in points (72 points =
+1 inch). Since a \vn{var_box} or \vn{asym_var_box} can get arbitrarily
+large, there is a maximum size which is set by
+\vn{plot_page%shape_height_max} (\sref{s:plot_page}).
+
+Finally \vn{<print_label>} is a logical indicating whether
+the element name is to be printed underneath the corresponding glyph.
+
+Note: There is an old, deprecated syntax where both the lattice layout and floor plan
+drawings are specified via one \vn{element_shapes} namelist. 
 
 %-----------------------------------------------------------------
 \subsection{Phase Space Plotting}\index{Phase Space Plotting}

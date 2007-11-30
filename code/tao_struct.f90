@@ -42,13 +42,11 @@ end interface
 !----------------------------------------------------------------------
 
 type tao_ele_shape_struct    ! for the element layout plot
-  character(40) key_name     ! Element key name
-  character(40) ele_name     ! element name
+  character(60) ele_name     ! element name
   character(16) shape        ! plot shape
   character(16) color        ! plot color
   real(rp) dy_pix            ! plot vertical height 
   Logical :: draw_name = .true.
-  integer key                ! Element key index to match to
 end type
 
 type tao_keyboard_struct
@@ -167,8 +165,8 @@ end type
 type tao_plot_page_struct               
   type (tao_title_struct) title(2)   ! Titles at top of page.
   type (qp_rect_struct) border       ! Border around plots edge of page.
-  type (tao_ele_shape_struct) ele_shape(20)
   character(80) ps_scale             ! scaling when creating PS files.
+  real(rp) :: shape_height_max = 40  ! maximum half height for drawing elements.
   real(rp) size(2)                   ! width and height of window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
   real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
@@ -425,7 +423,6 @@ type tao_global_struct
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: n_opti_loops = 1            ! number of optimization loops
   integer :: n_key_table_max = 0         ! Maximum key table index.
-  integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
   integer :: phase_units = radians$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
@@ -470,6 +467,8 @@ end type
 
 type tao_common_struct
   type (tao_alias_struct) alias(100)
+  type (tao_ele_shape_struct), allocatable :: ele_shape_floor_plan(:)
+  type (tao_ele_shape_struct), allocatable :: ele_shape_lat_layout(:)
   logical opti_init             ! init needed?
   logical opti_at_limit         ! Variable at limit?
   logical opti_abort            ! Abort loops?
@@ -559,6 +558,10 @@ end type
 type tao_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
   logical save_beam               ! Save beam here?
+  integer ix_shape_floor_plan
+  integer ix_ele_end_floor_plan
+  integer ix_shape_lat_layout
+  integer ix_ele_end_lat_layout
 end type
 
 !-----------------------------------------------------------------------
@@ -612,7 +615,7 @@ end type
 ! The grand global scheme
 
 type (tao_super_universe_struct), save, target :: s
-type (tao_common_struct), save :: tao_com
+type (tao_common_struct), save, target :: tao_com
 
 !-----------------------------------------------------------------------
 contains

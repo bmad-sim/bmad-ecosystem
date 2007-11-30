@@ -247,8 +247,9 @@ type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 type (floor_position_struct) end1, end2, floor
 type (tao_wall_point_struct), pointer :: pt(:)
+type (tao_ele_shape_struct), pointer :: ele_shape(:)
 
-integer i, j, k, ix_ptr, icol, ix1, ix2, isu, n_bend, n, ix
+integer i, j, k, ix_shape, icol, ix1, ix2, isu, n_bend, n, ix
 
 real(rp) off, off1, off2, angle, rho, x0, y0, dx1, dy1, dx2, dy2
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta
@@ -275,6 +276,8 @@ if (graph%correct_xy_distortion) call qp_eliminate_xy_distortion
 
 !
 
+ele_shape => tao_com%ele_shape_floor_plan
+
 if (graph%draw_axes) then
   call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
   call qp_draw_axes
@@ -288,10 +291,10 @@ lat => s%u(isu)%model%lat
 do i = 1, lat%n_ele_max
 
   ele => lat%ele(i)
-  ix_ptr = ele%ix_pointer
+  ix_shape = s%u(isu)%ele(i)%ix_shape_floor_plan
 
   if (ele%control_type == super_slave$) cycle
-  if (i > lat%n_ele_track .and. ix_ptr < 1) cycle
+  if (i > lat%n_ele_track .and. ix_shape < 1) cycle
 
   call find_element_ends (lat, i, ix1, ix2)
   call floor_to_screen_coords (lat%ele(ix1)%floor, end1)
@@ -348,10 +351,10 @@ do i = 1, lat%n_ele_max
 
   endif
 
-  ! Only those elements with ele%ix_pointer > 0 are to be drawn in full.
+  ! Only those elements with ix_shape > 0 are to be drawn in full.
   ! All others are drawn with a simple line or arc
 
-  if (ix_ptr < 1) then
+  if (ix_shape < 1) then
     if (ele%key == sbend$) then
       call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
     else
@@ -362,18 +365,18 @@ do i = 1, lat%n_ele_max
 
   ! Here if element is to be drawn...
 
-  select case (s%plot_page%ele_shape(ix_ptr)%shape)
+  select case (ele_shape(ix_shape)%shape)
   case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX')
   case default
-    print *, 'ERROR: UNKNOWN SHAPE: ', s%plot_page%ele_shape(ix_ptr)%shape
+    print *, 'ERROR: UNKNOWN SHAPE: ', ele_shape(ix_shape)%shape
     call err_exit
   end select
 
-  call qp_translate_to_color_index (s%plot_page%ele_shape(ix_ptr)%color, icol)
+  call qp_translate_to_color_index (ele_shape(ix_shape)%color, icol)
 
-  shape = s%plot_page%ele_shape(ix_ptr)%shape
+  shape = ele_shape(ix_shape)%shape
 
-  off = s%plot_page%ele_shape(ix_ptr)%dy_pix/2
+  off = ele_shape(ix_shape)%dy_pix/2
   off1 = off
   off2 = off
   if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
@@ -387,6 +390,7 @@ do i = 1, lat%n_ele_max
     case (solenoid$)
       off1 = off * ele%value(ks$)
     end select
+    off1 = max(-s%plot_page%shape_height_max, min(off1, s%plot_page%shape_height_max))
     off2 = off1
     if (shape == 'ASYM_VAR_BOX') off1 = 0
   end if
@@ -437,7 +441,7 @@ do i = 1, lat%n_ele_max
                                                     units = 'POINTS', color = icol)
   endif
 
-  if (s%plot_page%ele_shape(ix_ptr)%shape == 'XBOX') then
+  if (ele_shape(ix_shape)%shape == 'XBOX') then
     call qp_draw_line (end1%x+dx1, end2%x-dx2, end1%y+dy1, end2%y-dy2, &
                                                     units = 'POINTS', color = icol)
     call qp_draw_line (end1%x-dx1, end2%x+dx2, end1%y-dy1, end2%y+dy2, &
@@ -448,7 +452,7 @@ do i = 1, lat%n_ele_max
   ! Since multipass slaves are on top of one another, just draw the multipass lord's name.
   ! Also place a bend's label to the outside of the bend.
 
-  if (s%plot_page%ele_shape(ix_ptr)%draw_name) then
+  if (ele_shape(ix_shape)%draw_name) then
     if (ele%control_type == multipass_slave$) then
       ix = ele%ic1_lord
       ix = lat%control(lat%ic(ix))%ix_lord
@@ -563,12 +567,13 @@ type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
+type (tao_ele_shape_struct), pointer :: ele_shape(:)
 
 real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top
 real(rp) lat_len, height
 
-integer i, j, ix_ptr, k, kk, ix, ix1, ix2, isu
-integer icol, ix_var, ixv, j_label
+integer i, j, ix_shape, k, kk, ix, ix1, ix2, isu
+integer icol, ix_var, ixv
 
 character(80) str
 character(20) :: r_name = 'tao_plot_lat_layout'
@@ -577,20 +582,17 @@ character(16) shape
 ! Each graph is a separate lattice layout (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
 
+ele_shape => tao_com%ele_shape_lat_layout
+
 call qp_set_layout (x_axis = plot%x, box = graph%box, margin = graph%margin)
 call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
-y_bottom = -(y2 + 12 * (s%global%n_lat_layout_label_rows - 1)) / 2
+y_bottom = -y2/2
 y_top = y_bottom + y2
 call qp_set_axis ('Y', y_bottom, y_top, 1, 0)
 height = s%plot_page%text_height * s%plot_page%legend_text_scale
 
-isu = graph%ix_universe
-! if garph%ix_universe == 0 then graph currently viewed universe
-if (isu == 0) then
-  lat => s%u(s%global%u_view)%model%lat
-else
-  lat => s%u(isu)%model%lat
-endif
+isu = tao_universe_number(graph%ix_universe)
+lat => s%u(isu)%model%lat
 lat_len = lat%param%total_length
   
 ! Figure out x axis
@@ -616,16 +618,14 @@ lat_len = lat%param%total_length
 ! loop over all elements in the lattice. Only draw those element that
 ! are within bounds.
 
-j_label = 0
-
 do i = 1, lat%n_ele_max
 
   ele => lat%ele(i)
-  ix_ptr = ele%ix_pointer
+  ix_shape = s%u(isu)%ele(i)%ix_shape_lat_layout
 
   if (ele%control_type == multipass_lord$) cycle
   if (ele%control_type == super_slave$) cycle
-  if (i > lat%n_ele_track .and. ix_ptr < 1) cycle
+  if (i > lat%n_ele_track .and. ix_shape < 1) cycle
 
   if (plot%x_axis_type == 's') then
     call find_element_ends (lat, i, ix1, ix2)
@@ -657,62 +657,64 @@ do i = 1, lat%n_ele_max
   if (x1 > plot%x%max) cycle
   if (x2 < plot%x%min) cycle
 
-  ! Only those elements with ele%ix_pointer > 0 are to be drawn.
+  ! Only those elements with ix_shape > 0 are to be drawn.
   ! All others have the zero line drawn through them.
 
-  if (ix_ptr < 1) then
+  if (ix_shape < 1) then
     call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
     cycle
   endif
 
   ! Here if element is to be drawn...
 
-  select case (s%plot_page%ele_shape(ix_ptr)%shape)
+  select case (ele_shape(ix_shape)%shape)
   case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX')
   case default
-    print *, 'ERROR: UNKNOWN SHAPE: ', s%plot_page%ele_shape(ix_ptr)%shape
+    print *, 'ERROR: UNKNOWN SHAPE: ', ele_shape(ix_shape)%shape
     call err_exit
   end select
 
-  call qp_translate_to_color_index (s%plot_page%ele_shape(ix_ptr)%color, icol)
+  call qp_translate_to_color_index (ele_shape(ix_shape)%color, icol)
 
-  shape = s%plot_page%ele_shape(ix_ptr)%shape
+  shape = ele_shape(ix_shape)%shape
 
   ! r1 and r2 are the scale factors for the lines below and above the center line.
 
-  y = s%plot_page%ele_shape(ix_ptr)%dy_pix/2
-  y1 = y
-  y2 = y
+  y = ele_shape(ix_shape)%dy_pix/2
+  y1 = -y
+  y2 =  y
   if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
     select case (ele%key)
     case (quadrupole$)
-      y1 = y * ele%value(k1$)
+      y2 = y * ele%value(k1$)
     case (sextupole$)
-      y1 = y * ele%value(k2$)
+      y2 = y * ele%value(k2$)
     case (octupole$)
-      y1 = y * ele%value(k3$)
+      y2 = y * ele%value(k3$)
     case (solenoid$)
-      y1 = y * ele%value(ks$)
+      y2 = y * ele%value(ks$)
     end select
-    y2 = y1
+    y2 = max(-s%plot_page%shape_height_max, min(y2, s%plot_page%shape_height_max))
+    y1 = -y2
     if (shape == 'ASYM_VAR_BOX') y1 = 0
   end if
 
+  y1 = max(y_bottom, min(y1, y_top))
+  y2 = max(y_bottom, min(y2, y_top))
+
   ! Draw the shape
 
-  call qp_draw_rectangle (x1, x2,  -y1, y2, color = icol)
+  call qp_draw_rectangle (x1, x2, y1, y2, color = icol)
 
-  if (s%plot_page%ele_shape(ix_ptr)%shape == 'XBOX') then
-    call qp_draw_line (x1, x2,  y2, -y1, color = icol)
-    call qp_draw_line (x1, x2, -y1,  y2, color = icol)
+  if (ele_shape(ix_shape)%shape == 'XBOX') then
+    call qp_draw_line (x1, x2, y2, y1, color = icol)
+    call qp_draw_line (x1, x2, y1, y2, color = icol)
   endif
 
   ! Put on a label
   
-  if (s%global%label_lattice_elements .and. s%plot_page%ele_shape(ix_ptr)%draw_name) then
-    j_label = j_label + 1
-    if (j_label == s%global%n_lat_layout_label_rows) j_label = 0
-    y_off = y_bottom   ! + 12.0_rp * j_label 
+  if (s%global%label_lattice_elements .and. ele_shape(ix_shape)%draw_name) then
+    y_off = y_bottom   
     s_pos = ele%s - ele%value(l$)/2
     if (s_pos > plot%x%max .and. s_pos-lat_len > plot%x%min) s_pos = s_pos - lat_len
     call qp_draw_text (ele%name, s_pos, y_off, &
