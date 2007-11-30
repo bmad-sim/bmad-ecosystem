@@ -235,20 +235,11 @@ nullify(s%plot_region)
 do i = 1, size(s%template_plot)
   plot => s%template_plot(i)
   if (.not. allocated (plot%graph)) cycle
-  do j = 1, size(plot%graph)
-    if (.not. allocated (plot%graph(j)%curve)) cycle
-    do k = 1, size(plot%graph(j)%curve)
-      curve => plot%graph(j)%curve(k)
-      if (allocated(curve%x_line)) deallocate(curve%x_line, stat=istat)
-      if (allocated(curve%y_line)) deallocate(curve%y_line, stat=istat)
-      if (allocated(curve%x_symb)) deallocate(curve%x_symb, stat=istat)
-      if (allocated(curve%y_symb)) deallocate(curve%y_symb, stat=istat)
-      if (allocated(curve%ix_symb)) deallocate(curve%ix_symb, stat=istat)
-    enddo
-    deallocate(plot%graph(j)%curve, stat=istat)
-  enddo
   deallocate(plot%graph, stat=istat)
 enddo
+
+if (allocated(tao_com%ele_shape_lat_layout)) deallocate (tao_com%ele_shape_lat_layout)
+if (allocated(tao_com%ele_shape_floor_plan)) deallocate (tao_com%ele_shape_floor_plan)
 
 ! Universes 
 
