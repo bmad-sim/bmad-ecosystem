@@ -77,11 +77,11 @@ character(200) stuff2
 character(40) ele_name, name, sub_name
 character(60) nam
 
-character(16) :: show_what, show_names(17) = (/ &
+character(16) :: show_what, show_names(19) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
-   'write       ', 'hom         ', 'opt_vars    ', 'universe    ', 'taylor      ', &
-   'beam        ', 'e2          ' /)
+   '-write      ', 'hom         ', 'opt_vars    ', 'universe    ', 'taylor      ', &
+   'beam        ', 'e2          ', 'graph       ', 'curve       ' /)
 
 character(200), allocatable, save :: lines(:)
 character(200) line, line1, line2, line3
@@ -275,7 +275,7 @@ case ('hom')
 !----------------------------------------------------------------------
 ! write
 
-case ('write')
+case ('-write')
 
   iu = lunget()
   file_name = s%global%write_file
@@ -869,7 +869,7 @@ case ('optimizer')
 !----------------------------------------------------------------------
 ! plots
 
-case ('plot')
+case ('plot', 'graph', 'curve')
 
 ! word(1) is blank => print overall info
 
@@ -984,6 +984,27 @@ case ('plot')
     nl=nl+1; write (lines(nl), lmt) 'convert                 = ', c%convert
     nl=nl+1; write (lines(nl), lmt) 'draw_interpolated_curve = ', c%draw_interpolated_curve
     
+    if (index('-symbols', trim(word(2))) == 1 .and. len_trim(word(2)) > 1) then
+      n = nl + size(c%x_symb) + 10
+      if (n > size(lines)) call re_allocate(lines, len(lines(1)), n)
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Symbol points:'
+      nl=nl+1; lines(nl) = '             x             y'
+      do i = 1, size(c%x_symb)
+        nl=nl+1; write (lines(nl), '(2es14.6)') c%x_symb(i), c%y_symb(i)
+      enddo
+    endif
+
+    if (index('-line', trim(word(2))) == 1 .and. len_trim(word(2)) > 1) then
+      n = nl + size(c%x_line) + 10
+      if (n > size(lines)) call re_allocate(lines, len(lines(1)), n)
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Smooth line points:'
+      nl=nl+1; lines(nl) = '             x             y'
+      do i = 1, size(c%x_line)
+        nl=nl+1; write (lines(nl), '(2es14.6)') c%x_line(i), c%y_line(i)
+      enddo
+    endif
 
   elseif (allocated(graph)) then
     g => graph(1)%g
@@ -1094,13 +1115,13 @@ case ('universe')
     nl=nl+1; write (lines(nl), '(a, i0, 2a)') '           (', i, ') = ', u%save_beam_at(i)
   enddo
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Number of elements to track through:', &
-                                        1, '  through', u%model%lat%n_ele_track
+  nl=nl+1; write (lines(nl), imt) &
+                'Elements used in tracking: From 1 through ', u%model%lat%n_ele_track
   if (u%model%lat%n_ele_max .gt. u%model%lat%n_ele_track) then
-    nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Lord elements:   ', &
-                      u%model%lat%n_ele_track+1, '  through', u%model%lat%n_ele_max
+    nl=nl+1; write (lines(nl), '(a, i0, a, i0)') 'Lord elements:   ', &
+                      u%model%lat%n_ele_track+1, '  through ', u%model%lat%n_ele_max
   else
-    nl=nl+1; write (lines(nl), '(a)') "there are NO Lord elements"
+    nl=nl+1; write (lines(nl), '(a)') "There are NO Lord elements"
   endif
 
   nl=nl+1; write (lines(nl), '(a, f0.3)') "Lattice length: ", u%model%lat%param%total_length

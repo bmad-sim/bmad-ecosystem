@@ -787,30 +787,31 @@ Format:
   show alias 
   show beam \{<element_index>\}
   show constraints
+  show curve <curve_name> \{-symbol\} \{-line\}
   show data \{<data_name>\} 
   show element <name>
   show global
+  show graph <graph_name>
   show hom
   show lattice \{-middle\} \{-custom <file_name>\} \{-elements <name>\} \{<location_range>\}
   show optimizer
   show opt_vars
+  show plot
   show plot \{<template_plot_name>\}
   show plot \{<plot_region_name>\}
-  show plot <graph_name>
-  show plot <curve_name>
   show taylor <ele_name>
   show top10
   show universe \{universe_number\}
   show variable \{<var_name> <locations>\}
   show variable <universe_number>@
-  show write ...
+  show -write ...
 \end{example}
 
 \vskip 0.2in 
 \vn{Show} is used to display various information about
 the state of \tao. 
 
-\vn{Show write} writes to a file as well as
+\vn{Show -write} writes to a file as well as
 printing the information at the terminal. The file name is set by
 \vn{global%write_file} which has the default value of
 \vn{tao_show.dat}. Results are appended to the output file when
@@ -833,6 +834,14 @@ beam prameters at the selected element.
 
   \item[show constraints]
 Lists data and variable constraints.
+
+  \item[show curve]
+Show information on a particular curve of a particular plot. See
+\sref{s:plotting} for the syntax on plot, graph, and curve names.  Use
+\vn{show plot} to get a list of plot names. The \vn{-symbol} switch
+will additionally print the (x,y) points for the symbol placement and
+the \vn{-line} switch will print the (x,y) points used to draw the
+``smooth'' curve in between the symbols.
 
   \item[show data]
 Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
@@ -857,6 +866,11 @@ command. Additionally, by default the wiggler terms of a \vn{map_type}
   \item[show global]
 Shows information on the global parameter structure (\sref{s:globals}).
 
+  \item[show graph]
+Show information on a particular graph of a particular plot. See
+\sref{s:plotting} for the syntax on plot, graph, and curve names.
+Use \vn{show plot} to get a list of plot names.
+
   \item[show hom]
 Shows long--rang higher order mode information for linac accelerating
 cavities.
@@ -867,12 +881,12 @@ element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
 \vn{-middle} switch.
 
-The locations to show can either be specified using
-the \vn{-elements} switch or by specifying a location range. 
-The \vn{-elements} switch is used specify elements using a
-\vn{class:name} format (\sref{s:class:name}). For example
+The locations to show can either be specified using the \vn{-elements}
+switch or by specifying a location range.  The \vn{-elements} switch
+is used specify elements using a \vn{class:name} format
+(\sref{s:class:name}). For example:
 \begin{example}
-show lat -ele marker:bpm*
+  show lat -ele marker:bpm*
 \end{example}
 This will show the parameters at all marker elements whose name begin
 with \vn{"bpm"}. Alternatively, a range of elements can be specified
@@ -949,9 +963,11 @@ Shows the settings of the variables used in the optimization using the
 Bmad standard lattice input format.
 
   \item[show plot]
-Shows which templates are being plotted and in which regions and also all
-available templates. See \sref{s:plotting} for the syntax on plot, graph, and
-curve names.
+A simple \vn{show plot} displays which templates are being plotted and
+in which regions and also all available templates. See
+\sref{s:plotting} for the syntax on plot, graph, and curve names. A
+\vn{show plot <plot_name>} will display information on a particular
+plot.
 
   \item[show taylor]
 Same as \vn{show element} except that the elements taylor map is also printed.
