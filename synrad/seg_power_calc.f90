@@ -132,7 +132,7 @@ subroutine seg_power_calc (fan, i_ray, walls, lat, gen, power)
     ! There is a complication if, for a circular lattice, the fan is 
     ! illuminating the lattice ends.
 
-    if (fan(i-1)%crossed_end .xor. fan(i)%crossed_end) then
+    if (fan(i-1)%crossed_end .neqv. fan(i)%crossed_end) then
       r_i1 = max(r1, r2)
       r_i2 = min(r1, r2) + wall%n_seg_tot   ! This addition will be "mod"ed out below
     else
