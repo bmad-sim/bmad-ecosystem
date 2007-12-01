@@ -2,23 +2,21 @@ module tao_read_beam_mod
 
 use tao_mod
 
-
-real(rp), private, save :: bunch_charge
 real(rp), private, save :: bunch_charge_set = 0
 
-integer, private, save :: num_bunch, num_particle
 integer, private, save :: num_bunch_set = 0, num_particle_set = 0
 integer, private, save :: iu
 
 logical, private, save :: ascii_file
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
 contains
 
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-
 subroutine open_beam_file (file_name)
+
+implicit none
 
 character(*) file_name
 character(100) :: full_file_name
@@ -46,8 +44,11 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
+! contains
 
 subroutine close_beam_file ()
+
+implicit none
 
 close (iu)
 
@@ -62,8 +63,11 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
+! contains
 
 subroutine read_beam_params (ix_ele, n_bunch, n_particle, charge_bunch)
+
+implicit none
 
 real(rp) charge_bunch
 integer n_bunch, n_particle, ix_ele, ios
@@ -99,6 +103,8 @@ end subroutine
 
 subroutine set_beam_params (n_bunch, n_particle, charge_bunch)
 
+implicit none
+
 real(rp), optional :: charge_bunch
 integer, optional :: n_bunch, n_particle
 
@@ -106,7 +112,7 @@ integer, optional :: n_bunch, n_particle
 
 if (present(n_bunch))      num_bunch_set = n_bunch
 if (present(n_particle))   num_particle_set = n_particle
-if (present(charge_bunch)) bunch_charge_set = bunch_charge
+if (present(charge_bunch)) bunch_charge_set = charge_bunch
 
 end subroutine
 
@@ -115,6 +121,8 @@ end subroutine
 !-----------------------------------------------------------------------------
 
 subroutine read_beam (beam)
+
+implicit none
 
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
@@ -126,15 +134,12 @@ complex(rp) spin(2)
 character(16) :: r_name = 'read_beam'
 character(200) line
 
-! parameters come from file unless set_beam_param has been called.
+! parameters come from file unless set_beam_params has been called.
 
-n_bunch = num_bunch
+call read_beam_params (i, n_bunch, n_particle, charge_bunch)
+
 if (num_bunch_set > 0) n_bunch = num_bunch_set
-
-n_particle = num_particle
 if (num_particle_set > 0) n_particle = num_particle_set
-
-charge_bunch = bunch_charge
 if (bunch_charge_set /= 0) charge_bunch = bunch_charge_set
 
 call reallocate_beam (beam, n_bunch, n_particle)

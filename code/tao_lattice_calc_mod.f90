@@ -800,8 +800,8 @@ type (ele_struct), save :: extract_ele
 
 type (lat_param_struct), pointer :: param
 
-real(rp) v(6), bunch_charge
-integer i, iu, ios, n_bunch, n_particle, n_in_file, n_in
+real(rp) v(6)
+integer i, iu, ios, n_in_file, n_in
 
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
@@ -815,7 +815,6 @@ if (tao_com%use_saved_beam_in_tracking) return
 if (u%beam0_file /= "") then
 
   call open_beam_file (u%beam0_file)
-  call read_beam_params (i, n_bunch, n_particle, bunch_charge)
   call set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, u%beam_init%bunch_charge)
   call read_beam (u%beam0)
   call close_beam_file()

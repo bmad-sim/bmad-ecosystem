@@ -579,28 +579,28 @@ case ('tt.')
   endif
 
 case ('floor.x')
-  if (datum%ix_ele0 /= '') then
+  if (datum%ele0_name /= '') then
     datum_value = lat%ele(ix1)%floor%x - lat%ele(ix0)%floor%x
   else
     datum_value = lat%ele(ix1)%floor%x
   endif
 
 case ('floor.y')
-  if (datum%ix_ele0 /= '') then
+  if (datum%ele0_name /= '') then
     datum_value = lat%ele(ix1)%floor%y - lat%ele(ix0)%floor%y
   else
     datum_value = lat%ele(ix1)%floor%y 
   endif
 
 case ('floor.z')
-  if (datum%ix_ele0 /= '') then
+  if (datum%ele0_name /= '') then
     datum_value = lat%ele(ix1)%floor%z - lat%ele(ix0)%floor%z
   else
     datum_value = lat%ele(ix1)%floor%z 
   endif
 
 case ('floor.theta')
-  if (datum%ix_ele0 /= '') then
+  if (datum%ele0_name /= '') then
     datum_value = lat%ele(ix1)%floor%theta - lat%ele(ix0)%floor%theta
   else
     datum_value = lat%ele(ix1)%floor%theta 

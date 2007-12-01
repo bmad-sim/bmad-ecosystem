@@ -39,7 +39,7 @@ integer :: n_arg_max(12) = (/ &
       2, 2, 2, 3, &
       2, 4, 2, 2 /)      
 
-character(20) :: arg_names(2) = (/ '-ascii', '-at    ' /)
+character(20) :: arg_names(2) = (/ '-ascii', '-at   ' /)
 integer :: n_arg_values(2) = (/ 0, 1 /)
 
 integer i, j, ix, iu, nd, ii, i_uni, ib, ip, ios, loc

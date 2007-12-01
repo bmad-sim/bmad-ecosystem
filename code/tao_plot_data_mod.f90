@@ -703,7 +703,9 @@ do k = 1, size(graph%curve)
       x_symb = ix_symb
     elseif (plot%x_axis_type == 's') then
       ix_symb = pack(u%ele(:)%ix_ele_end_lat_layout, mask = lat%ele(:)%logic)
-      x_symb = lat%ele(ix_symb)%s
+      do i = 1, n_dat
+        x_symb(i) = lat%ele(ix_symb(i))%s
+      enddo
       ! If there is a wrap-around then reorder the data
       do i = 1, n_dat
         if (x_symb(i)-l_tot > plot%x%min) then
