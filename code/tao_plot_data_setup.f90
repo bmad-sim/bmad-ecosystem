@@ -120,6 +120,8 @@ plot_loop: do ir = 1, size(s%plot_region)
 
 ! loop over all graphs and curves
 
+  if (plot%x%min == plot%x%max) call tao_x_scale_plot (plot, 0.0_rp, 0.0_rp)
+
   do jg = 1, size(plot%graph)
     graph => plot%graph(jg)
     call tao_graph_data_setup (plot, graph)
@@ -148,8 +150,6 @@ plot_loop: do ir = 1, size(s%plot_region)
       enddo
     endif
   enddo
-
-  if (plot%x%min == plot%x%max) call tao_x_scale_plot (plot, 0.0_rp, 0.0_rp)
 
 enddo plot_loop
 

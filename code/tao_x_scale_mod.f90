@@ -98,7 +98,10 @@ subroutine tao_x_scale_plot (plot, x_min, x_max)
 type (tao_plot_struct), target :: plot
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
-integer j, k, n, p1, p2, iu, ix
+type (floor_position_struct) end
+type (lat_struct), pointer :: lat
+
+integer i, j, k, n, p1, p2, iu, ix
 real(rp) x_min, x_max
 real(rp) x1, x2
 logical curve_here
@@ -122,8 +125,15 @@ if (x_max == x_min) then
     if (graph%type == 'key_table') then
       cycle
     else if (graph%type == 'floor_plan') then
-      x1 = min(x1, graph%x_min)
-      x2 = max(x2, graph%x_max)
+      ix = tao_universe_number(graph%ix_universe)
+      lat => s%u(ix)%model%lat
+      x1 = 1e30
+      x2 = -1e30
+      do i = 0, lat%n_ele_track
+        call floor_to_screen_coords (lat%ele(i)%floor, end)
+        x1 = min(x1, end%x)
+        x2 = max(x2, end%x)
+      enddo
       curve_here = .true.
     else if (plot%x_axis_type == 's') then
       iu = graph%ix_universe

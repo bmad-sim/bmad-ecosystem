@@ -3091,4 +3091,41 @@ character(20) class
 
 end subroutine
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+subroutine floor_to_screen_coords (floor, screen)
+
+implicit none
+
+type (floor_position_struct) floor, screen
+
+!
+
+call floor_to_screen (floor%x, floor%y, floor%z, screen%x, screen%y)
+screen%theta = pi + floor%theta
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+subroutine floor_to_screen (x_floor, y_floor, z_floor, x_screen, y_screen)
+
+implicit none
+
+real(rp) x_floor, y_floor, z_floor, x_screen, y_screen
+
+! Mapping from floor coords to screen coords is:
+!   Floor   Screen 
+!    z   ->  -x
+!    x   ->  -y
+
+x_screen = -z_floor
+y_screen = -x_floor
+
+end subroutine
+
 end module tao_utils

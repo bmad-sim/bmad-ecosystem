@@ -32,8 +32,6 @@ case ('phase_space')
   call tao_phase_space_plot_data_setup (plot, graph)
 case ('data')
   call tao_data_plot_data_setup(plot, graph)
-case ('floor_plan')
-  call tao_floor_plan_plot_data_setup (plot, graph)
 end select
 
 ! Renormalize
@@ -1170,46 +1168,6 @@ else
 endif
 
 end subroutine
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-
-subroutine tao_floor_plan_plot_data_setup (plot, graph)
-
-use tao_plot_mod
-
-implicit none
-
-type (tao_plot_struct) plot
-type (tao_graph_struct) graph
-type (floor_position_struct) end
-type (lat_struct), pointer :: lat
-
-integer i, isu
-
-! The only thing we need to do here is determine the min and max
-
-graph%x_max = -1e20
-graph%x_min =  1e20
-graph%y_max = -1e20
-graph%y_min =  1e20
-  
-isu = tao_universe_number(graph%ix_universe)
-lat => s%u(isu)%model%lat
-
-do i = 0, lat%n_ele_track
-
-  call floor_to_screen_coords (lat%ele(i)%floor, end)
-
-  graph%x_max = max(graph%x_max, end%x)
-  graph%x_min = min(graph%x_min, end%x)
-  graph%y_max = max(graph%y_max, end%y)
-  graph%y_min = min(graph%y_min, end%y)
-
-enddo
 
 end subroutine
 

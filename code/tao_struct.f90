@@ -118,8 +118,6 @@ type tao_graph_struct
   type (qp_axis_struct) y       ! Y-axis attributes.
   type (qp_axis_struct) y2      ! Y-axis attributes.
   type (qp_rect_struct) margin  ! Margin around the graph.
-  real(rp) x_min, x_max         ! Min and max of floor_plan drawing.
-  real(rp) y_min, y_max         ! Min and max of floor_plan drawing.
   logical clip                  ! Clip plot at graph boundary.
   integer box(4)                ! Defines which box the plot is put in.
   integer ix_universe           ! Used for lat_layout plots.

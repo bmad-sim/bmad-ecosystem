@@ -127,8 +127,12 @@ end subroutine
 subroutine tao_scale_graph (graph, axis, y_min, y_max)
 
 type (tao_graph_struct) graph
+type (lat_struct), pointer :: lat
+type (floor_position_struct) end
+
 real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2
-integer i
+
+integer i, ix
 character(*) axis
 logical found_data, found_data2
 
@@ -155,10 +159,20 @@ endif
 ! Since y_min = y_max then autoscale: That is we need to find the 
 ! min/max so all the data points are within bounds.
 
-! For a floor plan the min and max have been stored in graph%y_min, graph%y_max
+! For a floor plan 
 
 if (graph%type == 'floor_plan') then
-  call qp_calc_axis_scale (graph%y_min, graph%y_max, graph%y)
+  ix = tao_universe_number(graph%ix_universe)
+  lat => s%u(ix)%model%lat
+  this_min = 1e30
+  this_max = -1e30
+  do i = 0, lat%n_ele_track
+    call floor_to_screen_coords (lat%ele(i)%floor, end)
+    if (end%x > graph%p%x%max .or. end%x < graph%p%x%min) cycle
+    this_min = min(this_min, end%y)
+    this_max = max(this_max, end%y)
+  enddo
+  call qp_calc_axis_scale (this_min, this_max, graph%y)
   return
 endif
 
