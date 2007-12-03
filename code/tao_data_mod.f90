@@ -245,7 +245,7 @@ if (data_type(1:2) == 't.') data_type = 't.'
 if (data_type(1:3) == 'tt.') data_type = 'tt.'
 if (data_type(1:5) == 'wire.') data_type = 'wire.'
 
-if (data_type(1:9) == 'norm_emit') call convert_total_energy_to ( &
+if (data_type(1:4) == 'emit') call convert_total_energy_to ( &
                     lat%ele(ix1)%value(E_TOT$), lat%param%particle, gamma)
 
 if (data_source /= "lattice" .and. data_source /= "beam_tracking") then

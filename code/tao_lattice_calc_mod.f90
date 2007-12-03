@@ -120,10 +120,8 @@ do i = 1, size(s%u)
     call tao_lat_bookkeeper (u, u%model)
     call tao_macro_track (i, u%model, this_calc_ok)
   case default
-    call out_io (s_error$, r_name, &
-                   "This tracking type has yet to be implemented!")
-    call out_io (s_blank$, r_name, &
-                   "No tracking or twiss calculations will be perfomred.")
+    call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // s%global%track_type)
+    call err_exit
   end select
 
   if (this_calc_ok) then

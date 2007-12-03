@@ -667,6 +667,7 @@ case ('lattice')
         return
       endif
       column(:)%name = ""
+      column(:)%label = ""
       read (iu, nml = custom_show_list, iostat = ios)
       if (ios /= 0) then
         call out_io (s_error$, r_name, 'CANNOT READ "CUSTOM_SHOW_LIST" NAMELIST IN FILE: ' // file_name)
