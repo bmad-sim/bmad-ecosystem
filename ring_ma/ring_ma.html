@@ -1,0 +1,124 @@
+<html>
+<head>
+<style type="text/css">
+  tr {vertical-align: top}
+  tr.s1 {background: #eeeeee}
+  tr.s2 {background: #cccccc}
+</style>
+</head>
+<body>
+<table>
+<tr class="s1" valign=top><td><pre>
+&ring_ma_init
+   lattice_file = "CTF_LAT:bmad_2gevdr_102105.lat"
+<td>Name of lattice file
+
+<tr class="s2"><td><pre>
+   comment = ""
+<td>Comment to be printed at the top of the output file
+
+<tr class="s1"><td><pre>
+   write_orbits = .false.
+<td>If this is true, then orbit and Twiss info will be written for each seed
+    and each pass. This can produce a <b>lot</b> of output, so it's best to
+    use only with a few seeds at a time.
+
+<tr class="s2"><td><pre>
+   key_value1 = 0.
+   key_value2 = 0.
+<td>The key values have no effect, but are printed with the summary info at the
+end of the output file. They are used when making plots and you want to know what
+you were varying. They are usually identitical to some other number in the file, or
+are set to one of the <i>TARGET</i> flags for template input files.
+
+<tr class="s1"><td><pre>
+   alignment_multiplier = 1.
+<td> All misalignments below, except for quad strengths, are multiplied by this factor.
+
+<tr class="s2"><td><pre>
+   sigma_cutoff = 3.
+<td>Limit for normally-distributed random offsets.
+
+<tr class="s1"><td><pre>
+! Keys:   sbend=2; quad=3; sextupole=5; wiggler=12
+! Params: tilt=2; k1=4; roll=15; x_offset=25; y_offset=26;
+!         x_pitch=19, y_pitch=20; s_offset=27; 
+
+! Nominal misalignment...
+! Quads
+   ma(1)  = 3, "^Q", 25, 150.e-6
+   ma(2)  = 3, "^Q", 26, 150.e-6
+   ma(3)  = 3, "^Q", 2,  100.e-6
+   ma(4)  = 3, "^Q", 4,    4.e-4
+! Sextupoles
+   ma(5)  = 5, "", 25, 300.e-6
+   ma(6)  = 5, "", 26, 300.e-6
+   ma(7)  = 5, "", 2,  100.e-6
+! Bends
+   ma(8)  = 2, "", 25, 150.e-6
+   ma(9)  = 2, "", 26, 150.e-6
+   ma(10) = 2, "", 15, 100.e-6
+! Wigglers
+   ma(11) = 12, "", 25, 150.e-6
+   ma(12) = 12, "", 26, 150.e-6
+   ma(13) = 12, "", 2,  100.e-6
+<td>Misalignment parameters are given in the <tt>ma</tt> array. Each element has four values:
+the Bmad element key, a regular expression filter, the index of the parameter to offset from the
+Bmad <tt>value</tt> array, and the amplitude of the offset.
+
+<p>To receive a given misalignment, and element must match both the key and the filter, unless the
+filter is "", which matches anything. So in the example, <tt>ma(1)</tt> matches only regular
+quads by requiring that they be an element with key 3, and that they start with the letter Q.
+This does not misalign skew quads which start with the letter S.
+
+<tr class="s2"><td><pre>
+   det_abs_res   = 0.
+   det_diff_res  = 0.
+   det_rot_res   = 0.
+<td>Amplitudes of the absolute, differential, and rotation errors for BPMs.
+
+<tr class="s1"><td><pre>
+   seed          = -1
+<td>Initial seed to use. If it's set to -1, then a random starting seed is used.
+
+<tr class="s2"><td><pre>
+   n_iterations    = 200
+<td>Number of seeds.
+
+<tr class="s1"><td><pre>
+   n_lm_iterations = 10
+<td>Number of iterations in the LM minimizer.
+
+<tr class="s2"><td><pre>
+!    Detector keys: orbit_x=1, orbit_y=2, eta_x=3, eta_y=4
+!                   phi_x=5, phi_y=6, cbar12=7
+! Correcter params: k1=4, hkick=21, vkick=22, a1=(-1)
+!    Detector spec: {mask}, {quantity to correct}, {weight}
+!   Corrector spec: {mask}, {parameter to adjust}, {weight}
+
+    correct(1)%det(1) = "^DET", 2, 1
+    correct(1)%cor(1) = "^V(KICK|[0-9])", 22, 1.
+    correct(2)%det(1) = "^DET", 7, 100
+    correct(2)%cor(1) = "^SK",  4, 1
+
+!   If we want to artifically ad skew quads to the
+!   sextupoles:
+!   correct(1)%cor(1) = "^SEX.*(E|W)",  -1, 1
+
+/
+<td> Correction specification. Each pass is defined by its own element
+in the <tt>correct</tt> array. Each <tt>correct</tt> element can have
+one or more <tt>det</tt> elements (which define which detectors to use
+and what they measure), and one or more <tt>cor</tt> elements (which
+define which correctors to use and what they vary).
+
+<p>Each <tt>det</tt> and <tt>cor</tt> has three parts: a regular
+expression mask, a parameter (to measure or vary), and a weight. The
+example first corrects the vertical orbit with vertical kicks, then
+corrects the coupling with skew quads.
+
+<p>If you want to add a skew quad component to a different element,
+you can use the parameter -1.
+
+</table>
+</html>
