@@ -1,0 +1,19 @@
+#!/bin/tcsh
+#Usage:
+# gp2d <"input files"> <index> <output head>
+echo $#argv
+if ($#argv > 3 || $#argv < 3) then
+    echo "Usage:"
+    echo 'gp2d <"input files"> <index> <output head>'
+    exit
+endif
+foreach param (emit_y orbit_y eta_y cbar12 param)
+  cat $1 | grep "^ *$2 *$param" | sort -g -k3 -k4 | \
+    awk \
+      'BEGIN {firstLine=1} \
+      { if (firstLine == 1) {firstLine = 0; currentNum = $3;} \
+        if ($3 == currentNum) {print $0;} \
+        if ($3 != currentNum) {currentNum = $3; print ""; print $0;}}' \
+   > $3.$param.all
+
+end

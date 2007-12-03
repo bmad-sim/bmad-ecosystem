@@ -1,0 +1,8 @@
+#!/bin/tcsh
+setenv buffer1 `echo $PWD | sed 's/^.*\///'`
+setenv buffer2 "/nfs/acc/user/helms/ctf/jobs/$buffer1"
+foreach name ($*)
+    qsub -N $name -v inputfile=$name -v workingdir=$buffer2 /nfs/acc/user/helms/ctf/jobs/q.sh
+end
+
+#end

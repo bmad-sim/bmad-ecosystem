@@ -1,0 +1,11 @@
+#!/bin/tcsh
+#Usage:
+# gp1d <"input files"> <index> <output head>
+if ($#argv > 3 || $#argv < 3) then
+    echo "Usage:"
+    echo 'gp1d <"input files"> <index> <output head>'
+    exit
+endif
+foreach param (emit_y orbit_y eta_y cbar12 param)
+   cat $1 | grep "^ *$2 *$param" | sort -g -k3 -k4 > $3.$param.all
+end
