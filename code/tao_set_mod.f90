@@ -546,7 +546,7 @@ integer i, j
 character(*) var_str, value_str
 character(20) :: r_name = 'tao_set_var_cmd'
 character(20) set_is, component
-character(40) :: merit_type_names(2) = (/ 'target ', 'limit ' /)
+character(40) :: merit_type_names(2) = (/ 'target ', 'limit  ' /)
 
 logical err, l_value, err_flag
 
