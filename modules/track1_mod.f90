@@ -192,8 +192,8 @@ subroutine track_a_bend (start, ele, param, end)
   type (lat_param_struct), intent(inout) :: param
 
   real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t
-  real(rp) rel_p, rel_p2, Dxy, Dy, px_t, factor, rho, g, dg
-  real(rp) length, g_tot, dP, re_xy, eps
+  real(rp) rel_p, rel_p2, Dy, px_t, factor, rho, g, g_err
+  real(rp) length, g_tot, dP, eps, pxy2, f
   real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 
 ! simple case
@@ -214,8 +214,8 @@ subroutine track_a_bend (start, ele, param, end)
 
   length = ele%value(l$)
   g = ele%value(g$)
-  dg = ele%value(g_err$)
-  g_tot = g + dg
+  g_err = ele%value(g_err$)
+  g_tot = g + g_err
   b1 = g_tot
   angle = ele%value(g$) * length
   rho = 1 / g
@@ -228,7 +228,7 @@ subroutine track_a_bend (start, ele, param, end)
 
   if (k_1 /= 0) then
 
-    call sbend_body_with_k1_map (g, dg, length, k_1, end%vec, end = end%vec)
+    call sbend_body_with_k1_map (g, g_err, length, k_1, end%vec, end = end%vec)
 
 !-----------------------------------------------------------------------
 ! Track through main body...
@@ -246,19 +246,26 @@ subroutine track_a_bend (start, ele, param, end)
     z  = end%vec(5)
     pz = end%vec(6)
  
-    re_xy = rel_p2 - px**2 - py**2
-    if (re_xy < 0.1) then  ! somewhat arbitrary cutoff
+    pxy2 = px**2 + py**2
+    if (rel_p2 - pxy2 < 0.1) then  ! somewhat arbitrary cutoff
       param%lost = .true.
       end%vec(1) = 2 * bmad_com%max_aperture_limit
       end%vec(3) = 2 * bmad_com%max_aperture_limit
       return
     endif 
 
-    Dxy = sqrt(re_xy)
-    Dy  = sqrt(rel_p2 - py**2)
+! The following is to make sure that a beam entering on-axis remains *exactly* on-axis.
 
-    px_t = px*ct + (Dxy - b1*(rho+x))*st
-    dpx_t = -px*st/rho + (dxy - b1*(rho+x))*ct/rho
+    if (pxy2 < 1e-5) then  
+      f = pxy2 / (2 * rel_p)
+      f = dP - f - f*f - g_err*rho - b1*x
+    else
+      f = sqrt(rel_p2 - pxy2) - 1 - g_err*rho - b1*x
+    endif
+
+    Dy  = sqrt(rel_p2 - py**2)
+    px_t = px*ct + f*st
+    dpx_t = -px*st/rho + f*ct/rho
 
     if (abs(px) > Dy .or. abs(px_t) > Dy) then
       param%lost = .true.
@@ -270,7 +277,7 @@ subroutine track_a_bend (start, ele, param, end)
     eps = px_t**2 + py**2
     if (eps < 1e-5 * rel_p2 ) then  ! use small angle approximation
       eps = eps / (2 * rel_p)
-      end%vec(1) = (dP - dg / g - rho*dpx_t + eps * (eps / (2 * rel_p) - 1)) / b1
+      end%vec(1) = (dP - g_err / g - rho*dpx_t + eps * (eps / (2 * rel_p) - 1)) / b1
     else
       end%vec(1) = (sqrt(rel_p2 - eps) - rho*dpx_t - rho*b1) / b1
     endif
@@ -278,7 +285,7 @@ subroutine track_a_bend (start, ele, param, end)
     end%vec(2) = px_t
     end%vec(3) = y + py * (angle/b1 + factor)
     end%vec(4) = py
-    end%vec(5) = end%vec(5) + length * (dg - g*dP) / g_tot - rel_p * factor
+    end%vec(5) = end%vec(5) + length * (g_err - g*dP) / g_tot - rel_p * factor
     end%vec(6) = pz
 
   endif
@@ -305,31 +312,31 @@ subroutine track_bend_edge (orb, ele, start_edge, reverse, kx, ky)
   type (ele_struct) ele
   type (coord_struct) orb
   real(rp), optional :: kx, ky
-  real(rp) e, g, del
+  real(rp) e, g_tot, del
   logical start_edge, reverse
 
 ! Track through the entrence face. Treat as thin lens.
 
-  g = ele%value(g$) + ele%value(g_err$)
-  if (reverse) g = -g
+  g_tot = ele%value(g$) + ele%value(g_err$)
+  if (reverse) g_tot = -g_tot
 
   if (start_edge) then
     e = ele%value(e1$)
-    del = tan(e) * g
+    del = tan(e) * g_tot
     if (present(kx)) kx = del 
     orb%vec(2) = orb%vec(2) + del * orb%vec(1)
-    if (ele%value(fint$) /= 0) del = g * tan(e - 2 * ele%value(fint$) * &
-                      abs(g) * ele%value(hgap$) *  (1 + sin(e)**2) / cos(e))
+    if (ele%value(fint$) /= 0) del = g_tot * tan(e - 2 * ele%value(fint$) * &
+                      abs(g_tot) * ele%value(hgap$) *  (1 + sin(e)**2) / cos(e))
     if (present(ky)) ky = -del
     orb%vec(4) = orb%vec(4) - del * orb%vec(3)
 
   else
     e = ele%value(e2$)
-    del = tan(e) * g
+    del = tan(e) * g_tot
     if (present(ky)) kx = del
     orb%vec(2) = orb%vec(2) + del * orb%vec(1)
-    if (ele%value(fintx$) /= 0) del = g * tan(e - 2 * ele%value(fintx$) * &
-                      abs(g) * ele%value(hgapx$) *  (1 + sin(e)**2) / cos(e))
+    if (ele%value(fintx$) /= 0) del = g_tot * tan(e - 2 * ele%value(fintx$) * &
+                      abs(g_tot) * ele%value(hgapx$) *  (1 + sin(e)**2) / cos(e))
     if (present(ky)) ky = -del
     orb%vec(4) = orb%vec(4) - del * orb%vec(3)
 

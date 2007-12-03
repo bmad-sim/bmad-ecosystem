@@ -65,8 +65,6 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
 !--------------------------------------------------------
 ! init
-! c00 and c11 are the coords in the frame of reference where the element
-!       is upright (element frame of reference).
 
   length = ele%value(l$)
   mat6 => ele%mat6
@@ -174,14 +172,6 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
       ! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
 
-      b1 = g_tot
-      angle = g * length
-      rel_p  = 1 + c0%vec(6)
-      rel_p2 = rel_p**2
-
-      ct = cos(angle)
-      st = sin(angle)
-
       x  = c00%vec(1)
       px = c00%vec(2)
       y  = c00%vec(3)
@@ -189,7 +179,16 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       z  = c00%vec(5)
       pz = c00%vec(6)
  
-      Dxy = sqrt(rel_p2 - px**2 - py**2)
+      b1 = g_tot
+      angle = g * length
+      rel_p  = 1 + pz
+      rel_p2 = rel_p**2
+
+      ct = cos(angle)
+      st = sin(angle)
+
+      pxy2 = px**2 + py**2
+      Dxy = sqrt(rel_p2 - pxy2)
       Dy  = sqrt(rel_p2 - py**2)
 
       if (ele%value(g$) == 0) then
@@ -197,8 +196,14 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
         dpx_t = -px*length - b1
       else
         rho = 1 / ele%value(g$)
-        px_t = px*ct + (Dxy - b1*(rho+x))*st
-        dpx_t = -px*st/rho + (Dxy - b1*(rho+x))*ct/rho
+        if (pxy2 < 1e-5) then
+          f = pxy2 / (2 * rel_p)
+          f = pz - f - f*f - g_err*rho - b1*x
+        else
+          f = sqrt(rel_p2 - pxy2) - 1 - g_err*rho - b1*x
+        endif
+        px_t = px*ct + f*st
+        dpx_t = -px*st/rho + f*ct/rho
       endif
 
       Dxy_t = sqrt(rel_p2 - px_t**2 - py**2)
