@@ -10,16 +10,39 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       145,          7]
-NotebookDataLength[     12166,        303]
-NotebookOptionsPosition[     11690,        282]
-NotebookOutlinePosition[     12025,        297]
-CellTagsIndexPosition[     11982,        294]
+NotebookDataLength[     10388,        251]
+NotebookOptionsPosition[      9970,        233]
+NotebookOutlinePosition[     10332,        249]
+CellTagsIndexPosition[     10289,        246]
 WindowFrame->Normal
 ContainsDynamic->False*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell[BoxData[{
+Cell[TextData[{
+ "This notebook generates input files for use with the ring_ma program.\n\nTo \
+use it, create a \"template\" input file where the parameters (either one or \
+two) that you wish to scan are replaced with the word \"TARGET1\" or \
+\"TARGET2\" respectively. Then define the values for your scan below, and \
+pass the template filename and the values to the MakeFiles routine.\n\nThe \
+format for the values argument is either a 1xN list or a 2xN list, depending \
+on how many parameters your scanning. Therefore, even if your scan is \
+conceptually 2D, it must be flattened before passed as an argument. Examples \
+are shown below.\n\nIf you want to make scans of multiple template files, \
+then you can use ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ "'s Map function to thread the MakeFiles function over arrays of filenames \
+and values. This is not recommended for the novice ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " user."
+}], "Text",
+ CellChangeTimes->{{3.405696469120853*^9, 3.405696603744412*^9}, {
+  3.405696687008182*^9, 3.405696848222848*^9}, {3.405696899916372*^9, 
+  3.405696912042852*^9}, {3.405696998853147*^9, 3.405697063324197*^9}}],
+
+Cell[BoxData[
  RowBox[{
   RowBox[{"MakeFiles", "[", 
    RowBox[{"templateFile_", ",", "flatVals_"}], "]"}], ":=", 
@@ -137,42 +160,20 @@ Cell[BoxData[{
                    RowBox[{"i", ",", "2"}], "\[RightDoubleBracket]"}]}]}], 
                 "}"}]}], "]"}], "&"}], ",", "file"}], "]"}]}], "]"}], ",", 
         "\[IndentingNewLine]", "\"\<Lines\>\""}], "]"}]}], 
-     "\[IndentingNewLine]", "]"}]}], ")"}]}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"FlatTabWithDelta", "[", 
-   RowBox[{"x0_", ",", "y0_", ",", "delta_"}], "]"}], ":=", 
-  RowBox[{"Flatten", "[", 
-   RowBox[{
-    RowBox[{"Table", "[", 
-     RowBox[{
-      RowBox[{"{", 
-       RowBox[{
-        RowBox[{"10", "^", "x"}], ",", 
-        RowBox[{"10", "^", "y"}]}], "}"}], ",", 
-      RowBox[{"{", 
-       RowBox[{"x", ",", 
-        RowBox[{"x0", "-", "delta"}], ",", 
-        RowBox[{"x0", "+", "delta"}]}], "}"}], ",", 
-      RowBox[{"{", 
-       RowBox[{"y", ",", 
-        RowBox[{"y0", "-", "delta"}], ",", 
-        RowBox[{"y0", "+", "delta"}]}], "}"}]}], "]"}], ",", "1"}], 
-   "]"}]}]}], "Input",
+     "\[IndentingNewLine]", "]"}]}], ")"}]}]], "Input",
+ InitializationCell->True,
  CellChangeTimes->{{3.396106925968602*^9, 3.396106947464267*^9}, {
   3.396107296542125*^9, 3.396107296977049*^9}, {3.396107347784392*^9, 
   3.396107355318217*^9}, {3.397989768374988*^9, 3.397989847932454*^9}, {
   3.397990078337977*^9, 3.397990078748839*^9}, {3.39844530747896*^9, 
-  3.398445316262916*^9}, {3.398445415260277*^9, 3.398445435340359*^9}}],
-
-Cell[CellGroupData[{
+  3.398445316262916*^9}, {3.398445415260277*^9, 3.398445435340359*^9}, {
+  3.405696659725222*^9, 3.405696660529007*^9}}],
 
 Cell[BoxData[{
- RowBox[{"SetDirectory", "[", "\"\</home/helms/raid/ctf/jobs/2007-10-17\>\"", 
+ RowBox[{"SetDirectory", "[", "\"\<PUT YOUR WORKING DIRECTORY HERE\>\"", 
   "]"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"delta", "=", "2"}], ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"FlatTab", "=", 
+  RowBox[{"FlatTab2D", "=", 
    RowBox[{"Flatten", "[", 
     RowBox[{
      RowBox[{"Table", "[", 
@@ -187,18 +188,11 @@ Cell[BoxData[{
         RowBox[{"y", ",", "1", ",", "10"}], "}"}]}], "]"}], ",", "1"}], 
     "]"}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"FlatTab2", "=", 
+  RowBox[{"FlatTab1D", "=", 
    RowBox[{"Table", "[", 
     RowBox[{"1", ",", 
      RowBox[{"{", 
-      RowBox[{"x", ",", "1", ",", "25"}], "}"}]}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"arguments1", "=", 
-   RowBox[{"{", 
-    RowBox[{"{", 
-     RowBox[{"\"\<big.template\>\"", ",", "FlatTab2"}], "}"}], "}"}]}], 
-  ";"}]}], "Input",
+      RowBox[{"x", ",", "1", ",", "25"}], "}"}]}], "]"}]}], ";"}]}], "Input",
  CellChangeTimes->{{3.395592317126873*^9, 3.395592372864089*^9}, {
    3.395659474443397*^9, 3.395659477496125*^9}, {3.395750590106142*^9, 
    3.395750618348549*^9}, {3.395750660937957*^9, 3.39575067587762*^9}, {
@@ -226,62 +220,20 @@ Cell[BoxData[{
    3.399894156399695*^9, 3.39989427639272*^9}, {3.399980054849445*^9, 
    3.39998005604746*^9}, {3.401186825180285*^9, 3.401186864143679*^9}, {
    3.401186894382329*^9, 3.40118689491189*^9}, {3.401642916365916*^9, 
-   3.401642926017372*^9}}],
-
-Cell[BoxData["\<\"/a/lnx113/nfs/acc/user/helms/ctf/jobs/2007-10-17\"\>"], \
-"Output",
- CellChangeTimes->{
-  3.395592376026946*^9, 3.395659484212169*^9, 3.395750689222179*^9, 
-   3.39575086910458*^9, 3.395940835306087*^9, {3.395940868019521*^9, 
-   3.395940890893339*^9}, 3.396023663120695*^9, {3.396106793464614*^9, 
-   3.396106871231359*^9}, {3.396106958340788*^9, 3.396107001524202*^9}, {
-   3.396107044709555*^9, 3.396107065183945*^9}, {3.396107151235624*^9, 
-   3.396107173418424*^9}, 3.396107209455704*^9, {3.39610742349278*^9, 
-   3.396107451327588*^9}, 3.396114098125615*^9, {3.397141043666105*^9, 
-   3.397141072943082*^9}, 3.397160470687732*^9, 3.397160583312686*^9, 
-   3.397160623484242*^9, 3.397160688503083*^9, 3.397160719689936*^9, 
-   3.397212777835533*^9, 3.397212833867732*^9, 3.397224289968979*^9, 
-   3.397311381002109*^9, {3.397990082550672*^9, 3.397990112045162*^9}, {
-   3.397990157958477*^9, 3.397990179239517*^9}, {3.398445740958504*^9, 
-   3.398445749666507*^9}, 3.399030028742188*^9, {3.399894222663354*^9, 
-   3.39989422782638*^9}, {3.399894262041387*^9, 3.399894276762137*^9}, 
-   3.399980081176232*^9, 3.399983077208043*^9, 3.401186856587181*^9, 
-   3.401186897040319*^9, {3.40164290434472*^9, 3.401642926937935*^9}}]
-}, Open  ]],
-
-Cell[CellGroupData[{
+   3.401642926017372*^9}, {3.405696679023503*^9, 3.405696679764719*^9}, {
+   3.405696879468536*^9, 3.405696885872259*^9}, {3.405696922274512*^9, 
+   3.405696956479202*^9}}],
 
 Cell[BoxData[
- RowBox[{"Map", "[", 
-  RowBox[{
-   RowBox[{
-    RowBox[{"MakeFiles", "[", 
-     RowBox[{
-      RowBox[{"#", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}], 
-      ",", 
-      RowBox[{"#", "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}]}], 
-     "]"}], "&"}], ",", "arguments1"}], "]"}]], "Input",
+ RowBox[{"MakeFiles", "[", 
+  RowBox[{"\"\<TEMPLATE FILE\>\"", ",", "FlatTab1D"}], "]"}]], "Input",
  CellChangeTimes->{
   3.398445752792304*^9, 3.399030032625539*^9, {3.399894285955348*^9, 
-   3.399894286303163*^9}}],
-
-Cell[BoxData[
- RowBox[{"{", "Null", "}"}]], "Output",
- CellChangeTimes->{
-  3.395592383275884*^9, 3.395659488405869*^9, 3.395749518343056*^9, 
-   3.395750696879884*^9, 3.395750875115991*^9, 3.395940900090569*^9, 
-   3.396023680342507*^9, 3.396107440861287*^9, 3.396114108532957*^9, {
-   3.397141068305809*^9, 3.397141091214643*^9}, 3.397160766044976*^9, 
-   3.397212785904242*^9, 3.397212843955501*^9, 3.397224307795708*^9, 
-   3.397311415456647*^9, 3.397311502463551*^9, {3.397990137899472*^9, 
-   3.39799018955643*^9}, 3.398445772334128*^9, 3.399030038005889*^9, {
-   3.399894281871225*^9, 3.399894292315273*^9}, 3.399980085894493*^9, 
-   3.399984019671472*^9, 3.401186899852393*^9, 3.401202631666586*^9, 
-   3.401642930234173*^9}]
-}, Open  ]]
+   3.399894286303163*^9}, {3.40569694751611*^9, 3.405696982378494*^9}}]
 },
-WindowSize->{800, 746},
-WindowMargins->{{182, Automatic}, {30, Automatic}},
+AutoGeneratedPackage->None,
+WindowSize->{800, 891},
+WindowMargins->{{182, Automatic}, {3, Automatic}},
 FrontEndVersion->"6.0 for Linux x86 (32-bit) (April 20, 2007)",
 StyleDefinitions->"Default.nb"
 ]
@@ -296,15 +248,11 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[568, 21, 5610, 143, 517, "Input"],
-Cell[CellGroupData[{
-Cell[6203, 168, 3006, 60, 121, "Input"],
-Cell[9212, 230, 1246, 18, 31, "Output"]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[10495, 253, 443, 12, 32, "Input"],
-Cell[10941, 267, 733, 12, 31, "Output"]
-}, Open  ]]
+Cell[568, 21, 1186, 21, 251, "Text"],
+Cell[1757, 44, 5034, 125, 473, "Input",
+ InitializationCell->True],
+Cell[6794, 171, 2894, 53, 77, "Input"],
+Cell[9691, 226, 275, 5, 32, "Input"]
 }
 ]
 *)

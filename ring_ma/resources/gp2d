@@ -1,6 +1,15 @@
 #!/bin/tcsh
-#Usage:
-# gp2d <"input files"> <index> <output head>
+#
+# gp2d is like gp1d (see that file) except that it sorts the summary files
+# according to both key values, and writes the output files in a format for
+# making 2D plots with Gnuplot.
+#
+# Usage:
+#   gp2d <"input files"> <index> <output head>
+#
+#   See gp1d for more info, but remember that the "input files" pattern
+#   must be quoted on the command line.
+#
 echo $#argv
 if ($#argv > 3 || $#argv < 3) then
     echo "Usage:"

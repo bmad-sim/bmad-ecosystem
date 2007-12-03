@@ -1,6 +1,26 @@
 #!/bin/tcsh
-#Usage:
-# gp1d <"input files"> <index> <output head>
+#
+# gp1d takes a set of output files from ring_ma and turns it into
+# summary files that can be plotted. the "1d" means that these are
+# assumed to be from a 1D scan where only the first "key value"
+# is used. Each summary file contains one parameter (emittance,
+# dispersion, etc.) which can be changed by editing the for loop below.
+#
+# Usage:
+#  gp1d <"input files"> <index> <output head>
+#
+#  "input files" is the pattern for the input files you want combined.
+#  It must be quoted on the command line so that the shell not expand
+#  the pattern automatically.
+#
+#  index is the index of the correction you want summarized, i.e., which
+#  pass you want. If you want to summarize multiple passes, the call gp1d
+#  multiple times
+#
+#  output head is the head of the output files. The rest of the filenames
+#  will be set according to which summary they contain.
+#
+
 if ($#argv > 3 || $#argv < 3) then
     echo "Usage:"
     echo 'gp1d <"input files"> <index> <output head>'
