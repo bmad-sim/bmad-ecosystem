@@ -494,34 +494,34 @@ correct phase-space area at non ultra-relativistic energies:
   \begin{pmatrix}
     x \\ 
     x'
-  \end{pmatrix}_f = 
+  \end{pmatrix}_2 = 
   \begin{pmatrix}
-    m_{11}                      & \beta_i \, m_{12} \\
-    \frac{1}{\beta_f} \, m_{21} & \frac{\beta_i}{\beta_f} \, m_{22} 
+    m_{11}                      & \beta_1 \, m_{12} \\
+    \frac{1}{\beta_2} \, m_{21} & \frac{\beta_1}{\beta_2} \, m_{22} 
   \end{pmatrix}
   \,
   \begin{pmatrix}
     x \\ 
     x'
-  \end{pmatrix}_i
+  \end{pmatrix}_1
 \Endeq
 where the $m_{ij}$ are the matrix elements from R\&S Eq.~(9) and the 
 $\beta$ are the standard relativistic factors. With this, the determinate 
-of the matrix is $\beta_i \, \gamma_i / \beta_f \, \gamma_f$.
+of the matrix is $\beta_1 \, \gamma_1 / \beta_2 \, \gamma_2$.
 
 The change in $z$ going through a cavity is calculated by first calculating the particle
 transit time $\Delta t$
 \begin{align}
-  c \, \Delta t &= \int_0^l \!\! ds \, c \, \beta(s) \CRNO
-  &= \int_0^l \!\! ds \, \frac{E}{\sqrt{E^2 - (mc^2)^2}} \\
-  &= \frac{c \, P_{z2} - c \, P_{z1}}{G} \nonumber
+  \Delta t &= \int_{s_1}^{s_2} \!\! ds \,\, \beta(s) \CRNO
+  &= \int_{s_1}^{s_2} \!\! ds \, \frac{E}{\sqrt{E^2 - (mc^2)^2}} \\
+  &= \frac{P_{z2} - P_{z1}}{G} \nonumber
 \end{align}
 where it has been assumed that the accelerating gradient $G$ is
 constant through the cavity. In this equation $\beta = v / c$, $E$ is
 the energy, and $P_{z2}$ and $P_{z1}$ are the entrance and exit
 momenta. Using \Eq{zbctt}, the change in $z$ is thus
 \Begineq
-  z_2 = frac{\beta_2}{\beta_1} \, z_1 - 
+  z_2 = \frac{\beta_2}{\beta_1} \, z_1 - 
   \beta_2 \, 
   \left(
   \frac{c \, P_{z2} - c \, P_{z1}}{G} - 
