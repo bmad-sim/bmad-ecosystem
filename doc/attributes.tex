@@ -433,7 +433,10 @@ Example
   q1: quad, l = 0.6, k1 = 0.95
   q1[is_on] = False
 \end{example}
-Note: \vn{is_on} does not affect any apertures that are set.
+
+\vn{is_on} does not affect any apertures that are set. Additionally,
+\vn{is_on} does not affect the reference orbit. Therefore, turning 
+off an \vn{LCavity} will not affect the reference energy.
 
 %-----------------------------------------------------------------
 \section{Multipole Attributes: An, Bn, KnL, Tn}

@@ -509,6 +509,29 @@ where the $m_{ij}$ are the matrix elements from R\&S Eq.~(9) and the
 $\beta$ are the standard relativistic factors. With this, the determinate 
 of the matrix is $\beta_i \, \gamma_i / \beta_f \, \gamma_f$.
 
+The change in $z$ going through a cavity is calculated by first calculating the particle
+transit time $\Delta t$
+\begin{align}
+  c \, \Delta t &= \int_0^l \!\! ds \, c \, \beta(s) \CRNO
+  &= \int_0^l \!\! ds \, \frac{E}{\sqrt{E^2 - (mc^2)^2}} \\
+  &= \frac{c \, P_{z2} - c \, P_{z1}}{G} \nonumber
+\end{align}
+where it has been assumed that the accelerating gradient $G$ is
+constant through the cavity. In this equation $\beta = v / c$, $E$ is
+the energy, and $P_{z2}$ and $P_{z1}$ are the entrance and exit
+momenta. Using \Eq{zbctt}, the change in $z$ is thus
+\Begineq
+  z_2 = frac{\beta_2}{\beta_1} \, z_1 - 
+  \beta_2 \, 
+  \left(
+  \frac{c \, P_{z2} - c \, P_{z1}}{G} - 
+  \frac{c \, \BAR P_{z2} - c \, \BAR P_{z1}}{\BAR G}
+  \right)
+\Endeq
+where $\BAR P$ and $\BAR G$ are the momentum and gradiant of the
+reference particle.
+
+
 %-----------------------------------------------------------------
 \section{Wigglers}
 \label{s:wiggler_phys}
