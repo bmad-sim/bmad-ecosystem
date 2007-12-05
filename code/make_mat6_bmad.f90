@@ -198,7 +198,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
         rho = 1 / ele%value(g$)
         if (pxy2 < 1e-5) then
           f = pxy2 / (2 * rel_p)
-          f = pz - f - f*f - g_err*rho - b1*x
+          f = pz - f - f*f/2 - g_err*rho - b1*x
         else
           f = sqrt(rel_p2 - pxy2) - 1 - g_err*rho - b1*x
         endif

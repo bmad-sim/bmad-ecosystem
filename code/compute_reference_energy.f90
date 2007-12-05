@@ -9,7 +9,7 @@
 !
 ! Input:
 !   lattice -- lat_struct: Input lattice.
-!     %ele(0)%value(E_TOT$) -- Energy at the start.
+!     %ele(0)%value(E_tot$) -- Energy at the start.
 !   bmad_com -- bmad_common_struct: Bmad global common block.
 !     %compute_ref_energy -- Logical: If set False then do not recompute the
 !                 reference energy.
@@ -18,7 +18,7 @@
 !
 ! Output:
 !   lattice -- lat_struct
-!     %ele(:)%value(E_TOT$) -- Reference energy at the end of the element.
+!     %ele(:)%value(E_tot$) -- Reference energy at the end of the element.
 !     %ele(:)%value(p0c$)         -- Reference momentum at the end of the element.
 !-
 
@@ -33,7 +33,7 @@ subroutine compute_reference_energy (lattice, compute)
 
   type (lat_struct) lattice
   type (ele_struct), pointer :: ele, lord, slave
-  real(rp) E_TOT, p0c, phase
+  real(rp) E_tot, p0c, phase
 
   integer i, j, k, ix
   logical, optional :: compute
@@ -42,8 +42,8 @@ subroutine compute_reference_energy (lattice, compute)
 
   if (.not. logic_option(bmad_com%compute_ref_energy, compute)) return
 
-  E_TOT = lattice%ele(0)%value(E_TOT$)
-  call convert_total_energy_to (E_TOT, lattice%param%particle, pc = p0c)
+  E_tot = lattice%ele(0)%value(E_tot$)
+  call convert_total_energy_to (E_tot, lattice%param%particle, pc = p0c)
   lattice%ele(0)%value(p0c$) = p0c
 
 ! propagate the energy through the lattice
@@ -53,23 +53,20 @@ subroutine compute_reference_energy (lattice, compute)
 
     select case (ele%key)
     case (lcavity$) 
-      ele%value(E_TOT_START$) = E_TOT
+      ele%value(E_tot_START$) = E_tot
       ele%value(p0c_start$) = p0c
 
       phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-      E_TOT = E_TOT + ele%value(gradient$) * &
-                                                ele%value(l$) * cos(phase)
-      E_TOT = E_TOT - &
-                        ele%value(e_loss$) * lattice%param%n_part * e_charge
-      call convert_total_energy_to (E_TOT, &
-                                           lattice%param%particle, pc = p0c)
+      E_tot = E_tot + ele%value(gradient$) * ele%value(l$) * cos(phase)
+      E_tot = E_tot - ele%value(e_loss$) * lattice%param%n_part * e_charge
+      call convert_total_energy_to (E_tot, lattice%param%particle, pc = p0c)
 
     case (custom$) 
-      E_TOT = E_TOT + ele%value(gradient$) * ele%value(l$)
-      call convert_total_energy_to (E_TOT, lattice%param%particle, pc = p0c)
+      E_tot = E_tot + ele%value(gradient$) * ele%value(l$)
+      call convert_total_energy_to (E_tot, lattice%param%particle, pc = p0c)
     end select
 
-    ele%value(E_TOT$) = E_TOT
+    ele%value(E_tot$) = E_tot
     ele%value(p0c$) = p0c
 
   enddo
@@ -90,12 +87,12 @@ subroutine compute_reference_energy (lattice, compute)
     enddo
 
     lord%value(p0c$) = slave%value(p0c$)
-    lord%value(E_TOT$) = slave%value(E_TOT$)
+    lord%value(E_tot$) = slave%value(E_tot$)
 
     if (lord%key == lcavity$ .or. lord%key == custom$) then
       ix = lord%ix1_slave
       j = lattice%control(ix)%ix_slave
-      lord%value(E_TOT_START$) = lattice%ele(j)%value(E_TOT_START$)
+      lord%value(E_tot_start$) = lattice%ele(j)%value(E_tot_start$)
       lord%value(p0c_start$) = lattice%ele(j)%value(p0c_start$)
     endif
 

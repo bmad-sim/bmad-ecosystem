@@ -258,7 +258,7 @@ subroutine track_a_bend (start, ele, param, end)
 
     if (pxy2 < 1e-5) then  
       f = pxy2 / (2 * rel_p)
-      f = dP - f - f*f - g_err*rho - b1*x
+      f = dP - f - f*f/2 - g_err*rho - b1*x
     else
       f = sqrt(rel_p2 - pxy2) - 1 - g_err*rho - b1*x
     endif
