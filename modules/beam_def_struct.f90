@@ -71,7 +71,7 @@ type bunch_params_struct
   type (beam_spin_struct) :: spin  ! polarization
   real(rp) sigma(21)               ! projected sigma matrix
   real(rp) s                       ! Longitudinal position.
-  integer n_particle               ! all non-lost particles
+  integer n_live_particle          ! all non-lost particles
 end type
 
 ! How close to polarization vector for particle to be polarized?	

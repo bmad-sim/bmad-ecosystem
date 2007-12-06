@@ -1146,8 +1146,8 @@ s(6,5) = -1.0
 
 ! n_particle and centroid
 
-params%n_particle = count(bunch%particle%ix_lost == not_lost$)
-if (params%n_particle == 0) then
+params%n_live_particle = count(bunch%particle%ix_lost == not_lost$)
+if (params%n_live_particle == 0) then
   params%centroid%vec = 0.0     ! zero everything
   call zero_plane (params%a)
   call zero_plane (params%b)
@@ -1161,7 +1161,7 @@ endif
 
 avg_energy = sum((1+bunch%particle%r%vec(6)), & 
                               mask = (bunch%particle%ix_lost == not_lost$))
-avg_energy = avg_energy * ele%value(E_TOT$) / params%n_particle
+avg_energy = avg_energy * ele%value(E_TOT$) / params%n_live_particle
 
 ! Convert to geometric coords and find the sigma matrix
 
@@ -1404,7 +1404,7 @@ do i = 1, size(bunch%particle)
   ave_vec = ave_vec + vec
 enddo
 
-ave_vec = ave_vec / params%n_particle
+ave_vec = ave_vec / params%n_live_particle
 call vec_to_polar (ave_vec, ave_polar)
 params%spin%theta = ave_polar%theta
 params%spin%phi   = ave_polar%phi
@@ -1421,7 +1421,7 @@ do i = 1, size(bunch%particle)
                cos(angle_between_polars (polar, ave_polar))
 enddo
 
-params%spin%polarization = params%spin%polarization / params%n_particle
+params%spin%polarization = params%spin%polarization / params%n_live_particle
     
 end subroutine calc_spin_params
 
