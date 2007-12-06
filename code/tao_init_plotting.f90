@@ -134,7 +134,7 @@ do
   plot%x = init_axis
   plot%x%minor_div_max = 6
   plot%x%major_div = 6
-  plot%independent_graphs = .false.
+  plot%independent_graphs = .true.
   plot%n_graph = 0
   read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
   if (ios /= 0) exit                                 ! exit on end of file.

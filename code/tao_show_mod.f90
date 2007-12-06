@@ -45,6 +45,7 @@ type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_ele_shape_struct), pointer :: shape
 
 type (beam_struct), pointer :: beam
+type (lat_struct), pointer :: lat
 type (bunch_struct), pointer :: bunch
 type (lr_wake_struct), pointer :: lr
 type (ele_struct), pointer :: ele
@@ -61,7 +62,7 @@ end type
 
 type (show_lat_column_struct) column(40)
 
-real(rp) f_phi, s_pos, l_lat, gam
+real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2
 real(rp) :: delta_e = 0
 real(rp), allocatable :: value(:)
 
@@ -87,14 +88,14 @@ character(200), allocatable, save :: lines(:)
 character(200) line, line1, line2, line3
 character(9) angle
 
-integer :: data_number, ix_plane, ix_class
+integer :: data_number, ix_plane, ix_class, n_live, n_tot
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie
-integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju
+integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2
 integer num_locations, ix_ele
 integer, allocatable, save :: ix_eles(:)
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
-logical err, found, at_ends, first_time
+logical err, found, at_ends, first_time, by_s
 logical show_all, name_found
 logical, automatic :: picked(size(s%u))
 logical, allocatable :: picked_ele(:)
@@ -121,6 +122,7 @@ amt  = '(9a)'
 iamt = '(a, i0, 9a)'
 
 u => s%u(s%global%u_view)
+lat => u%model%lat
 
 if (s%global%phase_units == radians$) f_phi = 1
 if (s%global%phase_units == degrees$) f_phi = 180 / pi
@@ -199,11 +201,11 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt) 'csr_param%lsc_component_on     = ', csr_param%lsc_component_on
     nl=nl+1; write(lines(nl), lmt) 'csr_param%tsc_component_on     = ', csr_param%tsc_component_on
     nl=nl+1; lines(nl) = ''
-    call convert_total_energy_to (u%model%lat%e_tot, u%model%lat%param%particle, gamma = gam)
-    nl=nl+1; write(lines(nl), rmt) 'model%lat%a%emit               = ', u%model%lat%a%emit
-    nl=nl+1; write(lines(nl), rmt) '          a%emit (normalized)  = ', u%model%lat%a%emit * gam
-    nl=nl+1; write(lines(nl), rmt) 'model%lat%b%emit               = ', u%model%lat%b%emit
-    nl=nl+1; write(lines(nl), rmt) '          b%emit (normalized)  = ', u%model%lat%b%emit * gam
+    call convert_total_energy_to (lat%e_tot, lat%param%particle, gamma = gam)
+    nl=nl+1; write(lines(nl), rmt) 'model%lat%a%emit               = ', lat%a%emit
+    nl=nl+1; write(lines(nl), rmt) '          a%emit (normalized)  = ', lat%a%emit * gam
+    nl=nl+1; write(lines(nl), rmt) 'model%lat%b%emit               = ', lat%b%emit
+    nl=nl+1; write(lines(nl), rmt) '          b%emit (normalized)  = ', lat%b%emit * gam
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', s%global%track_type
     nl=nl+1; write(lines(nl), amt) 'u%save_beam_at:'
@@ -216,25 +218,39 @@ case ('beam')
   else
     call tao_to_int (word(1), ix_ele, err)
     if (err) return
-    beam => u%ele(ix_ele)%beam
-    if (.not. allocated(beam%bunch)) then
-      call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM AT ELEMENT.')
-      if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
-      return
-    endif
-    bunch => beam%bunch(s%global%bunch_to_plot)
-    call calc_bunch_params (bunch, u%model%lat%ele(ix_ele), bunch_params)
-    nl=nl+1; write (lines(nl), imt)  'Parameters for bunch:       ', s%global%bunch_to_plot
-    nl=nl+1; write (lines(nl), imt)  'Particles surviving:        ', bunch_params%n_particle
-    nl=nl+1; write (lines(nl), imt)  'Particles lost:             ', size(bunch%particle) - bunch_params%n_particle
-    nl=nl+1; write (lines(nl), f3mt) 'Particles lost (%):         ', &
-                               real(size(bunch%particle) - bunch_params%n_particle) / size(bunch%particle)
-    nl=nl+1; write (lines(nl), rmt) 'Centroid:', bunch_params%centroid%vec
-    nl=nl+1; write (lines(nl), rmt) 'RMS:     ', sqrt(bunch_params%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
+    n = s%global%bunch_to_plot
+    nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
+    nl=nl+1; write (lines(nl), rmt) '  Centroid:', u%model%bunch_params(ix_ele)%centroid%vec
+    nl=nl+1; write (lines(nl), rmt) '  RMS:     ', sqrt(u%model%bunch_params(ix_ele)%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
     nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
-    nl=nl+1; write (lines(nl), rmt) 'a:       ', bunch_params%a%norm_emitt, bunch_params%a%beta
-    nl=nl+1; write (lines(nl), rmt) 'b:       ', bunch_params%b%norm_emitt, bunch_params%b%beta
-    nl=nl+1; write (lines(nl), rmt) 'z:       ', bunch_params%z%norm_emitt, bunch_params%z%beta
+    nl=nl+1; write (lines(nl), rmt) '  a:       ', u%model%bunch_params(ix_ele)%a%norm_emitt, u%model%bunch_params(ix_ele)%a%beta
+    nl=nl+1; write (lines(nl), rmt) '  b:       ', u%model%bunch_params(ix_ele)%b%norm_emitt, u%model%bunch_params(ix_ele)%b%beta
+    nl=nl+1; write (lines(nl), rmt) '  x:       ', u%model%bunch_params(ix_ele)%x%norm_emitt, u%model%bunch_params(ix_ele)%x%beta
+    nl=nl+1; write (lines(nl), rmt) '  y:       ', u%model%bunch_params(ix_ele)%y%norm_emitt, u%model%bunch_params(ix_ele)%y%beta
+    nl=nl+1; write (lines(nl), rmt) '  z:       ', u%model%bunch_params(ix_ele)%z%norm_emitt, u%model%bunch_params(ix_ele)%z%beta
+
+    beam => u%ele(ix_ele)%beam
+    if (allocated(beam%bunch)) then
+      bunch => beam%bunch(n)
+      n_live = bunch_params%n_live_particle
+      n_tot = size(bunch%particle)
+      call calc_bunch_params (bunch, lat%ele(ix_ele), bunch_params)
+      nl=nl+1; lines(nl) = 'Parameters from saved beam at element:'
+      nl=nl+1; write (lines(nl), imt)  '  Parameters for bunch:       ', n
+      nl=nl+1; write (lines(nl), imt)  '  Particles surviving:        ', n_live
+      nl=nl+1; write (lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
+      nl=nl+1; write (lines(nl), f3mt) '  Particles lost (%):         ', real(n_tot - n_live) / n_tot
+      nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_params%centroid%vec
+      nl=nl+1; write (lines(nl), rmt) '  RMS:     ', sqrt(bunch_params%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
+      nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
+      nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_params%a%norm_emitt, bunch_params%a%beta
+      nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_params%b%norm_emitt, bunch_params%b%beta
+      nl=nl+1; write (lines(nl), rmt) '  x:       ', bunch_params%x%norm_emitt, bunch_params%x%beta
+      nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_params%y%norm_emitt, bunch_params%y%beta
+      nl=nl+1; write (lines(nl), rmt) '  z:       ', bunch_params%z%norm_emitt, bunch_params%z%beta
+    else
+      nl=nl+1; lines(nl) = 'No Allocated Beam At Element.'
+    endif
   
   endif
 
@@ -254,8 +270,8 @@ case ('hom')
 
   nl=nl+1; lines(nl) = &
         '       #        Freq         R/Q           Q   m  Polarization_Angle'
-  do i = 1, size(u%model%lat%ele)
-    ele => u%model%lat%ele(i)
+  do i = 1, size(lat%ele)
+    ele => lat%ele(i)
     if (ele%key /= lcavity$) cycle
     if (ele%control_type == multipass_slave$) cycle
     nl=nl+1; write (lines(nl), '(a, i6)') ele%name, i
@@ -491,7 +507,7 @@ case ('element', 'taylor', 'e2')
 
   if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0 .or. &
                                                      index(ele_name, ':') /= 0) then
-    call tao_ele_locations_given_name (u%model%lat, ele_name, picked_ele, err, .true.)
+    call tao_ele_locations_given_name (lat, ele_name, picked_ele, err, .true.)
     if (err) return
     if (count(picked_ele) == 0) then
       call out_io (s_blank$, r_name, '*** No Matches to Name Found ***')
@@ -500,10 +516,10 @@ case ('element', 'taylor', 'e2')
 
     write (lines(1), *) 'Matches:', count(picked_ele)
     nl = 1
-    do loc = 1, u%model%lat%n_ele_max
+    do loc = 1, lat%n_ele_max
       if (.not. picked_ele(loc)) cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-      nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, u%model%lat%ele(loc)%name
+      nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, lat%ele(loc)%name
     enddo
 
     deallocate(picked_ele)
@@ -515,7 +531,7 @@ case ('element', 'taylor', 'e2')
     call tao_locate_element (ele_name, s%global%u_view, ix_eles)
     loc = ix_eles(1)
     if (loc < 0) return
-    ele => u%model%lat%ele(loc)
+    ele => lat%ele(loc)
 
     ! Show the element info
 
@@ -530,11 +546,11 @@ case ('element', 'taylor', 'e2')
 
     if (show_what == 'element') then
       call type2_ele (ele, ptr_lines, n, .true., 6, .false., &
-              s%global%phase_units, .true., u%model%lat, .true., .true., &
+              s%global%phase_units, .true., lat, .true., .true., &
               s%global%show_ele_wig_terms)
     else
       call type2_ele (ele, ptr_lines, n, .true., 6, .true., &
-              s%global%phase_units, .true., u%model%lat, .false., .false., &
+              s%global%phase_units, .true., lat, .false., .false., &
               s%global%show_ele_wig_terms)
     endif
     if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100)
@@ -559,8 +575,8 @@ case ('element', 'taylor', 'e2')
     call show_ele_data (u, loc, lines, nl)
 
     found = .false.
-    do i = loc + 1, u%model%lat%n_ele_max
-      if (u%model%lat%ele(i)%name /= ele_name) cycle
+    do i = loc + 1, lat%n_ele_max
+      if (lat%ele(i)%name /= ele_name) cycle
       if (size(lines) < nl+2) call re_allocate (lines, len(lines(1)), nl+10)
       if (found) then
         nl=nl+1; write (lines(nl), *)
@@ -647,19 +663,21 @@ case ('lattice')
 
   call string_trim(stuff, stuff2, ix)
   at_ends = .true.
+  by_s = .false.
   ele_name = ''
-  allocate (picked_ele(0:u%model%lat%n_ele_max))
+  allocate (picked_ele(0:lat%n_ele_max))
+
+  ! get command line switches
 
   do
     if (ix == 0) exit
-    if (index('-middle', stuff2(1:ix)) /= 0) then
-      call string_trim(stuff2(ix+1:), stuff2, ix)
+
+    if (index('-middle', stuff2(1:ix)) == 1) then
       at_ends = .false.
 
-    elseif (index('-custom', stuff2(1:ix)) /= 0) then
+    elseif (index('-custom', stuff2(1:ix)) == 1) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
       file_name = stuff2(1:ix)
-      call string_trim(stuff2(ix+1:), stuff2, ix)
       iu = lunget()
       open (iu, file = file_name, status = 'old', iostat = ios)
       if (ios /= 0) then
@@ -674,35 +692,64 @@ case ('lattice')
         return
       endif
 
-    elseif (index('-elements', stuff2(1:ix)) /= 0) then
+    elseif (index('-elements', stuff2(1:ix)) == 1) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
       ele_name = stuff2(1:ix)
-      call string_trim(stuff2(ix+1:), stuff2, ix)
-      
+
+    elseif (index('-s', stuff2(1:ix)) == 1) then
+      by_s = .true.
+
     else
       exit
     endif
+
+    call string_trim(stuff2(ix+1:), stuff2, ix)
   enddo
   
+  ! Find elements to use
+
   if (ele_name /= '') then
-    call tao_ele_locations_given_name (u%model%lat, ele_name, picked_ele, err, .true.)
+    call tao_ele_locations_given_name (lat, ele_name, picked_ele, err, .true.)
     if (err) return
+
   elseif (ix == 0 .or. stuff2(1:ix) == 'all') then
     picked_ele = .true.
+
+  elseif (by_s) then
+    ix = index(stuff2, ':')
+    if (ix == 0) then
+      call out_io (s_error$, r_name, 'NO ":" FOUND FOR RANGE SELECTION')
+      return
+    endif
+    read (stuff2(1:ix-1), *, iostat = ios1) s1
+    read (stuff2(ix+1:), *, iostat = ios2) s2
+    if (ios1 /= 0 .or. ios2 /= 0) then
+      call out_io (s_error$, r_name, 'ERROR READING RANGE SELECTION: ' // stuff2)
+      return
+    endif
+
+    picked_ele = .false.
+    do ie = 1, lat%n_ele_track
+      if (at_ends) then;
+        s_ele = lat%ele(ie)%s
+      else
+        s_ele = (lat%ele(ie-1)%s + lat%ele(ie)%s) / 2
+      endif
+      if (s_ele >= s1 .and. s_ele <= s2) picked_ele(ie) = .true.
+    enddo
+
   else
     call location_decode (stuff2, picked_ele, 0, num_locations)
     if (num_locations .eq. -1) then
-      call out_io (s_error$, r_name, "Syntax error in range list:" // stuff2)
+      call out_io (s_error$, r_name, "SYNTAX ERROR IN RANGE LIST:" // stuff2)
       deallocate(picked_ele)
       return
     endif
   endif
 
   if (at_ends) then
-    at_ends = .true.
     write (line1, '(6x, a)') 'Model values at End of Element:'
   else
-    at_ends = .false.
     write (line1, '(6x, a)') 'Model values at Center of Element:'
   endif
 
@@ -712,10 +759,10 @@ case ('lattice')
   do i = 1, size(column)
     if (column(i)%name == "") cycle
     if (column(i)%field_width == 0) then
-      do ie = 0, u%model%lat%n_ele_track
+      do ie = 0, lat%n_ele_track
         if (.not. picked_ele(ie)) cycle
         column(i)%field_width = &
-                  max(column(i)%field_width, len_trim(u%model%lat%ele(ie)%name)+1)
+                  max(column(i)%field_width, len_trim(lat%ele(ie)%name)+1)
       enddo
     endif
     ix2 = ix1 + column(i)%field_width
@@ -766,16 +813,16 @@ case ('lattice')
   lines(nl+3) = line3
   nl=nl+3
 
-  do ie = 0, u%model%lat%n_ele_track
+  do ie = 0, lat%n_ele_track
     if (.not. picked_ele(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-    ele => u%model%lat%ele(ie)
+    ele => lat%ele(ie)
     if (ie == 0 .or. at_ends) then
       ele3 = ele
       orb = u%model%orb(ie)
     else
-      call twiss_and_track_partial (u%model%lat%ele(ie-1), ele, &
-                u%model%lat%param, ele%value(l$)/2, ele3, u%model%orb(ie-1), orb)
+      call twiss_and_track_partial (lat%ele(ie-1), ele, &
+                lat%param, ele%value(l$)/2, ele3, u%model%orb(ie-1), orb)
       ele3%s = ele%s-ele%value(l$)/2
     endif
 
@@ -821,10 +868,10 @@ case ('lattice')
   nl=nl+3
 
   first_time = .true.  
-  do ie = u%model%lat%n_ele_track+1, u%model%lat%n_ele_max
+  do ie = lat%n_ele_track+1, lat%n_ele_max
     if (.not. picked_ele(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-    ele => u%model%lat%ele(ie)
+    ele => lat%ele(ie)
     if (first_time) then
       nl=nl+1; lines(nl) = ' '
       nl=nl+1; lines(nl) = 'Lord Elements:'
@@ -1117,15 +1164,15 @@ case ('universe')
   enddo
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write (lines(nl), imt) &
-                'Elements used in tracking: From 1 through ', u%model%lat%n_ele_track
-  if (u%model%lat%n_ele_max .gt. u%model%lat%n_ele_track) then
+                'Elements used in tracking: From 1 through ', lat%n_ele_track
+  if (lat%n_ele_max .gt. lat%n_ele_track) then
     nl=nl+1; write (lines(nl), '(a, i0, a, i0)') 'Lord elements:   ', &
-                      u%model%lat%n_ele_track+1, '  through ', u%model%lat%n_ele_max
+                      lat%n_ele_track+1, '  through ', lat%n_ele_max
   else
     nl=nl+1; write (lines(nl), '(a)') "There are NO Lord elements"
   endif
 
-  nl=nl+1; write (lines(nl), '(a, f0.3)') "Lattice length: ", u%model%lat%param%total_length
+  nl=nl+1; write (lines(nl), '(a, f0.3)') "Lattice length: ", lat%param%total_length
 
   if (u%is_on) then
     nl=nl+1; write (lines(nl), '(a)') 'This universe is turned ON'
@@ -1133,21 +1180,21 @@ case ('universe')
     nl=nl+1; write (lines(nl), '(a)') 'This universe is turned OFF'
   endif
 
-  if (.not. u%model%lat%param%stable .or. .not. u%model%lat%param%stable) then
+  if (.not. lat%param%stable .or. .not. lat%param%stable) then
     nl=nl+1; write (lines(nl), '(a, l)') 'Model lattice stability: ', &
-                                                          u%model%lat%param%stable
+                                                          lat%param%stable
     nl=nl+1; write (lines(nl), '(a, l)') 'Design lattice stability:', &
                                                           u%design%lat%param%stable
     call out_io (s_blank$, r_name, lines(1:nl))
     return
   endif
  
-  call radiation_integrals (u%model%lat, &
+  call radiation_integrals (lat, &
                                 u%model%orb, u%model%modes, u%ix_rad_int_cache)
   call radiation_integrals (u%design%lat, &
                                 u%design%orb, u%design%modes, u%ix_rad_int_cache)
-  if (u%model%lat%param%lattice_type == circular_lattice$) then
-    call chrom_calc (u%model%lat, delta_e, &
+  if (lat%param%lattice_type == circular_lattice$) then
+    call chrom_calc (lat, delta_e, &
                         u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
     call chrom_calc (u%design%lat, delta_e, &
                         u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
@@ -1160,11 +1207,11 @@ case ('universe')
   fmt2 = '(1x, a10, 2f11.3, 2x, 2f11.3, 2x, a)'
   fmt3 = '(1x, a10, 2f11.4, 2x, 2f11.4, 2x, a)'
   f_phi = 1 / twopi
-  l_lat = u%model%lat%param%total_length
-  n = u%model%lat%n_ele_track
-  if (u%model%lat%param%lattice_type == circular_lattice$) then
-    nl=nl+1; write (lines(nl), fmt2) 'Q', f_phi*u%model%lat%ele(n)%a%phi, &
-          f_phi*u%design%lat%ele(n)%a%phi, f_phi*u%model%lat%ele(n)%b%phi, &
+  l_lat = lat%param%total_length
+  n = lat%n_ele_track
+  if (lat%param%lattice_type == circular_lattice$) then
+    nl=nl+1; write (lines(nl), fmt2) 'Q', f_phi*lat%ele(n)%a%phi, &
+          f_phi*u%design%lat%ele(n)%a%phi, f_phi*lat%ele(n)%b%phi, &
           f_phi*u%design%lat%ele(n)%b%phi,  '! Tune'
     nl=nl+1; write (lines(nl), fmt2) 'Chrom', u%model%a%chrom, & 
           u%design%a%chrom, u%model%b%chrom, u%design%b%chrom, '! dQ/(dE/E)'

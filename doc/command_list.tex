@@ -793,7 +793,7 @@ Format:
   show global
   show graph <graph_name>
   show hom
-  show lattice \{-middle\} \{-custom <file_name>\} \{-elements <name>\} \{<location_range>\}
+  show lattice \{-middle\} \{-custom <file_name>\} \{-s\} \{-elements <name>\} \{<location_range>\}
   show optimizer
   show opt_vars
   show plot
@@ -882,20 +882,24 @@ end of the elements. To show the parameters in the middle use the
 \vn{-middle} switch.
 
 The locations to show can either be specified using the \vn{-elements}
-switch or by specifying a location range.  The \vn{-elements} switch
-is used specify elements using a \vn{class:name} format
-(\sref{s:class:name}). For example:
+switch, or by specifying a longitudinal position range with \vn{-s},
+or (the default) by specifying a range of element indexes.  The
+\vn{-elements} switch is used specify elements using a \vn{class:name}
+format (\sref{s:class:name}). For example:
 \begin{example}
   show lat -ele marker:bpm*
 \end{example}
 This will show the parameters at all marker elements whose name begin
-with \vn{"bpm"}. Alternatively, a range of elements can be specified
-using the element index with a \vn{":"} being used to separate the
-index. For example
+with \vn{"bpm"}. 
+
+Alternatively, a range of elements can be specified using the element
+index or the element's longitudinal position with a \vn{":"} being
+used to separate the index. For example
 \begin{example}
   show lat  45:76
+  show lat -s  23.9:55.3
 \end{example}
-If neither \vn{-elements} nor a location range is given then
+If neither \vn{-elements} nor a range is given then
 the entire lattice will be shown.
 
 To customize the output use the command \vn{show lattice -custom
