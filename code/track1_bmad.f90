@@ -47,9 +47,9 @@ subroutine track1_bmad (start, ele, param, end)
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
   real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
   real(rp) dp_coupler, dp_x_coupler, dp_y_coupler
-  real(rp) dphase, dcos_phi, dgradient, dpz, d_ct
-  real(rp), parameter :: phase_cut = 1e-5
+  real(rp) phase0, dphase, dcos_phi, dgradient, dpz, d_ct
   real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
+  real(rp), parameter :: phase_cut = 1e-5
 
   integer i, n, n_slice, key
 
@@ -297,7 +297,8 @@ subroutine track1_bmad (start, ele, param, end)
 
     dphase = twopi * (ele%value(phi0_err$) - &
                               end%vec(5) * ele%value(rf_frequency$) / c_light)
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) + dphase
+    phase0 = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+    phase = phase0 + dphase
 
     cos_phi = cos(phase)
     gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
@@ -433,9 +434,9 @@ subroutine track1_bmad (start, ele, param, end)
     ! dgradient is the deviation of the gradient from the reference and is used to 
     ! avoid round-off errors when the change in pz is small.
 
-    if (dphase < phase_cut .and. ele%is_on) then
-      dcos_phi = -sin(phase) * dphase - cos_phi * dphase**2 / 2
-      dgradient = ele%value(gradient$) * dcos_phi + ele%value(gradient_err$) * cos_phi 
+    if (abs(dphase) < phase_cut .and. ele%is_on) then
+      dcos_phi = -sin(phase0) * dphase - cos(phase0) * dphase**2 / 2
+      dgradient = ele%value(gradient$) * dcos_phi + ele%value(gradient_err$) * cos(phase0) 
       dpz = (dgradient * length - start%vec(6) * pc_start_ref * &
                            (beta_end_ref - beta_start_ref)) / beta_end_ref 
       end%vec(6) = (dpz + start%vec(6) * pc_start_ref) / pc_end_ref
