@@ -451,7 +451,7 @@ subroutine track1_bmad (start, ele, param, end)
       d_ct = (pc_end - pc_start) / gradient - length / beta_end_ref
     elseif (gradient == 0) then
       d_ct = length / beta_end - (pc_end_ref - pc_start_ref) / gradient_ref
-    elseif (dphase < phase_cut) then
+    elseif (abs(dphase) < phase_cut) then
       d_ct = dpz / gradient - dgradient * &
                       (pc_end_ref - pc_start_ref) / (gradient * gradient_ref)
     else
