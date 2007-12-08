@@ -225,7 +225,7 @@ type tao_data_struct
   character(40) ele0_name   ! Name lattice element when there is a range 
   character(40) data_type   ! Type of data: "orbit.x", etc.
   character(40) merit_type  ! Type of constraint: 'target', 'max', 'min', etc.
-  character(40) data_source ! 'lattice', or 'beam_tracking'
+  character(40) data_source ! 'lattice', or 'beam'
   integer ix_ele            ! Index of the element in the lattice element array.
   integer ix_ele0           ! Index of lattice elment when there is a range or reference.
   integer ix_ele_merit      ! Index of lattice elment where merit is evaluated.
@@ -523,7 +523,6 @@ type tao_macro_beam_struct
   type (macro_beam_struct) beam             ! macroparticle beam
   type (macro_init_struct) macro_init ! macro distribution at beginning of lat
   type (macro_bunch_params_struct) params ! macro bunch parameters for viewed bunch
-  logical calc_emittance     ! for a lat calculate emittance
   integer, pointer :: ix_lost(:,:,:) => null()
                                       ! ^ if .ne. -1 then this macro lost at this ele
                                       ! ix_lost(bunch,slice,macro)

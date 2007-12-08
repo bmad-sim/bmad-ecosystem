@@ -168,7 +168,7 @@ Format:
 \begin{example}
   change ele <name_or_number> <attribute> <number>
   change var <name> <locations> <number>
-  change bunch_start <coordinate> <number>
+  change beam_start <coordinate> <number>
 \end{example}
 
 \vskip 0.2in 
@@ -211,7 +211,7 @@ Examples:
   change ele q02w k1 d 1.2e-2      ! set the k1 strength of q02w relative to the design
   change var steering[34:36] @1e-3 ! set the steering strength #34-36 to 0.001
   change var steering[*] @0.0      ! set all steering strengths to 0.0
-  change beam_start x @0.001      ! set beginning x position to 1 mm
+  change beam_start x @0.001       ! set beginning x position to 1 mm
 \end{example}
 
 
@@ -779,7 +779,7 @@ Examples:
 The \vn{show} command has an optional argument to write the results to a file.
 The format for this is:
 \begin{example}
-  show -init <file_name> <rest_of_the_command>
+  show -write <file_name> <rest_of_the_command>
 \end{example}
 
 Format:
@@ -895,12 +895,15 @@ with \vn{"bpm"}.
 Alternatively, a range of elements can be specified using the element
 index or the element's longitudinal position with a \vn{":"} being
 used to separate the index. For example
-\begin{example}
-  show lat  45:76
-  show lat -s  23.9:55.3
+\begin{example}  
+  Show lat  45:76, 101, 106    ! Show element #45 through #76 and 101 and 106.
+  show lat -s  23.9:55.3       ! Show elements whose position is between 
+                               !   23.9 meters and 55.3 meters .
 \end{example}
-If neither \vn{-elements} nor a range is given then
-the entire lattice will be shown.
+If neither \vn{-elements} nor a range is given then the entire lattice
+will be shown. The \vn{element_list} is optional but if it is present
+it must be at the end of the command line.  If it is not present then
+the default is to show the entire lattice.
 
 To customize the output use the command \vn{show lattice -custom
 <file_name>}. The customization file looks like:
@@ -998,7 +1001,7 @@ the format: \vn{show var n@}.
 Examples:
 \begin{example}
   show data orbit             ! Show orbit data.
-  show -init orb.dat orbit    ! Write orbit data to the file "orb.dat".
+  show -file orb.dat orbit    ! Write orbit data to the file "orb.dat".
   show curve r2.g1.c3         ! Show the attributes of a curve named "c3" which is 
                               !   in the graph "g1" which is plotted in region "r2".
   show data                   ! lists d2_data arrays.

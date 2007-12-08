@@ -36,7 +36,7 @@ transport matrix, however, with particle or macroparticle tracking the
 beta function is found from the particle distribution using the
 formula
 \begin{equation}
-  \beta = \frac{<x^{2}>}{\sqrt{<x^{2}> <x'^{2}> - <x x'>^{2}}}.
+  \beta_x = \frac{<x^{2}>}{\sqrt{<x^{2}> <x'^{2}> - <x x'>^{2}}}.
 \end{equation}
 The next section will describe how each predefined data type is
 calculated.  Custom data types need not fall into one of the above
@@ -98,8 +98,31 @@ size squared.
 Data types marked \vn{global} do not have any particular elements
 associated with them.
 
-\index{Data!Calculation Method}
+Emittance can be calculated in one of two ways. One way is to
+calculate it from a tracked beam. The other is from the lattice using
+the standard radiation integrals (see the Bmad manual). For a linear
+lattice, the emittance varies along the length of the line while for a
+circular lattice there is a single emittance number. \vn{emittance.a}
+and \vn{emittance.b} are the standard normal mode emittances. With
+beam tracking, there are also \vn{projected emittances} which give an
+indication of what the beam looks like if projected onto the $x$ or
+$y$ axes:
+\begin{equation}
+  \eta_x (\mbox{(projected)} = \sqrt{<x^2> <p_x^2> - <x p_x>^2}
+\end{equation}
+Notice that this does {\emph not} correspond to the standard emittance
+definition in one dimension:
+\begin{equation}
+  \eta_x = \sqrt{<(x - \eta_x \, p_z)^2> <(p_x - \eta'_x \, p_z)^2> - 
+  <(x - \eta_x \, p_z) \, (p_x - \eta'_x \, p_z)>^2}
+\end{equation}
+\vn{emittance.x} and \vn{emittance.y} are the projected emittances.
+Also notice that the projected emittance is sometimes defined using
+$x'$ and $y'$ in place of $p_x$ and $p_y$. However, in the vast
+majority of cases, this does not appreciably affect the numeric
+results.
 
+\index{Data!Calculation Method}
 \index{unstable_ring}\index{beta}\index{alpha}\index{eta}\index{eta}
 \index{etap}\index{phase}\index{orbit}\index{bpm}\index{wire}\index{spin}
 \index{cbar}\index{coupling}\index{floor}\index{r}\index{t}\index{tt}

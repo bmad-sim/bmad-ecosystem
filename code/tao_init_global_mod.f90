@@ -66,13 +66,12 @@ character(*) init_file, data_file, var_file
 character(40) :: r_name = 'tao_init_global_and_universes'
 character(200) file_name, beam0_file, beam_all_file
 character(40) name,  universe, default_universe, default_data_type
-character(40) default_merit_type, default_attribute
+character(40) default_merit_type, default_attribute, data_type
 character(60) save_beam_at(100)
 character(100) line
 
 logical err, free, gang
 logical searching
-logical calc_emittance
 logical, allocatable :: mask(:), dflt_good_unis(:), good_unis(:)
 logical, allocatable :: picked_ele(:)
 
@@ -82,10 +81,10 @@ namelist / tao_params / global, bmad_com, csr_param, &
   
 namelist / tao_connected_uni_init / ix_universe, connect
   
-namelist / tao_beam_init / ix_universe, calc_emittance, beam0_file, &
+namelist / tao_beam_init / ix_universe, beam0_file, &
                           beam_all_file, beam_init, save_beam_at
          
-namelist / tao_macro_init / ix_universe, calc_emittance, macro_init
+namelist / tao_macro_init / ix_universe, macro_init
          
 namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe, &
                           default_data_noise, default_scale_error
@@ -252,14 +251,13 @@ if (s%global%track_type /= 'macro') then
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
 
   do i = 1, size(s%u)
-    s%u(i)%beam_init%a_norm_emitt = -1
     s%u(i)%beam0_file = ''
   enddo
 
   ! defaults
   do 
     ix_universe = -1
-    beam_init%a_norm_emitt  = -1
+    beam_init%a_norm_emitt  = 0.0
     beam_init%b_norm_emitt  = 0.0
     beam_init%dPz_dz = 0.0
     beam_init%center(:) = 0.0
@@ -274,16 +272,9 @@ if (s%global%track_type /= 'macro') then
     beam0_file = tao_com%beam0_file        ! From the command line
     beam_all_file = tao_com%beam_all_file  ! From the command line
     save_beam_at = ''
-    calc_emittance = .false.
     read (iu, nml = tao_beam_init, iostat = ios)
 
     if (ios == 0) then
-      if (beam_init%a_norm_emitt == -1 .and. s%global%track_type == "beam" .and. &
-          beam0_file == '') then
-        call out_io (s_abort$, r_name, &
-              'TAO_BEAM_INIT NAMELIST: BEAM_INIT%A_NORM_EMITT NOT SET!')
-        call err_exit
-      endif
       call out_io (s_blank$, r_name, &
               'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
       if (ix_universe == -1) then
@@ -331,7 +322,6 @@ elseif(s%global%track_type == 'macro') then
     macro_init%n_slice = 1
     macro_init%n_macro = 1
     macro_init%n_part  = 1e10
-    calc_emittance = .false.
     read (iu, nml = tao_macro_init, iostat = ios)
     if (ios == 0) then
       if (ix_universe == -1) then
@@ -342,7 +332,7 @@ elseif(s%global%track_type == 'macro') then
       call out_io (s_blank$, r_name, &
               'Init: Read tao_macro_init namelist for universe \i3\ ', ix_universe)
       i = ix_universe
-      call init_macro(s%u(i), macro_init, calc_emittance)  ! generate an error message
+      call init_macro(s%u(i), macro_init)  ! generate an error message
       cycle
     elseif (ios > 0) then
       call out_io (s_abort$, r_name, 'INIT: TAO_MACRO_INIT NAMELIST READ ERROR!')
@@ -438,6 +428,8 @@ do
       call err_exit
     endif
     do i = lbound(data, 1), ubound(data, 1)
+      ! 'beam_tracking' is old syntax.
+      if (data(i)%data_source == 'beam_tracking') data(i)%data_source = 'beam'
       if (data(i)%ele0_name /= ' ' .and. data(i)%ele_name == ' ') then
         write (line, '(4a, i0, a)') trim(d2_data%name), '.', trim(d1_data%name), '[', i, ']'
         call out_io (s_abort$, r_name, &
@@ -968,16 +960,18 @@ u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)
 ! do we need to do the radiation integrals?
 
 do j = n1, n2
-  if (u%data(j)%data_type(1:14) == 'lat_emittance.') u%do_synch_rad_int_calc = .true. 
-  if (u%data(j)%data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
-  if (u%data(j)%data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
-  if (u%data(j)%data_type(1:14)     == 'lat_emittance.' .or. &
-          u%data(j)%data_type(1:6)  == 'chrom.' .or. &
-          u%data(j)%data_type(1:13) == 'unstable_ring' .or. &
-          u%data(j)%data_type(1:17) == 'multi_turn_orbit.') then
+  data_type = u%data(j)%data_type
+  if (data_type(1:10) == 'emittance.' .and. u%data(j)%data_source == 'lattice') &
+                                                       u%do_synch_rad_int_calc = .true. 
+  if (data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
+  if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
+  if ((data_type(1:14) == 'emittance.' .and. u%data(j)%data_source == 'lattice') .or. &
+          data_type(1:6)  == 'chrom.' .or. &
+          data_type(1:13) == 'unstable_ring' .or. &
+          data_type(1:17) == 'multi_turn_orbit.') then
     u%data(j)%exists = .true.
     if (u%data(j)%ele_name /= ' ') then
-      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // u%data(j)%data_type, &
+      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &
                         'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // u%data(j)%ele_name)
       call err_exit
     endif
@@ -1184,36 +1178,31 @@ use tao_read_beam_mod
 
 implicit none
 
-type (tao_universe_struct) u
+type (tao_universe_struct), target :: u
+type (lat_struct), pointer :: lat
 
-real(rp) v(6), bunch_charge
+real(rp) v(6), bunch_charge, gamma
 integer i, ix, iu, n_part, ix_class, n_bunch, n_particle
-character(60) at, class, ele_name
+character(60) at, class, ele_name, line
 
-!
-  
-if (u%design%lat%param%lattice_type == circular_lattice$) then
-  call out_io (s_blank$, r_name, "***")
-  call out_io (s_blank$, r_name, &
-                 "Beam tracking through a circular lattice.")
-  call out_io (s_blank$, r_name, &
-         "Twiss parameters and initial orbit will be found from the closed orbit.")
-  if (calc_emittance) then
-    call out_io (s_blank$, r_name, &
-                  "Emittance will be found using the radiation integrals.")
-  else 
-    call out_io (s_blank$, r_name, &
-                  "Emittance will be as set in tao_beam_init.")
-  endif
-  u%macro_beam%calc_emittance = calc_emittance
-  call out_io (s_blank$, r_name, "***")
-elseif (calc_emittance) then
-  call out_io (s_blank$, r_name, "***")
-  call out_io (s_warn$, r_name, &
-                "Calc_emittance is only applicable to circular lattices!")
-  call out_io (s_blank$, r_name, "***")
+! The emittance set in the tao init file takes priority over the emittance set
+! in the lattice file.
+
+lat => u%design%lat
+call convert_total_energy_to (lat%E_tot, lat%param%particle, gamma)
+
+if (beam_init%a_norm_emitt /= 0) then
+  lat%a%emit = beam_init%a_norm_emitt / gamma
+else
+  beam_init%a_norm_emitt = lat%a%emit * gamma
 endif
-  
+
+if (beam_init%b_norm_emitt /= 0) then
+  lat%b%emit = beam_init%b_norm_emitt / gamma
+else
+  beam_init%b_norm_emitt = lat%b%emit * gamma
+endif
+
 u%beam_init = beam_init
 u%beam0_file = beam0_file
 u%beam_all_file = beam_all_file
@@ -1276,13 +1265,12 @@ end subroutine init_beam
 ! Initialize the macroparticles. Determine which element to track beam to
 !
 
-subroutine init_macro(u, macro_init, calc_emittance)
+subroutine init_macro(u, macro_init)
 
 implicit none
 
 type (tao_universe_struct) u
 type (macro_init_struct) macro_init
-logical calc_emittance
 
 !
 
@@ -1292,19 +1280,6 @@ if (u%design%lat%param%lattice_type == circular_lattice$) then
                  "Macroparticle tracking through a circular lattice.")
   call out_io (s_blank$, r_name, &
          "Twiss parameters and initial orbit will be found from the closed orbit.")
-  if (calc_emittance) then
-    call out_io (s_blank$, r_name, &
-                  "Emittance will be found using the radiation integrals.")
-  else 
-    call out_io (s_blank$, r_name, &
-                  "Emittance will be as set in tao_macro_init.")
-  endif
-  u%macro_beam%calc_emittance = calc_emittance
-  call out_io (s_blank$, r_name, "***")
-elseif (calc_emittance) then
-  call out_io (s_blank$, r_name, "***")
-  call out_io (s_warn$, r_name, &
-                "Calc_emittance is only applicable to circular lattices!")
   call out_io (s_blank$, r_name, "***")
 endif
 

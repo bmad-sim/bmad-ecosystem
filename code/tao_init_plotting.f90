@@ -276,6 +276,7 @@ do
       crv => grph%curve(j)
       crv%g                       => grph
       crv%data_source             = curve(j)%data_source
+      if (crv%data_source == 'beam_tracking') crv%data_source = 'beam'
       crv%data_type               = curve(j)%data_type
       crv%x_axis_scale_factor     = curve(j)%x_axis_scale_factor
       crv%y_axis_scale_factor     = curve(j)%y_axis_scale_factor
@@ -314,8 +315,8 @@ do
 
       i_uni = tao_universe_number (crv%ix_universe)
 
-      if ((crv%data_type(1:10) == 'emittance.' .or. crv%data_type(1:15) == 'norm_emittance.') .and. &
-                                                                         crv%data_source == 'lattice') then
+      if ((crv%data_type(1:10) == 'emittance.' .or. &
+            crv%data_type(1:15) == 'norm_emittance.') .and. crv%data_source == 'lattice') then
         if (crv%ix_universe == 0) then
           s%u%do_synch_rad_int_calc = .true.
         else

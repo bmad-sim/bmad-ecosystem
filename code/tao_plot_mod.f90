@@ -26,15 +26,16 @@ type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 type (qp_rect_struct) border1, border2
+type (tao_data_array_struct), allocatable, save :: d_array(:)
 
 real(rp) location(4), dx, dy, h
 
-integer i, j, k
+integer i, j, k, ic, id
 
 character(16) :: r_name = 'tao_plot_out'
 character(3) view_str
 
-logical found
+logical found, err, beam_source
 
 ! inits
 
@@ -92,7 +93,7 @@ do i = 1, size(s%plot_region)
 
 ! loop over all the graphs of the plot and draw them.
 
-  do j = 1, size(plot%graph)
+  g_loop: do j = 1, size(plot%graph)
     graph => plot%graph(j)
 
     ! For a non-valid graph just print a message
@@ -100,9 +101,37 @@ do i = 1, size(s%plot_region)
     if (.not. graph%valid) then
       call qp_set_layout (box = graph%box)
       call qp_draw_text ('Error In The Plot Calculation', &
-                                                       0.1_rp, 0.5_rp, '%BOX')
+                          0.1_rp, 0.5_rp, '%BOX', color = red$)
       cycle
     endif
+
+    ! Check for mismatch between where the data is comming from and what tracking 
+    ! has been done.
+
+    do ic = 1, size(graph%curve)
+      curve => graph%curve(ic)
+      if (s%global%track_type == 'beam') cycle
+      if (curve%data_source == 'beam') then
+        beam_source = .true.
+      else
+        beam_source = .false.
+        call tao_find_data (err, curve%data_type, d_array = d_array, print_err = .false.)
+        if (allocated(d_array)) then
+          do id = 1, size(d_array)
+            if (d_array(id)%d%data_source == 'beam') beam_source = .true.
+          enddo
+        endif
+      endif
+      if (beam_source) then
+        call qp_set_layout (box = graph%box)
+        call qp_draw_text (&
+                 'GRAPH NEEDS DATA FROM BEAM TRACKING BUT GLOBAL%TRACK_TYPE IS NOT "beam"', &
+                  0.1_rp, 0.5_rp, '%BOX', color = red$)
+        cycle g_loop
+      endif
+    enddo
+
+    ! Now we can draw the graph
 
     call tao_hook_plot_graph (plot, graph, found)
     if (found) cycle
@@ -119,7 +148,8 @@ do i = 1, size(s%plot_region)
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN GRAPH TYPE: ' // graph%type)
     end select
-  enddo
+
+  enddo g_loop
 
 enddo
 

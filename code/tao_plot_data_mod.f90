@@ -126,7 +126,7 @@ do k = 1, size(graph%curve)
   if (allocated (curve%ix_symb)) deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
   if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
-  if (curve%data_source == 'beam_tracking') then
+  if (curve%data_source == 'beam') then
     beam => u%ele(curve%ix_ele_ref_track)%beam
     if (.not. allocated(beam%bunch)) then
       call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
@@ -660,9 +660,9 @@ do k = 1, size(graph%curve)
 
 
 !----------------------------------------------------------------------------
-! Case: data_source is from lattice, or beam_tracking
+! Case: data_source is from lattice, or beam
 
-  case ('lattice', 'beam_tracking')
+  case ('lattice', 'beam')
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
       i_min = 1
@@ -974,7 +974,7 @@ do ii = 1, size(curve%x_line)
   select case (curve%data_source)
   case ('lattice')   
     call twiss_and_track_at_s (lat, s_now, ele, orb, here)
-  case ('beam_tracking')
+  case ('beam')
     call find_nearest_bunch_params (tao_lat, s_now, bunch_params)
     call ele_at_s (lat, s_now, ix_ele)
     ele = lat%ele(ix_ele)

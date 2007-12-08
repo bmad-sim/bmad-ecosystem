@@ -52,6 +52,7 @@ type (ele_struct), pointer :: ele
 type (coord_struct), target :: orb
 type (ele_struct), target :: ele3
 type (bunch_params_struct) bunch_params
+type (bunch_params_struct), pointer :: bunch_p
 
 type show_lat_column_struct
   character(80) name
@@ -78,18 +79,19 @@ character(200) stuff2
 character(40) ele_name, name, sub_name
 character(60) nam
 
-character(16) :: show_what, show_names(19) = (/ &
+character(16) :: show_what, show_names(21) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    '-write      ', 'hom         ', 'opt_vars    ', 'universe    ', 'taylor      ', &
-   'beam        ', 'e2          ', 'graph       ', 'curve       ' /)
+   'beam        ', 'e2          ', 'graph       ', 'curve       ', 'particle    ', &
+   'orbit       ' /)
 
 character(200), allocatable, save :: lines(:)
 character(200) line, line1, line2, line3
 character(9) angle
 
 integer :: data_number, ix_plane, ix_class, n_live, n_tot
-integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie
+integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2
 integer num_locations, ix_ele
 integer, allocatable, save :: ix_eles(:)
@@ -150,6 +152,21 @@ call tao_cmd_split (stuff, 2, word, .false., err)
 
 show_what = show_names(ix)
 select case (show_what)
+
+!----------------------------------------------------------------------
+! alias
+
+case ('alias')
+
+  call re_allocate (lines, len(lines(1)), tao_com%n_alias+10)
+  lines(1) = 'Aliases:'
+  nl = 1
+  do i = 1, tao_com%n_alias
+    nl=nl+1; lines(nl) = trim(tao_com%alias(i)%name) // ' = "' // &
+                                    trim(tao_com%alias(i)%string) // '"'
+  enddo
+  
+  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! beam
@@ -219,15 +236,16 @@ case ('beam')
     call tao_to_int (word(1), ix_ele, err)
     if (err) return
     n = s%global%bunch_to_plot
+    bunch_p => u%model%bunch_params(ix_ele)
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
-    nl=nl+1; write (lines(nl), rmt) '  Centroid:', u%model%bunch_params(ix_ele)%centroid%vec
-    nl=nl+1; write (lines(nl), rmt) '  RMS:     ', sqrt(u%model%bunch_params(ix_ele)%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
+    nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
+    nl=nl+1; write (lines(nl), rmt) '  RMS:     ', sqrt(bunch_p%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
     nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
-    nl=nl+1; write (lines(nl), rmt) '  a:       ', u%model%bunch_params(ix_ele)%a%norm_emitt, u%model%bunch_params(ix_ele)%a%beta
-    nl=nl+1; write (lines(nl), rmt) '  b:       ', u%model%bunch_params(ix_ele)%b%norm_emitt, u%model%bunch_params(ix_ele)%b%beta
-    nl=nl+1; write (lines(nl), rmt) '  x:       ', u%model%bunch_params(ix_ele)%x%norm_emitt, u%model%bunch_params(ix_ele)%x%beta
-    nl=nl+1; write (lines(nl), rmt) '  y:       ', u%model%bunch_params(ix_ele)%y%norm_emitt, u%model%bunch_params(ix_ele)%y%beta
-    nl=nl+1; write (lines(nl), rmt) '  z:       ', u%model%bunch_params(ix_ele)%z%norm_emitt, u%model%bunch_params(ix_ele)%z%beta
+    nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_p%a%norm_emitt, bunch_p%a%beta
+    nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_p%b%norm_emitt, bunch_p%b%beta
+    nl=nl+1; write (lines(nl), rmt) '  x:       ', bunch_p%x%norm_emitt, bunch_p%x%beta
+    nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_p%y%norm_emitt, bunch_p%y%beta
+    nl=nl+1; write (lines(nl), rmt) '  z:       ', bunch_p%z%norm_emitt, bunch_p%z%beta
 
     beam => u%ele(ix_ele)%beam
     if (allocated(beam%bunch)) then
@@ -254,78 +272,6 @@ case ('beam')
   
   endif
 
-  call out_io (s_blank$, r_name, lines(1:nl))
-
-!----------------------------------------------------------------------
-! optimized_vars
-
-case ('opt_vars')
-
-  call tao_var_write (' ')
-
-!----------------------------------------------------------------------
-! hom
-
-case ('hom')
-
-  nl=nl+1; lines(nl) = &
-        '       #        Freq         R/Q           Q   m  Polarization_Angle'
-  do i = 1, size(lat%ele)
-    ele => lat%ele(i)
-    if (ele%key /= lcavity$) cycle
-    if (ele%control_type == multipass_slave$) cycle
-    nl=nl+1; write (lines(nl), '(a, i6)') ele%name, i
-    do j = 1, size(ele%wake%lr)
-      lr => ele%wake%lr(j)
-      angle = '-'
-      if (lr%polarized) write (angle, '(f9.4)') lr%angle
-      nl=nl+1; write (lines(nl), '(i8, 3es12.4, i4, a)') j, &
-                  lr%freq, lr%R_over_Q, lr%Q, lr%m, angle
-    enddo
-    nl=nl+1; lines(nl) = ' '
-  enddo
-  nl=nl+1; lines(nl) = '       #        Freq         R/Q           Q   m  Polarization_Angle'
-
-  call out_io (s_blank$, r_name, lines(1:nl))
-
-!----------------------------------------------------------------------
-! write
-
-case ('-write')
-
-  iu = lunget()
-  file_name = s%global%write_file
-  ix = index(file_name, '*')
-  if (ix /= 0) then
-    n_write_file = n_write_file + 1
-    write (file_name, '(a, i3.3, a)') file_name(1:ix-1), n_write_file, trim(file_name(ix+1:))
-  endif
-
-  open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 160)
-  call output_direct (iu)  ! tell out_io to write to a file
-
-  call out_io (s_blank$, r_name, ' ', 'Tao> show ' // stuff, ' ')
-  call tao_show_cmd (word(1), word(2))  ! recursive
-
-  call output_direct (0)  ! reset to not write to a file
-  close (iu)
-  call out_io (s_blank$, r_name, 'Written to file: ' // file_name)
-
-  return
-
-!----------------------------------------------------------------------
-! alias
-
-case ('alias')
-
-  call re_allocate (lines, len(lines(1)), tao_com%n_alias+10)
-  lines(1) = 'Aliases:'
-  nl = 1
-  do i = 1, tao_com%n_alias
-    nl=nl+1; lines(nl) = trim(tao_com%alias(i)%name) // ' = "' // &
-                                    trim(tao_com%alias(i)%string) // '"'
-  enddo
-  
   call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
@@ -641,6 +587,31 @@ case ('global')
   call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
+! hom
+
+case ('hom')
+
+  nl=nl+1; lines(nl) = &
+        '       #        Freq         R/Q           Q   m  Polarization_Angle'
+  do i = 1, size(lat%ele)
+    ele => lat%ele(i)
+    if (ele%key /= lcavity$) cycle
+    if (ele%control_type == multipass_slave$) cycle
+    nl=nl+1; write (lines(nl), '(a, i6)') ele%name, i
+    do j = 1, size(ele%wake%lr)
+      lr => ele%wake%lr(j)
+      angle = '-'
+      if (lr%polarized) write (angle, '(f9.4)') lr%angle
+      nl=nl+1; write (lines(nl), '(i8, 3es12.4, i4, a)') j, &
+                  lr%freq, lr%R_over_Q, lr%Q, lr%m, angle
+    enddo
+    nl=nl+1; lines(nl) = ' '
+  enddo
+  nl=nl+1; lines(nl) = '       #        Freq         R/Q           Q   m  Polarization_Angle'
+
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+!----------------------------------------------------------------------
 ! lattice
 
 case ('lattice')
@@ -844,8 +815,12 @@ case ('lattice')
         orbit_common => orb
         call tao_evaluate_expression (column(i)%name, value, &
                                              .false., err, tao_ele_value_routine)
-        if (err) return
-        write (line(ix:), column(i)%format, iostat = ios) value(1)
+        if (err) then
+          j = ix + column(i)%field_width - 5
+          line(j:) = '-----'
+        else
+          write (line(ix:), column(i)%format, iostat = ios) value(1)
+        endif
       end select
 
       if (ios /= 0) then
@@ -915,11 +890,61 @@ case ('optimizer')
   call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
+! optimized_vars
+
+case ('opt_vars')
+
+  call tao_var_write (' ')
+
+!----------------------------------------------------------------------
+! particle
+
+case ('orbit')
+
+  read (word(1), *, iostat = ios) ix
+  nl=nl+1; write (lines(nl), imt) '  Orbit at Element:', ix
+  do i = 1, 6
+    nl=nl+1; write (lines(nl), rmt) '     ', u%model%orb(ix)%vec(i)
+  enddo
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+
+!----------------------------------------------------------------------
+! particle
+
+case ('particle')
+
+  nb = s%global%bunch_to_plot
+
+  if (word(1) == 'lost') then
+    bunch => u%ele(lat%n_ele_track)%beam%bunch(nb)
+    nl=nl+1; lines(nl) = 'Particles lost at:'
+    nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
+    do i = 1, size(bunch%particle)
+      if (bunch%particle(i)%ix_lost == not_lost$) cycle
+      if (nl == size(lines)) call re_allocate (lines, len(lines(1)), nl+100)
+      ie = bunch%particle(i)%ix_lost
+      nl=nl+1; write (lines(nl), '(i6, i7, 2x, a)') i, ie, lat%ele(ie)%name
+    enddo
+    call out_io (s_blank$, r_name, lines(1:nl))
+    return
+  endif
+
+  bunch => u%ele(0)%beam%bunch(nb)
+  read (word(1), *, iostat = ios) ix
+
+  nl=nl+1; write (lines(nl), imt) '  Starting Coords for Particle: ', ix
+  do i = 1, 6
+    nl=nl+1; write (lines(nl), rmt) '     ', bunch%particle(ix)%r%vec(i)
+  enddo
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+!----------------------------------------------------------------------
 ! plots
 
 case ('plot', 'graph', 'curve')
 
-! word(1) is blank => print overall info
+  ! word(1) is blank => print overall info
 
   if (word(1) == ' ') then
 
@@ -1432,6 +1457,31 @@ case ('variable')
 
 
 !----------------------------------------------------------------------
+! write
+
+case ('-write')
+
+  iu = lunget()
+  file_name = s%global%write_file
+  ix = index(file_name, '*')
+  if (ix /= 0) then
+    n_write_file = n_write_file + 1
+    write (file_name, '(a, i3.3, a)') file_name(1:ix-1), n_write_file, trim(file_name(ix+1:))
+  endif
+
+  open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 160)
+  call output_direct (iu)  ! tell out_io to write to a file
+
+  call out_io (s_blank$, r_name, ' ', 'Tao> show ' // stuff, ' ')
+  call tao_show_cmd (word(1), word(2))  ! recursive
+
+  call output_direct (0)  ! reset to not write to a file
+  close (iu)
+  call out_io (s_blank$, r_name, 'Written to file: ' // file_name)
+
+  return
+
+!----------------------------------------------------------------------
 
 case default
 
@@ -1523,25 +1573,13 @@ case ("ORBIT_Z")
   value(1) = orbit_common%vec(5)
 case ("ORBIT_PZ")
   value(1) = orbit_common%vec(6)
-case default
-  ! value defaults to zero if attribute for this element does not exist.
-  ! For example: voltage for a quadrupole.
-  value = 0
-  call pointer_to_attribute (ele_common, attribute, .true., real_ptr, err_flag, .false.)
 
-  ! Check that the attribute is not mis-spelled (as opposed 
-  ! to does not exist for this class of element)
-  if (err_flag) then
-    ele%key = overlay$
-    i = attribute_index(ele, attribute) 
-    if (i < 1 .or. i > n_attrib_maxx) then
-      call out_io (s_error$, r_name, 'BAD ATTRIBUTE: ' // str)
-    else  ! else attribute exists...
-      err_flag = .false.
-    endif
-  else
-    value(1) = real_ptr
-  endif
+! Must be an element attribute
+
+case default
+  value = 0  ! Default
+  call pointer_to_attribute (ele_common, attribute, .true., real_ptr, err_flag, .false.)
+  if (.not. err_flag) value(1) = real_ptr
 
 end select
 

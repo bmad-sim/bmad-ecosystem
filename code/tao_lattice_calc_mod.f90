@@ -332,7 +332,7 @@ if (.not. u%connect%connected) then
     if (u%calc_beam_emittance) then
       call radiation_integrals (lat, tao_lat%orb, modes)
       if (extract_at_ix_ele .ne. -1) then
-        f = lat%ele(extract_at_ix_ele)%value(E_TOT$) * &
+        f = lat%ele(extract_at_ix_ele)%value(E_tot$) * &
                     (1+tao_lat%orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
         beam_init%a_norm_emitt  = modes%a%emittance * f
         beam_init%b_norm_emitt  = modes%b%emittance * f
@@ -342,6 +342,10 @@ if (.not. u%connect%connected) then
     if (extract_at_ix_ele .ne. -1) then
       beam_init%center  = tao_lat%lat%beam_start%vec
       ! other beam_init parameters will be as in tao.init, or as above
+      if (beam_init%a_norm_emitt == 0 .and. beam_init%b_norm_emitt == 0) then
+        call out_io (s_abort$, r_name, 'BOTH BEAM_INIT%A_NORM_EMITT AND %B_NORM_EMITT NOT SET!')
+        call err_exit
+      endif
       call init_beam_distribution (lat%ele(extract_at_ix_ele), &
                                beam_init, s%u(i_uni_to)%connect%injecting_beam)
     endif
@@ -471,10 +475,10 @@ if (.not. u%connect%connected) then
   ! no macroparticle tracking in lattices
   if (lat%param%lattice_type == circular_lattice$ ) then
     call tao_single_track (uni, tao_lat, calc_ok) 
-    if (u%macro_beam%calc_emittance) then
+    if (u%calc_beam_emittance) then
       call radiation_integrals (lat, tao_lat%orb, modes, u%ix_rad_int_cache)
       if (extract_at_ix_ele .ne. -1) then
-        f = lat%ele(extract_at_ix_ele)%value(E_TOT$) * &
+        f = lat%ele(extract_at_ix_ele)%value(E_tot$) * &
                     (1+tao_lat%orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
         macro_init%a%norm_emit  = modes%a%emittance * f
         macro_init%b%norm_emit  = modes%b%emittance * f

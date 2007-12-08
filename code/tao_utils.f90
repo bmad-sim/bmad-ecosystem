@@ -841,15 +841,6 @@ endif
 
 err = .true.
 
-! Check for data
-
-if (all(s%u(:)%n_data_used == 0)) then
-  if (print_error) call out_io (s_error$, r_name, &
-                        "NO DATA HAVE BEEN DEFINED IN THE INPUT FILES!")
-  return
-endif
-
-
 ! Select meas, ref, etc.
 
 ix = index(data_name, '|')

@@ -485,7 +485,6 @@ A particle beam is initialized in the \vn{tao_beam_init} namelist block.
 The syntax is as follows:
 \index{tao_beam_init}    
 \index{ix_universe}
-\index{calc_emittance}
 \index{beam_init}
 \index{beam_init!a_norm_emitt}
 \index{beam_init!b_norm_emitt}
@@ -507,7 +506,6 @@ The syntax is as follows:
 \begin{example}
   &tao_beam_init
     ix_universe             = <integer>
-    calc_emittance          = <logical>      ! Calculate emittance for rings.
     beam0_file              = <string>       ! File used in place of beam_init.
     beam_all_file           = <string>       ! Data file used in place of beam tracking.
     save_beam_at(:)         = <element list> ! List of 
@@ -539,6 +537,11 @@ The syntax is as follows:
 the \vn{beam_init} parameters refer to. The charge per particle is set to
 $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield
 effects.
+
+\vn{%a_norm_emitt} and \vn{%b_norm_emitt} are the normalized emittances used to
+construct the beam's particle distribution. If not set then the emittances set in
+the lattice file are used. These emittances are also used as the initial emittance
+in a linear lattice for the emittance calculation using the radiation integrals.
 
 \vn{beam0_file} specifies a beam data file (which can be
 created with the \vn{output beam -at <ele_name>} command) which contains a beam's
@@ -578,10 +581,7 @@ When there is no \vn{beam0_file} the twiss parameters at the beginning
 of the lattice are used in initializing the beam distribution.  For
 circular lattices the twiss parameters will be found from the closed
 orbit, and the emittance will be calculated using the \bmad routine
-\vn{radiation_integrals} unless \vn{calc_emittance = F} in which case
-the emittance specified in the initialization will be used. The state
-of \vn{calc_emittance} has no effect on Linear lattices where the
-initial emittance must be specified.
+\vn{radiation_integrals}.
 
 If spin tracking is desired then \vn{beam_init%init_spin} must be set
 to true.  If it is desired to use the exact same distribution of
@@ -631,7 +631,6 @@ A macroparticle beam is initialized in the \vn{tao_macro_init} namelist block.
 The syntax is as follows:
 \index{tao_macro_init}
 \index{ix_universe}
-\index{calc_emittance}
 \index{macro_init}
 \index{macro_init!x!norm_emit}
 \index{macro_init!y!norm_emit}
@@ -648,7 +647,6 @@ The syntax is as follows:
 \begin{example}
   &tao_macro_init
     ix_universe             = <Integer>   ! Universe index.
-    calc_emittance          = <logical>   ! calculate emittance for rings
     macro_init%x%norm_emit  = <number> 
     macro_init%y%norm_emit  = <number> 
     beam_init%dPz_dZ        = <number>    ! Energy-Z correlation
@@ -670,11 +668,7 @@ on what the \vn{macro_init} parameters refer to.
 The twiss parameters at the beginning of the lattice are used in
 initiating the beam distribution.  For circular lattices the twiss
 parameters will be found from the closed orbit, and the emittance will
-be calculated using the \bmad routine \vn{radiation_integrals} unless
-\vn{calc_emittance = F} in which case the emittance specified in the
-initialization will be used. The state of \vn{calc_emittance} has no
-effect on Linear lattices where the initial emittance must be
-specified.
+be calculated using the \bmad routine \vn{radiation_integrals}.
 
 The default is single particle tracking. To turn on macroparticle
 tracking the \vn{global%track_type} perameter must be set to 'macro.'
@@ -900,7 +894,7 @@ Data is initialized using the \vn{tao_d2_data} namelist block whose format is
     universe     = <integer>      ! Universe variables belong in.
                                         !   0 => all universes (default).
     default_merit_type = "<merit_type>" ! Sets how the merit is calculated.
-    default_data_noise  = <number>       ! RMS noise on data (only some data types)
+    default_data_noise = <number>       ! RMS noise on data (only some data types)
     n_d1_data          = <integer>      ! Number associated d1_data arrays.
   /
 \end{example}
@@ -982,7 +976,7 @@ there must be a \vn{tao_d1_data} namelist which has the form:
     data(j)%data_noise  = <number"       ! RMS data noise
     data(j)%scale_error = <number"       ! RMS scale erorr
     data(j)%good_user   = Logical        ! Use for optimization and plotting?
-    data(j)%data_source = "<source>"     ! "lattice", or "beam_tracking"
+    data(j)%data_source = "<source>"     ! "lattice", or "beam"
     data(j)%ix_bunch    = <integer>      ! Bunch index. Default = 0 (all bunches).
   /
 \end{example}
@@ -1053,14 +1047,14 @@ in mind when optimizing since it will affect the merit function.
 
 Certain data types like the \vn{emittance} along a Linac can be
 calculated from the lattice or can be calculated from the distribution
-of particles when \vn{"beam_tracking"} is performed. Which is
+of particles when \vn{"beam"} is performed. Which is
 calculation is performed is determined by the \vn{data(:)%data_source}
 component. Possibilities are:
 \begin{example}
-  "lattice" (Default)  !  Calculation using the lattice layout
-  "beam_tracking"      ! Calculation using the beam distribution
+  "lattice"   ! (Default) Calculation using the lattice layout.
+  "beam"      ! Calculation using the beam distribution.
 \end{example}
-\vn{"lattice"} is the default. With \vn{"beam_tracking"}, the particular
+\vn{"lattice"} is the default. With \vn{"beam"}, the particular
 bunch that the data is extracted from can be specified via \vn{data(:)%ix_bunch}.
 The default is \vn{0} which combines all the bunches for the datum calculation.
 
@@ -1527,7 +1521,7 @@ the source of the data points. \vn{curve%data_source} must be one of:
   "data_array"        ! A d1_data array is the source of the curve points.
   "var_array"         ! A v1_var array is the source of the curve points.
   "lattice" (Default) ! The curve points are computed directly from the lattice.
-  "beam_tracking"     ! The curve points are computed tracking a beam of particles.
+  "beam"              ! The curve points are computed tracking a beam of particles.
   "multi_turn_orbit"  ! Computation is from multi-turn tracking. 
 \end{example}
 The default for \vn{curve%data_source} is \vn{"lattice"}. With
@@ -1539,16 +1533,16 @@ named by \vn{curve%data_type} must be set up in an initialization
 file. Similarly, \vn{var_array} indicates that the values of the curve
 points come from a \vn{v1_var} array structure. \vn{lattice} means
 that the curve data points are calculated from the lattice without
-regard to any data structures. \vn{beam_tracking} is used when
+regard to any data structures. \vn{beam} is used when
 tracking beams of particles or macroparticles. In this case the curve
-points are calculated from the tracking. With \vn{beam_tracking}, the particular
+points are calculated from the tracking. With \vn{beam}, the particular
 bunch that the data is extracted from can be specified via \vn{curve%ix_bunch}.
 The default is \vn{0} which combines all the bunches for the calculation.
 
 Example: With
 \vn{curve%data_type} set to \vn{beta.x}, the setting of
 \vn{curve%data_source} to \vn{lattice} gives the beta as calculated
-from the lattice and \vn{beam_tracking} gives the beta as calculated
+from the lattice and \vn{beam} gives the beta as calculated
 from the shape of the beam.
 
 For a curve with the \vn{curve%data_source} set to \vn{"data_array"} the
@@ -1870,7 +1864,7 @@ Example Phase Space template:
     graph%y%major_div = 4
     graph%n_curve = 1
     curve(1)%data_type = 'z-p_z' 
-    curve(1)%data_source = 'beam_tracking'
+    curve(1)%data_source = 'beam'
     curve(1)%ele_ref_name = "BEGINNING"
   /
 \end{example}
@@ -1898,11 +1892,11 @@ the \vn{set curve ele_ref_name} or \vn{set curve ix_ele_ref} commands.
 If \vn{graph%type} is \vn{"phase_space"} then \vn{curve%data_source} 
 must be either:
 \begin{example}
-  "beam_tracking"
+  "beam"
   "multi_turn_orbit"
   "twiss"
 \end{example} 
-\vn{"beam_tracking"} indicates that the points of the phase space plot
+\vn{"beam"} indicates that the points of the phase space plot
 will be obtained correspond to the positions of the particles within a
 tracked beam. \vn{multi_turn_orbit"} is used for rings where a single
 particle is tracked multiple turns and the position of this particle

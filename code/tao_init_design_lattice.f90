@@ -105,8 +105,6 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
     select case (design_lattice(i)%parser)
     case ('bmad')
       call bmad_parser (design_lattice(i)%file, u%design%lat)
-      u%design%modes%a%emittance = u%design%lat%a%emit
-      u%design%modes%b%emittance = u%design%lat%b%emit
     case ('xsif')
       call xsif_parser (design_lattice(i)%file, u%design%lat)
     case ('aml')
@@ -120,6 +118,9 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
                                                 design_lattice(i)%parser)
       call err_exit
     end select
+
+    u%design%modes%a%emittance = u%design%lat%a%emit
+    u%design%modes%b%emittance = u%design%lat%b%emit
 
     ! Initialize calibration array
     ! This must be performed or tao_read_bpm and tao_do_wire_scan will crash.
