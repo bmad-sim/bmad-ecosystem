@@ -261,7 +261,7 @@ if (n_sr_table > 0) then
 !-----------------------------------
 ! add up all wakes from front of bunch to follower
   do i = 1, num_in_front
-    if (bunch%particle(bunch%particle(i)%ix_z)%ix_lost .eq. not_lost$) &
+    if (bunch%particle(bunch%particle(i)%ix_z)%ix_lost == not_lost$) &
       call sr_table_add_long_kick (ele, bunch%particle(bunch%particle(i)%ix_z)%r, &
                bunch%particle(bunch%particle(i)%ix_z)%charge, &
                bunch%particle(ix_follower)%r)
@@ -647,7 +647,7 @@ de_bunch = .false.
 de_particle = .false.
 
 if (allocated(beam%bunch)) then
-  if (n_bunch .eq. 0) then
+  if (n_bunch == 0) then
     de_bunch = .true.
     de_particle = .true.
   else
@@ -667,7 +667,7 @@ if (allocated(beam%bunch)) then
 
 endif
 
-if (n_bunch .eq. 0) return
+if (n_bunch == 0) return
   
 ! Allocate
 
@@ -1067,7 +1067,7 @@ end subroutine calc_bunch_params_slice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_params (bunch, ele, params, use_canonical_coords)
+! Subroutine calc_bunch_params (bunch, ele, params)
 !
 ! Finds all bunch parameters defined in bunch_params_struct, both normal-mode
 ! and projected. Projected parameters are found purely from the geometrical
@@ -1082,10 +1082,6 @@ end subroutine calc_bunch_params_slice
 ! Input:
 !   bunch     -- Bunch_struct
 !   ele       -- ele_struct: element to find parameters at
-!   use_canonical_coords 
-!             -- Logical, optional: If False then the calculations
-!                  use (x, x', y, y', z, p_z) coordinates.
-!                  Default is True   
 !
 ! Output     
 !   params -- bunch_params_struct:
@@ -1105,7 +1101,7 @@ end subroutine calc_bunch_params_slice
 !     %n_particle ! # particles not lost
 !-
 
-subroutine calc_bunch_params (bunch, ele, params, use_canonical_coords)
+subroutine calc_bunch_params (bunch, ele, params)
 
 implicit none
 
@@ -1130,7 +1126,6 @@ complex(rp) :: n(6,6), e(6,6), q(6,6)
 
 integer i, j
 
-logical, optional :: use_canonical_coords
 logical err
 
 character(18) :: r_name = "calc_bunch_params"
@@ -1165,9 +1160,6 @@ avg_energy = avg_energy * ele%value(E_TOT$) / params%n_live_particle
 
 ! Convert to geometric coords and find the sigma matrix
 
-if (.not. logic_option(.true., use_canonical_coords)) &
-                    call switch_to_geometric (bunch%particle, set$)
-    
 call find_bunch_sigma_matrix (bunch%particle, params%centroid%vec, params%sigma, sigma_s)
 
 ! Projected Parameters
@@ -1181,10 +1173,8 @@ call projected_twiss_calc (params%y, params%sigma(s33$), params%sigma(s44$), &
 call projected_twiss_calc (params%z, params%sigma(s55$), params%sigma(s66$), &
                       params%sigma(s56$), params%sigma(s56$), params%sigma(s66$), .true.)
      
-! Normal-Mode Parameters
-  
-! Use Andy Wolski's eigemode method to find normal-mode beam parameters
-
+! Normal-Mode Parameters.
+! Use Andy Wolski's eigemode method to find normal-mode beam parameters.
 ! find eigensystem of sigma.S 
 
 sigma_s_save = sigma_s
@@ -1192,13 +1182,14 @@ call mat_eigen (sigma_s, d_r, d_i, e_r, e_i, err)
 if (err) goto 999
 
 ! The eigen-values of Sigma.S are the normal-mode emittances (eq. 32)
+
 params%a%norm_emitt = d_i(1) * (avg_energy/m_electron)
 params%b%norm_emitt = d_i(3) * (avg_energy/m_electron)
 params%c%norm_emitt = d_i(5) * (avg_energy/m_electron)
 
 ! Now find normal-mode sigma matrix and twiss parameters
-
 ! N = E.Q from eq. 44
+
 e(1,:) = e_r(1,:) + i_imaginary * e_i(1,:)
 e(2,:) = e_r(2,:) + i_imaginary * e_i(2,:)
 e(3,:) = e_r(3,:) + i_imaginary * e_i(3,:)
@@ -1207,8 +1198,9 @@ e(5,:) = e_r(5,:) + i_imaginary * e_i(5,:)
 e(6,:) = e_r(6,:) + i_imaginary * e_i(6,:)
 
 ! Eq. 14
-call normalize_e (e)
 ! mat_eigen finds row vectors, so switch to column vectors
+
+call normalize_e (e)
 e = transpose(e)
 
 q = 0.0
@@ -1231,6 +1223,7 @@ n = matmul(e,q)
 n_real = real(n)
 
 ! Twiss parameters come from equations 59, 63 and 64
+
 params%a%beta = n_real(1,1)**2 + n_real(1,2)**2
 params%b%beta = n_real(3,3)**2 + n_real(3,4)**2
 params%c%beta = n_real(5,5)**2 + n_real(5,6)**2
@@ -1244,6 +1237,7 @@ params%b%gamma = n_real(4,3)**2 + n_real(4,4)**2
 params%c%gamma = n_real(6,5)**2 + n_real(6,6)**2
 
 ! Dispersion comes from equations 69 and 70
+
 beta_66_iii   = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
 
 params%a%eta  = n_real(1,5)*n_real(6,5) + n_real(1,6)*n_real(6,6)
@@ -1261,9 +1255,6 @@ if (bmad_com%spin_tracking_on) call calc_spin_params ()
   
 ! convert back to cannonical coords
 
-if (.not. logic_option(.true., use_canonical_coords)) &
-                  call switch_to_geometric (bunch%particle, unset$)
-  
 contains
 !----------------------------------------------------------------------
 subroutine zero_plane (param)
@@ -1283,29 +1274,6 @@ end subroutine zero_plane
   
 !----------------------------------------------------------------------
 ! contains
-! This assumes no vector potential or curvature function
-subroutine switch_to_geometric (particle, set)
-
-implicit none
-
-type (particle_struct) particle(:)
-
-integer i
-
-logical set
-
-if (set) then
-    particle(:)%r%vec(2) = particle(:)%r%vec(2) / (1 + particle(:)%r%vec(6))
-    particle(:)%r%vec(4) = particle(:)%r%vec(4) / (1 + particle(:)%r%vec(6))
-else
-    particle(:)%r%vec(2) = particle(:)%r%vec(2) * (1 + particle(:)%r%vec(6))
-    particle(:)%r%vec(4) = particle(:)%r%vec(4) * (1 + particle(:)%r%vec(6))
-endif
-
-end subroutine switch_to_geometric  
-
-!----------------------------------------------------------------------
-! contains
 
 subroutine projected_twiss_calc (param, exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d, is_z)
 
@@ -1321,15 +1289,15 @@ logical is_z
 param%eta   = exp_x_d / params%sigma(s66$)
 param%etap  = exp_px_d / params%sigma(s66$)
 
-if (is_z) then
+!! if (is_z) then
   x2   = exp_x2   
   x_px = exp_x_px 
   px2  = exp_px2  
-else
-  x2   = exp_x2   - params%sigma(s66$) * param%eta**2 
-  x_px = exp_x_px - params%sigma(s66$) * param%eta * param%etap
-  px2  = exp_px2  - params%sigma(s66$) * param%etap**2
-endif
+!! else
+!!   x2   = exp_x2   - params%sigma(s66$) * param%eta**2 
+!!   x_px = exp_x_px - params%sigma(s66$) * param%eta * param%etap
+!!   px2  = exp_px2  - params%sigma(s66$) * param%etap**2
+!! endif
 
 emitt = sqrt(x2*px2 - x_px**2)
 
@@ -1442,9 +1410,9 @@ end subroutine calc_bunch_params
 !   particle(:) -- Particle_struct: Array of particles.
 !
 ! Output:
-!   sigma(21)   -- Real(rp): Sigma matrix elements.
-!   ave(6)      -- Real(rp): Bunch Centroid.
-!   sigma_S     -- Sigma.S matrix for Wolski normal-modes
+!   sigma(21)    -- Real(rp): Sigma matrix elements.
+!   ave(6)       -- Real(rp): Bunch Centroid.
+!   sigma_S(6,6) -- Sigma x S matrix for Wolski normal-modes
 !-
 
 subroutine find_bunch_sigma_matrix (particle, avg, sigma, sigma_s)
@@ -1456,14 +1424,14 @@ real(rp) sigma(21)
 real(rp) avg(6)
 real(rp) sigma_s(6,6), s(6,6)
 
-integer i, n
+integer i, n_live
 
 !
 
-n = count(particle(:)%ix_lost == not_lost$)
+n_live = count(particle(:)%ix_lost == not_lost$)
 
 do i = 1, 6
-  avg(i) = sum(particle(:)%r%vec(i), mask = (particle(:)%ix_lost == not_lost$)) / n
+  avg(i) = sum(particle(:)%r%vec(i), mask = (particle(:)%ix_lost == not_lost$)) / n_live
 enddo
 
 sigma(s11$) = exp_calc (particle, 1, 1, avg)
@@ -1488,7 +1456,8 @@ sigma(s55$) = exp_calc (particle, 5, 5, avg)
 sigma(s56$) = exp_calc (particle, 5, 6, avg)
 sigma(s66$) = exp_calc (particle, 6, 6, avg)
 
-!make sigma.S matrix
+! make sigma.S matrix
+
 sigma_s(1,1) = sigma(s11$)
 sigma_s(1,2) = sigma(s12$)
 sigma_s(1,3) = sigma(s13$)
@@ -1554,9 +1523,9 @@ integer ix1, ix2
                                     
 this_sigma = sum((particle(:)%r%vec(ix1) - avg(ix1)) * &
                                (particle(:)%r%vec(ix2) - avg(ix2)), &
-                               mask = (particle%ix_lost .eq. not_lost$))
+                               mask = (particle%ix_lost == not_lost$))
 
-this_sigma = this_sigma / n
+this_sigma = this_sigma / n_live
 
 end function exp_calc
 
