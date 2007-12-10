@@ -346,6 +346,13 @@ that an \vn{Ecollimator} has a elliptical aperture.
 A zero \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, or
 \vn{y2_limit} is interpreted as no aperture in the appropriate plane.
 
+To avoid numerical overflow and other errors in tracking, a particle
+will be considered to have hit an aperture in an element, even if
+there are no apertures set for that element, if its orbit exceeds 1000
+meters. Additionally, there are other situations where a particle will
+be considered lost. For example, if a particle cannotrajectory does
+not intersect the output face in a bend.
+
 For convenience, \vn{x_limit} can be used to set \vn{x1_limit} and
 \vn{x2_limit} to a common value. Similarly, \vn{y_limit} can be used
 to set \vn{y1_limit} and \vn{y2_limit}.  The \vn{aperture} attribute

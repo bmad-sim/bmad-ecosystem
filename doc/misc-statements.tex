@@ -24,6 +24,7 @@ other variables.  The variables that can be set by \vn{parameter} is
   parameter[n_part]       = <Real>          ! Number of particles in a bunch.
   parameter[ran_seed]     = <Integer>       ! Random number generator init.
   parameter[particle]     = <particle_type> ! Eg: positron, antiproton, etc.
+  parameter[aperture_limit_on] = <Logical>  ! Use aperture limits in tracking.
 \end{example}
 
 \noindent
@@ -57,6 +58,11 @@ The \vn{parameter[n_part]} is the number of particle in a bunch.
 it is used with \vn{BeamBeam} elements and is used to calculate the
 change in energy through an \vn{Lcavity}. See~\sref{s:lcav} for more
 details.
+
+\index{Aperture_limit_on}
+Aperture limits may be set for elements in the lattice
+(\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
+disable all set apertures.
 
 \index{Lattice statement}
 The \vn{lattice} name is stored by \bmad for use by a program but it does
