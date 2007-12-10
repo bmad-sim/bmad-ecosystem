@@ -96,7 +96,7 @@ do arg_list="${arg_list} ${i}"
    esac
 done
 
-if ( [ ${QUIET} -eq 1 ] && [ ! ${#} -eq 2] ) then
+if ( [ ${QUIET} -eq 1 ] && [ ! ${#} -eq 2 ] ) then
     myprint_help
 fi
 
