@@ -603,6 +603,10 @@ subroutine get_attribute (how, ele, lat, plat, &
     call get_logical ('IS_ON', ele%is_on)
     if (ios /= 0 .or. ix_word == 0) return
 
+  case (aperture_limit_on$) 
+    call get_logical ('APERTURE_LIMIT_ON', lat%param%aperture_limit_on)
+    if (ios /= 0 .or. ix_word == 0) return
+
   case (csr_calc_on$)
     call get_logical ('CSR_CALC_ON', ele%csr_calc_on)
     if (ios /= 0 .or. ix_word == 0) return

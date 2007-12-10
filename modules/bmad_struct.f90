@@ -422,6 +422,7 @@ integer, parameter :: aperture$ = 85
 integer, parameter :: x_limit$ = 86
 integer, parameter :: y_limit$ = 87
 integer, parameter :: offset_moves_aperture$ = 88
+integer, parameter :: aperture_limit_on$ = 89
 
 integer, parameter :: superimpose$    = 90
 integer, parameter :: offset$         = 91
