@@ -500,7 +500,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
     call add_all_superimpose (lat, ele, plat%ele(ixx))
   enddo
 
-  call remove_all_null_ele_elements (lat)
+  call remove_ele_from_lat (lat)  ! remove all null_ele elements.
 
 ! Go through and create the overlay, girder, and group lord elements.
 

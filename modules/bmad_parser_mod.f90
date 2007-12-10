@@ -3815,39 +3815,6 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine remove_all_null_ele_elements (lat)
-!
-! Subroutine to remove all null_ele elements.
-!
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
-subroutine remove_all_null_ele_elements (lat)
-
-  implicit none
-
-  type (lat_struct) lat
-  integer i
-
-!
-
-  i = 1
-  do
-    if (lat%ele(i)%key == null_ele$) then
-      call remove_ele_from_lat (lat, i)
-      cycle
-    endif
-    i = i + 1
-    if (i > lat%n_ele_max) return
-  enddo
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
 ! Subroutine parser_debug_print_info (debug_line)
 !
 ! Subroutine to remove all null_ele elements.
