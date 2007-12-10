@@ -1,18 +1,20 @@
 !+
 ! Subroutine remove_ele_from_lat (lat, ix_ele)
 !
-! Subroutine to remove an element from the lattice.
-! This subroutine assumes that the element has no controllers.
+! Subroutine to remove an element from the tracking part of the lattice.
+! The element to be removed must have no controllers.
+! If a controller is detected this routine will stop the program.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   lat -- Lat_struct: Lattice with element to be removed.
-!   ix_ele -- Integer: Index of element in lat%ele(:) array.
+!   lat    -- Lat_struct: Lattice with element(s) to be removed.
+!   ix_ele -- Integer, optional: Index of element in lat%ele(:) array to be removed.
+!               If not present than all ele%key = null_ele$ elements will be removed.
 !
 ! Output:
-!   lat -- Lat_struct: Lattice with element removed.
+!   lat -- Lat_struct: Lattice with element(s) removed.
 !-
 
 subroutine remove_ele_from_lat (lat, ix_ele)
@@ -23,43 +25,70 @@ subroutine remove_ele_from_lat (lat, ix_ele)
   implicit none
 
   type (lat_struct) lat
-  integer ix_ele
-  integer i, j
+  integer, optional :: ix_ele
+  integer i, j, ix, n_remove
   real(rp) length
   character(20) :: r_name = 'remove_ele_from_lat'
 
-! init
+! Mark elements to be removed
 
-  length = lat%ele(ix_ele)%value(l$)
+  if (present(ix_ele)) then
+    lat%ele(ix_ele)%ix_ele = 0
+    lat%ele(ix_ele+1:lat%n_ele_max)%ix_ele = lat%ele(ix_ele+1:lat%n_ele_max)%ix_ele - 1
+    n_remove = 1
+    
+  else
+    n_remove = 0
+    do i = 1, lat%n_ele_track
+      if (lat%ele(i)%key == null_ele$) then
+        lat%ele(i)%ix_ele = 0
+        n_remove = n_remove + 1
+        cycle
+      endif
+      lat%ele(i)%ix_ele = lat%ele(i)%ix_ele - n_remove
+    enddo
+  endif
 
 ! Rectify the lord/slave bookkeeping.
 
   do i = 1, lat%n_control_max
-    if (lat%control(i)%ix_lord == ix_ele .or. lat%control(i)%ix_slave == ix_ele) then
+
+    ix = lat%control(i)%ix_lord
+    if (lat%ele(ix)%ix_ele == 0) then
       call out_io (s_fatal$, r_name, &
-                        'ELEMENT TO BE REMOVED FROM LATTICE IS CONTROLLED:' // lat%ele(ix_ele)%name)
+                        'ELEMENT TO BE REMOVED FROM LATTICE IS CONTROLLER:' // lat%ele(ix)%name)
       call err_exit
     endif
-    if (lat%control(i)%ix_lord > ix_ele) lat%control(i)%ix_lord = lat%control(i)%ix_lord - 1
-    if (lat%control(i)%ix_slave > ix_ele) lat%control(i)%ix_slave = lat%control(i)%ix_slave - 1
+    lat%control(i)%ix_lord = lat%ele(ix)%ix_ele
+
+    ix = lat%control(i)%ix_slave
+    if (lat%ele(ix)%ix_ele == 0) then
+      call out_io (s_fatal$, r_name, &
+                        'ELEMENT TO BE REMOVED FROM LATTICE IS CONTROLLED:' // lat%ele(ix)%name)
+      call err_exit
+    endif
+    lat%control(i)%ix_slave = lat%ele(ix)%ix_ele
+
   enddo
 
-! Remove the element.
+! Remove the elements
 
-  do i = ix_ele+1, lat%n_ele_max
-    lat%ele(i-1) = lat%ele(i)
+  do i = 1, lat%n_ele_max
+    ix = lat%ele(i)%ix_ele 
+    if (ix == i .or. ix == 0) cycle
+    lat%ele(ix) = lat%ele(i)
   enddo
 
-  call init_ele (lat%ele(lat%n_ele_max))
+  do i = lat%n_ele_max-n_remove+1, lat%n_ele_max
+    call init_ele (lat%ele(i))
+  enddo
 
 ! More bookkeeping adjustment
 
-  if (ix_ele <= lat%n_ele_track) lat%n_ele_track = lat%n_ele_track - 1
-  lat%n_ele_max = lat%n_ele_max - 1
+  lat%n_ele_track = lat%n_ele_track - n_remove
+  lat%n_ele_max = lat%n_ele_max - n_remove
 
-  if (length /= 0) then
-    call s_calc(lat)
-    call lat_geometry (lat)
-  endif
+  call s_calc(lat)
+  call lat_geometry (lat)
 
 end subroutine

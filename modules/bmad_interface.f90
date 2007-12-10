@@ -174,6 +174,13 @@ interface
 end interface
 
 interface
+  subroutine combine_consecutive_elements (lat)
+    use bmad_struct, only: lat_struct
+    type (lat_struct), target :: lat
+  end subroutine
+end interface
+
+interface
   subroutine compress_lat (lat, ok)
     use bmad_struct, only: lat_struct
     implicit none
@@ -228,6 +235,15 @@ interface
     type (control_struct) contl(:)
     logical err
     logical, optional :: err_print_flag
+  end subroutine
+end interface
+
+interface
+  subroutine create_unique_ele_names (lat, key, suffix)
+    use bmad_struct, only: lat_struct
+    type (lat_struct), target :: lat
+    integer key
+    character(*) suffix
   end subroutine
 end interface
 
@@ -686,7 +702,7 @@ interface
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) lat
-    integer ix_ele
+    integer, optional :: ix_ele
   end subroutine
 end interface
 
