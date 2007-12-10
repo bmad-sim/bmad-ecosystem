@@ -1,4 +1,3 @@
-
 !+
 ! Subroutine tao_init_design_lattice (tao_design_lattice_file)
 !
@@ -25,12 +24,16 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
 
   character(*) tao_design_lattice_file
   character(200) complete_file_name, file_name
+  character(40) unique_name_suffix, suffix
   character(40) :: r_name = 'tao_init_design_lattice'
-  integer i, j, iu, ios, version, taylor_order, ix
 
-  logical custom_init, override
+  integer i, j, iu, ios, version, taylor_order, ix, key
 
-  namelist / tao_design_lattice / design_lattice, taylor_order
+  logical custom_init, override, combine_consecutive_elements_of_like_name
+  logical err
+
+  namelist / tao_design_lattice / design_lattice, taylor_order, &
+       combine_consecutive_elements_of_like_name, unique_name_suffix
 
 !
 
@@ -45,6 +48,8 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   design_lattice%parser = ''
 
   taylor_order = 0
+  combine_consecutive_elements_of_like_name = .false.
+  unique_name_suffix = ''
 
   read (iu, nml = tao_design_lattice, iostat = ios)
   if (ios /= 0) then
@@ -57,6 +62,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   close (iu)
 
   if (taylor_order /= 0) call set_taylor_order (taylor_order)
+  tao_com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
 
   ! are we using a custom initialization?
 
@@ -121,6 +127,13 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
 
     u%design%modes%a%emittance = u%design%lat%a%emit
     u%design%modes%b%emittance = u%design%lat%b%emit
+
+    if (combine_consecutive_elements_of_like_name) call combine_consecutive_elements(u%design%lat)
+    if (unique_name_suffix /= '') then
+      call tao_string_to_element_id (unique_name_suffix, key, suffix, err, .true.)
+      if (err) call err_exit
+      call create_unique_ele_names (u%design%lat, key, suffix)
+    endif
 
     ! Initialize calibration array
     ! This must be performed or tao_read_bpm and tao_do_wire_scan will crash.

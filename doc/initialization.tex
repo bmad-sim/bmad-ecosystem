@@ -204,11 +204,42 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
 \begin{example}
   &tao_design_lattice
     taylor_order = <num>
+    combine_consecutive_elements_of_like_name = <logical>
+    unique_name_suffix = <string>
     design_lattice(i)%file = "<parser>::<lattice_file>"
   /
 \end{example}
 \vn{taylor_order} is the order of the Taylor maps. This will override
-the Taylor order set in the lattice files. \vn{i} refers to the
+the Taylor order set in the lattice files. 
+
+\vn{global%combine_consecutive_elements_of_like_name} takes a lattice
+and combines all pairs of consecutive elements that have the same name
+and attributes. Why is this useful? Some programs, not based on \bmad,
+cannot generate the Twiss parameters inside the element. If the Twiss
+parameters at the center of an element is desired, a lattice where the
+element has been split into two identical pieces is needed. This,
+however, makes tasks like setting up lattice optimization
+cumbersome. Note: The recombination of like elements happens when the
+lattice is read in during initialization.
+
+\vn{unique_name_suffix} is used to append a unique character string to
+element names that are not unique. \vn{unique_name_suffix} uses
+\vn{class:name} format (\sref{s:class:name}). The class is used to
+restrict which elements can have their names changed. The \vn{name}
+part is uses as a suffix. This suffix must have a single \vn{``#''}
+character.  When this suffix is applied to an element's name, a unique
+integer is inserted in place of the \vn{``#''}. For example, if
+\vn{unique_name_suffix} is \vn{"quad:_#"}, and if the following
+quadrupoles are in the lattice:
+\begin{example}
+				QA    QB    QX    QA    QB     QB
+\end{example}
+then after initialization, the names will be:
+\begin{example}
+				QA_1  QB_1  QX    QA_2  QB_2   QB_3
+\end{example}
+
+The \vn{i} in \vn{design_lattice(i)} refers to the
 universe index, \vn{<lattice_file>} is the name of an input lattice
 file and \vn{<parser>} is the name of the parser to use. Possible
 choices for \vn{<parser>} are:
@@ -335,8 +366,6 @@ conversion from a uniform distribution to a Gaussian distribution.
 \vn{'exact'} is an exact conversion and \vn{'limited'} has a cut-off
 so that no particles are generated beyond. This cutoff is set by
 \vn{global%random_gauss_cutoff}.
-
-
 
 The \vn{bmad_com_struct} holds bmad global variables. 
 \index{radiation_damping_on}
@@ -1284,7 +1313,7 @@ the \vn{justify} variable syntax.
 The plot area is divided up into rectangular regions where plots may
 be placed (what defines a plot is discussed below).  \vn{region(i)} is
 an array of five elements that defines the i\Th region. The first
-element of this array is the name of the resion. This name may not
+element of this array is the name of the reason. This name may not
 contain a dot ``.''.  The second and third elements of the array,
 \vn{l_x1}, and \vn{l_x2}, define the location of the left and right
 edges of the region as a fraction of the plot area width starting from

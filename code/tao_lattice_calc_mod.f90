@@ -303,6 +303,7 @@ beam => u%current_beam
 beam = u%beam0
 beam_init => u%beam_init
 lat => tao_lat%lat
+lat%param%ix_lost = not_lost$
 
 all_lost_already = .false.
 
@@ -385,7 +386,10 @@ do j = 0, lat%n_ele_track
   ! compute centroid orbit
   call tao_find_beam_centroid (beam, tao_lat%orb(j), uni, j, lat%ele(j))
 
-  if (all_lost_already) exit
+  if (all_lost_already) then
+    lat%param%ix_lost = j
+    exit
+  endif
 
   ! Find lattice and beam parameters and load data
 
@@ -452,6 +456,7 @@ u => s%u(uni)
 beam => u%macro_beam%beam
 macro_init => u%macro_beam%macro_init
 lat => tao_lat%lat
+lat%param%ix_lost = not_lost$
 
 all_lost_already = .false.
 
@@ -520,7 +525,10 @@ do j = 1, lat%n_ele_track
   ! compute centroid orbit
   call tao_find_macro_beam_centroid (beam, tao_lat%orb(j), uni, j, u%macro_beam)
 
-  if (all_lost_already) exit
+  if (all_lost_already) then
+    lat%param%ix_lost = j
+    exit
+  endif
 
   ! Find lattice and beam parameters
   call tao_calc_params (u, j)
