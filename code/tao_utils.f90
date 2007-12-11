@@ -2968,8 +2968,8 @@ end subroutine
 ! Input:
 !   lat       -- Lat_struct: Lattice holding the elements.
 !   name      -- Character(*): Name in the form "class:ele_name".
-!   print_err -- Logical: If True then print an error message if 
-!                 there is a problem
+!   print_err -- Logical, optional: If True then print an error message if 
+!                 there is a problem. Default is True.
 !
 ! Output:
 !   loc(0:) -- Logical, allocatable: loc(i) set to True if 
@@ -2992,7 +2992,8 @@ character(*) name
 character(40) ele_name
 
 logical, allocatable :: loc(:)
-logical err, print_err
+logical, optional :: print_err
+logical err
 
 !
 
@@ -3033,8 +3034,8 @@ end subroutine
 !
 ! Input:
 !   str       -- Character(*): Character string to parse.
-!   print_err -- Logical: If True then print an error message if 
-!                 there is a problem
+!   print_err -- Logical, optional: If True then print an error message if 
+!                 there is a problem. Default is True.
 !
 ! Output:
 !   ix_class  -- Integer: Element class. 0 => all classes.
@@ -3046,39 +3047,43 @@ subroutine tao_string_to_element_id (str, ix_class, ele_name, err, print_err)
 
 implicit none
 
-character(*) str, ele_name
 integer ix, ix_class
-logical err, print_err
+
+character(*) str, ele_name
 character(40) :: r_name = 'tao_string_to_element_id'
 character(20) class
 
+logical, optional :: print_err
+logical err
+
 !
 
-  err = .false.
+err = .false.
 
-  ix = index(str, ':')
+ix = index(str, ':')
 
-  if (ix == 0) then
-    ix_class = 0
-    ele_name = str
-    call str_upcase (ele_name, ele_name)
-    return
-  endif
-
-  class = str(:ix-1)
-  ele_name = str(ix+1:)
+if (ix == 0) then
+  ix_class = 0
+  ele_name = str
   call str_upcase (ele_name, ele_name)
+  return
+endif
 
-  if (class == '*') then
-    ix_class = 0
-    return
-  endif
+class = str(:ix-1)
+ele_name = str(ix+1:)
+call str_upcase (ele_name, ele_name)
 
-  ix_class = key_name_to_key_index (class, .true.)
-  if (ix_class < 1) then
-    if (print_err) call out_io (s_error$, r_name, 'BAD CLASS NAME: ' // class)
-    err = .true.
-  endif
+if (class == '*') then
+  ix_class = 0
+  return
+endif
+
+ix_class = key_name_to_key_index (class, .true.)
+if (ix_class < 1) then
+  if (logic_option (.true., print_err)) &
+                        call out_io (s_error$, r_name, 'BAD CLASS NAME: ' // class)
+  err = .true.
+endif
 
 end subroutine
 

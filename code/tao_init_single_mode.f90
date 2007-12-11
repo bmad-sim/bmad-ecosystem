@@ -108,7 +108,7 @@ subroutine tao_init_single_mode (single_mode_file)
       endif
     endif
 
-    call var_stuffit (unis, s%var(n), .false., 0)
+    call var_stuffit (unis, s%var(n), .false.)
  
     s%key(i)%val0 = s%var(n)%model_value
     s%key(i)%delta = key(i)%delta

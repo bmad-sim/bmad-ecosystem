@@ -25,7 +25,7 @@ may be entered on one line using the ``;'' character as a separator.
   change     & \sref{s:change}   & reinitialize & \sref{s:reinit}   \\ \hline 
   clip       & \sref{s:clip}     & run          & \sref{s:run}      \\ \hline 
   derivative & \sref{s:deriv}    & scale        & \sref{s:scale}    \\ \hline 
-  end_file   & \sref{s:end_file} & set          & \sref{s:set}      \\ \hline  
+  end-file   & \sref{s:end-file} & set          & \sref{s:set}      \\ \hline  
   exit       & \sref{s:exit}     & show         & \sref{s:show}     \\ \hline 
   flatten    & \sref{s:flatten}  & single-mode  & \sref{s:sing}     \\ \hline 
   help       & \sref{s:help}     & spawn        & \sref{s:spawn}    \\ \hline 
@@ -244,8 +244,15 @@ Examples
   clip bottom       ! clip the graphs in the bottom region
 \end{example}
 
-%% end_file --------------------------------------------------------------
-\section{end_file}\index{Commands!end_file}
+%% end-file --------------------------------------------------------------
+\section{end-file}
+\label{s:end-file}
+\index{Commands!end-file}
+
+The \vn{end-file} is used in command files (\sref{s:call}) to signal
+the end of the file. Everything an \vn{end-file} command is
+ignored. An \vn{end-file} command entered at the command line will
+simply generate an error message.
 
 %% exit --------------------------------------------------------------
 \section{exit}\index{Commands!exit}

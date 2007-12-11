@@ -345,6 +345,7 @@ type tao_var_struct
   integer ix_v1             ! Index of this var in the s%v1_var(i)%v(:) array.
   integer ix_var            ! Index number of this var in the s%var(:) array.
   integer ix_dvar           ! Column in the dData_dVar derivative matrix.
+  integer ix                ! Temporary. Used for initialization.
   real(rp) model_value      ! Model value.
   real(rp) base_value       ! Base value.
   real(rp) design_value     ! Design value from the design lattice.

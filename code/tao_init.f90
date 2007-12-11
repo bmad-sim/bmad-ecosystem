@@ -35,6 +35,7 @@ character(16) :: r_name = 'tao_init'
 character(16) init_name
 
 integer i, j, i2, j2, n_universes, iu, ix, ix_attrib, n_arg, ib, ip, ios
+integer iu_log
 
 logical err, calc_ok  
 logical, optional :: err_flag
@@ -42,6 +43,16 @@ logical, optional :: err_flag
 namelist / tao_start / lattice_file, startup_file, wall_file, &
                data_file, var_file, plot_file, single_mode_file, &
                n_universes, init_name
+
+! Put all informational messages in the tao_init.log file.
+! Only print error messages. Not standard ones.
+
+iu_log = lunget()
+open (iu_log, file = 'tao_init.log')
+call out_io (s_blank$, r_name, 'Opening initialization logging file: tao_init.log')
+
+call output_direct (iu_log, .true., s_blank$, s_abort$)
+call output_direct (iu_log, .false., s_blank$, s_success$) ! Do not print 
 
 ! Find namelist files
 
@@ -191,6 +202,11 @@ endif
 call tao_set_data_useit_opt()
 call tao_set_var_useit_opt()
 if (present(err_flag)) err_flag = .false.
+
+! Close the log file and route all messages back to the terminal
+
+close (iu_log)
+call output_direct (0, .true.)
 
 contains
 !------------------------------------------------------------------------------

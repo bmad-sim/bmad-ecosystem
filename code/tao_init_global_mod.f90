@@ -59,8 +59,7 @@ integer ios, iu, i, j, i2, j2, k, ix, n_uni, num
 integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
 integer n, n_universes, iostat, ix_universe, n_max
 integer ix_min_var, ix_max_var, n_d1_data, ix_ele
-integer ix_min_data, ix_max_data, ix_d1_data, n_found
-integer, allocatable :: found_one(:)
+integer ix_min_data, ix_max_data, ix_d1_data
 
 character(*) init_file, data_file, var_file
 character(40) :: r_name = 'tao_init_global_and_universes'
@@ -72,9 +71,8 @@ character(100) line
 
 logical err, free, gang
 logical searching
-logical, allocatable :: mask(:), dflt_good_unis(:), good_unis(:)
-logical, allocatable :: picked_ele(:)
-
+logical, allocatable, save :: mask(:), dflt_good_unis(:), good_unis(:)
+logical, allocatable, save :: matched_ele(:)
 
 namelist / tao_params / global, bmad_com, csr_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max, spin
@@ -102,7 +100,7 @@ namelist / tao_var / v1_var, var, default_weight, default_step, &
 ! read global structure from tao_params namelist
 
 call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
-call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
 if (iu == 0) then
   call out_io (s_abort$, r_name, "Error opening init file")
   call err_exit
@@ -124,7 +122,6 @@ if (ios > 0) then
   read (iu, nml = tao_params, iostat = ios)  ! To give error message
 endif
 if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
-close (iu)
 
 s%global = global  ! transfer global to s%global
   
@@ -144,7 +141,6 @@ do i = 1, size(s%u)
   s%u(i)%do_chrom_calc         = .false.
   n_max = max(n_max, s%u(i)%design%lat%n_ele_max)
 enddo
-allocate(found_one(n_max))
 
 if (associated(s%var)) deallocate (s%var)
 if (associated(s%v1_var)) deallocate (s%v1_var)
@@ -192,9 +188,6 @@ call init_lattices ()
   
 !-----------------------------------------------------------------------
 ! Init connected universes
-
-call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
-call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
 
 ! defaults
 do i = 1, size(s%u)
@@ -354,7 +347,7 @@ endif
 ! Init data
 
 call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
-call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
 
 allocate (mask(size(s%u)))
       
@@ -461,7 +454,7 @@ close (iu)
 ! Init vars
 
 call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
-call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
 allocate (dflt_good_unis(size(s%u)), good_unis(size(s%u)))
 
 do
@@ -473,6 +466,7 @@ do
   default_universe = ' '
   default_low_lim = -1e30
   default_high_lim = 1e30
+  ix_min_var = 1
   var%name = ' '
   var%ele_name = ' '
   var%merit_type = ' '
@@ -494,7 +488,10 @@ do
     call str_upcase (var(i)%ele_name, var(i)%ele_name)
   enddo
 
-  if (v1_var%name == ' ') cycle
+  if (v1_var%name == ' ') then
+    call out_io (s_error$, r_name, 'FOUND TAO_VAR NAMELIST WITHOUT V1_VAR%NAME PARAMETER!')
+    cycle
+  endif
 
   ! Gang or clone?
 
@@ -542,8 +539,7 @@ do
         call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // v1_var%name)
         call err_exit
       endif
-      ix_ele = found_one(j+1-lbound(v1_var_ptr%v, 1))
-      call var_stuffit (good_unis, v1_var_ptr%v(j), searching, ix_ele)
+      call var_stuffit (good_unis, v1_var_ptr%v(j), searching)
     enddo
 
   else   ! If clone...
@@ -554,8 +550,7 @@ do
       good_unis = .false.
       good_unis(i) = .true.
       do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
-        ix_ele = found_one(j+1-lbound(v1_var_ptr%v, 1))
-        call var_stuffit (good_unis, v1_var_ptr%v(j), searching, ix_ele)
+        call var_stuffit (good_unis, v1_var_ptr%v(j), searching)
       enddo
     enddo
   endif
@@ -571,8 +566,6 @@ deallocate (dflt_good_unis, good_unis)
 do i = 1, size(s%u)
   call init_ix_data (s%u(i))
 enddo
-
-deallocate (found_one)
 
 return
 
@@ -727,6 +720,8 @@ character(20) count_name1, count_name2, ix_char
 character(40) search_string
 character(20) fmt
 
+logical, allocatable :: matched_ele(:)
+
 !
 
 u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)  ! point back to the parent
@@ -737,8 +732,8 @@ u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name    ! stuff in the data
     
 if (data(0)%ele_name(1:7) == 'SEARCH:') then
   call string_trim(data(0)%ele_name(8:), search_string, ix)
-  call find_elements (u, search_string, data(0)%ele0_name, found_one, n_found)
-  if (n_found == 0) then
+  call tao_find_elements (u, search_string, data(0)%ele0_name, matched_ele)
+  if (count(matched_ele) == 0) then
     call out_io (s_warn$, r_name, &
       'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_string, &
       'WHILE SETTING UP DATA ARRAY: ' // d1_data%name)
@@ -746,7 +741,7 @@ if (data(0)%ele_name(1:7) == 'SEARCH:') then
   endif
   ! finish finding data array limits
   n1 = u%n_data_used + 1
-  n2 = u%n_data_used + n_found
+  n2 = u%n_data_used + count(matched_ele)
   u%n_data_used = n2
   if (ix_min_data == int_garbage$) ix_min_data = 1
   ix1 = ix_min_data
@@ -758,8 +753,8 @@ if (data(0)%ele_name(1:7) == 'SEARCH:') then
   endif
   ! get element names
   jj = n1
-  do i = 1, n_found
-    j = found_one(i)
+  do j = lbound(matched_ele, 1), ubound(matched_ele, 1)
+    if (.not. matched_ele(j)) cycle
     if (jj .gt. n2) then
       call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
       call err_exit
@@ -1014,71 +1009,6 @@ end subroutine form_count_name
 !----------------------------------------------------------------
 ! contains
 !
-! This searches the lattice for the specified element and flags found_one(:)
-
-subroutine find_elements (u, search_string, restriction, found_one, n_found)
-
-type (tao_universe_struct), target :: u
-type (ele_struct), pointer :: ele
-
-character(*) search_string, restriction
-character(40) ele_name, key_name_in
-integer key, found_key, n_found
-integer found_one(:)
-
-integer i, ix, ii, i2, j
-logical no_slaves, no_lords
-
-!
-
-n_found = 0
-found_one = -1
-no_slaves = .false.
-no_lords = .false.
-
-select case (restriction)
-case ('no_lords') 
-  no_lords = .true.
-case ('no_slaves') 
-  no_slaves = .true.
-case (' ') 
-case default
-  call out_io (s_abort$, r_name, "BAD SEARCH RESTRICTION: " // restriction)
-  call err_exit
-end select
-
-!
-
-ix = index(search_string, ':')
-if (ix == 0) then
-  key_name_in = '*'
-  ele_name = search_string
-else
-  key_name_in = search_string(1:ix-1)
-  ele_name = search_string(ix+1:)
-endif
-
-do j = 1, u%design%lat%n_ele_max
-  ele => u%design%lat%ele(j)
-  select case (ele%control_type)
-  case (multipass_slave$, super_slave$)
-    if (no_slaves) cycle
-  case (girder_lord$, overlay_lord$, super_lord$)
-    if (no_lords) cycle
-  end select
-  if (.not. match_wild(ele%name, ele_name)) cycle
-  if (.not. match_wild(key_name(ele%key), key_name_in)) cycle
-  if (any(found_one == j)) cycle
-  n_found = n_found + 1
-  found_one(n_found) = j
-enddo
-
-end subroutine find_elements
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-!
 ! Initialize universe connections
 !
 
@@ -1184,6 +1114,7 @@ type (lat_struct), pointer :: lat
 real(rp) v(6), bunch_charge, gamma
 integer i, ix, iu, n_part, ix_class, n_bunch, n_particle
 character(60) at, class, ele_name, line
+logical, allocatable :: picked_ele(:)
 
 ! The emittance set in the tao init file takes priority over the emittance set
 ! in the lattice file.
@@ -1255,6 +1186,7 @@ if (u%beam_all_file /= '') then
 endif
 
 if (u%connect%connected) u%connect%injecting_beam = u%current_beam
+deallocate (picked_ele)
 
 end subroutine init_beam
 
@@ -1394,6 +1326,8 @@ character(40) search_string
 integer i, iu, j, jj, k, nn, n1, n2, ix1, ix2, num_hashes, ix
 integer num_ele, ios, ixx1, ixx2
 
+logical, allocatable :: matched_ele(:)
+
 ! count number of v1 entries
 
 s%n_v1_var_used = s%n_v1_var_used + 1
@@ -1415,10 +1349,10 @@ if (var(0)%ele_name(1:7) == 'SEARCH:') then
   do iu = 1, size(s%u)
     if (.not. dflt_good_unis(iu)) cycle
     call string_trim(var(0)%ele_name(8:), search_string, ix)
-    call find_elements (s%u(iu), search_string, 'no_slaves', found_one, n_found)
-    num_ele = num_ele + n_found 
+    call tao_find_elements (s%u(iu), search_string, 'no_slaves', matched_ele)
+    num_ele = num_ele + count(matched_ele)
   enddo
-  if (n_found == 0) then
+  if (count(matched_ele) == 0) then
     call out_io (s_warn$, r_name, &
                 'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_string, &
                 'WHILE SETTING UP VARIABLE ARRAY: ' // v1_var%name)
@@ -1435,15 +1369,16 @@ if (var(0)%ele_name(1:7) == 'SEARCH:') then
   do iu = 1, size(s%u)
     if (.not. dflt_good_unis(iu)) cycle
     call string_trim(var(0)%ele_name(8:), search_string, ix)
-    call find_elements (s%u(iu), search_string, 'no_slaves', found_one, n_found)
-    do j = 1, n_found
+    call tao_find_elements (s%u(iu), search_string, 'no_slaves', matched_ele)
+    do k = lbound(matched_ele, 1), ubound(matched_ele, 1)
+      if (.not. matched_ele(k)) cycle
       if (jj .gt. n2) then
         call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT SEARCHING")
         call err_exit
       endif
-      k = found_one(j)
       s%var(jj)%ele_name = s%u(iu)%design%lat%ele(k)%name
       s%var(jj)%s = s%u(iu)%design%lat%ele(k)%s
+      s%var(jj)%ix = k
       jj = jj + 1
     enddo
   enddo
@@ -1519,20 +1454,72 @@ call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
 
 end subroutine
   
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+!
+! This searches the lattice for the specified element and flags matched_ele(:)
+
+subroutine tao_find_elements (u, search_string, restriction, matched_ele)
+
+type (tao_universe_struct), target :: u
+type (ele_struct), pointer :: ele
+
+character(*) search_string, restriction
+character(40) ele_name, key_name_in
+integer key, found_key
+
+integer i, ix, ii, i2, j
+
+logical, allocatable :: matched_ele(:)
+logical no_slaves, no_lords, err
+
+!
+
+no_slaves = .false.
+no_lords = .false.
+
+select case (restriction)
+case ('no_lords') 
+  no_lords = .true.
+case ('no_slaves') 
+  no_slaves = .true.
+case (' ') 
+case default
+  call out_io (s_abort$, r_name, "BAD SEARCH RESTRICTION: " // restriction)
+  call err_exit
+end select
+
+!
+
+call tao_ele_locations_given_name (u%design%lat, search_string, matched_ele, err)
+
+do j = 1, u%design%lat%n_ele_max
+  ele => u%design%lat%ele(j)
+  select case (ele%control_type)
+  case (multipass_slave$, super_slave$)
+    if (no_slaves) matched_ele(j) = .false.
+  case (girder_lord$, overlay_lord$, super_lord$)
+    if (no_lords) matched_ele(j) = .false.
+  end select
+enddo
+
+end subroutine tao_find_elements
+
 end subroutine tao_init_global_and_universes
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 
-subroutine var_stuffit (good_unis, var, searching, ix_ele)
+subroutine var_stuffit (good_unis, var, searching)
 
 implicit none
 
 type (tao_var_struct) :: var
 
-integer i, j, n, n1, n2, iu, n_tot, n_ele, ie, ix_ele
-character(20) :: r_name = 'var_stuffit_all_uni'
+integer i, j, n, n1, n2, iu, n_tot, n_ele, ie
+character(20) :: r_name = 'var_stuffit'
 logical err, searching, good_unis(:)
 
 ! point the children back to the mother
@@ -1552,7 +1539,7 @@ if (searching) then
   do iu = 1, size(s%u)
     if (.not. good_unis(iu)) cycle
     j = j + 1
-    call tao_pointer_to_var_in_lattice (var, var%this(j), iu, ix_ele = ix_ele)
+    call tao_pointer_to_var_in_lattice (var, var%this(j), iu, ix_ele = var%ix)
   enddo
 
 else
