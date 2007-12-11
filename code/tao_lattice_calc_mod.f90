@@ -244,7 +244,8 @@ do i = 0, lat%n_ele_track
     do ii = i+1, lat%n_ele_track
       tao_lat%orb(ii)%vec = 0
     enddo
-    call out_io (s_blank$, r_name, "particle lost at element \I\.", lat%param%ix_lost)
+    call out_io (s_blank$, r_name, &
+            "particle lost at element \I0\: " // lat%ele(i)%name, lat%param%ix_lost)
     return
   endif
 
@@ -585,7 +586,7 @@ integer n_bunch, n_part, n_lost, tot_part, i_ele
 logical record_lost
 
 character(100) line
-character(20) :: r_name = "tao_find_beam_centroid"
+character(24) :: r_name = "tao_find_beam_centroid"
 
 !
 
@@ -620,7 +621,7 @@ enddo
       
 ! Post lost particles
 if (record_lost .and. n_lost > 0) then
-  line = "\I4\ particle(s) lost at element \I6\: " // ele%name
+  line = "\I4\ particle(s) lost at element \I0\: " // ele%name
   if (size(s%u) > 1) line = trim(line) // " in universe \I3\ "
   call out_io (s_blank$, r_name, line, i_array = (/ n_lost, ix_ele, uni /) )
 endif
@@ -687,7 +688,7 @@ slice_loop: do n_slice = 1, size(beam%bunch(n_bunch)%slice)
     if (macro%lost .and. record_lost) then
       u_beam%ix_lost(n_bunch,n_slice,n_macro) = ix_ele
       call out_io (s_blank$, r_name, &
-            "Macroparticle lost at element \I\ in universe \I\.", &
+            "Macroparticle lost at element \I0\ in universe \I0\.", &
                                            i_array = (/ ix_ele, uni /) )
       cycle macro_loop
     endif

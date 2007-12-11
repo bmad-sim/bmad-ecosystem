@@ -266,6 +266,9 @@ if (data_source == 'lattice') then
   end select
 endif
 
+if (lat%param%ix_lost /= not_lost$ .and. ix1 >= lat%param%ix_lost .and. &
+                                      data_source == 'beam') valid_value = .false.
+
 !---------------------------------------------------
 
 select case (data_type)

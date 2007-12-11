@@ -918,7 +918,7 @@ case ('particle')
 
   nb = s%global%bunch_to_plot
 
-  if (word(1) == 'lost') then
+  if (index('lost', word(1)) == 1) then
     bunch => u%ele(lat%n_ele_track)%beam%bunch(nb)
     nl=nl+1; lines(nl) = 'Particles lost at:'
     nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
@@ -1206,6 +1206,8 @@ case ('universe')
   else
     nl=nl+1; write (lines(nl), '(a)') 'This universe is turned OFF'
   endif
+  
+  nl=nl+1; write (lines(nl), lmt) 'Aperture limits on?: ', lat%param%aperture_limit_on
 
   if (.not. lat%param%stable .or. .not. lat%param%stable) then
     nl=nl+1; write (lines(nl), '(a, l)') 'Model lattice stability: ', &

@@ -205,6 +205,7 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
   &tao_design_lattice
     taylor_order = <num>
     combine_consecutive_elements_of_like_name = <logical>
+    aperture_limit_on  = <logical>
     unique_name_suffix = <string>
     design_lattice(i)%file = "<parser>::<lattice_file>"
   /
@@ -226,10 +227,10 @@ lattice is read in during initialization.
 element names that are not unique. \vn{unique_name_suffix} uses
 \vn{class:name} format (\sref{s:class:name}). The class is used to
 restrict which elements can have their names changed. The \vn{name}
-part is uses as a suffix. This suffix must have a single \vn{``#''}
+part is uses as a suffix. This suffix must have a single \vn{``\#''}
 character.  When this suffix is applied to an element's name, a unique
-integer is inserted in place of the \vn{``#''}. For example, if
-\vn{unique_name_suffix} is \vn{"quad:_#"}, and if the following
+integer is inserted in place of the \vn{``\#''}. For example, if
+\vn{unique_name_suffix} is \vn{"quad:_\#"}, and if the following
 quadrupoles are in the lattice:
 \begin{example}
 				QA    QB    QX    QA    QB     QB
@@ -238,6 +239,10 @@ then after initialization, the names will be:
 \begin{example}
 				QA_1  QB_1  QX    QA_2  QB_2   QB_3
 \end{example}
+
+Setting \vn{aperture_limit_on} to \vn{False} will turn off the
+aperture limits set in all lattices. This overrides the setting of
+\vn{parameter[aperture_limit_on]} in a lattice file.
 
 The \vn{i} in \vn{design_lattice(i)} refers to the
 universe index, \vn{<lattice_file>} is the name of an input lattice

@@ -32,7 +32,7 @@ implicit none
 
 integer i, j, iu
 integer ix, ix_line, ix_cmd, which
-integer int1, int2, uni, wrt
+integer int1, int2, uni, wrt, n_level
 
 real(rp) value1, value2
 
@@ -42,13 +42,13 @@ character(20) :: r_name = 'tao_command'
 character(80) :: cmd_word(12)
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(29) = (/  &
+character(16) :: cmd_names(30) = (/  &
     'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
     'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
     'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
     'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
     'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ', &
-    'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ' /)
+    'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end_file    ' /)
 
 character(16) :: set_names(8) = (/ &
     'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
@@ -156,6 +156,20 @@ case ('derivative')
 
   call tao_dmodel_dvar_calc(.true.)
   call out_io (s_blank$, r_name, 'Derivative calculated')
+
+!--------------------------------
+! END_FILE
+
+case ('end_file')
+
+  n_level = tao_com%cmd_file_level
+  if (n_level == 0) then
+    call out_io (s_error$, r_name, 'END_FILE COMMAND ONLY ALLOWED IN A COMMAND FILE!')
+    return
+  endif
+  close (tao_com%cmd_file(n_level)%ix_unit)
+  tao_com%cmd_file(n_level)%ix_unit = 0 
+  tao_com%cmd_file_level = n_level - 1 ! signal that the file has been closed
 
 !--------------------------------
 ! EXIT/QUIT

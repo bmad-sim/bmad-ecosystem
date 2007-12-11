@@ -30,10 +30,12 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   integer i, j, iu, ios, version, taylor_order, ix, key
 
   logical custom_init, override, combine_consecutive_elements_of_like_name
+  logical aperture_limit_on
   logical err
 
   namelist / tao_design_lattice / design_lattice, taylor_order, &
-       combine_consecutive_elements_of_like_name, unique_name_suffix
+       combine_consecutive_elements_of_like_name, unique_name_suffix, &
+       aperture_limit_on
 
 !
 
@@ -59,7 +61,6 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
       read (iu, nml = tao_design_lattice)  ! force printing of error message
     enddo
   endif
-  close (iu)
 
   if (taylor_order /= 0) call set_taylor_order (taylor_order)
   tao_com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
@@ -68,7 +69,10 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
 
   custom_init = .false.
   call tao_hook_init_design_lattice (design_lattice, custom_init)
-  if (custom_init) return
+  if (custom_init) then
+    close (iu)
+    return
+  endif
 
   ! TAO does its own bookkeeping
 
@@ -129,11 +133,19 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
     u%design%modes%b%emittance = u%design%lat%b%emit
 
     if (combine_consecutive_elements_of_like_name) call combine_consecutive_elements(u%design%lat)
+
     if (unique_name_suffix /= '') then
       call tao_string_to_element_id (unique_name_suffix, key, suffix, err, .true.)
       if (err) call err_exit
       call create_unique_ele_names (u%design%lat, key, suffix)
     endif
+
+    ! Use what is set in the lattice for the default of aperture_limit_on.
+
+    aperture_limit_on = u%design%lat%param%aperture_limit_on 
+    rewind (iu)
+    read (iu, nml = tao_design_lattice, iostat = ios)
+    u%design%lat%param%aperture_limit_on = aperture_limit_on
 
     ! Initialize calibration array
     ! This must be performed or tao_read_bpm and tao_do_wire_scan will crash.
@@ -156,5 +168,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
     allocate (u%ele(0:u%design%lat%n_ele_max))
 
   enddo
+
+  close (iu)
 
 end subroutine tao_init_design_lattice

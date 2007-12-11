@@ -81,6 +81,7 @@ endif
 ! If a command file is open then read a line from the file.
 
 if (tao_com%cmd_file_level /= 0) then
+
   n_level = tao_com%cmd_file_level
   if (.not. multi_commands_here) then
     do
@@ -121,7 +122,7 @@ if (tao_com%cmd_file_level /= 0) then
   close (tao_com%cmd_file(n_level)%ix_unit)
   tao_com%cmd_file(n_level)%ix_unit = 0 
   tao_com%cmd_file_level = n_level - 1 ! signal that the file has been closed
-  if (tao_com%cmd_file_level .ne. 0) return ! still lower nested command file to complete
+  if (tao_com%cmd_file_level /= 0) return ! still lower nested command file to complete
 endif
 
 ! Here if no command file is being used.
@@ -247,7 +248,7 @@ character(8) :: r_name = "do_loop"
     indx(in_loop) = indx_start(in_loop) - 1 ! add one before first loop below
     ! finally index stepsize
     call string_trim (cmd_line(ix+1:), cmd_line, ix)
-    if (ix .ne. 0) then ! specify index stepsize
+    if (ix /= 0) then ! specify index stepsize
       read (cmd_line(1:ix), '(I)') indx_step(in_loop)
     else
       indx_step(in_loop) = 1
@@ -278,7 +279,7 @@ character(8) :: r_name = "do_loop"
       loop_line_count(in_loop) = loop_line_count(in_loop) + 1
     enddo
 
-    if (inner_loop_count .ne. 0) then
+    if (inner_loop_count /= 0) then
       ! There's an inner loop so rewind to beginning of first inner loop
       do i = 1, loop_line_count(in_loop) + 1
         backspace (tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit)
@@ -337,7 +338,7 @@ character(8) :: r_name = "do_loop"
   endif
   
   ! insert index name variables for each loop
-  if (in_loop .ne. 0) then
+  if (in_loop /= 0) then
     do i = 1, in_loop
       do 
         ix = index (cmd_line, '[' // trim(indx_name(i)) // ']')

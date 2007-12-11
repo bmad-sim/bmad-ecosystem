@@ -20,11 +20,12 @@ may be entered on one line using the ``;'' character as a separator.
 \centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}  & {\it Command} & {\it Section}  \\ \hline
-  alias      & \sref{s:alias}    & restore      & \sref{s:restore}  \\ \hline 
-  call       & \sref{s:call}     & reinitialize & \sref{s:reinit}   \\ \hline 
-  change     & \sref{s:change}   & run          & \sref{s:run}      \\ \hline 
-  clip       & \sref{s:clip}     & scale        & \sref{s:scale}    \\ \hline 
-  derivative & \sref{s:deriv}    & set          & \sref{s:set}      \\ \hline  
+  alias      & \sref{s:alias}    & read         & \sref{s:read}     \\ \hline
+  call       & \sref{s:call}     & restore      & \sref{s:restore}  \\ \hline 
+  change     & \sref{s:change}   & reinitialize & \sref{s:reinit}   \\ \hline 
+  clip       & \sref{s:clip}     & run          & \sref{s:run}      \\ \hline 
+  derivative & \sref{s:deriv}    & scale        & \sref{s:scale}    \\ \hline 
+  end_file   & \sref{s:end_file} & set          & \sref{s:set}      \\ \hline  
   exit       & \sref{s:exit}     & show         & \sref{s:show}     \\ \hline 
   flatten    & \sref{s:flatten}  & single-mode  & \sref{s:sing}     \\ \hline 
   help       & \sref{s:help}     & spawn        & \sref{s:spawn}    \\ \hline 
@@ -34,7 +35,6 @@ may be entered on one line using the ``;'' character as a separator.
   place      & \sref{s:place}    & x-axis       & \sref{s:x-axis}   \\ \hline 
   plot       & \sref{s:plot}     & x-scale      & \sref{s:x-scale}  \\ \hline 
   quit       & \sref{s:quit}     & xy-scale     & \sref{s:xy-scale} \\ \hline
-  read       & \sref{s:read}     &              &                  \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -82,7 +82,7 @@ Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
 \break
 
 %% alias --------------------------------------------------------------
-\section{Alias}\index{Commands!alias}
+\section{alias}\index{Commands!alias}
 \label{s:alias}
 
 Format: 
@@ -113,7 +113,7 @@ model''.  When the command xyzzy is used ``top'' is substituted
 for ``[[1]]'' in the string.
 
 %% call --------------------------------------------------------------
-\section{Call}\index{Commands!call}
+\section{call}\index{Commands!call}
 \label{s:call}
 
 Format: 
@@ -161,7 +161,7 @@ In the above example the argument ``abc'' is substituted for any
 \end{example}
 
 %% change --------------------------------------------------------------
-\section{Change}\index{Commands!change}
+\section{change}\index{Commands!change}
 \label{s:change}
 
 Format:
@@ -216,7 +216,7 @@ Examples:
 
 
 %% clip --------------------------------------------------------------
-\section{Clip}\index{Commands!clip}
+\section{clip}\index{Commands!clip}
 \label{s:clip}
 
 Format:
@@ -244,8 +244,11 @@ Examples
   clip bottom       ! clip the graphs in the bottom region
 \end{example}
 
+%% end_file --------------------------------------------------------------
+\section{end_file}\index{Commands!end_file}
+
 %% exit --------------------------------------------------------------
-\section{Exit}\index{Commands!exit}
+\section{exit}\index{Commands!exit}
 \label{s:exit}
 
 Format:
@@ -257,7 +260,7 @@ Format:
 \vn{Exit} exits the program. Same as \vn{Quit}.
 
 %% derivative --------------------------------------------------------------
-\section{Derivative}\index{Commands!derivative}
+\section{derivative}\index{Commands!derivative}
 \label{s:deriv}
 
 Format:
@@ -270,7 +273,7 @@ Format:
 matrix needed for the \vn{lm} optimizer.
 
 %% flatten --------------------------------------------------------------
-\section{Flatten}\index{Commands!flatten}
+\section{flatten}\index{Commands!flatten}
 \label{s:flatten}
 
 Format:
@@ -283,7 +286,7 @@ Format:
 same as \vn{run}. See the \vn{run} command for more details.
 
 %% help --------------------------------------------------------------
-\section{Help}\index{Commands!help}
+\section{help}\index{Commands!help}
 \label{s:help}
 
 Format:
@@ -301,7 +304,7 @@ Examples:
 \end{example}
 
 %% history --------------------------------------------------------------
-\section{History}\index{Commands!history}
+\section{history}\index{Commands!history}
 \label{s:history}
 
 Format:
@@ -322,7 +325,7 @@ Examples
 \end{example}
 
 %% misalign --------------------------------------------------------------
-\section{Misalign}\index{Command!misalign}
+\section{misalign}\index{Command!misalign}
 \label{s:misalign}
 
 Format:
@@ -372,7 +375,7 @@ Examples
 \end{example}
 
 %% output --------------------------------------------------------------
-\section{Output}\index{Commands!output}
+\section{output}\index{Commands!output}
 \label{s:output}
 
 Format:
@@ -432,7 +435,7 @@ Note: PGPLOT does a poor job producing gif files so consider
 making a postscript file instead and using a ps to gif converter.
 
 %% place --------------------------------------------------------------
-\section{Place}\index{Commands!place}
+\section{place}\index{Commands!place}
 \label{s:place}
 
 Format:
@@ -455,7 +458,7 @@ Examples:
 \end{example}
 
 %% plot --------------------------------------------------------------
-\section{Plot}\index{Commands!plot}
+\section{plot}\index{Commands!plot}
 \label{s:plot}
 
 Format:
@@ -474,7 +477,7 @@ Examples:
 \end{example}
 
 %% quit --------------------------------------------------------------
-\section{Quit}\index{Commands!quit}
+\section{quit}\index{Commands!quit}
 \label{s:quit}
 
 Format:
@@ -486,7 +489,7 @@ Format:
 \vn{Quit} exits the program. Same as \vn{exit}.
 
 %% read --------------------------------------------------------------
-\section{Read}\index{Commands!read}
+\section{read}\index{Commands!read}
 \label{s:read}
 
 Format:
@@ -501,7 +504,7 @@ the \vn{read} command can be used to misalign the lattice
 elements. The input file must be in Bmad standard lattice format.
 
 %% restore --------------------------------------------------------------
-\section{Restore}\index{Commands!restore}
+\section{restore}\index{Commands!restore}
 \label{s:restore}
 
 Format:
@@ -525,7 +528,7 @@ Examples:
 \end{example}
 
 %% reinitialize -------------------------------------------------------
-\section{Reinitialize}\index{Commands!reinitialize}
+\section{reinitialize}\index{Commands!reinitialize}
 \label{s:reinit}
 
 Format:
@@ -566,7 +569,7 @@ Examples:
 
 
 %% run --------------------------------------------------------------
-\section{Run}\index{Commands!run}
+\section{run}\index{Commands!run}
 \label{s:run}
 
 Format:
@@ -594,7 +597,7 @@ Examples:
 \end{example}
 
 %% scale --------------------------------------------------------------
-\section{Scale}\index{Commands!scale}
+\section{scale}\index{Commands!scale}
 \label{s:scale}
 
 Format:
@@ -630,7 +633,7 @@ Examples:
 
 
 %% set --------------------------------------------------------------
-\section{Set}\index{Commands!set}
+\section{set}\index{Commands!set}
 \label{s:set}
 
 Format:
@@ -773,7 +776,7 @@ Examples:
 \end{example}
 
 %% show --------------------------------------------------------------
-\section{Show}\index{Commands!show}
+\section{show}\index{Commands!show}
 \label{s:show}
 
 The \vn{show} command has an optional argument to write the results to a file.
@@ -796,6 +799,8 @@ Format:
   show lattice \{-middle\} \{-custom <file_name>\} \{-s\} \{-elements <name>\} \{<location_range>\}
   show optimizer
   show opt_vars
+  show particle lost
+  show particle <particle_index>
   show plot
   show plot \{<template_plot_name>\}
   show plot \{<plot_region_name>\}
@@ -830,7 +835,7 @@ details.
 If \vn{<element_index>} is absent, \vn{show beam} shows parameters 
 used with beam tracking including the number of particles in a bunch, etc.
 If \vn{<element_index>} is present, \vn{show beam} will show 
-beam prameters at the selected element.
+beam prameters at the selected element. Also see \vn{show particle}.
 
   \item[show constraints]
 Lists data and variable constraints.
@@ -969,6 +974,11 @@ Shows information pertinent to optimization: Data and variables used, etc.
 Shows the settings of the variables used in the optimization using the 
 Bmad standard lattice input format.
 
+  \item[show particle]
+\vn{show particle lost} shows which particles are lost during beam
+tracking. \vn{show particle <index>} shows information on the particle
+with the given index. Also see \vn{show beam}.
+
   \item[show plot]
 A simple \vn{show plot} displays which templates are being plotted and
 in which regions and also all available templates. See
@@ -1020,7 +1030,7 @@ Examples:
 \end{example}
 
 %% single-mode --------------------------------------------------------------
-\section{Single-mode}\index{Commands!single-mode}
+\section{single-mode}\index{Commands!single-mode}
 \label{s:sing}
 
 Format:
@@ -1032,7 +1042,7 @@ Format:
 This command puts \tao into \vn{single mode}. 
 
 %% spawn --------------------------------------------------------------
-\section{Spawn}\index{Commands!spawn}
+\section{spawn}\index{Commands!spawn}
 \label{s:spawn}
 
 Format:
@@ -1053,7 +1063,7 @@ Examples:
 \end{example}
 
 %% use --------------------------------------------------------------
-\section{Use}\index{Commands!use}
+\section{use}\index{Commands!use}
 \label{s:use}
 
 Format:
@@ -1079,7 +1089,7 @@ Examples:
 
 
 %% veto --------------------------------------------------------------
-\section{Veto}\index{Commands!veto}
+\section{veto}\index{Commands!veto}
 \label{s:veto}
 
 Format:
@@ -1109,7 +1119,7 @@ indexes for the d1\_data structures do not all point to the same lattice
 elements. 
 
 %% view --------------------------------------------------------------
-\section{View}\index{Commands!view}
+\section{view}\index{Commands!view}
 \label{s:view}
 
 Format:
@@ -1128,7 +1138,7 @@ Examples:
 \end{example}
 
 %% x-axis --------------------------------------------------------------
-\section{X-Axis}\index{Commands!x-axis}
+\section{x-Axis}\index{Commands!x-axis}
 \label{s:x-axis}
 
 Format:
@@ -1157,7 +1167,7 @@ Examples:
 \end{example}
 
 %% x-scale --------------------------------------------------------------
-\section{X-Scale}\index{Commands!x-scale}
+\section{x-Scale}\index{Commands!x-scale}
 \label{s:x-scale}
 
 Format:
@@ -1182,7 +1192,7 @@ Example:
 \end{example}
 
 %% xy-scale --------------------------------------------------------------
-\section{XY-Scale}\index{Commands!xy-scale}
+\section{xy-Scale}\index{Commands!xy-scale}
 \label{s:xy-scale}
 
 Format:
