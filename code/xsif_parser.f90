@@ -609,6 +609,8 @@ subroutine add_ele (key)
   ele%name = kelem(indx)
   ele%type = ketyp(indx)
 
+  ele%value(ds_step$) = bmad_com%default_ds_step
+
 end subroutine
 
 !------------------------------------------------------------------------
