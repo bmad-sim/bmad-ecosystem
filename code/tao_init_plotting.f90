@@ -176,22 +176,24 @@ do
 
   do i = 1, ng
     write (graph%name, '(a, i0)') 'g', i
-    graph_index = 0                 ! setup defaults
-    graph%title = ''
-    graph%type  = 'data'
-    graph%legend_origin = qp_point_struct(1.0_rp, 1.0_rp, '%GRAPH')
-    graph%y  = init_axis
-    graph%y2 = init_axis
-    graph%y2%label_color = blue$
+    graph_index           = 0         ! setup defaults
+    graph%title           = ''
+    graph%type            = 'data'
+    graph%legend_origin   = qp_point_struct(1.0_rp, 1.0_rp, '%GRAPH')
+    graph%y               = init_axis
+    graph%y%major_div     = 4
+    graph%y2              = init_axis
+    graph%y2%major_div    = 4
+    graph%y2%label_color  = blue$
     graph%y2%draw_numbers = .false.
+    graph%ix_universe     = 0
+    graph%clip            = .true.
+    graph%draw_axes       = .true.
+    graph%who%name        = '' 
     graph%correct_xy_distortion = .false.
-    graph%ix_universe = 0
-    graph%clip = .true.
-    graph%draw_axes = .true.
-    graph%who%name  = ' '                               ! set default
-    graph%who(1) = tao_plot_who_struct('model', +1)     ! set default
-    graph%box    = (/ 1, 1, 1, 1 /)
-    graph%margin = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
+    graph%who(1)  = tao_plot_who_struct('model', +1) 
+    graph%box     = (/ 1, 1, 1, 1 /)
+    graph%margin  = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
     graph%n_curve = 0
     do j = 1, size(curve)
       write (curve(j)%name, '(a, i0)') 'c', j

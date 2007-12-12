@@ -915,7 +915,9 @@ the string \vn{"_K1"}.
 Constraints}\index{Initialization!Data}\index{Initialization!Constants}
 \label{s:init_data} 
 
-Data is initialized using the \vn{tao_d2_data} namelist block whose format is
+A set of data (\sref{s:data}) is initialized using a \vn{tao_d2_data}
+namelist block and one or more \vn{tao_d1_data} namelist blocks. The
+format of the \vn{tao_d2_data} namelist is
 \index{tao_d2_data}
 \index{d2_data!name}
 \index{universe}
@@ -971,9 +973,12 @@ the BPM scale error in the form
 \end{equation}
 Where $a$ is a Gaussian distribution of RMS specified by \vn{scale_error}.
 
-\vn{n_d1_data} defines how many \vn{d1_data} structures are associated
-with the \vn{d2_data} structure. For each \vn{n_d1_data} structure
-there must be a \vn{tao_d1_data} namelist which has the form:
+The assocaited \vn{tao_d1_data} namelists must come directly after
+their associated \vn{tao_d2_data} namelist.  The \vn{n_d1_data}
+parameter in the \vn{tao_d2_data} namelist defines how many
+\vn{d1_data} structures are associated with the \vn{d2_data}
+structure. For each \vn{n_d1_data} structure there must be a
+\vn{tao_d1_data} namelist which has the form:
 \index{tao_d1_data}
 \index{ix_d1_data}
 \index{d1_data!name}
@@ -993,11 +998,11 @@ there must be a \vn{tao_d1_data} namelist which has the form:
 \index{data!ix_bunch}
 \begin{example}
   &tao_d1_data
-    ix_d1_data         = <integer>       ! d1_data index
-    d1_data%name       = "<d1_name>"     ! d1_data name.
-    default_data_type  = <type_name>     ! Eg: orbit.x, e_tot, etc...
-    default_weight     = <number>        ! Merit function weight.
-                                         ! default = 0.0
+    ix_d1_data          = <integer>      ! d1_data index
+    d1_data%name        = "<d1_name>"    ! d1_data name.
+    default_data_type   = <type_name>    ! Eg: orbit.x, e_tot, etc...
+    default_weight      = <number>       ! Merit function weight. Default = 0.0
+    default_data_source = "<source>"     ! "lattice", or "beam". Default is "lattice".
     ix_min_data         = <integer>      ! Minimum array index.
     ix_max_data         = <integer>      ! Maximum array index.
     data(j)%name        = "<data_name>"  ! Data names.

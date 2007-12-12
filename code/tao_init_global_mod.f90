@@ -65,7 +65,7 @@ character(*) init_file, data_file, var_file
 character(40) :: r_name = 'tao_init_global_and_universes'
 character(200) file_name, beam0_file, beam_all_file
 character(40) name,  universe, default_universe, default_data_type
-character(40) default_merit_type, default_attribute, data_type
+character(40) default_merit_type, default_attribute, data_type, default_data_source
 character(60) save_beam_at(100)
 character(100) line
 
@@ -88,7 +88,7 @@ namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe, &
                           default_data_noise, default_scale_error
   
 namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, &
-                         ix_max_data, default_weight, default_data_type
+                     ix_max_data, default_weight, default_data_type, default_data_source
                      
 namelist / tao_var / v1_var, var, default_weight, default_step, &
                     ix_min_var, ix_max_var, default_universe, default_attribute, &
@@ -147,7 +147,7 @@ if (associated(s%v1_var)) deallocate (s%v1_var)
 allocate (s%var(n_var_max))
 allocate (s%v1_var(n_v1_var_max))
 
-s%v1_var%name = ' '  ! blank name means it doesn't (yet) exist
+s%v1_var%name = ''  ! blank name means it doesn't (yet) exist
 s%var(:)%good_opt  = .true.
 s%var(:)%exists    = .false.
 s%var(:)%good_var  = .true.
@@ -202,7 +202,7 @@ enddo
 do
   ix_universe = -1
   connect%from_universe = -1
-  connect%at_element = ' '
+  connect%at_element = ''
   connect%at_ele_index = -1
   connect%at_s = -1
   connect%match_to_design = .false.
@@ -353,7 +353,7 @@ allocate (mask(size(s%u)))
       
 do 
   mask(:) = .true.      ! set defaults
-  d2_data%name = ' '
+  d2_data%name = ''
   universe = '*'
   default_merit_type = 'target'
   default_data_noise = 0.0
@@ -392,23 +392,25 @@ do
   endif
 
   do k = 1, n_d1_data
-    default_weight = 0      ! set default
-    default_data_type  = ' '
-    data(:)%data_type  = ' '
-    data(:)%merit_type = default_merit_type 
-    data(:)%name       = ' '
-    data(:)%merit_type = ' '
-    data(:)%ele_name   = ' '
-    data(:)%ele0_name  = ' '
-    data(:)%meas       = real_garbage$  ! used to tag when %meas_value is set in file
-    data(:)%weight     = 0.0
-    data(:)%ix_bunch   = 0
+    d1_data%name        = ''
+    default_weight      = 0      ! set default
+    default_data_type   = ''
+    default_data_source = 'lattice'
+    data(:)%data_type   = ''
+    data(:)%merit_type  = default_merit_type 
+    data(:)%name        = ''
+    data(:)%merit_type  = ''
+    data(:)%ele_name    = ''
+    data(:)%ele0_name   = ''
+    data(:)%meas        = real_garbage$  ! used to tag when %meas_value is set in file
+    data(:)%weight      = 0.0
+    data(:)%ix_bunch    = 0
     data(:)%data_noise  = real_garbage$
     data(:)%scale_error = real_garbage$
-    data(:)%data_source = 'lattice'
-    data(:)%good_user  = .true.
-    ix_min_data        = int_garbage$
-    ix_max_data        = int_garbage$
+    data(:)%data_source = ''
+    data(:)%good_user   = .true.
+    ix_min_data         = int_garbage$
+    ix_max_data         = int_garbage$
     read (iu, nml = tao_d1_data, err = 9150)
     if (ix_d1_data /= k) then
       write (line, '(a, 2i4)') ', k, ix_d1_data'
@@ -423,7 +425,7 @@ do
     do i = lbound(data, 1), ubound(data, 1)
       ! 'beam_tracking' is old syntax.
       if (data(i)%data_source == 'beam_tracking') data(i)%data_source = 'beam'
-      if (data(i)%ele0_name /= ' ' .and. data(i)%ele_name == ' ') then
+      if (data(i)%ele0_name /= '' .and. data(i)%ele_name == '') then
         write (line, '(4a, i0, a)') trim(d2_data%name), '.', trim(d1_data%name), '[', i, ']'
         call out_io (s_abort$, r_name, &
               'ERROR: ELE_NAME IS BLANK BUT ELE0_NAME IS NOT FOR: ' // line)
@@ -462,18 +464,18 @@ do
   default_merit_type = 'limit'
   default_weight = 0     ! set default
   default_step = 0       ! set default
-  default_attribute = ' '
-  default_universe = ' '
+  default_attribute = ''
+  default_universe = ''
   default_low_lim = -1e30
   default_high_lim = 1e30
   ix_min_var = 1
-  var%name = ' '
-  var%ele_name = ' '
-  var%merit_type = ' '
+  var%name = ''
+  var%ele_name = ''
+  var%merit_type = ''
   var%weight = 0         ! set default
   var%step = 0           ! set default
-  var%attribute = ' '
-  var%universe = ' '
+  var%attribute = ''
+  var%universe = ''
   var%low_lim = default_low_lim
   var%high_lim = default_high_lim
   var%good_user = .true.
@@ -488,7 +490,7 @@ do
     call str_upcase (var(i)%ele_name, var(i)%ele_name)
   enddo
 
-  if (v1_var%name == ' ') then
+  if (v1_var%name == '') then
     call out_io (s_error$, r_name, 'FOUND TAO_VAR NAMELIST WITHOUT V1_VAR%NAME PARAMETER!')
     cycle
   endif
@@ -615,9 +617,9 @@ if (n_d2_data_max /= 0) then
   if (associated(u%d2_data)) deallocate (u%d2_data)
   allocate (u%d2_data(n_d2_data_max))
   do i = 1, n_d2_data_max
-    u%d2_data(i)%descrip = ' '
+    u%d2_data(i)%descrip = ''
   enddo
-  u%d2_data%name = ' '  ! blank name means it doesn't exist
+  u%d2_data%name = ''  ! blank name means it doesn't exist
 endif
 
 if (n_data_max /= 0) then
@@ -629,9 +631,9 @@ if (n_data_max /= 0) then
   u%data(:)%good_user  = .true.    ! set default
   u%data(:)%good_opt   = .true.
   u%data(:)%merit_type = 'target'  ! set default
-  u%data(:)%ele_name   = ' '
+  u%data(:)%ele_name   = ''
   u%data(:)%ix_ele     = -1
-  u%data(:)%ele0_name  = ' '
+  u%data(:)%ele0_name  = ''
   u%data(:)%ix_ele0    = 0 ! by default, data relative to beginning of lattice
 endif
 
@@ -717,7 +719,7 @@ integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 integer i_d1, num_hashes
 
 character(20) count_name1, count_name2, ix_char
-character(40) search_string
+character(40) search_string, d2_d1_name
 character(20) fmt
 
 logical, allocatable :: matched_ele(:)
@@ -725,7 +727,13 @@ logical, allocatable :: matched_ele(:)
 !
 
 u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)  ! point back to the parent
-u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name    ! stuff in the data
+if (d1_data%name == '') then
+  write (u%d2_data(n_d2)%d1(i_d1)%name, '(i0)') i_d1
+else
+  u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name    ! stuff in the data
+endif
+
+d2_d1_name = u%d2_data(n_d2)%name // '.' // u%d2_data(n_d2)%d1(i_d1)%name
 
 ! Check if we are searching for elements or repeating elements
 ! and record the element names in the data structs.
@@ -802,9 +810,16 @@ else
   if (ix_min_data == int_garbage$) ix_min_data = 1
   if (ix_max_data == int_garbage$) then
     do i = ubound(data, 1), lbound(data, 1), -1
-      if (data(i)%ele_name /= ' ') ix_max_data = i
-      exit
+      if (data(i)%ele_name /= '' .or. data(i)%data_type /= '') then
+        ix_max_data = i
+        exit
+      endif
     enddo
+  endif
+
+  if (ix_max_data == int_garbage$) then
+    call out_io (s_error$, r_name, 'NO DATA FOUND FOR: ' // d2_d1_name)
+    return
   endif
 
   n1 = u%n_data_used + 1
@@ -834,24 +849,27 @@ else
     call tao_hook_does_data_exist (u%data(j))
     if (u%data(j)%exists) cycle
 
-    if (u%data(j)%ele_name == ' ') cycle
+    if (u%data(j)%ele_name == '') cycle
     call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
     call element_locator (u%data(j)%ele_name, u%design%lat, ix)
     if (ix < 0) then
       call out_io (s_abort$, r_name, 'ELEMENT NOT LOCATED: ' // &
                                                        u%data(j)%ele_name)
-      call err_exit
+      u%data(j)%exists = .false.
+      cycle
     endif
+
     u%data(j)%ix_ele = ix
     u%data(j)%exists = .true.
 
-    if (u%data(j)%ele0_name == ' ') cycle
+    if (u%data(j)%ele0_name == '') cycle
     call str_upcase (u%data(j)%ele0_name, u%data(j)%ele0_name)
     call element_locator (u%data(j)%ele0_name, u%design%lat, ix)
     if (ix < 0) then
       call out_io (s_abort$, r_name, 'ELEMENT2 NOT LOCATED: ' // &
                                                        u%data(j)%ele0_name)
-      call err_exit
+      u%data(j)%exists = .false.
+      cycle
     endif
     u%data(j)%ix_ele0 = ix
   enddo
@@ -875,11 +893,11 @@ end where
 !--------------------------------------------
 ! use default_data_type if given, if not, auto-generate the data_type
 
-if (default_data_type == ' ') then
-  where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
+if (default_data_type == '') then
+  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = &
                             trim(d2_data%name) // '.' // d1_data%name
 else
-  where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
+  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = &
                                                     default_data_type
 endif
 
@@ -945,7 +963,8 @@ call tao_point_d1_to_data (u%d2_data(n_d2)%d1(i_d1)%d, &
 do j = n1, n2
   u%data(j)%d1 => u%d2_data(n_d2)%d1(i_d1)
   if (u%data(j)%weight == 0) u%data(j)%weight = default_weight
-  if (u%data(j)%merit_type == ' ') u%data(j)%merit_type =  default_merit_type
+  if (u%data(j)%merit_type == '') u%data(j)%merit_type = default_merit_type
+  if (u%data(j)%data_source == '') u%data(j)%data_source = default_data_source
 enddo
 
 ! point the children back to the mother    
@@ -965,7 +984,7 @@ do j = n1, n2
           data_type(1:13) == 'unstable_ring' .or. &
           data_type(1:17) == 'multi_turn_orbit.') then
     u%data(j)%exists = .true.
-    if (u%data(j)%ele_name /= ' ') then
+    if (u%data(j)%ele_name /= '') then
       call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &
                         'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // u%data(j)%ele_name)
       call err_exit
@@ -1339,7 +1358,7 @@ v1_var_ptr%name = v1_var%name
 
 if (var(0)%ele_name(1:7) == 'SEARCH:') then
   searching = .true.
-  if (any(var%universe /= ' ')) then
+  if (any(var%universe /= '')) then
     call out_io (s_abort$, r_name, &
            "CANNOT SPECIFY INDIVIDUAL UNIVERSES WHEN SEARCHING FOR VARIABLES")
     call err_exit
@@ -1406,7 +1425,7 @@ else
   s%var(n1:n2)%good_user   = var(ix1:ix2)%good_user
   s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
 
-  where (s%var(n1:n2)%attrib_name == ' ') s%var(n1:n2)%attrib_name = default_attribute
+  where (s%var(n1:n2)%attrib_name == '') s%var(n1:n2)%attrib_name = default_attribute
 
   s%var(n1:n2)%weight = var(ix1:ix2)%weight
   where (s%var(n1:n2)%weight == 0) s%var(n1:n2)%weight = default_weight
@@ -1415,7 +1434,7 @@ else
   where (s%var(n1:n2)%step == 0) s%var(n1:n2)%step = default_step
  
   s%var(n1:n2)%merit_type = var(ix1:ix2)%merit_type
-  where (s%var(n1:n2)%merit_type == ' ') s%var(n1:n2)%merit_type = default_merit_type
+  where (s%var(n1:n2)%merit_type == '') s%var(n1:n2)%merit_type = default_merit_type
  
   s%var(n1:n2)%low_lim = var(ix1:ix2)%low_lim
   where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
@@ -1484,7 +1503,7 @@ case ('no_lords')
   no_lords = .true.
 case ('no_slaves') 
   no_slaves = .true.
-case (' ') 
+case ('') 
 case default
   call out_io (s_abort$, r_name, "BAD SEARCH RESTRICTION: " // restriction)
   call err_exit
@@ -1525,7 +1544,7 @@ logical err, searching, good_unis(:)
 ! point the children back to the mother
 
 if (allocated(var%this)) deallocate (var%this)
-if (var%ele_name == ' ') then
+if (var%ele_name == '') then
   allocate (var%this(0))
   var%exists = .false.
   return
