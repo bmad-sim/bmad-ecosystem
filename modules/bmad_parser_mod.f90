@@ -933,7 +933,7 @@ subroutine file_stack (how, file_name_in, finished)
   type (stack_file_struct), save, target :: file(0:f_maxx)
 
   integer :: i_level = 0
-  integer ix, ios
+  integer i, ix, ios
 
   character(*) how, file_name_in
   character(200) file_name, basename
@@ -977,6 +977,7 @@ subroutine file_stack (how, file_name_in, finished)
     open (file(i_level)%f_unit, file = file_name,  &
                                  status = 'OLD', action = 'READ', iostat = ios)
     if (ios /= 0 .or. .not. found_it) then
+      bp_com%current_file => file(i_level-1)  ! For warning
       if (file_name_in == file_name)  then
         call warning ('UNABLE TO OPEN FILE: ' // file_name)
       else
@@ -986,6 +987,9 @@ subroutine file_stack (how, file_name_in, finished)
       if (bmad_status%exit_on_error) call err_exit
       bmad_status%ok = .false.
       bp_com%error_flag = .true.
+      do i = 1, i_level-1
+        close (file(i_level)%f_unit)
+      enddo
       return
     endif
 
