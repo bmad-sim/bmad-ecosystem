@@ -524,24 +524,31 @@ do
   if (gang) then
     call var_stuffit_init (v1_var_ptr)
     do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
+
       ! Find which universes
       good_unis = dflt_good_unis
-      if (var(j)%universe /= '') then
-        if (var(j)%universe == '*') then
-          good_unis = .true.
-        else
-          call location_decode (var(j)%universe, good_unis, 1, num)
-          if (num < 0) then
-            call out_io (s_error$, r_name, 'ERROR READING UNIVERSE FOR: ' // v1_var%name)
-            cycle
+
+      if (.not. searching) then
+        if (var(j)%universe /= '') then
+          if (var(j)%universe == '*') then
+            good_unis = .true.
+          else
+            call location_decode (var(j)%universe, good_unis, 1, num)
+            if (num < 0) then
+              call out_io (s_error$, r_name, 'ERROR READING UNIVERSE FOR: ' // v1_var%name)
+              cycle
+            endif
           endif
         endif
       endif
+
       if (count(good_unis) == 0) then
         call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // v1_var%name)
         call err_exit
       endif
+
       call var_stuffit (good_unis, v1_var_ptr%v(j), searching)
+
     enddo
 
   else   ! If clone...
