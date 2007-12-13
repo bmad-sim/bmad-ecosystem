@@ -22,6 +22,8 @@ Put in mode_info_struct:
 	simgap
 and enable reading in sigmas in bmad_parser & xsif_parser
 
+emittance, emitt -> emit
+[Remember bmadz, etc.]
 
 -----------------
 

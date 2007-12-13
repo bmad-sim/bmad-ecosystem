@@ -126,7 +126,7 @@ real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
 real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
 real(rp) v(4,4), v_inv(4,4), del_z, z_here, mc2, gamma, gamma4, gamma6
-real(rp) kz, fac, c, s, factor, emit_a, emit_b, g2, g_x0, dz, z1
+real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1
 
 integer, optional :: ix_cache
 integer i, j, k, ir, key, n_step
@@ -498,18 +498,16 @@ enddo
 ! Now put everything together...
 ! Linac radiation integrals:
 
-  mc2 = mass_of (lat%param%particle)
-  gamma_f = lat%ele(lat%n_ele_track)%value(E_TOT$) / mc2
+mc2 = mass_of (lat%param%particle)
+gamma_f = lat%ele(lat%n_ele_track)%value(E_TOT$) / mc2
 
-  mode%lin%sig_E1 = 0
-  mode%lin%i2_E4  = 0
-  mode%lin%i3_E7  = 0
-  mode%lin%i5a_E6 = 0
-  mode%lin%i5b_E6 = 0
+mode%lin%sig_E1 = 0
+mode%lin%i2_E4  = 0
+mode%lin%i3_E7  = 0
+mode%lin%i5a_E6 = 0
+mode%lin%i5b_E6 = 0
 
-  factor = 2 * c_q * r_e / 3
-  emit_a = lat%a%emit
-  emit_b = lat%b%emit
+factor = 2 * c_q * r_e / 3
 
 do i = 0, lat%n_ele_track
   gamma = lat%ele(i)%value(E_TOT$) / mc2
@@ -523,10 +521,8 @@ do i = 0, lat%n_ele_track
   mode%lin%i3_E7  = mode%lin%i3_E7  + ric%lin_i3_E7(i)
   mode%lin%i5a_E6 = mode%lin%i5a_E6 + ric%lin_i5a_E6(i)
   mode%lin%i5b_E6 = mode%lin%i5b_E6 + ric%lin_i5b_E6(i)
-  emit_a = emit_a + factor * ric%lin_i5a_E6(i)
-  ric%lin_norm_emit_a(i) = emit_a
-  emit_b = emit_b + factor * ric%lin_i5b_E6(i)
-  ric%lin_norm_emit_b(i) = emit_b
+  ric%lin_norm_emit_a(i) = lat%a%emit * gamma + factor * mode%lin%i5a_E6
+  ric%lin_norm_emit_b(i) = lat%b%emit * gamma + factor * mode%lin%i5b_E6
 enddo
 
 mode%lin%sig_E1 = mc2 * sqrt (2 * factor * mode%lin%i3_E7)
