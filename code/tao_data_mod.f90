@@ -257,8 +257,8 @@ endif
 
 if (data_source == 'lattice') then
   select case (data_type)
-  case ('beta.z', 'alpha.z', 'gamma.z', 'emittance.x', 'norm_emittance.x', &
-        'emittance.y', 'norm_emittance.y', 'emittance.z', 'norm_emittance.z', &
+  case ('beta.z', 'alpha.z', 'gamma.z', 'emit.x', 'norm_emit.x', &
+        'emit.y', 'norm_emit.y', 'emit.z', 'norm_emit.z', &
         'dpx_dx', 'dpy_dy', 'dpz_dz', 'sigma.x', 'sigma.p_x', 'sigma.y', 'sigma.p_y', &
         'sigma.z', 'sigma.p_z', 'sigma.xy', 'wire.')
     call out_io (s_error$, r_name, 'DATA_SOURCE = "lattice" NOT VALID FOR DATUM: ' // &
@@ -524,7 +524,7 @@ case ('cbar.22')
 case ('i5a_e6')
   if (ix0 > 0 .or. ix1 > 0) then
     if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) then
-      call out_io (s_fatal$, r_name, 'tao_lat%rad_int not allocated')
+      call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
       valid_value = .false.
       return
     endif
@@ -540,7 +540,7 @@ case ('i5a_e6')
 case ('i5b_e6')
   if (ix0 > 0 .or. ix1 > 0) then
     if (.not. allocated(tao_lat%rad_int%lin_i5b_e6)) then
-      call out_io (s_fatal$, r_name, 'tao_lat%rad_int not allocated')
+      call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
       valid_value = .false.
       return
     endif
@@ -629,7 +629,7 @@ case ('wall')
 !---------------------------------------------------------
 ! Beam Emittance
   
-case ('emittance.x', 'norm_emittance.x')
+case ('emit.x', 'norm_emit.x')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%x%norm_emitt
   elseif (data_source == "macro") then
@@ -639,7 +639,7 @@ case ('emittance.x', 'norm_emittance.x')
   endif
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
-case ('emittance.y', 'norm_emittance.y')  
+case ('emit.y', 'norm_emit.y')  
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%y%norm_emitt
   elseif (data_source == "macro") then
@@ -649,7 +649,7 @@ case ('emittance.y', 'norm_emittance.y')
   endif
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
-case ('emittance.z', 'norm_emittance.z')
+case ('emit.z', 'norm_emit.z')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%z%norm_emitt
   elseif (data_source == "macro") then
@@ -659,7 +659,7 @@ case ('emittance.z', 'norm_emittance.z')
   endif
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
-case ('emittance.a', 'norm_emittance.a')
+case ('emit.a', 'norm_emit.a')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%norm_emitt
   elseif (data_source == "macro") then
@@ -667,19 +667,19 @@ case ('emittance.a', 'norm_emittance.a')
   elseif (data_source == "lattice") then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_a)) then
-        call out_io (s_fatal$, r_name, 'tao_lat%rad_int not allocated')
+        call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
         valid_value = .false.
         return
       endif
       call load_it (tao_lat%rad_int%lin_norm_emit_a, &
                               ix0, ix1, datum_value, valid_value, datum, lat)
     else
-      datum_value = tao_lat%modes%a%emittance  
+      datum_value = gamma * tao_lat%modes%a%emittance  
     endif
   endif
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
   
-case ('emittance.b', 'norm_emittance.b')  
+case ('emit.b', 'norm_emit.b')  
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%b%norm_emitt
   elseif (data_source == "macro") then
@@ -687,14 +687,14 @@ case ('emittance.b', 'norm_emittance.b')
   elseif (data_source == "lattice") then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_b)) then
-        call out_io (s_fatal$, r_name, 'tao_lat%rad_int not allocated')
+        call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
         valid_value = .false.
         return
       endif
       call load_it (tao_lat%rad_int%lin_norm_emit_b, &
                               ix0, ix1, datum_value, valid_value, datum, lat)
     else
-      datum_value = tao_lat%modes%b%emittance
+      datum_value = gamma * tao_lat%modes%b%emittance
     endif
   endif
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma

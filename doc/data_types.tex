@@ -102,8 +102,8 @@ Emittance can be calculated in one of two ways. One way is to
 calculate it from a tracked beam. The other is from the lattice using
 the standard radiation integrals (see the Bmad manual). For a linear
 lattice, the emittance varies along the length of the line while for a
-circular lattice there is a single emittance number. \vn{emittance.a}
-and \vn{emittance.b} are the standard normal mode emittances. With
+circular lattice there is a single emittance number. \vn{emit.a}
+and \vn{emit.b} are the standard normal mode emittances. With
 beam tracking, there are also \vn{projected emittances} which give an
 indication of what the beam looks like if projected onto the $x$ or
 $y$ axes:
@@ -116,7 +116,7 @@ definition in one dimension:
   \eta_x = \sqrt{<(x - \eta_x \, p_z)^2> <(p_x - \eta'_x \, p_z)^2> - 
   <(x - \eta_x \, p_z) \, (p_x - \eta'_x \, p_z)>^2}
 \end{equation}
-\vn{emittance.x} and \vn{emittance.y} are the projected emittances.
+\vn{emit.x} and \vn{emit.y} are the projected emittances.
 Also notice that the projected emittance is sometimes defined using
 $x'$ and $y'$ in place of $p_x$ and $p_y$. However, in the vast
 majority of cases, this does not appreciably affect the numeric
@@ -191,15 +191,15 @@ results.
     s\_position           & longitudinal length constraint    & relative \\ \hline 
     unstable\_ring        & Nonzero if a ring is unstable     & global   \\ \hline
     \begin{tabular}{@{}l}
-      emittance.x, emittance.a \\
-      emittance.y, emittance.b \\
-      emittance.z \\
+      emit.x, emit.a \\
+      emit.y, emit.b \\
+      emit.z \\
     \end{tabular}
                           & Emittance                        & global   \\ \hline
     \begin{tabular}{@{}l}  
-      norm\_emittance.x, norm\_emittance.a \\
-      norm\_emittance.y, norm\_emittance.b \\
-      norm\_emittance.z \\
+      norm\_emit.x, norm\_emit.a \\
+      norm\_emit.y, norm\_emit.b \\
+      norm\_emit.z \\
     \end{tabular} 
                           & Normalized Beam Emittance         &          \\ \hline 
     \begin{tabular}{@{}l}
@@ -223,7 +223,7 @@ results.
       dpy\_dy, dpb\_db \\
       dpz\_dz \\
     \end{tabular} 
-                          & <x p\_x> / <x\^2> \& Etc...       &          \\ \hline 
+                          & <x p\_x> / <$x^2$> \& Etc...       &          \\ \hline 
     wire.<angle>                & Wire Scanner with wire angle <angle>
                                                                &          \\ \hline
 \end{tabular}

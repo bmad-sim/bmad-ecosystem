@@ -297,6 +297,11 @@ do
       crv%ix_ele_ref              = curve(j)%ix_ele_ref
       crv%ix_bunch                = curve(j)%ix_bunch
 
+      ! Convert old syntax to new
+      ix = index(crv%data_type, 'emittance.')
+      if (ix /= 0) crv%data_type = crv%data_type(1:ix-1) // 'emit.' // crv%data_type(ix+10:)
+
+      ! A dot in the name is verboten.
       do
         ix = index(crv%name, '.')
         if (ix == 0) exit
@@ -317,8 +322,8 @@ do
 
       i_uni = tao_universe_number (crv%ix_universe)
 
-      if ((crv%data_type(1:10) == 'emittance.' .or. &
-            crv%data_type(1:15) == 'norm_emittance.') .and. crv%data_source == 'lattice') then
+      if ((crv%data_type(1:5) == 'emit.' .or. &
+            crv%data_type(1:10) == 'norm_emit.') .and. crv%data_source == 'lattice') then
         if (crv%ix_universe == 0) then
           s%u%do_synch_rad_int_calc = .true.
         else

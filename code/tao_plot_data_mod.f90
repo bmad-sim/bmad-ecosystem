@@ -827,6 +827,9 @@ do k = 1, size(graph%curve)
     smooth_curve = (curve%data_source == 'lattice') .or. &
                    (curve%data_source == 'beam' .and. allocated(u%model%bunch_params2))
     smooth_curve = smooth_curve .and. curve%draw_interpolated_curve
+    if (curve%data_source == 'lattice' .and. index(curve%data_type, 'emit.') /= 0) &
+                                                                       smooth_curve = .false.
+
     do m = 1, size(graph%who)
       if (graph%who(m)%name == 'meas' .or. graph%who(m)%name == 'ref') smooth_curve = .false.
     enddo
@@ -1074,18 +1077,18 @@ do ii = 1, size(curve%x_line)
     value = sqrt(bunch_params%sigma(s55$))
   case ('sigma.p_z')
     value = sqrt(bunch_params%sigma(s66$))
-  case ('norm_emittance.a')
+  case ('norm_emit.a')
     value = bunch_params%a%norm_emitt
-  case ('norm_emittance.b')
+  case ('norm_emit.b')
     value = bunch_params%b%norm_emitt
-  case ('norm_emittance.z')
+  case ('norm_emit.z')
     value = bunch_params%z%norm_emitt
-  case ('emittance.a')
+  case ('emit.a')
     value = bunch_params%a%norm_emitt
     call convert_total_energy_to (ele%value(E_tot$), &
                                               lat%param%particle, gamma)
     value = value / gamma
-  case ('emittance.b')
+  case ('emit.b')
     value = bunch_params%b%norm_emitt
     call convert_total_energy_to (ele%value(E_tot$), &
                                               lat%param%particle, gamma)

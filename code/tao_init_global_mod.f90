@@ -730,6 +730,7 @@ character(40) search_string, d2_d1_name
 character(20) fmt
 
 logical, allocatable :: matched_ele(:)
+logical emit_here
 
 !
 
@@ -972,6 +973,10 @@ do j = n1, n2
   if (u%data(j)%weight == 0) u%data(j)%weight = default_weight
   if (u%data(j)%merit_type == '') u%data(j)%merit_type = default_merit_type
   if (u%data(j)%data_source == '') u%data(j)%data_source = default_data_source
+  ! old style is to use "emittance." instead of "emit."
+  ix = index(u%data(j)%data_type, 'emittance.')
+  if (ix /= 0) u%data(j)%data_type = u%data(j)%data_type(1:ix-1) // &
+                                         'emit.' // u%data(j)%data_type(ix+10:)
 enddo
 
 ! point the children back to the mother    
@@ -982,11 +987,11 @@ u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)
 
 do j = n1, n2
   data_type = u%data(j)%data_type
-  if (data_type(1:10) == 'emittance.' .and. u%data(j)%data_source == 'lattice') &
-                                                       u%do_synch_rad_int_calc = .true. 
+  emit_here = (index(data_type, 'emit.') /= 0)
+  if (emit_here .and. u%data(j)%data_source == 'lattice') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
-  if ((data_type(1:14) == 'emittance.' .and. u%data(j)%data_source == 'lattice') .or. &
+  if ((emit_here .and. u%design%lat%param%lattice_type == circular_lattice$) .or. &
           data_type(1:6)  == 'chrom.' .or. &
           data_type(1:13) == 'unstable_ring' .or. &
           data_type(1:17) == 'multi_turn_orbit.') then
@@ -1284,7 +1289,11 @@ n_data(:) = 0
 if (associated(u%ix_data)) deallocate(u%ix_data)
 allocate(u%ix_data(-2:u%design%lat%n_ele_max))
 
-! find number of datums at each element
+! Since some information gets lost during tracking (like beam distributions),
+!   find where each datum gets evaluated when tao_load_data_array is called.
+! ix_ele = -1  ! Gets evaluated after all tracking
+! ix_ele = -2  ! Does not get evaluated by tao_lattice_calc_mod
+
 do j = 1, size(u%data)
   data => u%data(j)
   if (.not. data%exists) cycle
@@ -1293,6 +1302,8 @@ do j = 1, size(u%data)
   elseif (data%data_type(1:2) == 'i5') then
     ix_ele = -1
   elseif (data%ix_ele == -1) then
+    ix_ele = -1
+  elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lattice') then
     ix_ele = -1
   elseif (data%ix_ele0 > data%ix_ele) then
     ix_ele = u%model%lat%n_ele_track
@@ -1323,6 +1334,8 @@ do j = 1, size(u%data)
   elseif (data%data_type(1:2) == 'i5') then
     ix_ele = -1
   elseif (data%ix_ele == -1) then
+    ix_ele = -1
+  elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lattice') then
     ix_ele = -1
   elseif (data%ix_ele0 > data%ix_ele) then
     ix_ele = u%model%lat%n_ele_track
