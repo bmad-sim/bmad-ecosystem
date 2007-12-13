@@ -65,6 +65,7 @@ REL_NAME=""
 quiet=0
 QUIET=0
 NOLOCK=0
+PURGE=0
 
 LIBS_DIR=`${UTIL_DIR}/getcfg Paths LIBS_DIR`
 LIBS_DIR="${LIBS_DIR}/"
@@ -91,6 +92,7 @@ do arg_list="${arg_list} ${i}"
      "-Q"       ) QUIET=1;;
      "-NOLOCK" ) NOLOCK=1;;
      "-quiet"  ) QUIET=1;;
+     "-PURGE"  ) PURGE=1;;
      "-help"   ) myprint_help2; exit 1;;
      *           ) myprint_help; exit 1;;
    esac
@@ -135,7 +137,7 @@ fi
 for j in ${LIBS_DIR}Linux_i686_intel/current*
 do
   if ( [ ${j} -ef ${LIBS_DIR}Linux_i686_intel/${REL_NAME} ] ) then
-      if ( [ ${NOLOCK} -eq 1 ] ) then
+      if ( [ ${NOLOCK} -eq 1 ] && [ ${PURGE} -eq 0 ] ) then
 	  echo "You have requested to delete a CURRENT release!  Make sure"
 	  echo "this is really what you want to do, then press <ENTER> to continue."
 	  read -n 1 CONFIRM1
@@ -144,18 +146,21 @@ do
 	      exit 1
           fi
       else
-          echo ""
-          echo "The release will not be deleted.  It is a protected older CURRENT release."
-          echo ""
-          exit 1
+	  if ( [ ${PURGE} -eq 0 ] ) then
+	      echo ""
+	      echo "The release will not be deleted.  It is a protected older CURRENT release."
+	      echo ""
+	      exit 1
+          fi
       fi
   fi
 done
 
+
 for k in ${LIBS_DIR}Linux_i686_intel/devel*
 do
   if ( [ ${k} -ef ${LIBS_DIR}Linux_i686_intel/${REL_NAME} ] ) then
-      if ( [ ${NOLOCK} -eq 1 ] ) then
+      if ( [ ${NOLOCK} -eq 1 ] && [ ${PURGE} -eq 0 ]  ) then
 	  echo "You have requested to delete a DEVEL release!  Make sure"
 	  echo "this is really what you want to do, then press <ENTER> to continue."
 	  read -n 1 CONFIRM2
@@ -164,15 +169,17 @@ do
 	      exit 1
 	  fi
       else
-          echo ""
-          echo "The release will not be deleted.  It is an older DEVEL release."
-          echo ""
-          exit 1
+          if ( [ ${PURGE} -eq 0 ] ) then
+              echo ""
+              echo "The release will not be deleted.  It is an older DEVEL release."
+              echo ""
+              exit 1
+          fi
       fi
   fi
 done
 
-if ( [ ! ${QUIET} -eq 1 ] ) then
+if ( [ ! ${QUIET} -eq 1 ] && [ ${PURGE} -eq 0 ] ) then
     echo ""
     if ( [ ${quiet} -eq 1 ] ) then
         echo "DELETE release - "
