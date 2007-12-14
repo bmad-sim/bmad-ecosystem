@@ -80,9 +80,9 @@ select case (action)
 case ('hard', 'hard-l')
 
   if (action == 'hard') then
-    call qp_open_page ('PS')
+    call qp_open_page ('PS', scale = 0.0_rp)
   else
-    call qp_open_page ('PS-L')
+    call qp_open_page ('PS-L', scale = 0.0_rp)
   endif
   call tao_plot_out ()   ! Update the plotting window
   call qp_close_page
@@ -124,9 +124,9 @@ case ('ps', 'ps-l')
   if (n_arg == 2) file_name = arg(2)%name
 
   if (action == 'ps') then
-    call qp_open_page ('PS', plot_file = file_name)
+    call qp_open_page ('PS', plot_file = file_name, scale = 0.0_rp)
   else
-    call qp_open_page ('PS-L', plot_file = file_name)
+    call qp_open_page ('PS-L', plot_file = file_name, scale = 0.0_rp)
   endif
   call tao_plot_out ()   ! Update the plotting window
   call qp_close_page

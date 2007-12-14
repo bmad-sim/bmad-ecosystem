@@ -827,10 +827,10 @@ the state of \tao.
 printing the information at the terminal. The file name is set by
 \vn{global%write_file} which has the default value of
 \vn{tao_show.dat}. Results are appended to the output file when
-\vn{show write} is used multiple times. If separate files are desired
+\vn{show -write} is used multiple times. If separate files are desired
 then if \vn{global%write_file} has a \vn{*} character in it, a three
 digit number is substituted for the \vn{*}. The value of the number
-starts at \vn{001} and increases by 1 each time \vn{show write} is
+starts at \vn{001} and increases by 1 each time \vn{show -write} is
 used.
 
 \begin{description}
@@ -1022,7 +1022,7 @@ Examples:
   show curve r2.g1.c3         ! Show the attributes of a curve named "c3" which is 
                               !   in the graph "g1" which is plotted in region "r2".
   show data                   ! lists d2_data arrays.
-  show write data             ! Same as previous except results are also written
+  show -write data            ! Same as previous except results are also written
                               !   to a file.
   show data orbit.x           ! list all orbit.x data elements
   show data orbit.x[35]       ! Show details for orbit.x element 35
