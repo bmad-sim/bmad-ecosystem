@@ -762,7 +762,6 @@ format for this is
                                              ! default =  1e30
     ix_min_var         = <integer>           ! Minimum array index.
     ix_max_var         = <integer>           ! Maximum array index.
-    var(i)%name        = "<var_name>"        ! Individual variable name.
     var(i)%ele_name    = "<ele_name>"        ! Element to be controlled.
     var(i)%attribute   = "<attrib_name>"     ! Attribute to be controlled.
     var(i)%universe    = "<integer>"         ! Universe to be controlled.
@@ -784,7 +783,6 @@ Example:
     default_step      = 1e-5
     ix_min_var        = 0
     ix_max_var        = 99
-    var(0:99)%name      = "0w", "1w", "2w", "  ", "4w", ...
     var(0:99)%ele_name  = "v00w", "v01w", "v02w", "    ", "v04w", ...
   /
 \end{example}
@@ -792,14 +790,13 @@ Example:
 A \vn{tao_var} block is needed for each variable array to be defined.
 \vn{v1_var%name} is the name of the array to be used with \tao
 commands. The \vn{var(i)} array of variables has an index \vn{i} that
-runs from \vni{ix_min_var} to \vni{ix_max_var}. Each variable has a name
-\vn{var(i)%name} to which it can be refered to in \tao commands.  A
-lattice element name \vn{var(i)%ele_name} and the element's attribute
-to vary \vn{var(i)%attribute} needs to specified. Not all elements
-need to \vn{exist} and the element names of non--existent elements
-should be undefined or set to a name with only spaces in it. For those
-variables where \vn{var(i)%attribute} is not specified in the namelist
-the \vn{default_attribute} will be used.
+runs from \vni{ix_min_var} to \vni{ix_max_var}. A lattice element name
+\vn{var(i)%ele_name} and the element's attribute to vary
+\vn{var(i)%attribute} needs to specified. Not all elements need to
+\vn{exist} and the element names of non--existent elements should be
+undefined or set to a name with only spaces in it. For those variables
+where \vn{var(i)%attribute} is not specified in the namelist the
+\vn{default_attribute} will be used.
 
 
 \vn{var(i)%step} establishes what a ``small'' variation of the
@@ -866,7 +863,6 @@ on Optimization.
 
 Instead of specifying a list of lattice element names for \vn{var(:)%ele_name}, 
 \tao can be told to search for the elements by name using the syntax:
-\index{COUNT}
 \begin{example}
   var(0)%ele_name = "SEARCH: <element class>:<element name>"
 \end{example}
@@ -880,35 +876,6 @@ have exactly 6 letters and whose name begin with the string
 \vn{"BPM_"}.  If \vn{":"} is not present then all element classes are
 searched for. Therefore, for example, \vn{SEARCH: "*:Q*"} is equivalent to
 \vn{"SEARCH: Q*"}.
-
-The \vn{var(:)%name} names for this array of variables can be numbered using 
-the notation
-\begin{example}
-  var(0)%name = "COUNT: <name_string>###"
-\end{example}
-and the hashes are replaced by the variable number in the series
-starting with \vni{ix_min_var} as an integer whose length is equal to
-the number of hashes. For example:
-\begin{example}
-  &tao_var
-    v1_var%name  = "quad_k1"
-    default_attribute = "k1"
-    ...
-    ix_min_var = 1
-    var(0)%ele_name = "SEARCH: Q*"
-    var(0)%name = "COUNT: Q_####"
-  /
-\end{example}
-This will search for all lattice elements whose names begin with 'Q'
-followed by any set of characters and will name the data elements as
-\vn{'Q_'} followed by the variable number in the \vn{v1_var} array starting
-with 0001. Alternatively if \vn{"*"} is present in \vn{var(0)%name} then
-the corresponding lattice element name will be used. For example, 
-\begin{example}
-  var(0)%name = "*_K1"
-\end{example}
-will generate variable names with the lattice element name followed by 
-the string \vn{"_K1"}.
 
 %-----------------------------------------------------------------
 \section{Initializing Data and
@@ -1005,7 +972,6 @@ structure. For each \vn{n_d1_data} structure there must be a
     default_data_source = "<source>"     ! "lattice", or "beam". Default is "lattice".
     ix_min_data         = <integer>      ! Minimum array index.
     ix_max_data         = <integer>      ! Maximum array index.
-    data(j)%name        = "<data_name>"  ! Data names.
     data(j)%data_type   = "<type_name>"  ! Eg: "orbit.x", etc.
     data(j)%ele_name    = "<ele_name>"   ! Lattice element names.
     data(j)%ele0_name   = "<ele0_name>"  ! Reference lattice element names.
@@ -1027,7 +993,6 @@ For example:
     default_weight    = 1e6
     ix_min_data       = 0
     ix_max_data       = 99
-    data(0:)%name     = "0W",      " ", "2W", ...
     data(0:)%ele_name = "DET_00W", " ", "DET_02W", ...
   /
 \end{example}
@@ -1036,23 +1001,20 @@ Alternatively, one can specify a datum in a single line. For example,
   &tao_d1_data
     ix_d1_data        = 1 
     d1_data%name      = "t"  
-    ix_min_data       = 1
-    ix_max_data       = 20
-    !         name   data_      ele0_     ele_     merit_   meas_    weight good_
-    !                  type       name      name     type     value           user
-    data( 1) = ' '   'beta.a'   'Q09_1'   'Q16_1'  'max'      30      0.1     T
-    data( 2) = ' '   'phase.b'  'Q09_1'   'Q16_1'  'max'      30      0.1     T
-    data( 3) = ' '   'floor.x'  ' '       'end'    'target'    3      0.01    T       
-    data( 4) = ' '   'floor.x'  'B1'      'B2'     'target'    3      0.01    T       
+    !          data_      ele0_     ele_     merit_   meas_    weight good_
+    !            type       name      name     type     value           user
+    data( 1) = 'beta.a'   'Q09_1'   'Q16_1'  'max'      30      0.1     T
+    data( 2) = 'phase.b'  'Q09_1'   'Q16_1'  'max'      30      0.1     T
+    data( 3) = 'floor.x'  ' '       'end'    'target'    3      0.01    T       
+    data( 4) = 'floor.x'  'B1'      'B2'     'target'    3      0.01    T       
     ... etc. ...
   /
 \end{example}
 
 \vn{ix_min_data} and \vn{ix_max_data} give the bounds for the
 \vn{data(i)} structure array that is associated with the \vn{d1_data}
-structure. \vn{data(:)%name} gives the names of the data points and
-\vn{data(:)%ele_name} gives the lattice element names associated with
-the data points. 
+structure. \vn{data(:)%ele_name} gives the lattice element names
+associated with the data points.
 
 A range of elements can be specified by giving an \vn{ele0_name} that
 is not a blank string. Thus, in the above example, the value of
@@ -1098,11 +1060,10 @@ bunch that the data is extracted from can be specified via \vn{data(:)%ix_bunch}
 The default is \vn{0} which combines all the bunches for the datum calculation.
 
 If elements in the \vn{data} array do not exist the
-corresponding \vn{var%name} and \vn{data%ele_name} should be left
+corresponding \vn{data%ele_name} should be left
 blank. Lists of names can be reused using the syntax:
 \index{SAME:}
 \begin{example}
-  data(0)%name = "SAME: <d2_name.d1_name>"
   data(0)%ele_name = "SAME: <d2_name.d1_name>"
 \end{example}
 For example:
@@ -1111,14 +1072,12 @@ For example:
     ix_d1_data       = 2
     d1_data%name     = "y"  
     ...
-    data(0)%name     = "SAME: orbit.x"
     data(0)%ele_name = "SAME: orbit.x"
   /
 \end{example}
 
 \tao can search for the elements in the lattice to be associated with 
 each data type by using the syntax:
-\index{COUNT}
 \begin{example}
   data(0)%ele_name = "SEARCH: <element class>:<element name>"
   data(0)%ele0_name = "<restriction>"
@@ -1145,34 +1104,6 @@ starting with the letters \vn{"AB"}. If \vn{":"} is not present then
 all element classes are searched for. Therefore, for example,
 \vn{"SEARCH: *:Q*"} is equivalent to \vn{"SEARCH: Q*"}.
 
-
-The \vn{var(:)%name} names for this data array can be numbered using 
-the notation
-\begin{example}
-  var(0)%name = "COUNT: <name_string>###"
-\end{example}
-and the hashes are replaced by the datum number in the series
-starting with \vni{ix_min_data} as an integer whose length is equal to
-the number of hashes. For example:
-\begin{example}
-  &tao_d1_data
-    ix_d1_data       = 1
-    d1_data%name     = "x"
-    ix_min_data      = 1  
-    ...
-    data(0)%ele_name = "SEARCH: *:BPM*"
-    data(0)%name     = "COUNT: BPM_####"
-  /
-\end{example}
-will name the data elements as \vn{'BPM_'}
-followed by the data number in the d1\_data array starting with 0001. 
-Alternatively if \vn{"*"} is present in \vn{data(0)%name} then
-the corresponding lattice element name will be used. For example, 
-\begin{example}
-  var(0)%name = "*[x-orbit]"
-\end{example}
-will generate datum names with the lattice element name followed by 
-the string \vn{"[x-orbit]"}.
 
 \index{data!data_type}
 If \vn{data(j)%data_type} is not given, and \vni{default_data_type} is

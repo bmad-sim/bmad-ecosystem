@@ -22,7 +22,6 @@ type tao_d1_data_input
 end type
 
 type tao_data_input
-  character(40) :: name
   character(40) :: data_type
   character(40) :: ele0_name
   character(40) :: ele_name
@@ -34,6 +33,7 @@ type tao_data_input
   integer ix_bunch
   real(rp) :: data_noise ! not used by most data types
   real(rp) :: scale_error ! not used by most data types
+  character(40) :: name
 end type
 
 !-------------------------------------------------------------
@@ -44,7 +44,6 @@ type tao_v1_var_input
 end type
 
 type tao_var_input
-  character(40) :: name
   character(40) :: ele_name
   character(40) attribute       ! attribute to vary
   character(16) universe
@@ -54,6 +53,7 @@ type tao_var_input
   real(rp) high_lim
   character(40) :: merit_type
   logical :: good_user
+  character(40) :: name
 end type
 
 !-------------------------------------------------------------

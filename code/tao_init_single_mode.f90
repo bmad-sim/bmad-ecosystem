@@ -85,9 +85,6 @@ subroutine tao_init_single_mode (single_mode_file)
     write (name, *) i
     call string_trim (name, name, ix)
     n = i + n1 - 1
-    s%var(n)%name        = trim(key(i)%ele_name) // '[' // &
-                                      trim(key(i)%attrib_name) // ']'
-    s%var(n)%alias       = name
     s%var(n)%ele_name    = key(i)%ele_name
     s%var(n)%attrib_name = key(i)%attrib_name
     s%var(n)%weight      = key(i)%weight

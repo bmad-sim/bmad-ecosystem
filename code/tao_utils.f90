@@ -2533,6 +2533,36 @@ end function
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
+! Function tao_var_attrib_name(var) result (var_attrib_name)
+!
+! Function to return the variable name in the form:
+!   element[attribute]
+! For example:
+!   Q03W[k1]
+!
+! Input:
+!   var -- Tao_var_struct: Variable
+!
+! Output:
+!   var_attrib_name -- Character(60): Appropriate name.
+!-
+
+function tao_var_attrib_name(var) result (var_attrib_name)
+
+implicit none
+
+type (tao_var_struct) var
+character(60) var_attrib_name
+
+!
+
+write (var_attrib_name, '(2a, i0, a)') trim(var%ele_name), '[', var%attrib_name, ']'
+
+end function
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
 ! Function tao_datum_name (datum) result (datum_name)
 !
 ! Function to return the datum name in the form:
@@ -2555,11 +2585,11 @@ type (tao_data_struct) datum
 character(60) datum_name
 
 ! If this datum is "isolated". That is, it does not have an associated d1_data 
-! structure then just use it's name.
+! structure then just use it's data_type.
 ! This can happen if the datum is derived from a curve.
 
 if (.not. associated(datum%d1)) then
-  datum_name = datum%name
+  datum_name = datum%data_type
 else
   write (datum_name, '(4a, i0, a)') &
       trim(datum%d1%d2%name), '.', trim(datum%d1%name), '[', datum%ix_d1, ']'

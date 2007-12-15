@@ -116,7 +116,7 @@ do i = 1, size(s%var)
     if (.not. attribute_free (this%ix_ele, ix_attrib, u%model%lat)) then
       call out_io (s_abort$, r_name, &
                 'Error: Variable trying to control an attribute that is not free to vary.', &
-                '       Variable:  ' // var_ptr%name, &
+                '       Variable:  ' // tao_var1_name(var_ptr), &
                 '       Element:   ' // var_ptr%ele_name, &
                 '       Attribute: ' // var_ptr%attrib_name)
       call err_exit

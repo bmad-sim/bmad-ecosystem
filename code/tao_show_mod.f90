@@ -339,7 +339,6 @@ case ('data')
     if (size(s%u) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d_ptr%d1%d2%ix_uni
     endif
-    nl=nl+1; write(lines(nl), amt)  '%name              = ', d_ptr%name
     nl=nl+1; write(lines(nl), amt)  '%ele0_name         = ', d_ptr%ele0_name
     nl=nl+1; write(lines(nl), amt)  '%ele_name          = ', d_ptr%ele_name
     nl=nl+1; write(lines(nl), amt)  '%data_type         = ', d_ptr%data_type
@@ -398,7 +397,7 @@ case ('data')
       if (.not. d_ptr%exists) cycle
       if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
       nl=nl+1; write(lines(nl), '(i5, 2x, a20, 3es14.4, 2l6)') d_ptr%ix_d1, &
-                     d_ptr%name, d_ptr%meas_value, d_ptr%model_value, &
+                     d_ptr%data_type, d_ptr%meas_value, d_ptr%model_value, &
                      d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
     enddo
 
@@ -1322,8 +1321,8 @@ case ('variable')
         if (s%var(i)%this(j)%ix_uni == ix_u) found = .true.
       enddo
       if (.not. found) cycle
-      nam = tao_var1_name(s%var(i))
-      nl=nl+1; write(lines(nl), '(5x, a, a40)') nam(1:25), s%var(i)%name
+      nl=nl+1; write(lines(nl), '(5x, a25, a40)') tao_var1_name(s%var(i)), &
+                                                      tao_var_attrib_name(s%var(i))
     enddo
     call out_io (s_blank$, r_name, lines(1:nl))
     return
@@ -1367,9 +1366,6 @@ case ('variable')
 
     v_ptr => v_array(1)%v
 
-    nl=nl+1; write(lines(nl), amt)  'Name          = ', v_ptr%name        
-    nl=nl+1; write(lines(nl), amt)  'Alias         = ', v_ptr%alias       
-    nl=nl+1; write(lines(nl), amt)  'Ele_name      = ', v_ptr%ele_name    
     nl=nl+1; write(lines(nl), amt)  'Attrib_name   = ', v_ptr%attrib_name 
     nl=nl+1; write(lines(nl), imt)  'Ix_var        = ', v_ptr%ix_var
     nl=nl+1; write(lines(nl), imt)  'Ix_dvar       = ', v_ptr%ix_dvar           
@@ -1428,7 +1424,7 @@ case ('variable')
     do i = 1, size(v_array)
       v_ptr => v_array(i)%v
       if (.not. v_ptr%exists) cycle
-      nc = max(nc, len_trim(v_ptr%name))
+      nc = max(nc, len_trim(tao_var_attrib_name(v_ptr)))
     enddo
 
     write(lines(1), '(2a)') 'Variable name:  ', v1_ptr%name
@@ -1443,7 +1439,7 @@ case ('variable')
       if (.not. v_ptr%exists) cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
       nl=nl+1
-      write(lines(nl), '(i6, 2x, a)') v_ptr%ix_v1, v_ptr%name
+      write(lines(nl), '(i6, 2x, a)') v_ptr%ix_v1, tao_var_attrib_name(v_ptr)
       write(lines(nl)(nc+9:), '(3es14.4, 7x, l)') v_ptr%meas_value, &
                  v_ptr%model_value, v_ptr%design_value, v_ptr%useit_opt
     enddo

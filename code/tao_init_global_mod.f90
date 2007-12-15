@@ -725,7 +725,6 @@ integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 
 integer i_d1, num_hashes
 
-character(20) count_name1, count_name2, ix_char
 character(40) search_string, d2_d1_name
 character(20) fmt
 
@@ -924,42 +923,6 @@ if (d2_data%name .eq. "bpm" .or. d2_data%name .eq. "wire") then
   enddo
 endif                   
 
-! Create data names
-! are we counting elements and forming data names?
-
-if (data(0)%name(1:6) == 'COUNT:') then
-  call form_count_name (data(0)%name(7:), num_hashes, count_name1, count_name2)
-  jj = ix1
-  do j = n1, n2
-    if (jj .gt. ix2) then
-      call out_io (s_abort$, r_name, "INTERNAL ERROR IN ELEMENT COUNTING")
-      call err_exit
-    endif
-    write(fmt, '(a,i0,a,i0,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
-    write(u%data(j)%name, fmt) trim(count_name1), jj, trim(count_name2)
-    jj = jj + 1
-  enddo
-
-elseif (data(0)%name(1:5) == 'SAME:') then
-  call string_trim (data(0)%name(6:), name, ix)
-  call tao_find_data (err, name, d1_ptr = d1_ptr, ix_uni = u%ix_uni)
-  if (err) then
-    call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
-    call err_exit
-  endif
-  n2 = n1 + size(d1_ptr%d) - 1
-  u%data(n1:n2)%name = d1_ptr%d%name
-elseif (index(data(0)%name, '*') /= 0) then
-  ix = index(data(0)%name, '*')
-  do j = n1, n2
-    u%data(j)%name = data(0)%name(1:ix-1) // &
-                  trim(u%data(j)%ele_name) // trim(data(0)%name(ix+1:))
-  enddo
-else
-  u%data(n1:n2)%name = data(ix1:ix2)%name
-endif
-
-
 ! now for some family guidance...
 ! point the children to the grandchildren in the big data array
 
@@ -1006,35 +969,6 @@ do j = n1, n2
 enddo
 
 end subroutine d1_data_stuffit
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-!
-! this forms the name used in the variable or data where the number of hashes is
-! replaced by the element index
-
-subroutine form_count_name (count_name, num_hashes, count_name1, count_name2)
-
-implicit none
-
-character(*) count_name, count_name1, count_name2
-integer num_hashes, ix
-
-
-! 'COUNT:' is 6 characters long
-call string_trim (count_name, count_name1, ix)
-ix = index (count_name1, '#')
-if (ix == 0) then
-  call out_io (s_abort$, r_name, &
-        "WHEN USING 'COUNT:' MUST HAVE '#' WILDCARD IN NAME")
-  call err_exit
-endif
-call tao_count_strings (count_name1, '#', num_hashes)
-count_name2 = count_name1(ix+num_hashes:)
-count_name1 = count_name1(:ix-1) 
-
-end subroutine form_count_name
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
@@ -1358,7 +1292,6 @@ subroutine var_stuffit_init (v1_var_ptr)
 
 type (tao_v1_var_struct), pointer :: v1_var_ptr
 
-character(20) count_name1, count_name2, ix_char
 character(20) fmt
 character(40) search_string
 
@@ -1441,7 +1374,6 @@ else
   s%n_var_used = n2
  
   s%var(n1:n2)%ele_name    = var(ix1:ix2)%ele_name
-  s%var(n1:n2)%name        = var(ix1:ix2)%name
   s%var(n1:n2)%good_user   = var(ix1:ix2)%good_user
   s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
 
@@ -1463,29 +1395,6 @@ else
   where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
 endif
  
-! If counting...
-
-if (var(0)%name(1:6) == 'COUNT:') then
-  call form_count_name (var(0)%name(7:), num_hashes, count_name1, count_name2)
-  ! Create var names
-  jj = ix1
-  do j = n1, n2
-    if (jj .gt. ix2) then
-      call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
-      call err_exit
-    endif
-    write(fmt, '(a,i0,a,i0,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
-    write(s%var(j)%name, fmt) trim(count_name1), jj, trim(count_name2)
-    jj = jj + 1
-  enddo
-elseif (index(var(0)%name, '*') /= 0) then
-  ix  = index(var(0)%name, '*')
-  do j = n1, n2
-    s%var(j)%name = var(0)%name(1:ix-1) // &
-                              trim(s%var(j)%ele_name) // trim(var(0)%name(ix+1:))
-  enddo
-endif
-
 ! now for some family guidance...
 ! point the v1_var mother to the appropriate children in the big data array
 

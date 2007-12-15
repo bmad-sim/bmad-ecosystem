@@ -31,7 +31,7 @@ character(20) :: r_name = 'tao_hook_merit_data'
 
 call out_io (s_error$, r_name, 'THIS ROUTINE SHOULD NOT HAVE BEEN CALLED')
 call out_io (s_error$, r_name, 'MERIT_TYPE NOT RECOGNIZED FOR DATA: ' &
-        // data%name, 'MERIT_TYPE: ' // data%merit_type)
+        // tao_datum_name(data), 'MERIT_TYPE: ' // data%merit_type)
 
 stop
 

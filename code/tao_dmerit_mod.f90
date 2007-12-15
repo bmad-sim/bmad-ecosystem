@@ -121,7 +121,7 @@ do j = 1, s_var_size
 
   nv = s%var(j)%ix_dvar
   if (s%var(j)%step == 0) then
-    call out_io (s_error$, r_name, 'VARIABLE STEP SIZE IS ZERO FOR: ' // s%var(j)%name)
+    call out_io (s_error$, r_name, 'VARIABLE STEP SIZE IS ZERO FOR: ' // tao_var1_name(s%var(j)))
     call err_exit
   endif
   model_value = s%var(j)%model_value
@@ -130,7 +130,7 @@ do j = 1, s_var_size
 
   if (.not. calc_ok) then
     call out_io (s_error$, r_name, &
-         'VARIABLE STEP SIZE IS TOO LARGE FOR: ' // s%var(j)%name, ' ')
+         'VARIABLE STEP SIZE IS TOO LARGE FOR: ' // tao_var1_name(s%var(j)), ' ')
   endif
 
   do i = 1, size(s%u)

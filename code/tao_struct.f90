@@ -220,7 +220,6 @@ end type
 ! A datum is used in the optimization if both %useit_opt & %good_meas are true.
 
 type tao_data_struct
-  character(40) name        ! Datum name. Eg: "X Orbit @ Det 10"
   character(40) ele_name    ! Name of the element in the Lattice corresponding to the datum.
   character(40) ele0_name   ! Name lattice element when there is a range 
   character(40) data_type   ! Type of data: "orbit.x", etc.
@@ -337,8 +336,6 @@ type tao_this_var_struct
 end type  
 
 type tao_var_struct
-  character(40) name        ! Variable name.
-  character(40) alias       ! Short alias name.
   character(40) ele_name    ! Associated lattice element name.
   character(40) attrib_name ! Name of the attribute to vary.
   type (tao_this_var_struct), allocatable :: this(:)
