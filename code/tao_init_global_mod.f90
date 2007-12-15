@@ -992,7 +992,7 @@ do j = n1, n2
   if (data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
   if ((emit_here .and. u%design%lat%param%lattice_type == circular_lattice$) .or. &
-          data_type(1:6)  == 'chrom.' .or. &
+          data_type(1:6)  == 'chrom.' .or. data_type(1:2) == 'i5' .or. &
           data_type(1:13) == 'unstable_ring' .or. &
           data_type(1:17) == 'multi_turn_orbit.') then
     u%data(j)%exists = .true.
