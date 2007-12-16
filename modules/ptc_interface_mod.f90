@@ -2004,8 +2004,12 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
     kick_here = .false.
     if (ele%key == hkicker$ .or. ele%key == vkicker$) then
       hk = 0; vk = 0
-      if (ele%key == hkicker$) hk = ele%value(kick$) / leng
-      if (ele%key == vkicker$) vk = ele%value(kick$) / leng
+      if (ele%key == hkicker$) hk = ele%value(kick$) 
+      if (ele%key == vkicker$) vk = ele%value(kick$) 
+      kick_here = .true.
+    elseif (ele%key == kicker$) then
+      hk = ele%value(hkick$)
+      vk = ele%value(vkick$)
       kick_here = .true.
     elseif (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0) then
       hk = ele%value(hkick$) / leng
