@@ -1462,7 +1462,7 @@ case ('variable')
 case ('-write')
 
   iu = lunget()
-  file_name = s%global%write_file
+  file_name = word(1)
   ix = index(file_name, '*')
   if (ix /= 0) then
     n_write_file = n_write_file + 1
@@ -1473,7 +1473,8 @@ case ('-write')
   call output_direct (iu)  ! tell out_io to write to a file
 
   call out_io (s_blank$, r_name, ' ', 'Tao> show ' // stuff, ' ')
-  call tao_show_cmd (word(1), word(2))  ! recursive
+  call string_trim (word(2), stuff2, ix)
+  call tao_show_cmd (stuff2(1:ix), stuff2(ix+1:))  ! recursive
 
   call output_direct (0)  ! reset to not write to a file
   close (iu)

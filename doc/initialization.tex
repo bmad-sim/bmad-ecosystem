@@ -301,7 +301,7 @@ total number variables used.
 The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{y_axis_plot_dmin}\index{u_view}\index{n_opti_cycles}\index{ix_key_bank}
 \index{n_key_table_max}\index{n_lat_layout_label_rows}\index{phase_units}
-\index{bunch_to_plot}\index{n_curve_pts}\index{random_seed}\index{n_write_file}
+\index{bunch_to_plot}\index{n_curve_pts}\index{random_seed}
 \index{random_engine}\index{random_gauss_converter}
 \index{track_type}\index{prompt_string}\index{Optimization!setting the optimizer}
 \index{default_key_merit_type}\index{write_file}\index{var_limits_on}
@@ -332,7 +332,6 @@ type tao_global_struct
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'              ! optimizer to use.
   character(16) :: default_key_merit_type
-  character(80) :: write_file    = 'tao_show.dat'
   character(16) :: valid_plot_who(10)                ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: var_out_file  = 'var#.out'

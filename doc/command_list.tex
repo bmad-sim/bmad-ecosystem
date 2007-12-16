@@ -816,22 +816,19 @@ Format:
   show universe \{universe_number\}
   show variable \{<var_name> <locations>\}
   show variable <universe_number>@
-  show -write ...
+  show -write <file_name> ...
 \end{example}
 
 \vskip 0.2in 
 \vn{Show} is used to display various information about
 the state of \tao. 
 
-\vn{Show -write} writes to a file as well as
-printing the information at the terminal. The file name is set by
-\vn{global%write_file} which has the default value of
-\vn{tao_show.dat}. Results are appended to the output file when
-\vn{show -write} is used multiple times. If separate files are desired
-then if \vn{global%write_file} has a \vn{*} character in it, a three
-digit number is substituted for the \vn{*}. The value of the number
-starts at \vn{001} and increases by 1 each time \vn{show -write} is
-used.
+\vn{Show -write} writes to a file as well as printing the information
+at the terminal. Results are appended to the output file when \vn{show
+-write} is used multiple times. If separate files are desired then if
+\vn{global%write_file} has a \vn{*} character in it, a three digit
+number is substituted for the \vn{*}. The value of the number starts
+at \vn{001} and increases by 1 each time \vn{show -write} is used.
 
 \begin{description}
   \item[show alias]
