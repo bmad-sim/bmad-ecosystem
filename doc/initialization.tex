@@ -74,7 +74,7 @@ is the name of the element.  The wild-card character \vn{'*'} will match
 to any number of characters and \vn{`\%'} matches to any
 single character.  For example
 \begin{example}
-  'quadrupole:q*'
+  'quad:q*'
 \end{example}
 will match to all quadrupole elements whose name starts with a
 \vn{'q'}. If there is no \vn{':'} in the name then this is equivalent
@@ -744,32 +744,36 @@ format for this is
 \index{var!high_lim}
 \index{var!merit_type}
 \index{var!good_user}
+\index{use_same_lat_eles_as }
+\index{search_for_lat_eles}
 \begin{example}
   &tao_var
-    v1_var%name        = "<var_array_name>"  ! Variable array name.
-    default_universe   = "<integer>"         ! Universe variables belong in.
-    default_attribute  = "<attribute_name>"  ! Attribute to control.
-    default_weight     = <number>            ! Merit_function weight.
-                                             ! default = 0.0
-    default_step       = <number>            ! Small step value.
-                                             ! default = 0.0
-    default_merit_type = "<merit_type>"      ! Sets how the merit is calculated.
-                                             ! default = 'limit'
-    default_low_lim    = <number>            ! Lower variable value limit. 
-                                             ! default = -1e30
-    default_high_lim   = <number>            ! Upper variable value limit. 
-                                             ! default =  1e30
-    ix_min_var         = <integer>           ! Minimum array index.
-    ix_max_var         = <integer>           ! Maximum array index.
-    var(i)%ele_name    = "<ele_name>"        ! Element to be controlled.
-    var(i)%attribute   = "<attrib_name>"     ! Attribute to be controlled.
-    var(i)%universe    = "<integer>"         ! Universe to be controlled.
-    var(i)%weight      = <number>            ! Merit function weight.
-    var(i)%step        = <number>            ! Small step size.
-    var(i)%low_lim     = <number>            ! Lower variable value limit
-    var(i)%high_lim    = <number>            ! Upper variable value limit
-    var(i)%merit_type  = "<merit_type_name>" ! Sets how the merit is calculated.
-    var(i)%good_user   = <logical>           ! Good optimization variable?
+    v1_var%name          = "<var_array_name>"  ! Variable array name.
+    use_same_lat_eles_as = "<d1_name>"         ! Reuse previous element list.
+    search_for_lat_eles  = "<class:name>"      ! Find elements by name.
+    default_universe     = "<integer>"         ! Universe variables belong in.
+    default_attribute    = "<attribute_name>"  ! Attribute to control.
+    default_weight       = <number>            ! Merit_function weight.
+                                               ! default = 0.0
+    default_step         = <number>            ! Small step value.
+                                               ! default = 0.0
+    default_merit_type   = "<merit_type>"      ! Sets how the merit is calculated.
+                                               ! default = 'limit'
+    default_low_lim      = <number>            ! Lower variable value limit. 
+                                               ! default = -1e30
+    default_high_lim     = <number>            ! Upper variable value limit. 
+                                               ! default =  1e30
+    ix_min_var           = <integer>           ! Minimum array index.
+    ix_max_var           = <integer>           ! Maximum array index.
+    var(i)%ele_name      = "<ele_name>"        ! Element to be controlled.
+    var(i)%attribute     = "<attrib_name>"     ! Attribute to be controlled.
+    var(i)%universe      = "<integer>"         ! Universe to be controlled.
+    var(i)%weight        = <number>            ! Merit function weight.
+    var(i)%step          = <number>            ! Small step size.
+    var(i)%low_lim       = <number>            ! Lower variable value limit
+    var(i)%high_lim      = <number>            ! Upper variable value limit
+    var(i)%merit_type    = "<merit_type_name>" ! Sets how the merit is calculated.
+    var(i)%good_user     = <logical>           ! Good optimization variable?
   /
 \end{example}
 Example:
@@ -860,21 +864,40 @@ Possible values are:
 For details on \vn{limit} and \vn{target} constraints see Chapter~\ref{c:opti}
 on Optimization.
 
+If elements in the \vn{var} array do not exist the corresponding
+\vn{var%ele_name} should be left blank. Lists of names can be reused
+using the syntax:
+\index{use_same_lat_eles_as}
+\begin{example}
+  use_same_lat_eles_as = "<d1_name>"     ! Reuse previous element list.
+\end{example}
+For example:
+\begin{example}
+  &tao_var
+    v1_var%name     = "quad_tilt"  
+    default_attribute = "tilt"
+    ...
+    use_same_lat_eles_as = "quad_k1"
+  /
+\end{example}
+
+\index{search_for_lat_eles}
 Instead of specifying a list of lattice element names for \vn{var(:)%ele_name}, 
 \tao can be told to search for the elements by name using the syntax:
 \begin{example}
-  var(0)%ele_name = "SEARCH: <element class>:<element name>"
+   search_for_lat_eles = "<element class>:<element name>"  
 \end{example}
-\vn{<element class>} is the type of element (quadrupole, sbend, etc.)
-and \vn{<element name>} is the name of the element.  \vn{<element
-class>} or \vn{<element name>} can contain the wildcards \vn{*} and
-\vn{%}. For example, \vn{"SEARCH: QUADRUPOLE:Q*"} would search for all
-quadrupole elements whose name began with the letter "Q". and
-\vn{"SEARCH: *:BPM_\%\%"} would search for all elements whose name
-have exactly 6 letters and whose name begin with the string
-\vn{"BPM_"}.  If \vn{":"} is not present then all element classes are
-searched for. Therefore, for example, \vn{SEARCH: "*:Q*"} is equivalent to
-\vn{"SEARCH: Q*"}.
+\vn{<element class>:<element name>} specifies elements using
+\vn{class:name} format (\sref{s:class:name}. The searching will
+automatically exclude any superposition and multipass slaves elements.
+For example:
+\begin{example}
+  search_for_lat_eles = "sbend:b*
+\end{example}
+will search for all non-lord bend lattice elements whose names begins
+with \vn{"B"} followed by any set of characters.
+\vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be used
+together.
 
 %-----------------------------------------------------------------
 \section{Initializing Data and
@@ -962,26 +985,30 @@ structure. For each \vn{n_d1_data} structure there must be a
 \index{data!data_noise}
 \index{data!good_user}
 \index{data!ix_bunch}
+\index{use_same_lat_eles_as }
+\index{search_for_lat_eles}
 \begin{example}
   &tao_d1_data
-    ix_d1_data          = <integer>      ! d1_data index
-    d1_data%name        = "<d1_name>"    ! d1_data name.
-    default_data_type   = <type_name>    ! Eg: orbit.x, e_tot, etc...
-    default_weight      = <number>       ! Merit function weight. Default = 0.0
-    default_data_source = "<source>"     ! "lattice", or "beam". Default is "lattice".
-    ix_min_data         = <integer>      ! Minimum array index.
-    ix_max_data         = <integer>      ! Maximum array index.
-    data(j)%data_type   = "<type_name>"  ! Eg: "orbit.x", etc.
-    data(j)%ele_name    = "<ele_name>"   ! Lattice element names.
-    data(j)%ele0_name   = "<ele0_name>"  ! Reference lattice element names.
-    data(j)%merit_type  = "<merit_type>" ! Sets how the merit is calculated.
-    data(j)%meas        = "<number>"     ! Datum "measured" value
-    data(j)%weight      = "<weight>"     ! Merit function weight.
-    data(j)%data_noise  = <number"       ! RMS data noise
-    data(j)%scale_error = <number"       ! RMS scale erorr
-    data(j)%good_user   = Logical        ! Use for optimization and plotting?
-    data(j)%data_source = "<source>"     ! "lattice", or "beam"
-    data(j)%ix_bunch    = <integer>      ! Bunch index. Default = 0 (all bunches).
+    ix_d1_data           = <integer>      ! d1_data index
+    use_same_lat_eles_as = "<d1_name>"    ! Reuse previous element list.
+    search_for_lat_eles  = "<class:name>" ! Find elements by name.
+    d1_data%name         = "<d1_name>"    ! d1_data name.
+    default_data_type    = <type_name>    ! Eg: orbit.x, e_tot, etc...
+    default_weight       = <number>       ! Merit function weight. Default = 0.0
+    default_data_source  = "<source>"     ! "lattice", or "beam". Default is "lattice".
+    ix_min_data          = <integer>      ! Minimum array index.
+    ix_max_data          = <integer>      ! Maximum array index.
+    data(j)%data_type    = "<type_name>"  ! Eg: "orbit.x", etc.
+    data(j)%ele_name     = "<ele_name>"   ! Lattice element names.
+    data(j)%ele0_name    = "<ele0_name>"  ! Reference lattice element names.
+    data(j)%merit_type   = "<merit_type>" ! Sets how the merit is calculated.
+    data(j)%meas         = "<number>"     ! Datum "measured" value
+    data(j)%weight       = "<weight>"     ! Merit function weight.
+    data(j)%data_noise   = <number"       ! RMS data noise
+    data(j)%scale_error  = <number"       ! RMS scale erorr
+    data(j)%good_user    = Logical        ! Use for optimization and plotting?
+    data(j)%data_source  = "<source>"     ! "lattice", or "beam"
+    data(j)%ix_bunch     = <integer>      ! Bunch index. Default = 0 (all bunches).
   /
 \end{example}
 For example:
@@ -1058,12 +1085,12 @@ component. Possibilities are:
 bunch that the data is extracted from can be specified via \vn{data(:)%ix_bunch}.
 The default is \vn{0} which combines all the bunches for the datum calculation.
 
-If elements in the \vn{data} array do not exist the
-corresponding \vn{data%ele_name} should be left
-blank. Lists of names can be reused using the syntax:
-\index{SAME:}
+If elements in the \vn{data} array do not exist the corresponding
+\vn{data%ele_name} should be left blank. Lists of names can be reused
+using the syntax:
+\index{use_same_lat_eles_as}
 \begin{example}
-  data(0)%ele_name = "SAME: <d2_name.d1_name>"
+  use_same_lat_eles_as = "<d1_name>"     ! Reuse previous element list.
 \end{example}
 For example:
 \begin{example}
@@ -1071,38 +1098,33 @@ For example:
     ix_d1_data       = 2
     d1_data%name     = "y"  
     ...
-    data(0)%ele_name = "SAME: orbit.x"
+    use_same_lat_eles_as = "orbit.x"
   /
 \end{example}
 
+\index{search_for_lat_eles}
 \tao can search for the elements in the lattice to be associated with 
 each data type by using the syntax:
 \begin{example}
-  data(0)%ele_name = "SEARCH: <element class>:<element name>"
-  data(0)%ele0_name = "<restriction>"
+   search_for_lat_eles = "{<restriction>} <element class>:<element name>"
 \end{example}
-\vn{<element class>} is the type of element (quadrupole, sbend, etc.)
-and \vn{<element name>} is the name of the element.  \vn{<element
-class>} or \vn{<element name>} can contain the wildcards \vn{*} and
-\vn{%}.  \vn{restriction} is used to restrict the counting of lord or
-slave elements. The possible choices for \vn{restriction} are:
+\vn{<element class>:<element name>} specifies elements using
+\vn{class:name} format (\sref{s:class:name}. \vn{restriction}, if
+present, is used to restrict the counting of lord or slave
+elements. The possible choices for \vn{restriction} are:
 \begin{example}
-  "no_lords"        ! All group, overlay, and girder elements excluded.
-  "no_slaves"       ! No superposition or multipass slave elements. 
-  " "               ! No restrictions (Default).
+  "-no_lords"        ! All group, overlay, and girder elements excluded.
+  "-no_slaves"       ! No superposition or multipass slave elements. 
+  " "                ! No restrictions (Default).
 \end{example}
 For example:
-\index{SEARCH}
 \begin{example}
-    data(0)%ele_name = "SEARCH: MONITOR:BPM*"
+  search_for_lat_eles = "-no_lords sbend:b*
 \end{example}
-will search for all monitor lattice elements whose names begins with
-\vn{"BPM"} followed by any set of characters. Similarly, \vn{"SEARCH:
-*:AB\%"} will match to all elements whose names have three characters
-starting with the letters \vn{"AB"}. If \vn{":"} is not present then
-all element classes are searched for. Therefore, for example,
-\vn{"SEARCH: *:Q*"} is equivalent to \vn{"SEARCH: Q*"}.
-
+will search for all non-lord bend lattice elements whose names begins
+with \vn{"B"} followed by any set of characters.
+\vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be used
+together.
 
 \index{data!data_type}
 If \vn{data(j)%data_type} is not given, and \vni{default_data_type} is

@@ -62,9 +62,7 @@
   ix_d1_data = 2
   d1_data%name = "y"  
   default_weight = 1e6
-  ix_min_data = 0 
-  ix_max_data = 99  
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 !---------------------------------------------------
@@ -79,18 +77,14 @@
   ix_d1_data = 1
   d1_data%name = "a"  
   default_weight = 1e6
-  ix_min_data = 0 
-  ix_max_data = 99  
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 &tao_d1_data
   ix_d1_data = 2
   d1_data%name = "b"  
   default_weight = 1e6
-  ix_min_data = 0 
-  ix_max_data = 99  
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 
@@ -106,18 +100,14 @@
   ix_d1_data = 1
   d1_data%name = "x"  
   default_weight = 0
-  ix_min_data = 0 
-  ix_max_data = 99  
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 &tao_d1_data
   ix_d1_data = 2
   d1_data%name = "y"  
   default_weight = 200
-  ix_min_data = 0 
-  ix_max_data = 99  
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 !---------------------------------------------------
@@ -132,18 +122,14 @@
   ix_d1_data = 1
   d1_data%name = "a"  
   default_weight = 1
-  ix_min_data = 0 
-  ix_max_data = 99  
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 &tao_d1_data
   ix_d1_data = 2
   d1_data%name = "b"  
   default_weight = 1
-  ix_min_data = 0 
-  ix_max_data = 99  
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 !---------------------------------------------------
@@ -158,36 +144,28 @@
   ix_d1_data = 1
   d1_data%name = "11"
   default_weight = 1e3
-  ix_min_data = 0
-  ix_max_data = 99
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 &tao_d1_data
   ix_d1_data = 2
   d1_data%name = "12"
   default_weight = 1e3
-  ix_min_data = 0
-  ix_max_data = 99
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 &tao_d1_data
   ix_d1_data = 3
   d1_data%name = "21"
   default_weight = 1e3
-  ix_min_data = 0
-  ix_max_data = 99
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 &tao_d1_data
 	ix_d1_data = 4
   d1_data%name = "22"
   default_weight = 1e3
-  ix_min_data = 0
-  ix_max_data = 99
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 !---------------------------------------------------
@@ -202,36 +180,28 @@
   ix_d1_data = 1
   d1_data%name = "11b"  
   default_weight = 1e3
-  ix_min_data = 0 
-  ix_max_data = 99  
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 &tao_d1_data
   ix_d1_data = 2
   d1_data%name = "12a"  
   default_weight = 1e3
-  ix_min_data = 0 
-  ix_max_data = 99  
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 &tao_d1_data
   ix_d1_data = 3
   d1_data%name = "12b"  
   default_weight = 1e3
-  ix_min_data = 0 
-  ix_max_data = 99  
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 &tao_d1_data
   ix_d1_data = 4
   d1_data%name = "22a"  
   default_weight = 1e3
-  ix_min_data = 0 
-  ix_max_data = 99  
-  data(0)%ele_name = "SAME: orbit.x"
+  use_same_lat_eles_as = "orbit.x"
 /
 
 !------------------------------------------------------------------------

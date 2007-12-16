@@ -2556,7 +2556,7 @@ character(60) var_attrib_name
 
 !
 
-write (var_attrib_name, '(2a, i0, a)') trim(var%ele_name), '[', var%attrib_name, ']'
+write (var_attrib_name, '(4a)') trim(var%ele_name), '[', trim(var%attrib_name), ']'
 
 end function
 

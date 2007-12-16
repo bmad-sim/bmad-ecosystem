@@ -168,18 +168,14 @@ declarations section
     ix_d1_data = 1
     d1_data%name = "x"  
     default_weight = 1
-    ix_min_data = 0 
-    ix_max_data = 99  
-    data(0)%ele_name = "SAME: orbit.x"
+    use_same_lat_eles_as = 'orbit.x"
   /
 
   &tao_d1_data
     ix_d1_data = 2
     d1_data%name = "y"  
     default_weight = 1
-    ix_min_data = 0 
-    ix_max_data = 99  
-    data(0)%ele_name = "SAME: orbit.x"
+    use_same_lat_eles_as = 'orbit.x"
   /
 \end{example}
 and increase \vn{n_d2_data_max} to 7 in the \vn{tao_params} declaration.

@@ -66,6 +66,8 @@ character(40) :: r_name = 'tao_init_global_and_universes'
 character(200) file_name, beam0_file, beam_all_file
 character(40) name,  universe, default_universe, default_data_type
 character(40) default_merit_type, default_attribute, data_type, default_data_source
+character(40) use_same_lat_eles_as, search_for_lat_eles
+
 character(60) save_beam_at(100)
 character(100) line
 
@@ -85,14 +87,16 @@ namelist / tao_beam_init / ix_universe, beam0_file, &
 namelist / tao_macro_init / ix_universe, macro_init
          
 namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe, &
-                          default_data_noise, default_scale_error
+                  default_data_noise, default_scale_error
   
-namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, &
-                     ix_max_data, default_weight, default_data_type, default_data_source
+namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
+                   default_weight, default_data_type, default_data_source, &
+                   use_same_lat_eles_as, search_for_lat_eles
                      
 namelist / tao_var / v1_var, var, default_weight, default_step, &
                     ix_min_var, ix_max_var, default_universe, default_attribute, &
-                    default_low_lim, default_high_lim, default_merit_type
+                    default_low_lim, default_high_lim, default_merit_type, &
+                    use_same_lat_eles_as, search_for_lat_eles
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -353,10 +357,11 @@ allocate (mask(size(s%u)))
       
 do 
   mask(:) = .true.      ! set defaults
-  d2_data%name = ''
-  universe = '*'
+  d2_data%name       = ''
+  universe           = '*'
   default_merit_type = 'target'
   default_data_noise = 0.0
+
   read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
   if (ios < 0) exit         ! exit on end-of-file
   call out_io (s_blank$, r_name, &
@@ -392,6 +397,8 @@ do
   endif
 
   do k = 1, n_d1_data
+    use_same_lat_eles_as = ''
+    search_for_lat_eles  = ''
     d1_data%name        = ''
     default_weight      = 0      ! set default
     default_data_type   = ''
@@ -411,7 +418,19 @@ do
     data(:)%good_user   = .true.
     ix_min_data         = int_garbage$
     ix_max_data         = int_garbage$
+
     read (iu, nml = tao_d1_data, err = 9150)
+
+    ! Convert old format to new
+
+    if (data(0)%ele_name(1:7) == 'SEARCH:') then
+      call string_trim(data(0)%ele_name(8:), search_for_lat_eles, ix)
+    elseif (data(0)%ele_name(1:5) == 'SAME:') then
+      call string_trim (data(0)%ele_name(6:), use_same_lat_eles_as, ix)
+    endif
+
+    ! Check that we read the correct namelist
+
     if (ix_d1_data /= k) then
       write (line, '(a, 2i4)') ', k, ix_d1_data'
       call out_io (s_abort$, r_name, &
@@ -460,31 +479,44 @@ call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
 allocate (dflt_good_unis(size(s%u)), good_unis(size(s%u)))
 
 do
-  v1_var%name = " "         ! set default
+  use_same_lat_eles_as = ''
+  search_for_lat_eles  = ''
+  v1_var%name        = " "         ! set default
   default_merit_type = 'limit'
-  default_weight = 0     ! set default
-  default_step = 0       ! set default
-  default_attribute = ''
-  default_universe = ''
-  default_low_lim = -1e30
-  default_high_lim = 1e30
-  ix_min_var = 1
-  var%name = ''
-  var%ele_name = ''
-  var%merit_type = ''
-  var%weight = 0         ! set default
-  var%step = 0           ! set default
-  var%attribute = ''
-  var%universe = ''
-  var%low_lim = default_low_lim
-  var%high_lim = default_high_lim
-  var%good_user = .true.
+  default_weight     = 0     ! set default
+  default_step       = 0       ! set default
+  default_attribute  = ''
+  default_universe   = ''
+  default_low_lim    = -1e30
+  default_high_lim   = 1e30
+  ix_min_var         = 1
+  var%name           = ''
+  var%ele_name       = ''
+  var%merit_type     = ''
+  var%weight         = 0         ! set default
+  var%step           = 0         ! set default
+  var%attribute      = ''
+  var%universe       = ''
+  var%low_lim        = default_low_lim
+  var%high_lim       = default_high_lim
+  var%good_user      = .true.
 
   read (iu, nml = tao_var, iostat = ios, err = 9200)
   if (ios < 0) exit         ! exit on end-of-file
   call out_io (s_blank$, r_name, &
                         'Init: Read tao_var namelist: ' // v1_var%name)
   call str_upcase (default_attribute, default_attribute)
+
+  ! Convert old format to new
+
+  if (var(0)%ele_name(1:7) == 'SEARCH:') then
+    call string_trim(var(0)%ele_name(8:), search_for_lat_eles, ix)
+  elseif (var(0)%ele_name(1:5) == 'SAME:') then
+    call string_trim (var(0)%ele_name(6:), use_same_lat_eles_as, ix)
+  endif
+
+  ! Convert to upper case.
+
   do i = lbound(var, 1), ubound(var, 1)
     call str_upcase (var(i)%attribute, var(i)%attribute)
     call str_upcase (var(i)%ele_name, var(i)%ele_name)
@@ -522,7 +554,7 @@ do
   ! Set up variable lists
 
   if (gang) then
-    call var_stuffit_init (v1_var_ptr)
+    call var_stuffit1 (v1_var_ptr)
     do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
 
       ! Find which universes
@@ -547,19 +579,19 @@ do
         call err_exit
       endif
 
-      call var_stuffit (good_unis, v1_var_ptr%v(j), searching)
+      call var_stuffit2 (good_unis, v1_var_ptr%v(j), searching)
 
     enddo
 
   else   ! If clone...
     do i = 1, size(s%u)
       if (.not. dflt_good_unis(i)) cycle
-      call var_stuffit_init (v1_var_ptr)
+      call var_stuffit1 (v1_var_ptr)
       write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
       good_unis = .false.
       good_unis(i) = .true.
       do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
-        call var_stuffit (good_unis, v1_var_ptr%v(j), searching)
+        call var_stuffit2 (good_unis, v1_var_ptr%v(j), searching)
       enddo
     enddo
   endif
@@ -745,9 +777,8 @@ d2_d1_name = u%d2_data(n_d2)%name // '.' // u%d2_data(n_d2)%d1(i_d1)%name
 ! Check if we are searching for elements or repeating elements
 ! and record the element names in the data structs.
     
-if (data(0)%ele_name(1:7) == 'SEARCH:') then
-  call string_trim(data(0)%ele_name(8:), search_string, ix)
-  call tao_find_elements (u, search_string, data(0)%ele0_name, matched_ele)
+if (search_for_lat_eles /= '') then
+  call tao_find_elements (u, search_for_lat_eles, matched_ele)
   if (count(matched_ele) == 0) then
     call out_io (s_warn$, r_name, &
       'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_string, &
@@ -780,12 +811,16 @@ if (data(0)%ele_name(1:7) == 'SEARCH:') then
     jj = jj + 1
   enddo
 
-  u%data(n1:n2)%data_source = data(0)%data_source
+  u%data(n1:n2)%good_user   = data(ix1:ix2)%good_user
+  u%data(n1:n2)%weight      = data(ix1:ix2)%weight
+  u%data(n1:n2)%ele0_name   = data(ix1:ix2)%ele0_name
+  u%data(n1:n2)%ix_bunch    = data(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_source = data(ix1:ix2)%data_source
 
-! SAME:
+! use_same_lat_eles_as
 
-elseif (data(0)%ele_name(1:5) == 'SAME:') then
-  call string_trim (data(0)%ele_name(6:), name, ix)
+elseif (use_same_lat_eles_as /= '') then
+  call string_trim (use_same_lat_eles_as, name, ix)
   call tao_find_data (err, name, d1_ptr = d1_ptr, ix_uni = u%ix_uni)
   if (err .or. .not. associated(d1_ptr)) then
     call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
@@ -1288,14 +1323,15 @@ end subroutine init_ix_data
 !
 ! stuff common to all universes
 
-subroutine var_stuffit_init (v1_var_ptr)
+subroutine var_stuffit1 (v1_var_ptr)
 
 type (tao_v1_var_struct), pointer :: v1_var_ptr
+type (tao_v1_var_struct), pointer :: v1_ptr
 
 character(20) fmt
-character(40) search_string
+character(60) search_string
 
-integer i, iu, j, jj, k, nn, n1, n2, ix1, ix2, num_hashes, ix
+integer i, iu, ip, j, jj, k, nn, n1, n2, ix1, ix2, num_hashes, ix
 integer num_ele, ios, ixx1, ixx2
 
 logical, allocatable :: matched_ele(:)
@@ -1307,10 +1343,74 @@ nn = s%n_v1_var_used
 v1_var_ptr => s%v1_var(nn)
 v1_var_ptr%name = v1_var%name
 
-! are we searching for and counting elements?
+! If reusing a previous element list...
 
-if (var(0)%ele_name(1:7) == 'SEARCH:') then
+if (use_same_lat_eles_as /= '') then
+  call string_trim (use_same_lat_eles_as, name, ix)
+  call tao_find_var (err, name, v1_ptr = v1_ptr)
+  if (err .or. .not. associated(v1_ptr)) then
+    call out_io (s_abort$, r_name, 'CANNOT MATCH "USE_SAME_LAT_ELES_AS": ' // name)
+    call err_exit
+  endif
+  n1 = s%n_var_used + 1
+  n2 = s%n_var_used + size(v1_ptr%v)
+  s%n_var_used = n2
+  ix_min_var = lbound(v1_ptr%v, 1)
+  ix1 = ix_min_var
+  ix2 = ix1 + (n2 - n1)
+  if (n2 > size(s%var)) then
+    call out_io (s_abort$, r_name, &
+                'N_VAR_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
+    call err_exit
+  endif
+
+  s%var(n1:n2)%ele_name    = v1_ptr%v%ele_name
+  s%var(n1:n2)%s           = v1_ptr%v%s
+  s%var(n1:n2)%ix          = v1_ptr%v%ix
+
+  do n = n1, n2
+    ix = ix1 + (n - n1)
+    ip = 1 + (n - n1) 
+
+    s%var(n)%good_user   = var(ix)%good_user
+
+    s%var(n)%attrib_name = v1_ptr%v(ip)%attrib_name
+    if (default_attribute /= '') s%var(n)%attrib_name = default_attribute
+    if (var(ix)%attribute /= '') s%var(n)%attrib_name = var(ix)%attribute
+
+    s%var(n)%weight = v1_ptr%v(ip)%weight
+    if (default_weight /= 0) s%var(n)%weight = default_weight
+    if (var(ix)%weight /= 0) s%var(n)%weight = var(ix)%weight
+
+    s%var(n)%step = v1_ptr%v(ip)%step
+    if (default_step /= 0) s%var(n)%step = default_step
+    if (var(ix)%step /= 0) s%var(n)%step = var(ix)%step
+
+    s%var(n)%merit_type = v1_ptr%v(ip)%merit_type
+    if (default_merit_type /= '') s%var(n)%merit_type = default_merit_type
+    if (var(ix)%merit_type /= '') s%var(n)%merit_type = var(ix)%merit_type
+
+    s%var(n)%low_lim = v1_ptr%v(ip)%low_lim
+    if (default_low_lim /= -1e30) s%var(n)%low_lim = default_low_lim
+    if (var(ix)%low_lim /= -1e30) s%var(n)%low_lim = var(ix)%low_lim
+
+    s%var(n)%high_lim = v1_ptr%v(ip)%high_lim
+    if (default_high_lim /= 1e30) s%var(n)%high_lim = default_high_lim
+    if (var(ix)%high_lim /= 1e30) s%var(n)%high_lim = var(ix)%high_lim
+
+  enddo
+
+  call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
+  return
+
+endif
+
+!------------------------------
+! are we searching for elements?
+
+if (search_for_lat_eles /= '') then
   searching = .true.
+  search_string = '-no_slaves ' // trim(search_for_lat_eles)
   if (any(var%universe /= '')) then
     call out_io (s_abort$, r_name, &
            "CANNOT SPECIFY INDIVIDUAL UNIVERSES WHEN SEARCHING FOR VARIABLES")
@@ -1320,8 +1420,7 @@ if (var(0)%ele_name(1:7) == 'SEARCH:') then
   num_ele = 0
   do iu = 1, size(s%u)
     if (.not. dflt_good_unis(iu)) cycle
-    call string_trim(var(0)%ele_name(8:), search_string, ix)
-    call tao_find_elements (s%u(iu), search_string, 'no_slaves', matched_ele)
+    call tao_find_elements (s%u(iu), search_string, matched_ele)
     num_ele = num_ele + count(matched_ele)
   enddo
   if (count(matched_ele) == 0) then
@@ -1340,8 +1439,7 @@ if (var(0)%ele_name(1:7) == 'SEARCH:') then
 
   do iu = 1, size(s%u)
     if (.not. dflt_good_unis(iu)) cycle
-    call string_trim(var(0)%ele_name(8:), search_string, ix)
-    call tao_find_elements (s%u(iu), search_string, 'no_slaves', matched_ele)
+    call tao_find_elements (s%u(iu), search_string, matched_ele)
     do k = lbound(matched_ele, 1), ubound(matched_ele, 1)
       if (.not. matched_ele(k)) cycle
       if (jj .gt. n2) then
@@ -1355,14 +1453,8 @@ if (var(0)%ele_name(1:7) == 'SEARCH:') then
     enddo
   enddo
 
-  s%var(n1:n2)%attrib_name = default_attribute
-  s%var(n1:n2)%weight = default_weight
-  s%var(n1:n2)%step = default_step
-  s%var(n1:n2)%merit_type = default_merit_type
-  s%var(n1:n2)%low_lim = default_low_lim
-  s%var(n1:n2)%high_lim = default_high_lim
-
-! If not searching...
+!------------------------------
+! If not searching or reusing...
 
 else  
   searching = .false.
@@ -1372,30 +1464,33 @@ else
   ix2 = ix_max_var
  
   s%n_var_used = n2
- 
+
   s%var(n1:n2)%ele_name    = var(ix1:ix2)%ele_name
-  s%var(n1:n2)%good_user   = var(ix1:ix2)%good_user
-  s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
 
-  where (s%var(n1:n2)%attrib_name == '') s%var(n1:n2)%attrib_name = default_attribute
-
-  s%var(n1:n2)%weight = var(ix1:ix2)%weight
-  where (s%var(n1:n2)%weight == 0) s%var(n1:n2)%weight = default_weight
- 
-  s%var(n1:n2)%step = var(ix1:ix2)%step
-  where (s%var(n1:n2)%step == 0) s%var(n1:n2)%step = default_step
- 
-  s%var(n1:n2)%merit_type = var(ix1:ix2)%merit_type
-  where (s%var(n1:n2)%merit_type == '') s%var(n1:n2)%merit_type = default_merit_type
- 
-  s%var(n1:n2)%low_lim = var(ix1:ix2)%low_lim
-  where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
- 
-  s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
-  where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
 endif
+
+!---------------------------
+
+s%var(n1:n2)%good_user   = var(ix1:ix2)%good_user
+s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
+
+where (s%var(n1:n2)%attrib_name == '') s%var(n1:n2)%attrib_name = default_attribute
+
+s%var(n1:n2)%weight = var(ix1:ix2)%weight
+where (s%var(n1:n2)%weight == 0) s%var(n1:n2)%weight = default_weight
  
-! now for some family guidance...
+s%var(n1:n2)%step = var(ix1:ix2)%step
+where (s%var(n1:n2)%step == 0) s%var(n1:n2)%step = default_step
+ 
+s%var(n1:n2)%merit_type = var(ix1:ix2)%merit_type
+where (s%var(n1:n2)%merit_type == '') s%var(n1:n2)%merit_type = default_merit_type
+ 
+s%var(n1:n2)%low_lim = var(ix1:ix2)%low_lim
+where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
+ 
+s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
+where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
+ 
 ! point the v1_var mother to the appropriate children in the big data array
 
 call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
@@ -1408,12 +1503,13 @@ end subroutine
 !
 ! This searches the lattice for the specified element and flags matched_ele(:)
 
-subroutine tao_find_elements (u, search_string, restriction, matched_ele)
+subroutine tao_find_elements (u, search_string, matched_ele)
 
 type (tao_universe_struct), target :: u
 type (ele_struct), pointer :: ele
 
-character(*) search_string, restriction
+character(*) search_string
+character(80) string
 character(40) ele_name, key_name_in
 integer key, found_key
 
@@ -1427,20 +1523,25 @@ logical no_slaves, no_lords, err
 no_slaves = .false.
 no_lords = .false.
 
-select case (restriction)
-case ('no_lords') 
+call string_trim(search_string, string, ix)
+
+select case (string(1:ix))
+case ('-no_lords') 
   no_lords = .true.
-case ('no_slaves') 
+  call string_trim (string(ix+1:), string, ix)
+case ('-no_slaves') 
   no_slaves = .true.
-case ('') 
+  call string_trim (string(ix+1:), string, ix)
 case default
-  call out_io (s_abort$, r_name, "BAD SEARCH RESTRICTION: " // restriction)
-  call err_exit
+  if (string(1:1) == '-') then
+    call out_io (s_abort$, r_name, "BAD SEARCH RESTRICTION: " // search_string)
+    call err_exit
+  endif
 end select
 
 !
 
-call tao_ele_locations_given_name (u%design%lat, search_string, matched_ele, err)
+call tao_ele_locations_given_name (u%design%lat, string, matched_ele, err)
 
 do j = 1, u%design%lat%n_ele_max
   ele => u%design%lat%ele(j)
@@ -1460,14 +1561,14 @@ end subroutine tao_init_global_and_universes
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 
-subroutine var_stuffit (good_unis, var, searching)
+subroutine var_stuffit2 (good_unis, var, searching)
 
 implicit none
 
 type (tao_var_struct) :: var
 
 integer i, j, n, n1, n2, iu, n_tot, n_ele, ie
-character(20) :: r_name = 'var_stuffit'
+character(20) :: r_name = 'var_stuffit2'
 logical err, searching, good_unis(:)
 
 ! point the children back to the mother
