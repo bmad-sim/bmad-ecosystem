@@ -223,6 +223,24 @@ echo -n "DELETING release ${REL_NAME}..."
 #################################################################
 #  Perform the deletion across all platform archive areas.
 #################################################################
+
+#############################################
+#  Remove all symbolic links associated with this release
+#############################################
+
+for platform in ${PLATFORMS}; do
+    for file in ${LIBS_DIR}${platform}/devel*
+    do
+        if ( [ -L "${file}" ] ) && ( [ $( readlink ${file} ) = ${REL_NAME} ] ) then
+            rm -rf ${file}
+        fi
+    done
+done
+
+#############################################
+#  Now remove everything else
+#############################################
+
 for platform in ${PLATFORMS}; do
     rm -rf /home/cesrulib/cesr_libs/${platform}/${REL_NAME}
 
