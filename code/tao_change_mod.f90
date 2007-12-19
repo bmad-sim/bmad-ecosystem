@@ -28,7 +28,7 @@ subroutine tao_change_var (name, num_str)
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (tao_var_array_struct), allocatable :: v_array(:)
+type (tao_var_array_struct), allocatable, save :: v_array(:)
 type (tao_var_struct), pointer :: var
 
 real(rp) change_number, model_value, old_merit, new_merit, max_val
@@ -180,7 +180,7 @@ character(20) abs_or_rel
 real(rp) new_merit, old_merit, old_value, new_value, delta
 
 integer i, ix, ix_a, nl
-integer, allocatable :: ix_ele(:)
+integer, allocatable, save :: ix_ele(:)
 
 logical err
 

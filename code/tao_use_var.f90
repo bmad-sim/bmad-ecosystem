@@ -17,7 +17,7 @@ implicit none
 character(*) :: action
 character(*) :: var_name
 
-type (tao_var_array_struct), allocatable :: var(:)
+type (tao_var_array_struct), allocatable, save :: var(:)
 
 logical, allocatable :: action_logic(:) !which elements do we take action on?
 

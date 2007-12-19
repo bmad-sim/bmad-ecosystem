@@ -191,7 +191,6 @@ type (tao_data_struct) datum
 type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
 type (normal_modes_struct) mode
-type (taylor_struct), save :: taylor(6)
 type (taylor_struct), optional :: taylor_in(6)
 type (spin_polar_struct) polar
 type (ele_struct), pointer :: ele, ele0
@@ -567,8 +566,12 @@ case ('t.')
     call transfer_map_calc (lat, taylor_in, ix0, ix1, unit_start = .false.)
     datum_value = taylor_coef (taylor_in(i), j, k)
   else
-    call transfer_map_calc (lat, taylor, ix0, ix1)
-    datum_value = taylor_coef (taylor(i), j, k)
+    if (tao_com%ix0_taylor /= ix0 .or. tao_com%ix1_taylor /= ix1) then
+      call transfer_map_calc (lat, tao_com%taylor, ix0, ix1)
+      tao_com%ix0_taylor = ix0
+      tao_com%ix1_taylor = ix1
+    endif
+    datum_value = taylor_coef (tao_com%taylor(i), j, k)
   endif
 
 case ('tt.')
@@ -583,8 +586,12 @@ case ('tt.')
     call transfer_map_calc (lat, taylor_in, ix0, ix1, unit_start = .false.)
     datum_value = taylor_coef (taylor_in(i), expnt)
   else
-    call transfer_map_calc (lat, taylor, ix0, ix1)
-    datum_value = taylor_coef (taylor(i), expnt)
+    if (tao_com%ix0_taylor /= ix0 .or. tao_com%ix1_taylor /= ix1) then
+      call transfer_map_calc (lat, tao_com%taylor, ix0, ix1)
+      tao_com%ix0_taylor = ix0
+      tao_com%ix1_taylor = ix1
+    endif
+    datum_value = taylor_coef (tao_com%taylor(i), expnt)
   endif
 
 case ('floor.x')

@@ -11,7 +11,7 @@ contains
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_calc_params (u, ix_ele)
+! Subroutine tao_calc_params (u, ix_ele, all_lost)
 !
 ! Finds all the lattice and particle parameters at element ix_ele
 !
@@ -30,12 +30,14 @@ contains
 !
 !-
 
-subroutine tao_calc_params (u, ix_ele)
+subroutine tao_calc_params (u, ix_ele, all_lost)
 
 implicit none
 
 type (tao_universe_struct), target :: u
 type (lat_struct), pointer :: lat
+
+logical all_lost
 
 integer ix_ele
 
@@ -51,13 +53,15 @@ endif
 
 !
 
-if (s%global%track_type == "beam") then
-  call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
-                                lat%ele(ix_ele), u%model%bunch_params(ix_ele))
+if (.not. all_lost) then
+  if (s%global%track_type == "beam") then
+    call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
+                                  lat%ele(ix_ele), u%model%bunch_params(ix_ele))
 
-elseif (s%global%track_type == "macro") then
-  call calc_macro_bunch_params (u%macro_beam%beam%bunch(s%global%bunch_to_plot), &
-                                lat%ele(ix_ele), u%macro_beam%params)
+  elseif (s%global%track_type == "macro") then
+    call calc_macro_bunch_params (u%macro_beam%beam%bunch(s%global%bunch_to_plot), &
+                                  lat%ele(ix_ele), u%macro_beam%params)
+  endif
 endif
 
 end subroutine tao_calc_params

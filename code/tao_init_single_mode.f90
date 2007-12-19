@@ -30,7 +30,7 @@ subroutine tao_init_single_mode (single_mode_file)
   character(16) name
 
   logical err
-  logical, allocatable :: unis(:)
+  logical, allocatable, save :: unis(:)
 
   namelist / key_bindings / key
 

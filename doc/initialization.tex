@@ -1357,6 +1357,8 @@ information see the \vn{Quick Plot} documentation on the
   minor_div  ! Number of minor divisions. 0 = auto choose.
   label      ! Axis label.
 \end{example}
+If \vn{min} and \vn{max} are absent, then \tao will autoscale the axis.
+
 
 \vn{plot%name} is the name that is used with \tao commands to identify
 the plot. It is important that this name not contain any blank spaces since
@@ -1396,16 +1398,16 @@ namelists should be placed directly after their respective
     graph%box             = <ix>, <iy>, <ix_tot>, <iy_tot>
     graph%title           = "<label>''
     graph%margin          =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
-    graph%y               = <qp_axis_struct>
-    graph%y2              = <qp_axis_struct>
+    graph%y               = <qp_axis_struct> ! Left axis.
+    graph%y2              = <qp_axis_struct> ! Right axis.
     graph%n_curve         = <number_of_curves>
-    graph%clip            = <logical> ! Clip plot at grpah boundary. default = T
-    graph%draw_axes       = <logical> ! Default = T
+    graph%clip            = <logical>       ! Clip plot at grpah boundary. default = T
+    graph%draw_axes       = <logical>       ! Default = T
     graph%who(i)          = "<who_to_plot>", <sign>
     graph%correct_xy_distortion = <logical>   ! For Floor Plan plots: Default = F
     curve(i)%name         = "<curve_name>"
     curve(i)%data_type    = "<data_type>"
-    curve(i)%data_source  = "<source_name>" !source for the data curve points
+    curve(i)%data_source  = "<source_name>" ! source for the data curve points
     curve(i)%x_axis_scale_factor = <factor> ! scale the x-axis by this.
     curve(i)%y_axis_scale_factor = <factor> ! scale the y-axis by this.
     curve(i)%use_y2       = <logical>       ! Use left-axis scale?

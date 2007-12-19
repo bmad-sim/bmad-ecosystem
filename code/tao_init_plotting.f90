@@ -51,7 +51,7 @@ real(rp) shape_height_max
 
 integer iu, i, j, ix, ip, n, ng, ios, i_uni
 integer graph_index, color
-integer, allocatable :: ix_ele(:)
+integer, allocatable, save :: ix_ele(:)
 
 character(*) plot_file
 character(100) graph_name, file_name

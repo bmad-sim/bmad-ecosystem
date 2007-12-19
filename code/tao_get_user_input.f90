@@ -20,8 +20,8 @@ implicit none
 
 
 integer i, ix, ix2
-integer, save, allocatable :: indx(:), indx_start(:), indx_end(:), indx_step(:) ! for do loops
-integer, save, allocatable :: loop_line_count(:) ! lines in each nested loop
+integer, allocatable, save :: indx(:), indx_start(:), indx_end(:), indx_step(:) ! for do loops
+integer, allocatable, save :: loop_line_count(:) ! lines in each nested loop
 integer, save :: in_loop = 0 ! in loop nest level
 integer ios, n_level
 character(10), save, allocatable :: indx_name(:) ! do loop index name

@@ -922,8 +922,14 @@ logical this_err
 
 ix = index(name, '.')
 if (ix == 0) then
-  d2_name = name
-  d1_name = '*'
+  ix = index(name, '[')
+  if (ix /= 0) then
+    d2_name = name(1:ix-1)
+    d1_name = name(ix:)
+  else
+    d2_name = name
+    d1_name = '*'
+  endif
 else
   d2_name = name(1:ix-1)
   d1_name = name(ix+1:)
@@ -1742,7 +1748,7 @@ implicit none
 
 character(*), intent(in) :: expression
 real(rp) value
-real(rp), allocatable :: vec(:)
+real(rp), allocatable, save :: vec(:)
 logical err_flag
 
 !
@@ -2348,7 +2354,6 @@ end subroutine pushit
 subroutine all_value_routine (str, stack, err_flag)
 
 type (tao_eval_stack_struct) stack
-type (tao_real_array_struct), allocatable :: re_array(:)
 
 integer ios, i, n
 
@@ -2385,7 +2390,7 @@ subroutine tao_param_value_routine (str, value, err_flag)
 
 implicit none
 
-type (tao_real_array_struct), allocatable :: re_array(:)
+type (tao_real_array_struct), allocatable, save :: re_array(:)
 
 real(rp), allocatable :: value(:)
 integer ios, i, n

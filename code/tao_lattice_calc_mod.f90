@@ -21,8 +21,6 @@ type (tao_lattice_struct), pointer :: this_bunch_track_lat ! for save_bunch_trac
 integer, parameter :: design$ = 1
 integer, parameter :: model$ = 2
 
-logical all_lost_already
-
 contains
 
 !------------------------------------------------------------------------------
@@ -77,6 +75,9 @@ initing_design = logic_option (.false., init_design)
 ! do a custom lattice calculation if desired
 
 if (tao_com%lattice_recalc) then
+
+  tao_com%ix0_taylor = -1   ! Reset taylor map
+
   do i = 1, size(s%u)
     u => s%u(i)
     if (.not. u%is_on) cycle
@@ -230,30 +231,30 @@ call tao_load_data_array (s%u(uni), 0)
 
 do i = 0, lat%n_ele_track
 
-  if (i /= 0) then
-    ! if doing linear tracking, first compute transfer matrix
-    if (s%global%matrix_recalc_on .and. lat%ele(i)%tracking_method == linear$) &
-                                             call make_mat6 (lat%ele(i), lat%param) 
+  if (.not. lat%param%lost) then
+    if (i /= 0) then
+      ! if doing linear tracking, first compute transfer matrix
+      if (s%global%matrix_recalc_on .and. lat%ele(i)%tracking_method == linear$) &
+                                               call make_mat6 (lat%ele(i), lat%param) 
 
-    call track1 (tao_lat%orb(i-1), lat%ele(i), lat%param, tao_lat%orb(i))
+      call track1 (tao_lat%orb(i-1), lat%ele(i), lat%param, tao_lat%orb(i))
+    endif
+
+    if (lat%param%lost) then
+      lat%param%ix_lost = i
+      calc_ok = .false.
+      do ii = i+1, lat%n_ele_track
+        tao_lat%orb(ii)%vec = 0
+      enddo
+      call out_io (s_blank$, r_name, &
+              "particle lost at element \I0\: " // lat%ele(i)%name, lat%param%ix_lost)
+    endif
   endif
 
-  if (lat%param%lost) then
-    lat%param%ix_lost = i
-    calc_ok = .false.
-    do ii = i+1, lat%n_ele_track
-      tao_lat%orb(ii)%vec = 0
-    enddo
-    call out_io (s_blank$, r_name, &
-            "particle lost at element \I0\: " // lat%ele(i)%name, lat%param%ix_lost)
-    return
-  endif
-
-  call tao_calc_params (s%u(uni), i)
+  call tao_calc_params (s%u(uni), i, lat%param%lost)
   call tao_load_data_array (s%u(uni), i)
-    
+
 enddo
-  
 
 end subroutine tao_single_track
 
@@ -286,7 +287,7 @@ character(20) :: r_name = "tao_beam_track"
 
 real(rp) :: value1, value2, f
 
-logical post, calc_ok
+logical post, calc_ok, all_lost
 
 ! Initialize moment structure
 
@@ -306,7 +307,7 @@ beam_init => u%beam_init
 lat => tao_lat%lat
 lat%param%ix_lost = not_lost$
 
-all_lost_already = .false.
+all_lost = .false.
 
 ! Find if injecting into another lattice
 
@@ -365,37 +366,41 @@ do j = 0, lat%n_ele_track
 
   ! track to the element and save for phase space plot
 
-  if (tao_com%use_saved_beam_in_tracking) then
-    beam = u%ele(j)%beam
+  if (.not. all_lost) then
 
-  else
-    if (j /= 0) then 
-      ! if doing linear tracking, first compute transfer matrix
-      if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
-             call make_mat6 (lat%ele(j), lat%param) 
-      call track_beam (lat, beam, j-1, j)
+    if (tao_com%use_saved_beam_in_tracking) then
+      beam = u%ele(j)%beam
+
+    else
+      if (j /= 0) then 
+        ! if doing linear tracking, first compute transfer matrix
+        if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
+               call make_mat6 (lat%ele(j), lat%param) 
+        call track_beam (lat, beam, j-1, j)
+      endif
+
+      if (u%ele(j)%save_beam) u%ele(j)%beam = beam
+    endif
+ 
+    ! Save beam at location if injecting into another lattice
+    if (extract_at_ix_ele == j) then
+      s%u(i_uni_to)%connect%injecting_beam = beam
     endif
 
-    if (u%ele(j)%save_beam) u%ele(j)%beam = beam
-  endif
- 
-  ! Save beam at location if injecting into another lattice
-  if (extract_at_ix_ele == j) then
-    s%u(i_uni_to)%connect%injecting_beam = beam
-  endif
+    ! compute centroid orbit
+    call tao_find_beam_centroid (beam, tao_lat%orb(j), uni, j, all_lost, lat%ele(j))
 
-  ! compute centroid orbit
-  call tao_find_beam_centroid (beam, tao_lat%orb(j), uni, j, lat%ele(j))
+    if (all_lost) then
+      lat%param%ix_lost = j
+    endif
 
-  if (all_lost_already) then
-    lat%param%ix_lost = j
-    exit
   endif
 
   ! Find lattice and beam parameters and load data
 
-  call tao_calc_params (u, j)    
+  call tao_calc_params (u, j, all_lost)
   call tao_load_data_array (u, j) 
+
 enddo
 
 ! only post total lost if no extraction or extracting to a turned off lattice
@@ -447,7 +452,7 @@ character(20) :: r_name = "macro_track"
 
 real(rp) :: value1, value2, f
 
-logical post, calc_ok
+logical post, calc_ok, all_lost
 
 !
 
@@ -459,7 +464,7 @@ macro_init => u%macro_beam%macro_init
 lat => tao_lat%lat
 lat%param%ix_lost = not_lost$
 
-all_lost_already = .false.
+all_lost = .false.
 
 ! Find if injecting into another lattice
 extract_at_ix_ele = -1
@@ -511,30 +516,33 @@ call tao_load_data_array (u, 0)
 ! track through every element
 do j = 1, lat%n_ele_track
 
-  ! if doing linear tracking, first compute transfer matrix
-  if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
-           call make_mat6 (lat%ele(j), lat%param) 
+  if (.not. all_lost) then
 
-  ! track to the element
-  if (j /= 0) call track_macro_beam (lat, beam, j-1, j)
+    ! if doing linear tracking, first compute transfer matrix
+    if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
+             call make_mat6 (lat%ele(j), lat%param) 
+
+    ! track to the element
+    if (j /= 0) call track_macro_beam (lat, beam, j-1, j)
  
-  ! Save beam at location if injecting into another lattice
-  if (extract_at_ix_ele == j) then
-    s%u(i_uni)%connect%injecting_macro_beam = beam
-  endif
+    ! Save beam at location if injecting into another lattice
+    if (extract_at_ix_ele == j) then
+      s%u(i_uni)%connect%injecting_macro_beam = beam
+    endif
     
-  ! compute centroid orbit
-  call tao_find_macro_beam_centroid (beam, tao_lat%orb(j), uni, j, u%macro_beam)
+    ! compute centroid orbit
+    call tao_find_macro_beam_centroid (beam, tao_lat%orb(j), uni, j, all_lost, u%macro_beam)
 
-  if (all_lost_already) then
-    lat%param%ix_lost = j
-    exit
+    if (all_lost) then
+      lat%param%ix_lost = j
+    endif
+
   endif
 
   ! Find lattice and beam parameters
-  call tao_calc_params (u, j)
-    
   ! load data
+
+  call tao_calc_params (u, j, all_lost)
   call tao_load_data_array (u, j) 
 enddo
 
@@ -571,7 +579,7 @@ end subroutine tao_macro_track
 ! Find the centroid of all particles in viewed bunches
 ! Also keep track of lost macroparticles if the optional arguments are passed
 
-subroutine tao_find_beam_centroid (beam, orb, uni, ix_ele, ele)
+subroutine tao_find_beam_centroid (beam, orb, uni, ix_ele, all_lost, ele)
 
 implicit none
 
@@ -584,6 +592,7 @@ integer, optional :: uni, ix_ele
 integer n_bunch, n_part, n_lost, tot_part, i_ele
 
 logical record_lost
+logical, optional :: all_lost
 
 character(100) line
 character(24) :: r_name = "tao_find_beam_centroid"
@@ -631,9 +640,9 @@ if (tot_part .ne. 0) then
   orb%vec = coord%vec / tot_part
 else 
   ! lost all particles
-  if (record_lost .and. .not. all_lost_already) &
+  if (record_lost .and. present (all_lost)) &
     call out_io (s_warn$, r_name, "All particles have been lost!!!!!!!!!!!!!")
-    all_lost_already = .true.
+    all_lost = .true.
   orb%vec = 0.0
 endif
  
@@ -645,7 +654,7 @@ end subroutine tao_find_beam_centroid
 ! Find the centroid of all macroparticles in all slices in all bunches
 ! Also keep track of lost macroparticles if the optional arguments are passed
 
-subroutine tao_find_macro_beam_centroid (beam, orb, uni, ix_ele, u_beam)
+subroutine tao_find_macro_beam_centroid (beam, orb, uni, ix_ele, all_lost, u_beam)
 
 implicit none
 
@@ -660,6 +669,7 @@ real charge, tot_charge
 integer n_bunch, n_slice, n_macro
 
 logical record_lost
+logical, optional :: all_lost
 
 character(20) :: r_name = "tao_find_macro_beam_centroid"
 
@@ -704,11 +714,13 @@ if (tot_charge .ne. 0) then
   orb%vec = coord%vec / tot_charge
 else 
   ! lost all macros
-  if (.not. all_lost_already) then
-    call out_io (s_warn$, r_name, &
-          "All macroparticles have been lost!!!!!!!!!!!!!")
-    all_lost_already = .true.
-    orb%vec = 0.0
+  if (present(all_lost)) then
+    if (.not. all_lost) then
+      call out_io (s_warn$, r_name, &
+            "All macroparticles have been lost!!!!!!!!!!!!!")
+      all_lost = .true.
+      orb%vec = 0.0
+    endif
   endif
 endif
  
@@ -831,7 +843,7 @@ if (u%beam0_file /= "") then
   call close_beam_file()
   call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
 
-  call tao_find_beam_centroid (u%beam0, orb(0))  
+  call tao_find_beam_centroid (u%beam0, orb(0)) 
 
 elseif (.not. u%connect%connected) then
   if (tao_com%init_beam0 .or. .not. allocated(u%beam0%bunch)) then
@@ -1082,7 +1094,7 @@ use tao_lattice_calc_mod
 implicit none
 
 type (tao_lattice_struct), pointer :: t_lat
-type (bunch_params_struct), allocatable :: tm(:)
+type (bunch_params_struct), allocatable, save :: tm(:)
 type (bunch_struct) bunch
 type (ele_struct) ele
 

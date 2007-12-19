@@ -77,7 +77,7 @@ do j = 1, size(s%var)
   name = s%var(j)%v1%name
   call tao_to_top10 (top_merit, s%var(j)%merit, name, s%var(j)%ix_v1, 'max')
   call tao_to_top10 (top_dmerit, s%var(j)%dmerit_dvar, name, &
-                                                      s%var(j)%ix_v1, 'abs_max')
+                                                    s%var(j)%ix_v1, 'abs_max')
   delta = s%var(j)%model_value - s%var(j)%design_value
   call tao_to_top10 (top_delta, delta, name, s%var(j)%ix_v1, 'abs_max')
 enddo
@@ -198,7 +198,7 @@ real(rp) value, this_merit
 
 integer i, j, n, iunit, nc, ir, n_max
 integer ir1, ir2, iu, ie, nl
-integer, allocatable :: ixm(:)
+integer, allocatable, save :: ixm(:)
 integer n_name, n_d2_d1_name, n_loc1, n_loc0
 
 character(*) form
@@ -218,7 +218,7 @@ type constraint_struct
   real(rp) merit
 end type
 
-type (constraint_struct), allocatable :: con(:)
+type (constraint_struct), allocatable, save :: con(:)
 
 ! Init
  
@@ -253,12 +253,13 @@ do i = 1, size(s%u)
       con(nc)%loc1 = s%u(i)%model%lat%ele(data%ix_ele)%name
     endif
 
-    ie = data%ix_ele0
-    if (ie < 1) then
-      con(nc)%loc0 = '-'
-    else
-      con(nc)%loc0 = s%u(i)%model%lat%ele(ie)%name
-    endif
+    con(nc)%loc0 = data%ele0_name
+!    ie = data%ix_ele0
+!    if (ie < 1) then
+!      con(nc)%loc0 = '-'
+!    else
+!      con(nc)%loc0 = s%u(i)%model%lat%ele(ie)%name
+!    endif
 
     ie = data%ix_ele_merit
     if (ie < 0) then
@@ -364,8 +365,9 @@ nl=nl+1; line(nl) = ' '
 nl=nl+1; write (line(nl), '(1x, a, 1pe12.6)') &
                                   'figure of merit: ', this_merit
 
-
 call tao_write_out (iunit, line, nl)
+
+deallocate (con, ixm)
 
 end subroutine
 

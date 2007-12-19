@@ -232,7 +232,7 @@ real(rp) :: chisq
 real(rp) :: alamda
 integer(i4b) :: ma,ndata
 integer(i4b), save :: mfit
-logical, save, allocatable :: mask(:)
+logical, allocatable, save :: mask(:)
 logical limited
 
 real(rp), save :: ochisq

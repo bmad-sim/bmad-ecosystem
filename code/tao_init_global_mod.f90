@@ -760,7 +760,7 @@ integer i_d1, num_hashes
 character(40) search_string, d2_d1_name
 character(20) fmt
 
-logical, allocatable :: matched_ele(:)
+logical, allocatable, save :: matched_ele(:)
 logical emit_here
 
 !
@@ -1114,7 +1114,7 @@ type (lat_struct), pointer :: lat
 real(rp) v(6), bunch_charge, gamma
 integer i, ix, iu, n_part, ix_class, n_bunch, n_particle
 character(60) at, class, ele_name, line
-logical, allocatable :: picked_ele(:)
+logical, allocatable, save :: picked_ele(:)
 
 ! The emittance set in the tao init file takes priority over the emittance set
 ! in the lattice file.
@@ -1334,7 +1334,7 @@ character(60) search_string
 integer i, iu, ip, j, jj, k, nn, n1, n2, ix1, ix2, num_hashes, ix
 integer num_ele, ios, ixx1, ixx2
 
-logical, allocatable :: matched_ele(:)
+logical, allocatable, save :: matched_ele(:)
 
 ! count number of v1 entries
 

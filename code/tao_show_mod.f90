@@ -65,7 +65,7 @@ type (show_lat_column_struct) column(40)
 
 real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2
 real(rp) :: delta_e = 0
-real(rp), allocatable :: value(:)
+real(rp), allocatable, save :: value(:)
 
 character(*) :: what, stuff
 character(24) :: var_name
@@ -100,7 +100,7 @@ integer :: n_write_file = 0            ! used for indexing 'show write' files
 logical err, found, at_ends, first_time, by_s
 logical show_all, name_found
 logical, automatic :: picked(size(s%u))
-logical, allocatable :: picked_ele(:)
+logical, allocatable, save :: picked_ele(:)
 
 namelist / custom_show_list / column
 

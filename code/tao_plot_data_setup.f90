@@ -1,6 +1,3 @@
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
 !+
 ! Subroutine tao_plot_data_setup ()
 !
@@ -38,6 +35,8 @@ logical err
 character(20) :: r_name = 'tao_plot_data_setup'
 
 ! Find which elements are to be drawn for a lattice layout and floor plan plots.
+
+if (.not. s%global%plot_on) return
 
 do i_uni = 1, size(s%u)
 

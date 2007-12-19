@@ -283,7 +283,7 @@ type (tao_graph_array_struct), allocatable, save :: graph(:)
 type (lat_struct), pointer :: lat
 
 integer i, j, ios, i_uni
-integer, allocatable :: ix_ele(:)
+integer, allocatable, save :: ix_ele(:)
 
 character(*) curve_name, component, set_value
 character(20) :: r_name = 'tao_set_curve_cmd'
@@ -539,7 +539,7 @@ type (tao_logical_array_struct), allocatable, save :: l_var(:), l_set(:)
 type (tao_var_array_struct), allocatable, save     :: v_var(:)
 type (tao_string_array_struct), allocatable, save :: s_var(:), s_set(:)
 
-real(rp), allocatable :: r_value(:)
+real(rp), allocatable, save :: r_value(:)
 real(rp) value
 integer i, j
 
@@ -669,7 +669,7 @@ type (tao_data_array_struct), allocatable, save    :: d_dat(:)
 type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
 type (tao_string_array_struct), allocatable, save :: s_dat(:), s_set(:)
 
-real(rp), allocatable :: r_value(:)
+real(rp), allocatable, save :: r_value(:)
 integer i
 
 character(*) who_str, value_str

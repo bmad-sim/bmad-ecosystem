@@ -58,7 +58,7 @@ implicit none
 type (ele_struct), pointer :: ele => null()
 type (ele_struct), pointer :: ele2 => null()
 type (ele_struct), pointer :: ref_ele => null()
-type (coord_struct), allocatable :: orb(:)
+type (coord_struct), allocatable, save :: orb(:)
 
 character(*) :: ele_type, ele_attrib, misalign_value, where, wrt
 character(20) :: r_name = 'tao_misalign'
@@ -74,7 +74,7 @@ integer :: ix_key(2), key_next, num_loc
 
 logical err, found, rel_error, found_double, rel_sbend_error_flag
 logical, automatic :: which_univ(size(s%u))
-logical, allocatable :: action_logic(:)
+logical, allocatable, save :: action_logic(:)
 
 ! random number seeded dulat tao initialization
 
