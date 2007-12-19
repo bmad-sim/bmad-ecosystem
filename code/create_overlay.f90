@@ -62,7 +62,7 @@ subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_f
   character(*) attrib_name
   character(40) at_name
 
-  logical err
+  logical err, free
   logical, optional :: err_print_flag
 
 ! Mark element as an overlay lord
@@ -95,7 +95,8 @@ subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_f
       lat%control(nc2+4)%ix_attrib = y2_limit$
       nc2 = nc2 + 4
     else
-      err = err .or. .not. attribute_free (contl(j)%ix_slave, contl(j)%ix_attrib, lat, err_print_flag, .true.)
+      free = attribute_free (contl(j)%ix_slave, contl(j)%ix_attrib, lat, err_print_flag, .true.)
+      err = err .or. .not. free
       lat%control(nc2+1) = contl(j)
       lat%control(nc2+1)%ix_lord = ix_overlay
       nc2 = nc2 + 1

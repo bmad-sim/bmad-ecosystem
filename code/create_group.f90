@@ -92,7 +92,7 @@ subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
   integer i, ix_ele, ixa, n_control, n_con
   integer ix1, ix2, ix_min, ix_max, ixe
 
-  logical err
+  logical err, free
   logical, optional :: err_print_flag
 
 ! init
@@ -236,7 +236,8 @@ subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
 
     else
 
-      err = err .or. .not. attribute_free (contrl(i)%ix_slave, ixa, lat, err, err_print_flag)
+      free = attribute_free (contrl(i)%ix_slave, ixa, lat, err_print_flag)
+      err = err .or. .not. free
       n_con = n_con + 1
       if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
       lat%control(n_con) = contrl(i)
