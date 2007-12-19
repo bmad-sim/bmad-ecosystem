@@ -184,7 +184,7 @@ verify_arguments() {
       else
           modules=${modules}$'\n'${arg}
       fi
-      ypcat passwd | grep ${arg} &> /dev/null
+      ypcat passwd | cut -d: -f1 | grep ${arg} &> /dev/null
       if ( [ $? -ne 0 ] ) then
           isuser=0
       else
