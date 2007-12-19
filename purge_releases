@@ -10,7 +10,7 @@
 ### Date: Late November 2007
 
 
-import string, os, sys, time, math
+import string, os, sys, time, math, ConfigParser
 
 # The program does the following:
 # 1) Get a list of all the releases of the type cesr_* based on log files from the directory 
@@ -21,14 +21,31 @@ import string, os, sys, time, math
 # 5) Delete the release if necessary using the /home/cesrulib/bin/util/DELETE_release script
 # #####
 
+################
+# Set up configuration parser
+################
+cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
+config   = ConfigParser.ConfigParser()
+config.optionxform = lambda x: x
+config.read(cfg_file)
+################
+# Get values
+################
+
+UTIL_DIR = config.get("Paths","UTIL_DIR")
+CURRENT_YEARS=int(config.get("Retention","CURRENT_YEARS"))
+CURRENT_MONTHS=int(config.get("Retention","CURRENT_MONTHS"))
+CURRENT_DAYS  =int(config.get("Retention","CURRENT_DAYS"))
+
+
 #### Initialization
 ###########################################################################################
 ###########################################################################################
 
 releases =    []    #array to hold release names
 prefix =      "cesr"  #the mask to discriminate releases. Idea: to get everything that starts with "cesr"
-dir =         "/nfs/acc/libs/log"   #directory with the .genlog files
-delete_util_path= "/home/cesrulib/bin/util/DELETE_release"
+dir =         config.get("Paths","LOG_DIR")   #directory with the .genlog files
+delete_util_path= UTIL_DIR+"/DELETE_release"
 log_file_path   = "/home/cesrulib/purge_releases_log.txt"
 
 years =       []    #array to hold how many years passed
@@ -40,10 +57,10 @@ delete=       []    #array to hold info whether or not a certain release needs t
 found_in_tags=[]    #array to hold whether a release is found in the repository /tags directory
 repo_logs=    []    #array to hold list of all available logs on file in repository (this is needed to check if a path exists)
 
-current_span= [1, 6, 0] #lifespan for current - [years, months, days]
-devel_span  = 2         #starting this many currents ago, all devels will be kept
-nightly     = 1     #keep the last nightly (only 1 or 0 allowed)
-create_log  = 1     #create log-file in log_file_path ?
+current_span= [ CURRENT_YEARS, CURRENT_MONTHS, CURRENT_DAYS] #lifespan for current - [years, months, days]
+devel_span  = int(config.get("Retention","DEVEL_SPAN"))      #starting this many currents ago, all devels will be kept
+nightly     = int(config.get("Retention","KEEP_NIGHTLY"))    #keep the last nightly (only 1 or 0 allowed)
+create_log  = int(config.get("Retention","CREATE_LOG"))      #create log-file in log_file_path ?
 
 devel_age   = [0, 0, 0] #initializing age for retention of devels
 timehere = time.localtime()
