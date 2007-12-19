@@ -59,9 +59,14 @@ repo_logs=    []    #array to hold list of all available logs on file in reposit
 
 current_span= [ CURRENT_YEARS, CURRENT_MONTHS, CURRENT_DAYS] #lifespan for current - [years, months, days]
 devel_span  = int(config.get("Retention","DEVEL_SPAN"))      #starting this many currents ago, all devels will be kept
-nightly     = int(config.get("Retention","KEEP_NIGHTLY"))    #keep the last nightly (only 1 or 0 allowed)
-create_log  = int(config.get("Retention","CREATE_LOG"))      #create log-file in log_file_path ?
-
+if (config.get("Retention","KEEP_NIGHTLY")=="True"): #whether or not to keep the last nightly
+    nightly     = 1
+else:
+    nightly     = 0
+if (config.get("Retention","CREATE_LOG")=="True"):      #create log-file in log_file_path ?
+    create_log  = 1
+else: 
+    create_log  = 0
 devel_age   = [0, 0, 0] #initializing age for retention of devels
 timehere = time.localtime()
 #### Initialization end
