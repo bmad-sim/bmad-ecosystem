@@ -1203,7 +1203,10 @@ subroutine remove_constant_taylor (taylor_in, taylor_out, c0, &
       endif
     enddo
 
-    allocate (taylor_out(i)%term(n))
+    if (associated(taylor_out(i)%term)) then
+      if (size(taylor_out(i)%term) /= n) deallocate(taylor_out(i)%term)
+    endif
+    if (.not. associated(taylor_out(i)%term)) allocate (taylor_out(i)%term(n))
 
     nn = 0
     do j = 1, size(taylor_in(i)%term)
@@ -1489,22 +1492,14 @@ subroutine taylor_propagate1 (tlr, ele, param)
   type (lat_param_struct) param
   type (fibre), pointer, save :: a_fibre
 
-  logical :: init_needed = .true.
-
 ! set the taylor order in PTC if not already done so
 
   if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
                          call set_ptc (taylor_order = bmad_com%taylor_order)
 
-! init
-
-  if (init_needed) then
-    allocate (a_fibre)
-    call real_8_init (y)
-    init_needed = .false.
-  endif
-
 !
+
+  call real_8_init (y)
 
   y = tlr
 
@@ -1514,6 +1509,8 @@ subroutine taylor_propagate1 (tlr, ele, param)
   call kill (a_fibre)
 
   tlr = y
+
+  call kill (y)
 
 end subroutine
 
@@ -1567,19 +1564,11 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
   integer i
   
   logical, optional :: map_with_offsets
-  logical :: init_needed = .true., use_offsets
+  logical use_offsets
 
   character(16) :: r_name = 'ele_to_taylor'
 
 ! Init
-
-  if (init_needed) then
-    allocate (a_fibre)
-    do i = 1, 6
-      u_taylor(i) = 0  ! nullify
-    enddo
-    init_needed = .false.
-  endif
 
   if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) then
     call set_ptc (taylor_order = bmad_com%taylor_order)
@@ -1623,6 +1612,7 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
 ! convert to bmad_taylor  
 
   do i = 1, 6
+    u_taylor(i) = 0  ! nullify
     u_taylor(i) = y(i)%t
   enddo
   
@@ -1632,6 +1622,10 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
   call kill(a_fibre)
   call kill(y)
   call kill(y2)
+
+  do i = 1, 6
+    u_taylor(i) = -1  ! deallocate
+  enddo
 
   if (associated (ele%gen_field)) call kill_gen_field (ele%gen_field)
 

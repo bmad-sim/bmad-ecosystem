@@ -25,6 +25,8 @@ and enable reading in sigmas in bmad_parser & xsif_parser
 emittance, emitt -> emit
 [Remember bmadz, etc.]
 
+pointers -> allocatable in ele_struct, lat_struct, etc.
+
 -----------------
 
 add function to calc: ring%param%s_start
