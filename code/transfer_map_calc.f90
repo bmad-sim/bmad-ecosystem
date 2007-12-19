@@ -58,7 +58,7 @@ subroutine transfer_map_calc (lat, t_map, ix1, ix2, &
 
   type (lat_struct) lat
 
-  type (taylor_struct) :: t_map(:), taylor2(6)
+  type (taylor_struct) :: t_map(:)
 
   integer, intent(in), optional :: ix1, ix2
   integer i, i1, i2
