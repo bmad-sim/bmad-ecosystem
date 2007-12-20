@@ -166,7 +166,6 @@ implicit none
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (tao_var_struct), pointer :: var
-type (tao_keyboard_struct), pointer :: key
 
 integer i, j, k, n, m, p, j_ele, j_att, ix_var
 real(rp) :: y_here, norm, v, x1, x2, y1, y2
@@ -191,7 +190,7 @@ height = s%plot_page%text_height * s%plot_page%key_table_text_scale
 
 do k = tao_com%ix_key_bank+1, tao_com%ix_key_bank+10
   if (k > ubound(s%key, 1)) cycle
-  ix_var = s%key(k)%ix_var
+  ix_var = s%key(k)
   if (ix_var == 0) cycle
   j_ele = max(j_ele, len_trim(s%var(ix_var)%ele_name))
   j_att = max(j_att, len_trim(s%var(ix_var)%attrib_name))
@@ -217,16 +216,15 @@ do i = 1, 10
 
   k = i + tao_com%ix_key_bank
   if (k > ubound(s%key, 1)) cycle
-  key => s%key(k)
-  ix_var = key%ix_var
+  ix_var = s%key(k)
   j = mod(i, 10)
 
-  if (key%ix_var == 0) then
+  if (ix_var == 0) then
     write (str, '(i2)') j
   else
     var => s%var(ix_var)
     str2 = tao_var_uni_string(var)
-    v = maxval(abs( (/ var%model_value, key%val0, key%delta /) ))
+    v = maxval(abs( (/ var%model_value, var%key_val0, var%key_delta /) ))
     if (v == 0) then
       n = 0
       m = 3
@@ -249,8 +247,8 @@ do i = 1, 10
     endif
 
     write (model_str, fmt2) var%model_value / 10.0**n, exp_str
-    write (val0_str,  fmt2) key%val0 / 10.0**n, exp_str
-    write (delta_str, fmt2) key%delta / 10.0**n, exp_str
+    write (val0_str,  fmt2) var%key_val0 / 10.0**n, exp_str
+    write (delta_str, fmt2) var%key_delta / 10.0**n, exp_str
 
     write (str, fmt) j, var%ele_name, var%attrib_name, model_str, &
                         val0_str, delta_str, trim(str2), var%useit_opt
@@ -723,7 +721,7 @@ enddo
 if (s%global%label_keys) then
   do k = tao_com%ix_key_bank+1, tao_com%ix_key_bank+10
     if (k > ubound(s%key, 1)) cycle
-    ix_var = s%key(k)%ix_var
+    ix_var = s%key(k)
     if (ix_var < 1) cycle
     do ixv = 1, size(s%var(ix_var)%this)
       if (s%var(ix_var)%this(ixv)%ix_uni /= isu) cycle

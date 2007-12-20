@@ -27,8 +27,6 @@ end interface
 !-----------------------------------------------------------------------
 ! misc.
 
-  integer, parameter :: n_key_maxx = 200
-
   type tao_arg_struct
     character(100) name
     character(100) value(3)
@@ -47,12 +45,6 @@ type tao_ele_shape_struct    ! for the element layout plot
   character(16) color        ! plot color
   real(rp) dy_pix            ! plot vertical height 
   Logical :: draw_name = .true.
-end type
-
-type tao_keyboard_struct
-  real(rp) val0                            ! Base value
-  real(rp) delta                           ! Change in value
-  integer ix_var                           ! Index to variable array.
 end type
 
 !-----------------------------------------------------------------------
@@ -358,8 +350,11 @@ type tao_var_struct
   real(rp) merit            ! merit_term = weight * delta^2.
   real(rp) dMerit_dVar      ! Merit derivative.     
   real(rp) conversion_factor! Not currently used for anything
+  real(rp) key_val0         ! Key base value
+  real(rp) key_delta        ! Change in value when a key is pressed.
   real(rp) s                ! longitudinal position of ele.
   character(40) merit_type  ! 'target' or 'limit'
+  logical key_bound         ! Has a key binding?
   logical exists            ! See above
   logical good_var          ! See above
   logical good_user         ! See above
@@ -418,7 +413,6 @@ type tao_global_struct
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: n_opti_loops = 1            ! number of optimization loops
-  integer :: n_key_table_max = 0         ! Maximum key table index.
   integer :: phase_units = radians$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
@@ -602,7 +596,7 @@ type tao_super_universe_struct
   type (tao_v1_var_struct), pointer :: v1_var(:) => null() ! The variable types
   type (tao_var_struct), pointer :: var(:) => null()       ! array of all variables.
   type (tao_universe_struct), pointer :: u(:) => null()    ! array of universes.
-  type (tao_keyboard_struct), pointer :: key(:) => null()
+  integer, allocatable :: key(:)
   type (tao_wall_struct), allocatable :: wall(:)
   integer n_var_used
   integer n_v1_var_used

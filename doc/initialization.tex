@@ -269,13 +269,11 @@ Example:
 
 Global variables are initialized in the \vn{data_and_var_file} using a
 namelist block named \vn{tao_params} The syntax of this block is:
-\index{tao_params}\index{n_v1_var_max}\index{n_d2_data_max}
+\index{tao_params}
 \index{n_data_max}\index{n_var_max}\index{global}\index{bmad_com}
 \index{csr_param}
 \begin{example}
   &tao_params
-    n_v1_var_max  = <integer>   ! number of v1 data structures.
-    n_d2_data_max = <integer>   ! number of d2 data structures.
     n_data_max    = <integer>   ! Total number of data points
     n_var_max     = <integer>   ! Total number of variables.
     global        = <tao_global_struct>     ! global parameters
@@ -286,21 +284,17 @@ namelist block named \vn{tao_params} The syntax of this block is:
 Example:
 \begin{example}
   &tao_params
-    n_v1_var_max  = 5
-    n_d2_data_max = 6
     n_data_max    = 2000
     n_var_max     = 2000
     global%optimizer = "lm"  ! Set the default optimizer.
   /
 \end{example}
-\vn{n_d2_data_max} and \vn{n_v1_var_max} are the maximum number of
-\vn{d2_data} and \vn{v1_var} structures needed. \vn{n_data_max} is the
-maximum number of datums needed and \vn{n_var_max} is the maximum
-total number variables used. 
+\vn{n_data_max} is the maximum number of datums needed and
+\vn{n_var_max} is the maximum total number variables used.
 
 The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{y_axis_plot_dmin}\index{u_view}\index{n_opti_cycles}\index{ix_key_bank}
-\index{n_key_table_max}\index{n_lat_layout_label_rows}\index{phase_units}
+\index{n_lat_layout_label_rows}\index{phase_units}
 \index{bunch_to_plot}\index{n_curve_pts}\index{random_seed}
 \index{random_engine}\index{random_gauss_converter}
 \index{track_type}\index{prompt_string}\index{Optimization!setting the optimizer}
@@ -319,7 +313,6 @@ type tao_global_struct
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: n_opti_cycles = 1           ! number of optimization loops
-  integer :: n_key_table_max = 0         ! Maximum key table index.
   integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
   integer :: phase_units = radians\$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
@@ -639,8 +632,6 @@ The default is single particle tracking. To turn on particle tracking the
 the \vn{tao_params} namelist above, for example,
 \begin{example}
   &tao_params
-    n_v1_var_max  = 5
-    n_d2_data_max = 6
     n_data_max    = 2000
     n_var_max     = 2000
     global%optimizer = "lm"  ! Set the default optimizer.
@@ -708,8 +699,6 @@ tracking the \vn{global%track_type} perameter must be set to 'macro.'
 This can be placed in the \vn{tao_params} namelist above, for example,
 \begin{example}
   &tao_params
-    n_v1_var_max  = 5
-    n_d2_data_max = 6
     n_data_max    = 2000
     n_var_max     = 2000
     global%optimizer = "lm"  ! Set the default optimizer.
@@ -763,17 +752,21 @@ format for this is
                                                ! default = -1e30
     default_high_lim     = <number>            ! Upper variable value limit. 
                                                ! default =  1e30
+    default_key_bound    = <logical>           ! Variables to be bound?
+    default_key_delta    = <number>            ! Change when key is pressed.
     ix_min_var           = <integer>           ! Minimum array index.
     ix_max_var           = <integer>           ! Maximum array index.
     var(i)%ele_name      = "<ele_name>"        ! Element to be controlled.
     var(i)%attribute     = "<attrib_name>"     ! Attribute to be controlled.
-    var(i)%universe      = "<integer>"         ! Universe to be controlled.
+    var(i)%universe      = "<integer>"         ! Universe to be controlled. "*" => All.
     var(i)%weight        = <number>            ! Merit function weight.
     var(i)%step          = <number>            ! Small step size.
     var(i)%low_lim       = <number>            ! Lower variable value limit
     var(i)%high_lim      = <number>            ! Upper variable value limit
     var(i)%merit_type    = "<merit_type_name>" ! Sets how the merit is calculated.
     var(i)%good_user     = <logical>           ! Good optimization variable?
+    var(i)%key_bound     = <logica>            ! Variable bound to a key
+    var(i)%key_delta     = <number>            ! Change when key is pressed.
   /
 \end{example}
 Example:
@@ -801,6 +794,9 @@ undefined or set to a name with only spaces in it. For those variables
 where \vn{var(i)%attribute} is not specified in the namelist the
 \vn{default_attribute} will be used.
 
+\vn{var(i)%key_bound} and \vn{var(i)%key_delta} are used to bind variables
+to keys on the keyboard. Keys can also be bound using a \vn{key_bindings} namelist.
+See~ \sref{s:init_key_bind} and \sref{s:key_bind} for more details.
 
 \vn{var(i)%step} establishes what a ``small'' variation of the
 variable is. This is used, for example, by some optimizers when
@@ -917,7 +913,7 @@ format of the \vn{tao_d2_data} namelist is
   &tao_d2_data
     d2_data%name = "<d2_name>"    ! d2_data name.
     universe     = <integer>      ! Universe variables belong in.
-                                        !   0 => all universes (default).
+                                        !   "*" => all universes (default).
     default_merit_type = "<merit_type>" ! Sets how the merit is calculated.
     default_data_noise = <number>       ! RMS noise on data (only some data types)
     n_d1_data          = <integer>      ! Number associated d1_data arrays.
@@ -928,14 +924,14 @@ For example:
 \begin{example}
   &tao_d2_data
     d2_data%name = "orbit"
-    universe     = 0  ! apply to all universes
+    universe     = "*"  ! apply to all universes
     n_d1_data    = 2
   /
 \end{example}
 A \vn{tao_d2_data} block is needed for each \vn{d2_data} structure
 defined. \vn{d2_data%name} gives the name of the structure.
 \vn{universe} gives the universe that the data is associated with. A
-value of zero means that a \vn{d2_data} structure is set up in each
+value of \vn{"*"} means that a \vn{d2_data} structure is set up in each
 universe. \vn{default_merit_type} determines how the merit function
 terms are calculated for the individual datum points. Possibilities
 are:
@@ -1147,8 +1143,9 @@ this bpm.  If not present then \vn{default_bpm_noise} is used.
 \label{s:init_key_bind} 
 
 For \vn{Single Mode} (\sref{c:single} the bindings of variables to
-keys is defined with a \vn{key_bindings} namelist. There is a maximum
-of 500 key bindings. The syntax is:
+keys is defined in one of two ways.  Keys can be bound directly within
+the \vn{v1_var} namelist used to set up a variable list (\sref{s:init_var})
+or keys can be bound using a \vn{key_bindings} namelist. The syntax is:
 \begin{example}
   &key_bindings
     key(i) = <ele_name> <attrib_name> <delta> <universe> 
@@ -1165,7 +1162,7 @@ For example:
 \end{example}
 For the \vn{i}\Th key \vn{<ele_name>} is the name of a lattice element
 in universe \vn{<universe>} and \vn{<attrib_name>} is the attribute to
-be varied. If \vn{<universe>} is ``*'' then the key will vary elements
+be varied. If \vn{<universe>} is \vn{"*"} then the key will vary elements
 in all universes. \vn{<delta>} is the change in value when the
 appropriate key is depressed. \vn{<step>} establishes what the variation
 of the variable is when the associated key is depressed. 
@@ -1255,7 +1252,7 @@ is drawn. Relative to this, various parameters can be used to scale individual t
   plot_page%graph_title_text_scale = 1.1 ! Graph title height.
   plot_page%axis_number_text_scale = 0.9 ! Axis number height
   plot_page%axis_label_text_scale  = 1.0 ! Axis label height.
-  plot_page%key_table_text_scale   = 0.8 ! Key Table text (sref{s:key_table}).
+  plot_page%key_table_text_scale   = 0.8 ! Key Table text (\sref{s:key_table}).
   plot_page%legend_text_scale      = 0.9 ! Lat Layout or floor plan text.
 \end{example}
 The default values for these scales are given above.
@@ -1643,9 +1640,9 @@ for more details.
 \index{Key Table}
 \label{s:key_table}
 
-The \vn{key table} is explained more fully in Section~\sref{s:key_bind}.
-An example is shown in Figure~\ref{f:layout_table}. a template to create a key table
-looks like:
+The \vn{key table} is explained more fully in
+Section~\sref{s:key_bind}.  An example is shown in
+Figure~\ref{f:layout_table}. A template to create a key table looks like:
 \begin{example}
   &tao_template_plot
     plot%name = 'table' 

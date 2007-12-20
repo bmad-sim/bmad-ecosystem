@@ -44,9 +44,9 @@ subroutine tao_single_mode (char)
         call out_io (s_error$, r_name, 'KEY NOT BOUND TO VARIABLE.')
         return
       endif
-      ix_var = s%key(ix)%ix_var
+      ix_var = s%key(ix)
       if (ix_var == 0) cycle
-      value = s%var(ix_var)%model_value + this_factor * s%key(ix)%delta
+      value = s%var(ix_var)%model_value + this_factor * s%var(ix_var)%key_delta
       call tao_set_var_model_value (s%var(ix_var), value)
       this_merit = tao_merit ()
       return
@@ -86,7 +86,7 @@ subroutine tao_single_mode (char)
 ! v: Set variable at given value
 
   case ('v')
-    if (.not. associated(s%key)) then
+    if (.not. allocated(s%key)) then
       call out_io (s_error$, r_name, 'THE KEY TABLE HAS NOT BEEN SET UP IN THE INIT FILES!')
       return
     endif
@@ -103,8 +103,7 @@ subroutine tao_single_mode (char)
       call out_io (s_error$, r_name, 'KEY NUMBER OUT OF RANGE (0 - 9).')
       return
     endif
-    ix_var = s%key(ix2)%ix_var
-    call tao_set_var_model_value (s%var(ix_var), value)
+    call tao_set_var_model_value (s%var(s%key(ix2)), value)
 
 ! V: Show variables
 
@@ -139,12 +138,12 @@ subroutine tao_single_mode (char)
 ! <: Scale deltas by factor of 1/2
 
   case ('<')
-    s%key(:)%delta = s%key(:)%delta / 2
+    s%var(:)%key_delta = s%var(:)%key_delta / 2
 
 ! >: Scale deltas by factor of 2
 
   case ('>')
-    s%key(:)%delta = s%key(:)%delta * 2
+    s%var(:)%key_delta = s%var(:)%key_delta * 2
         
 !----------------------------------
 ! Escape: Look for the rest of the sequence:
@@ -164,7 +163,7 @@ subroutine tao_single_mode (char)
 ! -> (right arrow): Shift key bank up by 10
 
   case ('[C')
-    tao_com%ix_key_bank = min(tao_com%ix_key_bank+10, n_key_maxx-10)
+    tao_com%ix_key_bank = min(tao_com%ix_key_bank+10, size(s%key)-10)
 
 ! ^ (up arrow): Scale plots by a factor of 0.5
 
@@ -343,16 +342,16 @@ subroutine tao_single_mode (char)
 
       case ('[D')
         do i = 1, size(s%key)
-          ix_var = s%key(i)%ix_var
-          call tao_set_var_model_value (s%var(ix_var), s%key(i)%val0)
+          ix_var = s%key(i)
+          call tao_set_var_model_value (s%var(ix_var), s%var(ix_var)%key_val0)
         enddo
 
 ! /-> (/right-arrow): Copy variable value to saved
 
       case ('[C')
         do i = 1, size(s%key)
-          ix = s%key(i)%ix_var
-          s%key(i)%val0 = s%var(ix)%model_value
+          ix = s%key(i)
+          s%var(ix)%key_val0 = s%var(ix)%model_value
         enddo
         do i = 1, size(s%var)
           s%var(i)%old_value = s%var(i)%model_value
@@ -361,12 +360,12 @@ subroutine tao_single_mode (char)
 ! /^ (/up-arrow): Increase deltas by factor of 10.
 
       case ('[A')
-        s%key(:)%delta = s%key(:)%delta * 10
+        s%var(:)%key_delta = s%var(:)%key_delta * 10
 
 ! /v (/down-arrow): Increase deltas by factor of 10.
 
       case ('[B')
-        s%key(:)%delta = s%key(:)%delta / 10
+        s%var(:)%key_delta = s%var(:)%key_delta / 10
 
 ! /Escape Error:
 

@@ -52,8 +52,10 @@ type tao_var_input
   real(rp) low_lim
   real(rp) high_lim
   character(40) :: merit_type
-  logical :: good_user
+  character(8) :: good_user
   character(40) :: name
+  character(8) key_bound
+  real(rp) key_delta
 end type
 
 !-------------------------------------------------------------

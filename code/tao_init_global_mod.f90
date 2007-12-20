@@ -49,17 +49,20 @@ type (macro_init_struct) macro_init
 type (tao_connected_uni_input) connect
 type (spin_polar_struct) spin
 
-real(rp) :: default_weight        ! default merit function weight
-real(rp) :: default_step          ! default "small" step size
-real(rp) default_low_lim, default_high_lim
-real(rp) :: default_data_noise         ! default noise for data type
-real(rp) :: default_scale_error        ! default noise for data type
+real(rp) default_weight        ! default merit function weight
+real(rp) default_step          ! default "small" step size
+real(rp) default_low_lim, default_high_lim, default_key_delta
+real(rp) default_data_noise         ! default noise for data type
+real(rp) default_scale_error        ! default noise for data type
+real(rp), allocatable, save :: default_key_d(:)
 
 integer ios, iu, i, j, i2, j2, k, ix, n_uni, num
 integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
 integer n, n_universes, iostat, ix_universe, n_max
 integer ix_min_var, ix_max_var, n_d1_data, ix_ele
-integer ix_min_data, ix_max_data, ix_d1_data
+integer ix_min_data, ix_max_data, ix_d1_data, n_v1
+
+integer, automatic :: n_d2_data(size(s%u))
 
 character(*) init_file, data_file, var_file
 character(40) :: r_name = 'tao_init_global_and_universes'
@@ -67,14 +70,17 @@ character(200) file_name, beam0_file, beam_all_file
 character(40) name,  universe, default_universe, default_data_type
 character(40) default_merit_type, default_attribute, data_type, default_data_source
 character(40) use_same_lat_eles_as, search_for_lat_eles
+character(8) default_key_bound
+character(8), allocatable, save :: default_key_b(:)
 
 character(60) save_beam_at(100)
 character(100) line
 
 logical err, free, gang
 logical searching
-logical, allocatable, save :: mask(:), dflt_good_unis(:), good_unis(:)
+logical, allocatable, save :: dflt_good_unis(:), good_unis(:)
 logical, allocatable, save :: matched_ele(:)
+logical, automatic :: mask(size(s%u))
 
 namelist / tao_params / global, bmad_com, csr_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max, spin
@@ -93,12 +99,38 @@ namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
                    default_weight, default_data_type, default_data_source, &
                    use_same_lat_eles_as, search_for_lat_eles
                      
-namelist / tao_var / v1_var, var, default_weight, default_step, &
+namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
                     ix_min_var, ix_max_var, default_universe, default_attribute, &
                     default_low_lim, default_high_lim, default_merit_type, &
-                    use_same_lat_eles_as, search_for_lat_eles
+                    use_same_lat_eles_as, search_for_lat_eles, default_key_bound
 
 !-----------------------------------------------------------------------
+! Find out how many d2_data structures we need for each universe
+
+call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
+
+n_d2_data = 0
+
+do 
+  universe = '*'
+  read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
+  if (ios /= 0) exit
+  if (universe == '*') then
+    n_d2_data = n_d2_data + 1
+  else
+    read (universe, *, iostat = ios) n_uni
+    if (ios /= 0 .or. n_uni > size(s%u)) then
+      call out_io (s_abort$, r_name, &
+            'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
+      call err_exit
+    endif
+    n_d2_data(n_uni) = n_d2_data(n_uni) + 1
+  endif
+enddo
+
+close (iu)
+
 !-----------------------------------------------------------------------
 ! Init lattaces
 ! read global structure from tao_params namelist
@@ -115,8 +147,6 @@ global%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  '
 global%default_key_merit_type = 'limit'
 n_var_max = 0
 n_data_max = 0
-n_d2_data_max = 0
-n_v1_var_max = 0
 
 call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
 read (iu, nml = tao_params, iostat = ios)
@@ -139,7 +169,7 @@ endif
 n = size(s%u)
 n_max = 0
 do i = 1, size(s%u)
-  call init_universe (s%u(i))
+  call init_universe (s%u(i), n_d2_data(i))
   s%u(i)%ix_uni = i
   s%u(i)%do_synch_rad_int_calc = .false.
   s%u(i)%do_chrom_calc         = .false.
@@ -147,18 +177,13 @@ do i = 1, size(s%u)
 enddo
 
 if (associated(s%var)) deallocate (s%var)
-if (associated(s%v1_var)) deallocate (s%v1_var)
 allocate (s%var(n_var_max))
-allocate (s%v1_var(n_v1_var_max))
-
-s%v1_var%name = ''  ! blank name means it doesn't (yet) exist
 s%var(:)%good_opt  = .true.
 s%var(:)%exists    = .false.
 s%var(:)%good_var  = .true.
 s%var(:)%good_user = .true.
 
 s%n_var_used = 0
-s%n_v1_var_used = 0       ! size of s%v1_var(:) array
 
 !-----------------------------------------------------------------------
 ! Seed random number generator
@@ -353,8 +378,6 @@ endif
 call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
 
-allocate (mask(size(s%u)))
-      
 do 
   mask(:) = .true.      ! set defaults
   d2_data%name       = ''
@@ -468,17 +491,55 @@ do
 
 enddo
 
-if (allocated(mask)) deallocate(mask)
 close (iu)
 
 !-----------------------------------------------------------------------
 ! Init vars
 
+! First count how many v1_var definitions there are
+
+if (associated(s%v1_var)) deallocate (s%v1_var)
+
 call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
-allocate (dflt_good_unis(size(s%u)), good_unis(size(s%u)))
+
+n_v1_var_max = 0
 
 do
+  read (iu, nml = tao_var, iostat = ios, err = 9200)
+  if (ios < 0) exit
+  n_v1_var_max = n_v1_var_max + 1
+enddo
+
+n = n_v1_var_max + 1
+allocate (s%v1_var(n), default_key_b(n), default_key_d(n))
+s%v1_var%name = ''  ! blank name means it doesn't (yet) exist
+s%n_v1_var_used = 0       ! size of s%v1_var(:) array
+
+! Read some defaults
+
+rewind (iu)
+
+n_v1 = 0
+do
+  default_key_bound = ''
+  default_key_delta = 0
+  read (iu, nml = tao_var, iostat = ios, err = 9200)
+  if (ios < 0) exit
+  n_v1 = n_v1 + 1
+  default_key_b(n_v1) = default_key_bound
+  default_key_d(n_v1) = default_key_delta
+enddo
+
+! Now fill in all the information
+
+rewind (iu)
+
+allocate (dflt_good_unis(size(s%u)), good_unis(size(s%u)))
+
+n_v1 = 0
+do
+  n_v1 = n_v1 + 1
   use_same_lat_eles_as = ''
   search_for_lat_eles  = ''
   v1_var%name        = " "         ! set default
@@ -499,7 +560,9 @@ do
   var%universe       = ''
   var%low_lim        = default_low_lim
   var%high_lim       = default_high_lim
-  var%good_user      = .true.
+  var%good_user      = ''
+  var%key_bound      = default_key_b(n_v1)
+  var%key_delta      = default_key_d(n_v1)
 
   read (iu, nml = tao_var, iostat = ios, err = 9200)
   if (ios < 0) exit         ! exit on end-of-file
@@ -638,10 +701,10 @@ enddo
 !--------------------------------------------------------------------------
 contains
 
-subroutine init_universe (u)
+subroutine init_universe (u, n_d2_data)
 
 type (tao_universe_struct) :: u
-integer i
+integer i, n_d2_data
 
 !
 
@@ -652,10 +715,10 @@ u%ix_rad_int_cache = 0
 
 ! allocate and set defaults
 
-if (n_d2_data_max /= 0) then
+if (n_d2_data /= 0) then
   if (associated(u%d2_data)) deallocate (u%d2_data)
-  allocate (u%d2_data(n_d2_data_max))
-  do i = 1, n_d2_data_max
+  allocate (u%d2_data(n_d2_data))
+  do i = 1, n_d2_data
     u%d2_data(i)%descrip = ''
   enddo
   u%d2_data%name = ''  ! blank name means it doesn't exist
@@ -989,10 +1052,11 @@ do j = n1, n2
   if (emit_here .and. u%data(j)%data_source == 'lattice') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
-  if ((emit_here .and. u%design%lat%param%lattice_type == circular_lattice$) .or. &
-          data_type(1:6)  == 'chrom.' .or. data_type(1:2) == 'i5' .or. &
-          data_type(1:13) == 'unstable_ring' .or. &
-          data_type(1:17) == 'multi_turn_orbit.') then
+
+  if (u%design%lat%param%lattice_type == circular_lattice$ .and. &
+              (data_type(1:6)  == 'chrom.' .or. data_type(1:2) == 'i5' .or. &
+               data_type(1:13) == 'unstable_ring' .or. emit_here .or. &
+               data_type(1:17) == 'multi_turn_orbit.')) then
     u%data(j)%exists = .true.
     if (u%data(j)%ele_name /= '') then
       call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &
@@ -1001,6 +1065,7 @@ do j = n1, n2
     endif
     cycle
   endif
+
 enddo
 
 end subroutine d1_data_stuffit
@@ -1372,7 +1437,23 @@ if (use_same_lat_eles_as /= '') then
     ix = ix1 + (n - n1)
     ip = 1 + (n - n1) 
 
-    s%var(n)%good_user   = var(ix)%good_user
+    
+    s%var(n)%good_user = v1_ptr%v(ip)%good_user
+    if (var(ix)%good_user /= '') read (var(ix)%good_user, *, iostat = ios) s%var(n)%good_user
+    if (ios /= 0) then
+      call out_io (s_abort$, r_name, 'BAD "GOOD_USER" COMPONENT FOR VAR: ' // v1_var%name)
+      call err_exit
+    endif
+
+    s%var(n)%key_bound = v1_ptr%v(ip)%key_bound
+    if (var(ix)%key_bound /= '') read (var(ix)%key_bound, *, iostat = ios) s%var(n)%key_bound
+    if (ios /= 0) then
+      call out_io (s_abort$, r_name, 'BAD "KEY_BOUND" COMPONENT FOR VAR: ' // v1_var%name)
+      call err_exit
+    endif
+
+    s%var(n)%key_delta = v1_ptr%v(ip)%key_delta
+    if (var(ix)%key_delta /= '') s%var(n)%key_delta = var(ix)%key_delta
 
     s%var(n)%attrib_name = v1_ptr%v(ip)%attrib_name
     if (default_attribute /= '') s%var(n)%attrib_name = default_attribute
@@ -1397,6 +1478,8 @@ if (use_same_lat_eles_as /= '') then
     s%var(n)%high_lim = v1_ptr%v(ip)%high_lim
     if (default_high_lim /= 1e30) s%var(n)%high_lim = default_high_lim
     if (var(ix)%high_lim /= 1e30) s%var(n)%high_lim = var(ix)%high_lim
+
+    s%var(n)%key_bound = v1_ptr%v(ip)%key_bound
 
   enddo
 
@@ -1471,7 +1554,33 @@ endif
 
 !---------------------------
 
-s%var(n1:n2)%good_user   = var(ix1:ix2)%good_user
+do n = n1, n2
+  i = ix1 + n - n1
+
+  if (var(i)%key_bound == '') then
+    s%var(n)%key_bound = .false.
+  else
+    read (var(i)%key_bound, *, iostat = ios) s%var(n)%key_bound
+    if (ios /= 0) then
+      call out_io (s_abort$, r_name, 'BAD "KEY_BOUND" COMPONENT FOR VAR: ' // v1_var%name)
+      call err_exit
+    endif
+  endif
+
+  if (var(i)%good_user == '') then
+    s%var(n)%good_user = .true.
+  else
+    read (var(i)%good_user, *, iostat = ios) s%var(n)%good_user
+    if (ios /= 0) then
+      call out_io (s_abort$, r_name, 'BAD "GOOD_USER" COMPONENT FOR VAR: ' // v1_var%name)
+      call err_exit
+    endif
+  endif
+
+enddo
+
+s%var(n1:n2)%key_delta = var(ix1:ix2)%key_delta
+
 s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
 
 where (s%var(n1:n2)%attrib_name == '') s%var(n1:n2)%attrib_name = default_attribute

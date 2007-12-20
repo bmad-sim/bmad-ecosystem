@@ -1408,6 +1408,11 @@ case ('variable')
     nl=nl+1; write(lines(nl), amt)  '%Merit_type       = ', v_ptr%merit_type
     nl=nl+1; write(lines(nl), rmt)  '%Merit            = ', v_ptr%merit
     nl=nl+1; write(lines(nl), rmt)  '%dMerit_dVar      = ', v_ptr%dMerit_dVar
+    nl=nl+1; write(lines(nl), lmt)  '%Key_bound        = ', v_ptr%key_bound
+    if (v_ptr%key_bound) then
+      nl=nl+1; write(lines(nl), rmt)  '%Key_val0         = ', v_ptr%key_val0
+      nl=nl+1; write(lines(nl), rmt)  '%Key_delta        = ', v_ptr%key_delta
+    endif
     nl=nl+1; write(lines(nl), lmt)  '%Exists           = ', v_ptr%exists
     nl=nl+1; write(lines(nl), lmt)  '%Good_var         = ', v_ptr%good_var
     nl=nl+1; write(lines(nl), lmt)  '%Good_user        = ', v_ptr%good_user

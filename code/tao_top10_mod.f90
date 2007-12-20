@@ -281,11 +281,10 @@ do i = 1, size(s%var(:))
   var => s%var(i)
   if (.not. var%useit_opt) cycle
   nc = nc + 1
-  write (con(nc)%d2_d1_name, '(2a, i0, a)') trim(var%v1%name), '[', var%ix_v1, ']'
-  con(nc)%name       = var%attrib_name
-  iu = var%this(1)%ix_uni
-  con(nc)%loc1 = s%u(iu)%model%lat%ele(var%this(1)%ix_ele)%name
-  con(nc)%loc0 = '-'
+  con(nc)%d2_d1_name = trim(tao_var1_name(var))
+  con(nc)%name = trim(tao_var_attrib_name(var))
+  con(nc)%loc1 = ''
+  con(nc)%loc0 = ''
   if (var%merit_type == 'target') then
     con(nc)%target_value = var%meas_value
   elseif (var%merit_type == 'limit') then
@@ -301,7 +300,7 @@ do i = 1, size(s%var(:))
   endif
   con(nc)%actual_value = var%model_value
   con(nc)%merit = var%merit
-  con(nc)%max_loc = ' '
+  con(nc)%max_loc = ''
 enddo
 
 !

@@ -242,7 +242,7 @@ endif
 
 ! Keytable 
 
-if (associated (s%key)) deallocate(s%key, stat=istat)
+if (allocated(s%key)) deallocate(s%key, stat=istat)
 
 ! Plotting  
 

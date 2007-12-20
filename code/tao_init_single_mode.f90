@@ -30,7 +30,7 @@ subroutine tao_init_single_mode (single_mode_file)
   character(16) name
 
   logical err
-  logical, allocatable, save :: unis(:)
+  logical, automatic :: unis(size(s%u))
 
   namelist / key_bindings / key
 
@@ -45,75 +45,80 @@ subroutine tao_init_single_mode (single_mode_file)
   call tao_open_file ('TAO_INIT_DIR', single_mode_file, iu, file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
 
+  i_max = 0
+  n1 = s%n_var_used + 1
   read (iu, nml = key_bindings, iostat = ios)
   close (iu)
   if (ios < 0) then
     call out_io (s_blank$, r_name, 'Init: No key_bindings namelist found')
-    return 
+    allocate (s%key(count(s%var%key_bound)))
   elseif (ios > 0) then
     call out_io (s_error$, r_name, 'KEY_BINDINGS NAMELIST READ ERROR.')
-    return 
-  endif
-  call out_io (s_blank$, r_name, 'Init: Read key_bindings namelist')
+    allocate (s%key(count(s%var%key_bound)))
+  else
+    call out_io (s_blank$, r_name, 'Init: Read key_bindings namelist')
+    key_loop: do i = 1, size(key)
+      if (key(i)%ele_name == ' ') cycle
+      i_max = i
+      call str_upcase (key(i)%ele_name,    key(i)%ele_name)
+      call str_upcase (key(i)%attrib_name, key(i)%attrib_name)
+      call str_upcase (key(i)%universe,     key(i)%universe)
+      if (key(i)%universe(1:2) == 'U:') key(i)%universe = key(i)%universe(3:)
+    enddo key_loop
 
-! associate keys with elements and attributes.
+    ! allocate the key table. 
 
-  i_max = 0
-  key_loop: do i = 1, size(key)
-    if (key(i)%ele_name == ' ') cycle
-    i_max = i
-    call str_upcase (key(i)%ele_name,    key(i)%ele_name)
-    call str_upcase (key(i)%attrib_name, key(i)%attrib_name)
-    call str_upcase (key(i)%universe,     key(i)%universe)
-    if (key(i)%universe(1:2) == 'U:') key(i)%universe = key(i)%universe(3:)
-  enddo key_loop
+    allocate (s%key(i_max + count(s%var%key_bound)))
+    s%n_var_used = s%n_var_used + i_max
+    n2 = s%n_var_used
+    s%var(n1:n2)%exists = .false.
+    s%key(:) = 0
 
-! allocate the key table. Make it at least s%global%n_key_table_max big.
+    do i = 1, i_max
 
-  i_max = max(s%global%n_key_table_max, i_max)
-  allocate (s%key(i_max))
-  n1 = s%n_var_used + 1
-  s%n_var_used = s%n_var_used + i_max
-  n2 = s%n_var_used
-  s%var(n1:n2)%exists = .false.
-  s%key(:)%ix_var = 0
-  allocate (unis(size(s%u)))
+      if (key(i)%ele_name == ' ') cycle
+      write (name, *) i
+      call string_trim (name, name, ix)
+      n = i + n1 - 1
+      s%var(n)%ele_name    = key(i)%ele_name
+      s%var(n)%attrib_name = key(i)%attrib_name
+      s%var(n)%weight      = key(i)%weight
+      s%var(n)%step        = key(i)%small_step  
+      s%var(n)%high_lim    = key(i)%high_lim
+      s%var(n)%low_lim     = key(i)%low_lim
+      s%var(n)%good_user   = key(i)%good_opt
+      s%var(n)%merit_type  = key(i)%merit_type
+      s%var(n)%exists      = .true.
+      s%var(n)%key_val0    = s%var(n)%model_value
+      s%var(n)%key_delta   = key(i)%delta
+      s%var(n)%key_bound   = .true.
 
-  do i = 1, i_max
-
-    if (key(i)%ele_name == ' ') cycle
-    write (name, *) i
-    call string_trim (name, name, ix)
-    n = i + n1 - 1
-    s%var(n)%ele_name    = key(i)%ele_name
-    s%var(n)%attrib_name = key(i)%attrib_name
-    s%var(n)%weight      = key(i)%weight
-    s%var(n)%step        = key(i)%small_step  
-    s%var(n)%high_lim    = key(i)%high_lim
-    s%var(n)%low_lim     = key(i)%low_lim
-    s%var(n)%good_user   = key(i)%good_opt
-    s%var(n)%merit_type  = key(i)%merit_type
-    s%var(n)%exists      = .true.
-
-    if (key(i)%universe == '*') then
-      unis = .true.
-    else
-      call location_decode (key(i)%universe, unis, 1, num)
-      if (num < 0 .or. count(unis) == 0) then
-        call out_io (s_abort$, r_name, 'BAD UNIVERSE INDEX FOR KEY: ' // key(i)%ele_name)
-        call err_exit
+      if (key(i)%universe == '*') then
+        unis = .true.
+      else
+        call location_decode (key(i)%universe, unis, 1, num)
+        if (num < 0 .or. count(unis) == 0) then
+          call out_io (s_abort$, r_name, 'BAD UNIVERSE INDEX FOR KEY: ' // key(i)%ele_name)
+          call err_exit
+        endif
       endif
-    endif
 
-    call var_stuffit2 (unis, s%var(n), .false.)
+      call var_stuffit2 (unis, s%var(n), .false.)
  
-    s%key(i)%val0 = s%var(n)%model_value
-    s%key(i)%delta = key(i)%delta
-    s%key(i)%ix_var = n
+      s%key(i) = n
 
+    enddo
+
+  endif
+
+! Put key table the variables marked by key_bound
+
+  do i = 1, n1 - 1
+    if (.not. s%var(i)%key_bound) cycle
+    i_max = i_max + 1
+    s%key(i_max) = i
+    s%var(i)%key_val0 = s%var(i)%model_value
   enddo
-
-  deallocate (unis)
 
 ! setup s%v1_var
 
