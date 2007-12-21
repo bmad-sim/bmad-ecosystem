@@ -773,8 +773,10 @@ end subroutine
 !
 ! Output:
 !   err          -- Logical: Err condition
-!   d2_ptr       -- Tao_d2_data_struct, optional, Pointer: to the d2 data
-!   d1_ptr       -- Tao_d1_data_struct, optional: Pointer to the d1 data
+!   d2_ptr       -- Tao_d2_data_struct, optional, Pointer: to the d2 data structure if
+!                     there is a unique structure to point to. Null otherwise.
+!   d1_ptr       -- Tao_d1_data_struct, optional: Pointer to the d1 data structure if
+!                     there is a unique structure to point to. Null otherwise.
 !   d_array(:)   -- Tao_data_array_struct, allocatable, optional: Pointers to all 
 !                   the matching tao_data_structs.
 !   re_array(:)  -- Tao_real_array_struct, allocatable, optional: Pointers to real 
@@ -794,6 +796,7 @@ implicit none
 
 type (tao_d2_data_struct), pointer, optional :: d2_ptr
 type (tao_d1_data_struct), pointer, optional :: d1_ptr
+type (tao_d2_data_struct), pointer :: d2_ptr_loc
 type (tao_data_array_struct), allocatable, optional    :: d_array(:)
 type (tao_real_array_struct), allocatable, optional    :: re_array(:)
 type (tao_logical_array_struct), allocatable, optional :: log_array(:)
@@ -823,6 +826,7 @@ logical, optional :: print_err, all_elements, blank_is_null
 
 print_error = logic_option(.true., print_err)
 
+nullify (d2_ptr_loc)
 if (present(d2_ptr)) nullify(d2_ptr)
 if (present(d1_ptr)) nullify(d1_ptr)
 if (present(d_array)) then
@@ -899,6 +903,12 @@ else ! read universe number
   endif
 endif
 
+! If d2_ptr points to something and there is only one d1 component then point d1_ptr to this.
+
+if (associated(d2_ptr_loc) .and. present(d1_ptr)) then
+  if (associated(d2_ptr_loc%d1) .and. size(d2_ptr_loc%d1) == 1) d1_ptr => d2_ptr_loc%d1(1)
+endif
+
 ! error check
 
 if (err) then
@@ -942,6 +952,7 @@ do i = 1, uu%n_d2_data_used
     call find_this_d1 (uu%d2_data(i), d1_name, this_err)
     if (this_err) return
   elseif (d2_name == uu%d2_data(i)%name) then
+    d2_ptr_loc => uu%d2_data(i)
     if (present(d2_ptr)) d2_ptr => uu%d2_data(i)
     call find_this_d1 (uu%d2_data(i), d1_name, this_err)
     exit
@@ -2568,26 +2579,60 @@ end function
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-! Function tao_datum_name (datum) result (datum_name)
+! Function tao_datum_type_name (datum) result (datum_name)
 !
-! Function to return the datum name in the form:
-!   d2_name.d1_name[index]
-! For example:
-!   orbit.x[23]
+! Function to return the datum type. For example
+!   eta.x target   
 !
 ! Input:
-!   datum -- Tao_data_struct: Datum
+!   datum      -- Tao_data_struct: Datum
 !
 ! Output:
 !   datum_name -- Character(60): Appropriate name.
 !-
 
-function tao_datum_name(datum) result (datum_name)
+function tao_datum_type_name(datum) result (datum_name)
 
 implicit none
 
 type (tao_data_struct) datum
 character(60) datum_name
+
+! 
+
+datum_name = trim(datum%data_type) // ' ' // trim(datum%merit_type)
+
+end function
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+! Function tao_datum_name (datum, show_universe) result (datum_name)
+!
+! Function to return the datum name in the form:
+!   d2_name.d1_name[index]
+! or (if show_universe is True and there is more than one universe):
+!   universe@d2_name.d1_name[index]
+! For example:
+!   2@orbit.x[23]
+!   
+!
+! Input:
+!   datum         -- Tao_data_struct: Datum
+!   show_universe -- Logical, optional: Show the datum's universe.
+!                       Default is True.
+!
+! Output:
+!   datum_name -- Character(60): Appropriate name.
+!-
+
+function tao_datum_name(datum, show_universe) result (datum_name)
+
+implicit none
+
+type (tao_data_struct) datum
+character(60) datum_name
+logical, optional :: show_universe
 
 ! If this datum is "isolated". That is, it does not have an associated d1_data 
 ! structure then just use it's data_type.
@@ -2599,6 +2644,9 @@ else
   write (datum_name, '(4a, i0, a)') &
       trim(datum%d1%d2%name), '.', trim(datum%d1%name), '[', datum%ix_d1, ']'
 endif
+
+if (size(s%u) > 1 .and. logic_option(.true., show_universe)) &
+       write (datum_name, '(i0, 2a)') datum%d1%d2%ix_uni, '@', trim(datum_name)
 
 end function
 

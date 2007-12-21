@@ -93,7 +93,7 @@ character(9) angle
 integer :: data_number, ix_plane, ix_class, n_live, n_tot
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2
-integer num_locations, ix_ele
+integer num_locations, ix_ele, n_name, n_e0, n_e1
 integer, allocatable, save :: ix_eles(:)
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
@@ -383,21 +383,43 @@ case ('data')
     
     nl=nl+1; write(lines(nl), '(2a)') 'Data name: ', trim(d2_ptr%name) // '.' // d1_ptr%name
 
-    line1 = '                                                                      |   Useit'
-    line2 = '     Name                         Meas         Model        Design    | Opt  Plot'
+    ! find string widths
+
+    n_name = 9
+    n_e0 = 8
+    n_e1 = 8
+    do i = 1, size(d_array)
+      d_ptr => d_array(i)%d
+      if (.not. d_ptr%exists) cycle
+      n_name = max(n_name, len_trim(tao_datum_type_name(d_ptr)))
+      n_e0 = max(n_e0, len_trim(d_ptr%ele0_name))
+      n_e1 = max(n_e1, len_trim(d_ptr%ele_name))
+    enddo
+
+    ! write header
+
+    line1 = ''; line2 = ''
+    n=9+n_name;               line2(n:) = 'Where0'
+    n=len_trim(line2)+n_e0-3; line2(n:) = 'Where'
+    n=len_trim(line2)+n_e1+4; line2(n:) = 'Meas         Model        Design    | Opt  Plot'
+                              line1(n:) = '                                    |   Useit'
+
     nl=nl+1; lines(nl) = line1
     nl=nl+1; lines(nl) = line2
 
 ! if a range is specified, show the data range   
 
-    call re_allocate (lines, len(lines(1)), nl+100+size(d1_ptr%d))
+    call re_allocate (lines, len(lines(1)), nl+100+size(d_array))
+
+    fmt = '(i4, 2x, a, 2x, a, 2x, a, 3es14.4, 2l6)'
 
     do i = 1, size(d_array)
       d_ptr => d_array(i)%d
       if (.not. d_ptr%exists) cycle
-      if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
-      nl=nl+1; write(lines(nl), '(i5, 2x, a20, 3es14.4, 2l6)') d_ptr%ix_d1, &
-                     d_ptr%data_type, d_ptr%meas_value, d_ptr%model_value, &
+      name = tao_datum_type_name(d_ptr)
+      nl=nl+1; write(lines(nl), fmt) d_ptr%ix_d1, name(1:n_name), & 
+                     d_ptr%ele0_name(1:n_e0), d_ptr%ele_name(1:n_e1), &
+                     d_ptr%meas_value, d_ptr%model_value, &
                      d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
     enddo
 
@@ -414,13 +436,13 @@ case ('data')
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d2_ptr%ix_uni
     endif
     nl=nl+1; write(lines(nl), '(2a)') 'D2_Data type:    ', d2_ptr%name
-    nl=nl+1; write(lines(nl), '(5x, a)') '                   Bounds'
-    nl=nl+1; write(lines(nl), '(5x, a)') 'D1_Data name    lower: Upper' 
+    nl=nl+1; write(lines(nl), '(5x, a, 28x, a)') '            ', '   Bounds'
+    nl=nl+1; write(lines(nl), '(5x, a, 28x, a)') 'D1_Data name', 'lower: Upper' 
 
     do i = 1, size(d2_ptr%d1)
       if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
       nl=nl+1; write(lines(nl), '(5x, a, i5, a, i5)') d2_ptr%d1(i)%name, &
-                  lbound(d2_ptr%d1(i)%d, 1), '.', ubound(d2_ptr%d1(i)%d, 1)
+                  lbound(d2_ptr%d1(i)%d, 1), ':', ubound(d2_ptr%d1(i)%d, 1)
     enddo
 
     if (any(d2_ptr%descrip /= ' ')) then

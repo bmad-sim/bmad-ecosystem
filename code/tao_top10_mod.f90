@@ -240,12 +240,8 @@ do i = 1, size(s%u)
     data => s%u(i)%data(j)
     if (.not. data%useit_opt) cycle
     nc = nc + 1
-    con(nc)%name = trim(data%data_type) // ' ' // data%merit_type
-
-    write (con(nc)%d2_d1_name, '(4a, i0, a)') trim(data%d1%d2%name), &
-                                '.', trim(data%d1%name), '[', data%ix_d1, ']'
-    if (size(s%u) > 1) write (con(nc)%d2_d1_name, '(i0, 2a)') &
-                                     i, '@', trim(con(nc)%d2_d1_name)
+    con(nc)%name = tao_datum_type_name(data)
+    con(nc)%d2_d1_name = trim(tao_datum_name(data))
 
     if (data%ix_ele < 0) then
       con(nc)%loc1 = ' '
@@ -254,12 +250,6 @@ do i = 1, size(s%u)
     endif
 
     con(nc)%loc0 = data%ele0_name
-!    ie = data%ix_ele0
-!    if (ie < 1) then
-!      con(nc)%loc0 = '-'
-!    else
-!      con(nc)%loc0 = s%u(i)%model%lat%ele(ie)%name
-!    endif
 
     ie = data%ix_ele_merit
     if (ie < 0) then
@@ -338,7 +328,7 @@ enddo
 
 l1 = 'Constraint'
 n=3+n_d2_d1_name+2+n_name; l1(n:) = 'Where0'
-n=len_trim(l1)+n_loc0-4;   l1(n:) = 'Where'
+n=len_trim(l1)+n_loc0-3;   l1(n:) = 'Where'
 n=len_trim(l1)+n_loc1-2;   l1(n:) = 'Target     Value      Merit     Max'
 
 nl=nl+1; line(nl) = ' '
@@ -346,7 +336,7 @@ nl=nl+1; line(nl) = l1
 
 !
 
-fmt = '(a, 2x, a, 2x, a, 1x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
+fmt = '(a, 2x, a, 2x, a, 2x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
 
 call re_allocate (line, 200, nl+n_max+100)
 do j = 1, n_max

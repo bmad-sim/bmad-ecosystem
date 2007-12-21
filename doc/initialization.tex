@@ -1025,7 +1025,7 @@ Alternatively, one can specify a datum in a single line. For example,
     d1_data%name      = "t"  
     !          data_      ele0_     ele_     merit_   meas_    weight good_
     !            type       name      name     type     value           user
-    data( 1) = 'beta.a'   'Q09_1'   'Q16_1'  'max'      30      0.1     T
+    data( 1) = 'beta.a'   'S:12.3'  'Q16_1'  'max'      30      0.1     T
     data( 2) = 'phase.b'  'Q09_1'   'Q16_1'  'max'      30      0.1     T
     data( 3) = 'floor.x'  ' '       'end'    'target'    3      0.01    T       
     data( 4) = 'floor.x'  'B1'      'B2'     'target'    3      0.01    T       
@@ -1040,8 +1040,14 @@ associated with the data points.
 
 A range of elements can be specified by giving an \vn{ele0_name} that
 is not a blank string. Thus, in the above example, the value of
-\vn{data(1)} is the maximum horizontal beta in the range between the
-end of element \vn{Q09_1} to the end of element \vn{Q16_1}.  Certain
+\vn{data(2)} is the maximum horizontal beta in the range between the
+end of element \vn{Q09_1} to the end of element \vn{Q16_1}. Elements
+can be specified by name (Eg: \vn{Q16_1}) or by longitudinal position
+using the notation \vn{"S:<s_distance>"}. This will match to the
+element whose longitudinal position at the exit end is closest to
+\vn{<s_distance>}.
+
+ Certain
 data types like the betatron \vn{phase} is measured with respect to a
 reference point and in the example above \vn{data(2)} is the phase
 advance from \vn{Q09_1} to \vn{Q16_1}.  Some data types can be either

@@ -180,6 +180,8 @@ end subroutine
 !   cmd_line       -- Character(*): The command line.
 !   n_word         -- Integer: number of words to split command line into
 !   no_extra_words -- Logical: are extra words allowed at the end?
+!                        If False then cmd_word(n_word) will contain everything after 
+!                        the n_word-1 word.
 !   separator      -- Character(*), optional: a list of characters that,
 !                        besides a blank space, signify a word boundary. 
 !
@@ -196,67 +198,101 @@ end subroutine
 !   cmd_word(3) = 'design'
 !
 ! Anything between single or double quotes is treated as a single word.
+! Whitespace or a separator inside of "{}", "()", or "[]" is ignored.
 !-
 
 subroutine tao_cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separator)
 
-  integer i, n, n_word, ix_end_quote, ix_line
-  character(*) cmd_line
-  character(*), optional :: separator
-  character(*) cmd_word(:)
-  character(16) :: r_name = 'tao_cmd_split'
-  character(200) line
-  logical err
-  logical no_extra_words
-  real(rp) value
+integer i, ix, nw, n_word, ix_b1, ix_b2, ix_b3
+character(*) cmd_line
+character(*), optional :: separator
+character(*) cmd_word(:)
+character(16) :: r_name = 'tao_cmd_split'
+character(200) line
+logical err
+logical no_extra_words
 
 !
 
-  err = .false.
-  cmd_word(:) = ' '
-  line = cmd_line
+err = .false.
+cmd_word(:) = ''
+line = cmd_line
+nw = 0
 
-  if (present(separator)) then
-    i = 0
-    do 
-      if (i == len(line)) exit
-      i = i + 1
-      if (index(separator, line(i:i)) /= 0) then
-        line = line(:i-1) // ' ' // line(i:i) // ' ' // &
-                                                            line(i+1:)
-        i = i + 3
-      endif
-    enddo
+nw_loop: do 
+  call string_trim (line, line, ix)
+
+  if (ix == 0) exit
+
+  ! If extra words allowed, everything left goes into cmd_word(n_word)
+  if (nw == n_word - 1 .and. .not. no_extra_words) then
+    nw=nw+1; cmd_word(nw) = trim(line)
+    return
   endif
 
-  ix_line = 0
-  ix_end_quote = 0
-  
-  do n = 1, n_word
-    call string_trim (line(ix_line+1:), line, ix_line)
-    if (line(1:1) .eq. '"') then
-      ix_end_quote = index(line(2:), '"')
-      if (ix_end_quote .eq. 0) ix_end_quote = len(line)
-      cmd_word(n) = line(2:ix_end_quote)
-    elseif (line(1:1) .eq. "'") then
-      ix_end_quote = index(line(2:), "'")
-      if (ix_end_quote .eq. 0) ix_end_quote = len(line)
-      cmd_word(n) = line(2:ix_end_quote)
-    else
-      cmd_word(n) = line(:ix_line)
-    endif 
-    if (ix_line == 0) return
+  if (line(1:1) == '"') then
+    ix = index(line(2:), '"')
+    if (ix == 0) ix = len(line)
+    nw=nw+1; cmd_word(nw) = line(2:ix)
+    line = line(ix+1:)
+    cycle
+  elseif (line(1:1) == "'") then
+    ix = index(line(2:), "'")
+    if (ix == 0) ix = len(line)
+    nw=nw+1; cmd_word(nw) = line(2:ix)
+    line = line(ix+1:)
+    cycle
+  endif
+
+  ix_b1 = 0; ix_b2 = 0; ix_b3 = 0
+  do i = 1, len(line)
+
+    if (line(i:i) == '{') ix_b1 = ix_b1 + 1
+    if (line(i:i) == '}') ix_b1 = ix_b1 - 1
+    if (line(i:i) == '(') ix_b2 = ix_b2 + 1
+    if (line(i:i) == ')') ix_b2 = ix_b2 - 1
+    if (line(i:i) == '[') ix_b3 = ix_b3 + 1
+    if (line(i:i) == ']') ix_b3 = ix_b3 - 1
+
+    if (ix_b1 /= 0 .or. ix_b2 /= 0 .or. ix_b3 /= 0) cycle
+
+    if (present(separator)) then
+      if (index(separator, line(i:i)) /= 0) then
+        if (i /= 1) then
+          nw=nw+1; cmd_word(nw) = line(1:i-1)
+          line = line(i:)
+        endif
+        nw=nw+1; cmd_word(nw) = line(1:1)
+        line = line(2:)
+        cycle nw_loop
+      endif
+    endif
+
+    if (line(i:i) == ' ') then
+      nw=nw+1; cmd_word(nw) = line(1:i-1)
+      line = line(i+1:)
+      cycle nw_loop
+    endif
+
   enddo
 
-  cmd_word(n_word) = line
-
-  if (no_extra_words) then
-    call string_trim (line(ix_line+1:), line, ix_line)
-    if (ix_line /= 0) then
-      call out_io (s_error$, r_name, 'EXTRA STUFF ON COMMAND LINE: ' // line)
-      err = .true.
-    endif
+  if (ix_b1 /= 0 .or. ix_b2 /= 0 .or. ix_b3 /= 0) then
+    call out_io (s_error$, r_name, 'MISMATCHED "{...}", "(...)", OR "[...]".')
+    err = .true.
+    return
   endif
+
+  call out_io (s_fatal$, r_name, 'INTERNAL ERROR!')
+  call err_exit
+
+enddo nw_loop
+
+!  
+
+if (no_extra_words .and. nw > n_word) then
+  call out_io (s_error$, r_name, 'EXTRA STUFF ON COMMAND LINE: ' // line)
+  err = .true.
+endif
 
 end subroutine tao_cmd_split
 
