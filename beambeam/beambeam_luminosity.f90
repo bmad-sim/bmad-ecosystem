@@ -48,7 +48,7 @@ program beambeam_luminosity
   implicit none
 
 !SIBREN
-#if defined(CESR_LINUX) || defined(CESR_WINCVF)
+#if ( defined(CESR_LINUX) && defined(MPI) ) || ( defined(CESR_WINCVF) && defined(MPI) )
 #include "mpif.h"
 #endif
 
@@ -88,7 +88,7 @@ program beambeam_luminosity
   character*120 go
 
 !SIBREN
-#if defined(CESR_LINUX) || defined(CESR_WINCVF)
+#if ( defined(CESR_LINUX) && defined(MPI) ) || ( defined(CESR_WINCVF) && defined(MPI) )
   integer status(MPI_STATUS_SIZE)
 #endif
   integer ierr,rank,size
@@ -210,7 +210,7 @@ size=2
   scan_params%damping    =    damping
 
 !SIBREN
-#if defined(CESR_LINUX) || defined(CESR_WINCVF)
+#if ( defined(CESR_LINUX) && defined(MPI) ) || ( defined(CESR_WINCVF) && defined(MPI) )
 if(scan_params%parallel)then
    call MPI_INIT(ierr)
    call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
@@ -266,7 +266,7 @@ end if
         
 
      end if
-#if defined (CESR_LINUX) || defined(CESR_WINCVF)
+#if ( defined(CESR_LINUX) && defined(MPI) ) || ( defined(CESR_WINCVF) && defined(MPI) )
      if(scan_params%parallel)then
         call MPI_BCAST(line,120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
      end if
@@ -402,7 +402,7 @@ end if
        endif
     endif
     deallocate(orb)
-#if defined (CESR_LINUX) || defined(CESR_WINCVF)
+#if ( defined(CESR_LINUX) && defined(MPI) ) || ( defined(CESR_WINCVF) && defined(MPI) )
     if(scan_params%parallel)then
        call MPI_FINALIZE(ierr)
     end if
