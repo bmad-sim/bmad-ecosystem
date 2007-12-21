@@ -8,7 +8,7 @@
 # summaries out of concatenated test job output.  It is called from
 # the build_master script near the very end of a CESR build process.
 #
-# Useage : extract_test_summary <test_output_file>
+# Usage : extract_test_summary <test_output_file>
 #     i.e. extract_test_summary cesr_2007_0305_d.log
 #
 # Author : Matt Rendina
