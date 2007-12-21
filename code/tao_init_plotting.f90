@@ -69,6 +69,7 @@ namelist / element_shapes_lat_layout / ele_shape
 
 ! See if this routine has been called before
 
+call qp_init_com_struct()  ! Init quick_plot
 if (.not. s%global%init_plot_needed) return
 s%global%init_plot_needed = .false.
 init_axis%max = 0

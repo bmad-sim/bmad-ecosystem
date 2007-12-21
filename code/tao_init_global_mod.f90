@@ -153,7 +153,7 @@ read (iu, nml = tao_params, iostat = ios)
 if (ios > 0) then
   call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST.')
   rewind (iu)
-  read (iu, nml = tao_params, iostat = ios)  ! To give error message
+  read (iu, nml = tao_params)  ! To give error message
 endif
 if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
 
@@ -663,6 +663,7 @@ enddo
 
 close (iu)
 deallocate (dflt_good_unis, good_unis)
+deallocate (default_key_b, default_key_d)
 
 !-----------------------------------------------------------------------
 ! Init ix_data array
@@ -1251,7 +1252,7 @@ if (u%beam_all_file /= '') then
 endif
 
 if (u%connect%connected) u%connect%injecting_beam = u%current_beam
-deallocate (picked_ele)
+if (allocated(picked_ele)) deallocate (picked_ele)
 
 end subroutine init_beam
 
