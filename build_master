@@ -861,8 +861,8 @@ elif fixes:
   rel_name    = fixes_prefix + "_" + fixes_name.replace("_BUILDING","")
   release_names = (rel_name, "")
   
-#genlog      = build_name + ".genlog"
-genlog      = rel_name + ".genlog"
+genlog      = build_name + ".genlog"
+#genlog      = rel_name + ".genlog"
 full_genlog = libs_dir + "/log/" + genlog
 
 
@@ -1187,9 +1187,9 @@ if nightly and build_type == "RELEASE":
 
 if build_type == "PACKAGES":
   print "Updating previously-built packages indicator."
-  os.chmod(prev_blt, 0644)           # set permissions to writable
+  os.chmod(prev_blt_pkg, 0644)           # set permissions to writable
   prevfile = open(prev_blt_pkg, 'w')
-  prevfile.write(rel_name + '\n')   # write the name of the release just built to file
+  prevfile.write(pkg_name + '\n')   # write the name of the packages release just built to file
   prevfile.close()
   os.chmod(prev_blt_pkg, 0444)       # reset permissions to disallow writes
 
@@ -1228,7 +1228,8 @@ stout.close()   # Close stream to logfile before quitting
 ###
 #Generate a web-page with the summary (log files) of all builds
 ###
-if (not bmad_build) and (not bmad) and (not fixes):
+#if (not bmad_build) and (not bmad) and (not fixes):
+if build_type == "RELEASE":
   os.popen('/home/cesrulib/bin/util/generate_html '+rel_name)
 ### 
 
