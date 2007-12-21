@@ -249,27 +249,34 @@ if ( [ -z "${CESR_REL}" ] && [ -z "${CESR_F90}" ] ) then
   echo "*******************************************"
 fi
 
-# Logic here to use the new <release>/src path instead of cvssrc
-# if the old-build current release is chosen, otherwise use the new path
-# current release as of 24-May-2007 negates this mechanism as the
-# most recent builds for current and devel are both of the /src style.
-#if ( [ "${CESR_REL}" = "${CESR_BASE}/current" ] ) then
-#  CESR_SRC="${CESR_REL}/cvssrc"
-#  export CESR_SRC
-#else
 
-##CESR_SRC="${CESR_REL}/src"
-##export CESR_SRC
 
-#fi
+# Logic here to use the old BMAD_LAT mapping with "current"
+# releases
 
-##CESR_INC="${CESR_SRC}/include"
-##export CESR_INC
+if ( [ "${ACC_REL}" = "${ACC_BASE}/current" ] ) then
+  BMAD_LAT="${ACC_REL}/config/bmad/lat"
+  BMAD_LAYOUT="${ACC_REL}/config/bmad/layout"
+  export BMAD_LAT
+fi
+
+#============================================================
+#------  Check for presence of MPI on build machine ------
+#------    In two default paths only                ------
+#============================================================
+[ -e /usr/include/lam/mpif.h ] || [ -e /usr/include/mpif.h ]
+if ( [ $? = 0 ] ) then
+  MPI="TRUE"
+else
+  MPI="FALSE"
+fi
+export MPI
+
 
 #==============================================================
 # Centralized set up of Intel and Lahey compilers (Linux only)
 #==============================================================
-if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then 
+if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then
     . /nfs/opt/ifc/bin/ifortvars.sh
     . /nfs/opt/lf9562/bash_setup
 fi

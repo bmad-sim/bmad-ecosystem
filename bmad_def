@@ -101,6 +101,19 @@ if ( $found == 0 ) setenv PATH ${PATH}:${BMAD_BIN}
 
 unsetenv    BMADF90
 unsetenv    BMADENV
+
+
+#------  Check for presence of MPI on build machine ------
+#------    In two default paths only                ------
+[ -e /usr/include/lam/mpif.h ] || [ -e /usr/include/mpif.h ]
+if ( $? == 0 ) then
+  setenv MPI TRUE
+else
+  setenv MPI FALSE
+endif
+
+
+
 #
 # $Id$
 #

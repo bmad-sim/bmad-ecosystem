@@ -249,6 +249,23 @@ unsetenv ACCF90
 
 ##setenv CESR_INC ${CESR_SRC}/include
 
+if ( "${ACC_REL}" == "${ACC_BASE}/current" ) then
+  setenv BMAD_LAT "${ACC_REL}/config/bmad/lat"
+  setenv BMAD_LAYOUT "${ACC_REL}/config/bmad/layout"
+endif
+
+#==============================================================
+#------  Check for presence of MPI on build machine ------
+#------    In two default paths only                ------
+#==============================================================
+[ -e /usr/include/lam/mpif.h ] || [ -e /usr/include/mpif.h ]
+if ( $? == 0 ) then
+  setenv MPI TRUE
+else
+  setenv MPI FALSE
+endif
+
+
 #==============================================================
 # Centralized set up of Intel and Lahey compilers (Linux only)
 #==============================================================

@@ -38,7 +38,7 @@
 # THE FOLLOWING LINE SHOULD BE MODIFIED TO REFLECT THE 
 # USER'S LOCAL INSTALLATION
 
-BMAD_=${BMAD_-/home/cesrulib/cesr_libs/bmad_dist}
+BMAD_=${BMAD_:-/home/cesrulib/cesr_libs/bmad_dist}
 
 #BMAD_=/cygdrive/w/cesr_libs/bmad_dist
 #
@@ -111,6 +111,19 @@ fi
 
 unset BMADF90
 unset BMADENV
+
+
+#------  Check for presence of MPI on build machine ------
+#------    In two default paths only                ------
+[ -e /usr/include/lam/mpif.h ] || [ -e /usr/include/mpif.h ]
+if ( [ $? = 0 ] ) then
+  MPI="TRUE"
+else
+  MPI="FALSE"
+fi
+export MPI
+
+#==========================================================
 #
 # $Id$
 #

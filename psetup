@@ -119,6 +119,16 @@ do arg_list="${arg_list} ${i}";
   esac
 done
 
+NUMARGS=$#
+BOTH=`expr ${CWD} + ${SRC}`
+if ( [ ${BOTH} -ne 2 ] ) then
+    if ( [ ${NUMARGS} -gt 2 ] ) then
+        echo "Incorrect number of arguments."
+        exit 3
+    fi
+fi
+
+
 #===========================================
 # More var set up
 #===========================================
@@ -126,7 +136,7 @@ if ( [ ${CWD} -eq 1 ] ) then
     WORKDIR=.
 else
     if ( [ $SRC -eq 1 ] ) then
-        WORKDIR=./job
+        WORKDIR=./${PROG}_cust
     else
         WORKDIR=./${PROG}
     fi
@@ -214,7 +224,12 @@ if ( [ -e ${ACC_REL}/bin/${PROG} ] ) then
       # will force the build system to take the executable's name
       # from the working directory name, instead of any filenames.
       perl -i -p -e 's/^MAKEFILE/#MAKEFILE/g' Makefile
-      perl -i -p -e 's/^MAIN_FILE/#MAIN_FILE/g' Makefile
+
+      MAINFILE=`grep MAIN_FILE Makefile | grep ":=" | tail -n 1 | cut -d= -f2 | cut -d' ' -f2`
+      SUCC=$?
+      if ( [ ${SUCC} = 0 ] && [ -e ./${MAINFILE} ] ) then
+          perl -i -p -e 's/^MAIN_FILE/#MAIN_FILE/g' Makefile
+      fi
       
       # Get rid of M.<program> makefile
       rm -f ./M.${PROG} $> /dev/null

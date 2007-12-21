@@ -103,14 +103,30 @@ if build_type == "PACKAGES":  # make gets slightly different args depending on t
     print ""
     print "--> BUILD STATUS: BUILDING"
     if activity[:4] == "FULL":
+        print "FULL activity PACKAGES build!"
         build_args.append(" DO_PKG=1")
-        env_setup1 = " ACCLIB="+pkg_name + "; ACCF90=" + f90 +'; '
+        print "ENV SETUP1= "+ " ACCLIB=" + pkg_name + "; ACCF90=" + f90 +'; '
+        env_setup1 = " ACCLIB=" + pkg_name + "; ACCF90=" + f90 +'; '
         #env_setup2 = " export CESR_GMAKE="+build_sys_dir + " ; export CESR_UTIL=" + bin_dir + "/util; "
-        env_setup2 = " ACC_GMAKE="+build_sys_dir + "; ACC_UTIL=" + bin_dir + "/util; "
+        #env_setup2 = " ACC_GMAKE="+build_sys_dir + "; ACC_UTIL=" + bin_dir + "/util; "
 #env_setup2=" XERCESCROOT="+full_pkg_name+"/xerces; export XERCESCROOT; CESR_GMAKE="+build_sys_dir+" ; CESR_UTIL="+bin_dir "/util; "
+        #env_setup2 = "ACC_GMAKE=" + bin_dir + "/Gmake; CESR_GMAKE=" + bin_dir + "/Gmake; ACC_UTIL=" + bin_dir + "/util; "
+        env_setup2 = "ACC_GMAKE=" + bin_dir + "/Gmake; CESR_GMAKE=$ACC_GMAKE; ACC_UTIL=" + bin_dir + "/util; CESR_UTIL=$ACC_UTIL; "
         build_cmd = env_setup1 + accdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
         for arg in build_args:
             build_cmd = build_cmd + arg   # compose build command by appending the options determined above
+        print build_cmd
+        build_process = popen2.Popen4(build_cmd)
+        pid = build_process.pid
+        line = build_process.fromchild.readline()
+        while line:                                     # print output as it is generated
+            print line.strip()
+            if line[0:10] == "gmake: ***":            # be on the lookout for errors in the build
+                errors = 1
+            line = build_process.fromchild.readline()
+        if errors:
+            print "--> BUILD STATUS: ERROR(S) DETECTED"
+            sys.exit(90)
             
     if activity[:4] == "PREP":
         OSF_pkgdir = full_pkg_name.replace("VMS_alpha_hp", "OSF1_alpha_hp")
@@ -143,6 +159,14 @@ if build_type == "RELEASE":
     print "--> BUILD STATUS: BUILDING"
     name_chunk_list = full_rel_name.split('/')
     rel_name        = name_chunk_list[-1]
+
+    # Copy relevant directories to the config area
+    to_copy = os.listdir(full_rel_name +"/src/lattice")    
+    for dir in to_copy:
+        print "Copying lattice directories to config area: config/" + dir
+        if not os.path.exists( full_rel_name + "/config/" + dir ):
+            shutil.copytree(full_rel_name + "/src/lattice/" + dir, full_rel_name + "/config/" + dir)
+
 
     if activity[:4] == "FULL":
         build_args.append(" DO_REL=1")
@@ -218,8 +242,9 @@ if build_type == "RELEASE":
                     print line.strip()
                     line = dep_process.fromchild.readline()
                 print ""
-        print "Copying config directory from OSF1 area.\n"
-        shutil.copytree(OSF_reldir + "/config", full_rel_name + "/config")
+        #Taken care of when release build is set up in this script.      
+        #print "Copying config directory from OSF1 area.\n"
+        #shutil.copytree(OSF_reldir + "/config", full_rel_name + "/config")
         #build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_rel_name) # FTP upload to VMS cluster
         xfer_cmd = [bin_dir + "/util/cesr_to_vms", rel_name]
         print "Executing transfer of archive file to VMS cluster.\n"
@@ -235,12 +260,6 @@ if build_type == "RELEASE":
             sys.exit(91)
 
 
-    # Copy relevant directories to the config area
-    to_copy = os.listdir(full_rel_name +"/src/lattice")    
-    for dir in to_copy:
-        print "Copying lattice directories to config area: config/" + dir
-        if not os.path.exists( full_rel_name + "/config/" + dir ):
-            shutil.copytree(full_rel_name + "/src/lattice/" + dir, full_rel_name + "/config/" + dir)
 
 
     os.system("chgrp -R cesr " + config_dir)

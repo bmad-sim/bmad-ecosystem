@@ -67,6 +67,10 @@ setenv CESR_UTIL    $CESR_REL/util
 setenv CESR_INC     $CESR_SRC/include
 setenv CESR_PKG     $CESR_REL/packages
 
+#-----  Fixes Area        -----
+setenv CESR_FIX     $CESR_/fixes
+setenv CESR_FIX_EXE $CESR_FIX/${CESR_PLATFORM}_${CESR_F90}/bin
+
 #
 #-----  Outside packages  -----
 #
@@ -83,10 +87,16 @@ setenv PGPLOT_FONTS $CESR_PKG/PGPLOT
 ###setenv CESR_CONST   $CONST
 
 #
-#-- BMAD configuration files --
+#-- LATTICE and configuration files --
 #
-setenv BMAD_LAT     $CESR_CONFIG/bmad/lat
-setenv BMAD_LAYOUT  $CESR_CONFIG/bmad/layout
+setenv CESR_LAT     $CESR_CONFIG/CESR
+setenv CTA_LAT      $CESR_CONFIG/CTA
+setenv ERL_LAT      $CESR_CONFIG/ERL
+setenv ILC_LAT      $CESR_CONFIG/ILC
+
+setenv BMAD_LAT     $CESR_LAT/bmad
+
+setenv BMAD_LAYOUT  $CESR_LAT/bmad
 
 #
 #-- TOAD help file search path --
