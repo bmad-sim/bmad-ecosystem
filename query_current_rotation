@@ -1,0 +1,66 @@
+#!/home/cesrulib/EXT/Python-2.5.1/Linux/python
+##################################################
+# This script produces a recommendation as to whether a current release
+# needs to be rotated.
+#
+# The current release criteria is received from the configuration file.
+# The value received is a value of how often is a current
+# to be rotated (in months).
+# Example:
+# <config file>
+# CURRENT_ROTATE_MONTHS    : 1
+# <end config file>
+# In this case, the current will be rotated every month.
+##
+##
+##
+###################################################
+
+# If the most recent current release is older than the criteria, it 
+# will be recommended that the current be rotated.
+
+# Exit codes:
+# 1 : Invalid number of arguments
+# 0 : OK to rotate
+# 99: NOT ok to rotate
+
+import string, os, sys, time, math, ConfigParser
+
+# ###############################
+# argument handling
+# ###############################
+if len(sys.argv) > 1:
+    print "\nUsage: " + sys.argv[0] 
+    sys.exit(1)
+
+###############
+# Set up configuration parser
+###############
+cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
+config = ConfigParser.ConfigParser()
+config.optionxform = lambda x: x
+config.read(cfg_file)
+###############
+# Get values
+###############
+UTIL_DIR = config.get("Paths","UTIL_DIR")
+CURRENT_ROTATE_MONTHS= float(config.get("Scheduling","CURRENT_ROTATE"))
+LIBS_DIR = config.get("Paths","LIBS_DIR")
+
+# using float here to allow for fractional values (like 1.5 months)
+
+print "Checking to see if the release is ok to promote to current..."
+
+timehere = time.localtime()
+release = os.readlink(LIBS_DIR+"/Linux_i686_intel/current")
+time_release = [int(release[5:9]),int(release[10:12]),int(release[12:14]),0,0,0,0,0,0]
+
+time_diff = time.mktime(timehere) - time.mktime(time_release)
+if (CURRENT_ROTATE_MONTHS < (time_diff/(60*60*24*30)) ):
+    print "The release is _OK_ to promote to current."
+    sys.exit(0)
+else:
+    print "The release should _NOT_ be promoted to current."
+    sys.exit(99)
+
+
