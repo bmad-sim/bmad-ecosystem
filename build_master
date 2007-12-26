@@ -1131,7 +1131,7 @@ if devel:
         print str(outstream)
         print "ERROR: There was a problem with the rotation initiation."
         sys.exit(70)
-
+      
       #= Schedule a Bmad distribution build and rotation.
       if minuteval != 59:
         minuteval = minuteval + 1
@@ -1157,6 +1157,17 @@ if devel:
         print str(outstream)
         print "ERROR: There was a problem with the Bmad dist. initiation."
         sys.exit(75)
+#==============================================================================
+#== Check to see if this release is a current candidate
+#==============================================================================
+if build_type == "RELEASE":
+  if (not os.system(util_dir+"/query_current_rotation")):
+    print "Proceeding with rotating this release into a current.."
+    lines = os.popen(util_dir+"/rotate_release -current -mail -tag "+rel_name).readlines()
+    for line in lines:
+      print line.strip()
+    print "Rotation successful"
+
 
 
 #==============================================================================
