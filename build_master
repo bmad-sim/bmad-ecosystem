@@ -1162,11 +1162,14 @@ if devel:
 #==============================================================================
 if build_type == "RELEASE":
   if (not os.system(util_dir+"/query_current_rotation")):
-    print "Proceeding with rotating this release into a current.."
+    print "Proceeding with rotating this release into a CURRENT.."
     lines = os.popen(util_dir+"/rotate_release -current -mail -tag "+rel_name).readlines()
     for line in lines:
       print line.strip()
     print "Rotation successful"
+  else:
+    for line in os.popen(util_dir+"/query_current_rotation").readlines()
+      print line.strip()
 
 
 
