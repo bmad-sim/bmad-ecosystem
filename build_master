@@ -1168,8 +1168,7 @@ if build_type == "RELEASE":
       print line.strip()
     print "Rotation successful"
   else:
-    for line in os.popen(util_dir+"/query_current_rotation").readlines()
-      print line.strip()
+    print "This release is not a current candidate"
 
 
 
