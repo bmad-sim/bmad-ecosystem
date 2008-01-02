@@ -56,7 +56,7 @@ then anything is possible. In a lattice file, before lattice expansion
 (\sref{s:expand}), \bmad allows the setting of a select group of
 dependent attributes if the appropriate independent attributes are
 not set. The list of settable dependent variables is given in
-Table~\ref{t:dep_except}.  After reading in the lattice \bmad will set
+Table~\ref{t:dep-except}.  After reading in the lattice \bmad will set
 the appropriate independent variable based upon the value of the
 dependent variable. \vn{harmon} is the exception in that it will never
 be set by the bookkeeping routine.
@@ -75,7 +75,7 @@ be set by the bookkeeping routine.
 \end{tabular}
 }
 \caption {Dependent variables that can be set in a primary lattice file.}
-\label{t:dep_except}
+\label{t:dep-except}
 \end{table}
 
 \index{G}\index{G_err}\index{B_field}\index{Bs_field}\index{B_field_err}
@@ -90,7 +90,7 @@ has a rule that if the appropriate field attribute appears in the
 primary lattice file then it becomes an independent variable and the
 normalized strength attribute (the strength attribute normalized by
 the reference energy) becomes a dependent variable as tabulated in
-Table~\ref{t:dep_field}.
+Table~\ref{t:dep-field}.
 \index{Sbend}\index{Rbend}\index{Solenoid}\index{Quadrupole}
 \index{Sol_Quad}\index{Sextupole}\index{Octupole}
 \begin{table}[ht]
@@ -111,7 +111,7 @@ Table~\ref{t:dep_field}.
 \end{tabular}
 }
 \caption {Field and Strength Attributes.}
-\label{t:dep_field}
+\label{t:dep-field}
 \end{table}
 Using both field strength and normalized strength as the independent
 variable for a given element is not permitted. For example, for a quadrupole the 
@@ -166,7 +166,7 @@ The attributes that define the reference energy and momentum at an element are:
 \end{example}
 The energy and momentum are defined at the exit end of the element.
 For ultra--relativistic particles these two values are the same.
-See~\sref{s:phase_space_coords}. These attributes are dependent and thus
+See~\sref{s:phase-space-coords}. These attributes are dependent and thus
 cannot be set for an element directly in the lattice input
 file. The value of \vn{E_tot} and \vn{p0c} for an element is calculated by
 \bmad to be the same as the previous element except for \vn{Lcavity}
@@ -426,7 +426,7 @@ with the reference energy starting on the reference orbit.
 
 %-----------------------------------------------------------------
 \section{Is_on Attribute}
-\label{s:is_on}
+\label{s:is-on}
 \index{Is_on}
 
 The \vn{is_on} attribute

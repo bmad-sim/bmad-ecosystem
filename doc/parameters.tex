@@ -15,20 +15,20 @@ Additionally, there will be an
 For non-global parameters the instance name will be program specific. 
 It is possible to have multiple instance names. For example, in the situation
 where a program is simulating multiple particle beams, there could be
-multiple \vn{beam_init_struct} (\sref{s:beam_init}) instances. 
+multiple \vn{beam_init_struct} (\sref{s:beam-init}) instances. 
 To refer to a particular parameter use the syntax
 \begin{example}
   instance_name%parameter_name
 \end{example}
 For example, To refer to the \vn{max_aperture_limit} parameter in
-Section~\sref{s:bmad_params} the syntax is
+Section~\sref{s:bmad-params} the syntax is
 \begin{example}
   bmad_com%max_aperture_limit
 \end{example}
 
 %-----------------------------------------------------------------
 \section{Bmad Global Parameters}
-\label{s:bmad_params}
+\label{s:bmad-params}
 \index{Bmad general parameters|textbf}
 
 Some overall parameters are stored in the \vn{bmad_common_struct}
@@ -69,7 +69,7 @@ calculates the transfer matrix through an element via tracking.
 
 %-----------------------------------------------------------------
 \section{Beam Initialization Parameters}
-\label{s:beam_init}
+\label{s:beam-init}
 \index{Beam Initialization Parameters|textbf}
 
 Beams of particles are used for simulating inter-bunch intra-bunch effects.
@@ -104,12 +104,12 @@ The number of simulation particles in a bunch is set by \vn{n_particle}.
 
 %-----------------------------------------------------------------
 \section{CSR Parameters}
-\label{s:csr_params}
+\label{s:csr-params}
 \index{CSR Parameters|textbf}
 
 The Coherent Synchrotron Radiation (CSR) calculation is discussed in
 Section~\sref{s:csr}. Besides the parameters discussed below, the
-\vn{coherent_synch_rad_on} parameter in Section~\sref{s:bmad_params}
+\vn{coherent_synch_rad_on} parameter in Section~\sref{s:bmad-params}
 must be set True to enable the CSR calculation.
 
 The CSR parameter structure has a \vn{type name}

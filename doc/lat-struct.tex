@@ -1,5 +1,5 @@
 \chapter{The lat_struct}
-\label{c:lat_struct}
+\label{c:lat-struct}
 \index{Lat_struct|textbf}
 
 The \vn{lat_struct} is the structure that holds of all the information 
@@ -9,7 +9,7 @@ with a storage ring or open as with a LINAC.
 
 %----------------------------------------------------------------------------
 \section{Elements Within the lat_struct}
-\label {s:lat_struct}
+\label {s:lat-struct}
 
 \begin{figure}[htb]
 \centering
@@ -36,7 +36,7 @@ type lat_struct
 end type
 \end{verbatim}
 \caption{Definition of the \vn{lat_struct}.}
-\label{f:lat_struct}
+\label{f:lat-struct}
 \end{figure}
 
 \index{Lat_struct!%ele(:)}
@@ -47,7 +47,7 @@ end type
 \index{Overlay}
 \index{Group}
 The definition of the \vn{lat_struct} is shown in
-Figure~\ref{f:lat_struct}. The array \vn{%ele(:)} holds the elements
+Figure~\ref{f:lat-struct}. The array \vn{%ele(:)} holds the elements
 of the lattice. This array is always allocated with zero as the lower
 bound.  \vn{%ele(0)} is a marker element with the name
 \vn{BEGINNING}.  \vn{%ele(0)%mat6} is always the unit
@@ -58,8 +58,8 @@ elements that are tracked through. The physical part has \vn{free},
 \vn{overlay_slave}, and \vn{multipass_slave} \vn{control_type} elements. The
 control part holds the \vn{Overlay_lord}, \vn{Girder_lord},
 \vn{multipass_lord}, \vn{super_lord}, and \vn{Group_lord}
-\vn{control_type} elements (\sref{s:control_type}).  The bounds of
-these two parts is given in Table~\ref{tab:part_extent}.
+\vn{control_type} elements (\sref{s:control-type}).  The bounds of
+these two parts is given in Table~\ref{t:part-extent}.
 \begin{table}[htb]
 \begin{center}
 \begin{tabular}{|l|l|l|}
@@ -72,7 +72,7 @@ control       & \vn{%n_ele_track}+1 & \vn{%n_ele_max}      \\ \hline
 \caption{Bounds of the tracking and control parts 
 of the array \vn{\%ele(:)}.}
 \end{center}
-\label{tab:part_extent}
+\label{t:part-extent}
 \end{table}
 
 \index{Lat_struct!%ele_init}
@@ -85,7 +85,7 @@ by \bmad\ and is available for general program use.
 
 The \vn{%param} component within the \vn{lat_struct} is a
 \vn{lat_param_struct} structure whose definition is shown in
-Figure~\ref{f:lat_param_struct}
+Figure~\ref{f:lat-param-struct}
 \begin{figure}[htb]
 \centering
 \begin{verbatim}
@@ -107,7 +107,7 @@ Figure~\ref{f:lat_param_struct}
   end type
 \end{verbatim}
 \caption{Definition of the \vn{param_struct}.}
-\label{f:lat_param_struct}
+\label{f:lat-param-struct}
 \end{figure}
 
 \index{lat_param_struct!%total_length}
@@ -157,11 +157,11 @@ these matrices as input for calculations.
 
 %----------------------------------------------------------------------------
 \section{Bunch_start Component}
-\label{s:lat_beam_start}
+\label{s:lat-beam_start}
 
 The \vn{%beam_start} component within the \vn{lat_struct} is a
 \vn{coord_struct} structure for holding the information obtained from
-\vn{beam_start} statements (\sref{s:beam_start}) in a \bmad lattice
+\vn{beam_start} statements (\sref{s:beam-start}) in a \bmad lattice
 file. 
 
 This component is not used in any standard \bmad calculation. It is up
@@ -169,7 +169,7 @@ to an individual program to use as desired.
 
 %----------------------------------------------------------------------------
 \section{Finding Elements and Changing Their Value}
-\label{s:lat_ele_change}
+\label{s:lat-ele-change}
 
 \bmad has two routines for searching for an element in a lattice:
 \begin{example}
@@ -233,15 +233,15 @@ used to do bookkeeping for the entire lattice:
 
 %----------------------------------------------------------------------------
 \section{Elements Controlling Other Elements}
-\label{s:lat_control}
+\label{s:lat-control}
 
 \index{Routine!get_element_lord_list}
 \index{Routine!get_element_slave_list}
 Generally anyone using \bmad routines will not need to bother with the
 details of how elements control other elements
-(\sref{s:lat_ele_change}).  It is always safer to use the bookkeeping
+(\sref{s:lat-ele-change}).  It is always safer to use the bookkeeping
 routines provided by \bmad rather than directly manipulating the
-control information.  To simply find the slaves and lords of a given
+control information. To simply find the slaves and lords of a given
 element use the routines \vn{get_element_lord_list} and
 \vn{get_element_slave_list}.  The following is thus meant for those
 unusual situations where knowledge of how \bmad implements control is

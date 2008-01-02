@@ -17,7 +17,7 @@ if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 
 
 `latex bmad`; 
-`dvips -o bmad.ps bmad`; 
+`dvips -o bmad.ps -z bmad`; 
 `ps2pdf bmad.ps`;
 `rm bmad-manual-*pdf`;
 `rm bmad-manual-*ps`;
