@@ -170,6 +170,7 @@ For example
 
 %--------------------------------------------------------------------------
 \section{Call Statement}
+\label{s:call}
 \index{Call statement|textbf}
 
 It is frequently convenient to separate the lattice definition into
@@ -204,6 +205,19 @@ would be
   2) ../layout/my_layout.bmad  (relative to the calling file directory)
   3) \$BMAD_LAYOUT:../layout/my_layout.bmad 
 \end{example}
+
+An XSIF (\sref{s:lattice-file-formats}) lattice file may be called
+from within an \bmad lattice file by prepending \vn{"xsif::"} to the
+file name. Example:
+\begin{example}
+  call, filename = "xsif::my_lattice.xsif"
+\end{example}
+This statement must be the first statement in the \bmad lattice file
+except for any \vn{no_digested} or \vn{parser_debug} statements. The
+XSIF lattice file must define a complete lattice and cannot contain
+any \bmad specific statements. The call to the XSIF file automatically
+expands the lattice (\sref{s:expand}) and any additional statements in
+the \bmad lattice file operate on the expanded lattice.
 
 %--------------------------------------------------------------------------
 \section{Return and End_File statements}
