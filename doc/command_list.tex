@@ -799,6 +799,7 @@ Format:
   show constraints
   show curve <curve_name> \{-symbol\} \{-line\}
   show data \{<data_name>\} 
+  show derivative <data_name(s)> <var_name(s)>
   show element <name>
   show global
   show graph <graph_name>
@@ -855,6 +856,10 @@ the \vn{-line} switch will print the (x,y) points used to draw the
   \item[show data]
 Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
 present shown is a list of \vn{d2_data} names.
+
+  \item[show derivative]
+Shows the derivative dModel_Value/dVariable. This derivative is used
+by the optimizer \vn{lm}.
 
   \item[show element]
 This shows information on lattice elements. \vn{name} is in
@@ -1025,6 +1030,7 @@ Examples:
   show data orbit.x[35]       ! Show details for orbit.x element 35
   show data orbit.x[35,86:95] ! list orbit.x elements 35 and 86 through 95
   show data orbit.x[1:100:5]  ! list every fifth orbit.x element between 1 and 100  
+  show deriv orbit.x[23] k1[34] ! Show dModel_Value/dVariable Derivative.
   show ele q*                 ! list all elements with names beginning with "q".
   show ele q10w               ! Show a particular lattice element
   show ele 105                ! Show element #105 in the lattice

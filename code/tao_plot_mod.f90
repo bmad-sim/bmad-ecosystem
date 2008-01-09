@@ -188,7 +188,7 @@ y_here = y2  ! start from the top of the graph
 
 height = s%plot_page%text_height * s%plot_page%key_table_text_scale
 
-do k = tao_com%ix_key_bank+1, tao_com%ix_key_bank+10
+do k = 10*tao_com%ix_key_bank+1, 10*tao_com%ix_key_bank+10
   if (k > ubound(s%key, 1)) cycle
   ix_var = s%key(k)
   if (ix_var == 0) cycle
@@ -207,14 +207,14 @@ call qp_draw_text (str, 5.0_rp, y_here, 'POINTS/GRAPH', &
 write (fmt, '(a, i2.2, a, i2.2, a)') &
         '(i2, 2x, a', j_ele, ', 2x, a', j_att, ', 3a12, 2x, a, 3x, l)'
 
-write (str, '(i2, a)') tao_com%ix_key_bank/10, ':'
+write (str, '(i2, a)') tao_com%ix_key_bank, ':'
 y_here = y_here - 1.1 * height
 call qp_draw_text (str, 5.0_rp, y_here, 'POINTS/GRAPH', &
                           height = height, uniform_spacing = .true.)
 
 do i = 1, 10
 
-  k = i + tao_com%ix_key_bank
+  k = i + 10*tao_com%ix_key_bank
   if (k > ubound(s%key, 1)) cycle
   ix_var = s%key(k)
   j = mod(i, 10)
@@ -719,15 +719,15 @@ enddo
 ! This is for drawing the key numbers under the appropriate elements
 
 if (s%global%label_keys) then
-  do k = tao_com%ix_key_bank+1, tao_com%ix_key_bank+10
+  do kk = 1, 10
+    k = kk + 10*tao_com%ix_key_bank
     if (k > ubound(s%key, 1)) cycle
     ix_var = s%key(k)
     if (ix_var < 1) cycle
     do ixv = 1, size(s%var(ix_var)%this)
       if (s%var(ix_var)%this(ixv)%ix_uni /= isu) cycle
       ix = s%var(ix_var)%this(ixv)%ix_ele
-      kk = mod(k - tao_com%ix_key_bank, 10)
-      write (str, '(i1)') kk
+      write (str, '(i1)') mod(kk, 10)
       if (ix > lat%n_ele_track) then
         do j = lat%ele(ix)%ix1_slave, lat%ele(ix)%ix2_slave
           ix1 = lat%control(j)%ix_slave
@@ -773,7 +773,7 @@ call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
 call qp_draw_axes
 
 if (graph%limited .and. graph%clip) &
-  call qp_draw_text ('**Limited**', -0.18_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
+  call qp_draw_text ('**Curve Off Scale**', -0.30_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
 
 ! loop over all the curves of the graph and draw them
 

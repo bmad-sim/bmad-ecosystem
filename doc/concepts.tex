@@ -59,7 +59,7 @@ Machine layout and component strengths, and the beam orbit (\sref{s:lattice}).
   \item[Data] \Newline
 Anything that can be measured.
 For example: The orbit of a particle or the lattice beta 
-functions, etc. (\sref{s:data})
+functions, etc. (\sref{c:data})
   \item[Variables] \Newline
 Essentially, any lattice parameter or initial condition that can be varied.
 For example: quadrupole strengths, etc. (\sref{s:variables}).
@@ -90,7 +90,7 @@ single machine at the same time. The \vn{super_universe} also contains
 
 The \tao \vn{super_universe} (\sref{s:orginization}) contains one or
 more \vn{universes}.  A \vn{universe} contains a \vn{lattice}
-(\sref{s:lattice}) plus whatever data (\sref{s:data}) one wishes to
+(\sref{s:lattice}) plus whatever data (\sref{c:data}) one wishes to
 study within this lattice (i.e. twiss parameters, orbit, phase,
 etc.). Actually, there are three lattices within each universe: the
 \textbf{design} lattice, \textbf{model} lattice and \textbf{base}
@@ -148,138 +148,8 @@ command (\sref{s:set}) is used to transfer information from the
   \end{description}
 
 %------------------------------------------------------------------------
-\section{Data}
-\label{s:data}
-\index{Data}
-
-\begin{figure}
-  \centering
-  \includegraphics[width=4in]{data_tree.eps}
-  \caption[Data tree structure]
-{A \vn{d2\_data} structure holds a set of \vn{d1\_data} structures. 
-A \vn{d1\_data} structure holds an array of datums.}
-  \label{f:data_tree}
-\end{figure}
-
-\index{d2_data}\index{d1_data}\index{Data}
-The term \vn{``datum''} denotes anything that can be calculated. This
-includes the vertical orbit at a particular position or the horizontal
-emittance of a storage ring. For ease of manipulation, arrays of
-datums are grouped into what is called a \vn{d1_data}
-\vn{structure}. Furthermore, sets of \vn{d1_data} structures are
-grouped into what is called a \vn{d2_data} structure.  This is
-illustrated in Figure~\ref{f:data_tree}.  For example, a \vn{d2_data}
-structure for orbit data would contain two \vn{d1_data} structures ---
-one \vn{d1_data} structure for the horizontal orbit data and another
-\vn{d1_data} structure for the vertical orbit data. Each datum of,
-say, the horizontal orbit \vn{d1_data} structure would then correspond
-to the horizontal orbit at some point in the machine.
-
-When issuing \tao commands, all the
-data associated with a \vn{d2_data} structure is specified using the
-\vn{d2_data} structure's \vn{name}.  The data associated with a
-\vn{d1_data} structure is specified using the format
-\begin{example}
-  d2_name.d1_name
-\end{example}
-For example, if a \vn{d2_data} structure has the
-name ``\vn{orbit}'', and one of its \vn{d1_data} structures has the
-name ``\vn{x}'', then \tao commands that refer to the data in this
-\vn{d1_data} structure use the name ``\vn{orbit.x}''. Sometimes there
-is only one \vn{d1_data} structure for a given \vn{d2_data}
-structure. In this case the data can be referred to simply by using
-the \vn{d2_data} structure's name. The individual datums can be
-referred to using the notation
-\begin{example}
-  d2_name.d1_name[datum_index]
-\end{example}
-For example, \vn{orbit.x[10]} referrs to the horizontal orbit datum
-with index 10. Notice that the beginning (lowest) datum index is user
-selectable and is therefore not necessarily 1.
-
-Ranges of datams can be referred to using using a comma \vn{,} to
-separate the indexes combined with the notaion \vn{n1:n2} to specify
-all the datums between \vn{n1} and \vn{n2} inclusive. For example
-\begin{example}
-  orbit.x[3:6,23]
-\end{example}
-refers to datums 3, 4, 5, 6, and 23. 
-
-If multiple universes (\sref{s:universe}) are present, then the prefix
-\vn{n@} signifies the n\Th universe. For example
-\begin{example}
-  2@orbit.x
-\end{example}
-would refer to the \vn{orbit.x} data in universe 2. When not
-specified, the current ``viewed'' universe is assumed. The current
-\vn{viewed} universe is also has index \vn{0} so \vn{orbit.x} is
-equivalent to \vn{0@orbit.x}.
-
-A ``\vn{*}'' can be used as a wild card to denote ``all''. Thus:
-\begin{example}
-  *@orbit.x   ! The \vn{orbit.x} data in all universes.
-  *           ! All the data in the currently viewed universe.
-  *.*         ! Same as *
-  *@*         ! All the data in all the universes. 
-  *@*.*       ! Same as *@*
-\end{example}
-Additionally, When referring to an entire block of data encomposed by
-a \vn{d1_data} structure the \vn{[*]} can be omitted. For example,
-something like \vn{orbit.x|meas} is equivalent to
-\vn{orbit.x[*]|meas}.
-
-Each datum has a number of quantities associated with it:
-  \vspace*{-2ex}
-  \index{Data!measured}\index{Data!reference}\index{Data!model}
-  \index{Data!base}\index{Data!design}
-  \begin{description}
-  \item[Measured Data] \Newline 
-The data as obtained from some measurement. This is what is used when
-running the optimizer.  When doing lattice design the measured
-\vn{data} corresponds to a constraint (See chapter~\ref{c:opti} on
-optimization for more details).
-  \item[Reference Data] \Newline
-Reference data obtained from some reference measurement. For example,
-a measurement before some variable is varied could be designated as
-the \vn{reference}, and the data taken after the variation could be 
-designated the \vn{measrued} data.
-  \item[Model Data] \Newline
-The data as calculated from the \vn{model} lattice.
-  \item[Design Data] \Newline
-The data as calculated from the \vn{design} lattice.
-  \item[Base Data] \Newline
-The data as calculated from the \vn{base} lattice.
-  \end{description}
-These components and others can be refered to using the notaion
-\vn{|name} where \vn{name} is the appropriate name for the
-component. The list of components that can be set or refered to are:
-\begin{example}
-  orbit.x[1]|meas      ! Measured data value
-  orbit.x[1]|ref       ! Reference data value
-  orbit.x[1]|model     ! Value as calculated from the model lattice
-  orbit.x[1]|base      ! Value as calculated from the base lattice
-  orbit.x[1]|design    ! Value as calculated from the design lattice
-  orbit.x[1]|old       ! Scratch value
-  orbit.x[1]|fit       ! Value as given after an optimization
-  orbit.x[1]|weight    ! Weight used in the merit function.
-  orbit.x[1]|exists    ! Logical
-  orbit.x[1]|good_meas ! Logical
-  orbit.x[1]|good_ref  ! Logical
-  orbit.x[1]|good_user ! Logical
-  orbit.x[1]|good_opt  ! Logical
-  orbit.x[1]|good_plot ! Logical
-\end{example}
-
-The \vn{d1_data}
-and \vn{d2_data} structures are defined in the \tao initialization
-file (cf.~Chapter~\ref{c:init}).  
-
-See chapter \sref{c:data_types} for more details.  Use the \vn{show
-data} (\sref{s:data}) command to view information about any data type. 
-
-%------------------------------------------------------------------------
 \section{Variables}
-\label{s:variables}
+\label{s:variable_overview}
 \index{Variables}
 
 

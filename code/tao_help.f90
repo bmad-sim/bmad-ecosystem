@@ -104,7 +104,9 @@ do
   call eliminate3 ('\ref{', '&')
   call eliminate3 ('& ref{', '\hline')
   call substitute  ('\\ \hline')
-
+  call substitute ('\W ', '^')
+  call substitute ('"\W"', '"^"')
+  
   if (line == ' ') then
     if (blank_line_before) cycle
     blank_line_before = .true.

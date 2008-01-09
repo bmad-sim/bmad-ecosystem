@@ -46,7 +46,8 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
     call err_exit
   endif
 
-  design_lattice%file = ''
+  design_lattice%file   = ''
+  design_lattice%file2  = ''
   design_lattice%parser = ''
 
   taylor_order = 0
@@ -132,12 +133,19 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
     u%design%modes%a%emittance = u%design%lat%a%emit
     u%design%modes%b%emittance = u%design%lat%b%emit
 
-    if (combine_consecutive_elements_of_like_name) call combine_consecutive_elements(u%design%lat)
+    if (combine_consecutive_elements_of_like_name) &
+                                call combine_consecutive_elements(u%design%lat)
 
     if (unique_name_suffix /= '') then
       call tao_string_to_element_id (unique_name_suffix, key, suffix, err, .true.)
       if (err) call err_exit
       call create_unique_ele_names (u%design%lat, key, suffix)
+    endif
+
+    ! Call bmad_parser2 if wanted
+
+    if (design_lattice(i)%file2 /= '') then
+      call bmad_parser2 (design_lattice(i)%file2, u%design%lat)
     endif
 
     ! Use what is set in the lattice for the default of aperture_limit_on.
@@ -147,19 +155,8 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
     read (iu, nml = tao_design_lattice, iostat = ios)
     u%design%lat%param%aperture_limit_on = aperture_limit_on
 
-    ! Initialize calibration array
-    ! This must be performed or tao_read_bpm and tao_do_wire_scan will crash.
-    ! r(1,:) is for bpm and steering callibration
-    ! r(2,:) is for saving ele parameters
-
-    do j = 1, u%design%lat%n_ele_max
-        allocate(u%design%lat%ele(j)%r(2,5))
-        u%design%lat%ele(j)%r = 0.0
-    enddo
-
     if (u%design%lat%param%lattice_type .eq. circular_lattice$) then
-      call out_io (s_blank$, r_name, &
-                  "RFCavities will be turned off in lattices")
+      call out_io (s_blank$, r_name, "RFCavities will be turned off in lattices")
       call set_on_off (rfcavity$, u%design%lat, off$)
     endif
 

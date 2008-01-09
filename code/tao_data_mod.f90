@@ -17,7 +17,7 @@ type this_coupling_struct
   logical calc_done
 end type
 
-type (this_coupling_struct), save, allocatable, target :: cc(:)
+type (this_coupling_struct), save, allocatable, target, private :: cc(:)
 
 contains
 
@@ -293,9 +293,9 @@ case ('orbit.p_z')
   if (lat%param%ix_lost /= not_lost$ .and. ix1 >= lat%param%ix_lost) valid_value = .false.
 
 case ('bpm.x')
-  call tao_read_bpm (tao_lat%orb(ix1), lat%ele(ix1), x_plane$, datum_value)
+  call tao_read_bpm (tao_lat%orb(ix1), lat%ele(ix1), u%ele(ix1), x_plane$, datum_value)
 case ('bpm.y')
-  call tao_read_bpm (tao_lat%orb(ix1), lat%ele(ix1), y_plane$, datum_value)
+  call tao_read_bpm (tao_lat%orb(ix1), lat%ele(ix1), u%ele(ix1), y_plane$, datum_value)
 
 case ('phase.a')
   datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
@@ -811,7 +811,7 @@ case ('sigma.xy')
 case ('wire.')  
   if (data_source == "beam") then
     read (data_type(6:), '(a)') angle
-    datum_value = tao_do_wire_scan (lat%ele(ix1), angle, u%current_beam)
+    datum_value = tao_do_wire_scan (lat%ele(ix1), u%ele(ix1), angle, u%current_beam)
   elseif (data_source == "macro") then
     valid_value = .false.
   else
@@ -884,7 +884,7 @@ real(rp) datum_value
 
 character(20) :: r_name = 'tao_evaluate_a_datum'
 
-integer ix_m, i, ix0, ix1, n_lat
+integer ix_m, i, ix0, ix1, n_lat, ix_m2
 logical, optional :: coupling_here, valid_value
 
 !
@@ -905,8 +905,15 @@ n_lat = lat%n_ele_track
 if (datum%ele0_name == ' ') then
   ix_m = ix1
   if (present(coupling_here)) call coupling_calc (ix_m, datum, lat)
+  datum_value = vec(ix_m)
+  if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ix_m))
 
-!
+elseif (datum%merit_type == 'match') then
+
+  ix_m = ix1
+  if (present(coupling_here)) call coupling_calc (ix0, datum, lat)
+  if (present(coupling_here)) call coupling_calc (ix1, datum, lat)
+  datum_value = vec(ix1) - vec(ix0)
 
 else
 
@@ -923,29 +930,39 @@ else
   
     select case (datum%merit_type)
     case ('min')
-      if (minval(vec(0:ix1)) < minval(vec(ix0:n_lat))) then
-        ix_m = minloc (vec(0:ix1), 1) - 1
-      else
-        ix_m = minloc (vec(ix0:n_lat), 1) + ix0 - 1
-      endif
+      ix_m = minloc (vec(0:ix1), 1) - 1
+      ix_m2 = minloc (vec(ix0:n_lat), 1) + ix0 - 1
+      if (vec(ix_m2) < vec(ix_m2)) ix_m = ix_m2
+      datum_value = vec(ix_m)
+
     case ('max')
-      if (maxval(vec(0:ix1)) > maxval(vec(ix0:n_lat))) then
-        ix_m = maxloc (vec(0:ix1), 1) - 1
-      else
-        ix_m = maxloc (vec(ix0:n_lat), 1) + ix0 - 1
-      endif
+      ix_m = maxloc (vec(0:ix1), 1) - 1
+      ix_m2 = maxloc (vec(ix0:n_lat), 1) + ix0 - 1
+      if (vec(ix_m2) > vec(ix_m2)) ix_m = ix_m2
+      datum_value = vec(ix_m)
+
     case ('abs_min')
-      if (minval(abs(vec(0:ix1))) < minval(abs(vec(ix0:n_lat)))) then
-        ix_m = minloc (abs(vec(0:ix1)), 1) - 1
-      else
-        ix_m = minloc (abs(vec(ix0:n_lat)), 1) + ix0 - 1
-      endif
+      ix_m = minloc (abs(vec(0:ix1)), 1) - 1
+      ix_m2 = minloc (abs(vec(ix0:n_lat)), 1) + ix0 - 1
+      if (abs(vec(ix_m2)) < abs(vec(ix_m2))) ix_m = ix_m2
+      datum_value = abs(vec(ix_m))
+
     case ('abs_max')
-      if (maxval(abs(vec(0:ix1))) > maxval(abs(vec(ix0:n_lat)))) then
-        ix_m = maxloc (abs(vec(0:ix1)), 1) - 1
-      else
-        ix_m = maxloc (abs(vec(ix0:n_lat)), 1) + ix0 - 1
-      endif
+      ix_m = maxloc (abs(vec(0:ix1)), 1) - 1
+      ix_m2 = maxloc (abs(vec(ix0:n_lat)), 1) + ix0 - 1
+      if (abs(vec(ix_m2)) > abs(vec(ix_m2))) ix_m = ix_m2
+      datum_value = abs(vec(ix_m))
+
+    case ('int_min')
+      datum_value = 0; ix_m = -1
+      call integrate_min (ix1, lat%n_ele_track, datum_value, ix_m, lat, vec, datum)
+      call integrate_min (0, ix0, datum_value, ix_m, lat, vec, datum)
+
+    case ('int_max')
+      datum_value = 0; ix_m = -1
+      call integrate_max (ix1, lat%n_ele_track, datum_value, ix_m, lat, vec, datum)
+      call integrate_max (0, ix0, datum_value, ix_m, lat, vec, datum)
+
     case default
       call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
                                    'FOR DATUM: ' // tao_datum_name(datum))
@@ -962,12 +979,28 @@ else
     select case (datum%merit_type)
     case ('min')
       ix_m = minloc (vec(ix0:ix1), 1) + ix0 - 1
+      datum_value = vec(ix_m)
+
     case ('max')
       ix_m = maxloc (vec(ix0:ix1), 1) + ix0 - 1
+      datum_value = vec(ix_m)
+
     case ('abs_min')
       ix_m = minloc (abs(vec(ix0:ix1)), 1) + ix0 - 1
+      datum_value = abs(vec(ix_m))
+
     case ('abs_max')
       ix_m = maxloc (abs(vec(ix0:ix1)), 1) + ix0 - 1
+      datum_value = abs(vec(ix_m))
+
+    case ('int_min')
+      datum_value = 0; ix_m = -1
+      call integrate_min (ix0, ix1, datum_value, ix_m, lat, vec, datum)
+
+    case ('int_max')
+      datum_value = 0; ix_m = -1
+      call integrate_max (ix0, ix1, datum_value, ix_m, lat, vec, datum)
+
     case default
       call out_io (s_abort$, r_name, &
                     'SINCE THIS DATUM: ' // tao_datum_name(datum), &
@@ -983,9 +1016,85 @@ endif
 !
 
 datum%ix_ele_merit = ix_m
-datum_value = vec(ix_m)
-if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ix_m))
 if (present(f)) datum%conversion_factor = f(ix_m)
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+
+subroutine integrate_min (ix0, ix1, datum_value, ix_m, lat, vec, datum)
+
+implicit none
+
+type (lat_struct) lat
+type (tao_data_struct) datum
+
+real(rp) vec(0:), val0, dv0, dv1, ds
+real(rp) datum_value
+
+integer ix_m, i, ix0, ix1
+
+!
+
+val0 = datum%meas_value
+
+do i = ix0, ix1
+  if (ix_m < 0) ix_m = i
+  if (vec(i) < vec(ix_m)) ix_m = i
+  if (i == ix0) cycle
+  dv0 = val0 - vec(i-1) 
+  dv1 = val0 - vec(i)
+  ds = lat%ele(i)%s - lat%ele(i-1)%s
+  if (dv0 < 0 .and. dv1 < 0) cycle
+  if (dv0 > 0 .and. dv1 > 0) then
+    datum_value = datum_value + 0.5 * ds * (dv0 + dv1)
+  elseif (dv0 > 0) then
+    datum_value = datum_value + 0.5 * ds * dv0**2 / (dv0 - dv1)
+  else
+    datum_value = datum_value + 0.5 * ds * dv1**2 / (dv1 - dv0)
+  endif
+enddo
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+
+subroutine integrate_max (ix0, ix1, datum_value, ix_m, lat, vec, datum)
+
+implicit none
+
+type (lat_struct) lat
+type (tao_data_struct) datum
+
+real(rp) vec(0:), val0, dv0, dv1, ds
+real(rp) datum_value
+
+integer ix_m, i, ix0, ix1
+
+!
+
+val0 = datum%meas_value
+
+do i = ix0, ix1
+  if (ix_m < 0) ix_m = i
+  if (vec(i) > vec(ix_m)) ix_m = i
+  if (i == ix0) cycle
+  dv0 = vec(i-1) - val0
+  dv1 = vec(i) - val0
+  ds = lat%ele(i)%s - lat%ele(i-1)%s
+  if (dv0 < 0 .and. dv1 < 0) cycle
+  if (dv0 > 0 .and. dv1 > 0) then
+    datum_value = datum_value + 0.5 * ds * (dv0 + dv1)
+  elseif (dv0 > 0) then
+    datum_value = datum_value + 0.5 * ds * dv0**2 / (dv0 - dv1)
+  else
+    datum_value = datum_value + 0.5 * ds * dv1**2 / (dv1 - dv0)
+  endif
+enddo
 
 end subroutine
 
@@ -1041,30 +1150,22 @@ end subroutine coupling_calc
 ! This routine will only give a nonzero reading for BMAD monitors and
 ! instruments.
 !
-! The BPM noise is in the ele%r(1,1) entry
-!
-! The ele%r array is used for noise and steering calibration: 
-!  r(1,1) = bpm noise (rms)
-!  r(1,2) = horizontal alignment calibration
-!  r(1,3) = vertical alignment calibration
-!  r(1,4) = bpm tilt callibration
-!  r(1,5) = BPM scal error (x_reading = a * x_real)
-!
 ! Input: 
-!  orb      -- Coord_struct: Orbit position at BPM
-!  ele      -- Ele_struct: the BPM
-!  noise    -- real(rp): BPM gaussian noise (in meters)
-!  axis     -- Integer: x_plane$ or y_plane$
+!  orb        -- Coord_struct: Orbit position at BPM
+!  ele        -- Ele_struct: the BPM
+!  bpm_params -- Tao_element_struct: BPM information.
+!  noise      -- real(rp): BPM gaussian noise (in meters)
+!  axis       -- Integer: x_plane$ or y_plane$
 !
 ! Output:
 !  reading  -- Real(rp): BPM reading
-!
 !-
 
-subroutine tao_read_bpm (orb, ele, axis, reading)
+subroutine tao_read_bpm (orb, ele, bpm_params, axis, reading)
 
 type (coord_struct) orb
 type (ele_struct) ele
+type (tao_element_struct) bpm_params
 
 real(rp) reading
 real(rp) ran_num(2)
@@ -1088,17 +1189,17 @@ logical err
   call ran_gauss (ran_num)
   
   if (axis == x_plane$) then
-    reading = (1 + ele%r(1,5)*ran_num(1)) * (ele%r(1,1)*ran_num(2) + &
-               (orb%vec(1) - ele%value(x_offset_tot$) + ele%r(1,2)) * &
-                                           cos(ele%value(tilt_tot$) + ele%r(1,4)) + &
-               (orb%vec(3) - ele%value(y_offset_tot$) + ele%r(1,3)) * &
-                                           sin(ele%value(tilt_tot$) + ele%r(1,4)))
+    reading = (1 + bpm_params%scale_err*ran_num(1)) * (bpm_params%data_noise*ran_num(2) + &
+               (orb%vec(1) - ele%value(x_offset_tot$) + bpm_params%x_calib) * &
+                                           cos(ele%value(tilt_tot$) + bpm_params%tilt_calib) + &
+               (orb%vec(3) - ele%value(y_offset_tot$) + bpm_params%y_calib) * &
+                                           sin(ele%value(tilt_tot$) + bpm_params%tilt_calib))
   elseif (axis == y_plane$) then
-    reading = (1 + ele%r(1,5)*ran_num(1)) * (ele%r(1,1)*ran_num(2) &
-              -(orb%vec(1) - ele%value(x_offset_tot$) + ele%r(1,2)) * &
-                                           sin(ele%value(tilt_tot$) + ele%r(1,4)) + &
-               (orb%vec(3) - ele%value(y_offset_tot$) + ele%r(1,3)) * &
-                                           cos(ele%value(tilt_tot$) + ele%r(1,4))) 
+    reading = (1 + bpm_params%scale_err*ran_num(1)) * (bpm_params%data_noise*ran_num(2) &
+              -(orb%vec(1) - ele%value(x_offset_tot$) + bpm_params%x_calib) * &
+                                           sin(ele%value(tilt_tot$) + bpm_params%tilt_calib) + &
+               (orb%vec(3) - ele%value(y_offset_tot$) + bpm_params%y_calib) * &
+                                           cos(ele%value(tilt_tot$) + bpm_params%tilt_calib)) 
   else
     reading = 0.0
     call out_io (s_warn$, r_name, &
@@ -1416,7 +1517,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine tao_do_wire_scane (ele, theta, beam) result (moment)
+! Subroutine tao_do_wire_scane (ele, wire_params, theta, beam) result (moment)
 !
 ! Returns the beam's second moment using the wire along the specified angle.
 ! Keep in mind that the actual correlation axis is 90 degrees off of the 
@@ -1426,33 +1527,34 @@ end subroutine
 ! bunch. Obviously, this isn't realistic. Any dynamic effects will not be
 ! accounted for!
 !
-! The ele%r array is used for wire scanner resolution:
-!  ele%r(1,1) = relative wire resolution RMS (i.e. 0.1 => 10%)
-!  ele%r(1,4) = wire angle error in radians rms
-!
 ! Input:
-!  theta   -- Real(rp): wire angle wrt x axis (in degrees)
-!  beam    -- Beam_struct: contains the beam distribution
+!  ele         -- Element_struct: 
+!  wire_params -- Tao_element_struct:
+!    %data_noise -- relative wire resolution RMS (i.e. 0.1 => 10%)
+!    %tilt_calib -- wire angle error in radians rms.
+!  theta       -- Real(rp): wire angle wrt x axis (in degrees)
+!  beam        -- Beam_struct: contains the beam distribution
 !
 ! Output:
-!  moment  -- Real(rp): second moment along axis specified by angle.
+!   moment  -- Real(rp): second moment along axis specified by angle.
 !-
 
-function tao_do_wire_scan (ele, theta, beam) result (moment)
+function tao_do_wire_scan (ele, wire_params, theta, beam) result (moment)
 
 implicit none
 
 type (ele_struct) ele
 type (beam_struct) beam
-real(rp), allocatable, save :: dist(:)
+type (tao_element_struct) wire_params
 
+real(rp), allocatable, save :: dist(:)
 real(rp) theta, theta_rad, moment, ran_num(2)
 real(rp) avg
 
   call ran_gauss (ran_num)
   
   ! angle in radians and correlation angle is 90 off from wire angle
-  theta_rad = ele%r(1,4)*ran_num(1) + (theta - 90) * (2.0*pi / 360.0)
+  theta_rad = wire_params%tilt_calib*ran_num(1) + (theta - 90) * (2.0*pi / 360.0)
 
   if (.not. allocated (dist)) then
     allocate (dist(size(beam%bunch(1)%particle)))
@@ -1469,11 +1571,11 @@ real(rp) avg
   avg = sum (dist, mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
           / count (beam%bunch(1)%particle%ix_lost == not_lost$)
         
-  moment = (1 + ele%r(1,1)*ran_num(2)) * sum ((dist-avg)*(dist-avg), &
+  moment = (1 + wire_params%data_noise*ran_num(2)) * sum ((dist-avg)*(dist-avg), &
                  mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
           / count (beam%bunch(1)%particle%ix_lost == not_lost$)
 
-! moment = (ele%r(1,1)**2)*ran_num(2) + sum ((dist-avg)*(dist-avg), &
+! moment = (wire_params%data_noise**2)*ran_num(2) + sum ((dist-avg)*(dist-avg), &
 !                mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
 !         / count (beam%bunch(1)%particle%ix_lost == not_lost$)
 

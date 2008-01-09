@@ -1,19 +1,200 @@
-\chapter{Data types}
-\label{c:data_types}
-
-%------------------------------------------------------------------------
-\section{How Tao Handles Data}
+\chapter{Data in Tao}
+\label{c:data}
 \index{Data}
 
-As explained in Section~\sref{s:data}, \tao has special structures
-to hold data to be analyzed. Any lattice or beam parameters that are
-needed to be analyzed or plotted must have a data type defined for
-it. In general, a data type can be any type of parameter that is not
-necessarily measurable in a real world machine. For example, there is
-an orbit data type and a BPM data type. The orbit data is the real
-x,y,z position of a particle in the lab frame whereas the BPM data is
-the x and y reading on a simulated beam position monitor that includes
-any offsets, tilts and noise.
+The term \vn{``data''} denotes anything that can be calculated by
+\tao. This includes the vertical orbit at a particular position or the
+horizontal emittance of a storage ring. Data can be plotted or used in
+lattice correction and design (\sref{c:opti}). This chapter expains
+how data is organized in \tao while Section~\sref{c:data_init}
+explains how to define the structures that hold the data in the
+initialization files. When running \tao, the \vn{show data}
+(\sref{s:show}) command can be used to view information about the
+data.
+
+
+%------------------------------------------------------------------------
+\section{Data Organization}
+\label{s:data_org}
+\index{Data}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=4in]{data_tree.eps}
+  \caption[Data tree structure]
+{A \vn{d2\_data} structure holds a set of \vn{d1\_data} structures. 
+A \vn{d1\_data} structure holds an array of datums.}
+  \label{f:data_tree}
+\end{figure}
+
+\index{d2_data}\index{d1_data}\index{Data}
+The horizontal orbit at a particular BPM is an example of an
+individual \vn{datum}.  For ease of manipulation, arrays of datums are
+grouped into what is called a \vn{d1_data} structure. Furthermore,
+sets of \vn{d1_data} structures are grouped into what is called a
+\vn{d2_data} structure.  This is illustrated in
+Figure~\ref{f:data_tree}.  For example, a \vn{d2_data} structure for
+orbit data could contain two \vn{d1_data} structures --- one
+\vn{d1_data} structure for the horizontal orbit data and another
+\vn{d1_data} structure for the vertical orbit data. Each datum of,
+say, the horizontal orbit \vn{d1_data} structure would then correspond
+to the horizontal orbit at some point in the machine.
+
+When issuing \tao commands, all the
+data associated with a \vn{d2_data} structure is specified using the
+\vn{d2_data} structure's \vn{name}.  The data associated with a
+\vn{d1_data} structure is specified using the format
+\begin{example}
+  d2_name.d1_name
+\end{example}
+For example, if a \vn{d2_data} structure has the
+name ``\vn{orbit}'', and one of its \vn{d1_data} structures has the
+name ``\vn{x}'', then \tao commands that refer to the data in this
+\vn{d1_data} structure use the name ``\vn{orbit.x}''. Sometimes there
+is only one \vn{d1_data} structure for a given \vn{d2_data}
+structure. In this case the data can be referred to simply by using
+the \vn{d2_data} structure's name. The individual datums can be
+referred to using the notation
+\begin{example}
+  d2_name.d1_name[datum_index]
+\end{example}
+For example, \vn{orbit.x[10]} referrs to the horizontal orbit datum
+with index 10. Notice that the beginning (lowest) datum index is user
+selectable and is therefore not necessarily 1.
+
+Ranges of datams can be referred to using using a comma \vn{,} to
+separate the indexes combined with the notaion \vn{n1:n2} to specify
+all the datums between \vn{n1} and \vn{n2} inclusive. For example
+\begin{example}
+  orbit.x[3:6,23]
+\end{example}
+refers to datums 3, 4, 5, 6, and 23. 
+
+If multiple universes (\sref{s:universe}) are present, then the prefix
+\vn{n@} signifies the n\Th universe. For example
+\begin{example}
+  2@orbit.x
+\end{example}
+would refer to the \vn{orbit.x} data in universe 2. When not
+specified, the current ``viewed'' universe is assumed. The current
+\vn{viewed} universe is also has index \vn{0} so \vn{orbit.x} is
+equivalent to \vn{0@orbit.x}.
+
+As explained in Section~\sref{s:data_anatomy}, each individual datum
+has a number of components. The syntax to refer to a component is:
+\begin{example}
+  d2_name.d1_name[datum_index]|component
+\end{example}
+For example:
+\begin{example}
+  orbit.x[3:10]|meas     ! The measured data values
+\end{example}
+
+A ``\vn{*}'' can be used as a wild card to denote ``all''. Thus:
+\begin{example}
+  *@orbit.x       ! The \vn{orbit.x} data in all universes.
+  *               ! All the data in the currently viewed universe.
+  *.*             ! Same as *
+  *@*             ! All the data in all the universes. 
+  *@*.*           ! Same as *@*
+  orbit.x[*]|meas ! All measured values of orbit.x
+  orbit.x|meas    ! Same as orbit.x[*]|meas
+\end{example}
+The last example shows that when referring to an entire block of data
+encomposed by a \vn{d1_data} structure, the \vn{[*]} can be omitted.
+
+%------------------------------------------------------------------------
+\section{Anatomy of a Datum}
+\label(s:data_anatomy}
+
+Each datum has a number of quantities associated with it:
+\begin{example}
+  ele_name       ! Name of the element in the Lattice corresponding to the datum.
+  ele0_name      ! Name lattice element when there is a range 
+  data_type      ! Type of data: "orbit.x", etc.
+  merit_type     ! Type of constraint: 'target', 'max', 'min', etc.
+  data_source    ! 'lattice', or 'beam'
+  ix_ele            ! Index of the element in the lattice element array.
+  ix_ele0           ! Index of lattice elment when there is a range or reference.
+  ix_ele_merit      ! Index of lattice elment where merit is evaluated.
+  ix_d1             ! Index number in d1_data structure
+  ix_data           ! Index in the global data array
+  ix_dModel         ! Row number in the dModel_dVar derivative matrix.
+  ix_bunch          ! Bunch number to get the data from.
+  meas              ! Measured datum value. 
+  ref               ! Measured datum value from the reference data set.
+  model             ! Datum value as calculated from the model.
+  design            ! What the datum value is in the design lattice.
+  old               ! The model at some previous time.
+  base              ! The value as calculated from the base model.
+  fit               ! The value as calculated from a fitting procedure.
+  delta_merit       ! Diff used to calculate the merit function term 
+  weight            ! Weight for the merit function term
+  merit             ! Merit function term value: weight * delta^2
+  conversion_factor ! Typically used to convert coupling to cbar
+  s                 ! longitudinal position of ele.
+  relative          ! Is this a relative datum?
+  exists            ! Does the datum exist?
+  good_model        ! Does the model cmponent contain a valid value?
+  good_meas         ! Does the meas cmponent contain a valid value?
+  good_ref          ! Does the ref cmponent contain a valid value?
+  good_user         ! Does the user want this datum used in optimization?
+  good_opt          ! Can be used in Tao extensions.
+  good_plot         ! Can be used in Tao extensions.
+  useit_plot        ! Is this datum to be used in plotting?
+  useit_opt         ! Is this datum to be used for optimization?
+\end{example}
+When running \tao, the \vn{show data}
+(\sref{s:show}) command can be used to view components of a datum.
+
+\index{Data!measured}\index{Data!reference}\index{Data!model}
+\index{Data!base}\index{Data!design}
+There are actually mutiple values that are associated with a given datum:
+\begin{description}
+  \item[meas] \Newline 
+The value of the datum as obtained from some measurement. This is what is used when
+running the optimizer. When doing lattice design, the measured
+value corresponds to a constraint value (See chapter~\ref{c:opti} on
+optimization for more details).
+  \item[ref] \Newline
+Reference datum obtained from some reference measurement. For example,
+a measurement before some variable is varied could be designated as
+the \vn{reference}, and the datum taken after the variation could be 
+designated the \vn{measrued} datum.
+  \item[model] \Newline
+The value of the datum as calculated from the \vn{model} lattice.
+  \item[design] \Newline
+The value of the datum as calculated from the \vn{design} lattice.
+  \item[base] \Newline
+The datum value as calculated from the \vn{base} lattice.
+  \item[old] \Newline
+A datum value that was saved at some point in \tao's calculations. This value
+can be ignored.
+\end{description}
+
+\index{Data!Relative}
+Associated with a datum are two lattice elements called
+\vn{ele0_name} and \vn{ele_name} are the names of the two lattice
+elements associated with a datum. Datums can be divided up into four
+classes: Datums in the first class, like the emittance in a curcular
+ring, do not have associated lattice elements and their corresponding
+element names will be blank. Datums in the second class, like the beta
+function at a given point, will only have one associated lattice
+element given by \vn{ele_name} and \vn{ele0_name} will be blank.
+Datums in the third class are associated with a section of the
+lattice. For example, the maximum of the beta function in a lattice
+region. In this case the \vn{ele0} element marks the beginning of the
+region and \vn{ele} marks the end. The final class of datums, called
+\vn{relative} datums, means that the datum value is set by the
+difference between the value at the lattice element at \vn{ele0} and
+the value at \vn{ele}. The betatron phase advance falls into this
+category.
+\begin{example}
+  value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(ele0)
+\end{example}
+If a relative datum has a blank \vn{ele0_name} then \vn{ele0} is taken
+to be the beginning element of the lattice which is marker element
+with index 0 named \vn{BEGINNING}.
 
 \tao includes many different data types already predefined and
 these can be classified into three main catagories:
@@ -25,6 +206,7 @@ these can be classified into three main catagories:
   \item \textbf{Bunch Properties} \Newline
     For example bunch sigmas, emittance and beam twiss parameters.
 \end{enumerate}
+
 For a given data type the method used to calculate the datum can vary
 depending on the tracking type. For {\it single} particle tracking all
 data is found from the lattice parameters except for the orbit
@@ -43,22 +225,6 @@ calculated.  Custom data types need not fall into one of the above
 catagories and can be any real number as calculated in the appropriate
 ook routine.
 
-Also associated with a datum are two lattice elements called
-\vni{ele} and \vni{ele0}. The \vni{data_types} are divided into two
-categories: Those that are \vni{relative} and those that are not.  A
-\vni{relative} \vni{data_type} means that the \vni{model} value for that
-datum is determined by a difference between elements. For example, for
-\vn{phase.a} the \vn{model} value is
-\begin{example}
-  model_value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(ele0)
-\end{example}
-If there is no \vn{ele0} associated with a datum then the model value is
-\begin{example}
-  model_value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(0)
-\end{example}
-where $\phi_x(0)$ is the phase at the 0\Th element (which is always at
-0 radians).
-\index{Data!Relative}
 
 For datums with \vni{non-relative} \vn{data_types} if there is also an
 associated \vni{ele0} element then the \vn{model} value is dependent
@@ -70,10 +236,12 @@ where \vn{i} goes from the \vn{ele} index to the \vn{ele0} index.
 {\tt
 \begin{tabular}{|l|l|l|} \hline
   {\it Merit\_Type}       & {\it Model Value} \\ \hline 
+  \vni{abs_max} & $\min |\beta_x(i)|$ \\ \hline 
+  \vni{abs_min} & $\min |\beta_x(i)|$ \\ \hline 
+  \vni{int_max} &                     \\ \hline
+  \vni{int_min} &                     \\ \hline
   \vni{min}     & $\min \beta_x(i)$ \\ \hline 
   \vni{max}     & $\min \beta_x(i)$ \\ \hline 
-  \vni{abs_min} & $\min |\beta_x(i)|$ \\ \hline 
-  \vni{abs_max} & $\min |\beta_x(i)|$ \\ \hline 
   \vni{target}  & {\it Error}   \\ \hline 
 \end{tabular}
 }

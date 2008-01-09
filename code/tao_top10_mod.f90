@@ -193,6 +193,7 @@ implicit none
 type (tao_top10_struct) top_merit(10)
 type (tao_var_struct), pointer :: var
 type (tao_data_struct), pointer :: data
+type (tao_universe_struct), pointer :: u
 
 real(rp) value, this_merit
 
@@ -246,7 +247,7 @@ do i = 1, size(s%u)
     if (data%ix_ele < 0) then
       con(nc)%loc1 = ' '
     else
-      con(nc)%loc1 = s%u(i)%model%lat%ele(data%ix_ele)%name
+      con(nc)%loc1 = data%ele_name  ! s%u(i)%model%lat%ele(data%ix_ele)%name
     endif
 
     con(nc)%loc0 = data%ele0_name
@@ -273,7 +274,8 @@ do i = 1, size(s%var(:))
   nc = nc + 1
   con(nc)%d2_d1_name = trim(tao_var1_name(var))
   con(nc)%name = trim(tao_var_attrib_name(var))
-  con(nc)%loc1 = ''
+  u => s%u(var%this(1)%ix_uni)
+  write (con(nc)%loc1, '(f8.2)') u%model%lat%ele(var%this(1)%ix_ele)%s
   con(nc)%loc0 = ''
   if (var%merit_type == 'target') then
     con(nc)%target_value = var%meas_value

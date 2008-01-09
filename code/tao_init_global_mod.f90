@@ -5,24 +5,19 @@ use tao_mod
 contains
 
 !+
-! Subroutine tao_init_global_and_universes (init_file, data_file, var_file)
+! Subroutine tao_init_global (init_file)
 !
-! Subroutine to initialize the tao structures.
-! If init_file, data_file or var_file is not in the current directory then it 
+! Subroutine to initialize the tao global structures.
+! If init_file is not in the current directory then it 
 ! will be searched for in the directory:
 !   TAO_INIT_DIR
 !
 ! Input:
 !   init_file      -- Character(*): Tao initialization file.
-!   data_file      -- Character(*): Tao data initialization file.
-!   var_file       -- Character(*): Tao variable initialization file.
-!
-! Output:
 !-
 
-subroutine tao_init_global_and_universes (init_file, data_file, var_file)
+subroutine tao_init_global (init_file)
 
-use tao_data_mod
 use tao_lattice_calc_mod
 use tao_input_struct
 use macroparticle_mod
@@ -34,56 +29,29 @@ use spin_mod
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (tao_d2_data_input) d2_data
-type (tao_d1_data_input) d1_data
-type (tao_data_input) data(n_data_minn:n_data_maxx) ! individual weight 
-type (tao_v1_var_input) v1_var
-type (tao_var_struct), pointer :: var_ptr
-type (tao_v1_var_struct), pointer :: v1_var_ptr
-type (tao_this_var_struct), pointer :: this
-type (tao_var_input) var(n_var_minn:n_var_maxx)
 type (tao_global_struct), save :: global, default_global
-type (tao_d1_data_struct), pointer :: d1_ptr
 type (beam_init_struct) beam_init
 type (macro_init_struct) macro_init
 type (tao_connected_uni_input) connect
 type (spin_polar_struct) spin
 
-real(rp) default_weight        ! default merit function weight
-real(rp) default_step          ! default "small" step size
-real(rp) default_low_lim, default_high_lim, default_key_delta
-real(rp) default_data_noise         ! default noise for data type
-real(rp) default_scale_error        ! default noise for data type
-real(rp), allocatable, save :: default_key_d(:)
-
 integer ios, iu, i, j, i2, j2, k, ix, n_uni, num
-integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
+integer n_data_max, n_var_max
+integer n_d2_data_max, n_v1_var_max ! Deprecated variables
 integer n, n_universes, iostat, ix_universe, n_max
-integer ix_min_var, ix_max_var, n_d1_data, ix_ele
-integer ix_min_data, ix_max_data, ix_d1_data, n_v1
 
-integer, automatic :: n_d2_data(size(s%u))
-
-character(*) init_file, data_file, var_file
-character(40) :: r_name = 'tao_init_global_and_universes'
+character(*) init_file
+character(40) :: r_name = 'tao_init_global'
 character(200) file_name, beam0_file, beam_all_file
-character(40) name,  universe, default_universe, default_data_type
-character(40) default_merit_type, default_attribute, data_type, default_data_source
-character(40) use_same_lat_eles_as, search_for_lat_eles
-character(8) default_key_bound
-character(8), allocatable, save :: default_key_b(:)
+character(40) name,  universe
 
 character(60) save_beam_at(100)
 character(100) line
 
-logical err, free, gang
-logical searching
-logical, allocatable, save :: dflt_good_unis(:), good_unis(:)
-logical, allocatable, save :: matched_ele(:)
-logical, automatic :: mask(size(s%u))
+logical err
 
 namelist / tao_params / global, bmad_com, csr_param, &
-          n_data_max, n_var_max, n_d2_data_max, n_v1_var_max, spin
+          n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
   
 namelist / tao_connected_uni_init / ix_universe, connect
   
@@ -91,45 +59,6 @@ namelist / tao_beam_init / ix_universe, beam0_file, &
                           beam_all_file, beam_init, save_beam_at
          
 namelist / tao_macro_init / ix_universe, macro_init
-         
-namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe, &
-                  default_data_noise, default_scale_error
-  
-namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
-                   default_weight, default_data_type, default_data_source, &
-                   use_same_lat_eles_as, search_for_lat_eles
-                     
-namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
-                    ix_min_var, ix_max_var, default_universe, default_attribute, &
-                    default_low_lim, default_high_lim, default_merit_type, &
-                    use_same_lat_eles_as, search_for_lat_eles, default_key_bound
-
-!-----------------------------------------------------------------------
-! Find out how many d2_data structures we need for each universe
-
-call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
-call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
-
-n_d2_data = 0
-
-do 
-  universe = '*'
-  read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
-  if (ios /= 0) exit
-  if (universe == '*') then
-    n_d2_data = n_d2_data + 1
-  else
-    read (universe, *, iostat = ios) n_uni
-    if (ios /= 0 .or. n_uni > size(s%u)) then
-      call out_io (s_abort$, r_name, &
-            'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
-      call err_exit
-    endif
-    n_d2_data(n_uni) = n_d2_data(n_uni) + 1
-  endif
-enddo
-
-close (iu)
 
 !-----------------------------------------------------------------------
 ! Init lattaces
@@ -169,21 +98,14 @@ endif
 n = size(s%u)
 n_max = 0
 do i = 1, size(s%u)
-  call init_universe (s%u(i), n_d2_data(i))
   s%u(i)%ix_uni = i
   s%u(i)%do_synch_rad_int_calc = .false.
   s%u(i)%do_chrom_calc         = .false.
   n_max = max(n_max, s%u(i)%design%lat%n_ele_max)
 enddo
 
-if (associated(s%var)) deallocate (s%var)
-allocate (s%var(n_var_max))
-s%var(:)%good_opt  = .true.
-s%var(:)%exists    = .false.
-s%var(:)%good_var  = .true.
-s%var(:)%good_user = .true.
-
-s%n_var_used = 0
+tao_com%n_data_max = n_data_max
+tao_com%n_var_max = n_var_max
 
 !-----------------------------------------------------------------------
 ! Seed random number generator
@@ -213,8 +135,15 @@ end select
 !-----------------------------------------------------------------------
 ! allocate lattice coord_structs and equate model and base to design
 
-call init_lattices ()
+call init_orbits ()
   
+! set model/base = design
+
+do i = 1, size(s%u)
+  s%u(i)%model%lat = s%u(i)%design%lat
+  s%u(i)%base%lat  = s%u(i)%design%lat
+enddo
+
 !-----------------------------------------------------------------------
 ! Init connected universes
 
@@ -371,393 +300,18 @@ elseif(s%global%track_type == 'macro') then
 
 endif
 
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-! Init data
-
-call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
-call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
-
-do 
-  mask(:) = .true.      ! set defaults
-  d2_data%name       = ''
-  universe           = '*'
-  default_merit_type = 'target'
-  default_data_noise = 0.0
-
-  read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
-  if (ios < 0) exit         ! exit on end-of-file
-  call out_io (s_blank$, r_name, &
-                      'Init: Read tao_d2_data namelist: ' // d2_data%name)
-    
-  if (universe == '*') then
-    uni_loop1: do i = 1, size(s%u)
-
-    ! check if this data type has already been defined for this universe
-    do k = 1, size(s%u(i)%d2_data)
-      if (trim(s%u(i)%d2_data(k)%name) == trim(d2_data%name)) then
-        mask(i) = .false.
-        cycle uni_loop1
-      endif
-    enddo
-      
-    call d2_data_stuffit (s%u(i), i)
-    enddo uni_loop1
-  else
-    read (universe, *, iostat = ios) n_uni
-    if (ios /= 0 .or. n_uni > size(s%u)) then
-      call out_io (s_abort$, r_name, &
-            'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
-      call err_exit
-    endif
-    if (n_uni == 0) then
-      call out_io (s_error$, r_name, &
-              '"UNIVERSE == 0" MUST BE REPLACED BY "UNIVERSE = *"', &
-              ' IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
-      call err_exit
-    endif
-    call d2_data_stuffit (s%u(n_uni), n_uni)
-  endif
-
-  do k = 1, n_d1_data
-    use_same_lat_eles_as = ''
-    search_for_lat_eles  = ''
-    d1_data%name        = ''
-    default_weight      = 0      ! set default
-    default_data_type   = ''
-    default_data_source = 'lattice'
-    data(:)%data_type   = ''
-    data(:)%merit_type  = default_merit_type 
-    data(:)%name        = ''
-    data(:)%merit_type  = ''
-    data(:)%ele_name    = ''
-    data(:)%ele0_name   = ''
-    data(:)%meas        = real_garbage$  ! used to tag when %meas_value is set in file
-    data(:)%weight      = 0.0
-    data(:)%ix_bunch    = 0
-    data(:)%data_noise  = real_garbage$
-    data(:)%scale_error = real_garbage$
-    data(:)%data_source = ''
-    data(:)%good_user   = .true.
-    ix_min_data         = int_garbage$
-    ix_max_data         = int_garbage$
-
-    read (iu, nml = tao_d1_data, err = 9150)
-
-    ! Convert old format to new
-
-    if (data(0)%ele_name(1:7) == 'SEARCH:') then
-      call string_trim(data(0)%ele_name(8:), search_for_lat_eles, ix)
-    elseif (data(0)%ele_name(1:5) == 'SAME:') then
-      call string_trim (data(0)%ele_name(6:), use_same_lat_eles_as, ix)
-    endif
-
-    ! Check that we read the correct namelist
-
-    if (ix_d1_data /= k) then
-      write (line, '(a, 2i4)') ', k, ix_d1_data'
-      call out_io (s_abort$, r_name, &
-                'ERROR: IX_D1_DATA MISMATCH FOR D2_DATA: ' // d2_data%name, &
-                '       THE D1_DATA HAD THE NAME: ' // d1_data%name, &
-                '       I EXPECTED IX_D1_DATA TO BE: \i3\ ', &
-                '       I READ IX_D1_DATA TO BE: \i3\ ', &
-                i_array = (/ k, ix_d1_data /) )  
-      call err_exit
-    endif
-    do i = lbound(data, 1), ubound(data, 1)
-      ! 'beam_tracking' is old syntax.
-      if (data(i)%data_source == 'beam_tracking') data(i)%data_source = 'beam'
-      if (data(i)%ele0_name /= '' .and. data(i)%ele_name == '') then
-        write (line, '(4a, i0, a)') trim(d2_data%name), '.', trim(d1_data%name), '[', i, ']'
-        call out_io (s_abort$, r_name, &
-              'ERROR: ELE_NAME IS BLANK BUT ELE0_NAME IS NOT FOR: ' // line)
-        call err_exit
-      endif
-    enddo
-    call out_io (s_blank$, r_name, &
-                      'Init: Read tao_d1_data namelist: ' // d1_data%name)
-    if (universe == '*') then          ! * => use all universes
-      uni_loop2: do i = 1, size(s%u)
-
-      ! check if this data type has already been defined for this universe
-      if (.not. mask(i)) cycle uni_loop2
-      
-        call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used)
-      enddo uni_loop2
-    else
-      call d1_data_stuffit (k, s%u(n_uni), s%u(n_uni)%n_d2_data_used)
-    endif
-  enddo
-
-enddo
-
-close (iu)
-
-!-----------------------------------------------------------------------
-! Init vars
-
-! First count how many v1_var definitions there are
-
-if (associated(s%v1_var)) deallocate (s%v1_var)
-
-call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
-call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
-
-n_v1_var_max = 0
-
-do
-  read (iu, nml = tao_var, iostat = ios, err = 9200)
-  if (ios < 0) exit
-  n_v1_var_max = n_v1_var_max + 1
-enddo
-
-n = n_v1_var_max + 1
-allocate (s%v1_var(n), default_key_b(n), default_key_d(n))
-s%v1_var%name = ''  ! blank name means it doesn't (yet) exist
-s%n_v1_var_used = 0       ! size of s%v1_var(:) array
-
-! Read some defaults
-
-rewind (iu)
-
-n_v1 = 0
-do
-  default_key_bound = ''
-  default_key_delta = 0
-  read (iu, nml = tao_var, iostat = ios, err = 9200)
-  if (ios < 0) exit
-  n_v1 = n_v1 + 1
-  default_key_b(n_v1) = default_key_bound
-  default_key_d(n_v1) = default_key_delta
-enddo
-
-! Now fill in all the information
-
-rewind (iu)
-
-allocate (dflt_good_unis(size(s%u)), good_unis(size(s%u)))
-
-n_v1 = 0
-do
-  n_v1 = n_v1 + 1
-  use_same_lat_eles_as = ''
-  search_for_lat_eles  = ''
-  v1_var%name        = " "         ! set default
-  default_merit_type = 'limit'
-  default_weight     = 0     ! set default
-  default_step       = 0       ! set default
-  default_attribute  = ''
-  default_universe   = ''
-  default_low_lim    = -1e30
-  default_high_lim   = 1e30
-  ix_min_var         = 1
-  var%name           = ''
-  var%ele_name       = ''
-  var%merit_type     = ''
-  var%weight         = 0         ! set default
-  var%step           = 0         ! set default
-  var%attribute      = ''
-  var%universe       = ''
-  var%low_lim        = default_low_lim
-  var%high_lim       = default_high_lim
-  var%good_user      = ''
-  var%key_bound      = default_key_b(n_v1)
-  var%key_delta      = default_key_d(n_v1)
-
-  read (iu, nml = tao_var, iostat = ios, err = 9200)
-  if (ios < 0) exit         ! exit on end-of-file
-  call out_io (s_blank$, r_name, &
-                        'Init: Read tao_var namelist: ' // v1_var%name)
-  call str_upcase (default_attribute, default_attribute)
-
-  ! Convert old format to new
-
-  if (var(0)%ele_name(1:7) == 'SEARCH:') then
-    call string_trim(var(0)%ele_name(8:), search_for_lat_eles, ix)
-  elseif (var(0)%ele_name(1:5) == 'SAME:') then
-    call string_trim (var(0)%ele_name(6:), use_same_lat_eles_as, ix)
-  endif
-
-  ! Convert to upper case.
-
-  do i = lbound(var, 1), ubound(var, 1)
-    call str_upcase (var(i)%attribute, var(i)%attribute)
-    call str_upcase (var(i)%ele_name, var(i)%ele_name)
-  enddo
-
-  if (v1_var%name == '') then
-    call out_io (s_error$, r_name, 'FOUND TAO_VAR NAMELIST WITHOUT V1_VAR%NAME PARAMETER!')
-    cycle
-  endif
-
-  ! Gang or clone?
-
-  gang = .true.
-  if (default_universe(1:5) == 'clone') then
-    gang = .false.
-    call string_trim (default_universe(6:), default_universe, ix)
-  endif
-  if (default_universe(1:4) == 'gang') then
-    call string_trim (default_universe(5:), default_universe, ix)
-  endif
-
-  ! Read universe numbers
-
-  if (default_universe == '*' .or. default_universe == '') then
-    dflt_good_unis = .true.
-  else
-    call location_decode (default_universe, dflt_good_unis, 1, num)
-    if (num == 0) dflt_good_unis = .true.  ! blank => all
-    if (num < 0) then
-      call out_io (s_error$, r_name, 'ERROR READING DEFAULT_UNIVERSE FOR: ' // v1_var%name)
-      cycle
-    endif
-  endif
-
-  ! Set up variable lists
-
-  if (gang) then
-    call var_stuffit1 (v1_var_ptr)
-    do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
-
-      ! Find which universes
-      good_unis = dflt_good_unis
-
-      if (.not. searching) then
-        if (var(j)%universe /= '') then
-          if (var(j)%universe == '*') then
-            good_unis = .true.
-          else
-            call location_decode (var(j)%universe, good_unis, 1, num)
-            if (num < 0) then
-              call out_io (s_error$, r_name, 'ERROR READING UNIVERSE FOR: ' // v1_var%name)
-              cycle
-            endif
-          endif
-        endif
-      endif
-
-      if (count(good_unis) == 0) then
-        call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // v1_var%name)
-        call err_exit
-      endif
-
-      call var_stuffit2 (good_unis, v1_var_ptr%v(j), searching)
-
-    enddo
-
-  else   ! If clone...
-    do i = 1, size(s%u)
-      if (.not. dflt_good_unis(i)) cycle
-      call var_stuffit1 (v1_var_ptr)
-      write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
-      good_unis = .false.
-      good_unis(i) = .true.
-      do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
-        call var_stuffit2 (good_unis, v1_var_ptr%v(j), searching)
-      enddo
-    enddo
-  endif
-
-enddo
-
-close (iu)
-deallocate (dflt_good_unis, good_unis)
-deallocate (default_key_b, default_key_d)
-
-!-----------------------------------------------------------------------
-! Init ix_data array
-
-do i = 1, size(s%u)
-  call init_ix_data (s%u(i))
-enddo
-
-return
-
-!-----------------------------------------------------------------------
-! namelist read error.
-
-9100 continue
-call out_io (s_error$, r_name, 'TAO_D2_DATA NAMELIST READ ERROR.')
-rewind (iu)
-do
-  read (iu, nml = tao_d2_data)  ! force printing of error message
-enddo
-
-9150 continue
-call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.')
-rewind (iu)
-do
-  read (iu, nml = tao_d1_data)  ! force printing of error message
-enddo
-
-9200 continue
-call out_io (s_error$, r_name, 'TAO_VAR NAMELIST READ ERROR.')
-rewind (iu)
-do
-  read (iu, nml = tao_var)  ! force printing of error message
-enddo
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
+!----------------------------------------------------------------
+!----------------------------------------------------------------
 contains
 
-subroutine init_universe (u, n_d2_data)
-
-type (tao_universe_struct) :: u
-integer i, n_d2_data
-
-!
-
-u%is_on = .true.          ! turn universe on
-u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
-u%n_data_used = 0         ! size of s%u(i)%data(:) array
-u%ix_rad_int_cache = 0
-
-! allocate and set defaults
-
-if (n_d2_data /= 0) then
-  if (associated(u%d2_data)) deallocate (u%d2_data)
-  allocate (u%d2_data(n_d2_data))
-  do i = 1, n_d2_data
-    u%d2_data(i)%descrip = ''
-  enddo
-  u%d2_data%name = ''  ! blank name means it doesn't exist
-endif
-
-if (n_data_max /= 0) then
-  if (associated(u%data)) deallocate (u%data)
-  allocate (u%data(n_data_max))
-  u%data(:)%exists = .false.       ! set default
-  u%data(:)%good_meas  = .false.   ! set default
-  u%data(:)%good_ref   = .false.   ! set default
-  u%data(:)%good_user  = .true.    ! set default
-  u%data(:)%good_opt   = .true.
-  u%data(:)%merit_type = 'target'  ! set default
-  u%data(:)%ele_name   = ''
-  u%data(:)%ix_ele     = -1
-  u%data(:)%ele0_name  = ''
-  u%data(:)%ix_ele0    = 0 ! by default, data relative to beginning of lattice
-endif
-
-! This is needed to keep the totalview debugger happy.
-
-if (associated(u%dmodel_dvar)) deallocate (u%dmodel_dvar)
-allocate (u%dmodel_dvar(1,1))
-  
-end subroutine init_universe
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-
-subroutine init_lattices ()
+subroutine init_orbits ()
 
 implicit none
 
 integer i
 
 do i = 1, size(s%u)
+
   n = s%u(i)%design%lat%n_ele_max
   if (allocated(s%u(i)%model%orb)) then
     deallocate (s%u(i)%model%orb, s%u(i)%model%bunch_params)
@@ -772,311 +326,17 @@ do i = 1, size(s%u)
   call polar_to_spinor (spin, s%u(i)%design%orb(0))
   call init_lat (s%u(i)%model%lat, s%u(i)%design%lat%n_ele_max)
   call init_lat (s%u(i)%base%lat, s%u(i)%design%lat%n_ele_max)
-  s%u(i)%model%lat = s%u(i)%design%lat
-  s%u(i)%base%lat  = s%u(i)%design%lat
+
 enddo
   
-end subroutine init_lattices
-
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-
-subroutine d2_data_stuffit (u, ix_uni)
-
-type (tao_universe_struct), target :: u
-
-integer nn, ix_uni
-
-! Setup another d2_data structure.
-
-u%n_d2_data_used = u%n_d2_data_used + 1
-nn = u%n_d2_data_used
-
-if (size(u%d2_data) < nn) then
-  call out_io (s_error$, r_name, &
-              'N_D2_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-  call err_exit
-endif
-
-u%d2_data(nn)%name = d2_data%name 
-u%d2_data(nn)%ix_uni = ix_uni
-
-! allocate memory for the u%d1_data structures
-
-if (associated(u%d2_data(nn)%d1)) deallocate (u%d2_data(nn)%d1)
-allocate(u%d2_data(nn)%d1(n_d1_data))
-
-end subroutine
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-
-subroutine d1_data_stuffit (i_d1, u, n_d2)
-
-type (tao_universe_struct), target :: u
-integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
-
-integer i_d1, num_hashes
-
-character(40) search_string, d2_d1_name
-character(20) fmt
-
-logical, allocatable, save :: matched_ele(:)
-logical emit_here
-
-!
-
-u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)  ! point back to the parent
-if (d1_data%name == '') then
-  write (u%d2_data(n_d2)%d1(i_d1)%name, '(i0)') i_d1
-else
-  u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name    ! stuff in the data
-endif
-
-d2_d1_name = u%d2_data(n_d2)%name // '.' // u%d2_data(n_d2)%d1(i_d1)%name
-
-! Check if we are searching for elements or repeating elements
-! and record the element names in the data structs.
-    
-if (search_for_lat_eles /= '') then
-  call tao_find_elements (u, search_for_lat_eles, matched_ele)
-  if (count(matched_ele) == 0) then
-    call out_io (s_warn$, r_name, &
-      'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_string, &
-      'WHILE SETTING UP DATA ARRAY: ' // d1_data%name)
-    return
-  endif
-  ! finish finding data array limits
-  n1 = u%n_data_used + 1
-  n2 = u%n_data_used + count(matched_ele)
-  u%n_data_used = n2
-  if (ix_min_data == int_garbage$) ix_min_data = 1
-  ix1 = ix_min_data
-  ix2 = ix1 + (n2 - n1)
-  if (n2 > size(u%data)) then
-    call out_io (s_abort$, r_name, &
-                  'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-    call err_exit
-  endif
-  ! get element names
-  jj = n1
-  do j = lbound(matched_ele, 1), ubound(matched_ele, 1)
-    if (.not. matched_ele(j)) cycle
-    if (jj .gt. n2) then
-      call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
-      call err_exit
-    endif
-    u%data(jj)%ele_name = u%design%lat%ele(j)%name
-    u%data(jj)%ix_ele   = j
-    u%data(jj)%exists   = .true.
-    jj = jj + 1
-  enddo
-
-  u%data(n1:n2)%good_user   = data(ix1:ix2)%good_user
-  u%data(n1:n2)%weight      = data(ix1:ix2)%weight
-  u%data(n1:n2)%ele0_name   = data(ix1:ix2)%ele0_name
-  u%data(n1:n2)%ix_bunch    = data(ix1:ix2)%ix_bunch
-  u%data(n1:n2)%data_source = data(ix1:ix2)%data_source
-
-! use_same_lat_eles_as
-
-elseif (use_same_lat_eles_as /= '') then
-  call string_trim (use_same_lat_eles_as, name, ix)
-  call tao_find_data (err, name, d1_ptr = d1_ptr, ix_uni = u%ix_uni)
-  if (err .or. .not. associated(d1_ptr)) then
-    call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
-    call err_exit
-  endif
-  n1 = u%n_data_used + 1
-  n2 = u%n_data_used + size(d1_ptr%d)
-  u%n_data_used = n2
-  ix_min_data = lbound(d1_ptr%d, 1)
-  ix1 = ix_min_data
-  ix2 = ix1 + (n2 - n1)
-  if (n2 > size(u%data)) then
-    call out_io (s_abort$, r_name, &
-                'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-    call err_exit
-  endif
-
-  u%data(n1:n2)%ele_name    = d1_ptr%d%ele_name
-  u%data(n1:n2)%ix_ele      = d1_ptr%d%ix_ele
-  u%data(n1:n2)%ele0_name   = d1_ptr%d%ele0_name
-  u%data(n1:n2)%ix_ele0     = d1_ptr%d%ix_ele0
-  u%data(n1:n2)%exists      = d1_ptr%d%exists
-  u%data(n1:n2)%data_source = d1_ptr%d%data_source
-
-! Not SEARCH or SAME:
-
-else
-
-  if (ix_min_data == int_garbage$) ix_min_data = 1
-  if (ix_max_data == int_garbage$) then
-    do i = ubound(data, 1), lbound(data, 1), -1
-      if (data(i)%ele_name /= '' .or. data(i)%data_type /= '') then
-        ix_max_data = i
-        exit
-      endif
-    enddo
-  endif
-
-  if (ix_max_data == int_garbage$) then
-    call out_io (s_error$, r_name, 'NO DATA FOUND FOR: ' // d2_d1_name)
-    return
-  endif
-
-  n1 = u%n_data_used + 1
-  n2 = u%n_data_used + ix_max_data - ix_min_data + 1
-  ix1 = ix_min_data
-  ix2 = ix_max_data
-  u%n_data_used = n2
-  if (n2 > size(u%data)) then
-    call out_io (s_abort$, r_name, &
-                'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-    call err_exit
-  endif
-
-  ! Transfer info from the input structure
-
-  u%data(n1:n2)%good_user   = data(ix1:ix2)%good_user
-  u%data(n1:n2)%weight      = data(ix1:ix2)%weight
-  u%data(n1:n2)%ele_name    = data(ix1:ix2)%ele_name
-  u%data(n1:n2)%ele0_name   = data(ix1:ix2)%ele0_name
-  u%data(n1:n2)%ix_bunch    = data(ix1:ix2)%ix_bunch
-  u%data(n1:n2)%data_source = data(ix1:ix2)%data_source
-
-  ! Find elements associated with the data
-
-  do j = n1, n2
-
-    call tao_hook_does_data_exist (u%data(j))
-    if (u%data(j)%exists) cycle
-
-    if (u%data(j)%ele_name == '') cycle
-    call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
-    call element_locator (u%data(j)%ele_name, u%design%lat, ix)
-    if (ix < 0) then
-      call out_io (s_abort$, r_name, 'ELEMENT NOT LOCATED: ' // &
-                                                       u%data(j)%ele_name)
-      u%data(j)%exists = .false.
-      cycle
-    endif
-
-    u%data(j)%ix_ele = ix
-    u%data(j)%exists = .true.
-
-    if (u%data(j)%ele0_name == '') cycle
-    call str_upcase (u%data(j)%ele0_name, u%data(j)%ele0_name)
-    call element_locator (u%data(j)%ele0_name, u%design%lat, ix)
-    if (ix < 0) then
-      call out_io (s_abort$, r_name, 'ELEMENT2 NOT LOCATED: ' // &
-                                                       u%data(j)%ele0_name)
-      u%data(j)%exists = .false.
-      cycle
-    endif
-    u%data(j)%ix_ele0 = ix
-  enddo
-
-endif
-
-!-----------------------------------------------------------
-! If %meas_value was set then %good_meas is set to True
-
-u%data(n1:n2)%data_type   = data(ix1:ix2)%data_type
-u%data(n1:n2)%merit_type  = data(ix1:ix2)%merit_type
-u%data(n1:n2)%weight      = data(ix1:ix2)%weight
-
-u%data(n1:n2)%meas_value = data(ix1:ix2)%meas
-where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
-  u%data(n1:n2)%meas_value = 0  
-elsewhere
-  u%data(n1:n2)%good_meas = .true.
-end where
-
-!--------------------------------------------
-! use default_data_type if given, if not, auto-generate the data_type
-
-if (default_data_type == '') then
-  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = &
-                            trim(d2_data%name) // '.' // d1_data%name
-else
-  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = &
-                                                    default_data_type
-endif
-
-
-! set data noise (not applicable to all data types)
-if (d2_data%name .eq. "bpm" .or. d2_data%name .eq. "wire") then
-  do j = n1, n2
-    u%design%lat%ele(u%data(j)%ix_ele)%r(1,1) = default_data_noise
-    u%design%lat%ele(u%data(j)%ix_ele)%r(1,1) = default_scale_error
-  enddo
-  do j = lbound(data,1), ubound(data,1)
-    if (data(j)%data_noise /= real_garbage$) &
-      u%design%lat%ele(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%data_noise
-    if (data(j)%scale_error .ne. real_garbage$) &
-      u%design%lat%ele(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%scale_error
-  enddo
-endif                   
-
-! now for some family guidance...
-! point the children to the grandchildren in the big data array
-
-call tao_point_d1_to_data (u%d2_data(n_d2)%d1(i_d1)%d, &
-                                      u%data(n1:n2), ix_min_data, n1)
-
-! point the %data back to the d1_data_struct
-
-do j = n1, n2
-  u%data(j)%d1 => u%d2_data(n_d2)%d1(i_d1)
-  if (u%data(j)%weight == 0) u%data(j)%weight = default_weight
-  if (u%data(j)%merit_type == '') u%data(j)%merit_type = default_merit_type
-  if (u%data(j)%data_source == '') u%data(j)%data_source = default_data_source
-  ! old style is to use "emittance." instead of "emit."
-  ix = index(u%data(j)%data_type, 'emittance.')
-  if (ix /= 0) u%data(j)%data_type = u%data(j)%data_type(1:ix-1) // &
-                                         'emit.' // u%data(j)%data_type(ix+10:)
-enddo
-
-! point the children back to the mother    
-
-u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)
-
-! do we need to do the radiation integrals?
-
-do j = n1, n2
-  data_type = u%data(j)%data_type
-  emit_here = (index(data_type, 'emit.') /= 0)
-  if (emit_here .and. u%data(j)%data_source == 'lattice') u%do_synch_rad_int_calc = .true. 
-  if (data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
-  if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
-
-  if (u%design%lat%param%lattice_type == circular_lattice$ .and. &
-              (data_type(1:6)  == 'chrom.' .or. data_type(1:2) == 'i5' .or. &
-               data_type(1:13) == 'unstable_ring' .or. emit_here .or. &
-               data_type(1:17) == 'multi_turn_orbit.')) then
-    u%data(j)%exists = .true.
-    if (u%data(j)%ele_name /= '') then
-      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &
-                        'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // u%data(j)%ele_name)
-      call err_exit
-    endif
-    cycle
-  endif
-
-enddo
-
-end subroutine d1_data_stuffit
+end subroutine init_orbits
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 ! contains
 !
 ! Initialize universe connections
-!
+!-
 
 subroutine init_connected_uni (u, connect, this_uni_index)
 
@@ -1300,6 +560,584 @@ u%macro_beam%ix_lost(:,:,:) = -1
 
 end subroutine init_macro
 
+end subroutine tao_init_global
+
+!-----------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------
+!+
+! Subroutine tao_init_data (data_file)
+!
+! Subroutine to initialize the tao data structures.
+! If data_file is not in the current directory then it 
+! will be searched for in the directory:
+!   TAO_INIT_DIR
+!
+! Input:
+!   data_file      -- Character(*): Tao data initialization file.
+!-
+
+subroutine tao_init_data (data_file)
+
+use tao_data_mod
+use tao_lattice_calc_mod
+use tao_input_struct
+use bmad_parser_mod
+use random_mod
+  
+implicit none
+
+type (tao_universe_struct), pointer :: u
+type (tao_d2_data_input) d2_data
+type (tao_d1_data_input) d1_data
+type (tao_data_input) data(n_data_minn:n_data_maxx) ! individual weight 
+type (tao_d1_data_struct), pointer :: d1_ptr
+
+real(rp) default_weight        ! default merit function weight
+real(rp) default_step          ! default "small" step size
+real(rp) default_data_noise         ! default noise for data type
+
+integer ios, iu, i, j, i2, j2, k, ix, n_uni, num
+integer n, n_universes, iostat, ix_universe, n_max
+integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
+
+integer, automatic :: n_d2_data(size(s%u))
+
+character(*) data_file
+character(40) :: r_name = 'tao_init_data'
+character(200) file_name, beam0_file, beam_all_file
+character(40) name,  universe, default_universe, default_data_type
+character(40) default_merit_type, default_attribute, data_type, default_data_source
+character(40) use_same_lat_eles_as, search_for_lat_eles
+
+character(60) save_beam_at(100)
+character(100) line
+
+logical err, free, gang
+logical, automatic :: mask(size(s%u))
+
+namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe, &
+                  default_data_noise
+  
+namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
+                   default_weight, default_data_type, default_data_source, &
+                   use_same_lat_eles_as, search_for_lat_eles
+                     
+
+!-----------------------------------------------------------------------
+! Find out how many d2_data structures we need for each universe
+
+call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
+
+n_d2_data = 0
+
+do 
+  universe = '*'
+  read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
+  if (ios /= 0) exit
+  if (universe == '*') then
+    n_d2_data = n_d2_data + 1
+  else
+    read (universe, *, iostat = ios) n_uni
+    if (ios /= 0 .or. n_uni > size(s%u)) then
+      call out_io (s_abort$, r_name, &
+            'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
+      call err_exit
+    endif
+    n_d2_data(n_uni) = n_d2_data(n_uni) + 1
+  endif
+enddo
+
+do i = 1, size(s%u)
+  call init_data_in_universe (s%u(i), n_d2_data(i))
+enddo
+
+! Init data
+
+rewind (iu)
+
+do 
+  mask(:) = .true.      ! set defaults
+  d2_data%name       = ''
+  universe           = '*'
+  default_merit_type = 'target'
+  default_data_noise = 0.0
+
+  read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
+  if (ios < 0) exit         ! exit on end-of-file
+  call out_io (s_blank$, r_name, &
+                      'Init: Read tao_d2_data namelist: ' // d2_data%name)
+    
+  if (universe == '*') then
+    uni_loop1: do i = 1, size(s%u)
+
+    ! check if this data type has already been defined for this universe
+    do k = 1, size(s%u(i)%d2_data)
+      if (trim(s%u(i)%d2_data(k)%name) == trim(d2_data%name)) then
+        mask(i) = .false.
+        cycle uni_loop1
+      endif
+    enddo
+      
+    call d2_data_stuffit (s%u(i), i)
+    enddo uni_loop1
+  else
+    read (universe, *, iostat = ios) n_uni
+    if (ios /= 0 .or. n_uni > size(s%u)) then
+      call out_io (s_abort$, r_name, &
+            'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
+      call err_exit
+    endif
+    if (n_uni == 0) then
+      call out_io (s_error$, r_name, &
+              '"UNIVERSE == 0" MUST BE REPLACED BY "UNIVERSE = *"', &
+              ' IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
+      call err_exit
+    endif
+    call d2_data_stuffit (s%u(n_uni), n_uni)
+  endif
+
+  do k = 1, n_d1_data
+    use_same_lat_eles_as = ''
+    search_for_lat_eles  = ''
+    d1_data%name        = ''
+    default_weight      = 0      ! set default
+    default_data_type   = ''
+    default_data_source = 'lattice'
+    data(:)%data_type   = ''
+    data(:)%merit_type  = default_merit_type 
+    data(:)%name        = ''
+    data(:)%merit_type  = ''
+    data(:)%ele_name    = ''
+    data(:)%ele0_name   = ''
+    data(:)%meas        = real_garbage$  ! used to tag when %meas_value is set in file
+    data(:)%weight      = 0.0
+    data(:)%ix_bunch    = 0
+    data(:)%data_noise  = real_garbage$
+    data(:)%data_source = ''
+    data(:)%good_user   = .true.
+    data(:)%relative    = ''
+    ix_min_data         = int_garbage$
+    ix_max_data         = int_garbage$
+
+    read (iu, nml = tao_d1_data, err = 9150)
+
+    ! Convert old format to new
+
+    if (data(0)%ele_name(1:7) == 'SEARCH:') then
+      call string_trim(data(0)%ele_name(8:), search_for_lat_eles, ix)
+    elseif (data(0)%ele_name(1:5) == 'SAME:') then
+      call string_trim (data(0)%ele_name(6:), use_same_lat_eles_as, ix)
+    endif
+
+    ! Check that we read the correct namelist
+
+    if (ix_d1_data /= k) then
+      write (line, '(a, 2i4)') ', k, ix_d1_data'
+      call out_io (s_abort$, r_name, &
+                'ERROR: IX_D1_DATA MISMATCH FOR D2_DATA: ' // d2_data%name, &
+                '       THE D1_DATA HAD THE NAME: ' // d1_data%name, &
+                '       I EXPECTED IX_D1_DATA TO BE: \i3\ ', &
+                '       I READ IX_D1_DATA TO BE: \i3\ ', &
+                i_array = (/ k, ix_d1_data /) )  
+      call err_exit
+    endif
+    do i = lbound(data, 1), ubound(data, 1)
+      ! 'beam_tracking' is old syntax.
+      if (data(i)%data_source == 'beam_tracking') data(i)%data_source = 'beam'
+      if (data(i)%ele0_name /= '' .and. data(i)%ele_name == '') then
+        write (line, '(4a, i0, a)') trim(d2_data%name), '.', trim(d1_data%name), '[', i, ']'
+        call out_io (s_abort$, r_name, &
+              'ERROR: ELE_NAME IS BLANK BUT ELE0_NAME IS NOT FOR: ' // line)
+        call err_exit
+      endif
+    enddo
+    call out_io (s_blank$, r_name, &
+                      'Init: Read tao_d1_data namelist: ' // d1_data%name)
+    if (universe == '*') then          ! * => use all universes
+      uni_loop2: do i = 1, size(s%u)
+
+      ! check if this data type has already been defined for this universe
+      if (.not. mask(i)) cycle uni_loop2
+      
+        call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used)
+      enddo uni_loop2
+    else
+      call d1_data_stuffit (k, s%u(n_uni), s%u(n_uni)%n_d2_data_used)
+    endif
+  enddo
+
+enddo
+
+close (iu)
+
+!-----------------------------------------------------------------------
+! Init ix_data array
+
+do i = 1, size(s%u)
+  call init_ix_data (s%u(i))
+enddo
+
+return
+
+!-----------------------------------------------------------------------
+! namelist read error.
+
+9100 continue
+call out_io (s_error$, r_name, 'TAO_D2_DATA NAMELIST READ ERROR.')
+rewind (iu)
+do
+  read (iu, nml = tao_d2_data)  ! force printing of error message
+enddo
+
+9150 continue
+call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.')
+rewind (iu)
+do
+  read (iu, nml = tao_d1_data)  ! force printing of error message
+enddo
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+contains
+
+subroutine init_data_in_universe (u, n_d2_data)
+
+type (tao_universe_struct) :: u
+integer i, n_d2_data
+
+!
+
+u%is_on = .true.          ! turn universe on
+u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
+u%n_data_used = 0         ! size of s%u(i)%data(:) array
+u%ix_rad_int_cache = 0
+
+! allocate and set defaults
+
+if (n_d2_data /= 0) then
+  if (associated(u%d2_data)) deallocate (u%d2_data)
+  allocate (u%d2_data(n_d2_data))
+  do i = 1, n_d2_data
+    u%d2_data(i)%descrip = ''
+  enddo
+  u%d2_data%name = ''  ! blank name means it doesn't exist
+endif
+
+if (tao_com%n_data_max /= 0) then
+  if (associated(u%data)) deallocate (u%data)
+  allocate (u%data(tao_com%n_data_max))
+  u%data(:)%exists = .false.       ! set default
+  u%data(:)%good_meas  = .false.   ! set default
+  u%data(:)%good_ref   = .false.   ! set default
+  u%data(:)%good_user  = .true.    ! set default
+  u%data(:)%good_opt   = .true.
+  u%data(:)%merit_type = 'target'  ! set default
+  u%data(:)%ele_name   = ''
+  u%data(:)%ix_ele     = -1
+  u%data(:)%ele0_name  = ''
+  u%data(:)%ix_ele0    = 0 ! by default, data relative to beginning of lattice
+endif
+
+! This is needed to keep the totalview debugger happy.
+
+if (associated(u%dmodel_dvar)) deallocate (u%dmodel_dvar)
+allocate (u%dmodel_dvar(1,1))
+  
+end subroutine init_data_in_universe
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+
+subroutine d2_data_stuffit (u, ix_uni)
+
+type (tao_universe_struct), target :: u
+
+integer nn, ix_uni
+
+! Setup another d2_data structure.
+
+u%n_d2_data_used = u%n_d2_data_used + 1
+nn = u%n_d2_data_used
+
+if (size(u%d2_data) < nn) then
+  call out_io (s_error$, r_name, &
+              'N_D2_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
+  call err_exit
+endif
+
+u%d2_data(nn)%name = d2_data%name 
+u%d2_data(nn)%ix_uni = ix_uni
+
+! allocate memory for the u%d1_data structures
+
+if (associated(u%d2_data(nn)%d1)) deallocate (u%d2_data(nn)%d1)
+allocate(u%d2_data(nn)%d1(n_d1_data))
+
+end subroutine
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+
+subroutine d1_data_stuffit (i_d1, u, n_d2)
+
+type (tao_universe_struct), target :: u
+integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
+
+integer i_d1, num_hashes
+
+character(40) search_string, d2_d1_name
+character(20) fmt
+
+logical, allocatable, save :: matched_ele(:)
+logical emit_here
+
+!
+
+u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)  ! point back to the parent
+if (d1_data%name == '') then
+  write (u%d2_data(n_d2)%d1(i_d1)%name, '(i0)') i_d1
+else
+  u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name    ! stuff in the data
+endif
+
+d2_d1_name = u%d2_data(n_d2)%name // '.' // u%d2_data(n_d2)%d1(i_d1)%name
+
+! Check if we are searching for elements or repeating elements
+! and record the element names in the data structs.
+    
+if (search_for_lat_eles /= '') then
+  call tao_find_elements (u, search_for_lat_eles, matched_ele)
+  if (count(matched_ele) == 0) then
+    call out_io (s_warn$, r_name, &
+      'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_string, &
+      'WHILE SETTING UP DATA ARRAY: ' // d1_data%name)
+    return
+  endif
+  ! finish finding data array limits
+  n1 = u%n_data_used + 1
+  n2 = u%n_data_used + count(matched_ele)
+  u%n_data_used = n2
+  if (ix_min_data == int_garbage$) ix_min_data = 1
+  ix1 = ix_min_data
+  ix2 = ix1 + (n2 - n1)
+  if (n2 > size(u%data)) then
+    call out_io (s_abort$, r_name, &
+                  'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
+    call err_exit
+  endif
+  ! get element names
+  jj = n1
+  do j = lbound(matched_ele, 1), ubound(matched_ele, 1)
+    if (.not. matched_ele(j)) cycle
+    if (jj .gt. n2) then
+      call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+      call err_exit
+    endif
+    u%data(jj)%ele_name = u%design%lat%ele(j)%name
+    u%data(jj)%ix_ele   = j
+    u%data(jj)%exists   = .true.
+    jj = jj + 1
+  enddo
+
+  u%data(n1:n2)%good_user   = data(ix1:ix2)%good_user
+  u%data(n1:n2)%weight      = data(ix1:ix2)%weight
+  u%data(n1:n2)%ele0_name   = data(ix1:ix2)%ele0_name
+  u%data(n1:n2)%ix_bunch    = data(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_source = data(ix1:ix2)%data_source
+
+! use_same_lat_eles_as
+
+elseif (use_same_lat_eles_as /= '') then
+  call string_trim (use_same_lat_eles_as, name, ix)
+  call tao_find_data (err, name, d1_ptr = d1_ptr, ix_uni = u%ix_uni)
+  if (err .or. .not. associated(d1_ptr)) then
+    call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
+    call err_exit
+  endif
+  n1 = u%n_data_used + 1
+  n2 = u%n_data_used + size(d1_ptr%d)
+  u%n_data_used = n2
+  ix_min_data = lbound(d1_ptr%d, 1)
+  ix1 = ix_min_data
+  ix2 = ix1 + (n2 - n1)
+  if (n2 > size(u%data)) then
+    call out_io (s_abort$, r_name, &
+                'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
+    call err_exit
+  endif
+
+  u%data(n1:n2)%ele_name    = d1_ptr%d%ele_name
+  u%data(n1:n2)%ix_ele      = d1_ptr%d%ix_ele
+  u%data(n1:n2)%ele0_name   = d1_ptr%d%ele0_name
+  u%data(n1:n2)%ix_ele0     = d1_ptr%d%ix_ele0
+  u%data(n1:n2)%exists      = d1_ptr%d%exists
+  u%data(n1:n2)%data_source = d1_ptr%d%data_source
+  u%data(n1:n2)%relative    = d1_ptr%d%relative
+
+! Not SEARCH or SAME:
+
+else
+
+  if (ix_min_data == int_garbage$) ix_min_data = 1
+  if (ix_max_data == int_garbage$) then
+    do i = ubound(data, 1), lbound(data, 1), -1
+      if (data(i)%ele_name /= '' .or. data(i)%data_type /= '') then
+        ix_max_data = i
+        exit
+      endif
+    enddo
+  endif
+
+  if (ix_max_data == int_garbage$) then
+    call out_io (s_error$, r_name, 'NO DATA FOUND FOR: ' // d2_d1_name)
+    return
+  endif
+
+  n1 = u%n_data_used + 1
+  n2 = u%n_data_used + ix_max_data - ix_min_data + 1
+  ix1 = ix_min_data
+  ix2 = ix_max_data
+  u%n_data_used = n2
+  if (n2 > size(u%data)) then
+    call out_io (s_abort$, r_name, &
+                'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
+    call err_exit
+  endif
+
+  ! Transfer info from the input structure
+
+  u%data(n1:n2)%good_user   = data(ix1:ix2)%good_user
+  u%data(n1:n2)%weight      = data(ix1:ix2)%weight
+  u%data(n1:n2)%ele_name    = data(ix1:ix2)%ele_name
+  u%data(n1:n2)%ele0_name   = data(ix1:ix2)%ele0_name
+  u%data(n1:n2)%ix_bunch    = data(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_source = data(ix1:ix2)%data_source
+
+  ! Find elements associated with the data
+
+  do j = n1, n2
+
+    call tao_hook_does_data_exist (u%data(j))
+    if (u%data(j)%exists) cycle
+
+    if (u%data(j)%ele_name == '') cycle
+    call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
+    call element_locator (u%data(j)%ele_name, u%design%lat, ix)
+    if (ix < 0) then
+      call out_io (s_abort$, r_name, 'ELEMENT NOT LOCATED: ' // &
+                                                       u%data(j)%ele_name)
+      u%data(j)%exists = .false.
+      cycle
+    endif
+
+    u%data(j)%ix_ele = ix
+    u%data(j)%exists = .true.
+
+    if (u%data(j)%ele0_name == '') cycle
+    call str_upcase (u%data(j)%ele0_name, u%data(j)%ele0_name)
+    call element_locator (u%data(j)%ele0_name, u%design%lat, ix)
+    if (ix < 0) then
+      call out_io (s_abort$, r_name, 'ELEMENT2 NOT LOCATED: ' // &
+                                                       u%data(j)%ele0_name)
+      u%data(j)%exists = .false.
+      cycle
+    endif
+    u%data(j)%ix_ele0 = ix
+  enddo
+
+endif
+
+!-----------------------------------------------------------
+! If %meas_value was set then %good_meas is set to True
+
+u%data(n1:n2)%data_type   = data(ix1:ix2)%data_type
+u%data(n1:n2)%merit_type  = data(ix1:ix2)%merit_type
+u%data(n1:n2)%weight      = data(ix1:ix2)%weight
+
+u%data(n1:n2)%meas_value = data(ix1:ix2)%meas
+where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
+  u%data(n1:n2)%meas_value = 0  
+elsewhere
+  u%data(n1:n2)%good_meas = .true.
+end where
+
+!--------------------------------------------
+! use default_data_type if given, if not, auto-generate the data_type
+
+if (default_data_type == '') then
+  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = &
+                            trim(d2_data%name) // '.' // d1_data%name
+else
+  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = &
+                                                    default_data_type
+endif
+
+
+! set data noise (not applicable to all data types)
+
+if (d2_data%name .eq. "bpm" .or. d2_data%name .eq. "wire") then
+  do j = n1, n2
+    u%ele(u%data(j)%ix_ele)%data_noise = default_data_noise
+  enddo
+  do j = lbound(data,1), ubound(data,1)
+    if (data(j)%data_noise /= real_garbage$) &
+      u%ele(u%data(n1+j-ix1)%ix_ele)%data_noise = data(j)%data_noise
+  enddo
+endif                   
+
+! now for some family guidance...
+! point the children to the grandchildren in the big data array
+
+call tao_point_d1_to_data (u%d2_data(n_d2)%d1(i_d1)%d, &
+                                      u%data(n1:n2), ix_min_data, n1)
+
+! point the %data back to the d1_data_struct
+
+do j = n1, n2
+  u%data(j)%d1 => u%d2_data(n_d2)%d1(i_d1)
+  if (u%data(j)%weight == 0) u%data(j)%weight = default_weight
+  if (u%data(j)%merit_type == '') u%data(j)%merit_type = default_merit_type
+  if (u%data(j)%data_source == '') u%data(j)%data_source = default_data_source
+  ! old style is to use "emittance." instead of "emit."
+  ix = index(u%data(j)%data_type, 'emittance.')
+  if (ix /= 0) u%data(j)%data_type = u%data(j)%data_type(1:ix-1) // &
+                                         'emit.' // u%data(j)%data_type(ix+10:)
+enddo
+
+! point the children back to the mother    
+
+u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)
+
+! do we need to do the radiation integrals?
+
+do j = n1, n2
+  data_type = u%data(j)%data_type
+  emit_here = (index(data_type, 'emit.') /= 0)
+  if (emit_here .and. u%data(j)%data_source == 'lattice') u%do_synch_rad_int_calc = .true. 
+  if (data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
+  if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
+
+  if (u%design%lat%param%lattice_type == circular_lattice$ .and. &
+              (data_type(1:6)  == 'chrom.' .or. data_type(1:2) == 'i5' .or. &
+               data_type(1:13) == 'unstable_ring' .or. emit_here .or. &
+               data_type(1:17) == 'multi_turn_orbit.')) then
+    u%data(j)%exists = .true.
+    if (u%data(j)%ele_name /= '') then
+      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &
+                        'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // u%data(j)%ele_name)
+      call err_exit
+    endif
+    cycle
+  endif
+
+enddo
+
+end subroutine d1_data_stuffit
+
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 ! contains
@@ -1383,10 +1221,265 @@ enddo
 
 end subroutine init_ix_data
 
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
+end subroutine tao_init_data
+
+!-----------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------
+!+
+! Subroutine tao_init_variables (var_file)
 !
+! Subroutine to initialize the tao variable structures.
+! If var_file is not in the current directory then it 
+! will be searched for in the directory:
+!   TAO_INIT_DIR
+!
+! Input:
+!   var_file       -- Character(*): Tao variable initialization file.
+!-
+
+subroutine tao_init_variables (var_file)
+
+use tao_lattice_calc_mod
+use tao_input_struct
+use bmad_parser_mod
+use random_mod
+  
+implicit none
+
+type (tao_universe_struct), pointer :: u
+type (tao_v1_var_input) v1_var
+type (tao_var_struct), pointer :: var_ptr
+type (tao_v1_var_struct), pointer :: v1_var_ptr
+type (tao_this_var_struct), pointer :: this
+type (tao_var_input) var(n_var_minn:n_var_maxx)
+
+real(rp) default_weight        ! default merit function weight
+real(rp) default_step          ! default "small" step size
+real(rp) default_low_lim, default_high_lim, default_key_delta
+real(rp), allocatable, save :: default_key_d(:)
+
+integer ios, iu, i, j, i2, j2, k, ix, n_uni, num
+integer n, n_universes, iostat, ix_universe, n_max
+integer ix_min_var, ix_max_var, ix_ele, n_v1, n_v1_var_max
+
+character(*) var_file
+character(40) :: r_name = 'tao_init_variables'
+character(40) name, universe, default_universe, default_data_type
+character(40) default_merit_type, default_attribute
+character(40) use_same_lat_eles_as, search_for_lat_eles
+character(8) default_key_bound
+character(200) file_name
+character(8), allocatable, save :: default_key_b(:)
+
+character(100) line
+
+logical err, free, gang
+logical searching
+logical, allocatable, save :: dflt_good_unis(:), good_unis(:)
+                     
+namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
+                    ix_min_var, ix_max_var, default_universe, default_attribute, &
+                    default_low_lim, default_high_lim, default_merit_type, &
+                    use_same_lat_eles_as, search_for_lat_eles, default_key_bound
+
+!-----------------------------------------------------------------------
+! Init
+
+if (associated(s%var)) deallocate (s%var)
+allocate (s%var(tao_com%n_var_max))
+s%var(:)%good_opt  = .true.
+s%var(:)%exists    = .false.
+s%var(:)%good_var  = .true.
+s%var(:)%good_user = .true.
+
+s%n_var_used = 0
+
+! First count how many v1_var definitions there are
+
+if (associated(s%v1_var)) deallocate (s%v1_var)
+
+call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
+
+n_v1_var_max = 0
+
+do
+  read (iu, nml = tao_var, iostat = ios, err = 9200)
+  if (ios < 0) exit
+  n_v1_var_max = n_v1_var_max + 1
+enddo
+
+n = n_v1_var_max + 1
+allocate (s%v1_var(n), default_key_b(n), default_key_d(n))
+s%v1_var%name = ''  ! blank name means it doesn't (yet) exist
+s%n_v1_var_used = 0       ! size of s%v1_var(:) array
+
+! Read some defaults
+
+rewind (iu)
+
+n_v1 = 0
+do
+  default_key_bound = ''
+  default_key_delta = 0
+  read (iu, nml = tao_var, iostat = ios, err = 9200)
+  if (ios < 0) exit
+  n_v1 = n_v1 + 1
+  default_key_b(n_v1) = default_key_bound
+  default_key_d(n_v1) = default_key_delta
+enddo
+
+! Now fill in all the information
+
+rewind (iu)
+
+allocate (dflt_good_unis(size(s%u)), good_unis(size(s%u)))
+
+n_v1 = 0
+do
+  n_v1 = n_v1 + 1
+  use_same_lat_eles_as = ''
+  search_for_lat_eles  = ''
+  v1_var%name        = " "         ! set default
+  default_merit_type = 'limit'
+  default_weight     = 0     ! set default
+  default_step       = 0       ! set default
+  default_attribute  = ''
+  default_universe   = ''
+  default_low_lim    = -1e30
+  default_high_lim   = 1e30
+  ix_min_var         = 1
+  var%name           = ''
+  var%ele_name       = ''
+  var%merit_type     = ''
+  var%weight         = 0         ! set default
+  var%step           = 0         ! set default
+  var%attribute      = ''
+  var%universe       = ''
+  var%low_lim        = default_low_lim
+  var%high_lim       = default_high_lim
+  var%good_user      = ''
+  var%key_bound      = default_key_b(n_v1)
+  var%key_delta      = default_key_d(n_v1)
+
+  read (iu, nml = tao_var, iostat = ios, err = 9200)
+  if (ios < 0) exit         ! exit on end-of-file
+  call out_io (s_blank$, r_name, &
+                        'Init: Read tao_var namelist: ' // v1_var%name)
+  call str_upcase (default_attribute, default_attribute)
+
+  ! Convert old format to new
+
+  if (var(0)%ele_name(1:7) == 'SEARCH:') then
+    call string_trim(var(0)%ele_name(8:), search_for_lat_eles, ix)
+  elseif (var(0)%ele_name(1:5) == 'SAME:') then
+    call string_trim (var(0)%ele_name(6:), use_same_lat_eles_as, ix)
+  endif
+
+  ! Convert to upper case.
+
+  do i = lbound(var, 1), ubound(var, 1)
+    call str_upcase (var(i)%attribute, var(i)%attribute)
+    call str_upcase (var(i)%ele_name, var(i)%ele_name)
+  enddo
+
+  if (v1_var%name == '') then
+    call out_io (s_error$, r_name, 'FOUND TAO_VAR NAMELIST WITHOUT V1_VAR%NAME PARAMETER!')
+    cycle
+  endif
+
+  ! Gang or clone?
+
+  gang = .true.
+  if (default_universe(1:5) == 'clone') then
+    gang = .false.
+    call string_trim (default_universe(6:), default_universe, ix)
+  endif
+  if (default_universe(1:4) == 'gang') then
+    call string_trim (default_universe(5:), default_universe, ix)
+  endif
+
+  ! Read universe numbers
+
+  if (default_universe == '*' .or. default_universe == '') then
+    dflt_good_unis = .true.
+  else
+    call location_decode (default_universe, dflt_good_unis, 1, num)
+    if (num == 0) dflt_good_unis = .true.  ! blank => all
+    if (num < 0) then
+      call out_io (s_error$, r_name, 'ERROR READING DEFAULT_UNIVERSE FOR: ' // v1_var%name)
+      cycle
+    endif
+  endif
+
+  ! Set up variable lists
+
+  if (gang) then
+    call var_stuffit1 (v1_var_ptr)
+    do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
+
+      ! Find which universes
+      good_unis = dflt_good_unis
+
+      if (.not. searching) then
+        if (var(j)%universe /= '') then
+          if (var(j)%universe == '*') then
+            good_unis = .true.
+          else
+            call location_decode (var(j)%universe, good_unis, 1, num)
+            if (num < 0) then
+              call out_io (s_error$, r_name, 'ERROR READING UNIVERSE FOR: ' // v1_var%name)
+              cycle
+            endif
+          endif
+        endif
+      endif
+
+      if (count(good_unis) == 0) then
+        call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // v1_var%name)
+        call err_exit
+      endif
+
+      call var_stuffit2 (good_unis, v1_var_ptr%v(j), searching)
+
+    enddo
+
+  else   ! If clone...
+    do i = 1, size(s%u)
+      if (.not. dflt_good_unis(i)) cycle
+      call var_stuffit1 (v1_var_ptr)
+      write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
+      good_unis = .false.
+      good_unis(i) = .true.
+      do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
+        call var_stuffit2 (good_unis, v1_var_ptr%v(j), searching)
+      enddo
+    enddo
+  endif
+
+enddo
+
+close (iu)
+deallocate (dflt_good_unis, good_unis)
+deallocate (default_key_b, default_key_d)
+
+return
+
+!-----------------------------------------------------------------------
+! namelist read error.
+
+9200 continue
+call out_io (s_error$, r_name, 'TAO_VAR NAMELIST READ ERROR.')
+rewind (iu)
+do
+  read (iu, nml = tao_var)  ! force printing of error message
+enddo
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+contains
+
 ! stuff common to all universes
 
 subroutine var_stuffit1 (v1_var_ptr)
@@ -1601,71 +1694,13 @@ where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
 s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
 where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
  
-! point the v1_var mother to the appropriate children in the big data array
+! point the v1_var mother to the appropriate children in the big var array
 
 call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
 
 end subroutine
   
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-!
-! This searches the lattice for the specified element and flags matched_ele(:)
-
-subroutine tao_find_elements (u, search_string, matched_ele)
-
-type (tao_universe_struct), target :: u
-type (ele_struct), pointer :: ele
-
-character(*) search_string
-character(80) string
-character(40) ele_name, key_name_in
-integer key, found_key
-
-integer i, ix, ii, i2, j
-
-logical, allocatable :: matched_ele(:)
-logical no_slaves, no_lords, err
-
-!
-
-no_slaves = .false.
-no_lords = .false.
-
-call string_trim(search_string, string, ix)
-
-select case (string(1:ix))
-case ('-no_lords') 
-  no_lords = .true.
-  call string_trim (string(ix+1:), string, ix)
-case ('-no_slaves') 
-  no_slaves = .true.
-  call string_trim (string(ix+1:), string, ix)
-case default
-  if (string(1:1) == '-') then
-    call out_io (s_abort$, r_name, "BAD SEARCH RESTRICTION: " // search_string)
-    call err_exit
-  endif
-end select
-
-!
-
-call tao_ele_locations_given_name (u%design%lat, string, matched_ele, err)
-
-do j = 1, u%design%lat%n_ele_max
-  ele => u%design%lat%ele(j)
-  select case (ele%control_type)
-  case (multipass_slave$, super_slave$)
-    if (no_slaves) matched_ele(j) = .false.
-  case (girder_lord$, overlay_lord$, super_lord$)
-    if (no_lords) matched_ele(j) = .false.
-  end select
-enddo
-
-end subroutine tao_find_elements
-
-end subroutine tao_init_global_and_universes
+end subroutine tao_init_variables
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
@@ -1733,5 +1768,62 @@ var%base_value = var%this(1)%base_ptr
 var%exists = .true.
 
 end subroutine
+
+!-----------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------
+! This searches the lattice for the specified element and flags matched_ele(:)
+
+subroutine tao_find_elements (u, search_string, matched_ele)
+
+type (tao_universe_struct), target :: u
+type (ele_struct), pointer :: ele
+
+character(*) search_string
+character(80) string
+character(40) ele_name, key_name_in
+character(20) :: r_name = 'tao_find_elements'
+
+integer key, found_key
+integer i, ix, ii, i2, j
+
+logical, allocatable :: matched_ele(:)
+logical no_slaves, no_lords, err
+
+!
+
+no_slaves = .false.
+no_lords = .false.
+
+call string_trim(search_string, string, ix)
+
+select case (string(1:ix))
+case ('-no_lords') 
+  no_lords = .true.
+  call string_trim (string(ix+1:), string, ix)
+case ('-no_slaves') 
+  no_slaves = .true.
+  call string_trim (string(ix+1:), string, ix)
+case default
+  if (string(1:1) == '-') then
+    call out_io (s_abort$, r_name, "BAD SEARCH RESTRICTION: " // search_string)
+    call err_exit
+  endif
+end select
+
+!
+
+call tao_ele_locations_given_name (u%design%lat, string, matched_ele, err)
+
+do j = 1, u%design%lat%n_ele_max
+  ele => u%design%lat%ele(j)
+  select case (ele%control_type)
+  case (multipass_slave$, super_slave$)
+    if (no_slaves) matched_ele(j) = .false.
+  case (girder_lord$, overlay_lord$, super_lord$)
+    if (no_lords) matched_ele(j) = .false.
+  end select
+enddo
+
+end subroutine tao_find_elements
 
 end module

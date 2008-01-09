@@ -26,6 +26,8 @@ real(rp) this_merit, ave, value
 
 integer i, j, n
 
+character(16) :: r_name = "tao_merit"
+
 logical, optional :: calc_ok
 logical err, ok
 
@@ -48,7 +50,7 @@ do j = 1, size(s%var)
   if (.not. var%useit_opt) cycle
 
   select case (var%merit_type)
-  case ('target')
+  case ('target', 'match')
     var%delta_merit = var%model_value - var%meas_value
   case ('limit')
     if (var%model_value > var%high_lim) then
@@ -87,6 +89,8 @@ do i = 1, size(s%u)
       if (data(j)%merit_type(1:3) == 'abs') then
         data(j)%delta_merit = abs(data(j)%model_value) - &
             data(j)%meas_value + data(j)%ref_value - data(j)%base_value
+      elseif (data(j)%merit_type(1:3) == 'int') then
+        call out_io (s_fatal$, r_name, 'BAD DATUM INTEGRATION FOR: ' // tao_datum_name(data(j)))
       else
         data(j)%delta_merit = data(j)%model_value - &
             data(j)%meas_value + data(j)%ref_value - data(j)%base_value
@@ -95,6 +99,8 @@ do i = 1, size(s%u)
       if (data(j)%merit_type(1:3) == 'abs') then
         data(j)%delta_merit = abs(data(j)%model_value) - &
             data(j)%meas_value + data(j)%ref_value - data(j)%design_value
+      elseif (data(j)%merit_type(1:3) == 'int') then
+        call out_io (s_fatal$, r_name, 'BAD DATUM INTEGRATION FOR: ' // tao_datum_name(data(j)))
       else
         data(j)%delta_merit = data(j)%model_value - &
             data(j)%meas_value + data(j)%ref_value - data(j)%design_value
@@ -103,6 +109,8 @@ do i = 1, size(s%u)
       if (data(j)%merit_type(1:3) == 'abs') then
         data(j)%delta_merit = abs(data(j)%model_value) - &
                                 data(j)%meas_value - data(j)%base_value
+      elseif (data(j)%merit_type(1:3) == 'int') then
+        call out_io (s_fatal$, r_name, 'BAD DATUM INTEGRATION FOR: ' // tao_datum_name(data(j)))
       else
         data(j)%delta_merit = data(j)%model_value - &
                                 data(j)%meas_value - data(j)%base_value
@@ -110,6 +118,8 @@ do i = 1, size(s%u)
     else
       if (data(j)%merit_type(1:3) == 'abs') then
         data(j)%delta_merit = abs(data(j)%model_value) - data(j)%meas_value 
+      elseif (data(j)%merit_type(1:3) == 'int') then
+        data(j)%delta_merit = data(j)%model_value
       else
         data(j)%delta_merit = data(j)%model_value - data(j)%meas_value 
       endif
@@ -141,7 +151,7 @@ do i = 1, size(s%u)
 
   do j = 1, size(data)
     select case (data(j)%merit_type)
-    case ('target')
+    case ('target', 'match', 'int_max', 'int_min')  ! Nothing to be done
     case ('max', 'abs_max')
       if (data(j)%delta_merit < 0) data(j)%delta_merit = 0  ! it's OK to be less
     case ('min', 'abs_min')

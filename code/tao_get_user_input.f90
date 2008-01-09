@@ -36,7 +36,6 @@ character(200), save :: saved_line
 
 logical err, wait, flush
 logical, save :: init_needed = .true.
-logical, save :: multi_commands_here = .false.
 
 ! Init single char input
 
@@ -60,10 +59,10 @@ endif
 
 ! check if we still have something from a line with multiple commands
 
-if (multi_commands_here) then
+if (tao_com%multi_commands_here) then
   call string_trim (saved_line, saved_line, ix)
   if (ix == 0) then
-    multi_commands_here = .false.
+    tao_com%multi_commands_here = .false.
   else
     cmd_line = saved_line
   endif
@@ -83,7 +82,7 @@ endif
 if (tao_com%cmd_file_level /= 0) then
 
   n_level = tao_com%cmd_file_level
-  if (.not. multi_commands_here) then
+  if (.not. tao_com%multi_commands_here) then
     do
       read (tao_com%cmd_file(n_level)%ix_unit, '(a)', end = 8000) cmd_line
       tao_com%cmd_from_cmd_file = .true.
@@ -127,7 +126,7 @@ endif
 
 ! Here if no command file is being used.
 
-if (.not. multi_commands_here) then
+if (.not. tao_com%multi_commands_here) then
   cmd_line = ' '
   tag = trim(prompt_string) // '> ' // achar(0)
   tao_com%cmd_from_cmd_file = .false.
@@ -203,7 +202,7 @@ subroutine check_for_multi_commands
 
   ix = index (cmd_line, ';')
   if (ix /= 0) then
-    multi_commands_here = .true.
+    tao_com%multi_commands_here = .true.
     saved_line = cmd_line(ix+1:)
     cmd_line = cmd_line(:ix-1)
   else

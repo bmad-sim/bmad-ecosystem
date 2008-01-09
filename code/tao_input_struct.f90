@@ -31,6 +31,7 @@ type tao_data_input
   logical :: good_user
   character(40) data_source
   integer ix_bunch
+  character(8) relative
   real(rp) :: data_noise ! not used by most data types
   real(rp) :: scale_error ! not used by most data types
   character(40) :: name
@@ -120,8 +121,9 @@ end type
 ! other structures
 
 type tao_design_lat_input
-  character(200) file
-  character(16) :: parser = 'bmad'
+  character(100) file
+  character(100) file2
+  character(16) parser
 end type
 
 type tao_connected_uni_input

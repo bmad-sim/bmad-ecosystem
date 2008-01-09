@@ -220,10 +220,10 @@ can see the residual coupling outside the interaction region type
   scale bottom -0.01 0.01
 \end{example}
 The \vn{**Limited**} displayed in red on the bottom plots tells us
-that there are data points outside the plotted region.  We now see that
-there is a small amount of coupling at the L03 region (BPM indexes
-45-55) and a few other places along the ring. Your plot window should
-now look like Figure~\ref{f:plot_coupling_no_IR}.
+that there are data points outside the plotted region.  We now see
+that there is a small amount of coupling at the L03 region (BPM
+indexes 45-55) and a few other places along the ring. Your plot window
+should now look like Figure~\ref{f:plot_coupling_no_IR}.
 
 The x-axis is currently the BPM index number. It is sometimes
 convenient to plot the data versus longitudinal position. This is done
@@ -272,8 +272,8 @@ the following to view the quadrupole k1 values:
 \subsection{The Show Command}
 
 Anything in the super-universe can be displayed using the \cmd{show}
-command. To get a list of the data elements currently defined in \tao
-type
+command (\sref{s:show}). To get a list of the data elements currently
+defined in \tao type
 \index{Commands!show}
 \begin{example}
   show data
@@ -649,18 +649,12 @@ input format (\sref{s:init_data}. For example:
 \section{Single Mode}\index{Single Mode}
 \label{s:single_mode}
 
-Single mode utilizes a simple single character interface to the \tao
-model lattice.  By simply typing single predefined characters the
-specified element parameter will be changed by a certain amount. This
-allows the user to quickly converge on a neighborhood around the
-minimum of a multidimensional non-linear function space. However,
-finding the exact minimum can be difficult to do by hand. Once the
-neighborhood is found the optimizer can be used to narrow in on the
-optimum configuration without requiring it to run all around the
-parameter space, which is very inefficient and time consuming for
-complex parameter spaces.
-
-\fbox{this section is yet to be completed!} 
+\tao has a \vn{single mode} in which single keystrokes are interpreted
+as commands. \tao can be set up so that in \vn{single mode} the
+pressing of certain keys increase or decrease variables. While the
+same effect can be achieved in the standard \vn{line mode}, \vn{single
+mode} allows for quick adjustments of variables. See
+Chapter~\sref{c:single} for more details.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------

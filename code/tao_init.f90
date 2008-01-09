@@ -48,11 +48,15 @@ namelist / tao_start / lattice_file, startup_file, wall_file, &
 ! Only print error messages. Not standard ones.
 
 iu_log = lunget()
-open (iu_log, file = 'tao_init.log')
-call out_io (s_blank$, r_name, 'Opening initialization logging file: tao_init.log')
-
-call output_direct (iu_log, .true., s_blank$, s_abort$)
-call output_direct (iu_log, .false., s_blank$, s_success$) ! Do not print 
+open (iu_log, file = 'tao_init.log', action = 'write', iostat = ios)
+if (ios == 0) then
+  call out_io (s_blank$, r_name, 'Opening initialization logging file: tao_init.log')
+  call output_direct (iu_log, .true., s_blank$, s_abort$)
+  call output_direct (iu_log, .false., s_blank$, s_success$) ! Do not print 
+else
+ call out_io (s_error$, r_name, &
+                'NOTE: Cannot open a file for logging initialization information')
+endif
 
 ! Find namelist files
 
@@ -85,7 +89,9 @@ allocate (s%u(n_universes))
 ! Init
 
 call tao_init_design_lattice (lattice_file) 
-call tao_init_global_and_universes (tao_com%init_tao_file, data_file, var_file)
+call tao_init_global(tao_com%init_tao_file)
+call tao_init_data (data_file)
+call tao_init_variables (var_file)
 call tao_init_single_mode (single_mode_file)
 call tao_init_wall (wall_file)
 

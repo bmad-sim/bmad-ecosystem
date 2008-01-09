@@ -212,41 +212,42 @@ end type
 ! A datum is used in the optimization if both %useit_opt & %good_meas are true.
 
 type tao_data_struct
-  character(40) ele_name    ! Name of the element in the Lattice corresponding to the datum.
-  character(40) ele0_name   ! Name lattice element when there is a range 
-  character(40) data_type   ! Type of data: "orbit.x", etc.
-  character(40) merit_type  ! Type of constraint: 'target', 'max', 'min', etc.
-  character(40) data_source ! 'lattice', or 'beam'
-  integer ix_ele            ! Index of the element in the lattice element array.
-  integer ix_ele0           ! Index of lattice elment when there is a range or reference.
-  integer ix_ele_merit      ! Index of lattice elment where merit is evaluated.
-  integer ix_d1             ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
-  integer ix_data           ! Index of this datum in the u%data(:) array of data_structs.
-  integer ix_dModel         ! Row number in the dModel_dVar derivative matrix.
-  integer ix_bunch          ! Bunch number to get the data from.
-  real(rp) meas_value       ! Measured datum value. 
-  real(rp) ref_value        ! Measured datum value from the reference data set.
-  real(rp) model_value      ! Datum value as calculated from the model.
-  real(rp) design_value     ! What the datum value is in the design lattice.
-  real(rp) old_value        ! The model_value at some previous time.
-  real(rp) base_value       ! The value as calculated from the base model.
-  real(rp) fit_value        ! The value as calculated from a fitting procedure.
-  real(rp) delta_merit      ! Diff used to calculate the merit function term 
-  real(rp) weight           ! Weight for the merit function term
-  real(rp) merit            ! Merit function term value: weight * delta^2
+  character(40) ele_name     ! Name of the element in the Lattice corresponding to the datum.
+  character(40) ele0_name    ! Name lattice element when there is a range 
+  character(40) data_type    ! Type of data: "orbit.x", etc.
+  character(40) merit_type   ! Type of constraint: 'target', 'max', 'min', etc.
+  character(40) data_source  ! 'lattice', or 'beam'
+  integer ix_ele             ! Index of the element in the lattice element array.
+  integer ix_ele0            ! Index of lattice elment when there is a range or reference.
+  integer ix_ele_merit       ! Index of lattice elment where merit is evaluated.
+  integer ix_d1              ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
+  integer ix_data            ! Index of this datum in the u%data(:) array of data_structs.
+  integer ix_dModel          ! Row number in the dModel_dVar derivative matrix.
+  integer ix_bunch           ! Bunch number to get the data from.
+  real(rp) meas_value        ! Measured datum value. 
+  real(rp) ref_value         ! Measured datum value from the reference data set.
+  real(rp) model_value       ! Datum value as calculated from the model.
+  real(rp) design_value      ! What the datum value is in the design lattice.
+  real(rp) old_value         ! The model_value at some previous time.
+  real(rp) base_value        ! The value as calculated from the base model.
+  real(rp) fit_value         ! The value as calculated from a fitting procedure.
+  real(rp) delta_merit       ! Diff used to calculate the merit function term 
+  real(rp) weight            ! Weight for the merit function term
+  real(rp) merit             ! Merit function term value: weight * delta^2
   real(rp) conversion_factor ! Typically used to convert coupling to cbar
-  real(rp) s                ! longitudinal position of ele.
-  logical exists            ! See above
-  logical good_model        ! See above
-  logical good_meas         ! See above
-  logical good_ref          ! See above
-  logical good_user         ! See above
-  logical good_opt          ! See above
-  logical good_plot         ! See above
-  logical useit_plot        ! See above
-  logical useit_opt         ! See above
+  real(rp) s                 ! longitudinal position of ele.
+  logical relative           ! Value is relative to value at ele0?
+  logical exists             ! See above
+  logical good_model         ! See above
+  logical good_meas          ! See above
+  logical good_ref           ! See above
+  logical good_user          ! See above
+  logical good_opt           ! See above
+  logical good_plot          ! See above
+  logical useit_plot         ! See above
+  logical useit_opt          ! See above
   type (tao_d1_data_struct), pointer :: d1 => null() 
-                            ! Pointer to the parent d1_data_struct 
+                             ! Pointer to the parent d1_data_struct 
 end type tao_data_struct
 
 ! A d1_data_struct represents, say, all the horizontal orbit data.
@@ -410,6 +411,7 @@ type tao_global_struct
   real(rp) :: de_lm_step_ratio = 1       ! Scaling for step sizes between DE and LM optimizers.
   real(rp) :: lmdif_eps = 1e-12          ! tollerance for lmdif optimizer.
   real(rp) :: unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
+  real(rp) :: merit_finish = 1           ! Merit value below which an optimizer will stop.
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: n_opti_loops = 1            ! number of optimization loops
@@ -463,10 +465,13 @@ type tao_common_struct
   logical opti_init             ! init needed?
   logical opti_at_limit         ! Variable at limit?
   logical opti_abort            ! Abort loops?
+  logical :: multi_commands_here = .false.
   integer :: n_alias = 0
   integer :: cmd_file_level = 0 ! for nested command files
               ! unit numbers for a command files. 0 -> no command file.
   integer :: ix_key_bank = 0             ! For single mode.
+  integer :: n_data_max
+  integer :: n_var_max
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   logical :: use_cmd_here  = .false.     ! Used for the cmd history stack
   logical cmd_from_cmd_file              ! was command from a command file?
@@ -553,6 +558,11 @@ type tao_element_struct
   integer ix_ele_end_floor_plan
   integer ix_shape_lat_layout
   integer ix_ele_end_lat_layout
+  real(rp) data_noise    ! Was: r(1,1)
+  real(rp) x_calib       ! Was: r(1,2)
+  real(rp) y_calib       ! Was: r(1,3)
+  real(rp) tilt_calib    ! Was: r(1,4)
+  real(rp) scale_err     ! Was: r(1,5)
 end type
 
 !-----------------------------------------------------------------------

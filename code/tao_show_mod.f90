@@ -79,19 +79,19 @@ character(200) stuff2
 character(40) ele_name, name, sub_name
 character(60) nam
 
-character(16) :: show_what, show_names(21) = (/ &
+character(16) :: show_what, show_names(22) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    '-write      ', 'hom         ', 'opt_vars    ', 'universe    ', 'taylor      ', &
    'beam        ', 'e2          ', 'graph       ', 'curve       ', 'particle    ', &
-   'orbit       ' /)
+   'orbit       ', 'derivative  ' /)
 
 character(200), allocatable, save :: lines(:)
 character(200) line, line1, line2, line3
 character(9) angle
 
 integer :: data_number, ix_plane, ix_class, n_live, n_tot
-integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb
+integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2
 integer num_locations, ix_ele, n_name, n_e0, n_e1
 integer, allocatable, save :: ix_eles(:)
@@ -299,7 +299,7 @@ case ('data')
 
       if (.not. picked(iu)) cycle
 
-      u => s%u(s%global%u_view)
+      u => s%u(iu)
 
       nl=nl+1; write(lines(nl), *) ' '
       if (size(s%u) > 1) then
@@ -363,6 +363,7 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)  '%merit             = ', d_ptr%merit
     nl=nl+1; write(lines(nl), rmt)  '%delta_merit       = ', d_ptr%delta_merit
     nl=nl+1; write(lines(nl), rmt)  '%weight            = ', d_ptr%weight
+    nl=nl+1; write(lines(nl), lmt)  '%relative          = ', d_ptr%relative
     nl=nl+1; write(lines(nl), lmt)  '%exists            = ', d_ptr%exists
     nl=nl+1; write(lines(nl), lmt)  '%good_model        = ', d_ptr%good_model
     nl=nl+1; write(lines(nl), lmt)  '%good_meas         = ', d_ptr%good_meas
@@ -462,6 +463,36 @@ case ('data')
     lines(1) = 'TRY BEING MORE SPECIFIC.'
     nl = 1
   endif
+
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+!----------------------------------------------------------------------
+! derivative
+
+case ('derivative')
+
+  call tao_find_data (err, word(1), d2_ptr, d1_ptr, d_array)
+  if (err) return
+
+  call tao_find_var(err, word(2), v1_ptr, v_array) 
+  if (err) return
+
+  do id = 1, size(d_array)
+    do iv = 1, size(v_array)
+      d_ptr => d_array(id)%d
+      v_ptr => v_array(iv)%v
+      u => s%u(d_ptr%d1%d2%ix_uni)
+      jd = d_ptr%ix_dmodel
+      jv = v_ptr%ix_dvar
+      if (jd == 0 .or. jv == 0) then
+        nl=nl+1; write (lines(nl), '(2a20, a14, 2i5)') tao_datum_name(d_ptr), &
+                          tao_var1_name(v_ptr), ' No Derivative', jd, jv
+      else
+        nl=nl+1; write (lines(nl), '(2a20, es14.5, 2i5)') tao_datum_name(d_ptr), &
+                                  tao_var1_name(v_ptr), u%dModel_dVar(jd, jv), jd, jv
+      endif
+    enddo
+  enddo
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
@@ -570,6 +601,7 @@ case ('global')
   nl=nl+1; write (lines(nl), lmt) 'label_keys                 = ', s%global%label_keys
   nl=nl+1; write (lines(nl), rmt) 'lm_opt_deriv_reinit        = ', s%global%lm_opt_deriv_reinit
   nl=nl+1; write (lines(nl), rmt) 'lmdif_eps                  = ', s%global%lmdif_eps
+  nl=nl+1; write (lines(nl), rmt) 'merit_finish               = ', s%global%merit_finish
   nl=nl+1; write (lines(nl), lmt) 'matrix_recalc_on           = ', s%global%matrix_recalc_on
   nl=nl+1; write (lines(nl), imt) 'n_curve_pts                = ', s%global%n_curve_pts
   nl=nl+1; write (lines(nl), imt) 'n_opti_loops               = ', s%global%n_opti_loops
@@ -659,6 +691,7 @@ case ('lattice')
   at_ends = .true.
   by_s = .false.
   ele_name = ''
+  if (allocated (picked_ele)) deallocate (picked_ele)
   allocate (picked_ele(0:lat%n_ele_max))
 
   ! get command line switches
@@ -1197,7 +1230,7 @@ case ('universe')
   u => s%u(ix_u)
 
   nl = 0
-  nl=nl+1; write (lines(nl), amt) 'Universe: ', ix_u
+  nl=nl+1; write (lines(nl), imt) 'Universe: ', ix_u
   nl=nl+1; write (lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
   nl=nl+1; write (lines(nl), imt) '%n_data_used           = ', u%n_data_used
   nl=nl+1; write (lines(nl), lmt) '%do_synch_rad_int_calc = ', u%do_synch_rad_int_calc
@@ -1211,6 +1244,7 @@ case ('universe')
     nl=nl+1; write (lines(nl), '(a, i0, 2a)') '           (', i, ') = ', u%save_beam_at(i)
   enddo
   nl=nl+1; lines(nl) = ''
+  nl=nl+1; lines(nl) = 'Lattice Type: ' // lattice_type(u%model%lat%param%lattice_type)
   nl=nl+1; write (lines(nl), imt) &
                 'Elements used in tracking: From 1 through ', lat%n_ele_track
   if (lat%n_ele_max .gt. lat%n_ele_track) then
