@@ -486,20 +486,20 @@ integer n
 
 !
 
-n = size(rad_int_in%i1)
+n = ubound(rad_int_in%i1, 1)
 
-call re_allocate (rad_int_out%i1, n)
-call re_allocate (rad_int_out%i2, n)
-call re_allocate (rad_int_out%i3, n)
-call re_allocate (rad_int_out%i4a, n)
-call re_allocate (rad_int_out%i4b, n)
-call re_allocate (rad_int_out%i5a, n)
-call re_allocate (rad_int_out%i5b, n)
-call re_allocate (rad_int_out%n_steps, n)
-call re_allocate (rad_int_out%lin_i2_e4, n)
-call re_allocate (rad_int_out%lin_i3_e7, n)
-call re_allocate (rad_int_out%lin_i5a_e6, n)
-call re_allocate (rad_int_out%lin_i5b_e6, n)
+call re_allocate (rad_int_out%i1, 0, n)
+call re_allocate (rad_int_out%i2, 0, n)
+call re_allocate (rad_int_out%i3, 0, n)
+call re_allocate (rad_int_out%i4a, 0, n)
+call re_allocate (rad_int_out%i4b, 0, n)
+call re_allocate (rad_int_out%i5a, 0, n)
+call re_allocate (rad_int_out%i5b, 0, n)
+call re_allocate (rad_int_out%n_steps, 0, n)
+call re_allocate (rad_int_out%lin_i2_e4, 0, n)
+call re_allocate (rad_int_out%lin_i3_e7, 0, n)
+call re_allocate (rad_int_out%lin_i5a_e6, 0, n)
+call re_allocate (rad_int_out%lin_i5b_e6, 0, n)
 
 rad_int_out = rad_int_in
 
