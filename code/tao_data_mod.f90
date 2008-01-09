@@ -1143,7 +1143,7 @@ end subroutine coupling_calc
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_read_bpm (orb, ele, axis, reading)
+! Subroutine tao_read_bpm (orb, ele, bpm_params, axis, reading)
 !
 ! Find the reading on a bpm given the orbit at the BPM and the BPM offsets
 !
