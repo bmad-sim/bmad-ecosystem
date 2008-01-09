@@ -74,19 +74,27 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
   character(32) word_1
   character(40) this_name
   character(280) parse_line_save, digested_name
+  character(200) call_file
   character(80) debug_line
 
   logical, optional :: make_mats6, digested_read_ok
-  logical parsing, delim_found, found, doit
+  logical parsing, delim_found, found, doit, xsif_called
   logical file_end, err_flag, finished, write_digested
 
-! init
+! Init...
 
   bmad_status%ok = .true.
   write_digested = .false.
   bp_com%parser_name = 'BMAD_PARSER2'
-  call file_stack('push', lat_file, finished)   ! open file on stack
-  if (.not. bmad_status%ok) return
+
+! If lat_file = 'FROM: BMAD_PARSER' then bmad_parser2 has been called by 
+! bmad_parser (after an expand_lattice command). 
+! In this case we just read from the current open file.
+
+  if (lat_file /= 'FROM: BMAD_PARSER') then
+    call file_stack('push', lat_file, finished)   ! open file on stack
+    if (.not. bmad_status%ok) return
+  endif
 
   debug_line = ''
   n_max => lat%n_ele_max
@@ -174,7 +182,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 ! CALL command
 
     if (word_1(:ix_word) == 'CALL') then
-      call get_called_file(delim)
+      call get_called_file(delim, call_file, xsif_called)
       if (.not. bmad_status%ok) return
       cycle parsing_loop
 

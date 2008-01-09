@@ -38,7 +38,6 @@ character(40) e_name
 
 ! Init
 
-ix_ele = -1
 call str_upcase (e_name, ele_name)
 
 ! Longitudinal position search
@@ -59,5 +58,7 @@ endif
 do ix_ele = 0, lat%n_ele_max
   if (lat%ele(ix_ele)%name == e_name) return
 enddo
+
+ix_ele = -1
 
 end subroutine

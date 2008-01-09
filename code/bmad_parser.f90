@@ -76,14 +76,14 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   character(40) word_2, name, multipass_line
   character(16) :: r_name = 'bmad_parser'
   character(40) this_name, word_1
-  character(200) full_lat_file_name, digested_file
+  character(200) full_lat_file_name, digested_file, call_file
   character(280) parse_line_save
   character(80) debug_line
 
   real(rp) energy_beam, energy_param, energy_0
 
   logical, optional :: make_mats6, digested_read_ok
-  logical parsing, delim_found, arg_list_found, doit
+  logical parsing, delim_found, arg_list_found, doit, xsif_called
   logical file_end, found, err_flag, finished, exit_on_error
   logical detected_expand_lattice_cmd, multipass, write_digested
 
@@ -250,8 +250,15 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 ! CALL command
 
     if (word_1(:ix_word) == 'CALL') then
-      call get_called_file(delim)
+      call get_called_file(delim, call_file, xsif_called)
       if (.not. bmad_status%ok) return
+
+      if (xsif_called) then
+        call xsif_parser (call_file, lat, make_mats6, digested_read_ok, use_line) 
+        detected_expand_lattice_cmd = .true.
+        goto 8000  ! Skip the lattice expansion since xsif_parser does this
+      endif
+
       cycle parsing_loop
     endif
 
@@ -1027,6 +1034,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   endif
 
 ! Do we need to expand the lattice and call bmad_parser2?
+
+  8000 continue
 
   if (detected_expand_lattice_cmd) then
     exit_on_error = bmad_status%exit_on_error

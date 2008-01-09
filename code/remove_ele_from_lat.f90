@@ -77,6 +77,7 @@ subroutine remove_ele_from_lat (lat, ix_ele)
     ix = lat%ele(i)%ix_ele 
     if (ix == i .or. ix == 0) cycle
     lat%ele(ix) = lat%ele(i)
+    lat%ele(ix)%ix_ele = ix  ! Need this sice "=" does not transfer ix_ele
   enddo
 
   do i = lat%n_ele_max-n_remove+1, lat%n_ele_max

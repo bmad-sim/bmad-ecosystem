@@ -728,54 +728,68 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine get_called_file (delim)
+subroutine get_called_file (delim, call_file, xsif_called)
 
-  implicit none
+implicit none
 
-  character(1) delim
-  character(200) call_file
+character(1) delim
+character(*) call_file
 
-  integer ix_word, ix
-  logical delim_found, finished
+integer ix_word, ix
+logical delim_found, finished, xsif_called
 
 !
 
-  if (delim /= ',')  call warning ('"CALL" NOT FOLLOWED BY COMMA')
-  call get_next_word(call_file, ix_word, ':=,', delim, delim_found, .true.)
-  if (ix_word == 0) then
-    call warning ('NOTHING AFTER "CALL"')
-  elseif (index('FILENAME', call_file(:ix_word)) /= 1) then
-    call warning ('INVALID "CALL" COMMAND')
-  elseif (delim /= '=') then
-    call warning ('NO "=" AFTER "FILENAME"')
-  else
-    call get_next_word(call_file, ix_word, ',', &
-                                       delim, delim_found, .false.)
-    if (ix_word == 0) then
-      call warning ('NO FILE NAME SPECIFIED')
-    else
-      if (call_file(1:1) == '"') then
-        call_file = call_file(2:)
-        ix = index(call_file, '"')
-        if (ix == 0 .or. ix /= len_trim(call_file)) then
-          call warning ('MISSING DOUBLE QUOTE MARK (") FOR CALL STATEMENT')
-          return
-        endif
-        call_file(ix:ix) = ' '
-      endif
-      if (call_file(1:1) == "'") then
-        call_file = call_file(2:)
-        ix = index(call_file, "'")
-        if (ix == 0 .or. ix /= len_trim(call_file)) then
-          call warning ("MISSING SINGLE QUOTE MARK (') FOR CALL STATEMENT")
-          return
-        endif
-        call_file(ix:ix) = ' '
-      endif
-      call file_stack ('push', call_file, finished)
-      if (.not. bmad_status%ok) return
-    endif
+if (delim /= ',')  call warning ('"CALL" NOT FOLLOWED BY COMMA')
+call get_next_word(call_file, ix_word, ':=,', delim, delim_found, .true.)
+
+if (ix_word == 0) then
+  call warning ('NOTHING AFTER "CALL"')
+  return
+elseif (index('FILENAME', call_file(:ix_word)) /= 1) then
+  call warning ('INVALID "CALL" COMMAND')
+  return
+elseif (delim /= '=') then
+  call warning ('NO "=" AFTER "FILENAME"')
+  return
+endif
+
+call get_next_word(call_file, ix_word, ',', delim, delim_found, .false.)
+if (ix_word == 0) then
+  call warning ('NO FILE NAME SPECIFIED')
+  return
+endif
+
+if (call_file(1:1) == '"') then
+  call_file = call_file(2:)
+  ix = index(call_file, '"')
+  if (ix == 0 .or. ix /= len_trim(call_file)) then
+    call warning ('MISSING DOUBLE QUOTE MARK (") FOR CALL STATEMENT')
+    return
   endif
+  call_file(ix:ix) = ' '
+endif
+
+if (call_file(1:1) == "'") then
+  call_file = call_file(2:)
+  ix = index(call_file, "'")
+  if (ix == 0 .or. ix /= len_trim(call_file)) then
+    call warning ("MISSING SINGLE QUOTE MARK (') FOR CALL STATEMENT")
+    return
+  endif
+  call_file(ix:ix) = ' '
+endif
+
+if (call_file(1:6) == 'xsif::') then
+  call_file = call_file(7:)
+  bp_com%num_lat_files = bp_com%num_lat_files + 1 
+  inquire (file = call_file, name = bp_com%lat_file_names(bp_com%num_lat_files))
+  xsif_called = .true.
+  return
+endif
+
+xsif_called = .false.
+call file_stack ('push', call_file, finished)
 
 end subroutine
 
@@ -940,14 +954,10 @@ subroutine file_stack (how, file_name_in, finished)
   logical finished, found_it, is_relative
 
 ! "push" means open a file and put its name on the stack.
-! The special name 'FROM: BMAD_PARSER' is for letting bmad_parser2 finish 
-! parsing after an expand_lattice command has been detected by bmad_parser
 
   finished = .false.
 
   if (how == 'push') then
-
-    if (file_name_in == 'FROM: BMAD_PARSER') return 
 
     i_level = i_level + 1    ! number of files currently open
     if (i_level > f_maxx) then
