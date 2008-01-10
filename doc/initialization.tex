@@ -1258,7 +1258,7 @@ is drawn. Relative to this, various parameters can be used to scale individual t
   plot_page%graph_title_text_scale = 1.1 ! Graph title height.
   plot_page%axis_number_text_scale = 0.9 ! Axis number height
   plot_page%axis_label_text_scale  = 1.0 ! Axis label height.
-  plot_page%key_table_text_scale   = 0.8 ! Key Table text (\sref{s:key-table}).
+  plot_page%key_table_text_scale   = 0.8 ! Key Table text (\sref{s:key.table}).
   plot_page%legend_text_scale      = 0.9 ! Lat Layout or floor plan text.
 \end{example}
 The default values for these scales are given above.
@@ -1295,7 +1295,7 @@ likes.
 
 \vn{shape_height_max} sets the maximum size for drawing shapes in
 \vn{floor_plan}, and \vn{lat_layout} drawings. See
-Section~\sref{s:lat-layout} for more details.
+Section~\sref{s:lat.layout} for more details.
 
 \vn{place(i)} determines the initial placement of plots.
 
@@ -1477,10 +1477,10 @@ following types:
 \index{floor_plan}
 \begin{example}
   "data"         ! Data plots (default) 
-  "floor_plan"   ! A 2-dimensional birds-eye view of the machine (\sref{s:floor-plan}).
-  "key_table"    ! Key binding table for single mode (\sref{s:key-table}).
-  "lat_layout"   ! Schematic showing placement of the lattice elements (\sref{s:lat-layout}).
-  "phase_space"  ! Phase space plots (\sref{s:phase-space}).
+  "floor_plan"   ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
+  "key_table"    ! Key binding table for single mode (\sref{s:key.table}).
+  "lat_layout"   ! Schematic showing placement of the lattice elements (\sref{s:lat.layout}).
+  "phase_space"  ! Phase space plots (\sref{s:phase.space}).
 \end{example}
 The \vn{key_table} is drawn with respect to the upper left hand corner
 of the region in which it is placed.
@@ -1574,7 +1574,7 @@ not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Lattice Layout}\index{Lattice Layout}
-\label{s:lat-layout}
+\label{s:lat.layout}
 
 \begin{figure}
   \centering
@@ -1644,7 +1644,7 @@ for more details.
 %-----------------------------------------------------------------
 \subsection{Drawing a Key Table}
 \index{Key Table}
-\label{s:key-table}
+\label{s:key.table}
 
 The \vn{key table} is explained more fully in
 Section~\sref{s:key-bind}.  An example is shown in
@@ -1682,7 +1682,7 @@ the key index number will be displayed just above the element's glyph
 %-----------------------------------------------------------------
 \subsection{Floor Plan Drawing}
 \index{Floor Plan Drawing}
-\label{s:floor-plan}
+\label{s:floor.plan}
 
 \begin{figure}
   \centering
@@ -1694,7 +1694,7 @@ the key index number will be displayed just above the element's glyph
 A \vn{Floor Plan} drawing gives a display of the machine projected
 onto the horizontal plane.  An example is shown in
 Figure~\ref{f:floor-plan}. Like a \vn{Lattice Layout}
-(\sref{s:lat-layout}), Elements are represented by colored rectangles
+(\sref{s:lat.layout}), Elements are represented by colored rectangles
 and which elements are drawn is determined by an
 \vn{element_shapes_floor_plan} namelist (see~\sref{s:ele-shape}).
 
@@ -1751,7 +1751,7 @@ to the vertical scale.
 \index{Element Shapes}
 \label{s:ele-shape}
 
-\vn{Floor plan} (\sref{s:floor-plan}) and \vn{lattice layout} drawings
+\vn{Floor plan} (\sref{s:floor.plan}) and \vn{lattice layout} drawings
 use various shapes, sizes, and colors to represent lattice
 elements. The association of a particular element with a given shape
 is determined via two namelists: \vn{element_shapes_lat_layout} for
@@ -1824,7 +1824,7 @@ drawings are specified via one \vn{element_shapes} namelist.
 
 %-----------------------------------------------------------------
 \subsection{Phase Space Plotting}\index{Phase Space Plotting}
-\label{s:phase-space}
+\label{s:phase.space}
 
 \begin{figure}
   \centering
