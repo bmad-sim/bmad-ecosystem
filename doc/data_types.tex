@@ -15,16 +15,16 @@ data.
 
 %------------------------------------------------------------------------
 \section{Data Organization}
-\label{s:data_org}
+\label{s:data-org}
 \index{Data}
 
 \begin{figure}
   \centering
-  \includegraphics[width=4in]{data_tree.eps}
+  \includegraphics[width=4in]{data-tree.eps}
   \caption[Data tree structure]
 {A \vn{d2\_data} structure holds a set of \vn{d1\_data} structures. 
 A \vn{d1\_data} structure holds an array of datums.}
-  \label{f:data_tree}
+  \label{f:data-tree}
 \end{figure}
 
 \index{d2_data}\index{d1_data}\index{Data}
@@ -33,7 +33,7 @@ individual \vn{datum}.  For ease of manipulation, arrays of datums are
 grouped into what is called a \vn{d1_data} structure. Furthermore,
 sets of \vn{d1_data} structures are grouped into what is called a
 \vn{d2_data} structure.  This is illustrated in
-Figure~\ref{f:data_tree}.  For example, a \vn{d2_data} structure for
+Figure~\ref{f:data-tree}.  For example, a \vn{d2_data} structure for
 orbit data could contain two \vn{d1_data} structures --- one
 \vn{d1_data} structure for the horizontal orbit data and another
 \vn{d1_data} structure for the vertical orbit data. Each datum of,
@@ -80,7 +80,7 @@ specified, the current ``viewed'' universe is assumed. The current
 \vn{viewed} universe is also has index \vn{0} so \vn{orbit.x} is
 equivalent to \vn{0@orbit.x}.
 
-As explained in Section~\sref{s:data_anatomy}, each individual datum
+As explained in Section~\sref{s:data-anatomy}, each individual datum
 has a number of components. The syntax to refer to a component is:
 \begin{example}
   d2_name.d1_name[datum_index]|component
@@ -105,7 +105,7 @@ encomposed by a \vn{d1_data} structure, the \vn{[*]} can be omitted.
 
 %------------------------------------------------------------------------
 \section{Anatomy of a Datum}
-\label(s:data_anatomy}
+\label(s:data-anatomy}
 
 Each datum has a number of quantities associated with it:
 \begin{example}
@@ -251,9 +251,9 @@ where \vn{i} goes from the \vn{ele} index to the \vn{ele0} index.
 
 %------------------------------------------------------------------------
 \section{Tao Data Types}\index{Data!Data Types}
-\label{s:data_types}
+\label{s:data-types}
 
-Table~\ref{t:data_types} lists the predefined data types in \tao.
+Table~\ref{t:data-types} lists the predefined data types in \tao.
 
 \vn{wire} data simulates the measurement of a wire scanner. The angle specified
 is the angle of the wire with respect to the horizontal axis. The measurement
