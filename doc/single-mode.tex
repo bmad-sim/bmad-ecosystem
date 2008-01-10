@@ -18,20 +18,20 @@ to get into \vn{single mode}. To go back to \vn{line mode} type
 
 %% key_table ------------------------------------------------------------------------
 \section{Key Bindings}\index{Key Bindings}
-\label{s:key_bind}
+\label{s:key-bind}
 
 The main purpose of Single Mode is to associate certain keys with
 certain variables so that the pressing of these keys will change their
 associated variable. This is called a \vn{key binding}.  Key bindings
 are established via the \vn{key_bindings} initialization namelist (See
-Section~\sref{s:init_key_bind}). The variables are divided into banks of
+Section~\sref{s:init-key-bind}). The variables are divided into banks of
 10. The 0\Th bank uses variables \vn{key(1)} through \vn{key(10)} from
 the \vn{key_bindings} namelist, the 1\St bank uses variables
 \vn{key(11)} through \vn{key(20)}, etc.  
 
 At any one time, only one bank is active. To see the status of this
 bank, a \vn{key table} plot can be setup as shown in
-Figure~\ref{f:key_table}. The relationship between the keys and a
+Figure~\ref{f:key-table}. The relationship between the keys and a
 change in a variable is:
 \begin{example}
                  Change by factor of:          
@@ -57,7 +57,7 @@ used to decrease or increase the bank number.  Additionally the
 "\vn{<}" and "$>$" keys can be used to change the deltas for the
 variables.
 
-For example, looking at Figure~\ref{f:key_table}, the \vn{"1:"} in
+For example, looking at Figure~\ref{f:key-table}, the \vn{"1:"} in
 the upper left corner of the \vn{Key Table} shows that the 1\St bank
 is active which corresponds to keys \vn{key(11)} through \vn{key(20)}
 from the \vn{key_bindings} namelist.  Since, in this case, keys
@@ -85,7 +85,7 @@ present.
 
 \begin{figure}
   \centering
-  \includegraphics[width=5in]{layout_graph_table.eps}
+  \includegraphics[width=5in]{layout-graph-table.eps}
   \caption[Example key table with a lattice layout and data plots.]
 {A lattice layout plot (top) above a data plot (middle) 
 which in turn is above a key table plot (bottom). The points on the
@@ -93,7 +93,7 @@ curves in the data plot mark the edges of the elements displayed in
 the lattice layout. Elements that have attributes that are varied as
 shown in the key table have the corresponding key table number printed
 above the element's glyph in the lattice layout.}
-  \label{f:key_table}
+  \label{f:key-table}
 \end{figure}
 
 %% keys ------------------------------------------------------------------------

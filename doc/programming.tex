@@ -1,6 +1,6 @@
 \chapter{Creating a Custom Version of Tao}
 \index{customizing}
-\label{c:prog_customizing} 
+\label{c:prog-customizing} 
 
 \tao has been designed to be readily extensible with a minimum of
 effort. The tutorial provides a simple example of a custom data type. Here each
@@ -104,7 +104,7 @@ implemented.
 
 The only thing needed to be called at the end of a custom command is
 \vn{tao_cmd_end_calc} (as is done in the dumyt subroutine). This will
-perform all of the steps listed in Section~\sref{s:lat_calc}. If this
+perform all of the steps listed in Section~\sref{s:lat-calc}. If this
 isn't called than whatever is performed in the custom command will not
 show up until a standard command is performed.
 
@@ -214,7 +214,7 @@ lattice and macroparticles in another.
 \subsection{tao\_hook\_merit\_data}
 \index{Customizing!tao_hook_merit_data}
 
-A custom data merit type can be defined here. Table~\ref{t:con_type}
+A custom data merit type can be defined here. Table~\ref{t:con-type}
 lists the standard merit types. If a custom merit type is used then
 \vn{load_it} in \vn{tao_hook_load_data_array} may also need to be
 modified to handle this merit type, additionally, all standard data
@@ -287,7 +287,7 @@ module, it is not placed in the standard hook directory but in the
 
 %-----------------------------------------------------------------
 %\chapter{Plotting}
-%\label{s:prog_plotting} 
+%\label{s:prog-plotting} 
 
 %\fbox{this chapter is yet to be completed!} 
 

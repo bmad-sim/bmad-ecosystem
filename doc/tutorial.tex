@@ -26,10 +26,10 @@ the \tao executable is in.  The root initialization file
 \vn{<tao_input_file>} is the file that \tao reads to start \tao's
 initialization process. If not present, \vn{<tao_input_file>} defaults
 to \vn{tao.init}. The \vn{-beam_all} switch is for reading in data
-generated from beam tracking (\sref{s:command_line}). The \vn{-beam0}
+generated from beam tracking (\sref{s:command-line}). The \vn{-beam0}
 switch is for specifying the initial beam distribution.  The
 \vn{<lattice_file>} is used to override the lattice file specified in
-the root initialization file. See section~\sref{s:command_line} for
+the root initialization file. See section~\sref{s:command-line} for
 more details. Example:
 \begin{example}
   \$CESR_EXE/tao -init my.init -lat xsif::slac.xsif
@@ -55,7 +55,7 @@ the appropriate files.
 
 Initialization occurs when \tao is started. The initialization
 information can reside in one file or it can be split into a number of
-files as discussed in Section~\sref{s:init_global}.
+files as discussed in Section~\sref{s:init-global}.
 
 Using the example files provided with \tao (\sref{s:obtaining}), \tao
 is started with the command:
@@ -73,7 +73,7 @@ is the following:
 \end{example}
 \tao will setup a single universe and the plotting information will
 come from the file \vn{tao_plot.init}. Since no other initialization
-files are specified (\sref{s:init_global}), \tao will look for the
+files are specified (\sref{s:init-global}), \tao will look for the
 non-plotting information (except for the lattice file) in \vn{tao.init}.
 
 The lattice file is specified in the \vn{tao_design_lattice} namelist
@@ -89,7 +89,7 @@ files it needs to read to initialize itself.
 
 %----------------------------------------------------------------
 \section{Getting information from Tao}
-\label{s:get_info}
+\label{s:get-info}
 
 %----------------------------------------------------------------
 \subsection{The Plotting Window}\index{Plotting}
@@ -114,7 +114,7 @@ first section shows information on font sizes:
   plot_page%axis_label_text_scale  = 1.000
   plot_page%key_table_text_scale   = 0.900
 \end{example}
-See section~\sref{s:init_plot} for more details. The second section
+See section~\sref{s:init-plot} for more details. The second section
 lists the plot \vn{tamplates} (\sref{s:plotting} and
 \sref{s:template}) that \tao knows about:
 \begin{example}
@@ -153,7 +153,7 @@ This shows that two plot regions have been defined called \vn{top} and
 \vn{bottom}. Each region contains a visible plot and the plot template
 associated with the \vn{top} region is the \vn{orbit} template, etc.
 
-Figure~\ref{f:plot_begin} shows what you will see in the plot
+Figure~\ref{f:plot-begin} shows what you will see in the plot
 window. In the top two plots you see the \vn{x} and \vn{y} model
 lattice orbit data. The horizontal axis is the \cesr BPM index. The
 horizontal pretzel and L03 vertical bump in CESR can be clearly
@@ -206,7 +206,7 @@ typing
   place top eta
   scale top
 \end{example}
-The plot window should now look like Figure~\ref{f:plot_eta_beta}.
+The plot window should now look like Figure~\ref{f:plot-eta-beta}.
 
 Now let's look at the coupling (C-matrix) by typing
 \begin{example}
@@ -223,7 +223,7 @@ The \vn{**Limited**} displayed in red on the bottom plots tells us
 that there are data points outside the plotted region.  We now see
 that there is a small amount of coupling at the L03 region (BPM
 indexes 45-55) and a few other places along the ring. Your plot window
-should now look like Figure~\ref{f:plot_coupling_no_IR}.
+should now look like Figure~\ref{f:plot-coupling-no-IR}.
 
 The x-axis is currently the BPM index number. It is sometimes
 convenient to plot the data versus longitudinal position. This is done
@@ -239,7 +239,7 @@ have been replaced with \cmd{all}.
 
 Variables can also be plotted provided the proper plot template has
 been set up in the plot initialization file (See
-Section~\sref{s:init_plot} for details on initializing plotting). Type
+Section~\sref{s:init-plot} for details on initializing plotting). Type
 the following to view the quadrupole k1 values:
 \begin{example}
   place bottom quad_k1
@@ -249,23 +249,23 @@ the following to view the quadrupole k1 values:
 
 \begin{figure}
   \centering
-  \includegraphics[width=5in]{plot_page1.eps}
+  \includegraphics[width=5in]{plot-page1.eps}
   \caption{The plot window at startup}
-  \label{f:plot_begin}
+  \label{f:plot-begin}
 \end{figure}
 
 \begin{figure}
   \centering
-  \includegraphics[width=5in]{plot_eta_beta.eps}
+  \includegraphics[width=5in]{plot-eta-beta.eps}
   \caption{Plotting dispersion and beta function}
-  \label{f:plot_eta_beta}
+  \label{f:plot-eta-beta}
 \end{figure}
 
 \begin{figure}
   \centering
-  \includegraphics[width=5in]{plot_coupling_no_IR.eps}
+  \includegraphics[width=5in]{plot-coupling-no-IR.eps}
   \caption{Zooming in on the residual coupling outside the IR.}
-  \label{f:plot_coupling_no_IR}
+  \label{f:plot-coupling-no-IR}
 \end{figure}
 
 %----------------------------------------------------------------
@@ -400,7 +400,7 @@ where \vn{<command_name>} is the command you want help with.
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \section{Modifying the Lattice}
-\label{s:modify_lattice}
+\label{s:modify-lattice}
 
 %----------------------------------------------------------------
 \subsection{Changing a Variable}
@@ -617,9 +617,9 @@ design lattice.
 \subsection{Lattice Design}
 \label{ss:lattice_design}
 
-In \vn{lattice design} (\sref{s:lattice_design}) it is generally
+In \vn{lattice design} (\sref{s:lattice-design}) it is generally
 easiest to specify constraint data using the ``\vn{single line}''
-input format (\sref{s:init_data}. For example:
+input format (\sref{s:init-data}. For example:
 \begin{example}
 &tao_d2_data
   d2_data%name = 'c1' 
@@ -647,7 +647,7 @@ input format (\sref{s:init_data}. For example:
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \section{Single Mode}\index{Single Mode}
-\label{s:single_mode}
+\label{s:single-mode}
 
 \tao has a \vn{single mode} in which single keystrokes are interpreted
 as commands. \tao can be set up so that in \vn{single mode} the
@@ -659,7 +659,7 @@ Chapter~\sref{c:single} for more details.
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \section{Where to go from here}
-\label{s:where_to_go}
+\label{s:where-to-go}
 
 You now have an understanding of the basic abilities of \tao. After
 this tutorial, Part II of the \tao Manual should be legible and
