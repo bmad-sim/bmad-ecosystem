@@ -254,7 +254,9 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
       if (.not. bmad_status%ok) return
 
       if (xsif_called) then
-        call xsif_parser (call_file, lat, make_mats6, digested_read_ok, use_line) 
+        call warning ('XSIF_PARSER TEMPORARILY DISABLED. PLEASE SEE DCS.')
+        call err_exit
+        ! call xsif_parser (call_file, lat, make_mats6, digested_read_ok, use_line) 
         detected_expand_lattice_cmd = .true.
         goto 8000  ! Skip the lattice expansion since xsif_parser does this
       endif
