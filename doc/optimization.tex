@@ -10,16 +10,16 @@ desireable properties. For example, requireing that the beta fuction
 in a certain region never exceeds a given value.
 Section~\sref{s:optimizer} gives a tutorial on how to setup the merit
 function and run the \vn{optimizer} in \tao.  In this chapter
-Section~\sref{s:lattice-correction} presents the merit function in the
-context of lattice corrections while Section~\sref{s:lattice-design}
+Section~\sref{s:lattice.correction} presents the merit function in the
+context of lattice corrections while Section~\sref{s:lattice.design}
 discuses the merit function in the context of lattice design. Since
 the concepts used in \vn{lattice corrections} and \vn{lattice design} are
 similar, \tao combines the two into one generalized merit function as 
-discussed in Section~\sref{s:generalized-design}.
+discussed in Section~\sref{s:generalized.design}.
 
 %------------------------------------------------------------------------
 \section{Lattice Corrections}
-\label{s:lattice-correction}
+\label{s:lattice.correction}
 \index{Modeling Data}
 \index{Lattice Corrections}
 
@@ -31,7 +31,7 @@ corrections to the steering elements are calculated and finally the
 corrections are applied to the machine. Since these are necessarily
 machine specific, \tao has no specific routines to measure orbits or
 to load steering corrections but they could be implemented as
-discussed in Chapter~\sref{c:prog-customizing}. \tao does, however,
+discussed in Chapter~\sref{c:prog.customizing}. \tao does, however,
 implement a generalized algorithim procedure for minimizing a
 \vn{merit function} which can be used to calculate the corrections.
 The idea is to vary a set of variables (steerings in the case of an
@@ -137,7 +137,7 @@ process is controlled by the \vn{use}, \vn{veto}, \vn{restore}, and
 
 %------------------------------------------------------------------------
 \section{Lattice Design}
-\label{s:lattice-design}
+\label{s:lattice.design}
 \index{Optimization!Lattice Design}
 \index{Optimization!Constraints}
 
@@ -170,7 +170,7 @@ optimization process is in deciding what the values should be for any
 
 %------------------------------------------------------------------------
 \section{Generalized Design}
-\label{s:generalized-design}
+\label{s:generalized.design}
 \index{Optimization!Generalized Merit function}
 
 Since lattice correction and design are similar, \tao
@@ -189,7 +189,7 @@ The general form of the data merit terms $D_i$ is
 \Endeq
 The \vn{Non-zero Condition} needed for a non--zero $C_i$ is dependent
 upon the \vn{merit_type} of the datum. There are five \vn{merit_type} constraint
-types as given in Table~\ref{t:con-type}.  The default \vn{merit_type} for
+types as given in Table~\ref{t:con.type}.  The default \vn{merit_type} for
 data is \vn{target}.
 \begin{table}[ht]
 \centering
@@ -202,13 +202,13 @@ data is \vn{target}.
 \end{tabular}
 }
 \caption{Constraint Type List.}
-\label{t:con-type}
+\label{t:con.type}
 \end{table}
 
 \index{Optimization! Optimize with Reference}
 The form of \vn{delta} is determined by two global logicals called
 \vn{opt_with_ref} and \vn{opt_with_base} as shown in
-Table~\ref{t:d-i}. 
+Table~\ref{t:d.i}. 
 \begin{table}[ht] 
 \centering 
 {\tt
@@ -221,11 +221,11 @@ Table~\ref{t:d-i}.
 \end{tabular}
 } 
 \caption{$D_i$ Form}  
-\label{t:d-i}
+\label{t:d.i}
 \end{table}
 What kind of data is associated with \vn{model}, \vn{design} and
 \vn{base} is determined by a datum's \vn{data_type}. Valid data types are given
-in table~\ref{t:data-types}.
+in table~\ref{t:data.types}.
 
 The form of the variable terms $V_i$ is determined by its \vn{merit_type}.
 For variables the merit types are:

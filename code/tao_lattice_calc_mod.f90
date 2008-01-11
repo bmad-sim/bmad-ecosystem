@@ -278,7 +278,7 @@ type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 
 integer uni, what_lat
-integer j, i_uni, ip, ig, ic
+integer j, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to
 integer extract_at_ix_ele, n_lost
 integer, allocatable, save :: ix_ele(:)
@@ -360,9 +360,15 @@ if (.not. u%connect%connected) then
   endif
 endif
 
-! track through every element
+! track through the lattice elements
 
-do j = 0, lat%n_ele_track
+ie1 = 0
+if (u%ix_track_start > -1) ie1 = u%ix_track_start
+
+ie2 = lat%n_ele_track
+if (u%ix_track_end > -1) ie2 = u%ix_track_end
+
+do j = ie1, ie2
 
   ! track to the element and save for phase space plot
 
@@ -372,7 +378,7 @@ do j = 0, lat%n_ele_track
       beam = u%ele(j)%beam
 
     else
-      if (j /= 0) then 
+      if (j /= ie1) then 
         ! if doing linear tracking, first compute transfer matrix
         if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
                call make_mat6 (lat%ele(j), lat%param) 

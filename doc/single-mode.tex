@@ -18,20 +18,20 @@ to get into \vn{single mode}. To go back to \vn{line mode} type
 
 %% key_table ------------------------------------------------------------------------
 \section{Key Bindings}\index{Key Bindings}
-\label{s:key-bind}
+\label{s:key.bind}
 
 The main purpose of Single Mode is to associate certain keys with
 certain variables so that the pressing of these keys will change their
 associated variable. This is called a \vn{key binding}.  Key bindings
 are established via the \vn{key_bindings} initialization namelist (See
-Section~\sref{s:init-key-bind}). The variables are divided into banks of
+Section~\sref{s:init.key.bind}). The variables are divided into banks of
 10. The 0\Th bank uses variables \vn{key(1)} through \vn{key(10)} from
 the \vn{key_bindings} namelist, the 1\St bank uses variables
 \vn{key(11)} through \vn{key(20)}, etc.  
 
 At any one time, only one bank is active. To see the status of this
 bank, a \vn{key table} plot can be setup as shown in
-Figure~\ref{f:key-table}. The relationship between the keys and a
+Figure~\ref{f:key.table}. The relationship between the keys and a
 change in a variable is:
 \begin{example}
                  Change by factor of:          
@@ -57,7 +57,7 @@ used to decrease or increase the bank number.  Additionally the
 "\vn{<}" and "$>$" keys can be used to change the deltas for the
 variables.
 
-For example, looking at Figure~\ref{f:key-table}, the \vn{"1:"} in
+For example, looking at Figure~\ref{f:key.table}, the \vn{"1:"} in
 the upper left corner of the \vn{Key Table} shows that the 1\St bank
 is active which corresponds to keys \vn{key(11)} through \vn{key(20)}
 from the \vn{key_bindings} namelist.  Since, in this case, keys
@@ -93,7 +93,7 @@ curves in the data plot mark the edges of the elements displayed in
 the lattice layout. Elements that have attributes that are varied as
 shown in the key table have the corresponding key table number printed
 above the element's glyph in the lattice layout.}
-  \label{f:key-table}
+  \label{f:key.table}
 \end{figure}
 
 %% keys ------------------------------------------------------------------------
@@ -204,11 +204,6 @@ index.
 \item[/l]
 Print a list of the lattice elements with Twiss parameters.
 
-\item[/s $<$min$>$ $<$max$>$]
-Set the scale min and max values for all the plots. This is the same
-as setting p%y%min and p%y%max in the \tao input file. If \vn{min} and
-\vn{max} are not given then an autoscale will be done.
-
 \item[/u $<$Universe Index$>$]
 Switch the viewed universe.
 
@@ -222,6 +217,11 @@ Set the horizontal scale (longitudinal position) min and max values
 for all the plots. This is the same as setting p%x%min and p%x%max in
 the \tao input file. If \vn{min} and \vn{max} are not given then the scale
 will be choisen to include the entire lattice. 
+
+\item[/y $<$min$>$ $<$max$>$]
+Set the y-axis min and max values for all the plots. This is the same
+as setting p%y%min and p%y%max in the \tao input file. If \vn{min} and
+\vn{max} are not given then an autoscale will be done.
 
 \item[=v $<$digit$>$ $<$value$>$]
 Set variable value. \vn{<digit>} is between 0 and 9 corresponding to a

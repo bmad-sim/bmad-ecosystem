@@ -588,6 +588,8 @@ type tao_universe_struct
   integer n_d2_data_used
   integer n_data_used
   integer ix_rad_int_cache
+  integer ix_track_start                           ! Element start index of tracking
+  integer ix_track_end                             ! Element end index of tracking
   integer ixx                                      ! scratch variable
   logical do_synch_rad_int_calc
   logical do_chrom_calc

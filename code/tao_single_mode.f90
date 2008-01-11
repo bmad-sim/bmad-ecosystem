@@ -519,23 +519,6 @@ case ('/')
   case ('P')
     call tao_output_cmd ('hard')
 
-  ! '/s' Scale
-
-  case ('s')
-    write (*, '(a, $)') ' Input scale min, max: '
-    read '(a)', line
-    call string_trim (line, line, ix)
-    if (ix == 0) then
-      call tao_scale_cmd ('all', '', 0.0_rp, 0.0_rp)
-    else
-      read (line, *, iostat = ios) m1, m2
-      if (ios /= 0) then
-        write (*, *) 'ERROR READING MIN/MAX.'
-        return
-      endif
-      call tao_scale_cmd ('all', '', m1, m2)
-    endif
-
   ! '/u' View universe 
 
   case ('u')
@@ -575,6 +558,23 @@ case ('/')
         return
       endif
       call tao_x_scale_cmd ('all', m1, m2, err)
+    endif
+
+  ! '/y' Scale y-axis
+
+  case ('y')
+    write (*, '(a, $)') ' Input scale min, max: '
+    read '(a)', line
+    call string_trim (line, line, ix)
+    if (ix == 0) then
+      call tao_scale_cmd ('all', '', 0.0_rp, 0.0_rp)
+    else
+      read (line, *, iostat = ios) m1, m2
+      if (ios /= 0) then
+        write (*, *) 'ERROR READING MIN/MAX.'
+        return
+      endif
+      call tao_scale_cmd ('all', '', m1, m2)
     endif
 
   ! '/' Error:

@@ -224,8 +224,10 @@ case ('beam')
     nl=nl+1; write(lines(nl), rmt) 'model%lat%b%emit               = ', lat%b%emit
     nl=nl+1; write(lines(nl), rmt) '          b%emit (normalized)  = ', lat%b%emit * gam
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', s%global%track_type
-    nl=nl+1; write(lines(nl), amt) 'u%save_beam_at:'
+    nl=nl+1; write(lines(nl), amt)  'global%track_type           = ', s%global%track_type
+    nl=nl+1; write (lines(nl), imt) 'u%ix_track_start           = ', u%ix_track_start 
+    nl=nl+1; write (lines(nl), imt) 'u%ix_track_end             = ', u%ix_track_end
+    nl=nl+1; write(lines(nl), amt)  'u%save_beam_at:'
     do i = lbound(u%save_beam_at, 1), ubound(u%save_beam_at, 1)
       nl=nl+1; write (lines(nl), '(a, i0, 2a)') '           (', i, ') = ', u%save_beam_at(i)
     enddo
@@ -504,7 +506,7 @@ case ('element', 'taylor', 'e2')
   call str_upcase (ele_name, word(1))
 
   if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0 .or. &
-                                                     index(ele_name, ':') /= 0) then
+                    (ele_name(1:2) /= 'S:' .and. index(ele_name, ':') /= 0)) then
     call tao_ele_locations_given_name (lat, ele_name, picked_ele, err, .true.)
     if (err) return
     if (count(picked_ele) == 0) then

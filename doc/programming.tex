@@ -1,6 +1,6 @@
 \chapter{Creating a Custom Version of Tao}
 \index{customizing}
-\label{c:prog-customizing} 
+\label{c:prog.customizing} 
 
 \tao has been designed to be readily extensible with a minimum of
 effort. The tutorial provides a simple example of a custom data type. Here each
@@ -59,8 +59,8 @@ you need so that you can then do your customization.
 
 Before one can begin writing code one must understand the structures
 that \tao uses. The structures are defined in a file
-\vn{tao/code/tao_struct.f90}. It is a good idea to have a copy of
-\vn{tao/code/tao_struct.f90} easily accessible. In particular, examine
+\vn{tao_struct.f90}. It is a good idea to have a copy of
+\vn{tao_struct.f90} easily accessible. In particular, examine
 the \vn{tao_super_universe_struct} and \vn{tao_universe_struct}
 structures. They reference all other structures, either directly or
 indirectly, in \vn{tao_struct}.  \tao is based upon the \bmad software
@@ -71,7 +71,7 @@ hook structures can be defined in the file \vn{tao_hook_mod.f90} but
 see the entry below on this file before adding any structures.
 
 Also, to get a good idea of how \tao works it is recommended to spend a
-little bit of time going through the \cmd{tao/code/*.f90} files. This may also
+little bit of time going through the source files. This may also
 provide pointers on how to make customizations in the hook routines. Of
 particular interest is the module \vn{tao_lattice_calc_mod.f90} where tracking
 and lattice parameters are computed. The routines to calculate the data structures
@@ -104,7 +104,7 @@ implemented.
 
 The only thing needed to be called at the end of a custom command is
 \vn{tao_cmd_end_calc} (as is done in the dumyt subroutine). This will
-perform all of the steps listed in Section~\sref{s:lat-calc}. If this
+perform all of the steps listed in Section~\sref{s:lat.calc}. If this
 isn't called than whatever is performed in the custom command will not
 show up until a standard command is performed.
 
@@ -214,13 +214,13 @@ lattice and macroparticles in another.
 \subsection{tao\_hook\_merit\_data}
 \index{Customizing!tao_hook_merit_data}
 
-A custom data merit type can be defined here. Table~\ref{t:con-type}
+A custom data merit type can be defined here. Table~\ref{t:con.type}
 lists the standard merit types. If a custom merit type is used then
 \vn{load_it} in \vn{tao_hook_load_data_array} may also need to be
 modified to handle this merit type, additionally, all standard data
 types may need to be overridden in \vn{tao_hook_load_data_array} in
 order for the custom \vn{load_it} to be used.  See
-\vn{tao/code/tao_merit.f90} for how the standard merit types are
+\vn{tao_merit.f90} for how the standard merit types are
 calculated.
 
 %-----------------------------------------------------------------
@@ -229,15 +229,15 @@ calculated.
 
 This hook will allow for a custom variable merit type. However, since
 there is no corresponding data transfer, no \vn{load_it} routine needs
-to be modified.  See \vn{tao/code/tao_merit.f90} for how the standard
+to be modified.  See \vn{tao_merit.f90} for how the standard
 merit types are calculated.
 
 %-----------------------------------------------------------------
 \subsection{tao\_hook\_optimizer}
 \index{Customizing!tao_hook_optimizer}
 
-If a non standard optimizer is needed then it can be implemented
-here. See the \vn{tao/code/tao_*_optimizer.f90} files for how the
+If a non standard optimizer is needed, then it can be implemented
+here. See the \vn{tao_*_optimizer.f90} files for how the
 standard optimizers are implemented.
 
 %-----------------------------------------------------------------
@@ -245,8 +245,8 @@ standard optimizers are implemented.
 \index{Customizing!tao_hook_plot_graph}
 
 This will customize the plotting of a graph. See the \tao module
-\vn{tao_plot_mod} for details on what it normally done. You will also need to know how
-DCSLIB's \vn{quick_plot} works.
+\vn{tao_plot_mod} for details on what it normally done. You will also
+need to know how DCSLIB's \vn{quick_plot} works.
 
 %-----------------------------------------------------------------
 \subsection{tao\_hook\_plot\_data\_setup}
@@ -272,7 +272,7 @@ final modifications to the lattice or data can be performed here.
 
 Here any custom structures are defined. In the dummy hook routine
 there are already a number of structures defined. These are used in
-\vn{tao/code/tao_struct.f90} so that even if they are not used there
+\vn{tao_struct.f90} so that even if they are not used there
 is a dummy structure defined so that the compiler doesn't complain.
 
 \textbf{This module is different from all the other hook routines in
@@ -287,7 +287,7 @@ module, it is not placed in the standard hook directory but in the
 
 %-----------------------------------------------------------------
 %\chapter{Plotting}
-%\label{s:prog-plotting} 
+%\label{s:prog.plotting} 
 
 %\fbox{this chapter is yet to be completed!} 
 

@@ -25,16 +25,16 @@ may be entered on one line using the ``;'' character as a separator.
   change     & \sref{s:change}   & reinitialize & \sref{s:reinit}   \\ \hline 
   clip       & \sref{s:clip}     & run          & \sref{s:run}      \\ \hline 
   derivative & \sref{s:deriv}    & scale        & \sref{s:scale}    \\ \hline 
-  end-file   & \sref{s:end-file} & set          & \sref{s:set}      \\ \hline  
+  end-file   & \sref{s:end.file} & set          & \sref{s:set}      \\ \hline  
   exit       & \sref{s:exit}     & show         & \sref{s:show}     \\ \hline 
   flatten    & \sref{s:flatten}  & single-mode  & \sref{s:sing}     \\ \hline 
   help       & \sref{s:help}     & spawn        & \sref{s:spawn}    \\ \hline 
   history    & \sref{s:history}  & use          & \sref{s:use}      \\ \hline 
   misalign   & \sref{s:misalign} & veto         & \sref{s:veto}     \\ \hline 
   output     & \sref{s:output}   & view         & \sref{s:view}     \\ \hline 
-  place      & \sref{s:place}    & x-axis       & \sref{s:x-axis}   \\ \hline 
-  plot       & \sref{s:plot}     & x-scale      & \sref{s:x-scale}  \\ \hline 
-  quit       & \sref{s:quit}     & xy-scale     & \sref{s:xy-scale} \\ \hline
+  place      & \sref{s:place}    & x-axis       & \sref{s:x.axis}   \\ \hline 
+  plot       & \sref{s:plot}     & x-scale      & \sref{s:x.scale}  \\ \hline 
+  quit       & \sref{s:quit}     & xy-scale     & \sref{s:xy.scale} \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -246,7 +246,7 @@ Examples
 
 %% end-file --------------------------------------------------------------
 \section{end-file}
-\label{s:end-file}
+\label{s:end.file}
 \index{Commands!end-file}
 
 The \vn{end-file} is used in command files (\sref{s:call}) to signal
@@ -436,7 +436,7 @@ only the particle positions at the given element are written.
 Otherwise the positions at all elements will be written. The
 \vn{-ascii} switch is for writing text files. The default is to write
 with a compressed binary format.  Note: Beam files can be used to
-initialize \tao (\sref{s:command-line}). 
+initialize \tao (\sref{s:command.line}). 
 
 Note: PGPLOT does a poor job producing gif files so consider
 making a postscript file instead and using a ps to gif converter.
@@ -558,7 +558,7 @@ debugging purposes.
 
 \vn{reinitializes tao} reinitializes \tao. This can be useful to reset
 everything to initial conditions or to perform analysis with more than
-one initialization file.  See section \sref{s:command-line} for
+one initialization file.  See section \sref{s:command.line} for
 details on the arguments.  If there are no arguments, the
 \vn{reinitialize} command uses the same arguments that were used in
 the last \vn{reinitialize} command, or, if this is the first
@@ -1149,7 +1149,7 @@ Examples:
 
 %% x-axis --------------------------------------------------------------
 \section{x-Axis}\index{Commands!x-axis}
-\label{s:x-axis}
+\label{s:x.axis}
 
 Format:
 \begin{example}
@@ -1178,7 +1178,7 @@ Examples:
 
 %% x-scale --------------------------------------------------------------
 \section{x-Scale}\index{Commands!x-scale}
-\label{s:x-scale}
+\label{s:x.scale}
 
 Format:
 \begin{example}
@@ -1203,7 +1203,7 @@ Example:
 
 %% xy-scale --------------------------------------------------------------
 \section{xy-Scale}\index{Commands!xy-scale}
-\label{s:xy-scale}
+\label{s:xy.scale}
 
 Format:
 \begin{example}

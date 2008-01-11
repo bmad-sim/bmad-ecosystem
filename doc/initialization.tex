@@ -84,7 +84,7 @@ to using \vn{'*'} as the class.  Thus \vn{'*'} is equivalent to
 %-----------------------------------------------------------------
 \section{Initialization from the Command Line}
 \index{Command line}
-\label{s:command-line} 
+\label{s:command.line} 
 
 The syntax of the command line is:
 \begin{example}
@@ -101,11 +101,11 @@ entire lattice.  This overrides the \vn{global%beam_file} variable
 
 The \vn{-beam0} optional argument reads in a beam data file which is
 use to initialize the beam at the beginning of the lattice. This
-overrides the \vn{global%beam0_file} variable (\sref{s:beam-init}.
+overrides the \vn{global%beam0_file} variable (\sref{s:beam.init}.
 
 The \vn{<lattice_file>} is used to override the \vn{design_lattice}
 lattice file specified in the initialization file
-(\sref{s:init-lat}). Example:
+(\sref{s:init.lat}). Example:
 \begin{example}
   \$CESR_EXE/tao -init my.init -lat xsif::slac.xsif
 \end{example}
@@ -114,7 +114,7 @@ If there is more than one universe, multiple \vn{-lat} arguments can be used.
 %-----------------------------------------------------------------
 \section{Beginning Initialization}
 \index{Initialization!beginning}
-\label{s:init-global} 
+\label{s:init.global} 
 
 \index{tao_start}
 \index{tao.init}
@@ -127,7 +127,7 @@ If there is more than one universe, multiple \vn{-lat} arguments can be used.
 \index{n_universes}
 \index{startup_single_mode}
 The initialization starts with an initialization file. The default name for
-this file is \vn{tao.init} (See \sref{s:command-line}).
+this file is \vn{tao.init} (See \sref{s:command.line}).
 The initialization file needs to have a \vn{tao_start} namelist
 block with the following syntax:
 \begin{example}
@@ -148,7 +148,7 @@ distinguish between multiple initialization files with custom versions
 of \tao. The other parameters specify which files to find the other
 initialization namelists. The following sections describe each of
 these initialization namelists and their locations are listed in table
-\ref{t:init-files}.
+\ref{t:init.files}.
 
 \index{tao_design_lattice}
 \index{tao_params}
@@ -168,30 +168,30 @@ these initialization namelists and their locations are listed in table
 \centering {\tt
 \begin{tabular}{|l|l|l|l|} \hline
   {\it Namelist} & {\it File Name} & {\it Initialized here}  & {\it Section} \\ \hline
-  \vn{tao_design_lattice}     & \vn{lattice_file} & lattice files    & \sref{s:init-lat}      \\ \hline
+  \vn{tao_design_lattice}     & \vn{lattice_file} & lattice files    & \sref{s:init.lat}      \\ \hline
   \vn{tao_params}             & 'tao.init' & Global Variables        & \sref{s:globals}       \\ \hline
-  \vn{tao_connected_uni_init} & 'tao.init' & Connected Universes     & \sref{s:connected-uni} \\ \hline
-  \vn{tao_beam_init}          & 'tao.init' & Particle beam           & \sref{s:beam-init}     \\ \hline
-  \vn{tao_macro_init}         & 'tao.init' & Macroparticle beam      & \sref{s:macro-init}    \\ \hline
-  \vn{tao_var}                & \vn{var_file}     & Variables        & \sref{s:init-var}      \\ \hline
-  \vn{tao_d2_data}            & \vn{data_file}    & Data             & \sref{s:init-data}     \\ \hline
-  \vn{tao_d1_data}            & \vn{data_file}    & Data             & \sref{s:init-data}     \\ \hline
-  \vn{tao_plot_page}          & \vn{plot_file}    & Plotting         & \sref{s:init-plot}     \\ \hline
-  \vn{tao_template_plot}      & \vn{plot_file}    & Plotting         & \sref{s:init-plot}     \\ \hline
-  \vn{tao_template_graph}     & \vn{plot_file}    & Plotting         & \sref{s:init-plot}     \\ \hline
+  \vn{tao_connected_uni_init} & 'tao.init' & Connected Universes     & \sref{s:connected.uni} \\ \hline
+  \vn{tao_beam_init}          & 'tao.init' & Particle beam           & \sref{s:beam.init}     \\ \hline
+  \vn{tao_macro_init}         & 'tao.init' & Macroparticle beam      & \sref{s:macro.init}    \\ \hline
+  \vn{tao_var}                & \vn{var_file}     & Variables        & \sref{s:init.var}      \\ \hline
+  \vn{tao_d2_data}            & \vn{data_file}    & Data             & \sref{s:init.data}     \\ \hline
+  \vn{tao_d1_data}            & \vn{data_file}    & Data             & \sref{s:init.data}     \\ \hline
+  \vn{tao_plot_page}          & \vn{plot_file}    & Plotting         & \sref{s:init.plot}     \\ \hline
+  \vn{tao_template_plot}      & \vn{plot_file}    & Plotting         & \sref{s:init.plot}     \\ \hline
+  \vn{tao_template_graph}     & \vn{plot_file}    & Plotting         & \sref{s:init.plot}     \\ \hline
   \vn{element_shapes_lat_layout}         
-                              & \vn{plot_file}    & Plotting         & \sref{s:ele-shape}     \\ \hline
+                              & \vn{plot_file}    & Plotting         & \sref{s:ele.shape}     \\ \hline
   \vn{element_shapes_floor_plan}         
-                              & \vn{plot_file}    & Plotting         & \sref{s:ele-shape}     \\ \hline
-  \vn{key_bindings}           & \vn{single_mode_file} & Single Mode  & \sref{s:init-key-bind} \\ \hline
+                              & \vn{plot_file}    & Plotting         & \sref{s:ele.shape}     \\ \hline
+  \vn{key_bindings}           & \vn{single_mode_file} & Single Mode  & \sref{s:init.key.bind} \\ \hline
 \end{tabular}}
 \caption{Table of \vn{tao} Initialization Namelists}
-\label{t:init-files}
+\label{t:init.files}
 \end{table}
 
 %-----------------------------------------------------------------
 \section{Lattice Initialization}\index{Initialization!Lattice}
-\label{s:init-lat} 
+\label{s:init.lat} 
 
 In the \vn{tao_start} namelist, the \vn{lattice_file} variable gives
 the name of the file that contains the \vn{tao_design_lattice}
@@ -207,7 +207,7 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
     combine_consecutive_elements_of_like_name = <logical>
     aperture_limit_on  = <logical>
     unique_name_suffix = <string>
-    design_lattice(i)%file = "<parser>::<lattice_file>"
+    design_lattice(i)%file = "<parser>::<lattice_file>", \{"<lattice2_file>"\}
   /
 \end{example}
 \vn{taylor_order} is the order of the Taylor maps. This will override
@@ -254,12 +254,17 @@ choices for \vn{<parser>} are:
   xsif      ! For an xsif lattice file.
   digested  ! For a digested BMAD file.
 \end{example}
-
-Example:
+\vn{<lattice2_file>} is the name of a secondary lattice file and can 
+be used to modify the lattice given by \vn{lattice_file}. This file
+must be in Bmad standard format. This can be
+especially useful if \vn{lattice_file} is not a bmad file. For example,
+a \vn{lattice2_file} can be used to set non-zero floor coordinates to 
+an XSIF lattice file as shown in the following example:
 \begin{example}
   &tao_design_lattice
-    design_lattice(1) = "this.lat"          ! Default: Bmad format lattice file.
-    design_lattice(2) = "xsif::that.lat"    ! XSIF file. For universe \#2
+    design_lattice(1) = "this.lat"      ! Default: Bmad format lattice file.
+    design_lattice(2) = "xsif::that.lat", "floor_coords.bmad"
+                                        ! XSIF file. For universe \#2 
   /
 \end{example}
 
@@ -411,7 +416,7 @@ See the Bmad manual for more details.
 
 %------------------------------------------------------------------------
 \section{Optimization Parameters}
-\label{s:opt-params}
+\label{s:opt.params}
 \index{Optimization!Parameters}
 
 When the optimizer is run in \tao (using the \vn{run} command), The
@@ -429,7 +434,7 @@ To immediately stop the optimizer the period key
 %-----------------------------------------------------------------
 \section{Initializing Connected Universes}
 \index{Initialization!Connected Universes}
-\label{s:connected-uni}
+\label{s:connected.uni}
 
 Universes can be connected together. This can be useful, for example, to attach a
 damping ring a pre-accelerator to a linac. The syntax is as follows:
@@ -505,7 +510,7 @@ Example:
 
 %-----------------------------------------------------------------
 \section{Initializing Particle Beams}\index{Initialization!Beams}
-\label{s:beam-init}
+\label{s:beam.init}
 
 A particle beam is initialized in the \vn{tao_beam_init} namelist block.
 The syntax is as follows:
@@ -535,6 +540,8 @@ The syntax is as follows:
     beam0_file              = <string>       ! File used in place of beam_init.
     beam_all_file           = <string>       ! Data file used in place of beam tracking.
     save_beam_at(:)         = <element list> ! List of 
+    ix_track_start          = <integer>      ! Lattice element index to start tracking.
+    ix_track_end            = <integer>      ! Lattice element index to end   tracking.
     beam_init%a_norm_emitt  = <number>       ! A-mode emittance
     beam_init%b_norm_emitt  = <number>       ! B-mode emittance
     beam_init%dPz_dZ        = <number>       ! Energy-Z correlation
@@ -573,7 +580,7 @@ in a linear lattice for the emittance calculation using the radiation integrals.
 created with the \vn{output beam -at <ele_name>} command) which contains a beam's
 particle coordinates which are to be used at the start of the lattice. 
 The file name can be overridden by using the \vn{-beam0}
-argument on the command line (\sref{s:command-line}. 
+argument on the command line (\sref{s:command.line}. 
 
 If a \vn{beam0_file} is specified then \vn{beam_init} is ignored and
 the initial particle positions of the beam are read from the file. However,
@@ -597,10 +604,9 @@ coordinates of the tracked beam at every element. This causes \tao to
 use the data from the file in lieu of actual tracking. This can be
 helpful when the time for \tao to track a bunch through the lattice
 becomes long. The file name can be overridden by using the \vn{-beam_all}
-argument on the command line (\sref{s:command-line}. Note: \tao will
+argument on the command line (\sref{s:command.line}. Note: \tao will
 set the variable \vn{use_saved_beam_in_tracking} to \vn{True}
 to prevent actual tracking.
-
 Note: A \vn{beam_all_file} will supersede a \vn{beam0_file}
 
 When there is no \vn{beam0_file} the twiss parameters at the beginning
@@ -608,6 +614,17 @@ of the lattice are used in initializing the beam distribution.  For
 circular lattices the twiss parameters will be found from the closed
 orbit, and the emittance will be calculated using the \bmad routine
 \vn{radiation_integrals}.
+
+\vn{ix_track_start} and \vn{ix_track_end} are used when it is desired
+to only track the beam through part of the lattice.
+\vn{ix_track_start} gives the starting element index. Tracking will
+start at the exit end of this element so the beam {\em will not} be
+tracked through this element. The tracking will end at the exit end of
+the lattice element with index \vn{ix_track_end}. The default, if
+\vn{ix_track_start} and \vn{ix_track_end} are not present, is to track
+through the entire lattice. In this case, \vn{ix_track_start} and
+\vn{ix_track_end} will be given values of \vn{-1} to indicate that they
+have not been set.
 
 If spin tracking is desired then \vn{beam_init%init_spin} must be set
 to true.  If it is desired to use the exact same distribution of
@@ -649,7 +666,7 @@ list) and the last element are automatically saved.
 %-----------------------------------------------------------------
 \section{Initializing Macroparticle Beams}
 \index{Initialization!Macroparticle Beams}
-\label{s:macro-init}
+\label{s:macro.init}
 
 A macroparticle beam is initialized in the \vn{tao_macro_init} namelist block.
 The syntax is as follows:
@@ -708,7 +725,7 @@ This can be placed in the \vn{tao_params} namelist above, for example,
 
 %-----------------------------------------------------------------
 \section{Initializing Variables}\index{Initialization!Variables}
-\label{s:init-var} 
+\label{s:init.var} 
 
 \vn{Variable}s are initialized using the \vn{tao_var} namelist. The
 format for this is
@@ -796,7 +813,7 @@ where \vn{var(i)%attribute} is not specified in the namelist the
 
 \vn{var(i)%key_bound} and \vn{var(i)%key_delta} are used to bind variables
 to keys on the keyboard. Keys can also be bound using a \vn{key_bindings} namelist.
-See~ \sref{s:init-key-bind} and \sref{s:key-bind} for more details.
+See~ \sref{s:init.key.bind} and \sref{s:key.bind} for more details.
 
 \vn{var(i)%step} establishes what a ``small'' variation of the
 variable is. This is used, for example, by some optimizers when
@@ -898,7 +915,7 @@ together.
 %-----------------------------------------------------------------
 \section{Initializing Data and
 Constraints}\index{Initialization!Data}\index{Initialization!Constants}
-\label{s:init-data} 
+\label{s:init.data} 
 
 A set of data (\sref{c:data}) is initialized using a \vn{tao_d2_data}
 namelist block and one or more \vn{tao_d1_data} namelist blocks. The
@@ -1056,7 +1073,7 @@ relative or absolute as in the above example where the value of
 value of \vn{data(4)} is the \vn{floor.x} position at element \vn{B2}
 relative to element\vn{B1}.
 
-The relative data types are noted in Table~\ref{t:data-types}. With
+The relative data types are noted in Table~\ref{t:data.types}. With
 these relative data types if \vn{ele0_name} is left blank then the
 beginning of the lattice is assumed. For the particular case when a
 \vn{d1_data} structure has a \vn{d2_data.d1_data} name of \vn{phase.a}
@@ -1066,7 +1083,7 @@ which is the name of the first element that is automatically inserted
 in all lattices. With a blank \vn{ele0_name} the average phase or
 phase difference for all the datums within a \vn{d1_data} array are
 set to zero by adding a fixed constant to all the datums. For example,
-in Figure~\ref{f:plot-page1}, the average phase in either of the two
+in Figure~\ref{f:plot.page1}, the average phase in either of the two
 bottom plots is zero. This is done since, without a reference point
 that defines a zero phase, the overall average phase is arbitrary and
 so the overall phase is taken in \tao to be zero. If the
@@ -1133,10 +1150,10 @@ If \vn{data(j)%data_type} is not given, and \vni{default_data_type} is
 not specified, then the \vni{d2_data} name and the \vni{d1_data} name
 are combined for each datum to form the datum's \vn{type}. Certain
 types are recognized by \tao. These are given by
-Table~\ref{t:con-type}. Custom data types not specified in this table
+Table~\ref{t:con.type}. Custom data types not specified in this table
 must have a corresponding definition in
 \vn{tao_hook_load_data_array.f90}. See
-Chapter~\ref{c:prog-customizing} for details.
+Chapter~\ref{c:prog.customizing} for details.
 
 \index{data%weight}
 \vn{data(:)%weight} gives the weight coefficient for a variable in the
@@ -1146,11 +1163,11 @@ this bpm.  If not present then \vn{default_bpm_noise} is used.
 
 %-----------------------------------------------------------------
 \section{Initializing Key Bindings}\index{Key Bindings}
-\label{s:init-key-bind} 
+\label{s:init.key.bind} 
 
 For \vn{Single Mode} (\sref{c:single} the bindings of variables to
 keys is defined in one of two ways.  Keys can be bound directly within
-the \vn{v1_var} namelist used to set up a variable list (\sref{s:init-var})
+the \vn{v1_var} namelist used to set up a variable list (\sref{s:init.var})
 or keys can be bound using a \vn{key_bindings} namelist. The syntax is:
 \begin{example}
   &key_bindings
@@ -1174,7 +1191,7 @@ appropriate key is depressed. \vn{<step>} establishes what the variation
 of the variable is when the associated key is depressed. 
 
 \vn{merit_type} sets how the contribution to the merit function due to
-the variable is calculated. See \sref{s:init-var} for more
+the variable is calculated. See \sref{s:init.var} for more
 details. the \vn{global%default_key_merit_type} sets the default
 \vn{merit_type}.
 
@@ -1190,17 +1207,17 @@ given by
 
 %-----------------------------------------------------------------
 \section{Initializing Plotting}\index{Plotting Initializing}
-\label{s:init-plot} 
+\label{s:init.plot} 
 
 \subsection{Plot Window}
-\label{s:plot-page}
+\label{s:plot.page}
 \index{Initialization!Plotting!Plot Window}
 
 \begin{figure}
   \centering
   \includegraphics{plot-page.eps}
   \caption{Regions define where on the plot page plots are placed.}
-  \label{f:plot-page}
+  \label{f:plot.page}
 \end{figure}
 
 Plotting is defined by an initialization file named
@@ -1264,7 +1281,7 @@ is drawn. Relative to this, various parameters can be used to scale individual t
 The default values for these scales are given above.
 
 \vn{plot_page%border} sets a border around the edges of the
-window. As shown in Figure~\ref{f:plot-page} \vn{b_x1}, \vn{b_x2} are
+window. As shown in Figure~\ref{f:plot.page} \vn{b_x1}, \vn{b_x2} are
 the right and left border widths and \vn{b_y1} and \vn{b_y2} are the
 bottom and top border widths respectively.  The rectangle within this
 border is called the plot area.
@@ -1543,7 +1560,7 @@ from the shape of the beam.
 
 For a curve with the \vn{curve%data_source} set to \vn{"data_array"} the
 possible \vn{curve%data_type} values are the same as the possible
-\vn{d1_data%type} values as given in \sref{s:data-types}. If the
+\vn{d1_data%type} values as given in \sref{s:data.types}. If the
 \vn{curve%data_source} is \vn{"var_array"} then the possible
 \vn{curve%data_type} values are any of the \vn{v1_var} names. This is
 what points the curve to the proper data so there needs to be a
@@ -1586,12 +1603,12 @@ curves in the data plot mark the edges of the elements displayed in
 the lattice layout. Elements that have attributes that are varied as
 shown in the key table have the corresponding key table number printed
 above the element's glyph in the lattice layout.}
-  \label{f:layout-table}
+  \label{f:layout.table}
 \end{figure}
 
 A lattice layout plot draws the lattice
 along a straight line with colored rectangles representing the various elements.
-An example is shown in Figure~\ref{f:layout-table}.
+An example is shown in Figure~\ref{f:layout.table}.
 The \vn{tao_template_plot} needed to define a lattice layout looks like:
 \index{tao_template_plot}\index{plot!name}\index{plot!box_layout}
 \index{plot!x!min}\index{plot!x!max}\index{plot!n_graph}
@@ -1638,7 +1655,7 @@ Example:
 \end{example}
 
 Which elements are drawn is under user control and is defined 
-using an \vn{element_shapes_lat_layout} namelist. See Section~\sref{s:ele-shape}
+using an \vn{element_shapes_lat_layout} namelist. See Section~\sref{s:ele.shape}
 for more details.
 
 %-----------------------------------------------------------------
@@ -1647,8 +1664,8 @@ for more details.
 \label{s:key.table}
 
 The \vn{key table} is explained more fully in
-Section~\sref{s:key-bind}.  An example is shown in
-Figure~\ref{f:layout-table}. A template to create a key table looks like:
+Section~\sref{s:key.bind}.  An example is shown in
+Figure~\ref{f:layout.table}. A template to create a key table looks like:
 \begin{example}
   &tao_template_plot
     plot%name = 'table' 
@@ -1663,7 +1680,7 @@ Figure~\ref{f:layout-table}. A template to create a key table looks like:
 \end{example}
 
 The number in the upper left corner, to the left of the first column, 
-(\vn{1} in Fig.~\ref{f:layout-table})
+(\vn{1} in Fig.~\ref{f:layout.table})
 shows the active \vn{key bank}. The columns in the Key Table are:
 \begin{example}
   Ix         ! Key index.
@@ -1688,15 +1705,15 @@ the key index number will be displayed just above the element's glyph
   \centering
   \includegraphics[width=5in]{floor-plan.eps}
   \caption{Example Floor Plan drawing.}
-  \label{f:floor-plan}
+  \label{f:floor.plan}
 \end{figure}
 
 A \vn{Floor Plan} drawing gives a display of the machine projected
 onto the horizontal plane.  An example is shown in
-Figure~\ref{f:floor-plan}. Like a \vn{Lattice Layout}
+Figure~\ref{f:floor.plan}. Like a \vn{Lattice Layout}
 (\sref{s:lat.layout}), Elements are represented by colored rectangles
 and which elements are drawn is determined by an
-\vn{element_shapes_floor_plan} namelist (see~\sref{s:ele-shape}).
+\vn{element_shapes_floor_plan} namelist (see~\sref{s:ele.shape}).
 
 The placement of an element in the drawing is determined by the
 element's coordinates in \vn{global reference system}.  See the Bmad
@@ -1749,7 +1766,7 @@ to the vertical scale.
 %-----------------------------------------------------------------
 \subsection{Element Shapes}
 \index{Element Shapes}
-\label{s:ele-shape}
+\label{s:ele.shape}
 
 \vn{Floor plan} (\sref{s:floor.plan}) and \vn{lattice layout} drawings
 use various shapes, sizes, and colors to represent lattice
@@ -1814,7 +1831,7 @@ the \vn{K1} focusing strength. Not all elements can be used with a
 \vn{<v_size} is the vertical size of the shape in points (72 points =
 1 inch). Since a \vn{var_box} or \vn{asym_var_box} can get arbitrarily
 large, there is a maximum size which is set by
-\vn{plot_page%shape_height_max} (\sref{s:plot-page}).
+\vn{plot_page%shape_height_max} (\sref{s:plot.page}).
 
 Finally \vn{<print_label>} is a logical indicating whether
 the element name is to be printed underneath the corresponding glyph.
@@ -1830,11 +1847,11 @@ drawings are specified via one \vn{element_shapes} namelist.
   \centering
   \includegraphics[width=5in]{phase-space.eps}
   \caption{Example Phase Space plot.}
-  \label{f:phase-space}
+  \label{f:phase.space}
 \end{figure}
 
 A \vn{Phase Space} plot displays a particle or particles phase space
-coordinates at a given location. An example is show in Figure~\ref{f:phase-space}.
+coordinates at a given location. An example is show in Figure~\ref{f:phase.space}.
 
 Example Phase Space template:
 \begin{example}
@@ -1903,7 +1920,7 @@ structure must be called \vn{multi_turn_orbit} and must have
 example, if the phase space plot is \vn{x} verses \vn{p_x}, then there
 must be \vn{d1_data} arrays named \vn{"x"} and \vn{"p_x"}. The number
 of turns is determined by the setting of \vn{ix_max_data} in the
-\vn{tao_d1_data} namelist (\sref{s:init-data}). Using \vn{"twiss"} as
+\vn{tao_d1_data} namelist (\sref{s:init.data}). Using \vn{"twiss"} as
 the \vn{curve%data_source} indicates that the phase space plot will be
 an ellipse whose shape is based upon the Twiss and coupling
 parameters, and the normal mode emittances. If the normal mode

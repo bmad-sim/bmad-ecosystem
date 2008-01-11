@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 $found = 0;
-open (FC, "cover_page.tex") || die ("Cannot open File: cover_page.tex\n");
+open (FC, "cover-page.tex") || die ("Cannot open File: cover-page.tex\n");
 while (<FC>) {
   if (/Revision: +(\S+) +\\\\/) {
     $rev = $1;

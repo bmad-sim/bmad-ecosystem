@@ -36,7 +36,7 @@ type (tao_connected_uni_input) connect
 type (spin_polar_struct) spin
 
 integer ios, iu, i, j, i2, j2, k, ix, n_uni, num
-integer n_data_max, n_var_max
+integer n_data_max, n_var_max, ix_track_start, ix_track_end
 integer n_d2_data_max, n_v1_var_max ! Deprecated variables
 integer n, n_universes, iostat, ix_universe, n_max
 
@@ -56,7 +56,7 @@ namelist / tao_params / global, bmad_com, csr_param, &
 namelist / tao_connected_uni_init / ix_universe, connect
   
 namelist / tao_beam_init / ix_universe, beam0_file, &
-                          beam_all_file, beam_init, save_beam_at
+  ix_track_start, ix_track_end, beam_all_file, beam_init, save_beam_at
          
 namelist / tao_macro_init / ix_universe, macro_init
 
@@ -223,6 +223,9 @@ if (s%global%track_type /= 'macro') then
     beam0_file = tao_com%beam0_file        ! From the command line
     beam_all_file = tao_com%beam_all_file  ! From the command line
     save_beam_at = ''
+    ix_track_start = -1
+    ix_track_end = -1
+
     read (iu, nml = tao_beam_init, iostat = ios)
 
     if (ios == 0) then
@@ -441,6 +444,11 @@ real(rp) v(6), bunch_charge, gamma
 integer i, ix, iu, n_part, ix_class, n_bunch, n_particle
 character(60) at, class, ele_name, line
 logical, allocatable, save :: picked_ele(:)
+
+! Set tracking start/stop
+
+u%ix_track_start = ix_track_start
+u%ix_track_end   = ix_track_end
 
 ! The emittance set in the tao init file takes priority over the emittance set
 ! in the lattice file.
