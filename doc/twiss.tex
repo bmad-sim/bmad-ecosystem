@@ -8,7 +8,7 @@
 \index{Twiss parameters!calculation}
 
 The Twiss parameters for an element are stored in the
-\vn{ele_struct}. See Chapter~\ref{c:ele-struct} for more details.
+\vn{ele_struct}. See Chapter~\ref{c:ele.struct} for more details.
 
 Before any Twiss parameters can be calculated the transfer matrices
 stored in the lattice elements must be computed. \vnr{bmad_parser} does
@@ -55,7 +55,7 @@ elements
   call twiss_propagate_all (lat)
 \end{example}
 It is important to keep in mind that \vn{lat%ele(i)%x%eta} is the $a$--mode
-dispersion, not the dispersion along the $x$--axis (\sref{s:ele-twiss}).
+dispersion, not the dispersion along the $x$--axis (\sref{s:ele.twiss}).
 
 The routine \vnr{twiss_and_track_at_s} can be used to calculate the
 Twiss parameters at any given longitudinal location. Alternatively, to
@@ -103,7 +103,7 @@ based upon the local beta functions at the sextupoles.
 
 %-----------------------------------------------------------------------------
 \section{Custom Elements}
-\label{s:custom-ele}
+\label{s:custom.ele}
 \index{Twiss parameters!calculation with custom elements}
 \index{Custom}
 
@@ -129,7 +129,7 @@ the new routines should be explicitly listed in the linking list.
 
 %-----------------------------------------------------------------------------
 \section{Custom Field Calculations}
-\label{s:custom-field}
+\label{s:custom.field}
 \index{Fields (electric and magnetic)!custom calculation} 
 \index{Ele_struct!%field_calc}
 

@@ -18,15 +18,15 @@ solely meant for \bmad internal use.
  	Twiss and Other Calculations            & \ref{r:twiss}      \\ \hline
  	Matrices                                & \ref{r:mat}        \\ \hline
  	Routines called by \vn{make_mat6}       & \ref{r:mat6}       \\ \hline
- 	Low level matrix routines               & \ref{r:low-mat}    \\ \hline
+ 	Low level matrix routines               & \ref{r:low.mat}    \\ \hline
  	Tracking, Closed Orbit                  & \ref{r:track}      \\ \hline
   Macroparticle Tracking                  & \ref{r:macro}      \\ \hline
-  Particle Distribution (Beam) Tracking   & \ref{r:part-dist}  \\ \hline
+  Particle Distribution (Beam) Tracking   & \ref{r:part.dist}  \\ \hline
   Low Level Particle Distribution (Beam) Tracking  
-                                          & \ref{r:low-part-track} \\ hline
-  Spin Tracking                           & \ref{r:spin-track} \\ \hline
+                                          & \ref{r:low.part.track} \\ hline
+  Spin Tracking                           & \ref{r:spin.track} \\ \hline
   Wake Fields                             & \ref{r:wake}       \\ \hline
- 	Low Level Tracking Routines             & \ref{r:low-track}  \\ \hline
+ 	Low Level Tracking Routines             & \ref{r:low.track}  \\ \hline
  	Particle Coordinate Stuff               & \ref{r:coord}      \\ \hline
  	Lattice Geometry                        & \ref{r:geom}       \\ \hline
  	Interface to PTC                        & \ref{r:ptc}        \\ \hline
@@ -42,14 +42,14 @@ solely meant for \bmad internal use.
  	Helper Routines: Elemental              & \ref{r:elem}       \\ \hline
  	Helper Routines: Transformational       & \ref{r:trans}      \\ \hline
  	Helper Routines: Multipoles             & \ref{r:multi}      \\ \hline
- 	Helper Routines: Miscellaneous          & \ref{r:misc-help}  \\ \hline
- 	Helper Routines: Low Level Stuff        & \ref{r:low-help}   \\ \hline
+ 	Helper Routines: Miscellaneous          & \ref{r:misc.help}  \\ \hline
+ 	Helper Routines: Low Level Stuff        & \ref{r:low.help}   \\ \hline
  	Overload Equal Sign Routines.           & \ref{r:equal}      \\ \hline
  	CESR Specific                           & \ref{r:cesr}       \\ \hline
   Quick Plot                              & \ref{r:qp}         \\ \hline
   Nonlinear Optimizers                    & \ref{r:opti}       \\ \hline
   Miscellaneous DCSLIB and CESR_UTILS Routines           
-                                          & \ref{r:dcs-misc}   \\ \hline
+                                          & \ref{r:dcs.misc}   \\ \hline
  	Obsolete                                & \ref{r:obs}        \\ \hline
  	\end{tabular}
 \end{center}
@@ -382,7 +382,7 @@ tracking 7 particle with different starting conditions.
 
 %------------------------------------------------------------------------
 \section{Low Level Matrix Routines}
-\label{r:low-mat}  
+\label{r:low.mat}  
 
 Listed below are helper routines that are not meant for general use.
 
@@ -511,7 +511,7 @@ for every element in the lat.
 \label{r:macro}    
 \index{Macroparticle!list of routines}
 
-See sections \sref{s:macro} and \sref{s:macro-track} for a discussion of macroparticles
+See sections \sref{s:macro} and \sref{s:macro.track} for a discussion of macroparticles
 and macroparticle tracking.
 
 \begin{description}
@@ -566,10 +566,10 @@ Subroutine to track a macroparticle through an element.
 
 %------------------------------------------------------------------------
 \section{Particle Distribution (Beam) Tracking}
-\label{r:part-dist}    
+\label{r:part.dist}    
 \index{Particle distribution!list of routines}
 
-See \sref{s:part-track} for a discussion of using a collection of particles to simulate
+See \sref{s:part.track} for a discussion of using a collection of particles to simulate
 a bunch.
 
 \begin{description}
@@ -619,7 +619,7 @@ Subroutine to track a bunch of particles through an element.
 
 %------------------------------------------------------------------------
 \section{Low Level Particle Distribution (Beam) Tracking}
-\label{r:low-part-track}    
+\label{r:low.part.track}    
 
 The following helper routines are generally not useful for general use.
 
@@ -687,7 +687,7 @@ Routine to find the sigma matrix elements of a particle distribution.
 
 %------------------------------------------------------------------------
 \section{Spin Tracking}
-\label{r:spin-track}    
+\label{r:spin.track}    
 \index{Spin tracking!list of routines}
 
 \begin{description}
@@ -785,7 +785,7 @@ Subroutine to put in the long-range wakes for particle tracking.
 
 %------------------------------------------------------------------------
 \section{Low Level Tracking Routines}
-\label{r:low-track}
+\label{r:low.track}
 
 \begin{description}
 
@@ -1767,7 +1767,7 @@ Subroutine to convert kt (MAD standard) multipoles to ab type multipoles.
 
 %------------------------------------------------------------------------
 \section{Helper Routines: Miscellaneous}
-\label{r:misc-help}
+\label{r:misc.help}
 
 \begin{description}
 
@@ -1825,7 +1825,7 @@ Subroutine to calculate the normalized vector potential at a point for a wiggler
 
 %------------------------------------------------------------------------
 \section{Helper Routines: Low Level Stuff}
-\label{r:low-help} 
+\label{r:low.help} 
 
 \begin{description}
 
@@ -2524,7 +2524,7 @@ This optimizer is based upon the work of Storn and Price.
 
 %------------------------------------------------------------------------
 \section{Miscellaneous DCSLIB and CESR_UTILS Routines}
-\label{r:dcs-misc}      
+\label{r:dcs.misc}      
 
 \begin{description}
 

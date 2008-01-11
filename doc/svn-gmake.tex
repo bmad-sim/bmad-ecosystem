@@ -1,5 +1,5 @@
 \chapter{Maintaining and Compiling Bmad: Subversion and Gmake}
-\label{c:svn_gmake}
+\label{c:svn.gmake}
 \index{Subversion}
 \index{Gmake}
 
@@ -40,7 +40,7 @@ develop programs based upon \bmad.
 
 %----------------------------------------------------------------------------
 \section{Setting up SVN}
-\label{s:svn_setup}
+\label{s:svn.setup}
 \index{SVN!setup}
 
 \index{SVN!repository}
@@ -108,7 +108,7 @@ copied to a temporary directory for the import.
 
 %----------------------------------------------------------------------------
 \section{Using SVN}
-\label{s:svn_use}
+\label{s:svn.use}
 \index{SVN}
 
 Once a project has been set in the repository,
@@ -317,19 +317,19 @@ file for portability. \vn{Distributions} may be obtained from the
   \caption[Standard Directory Structure for Bmad Programs.]
 {Example of a directory structure for developing Bmad programs. Standardized
 names are shown in bold. Italicized names are arbitrary.}
-  \label{f:devel_dir}
+  \label{f:devel.dir}
   \end{centering}
 \end{figure}
 
 To facilitate the automatic compiling and linking of programs there is
 a standard directory structure, an example of which is shown in
-Figure~\ref{f:devel_dir}. In Figure~\ref{f:devel_dir} names in italics
+Figure~\ref{f:devel.dir}. In Figure~\ref{f:devel.dir} names in italics
 have been arbitrarily chossen for the purposes of this example. Names
 in bold are standardized names that will be the same between different
 implementations of this directory structure.
 
 \vn{ifort_dir} is the root development directory.  In
-Figure~\ref{f:devel_dir} \vn{prog1} and \vn{prog2}
+Figure~\ref{f:devel.dir} \vn{prog1} and \vn{prog2}
 are directories for developing programs. Although only two program
 directories are shown, there is no limit as to their number. Code
 files can be put in a program directory or in sub--directories. The
@@ -353,7 +353,7 @@ use the command
 \end{example}
 the default \vn{gmake} behavior in this case is to name the executable
 file after the program directory name and not the program file
-name. For example, in Figure~\ref{f:devel_dir}, the executable made
+name. For example, in Figure~\ref{f:devel.dir}, the executable made
 from \vn{test.f90} in \vn{prog2} is
 \vn{bin/prog2}. There are actually two different executables:
 A \vn{production} executable and a \vn{debug} one. The \vn{debug}

@@ -37,7 +37,7 @@ discussed in \sref{s:symp} and \sref{s:mapoff} respectively.
 The \vn{tracking_method} attribute of an element sets the algorithm that is
 used for single particle tracking through that element.
 A table giving which methods are available with which element classes is
-given in Table~\ref{t:track-methods}.
+given in Table~\ref{t:track.methods}.
 
 A note on terminology: Adaptive step size control used with the
 \vn{Adaptive_Boris} and \vn{Runge_Kutta} integrators means that 
@@ -209,7 +209,7 @@ that it can be used for long term tracking.
 given element class.]{Table of available {\bf tracking_method}\
 switches for a given element class. D denotes the default method. X
 denotes an available method.}
-\label{t:track-methods}
+\label{t:track.methods}
 \end{table}
 
 \vfill\break
@@ -223,11 +223,11 @@ denotes an available method.}
 The \vn{mat6_calc_method} attribute sets how the 6x6 Jacobian transfer
 matrix for a given element is computed. A table giving which methods
 are available with which element classes is give in
-Table~\ref{t:mat6-methods}.
+Table~\ref{t:mat6.methods}.
 
 For methods that do not necessarily produce a symplectic matrix the
 \vn{symplectify} attribute of an element can be set to \vn{True} to
-solve the problem. See \sref{s:symp-method}. 
+solve the problem. See \sref{s:symp.method}. 
 
 Symplectic integration is like ordinary integration of a function f(x)
 but what is integrated here is a Taylor map. Truncating the map to
@@ -360,7 +360,7 @@ given element class.]{Table of available \vn{mat6_calc_method}\
 switches for a given element class. D denotes the default method.  X
 denotes an available method.}
 
-\label{t:mat6-methods}
+\label{t:mat6.methods}
 \end{table}
 
 \vfill \break
@@ -446,7 +446,7 @@ Possible values for \vn{field_calc} are:
 \index{Custom}
 \vn{Custom} means that the field calculations are done outside of the
 \bmad software. A program doing \vn{Custom} field calculations will
-need the appropriate custom routine. See \sref{s:custom-field} for more
+need the appropriate custom routine. See \sref{s:custom.field} for more
 details.
 
 \vni{Boris} (Both \vn{Boris} and \vni{Adaptive_Boris}) tracking does not
@@ -476,7 +476,7 @@ reasons.  For example, the linear matrix that comes from expanding a
 Taylor Map around any point that is not the origin of the map is
 generally not symplectic. The transfer matrix for an element can be
 symplectified by setting the \vn{symplectify} attribute to True. See
-section \ref{s:symp-method} for details on how a matrix is
+section \ref{s:symp.method} for details on how a matrix is
 symplectified. The default value of \vn{symplectify}, if it is not
 present, is \vn{False}. If it is present without a value then it
 defaults to true. Examples:

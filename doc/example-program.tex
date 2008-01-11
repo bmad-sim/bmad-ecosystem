@@ -1,5 +1,5 @@
 \chapter{Introduction to Bmad programming}
-\label{c:program-info}
+\label{c:program.info}
 
 To get the general feel for how \bmad works before
 getting into the nitty--gritty details in subsequent chapters, this
@@ -151,7 +151,7 @@ which it does on lines 16 through 21 of the program and lines 1 through 12
 of the output. \vn{lat} has within it an array
 \vn{lat%ele(0:)}.  Each element of the array holds the information
 about an individual element as explained in
-Chapter~\ref{c:ele-struct}. \vn{lat%ele(0)} is basically a marker
+Chapter~\ref{c:ele.struct}. \vn{lat%ele(0)} is basically a marker
 element to denote the beginning of the array. \vn{lat%ele(i)%key} is
 an integer denoting what type of element (quadrupole, wiggler, etc.)
 it is. \vn{key_name} is an array that translates the key of an element
@@ -213,7 +213,7 @@ center of the \vn{CLEO_SOL} is at $s = 0$, half of it extends to
 negative $s$. In this situation, \vn{bmad_parser} will wrap this half
 back and superimpose it on the elements at the end of the lattice list
 near $s = s_{lat}$ where $s_{lat}$ is the length of the lattice.  As
-explained in Chapter~\ref{c:lat-struct}, the lattice list that is used
+explained in Chapter~\ref{c:lat.struct}, the lattice list that is used
 for tracking extends from \vn{lat%ele(0)} through \vn{lat%ele(n)}
 where \vn{n = lat%n_ele_track}. The \vn{CLEO_SOL} element is put in the
 section of \vn{lat%ele(n)} with \vn{n > lat%n_ele_track} since it is

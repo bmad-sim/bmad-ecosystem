@@ -1,12 +1,12 @@
 \chapter{The Ele_struct}
-\label{c:ele-struct}
+\label{c:ele.struct}
 \index{Ele_struct|textbf}
 
 This chapter describes the \vn{ele_struct} which is the structure that
 holds all the information about an individual element: quadrupoles,
 separators, wigglers, etc. 
 Part of the substructure of the \vn{ele_struct} is shown
-in figure~\ref{f:ele-struct} (use \vn{getf} to see the entire structure 
+in figure~\ref{f:ele.struct} (use \vn{getf} to see the entire structure 
 definition). This structure is somewhat
 complicated, however, in practice, a lot of the complexity is
 generally hidden  by the \bmad bookkeeping routines.
@@ -55,7 +55,7 @@ generally hidden  by the \bmad bookkeeping routines.
 \end{verbatim}
 \caption[The \vn{ele_struct}.]{The \vn{ele_struct}. Only part of the 
   substructure is shown.}
-\label{f:ele-struct}
+\label{f:ele.struct}
 \end{figure}
 
 %--------------------------------------------------------------------------
@@ -109,7 +109,7 @@ whatever is appropriate.
 
 %--------------------------------------------------------------------------
 \section{Twiss Parameters, etc.}
-\label{s:ele-twiss}
+\label{s:ele.twiss}
 \index{Ele_struct!Twiss}
 \index{Ele_struct!global coordinates}
 \index{Coordinates!global!in ele_struct}
@@ -188,7 +188,7 @@ dispersions from the projected ones. Thus a full transfer looks like
 
 %--------------------------------------------------------------------------
 \section{Attribute Values: Dependent and Otherwise}
-\label{s:ele-dep}
+\label{s:ele.dep}
 \index{Ele_struct!attribute values}
 
 Most of the real valued attributes of an element are held in the
@@ -295,9 +295,9 @@ appropriate attribute. For example:
 %--------------------------------------------------------------------------
 \section{Control_type}
 \index{control_type}
-\label{s:control-type}
+\label{s:control.type}
 
-In a \vn{lat_struct} (\sref{c:lat-struct}), elements in the lattice
+In a \vn{lat_struct} (\sref{c:lat.struct}), elements in the lattice
 can control the attributes of other elements. The \vn{%control_type}
 component of an element identifies whether the element is a slave
 element (it is being controlled or is a lord element (it controls
@@ -416,7 +416,7 @@ To compute the transfer maps for an entire lattice use the routine \vn{lat_make_
 \index{Taylor map!structure in ele_struct}
 
 \vn{taylor_order} is the order of the Taylor map
-(see~\sref{s:taylor-phys}). The map itself is stored in
+(see~\sref{s:taylor.phys}). The map itself is stored in
 \vn{%taylor(1:6)}. Each \vn{%taylor(i)} is a \vn{taylor_struct}
 structure that defines a Taylor series. The structure is defined as
 \begin{example}
@@ -456,7 +456,7 @@ corresponding to the coordinates at the entrance of the element.
 This reference point is saved in \vn{%taylor(1:6)%ref}.  Once a Taylor map is
 made the reference point is not needed in subsequent
 calculations. However, The Taylor map itself will depend upon what
-reference point is chosen (\sref{s:taylor-phys}).
+reference point is chosen (\sref{s:taylor.phys}).
 
 %--------------------------------------------------------------------------
 \section {Wake fields}
@@ -567,7 +567,7 @@ between \vn{map type} and \vn{periodic type} wigglers (\sref{s:wiggler}):
   if (ele%key == wiggler\$ .and. ele%sub_key == periodic_type$) ...
 \end{example}
 For a \vn{map} type wiggler, the wiggler field terms
-(\sref{s:wiggler-phys}) are stored in the \vn{%wig_term(:)} array of
+(\sref{s:wiggler.phys}) are stored in the \vn{%wig_term(:)} array of
 the \vn{element_struct}. This is an array of \vn{wig_term_struct}
 structure. A \vn{wig_term_struct} looks like:
 \index{Wig_term_struct}

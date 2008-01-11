@@ -47,15 +47,15 @@ An example of how to do multi-turn tracking (assuming a circular lattice) is
 \end{example}
 \index{Super_lord}
 \vn{orbit(n)} holds the particle's position at the exit end of the
-$n$\Th element. Since \vn{super_lord} (\sref{s:control-type}) elements
+$n$\Th element. Since \vn{super_lord} (\sref{s:control.type}) elements
 have an associated particle position, the upper bound of the
 \vn{orbit(:)} array must be at least \vn{lattice%n_ele_max}
-(\sref{s:lat-struct}).  The call to \vn{reallocate_coords} does the
+(\sref{s:lat.struct}).  The call to \vn{reallocate_coords} does the
 allocation for the \vn{orbit(:)} array. Since \vn{lat%ele(0)} is
 essentially a marker element \vn{orbit(0)} is the orbit at the start
 of the lattice.  \vn{track_all} takes \vn{orbit(0)} and tracks through
 the list of lattice elements until it gets to the last trackable
-element \vn{lattice%n_ele_track} (\sref{s:lat-struct}).
+element \vn{lattice%n_ele_track} (\sref{s:lat.struct}).
 
 If you are writing a routine where the \vn{coord_struct} array is
 local (not passed as an argument to the routine) then you have to
@@ -78,7 +78,7 @@ element in the lattice. The routine \vnr{track_all} calls \vn{track1}
 in a loop over all elements to track through the entire
 lattice. Alternatively the routine \vnr{track_many} can be used to
 track through a selective number of elements or to track backwards
-(See \sref{s:reverse-track}). The routines used for tracking
+(See \sref{s:reverse.track}). The routines used for tracking
 and closed orbit calculations are listed in Section \sref{r:track}.
 
 \index{lat_param_struct!lost}
@@ -87,7 +87,7 @@ and closed orbit calculations are listed in Section \sref{r:track}.
 The \vn{track_all} routine serves as a good example of how tracking
 works. \vn{track_all} tracks a particle through a lattice from
 beginning to end. Its code, condensed slightly, is shown in
-Figure~\ref{f:track-all}.  The \vn{reallocate_coord} call (line~13) is
+Figure~\ref{f:track.all}.  The \vn{reallocate_coord} call (line~13) is
 done in case the number of elements in the lattice has changed. The
 call to \vn{track1} (line~18) tracks through one element from the exit
 end of the $n-1$\St\ element to the exit end of the $n$\Th
@@ -128,7 +128,7 @@ what element the loss occurred.
 \end{listing}
 \caption{Condensed track_all code.}
 \end{centering}
-\label{f:track-all}
+\label{f:track.all}
 \end{figure}
 
 %----------------------------------------------------------------
@@ -217,7 +217,7 @@ and/or excitation use the \vnr{setup_radiation_tracking} routine.
 
 %----------------------------------------------------------------
 \section{Taylor Maps}
-\label{s:taylor-track}
+\label{s:taylor.track}
 \index{Taylor Map}
 
 A list of routines for manipulating Taylor maps is given
@@ -269,7 +269,7 @@ The above example forms the transfer Taylor map starting at the end of
 element \vn{i1} to the end of element \vn{i2}. Note: This example
 assumes that all the elements have a Taylor map. The problem with
 concatenating maps is that if there is a constant term in the map
-``feed down'' can make the result inaccurate (\sref{s:taylor-phys}. To
+``feed down'' can make the result inaccurate (\sref{s:taylor.phys}. To
 get around this one can ``track'' a taylor map through an element
 using symplectic integration.
 \begin{example}
@@ -288,7 +288,7 @@ The width of an integration step is given by \vn{%ele%value(ds_step\$}.
 The attribute \vn{%ele%value(num_steps\$)}, which gives the number
 of integration steps, is a dependent variable 
 (\sref{s:depend}) and should not be set directly.
-The order of the integrator (\sref{s:taylor-phys})
+The order of the integrator (\sref{s:taylor.phys})
 is given by \vn{%ele%integrator_order}. 
 PTC (\sref{c:etienne}) currently implements integrators of order 2, 4, or 6.
 
@@ -296,7 +296,7 @@ PTC (\sref{c:etienne}) currently implements integrators of order 2, 4, or 6.
 \section{Macroparticle Tracking}
 \index{Macroparticles!tracking}
 \index{Tracking!Macroparticles}
-\label{s:macro-track}
+\label{s:macro.track}
 
 \begin{figure}[!tb]
 \small
@@ -353,7 +353,7 @@ program macroparticle_test
 end program
 \end{listing}
 \caption{Example program showing macroparticle tracking.}
-\label{f:macro-program}
+\label{f:macro.program}
 \end{figure}
 
 Macroparticles are particles that also have an associated size. 
@@ -362,10 +362,10 @@ into \bmad when bunch tracking was first introduced. Macroparticles have the
 theoretical advantage over particle tracking since the number of macroparticles
 needed to characterize a bunch is smaller. However, transport of the macroparticle
 sigma matrix adds complexity and recent development in \bmad in terms of tracking
-bunches have generally focused on straight particle tracking (\sref{s:part-track}).
+bunches have generally focused on straight particle tracking (\sref{s:part.track}).
 
 The definition of the \vn{macro_struct} structure that defines a
-macroparticle is shown in Figure~\ref{f:macro-struct}.  
+macroparticle is shown in Figure~\ref{f:macro.struct}.  
 \begin{figure}[htb]
 \centering
 \small
@@ -380,7 +380,7 @@ macroparticle is shown in Figure~\ref{f:macro-struct}.
   end type
 \end{verbatim}
 \caption{The \vn{macro_struct}\ that defines a macroparticle.}
-\label{f:macro-struct}
+\label{f:macro.struct}
 \end{figure}
 
 \vn{%r} is the
@@ -398,7 +398,7 @@ To convert \vn{%sigma(:)} into an actual matrix use the
 
 \index{LIAR}
 \bmad uses canonical phase space
-coordinates(See \sref{s:phase-space-coords}). The LIAR program uses
+coordinates(See \sref{s:phase.space.coords}). The LIAR program uses
 ``angle'' phase space coordinates
 \begin{equation}
   (x, x', y, y', -z, E)
@@ -420,7 +420,7 @@ bunch, and a number of bunches make up a beam. The routine
 implements the LIAR initialization algorithm (See
 \sref{s:macro}). Once a beam is initialized, tracking can be performed
 using \vn{track_macro_beam}. An example program is shown in
-figure~\ref{f:macro-program}.
+figure~\ref{f:macro.program}.
 
 The equal sign in the assignments
 \begin{example}
@@ -437,7 +437,7 @@ The \vn{init} variable (line 11) holds the information to initialize
 the macroparticle distribution. The values of the components in the
 \vn{init} variable are set using a namelist read (line 24). An example
 of an input file that can be used to set \vn{init} is shown in
-figure~\ref{f:beam-init}. Line 23 sets the initial reference energy of
+figure~\ref{f:beam.init}. Line 23 sets the initial reference energy of
 the beam to be the reference energy at the start of the linac so this
 does not have to be set in the input file.  The
 \vn{init_macro_distribution} routine (line 27) initializes the
@@ -475,14 +475,14 @@ correlation.
   /
 \end{listing}
 \caption{Example beam initialization file.}
-\label{f:beam-init}
+\label{f:beam.init}
 \end{figure}
 
 \break
 
 %----------------------------------------------------------------
 \section{Reverse Tracking}
-\label{s:reverse-track}
+\label{s:reverse.track}
 \index{Tracking!reverse}
 
 There are two ways to do reverse tracking in which the particle goes
@@ -511,7 +511,7 @@ damping or excitation breaks this symmetry.
 
 %----------------------------------------------------------------
 \section{Particle Distribution Tracking}
-\label{s:part-track}
+\label{s:part.track}
 \index{Tracking!particle distributions}
 
 Initializing a distribution of particles to conform to some initial set of
@@ -521,7 +521,7 @@ macroparticle tracking.
 
 %----------------------------------------------------------------
 \section{Spin Tracking}
-\label{s:spin_track}
+\label{s:spin.track}
 \index{Tracking!spin}
 
 Spin tracking has been implemented for \vn{bmad_standard}, \vn{boris} and

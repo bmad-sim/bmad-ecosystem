@@ -1,5 +1,5 @@
 \chapter{Quick_Plot Plotting}
-\label{c:quick-plot}
+\label{c:quick.plot}
 \index{Quick_Plot|textbf}
 \index{PGPLOT!and Quick_Plot}
 
@@ -92,7 +92,7 @@ careful of this.
   end program
 \end{listing}
 \caption{\quickplot example program.}
-\label{f:plot-example}
+\label{f:plot.example}
 \end{figure}
 
 
@@ -100,21 +100,21 @@ careful of this.
 \centering
 \includegraphics[angle=-90,width=5.5in]{plot-example.eps}
 \caption{Output of plot_example.f90.}
-\label{f:plot-out}
+\label{f:plot.out}
 \end{figure}
 
 %----------------------------------------------------------------------------
 \section{An Example}
-\label{s:plot-example}
+\label{s:plot.example}
 
 An example of how \quickplot can be used in a program is shown in
-Figure~\ref{f:plot-example}. In the \bmad distribution a copy of this
+Figure~\ref{f:plot.example}. In the \bmad distribution a copy of this
 program is in the file
 \begin{example}
   dcslib/plot_example.f90
 \end{example}
 The \vn{plot_example.f90} program generates the figure shown in
-Figure~\ref{f:plot-out} from the input file named \vn{plot.dat}. The
+Figure~\ref{f:plot.out} from the input file named \vn{plot.dat}. The
 first few lines of the data file are
 \begin{example}
   \&parameters
@@ -158,7 +158,7 @@ margins between the box and the graph axes.
 axes. \vn{"ZERO_AT_END"} ensures that the $x$--axis starts (or stops)
 at zero.  \vnr{qp_calc_and_axis_axis} is told to restrict the number of
 major divisions to be between 4 and 8. For the horizontal axis, as can be
-seen in Figure~\ref{f:plot-out}, it chooses 5 divisions.
+seen in Figure~\ref{f:plot.out}, it chooses 5 divisions.
 
 After drawing the first data curve (the solid curve) in the left
 graph, the routines \vnr{qp_set_symbol_attrib} and
@@ -181,16 +181,16 @@ special symbols along with subscripts and superscripts.
 
 %----------------------------------------------------------------------------
 \section{Plotting Coordinates}
-\label{s:plot-coords}
+\label{s:plot.coords}
 
 \begin{figure}
   \centering
   \includegraphics{plot-coords.eps}
   \caption{A Graph within a Box within a Page.}
-  \label{f:plot-coords}
+  \label{f:plot.coords}
 \end{figure}
 
-\quickplot uses the following concepts as shown in Figure~\ref{f:plot-coords}
+\quickplot uses the following concepts as shown in Figure~\ref{f:plot.coords}
 \begin{example}
   PAGE  -- The entire drawing surface.
   BOX   -- The area of the page that a graph is placed into.
@@ -212,7 +212,7 @@ WINDOW are always the same region.
 
 \vnr{qp_open_page} determines the size of the \vn{page} if it is
 settable (like for X--windows). The page is divided up into a grid of
-boxes. For example, in Figure~\ref{f:plot-coords}, the grid is 1 box
+boxes. For example, in Figure~\ref{f:plot.coords}, the grid is 1 box
 wide by 3 boxes tall. The border between the grid of boxes and the
 edges of the page are set by \vnr{qp_set_page_border}.  The box that
 the graph falls into is set by \vnr{qp_set_box}. The default is to have
@@ -222,7 +222,7 @@ routine sets the distance between the box edges and the axes.
 
 %----------------------------------------------------------------------------
 \section{Length and Position Units}
-\label{s:plot-units}
+\label{s:plot.units}
 \index{Quick_Plot!position units}
 
 Typically there is an optional \vn{units} argument for \quickplot routines that
@@ -299,7 +299,7 @@ Examples:
 \index{Quick_Plot!axes}
 
 The top and right axes of a graph are known as \vn{X2} and \vn{Y2}
-respectively as shown in Figure~\ref{f:plot-coords}. Normally the
+respectively as shown in Figure~\ref{f:plot.coords}. Normally the
 \vn{X2} axis mirrors the \vn{X} axis and the \vn{Y2} axis mirrors the
 \vn{Y} axis in that the tick marks and axis numbering for the \vn{X2}
 and \vn{Y2} axes are the same as the \vn{X} and \vn{Y} axes
@@ -340,7 +340,7 @@ To plot data using the \vn{X2} or \vn{Y2} scale use the
 
 Symbolic constants have been defined for \quickplot subroutine
 arguments that are used to choose various styles. As an example of
-this is in lines 44 and 45 of Figure~\ref{f:plot-example}. The
+this is in lines 44 and 45 of Figure~\ref{f:plot.example}. The
 numbers in the following are the PGPLOT equivalents.
 
 \index{Quick_Plot!line styles}
@@ -388,7 +388,7 @@ The fill styles are:
   \centering
   \includegraphics{plot-syms.eps}
   \caption{Plotting Symbols at Height = 40.0}
-  \label{t:plot-syms}
+  \label{t:plot.syms}
 \end{table}
 
 \begin{table}
@@ -416,7 +416,7 @@ special characters (e.g., mathematical, musical, astronomical, and
 cartographical symbols) available.} \\ \hline
 \end{tabular}
 \caption{PGPLOT Escape Sequences.}
-\label{t:pgplot-escape}
+\label{t:pgplot.escape}
 \end{table}
 
 \index{Quick_Plot!symbol styles}
@@ -452,10 +452,10 @@ The PGPLOT list of symbols is:
                   E.G. to use letter F as a marker, set type = ICHAR("F"). 
        > 127 - A Hershey symbol number.
 \end{example}
-Table~\ref{t:plot-syms} shows some of the symbols and there associated 
+Table~\ref{t:plot.syms} shows some of the symbols and there associated 
 numbers. Note: At constant height PGPLOT gives symbols of different size.
 To partially overcome this, \quickplot scales some of the symbols to
-give a more uniform appearence. Table~\ref{t:plot-syms} was generated
+give a more uniform appearence. Table~\ref{t:plot.syms} was generated
 using a height of 40 via the call
 \begin{example}
   call qp_draw_symbol (0.5_rp, 0.5_rp, "%BOX", k, height = 40.0_rp)
@@ -473,7 +473,7 @@ Greek character.}
 
 PGPLOT defines certain escape sequences that can be used in text strings
 to draw greek letters, etc. These escape sequences are given in 
-Table~\ref{t:pgplot-escape}.
+Table~\ref{t:pgplot.escape}.
 
 PGPLOT defines a text background index:
 \begin{example}
@@ -484,7 +484,7 @@ PGPLOT defines a text background index:
 
 %----------------------------------------------------------------------------
 \section{Structures}
-\label{s:qp_structs}
+\label{s:qp.structs}
 \index{Quick_Plot!structures}
 
 \quickplot uses several structures to hold data. The structure that
