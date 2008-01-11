@@ -461,6 +461,16 @@ using a height of 40 via the call
   call qp_draw_symbol (0.5_rp, 0.5_rp, "%BOX", k, height = 40.0_rp)
 \end{example}
 
+Table~\ref{t:greek} shows how the character string \vn{"{\B}g<r>"}, where \vn{"<r>"} 
+is a Roman letter, map onto the Greek character set.
+\begin{table}
+  \centering
+  \includegraphics[width=5.5in]{greek.eps}
+  \caption[Roman to Greek Character Conversion]{Conversion for the string 
+\vn{"{\B}g<r>"} where \vn{"<r>"} is a Roman character to the corresponding 
+Greek character.}
+\end{table}
+
 PGPLOT defines certain escape sequences that can be used in text strings
 to draw greek letters, etc. These escape sequences are given in 
 Table~\ref{t:pgplot-escape}.
