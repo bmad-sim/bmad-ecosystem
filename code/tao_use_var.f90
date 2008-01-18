@@ -63,10 +63,9 @@ enddo
 
 call tao_set_var_useit_opt()
 
-call tao_var_show_use (var(1)%v%v1)
-do i = 2, size(var)
-  if (.not. associated (var(i)%v%v1, var(i-1)%v%v1)) &
-                          call tao_var_show_use (var(i)%v%v1)
+do i = 1, size(s%v1_var)
+  if (s%v1_var(i)%name == ' ') cycle
+  call tao_var_show_use (s%v1_var(i))
 enddo
 
 end subroutine tao_use_var

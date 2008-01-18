@@ -339,7 +339,7 @@ do
       if (crv%ele_ref_name == ' ' .and. crv%ix_ele_ref >= 0) then ! if ix_ele_ref has been set ...
         crv%ele_ref_name = s%u(i_uni)%design%lat%ele(crv%ix_ele_ref)%name ! then find the name
       elseif (crv%ele_ref_name /= ' ') then                    ! if ele_ref_name has been set ...
-        call tao_locate_element (crv%ele_ref_name, i_uni, ix_ele, .true.) ! then find the index
+        call tao_locate_elements (crv%ele_ref_name, i_uni, ix_ele, .true.) ! then find the index
         crv%ix_ele_ref = ix_ele(1)
       elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r.' .or. &
               crv%data_type(1:2) == 't.' .or. crv%data_type(1:3) == 'tt.') then

@@ -29,7 +29,7 @@ integer ix, ir, jg
 
 real(rp) ax_min, ax_max, slop
 
-logical, allocatable, save :: good_ele(:)
+integer, allocatable, save :: ix_ele(:)
 logical err
 
 character(20) :: r_name = 'tao_plot_data_setup'
@@ -52,14 +52,14 @@ do i_uni = 1, size(s%u)
 
   shape => tao_com%ele_shape_floor_plan
   do k = 1, size(shape)
-    call tao_ele_locations_given_name (lat, shape(k)%ele_name, good_ele, err, .false.)
+    call tao_ele_locations_given_name (u, shape(k)%ele_name, ix_ele, err, .false.)
     if (err) then
       call out_io (s_error$, r_name, 'BAD ELEMENT KEY IN SHAPE: ' // shape(k)%ele_name)
       cycle
     endif
 
-    do ie = 1, lat%n_ele_max
-      if (.not. good_ele(ie)) cycle
+    do i = 1, size(ix_ele)
+      ie = ix_ele(i)
       ele => lat%ele(ie)
       if (ele%control_type == group_lord$) cycle
       if (ele%control_type == multipass_lord$) cycle
@@ -77,14 +77,14 @@ do i_uni = 1, size(s%u)
 
   shape => tao_com%ele_shape_lat_layout
   do k = 1, size(shape)
-    call tao_ele_locations_given_name (lat, shape(k)%ele_name, good_ele, err, .false.)
+    call tao_ele_locations_given_name (u, shape(k)%ele_name, ix_ele, err, .false.)
     if (err) then
       call out_io (s_error$, r_name, 'BAD ELEMENT KEY IN SHAPE: ' // shape(k)%ele_name)
       cycle
     endif
 
-    do ie = 1, lat%n_ele_max
-      if (.not. good_ele(ie)) cycle
+    do i = 1, size(ix_ele)
+      ie = ix_ele(i)
       ele => lat%ele(ie)
       if (ele%control_type == group_lord$) cycle
       if (ele%control_type == multipass_lord$) cycle

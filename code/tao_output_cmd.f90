@@ -310,7 +310,7 @@ case ('beam')
     case ('-ascii') 
       ascii = .true.
     case ('-at')
-      call tao_locate_element (arg(i)%value(1), s%global%u_view, ix_ele_at)
+      call tao_locate_elements (arg(i)%value(1), s%global%u_view, ix_ele_at)
       loc = ix_ele_at(1)
       if (loc < 0) return
     case default

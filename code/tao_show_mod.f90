@@ -507,28 +507,28 @@ case ('element', 'taylor', 'e2')
 
   if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0 .or. &
                     (ele_name(1:2) /= 'S:' .and. index(ele_name, ':') /= 0)) then
-    call tao_ele_locations_given_name (lat, ele_name, picked_ele, err, .true.)
+    call tao_ele_locations_given_name (u, ele_name, ix_eles, err, .true.)
     if (err) return
-    if (count(picked_ele) == 0) then
+    if (size(ix_eles) == 0) then
       call out_io (s_blank$, r_name, '*** No Matches to Name Found ***')
       return
     endif
 
-    write (lines(1), *) 'Matches:', count(picked_ele)
+    write (lines(1), *) 'Matches:', size(ix_eles)
     nl = 1
-    do loc = 1, lat%n_ele_max
-      if (.not. picked_ele(loc)) cycle
+    do i = 1, size(ix_eles)
+      loc = ix_eles(i)
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
       nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, lat%ele(loc)%name
     enddo
 
-    deallocate(picked_ele)
+    deallocate(ix_eles)
 
 ! else no wild cards
 
   else  
 
-    call tao_locate_element (ele_name, s%global%u_view, ix_eles)
+    call tao_locate_elements (ele_name, s%global%u_view, ix_eles)
     loc = ix_eles(1)
     if (loc < 0) return
     ele => lat%ele(loc)
@@ -737,9 +737,13 @@ case ('lattice')
   
   ! Find elements to use
 
+  call re_allocate (picked_ele, 0, lat%n_ele_max)
+
   if (ele_name /= '') then
-    call tao_ele_locations_given_name (lat, ele_name, picked_ele, err, .true.)
+    call tao_ele_locations_given_name (u, ele_name, ix_eles, err, .true.)
     if (err) return
+    picked_ele = .false.
+    picked_ele(ix_eles) = .true.
 
   elseif (ix == 0 .or. stuff2(1:ix) == 'all') then
     picked_ele = .true.
@@ -1424,7 +1428,9 @@ case ('variable')
 
     v_ptr => v_array(1)%v
 
+    nl=nl+1; write(lines(nl), amt)  'Ele_name      = ', v_ptr%ele_name
     nl=nl+1; write(lines(nl), amt)  'Attrib_name   = ', v_ptr%attrib_name 
+    nl=nl+1; write(lines(nl), imt)  'Ix_attrib     = ', v_ptr%ix_attrib 
     nl=nl+1; write(lines(nl), imt)  'Ix_var        = ', v_ptr%ix_var
     nl=nl+1; write(lines(nl), imt)  'Ix_dvar       = ', v_ptr%ix_dvar           
     nl=nl+1; write(lines(nl), imt)  'Ix_v1         = ', v_ptr%ix_v1

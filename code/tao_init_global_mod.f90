@@ -443,7 +443,7 @@ type (lat_struct), pointer :: lat
 real(rp) v(6), bunch_charge, gamma
 integer i, ix, iu, n_part, ix_class, n_bunch, n_particle
 character(60) at, class, ele_name, line
-logical, allocatable, save :: picked_ele(:)
+integer, allocatable, save :: ix_eles(:)
 
 ! Set tracking start/stop
 
@@ -484,13 +484,13 @@ u%ele(u%design%lat%n_ele_track)%save_beam = .true.
 
 do i = 1, size(save_beam_at)
   if (save_beam_at(i) == '') exit
-  call tao_ele_locations_given_name(u%design%lat, save_beam_at(i), picked_ele, err, .false.)
+  call tao_ele_locations_given_name(u, save_beam_at(i), ix_eles, err, .false.)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SAVE_BEAM_AT ELEMENT: ' // save_beam_at(i))
     cycle
   endif
-  do j = lbound(u%ele, 1), ubound(u%ele, 1)
-    if (.not. picked_ele(j)) Cycle
+  do k = 1, size(ix_eles)
+    j = ix_eles(k)
     u%ele(j)%save_beam = .true.
   enddo
 enddo
@@ -520,7 +520,7 @@ if (u%beam_all_file /= '') then
 endif
 
 if (u%connect%connected) u%connect%injecting_beam = u%current_beam
-if (allocated(picked_ele)) deallocate (picked_ele)
+if (allocated(ix_eles)) deallocate (ix_eles)
 
 end subroutine init_beam
 
@@ -900,7 +900,7 @@ integer i_d1, num_hashes
 character(40) search_string, d2_d1_name
 character(20) fmt
 
-logical, allocatable, save :: matched_ele(:)
+integer, allocatable, save :: ix_eles(:)
 logical emit_here
 
 !
@@ -918,8 +918,8 @@ d2_d1_name = u%d2_data(n_d2)%name // '.' // u%d2_data(n_d2)%d1(i_d1)%name
 ! and record the element names in the data structs.
     
 if (search_for_lat_eles /= '') then
-  call tao_find_elements (u, search_for_lat_eles, matched_ele)
-  if (count(matched_ele) == 0) then
+  call tao_find_elements (u, search_for_lat_eles, ix_eles)
+  if (size(ix_eles) == 0) then
     call out_io (s_warn$, r_name, &
       'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_string, &
       'WHILE SETTING UP DATA ARRAY: ' // d1_data%name)
@@ -927,7 +927,7 @@ if (search_for_lat_eles /= '') then
   endif
   ! finish finding data array limits
   n1 = u%n_data_used + 1
-  n2 = u%n_data_used + count(matched_ele)
+  n2 = u%n_data_used + size(ix_eles)
   u%n_data_used = n2
   if (ix_min_data == int_garbage$) ix_min_data = 1
   ix1 = ix_min_data
@@ -939,8 +939,8 @@ if (search_for_lat_eles /= '') then
   endif
   ! get element names
   jj = n1
-  do j = lbound(matched_ele, 1), ubound(matched_ele, 1)
-    if (.not. matched_ele(j)) cycle
+  do k = lbound(ix_eles, 1), ubound(ix_eles, 1)
+    j = ix_eles(k)
     if (jj .gt. n2) then
       call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
       call err_exit
@@ -1498,10 +1498,10 @@ type (tao_v1_var_struct), pointer :: v1_ptr
 character(20) fmt
 character(60) search_string
 
-integer i, iu, ip, j, jj, k, nn, n1, n2, ix1, ix2, num_hashes, ix
+integer i, iu, ip, j, jj, k, kk, nn, n1, n2, ix1, ix2, num_hashes, ix
 integer num_ele, ios, ixx1, ixx2
 
-logical, allocatable, save :: matched_ele(:)
+integer, allocatable, save :: ix_eles(:)
 
 ! count number of v1 entries
 
@@ -1605,10 +1605,10 @@ if (search_for_lat_eles /= '') then
   num_ele = 0
   do iu = 1, size(s%u)
     if (.not. dflt_good_unis(iu)) cycle
-    call tao_find_elements (s%u(iu), search_string, matched_ele)
-    num_ele = num_ele + count(matched_ele)
+    call tao_find_elements (s%u(iu), search_string, ix_eles)
+    num_ele = num_ele + size(ix_eles)
   enddo
-  if (count(matched_ele) == 0) then
+  if (size(ix_eles) == 0) then
     call out_io (s_warn$, r_name, &
                 'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_string, &
                 'WHILE SETTING UP VARIABLE ARRAY: ' // v1_var%name)
@@ -1624,9 +1624,9 @@ if (search_for_lat_eles /= '') then
 
   do iu = 1, size(s%u)
     if (.not. dflt_good_unis(iu)) cycle
-    call tao_find_elements (s%u(iu), search_string, matched_ele)
-    do k = lbound(matched_ele, 1), ubound(matched_ele, 1)
-      if (.not. matched_ele(k)) cycle
+    call tao_find_elements (s%u(iu), search_string, ix_eles)
+    do kk = 1, size(ix_eles)
+      k = ix_eles(kk)
       if (jj .gt. n2) then
         call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT SEARCHING")
         call err_exit
@@ -1702,7 +1702,7 @@ where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
 s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
 where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
  
-! point the v1_var mother to the appropriate children in the big var array
+! Point the v1_var mother to the appropriate children in the big var array
 
 call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
 
@@ -1718,9 +1718,13 @@ subroutine var_stuffit2 (good_unis, var, searching)
 
 implicit none
 
-type (tao_var_struct) :: var
+type (tao_var_struct), target :: var
+type (tao_this_var_struct), pointer :: this
+type (tao_universe_struct), pointer :: u
 
-integer i, j, n, n1, n2, iu, n_tot, n_ele, ie
+integer i, j, n, n1, n2, iv, iu, n_tot, n_ele, ie
+integer, automatic :: n_ele_in_uni(size(s%u))
+
 character(20) :: r_name = 'var_stuffit2'
 logical err, searching, good_unis(:)
 
@@ -1730,10 +1734,12 @@ if (allocated(var%this)) deallocate (var%this)
 if (var%ele_name == '') then
   allocate (var%this(0))
   var%exists = .false.
+  var%key_bound = .false.
   return
 endif
 
-!
+! Problem: var%ix gives element index but this might be different in different universes.
+! Solution: Move this to var_stuffit1
 
 if (searching) then
   allocate (var%this(count(good_unis)))
@@ -1741,31 +1747,69 @@ if (searching) then
   do iu = 1, size(s%u)
     if (.not. good_unis(iu)) cycle
     j = j + 1
-    call tao_pointer_to_var_in_lattice (var, var%this(j), iu, ix_ele = var%ix)
+    call tao_pointer_to_var_in_lattice (var, var%this(j), iu, &
+                                                  err, .false., ix_ele = var%ix)
+    if (err) then
+      var%exists = .false.
+      var%key_bound = .false.
+      return
+    endif
   enddo
+
+  ! Veto any variable that is not free
+
+  if (var%ix_attrib > 0) then
+    do j = 1, size(var%this)
+      this => var%this(j)
+      u => s%u(this%ix_uni)
+      if (.not. attribute_free (this%ix_ele, var%ix_attrib, u%model%lat, .false.)) then
+        call out_io (s_info$, r_name, &
+              'Warning: Variable: ' // tao_var1_name(var), &
+            '         is trying to control a non-free attribute. %exists will be set to False.')
+        var%exists = .false.
+        var%key_bound = .false.
+        return
+      endif
+    enddo
+  endif
 
 else
   n_tot = 0
   do iu = 1, size(s%u)
     if (.not. good_unis(iu)) cycle
-    call tao_locate_elements (var, iu, n_ele)
-    s%u(iu)%ixx = n_ele
+
+    n_ele = 0
+    do iv = 0, s%u(iu)%model%lat%n_ele_max
+      if (var%ele_name /= s%u(iu)%model%lat%ele(iv)%name) cycle
+      n_ele = n_ele + 1
+      s%u(iu)%model%lat%ele(n_ele)%ixx = iv
+    enddo
+
+    n_ele_in_uni(iu) = n_ele
     n_tot = n_tot + n_ele
   enddo
+
   if (n_tot == 0) then
     call out_io (s_error$, r_name, 'ELEMENT DOES NOT EXIST: ' // var%ele_name)
     var%exists = .false.
     return
   endif
+
   allocate (var%this(n_tot))
-  n_tot = 0
+
+  n = 0
   do iu = 1, size(s%u)
     if (.not. good_unis(iu)) cycle
-    do ie = 1, s%u(iu)%ixx
-      call tao_pointer_to_var_in_lattice (var, var%this(ie+n_tot), iu, &
-                                          ix_ele = s%u(iu)%model%lat%ele(ie)%ixx)
+    do ie = 1, n_ele_in_uni(iu)
+      call tao_pointer_to_var_in_lattice (var, var%this(ie+n), iu, &
+                                    err, .true., ix_ele = s%u(iu)%model%lat%ele(ie)%ixx)
+      if (err) then
+        var%exists = .false.
+        var%key_bound = .false.
+        return
+      endif
     enddo
-    n_tot = n_tot + s%u(iu)%ixx
+    n = n + n_ele_in_uni(iu)
   enddo
 
 endif
@@ -1779,9 +1823,11 @@ end subroutine
 
 !-----------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------
-! This searches the lattice for the specified element and flags matched_ele(:)
+! This searches the lattice for the specified element and flags ix_eles(:)
 
-subroutine tao_find_elements (u, search_string, matched_ele)
+subroutine tao_find_elements (u, search_string, ix_eles)
+
+implicit none
 
 type (tao_universe_struct), target :: u
 type (ele_struct), pointer :: ele
@@ -1792,9 +1838,9 @@ character(40) ele_name, key_name_in
 character(20) :: r_name = 'tao_find_elements'
 
 integer key, found_key
-integer i, ix, ii, i2, j
+integer i, k, ix, ii, i2, j
 
-logical, allocatable :: matched_ele(:)
+integer, allocatable :: ix_eles(:)
 logical no_slaves, no_lords, err
 
 !
@@ -1820,17 +1866,22 @@ end select
 
 !
 
-call tao_ele_locations_given_name (u%design%lat, string, matched_ele, err)
+call tao_ele_locations_given_name (u, string, ix_eles, err)
 
-do j = 1, u%design%lat%n_ele_max
-  ele => u%design%lat%ele(j)
+k = 0
+do j = 1, size(ix_eles)
+  ele => u%design%lat%ele(ix_eles(j))
   select case (ele%control_type)
   case (multipass_slave$, super_slave$)
-    if (no_slaves) matched_ele(j) = .false.
+    if (no_slaves) cycle
   case (girder_lord$, overlay_lord$, super_lord$)
-    if (no_lords) matched_ele(j) = .false.
+    if (no_lords) cycle
   end select
+  k = k + 1
+  ix_eles(k) = ix_eles(j)
 enddo
+
+call re_allocate (ix_eles, k)
 
 end subroutine tao_find_elements
 

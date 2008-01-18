@@ -150,21 +150,45 @@ contains
 subroutine alias_translate (cmd_line, err)
 
 character(*) cmd_line
-character(100) string, old_cmd_line
+character(100) old_cmd_line
 
-integer ic, i, j
-logical err
+logical err, translated
 
 !
 
-call string_trim (cmd_line, cmd_line, ic)
 old_cmd_line = cmd_line ! Save old command line for the command history.
+translated = .false.    ! No translation done yet
+call alias_translate2 (cmd_line, err, translated)
+
+if (translated) then
+  write (*, '(2a)') 'Alias: ', trim (cmd_line)
+  cmd_line = trim(cmd_line) // "  ! " // trim(old_cmd_line)  
+endif
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+! contains
+
+recursive subroutine alias_translate2 (cmd_line, err, translated)
+
+character(*) cmd_line
+character(100) string
+
+integer ic, i, j
+logical err, translated
+
+! Look for a translation for the first word
+
+call string_trim (cmd_line, cmd_line, ic)
 
 do i = 1, tao_com%n_alias
 
   if (cmd_line(1:ic) /= tao_com%alias(i)%name) cycle
 
-  ! get actual arguments and replace dummy args with actual args
+  ! We have a match...
+  ! Now get the actual arguments and replace dummy args with actual args.
 
   string = cmd_line
   cmd_line = tao_com%alias(i)%string
@@ -177,16 +201,18 @@ do i = 1, tao_com%n_alias
                           trim(string(1:ic)) // cmd_line(ix+5:)
   enddo
 
-  ! append rest of string
+  ! Append rest of string
 
   call string_trim (string(ic+1:), string, ic)
   cmd_line = trim(cmd_line) // ' ' // string
+  call alias_translate2 (cmd_line, err, translated) ! Translation is an alias?
+  translated = .true.
 
-  write (*, '(2a)') 'Alias: ', trim (cmd_line)
-  cmd_line = trim(cmd_line) // "  ! " // trim(old_cmd_line)  
   return
 
 enddo
+
+translated = .false.
 
 end subroutine
 

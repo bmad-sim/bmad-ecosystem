@@ -335,6 +335,7 @@ type tao_var_struct
   integer ix_v1             ! Index of this var in the s%v1_var(i)%v(:) array.
   integer ix_var            ! Index number of this var in the s%var(:) array.
   integer ix_dvar           ! Column in the dData_dVar derivative matrix.
+  integer ix_attrib         ! Index in ele%value(:) array if appropriate.
   integer ix                ! Temporary. Used for initialization.
   real(rp) model_value      ! Model value.
   real(rp) base_value       ! Base value.
@@ -563,6 +564,7 @@ type tao_element_struct
   real(rp) y_calib       ! Was: r(1,3)
   real(rp) tilt_calib    ! Was: r(1,4)
   real(rp) scale_err     ! Was: r(1,5)
+  integer ixx            ! Scratch variable
 end type
 
 !-----------------------------------------------------------------------
@@ -590,7 +592,6 @@ type tao_universe_struct
   integer ix_rad_int_cache
   integer ix_track_start                           ! Element start index of tracking
   integer ix_track_end                             ! Element end index of tracking
-  integer ixx                                      ! scratch variable
   logical do_synch_rad_int_calc
   logical do_chrom_calc
   logical is_on                                    ! universe turned on

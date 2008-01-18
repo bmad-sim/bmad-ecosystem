@@ -170,12 +170,12 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_locate_element (string, ix_universe, ix_ele, ignore_blank) 
+! Subroutine tao_locate_elements (string, ix_universe, ix_ele, ignore_blank) 
 !
-! Subroutine to find a lattice element.
+! Subroutine to find the lattice elements corresponding to the string argument.
 !
 ! Input:
-!   string       -- Character(*): String with element name or index locations
+!   string       -- Character(*): String with element name or index locations.
 !   ix_universe  -- Integer: Universe to search. 0 => search s%global%u_view.
 !   ignore_blank -- Logical, optional: If present and true then do nothing if
 !     string is blank. otherwise treated as an error.
@@ -185,18 +185,18 @@ end subroutine
 !                         ix_ele(1) = -1 if element not found.
 !-
 
-subroutine tao_locate_element (string, ix_universe, ix_ele, ignore_blank)
+subroutine tao_locate_elements (string, ix_universe, ix_ele, ignore_blank)
 
 implicit none
 
 type (tao_universe_struct), pointer :: u
 
-integer ios, ix, ix_universe, ix_ele_temp, num, i, i_ix_ele
+integer ios, ix, ix_universe, num, i, i_ix_ele
 integer, allocatable :: ix_ele(:)
 
 character(*) string
 character(40) ele_name
-character(20) :: r_name = 'tao_locate_element'
+character(20) :: r_name = 'tao_locate_elements'
 
 logical, optional :: ignore_blank
 logical, allocatable, save :: here(:)
@@ -220,20 +220,23 @@ endif
 call tao_pointer_to_universe (ix_universe, u, error)
 if (error) return
 
-if (is_integer(ele_name)) then
-  read (ele_name, *, iostat = ios) ix_ele_temp
-  ix_ele(1) = ix_ele_temp
-  if (ix_ele(1) < 0 .or. ix_ele(1) > u%model%lat%n_ele_max) then
-    ix_ele(1) = -1
-    call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE: ' // ele_name)
-  endif
-  return
-endif
+!if (is_integer(ele_name)) then
+!  read (ele_name, *, iostat = ios) ix_ele(1)
+!  if (ix_ele(1) < 0 .or. ix_ele(1) > u%model%lat%n_ele_max) then
+!    call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE: ' // ele_name)
+!    ix_ele(1) = -1
+!  endif
+!  return
+!endif
 
 if (is_integer(ele_name(1:1))) then ! must be an array of numbers
   if (allocated (here)) deallocate(here)
   allocate(here(0:u%model%lat%n_ele_max))
   call location_decode(ele_name, here, 0, num) 
+  if (num < 0) then
+    call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE: ' // ele_name)
+    return
+  endif
   call re_allocate (ix_ele, num)
   i_ix_ele = 1
   do i = 0, ubound(here,1)
@@ -255,21 +258,22 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, is_ele, err)
+! Subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, err, err_print, ix_ele)
 ! 
 ! Routine to set a pointer to the appropriate variable in a lattice
 !
 ! Input:
-!   var    -- Tao_var_struct: Structure has the info of where to point.
-!   this   -- Tao_this_var_struct: the variables pointers to point with
-!   ix_uni -- Integer: the universe to use
-!   ix_ele -- (Optional) Integer: Point to this element
+!   var       -- Tao_var_struct: Structure has the info of where to point.
+!   this      -- Tao_this_var_struct: the variables pointers to point with
+!   ix_uni    -- Integer: the universe to use
+!   err_pirnt -- Logical: Print message on error?
+!   ix_ele    -- Integer, optional: Point to this element
 !
 ! Output:
 !   err   -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, ix_ele, err)
+subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, err, err_print, ix_ele)
 
 implicit none
 
@@ -279,13 +283,12 @@ type (tao_this_var_struct) this
 
 integer, optional :: ix_ele
 integer ix, ie, ix_uni
-logical, optional :: err
-logical error
+logical :: err, err_print
 character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
 
 ! locate element
 
-  if (present(err)) err = .true.
+  err = .true.
 
   u => s%u(ix_uni)
   if (present(ix_ele)) then
@@ -295,61 +298,23 @@ character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
   endif
 
   if (ie < 0) then
-    call out_io (s_error$, r_name, 'ELEMENT NAME NOT FOUND: ' // var%ele_name)
-    if (present(err)) return
-    call err_exit
+    if (err_print) call out_io (s_error$, r_name, 'ELEMENT NAME NOT FOUND: ' // var%ele_name)
+    return
   endif
 
   ! locate attribute
 
   call pointer_to_attribute (u%model%lat%ele(ie), var%attrib_name, .true., &
-                                                                 this%model_ptr, error)
-  if (error) then
-    if (present(err)) return
-    call err_exit
-  endif
+                            this%model_ptr, err, err_print, ix_attrib = var%ix_attrib)
+  if (err) return
 
   call pointer_to_attribute (u%base%lat%ele(ie),  var%attrib_name, .true., &
-                                                                 this%base_ptr,  error)
-
-  if (present(err)) err = .false.
+                                                        this%base_ptr,  err, err_print)
 
   this%ix_ele = ie
   this%ix_uni = ix_uni
 
 end subroutine tao_pointer_to_var_in_lattice
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine tao_locate_elements (var, ix_u, n_ele)
-!
-! Routine to locate the elements with name var%ele_name.
-!-
-
-subroutine tao_locate_elements (var, ix_u, n_ele)
-
-implicit none
-
-type (tao_var_struct) var
-type (lat_struct), pointer :: lat
-
-integer ix_u, n_ele, iv
-
-!
-
-lat => s%u(ix_u)%model%lat
-
-n_ele = 0
-do iv = 0, lat%n_ele_max
-  if (var%ele_name == lat%ele(iv)%name) then
-    n_ele = n_ele + 1
-    lat%ele(n_ele)%ixx = iv
-  endif
-enddo
-
-end subroutine
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1405,6 +1370,7 @@ type (tao_string_array_struct), allocatable, save  :: sa(:)
 integer i, j, nd, nl, i1, i2, num
 
 character(*) name
+character(40), allocatable, save :: names(:)
 character(80) v1_name, v_name
 
 logical this_err
@@ -1412,10 +1378,10 @@ logical, allocatable, save :: list(:)
 
 !
 
-if (allocated(list)) deallocate(list)
+if (allocated(list)) deallocate(list, names)
 i1 = lbound(v1%v, 1)
 i2 = ubound(v1%v, 1)
-allocate (list(i1:i2))
+allocate (list(i1:i2), names(i1:i2))
 this_err = .false.
 
 if (logic_option(.false., blank_is_null) .and. name == ' ') then
@@ -1426,7 +1392,10 @@ elseif (logic_option(.false., all_elements) .or. name == '*' .or. name == ' ') t
   list = .true.
 
 else
-  call location_decode (name, list, i1, num)
+  do i = i1, i2
+    names(i) = v1%v(i)%ele_name
+  enddo
+  call location_decode (name, list, i1, num, names)
   if (num <  1) then
     call out_io (s_error$, r_name, "BAD DATA NUMBER(S): " // var_name)
     this_err = .true.
@@ -3043,56 +3012,62 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_ele_locations_given_name (lat, name, loc, err, print_err)
+! Subroutine tao_ele_locations_given_name (u, name, loc, err, print_err)
 !
 ! Subroutine to find the locations of all elements in lat%ele(:)
 ! that match name where name is in the form "class:ele_name".
 !
 ! Input:
-!   lat       -- Lat_struct: Lattice holding the elements.
+!   u         -- Universe_struct: Universe with lattice.
 !   name      -- Character(*): Name in the form "class:ele_name".
 !   print_err -- Logical, optional: If True then print an error message if 
 !                 there is a problem. Default is True.
 !
 ! Output:
-!   loc(0:) -- Logical, allocatable: loc(i) set to True if 
+!   loc(0:) -- Integer, allocatable: indexes of elements whose
 !                lat%ele(i)%name corresponds to name. 
-!                loc will be allocated if needed and will
-!                be deallocated if there is an error.
+!                loc will be allocated  as needed.
+!                If there is an error size(loc) = 0.
 !   err     -- Logical: Set True if format of name is bad. 
 !                Set False otherwise.
 !-
 
-subroutine tao_ele_locations_given_name (lat, name, loc, err, print_err)
+subroutine tao_ele_locations_given_name (u, name, loc, err, print_err)
 
 implicit none
 
-type (lat_struct) lat
+type (tao_universe_struct), target :: u
+type (lat_struct), pointer :: lat
 
-integer i, ix_class
+integer i, n, ix_class
 
 character(*) name
 character(40) ele_name
 
-logical, allocatable :: loc(:)
+integer, allocatable :: loc(:)
 logical, optional :: print_err
 logical err
 
 !
 
-call re_allocate (loc, 0, lat%n_ele_max)
-
 call tao_string_to_element_id (name, ix_class, ele_name, err, print_err)
 if (err) then
-  deallocate(loc)
+  call re_allocate (loc, 0)
   return
 endif
 
-loc = .false.
+n = 0
+lat => u%design%lat
 do i = 0, lat%n_ele_max
   if (ix_class /= 0 .and. ix_class /= lat%ele(i)%key) cycle
   if (.not. match_wild(lat%ele(i)%name, ele_name)) cycle
-  loc(i) = .true.
+  n = n + 1
+  u%ele(n)%ixx = i
+enddo
+
+call re_allocate (loc, n)
+do i = 1, n
+  loc(i) = u%ele(i)%ixx
 enddo
 
 end subroutine

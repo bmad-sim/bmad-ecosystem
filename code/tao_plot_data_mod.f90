@@ -389,7 +389,7 @@ do k = 1, size(graph%curve)
     curve%ix_ele_ref_track = 0
   else
     zero_average_phase = .false.
-    call tao_locate_element (curve%ele_ref_name, curve%ix_universe, ix_ele, .true.)
+    call tao_locate_elements (curve%ele_ref_name, curve%ix_universe, ix_ele, .true.)
     if (ix_ele(1) < 0) then
       graph%valid = .false.
       return

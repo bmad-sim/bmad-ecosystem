@@ -19,7 +19,7 @@ use tao_init_global_mod
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (tao_var_struct), pointer :: var_ptr
+type (tao_var_struct), pointer :: var
 type (tao_this_var_struct), pointer :: this
 type (tao_plot_struct), pointer :: p
 type (tao_data_struct), pointer :: data
@@ -34,7 +34,7 @@ character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
 
-integer i, j, i2, j2, n_universes, iu, ix, ix_attrib, n_arg, ib, ip, ios
+integer i, j, i2, j2, n_universes, iu, ix, n_arg, ib, ip, ios
 integer iu_log
 
 logical err, calc_ok  
@@ -105,26 +105,17 @@ bmad_status%exit_on_error = .false.
 call tao_set_var_useit_opt
 
 do i = 1, size(s%var)
-  var_ptr => s%var(i)
-  if (.not. var_ptr%exists) cycle
-  do j = 1, size(var_ptr%this)
-    this => var_ptr%this(j)
+  var => s%var(i)
+  if (.not. var%exists) cycle
+  do j = 1, size(var%this)
+    this => var%this(j)
     u => s%u(this%ix_uni)
-    call pointer_to_attribute (u%model%lat%ele(this%ix_ele), var_ptr%attrib_name, &
-                               .false., ptr_attrib, err, .false., ix_attrib)
-    if (err) then
-      call out_io (s_abort$, r_name, &
-                'Error: Attribute not recognized: ' // var_ptr%attrib_name, &
-                '       For element: ' // u%model%lat%ele(this%ix_ele)%name, &
-                '       Which is a: ' // key_name(u%model%lat%ele(this%ix_ele)%key))
-      call err_exit
-    endif
-    if (.not. attribute_free (this%ix_ele, ix_attrib, u%model%lat)) then
+    if (.not. attribute_free (this%ix_ele, var%ix_attrib, u%model%lat)) then
       call out_io (s_abort$, r_name, &
                 'Error: Variable trying to control an attribute that is not free to vary.', &
-                '       Variable:  ' // tao_var1_name(var_ptr), &
-                '       Element:   ' // var_ptr%ele_name, &
-                '       Attribute: ' // var_ptr%attrib_name)
+                '       Variable:  ' // tao_var1_name(var), &
+                '       Element:   ' // var%ele_name, &
+                '       Attribute: ' // var%attrib_name)
       call err_exit
     endif
   enddo
