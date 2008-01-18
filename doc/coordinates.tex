@@ -267,14 +267,13 @@ particle and the particle.}
 The longitudinal position $s$ is the independent variable instead of
 the time.  $x$ and $y$, are the reference orbit coordinates given in
 \sref{s:ref}.  The canonical momenta $p_x$ and $p_y$ are
-normalized momenta
+normalized by the reference (sometimes called the
+design) momentum $P_0$
 \begin{align}
   p_x = &\frac{P_x}{P_0} \\
   p_y = &\frac{P_y}{P_0}
 \end{align}
-where $P_x$ and $P_y$ are respectively the momentum components along
-the $x$ and $y$ axes, and $P_0$ is the reference (sometimes called the
-design) momentum.
+where $P_x$ and $P_y$ are respectively the $x$ and $y$ canonical momentums.
 
 The canonical $z$ coordinate is 
 \begin{align}
@@ -284,9 +283,11 @@ The canonical $z$ coordinate is
 \end{align}
 $t$ is the time at which the particle is at position $s$, $t_0$ is the
 time at which the reference particle is at position $s$, and $\beta$ is
-$v/c$ with $v$ being the particle velocity. At constant velocity (for
-example, at high energy where $\beta = 1$), $\beta(s)$ is independent
-of $s$ and $\beta \, c \, t$ is just the path length. Thus, the change in
+$v/c$ with $v$ being the particle velocity (and not the reference velocity). 
+If the particle's velocity is constant and is the same as the 
+velocity of the reference particle
+(for example, at high energy where $\beta = 1$ for all particles), 
+$\beta \, c \, t$ is just the path length. Thus, the change in
 $z$ going through an element is
 \Begineq
   \Delta z = L_0 - L_p
