@@ -176,12 +176,30 @@ variables.
 
 \index{v1_var}
 
-
 Blocks of variables are associated with what is called a \vn{v1_var}
 structure and each of these structures has a \vn{name} with which to
 refer to them in \tao commands. For example, if \vn{quad_k1} is the
 name of a \vn{v1_var} then \vn{quad_k1[5]} referres to the variable 
 with index 5. 
+
+Ranges of variables can be referred to using using a comma \vn{,} to
+separate the indexes combined with the notaion \vn{n1:n2} to specify
+all the variables between \vn{n1} and \vn{n2} inclusive. For example
+\begin{example}
+  quad_k1[3:6,23]
+\end{example}
+refers to variables 3, 4, 5, 6, and 23. Instead of a number, the
+associated lattice element name can be used so if, in the above
+example, the lattice element named \vn{q01} is assocaited with
+\vn{quad_k1[1]}, etc., then the following is equivalent:
+\begin{example}
+  quad_k1[q03:q06,q23]
+\end{example}
+Using lattice names instead of numbers is not valid if the same
+lattice element is associated with more than one variable in a
+\vn{v1_var} array. This can happen, for example, if one var controled
+an element's x_offset and another var controlled the same element's
+y_offset. 
 
 A given variable may control a single attribute of one element in a
 \vn{model} lattice of a single universe or it can be configured to
