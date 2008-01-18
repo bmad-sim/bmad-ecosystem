@@ -88,8 +88,6 @@ CONFIG_DIRS   :=
 LOCAL_INCS    := ./include ../include
 LOCAL_MODS    := ../modules 
 
-#SRC_EXCLUDE := ele_to_fibre.f90
-
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  
 # These variables are automatically appended to the relevant search paths and
