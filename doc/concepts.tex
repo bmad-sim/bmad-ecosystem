@@ -123,13 +123,13 @@ matches the measured data.
 \label{s:lattice}
 
 A \vn{lattice} consists of a machine description (the strength and
-placement of elements such as quadrupoles and bends) along with the
+placement of elements such as quadrupoles and bends, etc.), along with the
 beam orbit through them. There are actually three types of lattices:
   \vspace*{-3ex}
   \begin{description}
   \item[Design Lattice] \Newline 
 The \vn{design} lattice corresponds to the lattice read in from the
-lattice description file (\sref{s:init.lat}). In many instances this
+lattice description file(s) (\sref{s:init.lat}). In many instances, this
 is the particular lattice that one wants the actual physical machine
 to conform to. The \vn{design} lattice is fixed. Nothing is alowed to
 vary in this lattice.
@@ -137,8 +137,8 @@ vary in this lattice.
 Except for some commands that explicitly set the \vn{base} lattice,
 all \tao commands to vary lattice variables vary quantities in the
 \vn{model} lattice. In particular, things like orbit correction
-involve varying \vn{model} variables until the \vn{data} as calculated
-from the \vn{model} match the \vn{data} as actually measured.
+involve varying \vn{model} lattice variables until the \vn{data},
+as calculated from the \vn{model}, matches the \vn{data} as actually measured.
   \item[Base Lattice] \Newline
 It is sometimes convenient to designate a reference lattice so that
 changes in the \vn{model} from the reference point can be examined.
@@ -198,8 +198,8 @@ example, the lattice element named \vn{q01} is assocaited with
 Using lattice names instead of numbers is not valid if the same
 lattice element is associated with more than one variable in a
 \vn{v1_var} array. This can happen, for example, if one var controled
-an element's x_offset and another var controlled the same element's
-y_offset. 
+an element's \vn{x_offset} and another var controlled the same element's
+\vn{y_offset}. 
 
 A given variable may control a single attribute of one element in a
 \vn{model} lattice of a single universe or it can be configured to

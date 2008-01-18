@@ -77,7 +77,7 @@ If multiple universes (\sref{s:universe}) are present, then the prefix
 \end{example}
 would refer to the \vn{orbit.x} data in universe 2. When not
 specified, the current ``viewed'' universe is assumed. The current
-\vn{viewed} universe is also has index \vn{0} so \vn{orbit.x} is
+\vn{viewed} universe has index \vn{0} so \vn{orbit.x} is
 equivalent to \vn{0@orbit.x}.
 
 As explained in Section~\sref{s:data.anatomy}, each individual datum
@@ -90,7 +90,8 @@ For example:
   orbit.x[3:10]|meas     ! The measured data values
 \end{example}
 
-A ``\vn{*}'' can be used as a wild card to denote ``all''. Thus:
+In referring to datums, a ``\vn{*}'' can be used as a wild card to 
+denote ``all''. Thus:
 \begin{example}
   *@orbit.x       ! The \vn{orbit.x} data in all universes.
   *               ! All the data in the currently viewed universe.
@@ -124,7 +125,7 @@ Each datum has a number of quantities associated with it:
   meas              ! Real: Measured datum value. 
   ref               ! Real: Measured datum value from the reference data set.
   model             ! Real: Datum value as calculated from the model.
-  design            ! What the datum value is in the design lattice.
+  design            ! Real: What the datum value is in the design lattice.
   old               ! Real: The model at some previous time.
   base              ! Real: The value as calculated from the base model.
   fit               ! Real: The value as calculated from a fitting procedure.
@@ -145,7 +146,8 @@ Each datum has a number of quantities associated with it:
   useit_opt         ! Logical: Is this datum to be used for optimization?
 \end{example}
 When running \tao, the \vn{show data}
-(\sref{s:show}) command can be used to view components of a datum.
+(\sref{s:show}) command can be used to view the components of a datum. 
+The \vn{set} command (\sref{s:set}) can be used to set some of these components.
 
 %------------------------------------------------------------------------
 \subsection{Datum values}
@@ -153,7 +155,7 @@ When running \tao, the \vn{show data}
 
 \index{Data!measured}\index{Data!reference}\index{Data!model}
 \index{Data!base}\index{Data!design}
-There are actually mutiple values that are associated with a given datum:
+A given datum has six values associated it:
 \vspace{-2ex}
 \begin{description}
   \vspace{-1ex}
