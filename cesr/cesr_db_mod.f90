@@ -15,9 +15,9 @@ module cesr_db_mod
 
   type db_element_struct
     character(16) bmad_name    ! bmad name of element
-    real dvar_dcu             ! calibration factor
-    real var_theory           ! theory var value
-    real var_0                ! extrapolated var value at CU = 0
+    real(rp) dvar_dcu             ! calibration factor
+    real(rp) var_theory           ! theory var value
+    real(rp) var_0                ! extrapolated var value at CU = 0
     integer ix_lat           ! index to element array in lat struct
     integer ix_attrib         ! index to element attribute
     integer ix_cesrv          ! index to cesr_struct arrays
@@ -141,9 +141,9 @@ subroutine bmad_to_db (lat, db, calib_date)
   type (db_struct) db
   type (cesr_struct) cesr
 
-  real h_stren(120), v_stren(120), gev, cu_per_k_gev(0:120)
-  real k_theory(0:120), k_base(0:120), len_quad(0:120)
-  real quad_tilt(0:120), dk_gev_dcu(0:120)
+  real(rp) h_stren(120), v_stren(120), gev, cu_per_k_gev(0:120)
+  real(rp) k_theory(0:120), k_base(0:120), len_quad(0:120)
+  real(rp) quad_tilt(0:120), dk_gev_dcu(0:120)
 
   integer i, ix, ios, cu_theory(0:120), nq100
 
@@ -203,7 +203,7 @@ subroutine bmad_to_db (lat, db, calib_date)
                            
   call db_init_it (db%csr_sqewsext, lbound(db%csr_sqewsext, 1), &
           'CSR SQEWSEXT',    k2$,    db%node, &
-	  cesr%skew_sex(1:n_csr_sqewsext_maxx), 1)
+    cesr%skew_sex(1:n_csr_sqewsext_maxx), 1)
 
   call db_init_it (db%scir_vertcur, lbound(db%scir_vertcur, 1), &
           'SCIR VERTCUR', vkick$, db%node, cesr%v_steer(111:114), 111)
@@ -729,8 +729,8 @@ end subroutine
 !       %comment(5) -- Character(72): Comment.
 !       %det(0:99)%ok     -- Logical: Was there a valid orbit reading?
 !       %det(0:99)%amp(4) -- Integer: raw button numbers.
-!       %det(0:99)%x_orb  -- Real: Horizontal orbit in meters.
-!       %det(0:99)%y_orb  -- Real: Horizontal orbit in meters.
+!       %det(0:99)%x_orb  -- Real(rp): Horizontal orbit in meters.
+!       %det(0:99)%y_orb  -- Real(rp): Horizontal orbit in meters.
 !   db    -- Db_struct: Structure holding the steering settings.
 !     %csr_horz_cur(i)%cu_now -- CU settings for CSR HORZ CUR
 !     %csr_hbnd_cur(i)%cu_now -- CU settings for CSR HBND CUR
@@ -764,7 +764,7 @@ subroutine read_butns_file (butns_num, nonlinear_calc, butns, db, &
   integer i, ix, j, butns_num, iu, ios, raw(4, 120)
   integer n_node, n_ele
 
-  real x_orbit(120), y_orbit(120), rdummy
+  real(rp) x_orbit(120), y_orbit(120), rdummy
 
   character line_in*130, file_in*40
 

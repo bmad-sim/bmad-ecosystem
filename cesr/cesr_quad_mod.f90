@@ -22,12 +22,12 @@ contains
 !              Need previous call to bmad_to_cesr.
 !
 ! Output:
-!   k_theory(0:120)     -- Real: Theory K of quad_i,
-!   k_base(0:120)       -- Real: Extrapolated K for zero cu command
-!   cu_per_k_gev(0:120) -- Real: CU to K*GEV calibration
-!   len_quad(0:120)     -- Real: Length of quad_i
-!   quad_rot(0:120)     -- Real: Quad rotation angle in degrees
-!   dk_gev_dcu(0:120)   -- Real: Derivative of K*GEV vs CU curve.
+!   k_theory(0:120)     -- Real(rp): Theory K of quad_i,
+!   k_base(0:120)       -- Real(rp): Extrapolated K for zero cu command
+!   cu_per_k_gev(0:120) -- Real(rp): CU to K*GEV calibration
+!   len_quad(0:120)     -- Real(rp): Length of quad_i
+!   quad_rot(0:120)     -- Real(rp): Quad rotation angle in degrees
+!   dk_gev_dcu(0:120)   -- Real(rp): Derivative of K*GEV vs CU curve.
 !   cu_theory(0:120)    -- Integer: Scaler needed to get K_THEORY.
 !
 ! Notes:
@@ -63,8 +63,8 @@ subroutine lat_to_quad_calib (lat, cesr, k_theory, k_base,  &
 
   type (cesr_struct) cesr
   type (lat_struct) lat
-  real gev, k_theory(0:*), k_base(0:*), len_quad(0:*)
-  real cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
+  real(rp) gev, k_theory(0:*), k_base(0:*), len_quad(0:*)
+  real(rp) cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
   integer cindex, rindex, cu_theory(0:*)
 
 ! init  &
@@ -153,8 +153,8 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
   type (lat_struct)  lat
   character(*) lattice
   character(60) latfil
-  real energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
-  real cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
+  real(rp) energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
+  real(rp) cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
   integer ix, rindex, cu_theory(0:*)
 
 ! read lattice file

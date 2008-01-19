@@ -27,10 +27,10 @@ module cesr_basic_mod
 ! the element ordering here is similar to what is used by cesrv
 
   type b_struct
-    real beta_mid             ! beta at the midpoint
-    real beta_ave             ! beta averaged over the element
-    real pos_mid              ! position at midpoint
-    real pos_inj              ! position in injection lattice
+    real(rp) beta_mid             ! beta at the midpoint
+    real(rp) beta_ave             ! beta averaged over the element
+    real(rp) pos_mid              ! position at midpoint
+    real(rp) pos_inj              ! position in injection lattice
   end type
 
   type cesr_element_struct 
@@ -86,7 +86,7 @@ module cesr_basic_mod
 ! For butns.nnnnn files
 
   type detector_struct
-    real x_orb, y_orb
+    real(rp) x_orb, y_orb
     integer amp(4)
     integer type
     logical ok
@@ -106,19 +106,19 @@ module cesr_basic_mod
 ! For phase 
 
   type a_cesr_freq_struct 
-    real tune
-    real shake
+    real(rp) tune
+    real(rp) shake
     logical reflection
   end type
 
   type cesr_freq_struct 
     type (a_cesr_freq_struct) x, y
-    real rev
+    real(rp) rev
   end type
 
   type cesr_phase_params_struct 
     integer species                            
-    real current
+    real(rp) current
     character(60) comment
     integer unit, single_unit
     character(60) file_name, raw_file_name
@@ -128,26 +128,26 @@ module cesr_basic_mod
   endtype        
 
   type cesr_but_struct 
-    real phase
-    real amp
+    real(rp) phase
+    real(rp) amp
     logical ok
   end type
 
   type cesr_det_xy_struct 
-    real amp
-    real phase
+    real(rp) amp
+    real(rp) phase
   end type
 
   type cesr_det_plane_struct 
     type (cesr_but_struct) but(4)
     type (cesr_det_xy_struct) x, y
-    real phase_meas
-    real rms_phase_meas
-    real phase_design
-    real beta_design
-    real cbar11                
-    real cbar12
-    real cbar22
+    real(rp) phase_meas
+    real(rp) rms_phase_meas
+    real(rp) phase_design
+    real(rp) beta_design
+    real(rp) cbar11                
+    real(rp) cbar12
+    real(rp) cbar22
     integer n_buts
     logical ok     
     logical shake
@@ -155,8 +155,8 @@ module cesr_basic_mod
   end type
 
   type cesr_det_dc_position_struct
-    real x, y
-    real signal(4)
+    real(rp) x, y
+    real(rp) signal(4)
   end type
 
 
