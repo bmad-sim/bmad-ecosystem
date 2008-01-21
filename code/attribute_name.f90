@@ -253,16 +253,20 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(group$, accordion_edge$) = 'ACCORDION_EDGE'
     attrib_array(group$, symmetric_edge$) = 'SYMMETRIC_EDGE'
 
-    attrib_array(drift$, l$)          = 'L'
-    attrib_array(drift$, is_on$)      =  null_name    
-    attrib_array(drift$, field_calc$) = 'FIELD_CALC'
+    attrib_array(drift$, l$)             = 'L'
+    attrib_array(drift$, is_on$)         =  null_name    
+    attrib_array(drift$, field_calc$)    = 'FIELD_CALC'
 
-    attrib_array(monitor$, l$)        = 'L'
-    attrib_array(monitor$, x_offset$) = 'X_OFFSET'
-    attrib_array(monitor$, y_offset$) = 'Y_OFFSET'
-    attrib_array(monitor$, x_pitch$)  = 'X_PITCH'
-    attrib_array(monitor$, y_pitch$)  = 'Y_PITCH'
-    attrib_array(monitor$, tilt$)     = 'TILT'
+    attrib_array(monitor$, l$)           = 'L'
+    attrib_array(monitor$, x_offset$)    = 'X_OFFSET'
+    attrib_array(monitor$, y_offset$)    = 'Y_OFFSET'
+    attrib_array(monitor$, x_pitch$)     = 'X_PITCH'
+    attrib_array(monitor$, y_pitch$)     = 'Y_PITCH'
+    attrib_array(monitor$, tilt$)        = 'TILT'
+    attrib_array(monitor$, bpm_x_scale_err$)  = 'BPM_X_SCALE_ERR'
+    attrib_array(monitor$, bpm_y_scale_err$)  = 'BPM_Y_SCALE_ERR'
+    attrib_array(monitor$, bpm_scrunch$)      = 'BPM_SCRUNCH'
+    attrib_array(monitor$, bpm_noise$)        = 'BPM_NOISE'
 
     attrib_array(instrument$, l$) = 'L'
     attrib_array(instrument$, x_offset$) = 'X_OFFSET'
