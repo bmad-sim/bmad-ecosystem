@@ -295,7 +295,7 @@ case ('data')
 
   if (line1 == ' ') then  ! just specified a universe
 
-    do iu = 1, size(s%u)
+    do iu = lbound(s%u, 1), ubound(s%u, 1)
 
       if (.not. picked(iu)) cycle
 
@@ -932,7 +932,7 @@ case ('lattice')
 
 case ('optimizer')
 
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
     call out_io (s_blank$, r_name, ' ', 'Data Used:')
     write (lines(1), '(a, i4)') 'Universe: ', i

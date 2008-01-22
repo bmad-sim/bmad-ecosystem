@@ -51,7 +51,7 @@ call tao_get_vars (var_value, var_delta = var_delta, var_weight = weight)
 
 n_var = size(var_delta)
 n_data = n_var
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. s%u(i)%is_on) cycle
   n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0)
 enddo
@@ -71,7 +71,7 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
   merit_vec = 0
   merit_vec(1:n_var) = sqrt(weight) * var_delta
   k = n_var
-  do n = 1, size(s%u)
+  do n = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(n)
     if (.not. u%is_on) cycle
     do j = 1, size(u%data)

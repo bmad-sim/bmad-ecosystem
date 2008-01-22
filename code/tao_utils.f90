@@ -849,7 +849,7 @@ if (ix == 0) then ! No universe specified. Use default
 else ! read universe number
 
   if (dat_name(:ix-1) == '*') then
-    do i = 1, size(s%u)
+    do i = lbound(s%u, 1), ubound(s%u, 1)
       call find_this_d2 (s%u(i), dat_name(ix+1:), this_err)
       if (this_err) return
     enddo

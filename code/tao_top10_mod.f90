@@ -228,7 +228,7 @@ this_merit = tao_merit()
 top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
 
 nc = count (s%var(:)%useit_opt)
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   nc = nc + count (s%u(i)%data(:)%useit_opt)
 enddo
 allocate (con(nc), ixm(nc))
@@ -236,7 +236,7 @@ allocate (con(nc), ixm(nc))
 ! Data constraints
 
 nc = 0
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, size(s%u(i)%data)
     data => s%u(i)%data(j)
     if (.not. data%useit_opt) cycle
@@ -383,7 +383,7 @@ logical printed
 ix_hash = index (out_file, '#')
 printed = .false.
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
 
   if (.not. s%u(i)%is_on) cycle
 

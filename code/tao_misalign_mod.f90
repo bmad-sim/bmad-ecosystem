@@ -102,7 +102,7 @@ logical, allocatable, save :: action_logic(:)
 
   !Find an element in the lattice of this key type then find the attribute in
   !this element
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. which_univ(i)) cycle
     do j = 1, s%u(i)%model%lat%n_ele_max
       if (s%u(i)%model%lat%ele(j)%key .eq. ix_key(1)) then
@@ -140,7 +140,7 @@ logical, allocatable, save :: action_logic(:)
   endif
   
   num_loc = 0
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (num_loc .lt. s%u(i)%model%lat%n_ele_max) &
          num_loc = s%u(i)%model%lat%n_ele_max
   enddo
@@ -151,7 +151,7 @@ logical, allocatable, save :: action_logic(:)
   found_double = .false.
   
   ! set misalignment
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (which_univ(i)) then
       do j = 1, s%u(i)%model%lat%n_ele_max
         if (found_double) then

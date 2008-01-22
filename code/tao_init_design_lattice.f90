@@ -84,7 +84,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   override = .false.
   if (tao_com%init_lat_file(1) /= '') override = .true.
 
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (design_lattice(i)%parser /= '') then
       call out_io (s_error$, r_name, (/ &
           '************************************************************', &

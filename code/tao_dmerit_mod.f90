@@ -43,7 +43,7 @@ call tao_set_data_useit_opt
 
 reinit = force_calc 
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
 
   u => s%u(i)
   if (.not. u%is_on) then
@@ -133,7 +133,7 @@ do j = 1, s_var_size
          'VARIABLE STEP SIZE IS TOO LARGE FOR: ' // tao_var1_name(s%var(j)), ' ')
   endif
 
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
     do k = 1, size(u%data)
       if (.not. u%data(k)%useit_opt) cycle
@@ -179,7 +179,7 @@ do i = 1, size(s%var)
   s%var(i)%dmerit_dvar = 2 * s%var(i)%weight * s%var(i)%delta_merit
   nv = s%var(i)%ix_dvar
 
-  do j = 1, size(s%u)
+  do j = lbound(s%u, 1), ubound(s%u, 1)
     do k = 1, size (s%u(j)%data)
       data => s%u(j)%data(k)
       if (.not. data%useit_opt) cycle

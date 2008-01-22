@@ -39,7 +39,7 @@ logical err
 call tao_pick_universe (dest_lat, dest1_name, this_u, err)
 if (err) return
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(i)) cycle
   call set_lat (s%u(i))
   if (err) return

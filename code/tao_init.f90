@@ -152,12 +152,12 @@ call tao_init_plotting (plot_file)
 ! Set up model and base lattices.
 ! Must first transfer to model lattice for tao_lattice_calc to run.
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%model = s%u(i)%design; s%u(i)%model%orb = s%u(i)%design%orb
 enddo
 tao_com%lattice_recalc = .true.
 call tao_lattice_calc (calc_ok, .true.) ! .true. => init design lattice
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%design = s%u(i)%model; s%u(i)%design%orb = s%u(i)%model%orb
   s%u(i)%base  = s%u(i)%design; s%u(i)%base%orb  = s%u(i)%design%orb
   s%u(i)%data%design_value = s%u(i)%data%model_value
@@ -169,14 +169,14 @@ call tao_plot_out ()         ! Update the plotting window
 
 ! Print bad data
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   if (any(s%u(i)%data%exists .and. .not. s%u(i)%data%good_model)) then
     call out_io(s_warn$, r_name, 'BAD DATA LIST (CANNOT COMPUTE A MODEL VALUE):')
     exit
   endif
 enddo
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, size(s%u(i)%data)
     data => s%u(i)%data(j)
     if (data%exists .and. .not. data%good_model) call out_io(s_blank$, r_name, &
@@ -257,7 +257,7 @@ if (allocated(tao_com%ele_shape_floor_plan)) deallocate (tao_com%ele_shape_floor
 ! Universes 
 
 if (associated (s%u)) then
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
 
     u => s%u(i)
     ! radiation integrals cache

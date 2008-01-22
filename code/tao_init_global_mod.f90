@@ -97,7 +97,7 @@ endif
 
 n = size(s%u)
 n_max = 0
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%ix_uni = i
   s%u(i)%do_synch_rad_int_calc = .false.
   s%u(i)%do_chrom_calc         = .false.
@@ -139,7 +139,7 @@ call init_orbits ()
   
 ! set model/base = design
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%model%lat = s%u(i)%design%lat
   s%u(i)%base%lat  = s%u(i)%design%lat
 enddo
@@ -148,7 +148,7 @@ enddo
 ! Init connected universes
 
 ! defaults
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%connect%connected = .false.
   s%u(i)%connect%match_to_design = .false.
   s%u(i)%connect%use_connect_ele = .false.
@@ -201,7 +201,7 @@ if (s%global%track_type /= 'macro') then
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
 
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     s%u(i)%beam0_file = ''
   enddo
 
@@ -232,7 +232,7 @@ if (s%global%track_type /= 'macro') then
       call out_io (s_blank$, r_name, &
               'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
       if (ix_universe == -1) then
-        do i = 1, size(s%u)
+        do i = lbound(s%u, 1), ubound(s%u, 1)
           call init_beam(s%u(i))
         enddo
       else
@@ -313,7 +313,7 @@ implicit none
 
 integer i
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
 
   n = s%u(i)%design%lat%n_ele_max
   if (allocated(s%u(i)%model%orb)) then
@@ -657,7 +657,7 @@ do
   endif
 enddo
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   call init_data_in_universe (s%u(i), n_d2_data(i))
 enddo
 
@@ -678,7 +678,7 @@ do
                       'Init: Read tao_d2_data namelist: ' // d2_data%name)
     
   if (universe == '*') then
-    uni_loop1: do i = 1, size(s%u)
+    uni_loop1: do i = lbound(s%u, 1), ubound(s%u, 1)
 
     ! check if this data type has already been defined for this universe
     do k = 1, size(s%u(i)%d2_data)
@@ -764,7 +764,7 @@ do
     call out_io (s_blank$, r_name, &
                       'Init: Read tao_d1_data namelist: ' // d1_data%name)
     if (universe == '*') then          ! * => use all universes
-      uni_loop2: do i = 1, size(s%u)
+      uni_loop2: do i = lbound(s%u, 1), ubound(s%u, 1)
 
       ! check if this data type has already been defined for this universe
       if (.not. mask(i)) cycle uni_loop2
@@ -783,7 +783,7 @@ close (iu)
 !-----------------------------------------------------------------------
 ! Init ix_data array
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   call init_ix_data (s%u(i))
 enddo
 
@@ -1454,7 +1454,7 @@ do
     enddo
 
   else   ! If clone...
-    do i = 1, size(s%u)
+    do i = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. dflt_good_unis(i)) cycle
       call var_stuffit1 (v1_var_ptr)
       write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
@@ -1603,7 +1603,7 @@ if (search_for_lat_eles /= '') then
   endif
   ! search through all universes specified
   num_ele = 0
-  do iu = 1, size(s%u)
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     call tao_find_elements (s%u(iu), search_string, ix_eles)
     num_ele = num_ele + size(ix_eles)
@@ -1622,7 +1622,7 @@ if (search_for_lat_eles /= '') then
   s%n_var_used = n2
   jj = n1
 
-  do iu = 1, size(s%u)
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     call tao_find_elements (s%u(iu), search_string, ix_eles)
     do kk = 1, size(ix_eles)
@@ -1744,7 +1744,7 @@ endif
 if (searching) then
   allocate (var%this(count(good_unis)))
   j = 0
-  do iu = 1, size(s%u)
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. good_unis(iu)) cycle
     j = j + 1
     call tao_pointer_to_var_in_lattice (var, var%this(j), iu, &
@@ -1775,7 +1775,7 @@ if (searching) then
 
 else
   n_tot = 0
-  do iu = 1, size(s%u)
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. good_unis(iu)) cycle
 
     n_ele = 0
@@ -1798,7 +1798,7 @@ else
   allocate (var%this(n_tot))
 
   n = 0
-  do iu = 1, size(s%u)
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. good_unis(iu)) cycle
     do ie = 1, n_ele_in_uni(iu)
       call tao_pointer_to_var_in_lattice (var, var%this(ie+n), iu, &

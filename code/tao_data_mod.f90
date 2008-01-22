@@ -53,7 +53,7 @@ integer n_data
   
   
 n_data = 0
-do iu = 1, size(s%u)
+do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. s%u(iu)%is_on) cycle
   n_data  = n_data + count(s%u(iu)%data(:)%useit_opt)
 enddo
@@ -63,7 +63,7 @@ if (present(data_weight))     call re_allocate (data_weight, n_data)
 if (present(data_ix_dModel))  call re_allocate (data_ix_dModel, n_data)
 
 j = 0
-do iu = 1, size(s%u)
+do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. s%u(iu)%is_on) cycle
   do i = 1, size(s%u(iu)%data)
     if (.not. s%u(iu)%data(i)%useit_opt) cycle

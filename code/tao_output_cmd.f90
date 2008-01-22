@@ -153,7 +153,7 @@ case ('bmad_lattice')
   file_name0 = arg(2)%name
   if (file_name0 == ' ') file_name0 = 'lat_#.bmad'
 
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. subin_uni_number (file_name0, i, file_name)) return
     call write_bmad_lattice_file (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
@@ -167,7 +167,7 @@ case ('mad_lattice')
   file_name0 = arg(2)%name
   if (file_name0 == ' ') file_name0 = 'lat_#.mad'
 
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. subin_uni_number (file_name0, i, file_name)) return
     call bmad_to_mad (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
@@ -179,7 +179,7 @@ case ('mad_lattice')
 case ('derivative_matrix')
 
   nd = 0
-  do i = 1, size(s%u)  
+  do i = lbound(s%u, 1), ubound(s%u, 1)  
     if (.not. s%u(i)%is_on) cycle
     nd = nd + count(s%u(i)%data%useit_opt)
     if (.not. associated(s%u(i)%dmodel_dvar)) then
@@ -208,7 +208,7 @@ case ('derivative_matrix')
   write (iu, *)
   write (iu, *) '! Index   Data'
 
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. s%u(i)%is_on) cycle
     do j = 1, size(s%u(i)%data)
       if (.not. s%u(i)%data(j)%useit_opt) cycle
@@ -219,7 +219,7 @@ case ('derivative_matrix')
   write (iu, *)
   write (iu, *) ' ix_dat ix_var  dModel_dVar'
   nd = 0
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. s%u(i)%is_on) cycle
     do ii = 1, size(s%u(i)%dmodel_dvar, 1)
       do j = 1, size(s%u(i)%dmodel_dvar, 2)
@@ -241,7 +241,7 @@ case ('digested')
   file_name0 = arg(2)%name
   if (file_name0 == ' ') file_name0 = 'digested_lat_universe_#.bmad'
 
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. subin_uni_number (file_name0, i, file_name)) return
     call write_digested_bmad_file (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
@@ -320,7 +320,7 @@ case ('beam')
 
   iu = lunget()
 
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
 
     u => s%u(i)
     if (.not. subin_uni_number (file_name0, i, file_name)) return

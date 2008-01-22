@@ -78,7 +78,7 @@ if (tao_com%lattice_recalc) then
 
   tao_com%ix0_taylor = -1   ! Reset taylor map
 
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
     if (.not. u%is_on) cycle
     call tao_lat_bookkeeper (u, u%model)
@@ -92,7 +92,7 @@ endif
 
 if (.not. tao_com%lattice_recalc) return
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   u%data(:)%good_model = .false. ! reset
 
