@@ -186,7 +186,7 @@ logical err
 
 !-------------------------------------------------
 
-u => s%u(s%global%u_view)
+u => tao_pointer_to_universe(-1)
 
 call re_allocate (lines, 200, 200)
 call to_number (num_str, change_number, abs_or_rel, err);  if (err) return

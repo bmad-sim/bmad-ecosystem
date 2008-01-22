@@ -38,9 +38,11 @@ character(20) :: r_name = 'tao_plot_data_setup'
 
 if (.not. s%global%plot_on) return
 
-do i_uni = 1, size(s%u)
+do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   u => s%u(i_uni)
+  if (.not. allocated(u%ele)) cycle
+
   lat => u%model%lat
 
   u%ele%ix_shape_lat_layout = 0

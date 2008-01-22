@@ -217,8 +217,8 @@ if (ix == 0) then
   return
 endif
 
-call tao_pointer_to_universe (ix_universe, u, error)
-if (error) return
+u => tao_pointer_to_universe (ix_universe)
+if (.not. associated(u)) return
 
 !if (is_integer(ele_name)) then
 !  read (ele_name, *, iostat = ios) ix_ele(1)
@@ -842,8 +842,8 @@ ix = index(dat_name, '@')
 
 if (ix == 0) then ! No universe specified. Use default
   iu = integer_option (s%global%u_view, ix_uni)
-  call tao_pointer_to_universe (iu, u, error)
-  if (error) return
+  u => tao_pointer_to_universe (iu)
+  if (.not. associated(u)) return
   call find_this_d2 (u, dat_name, this_err)
 
 else ! read universe number
@@ -862,8 +862,8 @@ else ! read universe number
       if (print_error) call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_name)
       return
     endif
-    call tao_pointer_to_universe (iu, u, error)
-    if (error) return
+    u => tao_pointer_to_universe (iu)
+    if (.not. associated(u)) return
     call find_this_d2 (u, dat_name(ix+1:), this_err)
   endif
 endif
@@ -2917,46 +2917,52 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_pointer_to_universe (ix_uni, u, error)
+! Function tao_pointer_to_universe (ix_uni) result (u)
 !
-! Subroutine to set a pointer to a universe.
-! If ix_uni is 0 then s%global%u_view will be used
+! Routine to set a pointer to a universe.
+! If ix_uni is 0 then s%global%u_view will be used.
+! If ix_uni is -1 then:
+!       tao_com%unified_lattices   Universe-Index  
+!         True                       -1  
+!         False                      s%global%u_view
 !
 ! Input:
 !   ix_uni -- Integer: Index to the s%u(:) array
 !
 ! Output:
 !   u      -- Tao_universe_struct, pointer: Universe pointer.
-!   error  -- Logical, optional: Set to True is ix_uni is out of range.
+!               u will be nullified if ix_uni is out of range.
 !               If not present then print a message and exit program.
 !-
 
-Subroutine tao_pointer_to_universe (ix_uni, u, error)
+function tao_pointer_to_universe (ix_uni) result(u)
 
 implicit none
 
 type (tao_universe_struct), pointer :: u
-integer ix_uni, ix
+integer ix_uni
 character(28) :: r_name = 'tao_pointer_to_universe'
-
-logical, optional :: error
 
 !
 
-if (ix_uni < 0 .or. ix_uni > size(s%u)) then
-  call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_uni)
-  if (.not. present(error)) call err_exit
-  error = .true.
+if (ix_uni == -1 .and. tao_com%unified_lattices) then
+  u => s%u(-1)
   return
 endif
 
-ix = ix_uni
-if (ix_uni == 0) ix = s%global%u_view
-u => s%u(ix)
+if (ix_uni < -1 .or. ix_uni > size(s%u)) then
+  call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_uni)
+  nullify (u)
+  return
+endif
 
-if (present(error)) error = .false.
+if (ix_uni == 0 .or. ix_uni == -1) then
+  u => s%u(s%global%u_view)
+else
+  u => s%u(ix_uni)
+endif
 
-end subroutine
+end function tao_pointer_to_universe
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

@@ -350,7 +350,8 @@ case ('ix_universe')
                                                                  this_curve%ix_ele_ref_track)
 
 case ('ix_bunch')
-  call tao_pointer_to_universe (this_curve%ix_universe, u)
+  u => tao_pointer_to_universe (this_curve%ix_universe)
+  if (.not. associated(u)) return
   call tao_integer_set_value (this_curve%ix_bunch, component, &
                                               set_value, error, -1, u%beam_init%n_bunch)
 

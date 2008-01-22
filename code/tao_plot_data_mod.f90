@@ -85,7 +85,8 @@ character(40) :: r_name = 'tao_phase_space_plot_data_setup'
 graph%valid = .false.
 
 curve => graph%curve(1)
-call tao_pointer_to_universe (curve%ix_universe, u)
+u => tao_pointer_to_universe (curve%ix_universe)
+if (.not. associated(u)) return
 
 if (curve%ix_ele_ref_track < 0) then
   call out_io (s_error$, r_name, &
@@ -379,7 +380,8 @@ graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
 do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
-  call tao_pointer_to_universe (curve%ix_universe, u)
+  u => tao_pointer_to_universe (curve%ix_universe)
+  if (.not. associated(u)) return
   lat => u%model%lat
   base_lat => u%base%lat
 
