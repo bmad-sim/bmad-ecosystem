@@ -27,186 +27,184 @@
 
 subroutine read_digested_bmad_file (digested_name, lat, version)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => read_digested_bmad_file
-  use multipole_mod
+use bmad_struct
+use bmad_interface, except_dummy => read_digested_bmad_file
+use multipole_mod
 
-  implicit none
+implicit none
 
+type old_twiss_struct
+  real(rp) beta, alpha, gamma, phi, eta, etap
+  real(rp) sigma, emit
+end type  
 
-  type old_twiss_struct
-    real(rp) beta, alpha, gamma, phi, eta, etap
-    real(rp) sigma, emit
-  end type  
+type old_lat_param_struct
+  real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
+  real(rp) total_length       ! total_length of lat
+  real(rp) growth_rate        ! growth rate/turn if not stable
+  real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.
+  real(rp) t1_no_RF(6,6)      ! Full 1-turn matrix with RF off.
+  integer particle            ! positron$, electron$, etc.
+  integer ix_lost             ! Index of element particle was lost at.
+  integer end_lost_at         ! entrance_end$ or exit_end$
+  integer lattice_type        ! linear_lattice$, etc...
+  integer ixx                 ! Integer for general use
+  logical stable              ! is closed lat stable?
+  logical aperture_limit_on   ! use apertures in tracking?
+  logical lost                ! for use in tracking
+end type
 
-  type old_lat_param_struct
-    real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
-    real(rp) total_length       ! total_length of lat
-    real(rp) growth_rate        ! growth rate/turn if not stable
-    real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.
-    real(rp) t1_no_RF(6,6)      ! Full 1-turn matrix with RF off.
-    integer particle            ! positron$, electron$, etc.
-    integer ix_lost             ! Index of element particle was lost at.
-    integer end_lost_at         ! entrance_end$ or exit_end$
-    integer lattice_type        ! linear_lattice$, etc...
-    integer ixx                 ! Integer for general use
-    logical stable              ! is closed lat stable?
-    logical aperture_limit_on   ! use apertures in tracking?
-    logical lost                ! for use in tracking
-  end type
+type (lat_struct), target, intent(inout) :: lat
+type (ele_struct), pointer :: ele
+type (old_twiss_struct) old_a, old_b, old_z
+type (old_lat_param_struct) old_param
 
-  type (lat_struct), target, intent(inout) :: lat
-  type (ele_struct), pointer :: ele
-  type (old_twiss_struct) old_a, old_b, old_z
-  type (old_lat_param_struct) old_param
+real(rp) value(n_attrib_maxx)
 
-  real(rp) value(n_attrib_maxx)
+integer d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
+integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios, k_max
+integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
+integer stat_b(12), idate_old
 
-  integer d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
-  integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios, k_max
-  integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
-  integer stat_b(12), idate_old
+character(*) digested_name
+character(200) fname1, fname2, fname3, input_file_name, full_digested_name
+character(200), allocatable :: file_names(:)
+character(25) :: r_name = 'read_digested_bmad_file'
 
-  character(*) digested_name
-  character(200) fname1, fname2, fname3, input_file_name, full_digested_name
-  character(200), allocatable :: file_names(:)
-  character(25) :: r_name = 'read_digested_bmad_file'
-
-  logical found_it, v83, v84, v85, v_old, v_now
+logical found_it, v83, v84, v85, v_old, v_now
 
 ! init all elements in lat
 
-  call init_ele (lat%ele_init)  ! init pointers
-  call deallocate_lat_pointers (lat)
+call init_ele (lat%ele_init)  ! init pointers
+call deallocate_lat_pointers (lat)
 
 ! Read the digested file.
 ! Some old versions can be read even though they are not the current version.
 
-  d_unit = lunget()
-  bmad_status%ok = .true.
-  lat%n_ele_track = 0
+d_unit = lunget()
+bmad_status%ok = .true.
+lat%n_ele_track = 0
 
-  call fullfilename (digested_name, full_digested_name)
-  inquire (file = full_digested_name, name = full_digested_name)
-  open (unit = d_unit, file = full_digested_name, status = 'old',  &
+call fullfilename (digested_name, full_digested_name)
+inquire (file = full_digested_name, name = full_digested_name)
+open (unit = d_unit, file = full_digested_name, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
 
-  read (d_unit, err = 9100) n_files, version
+read (d_unit, err = 9100) n_files, version
 
-  v83 = (version == 83)
-  v84 = (version == 84)
-  v85 = (version == 85)
-  v_old = v83 .or. v84
-  v_now = (version == bmad_inc_version$)  ! v85
+v83 = (version == 83)
+v84 = (version == 84)
+v85 = (version == 85)
+v_old = v83 .or. v84
+v_now = (version == bmad_inc_version$)  ! v85
 
-  if (version < bmad_inc_version$) then
-    if (bmad_status%type_out) call out_io (s_warn$, r_name, &
-           (/ 'DIGESTED FILE VERSION OUT OF DATE \i4\ > \i4\ ' /),  &
-            i_array = (/ bmad_inc_version$, version /) )
-    if (v_old) then 
-      allocate (file_names(n_files))
-      bmad_status%ok = .false.
-    else
-      close (d_unit)
-      bmad_status%ok = .false.
-      return
-    endif
-  endif
-
-  if (version > bmad_inc_version$) then
-    if (bmad_status%type_out) call out_io (s_warn$, r_name, &
-       'DIGESTED FILE HAS VERSION: \i4\ ', &
-       'GREATER THAN VERSION OF THIS PROGRAM: \i4\ ', &
-       'WILL NOT USE THE DIGESTED FILE. YOU SHOULD RECOMPILE THIS PROGRAM.', &
-       i_array = (/ version, bmad_inc_version$ /) )
+if (version < bmad_inc_version$) then
+  if (bmad_status%type_out) call out_io (s_warn$, r_name, &
+         (/ 'DIGESTED FILE VERSION OUT OF DATE \i4\ > \i4\ ' /),  &
+          i_array = (/ bmad_inc_version$, version /) )
+  if (v_old) then 
+    allocate (file_names(n_files))
+    bmad_status%ok = .false.
+  else
     close (d_unit)
     bmad_status%ok = .false.
     return
   endif
+endif
+
+if (version > bmad_inc_version$) then
+  if (bmad_status%type_out) call out_io (s_warn$, r_name, &
+       'DIGESTED FILE HAS VERSION: \i4\ ', &
+       'GREATER THAN VERSION OF THIS PROGRAM: \i4\ ', &
+       'WILL NOT USE THE DIGESTED FILE. YOU SHOULD RECOMPILE THIS PROGRAM.', &
+       i_array = (/ version, bmad_inc_version$ /) )
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+endif
 
 ! if the digested file is out of date then we still read in the file since
 ! we can possibly reuse the taylor series.
 
-  do i = 1, n_files
-    read (d_unit, err = 9100) fname1, idate_old
+do i = 1, n_files
+  read (d_unit, err = 9100) fname1, idate_old
       
-    if (fname1(1:10) == '!DIGESTED:') then
-      fname1 = fname1(11:)
-      if (fname1 /= full_digested_name) then
-        if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
+  if (fname1(1:10) == '!DIGESTED:') then
+    fname1 = fname1(11:)
+    if (fname1 /= full_digested_name) then
+      if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
                                           r_name, ' NOTE: MOVED DIGESTED FILE.')
-        bmad_status%ok = .false.
-      endif
-      cycle
-   endif
+      bmad_status%ok = .false.
+    endif
+    cycle
+ endif
 
-    if (fname1 == '!RAN FUNCTION WAS CALLED') then
-      if (bmad_status%type_out) call out_io(s_warn$, r_name, &
+  if (fname1 == '!RAN FUNCTION WAS CALLED') then
+    if (bmad_status%type_out) call out_io(s_warn$, r_name, &
                 'NOTE: THE RANDOM NUMBER FUNCTION WAS USED IN THE LATTICE FILE SO THIS', &
                 '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')
-      bmad_status%ok = .false.
-      cycle
-    endif
+    bmad_status%ok = .false.
+    cycle
+  endif
 
-    call simplify_path (fname1, fname1)
-    if (v_old) file_names(i) = fname1  ! fake out
-    ix = index(fname1, ';')
-    stat_b = 0
-    if (ix > 0) then    ! has VMS version number
-      fname2 = fname1(:ix-1)
-    else
-      fname2 = fname1
+  call simplify_path (fname1, fname1)
+  if (v_old) file_names(i) = fname1  ! fake out
+  ix = index(fname1, ';')
+  stat_b = 0
+  if (ix > 0) then    ! has VMS version number
+    fname2 = fname1(:ix-1)
+  else
+    fname2 = fname1
 #ifndef CESR_VMS 
-      ierr = stat(fname2, stat_b)
+    ierr = stat(fname2, stat_b)
 #endif
-     endif
-     inquire (file = fname2, exist = found_it, name = fname3)
-     call simplify_path (fname3, fname3)
-     if (.not. found_it .or. fname1 /= fname3 .or. &
-                                             stat_b(10) /= idate_old) then
-       if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
+   endif
+   inquire (file = fname2, exist = found_it, name = fname3)
+   call simplify_path (fname3, fname3)
+   if (.not. found_it .or. fname1 /= fname3 .or. stat_b(10) /= idate_old) then
+     if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
                                       r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
-       bmad_status%ok = .false.
-     endif
+     bmad_status%ok = .false.
+   endif
 
-   enddo
+ enddo
 
 ! we read (and write) the lat in pieces since it is
 ! too big to write in one piece
 
-  if (v83 .or. v84) then
-    read (d_unit, err = 9100)  &   
+if (v83 .or. v84) then
+  read (d_unit, err = 9100)  &   
             lat%name, lat%lattice, lat%input_file_name, lat%title, &
             lat%a, lat%b, lat%z, old_param, lat%version, lat%n_ele_track, &
             lat%n_ele_track, lat%n_ele_max, &
             lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
   
-    lat%param%n_part            = old_param%n_part
-    lat%param%total_length      = old_param%total_length
-    lat%param%particle          = old_param%particle
-    lat%param%lattice_type      = old_param%lattice_type
-    lat%param%aperture_limit_on = old_param%aperture_limit_on
+  lat%param%n_part            = old_param%n_part
+  lat%param%total_length      = old_param%total_length
+  lat%param%particle          = old_param%particle
+  lat%param%lattice_type      = old_param%lattice_type
+  lat%param%aperture_limit_on = old_param%aperture_limit_on
   
-  else
-    read (d_unit, err = 9100)  &   
+else
+  read (d_unit, err = 9100)  &   
             lat%name, lat%lattice, lat%input_file_name, lat%title, &
             lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
             lat%n_ele_track, lat%n_ele_max, &
             lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
-  endif
+endif
 
-  call allocate_lat_ele(lat, lat%n_ele_max+100)
-  allocate (lat%control(lat%n_control_max+100))
-  allocate (lat%ic(lat%n_ic_max+100))
+call allocate_lat_ele(lat, lat%n_ele_max+100)
+allocate (lat%control(lat%n_control_max+100))
+allocate (lat%ic(lat%n_ic_max+100))
 
 !
 
-  do i = 0, lat%n_ele_max
+do i = 0, lat%n_ele_max
 
-    ele => lat%ele(i)
+  ele => lat%ele(i)
 
-    if (v83) then
-      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+  if (v83) then
+    read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
             old_a, old_b, old_z, ele%value(1:55), ele%gen0, ele%vec0, ele%mat6, &
@@ -220,8 +218,8 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_a_girder, ele%csr_calc_on
-    elseif (v84) then
-      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+  elseif (v84) then
+    read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
             old_a, old_b, old_z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
@@ -236,8 +234,8 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
             ele%ref_orb_in%vec, ele%ref_orb_out%vec
-    elseif (v_now) then
-      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+  elseif (v_now) then
+    read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
             ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
@@ -253,276 +251,314 @@ subroutine read_digested_bmad_file (digested_name, lat, version)
             ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
             ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture
  
-      read (d_unit, err = 9100) k_max
-      read (d_unit, err = 9100) ix_value(1:k_max), value(1:k_max)
-      do k = 1, k_max
-        ele%value(ix_value(k)) = value(k)
-      enddo
-
-    endif
-
-    !
-
-    if (v83 .or. v84 .or. v85) then
-      if (ele%key == wiggler$ .and. ele%value(check_sum$) == 0) &
-                                        ele%value(check_sum$) = ele%value(28)
-    endif
-
-    if (v83 .or. v84) then
-      ele%value(radius$)   = ele%value(32)
-      ele%value(p0c$)      = ele%value(44)
-      ele%value(44)        = 0
-      ele%value(x1_limit$) = ele%value(29)
-      ele%value(x2_limit$) = ele%value(29)
-      ele%value(y1_limit$) = ele%value(30)
-      ele%value(y2_limit$) = ele%value(30)
-    endif
-
-    if (ix_wig /= 0) then
-      allocate (ele%wig_term(ix_wig))
-      do j = 1, ix_wig
-        read (d_unit, err = 9200) ele%wig_term(j)
-      enddo
-    endif
-
-    ! This is to cover up the change where periodic_type wigglers now have a single wig_term
-    ! where before they did not have any.
-    if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ .and. &
-                                                       .not. associated(ele%wig_term)) then
-      allocate (ele%wig_term(1))
-    endif
-
-    if (ix_const /= 0) then
-      allocate (ele%const(ix_const))
-      read (d_unit, err = 9300) ele%const
-    endif
-
-    if (any (ix_r /= 0)) then
-      allocate (ele%r(ix_r(1):ix_r(3), ix_r(2):ix_r(4)))
-      read (d_unit, err = 9400) ele%r
-    endif
-
-    if (ix_d /= 0) then
-      allocate (ele%descrip)
-      read (d_unit, err = 9500) ele%descrip
-    endif
-
-    if (ix_m /= 0) then
-      call multipole_init (ele)
-      read (d_unit, err = 9600) ele%a_pole, ele%b_pole
-    endif
-    
-    do j = 1, 6
-      if (ix_t(j) == 0) cycle
-      read (d_unit) ele%taylor(j)%ref
-      allocate (ele%taylor(j)%term(ix_t(j)))
-      do k = 1, ix_t(j)
-        read (d_unit, err = 9700) ele%taylor(j)%term(k)
-      enddo
+    read (d_unit, err = 9100) k_max
+    read (d_unit, err = 9100) ix_value(1:k_max), value(1:k_max)
+    do k = 1, k_max
+      ele%value(ix_value(k)) = value(k)
     enddo
 
-    ! If ix_lr is negative then it is a pointer to a previously read wake. 
-    ! See write_digested_bmad_file.
+  endif
 
-    if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. ix_lr /= 0) then
-      if (ix_lr < 0) then
-        call transfer_wake (lat%ele(abs(ix_lr))%wake, ele%wake)
+  !
 
-      else
-        call init_wake (ele%wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
-        read (d_unit, err = 9800) ele%wake%sr_file
-        read (d_unit, err = 9810) ele%wake%sr_table
-        read (d_unit, err = 9840) ele%wake%sr_mode_long
-        read (d_unit, err = 9850) ele%wake%sr_mode_trans
-        read (d_unit, err = 9820) ele%wake%lr_file
-        read (d_unit, err = 9830) ele%wake%lr
-        read (d_unit, err = 9860) ele%wake%z_sr_mode_max
-      endif
-    endif
+  if (v83 .or. v84 .or. v85) then
+    if (ele%key == wiggler$ .and. ele%value(check_sum$) == 0) &
+                                        ele%value(check_sum$) = ele%value(28)
+  endif
 
+  if (v83 .or. v84) then
+    ele%value(radius$)   = ele%value(32)
+    ele%value(p0c$)      = ele%value(44)
+    ele%value(44)        = 0
+    ele%value(x1_limit$) = ele%value(29)
+    ele%value(x2_limit$) = ele%value(29)
+    ele%value(y1_limit$) = ele%value(30)
+    ele%value(y2_limit$) = ele%value(30)
+  endif
+
+  if (ix_wig /= 0) then
+    allocate (ele%wig_term(ix_wig))
+    do j = 1, ix_wig
+      read (d_unit, err = 9200) ele%wig_term(j)
+    enddo
+  endif
+
+  ! This is to cover up the change where periodic_type wigglers now have a single wig_term
+  ! where before they did not have any.
+  if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ .and. &
+                                                       .not. associated(ele%wig_term)) then
+    allocate (ele%wig_term(1))
+  endif
+
+  if (ix_const /= 0) then
+    allocate (ele%const(ix_const))
+    read (d_unit, err = 9300) ele%const
+  endif
+
+  if (any (ix_r /= 0)) then
+    allocate (ele%r(ix_r(1):ix_r(3), ix_r(2):ix_r(4)))
+    read (d_unit, err = 9400) ele%r
+  endif
+
+  if (ix_d /= 0) then
+    allocate (ele%descrip)
+    read (d_unit, err = 9500) ele%descrip
+  endif
+
+  if (ix_m /= 0) then
+    call multipole_init (ele)
+    read (d_unit, err = 9600) ele%a_pole, ele%b_pole
+  endif
+  
+  do j = 1, 6
+    if (ix_t(j) == 0) cycle
+    read (d_unit) ele%taylor(j)%ref
+    allocate (ele%taylor(j)%term(ix_t(j)))
+    do k = 1, ix_t(j)
+      read (d_unit, err = 9700) ele%taylor(j)%term(k)
+    enddo
   enddo
+
+  ! If ix_lr is negative then it is a pointer to a previously read wake. 
+  ! See write_digested_bmad_file.
+
+  if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. ix_lr /= 0) then
+    if (ix_lr < 0) then
+      call transfer_wake (lat%ele(abs(ix_lr))%wake, ele%wake)
+
+    else
+      call init_wake (ele%wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
+      read (d_unit, err = 9800) ele%wake%sr_file
+      read (d_unit, err = 9810) ele%wake%sr_table
+      read (d_unit, err = 9840) ele%wake%sr_mode_long
+      read (d_unit, err = 9850) ele%wake%sr_mode_trans
+      read (d_unit, err = 9820) ele%wake%lr_file
+      read (d_unit, err = 9830) ele%wake%lr
+      read (d_unit, err = 9860) ele%wake%z_sr_mode_max
+    endif
+  endif
+
+enddo
 
 !
 
-  do i = 1, lat%n_control_max
-    read (d_unit, err = 9100) lat%control(i)
-  enddo
+do i = 1, lat%n_control_max
+  read (d_unit, err = 9100) lat%control(i)
+enddo
 
-  do i = 1, lat%n_ic_max
-    read (d_unit, err = 9100) lat%ic(i)
-  enddo
+do i = 1, lat%n_ic_max
+  read (d_unit, err = 9100) lat%ic(i)
+enddo
 
-  read (d_unit, iostat = ios) lat%beam_start
+read (d_unit, iostat = ios) lat%beam_start
 
-  close (d_unit)
+close (d_unit)
 
-  lat%param%stable = .true.  ! Assume this 
+lat%param%stable = .true.  ! Assume this 
 
-  return
+return
 
 !------------------
 
 9000  continue
-  if (bmad_status%type_out) then
-     call out_io (s_warn$, r_name, 'DIGESTED FILE DOES NOT EXIST.')
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  version = -1
-  return
+if (bmad_status%type_out) then
+   call out_io (s_warn$, r_name, 'DIGESTED FILE DOES NOT EXIST.')
+endif
+close (d_unit)
+bmad_status%ok = .false.
+version = -1
+return
 
 !--------------------------------------------------------------
 
 9100  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.')
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.')
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9200  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WIGGLER TERM FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+        'ERROR READING WIGGLER TERM FOR ELEMENT: ' // ele%name)
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9300  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING IX_CONST TERM FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9400  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING R TERM FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9500  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING DESCRIP TERM FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9600  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING AN,BN TERMS FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9700  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING TAYLOR TERMS FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9800  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%SR_FILE FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9810  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%sr_table FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9820  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%LR_FILE FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9830  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%LR FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9840  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%sr_mode_long FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9850  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%sr_mode_trans FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 9860  continue
-  if (bmad_status%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%Z_CUT_SR FOR ELEMENT: ' // ele%name)
-  endif
-  close (d_unit)
-  bmad_status%ok = .false.
-  return
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 contains
 
+!-
+! Subroutine simplify_path (name_in, name_out)
+!
+! Routine to remove './' and '/dir/..' constructs.
+!
+! Input:
+!   name_in -- Character(*): Input path.
+!
+! Output:
+!   name_out -- Character(*): Simplified path
+!-
+
 subroutine simplify_path (name_in, name_out)
 
-  implicit none
+implicit none
 
-  character(*) name_in, name_out
-  integer i, ix
+character(*) name_in, name_out
+integer i, ix, ix_last
 
-! 
+! First get rid of any './' constructs.
 
-  name_out = name_in
-  out_loop: do 
-    ix = index(name_out, '/..')
-    if (ix == 0) return
-    do i = ix-1, 1, -1
-      if (name_out(i:i) == '/') then
-        name_out = name_out(:i-1) // name_out(ix+3:)
-        cycle out_loop
-      endif
-    enddo
-    name_out = name_out(ix+3:)
-  enddo out_loop
+name_out = name_in
+
+ix_last = 1
+do
+  ix = index(name_out(ix_last:), './')
+  if (ix == 0) exit
+  ix = ix + ix_last - 1
+  if (ix == 1) then  ! beginning of string
+    name_out = name_out(3:)
+    cycle
+  endif
+  if (name_out(ix-1:ix-1) == '/') then
+    name_out = name_out(:ix-1) // name_out(ix+2:)
+  else
+    ix_last = ix + 1
+  endif
+enddo
+
+
+! Second get rid of any '/dir/..' constructs.
+
+ix_last = 1
+loop: do 
+  ix = index(name_out(ix_last:), '/..')
+  if (ix == 0) return
+  ix = ix + ix_last - 1
+  if (name_out(ix+3:ix+3) /= '/') then
+    ix_last = ix + 3
+    cycle
+  endif
+  do i = ix-1, 1, -1
+    if (name_out(i:i) == '/') then
+      name_out = name_out(:i-1) // name_out(ix+3:)
+      cycle loop
+    endif
+  enddo
+  name_out = name_out(ix+3:)
+enddo loop
 
 end subroutine
 

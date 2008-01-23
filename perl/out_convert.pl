@@ -7,8 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/(\{\w:[^\}]*)-/$1\./g;
-    s/(\{\w:[^\}]*)_/$1\./g;
+    s/lbound\(s\%u, 1\)/1/g;
 
     print (F_OUT);
 
