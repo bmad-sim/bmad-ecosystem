@@ -333,8 +333,8 @@ The aperture attributes are:
   x2_limit    = <Real>      ! Horizontal, positive side, aperture limit
   y1_limit    = <Real>      ! Vertical, negative side, aperture limit
   y2_limit    = <Real>      ! Vertical, positive side, aperture limit
-  x_limit     = <Real>      ! Horizontal aperture limit
-  y_limit     = <Real>      ! Vertical aperture limit
+  x_limit     = <Real>      ! Alternative to specifying x1_limit and x2_limit
+  y_limit     = <Real>      ! Alternative to specifying y1_limit and y2_limit
   aperture    = <Real>      ! Alternative to specifying x_limit and y_limit
   aperture_at = <Switch>    ! What end aperture is at.
   offset_moves_aperture = <Logical> ! Element offsets affect aperture position
@@ -357,7 +357,14 @@ For convenience, \vn{x_limit} can be used to set \vn{x1_limit} and
 \vn{x2_limit} to a common value. Similarly, \vn{y_limit} can be used
 to set \vn{y1_limit} and \vn{y2_limit}.  The \vn{aperture} attribute
 can be use to set all four \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}
-and \vn{y2_limit} to a common value.
+and \vn{y2_limit} to a common value. Internally, the \bmad code does {\em not}
+store \vn{x_limit}, \vn{y_limit}, or \vn{aperture}. This means that
+using \vn{x_limit}, \vn{y_limit} or aperture in arithmetic expressions is
+an error:
+\begin{example}
+  q2: quad, aperture = q1[aperture]   ! THIS IS AN ERROR!
+  q2: quad, aperture = q1[x1_limit]   ! Correct
+\end{example}
 
 \index{Tilt}
 \index{X_offset}
