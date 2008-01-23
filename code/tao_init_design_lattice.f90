@@ -84,7 +84,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   override = .false.
   if (tao_com%init_lat_file(1) /= '') override = .true.
 
-  do i = lbound(s%u, 1), ubound(s%u, 1)
+  do i = 1, ubound(s%u, 1)
     if (design_lattice(i)%parser /= '') then
       call out_io (s_error$, r_name, (/ &
           '************************************************************', &
@@ -113,6 +113,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
     u => s%u(i)
 
     if (design_lattice(i)%file == ' ') design_lattice(i) = design_lattice(1)
+    allocate (u%design, u%base, u%model)
     select case (design_lattice(i)%parser)
     case ('bmad')
       call bmad_parser (design_lattice(i)%file, u%design%lat)

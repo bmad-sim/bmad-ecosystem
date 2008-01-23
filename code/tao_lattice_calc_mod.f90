@@ -53,7 +53,7 @@ type (tao_universe_struct), pointer :: u
 type (tao_d2_data_struct), pointer :: d2_dat
 type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
-
+type (tao_lattice_struct), pointer :: model
 integer i, j, ix, n_max, it, id
 real(rp) :: delta_e = 0
 
@@ -61,7 +61,7 @@ character(20) :: r_name = "tao_lattice_calc"
 
 logical initing_design
 ! hook_used refers to if a custom lattice calculation is performed
-logical, automatic :: hook_used(size(s%u))
+logical, automatic :: hook_used(ubound(s%u, 1))
 logical :: calc_ok
 logical this_calc_ok
 
@@ -75,15 +75,8 @@ initing_design = logic_option (.false., init_design)
 ! do a custom lattice calculation if desired
 
 if (tao_com%lattice_recalc) then
-
   tao_com%ix0_taylor = -1   ! Reset taylor map
-
-  do i = lbound(s%u, 1), ubound(s%u, 1)
-    u => s%u(i)
-    if (.not. u%is_on) cycle
-    call tao_lat_bookkeeper (u, u%model)
-    call tao_hook_lattice_calc (u, u%model, hook_used(i), calc_ok)
-  enddo
+  call tao_hook_lattice_calc (hook_used, calc_ok)
   if (all(hook_used)) tao_com%lattice_recalc = .false.
 endif
     
@@ -92,34 +85,36 @@ endif
 
 if (.not. tao_com%lattice_recalc) return
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do i = 1, ubound(s%u, 1)
   u => s%u(i)
   u%data(:)%good_model = .false. ! reset
 
   if (.not. u%is_on .or. hook_used(i)) cycle
   ! zero data array
+
+  model => u%model
   u%data%model_value = tiny(1.0_rp)
   do j = 1, 6
-    u%model%orb%vec(j) = 0.0
+    model%orb%vec(j) = 0.0
   enddo
-  u%model%orb(0) = u%model%lat%beam_start
+  model%orb(0) = model%lat%beam_start
 
   ! set up matching element
   if (initing_design) call tao_match_lats_init (u)
 
   select case (s%global%track_type)
   case ('single') 
-    call tao_inject_particle (u, u%model%lat, u%model%orb)
-    call tao_lat_bookkeeper (u, u%model)
-    call tao_single_track (i, u%model, this_calc_ok)
+    call tao_inject_particle (u, model)
+    call tao_lat_bookkeeper (u, model)
+    call tao_single_track (i, model, this_calc_ok)
   case ('beam') 
-    call tao_inject_beam (u, u%model%lat, u%model%orb)
-    call tao_lat_bookkeeper (u, u%model)
-    call tao_beam_track (i, u%model, this_calc_ok)
+    call tao_inject_beam (u, model)
+    call tao_lat_bookkeeper (u, model)
+    call tao_beam_track (i, model, this_calc_ok)
   case ('macro')
-    call tao_inject_macro_beam (u, u%model%lat, u%model%orb)
-    call tao_lat_bookkeeper (u, u%model)
-    call tao_macro_track (i, u%model, this_calc_ok)
+    call tao_inject_macro_beam (u, model)
+    call tao_lat_bookkeeper (u, model)
+    call tao_macro_track (i, model, this_calc_ok)
   case default
     call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // s%global%track_type)
     call err_exit
@@ -127,11 +122,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   if (this_calc_ok) then
     if (u%do_synch_rad_int_calc) then
-      call radiation_integrals (u%model%lat, u%model%orb, u%model%modes, u%ix_rad_int_cache)
-      call transfer_rad_int_struct (ric, u%model%rad_int)
+      call radiation_integrals (model%lat, model%orb, model%modes, u%ix_rad_int_cache)
+      call transfer_rad_int_struct (ric, model%rad_int)
     endif
-    if (u%do_chrom_calc) call chrom_calc (u%model%lat, delta_e, &
-                                    u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
+    if (u%do_chrom_calc) call chrom_calc (model%lat, delta_e, &
+                                    model%a%chrom, model%b%chrom, exit_on_error = .false.)
   else
     calc_ok = .false.
   endif
@@ -140,15 +135,15 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! do multi-turn tracking if needed
 
-  if (associated(u%ix_data(-2)%ix_datum)) then
+  if (allocated(u%ix_data(-2)%ix_datum)) then
     ix = u%ix_data(-2)%ix_datum(1)
     d2_dat => u%data(ix)%d1%d2
     n_max = 0
     do id = 1, size(d2_dat%d1)
       n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
     enddo
-    call reallocate_coord (orb, u%model%lat%n_ele_max)
-    orb(0) = u%model%lat%beam_start
+    call reallocate_coord (orb, model%lat%n_ele_max)
+    orb(0) = model%lat%beam_start
     do it = 0, n_max
       do id = 1, size(d2_dat%d1)
         d1_dat => d2_dat%d1(id)
@@ -166,8 +161,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
           end select
         endif
       enddo
-      call track_all (u%model%lat, orb)
-      orb(0) = orb(u%model%lat%n_ele_track)
+      call track_all (model%lat, orb)
+      orb(0) = orb(model%lat%n_ele_track)
     enddo
   endif
 
@@ -312,7 +307,7 @@ all_lost = .false.
 ! Find if injecting into another lattice
 
 extract_at_ix_ele = -1
-do i_uni_to = uni+1, size(s%u)
+do i_uni_to = uni+1, ubound(s%u, 1)
   if (.not. s%u(i_uni_to)%connect%connected) cycle
   if (s%u(i_uni_to)%connect%from_uni /= uni) cycle
   if (s%u(i_uni_to)%connect%from_uni_ix_ele .ne. -1) then
@@ -413,7 +408,7 @@ enddo
 
 post = .false.
 if (extract_at_ix_ele == -1) post = .true.
-if (uni < size(s%u)) then
+if (uni < ubound(s%u, 1)) then
   if (.not. s%u(uni+1)%is_on) post = .true.
 endif
 
@@ -474,7 +469,7 @@ all_lost = .false.
 
 ! Find if injecting into another lattice
 extract_at_ix_ele = -1
-do i_uni = uni+1, size(s%u)
+do i_uni = uni+1, ubound(s%u, 1)
   if (.not. s%u(i_uni)%connect%connected) cycle
   if (s%u(i_uni)%connect%from_uni /= uni) cycle
   if (s%u(i_uni)%connect%from_uni_ix_ele .ne. -1) then
@@ -556,7 +551,7 @@ enddo
 
 post = .false.
 if (extract_at_ix_ele == -1) post = .true.
-if (uni .lt. size(s%u)) then
+if (uni .lt. ubound(s%u, 1)) then
   if (.not. s%u(uni+1)%is_on) post = .true.
 endif
 
@@ -637,7 +632,7 @@ enddo
 ! Post lost particles
 if (record_lost .and. n_lost > 0) then
   line = "\I4\ particle(s) lost at element \I0\: " // ele%name
-  if (size(s%u) > 1) line = trim(line) // " in universe \I3\ "
+  if (ubound(s%u, 1) > 1) line = trim(line) // " in universe \I3\ "
   call out_io (s_blank$, r_name, line, i_array = (/ n_lost, ix_ele, uni /) )
 endif
   
@@ -741,13 +736,12 @@ end subroutine tao_find_macro_beam_centroid
 ! whatever the user has specified. As always, tracking only occure in the model
 ! lattice.
 
-subroutine tao_inject_particle (u, lat, orb)
+subroutine tao_inject_particle (u, model)
 
 implicit none
 
 type (tao_universe_struct) u
-type (lat_struct) lat
-type (coord_struct) orb(0:)
+type (tao_lattice_struct) model
 
 type (ele_struct), save :: extract_ele
 type (coord_struct) pos
@@ -755,55 +749,57 @@ type (spin_polar_struct) :: polar
 
 character(20) :: r_name = "inject_particle"
 
-!
+! Not connected case is easy.
 
 if (.not. u%connect%connected) then
-  orb(0) = u%model%orb(0)
   polar%theta = u%beam_init%spin%theta
   polar%phi = u%beam_init%spin%phi
+  call polar_to_spinor (polar, model%orb(0))
+  return
+endif
 
-  call polar_to_spinor (polar, orb(0))
-else
-    
-  if (.not. s%u(u%connect%from_uni)%is_on) then
-    call out_io (s_error$, r_name, &
-      "Injecting from a turned off universe! This will not do!")
-    call out_io (s_blank$, r_name, &
-      "No injection will be performed")
-    return
-  endif
+! Connected case
+
+if (.not. s%u(u%connect%from_uni)%is_on) then
+  call out_io (s_error$, r_name, &
+                  "Injecting from a turned off universe! This will not do!", &
+                  "No injection will be performed")
+  return
+endif
   
-  call init_ele (extract_ele)
+call init_ele (extract_ele)
   
-  ! get particle perameters from previous universe at position s
-  call twiss_and_track_at_s (s%u(u%connect%from_uni)%model%lat, &
+! get particle perameters from previous universe at position s
+
+call twiss_and_track_at_s (s%u(u%connect%from_uni)%model%lat, &
                              u%connect%from_uni_s, extract_ele, &
                              s%u(u%connect%from_uni)%model%orb, pos)
 
-  ! track through connect element
-  if (u%connect%use_connect_ele) then
-    if (s%global%matrix_recalc_on) call make_mat6 (u%connect%connect_ele, &
+! track through connect element
+
+if (u%connect%use_connect_ele) then
+  if (s%global%matrix_recalc_on) call make_mat6 (u%connect%connect_ele, &
                                              s%u(u%connect%from_uni)%model%lat%param)
-    call twiss_propagate1 (extract_ele, u%connect%connect_ele)
-    call track1 (pos, u%connect%connect_ele, &
+  call twiss_propagate1 (extract_ele, u%connect%connect_ele)
+  call track1 (pos, u%connect%connect_ele, &
                     s%u(u%connect%from_uni)%model%lat%param, pos)
-    u%connect%connect_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
-    u%connect%connect_ele%floor = extract_ele%floor
-    extract_ele = u%connect%connect_ele
-  endif
-  
-  ! transfer to this lattice
-  lat%ele(0)%a = extract_ele%a
-  lat%ele(0)%b = extract_ele%b
-  lat%ele(0)%x = extract_ele%x
-  lat%ele(0)%y = extract_ele%y
-  lat%ele(0)%z = extract_ele%z
-  lat%ele(0)%value(E_TOT$) = extract_ele%value(E_TOT$)
-  lat%ele(0)%c_mat   = extract_ele%c_mat
-  lat%ele(0)%gamma_c = extract_ele%gamma_c
-  lat%ele(0)%floor   = extract_ele%floor
-  orb(0)      = pos
+  u%connect%connect_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
+  u%connect%connect_ele%floor = extract_ele%floor
+  extract_ele = u%connect%connect_ele
 endif
+  
+! transfer to this lattice
+
+model%lat%ele(0)%a = extract_ele%a
+model%lat%ele(0)%b = extract_ele%b
+model%lat%ele(0)%x = extract_ele%x
+model%lat%ele(0)%y = extract_ele%y
+model%lat%ele(0)%z = extract_ele%z
+model%lat%ele(0)%value(E_TOT$) = extract_ele%value(E_TOT$)
+model%lat%ele(0)%c_mat   = extract_ele%c_mat
+model%lat%ele(0)%gamma_c = extract_ele%gamma_c
+model%lat%ele(0)%floor   = extract_ele%floor
+model%orb(0)      = pos
         
 end subroutine tao_inject_particle
 
@@ -816,15 +812,14 @@ end subroutine tao_inject_particle
 !
 ! If there is no connection between lattice then this will initialize the beam
 
-subroutine tao_inject_beam (u, lat, orb)
+subroutine tao_inject_beam (u, model)
 
 use tao_read_beam_mod
 
 implicit none
 
-type (lat_struct) lat
 type (tao_universe_struct) u
-type (coord_struct) orb(0:)
+type (tao_lattice_struct) model
 type (ele_struct), save :: extract_ele
 
 type (lat_param_struct), pointer :: param
@@ -842,69 +837,71 @@ if (tao_com%use_saved_beam_in_tracking) return
 ! If there is an init file then read from the file
 
 if (u%beam0_file /= "") then
-
   call open_beam_file (u%beam0_file)
   call set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, u%beam_init%bunch_charge)
   call read_beam (u%beam0)
   call close_beam_file()
   call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
+  call tao_find_beam_centroid (u%beam0, model%orb(0)) 
+  if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
+  return
+endif
 
-  call tao_find_beam_centroid (u%beam0, orb(0)) 
+! Not connected case
 
-elseif (.not. u%connect%connected) then
+if (.not. u%connect%connected) then
   if (tao_com%init_beam0 .or. .not. allocated(u%beam0%bunch)) then
-    u%beam_init%center = u%model%lat%beam_start%vec
+    u%beam_init%center = model%lat%beam_start%vec
     if (u%beam_init%n_bunch < 1 .or. u%beam_init%n_particle < 1) then
       call out_io (s_fatal$, r_name, &
         'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
       call err_exit
     endif
-    call init_beam_distribution (lat%ele(0), u%beam_init, u%beam0)
-    call tao_find_beam_centroid (u%beam0, orb(0))
+    call init_beam_distribution (model%lat%ele(0), u%beam_init, u%beam0)
+    call tao_find_beam_centroid (u%beam0, model%orb(0))
   endif
-
-else
-   
-  if (.not. s%u(u%connect%from_uni)%is_on) then
-    call out_io (s_error$, r_name, &
-      "Injecting from a turned off universe! This will not do!")
-    call out_io (s_blank$, r_name, &
-      "No injection will be performed.")
-    return
-  endif
-  
-  ! beam from previous universe at end of extracting element should already be set
-  ! but we still need the twiss parameters and everything else
-
-  extract_ele = s%u(u%connect%from_uni)%model%lat%ele(u%connect%from_uni_ix_ele)
-  
-  ! track through connection element
-
-  if (u%connect%use_connect_ele) then
-    param => s%u(u%connect%from_uni)%model%lat%param
-    if (s%global%matrix_recalc_on) call make_mat6 (u%connect%connect_ele, param)
-    call twiss_propagate1 (extract_ele, u%connect%connect_ele)
-    call track1_beam_ele (u%connect%injecting_beam, u%connect%connect_ele, &
-                        param, u%connect%injecting_beam)
-    u%connect%connect_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
-    u%connect%connect_ele%floor = extract_ele%floor
-    extract_ele = u%connect%connect_ele
-  endif
-    
-  ! transfer to this lattice
-  lat%ele(0)%a = extract_ele%a
-  lat%ele(0)%b = extract_ele%b
-  lat%ele(0)%z = extract_ele%z
-  lat%ele(0)%value(E_TOT$) = extract_ele%value(E_TOT$)
-  lat%ele(0)%c_mat   = extract_ele%c_mat
-  lat%ele(0)%gamma_c = extract_ele%gamma_c
-  lat%ele(0)%floor   = extract_ele%floor
-  u%beam0 = u%connect%injecting_beam
-  call tao_find_beam_centroid (u%connect%injecting_beam, orb(0))
+  if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
+  return
 endif
 
-! record this beam
+! connected case...
+   
+if (.not. s%u(u%connect%from_uni)%is_on) then
+  call out_io (s_error$, r_name, &
+            "Injecting from a turned off universe! This will not do!", &
+            "No injection will be performed.")
+  return
+endif
   
+! beam from previous universe at end of extracting element should already be set
+! but we still need the twiss parameters and everything else
+
+extract_ele = s%u(u%connect%from_uni)%model%lat%ele(u%connect%from_uni_ix_ele)
+  
+! track through connection element
+
+if (u%connect%use_connect_ele) then
+  param => s%u(u%connect%from_uni)%model%lat%param
+  if (s%global%matrix_recalc_on) call make_mat6 (u%connect%connect_ele, param)
+  call twiss_propagate1 (extract_ele, u%connect%connect_ele)
+  call track1_beam_ele (u%connect%injecting_beam, u%connect%connect_ele, &
+                      param, u%connect%injecting_beam)
+  u%connect%connect_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
+  u%connect%connect_ele%floor = extract_ele%floor
+  extract_ele = u%connect%connect_ele
+endif
+    
+! transfer to this lattice
+model%lat%ele(0)%a = extract_ele%a
+model%lat%ele(0)%b = extract_ele%b
+model%lat%ele(0)%z = extract_ele%z
+model%lat%ele(0)%value(E_TOT$) = extract_ele%value(E_TOT$)
+model%lat%ele(0)%c_mat   = extract_ele%c_mat
+model%lat%ele(0)%gamma_c = extract_ele%gamma_c
+model%lat%ele(0)%floor   = extract_ele%floor
+u%beam0 = u%connect%injecting_beam
+call tao_find_beam_centroid (u%connect%injecting_beam, model%orb(0))
+
 if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
 
 end subroutine tao_inject_beam
@@ -918,75 +915,21 @@ end subroutine tao_inject_beam
 !
 ! If there is no connection between lattice then this will initialize the beam
 
-subroutine tao_inject_macro_beam (u, lat, orb)
+subroutine tao_inject_macro_beam (u, model)
 
 implicit none
  
 type (tao_universe_struct) u
-type (coord_struct) orb(0:)
-type (lat_struct) lat
+type (tao_lattice_struct) model
 type (ele_struct), save :: extract_ele
-
 type (lat_param_struct), pointer :: param
 
-integer n_bunch, n_slice, n_macro
+character(24) :: r_name = "tao_inject_macro_beam"
 
-character(20) :: r_name = "tao_inject_macro_beam"
+! The code here is not currently being maintained
 
-!
-
-if (.not. u%connect%connected) then
-  u%macro_beam%macro_init%center = u%model%lat%beam_start%vec
-  call init_macro_distribution (u%macro_beam%beam, u%macro_beam%macro_init, &
-                                lat%ele(0), .true.)
-  u%macro_beam%ix_lost(:,:,:) = not_lost$
-  call tao_find_macro_beam_centroid (u%macro_beam%beam, orb(0))
-else
-  if (.not. s%u(u%connect%from_uni)%is_on) then
-    call out_io (s_error$, r_name, &
-      "Injecting from a turned off universe! This will not do!")
-    call out_io (s_blank$, r_name, &
-      "No injection will be performed")
-    return
-  endif
-  
-  ! beam from previous universe at end of element should already be set
-  ! but we still need the twiss parameters and everything else
-  extract_ele = s%u(u%connect%from_uni)%model%lat%ele(u%connect%from_uni_ix_ele)
-  
-  !track through connection element
-  if (u%connect%use_connect_ele) then
-    param => s%u(u%connect%from_uni)%model%lat%param
-    if (s%global%matrix_recalc_on) call make_mat6 (u%connect%connect_ele, param)
-    call twiss_propagate1 (extract_ele, u%connect%connect_ele)
-    call track1_macro_beam (u%connect%injecting_macro_beam, u%connect%connect_ele, &
-                                              param, u%connect%injecting_macro_beam)
-    u%connect%connect_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
-    u%connect%connect_ele%floor = extract_ele%floor
-    extract_ele = u%connect%connect_ele
-  endif
-    
-  ! transfer to this lattice
-  lat%ele(0)%a = extract_ele%a
-  lat%ele(0)%b = extract_ele%b
-  lat%ele(0)%z = extract_ele%z
-  lat%ele(0)%value(E_TOT$) = extract_ele%value(E_TOT$)
-  lat%ele(0)%c_mat   = extract_ele%c_mat
-  lat%ele(0)%gamma_c = extract_ele%gamma_c
-  lat%ele(0)%floor   = extract_ele%floor
-  u%macro_beam%beam = u%connect%injecting_macro_beam
-  call tao_find_macro_beam_centroid (u%connect%injecting_macro_beam, orb(0))
-  
-  ! deterine if macroparticle already lost
-  do n_bunch = 1, size(u%connect%injecting_macro_beam%bunch)
-    do n_slice = 1, size(u%connect%injecting_macro_beam%bunch(n_bunch)%slice)
-      do n_macro = 1, size(u%connect%injecting_macro_beam%bunch(n_bunch)%slice(n_slice)%macro)
-  if (u%connect%injecting_macro_beam%bunch(n_bunch)%slice(n_slice)%macro(n_macro)%lost) &
-    u%macro_beam%ix_lost(n_bunch, n_slice, n_macro) = 0
-      enddo
-    enddo
-  enddo
-endif
+call out_io (s_fatal$, r_name, "MACRO BEAM TRACKING DISABLED. PLEASE SEE DCS.")
+call err_exit
   
 end subroutine tao_inject_macro_beam
 

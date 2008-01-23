@@ -256,7 +256,7 @@ do
 
     call qp_calc_axis_places (grph%y)
 
-    if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
+    if (grph%ix_universe < 0 .or. grph%ix_universe > ubound(s%u, 1)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
       call out_io (s_blank$, r_name, 'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name)
       call err_exit

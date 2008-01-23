@@ -91,8 +91,8 @@ if (ios /= 0) then
   err = .true.
   return
 endif
-if (iu == 0) iu = s%global%u_view
-if (iu < 1 .or. iu > size(s%u)) then
+iu = tao_universe_number (iu)
+if (iu < 1 .or. iu > ubound(s%u, 1)) then
   call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_type_in)
   err = .true.
   return
@@ -849,7 +849,7 @@ if (ix == 0) then ! No universe specified. Use default
 else ! read universe number
 
   if (dat_name(:ix-1) == '*') then
-    do i = lbound(s%u, 1), ubound(s%u, 1)
+    do i = 1, ubound(s%u, 1)
       call find_this_d2 (s%u(i), dat_name(ix+1:), this_err)
       if (this_err) return
     enddo
@@ -871,7 +871,7 @@ endif
 ! If d2_ptr points to something and there is only one d1 component then point d1_ptr to this.
 
 if (associated(d2_ptr_loc) .and. present(d1_ptr)) then
-  if (associated(d2_ptr_loc%d1) .and. size(d2_ptr_loc%d1) == 1) d1_ptr => d2_ptr_loc%d1(1)
+  if (allocated(d2_ptr_loc%d1) .and. size(d2_ptr_loc%d1) == 1) d1_ptr => d2_ptr_loc%d1(1)
 endif
 
 ! error check
@@ -886,7 +886,7 @@ contains
 
 subroutine find_this_d2 (uu, name, this_err)
 
-type (tao_universe_struct) uu
+type (tao_universe_struct), target :: uu
 integer i, ix
 character(*) name
 character(80) d1_name, d2_name
@@ -931,7 +931,7 @@ end subroutine
 
 subroutine find_this_d1 (d2, name, this_err)
 
-type (tao_d2_data_struct) :: d2
+type (tao_d2_data_struct), target :: d2
 integer i, ix
 character(*) name
 character(80) d1_name, d_name
@@ -1702,7 +1702,7 @@ type (tao_lattice_struct) :: tao_lat
 
 character(20) :: r_name = "tao_lat_bookkeeper"
 
-  call lattice_bookkeeper (tao_lat%lat)
+call lattice_bookkeeper (tao_lat%lat)
 
 end subroutine tao_lat_bookkeeper
 
@@ -2614,7 +2614,7 @@ else
       trim(datum%d1%d2%name), '.', trim(datum%d1%name), '[', datum%ix_d1, ']'
 endif
 
-if (size(s%u) > 1 .and. logic_option(.true., show_universe)) &
+if (ubound(s%u, 1) > 1 .and. logic_option(.true., show_universe)) &
        write (datum_name, '(i0, 2a)') datum%d1%d2%ix_uni, '@', trim(datum_name)
 
 end function
@@ -2920,11 +2920,11 @@ end subroutine
 ! Function tao_pointer_to_universe (ix_uni) result (u)
 !
 ! Routine to set a pointer to a universe.
-! If ix_uni is 0 then s%global%u_view will be used.
-! If ix_uni is -1 then:
-!       tao_com%unified_lattices   Universe-Index  
-!         True                       -1  
-!         False                      s%global%u_view
+! If ix_uni is 0 then u(s%global%u_view) will be used.
+! If ix_uni is common_uni$ then:
+!       tao_com%unified_lattices   Universe
+!         True                     u_common 
+!         False                    u(s%global%u_view)
 !
 ! Input:
 !   ix_uni -- Integer: Index to the s%u(:) array
@@ -2940,27 +2940,20 @@ function tao_pointer_to_universe (ix_uni) result(u)
 implicit none
 
 type (tao_universe_struct), pointer :: u
-integer ix_uni
+integer ix_uni, ix_u
 character(28) :: r_name = 'tao_pointer_to_universe'
 
 !
 
-if (ix_uni == -1 .and. tao_com%unified_lattices) then
-  u => s%u(-1)
-  return
-endif
+ix_u = tao_universe_number(ix_uni)
 
-if (ix_uni < -1 .or. ix_uni > size(s%u)) then
-  call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_uni)
+if (ix_u < 0 .or. ix_u > ubound(s%u, 1)) then
+  call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_u)
   nullify (u)
   return
 endif
 
-if (ix_uni == 0 .or. ix_uni == -1) then
-  u => s%u(s%global%u_view)
-else
-  u => s%u(ix_uni)
-endif
+u => s%u(ix_u)
 
 end function tao_pointer_to_universe
 

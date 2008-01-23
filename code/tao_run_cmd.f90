@@ -55,7 +55,7 @@ endif
 ! See if there are any constraints
 
 n_data = 0
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do i = 1, ubound(s%u, 1)
   n_data = n_data + count(s%u(i)%data(:)%useit_opt)
 enddo
 if (n_data == 0) then

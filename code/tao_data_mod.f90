@@ -53,7 +53,7 @@ integer n_data
   
   
 n_data = 0
-do iu = lbound(s%u, 1), ubound(s%u, 1)
+do iu = 1, ubound(s%u, 1)
   if (.not. s%u(iu)%is_on) cycle
   n_data  = n_data + count(s%u(iu)%data(:)%useit_opt)
 enddo
@@ -63,7 +63,7 @@ if (present(data_weight))     call re_allocate (data_weight, n_data)
 if (present(data_ix_dModel))  call re_allocate (data_ix_dModel, n_data)
 
 j = 0
-do iu = lbound(s%u, 1), ubound(s%u, 1)
+do iu = 1, ubound(s%u, 1)
   if (.not. s%u(iu)%is_on) cycle
   do i = 1, size(s%u(iu)%data)
     if (.not. s%u(iu)%data(i)%useit_opt) cycle
@@ -111,7 +111,7 @@ character(20) :: r_name = 'tao_load_data_array'
 if (ix_ele == 0) call tao_data_coupling_init (u) 
   
 ! find which datums to evaluate here
-if (.not. associated(u%ix_data(ix_ele)%ix_datum)) return
+if (.not. allocated(u%ix_data(ix_ele)%ix_datum)) return
 
 ix_datum => u%ix_data(ix_ele)%ix_datum
 do i = 1, size(ix_datum)

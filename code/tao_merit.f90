@@ -70,7 +70,7 @@ enddo
 !----------------------------------------
 ! Merit contribution from the data:
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do i = 1, ubound(s%u, 1)
 
   data => s%u(i)%data
   data%merit = 0

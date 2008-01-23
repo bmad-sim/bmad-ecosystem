@@ -33,13 +33,13 @@ character(20) :: r_name = 'tao_set_lattice_cmd'
 
 integer i
 
-logical, automatic :: this_u(size(s%u))
+logical, automatic :: this_u(ubound(s%u, 1))
 logical err
 
 call tao_pick_universe (dest_lat, dest1_name, this_u, err)
 if (err) return
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do i = 1, ubound(s%u, 1)
   if (.not. this_u(i)) cycle
   call set_lat (s%u(i))
   if (err) return
@@ -341,7 +341,7 @@ case ('ix_ele_ref')
 
 case ('ix_universe')
   call tao_integer_set_value (this_curve%ix_universe, component, &
-                                            set_value, error, 0, size(s%u))
+                                            set_value, error, 0, ubound(s%u, 1))
   if (error) return
   call tao_locate_elements (this_curve%ele_ref_name, this_curve%ix_universe, ix_ele, .true.)
   if (ix_ele(1) < 0) return
@@ -490,7 +490,7 @@ select case (comp)
     this_graph%draw_axes = logic
 
   case ('ix_universe')
-    call tao_integer_set_value (this_graph%ix_universe, comp, set_value, error, 1, size(s%u))
+    call tao_integer_set_value (this_graph%ix_universe, comp, set_value, error, 1, ubound(s%u, 1))
 
   case ('margin%x1')
     call tao_real_set_value(this_graph%margin%x1, comp, set_value, error)
@@ -822,7 +822,7 @@ if (uni == '*') then
 else
   call tao_to_int (uni, n_uni, err)
   if (err) return
-  if (n_uni < 0 .or. n_uni > size(s%u)) then
+  if (n_uni < 0 .or. n_uni > ubound(s%u, 1)) then
     call out_io (s_warn$, r_name, "Invalid Universe specifier")
     return 
   endif

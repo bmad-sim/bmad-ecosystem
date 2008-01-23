@@ -22,7 +22,12 @@ character(20) :: r_name = 'tao_view_cmd'
 
 ! Check range
 
-if (i_universe < 1 .or. size(s%u) < i_universe) then
+if (tao_com%unified_lattices .and. i_universe == -1) then
+  s%global%u_view = i_universe
+  return
+endif  
+
+if (i_universe < lbound(s%u, 1) .or. ubound(s%u, 1) < i_universe) then
   call out_io (s_error$, r_name, 'UNIVERSE NUMBER OUT OF RANGE.')
   return
 endif

@@ -23,7 +23,6 @@ interface assignment (=)
   module procedure tao_lat_equal_tao_lat
 end interface
 
-
 !-----------------------------------------------------------------------
 ! misc.
 
@@ -274,7 +273,7 @@ type tao_d2_data_struct
   character(20) data_date         ! Data measurement date.
   character(20) ref_date          ! Reference data measurement date.
   character(80) descrip(n_descrip_maxx) ! Array for descriptive information.
-  type (tao_d1_data_struct), pointer :: d1(:) => null() ! Points to children 
+  type (tao_d1_data_struct), allocatable :: d1(:) ! Points to children 
   integer ix_uni                  ! Index of universe this is in.
   integer ix_data                 ! Index of the data set.
   integer ix_ref                  ! Index of the reference data set. 
@@ -514,7 +513,7 @@ end type
 
   type tao_ix_data_struct
     ! list of all datums evaluated at this ele
-    integer, pointer :: ix_datum(:) => null()
+    integer, allocatable :: ix_datum(:)
   endtype
 
 !-----------------------------------------------------------------------
@@ -572,18 +571,18 @@ end type
 ! A universe is a snapshot of a machine
 
 type tao_universe_struct
-  type (tao_lattice_struct) model, design, base
-  type (tao_element_struct), allocatable :: ele(:) ! Element information
+  type (tao_lattice_struct), pointer :: model, design, base
+  type (tao_element_struct), pointer :: ele(:)     ! Element information
   type (beam_struct) current_beam                  ! Beam at the current position
   type (beam_struct) beam0                         ! Beam at the beginning of lattice
   type (beam_init_struct) :: beam_init             ! Beam distrubution
                                                    !  at beginning of lattice
   type (tao_macro_beam_struct) macro_beam          ! Macroparticle beam 
   type (tao_connected_uni_struct)   :: connect     ! Used for connected lattices
-  type (tao_d2_data_struct), pointer :: d2_data(:) => null()  ! The data types 
-  type (tao_data_struct), pointer :: data(:) => null()        ! Array of all data.
-  type (tao_ix_data_struct), pointer :: ix_data(:) ! which data to evaluate at this ele
-  real(rp), pointer :: dModel_dVar(:,:) => null()             ! Derivative matrix.
+  type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
+  type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
+  type (tao_ix_data_struct), allocatable :: ix_data(:)   ! which data to evaluate at this ele
+  real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
   character(80) :: beam_all_file = ''  ! Input beam data file for entire lattice.
   character(80) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
   character(60), allocatable :: save_beam_at(:)
@@ -600,16 +599,19 @@ type tao_universe_struct
 end type
 
 ! The super_universe is the structure that holds an array of universes.
-! Essentially this holds all the information known to the program.
+! Essentially this and tao_com hold all the information known to the program.
+! Note: If tao_com%unified_lattices = True
+!   s%u(-1) --> Common universe.
+!   s%u(0)  --> Working universe to track through. Derived from s%u(-1).
 
 type tao_super_universe_struct
   type (tao_global_struct) global                          ! global variables.
   type (tao_plot_struct) :: template_plot(n_template_maxx) ! Templates for the plots.
   type (tao_plot_page_struct) :: plot_page                 ! Defines the plot window.
-  type (tao_plot_region_struct), pointer :: plot_region(:) => null() 
-  type (tao_v1_var_struct), pointer :: v1_var(:) => null() ! The variable types
-  type (tao_var_struct), pointer :: var(:) => null()       ! array of all variables.
-  type (tao_universe_struct), pointer :: u(:) => null()    ! array of universes.
+  type (tao_plot_region_struct), allocatable :: plot_region(:)
+  type (tao_v1_var_struct), allocatable :: v1_var(:)       ! The variable types
+  type (tao_var_struct), allocatable :: var(:)             ! array of all variables.
+  type (tao_universe_struct), allocatable :: u(:)          ! array of universes.
   integer, allocatable :: key(:)
   type (tao_wall_struct), allocatable :: wall(:)
   integer n_var_used

@@ -83,7 +83,7 @@ endif
 
 tao_com%init_name = init_name
 
-if (associated(s%u)) call deallocate_everything ()
+if (allocated(s%u)) call deallocate_everything ()
 allocate (s%u(n_universes))
 
 ! Init
@@ -152,12 +152,12 @@ call tao_init_plotting (plot_file)
 ! Set up model and base lattices.
 ! Must first transfer to model lattice for tao_lattice_calc to run.
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do i = 1, ubound(s%u, 1)
   s%u(i)%model = s%u(i)%design; s%u(i)%model%orb = s%u(i)%design%orb
 enddo
 tao_com%lattice_recalc = .true.
 call tao_lattice_calc (calc_ok, .true.) ! .true. => init design lattice
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do i = 1, ubound(s%u, 1)
   s%u(i)%design = s%u(i)%model; s%u(i)%design%orb = s%u(i)%model%orb
   s%u(i)%base  = s%u(i)%design; s%u(i)%base%orb  = s%u(i)%design%orb
   s%u(i)%data%design_value = s%u(i)%data%model_value
@@ -169,14 +169,14 @@ call tao_plot_out ()         ! Update the plotting window
 
 ! Print bad data
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do i = 1, ubound(s%u, 1)
   if (any(s%u(i)%data%exists .and. .not. s%u(i)%data%good_model)) then
     call out_io(s_warn$, r_name, 'BAD DATA LIST (CANNOT COMPUTE A MODEL VALUE):')
     exit
   endif
 enddo
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do i = 1, ubound(s%u, 1)
   do j = 1, size(s%u(i)%data)
     data => s%u(i)%data(j)
     if (data%exists .and. .not. data%good_model) call out_io(s_blank$, r_name, &
@@ -226,11 +226,11 @@ deallocate (s%wall)
 
 ! Variables  
 
-if (associated (s%v1_var)) then
+if (allocated (s%v1_var)) then
   deallocate(s%v1_var, stat=istat)
 endif
   
-if (associated (s%var)) then
+if (allocated (s%var)) then
   do i = lbound(s%var,1), ubound(s%var,1)
     deallocate(s%var(i)%this, stat=istat)
   enddo
@@ -243,7 +243,7 @@ if (allocated(s%key)) deallocate(s%key, stat=istat)
 
 ! Plotting  
 
-nullify(s%plot_region)
+if (allocated(s%plot_region)) deallocate (s%plot_region)
 
 do i = 1, size(s%template_plot)
   plot => s%template_plot(i)
@@ -256,8 +256,8 @@ if (allocated(tao_com%ele_shape_floor_plan)) deallocate (tao_com%ele_shape_floor
 
 ! Universes 
 
-if (associated (s%u)) then
-  do i = lbound(s%u, 1), ubound(s%u, 1)
+if (allocated (s%u)) then
+  do i = 1, ubound(s%u, 1)
 
     u => s%u(i)
     ! radiation integrals cache
@@ -302,7 +302,7 @@ if (associated (s%u)) then
  
     ! ix_data
     do j = 0, ubound(u%ix_data,1)
-      if (associated(u%ix_data(j)%ix_datum)) deallocate(u%ix_data(j)%ix_datum)
+      if (allocated(u%ix_data(j)%ix_datum)) deallocate(u%ix_data(j)%ix_datum)
     enddo
     deallocate(u%ix_data)
     
@@ -315,6 +315,8 @@ if (associated (s%u)) then
     call deallocate_lat_pointers (u%base%lat)
   enddo
 endif
+
+deallocate (s%u)
     
 end subroutine deallocate_everything
     

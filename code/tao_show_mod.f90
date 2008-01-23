@@ -99,7 +99,7 @@ integer :: n_write_file = 0            ! used for indexing 'show write' files
 
 logical err, found, at_ends, first_time, by_s
 logical show_all, name_found
-logical, automatic :: picked(size(s%u))
+logical, automatic :: picked(ubound(s%u, 1))
 logical, allocatable, save :: picked_ele(:)
 
 namelist / custom_show_list / column
@@ -295,14 +295,14 @@ case ('data')
 
   if (line1 == ' ') then  ! just specified a universe
 
-    do iu = lbound(s%u, 1), ubound(s%u, 1)
+    do iu = 1, ubound(s%u, 1)
 
       if (.not. picked(iu)) cycle
 
       u => s%u(iu)
 
       nl=nl+1; write(lines(nl), *) ' '
-      if (size(s%u) > 1) then
+      if (ubound(s%u, 1) > 1) then
         nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', iu
       endif
 
@@ -336,7 +336,7 @@ case ('data')
   if (n_size == 1) then
     d_ptr => d_array(1)%d
     nl=nl+1; write(lines(nl), *) ' '
-    if (size(s%u) > 1) then
+    if (ubound(s%u, 1) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d_ptr%d1%d2%ix_uni
     endif
     nl=nl+1; write(lines(nl), amt)  '%ele0_name         = ', d_ptr%ele0_name
@@ -378,7 +378,7 @@ case ('data')
 
   elseif (associated(d1_ptr)) then
 
-    if (size(s%u) > 1) then
+    if (ubound(s%u, 1) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d1_ptr%d2%ix_uni
     endif
     
@@ -433,7 +433,7 @@ case ('data')
 
     call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%d1))
 
-    if (size(s%u) > 1) then
+    if (ubound(s%u, 1) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d2_ptr%ix_uni
     endif
     nl=nl+1; write(lines(nl), '(2a)') 'D2_Data type:    ', d2_ptr%name
@@ -607,7 +607,7 @@ case ('global')
   nl=nl+1; write (lines(nl), imt) '%n_curve_pts                = ', s%global%n_curve_pts
   nl=nl+1; write (lines(nl), imt) '%n_opti_loops               = ', s%global%n_opti_loops
   nl=nl+1; write (lines(nl), imt) '%n_opti_cycles              = ', s%global%n_opti_cycles
-  nl=nl+1; write (lines(nl), imt) '%n_universes                = ', size(s%u)
+  nl=nl+1; write (lines(nl), imt) '%n_universes                = ', ubound(s%u, 1)
   nl=nl+1; write (lines(nl), lmt) '%opt_with_ref               = ', s%global%opt_with_ref 
   nl=nl+1; write (lines(nl), lmt) '%opt_with_base              = ', s%global%opt_with_base
   nl=nl+1; write (lines(nl), amt) '%optimizer                  = ', s%global%optimizer
@@ -932,11 +932,11 @@ case ('lattice')
 
 case ('optimizer')
 
-  do i = lbound(s%u, 1), ubound(s%u, 1)
+  do i = 1, ubound(s%u, 1)
     u => s%u(i)
     call out_io (s_blank$, r_name, ' ', 'Data Used:')
     write (lines(1), '(a, i4)') 'Universe: ', i
-    if (size(s%u) > 1) call out_io (s_blank$, r_name, lines(1))
+    if (ubound(s%u, 1) > 1) call out_io (s_blank$, r_name, lines(1))
     do j = 1, size(u%d2_data)
       if (u%d2_data(j)%name == ' ') cycle
       call tao_data_show_use (u%d2_data(j))
@@ -1229,7 +1229,7 @@ case ('universe')
       call out_io (s_error$, r_name, 'BAD UNIVERSE NUMBER')
       return
     endif
-    if (ix_u < 1 .or. ix_u > size(s%u)) then
+    if (ix_u < 1 .or. ix_u > ubound(s%u, 1)) then
       call out_io (s_error$, r_name, 'UNIVERSE NUMBER OUT OF RANGE')
       return
     endif
@@ -1351,7 +1351,7 @@ case ('universe')
     
 case ('variable')
 
-  if (.not. associated (s%v1_var)) then
+  if (.not. allocated (s%v1_var)) then
     call out_io (s_error$, r_name, 'NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!')
     return 
   endif
@@ -1369,7 +1369,7 @@ case ('variable')
         return
       endif
       if (ix_u == 0) ix_u = s%global%u_view
-      if (ix_u < 1 .or. ix_u > size(s%u)) then
+      if (ix_u < 1 .or. ix_u > ubound(s%u, 1)) then
         call out_io (s_error$, r_name, 'UNIVERSE NUMBER OUT OF RANGE')
         return
       endif

@@ -463,7 +463,7 @@ case ('/')
 
     if (str(2:2) == ':') then
       read (str(1:1), *, iostat = ios) n1
-      if (n1 > size(s%u) .or. n1 < 1) then
+      if (n1 > ubound(s%u, 1) .or. n1 < 1) then
         write (*, *) 'ERROR: LAT INDEX NOT VALID.'
         return
       endif
@@ -471,7 +471,7 @@ case ('/')
       str = str(2:)
     else
       n1 = 1
-      n2 = size(s%u)
+      n2 = ubound(s%u, 1)
     endif
 
     ie = -1
@@ -498,7 +498,7 @@ case ('/')
   ! '/l' Lattice list
 
   case ('l')
-    do i = lbound(s%u, 1), ubound(s%u, 1)
+    do i = 1, ubound(s%u, 1)
       lat => s%u(i)%model%lat
       write (*, *)
       write (*, *) 'Lat: ', lat%lattice, i
@@ -530,7 +530,7 @@ case ('/')
       write (*, *) 'ERROR: NO UNIVERSE NUMBER.'
     else
       read (line, *, iostat = ios) i
-      if (ios /= 0 .or. i < 0 .or. i > size(s%u)) then
+      if (ios /= 0 .or. i < 0 .or. i > ubound(s%u, 1)) then
         write (*, *) 'ERROR: BAD UNIVERSE NUMBER.'
         return
       endif
