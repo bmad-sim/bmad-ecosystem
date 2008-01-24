@@ -62,7 +62,7 @@ call tao_get_vars (var_value, var_weight = var_weight, var_meas_value = var_meas
 n_var = size(var_value)
 
 n_data = n_var
-do i = 1, ubound(s%u, 1)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. s%u(i)%is_on) cycle
   n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0)
 enddo
@@ -79,7 +79,7 @@ y = 0
 weight(1:n_var) = var_weight
 
 k = n_var
-do j = 1, ubound(s%u, 1)
+do j = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(j)
   if (.not. u%is_on) cycle
   do i = 1, size(u%data)
@@ -195,7 +195,7 @@ forall (k = 1:n_var) dy_da(k,k) = 1
 
 k = n_var
 
-do j = 1, ubound(s%u, 1)
+do j = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(j)
   if (.not. u%is_on) cycle
   do i = 1, size(u%data)

@@ -356,6 +356,7 @@ type tao_var_struct
   real(rp) s                ! longitudinal position of ele.
   character(40) merit_type  ! 'target' or 'limit'
   logical key_bound         ! Has a key binding?
+  logical lattice_recalc    ! Change in var necessitates a lattice recalc?
   logical exists            ! See above
   logical good_var          ! See above
   logical good_user         ! See above
@@ -559,11 +560,6 @@ type tao_element_struct
   integer ix_ele_end_floor_plan
   integer ix_shape_lat_layout
   integer ix_ele_end_lat_layout
-  real(rp) data_noise    ! Was: r(1,1)
-  real(rp) x_calib       ! Was: r(1,2)
-  real(rp) y_calib       ! Was: r(1,3)
-  real(rp) tilt_calib    ! Was: r(1,4)
-  real(rp) scale_err     ! Was: r(1,5)
   integer ixx            ! Scratch variable
 end type
 
@@ -571,6 +567,7 @@ end type
 ! A universe is a snapshot of a machine
 
 type tao_universe_struct
+  type (tao_universe_struct), pointer :: common
   type (tao_lattice_struct), pointer :: model, design, base
   type (tao_element_struct), pointer :: ele(:)     ! Element information
   type (beam_struct) current_beam                  ! Beam at the current position
@@ -596,6 +593,7 @@ type tao_universe_struct
   logical do_chrom_calc
   logical is_on                                    ! universe turned on
   logical calc_beam_emittance                      ! for a lat calculate emittance
+  logical universe_recalc
 end type
 
 ! The super_universe is the structure that holds an array of universes.

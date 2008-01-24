@@ -159,9 +159,9 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_lattice_calc (used, calc_ok)
+  subroutine tao_hook_lattice_calc (calc_ok)
     implicit none
-    logical used(:), calc_ok
+    logical calc_ok
   end subroutine
 end interface
  

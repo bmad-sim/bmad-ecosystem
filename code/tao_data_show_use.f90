@@ -25,7 +25,7 @@ integer i
 do i = 1, size(d2_data%d1)
   call location_encode (line, d2_data%d1(i)%d%useit_opt, &
                       d2_data%d1(i)%d%exists, lbound(d2_data%d1(i)%d, 1))
-  if (ubound(s%u, 1) > 1) then
+  if (size(s%u) > 1) then
     write (line, '(2x, i0, 4a, t25, 2a)') d2_data%ix_uni, '@', trim(d2_data%name), &
                   '.',  trim(d2_data%d1(i)%name), "Using: ", trim(line)
   else

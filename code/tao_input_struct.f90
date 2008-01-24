@@ -32,8 +32,6 @@ type tao_data_input
   character(40) data_source
   integer ix_bunch
   character(8) relative
-  real(rp) :: data_noise ! not used by most data types
-  real(rp) :: scale_error ! not used by most data types
   character(40) :: name
 end type
 

@@ -33,13 +33,13 @@ character(20) :: r_name = 'tao_set_lattice_cmd'
 
 integer i
 
-logical, automatic :: this_u(ubound(s%u, 1))
+logical, allocatable, save :: this_u(:)
 logical err
 
 call tao_pick_universe (dest_lat, dest1_name, this_u, err)
 if (err) return
 
-do i = 1, ubound(s%u, 1)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(i)) cycle
   call set_lat (s%u(i))
   if (err) return
@@ -98,7 +98,7 @@ select case (source_lat)
     err = .true.
     return
 end select
-  
+
 dest1_lat%lat          = source1_lat%lat
 dest1_lat%orb          = source1_lat%orb
 dest1_lat%modes        = source1_lat%modes

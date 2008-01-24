@@ -465,7 +465,7 @@ lattice. This must be set in the lattice file.  If there are more than
 one element named \vn{<ele_name>} then the last element named as such
 will be used. If \vn{ele_name = "end"} then the end of the injection
 lattice will be used as the connection point. If \vn{universe_number =
-0} then universe \vn{i} is not injected into from any other universe
+-1} then universe \vn{i} is not injected into from any other universe
 
 \vn{match_to_design} will set up a connection element that will match
 the design twiss parameters between the two lattices. This is
@@ -497,7 +497,7 @@ Example:
 \begin{example}
   &tao_connected_uni_init
     ix_universe = 1
-    coupled%from_universe = 0      ! no injection into this universe
+    coupled%from_universe = -1      ! no injection into this universe
     coupled%at_element    = "none"
   /
   &tao_connected_uni_init
@@ -924,7 +924,6 @@ format of the \vn{tao_d2_data} namelist is
 \index{d2_data!name}
 \index{universe}
 \index{default_merit_type}
-\index{default_data_noise}
 \index{n_d1_data}
 \begin{example}
   &tao_d2_data
@@ -932,7 +931,6 @@ format of the \vn{tao_d2_data} namelist is
     universe     = <integer>      ! Universe variables belong in.
                                         !   "*" => all universes (default).
     default_merit_type = "<merit_type>" ! Sets how the merit is calculated.
-    default_data_noise = <number>       ! RMS noise on data (only some data types)
     n_d1_data          = <integer>      ! Number associated d1_data arrays.
   /
 \end{example}
@@ -967,14 +965,6 @@ are:
 See Chapter~\ref{c:opti} on optimization for more
 details.
 
-\vni{data_noise} gives the RMS noise on \vn{bpm} and \vn{wire} 
-data types. All other data types ignore this parameter. \vn{scale_error} gives
-the BPM scale error in the form
-\begin{equation}
-  x_{BPM} = (1+a) x_real.
-\end{equation}
-Where $a$ is a Gaussian distribution of RMS specified by \vn{scale_error}.
-
 The assocaited \vn{tao_d1_data} namelists must come directly after
 their associated \vn{tao_d2_data} namelist.  The \vn{n_d1_data}
 parameter in the \vn{tao_d2_data} namelist defines how many
@@ -995,7 +985,6 @@ structure. For each \vn{n_d1_data} structure there must be a
 \index{data!merit_type}
 \index{data!meas}
 \index{data!weight}
-\index{data!data_noise}
 \index{data!good_user}
 \index{data!ix_bunch}
 \index{use_same_lat_eles_as }
@@ -1017,8 +1006,6 @@ structure. For each \vn{n_d1_data} structure there must be a
     data(j)%merit_type   = "<merit_type>" ! Sets how the merit is calculated.
     data(j)%meas         = "<number>"     ! Datum "measured" value
     data(j)%weight       = "<weight>"     ! Merit function weight.
-    data(j)%data_noise   = <number"       ! RMS data noise
-    data(j)%scale_error  = <number"       ! RMS scale erorr
     data(j)%good_user    = Logical        ! Use for optimization and plotting?
     data(j)%data_source  = "<source>"     ! "lattice", or "beam"
     data(j)%ix_bunch     = <integer>      ! Bunch index. Default = 0 (all bunches).
@@ -1158,8 +1145,7 @@ Chapter~\ref{c:prog.customizing} for details.
 \index{data%weight}
 \vn{data(:)%weight} gives the weight coefficient for a variable in the
 merit function. If not present then the default weight of
-\vni{default_weight} is used. \vn{bpm_noise} gives the RMS bpm noise on
-this bpm.  If not present then \vn{default_bpm_noise} is used.
+\vni{default_weight} is used. 
 
 %-----------------------------------------------------------------
 \section{Initializing Key Bindings}\index{Key Bindings}
@@ -1433,7 +1419,7 @@ namelists should be placed directly after their respective
     curve(i)%use_y2       = <logical>       ! Use left-axis scale?
     curve(i)%draw_line    = <logical>
     curve(i)%draw_symbols = <logical>
-    curve(i)%ix_universe  = <universe_number> ! default = 0 => use viewed universe
+    curve(i)%ix_universe  = <universe_number> ! default = -1 => use viewed universe
     curve(i)%ix_bunch     = <integer>         ! Bunch index. Default = 0 (all bunches).
     curve(i)%line         = <qp_line_struct>
     curve(i)%symbol       = <qp_symbol_struct>
@@ -1629,7 +1615,7 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
     graph%type        = "lat_layout"
     graph%title       = "Layout Title"
     graph%box         = <ix>, <iy>
-    graph%ix_universe = <integer> ! 0 => use currently viewd universe
+    graph%ix_universe = <integer> ! -1 => use currently viewd universe
     graph%margin      = <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%n_curve     = 0
   /

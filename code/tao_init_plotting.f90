@@ -187,7 +187,7 @@ do
     graph%y2%major_div    = 4
     graph%y2%label_color  = blue$
     graph%y2%draw_numbers = .false.
-    graph%ix_universe     = 0
+    graph%ix_universe     = -1
     graph%clip            = .true.
     graph%draw_axes       = .true.
     graph%who%name        = '' 
@@ -205,7 +205,7 @@ do
     curve(:)%ix_bunch = 0
     curve(:)%convert = .false.                             ! set default
     curve(:)%symbol_every = 1
-    curve(:)%ix_universe = 0
+    curve(:)%ix_universe = -1
     curve(:)%draw_line = .true.
     curve(:)%draw_symbols = .true.
     curve(:)%use_y2 = .false.
@@ -256,9 +256,16 @@ do
 
     call qp_calc_axis_places (grph%y)
 
-    if (grph%ix_universe < 0 .or. grph%ix_universe > ubound(s%u, 1)) then
-      call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
-      call out_io (s_blank$, r_name, 'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name)
+    if (.not. tao_com%unified_lattices .and. grph%ix_universe == 0) then
+      call out_io (s_warn$, r_name, 'SYNTAX CHANGE: GRAPH%IX_UNIVERSE = 0', &
+                                    'NEEDS TO BE CHANGED TO: GRAPH%IX_UNIVERSE = -1')
+      grph%ix_universe = -1
+    endif
+
+    if (grph%ix_universe < -1 .or. grph%ix_universe > ubound(s%u, 1)) then
+      call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', & 
+                                     'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name, &
+                                     i_array = (/ grph%ix_universe /) )
       call err_exit
     endif
 
@@ -321,11 +328,18 @@ do
 
       ! Enable the radiation integrals calculation if needed.
 
+      if (.not. tao_com%unified_lattices .and. crv%ix_universe == 0) then
+        call out_io (s_warn$, r_name, 'SYNTAX CHANGE: CURVE%IX_UNIVERSE = 0', &
+                                      'NEEDS TO BE CHANGED TO: CURVE%IX_UNIVERSE = -1')
+        crv%ix_universe = -1
+      endif
+
+
       i_uni = tao_universe_number (crv%ix_universe)
 
       if ((crv%data_type(1:5) == 'emit.' .or. &
             crv%data_type(1:10) == 'norm_emit.') .and. crv%data_source == 'lattice') then
-        if (crv%ix_universe == 0) then
+        if (crv%ix_universe == -1) then
           s%u%do_synch_rad_int_calc = .true.
         else
           s%u(i_uni)%do_synch_rad_int_calc = .true.

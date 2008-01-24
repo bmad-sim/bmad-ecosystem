@@ -498,7 +498,7 @@ case ('/')
   ! '/l' Lattice list
 
   case ('l')
-    do i = 1, ubound(s%u, 1)
+    do i = lbound(s%u, 1), ubound(s%u, 1)
       lat => s%u(i)%model%lat
       write (*, *)
       write (*, *) 'Lat: ', lat%lattice, i

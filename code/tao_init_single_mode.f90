@@ -30,7 +30,7 @@ character(200) file_name
 character(16) name
 
 logical err
-logical, automatic :: unis(ubound(s%u, 1))
+logical, automatic :: unis(lbound(s%u,1):ubound(s%u,1))
 
 namelist / key_bindings / key
 

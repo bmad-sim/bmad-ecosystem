@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_hook_lattice_calc (used, calc_ok)
+! Subroutine tao_hook_lattice_calc (calc_ok)
 !
 ! This hook is used to do custom lattice calculations. This routine is only called if
 ! the lattice needs to be recalculated. If this hook is used then set used to
@@ -17,12 +17,13 @@
 ! calculation is performed. 
 !
 ! Output:
-!   used(:)    -- Logical: is this hook being used for universe(i)
+!   s%u(i)%universe_recalc 
+!              -- Logical: Set this to False to suppress tao_lattice_recalc.
 !   calc_ok    -- Logical: Set False if there was an error in the 
 !                   calculation like a particle was lost or a lat is unstable.
 !-
 
-subroutine tao_hook_lattice_calc (used, calc_ok)
+subroutine tao_hook_lattice_calc (calc_ok)
 
 use tao_mod
 use tao_lattice_calc_mod
@@ -30,10 +31,8 @@ use tao_data_mod
 
 implicit none
 
-logical used(:), calc_ok
+logical calc_ok
 
-! change this to TRUE if a custom lattice calculation is performed
-
-used = .false.
+! 
 
 end subroutine tao_hook_lattice_calc

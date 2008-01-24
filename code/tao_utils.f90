@@ -44,7 +44,7 @@ contains
 !
 ! Output:
 !   data_type_out -- Character(*): data_type_in without any "n@" beginning.
-!   picked(:)     -- Logica: Array showing picked universes.
+!   picked(:)     -- Logical: Array showing picked universes.
 !   err           -- Logical: Set True if an error is detected.
 !-
 
@@ -58,10 +58,12 @@ character(8) uni
 
 integer ix, n, ios, iu
 
-logical picked(:)
+logical, allocatable :: picked(:)
 logical err
 
 ! Init
+
+call re_allocate(picked, lbound(s%u, 1), ubound(s%u, 1))
 
 err = .false.
 picked = .false.
@@ -849,7 +851,7 @@ if (ix == 0) then ! No universe specified. Use default
 else ! read universe number
 
   if (dat_name(:ix-1) == '*') then
-    do i = 1, ubound(s%u, 1)
+    do i = lbound(s%u, 1), ubound(s%u, 1)
       call find_this_d2 (s%u(i), dat_name(ix+1:), this_err)
       if (this_err) return
     enddo
@@ -2614,7 +2616,7 @@ else
       trim(datum%d1%d2%name), '.', trim(datum%d1%name), '[', datum%ix_d1, ']'
 endif
 
-if (ubound(s%u, 1) > 1 .and. logic_option(.true., show_universe)) &
+if (size(s%u) > 1 .and. logic_option(.true., show_universe)) &
        write (datum_name, '(i0, 2a)') datum%d1%d2%ix_uni, '@', trim(datum_name)
 
 end function
@@ -2783,13 +2785,14 @@ end subroutine tao_update_var_values
 ! Function tao_universe_number (i_uni) result (i_this_uni)
 !
 ! Fnction to return the universe number.
+! i_this_uni = i_uni except when i_uni is -1. 
+! In this case i_this_uni = s%global%u_view.
 !
 ! Input:
 !   i_uni -- Integer: Nominal universe number.
 !
 ! Output:
-!   i_this_uni -- Integer Universe number. Equal to i_uni except when 
-!                   i_uni is zero. In this case i_this_uni = s%global%u_view.
+!   i_this_uni -- Integer: Universe number. 
 !-
 
 function tao_universe_number (i_uni) result (i_this_uni)
@@ -2799,7 +2802,7 @@ implicit none
 integer i_uni, i_this_uni
 
 i_this_uni = i_uni
-if (i_uni == 0) i_this_uni = s%global%u_view
+if (i_uni == -1) i_this_uni = s%global%u_view
 
 end function
 
@@ -2920,11 +2923,7 @@ end subroutine
 ! Function tao_pointer_to_universe (ix_uni) result (u)
 !
 ! Routine to set a pointer to a universe.
-! If ix_uni is 0 then u(s%global%u_view) will be used.
-! If ix_uni is common_uni$ then:
-!       tao_com%unified_lattices   Universe
-!         True                     u_common 
-!         False                    u(s%global%u_view)
+! If ix_uni is -1 then u(s%global%u_view) will be used.
 !
 ! Input:
 !   ix_uni -- Integer: Index to the s%u(:) array
@@ -2947,7 +2946,7 @@ character(28) :: r_name = 'tao_pointer_to_universe'
 
 ix_u = tao_universe_number(ix_uni)
 
-if (ix_u < 0 .or. ix_u > ubound(s%u, 1)) then
+if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
   call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_u)
   nullify (u)
   return

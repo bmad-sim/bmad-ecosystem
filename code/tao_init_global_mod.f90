@@ -97,7 +97,7 @@ endif
 
 n = ubound(s%u, 1)
 n_max = 0
-do i = 1, ubound(s%u, 1)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%ix_uni = i
   s%u(i)%do_synch_rad_int_calc = .false.
   s%u(i)%do_chrom_calc         = .false.
@@ -139,7 +139,7 @@ call init_orbits ()
   
 ! set model/base = design
 
-do i = 1, ubound(s%u, 1)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%model%lat = s%u(i)%design%lat
   s%u(i)%base%lat  = s%u(i)%design%lat
 enddo
@@ -148,7 +148,7 @@ enddo
 ! Init connected universes
 
 ! defaults
-do i = 1, ubound(s%u, 1)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%connect%connected = .false.
   s%u(i)%connect%match_to_design = .false.
   s%u(i)%connect%use_connect_ele = .false.
@@ -201,7 +201,7 @@ if (s%global%track_type /= 'macro') then
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
 
-  do i = 1, ubound(s%u, 1)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     s%u(i)%beam0_file = ''
   enddo
 
@@ -232,7 +232,7 @@ if (s%global%track_type /= 'macro') then
       call out_io (s_blank$, r_name, &
               'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
       if (ix_universe == -1) then
-        do i = 1, ubound(s%u, 1)
+        do i = lbound(s%u, 1), ubound(s%u, 1)
           call init_beam(s%u(i))
         enddo
       else
@@ -313,7 +313,7 @@ implicit none
 
 integer i
 
-do i = 1, ubound(s%u, 1)
+do i = lbound(s%u, 1), ubound(s%u, 1)
 
   n = s%u(i)%design%lat%n_ele_max
   if (allocated(s%u(i)%model%orb)) then
@@ -603,13 +603,12 @@ type (tao_d1_data_struct), pointer :: d1_ptr
 
 real(rp) default_weight        ! default merit function weight
 real(rp) default_step          ! default "small" step size
-real(rp) default_data_noise         ! default noise for data type
 
 integer ios, iu, i, j, i2, j2, k, ix, n_uni, num
 integer n, n_universes, iostat, ix_universe, n_max
 integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
 
-integer, automatic :: n_d2_data(ubound(s%u, 1))
+integer, automatic :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
 
 character(*) data_file
 character(40) :: r_name = 'tao_init_data'
@@ -622,10 +621,10 @@ character(60) save_beam_at(100)
 character(100) line
 
 logical err, free, gang
-logical, automatic :: mask(ubound(s%u, 1))
+logical, automatic :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
-namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe, &
-                  default_data_noise
+namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
+
   
 namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
                    default_weight, default_data_type, default_data_source, &
@@ -657,7 +656,7 @@ do
   endif
 enddo
 
-do i = 1, ubound(s%u, 1)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   call init_data_in_universe (s%u(i), n_d2_data(i))
 enddo
 
@@ -670,7 +669,6 @@ do
   d2_data%name       = ''
   universe           = '*'
   default_merit_type = 'target'
-  default_data_noise = 0.0
 
   read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
   if (ios < 0) exit         ! exit on end-of-file
@@ -678,7 +676,7 @@ do
                       'Init: Read tao_d2_data namelist: ' // d2_data%name)
     
   if (universe == '*') then
-    uni_loop1: do i = 1, ubound(s%u, 1)
+    uni_loop1: do i = lbound(s%u, 1), ubound(s%u, 1)
 
     ! check if this data type has already been defined for this universe
     do k = 1, size(s%u(i)%d2_data)
@@ -722,7 +720,6 @@ do
     data(:)%meas        = real_garbage$  ! used to tag when %meas_value is set in file
     data(:)%weight      = 0.0
     data(:)%ix_bunch    = 0
-    data(:)%data_noise  = real_garbage$
     data(:)%data_source = ''
     data(:)%good_user   = .true.
     data(:)%relative    = ''
@@ -764,7 +761,7 @@ do
     call out_io (s_blank$, r_name, &
                       'Init: Read tao_d1_data namelist: ' // d1_data%name)
     if (universe == '*') then          ! * => use all universes
-      uni_loop2: do i = 1, ubound(s%u, 1)
+      uni_loop2: do i = lbound(s%u, 1), ubound(s%u, 1)
 
       ! check if this data type has already been defined for this universe
       if (.not. mask(i)) cycle uni_loop2
@@ -783,7 +780,7 @@ close (iu)
 !-----------------------------------------------------------------------
 ! Init ix_data array
 
-do i = 1, ubound(s%u, 1)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   call init_ix_data (s%u(i))
 enddo
 
@@ -1084,19 +1081,6 @@ else
                                                     default_data_type
 endif
 
-
-! set data noise (not applicable to all data types)
-
-if (d2_data%name .eq. "bpm" .or. d2_data%name .eq. "wire") then
-  do j = n1, n2
-    u%ele(u%data(j)%ix_ele)%data_noise = default_data_noise
-  enddo
-  do j = lbound(data,1), ubound(data,1)
-    if (data(j)%data_noise /= real_garbage$) &
-      u%ele(u%data(n1+j-ix1)%ix_ele)%data_noise = data(j)%data_noise
-  enddo
-endif                   
-
 ! now for some family guidance...
 ! point the children to the grandchildren in the big data array
 
@@ -1342,7 +1326,7 @@ enddo
 
 rewind (iu)
 
-allocate (dflt_good_unis(ubound(s%u, 1)), good_unis(size(s%u)))
+allocate (dflt_good_unis(lbound(s%u,1):ubound(s%u, 1)), good_unis(lbound(s%u,1):ubound(s%u,1)))
 
 n_v1 = 0
 do
@@ -1454,7 +1438,7 @@ do
     enddo
 
   else   ! If clone...
-    do i = 1, ubound(s%u, 1)
+    do i = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. dflt_good_unis(i)) cycle
       call var_stuffit1 (v1_var_ptr)
       write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
@@ -1603,7 +1587,7 @@ if (search_for_lat_eles /= '') then
   endif
   ! search through all universes specified
   num_ele = 0
-  do iu = 1, ubound(s%u, 1)
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     call tao_find_elements (s%u(iu), search_string, ix_eles)
     num_ele = num_ele + size(ix_eles)
@@ -1622,7 +1606,7 @@ if (search_for_lat_eles /= '') then
   s%n_var_used = n2
   jj = n1
 
-  do iu = 1, ubound(s%u, 1)
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     call tao_find_elements (s%u(iu), search_string, ix_eles)
     do kk = 1, size(ix_eles)
@@ -1723,7 +1707,7 @@ type (tao_this_var_struct), pointer :: this
 type (tao_universe_struct), pointer :: u
 
 integer i, j, n, n1, n2, iv, iu, n_tot, n_ele, ie
-integer, automatic :: n_ele_in_uni(ubound(s%u, 1))
+integer, automatic :: n_ele_in_uni(lbound(s%u,1):ubound(s%u,1))
 
 character(20) :: r_name = 'var_stuffit2'
 logical err, searching, good_unis(:)
@@ -1744,7 +1728,7 @@ endif
 if (searching) then
   allocate (var%this(count(good_unis)))
   j = 0
-  do iu = 1, ubound(s%u, 1)
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. good_unis(iu)) cycle
     j = j + 1
     call tao_pointer_to_var_in_lattice (var, var%this(j), iu, &
@@ -1775,7 +1759,7 @@ if (searching) then
 
 else
   n_tot = 0
-  do iu = 1, ubound(s%u, 1)
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. good_unis(iu)) cycle
 
     n_ele = 0
@@ -1798,7 +1782,7 @@ else
   allocate (var%this(n_tot))
 
   n = 0
-  do iu = 1, ubound(s%u, 1)
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. good_unis(iu)) cycle
     do ie = 1, n_ele_in_uni(iu)
       call tao_pointer_to_var_in_lattice (var, var%this(ie+n), iu, &

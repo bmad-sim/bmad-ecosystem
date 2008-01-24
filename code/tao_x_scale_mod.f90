@@ -136,8 +136,7 @@ if (x_max == x_min) then
       enddo
       curve_here = .true.
     else if (plot%x_axis_type == 's') then
-      iu = graph%ix_universe
-      if (iu == 0) iu = s%global%u_view
+      iu = tao_universe_number(graph%ix_universe)
       x1 = min (x1, s%u(iu)%model%lat%ele(0)%s)
       ix = s%u(iu)%model%lat%n_ele_track
       x2 = max (x2, s%u(iu)%model%lat%ele(ix)%s)

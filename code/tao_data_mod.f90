@@ -53,7 +53,7 @@ integer n_data
   
   
 n_data = 0
-do iu = 1, ubound(s%u, 1)
+do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. s%u(iu)%is_on) cycle
   n_data  = n_data + count(s%u(iu)%data(:)%useit_opt)
 enddo
@@ -63,7 +63,7 @@ if (present(data_weight))     call re_allocate (data_weight, n_data)
 if (present(data_ix_dModel))  call re_allocate (data_ix_dModel, n_data)
 
 j = 0
-do iu = 1, ubound(s%u, 1)
+do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. s%u(iu)%is_on) cycle
   do i = 1, size(s%u(iu)%data)
     if (.not. s%u(iu)%data(i)%useit_opt) cycle
@@ -293,9 +293,9 @@ case ('orbit.p_z')
   if (lat%param%ix_lost /= not_lost$ .and. ix1 >= lat%param%ix_lost) valid_value = .false.
 
 case ('bpm.x')
-  call tao_read_bpm (tao_lat%orb(ix1), lat%ele(ix1), u%ele(ix1), x_plane$, datum_value)
+  call tao_read_bpm (tao_lat%orb(ix1), lat%ele(ix1), x_plane$, datum_value)
 case ('bpm.y')
-  call tao_read_bpm (tao_lat%orb(ix1), lat%ele(ix1), u%ele(ix1), y_plane$, datum_value)
+  call tao_read_bpm (tao_lat%orb(ix1), lat%ele(ix1), y_plane$, datum_value)
 
 case ('phase.a')
   datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
@@ -811,7 +811,7 @@ case ('sigma.xy')
 case ('wire.')  
   if (data_source == "beam") then
     read (data_type(6:), '(a)') angle
-    datum_value = tao_do_wire_scan (lat%ele(ix1), u%ele(ix1), angle, u%current_beam)
+    datum_value = tao_do_wire_scan (lat%ele(ix1), angle, u%current_beam)
   elseif (data_source == "macro") then
     valid_value = .false.
   else
@@ -1143,7 +1143,7 @@ end subroutine coupling_calc
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_read_bpm (orb, ele, bpm_params, axis, reading)
+! Subroutine tao_read_bpm (orb, ele, axis, reading)
 !
 ! Find the reading on a bpm given the orbit at the BPM and the BPM offsets
 !
@@ -1153,22 +1153,21 @@ end subroutine coupling_calc
 ! Input: 
 !  orb        -- Coord_struct: Orbit position at BPM
 !  ele        -- Ele_struct: the BPM
-!  bpm_params -- Tao_element_struct: BPM information.
-!  noise      -- real(rp): BPM gaussian noise (in meters)
+!    %value(noise$) -- relative bpm resolution RMS
+!    %value(tilt$)  -- angle error in radians rms.
 !  axis       -- Integer: x_plane$ or y_plane$
 !
 ! Output:
 !  reading  -- Real(rp): BPM reading
 !-
 
-subroutine tao_read_bpm (orb, ele, bpm_params, axis, reading)
+subroutine tao_read_bpm (orb, ele, axis, reading)
 
 type (coord_struct) orb
 type (ele_struct) ele
-type (tao_element_struct) bpm_params
 
-real(rp) reading
-real(rp) ran_num(2)
+real(rp) reading, x_noise_factor, y_noise_factor
+real(rp) ran_num(2), angle
 
 integer axis
 
@@ -1181,29 +1180,34 @@ logical err
     return
   endif
 
-  if (ele%key .ne. monitor$ .and. ele%key .ne. instrument$) then
+  if (ele%key /= monitor$ .and. ele%key /= instrument$ .and. ele%key /= marker$) then
     reading = 0.0
     return
   endif
 
-  call ran_gauss (ran_num)
+  if (ele%value(noise$) /= 0) then
+    call ran_gauss (ran_num)
+    x_noise_factor = ele%value(noise$) * ran_num(1) 
+    y_noise_factor = ele%value(noise$) * ran_num(2)
+  else
+    x_noise_factor = 0
+    y_noise_factor = 0
+  endif
   
   if (axis == x_plane$) then
-    reading = (1 + bpm_params%scale_err*ran_num(1)) * (bpm_params%data_noise*ran_num(2) + &
-               (orb%vec(1) - ele%value(x_offset_tot$) + bpm_params%x_calib) * &
-                                           cos(ele%value(tilt_tot$) + bpm_params%tilt_calib) + &
-               (orb%vec(3) - ele%value(y_offset_tot$) + bpm_params%y_calib) * &
-                                           sin(ele%value(tilt_tot$) + bpm_params%tilt_calib))
+    angle = ele%value(tilt_tot$) + ele%value(crunch$)
+    reading = x_noise_factor + (1 + ele%value(x_gain_err$)) * ( &
+                (orb%vec(1) - ele%value(x_offset_tot$)) * cos(angle) + &
+                (orb%vec(3) - ele%value(y_offset_tot$)) * sin(angle))
   elseif (axis == y_plane$) then
-    reading = (1 + bpm_params%scale_err*ran_num(1)) * (bpm_params%data_noise*ran_num(2) &
-              -(orb%vec(1) - ele%value(x_offset_tot$) + bpm_params%x_calib) * &
-                                           sin(ele%value(tilt_tot$) + bpm_params%tilt_calib) + &
-               (orb%vec(3) - ele%value(y_offset_tot$) + bpm_params%y_calib) * &
-                                           cos(ele%value(tilt_tot$) + bpm_params%tilt_calib)) 
+    angle = ele%value(tilt_tot$) - ele%value(crunch$)
+    reading = y_noise_factor + (1 + ele%value(y_gain_err$)) * ( &
+               -(orb%vec(1) - ele%value(x_offset_tot$)) * sin(angle) + &
+                (orb%vec(3) - ele%value(y_offset_tot$)) * cos(angle))
   else
     reading = 0.0
-    call out_io (s_warn$, r_name, &
-                 "This axis not supported for BPM reading!")
+    call out_io (s_warn$, r_name, "This axis not supported for BPM reading!")
+    call err_exit
   endif
     
 end subroutine tao_read_bpm
@@ -1529,9 +1533,8 @@ end subroutine
 !
 ! Input:
 !  ele         -- Element_struct: 
-!  wire_params -- Tao_element_struct:
-!    %data_noise -- relative wire resolution RMS (i.e. 0.1 => 10%)
-!    %tilt_calib -- wire angle error in radians rms.
+!    %value(noise$) -- relative wire resolution RMS 
+!    %value(tilt$)  -- wire angle error in radians rms.
 !  theta       -- Real(rp): wire angle wrt x axis (in degrees)
 !  beam        -- Beam_struct: contains the beam distribution
 !
@@ -1539,45 +1542,42 @@ end subroutine
 !   moment  -- Real(rp): second moment along axis specified by angle.
 !-
 
-function tao_do_wire_scan (ele, wire_params, theta, beam) result (moment)
+function tao_do_wire_scan (ele, theta, beam) result (moment)
 
 implicit none
 
 type (ele_struct) ele
 type (beam_struct) beam
-type (tao_element_struct) wire_params
 
 real(rp), allocatable, save :: dist(:)
 real(rp) theta, theta_rad, moment, ran_num(2)
 real(rp) avg
 
-  call ran_gauss (ran_num)
-  
-  ! angle in radians and correlation angle is 90 off from wire angle
-  theta_rad = wire_params%tilt_calib*ran_num(1) + (theta - 90) * (2.0*pi / 360.0)
+!
 
-  if (.not. allocated (dist)) then
-    allocate (dist(size(beam%bunch(1)%particle)))
-  elseif (size(dist) .ne. size(beam%bunch(1)%particle)) then
-    deallocate (dist)
-    allocate (dist(size(beam%bunch(1)%particle)))
-  endif
+call ran_gauss (ran_num)
 
-  ! Rotating the wire scanner is equivalent to rotating the beam by -theta
+! angle in radians and correlation angle is 90 off from wire angle
+theta_rad = ele%value(tilt_tot$)+ (theta - 90) * (2.0*pi / 360.0)
 
-  dist =  beam%bunch(1)%particle%r%vec(1) * cos(-theta_rad ) &
+if (.not. allocated (dist)) then
+  allocate (dist(size(beam%bunch(1)%particle)))
+elseif (size(dist) /= size(beam%bunch(1)%particle)) then
+  deallocate (dist)
+  allocate (dist(size(beam%bunch(1)%particle)))
+endif
+
+! Rotating the wire scanner is equivalent to rotating the beam by -theta
+
+dist =  beam%bunch(1)%particle%r%vec(1) * cos(-theta_rad ) &
         + beam%bunch(1)%particle%r%vec(3) * sin(-theta_rad)
   
-  avg = sum (dist, mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
+avg = sum (dist, mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
           / count (beam%bunch(1)%particle%ix_lost == not_lost$)
         
-  moment = (1 + wire_params%data_noise*ran_num(2)) * sum ((dist-avg)*(dist-avg), &
+moment = (1 + ele%value(noise$)*ran_num(2)) * sum ((dist-avg)*(dist-avg), &
                  mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
           / count (beam%bunch(1)%particle%ix_lost == not_lost$)
-
-! moment = (wire_params%data_noise**2)*ran_num(2) + sum ((dist-avg)*(dist-avg), &
-!                mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
-!         / count (beam%bunch(1)%particle%ix_lost == not_lost$)
 
 end function tao_do_wire_scan
 

@@ -14,11 +14,11 @@ use tao_mod
 
 implicit none
 
-character(*) who, file_name
+type (tao_universe_struct), pointer :: u
 
+character(*) who, file_name
 character(20) action
 character(20) :: names(1) = (/ 'lattice' /)
-
 character(20) :: r_name = 'tao_read_cmd'
 
 integer i, j, ix, iu, nd, ii
@@ -44,8 +44,8 @@ select case (action)
 
 case ('lattice')
 
-  iu = s%global%u_view
-  call bmad_parser2 (file_name, s%u(iu)%model%lat)
+  u => tao_pointer_to_universe(-1)
+  call bmad_parser2 (file_name, u%model%lat)
   tao_com%lattice_recalc = .true.
   
 

@@ -73,7 +73,7 @@ integer time_values(8), seed(1)
 integer :: ix_key(2), key_next, num_loc
 
 logical err, found, rel_error, found_double, rel_sbend_error_flag
-logical, automatic :: which_univ(ubound(s%u, 1))
+logical, allocatable, save :: which_univ(:)
 logical, allocatable, save :: action_logic(:)
 
 ! random number seeded dulat tao initialization
@@ -95,19 +95,18 @@ logical, allocatable, save :: action_logic(:)
 
   call match_word (ele_type, key_name, ix_key(1))
   if (ix_key(1) .le. 0) then
-    call out_io (s_error$, r_name, &
-                 "Error matching key name")
+    call out_io (s_error$, r_name, "Error matching key name")
     return
   endif
 
   !Find an element in the lattice of this key type then find the attribute in
   !this element
-  do i = 1, ubound(s%u, 1)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. which_univ(i)) cycle
     do j = 1, s%u(i)%model%lat%n_ele_max
       if (s%u(i)%model%lat%ele(j)%key .eq. ix_key(1)) then
-	ele => s%u(i)%model%lat%ele(j)
-	exit
+        ele => s%u(i)%model%lat%ele(j)
+        exit
       endif
     enddo
   enddo
@@ -121,8 +120,7 @@ logical, allocatable, save :: action_logic(:)
   call pointer_to_attribute (ele, ele_attrib, .false., attrib_ptr, &
                              err, .true., ix_attrib)
   if (err) then
-    call out_io (s_error$, r_name, &
-                 "Error matching attribute name")
+    call out_io (s_error$, r_name, "Error matching attribute name")
     return
   endif
   
@@ -140,7 +138,7 @@ logical, allocatable, save :: action_logic(:)
   endif
   
   num_loc = 0
-  do i = 1, ubound(s%u, 1)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (num_loc .lt. s%u(i)%model%lat%n_ele_max) &
          num_loc = s%u(i)%model%lat%n_ele_max
   enddo
@@ -151,7 +149,7 @@ logical, allocatable, save :: action_logic(:)
   found_double = .false.
   
   ! set misalignment
-  do i = 1, ubound(s%u, 1)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     if (which_univ(i)) then
       do j = 1, s%u(i)%model%lat%n_ele_max
         if (found_double) then

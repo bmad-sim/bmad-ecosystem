@@ -65,7 +65,7 @@ enddo
 
 ! Draw view universe
 
-if (ubound(s%u, 1) > 1) then
+if (size(s%u) > 1) then
   write (view_str, '(i3)') s%global%u_view
   call qp_draw_text ('View Universe:' // view_str, -2.0_rp, -2.0_rp, 'POINTS/PAGE/RT', 'RT')
 endif

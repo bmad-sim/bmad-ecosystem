@@ -60,8 +60,6 @@ real(rp) :: delta_e = 0
 character(20) :: r_name = "tao_lattice_calc"
 
 logical initing_design
-! hook_used refers to if a custom lattice calculation is performed
-logical, automatic :: hook_used(ubound(s%u, 1))
 logical :: calc_ok
 logical this_calc_ok
 
@@ -69,15 +67,14 @@ logical this_calc_ok
 
 calc_ok = .true.
 
-hook_used(:) = .false.
+s%u%universe_recalc = .true.
 initing_design = logic_option (.false., init_design)
 
 ! do a custom lattice calculation if desired
 
 if (tao_com%lattice_recalc) then
   tao_com%ix0_taylor = -1   ! Reset taylor map
-  call tao_hook_lattice_calc (hook_used, calc_ok)
-  if (all(hook_used)) tao_com%lattice_recalc = .false.
+  call tao_hook_lattice_calc (calc_ok)
 endif
     
 ! Closed orbit and Twiss calculation.
@@ -85,11 +82,11 @@ endif
 
 if (.not. tao_com%lattice_recalc) return
 
-do i = 1, ubound(s%u, 1)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   u%data(:)%good_model = .false. ! reset
 
-  if (.not. u%is_on .or. hook_used(i)) cycle
+  if (.not. u%is_on .or. .not. u%universe_recalc) cycle
   ! zero data array
 
   model => u%model
@@ -632,7 +629,7 @@ enddo
 ! Post lost particles
 if (record_lost .and. n_lost > 0) then
   line = "\I4\ particle(s) lost at element \I0\: " // ele%name
-  if (ubound(s%u, 1) > 1) line = trim(line) // " in universe \I3\ "
+  if (size(s%u) > 1) line = trim(line) // " in universe \I3\ "
   call out_io (s_blank$, r_name, line, i_array = (/ n_lost, ix_ele, uni /) )
 endif
   

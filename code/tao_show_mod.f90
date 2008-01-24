@@ -99,7 +99,7 @@ integer :: n_write_file = 0            ! used for indexing 'show write' files
 
 logical err, found, at_ends, first_time, by_s
 logical show_all, name_found
-logical, automatic :: picked(ubound(s%u, 1))
+logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 
 namelist / custom_show_list / column
@@ -123,7 +123,7 @@ lmt  = '(a, 9l)'
 amt  = '(9a)'
 iamt = '(a, i0, 9a)'
 
-u => s%u(s%global%u_view)
+u => tao_pointer_to_universe(-1)
 lat => u%model%lat
 
 if (s%global%phase_units == radians$) f_phi = 1
@@ -177,7 +177,7 @@ case ('beam')
 
   if (word(1) == '') then
 
-    nl=nl+1; write(lines(nl), '(a, i3)') 'Universe: ', s%global%u_view
+    nl=nl+1; write(lines(nl), '(a, i3)') 'Universe: ', u%ix_uni
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), rmt) 'beam_init%a_norm_emitt      = ', u%beam_init%a_norm_emitt
     nl=nl+1; write(lines(nl), rmt) 'beam_init%b_norm_emitt      = ', u%beam_init%b_norm_emitt
@@ -290,19 +290,19 @@ case ('data')
 
 ! If just "show data" then show all names
 
-  call tao_pick_universe (word(1), line1, picked, err)
+  call tao_pick_universe (word(1), line1, picked_uni, err)
   if (err) return
 
   if (line1 == ' ') then  ! just specified a universe
 
-    do iu = 1, ubound(s%u, 1)
+    do iu = lbound(s%u, 1), ubound(s%u, 1)
 
-      if (.not. picked(iu)) cycle
+      if (.not. picked_uni(iu)) cycle
 
       u => s%u(iu)
 
       nl=nl+1; write(lines(nl), *) ' '
-      if (ubound(s%u, 1) > 1) then
+      if (size(s%u) > 1) then
         nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', iu
       endif
 
@@ -336,7 +336,7 @@ case ('data')
   if (n_size == 1) then
     d_ptr => d_array(1)%d
     nl=nl+1; write(lines(nl), *) ' '
-    if (ubound(s%u, 1) > 1) then
+    if (size(s%u) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d_ptr%d1%d2%ix_uni
     endif
     nl=nl+1; write(lines(nl), amt)  '%ele0_name         = ', d_ptr%ele0_name
@@ -378,7 +378,7 @@ case ('data')
 
   elseif (associated(d1_ptr)) then
 
-    if (ubound(s%u, 1) > 1) then
+    if (size(s%u) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d1_ptr%d2%ix_uni
     endif
     
@@ -433,7 +433,7 @@ case ('data')
 
     call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%d1))
 
-    if (ubound(s%u, 1) > 1) then
+    if (size(s%u) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d2_ptr%ix_uni
     endif
     nl=nl+1; write(lines(nl), '(2a)') 'D2_Data type:    ', d2_ptr%name
@@ -932,11 +932,11 @@ case ('lattice')
 
 case ('optimizer')
 
-  do i = 1, ubound(s%u, 1)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
     call out_io (s_blank$, r_name, ' ', 'Data Used:')
     write (lines(1), '(a, i4)') 'Universe: ', i
-    if (ubound(s%u, 1) > 1) call out_io (s_blank$, r_name, lines(1))
+    if (size(s%u) > 1) call out_io (s_blank$, r_name, lines(1))
     do j = 1, size(u%d2_data)
       if (u%d2_data(j)%name == ' ') cycle
       call tao_data_show_use (u%d2_data(j))
@@ -1479,6 +1479,7 @@ case ('variable')
       nl=nl+1; write(lines(nl), rmt)  '%Key_val0         = ', v_ptr%key_val0
       nl=nl+1; write(lines(nl), rmt)  '%Key_delta        = ', v_ptr%key_delta
     endif
+    nl=nl+1; write(lines(nl), lmt)  '%Lattice_recalc   = ', v_ptr%lattice_recalc
     nl=nl+1; write(lines(nl), lmt)  '%Exists           = ', v_ptr%exists
     nl=nl+1; write(lines(nl), lmt)  '%Good_var         = ', v_ptr%good_var
     nl=nl+1; write(lines(nl), lmt)  '%Good_user        = ', v_ptr%good_user

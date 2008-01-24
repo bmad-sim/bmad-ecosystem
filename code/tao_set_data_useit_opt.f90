@@ -20,7 +20,7 @@ integer i, j
 
 ! 
 
-do i = 1, ubound(s%u, 1)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   d => s%u(i)%data
   if (s%u(i)%is_on) then
     d(:)%useit_opt = d(:)%good_opt .and. d(:)%exists .and. d(:)%good_user .and. d(:)%good_meas
