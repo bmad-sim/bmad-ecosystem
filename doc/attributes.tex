@@ -494,7 +494,7 @@ default value of $r_0$, if the \vn{radius} is not given, is 1.0.
 
 %-----------------------------------------------------------------
 \section{Instrumental Attributes}
-\label{s:inst_var}
+\label{s:inst.var}
 
 \index{Instrument}\index{Monitor}\index{Marker}
 \index{x_gain_err}\index{y_gain_err}\index{crunch}\index{noise}
@@ -511,15 +511,18 @@ When combined with an element's offsets and tilt (\sref{s:offset}), A program ca
 these quantities to calculate the ``measured'' beam position from the
 ``actual'' (that is, as calculated via tracking) using the equations
 \begin{alignat}{1}
-  x_{\mbox{meas}} &= N * r_1 + (1 + g_{x\mbox{err}) * \CRNO
-          &\left[ (x_{\mbox{actual}} - x_{\mbox{off}}) * \cos (\theta_t + \theta_c) +
-                  (y_{\mbox{actual}} - y_{\mbox{off}}) * \sin (\theta_t + \theta_c)  
-  y_{\mbox{meas}} &= N * r_2 + (1 + g_{y\mbox{err}) * \CRNO
-          &\left[ -(x_{\mbox{actual}} - x_{\mbox{off}}) * \sin (\theta_t - \theta_c) +
-                  (y_{\mbox{actual}} - y_{\mbox{off}}) * \cos (\theta_t - \theta_c)  
+  x_m &= N * r_1 + (1 + g_{x\mss{err}}) * 
+          \left[ (x - x_{\mss{off}}) * \cos (\theta_t + \theta_c) +
+                  (y - y_{\mss{off}}) * \sin (\theta_t + \theta_c) 
+          \right] \\ 
+  y_m &= N * r_2 + (1 + g_{y\mss{\scriptsize err}}) * 
+          \left[ -(x - x_{\mss{off}}) * \sin (\theta_t - \theta_c) +
+                  (y - y_{\mss{off}}) * \cos (\theta_t - \theta_c)  
+          \right]
 \end{alignat}
-where $N$ is the noise factor, $g_{x\mbox{err})$ and $g_{y\mbox{err})$
-are the gain errors, $x_{\mbox{off}}$, and $x_{\mbox{off}}$ are the
+where $(x,y)$ is the actual beam position, $(x_m, y_m)$ is the measured position, 
+$N$ is the noise factor, $g_{x\mss{err}}$ and $g_{y\mss{err}}$
+are the gain errors, $x_{\mss{off}}$, and $x_{\mss{off}}$ are the
 element offsets, $\theta_t$ is the tilt angle, $\theta_c$ is the
 crunch angle, and $r_1$ and $r_2$ are Gaussian random numbers whose
 distribution has unit width.
