@@ -263,10 +263,10 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(monitor$, x_pitch$)     = 'X_PITCH'
     attrib_array(monitor$, y_pitch$)     = 'Y_PITCH'
     attrib_array(monitor$, tilt$)        = 'TILT'
-    attrib_array(monitor$, bpm_x_scale_err$)  = 'BPM_X_SCALE_ERR'
-    attrib_array(monitor$, bpm_y_scale_err$)  = 'BPM_Y_SCALE_ERR'
-    attrib_array(monitor$, bpm_scrunch$)      = 'BPM_SCRUNCH'
-    attrib_array(monitor$, bpm_noise$)        = 'BPM_NOISE'
+    attrib_array(monitor$, x_gain_err$)  = 'X_GAIN_ERR'
+    attrib_array(monitor$, y_gain_err$)  = 'Y_GAIN_ERR'
+    attrib_array(monitor$, crunch$)      = 'CRUNCH'
+    attrib_array(monitor$, noise$)       = 'NOISE'
 
     attrib_array(instrument$, l$) = 'L'
     attrib_array(instrument$, x_offset$) = 'X_OFFSET'
@@ -274,16 +274,22 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(instrument$, x_pitch$)  = 'X_PITCH'
     attrib_array(instrument$, y_pitch$)  = 'Y_PITCH'
     attrib_array(instrument$, tilt$)     = 'TILT'
+    attrib_array(instrument$, x_gain_err$)  = 'X_GAIN_ERR'
+    attrib_array(instrument$, y_gain_err$)  = 'Y_GAIN_ERR'
+    attrib_array(instrument$, crunch$)      = 'CRUNCH'
+    attrib_array(instrument$, noise$)       = 'NOISE'
 
     attrib_array(marker$, x_offset$) = 'X_OFFSET'
     attrib_array(marker$, y_offset$) = 'Y_OFFSET'
     attrib_array(marker$, tilt$)     = 'TILT'
+    attrib_array(marker$, x_gain_err$) = 'X_GAIN_ERR'
+    attrib_array(marker$, y_gain_err$) = 'Y_GAIN_ERR'
+    attrib_array(marker$, crunch$)     = 'CRUNCH'
+    attrib_array(marker$, noise$)      = 'NOISE'
 
     attrib_array(rcollimator$, l$)     = 'L'
-    attrib_array(rcollimator$, is_on$) = null_name
 
     attrib_array(ecollimator$, l$)     = 'L'
-    attrib_array(ecollimator$, is_on$) = null_name
 
     attrib_array(hkicker$, l$)          = 'L'
     attrib_array(hkicker$, tilt$)       = 'TILT'

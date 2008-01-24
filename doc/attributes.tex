@@ -491,3 +491,35 @@ r_0^n$ (cf.~\Eq{ababf}) where $F$ is the strength of the element (for
 example $F$ is $K1 \cdot L$ for a quadrupole), and $r_0$ is the
 ``measurement radius'' and is set by the \vn{radius} attribute. The
 default value of $r_0$, if the \vn{radius} is not given, is 1.0.
+
+%-----------------------------------------------------------------
+\section{Instrumental Attributes}
+\label{s:inst_var}
+
+\index{Instrument}\index{Monitor}\index{Marker}
+\index{x_gain_err}\index{y_gain_err}\index{crunch}\index{noise}
+\vn{Instrument}, \vn{Monitor}, and \vn{Marker} elements have special
+attributes to describe the beam position measurement process. These
+attributes are:
+\begin{example}
+  x_gain_err = <Real>    ! Horizontal gain error
+  y_gain_err = <Real>    ! Vertical gain error
+  crunch     = <Real>    ! Crunch angle
+  noise      = <Real>    ! Noise factor
+\end{example}
+When combined with an element's offsets and tilt (\sref{s:offset}), A program can use
+these quantities to calculate the ``measured'' beam position from the
+``actual'' (that is, as calculated via tracking) using the equations
+\begin{alignat}{1}
+  x_{\mbox{meas}} &= N * r_1 + (1 + g_{x\mbox{err}) * \CRNO
+          &\left[ (x_{\mbox{actual}} - x_{\mbox{off}}) * \cos (\theta_t + \theta_c) +
+                  (y_{\mbox{actual}} - y_{\mbox{off}}) * \sin (\theta_t + \theta_c)  
+  y_{\mbox{meas}} &= N * r_2 + (1 + g_{y\mbox{err}) * \CRNO
+          &\left[ -(x_{\mbox{actual}} - x_{\mbox{off}}) * \sin (\theta_t - \theta_c) +
+                  (y_{\mbox{actual}} - y_{\mbox{off}}) * \cos (\theta_t - \theta_c)  
+\end{alignat}
+where $N$ is the noise factor, $g_{x\mbox{err})$ and $g_{y\mbox{err})$
+are the gain errors, $x_{\mbox{off}}$, and $x_{\mbox{off}}$ are the
+element offsets, $\theta_t$ is the tilt angle, $\theta_c$ is the
+crunch angle, and $r_1$ and $r_2$ are Gaussian random numbers whose
+distribution has unit width.
