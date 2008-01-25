@@ -733,25 +733,36 @@ end subroutine tao_find_macro_beam_centroid
 ! whatever the user has specified. As always, tracking only occure in the model
 ! lattice.
 
-subroutine tao_inject_particle (u, model)
+subroutine tao_inject_particle (u, model, orb0_in)
 
 implicit none
 
 type (tao_universe_struct) u
-type (tao_lattice_struct) model
+type (tao_lattice_struct), target :: model
 
 type (ele_struct), save :: extract_ele
 type (coord_struct) pos
+type (coord_struct), optional, target :: orb0_in
+type (coord_struct), pointer :: orb0
+
 type (spin_polar_struct) :: polar
 
 character(20) :: r_name = "inject_particle"
+
+! Init
+
+if (present(orb0_in)) then
+  orb0 => orb0_in
+else
+  orb0 => model%orb(0)
+endif
 
 ! Not connected case is easy.
 
 if (.not. u%connect%connected) then
   polar%theta = u%beam_init%spin%theta
   polar%phi = u%beam_init%spin%phi
-  call polar_to_spinor (polar, model%orb(0))
+  call polar_to_spinor (polar, orb0)
   return
 endif
 
@@ -796,7 +807,7 @@ model%lat%ele(0)%value(E_TOT$) = extract_ele%value(E_TOT$)
 model%lat%ele(0)%c_mat   = extract_ele%c_mat
 model%lat%ele(0)%gamma_c = extract_ele%gamma_c
 model%lat%ele(0)%floor   = extract_ele%floor
-model%orb(0)      = pos
+orb0      = pos
         
 end subroutine tao_inject_particle
 
@@ -809,16 +820,17 @@ end subroutine tao_inject_particle
 !
 ! If there is no connection between lattice then this will initialize the beam
 
-subroutine tao_inject_beam (u, model)
+subroutine tao_inject_beam (u, model, orb0_in)
 
 use tao_read_beam_mod
 
 implicit none
 
 type (tao_universe_struct) u
-type (tao_lattice_struct) model
+type (tao_lattice_struct), target :: model
 type (ele_struct), save :: extract_ele
-
+type (coord_struct), optional, target :: orb0_in
+type (coord_struct), pointer :: orb0
 type (lat_param_struct), pointer :: param
 
 real(rp) v(6)
@@ -827,9 +839,15 @@ integer i, iu, ios, n_in_file, n_in
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
 
-!
+! Init
 
 if (tao_com%use_saved_beam_in_tracking) return
+
+if (present(orb0_in)) then
+  orb0 => orb0_in
+else
+  orb0 => model%orb(0)
+endif
 
 ! If there is an init file then read from the file
 
@@ -839,7 +857,7 @@ if (u%beam0_file /= "") then
   call read_beam (u%beam0)
   call close_beam_file()
   call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
-  call tao_find_beam_centroid (u%beam0, model%orb(0)) 
+  call tao_find_beam_centroid (u%beam0, orb0) 
   if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
   return
 endif
@@ -855,7 +873,7 @@ if (.not. u%connect%connected) then
       call err_exit
     endif
     call init_beam_distribution (model%lat%ele(0), u%beam_init, u%beam0)
-    call tao_find_beam_centroid (u%beam0, model%orb(0))
+    call tao_find_beam_centroid (u%beam0, orb0)
   endif
   if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
   return
@@ -897,7 +915,7 @@ model%lat%ele(0)%c_mat   = extract_ele%c_mat
 model%lat%ele(0)%gamma_c = extract_ele%gamma_c
 model%lat%ele(0)%floor   = extract_ele%floor
 u%beam0 = u%connect%injecting_beam
-call tao_find_beam_centroid (u%connect%injecting_beam, model%orb(0))
+call tao_find_beam_centroid (u%connect%injecting_beam, orb0)
 
 if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
 
@@ -912,7 +930,7 @@ end subroutine tao_inject_beam
 !
 ! If there is no connection between lattice then this will initialize the beam
 
-subroutine tao_inject_macro_beam (u, model)
+subroutine tao_inject_macro_beam (u, model, orb0_in)
 
 implicit none
  
@@ -920,6 +938,8 @@ type (tao_universe_struct) u
 type (tao_lattice_struct) model
 type (ele_struct), save :: extract_ele
 type (lat_param_struct), pointer :: param
+type (coord_struct), optional, target :: orb0_in
+type (coord_struct), pointer :: orb0
 
 character(24) :: r_name = "tao_inject_macro_beam"
 
