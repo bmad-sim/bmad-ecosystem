@@ -104,8 +104,8 @@ information using the command:
 \begin{example}
   show plot
 \end{example}
-The information will be displayed in the command window. The
-first section shows information on font sizes:
+The information will be displayed in the command window. The first
+section of the \vn{show plot} output shows information on font sizes:
 \begin{example}
   plot_page%text_height            = 12.000
   plot_page%main_title_text_scale  = 1.300
@@ -114,8 +114,10 @@ first section shows information on font sizes:
   plot_page%axis_label_text_scale  = 1.000
   plot_page%key_table_text_scale   = 0.900
 \end{example}
-See section~\sref{s:init.plot} for more details. The second section
-lists the plot \vn{tamplates} (\sref{s:plotting} and
+See section~\sref{s:init.plot} for more details. 
+
+The second section of the \vn{show plot} output
+lists the plot \vn{templates} (\sref{s:plotting} and
 \sref{s:template}) that \tao knows about:
 \begin{example}
  Templates:        Plot.Graph
@@ -126,7 +128,7 @@ lists the plot \vn{tamplates} (\sref{s:plotting} and
                   phase.x
                        .y
 
-    ... etc. ...
+                  ... etc. ...
 \end{example}
 In this case, these templates are defined in the \vn{tao_plot.init}
 file. There is an \vn{orbit} plot template which has two associated
@@ -375,8 +377,8 @@ A list of lattice elements between two elements can be shown by typing
   sho lattice 0:20
 \end{example}
 This will show a list of all the lattice elements between and
-including elements 0 and 20. Twiss parameters and orbit information at
-each element is also provided.
+including elements 0 and 20. Twiss parameters and orbit information, at
+the exit end of each element, is also shown.
 
 Anything printed to the display using the \vn{show} command can also
 be printed to a file by typing
@@ -426,7 +428,7 @@ The k1 value can be increased by 0.01 units for quadrupole Q05W by typing
 \end{example}
 Note the information returned on the command line after the command
 and the relative changes in beta and phase in the plot window. This is
-a vertically focusing quadrupole so the vertical beta and phase is
+a vertically focusing quadrupole so the vertical beta and phase are
 affected more than the horizontal. The \cmd{0.01} at the end of the
 command tells \tao to change this variable by 0.01 units. If you want
 to set a variable to a particular value then use a ``@'' before the
@@ -540,14 +542,14 @@ see that the beta function is effecting the merit function the
 most. Since we are looking at beta and phase let's only use that data
 in the optimization.
 \begin{example}
-  veto data *
-  use  data beta
-  use  data phase
+  veto data *         ! Veto all the data
+  use  data beta      ! Use all the beta data
+  use  data phase     ! And use all the phase data
 \end{example}
 We also know that we need to change quadrupoles to correct the lattice.
 \begin{example}
-  veto var *          ! veto all the data
-  restore var quad\_k1 ! restore just the quad\_k1 data
+  veto var *           ! veto all the variables
+  restore var quad\_k1 ! restore just the quad\_k1 variables
 \end{example}
 Note that we need to specify what data and variables we will be using
 beforehand in the initialization files. This is already taken care of
@@ -583,7 +585,7 @@ quadrupoles by typing
 The optimizer came very close to finding the ``design''
 lattice. However, it changed more quadrupoles than just 10, 21 and
 67. This isn't surprising. The optimizer finds the minimum of the
-merit function and there are potentially many minimums, or
+merit function and there are potentially many minima, or
 degeneracies.  It does it's best not to get stuck in a local minimum
 and as we can see by the plotted data, the minimum found is very close
 -- virtually identical -- to the design lattice optics.  A good hint
@@ -596,7 +598,7 @@ match!
 \subsection{Now Not Using all of the Variables}
 \label{ss:fix_it_not_all}
 
-Alternatively, we could have used only a subsection of the
+Alternatively, we could have used only a subset of the
 quadrupoles. Say we know approximately which quadrupoles should be
 adjusted. We can then specify these variables ranges.
 \begin{example}

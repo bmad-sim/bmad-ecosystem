@@ -27,7 +27,7 @@ might be interested exploit its versatility by extending \tao to do
 custom calculations. For this, see Chapter~\ref{c:custom.tao}.
 
 %----------------------------------------------------------------
-\section{The Orginization of Tao: The Super\_Universe}
+\section{The Organization of Tao: The Super\_Universe}
 \label{s:orginization}
 
 Many simulation problems fall into one of three categories: 
@@ -88,28 +88,28 @@ single machine at the same time. The \vn{super_universe} also contains
 \label{s:universe}
 \index{Universe}
 
-The \tao \vn{super_universe} (\sref{s:orginization}) contains one or
+The \tao \vn{super_universe} (\sref{s:organization}) contains one or
 more \vn{universes}.  A \vn{universe} contains a \vn{lattice}
 (\sref{s:lattice}) plus whatever data (\sref{c:data}) one wishes to
 study within this lattice (i.e. twiss parameters, orbit, phase,
 etc.). Actually, there are three lattices within each universe: the
 \textbf{design} lattice, \textbf{model} lattice and \textbf{base}
 lattice. Initially, when \tao is started, all three lattices are
-idential and correspond to the lattice read in from the lattice
+identical and correspond to the lattice read in from the lattice
 description file (\sref{s:init.lat}).
 
-There are several situations in which multipole universes are
+There are several situations in which multiple universes are
 useful. One case is where there are multiple machines. For example, a
 transfer line connected to a storage ring. In this case, one universe
 will correspond to the transfer line and another universe will
 correspond to the storage ring. 
 
 Another case where multiple universes are useful is where data has
-been taken under different machine conditions. For example, Suppose
+been taken under different machine conditions. For example, suppose
 that the beam orbit in a machine has been taken with a given steering
 element set at some value and then the orbit is again measured but
 this time with some other element set to some value. To determine what
-quadrupole settings will best reprodue the data, two universes can be
+quadrupole settings will best reproduce the data, two universes can be
 setup. One universe associated with one set of data and the second
 universe associated with the other set of data. Variables can be
 defined to simultaneously vary the corresponding quadrupoles in each
@@ -131,7 +131,7 @@ beam orbit through them. There are actually three types of lattices:
 The \vn{design} lattice corresponds to the lattice read in from the
 lattice description file(s) (\sref{s:init.lat}). In many instances, this
 is the particular lattice that one wants the actual physical machine
-to conform to. The \vn{design} lattice is fixed. Nothing is alowed to
+to conform to. The \vn{design} lattice is fixed. Nothing is allowed to
 vary in this lattice.
   \item[Model Lattice] \Newline
 Except for some commands that explicitly set the \vn{base} lattice,
@@ -183,7 +183,7 @@ name of a \vn{v1_var} then \vn{quad_k1[5]} referres to the variable
 with index 5. 
 
 Ranges of variables can be referred to using using a comma \vn{,} to
-separate the indexes combined with the notaion \vn{n1:n2} to specify
+separate the indexes combined with the notation \vn{n1:n2} to specify
 all the variables between \vn{n1} and \vn{n2} inclusive. For example
 \begin{example}
   quad_k1[3:6,23]
@@ -224,9 +224,9 @@ The value as given in the \vn{design} lattice.
   \item[Base Value] \Newline
 The value as given in the \vn{base} lattice.
   \end{description}
-These components and others can be refered to using the notaion \vn{|name} where
-\vn{name} is the appropriate name for the component. The list of
-components that can be set or refered to are:
+These components and others can be refered to using the notaion
+\vn{|name} where \vn{name} is the appropriate name for the
+component. The list of components that can be set or refered to are:
 \begin{example}
   quad_k1[1]|meas      ! Value at time of data measurement
   quad_k1[1]|ref       ! VAlue at time of the reference data measurement
@@ -272,7 +272,7 @@ of \vn{curve}s that are plotted within the graph.
 \item[Plot] \Newline
 A \vn{plot} is essentially a collection of \vn{graphs}.
 \item[Page] \Newline
-The \vn{page} refers to the x--window where graphics are displayed or the 
+The \vn{page} refers to the Xwindow where graphics are displayed or the 
 corresponding printed graphics page.
 \item[Region] \Newline
 The \vn{page} is divided up into a number of rectangles called
@@ -317,26 +317,28 @@ assigned to different \vn{regions} and the plots in different
 the \vn{top} plot is \vn{model} and for the \vn{bottom} plot it is
 \vn{model - design}.
 
-Plots may be referred to by their template name or by the name of the 
-region they are placed in. For example, the orbit plot in 
-Figure~\ref{f:plot.page1} may be referred to using the region name (\vn{top})
-or the template name (\vn{orbit}). A template may be placed in multiple regions.
-For example, you may wish to plot the \vn{model} data for the orbit in one
-region and the  \vn{design} data for the orbit in another region. In this case 
-the command \vn{scale orbit} would scale the plots in both regions while to scale
-the plot in only one of the regions you would need to use the region name. A graph
-of a plot is specified using the format \vn{plot_name.graph_name} where \vn{plot_name}
-is a template or region name and \vn{graph_name} is the name of the graph. For example,
-if the horizontal orbit graph of the ]\vn{orbit} plot is named \vn{x} then it would
-be referred to as \vn{orbit.x} or \vn{top.x}. A curve
-within a graph is specified using the format \vn{plot_name.graph_name.curve_name}.
+Plots may be referred to by their template name or by the name of the
+region they are placed in. For example, the orbit plot in
+Figure~\ref{f:plot.page1} may be referred to using the region name
+(\vn{top}) or the template name (\vn{orbit}). A template may be placed
+in multiple regions.  For example, you may wish to plot the \vn{model}
+data for the orbit in one region and the \vn{design} data for the
+orbit in another region. In this case the command \vn{scale orbit}
+would scale the plots in both regions while to scale the plot in only
+one of the regions you would need to use the region name. A graph of a
+plot is specified using the format \vn{plot_name.graph_name} where
+\vn{plot_name} is a template or region name and \vn{graph_name} is the
+name of the graph. For example, if the horizontal orbit graph of the
+]\vn{orbit} plot is named \vn{x} then it would be referred to as
+\vn{orbit.x} or \vn{top.x}. A curve within a graph is specified using
+the format \vn{plot_name.graph_name.curve_name}.
 
 The \vn{use}, \vn{veto}, \vn{restore}, and \vn{clip} commands are used
 to control what data is used in fitting the model to the data in the
 optimization process (see Chapter~\ref{c:opti}). The general rule is
 that these commands only effect measured and reference data. If
 plotting \vn{model}, \vn{design} and/or \vn{base} data then the data
-will always been displayed. If plotting \vn{meas} and/or \vn{ref} data
+will be displayed irregardless. If plotting \vn{meas} and/or \vn{ref} data
 then the data displayed will vary with these commands.  \vn{meas} or
 \vn{ref} data vetoed for display is also vetoed for fitting.  However,
 measured data that is off the vetical or horizontal scale may still be
@@ -356,7 +358,7 @@ Figure~\ref{f:plot.page2} shows another example of a plot \vn{page}.
 In this case the \vn{page} was generated by again defining two
 vertically stacked regions but in this case the regions have different
 heights.  A \vn{template plot} with a single graph was placed in the
-bottom most \vn{region}.  This \vn{graph} contains a \vn{key_table}.
+bottommost \vn{region}.  This \vn{graph} contains a \vn{key_table}.
 A \vn{key_table} is used in conjunction with \vn{single mode} and is
 explained in Chapter~\ref{c:single}. A \vn{template plot} containing
 five \vn{graphs} was placed in the uppermost region. The uppermost
@@ -365,7 +367,7 @@ shows the placement of lattice elements.  What elements are displayed
 in a \vn{lat_layout} and what shapes they are represented by is
 specified in the initialization file. The horizontal scale is
 longitudinal position (\vn{s}).  The remaining four graphs show
-disperion and beta data from two different universes representing the
+dispersion and beta data from two different universes representing the
 low energy and high energy transport in an energy recovery linac. The
 individual data points here (hard to see in this example) have been
 slaved to the \vn{lat_layout} and represent the beta and dispersion at
@@ -436,8 +438,8 @@ for this please contact David Sagan.
 \section{Lattice Calculation}\index{Lattice!calculation of}
 \label{s:lat.calc}
 
-After each \tao command is processed the lattice and ``merit''
-function is recalculated then the plot window is regenerated. The
+After each \tao command is processed, the lattice and ``merit''
+function are recalculated and the plot window is regenerated. The
 merit function determines how well the \vn{model} fits the measured
 data. See Chapter~\ref{c:opti} for more information on the merit
 function and its use by the optimizer.

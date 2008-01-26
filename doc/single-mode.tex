@@ -73,7 +73,7 @@ case). Pressing the \vn{"r"} key (which is just below the \vn{"4"}
 key) will decrease the value of the \vn{b1_gradient} by 0.1000. Using
 the shift key, which is shift-4 (\vn{"\$"}) will increase
 \vn{b1_gradient} by 10 times the given delta (1.000 in this case) and
-\vn{"R"} will decrease by 10 time the given delta.
+\vn{"R"} will decrease, by a factor of 10, the given delta.
 
 Since element \vn{Q15_2} is also displayed in the \vn{Lattice Layout},
 there is a \vn{"4"} drawn above this element that reflects the fact
@@ -190,7 +190,7 @@ Do nothing but replot.
 
 \item[-p]
 Toggle plotting. Whether to plot or not to plot is initially
-determined by plot%enable.
+determined by \vn{plot%enable}.
 
 \item['$<$command$>$]
 Accept a Line Mode (\sref{c:command}) command.
@@ -198,8 +198,7 @@ Accept a Line Mode (\sref{c:command}) command.
 \item[/e $<$Index or Name$>$]
 Prints info on a lattice element. If there are two lattices being used
 and only the information of an element from one particular lattice is
-wanted then prepent with "n@" where n is the lattice
-index.
+wanted then prepend with "n@" where n is the lattice index.
 
 \item[/l]
 Print a list of the lattice elements with Twiss parameters.
@@ -213,15 +212,16 @@ file name is set by \vn{global%var_out}. This file is in BMAD
 format. See also the \vn{V} command.
 
 \item[/x $<$min$>$ $<$max$>$]
-Set the horizontal scale (longitudinal position) min and max values
-for all the plots. This is the same as setting p%x%min and p%x%max in
-the \tao input file. If \vn{min} and \vn{max} are not given then the scale
-will be choisen to include the entire lattice. 
+Set the horizontal scale min and max values for all the plots. This is
+the same as setting \vn{plot%x%min} and \vn{plot%x%max} in the \tao
+input file. If \vn{min} and \vn{max} are not given then the scale will
+be chosen to include the entire lattice.
 
 \item[/y $<$min$>$ $<$max$>$]
 Set the y-axis min and max values for all the plots. This is the same
-as setting p%y%min and p%y%max in the \tao input file. If \vn{min} and
-\vn{max} are not given then an autoscale will be done.
+as setting \vn{plot%y%min} and \vn{plot%y%max} in the \tao input
+file. If \vn{min} and \vn{max} are not given then an autoscale will be
+done.
 
 \item[=v $<$digit$>$ $<$value$>$]
 Set variable value. \vn{<digit>} is between 0 and 9 corresponding to a

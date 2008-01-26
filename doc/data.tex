@@ -5,7 +5,7 @@
 The term \vn{``data''} denotes anything that can be calculated by
 \tao. This includes the vertical orbit at a particular position or the
 horizontal emittance of a storage ring. Data can be plotted or used in
-lattice correction and design (\sref{c:opti}). This chapter expains
+lattice correction and design (\sref{c:opti}). This chapter explains
 how data is organized in \tao while Section~\sref{s:init.data}
 explains how to define the structures that hold the data in the
 initialization files. When running \tao, the \vn{show data}
@@ -58,12 +58,12 @@ referred to using the notation
 \begin{example}
   d2_name.d1_name[datum_index]
 \end{example}
-For example, \vn{orbit.x[10]} referrs to the horizontal orbit datum
+For example, \vn{orbit.x[10]} refers to the horizontal orbit datum
 with index 10. Notice that the beginning (lowest) datum index is user
 selectable and is therefore not necessarily 1.
 
-Ranges of datams can be referred to using using a comma \vn{,} to
-separate the indexes combined with the notaion \vn{n1:n2} to specify
+Ranges of data can be referred to using using a comma \vn{,} to
+separate the indexes combined with the notation \vn{n1:n2} to specify
 all the datums between \vn{n1} and \vn{n2} inclusive. For example
 \begin{example}
   orbit.x[3:6,23]
@@ -102,7 +102,7 @@ denote ``all''. Thus:
   orbit.x|meas    ! Same as orbit.x[*]|meas
 \end{example}
 The last example shows that when referring to an entire block of data
-encomposed by a \vn{d1_data} structure, the \vn{[*]} can be omitted.
+encompassed by a \vn{d1_data} structure, the \vn{[*]} can be omitted.
 
 %------------------------------------------------------------------------
 \section{Anatomy of a Datum}
@@ -136,9 +136,9 @@ Each datum has a number of quantities associated with it:
   s                 ! Real: longitudinal position of ele.
   relative          ! Logical: Is this a relative datum?
   exists            ! Logical: Does the datum exist?
-  good_model        ! Logical: Does the model cmponent contain a valid value?
-  good_meas         ! Logical: Does the meas cmponent contain a valid value?
-  good_ref          ! Logical: Does the ref cmponent contain a valid value?
+  good_model        ! Logical: Does the model component contain a valid value?
+  good_meas         ! Logical: Does the meas component contain a valid value?
+  good_ref          ! Logical: Does the ref component contain a valid value?
   good_user         ! Logical: Does the user want this datum used in optimization?
   good_opt          ! Logical: Can be used in Tao extensions.
   good_plot         ! Logical: Can be used in Tao extensions.
@@ -169,7 +169,7 @@ value (\ref{c:opti}).
 The reference datum value as obtained from some reference measurement. For example,
 a measurement before some variable is varied could be designated as
 the \vn{reference}, and the datum taken after the variation could be 
-designated the \vn{measrued} datum.
+designated the \vn{measured} datum.
   \vspace{-0.5ex}
   \item[model] \Newline
 The value of the datum as calculated from the \vn{model} lattice (\sref{s:lattice}).
@@ -192,7 +192,7 @@ can be ignored.
 \index{Data!Relative}
 Associated with a datum are two lattice elements named
 \vn{ele0_name} and \vn{ele_name}. Datums can be divided up into four
-classes: Datums in the first class, like the emittance in a curcular
+classes: Datums in the first class, like the emittance in a circular
 ring, do not have associated lattice elements and their corresponding
 element names will be blank. Datums in the second class, like the beta
 function at a given point, will only have one associated lattice
@@ -282,8 +282,8 @@ formula
 \end{equation}
 The next section will describe how each predefined data type is
 calculated.  Custom data types need not fall into one of the above
-catagories and can be any real number as calculated in the appropriate
-ook routine.
+categories and can be any real number as calculated in the appropriate
+hook routine.
 
 
 For datums with \vni{non-relative} \vn{data_types} if there is also an
@@ -317,7 +317,7 @@ Table~\ref{t:data.types} lists the predefined data types in \tao.
 
 \vn{wire} data simulates the measurement of a wire scanner. The angle specified
 is the angle of the wire with respect to the horizontal axis. The measurement
-then measures the second momment $<uu>$ along an axis which is 90 degrees off of
+then measures the second moment $<uu>$ along an axis which is 90 degrees off of
 the wire axis. For example, \vn{wire:90} is a wire scanner oriented in the
 vertical direction and measures the second moment of the beam along the
 horizontal axis, $<xx>$. The resultant data is not the beam size, but the beam
@@ -375,7 +375,7 @@ results.
     etap.a, etap.b              & Normal-Mode Dispersion derivative  &          \\ \hline 
     momentum\_compaction        & Momentum compaction factor         & relative \\ \hline
     orbit.x, orbit.y            & Transverse orbit                   &          \\ \hline 
-    orbit.p\_x, orbit.p\_y      & Tranverse momenta                  &          \\ \hline 
+    orbit.p\_x, orbit.p\_y      & Transverse momenta                 &          \\ \hline 
     orbit.z, orbit.z\_p         & Longitudinal orbit and momenta     &          \\ \hline 
     phase.a, phase.b            & Betatron phase                     & relative \\ \hline 
     phase\_frac\_diff           & Fractional phase difference (x-y)  & relative \\ \hline

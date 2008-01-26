@@ -193,7 +193,7 @@ value is used:
 \end{example}
 
 For linear lattices, \vn{change beam_start <coordinate> <number>} 
-can be use to vary the starting coordinates where \vn{<coordinate>} is one of: 
+can be used to vary the starting coordinates where \vn{<coordinate>} is one of: 
 \begin{example}
   (x, p_x, y, p_y, z, p_z)
 \end{example}
@@ -234,7 +234,7 @@ then the clip range is taken to be outside the graph minimum and
 maximum $y$--axis values. If only \vn{<limit1>} is present then the
 clip range is outside the range from -\vn{<limit1>} to
 +\vn{<limit1>}. If both are present than the range is from
-\vn{<limit1>} to \vn{<limit2>}.  The graphs that are clipped is
+\vn{<limit1>} to \vn{<limit2>}.  Which graphs are clipped is
 determined by the \vn{<where>} switch.  If \vn{<where>} is not present
 all graphs are scaled.
 
@@ -250,7 +250,7 @@ Examples
 \index{Commands!end-file}
 
 The \vn{end-file} is used in command files (\sref{s:call}) to signal
-the end of the file. Everything an \vn{end-file} command is
+the end of the file. Everything after an \vn{end-file} command is
 ignored. An \vn{end-file} command entered at the command line will
 simply generate an error message.
 
@@ -618,7 +618,7 @@ Format:
 so that all the data points are within the graph region.  If only
 \vn{<value1>} is present then the scale is taken to be from
 -\vn{<value1>} to +\vn{<value1>}. If both are present than the scale
-is from \vn{<value1>} to \vn{<value2>}.  The graphs that are scaled is
+is from \vn{<value1>} to \vn{<value2>}.  Which graphs are scaled is
 determined by the \vn{<where>} switch. If \vn{<where>} is not present
 or \vn{<where>} is \vn{all} then all graphs are scaled.
 
@@ -705,8 +705,8 @@ For \vn{set graph}, the \vn{component}s that can be set are:
 \end{example}
 \vskip 0.2in
 
-For \vn{set global}, the \vn{show global} will give a list of the
-\vn{<component>}s that can be set are
+For \vn{set global}: The \vn{show global} command will give a list of 
+\vn{<component>}s.
 \vskip 0.2in
 
 For \vn{set lattice}, the \vn{<component>}s that can be set are:
@@ -800,7 +800,7 @@ Format:
   show curve <curve_name> \{-symbol\} \{-line\}
   show data \{<data_name>\} 
   show derivative <data_name(s)> <var_name(s)>
-  show element <name>
+  show element \{-taylor\} \{-wig_terms\} <name>
   show global
   show graph <graph_name>
   show hom
@@ -812,7 +812,6 @@ Format:
   show plot
   show plot \{<template_plot_name>\}
   show plot \{<plot_region_name>\}
-  show taylor <ele_name>
   show top10
   show universe \{universe_number\}
   show variable \{<var_name> <locations>\}
@@ -840,7 +839,7 @@ details.
 If \vn{<element_index>} is absent, \vn{show beam} shows parameters 
 used with beam tracking including the number of particles in a bunch, etc.
 If \vn{<element_index>} is present, \vn{show beam} will show 
-beam prameters at the selected element. Also see \vn{show particle}.
+beam parameters at the selected element. Also see \vn{show particle}.
 
   \item[show constraints]
 Lists data and variable constraints.
@@ -861,8 +860,8 @@ present shown is a list of \vn{d2_data} names.
 Shows the derivative dModel\_Value/dVariable. This derivative is used
 by the optimizer \vn{lm}.
 
-  \item[show element]
-This shows information on lattice elements. \vn{name} is in
+  \item[show element <name>]
+This shows information on lattice elements. \vn{<name>} is in
 \vn{Class:Name} syntax as explained in \sref{s:class:name}. If
 \vn{<name>} contains a wild card or a class name then a list of
 elements that match the name are shown. If no wild--card or class name
@@ -871,11 +870,10 @@ is present then information about the element whose name matches
 will also be listed. \vn{<name>} is a number $n$ then the $n$\Th
 element in the lattice list will be shown.
 
-\vn{show element} does not show the Taylor map associated with an element
-even if it has one. To see this map use the \vn{show taylor}
-command. Additionally, by default the wiggler terms of a \vn{map_type}
-\vn{wiggler} element will not be printed. To change this use the command:
-\vn{set global show_ele_wig_terms = T}.
+If the \vn{-taylor} switch is present then the Taylor map associated
+with an element, if there is one, is also displayed.  Similarly, use
+the \vn{-wig_terms} switch to display any associated wiggler terms for
+a \vn{map_type} \vn{wiggler} element.
 
   \item[show global]
 Shows information on the global parameter structure (\sref{s:globals}).
@@ -886,7 +884,7 @@ Show information on a particular graph of a particular plot. See
 Use \vn{show plot} to get a list of plot names.
 
   \item[show hom]
-Shows long--rang higher order mode information for linac accelerating
+Shows long--range higher order mode information for linac accelerating
 cavities.
 
   \item[show lattice]
@@ -897,7 +895,7 @@ end of the elements. To show the parameters in the middle use the
 
 The locations to show can either be specified using the \vn{-elements}
 switch, or by specifying a longitudinal position range with \vn{-s},
-or (the default) by specifying a range of element indexes.  The
+or (the default) by specifying a range of element indices.  The
 \vn{-elements} switch is used specify elements using a \vn{class:name}
 format (\sref{s:class:name}). For example:
 \begin{example}
@@ -994,9 +992,6 @@ in which regions and also all available templates. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names. A
 \vn{show plot <plot_name>} will display information on a particular
 plot.
-
-  \item[show taylor]
-Same as \vn{show element} except that the elements taylor map is also printed.
 
   \item[show top10]
 Shows top contributors to the merit function, dMerit/dVariable
@@ -1138,7 +1133,7 @@ Format:
 \end{example}
 
 \vskip 0.2in 
-The \vn{view} command changes which universe data is taken from from
+The \vn{view} command changes which universe data is taken from for
 plotting.  This also sets the default universe that commands are
 applied to in the absence of a star prefix.
 
@@ -1212,7 +1207,7 @@ Format:
 \end{example}
 
 \vskip 0.2in \vn{xy-scale} sets the lower and upper bounds for both
-the horizontal vertical axes.  This is just a shortcut for doing an
+the horizontal and vertical axes.  This is just a shortcut for doing an
 \vn{x-scale} followed by a \vn{scale}.  If both \vn{<bound1>} and
 \vn{<bound2>} are present then \vn{<bound1>} is taken to be the lower
 (left) bound and \vn{<bound2>} is the upper (right) bound. If only

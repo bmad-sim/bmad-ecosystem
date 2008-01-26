@@ -3,44 +3,37 @@
 \label{c:prog.customizing} 
 
 \tao has been designed to be readily extensible with a minimum of
-effort. The tutorial provides a simple example of a custom data type. Here each
-the hook routines is explained and pointers are given on writing code. 
+effort. The tutorial provides a simple example of a custom data
+type. Here each the hook routines is explained and pointers are given
+on writing code.
 
-The process for customizing is summarized as follows. For the purposes of this
-discussion assume that the directory that you are developing \tao in
-is called \vn{ROOT}. 
+The process for customizing is summarized as follows. For the purposes
+of this discussion assume that the directory that you are developing
+\tao in is called \vn{ROOT}.
 \begin{enumerate}
-\item 
-The first step is to checkout a
-copy of \tao. See the \tao documentation on the web. You will now have \tao in
-\vn{ROOT/tao}. The library source code will be sitting in \vn{ROOT/tao/code}
-and the vanilla \tao program is \vn{ROOT/tao/program/tao_cl.f90}
-\item 
-From the \vn{ROOT}/tao area build the \tao library using the
-\vn{gmake} command. This will create a \tao library that includes dummy hook
-routines and structures. When creating custom hooks these are overiden.
 \item
-To extend \tao you will want to make a new
-directory, say, called \vn{ROOT/my_tao}. In this directory you write
-the necessary routines to extend \tao. You will also need a standard \vn{Makefile}
- for building programs.
+To extend \tao you will want to make a new directory, say, called
+\vn{ROOT/my_tao}. In this directory you write the necessary routines
+to extend \tao. You will also need a standard \vn{Makefile}
+for building programs.
 \item
 You can compile and link your routines with the \tao routines using
 \vn{gmake} in \vn{ROOT/my_tao}.
 \end{enumerate}
 
-The tutorial in Part I of this manual gave an example of how to carry out the
-above steps.
+The tutorial in Part I of this manual gave an example of how to carry
+out the above steps.
 
 %-----------------------------------------------------------------
 \section{Creating the Tao Library and a Custom Tao Directory}
 
-After obtaining the \tao distribution the \tao library is created by typing
-\cmd{gmake} in the \cmd{ROOT/tao} directory. This will create two libraries
-called \cmd{libtao.a} and \cmd{libtao_g.a} in the directory \cmd{ROOT/lib} where
-the second is a debug version. If you then type \cmd{gmake -f M.tao} "vanilla"
-\tao will be compiled into the executables called \cmd{tao} and \cmd{tao_g} and
-placed in \cmd{ROOT/bin}
+After obtaining the \tao distribution the \tao library is created by
+typing \cmd{gmake} in the \cmd{ROOT/tao} directory. This will create
+two libraries called \cmd{libtao.a} and \cmd{libtao_g.a} in the
+directory \cmd{ROOT/lib} where the second is a debug version. If you
+then type \cmd{gmake -f M.tao} "vanilla" \tao will be compiled into
+the executables called \cmd{tao} and \cmd{tao_g} and placed in
+\cmd{ROOT/bin}
 
 %-----------------------------------------------------------------
 \section{Modifying the Hook Routines and Structures}
@@ -103,27 +96,23 @@ the purposes of demonstrating how a custom command would be
 implemented.
 
 The only thing needed to be called at the end of a custom command is
-\vn{tao_cmd_end_calc} (as is done in the dumyt subroutine). This will
-perform all of the steps listed in Section~\sref{s:lat.calc}. If this
-isn't called than whatever is performed in the custom command will not
-show up until a standard command is performed.
+\vn{tao_cmd_end_calc}. This will perform all of the steps listed in
+Section~\sref{s:lat.calc}.
 
 %-----------------------------------------------------------------
 \subsection{tao\_hook\_does\_data\_exist}
 \index{Customizing!tao_hook_does_data_exist}
 
-This routine is for use with custom data types. 
-This routine sets \vn{datum%exists} to true for datums with no
-associated datum%ele_name. This is necessary since otherwise
-\vn{tao_init_global_and_universes} will flag the datum as
-not existing.
+This routine is for use with custom data types.  This routine sets
+\vn{datum%exists} appropriately for datums where the rules built into
+the \vn{tao_init_data} routine incorrectly flag the datum.
 
 %-----------------------------------------------------------------
 \subsection{tao\_hook\_evaluate\_a\_datum}
 \index{Customizing!tao_hook_evaluate_a_datum}
 
 Any custom data types are defined and calculated here. If a
-non-standard data type is listed in the intialization files then a
+non-standard data type is listed in the initialization files, then a
 corresponding data type must be placed in this routine. The tutorial
 uses this hook routine when calculating the emittance.
 
@@ -134,7 +123,7 @@ each element for each datum that needs to be evaluated. If a range of
 elements are specified for a datum then \vn{tao_evaluate_a_datum} is
 called for this datum at the last element in the
 range. \vn{tao_evaluate_a_datum} starts by calling
-\vn{tao_hook_avaluate_a_datum} to evaluate the custom data types.
+\vn{tao_hook_evaluate_a_datum} to evaluate the custom data types.
 
 As explained in the dummy file, the datum merit type affects how a
 datum's value should be calculated. There is a helper subroutine in
@@ -174,15 +163,15 @@ Use this to setup custom graph data for a plot.
 \subsection{tao\_hook\_init}\index{Customizing!tao_hook_init}
 
 After the lattice and all global and universe structures are
-intialized then \vn{tao_hook_init} is called. Here, any further
-intializations can be added. In paricular, if any custom hook
+initialized then \vn{tao_hook_init} is called. Here, any further
+initializations can be added. In particular, if any custom hook
 structures need to be initialized, here's the place to do it.
 
 %-----------------------------------------------------------------
 \subsection{tao\_hook\_init\_design\_lattice}
 \index{Customizing!tao_hook_init_design_lattice}
 
-This will do a custom lattice initialialization. The standard lattice
+This will do a custom lattice initialization. The standard lattice
 initialization just calls \vn{bmad_parser} or \vn{xsif_parser}. If
 anything more complex needs to be done then do it here. This is also
 where any custom overlays or other elements would be inserted after
@@ -190,7 +179,7 @@ the parsing is complete. But in general, anything placed here should,
 in principle, be something that can be placed in a lattice file.
 
 \textbf{This is the only routine that should insert elements in the
-ring}. This is beacuse the \tao data structures use the element index
+ring}. This is because the \tao data structures use the element index
 for each element associated with the datum. If all the element indexes
 shift then the data structures will break. If new elements need to be
 inserted then modify this routine and recompile. You can alternatively
@@ -203,7 +192,7 @@ any elements to be inserted.
 
 The standard lattice calculation can be performed for single particle,
 particle beam or macroparticle tracking and will recalculate the
-orbit, transfer matrices, twiss perameters and load the data
+orbit, transfer matrices, twiss parameters and load the data
 arrays. If something else needs to be performed whenever the lattice
 is recalculated then it is placed here. A custom lattice calculation
 can be performed on any lattice separately, this allows for the
@@ -252,7 +241,7 @@ need to know how DCSLIB's \vn{quick_plot} works.
 \subsection{tao\_hook\_plot\_data\_setup}
 \index{Customizing!tao_hook_plot_data_setup}
 
-Use this routine to overide the \vn{tao_plot_data_setup} routine which
+Use this routine to override the \vn{tao_plot_data_setup} routine which
 essentially transfers the information from the \vn{s%u(:)%data} arrays
 to the \vn{s%plot_page%region(:)%plot%graph(:)%curve(:)} arrays. This
 may be useful if you want to make a plot that isn't simply the

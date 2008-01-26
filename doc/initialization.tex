@@ -52,7 +52,7 @@ shows:
   /
 \end{example}
 The first line to set the \vn{var_array} may look like it is setting 
-the four values \vn{var_array(8:13)} but the general rule is that with \vn{n}
+the four values \vn{var_array(8:11)} but the general rule is that with \vn{n}
 values on the RHS, only \vn{n} values in the array are set. Notice the notation
 \vn{n*number} does not denote multiplication but instead can be used to denote
 multiple values.
@@ -217,7 +217,7 @@ the Taylor order set in the lattice files.
 and combines all pairs of consecutive elements that have the same name
 and attributes. Why is this useful? Some programs, not based on \bmad,
 cannot generate the Twiss parameters inside the element. If the Twiss
-parameters at the center of an element is desired, a lattice where the
+parameters at the center of an element are desired, a lattice where the
 element has been split into two identical pieces is needed. This,
 however, makes tasks like setting up lattice optimization
 cumbersome. Note: The recombination of like elements happens when the
@@ -420,7 +420,7 @@ See the Bmad manual for more details.
 \index{Optimization!Parameters}
 
 When the optimizer is run in \tao (using the \vn{run} command), The
-optimizer, after it initializes itself, take take a number of
+optimizer, after it initializes itself, takes a number of
 \vn{cycles}. Each cycle consists of changing the values of the
 variables the optimizer is allowed to change. The number of steps that
 the optimizer will take is determined by the parameter
@@ -447,25 +447,26 @@ damping ring a pre-accelerator to a linac. The syntax is as follows:
 \index{connect!match_to_design}
 \begin{example}
   &tao_connected_uni_init
-    ix_universe           = <Integer>         ! Universe index.
-    connect%from_universe = <universe_number> ! connect from this universe
-    connect%at_element    = <ele_name>        ! connect at end of element 
-    connect%at_ele_index  = <ele_index>       ! connect at end of ele with this index
-    connect%at_s          = <number>          ! connect at poisiton s 
-    connect%match_to_design = <logical>       ! match optics to design parameters
+    ix_universe           = <Integer>     ! Injecting into this Universe.
+    connect%from_universe = <Integer>     ! connect from this universe
+    connect%at_element    = <ele_name>    ! connect at end of element 
+    connect%at_ele_index  = <ele_index>   ! connect at end of ele with this index
+    connect%at_s          = <number>      ! connect at position s 
+    connect%match_to_design = <logical>   ! match optics to design parameters
   /
 \end{example}
-\vn{ix_universe} refers to the universe to be connected. Any of
-\vn{at_element}, \vn{at_ele_index} or \vn{at_s} must be specified but
-not more than one. These refer to the location in the lattice where
-the beam/particle is extracted into this universe.  The injection is
-always at the beginning of the lattice \vn{i}. Setting
-\vn{from_universe} = \vn{i} will not work to make a circular
+\vn{ix_universe} refers to the universe which is to be injected
+into. Any of \vn{at_element}, \vn{at_ele_index} or \vn{at_s} must be
+specified but not more than one. These refer to the location in the
+``from'' lattice where the beam/particle is extracted.  The injection
+is always at the beginning of the ``to'' lattice. Note: Setting a
+lattice to inject back into itself will not work to make a circular
 lattice. This must be set in the lattice file.  If there are more than
 one element named \vn{<ele_name>} then the last element named as such
 will be used. If \vn{ele_name = "end"} then the end of the injection
-lattice will be used as the connection point. If \vn{universe_number =
--1} then universe \vn{i} is not injected into from any other universe
+lattice will be used as the connection point. If
+\vn{connect%from_universe} = -1 (the default) then no injection will
+occur.
 
 \vn{match_to_design} will set up a connection element that will match
 the design twiss parameters between the two lattices. This is
@@ -480,12 +481,10 @@ extraction kicker element is needed then it should be added to either
 the extraction point of the first lattice or the beginning of the
 second lattice.
 
-When using coupled lattices then statements in the lattice file for
-the lattice begin injected into that refer to the \vn{BEGINNING}
-element are only used when setting up the connection element, otherwise
-the injected particle/beam is used to set up the \vn{BEGINNING}
-element. This goes for the \vn{tao_macro_init} namelist in the
-initialization file also.
+Initialization due to a connection between lattices takes precedence
+over other types of initialization. For example, any particle beam
+initialization settings (\sref{s:beam.init}) will be ignored for a
+lattice that is being injected into from another lattice.
 
 Even if the connection point is not the end of a lattice the standard lattice
 calculations will still be performed through to the end of the
@@ -965,7 +964,7 @@ are:
 See Chapter~\ref{c:opti} on optimization for more
 details.
 
-The assocaited \vn{tao_d1_data} namelists must come directly after
+The associated \vn{tao_d1_data} namelists must come directly after
 their associated \vn{tao_d2_data} namelist.  The \vn{n_d1_data}
 parameter in the \vn{tao_d2_data} namelist defines how many
 \vn{d1_data} structures are associated with the \vn{d2_data}
@@ -1152,7 +1151,7 @@ merit function. If not present then the default weight of
 \label{s:init.key.bind} 
 
 For \vn{Single Mode} (\sref{c:single} the bindings of variables to
-keys is defined in one of two ways.  Keys can be bound directly within
+keys are defined in one of two ways.  Keys can be bound directly within
 the \vn{v1_var} namelist used to set up a variable list (\sref{s:init.var})
 or keys can be bound using a \vn{key_bindings} namelist. The syntax is:
 \begin{example}
@@ -1188,7 +1187,7 @@ given by
 \index{merit function}
 \begin{example}
   merit = <weight> * (var_value - <high_lim>)^2  ! For var_value > <high_lim>
-  merit = <weight> * (<low_lim> - var_value)^2   ! Fro <low_lim> > var_value
+  merit = <weight> * (<low_lim> - var_value)^2   ! For <low_lim> > var_value
 \end{example}
 
 %-----------------------------------------------------------------
@@ -1281,7 +1280,7 @@ the \vn{justify} variable syntax.
 The plot area is divided up into rectangular regions where plots may
 be placed (what defines a plot is discussed below).  \vn{region(i)} is
 an array of five elements that defines the i\Th region. The first
-element of this array is the name of the reason. This name may not
+element of this array is the name of the region. This name may not
 contain a dot ``.''.  The second and third elements of the array,
 \vn{l_x1}, and \vn{l_x2}, define the location of the left and right
 edges of the region as a fraction of the plot area width starting from
@@ -1368,7 +1367,7 @@ If \vn{min} and \vn{max} are absent, then \tao will autoscale the axis.
 
 \vn{plot%name} is the name that is used with \tao commands to identify
 the plot. It is important that this name not contain any blank spaces since
-\tao uses this fact is parsing the command line. 
+\tao uses this fact in parsing the command line. 
 
 \vn{plot%x_axis_type} sets what is plotted along the
 \vn{x-axis}. Possibilities are:
@@ -1402,7 +1401,7 @@ namelists should be placed directly after their respective
     graph%name            = "<graph_name>"
     graph%type            = "<graph_type>"
     graph%box             = <ix>, <iy>, <ix_tot>, <iy_tot>
-    graph%title           = "<label>''
+    graph%title           = "<label>"
     graph%margin          =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%y               = <qp_axis_struct> ! Left axis.
     graph%y2              = <qp_axis_struct> ! Right axis.
@@ -1454,11 +1453,10 @@ For example:
 
 \vn{graph%name} and \vn{curve%name} define names to be used with
 commands. The default names are just the letter \vn{g} or \vn{c} with
-the index of the graph or curve. 
-Thus, in the example above, the name of the curve defaults to
-\vn{c1} and it would be referred to as \vn{orbit.x.c1}.
-It is important that these names do not contain any blank spaces since
-\tao uses this fact is parsing the command line. 
+the index of the graph or curve. Thus, in the example above, the name
+of the curve defaults to \vn{c1} and it would be referred to as
+\vn{orbit.x.c1}.  It is important that these names do not contain any
+blank spaces since \tao uses this fact in parsing the command line.
 
 \vn{graph%who(i)} sets what is plotted. In the above example, what will be
 plotted is \vn{model - design}. Possible \vn{graph%who}
@@ -1489,7 +1487,7 @@ The \vn{key_table} is drawn with respect to the upper left hand corner
 of the region in which it is placed.
 
 With \vn{graph%type} set to \vn{floor_plan}, the layout of the machine
-is drawn. The \bmad global reference system are covered in Chapter~1
+is drawn. The \bmad global reference system is covered in Chapter~1
 of the \bmad reference manual. With the \bmad global reference system
 the $X-Z$ axes define the horizontal plane The conversion between
 \bmad global axes and \tao graph axes is:
@@ -1615,7 +1613,7 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
     graph%type        = "lat_layout"
     graph%title       = "Layout Title"
     graph%box         = <ix>, <iy>
-    graph%ix_universe = <integer> ! -1 => use currently viewd universe
+    graph%ix_universe = <integer> ! -1 => use currently viewed universe
     graph%margin      = <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%n_curve     = 0
   /
@@ -1903,7 +1901,7 @@ is recorded each turn. In this case, a \vn{d2_data} structure must
 have been set up to hold the turn--by--turn orbit. This \vn{d2_data}
 structure must be called \vn{multi_turn_orbit} and must have
 \vn{d1_data} data arrays for the phase space planes to be plotted. For
-example, if the phase space plot is \vn{x} verses \vn{p_x}, then there
+example, if the phase space plot is \vn{x} versus \vn{p_x}, then there
 must be \vn{d1_data} arrays named \vn{"x"} and \vn{"p_x"}. The number
 of turns is determined by the setting of \vn{ix_max_data} in the
 \vn{tao_d1_data} namelist (\sref{s:init.data}). Using \vn{"twiss"} as

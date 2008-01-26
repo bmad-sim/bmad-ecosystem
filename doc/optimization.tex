@@ -6,7 +6,7 @@ This chapter covers using minimization (called \vn{optimization}) of a
 of \vn{lattice corrections} include flattening the orbit and adjusting
 quadrupoles to correct the measured betatron phase. \vn{Lattice
 design} involves creating a lattice that conforms to a set of
-desireable properties. For example, requireing that the beta fuction
+desirable properties. For example, requiring that the beta function
 in a certain region never exceeds a given value.
 Section~\sref{s:optimizer} gives a tutorial on how to setup the merit
 function and run the \vn{optimizer} in \tao.  In this chapter
@@ -32,7 +32,7 @@ corrections are applied to the machine. Since these are necessarily
 machine specific, \tao has no specific routines to measure orbits or
 to load steering corrections but they could be implemented as
 discussed in Chapter~\sref{c:prog.customizing}. \tao does, however,
-implement a generalized algorithim procedure for minimizing a
+implement a generalized algorithm procedure for minimizing a
 \vn{merit function} which can be used to calculate the corrections.
 The idea is to vary a set of variables (steerings in the case of an
 orbit correction) within the \vn{model} lattice
@@ -52,7 +52,7 @@ well \vn{data_model}, the data as calculated from the \vn{model}, fits
 \Endeq
 \vn{var_model} is the value of a variable in the \vn{model} and
 \vn{var_meas} is the value as measured at the time the data was taken
-(for example, by measureing the current through a steering and using a
+(for example, by measuring the current through a steering and using a
 calibration factor to calculate the kick) and the sum \vn{j} runs over
 all variables that are allowed to be varied to minimize \vn{M}.  The
 second term in the merit function prevents degeneracies (or near
@@ -83,7 +83,7 @@ the change in the data that one wants is
   data_change = data_design - data_meas
 \end{example}
 Once a fit has been made, and presuming that the \vn{data_model} is
-resonably close to the \vn{data_meas} this data change within the
+reasonably close to the \vn{data_meas} this data change within the
 \vn{model} lattice can be accomplished by changing the variables by
 \begin{example}
   var_change = var_design - var_model
@@ -97,7 +97,7 @@ be set to is
 \end{example}
 Notice that the fitting process is independent of the \vn{design}
 lattice. It is only when calculating the corrections to the
-variables that the \vn{design} lattice plays a roll. 
+variables that the \vn{design} lattice plays a role. 
 
 Sometimes it is desired to fit to changes in data as opposed to the
 absolute value of the data. For example, when closing an orbit bump

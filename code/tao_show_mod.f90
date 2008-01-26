@@ -82,7 +82,7 @@ character(60) nam
 character(16) :: show_what, show_names(22) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
-   '-write      ', 'hom         ', 'opt_vars    ', 'universe    ', 'taylor      ', &
+   '-write      ', 'hom         ', 'opt_vars    ', 'universe    ', '----------- ', &
    'beam        ', 'e2          ', 'graph       ', 'curve       ', 'particle    ', &
    'orbit       ', 'derivative  ' /)
 
@@ -98,7 +98,7 @@ integer, allocatable, save :: ix_eles(:)
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
 logical err, found, at_ends, first_time, by_s
-logical show_all, name_found
+logical show_all, name_found, print_taylor, print_wig_terms
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 
@@ -499,7 +499,21 @@ case ('derivative')
 !----------------------------------------------------------------------
 ! ele
 
-case ('element', 'taylor', 'e2')
+case ('element', 'e2')
+
+  print_taylor = .false.
+  print_wig_terms = .false.
+
+  do
+    if (index('-taylor', word(1)) == 1) then
+      print_taylor = .true.
+    elseif (index('-wig_term', word(1)) == 1) then
+      print_wig_terms = .true.
+    else
+      exit
+    endif
+    call tao_cmd_split (word(2), 2, word, .false., err)
+  enddo
 
   call str_upcase (ele_name, word(1))
 
@@ -542,15 +556,9 @@ case ('element', 'taylor', 'e2')
       return
     endif
 
-    if (show_what == 'element') then
-      call type2_ele (ele, ptr_lines, n, .true., 6, .false., &
-              s%global%phase_units, .true., lat, .true., .true., &
-              s%global%show_ele_wig_terms)
-    else
-      call type2_ele (ele, ptr_lines, n, .true., 6, .true., &
-              s%global%phase_units, .true., lat, .false., .false., &
-              s%global%show_ele_wig_terms)
-    endif
+    call type2_ele (ele, ptr_lines, n, .true., 6, print_taylor, &
+              s%global%phase_units, .true., lat, .true., .true., print_wig_terms)
+
     if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100)
     lines(nl+1:nl+n) = ptr_lines(1:n)
     nl = nl + n
@@ -624,7 +632,6 @@ case ('global')
     call ran_seed_get(ix)
     nl=nl+1; write (lines(nl), imt) ' random_seed (generated)    = ', ix
   endif
-  nl=nl+1; write (lines(nl), lmt) '%show_ele_wig_terms         = ', s%global%show_ele_wig_terms
   nl=nl+1; write (lines(nl), amt) '%track_type                 = ', s%global%track_type
   nl=nl+1; write (lines(nl), imt) '%u_view                     = ', s%global%u_view
   nl=nl+1; write (lines(nl), lmt) '%var_limits_on              = ', s%global%var_limits_on

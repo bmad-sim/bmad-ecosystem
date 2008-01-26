@@ -440,7 +440,6 @@ type tao_global_struct
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
   logical :: matrix_recalc_on = .true.       ! calc linear transfer matrix
-  logical :: show_ele_wig_terms = .false.
 end type
 
 ! tao_common_struct is for those global parameters that the user 
