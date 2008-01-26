@@ -362,7 +362,7 @@ end subroutine
 function kind_name (this_kind)
 
   use s_status, only: kind0, kind1, kind2, kind3, kind4, kind5, kind6, kind7, &
-        kind8, kind9, kind10, kindfitted, kinduser1, kinduser2
+        kind8, kind9, kind10
 
   implicit none
 
@@ -383,9 +383,6 @@ function kind_name (this_kind)
   case (kind8); kind_name  = 'NSMI (Normal SMI)'
   case (kind9); kind_name  = 'SSMI (Skew SMI)'
   case (kind10); kind_name = 'TEAPOT (Sector Bend)'
-  case (kindfitted); kind_name = 'FITTED KIND'
-  case (kinduser1); kind_name = 'USER1 KIND'
-  case (kinduser2); kind_name = 'USER2 KIND'
   case default; write (kind_name, '(a, i5)') 'UNKNOWN KIND!', this_kind 
   end select
 
@@ -515,7 +512,7 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
 
   use mad_like, only: make_states, exact_model, always_exactmis, &
                 assignment(=), nocavity, default, operator(+), &
-                berz, init, set_madx, lp
+                berz, init, set_madx, lp, superkill
 
   implicit none
 
@@ -593,6 +590,10 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
     endif
   endif
   
+! Superkill tells PTC to do a through cleanup when killing a fibre.
+
+  superkill = .true.
+
 end subroutine  
 
 !------------------------------------------------------------------------
@@ -1389,7 +1390,7 @@ end subroutine
 
 Subroutine concat_ele_taylor (taylor1, ele, taylor3)
 
-use s_tracking, only: mis_fib, alloc, kill, dtiltd, assignment(=)
+use s_tracking, only: mis_fib, alloc, kill, dtiltd, assignment(=), default
 
 implicit none
 
@@ -1432,10 +1433,10 @@ x_dp = 0
 x_ele = x_dp
 
 call dtiltd (1, ele%value(tilt_tot$), 1, x_ele)
-call mis_fib (fib, x_ele, .true., entering = .true.)
+call mis_fib (fib, x_ele, default, .true., entering = .true.)
 x_body = ele%taylor
 call concat_real_8 (x_ele, x_body, x_ele)
-call mis_fib (fib, x_ele, .true., entering = .false.)
+call mis_fib (fib, x_ele, default, .true., entering = .false.)
 call dtiltd (1, ele%value(tilt_tot$), 2, x_ele)
 
 x1 = taylor1
@@ -1849,7 +1850,7 @@ end subroutine
 
 subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
 
-  use sagan_wiggler, only: hyperbolic_x$, hyperbolic_y$, hyperbolic_xy$
+  use sagan_wiggler, only: hyperbolic_xdollar, hyperbolic_ydollar, hyperbolic_xydollar
   use madx_keywords, only: keywords, zero_key, create_fibre, geo_rot
   use mad_like, only: nmax, init_sagan_pointers, misalign_fibre, copy, c_
 
@@ -2040,17 +2041,17 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
     ptc_key%list%nmul  = n
   endif
 
-  call create_fibre (fiber, ptc_key, EXCEPTION)   ! ptc routine
+  call create_fibre (fiber, ptc_key, EXCEPTION, .true.)   ! ptc routine
 
 ! wiggler
 
   if (key == wiggler$) then
 
-    if (hyper_x$ /= hyperbolic_x$ .or. hyper_y$ /= hyperbolic_y$ .or. &
-                                          hyper_xy$ /= hyperbolic_xy$) then
+    if (hyper_x$ /= hyperbolic_xdollar .or. hyper_y$ /= hyperbolic_ydollar .or. &
+                                          hyper_xy$ /= hyperbolic_xydollar) then
       print *, 'ERROR IN ELE_TO_FIBRE: WIGGLER FORM/TYPE MISMATCH!'
       print *, '     ', hyper_y$, hyper_xy$, hyper_x$
-      print *, '     ', hyperbolic_y$, hyperbolic_xy$, hyperbolic_x$
+      print *, '     ', hyperbolic_ydollar, hyperbolic_xydollar, hyperbolic_xdollar
       call err_exit
     endif
 
