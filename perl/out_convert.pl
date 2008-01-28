@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/lbound\(s\%u, 1\)/1/g;
+    s/\= 1, ubound\(s\%u,/\= lbound\(s\%u, 1\), ubound\(s\%u,/;
 
     print (F_OUT);
 
