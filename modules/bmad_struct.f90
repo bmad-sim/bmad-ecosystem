@@ -339,12 +339,12 @@ integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4, y_ga
 integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, phi0_err$=5, crunch$=5
 integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, g_err$=6, noise$=6
 integer, parameter ::        dks_ds$=6, lrad$=6   ! lrad -> felv testing.
-integer, parameter :: g$=7, ks$=7, voltage$=7, n_pole$=7, bbi_const$=7
-integer, parameter :: e1$=8, charge$=8, gap$=8, dphi0$=8
-integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9
-integer, parameter :: fint$=10, polarity$=10, gradient$=10
-integer, parameter :: fintx$=11, z_patch$=11, phi0$=11
-integer, parameter :: rho$=12, s_center$=12, p0c_start$=12
+integer, parameter :: g$=7, ks$=7, voltage$=7, n_pole$=7, bbi_const$=7, tilt_calib$=7
+integer, parameter :: e1$=8, charge$=8, gap$=8, dphi0$=8, x_gain_calib$=8
+integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9, y_gain_calib$=9
+integer, parameter :: fint$=10, polarity$=10, gradient$=10, crunch_calib$=10
+integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11
+integer, parameter :: rho$=12, s_center$=12, p0c_start$=12, y_offset_calib$=12
 integer, parameter :: hgap$=13, E_TOT_START$=13, x_patch$=13
 integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14
 integer, parameter :: roll$=15, quad_tilt$=15, freq_spread$=15, x_ray_line_len$=15

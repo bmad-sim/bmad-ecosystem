@@ -497,32 +497,67 @@ default value of $r_0$, if the \vn{radius} is not given, is 1.0.
 \label{s:inst.var}
 
 \index{Instrument}\index{Monitor}\index{Marker}
-\index{x_gain_err}\index{y_gain_err}\index{crunch}\index{noise}
+\index{X_gain_err}\index{Y_gain_err}\index{Crunch}\index{Noise}
+\index{X_gain_calib}\index{Y_gain_calib}\index{Crunch_calib}
+\index{X_offset}\index{Y_offset}\index{Tilt}
+\index{X_offset_calib}\index{Y_offset_calib}\index{Tilt_calib}
+
 \vn{Instrument}, \vn{Monitor}, and \vn{Marker} elements have special
 attributes to describe the beam position measurement process. These
 attributes are:
 \begin{example}
-  x_gain_err = <Real>    ! Horizontal gain error
-  y_gain_err = <Real>    ! Vertical gain error
-  crunch     = <Real>    ! Crunch angle
-  noise      = <Real>    ! Noise factor
+  tilt           = <Real>    ! \sref{s:offset}
+  x_offset       = <Real>    ! \sref{s:offset}
+  y_offset       = <Real>    ! \sref{s:offset}
+  x_gain_err     = <Real>    ! Horizontal gain error
+  y_gain_err     = <Real>    ! Vertical gain error
+  crunch         = <Real>    ! Crunch angle
+  tilt_calib     = <Real>    ! tilt angle calibration
+  x_offset_calib = <Real>    ! Horizontal offset calibration
+  y_offset_calib = <Real>    ! Vertical offset calibration
+  x_gain_calib   = <Real>    ! Horizontal gain calibration
+  y_gain_calib   = <Real>    ! Vertical gain calibration
+  crunch_calib   = <Real>    ! Crunch angle calibration
+  noise          = <Real>    ! Noise factor
 \end{example}
-When combined with an element's offsets and tilt (\sref{s:offset}), A program can use
+A program can use
 these quantities to calculate the ``measured'' beam position from the
 ``actual'' (that is, as calculated via tracking) using the equations
 \begin{alignat}{1}
-  x_m &= N * r_1 + (1 + g_{x\mss{err}}) * 
-          \left[ (x - x_{\mss{off}}) * \cos (\theta_t + \theta_c) +
-                  (y - y_{\mss{off}}) * \sin (\theta_t + \theta_c) 
+  x_m &= N * r_1 + (1 + dg_x) * 
+          \left[ (x - dx_{\mss{off}}) * \cos (d\theta_t + d\theta_c) +
+                  (y - dy_{\mss{off}}) * \sin (d\theta_t + d\theta_c) 
           \right] \\ 
-  y_m &= N * r_2 + (1 + g_{y\mss{\scriptsize err}}) * 
-          \left[ -(x - x_{\mss{off}}) * \sin (\theta_t - \theta_c) +
-                  (y - y_{\mss{off}}) * \cos (\theta_t - \theta_c)  
+  y_m &= N * r_2 + (1 + dg_y) * 
+          \left[ -(x - dx_{\mss{off}}) * \sin (d\theta_t - d\theta_c) +
+                  (y - dy_{\mss{off}}) * \cos (d\theta_t - d\theta_c)  
           \right]
 \end{alignat}
-where $(x,y)$ is the actual beam position, $(x_m, y_m)$ is the measured position, 
-$N$ is the noise factor, $g_{x\mss{err}}$ and $g_{y\mss{err}}$
-are the gain errors, $x_{\mss{off}}$, and $x_{\mss{off}}$ are the
-element offsets, $\theta_t$ is the tilt angle, $\theta_c$ is the
-crunch angle, and $r_1$ and $r_2$ are Gaussian random numbers whose
-distribution has unit width.
+where $(x,y)$ is the actual beam position, $(x_m, y_m)$ is the
+measured position, $N$ is the noise factor, $r_1$ and $r_2$ are
+Gaussian random numbers whose distribution has unit width, $dg_x$ and
+$dg_y$ are the net gains
+\begin{alignat}{1}
+  dg_x &= g_{x\mss{err}} - g_{x\mss{calib}} \CRNO
+  dg_y &= g_{y\mss{err}} - g_{x\mss{calib}}
+\end{alignat}
+$g_{x\mss{err}}$ and $g_{y\mss{err}}$ are the gain errors and
+$g_{x\mss{calib}}$ and $g_{y\mss{calib}}$ are the gain calibration
+factors.  $g_{x\mss{calib}}$ and $g_{y\mss{calib}}$ represent the
+measured gain error and are useful for simulating the real world
+situation where there has been a measurement of the gain error. $dg$
+is thus the difference between the actual gain error and the measured
+gain error. Similarly:
+\begin{alignat}{1}
+  dx_{\mss{off}} &= x_{\mss{off}) - x_{\mss{calib}) \CRNO
+  dy_{\mss{off}} &= y_{\mss{off}) - y_{\mss{calib}) \\
+  d\theta_t &= \theta_t - \theta_{t\mss{calib}} \CRNO
+  d\theta_c &= \theta_c - \theta_{c\mss{calib}} \CRNO
+\end{alignat}
+$(x_{\mss{off}), y_{\mss{off}))$ is the transverse offset of the
+element and $(x_{\mss{calib}), y_{\mss{calib}))$ is the measured
+offset.  $\theta_t$ is the tilt angle and $\theta_{t\mss{calib}}$ is
+the measured tilt angle. $\theta_c$ is the crunch angle, and
+$\theta_{c\mss{calib}}$ is the measured tilt angle. The measured
+position $(x_m, y_m)$ thus represents the beam position corrected for
+``known'' offsets, tilts, and gain errors.

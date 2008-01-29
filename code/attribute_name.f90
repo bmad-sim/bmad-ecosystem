@@ -267,6 +267,12 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(monitor$, y_gain_err$)  = 'Y_GAIN_ERR'
     attrib_array(monitor$, crunch$)      = 'CRUNCH'
     attrib_array(monitor$, noise$)       = 'NOISE'
+    attrib_array(monitor$, tilt_calib$)     = 'TILT_CALIB'
+    attrib_array(monitor$, x_gain_calib$)   = 'X_GAIN_CALIB'
+    attrib_array(monitor$, y_gain_calib$)   = 'Y_GAIN_CALIB'
+    attrib_array(monitor$, crunch_calib$)   = 'CRUNCH_CALIB'
+    attrib_array(monitor$, x_offset_calib$) = 'X_OFFSET_CALIB'
+    attrib_array(monitor$, y_offset_calib$) = 'Y_OFFSET_CALIB'
 
     attrib_array(instrument$, l$) = 'L'
     attrib_array(instrument$, x_offset$) = 'X_OFFSET'
@@ -278,6 +284,12 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(instrument$, y_gain_err$)  = 'Y_GAIN_ERR'
     attrib_array(instrument$, crunch$)      = 'CRUNCH'
     attrib_array(instrument$, noise$)       = 'NOISE'
+    attrib_array(instrument$, tilt_calib$)     = 'TILT_CALIB'
+    attrib_array(instrument$, x_gain_calib$)   = 'X_GAIN_CALIB'
+    attrib_array(instrument$, y_gain_calib$)   = 'Y_GAIN_CALIB'
+    attrib_array(instrument$, crunch_calib$)   = 'CRUNCH_CALIB'
+    attrib_array(instrument$, x_offset_calib$) = 'X_OFFSET_CALIB'
+    attrib_array(instrument$, y_offset_calib$) = 'Y_OFFSET_CALIB'
 
     attrib_array(marker$, x_offset$) = 'X_OFFSET'
     attrib_array(marker$, y_offset$) = 'Y_OFFSET'
@@ -286,6 +298,12 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(marker$, y_gain_err$) = 'Y_GAIN_ERR'
     attrib_array(marker$, crunch$)     = 'CRUNCH'
     attrib_array(marker$, noise$)      = 'NOISE'
+    attrib_array(marker$, tilt_calib$)     = 'TILT_CALIB'
+    attrib_array(marker$, x_gain_calib$)   = 'X_GAIN_CALIB'
+    attrib_array(marker$, y_gain_calib$)   = 'Y_GAIN_CALIB'
+    attrib_array(marker$, crunch_calib$)   = 'CRUNCH_CALIB'
+    attrib_array(marker$, x_offset_calib$) = 'X_OFFSET_CALIB'
+    attrib_array(marker$, y_offset_calib$) = 'Y_OFFSET_CALIB'
 
     attrib_array(rcollimator$, l$)     = 'L'
 
