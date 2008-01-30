@@ -124,12 +124,12 @@ If there is more than one universe, multiple \vn{-lat} arguments can be used.
 \index{plot_file}
 \index{single_mode_file}
 \index{startup_file}
-\index{n_universes}
 \index{startup_single_mode}
 The initialization starts with an initialization file. The default name for
 this file is \vn{tao.init} (See \sref{s:command.line}).
-The initialization file needs to have a \vn{tao_start} namelist
-block with the following syntax:
+The first namelist block read in from this initialization file is a 
+\vn{tao_start} namelist. This block is optional (in which case the defaults
+are used).  This namelist contains the variables:
 \begin{example}
   &tao_start
     lattice_file      = "<file_name>"  ! Default = Initialization file.
@@ -138,11 +138,9 @@ block with the following syntax:
     plot_file         = "<file_name>"  ! Default = Initialization file.
     single_mode_file  = "<file_name>"  ! Default = Initialization file.
     startup_file      = "<file_name>"  ! Default = "tao.startup"
-    n_universes       = <integer>      ! Number of universes. Default = 1.
     init_name         = "<init_name>"  ! Default = 'Tao"
   /
 \end{example}
-\vn{n_universes} is the number of universes to be created.
 \vn{init_name} is for naming the initialization. This is useful to
 distinguish between multiple initialization files with custom versions
 of \tao. The other parameters specify which files to find the other
@@ -201,17 +199,21 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
 \index{design_lattice}
 \index{design_lattice!file}
 \index{design_lattice!parser}
+\index{n_universes}
 \begin{example}
   &tao_design_lattice
-    taylor_order = <num>
-    combine_consecutive_elements_of_like_name = <logical>
+    n_universes        = <integer>      ! Number of universes. Default = 1.
+    taylor_order       = <num>
     aperture_limit_on  = <logical>
-    unique_name_suffix = <string>
+    unique_name_suffix = "<string>"
+    combine_consecutive_elements_of_like_name = <logical>
     design_lattice(i)%file = "<parser>::<lattice_file>", \{"<lattice2_file>"\}
   /
 \end{example}
 \vn{taylor_order} is the order of the Taylor maps. This will override
 the Taylor order set in the lattice files. 
+\vn{n_universes} is the number of universes to be created. The default is 1.
+
 
 \vn{global%combine_consecutive_elements_of_like_name} takes a lattice
 and combines all pairs of consecutive elements that have the same name

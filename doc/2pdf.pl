@@ -21,7 +21,6 @@ if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 `mv tao.pdf tao-manual-$rev.pdf`; 
 `dvips -o tao.ps tao`;
 `mv tao.ps tao-manual-$rev.ps`; 
-`cp tao-manual-*.p*  /home/dcs/public_html/bmad`;
 
 open (F_OUT, ">temp.out") || die ("Cannot open temparary file\n");
 $file = "tao.html";
