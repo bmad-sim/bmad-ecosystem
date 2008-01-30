@@ -19,6 +19,8 @@ use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
 use rad_int_common, only: rad_int_common_struct
 
+integer, parameter :: model_lat$ = 1, base_lat$ = 2, design_lat$ = 3
+
 interface assignment (=)
   module procedure tao_lat_equal_tao_lat
 end interface
@@ -26,15 +28,15 @@ end interface
 !-----------------------------------------------------------------------
 ! misc.
 
-  type tao_arg_struct
-    character(100) name
-    character(100) value(3)
-  end type
+type tao_arg_struct
+  character(100) name
+  character(100) value(3)
+end type
 
-  type tao_eval_stack_struct
-    integer type
-    real(rp), allocatable :: value(:)
-  end type
+type tao_eval_stack_struct
+  integer type
+  real(rp), allocatable :: value(:)
+end type
 
 !----------------------------------------------------------------------
 
@@ -331,13 +333,13 @@ type tao_var_struct
   character(40) ele_name    ! Associated lattice element name.
   character(40) attrib_name ! Name of the attribute to vary.
   type (tao_this_var_struct), allocatable :: this(:)
+  type (tao_this_var_struct) :: common
   integer ix_v1             ! Index of this var in the s%v1_var(i)%v(:) array.
   integer ix_var            ! Index number of this var in the s%var(:) array.
   integer ix_dvar           ! Column in the dData_dVar derivative matrix.
   integer ix_attrib         ! Index in ele%value(:) array if appropriate.
-  integer ix                ! Temporary. Used for initialization.
-  real(rp) model_value      ! Model value.
-  real(rp) base_value       ! Base value.
+  real(rp), pointer :: model_value      ! Model value.
+  real(rp), pointer :: base_value       ! Base value.
   real(rp) design_value     ! Design value from the design lattice.
   real(rp) old_value        ! The model_value at some previous time.
   real(rp) meas_value       ! The value when the data measurement was taken.
@@ -472,6 +474,7 @@ type tao_common_struct
   integer :: ix_key_bank = 0             ! For single mode.
   integer :: n_data_max
   integer :: n_var_max
+  integer n_universes
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   logical :: use_cmd_here  = .false.     ! Used for the cmd history stack
   logical cmd_from_cmd_file              ! was command from a command file?
@@ -566,7 +569,7 @@ end type
 ! A universe is a snapshot of a machine
 
 type tao_universe_struct
-  type (tao_universe_struct), pointer :: common
+  type (tao_universe_struct), pointer :: common => null()
   type (tao_lattice_struct), pointer :: model, design, base
   type (tao_element_struct), pointer :: ele(:)     ! Element information
   type (beam_struct) current_beam                  ! Beam at the current position
@@ -593,6 +596,7 @@ type tao_universe_struct
   logical is_on                                    ! universe turned on
   logical calc_beam_emittance                      ! for a lat calculate emittance
   logical universe_recalc
+  logical :: common_uni = .false.
 end type
 
 ! The super_universe is the structure that holds an array of universes.

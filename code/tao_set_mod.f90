@@ -60,6 +60,7 @@ real(rp), pointer :: source_data(:)
 logical calc_ok
 
 integer j
+
 !
 
 err = .false.

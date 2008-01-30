@@ -27,7 +27,7 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_lattice_calc (calc_ok, init_design)
+! Subroutine tao_lattice_calc (calc_ok, init_design, ix_uni)
 !
 ! Routine to calculate the lattice functions and TAO data. 
 ! Always tracks through the model lattice. 
@@ -36,14 +36,16 @@ contains
 ! design lattices.
 ! 
 ! Input:
-!   init_design -- Logical, optional: To initialize design lattices
+!   init_design -- Logical, optional: Set this True to initialize design lattices
+!   ix_uni      -- Integer, optional: If present then calculation is restricted to
+!                   the universe with this index.
 !
 ! Output:
 !   calc_ok -- Logical: Set False if there was an error in the 
 !                calculation like a particle was lost or a lat is unstable.
 !-
 
-subroutine tao_lattice_calc (calc_ok, init_design)
+subroutine tao_lattice_calc (calc_ok, init_design, ix_uni)
 
 implicit none
 
@@ -54,6 +56,8 @@ type (tao_d2_data_struct), pointer :: d2_dat
 type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: model
+
+integer, optional :: ix_uni
 integer i, j, ix, n_max, it, id
 real(rp) :: delta_e = 0
 
@@ -83,6 +87,10 @@ endif
 if (.not. tao_com%lattice_recalc) return
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
+  if (present(ix_uni)) then
+    if (i /= ix_uni) cycle
+  endif
+
   u => s%u(i)
   u%data(:)%good_model = .false. ! reset
 

@@ -257,8 +257,11 @@ do
     call qp_calc_axis_places (grph%y)
 
     if (.not. tao_com%unified_lattices .and. grph%ix_universe == 0) then
-      call out_io (s_warn$, r_name, 'SYNTAX CHANGE: GRAPH%IX_UNIVERSE = 0', &
-                                    'NEEDS TO BE CHANGED TO: GRAPH%IX_UNIVERSE = -1')
+      call out_io (s_warn$, r_name, (/ &
+          '**********************************************************', &
+          '***** SYNTAX CHANGE: GRAPH%IX_UNIVERSE = 0           *****', &
+          '***** NEEDS TO BE CHANGED TO: GRAPH%IX_UNIVERSE = -1 *****', &
+          '**********************************************************' /) )
       grph%ix_universe = -1
     endif
 
@@ -329,8 +332,11 @@ do
       ! Enable the radiation integrals calculation if needed.
 
       if (.not. tao_com%unified_lattices .and. crv%ix_universe == 0) then
-        call out_io (s_warn$, r_name, 'SYNTAX CHANGE: CURVE%IX_UNIVERSE = 0', &
-                                      'NEEDS TO BE CHANGED TO: CURVE%IX_UNIVERSE = -1')
+        call out_io (s_warn$, r_name, (/ &
+          '**********************************************************', &
+          '***** SYNTAX CHANGE: CURVE%IX_UNIVERSE = 0           *****', &
+          '***** NEEDS TO BE CHANGED TO: CURVE%IX_UNIVERSE = -1 *****', &
+          '**********************************************************' /) )
         crv%ix_universe = -1
       endif
 

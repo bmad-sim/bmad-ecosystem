@@ -615,7 +615,6 @@ case ('global')
   nl=nl+1; write (lines(nl), imt) '%n_curve_pts                = ', s%global%n_curve_pts
   nl=nl+1; write (lines(nl), imt) '%n_opti_loops               = ', s%global%n_opti_loops
   nl=nl+1; write (lines(nl), imt) '%n_opti_cycles              = ', s%global%n_opti_cycles
-  nl=nl+1; write (lines(nl), imt) '%n_universes                = ', ubound(s%u, 1)
   nl=nl+1; write (lines(nl), lmt) '%opt_with_ref               = ', s%global%opt_with_ref 
   nl=nl+1; write (lines(nl), lmt) '%opt_with_base              = ', s%global%opt_with_base
   nl=nl+1; write (lines(nl), amt) '%optimizer                  = ', s%global%optimizer
@@ -640,6 +639,7 @@ case ('global')
 
   nl=nl+1; lines(nl) = ''
   nl=nl+1; lines(nl) = 'Internal Variables:'
+  nl=nl+1; write (lines(nl), imt) 'Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
   nl=nl+1; write (lines(nl), lmt) 'unified_lattices             = ', tao_com%unified_lattices
   nl=nl+1; write (lines(nl), amt) 'tao_com%beam_all_file        = ', tao_com%beam_all_file
   nl=nl+1; write (lines(nl), amt) 'tao_com%beam0_file           = ', tao_com%beam0_file
@@ -1252,6 +1252,7 @@ case ('universe')
   nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
   nl=nl+1; write (lines(nl), lmt) '%calc_beam_emittance   = ', u%calc_beam_emittance
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
+  nl=nl+1; write (lines(nl), lmt) '%common_uni            = ', u%common_uni
   nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam0_file)
   nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam_all_file)
   nl=nl+1; write (lines(nl), amt) '%save_beam_at:'
@@ -1450,22 +1451,29 @@ case ('variable')
       nl=nl+1; write(lines(nl), imt)  'this(:) -- Not associated!'
     else
       do i = 1, size(v_ptr%this)
-        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%Ix_uni:        ', &
+        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_uni:      ', &
                                                             v_ptr%this(i)%ix_uni
-        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%Ix_ele:        ', v_ptr%this(i)%ix_ele
+        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_ele:      ', v_ptr%this(i)%ix_ele
         if (associated (v_ptr%this(i)%model_ptr)) then
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_ptr:   ', &
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_ptr: ', &
                                                             v_ptr%this(i)%model_ptr
         else
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_ptr:   <not associated>'
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_ptr: <not associated>'
         endif
         if (associated (v_ptr%this(i)%base_ptr)) then
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_ptr:    ', &
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_ptr:  ', &
                                                             v_ptr%this(i)%base_ptr
         else
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_ptr:    <not associated>'
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_ptr:  <not associated>'
         endif
       enddo
+    endif
+
+    if (associated (v_ptr%common%model_ptr)) then
+      nl=nl+1; write(lines(nl), imt)  '%common%ix_uni:    ', v_ptr%common%ix_uni
+      nl=nl+1; write(lines(nl), imt)  '%common%ix_ele:    ', v_ptr%common%ix_ele
+      nl=nl+1; write(lines(nl), rmt)  '%common%Model_ptr: ', v_ptr%common%model_ptr
+      nl=nl+1; write(lines(nl), rmt)  '%common%Base_ptr:  ', v_ptr%common%base_ptr
     endif
 
     nl=nl+1; write(lines(nl), rmt)  '%Design_value     = ', v_ptr%design_value

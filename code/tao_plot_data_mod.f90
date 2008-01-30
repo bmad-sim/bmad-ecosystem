@@ -615,46 +615,35 @@ do k = 1, size(graph%curve)
 
       gs = graph%who(m)%sign
 
-      select case (graph%who(m)%name)
-      case (' ') 
-        cycle
+      ic = 0
+      do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
 
-      ! set value to whatever it is in currently viewed universe
-      case ('model') 
-        ic = 0
-        do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
-          v_ptr => v1_ptr%v(jj)
-          if (.not. v_ptr%useit_plot) cycle
-          ic = ic + 1
-          curve%y_symb(ic) = curve%y_symb(ic) + gs * v_ptr%this(ix_this)%model_ptr
-        enddo
-        cycle
+        v_ptr => v1_ptr%v(jj)
+        if (.not. v_ptr%useit_plot) cycle
 
-      ! set value to whatever it is in currently viewed universe
-      case ('base')  
-        ic = 0
-        do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
-          v_ptr => v1_ptr%v(jj)
-          if (.not. v_ptr%useit_plot) cycle
-          ic = ic + 1
-          curve%y_symb(ic) = curve%y_symb(ic) + gs * v_ptr%this(ix_this)%base_ptr
-        enddo
-        cycle
+        select case (graph%who(m)%name)
+        case (' ') 
+          cycle
+        case ('model') 
+          y_val = v_ptr%model_value
+        case ('base')  
+          y_val = v_ptr%base_value
+        case ('design')  
+          y_val = v_ptr%design_value
+        case ('ref')     
+          y_val = v_ptr%ref_value
+        case ('meas')    
+          y_val = v_ptr%meas_value
+        case default
+          call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
+          graph%valid = .false.
+          return
+        end select
 
-      case ('design')  
-        value => v1_ptr%v%design_value
-      case ('ref')     
-        value => v1_ptr%v%ref_value
-      case ('meas')    
-        value => v1_ptr%v%meas_value
-      case default
-        call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
-        graph%valid = .false.
-        return
-      end select
+        ic = ic + 1
+        curve%y_symb(ic) = curve%y_symb(ic) + gs * y_val
 
-      curve%y_symb = curve%y_symb + gs * pack(value, mask = v1_ptr%v%useit_plot)
-
+      enddo
     enddo
 
     if (curve%convert) curve%y_symb = curve%y_symb * &

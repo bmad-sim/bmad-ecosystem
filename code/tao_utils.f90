@@ -260,61 +260,83 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, err, err_print, ix_ele)
+! Subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, err_print, ix_ele)
 ! 
 ! Routine to set a pointer to the appropriate variable in a lattice
 !
 ! Input:
 !   var       -- Tao_var_struct: Structure has the info of where to point.
-!   this      -- Tao_this_var_struct: the variables pointers to point with
 !   ix_uni    -- Integer: the universe to use
 !   err_pirnt -- Logical: Print message on error?
-!   ix_ele    -- Integer, optional: Point to this element
+!   ix_ele    -- Integer: Index of element.
 !
 ! Output:
-!   err   -- Logical: Set True if there is an error. False otherwise.
+!   var%this(ix_this) -- Tao_this_var_struct: 
+!     %model_ptr
+!     %base_ptr
+!     %ix_ele
+!     %ix_uni
+!   err       -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, err, err_print, ix_ele)
+subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, err_print, ix_ele)
 
 implicit none
 
-type (tao_var_struct) var
+type (tao_var_struct), target :: var
 type (tao_universe_struct), pointer :: u
-type (tao_this_var_struct) this
+type (tao_this_var_struct), pointer :: this
+type (tao_this_var_struct), automatic :: this_saved(size(var%this))
 
-integer, optional :: ix_ele
-integer ix, ie, ix_uni
+integer :: ix_ele
+integer ix, ix_uni, ix_this
 logical :: err, err_print
 character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
 
 ! locate element
 
-  err = .true.
+err = .true.
 
-  u => s%u(ix_uni)
-  if (present(ix_ele)) then
-    ie = ix_ele
-  else
-    call element_locator (var%ele_name, u%model%lat, ie)
-  endif
+u => s%u(ix_uni)
 
-  if (ie < 0) then
-    if (err_print) call out_io (s_error$, r_name, 'ELEMENT NAME NOT FOUND: ' // var%ele_name)
-    return
-  endif
+! allocate space for var%this.
 
-  ! locate attribute
+ix_this = size(var%this) + 1
+this_saved = var%this
+deallocate (var%this)  
+allocate (var%this(ix_this))
+var%this(1:ix_this-1) = this_saved
+this => var%this(ix_this)
 
-  call pointer_to_attribute (u%model%lat%ele(ie), var%attrib_name, .true., &
-                            this%model_ptr, err, err_print, ix_attrib = var%ix_attrib)
-  if (err) return
+! locate attribute
 
-  call pointer_to_attribute (u%base%lat%ele(ie),  var%attrib_name, .true., &
-                                                        this%base_ptr,  err, err_print)
+call pointer_to_attribute (u%model%lat%ele(ix_ele), var%attrib_name, .true., &
+                          this%model_ptr, err, err_print, ix_attrib = var%ix_attrib)
+if (err) then
+  var%model_value => var%old_value
+  var%base_value  => var%old_value
+  var%exists = .false.
+  var%key_bound = .false.
+  return
+endif
 
-  this%ix_ele = ie
-  this%ix_uni = ix_uni
+call pointer_to_attribute (u%base%lat%ele(ix_ele),  var%attrib_name, .true., &
+                                                      this%base_ptr,  err, err_print)
+
+var%model_value => var%this(1)%model_ptr
+var%base_value  => var%this(1)%base_ptr
+
+this%ix_ele = ix_ele
+this%ix_uni = ix_uni
+
+! Common pointer
+
+if (associated(u%common)) then
+  call pointer_to_attribute (u%common%model%lat%ele(ix_ele),  var%attrib_name, .true., &
+                                                      var%common%model_ptr,  err, err_print)
+  call pointer_to_attribute (u%common%base%lat%ele(ix_ele),  var%attrib_name, .true., &
+                                                      var%common%base_ptr,  err, err_print)
+endif
 
 end subroutine tao_pointer_to_var_in_lattice
 
@@ -1016,7 +1038,7 @@ elseif (logic_option(.false., all_elements) .or. name == '*' .or. name == ' ') t
 else
   call location_decode (name, list, i1, num)
   if (num <  1) then
-    call out_io (s_error$, r_name, "BAD DATA NUMBER(S): " // name)
+    call out_io (s_error$, r_name, "BAD DATA INDEX NUMBER(S): " // name)
     this_err = .true.
     return  
   endif
@@ -1354,7 +1376,7 @@ enddo
 ! error check
 
 if (err) then
-  if (print_error) call out_io (s_error$, r_name, "Couldn't find variable: " // var_name)
+  if (print_error) call out_io (s_error$, r_name, "COULDN'T FIND VARIABLE: " // var_name)
   return
 endif
 
@@ -1399,7 +1421,7 @@ else
   enddo
   call location_decode (name, list, i1, num, names)
   if (num <  1) then
-    call out_io (s_error$, r_name, "BAD DATA NUMBER(S): " // var_name)
+    call out_io (s_error$, r_name, "BAD VAR INDEX NUMBER(S): " // name)
     this_err = .true.
     return  
   endif
@@ -1685,11 +1707,11 @@ end subroutine tao_count_strings
 !+
 ! Subroutine tao_lat_bookkeeper (u, tao_lat)
 !
-! This will make sure all bookkeeping is up to date
+! This will make sure all bookkeeping is up to date.
 !
 ! Input:
 !  u            -- tao_universe_struct
-!  tao_lat      -- tao_lattice_struct
+!  lat_name     -- Integer: Which lattice
 !
 ! Output:
 !  tao_lat      -- lat_struct
@@ -1699,10 +1721,39 @@ subroutine tao_lat_bookkeeper (u, tao_lat)
 
 implicit none
 
-type (tao_universe_struct) :: u
+type (tao_universe_struct), target :: u
 type (tao_lattice_struct) :: tao_lat
 
+integer i, j
+
 character(20) :: r_name = "tao_lat_bookkeeper"
+
+! Setup from common if it exists
+
+if (associated(u%common)) then
+
+  ! First put in the common values
+
+  do i = 1, size(s%var)
+    do j = 1, size(s%var(i)%this)
+      s%var(i)%this(j)%model_ptr = s%var(i)%common%model_ptr
+      s%var(i)%this(j)%base_ptr  = s%var(i)%common%base_ptr
+    enddo
+  enddo
+
+  ! Then put in the values for this universe
+
+  do i = 1, size(s%var)
+    do j = 1, size(s%var(i)%this)
+      if (s%var(i)%this(j)%ix_uni /= u%ix_uni) cycle
+      s%var(i)%this(j)%model_ptr = s%var(i)%model_value
+      s%var(i)%this(j)%base_ptr = s%var(i)%base_value
+    enddo
+  enddo
+
+endif
+
+! Do bookkeeping
 
 call lattice_bookkeeper (tao_lat%lat)
 
@@ -2734,49 +2785,6 @@ if (.not. logic_option(.false., ignore)) then ! if not ignore
 endif
 
 end function
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Subroutine tao_update_var_values ()
-!
-! This will update the s%var(*)%model_value and s%var(*)%base_value to 
-! reflect the actual values in the lattice. This is needed for example if a
-! element values is changed using the 'change ele' command where a tao variable
-! also controls the element value. The variable must be updated to refelct the
-! change.
-!
-! If the variables controls element in multiple universe as a 'clone' then the
-! value in the currently displayed universe will be used.
-!
-! Input: 
-!  none
-!
-! Ouput:
-!  s%var(*)%model_value  -- Real(rp): value updated to reflect lattice
-!  s%var(*)%base_value   -- Real(rp): value updated to reflect lattice
-!-
-
-Subroutine tao_update_var_values ()
-
-implicit none
-
-integer i_var, i_this, ix_this
-
-  do i_var = 1, size(s%var)
-    ix_this = -1
-    if (.not. allocated(s%var(i_var)%this)) cycle
-    do i_this = 1, size(s%var(i_var)%this)
-      if (s%var(i_var)%this(i_this)%ix_uni .eq. s%global%u_view) &
-              ix_this = i_this
-    enddo
-    if (ix_this .eq. -1) cycle
-    s%var(i_var)%model_value = s%var(i_var)%this(ix_this)%model_ptr
-    s%var(i_var)%base_value = s%var(i_var)%this(ix_this)%base_ptr
-  enddo
-
-end subroutine tao_update_var_values
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

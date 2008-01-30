@@ -1167,7 +1167,7 @@ type (coord_struct) orb
 type (ele_struct) ele
 
 real(rp) reading, x_noise_factor, y_noise_factor
-real(rp) ran_num(2), angle
+real(rp) ran_num(2), angle, x, y, x_gain, y_gain
 
 integer axis
 
@@ -1193,17 +1193,20 @@ logical err
     x_noise_factor = 0
     y_noise_factor = 0
   endif
-  
+
+  x_gain = 1 + ele%value(x_gain_err$) - ele%value(x_gain_calib$)
+  y_gain = 1 + ele%value(y_gain_err$) - ele%value(y_gain_calib$)
+  x = orb%vec(1) - ele%value(x_offset_tot$) + ele%value(x_offset_calib$)
+  y = orb%vec(3) - ele%value(y_offset_tot$) + ele%value(y_offset_calib$)
+
   if (axis == x_plane$) then
-    angle = ele%value(tilt_tot$) + ele%value(crunch$)
-    reading = x_noise_factor + (1 + ele%value(x_gain_err$)) * ( &
-                (orb%vec(1) - ele%value(x_offset_tot$)) * cos(angle) + &
-                (orb%vec(3) - ele%value(y_offset_tot$)) * sin(angle))
+    angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) + &
+                  (ele%value(crunch$) - ele%value(crunch_calib$))
+    reading = x_noise_factor + x_gain * (x * cos(angle) + y * sin(angle))
   elseif (axis == y_plane$) then
-    angle = ele%value(tilt_tot$) - ele%value(crunch$)
-    reading = y_noise_factor + (1 + ele%value(y_gain_err$)) * ( &
-               -(orb%vec(1) - ele%value(x_offset_tot$)) * sin(angle) + &
-                (orb%vec(3) - ele%value(y_offset_tot$)) * cos(angle))
+    angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) - &
+                  (ele%value(crunch$) - ele%value(crunch_calib$))
+    reading = y_noise_factor + y_gain * (-x * sin(angle) + y * cos(angle))
   else
     reading = 0.0
     call out_io (s_warn$, r_name, "This axis not supported for BPM reading!")

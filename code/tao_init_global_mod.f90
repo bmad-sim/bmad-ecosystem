@@ -1287,6 +1287,12 @@ s%var(:)%good_user = .true.
 
 s%n_var_used = 0
 
+do i = 1, size(s%var)
+  allocate (s%var(i)%this(0))
+  s%var(i)%model_value => s%var(i)%old_value    ! Just to point to somewhere
+  s%var(i)%base_value  => s%var(i)%old_value    ! Just to point to somewhere
+enddo
+
 ! First count how many v1_var definitions there are
 
 if (allocated(s%v1_var)) deallocate (s%v1_var)
@@ -1408,45 +1414,49 @@ do
   ! Set up variable lists
 
   if (gang) then
-    call var_stuffit1 (v1_var_ptr)
-    do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
+    call tao_var_stuffit1 (v1_var_ptr, -1, searching)
 
-      ! Find which universes
-      good_unis = dflt_good_unis
+    if (.not. searching) then
+      do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
 
-      if (.not. searching) then
-        if (var(j)%universe /= '') then
-          if (var(j)%universe == '*') then
-            good_unis = .true.
-          else
-            call location_decode (var(j)%universe, good_unis, 1, num)
-            if (num < 0) then
-              call out_io (s_error$, r_name, 'ERROR READING UNIVERSE FOR: ' // v1_var%name)
-              cycle
+        ! Find which universes
+        good_unis = dflt_good_unis
+
+        if (.not. searching) then
+          if (var(j)%universe /= '') then
+            if (var(j)%universe == '*') then
+              good_unis = .true.
+            else
+              call location_decode (var(j)%universe, good_unis, 1, num)
+              if (num < 0) then
+                call out_io (s_error$, r_name, 'ERROR READING UNIVERSE FOR: ' // v1_var%name)
+                cycle
+              endif
             endif
           endif
         endif
-      endif
 
-      if (count(good_unis) == 0) then
-        call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // v1_var%name)
-        call err_exit
-      endif
+        if (count(good_unis) == 0) then
+          call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // v1_var%name)
+          call err_exit
+        endif
 
-      call var_stuffit2 (good_unis, v1_var_ptr%v(j), searching)
-
-    enddo
+        call tao_var_stuffit2 (good_unis, v1_var_ptr%v(j))
+      enddo
+    endif
 
   else   ! If clone...
     do i = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. dflt_good_unis(i)) cycle
-      call var_stuffit1 (v1_var_ptr)
+      call tao_var_stuffit1 (v1_var_ptr, i, searching)
       write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
-      good_unis = .false.
-      good_unis(i) = .true.
-      do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
-        call var_stuffit2 (good_unis, v1_var_ptr%v(j), searching)
-      enddo
+      if (.not. searching) then
+        good_unis = .false.
+        good_unis(i) = .true.
+        do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
+          call tao_var_stuffit2 (good_unis, v1_var_ptr%v(j))
+        enddo
+      endif
     enddo
   endif
 
@@ -1468,24 +1478,27 @@ do
   read (iu, nml = tao_var)  ! force printing of error message
 enddo
 
-!----------------------------------------------------------------
-!----------------------------------------------------------------
+!-----------------------------------------------------------------------
+!------------------------------------------------------------------------
 contains
 
 ! stuff common to all universes
 
-subroutine var_stuffit1 (v1_var_ptr)
+subroutine tao_var_stuffit1 (v1_var_ptr, ix_uni, searching)
 
 type (tao_v1_var_struct), pointer :: v1_var_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
+type (tao_var_struct), pointer :: var_ptr
 
 character(20) fmt
+character(40) ele_name
 character(60) search_string
 
-integer i, iu, ip, j, jj, k, kk, nn, n1, n2, ix1, ix2, num_hashes, ix
-integer num_ele, ios, ixx1, ixx2
-
+integer i, iu, ip, j, jj, k, kk, n, nn, n1, n2, ix1, ix2, num_hashes, ix
+integer num_ele, ios, ixx1, ixx2, ix_uni
 integer, allocatable, save :: ix_eles(:)
+
+logical searching
 
 ! count number of v1 entries
 
@@ -1517,7 +1530,6 @@ if (use_same_lat_eles_as /= '') then
 
   s%var(n1:n2)%ele_name    = v1_ptr%v%ele_name
   s%var(n1:n2)%s           = v1_ptr%v%s
-  s%var(n1:n2)%ix          = v1_ptr%v%ix
 
   do n = n1, n2
     ix = ix1 + (n - n1)
@@ -1578,6 +1590,7 @@ endif
 ! are we searching for elements?
 
 if (search_for_lat_eles /= '') then
+
   searching = .true.
   search_string = '-no_slaves ' // trim(search_for_lat_eles)
   if (any(var%universe /= '')) then
@@ -1585,42 +1598,47 @@ if (search_for_lat_eles /= '') then
            "CANNOT SPECIFY INDIVIDUAL UNIVERSES WHEN SEARCHING FOR VARIABLES")
     call err_exit
   endif
-  ! search through all universes specified
+
+  ! find matching elements
+
+  n1 = s%n_var_used + 1
+  n2 = s%n_var_used 
+
   num_ele = 0
   do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
+    if (ix_uni > -1 .and. iu /= ix_uni) cycle
     call tao_find_elements (s%u(iu), search_string, ix_eles)
-    num_ele = num_ele + size(ix_eles)
-  enddo
-  if (size(ix_eles) == 0) then
+    kk_loop: do kk = 1, size(ix_eles)
+      ix_ele = ix_eles(kk)
+      ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
+      do j = n1, n2
+        if (s%var(j)%ele_name == ele_name) then
+          call tao_pointer_to_var_in_lattice (s%var(j), iu, err, .true., ix_ele)
+          cycle kk_loop
+        endif
+      enddo
+      ! Here is no match
+      n2 = n2 + 1
+      var_ptr => s%var(n2)
+      var_ptr%exists = .true.
+      var_ptr%ele_name = ele_name
+      var_ptr%s = s%u(iu)%design%lat%ele(ix_ele)%s
+      var_ptr%attrib_name = default_attribute
+      call tao_pointer_to_var_in_lattice (var_ptr, iu, err, .true., ix_ele)
+    enddo kk_loop
+  enddo 
+
+  if (n2 < n1) then
     call out_io (s_warn$, r_name, &
-                'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_string, &
-                'WHILE SETTING UP VARIABLE ARRAY: ' // v1_var%name)
+              'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
+              'WHILE SETTING UP VARIABLE ARRAY: ' // v1_var%name)
     return
   endif
 
-  n1 = s%n_var_used + 1
-  n2 = s%n_var_used + num_ele
-  ix1 = ix_min_var
-  ix2 = num_ele - (1-ix_min_var)
   s%n_var_used = n2
-  jj = n1
-
-  do iu = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. dflt_good_unis(iu)) cycle
-    call tao_find_elements (s%u(iu), search_string, ix_eles)
-    do kk = 1, size(ix_eles)
-      k = ix_eles(kk)
-      if (jj .gt. n2) then
-        call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT SEARCHING")
-        call err_exit
-      endif
-      s%var(jj)%ele_name = s%u(iu)%design%lat%ele(k)%name
-      s%var(jj)%s = s%u(iu)%design%lat%ele(k)%s
-      s%var(jj)%ix = k
-      jj = jj + 1
-    enddo
-  enddo
+  ix1 = ix_min_var
+  ix2 = (n2 - n1) + ix_min_var
 
 !------------------------------
 ! If not searching or reusing...
@@ -1638,7 +1656,8 @@ else
 
 endif
 
-!---------------------------
+!---------------------------------------------------------------
+! Common init stuff
 
 do n = n1, n2
   i = ix1 + n - n1
@@ -1668,7 +1687,6 @@ enddo
 s%var(n1:n2)%key_delta = var(ix1:ix2)%key_delta
 
 s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
-
 where (s%var(n1:n2)%attrib_name == '') s%var(n1:n2)%attrib_name = default_attribute
 
 s%var(n1:n2)%weight = var(ix1:ix2)%weight
@@ -1690,6 +1708,26 @@ where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
 
 call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
 
+! Veto any variable that is not free
+
+if (searching) then
+  do n = n1, n2
+    var_ptr => s%var(n)
+    if (var_ptr%ix_attrib <= 0) cycle
+    do j = 1, size(var_ptr%this)
+      this => var_ptr%this(j)
+      u => s%u(this%ix_uni)
+      if (.not. attribute_free (this%ix_ele, var_ptr%ix_attrib, u%model%lat, .false.)) then
+        call out_io (s_info$, r_name, &
+              'Warning: Variable: ' // tao_var1_name(var_ptr), &
+            '       is trying to control a non-free attribute. %exists will be set to False.')
+        var_ptr%exists = .false.
+        var_ptr%key_bound = .false.
+      endif
+    enddo
+  enddo
+endif
+
 end subroutine
   
 end subroutine tao_init_variables
@@ -1698,7 +1736,7 @@ end subroutine tao_init_variables
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 
-subroutine var_stuffit2 (good_unis, var, searching)
+subroutine tao_var_stuffit2 (good_unis, var)
 
 implicit none
 
@@ -1706,102 +1744,29 @@ type (tao_var_struct), target :: var
 type (tao_this_var_struct), pointer :: this
 type (tao_universe_struct), pointer :: u
 
-integer i, j, n, n1, n2, iv, iu, n_tot, n_ele, ie
-integer, automatic :: n_ele_in_uni(lbound(s%u,1):ubound(s%u,1))
+integer i, j, n, n1, n2, iv, iu
 
-character(20) :: r_name = 'var_stuffit2'
-logical err, searching, good_unis(:)
+character(20) :: r_name = 'tao_var_stuffit2'
+logical err, good_unis(:)
 
-! point the children back to the mother
+! 
 
-if (allocated(var%this)) deallocate (var%this)
 if (var%ele_name == '') then
-  allocate (var%this(0))
   var%exists = .false.
   var%key_bound = .false.
   return
 endif
 
-! Problem: var%ix gives element index but this might be different in different universes.
-! Solution: Move this to var_stuffit1
-
-if (searching) then
-  allocate (var%this(count(good_unis)))
-  j = 0
-  do iu = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. good_unis(iu)) cycle
-    j = j + 1
-    call tao_pointer_to_var_in_lattice (var, var%this(j), iu, &
-                                                  err, .false., ix_ele = var%ix)
-    if (err) then
-      var%exists = .false.
-      var%key_bound = .false.
-      return
-    endif
+do iu = lbound(s%u, 1), ubound(s%u, 1)
+  if (.not. good_unis(iu)) cycle
+  do iv = 0, s%u(iu)%model%lat%n_ele_max
+    if (var%ele_name /= s%u(iu)%model%lat%ele(iv)%name) cycle
+    call tao_pointer_to_var_in_lattice (var, iu, err, .true., iv)
+    if (err) return
   enddo
+enddo
 
-  ! Veto any variable that is not free
-
-  if (var%ix_attrib > 0) then
-    do j = 1, size(var%this)
-      this => var%this(j)
-      u => s%u(this%ix_uni)
-      if (.not. attribute_free (this%ix_ele, var%ix_attrib, u%model%lat, .false.)) then
-        call out_io (s_info$, r_name, &
-              'Warning: Variable: ' // tao_var1_name(var), &
-            '         is trying to control a non-free attribute. %exists will be set to False.')
-        var%exists = .false.
-        var%key_bound = .false.
-        return
-      endif
-    enddo
-  endif
-
-else
-  n_tot = 0
-  do iu = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. good_unis(iu)) cycle
-
-    n_ele = 0
-    do iv = 0, s%u(iu)%model%lat%n_ele_max
-      if (var%ele_name /= s%u(iu)%model%lat%ele(iv)%name) cycle
-      n_ele = n_ele + 1
-      s%u(iu)%model%lat%ele(n_ele)%ixx = iv
-    enddo
-
-    n_ele_in_uni(iu) = n_ele
-    n_tot = n_tot + n_ele
-  enddo
-
-  if (n_tot == 0) then
-    call out_io (s_error$, r_name, 'ELEMENT DOES NOT EXIST: ' // var%ele_name)
-    var%exists = .false.
-    return
-  endif
-
-  allocate (var%this(n_tot))
-
-  n = 0
-  do iu = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. good_unis(iu)) cycle
-    do ie = 1, n_ele_in_uni(iu)
-      call tao_pointer_to_var_in_lattice (var, var%this(ie+n), iu, &
-                                    err, .true., ix_ele = s%u(iu)%model%lat%ele(ie)%ixx)
-      if (err) then
-        var%exists = .false.
-        var%key_bound = .false.
-        return
-      endif
-    enddo
-    n = n + n_ele_in_uni(iu)
-  enddo
-
-endif
-
-var%model_value = var%this(1)%model_ptr
-var%design_value = var%this(1)%model_ptr
-var%base_value = var%this(1)%base_ptr
-var%exists = .true.
+if (size(var%this) > 0) var%exists = .true.
 
 end subroutine
 
@@ -1822,12 +1787,12 @@ character(40) ele_name, key_name_in
 character(20) :: r_name = 'tao_find_elements'
 
 integer key, found_key
-integer i, k, ix, ii, i2, j
+integer i, k, ix, ii, i2, j, ix0, ix1, ix2, n_ele
 
 integer, allocatable :: ix_eles(:)
 logical no_slaves, no_lords, err
 
-!
+! Sort switches
 
 no_slaves = .false.
 no_lords = .false.
@@ -1848,11 +1813,11 @@ case default
   endif
 end select
 
-!
+! Find elements
 
 call tao_ele_locations_given_name (u, string, ix_eles, err)
 
-k = 0
+n_ele = 0
 do j = 1, size(ix_eles)
   ele => u%design%lat%ele(ix_eles(j))
   select case (ele%control_type)
@@ -1861,11 +1826,11 @@ do j = 1, size(ix_eles)
   case (girder_lord$, overlay_lord$, super_lord$)
     if (no_lords) cycle
   end select
-  k = k + 1
-  ix_eles(k) = ix_eles(j)
+  n_ele = n_ele + 1
+  ix_eles(n_ele) = ix_eles(j)
 enddo
 
-call re_allocate (ix_eles, k)
+call re_allocate (ix_eles, n_ele)
 
 end subroutine tao_find_elements
 

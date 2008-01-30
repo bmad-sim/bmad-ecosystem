@@ -58,11 +58,14 @@ else
                 'NOTE: Cannot open a file for logging initialization information')
 endif
 
-! Find namelist files
+! Open the first init file.
 
 if (present(err_flag)) err_flag = .true.
 call tao_open_file ('TAO_INIT_DIR', tao_com%init_tao_file, iu, file_name)
 if (iu == 0) return
+
+! Set defaults.
+! n_universes is present to accomodate files with the old syntax.
 
 lattice_file       = tao_com%init_tao_file      ! set default
 plot_file          = tao_com%init_tao_file      ! set default
@@ -73,20 +76,22 @@ wall_file          = tao_com%init_tao_file      ! set default
 n_universes        = 1              ! set default
 init_name          = "Tao"          ! set default
 startup_file       = "tao.startup"
+
+! Read the info
+
 read (iu, nml = tao_start, iostat = ios)
 close (iu)
 
 if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT READ "TAO_START" NAMELIST IN FILE: ' // file_name)
-  return
+  call out_io (s_warn$, r_name, 'Cannot read "tao_start" namelist in file: ' // file_name)
 endif
 
 tao_com%init_name = init_name
+tao_com%n_universes = n_universes
+
+! Tao inits.
 
 if (allocated(s%u)) call deallocate_everything ()
-allocate (s%u(n_universes))
-
-! Init
 
 call tao_init_design_lattice (lattice_file) 
 call tao_init_global(tao_com%init_tao_file)
@@ -112,10 +117,10 @@ do i = 1, size(s%var)
     u => s%u(this%ix_uni)
     if (.not. attribute_free (this%ix_ele, var%ix_attrib, u%model%lat)) then
       call out_io (s_abort$, r_name, &
-                'Error: Variable trying to control an attribute that is not free to vary.', &
-                '       Variable:  ' // tao_var1_name(var), &
-                '       Element:   ' // var%ele_name, &
-                '       Attribute: ' // var%attrib_name)
+                'ERROR: VARIABLE TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY.', &
+                '       VARIABLE:  ' // tao_var1_name(var), &
+                '       ELEMENT:   ' // var%ele_name, &
+                '       ATTRIBUTE: ' // var%attrib_name)
       call err_exit
     endif
   enddo
