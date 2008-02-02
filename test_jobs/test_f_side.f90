@@ -305,9 +305,9 @@ end module
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-program test_bmad_and_cpp
+program test_fortran_and_cpp
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -697,7 +697,7 @@ end program
 
 subroutine test_f_coord (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -727,7 +727,7 @@ end subroutine
 
 subroutine test_f_twiss (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -758,7 +758,7 @@ end subroutine
 
 subroutine test_f_xy_disp (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -789,7 +789,7 @@ end subroutine
 
 subroutine test_f_floor_position (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -819,7 +819,7 @@ end subroutine
 
 subroutine test_f_wig_term (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -849,7 +849,7 @@ end subroutine
 
 subroutine test_f_taylor_term (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -879,7 +879,7 @@ end subroutine
 
 subroutine test_f_taylor (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -909,7 +909,7 @@ end subroutine
 
 subroutine test_f_sr_table_wake (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -939,7 +939,7 @@ end subroutine
 
 subroutine test_f_sr_mode_wake (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -969,7 +969,7 @@ end subroutine
 
 subroutine test_f_lr_wake (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -999,7 +999,7 @@ end subroutine
 
 subroutine test_f_wake (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -1029,7 +1029,7 @@ end subroutine
 
 subroutine test_f_control (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -1059,7 +1059,7 @@ end subroutine
 
 subroutine test_f_param (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -1089,7 +1089,7 @@ end subroutine
 
 subroutine test_f_amode (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -1119,7 +1119,7 @@ end subroutine
 
 subroutine test_f_linac_mode (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -1149,7 +1149,7 @@ end subroutine
 
 subroutine test_f_modes (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -1179,7 +1179,7 @@ end subroutine
 
 subroutine test_f_bmad_com (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -1208,7 +1208,7 @@ end subroutine
 
 subroutine test_f_em_field (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -1238,7 +1238,7 @@ end subroutine
 
 subroutine test_f_ele (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -1271,7 +1271,7 @@ end subroutine
 
 subroutine test_f_mode_info (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 
@@ -1301,7 +1301,7 @@ end subroutine
 
 subroutine test_f_lat (c1, c2)
 
-use bmad_and_cpp
+use fortran_and_cpp
 use equality_mod
 use test_mod
 

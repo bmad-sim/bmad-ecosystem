@@ -1,235 +1,3 @@
-module bmad_and_cpp
-
-use bmad_struct
-use bmad_interface
-
-type c_dummy_struct
-  real(rp) dummy
-end type
-
-contains
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Function c_logic (logic) result (c_log)
-!
-! Function to convert from a fortran logical to a C logical.
-!
-! Modules needed:
-!   use bmad_and_cpp
-!
-! Input:
-!   logic -- Logical: Fortran logical.
-!
-! Output:
-!   c_log -- Integer: C logical.
-!-
-
-function c_logic (logic) result (c_log)
-
-implicit none
-
-logical logic
-integer c_log
-
-!
-
-if (logic) then
-  c_log = 1
-else
-  c_log = 0
-endif
-
-end function
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Function f_logic (logic) result (f_log)
-!
-! Function to convert from a fortran logical to a C logical.
-!
-! Modules needed:
-!   use bmad_and_cpp
-!
-! Input:
-!   logic -- Integer: C logical.
-!
-! Output:
-!   f_log -- Logical: Fortran logical.
-!-
-
-function f_logic (logic) result (f_log)
-
-implicit none
-
-integer logic
-logical f_log
-
-!
-
-if (logic == 0) then
-  f_log = .false.
-else
-  f_log = .true.
-endif
-
-end function
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Function r_size (ptr) result (this_size)
-!
-! Function to return the size of a real pointer.
-! If the pointer is not associated then 0 is returned.
-!
-! Modules needed:
-!  use bmad_and_cpp
-!
-! Input:
-!   ptr(:) -- Real(rp), pointer: Pointer to an array.
-!
-! Output:
-!   this_size -- Integer: Size of array. 0 if not associated.
-!-
-
-function r_size (ptr) result (this_size)
-
-real(rp), pointer :: ptr(:)
-integer this_size
-
-this_size = 0
-if (associated(ptr)) this_size = size(ptr)
-
-end function
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Function i_size (ptr) result (this_size)
-!
-! Function to return the size of an integer pointer.
-! If the pointer is not associated then 0 is returned.
-!
-! Modules needed:
-!  use bmad_and_cpp
-!
-! Input:
-!   ptr(:) -- Integer, pointer: Pointer to an array.
-!
-! Output:
-!   this_size -- Integer: Size of array. 0 if not associated.
-!-
-
-
-function i_size (ptr) result (this_size)
-
-integer, pointer :: ptr(:)
-integer this_size
-
-this_size = 0
-if (associated(ptr)) this_size = size(ptr)
-
-end function
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Function c_str (str) result (c_string)
-!
-! Function to append a null (0) character at the end of a string (trimmed
-! of trailing blanks) so it will look like a C character array. 
-!
-! Modules needed:
-!  use bmad_and_cpp
-!
-! Input:
-!   str   -- Character(*): Input character string
-!
-! Output:
-!   c_str -- Character(*): String with a null put just after the last
-!             non-blank character.
-!-
-
-function c_str (str) result (c_string)
-
-character(*) str
-character(len_trim(str)+1) c_string
-
-c_string = trim(str) // char(0)
-
-end function
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Function mat2arr (mat) result (arr)
-!
-! Function to take a matrix and turn it into an array:
-!   arr(n2*(i-1) + j) = mat(i,j)
-! where n2 = size(mat,2).
-! This is used for passing matrices to C++ routines.
-!
-! Modules needed:
-!  use bmad_and_cpp
-!
-! Input:
-!   mat(:,:)  -- Real(rp): Input matrix
-!
-! Output:
-!   arr(:)   -- Real(rp): Output array 
-!-
-
-function mat2arr (mat) result (arr)
-
-real(rp) mat(:,:)
-real(rp) arr(size(mat))
-integer i, j, n1, n2
-
-n1 = size(mat, 1); n2 = size(mat, 2)
-forall (i = 1:n1, j = 1:n2) arr(n2*(i-1) + j) = mat(i,j)
- 
-end function
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Function arr2mat (arr, n1, n2) result (mat)
-!
-! Function to take a an array and turn it into a matrix:
-!   mat(i,j) = arr(n2*(i-1) + j) 
-! This is used for getting matrices from C++ routines.
-!
-! Modules needed:
-!  use bmad_and_cpp
-!
-! Input:
-!   arr(:)   -- Real(rp): Input array.
-!   n1       -- Integer: Size of first mat index.
-!   n2       -- Integer: Size of second mat index.
-!
-! Output:
-!   mat(n1,n2)  -- Real(rp): Output matrix
-!-
-
-function arr2mat (arr, n1, n2) result (mat)
-
-integer i, j, n1, n2
-real(rp) arr(:)
-real(rp) mat(n1,n2)
-
-forall (i = 1:n1, j = 1:n2) mat(i,j) = arr(n2*(i-1) + j) 
- 
-end function
-
-end module
-
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 subroutine init_coord_struct (f_coord)
 
 use bmad_struct
@@ -258,7 +26,7 @@ end subroutine
 
 subroutine coord_to_c (f_coord, c_coord)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -280,7 +48,7 @@ end subroutine
 
 subroutine coord_to_f2 (f_coord, vec)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -308,7 +76,7 @@ end subroutine
 
 subroutine orbit_to_c (f_orbit, c_orbit)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -334,7 +102,7 @@ end subroutine
 
 subroutine orbit_to_f2 (f_orbit, n_orb)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -362,7 +130,7 @@ end subroutine
 
 subroutine coord_in_orbit_to_f2 (f_orbit, ix, vec)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -391,7 +159,7 @@ end subroutine
 
 subroutine twiss_to_c (f_twiss, c_twiss)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -416,7 +184,7 @@ end subroutine
 
 subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, sigma, sigma_p, emit)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -444,7 +212,7 @@ end subroutine
 
 subroutine xy_disp_to_c (f_xy_disp, c_xy_disp)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -468,7 +236,7 @@ end subroutine
 
 subroutine xy_disp_to_f2 (f_xy_disp, eta, etap)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -496,7 +264,7 @@ end subroutine
 
 subroutine floor_position_to_c (f_floor_position, c_floor_position)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -521,7 +289,7 @@ end subroutine
 
 subroutine floor_position_to_f2 (f_floor_position, x, y, z, theta, phi, psi)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -549,7 +317,7 @@ end subroutine
 
 subroutine wig_term_to_c (f_wig_term, c_wig_term)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -573,7 +341,7 @@ end subroutine
 
 subroutine wig_term_to_f2 (f_wig_term, coef, kx, ky, kz, phi_z, tp)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -602,7 +370,7 @@ end subroutine
 
 subroutine taylor_term_to_c (f_taylor_term, c_taylor_term)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -626,7 +394,7 @@ end subroutine
 
 subroutine taylor_term_to_f2 (f_taylor_term, coef, exp)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -655,7 +423,7 @@ end subroutine
 
 subroutine taylor_to_c (f_taylor, c_taylor)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -689,7 +457,7 @@ end subroutine
 
 subroutine taylor_to_f2 (f_taylor, n_term, ref)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -713,7 +481,7 @@ end subroutine
 
 subroutine taylor_term_in_taylor_to_f2 (f_taylor, it, coef, exp)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -742,7 +510,7 @@ end subroutine
 
 subroutine sr_table_wake_to_c (f_sr_table_wake, c_sr_table_wake)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -766,7 +534,7 @@ end subroutine
 
 subroutine sr_table_wake_to_f2 (f_sr_table_wake, z, long, trans)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -794,7 +562,7 @@ end subroutine
 
 subroutine sr_mode_wake_to_c (f_sr_mode_wake, c_sr_mode_wake)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -821,7 +589,7 @@ end subroutine
 subroutine sr_mode_wake_to_f2 (f_sr_mode_wake, amp, damp, freq, phi, &
                                         norm_sin, norm_cos, skew_sin, skew_cos)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -850,7 +618,7 @@ end subroutine
 
 subroutine lr_wake_to_c (f_lr_wake, c_lr_wake)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -878,7 +646,7 @@ subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, angle, &
                                    n_sin, n_cos, s_cos, s_sin, m, polarized)
 
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -911,7 +679,7 @@ end subroutine
 
 subroutine wake_to_c (f_wake, c_wake)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -970,7 +738,7 @@ end subroutine
 subroutine wake_to_f2 (f_wake, sr_file, n_srf, lr_file, n_lrf, z_sr_mode_max, &
                                          n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1003,7 +771,7 @@ end subroutine
 
 subroutine sr_table_wake_in_wake_to_f2 (f_wake, it, z, long, trans)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1028,7 +796,7 @@ end subroutine
 subroutine sr_mode_long_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
                                         norm_sin, norm_cos, skew_sin, skew_cos)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1054,7 +822,7 @@ end subroutine
 subroutine sr_mode_trans_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
                                         norm_sin, norm_cos, skew_sin, skew_cos)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1080,7 +848,7 @@ end subroutine
 subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, freq_in, r_over_q, q, angle, &
                                           n_sin, n_cos, s_cos, s_sin, m, polarized)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1111,7 +879,7 @@ end subroutine
 
 subroutine control_to_c (f_control, c_control)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1135,7 +903,7 @@ end subroutine
 
 subroutine control_to_f2 (f_control, coef, ix_lord, ix_slave, ix_attrib)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1164,7 +932,7 @@ end subroutine
 
 subroutine param_to_c (f_param, c_param)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1196,7 +964,7 @@ subroutine param_to_f2 (f_param, n_part, total_length, &
       growth_rate, m1, m2, particle, ix_lost, end_lost_at, plane_lost_at, &
       lat_type, ixx, stable, ap_limit_on, lost) 
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1230,7 +998,7 @@ end subroutine
 
 subroutine amode_to_c (f_amode, c_amode)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1255,7 +1023,7 @@ end subroutine
 
 subroutine amode_to_f2 (f_amode, emit, i4, i5, j_damp, a_damp, chrom, tune)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1283,7 +1051,7 @@ end subroutine
 
 subroutine linac_mode_to_c (f_linac_mode, c_linac_mode)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1308,7 +1076,7 @@ end subroutine
 
 subroutine linac_mode_to_f2 (f_linac_mode, i2, i3, i5a, i5b, sig_e, ea, eb)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1336,7 +1104,7 @@ end subroutine
 
 subroutine modes_to_c (f_modes, c_modes)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1363,7 +1131,7 @@ end subroutine
 subroutine modes_to_f2 (f_modes, i1, i2, i3, sige, sig_z, e_loss, &
                                                           pz, a, b, z, lin)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1398,7 +1166,7 @@ end subroutine
 
 subroutine bmad_com_to_c (c_bmad_com)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1436,7 +1204,7 @@ subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, rel, &
                 abs, taylor_ord, dflt_integ, cc, liar, sr, lr, sym, &
                 a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, conserve_t)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1470,7 +1238,7 @@ end subroutine
 
 subroutine em_field_to_c (f_em_field, c_em_field)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1496,7 +1264,7 @@ end subroutine
 
 subroutine em_field_to_f2 (f_em_field, e, b, k, de, db, dk, tp)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1526,7 +1294,7 @@ end subroutine
 
 subroutine ele_to_c (f_ele, c_ele)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1615,7 +1383,7 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
     int_ord, ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad, &
     f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)   
 
-use bmad_and_cpp
+use fortran_and_cpp
 use multipole_mod
 
 implicit none
@@ -1777,7 +1545,7 @@ end subroutine
 
 subroutine wig_term_in_ele_to_f2 (f_ele, it, coef, kx, ky, kz, phi_z, tp)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1806,7 +1574,7 @@ end subroutine
 
 subroutine mode_info_to_c (f_mode_info, c_mode_info)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1830,7 +1598,7 @@ end subroutine
 
 subroutine mode_info_to_f2 (f_mode_info, tune, emit, chrom)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1858,7 +1626,7 @@ end subroutine
 
 subroutine lat_to_c (f_lat, C_lat)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1909,7 +1677,7 @@ subroutine lat_to_f2 (f, name, n_name, lat, n_lat, file, n_file, title, &
     n_title, x, y, z, param, ver, n_use, n_max, n_maxx, nc_max, n_ic_max, &
     tlr_ord, ele_init, n_con, ic, n_ic)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1960,7 +1728,7 @@ end subroutine
 
 subroutine ele_from_lat_to_f2 (f_lat, it, c_ele)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
@@ -1983,7 +1751,7 @@ end subroutine
 
 subroutine control_from_lat_to_f2 (f_lat, it, c_control)
 
-use bmad_and_cpp
+use fortran_and_cpp
 
 implicit none
 
