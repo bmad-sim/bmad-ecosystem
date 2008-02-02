@@ -27,6 +27,8 @@ end subroutine
 subroutine coord_to_c (f_coord, c_coord)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -49,6 +51,8 @@ end subroutine
 subroutine coord_to_f2 (f_coord, vec)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -77,6 +81,8 @@ end subroutine
 subroutine orbit_to_c (f_orbit, c_orbit)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -103,6 +109,8 @@ end subroutine
 subroutine orbit_to_f2 (f_orbit, n_orb)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -131,6 +139,8 @@ end subroutine
 subroutine coord_in_orbit_to_f2 (f_orbit, ix, vec)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -160,6 +170,8 @@ end subroutine
 subroutine twiss_to_c (f_twiss, c_twiss)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -185,6 +197,8 @@ end subroutine
 subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, sigma, sigma_p, emit)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -213,6 +227,8 @@ end subroutine
 subroutine xy_disp_to_c (f_xy_disp, c_xy_disp)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -237,6 +253,8 @@ end subroutine
 subroutine xy_disp_to_f2 (f_xy_disp, eta, etap)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -265,6 +283,8 @@ end subroutine
 subroutine floor_position_to_c (f_floor_position, c_floor_position)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -290,6 +310,8 @@ end subroutine
 subroutine floor_position_to_f2 (f_floor_position, x, y, z, theta, phi, psi)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -318,6 +340,8 @@ end subroutine
 subroutine wig_term_to_c (f_wig_term, c_wig_term)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -342,6 +366,8 @@ end subroutine
 subroutine wig_term_to_f2 (f_wig_term, coef, kx, ky, kz, phi_z, tp)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -371,6 +397,8 @@ end subroutine
 subroutine taylor_term_to_c (f_taylor_term, c_taylor_term)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -395,6 +423,8 @@ end subroutine
 subroutine taylor_term_to_f2 (f_taylor_term, coef, exp)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -424,6 +454,8 @@ end subroutine
 subroutine taylor_to_c (f_taylor, c_taylor)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -458,6 +490,8 @@ end subroutine
 subroutine taylor_to_f2 (f_taylor, n_term, ref)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -482,6 +516,8 @@ end subroutine
 subroutine taylor_term_in_taylor_to_f2 (f_taylor, it, coef, exp)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -511,6 +547,8 @@ end subroutine
 subroutine sr_table_wake_to_c (f_sr_table_wake, c_sr_table_wake)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -535,6 +573,8 @@ end subroutine
 subroutine sr_table_wake_to_f2 (f_sr_table_wake, z, long, trans)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -563,6 +603,8 @@ end subroutine
 subroutine sr_mode_wake_to_c (f_sr_mode_wake, c_sr_mode_wake)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -590,6 +632,8 @@ subroutine sr_mode_wake_to_f2 (f_sr_mode_wake, amp, damp, freq, phi, &
                                         norm_sin, norm_cos, skew_sin, skew_cos)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -619,6 +663,8 @@ end subroutine
 subroutine lr_wake_to_c (f_lr_wake, c_lr_wake)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -647,6 +693,8 @@ subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, angle, &
 
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -680,6 +728,8 @@ end subroutine
 subroutine wake_to_c (f_wake, c_wake)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -739,6 +789,8 @@ subroutine wake_to_f2 (f_wake, sr_file, n_srf, lr_file, n_lrf, z_sr_mode_max, &
                                          n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -772,6 +824,8 @@ end subroutine
 subroutine sr_table_wake_in_wake_to_f2 (f_wake, it, z, long, trans)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -797,6 +851,8 @@ subroutine sr_mode_long_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
                                         norm_sin, norm_cos, skew_sin, skew_cos)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -823,6 +879,8 @@ subroutine sr_mode_trans_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
                                         norm_sin, norm_cos, skew_sin, skew_cos)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -849,6 +907,8 @@ subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, freq_in, r_over_q, q, angle,
                                           n_sin, n_cos, s_cos, s_sin, m, polarized)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -880,6 +940,8 @@ end subroutine
 subroutine control_to_c (f_control, c_control)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -904,6 +966,8 @@ end subroutine
 subroutine control_to_f2 (f_control, coef, ix_lord, ix_slave, ix_attrib)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -933,6 +997,8 @@ end subroutine
 subroutine param_to_c (f_param, c_param)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -965,6 +1031,8 @@ subroutine param_to_f2 (f_param, n_part, total_length, &
       lat_type, ixx, stable, ap_limit_on, lost) 
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -999,6 +1067,8 @@ end subroutine
 subroutine amode_to_c (f_amode, c_amode)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1024,6 +1094,8 @@ end subroutine
 subroutine amode_to_f2 (f_amode, emit, i4, i5, j_damp, a_damp, chrom, tune)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1052,6 +1124,8 @@ end subroutine
 subroutine linac_mode_to_c (f_linac_mode, c_linac_mode)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1077,6 +1151,8 @@ end subroutine
 subroutine linac_mode_to_f2 (f_linac_mode, i2, i3, i5a, i5b, sig_e, ea, eb)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1105,6 +1181,8 @@ end subroutine
 subroutine modes_to_c (f_modes, c_modes)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1132,6 +1210,8 @@ subroutine modes_to_f2 (f_modes, i1, i2, i3, sige, sig_z, e_loss, &
                                                           pz, a, b, z, lin)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1167,6 +1247,8 @@ end subroutine
 subroutine bmad_com_to_c (c_bmad_com)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1205,6 +1287,8 @@ subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, rel, &
                 a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, conserve_t)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1239,6 +1323,8 @@ end subroutine
 subroutine em_field_to_c (f_em_field, c_em_field)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1265,6 +1351,8 @@ end subroutine
 subroutine em_field_to_f2 (f_em_field, e, b, k, de, db, dk, tp)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1295,6 +1383,8 @@ end subroutine
 subroutine ele_to_c (f_ele, c_ele)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1385,6 +1475,8 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
 
 use fortran_and_cpp
 use multipole_mod
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1546,6 +1638,8 @@ end subroutine
 subroutine wig_term_in_ele_to_f2 (f_ele, it, coef, kx, ky, kz, phi_z, tp)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1575,6 +1669,8 @@ end subroutine
 subroutine mode_info_to_c (f_mode_info, c_mode_info)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1599,6 +1695,8 @@ end subroutine
 subroutine mode_info_to_f2 (f_mode_info, tune, emit, chrom)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1627,6 +1725,8 @@ end subroutine
 subroutine lat_to_c (f_lat, C_lat)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1678,6 +1778,8 @@ subroutine lat_to_f2 (f, name, n_name, lat, n_lat, file, n_file, title, &
     tlr_ord, ele_init, n_con, ic, n_ic)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1729,6 +1831,8 @@ end subroutine
 subroutine ele_from_lat_to_f2 (f_lat, it, c_ele)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -1752,6 +1856,8 @@ end subroutine
 subroutine control_from_lat_to_f2 (f_lat, it, c_control)
 
 use fortran_and_cpp
+use bmad_struct
+use bmad_interface
 
 implicit none
 
