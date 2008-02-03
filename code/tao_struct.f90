@@ -19,7 +19,7 @@ use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
 use rad_int_common, only: rad_int_common_struct
 
-integer, parameter :: model_lat$ = 1, base_lat$ = 2, design_lat$ = 3
+integer, parameter :: model$ = 1, base$ = 2, design$ = 3
 
 interface assignment (=)
   module procedure tao_lat_equal_tao_lat

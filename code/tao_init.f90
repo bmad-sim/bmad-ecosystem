@@ -161,7 +161,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%model = s%u(i)%design; s%u(i)%model%orb = s%u(i)%design%orb
 enddo
 tao_com%lattice_recalc = .true.
-call tao_lattice_calc (calc_ok, .true.) ! .true. => init design lattice
+call tao_lattice_calc (calc_ok, init_design = .true.) 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%design = s%u(i)%model; s%u(i)%design%orb = s%u(i)%model%orb
   s%u(i)%base  = s%u(i)%design; s%u(i)%base%orb  = s%u(i)%design%orb

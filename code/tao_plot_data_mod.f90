@@ -1,6 +1,7 @@
 module tao_plot_data_mod
 
 use tao_mod
+use tao_lattice_calc_mod
 
 contains
 
@@ -322,7 +323,7 @@ type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 type (tao_universe_struct), pointer :: u
-type (lat_struct), pointer :: lat, base_lat
+type (lat_struct), pointer :: model_lat, base_lat
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_v1_var_struct) , pointer :: v1_ptr
@@ -338,7 +339,7 @@ integer ii, k, m, n_dat, ie, jj, iv, ic
 integer ix, ir, jg, i, j, i_max, i_min, ix_this
 integer, allocatable, save :: ix_ele(:)
 
-logical err, smooth_curve, found, zero_average_phase, valid, in_graph
+logical err, smooth_curve, found, zero_average_phase, valid, in_graph, ok
 logical, allocatable, save :: valid_value(:)
 
 character(12)  :: u_view_char
@@ -382,7 +383,13 @@ do k = 1, size(graph%curve)
   curve => graph%curve(k)
   u => tao_pointer_to_universe (curve%ix_universe)
   if (.not. associated(u)) return
-  lat => u%model%lat
+
+  if (associated(u%common)) then
+    call tao_lattice_calc (ok, u%ix_uni, base$)
+    call tao_lattice_calc (ok, u%ix_uni, model$)
+  endif
+
+  model_lat => u%model%lat
   base_lat => u%base%lat
 
   if (curve%ele_ref_name == ' ') then
@@ -444,8 +451,8 @@ do k = 1, size(graph%curve)
       else ! s
         where (d1_ptr%d%s > plot%x%min-eps .and. &
                d1_ptr%d%s < plot%x%max+eps) d1_ptr%d%good_plot = .true.
-        if (lat%param%lattice_type == circular_lattice$) then 
-          l_tot = lat%param%total_length
+        if (model_lat%param%lattice_type == circular_lattice$) then 
+          l_tot = model_lat%param%total_length
           where (d1_ptr%d%s-l_tot > plot%x%min-eps .and. &
                  d1_ptr%d%s-l_tot < plot%x%max+eps) d1_ptr%d%good_plot = .true.
         endif
@@ -459,7 +466,7 @@ do k = 1, size(graph%curve)
     if (plot%x_axis_type == 's') then
       ! veto non-regular elements when plotting s
       forall (m = lbound(d1_ptr%d,1):ubound(d1_ptr%d,1), &
-                     d1_ptr%d(m)%ix_ele > lat%n_ele_track)
+                     d1_ptr%d(m)%ix_ele > model_lat%n_ele_track)
         d1_ptr%d(m)%useit_plot = .false.
       endforall
     endif
@@ -480,7 +487,7 @@ do k = 1, size(graph%curve)
     elseif (plot%x_axis_type == 'ele_index') then
       curve%x_symb = d1_ptr%d(curve%ix_symb)%ix_ele
     elseif (plot%x_axis_type == 's') then
-      curve%x_symb = lat%ele(d1_ptr%d(curve%ix_symb)%ix_ele)%s
+      curve%x_symb = model_lat%ele(d1_ptr%d(curve%ix_symb)%ix_ele)%s
       ! If there is a wrap-around then reorder data
       do i = 1, n_dat
         if (curve%x_symb(i) > plot%x%max+eps) then
@@ -603,7 +610,7 @@ do k = 1, size(graph%curve)
       enddo
     elseif (plot%x_axis_type == 's') then
       do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
-        curve%x_symb(jj) = lat%ele(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
+        curve%x_symb(jj) = model_lat%ele(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
       enddo
     endif
 
@@ -657,7 +664,7 @@ do k = 1, size(graph%curve)
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
       i_min = 1
-      i_max = lat%n_ele_track
+      i_max = model_lat%n_ele_track
       if (plot%x%min /= plot%x%max) then
         i_min = max(i_min, floor(plot%x%min))
         i_max = min(i_max, ceiling(plot%x%max))
@@ -666,19 +673,19 @@ do k = 1, size(graph%curve)
     elseif (plot%x_axis_type == 's') then
       ! Symbols are to be put at the ends of displayed elements in the lat_layout
       eps = 1e-4 * (plot%x%max - plot%x%min)             ! a small number
-      do i = 1, lat%n_ele_max
-        lat%ele(i)%logic = (u%ele(i)%ix_ele_end_lat_layout > 0)
+      do i = 1, model_lat%n_ele_max
+        model_lat%ele(i)%logic = (u%ele(i)%ix_ele_end_lat_layout > 0)
         if (plot%x%min == plot%x%max) cycle
-        s0 = lat%ele(i)%s - lat%ele(i)%value(l$)
-        s1 = lat%ele(i)%s
+        s0 = model_lat%ele(i)%s - model_lat%ele(i)%value(l$)
+        s1 = model_lat%ele(i)%s
         in_graph = (s0 >= plot%x%min-eps) .and. (s1 <= plot%x%max+eps)
-        l_tot = lat%param%total_length
-        if (lat%param%lattice_type == circular_lattice$) in_graph = in_graph .or. &
+        l_tot = model_lat%param%total_length
+        if (model_lat%param%lattice_type == circular_lattice$) in_graph = in_graph .or. &
                         (s0-l_tot >= plot%x%min-eps) .and. (s1-l_tot <= plot%x%max+eps)
-        lat%ele(i)%logic = lat%ele(i)%logic .and. in_graph
+        model_lat%ele(i)%logic = model_lat%ele(i)%logic .and. in_graph
                                  
       enddo
-      n_dat = count (lat%ele(:)%logic)
+      n_dat = count (model_lat%ele(:)%logic)
     endif
 
     call re_allocate (ix_symb, n_dat)
@@ -691,9 +698,9 @@ do k = 1, size(graph%curve)
       if (n_dat > 0) ix_symb = (/ (i, i = i_min, i_max) /)
       x_symb = ix_symb
     elseif (plot%x_axis_type == 's') then
-      ix_symb = pack(u%ele(:)%ix_ele_end_lat_layout, mask = lat%ele(:)%logic)
+      ix_symb = pack(u%ele(:)%ix_ele_end_lat_layout, mask = model_lat%ele(:)%logic)
       do i = 1, n_dat
-        x_symb(i) = lat%ele(ix_symb(i))%s
+        x_symb(i) = model_lat%ele(ix_symb(i))%s
       enddo
       ! If there is a wrap-around then reorder the data
       do i = 1, n_dat

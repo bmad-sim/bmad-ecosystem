@@ -462,13 +462,8 @@ case ('single-mode')
 
 case ('spawn')
 
-#if defined (CESR_LINUX) || defined (CESR_UNIX)
-  call system (cmd_line)
+  call system_command (cmd_line)
   return
-#endif
-
-call out_io (s_error$, r_name, "Spawn only works on linux and unix")
- 
 
 !--------------------------------
 ! VIEW

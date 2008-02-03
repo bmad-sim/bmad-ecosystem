@@ -18,16 +18,13 @@ use rad_int_common
 
 type (tao_lattice_struct), pointer :: this_bunch_track_lat ! for save_bunch_track routine
 
-integer, parameter :: design$ = 1
-integer, parameter :: model$ = 2
-
 contains
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_lattice_calc (calc_ok, init_design, ix_uni)
+! Subroutine tao_lattice_calc (calc_ok, ix_uni, who, init_design)
 !
 ! Routine to calculate the lattice functions and TAO data. 
 ! Always tracks through the model lattice. 
@@ -39,13 +36,14 @@ contains
 !   init_design -- Logical, optional: Set this True to initialize design lattices
 !   ix_uni      -- Integer, optional: If present then calculation is restricted to
 !                   the universe with this index.
+!   who         -- Integer, optional: Either: model$, base$, or design$. Default is model$.
 !
 ! Output:
 !   calc_ok -- Logical: Set False if there was an error in the 
 !                calculation like a particle was lost or a lat is unstable.
 !-
 
-subroutine tao_lattice_calc (calc_ok, init_design, ix_uni)
+subroutine tao_lattice_calc (calc_ok, ix_uni, who, init_design)
 
 implicit none
 
@@ -55,10 +53,10 @@ type (tao_universe_struct), pointer :: u
 type (tao_d2_data_struct), pointer :: d2_dat
 type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
-type (tao_lattice_struct), pointer :: model
+type (tao_lattice_struct), pointer :: tao_lat
 
-integer, optional :: ix_uni
-integer i, j, ix, n_max, it, id
+integer, optional :: ix_uni, who
+integer i, j, ix, n_max, it, id, this_who
 real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
@@ -92,34 +90,47 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   endif
 
   u => s%u(i)
-  u%data(:)%good_model = .false. ! reset
-
   if (.not. u%is_on .or. .not. u%universe_recalc) cycle
-  ! zero data array
 
-  model => u%model
-  u%data%model_value = tiny(1.0_rp)
+  ! Pointer to appropriate lattice and zero data array
+
+  this_who = integer_option(model$, who)
+  select case (this_who)
+  case (model$)
+    tao_lat => u%model
+    u%data(:)%good_model = .false. ! reset
+    u%data%model_value = tiny(1.0_rp)
+  case (base$) 
+    tao_lat => u%base
+    u%data%base_value = tiny(1.0_rp)
+  case (design$)
+    tao_lat => u%design
+    u%data%design_value = tiny(1.0_rp)
+  end select
+
+  ! 
+
   do j = 1, 6
-    model%orb%vec(j) = 0.0
+    tao_lat%orb%vec(j) = 0.0
   enddo
-  model%orb(0) = model%lat%beam_start
+  tao_lat%orb(0) = tao_lat%lat%beam_start
 
   ! set up matching element
   if (initing_design) call tao_match_lats_init (u)
 
   select case (s%global%track_type)
   case ('single') 
-    call tao_inject_particle (u, model)
-    call tao_lat_bookkeeper (u, model)
-    call tao_single_track (i, model, this_calc_ok)
+    call tao_inject_particle (u, tao_lat)
+    call tao_lat_bookkeeper (u, tao_lat)
+    call tao_single_track (i, tao_lat, this_who, this_calc_ok)
   case ('beam') 
-    call tao_inject_beam (u, model)
-    call tao_lat_bookkeeper (u, model)
-    call tao_beam_track (i, model, this_calc_ok)
+    call tao_inject_beam (u, tao_lat)
+    call tao_lat_bookkeeper (u, tao_lat)
+    call tao_beam_track (i, tao_lat, this_who, this_calc_ok)
   case ('macro')
-    call tao_inject_macro_beam (u, model)
-    call tao_lat_bookkeeper (u, model)
-    call tao_macro_track (i, model, this_calc_ok)
+    call tao_inject_macro_beam (u, tao_lat)
+    call tao_lat_bookkeeper (u, tao_lat)
+    call tao_macro_track (i, tao_lat, this_who, this_calc_ok)
   case default
     call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // s%global%track_type)
     call err_exit
@@ -127,16 +138,16 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   if (this_calc_ok) then
     if (u%do_synch_rad_int_calc) then
-      call radiation_integrals (model%lat, model%orb, model%modes, u%ix_rad_int_cache)
-      call transfer_rad_int_struct (ric, model%rad_int)
+      call radiation_integrals (tao_lat%lat, tao_lat%orb, tao_lat%modes, u%ix_rad_int_cache)
+      call transfer_rad_int_struct (ric, tao_lat%rad_int)
     endif
-    if (u%do_chrom_calc) call chrom_calc (model%lat, delta_e, &
-                                    model%a%chrom, model%b%chrom, exit_on_error = .false.)
+    if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, &
+                                    tao_lat%a%chrom, tao_lat%b%chrom, exit_on_error = .false.)
   else
     calc_ok = .false.
   endif
 
-  call tao_load_data_array (u, -1)
+  call tao_load_data_array (u, -1, this_who)
 
   ! do multi-turn tracking if needed
 
@@ -147,8 +158,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     do id = 1, size(d2_dat%d1)
       n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
     enddo
-    call reallocate_coord (orb, model%lat%n_ele_max)
-    orb(0) = model%lat%beam_start
+    call reallocate_coord (orb, tao_lat%lat%n_ele_max)
+    orb(0) = tao_lat%lat%beam_start
     do it = 0, n_max
       do id = 1, size(d2_dat%d1)
         d1_dat => d2_dat%d1(id)
@@ -166,8 +177,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
           end select
         endif
       enddo
-      call track_all (model%lat, orb)
-      orb(0) = orb(model%lat%n_ele_track)
+      call track_all (tao_lat%lat, orb)
+      orb(0) = orb(tao_lat%lat%n_ele_track)
     enddo
   endif
 
@@ -190,14 +201,14 @@ end subroutine tao_lattice_calc
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine tao_single_track (uni, tao_lat, calc_ok)
+subroutine tao_single_track (uni, tao_lat, who, calc_ok)
 
 implicit none
 
 type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
 
-integer uni, i, ii
+integer uni, i, ii, who
 
 character(20) :: r_name = "tao_single_track"
 
@@ -227,7 +238,7 @@ endif
 lat%param%ix_lost = not_lost$
 lat%param%lost = .false.
 
-call tao_load_data_array (s%u(uni), 0)
+call tao_load_data_array (s%u(uni), 0, who)
 
 do i = 0, lat%n_ele_track
 
@@ -252,7 +263,7 @@ do i = 0, lat%n_ele_track
   endif
 
   call tao_calc_params (s%u(uni), i, lat%param%lost)
-  call tao_load_data_array (s%u(uni), i)
+  call tao_load_data_array (s%u(uni), i, who)
 
 enddo
 
@@ -264,7 +275,7 @@ end subroutine tao_single_track
 ! Right now, there is no beam tracking in lattices. If extracting from a
 ! lat then the beam is generated at the extraction point.
 
-subroutine tao_beam_track (uni, tao_lat, calc_ok)
+subroutine tao_beam_track (uni, tao_lat, who, calc_ok)
 
 implicit none
 
@@ -277,7 +288,7 @@ type (normal_modes_struct) :: modes
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 
-integer uni, what_lat
+integer uni, what_lat, who
 integer j, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to
 integer extract_at_ix_ele, n_lost
@@ -331,7 +342,7 @@ enddo
 if (.not. u%connect%connected) then
   ! no beam tracking in lattices
   if (lat%param%lattice_type == circular_lattice$) then
-    call tao_single_track (uni, tao_lat, calc_ok) 
+    call tao_single_track (uni, tao_lat, who, calc_ok) 
     if (u%calc_beam_emittance) then
       call radiation_integrals (lat, tao_lat%orb, modes)
       if (extract_at_ix_ele .ne. -1) then
@@ -405,7 +416,7 @@ do j = ie1, ie2
   ! Find lattice and beam parameters and load data
 
   call tao_calc_params (u, j, all_lost)
-  call tao_load_data_array (u, j) 
+  call tao_load_data_array (u, j, who) 
 
 enddo
 
@@ -436,7 +447,7 @@ end subroutine tao_beam_track
 ! Right now, there is no macroparticle tracking in lattices. If extracting from a
 ! lat then the macroparticle beam is generated at the extraction point.
 
-subroutine tao_macro_track (uni, tao_lat, calc_ok)
+subroutine tao_macro_track (uni, tao_lat, who, calc_ok)
 
 use macro_utils_mod
 
@@ -449,7 +460,7 @@ type (macro_beam_struct), pointer :: beam
 type (macro_init_struct), pointer :: macro_init
 type (normal_modes_struct) :: modes
 
-integer uni, what_lat
+integer uni, what_lat, who
 integer j, i_uni
 integer n_bunch, n_slice, n_macro
 integer extract_at_ix_ele, n_lost
@@ -491,7 +502,7 @@ enddo
 if (.not. u%connect%connected) then
   ! no macroparticle tracking in lattices
   if (lat%param%lattice_type == circular_lattice$ ) then
-    call tao_single_track (uni, tao_lat, calc_ok) 
+    call tao_single_track (uni, tao_lat, who, calc_ok) 
     if (u%calc_beam_emittance) then
       call radiation_integrals (lat, tao_lat%orb, modes, u%ix_rad_int_cache)
       if (extract_at_ix_ele .ne. -1) then
@@ -517,7 +528,7 @@ if (.not. u%connect%connected) then
 endif
 
 ! beginning element calculations
-call tao_load_data_array (u, 0) 
+call tao_load_data_array (u, 0, who) 
 
 ! track through every element
 do j = 1, lat%n_ele_track
@@ -549,7 +560,7 @@ do j = 1, lat%n_ele_track
   ! load data
 
   call tao_calc_params (u, j, all_lost)
-  call tao_load_data_array (u, j) 
+  call tao_load_data_array (u, j, who) 
 enddo
 
 ! only post total lost if no extraction or extracting to a turned off lattice
