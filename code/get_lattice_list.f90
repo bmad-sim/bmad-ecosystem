@@ -92,7 +92,6 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
 
 end subroutine get_lattice_list
 
-
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
@@ -102,24 +101,53 @@ end subroutine get_lattice_list
 
 subroutine get_lattice_list (lat_list, num_lats, directory)
 
-  use cesr_utils
+  use dcslib
+  use directory_mod
 
   implicit none
+
+  integer num_lats
+  integer i, ix
 
   character(*) directory
   character(200) directory2
   character(40) lat_list(:)
-
-  integer num_lats, ios, context, ix, ixx, lib$find_file
-  integer i, stat
-
   character(40) match_file
+  character(200) lat_file
 
-!
+  logical ok
 
-  print *, 'ERROR: GET_LATTICE_LIST NOT YET IMPLEMENTED FOR UNIX!'
-  call err_exit
+  ! get twiss file names for matching files 
 
-end subroutine
+  call fullfilename (directory, directory2)
+  match_file = 'bmad_*.*'
+
+  ok = dir_open(directory2)
+
+  num_lats = 0
+  do 
+
+    ok = dir_read (lat_file)
+    if (.not. ok) exit
+    call downcase_string (lat_file)
+    if (.not. match_wild(lat_file, match_file)) cycle
+
+    ix = index(lat_file, ';') - 1      ! strip version number suffix
+    if (ix /= 0) lat_file = lat_file(:ix)
+
+    ix = index(lat_file, '.lat')   ! strip off .lat
+    if (ix /= 0) lat_file = lat_file(1:ix-1)
+
+    num_lats = num_lats + 1
+    if (num_lats > size(lat_list)) then
+      print *, 'ERROR IN GET_LATTICE_LIST_VMS: NUMBER OF LATTICES EXCEEDS ARRAY SIZE!'
+      call err_exit
+    endif
+
+    lat_list(num_lats) = lat_file(6:)  ! Strip of beginning "bmad_"
+
+  enddo
+
+end subroutine get_lattice_list
 
 #endif
