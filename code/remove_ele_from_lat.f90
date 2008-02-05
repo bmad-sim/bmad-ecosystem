@@ -39,7 +39,7 @@ subroutine remove_ele_from_lat (lat, ix_ele)
     
   else
     n_remove = 0
-    do i = 1, lat%n_ele_track
+    do i = 1, lat%n_ele_max
       if (lat%ele(i)%key == null_ele$) then
         lat%ele(i)%ix_ele = 0
         n_remove = n_remove + 1

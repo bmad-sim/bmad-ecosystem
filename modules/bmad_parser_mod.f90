@@ -2067,7 +2067,8 @@ subroutine get_overlay_group_names (ele, lat, plat, delim, delim_found)
   
   integer ic, ix_word, ixs, j, k
                              
-  character delim*1, word_in*40, word*40
+  character(1) delim
+  character(40) word_in, word
   character(40) name(200), attrib_name(200)
 
   logical delim_found, err_flag, file_end
@@ -2137,6 +2138,9 @@ subroutine get_overlay_group_names (ele, lat, plat, delim, delim_found)
   enddo
 
 !
+
+  if (ixs == 0) call warning ( &
+          'NO SLAVE ELEMENTS ASSOCIATED WITH GROUP/OVERLAY ELEMENT: ' // ele%name)
 
   ic = ele%ixx
   allocate (plat%ele(ic)%coef(ixs), plat%ele(ic)%name(ixs), &
