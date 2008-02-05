@@ -2139,6 +2139,7 @@ subroutine get_overlay_group_names (ele, lat, plat, delim, delim_found)
 
 !
 
+  ixs = ele%n_slave
   if (ixs == 0) call warning ( &
           'NO SLAVE ELEMENTS ASSOCIATED WITH GROUP/OVERLAY ELEMENT: ' // ele%name)
 
@@ -3258,208 +3259,221 @@ end subroutine
 
 subroutine parser_add_lord (in_lat, n2, plat, lat)
 
-  implicit none
+implicit none
 
-  type (lat_struct), target :: in_lat, lat
-  type (ele_struct), pointer :: lord
-  type (parser_lat_struct) plat
-  type (control_struct), pointer, save :: cs(:) => null()
+type (lat_struct), target :: in_lat, lat
+type (ele_struct), pointer :: lord
+type (parser_lat_struct) plat
+type (control_struct), pointer, save :: cs(:) => null()
 
-  integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ix1, ns, ixs
-  integer ix_lord, ix_slave(1000), k_slave, k_slave_original
-  integer, allocatable :: r_indexx(:)
+integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ix1, ns, ixs
+integer ix_lord, ix_slave(1000), k_slave, k_slave_original
+integer, allocatable :: r_indexx(:)
 
-  character(40), allocatable :: name_list(:)
-  character(40) name, name1, slave_name, attrib_name
+character(40), allocatable :: name_list(:)
+character(40) name, name1, slave_name, attrib_name
 
-  logical err
+logical err, slave_not_in_lat
 
 ! setup
 ! in_lat has the lords that are to be added to lat.
 ! we add an extra 1000 places to the arrays to give us some overhead.
 
-  n = lat%n_ele_max + n2 + 1000
+n = lat%n_ele_max + n2 + 1000
 
-  allocate (r_indexx(n))
-  allocate (name_list(n))
-  allocate (cs(1000))
+allocate (r_indexx(n))
+allocate (name_list(n))
+allocate (cs(1000))
 
-  ix1 = lat%n_ele_max
-  name_list(1:ix1) = lat%ele(1:ix1)%name
-  call indexx (name_list(1:ix1), r_indexx(1:ix1)) ! get sorted list
+ix1 = lat%n_ele_max
+name_list(1:ix1) = lat%ele(1:ix1)%name
+call indexx (name_list(1:ix1), r_indexx(1:ix1)) ! get sorted list
 
 ! loop over elements
 
-  main_loop: do n = 1, n2
+main_loop: do n = 1, n2
 
-    lord => in_lat%ele(n)  ! next lord to add
+  lord => in_lat%ele(n)  ! next lord to add
 
-!-----------------------------------------------------
-! overlay and groups
+  !-----------------------------------------------------
+  ! overlay and groups
 
-    select case (lord%control_type)
-    case (overlay_lord$, group_lord$)
+  select case (lord%control_type)
+  case (overlay_lord$, group_lord$)
  
-      call new_control (lat, ix_lord)  ! get index in lat where lord goes
-      lat%ele(ix_lord) = lord
-      ixx = lord%ixx
+    call new_control (lat, ix_lord)  ! get index in lat where lord goes
+    lat%ele(ix_lord) = lord
+    ixx = lord%ixx
 
-! Find where the slave elements are. 
-! If a slave element is not in lat but is in in_lat then the slave has 
-! not been used in the lattice list. In this case do not add the lord to 
-! the lattice.
+    ! Find where the slave elements are. 
+    ! If a slave element is not in lat but is in in_lat then the slave has 
+    ! not been used in the lattice list. In this case do not add the lord to 
+    ! the lattice.
 
-      j = 0 ! number of slaves found
+    j = 0 ! number of slaves found
+    slave_not_in_lat = .false.  ! Is there a slave that is not in the lattice?
 
-      do i = 1, lord%n_slave
+    do i = 1, lord%n_slave
 
-        name = plat%ele(ixx)%name(i)
-        call find_indexx (name, name_list, r_indexx, ix1, k, k2)
-        if (k == 0) then  ! not in lat
-          if (all(in_lat%ele(1:n2)%name /= name)) then ! Not in in_lat.
-            call warning ('CANNOT FIND SLAVE FOR: ' // lord%name, &
-                          'CANNOT FIND: '// name)
-          endif
-          cycle
-        endif
+      name = plat%ele(ixx)%name(i)
+      call find_indexx (name, name_list, r_indexx, ix1, k, k2)
 
-! There might be more than 1 element with %name = name. 
-! Loop over all elements whose name matches name.
-! Put the info into the cs structure.
+      if (k == 0) slave_not_in_lat = .true.
 
-        do 
-          j = j + 1
-          k = r_indexx(k2)
-          cs(j)%coef = plat%ele(ixx)%coef(i)
-          cs(j)%ix_slave = k
-          cs(j)%ix_lord = -1             ! dummy value
-          attrib_name = plat%ele(ixx)%attrib_name(i)
-          if (attrib_name == blank) then
-            cs(j)%ix_attrib = lord%ix_value
-          else
-            ix = attribute_index(lat%ele(k), attrib_name)
-            cs(j)%ix_attrib = ix
-            if (ix < 1) then
-              call warning ('BAD ATTRIBUTE NAME: ' // attrib_name, &
-                            'IN ELEMENT: ' // lord%name)
-            endif
-          endif
-          k2 = k2 + 1
-          if (k2 > ix1) exit
-          k = r_indexx(k2)
-          if (lat%ele(k)%name /= name) exit ! exit loop if no more matches
-        enddo
-
-      enddo
-
-      lord%n_slave = j
-
-! put the element name in the list r_indexx list
-
-      call find_indexx (lord%name, lat%ele(1:ix1)%name, &
-                                             r_indexx(1:ix1), ix1, k, k2)
-      ix1 = ix1 + 1
-      r_indexx(k2+1:ix1) = r_indexx(k2:ix1-1)
-      r_indexx(k2) = ix1
-      name_list(ix1) = lord%name
-
-! create the lord
-
-      ns = lord%n_slave
-
-      select case (lord%control_type)
-      case (overlay_lord$)
-        call create_overlay (lat, ix_lord, lord%attribute_name, cs(1:ns), err, .false.)
-      case (group_lord$)
-        call create_group (lat, ix_lord, cs(1:ns), err, .false.)
-      end select
-      if (err) call warning ('ELEMENT OR GROUP: ' // lord%name, &
-                             'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!')
-
-!-----------------------------------------------------
-! girder
-! Create an girder element for each element whose name matches the
-! first name in the slave list.
-
-    case (girder_lord$) 
-
-      ixx = lord%ixx
-      name1 = plat%ele(ixx)%name(1)
-
-      call find_indexx (name1, name_list, r_indexx, ix1, k_slave, k2)
-      if (k_slave == 0) then
-        call warning ('CANNOT FIND START ELEMENT FOR GIRDER: ' // lord%name, &
+      if ((k == 0 .and. j > 0) .or. (k > 0 .and. slave_not_in_lat) .or. &
+          (k == 0 .and. all(in_lat%ele(1:n2)%name /= name))) then
+        call warning ('CANNOT FIND SLAVE FOR: ' // lord%name, &
                       'CANNOT FIND: '// name)
-        cycle
+        lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
+        cycle main_loop
       endif
 
+      if (k == 0) cycle
+
+      ! There might be more than 1 element with %name = name. 
+      ! Loop over all elements whose name matches name.
+      ! Put the info into the cs structure.
+
+      do 
+        j = j + 1
+        k = r_indexx(k2)
+        cs(j)%coef = plat%ele(ixx)%coef(i)
+        cs(j)%ix_slave = k
+        cs(j)%ix_lord = -1             ! dummy value
+        attrib_name = plat%ele(ixx)%attrib_name(i)
+        if (attrib_name == blank) then
+          cs(j)%ix_attrib = lord%ix_value
+        else
+          ix = attribute_index(lat%ele(k), attrib_name)
+          cs(j)%ix_attrib = ix
+          if (ix < 1) then
+            call warning ('BAD ATTRIBUTE NAME: ' // attrib_name, &
+                          'IN ELEMENT: ' // lord%name)
+          endif
+        endif
+        k2 = k2 + 1
+        if (k2 > ix1) exit
+        k = r_indexx(k2)
+        if (lat%ele(k)%name /= name) exit ! exit loop if no more matches
+      enddo
+
+    enddo
+
+    lord%n_slave = j
+
+    ! If the lord has no slaves then discard it
+
+    if (j == 0) then
+      lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
+      cycle main_loop
+    endif
+
+    ! put the element name in the list r_indexx list
+
+    call find_indexx (lord%name, lat%ele(1:ix1)%name, &
+                                           r_indexx(1:ix1), ix1, k, k2)
+    ix1 = ix1 + 1
+    r_indexx(k2+1:ix1) = r_indexx(k2:ix1-1)
+    r_indexx(k2) = ix1
+    name_list(ix1) = lord%name
+
+    ! create the lord
+
+    ns = lord%n_slave
+
+    select case (lord%control_type)
+    case (overlay_lord$)
+      call create_overlay (lat, ix_lord, lord%attribute_name, cs(1:ns), err, .false.)
+    case (group_lord$)
+      call create_group (lat, ix_lord, cs(1:ns), err, .false.)
+    end select
+    if (err) call warning ('ELEMENT OR GROUP: ' // lord%name, &
+                           'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!')
+
+  !-----------------------------------------------------
+  ! girder
+  ! Create an girder element for each element whose name matches the
+  ! first name in the slave list.
+
+  case (girder_lord$) 
+
+    ixx = lord%ixx
+    name1 = plat%ele(ixx)%name(1)
+
+    call find_indexx (name1, name_list, r_indexx, ix1, k_slave, k2)
+    if (k_slave == 0) then
+      call warning ('CANNOT FIND START ELEMENT FOR GIRDER: ' // lord%name, &
+                    'CANNOT FIND: '// name)
+      cycle
+    endif
+
+    if (k_slave > lat%n_ele_track) then ! must be a super_lord.
+      ix = lat%ele(k)%ix1_slave
+      k_slave = lat%control(ix)%ix_slave
+    endif
+
+    k_slave_original = k_slave
+
+    ! Loop over all matches to the first name.
+
+    do 
+
+      ixs = 0       ! Index of slave element we are looking for
+
+      slave_loop: do            ! loop over all slaves
+        ixs = ixs + 1
+        if (ixs > lord%n_slave) exit
+        slave_name = plat%ele(ixx)%name(ixs)
+
+        do  ! loop over all lattice elements
+          if (lat%ele(k_slave)%control_type == super_slave$) then
+            do ic = lat%ele(k_slave)%ic1_lord, lat%ele(k_slave)%ic2_lord
+              ie = lat%control(ic)%ix_lord
+              if (match_wild(lat%ele(ie)%name, slave_name)) then
+                ix_slave(ixs) = ie
+                cycle slave_loop
+              endif
+            enddo
+          else
+            if (match_wild(lat%ele(k_slave)%name, slave_name)) then
+              ix_slave(ixs) = k_slave
+              cycle slave_loop
+            endif
+          endif
+          k_slave = k_slave + 1  
+          if (k_slave == lat%n_ele_track + 1) k_slave = 1
+          if (k_slave == k_slave_original) then
+            call warning ('CANNOT FIND END ELEMENT FOR GIRDER: ' // &
+                                   lord%name, 'CANNOT FIND: ' // slave_name)
+            cycle main_loop
+          endif
+        enddo 
+      enddo slave_loop
+
+      ! create the girder element
+
+      call new_control (lat, ix_lord)
+      call create_girder (lat, ix_lord, ix_slave(1:lord%n_slave), lord)
+
+      k2 = k2 + 1
+      k_slave = r_indexx(k2)
+      if (lat%ele(k_slave)%name /= name1) exit
       if (k_slave > lat%n_ele_track) then ! must be a super_lord.
-        ix = lat%ele(k)%ix1_slave
+        ix = lat%ele(k_slave)%ix1_slave
         k_slave = lat%control(ix)%ix_slave
       endif
 
-      k_slave_original = k_slave
+    enddo 
 
-! Loop over all matches to the first name.
+  end select
 
-      do 
-
-        ixs = 0       ! Index of slave element we are looking for
-
-        slave_loop: do            ! loop over all slaves
-          ixs = ixs + 1
-          if (ixs > lord%n_slave) exit
-          slave_name = plat%ele(ixx)%name(ixs)
-
-          do  ! loop over all lattice elements
-            if (lat%ele(k_slave)%control_type == super_slave$) then
-              do ic = lat%ele(k_slave)%ic1_lord, lat%ele(k_slave)%ic2_lord
-                ie = lat%control(ic)%ix_lord
-                if (match_wild(lat%ele(ie)%name, slave_name)) then
-                  ix_slave(ixs) = ie
-                  cycle slave_loop
-                endif
-              enddo
-            else
-              if (match_wild(lat%ele(k_slave)%name, slave_name)) then
-                ix_slave(ixs) = k_slave
-                cycle slave_loop
-              endif
-            endif
-            k_slave = k_slave + 1  
-            if (k_slave == lat%n_ele_track + 1) k_slave = 1
-            if (k_slave == k_slave_original) then
-              call warning ('CANNOT FIND END ELEMENT FOR GIRDER: ' // &
-                                     lord%name, 'CANNOT FIND: ' // slave_name)
-              cycle main_loop
-            endif
-          enddo 
-        enddo slave_loop
-
-! create the girder element
-
-        call new_control (lat, ix_lord)
-        call create_girder (lat, ix_lord, ix_slave(1:lord%n_slave), lord)
-
-        k2 = k2 + 1
-        k_slave = r_indexx(k2)
-        if (lat%ele(k_slave)%name /= name1) exit
-        if (k_slave > lat%n_ele_track) then ! must be a super_lord.
-          ix = lat%ele(k_slave)%ix1_slave
-          k_slave = lat%control(ix)%ix_slave
-        endif
-
-      enddo 
-
-    end select
-
-  enddo main_loop
+enddo main_loop
 
 ! cleanup
 
-  deallocate (r_indexx)
-  deallocate (name_list)
-  deallocate (cs)
+deallocate (r_indexx)
+deallocate (name_list)
+deallocate (cs)
 
 end subroutine
 
