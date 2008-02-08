@@ -913,7 +913,7 @@ else
   d1_this%name = d1_data%name    ! stuff in the data
 endif
 
-d2_d1_name = u%d2_data(n_d2)%name // '.' // d1_this%name
+d2_d1_name = trim(u%d2_data(n_d2)%name) // '.' // d1_this%name
 
 ! Check if we are searching for elements or repeating elements
 ! and record the element names in the data structs.

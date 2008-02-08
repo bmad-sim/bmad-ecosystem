@@ -591,7 +591,7 @@ y_top = dy / 2
 
 if (s%global%label_lattice_elements) then
   y_off = s%plot_page%shape_height_max
-  if (s%global%label_keys) y_off = y_off + s%global%label_keys
+  if (s%global%label_keys) y_off = y_off + key_number_height
   if (2*y_off < dy) then
     y_top = y_off
     y_bottom = y_top - dy
