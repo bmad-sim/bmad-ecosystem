@@ -384,7 +384,7 @@ do k = 1, size(graph%curve)
   u => tao_pointer_to_universe (curve%ix_universe)
   if (.not. associated(u)) return
 
-  if (associated(u%common)) then
+  if (tao_com%unified_lattices) then
     call tao_lattice_calc (ok, u%ix_uni, base$)
     call tao_lattice_calc (ok, u%ix_uni, model$)
   endif
@@ -652,10 +652,6 @@ do k = 1, size(graph%curve)
 
       enddo
     enddo
-
-    if (curve%convert) curve%y_symb = curve%y_symb * &
-                           pack(v1_ptr%v%conversion_factor, v1_ptr%v%useit_plot)
-
 
 !----------------------------------------------------------------------------
 ! Case: data_source is from lattice, or beam

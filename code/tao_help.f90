@@ -92,18 +92,18 @@ do
     call string_trim (line(ix+1:), line, ix)
   endif
 
-  call substitute  ("``", '"')
-  call substitute  ("''", '"')
-  call substitute  ("$")
-  call substitute  ("\{", "{")
-  call substitute  ("\}", "}")
-  call substitute  ("\_", "_")
-  call substitute  ("\tao", "Tao")
+  call substitute ("``", '"')
+  call substitute ("''", '"')
+  call substitute ("$")
+  call substitute (" &")
+  call substitute ("\{", "{")
+  call substitute ("\}", "}")
+  call substitute ("\_", "_")
+  call substitute ("\tao", "Tao")
   call eliminate2 ('\item[', ']')
   call eliminate2 ('\vn{', '}', '"', '"')
-  call eliminate3 ('\ref{', '&')
-  call eliminate3 ('& ref{', '\hline')
-  call substitute  ('\\ \hline')
+  call eliminate_inbetween ('\sref{', '}')
+  call substitute ('\\ \hline')
   call substitute ('\W ', '^')
   call substitute ('"\W"', '"^"')
   
@@ -179,7 +179,7 @@ end subroutine
 !
 ! eliminates everything between strings, including the strings
 
-subroutine eliminate3 (str1, str2)
+subroutine eliminate_inbetween (str1, str2)
 
 character(*) str1, str2
 integer n1, n2

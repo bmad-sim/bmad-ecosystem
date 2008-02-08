@@ -93,7 +93,7 @@ tao_com%n_universes = n_universes
 
 if (allocated(s%u)) call deallocate_everything ()
 
-call tao_init_design_lattice (lattice_file) 
+call tao_init_lattice (lattice_file) 
 call tao_init_global(tao_com%init_tao_file)
 call tao_init_data (data_file)
 call tao_init_variables (var_file)
@@ -135,8 +135,10 @@ do i = 1, size(s%var)
       if (.not. allocated(s%var(i2)%this)) cycle
       do j2 = 1, size(s%var(i2)%this)
         if (i == i2 .and. j == j2) cycle
-        if (associated (s%var(i)%this(j)%model_ptr, &
-                          s%var(i2)%this(j2)%model_ptr)) then
+        if (tao_com%unified_lattices .and. &
+                          s%var(i)%this(j)%ix_uni /= s%var(i2)%this(j2)%ix_uni) cycle
+        if (associated (s%var(i)%this(j)%model_value, &
+                          s%var(i2)%this(j2)%model_value)) then
           write (name1, '(2a, i0, a)') trim(s%var(i)%v1%name), '[', s%var(i)%ix_v1, ']'  
           write (name2, '(2a, i0, a)') trim(s%var(i2)%v1%name), '[', s%var(i2)%ix_v1, ']'  
           call out_io (s_error$, r_name, &
@@ -157,9 +159,6 @@ call tao_init_plotting (plot_file)
 ! Set up model and base lattices.
 ! Must first transfer to model lattice for tao_lattice_calc to run.
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%model = s%u(i)%design; s%u(i)%model%orb = s%u(i)%design%orb
-enddo
 tao_com%lattice_recalc = .true.
 call tao_lattice_calc (calc_ok, init_design = .true.) 
 do i = lbound(s%u, 1), ubound(s%u, 1)

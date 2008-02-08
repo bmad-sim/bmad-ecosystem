@@ -1451,29 +1451,29 @@ case ('variable')
       nl=nl+1; write(lines(nl), imt)  'this(:) -- Not associated!'
     else
       do i = 1, size(v_ptr%this)
-        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_uni:      ', &
+        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_uni:        ', &
                                                             v_ptr%this(i)%ix_uni
-        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_ele:      ', v_ptr%this(i)%ix_ele
-        if (associated (v_ptr%this(i)%model_ptr)) then
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_ptr: ', &
-                                                            v_ptr%this(i)%model_ptr
+        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_ele:        ', v_ptr%this(i)%ix_ele
+        if (associated (v_ptr%this(i)%model_value)) then
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_value: ', &
+                                                            v_ptr%this(i)%model_value
         else
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_ptr: <not associated>'
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_value: <not associated>'
         endif
-        if (associated (v_ptr%this(i)%base_ptr)) then
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_ptr:  ', &
-                                                            v_ptr%this(i)%base_ptr
+        if (associated (v_ptr%this(i)%base_value)) then
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_value:  ', &
+                                                            v_ptr%this(i)%base_value
         else
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_ptr:  <not associated>'
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_value:  <not associated>'
         endif
       enddo
     endif
 
-    if (associated (v_ptr%common%model_ptr)) then
-      nl=nl+1; write(lines(nl), imt)  '%common%ix_uni:    ', v_ptr%common%ix_uni
-      nl=nl+1; write(lines(nl), imt)  '%common%ix_ele:    ', v_ptr%common%ix_ele
-      nl=nl+1; write(lines(nl), rmt)  '%common%Model_ptr: ', v_ptr%common%model_ptr
-      nl=nl+1; write(lines(nl), rmt)  '%common%Base_ptr:  ', v_ptr%common%base_ptr
+    if (associated (v_ptr%common%model_value)) then
+      nl=nl+1; write(lines(nl), imt)  '%common%ix_uni:      ', v_ptr%common%ix_uni
+      nl=nl+1; write(lines(nl), imt)  '%common%ix_ele:      ', v_ptr%common%ix_ele
+      nl=nl+1; write(lines(nl), rmt)  '%common%Model_value: ', v_ptr%common%model_value
+      nl=nl+1; write(lines(nl), rmt)  '%common%Base_value:  ', v_ptr%common%base_value
     endif
 
     nl=nl+1; write(lines(nl), rmt)  '%Design_value     = ', v_ptr%design_value

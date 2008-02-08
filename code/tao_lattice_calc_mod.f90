@@ -36,6 +36,7 @@ contains
 !   init_design -- Logical, optional: Set this True to initialize design lattices
 !   ix_uni      -- Integer, optional: If present then calculation is restricted to
 !                   the universe with this index.
+!                   If present, tao_com%lattice_recalc will be ignored.
 !   who         -- Integer, optional: Either: model$, base$, or design$. Default is model$.
 !
 ! Output:
@@ -62,7 +63,7 @@ real(rp) :: delta_e = 0
 character(20) :: r_name = "tao_lattice_calc"
 
 logical initing_design
-logical :: calc_ok
+logical :: calc_ok, recalc
 logical this_calc_ok
 
 !
@@ -74,15 +75,14 @@ initing_design = logic_option (.false., init_design)
 
 ! do a custom lattice calculation if desired
 
-if (tao_com%lattice_recalc) then
-  tao_com%ix0_taylor = -1   ! Reset taylor map
-  call tao_hook_lattice_calc (calc_ok)
-endif
+recalc = tao_com%lattice_recalc .or. present(ix_uni)
+if (.not. recalc) return
+
+tao_com%ix0_taylor = -1   ! Reset taylor map
+call tao_hook_lattice_calc (calc_ok)
     
 ! Closed orbit and Twiss calculation.
 ! This can be slow for large lattices so only do it if the lattice changed.
-
-if (.not. tao_com%lattice_recalc) return
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   if (present(ix_uni)) then

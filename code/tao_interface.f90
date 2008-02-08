@@ -166,10 +166,10 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_init_design_lattice (design_lattice_file, custom_init)
+  subroutine tao_hook_init_lattice (lattice_file, custom_init)
     use tao_input_struct, only: tao_design_lat_input
     implicit none
-    type (tao_design_lat_input)  design_lattice_file(:)
+    type (tao_design_lat_input)  lattice_file(:)
     logical custom_init
   end subroutine
 end interface
@@ -189,7 +189,7 @@ interface
 end interface
  
 interface
-  subroutine tao_init_design_lattice (lat_file)
+  subroutine tao_init_lattice (lat_file)
     implicit none
     character(*) lat_file
   end subroutine

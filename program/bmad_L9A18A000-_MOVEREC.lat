@@ -1,8 +1,5 @@
-NO_DIGESTED
-
 ! BMAD input file
 
- 
 parameter[lattice] =  L9A18A000-_MOVEREC
  
 call, file=bmad_CESR_RECMOVE.layout

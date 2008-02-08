@@ -404,7 +404,7 @@ do i = 1, lat%n_ele_max
 
   shape = ele_shape(ix_shape)%shape
 
-  off = ele_shape(ix_shape)%dy_pix/2
+  off = ele_shape(ix_shape)%dy_pix
   off1 = off
   off2 = off
   if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
@@ -492,14 +492,14 @@ do i = 1, lat%n_ele_max
     if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
       x_center = (end1%x + end2%x) / 2 
       y_center = (end1%y + end2%y) / 2 
-      dx = -2 * off2 * dt_y / sqrt(dt_x**2 + dt_y**2)
-      dy =  2 * off2 * dt_x / sqrt(dt_x**2 + dt_y**2)
+      dx = -2 * dt_y / sqrt(dt_x**2 + dt_y**2)
+      dy =  2 * dt_x / sqrt(dt_x**2 + dt_y**2)
     else
       n = n_bend / 2
       x_center = x_bend(n) 
       y_center = y_bend(n) 
-      dx = -2 * off2 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
-      dy = -2 * off2 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
+      dx = -2 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
+      dy = -2 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
     endif
     theta = modulo2 (atan2d(dy, dx), 90.0_rp)
     if (dx > 0) then
@@ -508,7 +508,7 @@ do i = 1, lat%n_ele_max
       justify = 'RC'
     endif
     height = s%plot_page%text_height * s%plot_page%legend_text_scale
-    call qp_draw_text (name, x_center+dx, y_center+dy, units = 'POINTS', &
+    call qp_draw_text (name, x_center+dx*off2, y_center+dy*off2, units = 'POINTS', &
                                  height = height, justify = justify, ANGLE = theta)    
   endif
 
@@ -561,7 +561,7 @@ type (ele_struct), pointer :: ele
 type (tao_ele_shape_struct), pointer :: ele_shape(:)
 
 real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top
-real(rp) lat_len, height
+real(rp) lat_len, height, dy, key_number_height
 
 integer i, j, ix_shape, k, kk, ix, ix1, ix2, isu
 integer icol, ix_var, ixv
@@ -570,44 +570,61 @@ character(80) str
 character(20) :: r_name = 'tao_plot_lat_layout'
 character(16) shape
 
-! Each graph is a separate lattice layout (presumably for different universes). 
-! setup the placement of the graph on the plot page.
-
-ele_shape => tao_com%ele_shape_lat_layout
-
-call qp_set_layout (x_axis = plot%x, box = graph%box, margin = graph%margin)
-call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
-y_bottom = -y2/2
-y_top = y_bottom + y2
-call qp_set_axis ('Y', y_bottom, y_top, 1, 0)
-height = s%plot_page%text_height * s%plot_page%legend_text_scale
+! Init
 
 isu = tao_universe_number(graph%ix_universe)
 lat => s%u(isu)%model%lat
 lat_len = lat%param%total_length
+key_number_height = 10
   
+! Each graph is a separate lattice layout (presumably for different universes). 
+! Setup the placement of the graph on the plot page.
+! Without labels: Vertically Center the graph.
+! With labels: Shift the graph up to give room for the labels.
+
+call qp_set_layout (x_axis = plot%x, box = graph%box, margin = graph%margin)
+
+call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
+dy = (y2 - y1) 
+y_bottom = -dy / 2
+y_top = dy / 2
+
+if (s%global%label_lattice_elements) then
+  y_off = s%plot_page%shape_height_max
+  if (s%global%label_keys) y_off = y_off + s%global%label_keys
+  if (2*y_off < dy) then
+    y_top = y_off
+    y_bottom = y_top - dy
+  endif
+endif
+
+call qp_set_axis ('Y', y_bottom, y_top, 1, 0)
+
 ! Figure out x axis
 ! If it's not 's' then just draw a vertical line at the proper index
 
-  if (plot%x_axis_type == 's') then
-    ! continue
-  elseif (plot%x_axis_type == 'index') then
-    ! cannot plot layout in this case!
-    graph%valid = .false.
-    return
-  elseif (plot%x_axis_type == 'ele_index') then
-    ! plot vertical line at ele_index
-    ! temporarily turn this off until I get scaling working
-    graph%valid = .false.
-    return
-  else
-    call out_io (s_warn$, r_name, "Unknown x_axis_type")
-    graph%valid = .false.
-    return
-  endif
+if (plot%x_axis_type == 's') then
+  ! continue
+elseif (plot%x_axis_type == 'index') then
+  ! cannot plot layout in this case!
+  graph%valid = .false.
+  return
+elseif (plot%x_axis_type == 'ele_index') then
+  ! plot vertical line at ele_index
+  ! temporarily turn this off until I get scaling working
+  graph%valid = .false.
+  return
+else
+  call out_io (s_warn$, r_name, "Unknown x_axis_type")
+  graph%valid = .false.
+  return
+endif
     
 ! loop over all elements in the lattice. Only draw those element that
 ! are within bounds.
+
+ele_shape => tao_com%ele_shape_lat_layout
+height = s%plot_page%text_height * s%plot_page%legend_text_scale
 
 do i = 1, lat%n_ele_max
 
@@ -671,7 +688,7 @@ do i = 1, lat%n_ele_max
 
   ! r1 and r2 are the scale factors for the lines below and above the center line.
 
-  y = ele_shape(ix_shape)%dy_pix/2
+  y = ele_shape(ix_shape)%dy_pix
   y1 = -y
   y2 =  y
   if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
@@ -709,7 +726,7 @@ do i = 1, lat%n_ele_max
     s_pos = ele%s - ele%value(l$)/2
     if (s_pos > plot%x%max .and. s_pos-lat_len > plot%x%min) s_pos = s_pos - lat_len
     call qp_draw_text (ele%name, s_pos, y_off, &
-                                 height = height, justify = 'CC', ANGLE = 90.0_rp)
+                                 height = height, justify = 'LC', ANGLE = 90.0_rp)
   endif
 
   call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
@@ -734,12 +751,12 @@ if (s%global%label_keys) then
           s_pos = lat%ele(ix1)%s - lat%ele(ix1)%value(l$)/2
           if (s_pos > plot%x%max .and. s_pos-lat_len > plot%x%min) s_pos = s_pos - lat_len
           call qp_draw_text (trim(str), s_pos, y_top, &
-                              justify = 'CT', height = 10.0_rp)  
+                              justify = 'CT', height = key_number_height)  
         enddo
       else
         s_pos = lat%ele(ix)%s - lat%ele(ix)%value(l$)/2
         call qp_draw_text (trim(str), s_pos, y_top, &
-                                justify = 'CT', height = 10.0_rp)  
+                                justify = 'CT', height = key_number_height)  
       endif
     enddo
   enddo

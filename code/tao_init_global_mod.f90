@@ -351,6 +351,7 @@ type (tao_connected_uni_input) connect
 integer this_uni_index
 
 character(40) class, ele_name
+character(40) :: r_name = 'init_connected_uni'
 
 integer j, ix
 
@@ -362,7 +363,7 @@ endif
 
 if (connect%from_universe .ge. this_uni_index) then
   call out_io (s_abort$, r_name, &
-        "A universe can only inject into a universe with a greater universe index")
+        "A UNIVERSE CAN ONLY INJECT INTO A UNIVERSE WITH A GREATER UNIVERSE INDEX!")
   call err_exit
 endif
   
@@ -380,8 +381,8 @@ call string_trim (connect%at_element, ele_name, ix)
 if (ix /= 0) then
   if (connect%at_s /= -1 .or. connect%at_ele_index /= -1) then
     call out_io (s_error$, r_name, &
-        "INIT UNIVERSE CONNECTIONS: CANNOT SPECIFY AN ELEMENT, IT'S INDEX OR POSITION AT SAME TIME!", &
-        "Will use element name.")
+        "CANNOT SPECIFY AN ELEMENT, IT'S INDEX OR POSITION AT SAME TIME!", &
+        "WILL USE ELEMENT NAME.")
   endif
   if (ele_name == "end") then
     u%connect%from_uni_s  = from_uni%design%lat%ele(from_uni%design%lat%n_ele_track)%s
@@ -407,7 +408,7 @@ elseif (connect%at_ele_index /= -1) then
   if (connect%at_s /= -1) then
     call out_io (s_error$, r_name, &
         "INIT UNIVERSE CONNECTION: CANNOT SPECIFY AN ELEMENT, IT'S INDEX OR POSITION AT SAME TIME!", &
-        "Will use element index.")
+        "WILL USE ELEMENT INDEX.")
   endif
     u%connect%from_uni_s = from_uni%design%lat%ele(connect%at_ele_index)%s
     u%connect%from_uni_ix_ele = connect%at_ele_index
@@ -599,7 +600,6 @@ type (tao_universe_struct), pointer :: u
 type (tao_d2_data_input) d2_data
 type (tao_d1_data_input) d1_data
 type (tao_data_input) data(n_data_minn:n_data_maxx) ! individual weight 
-type (tao_d1_data_struct), pointer :: d1_ptr
 
 real(rp) default_weight        ! default merit function weight
 real(rp) default_step          ! default "small" step size
@@ -890,11 +890,14 @@ end subroutine
 subroutine d1_data_stuffit (i_d1, u, n_d2)
 
 type (tao_universe_struct), target :: u
+type (tao_d1_data_struct), pointer :: d1_this
+type (tao_d1_data_struct), pointer :: d1_ptr
+
 integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 
 integer i_d1, num_hashes
 
-character(40) search_string, d2_d1_name
+character(40) d2_d1_name
 character(20) fmt
 
 integer, allocatable, save :: ix_eles(:)
@@ -902,14 +905,15 @@ logical emit_here
 
 !
 
-u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)  ! point back to the parent
+d1_this => u%d2_data(n_d2)%d1(i_d1)  ! point the child back to the mother     
+d1_this%d2 => u%d2_data(n_d2)        ! point back to the parent
 if (d1_data%name == '') then
-  write (u%d2_data(n_d2)%d1(i_d1)%name, '(i0)') i_d1
+  write (d1_this%name, '(i0)') i_d1
 else
-  u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name    ! stuff in the data
+  d1_this%name = d1_data%name    ! stuff in the data
 endif
 
-d2_d1_name = u%d2_data(n_d2)%name // '.' // u%d2_data(n_d2)%d1(i_d1)%name
+d2_d1_name = u%d2_data(n_d2)%name // '.' // d1_this%name
 
 ! Check if we are searching for elements or repeating elements
 ! and record the element names in the data structs.
@@ -918,8 +922,8 @@ if (search_for_lat_eles /= '') then
   call tao_find_elements (u, search_for_lat_eles, ix_eles)
   if (size(ix_eles) == 0) then
     call out_io (s_warn$, r_name, &
-      'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_string, &
-      'WHILE SETTING UP DATA ARRAY: ' // d1_data%name)
+      'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
+      'WHILE SETTING UP DATA ARRAY: ' // d2_d1_name)
     return
   endif
   ! finish finding data array limits
@@ -1084,13 +1088,13 @@ endif
 ! now for some family guidance...
 ! point the children to the grandchildren in the big data array
 
-call tao_point_d1_to_data (u%d2_data(n_d2)%d1(i_d1)%d, &
+call tao_point_d1_to_data (d1_this%d, &
                                       u%data(n1:n2), ix_min_data, n1)
 
 ! point the %data back to the d1_data_struct
 
 do j = n1, n2
-  u%data(j)%d1 => u%d2_data(n_d2)%d1(i_d1)
+  u%data(j)%d1 => d1_this
   if (u%data(j)%weight == 0) u%data(j)%weight = default_weight
   if (u%data(j)%merit_type == '') u%data(j)%merit_type = default_merit_type
   if (u%data(j)%data_source == '') u%data(j)%data_source = default_data_source
@@ -1099,10 +1103,6 @@ do j = n1, n2
   if (ix /= 0) u%data(j)%data_type = u%data(j)%data_type(1:ix-1) // &
                                          'emit.' // u%data(j)%data_type(ix+10:)
 enddo
-
-! point the children back to the mother    
-
-u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)
 
 ! do we need to do the radiation integrals?
 
@@ -1402,6 +1402,11 @@ do
 
   if (default_universe == '*' .or. default_universe == '') then
     dflt_good_unis = .true.
+    if (tao_com%unified_lattices .and. gang) then
+      dflt_good_unis = .false.
+      dflt_good_unis(tao_com%u_common) = .true.
+    endif
+
   else
     call location_decode (default_universe, dflt_good_unis, 1, num)
     if (num == 0) dflt_good_unis = .true.  ! blank => all
@@ -1465,6 +1470,24 @@ enddo
 close (iu)
 deallocate (dflt_good_unis, good_unis)
 deallocate (default_key_b, default_key_d)
+
+! With unified lattices: model_value and base_value get their own storage
+! instead of pointing to var%this(1). 
+! Exception: If variable controls a common parameter
+
+if (tao_com%unified_lattices) then
+  do i = 1, size(s%var)
+    if (.not. s%var(i)%exists) cycle
+    if (s%var(i)%this(1)%ix_uni == tao_com%u_common) then
+      s%var(i)%model_value => s%var(i)%common%model_value
+      s%var(i)%base_value => s%var(i)%common%base_value
+    else
+      allocate (s%var(i)%model_value, s%var(i)%base_value)
+      s%var(i)%model_value = s%var(i)%this(1)%model_value
+      s%var(i)%base_value = s%var(i)%this(1)%base_value
+    endif
+  enddo
+endif
 
 return
 
@@ -1612,13 +1635,15 @@ if (search_for_lat_eles /= '') then
     kk_loop: do kk = 1, size(ix_eles)
       ix_ele = ix_eles(kk)
       ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
+      ! If the name matches an existing variable then use that variable
       do j = n1, n2
         if (s%var(j)%ele_name == ele_name) then
           call tao_pointer_to_var_in_lattice (s%var(j), iu, err, .true., ix_ele)
           cycle kk_loop
         endif
       enddo
-      ! Here is no match
+      ! Here if there is no match...
+      ! create a new variable and stuff the info into it.
       n2 = n2 + 1
       var_ptr => s%var(n2)
       var_ptr%exists = .true.
@@ -1772,6 +1797,7 @@ end subroutine
 
 !-----------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------
 ! This searches the lattice for the specified element and flags ix_eles(:)
 
 subroutine tao_find_elements (u, search_string, ix_eles)
@@ -1833,5 +1859,90 @@ enddo
 call re_allocate (ix_eles, n_ele)
 
 end subroutine tao_find_elements
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, err_print, ix_ele)
+! 
+! Routine to set a pointer to the appropriate variable in a lattice
+!
+! Input:
+!   var       -- Tao_var_struct: Structure has the info of where to point.
+!   ix_uni    -- Integer: the universe to use
+!   err_pirnt -- Logical: Print message on error?
+!   ix_ele    -- Integer: Index of element.
+!
+! Output:
+!   var%this(ix_this) -- Tao_this_var_struct: 
+!     %model_ptr
+!     %base_ptr
+!     %ix_ele
+!     %ix_uni
+!   err       -- Logical: Set True if there is an error. False otherwise.
+!-
+
+subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, err_print, ix_ele)
+
+implicit none
+
+type (tao_var_struct), target :: var
+type (tao_universe_struct), pointer :: u
+type (tao_this_var_struct), pointer :: this
+type (tao_this_var_struct), automatic :: this_saved(size(var%this))
+
+integer :: ix_ele
+integer ix, ix_uni, ix_this
+logical :: err, err_print
+character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
+
+! locate element
+
+err = .true.
+
+u => s%u(ix_uni)
+if (tao_com%unified_lattices) u => s%u(tao_com%u_working)
+
+! allocate space for var%this.
+
+ix_this = size(var%this) + 1
+this_saved = var%this
+deallocate (var%this)  
+allocate (var%this(ix_this))
+var%this(1:ix_this-1) = this_saved
+this => var%this(ix_this)
+
+! locate attribute
+
+call pointer_to_attribute (u%model%lat%ele(ix_ele), var%attrib_name, .true., &
+                          this%model_value, err, err_print, ix_attrib = var%ix_attrib)
+if (err) then
+  var%model_value => var%old_value
+  var%base_value  => var%old_value
+  var%exists = .false.
+  var%key_bound = .false.
+  return
+endif
+
+call pointer_to_attribute (u%base%lat%ele(ix_ele),  var%attrib_name, .true., &
+                                                      this%base_value,  err, err_print)
+
+var%model_value => var%this(1)%model_value
+var%base_value  => var%this(1)%base_value
+
+this%ix_ele = ix_ele
+this%ix_uni = ix_uni
+
+! Common pointer
+
+if (associated(u%common)) then
+  call pointer_to_attribute (u%common%model%lat%ele(ix_ele),  var%attrib_name, .true., &
+                                                      var%common%model_value,  err, err_print)
+  call pointer_to_attribute (u%common%base%lat%ele(ix_ele),  var%attrib_name, .true., &
+                                                      var%common%base_value,  err, err_print)
+endif
+
+end subroutine tao_pointer_to_var_in_lattice
 
 end module

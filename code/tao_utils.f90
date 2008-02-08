@@ -260,90 +260,6 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, err_print, ix_ele)
-! 
-! Routine to set a pointer to the appropriate variable in a lattice
-!
-! Input:
-!   var       -- Tao_var_struct: Structure has the info of where to point.
-!   ix_uni    -- Integer: the universe to use
-!   err_pirnt -- Logical: Print message on error?
-!   ix_ele    -- Integer: Index of element.
-!
-! Output:
-!   var%this(ix_this) -- Tao_this_var_struct: 
-!     %model_ptr
-!     %base_ptr
-!     %ix_ele
-!     %ix_uni
-!   err       -- Logical: Set True if there is an error. False otherwise.
-!-
-
-subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, err_print, ix_ele)
-
-implicit none
-
-type (tao_var_struct), target :: var
-type (tao_universe_struct), pointer :: u
-type (tao_this_var_struct), pointer :: this
-type (tao_this_var_struct), automatic :: this_saved(size(var%this))
-
-integer :: ix_ele
-integer ix, ix_uni, ix_this
-logical :: err, err_print
-character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
-
-! locate element
-
-err = .true.
-
-u => s%u(ix_uni)
-
-! allocate space for var%this.
-
-ix_this = size(var%this) + 1
-this_saved = var%this
-deallocate (var%this)  
-allocate (var%this(ix_this))
-var%this(1:ix_this-1) = this_saved
-this => var%this(ix_this)
-
-! locate attribute
-
-call pointer_to_attribute (u%model%lat%ele(ix_ele), var%attrib_name, .true., &
-                          this%model_ptr, err, err_print, ix_attrib = var%ix_attrib)
-if (err) then
-  var%model_value => var%old_value
-  var%base_value  => var%old_value
-  var%exists = .false.
-  var%key_bound = .false.
-  return
-endif
-
-call pointer_to_attribute (u%base%lat%ele(ix_ele),  var%attrib_name, .true., &
-                                                      this%base_ptr,  err, err_print)
-
-var%model_value => var%this(1)%model_ptr
-var%base_value  => var%this(1)%base_ptr
-
-this%ix_ele = ix_ele
-this%ix_uni = ix_uni
-
-! Common pointer
-
-if (associated(u%common)) then
-  call pointer_to_attribute (u%common%model%lat%ele(ix_ele),  var%attrib_name, .true., &
-                                                      var%common%model_ptr,  err, err_print)
-  call pointer_to_attribute (u%common%base%lat%ele(ix_ele),  var%attrib_name, .true., &
-                                                      var%common%base_ptr,  err, err_print)
-endif
-
-end subroutine tao_pointer_to_var_in_lattice
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
 ! Subroutine tao_find_plot_region (err, where, region, print_flag)
 !
 ! Routine to find a region using the region name.
@@ -1658,8 +1574,8 @@ endif
 var%model_value = value
 do i = 1, size(var%this)
   t => var%this(i)
-  t%model_ptr = value
-  call changed_attribute_bookkeeper (s%u(t%ix_uni)%model%lat, t%ix_ele, t%model_ptr)
+  t%model_value = value
+  call changed_attribute_bookkeeper (s%u(t%ix_uni)%model%lat, t%ix_ele, t%model_value)
 enddo
 
 tao_com%lattice_recalc = .true.
@@ -1736,8 +1652,8 @@ if (associated(u%common)) then
 
   do i = 1, size(s%var)
     do j = 1, size(s%var(i)%this)
-      s%var(i)%this(j)%model_ptr = s%var(i)%common%model_ptr
-      s%var(i)%this(j)%base_ptr  = s%var(i)%common%base_ptr
+      s%var(i)%this(j)%model_value = s%var(i)%common%model_value
+      s%var(i)%this(j)%base_value  = s%var(i)%common%base_value
     enddo
   enddo
 
@@ -1746,8 +1662,8 @@ if (associated(u%common)) then
   do i = 1, size(s%var)
     do j = 1, size(s%var(i)%this)
       if (s%var(i)%this(j)%ix_uni /= u%ix_uni) cycle
-      s%var(i)%this(j)%model_ptr = s%var(i)%model_value
-      s%var(i)%this(j)%base_ptr = s%var(i)%base_value
+      s%var(i)%this(j)%model_value = s%var(i)%model_value
+      s%var(i)%this(j)%base_value = s%var(i)%base_value
     enddo
   enddo
 
@@ -3030,7 +2946,7 @@ end subroutine
 !                 there is a problem. Default is True.
 !
 ! Output:
-!   loc(0:) -- Integer, allocatable: indexes of elements whose
+!   loc(:)  -- Integer, allocatable: indexes of elements whose
 !                lat%ele(i)%name corresponds to name. 
 !                loc will be allocated  as needed.
 !                If there is an error size(loc) = 0.

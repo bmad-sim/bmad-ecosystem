@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_init_design_lattice (tao_design_lattice_file)
+! Subroutine tao_init_lattice (tao_design_lattice_file)
 !
 ! Subroutine to initialize the design lattices.
 !
@@ -11,7 +11,7 @@
 !    %u(:)%design -- Initialized design lattices.
 !-
 
-subroutine tao_init_design_lattice (tao_design_lattice_file)
+subroutine tao_init_lattice (tao_design_lattice_file)
 
 use tao_mod
 use tao_input_struct
@@ -25,7 +25,7 @@ type (tao_universe_struct), pointer :: u
 character(*) tao_design_lattice_file
 character(200) complete_file_name, file_name
 character(40) unique_name_suffix, suffix
-character(40) :: r_name = 'tao_init_design_lattice'
+character(20) :: r_name = 'tao_init_lattice'
 
 integer i, j, iu, ios, version, taylor_order, ix, key, n_universes
 
@@ -74,7 +74,9 @@ tao_com%unified_lattices = unified_lattices
 tao_com%n_universes = n_universes
 
 if (tao_com%unified_lattices) then
-  allocate (s%u(tao_com%n_universes+1))
+  allocate (s%u(n_universes))
+  tao_com%u_common = 1
+  tao_com%u_working = 2
 else
   allocate (s%u(n_universes))
 endif
@@ -82,7 +84,7 @@ endif
 ! Are we using a custom initialization?
 
 custom_init = .false.
-call tao_hook_init_design_lattice (design_lattice, custom_init)
+call tao_hook_init_lattice (design_lattice, custom_init)
 if (custom_init) then
   close (iu)
   return
@@ -112,19 +114,20 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! If unified then point back to the common lattice (universe #1) and the working lattice (#2)
 
   if (tao_com%unified_lattices) then
-    if (i == 1) then
+    if (i == tao_com%u_common) then
       u%common_uni = .true.
     else
-      u%common => s%u(1)
-      if (i == 2) then   ! Working lattices
+      u%common => s%u(tao_com%u_common)
+      u%ele => s%u(tao_com%u_common)%ele
+      if (i == tao_com%u_working) then   ! Working lattices
         allocate (u%design, u%base, u%model)
         u%design%lat = u%common%design%lat
         u%base%lat   = u%common%base%lat
         u%model%lat  = u%common%model%lat
       else
-        u%design => s%u(2)%design
-        u%model  => s%u(2)%model
-        u%base   => s%u(2)%base
+        u%design => s%u(tao_com%u_working)%design
+        u%model  => s%u(tao_com%u_working)%model
+        u%base   => s%u(tao_com%u_working)%base
       endif
       cycle
     endif
@@ -199,12 +202,14 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call set_on_off (rfcavity$, u%design%lat, off$)
   endif
 
-  ! Init beam save
+  ! Init model, base, and u%ele
 
+  u%model = u%design; u%model%orb = u%design%orb
+  u%base  = u%design; u%base%orb  = u%design%orb
   allocate (u%ele(0:u%design%lat%n_ele_max))
 
 enddo
 
 close (iu)
 
-end subroutine tao_init_design_lattice
+end subroutine tao_init_lattice

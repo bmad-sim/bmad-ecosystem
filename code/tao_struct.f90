@@ -325,8 +325,8 @@ end type
 type tao_this_var_struct
   integer ix_uni            ! universe index.
   integer ix_ele            ! Index of element in the u%lattice%ele(:) array.
-  real(rp), pointer :: model_ptr => null() ! Pointer to the model value.
-  real(rp), pointer :: base_ptr => null()  ! Pointer to the base value.
+  real(rp), pointer :: model_value => null() ! Pointer to the variable in the model lat.
+  real(rp), pointer :: base_value => null()  ! Pointer to the variable in the base lat.
 end type  
 
 type tao_var_struct
@@ -352,7 +352,6 @@ type tao_var_struct
   real(rp) delta_merit      ! Diff used to calculate the merit function term.
   real(rp) merit            ! merit_term = weight * delta^2.
   real(rp) dMerit_dVar      ! Merit derivative.     
-  real(rp) conversion_factor! Not currently used for anything
   real(rp) key_val0         ! Key base value
   real(rp) key_delta        ! Change in value when a key is pressed.
   real(rp) s                ! longitudinal position of ele.
@@ -474,6 +473,8 @@ type tao_common_struct
   integer :: ix_key_bank = 0             ! For single mode.
   integer :: n_data_max
   integer :: n_var_max
+  integer :: u_common           ! Index of common universe.
+  integer :: u_working          ! Index of working universe.
   integer n_universes
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   logical :: use_cmd_here  = .false.     ! Used for the cmd history stack
