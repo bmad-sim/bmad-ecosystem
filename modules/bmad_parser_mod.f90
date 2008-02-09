@@ -1587,8 +1587,7 @@ subroutine word_to_value (word, lat, value)
 
   ix1 = index(word, '[')
   if (ix1 == 0) then   
-    call find_indexx (word, bp_com%var_name, &
-                                    bp_com%var_indexx, bp_com%ivar_tot, i)
+    call find_indexx (word, bp_com%var_name, bp_com%var_indexx, bp_com%ivar_tot, i)
     if (i == 0) then
       call warning ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
       value = 0
@@ -1640,8 +1639,7 @@ subroutine parser_add_variable (word, lat)
 
 !
 
-  call find_indexx (word, bp_com%var_name, &
-                                    bp_com%var_indexx, bp_com%ivar_tot, i)
+  call find_indexx (word, bp_com%var_name, bp_com%var_indexx, bp_com%ivar_tot, i)
   if (i /= 0) then
     call warning ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word)
     call evaluate_value (word, bp_com%var_value(i), lat, &
@@ -2836,98 +2834,6 @@ subroutine compute_super_lord_s (lat, i_ref, ele, pele)
       ele%s = ele%s + lat%param%total_length
     endif
   endif
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
-!
-! Subroutine to find a matching name in a list of names
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!
-! Input:
-!   name         -- Character(40): Name to match to.
-!   names(:)     -- Character(40): Array of names.
-!   an_indexx(:) -- Integer: Sorted index for names(:) array.
-!                     names(an_indexx(i)) is in alphabetical order.
-!   n_max        -- Integer: Use only names(1:n_max) part of array.
-!
-! Output:
-!   ix_match  -- Integer: If a match is found then:
-!                             names(ix_match) = name
-!                  If no match is found then ix_match = 0.
-!   ix2_match -- Integer, optional: 
-!                  If a match is found then
-!                              an_indexx(ix2_match) = ix_match
-!                              names(an_indexx(ix2_match-1)) /= name
-!                  If no match is found then 
-!                    for j = an_indexx(ix2_match):
-!                              names(j) > name
-!                    and if ix2_match > 1 then for j = an_indexx(ix2_match-1):
-!                              names(j) < name
-!-
-
-subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
-
-  implicit none
-
-  integer ix1, ix2, ix3, n_max, ix_match
-  integer, optional :: ix2_match
-  integer an_indexx(:)
-
-  character(40) name, names(:)
-  character(40) this_name
-
-! simple case
-
-  if (n_max == 0) then
-    ix_match = 0
-    if (present(ix2_match)) ix2_match = 1
-    return
-  endif
-
-!
-
-  ix1 = 1
-  ix3 = n_max
-
-  do
-
-    ix2 = (ix1 + ix3) / 2 
-    this_name = names(an_indexx(ix2))
-
-    if (this_name == name) then
-      do ! if there are duplicate names in the list choose the first one
-        if (ix2 == 1) exit
-        if (names(an_indexx(ix2-1)) /= this_name) exit
-        ix2 = ix2 - 1
-      enddo
-      ix_match = an_indexx(ix2)
-      if (present(ix2_match)) ix2_match = ix2
-      return
-    elseif (this_name < name) then
-      ix1 = ix2 + 1
-    else
-      ix3 = ix2 - 1
-    endif
-                       
-    if (ix1 > ix3) then
-      ix_match = 0
-      if (present(ix2_match)) then
-        if (this_name < name) then
-          ix2_match = ix2 + 1
-        else
-          ix2_match = ix2
-        endif
-      endif
-      return
-    endif
-
-  enddo
 
 end subroutine
 
