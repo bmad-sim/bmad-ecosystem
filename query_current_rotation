@@ -57,10 +57,10 @@ time_release = [int(release[5:9]),int(release[10:12]),int(release[12:14]),0,0,0,
 
 time_diff = time.mktime(timehere) - time.mktime(time_release)
 if (CURRENT_ROTATE_MONTHS < (time_diff/(60*60*24*30)) ):
-    print "The release is _OK_ to promote to current."
+    print "It is _OK_ to promote to current."
     sys.exit(0)
 else:
-    print "The release should _NOT_ be promoted to current."
+    print "It is _NOT_ time to rotate current."
     sys.exit(99)
 
 
