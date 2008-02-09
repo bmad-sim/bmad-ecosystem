@@ -161,7 +161,6 @@ these initialization namelists and their locations are listed in table
 \index{tao_template_graph}
 \index{element_shapes_lat_layout}
 \index{element_shapes_floor_plan}
-\index{key_bindings}
 \begin{table}[ht]
 \centering {\tt
 \begin{tabular}{|l|l|l|l|} \hline
@@ -181,7 +180,6 @@ these initialization namelists and their locations are listed in table
                               & \vn{plot_file}    & Plotting         & \sref{s:ele.shape}     \\ \hline
   \vn{element_shapes_floor_plan}         
                               & \vn{plot_file}    & Plotting         & \sref{s:ele.shape}     \\ \hline
-  \vn{key_bindings}           & \vn{single_mode_file} & Single Mode  & \sref{s:init.key.bind} \\ \hline
 \end{tabular}}
 \caption{Table of \vn{tao} Initialization Namelists}
 \label{t:init.files}
@@ -276,13 +274,9 @@ an XSIF lattice file as shown in the following example:
 
 Global variables are initialized in the \vn{data_and_var_file} using a
 namelist block named \vn{tao_params} The syntax of this block is:
-\index{tao_params}
-\index{n_data_max}\index{n_var_max}\index{global}\index{bmad_com}
-\index{csr_param}
+\index{tao_params}\index{global}\index{bmad_com}\index{csr_param}
 \begin{example}
   &tao_params
-    n_data_max    = <integer>   ! Total number of data points
-    n_var_max     = <integer>   ! Total number of variables.
     global        = <tao_global_struct>     ! global parameters
     bmad_com      = <bmad_com_struct>       ! Bmad global parameters
     csr_param     = <csr_parameter_struct>  ! CSR global parameters
@@ -291,13 +285,9 @@ namelist block named \vn{tao_params} The syntax of this block is:
 Example:
 \begin{example}
   &tao_params
-    n_data_max    = 2000
-    n_var_max     = 2000
     global%optimizer = "lm"  ! Set the default optimizer.
   /
 \end{example}
-\vn{n_data_max} is the maximum number of datums needed and
-\vn{n_var_max} is the maximum total number variables used.
 
 The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{y_axis_plot_dmin}\index{u_view}\index{n_opti_cycles}\index{ix_key_bank}
@@ -650,8 +640,6 @@ The default is single particle tracking. To turn on particle tracking the
 the \vn{tao_params} namelist above, for example,
 \begin{example}
   &tao_params
-    n_data_max    = 2000
-    n_var_max     = 2000
     global%optimizer = "lm"  ! Set the default optimizer.
     global%track_type = 'beam'
   /
@@ -717,8 +705,6 @@ tracking the \vn{global%track_type} perameter must be set to 'macro.'
 This can be placed in the \vn{tao_params} namelist above, for example,
 \begin{example}
   &tao_params
-    n_data_max    = 2000
-    n_var_max     = 2000
     global%optimizer = "lm"  ! Set the default optimizer.
     global%track_type = 'macro'
   /
@@ -812,9 +798,9 @@ undefined or set to a name with only spaces in it. For those variables
 where \vn{var(i)%attribute} is not specified in the namelist the
 \vn{default_attribute} will be used.
 
-\vn{var(i)%key_bound} and \vn{var(i)%key_delta} are used to bind variables
-to keys on the keyboard. Keys can also be bound using a \vn{key_bindings} namelist.
-See~ \sref{s:init.key.bind} and \sref{s:key.bind} for more details.
+\vn{var(i)%key_bound} and \vn{var(i)%key_delta} are used to bind
+variables to keys on the keyboard. See~\sref{s:key.bind} for more
+details.
 
 \vn{var(i)%step} establishes what a ``small'' variation of the
 variable is. This is used, for example, by some optimizers when
@@ -1147,50 +1133,6 @@ Chapter~\ref{c:prog.customizing} for details.
 \vn{data(:)%weight} gives the weight coefficient for a variable in the
 merit function. If not present then the default weight of
 \vni{default_weight} is used. 
-
-%-----------------------------------------------------------------
-\section{Initializing Key Bindings}\index{Key Bindings}
-\label{s:init.key.bind} 
-
-For \vn{Single Mode} (\sref{c:single} the bindings of variables to
-keys are defined in one of two ways.  Keys can be bound directly within
-the \vn{v1_var} namelist used to set up a variable list (\sref{s:init.var})
-or keys can be bound using a \vn{key_bindings} namelist. The syntax is:
-\begin{example}
-  &key_bindings
-    key(i) = <ele_name> <attrib_name> <delta> <universe> 
-          <step> <low_lim> <high_lim> <weight> <good_opt> <merit_type>
-  /
-\end{example}
-For example:
-\begin{example}
-  &key_bindings
-  key(1) = "Q1"   "K1"    0.01 "U:*" 1e-5  -10  10  10  T
-  key(2) = "DRFT" "L"     0.1  "U:1" 1e-3    0   3   1  F
-  key(3) = "Q3"   "TILT"  0.01 "U:2" 1e-5   -1   1   3  T "target"
-  /  
-\end{example}
-For the \vn{i}\Th key \vn{<ele_name>} is the name of a lattice element
-in universe \vn{<universe>} and \vn{<attrib_name>} is the attribute to
-be varied. If \vn{<universe>} is \vn{"*"} then the key will vary elements
-in all universes. \vn{<delta>} is the change in value when the
-appropriate key is depressed. \vn{<step>} establishes what the variation
-of the variable is when the associated key is depressed. 
-
-\vn{merit_type} sets how the contribution to the merit function due to
-the variable is calculated. See \sref{s:init.var} for more
-details. the \vn{global%default_key_merit_type} sets the default
-\vn{merit_type}.
-
-If \vn{merit_type} is \vn{"limit"} then \vn{<low_lim>} and
-\vn{<high_lim>} establish limits and if the value of the variable goes
-outside these limits then the contribution to the merit function is
-given by
-\index{merit function}
-\begin{example}
-  merit = <weight> * (var_value - <high_lim>)^2  ! For var_value > <high_lim>
-  merit = <weight> * (<low_lim> - var_value)^2   ! For <low_lim> > var_value
-\end{example}
 
 %-----------------------------------------------------------------
 \section{Initializing Plotting}\index{Plotting Initializing}

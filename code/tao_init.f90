@@ -29,7 +29,7 @@ real(rp), pointer :: ptr_attrib
 
 character(80) arg, arg2, startup_file
 character(100) lattice_file, plot_file, data_file, var_file, file_name
-character(100) single_mode_file, wall_file
+character(100) wall_file
 character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
@@ -41,8 +41,7 @@ logical err, calc_ok
 logical, optional :: err_flag
 
 namelist / tao_start / lattice_file, startup_file, wall_file, &
-               data_file, var_file, plot_file, single_mode_file, &
-               n_universes, init_name
+               data_file, var_file, plot_file, n_universes, init_name
 
 ! Put all informational messages in the tao_init.log file.
 ! Only print error messages. Not standard ones.
@@ -71,7 +70,6 @@ lattice_file       = tao_com%init_tao_file      ! set default
 plot_file          = tao_com%init_tao_file      ! set default
 data_file          = tao_com%init_tao_file      ! set default
 var_file           = tao_com%init_tao_file      ! set default
-single_mode_file   = tao_com%init_tao_file      ! set default
 wall_file          = tao_com%init_tao_file      ! set default
 n_universes        = 1              ! set default
 init_name          = "Tao"          ! set default
@@ -97,7 +95,6 @@ call tao_init_lattice (lattice_file)
 call tao_init_global(tao_com%init_tao_file)
 call tao_init_data (data_file)
 call tao_init_variables (var_file)
-call tao_init_single_mode (single_mode_file)
 call tao_init_wall (wall_file)
 
 call tao_hook_init (tao_com%init_tao_file)

@@ -74,8 +74,6 @@ endif
 global = default_global         ! establish defaults
 global%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
 global%default_key_merit_type = 'limit'
-n_var_max = 0
-n_data_max = 0
 
 call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
 read (iu, nml = tao_params, iostat = ios)
@@ -104,9 +102,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   n_max = max(n_max, s%u(i)%design%lat%n_ele_max)
 enddo
 
-tao_com%n_data_max = n_data_max
-tao_com%n_var_max = n_var_max
-
 !-----------------------------------------------------------------------
 ! Seed random number generator
 
@@ -131,18 +126,6 @@ case default
   call out_io (s_error$, r_name, &
         'BAD GLOBAL%RANDOM_GAUSS_CONVERTER SWITCH: ' // s%global%random_gauss_converter)
 end select
-
-!-----------------------------------------------------------------------
-! allocate lattice coord_structs and equate model and base to design
-
-call init_orbits ()
-  
-! set model/base = design
-
-do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%model%lat = s%u(i)%design%lat
-  s%u(i)%base%lat  = s%u(i)%design%lat
-enddo
 
 !-----------------------------------------------------------------------
 ! Init connected universes
@@ -306,38 +289,7 @@ endif
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 contains
-
-subroutine init_orbits ()
-
-implicit none
-
-integer i
-
-do i = lbound(s%u, 1), ubound(s%u, 1)
-
-  n = s%u(i)%design%lat%n_ele_max
-  if (allocated(s%u(i)%model%orb)) then
-    deallocate (s%u(i)%model%orb, s%u(i)%model%bunch_params)
-    deallocate (s%u(i)%design%orb, s%u(i)%design%bunch_params)
-    deallocate (s%u(i)%base%orb, s%u(i)%base%bunch_params)
-  endif
-  allocate (s%u(i)%model%orb(0:n), s%u(i)%model%bunch_params(0:n))
-  allocate (s%u(i)%design%orb(0:n), s%u(i)%design%bunch_params(0:n))
-  allocate (s%u(i)%base%orb(0:n), s%u(i)%base%bunch_params(0:n))
-  ! Specify initial conditions
-  s%u(i)%design%orb(0)%vec = 0.0
-  call polar_to_spinor (spin, s%u(i)%design%orb(0))
-  call init_lat (s%u(i)%model%lat, s%u(i)%design%lat%n_ele_max)
-  call init_lat (s%u(i)%base%lat, s%u(i)%design%lat%n_ele_max)
-
-enddo
-  
-end subroutine init_orbits
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-!
+!+
 ! Initialize universe connections
 !-
 
@@ -407,7 +359,7 @@ if (ix /= 0) then
 elseif (connect%at_ele_index /= -1) then
   if (connect%at_s /= -1) then
     call out_io (s_error$, r_name, &
-        "INIT UNIVERSE CONNECTION: CANNOT SPECIFY AN ELEMENT, IT'S INDEX OR POSITION AT SAME TIME!", &
+        "YOU CANNOT SPECIFY AN ELEMENT, IT'S INDEX OR POSITION AT SAME TIME!", &
         "WILL USE ELEMENT INDEX.")
   endif
     u%connect%from_uni_s = from_uni%design%lat%ele(connect%at_ele_index)%s
@@ -416,7 +368,7 @@ else
   ! using s position
   if (s%global%track_type /= 'single' ) then
     call out_io (s_abort$, r_name, &
-     "CANNOT SPECIFY ARBITRARY S POSITION FOR COUPLING IF NOT TRACKING A SINGLE PARTICLE")
+     "AN ARBITRARY S POSITION FOR COUPLING IF NOT TRACKING A SINGLE PARTICLE IS ILLEGAL")
     call err_exit
   endif
   !FIX_ME: get ix_ele for element right before this s position
@@ -604,7 +556,7 @@ type (tao_data_input) data(n_data_minn:n_data_maxx) ! individual weight
 real(rp) default_weight        ! default merit function weight
 real(rp) default_step          ! default "small" step size
 
-integer ios, iu, i, j, i2, j2, k, ix, n_uni, num
+integer ios, iu, i, j, j1, i2, j2, k, ix, n_uni, num
 integer n, n_universes, iostat, ix_universe, n_max
 integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
 
@@ -657,7 +609,24 @@ do
 enddo
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  call init_data_in_universe (s%u(i), n_d2_data(i))
+  u => s%u(i)
+
+  allocate (u%data(0))
+  u%is_on = .true.          ! turn universe on
+  u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
+  u%n_data_used = 0         ! size of s%u(i)%data(:) array
+  u%ix_rad_int_cache = 0
+
+  if (n_d2_data(i) == 0) cycle
+  if (allocated(u%d2_data)) deallocate (u%d2_data)
+  allocate (u%d2_data(n_d2_data(i)))
+  do j = 1, n_d2_data(i)
+    u%d2_data(j)%descrip = ''
+  enddo
+  u%d2_data%name = ''  ! blank name means it doesn't exist
+  ! This is needed to keep the totalview debugger happy.
+  if (allocated(u%dmodel_dvar)) deallocate (u%dmodel_dvar)
+  allocate (u%dmodel_dvar(1,1))
 enddo
 
 ! Init data
@@ -803,58 +772,9 @@ do
   read (iu, nml = tao_d1_data)  ! force printing of error message
 enddo
 
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
+!----------------------------------------------------------------
+!----------------------------------------------------------------
 contains
-
-subroutine init_data_in_universe (u, n_d2_data)
-
-type (tao_universe_struct) :: u
-integer i, n_d2_data
-
-!
-
-u%is_on = .true.          ! turn universe on
-u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
-u%n_data_used = 0         ! size of s%u(i)%data(:) array
-u%ix_rad_int_cache = 0
-
-! allocate and set defaults
-
-if (n_d2_data /= 0) then
-  if (allocated(u%d2_data)) deallocate (u%d2_data)
-  allocate (u%d2_data(n_d2_data))
-  do i = 1, n_d2_data
-    u%d2_data(i)%descrip = ''
-  enddo
-  u%d2_data%name = ''  ! blank name means it doesn't exist
-endif
-
-if (tao_com%n_data_max /= 0) then
-  if (allocated(u%data)) deallocate (u%data)
-  allocate (u%data(tao_com%n_data_max))
-  u%data(:)%exists = .false.       ! set default
-  u%data(:)%good_meas  = .false.   ! set default
-  u%data(:)%good_ref   = .false.   ! set default
-  u%data(:)%good_user  = .true.    ! set default
-  u%data(:)%good_opt   = .true.
-  u%data(:)%merit_type = 'target'  ! set default
-  u%data(:)%ele_name   = ''
-  u%data(:)%ix_ele     = -1
-  u%data(:)%ele0_name  = ''
-  u%data(:)%ix_ele0    = 0 ! by default, data relative to beginning of lattice
-endif
-
-! This is needed to keep the totalview debugger happy.
-
-if (allocated(u%dmodel_dvar)) deallocate (u%dmodel_dvar)
-allocate (u%dmodel_dvar(1,1))
-  
-end subroutine init_data_in_universe
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
 
 subroutine d2_data_stuffit (u, ix_uni)
 
@@ -895,7 +815,7 @@ type (tao_d1_data_struct), pointer :: d1_ptr
 
 integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 
-integer i_d1, num_hashes
+integer i_d1
 
 character(40) d2_d1_name
 character(20) fmt
@@ -930,14 +850,12 @@ if (search_for_lat_eles /= '') then
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + size(ix_eles)
   u%n_data_used = n2
+  call allocate_data_array (u, n2)
+
   if (ix_min_data == int_garbage$) ix_min_data = 1
   ix1 = ix_min_data
   ix2 = ix1 + (n2 - n1)
-  if (n2 > size(u%data)) then
-    call out_io (s_abort$, r_name, &
-                  'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-    call err_exit
-  endif
+
   ! get element names
   jj = n1
   do k = lbound(ix_eles, 1), ubound(ix_eles, 1)
@@ -970,14 +888,11 @@ elseif (use_same_lat_eles_as /= '') then
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + size(d1_ptr%d)
   u%n_data_used = n2
+  call allocate_data_array (u, n2)
+
   ix_min_data = lbound(d1_ptr%d, 1)
   ix1 = ix_min_data
   ix2 = ix1 + (n2 - n1)
-  if (n2 > size(u%data)) then
-    call out_io (s_abort$, r_name, &
-                'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-    call err_exit
-  endif
 
   u%data(n1:n2)%ele_name    = d1_ptr%d%ele_name
   u%data(n1:n2)%ix_ele      = d1_ptr%d%ix_ele
@@ -1011,11 +926,7 @@ else
   ix1 = ix_min_data
   ix2 = ix_max_data
   u%n_data_used = n2
-  if (n2 > size(u%data)) then
-    call out_io (s_abort$, r_name, &
-                'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-    call err_exit
-  endif
+  call allocate_data_array (u, n2)
 
   ! Transfer info from the input structure
 
@@ -1085,16 +996,13 @@ else
                                                     default_data_type
 endif
 
-! now for some family guidance...
-! point the children to the grandchildren in the big data array
-
-call tao_point_d1_to_data (d1_this%d, &
-                                      u%data(n1:n2), ix_min_data, n1)
-
 ! point the %data back to the d1_data_struct
+
+call tao_point_d1_to_data (d1_this, u%data(n1:n2), ix_min_data)
 
 do j = n1, n2
   u%data(j)%d1 => d1_this
+  u%data(j)%ix_d1 = ix_min_data + j - n1
   if (u%data(j)%weight == 0) u%data(j)%weight = default_weight
   if (u%data(j)%merit_type == '') u%data(j)%merit_type = default_merit_type
   if (u%data(j)%data_source == '') u%data(j)%data_source = default_data_source
@@ -1102,11 +1010,7 @@ do j = n1, n2
   ix = index(u%data(j)%data_type, 'emittance.')
   if (ix /= 0) u%data(j)%data_type = u%data(j)%data_type(1:ix-1) // &
                                          'emit.' // u%data(j)%data_type(ix+10:)
-enddo
-
-! do we need to do the radiation integrals?
-
-do j = n1, n2
+  ! do we need to do the radiation integrals?
   data_type = u%data(j)%data_type
   emit_here = (index(data_type, 'emit.') /= 0)
   if (emit_here .and. u%data(j)%data_source == 'lattice') u%do_synch_rad_int_calc = .true. 
@@ -1123,7 +1027,6 @@ do j = n1, n2
                         'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // u%data(j)%ele_name)
       call err_exit
     endif
-    cycle
   endif
 
 enddo
@@ -1215,6 +1118,86 @@ end subroutine init_ix_data
 
 end subroutine tao_init_data
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+subroutine allocate_data_array (u, n_data)
+
+type (tao_universe_struct) :: u
+type (tao_data_struct), automatic :: data(size(u%data))
+type (tao_d1_data_struct), pointer :: d1
+
+integer i, j1, j2, n0, n_data
+
+! Allocate data
+
+data = u%data
+n0 = size(u%data)
+deallocate (u%data)
+allocate (u%data(n_data))
+u%data(1:n0) = data
+
+! since the data array gets reallocated the pointer from d1 to the datums must 
+! be reestablished.
+
+j2 = 0
+do
+  j1 = j2 + 1
+  if (j1 > n0) exit
+  d1 => u%data(j1)%d1
+  do 
+    if (j2 == n0) exit
+    if (.not. associated(u%data(j2+1)%d1, d1)) exit
+    j2 = j2 + 1
+  enddo
+  call tao_point_d1_to_data (d1, u%data(j1:j2), u%data(j1)%ix_d1)
+enddo
+
+! set defaults
+
+do i = n0+1, size(u%data)
+  u%data(i)%exists = .false.       ! set default
+  u%data(i)%good_meas  = .false.   ! set default
+  u%data(i)%good_ref   = .false.   ! set default
+  u%data(i)%good_user  = .true.    ! set default
+  u%data(i)%good_opt   = .true.
+  u%data(i)%merit_type = 'target'  ! set default
+  u%data(i)%ele_name   = ''
+  u%data(i)%ix_ele     = -1
+  u%data(i)%ele0_name  = ''
+  u%data(i)%ix_ele0    = 0 ! by default, data relative to beginning of lattice
+  u%data(i)%ix_data    = i
+enddo
+  
+end subroutine allocate_data_array
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_point_d1_to_data (d1, data, n)
+!
+! Routine used for arbitrary data pointer indexing
+!
+! d1     -- tao_data_struct: the pointer
+! data   -- tao_data_struct: the data
+! n      -- integer: starting index for the pointer
+!-
+
+subroutine tao_point_d1_to_data (d1, data, n)
+
+implicit none
+
+integer n, i, n0, n1
+
+type (tao_d1_data_struct) :: d1
+type (tao_data_struct), target :: data(n:)
+
+d1%d => data
+
+end subroutine 
+
 !-----------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------
@@ -1251,7 +1234,7 @@ real(rp) default_step          ! default "small" step size
 real(rp) default_low_lim, default_high_lim, default_key_delta
 real(rp), allocatable, save :: default_key_d(:)
 
-integer ios, iu, i, j, i2, j2, k, ix, n_uni, num
+integer ios, iu, i, j, j1, i2, j2, k, ix, n_uni, num
 integer n, n_universes, iostat, ix_universe, n_max
 integer ix_min_var, ix_max_var, ix_ele, n_v1, n_v1_var_max
 
@@ -1278,13 +1261,7 @@ namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delt
 !-----------------------------------------------------------------------
 ! Init
 
-if (allocated(s%var)) deallocate (s%var)
-allocate (s%var(tao_com%n_var_max))
-s%var(:)%good_opt  = .true.
-s%var(:)%exists    = .false.
-s%var(:)%good_var  = .true.
-s%var(:)%good_user = .true.
-
+allocate (s%var(0))
 s%n_var_used = 0
 
 do i = 1, size(s%var)
@@ -1489,6 +1466,18 @@ if (tao_com%unified_lattices) then
   enddo
 endif
 
+! Put the variables marked by key_bound in the key table.
+
+allocate (s%key(count(s%var%key_bound)))
+
+j = 0
+do i = 1, s%n_var_used
+  if (.not. s%var(i)%key_bound) cycle
+  j = j + 1
+  s%key(j) = i
+  s%var(i)%key_val0 = s%var(i)%model_value
+enddo
+
 return
 
 !-----------------------------------------------------------------------
@@ -1515,11 +1504,12 @@ type (tao_var_struct), pointer :: var_ptr
 
 character(20) fmt
 character(40) ele_name
+character(40), allocatable :: ele_names(:)
 character(60) search_string
 
-integer i, iu, ip, j, jj, k, kk, n, nn, n1, n2, ix1, ix2, num_hashes, ix
-integer num_ele, ios, ixx1, ixx2, ix_uni
-integer, allocatable, save :: ix_eles(:)
+integer i, iu, ip, j, jj, k, kk, n, nn, n1, n2, ix1, ix2, ix
+integer num_ele, ios, ix_uni, ixm, ix2m
+integer, allocatable, save :: ix_eles(:), an_indexx(:)
 
 logical searching
 
@@ -1542,14 +1532,11 @@ if (use_same_lat_eles_as /= '') then
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + size(v1_ptr%v)
   s%n_var_used = n2
+  call allocate_var_array (n2)
+
   ix_min_var = lbound(v1_ptr%v, 1)
   ix1 = ix_min_var
   ix2 = ix1 + (n2 - n1)
-  if (n2 > size(s%var)) then
-    call out_io (s_abort$, r_name, &
-                'N_VAR_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-    call err_exit
-  endif
 
   s%var(n1:n2)%ele_name    = v1_ptr%v%ele_name
   s%var(n1:n2)%s           = v1_ptr%v%s
@@ -1602,15 +1589,18 @@ if (use_same_lat_eles_as /= '') then
 
     s%var(n)%key_bound = v1_ptr%v(ip)%key_bound
 
+    s%var(n)%ix_v1 = ix_min_var + n - n1
+    s%var(n)%v1 => v1_var_ptr
   enddo
 
-  call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
+  call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var)
+
   return
 
 endif
 
 !------------------------------
-! are we searching for elements?
+! Are we searching for elements?
 
 if (search_for_lat_eles /= '') then
 
@@ -1622,12 +1612,48 @@ if (search_for_lat_eles /= '') then
     call err_exit
   endif
 
-  ! find matching elements
-
-  n1 = s%n_var_used + 1
-  n2 = s%n_var_used 
+  ! find matching elements...
+  ! first count how many variables wee need
 
   num_ele = 0
+  allocate(ele_names(100), an_indexx(100))
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
+    if (.not. dflt_good_unis(iu)) cycle
+    if (ix_uni > -1 .and. iu /= ix_uni) cycle
+    call tao_find_elements (s%u(iu), search_string, ix_eles)
+    do kk = 1, size(ix_eles)
+      ix_ele = ix_eles(kk)
+      ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
+      call find_indexx(ele_name, ele_names, an_indexx, num_ele, ixm, ix2m)
+      if (ixm == 0) then
+        if (num_ele+1 > size(ele_names)) then
+          call re_allocate(ele_names, len(ele_names(1)), size(ele_names) + 100)
+          call re_allocate(an_indexx, size(an_indexx) + 100)
+        endif
+        an_indexx(ix2m+1:num_ele+1) = an_indexx(ix2m:num_ele)
+        an_indexx(ix2m) = num_ele + 1
+        ele_names(num_ele+1) = ele_name
+        num_ele = num_ele + 1
+      endif
+    enddo
+  enddo
+  deallocate(ele_names, an_indexx)
+
+  if (num_ele == 0) then
+    call out_io (s_warn$, r_name, &
+              'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
+              'WHILE SETTING UP VARIABLE ARRAY: ' // v1_var%name)
+    return
+  endif
+
+  ! Now load the information into the variable structures
+
+  n1 = s%n_var_used + 1
+  n2 = s%n_var_used + num_ele
+  s%n_var_used = n2
+  call allocate_var_array (n2)
+
+  nn = n1 - 1
   do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     if (ix_uni > -1 .and. iu /= ix_uni) cycle
@@ -1636,7 +1662,7 @@ if (search_for_lat_eles /= '') then
       ix_ele = ix_eles(kk)
       ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
       ! If the name matches an existing variable then use that variable
-      do j = n1, n2
+      do j = n1, nn
         if (s%var(j)%ele_name == ele_name) then
           call tao_pointer_to_var_in_lattice (s%var(j), iu, err, .true., ix_ele)
           cycle kk_loop
@@ -1644,8 +1670,8 @@ if (search_for_lat_eles /= '') then
       enddo
       ! Here if there is no match...
       ! create a new variable and stuff the info into it.
-      n2 = n2 + 1
-      var_ptr => s%var(n2)
+      nn = nn + 1
+      var_ptr => s%var(nn)
       var_ptr%exists = .true.
       var_ptr%ele_name = ele_name
       var_ptr%s = s%u(iu)%design%lat%ele(ix_ele)%s
@@ -1654,14 +1680,6 @@ if (search_for_lat_eles /= '') then
     enddo kk_loop
   enddo 
 
-  if (n2 < n1) then
-    call out_io (s_warn$, r_name, &
-              'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
-              'WHILE SETTING UP VARIABLE ARRAY: ' // v1_var%name)
-    return
-  endif
-
-  s%n_var_used = n2
   ix1 = ix_min_var
   ix2 = (n2 - n1) + ix_min_var
 
@@ -1676,8 +1694,9 @@ else
   ix2 = ix_max_var
  
   s%n_var_used = n2
+  call allocate_var_array (n2)
 
-  s%var(n1:n2)%ele_name    = var(ix1:ix2)%ele_name
+  s%var(n1:n2)%ele_name = var(ix1:ix2)%ele_name
 
 endif
 
@@ -1707,7 +1726,12 @@ do n = n1, n2
     endif
   endif
 
+  s%var(n)%ix_v1 = ix_min_var + n - n1
+  s%var(n)%v1 => v1_var_ptr
+
 enddo
+
+call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var)
 
 s%var(n1:n2)%key_delta = var(ix1:ix2)%key_delta
 
@@ -1729,10 +1753,6 @@ where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
 s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
 where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
  
-! Point the v1_var mother to the appropriate children in the big var array
-
-call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var, n1)
-
 ! Veto any variable that is not free
 
 if (searching) then
@@ -1944,5 +1964,85 @@ if (associated(u%common)) then
 endif
 
 end subroutine tao_pointer_to_var_in_lattice
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+subroutine allocate_var_array (n_var)
+
+type (tao_var_struct), automatic :: var(size(s%var))
+type (tao_v1_var_struct), pointer :: v1
+
+integer i, j1, j2, n0, n_var
+
+! Allocate 
+
+n0 = size(s%var)
+do i = 1, n0
+  allocate(var(i)%this(size(s%var(i)%this)))
+enddo
+var = s%var
+deallocate (s%var)
+allocate (s%var(n_var))
+do i = 1, n0
+  allocate(s%var(i)%this(size(var(i)%this)))
+enddo
+s%var(1:n0) = var
+
+! Since the var array gets reallocated the pointer from d1 to the datums must 
+! be reestablished.
+
+j2 = 0
+do
+  j1 = j2 + 1
+  if (j1 > n0) exit
+  v1 => s%var(j1)%v1
+  do 
+    if (j2 == n0) exit
+    if (.not. associated(s%var(j2+1)%v1, v1)) exit
+    j2 = j2 + 1
+  enddo
+  call tao_point_v1_to_var (v1, s%var(j1:j2), s%var(j1)%ix_v1)
+enddo
+
+! set defaults
+
+do i = n0+1, size(s%var)
+  s%var(i)%ix_var    = i
+  s%var(i)%good_opt  = .true.
+  s%var(i)%exists    = .false.
+  s%var(i)%good_var  = .true.
+  s%var(i)%good_user = .true.
+  allocate(s%var(i)%this(0))
+enddo
+  
+end subroutine allocate_var_array
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_point_v1_to_var (v1, var, n)
+!
+! used for arbitrary variable pointer indexing
+!
+! v1       -- tao_v1_var_struct: Contains the pointer.
+! var(n:)  -- tao_var_struct: the variable
+! n        -- integer: starting index for the var array.
+!-
+
+subroutine tao_point_v1_to_var (v1, var, n)
+
+implicit none
+
+integer n, i, n_var
+
+type (tao_v1_var_struct) :: v1
+type (tao_var_struct), target :: var(n:)
+
+v1%v => var
+
+end subroutine 
 
 end module

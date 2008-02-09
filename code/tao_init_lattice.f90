@@ -27,7 +27,7 @@ character(200) complete_file_name, file_name
 character(40) unique_name_suffix, suffix
 character(20) :: r_name = 'tao_init_lattice'
 
-integer i, j, iu, ios, version, taylor_order, ix, key, n_universes
+integer i, j, n, iu, ios, version, taylor_order, ix, key, n_universes
 
 logical custom_init, override, combine_consecutive_elements_of_like_name
 logical aperture_limit_on, unified_lattices
@@ -204,8 +204,15 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Init model, base, and u%ele
 
-  u%model = u%design; u%model%orb = u%design%orb
-  u%base  = u%design; u%base%orb  = u%design%orb
+  n = u%design%lat%n_ele_max
+  allocate (u%model%orb(0:n), u%model%bunch_params(0:n))
+  allocate (u%design%orb(0:n), u%design%bunch_params(0:n))
+  allocate (u%base%orb(0:n), u%base%bunch_params(0:n))
+  call reallocate_coord (u%design%orb, n) 
+  call reallocate_coord (u%model%orb, n)
+  call reallocate_coord (u%base%orb, n)
+  u%model = u%design
+  u%base  = u%design
   allocate (u%ele(0:u%design%lat%n_ele_max))
 
 enddo

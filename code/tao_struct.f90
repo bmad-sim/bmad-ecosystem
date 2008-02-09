@@ -471,8 +471,6 @@ type tao_common_struct
   integer :: cmd_file_level = 0 ! for nested command files
               ! unit numbers for a command files. 0 -> no command file.
   integer :: ix_key_bank = 0             ! For single mode.
-  integer :: n_data_max
-  integer :: n_var_max
   integer :: u_common           ! Index of common universe.
   integer :: u_working          ! Index of working universe.
   integer n_universes
@@ -631,18 +629,21 @@ contains
 
 subroutine tao_lat_equal_tao_lat (lat1, lat2)
 
-  implicit none
+implicit none
 
-  type (tao_lattice_struct), intent(inout) :: lat1
-  type (tao_lattice_struct), intent(in) :: lat2
+type (tao_lattice_struct), intent(inout) :: lat1
+type (tao_lattice_struct), intent(in) :: lat2
 
 !
 
-  lat1%lat   = lat2%lat
-  lat1%orb   = lat2%orb
-  lat1%modes = lat2%modes
-  lat1%a     = lat2%a
-  lat1%b     = lat2%b
+lat1%lat   = lat2%lat
+lat1%orb   = lat2%orb
+lat1%modes = lat2%modes
+lat1%a     = lat2%a
+lat1%b     = lat2%b
+lat1%bunch_params    = lat2%bunch_params
+lat1%bunch_params2   = lat2%bunch_params2
+lat1%n_bunch_params2 = lat2%n_bunch_params2
 
 end subroutine
 
