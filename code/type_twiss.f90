@@ -30,7 +30,7 @@ subroutine type_twiss (ele, frequency_units)
   integer, optional :: frequency_units
   integer n, n_lines
 
-  character(80) lines(5)
+  character(100) lines(10)
 
 !
 

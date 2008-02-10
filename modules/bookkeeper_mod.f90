@@ -100,8 +100,8 @@ if (wig_only) then
   if (ele%key == wiggler$ .and. ele%sub_key == map_type$) return
 endif
 
-call re_allocate (ix_slaves, lattice%n_ele_max)
-call re_allocate (ix_super, lattice%n_ele_max)
+call re_allocate (ix_slaves, lattice%n_ele_max, .false.)
+call re_allocate (ix_super, lattice%n_ele_max, .false.)
 ix_super = 0
 
 ! Attribute bookkeeping for this element
@@ -125,6 +125,10 @@ do
     if (lord%control_type == group_lord$ .and. lattice%ele(ix)%control_type == free$) cycle
     if (ix == ix_slaves(ix2)) cycle   ! do not use duplicates
     ix2 = ix2 + 1
+    if (ix2 > size(ix_slaves)) then
+      call re_allocate (ix_slaves, 2*size(ix_super), .false.)
+      call re_allocate (ix_super, 2*size(ix_super), .false.)
+    endif
     ix_slaves(ix2) = ix
     if (lord%control_type == super_lord$) ix_super(ix2) = ix_lord
   enddo
