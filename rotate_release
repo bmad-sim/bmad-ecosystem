@@ -323,6 +323,13 @@ echo "
 
    -Accelerator Code Librarian
 
+WARNING: The delivery mechanism for the notification messages has changed.
+We are now using the HyperNews mailing system.
+If you have not signed up for a HyperNews account and you are receiving this message,
+you have been added automatically and you should have received an appropriate email. 
+If that is the case, please change your HyperNews password by  
+visiting https://hypernews.lepp.cornell.edu/  ( click "LEPP" )
+
 --------------------------------------------------------------------------------
 Accelerator Code Support Links -
 Documentation      : https://wiki.lepp.cornell.edu/lepp/bin/view/ACC/ACL/WebHome
