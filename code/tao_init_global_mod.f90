@@ -35,10 +35,10 @@ type (macro_init_struct) macro_init
 type (tao_connected_uni_input) connect
 type (spin_polar_struct) spin
 
-integer ios, iu, i, j, i2, j2, k, ix, n_uni, num
+integer ios, iu, i, j, k, ix, n_uni, num
 integer n_data_max, n_var_max, ix_track_start, ix_track_end
 integer n_d2_data_max, n_v1_var_max ! Deprecated variables
-integer n, n_universes, iostat, ix_universe, n_max
+integer n, iostat, ix_universe, n_max
 
 character(*) init_file
 character(40) :: r_name = 'tao_init_global'
@@ -556,8 +556,8 @@ type (tao_data_input) data(n_data_minn:n_data_maxx) ! individual weight
 real(rp) default_weight        ! default merit function weight
 real(rp) default_step          ! default "small" step size
 
-integer ios, iu, i, j, j1, i2, j2, k, ix, n_uni, num
-integer n, n_universes, iostat, ix_universe, n_max
+integer ios, iu, i, j, j1, k, ix, n_uni, num
+integer n, iostat, n_max
 integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
 
 integer, automatic :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
@@ -1234,8 +1234,8 @@ real(rp) default_step          ! default "small" step size
 real(rp) default_low_lim, default_high_lim, default_key_delta
 real(rp), allocatable, save :: default_key_d(:)
 
-integer ios, iu, i, j, j1, i2, j2, k, ix, n_uni, num
-integer n, n_universes, iostat, ix_universe, n_max
+integer ios, iu, i, j, j1, j2, k, ix, num
+integer n, iostat
 integer ix_min_var, ix_max_var, ix_ele, n_v1, n_v1_var_max
 
 character(*) var_file
@@ -1833,7 +1833,7 @@ character(40) ele_name, key_name_in
 character(20) :: r_name = 'tao_find_elements'
 
 integer key, found_key
-integer i, k, ix, ii, i2, j, ix0, ix1, ix2, n_ele
+integer i, k, ix, ii, j, ix0, ix1, ix2, n_ele
 
 integer, allocatable :: ix_eles(:)
 logical no_slaves, no_lords, err
