@@ -254,37 +254,38 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine mat6_dispersion (e_vec, mat6)
+! Subroutine mat6_dispersion (m_i6, mat6)
 !
-! Subroutine to put the dispersion into ele%mat6 given the eta vector e_vec
+! Subroutine to set the mat6(5, 1:4) terms given the vector mat6(1:4, 6)
+! which is a measure of the dispersion.
 !
 ! Input:
-!   e_vec(4) -- Real(rp): Dispersion vector
+!   m_i6(4)   -- Real(rp): mat6(1:4, 6) components.
 !   mat6(6,6) -- Real(rp): Matrix with 4x4 x-y submatrix already made.
 !
 ! Output:
-!   mat6(6,6) -- Real(rp): mat6(5, 1:4) components set for the dispersion.
+!   mat6(6,6) -- Real(rp): mat6(5, 1:4) components set. 
 !-
 
-subroutine mat6_dispersion (e_vec, mat6)
+subroutine mat6_dispersion (m_i6, mat6)
 
   implicit none
 
   real(rp), intent(inout) :: mat6(:,:)
-  real(rp), intent(in) :: e_vec(:)
+  real(rp), intent(in) :: m_i6(:)
 
-  real(rp) e2_vec(4)
+  real(rp) vec4(4)
 
 !
 
-  mat6(1:4, 6) = e_vec(1:4)
+  mat6(1:4, 6) = m_i6(1:4)
 
-  e2_vec(1) = -e_vec(2)
-  e2_vec(2) =  e_vec(1)
-  e2_vec(3) = -e_vec(4)
-  e2_vec(4) =  e_vec(3)
+  vec4(1) = -m_i6(2)
+  vec4(2) =  m_i6(1)
+  vec4(3) = -m_i6(4)
+  vec4(4) =  m_i6(3)
 
-  mat6(5,1:4) = matmul (e2_vec, mat6(1:4,1:4))
+  mat6(5,1:4) = matmul (vec4, mat6(1:4,1:4))
 
 end subroutine
 
