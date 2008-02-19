@@ -1724,7 +1724,10 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 enddo
 
-if (size(var%this) > 0) var%exists = .true.
+if (size(var%this) > 0) then
+  var%exists = .true.
+  var%design_value = var%this(1)%model_value
+endif
 
 end subroutine
 
@@ -1932,6 +1935,8 @@ do i = n0+1, size(s%var)
   s%var(i)%exists    = .false.
   s%var(i)%good_var  = .true.
   s%var(i)%good_user = .true.
+  s%var(i)%model_value => tao_com%dummy_target  ! Just to point to somewhere
+  s%var(i)%base_value  => tao_com%dummy_target  ! Just to point to somewhere
   allocate(s%var(i)%this(0))
 enddo
   

@@ -488,6 +488,7 @@ type tao_common_struct
   character(80) :: init_lat_file(10) = ''          ! '-lat' argument.
   character(80) :: beam_all_file = ''  ! Command line input beam data file.
   character(80) :: beam0_file    = ''  ! Command line input beam data file.
+  real(rp) :: dummy_target = 0         ! Dummy varaible
 end type
 
 !------------------------------------------------------------------------
