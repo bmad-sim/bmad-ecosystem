@@ -30,11 +30,14 @@ contains
 !
 ! Input:
 !   vec(6) -- real(rp): Coordinate vector. If not present then taken to be zero.
+!
 ! Output:
 !   orb -- Coord_struct: Initialized coordinate.
 !-
 
 subroutine init_coord (orb, vec)
+
+implicit none
 
 type (coord_struct) orb
 real(rp), optional :: vec(:)
@@ -702,6 +705,8 @@ subroutine transfer_ele (ele1, ele2)
   type (ele_struct) :: ele1
   type (ele_struct) :: ele2
 
+!
+
   ele2 = ele1
 
 end subroutine
@@ -914,6 +919,7 @@ subroutine deallocate_ele_pointers (ele, nullify_only)
       nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
                 ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
       nullify (ele%gen_field)
+      nullify (ele%mode3)
       return
     endif
   endif
@@ -924,7 +930,8 @@ subroutine deallocate_ele_pointers (ele, nullify_only)
   if (associated (ele%const))    deallocate (ele%const)
   if (associated (ele%r))        deallocate (ele%r)
   if (associated (ele%descrip))  deallocate (ele%descrip)
-  if (associated (ele%a_pole))        deallocate (ele%a_pole, ele%b_pole)
+  if (associated (ele%a_pole))   deallocate (ele%a_pole, ele%b_pole)
+  if (associated (ele%mode3))    deallocate (ele%mode3)
 
   if (associated (ele%wake)) then
     if (associated (ele%wake%sr_table))       deallocate (ele%wake%sr_table)
@@ -1094,6 +1101,7 @@ subroutine init_ele (ele)
 
   allocate (ele%r(1,1))
   ele%r = 0.0
+
 end subroutine
 
 !----------------------------------------------------------------------

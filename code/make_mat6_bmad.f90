@@ -449,7 +449,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 !       J. Rosenzweig and L. Serafini
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
 ! with b_0 = b_-1 = 1. The extra factors of beta are included to make the 
-! transverse determinate (beta_i*gamma_i)/(beta_f*gamma_f) which it should
+! transverse determinant (beta_i*gamma_i)/(beta_f*gamma_f) which it should
 ! be at low energies.
 !
 ! One must keep in mind that we are NOT using good canonical coordinates since

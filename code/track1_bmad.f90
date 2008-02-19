@@ -283,7 +283,7 @@ subroutine track1_bmad (start, ele, param, end)
 !       J. Rosenzweig and L. Serafini
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
 ! with b_0 = b_-1 = 1. The extra factors of beta are included to make the 
-! transverse determinate (beta_i*gamma_i)/(beta_f*gamma_f) which it should
+! transverse determinant (beta_i*gamma_i)/(beta_f*gamma_f) which it should
 ! be at low energies.
 
   case (lcavity$)

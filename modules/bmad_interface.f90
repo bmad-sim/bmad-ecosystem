@@ -257,11 +257,10 @@ interface
 end interface
 
 interface
-  subroutine do_mode_flip (ele, ele_flip)
+  subroutine do_mode_flip (ele)
     use bmad_struct, only: ele_struct
     implicit none
     type (ele_struct) ele
-    type (ele_struct) ele_flip
   end subroutine
 end interface
 
@@ -998,9 +997,11 @@ interface
 end interface
 
 interface
-  subroutine twiss_decoupled_propagate (ele1, ele2)
-    use bmad_struct, only: ele_struct
-    type (ele_struct) ele1, ele2
+  subroutine twiss1_propagate (twiss1, mat2, length, twiss2)
+    use bmad_struct, only: twiss_struct, rp
+    implicit none
+    type (twiss_struct) twiss1, twiss2
+    real(rp) mat2(2,2), length
   end subroutine
 end interface
 

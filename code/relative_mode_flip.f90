@@ -44,7 +44,7 @@ function relative_mode_flip (ele1, ele2) result (rel_mode)
   mat4(4,2) = ele2%gamma_c
   mat4(3:4,3:4) = ele2%c_mat
 
-! smallness of determinate is indicator whether the a-modes of ele1 and
+! smallness of determinant is indicator whether the a-modes of ele1 and
 ! ele2 have nearly the same eigen planes
 
   call mat_det (mat4, det_aa)
@@ -58,7 +58,7 @@ function relative_mode_flip (ele1, ele2) result (rel_mode)
   call mat_symp_conj (ele2%c_mat, conj_mat)
   mat4(3:4,1:2) = -conj_mat
 
-! smallness of determinate is indicator of whether ele1 a-mode has nearly the
+! smallness of determinant is indicator of whether ele1 a-mode has nearly the
 ! same eigen plane with ele2 b-mode
 
   call mat_det (mat4, det_ab)

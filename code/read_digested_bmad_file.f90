@@ -71,7 +71,7 @@ character(200) fname1, fname2, fname3, input_file_name, full_digested_name
 character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 
-logical found_it, v83, v84, v85, v_old, v_now
+logical found_it, v83, v84, v85, v86, v_old, mode3
 
 ! init all elements in lat
 
@@ -95,8 +95,8 @@ read (d_unit, err = 9100) n_files, version
 v83 = (version == 83)
 v84 = (version == 84)
 v85 = (version == 85)
-v_old = v83 .or. v84
-v_now = (version == bmad_inc_version$)  ! v85
+v86 = (version == 86)
+v_old = v83 .or. v84 .or. v85
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -234,8 +234,31 @@ do i = 0, lat%n_ele_max
             ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
             ele%ref_orb_in%vec, ele%ref_orb_out%vec
-  elseif (v_now) then
+  elseif (v85) then
     read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
+            ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
+            ele%taylor_order, ele%symplectify, ele%mode_flip, &
+            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+            ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+            ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
+            ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture
+
+    read (d_unit, err = 9100) k_max
+    read (d_unit, err = 9100) ix_value(1:k_max), value(1:k_max)
+    do k = 1, k_max
+      ele%value(ix_value(k)) = value(k)
+    enddo
+
+  elseif (v86) then
+    read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
             ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
@@ -274,6 +297,13 @@ do i = 0, lat%n_ele_max
     ele%value(x2_limit$) = ele%value(29)
     ele%value(y1_limit$) = ele%value(30)
     ele%value(y2_limit$) = ele%value(30)
+  endif
+
+  if (v86) then
+    if (mode3) then
+      allocate(ele%mode3)
+      read (d_unit, err = 9150) ele%mode3
+    endif
   endif
 
   if (ix_wig /= 0) then
@@ -374,6 +404,15 @@ return
 9100  continue
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.')
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+9150  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+        'ERROR READING MODE3 COMPONENT FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
 bmad_status%ok = .false.

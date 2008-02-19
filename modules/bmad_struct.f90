@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 85
+integer, parameter :: bmad_inc_version$ = 86
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -128,6 +128,14 @@ type xy_disp_struct
   real(rp) eta, etap
 end type
 
+! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.
+
+type mode3_struct
+  real(rp) v(6,6)
+  real(rp) u(6,6)
+  type (twiss_struct) a, b, c
+end type
+
 ! Ele_struct:
 ! REMEMBER: If this struct is changed you have to:
 !     Increase bmad_inc_version by 1.
@@ -144,6 +152,7 @@ type ele_struct
   type (twiss_struct)  a, b, z       ! Twiss parameters at end of element
   type (xy_disp_struct) x, y         ! Projected dispersions.
   type (floor_position_struct) floor ! Global floor position at end of ele.
+  type (mode3_struct), pointer :: mode3
   real(rp) value(n_attrib_maxx)      ! attribute values.
   type (coord_struct) ref_orb_in     ! Reference orbit for mat6 calc at entrance of element.
   type (coord_struct) ref_orb_out    ! Reference orbit at exit of element.

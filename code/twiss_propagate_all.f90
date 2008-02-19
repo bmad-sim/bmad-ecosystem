@@ -72,7 +72,7 @@ subroutine twiss_propagate_all (lat, set_match)
 
   if (lat%param%lattice_type == circular_lattice$) then
     if (lat%ele(0)%mode_flip .neqv. lat%ele(n_use)%mode_flip) then
-      call do_mode_flip (lat%ele(n_use), lat%ele(n_use))
+      call do_mode_flip (lat%ele(n_use))
       if (bmad_status%type_out .and. .not. bmad_status%ok) then
         print *, 'ERROR IN TWISS_PROPAGATE_ALL: CANNOT MAKE FINAL FLIP STATE'
         print *, '      EQUAL TO THE INITIAL'

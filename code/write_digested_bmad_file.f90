@@ -46,7 +46,7 @@ subroutine write_digested_bmad_file (digested_name, lat,  &
   character(200) fname, full_digested_name
   character(32) :: r_name = 'write_digested_bmad_file'
 
-  logical write_wake
+  logical write_wake, mode3
 
   external stat
 
@@ -112,7 +112,9 @@ subroutine write_digested_bmad_file (digested_name, lat,  &
     
     ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_const = 0; ix_r = 0
     ix_sr_table = 0; ix_sr_mode_long = 0; ix_sr_mode_trans = 0; ix_lr = 0
+    mode3 = .false.
 
+    if (associated(ele%mode3)) mode3 = .true.
     if (associated(ele%wig_term)) ix_wig = size(ele%wig_term)
     if (associated(ele%const))    ix_const = size(ele%const)
     if (associated(ele%r))        ix_r = (/ lbound(ele%r), ubound(ele%r) /)
@@ -144,7 +146,7 @@ subroutine write_digested_bmad_file (digested_name, lat,  &
 
     ! Now write the element info
 
-    write (d_unit) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+    write (d_unit) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
             ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
@@ -173,6 +175,8 @@ subroutine write_digested_bmad_file (digested_name, lat,  &
     write (d_unit) ix_value(1:k), value(1:k)
 
     ! 
+
+    if (mode3) write (d_unit) ele%mode3
 
     do j = 1, ix_wig
       write (d_unit) ele%wig_term(j)

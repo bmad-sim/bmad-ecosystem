@@ -230,7 +230,7 @@ end subroutine
 ! Output:
 !   stat -- Integer: status of results:
 !                         OK$, UNSTABLE$, NON_SYMPLECTIC$
-!   det    -- Real(rp): Determinate of matrix. Should be = 1
+!   det    -- Real(rp): Determinant of matrix. Should be = 1
 !   twiss  -- Twiss_struct: Twiss parameters
 !                            TWISS.PHI is in radians, 0 < TWISS.PHI < twopi
 !-

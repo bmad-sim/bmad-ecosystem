@@ -134,6 +134,17 @@ subroutine ele_equal_ele (ele1, ele2)
     if (associated (ele_save%descrip)) deallocate (ele_save%descrip)
   endif
 
+  if (associated(ele2%mode3)) then
+    if (associated (ele_save%mode3)) then
+      ele1%mode3 => ele_save%mode3
+    else
+      allocate (ele1%mode3)
+    endif
+    ele1%mode3 = ele2%mode3
+  else
+    if (associated (ele_save%mode3)) deallocate (ele_save%mode3)
+  endif
+
   if (associated(ele2%trans_sc)) then
     if (associated (ele_save%trans_sc)) then
       ele1%trans_sc => ele_save%trans_sc

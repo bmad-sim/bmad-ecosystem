@@ -18,11 +18,11 @@
 !     %b           -- Y Twiss parameters at the start of the lat.
 !     %b%phi       -- Fractional part of the tune in radians.
 !     %c_mat       -- Coupling matrix.
-!   stable      -- Set true or false.
-!   growth_rate -- unstable growth rate (= 0 if stable)
+!   stable      -- Logical: Set true or false.
+!   growth_rate -- Real(rp): Unstable growth rate (= 0 if stable)
 ! 
-!   bmad_status -- BMAD Common block status structure
-!     %ok          -- Logical: .True. if everything is OK,
+!   bmad_status -- Bmad_status_struct: Bmad Common block status structure.
+!     %ok          -- Logical: True if everything is OK,
 !     %status      -- Integer: Calculation status.
 !                        See MAT_SYMP_DECOUPLE for for more info
 !-

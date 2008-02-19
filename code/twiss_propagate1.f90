@@ -32,18 +32,17 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   implicit none
   type (ele_struct), target :: ele1, ele2
-  type (ele_struct), save :: ele_temp
+  type (twiss_struct) twiss_a
 
   real(rp), pointer :: mat6(:,:), orb(:), orb_out(:)
-  real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det
+  real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det, mat2_a(2,2), mat2_b(2,2)
   real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
   real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
   real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), dpz2_dpz1, rel_p1, rel_p2
-  real(rp) mat4(4,4), det_factor, det_original
+  real(rp) mat4(4,4), det_factor
 
 !---------------------------------------------------------------------
 ! init
-! ELE_TEMP needs the element length for the betatron phase calculation
 
   if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
     print *, 'ERROR IN TWISS_PROPAGATE1: ZERO BETA DETECTED.'
@@ -53,7 +52,6 @@ subroutine twiss_propagate1 (ele1, ele2)
   endif
 
   ele2%mode_flip = ele1%mode_flip          ! assume no flip
-  ele_temp%value(l$) = ele2%value(l$)
 
 !---------------------------------------------------------------------
 ! markers are easy
@@ -76,11 +74,11 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   if (all(ele2%mat6(1:2,3:4) == 0)) then
 
-    ele_temp%mat6 = ele2%mat6
+    mat2_a = ele2%mat6(1:2,1:2)
+    mat2_b = ele2%mat6(3:4,3:4) 
 
-    call mat_symp_conj (ele2%mat6(3:4,3:4), y_inv) ! conj == inverse
-    mat2 = matmul (ele2%mat6(1:2,1:2), ele1%c_mat)
-    ele2%c_mat = matmul (mat2, y_inv)
+    call mat_symp_conj (mat2_b, y_inv) ! conj == inverse
+    ele2%c_mat = matmul(matmul(mat2_a, ele1%c_mat), y_inv)
     ele2%gamma_c = ele1%gamma_c
 
 !---------------------------------------------------------------------
@@ -92,14 +90,8 @@ subroutine twiss_propagate1 (ele1, ele2)
 
     ! det_factor is a renormalization factor since det_original != 1
 
-    if (ele2%key == lcavity$) then  
-      call mat_det (mat4, det_original)
-      det_factor = sqrt(det_original)
-    else
-      det_factor = 1
-    endif
-
-    call mat_make_unit (ele_temp%mat6)   ! makle unit matrix
+    det_factor = 1
+    if (ele2%key == lcavity$)  det_factor = sqrt(determinant (mat4))
 
     big_M = mat4(1:2,1:2)
     small_m = mat4(1:2,3:4)
@@ -108,8 +100,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 
     call mat_symp_conj (ele1%c_mat, c_conj_mat)
     mat2 = ele1%gamma_c * big_M - matmul(small_m, c_conj_mat)
-    call mat_det (mat2, det) 
-    det = det / det_factor
+    det = determinant(mat2) / det_factor
 
 ! we demand that gamma_c > 0.3 (ie det > 0.1)
 ! try to make it so that there is no net mode flip here
@@ -117,32 +108,27 @@ subroutine twiss_propagate1 (ele1, ele2)
     if (det > 0.9 .or. (det > 0.1 .and. .not. ele1%mode_flip)) then
 
       ele2%gamma_c = sqrt(det)
-      ele_temp%mat6(1:2,1:2) = mat2 / ele2%gamma_c
-      ele_temp%mat6(3:4,3:4) = &
-            (ele1%gamma_c * big_N + matmul(small_n, ele1%c_mat)) / ele2%gamma_c
-      call mat_symp_conj (ele_temp%mat6(3:4,3:4), F_inv_mat)
-      ele2%c_mat = matmul(matmul(big_M, ele1%c_mat) + &
-                                  ele1%gamma_c * small_m, F_inv_mat)
+      mat2_a = mat2 / ele2%gamma_c
+      mat2_b = (ele1%gamma_c * big_N + matmul(small_n, ele1%c_mat)) / ele2%gamma_c
+      call mat_symp_conj (mat2_b, F_inv_mat)
+      ele2%c_mat = matmul(matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m, F_inv_mat)
 
 ! else we flip the modes
 
     else
 
       mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
-      call mat_det (mat2, det)
-      det = det / det_factor
+      det = determinant (mat2) / det_factor
       if (det < 0) then
         print *, 'TWISS_PROPAGATE1: INTERNAL ERROR! (DUE TO ROUNDOFF?)'
       endif
 
       ele2%gamma_c = sqrt(abs(det))
-      ele_temp%mat6(1:2,1:2) = &
-            (ele1%gamma_c * small_n - matmul(big_N, c_conj_mat)) / ele2%gamma_c
-      ele_temp%mat6(3:4,3:4) = mat2 / ele2%gamma_c
+      mat2_a = (ele1%gamma_c * small_n - matmul(big_N, c_conj_mat)) / ele2%gamma_c
+      mat2_b = mat2 / ele2%gamma_c
 
-      call mat_symp_conj (ele_temp%mat6(1:2,1:2), E_inv_mat)
-      ele2%c_mat = &
-          matmul(ele1%gamma_c * big_M - matmul(small_m, c_conj_mat), E_inv_mat)
+      call mat_symp_conj (mat2_a, E_inv_mat)
+      ele2%c_mat = matmul(ele1%gamma_c * big_M - matmul(small_m, c_conj_mat), E_inv_mat)
 
       ele2%mode_flip = .not. ele1%mode_flip
 
@@ -153,16 +139,19 @@ subroutine twiss_propagate1 (ele1, ele2)
 !---------------------------------------------------------------------
 ! Propagate twiss.
 
-  ele_temp%mode_flip = ele2%mode_flip
-  ele_temp%key       = ele2%key
-  call twiss_decoupled_propagate (ele1, ele_temp)  
-  ele2%a = ele_temp%a                     ! transfer twiss to ele2
-  ele2%b = ele_temp%b
-  ele2%x = ele_temp%x                     ! transfer twiss to ele2
-  ele2%y = ele_temp%y
+  call twiss1_propagate (ele1%a, mat2_a, ele2%value(l$), ele2%a)  
+  call twiss1_propagate (ele1%b, mat2_b, ele2%value(l$), ele2%b)  
 
-! Comming out of a flipped state correct phase by twopi.
-! This is a kludge but factors of twopi are not physically meaningful.
+  if (ele2%mode_flip .neqv. ele1%mode_flip) then
+    twiss_a = ele2%a
+    ele2%a = ele2%b
+    ele2%b = twiss_a
+  endif
+
+! Comming out of a flipped state, the calculation is often off by a factor of twopi.
+! The code corrects this. However, since there is no proof that this always happens, 
+! this is a bit of a kludge. Factors of twopi are not physically meaningful so this
+! does not affect any calculations.
 
   if (ele1%mode_flip .and. .not. ele2%mode_flip) then
     ele2%a%phi = ele2%a%phi - twopi
@@ -227,57 +216,52 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine twiss_decoupled_propagate (ele1, ele2)
+! Subroutine twiss1_propagate (twiss1, mat2, length, twiss2)
 !
-! Subroutine to propagate the twiss parameters from end of ELE1 to end of ELE2.
-! This routine assumes that the matrix ele2%mat6 is decoupled.
+! Subroutine to propagate the twiss parameters of a single mode.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ele1  -- Ele_struct: Structure holding the starting Twiss parameters.
-!   ele2  -- Ele_struct: Structure holding the transfer matrix.
+!   twiss1    -- Twiss_struct: Input Twiss parameters.
+!   mat2(2,2) -- Real(rp): The transfer matrix.
+!   length    -- Real(rp): Determines whether the phase is 
+!                            increasing (l > 0) or decreasing.
 !
 ! Output:
-!   ele2  -- Ele_struct: Structure for the ending Twiss parameters.
+!   twiss2    -- Twiss_struct: Output Twiss parameters.
 !-
 
-subroutine twiss_decoupled_propagate (ele1, ele2)
+subroutine twiss1_propagate (twiss1, mat2, length, twiss2)
 
   use bmad_struct
-  use bmad_interface, except_dummy => twiss_decoupled_propagate
+  use bmad_interface, except_dummy => twiss1_propagate
 
   implicit none
 
-  type (ele_struct)  ele1, ele2
+  type (twiss_struct)  twiss1, twiss2, temp
 
-  real(rp) m11, m12, m21, m22, a1, b1, g1, del_phi
-  real(rp) a2, b2, g2, mat4(4,4), det, det_factor
+  real(rp) m11, m12, m21, m22, del_phi, length
+  real(rp) a1, b1, g1, a2, b2, g2, mat2(2,2), det, det_factor
 
 !----------------------------------------------------
 ! Linac rf matrices need to be renormalized.
 
-  mat4 = ele2%mat6(1:4, 1:4)
-
-  if (ele2%key == lcavity$) then
-    call mat_det (mat4, det)
-    det_factor = det**0.25
-  else
-    det_factor = 1.0
-  endif
+  det_factor = 1.0
+  det = determinant (mat2)
+  if (abs(det - 1) > 1e-6) det_factor = det**0.25
 
 !----------------------------------------------------
 ! Basic equation is given by Bovet 2.5.b page 16
-! Propagate A mode ("X") of ele1
 
-  m11 = mat4(1,1) / det_factor
-  m12 = mat4(1,2) / det_factor
-  m21 = mat4(2,1) / det_factor
-  m22 = mat4(2,2) / det_factor
+  m11 = mat2(1,1) / det_factor
+  m12 = mat2(1,2) / det_factor
+  m21 = mat2(2,1) / det_factor
+  m22 = mat2(2,2) / det_factor
 
-  a1 = ele1%a%alpha
-  b1 = ele1%a%beta
+  a1 = twiss1%alpha
+  b1 = twiss1%beta
   g1 = (1 + a1**2) / b1
 
   b2 =  m11**2  * b1 - 2*m11*m12     * a1 + m12**2  * g1
@@ -285,51 +269,12 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
   g2 =  (1 + a2**2) /b2
 
   del_phi = atan2(m12, m11*b1 - m12*a1)
-  if (del_phi < 0 .and. ele2%value(l$) > 0) del_phi = del_phi + twopi
-  if (del_phi > 0 .and. ele2%value(l$) < 0) del_phi = del_phi - twopi
+  if (del_phi < 0 .and. length > 0) del_phi = del_phi + twopi
+  if (del_phi > 0 .and. length < 0) del_phi = del_phi - twopi
 
-  if (ele2%mode_flip .eqv. ele1%mode_flip) then
-    ele2%a%beta = b2
-    ele2%a%alpha = a2
-    ele2%a%gamma = g2
-    ele2%a%phi = ele1%a%phi + del_phi
-  else
-    ele2%b%beta = b2
-    ele2%b%alpha = a2
-    ele2%b%gamma = g2
-    ele2%b%phi = ele1%a%phi + del_phi
-  endif
-
-!-----------------------------------------------------
-! Propagate B mode ("Y") of ele1
-
-  m11 = mat4(3,3) / det_factor
-  m12 = mat4(3,4) / det_factor
-  m21 = mat4(4,3) / det_factor
-  m22 = mat4(4,4) / det_factor
-
-  a1 = ele1%b%alpha
-  b1 = ele1%b%beta
-  g1 = (1 + a1**2) / b1
-
-  b2 =  m11**2  * b1 - 2*m11*m12     * a1 + m12**2  * g1
-  a2 = -m21*m11 * b1 + (1+2*m12*m21) * a1 - m12*m22 * g1
-  g2 =  (1 + a2**2) /b2
-
-  del_phi = atan2(m12, m11*b1 - m12*a1)
-  if (del_phi < 0 .and. ele2%value(l$) > 0) del_phi = del_phi + twopi
-  if (del_phi > 0 .and. ele2%value(l$) < 0) del_phi = del_phi - twopi
-
-  if (ele2%mode_flip .eqv. ele1%mode_flip) then
-    ele2%b%beta = b2
-    ele2%b%alpha = a2
-    ele2%b%gamma = g2
-    ele2%b%phi = ele1%b%phi + del_phi
-  else
-    ele2%a%beta = b2
-    ele2%a%alpha = a2
-    ele2%a%gamma = g2
-    ele2%a%phi = ele1%b%phi + del_phi
-  endif
+  twiss2%beta = b2
+  twiss2%alpha = a2
+  twiss2%gamma = g2
+  twiss2%phi = twiss1%phi + del_phi
 
 end subroutine
