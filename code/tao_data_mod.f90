@@ -1,14 +1,9 @@
 module tao_data_mod
 
 use tao_mod
-use macroparticle_mod
-use macro_utils_mod
 use spin_mod
 use utilities_mod
 use random_mod
-
-
-! These are data types specific to macroparticles
 
 type this_coupling_struct
   real(rp) cbar(2,2)
@@ -325,8 +320,6 @@ case ('phase_frac_diff')
 case ('beta.x')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%x%beta
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%x%beta
   else
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
                                    'WITH data_source: ' // data_source)
@@ -336,8 +329,6 @@ case ('beta.x')
 case ('beta.y')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%y%beta
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%y%beta
   else
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
                                    'WITH data_source: ' // data_source)
@@ -349,8 +340,6 @@ case ('beta.z')
     valid_value = .false.
   elseif (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%z%beta
-  elseif (data_source == "macro") then
-    valid_value = .false.
   endif
 
 case ('beta.a')
@@ -358,8 +347,6 @@ case ('beta.a')
     call load_it (lat%ele(:)%a%beta, ix0, ix1, datum_value, valid_value, datum, lat)
   elseif (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%beta
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%beta
   endif
     
 case ('beta.b')
@@ -367,8 +354,6 @@ case ('beta.b')
     call load_it (lat%ele(:)%b%beta, ix0, ix1, datum_value, valid_value, datum, lat)
   elseif (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%b%beta
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%beta
   endif
 
 case ('alpha.a')
@@ -376,8 +361,6 @@ case ('alpha.a')
     call load_it (lat%ele(:)%a%alpha, ix0, ix1, datum_value, valid_value, datum, lat)
   elseif (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%alpha
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%alpha
   endif
   
 case ('alpha.b')
@@ -385,8 +368,6 @@ case ('alpha.b')
     call load_it (lat%ele(:)%b%alpha, ix0, ix1, datum_value, valid_value, datum, lat)
   elseif (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%b%alpha
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%alpha
   endif
 
 case ('alpha.z')
@@ -394,8 +375,6 @@ case ('alpha.z')
     valid_value = .false.
   elseif (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%z%alpha
-  elseif (data_source == "macro") then
-    valid_value = .false.
   endif
 
 case ('gamma.a')
@@ -403,8 +382,6 @@ case ('gamma.a')
     call load_it (lat%ele(:)%a%gamma, ix0, ix1, datum_value, valid_value, datum, lat)
   elseif (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%gamma
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%gamma
   endif
   
 case ('gamma.b')
@@ -412,8 +389,6 @@ case ('gamma.b')
     call load_it (lat%ele(:)%b%gamma, ix0, ix1, datum_value, valid_value, datum, lat)
   elseif (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%b%gamma
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%gamma
   endif
 
 case ('gamma.z')
@@ -421,15 +396,11 @@ case ('gamma.z')
     valid_value = .false.
   elseif (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%z%gamma
-  elseif (data_source == "macro") then
-    valid_value = .false.
   endif
 
 case ('eta.x')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%x%eta
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%x%eta
   else
     call load_it (lat%ele(:)%x%eta, ix0, ix1, datum_value, valid_value, datum, lat)
   endif
@@ -437,8 +408,6 @@ case ('eta.x')
 case ('eta.y')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%y%eta
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%y%eta
   else
     call load_it (lat%ele(:)%y%eta, ix0, ix1, datum_value, valid_value, datum, lat)
   endif
@@ -446,8 +415,6 @@ case ('eta.y')
 case ('etap.x')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%x%etap
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%x%etap
   else
     call load_it (lat%ele(:)%x%etap, ix0, ix1, datum_value, valid_value, datum, lat)
   endif
@@ -455,8 +422,6 @@ case ('etap.x')
 case ('etap.y')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%y%etap
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%y%etap
   else
     call load_it (lat%ele(:)%y%etap, ix0, ix1, datum_value, valid_value, datum, lat)
   endif
@@ -464,8 +429,6 @@ case ('etap.y')
 case ('eta.a')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%eta
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%eta
   else
     call load_it (lat%ele(:)%a%eta, ix0, ix1, datum_value, valid_value, datum, lat)
   endif
@@ -473,8 +436,6 @@ case ('eta.a')
 case ('eta.b')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%b%eta
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%eta
   else
     call load_it (lat%ele(:)%b%eta, ix0, ix1, datum_value, valid_value, datum, lat)
   endif
@@ -482,8 +443,6 @@ case ('eta.b')
 case ('etap.a')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%etap
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%etap
   else
     call load_it (lat%ele(:)%a%etap, ix0, ix1, datum_value, valid_value, datum, lat)
   endif
@@ -491,8 +450,6 @@ case ('etap.a')
 case ('etap.b')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%b%etap
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%etap
   else
     call load_it (lat%ele(:)%b%etap, ix0, ix1, datum_value, valid_value, datum, lat)
   endif
@@ -650,8 +607,6 @@ case ('wall')
 case ('emit.x', 'norm_emit.x')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%x%norm_emitt
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%norm_emitt
   else
     valid_value = .false.
   endif
@@ -660,8 +615,6 @@ case ('emit.x', 'norm_emit.x')
 case ('emit.y', 'norm_emit.y')  
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%y%norm_emitt
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%norm_emitt
   else
     valid_value = .false.
   endif
@@ -670,8 +623,6 @@ case ('emit.y', 'norm_emit.y')
 case ('emit.z', 'norm_emit.z')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%z%norm_emitt
-  elseif (data_source == "macro") then
-    valid_value = .false.
   else
     valid_value = .false.
   endif
@@ -680,8 +631,6 @@ case ('emit.z', 'norm_emit.z')
 case ('emit.a', 'norm_emit.a')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%a%norm_emitt
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%norm_emitt
   elseif (data_source == "lattice") then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_a)) then
@@ -700,8 +649,6 @@ case ('emit.a', 'norm_emit.a')
 case ('emit.b', 'norm_emit.b')  
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%b%norm_emitt
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%norm_emitt
   elseif (data_source == "lattice") then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_b)) then
@@ -732,8 +679,6 @@ case ('unstable_ring')
 case ('dpx_dx') 
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%sigma(s12$) / tao_lat%bunch_params(ix1)%sigma(s11$)
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%dpx_dx
   else
     valid_value = .false.
   endif
@@ -741,8 +686,6 @@ case ('dpx_dx')
 case ('dpy_dy') 
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%sigma(s34$) / tao_lat%bunch_params(ix1)%sigma(s33$)
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%dpx_dx
   else
     valid_value = .false.
   endif
@@ -750,8 +693,6 @@ case ('dpy_dy')
 case ('dpz_dz') 
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%sigma(s56$) / tao_lat%bunch_params(ix1)%sigma(s55$)
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%z%dpx_dx
   else
     valid_value = .false.
   endif
@@ -759,8 +700,6 @@ case ('dpz_dz')
 case ('sigma.x')  
   if (data_source == "beam") then
     datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s11$))
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%sigma
   else
     valid_value = .false.
   endif
@@ -768,8 +707,6 @@ case ('sigma.x')
 case ('sigma.p_x')  
   if (data_source == "beam") then
     datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s22$))
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%a%p_sigma
   else
     valid_value = .false.
   endif
@@ -777,8 +714,6 @@ case ('sigma.p_x')
 case ('sigma.y')  
   if (data_source == "beam") then
     datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s33$))
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%sigma
   else
     valid_value = .false.
   endif
@@ -786,8 +721,6 @@ case ('sigma.y')
 case ('sigma.p_y')  
   if (data_source == "beam") then
     datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s44$))
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%b%p_sigma
   else
     valid_value = .false.
   endif
@@ -795,8 +728,6 @@ case ('sigma.p_y')
 case ('sigma.z')  
   if (data_source == "beam") then
     datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s55$))
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%z%sigma
   else
     valid_value = .false.
   endif
@@ -804,8 +735,6 @@ case ('sigma.z')
 case ('sigma.p_z')  
   if (data_source == "beam") then
     datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s66$))
-  elseif (data_source == "macro") then
-    datum_value = u%macro_beam%params%z%p_sigma
   else
     valid_value = .false.
   endif
@@ -813,8 +742,6 @@ case ('sigma.p_z')
 case ('sigma.xy')  
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%sigma(s13$)
-  elseif (data_source == "macro") then
-    valid_value = .false.
   else
     valid_value = .false.
   endif
@@ -823,8 +750,6 @@ case ('wire.')
   if (data_source == "beam") then
     read (data_type(6:), '(a)') angle
     datum_value = tao_do_wire_scan (lat%ele(ix1), angle, u%current_beam)
-  elseif (data_source == "macro") then
-    valid_value = .false.
   else
     valid_value = .false.
   endif
@@ -832,8 +757,6 @@ case ('wire.')
 case ('spin.theta')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%spin%theta
-  elseif (data_source == "macro") then
-    valid_value = .false.
   else
     call spinor_to_polar (tao_lat%orb(ix1), polar)
     datum_value = polar%theta
@@ -842,8 +765,6 @@ case ('spin.theta')
 case ('spin.phi')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%spin%phi
-  elseif (data_source == "macro") then
-    valid_value = .false.
   else
     call spinor_to_polar (tao_lat%orb(ix1), polar)
     datum_value = polar%phi
@@ -852,8 +773,6 @@ case ('spin.phi')
 case ('spin.polarity')
   if (data_source == "beam") then
     datum_value = tao_lat%bunch_params(ix1)%spin%polarization
-  elseif (data_source == "macro") then
-    valid_value = .false.
   else
     datum_value = 1.0
   endif

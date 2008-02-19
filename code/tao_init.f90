@@ -270,8 +270,6 @@ if (allocated (s%u)) then
     deallocate(u%base%orb, stat=istat)
     
     ! Beams
-    deallocate (u%macro_beam%ix_lost, stat=istat)
-    call reallocate_macro_beam (u%macro_beam%beam, 0, 0, 0)
 
     do j = lbound(u%ele, 1), ubound(u%ele, 1)
       call reallocate_beam(u%ele(j)%beam, 0, 0)
@@ -282,7 +280,6 @@ if (allocated (s%u)) then
 
     ! Connected universes
     call deallocate_ele_pointers (u%connect%connect_ele)
-    call reallocate_macro_beam (u%connect%injecting_macro_beam, 0, 0, 0)
     call reallocate_beam (u%connect%injecting_beam, 0, 0)
     
     ! d2_data

@@ -81,6 +81,7 @@ endif
 max_val = 0
 do i = 1, size(v_array)
   var => v_array(i)%v
+  if (.not. var%exists) cycle
   var%old_value = var%model_value
   if (abs_or_rel == 'ABS') then
     call tao_set_var_model_value (var, change_number)

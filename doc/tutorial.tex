@@ -383,7 +383,7 @@ the exit end of each element, is also shown.
 Anything printed to the display using the \vn{show} command can also
 be printed to a file by typing
 \begin{example}
-  show -write <what_to_show>
+  show -write <file_name> <what_to_show>
 \end{example}
 \index{Commands!show}
 
@@ -423,7 +423,7 @@ omitted):
 The k1 value can be increased by 0.01 units for quadrupole Q05W by typing
 \index{Commands!change}
 \begin{example}
-  change var quad\_k1 5 0.01
+  change var quad\_k1[5] 0.01
   scale
 \end{example}
 Note the information returned on the command line after the command

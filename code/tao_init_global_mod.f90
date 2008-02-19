@@ -20,7 +20,6 @@ subroutine tao_init_global (init_file)
 
 use tao_lattice_calc_mod
 use tao_input_struct
-use macroparticle_mod
 use bmad_parser_mod
 use random_mod
 use csr_mod, only: csr_param
@@ -31,7 +30,6 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (tao_global_struct), save :: global, default_global
 type (beam_init_struct) beam_init
-type (macro_init_struct) macro_init
 type (tao_connected_uni_input) connect
 type (spin_polar_struct) spin
 
@@ -48,7 +46,7 @@ character(40) name,  universe
 character(60) save_beam_at(100)
 character(100) line
 
-logical err
+logical err, is_set, ended
 
 namelist / tao_params / global, bmad_com, csr_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
@@ -58,8 +56,6 @@ namelist / tao_connected_uni_init / ix_universe, connect
 namelist / tao_beam_init / ix_universe, beam0_file, &
   ix_track_start, ix_track_end, beam_all_file, beam_init, save_beam_at
          
-namelist / tao_macro_init / ix_universe, macro_init
-
 !-----------------------------------------------------------------------
 ! Init lattaces
 ! read global structure from tao_params namelist
@@ -75,17 +71,20 @@ global = default_global         ! establish defaults
 global%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
 global%default_key_merit_type = 'limit'
 
-call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
-read (iu, nml = tao_params, iostat = ios)
-if (ios > 0) then
-  call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST.')
-  rewind (iu)
-  read (iu, nml = tao_params)  ! To give error message
+call tao_hook_init_params (global, is_set)
+if (.not. is_set) then
+  call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
+  read (iu, nml = tao_params, iostat = ios)
+  if (ios > 0) then
+    call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST.')
+    rewind (iu)
+    read (iu, nml = tao_params)  ! To give error message
+  endif
+  if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
 endif
-if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
 
 s%global = global  ! transfer global to s%global
-  
+
 if (s%global%track_type == "macro") then
   call out_io (s_error$, r_name, &
              'MACROPARTICLE TRACKING IS NOT ACTIVELY SUPPORTED!', &
@@ -148,38 +147,40 @@ do
   connect%at_s = -1
   connect%match_to_design = .false.
 
-  read (iu, nml = tao_connected_uni_init, iostat = ios)
+  call tao_hook_init_connected_uni (ix_universe, connect, is_set, ended)
+  if (ended) exit
 
-  if (ios == 0) then
-    if (ix_universe == -1) then
-      call out_io (s_abort$, r_name, &
-            'INIT: READ TAO_CONNECTED_UNI_INIT NAMELIST HAS NOT SET IX_UNIVERSE!')
-      call err_exit
+  if (.not. is_set) then
+    read (iu, nml = tao_connected_uni_init, iostat = ios)
+    if (ios > 0) then
+      call out_io (s_abort$, r_name, 'INIT: TAO_CONNECTED_UNI_INIT NAMELIST READ ERROR!')
+      rewind (iu)
+      do
+        read (iu, nml = tao_connected_uni_init)  ! generate an error message
+      enddo
     endif
-    call out_io (s_blank$, r_name, &
-        'Init: Read tao_connected_uni_init namelist for universe \i3\ ', ix_universe)
-    i = ix_universe
-    call init_connected_uni (s%u(i), connect, i)
-    cycle
-  elseif (ios > 0) then
-    call out_io (s_abort$, r_name, 'INIT: TAO_CONNECTED_UNI_INIT NAMELIST READ ERROR!')
-    rewind (iu)
-    do
-      read (iu, nml = tao_connected_uni_init)  ! generate an error message
-    enddo
+    if (ios < 0) exit
   endif
 
-  close (iu)
-  exit
+  if (ix_universe == -1) then
+    call out_io (s_abort$, r_name, &
+          'INIT: READ TAO_CONNECTED_UNI_INIT NAMELIST HAS NOT SET IX_UNIVERSE!')
+    call err_exit
+  endif
+  call out_io (s_blank$, r_name, &
+      'Init: Read tao_connected_uni_init namelist for universe \i3\ ', ix_universe)
+  i = ix_universe
+  call init_connected_uni (s%u(i), connect, i)
 
 enddo
+
+close (iu)
 
 
 !-----------------------------------------------------------------------
 ! Init Beam
 
-! Do not initialize both beam and macro
-if (s%global%track_type /= 'macro') then
+if (s%global%track_type == 'beam') then
 
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
@@ -188,8 +189,9 @@ if (s%global%track_type /= 'macro') then
     s%u(i)%beam0_file = ''
   enddo
 
-  ! defaults
   do 
+
+    ! defaults
     ix_universe = -1
     beam_init%a_norm_emitt  = 0.0
     beam_init%b_norm_emitt  = 0.0
@@ -209,80 +211,37 @@ if (s%global%track_type /= 'macro') then
     ix_track_start = -1
     ix_track_end = -1
 
-    read (iu, nml = tao_beam_init, iostat = ios)
+    ! Read beam parameters
 
-    if (ios == 0) then
-      call out_io (s_blank$, r_name, &
-              'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
-      if (ix_universe == -1) then
-        do i = lbound(s%u, 1), ubound(s%u, 1)
-          call init_beam(s%u(i))
+    call tao_hook_init_beam (ix_universe, beam0_file, ix_track_start, ix_track_end, &
+                beam_all_file, beam_init, save_beam_at, is_set, ended)
+    if (ended) exit
+
+    if (.not. is_set) then
+      read (iu, nml = tao_beam_init, iostat = ios)
+      if (ios > 0) then
+        call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!')
+        rewind (iu)
+        do
+          read (iu, nml = tao_beam_init)  ! generate an error message
         enddo
-      else
-        call init_beam(s%u(ix_universe))
       endif
-      cycle
-    elseif (ios > 0 .and. s%global%track_type == "beam") then
-      call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!')
-      rewind (iu)
-      do
-        read (iu, nml = tao_beam_init)  ! generate an error message
-      enddo
+      if (ios /= 0) exit
     endif
 
-    close (iu)
-    exit
+    call out_io (s_blank$, r_name, &
+            'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
+    if (ix_universe == -1) then
+      do i = lbound(s%u, 1), ubound(s%u, 1)
+        call init_beam(s%u(i))
+      enddo
+    else
+      call init_beam(s%u(ix_universe))
+    endif
 
   enddo
 
-
-!-----------------------------------------------------------------------
-! Init macroparticles
- 
-elseif(s%global%track_type == 'macro') then
-  call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
-  call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
-
-  ! defaults
-  do
-    ix_universe = -1
-    macro_init%a%norm_emit  = 0.0
-    macro_init%b%norm_emit  = 0.0
-    macro_init%dPz_dz = 0.0
-    macro_init%center(:) = 0.0
-    macro_init%ds_bunch = 1
-    macro_init%sig_z   = 10e-6
-    macro_init%sig_e   = 10e-3
-    macro_init%sig_e_cut = 3
-    macro_init%sig_z_cut = 3
-    macro_init%n_bunch = 1
-    macro_init%n_slice = 1
-    macro_init%n_macro = 1
-    macro_init%n_part  = 1e10
-    read (iu, nml = tao_macro_init, iostat = ios)
-    if (ios == 0) then
-      if (ix_universe == -1) then
-        call out_io (s_abort$, r_name, &
-                'INIT: READ TAO_MACRO_INIT NAMELIST HAS NOT SET IX_UNIVERSE!')
-        call err_exit
-      endif
-      call out_io (s_blank$, r_name, &
-              'Init: Read tao_macro_init namelist for universe \i3\ ', ix_universe)
-      i = ix_universe
-      call init_macro(s%u(i), macro_init)  ! generate an error message
-      cycle
-    elseif (ios > 0) then
-      call out_io (s_abort$, r_name, 'INIT: TAO_MACRO_INIT NAMELIST READ ERROR!')
-      rewind (iu)
-      do
-        read (iu, nml = tao_macro_init)  ! generate an error message
-      enddo
-    endif
-
-    close (iu)
-    exit
-
-  enddo
+  close (iu)
 
 endif
 
@@ -477,50 +436,6 @@ if (allocated(ix_eles)) deallocate (ix_eles)
 
 end subroutine init_beam
 
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-!
-! Initialize the macroparticles. Determine which element to track beam to
-!
-
-subroutine init_macro(u, macro_init)
-
-implicit none
-
-type (tao_universe_struct) u
-type (macro_init_struct) macro_init
-
-!
-
-if (u%design%lat%param%lattice_type == circular_lattice$) then
-  call out_io (s_blank$, r_name, "***")
-  call out_io (s_blank$, r_name, &
-                 "Macroparticle tracking through a circular lattice.")
-  call out_io (s_blank$, r_name, &
-         "Twiss parameters and initial orbit will be found from the closed orbit.")
-  call out_io (s_blank$, r_name, "***")
-endif
-
-u%macro_beam%macro_init = macro_init
-u%design%orb(0)%vec = macro_init%center
-
-! Don't initialize beams in circular lattice
-if (u%design%lat%param%lattice_type == circular_lattice$) return
-    
-! This is just to get things allocated
-call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%lat%ele(0), .true.)
-if (u%connect%connected) &
-  call init_macro_distribution (u%connect%injecting_macro_beam, &
-                                             macro_init, u%design%lat%ele(0), .true.)
-
-! keep track of where macros are lost
-if (associated (u%macro_beam%ix_lost)) deallocate (u%macro_beam%ix_lost)
-allocate (u%macro_beam%ix_lost(macro_init%n_bunch, macro_init%n_slice, macro_init%n_macro))
-u%macro_beam%ix_lost(:,:,:) = -1
-
-end subroutine init_macro
-
 end subroutine tao_init_global
 
 !-----------------------------------------------------------------------------------
@@ -554,7 +469,6 @@ type (tao_d1_data_input) d1_data
 type (tao_data_input) data(n_data_minn:n_data_maxx) ! individual weight 
 
 real(rp) default_weight        ! default merit function weight
-real(rp) default_step          ! default "small" step size
 
 integer ios, iu, i, j, j1, k, ix, n_uni, num
 integer n, iostat, n_max
@@ -564,20 +478,18 @@ integer, automatic :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
 
 character(*) data_file
 character(40) :: r_name = 'tao_init_data'
-character(200) file_name, beam0_file, beam_all_file
+character(200) file_name
 character(40) name,  universe, default_universe, default_data_type
 character(40) default_merit_type, default_attribute, data_type, default_data_source
 character(40) use_same_lat_eles_as, search_for_lat_eles
 
-character(60) save_beam_at(100)
 character(100) line
 
-logical err, free, gang
+logical err, free, gang, is_set, ended
 logical, automatic :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
 namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
 
-  
 namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
                    default_weight, default_data_type, default_data_source, &
                    use_same_lat_eles_as, search_for_lat_eles
@@ -591,28 +503,39 @@ call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
 
 n_d2_data = 0
 
-do 
-  universe = '*'
-  read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
-  if (ios /= 0) exit
-  if (universe == '*') then
-    n_d2_data = n_d2_data + 1
-  else
-    read (universe, *, iostat = ios) n_uni
-    if (ios /= 0 .or. n_uni > ubound(s%u, 1)) then
-      call out_io (s_abort$, r_name, &
-            'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
-      call err_exit
+call tao_hook_count_d2_data(n_d2_data, is_set) 
+if (.not. is_set) then
+  do 
+    universe = '*'
+    read (iu, nml = tao_d2_data, iostat = ios)
+    if (ios > 0) then
+      call out_io (s_error$, r_name, 'TAO_D2_DATA NAMELIST READ ERROR.')
+      rewind (iu)
+      do
+        read (iu, nml = tao_d2_data)  ! force printing of error message
+      enddo
     endif
-    n_d2_data(n_uni) = n_d2_data(n_uni) + 1
-  endif
-enddo
+    if (ios /= 0) exit
+    if (universe == '*') then
+      n_d2_data = n_d2_data + 1
+    else
+      read (universe, *, iostat = ios) n_uni
+      if (ios /= 0 .or. n_uni > ubound(s%u, 1)) then
+        call out_io (s_abort$, r_name, &
+              'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
+        call err_exit
+      endif
+      n_d2_data(n_uni) = n_d2_data(n_uni) + 1
+    endif
+  enddo
+endif
+
+! Allocate space for the data
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
 
   allocate (u%data(0))
-  u%is_on = .true.          ! turn universe on
   u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
   u%n_data_used = 0         ! size of s%u(i)%data(:) array
   u%ix_rad_int_cache = 0
@@ -631,7 +554,7 @@ enddo
 
 ! Init data
 
-rewind (iu)
+if (iu /= 0) rewind (iu)
 
 do 
   mask(:) = .true.      ! set defaults
@@ -639,10 +562,14 @@ do
   universe           = '*'
   default_merit_type = 'target'
 
-  read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
-  if (ios < 0) exit         ! exit on end-of-file
-  call out_io (s_blank$, r_name, &
-                      'Init: Read tao_d2_data namelist: ' // d2_data%name)
+  call tao_hook_read_d2_data (d2_data, n_d1_data, default_merit_type, universe, is_set, ended)
+  if (ended) exit
+
+  if (.not. is_set) then  ! If not read in then read from file
+    read (iu, nml = tao_d2_data, iostat = ios)
+    if (ios < 0) exit         ! exit on end-of-file
+    call out_io (s_blank$, r_name, 'Init: Read tao_d2_data namelist: ' // d2_data%name)
+  endif
     
   if (universe == '*') then
     uni_loop1: do i = lbound(s%u, 1), ubound(s%u, 1)
@@ -695,7 +622,19 @@ do
     ix_min_data         = int_garbage$
     ix_max_data         = int_garbage$
 
-    read (iu, nml = tao_d1_data, err = 9150)
+    call tao_hook_read_d1_data (d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
+                   default_weight, default_data_type, default_data_source, &
+                   use_same_lat_eles_as, search_for_lat_eles, is_set)
+    if (.not. is_set) then
+      read (iu, nml = tao_d1_data, iostat = ios)
+      if (ios > 0) then
+        call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.')
+        rewind (iu)
+        do
+          read (iu, nml = tao_d1_data)  ! force printing of error message
+        enddo
+      endif
+    endif
 
     ! Convert old format to new
 
@@ -751,25 +690,6 @@ close (iu)
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   call init_ix_data (s%u(i))
-enddo
-
-return
-
-!-----------------------------------------------------------------------
-! namelist read error.
-
-9100 continue
-call out_io (s_error$, r_name, 'TAO_D2_DATA NAMELIST READ ERROR.')
-rewind (iu)
-do
-  read (iu, nml = tao_d2_data)  ! force printing of error message
-enddo
-
-9150 continue
-call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.')
-rewind (iu)
-do
-  read (iu, nml = tao_d1_data)  ! force printing of error message
 enddo
 
 !----------------------------------------------------------------
@@ -1240,7 +1160,7 @@ integer ix_min_var, ix_max_var, ix_ele, n_v1, n_v1_var_max
 
 character(*) var_file
 character(40) :: r_name = 'tao_init_variables'
-character(40) name, universe, default_universe, default_data_type
+character(40) name, universe, default_universe
 character(40) default_merit_type, default_attribute
 character(40) use_same_lat_eles_as, search_for_lat_eles
 character(8) default_key_bound
@@ -1250,7 +1170,7 @@ character(8), allocatable, save :: default_key_b(:)
 character(100) line
 
 logical err, free, gang
-logical searching
+logical searching, is_set, ended
 logical, allocatable, save :: dflt_good_unis(:), good_unis(:)
                      
 namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
@@ -1264,12 +1184,6 @@ namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delt
 allocate (s%var(0))
 s%n_var_used = 0
 
-do i = 1, size(s%var)
-  allocate (s%var(i)%this(0))
-  s%var(i)%model_value => s%var(i)%old_value    ! Just to point to somewhere
-  s%var(i)%base_value  => s%var(i)%old_value    ! Just to point to somewhere
-enddo
-
 ! First count how many v1_var definitions there are
 
 if (allocated(s%v1_var)) deallocate (s%v1_var)
@@ -1277,33 +1191,36 @@ if (allocated(s%v1_var)) deallocate (s%v1_var)
 call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
 
-n_v1_var_max = 0
+call tao_hook_count_var(n, is_set) 
 
-do
-  read (iu, nml = tao_var, iostat = ios, err = 9200)
-  if (ios < 0) exit
-  n_v1_var_max = n_v1_var_max + 1
-enddo
+if (.not. is_set) then
+  allocate (default_key_b(100), default_key_d(100))
+  n = 0
+  do
+    default_key_bound = ''
+    default_key_delta = 0
+    read (iu, nml = tao_var, iostat = ios)
+    if (ios > 0) then
+      call out_io (s_error$, r_name, 'TAO_VAR NAMELIST READ ERROR.')
+      rewind (iu)
+      do
+        read (iu, nml = tao_var)  ! force printing of error message
+      enddo
+    endif
+    if (ios < 0) exit
+    n = n + 1
+    if (n > size(default_key_b)) then
+      call re_allocate (default_key_b, len(default_key_b(1)), 2*size(default_key_b))
+      call re_allocate (default_key_d, 2*size(default_key_d))
+    endif
+    default_key_b(n) = default_key_bound
+    default_key_d(n) = default_key_delta
+  enddo
+endif
 
-n = n_v1_var_max + 1
-allocate (s%v1_var(n), default_key_b(n), default_key_d(n))
+allocate (s%v1_var(n))
 s%v1_var%name = ''  ! blank name means it doesn't (yet) exist
 s%n_v1_var_used = 0       ! size of s%v1_var(:) array
-
-! Read some defaults
-
-rewind (iu)
-
-n_v1 = 0
-do
-  default_key_bound = ''
-  default_key_delta = 0
-  read (iu, nml = tao_var, iostat = ios, err = 9200)
-  if (ios < 0) exit
-  n_v1 = n_v1 + 1
-  default_key_b(n_v1) = default_key_bound
-  default_key_d(n_v1) = default_key_delta
-enddo
 
 ! Now fill in all the information
 
@@ -1338,14 +1255,22 @@ do
   var%key_bound      = default_key_b(n_v1)
   var%key_delta      = default_key_d(n_v1)
 
-  read (iu, nml = tao_var, iostat = ios, err = 9200)
-  if (ios < 0) exit         ! exit on end-of-file
-  call out_io (s_blank$, r_name, &
-                        'Init: Read tao_var namelist: ' // v1_var%name)
-  call str_upcase (default_attribute, default_attribute)
+  call tao_hook_read_var (v1_var, var, default_weight, default_step, default_key_delta, &
+                    ix_min_var, ix_max_var, default_universe, default_attribute, &
+                    default_low_lim, default_high_lim, default_merit_type, &
+                    use_same_lat_eles_as, search_for_lat_eles, default_key_bound, &
+                    is_set, ended)
+  if (ended) exit
+
+  if (.not. is_set) then  ! If not read in then read from file
+    read (iu, nml = tao_var, iostat = ios)
+    if (ios < 0) exit         ! exit on end-of-file
+    call out_io (s_blank$, r_name, 'Init: Read tao_var namelist: ' // v1_var%name)
+  endif
 
   ! Convert old format to new
 
+  call str_upcase (default_attribute, default_attribute)
   if (var(0)%ele_name(1:7) == 'SEARCH:') then
     call string_trim(var(0)%ele_name(8:), search_for_lat_eles, ix)
   elseif (var(0)%ele_name(1:5) == 'SAME:') then
@@ -1476,18 +1401,6 @@ do i = 1, s%n_var_used
   j = j + 1
   s%key(j) = i
   s%var(i)%key_val0 = s%var(i)%model_value
-enddo
-
-return
-
-!-----------------------------------------------------------------------
-! namelist read error.
-
-9200 continue
-call out_io (s_error$, r_name, 'TAO_VAR NAMELIST READ ERROR.')
-rewind (iu)
-do
-  read (iu, nml = tao_var)  ! force printing of error message
 enddo
 
 !-----------------------------------------------------------------------
@@ -1978,19 +1891,24 @@ integer i, j1, j2, n0, n_var
 
 ! Allocate 
 
-n0 = size(s%var)
-do i = 1, n0
-  allocate(var(i)%this(size(s%var(i)%this)))
-enddo
-var = s%var
-deallocate (s%var)
-allocate (s%var(n_var))
-do i = 1, n0
-  allocate(s%var(i)%this(size(var(i)%this)))
-enddo
-s%var(1:n0) = var
+if (allocated(s%var)) then
+  n0 = size(s%var)
+  do i = 1, n0
+    allocate(var(i)%this(size(s%var(i)%this)))
+  enddo
+  var = s%var
+  deallocate (s%var)
+  allocate (s%var(n_var))
+  do i = 1, n0
+    allocate(s%var(i)%this(size(var(i)%this)))
+  enddo
+  s%var(1:n0) = var
+else
+  n0 = 0
+  allocate (s%var(n_var))
+endif
 
-! Since the var array gets reallocated the pointer from d1 to the datums must 
+! Since the var array gets reallocated the pointer from var1 to the datums must 
 ! be reestablished.
 
 j2 = 0

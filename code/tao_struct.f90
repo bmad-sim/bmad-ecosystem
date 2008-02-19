@@ -13,8 +13,6 @@ use bmad_struct, only: rp, lat_struct, coord_struct, radians$, ele_struct, norma
 use equal_mod
 use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, &
                       qp_rect_struct, qp_point_struct
-use macroparticle_mod, only: macro_init_struct, macro_beam_struct
-use macro_utils_mod, only: macro_bunch_params_struct
 use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
 use rad_int_common, only: rad_int_common_struct
@@ -424,7 +422,7 @@ type tao_global_struct
   real(rp) :: random_gauss_cutoff = 4    ! cut-off in sigmas.
   character(16) :: random_engine = 'quasi' 
   character(16) :: random_gauss_converter = 'exact'
-  character(16) :: track_type    = 'single'    ! or 'beam' or 'macro' 
+  character(16) :: track_type    = 'single'    ! or 'beam'  
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'        ! optimizer to use.
   character(16) :: default_key_merit_type 
@@ -504,7 +502,6 @@ type tao_connected_uni_struct
   real(rp) from_uni_s     ! s position in from_uni where the connection occurs
   type (ele_struct) :: connect_ele ! element used to match universes
   type (beam_struct) injecting_beam ! used for beam injection
-  type (macro_beam_struct) injecting_macro_beam ! used for macroparticle injection
 end type
 
 !-----------------------------------------------------------------------
@@ -517,18 +514,6 @@ end type
     ! list of all datums evaluated at this ele
     integer, allocatable :: ix_datum(:)
   endtype
-
-!-----------------------------------------------------------------------
-! Macroparticle beam structures
-
-type tao_macro_beam_struct
-  type (macro_beam_struct) beam             ! macroparticle beam
-  type (macro_init_struct) macro_init ! macro distribution at beginning of lat
-  type (macro_bunch_params_struct) params ! macro bunch parameters for viewed bunch
-  integer, pointer :: ix_lost(:,:,:) => null()
-                                      ! ^ if .ne. -1 then this macro lost at this ele
-                                      ! ix_lost(bunch,slice,macro)
-end type
 
 !-----------------------------------------------------------------------
 ! The %bunch_params(:) array has a 1-to-1 correspondence with the lattice elements.
@@ -575,7 +560,6 @@ type tao_universe_struct
   type (beam_struct) beam0                         ! Beam at the beginning of lattice
   type (beam_init_struct) :: beam_init             ! Beam distrubution
                                                    !  at beginning of lattice
-  type (tao_macro_beam_struct) macro_beam          ! Macroparticle beam 
   type (tao_connected_uni_struct)   :: connect     ! Used for connected lattices
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.

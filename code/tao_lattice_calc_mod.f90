@@ -9,7 +9,6 @@ module tao_lattice_calc_mod
 use tao_mod
 use tao_data_mod
 use tao_calc_params_mod
-use macroparticle_mod
 use beam_mod
 use random_mod
 use rad_int_common
@@ -127,10 +126,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call tao_inject_beam (u, tao_lat)
     call tao_lat_bookkeeper (u, tao_lat)
     call tao_beam_track (i, tao_lat, this_who, this_calc_ok)
-  case ('macro')
-    call tao_inject_macro_beam (u, tao_lat)
-    call tao_lat_bookkeeper (u, tao_lat)
-    call tao_macro_track (i, tao_lat, this_who, this_calc_ok)
   case default
     call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // s%global%track_type)
     call err_exit
@@ -352,7 +347,7 @@ if (.not. u%connect%connected) then
         beam_init%b_norm_emitt  = modes%b%emittance * f
       endif
     endif
-    ! transfer extracted particle info into macro_init
+    ! transfer extracted particle info into beam_init
     if (extract_at_ix_ele .ne. -1) then
       beam_init%center  = tao_lat%lat%beam_start%vec
       ! other beam_init parameters will be as in tao.init, or as above
@@ -444,157 +439,9 @@ end subroutine tao_beam_track
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
-! Right now, there is no macroparticle tracking in lattices. If extracting from a
-! lat then the macroparticle beam is generated at the extraction point.
-
-subroutine tao_macro_track (uni, tao_lat, who, calc_ok)
-
-use macro_utils_mod
-
-implicit none
-
-type (tao_lattice_struct), target :: tao_lat
-type (lat_struct), pointer :: lat
-type (tao_universe_struct), pointer :: u
-type (macro_beam_struct), pointer :: beam
-type (macro_init_struct), pointer :: macro_init
-type (normal_modes_struct) :: modes
-
-integer uni, what_lat, who
-integer j, i_uni
-integer n_bunch, n_slice, n_macro
-integer extract_at_ix_ele, n_lost
-
-character(20) :: r_name = "macro_track"
-
-real(rp) :: value1, value2, f
-
-logical post, calc_ok, all_lost
-
-!
-
-calc_ok = .true.
-
-u => s%u(uni)
-beam => u%macro_beam%beam
-macro_init => u%macro_beam%macro_init
-lat => tao_lat%lat
-lat%param%ix_lost = not_lost$
-
-all_lost = .false.
-
-! Find if injecting into another lattice
-extract_at_ix_ele = -1
-do i_uni = uni+1, ubound(s%u, 1)
-  if (.not. s%u(i_uni)%connect%connected) cycle
-  if (s%u(i_uni)%connect%from_uni /= uni) cycle
-  if (s%u(i_uni)%connect%from_uni_ix_ele .ne. -1) then
-    extract_at_ix_ele = s%u(i_uni)%connect%from_uni_ix_ele
-    exit ! save i_uni for connected universe
-  else
-    call out_io (s_abort$, r_name, &
-         "Must specify an element when connecting lattices with macroparticles")
-    call err_exit
-  endif
-enddo 
-  
-! If beam is injected to here then no initialization wanted.
-if (.not. u%connect%connected) then
-  ! no macroparticle tracking in lattices
-  if (lat%param%lattice_type == circular_lattice$ ) then
-    call tao_single_track (uni, tao_lat, who, calc_ok) 
-    if (u%calc_beam_emittance) then
-      call radiation_integrals (lat, tao_lat%orb, modes, u%ix_rad_int_cache)
-      if (extract_at_ix_ele .ne. -1) then
-        f = lat%ele(extract_at_ix_ele)%value(E_tot$) * &
-                    (1+tao_lat%orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
-        macro_init%a%norm_emit  = modes%a%emittance * f
-        macro_init%b%norm_emit  = modes%b%emittance * f
-      endif
-    endif
-    !transfer extracted particle info into macro_init
-    if (extract_at_ix_ele .ne. -1) then
-      macro_init%center  = tao_lat%lat%beam_start%vec
-      ! other macro_init parameters will be as in init.tao, or as above
-      call init_macro_distribution (s%u(i_uni)%connect%injecting_macro_beam, &
-                                macro_init, lat%ele(extract_at_ix_ele), .true.)
-    endif
-    return
-  elseif (lat%param%lattice_type .ne. linear_lattice$) then
-    call out_io (s_error$, r_name, &
-                   "This lattice type not yet implemented for macroparticles!")
-    call err_exit
-  endif
-endif
-
-! beginning element calculations
-call tao_load_data_array (u, 0, who) 
-
-! track through every element
-do j = 1, lat%n_ele_track
-
-  if (.not. all_lost) then
-
-    ! if doing linear tracking, first compute transfer matrix
-    if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
-             call make_mat6 (lat%ele(j), lat%param) 
-
-    ! track to the element
-    if (j /= 0) call track_macro_beam (lat, beam, j-1, j)
- 
-    ! Save beam at location if injecting into another lattice
-    if (extract_at_ix_ele == j) then
-      s%u(i_uni)%connect%injecting_macro_beam = beam
-    endif
-    
-    ! compute centroid orbit
-    call tao_find_macro_beam_centroid (beam, tao_lat%orb(j), uni, j, all_lost, u%macro_beam)
-
-    if (all_lost) then
-      lat%param%ix_lost = j
-    endif
-
-  endif
-
-  ! Find lattice and beam parameters
-  ! load data
-
-  call tao_calc_params (u, j, all_lost)
-  call tao_load_data_array (u, j, who) 
-enddo
-
-! only post total lost if no extraction or extracting to a turned off lattice
-
-post = .false.
-if (extract_at_ix_ele == -1) post = .true.
-if (uni .lt. ubound(s%u, 1)) then
-  if (.not. s%u(uni+1)%is_on) post = .true.
-endif
-
-if (post) then
-  n_lost = 0 
-  do n_bunch = 1, size(beam%bunch)
-    do n_slice = 1, size(beam%bunch(n_bunch)%slice)
-      do n_macro = 1, size(beam%bunch(n_bunch)%slice(n_slice)%macro)
-        if (beam%bunch(n_bunch)%slice(n_slice)%macro(n_macro)%lost) &
-                                                        n_lost = n_lost + 1
-      enddo
-    enddo
-  enddo
-  if (n_lost .ne. 0) &
-    call out_io (s_blank$, r_name, &
-      "Total number of lost macroparticles by the end of universe \I2\: \I5\.", &
-                                                      i_array = (/uni, n_lost /))
-endif
-  
-end subroutine tao_macro_track
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
 !
 ! Find the centroid of all particles in viewed bunches
-! Also keep track of lost macroparticles if the optional arguments are passed
+! Also keep track of lost particles if the optional arguments are passed
 
 subroutine tao_find_beam_centroid (beam, orb, uni, ix_ele, all_lost, ele)
 
@@ -664,84 +511,6 @@ else
 endif
  
 end subroutine tao_find_beam_centroid
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!
-! Find the centroid of all macroparticles in all slices in all bunches
-! Also keep track of lost macroparticles if the optional arguments are passed
-
-subroutine tao_find_macro_beam_centroid (beam, orb, uni, ix_ele, all_lost, u_beam)
-
-implicit none
-
-type (macro_beam_struct), target :: beam
-type (coord_struct) :: orb, coord
-integer, optional :: uni, ix_ele
-type (tao_macro_beam_struct), optional :: u_beam
-type (macro_struct), pointer :: macro
-
-real charge, tot_charge
-
-integer n_bunch, n_slice, n_macro
-
-logical record_lost
-logical, optional :: all_lost
-
-character(20) :: r_name = "tao_find_macro_beam_centroid"
-
-! are we checking keep track of lost particles?
-
-if (present(ix_ele) .and. present(u_beam) .and. present(uni)) then
-  record_lost = .true.
-else
-  record_lost = .false.
-endif
-
-tot_charge = 0.0
-coord%vec = 0.0
-
-n_bunch = s%global%bunch_to_plot
-slice_loop: do n_slice = 1, size(beam%bunch(n_bunch)%slice)
-  macro_loop: do n_macro = 1, size(beam%bunch(n_bunch)%slice(n_slice)%macro)
-    macro => beam%bunch(n_bunch)%slice(n_slice)%macro(n_macro)
-    ! only average over particles that haven't been lost
-    if (record_lost) then
-      if (u_beam%ix_lost(n_bunch,n_slice,n_macro) /= not_lost$) cycle macro_loop
-    else
-      if (macro%lost) cycle macro_loop
-    endif
-    ! check for lost macro through this element
-    if (macro%lost .and. record_lost) then
-      u_beam%ix_lost(n_bunch,n_slice,n_macro) = ix_ele
-      call out_io (s_blank$, r_name, &
-            "Macroparticle lost at element \I0\ in universe \I0\.", &
-                                           i_array = (/ ix_ele, uni /) )
-      cycle macro_loop
-    endif
-    charge = macro%charge
-    tot_charge = tot_charge + charge
-    coord%vec = coord%vec + charge * macro%r%vec
-  enddo macro_loop
-enddo slice_loop
-      
-! average
-
-if (tot_charge .ne. 0) then
-  orb%vec = coord%vec / tot_charge
-else 
-  ! lost all macros
-  if (present(all_lost)) then
-    if (.not. all_lost) then
-      call out_io (s_warn$, r_name, &
-            "All macroparticles have been lost!!!!!!!!!!!!!")
-      all_lost = .true.
-      orb%vec = 0.0
-    endif
-  endif
-endif
- 
-end subroutine tao_find_macro_beam_centroid
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -943,35 +712,6 @@ end subroutine tao_inject_beam
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !
-! This will inject a beam from a previous universe into this universe in
-! preparation for tracking. The lattice where the extraction occurs will have
-! already been calculated.
-!
-! If there is no connection between lattice then this will initialize the beam
-
-subroutine tao_inject_macro_beam (u, model, orb0_in)
-
-implicit none
- 
-type (tao_universe_struct) u
-type (tao_lattice_struct) model
-type (ele_struct), save :: extract_ele
-type (lat_param_struct), pointer :: param
-type (coord_struct), optional, target :: orb0_in
-type (coord_struct), pointer :: orb0
-
-character(24) :: r_name = "tao_inject_macro_beam"
-
-! The code here is not currently being maintained
-
-call out_io (s_fatal$, r_name, "MACRO BEAM TRACKING DISABLED. PLEASE SEE DCS.")
-call err_exit
-  
-end subroutine tao_inject_macro_beam
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!
 ! This will set up the matching element if needed. The lattice where the
 ! extraction occurs will have already been calculated but the injected lattice
 ! will not have been calculated yet.
@@ -985,7 +725,6 @@ type (coord_struct) extract_pos
 type (ele_struct), save :: extract_ele, inject_ele
 type (ele_struct), pointer :: connection_ele
 type (beam_struct), pointer :: injecting_beam
-type (macro_beam_struct), pointer :: injecting_macro_beam
 
 character(20) :: r_name = "match_lats_init"
 
@@ -997,17 +736,12 @@ connection_ele => u%connect%connect_ele
 call init_ele (extract_ele)
 call init_ele (inject_ele)
   
-! set up coupling%injecting_beam or macro_beam 
+! set up coupling%injecting_beam 
+
 if (s%global%track_type == 'beam') then
   injecting_beam => s%u(u%connect%from_uni)%current_beam
   call reallocate_beam (u%connect%injecting_beam, size(injecting_beam%bunch), &
             size(injecting_beam%bunch(1)%particle))
-elseif (s%global%track_type == 'macro') then
-  injecting_macro_beam => s%u(u%connect%from_uni)%macro_beam%beam
-  call reallocate_macro_beam (u%connect%injecting_macro_beam, &
-                                size(injecting_macro_beam%bunch), &
-                                size(injecting_macro_beam%bunch(1)%slice), &
-                                size(injecting_macro_beam%bunch(1)%slice(1)%macro))
 endif
 
 ! match design lattices
@@ -1018,8 +752,6 @@ if (u%connect%match_to_design) then
                      u%connect%from_uni_s, extract_ele, &
                      s%u(u%connect%from_uni)%design%orb, extract_pos)
   elseif (s%global%track_type == 'beam') then
-    extract_ele = s%u(u%connect%from_uni)%design%lat%ele(u%connect%from_uni_ix_ele)
-  elseif (s%global%track_type == 'macro') then
     extract_ele = s%u(u%connect%from_uni)%design%lat%ele(u%connect%from_uni_ix_ele)
   endif
     

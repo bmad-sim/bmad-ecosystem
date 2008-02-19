@@ -102,6 +102,7 @@ if (tao_com%init_lat_file(1) /= '') override = .true.
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
   u => s%u(i)
+  u%is_on = .true.          ! turn universe on
 
   if (design_lattice(i)%parser /= '') then
     call out_io (s_error$, r_name, (/ &

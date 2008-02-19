@@ -20,7 +20,6 @@ module tao_parameters
 ! tracking type
   integer, parameter :: single_tracking$ = 1
   integer, parameter :: many_tracking$ = 2
-  integer, parameter :: macro_tracking$ = 3
 						  
 ! the name struct
   

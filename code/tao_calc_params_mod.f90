@@ -1,7 +1,6 @@
 module tao_calc_params_mod
 
 use tao_mod
-use macro_utils_mod
 use beam_mod
 
 
@@ -25,7 +24,6 @@ contains
 !      vec0
 !      mat6
 !      c_mat
-!  u%maco_beam%macro_params  -- macro_bunch_params_struct
 !  u%%model%bunch_params(ix_ele)         -- bunch_struct_params
 !
 !-
@@ -53,15 +51,9 @@ endif
 
 !
 
-if (.not. all_lost) then
-  if (s%global%track_type == "beam") then
+if (.not. all_lost .and. s%global%track_type == "beam") then
     call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
                                   lat%ele(ix_ele), u%model%bunch_params(ix_ele))
-
-  elseif (s%global%track_type == "macro") then
-    call calc_macro_bunch_params (u%macro_beam%beam%bunch(s%global%bunch_to_plot), &
-                                  lat%ele(ix_ele), u%macro_beam%params)
-  endif
 endif
 
 end subroutine tao_calc_params
