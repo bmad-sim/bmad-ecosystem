@@ -15,6 +15,10 @@
 ! If ix2 < ix1 and lat%param%lattice_type is linear_lattice$ then the backwards
 ! transfer matrix is computed.
 !
+! If ix1 = ix2 then xfr_mat is the unit matrix. 
+!
+! To get the one-turn matrix for a circular lattice, omit ix2 from the argument list.
+!
 ! Modules Needed:
 !   use bmad
 !
@@ -27,7 +31,10 @@
 !   ix1   -- Integer, optional: Element start index for the calculation.
 !              Default is 0.
 !   ix2   -- Integer, optional: Element end index for the calculation.
-!              Default is lat%n_ele_track.
+!              Defaults:
+!                If ix1 is not present: ix2 = lat%n_ele_track
+!                If ix1 is present and lattice is circular: Calculate the 
+!                  one-turn matrix from ix1 back to ix1.
 !
 ! Output:
 !    xfr_mat(6,6) -- Real(rp): Transfer matrix.
@@ -54,7 +61,7 @@ integer, intent(in), optional :: ix1, ix2
 integer i, i1, i2
 
 logical, intent(in) :: rf_on
-logical vec_present
+logical vec_present, one_turn
 
 !
 
@@ -65,17 +72,24 @@ call mat_make_unit (xfer_mat)
   
 i1 = integer_option(0, ix1) 
 i2 = integer_option(lat%n_ele_track, ix2) 
+one_turn = .false.
+
+if (lat%param%lattice_type == circular_lattice$ .and. &
+                    present(ix1) .and. .not. present(ix2)) then
+  i2 = i1
+  one_turn = .true.
+endif
 
 ! Normal case
 
-if (i1 <= i2) then  
+if (i1 <= i2 .and. .not. one_turn) then  
   do i = i1+1, i2
     call add_on_to_xfer_mat
   enddo
 
 ! For a circular lattice push through the origin.
 
-elseif (lat%param%lattice_type == circular_lattice$) then
+elseif (lat%param%lattice_type == circular_lattice$ .or. one_turn) then
   do i = i1+1, lat%n_ele_track
     call add_on_to_xfer_mat
   enddo

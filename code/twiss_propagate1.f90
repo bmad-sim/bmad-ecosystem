@@ -220,6 +220,12 @@ end subroutine
 !
 ! Subroutine to propagate the twiss parameters of a single mode.
 !
+! The betatron phase phi is only determined up to a factor of 2pi. 
+! The length argument is used to determine what phi should be:
+!   length > 0:       0 <= phi <  twopi
+!   length = 0:     -pi <  phi <= pi
+!   length < 0:  -twopi <  phi <= 0
+!
 ! Modules needed:
 !   use bmad
 !
@@ -227,7 +233,7 @@ end subroutine
 !   twiss1    -- Twiss_struct: Input Twiss parameters.
 !   mat2(2,2) -- Real(rp): The transfer matrix.
 !   length    -- Real(rp): Determines whether the phase is 
-!                            increasing (l > 0) or decreasing.
+!                            increasing or decreasing.
 !
 ! Output:
 !   twiss2    -- Twiss_struct: Output Twiss parameters.
