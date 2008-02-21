@@ -132,7 +132,6 @@ end type
 
 type mode3_struct
   real(rp) v(6,6)
-  real(rp) u(6,6)
   type (twiss_struct) a, b, c
 end type
 

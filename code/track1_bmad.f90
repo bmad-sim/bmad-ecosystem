@@ -10,6 +10,9 @@
 !
 ! Note: track1_bmad *never* relies on ele%mat6 for tracking excect for 
 ! hybrid elements.
+! 
+! Note: end%vec(6) will be set < -1 (and param%lost will be set) if the 
+! particle fails to make it through an lcavity
 !
 ! Modules Needed:
 !   use bmad
@@ -18,9 +21,12 @@
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element
 !   param  -- lat_param_struct:
+!     %particle -- Particle type
 !
 ! Output:
 !   end   -- Coord_struct: End position
+!   param  -- lat_param_struct:
+!     %lost -- Set True if particle is lost. False otherwise.
 !-
 
 #include "CESR_platform.inc"
@@ -36,7 +42,8 @@ subroutine track1_bmad (start, ele, param, end)
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
 
-  real(rp) k1, k2, k2l, k3l, length, phase, beta_start, beta_end, beta_start_ref, beta_end_ref
+  real(rp) k1, k2, k2l, k3l, length, phase, beta_start
+  real(rp) beta_end, beta_start_ref, beta_end_ref
   real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
@@ -347,6 +354,7 @@ subroutine track1_bmad (start, ele, param, end)
     E_end = E_start + gradient * length
     if (E_end <= mass_of(param%particle)) then
       param%lost = .true.
+      end%vec(6) = -1.01  ! Something less than -1
       return
     endif
 

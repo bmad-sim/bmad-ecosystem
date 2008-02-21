@@ -218,7 +218,6 @@ integer i, ik
 !
 
 if (.not. associated(ele2%mode3)) allocate(ele2%mode3)
-ele2%mode3%u = 0
 
 tv = matmul (ele2%mat6, ele1%mode3%v)
 
@@ -228,8 +227,6 @@ do i = 1, 3
   gamma(i) = sqrt(determinant (w(i)%m))
   w(i)%m = w(i)%m / gamma(i)
   call mat_symp_conj (w(i)%m, w_inv)
-  ele2%mode3%u(ik:ik+1,ik:ik+1) = matmul(matmul(w(i)%m, &
-                                             ele1%mode3%u(ik:ik+1,ik:ik+1)), w_inv)
   ele2%mode3%v(1:6, ik:ik+1) = matmul(tv(1:6, ik:ik+1), w_inv)
 enddo
 
@@ -253,8 +250,8 @@ subroutine twiss3_at_start (lat)
 implicit none
 
 type (lat_struct) lat
-
 real(rp) g(6,6), tune3(3)
+integer n
 
 !
 
@@ -263,17 +260,22 @@ if (.not. associated(lat%ele(0)%mode3)) allocate(lat%ele(0)%mode3)
 call transfer_matrix_calc (lat, .true., lat%param%t1_with_RF)
 call normal_mode3_calc (lat%param%t1_with_RF, tune3, g, lat%ele(0)%mode3%v)
 
-call mode1_calc (g(1:2, 1:2), tune3(1), lat%ele(0)%mode3%a, lat%ele(0)%mode3%u(1:2, 1:2))
-call mode1_calc (g(3:4, 3:4), tune3(2), lat%ele(0)%mode3%b, lat%ele(0)%mode3%u(3:4, 3:4))
-call mode1_calc (g(5:6, 5:6), tune3(3), lat%ele(0)%mode3%c, lat%ele(0)%mode3%u(5:6, 5:6))
+call mode1_calc (g(1:2, 1:2), tune3(1), lat%ele(0)%mode3%a)
+call mode1_calc (g(3:4, 3:4), tune3(2), lat%ele(0)%mode3%b)
+call mode1_calc (g(5:6, 5:6), tune3(3), lat%ele(0)%mode3%c)
+
+n = lat%n_ele_track
+lat%ele(n)%mode3%a%phi = tune3(1)
+lat%ele(n)%mode3%b%phi = tune3(2)
+lat%ele(n)%mode3%c%phi = tune3(3)
 
 !-------------------------------------------------------------------------------------
 contains
 
-subroutine mode1_calc (g, tune, twiss, u)
+subroutine mode1_calc (g, tune, twiss)
 
 type (twiss_struct) twiss
-real(rp) g(2,2), u(2,2), tune
+real(rp) g(2,2), tune
 
 !
 
@@ -281,8 +283,6 @@ twiss%beta = g(2,2)**2
 twiss%alpha = g(2,1) * g(2,2)
 twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
 twiss%phi = 0
-
-call twiss_to_1_turn_mat (twiss, tune, u)
 
 end subroutine
 

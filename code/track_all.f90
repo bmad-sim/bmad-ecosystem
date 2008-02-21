@@ -3,6 +3,12 @@
 !
 ! Subroutine to track through the lat.
 !
+! Note: If x_limit (or y_limit) for an element is zero then track_all will take
+!       x_limit (or y_limit) as infinite.
+!
+! Note: If a particle does not make it through an lcavity because of lack of
+!       sufficient energy, then orbit(ix_lost)%vec(6) will be < -1. 
+!
 ! Modules Needed:
 !   use bmad
 !
@@ -18,9 +24,6 @@
 !                         through an element.
 !     %param%ix_lost -- Integer: Set to index of element where particle is lost.
 !   orbit(0:*)  -- Coord_struct: Orbit array
-!
-! Note: If x_limit (or y_limit) for an element is zero then TRACK_ALL will take
-!       x_limit (or y_limit) as infinite.
 !-
 
 #include "CESR_platform.inc"
