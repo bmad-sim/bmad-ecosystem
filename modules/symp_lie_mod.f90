@@ -313,14 +313,16 @@ endif
 !----------------------------------------------------------------------------
 contains
 
-subroutine err_set (err)
+subroutine err_set (err, plane)
 
 logical err
+integer plane
 
 !
 
 print *, 'ERROR IN SYMP_LIE_BMAD: FLOATING OVERFLOW IN WIGGLER TRACKING.'
 print *, '      PARTICLE WILL BE TAGGED AS LOST.'
+param%plane_lost_at = plane
 param%lost = .true.
 end%vec(1) = 2 * bmad_com%max_aperture_limit
 end%vec(3) = 2 * bmad_com%max_aperture_limit
@@ -568,7 +570,7 @@ do j = 1, size(ele%wig_term)
     if (wt%type == hyper_x$) tm(j)%c1_ky2 = -tm(j)%c1_ky2 
   elseif (wt%type == hyper_y$ .or. wt%type == hyper_xy$) then
     if (abs(kyy) > 30) then
-      call err_set (err)
+      call err_set (err, y_plane$)
       return
     endif
     tm(j)%c_y = cosh(kyy)
@@ -606,7 +608,7 @@ do j = 1, size(ele%wig_term)
     tm(j)%s_x_kx = end%vec(1)
   elseif (wt%type == hyper_x$ .or. wt%type == hyper_xy$) then
     if (abs(kxx) > 30) then
-      call err_set (err)
+      call err_set (err, x_plane$)
       return
     endif
     tm(j)%c_x = cosh(kxx)

@@ -227,7 +227,7 @@ type lat_param_struct
   integer particle            ! positron$, electron$, etc.
   integer ix_lost             ! Index of element particle was lost at.
   integer end_lost_at         ! entrance_end$ or exit_end$
-  integer plane_lost_at       ! x_plane$ or y_plane$
+  integer plane_lost_at       ! x_plane$, y_plane$, z_plane$ (reversed direction).
   integer lattice_type        ! linear_lattice$, etc...
   integer ixx                 ! Integer for general use
   logical stable              ! is closed lat stable?

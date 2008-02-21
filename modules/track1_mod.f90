@@ -249,6 +249,7 @@ subroutine track_a_bend (start, ele, param, end)
     pxy2 = px**2 + py**2
     if (rel_p2 - pxy2 < 0.1) then  ! somewhat arbitrary cutoff
       param%lost = .true.
+      param%plane_lost_at = x_plane$
       end%vec(1) = 2 * bmad_com%max_aperture_limit
       end%vec(3) = 2 * bmad_com%max_aperture_limit
       return
@@ -269,6 +270,7 @@ subroutine track_a_bend (start, ele, param, end)
 
     if (abs(px) > Dy .or. abs(px_t) > Dy) then
       param%lost = .true.
+      param%plane_lost_at = x_plane$
       return
     endif    
 

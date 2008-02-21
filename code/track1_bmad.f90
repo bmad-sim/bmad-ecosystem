@@ -354,6 +354,7 @@ subroutine track1_bmad (start, ele, param, end)
     E_end = E_start + gradient * length
     if (E_end <= mass_of(param%particle)) then
       param%lost = .true.
+      param%plane_lost_at = z_plane$
       end%vec(6) = -1.01  ! Something less than -1
       return
     endif

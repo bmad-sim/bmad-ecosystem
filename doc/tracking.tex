@@ -33,29 +33,29 @@ must be declared to be allocatable.
 \end{example}
 An example of how to do multi-turn tracking (assuming a circular lattice) is
 \begin{example}
-  type (lat_struct) lattice             ! lattice to track through
+  type (lat_struct) lat             ! lattice to track through
   type (coord_struct), allocatable :: orbit(:)
   ...
-  call bmad_parser ('this_lattice', lattice)
+  call bmad_parser ('this_lattice', lat)
   ...
-  call reallocate_coords (orbit, lattice%n_ele_max)
+  call reallocate_coords (orbit, lat%n_ele_max)
   orbits(0)%vec = (/ 0.01, 0.2, 0.3, 0.4, 0.0, 0.0 /) ! initialization
   do i = 1, n_turns
-    call track_all (lattice, orbit)
-    orbit(0) = orbit(lattice%n_ele_track)
+    call track_all (lat, orbit)
+    orbit(0) = orbit(lat%n_ele_track)
   end do
 \end{example}
 \index{Super_lord}
 \vn{orbit(n)} holds the particle's position at the exit end of the
 $n$\Th element. Since \vn{super_lord} (\sref{s:control.type}) elements
 have an associated particle position, the upper bound of the
-\vn{orbit(:)} array must be at least \vn{lattice%n_ele_max}
+\vn{orbit(:)} array must be at least \vn{lat%n_ele_max}
 (\sref{s:lat.struct}).  The call to \vn{reallocate_coords} does the
 allocation for the \vn{orbit(:)} array. Since \vn{lat%ele(0)} is
 essentially a marker element \vn{orbit(0)} is the orbit at the start
 of the lattice.  \vn{track_all} takes \vn{orbit(0)} and tracks through
 the list of lattice elements until it gets to the last trackable
-element \vn{lattice%n_ele_track} (\sref{s:lat.struct}).
+element \vn{lat%n_ele_track} (\sref{s:lat.struct}).
 
 If you are writing a routine where the \vn{coord_struct} array is
 local (not passed as an argument to the routine) then you have to
@@ -83,6 +83,8 @@ and closed orbit calculations are listed in Section \sref{r:track}.
 
 \index{lat_param_struct!lost}
 \index{lat_param_struct!ix_lost}
+\index{lat_param_struct!plane_lost_at}
+\index{lat_param_struct!end_lost_at}
 \index{Tracking!example}
 The \vn{track_all} routine serves as a good example of how tracking
 works. \vn{track_all} tracks a particle through a lattice from
@@ -91,36 +93,36 @@ Figure~\ref{f:track.all}.  The \vn{reallocate_coord} call (line~13) is
 done in case the number of elements in the lattice has changed. The
 call to \vn{track1} (line~18) tracks through one element from the exit
 end of the $n-1$\St\ element to the exit end of the $n$\Th
-particle. \vn{lattice%param%lost} is a logical that signals the
+particle. \vn{lat%param%lost} is a logical that signals the
 calling routine whether a particle has been lost.  This generally
 happens when the particle's position is larger then the aperture. When
-a particle is lost \vn{lattice%param%ix_lost} is used to record in
+a particle is lost \vn{lat%param%ix_lost} is used to record in
 what element the loss occurred.
 
 \begin{figure}[htb]
 \begin{centering}
 \small
 \begin{listing}{1}
-  subroutine track_all (lattice, orbit)
+  subroutine track_all (lat, orbit)
     use bmad_struct
     use bmad_interface
     implicit none
-    type (lat_struct)  lattice
+    type (lat_struct)  lat
     type (coord_struct), allocatable :: orbit(:)
     integer n
 
   ! Init
 
-    lattice%param%lost = .false.
-    if (size(orbit) < lattice%n_ele_max+1) &
-                    call reallocate_coord (orbit, lattice%n_ele_max)
+    lat%param%lost = .false.
+    if (size(orbit) < lat%n_ele_max+1) &
+                    call reallocate_coord (orbit, lat%n_ele_max)
 
   ! Track through the elements and check for lost particles.
 
-    do n = 1, lattice%n_ele_track
-      call track1 (orbit(n-1), lattice%ele(n), lattice%param, orbit(n))
-      if (lattice%param%lost) then
-        lattice%param%ix_lost = n
+    do n = 1, lat%n_ele_track
+      call track1 (orbit(n-1), lat%ele(n), lat%param, orbit(n))
+      if (lat%param%lost) then
+        lat%param%ix_lost = n
         return
       endif
     enddo
@@ -153,10 +155,10 @@ robust way but with a large speed penalty.
 
 \index{lat_param_struct!aperture_limit_on}
 \index{bmad_common_struct!max_aperture_limit}
-The logical \vn{lattice%param%aperture_limit_on} determines if element
+The logical \vn{lat%param%aperture_limit_on} determines if element
 apertures (See \sref{s:limit}) are used to determine if a
 particle has been lost in tracking.  The default
-\vn{lattice%param%aperture_limit_on} is True.  Even if this is False
+\vn{lat%param%aperture_limit_on} is True.  Even if this is False
 there is a ``hard'' aperture limit set by
 \vn{bmad_com%max_aperture_limit}. This hard limit is used to prevent
 floating point overflows. The default hard aperture limit is 1000
@@ -169,23 +171,36 @@ will result in an overflow.
 \index{lat_param_struct!ix_lost}
 \index{Entrance_end}
 \index{Exit_end}
-\vn{lattice%param%lost} is the logical to check to see if a particle has
-been lost. \vn{lattice%param%ix_lost} gives the index of the element
-at which a particle is lost and \vn{%param%end_lost_at} gives which
-end the particle was lost at. The possible values for
-\vn{lattice%param%end_lost_at} are:
+\vn{lat%param%lost} is the logical to check to see if a particle has
+been lost. \vn{lat%param%ix_lost} is set by \vn{track_all} and gives
+the index of the element at which a particle is lost.
+\vn{%param%end_lost_at} gives which end the particle was lost at. 
+The possible values for \vn{lat%param%end_lost_at} are:
 \begin{example}
-  entrance_end$
-  exit_end$
+  entrance_end\$
+  exit_end\$
 \end{example}
 When tracking forward, if a particle is lost at the exit end of an
 element then the place where the orbit was outside the aperture is at
 \vn{orbit(ix)} where \vn{ix} is the index of the element where the
-particle is lost (given by \vn{lattice%param%ix_lost}). If the
+particle is lost (given by \vn{lat%param%ix_lost}). If the
 particle is lost at the entrance end then the appropriate index is one
 less (remember that \vn{orbit(i)} is the orbit at the exit end of an
 element). To sort this out and to determine in what plane the particle
 is lost in use the routine \vnr{lost_particle_info}.
+
+To tell how a particle is lost, check the \vn{lat%param%plane_lost_at}
+parameter. Possible values for this are:
+\begin{example}
+  x_plane\$
+  y_plane\$
+  z_plane\$
+\end{example}
+\vn{x_plane\$} and \vn{y_plane\$} indicate that the particle was lost
+either horizontally, or vertically. \vn{z_plane\$} indicates that the
+particle was turned around in an \vn{lcavity} element. That is, the 
+cavity was deaccelerating the particle and the particle did not not have
+enough energy going into the cavity to make it to the exit.
 
 %----------------------------------------------------------------
 \section {Tracking Methods}
@@ -208,7 +223,7 @@ parameter.
 It should be noted that except for \vni{Linear} tracking, none of the
 \bmad tracking routines make use of the \vn{ele%mat6} transfer
 matrix. The reverse, however, is not true.  The transfer matrix
-routines (\vn{lattice_make_mat6}, etc.)  will do tracking.
+routines (\vn{lat_make_mat6}, etc.)  will do tracking.
 
 \index{Synchrotron radiation!calculating}
 \bmad simulates radiation damping and excitation by applying a kick
@@ -308,7 +323,7 @@ program macroparticle_test
 
   implicit none
 
-  type (lat_struct) lattice
+  type (lat_struct) lat
   type (macro_beam_struct) beam
   type (macroparticle_struct) mp
   type (macro_init_struct) init
@@ -321,15 +336,15 @@ program macroparticle_test
 !
 
   bmad_com%use_liar_lcavity = .true.
-  call bmad_parser ('test.bmad', lattice)
+  call bmad_parser ('test.bmad', lat)
 
   open (1, file = 'test.init', status = 'old')
-  init%E_0 = lattice%ele(0)%value(E_tot$)
+  init%E_0 = lat%ele(0)%value(E_tot$)
   read (1, nml = beam_init)
   close (1)
 
   call init_macro_distribution (beam, init, .true.)
-  call track_macro_beam (lattice, beam)
+  call track_macro_beam (lat, beam)
 
   print *
   print '(13x, a)', "x          x'    sig(1,1)    sig(1,2)    sig(2,2)"
@@ -337,14 +352,14 @@ program macroparticle_test
     do j = 1, size(beam%bunch(i)%slice)
       do k = 1, size(beam%bunch(i)%slice(j)%macro)
         mp = beam%bunch(i)%slice(j)%macro(k)
-        call mp_to_angle_coords (mp, lattice%ele(n)%value(E_tot$))
+        call mp_to_angle_coords (mp, lat%ele(n)%value(E_tot$))
         print '(3i2, 1p, 5e12.4)', i, j, k, mp%r%vec(1), mp%r%vec(2), &
                   mp%sigma(s11$), mp%sigma(s12$), mp%sigma(s22$)
       enddo
     enddo
   enddo
 
-  call calc_macro_bunch_params (beam%bunch(1), lattice%ele(lattice%n_ele_track), &
+  call calc_macro_bunch_params (beam%bunch(1), lat%ele(lat%n_ele_track), &
                                 params)
 
   print *

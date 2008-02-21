@@ -128,6 +128,7 @@ interaction. \vn{%param%n_part} is also used by \vn{Lcavity} elements
 for wake field calculations.
 
 \index{lat_param_struct!%lost}
+\index{lat_param_struct!%ix_lost}
 \index{lat_param_struct!%end_lost_at}
 \index{lat_param_struct!%aperture_limit_on}
 \index{lat_param_struct!%plane_lost_at}
@@ -137,7 +138,7 @@ When tracking particles through a lattice the variable
 \vn{%param%ix_lost} gives the index of the element at which a particle
 is lost. Additionally, \vn{%param%end_lost_at} is used to indicate at
 which end the particle was lost at and \vn{%plane_lost_at} records whether
-the lost particle was lost horizontally or vertically.
+the lost particle was lost horizontally, vertically or longitudinally.
 See Chapter~\ref{c:tracking} for more details.
 
 \index{lat_param_struct!%t1_with_RF}

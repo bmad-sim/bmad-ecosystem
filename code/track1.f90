@@ -17,8 +17,11 @@
 ! Output:
 !   end   -- Coord_struct: End position.
 !   param
-!     %lost -- Set True If the particle cannot make it through an element.
-!                Set False otherwise.
+!     %lost          -- Set True If the particle cannot make it through an element.
+!                         Set False otherwise.
+!     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
+!                         z_plane$ (turned around in an lcavity).
+!     %end_lost_at   -- entrance_end$ or exit_end$.
 !
 ! Notes:
 ! It is assumed that HKICK and VKICK are the kicks in the horizontal

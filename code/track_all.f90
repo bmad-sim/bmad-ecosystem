@@ -13,17 +13,21 @@
 !   use bmad
 !
 ! Input:
-!   lat      -- lat_struct: Lat to track through.
+!   lat       -- lat_struct: Lat to track through.
 !     %param%aperture_limit_on -- Logical: Sets whether track_all looks to
 !                                 see whether a particle hits an aperture or not.
 !   orbit(0)  -- Coord_struct: Coordinates at beginning of lat.
 !
 ! Output:
 !   lat
-!     %param%lost    -- Logical: Set True when a particle cannot make it 
-!                         through an element.
-!     %param%ix_lost -- Integer: Set to index of element where particle is lost.
-!   orbit(0:*)  -- Coord_struct: Orbit array
+!     %param -- Param_struct.
+!       %lost          -- Logical: Set True when a particle cannot make it 
+!                           through an element.
+!       %ix_lost       -- Integer: Set to index of element where particle is lost.
+!       %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
+!                           z_plane$ (turned around in an lcavity).
+!       %end_lost_at   -- entrance_end$ or exit_end$.
+!   orbit(0:*)  -- Coord_struct: Orbit array.
 !-
 
 #include "CESR_platform.inc"
