@@ -282,8 +282,8 @@ type (csr_bin_struct), target :: bin
 type (this_local_struct), save, allocatable :: tloc(:)
 type (csr_bin1_struct), pointer :: bin1
 
-real(rp) z_min, z_max, f, dz_particle, dz, z_maxval, z_minval
-real(rp) zp_center, zp0, zp1, dz_bin2, zb0, zb1, charge
+real(rp) z_center, z_min, z_max, f, dz_particle, dz, z_maxval, z_minval
+real(rp) zp_center, zp0, zp1, zb0, zb1, charge
 
 integer i, j, n, ix0, ib, ic
 
@@ -292,18 +292,18 @@ character(20) :: r_name = 'csr_bin_particles'
 ! Init bins...
 ! The left edge of bin%bin1(1) is at z_min
 ! The right edge of bin%bin1(n_bin) is at z_max
+! The first and last bins are empty.
 
 if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on) return
 
 z_maxval = maxval(particle(:)%r%vec(5), mask = (particle(:)%ix_lost == not_lost$))
 z_minval = minval(particle(:)%r%vec(5), mask = (particle(:)%ix_lost == not_lost$))
 dz = z_maxval - z_minval
-bin%dz_bin = dz / (csr_param%n_bin - (csr_param%particle_bin_span + 1))
+bin%dz_bin = dz / (csr_param%n_bin - 2 - (csr_param%particle_bin_span + 1))
 bin%dz_bin = 1.0000001 * bin%dz_bin     ! to prevent round off problems
-dz_bin2 = bin%dz_bin / 2
-z_min = (z_maxval + z_minval) / 2
-z_min = z_min - csr_param%n_bin * bin%dz_bin / 2
-z_max = z_min + csr_param%n_bin * bin%dz_bin / 2
+z_center = (z_maxval + z_minval) / 2
+z_min = z_center - csr_param%n_bin * bin%dz_bin / 2
+z_max = z_center + csr_param%n_bin * bin%dz_bin / 2
 dz_particle = csr_param%particle_bin_span * bin%dz_bin
 
 ! allocate memeory for the bins
@@ -375,13 +375,11 @@ do i = 1, size(particle)
 enddo
 
 do ib = 1, csr_param%n_bin
+  if (ib /= 1) bin%bin1(ib)%dcharge_density_dz = &
+                  (bin%bin1(ib)%charge - bin%bin1(ib-1)%charge) / bin%dz_bin**2
   if (bin%bin1(ib)%charge == 0) cycle
   bin%bin1(ib)%x0 = bin%bin1(ib)%x0 / bin%bin1(ib)%charge
   bin%bin1(ib)%y0 = bin%bin1(ib)%y0 / bin%bin1(ib)%charge
-  if (ib == 1) cycle
-  bin%bin1(ib)%dcharge_density_dz = &
-                  (bin%bin1(ib)%charge - bin%bin1(ib-1)%charge) / bin%dz_bin**2
-
 enddo
 
 ! Compute the particle distribution sigmas in each bin
