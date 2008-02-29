@@ -495,7 +495,7 @@ contains
 
 subroutine tao_uppercase_shapes (n_shape)
 
-integer n_shape
+integer n, n_shape
 
 !
 
