@@ -782,9 +782,9 @@ t = d + k_factor%v1
 a = gam * (k_factor%w2 + phi * k_factor%v1 + phi * d / 2)
 k = gam * (k_factor%theta + phi)
 
-kick1%I_csr = -2 * bin%kick_factor * (t + a * k) / (t**2 + a**2) + 1 / (gam2 * z) 
+kick1%I_csr = bin%kick_factor * (-2 * (t + a * k) / (t**2 + a**2) + 1 / (gam2 * z))
 if (i_bin == 1 .and.k_factor%v1 == 0) then
-  kick1%I_int_csr = -(d*g)**2 / 4 + log(2*gam2 * z / d) / gam2
+  kick1%I_int_csr = bin%kick_factor * (-(d*g)**2 / 4 + log(2*gam2 * z / d) / gam2)
 endif
 
 end subroutine
