@@ -54,6 +54,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   shape => tao_com%ele_shape_floor_plan
   do k = 1, size(shape)
+    if (shape(k)%ele_name == '') cycle
     call tao_ele_locations_given_name (u, shape(k)%ele_name, ix_ele, err, .false.)
     if (err) then
       call out_io (s_error$, r_name, 'BAD ELEMENT KEY IN SHAPE: ' // shape(k)%ele_name)
@@ -79,6 +80,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   shape => tao_com%ele_shape_lat_layout
   do k = 1, size(shape)
+    if (shape(k)%ele_name == '') cycle
     call tao_ele_locations_given_name (u, shape(k)%ele_name, ix_ele, err, .false.)
     if (err) then
       call out_io (s_error$, r_name, 'BAD ELEMENT KEY IN SHAPE: ' // shape(k)%ele_name)

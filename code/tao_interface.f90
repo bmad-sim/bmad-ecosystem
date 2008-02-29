@@ -105,71 +105,12 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_count_d2_data (n_d2_data, is_set) 
-    use tao_struct, only: s
+  subroutine tao_hook_init_var(is_set) 
     implicit none
-    integer n_d2_data(lbound(s%u, 1):)
     logical is_set
   end subroutine
 end interface
 
-interface
-  subroutine tao_hook_count_var(n_var, is_set) 
-    implicit none
-    integer n_var
-    logical is_set
-  end subroutine
-end interface
-
-interface
-  subroutine tao_hook_read_d1_data (d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
-                   default_weight, default_data_type, default_data_source, &
-                   use_same_lat_eles_as, search_for_lat_eles, is_set)
-    use tao_input_struct, only: tao_d1_data_input, tao_data_input, n_data_minn, &
-                                n_data_maxx, rp
-    implicit none
-    type (tao_d1_data_input) d1_data
-    type (tao_data_input) data(n_data_minn:n_data_maxx)
-    integer ix_d1_data, ix_min_data, ix_max_data
-    real(rp) default_weight        ! default merit function weight
-    character(*) default_data_type, default_data_source
-    character(*) use_same_lat_eles_as, search_for_lat_eles
-    logical is_set
-  end subroutine
-end interface
-
-interface
-  subroutine tao_hook_read_d2_data (d2_data, n_d1_data, &
-                                 default_merit_type, universe, is_set, ended)
-    use tao_input_struct, only: tao_d2_data_input
-    implicit none
-    type (tao_d2_data_input) d2_data
-    integer n_d1_data
-    character(*) default_merit_type, universe
-    logical is_set, ended
-  end subroutine
-end interface
- 
-interface
-  subroutine tao_hook_read_var (v1_var, var, default_weight, default_step, default_key_delta, &
-                    ix_min_var, ix_max_var, default_universe, default_attribute, &
-                    default_low_lim, default_high_lim, default_merit_type, &
-                    use_same_lat_eles_as, search_for_lat_eles, default_key_bound, &
-                    is_set, ended)
-    use tao_input_struct, only: rp, n_var_minn, n_var_maxx, tao_v1_var_input, tao_var_input
-    implicit none
-    type (tao_v1_var_input) v1_var
-    type (tao_var_input) var(n_var_minn:n_var_maxx)
-    real(rp) default_weight, default_step, default_key_delta, &
-                    default_low_lim, default_high_lim
-    integer ix_min_var, ix_max_var
-    character(*) default_universe, default_attribute, default_merit_type
-    character(*) use_same_lat_eles_as, search_for_lat_eles
-    character(*) default_key_bound
-    logical is_set, ended
-  end subroutine
-end interface
- 
 interface
   subroutine tao_hook_plot_graph (plot, graph, found)
     use tao_struct, only: tao_plot_struct, tao_graph_struct
@@ -228,6 +169,13 @@ interface
   subroutine tao_hook_lattice_calc (calc_ok)
     implicit none
     logical calc_ok
+  end subroutine
+end interface
+
+interface
+  subroutine tao_hook_init_data (is_set) 
+    implicit none
+    logical is_set
   end subroutine
 end interface
 

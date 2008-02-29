@@ -440,7 +440,7 @@ if (element_shapes_needed) then
     tao_com%ele_shape_floor_plan = ele_shape(1:n)
 
     rewind (iu)
-    shape(:)%key_name = ' '
+    ele_shape(:)%ele_name = ' '
     read (iu, nml = element_shapes_lat_layout, iostat = ios)
 
     if (ios > 0) then
@@ -493,18 +493,19 @@ enddo
 !----------------------------------------------------------------------------------------
 contains
 
-subroutine tao_uppercase_shapes (n)
+subroutine tao_uppercase_shapes (n_shape)
 
-  integer n
+integer n_shape
 
-  do n = 1, size(ele_shape)
-    call str_upcase (ele_shape(n)%ele_name, ele_shape(n)%ele_name)
-    call str_upcase (ele_shape(n)%shape,    ele_shape(n)%shape)
-    call str_upcase (ele_shape(n)%color,    ele_shape(n)%color)
-    if (ele_shape(n+1)%ele_name == '') exit
-  enddo
+!
 
-  if (ele_shape(n)%ele_name == '') n = n - 1
+n_shape = 0
+do n = 1, size(ele_shape)
+  call str_upcase (ele_shape(n)%ele_name, ele_shape(n)%ele_name)
+  call str_upcase (ele_shape(n)%shape,    ele_shape(n)%shape)
+  call str_upcase (ele_shape(n)%color,    ele_shape(n)%color)
+  if (ele_shape(n)%ele_name /= '') n_shape = n
+enddo
 
 end subroutine
 

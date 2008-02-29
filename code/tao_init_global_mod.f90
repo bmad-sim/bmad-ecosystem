@@ -485,7 +485,7 @@ character(40) use_same_lat_eles_as, search_for_lat_eles
 
 character(100) line
 
-logical err, free, gang, is_set, ended
+logical err, free, gang, is_set
 logical, automatic :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
 namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
@@ -498,63 +498,47 @@ namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
 !-----------------------------------------------------------------------
 ! Find out how many d2_data structures we need for each universe
 
+call tao_hook_init_data(is_set) 
+if (is_set) return
+
 call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
 
 n_d2_data = 0
 
-call tao_hook_count_d2_data(n_d2_data, is_set) 
-if (.not. is_set) then
-  do 
-    universe = '*'
-    read (iu, nml = tao_d2_data, iostat = ios)
-    if (ios > 0) then
-      call out_io (s_error$, r_name, 'TAO_D2_DATA NAMELIST READ ERROR.')
-      rewind (iu)
-      do
-        read (iu, nml = tao_d2_data)  ! force printing of error message
-      enddo
+do 
+  universe = '*'
+  read (iu, nml = tao_d2_data, iostat = ios)
+  if (ios > 0) then
+    call out_io (s_error$, r_name, 'TAO_D2_DATA NAMELIST READ ERROR.')
+    rewind (iu)
+    do
+      read (iu, nml = tao_d2_data)  ! force printing of error message
+    enddo
+  endif
+  if (ios /= 0) exit
+  if (universe == '*') then
+    n_d2_data = n_d2_data + 1
+  else
+    read (universe, *, iostat = ios) n_uni
+    if (ios /= 0 .or. n_uni > ubound(s%u, 1)) then
+      call out_io (s_abort$, r_name, &
+            'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
+      call err_exit
     endif
-    if (ios /= 0) exit
-    if (universe == '*') then
-      n_d2_data = n_d2_data + 1
-    else
-      read (universe, *, iostat = ios) n_uni
-      if (ios /= 0 .or. n_uni > ubound(s%u, 1)) then
-        call out_io (s_abort$, r_name, &
-              'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
-        call err_exit
-      endif
-      n_d2_data(n_uni) = n_d2_data(n_uni) + 1
-    endif
-  enddo
-endif
+    n_d2_data(n_uni) = n_d2_data(n_uni) + 1
+  endif
+enddo
+
+rewind (iu)
 
 ! Allocate space for the data
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  u => s%u(i)
-
-  allocate (u%data(0))
-  u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
-  u%n_data_used = 0         ! size of s%u(i)%data(:) array
-  u%ix_rad_int_cache = 0
-
-  if (n_d2_data(i) == 0) cycle
-  if (allocated(u%d2_data)) deallocate (u%d2_data)
-  allocate (u%d2_data(n_d2_data(i)))
-  do j = 1, n_d2_data(i)
-    u%d2_data(j)%descrip = ''
-  enddo
-  u%d2_data%name = ''  ! blank name means it doesn't exist
-  ! This is needed to keep the totalview debugger happy.
-  if (allocated(u%dmodel_dvar)) deallocate (u%dmodel_dvar)
-  allocate (u%dmodel_dvar(1,1))
+  call tao_init_data_in_universe (s%u(i), n_d2_data(i))
 enddo
 
 ! Init data
-
-if (iu /= 0) rewind (iu)
 
 do 
   mask(:) = .true.      ! set defaults
@@ -562,14 +546,9 @@ do
   universe           = '*'
   default_merit_type = 'target'
 
-  call tao_hook_read_d2_data (d2_data, n_d1_data, default_merit_type, universe, is_set, ended)
-  if (ended) exit
-
-  if (.not. is_set) then  ! If not read in then read from file
-    read (iu, nml = tao_d2_data, iostat = ios)
-    if (ios < 0) exit         ! exit on end-of-file
-    call out_io (s_blank$, r_name, 'Init: Read tao_d2_data namelist: ' // d2_data%name)
-  endif
+  read (iu, nml = tao_d2_data, iostat = ios)
+  if (ios < 0) exit         ! exit on end-of-file
+  call out_io (s_blank$, r_name, 'Init: Read tao_d2_data namelist: ' // d2_data%name)
     
   if (universe == '*') then
     uni_loop1: do i = lbound(s%u, 1), ubound(s%u, 1)
@@ -582,7 +561,7 @@ do
       endif
     enddo
       
-    call d2_data_stuffit (s%u(i), i)
+    call tao_d2_data_stuffit (s%u(i), d2_data%name, n_d1_data)
     enddo uni_loop1
   else
     read (universe, *, iostat = ios) n_uni
@@ -597,7 +576,7 @@ do
               ' IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
       call err_exit
     endif
-    call d2_data_stuffit (s%u(n_uni), n_uni)
+    call tao_d2_data_stuffit (s%u(n_uni), d2_data%name, n_d1_data)
   endif
 
   do k = 1, n_d1_data
@@ -622,18 +601,13 @@ do
     ix_min_data         = int_garbage$
     ix_max_data         = int_garbage$
 
-    call tao_hook_read_d1_data (d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
-                   default_weight, default_data_type, default_data_source, &
-                   use_same_lat_eles_as, search_for_lat_eles, is_set)
-    if (.not. is_set) then
-      read (iu, nml = tao_d1_data, iostat = ios)
-      if (ios > 0) then
-        call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.')
-        rewind (iu)
-        do
-          read (iu, nml = tao_d1_data)  ! force printing of error message
-        enddo
-      endif
+    read (iu, nml = tao_d1_data, iostat = ios)
+    if (ios > 0) then
+      call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.')
+      rewind (iu)
+      do
+        read (iu, nml = tao_d1_data)  ! force printing of error message
+      enddo
     endif
 
     ! Convert old format to new
@@ -696,37 +670,6 @@ enddo
 !----------------------------------------------------------------
 contains
 
-subroutine d2_data_stuffit (u, ix_uni)
-
-type (tao_universe_struct), target :: u
-
-integer nn, ix_uni
-
-! Setup another d2_data structure.
-
-u%n_d2_data_used = u%n_d2_data_used + 1
-nn = u%n_d2_data_used
-
-if (size(u%d2_data) < nn) then
-  call out_io (s_error$, r_name, &
-              'N_D2_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-  call err_exit
-endif
-
-u%d2_data(nn)%name = d2_data%name 
-u%d2_data(nn)%ix_uni = ix_uni
-
-! allocate memory for the u%d1_data structures
-
-if (allocated(u%d2_data(nn)%d1)) deallocate (u%d2_data(nn)%d1)
-allocate(u%d2_data(nn)%d1(n_d1_data))
-
-end subroutine
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-
 subroutine d1_data_stuffit (i_d1, u, n_d2)
 
 type (tao_universe_struct), target :: u
@@ -745,7 +688,7 @@ logical emit_here
 
 !
 
-d1_this => u%d2_data(n_d2)%d1(i_d1)  ! point the child back to the mother     
+d1_this => u%d2_data(n_d2)%d1(i_d1)  
 d1_this%d2 => u%d2_data(n_d2)        ! point back to the parent
 if (d1_data%name == '') then
   write (d1_this%name, '(i0)') i_d1
@@ -861,7 +804,6 @@ else
 
   do j = n1, n2
 
-    call tao_hook_does_data_exist (u%data(j))
     if (u%data(j)%exists) cycle
 
     if (u%data(j)%ele_name == '') cycle
@@ -1083,6 +1025,7 @@ do i = n0+1, size(u%data)
   u%data(i)%good_user  = .true.    ! set default
   u%data(i)%good_opt   = .true.
   u%data(i)%merit_type = 'target'  ! set default
+  u%data(i)%relative   = .false.
   u%data(i)%ele_name   = ''
   u%data(i)%ix_ele     = -1
   u%data(i)%ele0_name  = ''
@@ -1091,6 +1034,73 @@ do i = n0+1, size(u%data)
 enddo
   
 end subroutine allocate_data_array
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+subroutine tao_d2_data_stuffit (u, d2_name, n_d1_data)
+
+type (tao_universe_struct), target :: u
+
+integer nn, n_d1_data
+character(*) d2_name
+character(40) :: r_name = 'tao_d2_data_stuffit'
+
+! Setup another d2_data structure.
+
+u%n_d2_data_used = u%n_d2_data_used + 1
+nn = u%n_d2_data_used
+
+if (size(u%d2_data) < nn) then
+  call out_io (s_error$, r_name, 'D2_DATA ARRAY OVERFLOW!')
+  call err_exit
+endif
+
+u%d2_data(nn)%name = d2_name
+u%d2_data(nn)%ix_uni = u%ix_uni
+
+! allocate memory for the u%d1_data structures
+
+if (allocated(u%d2_data(nn)%d1)) deallocate (u%d2_data(nn)%d1)
+allocate(u%d2_data(nn)%d1(n_d1_data))
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+subroutine tao_init_data_in_universe (u, n_d2_data)
+
+implicit none
+
+type (tao_universe_struct) u
+integer j, n_d2_data
+
+!
+
+allocate (u%data(0))
+u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
+u%n_data_used = 0         ! size of s%u(i)%data(:) array
+u%ix_rad_int_cache = 0
+
+if (n_d2_data == 0) return
+if (allocated(u%d2_data)) deallocate (u%d2_data)
+
+allocate (u%d2_data(n_d2_data))
+
+do j = 1, n_d2_data
+  u%d2_data(j)%descrip = ''
+enddo
+
+u%d2_data%name = ''  ! blank name means it doesn't exist
+
+! This is needed to keep the totalview debugger happy.
+
+if (allocated(u%dmodel_dvar)) deallocate (u%dmodel_dvar)
+allocate (u%dmodel_dvar(1,1))
+
+end subroutine
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1139,7 +1149,7 @@ use tao_lattice_calc_mod
 use tao_input_struct
 use bmad_parser_mod
 use random_mod
-  
+
 implicit none
 
 type (tao_universe_struct), pointer :: u
@@ -1170,9 +1180,9 @@ character(8), allocatable, save :: default_key_b(:)
 character(100) line
 
 logical err, free, gang
-logical searching, is_set, ended
+logical searching, is_set
 logical, allocatable, save :: dflt_good_unis(:), good_unis(:)
-                     
+
 namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
                     ix_min_var, ix_max_var, default_universe, default_attribute, &
                     default_low_lim, default_high_lim, default_merit_type, &
@@ -1188,35 +1198,34 @@ s%n_var_used = 0
 
 if (allocated(s%v1_var)) deallocate (s%v1_var)
 
+call tao_hook_init_var(is_set) 
+if (is_set) return
+
 call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
 
-call tao_hook_count_var(n, is_set) 
-
-if (.not. is_set) then
-  allocate (default_key_b(100), default_key_d(100))
-  n = 0
-  do
-    default_key_bound = ''
-    default_key_delta = 0
-    read (iu, nml = tao_var, iostat = ios)
-    if (ios > 0) then
-      call out_io (s_error$, r_name, 'TAO_VAR NAMELIST READ ERROR.')
-      rewind (iu)
-      do
-        read (iu, nml = tao_var)  ! force printing of error message
-      enddo
-    endif
-    if (ios < 0) exit
-    n = n + 1
-    if (n > size(default_key_b)) then
-      call re_allocate (default_key_b, len(default_key_b(1)), 2*size(default_key_b))
-      call re_allocate (default_key_d, 2*size(default_key_d))
-    endif
-    default_key_b(n) = default_key_bound
-    default_key_d(n) = default_key_delta
-  enddo
-endif
+allocate (default_key_b(100), default_key_d(100))
+n = 0
+do
+  default_key_bound = ''
+  default_key_delta = 0
+  read (iu, nml = tao_var, iostat = ios)
+  if (ios > 0) then
+    call out_io (s_error$, r_name, 'TAO_VAR NAMELIST READ ERROR.')
+    rewind (iu)
+    do
+      read (iu, nml = tao_var)  ! force printing of error message
+    enddo
+  endif
+  if (ios < 0) exit
+  n = n + 1
+  if (n > size(default_key_b)) then
+    call re_allocate (default_key_b, len(default_key_b(1)), 2*size(default_key_b))
+    call re_allocate (default_key_d, 2*size(default_key_d))
+  endif
+  default_key_b(n) = default_key_bound
+  default_key_d(n) = default_key_delta
+enddo
 
 allocate (s%v1_var(n))
 s%v1_var%name = ''  ! blank name means it doesn't (yet) exist
@@ -1255,18 +1264,9 @@ do
   var%key_bound      = default_key_b(n_v1)
   var%key_delta      = default_key_d(n_v1)
 
-  call tao_hook_read_var (v1_var, var, default_weight, default_step, default_key_delta, &
-                    ix_min_var, ix_max_var, default_universe, default_attribute, &
-                    default_low_lim, default_high_lim, default_merit_type, &
-                    use_same_lat_eles_as, search_for_lat_eles, default_key_bound, &
-                    is_set, ended)
-  if (ended) exit
-
-  if (.not. is_set) then  ! If not read in then read from file
-    read (iu, nml = tao_var, iostat = ios)
-    if (ios < 0) exit         ! exit on end-of-file
-    call out_io (s_blank$, r_name, 'Init: Read tao_var namelist: ' // v1_var%name)
-  endif
+  read (iu, nml = tao_var, iostat = ios)
+  if (ios < 0) exit         ! exit on end-of-file
+  call out_io (s_blank$, r_name, 'Init: Read tao_var namelist: ' // v1_var%name)
 
   ! Convert old format to new
 
@@ -1445,7 +1445,7 @@ if (use_same_lat_eles_as /= '') then
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + size(v1_ptr%v)
   s%n_var_used = n2
-  call allocate_var_array (n2)
+  call tao_allocate_var_array (n2)
 
   ix_min_var = lbound(v1_ptr%v, 1)
   ix1 = ix_min_var
@@ -1564,7 +1564,7 @@ if (search_for_lat_eles /= '') then
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + num_ele
   s%n_var_used = n2
-  call allocate_var_array (n2)
+  call tao_allocate_var_array (n2)
 
   nn = n1 - 1
   do iu = lbound(s%u, 1), ubound(s%u, 1)
@@ -1607,7 +1607,7 @@ else
   ix2 = ix_max_var
  
   s%n_var_used = n2
-  call allocate_var_array (n2)
+  call tao_allocate_var_array (n2)
 
   s%var(n1:n2)%ele_name = var(ix1:ix2)%ele_name
 
@@ -1885,7 +1885,7 @@ end subroutine tao_pointer_to_var_in_lattice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
-subroutine allocate_var_array (n_var)
+subroutine tao_allocate_var_array (n_var)
 
 type (tao_var_struct), automatic :: var(size(s%var))
 type (tao_v1_var_struct), pointer :: v1
@@ -1940,7 +1940,7 @@ do i = n0+1, size(s%var)
   allocate(s%var(i)%this(0))
 enddo
   
-end subroutine allocate_var_array
+end subroutine tao_allocate_var_array
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1961,10 +1961,15 @@ implicit none
 
 integer n, i, n_var
 
-type (tao_v1_var_struct) :: v1
+type (tao_v1_var_struct), target :: v1
 type (tao_var_struct), target :: var(n:)
 
 v1%v => var
+
+do i = lbound(var, 1), ubound(var, 1)
+  var(i)%v1 => v1
+  var(i)%ix_v1 = i
+enddo
 
 end subroutine 
 
