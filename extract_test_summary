@@ -73,6 +73,8 @@ for line in lines:
       status = "OK"
     elif returncode == "16" and name == "nonlin_bpm_test" and platform == "Linux_i686_lahey":
       status = "OK"
+    elif returncode == "174" and name == "tao" and platform == "OSF1_alpha_hp":
+      status = "OK"
     else:
       status = "FAILED!"
     for i in range( 0,22-len(name) ):
