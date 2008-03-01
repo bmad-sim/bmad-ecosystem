@@ -90,7 +90,7 @@ myprint_help () {
     echo "   -nightly            Rotate release into NIGHTLY position"
     echo "   -bmad               Rotate a Bmad distribution archive file onto the web site."
     echo "   -current            Flag to rotate release into CURRENT position"
-    echo "   -mail               Send notification to the cesr-code-l listserv"
+    echo "   -mail               Send notification to the acc-code-lepp listserv"
     echo "   -tag                Tag the specified release in the repository."
 }
 
