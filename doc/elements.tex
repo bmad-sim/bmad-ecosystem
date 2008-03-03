@@ -637,7 +637,7 @@ the element with respect to the \vn{Girder}. An example will make this clear:
   q2: quad, l = 5, x_offset = 0.2, x_pitch = 0.01
   ib: girder = \{q1, q2\}, x_pitch = 0.1, x_offset = 0.3
   this_line: line = (q1, q2)
-  use, this
+  use, this_line
 \end{example}
 \index{Overlay}
 In this example \vn{ib} supports elements \vn{q1} and \vn{q2}. The
@@ -671,7 +671,7 @@ For example:
   s1: sextupole
   ib: girder = \{q1, s1, q2\}
   this_line: line = (q1, s0, s1, q2, ..., q1, s0, s1, q2)
-  use, this
+  use, this_line
 \end{example}
 In this example two \vn{Girder} elements will be created.
 
