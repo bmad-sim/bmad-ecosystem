@@ -39,7 +39,7 @@ subroutine twiss_propagate1 (ele1, ele2)
   real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
   real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
   real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), dpz2_dpz1, rel_p1, rel_p2
-  real(rp) mat4(4,4)
+  real(rp) mat4(4,4), det_factor
 
   !---------------------------------------------------------------------
   ! init
@@ -86,6 +86,11 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   else
 
+    ! det_factor is a renormalization factor since det_original != 1
+
+    det_factor = 1
+    if (ele2%key == lcavity$)  det_factor = sqrt(determinant (mat4))
+
     mat4 = ele2%mat6(1:4,1:4)
 
     big_M = mat4(1:2,1:2)
@@ -95,7 +100,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 
     call mat_symp_conj (ele1%c_mat, c_conj_mat)
     mat2 = ele1%gamma_c * big_M - matmul(small_m, c_conj_mat)
-    det = determinant(mat2) 
+    det = determinant(mat2) / det_factor 
 
     ! we demand that gamma_c > 0.3 (ie det > 0.1)
     ! try to make it so that there is no net mode flip here
@@ -113,7 +118,7 @@ subroutine twiss_propagate1 (ele1, ele2)
     else
 
       mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
-      det = determinant (mat2)
+      det = determinant(mat2) / det_factor
       if (det < 0) then
         print *, 'TWISS_PROPAGATE1: INTERNAL ERROR! (DUE TO ROUNDOFF?)'
       endif
@@ -261,8 +266,8 @@ subroutine twiss1_propagate (twiss1, mat2, length, twiss2)
   b1 = twiss1%beta
   g1 = (1 + a1**2) / b1
 
-  b2 =  (m11**2  * b1 - 2*m11*m12     * a1 + m12**2  * g1) / det
-  a2 = (-m21*m11 * b1 + (1+2*m12*m21) * a1 - m12*m22 * g1) / det
+  b2 =       (m11**2  * b1 - 2*m11*m12 * a1 + m12**2  * g1) / det
+  a2 = a1 + (-m21*m11 * b1 + 2*m12*m21 * a1 - m12*m22 * g1) / det
   g2 =  (1 + a2**2) /b2
 
   del_phi = atan2(m12, m11*b1 - m12*a1)
