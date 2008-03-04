@@ -180,34 +180,23 @@ interface
 end interface
 
 interface
-  subroutine tao_hook_init_beam (ix_universe, beam0_file, ix_track_start, ix_track_end, &
-                beam_all_file, beam_init, save_beam_at, is_set, ended)
-    use tao_input_struct, only: beam_init_struct
+  subroutine tao_hook_init_beam (is_set)
     implicit none
-    type (beam_init_struct) beam_init
-    integer ix_universe, ix_track_start, ix_track_end
-    character(*) beam0_file, beam_all_file
-    character(*) save_beam_at(:)
-    logical is_set, ended
+    logical is_set
   end subroutine
 end interface
 
 interface
-  subroutine tao_hook_init_params (global, is_set)
-    use tao_input_struct, only: tao_global_struct
+  subroutine tao_hook_init_global (is_set)
     implicit none
-    type (tao_global_struct) global
     logical is_set
   end subroutine
 end interface
  
 interface
-  subroutine tao_hook_init_connected_uni (ix_universe, connect, is_set, ended)
-    use tao_input_struct, only: tao_connected_uni_input
+  subroutine tao_hook_init_connected_uni (is_set)
     implicit none
-    integer ix_universe
-    type (tao_connected_uni_input) connect
-    logical is_set, ended
+    logical is_set
   end subroutine
 end interface
  

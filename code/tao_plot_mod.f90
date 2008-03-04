@@ -284,12 +284,12 @@ real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta
 real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
-real(rp) x_inch, y_inch
+real(rp) x_inch, y_inch, x1, x2, y1, y2
 
 character(80) str
 character(40) name
 character(20) :: r_name = 'tao_plot_floor_plan'
-character(16) shape
+character(16) this_shape
 character(2) justify
 
 ! Each graph is a separate lattice layout (presumably for different universes). 
@@ -393,21 +393,21 @@ do i = 1, lat%n_ele_max
 
   ! Here if element is to be drawn...
 
-  select case (ele_shape(ix_shape)%shape)
-  case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX')
+  this_shape = ele_shape(ix_shape)%shape
+
+  select case (this_shape)
+  case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE')
   case default
-    print *, 'ERROR: UNKNOWN SHAPE: ', ele_shape(ix_shape)%shape
+    print *, 'ERROR: UNKNOWN SHAPE: ', this_shape
     call err_exit
   end select
 
   call qp_translate_to_color_index (ele_shape(ix_shape)%color, icol)
 
-  shape = ele_shape(ix_shape)%shape
-
   off = ele_shape(ix_shape)%dy_pix
   off1 = off
   off2 = off
-  if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
+  if (this_shape == 'VAR_BOX' .or. this_shape == 'ASYM_VAR_BOX') then
     select case (ele%key)
     case (quadrupole$)
       off1 = off * ele%value(k1$)
@@ -420,7 +420,7 @@ do i = 1, lat%n_ele_max
     end select
     off1 = max(-s%plot_page%shape_height_max, min(off1, s%plot_page%shape_height_max))
     off2 = off1
-    if (shape == 'ASYM_VAR_BOX') off1 = 0
+    if (this_shape == 'ASYM_VAR_BOX') off1 = 0
   end if
 
   ! Draw the shape. Since the conversion from floor coords and screen pixels can
@@ -449,27 +449,53 @@ do i = 1, lat%n_ele_max
     enddo
   endif
 
-  ! Draw the element.
+  ! Draw the element...
+  ! Draw top and bottom
 
-  call qp_draw_line (end1%x+dx1, end1%x-dx1, end1%y+dy1, end1%y-dy1, &
-                                                    units = 'POINTS', color = icol)
-  call qp_draw_line (end2%x+dx2, end2%x-dx2, end2%y+dy2, end2%y-dy2, &
-                                                    units = 'POINTS', color = icol)
+  if (this_shape /= 'DIAMOND') then
+    if (ele%key == sbend$) then
+      call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
+                            y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
+      call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
+                            y_bend(:n_bend) - dy_bend(:n_bend), units = 'POINTS', color = icol)
 
-  if (ele%key == sbend$) then
-    call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
-                          y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
-    call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
-                          y_bend(:n_bend) - dy_bend(:n_bend), units = 'POINTS', color = icol)
+    else
+      call qp_draw_line (end1%x+dx1, end2%x+dx2, end1%y+dy1, end2%y+dy2, &
+                                                      units = 'POINTS', color = icol)
+      call qp_draw_line (end1%x-dx1, end2%x-dx2, end1%y-dy1, end2%y-dy2, &
+                                                      units = 'POINTS', color = icol)
+    endif
+  endif
 
-  else
-    call qp_draw_line (end1%x+dx1, end2%x+dx2, end1%y+dy1, end2%y+dy2, &
+  if (this_shape == 'DIAMOND') then
+    if (ele%key == sbend$) then
+      n = n_bend / 2
+      x1 = (x_bend(n) + dx_bend(n)) / 2
+      x2 = (x_bend(n) - dx_bend(n)) / 2
+      y1 = (y_bend(n) + dy_bend(n)) / 2
+      y2 = (y_bend(n) - dy_bend(n)) / 2
+    else
+      x1 = ((end1%x + end2%x) + (dx1 + dx2)) / 2
+      x2 = ((end1%x + end2%x) - (dx1 + dx2)) / 2
+      y1 = ((end1%y + end2%y) + (dy1 + dy2)) / 2
+      y2 = ((end1%y + end2%y) - (dy1 + dy2)) / 2
+    endif
+    call qp_draw_line (end1%x, x1, end1%y, y1, units = 'POINTS', color = icol)
+    call qp_draw_line (end1%x, x2, end1%y, y2, units = 'POINTS', color = icol)
+    call qp_draw_line (end2%x, x1, end2%y, y1, units = 'POINTS', color = icol)
+    call qp_draw_line (end2%x, x2, end2%y, y2, units = 'POINTS', color = icol)
+
+  elseif (this_shape /= 'BOW_TIE') then
+    ! Draw sides
+    call qp_draw_line (end1%x+dx1, end1%x-dx1, end1%y+dy1, end1%y-dy1, &
                                                     units = 'POINTS', color = icol)
-    call qp_draw_line (end1%x-dx1, end2%x-dx2, end1%y-dy1, end2%y-dy2, &
+    call qp_draw_line (end2%x+dx2, end2%x-dx2, end2%y+dy2, end2%y-dy2, &
                                                     units = 'POINTS', color = icol)
   endif
 
-  if (ele_shape(ix_shape)%shape == 'XBOX') then
+  ! Draw X for xbox or bow_tie
+
+  if (this_shape == 'XBOX' .or. this_shape == 'BOW_TIE') then
     call qp_draw_line (end1%x+dx1, end2%x-dx2, end1%y+dy1, end2%y-dy2, &
                                                     units = 'POINTS', color = icol)
     call qp_draw_line (end1%x-dx1, end2%x+dx2, end1%y-dy1, end2%y+dy2, &
@@ -568,7 +594,7 @@ integer icol, ix_var, ixv
 
 character(80) str
 character(20) :: r_name = 'tao_plot_lat_layout'
-character(16) shape
+character(20) this_shape
 
 ! Init
 
@@ -675,23 +701,23 @@ do i = 1, lat%n_ele_max
 
   ! Here if element is to be drawn...
 
-  select case (ele_shape(ix_shape)%shape)
-  case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX')
+  this_shape = ele_shape(ix_shape)%shape
+
+  select case (this_shape)
+  case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE')
   case default
-    print *, 'ERROR: UNKNOWN SHAPE: ', ele_shape(ix_shape)%shape
+    print *, 'ERROR: UNKNOWN SHAPE: ', this_shape
     call err_exit
   end select
 
   call qp_translate_to_color_index (ele_shape(ix_shape)%color, icol)
-
-  shape = ele_shape(ix_shape)%shape
 
   ! r1 and r2 are the scale factors for the lines below and above the center line.
 
   y = ele_shape(ix_shape)%dy_pix
   y1 = -y
   y2 =  y
-  if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
+  if (this_shape == 'VAR_BOX' .or. this_shape == 'ASYM_VAR_BOX') then
     select case (ele%key)
     case (quadrupole$)
       y2 = y * ele%value(k1$)
@@ -704,7 +730,7 @@ do i = 1, lat%n_ele_max
     end select
     y2 = max(-s%plot_page%shape_height_max, min(y2, s%plot_page%shape_height_max))
     y1 = -y2
-    if (shape == 'ASYM_VAR_BOX') y1 = 0
+    if (this_shape == 'ASYM_VAR_BOX') y1 = 0
   end if
 
   y1 = max(y_bottom, min(y1, y_top))
@@ -712,9 +738,19 @@ do i = 1, lat%n_ele_max
 
   ! Draw the shape
 
-  call qp_draw_rectangle (x1, x2, y1, y2, color = icol)
+  if (this_shape == 'DIAMOND') then
+    call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y1, color = icol)
+    call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y2, color = icol)
+    call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y1, color = icol)
+    call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y2, color = icol)
+  elseif (this_shape == 'BOW_TIE') then
+    call qp_draw_line (x1, x2, y1, y1, color = icol)
+    call qp_draw_line (x1, x2, y2, y2, color = icol)
+  else
+    call qp_draw_rectangle (x1, x2, y1, y2, color = icol)
+  endif
 
-  if (ele_shape(ix_shape)%shape == 'XBOX') then
+  if (this_shape == 'XBOX' .or. this_shape == 'BOW_TIE') then
     call qp_draw_line (x1, x2, y2, y1, color = icol)
     call qp_draw_line (x1, x2, y1, y2, color = icol)
   endif
