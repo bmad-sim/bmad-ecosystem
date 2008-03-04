@@ -39,10 +39,10 @@ subroutine twiss_propagate1 (ele1, ele2)
   real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
   real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
   real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), dpz2_dpz1, rel_p1, rel_p2
-  real(rp) mat4(4,4), det_factor
+  real(rp) mat4(4,4)
 
-!---------------------------------------------------------------------
-! init
+  !---------------------------------------------------------------------
+  ! init
 
   if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
     print *, 'ERROR IN TWISS_PROPAGATE1: ZERO BETA DETECTED.'
@@ -53,8 +53,8 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   ele2%mode_flip = ele1%mode_flip          ! assume no flip
 
-!---------------------------------------------------------------------
-! markers are easy
+  !---------------------------------------------------------------------
+  ! markers are easy
 
   if (ele2%key == marker$) then
     ele2%x = ele1%x
@@ -67,9 +67,9 @@ subroutine twiss_propagate1 (ele1, ele2)
     return
   endif
 
-!---------------------------------------------------------------------
-! if transfer matrix is not coupled...
-! propagate c_mat coupling matrix and setup temporary element for propagation
+  !---------------------------------------------------------------------
+  ! if transfer matrix is not coupled...
+  ! propagate c_mat coupling matrix and setup temporary element for propagation
 
 
   if (all(ele2%mat6(1:2,3:4) == 0)) then
@@ -81,17 +81,12 @@ subroutine twiss_propagate1 (ele1, ele2)
     ele2%c_mat = matmul(matmul(mat2_a, ele1%c_mat), y_inv)
     ele2%gamma_c = ele1%gamma_c
 
-!---------------------------------------------------------------------
-! here if we are dealing with a coupled transfer matrix
+  !---------------------------------------------------------------------
+  ! here if we are dealing with a coupled transfer matrix
 
   else
 
     mat4 = ele2%mat6(1:4,1:4)
-
-    ! det_factor is a renormalization factor since det_original != 1
-
-    det_factor = 1
-    if (ele2%key == lcavity$)  det_factor = sqrt(determinant (mat4))
 
     big_M = mat4(1:2,1:2)
     small_m = mat4(1:2,3:4)
@@ -100,10 +95,10 @@ subroutine twiss_propagate1 (ele1, ele2)
 
     call mat_symp_conj (ele1%c_mat, c_conj_mat)
     mat2 = ele1%gamma_c * big_M - matmul(small_m, c_conj_mat)
-    det = determinant(mat2) / det_factor
+    det = determinant(mat2) 
 
-! we demand that gamma_c > 0.3 (ie det > 0.1)
-! try to make it so that there is no net mode flip here
+    ! we demand that gamma_c > 0.3 (ie det > 0.1)
+    ! try to make it so that there is no net mode flip here
 
     if (det > 0.9 .or. (det > 0.1 .and. .not. ele1%mode_flip)) then
 
@@ -113,12 +108,12 @@ subroutine twiss_propagate1 (ele1, ele2)
       call mat_symp_conj (mat2_b, F_inv_mat)
       ele2%c_mat = matmul(matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m, F_inv_mat)
 
-! else we flip the modes
+    ! else we flip the modes
 
     else
 
       mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
-      det = determinant (mat2) / det_factor
+      det = determinant (mat2)
       if (det < 0) then
         print *, 'TWISS_PROPAGATE1: INTERNAL ERROR! (DUE TO ROUNDOFF?)'
       endif
@@ -136,8 +131,8 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   endif
 
-!---------------------------------------------------------------------
-! Propagate twiss.
+  !---------------------------------------------------------------------
+  ! Propagate twiss.
 
   call twiss1_propagate (ele1%a, mat2_a, ele2%value(l$), ele2%a)  
   call twiss1_propagate (ele1%b, mat2_b, ele2%value(l$), ele2%b)  
@@ -148,20 +143,20 @@ subroutine twiss_propagate1 (ele1, ele2)
     ele2%b = twiss_a
   endif
 
-! Comming out of a flipped state, the calculation is often off by a factor of twopi.
-! The code corrects this. However, since there is no proof that this always happens, 
-! this is a bit of a kludge. Factors of twopi are not physically meaningful so this
-! does not affect any calculations.
+  ! Comming out of a flipped state, the calculation is often off by a factor of twopi.
+  ! The code corrects this. However, since there is no proof that this always happens, 
+  ! this is a bit of a kludge. Factors of twopi are not physically meaningful so this
+  ! does not affect any calculations.
 
   if (ele1%mode_flip .and. .not. ele2%mode_flip) then
     ele2%a%phi = ele2%a%phi - twopi
     ele2%b%phi = ele2%b%phi - twopi
   endif
 
-!----------------------------------------------------
-! Dispersion calc.
-! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
-! This is just 1.0 (except for RF cavities).
+  !----------------------------------------------------
+  ! Dispersion calc.
+  ! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
+  ! This is just 1.0 (except for RF cavities).
 
   mat6 => ele2%mat6
   orb  => ele2%ref_orb_in%vec
@@ -249,29 +244,25 @@ subroutine twiss1_propagate (twiss1, mat2, length, twiss2)
   type (twiss_struct)  twiss1, twiss2, temp
 
   real(rp) m11, m12, m21, m22, del_phi, length
-  real(rp) a1, b1, g1, a2, b2, g2, mat2(2,2), det, det_factor
+  real(rp) a1, b1, g1, a2, b2, g2, mat2(2,2), det
 
-!----------------------------------------------------
-! Linac rf matrices need to be renormalized.
+  !----------------------------------------------------
+  ! Basic equation is given by Bovet 2.5.b page 16
+  ! Linac rf matrices need to be renormalized.
 
-  det_factor = 1.0
   det = determinant (mat2)
-  if (abs(det - 1) > 1e-6) det_factor = det**0.25
 
-!----------------------------------------------------
-! Basic equation is given by Bovet 2.5.b page 16
-
-  m11 = mat2(1,1) / det_factor
-  m12 = mat2(1,2) / det_factor
-  m21 = mat2(2,1) / det_factor
-  m22 = mat2(2,2) / det_factor
+  m11 = mat2(1,1)
+  m12 = mat2(1,2)
+  m21 = mat2(2,1)
+  m22 = mat2(2,2)
 
   a1 = twiss1%alpha
   b1 = twiss1%beta
   g1 = (1 + a1**2) / b1
 
-  b2 =  m11**2  * b1 - 2*m11*m12     * a1 + m12**2  * g1
-  a2 = -m21*m11 * b1 + (1+2*m12*m21) * a1 - m12*m22 * g1
+  b2 =  (m11**2  * b1 - 2*m11*m12     * a1 + m12**2  * g1) / det
+  a2 = (-m21*m11 * b1 + (1+2*m12*m21) * a1 - m12*m22 * g1) / det
   g2 =  (1 + a2**2) /b2
 
   del_phi = atan2(m12, m11*b1 - m12*a1)
