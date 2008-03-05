@@ -82,7 +82,7 @@ character(60) nam
 character(16) :: show_what, show_names(22) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
-   '-write      ', 'hom         ', 'opt_vars    ', 'universe    ', '----------- ', &
+   '-write      ', 'hom         ', 'opt_vars    ', 'universe    ', '-append     ', &
    'beam        ', 'e2          ', 'graph       ', 'curve       ', 'particle    ', &
    'orbit       ', 'derivative  ' /)
 
@@ -1548,7 +1548,7 @@ case ('variable')
 !----------------------------------------------------------------------
 ! write
 
-case ('-write')
+case ('-write', '-append')
 
   iu = lunget()
   file_name = word(1)
@@ -1558,7 +1558,12 @@ case ('-write')
     write (file_name, '(a, i3.3, a)') file_name(1:ix-1), n_write_file, trim(file_name(ix+1:))
   endif
 
-  open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 160)
+  if (show_what == '-append') then
+    open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 160)
+  else
+    open (iu, file = file_name, status = 'REPLACE', recl = 160)
+  endif
+
   call output_direct (iu)  ! tell out_io to write to a file
 
   call out_io (s_blank$, r_name, ' ', 'Tao> show ' // stuff, ' ')
