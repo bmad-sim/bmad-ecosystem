@@ -8,9 +8,9 @@
 
 module cesr_mod
 
-  use cesr_db_mod
   use cesr_crossings_mod
   use cesr_quad_mod
+  use cesr_group_mod
 
 end module
 
