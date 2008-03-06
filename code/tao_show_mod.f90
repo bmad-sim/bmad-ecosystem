@@ -19,7 +19,7 @@ use csr_mod, only: csr_param
 type show_common_struct
   type (ele_struct), pointer :: ele 
   type (coord_struct), pointer :: orbit 
-  type (bunch_struct), pointer :: bunch
+  type (bunch_params_struct), pointer :: bunch_params
 end type
 
 type (show_common_struct), private, save :: show_common
@@ -891,11 +891,7 @@ case ('lattice')
       case default
         show_common%ele => ele3
         show_common%orbit => orb
-        if (allocated(u%ele(ie)%beam%bunch)) then
-          show_common%bunch => u%ele(ie)%beam%bunch(s%global%bunch_to_plot)
-        else
-          nullify(show_common%bunch)
-        endif
+        show_common%bunch_params => u%model%bunch_params(ie)
         call tao_evaluate_expression (column(i)%name, value, &
                                              .false., err, tao_ele_value_routine)
         if (err) then
@@ -1651,7 +1647,6 @@ subroutine tao_ele_value_routine (str, value, err_flag)
 implicit none
 
 type (ele_struct) ele
-type (bunch_params_struct) bunch_params
 
 real(rp), allocatable :: value(:)
 
@@ -1686,14 +1681,12 @@ case ("ORBIT_Z")
 case ("ORBIT_PZ")
   value(1) = show_common%orbit%vec(6)
 case ("SIGMA_X", "SIGMA_Y", "SIGMA_Z", "SIGMA_PX", "SIGMA_PY", "SIGMA_PZ")
-  if (.not. associated(show_common%bunch)) return
-  call calc_bunch_params (show_common%bunch, show_common%ele, bunch_params)
-  if (attribute == "SIGMA_X")  value(1) = sqrt(bunch_params%sigma(s11$))
-  if (attribute == "SIGMA_PX") value(1) = sqrt(bunch_params%sigma(s22$))
-  if (attribute == "SIGMA_Y")  value(1) = sqrt(bunch_params%sigma(s33$))
-  if (attribute == "SIGMA_PY") value(1) = sqrt(bunch_params%sigma(s44$))
-  if (attribute == "SIGMA_Z")  value(1) = sqrt(bunch_params%sigma(s55$))
-  if (attribute == "SIGMA_PZ") value(1) = sqrt(bunch_params%sigma(s66$))
+  if (attribute == "SIGMA_X")  value(1) = sqrt(show_common%bunch_params%sigma(s11$))
+  if (attribute == "SIGMA_PX") value(1) = sqrt(show_common%bunch_params%sigma(s22$))
+  if (attribute == "SIGMA_Y")  value(1) = sqrt(show_common%bunch_params%sigma(s33$))
+  if (attribute == "SIGMA_PY") value(1) = sqrt(show_common%bunch_params%sigma(s44$))
+  if (attribute == "SIGMA_Z")  value(1) = sqrt(show_common%bunch_params%sigma(s55$))
+  if (attribute == "SIGMA_PZ") value(1) = sqrt(show_common%bunch_params%sigma(s66$))
 
 ! Must be an element attribute
 case default
