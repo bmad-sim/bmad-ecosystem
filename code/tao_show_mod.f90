@@ -72,6 +72,8 @@ real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2
 real(rp) :: delta_e = 0
 real(rp), allocatable, save :: value(:)
 
+integer, parameter :: n_char = 300
+
 character(*) :: what, stuff
 character(24) :: var_name
 character(24)  :: plane, imt, lmt, amt, iamt, f3mt, rmt, irmt, iimt
@@ -90,9 +92,9 @@ character(16) :: show_what, show_names(22) = (/ &
    'beam        ', 'e2          ', 'graph       ', 'curve       ', 'particle    ', &
    'orbit       ', 'derivative  ' /)
 
-character(200), allocatable, save :: lines(:)
-character(200) line, line1, line2, line3
-character(200) stuff2
+character(n_char), allocatable, save :: lines(:)
+character(n_char) line, line1, line2, line3
+character(n_char) stuff2
 character(9) angle
 
 integer :: data_number, ix_plane, ix_class, n_live, n_tot
@@ -112,7 +114,7 @@ namelist / custom_show_list / column
 !
 
 call re_allocate (ix_eles,1)
-call re_allocate (lines, 200, 500)
+call re_allocate (lines, n_char, 500)
 
 err = .false.
 
@@ -905,8 +907,9 @@ case ('lattice')
       end select
 
       if (ios /= 0) then
-        call out_io (s_error$, r_name, 'BAD FORMAT: ' // column(i)%format, &
-                                       'FOR DISPLAYING: ' // column(i)%name)
+        call out_io (s_error$, r_name, &
+            'TOO MANY CHARACTERS ON A LINE OR BAD FORMAT: ' // column(i)%format, &
+            'FOR DISPLAYING: ' // column(i)%name)
         return
       endif
 
@@ -1569,9 +1572,9 @@ case ('-write', '-append')
   endif
 
   if (show_what == '-append') then
-    open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 200)
+    open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = n_char)
   else
-    open (iu, file = file_name, status = 'REPLACE', recl = 200)
+    open (iu, file = file_name, status = 'REPLACE', recl = n_char)
   endif
 
   call output_direct (iu)  ! tell out_io to write to a file
