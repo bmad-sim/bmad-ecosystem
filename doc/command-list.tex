@@ -940,20 +940,21 @@ permitted. Any element attribute is permitted ("show ele" will show
 element attributes or see the Bmad manual). Additionally, the following
 are recognized:
 \begin{example}
-  x                      ! Add spaces
-  index                  ! Index number of element.
-  name                   ! Name of element.
-  key                    ! Type of element (quadrupole, etc.)
-  s                      ! Longitudinal position.
-  beta_a,  beta_b        ! Twiss beta functions.
-  alpha_a, alpha_b       ! Twiss alpha functions.
-  phi_a,   phi_b         ! Betatron phase.
-  eta_a,   eta_b         ! Dispersion functions.
-  etap_a,  etap_b        ! Dispersion derivatives.
-  orbit_x, orbit_px      ! Horizontal position and momentum deviation.
-  orbit_y, orbit_py      ! Vertical position and momentum deviation.
-  orbit_z, orbit_pz      ! Longitudinal position and momentum deviation.
-  xmat_11, xmat_12, etc. ! Element transfer matrix.
+  x                           ! Add spaces
+  index                       ! Index number of element.
+  name                        ! Name of element.
+  key                         ! Type of element (quadrupole, etc.)
+  s                           ! Longitudinal position.
+  beta_a,  beta_b             ! Twiss beta functions.
+  alpha_a, alpha_b            ! Twiss alpha functions.
+  phi_a,   phi_b              ! Betatron phase.
+  eta_a,   eta_b              ! Dispersion functions.
+  etap_a,  etap_b             ! Dispersion derivatives.
+  orbit_x, orbit_px           ! Horizontal position and momentum deviation.
+  orbit_y, orbit_py           ! Vertical position and momentum deviation.
+  orbit_z, orbit_pz           ! Longitudinal position and momentum deviation.
+  sigma_x, sigma_y, sigma_z   ! Beam sigmas.
+  xmat_11, xmat_12, etc.      ! Element transfer matrix.
 \end{example}
 If an attribute is does not exist for a given element then the
 attribute will be assigned a value of zero. For example, \vn{voltage}

@@ -16,8 +16,13 @@ use tao_command_mod, only: tao_cmd_split
 use random_mod
 use csr_mod, only: csr_param
 
-type (ele_struct), pointer, private :: ele_common 
-type (coord_struct), pointer, private :: orbit_common 
+type show_common_struct
+  type (ele_struct), pointer :: ele 
+  type (coord_struct), pointer :: orbit 
+  type (bunch_struct), pointer :: bunch
+end type
+
+type (show_common_struct), private, save :: show_common
 
 contains
 
@@ -75,7 +80,6 @@ character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(100), pointer :: ptr_lines(:)
 character(100) file_name
-character(200) stuff2
 character(40) ele_name, name, sub_name
 character(60) nam
 
@@ -88,6 +92,7 @@ character(16) :: show_what, show_names(22) = (/ &
 
 character(200), allocatable, save :: lines(:)
 character(200) line, line1, line2, line3
+character(200) stuff2
 character(9) angle
 
 integer :: data_number, ix_plane, ix_class, n_live, n_tot
@@ -882,8 +887,13 @@ case ('lattice')
       case ("x")
         ios = 0
       case default
-        ele_common => ele3
-        orbit_common => orb
+        show_common%ele => ele3
+        show_common%orbit => orb
+        if (allocated(u%ele(ie)%beam%bunch)) then
+          show_common%bunch => u%ele(ie)%beam%bunch(s%global%bunch_to_plot)
+        else
+          nullify(show_common%bunch)
+        endif
         call tao_evaluate_expression (column(i)%name, value, &
                                              .false., err, tao_ele_value_routine)
         if (err) then
@@ -1559,9 +1569,9 @@ case ('-write', '-append')
   endif
 
   if (show_what == '-append') then
-    open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 160)
+    open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 200)
   else
-    open (iu, file = file_name, status = 'REPLACE', recl = 160)
+    open (iu, file = file_name, status = 'REPLACE', recl = 200)
   endif
 
   call output_direct (iu)  ! tell out_io to write to a file
@@ -1638,6 +1648,8 @@ subroutine tao_ele_value_routine (str, value, err_flag)
 implicit none
 
 type (ele_struct) ele
+type (bunch_params_struct) bunch_params
+
 real(rp), allocatable :: value(:)
 
 integer ios, i, n
@@ -1653,31 +1665,35 @@ logical err_flag
 !
 
 call re_allocate (value, 1, .true.)
+value = 0  ! Default
+
 attribute = str
 call upcase_string(attribute)
 select case (attribute)
 case ("ORBIT_X")
-  value(1) = orbit_common%vec(1)
+  value(1) = show_common%orbit%vec(1)
 case ("ORBIT_PX")
-  value(1) = orbit_common%vec(2)
+  value(1) = show_common%orbit%vec(2)
 case ("ORBIT_Y")
-  value(1) = orbit_common%vec(3)
+  value(1) = show_common%orbit%vec(3)
 case ("ORBIT_PY")
-  value(1) = orbit_common%vec(4)
+  value(1) = show_common%orbit%vec(4)
 case ("ORBIT_Z")
-  value(1) = orbit_common%vec(5)
+  value(1) = show_common%orbit%vec(5)
 case ("ORBIT_PZ")
-  value(1) = orbit_common%vec(6)
+  value(1) = show_common%orbit%vec(6)
+case ("SIGMA_X", "SIGMA_Y", "SIGMA_Z")
+  if (.not. associated(show_common%bunch)) return
+  call calc_bunch_params (show_common%bunch, show_common%ele, bunch_params)
+  if (attribute == "SIGMA_X") value(1) = sqrt(bunch_params%sigma(s11$))
+  if (attribute == "SIGMA_Y") value(1) = sqrt(bunch_params%sigma(s33$))
+  if (attribute == "SIGMA_Z") value(1) = sqrt(bunch_params%sigma(s55$))
 
 ! Must be an element attribute
-
 case default
-  value = 0  ! Default
-  call pointer_to_attribute (ele_common, attribute, .true., real_ptr, err_flag, .false.)
+  call pointer_to_attribute (show_common%ele, attribute, .true., real_ptr, err_flag, .false.)
   if (.not. err_flag) value(1) = real_ptr
-
 end select
-
 
 end subroutine
 
