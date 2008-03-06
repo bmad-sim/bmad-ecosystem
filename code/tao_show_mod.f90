@@ -1682,12 +1682,15 @@ case ("ORBIT_Z")
   value(1) = show_common%orbit%vec(5)
 case ("ORBIT_PZ")
   value(1) = show_common%orbit%vec(6)
-case ("SIGMA_X", "SIGMA_Y", "SIGMA_Z")
+case ("SIGMA_X", "SIGMA_Y", "SIGMA_Z", "SIGMA_PX", "SIGMA_PY", "SIGMA_PZ")
   if (.not. associated(show_common%bunch)) return
   call calc_bunch_params (show_common%bunch, show_common%ele, bunch_params)
-  if (attribute == "SIGMA_X") value(1) = sqrt(bunch_params%sigma(s11$))
-  if (attribute == "SIGMA_Y") value(1) = sqrt(bunch_params%sigma(s33$))
-  if (attribute == "SIGMA_Z") value(1) = sqrt(bunch_params%sigma(s55$))
+  if (attribute == "SIGMA_X")  value(1) = sqrt(bunch_params%sigma(s11$))
+  if (attribute == "SIGMA_PX") value(1) = sqrt(bunch_params%sigma(s22$))
+  if (attribute == "SIGMA_Y")  value(1) = sqrt(bunch_params%sigma(s33$))
+  if (attribute == "SIGMA_PY") value(1) = sqrt(bunch_params%sigma(s44$))
+  if (attribute == "SIGMA_Z")  value(1) = sqrt(bunch_params%sigma(s55$))
+  if (attribute == "SIGMA_PZ") value(1) = sqrt(bunch_params%sigma(s66$))
 
 ! Must be an element attribute
 case default
