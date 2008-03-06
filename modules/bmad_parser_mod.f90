@@ -100,6 +100,8 @@ type parser_ele_struct
   character(40) ref_name
   character(40), pointer :: name(:) => null()
   character(40), pointer :: attrib_name(:) => null()
+  character(200) lat_file    ! File where element was defined.
+  integer ix_line_in_file    ! Line in file where element was defined.
   real(rp), pointer :: coef(:) => null()
   real(rp) s
   integer ix_count
@@ -2316,13 +2318,14 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine warning (what1, what2, what3, seq)
+subroutine warning (what1, what2, what3, seq, pele)
 
   implicit none
 
   character(*) what1
   character(*), optional :: what2, what3
   type (seq_struct), optional :: seq
+  type (parser_ele_struct), optional :: pele
 
 ! BP_COM%ERROR_FLAG is a common logical used so program will stop at end of parsing
 
@@ -2348,6 +2351,11 @@ subroutine warning (what1, what2, what3, seq)
     if (bp_com%input_line_meaningful) then
        if (len_trim(bp_com%input_line1) /= 0) print '(5x, a)', trim(bp_com%input_line1)
        if (len_trim(bp_com%input_line2) /= 0) print '(5x, a)', trim(bp_com%input_line2)
+    endif
+
+    if (present(pele)) then
+      print *, '      ELEMENT DEFINED IN FILE: ', trim(pele%lat_file)
+      print *, '      AT LINE: ', pele%ix_line_in_file
     endif
 
     print *
@@ -2563,197 +2571,199 @@ end subroutine
 
 subroutine add_all_superimpose (lat, ele_in, pele)
 
-  implicit none
+implicit none
 
-  type (lat_struct), target :: lat
-  type (ele_struct) ele_in
-  type (ele_struct), save :: ele, ele2
-  type (ele_struct), pointer :: this_ele
-  type (parser_ele_struct) pele
-  type (ele_struct), pointer :: eles(:)
-  type (control_struct), pointer :: control(:)
-  integer, pointer :: ics(:)
+type (lat_struct), target :: lat
+type (ele_struct) ele_in
+type (ele_struct), save :: ele, ele2
+type (ele_struct), pointer :: this_ele
+type (parser_ele_struct) pele
+type (ele_struct), pointer :: eles(:)
+type (control_struct), pointer :: control(:)
+integer, pointer :: ics(:)
 
-  integer ix, i, j, it, nic, nn, i_sup, i_ele, ic
-  integer n_inserted, n_con
-  integer, allocatable :: ixs(:)
+integer ix, i, j, it, nic, nn, i_sup, i_ele, ic
+integer n_inserted, n_con
+integer, allocatable :: ixs(:)
 
-  character(40) matched_name(200), num, name
-  character(40), allocatable :: multi_name(:)
+character(40) matched_name(200), num, name
+character(40), allocatable :: multi_name(:)
+character(80) line
 
-  logical have_inserted
+logical have_inserted
 
 ! init
 
-  call init_ele(ele)
-  call init_ele(ele2)
+call init_ele(ele)
+call init_ele(ele2)
 
-  eles => lat%ele
-  control => lat%control
-  ics => lat%ic
+eles => lat%ele
+control => lat%control
+ics => lat%ic
 
-  ele = ele_in   ! in case ele changes
-  ele2 = ele
-  n_inserted = 0
-  lat%ele%old_is_on = .false.    ! to keep track of where we have inserted
+ele = ele_in   ! in case ele changes
+ele2 = ele
+n_inserted = 0
+lat%ele%old_is_on = .false.    ! to keep track of where we have inserted
 
 ! If no refrence point then superposition is simple
 
-  if (pele%ref_name == blank) then
-    call compute_super_lord_s (lat, 0, ele2, pele)
-    call add_superimpose (lat, ele2, i_sup)
-    return
-  endif
+if (pele%ref_name == blank) then
+  call compute_super_lord_s (lat, 0, ele2, pele)
+  call add_superimpose (lat, ele2, i_sup)
+  return
+endif
 
 ! insert ele in the lat
 ! do not insert twice at the same spot
 
-  do 
+do 
 
-    have_inserted = .false.
+  have_inserted = .false.
 
-    ele_loop: do i_ele = 1, lat%n_ele_max
+  ele_loop: do i_ele = 1, lat%n_ele_max
 
-      if (lat%ele(i_ele)%control_type /= free$)  &
-                                   call control_bookkeeper (lat, i_ele)
-      this_ele => lat%ele(i_ele)
-      ic = this_ele%control_type
-       
-      if (ic == group_lord$ .or. ic == super_slave$) cycle
-      if (ic == girder_lord$) cycle
-      if (this_ele%old_is_on) cycle
+    if (lat%ele(i_ele)%control_type /= free$)  &
+                                 call control_bookkeeper (lat, i_ele)
+    this_ele => lat%ele(i_ele)
+    ic = this_ele%control_type
+     
+    if (ic == group_lord$ .or. ic == super_slave$) cycle
+    if (ic == girder_lord$) cycle
+    if (this_ele%old_is_on) cycle
 
-      if (match_wild(this_ele%name, pele%ref_name)) then
+    if (match_wild(this_ele%name, pele%ref_name)) then
 
-        do i = 1, n_inserted
-          if (this_ele%name == matched_name(i)) cycle ele_loop
-        enddo
-       
-        this_ele%old_is_on = .true.
+      do i = 1, n_inserted
+        if (this_ele%name == matched_name(i)) cycle ele_loop
+      enddo
+     
+      this_ele%old_is_on = .true.
 
-        ! If superimposing on a multipass_lord then the superposition
-        ! must be done at all multipass locations
+      ! If superimposing on a multipass_lord then the superposition
+      ! must be done at all multipass locations
 
-        if (this_ele%control_type == multipass_lord$) then
-          allocate (ixs(this_ele%n_slave), multi_name(this_ele%n_slave))
-          ixs = lat%control(this_ele%ix1_slave:this_ele%ix2_slave)%ix_slave
-          call string_trim(ele%name, ele%name, ix)
-          ele2%name = ele%name(:ix)
+      if (this_ele%control_type == multipass_lord$) then
+        allocate (ixs(this_ele%n_slave), multi_name(this_ele%n_slave))
+        ixs = lat%control(this_ele%ix1_slave:this_ele%ix2_slave)%ix_slave
+        call string_trim(ele%name, ele%name, ix)
+        ele2%name = ele%name(:ix)
 
-          ! Put in the superposition at the multipass locations.
-          ! Since elements get shuffled around:
-          !  a) Loop over ixs in reverse order.
-          !  b) Tag the superimposed elements with a dummy name
-          !     to identify them later.
+        ! Put in the superposition at the multipass locations.
+        ! Since elements get shuffled around:
+        !  a) Loop over ixs in reverse order.
+        !  b) Tag the superimposed elements with a dummy name
+        !     to identify them later.
 
-          do i = size(ixs), 1, -1  ! reverse order in decreasing s
-            call compute_super_lord_s (lat, ixs(i), ele2, pele)
-            call add_superimpose (lat, ele2, i_sup)
-            lat%ele(i_sup)%name = 'dummy name'
-          enddo
-          ! add a multipass_lord to control the created super loards.
-          j = 0
-          do i = 1, lat%n_ele_max
-            if (lat%ele(i)%name == 'dummy name') then
-              lat%ele(i)%name = ele%name
-              j = j + 1
-              ixs(j) = i
-            endif
-          enddo
-          call add_this_multipass (lat, ixs)    
-          deallocate (ixs, multi_name)
-          ele2%name = ele%name
-
-        ! not superimposing on a multipass_lord 
-
-        else
-          call compute_super_lord_s (lat, i_ele, ele2, pele)
-          call string_trim(ele%name, ele%name, ix)
-          ele2%name = ele%name(:ix)            
+        do i = size(ixs), 1, -1  ! reverse order in decreasing s
+          call compute_super_lord_s (lat, ixs(i), ele2, pele)
           call add_superimpose (lat, ele2, i_sup)
-        endif
+          lat%ele(i_sup)%name = 'dummy name'
+        enddo
+        ! add a multipass_lord to control the created super loards.
+        j = 0
+        do i = 1, lat%n_ele_max
+          if (lat%ele(i)%name == 'dummy name') then
+            lat%ele(i)%name = ele%name
+            j = j + 1
+            ixs(j) = i
+          endif
+        enddo
+        call add_this_multipass (lat, ixs)    
+        deallocate (ixs, multi_name)
+        ele2%name = ele%name
 
-        call s_calc (lat)
+      ! not superimposing on a multipass_lord 
 
-        n_inserted = n_inserted + 1
-        matched_name(n_inserted) = ele2%name
-        have_inserted = .true.   
-
+      else
+        call compute_super_lord_s (lat, i_ele, ele2, pele)
+        call string_trim(ele%name, ele%name, ix)
+        ele2%name = ele%name(:ix)            
+        call add_superimpose (lat, ele2, i_sup)
       endif
 
-    enddo ele_loop
+      call s_calc (lat)
 
-    if (.not. have_inserted) exit
+      n_inserted = n_inserted + 1
+      matched_name(n_inserted) = ele2%name
+      have_inserted = .true.   
 
-  enddo
+    endif
+
+  enddo ele_loop
+
+  if (.not. have_inserted) exit
+
+enddo
 
 ! error check
 
-  if (n_inserted == 0) call warning ('NO MATCH FOR REFERENCE ELEMENT: ' //  &
-            pele%ref_name, 'FOR SUPERPOSITION OF: ' // ele%name)
+if (n_inserted == 0) call warning ('NO MATCH FOR REFERENCE ELEMENT: ' //  &
+          pele%ref_name, 'FOR SUPERPOSITION OF: ' // ele%name, pele = pele)
 
 
 ! if there is to be no common lord then we are done
 
-  if (.not. pele%common_lord) return
+if (.not. pele%common_lord) return
 
 ! here for common_lord, not scalled multipoles
 
-  if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
-    print *, 'ERROR IN INSERT_MUTIPLE: ELEMENT ', lat%ele(i)%name
-    print *, '      IS USED WITH THE "COMMON_LORD" ATTRIBUTE BUT'
-    print *, '      THIS ELEMENT IS NOT A MULIPOLE OR AB_MULTIPOLE'
-    call err_exit
-  endif
+if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
+  call warning ( &
+          'ELEMENT ' // lat%ele(i)%name, &
+          'IS USED WITH THE "COMMON_LORD" ATTRIBUTE BUT', &
+          'THIS ELEMENT IS NOT A MULTIPOLE OR AB_MULTIPOLE', pele = pele)
+  return
+endif
 
-  lat%n_ele_max = lat%n_ele_max + 1
-  if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele(lat)
+lat%n_ele_max = lat%n_ele_max + 1
+if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele(lat)
 
-  nn = lat%n_ele_max 
+nn = lat%n_ele_max 
 
-  n_con = lat%n_control_max 
-  lat%n_control_max = n_con + n_inserted
-  if (lat%n_control_max > size(lat%control)) &
-             call reallocate_control(lat, lat%n_control_max+1000)
+n_con = lat%n_control_max 
+lat%n_control_max = n_con + n_inserted
+if (lat%n_control_max > size(lat%control)) &
+           call reallocate_control(lat, lat%n_control_max+1000)
 
 
-  lat%ele(nn) = ele
-  lat%ele(nn)%control_type = super_lord$
-  lat%ele(nn)%n_slave = n_inserted
-  lat%ele(nn)%ix1_slave = n_con + 1
-  lat%ele(nn)%ix2_slave = n_con + n_inserted
+lat%ele(nn) = ele
+lat%ele(nn)%control_type = super_lord$
+lat%ele(nn)%n_slave = n_inserted
+lat%ele(nn)%ix1_slave = n_con + 1
+lat%ele(nn)%ix2_slave = n_con + n_inserted
 
-  do i = n_con + 1, n_con + n_inserted
-    lat%control(i)%ix_lord = nn
-    lat%control(i)%ix_attrib = 0
-  enddo
+do i = n_con + 1, n_con + n_inserted
+  lat%control(i)%ix_lord = nn
+  lat%control(i)%ix_attrib = 0
+enddo
 
-  j = 0
-  do i = 1, lat%n_ele_max-1
-    if (any (matched_name(1:n_inserted) == lat%ele(i)%name)) then
-      it = lat%ele(i)%control_type
-      if (it /= free$) then
-        print *, 'ERROR IN INSERT_MUTIPLE: SLAVE ', lat%ele(i)%name
-        print *, '      OF LORD ', ele%name
-        print *, '      IS NOT A "FREE" ELEMENT BUT IS: ', control_name(it)
-        call err_exit
-      endif
-      j = j + 1
-      lat%ele(i)%control_type = super_slave$
-      nic = lat%n_ic_max + 1
-      lat%ele(i)%n_lord = 1
-      lat%ele(i)%ic1_lord = nic
-      lat%ele(i)%ic2_lord = nic
-      lat%ic(nic) = n_con + j
-      lat%control(n_con+j)%ix_slave = i
-      lat%n_ic_max = nic
+j = 0
+do i = 1, lat%n_ele_max-1
+  if (any (matched_name(1:n_inserted) == lat%ele(i)%name)) then
+    it = lat%ele(i)%control_type
+    if (it /= free$) then
+      call warning ('SLAVE: ' // lat%ele(i)%name, &
+                    'OF LORD: ' // ele%name, &
+                    'IS NOT A "FREE" ELEMENT BUT IS: ' // control_name(it), pele = pele)
+      return
     endif
-  enddo
-
-  if (j /= n_inserted) then
-    print *, 'ERROR IN INSERT_MUTIPLE: SLAVE NUMBER MISMATCH', j, n_inserted
-    call err_exit
+    j = j + 1
+    lat%ele(i)%control_type = super_slave$
+    nic = lat%n_ic_max + 1
+    lat%ele(i)%n_lord = 1
+    lat%ele(i)%ic1_lord = nic
+    lat%ele(i)%ic2_lord = nic
+    lat%ic(nic) = n_con + j
+    lat%control(n_con+j)%ix_slave = i
+    lat%n_ic_max = nic
   endif
+enddo
+
+if (j /= n_inserted) then
+  call warning ('INTERNAL ERROR! SLAVE NUMBER MISMATCH!')
+  call err_exit
+endif
 
 
 end subroutine
@@ -3229,7 +3239,7 @@ main_loop: do n = 1, n2
       if ((k == 0 .and. j > 0) .or. (k > 0 .and. slave_not_in_lat) .or. &
           (k == 0 .and. all(in_lat%ele(1:n2)%name /= name))) then
         call warning ('CANNOT FIND SLAVE FOR: ' // lord%name, &
-                      'CANNOT FIND: '// name)
+                      'CANNOT FIND: '// name, pele = plat%ele(ixx))
         lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
         cycle main_loop
       endif
@@ -3254,7 +3264,7 @@ main_loop: do n = 1, n2
           cs(j)%ix_attrib = ix
           if (ix < 1) then
             call warning ('BAD ATTRIBUTE NAME: ' // attrib_name, &
-                          'IN ELEMENT: ' // lord%name)
+                          'IN ELEMENT: ' // lord%name, pele = plat%ele(ixx))
           endif
         endif
         k2 = k2 + 1
@@ -3294,7 +3304,8 @@ main_loop: do n = 1, n2
       call create_group (lat, ix_lord, cs(1:ns), err, .false.)
     end select
     if (err) call warning ('ELEMENT OR GROUP: ' // lord%name, &
-                           'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!')
+                           'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!', &
+                           pele = plat%ele(ixx))
 
   !-----------------------------------------------------
   ! girder
@@ -3309,7 +3320,7 @@ main_loop: do n = 1, n2
     call find_indexx (name1, name_list, r_indexx, ix1, k_slave, k2)
     if (k_slave == 0) then
       call warning ('CANNOT FIND START ELEMENT FOR GIRDER: ' // lord%name, &
-                    'CANNOT FIND: '// name)
+                    'CANNOT FIND: '// name, pele = plat%ele(ixx))
       cycle
     endif
 
@@ -3349,8 +3360,8 @@ main_loop: do n = 1, n2
           k_slave = k_slave + 1  
           if (k_slave == lat%n_ele_track + 1) k_slave = 1
           if (k_slave == k_slave_original) then
-            call warning ('CANNOT FIND END ELEMENT FOR GIRDER: ' // &
-                                   lord%name, 'CANNOT FIND: ' // slave_name)
+            call warning ('CANNOT FIND END ELEMENT FOR GIRDER: ' // lord%name, &
+                          'CANNOT FIND: ' // slave_name, pele = plat%ele(ixx))
             cycle main_loop
           endif
         enddo 

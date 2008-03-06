@@ -470,6 +470,9 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
       call init_ele (in_lat%ele(n_max))
       in_lat%ele(n_max)%name = word_1
 
+      plat%ele(n_max)%lat_file = bp_com%current_file%full_name
+      plat%ele(n_max)%ix_line_in_file = bp_com%current_file%i_line
+
 ! Check for valid element key name or if element is part of a element key.
 ! If none of the above then we have an error.
 

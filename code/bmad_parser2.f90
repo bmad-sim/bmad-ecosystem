@@ -344,6 +344,9 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
         call allocate_plat (lat, plat)
       endif
 
+      plat%ele(n_max)%lat_file = bp_com%current_file%full_name
+      plat%ele(n_max)%ix_line_in_file = bp_com%current_file%i_line
+
       lat%ele(n_max)%name = word_1
       last_con = last_con + 1     ! next free slot
       lat%ele(n_max)%ixx = last_con
