@@ -3556,11 +3556,11 @@ case (lcavity$)
     ele%value(gradient$) = ele%value(delta_e$) / ele%value(l$)
   endif
 
-  if (ele%value(freq_spread$) /= 0 .and. associated(ele%wake)) then
+  if (ele%value(lr_freq_spread$) /= 0 .and. associated(ele%wake)) then
     do n = 1, size(ele%wake%lr)
       call ran_gauss (rr)
       bp_com%ran_function_was_called = .true.
-      ele%wake%lr(n)%freq = ele%wake%lr(n)%freq * (1 + ele%value(freq_spread$) * rr)
+      ele%wake%lr(n)%freq = ele%wake%lr(n)%freq * (1 + ele%value(lr_freq_spread$) * rr)
     enddo
   endif
 

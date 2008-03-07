@@ -236,7 +236,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(lcavity$, sr_wake_file$)  = 'SR_WAKE_FILE'
     attrib_array(lcavity$, lr_wake_file$)  = 'LR_WAKE_FILE'
     attrib_array(lcavity$, field_calc$)    = 'FIELD_CALC'
-    attrib_array(lcavity$, freq_spread$)   = 'FREQ_SPREAD'
+    attrib_array(lcavity$, lr_freq_spread$)   = 'LR_FREQ_SPREAD'
     attrib_array(lcavity$, coupler_at$)       = 'COUPLER_AT'
     attrib_array(lcavity$, coupler_strength$) = 'COUPLER_STRENGTH'
     attrib_array(lcavity$, coupler_angle$)    = 'COUPLER_ANGLE'
