@@ -781,18 +781,23 @@ The attributes specific to an \vn{Lcavity} are
 \index{SR_wake_file}
 \index{LR_wake_file}
 \begin{example}
-  gradient     = <Real>   ! Accelerating gradient (V/m).
-  gradient_err = <Real>   ! Accelerating gradient error (V/m).
-  phi0         = <Real>   ! Phase (rad/2\(\pi\)) of the reference particle with 
-                          !   respect to the RF. phi0 = 0 is on crest.
-  dphi0        = <Real>   ! Phase with respect to a multipass lord (rad/2\(\pi\)).
-  phi0_err     = <Real>   ! Phase error (rad/2\(\pi\))
-  e_loss       = <Real>   ! Loss parameter for short range wake fields (V/Coulomb).
-  rf_frequency = <Real>   ! Rf frequency (Hz).
-  delta_e                 ! Change in energy of an on-crest particle. 
-                          !   Dependent attribute (\sref{s:depend}).
-  sr_wake_file = <String> ! Short range wake field definition file.
-  lr_wake_file = <String> ! Long range wake field definition file.
+  coupler_at       = <Switch> ! Location of a coupler giving a transverse kick.
+  coupler_strength = <Real>   ! Strength of the coupler.
+  coupler_angle    = <Real>   ! Angle of the kick.
+  coupler_phase    = <Real>   ! Phase of the kick.
+  gradient         = <Real>   ! Accelerating gradient (V/m).
+  gradient_err     = <Real>   ! Accelerating gradient error (V/m).
+  phi0             = <Real>   ! Phase (rad/2\(\pi\)) of the reference particle with 
+                              !   respect to the RF. phi0 = 0 is on crest.
+  dphi0            = <Real>   ! Phase with respect to a multipass lord (rad/2\(\pi\)).
+  phi0_err         = <Real>   ! Phase error (rad/2\(\pi\))
+  e_loss           = <Real>   ! Loss parameter for short range wake fields (V/Coul).
+  rf_frequency     = <Real>   ! Rf frequency (Hz).
+  delta_e                     ! Change in energy of an on-crest particle. 
+                              !   Dependent attribute (\sref{s:depend}).
+  sr_wake_file     = <String> ! Short range wake field definition file.
+  lr_wake_file     = <String> ! Long range wake field definition file.
+  lr_freq_spread   = <Real>   ! Frequency sperad of the LR wake fields.
 \end{example}
 The dependent variable \vn{delta_e} attribute can be used in place of
 \vn{gradient} as discussed in \sref{s:depend}.  \vn{delta_e} is a
@@ -950,9 +955,9 @@ index. An example input file is:
 \end{example}
 If no polarization angle is given the mode is taken to be unpolarized.
 
-\vn{freq_spread} is used to randomly spread out the long range mode
+\vn{lr_freq_spread} is used to randomly spread out the long range mode
 frequencies among different cavities. The spread is Gaussian in shape
-with an RMS of \vn{freq_spread} * $F$ where $F$ is the frequency of a
+with an RMS of \vn{lr_freq_spread} * $F$ where $F$ is the frequency of a
 mode.  After the long--range modes have been defined they can be
 referenced or redefined using the notation
 \begin{example}

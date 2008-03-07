@@ -547,10 +547,10 @@ structure definition is:
     logical polarized   ! Polarized mode?
   end type
 \end{example}
-\index{Freq_spread}
+\index{LR_freq_spread}
 This is similar to the \vn{sr_mode_wake_struct}. \vn{%freq_in} is the
 actual frequency in the input file. \vnr{bmad_parser} will set
-\vn{%freq} to \vn{%freq_in} except when the \vn{freq_spread} attribute
+\vn{%freq} to \vn{%freq_in} except when the \vn{lr_freq_spread} attribute
 is non-zero in which case \vn{bmad_parser} will vary \vn{%freq} as
 explained in \sref{s:lcav}. \vn{%polarized} is a logical that
 indicates whether the the mode has a polarization angle. If so, then
