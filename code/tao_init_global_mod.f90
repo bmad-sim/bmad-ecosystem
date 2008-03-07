@@ -60,7 +60,7 @@ namelist / tao_beam_init / ix_universe, beam0_file, &
 ! Init lattaces
 ! read global structure from tao_params namelist
 
-call tao_hook_init_global (is_set)
+call tao_hook_init_global (init_file, is_set)
 
 if (.not. is_set) then
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)

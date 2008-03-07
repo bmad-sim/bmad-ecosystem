@@ -187,8 +187,9 @@ interface
 end interface
 
 interface
-  subroutine tao_hook_init_global (is_set)
+  subroutine tao_hook_init_global (init_file, is_set)
     implicit none
+    character(*) init_file
     logical is_set
   end subroutine
 end interface
@@ -206,6 +207,14 @@ interface
     implicit none
     type (tao_design_lat_input)  lattice_file(:)
     logical custom_init
+  end subroutine
+end interface
+
+interface
+  subroutine tao_hook_init_read_lattice_info (lat_file, is_set)
+    implicit none
+    character(*) lat_file
+    logical is_set
   end subroutine
 end interface
 

@@ -163,7 +163,12 @@ namelist / params / global
 ! open a scratch file for a namelist read
 
 iu = lunget()
-open (iu, status = 'scratch')
+open (iu, status = 'scratch', iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
+  return
+endif
+
 write (iu, *) '&params'
 write (iu, *) ' global%' // trim(who) // ' = ' // trim(set_value)
 write (iu, *) '/'
