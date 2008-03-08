@@ -637,7 +637,7 @@ do i = n_ele_pp, 1, -1
       k_factor%w2 = k_factor%w2 + d_i(i) * sin(phi)
     else
       k_factor%v = k_factor%v + (sin(phi + dphi) - sin(phi)) / g_i(i)
-      k_factor%w2 = k_factor%w2 + (cos(phi + dphi) - cos(phi)) / g_i(i)
+      k_factor%w2 = k_factor%w2 + (cos(phi) - cos(phi + dphi)) / g_i(i)
     endif
     k_factor%v3 = k_factor%v1 - k_factor%v
   endif
