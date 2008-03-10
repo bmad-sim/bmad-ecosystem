@@ -717,7 +717,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
     call string_trim (line, line, ix)
     line = line(:ix)
 
-    if (ix == 0 .or. (ix == 1 .and. (line == '*' .or. line == '0')) then
+    if (ix == 0 .or. (ix == 1 .and. (line == '*' .or. line == '0'))) then
       default_flag = .true.
       do i_lat = 1, num_lats
         if (lat_list(i_lat) == current_lat) exit
