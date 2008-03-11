@@ -87,10 +87,6 @@ endif
 tao_com%init_name = init_name
 tao_com%n_universes = n_universes
 
-! Tao does its own bookkeeping
-
-bmad_com%auto_bookkeeper = .false.
-
 ! Tao inits.
 
 if (allocated(s%u)) call deallocate_everything ()

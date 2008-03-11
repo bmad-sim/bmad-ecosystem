@@ -804,7 +804,8 @@ Format:
   show global
   show graph <graph_name>
   show hom
-  show lattice \{-middle\} \{-custom <file_name>\} \{-s\} \{-elements <name>\} \{<location_range>\}
+  show lattice \{-no_header} \{-middle\} \{-custom <file_name>\} 
+                            \{-s\} \{-elements <name>\} \{<location_range>\}
   show optimizer
   show opt_vars
   show particle lost
@@ -896,6 +897,10 @@ Shows Twiss and orbit data for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
 \vn{-middle} switch.
+
+If present, the \vn{-no_header} switch will prevent the printing of
+the header lines. This is useful when the output needs to be read in
+by another program.
 
 The locations to show can either be specified using the \vn{-elements}
 switch, or by specifying a longitudinal position range with \vn{-s},

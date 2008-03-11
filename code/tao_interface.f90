@@ -112,6 +112,13 @@ interface
 end interface
 
 interface
+  subroutine tao_hook_parse_command_args(is_set)
+    implicit none
+    logical is_set
+  end subroutine
+end interface
+
+interface
   subroutine tao_hook_plot_graph (plot, graph, found)
     use tao_struct, only: tao_plot_struct, tao_graph_struct
     implicit none

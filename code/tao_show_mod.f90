@@ -72,7 +72,7 @@ real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2
 real(rp) :: delta_e = 0
 real(rp), allocatable, save :: value(:)
 
-integer, parameter :: n_char = 300
+integer, parameter :: n_char = 500
 
 character(*) :: what, stuff
 character(24) :: var_name
@@ -104,7 +104,7 @@ integer num_locations, ix_ele, n_name, n_e0, n_e1
 integer, allocatable, save :: ix_eles(:)
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
-logical err, found, at_ends, first_time, by_s
+logical err, found, at_ends, first_time, by_s, print_header_lines
 logical show_all, name_found, print_taylor, print_wig_terms
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
@@ -113,8 +113,8 @@ namelist / custom_show_list / column
 
 !
 
-call re_allocate (ix_eles,1)
-call re_allocate (lines, n_char, 500)
+call re_allocate (ix_eles, 1)
+call re_allocate (lines, n_char, 200)
 
 err = .false.
 
@@ -708,6 +708,7 @@ case ('lattice')
   call string_trim(stuff, stuff2, ix)
   at_ends = .true.
   by_s = .false.
+  print_header_lines = .true.
   ele_name = ''
   if (allocated (picked_ele)) deallocate (picked_ele)
   allocate (picked_ele(0:lat%n_ele_max))
@@ -715,10 +716,13 @@ case ('lattice')
   ! get command line switches
 
   do
-    if (ix == 0) exit
+    if (ix <= 1) exit
 
     if (index('-middle', stuff2(1:ix)) == 1) then
       at_ends = .false.
+
+    elseif (index('-no_header', stuff2(1:ix)) == 1) then
+      print_header_lines = .false.
 
     elseif (index('-custom', stuff2(1:ix)) == 1) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
@@ -857,10 +861,12 @@ case ('lattice')
     ix1 = ix2
   enddo
 
-  lines(nl+1) = line1
-  lines(nl+2) = line2
-  lines(nl+3) = line3
-  nl=nl+3
+  if (print_header_lines) then
+    lines(nl+1) = line1
+    lines(nl+2) = line2
+    lines(nl+3) = line3
+    nl=nl+3
+  endif
 
   do ie = 0, lat%n_ele_track
     if (.not. picked_ele(ie)) cycle
@@ -917,27 +923,29 @@ case ('lattice')
 
   enddo
 
-  lines(nl+1) = line2
-  lines(nl+2) = line3
-  lines(nl+3) = line1
-  nl=nl+3
+  if (print_header_lines) then
+    lines(nl+1) = line2
+    lines(nl+2) = line3
+    lines(nl+3) = line1
+    nl=nl+3
+  endif
 
-  first_time = .true.  
-  do ie = lat%n_ele_track+1, lat%n_ele_max
-    if (.not. picked_ele(ie)) cycle
-    if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-    ele => lat%ele(ie)
-    if (first_time) then
-      nl=nl+1; lines(nl) = ' '
-      nl=nl+1; lines(nl) = 'Lord Elements:'
-      first_time = .false.
-    endif
-    nl=nl+1
-    write (lines(nl), '(i6, 1x, a24, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
-          ie, ele%name, key_name(ele%key)
-  enddo
-
-
+  if (print_header_lines) then
+    first_time = .true.  
+    do ie = lat%n_ele_track+1, lat%n_ele_max
+      if (.not. picked_ele(ie)) cycle
+      if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
+      ele => lat%ele(ie)
+      if (first_time) then
+        nl=nl+1; lines(nl) = ' '
+        nl=nl+1; lines(nl) = 'Lord Elements:'
+        first_time = .false.
+      endif
+      nl=nl+1
+      write (lines(nl), '(i6, 1x, a24, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
+            ie, ele%name, key_name(ele%key)
+    enddo
+  endif
 
   call out_io (s_blank$, r_name, lines(1:nl))
 

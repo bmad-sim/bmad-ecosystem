@@ -86,14 +86,17 @@ if (.not. is_set) then
   close (iu)
 endif
 
-!
-
 if (s%global%track_type == "macro") then
   call out_io (s_error$, r_name, &
              'MACROPARTICLE TRACKING IS NOT ACTIVELY SUPPORTED!', &
              'PLEASE USE "beam" TRACKING INSTEAD.', &
              'IF YOU NEED MACROPARTICLE TRACKING PLEASE SEE DAVID SAGAN.')
 endif
+
+!-----------------------------------------------------------------------
+! Tao does its own bookkeeping
+
+bmad_com%auto_bookkeeper = .false.
 
 n = ubound(s%u, 1)
 n_max = 0
@@ -1582,7 +1585,7 @@ if (search_for_lat_eles /= '') then
       ! If the name matches an existing variable then use that variable
       do j = n1, nn
         if (s%var(j)%ele_name == ele_name) then
-          call tao_pointer_to_var_in_lattice (s%var(j), iu, err, .true., ix_ele)
+          call tao_pointer_to_var_in_lattice (s%var(j), iu, err, ix_ele)
           cycle kk_loop
         endif
       enddo
@@ -1590,11 +1593,13 @@ if (search_for_lat_eles /= '') then
       ! create a new variable and stuff the info into it.
       nn = nn + 1
       var_ptr => s%var(nn)
+      var_ptr%v1 => v1_var_ptr  ! Used for error messages in pointer_to_var
+      var_ptr%ix_v1 = ix_min_var + nn - n1
       var_ptr%exists = .true.
       var_ptr%ele_name = ele_name
       var_ptr%s = s%u(iu)%design%lat%ele(ix_ele)%s
       var_ptr%attrib_name = default_attribute
-      call tao_pointer_to_var_in_lattice (var_ptr, iu, err, .true., ix_ele)
+      call tao_pointer_to_var_in_lattice (var_ptr, iu, err, ix_ele)
     enddo kk_loop
   enddo 
 
@@ -1724,7 +1729,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. good_unis(iu)) cycle
   do iv = 0, s%u(iu)%model%lat%n_ele_max
     if (var%ele_name /= s%u(iu)%model%lat%ele(iv)%name) cycle
-    call tao_pointer_to_var_in_lattice (var, iu, err, .true., iv)
+    call tao_pointer_to_var_in_lattice (var, iu, err, iv)
     if (err) return
   enddo
 enddo
@@ -1805,14 +1810,13 @@ end subroutine tao_find_elements
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, err_print, ix_ele)
+! Subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, ix_ele)
 ! 
 ! Routine to set a pointer to the appropriate variable in a lattice
 !
 ! Input:
 !   var       -- Tao_var_struct: Structure has the info of where to point.
 !   ix_uni    -- Integer: the universe to use
-!   err_pirnt -- Logical: Print message on error?
 !   ix_ele    -- Integer: Index of element.
 !
 ! Output:
@@ -1824,7 +1828,7 @@ end subroutine tao_find_elements
 !   err       -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, err_print, ix_ele)
+subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, ix_ele)
 
 implicit none
 
@@ -1835,7 +1839,7 @@ type (tao_this_var_struct), automatic :: this_saved(size(var%this))
 
 integer :: ix_ele
 integer ix, ix_uni, ix_this
-logical :: err, err_print
+logical :: err
 character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
 
 ! locate element
@@ -1857,8 +1861,12 @@ this => var%this(ix_this)
 ! locate attribute
 
 call pointer_to_attribute (u%model%lat%ele(ix_ele), var%attrib_name, .true., &
-                          this%model_value, err, err_print, ix_attrib = var%ix_attrib)
+                          this%model_value, err, .false., ix_attrib = var%ix_attrib)
 if (err) then
+  call out_io (s_error$, r_name, &
+            'IN VARIBALE: ' // tao_var1_name(var), &
+            '  INVALID ATTRIBUTE: ' // var%attrib_name, &
+            '  FOR ELEMENT: ' // u%model%lat%ele(ix_ele)%name)
   var%model_value => var%old_value
   var%base_value  => var%old_value
   var%exists = .false.
@@ -1867,7 +1875,7 @@ if (err) then
 endif
 
 call pointer_to_attribute (u%base%lat%ele(ix_ele),  var%attrib_name, .true., &
-                                                      this%base_value,  err, err_print)
+                                                      this%base_value,  err)
 
 var%model_value => var%this(1)%model_value
 var%base_value  => var%this(1)%base_value
@@ -1879,9 +1887,9 @@ this%ix_uni = ix_uni
 
 if (associated(u%common)) then
   call pointer_to_attribute (u%common%model%lat%ele(ix_ele),  var%attrib_name, .true., &
-                                                      var%common%model_value,  err, err_print)
+                                                      var%common%model_value,  err)
   call pointer_to_attribute (u%common%base%lat%ele(ix_ele),  var%attrib_name, .true., &
-                                                      var%common%base_value,  err, err_print)
+                                                      var%common%base_value,  err)
 endif
 
 end subroutine tao_pointer_to_var_in_lattice

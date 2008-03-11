@@ -113,3 +113,19 @@ is_set = .false.
 
 end subroutine
 
+!+
+!
+!-
+
+subroutine tao_hook_parse_command_args(is_set)
+
+implicit none
+
+logical is_set
+
+!
+
+is_set = .false.
+
+end subroutine
+
