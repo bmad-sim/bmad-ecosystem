@@ -259,7 +259,7 @@ case ('beam')
       bunch => beam%bunch(n)
       n_live = bunch_params%n_live_particle
       n_tot = size(bunch%particle)
-      call calc_bunch_params (bunch, lat%ele(ix_ele), bunch_params)
+      call calc_bunch_params (bunch, lat%ele(ix_ele), bunch_params, err)
       nl=nl+1; lines(nl) = 'Parameters from saved beam at element:'
       nl=nl+1; write (lines(nl), imt)  '  Parameters for bunch:       ', n
       nl=nl+1; write (lines(nl), imt)  '  Particles surviving:        ', n_live

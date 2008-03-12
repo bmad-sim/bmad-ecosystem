@@ -207,7 +207,7 @@ integer uni, i, ii, who
 
 character(20) :: r_name = "tao_single_track"
 
-logical calc_ok
+logical calc_ok, err
 
 !
 
@@ -257,7 +257,7 @@ do i = 0, lat%n_ele_track
     endif
   endif
 
-  call tao_calc_params (s%u(uni), i, lat%param%lost)
+  call tao_calc_params (s%u(uni), i, lat%param%lost, err)
   call tao_load_data_array (s%u(uni), i, who)
 
 enddo
@@ -293,7 +293,7 @@ character(20) :: r_name = "tao_beam_track"
 
 real(rp) :: value1, value2, f
 
-logical post, calc_ok, all_lost
+logical post, calc_ok, all_lost, print_err, err
 
 ! Initialize moment structure
 
@@ -374,6 +374,8 @@ if (u%ix_track_start > -1) ie1 = u%ix_track_start
 ie2 = lat%n_ele_track
 if (u%ix_track_end > -1) ie2 = u%ix_track_end
 
+print_err = .true.
+
 do j = ie1, ie2
 
   ! track to the element and save for phase space plot
@@ -410,7 +412,8 @@ do j = ie1, ie2
 
   ! Find lattice and beam parameters and load data
 
-  call tao_calc_params (u, j, all_lost)
+  call tao_calc_params (u, j, all_lost, err, print_err)
+  if (err) print_err = .false.  ! Only generate one message.
   call tao_load_data_array (u, j, who) 
 
 enddo
@@ -818,6 +821,8 @@ type (ele_struct) ele
 real(rp) s_travel
 integer n
 
+logical err
+
 ! Make sure we have room in the array for the data
 
 t_lat => this_bunch_track_lat
@@ -842,6 +847,6 @@ endif
 n = n + 1
 t_lat%n_bunch_params2 = n
 t_lat%bunch_params2(n)%s = ele%s - ele%value(l$) + s_travel
-call calc_bunch_params (bunch, ele, t_lat%bunch_params2(n))
+call calc_bunch_params (bunch, ele, t_lat%bunch_params2(n), err)
 
 end subroutine
