@@ -1007,7 +1007,8 @@ end subroutine init_spin_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! subroutine calc_bunch_params_slice (bunch, ele, params, plane, slice_center, slice_spread)
+! subroutine calc_bunch_params_slice (bunch, ele, params, 
+!                           plane, slice_center, slice_spread, err, print_err)
 !
 ! Finds all bunch parameters for a slice through the beam distribution.
 !
@@ -1020,12 +1021,16 @@ end subroutine init_spin_distribution
 !   plane        -- Integer: plane to slice through (x$, p_x$, & etc...)
 !   slice_center -- Real(rp): Center to take slice about
 !   slice_spread -- Real(rp): hard-wall spread in slice about center
+!   print_err -- Logical, optional: If present and False then suppress 
+!                  "no eigen-system found" messages.
 !
 ! Output     
 !   params -- bunch_params_struct:
+!   err    -- Logical: Set True if there is an error in mat_eigen routine.
 ! -
 
-subroutine calc_bunch_params_slice (bunch, ele, params, plane, slice_center, slice_spread)
+subroutine calc_bunch_params_slice (bunch, ele, params, &
+                          plane, slice_center, slice_spread, err, print_err)
 
 implicit none
 
@@ -1038,6 +1043,11 @@ real(rp) slice_center, slice_spread
 
 integer plane
 integer i, n_part
+
+logical, optional :: print_err
+logical err
+
+!
 
 n_part = 0
 do i = 1, size(bunch%particle)
@@ -1059,7 +1069,7 @@ do i = 1, size(bunch%particle)
   endif
 enddo
 
-call calc_bunch_params (beam%bunch(1), ele, params)
+call calc_bunch_params (beam%bunch(1), ele, params, err, print_err)
 
 end subroutine calc_bunch_params_slice
 
@@ -1067,7 +1077,7 @@ end subroutine calc_bunch_params_slice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_params (bunch, ele, params)
+! Subroutine calc_bunch_params (bunch, ele, params, err, print_err)
 !
 ! Finds all bunch parameters defined in bunch_params_struct, both normal-mode
 ! and projected. Projected parameters are found purely from the geometrical
@@ -1082,6 +1092,8 @@ end subroutine calc_bunch_params_slice
 ! Input:
 !   bunch     -- Bunch_struct
 !   ele       -- ele_struct: element to find parameters at
+!   print_err -- Logical, optional: If present and False then suppress 
+!                  "no eigen-system found" messages.
 !
 ! Output     
 !   params -- bunch_params_struct:
@@ -1099,9 +1111,10 @@ end subroutine calc_bunch_params_slice
 !       %theta        -- Polar Angle of polarization vector
 !       %phi          -- Polar Angle of polarization vector
 !     %n_particle ! # particles not lost
+!   err   -- Logical: Set True if there is an error in mat_eigen routine.
 !-
 
-subroutine calc_bunch_params (bunch, ele, params)
+subroutine calc_bunch_params (bunch, ele, params, err, print_err)
 
 implicit none
 
@@ -1126,9 +1139,12 @@ complex(rp) :: n(6,6), e(6,6), q(6,6)
 
 integer i, j
 
+logical, optional :: print_err
 logical err
 
 character(18) :: r_name = "calc_bunch_params"
+
+!
   
 s = 0.0
 
@@ -1178,7 +1194,7 @@ call projected_twiss_calc (params%z, params%sigma(s55$), params%sigma(s66$), &
 ! find eigensystem of sigma.S 
 
 sigma_s_save = sigma_s
-call mat_eigen (sigma_s, d_r, d_i, e_r, e_i, err)
+call mat_eigen (sigma_s, d_r, d_i, e_r, e_i, err, print_err)
 if (err) goto 999
 
 ! The eigen-values of Sigma.S are the normal-mode emittances (eq. 32)
