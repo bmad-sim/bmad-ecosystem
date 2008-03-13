@@ -76,7 +76,7 @@ if (.not. is_set) then
   tao_com%unified_lattices = unified_lattices
   tao_com%n_universes = n_universes
   tao_com%aperture_limit_on = aperture_limit_on
-
+  tao_com%unique_name_suffix = unique_name_suffix
 endif
 
 !

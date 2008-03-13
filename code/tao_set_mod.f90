@@ -618,33 +618,19 @@ elseif (allocated(s_var)) then
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (allocated(r_var)) then
-  call tao_to_real_vector (value_str, 'VAR', r_value, err)
+  call tao_to_real_vector (value_str, 'VAR', size(r_var), r_value, err)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
     return
   endif
-  if (size(r_value) == 1) then  ! scaler
-    do i = 1, size(r_var)
-      if (component == 'model') then
-        call tao_set_var_model_value (v_var(i)%v, r_value(1))
-      else
-        r_var(i)%r = r_value(1)
-      endif
-    enddo
-  else
-    if (size(r_var) /= size(r_value)) then
-      call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
-                                          trim(var_str) // ' = ' // value_str)
-      return
+
+  do i = 1, size(r_var)
+    if (component == 'model') then
+      call tao_set_var_model_value (v_var(i)%v, r_value(i))
+    else
+      r_var(i)%r = r_value(i)
     endif
-    do i = 1, size(r_var)
-      if (component == 'model') then
-        call tao_set_var_model_value (v_var(i)%v, r_value(i))
-      else
-        r_var(i)%r = r_value(i)
-      endif
-    enddo
-  endif
+  enddo
 
 endif
 
@@ -748,29 +734,17 @@ elseif (allocated(s_dat)) then
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (allocated(r_dat)) then
-  call tao_to_real_vector (value_str, 'DATA', r_value, err)
+  call tao_to_real_vector (value_str, 'DATA', size(r_dat), r_value, err)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
     return
   endif
-  if (size(r_value) == 1) then  ! scaler
-    do i = 1, size(r_dat)
-      r_dat(i)%r = r_value(1)
-      if (component == 'meas') d_dat(i)%d%good_meas = .true.
-      if (component == 'ref')  d_dat(i)%d%good_ref = .true.
-    enddo
-  else
-    if (size(r_dat) /= size(r_value)) then
-      call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
-                                          who_str // ' = ' // value_str)
-      return
-    endif
-    do i = 1, size(r_dat)
-      r_dat(i)%r = r_value(i)
-      if (component == 'meas') d_dat(i)%d%good_meas = .true.
-      if (component == 'ref')  d_dat(i)%d%good_ref = .true.
-    enddo
-  endif
+
+  do i = 1, size(r_dat)
+    r_dat(i)%r = r_value(i)
+    if (component == 'meas') d_dat(i)%d%good_meas = .true.
+    if (component == 'ref')  d_dat(i)%d%good_ref = .true.
+  enddo
 
 endif
 

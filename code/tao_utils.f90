@@ -1639,7 +1639,7 @@ logical err_flag
 !
 
 wild_type_com = 'BOTH'
-call tao_evaluate_expression (expression, vec, &
+call tao_evaluate_expression (expression, 1, vec, &
                 .true., err_flag, tao_param_value_routine)
 if (err_flag) return
 value = vec(1)
@@ -1650,7 +1650,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_to_real_vector (expression, wild_type, value, err_flag)
+! Subroutine tao_to_real_vector (expression, wild_type, n_size, value, err_flag)
 !
 ! Mathematically evaluates a character expression.
 !
@@ -1659,19 +1659,22 @@ end subroutine
 !   wild_type    -- Character(*): If something like "*|meas" is in the 
 !                     expression does this refer to data or variables? 
 !                     Possibilities are "DATA", "VAR", and "BOTH"
+!   n_size       -- Integer: Size of the value array.
 !  
 ! Output:
 !   value(:)     -- Real(rp): Value of arithmetic expression.
 !   err_flag     -- Logical: TRUE on error.
 !-
 
-subroutine tao_to_real_vector (expression, wild_type, value, err_flag)
+subroutine tao_to_real_vector (expression, wild_type, n_size, value, err_flag)
 
 use random_mod
 
 implicit none
 
 real(rp), allocatable :: value(:)
+
+integer n_size
 
 character(*), intent(in) :: expression, wild_type
 character(16) :: r_name = "tao_to_real_vector"
@@ -1681,7 +1684,7 @@ logical err_flag, err, wild
 !
 
 wild_type_com = wild_type
-call tao_evaluate_expression (expression, value, &
+call tao_evaluate_expression (expression, n_size, value, &
                                 .true., err_flag, tao_param_value_routine)
 
 end subroutine
@@ -1690,23 +1693,27 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_expression (expression, value, 
+! Subroutine tao_evaluate_expression (expression, n_size, value, 
 !                         zero_divide_print_err, err_flag, param_value_routine)
 !
 ! Mathematically evaluates a character expression.
 !
 ! Input:
 !   expression            -- Character(*): Arithmetic expression.
+!   n_size                -- Integer: Size of the value array. If the expression
+!                              is a scaler then the value will be spread.
+!                              If n_size = 0 then the natural size determined 
+!                              by expression is used.
 !   zero_divide_print_err -- Logical: If False just return zero without printing
 !                             an error message.
 !   param_value_routine   -- Subroutine: Routine to translate a variable to a value.
 !   
 ! Output:
-!   value(:)     -- Real(rp): Value of arithmetic expression.
+!   value(:)     -- Real(rp), allocatable: Value of arithmetic expression.
 !   err_flag     -- Logical: TRUE on error.
 !-
 
-subroutine tao_evaluate_expression (expression, value, &
+subroutine tao_evaluate_expression (expression, n_size, value, &
                           zero_divide_print_err, err_flag, param_value_routine)
 
 use random_mod
@@ -1725,15 +1732,13 @@ end interface
 
 type (tao_eval_stack_struct) stk(200)
 
-integer i_lev, i_op, i, ios, n, n_size, p2, p2_1
-integer ptr(-1:200)
-
+integer i_lev, i_op, i, ios, n, n_size, n__size
 integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
 
 real(rp), allocatable :: value(:)
 
 character(*), intent(in) :: expression
-character(100) phrase
+character(len(expression)) phrase
 character(1) delim
 character(40) word, word2
 character(40) :: r_name = "tao_evaluate_expression"
@@ -1745,11 +1750,6 @@ logical err_flag, err, wild, zero_divide_print_err
 
 err_flag = .true.
 
-if (len(expression) .gt. len(phrase)) then
-  call out_io (s_warn$, r_name, &
-    "Expression cannot be longer than /I3/ characters", len(phrase))
-  return
-endif
 phrase = expression
 
 ! if phrase is blank then return 0.0
@@ -1941,10 +1941,11 @@ parsing_loop: do
 
   elseif (delim == ')') then
     if (ix_word == 0) then
-      if (.not. ran_function_pending) call out_io (s_warn$, r_name, &
-              'CONSTANT OR VARIABLE MISSING BEFORE ")"')
-      err_flag = .true.
-      return
+      if (.not. ran_function_pending) then
+        call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING BEFORE ")"')
+        err_flag = .true.
+        return
+      endif
     else
       call pushit (stk%type, i_lev, numeric$)
       call all_value_routine (word, stk(i_lev), err_flag)
@@ -2064,31 +2065,37 @@ if (i_lev == 0) then
   return
 endif
 
-n_size = 1
+n__size = 1
 do i = 1, i_lev
   if (stk(i)%type /= numeric$) cycle
   n = size(stk(i)%value)
   if (n == 1) cycle
-  if (n_size == 1) n_size = n
-  if (n /= n_size) then
+  if (n__size == 1) n__size = n
+  if (n /= n__size) then
     call out_io (s_warn$, r_name, 'ARRAY SIZE MISMATCH')
     err_flag = .true.
     return
   endif
 enddo
 
+if (n_size /= 0) then
+  if (n__size /= 1 .and. n_size /= n__size) then
+    call out_io (s_warn$, r_name, 'ARRAY SIZE MISMATCH')
+    err_flag = .true.
+    return
+  endif
+  n__size = n_size
+endif
+
 !
 
 i2 = 0  ! stack pointer
 do i = 1, i_lev
 
-  p2   = ptr(i2)
-  p2_1 = ptr(i2-1)
-
   select case (stk(i)%type)
   case (numeric$) 
     i2 = i2 + 1
-    ptr(i2) = i
+    stk(i2)%value = stk(i)%value
 
   case (unary_minus$) 
     stk(i2)%value = -stk(i2)%value
@@ -2097,35 +2104,32 @@ do i = 1, i_lev
     stk(i2)%value = stk(i2)%value
 
   case (plus$) 
-    if (size(stk(p2)%value) < size(stk(p2_1)%value)) then
-      stk(p2_1)%value = stk(p2_1)%value + stk(p2)%value(1)
-    elseif (size(stk(p2)%value) > size(stk(p2_1)%value)) then
-      stk(p2)%value = stk(p2_1)%value(1) + stk(p2)%value
-      ptr(i2-1) = i2
+    if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
+      stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value(1)
+    elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
+      call val_trans (stk(i2-1)%value, stk(i2-1)%value(1) + stk(i2)%value)
     else
-      stk(p2_1)%value = stk(p2_1)%value + stk(p2)%value
+      stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value
     endif
     i2 = i2 - 1
 
   case (minus$) 
-    if (size(stk(p2)%value) < size(stk(p2_1)%value)) then
-      stk(p2_1)%value = stk(p2_1)%value - stk(p2)%value(1)
-    elseif (size(stk(p2)%value) > size(stk(p2_1)%value)) then
-      stk(p2)%value = stk(p2_1)%value(1) - stk(p2)%value
-      ptr(i2-1) = i2
+    if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
+      stk(i2-1)%value = stk(i2-1)%value - stk(i2)%value(1)
+    elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
+      call val_trans (stk(i2-1)%value, stk(i2-1)%value(1) - stk(i2)%value)
     else
-      stk(p2_1)%value = stk(p2_1)%value - stk(p2)%value
+      stk(i2-1)%value = stk(i2-1)%value - stk(i2)%value
     endif
     i2 = i2 - 1
 
   case (times$) 
-    if (size(stk(p2)%value) < size(stk(p2_1)%value)) then
-      stk(p2_1)%value = stk(p2_1)%value * stk(p2)%value(1)
-    elseif (size(stk(p2)%value) > size(stk(p2_1)%value)) then
-      stk(p2)%value = stk(p2_1)%value(1) * stk(p2)%value
-      ptr(i2-1) = i2
+    if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
+      stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value(1)
+    elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
+      call val_trans (stk(i2-1)%value, stk(i2-1)%value(1) * stk(i2)%value)
     else
-      stk(p2_1)%value = stk(p2_1)%value * stk(p2)%value
+      stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value
     endif
     i2 = i2 - 1
 
@@ -2136,24 +2140,22 @@ do i = 1, i_lev
       err_flag = .true.
       return
     endif
-    if (size(stk(p2)%value) < size(stk(p2_1)%value)) then
-      stk(p2_1)%value = stk(p2_1)%value / stk(p2)%value(1)
-    elseif (size(stk(p2)%value) > size(stk(p2_1)%value)) then
-      stk(p2)%value = stk(p2_1)%value(1) / stk(p2)%value
-      ptr(i2-1) = i2
+    if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
+      stk(i2-1)%value = stk(i2-1)%value / stk(i2)%value(1)
+    elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
+      call val_trans (stk(i2-1)%value, stk(i2-1)%value(1) / stk(i2)%value)
     else
-      stk(p2_1)%value = stk(p2_1)%value / stk(p2)%value
+      stk(i2-1)%value = stk(i2-1)%value / stk(i2)%value
     endif
     i2 = i2 - 1
 
   case (power$) 
-    if (size(stk(p2)%value) < size(stk(p2_1)%value)) then
-      stk(p2_1)%value = stk(p2_1)%value ** stk(p2)%value(1)
-    elseif (size(stk(p2)%value) > size(stk(p2_1)%value)) then
-      stk(p2)%value = stk(p2_1)%value(1) ** stk(p2)%value
-      ptr(i2-1) = i2
+    if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
+      stk(i2-1)%value = stk(i2-1)%value ** stk(i2)%value(1)
+    elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
+      call val_trans (stk(i2-1)%value, stk(i2-1)%value(1) ** stk(i2)%value)
     else
-      stk(p2_1)%value = stk(p2_1)%value ** stk(p2)%value
+      stk(i2-1)%value = stk(i2-1)%value ** stk(i2)%value
     endif
     i2 = i2 - 1
 
@@ -2189,10 +2191,12 @@ do i = 1, i_lev
 
   case (ran$) 
     i2 = i2 + 1
+    call re_allocate(stk(i2)%value, n__size)
     call ran_uniform(stk(i2)%value)
 
   case (ran_gauss$) 
     i2 = i2 + 1
+    call re_allocate(stk(i2)%value, n__size)
     call ran_gauss(stk(i2)%value)
 
   case default
@@ -2202,15 +2206,27 @@ do i = 1, i_lev
   end select
 enddo
 
-
 if (i2 /= 1) call out_io (s_warn$, r_name, 'INTERNAL ERROR')
 
-if (allocated(value)) deallocate (value)
-allocate (value(n_size))
-value = stk(ptr(1))%value
+call val_trans (value, stk(1)%value)
 
 !-------------------------------------------------------------------------
 contains
+
+subroutine val_trans (to_array, from_array)
+
+real(rp), allocatable :: to_array(:)
+real(rp) from_array(:)
+
+!
+
+call re_allocate (to_array, size(from_array))
+to_array = from_array
+
+end subroutine
+
+!-------------------------------------------------------------------------
+! contains
 
 subroutine pushit (stack, i_lev, value)
 

@@ -246,7 +246,8 @@ case ('beam')
     bunch_p => u%model%bunch_params(ix_ele)
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
     nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
-    nl=nl+1; write (lines(nl), rmt) '  RMS:     ', sqrt(bunch_p%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
+    nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
+                              sqrt(bunch_p%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
     nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
     nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_p%a%norm_emitt, bunch_p%a%beta
     nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_p%b%norm_emitt, bunch_p%b%beta
@@ -264,15 +265,22 @@ case ('beam')
       nl=nl+1; write (lines(nl), imt)  '  Parameters for bunch:       ', n
       nl=nl+1; write (lines(nl), imt)  '  Particles surviving:        ', n_live
       nl=nl+1; write (lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
-      nl=nl+1; write (lines(nl), f3mt) '  Particles lost (%):         ', real(n_tot - n_live) / n_tot
+      nl=nl+1; write (lines(nl), f3mt) '  Particles lost (%):         ', &
+                                                  real(n_tot - n_live) / n_tot
       nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_params%centroid%vec
-      nl=nl+1; write (lines(nl), rmt) '  RMS:     ', sqrt(bunch_params%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
+      nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
+                         sqrt(bunch_params%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
       nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
-      nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_params%a%norm_emitt, bunch_params%a%beta
-      nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_params%b%norm_emitt, bunch_params%b%beta
-      nl=nl+1; write (lines(nl), rmt) '  x:       ', bunch_params%x%norm_emitt, bunch_params%x%beta
-      nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_params%y%norm_emitt, bunch_params%y%beta
-      nl=nl+1; write (lines(nl), rmt) '  z:       ', bunch_params%z%norm_emitt, bunch_params%z%beta
+      nl=nl+1; write (lines(nl), rmt) '  a:       ', &
+                                bunch_params%a%norm_emitt, bunch_params%a%beta
+      nl=nl+1; write (lines(nl), rmt) '  b:       ', &
+                                bunch_params%b%norm_emitt, bunch_params%b%beta
+      nl=nl+1; write (lines(nl), rmt) '  x:       ', &
+                                bunch_params%x%norm_emitt, bunch_params%x%beta
+      nl=nl+1; write (lines(nl), rmt) '  y:       ', &
+                                bunch_params%y%norm_emitt, bunch_params%y%beta
+      nl=nl+1; write (lines(nl), rmt) '  z:       ', &
+                                bunch_params%z%norm_emitt, bunch_params%z%beta
     else
       nl=nl+1; lines(nl) = 'No Allocated Beam At Element.'
     endif
@@ -898,7 +906,7 @@ case ('lattice')
         show_common%ele => ele3
         show_common%orbit => orb
         show_common%bunch_params => u%model%bunch_params(ie)
-        call tao_evaluate_expression (column(i)%name, value, &
+        call tao_evaluate_expression (column(i)%name, 1, value, &
                                              .false., err, tao_ele_value_routine)
         if (err) then
           j = ix + column(i)%field_width - 5

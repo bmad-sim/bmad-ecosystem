@@ -31,7 +31,8 @@ type (tao_universe_struct), pointer :: u
 type (tao_var_array_struct), allocatable, save :: v_array(:)
 type (tao_var_struct), pointer :: var
 
-real(rp) change_number, model_value, old_merit, new_merit, max_val
+real(rp), allocatable :: change_number(:)
+real(rp) model_value, old_merit, new_merit, max_val
 real(rp) old_value, new_value, design_value, delta
 
 integer nl, i, ixa, ix, err_num, n
@@ -46,11 +47,6 @@ logical err, exists
 
 !-------------------------------------------------
 
-call re_allocate (lines, 200, 200)
-call to_number (num_str, change_number, abs_or_rel, err);  if (err) return
-old_merit = tao_merit()
-nl = 0
-
 call tao_find_var (err, name, v_array = v_array, component = component)
 if (err) return
 if (.not. allocated(v_array)) then
@@ -63,6 +59,11 @@ if (component /= "" .and. component /= "model") then
             'USE "set var" INSTEAD.')
   return
 endif
+
+! find change value(s)
+
+call to_number (num_str, size(v_array), change_number, abs_or_rel, err);  if (err) return
+old_merit = tao_merit()
 
 ! We need at least one variable to exist.
 
@@ -84,11 +85,11 @@ do i = 1, size(v_array)
   if (.not. var%exists) cycle
   var%old_value = var%model_value
   if (abs_or_rel == 'ABS') then
-    call tao_set_var_model_value (var, change_number)
+    call tao_set_var_model_value (var, change_number(i))
   elseif (abs_or_rel == 'REL') then
-    call tao_set_var_model_value (var, var%design_value + change_number)
+    call tao_set_var_model_value (var, var%design_value + change_number(i))
   else
-    call tao_set_var_model_value (var, var%model_value + change_number)
+    call tao_set_var_model_value (var, var%model_value + change_number(i))
   endif
   max_val = max(max_val, abs(var%old_value))
   max_val = max(max_val, abs(var%design_value)) 
@@ -105,6 +106,8 @@ else
   fmt = '(5x, I5, 2x, f12.6, a, 4f12.6)'
 endif
 
+call re_allocate (lines, 200, 200)
+nl = 0
 l1 = '     Index     Old_Model       New_Model       Delta  Old-Design  New-Design'
 nl=nl+1; lines(nl) = l1
 
@@ -168,7 +171,7 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (real_array_struct), allocatable, save :: d_ptr(:), m_ptr(:)
 
-real(rp) change_number
+real(rp), allocatable :: change_number(:)
 
 character(*) ele_name
 character(*) attrib_name
@@ -193,11 +196,6 @@ else
   u => tao_pointer_to_universe(-1)
 endif
 
-call re_allocate (lines, 200, 200)
-call to_number (num_str, change_number, abs_or_rel, err);  if (err) return
-old_merit = tao_merit()
-nl = 0
-
 ! 
 
 call string_trim (ele_name, e_name, ix)
@@ -218,16 +216,23 @@ do i = 1, size(d_ptr)
   if (.not. attribute_free (ix_ele(i), ix_a, u%model%lat, .true.)) return
 end do
 
+! Find change value(s)
+
+call to_number (num_str, size(d_ptr), change_number, abs_or_rel, err);  if (err) return
+old_merit = tao_merit()
+
+! put in change
+
 do i = 1, size(d_ptr)
 
   old_value = m_ptr(i)%r
      
   if (abs_or_rel == 'ABS') then
-    m_ptr(i)%r = change_number
+    m_ptr(i)%r = change_number(i)
   elseif (abs_or_rel == 'REL') then
-    m_ptr(i)%r = d_ptr(i)%r + change_number
+    m_ptr(i)%r = d_ptr(i)%r + change_number(i)
   else
-    m_ptr(i)%r = m_ptr(i)%r + change_number
+    m_ptr(i)%r = m_ptr(i)%r + change_number(i)
   endif
      
   new_value = m_ptr(i)%r
@@ -251,6 +256,8 @@ else
   fmt = '(5x, 2(a, f12.6), f12.6)'
 endif
 
+call re_allocate (lines, 200, 200)
+nl = 0
 nl=nl+1;write (lines(nl), '(27x, a)') 'Old              New      Delta'
 nl=nl+1;write (lines(nl), fmt) 'Value:       ', old_value, '  ->', new_value, delta
 nl=nl+1;write (lines(nl), fmt) 'Value-Design:', old_value-d_ptr(1)%r, &
@@ -278,31 +285,33 @@ end subroutine tao_change_ele
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine to_number (num_str, change_number, abs_or_rel, err)
+subroutine to_number (num_str, n_size, change_number, abs_or_rel, err)
 
-real(rp) change_number
+implicit none
 
-integer ix, ios
+real(rp), allocatable :: change_number(:)
+
+integer ix, ios, n_size
 
 character(*) num_str
 character(*) abs_or_rel
-character(80) n_str
+character(len(num_str)) number_str
 character(20) :: r_name = 'to_number'
 
 logical err
 
 !
 
-n_str = num_str
+number_str = num_str
 abs_or_rel = ' ' 
 
-ix = index (n_str, '@')
+ix = index (number_str, '@')
 if (ix /= 0) then
   abs_or_rel = 'ABS'
-  n_str(ix:ix) = ' '
+  number_str(ix:ix) = ' '
 endif
 
-ix = index (n_str, 'd')
+ix = index (number_str, 'd')
 if (ix /= 0) then
   if (abs_or_rel /= ' ') then
     call out_io (s_error$, r_name, &
@@ -310,10 +319,10 @@ if (ix /= 0) then
     return
   endif
   abs_or_rel = 'REL'
-  n_str(ix:ix) = ' '
+  number_str(ix:ix) = ' '
 endif
 
-call tao_to_real (n_str, change_number, err)
+call tao_to_real_vector (number_str, 'BOTH', n_size, change_number, err)
 
 end subroutine
 
