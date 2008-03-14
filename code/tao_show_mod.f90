@@ -832,7 +832,6 @@ case ('lattice')
 
     if (column(i)%label == '') then
       name = column(i)%name
-      call downcase_string(name)
       select case (name)
       case ("name")
         line2(ix1:) = "Name" 
@@ -872,10 +871,11 @@ case ('lattice')
   enddo
 
   if (print_header_lines) then
-    lines(nl+1) = line1
-    lines(nl+2) = line2
-    lines(nl+3) = line3
-    nl=nl+3
+    nl=nl+1; lines(nl) = line1
+    nl=nl+1; lines(nl) = line2
+    if (line3 /= '') then
+      nl=nl+1; lines(nl) = line3
+    endif
   endif
 
   do ie = 0, lat%n_ele_track
@@ -935,10 +935,11 @@ case ('lattice')
   enddo
 
   if (print_header_lines) then
-    lines(nl+1) = line2
-    lines(nl+2) = line3
-    lines(nl+3) = line1
-    nl=nl+3
+    nl=nl+1; lines(nl) = line2
+    if (line3 /= '') then
+      nl=nl+1; lines(nl) = line3
+    endif
+    nl=nl+1; lines(nl) = line1
   endif
 
   if (print_header_lines) then
@@ -1689,27 +1690,26 @@ ie = show_common%ix_ele
 u => show_common%u
 
 attribute = str
-call upcase_string(attribute)
 select case (attribute)
-case ("ORBIT_X")
+case ("orbit_x")
   value(1) = show_common%orbit%vec(1)
-case ("ORBIT_PX")
+case ("orbit_px")
   value(1) = show_common%orbit%vec(2)
-case ("ORBIT_Y")
+case ("orbit_y")
   value(1) = show_common%orbit%vec(3)
-case ("ORBIT_PY")
+case ("orbit_py")
   value(1) = show_common%orbit%vec(4)
-case ("ORBIT_Z")
+case ("orbit_z")
   value(1) = show_common%orbit%vec(5)
-case ("ORBIT_PZ")
+case ("orbit_pz")
   value(1) = show_common%orbit%vec(6)
-case ("SIGMA_X", "SIGMA_Y", "SIGMA_Z", "SIGMA_PX", "SIGMA_PY", "SIGMA_PZ")
-  if (attribute == "SIGMA_X")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s11$))
-  if (attribute == "SIGMA_PX") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s22$))
-  if (attribute == "SIGMA_Y")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s33$))
-  if (attribute == "SIGMA_PY") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s44$))
-  if (attribute == "SIGMA_Z")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s55$))
-  if (attribute == "SIGMA_PZ") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s66$))
+case ("sigma_x", "sigma_y", "sigma_z", "sigma_px", "sigma_py", "sigma_pz")
+  if (attribute == "sigma_x")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s11$))
+  if (attribute == "sigma_px") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s22$))
+  if (attribute == "sigma_y")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s33$))
+  if (attribute == "sigma_py") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s44$))
+  if (attribute == "sigma_z")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s55$))
+  if (attribute == "sigma_pz") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s66$))
 case ("i5a_e6")
   if (.not. allocated (u%model%rad_int%lin_i5a_e6)) return
   value(1) = sum(u%model%rad_int%lin_i5a_e6(1:ie))
@@ -1719,6 +1719,7 @@ case ("i5b_e6")
 
 ! Must be an element attribute
 case default
+  call upcase_string(attribute)
   call pointer_to_attribute (show_common%ele, attribute, .true., real_ptr, err_flag, .false.)
   if (.not. err_flag) value(1) = real_ptr
 end select
