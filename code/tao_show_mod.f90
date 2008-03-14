@@ -20,6 +20,8 @@ type show_common_struct
   type (ele_struct), pointer :: ele 
   type (coord_struct), pointer :: orbit 
   type (bunch_params_struct), pointer :: bunch_params
+  type (tao_universe_struct), pointer :: u
+  integer ix_ele
 end type
 
 type (show_common_struct), private, save :: show_common
@@ -905,7 +907,8 @@ case ('lattice')
       case default
         show_common%ele => ele3
         show_common%orbit => orb
-        show_common%bunch_params => u%model%bunch_params(ie)
+        show_common%ix_ele = ie
+        show_common%u => u
         call tao_evaluate_expression (column(i)%name, 1, value, &
                                              .false., err, tao_ele_value_routine)
         if (err) then
@@ -1665,8 +1668,8 @@ implicit none
 type (ele_struct) ele
 
 real(rp), allocatable :: value(:)
-
-integer ios, i, n
+type (tao_universe_struct), pointer :: u
+integer ios, i, n, ie
 
 character(*) str
 character(40) attribute
@@ -1680,6 +1683,10 @@ logical err_flag
 
 call re_allocate (value, 1, .true.)
 value = 0  ! Default
+err_flag = .true.
+
+ie = show_common%ix_ele
+u => show_common%u
 
 attribute = str
 call upcase_string(attribute)
@@ -1697,18 +1704,26 @@ case ("ORBIT_Z")
 case ("ORBIT_PZ")
   value(1) = show_common%orbit%vec(6)
 case ("SIGMA_X", "SIGMA_Y", "SIGMA_Z", "SIGMA_PX", "SIGMA_PY", "SIGMA_PZ")
-  if (attribute == "SIGMA_X")  value(1) = sqrt(show_common%bunch_params%sigma(s11$))
-  if (attribute == "SIGMA_PX") value(1) = sqrt(show_common%bunch_params%sigma(s22$))
-  if (attribute == "SIGMA_Y")  value(1) = sqrt(show_common%bunch_params%sigma(s33$))
-  if (attribute == "SIGMA_PY") value(1) = sqrt(show_common%bunch_params%sigma(s44$))
-  if (attribute == "SIGMA_Z")  value(1) = sqrt(show_common%bunch_params%sigma(s55$))
-  if (attribute == "SIGMA_PZ") value(1) = sqrt(show_common%bunch_params%sigma(s66$))
+  if (attribute == "SIGMA_X")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s11$))
+  if (attribute == "SIGMA_PX") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s22$))
+  if (attribute == "SIGMA_Y")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s33$))
+  if (attribute == "SIGMA_PY") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s44$))
+  if (attribute == "SIGMA_Z")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s55$))
+  if (attribute == "SIGMA_PZ") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s66$))
+case ("i5a_e6")
+  if (.not. allocated (u%model%rad_int%lin_i5a_e6)) return
+  value(1) = sum(u%model%rad_int%lin_i5a_e6(1:ie))
+case ("i5b_e6")
+  if (.not. allocated (u%model%rad_int%lin_i5b_e6)) return
+  value(1) = sum(u%model%rad_int%lin_i5b_e6(1:ie))
 
 ! Must be an element attribute
 case default
   call pointer_to_attribute (show_common%ele, attribute, .true., real_ptr, err_flag, .false.)
   if (.not. err_flag) value(1) = real_ptr
 end select
+
+err_flag = .false.
 
 end subroutine
 
