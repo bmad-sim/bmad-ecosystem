@@ -2107,7 +2107,7 @@ do i = 1, i_lev
     if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
       stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value(1)
     elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
-      call val_trans (stk(i2-1)%value, stk(i2-1)%value(1) + stk(i2)%value)
+      call value_transfer (stk(i2-1)%value, stk(i2-1)%value(1) + stk(i2)%value)
     else
       stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value
     endif
@@ -2117,7 +2117,7 @@ do i = 1, i_lev
     if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
       stk(i2-1)%value = stk(i2-1)%value - stk(i2)%value(1)
     elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
-      call val_trans (stk(i2-1)%value, stk(i2-1)%value(1) - stk(i2)%value)
+      call value_transfer (stk(i2-1)%value, stk(i2-1)%value(1) - stk(i2)%value)
     else
       stk(i2-1)%value = stk(i2-1)%value - stk(i2)%value
     endif
@@ -2127,7 +2127,7 @@ do i = 1, i_lev
     if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
       stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value(1)
     elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
-      call val_trans (stk(i2-1)%value, stk(i2-1)%value(1) * stk(i2)%value)
+      call value_transfer (stk(i2-1)%value, stk(i2-1)%value(1) * stk(i2)%value)
     else
       stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value
     endif
@@ -2143,7 +2143,7 @@ do i = 1, i_lev
     if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
       stk(i2-1)%value = stk(i2-1)%value / stk(i2)%value(1)
     elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
-      call val_trans (stk(i2-1)%value, stk(i2-1)%value(1) / stk(i2)%value)
+      call value_transfer (stk(i2-1)%value, stk(i2-1)%value(1) / stk(i2)%value)
     else
       stk(i2-1)%value = stk(i2-1)%value / stk(i2)%value
     endif
@@ -2153,7 +2153,7 @@ do i = 1, i_lev
     if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
       stk(i2-1)%value = stk(i2-1)%value ** stk(i2)%value(1)
     elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
-      call val_trans (stk(i2-1)%value, stk(i2-1)%value(1) ** stk(i2)%value)
+      call value_transfer (stk(i2-1)%value, stk(i2-1)%value(1) ** stk(i2)%value)
     else
       stk(i2-1)%value = stk(i2-1)%value ** stk(i2)%value
     endif
@@ -2208,12 +2208,17 @@ enddo
 
 if (i2 /= 1) call out_io (s_warn$, r_name, 'INTERNAL ERROR')
 
-call val_trans (value, stk(1)%value)
+if (size(stk(1)%value) == 1 .and. n__size > 1) then
+  call re_allocate (value, n_size)
+  value = stk(1)%value(1)
+else
+  call value_transfer (value, stk(1)%value)
+endif
 
 !-------------------------------------------------------------------------
 contains
 
-subroutine val_trans (to_array, from_array)
+subroutine value_transfer (to_array, from_array)
 
 real(rp), allocatable :: to_array(:)
 real(rp) from_array(:)
