@@ -12,6 +12,8 @@
 
 subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
 
+  use cesr_utils
+
   implicit none
 
   character(*) lattice, bmad_file_name

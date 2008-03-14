@@ -664,8 +664,8 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
   type (lat_struct), optional :: lat
 
   character(len=*), optional :: choice
-  character(*) lat_file
-  character(40) lattice, current_lat, lat_list(200)
+  character(*) lat_file, lattice, current_lat
+  character(40) lat_list(200)
   character(80) line
    
   integer i, num_lats, i_lat, ix, ios

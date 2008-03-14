@@ -33,8 +33,8 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
   integer i, ix
 
   character(*) directory
+  character(*) lat_list(:)
   character(200) directory2
-  character(40) lat_list(:)
 
   integer ios, context, ixx, lib$find_file
   integer stat
@@ -110,8 +110,8 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
   integer i, ix
 
   character(*) directory
+  character(*) lat_list(:)
   character(200) directory2
-  character(40) lat_list(:)
   character(40) match_file
   character(200) lat_file
 
@@ -132,8 +132,8 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
     call downcase_string (lat_file)
     if (.not. match_wild(lat_file, match_file)) cycle
 
-    ix = index(lat_file, ';') - 1      ! strip version number suffix
-    if (ix /= 0) lat_file = lat_file(:ix)
+    ix = index(lat_file, ';')      ! strip version number suffix
+    if (ix /= 0) lat_file = lat_file(:ix-1)
 
     ix = index(lat_file, '.lat')   ! strip off .lat
     if (ix /= 0) lat_file = lat_file(1:ix-1)
