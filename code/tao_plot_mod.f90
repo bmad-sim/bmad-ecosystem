@@ -871,23 +871,22 @@ implicit none
 
 type (tao_var_struct) var
 character(10) str
-integer i, iu, ct
-logical uni(100)
+integer i, ct
+logical uni(lbound(s%u, 1):ubound(s%u, 1))
 
 !
 
-iu = ubound(s%u, 1)
 uni = .false.
 
 do i = 1, size (var%this)
   uni(var%this(i)%ix_uni) = .true.
 enddo
 
-ct = count(uni(1:iu))
+ct = count(uni)
 
 if (ct == 1) then
   write (str, '(i2)') var%this(1)%ix_uni
-elseif (ct == iu) then
+elseif (ct == size(s%u)) then
   str = 'All'
 else
   str = '?'

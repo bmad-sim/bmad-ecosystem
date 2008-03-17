@@ -36,7 +36,7 @@ type (spin_polar_struct) spin
 integer ios, iu, i, j, k, ix, n_uni, num
 integer n_data_max, n_var_max, ix_track_start, ix_track_end
 integer n_d2_data_max, n_v1_var_max ! Deprecated variables
-integer n, iostat, ix_universe, n_max
+integer n, iostat, ix_universe
 
 character(*) init_file
 character(40) :: r_name = 'tao_init_global'
@@ -97,15 +97,6 @@ endif
 ! Tao does its own bookkeeping
 
 bmad_com%auto_bookkeeper = .false.
-
-n = ubound(s%u, 1)
-n_max = 0
-do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%ix_uni = i
-  s%u(i)%do_synch_rad_int_calc = .false.
-  s%u(i)%do_chrom_calc         = .false.
-  n_max = max(n_max, s%u(i)%design%lat%n_ele_max)
-enddo
 
 ! Seed random number generator
 
@@ -479,7 +470,7 @@ type (tao_data_input) data(n_data_minn:n_data_maxx) ! individual weight
 real(rp) default_weight        ! default merit function weight
 
 integer ios, iu, i, j, j1, k, ix, n_uni, num
-integer n, iostat, n_max
+integer n, iostat
 integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
 
 integer, automatic :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
@@ -1314,7 +1305,7 @@ do
     dflt_good_unis = .true.
     if (tao_com%unified_lattices .and. gang) then
       dflt_good_unis = .false.
-      dflt_good_unis(tao_com%u_common) = .true.
+      dflt_good_unis(tao_com%u_common%ix_uni) = .true.
     endif
 
   else
@@ -1388,7 +1379,7 @@ deallocate (default_key_b, default_key_d)
 if (tao_com%unified_lattices) then
   do i = 1, size(s%var)
     if (.not. s%var(i)%exists) cycle
-    if (s%var(i)%this(1)%ix_uni == tao_com%u_common) then
+    if (s%var(i)%this(1)%ix_uni == tao_com%u_common%ix_uni) then
       s%var(i)%model_value => s%var(i)%common%model_value
       s%var(i)%base_value => s%var(i)%common%base_value
     else
@@ -1847,7 +1838,7 @@ character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
 err = .true.
 
 u => s%u(ix_uni)
-if (tao_com%unified_lattices) u => s%u(tao_com%u_working)
+if (tao_com%unified_lattices) u => tao_com%u_working
 
 ! allocate space for var%this.
 

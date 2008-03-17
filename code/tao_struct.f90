@@ -460,6 +460,8 @@ type tao_common_struct
   type (tao_ele_shape_struct), allocatable :: ele_shape_floor_plan(:)
   type (tao_ele_shape_struct), allocatable :: ele_shape_lat_layout(:)
   type (taylor_struct) :: taylor(6) ! Saved taylor map
+  type (tao_universe_struct), pointer :: u_common           ! Index of common universe.
+  type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
   integer ix0_taylor, ix1_taylor     ! Taylor map end points
   logical opti_init             ! init needed?
   logical opti_at_limit         ! Variable at limit?
@@ -469,8 +471,6 @@ type tao_common_struct
   integer :: cmd_file_level = 0 ! for nested command files
               ! unit numbers for a command files. 0 -> no command file.
   integer :: ix_key_bank = 0             ! For single mode.
-  integer :: u_common           ! Index of common universe.
-  integer :: u_working          ! Index of working universe.
   integer n_universes
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   logical :: use_cmd_here  = .false.     ! Used for the cmd history stack

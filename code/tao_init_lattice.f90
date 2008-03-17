@@ -30,7 +30,7 @@ character(16) aperture_limit_on
 
 integer i, j, n, iu, ios, version, taylor_order, ix, key, n_universes
 
-logical custom_init, override, combine_consecutive_elements_of_like_name
+logical custom_init, lat_name_from_tao_com, combine_consecutive_elements_of_like_name
 logical unified_lattices
 logical err, is_set
 
@@ -82,11 +82,16 @@ endif
 !
 
 if (tao_com%unified_lattices) then
-  allocate (s%u(tao_com%n_universes))
-  tao_com%u_common = 1
-  tao_com%u_working = 2
+  allocate (s%u(0:tao_com%n_universes))
+  allocate (tao_com%u_working)
+
+  tao_com%u_common => s%u(0)
+  tao_com%u_common%common_uni = .true.
+
 else
   allocate (s%u(tao_com%n_universes))
+  nullify (tao_com%u_common)
+  nullify (tao_com%u_working)
 endif
 
 ! Are we using a custom initialization?
@@ -98,15 +103,20 @@ if (custom_init) then
   return
 endif
 
-! See what type of lattice file we have and issue a warning if old style syntax
+! Read in the lattices
 
-override = .false.
-if (tao_com%init_lat_file(1) /= '') override = .true.
+lat_name_from_tao_com = .false.
+if (tao_com%init_lat_file(1) /= '') lat_name_from_tao_com = .true.
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
   u => s%u(i)
   u%is_on = .true.          ! turn universe on
+  u%ix_uni = i
+  u%do_synch_rad_int_calc = .false.
+  u%do_chrom_calc         = .false.
+
+  ! See what type of lattice file we have and issue a warning if old style syntax
 
   if (design_lattice(i)%parser /= '') then
     call out_io (s_error$, r_name, (/ &
@@ -116,32 +126,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         '************************************************************' /) )
   endif
 
-  ! If unified then point back to the common lattice (universe #1) and the working lattice (#2)
+  ! If unified then only read in a lattice for the common universe.
 
   if (tao_com%unified_lattices) then
-    if (i == tao_com%u_common) then
-      u%common_uni = .true.
-    else
-      u%common => s%u(tao_com%u_common)
-      u%ele => s%u(tao_com%u_common)%ele
-      if (i == tao_com%u_working) then   ! Working lattices
-        allocate (u%design, u%base, u%model)
-        u%design%lat = u%common%design%lat
-        u%base%lat   = u%common%base%lat
-        u%model%lat  = u%common%model%lat
-      else
-        u%design => s%u(tao_com%u_working)%design
-        u%model  => s%u(tao_com%u_working)%model
-        u%base   => s%u(tao_com%u_working)%base
-      endif
+    if (i /= tao_com%u_common%ix_uni) then
       cycle
     endif
   endif
 
-  ! Else not unified...
-  ! We need to read in the lattice
+  ! 
 
-  if (override) then
+  if (lat_name_from_tao_com) then
     file_name = tao_com%init_lat_file(i)
   else
     file_name = design_lattice(i)%file
@@ -212,15 +207,43 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   allocate (u%model%orb(0:n), u%model%bunch_params(0:n))
   allocate (u%design%orb(0:n), u%design%bunch_params(0:n))
   allocate (u%base%orb(0:n), u%base%bunch_params(0:n))
-  call reallocate_coord (u%design%orb, n) 
-  call reallocate_coord (u%model%orb, n)
-  call reallocate_coord (u%base%orb, n)
+  allocate (u%ele(0:n))
   u%model = u%design
   u%base  = u%design
-  allocate (u%ele(0:u%design%lat%n_ele_max))
 
 enddo
 
 close (iu)
+
+! Working lattice setup
+
+if (tao_com%unified_lattices) then
+
+  u => tao_com%u_working
+  u%common => tao_com%u_common
+  u%ele    => tao_com%u_common%ele
+  allocate (u%design, u%base, u%model)
+  u%design%lat = u%common%design%lat
+  u%base%lat   = u%common%base%lat
+  u%model%lat  = u%common%model%lat
+  n = u%design%lat%n_ele_max
+  allocate (u%model%orb(0:n), u%model%bunch_params(0:n))
+  allocate (u%design%orb(0:n), u%design%bunch_params(0:n))
+  allocate (u%base%orb(0:n), u%base%bunch_params(0:n))
+  allocate (u%ele(0:n))
+
+  ! If unified then point back to the common universe (#1) and the working universe (#2)
+
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    if (i == tao_com%u_common%ix_uni) cycle
+    u => s%u(i)
+    u%common => tao_com%u_common
+    u%ele    => tao_com%u_common%ele
+    u%design => tao_com%u_working%design
+    u%model  => tao_com%u_working%model
+    u%base   => tao_com%u_working%base
+  enddo
+
+endif
 
 end subroutine tao_init_lattice
