@@ -885,7 +885,7 @@ enddo
 ct = count(uni)
 
 if (ct == 1) then
-  write (str, '(i2)') var%this(1)%ix_uni
+  write (str, '(i3)') var%this(1)%ix_uni
 elseif (ct == size(s%u)) then
   str = 'All'
 else

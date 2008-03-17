@@ -2771,6 +2771,8 @@ subroutine tao_parse_command_args (error, cmd_words)
 
   enddo
 
+  tao_com%init_lat_file(0) = tao_com%init_lat_file(1) ! For unified lattices
+
 !-----------------------------
 contains
 

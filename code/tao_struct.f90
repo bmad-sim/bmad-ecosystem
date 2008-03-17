@@ -485,7 +485,7 @@ type tao_common_struct
   character(100) cmd                         ! Used for the cmd history
   character(16) :: init_name = "Tao"               ! label for initialization
   character(80) :: init_tao_file     = 'tao.init'  ! '-init' argument.
-  character(80) :: init_lat_file(10) = ''          ! '-lat' argument.
+  character(80) :: init_lat_file(0:10) = ''        ! '-lat' argument.
   character(80) :: beam_all_file = ''  ! Command line input beam data file.
   character(80) :: beam0_file    = ''  ! Command line input beam data file.
   character(16) :: aperture_limit_on

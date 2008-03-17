@@ -106,7 +106,7 @@ endif
 ! Read in the lattices
 
 lat_name_from_tao_com = .false.
-if (tao_com%init_lat_file(1) /= '') lat_name_from_tao_com = .true.
+if (any(tao_com%init_lat_file /= '')) lat_name_from_tao_com = .true.
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
