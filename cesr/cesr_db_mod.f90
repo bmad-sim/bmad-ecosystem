@@ -556,7 +556,7 @@ subroutine read_butns_file (butns_num, nonlinear_calc, butns, db, &
 
   real(rp) x_orbit(120), y_orbit(120), rdummy
 
-  character line_in*130, file_in*40
+  character(130) line_in, file_in
 
   logical nonlinear_calc, read_ok, type_err, err_flag, is_ok(120)
 
