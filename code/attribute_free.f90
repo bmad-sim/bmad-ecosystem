@@ -192,8 +192,8 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
 
   if (.not. free) then
     call print_error (ix_ele, ix_attrib, &
-         'THE ATTRIBUTE IS A DEPENDENT VARIABLE SINCE THE FIELD_MASTER ATTRIBUTE IS ' // &
-                                             on_off_logic (ele%field_master))
+         "THE ATTRIBUTE IS A DEPENDENT VARIABLE SINCE", &
+         "THE ELEMENT'S FIELD_MASTER IS " // on_off_logic (ele%field_master))
     return
   endif
 
@@ -212,32 +212,38 @@ end subroutine
 !-------------------------------------------------------
 ! contains
 
-subroutine print_error (ix_ele, ix_attrib, l1)
+subroutine print_error (ix_ele, ix_attrib, l1, l2)
 
-  integer ix_ele, ix_attrib
+  integer ix_ele, ix_attrib, nl
   character(*) l1
-  character(80) li(8)
+  character(*), optional :: l2
+  character(100) li(8)
 
 !
 
   if (.not. do_print) return
 
-  li(1) = 'ERROR IN ATTRIBUTE_FREE:'
-  li(2) = '     THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele0), ix_attrib0)
-  li(3) = '     OF THE ELEMENT: ' // lat%ele(ix_ele0)%name
+  li(1) =   'ERROR IN ATTRIBUTE_FREE:'
+  li(2) =   '      THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele0), ix_attrib0)
+  li(3) =   '      OF THE ELEMENT: ' // lat%ele(ix_ele0)%name
 
   if (ix_ele == ix_ele0) then
-    li(4) = '   IS NOT FREE TO VARY SINCE:'
-    li(5) = '     ' // l1
-    call out_io (s_error$, r_name, li(1:5))   
+    li(4) = '      IS NOT FREE TO VARY SINCE:'
+    nl = 4
   else 
-    li(4) = '   IS NOT FREE TO VARY SINCE IT IS TRYING TO CONTROL:'
-    li(5) = '     THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele), ix_attrib)
-    li(6) = '     OF THE ELEMENT: ' // lat%ele(ix_ele)%name
-    li(7) = '   AND THIS IS NOT FREE TO VARY SINCE:'
-    li(8) = '     ' // l1
-    call out_io (s_error$, r_name, li)        
+    li(4) = '      IS NOT FREE TO VARY SINCE IT IS TRYING TO CONTROL:'
+    li(5) = '      THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele), ix_attrib)
+    li(6) = '      OF THE ELEMENT: ' // lat%ele(ix_ele)%name
+    li(7) = '      AND THIS IS NOT FREE TO VARY SINCE:'
+    nl = 7
   endif
+
+  nl=nl+1; li(nl) = '     ' // l1
+  if (present(l2)) then
+    nl=nl+1; li(nl) = '     ' // l2
+  endif
+
+  call out_io (s_error$, r_name, li(1:nl))   
 
 end subroutine
 

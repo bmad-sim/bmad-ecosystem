@@ -62,6 +62,10 @@ solely meant for \bmad internal use.
 
 \begin{description}
 
+\index{Routine!aml_parser}
+\item[aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)] \Newline 
+Subroutine to parse an AML input file and put the information in a lat_struct.
+
 \index{Routine!bmad_parser}
 \item[bmad_parser (in_file, lat, make_mats6, digested_read_ok, use_line)] \Newline
 Subroutine to parse (read in) a Bmad input file. 
@@ -792,10 +796,6 @@ Subroutine to put in the long-range wakes for particle tracking.
 \index{Routine!odeint_bmad}
 \item[odeint_bmad (start, ele, param, end, s1, s2, rel_tol, abs_tol, h1, hmin)] \Newline
 Subroutine to do Runge Kutta tracking. 
-
-\index{Routine!track_a_accel_sol}
-\item[track_a_accel_sol (start, ele, param, end)] \Newline
-Subroutine to track through an accel_sol element.
 
 \index{Routine!track1_boris_partial}
 \item[track1_boris_partial (start, ele, param, s, ds, end)] \Newline
@@ -1863,9 +1863,9 @@ Subroutine to calculate the attributes of overlay slave elements.
 \item[orbit_to_dispersion (orb_diff, ele)] \Newline
 Subroutine to take an orbit vector difference and calculate the dispersion. 
 
-\index{Routine!twiss_decoupled_propagate}
-\item[twiss_decoupled_propagate (ele1, ele2)] \Newline
-Subroutine to propagate the Twiss parameters from end of ele1 to end of ele2. 
+\index{Routine!twiss1_propagate}
+\item[twiss1_propagate (twiss1, mat2, length, twiss2)] \Newline 
+Subroutine to propagate the twiss parameters of a single mode.
 
 \end{description}
 
@@ -2213,10 +2213,6 @@ See also: qp_draw_text.
      Subroutine to set the box on the physical page.
      This routine divides the page into a grid of boxes. 
 
-\index{Routine!qp_set_default}
-\item[qp_set_default (default_draw_units, default_set_units)] \Newline 
-     Subroutine to set the default units for drawing and setting.
-
 \index{Routine!qp_set_graph}
 \item[qp_set_graph (title)] \Newline 
      Subroutine to set certain graph attributes.
@@ -2254,8 +2250,8 @@ to the edges of the actual graph.
 \item[qp_set_clip (clip)] \Newline 
      Subroutine to set the default clipping state.
 
-\index{Routine!qp_set_qp_parameters}
-\item[qp_set_qp_parameters (text_scale)] \Newline 
+\index{Routine!qp_set_parameters}
+\item[qp_set_parameters (text_scale)] \Newline 
 Subroutine to set various quick_plot parameters.
 
 \index{Routine!qp_subset_box}
@@ -2304,8 +2300,8 @@ Subroutine to set what axis to use: X or X2, Y or Y2.
 \item[qp_get_layout_attrib (who, x1, x2, y1, y2, units)] \Newline 
      Subroutine to get the attributes of the layout.
 
-\index{Routine!qp_get_qp_parameters}
-\item[qp_get_qp_parameters (text_scale)] \Newline 
+\index{Routine!qp_get_parameters}
+\item[qp_get_parameters (text_scale)] \Newline 
 Subroutine to get various quick_plot parameters.
 
 \index{Routine!qp_text_len}
