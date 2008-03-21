@@ -331,12 +331,12 @@ type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
 type (tao_var_struct), pointer :: v_ptr
 
-real(rp) f, y_val, eps, gs, l_tot, s0, s1
+real(rp) f, y_val, eps, gs, l_tot, s0, s1, x_max, x_min
 real(rp), pointer :: value(:)
 real(rp), allocatable, save :: ix_symb(:), x_symb(:), y_symb(:)
 
 integer ii, k, m, n_dat, ie, jj, iv, ic
-integer ix, ir, jg, i, j, i_max, i_min, ix_this
+integer ix, ir, jg, i, j, ix_this
 integer, allocatable, save :: ix_ele(:)
 
 logical err, smooth_curve, found, zero_average_phase, valid, in_graph, ok
@@ -659,13 +659,13 @@ do k = 1, size(graph%curve)
   case ('lattice', 'beam')
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
-      i_min = 1
-      i_max = model_lat%n_ele_track
+      x_min = 1
+      x_max = model_lat%n_ele_track
       if (plot%x%min /= plot%x%max) then
-        i_min = max(i_min, floor(plot%x%min))
-        i_max = min(i_max, ceiling(plot%x%max))
+        x_min = max(x_min, plot%x%min)
+        x_max = min(x_max, plot%x%max)
       endif 
-      n_dat = max(0, i_max+1-i_min)
+      n_dat = max(0, nint(x_max+1-x_min))
     elseif (plot%x_axis_type == 's') then
       ! Symbols are to be put at the ends of displayed elements in the lat_layout
       eps = 1e-4 * (plot%x%max - plot%x%min)             ! a small number
@@ -691,7 +691,7 @@ do k = 1, size(graph%curve)
 
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
-      if (n_dat > 0) ix_symb = (/ (i, i = i_min, i_max) /)
+      if (n_dat > 0) ix_symb = (/ (i, i = nint(x_min), nint(x_max)) /)
       x_symb = ix_symb
     elseif (plot%x_axis_type == 's') then
       ix_symb = pack(u%ele(:)%ix_ele_end_lat_layout, mask = model_lat%ele(:)%logic)
