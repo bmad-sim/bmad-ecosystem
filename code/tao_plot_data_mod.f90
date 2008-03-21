@@ -76,7 +76,7 @@ real(rp) emit_a, emit_b
 
 integer k, n, m, ib, ix1_ax, ix2_ax, ix, i
 
-logical err
+logical err, same_uni
 
 character(40) name, phase1_str, phase2_str
 character(40) :: r_name = 'tao_phase_space_plot_data_setup'
@@ -84,30 +84,44 @@ character(40) :: r_name = 'tao_phase_space_plot_data_setup'
 ! Set up the graph suffix
 
 graph%valid = .false.
+if (size(graph%curve) == 0) return
 
-curve => graph%curve(1)
-u => tao_pointer_to_universe (curve%ix_universe)
-if (.not. associated(u)) return
+same_uni = .true.
+ix = tao_universe_number(graph%curve(1)%ix_universe)
+do k = 2, size(graph%curve)
+  curve => graph%curve(k)
+  if (tao_universe_number(curve%ix_universe) /= ix) same_uni = .false.
+enddo
 
-if (curve%ix_ele_ref_track < 0) then
-  call out_io (s_error$, r_name, &
+graph%title_suffix = ''
+do k = 1, size(graph%curve)
+  curve => graph%curve(k)
+  u => tao_pointer_to_universe (curve%ix_universe)
+  if (.not. associated(u)) return
+  if (curve%ix_ele_ref_track < 0) then
+    call out_io (s_error$, r_name, &
                 'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name, &
                 'CANNOT PLOT PHASE SPACE FOR: ' // tao_curve_name(curve))
-  return
-endif
-
-ele => u%model%lat%ele(curve%ix_ele_ref_track)
-
-name = curve%ele_ref_name
-if (name == ' ') name = ele%name
-
-write (graph%title_suffix, '(a, i0, 3a)') '[', curve%ix_ele_ref, ': ', trim(name), ']'
+    return
+  endif
+  ele => u%model%lat%ele(curve%ix_ele_ref_track)
+  name = curve%ele_ref_name
+  if (name == ' ') name = ele%name
+  if (same_uni) then
+    write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), &
+                                '[', curve%ix_ele_ref, ': ', trim(name), ']'
+  else
+    write (graph%title_suffix, '(2a, i0, a, i0, 3a)') trim(graph%title_suffix), &
+            '[', u%ix_uni, '@', curve%ix_ele_ref, ': ', trim(name), ']'
+  endif
+enddo
 
 ! loop over all curves
 
 do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
+  u => tao_pointer_to_universe (curve%ix_universe)
 
   ! find phase space axes to plot
 

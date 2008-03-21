@@ -99,9 +99,9 @@ end type
 type tao_graph_struct
   character(40) name           ! Name identifying the graph
   character(40) type           ! "data", "lat_layout", "key_table", "phase_space"
-  character(80) title
-  character(80) title_suffix 
-  character(80) legend(n_legend_maxx) ! Array for holding descriptive info.
+  character(100) title
+  character(100) title_suffix 
+  character(100) legend(n_legend_maxx) ! Array for holding descriptive info.
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
   type (qp_point_struct) legend_origin
