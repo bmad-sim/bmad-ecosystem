@@ -1,0 +1,19 @@
+#---- cesr_ctl_def ----
+#
+# Define environment variables needed for CESR control system 
+# access from Linux/Unix
+#
+# This script is to be sourced in csh/tcsh shells
+#
+# M. Palmer   3/20/08
+#
+# L_MEAS  - CESR BPM measurements area (orbit, phase, eta,...)
+# L_SAVE  - CESR savesets
+# L_CONST - CESR constants
+#
+#--------------------------------------------
+
+setenv L_MEAS /nfs/cesr/cesr_meas
+setenv L_SAVE /nfs/cesr/cesr_save
+setenv L_CONST /nfs/cesr/cesr_const
+
