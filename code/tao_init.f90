@@ -81,7 +81,7 @@ read (iu, nml = tao_start, iostat = ios)
 close (iu)
 
 if (ios /= 0) then
-  call out_io (s_warn$, r_name, 'Cannot read "tao_start" namelist in file: ' // file_name)
+  call out_io (s_info$, r_name, 'Cannot read "tao_start" namelist in file: ' // file_name)
 endif
 
 tao_com%init_name = init_name

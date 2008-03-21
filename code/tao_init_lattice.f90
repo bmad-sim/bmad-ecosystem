@@ -38,6 +38,12 @@ namelist / tao_design_lattice / design_lattice, taylor_order, &
        combine_consecutive_elements_of_like_name, unique_name_suffix, &
        aperture_limit_on, unified_lattices, n_universes
 
+! Defaults
+
+design_lattice%file   = ''
+design_lattice%file2  = ''
+design_lattice%parser = ''
+
 ! Read lattice info
 
 call tao_hook_init_read_lattice_info (lat_file_name, is_set)
@@ -52,9 +58,6 @@ if (.not. is_set) then
 
   ! Defaults
 
-  design_lattice%file   = ''
-  design_lattice%file2  = ''
-  design_lattice%parser = ''
   unified_lattices = .false.
   n_universes = tao_com%n_universes
   taylor_order = 0

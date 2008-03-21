@@ -1576,7 +1576,7 @@ if (search_for_lat_eles /= '') then
       ! If the name matches an existing variable then use that variable
       do j = n1, nn
         if (s%var(j)%ele_name == ele_name) then
-          call tao_pointer_to_var_in_lattice (s%var(j), iu, err, ix_ele)
+          call tao_pointer_to_var_in_lattice (s%var(j), iu, ix_ele, err)
           cycle kk_loop
         endif
       enddo
@@ -1590,7 +1590,7 @@ if (search_for_lat_eles /= '') then
       var_ptr%ele_name = ele_name
       var_ptr%s = s%u(iu)%design%lat%ele(ix_ele)%s
       var_ptr%attrib_name = default_attribute
-      call tao_pointer_to_var_in_lattice (var_ptr, iu, err, ix_ele)
+      call tao_pointer_to_var_in_lattice (var_ptr, iu, ix_ele, err)
     enddo kk_loop
   enddo 
 
@@ -1703,10 +1703,10 @@ type (tao_var_struct), target :: var
 type (tao_this_var_struct), pointer :: this
 type (tao_universe_struct), pointer :: u
 
-integer i, j, n, n1, n2, iv, iu
+integer i, j, n, n1, n2, ie, iu
 
 character(20) :: r_name = 'tao_var_stuffit2'
-logical err, good_unis(:)
+logical err, good_unis(lbound(s%u, 1):)
 
 ! 
 
@@ -1718,9 +1718,9 @@ endif
 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. good_unis(iu)) cycle
-  do iv = 0, s%u(iu)%model%lat%n_ele_max
-    if (var%ele_name /= s%u(iu)%model%lat%ele(iv)%name) cycle
-    call tao_pointer_to_var_in_lattice (var, iu, err, iv)
+  do ie = 0, s%u(iu)%model%lat%n_ele_max
+    if (var%ele_name /= s%u(iu)%model%lat%ele(ie)%name) cycle
+    call tao_pointer_to_var_in_lattice (var, iu, ie, err)
     if (err) return
   enddo
 enddo
@@ -1801,7 +1801,7 @@ end subroutine tao_find_elements
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, ix_ele)
+! Subroutine tao_pointer_to_var_in_lattice (var, ix_uni, ix_ele, err)
 ! 
 ! Routine to set a pointer to the appropriate variable in a lattice
 !
@@ -1819,7 +1819,7 @@ end subroutine tao_find_elements
 !   err       -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine tao_pointer_to_var_in_lattice (var, ix_uni, err, ix_ele)
+subroutine tao_pointer_to_var_in_lattice (var, ix_uni, ix_ele, err)
 
 implicit none
 
