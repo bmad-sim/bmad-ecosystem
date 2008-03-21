@@ -20,10 +20,13 @@ subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
 
 !
 
+  bmad_file_name = lattice
+  call downcase_string(bmad_file_name)
+
   if (index(lattice, '.') == 0) then
-    bmad_file_name = 'BMAD_LAT:bmad_' // trim(lattice) // '.lat'
+    bmad_file_name = 'BMAD_LAT:bmad_' // trim(bmad_file_name) // '.lat'
   else
-    bmad_file_name = 'BMAD_LAT:bmad_' // trim(lattice) 
+    bmad_file_name = 'BMAD_LAT:bmad_' // trim(bmad_file_name) 
   endif
 
   call FullFileName(bmad_file_name, bmad_file_name)
