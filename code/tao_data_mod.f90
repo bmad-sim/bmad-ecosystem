@@ -299,9 +299,9 @@ case ('orbit.p_z')
   if (lat%param%ix_lost /= not_lost$ .and. ix1 >= lat%param%ix_lost) valid_value = .false.
 
 case ('bpm.x')
-  call tao_read_bpm (tao_lat%orb(ix1), lat%ele(ix1), x_plane$, datum_value)
+  call orbit_to_bpm_reading (tao_lat%orb(ix1), lat%ele(ix1), x_plane$, datum_value)
 case ('bpm.y')
-  call tao_read_bpm (tao_lat%orb(ix1), lat%ele(ix1), y_plane$, datum_value)
+  call orbit_to_bpm_reading (tao_lat%orb(ix1), lat%ele(ix1), y_plane$, datum_value)
 
 case ('phase.a')
   datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
@@ -1068,82 +1068,6 @@ cc_p%f_12b = f1
 cc_p%f_22  = f2
 
 end subroutine coupling_calc
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Subroutine tao_read_bpm (orb, ele, axis, reading)
-!
-! Find the reading on a bpm given the orbit at the BPM and the BPM offsets
-!
-! This routine will only give a nonzero reading for BMAD monitors and
-! instruments.
-!
-! Input: 
-!  orb        -- Coord_struct: Orbit position at BPM
-!  ele        -- Ele_struct: the BPM
-!    %value(noise$) -- relative bpm resolution RMS
-!    %value(tilt$)  -- angle error in radians rms.
-!  axis       -- Integer: x_plane$ or y_plane$
-!
-! Output:
-!  reading  -- Real(rp): BPM reading
-!-
-
-subroutine tao_read_bpm (orb, ele, axis, reading)
-
-type (coord_struct) orb
-type (ele_struct) ele
-
-real(rp) reading, x_noise_factor, y_noise_factor
-real(rp) ran_num(2), angle, x, y, x_gain, y_gain
-
-integer axis
-
-character(20) :: r_name = "tao_read_bpm"
-
-logical err
-
-  if (.not. ele%is_on) then
-    reading = 0.0
-    return
-  endif
-
-  if (ele%key /= monitor$ .and. ele%key /= instrument$ .and. ele%key /= marker$) then
-    reading = 0.0
-    return
-  endif
-
-  if (ele%value(noise$) /= 0) then
-    call ran_gauss (ran_num)
-    x_noise_factor = ele%value(noise$) * ran_num(1) 
-    y_noise_factor = ele%value(noise$) * ran_num(2)
-  else
-    x_noise_factor = 0
-    y_noise_factor = 0
-  endif
-
-  x_gain = 1 + ele%value(x_gain_err$) - ele%value(x_gain_calib$)
-  y_gain = 1 + ele%value(y_gain_err$) - ele%value(y_gain_calib$)
-  x = orb%vec(1) - ele%value(x_offset_tot$) + ele%value(x_offset_calib$)
-  y = orb%vec(3) - ele%value(y_offset_tot$) + ele%value(y_offset_calib$)
-
-  if (axis == x_plane$) then
-    angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) + &
-                  (ele%value(crunch$) - ele%value(crunch_calib$))
-    reading = x_noise_factor + x_gain * (x * cos(angle) + y * sin(angle))
-  elseif (axis == y_plane$) then
-    angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) - &
-                  (ele%value(crunch$) - ele%value(crunch_calib$))
-    reading = y_noise_factor + y_gain * (-x * sin(angle) + y * cos(angle))
-  else
-    reading = 0.0
-    call out_io (s_warn$, r_name, "This axis not supported for BPM reading!")
-    call err_exit
-  endif
-    
-end subroutine tao_read_bpm
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
