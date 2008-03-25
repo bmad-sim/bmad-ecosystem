@@ -40,7 +40,7 @@ do i = 1, size(who)
 
   call string_trim (who(i)(2:), p_who(i)%name, j)
 
-  if (.not. any(p_who(i)%name == s%global%valid_plot_who)) then
+  if (.not. any(p_who(i)%name == tao_com%valid_plot_who)) then
     call out_io (s_error$, r_name, 'BAD "WHO": ' // who(i))
     return
   endif

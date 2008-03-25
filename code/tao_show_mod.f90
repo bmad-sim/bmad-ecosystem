@@ -1226,9 +1226,9 @@ case ('plot', 'graph', 'curve')
     endif
     nl=nl+1; lines(nl) = 'Plot:  ' // p%name
     nl=nl+1; write (lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
-    nl=nl+1; write (lines(nl), rmt) 'x%major_div_nominal  = ', p%x%major_div_nominal
     nl=nl+1; write (lines(nl), rmt) 'x%max                = ', p%x%max
     nl=nl+1; write (lines(nl), rmt) 'x%min                = ', p%x%min
+    nl=nl+1; write (lines(nl), imt) 'x%major_div_nominal  = ', p%x%major_div_nominal
     nl=nl+1; write (lines(nl), imt) 'x%major_div          = ', p%x%major_div
     nl=nl+1; write (lines(nl), imt) 'x%places             = ', p%x%places
     nl=nl+1; write (lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label

@@ -95,14 +95,16 @@ do
   call substitute ("``", '"')
   call substitute ("''", '"')
   call substitute ("$")
-  call substitute (" &")
   call substitute ("\{", "{")
   call substitute ("\}", "}")
   call substitute ("\_", "_")
   call substitute ("\tao", "Tao")
   call eliminate2 ('\item[', ']')
   call eliminate2 ('\vn{', '}', '"', '"')
-  call eliminate_inbetween ('\sref{', '}')
+  call eliminate_inbetween ('& \sref{', '}', .true.)
+  call eliminate_inbetween ('\sref{', '}', .false.)
+  call eliminate_inbetween ('{\it ', '}', .false.)
+  call substitute (" &")
   call substitute ('\\ \hline')
   call substitute ('\W ', '^')
   call substitute ('"\W"', '"^"')
@@ -179,10 +181,16 @@ end subroutine
 !
 ! eliminates everything between strings, including the strings
 
-subroutine eliminate_inbetween (str1, str2)
+subroutine eliminate_inbetween (str1, str2, pad_with_blanks)
 
 character(*) str1, str2
+character(100) :: blank = ''
+
 integer n1, n2
+
+logical pad_with_blanks
+
+!
 
 n1 = len(str1)
 n2 = len(str2)
@@ -192,7 +200,11 @@ do
   if (ix == 0) return
   ix2 = index (line(ix+1:), str2) + ix
   if (ix2 == 0) return
-  line = line(1:ix-1) // line(ix2+n2:)
+  if (pad_with_blanks) then
+    line = line(1:ix-1) // blank(:ix2+n2-ix) // line(ix2+n2:)
+  else
+    line = line(1:ix-1) // line(ix2+n2:)
+  endif
 enddo
 
 end subroutine

@@ -71,7 +71,6 @@ if (.not. is_set) then
   endif
 
   global = default_global         ! establish defaults
-  global%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
   global%default_key_merit_type = 'limit'
 
   call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
@@ -97,6 +96,7 @@ endif
 ! Tao does its own bookkeeping
 
 bmad_com%auto_bookkeeper = .false.
+tao_com%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
 
 ! Seed random number generator
 

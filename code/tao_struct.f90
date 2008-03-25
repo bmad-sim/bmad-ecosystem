@@ -426,7 +426,6 @@ type tao_global_struct
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'        ! optimizer to use.
   character(16) :: default_key_merit_type 
-  character(16) :: valid_plot_who(10)          ! model, base, ref etc...
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
   logical :: var_limits_on = .true.        ! Respect the variable limits?
@@ -490,6 +489,7 @@ type tao_common_struct
   character(80) :: beam0_file    = ''  ! Command line input beam data file.
   character(16) :: aperture_limit_on
   character(40) :: unique_name_suffix
+  character(16) :: valid_plot_who(10)          ! model, base, ref etc...
   real(rp) :: dummy_target = 0         ! Dummy varaible
 end type
 
