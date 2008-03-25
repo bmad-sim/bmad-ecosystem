@@ -498,7 +498,12 @@ namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
 ! Find out how many d2_data structures we need for each universe
 
 call tao_hook_init_data(is_set) 
-if (is_set) return
+if (is_set) then
+  call tao_init_ix_data ()
+  return
+endif
+
+!---
 
 call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
@@ -658,15 +663,12 @@ enddo
 
 close (iu)
 
-!-----------------------------------------------------------------------
 ! Init ix_data array
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
-  call init_ix_data (s%u(i))
-enddo
+call tao_init_ix_data ()
 
-!----------------------------------------------------------------
-!----------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
 contains
 
 subroutine d1_data_stuffit (i_d1, u, n_d2)
@@ -894,90 +896,104 @@ enddo
 
 end subroutine d1_data_stuffit
 
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-!
+end subroutine tao_init_data
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
 ! Defines what datums to evaluate at each element in specified universe
 
-subroutine init_ix_data (u)
+subroutine tao_init_ix_data ()
 
 implicit none
 
-type (tao_universe_struct), target :: u
+type (tao_universe_struct), pointer :: u
 type (tao_data_struct), pointer :: data
 
-integer, automatic :: n_data(-2:u%design%lat%n_ele_max)
-integer, automatic :: ix_next(-2:u%design%lat%n_ele_max)
+integer, allocatable :: n_data(:)
+integer, allocatable :: ix_next(:)
 
-integer j, k, ix_ele
+integer i, j, k, ix_ele, n_max
 
-n_data(:) = 0
+!
 
-! allocate the ix_data array
-if (allocated(u%ix_data)) deallocate(u%ix_data)
-allocate(u%ix_data(-2:u%design%lat%n_ele_max))
+do i = lbound(s%u, 1), ubound(s%u, 1)
 
-! Since some information gets lost during tracking (like beam distributions),
-!   find where each datum gets evaluated when tao_load_data_array is called.
-! ix_ele = -1  ! Gets evaluated after all tracking
-! ix_ele = -2  ! Does not get evaluated by tao_lattice_calc_mod
+  u => s%u(i)
+  n_max = u%design%lat%n_ele_max
 
-do j = 1, size(u%data)
-  data => u%data(j)
-  if (.not. data%exists) cycle
-  if (data%data_type(1:17) == 'multi_turn_orbit.') then
-    ix_ele = -2
-  elseif (data%data_type(1:2) == 'i5') then
-    ix_ele = -1
-  elseif (data%ix_ele == -1) then
-    ix_ele = -1
-  elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lattice') then
-    ix_ele = -1
-  elseif (data%ix_ele0 > data%ix_ele) then
-    ix_ele = u%model%lat%n_ele_track
-  else
-    ix_ele = data%ix_ele
-  endif
-  n_data(ix_ele) = n_data(ix_ele) + 1
+  allocate (n_data(-2:n_max), ix_next(-2:n_max))
+
+  n_data(:) = 0
+
+  ! allocate the ix_data array
+
+  if (allocated(u%ix_data)) deallocate(u%ix_data)
+  allocate(u%ix_data(-2:n_max))
+
+  ! Since some information gets lost during tracking (like beam distributions),
+  !   find where each datum gets evaluated when tao_load_data_array is called.
+  ! ix_ele = -1  ! Gets evaluated after all tracking
+  ! ix_ele = -2  ! Does not get evaluated by tao_lattice_calc_mod
+
+  do j = 1, size(u%data)
+    data => u%data(j)
+    if (.not. data%exists) cycle
+    if (data%data_type(1:17) == 'multi_turn_orbit.') then
+      ix_ele = -2
+    elseif (data%data_type(1:2) == 'i5') then
+      ix_ele = -1
+    elseif (data%ix_ele == -1) then
+      ix_ele = -1
+    elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lattice') then
+      ix_ele = -1
+    elseif (data%ix_ele0 > data%ix_ele) then
+      ix_ele = u%model%lat%n_ele_track
+    else
+      ix_ele = data%ix_ele
+    endif
+    n_data(ix_ele) = n_data(ix_ele) + 1
+  enddo
+    
+  ! allocate ix_ele array for each element
+  do j = lbound(u%ix_data, 1), ubound(u%ix_data, 1)
+    if (allocated(u%ix_data(j)%ix_datum)) deallocate (u%ix_data(j)%ix_datum)
+    if (n_data(j) == 0) cycle
+    allocate (u%ix_data(j)%ix_datum(n_data(j)))
+  enddo
+
+  ! used for keeping track of current datum index in each ix_ele element
+  ix_next(:) = 1
+    
+  ! setup ix_ele array for each element
+  ! This is the point where the datum is evaluated
+  ! if ix_ele0 > ix_ele then there is "wrap around"
+
+  do j = 1, size(u%data)
+    data => u%data(j)
+    if (.not. data%exists) cycle
+    if (data%data_type(1:17) == 'multi_turn_orbit.') then
+      ix_ele = -2
+    elseif (data%data_type(1:2) == 'i5') then
+      ix_ele = -1
+    elseif (data%ix_ele == -1) then
+      ix_ele = -1
+    elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lattice') then
+      ix_ele = -1
+    elseif (data%ix_ele0 > data%ix_ele) then
+      ix_ele = u%model%lat%n_ele_track
+    else
+      ix_ele = data%ix_ele
+    endif
+    u%ix_data(ix_ele)%ix_datum(ix_next(ix_ele)) = j
+    ix_next(ix_ele) = ix_next(ix_ele) + 1
+  enddo
+
+  deallocate (n_data, ix_next)
+
 enddo
-  
-! allocate ix_ele array for each element
-do j = lbound(u%ix_data, 1), ubound(u%ix_data, 1)
-  if (allocated(u%ix_data(j)%ix_datum)) deallocate (u%ix_data(j)%ix_datum)
-  if (n_data(j) == 0) cycle
-  allocate (u%ix_data(j)%ix_datum(n_data(j)))
-enddo
 
-! used for keeping track of current datum index in each ix_ele element
-ix_next(:) = 1
-  
-! setup ix_ele array for each element
-! This is the point where the datum is evaluated
-! if ix_ele0 > ix_ele then there is "wrap around"
-do j = 1, size(u%data)
-  data => u%data(j)
-  if (.not. data%exists) cycle
-  if (data%data_type(1:17) == 'multi_turn_orbit.') then
-    ix_ele = -2
-  elseif (data%data_type(1:2) == 'i5') then
-    ix_ele = -1
-  elseif (data%ix_ele == -1) then
-    ix_ele = -1
-  elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lattice') then
-    ix_ele = -1
-  elseif (data%ix_ele0 > data%ix_ele) then
-    ix_ele = u%model%lat%n_ele_track
-  else
-    ix_ele = data%ix_ele
-  endif
-  u%ix_data(ix_ele)%ix_datum(ix_next(ix_ele)) = j
-  ix_next(ix_ele) = ix_next(ix_ele) + 1
-enddo
-
-end subroutine init_ix_data
-
-end subroutine tao_init_data
+end subroutine tao_init_ix_data
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
