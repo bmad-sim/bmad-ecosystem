@@ -554,7 +554,7 @@ subroutine read_butns_file (butns_num, nonlinear_calc, butns, db, &
   integer i, ix, j, butns_num, iu, ios, raw(4, 120)
   integer n_node, n_ele
 
-  real(rp) x_orbit(120), y_orbit(120), rdummy
+  real x_orbit(120), y_orbit(120), rdummy
 
   character(130) line_in, file_in
 
