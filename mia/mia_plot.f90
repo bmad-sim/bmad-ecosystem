@@ -289,12 +289,12 @@ contains
          miny, maxy               !Min and max y values
     real(rp), allocatable :: xcoord(:), &  !X coordinates to plot
          ycoord(:)                !Y coordinates to plot
-    real*4 :: sf2                 !Factor
+    real(rp) :: sf2                 !Factor
     character(80) title, titl     !Titles
     logical :: graph_more         !To graph more
     integer :: ix, iy, ix_tot, iy_tot  !Number of plots in X and y directions
     real(rp), allocatable :: b(:), phi(:)
-    real (rp) :: xmin, xmax
+    real(rp) :: xmin, xmax
     call qp_set_page_border (0.02_rp, 0.02_rp, 0.035_rp, 0.035_rp, "%PAGE")
     call qp_set_margin (0.09_rp, 0.01_rp, 0.01_rp, 0.05_rp, "%PAGE")
     call qp_draw_text (" ", 0.5_rp, 1.0_rp, "%PAGE", "CT")
@@ -521,7 +521,7 @@ contains
   subroutine arrange_phi(phi, xcoord)
 
     integer :: i, numEast
-    real (rp) :: phi(:), xcoord(:)
+    real(rp) :: phi(:), xcoord(:)
     real(rp), allocatable :: phi_old(:)
     allocate(phi_old(NUM_BPMS))
     phi_old(:) = phi(:)

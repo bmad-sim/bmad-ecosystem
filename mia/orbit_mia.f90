@@ -428,7 +428,7 @@ contains
          sa, sb                   !Sin of phase advance for A, B
     Real(rp) :: sqrt_beta_cbar_prelim(2), & !Temporarily holds two values
          inv_gamma_cbar_prelim(2)         !Preliminary values
-    real (rp) :: j_amp_a(2), j_amp_b(2)   !Amplitude for both BPMs in a pair
+    real(rp) :: j_amp_a(2), j_amp_b(2)   !Amplitude for both BPMs in a pair
     type(processor_analysis) temp(2), &
          ring_loc(2)
     type(twiss_parameters) dat_twiss(2), & 

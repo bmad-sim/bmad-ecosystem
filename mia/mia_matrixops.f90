@@ -34,7 +34,7 @@ contains
     data%tau_mat = data%poshis  
     !sets matrix to be used in SVD to be the position history matrix
 
-    call svdcmp_dp(data%tau_mat, data%lambda, data%pi_mat)
+    call svdcmp(data%tau_mat, data%lambda, data%pi_mat)
 
   end subroutine svd
 
@@ -49,7 +49,7 @@ contains
     integer :: n, &             !Number of turns
          i, &                   !Counter
          fr_peak                !Frequency peak 
-    real, allocatable :: a(:), & !Takes col of tau_mat, becomes col of spectrum
+    real(rp), allocatable :: a(:), & !Takes col of tau_mat, becomes col of spectrum
          p(:)                   !Column of phi_spec   
 
     n = data%numturns
@@ -81,20 +81,23 @@ contains
     !  Receives a and n, returns amplitude a, phase (radians) and fr_peak
     implicit none
 
-    integer n,&        !?
+    integer ::  n,&        !?
          fr_peak, &    !Peak frequency
-         m, i, isgn    !
-    real*4 amp(n), &   !Amplitude
+         i, isgn    !
+
+    integer,save :: m = 0
+    real(rp), save :: mf, nf
+    real(rp) :: amp(n), &   !Amplitude
          p(n)          !?
-    integer np /0/     !?
-    real*4 nf,mf, &    !
-         ar(n),ai(n), &  !ar = amp and ai = 0??
+    integer,save :: np = 0     !?
+    real(rp) :: ar(n),ai(n), &  !ar = amp and ai = 0??
          max_amp       !Maximum amplitude
 
+    ! Initialize
     if(n /= np) then
        np = n
        nf = n;
-       mf = log(nf)/log(2.0)
+       mf = log(nf)/log(2.0_rp) + 0.001
        m = mf
     endif
 
@@ -134,13 +137,15 @@ contains
     !
     implicit none
 
-    real*4 ar(*),ai(*)
+    real(rp) :: ar(*),ai(*)
     integer m
 
-    integer n
-    integer mp /0/
-    real*4 ur,ui,wr(32768),wi(32768),tr,ti
-    integer nv2,nm1,L,Le,Le1
+    integer, save :: n
+    integer, save :: mp = 0
+    real(rp), save ::  wr(32768),wi(32768)
+    integer, save :: nv2,nm1
+    real(rp) ::  ur,ui,tr,ti
+    integer L,Le,Le1
     integer i,j,k,ip
 
     ! Initialize

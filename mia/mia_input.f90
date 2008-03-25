@@ -23,7 +23,7 @@ contains
          C, I, S, &                        !Counters
          places, power
     integer :: iset, nset                  !Number of current set
-    real :: tempx, tempy, &                !Temporary variables in x and y
+    real(rp) :: tempx, tempy, &                !Temporary variables in x and y
          sum, ave                          !Sum and average
     logical :: continue, &                 !Whether to ask for another filename
          trunc
@@ -52,7 +52,7 @@ contains
                data%shortName
        else
           data%shortName = trim(data%shortName)
-          data%filename = "[cesr.orbit.mia.haw]" // data%shortName
+          data%filename = "./data/" // data%shortName
        endif
 
        open (unit = 1, file = data%filename, status = "old", &

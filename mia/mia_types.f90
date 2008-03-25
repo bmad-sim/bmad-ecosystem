@@ -10,7 +10,7 @@ module mia_types
   use physical_constants
 
   type cbpm_data
-     real, allocatable :: x(:), y(:)  !X and Y vectors from raw data
+     real(rp), allocatable :: x(:), y(:)  !X and Y vectors from raw data
   end type cbpm_data
 
   type twiss_parameters
@@ -40,7 +40,7 @@ module mia_types
 
   type active_processors
      character (13) :: label      !Full BPM label (ex. BPM09E)
-     real :: number               !BPM number (negative for east BPMs)
+     real(rp) :: number               !BPM number (negative for east BPMs)
      logical :: is_west           !If the BPM is in the west   !Not needed now
   end type active_processors
 
@@ -100,7 +100,7 @@ module mia_types
   integer:: NUM_BPMS, &                  !Number of BPMs
        NUM_TURNS                         !Number of turns
   !Change FREQ for use with machines other than CESR
-  real, parameter :: FREQ=390.12         !Frequency of the machine (in MHz)
+  real(rp), parameter :: FREQ=390.12         !Frequency of the machine (in MHz)
 
 contains
 
