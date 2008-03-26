@@ -209,11 +209,10 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_init_lattice (lattice_file, custom_init)
-    use tao_input_struct, only: tao_design_lat_input
+  subroutine tao_hook_init_lattice_post_process (u)
+    use tao_struct, only: tao_universe_struct
     implicit none
-    type (tao_design_lat_input)  lattice_file(:)
-    logical custom_init
+    type (tao_universe_struct) u
   end subroutine
 end interface
 

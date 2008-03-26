@@ -2710,7 +2710,7 @@ subroutine tao_parse_command_args (error, cmd_words)
   character(80) arg0
   character(24) :: r_name = 'tao_parse_command_args'
 
-  integer n_arg, i_arg, i_lat
+  integer n_arg, i_arg
   logical error, is_set
 
 ! Get command line input
@@ -2739,7 +2739,6 @@ subroutine tao_parse_command_args (error, cmd_words)
 ! loop over all arguments
 
   i_arg = 0
-  i_lat = 0
 
   do 
 
@@ -2757,8 +2756,7 @@ subroutine tao_parse_command_args (error, cmd_words)
       call get_next_arg (tao_com%beam0_file)
 
     case ('-lat')
-      i_lat = i_lat + 1
-      call get_next_arg (tao_com%init_lat_file(i_lat))
+      call get_next_arg (tao_com%init_lat_file)
 
     case ('')
       exit
@@ -2770,8 +2768,6 @@ subroutine tao_parse_command_args (error, cmd_words)
     end select
 
   enddo
-
-  tao_com%init_lat_file(0) = tao_com%init_lat_file(1) ! For unified lattices
 
 !-----------------------------
 contains

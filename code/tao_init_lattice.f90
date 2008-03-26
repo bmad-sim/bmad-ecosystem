@@ -1,17 +1,17 @@
 !+
-! Subroutine tao_init_lattice (lat_file_name)
+! Subroutine tao_init_lattice (input_file_name)
 !
 ! Subroutine to initialize the design lattices.
 !
 ! Input:
-!   lat_file_name  -- character(*): file name containing lattice file
+!   input_file_name  -- character(*): file name containing lattice file
 !                                             namestructs
 !
 ! Output:
 !    %u(:)%design -- Initialized design lattices.
 !-
 
-subroutine tao_init_lattice (lat_file_name)
+subroutine tao_init_lattice (input_file_name)
 
 use tao_mod
 use tao_input_struct
@@ -19,18 +19,18 @@ use ptc_interface_mod
 
 implicit none
 
-type (tao_design_lat_input) design_lattice(0:200)
+type (tao_design_lat_input) design_lattice(0:200), design_lat
 type (tao_universe_struct), pointer :: u
 
-character(*) lat_file_name
-character(200) complete_file_name, file_name
+character(*) input_file_name
+character(200) full_input_name, init_lat_file
 character(40) unique_name_suffix, suffix
 character(20) :: r_name = 'tao_init_lattice'
 character(16) aperture_limit_on
 
 integer i, j, n, iu, ios, version, taylor_order, ix, key, n_universes
 
-logical custom_init, lat_name_from_tao_com, combine_consecutive_elements_of_like_name
+logical custom_init, combine_consecutive_elements_of_like_name
 logical unified_lattices
 logical err, is_set
 
@@ -46,11 +46,11 @@ design_lattice%parser = ''
 
 ! Read lattice info
 
-call tao_hook_init_read_lattice_info (lat_file_name, is_set)
+call tao_hook_init_read_lattice_info (input_file_name, is_set)
 
 if (.not. is_set) then
-  call tao_open_file ('TAO_INIT_DIR', lat_file_name, iu, complete_file_name)
-  call out_io (s_blank$, r_name, '*Init: Opening File: ' // complete_file_name)
+  call tao_open_file ('TAO_INIT_DIR', input_file_name, iu, full_input_name)
+  call out_io (s_blank$, r_name, '*Init: Opening File: ' // full_input_name)
   if (iu == 0) then
     call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')
     call err_exit
@@ -73,6 +73,7 @@ if (.not. is_set) then
       read (iu, nml = tao_design_lattice)  ! force printing of error message
     enddo
   endif
+  close (iu)
 
   if (taylor_order /= 0) call set_taylor_order (taylor_order)
   tao_com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
@@ -97,19 +98,9 @@ else
   nullify (tao_com%u_working)
 endif
 
-! Are we using a custom initialization?
-
-custom_init = .false.
-call tao_hook_init_lattice (design_lattice, custom_init)
-if (custom_init) then
-  close (iu)
-  return
-endif
-
 ! Read in the lattices
 
-lat_name_from_tao_com = .false.
-if (any(tao_com%init_lat_file /= '')) lat_name_from_tao_com = .true.
+init_lat_file = tao_com%init_lat_file
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
@@ -119,16 +110,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%do_synch_rad_int_calc = .false.
   u%do_chrom_calc         = .false.
 
-  ! See what type of lattice file we have and issue a warning if old style syntax
-
-  if (design_lattice(i)%parser /= '') then
-    call out_io (s_error$, r_name, (/ &
-        '************************************************************', &
-        '***** OLD STYLE "DESIGN_LATTICE()%PARSER" SYNTAX USED! *****', &
-        '*****         PLEASE CONVERT TO THE NEW STYLE!         *****', &
-        '************************************************************' /) )
-  endif
-
   ! If unified then only read in a lattice for the common universe.
 
   if (tao_com%unified_lattices) then
@@ -137,41 +118,58 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
   endif
 
-  ! 
+  ! Get the name of the lattice file
 
-  if (lat_name_from_tao_com) then
-    file_name = tao_com%init_lat_file(i)
+  if (init_lat_file /= '') then
+    ix = index (init_lat_file, '|')
+    if (ix == 0) then
+      design_lat%file = init_lat_file
+    else
+      design_lat%file = init_lat_file(1:ix-1)
+      init_lat_file = init_lat_file(ix+1:)
+    endif
+    design_lat%parser = ''
+    design_lat%file2 = ''
   else
-    file_name = design_lattice(i)%file
-    if (design_lattice(i)%parser /= '') file_name = &
-              trim(design_lattice(i)%parser) // '::' // trim(file_name)
+    ! If %file is blank then default is to use last one
+    if (design_lattice(i)%file /= '') design_lat = design_lattice(i)
+    if (design_lat%parser /= '') then
+      design_lat%file = trim(design_lat%parser) // '::' // trim(design_lat%file)
+      call out_io (s_error$, r_name, (/ &
+        '************************************************************', &
+        '***** OLD STYLE "DESIGN_LATTICE()%PARSER" SYNTAX USED! *****', &
+        '*****         PLEASE CONVERT TO THE NEW STYLE!         *****', &
+        '************************************************************' /) )
+    endif
   endif
 
-  ix = index(file_name(1:10), '::')
+  ! Split off parser name if needed
+
+  ix = index(design_lat%file(1:10), '::')
   if (ix == 0) then
-    design_lattice(i)%file = file_name
-    design_lattice(i)%parser = 'bmad'
+    design_lat%parser = 'bmad'
   else
-    design_lattice(i)%file = file_name(ix+2:)
-    design_lattice(i)%parser = file_name(1:ix-1)
+    design_lat%parser = design_lat%file(1:ix-1)
+    design_lat%file = design_lat%file(ix+2:)
   endif
 
-  if (design_lattice(i)%file == ' ') design_lattice(i) = design_lattice(1)
+  ! Read in the design lattice. 
+  ! A blank means use the lattice form universe 1.
+
   allocate (u%design, u%base, u%model)
-  select case (design_lattice(i)%parser)
+  select case (design_lat%parser)
   case ('bmad')
-    call bmad_parser (design_lattice(i)%file, u%design%lat)
+    call bmad_parser (design_lat%file, u%design%lat)
   case ('xsif')
-    call xsif_parser (design_lattice(i)%file, u%design%lat)
+    call xsif_parser (design_lat%file, u%design%lat)
   case ('aml')
-    call aml_parser (design_lattice(i)%file, u%design%lat)
+    call aml_parser (design_lat%file, u%design%lat)
   case ('digested')
     call out_io (s_blank$, r_name, &
-                "Reading digested BMAD file " // trim(design_lattice(i)%file))
-    call read_digested_bmad_file (design_lattice(i)%file, u%design%lat, version)
+                "Reading digested BMAD file " // trim(design_lat%file))
+    call read_digested_bmad_file (design_lat%file, u%design%lat, version)
   case default
-    call out_io (s_abort$, r_name, 'PARSER NOT RECOGNIZED: ' // &
-                                              design_lattice(i)%parser)
+    call out_io (s_abort$, r_name, 'PARSER NOT RECOGNIZED: ' // design_lat%parser)
     call err_exit
   end select
 
@@ -189,8 +187,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Call bmad_parser2 if wanted
 
-  if (design_lattice(i)%file2 /= '') then
-    call bmad_parser2 (design_lattice(i)%file2, u%design%lat)
+  if (design_lat%file2 /= '') then
+    call bmad_parser2 (design_lat%file2, u%design%lat)
   endif
 
   ! Aperture limit
@@ -199,10 +197,14 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
    read (tao_com%aperture_limit_on, *) u%design%lat%param%aperture_limit_on
   endif
 
-  if (u%design%lat%param%lattice_type .eq. circular_lattice$) then
+  if (u%design%lat%param%lattice_type == circular_lattice$) then
     call out_io (s_blank$, r_name, "RFCavities will be turned off in lattices")
     call set_on_off (rfcavity$, u%design%lat, off$)
   endif
+
+  ! Custom stuff
+
+  call tao_hook_init_lattice_post_parse (u)
 
   ! Init model, base, and u%ele
 

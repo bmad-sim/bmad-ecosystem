@@ -109,7 +109,12 @@ lattice file specified in the initialization file
 \begin{example}
   \$CESR_EXE/tao -init my.init -lat xsif::slac.xsif
 \end{example}
-If there is more than one universe, multiple \vn{-lat} arguments can be used.
+If there is more than one universe and the universes have different
+lattices, separate the different lattice names using a "|" character.
+Do not put any spaces inbetween. Example:
+\begin{example}
+  \$CESR_EXE/tao -lat xsif::slac.xsif|cesr.bmad
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Beginning Initialization}

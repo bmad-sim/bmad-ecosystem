@@ -662,10 +662,7 @@ case ('global')
   nl=nl+1; write (lines(nl), amt) 'tao_com%beam0_file           = ', tao_com%beam0_file
   nl=nl+1; write (lines(nl), lmt) 'tao_com%combine_consecutive_elements_of_like_name = ', &
                                               tao_com%combine_consecutive_elements_of_like_name
-  do i = 1, size(tao_com%init_lat_file)
-    if (tao_com%init_lat_file(i) == '') exit
-    nl=nl+1; write (lines(nl), iamt) 'tao_com%init_lat_file(', i, ')     = ', tao_com%init_lat_file(i)
-  enddo
+  nl=nl+1; write (lines(nl), amt) 'tao_com%init_lat_file        = ', tao_com%init_lat_file
   nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file        = ', tao_com%init_tao_file
   call out_io (s_blank$, r_name, lines(1:nl))
 
