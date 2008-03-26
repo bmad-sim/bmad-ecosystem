@@ -14,7 +14,7 @@ use tao_mod
 use tao_lattice_calc_mod
 use tao_command_mod
 use tao_plot_mod
-use tao_init_global_mod
+use tao_init_mod
 
 implicit none
 

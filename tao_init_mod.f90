@@ -1,4 +1,4 @@
-module tao_init_global_mod
+module tao_init_mod
 
 use tao_mod
 
@@ -1388,24 +1388,6 @@ close (iu)
 deallocate (dflt_good_unis, good_unis)
 deallocate (default_key_b, default_key_d)
 
-! With unified lattices: model_value and base_value get their own storage
-! instead of pointing to var%this(1). 
-! Exception: If variable controls a common parameter
-
-if (tao_com%unified_lattices) then
-  do i = 1, size(s%var)
-    if (.not. s%var(i)%exists) cycle
-    if (s%var(i)%this(1)%ix_uni == tao_com%u_common%ix_uni) then
-      s%var(i)%model_value => s%var(i)%common%model_value
-      s%var(i)%base_value => s%var(i)%common%base_value
-    else
-      allocate (s%var(i)%model_value, s%var(i)%base_value)
-      s%var(i)%model_value = s%var(i)%this(1)%model_value
-      s%var(i)%base_value = s%var(i)%this(1)%base_value
-    endif
-  enddo
-endif
-
 ! Put the variables marked by key_bound in the key table.
 
 allocate (s%key(count(s%var%key_bound)))
@@ -1897,6 +1879,21 @@ if (associated(u%common)) then
                                                       var%common%model_value,  err)
   call pointer_to_attribute (u%common%base%lat%ele(ix_ele),  var%attrib_name, .true., &
                                                       var%common%base_value,  err)
+endif
+
+! With unified lattices: model_value and base_value get their own storage
+! instead of pointing to var%this(1). 
+! Exception: If variable controls a common parameter
+
+if (tao_com%unified_lattices) then
+  if (this%ix_uni == tao_com%u_common%ix_uni) then
+    var%model_value => var%common%model_value
+    var%base_value => var%common%base_value
+  else
+    allocate (var%model_value, var%base_value)
+    var%model_value = this%model_value
+    var%base_value = this%base_value
+  endif
 endif
 
 end subroutine tao_pointer_to_var_in_lattice
