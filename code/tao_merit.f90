@@ -51,7 +51,15 @@ do j = 1, size(s%var)
 
   select case (var%merit_type)
   case ('target', 'match')
-    var%delta_merit = var%model_value - var%meas_value
+    if (s%global%opt_with_ref .and. s%global%opt_with_base) then
+      var%delta_merit = (var%model_value - var%base_value) - (var%meas_value - var%ref_value)
+    elseif (s%global%opt_with_ref) then
+      var%delta_merit = (var%model_value - var%design_value) - (var%meas_value - var%ref_value)
+    elseif (s%global%opt_with_base) then
+      var%delta_merit = (var%model_value - var%base_value) - var%meas_value
+    else
+      var%delta_merit = var%model_value - var%meas_value
+    endif
   case ('limit')
     if (var%model_value > var%high_lim) then
       var%delta_merit = var%model_value - var%high_lim
