@@ -1954,6 +1954,8 @@ do i = n0+1, size(s%var)
   s%var(i)%good_user = .true.
   s%var(i)%model_value => tao_com%dummy_target  ! Just to point to somewhere
   s%var(i)%base_value  => tao_com%dummy_target  ! Just to point to somewhere
+  s%var(i)%low_lim = -1e30
+  s%var(i)%high_lim = 1e30
   allocate(s%var(i)%this(0))
 enddo
   
