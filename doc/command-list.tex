@@ -813,6 +813,7 @@ Format:
   show plot
   show plot \{<template_plot_name>\}
   show plot \{<plot_region_name>\}
+  show plot -shapes
   show top10
   show universe \{universe_number\}
   show variable \{<var_name> <locations>\}
@@ -1004,7 +1005,10 @@ A simple \vn{show plot} displays which templates are being plotted and
 in which regions and also all available templates. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names. A
 \vn{show plot <plot_name>} will display information on a particular
-plot.
+plot. 
+
+If the \vn{-shapes} switch is present, the shapes used in drawing 
+\vn{floor_plan} or \vn{lat_layout} plots are printed.
 
   \item[show top10]
 Shows top contributors to the merit function, dMerit/dVariable

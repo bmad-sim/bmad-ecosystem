@@ -1040,6 +1040,45 @@ case ('particle')
 
 case ('plot', 'graph', 'curve')
 
+  ! Look for '-shape' switch
+
+  if (index('-shapes', word(1)) == 1 .and. len_trim(word(1)) > 1) then
+
+    nl=nl+1; lines(nl) = ' '
+    nl=nl+1; lines(nl) = 'Floor_plan Element Shapes:'
+    nl=nl+1; lines(nl) = &
+          'Ele_Name                        Shape         Color        dy_pix   Draw_Name?'
+    nl=nl+1; lines(nl) = &
+          '----------------------------    --------      -----        -------  ---------'
+
+    do i = 1, size(tao_com%ele_shape_floor_plan)
+      shape => tao_com%ele_shape_floor_plan(i)
+      if (shape%ele_name == '') cycle
+      nl=nl+1; write (lines(nl), '(3a, f10.4, l3)') &
+                shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
+                shape%dy_pix, shape%draw_name
+    enddo
+
+    nl=nl+1; lines(nl) = ' '
+    nl=nl+1; lines(nl) = 'Lat_layout Element Shapes:'
+    nl=nl+1; lines(nl) = &
+          'Ele_Name                        Shape         Color        dy_pix   Draw_Name?'
+    nl=nl+1; lines(nl) = &
+          '----------------------------    --------      -----        -------  ---------'
+
+    do i = 1, size(tao_com%ele_shape_lat_layout)
+      shape => tao_com%ele_shape_lat_layout(i)
+      if (shape%ele_name == '') cycle
+      nl=nl+1; write (lines(nl), '(3a, f10.4, l3)') &
+                shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
+                shape%dy_pix, shape%draw_name
+    enddo
+
+    call out_io (s_blank$, r_name, lines(1:nl))
+    return 
+   
+  endif
+
   ! word(1) is blank => print overall info
 
   if (word(1) == ' ') then
@@ -1080,42 +1119,6 @@ case ('plot', 'graph', 'curve')
       nl=nl+1; write (lines(nl), '(3x l1, 10x, a20, 2a)') region%visible, &
                                     region%name, '<-->  ', region%plot%name
     enddo
-
-    ! shapes
-
-    if (size(tao_com%ele_shape_floor_plan) > 0) then
-      nl=nl+1; lines(nl) = ' '
-      nl=nl+1; lines(nl) = 'Floor_plan Element Shapes:'
-      nl=nl+1; lines(nl) = &
-            'Ele_Name                        Shape         Color        dy_pix   Draw_Name?'
-      nl=nl+1; lines(nl) = &
-            '----------------------------    --------      -----        -------  ---------'
-
-      do i = 1, size(tao_com%ele_shape_floor_plan)
-        shape => tao_com%ele_shape_floor_plan(i)
-        if (shape%ele_name == '') cycle
-        nl=nl+1; write (lines(nl), '(3a, f10.4, l3)') &
-                  shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
-                  shape%dy_pix, shape%draw_name
-      enddo
-    endif
-
-    if (size(tao_com%ele_shape_lat_layout) > 0) then
-      nl=nl+1; lines(nl) = ' '
-      nl=nl+1; lines(nl) = 'Lat_layout Element Shapes:'
-      nl=nl+1; lines(nl) = &
-            'Ele_Name                        Shape         Color        dy_pix   Draw_Name?'
-      nl=nl+1; lines(nl) = &
-            '----------------------------    --------      -----        -------  ---------'
-
-      do i = 1, size(tao_com%ele_shape_lat_layout)
-        shape => tao_com%ele_shape_lat_layout(i)
-        if (shape%ele_name == '') cycle
-        nl=nl+1; write (lines(nl), '(3a, f10.4, l3)') &
-                  shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
-                  shape%dy_pix, shape%draw_name
-      enddo
-    endif
 
     call out_io (s_blank$, r_name, lines(1:nl))
     return
