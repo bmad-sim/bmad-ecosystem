@@ -429,9 +429,9 @@ contains
     Real(rp) :: sqrt_beta_cbar_prelim(2), & !Temporarily holds two values
          inv_gamma_cbar_prelim(2)         !Preliminary values
     real(rp) :: j_amp_a(2), j_amp_b(2)   !Amplitude for both BPMs in a pair
-    type(processor_analysis) temp(2), &
-         ring_loc(2)
-    type(twiss_parameters) dat_twiss(2), & 
+    type(processor_analysis) temp(2)
+    type(processor_analysis), pointer :: ring_loc(2)
+    type(twiss_parameters), pointer :: dat_twiss(2), & 
          !Contains data_struc%loc(jm)%a or b
     ring_twiss(2)                    !Same for ring(ik), a or b mode
 
@@ -478,8 +478,8 @@ contains
 
     !   Print *, "Using ", bpm_pairs(i)%bpm_name
 
-       ring_loc(1) = ring(i)%loc(bpm1a)
-       ring_loc(2) = ring(i)%loc(bpm2a)
+       ring_loc(1) => ring(i)%loc(bpm1a)
+       ring_loc(2) => ring(i)%loc(bpm2a)
 
        !
        !Compute Beta (page 15) +
@@ -584,8 +584,8 @@ contains
                ring_loc(q)%gamma**2 / ring_loc(q)%b%beta
 
           !Copy values back to their original places
-          ring(i)%loc(bpm1a) = ring_loc(1)
-          ring(i)%loc(bpm2a) = ring_loc(2)
+ !         ring(i)%loc(bpm1a) = ring_loc(1)
+ !         ring(i)%loc(bpm2a) = ring_loc(2)
 
        enddo    !End calculations for BPMs 1, 2
        !
@@ -675,10 +675,10 @@ contains
     do ik = 1, n_ring
        do jm = 1, data(1)%bpmproc
 
-          dat_twiss(1) = data_struc%loc(jm)%a
-          dat_twiss(2) = data_struc%loc(jm)%b
-          ring_twiss(1) = ring(ik)%loc(jm)%a
-          ring_twiss(2) = ring(ik)%loc(jm)%b
+          dat_twiss(1) => data_struc%loc(jm)%a
+          dat_twiss(2) => data_struc%loc(jm)%b
+          ring_twiss(1) => ring(ik)%loc(jm)%a
+          ring_twiss(2) => ring(ik)%loc(jm)%b
 
           do r = 1, 2
              !This loop calculates some values that depend upon mode.
