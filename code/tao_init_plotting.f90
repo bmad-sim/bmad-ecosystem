@@ -180,7 +180,7 @@ do
     graph_index           = 0         ! setup defaults
     graph%title           = ''
     graph%type            = 'data'
-    graph%legend_origin   = qp_point_struct(1.0_rp, 1.0_rp, '%GRAPH')
+    graph%legend_origin   = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
     graph%y               = init_axis
     graph%y%major_div     = 4
     graph%y2              = init_axis

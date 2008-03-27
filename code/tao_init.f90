@@ -269,12 +269,14 @@ if (allocated (s%u)) then
     deallocate(u%design%orb, stat=istat)
     deallocate(u%base%orb, stat=istat)
     
-    ! Beams
+    ! Beams: All s%u(i)%ele point to the same place with unified_lattices.
 
-    do j = lbound(u%ele, 1), ubound(u%ele, 1)
-      call reallocate_beam(u%ele(j)%beam, 0, 0)
-    enddo
-    deallocate (u%ele)
+    if (i == 0 .or. .not. tao_com%unified_lattices) then
+      do j = lbound(u%ele, 1), ubound(u%ele, 1)
+        call reallocate_beam(u%ele(j)%beam, 0, 0)
+      enddo
+      deallocate (u%ele)
+    endif
 
     call reallocate_beam(u%current_beam, 0, 0)
 
@@ -297,20 +299,12 @@ if (allocated (s%u)) then
       nullify(u%data(j)%d1)
     enddo
     deallocate(u%data, stat=istat)
- 
-    ! ix_data
-    do j = 0, ubound(u%ix_data,1)
-      if (allocated(u%ix_data(j)%ix_datum)) deallocate(u%ix_data(j)%ix_datum)
-    enddo
-    deallocate(u%ix_data)
-    
-    ! dModel_dVar
-    deallocate(u%dmodel_dvar, stat=istat)
- 
+     
     ! Lattices
     call deallocate_lat_pointers (u%model%lat)
     call deallocate_lat_pointers (u%design%lat)
     call deallocate_lat_pointers (u%base%lat)
+
   enddo
 endif
 
