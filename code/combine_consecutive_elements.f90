@@ -2,8 +2,8 @@
 ! Subroutine combine_consecutive_elements (lat)
 !
 ! Routine to combine consecutive elements in the lattice that have the same name.
-! This allows simplification of lattices where elements have been split to compute
-! the beta function at the center.
+! This allows simplification, for example, of lattices where elements have been 
+! split to compute the beta function at the center.
 !
 ! Modules needed:
 !   use bmad
