@@ -84,10 +84,10 @@ case ('hard', 'hard-l')
   else
     call qp_open_page ('PS-L', scale = 0.0_rp)
   endif
-  call tao_plot_out ()   ! Update the plotting window
+  call tao_draw_plots ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
-  call tao_plot_out ()   ! Update the plotting window
+  call tao_draw_plots ()   ! Update the plotting window
 
   if (s%global%print_command == ' ') then
     call out_io (s_fatal$, r_name, &
@@ -109,10 +109,10 @@ case ('gif')
   call qp_open_page ('GIF', i_chan, s%plot_page%size(1), &
                        s%plot_page%size(2), 'POINTS', file_name)
   call qp_select_page (i_chan)
-  call tao_plot_out ()   ! Update the plotting window
+  call tao_draw_plots ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
-  call tao_plot_out ()   ! Update the plotting window
+  call tao_draw_plots ()   ! Update the plotting window
   call out_io (s_info$, r_name, "Created GIF file: " // file_name)
 
 !---------------------------------------------------
@@ -128,10 +128,10 @@ case ('ps', 'ps-l')
   else
     call qp_open_page ('PS-L', plot_file = file_name, scale = 0.0_rp)
   endif
-  call tao_plot_out ()   ! Update the plotting window
+  call tao_draw_plots ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
-  call tao_plot_out ()   ! Update the plotting window
+  call tao_draw_plots ()   ! Update the plotting window
   call out_io (s_blank$, r_name, "Created PS file: " // file_name)
 
 !---------------------------------------------------

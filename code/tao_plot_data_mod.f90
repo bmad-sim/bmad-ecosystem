@@ -51,6 +51,8 @@ if (allocated (graph%curve)) then
   enddo
 endif
 
+call tao_hook_graph_data_postsetup (plot, graph)
+
 end subroutine
 
 !----------------------------------------------------------------------------

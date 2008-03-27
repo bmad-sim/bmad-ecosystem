@@ -11,14 +11,14 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_plot_out ()
+! Subroutine tao_draw_plots ()
 !
 ! Subroutine to draw the plots on the plot window.
 !
 ! Input:
 !-
 
-subroutine tao_plot_out ()
+subroutine tao_draw_plots ()
 
 implicit none
 
@@ -32,7 +32,7 @@ real(rp) location(4), dx, dy, h
 
 integer i, j, k, ic, id
 
-character(16) :: r_name = 'tao_plot_out'
+character(16) :: r_name = 'tao_draw_plots'
 character(3) view_str
 
 logical found, err, beam_source
@@ -133,7 +133,7 @@ do i = 1, size(s%plot_region)
 
     ! Now we can draw the graph
 
-    call tao_hook_plot_graph (plot, graph, found)
+    call tao_hook_draw_graph (plot, graph, found)
     if (found) cycle
 
     select case (graph%type)

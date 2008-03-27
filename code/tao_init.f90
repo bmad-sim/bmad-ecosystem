@@ -166,7 +166,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 enddo
 
 call tao_plot_data_setup ()  ! transfer data to the plotting structures
-call tao_plot_out ()         ! Update the plotting window
+call tao_draw_plots ()         ! Update the plotting window
 
 ! Print bad data
 

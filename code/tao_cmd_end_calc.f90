@@ -37,7 +37,7 @@ if (s%global%auto_scale) then
   call tao_scale_cmd (' ', '', 0.0_rp, 0.0_rp) 
   call tao_x_scale_cmd (' ', 0.0_rp, 0.0_rp, err)
 endif
-call tao_plot_out()              ! Update the plotting window
+call tao_draw_plots()              ! Update the plotting window
 
 
 end subroutine tao_cmd_end_calc

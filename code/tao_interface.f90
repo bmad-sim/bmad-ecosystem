@@ -119,12 +119,31 @@ interface
 end interface
 
 interface
-  subroutine tao_hook_plot_graph (plot, graph, found)
+  subroutine tao_hook_draw_graph (plot, graph, found)
     use tao_struct, only: tao_plot_struct, tao_graph_struct
     implicit none
     type (tao_plot_struct) plot
     type (tao_graph_struct) graph
     logical found
+  end subroutine
+end interface
+ 
+interface
+  subroutine tao_hook_graph_data_setup (plot, graph, found)
+    use tao_struct, only: tao_plot_struct, tao_graph_struct
+    implicit none
+    type (tao_plot_struct) plot
+    type (tao_graph_struct) graph
+    logical found
+  end subroutine
+end interface
+ 
+interface
+  subroutine tao_hook_graph_data_postsetup (plot, graph)
+    use tao_struct, only: tao_plot_struct, tao_graph_struct
+    implicit none
+    type (tao_plot_struct) plot
+    type (tao_graph_struct) graph
   end subroutine
 end interface
  

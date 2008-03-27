@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_hook_plot_graph (plot, graph, found)
+! Subroutine tao_hook_draw_graph (plot, graph, found)
 !
 ! Subroutine to customize the plotting of a graph.
 !
@@ -13,7 +13,7 @@
 !               Set false if data calc is to be left to tao_plot_data_setup.
 !-
 
-subroutine tao_hook_plot_graph (plot, graph, found)
+subroutine tao_hook_draw_graph (plot, graph, found)
 
 use tao_mod
 
