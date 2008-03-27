@@ -430,10 +430,17 @@ contains
          inv_gamma_cbar_prelim(2)         !Preliminary values
     real(rp) :: j_amp_a(2), j_amp_b(2)   !Amplitude for both BPMs in a pair
     type(processor_analysis) temp(2)
-    type(processor_analysis), pointer :: ring_loc(2)
-    type(twiss_parameters), pointer :: dat_twiss(2), & 
-         !Contains data_struc%loc(jm)%a or b
+!    type(processor_analysis), pointer :: ring_loc(2)
+    type(twiss_parameters) :: dat_twiss(2), & 
+                                     !Contains data_struc%loc(jm)%a or b
     ring_twiss(2)                    !Same for ring(ik), a or b mode
+    type(processor_analysis) :: ring_loc(2)
+
+                           !These pointers are for iterating between a and b
+                           !modes with less repeated code.
+    type (twiss_parameters), pointer :: ring_a, ring_b,dat_a, dat_b
+    type (processor_analysis), pointer :: loc_1, loc_2
+
 
     type self_consistent  
        type (processor_analysis), allocatable :: loc(:)
@@ -441,7 +448,14 @@ contains
     end type self_consistent
 
     !Ring contains values calculated from BPMs with known spacing.
-    type (self_consistent), allocatable :: ring(:) 
+    type (self_consistent), allocatable, target :: ring(:) 
+
+    ring_a => null()
+    ring_b => null()
+    dat_a => null()
+    dat_b => null()
+    loc_1 => null()
+    loc_2 => null()
 
     set_num_a = data_struc%set_num_a
     set_num_b = data_struc%set_num_b
@@ -452,6 +466,8 @@ contains
     n_ring = bpm_pairs(1)%number
     allocate (ring(n_ring))
 
+
+!***i goes from 1 to 4... Something using i only has two elements. TO BE FIXED
     do i = 1, n_ring
 
        allocate (ring(i)%loc(data(1)%bpmproc))
@@ -477,9 +493,12 @@ contains
        ring(i)%loc = data_struc%loc
 
     !   Print *, "Using ", bpm_pairs(i)%bpm_name
-
-       ring_loc(1) => ring(i)%loc(bpm1a)
-       ring_loc(2) => ring(i)%loc(bpm2a)
+       loc_1 => ring(i)%loc(bpm1a)
+       loc_2 => ring(i)%loc(bpm2a)
+       ring_loc(1) = loc_1
+       ring_loc(2) = loc_2
+!       ring_loc(1) => ring(i)%loc(bpm1a)
+!       ring_loc(2) => ring(i)%loc(bpm2a)
 
        !
        !Compute Beta (page 15) +
@@ -601,7 +620,9 @@ contains
        !
 
        do j = 1, data(1)%bpmproc
-          if (j /= bpm1a .or. j /= bpm2a) then 
+!***Changed to and--when using .or., this is always true.
+!***Might be wrong though.
+          if (j /= bpm1a .and. j /= bpm2a) then 
 
              !
              !Compute Gamma**2 Beta (pg 17) +
@@ -675,10 +696,19 @@ contains
     do ik = 1, n_ring
        do jm = 1, data(1)%bpmproc
 
-          dat_twiss(1) => data_struc%loc(jm)%a
-          dat_twiss(2) => data_struc%loc(jm)%b
-          ring_twiss(1) => ring(ik)%loc(jm)%a
-          ring_twiss(2) => ring(ik)%loc(jm)%b
+          dat_a => data_struc%loc(jm)%a
+          dat_b => data_struc%loc(jm)%b
+          ring_a => ring(ik)%loc(jm)%a
+          ring_b => ring(ik)%loc(jm)%b
+          ring_twiss(1) = ring_a
+          ring_twiss(2) = ring_b
+          dat_twiss(1) = dat_a
+          dat_twiss(2) = dat_b
+    
+!          dat_twiss(1) => data_struc%loc(jm)%a
+!          dat_twiss(2) => data_struc%loc(jm)%b
+!          ring_twiss(1) => ring(ik)%loc(jm)%a
+!          ring_twiss(2) => ring(ik)%loc(jm)%b
 
           do r = 1, 2
              !This loop calculates some values that depend upon mode.

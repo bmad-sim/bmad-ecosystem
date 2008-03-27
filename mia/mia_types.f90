@@ -30,7 +30,7 @@ module mia_types
   end type twiss_parameters
 
   type processor_analysis
-     type (twiss_parameters), target :: a, b         !A and B modes
+     type (twiss_parameters) :: a, b         !A and B modes
      real(rp) :: inv_gamma_cbar(2,2)      !(1/gamma)*Cbar
      real(rp) :: inv_gamma_cbar_check(2)  !Consistancy check value
      real(rp) :: gamma                    !Gamma (gamma^2 + det_Cbar = 1)
@@ -49,7 +49,7 @@ module mia_types
           col_b_p, col_b_n           !Vertical positive and negative
      integer :: set_num_a, set_num_b !Which of the two input files (1 or 2) is 
      !horizontal (a) or vertical(b)
-     type (processor_analysis), allocatable, target :: loc(:)
+     type (processor_analysis), allocatable :: loc(:)
      !Information for each BPM location
      type (active_processors), allocatable :: proc(:)
      !Array of processors 
@@ -94,9 +94,10 @@ module mia_types
 
   !Global variables
 !  type (data_file), allocatable :: file(:) !File being used
-  type(cbpm_analysis) data_struc
+  type(cbpm_analysis), target :: data_struc
   !BPM pairs with known spacing:
   type(known_spacings), allocatable:: bpm_pairs(:) 
+
   integer:: NUM_BPMS, &                  !Number of BPMs
        NUM_TURNS                         !Number of turns
   !Change FREQ for use with machines other than CESR
@@ -114,10 +115,7 @@ contains
     NUM_TURNS = data%numturns
     allocate(data_struc%loc(NUM_BPMS))
     allocate(data_struc%proc(NUM_BPMS))
-!    allocate(file(nset))
-!    do i=1, nset
-!       allocate(file(i)%proc(1:data%bpmproc))
-!    enddo
+
   end subroutine initialize_structures
 
   subroutine allocate_bpm_pairs(num)
