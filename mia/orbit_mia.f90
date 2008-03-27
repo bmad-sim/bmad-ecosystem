@@ -537,18 +537,18 @@ contains
           !
 
           !*Check this
-          ring(i)%loc(bpm1a)%inv_gamma_cbar_check(1) =  &
-               (ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,2) + &
-               sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,2) - &
-               sb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,1) - &
-               cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,2))
+!          ring(i)%loc(bpm1a)%inv_gamma_cbar_check(1) =  &
+!               (ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,2) + &
+!               sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,2) - &
+!               sb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,1) - &
+!               cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,2))
           !          Print *, "Inv gamma cbar check: ", &
           !               ring(i)%loc(bpm1a)%inv_gamma_cbar_check(1)
-          ring(i)%loc(bpm1a)%inv_gamma_cbar_check(2) =  &
-               (-sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,1) + &
-               ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,1) - &
-               cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,1) + &
-               sb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,2))
+!          ring(i)%loc(bpm1a)%inv_gamma_cbar_check(2) =  &
+!               (-sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,1) + &
+!               ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,1) - &
+!               cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,1) + &
+!               sb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,2))
           !          Print *, "Inv gamma cbar check: ", &
           !               ring(i)%loc(bpm1a)%inv_gamma_cbar_check(2)
 

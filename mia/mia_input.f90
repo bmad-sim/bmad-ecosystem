@@ -69,7 +69,7 @@ contains
        endif
     enddo
 
-    call logic_get('T','C',' (T)runcate values or (C)ontinue',trunc)
+    call logic_get( 'T', 'C', ' (T)runcate values or (C)ontinue', trunc)
     if (trunc) then
        Print *, "Input number of decimal places (no greater than 7)"
        read *, power
@@ -244,7 +244,8 @@ contains
     !a BPM may not be in use.
 
     !knownl.inp contains a list of BPMs with known spacing.
-    open (unit = 2, file = "knownl.inp", status = "old", iostat = openstatus)
+    open (unit = 2, file = "/nfs/acc/temp/haw27/data/knownl.inp", &
+         status = "old", iostat = openstatus)
     if (openstatus > 0) Stop "*** Cannot open file knownl.inp ***"
 
 60  format (1x, i5,/)

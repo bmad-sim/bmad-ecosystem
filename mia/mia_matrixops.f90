@@ -88,6 +88,7 @@ contains
     integer,save :: m = 0
     real(rp), save :: mf, nf
     real(rp) :: amp(n), &   !Amplitude
+
          p(n)          !?
     integer,save :: np = 0     !?
     real(rp) :: ar(n),ai(n), &  !ar = amp and ai = 0??
@@ -326,7 +327,7 @@ contains
                "is in the A (x) mode."
       !    data_struc%A_mode = ceiling(c/2.0)
        else if (col_countb==2) then
-          Print *, "Excitation for file ", ceiling(c/2.0),&
+          Print *, "Excitation for file ", ceiling(c/2.0), &
                "is in the B (y) mode."
       !    data_struc%B_mode = ceiling(c/2.0)
        endif
