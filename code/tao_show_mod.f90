@@ -318,7 +318,7 @@ case ('data')
 
       u => s%u(iu)
 
-      nl=nl+1; write(lines(nl), *) ' '
+      nl=nl+1; lines(nl) = ''
       if (size(s%u) > 1) then
         nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', iu
       endif
@@ -352,7 +352,7 @@ case ('data')
 
   if (n_size == 1) then
     d_ptr => d_array(1)%d
-    nl=nl+1; write(lines(nl), *) ' '
+    nl=nl+1; lines(nl) = ''
     if (size(s%u) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d_ptr%d1%d2%ix_uni
     endif
@@ -465,8 +465,8 @@ case ('data')
 
     if (any(d2_ptr%descrip /= ' ')) then
       call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%descrip))
-      nl=nl+1; write (lines(nl), *)
-      nl=nl+1; write (lines(nl), '(a)') 'Descrip:'
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Descrip:'
       do i = 1, size(d2_ptr%descrip)
         if (d2_ptr%descrip(i) /= ' ') then
           nl=nl+1; write (lines(nl), '(i4, 2a)') i, ': ', d2_ptr%descrip(i)
@@ -543,7 +543,7 @@ case ('element', 'e2')
       return
     endif
 
-    write (lines(1), *) 'Matches:', size(ix_eles)
+    write (lines(1), '(a, i0)') 'Matches: ', size(ix_eles)
     nl = 1
     do i = 1, size(ix_eles)
       loc = ix_eles(i)
@@ -587,8 +587,8 @@ case ('element', 'e2')
 
     orb = u%model%orb(loc)
     fmt = '(2x, a, 3p2f15.8)'
-    write (lines(nl+1), *) ' '
-    write (lines(nl+2), *)   'Orbit: [mm, mrad]'
+    lines(nl+1) = ' '
+    lines(nl+2) = 'Orbit: [mm, mrad]'
     write (lines(nl+3), fmt) "X  X':", orb%vec(1:2)
     write (lines(nl+4), fmt) "Y  Y':", orb%vec(3:4)
     write (lines(nl+5), fmt) "Z  Z':", orb%vec(5:6)
@@ -602,11 +602,10 @@ case ('element', 'e2')
       if (lat%ele(i)%name /= ele_name) cycle
       if (size(lines) < nl+2) call re_allocate (lines, len(lines(1)), nl+10)
       if (found) then
-        nl=nl+1; write (lines(nl), *)
+        nl=nl+1; lines(nl) = ''
         found = .true.
       endif 
-      nl=nl+1;  write (lines(nl), *) &
-                'Note: Found another element with same name at:', i
+      nl=nl+1;  write (lines(nl), '(a, i0)') 'Note: Found another element with same name at: ', i
     enddo
 
   endif
@@ -1232,7 +1231,7 @@ case ('plot', 'graph', 'curve')
     nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers
     nl=nl+1; write (lines(nl), lmt) 'independent_graphs   = ', p%independent_graphs
     
-    nl=nl+1; write (lines(nl), *) 'Graphs:'
+    nl=nl+1; lines(nl) = 'Graphs:'
     do i = 1, size(p%graph)
       nl=nl+1; write (lines(nl), amt) '   ', p%graph(i)%name
     enddo
@@ -1328,7 +1327,7 @@ case ('universe')
                         u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
   endif
 
-  nl=nl+1; write (lines(nl), *)
+  nl=nl+1; lines(nl) = ''
   nl=nl+1; write (lines(nl), '(17x, a)') '       X          |            Y'
   nl=nl+1; write (lines(nl), '(17x, a)') 'Model     Design  |     Model     Design'
   fmt = '(1x, a10, 1p 2e11.3, 2x, 2e11.3, 2x, a)'
@@ -1360,7 +1359,7 @@ case ('universe')
         u%design%modes%a%synch_int(5), u%model%modes%b%synch_int(5), &
         u%design%modes%b%synch_int(5), '! Radiation Integral'
 
-  nl=nl+1; write (lines(nl), *)
+  nl=nl+1; lines(nl) = ''
   nl=nl+1; write (lines(nl), '(19x, a)') 'Model     Design'
   fmt = '(1x, a12, 1p2e11.3, 3x, a)'
   nl=nl+1; write (lines(nl), fmt) 'Sig_E/E:', u%model%modes%sigE_E, &
@@ -1546,7 +1545,7 @@ case ('variable')
     lines(2) = ' '
     line1 = '       Name'
     line1(nc+17:) = 'Meas         Model        Design  Useit_opt'
-    write (lines(3), *) line1
+    lines(3) = line1
     nl = 3
     ! if a range is specified, show the variable range   
     do i = 1, size(v_array)
@@ -1558,8 +1557,7 @@ case ('variable')
       write(lines(nl)(nc+9:), '(3es14.4, 7x, l)') v_ptr%meas_value, &
                  v_ptr%model_value, v_ptr%design_value, v_ptr%useit_opt
     enddo
-    nl=nl+1
-    write (lines(nl), *) line1
+    nl=nl+1; lines(nl) = line1
 
   else
     lines(1) = '???'
