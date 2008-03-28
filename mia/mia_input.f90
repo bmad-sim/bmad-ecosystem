@@ -271,22 +271,28 @@ contains
        bpm_old(i)%in_use = .true.
     end do
 
+    !Removed file from bpm_pairs; there is no file specified in knownl.inp,
+    !and if BPM numbers are not the same between files the program exits
+    !in match_processors
+
     !This could be made more efficient by finding a BPM number for 
     !the pairs and scanning for that.
     !Also, this checks all BPMs vs all pairs--change to stop when a 
-    !match is found.
+    !match is found. 
     bpm_old(1)%has_one = .true.
     do i_file = 1, nset                       !File
        do i = 1, num                          !BPM pairs
+          bpm_old(i)%bpm_pntr(1)=0
+          bpm_old(i)%bpm_pntr(2)=0
           do j = 1, NUM_BPMS           !All BPMs
              do k = 1, 2                      !First and second of the BPM pair
                 if (file(i_file)%proc(j)%label == bpm_old(i)%bpm_name(k)) then
-                   bpm_old(i)%file(i_file)%bpm_pntr(k) = j
+                   bpm_old(i)%bpm_pntr(k) = j
                 end if
              end do
           end do
-          if (bpm_old(i)%file(i_file)%bpm_pntr(1) == 0 .or. &
-               bpm_old(i)%file(i_file)%bpm_pntr(2) == 0) then
+          if (bpm_old(i)%bpm_pntr(1) == 0 .or. &
+               bpm_old(i)%bpm_pntr(2) == 0) then
              bpm_old(i)%in_use = .false.
           else 
              bpm_old(i)%in_use = .true.

@@ -78,9 +78,6 @@ module mia_types
      type (active_processors), allocatable :: proc(:) !Data for BPM processors
   end type data_file
 
-  type bpm_point
-     integer :: bpm_pntr(2) !Points to a BPM
-  end type bpm_point
 
 
   type known_spacings
@@ -88,8 +85,8 @@ module mia_types
      logical :: in_use,&           !If the BPM is in use?
           has_one                  !True if a BPM has a known spacing
      real(rp) :: length            !Distance between BPMs
-     type (bpm_point) :: file(2)   !File pointer
      integer :: number             !Number of BPM pairs
+     integer :: bpm_pntr(2)        !Points to the pair's position in BPM array
   end type known_spacings
 
   !Global variables

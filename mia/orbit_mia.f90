@@ -419,7 +419,7 @@ contains
     integer :: i,j, k, ik, jm, &  !Counters
          bpm1a, bpm2a, &          !Pair of BPMs from set_num_a
          bpm1b, bpm2b, &          !Pair of BPMs from set_num_b
-         set_num_a, set_num_b, &  !Takes set_num_* from data_struc
+!         set_num_a, set_num_b, &  !Takes set_num_* from data_struc
          n_ring, &                !Number of BPM pairs in use
          r, q,u                   !Counters
     INTEGER :: countx, county, &  !Counters
@@ -457,8 +457,8 @@ contains
     loc_1 => null()
     loc_2 => null()
 
-    set_num_a = data_struc%set_num_a
-    set_num_b = data_struc%set_num_b
+!    set_num_a = data_struc%set_num_a
+!    set_num_b = data_struc%set_num_b
 
     if (.not. bpm_pairs(1)%has_one) return   !Does not continue if there are
     !not BPMs with known spacing
@@ -472,7 +472,6 @@ contains
 
        allocate (ring(i)%loc(data(1)%bpmproc))
 
-
        !?@@           
        !ring(i)%loc(i) = data_struc%loc(i)  !loc # is not = i.
        !Moved below          
@@ -480,11 +479,11 @@ contains
        ! Determine info about the known pair of BPMs first.
        !
 
-       bpm1a = bpm_pairs(i)%file(set_num_a)%bpm_pntr(1) !A mode BPM pair  
-       bpm2a = bpm_pairs(i)%file(set_num_a)%bpm_pntr(2)
+       bpm1a = bpm_pairs(i)%bpm_pntr(1)                 !A mode BPM pair  
+       bpm2a = bpm_pairs(i)%bpm_pntr(2)
 
-       bpm1b = bpm_pairs(i)%file(set_num_b)%bpm_pntr(1) !B mode BPM pair    
-       bpm2b = bpm_pairs(i)%file(set_num_b)%bpm_pntr(2)
+       bpm1b = bpm_pairs(i)%bpm_pntr(1) !B mode BPM pair    
+       bpm2b = bpm_pairs(i)%bpm_pntr(2)
        !BPM1A = BPM1B, BPM2A = BPM2B (why have A and B?)
 
        if (abs(data_struc%loc(bpm2a)%a%d_phase_adv) < 0.01) cycle
@@ -556,18 +555,18 @@ contains
           !
 
           !*Check this
-!          ring(i)%loc(bpm1a)%inv_gamma_cbar_check(1) =  &
-!               (ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,2) + &
-!               sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,2) - &
-!               sb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,1) - &
-!               cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,2))
+          ring(i)%loc(bpm1a)%inv_gamma_cbar_check(1) =  &
+               (ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,2) + &
+               sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,2) - &
+               sb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,1) - &
+               cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,2))
           !          Print *, "Inv gamma cbar check: ", &
           !               ring(i)%loc(bpm1a)%inv_gamma_cbar_check(1)
-!          ring(i)%loc(bpm1a)%inv_gamma_cbar_check(2) =  &
-!               (-sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,1) + &
-!               ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,1) - &
-!               cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,1) + &
-!               sb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,2))
+          ring(i)%loc(bpm1a)%inv_gamma_cbar_check(2) =  &
+               (-sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,1) + &
+               ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,1) - &
+               cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,1) + &
+               sb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,2))
           !          Print *, "Inv gamma cbar check: ", &
           !               ring(i)%loc(bpm1a)%inv_gamma_cbar_check(2)
 
@@ -602,11 +601,7 @@ contains
                ring_loc(q)%b%magnitude2(2) / &
                ring_loc(q)%gamma**2 / ring_loc(q)%b%beta
 
-          !Copy values back to their original places
- !         ring(i)%loc(bpm1a) = ring_loc(1)
- !         ring(i)%loc(bpm2a) = ring_loc(2)
-
-       enddo    !End calculations for BPMs 1, 2
+       enddo    !End calculations for BPMs 1, 2 (using q)
        !
        !Compute J_amp_ave +
        !
@@ -620,7 +615,7 @@ contains
        !
 
        do j = 1, data(1)%bpmproc
-!***Changed to and--when using .or., this is always true.
+!***Changed to and; when using .or., this is always true.
 !***Might be wrong though.
           if (j /= bpm1a .and. j /= bpm2a) then 
 
@@ -881,7 +876,7 @@ contains
 
     do i=1, n_pairs
        do j=1, 2
-       bpm = bpm_pairs(i)%file(data_struc%set_num_a)%bpm_pntr(j)
+       bpm = bpm_pairs(i)%bpm_pntr(j)
        write (27, *) data_struc%proc(bpm)%label
        write (27, 17) "Beta: ", data_struc%loc(bpm)%a%beta, &
             data_struc%loc(bpm)%b%beta
