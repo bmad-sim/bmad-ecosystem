@@ -272,6 +272,8 @@ end subroutine
 ! Input:
 !   name       -- Character(*): Name of plot or region.
 !   where      -- Character(*): Where to look: 'TEMPLATE', 'REGION', or 'BOTH'
+!                   For where = 'BOTH', if something is found in a plot region,
+!                   then the templates will not be searched
 !   print_flag -- Logical, optional: If present and False then surpress error
 !                   messages. Default is True.
 !   always_allocate 
@@ -362,7 +364,7 @@ if (where == 'REGION' .or. where == 'BOTH') then
   enddo
 endif
 
-if (where == 'TEMPLATE' .or. where == 'BOTH') then
+if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
   do i = 1, size(s%template_plot)
     if (plot_name == s%template_plot(i)%name .or. plot_name == '*') np = np + 1
   enddo
@@ -397,7 +399,7 @@ if (where == 'REGION' .or. where == 'BOTH') then
   enddo
 endif
 
-if (where == 'TEMPLATE' .or. where == 'BOTH') then
+if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
   do i = 1, size(s%template_plot)
     if (plot_name == s%template_plot(i)%name .or. plot_name == '*') then
       np = np + 1
@@ -477,7 +479,7 @@ if (present(curve)) allocate (curve(nc))
 ! Now that we have counted and allocated the matches set the curve pointers
 
 nc = 0
-do j = 1, np
+do j = 1, ng
   do k = 1, size(g(j)%g%curve)
     if (g(j)%g%curve(k)%name == curve_name .or. curve_name == '*') then
       nc = nc + 1
@@ -2548,7 +2550,7 @@ end function
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-! Function tao_curve_name (curve) result (curve_name)
+! Function tao_curve_name (curve, use_region) result (curve_name)
 !
 ! Function to return the curve name in the form:
 !   plot_name.graph_name.curve_name
@@ -2556,23 +2558,36 @@ end function
 !   orbit.x.c1
 !
 ! Input:
-!   curve -- Tao_curve_struct: Curve
+!   curve      -- Tao_curve_struct: Curve
+!   use_region -- Logical: If present and True then use the region 
+!                  name instead of the plot name. Region name is
+!                  'NULL_REGION' if there is no assocaited region.
 !
 ! Output:
 !   curve_name -- Character(60): Appropriate name.
 !-
 
-function tao_curve_name(curve) result (curve_name)
+function tao_curve_name(curve, use_region) result (curve_name)
 
 implicit none
 
 type (tao_curve_struct) curve
 character(60) curve_name
+logical, optional :: use_region
 
 !
 
-write (curve_name, '(5a)') &
-      trim(curve%g%p%name), '.', trim(curve%g%name), '.', trim(curve%name)
+curve_name = '.' // trim(curve%g%name) // '.' // trim(curve%name)
+
+if (logic_option(.false., use_region)) then
+  if (associated(curve%g%p%r)) then
+    curve_name = trim(curve%g%p%r%name) // trim(curve_name)
+  else
+    curve_name = 'NULL_REGION' // trim(curve_name)
+  endif
+else
+    curve_name = trim(curve%g%p%name) // trim(curve_name)
+endif
 
 end function
 

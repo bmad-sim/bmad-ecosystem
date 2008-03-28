@@ -106,7 +106,7 @@ integer num_locations, ix_ele, n_name, n_e0, n_e1
 integer, allocatable, save :: ix_eles(:)
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
-logical err, found, at_ends, first_time, by_s, print_header_lines
+logical err, found, at_ends, first_time, by_s, print_header_lines, show_sym, show_line, show_shape
 logical show_all, name_found, print_taylor, print_wig_terms
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
@@ -1040,9 +1040,30 @@ case ('particle')
 
 case ('plot', 'graph', 'curve')
 
-  ! Look for '-shape' switch
+  ! Look for switches
 
-  if (index('-shapes', word(1)) == 1 .and. len_trim(word(1)) > 1) then
+  show_sym = .false.
+  show_line = .false.
+  show_shape = .false.
+  call string_trim(stuff, stuff2, ix)
+
+  do
+    if (ix == 0) exit
+    if (stuff2(1:1) /= '-') exit
+    call match_word (stuff2(:ix), (/ '-shapes', '-symbol', '-line ' /), n, .true., name)
+    if (n < 1) then
+      call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2(:ix))
+      return
+    endif
+    if (name == '-shapes') show_shape = .true.
+    if (name == '-symbol') show_sym = .true.
+    if (name == '-line')   show_line = .true.
+    call string_trim(stuff2(ix+1:), stuff2, ix)
+  enddo
+
+  ! Element shapes
+
+  if (show_shape) then
 
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Floor_plan Element Shapes:'
@@ -1079,9 +1100,9 @@ case ('plot', 'graph', 'curve')
    
   endif
 
-  ! word(1) is blank => print overall info
+  ! stuff2 is blank => print overall info
 
-  if (word(1) == ' ') then
+  if (stuff2 == ' ') then
 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%text_height            = ', s%plot_page%text_height 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%main_title_text_scale  = ', s%plot_page%main_title_text_scale 
@@ -1126,22 +1147,21 @@ case ('plot', 'graph', 'curve')
 
 ! Find particular plot
 
-  call tao_find_plots (err, word(1), 'BOTH', plot, graph, curve, print_flag = .false.)
+  call tao_find_plots (err, stuff2, 'BOTH', plot, graph, curve, print_flag = .false.)
   if (err) return
 
 ! print info on particular plot, graph, or curve
 
   if (allocated(curve)) then
     c => curve(1)%c
-    g => c%g
-    p => g%p
-    if (associated(p%r)) then
-      nl=nl+1; lines(nl) = 'Region.Graph.Curve: ' // trim(p%r%name) // '.' // &
-                                                  trim(g%name) // '.' // c%name
-    endif
-    nl=nl+1; lines(nl) = 'Plot.Graph.Curve:   ' // trim(p%name) // '.' // &
-                                                  trim(g%name) // '.' // c%name
-    nl=nl+1; write (lines(nl), amt) 'name                    = ', c%name
+    nl=nl+1; lines(nl) = 'Region.Graph.Curve: ' // trim(tao_curve_name(c, .true.))
+    do i = 2, size(curve)
+      nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c, .true.))
+    enddo
+    nl=nl+1; lines(nl) = 'Plot.Graph.Curve:   ' // trim(tao_curve_name(c))
+    do i = 2, size(curve)
+      nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
+    enddo
     nl=nl+1; write (lines(nl), amt) 'data_source             = ', c%data_source
     nl=nl+1; write (lines(nl), amt) 'data_type               = ', c%data_type
     nl=nl+1; write (lines(nl), amt) 'ele_ref_name            = ', c%ele_ref_name
@@ -1158,36 +1178,55 @@ case ('plot', 'graph', 'curve')
     nl=nl+1; write (lines(nl), lmt) 'convert                 = ', c%convert
     nl=nl+1; write (lines(nl), lmt) 'draw_interpolated_curve = ', c%draw_interpolated_curve
     
-    if (index('-symbols', trim(word(2))) == 1 .and. len_trim(word(2)) > 1) then
+    if (show_sym) then
       n = nl + size(c%x_symb) + 10
       if (n > size(lines)) call re_allocate(lines, len(lines(1)), n)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Symbol points:'
       nl=nl+1; lines(nl) = '             x             y'
-      do i = 1, size(c%x_symb)
-        nl=nl+1; write (lines(nl), '(2es14.6)') c%x_symb(i), c%y_symb(i)
+      err = .false.
+      do j = 2, size(curve)
+        if (size(curve(j)%c%y_symb) /= size(c%y_symb)) then
+          nl=nl+1; lines(nl) = 'NUMBER OF SYMBOL POINTS NOT THE SAME IN ALL CURVES!'
+          err = .true.
+          exit
+        endif
       enddo
+      if (.not. err) then
+        do i = 1, size(c%x_symb)
+          nl=nl+1; write (lines(nl), '(10es14.6)') c%x_symb(i), &
+                                        (/ (curve(j)%c%y_symb(i), j = 1, size(curve)) /)
+        enddo
+      endif
     endif
 
-    if (index('-line', trim(word(2))) == 1 .and. len_trim(word(2)) > 1) then
+    if (show_line) then
       n = nl + size(c%x_line) + 10
       if (n > size(lines)) call re_allocate(lines, len(lines(1)), n)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Smooth line points:'
       nl=nl+1; lines(nl) = '             x             y'
-      do i = 1, size(c%x_line)
-        nl=nl+1; write (lines(nl), '(2es14.6)') c%x_line(i), c%y_line(i)
+      do j = 2, size(curve)
+        if (size(curve(j)%c%y_line) /= size(c%y_line)) then
+          nl=nl+1; lines(nl) = 'NUMBER OF LINE POINTS NOT THE SAME IN ALL CURVES!'
+          err = .true.
+          exit
+        endif
       enddo
+      if (.not. err) then
+        do i = 1, size(c%x_line)
+          nl=nl+1; write (lines(nl), '(2es14.6)') c%x_line(i), &
+                                        (/ (curve(j)%c%y_line(i), j = 1, size(curve)) /)
+        enddo
+      endif
     endif
 
   elseif (allocated(graph)) then
     g => graph(1)%g
-    p => g%p
-    if (associated(p%r)) then
-      nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(p%r%name) // '.' // trim(g%name)
+    if (associated(g%p%r)) then
+      nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%r%name) // '.' // trim(g%name)
     endif
-    nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(p%name) // '.' // trim(g%name)
-    nl=nl+1; write (lines(nl), amt) 'name                  = ', g%name
+    nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(g%p%name) // '.' // trim(g%name)
     nl=nl+1; write (lines(nl), amt) 'type                  = ', g%type
     nl=nl+1; write (lines(nl), amt) 'title                 = ', g%title
     nl=nl+1; write (lines(nl), amt) 'title_suffix          = ', g%title_suffix
@@ -1455,6 +1494,7 @@ case ('variable')
 ! get pointers to the variables
 
   call string_trim (word(2), word(2), ix)
+
 ! are we looking at a range of locations?
 
   call tao_find_var(err, word(1), v1_ptr, v_array) 
