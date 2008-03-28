@@ -112,11 +112,60 @@ contains
     NUM_TURNS = data%numturns
     allocate(data_struc%loc(NUM_BPMS))
     allocate(data_struc%proc(NUM_BPMS))
+    data_struc%col_a_p = 0
+    data_struc%col_a_n = 0
+    data_struc%col_b_p = 0
+    data_struc%col_b_n = 0
+    data_struc%set_num_a = 0
+    data_struc%set_num_b = 0
+    data_struc%tune(1:2) = 0.
+    data_struc%phi_t(1:2) = 0.
+    data_struc%j_amp_ave(1:2,1:2) = 0.
 
+    do i=1, NUM_BPMS
+       data_struc%loc(i)%inv_gamma_cbar(1:2,1:2) = 0.
+       data_struc%loc(i)%inv_gamma_cbar_check(1:2) = 0.
+       data_struc%loc(i)%gamma = 0.
+       data_struc%loc(i)%cbar(1:2,1:2) = 0.
+       data_struc%loc(i)%sqrt_beta_cbar(1:2,1:2) = 0.
+       data_struc%loc(i)%gamma = 0.
+       data_struc%loc(i)%a%gam2_beta_ratio = 0.
+       data_struc%loc(i)%a%d_phase_adv = 0.
+       data_struc%loc(i)%a%d_delta = 0.
+       data_struc%loc(i)%a%beta = 0.
+       data_struc%loc(i)%a%alpha = 0.
+       data_struc%loc(i)%a%phi = 0.
+       data_struc%loc(i)%a%ratio(1:2) = 0.
+       data_struc%loc(i)%a%magnitude2(1:2) = 0.
+       data_struc%loc(i)%a%numer(1:2) = 0.
+       data_struc%loc(i)%a%denom(1:2) = 0.
+       data_struc%loc(i)%a%inv_gamma_cbar_sqrt_betas(1:2,1:2) = 0.
+       data_struc%loc(i)%a%gam2_beta = 0.
+
+       data_struc%loc(i)%b%gam2_beta_ratio = 0.
+       data_struc%loc(i)%b%d_phase_adv = 0.
+       data_struc%loc(i)%b%d_delta = 0.
+       data_struc%loc(i)%b%beta = 0.
+       data_struc%loc(i)%b%alpha = 0.
+       data_struc%loc(i)%b%phi = 0.
+       data_struc%loc(i)%b%ratio(1:2) = 0.
+       data_struc%loc(i)%b%magnitude2(1:2) = 0.
+       data_struc%loc(i)%b%numer(1:2) = 0.
+       data_struc%loc(i)%b%denom(1:2) = 0.
+       data_struc%loc(i)%b%inv_gamma_cbar_sqrt_betas(1:2,1:2) = 0.
+       data_struc%loc(i)%b%gam2_beta = 0.
+
+
+
+
+       data_struc%proc(i)%label = ""
+       data_struc%proc(i)%is_west = .false.
+       data_struc%proc(i)%number = 0
+    enddo
   end subroutine initialize_structures
 
-  subroutine allocate_bpm_pairs(num)
-    integer:: num
-    allocate(bpm_pairs(num))
+  subroutine allocate_bpm_pairs(length)
+    integer :: length
+    allocate (bpm_pairs(length))
   end subroutine allocate_bpm_pairs
 end module mia_types
