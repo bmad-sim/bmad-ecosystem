@@ -44,12 +44,13 @@ contains
        read *, data%shortName
 
        if (scan(data%shortName, "#")>0) then
+          Print *, "Function not yet implemented for Linux."
           !Remove first character from input (#) and concatenate with
           !the path for data files.
-          data%shortName = data%shortName(2:len_trim(data%shortName))
-          data%shortName = "cbpm_" // trim(data%shortName) // ".raw"
-          data%filename = "log3$disk:[cesr.cesrbpm.raw.03]" // &
-               data%shortName
+!          data%shortName = data%shortName(2:len_trim(data%shortName))
+!          data%shortName = "cbpm_" // trim(data%shortName) // ".raw"
+!          data%filename = "log3$disk:[cesr.cesrbpm.raw.03]" // &
+!               data%shortName
        else
           data%shortName = trim(data%shortName)
           data%filename = "./data/" // data%shortName

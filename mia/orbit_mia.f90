@@ -434,7 +434,7 @@ contains
     type(twiss_parameters) :: dat_twiss(2), & 
                                      !Contains data_struc%loc(jm)%a or b
     ring_twiss(2)                    !Same for ring(ik), a or b mode
-    type(processor_analysis) :: ring_loc(2)
+!    type(processor_analysis) :: ring_loc(2)
 
                            !These pointers are for iterating between a and b
                            !modes with less repeated code.
@@ -447,6 +447,12 @@ contains
        real(rp) :: j_amp_ave(2) 
     end type self_consistent
 
+    type pointers
+       type (processor_analysis), pointer :: loc
+    end type pointers
+
+    !Pointers to ring%loc for the two bpms in the pair
+    type (pointers) :: ring_p(2)
     !Ring contains values calculated from BPMs with known spacing.
     type (self_consistent), allocatable, target :: ring(:) 
 
@@ -491,20 +497,15 @@ contains
 
        ring(i)%loc = data_struc%loc
 
-    !   Print *, "Using ", bpm_pairs(i)%bpm_name
-       loc_1 => ring(i)%loc(bpm1a)
-       loc_2 => ring(i)%loc(bpm2a)
-       ring_loc(1) = loc_1
-       ring_loc(2) = loc_2
-!       ring_loc(1) => ring(i)%loc(bpm1a)
-!       ring_loc(2) => ring(i)%loc(bpm2a)
+       ring_p(1)%loc => ring(i)%loc(bpm1a)
+       ring_p(2)%loc => ring(i)%loc(bpm2a) 
 
        !
        !Compute Beta (page 15) +
        !
        !Betas are accurate
-       call ring_beta(ring_loc(1)%a, ring_loc(2)%a, i)
-       call ring_beta(ring_loc(1)%b, ring_loc(2)%b, i)
+       call ring_beta(ring_p(1)%loc%a, ring_p(2)%loc%a, i)
+       call ring_beta(ring_p(1)%loc%b, ring_p(2)%loc%b, i)
 
        do q = 1,2
 
@@ -513,21 +514,21 @@ contains
           !Compute Alphas
           !
           !**Alphas are wrong
-          call alpha(ring_loc(q)%a, bpm_pairs(i)%length, &
+          call alpha(ring_p(q)%loc%a, bpm_pairs(i)%length, &
                ring(i)%loc(2)%a, -1)
-          call alpha(ring_loc(q)%b, bpm_pairs(i)%length, &
-               ring_loc(2)%b, -1)
+          call alpha(ring_p(q)%loc%b, bpm_pairs(i)%length, &
+               ring_p(2)%loc%b, -1)
 
           !
           !Compute Inv Gamma Cbars (pg 17)+
           !
 
-          call inv_gamma_cbar(ring_loc(q), 1)
-    !      print *,"Cbar(1,1):",  ring_loc(q)%inv_gamma_cbar(1,1)
-          call inv_gamma_cbar12(ring_loc(q))
-    !      print *,"Cbar(1,2):",  ring_loc(q)%inv_gamma_cbar(1,2)     
-          call inv_gamma_cbar(ring_loc(q), 2)
-    !      print *,"Cbar(2,2):",  ring_loc(q)%inv_gamma_cbar(2,2)     
+          call inv_gamma_cbar(ring_p(q)%loc, 1)
+    !      print *,"Cbar(1,1):",  ring_p(q)%loc%inv_gamma_cbar(1,1)
+          call inv_gamma_cbar12(ring_p(q)%loc)
+    !      print *,"Cbar(1,2):",  ring_p(q)%loc%inv_gamma_cbar(1,2)     
+          call inv_gamma_cbar(ring_p(q)%loc, 2)
+    !      print *,"Cbar(2,2):",  ring_p(q)%loc%inv_gamma_cbar(2,2)     
 
           !
           !Compute Inv Gamma Cbar (2,1) (pg 14)
@@ -538,11 +539,11 @@ contains
           sa = sin(ring(i)%loc(bpm2a)%a%d_phase_adv)
           sb = sin(ring(i)%loc(bpm2b)%b%d_phase_adv)
 
-          !Is different for BPMs 1 and 2--can't use ring_loc?
-          ring_loc(1)%inv_gamma_cbar(2,1) =  &
-               (cb * ring_loc(1)%inv_gamma_cbar(1,1) - &
-               sb * ring_loc(1)%inv_gamma_cbar(1,2) - &
-               ca * ring_loc(2)%inv_gamma_cbar(1,1)) / sa
+          !Is different for BPMs 1 and 2--can't use ring_p?
+          ring_p(1)%loc%inv_gamma_cbar(2,1) =  &
+               (cb * ring_p(1)%loc%inv_gamma_cbar(1,1) - &
+               sb * ring_p(1)%loc%inv_gamma_cbar(1,2) - &
+               ca * ring_p(2)%loc%inv_gamma_cbar(1,1)) / sa
 
           ring(i)%loc(bpm2a)%inv_gamma_cbar(2,1) =  &
                (ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,2) - &
@@ -574,11 +575,11 @@ contains
           !Gamma (pg 16) +
           !
 
-          ring_loc(q)%gamma = sqrt(1.0 / (1.0 + &
-               (ring_loc(q)%inv_gamma_cbar(1,1) * &
-               ring_loc(q)%inv_gamma_cbar(2,2) - &
-               ring_loc(q)%inv_gamma_cbar(1,2) * &
-               ring_loc(q)%inv_gamma_cbar(2,1))))
+          ring_p(q)%loc%gamma = sqrt(1.0 / (1.0 + &
+               (ring_p(q)%loc%inv_gamma_cbar(1,1) * &
+               ring_p(q)%loc%inv_gamma_cbar(2,2) - &
+               ring_p(q)%loc%inv_gamma_cbar(1,2) * &
+               ring_p(q)%loc%inv_gamma_cbar(2,1))))
 
           !
           !Compute Cbar
@@ -586,20 +587,20 @@ contains
 
 
           !?@@
-          ring_loc(q)%cbar =  &
-               ring_loc(q)%inv_gamma_cbar * ring_loc(q)%gamma
+          ring_p(q)%loc%cbar =  &
+               ring_p(q)%loc%inv_gamma_cbar * ring_p(q)%loc%gamma
 
           !
           !Compute J_amp (aka the Action) (pg 16) +
           !
 
           j_amp_a(q) = &
-               ring_loc(q)%a%magnitude2(1) / &
-               ring_loc(q)%gamma**2 / ring_loc(q)%a%beta
+               ring_p(q)%loc%a%magnitude2(1) / &
+               ring_p(q)%loc%gamma**2 / ring_p(q)%loc%a%beta
 
           j_amp_b(q) = &
-               ring_loc(q)%b%magnitude2(2) / &
-               ring_loc(q)%gamma**2 / ring_loc(q)%b%beta
+               ring_p(q)%loc%b%magnitude2(2) / &
+               ring_p(q)%loc%gamma**2 / ring_p(q)%loc%b%beta
 
        enddo    !End calculations for BPMs 1, 2 (using q)
        !
@@ -758,33 +759,39 @@ contains
           !Compute Beta
           !
           !***Does not compute beta.
-          data_struc%loc(jm)%a%beta  = &
-               min( data_struc%loc(jm)%a%beta, &
-               ring(ik)%loc(jm)%a%beta) + &
-               max( data_struc%loc(jm)%a%beta, &
-               ring(ik)%loc(jm)%a%beta) 
+!          data_struc%loc(jm)%a%beta  = &
+!               min( data_struc%loc(jm)%a%beta, &
+!               ring(ik)%loc(jm)%a%beta) + &
+!               max( data_struc%loc(jm)%a%beta, &
+!               ring(ik)%loc(jm)%a%beta) 
 
-          data_struc%loc(jm)%b%beta  = &
-               min( data_struc%loc(jm)%b%beta, &
-               ring(ik)%loc(jm)%b%beta) + &
-               max( data_struc%loc(jm)%b%beta, &
-               ring(ik)%loc(jm)%b%beta) 
+!          data_struc%loc(jm)%b%beta  = &
+!               min( data_struc%loc(jm)%b%beta, &
+!               ring(ik)%loc(jm)%b%beta) + &
+!               max( data_struc%loc(jm)%b%beta, &
+!               ring(ik)%loc(jm)%b%beta) 
+
+          data_struc%loc(jm)%a%beta = ring(ik)%loc(jm)%a%beta
+          data_struc%loc(jm)%b%beta = ring(ik)%loc(jm)%b%beta
 
           !
           !Compute Alphas
           !
           !***What is the purpose of min and max?
-          data_struc%loc(jm)%a%alpha  = &
-               min( data_struc%loc(jm)%a%alpha, &
-               ring(ik)%loc(jm)%a%alpha) + &
-               max( data_struc%loc(jm)%a%alpha, &
-               ring(ik)%loc(jm)%a%alpha) 
+!          data_struc%loc(jm)%a%alpha  = &
+!               min( data_struc%loc(jm)%a%alpha, &
+!               ring(ik)%loc(jm)%a%alpha) + &
+!               max( data_struc%loc(jm)%a%alpha, &
+!               ring(ik)%loc(jm)%a%alpha) 
 
-          data_struc%loc(jm)%b%alpha  = &
-               min( data_struc%loc(jm)%b%alpha, &
-               ring(ik)%loc(jm)%b%alpha) + &
-               max( data_struc%loc(jm)%b%alpha, &
-               ring(ik)%loc(jm)%b%alpha) 
+!          data_struc%loc(jm)%b%alpha  = &
+!               min( data_struc%loc(jm)%b%alpha, &
+!               ring(ik)%loc(jm)%b%alpha) + &
+!               max( data_struc%loc(jm)%b%alpha, &
+!               ring(ik)%loc(jm)%b%alpha) 
+
+          data_struc%loc(jm)%a%alpha = ring(ik)%loc(jm)%a%alpha
+          data_struc%loc(jm)%b%alpha = ring(ik)%loc(jm)%b%alpha
 
           !
           !Compute Inv Gamma Cbar (2,1)
@@ -814,21 +821,24 @@ contains
           !Gamma
           !
 
-          data_struc%loc(jm)%gamma  = &
-               min( data_struc%loc(jm)%gamma, &
-               ring(ik)%loc(jm)%gamma) + &
-               max( data_struc%loc(jm)%gamma, &
-               ring(ik)%loc(jm)%gamma) 
-
+!          data_struc%loc(jm)%gamma  = &
+!               min( data_struc%loc(jm)%gamma, &
+!               ring(ik)%loc(jm)%gamma) + &
+!               max( data_struc%loc(jm)%gamma, &
+!               ring(ik)%loc(jm)%gamma) 
+          data_struc%loc(jm)%gamma  = ring(ik)%loc(jm)%gamma
           !
-          !Compute Cbar
+          !Cbar
           !
 
-          data_struc%loc(jm)%cbar  = &
-               min( data_struc%loc(jm)%cbar, &
-               ring(ik)%loc(jm)%cbar) + &
-               max( data_struc%loc(jm)%cbar, &
-               ring(ik)%loc(jm)%cbar) 
+!          data_struc%loc(jm)%cbar  = &
+!               min( data_struc%loc(jm)%cbar, &
+!               ring(ik)%loc(jm)%cbar) + &
+!               max( data_struc%loc(jm)%cbar, &
+!               ring(ik)%loc(jm)%cbar) 
+
+          data_struc%loc(jm)%cbar  = ring(ik)%loc(jm)%cbar
+
        end do
     end do
 
@@ -849,7 +859,7 @@ contains
 
     n_pairs = bpm_pairs(1)%number
 
-    open (unit = 27, file = "mia.out", status = "new", &
+    open (unit = 27, file = "./data/mia.out", status = "new", &
          action = "write", position = "rewind",&
          iostat = openstatus)
     if (openstatus > 0) print *, "*** Cannot open output file ***",&
@@ -888,7 +898,6 @@ contains
        write (27,56) "(2,1):", data_struc%loc(bpm)%cbar(2,1)
        write (27,56) "(2,2):", data_struc%loc(bpm)%cbar(2,2)
        enddo
-
     enddo
 
     write (27, 18) "Delta phase advance", "Phi"

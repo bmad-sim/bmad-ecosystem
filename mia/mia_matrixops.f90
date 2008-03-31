@@ -24,12 +24,20 @@ contains
 
     implicit none
     type(data_set) data   !Data set
+    integer :: i, j
 
-    allocate(data%tau_mat(1:data%numturns, 1:2*data%bpmproc))    
-    allocate(data%lambda(1:2*data%bpmproc))		     
-    allocate(data%pi_mat(1:2*data%bpmproc, 1:2*data%bpmproc)) 
+    allocate(data%tau_mat(1:NUM_TURNS, 1:2*NUM_BPMS))    
+    allocate(data%lambda(1:2*NUM_BPMS))		     
+    allocate(data%pi_mat(1:2*NUM_BPMS, 1:2*NUM_BPMS)) 
     !allocates the pi, tau and lambda matrices based on turns and active
     !processors
+
+    do i=1, 2*NUM_BPMS
+       data%lambda(i) = 0.0_rp
+       do j=1, 2*NUM_BPMS
+          data%pi_mat(i,j) = 0.0_rp
+       enddo
+    enddo
 
     data%tau_mat = data%poshis  
     !sets matrix to be used in SVD to be the position history matrix
@@ -109,10 +117,10 @@ contains
 
     call rect_fft_f77(ar,ai,m)
 
-    max_amp = -1.0
+    max_amp = -1.0_rp
     fr_peak = -1
     do i=1,n
-       amp(i) = 2.0*sqrt(ar(i)*ar(i)+ai(i)*ai(i))/n
+       amp(i) = 2.0_rp*sqrt(ar(i)*ar(i)+ai(i)*ai(i))/n
        if(i >= 0 .AND. amp(i) > max_amp .and. i < n/2) then  ! find peak AC
           max_amp = amp(i)
           fr_peak = i-1   ! because FORTRAN arrays start with 1
@@ -187,8 +195,8 @@ contains
     do L=1,m
        Le = 2**L
        Le1 = Le/2
-       ur = 1.0
-       ui = 0.0
+       ur = 1.0_rp
+       ui = 0.0_rp
        do j=1,Le1
           do i=j,n,Le
              ip = i+Le1
@@ -241,8 +249,8 @@ contains
          sum_b(4)                 !Sum of even rows of pi matrix
 
 
-    noise_sum(1) = 0.0
-    noise_sum(2) = 0.0
+    noise_sum(1) = 0.0_rp
+    noise_sum(2) = 0.0_rp
     lambdas = floor(2 * 0.6 * data(1)%bpmproc)   !Average 40% of lambda values
     Print *, "Using ", lambdas, "lambda values"
 
@@ -261,7 +269,7 @@ contains
     ! Stops at the first match.
     !*Change to find more matches?
     do cset = 1, nset
-       pair_cap = 0.0
+       pair_cap = 0
        do i = 1, 2*data(1)%bpmproc-1
           do q = i+1, 2*data(1)%bpmproc-1
             !Finds a match if the difference between frequency peaks is greater
@@ -298,8 +306,8 @@ contains
 
     do c = 1,4 
 
-       sum_a(c) = 0.0
-       sum_b(c) = 0.0
+       sum_a(c) = 0.0_rp
+       sum_b(c) = 0.0_rp
 
        !Sum_a(c) is the sum of odd columns of the pi matrix (x values),
        !sum_b(c) is the sum of even columns (y values).
@@ -477,7 +485,7 @@ contains
              C(i) = data(n_set)%spectrum(bin(n,i),n)
           enddo
 
-          detM = 0.
+          detM = 0.0_rp
           call det3x3(M, detM)
 
           !Find the inverse of M:
@@ -529,8 +537,7 @@ contains
              temp_tune(n) = FREQ - temp_tune(n)
           endif
 
-          temp_phi_t(n) = 2*3.1415926535*&
-               temp_tune(n) / FREQ
+          temp_phi_t(n) = 2*pi*temp_tune(n) / FREQ
 
           data_struc%phi_t(n_set) = data_struc%phi_t(n_set) + &
                temp_phi_t(n)/2
