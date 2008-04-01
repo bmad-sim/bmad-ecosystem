@@ -430,14 +430,6 @@ contains
          inv_gamma_cbar_prelim(2)         !Preliminary values
     real(rp) :: j_amp_a(2), j_amp_b(2)   !Amplitude for both BPMs in a pair
     type(processor_analysis) temp(2)
-!    type(processor_analysis), pointer :: ring_loc(2)
-    type(twiss_parameters) :: dat_twiss(2), & 
-                                     !Contains data_struc%loc(jm)%a or b
-    ring_twiss(2)                    !Same for ring(ik), a or b mode
-!    type(processor_analysis) :: ring_loc(2)
-
-                           !These pointers are for iterating between a and b
-                           !modes with less repeated code.
     type (twiss_parameters), pointer :: ring_a, ring_b,dat_a, dat_b
     type (processor_analysis), pointer :: loc_1, loc_2
 
@@ -447,12 +439,21 @@ contains
        real(rp) :: j_amp_ave(2) 
     end type self_consistent
 
-    type pointers
+    type loc_pointer
        type (processor_analysis), pointer :: loc
-    end type pointers
+    end type loc_pointer
+
+    type twiss_pointer
+       type (twiss_parameters), pointer :: twiss
+    end type twiss_pointer
 
     !Pointers to ring%loc for the two bpms in the pair
-    type (pointers) :: ring_p(2)
+    type (loc_pointer) :: ring_p(2)
+    type (twiss_pointer) :: dat_twiss(2), & 
+                                     !Contains data_struc%loc(jm)%a or b
+    ring_twiss(2)                    !Same for ring(ik), a or b mode
+                           !These pointers are for iterating between a and b
+                           !modes with less repeated code.
     !Ring contains values calculated from BPMs with known spacing.
     type (self_consistent), allocatable, target :: ring(:) 
 
@@ -616,9 +617,8 @@ contains
        !
 
        do j = 1, data(1)%bpmproc
-!***Changed to and; when using .or., this is always true.
-!***Might be wrong though.
-          if (j /= bpm1a .and. j /= bpm2a) then 
+       !***This is always true. Does it have a purpose or should it be .and.?
+          if (j /= bpm1a .or. j /= bpm2a) then 
 
              !
              !Compute Gamma**2 Beta (pg 17) +
@@ -691,15 +691,10 @@ contains
 
     do ik = 1, n_ring
        do jm = 1, data(1)%bpmproc
-
-          dat_a => data_struc%loc(jm)%a
-          dat_b => data_struc%loc(jm)%b
-          ring_a => ring(ik)%loc(jm)%a
-          ring_b => ring(ik)%loc(jm)%b
-          ring_twiss(1) = ring_a
-          ring_twiss(2) = ring_b
-          dat_twiss(1) = dat_a
-          dat_twiss(2) = dat_b
+          ring_twiss(1)%twiss => ring(ik)%loc(jm)%a
+          ring_twiss(2)%twiss => ring(ik)%loc(jm)%b
+          dat_twiss(1)%twiss => data_struc%loc(jm)%a
+          dat_twiss(2)%twiss => data_struc%loc(jm)%b
     
 !          dat_twiss(1) => data_struc%loc(jm)%a
 !          dat_twiss(2) => data_struc%loc(jm)%b
@@ -716,15 +711,15 @@ contains
              !This takes half of ring_twiss(r)%gam2_beta for each r 
              !(averages gam2_beta from the two files)
              !Final value is accurate to about 0.01
-             dat_twiss(r)%gam2_beta = &
-                  dat_twiss(r)%gam2_beta + &
-                  ring_twiss(r)%gam2_beta / n_ring
+             dat_twiss(r)%twiss%gam2_beta = &
+                  dat_twiss(r)%twiss%gam2_beta + &
+                  ring_twiss(r)%twiss%gam2_beta / n_ring
 
           end do
 
           !Copy dat_twiss back into data_struc
-          data_struc%loc(jm)%a = dat_twiss(1) 
-          data_struc%loc(jm)%b = dat_twiss(2)
+!          data_struc%loc(jm)%a = dat_twiss(1) 
+!          data_struc%loc(jm)%b = dat_twiss(2)
 
           !
           !Compute sqrt(beta) cbar
@@ -771,8 +766,10 @@ contains
 !               max( data_struc%loc(jm)%b%beta, &
 !               ring(ik)%loc(jm)%b%beta) 
 
-          data_struc%loc(jm)%a%beta = ring(ik)%loc(jm)%a%beta
-          data_struc%loc(jm)%b%beta = ring(ik)%loc(jm)%b%beta
+          data_struc%loc(jm)%a%beta = ring(ik)%loc(jm)%a%beta + &
+               data_struc%loc(jm)%a%beta
+          data_struc%loc(jm)%b%beta = ring(ik)%loc(jm)%b%beta + &
+               data_struc%loc(jm)%b%beta
 
           !
           !Compute Alphas
@@ -790,8 +787,10 @@ contains
 !               max( data_struc%loc(jm)%b%alpha, &
 !               ring(ik)%loc(jm)%b%alpha) 
 
-          data_struc%loc(jm)%a%alpha = ring(ik)%loc(jm)%a%alpha
-          data_struc%loc(jm)%b%alpha = ring(ik)%loc(jm)%b%alpha
+          data_struc%loc(jm)%a%alpha = ring(ik)%loc(jm)%a%alpha + &
+               data_struc%loc(jm)%a%alpha
+          data_struc%loc(jm)%b%alpha = ring(ik)%loc(jm)%b%alpha + &
+               data_struc%loc(jm)%b%alpha
 
           !
           !Compute Inv Gamma Cbar (2,1)
@@ -826,7 +825,8 @@ contains
 !               ring(ik)%loc(jm)%gamma) + &
 !               max( data_struc%loc(jm)%gamma, &
 !               ring(ik)%loc(jm)%gamma) 
-          data_struc%loc(jm)%gamma  = ring(ik)%loc(jm)%gamma
+          data_struc%loc(jm)%gamma  = ring(ik)%loc(jm)%gamma + &
+               data_struc%loc(jm)%gamma
           !
           !Cbar
           !
@@ -837,7 +837,8 @@ contains
 !               max( data_struc%loc(jm)%cbar, &
 !               ring(ik)%loc(jm)%cbar) 
 
-          data_struc%loc(jm)%cbar  = ring(ik)%loc(jm)%cbar
+          data_struc%loc(jm)%cbar  = ring(ik)%loc(jm)%cbar + &
+               data_struc%loc(jm)%cbar
 
        end do
     end do
