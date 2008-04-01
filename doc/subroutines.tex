@@ -2138,6 +2138,11 @@ See also: qp_draw_text.
      Subroutine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
+\index{Routine!qp_eliminate_xy_distortion}
+\item[qp_eliminate_xy_distortion] \Newline 
+This subroutine will increase the x or y margins so that the conversion
+between data units and page units is the same for the x and y axes.
+
 \index{Routine!qp_set_axis}
 \item[qp_set_axis (axis, a_min, a_max, ...)] \Newline
     Subroutine to set (but not plot) the min, max and divisions for the axes of the graph.
@@ -2332,6 +2337,10 @@ Subroutine to draw a symbol.
 \item[qp_init_com_struct ] \Newline 
 Subroutine to initialize the common block qp_state_struct.
 This subroutine is not for general use.
+
+\index{Routine!qp_join_units_string}
+\item[qp_join_units_string (u_type, region, corner, units)] \Newline 
+Subroutine to form a units from its components.
 
 \index{Routine!qp_justify}
 \item[qp_justify (justify)] \Newline 

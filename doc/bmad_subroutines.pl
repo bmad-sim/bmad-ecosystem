@@ -5,6 +5,15 @@ use File::Find;
 #---------------------------------------------------------
 # List of subroutines too low level to be mentioned
 
+$pl_hash{"lsc_y0_kick_calc"} = "csr_mod.f90";
+$pl_hash{"test_f_xy_disp"} = "test_f_side.f90";
+$pl_hash{"re_allocate2_real"} = "re_allocate_mod.f90";
+$pl_hash{"this_bookkeeper"} = "bookkeeper_mod.f90";
+$pl_hash{"re_allocate2_integer"} = "re_allocate_mod.f90";
+$pl_hash{"xy_disp_to_f2"} = "bmad_and_cpp.f90";
+$pl_hash{"re_allocate2_string"} = "re_allocate_mod.f90";
+$pl_hash{"set_string"} = "fortran_and_cpp.f90";
+$pl_hash{"re_allocate2_logical"} = "re_allocate_mod.f90";
 $pl_hash{"form_digested_bmad_file_name"} = "bmad_parser_mod.f90";
 $pl_hash{"reuse_taylor_elements"} = "bmad_parser_mod.f90";
 $pl_hash{"add_this_multipass"} = "bmad_parser_mod.f90";

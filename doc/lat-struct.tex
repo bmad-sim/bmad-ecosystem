@@ -81,7 +81,7 @@ by \bmad\ and is available for general program use.
 
 %----------------------------------------------------------------------------
 \section{Param_struct Component}
-\index{lat_param_struct}
+\index{Lat_param_struct}
 
 The \vn{%param} component within the \vn{lat_struct} is a
 \vn{lat_param_struct} structure whose definition is shown in
@@ -110,7 +110,7 @@ Figure~\ref{f:lat.param.struct}
 \label{f:lat.param.struct}
 \end{figure}
 
-\index{lat_param_struct!%total_length}
+\index{Lat_param_struct!\%total_length}
 \vn{%param%total_length} is the length of the lattice that a beam
 tracks through
 \begin{example}
@@ -119,7 +119,7 @@ tracks through
 Normally \vn{%ele(0)%s} = 0 so \vn{%param%total_length} =
 \vn{%ele(n_use)%s} but this is not always the case.
 
-\index{lat_param_struct!%n_part}
+\index{Lat_param_struct!\%n_part}
 \index{BeamBeam}
 \index{Lcavity}
 \vn{%param%n_part} is the number of particles in a bunch and is used
@@ -127,11 +127,11 @@ by \vn{BeamBeam} element to determine the strength of the beambeam
 interaction. \vn{%param%n_part} is also used by \vn{Lcavity} elements
 for wake field calculations.
 
-\index{lat_param_struct!%lost}
-\index{lat_param_struct!%ix_lost}
-\index{lat_param_struct!%end_lost_at}
-\index{lat_param_struct!%aperture_limit_on}
-\index{lat_param_struct!%plane_lost_at}
+\index{Lat_param_struct!\%lost}
+\index{Lat_param_struct!\%ix_lost}
+\index{Lat_param_struct!\%end_lost_at}
+\index{Lat_param_struct!\%aperture_limit_on}
+\index{Lat_param_struct!\%plane_lost_at}
 When tracking particles through a lattice the variable
 \vn{%param%aperture_limit_on} determines if apertures are checked.
 \vn{%param%lost} is used to signal if a particle is lost and
@@ -141,9 +141,9 @@ which end the particle was lost at and \vn{%plane_lost_at} records whether
 the lost particle was lost horizontally, vertically or longitudinally.
 See Chapter~\ref{c:tracking} for more details.
 
-\index{lat_param_struct!%t1_with_RF}
-\index{lat_param_struct!%t1_no_RF}
-\index{lat_param_struct!%stable}
+\index{Lat_param_struct!\%t1_with_RF}
+\index{Lat_param_struct!\%t1_no_RF}
+\index{Lat_param_struct!\%stable}
 \vn{%param%t1_with_RF} and \vn{%param%t1_no_RF} are the 1--turn transfer
 matrices from the start of the lattice to the end. \vn{%param%t1_with_RF}
 is the full transfer matrix with RF on. \vn{%param%t1_no_RF} is the
