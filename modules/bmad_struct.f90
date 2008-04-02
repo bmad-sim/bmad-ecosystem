@@ -501,12 +501,6 @@ character(16) :: plane_name(6) = (/ 'X', 'Y', 'Z', 'N', 'S', ' ' /)
 
 logical, parameter :: set$ = .true., unset$ = .false.
 
-! garbage$ is, for example, for subroutines that want to communicate to
-! the calling program that a variable has not been set properly.
-
-integer, parameter :: int_garbage$ = -9876
-real(rp), parameter :: real_garbage$ = -9876.5
-
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
 
 integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2

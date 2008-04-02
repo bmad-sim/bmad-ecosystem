@@ -1,6 +1,7 @@
-module read_cesr_data_mod
+module cesr_read_data_mod
 
 use cesr_utils
+use physical_constants
 
 type cesr_data_params_struct
   character(20) data_date, data_type
@@ -12,9 +13,20 @@ type cesr_data_params_struct
   real(rp) dvar
 end type
 
-type cesr_fake_orbit_struct
-  real(rp) x_orbit(0:120), y_orbit(0:120)
-  logical  good(0:120)
+type cesr_cbar_datum_struct
+  real(rp) val
+  logical good
+end type
+
+type cesr_xy_datum_struct
+  real(rp) x, y
+  logical good
+end type
+
+type cesr_data_struct
+  type (cesr_xy_datum_struct) orbit(0:120), phase(0:120), eta(0:120)
+  type (cesr_cbar_datum_struct) cbar11(0:120), cbar12(0:120)
+  type (cesr_cbar_datum_struct) cbar21(0:120), cbar22(0:120)
 end type
 
 contains
@@ -23,7 +35,7 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_data_parameters (data_file, data_params, err)
+! Subroutine read_cesr_data_parameters (data_file, param, err)
 !
 ! Routine to read in the header information from a data file.
 ! 
@@ -34,47 +46,38 @@ contains
 !   data_file -- Character(*): Name of the data file.
 !
 ! Output:
-!   data_params -- Cesr_data_params_struct: Parameters 
-!   err         -- Logical: Set true if there is a read error.
+!   param     -- Cesr_data_params_struct: Parameters 
+!   err       -- Logical: Set true if there is a read error.
 !-
 
-subroutine read_cesr_data_parameters (data_file, data_params, err)
+subroutine read_cesr_data_parameters (data_file, param, err)
 
 implicit none
 
-type (cesr_data_params_struct) data_params
+type (cesr_data_params_struct) param
 
-real(rp) dvar
-
-integer ios, iu, csr_set, species
-
-real(rp) horiz_beta_freq, vert_beta_freq
+integer ios, iu
 
 character(*) data_file
-character(20) data_date, data_type
-character(40) var_ele_name, var_attrib_name
-character(100) comment, line, lattice
 character(40) :: r_name = 'read_cesr_data_parameters'
 
-namelist / data_parameters / data_date, lattice, species, &
-          horiz_beta_freq, vert_beta_freq, csr_set, data_type, comment, &
-          var_ele_name, var_attrib_name, dvar
+namelist / data_parameters / param
 
 logical err
 
 ! Init
 
-data_params%var_attrib_name = ''
-data_params%var_ele_name    = ''
-data_params%data_type       = ''
-data_params%dvar            = 0
-data_params%csr_set         = 0
-data_params%lattice         = ''
-data_params%species         = 0
-data_params%horiz_beta_freq = 0
-data_params%vert_beta_freq  = 0
-data_params%data_date       = ''
-data_params%comment         = ''
+param%var_attrib_name = ''
+param%var_ele_name    = ''
+param%data_type       = ''
+param%dvar            = 0
+param%csr_set         = 0
+param%lattice         = ''
+param%species         = 0
+param%horiz_beta_freq = 0
+param%vert_beta_freq  = 0
+param%data_date       = ''
+param%comment         = ''
 
 ! Read parameters from the file
 
@@ -91,25 +94,11 @@ read (iu, nml = data_parameters, iostat = ios)
 if (ios /= 0) then
   call out_io (s_fatal$, r_name, &
           'ERROR READING "DATA_PARAMETERS" NAMELIST IN FILE: ' // data_file)
-  return
+  rewind (iu)
+  read (iu, nml = data_parameters)
 endif
 
 close (iu)
-
-! transfer them to the data_parameters structure
-
-data_params%var_attrib_name = var_attrib_name
-data_params%var_ele_name    = var_ele_name
-data_params%data_type       = data_type
-data_params%dvar            = dvar
-data_params%csr_set         = csr_set
-data_params%lattice         = lattice
-data_params%species         = species
-data_params%horiz_beta_freq = horiz_beta_freq
-data_params%vert_beta_freq  = vert_beta_freq
-data_params%data_date       = data_date
-data_params%comment         = comment
-
 err = .false.
 
 end subroutine
@@ -118,9 +107,9 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_fake_orbit_data (data_file, orbit, err)
+! Subroutine read_cesr_data (data_file, all_data, err)
 !
-! Routine to read in the orbit from a data file. 
+! Routine to read in the orbit, phase, cbar, or eta data from a file. 
 ! Note: This routine does not read in butns files.
 ! 
 ! Modules needed:
@@ -130,32 +119,40 @@ end subroutine
 !   data_file -- Character(*): Name of the data file.
 !
 ! Output:
-!   orbit     -- Cesr_fake_orbit_struct: Structure holding the orbit data.
+!   all_data  -- Cesr_data_struct: Structure holding the data.
 !   err       -- Logical: Set true if there is a read error.
 !-
 
-subroutine read_cesr_fake_orbit_data (data_file, orbit, err)
+subroutine read_cesr_data (data_file, all_data, err)
 
 implicit none
 
-type (cesr_fake_orbit_struct) orbit
+type (cesr_data_struct) d, all_data
 
 integer i, j, iu, ios
 
-real(rp) x_orbit, y_orbit
-
 character(*) data_file
-character(100) line
 character(20) dat_name
-character(40) :: r_name = 'tc_read_fake_orbit_data'
+character(40) :: r_name = 'read_cesr_data'
 
 logical err
 
+namelist / cesr_data / d
+
 !--------------------------------------------------------------------
 
-orbit%x_orbit = 0
-orbit%y_orbit = 0
-orbit%good = .false.
+d%orbit%x  = real_garbage$
+d%orbit%y  = real_garbage$
+d%phase%x  = real_garbage$
+d%phase%y  = real_garbage$
+d%eta%x    = real_garbage$
+d%eta%y    = real_garbage$
+d%cbar11%val = real_garbage$
+d%cbar12%val = real_garbage$
+d%cbar21%val = real_garbage$
+d%cbar22%val = real_garbage$
+
+err = .true.
 
 iu = lunget()
 open (iu, file = data_file, status = 'old', iostat = ios)
@@ -164,32 +161,48 @@ if (ios /= 0) then       ! abort on open error
   return
 endif
 
-call skip_header(iu, err)
-if (err) return
+read (iu, nml = cesr_data)
 
-do while (.true.)
-  read (iu, *, iostat = ios) i, x_orbit, y_orbit
-  if (ios < 0) exit   ! end-of-file
-  if (ios > 0) then   ! read error
-    backspace (iu)
-    read (iu, '(a)') line
-    call out_io (s_error$, r_name, 'ERROR READING ORBIT DATA IN: ' // data_file, &
-                                   'BAD LINE: ' // line)
-    err = .true.
-    close (iu)
-    return
-  endif
-  j = i
-  if (i == 100) j = 0
-  orbit%x_orbit(i) = x_orbit / 1000.0     ! convert to m
-  orbit%y_orbit(i) = y_orbit / 1000.0     ! convert to m
-  orbit%good(i) = .true.
-enddo
+call mark_good_data (d%orbit%y, d%orbit%good, d%orbit%x)
+call mark_good_data (d%phase%y, d%phase%good, d%phase%x)
+call mark_good_data (d%eta%y, d%eta%good, d%eta%x)
+call mark_good_data (d%cbar11%val, d%cbar11%good)
+call mark_good_data (d%cbar12%val, d%cbar12%good)
+call mark_good_data (d%cbar21%val, d%cbar21%good)
+call mark_good_data (d%cbar22%val, d%cbar22%good)
+
+d%orbit%x = d%orbit%x / 1000.0     ! convert to m
+d%orbit%y = d%orbit%y / 1000.0     ! convert to m
 
 close (iu)
-
 err = .false.
 
+all_data = d
+
+!--------------------------------------------------------
+contains
+
+subroutine mark_good_data (value, good, value2)
+
+real(rp) value(:)
+real(rp), optional :: value2(:)
+logical good(:)
+
+integer i
+
+!
+
+do i = lbound(value, 1), ubound(value, 1)
+  if (value(i) == real_garbage$) then
+    good(i) = .false.
+    value(i) = 0
+    if (present(value2)) value2(i) = 0
+  else
+    good(i) = .true.
+  endif
+end do
+
+end subroutine
 end subroutine
 
 end module
