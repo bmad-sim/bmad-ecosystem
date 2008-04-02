@@ -860,7 +860,7 @@ contains
 
     n_pairs = bpm_pairs(1)%number
 
-    open (unit = 27, file = "./data/mia.out", status = "new", &
+    open (unit = 27, file = "./data/mia.out", &
          action = "write", position = "rewind",&
          iostat = openstatus)
     if (openstatus > 0) print *, "*** Cannot open output file ***",&

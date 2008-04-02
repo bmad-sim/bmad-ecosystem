@@ -17,35 +17,51 @@ contains
     Integer :: plot               !To use plot_it or plot_it2
     Integer :: iset               !File number
     logical :: printit = .false.  !To print or not to print
+    logical :: plot_more          !To plot or not to plot
 
-    !Following calls open the digital displays
-    call qp_open_page ("X", id, 600.0_rp, 470.0_rp, "POINTS")
-    call qp_draw_text (" Orbit MIA ", 0.5_rp, 1.0_rp, "%PAGE", "CT")
-    call qp_set_page_border (0.02_rp, 0.02_rp, 0.035_rp, 0.035_rp, "%PAGE")
-    call qp_set_margin (0.07_rp, 0.01_rp, 0.01_rp, 0.05_rp, "%PAGE")
+    call logic_get( 'Y', 'N', 'Plot data? (Y/N) ', plot_more)
 
-    if (plot == 2) then
-       call plot_it2 (data, iset)
-    else
-     call plot_it(data(iset), iset)
-     !Make this default option to avoid oddness
-    endif                         !*Should check value of plot.
+    !Only opens a new page on the first call of the subroutine.
+    if (plot_more .and. iset == 1) then
+       !Following calls open the digital displays
+       call qp_open_page ("X", id, 600.0_rp, 470.0_rp, "POINTS")
+       call qp_set_page_border (0.02_rp, 0.02_rp, 0.035_rp, 0.035_rp, "%PAGE")
+       call qp_set_margin (0.07_rp, 0.01_rp, 0.01_rp, 0.05_rp, "%PAGE")
+    endif
 
-    write (*, "(a)") " Hit any key to continue: "
-    accept "(a)", ans
-    call qp_close_page
-
-    call logic_get('P','C',' (P)rint a plot or (C)ontinue',printit)
-    if (printit) then
-       call qp_open_page ("PS-L")    !Generates a PS file
+    do while(plot_more)
+       call qp_draw_text (" Orbit MIA ", 0.5_rp, 1.0_rp, "%PAGE", "CT") 
        if (plot == 2) then
-          call plot_it2(data, iset)
+          call plot_it2 (data, iset)
        else
+          !Calls plot_it by default
           call plot_it(data(iset), iset)
-          !Generates the plot in ps file
+       endif             
+
+       !    write (*, "(a)") " Hit any key to continue: "
+       !    accept "(a)", ans
+       !    call qp_close_page
+
+       call logic_get('Y', 'N', 'Plot more data? (Y/N) ', plot_more) 
+
+       if (plot_more) then
+          call logic_get('P','C',' (P)rint a plot or (C)ontinue',printit)
+          if (printit) then
+             !       call qp_close_page 
+             call qp_open_page ("PS-L")    !Generates a PS file
+             if (plot == 2) then
+                call plot_it2(data, iset)
+             else
+                call plot_it(data(iset), iset)
+                !Generates the plot in ps file
+             endif
+             call qp_close_page    !Closes and names PS file as quick_plot.ps
+          end if
+ !      else if (plot == 2) then
+ !         call qp_close_page
        endif
-       call qp_close_page            !closes and names PS file as quick_plot.ps
-    end if
+       call qp_clear_page
+    end do
 
   end subroutine plots
 
@@ -119,7 +135,6 @@ contains
           goto 98
        else if (graph ==1 .or. graph > 3) then
           !Column is needed for choices 1, 4, and 5
-          !istat = in4get1 ('Which column should be plotted?',icolumn)
           write (*, "(a)") " Which column should be plotted? "        
           accept "(i)", icolumn
        endif

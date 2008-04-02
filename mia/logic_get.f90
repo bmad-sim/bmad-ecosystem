@@ -20,10 +20,11 @@ subroutine logic_get( true_ans, false_ans, question, ans )
 
   if (temp(1:1) == true_ans_a) then
     ans = .true.
-  else if (temp(1:1) == false_ans_a) then
-    ans = .false.
+!  else if (temp(1:1) == false_ans_a) then
+!    ans = .false.
   else
-    write (*, "(a)") "Unknown answer!!!  Assuming false for now!"
+! Accept anything else as false
+!    write (*, "(a)") "Unknown answer!!!  Assuming false for now!"
     ans = .false.
   end if
 
