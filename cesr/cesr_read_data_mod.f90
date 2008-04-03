@@ -50,7 +50,7 @@ if (err) return
 err = .true.
 
 iu = lunget()
-open (iu, file = file_name, type = 'old', readonly, iostat = ios)
+open (iu, file = file_name, status = 'old', action = 'read', iostat = ios)
 if (ios /= 0) then       ! abort on open error
   call out_io (s_error$, r_name, 'ERROR OPENING: ' // file_name)
   close (iu)
