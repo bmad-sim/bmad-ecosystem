@@ -1,164 +1,196 @@
 module cesr_basic_mod
 
-  use bmad_struct
-  use bmad_interface
+use bmad_struct
+use bmad_interface
 
 !-------------------------------------------------------------------------
 ! CESR logical names
 
-  integer, parameter :: q49aw$ = 101, q47aw$ = 102
-  integer, parameter :: q47ae$ = 103, q49ae$ = 104
-  integer, parameter :: q43aw$ = 105, q43ae$ = 106
-  integer, parameter :: q08aw$ = 107
+integer, parameter :: q49aw$ = 101, q47aw$ = 102
+integer, parameter :: q47ae$ = 103, q49ae$ = 104
+integer, parameter :: q43aw$ = 105, q43ae$ = 106
+integer, parameter :: q08aw$ = 107
 
-  integer, parameter :: h_sep_08w$ = 1, h_sep_45w$ = 2
-  integer, parameter :: h_sep_45e$ = 3, h_sep_08e$ = 4
-  integer, parameter :: v_sep_48w$ = 5, v_sep_48e$ = 6
+integer, parameter :: h_sep_08w$ = 1, h_sep_45w$ = 2
+integer, parameter :: h_sep_45e$ = 3, h_sep_08e$ = 4
+integer, parameter :: v_sep_48w$ = 5, v_sep_48e$ = 6
 
-  integer, parameter :: wig_w$ = 1, wig_e$ = 2
+integer, parameter :: wig_w$ = 1, wig_e$ = 2
 
-  integer, parameter :: rf_w1$ = 1, rf_w2$ = 2, rf_e1$ = 3, rf_e2$ = 4
+integer, parameter :: rf_w1$ = 1, rf_w2$ = 2, rf_e1$ = 3, rf_e2$ = 4
 
-  integer, parameter :: scir_tilt_w$ = 1, scir_tilt_sk_w$ = 2
-  integer, parameter :: scir_tilt_e$ = 3, scir_tilt_sk_e$ = 4
+integer, parameter :: scir_tilt_w$ = 1, scir_tilt_sk_w$ = 2
+integer, parameter :: scir_tilt_e$ = 3, scir_tilt_sk_e$ = 4
 
 !---------------------------------------------------------------
 ! the cesr_struct is used by bmad_to_cesr.
 ! the element ordering here is similar to what is used by cesrv
 
-  type b_struct
-    real(rp) beta_mid             ! beta at the midpoint
-    real(rp) beta_ave             ! beta averaged over the element
-    real(rp) pos_mid              ! position at midpoint
-    real(rp) pos_inj              ! position in injection lattice
-  end type
+type b_struct
+  real(rp) beta_mid             ! beta at the midpoint
+  real(rp) beta_ave             ! beta averaged over the element
+  real(rp) pos_mid              ! position at midpoint
+  real(rp) pos_inj              ! position in injection lattice
+end type
 
-  type cesr_element_struct 
-    character(16) name              ! bmad name
-    type (b_struct)  x, y          ! beta's and positions
-    character(12) db_node_name
-    integer ix_db                  ! element index for data base node
-    integer ix_lat                 ! index to element in lat structure
-  end type
+type cesr_element_struct 
+  character(16) name              ! bmad name
+  type (b_struct)  x, y          ! beta's and positions
+  character(12) db_node_name
+  integer ix_db                  ! element index for data base node
+  integer ix_lat                 ! index to element in lat structure
+end type
 
-  integer, parameter :: n_quad_maxx = 120
-  integer, parameter :: n_det_maxx = 120
-  integer, parameter :: n_sex_maxx = 120
-  integer, parameter :: n_steer_maxx = 120
-  integer, parameter :: n_oct_maxx = 4
-  integer, parameter :: n_hbnd_maxx = 6
-  integer, parameter :: n_rf_maxx = 4
-  integer, parameter :: n_skew_sex_maxx = 20
-  integer, parameter :: n_wig_maxx = 2
-  integer, parameter :: n_sep_maxx = 6
-  integer, parameter :: n_qadd_maxx = 7
-  integer, parameter :: n_scir_cam_maxx = 10
-  integer, parameter :: n_scir_quad_maxx = 4
-  integer, parameter :: n_scir_tilt_maxx = 8
-  integer, parameter :: n_nir_shuntcur_maxx = 4
-  integer, parameter :: n_sc_sol_maxx = 2
+integer, parameter :: n_quad_maxx = 120
+integer, parameter :: n_det_maxx = 120
+integer, parameter :: n_sex_maxx = 120
+integer, parameter :: n_steer_maxx = 120
+integer, parameter :: n_oct_maxx = 4
+integer, parameter :: n_hbnd_maxx = 6
+integer, parameter :: n_rf_maxx = 4
+integer, parameter :: n_skew_sex_maxx = 20
+integer, parameter :: n_wig_maxx = 2
+integer, parameter :: n_sep_maxx = 6
+integer, parameter :: n_qadd_maxx = 7
+integer, parameter :: n_scir_cam_maxx = 10
+integer, parameter :: n_scir_quad_maxx = 4
+integer, parameter :: n_scir_tilt_maxx = 8
+integer, parameter :: n_nir_shuntcur_maxx = 4
+integer, parameter :: n_sc_sol_maxx = 2
 
 ! %ix_cesr is a pointer to cesr_struct for given type
 
-  type cesr_struct
-    type (cesr_element_struct) quad(0:n_quad_maxx)
-    type (cesr_element_struct) skew_quad(0:n_quad_maxx)
-    type (cesr_element_struct) sex(0:n_sex_maxx)
-    type (cesr_element_struct) det(0:n_det_maxx)
-    type (cesr_element_struct) skew_sex(n_skew_sex_maxx)
-    type (cesr_element_struct) oct(n_oct_maxx)
-    type (cesr_element_struct) rf(n_rf_maxx)
-    type (cesr_element_struct) wig(n_wig_maxx)
-    type (cesr_element_struct) sep(n_sep_maxx)
-    type (cesr_element_struct) h_steer(0:n_steer_maxx)
-    type (cesr_element_struct) v_steer(0:n_steer_maxx)
-    type (cesr_element_struct) solenoid       ! solenoid struct
-    type (cesr_element_struct) scir_cam_rho(n_scir_cam_maxx)
-    type (cesr_element_struct) scir_tilt(n_scir_tilt_maxx)
-    type (cesr_element_struct) nir_shuntcur(n_nir_shuntcur_maxx)
-    type (cesr_element_struct) scsol_cur(5*n_sc_sol_maxx)
+type cesr_struct
+  type (cesr_element_struct) quad(0:n_quad_maxx)
+  type (cesr_element_struct) skew_quad(0:n_quad_maxx)
+  type (cesr_element_struct) sex(0:n_sex_maxx)
+  type (cesr_element_struct) det(0:n_det_maxx)
+  type (cesr_element_struct) skew_sex(n_skew_sex_maxx)
+  type (cesr_element_struct) oct(n_oct_maxx)
+  type (cesr_element_struct) rf(n_rf_maxx)
+  type (cesr_element_struct) wig(n_wig_maxx)
+  type (cesr_element_struct) sep(n_sep_maxx)
+  type (cesr_element_struct) h_steer(0:n_steer_maxx)
+  type (cesr_element_struct) v_steer(0:n_steer_maxx)
+  type (cesr_element_struct) solenoid       ! solenoid struct
+  type (cesr_element_struct) scir_cam_rho(n_scir_cam_maxx)
+  type (cesr_element_struct) scir_tilt(n_scir_tilt_maxx)
+  type (cesr_element_struct) nir_shuntcur(n_nir_shuntcur_maxx)
+  type (cesr_element_struct) scsol_cur(5*n_sc_sol_maxx)
 
-    integer ix_ip_l3                     ! pointer to IP_L3
-    integer, pointer :: ix_cesr(:) => null() 
-  end type
+  integer ix_ip_l3                     ! pointer to IP_L3
+  integer, pointer :: ix_cesr(:) => null() 
+end type
 
 !-----------------------------------------------------------------------------
 ! For butns.nnnnn files
 
-  type detector_struct
-    real(rp) x_orb, y_orb
-    integer amp(4)
-    integer type
-    logical ok
-  end type
+type detector_struct
+  real(rp) x_orb, y_orb
+  integer amp(4)
+  integer type
+  logical ok
+end type
 
-  type butns_struct
-    character(40) lattice
-    character(20) date
-    character(72) comment(5)
-    type (detector_struct) det(0:120)
-    integer save_set
-    integer file_num
-    integer turn    ! turn number for injection data
-  end type
+type butns_struct
+  character(40) lattice
+  character(20) date
+  character(72) comment(5)
+  type (detector_struct) det(0:120)
+  integer save_set
+  integer file_num
+  integer turn    ! turn number for injection data
+end type
 
 !-----------------------------------------------------------------------------
 ! For phase 
 
-  type a_cesr_freq_struct 
-    real(rp) tune
-    real(rp) shake
-    logical reflection
-  end type
+type a_cesr_freq_struct 
+  real(rp) tune
+  real(rp) shake
+  logical reflection
+end type
 
-  type cesr_freq_struct 
-    type (a_cesr_freq_struct) x, y
-    real(rp) rev
-  end type
+type cesr_freq_struct 
+  type (a_cesr_freq_struct) x, y
+  real(rp) rev
+end type
 
-  type cesr_phase_params_struct 
-    integer species                            
-    real(rp) current
-    character(60) comment
-    integer unit, single_unit
-    character(60) file_name, raw_file_name
-    character(40) lattice
-    integer save_set
-    logical :: debug
-  endtype        
+type cesr_phase_params_struct 
+  integer species                            
+  real(rp) current
+  character(60) comment
+  integer unit, single_unit
+  character(60) file_name, raw_file_name
+  character(40) lattice
+  integer save_set
+  logical :: debug
+end type        
 
-  type cesr_but_struct 
-    real(rp) phase
-    real(rp) amp
-    logical ok
-  end type
+type cesr_but_struct 
+  real(rp) phase
+  real(rp) amp
+  logical ok
+end type
 
-  type cesr_det_xy_struct 
-    real(rp) amp
-    real(rp) phase
-  end type
+type cesr_det_xy_struct 
+  real(rp) amp
+  real(rp) phase
+end type
 
-  type cesr_det_plane_struct 
-    type (cesr_but_struct) but(4)
-    type (cesr_det_xy_struct) x, y
-    real(rp) phase_meas
-    real(rp) rms_phase_meas
-    real(rp) phase_design
-    real(rp) beta_design
-    real(rp) cbar11                
-    real(rp) cbar12
-    real(rp) cbar22
-    integer n_buts
-    logical ok     
-    logical shake
-    integer system_id   ! 0 = old_system, 1 = new_system
-  end type
+type cesr_det_plane_struct 
+  type (cesr_but_struct) but(4)
+  type (cesr_det_xy_struct) x, y
+  real(rp) phase_meas
+  real(rp) rms_phase_meas
+  real(rp) phase_design
+  real(rp) beta_design
+  real(rp) cbar11                
+  real(rp) cbar12
+  real(rp) cbar22
+  integer n_buts
+  logical ok     
+  logical shake
+  integer system_id   ! 0 = old_system, 1 = new_system
+end type
 
-  type cesr_det_dc_position_struct
-    real(rp) x, y
-    real(rp) signal(4)
-  end type
+type cesr_det_dc_position_struct
+  real(rp) x, y
+  real(rp) signal(4)
+end type
 
+
+type cesr_data_params_struct
+  character(20) data_date, data_type
+  character(40) var_ele_name, var_attrib_name
+  character(100) comment, lattice
+  integer csr_set
+  integer species
+  real(rp) horiz_beta_freq, vert_beta_freq
+  real(rp) dvar
+end type
+
+type cesr_cbar_datum_struct
+  real(rp) val
+  logical good
+end type
+
+type cesr_xy_datum_struct
+  real(rp) x, y
+  logical good
+end type
+
+type cesr_data_struct
+  type (cesr_xy_datum_struct) orbit(0:120), phase(0:120), eta(0:120)
+  type (cesr_cbar_datum_struct) cbar11(0:120), cbar12(0:120)
+  type (cesr_cbar_datum_struct) cbar21(0:120), cbar22(0:120)
+end type
+
+type phase_cbar_data_struct
+  real(rp) x_phase, x_cbar22, x_cbar12
+  real(rp) y_phase, y_cbar12, y_cbar11
+  logical ok_x, ok_y
+end type
 
 contains
 

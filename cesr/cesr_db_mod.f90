@@ -3,6 +3,8 @@ module cesr_db_mod
   use cesr_basic_mod
   use cesr_quad_mod
 
+  private db_init_it, get_ele_theory, non_db_set
+
 !---------------------------------------------------------------------------
 ! DB_STRUCT:                       
 ! This structrue holds info on the correspondence between CESR data base
@@ -162,59 +164,59 @@ subroutine bmad_to_db (lat, db, calib_date, use_mpm)
 
   call bmad_to_cesr (lat, cesr)
 
-  call db_init_it (db%csr_quad_cur, 0, 'INIT_IT', 0, db%node)  ! init call
+  call db_init_it (db%csr_quad_cur, 0, 'INIT_IT', 0, db%node, use_mpm = use_mpm)  
 
   call db_init_it (db%csr_quad_cur, lbound(db%csr_quad_cur, 1), &
-          'CSR QUAD CUR',    k1$,    db%node, cesr%quad(1:98), 1)
+          'CSR QUAD CUR',    k1$,    db%node, cesr%quad(1:98), 1, use_mpm)
 
   call db_init_it (db%nir_shuntcur, lbound(db%nir_shuntcur, 1), &
-          'NIR SHUNTCUR',    k1$,    db%node, cesr%nir_shuntcur, 1)
+          'NIR SHUNTCUR',    k1$,    db%node, cesr%nir_shuntcur, 1, use_mpm)
 
   call db_init_it (db%csr_qadd_cur, lbound(db%csr_qadd_cur, 1), &
-          'CSR QADD CUR',    k1$,    db%node, cesr%quad(101:nq100), 101)
+          'CSR QADD CUR',    k1$,    db%node, cesr%quad(101:nq100), 101, use_mpm)
 
   call db_init_it (db%scir_quadcur, lbound(db%scir_quadcur, 1), &
-          'SCIR QUADCUR',    k1$,    db%node, cesr%quad(111:114), 111)
+          'SCIR QUADCUR',    k1$,    db%node, cesr%quad(111:114), 111, use_mpm)
 
   call db_init_it (db%csr_horz_cur, lbound(db%csr_horz_cur, 1), &
-          'CSR HORZ CUR', hkick$, db%node, cesr%h_steer(1:98), 1)
+          'CSR HORZ CUR', hkick$, db%node, cesr%h_steer(1:98), 1, use_mpm)
 
   call db_init_it (db%csr_hbnd_cur, lbound(db%csr_hbnd_cur, 1), &
-          'CSR HBND CUR', hkick$, db%node, cesr%h_steer(101:106), 101)
+          'CSR HBND CUR', hkick$, db%node, cesr%h_steer(101:106), 101, use_mpm)
 
   call db_init_it (db%csr_vert_cur, lbound(db%csr_vert_cur, 1), &
-          'CSR VERT CUR', vkick$, db%node, cesr%v_steer(1:98), 1)
+          'CSR VERT CUR', vkick$, db%node, cesr%v_steer(1:98), 1, use_mpm)
 
   call db_init_it (db%csr_hsp_volt, lbound(db%csr_hsp_volt, 1), &
-          'CSR HSP VOLT', hkick$, db%node)
+          'CSR HSP VOLT', hkick$, db%node, use_mpm = use_mpm)
 
   call db_init_it (db%csr_vsp_volt, lbound(db%csr_vsp_volt, 1), &
-          'CSR VSP VOLT', vkick$, db%node)
+          'CSR VSP VOLT', vkick$, db%node, use_mpm = use_mpm)
 
   call db_init_it (db%csr_sext_cur, lbound(db%csr_sext_cur, 1), &
-          'CSR SEXT CUR',    k2$,    db%node, cesr%sex(1:98), 1)
+          'CSR SEXT CUR',    k2$,    db%node, cesr%sex(1:98), 1, use_mpm)
 
   call db_init_it (db%csr_octu_cur, lbound(db%csr_octu_cur, 1), &
-          'CSR OCTU CUR',    k3$,    db%node, cesr%oct, 1)
+          'CSR OCTU CUR',    k3$,    db%node, cesr%oct, 1, use_mpm)
 
   call db_init_it (db%csr_sqewquad, lbound(db%csr_sqewquad, 1), &
-          'CSR SQEWQUAD',    k1$,    db%node, cesr%skew_quad(1:98), 1)
+          'CSR SQEWQUAD',    k1$,    db%node, cesr%skew_quad(1:98), 1, use_mpm)
                            
   call db_init_it (db%csr_scsolcur, lbound(db%csr_scsolcur, 1), &
-          'SCSOL CONTRL',    ks$,    db%node, cesr%scsol_cur(1:10), 1)
+          'SCSOL CONTRL',    ks$,    db%node, cesr%scsol_cur(1:10), 1, use_mpm)
                            
   call db_init_it (db%scir_skqucur, lbound(db%scir_skqucur, 1), &
-          'SCIR SKQUCUR',    k1$,    db%node, cesr%skew_quad(111:114), 111)
+          'SCIR SKQUCUR',    k1$,    db%node, cesr%skew_quad(111:114), 111, use_mpm)
                            
   call db_init_it (db%csr_sqewsext, lbound(db%csr_sqewsext, 1), &
           'CSR SQEWSEXT',    k2$,    db%node, &
-    cesr%skew_sex(1:n_csr_sqewsext_maxx), 1)
+           cesr%skew_sex(1:n_csr_sqewsext_maxx), 1, use_mpm)
 
   call db_init_it (db%scir_vertcur, lbound(db%scir_vertcur, 1), &
-          'SCIR VERTCUR', vkick$, db%node, cesr%v_steer(111:114), 111)
+          'SCIR VERTCUR', vkick$, db%node, cesr%v_steer(111:114), 111, use_mpm)
 
   call db_init_it (db%ir_sksxcur, lbound(db%ir_sksxcur, 1), &
-          'IR SKSXCUR  ',   k2$,    db%node, cesr%skew_sex(11:11), 11)
+          'IR SKSXCUR  ',   k2$,    db%node, cesr%skew_sex(11:11), 11, use_mpm)
 
 !-----------------------------------------------------------------------------
 ! find the separators
@@ -349,12 +351,14 @@ subroutine bmad_to_db (lat, db, calib_date, use_mpm)
 
   deallocate( cesr%ix_cesr )
 
+end subroutine
 
 !---------------------------------------------------------------------
-contains
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
                         
 subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
-                                                      cesr_ele, ix0_cesrv)
+                                   cesr_ele, ix0_cesrv, use_mpm)
 
   implicit none
 
@@ -368,6 +372,8 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
 
   integer, optional :: ix0_cesrv
   integer, save :: i_array
+
+  logical, optional :: use_mpm
 
 ! init array index at the start
 
@@ -437,7 +443,8 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
 end subroutine db_init_it
                          
 !---------------------------------------------------------------------
-! contains
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
                             
 subroutine get_ele_theory (lat, db_ele)
                                                                
@@ -461,7 +468,8 @@ subroutine get_ele_theory (lat, db_ele)
 end subroutine get_ele_theory
 
 !---------------------------------------------------------------------
-! contains
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
 
 subroutine non_db_set (db_ele, cesr_ele, ix_attrib, ix0_cesrv)
 
@@ -487,8 +495,6 @@ subroutine non_db_set (db_ele, cesr_ele, ix_attrib, ix0_cesrv)
   forall (i = 1:size(db_ele, 1)) db_ele(i)%ix_cesrv = i + ix0_cesrv - 1
 
 end subroutine non_db_set
-
-end subroutine
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

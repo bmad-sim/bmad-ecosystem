@@ -1,33 +1,7 @@
 module cesr_read_data_mod
 
-use cesr_utils
-use physical_constants
-
-type cesr_data_params_struct
-  character(20) data_date, data_type
-  character(40) var_ele_name, var_attrib_name
-  character(100) comment, lattice
-  integer csr_set
-  integer species
-  real(rp) horiz_beta_freq, vert_beta_freq
-  real(rp) dvar
-end type
-
-type cesr_cbar_datum_struct
-  real(rp) val
-  logical good
-end type
-
-type cesr_xy_datum_struct
-  real(rp) x, y
-  logical good
-end type
-
-type cesr_data_struct
-  type (cesr_xy_datum_struct) orbit(0:120), phase(0:120), eta(0:120)
-  type (cesr_cbar_datum_struct) cbar11(0:120), cbar12(0:120)
-  type (cesr_cbar_datum_struct) cbar21(0:120), cbar22(0:120)
-end type
+use cesr_basic_mod
+use cesr_db_mod
 
 contains
 
@@ -35,70 +9,73 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_data_parameters (data_file, param, err)
-!
-! Routine to read in the header information from a data file.
 ! 
-! Modules needed:
-!   use read_cesr_data_mod
 !
-! Input:
-!   data_file -- Character(*): Name of the data file.
 !
-! Output:
-!   param     -- Cesr_data_params_struct: Parameters 
-!   err       -- Logical: Set true if there is a read error.
 !-
 
-subroutine read_cesr_data_parameters (data_file, param, err)
+subroutine read_cesr_phase_data (phase_number, &
+                      phase_cbar, raw_orbit, db, param, err)
 
 implicit none
 
+type (phase_cbar_data_struct) phase_cbar, pc_(0:120)
+type (detector_struct) orbit_(0:120), raw_orbit
+type (db_struct) db
 type (cesr_data_params_struct) param
 
-integer ios, iu
+integer phase_number
+integer ix, ios, iu
 
-character(*) data_file
-character(40) :: r_name = 'read_cesr_data_parameters'
-
-namelist / data_parameters / param
+character(100) file_name
+character(40) :: r_name = 'read_cesr_phase_data'
 
 logical err
 
-! Init
+namelist / phase_cbar_data / pc_
+namelist / raworbit / orbit_
 
-param%var_attrib_name = ''
-param%var_ele_name    = ''
-param%data_type       = ''
-param%dvar            = 0
-param%csr_set         = 0
-param%lattice         = ''
-param%species         = 0
-param%horiz_beta_freq = 0
-param%vert_beta_freq  = 0
-param%data_date       = ''
-param%comment         = ''
+!
 
-! Read parameters from the file
+! read a data file...
+! first construct the file name
+
+call calc_file_number ('CESR_MNT:[phase]phase.number', phase_number, ix, err)
+if (err) return
+call form_file_name_with_number ('PHASE', ix, file_name, err)
+if (err) return
+
+! open the file and read the contents
 
 err = .true.
 
 iu = lunget()
-open (iu, file = data_file, status = 'old', iostat = ios)
+open (iu, file = file_name, type = 'old', readonly, iostat = ios)
 if (ios /= 0) then       ! abort on open error
-  call out_io (s_error$, r_name, 'ERROR OPENING: ' // data_file)
+  call out_io (s_error$, r_name, 'ERROR OPENING: ' // file_name)
+  close (iu)
   return
 endif
 
-read (iu, nml = data_parameters, iostat = ios)
+! call read_header (iu, data_or_ref, u%phase, u, graph, logic)
+rewind (iu)
+
+read (iu, nml = raworbit, iostat = ios)
 if (ios /= 0) then
-  call out_io (s_fatal$, r_name, &
-          'ERROR READING "DATA_PARAMETERS" NAMELIST IN FILE: ' // data_file)
-  rewind (iu)
-  read (iu, nml = data_parameters)
+  call out_io (s_error$, r_name, 'ERROR READING RAWORBIT')
+  return
 endif
 
-close (iu)
+pc_(:)%ok_x = .false.
+pc_(:)%ok_y = .false.
+read (iu, nml = phase_cbar_data, iostat = ios)
+
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'ERROR READING PHASE_CBAR_DATA')
+  return
+endif
+
+
 err = .false.
 
 end subroutine
@@ -107,10 +84,9 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_data (data_file, all_data, err)
+! Subroutine read_cesr_cooked_data (data_file, all_data, param, err)
 !
-! Routine to read in the orbit, phase, cbar, or eta data from a file. 
-! Note: This routine does not read in butns files.
+! Routine to read in the orbit, phase, cbar, or eta cooked data from a file. 
 ! 
 ! Modules needed:
 !   use read_cesr_data_mod
@@ -120,14 +96,16 @@ end subroutine
 !
 ! Output:
 !   all_data  -- Cesr_data_struct: Structure holding the data.
+!   param     -- Cesr_data_params_struct: Parameters 
 !   err       -- Logical: Set true if there is a read error.
 !-
 
-subroutine read_cesr_data (data_file, all_data, err)
+subroutine read_cesr_cooked_data (data_file, all_data, param, err)
 
 implicit none
 
 type (cesr_data_struct) d, all_data
+type (cesr_data_params_struct) param
 
 integer i, j, iu, ios
 
@@ -140,6 +118,9 @@ logical err
 namelist / cesr_data / d
 
 !--------------------------------------------------------------------
+
+call read_cesr_cooked_data_parameters (data_file, param, err)
+if (err) return
 
 d%orbit%x  = real_garbage$
 d%orbit%y  = real_garbage$
@@ -203,6 +184,78 @@ do i = lbound(value, 1), ubound(value, 1)
 end do
 
 end subroutine
+end subroutine
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine read_cesr_cooked_data_parameters (data_file, param, err)
+!
+! Routine to read in the header information from a data file.
+! 
+! Modules needed:
+!   use read_cesr_data_mod
+!
+! Input:
+!   data_file -- Character(*): Name of the data file.
+!
+! Output:
+!   param     -- Cesr_data_params_struct: Parameters 
+!   err       -- Logical: Set true if there is a read error.
+!-
+
+subroutine read_cesr_cooked_data_parameters (data_file, param, err)
+
+implicit none
+
+type (cesr_data_params_struct) param
+
+integer ios, iu
+
+character(*) data_file
+character(40) :: r_name = 'read_cesr_data_parameters'
+
+namelist / data_parameters / param
+
+logical err
+
+! Init
+
+param%var_attrib_name = ''
+param%var_ele_name    = ''
+param%data_type       = ''
+param%dvar            = 0
+param%csr_set         = 0
+param%lattice         = ''
+param%species         = 0
+param%horiz_beta_freq = 0
+param%vert_beta_freq  = 0
+param%data_date       = ''
+param%comment         = ''
+
+! Read parameters from the file
+
+err = .true.
+
+iu = lunget()
+open (iu, file = data_file, status = 'old', iostat = ios)
+if (ios /= 0) then       ! abort on open error
+  call out_io (s_error$, r_name, 'ERROR OPENING: ' // data_file)
+  return
+endif
+
+read (iu, nml = data_parameters, iostat = ios)
+if (ios /= 0) then
+  call out_io (s_fatal$, r_name, &
+          'ERROR READING "DATA_PARAMETERS" NAMELIST IN FILE: ' // data_file)
+  rewind (iu)
+  read (iu, nml = data_parameters)
+endif
+
+close (iu)
+err = .false.
+
 end subroutine
 
 end module
