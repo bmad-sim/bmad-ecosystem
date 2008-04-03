@@ -15,7 +15,7 @@ use tao_struct
 use tao_interface
 use tao_utils
 use quick_plot
-use single_char_input_mod
+use input_mod
 use tao_scale_mod
 use tao_x_scale_mod
 use tao_plot_window_mod

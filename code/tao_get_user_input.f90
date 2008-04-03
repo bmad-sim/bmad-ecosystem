@@ -14,7 +14,7 @@
 subroutine tao_get_user_input (cmd_line, prompt_str)
 
 use tao_mod
-use single_char_input_mod
+use input_mod
 
 implicit none
 
@@ -128,16 +128,9 @@ endif
 
 if (.not. tao_com%multi_commands_here) then
   cmd_line = ' '
-  tag = trim(prompt_string) // '> ' // achar(0)
+  tag = trim(prompt_string) // '> '
   tao_com%cmd_from_cmd_file = .false.
-!***************
-#ifndef CESR_WINCVF
-  call read_line (trim(tag), cmd_line)
-#else
-  write(*,'(a)',advance = 'NO') trim(tag)
-  read (*, '(a)', iostat = ios) cmd_line
-#endif
-
+  call read_a_line (tag, cmd_line)
 endif
 
 call alias_translate (cmd_line, err)

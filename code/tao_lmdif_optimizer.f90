@@ -19,7 +19,7 @@ use tao_mod
 use tao_dmerit_mod
 use tao_top10_mod
 use tao_var_mod
-use single_char_input_mod
+use input_mod
 use lmdif_mod
 
 implicit none
