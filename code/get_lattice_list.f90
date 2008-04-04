@@ -40,7 +40,7 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
   integer stat
 
   character(40) match_file
-  character(200) lat_file
+  character(200) lat_file, l_file
 
 !
 
@@ -48,7 +48,7 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
   include '($rmsdef)'
 
   call fullfilename (directory, directory2)
-  match_file = trim(directory2) // 'BMAD_*.*'
+  match_file = trim(directory2) // '*.LAT'
 
 ! get twiss file names for matching files 
 
@@ -63,12 +63,18 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
 
     if (stat) then
       if (i > size(lat_list)) then
-        print *, 'ERROR IN GET_LATTICE_LIST_VMS: NUMBER OF LATTICES EXCEEDS ARRAY SIZE!'
+        print *, 'ERROR IN GET_LATTICE_LIST: NUMBER OF LATTICES EXCEEDS ARRAY SIZE!'
         call err_exit
       endif
       ix = index(lat_file, ']') + 1       ! strip [...] prefix
       ixx = index(lat_file, ';') - 1      ! strip version number suffix
-      lat_list(i) = lat_file(ix:ixx)
+      l_file = lat_file(ix:ixx)
+      ix = index(l_file, '.LAT')
+      if (ix /= 0) l_file = l_file(1:ix-1)
+      ix = index(l_file, '.lat')
+      if (ix /= 0) l_file = l_file(1:ix-1)
+      if (l_file(1:5) == 'bmad_' .or. l_file(1:5) = 'BMAD_') l_file = l_file(6:)
+      lat_list(i) = l_file
     else if (stat == rms$_nmf .or. stat == rms$_fnf) then
       num_lats = i - 1
       exit
@@ -78,16 +84,6 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
       call err_exit
     endif
 
-  enddo
-
-! Strip off beginning "bmad_" and endding ".lat"
-
-  do i = 1, num_lats
-    lat_list(i) = lat_list(i)(6:)
-    ix = index(lat_list(i), '.lat')
-    if (ix /= 0) lat_list(i) = lat_list(i)(1:ix-1)
-    ix = index(lat_list(i), '.LAT')
-    if (ix /= 0) lat_list(i) = lat_list(i)(1:ix-1)
   enddo
 
 end subroutine get_lattice_list
@@ -120,7 +116,7 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
   ! get twiss file names for matching files 
 
   call fullfilename (directory, directory2)
-  match_file = 'bmad_*.*'
+  match_file = '*.lat'
 
   ok = dir_open(directory2)
 
@@ -132,19 +128,25 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
     call downcase_string (lat_file)
     if (.not. match_wild(lat_file, match_file)) cycle
 
+    num_lats = num_lats + 1
+    if (num_lats > size(lat_list)) then
+      print *, 'ERROR IN GET_LATTICE_LIST: NUMBER OF LATTICES EXCEEDS ARRAY SIZE!'
+      call err_exit
+    endif
+
+    ! Old style: file = bmad_nnn.lat --> lattice name = nnn
+    ! New style: file = nnn.lat      --> lattice name = nnn
+
     ix = index(lat_file, ';')      ! strip version number suffix
     if (ix /= 0) lat_file = lat_file(:ix-1)
 
     ix = index(lat_file, '.lat')   ! strip off .lat
-    if (ix /= 0) lat_file = lat_file(1:ix-1)
+    lat_file = lat_file(1:ix-1)
 
-    num_lats = num_lats + 1
-    if (num_lats > size(lat_list)) then
-      print *, 'ERROR IN GET_LATTICE_LIST_VMS: NUMBER OF LATTICES EXCEEDS ARRAY SIZE!'
-      call err_exit
-    endif
+    ! Strip of beginning "bmad_" if it is there
+    if (lat_file(1:5) == 'bmad_') lat_file = lat_file(6:)  
 
-    lat_list(num_lats) = lat_file(6:)  ! Strip of beginning "bmad_"
+    lat_list(num_lats) = lat_file  ! Strip of beginning "bmad_"
 
   enddo
 

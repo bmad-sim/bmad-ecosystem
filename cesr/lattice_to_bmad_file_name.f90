@@ -17,18 +17,20 @@ subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
   implicit none
 
   character(*) lattice, bmad_file_name
+  character(len(lattice)) lat
+  logical is_there
 
 !
 
-  bmad_file_name = lattice
-  call downcase_string(bmad_file_name)
+  lat = lattice
+  call downcase_string(lat)
 
-  if (index(lattice, '.') == 0) then
-    bmad_file_name = 'BMAD_LAT:bmad_' // trim(bmad_file_name) // '.lat'
-  else
-    bmad_file_name = 'BMAD_LAT:bmad_' // trim(bmad_file_name) 
-  endif
-
+  bmad_file_name = 'BMAD_LAT:' // trim(lat) // '.lat'
   call FullFileName(bmad_file_name, bmad_file_name)
 
+  inquire (file = bmad_file_name, exist = is_there)
+  if (.not. is_there) then
+    bmad_file_name = 'BMAD_LAT:bmad_' // trim(lat) // '.lat'
+    call FullFileName(bmad_file_name, bmad_file_name)
+  endif
 end subroutine

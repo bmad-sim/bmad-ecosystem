@@ -3,6 +3,101 @@ module cesr_basic_mod
 use bmad_struct
 use bmad_interface
 
+!---------------------------------------------------------------------------
+! DB_STRUCT:                       
+! This structrue holds info on the correspondence between CESR data base
+! elements and a BMAD lat. Use BMAD_TO_DB to initialize this structure.
+! For completeness there are, in addition, arrays for the detectors and
+! wigglers, etc.
+
+integer, parameter :: n_quad_maxx = 120
+integer, parameter :: n_det_maxx = 120
+integer, parameter :: n_sex_maxx = 120
+integer, parameter :: n_steer_maxx = 120
+integer, parameter :: n_oct_maxx = 4
+integer, parameter :: n_hbnd_maxx = 6
+integer, parameter :: n_rf_maxx = 4
+integer, parameter :: n_skew_sex_maxx = 20
+integer, parameter :: n_wig_maxx = 2
+integer, parameter :: n_sep_maxx = 6
+integer, parameter :: n_qadd_maxx = 7
+integer, parameter :: n_scir_cam_maxx = 10
+integer, parameter :: n_scir_quad_maxx = 4
+integer, parameter :: n_scir_tilt_maxx = 8
+integer, parameter :: n_nir_shuntcur_maxx = 4
+integer, parameter :: n_sc_sol_maxx = 2
+
+! for an individual element
+
+type db_element_struct
+  character(16) bmad_name    ! bmad name of element
+  real(rp) dvar_dcu             ! calibration factor
+  real(rp) var_theory           ! theory var value
+  real(rp) var_0                ! extrapolated var value at CU = 0
+  integer ix_lat           ! index to element array in lat struct
+  integer ix_attrib         ! index to element attribute
+  integer ix_cesrv          ! index to cesr_struct arrays
+  character(12) db_node_name ! node name ("CSR QUAD CUR")
+  integer ix_db             ! element index for data base node (5 for Q05W)
+  character(16) db_ele_name  ! element name
+  integer cu_high_lim       ! high limit
+  integer cu_low_lim        ! low limit
+  integer cu_now            ! current CU
+  integer ix                ! Integer for general use.
+end type              
+
+! for pointing to a db_struct array
+
+type db_node_struct
+  type (db_element_struct), pointer :: ptr(:) => null()
+end type
+                                                     
+! db_struct def
+
+integer, parameter :: n_csr_sqewsext_maxx = 8
+
+type db_struct
+  type (db_element_struct) :: csr_quad_cur(98)
+  type (db_element_struct) :: csr_qadd_cur(n_qadd_maxx)
+  type (db_element_struct) :: csr_horz_cur(98)
+  type (db_element_struct) :: csr_hbnd_cur(n_hbnd_maxx)
+  type (db_element_struct) :: csr_vert_cur(98)
+  type (db_element_struct) :: csr_hsp_volt(n_sep_maxx)
+  type (db_element_struct) :: csr_vsp_volt(n_sep_maxx)
+  type (db_element_struct) :: csr_sext_cur(98)
+  type (db_element_struct) :: csr_octu_cur(n_oct_maxx)
+  type (db_element_struct) :: csr_sqewquad(98)
+  type (db_element_struct) :: csr_scsolcur(5*n_sc_sol_maxx)
+  type (db_element_struct) :: csr_sqewsext(n_csr_sqewsext_maxx)
+  type (db_element_struct) :: scir_quadcur(n_scir_quad_maxx)
+  type (db_element_struct) :: scir_skqucur(n_scir_quad_maxx)
+  type (db_element_struct) :: scir_vertcur(n_scir_quad_maxx)
+  type (db_element_struct) :: nir_shuntcur(n_nir_shuntcur_maxx)
+  type (db_element_struct) :: ir_sksxcur(1)
+  type (db_node_struct) :: node(17)  ! does not include stuff below
+! in db but without corresponding BMAD element
+  type (db_element_struct) :: scir_pos_stp(n_scir_cam_maxx)
+  type (db_element_struct) :: scir_enc_cnt(n_scir_cam_maxx)
+  type (db_element_struct) :: scir_pos_rd(3*n_scir_cam_maxx)
+! non data base stuff
+  type (db_element_struct) :: quad(0:120) ! combinded csr_quad_cur, etc.
+  type (db_element_struct) :: detector(0:120)
+  type (db_element_struct) :: wiggler(1:n_wig_maxx)
+  type (db_element_struct) :: scir_cam_rho(n_scir_cam_maxx)
+  type (db_element_struct) :: scir_tilt(n_scir_tilt_maxx)
+end type
+
+! for the synchrotron
+
+type synch_db_struct
+  type (db_element_struct) :: bend(1:100)
+  type (db_element_struct) :: detector(1:200)
+  type (db_element_struct) :: hkicker(1:200)
+  type (db_element_struct) :: vkicker(1:200)
+  type (db_element_struct) :: htable(1:200)
+  type (db_element_struct) :: vtable(1:200)
+end type
+
 !-------------------------------------------------------------------------
 ! CESR logical names
 
@@ -40,23 +135,6 @@ type cesr_element_struct
   integer ix_db                  ! element index for data base node
   integer ix_lat                 ! index to element in lat structure
 end type
-
-integer, parameter :: n_quad_maxx = 120
-integer, parameter :: n_det_maxx = 120
-integer, parameter :: n_sex_maxx = 120
-integer, parameter :: n_steer_maxx = 120
-integer, parameter :: n_oct_maxx = 4
-integer, parameter :: n_hbnd_maxx = 6
-integer, parameter :: n_rf_maxx = 4
-integer, parameter :: n_skew_sex_maxx = 20
-integer, parameter :: n_wig_maxx = 2
-integer, parameter :: n_sep_maxx = 6
-integer, parameter :: n_qadd_maxx = 7
-integer, parameter :: n_scir_cam_maxx = 10
-integer, parameter :: n_scir_quad_maxx = 4
-integer, parameter :: n_scir_tilt_maxx = 8
-integer, parameter :: n_nir_shuntcur_maxx = 4
-integer, parameter :: n_sc_sol_maxx = 2
 
 ! %ix_cesr is a pointer to cesr_struct for given type
 
@@ -164,6 +242,7 @@ type cesr_data_params_struct
   character(20) data_date, data_type
   character(40) var_ele_name, var_attrib_name
   character(100) comment, lattice
+  character(40) route_name
   integer csr_set
   integer species
   real(rp) horiz_beta_freq, vert_beta_freq
@@ -192,6 +271,19 @@ type phase_cbar_data_struct
   logical ok_x, ok_y
 end type
 
+type all_phase_cbar_data_struct
+  type (phase_cbar_data_struct) phase_cbar(0:120)
+  type (detector_struct) raw_orbit(0:120)
+  type (db_struct) db
+  type (cesr_data_params_struct) param
+end type
+
+type raw_det_struct
+  real(rp) phase(4)
+  real(rp) amp(4)
+  integer system_id
+end type
+ 
 contains
 
 !----------------------------------------------------------------------------
@@ -734,7 +826,8 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
       enddo
   
       print *, ' [Note: To be in this list a lattice file must have a name   ]'
-      print *, ' [      of the form: BMAD_LAT:bmad_<lattice_name>.lat]'
+      print *, ' [      of the form: BMAD_LAT:bmad_<lattice_name>.lat        ]'
+      print *, ' [               or: BMAD_LAT:<lattice_name>.lat             ]'
 
       print *
       print *, 'You can enter a Lattice number or a full file name.'

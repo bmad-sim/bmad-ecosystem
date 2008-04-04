@@ -5,6 +5,7 @@ use File::Find;
 $found_one = 0;
 
 find (\&searchit, './modules');
+find (\&searchit, './cesr');
 
 #foreach $module (keys %table) {
 #  print "\n$module\n"; 
