@@ -8,8 +8,8 @@ program mia
   implicit none
 
   character* 1 char
-  integer :: nset, in4get1,istat, i_set
-  logical :: plot_more, good_input
+  integer :: nset, istat, i_set
+  logical :: good_input
 
   type(data_set), allocatable :: data(:)
   type(cbpm_analysis)data_struct

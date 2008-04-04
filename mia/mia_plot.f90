@@ -4,6 +4,7 @@ module mia_plot
   use quick_plot
   use mia_types
 
+  logical :: firstPlot = .true.     !Whether a plotting window has been opened
 contains
   subroutine plots(data, plot, iset)     
     !Routine can be used to plot data from different  
@@ -22,17 +23,18 @@ contains
     call logic_get( 'Y', 'N', 'Plot data? (Y/N) ', plot_more)
 
     !Only opens a new page on the first call of the subroutine.
-    if (plot_more .and. iset == 1) then
+    if (plot_more .and. firstPlot) then
        !Following calls open the digital displays
        call qp_open_page ("X", id, 600.0_rp, 470.0_rp, "POINTS")
        call qp_set_page_border (0.02_rp, 0.02_rp, 0.035_rp, 0.035_rp, "%PAGE")
        call qp_set_margin (0.07_rp, 0.01_rp, 0.01_rp, 0.05_rp, "%PAGE")
+       firstPlot = .false.
     endif
 
     do while(plot_more)
        call qp_draw_text (" Orbit MIA ", 0.5_rp, 1.0_rp, "%PAGE", "CT") 
        if (plot == 2) then
-          call plot_it2 (data, iset)
+          call plot_it2 (data)
        else
           !Calls plot_it by default
           call plot_it(data(iset), iset)
@@ -50,7 +52,7 @@ contains
              !       call qp_close_page 
              call qp_open_page ("PS-L")    !Generates a PS file
              if (plot == 2) then
-                call plot_it2(data, iset)
+                call plot_it2(data)
              else
                 call plot_it(data(iset), iset)
                 !Generates the plot in ps file
@@ -288,37 +290,47 @@ contains
 
   end subroutine rounding
 
-  subroutine plot_it2 (data, iset)
+  subroutine plot_it2 (data)
     !routine can be used to plot data from different matrices
     !can use digital display but also writes a postscript
     !that can be printed for a hard copy
 
-    type(data_set) :: data(*)     !Data from file
-    integer :: i, &               !Counter
-         xdiv, &                  !Divisions of x axis
-         graph, &                 !Choice to graph
-         istat,&                  !Status
-         in4get1,reaget1 , &      !Get input
-         arr_length, iset
-    real(rp) xlength, &           !Length of x axis (# values)
-         miny, maxy               !Min and max y values
+    type(data_set) :: data(*)          !Data from file
+    integer :: i, &                    !Counter
+         xdiv, &                       !Divisions of x axis
+         graph, &                      !Choice to graph
+         istat,&                       !Status
+         in4get1,reaget1 , &           !Get input
+         arr_length, iset, icolumn, count, nset
+    real(rp) xlength, &                !Length of x axis (# values)
+         miny, maxy                    !Min and max y values
     real(rp), allocatable :: xcoord(:), &  !X coordinates to plot
-         ycoord(:)                !Y coordinates to plot
-    real(rp) :: sf2                 !Factor
-    character(80) title, titl     !Titles
-    logical :: graph_more         !To graph more
+         ycoord(:)                     !Y coordinates to plot
+    real(rp) :: sf2                    !Factor
+    character(80) title, titl          !Titles
+    logical :: graph_more              !To graph more
     integer :: ix, iy, ix_tot, iy_tot  !Number of plots in X and y directions
-    real(rp), allocatable :: b(:), phi(:)
+    real(rp), allocatable :: b(:), &   !Number of BPMs (for plotting)
+         phi(:), &                     !Phi (for x-value plotting)
+         nt(:), &                      !Number of turns
+         lam_log(:)                    !Log of lambda (for plotting)
     real(rp) :: xmin, xmax
-    call qp_set_page_border (0.02_rp, 0.02_rp, 0.035_rp, 0.035_rp, "%PAGE")
-    call qp_set_margin (0.09_rp, 0.01_rp, 0.01_rp, 0.05_rp, "%PAGE")
-    call qp_draw_text (" ", 0.5_rp, 1.0_rp, "%PAGE", "CT")
+    logical :: badFile, badColumn
 
-    allocate (b(NUM_BPMS))
-    allocate (phi(NUM_BPMS))
+!    call qp_set_page_border (0.02_rp, 0.02_rp, 0.035_rp, 0.035_rp, "%PAGE")
+!    call qp_set_margin (0.09_rp, 0.01_rp, 0.01_rp, 0.05_rp, "%PAGE")
+!    call qp_draw_text (" ", 0.5_rp, 1.0_rp, "%PAGE", "CT")
 
-    do i=1,NUM_BPMS
+    allocate (b(2*NUM_BPMS))
+    allocate (phi(2*NUM_BPMS))
+    allocate (nt(NUM_TURNS))
+    nset = 2                 !Make nset a global variable
+
+    do i=1,2*NUM_BPMS
        b(i) = i
+    end do
+    do i=1,NUM_TURNS
+       nt(i) = i
     end do
 
     ix_tot = 1                           !Graphs are stacked vertically,
@@ -340,20 +352,10 @@ contains
 
     iy = iy_tot                             !Graph position 1 is the bottom 
 
-    !Moved out of loop because these do no change between calls
-    IF (ALLOCATED(xcoord)) DEALLOCATE(xcoord)  
-    IF (ALLOCATED(ycoord)) DEALLOCATE(ycoord)
-    !These values appear to be the same for every case.
-    arr_length = NUM_BPMS
-    allocate (xcoord(arr_length))
-    allocate (ycoord(arr_length))
-    xlength = NUM_BPMS
-    xdiv = NUM_BPMS
     DO WHILE (graph_more)
+       IF (ALLOCATED(xcoord)) DEALLOCATE(xcoord)  
+       IF (ALLOCATED(ycoord)) DEALLOCATE(ycoord)
        !Moved inside loop because of changed x coordinates for phi
-       xcoord = b
-       xmin = minval(xcoord)
-       xmax = maxval(xcoord)
        write (*,'(1x,a)') "For A mode Beta Ratio (X), enter 1", &
             "For A mode Beta Ratio (Y), enter 2", &
             "For B mode Beta Ratio (X), enter 3", &
@@ -373,17 +375,74 @@ contains
             "For Sqrt(Beta) Cbar (2,2), enter 17", &
             "For Inv Gamma Cbar (1,1), enter 18", &
             "For Inv Gamma Cbar (1,2), enter 19", &
-            "For Inv Gamma Cbar (2,2), enter 20" 
+            "For Inv Gamma Cbar (2,2), enter 20", & 
+            "For Pi, enter 21", &
+            "For Frequency Peak,enter 22", &
+            "For Lambda, enter 23", &
+            "For Spectrum, enter 24", &
+            "For Tau, enter 25"
        write (*, "(a)") " Enter choice "        
        accept "(i)", graph
 
-
        if (graph <= 8 .and. graph >= 5) then
           Write (*, '(1x,a)') "Type Magnitude**2 Scale Factor"
-          !istat=reaget1('Factor = ',sf2)
           write (*, "(a)") " Factor = "        
           accept "(f)", sf2
        end if
+
+       if (graph >=21 .and. graph<=23) then
+          arr_length = 2*NUM_BPMS
+          allocate(xcoord(arr_length))
+          allocate(ycoord(arr_length))
+          xlength = 2.0*NUM_BPMS
+          xdiv = 2*NUM_BPMS
+          xcoord = b
+       else if (graph>23) then
+          arr_length = NUM_TURNS
+          allocate(xcoord(arr_length))
+          allocate(ycoord(arr_length))
+          xdiv = 16
+          xcoord = nt
+          xlength = NUM_TURNS
+       else
+          arr_length = 2*NUM_BPMS
+          allocate (xcoord(arr_length))
+          allocate (ycoord(arr_length))
+          xlength = 2*NUM_BPMS
+          xdiv = 2*NUM_BPMS
+          xcoord = b
+       endif
+       xmin = minval(xcoord)
+       xmax = maxval(xcoord)
+
+       badFile = .true.
+       if (graph > 20) then
+          do while (badFile)
+             write (*, "(a)") "Which file should be used?"
+             accept "(i)", iset
+             
+             if (graph ==21 .or. graph > 23) then
+                badColumn = .true.
+                do while (badColumn)
+                   !Column is needed for choices 21, 24, and 25
+                   write (*, "(a)") " Which column should be plotted? "        
+                   accept "(i)", icolumn
+                   if (icolumn > 0 .and. icolumn < 2*NUM_BPMS) then
+                      badColumn = .false.
+                   else
+                      Print *, "Bad column--choose a number between 1 and", &
+                           2*NUM_BPMS
+                   endif
+                enddo
+             endif
+             if (iset >0 .and. iset <= nset) then
+                badFile = .false.
+             else
+                print *, "Bad input--choose 1 or 2."
+             endif
+          enddo
+       endif
+
 
        call qp_set_box(ix, iy, ix_tot, iy_tot)
 
@@ -507,6 +566,42 @@ contains
           call min_max_y(data_struc%loc(:)%inv_gamma_cbar(2,2), &
                miny, maxy, ycoord(:), arr_length)
           write(titl,45)
+       else if (graph == 21) then
+          call min_max_y(data(iset)%pi_mat(:,icolumn), miny, maxy, ycoord(:),&
+               arr_length)
+          write(titl,22) iset, icolumn, data(iset)%shortName
+22        format('PI - Iset =',i2,'  Column = ',i3, '  File = ', a)
+       else if (graph == 22) then
+          !nmax is an integer; all others are real(rp)
+          !Can't use a generic statement because of the type of nmax??
+          !call min_max_y(data%fr_peak(:))
+          miny = minval(data(iset)%fr_peak(:))
+          maxy = maxval(data(iset)%fr_peak(:))
+          ycoord(:) = data(iset)%fr_peak(:)
+          write(titl,23) iset, data(iset)%shortName     
+23        format('FR_PEAK - Iset =',i2,'  File = ', a)
+       else if (graph == 23) then
+          !Logarithmic scale option on qplot is not available yet
+          !(See documentation)
+          !Plots lambda on a logarithmic scale
+          IF (ALLOCATED(lam_log)) DEALLOCATE(lam_log)    
+          allocate (lam_log(arr_length))
+          do count=1, arr_length
+             lam_log(count) = log10(data(iset)%lambda(count))
+          enddo
+          call min_max_y(lam_log(:), miny, maxy, ycoord(:), arr_length)   
+          write(titl,24) iset,  data(iset)%shortName
+24        format('Lambda (log10) - Iset =',i2,'  File = ', a)
+       else if (graph == 24) then
+          call min_max_y(data(iset)%spectrum(:,icolumn), miny, maxy,&
+               ycoord(:), arr_length)
+          write(titl,25) iset,icolumn, data(iset)%shortName
+25        format('Spectrum - Iset =',i2,'  Column = ',i2, '  File = ', a)
+       else if (graph == 25) then
+          call min_max_y(data(iset)%tau_mat(:,icolumn), miny, maxy, ycoord(:),&
+               arr_length)
+          write(titl,21) iset, icolumn, data(iset)%shortName
+21        format('TAU - Iset =',i2,'  Column = ',i3, '  File = ', a)
        end if
 
        !Draws graph
@@ -517,7 +612,8 @@ contains
 !       call qp_set_axis ("X", 0.0_rp, xlength, div = xdiv)
        !call qp_set_axis ("Y", miny, maxy, places = 4, draw_numbers = .true., &
        !div = 10)
-       call qp_calc_and_set_axis("X", xmin, xmax, 4, 6, "GENERAL")
+       call qp_set_axis ("X", 0.0_rp, xlength, div = xdiv)
+!       call qp_calc_and_set_axis("X", xmin, xmax, 4, 6, "GENERAL")
        call qp_calc_and_set_axis("Y", miny, maxy, 4, 6, "GENERAL")
        call qp_draw_graph (xcoord, ycoord(:),title = titl)
        call qp_restore_state

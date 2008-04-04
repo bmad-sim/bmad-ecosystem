@@ -251,15 +251,16 @@ contains
 
     noise_sum(1) = 0.0_rp
     noise_sum(2) = 0.0_rp
+    !Number of lambdas used doesn't seem to affect anything.
     lambdas = floor(2 * 0.6 * data(1)%bpmproc)   !Average 40% of lambda values
-    Print *, "Using ", lambdas, "lambda values"
+!    Print *, "Using ", lambdas, "lambda values"
 
    !Filters noise--last 5 lambda values are assumed to be noise. Nothing 2x the
    !average of these values is used. (ave(cset) is the threshold)
 
-    !*Make this more general--don't assume 14 BPMs
+
     do cset = 1,nset
-       do i = lambdas, 2*data(1)%bpmproc
+       do i = lambdas, 2*NUM_BPMS
           noise_sum(cset) = noise_sum(cset) + data(cset)%lambda(i)
        end do
        ave(cset) = 2.0*(noise_sum(cset)/(2*data(1)%bpmproc - lambdas))
@@ -356,8 +357,8 @@ contains
        bf(2) = 1
     end if
 
-    write (*,'(1x,a,i2,a,i2)')"Horizontal Match: ", &
-         col_a_(1),",",col_a_(2), "Vertical Match: ", col_b_(1),",", col_b_(2)
+!    write (*,'(1x,a,i2,a,i2)')"Horizontal Match: ", &
+!         col_a_(1),",",col_a_(2), "Vertical Match: ", col_b_(1),",", col_b_(2)
 
     if ( abs(data( af(1))%phi_spec( data( af(1))%fr_peak(col_a_(1)), &
          col_a_(1)) - &
@@ -422,11 +423,11 @@ contains
        print*, "bf(1) is not = bf(2)!"
     end if
 
-    write (*,'(1x,a,i2)') &
-         "Horizontal Positive: ", data_struc%col_a_p, &
-         "Horizontal Negative: ", data_struc%col_a_n, &
-         "Vertical Positive: ", data_struc%col_b_p,&
-         "Vertical Negative: ", data_struc%col_b_n
+!    write (*,'(1x,a,i2)') &
+!         "Horizontal Positive: ", data_struc%col_a_p, &
+!         "Horizontal Negative: ", data_struc%col_a_n, &
+!         "Vertical Positive: ", data_struc%col_b_p,&
+!         "Vertical Negative: ", data_struc%col_b_n
 
   end subroutine match_tau_column
 
