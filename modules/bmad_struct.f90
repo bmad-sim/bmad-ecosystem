@@ -353,8 +353,9 @@ integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9, y_gain_calib$=9
 integer, parameter :: fint$=10, polarity$=10, gradient$=10, crunch_calib$=10
 integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11
 integer, parameter :: rho$=12, s_center$=12, p0c_start$=12, y_offset_calib$=12
-integer, parameter :: hgap$=13, E_TOT_START$=13, x_patch$=13
+integer, parameter :: hgap$=13, e_tot_start$=13, x_patch$=13, n_sample$=13
 integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14
+integer, parameter :: de_eta_meas$=14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
 integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16
 integer, parameter :: l_start$=17, h1$=17, x_quad$=17

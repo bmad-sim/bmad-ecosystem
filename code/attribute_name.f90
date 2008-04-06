@@ -54,6 +54,22 @@ function attribute_name (ele, ix_att) result (at_name)
 
     do i = 1, n_key
                                     
+      if (i == monitor$ .or. i == instrument$ .or. i == marker$) then 
+        attrib_array(i, x_gain_err$)     = 'X_GAIN_ERR'
+        attrib_array(i, y_gain_err$)     = 'Y_GAIN_ERR'
+        attrib_array(i, crunch$)         = 'CRUNCH'
+        attrib_array(i, noise$)          = 'NOISE'
+        attrib_array(i, tilt_calib$)     = 'TILT_CALIB'
+        attrib_array(i, x_gain_calib$)   = 'X_GAIN_CALIB'
+        attrib_array(i, y_gain_calib$)   = 'Y_GAIN_CALIB'
+        attrib_array(i, crunch_calib$)   = 'CRUNCH_CALIB'
+        attrib_array(i, x_offset_calib$) = 'X_OFFSET_CALIB'
+        attrib_array(i, y_offset_calib$) = 'Y_OFFSET_CALIB'
+        attrib_array(i, y_offset_calib$) = 'Y_OFFSET_CALIB'
+        attrib_array(i, n_sample$)       = 'N_SAMPLE'
+        attrib_array(i, de_eta_meas$)    = 'DE_ETA_MEAS'
+      endif
+
       if (i == def_beam$)       cycle
       if (i == def_parameter$)  cycle
       if (i == def_beam_start$) cycle
@@ -263,16 +279,6 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(monitor$, x_pitch$)     = 'X_PITCH'
     attrib_array(monitor$, y_pitch$)     = 'Y_PITCH'
     attrib_array(monitor$, tilt$)        = 'TILT'
-    attrib_array(monitor$, x_gain_err$)  = 'X_GAIN_ERR'
-    attrib_array(monitor$, y_gain_err$)  = 'Y_GAIN_ERR'
-    attrib_array(monitor$, crunch$)      = 'CRUNCH'
-    attrib_array(monitor$, noise$)       = 'NOISE'
-    attrib_array(monitor$, tilt_calib$)     = 'TILT_CALIB'
-    attrib_array(monitor$, x_gain_calib$)   = 'X_GAIN_CALIB'
-    attrib_array(monitor$, y_gain_calib$)   = 'Y_GAIN_CALIB'
-    attrib_array(monitor$, crunch_calib$)   = 'CRUNCH_CALIB'
-    attrib_array(monitor$, x_offset_calib$) = 'X_OFFSET_CALIB'
-    attrib_array(monitor$, y_offset_calib$) = 'Y_OFFSET_CALIB'
 
     attrib_array(instrument$, l$) = 'L'
     attrib_array(instrument$, x_offset$) = 'X_OFFSET'
@@ -280,30 +286,10 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(instrument$, x_pitch$)  = 'X_PITCH'
     attrib_array(instrument$, y_pitch$)  = 'Y_PITCH'
     attrib_array(instrument$, tilt$)     = 'TILT'
-    attrib_array(instrument$, x_gain_err$)  = 'X_GAIN_ERR'
-    attrib_array(instrument$, y_gain_err$)  = 'Y_GAIN_ERR'
-    attrib_array(instrument$, crunch$)      = 'CRUNCH'
-    attrib_array(instrument$, noise$)       = 'NOISE'
-    attrib_array(instrument$, tilt_calib$)     = 'TILT_CALIB'
-    attrib_array(instrument$, x_gain_calib$)   = 'X_GAIN_CALIB'
-    attrib_array(instrument$, y_gain_calib$)   = 'Y_GAIN_CALIB'
-    attrib_array(instrument$, crunch_calib$)   = 'CRUNCH_CALIB'
-    attrib_array(instrument$, x_offset_calib$) = 'X_OFFSET_CALIB'
-    attrib_array(instrument$, y_offset_calib$) = 'Y_OFFSET_CALIB'
 
     attrib_array(marker$, x_offset$) = 'X_OFFSET'
     attrib_array(marker$, y_offset$) = 'Y_OFFSET'
     attrib_array(marker$, tilt$)     = 'TILT'
-    attrib_array(marker$, x_gain_err$) = 'X_GAIN_ERR'
-    attrib_array(marker$, y_gain_err$) = 'Y_GAIN_ERR'
-    attrib_array(marker$, crunch$)     = 'CRUNCH'
-    attrib_array(marker$, noise$)      = 'NOISE'
-    attrib_array(marker$, tilt_calib$)     = 'TILT_CALIB'
-    attrib_array(marker$, x_gain_calib$)   = 'X_GAIN_CALIB'
-    attrib_array(marker$, y_gain_calib$)   = 'Y_GAIN_CALIB'
-    attrib_array(marker$, crunch_calib$)   = 'CRUNCH_CALIB'
-    attrib_array(marker$, x_offset_calib$) = 'X_OFFSET_CALIB'
-    attrib_array(marker$, y_offset_calib$) = 'Y_OFFSET_CALIB'
 
     attrib_array(rcollimator$, l$)     = 'L'
 

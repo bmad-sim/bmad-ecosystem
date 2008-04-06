@@ -247,22 +247,4 @@ subroutine print_error (ix_ele, ix_attrib, l1, l2)
 
 end subroutine
 
-!-------------------------------------------------------
-! contains
-
-function on_off_logic (logic) result (name)
-
-  logical logic
-  character(3) name
-
-!
-
-  if (logic) then
-    name = 'ON'
-  else
-    name = 'OFF'
-  endif
-
-end function
-
 end function
