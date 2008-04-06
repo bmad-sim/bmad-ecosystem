@@ -697,7 +697,7 @@ Examples:
 
 %% set data --------------------------------------------------------------
 
-  \item[set data <data_name>|<component> = <value>]
+  \item[set data <data\_name>|<component> = <value>]
 
 For \vn{set data}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -783,7 +783,7 @@ Example:
 
 %% set plot --------------------------------------------------------------
 
-  \item[set plot_page <component> = <value1> \{<value2>\}]
+  \item[set plot\_page <component> = <value1> \{<value2>\}]
 
 For \vn{set plot_page}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -802,8 +802,8 @@ Example:
 
 %% set universe --------------------------------------------------------------
 
-  \item[set universe <what_universe> on/off \\
-        set universe <what_universe> recalculate]
+  \item[set universe <what\_universe> on/off \\
+        set universe <what\_universe> recalculate]
 \vn{set universe} will turn the specified universe(s) on or
 off. Turning a universe off is useful to speed up lattice calculations
 when this universe is not being used. Or, if many changes are to be
@@ -827,7 +827,7 @@ Example:
 
 %% set var --------------------------------------------------------------
 
-  \item[set var <var_name>|<component> = <value>]
+  \item[set var <var\_name>|<component> = <value>]
 
 For \vn{set var}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -935,7 +935,7 @@ Lists data and variable constraints.
 
 %% show curve --------------------------------------------------------------
 
-  \item[show curve \{-symbol\} \{-line\} <curve_name>]
+  \item[show curve \{-symbol\} \{-line\} <curve\_name>]
 Show information on a particular curve of a particular plot. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names.  Use
 \vn{show plot} to get a list of plot names. The \vn{-symbol} switch
@@ -960,7 +960,7 @@ Example:
 
 %% show data --------------------------------------------------------------
 
-  \item[show data \{<data_name>\}]
+  \item[show data \{<data\_name>\}]
 Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
 present shown is a list of \vn{d2_data} names.
 
@@ -1016,7 +1016,7 @@ Shows information on the global parameter structure (\sref{s:globals}).
 
 %% show graph --------------------------------------------------------------
 
-  \item[show graph <graph_name>]
+  \item[show graph <graph\_name>]
 Show information on a particular graph of a particular plot. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names.
 Use \vn{show plot} to get a list of plot names.
@@ -1137,7 +1137,7 @@ Bmad standard lattice input format.
 
 %% show particle --------------------------------------------------------------
 
-  \item[show particle <particle_index>]
+  \item[show particle <particle\_index>]
 \vn{show particle lost} shows which particles are lost during beam
 tracking. \vn{show particle <index>} shows information on the particle
 with the given index. Also see \vn{show beam}.
@@ -1145,8 +1145,8 @@ with the given index. Also see \vn{show beam}.
 %% show plot --------------------------------------------------------------
 
   \item[show plot \\
-        show plot \{<template_plot_name>\} \\
-        show plot \{<plot_region_name>\} \\
+        show plot \{<template\_plot\_name>\} \\
+        show plot \{<plot\_region\_name>\} \\
         show plot -shapes]
 A simple \vn{show plot} displays which templates are being plotted and
 in which regions and also all available templates. See
@@ -1165,7 +1165,7 @@ derivatives, and Largest changes in variable value.
 
 %% show universe --------------------------------------------------------------
 
-  \item[show universe \{universe_number\}]
+  \item[show universe \{universe\_number\}]
 Shows various parameters associated with a given universe. If no
 universe is specified then the current viewed universe is
 used. Parameters displayed include tune, chromaticity, radiation
@@ -1173,8 +1173,8 @@ integrals, etc.
 
 %% show variable --------------------------------------------------------------
 
-  \item[show variable \{<var_name> <locations>\} \\
-        show variable <universe_number>@]
+  \item[show variable \{<var\_name> <locations>\} \\
+        show variable <universe\_number>@]
 Shows variable information. If \vn{<var_name>} \vn{<locations>} is not
 present shown is a list of \vn{v1_var} classes. If \vn{<var_name>} is
 \vn{*} then the variables will be printed in Bmad lattice format.
