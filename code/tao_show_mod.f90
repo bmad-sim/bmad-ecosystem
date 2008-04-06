@@ -25,12 +25,70 @@ type show_common_struct
 end type
 
 type (show_common_struct), private, save :: show_common
+integer, parameter, private :: n_char = 500
+
 
 contains
 
 !--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+subroutine tao_show_cmd (what, stuff)
 
-recursive subroutine tao_show_cmd (what, stuff)
+implicit none
+
+
+integer iu, ix, n
+integer :: n_write_file = 0            ! used for indexing 'show write' files
+
+character(*) what, stuff
+character(100) file_name
+character(len(stuff)) stuff2
+character(16) :: r_name = 'tao_show_cmd'
+
+! See if the results need to be written to a file.
+
+n = len_trim(what)
+if (n > 1 .and. (index('-append', what) == 1 .or. index('-write', what) == 1)) then
+
+  call string_trim(stuff, stuff2, ix)
+  file_name = stuff2(:ix)
+  call string_trim(stuff2(ix+1:), stuff2, ix)
+
+  ix = index(file_name, '*')
+  if (ix /= 0) then
+    n_write_file = n_write_file + 1
+    write (file_name, '(a, i3.3, a)') file_name(1:ix-1), n_write_file, trim(file_name(ix+1:))
+  endif
+
+  iu = lunget()
+  if (what(1:2) == '-a') then
+    open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = n_char)
+  else
+    open (iu, file = file_name, status = 'REPLACE', recl = n_char)
+  endif
+
+  call output_direct (iu)  ! tell out_io to write to a file
+
+  !! call out_io (s_blank$, r_name, ' ', 'Tao> show ' // trim(show_what) // ' ' // stuff, ' ')
+  call string_trim (stuff2, stuff2, ix)
+  call tao_show_this (stuff2(1:ix), stuff2(ix+1:))  
+
+  call output_direct (0)  ! reset to not write to a file
+  close (iu)
+  call out_io (s_blank$, r_name, 'Written to file: ' // file_name)
+
+else
+  call tao_show_this (what, stuff)
+endif
+
+end subroutine
+
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+
+subroutine tao_show_this (what, stuff)
 
 implicit none
 
@@ -74,8 +132,6 @@ real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2
 real(rp) :: delta_e = 0
 real(rp), allocatable, save :: value(:)
 
-integer, parameter :: n_char = 500
-
 character(*) :: what, stuff
 character(24) :: var_name
 character(24)  :: plane, imt, lmt, amt, iamt, f3mt, rmt, irmt, iimt
@@ -87,12 +143,11 @@ character(100) file_name
 character(40) ele_name, name, sub_name
 character(60) nam
 
-character(16) :: show_what, show_names(22) = (/ &
+character(16) :: show_what, show_names(20) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
-   '-write      ', 'hom         ', 'opt_vars    ', 'universe    ', '-append     ', &
-   'beam        ', 'e2          ', 'graph       ', 'curve       ', 'particle    ', &
-   'orbit       ', 'derivative  ' /)
+   'beam        ', '----------- ', 'graph       ', 'curve       ', 'particle    ', &
+   'hom         ', 'opt_vars    ', 'universe    ', 'orbit       ', 'derivative  ' /)
 
 character(n_char), allocatable, save :: lines(:)
 character(n_char) line, line1, line2, line3
@@ -104,10 +159,9 @@ integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2
 integer num_locations, ix_ele, n_name, n_e0, n_e1
 integer, allocatable, save :: ix_eles(:)
-integer :: n_write_file = 0            ! used for indexing 'show write' files
 
 logical err, found, at_ends, first_time, by_s, print_header_lines, show_sym, show_line, show_shape
-logical show_all, name_found, print_taylor, print_wig_terms
+logical show_all, name_found, print_taylor, print_wig_terms, print_all, print_data
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 
@@ -160,6 +214,7 @@ endif
 call tao_cmd_split (stuff, 2, word, .false., err)
 
 show_what = show_names(ix)
+
 select case (show_what)
 
 !----------------------------------------------------------------------
@@ -516,23 +571,33 @@ case ('derivative')
 !----------------------------------------------------------------------
 ! ele
 
-case ('element', 'e2')
+case ('element')
 
   print_taylor = .false.
   print_wig_terms = .false.
+  print_all = .false.
+  print_data = .false.
 
+  call string_trim(stuff, stuff2, ix)
   do
-    if (index('-taylor', word(1)) == 1) then
-      print_taylor = .true.
-    elseif (index('-wig_term', word(1)) == 1) then
-      print_wig_terms = .true.
-    else
-      exit
+    if (ix == 0) exit
+    if (stuff2(1:1) /= '-') exit
+    call match_word (stuff2(:ix), (/ '-taylor        ', '-wig_term      ', &
+                      '-all_attributes', '-data          ' /), n, .true., name)
+    if (n < 1) then
+      call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2(:ix))
+      return
     endif
-    call tao_cmd_split (word(2), 2, word, .false., err)
+    if (name == '-taylor') print_taylor = .true.
+    if (name == '-wig_term') print_wig_terms = .true.
+    if (name == '-all_attributes') print_all = .true.
+    if (name == '-data') print_data = .true.
+    call string_trim(stuff2(ix+1:), stuff2, ix)
   enddo
 
-  call str_upcase (ele_name, word(1))
+  call str_upcase (ele_name, stuff2)
+
+  ! Wildcard: show all elements.
 
   if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0 .or. &
                     (ele_name(1:2) /= 'S:' .and. index(ele_name, ':') /= 0)) then
@@ -553,62 +618,57 @@ case ('element', 'e2')
 
     deallocate(ix_eles)
 
-! else no wild cards
-
-  else  
-
-    call tao_locate_elements (ele_name, s%global%u_view, ix_eles)
-    loc = ix_eles(1)
-    if (loc < 0) return
-    ele => lat%ele(loc)
-
-    ! Show the element info
-
-    if (show_what == 'e2') then
-      nl=nl+1; write (lines(nl), *) 'Element #', loc
-      nl=nl+1; write (lines(nl), *) 'Element ', ele%name
-      nl=nl+1; write (lines(nl), *) 'Save_beam:', u%ele(loc)%save_beam
-      nl=nl+1; write (lines(nl), *) 'beam allocated:', allocated(u%ele(loc)%beam%bunch)
-      call out_io (s_blank$, r_name, lines(1:nl))
-      return
-    endif
-
-    call type2_ele (ele, ptr_lines, n, .true., 6, print_taylor, &
-              s%global%phase_units, .true., lat, .true., .true., print_wig_terms)
-
-    if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100)
-    lines(nl+1:nl+n) = ptr_lines(1:n)
-    nl = nl + n
-    deallocate (ptr_lines)
-
-    if (show_what == 'element') then
-      nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (-X, -Y)]'
-    endif
-
-    orb = u%model%orb(loc)
-    fmt = '(2x, a, 3p2f15.8)'
-    lines(nl+1) = ' '
-    lines(nl+2) = 'Orbit: [mm, mrad]'
-    write (lines(nl+3), fmt) "X  X':", orb%vec(1:2)
-    write (lines(nl+4), fmt) "Y  Y':", orb%vec(3:4)
-    write (lines(nl+5), fmt) "Z  Z':", orb%vec(5:6)
-    nl = nl + 5
-
-    ! Show data associated with this element
-    call show_ele_data (u, loc, lines, nl)
-
-    found = .false.
-    do i = loc + 1, lat%n_ele_max
-      if (lat%ele(i)%name /= ele_name) cycle
-      if (size(lines) < nl+2) call re_allocate (lines, len(lines(1)), nl+10)
-      if (found) then
-        nl=nl+1; lines(nl) = ''
-        found = .true.
-      endif 
-      nl=nl+1;  write (lines(nl), '(a, i0)') 'Note: Found another element with same name at: ', i
-    enddo
-
+    call out_io (s_blank$, r_name, lines(1:nl))
+    return
   endif
+
+  ! No wildcard case...
+
+  ! Show data associated with this element
+  if (print_data) then
+    call show_ele_data (u, loc, lines, nl)
+    call out_io (s_blank$, r_name, lines(1:nl))
+    return
+  endif
+
+  ! Normal: Show the element info
+
+  call tao_locate_elements (ele_name, s%global%u_view, ix_eles)
+  loc = ix_eles(1)
+  if (loc < 0) return
+  ele => lat%ele(loc)
+
+  call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, &
+            s%global%phase_units, .true., lat, .true., .true., print_wig_terms)
+
+  if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100)
+  lines(nl+1:nl+n) = ptr_lines(1:n)
+  nl = nl + n
+  deallocate (ptr_lines)
+
+  if (show_what == 'element') then
+    nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (-X, -Y)]'
+  endif
+
+  orb = u%model%orb(loc)
+  fmt = '(2x, a, 3p2f15.8)'
+  lines(nl+1) = ' '
+  lines(nl+2) = 'Orbit: [mm, mrad]'
+  write (lines(nl+3), fmt) "X  X':", orb%vec(1:2)
+  write (lines(nl+4), fmt) "Y  Y':", orb%vec(3:4)
+  write (lines(nl+5), fmt) "Z  Z':", orb%vec(5:6)
+  nl = nl + 5
+
+  found = .false.
+  do i = loc + 1, lat%n_ele_max
+    if (lat%ele(i)%name /= ele_name) cycle
+    if (size(lines) < nl+2) call re_allocate (lines, len(lines(1)), nl+10)
+    if (found) then
+      nl=nl+1; lines(nl) = ''
+      found = .true.
+    endif 
+    nl=nl+1;  write (lines(nl), '(a, i0)') 'Note: Found another element with same name at: ', i
+  enddo
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
@@ -711,7 +771,6 @@ case ('lattice')
   column(12) = show_lat_column_struct("eta_b",   "f5.1",     5, "")
   column(13) = show_lat_column_struct("orbit_y", "3p, f8.3", 8, "")
 
-  call string_trim(stuff, stuff2, ix)
   at_ends = .true.
   by_s = .false.
   print_header_lines = .true.
@@ -721,6 +780,7 @@ case ('lattice')
 
   ! get command line switches
 
+  call string_trim(stuff, stuff2, ix)
   do
     if (ix <= 1) exit
 
@@ -1613,37 +1673,6 @@ case ('variable')
 
 
 !----------------------------------------------------------------------
-! write
-
-case ('-write', '-append')
-
-  iu = lunget()
-  file_name = word(1)
-  ix = index(file_name, '*')
-  if (ix /= 0) then
-    n_write_file = n_write_file + 1
-    write (file_name, '(a, i3.3, a)') file_name(1:ix-1), n_write_file, trim(file_name(ix+1:))
-  endif
-
-  if (show_what == '-append') then
-    open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = n_char)
-  else
-    open (iu, file = file_name, status = 'REPLACE', recl = n_char)
-  endif
-
-  call output_direct (iu)  ! tell out_io to write to a file
-
-  !! call out_io (s_blank$, r_name, ' ', 'Tao> show ' // trim(show_what) // ' ' // stuff, ' ')
-  call string_trim (word(2), stuff2, ix)
-  call tao_show_cmd (stuff2(1:ix), stuff2(ix+1:))  ! recursive
-
-  call output_direct (0)  ! reset to not write to a file
-  close (iu)
-  call out_io (s_blank$, r_name, 'Written to file: ' // file_name)
-
-  return
-
-!----------------------------------------------------------------------
 
 case default
 
@@ -1694,7 +1723,7 @@ endif
 
 end subroutine show_ele_data
 
-end subroutine tao_show_cmd
+end subroutine tao_show_this
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------

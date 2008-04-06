@@ -90,9 +90,9 @@ interface
 end interface
  
 interface
-  subroutine tao_help (help_what)
+  subroutine tao_help (what1, what2)
     implicit none
-    character(*) help_what
+    character(*) what1, what2
   end subroutine
 end interface
 

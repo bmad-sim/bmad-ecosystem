@@ -1,18 +1,18 @@
 !+
-! Subroutine tao_help (help_what)
+! Subroutine tao_help (what1, what2)
 !
 ! Online help for TAO commmands. 
 ! Interfaces with the documentation.
 !
 ! Input:
-!   help_what   -- Character(*): command to query
+!   what1   -- Character(*): command to query
 !
 ! Output:
 !   none
 !
 !-
 
-subroutine tao_help (help_what)
+subroutine tao_help (what1, what2)
 
 use tao_struct
 use tao_interface
@@ -22,9 +22,9 @@ implicit none
 
 integer nl, iu, ios, n, ix, ix2
 
-character(*) :: help_what
+character(*) :: what1, what2
 character(16) :: r_name = "TAO_HELP"
-character(40) start_tag
+character(40) start_tag, left_over_eliminate, left_over_sub
 character(200) line, file_name
 
 logical blank_line_before
@@ -38,10 +38,10 @@ else
   call fullfilename ('TAO_DIR:doc/command-list.tex', file_name)
 endif
 
-if (help_what == '') then
+if (what1 == '') then
   start_tag = '%% command_table'
 else
-  start_tag = '%% ' // help_what
+  start_tag = '%% ' // what1
 endif
 
 ! Open the file 
@@ -59,22 +59,36 @@ n = len_trim(start_tag)
 do 
   read (iu, '(a)', iostat = ios) line
   if (ios /= 0) then
-    call out_io (s_error$, r_name, 'CANNOT FIND TAG: ' // start_tag, &
-                                                     'IN FILE: ' // file_name)
+    call out_io (s_error$, r_name, &
+           'CANNOT FIND ANY INFO FOR: ' // trim(what1) // ' ' // trim(what2), &
+           'IN FILE: ' // file_name)
     return
   endif
-  if (line(1:n) == start_tag(1:n)) exit
+  ! If a match for what1 then check for a match for what2.
+  if (line(1:n) == start_tag(1:n)) then
+    if (what2 == '') exit
+    if (line(n+1:n+1) == ' ') then
+      call string_trim(line(n+1:), line, ix)
+    else
+      call string_trim(line(n+1:), line, ix)
+      call string_trim(line(ix+1:), line, ix)
+    endif
+    if (index(line, trim(what2)) == 1) exit
+  endif
 enddo
 
 ! Print all lines to the next tag or the end of the file.
 
-if (help_what == '') then
+if (what1 == '') then
   call out_io (s_blank$, r_name, &
                  "Type 'help <command>' for help on an individual command", &
                  "Available commands:")
 endif
 
 blank_line_before = .true.
+left_over_eliminate = ''
+left_over_sub = ''
+
 do
   read (iu, '(a)', iostat = ios) line
   if (ios /= 0) return
@@ -92,20 +106,32 @@ do
     call string_trim (line(ix+1:), line, ix)
   endif
 
+  if (left_over_eliminate /= '') then
+    ix = index(line, trim(left_over_eliminate))
+    if (ix /= 0) then
+      call substitute (left_over_eliminate, left_over_sub)
+      left_over_eliminate = ''
+      left_over_sub = ''
+    endif
+  endif
+
   call substitute ("``", '"')
   call substitute ("''", '"')
   call substitute ("$")
+  call substitute ("%")
   call substitute ("\{", "{")
   call substitute ("\}", "}")
   call substitute ("\_", "_")
   call substitute ("\tao", "Tao")
-  call eliminate2 ('\item[', ']')
+  call eliminate2 ('\item[', ']', '     ', '')
   call eliminate2 ('\vn{', '}', '"', '"')
   call eliminate_inbetween ('& \sref{', '}', .true.)
+  call eliminate_inbetween ('\hspace*{', '}', .true.)
   call eliminate_inbetween ('\sref{', '}', .false.)
   call eliminate_inbetween ('{\it ', '}', .false.)
   call substitute (" &")
   call substitute ('\\ \hline')
+  call substitute ('\\')
   call substitute ('\W ', '^')
   call substitute ('"\W"', '"^"')
   
@@ -139,7 +165,7 @@ do
   ix = index(line, str1)
   if (ix == 0) exit
   if (present(sub)) then
-    line = line(1:ix-1) // sub // line(ix+n1:)
+    line = line(1:ix-1) // trim(sub) // line(ix+n1:)
   else
     line = line(1:ix-1) // line(ix+n1:)
   endif
@@ -157,21 +183,38 @@ subroutine eliminate2 (str1, str2, sub1, sub2)
 
 character(*) str1, str2
 character(*), optional :: sub1, sub2
-integer n1, n2
+integer n1, n2, ix1, ix2
 
 n1 = len(str1)
 n2 = len(str2)
 
 do
-  ix = index (line, str1)
-  if (ix == 0) return
-  ix2 = index (line(ix+1:), str2) + ix
-  if (ix2 == 0) return
-  if (present(sub1)) then
-    line = line(1:ix-1) // sub1 // line(ix+n1:ix2-1) // sub2 // line(ix2+n2:)    
-  else
-    line = line(1:ix-1) // line(ix+n1:ix2-1) // line(ix2+n2:)
+  ix1 = index (line, str1)
+  if (ix1 == 0) return
+  ix2 = index (line(ix1+1:), str2) + ix1
+
+  ! If ending string is not found then must be on a later line.
+  ! If so, mark for future deletion
+
+  if (ix2 == ix1) then
+    left_over_eliminate = str2
+    if (present(sub2)) left_over_sub = sub2 
+    if (present(sub1)) then
+      line = line(1:ix1-1) // sub1 // line(ix1+n1:)
+    else
+      line = line(1:ix1-1) // line(ix1+n1:)
+    endif
+    return
   endif
+
+  !
+
+  if (present(sub1)) then
+    line = line(1:ix1-1) // sub1 // line(ix1+n1:ix2-1) // sub2 // line(ix2+n2:)    
+  else
+    line = line(1:ix1-1) // line(ix1+n1:ix2-1) // line(ix2+n2:)
+  endif
+
 enddo
 
 end subroutine
@@ -186,7 +229,7 @@ subroutine eliminate_inbetween (str1, str2, pad_with_blanks)
 character(*) str1, str2
 character(100) :: blank = ''
 
-integer n1, n2
+integer n1, n2, ix1, ix2
 
 logical pad_with_blanks
 
@@ -196,14 +239,16 @@ n1 = len(str1)
 n2 = len(str2)
 
 do
-  ix = index (line, str1)
-  if (ix == 0) return
-  ix2 = index (line(ix+1:), str2) + ix
-  if (ix2 == 0) return
+  ix1 = index (line, str1)
+  if (ix1 == 0) return
+
+  ix2 = index (line(ix1+1:), str2) + ix1
+  if (ix2 == ix1) return
+
   if (pad_with_blanks) then
-    line = line(1:ix-1) // blank(:ix2+n2-ix) // line(ix2+n2:)
+    line = line(1:ix1-1) // blank(:ix2+n2-ix1) // line(ix2+n2:)
   else
-    line = line(1:ix-1) // line(ix2+n2:)
+    line = line(1:ix1-1) // line(ix2+n2:)
   endif
 enddo
 

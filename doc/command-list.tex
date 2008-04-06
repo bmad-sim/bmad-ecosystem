@@ -285,7 +285,7 @@ matrix needed for the \vn{lm} optimizer.
 
 Format:
 \begin{example}
-  flatten <optimizer>
+  flatten \{<optimizer>\}
 \end{example}
 
 \vskip 0.2in
@@ -298,16 +298,23 @@ same as \vn{run}. See the \vn{run} command for more details.
 
 Format:
 \begin{example}
-  help <command>
+  help \{<command>\} \{<subcommand>\}
 \end{example}
 
 \vskip 0.2in 
-\vn{Help} gives help on \tao commands. The environmental
+The \vn{help} command gives help on \tao commands. The environmental
 variable \vn{TAO_DIR} must be defined so \tao can find any help files.
+
+The \vn{help} command without any arguments gives a list of all commands.
+Some commands, like \vn{show}, are so large that help on these commands
+is divided up by their subcommand.
 
 Examples:
 \begin{example}
-  help run   ! Gives help on the run command
+  help            ! Gives list of commands.
+  help run        ! Gives help on the run command.
+  help show       ! Help on the show command.
+  help show alias ! Help on the show alias command.
 \end{example}
 
 %% history --------------------------------------------------------------
@@ -651,7 +658,8 @@ Format:
   set graph <graph> <component> = <value>
   set lattice <component> = <value>
   set plot_page <component> = <value1> \{<value2>\}
-  set universe <universe> <on/off> <recalculate>
+  set universe <what_universe> on/off 
+  set universe <what_universe> recalculate
   set var <var_name>|<component> = <value>
 \end{example}
 
@@ -663,6 +671,17 @@ lattice use the \vn{change} command.
 To apply a set to all data or variable classes use ``*''
 in place of \vn{<data_name>} or \vn{var_name}.
 
+% Use the command:
+%   help set <what>
+% to obtain more information on a particular set subtopic. Example:
+%   help set plot
+
+%% set curve --------------------------------------------------------------
+
+\begin{description}
+
+  \item[set curve <curve> <component> = <value>]
+
 For \vn{set curve}, the \vn{<component>}s that can be set are:
 \begin{example}
   ele_ref_name   ! Name of reference element
@@ -670,6 +689,15 @@ For \vn{set curve}, the \vn{<component>}s that can be set are:
   ix_universe    ! Universe index.
   symbol_every   ! Symbol skip number.
 \end{example}
+
+Examples:
+\begin{example}
+  set curve top.x.c1 ix_universe = 2  ! Set universe number for curve
+\end{example}
+
+%% set data --------------------------------------------------------------
+
+  \item[set data <data_name>|<component> = <value>]
 
 For \vn{set data}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -690,7 +718,29 @@ Besides a numeric value \vn{<value>} can be any of the above along with:
 \begin{example}
   meas        ! Measured data value.
 \end{example}
-\vskip 0.2in
+
+Examples:
+\begin{example}
+  set data *|ref = *|meas       ! Set ref data = measured in current universe.
+  set data 2@orbit.x|base = 2@orbit.x|model 
+                                ! Set the base orbit.x in universe 2 to model
+\end{example}
+
+%% set global --------------------------------------------------------------
+
+  \item[set global <component> = <value>]
+
+For \vn{set global}: The \vn{show global} command will give a list of 
+\vn{<component>}s.
+
+Example:
+\begin{example}
+  set global n_opti_loops = 30  ! Set number of optimization cycles
+\end{example}
+
+%% set graph --------------------------------------------------------------
+
+  \item[set graph <graph> <component> = <value>]
 
 For \vn{set graph}, the \vn{component}s that can be set are:
 \begin{example}
@@ -703,11 +753,16 @@ For \vn{set graph}, the \vn{component}s that can be set are:
   margin%y1   = <number>
   margin%y2   = <number>
 \end{example}
-\vskip 0.2in
 
-For \vn{set global}: The \vn{show global} command will give a list of 
-\vn{<component>}s.
-\vskip 0.2in
+Example:
+\begin{example}
+  set graph orbit.x who(1) = model      ! Plot the model orbit in the graph
+  set graph orbit.x who(2) = design, -1 ! With the previous line: Plot model - design 
+\end{example}
+
+%% set lattice --------------------------------------------------------------
+
+  \item[set lattice <component> = <value>]
 
 For \vn{set lattice}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -720,7 +775,15 @@ For \vn{set lattice}, the \vn{<component>}s that can be set are:
   base        ! base lattice value.
   design      ! design lattice value
 \end{example}
-\vskip 0.2in
+
+Example:
+\begin{example}
+  set lattice *@*|model = *@*|design    ! Reset model to the design in all universes
+\end{example}
+
+%% set plot --------------------------------------------------------------
+
+  \item[set plot_page <component> = <value1> \{<value2>\}]
 
 For \vn{set plot_page}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -731,7 +794,40 @@ For \vn{set plot_page}, the \vn{<component>}s that can be set are:
 The \vn{subtitle_loc} component can be used to place the subtitle anywhere on
 the plot page. This can be useful for referencing a noteworthy part of a graph
 data.
-\vskip 0.2in
+
+Example:
+\begin{example}
+  set plot title = 'XYZ'  ! Set plot page title string
+\end{example}
+
+%% set universe --------------------------------------------------------------
+
+  \item[set universe <what_universe> on/off \\
+        set universe <what_universe> recalculate]
+\vn{set universe} will turn the specified universe(s) on or
+off. Turning a universe off is useful to speed up lattice calculations
+when this universe is not being used. Or, if many changes are to be
+performed to a universe and there is no need to do any lattice
+calculations between commands then turning off all universes will
+speed things up. To specify the currently viewed universe, you can use
+\vn{-1} as an index.  To specify all universes, use 
+\vn{*}.  
+
+If optimizing while one or more universes are turned off, the
+variables associated with that universe will still be included in the
+merit function but not the data for that universe. The variables will
+still vary in the turned off universe.
+
+Example:
+\begin{example}
+  set universe 1 off
+  set universe -1 on    ! Set on currently viewed universe.
+  set universe * recalc ! Recalculate in all universes.
+\end{example}
+
+%% set var --------------------------------------------------------------
+
+  \item[set var <var_name>|<component> = <value>]
 
 For \vn{set var}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -749,52 +845,23 @@ For \vn{set var}, the \vn{<component>}s that can be set are:
   step        ! Sets what a "small" variation of the variable is.
   merit_type  ! How merit contribution is calculated.
 \end{example}
-\vskip 0.2in
 
-\vn{set universe} will turn the specified universe on or off. Turning
-a universe off is useful to speed up lattice calculations when this
-universe is not being used. Or, if many changes are to be performed to
-a universe and there is no need to do any lattice calculations between
-commands then turning off all universes will speed things up. To turn off 
-the currently viewed universe use the command \vn{set universe 0 off}. 
-To turn off all universes use the command \vn{set universe * off}. 
-This flag only affects the lattice calculation. 
-Issuing \vn{change, use, veto,} etc...  commands to a turned off universe
-will still affect the
-universe, however any lattice calculations will not be performed until
-the universe is turned back on.  To recalculate the turned on lattices
-when issuing a \vn{set universe} command then use \vn{set universe
-<universe> <on/off> recalc}. Otherwise, no lattice calculation will
-be performed until an appropriate command is called afterwards.  If
-optimizing while one or more universes are turned off then the
-variables associated with that universe will still be included in the
-merit function but not the data for that universe. The variables will
-still vary in the turned off universe.
-
-Examples:
+Example:
 \begin{example}
-  set data *|ref = *|meas               ! Set ref data = measured in current universe.
-  set data 2@orbit.x|base = 2@orbit.x|model 
-                                        ! Set the base orbit.x in universe 2 to model
-  set graph orbit.x who(1) = model      ! Plot the model orbit in the graph
-  set graph orbit.x who(2) = design, -1 ! With the previous line: Plot model - design 
   set var quad\_k1 weight = 0.1         ! Set quad\_k1 weights. 
-  set lattice *@*|model = *@*|design    ! Reset model to the design in all universes
 \end{example}
+
+\end{description}
 
 %% show --------------------------------------------------------------
 \section{show}\index{Commands!show}
 \label{s:show}
 
-The \vn{show} command has an optional argument to write the results to a file.
-The format for this is:
-\begin{example}
-  show -write <file_name> <rest_of_the_command>
-\end{example}
-
 Format:
 \begin{example}
-  show alias 
+  show -append <file_name> ...
+  show -write <file_name> ...
+  show alias
   show beam \{<element_index>\}
   show constraints
   show curve \{-symbol\} \{-line\} <curve_name> 
@@ -818,39 +885,57 @@ Format:
   show universe \{universe_number\}
   show variable \{<var_name> <locations>\}
   show variable <universe_number>@
-  show -write <file_name> ...
-  show -append <file_name> ...
 \end{example}
 
 \vskip 0.2in 
-\vn{Show} is used to display various information about
-the state of \tao. 
+\vn{Show} is used to display various about the state of \tao. 
 
-The \vn{show -write}  and \vn{show -append} commands write the results of the
-\vn{show} command to a file as well as printing the information at the terminal.
-The \vn{show -append} command will appended to the output file when \vn{show
--append} is used multiple times. The \vn{show -write} command 
-will first erase the conents of
-an output file. If separate files are desired then if
-\vn{global%write_file} has a \vn{*} character in it, a three digit
-number is substituted for the \vn{*}. The value of the number starts
-at \vn{001} and increases by 1 each time \vn{show -write} is used.
+The \vn{show} command has an optional argument to write the results to a file.
+as well as printing the information at the terminal. The format for this is:
+\begin{example}
+  show -write <file_name> <rest_of_the_command>
+  show -append <file_name> <rest_of_the_command>
+\end{example}
+The \vn{show -append} command will appended to the output file. The
+\vn{show -write} command will first erase the conents of the output
+file. If \vn{global%write_file} has a \vn{*} character in it, a three
+digit number is substituted for the \vn{*}. The value of the number
+starts at \vn{001} and increases by 1 each time \vn{show -write} is
+used.
+Example:
+\begin{example}
+  show -write orb.dat orbit    ! Write orbit data to the file "orb.dat".
+\end{example}
+
+% Use the command:
+%   help show <what>
+% to obtain more information on a particular show subtopic. Example:
+%   help show plot
+
+%% show alias --------------------------------------------------------------
 
 \begin{description}
+
   \item[show alias]
 Shows a list of defined aliases. See the \vn{alias} command for more
 details.
 
-  \item[show beam]
+%% show beam --------------------------------------------------------------
+
+  \item[show beam \{<element\_index>\}]
 If \vn{<element_index>} is absent, \vn{show beam} shows parameters 
 used with beam tracking including the number of particles in a bunch, etc.
 If \vn{<element_index>} is present, \vn{show beam} will show 
 beam parameters at the selected element. Also see \vn{show particle}.
 
+%% show constraints --------------------------------------------------------------
+
   \item[show constraints]
 Lists data and variable constraints.
 
-  \item[show curve]
+%% show curve --------------------------------------------------------------
+
+  \item[show curve \{-symbol\} \{-line\} <curve_name>]
 Show information on a particular curve of a particular plot. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names.  Use
 \vn{show plot} to get a list of plot names. The \vn{-symbol} switch
@@ -867,15 +952,42 @@ multiple curves, each curve must have the same number of data points
 and it will be assumed that the horizontal data values are the same
 for all curves so the horizontal data values will be put in column 1.
 
-  \item[show data]
+Example:
+\begin{example}
+  show curve r2.g1.c3         ! Show the attributes of a curve named "c3" which is 
+                              !   in the graph "g1" which is plotted in region "r2".
+\end{example}
+
+%% show data --------------------------------------------------------------
+
+  \item[show data \{<data_name>\}]
 Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
 present shown is a list of \vn{d2_data} names.
 
-  \item[show derivative]
+Examples:
+\begin{example}
+  show data                   ! lists d2_data arrays.
+  show data orbit             ! Show orbit data.
+  show data orbit.x           ! list all orbit.x data elements
+  show data orbit.x[35]       ! Show details for orbit.x element 35
+  show data orbit.x[35,86:95] ! list orbit.x elements 35 and 86 through 95
+  show data orbit.x[1:100:5]  ! list every fifth orbit.x element between 1 and 100  
+\end{example}
+
+%% show derivative --------------------------------------------------------------
+
+  \item[show derivative <data\_name(s)> <var\_name(s)>]
 Shows the derivative dModel\_Value/dVariable. This derivative is used
 by the optimizer \vn{lm}.
 
-  \item[show element <name>]
+Example:
+\begin{example}
+  show deriv orbit.x[23] k1[34] ! Show dModel_Value/dVariable Derivative.
+\end{example}
+
+%% show element --------------------------------------------------------------
+
+  \item[show element \{-taylor\} \{-wig\_terms\} <name>]
 This shows information on lattice elements. \vn{<name>} is in
 \vn{Class:Name} syntax as explained in \sref{s:class:name}. If
 \vn{<name>} contains a wild card or a class name then a list of
@@ -890,19 +1002,35 @@ with an element, if there is one, is also displayed.  Similarly, use
 the \vn{-wig_terms} switch to display any associated wiggler terms for
 a \vn{map_type} \vn{wiggler} element.
 
+Example:
+\begin{example}
+  show ele q*                 ! list all elements with names beginning with "q".
+  show ele q10w               ! Show a particular lattice element
+  show ele 105                ! Show element #105 in the lattice
+\end{example}
+
+%% show global --------------------------------------------------------------
+
   \item[show global]
 Shows information on the global parameter structure (\sref{s:globals}).
 
-  \item[show graph]
+%% show graph --------------------------------------------------------------
+
+  \item[show graph <graph_name>]
 Show information on a particular graph of a particular plot. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names.
 Use \vn{show plot} to get a list of plot names.
+
+%% show hom --------------------------------------------------------------
 
   \item[show hom]
 Shows long--range higher order mode information for linac accelerating
 cavities.
 
-  \item[show lattice]
+%% show lattice --------------------------------------------------------------
+
+  \item[show lattice \{-no\_header\} \{-middle\} \{-custom <file\_name>\} \\ 
+        \hspace*{2in} \{-s\} \{-elements <name>\} \{<location\_range>\}]
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
@@ -993,23 +1121,33 @@ column title can be split into two lines using \vn{"|"} as a separator.
 In the example above, The column title corresponding to \vn{"Orbit_x| (mm)"} 
 is:
 \begin{example}
-  Orbit_x
-   (mm)
+  show lattice 50:100         ! Show lattice elements with index 50 through 100
 \end{example}
+
+%% show optimizer --------------------------------------------------------------
 
   \item[show optimizer]
 Shows information pertinent to optimization: Data and variables used, etc.
+
+%% show opt_vars --------------------------------------------------------------
 
   \item[show opt\_vars]
 Shows the settings of the variables used in the optimization using the 
 Bmad standard lattice input format.
 
-  \item[show particle]
+%% show particle --------------------------------------------------------------
+
+  \item[show particle <particle_index>]
 \vn{show particle lost} shows which particles are lost during beam
 tracking. \vn{show particle <index>} shows information on the particle
 with the given index. Also see \vn{show beam}.
 
-  \item[show plot]
+%% show plot --------------------------------------------------------------
+
+  \item[show plot \\
+        show plot \{<template_plot_name>\} \\
+        show plot \{<plot_region_name>\} \\
+        show plot -shapes]
 A simple \vn{show plot} displays which templates are being plotted and
 in which regions and also all available templates. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names. A
@@ -1019,46 +1157,37 @@ plot.
 If the \vn{-shapes} switch is present, the shapes used in drawing 
 \vn{floor_plan} or \vn{lat_layout} plots are printed.
 
+%% show top10 --------------------------------------------------------------
+
   \item[show top10]
 Shows top contributors to the merit function, dMerit/dVariable
 derivatives, and Largest changes in variable value.
 
-  \item[show universe]
+%% show universe --------------------------------------------------------------
+
+  \item[show universe \{universe_number\}]
 Shows various parameters associated with a given universe. If no
 universe is specified then the current viewed universe is
 used. Parameters displayed include tune, chromaticity, radiation
 integrals, etc.
 
-  \item[show variable]
+%% show variable --------------------------------------------------------------
+
+  \item[show variable \{<var_name> <locations>\} \\
+        show variable <universe_number>@]
 Shows variable information. If \vn{<var_name>} \vn{<locations>} is not
 present shown is a list of \vn{v1_var} classes. If \vn{<var_name>} is
 \vn{*} then the variables will be printed in Bmad lattice format.
 To show variables associated with the \vn{n}th universe use
 the format: \vn{show var n@}.
 
-\end{description}
-
 Examples:
 \begin{example}
-  show data orbit             ! Show orbit data.
-  show -file orb.dat orbit    ! Write orbit data to the file "orb.dat".
-  show curve r2.g1.c3         ! Show the attributes of a curve named "c3" which is 
-                              !   in the graph "g1" which is plotted in region "r2".
-  show data                   ! lists d2_data arrays.
-  show -write abc.dat data    ! Same as previous except results are also written
-                              !   to the file abc.dat.
-  show data orbit.x           ! list all orbit.x data elements
-  show data orbit.x[35]       ! Show details for orbit.x element 35
-  show data orbit.x[35,86:95] ! list orbit.x elements 35 and 86 through 95
-  show data orbit.x[1:100:5]  ! list every fifth orbit.x element between 1 and 100  
-  show deriv orbit.x[23] k1[34] ! Show dModel_Value/dVariable Derivative.
-  show ele q*                 ! list all elements with names beginning with "q".
-  show ele q10w               ! Show a particular lattice element
-  show ele 105                ! Show element #105 in the lattice
-  show lattice 50:100         ! Show lattice elements with index 50 through 100
-  show var *                  ! list variables in Bmad lattice format.
-  show var 2@                 ! List all variables that control attributes in universe 2.
+  show var *         ! list variables in Bmad lattice format.
+  show var 2@        ! List all variables that control attributes in universe 2.
 \end{example}
+
+\end{description}
 
 %% single-mode --------------------------------------------------------------
 \section{single-mode}\index{Commands!single-mode}

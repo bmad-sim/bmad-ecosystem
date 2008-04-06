@@ -191,8 +191,8 @@ case ('exit', 'quit')
 
 case ('help')
 
-  call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
-  call tao_help (cmd_word(1))
+  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
+  call tao_help (cmd_word(1), cmd_word(2))
   return
 
 !--------------------------------
@@ -389,13 +389,8 @@ case ('set')
     call tao_set_plot_page_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
   case ('graph')
     call tao_set_graph_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
-  case ('universe')
-    
-    if (cmd_word(4) .eq. "recalc") then
-      call tao_set_uni_cmd (cmd_word(2), cmd_word(3), .true.)
-    else
-      call tao_set_uni_cmd (cmd_word(2), cmd_word(3), .false.)
-    endif
+  case ('universe')    
+    call tao_set_uni_cmd (cmd_word(2), cmd_word(3))
   end select
 
 !--------------------------------

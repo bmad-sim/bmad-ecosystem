@@ -70,7 +70,7 @@ enddo
 select case (char)
 
 case ('?')
-    call tao_help ('keys')
+    call tao_help ('keys', '')
 
 ! 'g' Go run optimizer.
 

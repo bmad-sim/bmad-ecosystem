@@ -756,62 +756,64 @@ end subroutine tao_set_data_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_uni_cmd (uni, on_off, recalc)
+! Subroutine tao_set_uni_cmd (uni, what)
 !
 ! turns a universe of or off
 !
 ! Input:
 !  uni       -- Character(*): which universe; 0 => current viewed universe
-!  on_off    -- Character(*): "on" or "off"
-!  recalc    -- Logical: Recalculate lattices
+!  what      -- Character(*): "on", "off", or "recalculate"
 !
 ! Output:
 !  s%u(uni)%is_on
 !
 !-
 
-subroutine tao_set_uni_cmd (uni, on_off, recalc)
+subroutine tao_set_uni_cmd (uni, what)
 
 implicit none
 
 integer i, n_uni
 
-character(*) uni, on_off
+character(*) uni, what
 character(20) :: r_name = "tao_set_universe_cmd"
 
-logical is_on, recalc, err
+logical is_on, err, recalc
 
 !
 
-call str_upcase (on_off, on_off)
-
-if (on_off(1:2) == 'ON') then
+recalc = .false.
+if (what(1:2) == 'on') then
   is_on = .true.
-elseif (on_off(1:3) == 'OFF') then
+  recalc = .true.
+elseif (what(1:3) == 'off') then
   is_on = .false.
+elseif (index('recalculate', trim(what)) == 1) then
+  recalc = .true.
 else
-  call out_io (s_warn$, r_name, "Syntax Error: Can only turn universe 'on' or 'off'")
+  call out_io (s_error$, r_name, "Choices are: 'on', 'off', or 'recalculate'")
   return
 endif
 
 !
 
 if (uni == '*') then
-  call out_io (s_blank$, r_name, "Setting all universes to: " // on_off)
+  call out_io (s_blank$, r_name, "Setting all universes to: " // on_off_logic(is_on))
   s%u(:)%is_on = is_on
 else
   call tao_to_int (uni, n_uni, err)
   if (err) return
-  if (n_uni < 0 .or. n_uni > ubound(s%u, 1)) then
+  if (n_uni < -1 .or. n_uni > ubound(s%u, 1)) then
     call out_io (s_warn$, r_name, "Invalid Universe specifier")
     return 
   endif
-  if (n_uni == 0) n_uni = s%global%u_view
+  n_uni = tao_universe_number (n_uni)
   s%u(n_uni)%is_on = is_on
-  call out_io (s_blank$, r_name, "Setting universe \i0\ to: " // on_off, n_uni)
+  call out_io (s_blank$, r_name, "Setting universe \i0\ to: " // on_off_logic(is_on), n_uni)
 endif
 
 ! make sure lattice calculation is up to date if turning lattice on
+
 call tao_set_data_useit_opt()
 if (recalc) tao_com%lattice_recalc = .true.
   
