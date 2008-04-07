@@ -513,20 +513,24 @@ The \vni{qp_axis_struct} defines how axes are drawn
 \begin{example}
   type qp_axis_struct
     character(80) label       ! Axis label.
-    real(rp) min              ! Axis minimum number.
-    real(rp) max              ! Axis maximum number.
-    real(rp) number_offset    ! Offset of numbering from the axis line.
-    real(rp) label_offset     ! Offset of the label from the numbering.
-    real(rp) major_tick_len   ! Length of the major ticks in inches.
-    real(rp) minor_tick_len   ! Length of the minor ticks in inches.
-    integer major_div         ! Number of major divisions.
-    integer minor_div         ! Number of minor divisions.
-    integer minor_div_max     ! Maximum number for auto choose.
-    integer places            ! Places after the decimal point.
+    real(rp) min              ! Axis range left/bottom number.
+    real(rp) max              ! Axis range right/top number.
+    real(rp) number_offset    ! Offset in inches of numbering from the axis line. 
+                              !  Default = 0.05
+    real(rp) label_offset     ! Offset in inches of the label from the numbering.
+                              !  Default = 0.05
+    real(rp) major_tick_len   ! Length of the major ticks in inches. Def = 0.10
+    real(rp) minor_tick_len   ! Length of the minor ticks in inches. Def = 0.06
+    integer major_div         ! Number of major divisions. Default = 5
+    integer minor_div         ! Number of minor divisions. 0 = auto-choose. Default = 0
+    integer minor_div_max     ! Maximum number for auto choose. Default = 5
+    integer places            ! Places after the decimal point. Default = 0
     character(16) type        ! For log scales. Not yet implemented.
     integer tick_side         ! +1 = draw to the inside, 0 = both, -1 = outside.
+                              !  Default = +1
     integer number_side       ! +1 = draw to the inside, -1 = outside.
-    logical draw_label        ! Draw the label?
-    logical draw_numbers      ! Draw the numbering?
+                              !  Default = -1
+    logical draw_label        ! Draw the label? Default = True.
+    logical draw_numbers      ! Draw the numbering? Default = True.
   end type
 \end{example}
