@@ -68,6 +68,7 @@ function attribute_name (ele, ix_att) result (at_name)
         attrib_array(i, y_offset_calib$) = 'Y_OFFSET_CALIB'
         attrib_array(i, n_sample$)       = 'N_SAMPLE'
         attrib_array(i, de_eta_meas$)    = 'DE_ETA_MEAS'
+        attrib_array(i, osc_amplitude$)  = 'OSC_AMPLITUDE'
       endif
 
       if (i == def_beam$)       cycle
