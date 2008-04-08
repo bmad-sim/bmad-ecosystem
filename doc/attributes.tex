@@ -502,6 +502,7 @@ default value of $r_0$, if the \vn{radius} is not given, is 1.0.
 \index{X_gain_calib}\index{Y_gain_calib}\index{Crunch_calib}
 \index{X_offset}\index{Y_offset}\index{Tilt}
 \index{X_offset_calib}\index{Y_offset_calib}\index{Tilt_calib}
+\index{DE_eta_meas}\index{N_sample}\index{Osc_amplitude}
 
 \vn{Instrument}, \vn{Monitor}, and \vn{Marker} elements have special
 attributes to describe orbit, betatron phase, dispersion and coupling
@@ -528,13 +529,20 @@ measurements. These attributes are:
 \end{tabular}
 \hfill\break
 A program can use these quantities to calculate ``measured'' values from the
-``actual'' (that is, as calculated from a model lattice). For orbits, the
-relationship between measured position $(x, y)_m$ and actual position $(x, y)_a$ is
+``laboritory'' values. Here, ``laboratory'' means as calculated from some model lattice.
+
+%-----------------------------------------------------------------
+\subsection{Orbit Measurement}
+\index{Orbit!measurement}
+
+For orbits, the
+relationship between measured position $(x, y)_m$ and laboratory position 
+$(x, y)_{lab}$ is
 \Begineq
   \begin{pmatrix}
     x \\
     y
-  \end{pmatrix}_{\! m}
+  \end{pmatrix}_{\! \mss{m}}
   =
   n_f \, 
   \begin{pmatrix}
@@ -542,21 +550,19 @@ relationship between measured position $(x, y)_m$ and actual position $(x, y)_a$
     r_2
   \end{pmatrix}
   +
-  \begin{pmatrix}
-    m_{11} & m_{12} \\
-    m_{21} & m_{22} 
-  \end{pmatrix}
+  \bM_m \, 
   \left[
   \begin{pmatrix}
     x \\
     y
-  \end{pmatrix}_{\! a}
+  \end{pmatrix}_{\! lab}
   -
   \begin{pmatrix}
     x \\
     y
   \end{pmatrix}_{\! 0}
   \right]
+  \label{xynrr}
 \Endeq
 where $r_1$ and $r_2$ are Gaussian random numbers whose distribution is
 centered at zero and has unit width. Additionally
@@ -573,10 +579,7 @@ centered at zero and has unit width. Additionally
 \Endeq
 and 
 \Begineq
-  \begin{pmatrix}
-    m_{11} & m_{12} \\
-    m_{21} & m_{22} 
-  \end{pmatrix}
+  \bM_m
   =
   \begin{pmatrix}
      g_x \, \cos (d\theta + d\psi) & g_x \, \sin (d\theta + d\psi) \\
@@ -593,8 +596,12 @@ where
 The calibration variables are useful for simulating the process where
 a measurement or series of measurements is analyzed to find the values of
 the error parameters. In this case, the measured
-position $(x, y)_m$ thus would represents the beam position corrected for
+position $(x, y)_m$ prepresents the beam position corrected for
 ``known'' offsets, tilts, and gain errors.
+
+%-----------------------------------------------------------------
+\subsection{Dispersion Measurement}
+\label{Dispersion!measurement}
 
 A dispersion measurement is considered to be the result of measuring the
 orbit at two different energies. The measured values are then
@@ -602,7 +609,7 @@ orbit at two different energies. The measured values are then
   \begin{pmatrix}
     \eta_x \\
     \eta_y
-  \end{pmatrix}_{\! m}
+  \end{pmatrix}_{\! \mss{m}}
   =
   \frac{\sqrt{2} \, n_f}{dE/E} \, 
   \begin{pmatrix}
@@ -610,41 +617,171 @@ orbit at two different energies. The measured values are then
     r_2
   \end{pmatrix}
   +
-  \begin{pmatrix}
-    m_{11} & m_{12} \\
-    m_{21} & m_{22} 
-  \end{pmatrix}
+  \bM_m \, 
   \begin{pmatrix}
     \eta_x \\
     \eta_y
-  \end{pmatrix}_{\! a}
+  \end{pmatrix}_{\! lab}
 \Endeq
 The factor of $\sqrt{2}$ comes from the fact that there are two measurements.
 
-The phase and coupling measurement is considered to be the result of
+%-----------------------------------------------------------------
+\subsection{Coupling Measurement}
+\label{Coupling!measurement}
+
+The coupling measurement is considered to be the result of
 measuring the beam at a detector over $N_s$ turns while the beam oscillates
-at a normal mode frequency with some amplitude $A_{\mss{osc}}$. The measured betatron
-phase $\phi$ is then
+at a normal mode frequency with some amplitude $A_{\mss{osc}}$. 
+The measured coupling is computed as follows. First, consider
+excitation of the $a$-mode which can be written in the form:
+\Begineq
+  \begin{pmatrix}
+    x_i \\
+    y_i
+  \end{pmatrix}_{\! \mss{lab}}
+  =
+  A_{\mss{osc}} \,
+  \begin{pmatrix}
+    \cos \phi_i \\
+    K_{a1} \, \cos \phi_i + K_{a2} \sin \phi_i
+  \end{pmatrix}_{\! \mss{lab}}
+  \label{xyapk}
+\Endeq
+$i$ is the turn number and $\phi_i$ is the oscillation phase on the $i$\Th turn.
+The coefficients $K_{a1}$ and $K_{a2}$ are related to the coupling $\Cbar$ via
+David and Rubin\cite{b:coupling} Eq.~54:
+\begin{alignat}{1}
+  K_{a1} &= \frac{-\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{22} \CRNO
+  K_{a2} &= \frac{\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{12}
+  \label{kbgbc}
+\end{alignat}
+To apply the measurement errors, consider the general case where the beam's
+oscillations are split into two components: One component being in-phase
+with some reference oscillator (which is oscillating with the same frequency as the beam)
+and a component oscillating out-of-phase:
+\Begineq
+  \begin{pmatrix}
+    x_i \\
+    y_i
+  \end{pmatrix}_{\! \mss{lab}}
+  =
+  \begin{pmatrix}
+    k_{x1a} \\
+    k_{y1a}
+  \end{pmatrix}_{\! \mss{lab}}
+  \, A_{\mss{osc}} \, \cos (\phi_i + d\phi) +
+  \begin{pmatrix}
+    k_{x2a} \\
+    k_{y2a}
+  \end{pmatrix}_{\! \mss{lab}}
+  \, A_{\mss{osc}} \, \sin (\phi_i + d\phi)
+  \label{xykkpp}
+\Endeq
+where $d\phi$ is the phase of the reference oscillator with respect to the beam. 
+Compairing \Eq{xyapk} with \Eq{xykkpp} gives the relation
+\begin{alignat}{1}
+  K_{a1} &= \frac{k_{x1a} \, k_{y1a} + k_{x2a} \, k_{y2a}}{k^2_{x1a} + k^2_{x2a}} \CRNO
+  K_{a2} &= \frac{k_{x1a} \, k_{y2a} - k_{x2a} \, k_{y1a}}{k^2_{x1a} + k^2_{x2a}} 
+  \label{kkkkkk}
+\end{alignat}
+This equation is general and can be applied in either the lab or measurement frame 
+of reference.
+\Eq{xynrr} can be used to transform $(x_i, y_i)_{\mss{lab}}$ in \Eq{xyapk}
+to the measurement frame of reference. Only the oscillating part is of interest.
+Averaging over many turns gives
+\Begineq
+  \begin{pmatrix}
+    k_{x1} \\
+    k_{y1}
+  \end{pmatrix}_{\! \mss{meas}}
+  =  
+  \bM_m \, 
+  \begin{pmatrix}
+    k_{x1} \\
+    k_{y1}
+  \end{pmatrix}_{\! \mss{lab}}
+  \comma \qquad
+  \begin{pmatrix}
+    k_{x2} \\
+    k_{y2}
+  \end{pmatrix}_{\! \mss{meas}}
+  =  
+  \bM_m \, 
+  \begin{pmatrix}
+    k_{x2} \\
+    k_{y2}
+  \end{pmatrix}_{\! \mss{lab}}
+  \label{kkmkk}
+\Endeq
+This neglects the measurement noise. A calculation shows that the noise gives a 
+contribution to the measured $K_{a1}$ and $K_{a2}$ of
+\Begineq
+  K_{a1} \rightarrow K_{a1} + r_1 \, \frac{n_f}{N_s \, A_{\mss{osc}}} 
+  \comma \qquad
+  K_{a2} \rightarrow K_{a2} + r_2 \, \frac{n_f}{N_s \, A_{\mss{osc}}} 
+  \label{kkrnn}
+\Endeq
+Using the above equations,
+the transformation from the laboratory coupling to measured coupling
+is as follows: From a knowledge of the 
+laboratory $\Cbar$ and Twiss values, the laboratory $K_{a1}$ and $K_{a2}$ can be calculated
+via \Eq{kbgbc}. Since the value of $d\phi$ does not affect the final answer, $d\phi$ in 
+\Eq{xykkpp} is choisen to be zero. 
+Compairing this to \Eq{xyapk} gives
+\Begineq
+  \begin{pmatrix}
+    k_{x1a} \\
+    k_{y1a}
+  \end{pmatrix}_{\mss{lab}}
+  =
+  \begin{pmatrix}
+    1 \\
+    K_{a1}
+  \end{pmatrix}_{\mss{lab}}
+  \comma \qquad
+  \begin{pmatrix}
+    k_{x2a} \\
+    k_{y2a}
+  \end{pmatrix}_{\mss{lab}}
+  =
+  \begin{pmatrix}
+    0 \\
+    K_{a2}
+  \end{pmatrix}_{\mss{lab}}
+\Endeq
+Now \Eq{kkmkk} is used to convert to the measured $k$'s and \Eq{kkkkkk} then gives the measured 
+$K_{a1}$ and $K_{a2}$. Finally, Applying \Eq{kkrnn} and then \Eq{kbgbc} 
+gives the measured $\Cbar_{22}$
+and $\Cbar_{12}$. A similar procedure can be applied to $b$-mode oscillations to calculate 
+values for the measured $\Cbar_{11}$ and $\Cbar_{12}$.
+
+%-----------------------------------------------------------------
+\subsection{Phase Measurement}
+\label{Phase!measurement}
+
+Like the coupling measurement, the betatron phase measurement is considered to be the result of
+measuring the beam at a detector over $N_s$ turns while the beam oscillates
+at a normal mode frequency with some amplitude $A_{\mss{osc}}$. 
+Following the analysis of the previous subsection, the phase $\phi$ is
 \Begineq
   \begin{pmatrix}
     \phi_a \\
     \phi_b
-  \end{pmatrix}_{\! m}
+  \end{pmatrix}_{\! \mss{meas}}
   =
-  \frac{n_f}{N_s \, A_{\mss{osc}}} \, 
-  \begin{pmatrix}
-    r_a \\ 
-    r_b
-  \end{pmatrix}
-  +
   \begin{pmatrix}
     \phi_a \\
     \phi_b
-  \end{pmatrix}_{\! a}
+  \end{pmatrix}_{\! lab}
+  +
+  \frac{n_f}{N_s \, A_{\mss{osc}}} \, 
+  \begin{pmatrix}
+    r_1 \\ 
+    r_2
+  \end{pmatrix}
+  +
+  \begin{pmatrix}
+    \tan^{-1} \left( \frac{k_{x2a}}{k_{x1a}} \right) \\
+    \tan^{-1} \left( \frac{k_{y2b}}{k_{y1b}} \right)
+  \end{pmatrix}_{\! \mss{meas}}
 \Endeq
-the measured phases are independent of the gain, offset and tilt errors.
-In practice this results in a very clean measurement.
-
-The measured coupling is given by
-
-
