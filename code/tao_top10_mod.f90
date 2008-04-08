@@ -365,6 +365,26 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
+!+
+! Subroutine tao_var_write (out_file, good_opt_vars_only)
+!
+! Routine to write the optimized variables. 
+! One file will be created for each universe.
+! The created file will have three sections:
+!   1) The variable values
+!   2) The list of constraints.
+!   3) A list of the top 10 constraints.
+! If out_file = '' the information will be dumped to the terminal.
+! In this case, only the variable values will be printed.
+!
+! Input:
+!   out_file    -- Character(*): Name of output file. 
+!                  If blank. Ouput to the terminal.
+!   good_opt_vars_only 
+!               -- Logical, optional: Write only the variables used in
+!                  the optimization. Default is False.
+!
+!-
 
 subroutine tao_var_write (out_file, good_opt_vars_only)
 
@@ -376,12 +396,17 @@ character(*) out_file
 character(200) file_name, str(1)
 character(20) :: r_name = 'tao_var_write'
 logical, optional :: good_opt_vars_only
-logical printed
 
-!
+! Output to terminal?
 
-ix_hash = index (out_file, '#')
-printed = .false.
+if (out_file == '') then
+  call print_var ()
+  return
+endif
+
+! Output to file
+
+iu = lunget()
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
@@ -391,42 +416,48 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (ix_hash /= 0) write (file_name, '(a, i0, a)') &
                   file_name(1:ix_hash-1), i, trim(file_name(ix_hash+1:))
 
-  if (file_name == ' ') then
-    iu = 0
-  else
-    iu = lunget()
-    open (iu, file = file_name, carriagecontrol = 'list', recl = 100, iostat = ios)
-    if (ios /= 0) then
-      call out_io (s_error$, r_name, &
-            'ERROR IN VAR_WRITE: CANNOT OPEN FILE: ' // file_name)
-      return
-    endif
+  open (iu, file = file_name, carriagecontrol = 'list', recl = 100, iostat = ios)
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, &
+                          'ERROR IN VAR_WRITE: CANNOT OPEN FILE: ' // file_name)
+    return
   endif
 
-  ! If printing then only write vars once.
+  call print_var ()
+  call tao_write_out (iu, (/ '        ', 'end_file', '        ' /), 3)
+  call tao_show_constraints (iu, 'TOP10')
+  if (size(s%u) == 1) call tao_show_constraints (iu, 'ALL')
 
-  if (iu == 0 .and. printed) return
-
-  do j = 1, size(s%var)
-    if (.not. s%var(j)%exists) cycle
-    if (iu /= 0 .and. .not. any (s%var(j)%this(:)%ix_uni == i)) cycle
-    if (logic_option(.false., good_opt_vars_only) .and. .not. s%var(j)%useit_opt) cycle
-    write (str(1), '(4a, es22.14)')  trim(s%var(j)%ele_name), &
-              '[', trim(s%var(j)%attrib_name), '] = ', s%var(j)%model_value
-    call tao_write_out (iu, str, 1)
-  enddo
-  
-  if (iu /= 0) then
-    call tao_write_out (iu, (/ '        ', 'end_file', '        ' /), 3)
-    call tao_show_constraints (iu, 'ALL')
-    call tao_show_constraints (iu, 'TOP10')
-    close (iu)
-    call out_io (s_blank$, r_name, 'Written: ' // file_name)
-  endif
-
-  printed = .true.
+  close (iu)
+  call out_io (s_blank$, r_name, 'Written: ' // file_name)
 
 enddo
+
+! Write all constraints to a separate file when there are multiple universes.
+! This can save a lot of memory when the number of universes is large.
+
+if (size(s%u) > 1) then
+  file_name = 'all_constrints.out'
+  open (iu, file = file_name, carriagecontrol = 'list', recl = 100, iostat = ios)
+  call tao_show_constraints (iu, 'ALL')
+  close (iu)
+  call out_io (s_blank$, r_name, 'Written constraints file: ' // file_name)
+endif
+
+!---------------------------------------------------------
+contains
+subroutine print_var()
+
+do j = 1, size(s%var)
+  if (.not. s%var(j)%exists) cycle
+  if (iu /= 0 .and. .not. any (s%var(j)%this(:)%ix_uni == i)) cycle
+  if (logic_option(.false., good_opt_vars_only) .and. .not. s%var(j)%useit_opt) cycle
+  write (str(1), '(4a, es22.14)')  trim(s%var(j)%ele_name), &
+            '[', trim(s%var(j)%attrib_name), '] = ', s%var(j)%model_value
+  call tao_write_out (iu, str, 1)
+enddo
+
+end subroutine
 
 end subroutine
 

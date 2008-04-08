@@ -304,13 +304,6 @@ tao_lat%n_bunch_params2 = 0
 
 calc_ok = .true.
 
-if (lat%param%lattice_type == circular_lattice$) then
-  call out_io (s_fatal$, r_name, &
-               'BEAM TRACKING WITH CIRCULAR LATTICE NOT YET IMPLEMENTED.', &
-               'PLEASE SEE DCS IF YOU NEED THIS.')
-  call err_exit
-endif
-
 call re_allocate (ix_ele,1)
 
 u => s%u(uni)
@@ -321,6 +314,13 @@ lat => tao_lat%lat
 lat%param%ix_lost = not_lost$
 
 all_lost = .false.
+
+if (lat%param%lattice_type == circular_lattice$) then
+  call out_io (s_fatal$, r_name, &
+               'BEAM TRACKING WITH CIRCULAR LATTICE NOT YET IMPLEMENTED.', &
+               'PLEASE SEE DCS IF YOU NEED THIS.')
+  call err_exit
+endif
 
 ! Find if injecting into another lattice
 

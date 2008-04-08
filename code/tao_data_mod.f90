@@ -3,7 +3,6 @@ module tao_data_mod
 use tao_mod
 use spin_mod
 use utilities_mod
-use random_mod
 
 type this_coupling_struct
   real(rp) cbar(2,2)
@@ -190,6 +189,8 @@ end subroutine
 
 subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, taylor_in)
 
+use measurement_mod
+
 implicit none
 
 type (tao_universe_struct), target :: u
@@ -299,9 +300,9 @@ case ('orbit.p_z')
   if (lat%param%ix_lost /= not_lost$ .and. ix1 >= lat%param%ix_lost) valid_value = .false.
 
 case ('bpm.x')
-  call orbit_to_bpm_reading (tao_lat%orb(ix1), lat%ele(ix1), x_plane$, datum_value)
+  call to_orbit_reading (tao_lat%orb(ix1), lat%ele(ix1), x_plane$, datum_value)
 case ('bpm.y')
-  call orbit_to_bpm_reading (tao_lat%orb(ix1), lat%ele(ix1), y_plane$, datum_value)
+  call to_orbit_reading (tao_lat%orb(ix1), lat%ele(ix1), y_plane$, datum_value)
 
 case ('phase.a')
   datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
@@ -1405,6 +1406,8 @@ end subroutine
 !-
 
 function tao_do_wire_scan (ele, theta, beam) result (moment)
+
+use random_mod
 
 implicit none
 
