@@ -564,8 +564,8 @@ $(x, y)_{lab}$ is
   \right]
   \label{xynrr}
 \Endeq
-where $r_1$ and $r_2$ are Gaussian random numbers whose distribution is
-centered at zero and has unit width. Additionally
+where $r_1$ and $r_2$ are Gaussian random numbers whose distribution
+is centered at zero and has unit width. Additionally
 \Begineq
   \begin{pmatrix}
     x \\
@@ -594,10 +594,10 @@ where
   g_y     &= 1 + dg_{y,\mss{err}} - dg_{y,\mss{cal}}
 \end{alignat}
 The calibration variables are useful for simulating the process where
-a measurement or series of measurements is analyzed to find the values of
-the error parameters. In this case, the measured
-position $(x, y)_m$ prepresents the beam position corrected for
-``known'' offsets, tilts, and gain errors.
+a measurement or series of measurements is analyzed to find the values
+of the error parameters. In this case, the measured position $(x,
+y)_m$ prepresents the beam position corrected for ``known'' offsets,
+tilts, and gain errors.
 
 %-----------------------------------------------------------------
 \subsection{Dispersion Measurement}
@@ -629,11 +629,11 @@ The factor of $\sqrt{2}$ comes from the fact that there are two measurements.
 \subsection{Coupling Measurement}
 \label{Coupling!measurement}
 
-The coupling measurement is considered to be the result of
-measuring the beam at a detector over $N_s$ turns while the beam oscillates
-at a normal mode frequency with some amplitude $A_{\mss{osc}}$. 
-The measured coupling is computed as follows. First, consider
-excitation of the $a$-mode which can be written in the form:
+The coupling measurement is considered to be the result of measuring
+the beam at a detector over $N_s$ turns while the beam oscillates at a
+normal mode frequency with some amplitude $A_{\mss{osc}}$.  The
+measured coupling is computed as follows. First, consider excitation
+of the $a$-mode which can be written in the form:
 \Begineq
   \begin{pmatrix}
     x_i \\
@@ -651,14 +651,14 @@ $i$ is the turn number and $\phi_i$ is the oscillation phase on the $i$\Th turn.
 The coefficients $K_{a1}$ and $K_{a2}$ are related to the coupling $\Cbar$ via
 David and Rubin\cite{b:coupling} Eq.~54:
 \begin{alignat}{1}
-  K_{a1} &= \frac{-\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{22} \CRNO
-  K_{a2} &= \frac{\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{12}
+  K_{a1} &= \frac{-\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \Cbar_{22} \CRNO
+  K_{a2} &= \frac{\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \Cbar_{12}
   \label{kbgbc}
 \end{alignat}
-To apply the measurement errors, consider the general case where the beam's
-oscillations are split into two components: One component being in-phase
-with some reference oscillator (which is oscillating with the same frequency as the beam)
-and a component oscillating out-of-phase:
+To apply the measurement errors, consider the general case where the
+beam's oscillations are split into two components: One component being
+in-phase with some reference oscillator (which is oscillating with the
+same frequency as the beam) and a component oscillating out-of-phase:
 \Begineq
   \begin{pmatrix}
     x_i \\
@@ -675,20 +675,20 @@ and a component oscillating out-of-phase:
     k_{y2a}
   \end{pmatrix}_{\! \mss{lab}}
   \, A_{\mss{osc}} \, \sin (\phi_i + d\phi)
-  \label{xykkpp}
+  \label{xykkap}
 \Endeq
-where $d\phi$ is the phase of the reference oscillator with respect to the beam. 
-Compairing \Eq{xyapk} with \Eq{xykkpp} gives the relation
+where $d\phi$ is the phase of the reference oscillator with respect to
+the beam.  Compairing \Eq{xyapk} with \Eq{xykkap} gives the relation
 \begin{alignat}{1}
   K_{a1} &= \frac{k_{x1a} \, k_{y1a} + k_{x2a} \, k_{y2a}}{k^2_{x1a} + k^2_{x2a}} \CRNO
   K_{a2} &= \frac{k_{x1a} \, k_{y2a} - k_{x2a} \, k_{y1a}}{k^2_{x1a} + k^2_{x2a}} 
   \label{kkkkkk}
 \end{alignat}
-This equation is general and can be applied in either the lab or measurement frame 
-of reference.
-\Eq{xynrr} can be used to transform $(x_i, y_i)_{\mss{lab}}$ in \Eq{xyapk}
-to the measurement frame of reference. Only the oscillating part is of interest.
-Averaging over many turns gives
+This equation is general and can be applied in either the lab or
+measurement frame of reference.  \Eq{xynrr} can be used to transform
+$(x_i, y_i)_{\mss{lab}}$ in \Eq{xyapk} to the measurement frame of
+reference. Only the oscillating part is of interest.  Averaging over
+many turns gives
 \Begineq
   \begin{pmatrix}
     k_{x1} \\
@@ -721,13 +721,12 @@ contribution to the measured $K_{a1}$ and $K_{a2}$ of
   K_{a2} \rightarrow K_{a2} + r_2 \, \frac{n_f}{N_s \, A_{\mss{osc}}} 
   \label{kkrnn}
 \Endeq
-Using the above equations,
-the transformation from the laboratory coupling to measured coupling
-is as follows: From a knowledge of the 
-laboratory $\Cbar$ and Twiss values, the laboratory $K_{a1}$ and $K_{a2}$ can be calculated
-via \Eq{kbgbc}. Since the value of $d\phi$ does not affect the final answer, $d\phi$ in 
-\Eq{xykkpp} is choisen to be zero. 
-Compairing this to \Eq{xyapk} gives
+Using the above equations, the transformation from the laboratory
+coupling to measured coupling is as follows: From a knowledge of the
+laboratory $\Cbar$ and Twiss values, the laboratory $K_{a1}$ and
+$K_{a2}$ can be calculated via \Eq{kbgbc}. Since the value of $d\phi$
+does not affect the final answer, $d\phi$ in \Eq{xykkap} is choisen to
+be zero.  Compairing this to \Eq{xyapk} gives
 \Begineq
   \begin{pmatrix}
     k_{x1a} \\
@@ -749,20 +748,52 @@ Compairing this to \Eq{xyapk} gives
     K_{a2}
   \end{pmatrix}_{\mss{lab}}
 \Endeq
-Now \Eq{kkmkk} is used to convert to the measured $k$'s and \Eq{kkkkkk} then gives the measured 
-$K_{a1}$ and $K_{a2}$. Finally, Applying \Eq{kkrnn} and then \Eq{kbgbc} 
-gives the measured $\Cbar_{22}$
-and $\Cbar_{12}$. A similar procedure can be applied to $b$-mode oscillations to calculate 
-values for the measured $\Cbar_{11}$ and $\Cbar_{12}$.
+Now \Eq{kkmkk} is used to convert to the measured $k$'s and
+\Eq{kkkkkk} then gives the measured $K_{a1}$ and $K_{a2}$. Finally,
+Applying \Eq{kkrnn} and then \Eq{kbgbc} gives the measured
+$\Cbar_{22}$ and $\Cbar_{12}$. 
+
+A similar procedure can be applied to $b$-mode oscillations to
+calculate values for the measured $\Cbar_{11}$ and $\Cbar_{12}$.
+$K_{b1}$ and $K_{b2}$ are defined by
+\Begineq
+  \begin{pmatrix}
+    x_i \\
+    y_i
+  \end{pmatrix}_{\! \mss{lab}}
+  =
+  A_{\mss{osc}} \,
+  \begin{pmatrix}
+    K_{b1} \, \cos \phi_i + K_{b2} \sin \phi_i
+    \cos \phi_i \\
+  \end{pmatrix}_{\! \mss{lab}}
+  \label{xyapk}
+\Endeq
+Compairing this to David and Rubin\cite{b:coupling} Eq.~55 gives
+\begin{alignat}{1}
+  K_{b1} &= \frac{\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{11} \CRNO
+  K_{b2} &= \frac{-\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{12}
+  \label{kbgbc}
+\end{alignat}
+The $k_{x1b}$, $k_{y1b}$, $k_{x2b}$ and $k_{y2b}$ are defined by using
+\Eq{xykkap} with the ``a'' subscript replaced by ``b''. The
+relationship between $K$ and $k$ is then
+\begin{alignat}{1}
+  K_{b1} &= \frac{k_{y1a} \, k_{x1a} + k_{y2a} \, k_{x2a}}{k^2_{y1a} + k^2_{y2a}} \CRNO
+  K_{b2} &= \frac{k_{y1a} \, k_{x2a} - k_{y2a} \, k_{x1a}}{k^2_{y1a} + k^2_{y2a}} 
+  \label{kkkkkk}
+\end{alignat}
+
 
 %-----------------------------------------------------------------
 \subsection{Phase Measurement}
 \label{Phase!measurement}
 
-Like the coupling measurement, the betatron phase measurement is considered to be the result of
-measuring the beam at a detector over $N_s$ turns while the beam oscillates
-at a normal mode frequency with some amplitude $A_{\mss{osc}}$. 
-Following the analysis of the previous subsection, the phase $\phi$ is
+Like the coupling measurement, the betatron phase measurement is
+considered to be the result of measuring the beam at a detector over
+$N_s$ turns while the beam oscillates at a normal mode frequency with
+some amplitude $A_{\mss{osc}}$.  Following the analysis of the
+previous subsection, the phase $\phi$ is
 \Begineq
   \begin{pmatrix}
     \phi_a \\
@@ -779,7 +810,7 @@ Following the analysis of the previous subsection, the phase $\phi$ is
     r_1 \\ 
     r_2
   \end{pmatrix}
-  +
+  -
   \begin{pmatrix}
     \tan^{-1} \left( \frac{k_{x2a}}{k_{x1a}} \right) \\
     \tan^{-1} \left( \frac{k_{y2b}}{k_{y1b}} \right)
