@@ -1793,10 +1793,10 @@ the \vn{K1} focusing strength. Not all elements can be used with a
 
 \vn{<v_size>} is the vertical size of the shape in points (72 points =
 1 inch). The measurement is from the centerline so, for example, a
-\vn{box} element will have a total height of twice \vn{<v_size}. Since
-a \vn{var_box} or \vn{asym_var_box} can get arbitrarily large, there
-is a maximum size which is set by \vn{plot_page%shape_height_max}
-(\sref{s:plot.page}).
+\vn{box} element will have a total height of twice \vn{<v_size>}. Since
+a \vn{var_box} or \vn{asym_var_box} can get arbitrarily large, the  
+parameter \vn{plot_page%shape_height_max} (\sref{s:plot.page}).
+sets the maximum drawn size.
 
 Finally \vn{<print_label>} is a logical indicating whether
 the element name is to be printed underneath the corresponding glyph.
