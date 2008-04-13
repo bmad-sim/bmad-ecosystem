@@ -609,7 +609,7 @@ orbit at two different energies. The measured values are then
   \begin{pmatrix}
     \eta_x \\
     \eta_y
-  \end{pmatrix}_{\! \mss{m}}
+ \end{pmatrix}_{\! \mss{m}}
   =
   \frac{\sqrt{2} \, n_f}{dE/E} \, 
   \begin{pmatrix}
@@ -652,8 +652,8 @@ The coefficients $K_{a1}$ and $K_{a2}$ are related to the coupling $\Cbar$ via
 David and Rubin\cite{b:coupling} Eq.~54:
 \begin{alignat}{1}
   K_{a1} &= \frac{-\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \Cbar_{22} \CRNO
-  K_{a2} &= \frac{\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \Cbar_{12}
-  \label{kbgbc}
+  K_{a2} &= \frac{-\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \Cbar_{12}
+  \label{kabgbc}
 \end{alignat}
 To apply the measurement errors, consider the general case where the
 beam's oscillations are split into two components: One component being
@@ -666,13 +666,13 @@ same frequency as the beam) and a component oscillating out-of-phase:
   \end{pmatrix}_{\! \mss{lab}}
   =
   \begin{pmatrix}
-    k_{x1a} \\
-    k_{y1a}
+    q_{a1x} \\
+    q_{a1y}
   \end{pmatrix}_{\! \mss{lab}}
   \, A_{\mss{osc}} \, \cos (\phi_i + d\phi) +
   \begin{pmatrix}
-    k_{x2a} \\
-    k_{y2a}
+    q_{a2x} \\
+    q_{a2y}
   \end{pmatrix}_{\! \mss{lab}}
   \, A_{\mss{osc}} \, \sin (\phi_i + d\phi)
   \label{xykkap}
@@ -680,9 +680,9 @@ same frequency as the beam) and a component oscillating out-of-phase:
 where $d\phi$ is the phase of the reference oscillator with respect to
 the beam.  Compairing \Eq{xyapk} with \Eq{xykkap} gives the relation
 \begin{alignat}{1}
-  K_{a1} &= \frac{k_{x1a} \, k_{y1a} + k_{x2a} \, k_{y2a}}{k^2_{x1a} + k^2_{x2a}} \CRNO
-  K_{a2} &= \frac{k_{x1a} \, k_{y2a} - k_{x2a} \, k_{y1a}}{k^2_{x1a} + k^2_{x2a}} 
-  \label{kkkkkk}
+  K_{a1} &= \frac{q_{a1x} \, q_{a1y} + q_{a2x} \, q_{a2y}}{q_{a1x}^2 + q_{a2x}^2} \CRNO
+  K_{a2} &= \frac{q_{a1x} \, q_{a2y} - q_{a2x} \, q_{a1y}}{q_{a1x}^2 + q_{a2x}^2} 
+  \label{kaqqqq}
 \end{alignat}
 This equation is general and can be applied in either the lab or
 measurement frame of reference.  \Eq{xynrr} can be used to transform
@@ -691,25 +691,25 @@ reference. Only the oscillating part is of interest.  Averaging over
 many turns gives
 \Begineq
   \begin{pmatrix}
-    k_{x1} \\
-    k_{y1}
+    q_{a1x} \\
+    q_{a1y}
   \end{pmatrix}_{\! \mss{meas}}
   =  
   \bM_m \, 
   \begin{pmatrix}
-    k_{x1} \\
-    k_{y1}
+    q_{a1x} \\
+    q_{a1y}
   \end{pmatrix}_{\! \mss{lab}}
   \comma \qquad
   \begin{pmatrix}
-    k_{x2} \\
-    k_{y2}
+    q_{a2x} \\
+    q_{a2y}
   \end{pmatrix}_{\! \mss{meas}}
   =  
   \bM_m \, 
   \begin{pmatrix}
-    k_{x2} \\
-    k_{y2}
+    q_{a2x} \\
+    q_{a2y}
   \end{pmatrix}_{\! \mss{lab}}
   \label{kkmkk}
 \Endeq
@@ -724,13 +724,13 @@ contribution to the measured $K_{a1}$ and $K_{a2}$ of
 Using the above equations, the transformation from the laboratory
 coupling to measured coupling is as follows: From a knowledge of the
 laboratory $\Cbar$ and Twiss values, the laboratory $K_{a1}$ and
-$K_{a2}$ can be calculated via \Eq{kbgbc}. Since the value of $d\phi$
+$K_{a2}$ can be calculated via \Eq{kabgbc}. Since the value of $d\phi$
 does not affect the final answer, $d\phi$ in \Eq{xykkap} is choisen to
 be zero.  Compairing this to \Eq{xyapk} gives
 \Begineq
   \begin{pmatrix}
-    k_{x1a} \\
-    k_{y1a}
+    q_{a1x} \\
+    q_{a1y}
   \end{pmatrix}_{\mss{lab}}
   =
   \begin{pmatrix}
@@ -739,8 +739,8 @@ be zero.  Compairing this to \Eq{xyapk} gives
   \end{pmatrix}_{\mss{lab}}
   \comma \qquad
   \begin{pmatrix}
-    k_{x2a} \\
-    k_{y2a}
+    q_{a2x} \\
+    q_{a2y}
   \end{pmatrix}_{\mss{lab}}
   =
   \begin{pmatrix}
@@ -748,9 +748,9 @@ be zero.  Compairing this to \Eq{xyapk} gives
     K_{a2}
   \end{pmatrix}_{\mss{lab}}
 \Endeq
-Now \Eq{kkmkk} is used to convert to the measured $k$'s and
-\Eq{kkkkkk} then gives the measured $K_{a1}$ and $K_{a2}$. Finally,
-Applying \Eq{kkrnn} and then \Eq{kbgbc} gives the measured
+Now \Eq{kkmkk} is used to convert to the measured $q$'s and
+\Eq{kaqqqq} then gives the measured $K_{a1}$ and $K_{a2}$. Finally,
+Applying \Eq{kkrnn} and then \Eq{kabgbc} gives the measured
 $\Cbar_{22}$ and $\Cbar_{12}$. 
 
 A similar procedure can be applied to $b$-mode oscillations to
@@ -767,21 +767,21 @@ $K_{b1}$ and $K_{b2}$ are defined by
     K_{b1} \, \cos \phi_i + K_{b2} \sin \phi_i
     \cos \phi_i \\
   \end{pmatrix}_{\! \mss{lab}}
-  \label{xyapk}
+  \label{xyakp}
 \Endeq
 Compairing this to David and Rubin\cite{b:coupling} Eq.~55 gives
 \begin{alignat}{1}
-  K_{b1} &= \frac{\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{11} \CRNO
+  K_{b1} &= \frac{ \sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{11} \CRNO
   K_{b2} &= \frac{-\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{12}
-  \label{kbgbc}
+  \label{kbbgbc}
 \end{alignat}
-The $k_{x1b}$, $k_{y1b}$, $k_{x2b}$ and $k_{y2b}$ are defined by using
+The $q_{x1b}$, $q_{y1b}$, $q_{x2b}$ and $q_{y2b}$ are defined by using
 \Eq{xykkap} with the ``a'' subscript replaced by ``b''. The
-relationship between $K$ and $k$ is then
+relationship between $K$ and $q$ is then
 \begin{alignat}{1}
-  K_{b1} &= \frac{k_{y1a} \, k_{x1a} + k_{y2a} \, k_{x2a}}{k^2_{y1a} + k^2_{y2a}} \CRNO
-  K_{b2} &= \frac{k_{y1a} \, k_{x2a} - k_{y2a} \, k_{x1a}}{k^2_{y1a} + k^2_{y2a}} 
-  \label{kkkkkk}
+  K_{b1} &= \frac{q_{b1y} \, q_{b1x} + q_{b2y} \, q_{b2x}}{q_{b1y}^2 + q_{b2y}^2} \CRNO
+  K_{b2} &= \frac{q_{b1y} \, q_{b2x} - q_{b2y} \, q_{b1x}}{q_{b1y}^2 + q_{b2y}^2} 
+  \label{kbqqqq}
 \end{alignat}
 
 
@@ -812,7 +812,7 @@ previous subsection, the phase $\phi$ is
   \end{pmatrix}
   -
   \begin{pmatrix}
-    \tan^{-1} \left( \frac{k_{x2a}}{k_{x1a}} \right) \\
-    \tan^{-1} \left( \frac{k_{y2b}}{k_{y1b}} \right)
+    \tan^{-1} \left( \frac{q_{a2x}}{q_{a1x}} \right) \\
+    \tan^{-1} \left( \frac{q_{b2y}}{q_{b1y}} \right)
   \end{pmatrix}_{\! \mss{meas}}
 \Endeq
