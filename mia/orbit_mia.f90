@@ -16,7 +16,7 @@ module orbit_mia
 
 contains 
 
-  subroutine bpm_ops(data,iset, nset)
+  subroutine bpm_ops(data,iset, nset, first_run)
     !
     !Calls functions that locate and match BPMs
     !Remove if bpm numbers, pairs, etc. are not obtained
@@ -24,11 +24,11 @@ contains
     !
     type(data_set) data(*)
     integer :: iset, nset
-
+    logical :: first_run
  
     call locate_bpm (iset, data(iset))
 
-    if (iset == 1) then
+    if (first_run .and. iset == 1) then
        call find_L(nset,data)
     else
        call match_processors (data)
@@ -477,7 +477,7 @@ contains
 !***i goes from 1 to 4... Something using i only has two elements. TO BE FIXED
     do i = 1, n_ring
 
-       allocate (ring(i)%loc(data(1)%bpmproc))
+       allocate (ring(i)%loc(NUM_BPMS))
 
        !?@@           
        !ring(i)%loc(i) = data_struc%loc(i)  !loc # is not = i.
@@ -842,7 +842,7 @@ contains
 
        end do
     end do
-
+    deallocate (ring)
   end subroutine calculate_with_known_spacing
 
 

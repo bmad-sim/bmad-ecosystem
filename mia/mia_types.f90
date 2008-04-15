@@ -96,7 +96,8 @@ module mia_types
   type(known_spacings), allocatable:: bpm_pairs(:) 
 
   integer:: NUM_BPMS, &                  !Number of BPMs
-       NUM_TURNS                         !Number of turns
+       NUM_TURNS, &                      !Number of turns
+       nset                              !Number of files
   !Change FREQ for use with machines other than CESR
   real(rp), parameter :: FREQ=390.12         !Frequency of the machine (in MHz)
 
@@ -168,4 +169,13 @@ contains
     integer :: length
     allocate (bpm_pairs(length))
   end subroutine allocate_bpm_pairs
+
+  subroutine clean(pairs)
+    logical :: pairs
+    if (.not. pairs) then
+       deallocate (bpm_pairs)
+    endif
+    deallocate (data_struc%loc)
+    deallocate (data_struc%proc)
+  end subroutine clean
 end module mia_types

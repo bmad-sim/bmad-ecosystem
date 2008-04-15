@@ -92,7 +92,9 @@ contains
     allocate (data%cdata(data%bpmproc))      !allocates the cdata array to be
     !as large as the number of active
     !bpm processors
-
+    if (.not. ALLOCATED(file)) then
+       allocate(file(nset))
+    endif
     allocate(file(iset)%proc(data%bpmproc))
 
     Processor: do proc = 1, data%bpmproc
@@ -238,14 +240,15 @@ contains
          num, i, j, i_file, nset, k, li, &!Counters and nset--number of sets
          nfile, rnum                    !Counter and actual number of BPM pairs
     logical :: found_one(2)               !If a BPM pair has been found
-    type(data_set)data(*)                 !All data
+    type(data_set) data(*)                !All data
     type(known_spacings), allocatable ::  bpm_old(:)   !BPM data read in
 
     !Placed in different location because
     !a BPM may not be in use.
 
     !knownl.inp contains a list of BPMs with known spacing.
-    open (unit = 2, file = "/nfs/acc/temp/haw27/data/knownl.inp", &
+    !Change to accept different locations for knownl.inp...
+    open (unit = 2, file = "./data/knownl.inp", &
          status = "old", iostat = openstatus)
     if (openstatus > 0) Stop "*** Cannot open file knownl.inp ***"
 
@@ -377,5 +380,9 @@ contains
     end if
 
   end subroutine match_processors
+
+  subroutine deall_file
+    deallocate(file)
+  end subroutine deall_file
 
 end module mia_input

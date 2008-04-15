@@ -8,11 +8,10 @@ program mia
   implicit none
 
   character* 1 char
-  integer :: nset, istat, i_set
-  logical :: good_input
+  integer :: istat, i_set
+  logical :: good_input, more_files, first_run
 
   type(data_set), allocatable :: data(:)
-  type(cbpm_analysis)data_struct
 
   !Check for bad input.
 !  good_input = .false.
@@ -31,37 +30,40 @@ program mia
 !  enddo
 
   nset = 2
+  more_files = .true.
+  first_run = .true.
+  do while (more_files)
+     allocate (data(nset))
+     !  allocate (file(nset))
 
-  allocate (data(nset))
-  allocate (file(nset))
-
-  do i_set = 1, nset             !Do for first input data 
-     call read_bpm_data(data(i_set),i_set,nset)
-     if (i_set==1) then
-        call initialize_structures(data(1), nset)
-     endif
-
-     call svd_fft(data(i_set))
-!     call logic_get( 'Y', 'N', 'Plot data? (Y/N) ', plot_more)
-!     do while(plot_more)
+     do i_set = 1, nset             !Do for first input data 
+        call read_bpm_data(data(i_set),i_set,nset)
+        if (i_set==1) then
+           call initialize_structures(data(1), nset)
+        endif
+        
+        call svd_fft(data(i_set))
         call plots(data, 1, i_set)      !Use plot_it
-!   call logic_get( 'P','C',' (P)lot more to screen or (C)ontinue?', plot_more)
-!     end do
-  end do
+     end do
 
-  do i_set =1, nset
-     call bpm_ops(data,i_set, nset)
-  end do
-  call match_tau_column(nset,data)
-  call convert_data_from_pi_matrix(data)
-  call calculate_with_known_spacing(data)
-!  call logic_get( 'Y', 'N', 'Plot data? (Y/N) ', plot_more)
-!  do while(plot_more)
-    call plots(data, 2, 2)         !Use plot_it2
-!    call logic_get( 'P','C',' (P)lot more to screen or (C)ontinue?', plot_more)
-!  end do
-  call output (data(1))
+     do i_set =1, nset
+        call bpm_ops(data,i_set, nset, first_run)
+     end do
+     first_run = .false.
+     call deall_file
+     call match_tau_column(nset,data)
+     call convert_data_from_pi_matrix(data)
+     call calculate_with_known_spacing(data)
+     call plots(data, 2, 2)         !Use plot_it2
+     call output (data(1))
 
+
+     call logic_get('Y', 'N', 'Repeat calculations with different files?',&
+          more_files)
+
+     deallocate (data)
+     call clean (more_files)
+  enddo
 end program mia
 
 

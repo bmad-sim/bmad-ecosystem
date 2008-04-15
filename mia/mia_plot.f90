@@ -4,7 +4,7 @@ module mia_plot
   use quick_plot
   use mia_types
 
-  logical :: firstPlot = .true.     !Whether a plotting window has been opened
+  logical :: windowOpen = .false.     !Whether a plotting window is open
 contains
   subroutine plots(data, plot, iset)     
     !Routine can be used to plot data from different  
@@ -23,12 +23,12 @@ contains
     call logic_get( 'Y', 'N', 'Plot data? (Y/N) ', plot_more)
 
     !Only opens a new page on the first call of the subroutine.
-    if (plot_more .and. firstPlot) then
+    if (plot_more .and. windowOpen == .false.) then
        !Following calls open the digital displays
        call qp_open_page ("X", id, 600.0_rp, 470.0_rp, "POINTS")
        call qp_set_page_border (0.02_rp, 0.02_rp, 0.035_rp, 0.035_rp, "%PAGE")
        call qp_set_margin (0.07_rp, 0.01_rp, 0.01_rp, 0.05_rp, "%PAGE")
-       firstPlot = .false.
+       windowOpen = .true.
     endif
 
     do while(plot_more)
@@ -59,11 +59,14 @@ contains
              endif
              call qp_close_page    !Closes and names PS file as quick_plot.ps
           end if
- !      else if (plot == 2) then
- !         call qp_close_page
        endif
        call qp_clear_page
     end do
+
+    if (windowOpen .and. plot == 2) then
+       call qp_close_page
+       windowOpen = .false.   
+    endif
 
   end subroutine plots
 
@@ -137,8 +140,12 @@ contains
           goto 98
        else if (graph ==1 .or. graph > 3) then
           !Column is needed for choices 1, 4, and 5
-          write (*, "(a)") " Which column should be plotted? "        
+99        write (*, "(a)") " Which column should be plotted? "        
           accept "(i)", icolumn
+          if (icolumn < 1 .or. icolumn > 2*NUM_BPMS)then
+             Print *, "Column should be between 1 and ", 2*NUM_BPMS
+             goto 99
+          endif
        endif
 
        call qp_set_box (ix, iy, ix_tot, iy_tot)
@@ -234,7 +241,9 @@ contains
 
     deallocate (b)
     deallocate (nt)
-
+    if (allocated(ycoord)) deallocate (ycoord)
+    if (allocated(xcoord)) deallocate (xcoord)
+    if (allocated(lam_log)) deallocate (lam_log)
   end subroutine plot_it
 
 
@@ -405,11 +414,11 @@ contains
           xcoord = nt
           xlength = NUM_TURNS
        else
-          arr_length = 2*NUM_BPMS
+          arr_length = NUM_BPMS
           allocate (xcoord(arr_length))
           allocate (ycoord(arr_length))
-          xlength = 2*NUM_BPMS
-          xdiv = 2*NUM_BPMS
+          xlength = NUM_BPMS
+          xdiv = NUM_BPMS
           xcoord = b
        endif
        xmin = minval(xcoord)
@@ -625,8 +634,13 @@ contains
        iy = iy-1
 
     enddo
+
     deallocate (b)
     deallocate (phi)
+    deallocate (nt)
+    if (allocated(xcoord)) deallocate (xcoord)
+    if (allocated(ycoord)) deallocate (ycoord)
+    if (allocated(lam_log)) deallocate (lam_log)
   end subroutine plot_it2
 
   subroutine arrange_phi(phi, xcoord)
