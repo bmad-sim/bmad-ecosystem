@@ -157,7 +157,6 @@ these initialization namelists and their locations are listed in table
 \index{tao_params}
 \index{tao_connected_uni_init}
 \index{tao_beam_init}
-\index{tao_macro_init}
 \index{tao_var}
 \index{tao_d2_data}
 \index{tao_d1_data}
@@ -174,7 +173,6 @@ these initialization namelists and their locations are listed in table
   \vn{tao_params}             & 'tao.init' & Global Variables        & \sref{s:globals}       \\ \hline
   \vn{tao_connected_uni_init} & 'tao.init' & Connected Universes     & \sref{s:connected.uni} \\ \hline
   \vn{tao_beam_init}          & 'tao.init' & Particle beam           & \sref{s:beam.init}     \\ \hline
-  \vn{tao_macro_init}         & 'tao.init' & Macroparticle beam      & \sref{s:macro.init}    \\ \hline
   \vn{tao_var}                & \vn{var_file}     & Variables        & \sref{s:init.var}      \\ \hline
   \vn{tao_d2_data}            & \vn{data_file}    & Data             & \sref{s:init.data}     \\ \hline
   \vn{tao_d1_data}            & \vn{data_file}    & Data             & \sref{s:init.data}     \\ \hline
@@ -351,7 +349,7 @@ type tao_global_struct
   real(rp) :: random_gauss_limit = 4     ! cut-off in sigmas.
   character(16) :: random_engine = 'quasi'            ! 'pseudo' or 'quasi'
   character(16) :: random_gauss_converter = 'exact'  ! 'exact' or 'limited'
-  character(16) :: track_type = 'single'             ! or 'beam', or 'macro' 
+  character(16) :: track_type = 'single'             ! or 'beam' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'              ! optimizer to use.
   character(16) :: default_key_merit_type
@@ -683,65 +681,6 @@ distribution is to be saved at. Each element in the \vn{save_beam_at}
 array is in \vn{class:ele_name} format as explained in \sref{s:class:name}.
 The \vn{BEGINNING} element (with index 0 in the lattice
 list) and the last element are automatically saved.
-
-
-%-----------------------------------------------------------------
-\section{Initializing Macroparticle Beams}
-\index{Initialization!Macroparticle Beams}
-\label{s:macro.init}
-
-A macroparticle beam is initialized in the \vn{tao_macro_init} namelist block.
-The syntax is as follows:
-\index{tao_macro_init}
-\index{ix_universe}
-\index{macro_init}
-\index{macro_init!x!norm_emit}
-\index{macro_init!y!norm_emit}
-\index{beam_init!dPz_dZ}
-\index{macro_init!center}
-\index{macro_init!sig_e}
-\index{macro_init!sig_z}
-\index{macro_init!sig_e_cut}
-\index{macro_init!sig_z_cut}
-\index{macro_init!n_bunch}
-\index{macro_init!n_slice}
-\index{macro_init!n_macro}
-\index{macro_init!n_part}
-\begin{example}
-  &tao_macro_init
-    ix_universe             = <Integer>   ! Universe index.
-    macro_init%x%norm_emit  = <number> 
-    macro_init%y%norm_emit  = <number> 
-    beam_init%dPz_dZ        = <number>    ! Energy-Z correlation
-    macro_init%center       = <number>*6  ! Bunch center offset relative to
-                                          ! reference particle (BMAD coords)
-    macro_init%sig_e        = <number>    ! e_sigma in eV
-    macro_init%sig_z        = <number>    ! Z sigma in m
-    macro_init%sig_e_cut    = <number>    ! Energy cut in sigmas
-    macro_init%sig_z_cut    = <number>    ! Z cut in sigmas
-    macro_init%n_bunch      = <integer>   ! Number of bunches
-    macro_init%n_slice      = <integer>   ! Number of slices per bunch
-    macro_init%n_macro      = <integer>   ! Number of macroparticles per slice
-    macro_init%n_part       = <number>    ! Number of particles per bunch
-  /
-\end{example}
-\vn{ix_universe} refers to the universe index. See \bmad documentation
-on what the \vn{macro_init} parameters refer to.
-
-The twiss parameters at the beginning of the lattice are used in
-initiating the beam distribution.  For circular lattices the twiss
-parameters will be found from the closed orbit, and the emittance will
-be calculated using the \bmad routine \vn{radiation_integrals}.
-
-The default is single particle tracking. To turn on macroparticle
-tracking the \vn{global%track_type} perameter must be set to 'macro.'
-This can be placed in the \vn{tao_params} namelist above, for example,
-\begin{example}
-  &tao_params
-    global%optimizer = "lm"  ! Set the default optimizer.
-    global%track_type = 'macro'
-  /
-\end{example}
 
 %-----------------------------------------------------------------
 \section{Initializing Variables}\index{Initialization!Variables}
@@ -1400,7 +1339,6 @@ namelists should be placed directly after their respective
     curve(i)%line         = <qp_line_struct>
     curve(i)%symbol       = <qp_symbol_struct>
     curve(i)%symbol_every = <integer>         ! plot symbol every # datums
-    curve(i)%convert      = <Logical>
     curve(i)%ele_ref_name = "<element_name>"     ! reference element.
     curve(i)%draw_interpolated_curve = <Logical>
   /
@@ -1508,7 +1446,7 @@ file. Similarly, \vn{var_array} indicates that the values of the curve
 points come from a \vn{v1_var} array structure. \vn{lattice} means
 that the curve data points are calculated from the lattice without
 regard to any data structures. \vn{beam} is used when
-tracking beams of particles or macroparticles. In this case the curve
+tracking beams of particles. In this case the curve
 points are calculated from the tracking. With \vn{beam}, the particular
 bunch that the data is extracted from can be specified via \vn{curve%ix_bunch}.
 The default is \vn{0} which combines all the bunches for the calculation.
@@ -1526,10 +1464,6 @@ possible \vn{curve%data_type} values are the same as the possible
 \vn{curve%data_type} values are any of the \vn{v1_var} names. This is
 what points the curve to the proper data so there needs to be a
 corresponding data or var type defined in the initialization file.  
-
-\vn{curve%convert} is a logical that is only used
-with \vn{curve%data_name} = "coupling" and tells \tao to convert the
-coupling data into cbar data before plotting.
 
 \vn{curve%draw_symbols} determines whether a symbol is drawn at the
 data points. The size, shape and color of the symbols is determined by

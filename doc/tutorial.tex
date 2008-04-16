@@ -212,7 +212,7 @@ The plot window should now look like Figure~\ref{f:plot.eta.beta}.
 
 Now let's look at the coupling (C-matrix) by typing
 \begin{example}
-  place bottom coupling
+  place bottom cbar
   scale bottom
 \end{example}
 We see that there is strong coupling within the CLEO solenoid and
@@ -301,16 +301,10 @@ the output should look like:
                                     2  12                     0    99
                                     3  21                     0    99
                                     4  22                     0    99
-     coupling
-                                    1  11b                    0    99
-                                    2  12a                    0    99
-                                    3  12b                    0    99
-                                    4  22a                    0    99
 
 \end{example}
-There are 6 data types defined in the initialization file. The fifth
-and sixth are closely related. See Part II for an explanation of the
-two coupling data types.  For the first four data types there are two
+There are five data types defined in the initialization file. 
+For the first four data types there are two
 data dimensions defined corresponding to the horizontal and vertical
 planes. Coupling is parameterized by a 2x2 matrix so there are four
 ``dimensions'' for these two data types. the ``Bounds'' columns refer
@@ -337,16 +331,16 @@ this. Keep in mind that lattice twiss parameters are defined
 \textit{only for uncoupled betatron motion} so this is all that is
 provided as data types for single particle tracking.  However, true
 lab-frame \vn{x} and \vn{y} twiss parameters can be defined for a
-distribution of particles so for particle or macroparticle beam
+distribution of particles so for beam
 tracking true lab-frame \vn{x} and \vn{y} twiss parameters can be
 calculated and are provided as data types for those tracking
 types. See the \bmad manual for how to convert from normal mode
 coordinates to lab-frame coordinates.
 
 This tutorial uses single particle tracking and the twiss parameters
-are found about the orbit of the tracked particle. there are two other
-tracking types: particle beam and macroparticle beam tracking. these
-tracking types will not be explored in this tutorial.
+are found about the orbit of the tracked particle. there is another
+tracking type called particle beam tracking. this
+tracking type will not be explored in this tutorial.
 
 You can also view variables by typing
 \begin{example}

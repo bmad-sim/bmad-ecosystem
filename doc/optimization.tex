@@ -1,7 +1,10 @@
 \chapter{Lattice Correction and Design}
 \label{c:opti}
 
-This chapter covers using minimization (called \vn{optimization}) of a
+\index{Optimization|textbf}
+\index{Merit function}
+This chapter covers the process of \vn{optimization} which involves
+minimization of a
 \vn{Merit Function} to correct and and to design lattices. Examples
 of \vn{lattice corrections} include flattening the orbit and adjusting
 quadrupoles to correct the measured betatron phase. \vn{Lattice
@@ -9,12 +12,12 @@ design} involves creating a lattice that conforms to a set of
 desirable properties. For example, requiring that the beta function
 in a certain region never exceeds a given value.
 Section~\sref{s:optimizer} gives a tutorial on how to setup the merit
-function and run the \vn{optimizer} in \tao.  In this chapter
+function and run the \vn{optimizer} in \tao.  In this chapter,
 Section~\sref{s:lattice.correction} presents the merit function in the
 context of lattice corrections while Section~\sref{s:lattice.design}
 discuses the merit function in the context of lattice design. Since
 the concepts used in \vn{lattice corrections} and \vn{lattice design} are
-similar, \tao combines the two into one generalized merit function as 
+similar, \tao combines the two into one generalized process as 
 discussed in Section~\sref{s:generalized.design}.
 
 %------------------------------------------------------------------------
@@ -25,7 +28,8 @@ discussed in Section~\sref{s:generalized.design}.
 
 \index{Optimization!Merit Function}
 Consider the problem of problem of modifying the orbit of a beam
-through a lattice to conform to some desired orbit. The process
+through a lattice to conform to some desired orbit (typically a ``flat'' orbit
+running through the centers of the quadrupoles). The process
 generally goes through three stages: First the orbit is measured, then
 corrections to the steering elements are calculated and finally the
 corrections are applied to the machine. Since these are necessarily
@@ -37,7 +41,7 @@ implement a generalized algorithm procedure for minimizing a
 The idea is to vary a set of variables (steerings in the case of an
 orbit correction) within the \vn{model} lattice
 (\sref{s:universe}) with the aim to make the measured \vn{data}
-(position data from BPMs for an orbit correction) correspond to the
+(position data for an orbit correction) correspond to the
 values as calculated from the \vn{model} lattice.
 
 The merit function \vn{M} that is a measure of how
@@ -62,7 +66,7 @@ where \vn{data_model} matches \vn{data_measured} with the
 \vn{var_meas}). The weights $w_i$ and $w_j$ need to be set depending
 upon how accurate the measured data is relative to how accurate the
 calibrations for measuring the \vn{var_meas} values are. With the
-second term in the merit function the number of constraints (number of
+second term in the merit function, the number of constraints (number of
 terms in the merit function) is always larger than the number of
 variables and degeneracies can never occur.
 
@@ -175,40 +179,22 @@ optimization process is in deciding what the values should be for any
 
 Since lattice correction and design are similar, \tao
 combines the two into one generalized process. In this
-generalized process The merit function becomes
+generalized process, the merit function becomes
 \Begineq
   {\cal M} = \sum_i w_i \, D_i^2 + \sum_j w_j \, V_j^2
 \Endeq
+where $D_i$ are the data terms and $V_j$ are the variable terms.
 The general form of the data merit terms $D_i$ is 
 \Begineq
   D = 
     \begin{cases}
-    \mbox{delta}  & \mbox{Non-zero Condition} \\
+    \mbox{delta}  & \mbox{Non-Zero-Condition} \\
     0             & \mbox{Otherwise}
     \end{cases}
 \Endeq
-The \vn{Non-zero Condition} needed for a non--zero $C_i$ is dependent
-upon the \vn{merit_type} of the datum. There are five \vn{merit_type} constraint
-types as given in Table~\ref{t:con.type}.  The default \vn{merit_type} for
-data is \vn{target}.
-\begin{table}[ht]
-\centering
-{\tt
-\begin{tabular}{|l|l|l|} \hline
-  {\it Merit\_Type}       & {\it Non-zero Condition} \\ \hline 
-  \vn{target}            & Any \vn{delta}   \\ \hline 
-  \vn{min}, \vn{abs_min} & \vn{delta} $<$ 0 \\ \hline 
-  \vn{max}, \vn{abs_max} & \vn{delta} $>$ 0 \\ \hline 
-\end{tabular}
-}
-\caption{Constraint Type List.}
-\label{t:con.type}
-\end{table}
-
-\index{Optimization! Optimize with Reference}
-The form of \vn{delta} is determined by two global logicals called
-\vn{opt_with_ref} and \vn{opt_with_base} as shown in
-Table~\ref{t:d.i}. 
+The equation used to cacluate \vn{delta} is determined by two global logicals called
+\vn{opt_with_ref} and \vn{opt_with_base} (\sref{s:globals}) as shown in
+Table~\ref{t:delta}. 
 \begin{table}[ht] 
 \centering 
 {\tt
@@ -220,15 +206,31 @@ Table~\ref{t:d.i}.
   T & T & Model - Meas + Ref - Base   \\ \hline 
 \end{tabular}
 } 
-\caption{$D_i$ Form}  
-\label{t:d.i}
+\caption{The form of \vn{delta}}  
+\label{t:delta}
 \end{table}
-What kind of data is associated with \vn{model}, \vn{design} and
-\vn{base} is determined by a datum's \vn{data_type}. Valid data types are given
-in table~\ref{t:data.types}.
 
-The form of the variable terms $V_i$ is determined by its \vn{merit_type}.
-For variables the merit types are:
+The \vn{Non-Zero-Condition} needed for a non--zero $D_i$ is dependent
+upon the \vn{merit_type} of the datum (\sref{s:data.anatomy}).
+There are five \vn{merit_type} constraint
+types as given in Table~\ref{t:con.type}.
+\begin{table}[ht]
+\centering
+{\tt
+\begin{tabular}{|l|l|l|} \hline
+  {\it Merit\_Type}       & {\it Non-zero-Condition} \\ \hline 
+  \vn{target}            & Any \vn{delta}   \\ \hline 
+  \vn{min}, \vn{abs_min} & \vn{delta} $<$ 0 \\ \hline 
+  \vn{max}, \vn{abs_max} & \vn{delta} $>$ 0 \\ \hline 
+\end{tabular}
+}
+\caption{Constraint Type List.}
+\label{t:con.type}
+\end{table}
+\index{Optimization!Optimize with Reference}
+
+For variables, the form of the terms $V_i$ is determined by its \vn{merit_type}.
+Here the \vn{merit_type} may be:
 \begin{example}
   target
   limit

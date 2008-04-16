@@ -1,6 +1,6 @@
 \chapter{Data in Tao}
 \label{c:data}
-\index{Data}
+\index{Data|textbf}
 
 The term \vn{``data''} denotes anything that can be calculated by
 \tao. This includes the vertical orbit at a particular position or the
@@ -113,8 +113,8 @@ Each datum has a number of quantities associated with it:
   ele_name       ! Character: Corresponding lattice element name.
   ele0_name      ! Character: Name of range marker element.
   data_type      ! Character: Type of data: "orbit.x", etc.
-  merit_type     ! Character: Type of constraint: 'target', 'max', etc.
-  data_source    ! Character: How the datum is calculated. 'lattice', or 'beam'.
+  merit_type     ! Character: Type of constraint: "target", "max", etc.
+  data_source    ! Character: How the datum is calculated. "lattice", or "beam".
   ix_ele            ! Integer: Index of "ele" in the element list.
   ix_ele0           ! Integer: Index of "ele0" in the element list.
   ix_ele_merit      ! Integer: Lattice index where merit is evaluated.
@@ -132,7 +132,6 @@ Each datum has a number of quantities associated with it:
   delta_merit       ! Real: Diff used to calculate the merit function term 
   weight            ! Real: Weight for the merit function term
   merit             ! Real: Merit function term value: weight * delta^2
-  conversion_factor ! Real: Typically used to convert coupling to cbar
   s                 ! Real: longitudinal position of ele.
   relative          ! Logical: Is this a relative datum?
   exists            ! Logical: Does the datum exist?
@@ -150,7 +149,7 @@ When running \tao, the \vn{show data}
 The \vn{set} command (\sref{s:set}) can be used to set some of these components.
 
 %------------------------------------------------------------------------
-\subsection{Datum values}
+\section{Datum values}
 \label{s:datum.values}
 
 \index{Data!measured}\index{Data!reference}\index{Data!model}
@@ -186,37 +185,7 @@ can be ignored.
 \end{description}
 
 %------------------------------------------------------------------------
-\subsection{Associated Lattice Elements}
-\label{s:datum.lat.elements}
-
-\index{Data!Relative}
-Associated with a datum are two lattice elements named
-\vn{ele0_name} and \vn{ele_name}. Datums can be divided up into four
-classes: Datums in the first class, like the emittance in a circular
-ring, do not have associated lattice elements and their corresponding
-element names will be blank. Datums in the second class, like the beta
-function at a given point, will only have one associated lattice
-element given by \vn{ele_name} and \vn{ele0_name} will be blank.
-Datums in the third class are associated with a section of the
-lattice. For example, the maximum of the beta function in a lattice
-region. In this case the \vn{ele0} element marks the beginning of the
-region and \vn{ele} marks the end. The final class of datums, called
-\vn{relative} datums, means that the datum value is set by the
-difference between the value at the lattice element at \vn{ele0} and
-the value at \vn{ele}. The betatron phase advance falls into this
-category:
-\begin{example}
-  value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(ele0)
-\end{example}
-If a relative datum has a blank \vn{ele0_name} then \vn{ele0} is taken
-to be the beginning element of the lattice which is marker element
-with index 0 named \vn{BEGINNING}.
-
-The datum components \vn{ix_ele} and \vn{ix_ele0} are the index of
-\vn{ele} and \vn{ele0} in the list of lattice elements.
-
-%------------------------------------------------------------------------
-\subsection{Datums in Optimization}
+\section{Datums in Optimization}
 \label{s:datum.opt}
 
 When using optimization to do lattice correction or design
@@ -252,39 +221,48 @@ as set by the global variable \vn{opt_with_ref} (\sref{s:globals}).
 Finally \vn{good_opt} is meant for use in custom versions of \tao
 (\sref{c:custom.tao}) and is always left True by the standard \tao code.
 
-
 %------------------------------------------------------------------------
-\subsection{Datum Calculations}
-\label{s:datum.calc}
+\section{Tao Data Types}\index{Data!Data Types}
+\label{s:data.types}
 
-Data can also be classified by how it is calculated:
-\vspace{-2ex}
-\begin{enumerate}
-  \item \textbf{Lattice Parameters} \Newline
-    For example lattice twiss parameters, coupling and floor position.
-  \item \textbf{Single Particle Properties} \Newline
-    For example particle orbit, BPM reading and phase advance.
-  \item \textbf{Bunch Properties} \Newline
-    For example bunch sigmas, emittance and beam twiss parameters.
-\end{enumerate}
-For a given data type the method used to calculate the datum can vary
-depending on the tracking type. For {\it single} particle tracking all
-data is found from the lattice parameters except for the orbit
-data. For \textit{particle bunch} or \textit{macroparticle bunch}
-tracking some of the datums are found from the particle distribution
-using the appropriate \bmad routines. For example, with single
-particle tracking the beta function is found from the lattice
-transport matrix, however, with particle or macroparticle tracking the
-beta function is found from the particle distribution using the
-formula
-\begin{equation}
-  \beta_x = \frac{<x^{2}>}{\sqrt{<x^{2}> <x'^{2}> - <x x'>^{2}}}.
-\end{equation}
-The next section will describe how each predefined data type is
-calculated.  Custom data types need not fall into one of the above
-categories and can be any real number as calculated in the appropriate
-hook routine.
+Table~\ref{t:data.types} lists the predefined data types in \tao. 
 
+Data can be classified by how it is calculated. This is set by the
+\vn{data_source} parameter associated with an attribute. If the data
+comes from particle beam tracking, \vn{data_source} must be set to
+\vn{"beam"}. For everything else, \vn{data_source} must be set to
+\vn{"lattice"}. Some datum types, like the floor position of an element,
+only make sense with a \vn{"lattice"} \vn{data_source}. Other types, like
+\vn{dpx_dx}, only make sense with a \vn{"beam"} \vn{data_source}. There
+is a third class of data types, like \vn{emit.a} that can take a
+\vn{"lattice"} or \vn{"beam"} \vn{data_source}. It is important to keep
+in mind that with this third case, such datums will have a different
+value depending upon what \vn{data_source} is used.
+
+\index{Data!Relative}
+Associated with a datum are two lattice elements named
+\vn{ele0_name} and \vn{ele_name}. Datums can be divided up into four
+classes: vn{Global} Datums, like the emittance in a circular
+ring, do not have associated lattice elements and their corresponding
+element names will be blank. Datums in the second class, like the beta
+function at a given point, will only have one associated lattice
+element given by \vn{ele_name} and \vn{ele0_name} will be blank.
+Datums in the third class are associated with a section of the
+lattice. For example, the maximum of the beta function in a lattice
+region. In this case the \vn{ele0} element marks the beginning of the
+region and \vn{ele} marks the end. The final class of datums, called
+\vn{relative} datums, means that the datum value is set by the
+difference between the value at the lattice element at \vn{ele0} and
+the value at \vn{ele}. The betatron phase advance falls into this
+category:
+\begin{example}
+  value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(ele0)
+\end{example}
+If a relative datum has a blank \vn{ele0_name} then \vn{ele0} is taken
+to be the beginning element of the lattice which is marker element
+with index 0 named \vn{BEGINNING}.
+The datum components \vn{ix_ele} and \vn{ix_ele0} are the index of
+\vn{ele} and \vn{ele0} in the list of lattice elements.
 
 For datums with \vni{non-relative} \vn{data_types} if there is also an
 associated \vni{ele0} element then the \vn{model} value is dependent
@@ -309,22 +287,13 @@ where \vn{i} goes from the \vn{ele} index to the \vn{ele0} index.
 \label{t:eval2}
 \end{table}
 
-%------------------------------------------------------------------------
-\section{Tao Data Types}\index{Data!Data Types}
-\label{s:data.types}
-
-Table~\ref{t:data.types} lists the predefined data types in \tao.
-
 \vn{wire} data simulates the measurement of a wire scanner. The angle specified
 is the angle of the wire with respect to the horizontal axis. The measurement
 then measures the second moment $<uu>$ along an axis which is 90 degrees off of
-the wire axis. For example, \vn{wire:90} is a wire scanner oriented in the
+the wire axis. For example, \vn{wire.90} is a wire scanner oriented in the
 vertical direction and measures the second moment of the beam along the
 horizontal axis, $<xx>$. The resultant data is not the beam size, but the beam
 size squared.
-
-Data types marked \vn{global} do not have any particular elements
-associated with them.
 
 Emittance can be calculated in one of two ways. One way is to
 calculate it from a tracked beam. The other is from the lattice using
@@ -352,7 +321,7 @@ results.
 
 \index{Data!Calculation Method}
 \index{unstable_ring}\index{beta}\index{alpha}\index{eta}\index{eta}
-\index{etap}\index{phase}\index{orbit}\index{bpm}\index{wire}\index{spin}
+\index{etap}\index{phase}\index{orbit}\index{wire}\index{spin}
 \index{cbar}\index{coupling}\index{floor}\index{r}\index{t}\index{tt}
 \index{i5a_e6}\index{i5b_e6}\index{s_position}\index{e_tot}
 \index{unstable_ring}\index{emittance}\index{chrom}\index{norm_emittance}
@@ -362,99 +331,77 @@ results.
 \centering 
 {\tt\small
 \begin{tabular}{|l|l|l|} \hline
-  {\it Data\_Type}              & {\it Description}                  &          \\ \hline 
-    alpha.x, alpha.y            & Projected Alpha Function           &          \\ \hline 
-    alpha.a, alpha.b, alpha.z   & Normal-Mode Alpha Function         &          \\ \hline 
-    e\_tot                      & Beam Total Energy                  &          \\ \hline
-    beta.x, beta.y              & Projected Beta Function            &          \\ \hline 
-    beta.a, beta.b, beta.z      & Normal-Mode Beta Function          &          \\ \hline 
-    bpm.x, bpm.y                & Transverse BPM reading             &          \\ \hline 
-    eta.x, eta.y                & Projected Dispersion               &          \\ \hline 
-    eta.a, eta.b                & Normal-Mode Dispersion             &          \\ \hline 
-    etap.x, etap.y              & Projected Dispersion derivative    &          \\ \hline 
-    etap.a, etap.b              & Normal-Mode Dispersion derivative  &          \\ \hline 
-    momentum\_compaction        & Momentum compaction factor         & relative \\ \hline
-    orbit.x, orbit.y            & Transverse orbit                   &          \\ \hline 
-    orbit.p\_x, orbit.p\_y      & Transverse momenta                 &          \\ \hline 
-    orbit.z, orbit.z\_p         & Longitudinal orbit and momenta     &          \\ \hline 
-    phase.a, phase.b            & Betatron phase                     & relative \\ \hline 
-    tune.a, tune.b              & Tune                               &          \\ \hline 
-    phase\_frac\_diff           & Fractional phase difference (x-y)  & relative \\ \hline
-    \begin{tabular}{@{}l}     
-      spin.polarization, \\ 
-      spin.theta, spin.phi 
-    \end{tabular} 
-                          & Particle spin                      &          \\ \hline 
-    \begin{tabular}{@{}l}     
-      cbar.11, cbar.12, \\ 
-      cbar.21, cbar.22 
-    \end{tabular} 
-                          & Coupling                          &          \\ \hline 
-    \begin{tabular}{@{}l}   
-      coupling.11b, coupling.12a, \\ 
-      coupling.12b, coupling.22a 
-    \end{tabular} 
-                          & Coupling                          &          \\ \hline 
-    floor.x, floor.y, floor.z
-                          & Global (``floor'') position       & relative \\ \hline 
-    floor.theta           & Global (``floor'') angle          & relative \\ \hline 
-    r.$ij$                & 
-                           \begin{tabular}{l}
-                             Term in linear transfer map \\
-                             $1 \le i,j \le 6$
-                           \end{tabular}
-                                                              & relative \\ \hline 
-    t.$ijk$               & 
-                           \begin{tabular}{l}
-                             Term in 2\Nd order transfer map \\
-                              $1 \le i,j,k \le 6$
-                           \end{tabular} 
-                                                              & relative \\ \hline 
-    tt.$ijklm\ldots$      & 
-                           \begin{tabular}{l}
-                             Term in n\Th order transfer map \\
-                              $1 \le i,j,k,\ldots \le 6$
-                           \end{tabular} 
-                                                              & relative \\ \hline 
-    i5a\_e6, i5b\_e6      & Normalized I5 radiation integral  &          \\ \hline
-    s\_position           & longitudinal length constraint    & relative \\ \hline 
-    unstable\_ring        & Nonzero if a ring is unstable     & global   \\ \hline
-    \begin{tabular}{@{}l}
-      emit.x, emit.a \\
-      emit.y, emit.b \\
-      emit.z \\
-    \end{tabular}
-                          & Emittance                        & global   \\ \hline
-    \begin{tabular}{@{}l}  
-      norm\_emit.x, norm\_emit.a \\
-      norm\_emit.y, norm\_emit.b \\
-      norm\_emit.z \\
-    \end{tabular} 
-                          & Normalized Beam Emittance         &          \\ \hline 
+  {\it Data\_Type}            & {\it Description}                  &          \\ \hline 
+  bpm\_orbit.x, bpm\_orbit.y  & Measured orbit                     &          \\ \hline
+  bpm\_phase.a, bpm\_phase.b  & Measured betatron phase            &          \\ \hline
+  bpm\_eta.x, bpm\_eta.y      & Measured dispersion                &          \\ \hline
+  bpm\_k.22a, bpm\_k.12a, bpm\_k.11b, bpm\_k12b
+                              & Measured coupling                  &          \\ \hline
+\begin{tabular}{@{}l}
+  bpm\_cbar.22a, bpm\_cbar.12a, \\
+  bpm\_cbar.11b, bpm\_cbar12b
+\end{tabular}
+                              & Measured coupling                  &          \\ \hline
+  alpha.x, alpha.y            & Projected Alpha Function           &          \\ \hline 
+  alpha.a, alpha.b, alpha.z   & Normal-Mode Alpha Function         &          \\ \hline 
+  e\_tot                      & Beam Total Energy                  &          \\ \hline
+  beta.x, beta.y              & Projected Beta Function            &          \\ \hline 
+  beta.a, beta.b, beta.z      & Normal-Mode Beta Function          &          \\ \hline 
+  eta.x, eta.y                & Projected Dispersion               &          \\ \hline 
+  eta.a, eta.b                & Normal-Mode Dispersion             &          \\ \hline 
+  etap.x, etap.y              & Projected Dispersion derivative    &          \\ \hline 
+  etap.a, etap.b              & Normal-Mode Dispersion derivative  &          \\ \hline 
+  momentum\_compaction        & Momentum compaction factor         & relative \\ \hline
+  orbit.x, orbit.y            & Transverse orbit                   &          \\ \hline 
+  orbit.p\_x, orbit.p\_y      & Transverse momenta                 &          \\ \hline 
+  orbit.z, orbit.z\_p         & Longitudinal orbit and momenta     &          \\ \hline 
+  phase.a, phase.b            & Betatron phase                     & relative \\ \hline 
+  tune.a, tune.b              & Tune                               &          \\ \hline 
+  phase\_frac\_diff           & Fractional phase difference (x-y)  & relative \\ \hline     
+  spin.polarization, spin.theta, spin.phi
+                              & Particle spin                      &          \\ \hline 
+  cbar.11, cbar.12, cbar.21, cbar.22
+                              & Coupling                           &          \\ \hline 
+  k.11b, k.12a, k.12b, k.22a  & Coupling                           &          \\ \hline 
+  floor.x, floor.y, floor.z, floor.theta 
+                              & Global (``floor'') position        & relative \\ \hline 
+  r.$ij$                      & \begin{tabular}{l}
+                                  Term in linear transfer map \\
+                                  $1 \le i,j \le 6$
+                                \end{tabular}                      & relative \\ \hline 
+  t.$ijk$                     & \begin{tabular}{l}
+                                  Term in 2\Nd order transfer map \\
+                                  $1 \le i,j,k \le 6$
+                                \end{tabular}                      & relative \\ \hline 
+  tt.$ijklm\ldots$            & \begin{tabular}{l}
+                                  Term in n\Th order transfer map \\
+                                  $1 \le i,j,k,\ldots \le 6$
+                                \end{tabular}                      & relative \\ \hline 
+  i5a\_e6, i5b\_e6            & Normalized I5 radiation integral   &          \\ \hline
+  s\_position                 & longitudinal length constraint     & relative \\ \hline 
+  unstable\_ring              & Nonzero if a ring is unstable      & global   \\ \hline
+  \begin{tabular}{@{}l}
+    emit.x, emit.y, emit.z \\
+    emit.a, emit.b, emit.c \\
+  \end{tabular}               & Emittance                          & global   \\ \hline
+  \begin{tabular}{@{}l}  
+    norm\_emit.x, norm\_emit.x, norm\_emit.z \\ 
+    norm\_emit.a, norm\_emit.b, norm\_emit.c 
+  \end{tabular}               & Normalized Beam Emittance          &          \\ \hline 
     \begin{tabular}{@{}l}
       chrom.a, chrom.b  \\
-    \end{tabular}
-                          & Chromaticity for a ring           & global   \\ \hline
+    \end{tabular}             & Chromaticity for a ring            & global   \\ \hline
     \begin{tabular}{@{}l}   
-      sigma.x, sigma.p\_x \\ 
-      sigma.y, sigma.p\_y \\
-      sigma.z, sigma.p\_z \\
-    \end{tabular} 
-                          & Bunch size                        &          \\ \hline 
+      sigma.x, sigma.y, sigma.z \\ 
+      sigma.p\_x, sigma.p\_y, sigma.p\_z
+    \end{tabular}             & Bunch size                         &          \\ \hline 
     \begin{tabular}{@{}l}   
       multi\_turn\_orbit.x, multi\_turn\_orbit.p\_x \\ 
       multi\_turn\_orbit.y, multi\_turn\_orbit.p\_y \\
       multi\_turn\_orbit.z, multi\_turn\_orbit.p\_z \\
-    \end{tabular} 
-                          & Bunch size                        &          \\ \hline 
-    \begin{tabular}{@{}l}  
-      dpx\_dx, dpa\_da \\
-      dpy\_dy, dpb\_db \\
-      dpz\_dz \\
-    \end{tabular} 
-                          & <x p\_x> / <$x^2$> \& Etc...       &          \\ \hline 
-    wire.<angle>                & Wire Scanner with wire angle <angle>
-                                                               &          \\ \hline
+    \end{tabular}             & Bunch size                         &          \\ \hline 
+    dpx\_dx, dpx\_dy, etc.    & Bunch <x p\_x> / <$x^2$> \& Etc... &          \\ \hline 
+    wire.<angle>              & Wire Scanner at wire angle <angle> &          \\ \hline
 \end{tabular}
 } 
 \label{t:data.types}
@@ -464,4 +411,11 @@ results.
 \vfill \break
 {\vfill}
 
+
+\vn{beta.a} and \vn{beta.b} are the lattice beta functions. \vn{beta.x} and
+\vn{beta.y} are beam prejected beta functions defined by
+\begin{equation}
+  \beta.x = \frac{<x^{2}>}{\sqrt{<x^{2}> <x'^{2}> - <x x'>^{2}}}.
+\end{equation}
+where the average \vn{<>} is over all the particles in the beam.
 

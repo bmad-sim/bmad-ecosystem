@@ -9,6 +9,7 @@ formalism. There are several books that introduce the topics very
 well. A good place to start is \textit{The Physics of Particle
 Accelerators} by Klaus Wille.
 
+\index{Bmad}
 \tao is based on the \bmad\cite{b:bmad} subroutine library. An
 understanding of the nitty-gritty details of the routines that
 comprise \bmad is not necessary, however, one should be familiar with
@@ -52,43 +53,54 @@ designing a lattice the constraints correspond to the data).
 With this in mind, \tao was structured to implement the essential
 ingredients needed to solve these simulation problems.  
 The information that \tao knows about can be divided into five
-categories:
+(overlapping) categories:
 \begin{description}
+  \index{Lattice|textbf}
   \item[Lattice] \Newline   
 Machine layout and component strengths, and the beam orbit (\sref{s:lattice}).
+  \index{Data|textbf}
   \item[Data] \Newline
 Anything that can be measured.
 For example: The orbit of a particle or the lattice beta 
 functions, etc. (\sref{c:data})
+  \index{Varialbe|textbf}
   \item[Variables] \Newline
 Essentially, any lattice parameter or initial condition that can be varied.
 For example: quadrupole strengths, etc. (\sref{s:variable.overview}).
+  \index{Plotting}
   \item[Plotting]  \Newline
 Information used to draw graphs, display the lattice 
 floor plan, etc. (\sref{s:plotting}).
-  \item[Global] \Newline
-Global parameters.
+  \index{Global parameters}
+  \item[Global Parameters] \Newline
+ \tao has a set of parameters to control every aspect of how it behavies from
+the random number seed \tao uses to what optimizer is used for fitting data.
 \end{description}
 
+%------------------------------------------------------------------------
+\section{The Super\_universe}
+\label{s:super.uni}
 \index{Super_universe}
 \index{Structure}
 The information in \tao deals is organized in a hierarchy of
 \vn{``structures''}. At the top level, everything known to \tao is
-placed in a structure called the \vn{super_universe}.
+placed in a single structure called the \vn{super_universe}.
 
-Within the \vn{super_universe} lies one or more \vn{universes}
+Within the \vn{super_universe}, lies one or more \vn{universes}
 (\sref{s:universe}), each \vn{universe} containing a particular
 machine lattice and its associated data. This allows for the user to
 do analysis on multiple machines or multiple configurations of a
 single machine at the same time. The \vn{super_universe} also contains
-\vn{variable}, \vn{plotting}, and \vn{global} information.
+the \vn{variable}, \vn{plotting}, and \vn{global parameter} information.
 
 %------------------------------------------------------------------------
 \section{The Universe}
 \label{s:universe}
-\index{Universe}
+\index{Universe!textbf}
 
-The \tao \vn{super_universe} (\sref{s:organization}) contains one or
+\index{Lattice}\index{Design lattice}\index{Model lattice}\index{Base lattice}
+\index{Data}
+The \tao \vn{super_universe} (\sref{s:super.uni}) contains one or
 more \vn{universes}.  A \vn{universe} contains a \vn{lattice}
 (\sref{s:lattice}) plus whatever data (\sref{c:data}) one wishes to
 study within this lattice (i.e. twiss parameters, orbit, phase,
@@ -106,20 +118,20 @@ correspond to the storage ring.
 
 Another case where multiple universes are useful is where data has
 been taken under different machine conditions. For example, suppose
-that the beam orbit in a machine has been taken with a given steering
-element set at some value and then the orbit is again measured but
-this time with some other element set to some value. To determine what
-quadrupole settings will best reproduce the data, two universes can be
-setup. One universe associated with one set of data and the second
-universe associated with the other set of data. Variables can be
+that a set of beam orbits have been measured in a storage ring with
+each orbit corresponding to a different steering element being set to some
+non-zero value. To determine what
+quadrupole settings will best reproduce the data, multiple universes can be
+setup, one universe for each of the orbit measurements. Variables can be
 defined to simultaneously vary the corresponding quadrupoles in each
 universe and \tao's built in optimizer can vary the variables until
 the data as determined from the \vn{model} lattice (\sref{s:lattice})
-matches the measured data.
+matches the measured data. This \vn{orbit response matrix} (ORM) analysis
+is, in fact, a widly used procedure at many laboratories.
 
 %------------------------------------------------------------------------
 \section{Lattices}
-\index{Lattice}
+\index{Lattice!textbf}
 \label{s:lattice}
 
 A \vn{lattice} consists of a machine description (the strength and
@@ -127,18 +139,22 @@ placement of elements such as quadrupoles and bends, etc.), along with the
 beam orbit through them. There are actually three types of lattices:
   \vspace*{-3ex}
   \begin{description}
+  \index{Design lattice!textbf}
   \item[Design Lattice] \Newline 
 The \vn{design} lattice corresponds to the lattice read in from the
 lattice description file(s) (\sref{s:init.lat}). In many instances, this
 is the particular lattice that one wants the actual physical machine
 to conform to. The \vn{design} lattice is fixed. Nothing is allowed to
 vary in this lattice.
+  \index{Model lattice!textbf}
   \item[Model Lattice] \Newline
 Except for some commands that explicitly set the \vn{base} lattice,
 all \tao commands to vary lattice variables vary quantities in the
 \vn{model} lattice. In particular, things like orbit correction
 involve varying \vn{model} lattice variables until the \vn{data},
 as calculated from the \vn{model}, matches the \vn{data} as actually measured.
+  \index{Base lattice!textbf}
+  \index{Base lattice!using set command}
   \item[Base Lattice] \Newline
 It is sometimes convenient to designate a reference lattice so that
 changes in the \vn{model} from the reference point can be examined.
@@ -152,14 +168,14 @@ command (\sref{s:set}) is used to transfer information from the
 \label{s:variable.overview}
 \index{Variables}
 
-
+\index{Change command}
+\index{Optimizer!variables}
 A variable is anything that can be varied. For example, quadrupole
 strengths or the initial position of a particle in a LINAC. Any
 variable can be varied using the \vn{change} command
 (\sref{s:change}). However it can be convenient to set up within \tao
 predefined groups of variables. For example, the optimizer
 (\sref{s:optimizer}) will only work with such blocks.
-
 
 Variables control attributes of elements in the model lattice of one
 or more universes. They are not the same thing as attributes in
@@ -168,23 +184,23 @@ lattice elements. They are more akin to \bmad \textit{overlays}. A
 given variable may control a single attribute of one element in one or
 more universes. If you want a variable to control a collection of
 elements like a \bmad \textit{group} then you need to insert the
-appropriate group in your lattice. Variables are what you vary in
+appropriate group element in your lattice. Variables are what you vary in
 order to change your model lattice. You can also change your model
 lattice by directly changing and lattice element attribute. However,
 if you plan on doing any optimization then you will need to use
 variables.
 
-\index{v1_var}
-
+\index{Variables!v1_var}
 Blocks of variables are associated with what is called a \vn{v1_var}
 structure and each of these structures has a \vn{name} with which to
 refer to them in \tao commands. For example, if \vn{quad_k1} is the
-name of a \vn{v1_var} then \vn{quad_k1[5]} referres to the variable 
-with index 5. 
+name of a \vn{v1_var}, then \vn{quad_k1[5]} referres to the variable 
+with index 5 in the block. 
 
-Ranges of variables can be referred to using using a comma \vn{,} to
-separate the indexes combined with the notation \vn{n1:n2} to specify
-all the variables between \vn{n1} and \vn{n2} inclusive. For example
+A set of variables within a \vn{v1_var} block
+can be referred to by using using a comma \vn{,} to
+separate their indexes. Additionally, a colan \vn{:} can be use to
+specify a range of variables. For example
 \begin{example}
   quad_k1[3:6,23]
 \end{example}
@@ -197,8 +213,8 @@ example, the lattice element named \vn{q01} is assocaited with
 \end{example}
 Using lattice names instead of numbers is not valid if the same
 lattice element is associated with more than one variable in a
-\vn{v1_var} array. This can happen, for example, if one var controled
-an element's \vn{x_offset} and another var controlled the same element's
+\vn{v1_var} array. This can happen, for example, if one variable controls
+an element's \vn{x_offset} and another variable controlls the same element's
 \vn{y_offset}. 
 
 A given variable may control a single attribute of one element in a
@@ -206,7 +222,7 @@ A given variable may control a single attribute of one element in a
 simultaneously control an element attribute across multiple
 universes. Any one variable cannot control more than one attribute of
 one element. However, a variable may control an overlay or group
-element, which in turn controls numerous elements.
+element which, in turn, can control numerous elements.
 
 Each individual variable has a number of values associated with it:
   \vspace*{-3ex}
@@ -250,7 +266,7 @@ Use the \vn{show var} (\sref{s:show}) command to view variable information
 \section{Plotting}\index{Plotting}
 \label{s:plotting}
 
-\begin{figure}
+\begin{figure}[tb]
   \centering
   \includegraphics{plot.eps}
   \caption[A plot has a collection of graphs.]
@@ -264,24 +280,31 @@ on the actual page the plot/region border is not visible.}
 Some definitions:
   \vspace*{-3ex}
 \begin{description}
+\index{Curve|textbf}
 \item[Curve] \Newline
 A \vn{curve} is a set of (x,y) points to be plotted.
+\index{Graph|textbf}
 \item[Graph] \Newline
 A \vn{graph} consists of horizontal and vertical axes along with a set
 of \vn{curve}s that are plotted within the graph. 
+\index{Plot|textbf}
 \item[Plot] \Newline
 A \vn{plot} is essentially a collection of \vn{graphs}.
+\index{Page|textbf}
 \item[Page] \Newline
 The \vn{page} refers to the Xwindow where graphics are displayed or the 
 corresponding printed graphics page.
+\index{Region|textbf}
 \item[Region] \Newline
 The \vn{page} is divided up into a number of rectangles called
 \vn{regions}. \vn{Regions} may overlap.
 \end{description}
 
+\index{Template plot}\index{Region}\index{Place command}
+\index{Graph}\index{Plot!initialization file}\index{Curve}
 The plot initialization file (cf.~Chapter~\ref{c:init}) defines a set
 of \vn{template plots}. A \vn{template} defines what type of data is
-to be plotted (orbit, coupling, etc.), how many \vn{graphs} there are,
+to be plotted (orbit, beta function, etc.), how many \vn{graphs} there are,
 what the scales are for the \vn{graph} axes, how the \vn{graph}s are
 laid out, etc.  The plot initialization file also defines a set of
 \vn{region}s within the \vn{page}. Any \vn{template plot} can be
@@ -411,28 +434,21 @@ called a \vn{key table}. See Chapter~\sref{c:single} for more details.
 
 \index{track_type}
 \index{tao_global_struct}
-The are three types of tracking implemented in \tao: single particle
-tracking, many particle multi-bunch tracking and macroparticle
-multi-bunch tracking. Single particle tracking is just that, the
+\index{Global%track_type}
+The are two types of tracking implemented in \tao: single particle
+tracking and many particle multi-bunch tracking.
+Single particle tracking is just that, the
 tracking of a single particle through the lattice. Many particle
 multi-bunch tracking creates a gaussian distribution of particles at
 the beginning of the lattice and tracks each particle through the
-lattice, including any wakefields. Macroparticle tracking takes a beam
-distribution and tracks the centroids and sigmas of the
-``macro-particles'' through the lattice, including any wakefields.
+lattice, including any wakefields. 
 Single particle tracking is used by default. The
 \vn{global%track_type} parameter (\sref{s:globals}), which is set in
 the initialization file, is used to set the tracking.
 
-
 Particle spin tracking has also been set up for single particle and many
 particle tracking. See Sections~\sref{s:globals} and \sref{s:beam.init} for
 details on setting up spin tracking.
-
-\vn{Note:} Macroparticle tracking has not been used for some time and
-the underlying code used for macroparticle tracking is dormant. The
-use of macroparticle tracking is thus discouraged. If you have a need
-for this please contact David Sagan.
 
 %------------------------------------------------------------------------
 \section{Lattice Calculation}\index{Lattice!calculation of}
@@ -458,9 +474,7 @@ the model lattice for all universes will be recalculated. The
 recalculated for every element. All data types will also be calculated
 at each element specified in the initialiation file.  For single
 particle tracking the linear transfer matrices and twiss parameters
-are found about the tracked orbit. For particle bunch and
-macroparticle bunch tracking the linear transfer matrices and twiss
-parameters are calculated from the beam distribution.  Tracking is
+are found about the tracked orbit. Tracking is
 performed using the tracking method defined for each element
 (i.e. Bmad Standard, Symplectic Lie, etc...). See the \bmad Reference
 manual for details on tracking and finding the linear transfer
