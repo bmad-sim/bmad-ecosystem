@@ -495,7 +495,7 @@ default value of $r_0$, if the \vn{radius} is not given, is 1.0.
 
 %-----------------------------------------------------------------
 \section{Instrumental Measurement Attributes}
-\label{s:inst.var}
+\label{s:meas.attrib}
 
 \index{Instrument}\index{Monitor}\index{Marker}
 \index{X_gain_err}\index{Y_gain_err}\index{Crunch}\index{Noise}
@@ -509,310 +509,26 @@ attributes to describe orbit, betatron phase, dispersion and coupling
 measurements. These attributes are:
 \hfill\break
 \hspace*{0.1in}
-\begin{tabular}{lll}
-  \vn{tilt}           &= <Real>    &! $\theta_t$ \sref{s:offset} \\ 
-  \vn{x_offset}       &= <Real>    &! $x_{\mss{err}}$ \sref{s:offset} \\ 
-  \vn{y_offset}       &= <Real>    &! $y_{\mss{err}}$ \sref{s:offset} \\ 
-  \vn{x_gain_err}     &= <Real>    &! $dg_{x,\mss{err}}$ Horizontal gain error \\ 
-  \vn{y_gain_err}     &= <Real>    &! $dg_{y,\mss{err}}$ Vertical gain error \\ 
-  \vn{crunch}         &= <Real>    &! $\psi_{\mss{err}}$ Crunch angle \\ 
-  \vn{tilt_calib}     &= <Real>    &! $\theta_{\mss{err}}$ tilt angle calibration \\ 
-  \vn{x_offset_calib} &= <Real>    &! $x_{\mss{cal}}$ Horizontal offset calibration \\ 
-  \vn{y_offset_calib} &= <Real>    &! $y_{\mss{cal}}$ Vertical offset calibration \\ 
-  \vn{x_gain_calib}   &= <Real>    &! $dg_{x,\mss{cal}}$ Horizontal gain calibration \\ 
-  \vn{y_gain_calib}   &= <Real>    &! $dg_{y,\mss{cal}}$ Vertical gain calibration \\ 
-  \vn{crunch_calib}   &= <Real>    &! $\psi_{\mss{cal}}$ Crunch angle calibration \\ 
-  \vn{noise}          &= <Real>    &! $n_f$ Noise factor \\ 
-  \vn{de_eta_meas}    &= <Real>    &! $dE/E$ Percent change in energy for a dispersion calc \\ 
-  \vn{n_sample}       &= <Real>    &! $N_s$ Number of sampling points for phase and coupling \\ 
-  \vn{osc_amplitude}  &= <Real>    &! $A_{\mss{osc}}$ Oscillation amplitude for phase and coupling \\ 
+\begin{tabular}{llll}
+  {\em Attribute}     &            &! {\em Symbol} (\sref{s:meas.calc}) & \\
+  \vn{tilt}           &= <Real>    &! $\theta_t$            & See \sref{s:offset} \\ 
+  \vn{x_offset}       &= <Real>    &! $x_{\mss{err}}$       & See \sref{s:offset} \\ 
+  \vn{y_offset}       &= <Real>    &! $y_{\mss{err}}$       & See \sref{s:offset} \\ 
+  \vn{x_gain_err}     &= <Real>    &! $dg_{x,\mss{err}}$    & Horizontal gain error \\ 
+  \vn{y_gain_err}     &= <Real>    &! $dg_{y,\mss{err}}$    & Vertical gain error \\ 
+  \vn{crunch}         &= <Real>    &! $\psi_{\mss{err}}$    & Crunch angle \\ 
+  \vn{tilt_calib}     &= <Real>    &! $\theta_{\mss{err}}$  & tilt angle calibration \\ 
+  \vn{x_offset_calib} &= <Real>    &! $x_{\mss{cal}}$       & Horizontal offset calibration \\ 
+  \vn{y_offset_calib} &= <Real>    &! $y_{\mss{cal}}$       & Vertical offset calibration \\ 
+  \vn{x_gain_calib}   &= <Real>    &! $dg_{x,\mss{cal}}$    & Horizontal gain calibration \\ 
+  \vn{y_gain_calib}   &= <Real>    &! $dg_{y,\mss{cal}}$    & Vertical gain calibration \\ 
+  \vn{crunch_calib}   &= <Real>    &! $\psi_{\mss{cal}}$    & Crunch angle calibration \\ 
+  \vn{noise}          &= <Real>    &! $n_f$                 & Noise factor \\ 
+  \vn{de_eta_meas}    &= <Real>    &! $dE/E$                & Percent change in energy \\ 
+  \vn{n_sample}       &= <Real>    &! $N_s$                 & Number of sampling points \\ 
+  \vn{osc_amplitude}  &= <Real>    &! $A_{\mss{osc}}$       & Oscillation amplitude \\ 
 \end{tabular}
 \hfill\break
 A program can use these quantities to calculate ``measured'' values from the
 ``laboritory'' values. Here, ``laboratory'' means as calculated from some model lattice.
-
-%-----------------------------------------------------------------
-\subsection{Orbit Measurement}
-\index{Orbit!measurement}
-
-For orbits, the
-relationship between measured position $(x, y)_m$ and laboratory position 
-$(x, y)_{lab}$ is
-\Begineq
-  \begin{pmatrix}
-    x \\
-    y
-  \end{pmatrix}_{\! \mss{m}}
-  =
-  n_f \, 
-  \begin{pmatrix}
-    r_1 \\ 
-    r_2
-  \end{pmatrix}
-  +
-  \bM_m \, 
-  \left[
-  \begin{pmatrix}
-    x \\
-    y
-  \end{pmatrix}_{\! lab}
-  -
-  \begin{pmatrix}
-    x \\
-    y
-  \end{pmatrix}_{\! 0}
-  \right]
-  \label{xynrr}
-\Endeq
-where $r_1$ and $r_2$ are Gaussian random numbers whose distribution
-is centered at zero and has unit width. Additionally
-\Begineq
-  \begin{pmatrix}
-    x \\
-    y
-  \end{pmatrix}_{\! 0}
-  =
-  \begin{pmatrix}
-    x_{\mss{err}} - x_{\mss{cal}} \\
-    y_{\mss{err}} - y_{\mss{cal}}
-  \end{pmatrix}
-\Endeq
-and 
-\Begineq
-  \bM_m
-  =
-  \begin{pmatrix}
-     g_x \, \cos (d\theta + d\psi) & g_x \, \sin (d\theta + d\psi) \\
-    -g_y \, \sin (d\theta - d\psi) & g_y \, \cos (d\theta - d\psi) 
-  \end{pmatrix}
-\Endeq
-where
-\begin{alignat}{1}
-  d\psi   &= \psi_{\mss{err}}   - \psi_{\mss{cal}} \CRNO
-  d\theta &= \theta_{\mss{err}} - \theta_{\mss{cal}} \CRNO
-  g_x     &= 1 + dg_{x,\mss{err}} - dg_{x,\mss{cal}} \CRNO
-  g_y     &= 1 + dg_{y,\mss{err}} - dg_{y,\mss{cal}}
-\end{alignat}
-The calibration variables are useful for simulating the process where
-a measurement or series of measurements is analyzed to find the values
-of the error parameters. In this case, the measured position $(x,
-y)_m$ prepresents the beam position corrected for ``known'' offsets,
-tilts, and gain errors.
-
-%-----------------------------------------------------------------
-\subsection{Dispersion Measurement}
-\label{Dispersion!measurement}
-
-A dispersion measurement is considered to be the result of measuring the
-orbit at two different energies. The measured values are then
-\Begineq
-  \begin{pmatrix}
-    \eta_x \\
-    \eta_y
- \end{pmatrix}_{\! \mss{m}}
-  =
-  \frac{\sqrt{2} \, n_f}{dE/E} \, 
-  \begin{pmatrix}
-    r_1 \\ 
-    r_2
-  \end{pmatrix}
-  +
-  \bM_m \, 
-  \begin{pmatrix}
-    \eta_x \\
-    \eta_y
-  \end{pmatrix}_{\! lab}
-\Endeq
-The factor of $\sqrt{2}$ comes from the fact that there are two measurements.
-
-%-----------------------------------------------------------------
-\subsection{Coupling Measurement}
-\label{Coupling!measurement}
-
-The coupling measurement is considered to be the result of measuring
-the beam at a detector over $N_s$ turns while the beam oscillates at a
-normal mode frequency with some amplitude $A_{\mss{osc}}$.  The
-measured coupling is computed as follows. First, consider excitation
-of the $a$-mode which can be written in the form:
-\Begineq
-  \begin{pmatrix}
-    x_i \\
-    y_i
-  \end{pmatrix}_{\! \mss{lab}}
-  =
-  A_{\mss{osc}} \,
-  \begin{pmatrix}
-    \cos \phi_i \\
-    K_{a1} \, \cos \phi_i + K_{a2} \sin \phi_i
-  \end{pmatrix}_{\! \mss{lab}}
-  \label{xyapk}
-\Endeq
-$i$ is the turn number and $\phi_i$ is the oscillation phase on the $i$\Th turn.
-The coefficients $K_{a1}$ and $K_{a2}$ are related to the coupling $\Cbar$ via
-David and Rubin\cite{b:coupling} Eq.~54:
-\begin{alignat}{1}
-  K_{a1} &= \frac{-\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \Cbar_{22} \CRNO
-  K_{a2} &= \frac{-\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \Cbar_{12}
-  \label{kabgbc}
-\end{alignat}
-To apply the measurement errors, consider the general case where the
-beam's oscillations are split into two components: One component being
-in-phase with some reference oscillator (which is oscillating with the
-same frequency as the beam) and a component oscillating out-of-phase:
-\Begineq
-  \begin{pmatrix}
-    x_i \\
-    y_i
-  \end{pmatrix}_{\! \mss{lab}}
-  =
-  \begin{pmatrix}
-    q_{a1x} \\
-    q_{a1y}
-  \end{pmatrix}_{\! \mss{lab}}
-  \, A_{\mss{osc}} \, \cos (\phi_i + d\phi) +
-  \begin{pmatrix}
-    q_{a2x} \\
-    q_{a2y}
-  \end{pmatrix}_{\! \mss{lab}}
-  \, A_{\mss{osc}} \, \sin (\phi_i + d\phi)
-  \label{xykkap}
-\Endeq
-where $d\phi$ is the phase of the reference oscillator with respect to
-the beam.  Compairing \Eq{xyapk} with \Eq{xykkap} gives the relation
-\begin{alignat}{1}
-  K_{a1} &= \frac{q_{a1x} \, q_{a1y} + q_{a2x} \, q_{a2y}}{q_{a1x}^2 + q_{a2x}^2} \CRNO
-  K_{a2} &= \frac{q_{a1x} \, q_{a2y} - q_{a2x} \, q_{a1y}}{q_{a1x}^2 + q_{a2x}^2} 
-  \label{kaqqqq}
-\end{alignat}
-This equation is general and can be applied in either the lab or
-measurement frame of reference.  \Eq{xynrr} can be used to transform
-$(x_i, y_i)_{\mss{lab}}$ in \Eq{xyapk} to the measurement frame of
-reference. Only the oscillating part is of interest.  Averaging over
-many turns gives
-\Begineq
-  \begin{pmatrix}
-    q_{a1x} \\
-    q_{a1y}
-  \end{pmatrix}_{\! \mss{meas}}
-  =  
-  \bM_m \, 
-  \begin{pmatrix}
-    q_{a1x} \\
-    q_{a1y}
-  \end{pmatrix}_{\! \mss{lab}}
-  \comma \qquad
-  \begin{pmatrix}
-    q_{a2x} \\
-    q_{a2y}
-  \end{pmatrix}_{\! \mss{meas}}
-  =  
-  \bM_m \, 
-  \begin{pmatrix}
-    q_{a2x} \\
-    q_{a2y}
-  \end{pmatrix}_{\! \mss{lab}}
-  \label{kkmkk}
-\Endeq
-This neglects the measurement noise. A calculation shows that the noise gives a 
-contribution to the measured $K_{a1}$ and $K_{a2}$ of
-\Begineq
-  K_{a1} \rightarrow K_{a1} + r_1 \, \frac{n_f}{N_s \, A_{\mss{osc}}} 
-  \comma \qquad
-  K_{a2} \rightarrow K_{a2} + r_2 \, \frac{n_f}{N_s \, A_{\mss{osc}}} 
-  \label{kkrnn}
-\Endeq
-Using the above equations, the transformation from the laboratory
-coupling to measured coupling is as follows: From a knowledge of the
-laboratory $\Cbar$ and Twiss values, the laboratory $K_{a1}$ and
-$K_{a2}$ can be calculated via \Eq{kabgbc}. Since the value of $d\phi$
-does not affect the final answer, $d\phi$ in \Eq{xykkap} is choisen to
-be zero.  Compairing this to \Eq{xyapk} gives
-\Begineq
-  \begin{pmatrix}
-    q_{a1x} \\
-    q_{a1y}
-  \end{pmatrix}_{\mss{lab}}
-  =
-  \begin{pmatrix}
-    1 \\
-    K_{a1}
-  \end{pmatrix}_{\mss{lab}}
-  \comma \qquad
-  \begin{pmatrix}
-    q_{a2x} \\
-    q_{a2y}
-  \end{pmatrix}_{\mss{lab}}
-  =
-  \begin{pmatrix}
-    0 \\
-    K_{a2}
-  \end{pmatrix}_{\mss{lab}}
-\Endeq
-Now \Eq{kkmkk} is used to convert to the measured $q$'s and
-\Eq{kaqqqq} then gives the measured $K_{a1}$ and $K_{a2}$. Finally,
-Applying \Eq{kkrnn} and then \Eq{kabgbc} gives the measured
-$\Cbar_{22}$ and $\Cbar_{12}$. 
-
-A similar procedure can be applied to $b$-mode oscillations to
-calculate values for the measured $\Cbar_{11}$ and $\Cbar_{12}$.
-$K_{b1}$ and $K_{b2}$ are defined by
-\Begineq
-  \begin{pmatrix}
-    x_i \\
-    y_i
-  \end{pmatrix}_{\! \mss{lab}}
-  =
-  A_{\mss{osc}} \,
-  \begin{pmatrix}
-    K_{b1} \, \cos \phi_i + K_{b2} \sin \phi_i
-    \cos \phi_i \\
-  \end{pmatrix}_{\! \mss{lab}}
-  \label{xyakp}
-\Endeq
-Compairing this to David and Rubin\cite{b:coupling} Eq.~55 gives
-\begin{alignat}{1}
-  K_{b1} &= \frac{ \sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{11} \CRNO
-  K_{b2} &= \frac{-\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{12}
-  \label{kbbgbc}
-\end{alignat}
-The $q_{x1b}$, $q_{y1b}$, $q_{x2b}$ and $q_{y2b}$ are defined by using
-\Eq{xykkap} with the ``a'' subscript replaced by ``b''. The
-relationship between $K$ and $q$ is then
-\begin{alignat}{1}
-  K_{b1} &= \frac{q_{b1y} \, q_{b1x} + q_{b2y} \, q_{b2x}}{q_{b1y}^2 + q_{b2y}^2} \CRNO
-  K_{b2} &= \frac{q_{b1y} \, q_{b2x} - q_{b2y} \, q_{b1x}}{q_{b1y}^2 + q_{b2y}^2} 
-  \label{kbqqqq}
-\end{alignat}
-
-
-%-----------------------------------------------------------------
-\subsection{Phase Measurement}
-\label{Phase!measurement}
-
-Like the coupling measurement, the betatron phase measurement is
-considered to be the result of measuring the beam at a detector over
-$N_s$ turns while the beam oscillates at a normal mode frequency with
-some amplitude $A_{\mss{osc}}$.  Following the analysis of the
-previous subsection, the phase $\phi$ is
-\Begineq
-  \begin{pmatrix}
-    \phi_a \\
-    \phi_b
-  \end{pmatrix}_{\! \mss{meas}}
-  =
-  \begin{pmatrix}
-    \phi_a \\
-    \phi_b
-  \end{pmatrix}_{\! lab}
-  +
-  \frac{n_f}{N_s \, A_{\mss{osc}}} \, 
-  \begin{pmatrix}
-    r_1 \\ 
-    r_2
-  \end{pmatrix}
-  -
-  \begin{pmatrix}
-    \tan^{-1} \left( \frac{q_{a2x}}{q_{a1x}} \right) \\
-    \tan^{-1} \left( \frac{q_{b2y}}{q_{b1y}} \right)
-  \end{pmatrix}_{\! \mss{meas}}
-\Endeq
+See \sref{s:meas.calc} for the conversion formulas.

@@ -870,7 +870,310 @@ Explicitly
 For everything except \vn{RFcavity} and \vn{Lcavity} elements, 
 $dp_{z1}/dp_{z2}$ is 1.
 
+%-----------------------------------------------------------------
+\section{Instrumental Measurements}
+\label{s:meas.calc}
+\index{Measurement}
 
+\bmad has the ability to simulate instrumental measurement errors
+for orbit, dispersion, betatron phase, and coupling measurements.
+The appropriate atttributes are listed in \sref{s:meas.attrib} and
+the conversion formulas are outlined below.
+
+%-----------------------------------------------------------------
+\subsection{Orbit Measurement}
+\index{Orbit!measurement}
+
+For orbits, the
+relationship between measured position $(x, y)_{\mss{meas}}$ and true position 
+$(x, y)_{true}$ is
+\Begineq
+  \begin{pmatrix}
+    x \\
+    y
+  \end{pmatrix}_{\! \mss{meas}}
+  =
+  n_f \, 
+  \begin{pmatrix}
+    r_1 \\ 
+    r_2
+  \end{pmatrix}
+  +
+  \bM_m \, 
+  \left[
+  \begin{pmatrix}
+    x \\
+    y
+  \end{pmatrix}_{\! true}
+  -
+  \begin{pmatrix}
+    x \\
+    y
+  \end{pmatrix}_{\! 0}
+  \right]
+  \label{xynrr}
+\Endeq
+with
+\Begineq
+  \begin{pmatrix}
+    x \\
+    y
+  \end{pmatrix}_{\! 0}
+  =
+  \begin{pmatrix}
+    x_{\mss{err}} - x_{\mss{cal}} \\
+    y_{\mss{err}} - y_{\mss{cal}}
+  \end{pmatrix}
+\Endeq
+and 
+\Begineq
+  \bM_m
+  =
+  \begin{pmatrix}
+     g_x \, \cos (d\theta + d\psi) & g_x \, \sin (d\theta + d\psi) \\
+    -g_y \, \sin (d\theta - d\psi) & g_y \, \cos (d\theta - d\psi) 
+  \end{pmatrix}
+\Endeq
+where
+\begin{alignat}{1}
+  d\psi   &= \psi_{\mss{err}}   - \psi_{\mss{cal}} \CRNO
+  d\theta &= \theta_{\mss{err}} - \theta_{\mss{cal}} \CRNO
+  g_x     &= 1 + dg_{x,\mss{err}} - dg_{x,\mss{cal}} \CRNO
+  g_y     &= 1 + dg_{y,\mss{err}} - dg_{y,\mss{cal}}
+\end{alignat}
+$r_1$ and $r_2$ are Gaussian random numbers whose distribution
+is centered at zero and has unit width. 
+$n_f$ is the noise factor inherent in the measurement, $(x, y)_{\mss{err}}$
+are monitor offset errors and $(x, y)_{\mss{cal}}$ are the offset calibration
+factors. $\theta_{\mss{err}}$ and $\phi_{\mss{err}}$ are error tilt and ``crunch''
+angles, and $\theta_{\mss{cal}}$ and $\phi_{\mss{cal}}$ are the corresponding
+calibration angles. Finally, $dg_{x,\mss{err}}$ and $dg_{y,\mss{err}}$ are the
+horizontal and vertical gain errors, and $dg_{x,\mss{cal}}$ and $dg_{y,\mss{cal}}$
+are the corresponding calibration gains.
+
+The calibration variables are useful for simulating the process where
+a measurement or series of measurements is analyzed to find the values
+of the error parameters. In this case, the measured position $(x,
+y)_m$ prepresents the beam position corrected for ``known'' offsets,
+tilts, and gain errors.
+
+%-----------------------------------------------------------------
+\subsection{Dispersion Measurement}
+\label{Dispersion!measurement}
+
+A dispersion measurement is considered to be the result of measuring the
+orbit at two different energies. The measured values are then
+\Begineq
+  \begin{pmatrix}
+    \eta_x \\
+    \eta_y
+ \end{pmatrix}_{\! \mss{meas}}
+  =
+  \frac{\sqrt{2} \, n_f}{dE/E} \, 
+  \begin{pmatrix}
+    r_1 \\ 
+    r_2
+  \end{pmatrix}
+  +
+  \bM_m \, 
+  \begin{pmatrix}
+    \eta_x \\
+    \eta_y
+  \end{pmatrix}_{\! true}
+\Endeq
+The factor of $\sqrt{2}$ comes from the fact that there are two measurements.
+
+%-----------------------------------------------------------------
+\subsection{Coupling Measurement}
+\label{Coupling!measurement}
+
+The coupling measurement is considered to be the result of measuring
+the beam at a detector over $N_s$ turns while the beam oscillates at a
+normal mode frequency with some amplitude $A_{\mss{osc}}$.  The
+measured coupling is computed as follows. First, consider excitation
+of the $a$-mode which can be written in the form:
+\Begineq
+  \begin{pmatrix}
+    x_i \\
+    y_i
+  \end{pmatrix}_{\! \mss{true}}
+  =
+  A_{\mss{osc}} \,
+  \begin{pmatrix}
+    \cos \phi_i \\
+    K_{22a} \, \cos \phi_i + K_{12a} \sin \phi_i
+  \end{pmatrix}_{\! \mss{true}}
+  \label{xyapk}
+\Endeq
+$i$ is the turn number and $\phi_i$ is the oscillation phase on the $i$\Th turn.
+The coefficients $K_{22a}$ and $K_{12a}$ are related to the coupling $\Cbar$ via
+David and Rubin\cite{b:coupling} Eq.~54:
+\begin{alignat}{1}
+  K_{22a} &= \frac{-\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \Cbar_{22} \CRNO
+  K_{12a} &= \frac{-\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \Cbar_{12}
+  \label{kabgbc}
+\end{alignat}
+To apply the measurement errors, consider the general case where the
+beam's oscillations are split into two components: One component being
+in-phase with some reference oscillator (which is oscillating with the
+same frequency as the beam) and a component oscillating out-of-phase:
+\Begineq
+  \begin{pmatrix}
+    x_i \\
+    y_i
+  \end{pmatrix}_{\! \mss{true}}
+  =
+  \begin{pmatrix}
+    q_{a1x} \\
+    q_{a1y}
+  \end{pmatrix}_{\! \mss{true}}
+  \, A_{\mss{osc}} \, \cos (\phi_i + d\phi) +
+  \begin{pmatrix}
+    q_{a2x} \\
+    q_{a2y}
+  \end{pmatrix}_{\! \mss{true}}
+  \, A_{\mss{osc}} \, \sin (\phi_i + d\phi)
+  \label{xykkap}
+\Endeq
+where $d\phi$ is the phase of the reference oscillator with respect to
+the beam.  Compairing \Eq{xyapk} with \Eq{xykkap} gives the relation
+\begin{alignat}{1}
+  K_{22a} &= \frac{q_{a1x} \, q_{a1y} + q_{a2x} \, q_{a2y}}{q_{a1x}^2 + q_{a2x}^2} \CRNO
+  K_{12a} &= \frac{q_{a1x} \, q_{a2y} - q_{a2x} \, q_{a1y}}{q_{a1x}^2 + q_{a2x}^2} 
+  \label{kaqqqq}
+\end{alignat}
+This equation is general and can be applied in either the true or
+measurement frame of reference.  \Eq{xynrr} can be used to transform
+$(x_i, y_i)_{\mss{true}}$ in \Eq{xyapk} to the measurement frame of
+reference. Only the oscillating part is of interest.  Averaging over
+many turns gives
+\Begineq
+  \begin{pmatrix}
+    q_{a1x} \\
+    q_{a1y}
+  \end{pmatrix}_{\! \mss{meas}}
+  =  
+  \bM_m \, 
+  \begin{pmatrix}
+    q_{a1x} \\
+    q_{a1y}
+  \end{pmatrix}_{\! \mss{true}}
+  \comma \qquad
+  \begin{pmatrix}
+    q_{a2x} \\
+    q_{a2y}
+  \end{pmatrix}_{\! \mss{meas}}
+  =  
+  \bM_m \, 
+  \begin{pmatrix}
+    q_{a2x} \\
+    q_{a2y}
+  \end{pmatrix}_{\! \mss{true}}
+  \label{kkmkk}
+\Endeq
+This neglects the measurement noise. A calculation shows that the noise gives a 
+contribution to the measured $K_{22a}$ and $K_{12a}$ of
+\Begineq
+  K_{22a} \rightarrow K_{22a} + r_1 \, \frac{n_f}{N_s \, A_{\mss{osc}}} 
+  \comma \qquad
+  K_{12a} \rightarrow K_{12a} + r_2 \, \frac{n_f}{N_s \, A_{\mss{osc}}} 
+  \label{kkrnn}
+\Endeq
+Using the above equations, the transformation from the true
+coupling to measured coupling is as follows: From a knowledge of the
+true $\Cbar$ and Twiss values, the true $K_{22a}$ and
+$K_{12a}$ can be calculated via \Eq{kabgbc}. Since the value of $d\phi$
+does not affect the final answer, $d\phi$ in \Eq{xykkap} is choisen to
+be zero.  Compairing this to \Eq{xyapk} gives
+\Begineq
+  \begin{pmatrix}
+    q_{a1x} \\
+    q_{a1y}
+  \end{pmatrix}_{\mss{true}}
+  =
+  \begin{pmatrix}
+    1 \\
+    K_{22a}
+  \end{pmatrix}_{\mss{true}}
+  \comma \qquad
+  \begin{pmatrix}
+    q_{a2x} \\
+    q_{a2y}
+  \end{pmatrix}_{\mss{true}}
+  =
+  \begin{pmatrix}
+    0 \\
+    K_{12a}
+  \end{pmatrix}_{\mss{true}}
+\Endeq
+Now \Eq{kkmkk} is used to convert to the measured $q$'s and
+\Eq{kaqqqq} then gives the measured $K_{22a}$ and $K_{12a}$. Finally,
+Applying \Eq{kkrnn} and then \Eq{kabgbc} gives the measured
+$\Cbar_{22}$ and $\Cbar_{12}$. 
+
+A similar procedure can be applied to $b$-mode oscillations to
+calculate values for the measured $\Cbar_{11}$ and $\Cbar_{12}$.
+$K_{11b}$ and $K_{12b}$ are defined by
+\Begineq
+  \begin{pmatrix}
+    x_i \\
+    y_i
+  \end{pmatrix}_{\! \mss{true}}
+  =
+  A_{\mss{osc}} \,
+  \begin{pmatrix}
+    K_{11b} \, \cos \phi_i + K_{12b} \sin \phi_i
+    \cos \phi_i \\
+  \end{pmatrix}_{\! \mss{true}}
+  \label{xyakp}
+\Endeq
+Compairing this to David and Rubin\cite{b:coupling} Eq.~55 gives
+\begin{alignat}{1}
+  K_{11b} &= \frac{ \sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{11} \CRNO
+  K_{12b} &= \frac{-\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{12}
+  \label{kbbgbc}
+\end{alignat}
+The $q_{x1b}$, $q_{y1b}$, $q_{x2b}$ and $q_{y2b}$ are defined by using
+\Eq{xykkap} with the ``a'' subscript replaced by ``b''. The
+relationship between $K$ and $q$ is then
+\begin{alignat}{1}
+  K_{11b} &= \frac{q_{b1y} \, q_{b1x} + q_{b2y} \, q_{b2x}}{q_{b1y}^2 + q_{b2y}^2} \CRNO
+  K_{12b} &= \frac{q_{b1y} \, q_{b2x} - q_{b2y} \, q_{b1x}}{q_{b1y}^2 + q_{b2y}^2} 
+  \label{kbqqqq}
+\end{alignat}
+
+
+%-----------------------------------------------------------------
+\subsection{Phase Measurement}
+\label{Phase!measurement}
+
+Like the coupling measurement, the betatron phase measurement is
+considered to be the result of measuring the beam at a detector over
+$N_s$ turns while the beam oscillates at a normal mode frequency with
+some amplitude $A_{\mss{osc}}$.  Following the analysis of the
+previous subsection, the phase $\phi$ is
+\Begineq
+  \begin{pmatrix}
+    \phi_a \\
+    \phi_b
+  \end{pmatrix}_{\! \mss{meas}}
+  =
+  \begin{pmatrix}
+    \phi_a \\
+    \phi_b
+  \end{pmatrix}_{\! true}
+  +
+  \frac{n_f}{N_s \, A_{\mss{osc}}} \, 
+  \begin{pmatrix}
+    r_1 \\ 
+    r_2
+  \end{pmatrix}
+  -
+  \begin{pmatrix}
+    \tan^{-1} \left( \frac{q_{a2x}}{q_{a1x}} \right) \\
+    \tan^{-1} \left( \frac{q_{b2y}}{q_{b1y}} \right)
+  \end{pmatrix}_{\! \mss{meas}}
+\Endeq
 
 %-----------------------------------------------------------------
 \section{Macroparticles}
