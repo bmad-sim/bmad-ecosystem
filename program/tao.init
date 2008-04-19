@@ -167,7 +167,7 @@
 !---------------------------------------------------
 
 &tao_d2_data
-  d2_data%name = "coupling" 
+  d2_data%name = "k"  ! coupling 
   universe = '*'  ! apply to all universes
   n_d1_data = 4
 /

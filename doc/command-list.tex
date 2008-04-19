@@ -10,9 +10,16 @@ command. Single Mode is useful for quickly varying parameters to see
 how they affect a lattice but the number of commands in Single Mode is
 limited.
 
+\index{Commands!Command List} 
 Commands are case sensitive. The list of commands is shown in
-Table~\ref{t:commands}.\index{Commands!Command List} Multiple commands
+Table~\ref{t:commands}. Multiple commands
 may be entered on one line using the ``;'' character as a separator.
+An exclamation mark ``\vn{!}'' denotes the beginning of a comment and the
+exclamation mark and everything after it to the end of the line is ignored.
+Example:
+\begin{example}
+  view 2; show global  ! Two commands and a comment
+\end{example}
 
 %% command_table -----------------------------------------------------
 
@@ -898,7 +905,7 @@ as well as printing the information at the terminal. The format for this is:
   show -append <file_name> <rest_of_the_command>
 \end{example}
 The \vn{show -append} command will appended to the output file. The
-\vn{show -write} command will first erase the conents of the output
+\vn{show -write} command will first erase the contents of the output
 file. If \vn{global%write_file} has a \vn{*} character in it, a three
 digit number is substituted for the \vn{*}. The value of the number
 starts at \vn{001} and increases by 1 each time \vn{show -write} is

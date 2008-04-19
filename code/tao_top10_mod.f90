@@ -22,20 +22,19 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_top10_print ()
+! Subroutine tao_top10_derivative_print ()
 !
 ! Routine to print out the top10 contributors to the merit function.
 !
 ! Input:
 !-
 
-subroutine tao_top10_print ()
+subroutine tao_top10_derivative_print ()
 
 implicit none
 
-type (tao_top10_struct) top_merit(10)
-type (tao_top10_struct) top_dmerit(10)
-type (tao_top10_struct) top_delta(10)
+type (tao_top10_struct) top_dmerit(s%global%n_top10)
+type (tao_top10_struct) top_delta(s%global%n_top10)
 type (tao_data_struct), pointer :: data
 
 real(rp) delta, a_max, merit
@@ -51,33 +50,17 @@ character(20) :: r_name = 'tao_top10_print'
 merit = tao_merit()
 call tao_dmerit_calc ()
 
-! top_merit stores the top contributors to the merit function.
 ! top_dmerit stores the top dmerit/dvar values
 ! top_delta stores the top |var_model - var_design| 
 
-top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
-top_merit(:)%value = 0; top_merit(:)%index = 0
 top_dmerit(:)%valid = .false.; top_dmerit(:)%name = ' '
 top_dmerit(:)%value = 0; top_dmerit(:)%index = 0
 top_delta(:)%valid  = .false.; top_delta(:)%name  = ' '
 top_delta(:)%value = 0; top_delta(:)%index = 0
 
-nu = ubound(s%u, 1)
-do i = 1, nu
-  do j = 1, size(s%u(i)%data)
-    data => s%u(i)%data(j)
-    if (.not. data%useit_opt) cycle
-    name = trim(data%d1%d2%name) // '.' // data%d1%name
-    if (nu > 1) write (name, '(i0, 2a)') i, '@', trim(name)
-    call tao_to_top10 (top_merit, data%merit, name, data%ix_d1, 'max')
-  enddo
-enddo
-
-
 do j = 1, size(s%var)
   if (.not. s%var(j)%useit_opt) cycle
   name = s%var(j)%v1%name
-  call tao_to_top10 (top_merit, s%var(j)%merit, name, s%var(j)%ix_v1, 'max')
   call tao_to_top10 (top_dmerit, s%var(j)%dmerit_dvar, name, &
                                                     s%var(j)%ix_v1, 'abs_max')
   delta = s%var(j)%model_value - s%var(j)%design_value
@@ -85,8 +68,6 @@ do j = 1, size(s%var)
 enddo
 
 ! write results
-
-call tao_show_constraints (0, 'TOP10')
 
 a_max = max(1.1, maxval(abs(top_delta(:)%value)))
 n = max(0, 6 - int(log10(a_max)))
@@ -99,8 +80,9 @@ lines(nl+2) = '      Top10 derivative       |       Top10 delta'
 lines(nl+3) = ' Name         ix  Derivative | Name         ix     delta'
 nl = nl + 3
 
-do i = 1, 10
+do i = 1, s%global%n_top10
   nl = nl + 1
+  if (top_dmerit(i)%name == '' .and. top_delta(i)%name == '') exit
   write (lines(nl), fmt) &
       top_dmerit(i)%name, top_dmerit(i)%index, top_dmerit(i)%value,  &
       top_delta(i)%name,  top_delta(i)%index,  top_delta(i)%value
@@ -192,15 +174,15 @@ use nr
 
 implicit none
 
-type (tao_top10_struct) top_merit(10)
+type (tao_top10_struct) top_merit(s%global%n_top10)
 type (tao_var_struct), pointer :: var
 type (tao_data_struct), pointer :: data
 type (tao_universe_struct), pointer :: u
 
 real(rp) value, this_merit
 
-integer i, j, n, iunit, nc, ir, n_max
-integer ir1, ir2, iu, ie, nl
+integer i, j, n, ix, iunit, nc, ir, n_max
+integer ir1, ir2, iu, ie, nl, ct
 integer, allocatable, save :: ixm(:)
 integer n_name, n_d2_d1_name, n_loc1, n_loc0
 
@@ -277,8 +259,13 @@ do i = 1, size(s%var(:))
   con(nc)%d2_d1_name = trim(tao_var1_name(var))
   con(nc)%name = trim(tao_var_attrib_name(var))
   u => s%u(var%this(1)%ix_uni)
-  write (con(nc)%loc1, '(f8.2)') u%model%lat%ele(var%this(1)%ix_ele)%s
+  ct = u%model%lat%ele(var%this(1)%ix_ele)%control_type
   con(nc)%loc0 = ''
+  con(nc)%loc1 = ''
+  if (ct /= group_lord$ .and. ct /= overlay_lord$ .and. ct /= multipass_lord$) then
+    write (con(nc)%loc1, '(f8.2)') u%model%lat%ele(var%this(1)%ix_ele)%s
+    call string_trim (con(nc)%loc1, con(nc)%loc1, ix)
+  endif
   if (var%merit_type == 'target') then
     con(nc)%target_value = var%meas_value
   elseif (var%merit_type == 'limit') then
@@ -394,9 +381,12 @@ implicit none
 
 
 integer i, j, iu, ix, ios, ix_hash
+
 character(*) out_file
 character(200) file_name
 character(20) :: r_name = 'tao_var_write'
+character(200) str(1)
+
 logical, optional :: good_opt_vars_only
 
 ! Output to terminal?
@@ -434,6 +424,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   close (iu)
   call out_io (s_blank$, r_name, 'Written: ' // file_name)
 
+  if (tao_com%unified_lattices) exit
+
 enddo
 
 ! Write all constraints to a separate file when there are multiple universes.
@@ -445,6 +437,27 @@ if (size(s%u) > 1) then
   call tao_show_constraints (iu, 'ALL')
   close (iu)
   call out_io (s_blank$, r_name, 'Written constraints file: ' // file_name)
+endif
+
+! For unified lattices write the variables affecting the specific universes.
+
+if (tao_com%unified_lattices) then
+
+  file_name = 'lat_specific_vars.list'
+  open (iu, file = file_name, carriagecontrol = 'list', recl = 100, iostat = ios)
+
+  do j = 1, size(s%var)
+    if (.not. s%var(j)%exists) cycle
+    if (all (s%var(j)%this(:)%ix_uni == 0)) cycle
+    if (logic_option(.false., good_opt_vars_only) .and. .not. s%var(j)%useit_opt) cycle
+    write (str(1), '(2a, es22.14)')  trim(tao_var1_name(s%var(j))), &
+                                  '|model =', s%var(j)%model_value
+    call tao_write_out (iu, str, 1)
+  enddo  
+
+  close (iu)
+  call out_io (s_blank$, r_name, 'Written: ' // file_name)
+
 endif
 
 end subroutine tao_var_write

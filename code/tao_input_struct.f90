@@ -84,7 +84,6 @@ type tao_curve_input
   logical draw_interpolated_curve
   type (qp_line_struct) line
   type (qp_symbol_struct) symbol
-  logical convert  
   character(40) ele_ref_name
   integer ix_ele_ref
   integer ix_bunch

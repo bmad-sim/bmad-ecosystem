@@ -3,17 +3,58 @@ module tao_data_mod
 use tao_mod
 use spin_mod
 use utilities_mod
+use measurement_mod
 
 type this_coupling_struct
   real(rp) cbar(2,2)
-  real(rp) coupling11, coupling12a, coupling12b, coupling22
-  real(rp) f_11, f_12a, f_12b, f_22
+  real(rp) k_11a, k_12a, k_12b, k_22b
   logical calc_done
 end type
 
 type (this_coupling_struct), save, allocatable, target, private :: cc(:)
 
 contains
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_to_phase_and_coupling_reading (ele, monitor_data, valid_value)
+!
+! Buffer routine for to_phase_and_coupling_reading.
+!
+! Input:
+!   ele -- Ele_struct: The monitor.
+!
+! Output:
+!   monitor_data -- Monitor_phase_coupling_struct: Monitor values
+!   valid_value  -- Logical: Valid data value?
+!-
+
+subroutine tao_to_phase_and_coupling_reading (ele, monitor_data, valid_value)
+
+implicit none
+
+type (ele_struct) ele
+type (monitor_phase_coupling_struct) monitor_data
+type (monitor_phase_coupling_struct), save :: mon_data
+
+integer, save :: ix_ele_old = -1
+
+logical valid_value
+logical, save :: err
+
+!
+
+if (ix_ele_old /= ele%ix_ele) then
+  call to_phase_and_coupling_reading (ele, mon_data, err)
+  ix_ele_old = ele%ix_ele
+endif
+
+monitor_data = mon_data
+valid_value = .not. err
+
+end subroutine
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -68,7 +109,6 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (present(data_ix_dModel))    data_ix_dModel(j)  = s%u(iu)%data(i)%ix_dModel
   enddo
 enddo
-
 
 end subroutine
 
@@ -125,7 +165,6 @@ do i = 1, size(ix_datum)
     call tao_evaluate_a_datum (datum, u, u%base, datum%base_value, good)
   end select
 enddo
-
 
 end subroutine tao_load_data_array
 
@@ -189,8 +228,6 @@ end subroutine
 
 subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, taylor_in)
 
-use measurement_mod
-
 implicit none
 
 type (tao_universe_struct), target :: u
@@ -202,10 +239,11 @@ type (taylor_struct), optional :: taylor_in(6)
 type (spin_polar_struct) polar
 type (ele_struct), pointer :: ele, ele0
 type (coord_struct), pointer :: orb0
+type (monitor_phase_coupling_struct) monitor_data
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz
-real(rp) gamma
+real(rp) gamma, vec(2)
 
 integer, save :: ix_save = -1
 integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_lat
@@ -213,7 +251,7 @@ integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_lat
 character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) data_type, data_source
 
-logical found, valid_value
+logical found, valid_value, err
 
 ! See if there is a hook for this datum
 
@@ -269,15 +307,83 @@ if (data_source == 'lattice') then
         'sigma.z', 'sigma.p_z', 'sigma.xy', 'wire.')
     call out_io (s_error$, r_name, 'DATA_SOURCE = "lattice" NOT VALID FOR DATUM: ' // &
                                    tao_datum_name(datum))
+    return
   end select
 endif
 
-if (lat%param%ix_lost /= not_lost$ .and. ix1 >= lat%param%ix_lost .and. &
-                                      data_source == 'beam') valid_value = .false.
+if (data_type(1:6) == 'monitor') then
+  if (data_source == 'beam') then
+    call out_io (s_error$, r_name, 'DATA_SOURCE = "beam" NOT VALID FOR DATUM: ' // &
+                                                                 tao_datum_name(datum))
+    valid_value = .false.
+    return
+  endif
+  if (ix0 /= ix1) then
+    call out_io (s_error$, r_name, 'DATUM OVER A REGION NOT YET IMPLEMENTED FOR: ' // &
+                                                                 tao_datum_name(datum))
+    valid_value = .false.
+    return
+  endif
+endif
+
+if (lat%param%ix_lost /= not_lost$ .and. &
+              ix1 >= lat%param%ix_lost .and. data_source == 'beam') then
+  valid_value = .false.
+  return
+endif
 
 !---------------------------------------------------
 
 select case (data_type)
+
+case ('monitor_orbit.x')
+  call to_orbit_reading (tao_lat%orb(ix1), lat%ele(ix1), x_plane$, datum_value, err)
+  valid_value = .not. err
+case ('monitor_orbit.y')
+  call to_orbit_reading (tao_lat%orb(ix1), lat%ele(ix1), y_plane$, datum_value, err)
+  valid_value = .not. err
+
+case ('monitor_eta.x')
+  vec = (/ tao_lat%bunch_params(ix1)%x%eta, tao_lat%bunch_params(ix1)%y%eta /)
+  call to_eta_reading (vec, lat%ele(ix1), x_plane$, datum_value, err)
+  valid_value = .not. err
+case ('monitor_eta.y')
+  vec = (/ tao_lat%bunch_params(ix1)%x%eta, tao_lat%bunch_params(ix1)%y%eta /)
+  call to_eta_reading (vec, lat%ele(ix1), y_plane$, datum_value, err)
+  valid_value = .not. err
+
+case ('monitor_phase.a')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
+  datum_value = monitor_data%phi_a
+case ('monitor_phase.b')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
+  datum_value = monitor_data%phi_b
+
+case ('monitor_k.22a')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
+  datum_value = monitor_data%k_22a
+case ('monitor_k.12a')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
+  datum_value = monitor_data%k_12a
+case ('monitor_k.11b')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
+  datum_value = monitor_data%k_11b
+case ('monitor_k.12b')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
+  datum_value = monitor_data%k_12b
+
+case ('monitor_cbar.22a')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
+  datum_value = monitor_data%k_22a
+case ('monitor_cbar.12a')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
+  datum_value = monitor_data%k_12a
+case ('monitor_cbar.11b')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
+  datum_value = monitor_data%k_11b
+case ('monitor_cbar.12b')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
+  datum_value = monitor_data%k_12b
 
 case ('orbit.x')
   call load_it (tao_lat%orb(:)%vec(1), ix0, ix1, datum_value, valid_value, datum, lat)
@@ -298,11 +404,6 @@ case ('orbit.p_y')
 case ('orbit.p_z')
   call load_it (tao_lat%orb(:)%vec(6), ix0, ix1, datum_value, valid_value, datum, lat)
   if (lat%param%ix_lost /= not_lost$ .and. ix1 >= lat%param%ix_lost) valid_value = .false.
-
-case ('bpm.x')
-  call to_orbit_reading (tao_lat%orb(ix1), lat%ele(ix1), x_plane$, datum_value)
-case ('bpm.y')
-  call to_orbit_reading (tao_lat%orb(ix1), lat%ele(ix1), y_plane$, datum_value)
 
 case ('phase.a')
   datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
@@ -468,18 +569,18 @@ case ('%e_tot')
   call load_it (tao_lat%orb(0:n_lat)%vec(6), ix0, ix1, &
                                             datum_value, valid_value, datum, lat)
   
-case ('coupling.11b')
-  call load_it (cc%coupling11, ix0, ix1, datum_value, valid_value, &
-                                     datum, lat, cc%f_11, coupling_here = .true.)
-case ('coupling.12a')
-  call load_it (cc%coupling12a, ix0, ix1, datum_value, valid_value, &
-                                     datum, lat, cc%f_12a, coupling_here = .true.)
-case ('coupling.12b')
-  call load_it (cc%coupling12b, ix0, ix1, datum_value, valid_value, &
-                                     datum, lat, cc%f_12b, coupling_here = .true.)
-case ('coupling.22a')
-  call load_it (cc%coupling22, ix0, ix1, datum_value, valid_value, &
-                                     datum, lat, cc%f_22, coupling_here = .true.)
+case ('k.11b')
+  call load_it (cc%k_11a, ix0, ix1, datum_value, valid_value, &
+                                  datum, lat, coupling_here = .true.)
+case ('k.12a')
+  call load_it (cc%k_12a, ix0, ix1, datum_value, valid_value, &
+                                  datum, lat, coupling_here = .true.)
+case ('k.12b')
+  call load_it (cc%k_12b, ix0, ix1, datum_value, valid_value, &
+                                 datum, lat, coupling_here = .true.)
+case ('k.22a')
+  call load_it (cc%k_22b, ix0, ix1, datum_value, valid_value, &
+                                 datum, lat, coupling_here = .true.)
 
 case ('cbar.11')
   call load_it (cc%cbar(1,1), ix0, ix1, datum_value, valid_value, &
@@ -807,7 +908,7 @@ end subroutine tao_evaluate_a_datum
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine load_it (vec, ix0, ix1, datum_value, valid_value, datum, lat, f, coupling_here)
+subroutine load_it (vec, ix0, ix1, datum_value, valid_value, datum, lat, coupling_here)
 
 implicit none
 
@@ -815,7 +916,6 @@ type (tao_data_struct) datum
 type (lat_struct) lat
 
 real(rp) vec(0:)
-real(rp), optional :: f(0:)
 real(rp) datum_value
 
 character(20) :: r_name = 'tao_evaluate_a_datum'
@@ -952,7 +1052,6 @@ endif
 !
 
 datum%ix_ele_merit = ix_m
-if (present(f)) datum%conversion_factor = f(ix_m)
 
 end subroutine
 
@@ -1063,15 +1162,10 @@ f = sqrt(ele%a%beta/ele%b%beta)
 f1 = f / ele%gamma_c
 f2 = 1 / (f * ele%gamma_c)
 
-cc_p%coupling11  = cc_p%cbar(1,1) * f1
-cc_p%coupling12a = cc_p%cbar(1,2) * f2
-cc_p%coupling12b = cc_p%cbar(1,2) * f1
-cc_p%coupling22  = cc_p%cbar(2,2) * f2
-
-cc_p%f_11  = f1
-cc_p%f_12a = f2
-cc_p%f_12b = f1
-cc_p%f_22  = f2
+cc_p%k_11a = cc_p%cbar(1,1) * f1
+cc_p%k_12a = cc_p%cbar(1,2) * f2
+cc_p%k_12b = cc_p%cbar(1,2) * f1
+cc_p%k_22b = cc_p%cbar(2,2) * f2
 
 end subroutine coupling_calc
 

@@ -88,7 +88,6 @@ type tao_curve_struct
   logical use_y2               ! Use y2 axis?
   logical draw_line            ! draw a line through the data points?
   logical draw_symbols         ! draw a line through the data points?
-  logical convert              ! Eg: covert coupling to cbar?
   logical draw_interpolated_curve  ! Interpolate between element edge points?
 end type
 
@@ -233,7 +232,6 @@ type tao_data_struct
   real(rp) delta_merit       ! Diff used to calculate the merit function term 
   real(rp) weight            ! Weight for the merit function term
   real(rp) merit             ! Merit function term value: weight * delta^2
-  real(rp) conversion_factor ! Typically used to convert coupling to cbar
   real(rp) s                 ! longitudinal position of ele.
   logical relative           ! Value is relative to value at ele0?
   logical exists             ! See above
@@ -418,7 +416,8 @@ type tao_global_struct
   integer :: phase_units = radians$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
-  integer :: random_seed = 0             ! use system clock by default
+  integer :: random_seed = 0             ! Use system clock by default
+  integer :: n_top10 = 10                ! Number of top constraints to print.
   real(rp) :: random_gauss_cutoff = 4    ! cut-off in sigmas.
   character(16) :: random_engine = 'pseudo' 
   character(16) :: random_gauss_converter = 'exact'

@@ -49,7 +49,8 @@ character(16) :: r_name = 'tao_show_cmd'
 ! See if the results need to be written to a file.
 
 n = len_trim(what)
-if (n > 1 .and. (index('-append', what) == 1 .or. index('-write', what) == 1)) then
+if (n > 1 .and. (index('-append', trim(what)) == 1 .or. &
+                                index('-write', trim(what)) == 1)) then
 
   call string_trim(stuff, stuff2, ix)
   file_name = stuff2(:ix)
@@ -429,7 +430,6 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)  '%base              = ', d_ptr%base_value
     nl=nl+1; write(lines(nl), rmt)  '%old               = ', d_ptr%old_value   
     nl=nl+1; write(lines(nl), rmt)  '%fit               = ', d_ptr%fit_value
-    nl=nl+1; write(lines(nl), rmt)  '%conversion_factor = ', d_ptr%conversion_factor
     nl=nl+1; write(lines(nl), rmt)  '%s                 = ', d_ptr%s
     nl=nl+1; write(lines(nl), amt)  '%merit_type        = ', d_ptr%merit_type
     nl=nl+1; write(lines(nl), rmt)  '%merit             = ', d_ptr%merit
@@ -688,6 +688,7 @@ case ('global')
   nl=nl+1; write (lines(nl), rmt) '%lmdif_eps                  = ', s%global%lmdif_eps
   nl=nl+1; write (lines(nl), rmt) '%merit_finish               = ', s%global%merit_finish
   nl=nl+1; write (lines(nl), lmt) '%matrix_recalc_on           = ', s%global%matrix_recalc_on
+  nl=nl+1; write (lines(nl), imt) '%n_top10                    = ', s%global%n_top10
   nl=nl+1; write (lines(nl), imt) '%n_curve_pts                = ', s%global%n_curve_pts
   nl=nl+1; write (lines(nl), imt) '%n_opti_loops               = ', s%global%n_opti_loops
   nl=nl+1; write (lines(nl), imt) '%n_opti_cycles              = ', s%global%n_opti_cycles
@@ -1235,7 +1236,6 @@ case ('plot', 'graph', 'curve')
     nl=nl+1; write (lines(nl), lmt) 'use_y2                  = ', c%use_y2
     nl=nl+1; write (lines(nl), lmt) 'draw_line               = ', c%draw_line
     nl=nl+1; write (lines(nl), lmt) 'draw_symbols            = ', c%draw_symbols
-    nl=nl+1; write (lines(nl), lmt) 'convert                 = ', c%convert
     nl=nl+1; write (lines(nl), lmt) 'draw_interpolated_curve = ', c%draw_interpolated_curve
     
     if (show_sym) then
@@ -1350,7 +1350,15 @@ case ('plot', 'graph', 'curve')
 
 case ('top10')
 
-  call tao_top10_print ()
+  call string_trim(stuff, stuff2, ix)
+  if (ix == 0) then
+    call tao_show_constraints (0, 'TOP10')
+  elseif (index('-derivative', trim(stuff2)) == 1) then 
+    call tao_top10_derivative_print ()
+  else
+    call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2)
+    return
+  endif
 
 !----------------------------------------------------------------------
 ! universe
@@ -1389,7 +1397,9 @@ case ('universe')
     nl=nl+1; write (lines(nl), '(a, i0, 2a)') '           (', i, ') = ', u%save_beam_at(i)
   enddo
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; lines(nl) = 'Lattice Type: ' // lattice_type(u%model%lat%param%lattice_type)
+  nl=nl+1; write(lines(nl), amt) 'Lattice name:    ', lat%lattice
+  nl=nl+1; write(lines(nl), amt) 'Input_file_name: ', lat%input_file_name
+  nl=nl+1; lines(nl) =           'Lattice Type:    ' // lattice_type(u%model%lat%param%lattice_type)
   nl=nl+1; write (lines(nl), imt) &
                 'Elements used in tracking: From 1 through ', lat%n_ele_track
   if (lat%n_ele_max .gt. lat%n_ele_track) then

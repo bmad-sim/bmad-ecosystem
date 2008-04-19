@@ -557,9 +557,6 @@ do k = 1, size(graph%curve)
                    graph%who(m)%sign * pack(value, mask = d1_ptr%d%useit_plot)
     enddo
 
-    if (curve%convert) curve%y_symb = curve%y_symb * &
-                           pack(d1_ptr%d%conversion_factor, d1_ptr%d%useit_plot)
-
 
 !----------------------------------------------------------------------------
 ! Case: data_source is a var_array

@@ -37,7 +37,7 @@ type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
 type (tao_curve_struct), pointer :: crv
 type (tao_plot_input) plot
-type (tao_graph_input) graph
+type (tao_graph_input) graph, default_graph
 type (tao_region_input) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx)
 type (tao_place_input) place(10)
@@ -61,7 +61,7 @@ character(20) :: r_name = 'tao_init_plotting'
 logical element_shapes_needed
 
 namelist / tao_plot_page / plot_page, region, place
-namelist / tao_template_plot / plot
+namelist / tao_template_plot / plot, default_graph
 namelist / tao_template_graph / graph, graph_index, curve
 namelist / element_shapes / shape
 namelist / element_shapes_floor_plan / ele_shape
@@ -129,6 +129,25 @@ enddo
 ip = 0   ! number of template plots
 element_shapes_needed = .false.
 
+default_graph%title           = ''
+default_graph%type            = 'data'
+default_graph%legend_origin   = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
+default_graph%y               = init_axis
+default_graph%y%major_div     = 4
+default_graph%y2              = init_axis
+default_graph%y2%major_div    = 4
+default_graph%y2%label_color  = blue$
+default_graph%y2%draw_numbers = .false.
+default_graph%ix_universe     = -1
+default_graph%clip            = .true.
+default_graph%draw_axes       = .true.
+default_graph%who%name        = '' 
+default_graph%correct_xy_distortion = .false.
+default_graph%who(1)  = tao_plot_who_struct('model', +1) 
+default_graph%box     = (/ 1, 1, 1, 1 /)
+default_graph%margin  = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
+default_graph%n_curve = 0
+
 do
   plot%name = ' '
   plot%x_axis_type = 'index'
@@ -137,6 +156,7 @@ do
   plot%x%major_div = 6
   plot%independent_graphs = .true.
   plot%n_graph = 0
+
   read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
   if (ios /= 0) exit                                 ! exit on end of file.
   call out_io (s_blank$, r_name, &
@@ -176,26 +196,9 @@ do
   endif
 
   do i = 1, ng
+    graph_index = 0         ! setup defaults
+    graph = default_graph
     write (graph%name, '(a, i0)') 'g', i
-    graph_index           = 0         ! setup defaults
-    graph%title           = ''
-    graph%type            = 'data'
-    graph%legend_origin   = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
-    graph%y               = init_axis
-    graph%y%major_div     = 4
-    graph%y2              = init_axis
-    graph%y2%major_div    = 4
-    graph%y2%label_color  = blue$
-    graph%y2%draw_numbers = .false.
-    graph%ix_universe     = -1
-    graph%clip            = .true.
-    graph%draw_axes       = .true.
-    graph%who%name        = '' 
-    graph%correct_xy_distortion = .false.
-    graph%who(1)  = tao_plot_who_struct('model', +1) 
-    graph%box     = (/ 1, 1, 1, 1 /)
-    graph%margin  = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
-    graph%n_curve = 0
     do j = 1, size(curve)
       write (curve(j)%name, '(a, i0)') 'c', j
     enddo
@@ -203,7 +206,6 @@ do
     curve(:)%x_axis_scale_factor = 1
     curve(:)%y_axis_scale_factor = 1
     curve(:)%ix_bunch = 0
-    curve(:)%convert = .false.                             ! set default
     curve(:)%symbol_every = 1
     curve(:)%ix_universe = -1
     curve(:)%draw_line = .true.
@@ -300,7 +302,6 @@ do
       crv%use_y2                  = curve(j)%use_y2
       crv%symbol                  = curve(j)%symbol
       crv%line                    = curve(j)%line
-      crv%convert                 = curve(j)%convert
       crv%draw_interpolated_curve = curve(j)%draw_interpolated_curve
       crv%name                    = curve(j)%name
       crv%ele_ref_name            = curve(j)%ele_ref_name
