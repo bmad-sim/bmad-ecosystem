@@ -1087,6 +1087,10 @@ do ii = 1, size(curve%x_line)
     value = bunch_params%a%norm_emitt
   case ('norm_emit.b')
     value = bunch_params%b%norm_emitt
+  case ('norm_emit.x')
+    value = bunch_params%x%norm_emitt
+  case ('norm_emit.y')
+    value = bunch_params%y%norm_emitt
   case ('norm_emit.z')
     value = bunch_params%z%norm_emitt
   case ('emit.a')
