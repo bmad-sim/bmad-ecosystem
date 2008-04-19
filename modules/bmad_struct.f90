@@ -40,6 +40,22 @@ type orbit_struct                            ! an entire orbit.
   type (coord_struct), allocatable :: at(:)  ! coords "at" end of each element.
 end type 
 
+! Coupling structure
+
+type monitor_phase_coupling_struct
+  real(rp) K_22a  ! In-phase y/x for a-mode oscillations.
+  real(rp) K_12a  ! Out-of-phase y/x for a-mode oscillations.
+  real(rp) K_11b  ! In-phase x/y for b-mode oscillations.
+  real(rp) K_12b  ! Out-of-phase x/y for b-mode oscillations.
+  real(rp) Cbar22_a ! Cbar22 as calculated from K_22a.
+  real(rp) Cbar12_a ! Cbar12 as calculated from K_12a.
+  real(rp) Cbar11_b ! Cbar11 as calculated from K_11b.
+  real(rp) Cbar12_b ! Cbar12 as calculated from K_12b.
+  real(rp) phi_a    ! a-mode betatron phase.
+  real(rp) phi_b    ! b-mode betatron phase.
+  
+end type
+
 ! Wiggler structures
 
 integer, parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
