@@ -42,7 +42,7 @@ end type
 
 ! Coupling structure
 
-type monitor_phase_coupling_struct
+type bpm_phase_coupling_struct
   real(rp) K_22a  ! In-phase y/x for a-mode oscillations.
   real(rp) K_12a  ! Out-of-phase y/x for a-mode oscillations.
   real(rp) K_11b  ! In-phase x/y for b-mode oscillations.

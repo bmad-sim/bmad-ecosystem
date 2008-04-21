@@ -13,7 +13,7 @@ end type
 
 type (measurement_common_struct), private, save :: m_com
 
-private compute_monitor_transformation_numbers
+private compute_bpm_transformation_numbers
 
 contains
 
@@ -53,7 +53,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine compute_monitor_transformation_numbers (ele)
+! Subroutine compute_bpm_transformation_numbers (ele)
 !
 ! Routine to compute the numbers associated with the transformation between
 ! the actual orbit, phase, eta, and coupling, and what the measured values.
@@ -68,7 +68,7 @@ end subroutine
 ! Output:
 !   m_com -- Private common block of measurement mod.
 
-subroutine compute_monitor_transformation_numbers (ele)
+subroutine compute_bpm_transformation_numbers (ele)
 
 implicit none
 
@@ -108,7 +108,7 @@ if (any(m_com%value(1:tilt_calib$) /= ele%value(1:tilt_calib$))) then
   m_com%value(1:tilt_calib$) = ele%value(1:tilt_calib$)
 endif
 
-end subroutine compute_monitor_transformation_numbers
+end subroutine compute_bpm_transformation_numbers
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -165,7 +165,7 @@ if (err) return
 
 err = .true.
 
-call compute_monitor_transformation_numbers (ele)
+call compute_bpm_transformation_numbers (ele)
 
 if (ele%value(noise$) /= 0) then
   call ran_gauss (ran_num)
@@ -263,7 +263,7 @@ else
   noise_factor = 0
 endif
 
-call compute_monitor_transformation_numbers (ele)
+call compute_bpm_transformation_numbers (ele)
 
 x = eta_actual(1)
 y = eta_actual(2)
@@ -302,7 +302,7 @@ end subroutine to_eta_reading
 !    %value(phase_noise$) -- RMS Noise in radians.
 !
 ! Output:
-!  mon -- monitor_phase_coupling_struct: K and Cbar coupling parameters
+!  mon -- bpm_phase_coupling_struct: K and Cbar coupling parameters
 !  err -- Logical: Set True if there is an error. False otherwise.
 !-
 
@@ -313,7 +313,7 @@ use random_mod
 implicit none
 
 type (ele_struct) ele
-type (monitor_phase_coupling_struct) mon, lab
+type (bpm_phase_coupling_struct) mon, lab
 
 real(rp) ran_num(6), cbar_lab(2,2), denom, ratio
 real(rp) q_a1_lab(2), q_a2_lab(2), q_b1_lab(2), q_b2_lab(2)
@@ -340,7 +340,7 @@ if (.not. ele%is_on) return
 
 err = .true.
 
-call compute_monitor_transformation_numbers (ele)
+call compute_bpm_transformation_numbers (ele)
 
 if (ele%value(noise$) /= 0) then
   if (ele%value(n_sample$) == 0 .or. ele%value(osc_amplitude$) == 0) then
