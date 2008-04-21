@@ -294,9 +294,6 @@ call mark_good_data (d%cbar12%val, d%cbar12%good)
 call mark_good_data (d%cbar21%val, d%cbar21%good)
 call mark_good_data (d%cbar22%val, d%cbar22%good)
 
-d%orbit%x = d%orbit%x / 1000.0     ! convert to m
-d%orbit%y = d%orbit%y / 1000.0     ! convert to m
-
 close (iu)
 err = .false.
 
