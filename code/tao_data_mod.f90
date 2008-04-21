@@ -19,7 +19,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_to_phase_and_coupling_reading (ele, monitor_data, valid_value)
+! Subroutine tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
 !
 ! Buffer routine for to_phase_and_coupling_reading.
 !
@@ -27,17 +27,17 @@ contains
 !   ele -- Ele_struct: The monitor.
 !
 ! Output:
-!   monitor_data -- Monitor_phase_coupling_struct: Monitor values
+!   bpm_data     -- Bpm_phase_coupling_struct: Monitor values
 !   valid_value  -- Logical: Valid data value?
 !-
 
-subroutine tao_to_phase_and_coupling_reading (ele, monitor_data, valid_value)
+subroutine tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
 
 implicit none
 
 type (ele_struct) ele
-type (monitor_phase_coupling_struct) monitor_data
-type (monitor_phase_coupling_struct), save :: mon_data
+type (bpm_phase_coupling_struct) bpm_data
+type (bpm_phase_coupling_struct), save :: old_bpm_data
 
 integer, save :: ix_ele_old = -1
 
@@ -47,11 +47,11 @@ logical, save :: err
 !
 
 if (ix_ele_old /= ele%ix_ele) then
-  call to_phase_and_coupling_reading (ele, mon_data, err)
+  call to_phase_and_coupling_reading (ele, old_bpm_data, err)
   ix_ele_old = ele%ix_ele
 endif
 
-monitor_data = mon_data
+bpm_data = old_bpm_data
 valid_value = .not. err
 
 end subroutine
@@ -239,7 +239,7 @@ type (taylor_struct), optional :: taylor_in(6)
 type (spin_polar_struct) polar
 type (ele_struct), pointer :: ele, ele0
 type (coord_struct), pointer :: orb0
-type (monitor_phase_coupling_struct) monitor_data
+type (bpm_phase_coupling_struct) bpm_data
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz
@@ -336,54 +336,54 @@ endif
 
 select case (data_type)
 
-case ('monitor_orbit.x')
+case ('bpm_orbit.x')
   call to_orbit_reading (tao_lat%orb(ix1), lat%ele(ix1), x_plane$, datum_value, err)
   valid_value = .not. err
-case ('monitor_orbit.y')
+case ('bpm_orbit.y')
   call to_orbit_reading (tao_lat%orb(ix1), lat%ele(ix1), y_plane$, datum_value, err)
   valid_value = .not. err
 
-case ('monitor_eta.x')
+case ('bpm_eta.x')
   vec = (/ tao_lat%bunch_params(ix1)%x%eta, tao_lat%bunch_params(ix1)%y%eta /)
   call to_eta_reading (vec, lat%ele(ix1), x_plane$, datum_value, err)
   valid_value = .not. err
-case ('monitor_eta.y')
+case ('bpm_eta.y')
   vec = (/ tao_lat%bunch_params(ix1)%x%eta, tao_lat%bunch_params(ix1)%y%eta /)
   call to_eta_reading (vec, lat%ele(ix1), y_plane$, datum_value, err)
   valid_value = .not. err
 
-case ('monitor_phase.a')
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
-  datum_value = monitor_data%phi_a
-case ('monitor_phase.b')
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
-  datum_value = monitor_data%phi_b
+case ('bpm_phase.a')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  datum_value = bpm_data%phi_a
+case ('bpm_phase.b')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  datum_value = bpm_data%phi_b
 
-case ('monitor_k.22a')
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
-  datum_value = monitor_data%k_22a
-case ('monitor_k.12a')
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
-  datum_value = monitor_data%k_12a
-case ('monitor_k.11b')
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
-  datum_value = monitor_data%k_11b
-case ('monitor_k.12b')
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
-  datum_value = monitor_data%k_12b
+case ('bpm_k.22a')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  datum_value = bpm_data%k_22a
+case ('bpm_k.12a')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  datum_value = bpm_data%k_12a
+case ('bpm_k.11b')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  datum_value = bpm_data%k_11b
+case ('bpm_k.12b')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  datum_value = bpm_data%k_12b
 
-case ('monitor_cbar.22a')
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
-  datum_value = monitor_data%k_22a
-case ('monitor_cbar.12a')
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
-  datum_value = monitor_data%k_12a
-case ('monitor_cbar.11b')
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
-  datum_value = monitor_data%k_11b
-case ('monitor_cbar.12b')
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), monitor_data, valid_value)
-  datum_value = monitor_data%k_12b
+case ('bpm_cbar.22a')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  datum_value = bpm_data%k_22a
+case ('bpm_cbar.12a')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  datum_value = bpm_data%k_12a
+case ('bpm_cbar.11b')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  datum_value = bpm_data%k_11b
+case ('bpm_cbar.12b')
+  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  datum_value = bpm_data%k_12b
 
 case ('orbit.x')
   call load_it (tao_lat%orb(:)%vec(1), ix0, ix1, datum_value, valid_value, datum, lat)
