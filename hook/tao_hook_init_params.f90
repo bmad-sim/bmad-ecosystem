@@ -1,22 +1,21 @@
 !+
-! Subroutine tao_hook_init_global (file_name, is_set)
+! Subroutine tao_hook_init_global (global)
 !
 ! This routine is part of a collection of hook routines 
 ! used to bypass the use of an initialization file.
 !-
 
-subroutine tao_hook_init_global (file_name, is_set)
+subroutine tao_hook_init_global (global)
 
 use tao_mod
 
+use tao_struct
+
 implicit none
 
-logical is_set
-character(*) file_name
+type (tao_global_struct) global
 
 !
-
-is_set = .false.
 
 end subroutine
 

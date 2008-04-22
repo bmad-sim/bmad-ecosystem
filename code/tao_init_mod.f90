@@ -4,6 +4,9 @@ use tao_mod
 
 contains
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
 !+
 ! Subroutine tao_init_global (init_file)
 !
@@ -60,19 +63,16 @@ namelist / tao_beam_init / ix_universe, beam0_file, &
 ! Init lattaces
 ! read global structure from tao_params namelist
 
-call tao_hook_init_global (init_file, is_set)
+global = default_global         ! establish defaults
+global%default_key_merit_type = 'limit'
 
-if (.not. is_set) then
-  call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
-  call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
-  if (iu == 0) then
-    call out_io (s_abort$, r_name, "Error opening init file")
-    call err_exit
-  endif
+call tao_hook_init_global (global)
 
-  global = default_global         ! establish defaults
-  global%default_key_merit_type = 'limit'
-
+call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
+if (iu == 0) then
+  call out_io (s_blank$, r_name, "Note: Cannot open init file for tao_params namelist read")
+else
   call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
   read (iu, nml = tao_params, iostat = ios)
   if (ios > 0) then
@@ -499,7 +499,7 @@ namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
 
 call tao_hook_init_data(is_set) 
 if (is_set) then
-  call tao_init_ix_data ()
+  call tao_init_data_end_stuff ()
   return
 endif
 
@@ -665,7 +665,7 @@ close (iu)
 
 ! Init ix_data array
 
-call tao_init_ix_data ()
+call tao_init_data_end_stuff ()
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -714,7 +714,7 @@ if (search_for_lat_eles /= '') then
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + size(ix_eles)
   u%n_data_used = n2
-  call allocate_data_array (u, n2)
+  call tao_allocate_data_array (u, n2)
 
   if (ix_min_data == int_garbage$) ix_min_data = 1
   ix1 = ix_min_data
@@ -752,7 +752,7 @@ elseif (use_same_lat_eles_as /= '') then
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + size(d1_ptr%d)
   u%n_data_used = n2
-  call allocate_data_array (u, n2)
+  call tao_allocate_data_array (u, n2)
 
   ix_min_data = lbound(d1_ptr%d, 1)
   ix1 = ix_min_data
@@ -790,7 +790,7 @@ else
   ix1 = ix_min_data
   ix2 = ix_max_data
   u%n_data_used = n2
-  call allocate_data_array (u, n2)
+  call tao_allocate_data_array (u, n2)
 
   ! Transfer info from the input structure
 
@@ -903,7 +903,7 @@ end subroutine tao_init_data
 !--------------------------------------------------------------------------
 ! Defines what datums to evaluate at each element in specified universe
 
-subroutine tao_init_ix_data ()
+subroutine tao_init_data_end_stuff ()
 
 implicit none
 
@@ -920,6 +920,8 @@ integer i, j, k, ix_ele, n_max
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
   u => s%u(i)
+  call tao_allocate_data_array (u, u%n_data_used, .true.) ! Trim u%data size
+
   n_max = u%design%lat%n_ele_max
 
   allocate (n_data(-2:n_max), ix_next(-2:n_max))
@@ -993,29 +995,44 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
 enddo
 
-end subroutine tao_init_ix_data
+end subroutine tao_init_data_end_stuff
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
-subroutine allocate_data_array (u, n_data)
+subroutine tao_allocate_data_array (u, n_data, exact)
 
 type (tao_universe_struct) :: u
-type (tao_data_struct), automatic :: data(size(u%data))
+type (tao_data_struct), allocatable :: data(:)
 type (tao_d1_data_struct), pointer :: d1
 
 integer i, j1, j2, n0, n_data
+logical, optional :: exact  ! Default = False
 
-! Allocate data
+! Exact means that size(u%data) must end up to be n_data.
+! Not exact means that size(u%data) must be at least n_data.
 
+if (n_data == size(u%data)) return 
+if (.not. logic_option(.false., exact) .and. n_data < size(u%data)) return 
+
+! Reallocate the data array. 
+! If not exact then allocate more space than needed to reduce the number
+! of times we need to reallocate stuff.
+
+n0 = min(n_data, size(u%data))
+allocate (data(n0))
 data = u%data
-n0 = size(u%data)
 deallocate (u%data)
-allocate (u%data(n_data))
+if (logic_option(.false., exact)) then
+  allocate (u%data(n_data))
+else
+  allocate (u%data(2*n_data))
+endif
 u%data(1:n0) = data
+deallocate (data)
 
-! since the data array gets reallocated the pointer from d1 to the datums must 
+! Since the data array gets reallocated the pointer from d1 to the datums must 
 ! be reestablished.
 
 j2 = 0
@@ -1048,7 +1065,7 @@ do i = n0+1, size(u%data)
   u%data(i)%ix_data    = i
 enddo
   
-end subroutine allocate_data_array
+end subroutine tao_allocate_data_array
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

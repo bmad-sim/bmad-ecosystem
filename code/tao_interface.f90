@@ -213,10 +213,10 @@ interface
 end interface
 
 interface
-  subroutine tao_hook_init_global (init_file, is_set)
+  subroutine tao_hook_init_global (global)
+    use tao_struct, only: tao_global_struct
     implicit none
-    character(*) init_file
-    logical is_set
+    type (tao_global_struct) global
   end subroutine
 end interface
  
