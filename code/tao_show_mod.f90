@@ -1634,7 +1634,6 @@ case ('variable')
       nl=nl+1; write(lines(nl), rmt)  '%Key_val0         = ', v_ptr%key_val0
       nl=nl+1; write(lines(nl), rmt)  '%Key_delta        = ', v_ptr%key_delta
     endif
-    nl=nl+1; write(lines(nl), lmt)  '%Lattice_recalc   = ', v_ptr%lattice_recalc
     nl=nl+1; write(lines(nl), lmt)  '%Exists           = ', v_ptr%exists
     nl=nl+1; write(lines(nl), lmt)  '%Good_var         = ', v_ptr%good_var
     nl=nl+1; write(lines(nl), lmt)  '%Good_user        = ', v_ptr%good_user

@@ -1231,7 +1231,10 @@ s%n_var_used = 0
 if (allocated(s%v1_var)) deallocate (s%v1_var)
 
 call tao_hook_init_var(is_set) 
-if (is_set) return
+if (is_set) then
+  call tao_init_var_end_stuff ()
+  return
+endif
 
 call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
@@ -1405,17 +1408,7 @@ close (iu)
 deallocate (dflt_good_unis, good_unis)
 deallocate (default_key_b, default_key_d)
 
-! Put the variables marked by key_bound in the key table.
-
-allocate (s%key(count(s%var%key_bound)))
-
-j = 0
-do i = 1, s%n_var_used
-  if (.not. s%var(i)%key_bound) cycle
-  j = j + 1
-  s%key(j) = i
-  s%var(i)%key_val0 = s%var(i)%model_value
-enddo
+call tao_init_var_end_stuff ()
 
 !-----------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1744,6 +1737,31 @@ if (size(var%this) > 0) then
   var%exists = .true.
   var%design_value = var%this(1)%model_value
 endif
+
+end subroutine
+
+!-----------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------
+! Put the variables marked by key_bound in the key table.
+
+subroutine tao_init_var_end_stuff ()
+
+implicit none
+
+integer i, j
+
+! Key table setup
+
+allocate (s%key(count(s%var%key_bound)))
+
+j = 0
+do i = 1, s%n_var_used
+  if (.not. s%var(i)%key_bound) cycle
+  j = j + 1
+  s%key(j) = i
+  s%var(i)%key_val0 = s%var(i)%model_value
+enddo
 
 end subroutine
 

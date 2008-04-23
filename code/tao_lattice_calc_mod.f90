@@ -69,8 +69,12 @@ logical this_calc_ok
 
 calc_ok = .true.
 
-s%u%universe_recalc = .true.
 initing_design = logic_option (.false., init_design)
+
+! To save time, tao_com%lattice_recalc and s%u(:)%universe_recalc are used to
+! determine what gets calculated. 
+! If ix_uni is not present, the lattice functions of universe i are calculated
+! if (tao_com%lattice_reclac = True and s%u(i)%universe_recalc = True. 
 
 ! do a custom lattice calculation if desired
 
@@ -89,6 +93,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   endif
 
   u => s%u(i)
+  if (u%connect%connected .and. s%u(u%connect%from_uni)%universe_recalc) u%universe_recalc = .true.
   if (.not. u%is_on .or. .not. u%universe_recalc) cycle
 
   ! Pointer to appropriate lattice and zero data array
@@ -183,6 +188,7 @@ enddo
 
 call tao_hook_post_process_data ()
 tao_com%lattice_recalc = .false.
+s%u%universe_recalc = .true.
 tao_com%init_beam0 = .false.
 
 if (.not. initing_design) then

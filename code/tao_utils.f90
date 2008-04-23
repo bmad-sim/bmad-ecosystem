@@ -1514,6 +1514,11 @@ do i = 1, size(var%this)
   t => var%this(i)
   t%model_value = value
   call changed_attribute_bookkeeper (s%u(t%ix_uni)%model%lat, t%ix_ele, t%model_value)
+  if (tao_com%unified_lattices .and.  t%ix_uni == tao_com%u_common%ix_uni) then
+    s%u(:)%universe_recalc = .true.
+  else
+    s%u(t%ix_uni)%universe_recalc = .true.
+  endif
 enddo
 
 tao_com%lattice_recalc = .true.

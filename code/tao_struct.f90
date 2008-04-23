@@ -353,7 +353,6 @@ type tao_var_struct
   real(rp) s                ! longitudinal position of ele.
   character(40) merit_type  ! 'target' or 'limit'
   logical key_bound         ! Has a key binding?
-  logical lattice_recalc    ! Change in var necessitates a lattice recalc?
   logical exists            ! See above
   logical good_var          ! See above
   logical good_user         ! See above
@@ -570,25 +569,22 @@ type tao_universe_struct
   character(80) :: beam_all_file = ''  ! Input beam data file for entire lattice.
   character(80) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
   character(60), allocatable :: save_beam_at(:)
-  integer ix_uni                                   ! Universe index.
+  integer ix_uni                         ! Universe index.
   integer n_d2_data_used
   integer n_data_used
   integer ix_rad_int_cache
-  integer ix_track_start                           ! Element start index of tracking
-  integer ix_track_end                             ! Element end index of tracking
+  integer ix_track_start                 ! Element start index of tracking
+  integer ix_track_end                   ! Element end index of tracking
   logical do_synch_rad_int_calc
   logical do_chrom_calc
-  logical is_on                                    ! universe turned on
-  logical calc_beam_emittance                      ! for a lat calculate emittance
-  logical universe_recalc
+  logical is_on                          ! universe turned on
+  logical calc_beam_emittance            ! for a lat calculate emittance
+  logical universe_recalc                ! Allows for fine control of lattice calculations
   logical :: common_uni = .false.
 end type
 
 ! The super_universe is the structure that holds an array of universes.
 ! Essentially this and tao_com hold all the information known to the program.
-! Note: If tao_com%unified_lattices = True
-!   s%u(-1) --> Common universe.
-!   s%u(0)  --> Working universe to track through. Derived from s%u(-1).
 
 type tao_super_universe_struct
   type (tao_global_struct) global                          ! global variables.

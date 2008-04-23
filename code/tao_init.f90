@@ -157,7 +157,9 @@ call tao_init_plotting (plot_file)
 ! Must first transfer to model lattice for tao_lattice_calc to run.
 
 tao_com%lattice_recalc = .true.
+s%u%universe_recalc = .true.
 call tao_lattice_calc (calc_ok, init_design = .true.) 
+
 do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%design = s%u(i)%model; s%u(i)%design%orb = s%u(i)%model%orb
   s%u(i)%base  = s%u(i)%design; s%u(i)%base%orb  = s%u(i)%design%orb
