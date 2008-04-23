@@ -184,6 +184,7 @@ case ('exit', 'quit')
   call tao_query_logical ('y', 'n', 'Quit?', quit_tao)
   if (.not. quit_tao) return
   if (s%global%plot_on) call tao_destroy_plot_window
+  call out_io (s_dinfo$, r_name, "Stopping.")
   stop
  
 !--------------------------------
@@ -303,40 +304,41 @@ case ('reinitialize')
   call tao_cmd_split(cmd_line, 10, cmd_word, .false., err)
   if (err) return
 
-  if (cmd_word(1) == 'beam') then
+  select case (cmd_word(1))
+
+  case ('beam') 
     tao_com%init_beam0 = .true.
     tao_com%lattice_recalc = .true.
-    return
-  endif
 
-  if (cmd_word(1) == 'data') then
+  case ('data') 
     tao_com%lattice_recalc = .true.
-    return
-  endif
 
+  case ('tao') 
 
-  if (cmd_word(1) /= 'tao') then
-    call out_io (s_error$, r_name, 'REINIT WHAT? CHOICES ARE: "beam" OR "tao".')
-    return
-  endif
+    call tao_parse_command_args (err, cmd_word(2:))
+    if (err) return
 
-  call tao_parse_command_args (err, cmd_word(2:))
-  if (err) return
+    ! quit the plot window so it will be recreated    
 
-  ! quit the plot window so it will be recreated    
-
-  if (s%global%plot_on) then
+    if (s%global%plot_on) then
+      call tao_destroy_plot_window
+      s%global%init_plot_needed = .true.
+    endif
+      
+    ! quit the plot window so it will be recreated    
     call tao_destroy_plot_window
     s%global%init_plot_needed = .true.
-  endif
     
-  ! quit the plot window so it will be recreated    
-  call tao_destroy_plot_window
-  s%global%init_plot_needed = .true.
-  
-  call out_io (s_info$, r_name, 'Reinitializing with ' // tao_com%init_tao_file)
-  call tao_init ()
+    call out_io (s_info$, r_name, 'Reinitializing with ' // tao_com%init_tao_file)
+    call tao_init ()
+    return
+
+  case default
+    call out_io (s_error$, r_name, 'REINIT WHAT? CHOICES ARE: "beam" OR "tao".')
+    return
     
+  end select
+
 !--------------------------------
 ! RUN, FLATTEN
 

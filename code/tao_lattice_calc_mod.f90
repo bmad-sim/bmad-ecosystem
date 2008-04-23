@@ -93,7 +93,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   endif
 
   u => s%u(i)
-  if (u%connect%connected .and. s%u(u%connect%from_uni)%universe_recalc) u%universe_recalc = .true.
+  if (u%connect%connected) then
+    if (s%u(u%connect%from_uni)%universe_recalc) u%universe_recalc = .true.
+  endif
+
   if (.not. u%is_on .or. .not. u%universe_recalc) cycle
 
   ! Pointer to appropriate lattice and zero data array
@@ -142,7 +145,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       call transfer_rad_int_struct (ric, tao_lat%rad_int)
     endif
     if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, &
-                                    tao_lat%a%chrom, tao_lat%b%chrom, exit_on_error = .false.)
+                             tao_lat%a%chrom, tao_lat%b%chrom, exit_on_error = .false.)
   else
     calc_ok = .false.
   endif
@@ -172,7 +175,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
           case ('z');   d1_dat%d(it)%model_value = orb(0)%vec(5)
           case ('p_z'); d1_dat%d(it)%model_value = orb(0)%vec(6)
           case default
-            call out_io (s_fatal$, r_name, 'BAD MULTI_TURN_ORBIT D1_DATA%NAME: ' // d1_dat%name)
+            call out_io (s_fatal$, r_name, &
+                        'BAD MULTI_TURN_ORBIT D1_DATA%NAME: ' // d1_dat%name)
             call err_exit
           end select
         endif
@@ -189,7 +193,6 @@ enddo
 call tao_hook_post_process_data ()
 tao_com%lattice_recalc = .false.
 s%u%universe_recalc = .true.
-tao_com%init_beam0 = .false.
 
 if (.not. initing_design) then
   call tao_set_var_useit_opt
@@ -219,6 +222,10 @@ logical calc_ok, err
 
 lat => tao_lat%lat
 calc_ok = .true.
+lat%param%ix_lost = not_lost$
+lat%param%lost = .false.
+
+! Track
 
 if (lat%param%lattice_type == circular_lattice$) then
   call closed_orbit_calc (lat, tao_lat%orb, 4, exit_on_error = .false.)
@@ -228,44 +235,41 @@ if (lat%param%lattice_type == circular_lattice$) then
       tao_lat%orb(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
     enddo
   endif
-  if (s%global%matrix_recalc_on) call lat_make_mat6 (lat, -1, tao_lat%orb)
-  call twiss_at_start (lat)
-  if (.not. bmad_status%ok) then
+
+else
+  call track_all (lat, tao_lat%orb)
+  if (lat%param%lost) then
     calc_ok = .false.
-    return
+    do ii = lat%param%ix_lost+1, lat%n_ele_track
+      tao_lat%orb(ii)%vec = 0
+    enddo
+    call out_io (s_blank$, r_name, &
+            "particle lost at element \I0\: " // lat%ele(i)%name, lat%param%ix_lost)
   endif
 endif
 
-lat%param%ix_lost = not_lost$
-lat%param%lost = .false.
+! Twiss
 
-call tao_load_data_array (s%u(uni), 0, who)
-
-do i = 0, lat%n_ele_track
-
-  if (.not. lat%param%lost) then
-    if (i /= 0) then
-      ! if doing linear tracking, first compute transfer matrix
-      if (s%global%matrix_recalc_on .and. lat%ele(i)%tracking_method == linear$) &
-                                               call make_mat6 (lat%ele(i), lat%param) 
-
-      call track1 (tao_lat%orb(i-1), lat%ele(i), lat%param, tao_lat%orb(i))
+if (s%global%matrix_recalc_on) then
+  do i = 1, lat%n_ele_track
+    if (lat%ele(i)%tracking_method == linear$) then
+      call lat_make_mat6 (lat, i)
+    else
+      call lat_make_mat6 (lat, i, tao_lat%orb)
     endif
-
-    if (lat%param%lost) then
-      lat%param%ix_lost = i
+  enddo
+  if (lat%param%lattice_type == circular_lattice$) then
+    call twiss_at_start (lat)
+    if (.not. bmad_status%ok) then
       calc_ok = .false.
-      do ii = i+1, lat%n_ele_track
-        tao_lat%orb(ii)%vec = 0
-      enddo
-      call out_io (s_blank$, r_name, &
-              "particle lost at element \I0\: " // lat%ele(i)%name, lat%param%ix_lost)
+      return
     endif
   endif
+  call twiss_propagate_all (lat)
+endif
 
-  call tao_calc_params (s%u(uni), i, lat%param%lost, err)
+do i = 0, lat%n_ele_track
   call tao_load_data_array (s%u(uni), i, who)
-
 enddo
 
 end subroutine tao_single_track
@@ -334,7 +338,7 @@ extract_at_ix_ele = -1
 do i_uni_to = uni+1, ubound(s%u, 1)
   if (.not. s%u(i_uni_to)%connect%connected) cycle
   if (s%u(i_uni_to)%connect%from_uni /= uni) cycle
-  if (s%u(i_uni_to)%connect%from_uni_ix_ele .ne. -1) then
+  if (s%u(i_uni_to)%connect%from_uni_ix_ele /= -1) then
     extract_at_ix_ele = s%u(i_uni_to)%connect%from_uni_ix_ele
     exit ! save i_uni_to for connected universe
   else
@@ -353,29 +357,26 @@ if (.not. u%connect%connected) then
     call tao_single_track (uni, tao_lat, who, calc_ok) 
     if (u%calc_beam_emittance) then
       call radiation_integrals (lat, tao_lat%orb, modes)
-      if (extract_at_ix_ele .ne. -1) then
+      if (extract_at_ix_ele /= -1) then
         f = lat%ele(extract_at_ix_ele)%value(E_tot$) * &
-                    (1+tao_lat%orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
+             (1+tao_lat%orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
         beam_init%a_norm_emitt  = modes%a%emittance * f
         beam_init%b_norm_emitt  = modes%b%emittance * f
       endif
     endif
     ! transfer extracted particle info into beam_init
-    if (extract_at_ix_ele .ne. -1) then
+    if (extract_at_ix_ele /= -1) then
       beam_init%center  = tao_lat%lat%beam_start%vec
       ! other beam_init parameters will be as in tao.init, or as above
       if (beam_init%a_norm_emitt == 0 .and. beam_init%b_norm_emitt == 0) then
-        call out_io (s_abort$, r_name, 'BOTH BEAM_INIT%A_NORM_EMITT AND %B_NORM_EMITT NOT SET!')
+        call out_io (s_abort$, r_name, &
+                          'BOTH BEAM_INIT%A_NORM_EMITT AND %B_NORM_EMITT NOT SET!')
         call err_exit
       endif
       call init_beam_distribution (lat%ele(extract_at_ix_ele), &
                                beam_init, s%u(i_uni_to)%connect%injecting_beam)
     endif
     return
-  elseif (lat%param%lattice_type .ne. linear_lattice$) then
-    call out_io (s_error$, r_name, &
-                   "This lattice type not yet implemented for beam tracking!")
-    call err_exit
   endif
 endif
 
@@ -425,7 +426,19 @@ do j = ie1, ie2
 
   ! Find lattice and beam parameters and load data
 
-  call tao_calc_params (u, j, all_lost, err, print_err)
+  if (j /= 0) then
+    if (s%global%matrix_recalc_on) call make_mat6 (lat%ele(j), &
+                        lat%param, u%model%orb(j-1), u%model%orb(j), .true.)
+    call twiss_propagate1 (lat%ele(j-1), lat%ele(j))
+  endif
+
+  !
+
+  if (.not. all_lost) then
+      call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
+                             lat%ele(j), u%model%bunch_params(j), err, print_err)
+  endif
+
   if (err) print_err = .false.  ! Only generate one message.
   call tao_load_data_array (u, j, who) 
 
@@ -444,7 +457,7 @@ if (post) then
   do n_bunch = 1, size(beam%bunch)
     n_lost = n_lost + count(beam%bunch(n_bunch)%particle%ix_lost /= not_lost$)
   enddo
-  if (n_lost .ne. 0) &
+  if (n_lost /= 0) &
     call out_io (s_blank$, r_name, &
       "Total number of lost particles by the end of universe \I2\: \I5\.", &
                                   i_array = (/uni, n_lost /))
@@ -501,7 +514,7 @@ do n_part = 1, size(beam%bunch(n_bunch)%particle)
   if (record_lost .and. beam%bunch(n_bunch)%particle(n_part)%ix_lost == i_ele) then
     n_lost = n_lost + 1
     cycle
-  elseif (beam%bunch(n_bunch)%particle(n_part)%ix_lost .ne. not_lost$) then
+  elseif (beam%bunch(n_bunch)%particle(n_part)%ix_lost /= not_lost$) then
     cycle
   endif
   tot_part = tot_part + 1
@@ -516,7 +529,7 @@ if (record_lost .and. n_lost > 0) then
 endif
   
 ! average
-if (tot_part .ne. 0) then
+if (tot_part /= 0) then
   orb%vec = coord%vec / tot_part
 else 
   ! lost all particles
@@ -657,7 +670,8 @@ endif
 
 if (u%beam0_file /= "") then
   call open_beam_file (u%beam0_file)
-  call set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, u%beam_init%bunch_charge)
+  call set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, &
+                                                       u%beam_init%bunch_charge)
   call read_beam (u%beam0)
   call close_beam_file()
   call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
@@ -678,6 +692,7 @@ if (.not. u%connect%connected) then
     endif
     call init_beam_distribution (model%lat%ele(0), u%beam_init, u%beam0)
     call tao_find_beam_centroid (u%beam0, orb0)
+    tao_com%init_beam0 = .false.
   endif
   if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
   return
@@ -804,7 +819,8 @@ connection_ele%value(dphi_a$)   = mod(inject_ele%a%phi - extract_ele%a%phi,twopi
 connection_ele%value(dphi_b$)   = mod(inject_ele%b%phi - extract_ele%b%phi,twopi)
   
 ! it's a linear element so no orbit need be passed
-if (s%global%matrix_recalc_on) call make_mat6 (connection_ele, s%u(u%connect%from_uni)%design%lat%param)
+if (s%global%matrix_recalc_on) call make_mat6 (connection_ele, &
+                                             s%u(u%connect%from_uni)%design%lat%param)
   
 end subroutine  tao_match_lats_init
  

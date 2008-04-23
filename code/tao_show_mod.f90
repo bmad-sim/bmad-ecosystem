@@ -316,15 +316,16 @@ case ('beam')
     beam => u%ele(ix_ele)%beam
     if (allocated(beam%bunch)) then
       bunch => beam%bunch(n)
+      call calc_bunch_params (bunch, lat%ele(ix_ele), bunch_params, err)
       n_live = bunch_params%n_live_particle
       n_tot = size(bunch%particle)
-      call calc_bunch_params (bunch, lat%ele(ix_ele), bunch_params, err)
+
       nl=nl+1; lines(nl) = 'Parameters from saved beam at element:'
       nl=nl+1; write (lines(nl), imt)  '  Parameters for bunch:       ', n
       nl=nl+1; write (lines(nl), imt)  '  Particles surviving:        ', n_live
       nl=nl+1; write (lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
       nl=nl+1; write (lines(nl), f3mt) '  Particles lost (%):         ', &
-                                                  real(n_tot - n_live) / n_tot
+                                                  100 * real(n_tot - n_live) / n_tot
       nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_params%centroid%vec
       nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
                          sqrt(bunch_params%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))

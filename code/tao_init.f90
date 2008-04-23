@@ -49,7 +49,7 @@ namelist / tao_start / lattice_file, startup_file, wall_file, &
 iu_log = lunget()
 open (iu_log, file = 'tao_init.log', action = 'write', iostat = ios)
 if (ios == 0) then
-  call out_io (s_blank$, r_name, 'Opening initialization logging file: tao_init.log')
+  call out_io (s_dinfo$, r_name, 'Opening initialization logging file: tao_init.log')
   call output_direct (iu_log, .true., s_blank$, s_abort$)
   call output_direct (iu_log, .false., s_blank$, s_success$) ! Do not print 
 else
