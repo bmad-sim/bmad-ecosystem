@@ -330,9 +330,9 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{plot_on}\index{auto_scale}\index{opt_with_ref}\index{opt_with_base}
 \index{single_mode}\index{init_opt_wrapper}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
-\index{lattice_recalc}\index{init_plot_needed}
-\index{valid_plot_who}\index{print_command}\index{default_init_file}
-\index{current_init_file}\index{var_out_file}\index{matrix_recalc_on}
+\index{init_plot_needed}
+\index{print_command}\index{default_init_file}
+\index{current_init_file}\index{var_out_file}
 \begin{example}
 type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
@@ -353,8 +353,7 @@ type tao_global_struct
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'              ! optimizer to use.
   character(16) :: default_key_merit_type
-  character(16) :: valid_plot_who(10)                ! model, base, ref etc...
-  character(40) :: print_command = 'awprint'
+  character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
   logical :: var_limits_on = T         ! Respect the variable limits?
   logical :: plot_on = T               ! Do plotting?
@@ -365,8 +364,6 @@ type tao_global_struct
   logical :: label_lattice_elements = T ! For lat_layout plots
   logical :: label_keys = T             ! For lat_layout plots
   logical :: derivative_recalc = T      ! Recalc before each optimizer run?
-  logical :: lattice_recalc = T         ! recalculate the lattice?
-  logical :: matrix_recalc_on = T       ! calc linear transfer matrix?  
   logical :: init_plot_needed = T       ! reinitialize plotting?
 end type
 \end{example}

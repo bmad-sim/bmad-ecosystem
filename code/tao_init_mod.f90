@@ -912,8 +912,9 @@ type (tao_data_struct), pointer :: data
 
 integer, allocatable :: n_data(:)
 integer, allocatable :: ix_next(:)
-
 integer i, j, k, ix_ele, n_max
+
+logical err
 
 !
 
@@ -994,6 +995,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   deallocate (n_data, ix_next)
 
 enddo
+
+call tao_data_check (err)
+if (err) stop
 
 end subroutine tao_init_data_end_stuff
 

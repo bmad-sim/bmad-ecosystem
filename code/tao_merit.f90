@@ -22,14 +22,15 @@ type (tao_var_struct), pointer :: var
 type (tao_data_struct), pointer :: data(:)
 type (tao_d1_data_struct), pointer :: d1
 
-real(rp) this_merit, ave, value
+real(rp) this_merit, ave, value, model_value
 
-integer i, j, n
+integer i, j, n, iu0
 
 character(16) :: r_name = "tao_merit"
 
 logical, optional :: calc_ok
-logical err, ok
+logical err, ok, opt_with_ref, opt_with_base
+
 
 ! make sure all calculations are up to date.
 
@@ -52,11 +53,22 @@ do j = 1, size(s%var)
   select case (var%merit_type)
   case ('target', 'match')
     if (s%global%opt_with_ref .and. s%global%opt_with_base) then
-      var%delta_merit = (var%model_value - var%base_value) - (var%meas_value - var%ref_value)
+      if (tao_com%unified_lattices) then
+        var%delta_merit = (var%model_value - var%common%model_value) - &
+                                                (var%meas_value - var%ref_value)
+      else
+        var%delta_merit = (var%model_value - var%base_value) - &
+                                                (var%meas_value - var%ref_value)
+      endif
     elseif (s%global%opt_with_ref) then
-      var%delta_merit = (var%model_value - var%design_value) - (var%meas_value - var%ref_value)
+      var%delta_merit = (var%model_value - var%design_value) - &
+                                                (var%meas_value - var%ref_value)
     elseif (s%global%opt_with_base) then
-      var%delta_merit = (var%model_value - var%base_value) - var%meas_value
+      if (tao_com%unified_lattices) then
+        var%delta_merit = (var%model_value - var%common%model_value) - var%meas_value
+      else
+        var%delta_merit = (var%model_value - var%base_value) - var%meas_value
+      endif
     else
       var%delta_merit = var%model_value - var%meas_value
     endif
@@ -78,11 +90,20 @@ enddo
 !----------------------------------------
 ! Merit contribution from the data:
 
+if (tao_com%unified_lattices) iu0 = tao_com%u_common%ix_uni
+
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
   data => s%u(i)%data
   data%merit = 0
   data%delta_merit = 0
+
+  opt_with_ref = s%global%opt_with_ref
+  opt_with_base = s%global%opt_with_base
+  if (s%u(i)%common_uni) then
+    opt_with_ref = .false.
+    opt_with_base = .false.
+  endif
 
 ! check if universe is turned off
 
@@ -93,43 +114,37 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, size(data)
     if (.not. data(j)%useit_opt) cycle
     if (.not. data(j)%good_model) cycle
-    if (s%global%opt_with_ref .and. s%global%opt_with_base) then
-      if (data(j)%merit_type(1:3) == 'abs') then
-        data(j)%delta_merit = abs(data(j)%model_value) - &
-            data(j)%meas_value + data(j)%ref_value - data(j)%base_value
-      elseif (data(j)%merit_type(1:3) == 'int') then
-        call out_io (s_fatal$, r_name, 'BAD DATUM INTEGRATION FOR: ' // tao_datum_name(data(j)))
+
+    if (data(j)%merit_type(1:4) == 'abs_') then
+      model_value = data(j)%model_value
+    else
+      model_value = abs(data(j)%model_value)
+    endif
+
+    if (opt_with_ref .and. opt_with_base) then
+      if (tao_com%unified_lattices) then
+        data(j)%delta_merit = model_value - &
+            data(j)%meas_value + data(j)%ref_value - s%u(iu0)%data(j)%model_value
       else
-        data(j)%delta_merit = data(j)%model_value - &
+        data(j)%delta_merit = model_value - &
             data(j)%meas_value + data(j)%ref_value - data(j)%base_value
       endif
-    elseif (s%global%opt_with_ref) then
-      if (data(j)%merit_type(1:3) == 'abs') then
-        data(j)%delta_merit = abs(data(j)%model_value) - &
+    elseif (opt_with_ref) then
+      data(j)%delta_merit = model_value - &
             data(j)%meas_value + data(j)%ref_value - data(j)%design_value
-      elseif (data(j)%merit_type(1:3) == 'int') then
-        call out_io (s_fatal$, r_name, 'BAD DATUM INTEGRATION FOR: ' // tao_datum_name(data(j)))
+    elseif (opt_with_base) then
+      if (tao_com%unified_lattices) then
+        data(j)%delta_merit = model_value - &
+                                data(j)%meas_value -  s%u(iu0)%data(j)%model_value
       else
-        data(j)%delta_merit = data(j)%model_value - &
-            data(j)%meas_value + data(j)%ref_value - data(j)%design_value
-      endif
-    elseif (s%global%opt_with_base) then
-      if (data(j)%merit_type(1:3) == 'abs') then
-        data(j)%delta_merit = abs(data(j)%model_value) - &
-                                data(j)%meas_value - data(j)%base_value
-      elseif (data(j)%merit_type(1:3) == 'int') then
-        call out_io (s_fatal$, r_name, 'BAD DATUM INTEGRATION FOR: ' // tao_datum_name(data(j)))
-      else
-        data(j)%delta_merit = data(j)%model_value - &
+        data(j)%delta_merit = model_value - &
                                 data(j)%meas_value - data(j)%base_value
       endif
     else
-      if (data(j)%merit_type(1:3) == 'abs') then
-        data(j)%delta_merit = abs(data(j)%model_value) - data(j)%meas_value 
-      elseif (data(j)%merit_type(1:3) == 'int') then
+      if (data(j)%merit_type(1:3) == 'int') then
         data(j)%delta_merit = data(j)%model_value
       else
-        data(j)%delta_merit = data(j)%model_value - data(j)%meas_value 
+        data(j)%delta_merit = model_value - data(j)%meas_value 
       endif
     endif
   enddo

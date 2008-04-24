@@ -435,7 +435,7 @@ type tao_global_struct
   logical :: label_keys = .true.             ! For lat_layout plots
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
-  logical :: matrix_recalc_on = .true.       ! calc linear transfer matrix
+  logical :: orm_analysis = .false.          ! orm using mdsa? 
 end type
 
 ! tao_common_struct is for those global parameters that the user 
@@ -581,6 +581,7 @@ type tao_universe_struct
   logical calc_beam_emittance            ! for a lat calculate emittance
   logical universe_recalc                ! Allows for fine control of lattice calculations
   logical :: common_uni = .false.
+  logical :: mat6_recalc_on = .true.     ! calc linear transfer matrix
 end type
 
 ! The super_universe is the structure that holds an array of universes.

@@ -1459,7 +1459,7 @@ do
     if (s_end /= ele%s) ele%value(e2$) = 0
   endif
 
-  if (s%global%matrix_recalc_on) call make_mat6 (ele, lat%param)
+  call make_mat6 (ele, lat%param)
 
   mat6 = matmul (ele%mat6, mat6)
   vec0 = matmul (ele%mat6, vec0) + ele%vec0

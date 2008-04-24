@@ -112,11 +112,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! If unified then only read in a lattice for the common universe.
 
-  if (tao_com%unified_lattices) then
-    if (i /= tao_com%u_common%ix_uni) then
-      cycle
-    endif
-  endif
+  if (tao_com%unified_lattices .and. .not. u%common_uni) cycle
 
   ! Get the name of the lattice file
 
@@ -240,8 +236,8 @@ if (tao_com%unified_lattices) then
   ! If unified then point back to the common universe (#1) and the working universe (#2)
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (i == tao_com%u_common%ix_uni) cycle
     u => s%u(i)
+    if (u%common_uni) cycle
     u%common => tao_com%u_common
     u%ele    => tao_com%u_common%ele
     u%design => tao_com%u_working%design

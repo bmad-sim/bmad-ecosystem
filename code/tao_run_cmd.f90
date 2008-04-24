@@ -64,6 +64,14 @@ if (n_data == 0) then
   return
 endif
 
+! Save time with orm analysis by turning off transfer matrix calc in
+! Everything but the common universe
+
+if (s%global%orm_analysis) then
+  s%u(:)%mat6_recalc_on = .false.
+  tao_com%u_common%mat6_recalc_on = .false.
+endif
+
 ! Optimize...
 
 do i = 1, s%global%n_opti_loops
@@ -87,6 +95,8 @@ do i = 1, s%global%n_opti_loops
   if (abort) exit
 
 enddo
+
+if (s%global%orm_analysis) s%u(:)%mat6_recalc_on = .true.
 
 end subroutine
 

@@ -688,7 +688,6 @@ case ('global')
   nl=nl+1; write (lines(nl), rmt) '%lm_opt_deriv_reinit        = ', s%global%lm_opt_deriv_reinit
   nl=nl+1; write (lines(nl), rmt) '%lmdif_eps                  = ', s%global%lmdif_eps
   nl=nl+1; write (lines(nl), rmt) '%merit_finish               = ', s%global%merit_finish
-  nl=nl+1; write (lines(nl), lmt) '%matrix_recalc_on           = ', s%global%matrix_recalc_on
   nl=nl+1; write (lines(nl), imt) '%n_top10                    = ', s%global%n_top10
   nl=nl+1; write (lines(nl), imt) '%n_curve_pts                = ', s%global%n_curve_pts
   nl=nl+1; write (lines(nl), imt) '%n_opti_loops               = ', s%global%n_opti_loops

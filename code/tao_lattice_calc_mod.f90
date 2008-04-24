@@ -129,11 +129,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   case ('single') 
     call tao_inject_particle (u, tao_lat)
     call tao_lat_bookkeeper (u, tao_lat)
-    call tao_single_track (i, tao_lat, this_who, this_calc_ok)
+    call tao_single_track (u, tao_lat, this_who, this_calc_ok)
   case ('beam') 
     call tao_inject_beam (u, tao_lat)
     call tao_lat_bookkeeper (u, tao_lat)
-    call tao_beam_track (i, tao_lat, this_who, this_calc_ok)
+    call tao_beam_track (u, tao_lat, this_who, this_calc_ok)
   case default
     call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // s%global%track_type)
     call err_exit
@@ -205,14 +205,15 @@ end subroutine tao_lattice_calc
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine tao_single_track (uni, tao_lat, who, calc_ok)
+subroutine tao_single_track (u, tao_lat, who, calc_ok)
 
 implicit none
 
 type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
+type (tao_universe_struct) u
 
-integer uni, i, ii, who
+integer i, ii, who
 
 character(20) :: r_name = "tao_single_track"
 
@@ -250,7 +251,7 @@ endif
 
 ! Twiss
 
-if (s%global%matrix_recalc_on) then
+if (u%mat6_recalc_on) then
   do i = 1, lat%n_ele_track
     if (lat%ele(i)%tracking_method == linear$) then
       call lat_make_mat6 (lat, i)
@@ -269,7 +270,7 @@ if (s%global%matrix_recalc_on) then
 endif
 
 do i = 0, lat%n_ele_track
-  call tao_load_data_array (s%u(uni), i, who)
+  call tao_load_data_array (u, i, who)
 enddo
 
 end subroutine tao_single_track
@@ -280,20 +281,20 @@ end subroutine tao_single_track
 ! Right now, there is no beam tracking in lattices. If extracting from a
 ! lat then the beam is generated at the extraction point.
 
-subroutine tao_beam_track (uni, tao_lat, who, calc_ok)
+subroutine tao_beam_track (u, tao_lat, who, calc_ok)
 
 implicit none
 
 type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
-type (tao_universe_struct), pointer :: u
+type (tao_universe_struct), target :: u
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (normal_modes_struct) :: modes
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 
-integer uni, what_lat, who
+integer what_lat, who
 integer j, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to
 integer extract_at_ix_ele, n_lost
@@ -316,7 +317,6 @@ calc_ok = .true.
 
 call re_allocate (ix_ele,1)
 
-u => s%u(uni)
 beam => u%current_beam
 beam = u%beam0
 beam_init => u%beam_init
@@ -335,9 +335,9 @@ endif
 ! Find if injecting into another lattice
 
 extract_at_ix_ele = -1
-do i_uni_to = uni+1, ubound(s%u, 1)
+do i_uni_to = u%ix_uni+1, ubound(s%u, 1)
   if (.not. s%u(i_uni_to)%connect%connected) cycle
-  if (s%u(i_uni_to)%connect%from_uni /= uni) cycle
+  if (s%u(i_uni_to)%connect%from_uni /= u%ix_uni) cycle
   if (s%u(i_uni_to)%connect%from_uni_ix_ele /= -1) then
     extract_at_ix_ele = s%u(i_uni_to)%connect%from_uni_ix_ele
     exit ! save i_uni_to for connected universe
@@ -354,7 +354,7 @@ enddo
 if (.not. u%connect%connected) then
   ! no beam tracking in lattices
   if (lat%param%lattice_type == circular_lattice$) then
-    call tao_single_track (uni, tao_lat, who, calc_ok) 
+    call tao_single_track (u, tao_lat, who, calc_ok) 
     if (u%calc_beam_emittance) then
       call radiation_integrals (lat, tao_lat%orb, modes)
       if (extract_at_ix_ele /= -1) then
@@ -402,7 +402,7 @@ do j = ie1, ie2
     else
       if (j /= ie1) then 
         ! if doing linear tracking, first compute transfer matrix
-        if (s%global%matrix_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
+        if (u%mat6_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
                call make_mat6 (lat%ele(j), lat%param) 
         call track_beam (lat, beam, j-1, j)
       endif
@@ -416,7 +416,7 @@ do j = ie1, ie2
     endif
 
     ! compute centroid orbit
-    call tao_find_beam_centroid (beam, tao_lat%orb(j), uni, j, all_lost, lat%ele(j))
+    call tao_find_beam_centroid (beam, tao_lat%orb(j), u, j, all_lost, lat%ele(j))
 
     if (all_lost) then
       lat%param%ix_lost = j
@@ -427,7 +427,7 @@ do j = ie1, ie2
   ! Find lattice and beam parameters and load data
 
   if (j /= 0) then
-    if (s%global%matrix_recalc_on) call make_mat6 (lat%ele(j), &
+    if (u%mat6_recalc_on) call make_mat6 (lat%ele(j), &
                         lat%param, u%model%orb(j-1), u%model%orb(j), .true.)
     call twiss_propagate1 (lat%ele(j-1), lat%ele(j))
   endif
@@ -448,8 +448,8 @@ enddo
 
 post = .false.
 if (extract_at_ix_ele == -1) post = .true.
-if (uni < ubound(s%u, 1)) then
-  if (.not. s%u(uni+1)%is_on) post = .true.
+if (u%ix_uni < ubound(s%u, 1)) then
+  if (.not. s%u(u%ix_uni+1)%is_on) post = .true.
 endif
 
 if (post) then
@@ -460,7 +460,7 @@ if (post) then
   if (n_lost /= 0) &
     call out_io (s_blank$, r_name, &
       "Total number of lost particles by the end of universe \I2\: \I5\.", &
-                                  i_array = (/uni, n_lost /))
+                                  i_array = (/u%ix_uni, n_lost /))
 endif
   
 end subroutine tao_beam_track
@@ -472,15 +472,16 @@ end subroutine tao_beam_track
 ! Find the centroid of all particles in viewed bunches
 ! Also keep track of lost particles if the optional arguments are passed
 
-subroutine tao_find_beam_centroid (beam, orb, uni, ix_ele, all_lost, ele)
+subroutine tao_find_beam_centroid (beam, orb, u, ix_ele, all_lost, ele)
 
 implicit none
 
 type (beam_struct), target :: beam
 type (coord_struct) :: orb, coord
 type (ele_struct), optional :: ele
+type (tao_universe_struct), optional :: u
 
-integer, optional :: uni, ix_ele
+integer, optional :: ix_ele
 
 integer n_bunch, n_part, n_lost, tot_part, i_ele
 
@@ -501,7 +502,7 @@ n_bunch = s%global%bunch_to_plot
 ! If optional arguments not present no verbose and
 !  just check if particles lost
 
-if (present(uni) .or. present(ix_ele)) then
+if (present(u) .or. present(ix_ele)) then
   record_lost = .true.
   i_ele = ix_ele
 else
@@ -525,7 +526,7 @@ enddo
 if (record_lost .and. n_lost > 0) then
   line = "\I4\ particle(s) lost at element \I0\: " // ele%name
   if (size(s%u) > 1) line = trim(line) // " in universe \I3\ "
-  call out_io (s_blank$, r_name, line, i_array = (/ n_lost, ix_ele, uni /) )
+  call out_io (s_blank$, r_name, line, i_array = (/ n_lost, ix_ele, u%ix_uni /) )
 endif
   
 ! average
@@ -603,7 +604,7 @@ call twiss_and_track_at_s (s%u(u%connect%from_uni)%model%lat, &
 ! track through connect element
 
 if (u%connect%use_connect_ele) then
-  if (s%global%matrix_recalc_on) call make_mat6 (u%connect%connect_ele, &
+  if (u%mat6_recalc_on) call make_mat6 (u%connect%connect_ele, &
                                              s%u(u%connect%from_uni)%model%lat%param)
   call twiss_propagate1 (extract_ele, u%connect%connect_ele)
   call track1 (pos, u%connect%connect_ele, &
@@ -716,7 +717,7 @@ extract_ele = s%u(u%connect%from_uni)%model%lat%ele(u%connect%from_uni_ix_ele)
 
 if (u%connect%use_connect_ele) then
   param => s%u(u%connect%from_uni)%model%lat%param
-  if (s%global%matrix_recalc_on) call make_mat6 (u%connect%connect_ele, param)
+  if (u%mat6_recalc_on) call make_mat6 (u%connect%connect_ele, param)
   call twiss_propagate1 (extract_ele, u%connect%connect_ele)
   call track1_beam_ele (u%connect%injecting_beam, u%connect%connect_ele, &
                       param, u%connect%injecting_beam)
@@ -819,7 +820,7 @@ connection_ele%value(dphi_a$)   = mod(inject_ele%a%phi - extract_ele%a%phi,twopi
 connection_ele%value(dphi_b$)   = mod(inject_ele%b%phi - extract_ele%b%phi,twopi)
   
 ! it's a linear element so no orbit need be passed
-if (s%global%matrix_recalc_on) call make_mat6 (connection_ele, &
+if (u%mat6_recalc_on) call make_mat6 (connection_ele, &
                                              s%u(u%connect%from_uni)%design%lat%param)
   
 end subroutine  tao_match_lats_init

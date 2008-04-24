@@ -157,6 +157,7 @@ character(*) who, set_value
 character(20) :: r_name = 'tao_set_global_cmd'
 
 integer iu, ios
+logical err
 
 namelist / params / global
 
@@ -176,6 +177,9 @@ rewind (iu)
 global = s%global  ! set defaults
 read (iu, nml = params, iostat = ios)
 close (iu)
+
+call tao_data_check (err)
+if (err) return
 
 if (ios == 0) then
   s%global = global

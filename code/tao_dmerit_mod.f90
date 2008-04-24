@@ -29,9 +29,8 @@ implicit none
 type (tao_universe_struct), pointer :: u
 
 real(rp) model_value, merit_value
-integer i, j, k, jj
+integer i, j, k
 integer n_data, n_var, nd, nv
-integer s_var_size, current_s_var_point
 character(20) :: r_name = 'tao_dmodel_dvar_calc'
 logical reinit, force_calc, calc_ok
 
@@ -42,6 +41,7 @@ call tao_set_var_useit_opt
 call tao_set_data_useit_opt
 
 reinit = force_calc 
+n_var = count (s%var%useit_opt)
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
@@ -52,7 +52,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   endif
 
   n_data = count (u%data%useit_opt)
-  n_var = count (s%var%useit_opt)
 
   if (.not. allocated(u%dModel_dVar)) then
     allocate (u%dModel_dVar(n_data, n_var))
@@ -92,11 +91,12 @@ do j = 1, size(s%var)
 enddo
 
 if (.not. reinit) return
-call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix.') 
-call out_io (s_blank$, r_name, 'This may take a while...') 
-call out_io (s_blank$, r_name, ' ') 
+call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix.', &
+                              'This may take a while...', &
+                              '')
 
-! Calculate matrices
+!--------------------------------------------------------------
+! Calculate derivative matrices.
 
 merit_value = tao_merit (calc_ok)
 if (.not. calc_ok) then
@@ -104,24 +104,19 @@ if (.not. calc_ok) then
 endif
 
 s%var%old_value = s%var%delta_merit
+if (s%global%orm_analysis) then 
+  s%u(:)%mat6_recalc_on = .false.
+  tao_com%u_common%mat6_recalc_on = .false.
+endif
 
-s_var_size = size(s%var)
-jj = 1
-
-do j = 1, s_var_size
+do j = 1, s%n_var_used
 
   if (.not. s%var(j)%useit_opt) cycle
-  
-! let user see progress
-
-   if (modulo(jj * 10, n_var) .eq. 0) then
-     call out_io (s_blank$, r_name, " \i3\% done...", (jj/n_var)*100)
-     jj = jj + 1
-   endif
 
   nv = s%var(j)%ix_dvar
   if (s%var(j)%step == 0) then
-    call out_io (s_error$, r_name, 'VARIABLE STEP SIZE IS ZERO FOR: ' // tao_var1_name(s%var(j)))
+    call out_io (s_error$, r_name, &
+                'VARIABLE STEP SIZE IS ZERO FOR: ' // tao_var1_name(s%var(j)))
     call err_exit
   endif
   model_value = s%var(j)%model_value
@@ -151,6 +146,9 @@ do j = 1, s_var_size
 
 enddo
 
+! End
+
+if (s%global%orm_analysis) s%u(:)%mat6_recalc_on = .true.
 merit_value = tao_merit () ! to reset all values
 
 end subroutine
