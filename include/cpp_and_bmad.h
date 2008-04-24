@@ -90,27 +90,6 @@ void operator>> (C_coord&, coord_struct*);
 void operator>> (coord_struct*, C_coord&);
 
 //--------------------------------------------------------------------
-// orbit
-
-class orbit_struct {};
-
-class C_orbit {
-public:
-  valarray<C_coord> at;  // size = 6
-
-  C_orbit(Int ix = 1) : at(C_coord(0), ix) {}
-
-};    // End Class
-
-extern "C" void orbit_to_c_(orbit_struct*, C_orbit&);
-extern "C" void orbit_to_f_(C_orbit&, orbit_struct*);
-
-bool operator== (const C_orbit&, const C_orbit&);
-
-void operator>> (C_orbit&, orbit_struct*);
-void operator>> (orbit_struct*, C_orbit&);
-
-//--------------------------------------------------------------------
 // Twiss 
 
 class twiss_struct {}; 

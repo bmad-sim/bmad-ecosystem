@@ -82,34 +82,6 @@ void operator>> (coord_struct* f, C_coord& c) {
 }
 
 //---------------------------------------------------------------------------
-// Orbit
-
-extern "C" void orbit_to_f2_(orbit_struct*, Int&);
-extern "C" void coord_in_orbit_to_f2_(orbit_struct*, Int&, ReArr);
-
-extern "C" void orbit_to_f_(C_orbit& c, orbit_struct* f) {
-  int n_term = c.at.size();
-  orbit_to_f2_(f, n_term);
-  for (int i = 0; i < n_term; i++) coord_in_orbit_to_f2_(f, i, &c.at[i].vec[0]);
-}
-
-extern "C" void orbit_to_c2_(C_orbit& c, Int& n_term) {
-  if (c.at.size() < n_term) c.at.resize(n_term);
-}
-
-extern "C" void coord_in_orbit_to_c2_(C_orbit& c, Int& ix, double vec[]) {
-  c.at[ix].vec << vec;
-}
-
-void operator>> (C_orbit& c, orbit_struct* f) {
-  orbit_to_f_(c, f);
-}
-
-void operator>> (orbit_struct* f, C_orbit& c) {
-  orbit_to_c_(f, c);
-}
-
-//---------------------------------------------------------------------------
 // Twiss
 
 extern "C" void twiss_to_f2_(twiss_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);

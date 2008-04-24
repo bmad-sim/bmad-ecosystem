@@ -31,14 +31,10 @@ integer, parameter :: n_attrib_maxx = 60
 
 ! coordinate def
 
-type coord_struct   ! coordinates at a single point
-  real(rp) vec(6)   ! (x, p_x, y, p_y, z, p_z)
-  complex(rp) spin(2) ! particle spin in spinor notation
+type coord_struct            ! Particle coordinates at a single point
+  real(rp) :: vec(6) = 0     ! (x, p_x, y, p_y, z, p_z)
+  complex(rp) :: spin(2) = 0 ! Spin in spinor notation
 end type
-
-type orbit_struct                            ! an entire orbit.
-  type (coord_struct), allocatable :: at(:)  ! coords "at" end of each element.
-end type 
 
 ! Coupling structure
 
