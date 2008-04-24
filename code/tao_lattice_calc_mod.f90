@@ -120,7 +120,15 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, 6
     tao_lat%orb%vec(j) = 0.0
   enddo
-  tao_lat%orb(0) = tao_lat%lat%beam_start
+
+  ! In u%model_orb0 is saved the last computed orbit. 
+  ! This is important with unified_lattices since tao_lat%orb(0) has been overwritten.
+
+  if (tao_lat%lat%param%lattice_type == linear_lattice$) then
+    tao_lat%orb(0) = tao_lat%lat%beam_start
+  else
+    tao_lat%orb(0) = u%model_orb0
+  endif
 
   ! set up matching element
   if (initing_design) call tao_match_lats_init (u)
@@ -236,6 +244,7 @@ if (lat%param%lattice_type == circular_lattice$) then
       tao_lat%orb(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
     enddo
   endif
+  u%model_orb0 = tao_lat%orb(0)   ! Save beginning orbit
 
 else
   call track_all (lat, tao_lat%orb)

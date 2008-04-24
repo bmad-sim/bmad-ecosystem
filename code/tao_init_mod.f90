@@ -81,9 +81,10 @@ else
     read (iu, nml = tao_params)  ! To give error message
   endif
   if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
-  s%global = global  ! transfer global to s%global
   close (iu)
 endif
+
+s%global = global  ! transfer global to s%global
 
 if (s%global%track_type == "macro") then
   call out_io (s_error$, r_name, &

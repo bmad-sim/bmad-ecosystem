@@ -311,7 +311,7 @@ if (data_source == 'lattice') then
   end select
 endif
 
-if (data_type(1:6) == 'monitor') then
+if (data_type(1:4) == 'bpm.') then
   if (data_source == 'beam') then
     call out_io (s_error$, r_name, 'DATA_SOURCE = "beam" NOT VALID FOR DATUM: ' // &
                                                                  tao_datum_name(datum))

@@ -564,6 +564,7 @@ type tao_universe_struct
   type (tao_connected_uni_struct)   :: connect     ! Used for connected lattices
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
+  type (coord_struct) model_orb0                         ! For saving beginning orbit
   type (tao_ix_data_struct), allocatable :: ix_data(:)   ! which data to evaluate at this ele
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
   character(80) :: beam_all_file = ''  ! Input beam data file for entire lattice.
