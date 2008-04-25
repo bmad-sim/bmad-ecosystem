@@ -125,13 +125,13 @@ endif
 
 read (uni, '(i)', iostat = ios) iu
 if (ios /= 0) then
-  call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_type_in)
+  call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // uni)
   err = .true.
   return
 endif
 iu = tao_universe_number (iu)
-if (iu < 1 .or. iu > ubound(s%u, 1)) then
-  call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_type_in)
+if (iu < lbound(s%u, 1) .or. iu > ubound(s%u, 1)) then
+  call out_io (s_error$, r_name, "NUMBER DOES NOT CORRESPOND TO A UNIVERSE: " // uni)
   err = .true.
   return
 endif

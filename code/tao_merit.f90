@@ -22,7 +22,7 @@ type (tao_var_struct), pointer :: var
 type (tao_data_struct), pointer :: data(:)
 type (tao_d1_data_struct), pointer :: d1
 
-real(rp) this_merit, ave, value, model_value
+real(rp) this_merit, ave, value, model_value, base_value
 
 integer i, j, n, iu0
 
@@ -116,30 +116,27 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. data(j)%good_model) cycle
 
     if (data(j)%merit_type(1:4) == 'abs_') then
-      model_value = data(j)%model_value
-    else
       model_value = abs(data(j)%model_value)
+    else
+      model_value = data(j)%model_value
+    endif
+
+    if (opt_with_base) then
+      if (tao_com%unified_lattices) then
+        base_value = s%u(iu0)%data(j)%model_value
+      else
+        base_value = data(j)%base_value
+      endif
     endif
 
     if (opt_with_ref .and. opt_with_base) then
-      if (tao_com%unified_lattices) then
-        data(j)%delta_merit = model_value - &
-            data(j)%meas_value + data(j)%ref_value - s%u(iu0)%data(j)%model_value
-      else
-        data(j)%delta_merit = model_value - &
-            data(j)%meas_value + data(j)%ref_value - data(j)%base_value
-      endif
+      data(j)%delta_merit = (model_value - base_value) - &
+                                  (data(j)%meas_value - data(j)%ref_value) 
     elseif (opt_with_ref) then
-      data(j)%delta_merit = model_value - &
-            data(j)%meas_value + data(j)%ref_value - data(j)%design_value
+      data(j)%delta_merit = (model_value - data(j)%design_value) - &
+                                  (data(j)%meas_value - data(j)%ref_value)
     elseif (opt_with_base) then
-      if (tao_com%unified_lattices) then
-        data(j)%delta_merit = model_value - &
-                                data(j)%meas_value -  s%u(iu0)%data(j)%model_value
-      else
-        data(j)%delta_merit = model_value - &
-                                data(j)%meas_value - data(j)%base_value
-      endif
+        data(j)%delta_merit = (model_value - base_value) - data(j)%meas_value
     else
       if (data(j)%merit_type(1:3) == 'int') then
         data(j)%delta_merit = data(j)%model_value
