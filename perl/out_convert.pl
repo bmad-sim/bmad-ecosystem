@@ -7,7 +7,12 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/\= 1, ubound\(s\%u,/\= lbound\(s\%u, 1\), ubound\(s\%u,/;
+    s/E-05/E-08/g;
+    s/E-04/E-07/g;
+    s/E-03/E-06/g;
+    s/E-02/E-05/g;
+    s/E-01/E-04/g;
+    s/E\+00/E-03/g;
 
     print (F_OUT);
 

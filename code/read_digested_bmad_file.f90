@@ -193,9 +193,11 @@ else
             lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
 endif
 
+! %control and %ic are allocated to the same length for convenience.
+
 call allocate_lat_ele(lat, lat%n_ele_max+100)
 allocate (lat%control(lat%n_control_max+100))
-allocate (lat%ic(lat%n_ic_max+100))
+allocate (lat%ic(lat%n_control_max+100))
 
 !
 
