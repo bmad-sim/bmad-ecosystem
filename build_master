@@ -147,6 +147,7 @@ plat_combos        = {} # Working dictionary of platform combos constructed afte
 
 # Error message to be mailed out if problems occur
 error_msg = ""
+error_analysis_code = 0 #the code used by error_analysis script to diagnose the problem
 
 
 for platform in platforms:
@@ -251,6 +252,27 @@ def print_help():
   print "   REV=<revision num>    Specify a SVN revision number to check out."
   print "                          [Default is the most recent revision]"
   print ""
+
+#=== Function to notify about build failure by mail ===========================
+def report_errors(message, nightly, code):
+# error codes used:
+# 11: build ceased / failed
+# 13: build passed, but test suite failed
+# 14: bmad error
+# 16: other errors
+
+  ###
+  # Perform the final error check. If error_msg is not blank and this is a nightly build, run error_analysis script independently
+  ###
+  if (message != "") and ((nightly)or(opt == "-bmad")):
+    mail_tmp = open ("/home/cesrulib/temporary_mail_file.tmp","w")
+    mail_tmp.write(message)
+    mail_tmp.close()    
+    stout.close()   # Close stream to logfile before quitting
+    #Generate a web-page with the summary (log files) of all builds
+    if build_type == "RELEASE":
+        os.popen('/home/cesrulib/bin/util/generate_html '+rel_name) 
+    os.spawnl(os.P_NOWAIT, "/home/cesrulib/error_analysis","test", "/home/cesrulib/temporary_mail_file.tmp", str(code))
 
 #=== Get Command Line Arguments and set vars =======================
 for opt in sys.argv[1:]:
@@ -894,6 +916,8 @@ if revision == 0:
       revision = line.split(':')[1].strip()
     elif line.find("failed") != -1:
       print "SVN repository access failed!  Quitting."
+      error_msg = error_msg + "SVN repository access failed!  Quitting.\n"
+      report_errors(error_msg, nightly, 16) #since we're about to exit, need to notify about the errors
       sys.exit(50)
 
 
@@ -912,6 +936,8 @@ if space_free <= space_needed:
   print "Insufficient disk space in " + libs_dir + "!"
   print "Disk free space = %i" % space_free
   print "Space required  = %i" % space_needed
+  error_msg = error_msg + "Insufficient disk space in " + libs_dir + "\n"
+  report_errors(error_msg, nightly, 16) #since we're about to exit, need to notify about the errors
   sys.exit(30)
 
 
@@ -1039,6 +1065,7 @@ while complete_fraction < 1 and loop < max_loops:
       else:
         Status = plat_combos[platform]['builder']
         print platform + " : " + Status
+    report_errors(error_msg, nightly, 11) #since we're about to exit, need to notify about the errors
     sys.exit(56)
   
   if loop < 10:
@@ -1077,6 +1104,7 @@ if build_type != "FIXES":
 if build_type == "RELEASE" and run_tests == "YES":
   print "=========================  Test Suite Summary  ==========================="
   for platform in plat_combos:
+    flag=0
     if plat_combos[platform]['act'] == "FULL":
       print "Testing summary for " + platform
       logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
@@ -1084,7 +1112,11 @@ if build_type == "RELEASE" and run_tests == "YES":
       for line in lines:
         print line.strip()
         if line.find("FAILED!") != -1 :
+          if (flag==0):
+            error_analysis_code = 13
+            error_msg = error_msg+platform+"\n"
           error_msg = error_msg +line+"\n"
+          flag=1
       print ""
 
 print "=========================================================================="
@@ -1140,7 +1172,8 @@ if devel:
       else:
         print str(outstream)
         print "ERROR: There was a problem with the rotation initiation."
-        error_msg = error_msg + "ERROR: There was a problem with the rotation initiation."
+        error_msg = error_msg + "ERROR: There was a problem with the rotation initiation.\n"
+        report_errors(error_msg, nightly, 16) #since we're about to exit, need to notify about the errors
         sys.exit(70)
       
       #= Schedule a Bmad distribution build and rotation.
@@ -1168,7 +1201,8 @@ if devel:
       else:
         print str(outstream)
         print "ERROR: There was a problem with the Bmad dist. initiation."
-        error_msg = error_msg + "ERROR: There was a problem with the Bmad dist. initiation."
+        error_msg = error_msg + "ERROR: There was a problem with the Bmad dist. initiation.\n"
+        report_errors(error_msg, nightly, 14) #since we're about to exit, need to notify about the errors
         sys.exit(75)
 #==============================================================================
 #== Check to see if this release is a current candidate
@@ -1239,7 +1273,7 @@ if not fixes:
   print str(outstream)
   if sr_exit != 0:
     print "ERROR:  There was a problem generating the repository statistics reports."
-    error_msg = error_msg + "ERROR:  There was a problem generating the repository statistics reports."
+    error_msg = error_msg + "ERROR:  There was a problem generating the repository statistics reports.\n"
 
 
 print "\n================== Build process finished completely. ====================\n"
@@ -1253,20 +1287,13 @@ if recommendation == 0 and not defer:
 
 stout.close()   # Close stream to logfile before quitting
 
-###
-# Perform the final error check. If error_msg is not blank and this is a nightly build, send out an email notifying the librarian
-###
-if (error_msg != "") and (nightly):
-  mail_tmp = open ("/home/cesrulib/temporary_mail_file.tmp","w")
-  mail_tmp.write(error_msg)
-  mail_tmp.close()
-  os.popen('mail -s "Build/test suite failure notification" sv222@cornell.edu,cesrulib@lepp.cornell.edu < "/home/cesrulib/temporary_mail_file.tmp"')
-  os. remove("/home/cesrulib/temporary_mail_file.tmp")
+## final error reporting via mail
+report_errors(error_msg, nightly, error_analysis_code)
+##
 
 ###
 #Generate a web-page with the summary (log files) of all builds
 ###
-#if (not bmad_build) and (not bmad) and (not fixes):
 if build_type == "RELEASE":
   os.popen('/home/cesrulib/bin/util/generate_html '+rel_name)
 ### 
