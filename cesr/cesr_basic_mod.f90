@@ -774,11 +774,11 @@ end subroutine
 !
 ! Output:
 !   lattice  -- Character(40): Lattice name choisen. If a file name is given
-!                    and LAT is not present then LATTICE = ""
+!                    and lat is not present then lattice = ""
 !   lat_file -- Character(*): Name of the lattice file. Typically:
-!                    lat_file = 'U:[CESR.BMAD.LAT]BMAD_' // lattice // .LAT
-!   lat     -- lat_struct: OPTIONAL. If present then BMAD_PARSER is called
-!               to load the LAT structure.
+!                    lat_file = '$CESR_MNT/lattice/CESR/bmad/bmad_' // lattice // .lat
+!   lat     -- lat_struct, optional: If present then bmad_parser is called
+!               to load the lat structure.
 !-
 
 subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
@@ -790,7 +790,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
   character(len=*), optional :: choice
   character(*) lat_file, lattice, current_lat
   character(40) lat_list(200)
-  character(80) line
+  character(80) line, lat_dir
    
   integer i, num_lats, i_lat, ix, ios
 
@@ -798,7 +798,8 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
 
 !                   
 
-  call get_lattice_list (lat_list, num_lats, 'BMAD_LAT:')
+  lat_dir = '$CESR_MNT/lattice/CESR/bmad'
+  call get_lattice_list (lat_list, num_lats, lat_dir)
 
   ask_for_lat = .true.
 
@@ -825,9 +826,9 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
         endif
       enddo
   
-      print *, ' [Note: To be in this list a lattice file must have a name   ]'
-      print *, ' [      of the form: BMAD_LAT:bmad_<lattice_name>.lat        ]'
-      print *, ' [               or: BMAD_LAT:<lattice_name>.lat             ]'
+      print *, ' [Note: To be in this list a lattice file must have a name of the  ]'
+      print *, ' [      form: $CESR_MNT/lattice/CESR/bmad/bmad_<lattice_name>.lat  ]'
+      print *, ' [        or: $CESR_MNT/lattice/CESR/bmad/<lattice_name>.lat       ]'
 
       print *
       print *, 'You can enter a Lattice number or a full file name.'
@@ -866,7 +867,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
       inquire (file = lat_file, exist = is_there, name = lat_file)
       if (.not. is_there) then
         lattice = line
-        lat_file = 'BMAD_LAT:bmad_' // lattice
+        lat_file = trim(lat_dir) // '/bmad_' // lattice
         if (index(lattice, '.') == 0) lat_file = trim(lat_file) // '.lat' 
         ix = index(lattice, '.lat')
         if (ix /= 0) lattice = lattice(:ix-1)

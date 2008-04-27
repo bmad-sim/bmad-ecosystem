@@ -2,6 +2,12 @@
 ! Subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
 !
 ! Subroutine to convert a lattice name to the appropriate bmad file name.
+! First tried is:
+!       "$CESR_MNT/lattice/CESR/bmad/" + lattice + ".lat"
+! If this does not exist, bmad_file_name is set to:
+!       "$CESR_MNT/lattice/CESR/bmad/bmad_" + lattice + ".lat"
+!
+! Note: lattice is always converted to lower case.
 !
 ! Input:
 !   lattice -- Character(40): CESR Lattice name.
@@ -25,12 +31,13 @@ subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
   lat = lattice
   call downcase_string(lat)
 
-  bmad_file_name = 'BMAD_LAT:' // trim(lat) // '.lat'
+  bmad_file_name = '$CESR_MNT/lattice/CESR/bmad/' // trim(lat) // '.lat'
   call FullFileName(bmad_file_name, bmad_file_name)
 
   inquire (file = bmad_file_name, exist = is_there)
   if (.not. is_there) then
-    bmad_file_name = 'BMAD_LAT:bmad_' // trim(lat) // '.lat'
+    bmad_file_name = '$CESR_MNT/lattice/CESR/bmad/bmad_' // trim(lat) // '.lat'
     call FullFileName(bmad_file_name, bmad_file_name)
   endif
+
 end subroutine
