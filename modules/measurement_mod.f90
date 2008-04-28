@@ -75,6 +75,9 @@ implicit none
 type (ele_struct) ele
 
 real(rp) x_gain, y_gain, x_angle, y_angle
+integer, parameter :: ix_attribs(12) = (/ x_gain_err$, x_gain_calib$, &
+          y_gain_err$, y_gain_calib$, tilt_tot$, tilt_calib$, crunch$, crunch_calib$, &
+          x_offset_tot$, x_offset_calib$, y_offset_tot$, y_offset_calib$ /)
 
 !
 
@@ -85,7 +88,7 @@ if (m_com%beta_a /= ele%a%beta .or. m_com%beta_b /= ele%b%beta) then
   m_com%beta_b = ele%b%beta
 endif
 
-if (any(m_com%value(1:tilt_calib$) /= ele%value(1:tilt_calib$))) then
+if (any(m_com%value(ix_attribs) /= ele%value(ix_attribs))) then
   x_gain = 1 + ele%value(x_gain_err$) - ele%value(x_gain_calib$)
   y_gain = 1 + ele%value(y_gain_err$) - ele%value(y_gain_calib$)
   x_angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) + &
@@ -105,7 +108,7 @@ if (any(m_com%value(1:tilt_calib$) /= ele%value(1:tilt_calib$))) then
   endif
   m_com%x_off = ele%value(x_offset_tot$) + ele%value(x_offset_calib$)
   m_com%y_off = ele%value(y_offset_tot$) + ele%value(y_offset_calib$)
-  m_com%value(1:tilt_calib$) = ele%value(1:tilt_calib$)
+  m_com%value = ele%value
 endif
 
 end subroutine compute_bpm_transformation_numbers
