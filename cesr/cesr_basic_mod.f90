@@ -892,7 +892,9 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
   if (present (lat)) then
     call bmad_parser (lat_file, lat)
     if (lattice /= "") then
-      if (lattice /= lat%lattice) print *, &
+      lat_choise = lat%lattice
+      call downcase_string(lat_choise)
+      if (lattice /= lat_choise) print *, &
            'WARNING FROM CHOOSE_CESR_LATTICE: LATTICE NAME IN LAT DOES MATCH FILE NAME!'
     endif
     lattice = lat%lattice
