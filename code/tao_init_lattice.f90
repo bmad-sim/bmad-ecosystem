@@ -31,12 +31,12 @@ character(16) aperture_limit_on
 integer i, j, n, iu, ios, version, taylor_order, ix, key, n_universes
 
 logical custom_init, combine_consecutive_elements_of_like_name
-logical unified_lattices
+logical common_base_lat
 logical err, is_set
 
 namelist / tao_design_lattice / design_lattice, taylor_order, &
        combine_consecutive_elements_of_like_name, unique_name_suffix, &
-       aperture_limit_on, unified_lattices, n_universes
+       aperture_limit_on, common_base_lat, n_universes
 
 ! Defaults
 
@@ -58,7 +58,7 @@ if (.not. is_set) then
 
   ! Defaults
 
-  unified_lattices = .false.
+  common_base_lat = .false.
   n_universes = tao_com%n_universes
   taylor_order = 0
   combine_consecutive_elements_of_like_name = .false.
@@ -77,7 +77,7 @@ if (.not. is_set) then
 
   if (taylor_order /= 0) call set_taylor_order (taylor_order)
   tao_com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
-  tao_com%unified_lattices = unified_lattices
+  tao_com%common_base_lat = common_base_lat
   tao_com%n_universes = n_universes
   tao_com%aperture_limit_on = aperture_limit_on
   tao_com%unique_name_suffix = unique_name_suffix
@@ -85,7 +85,7 @@ endif
 
 !
 
-if (tao_com%unified_lattices) then
+if (tao_com%common_base_lat) then
   allocate (s%u(0:tao_com%n_universes))
   allocate (tao_com%u_working)
 
@@ -112,7 +112,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! If unified then only read in a lattice for the common universe.
 
-  if (tao_com%unified_lattices .and. .not. u%common_uni) cycle
+  if (tao_com%common_base_lat .and. .not. u%common_uni) cycle
 
   ! Get the name of the lattice file
 
@@ -218,7 +218,7 @@ close (iu)
 
 ! Working lattice setup
 
-if (tao_com%unified_lattices) then
+if (tao_com%common_base_lat) then
 
   u => tao_com%u_working
   u%common => tao_com%u_common

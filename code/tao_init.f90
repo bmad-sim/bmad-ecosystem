@@ -132,7 +132,7 @@ do i = 1, size(s%var)
       if (.not. allocated(s%var(i2)%this)) cycle
       do j2 = 1, size(s%var(i2)%this)
         if (i == i2 .and. j == j2) cycle
-        if (tao_com%unified_lattices .and. &
+        if (tao_com%common_base_lat .and. &
                           s%var(i)%this(j)%ix_uni /= s%var(i2)%this(j2)%ix_uni) cycle
         if (associated (s%var(i)%this(j)%model_value, &
                           s%var(i2)%this(j2)%model_value)) then
@@ -271,9 +271,9 @@ if (allocated (s%u)) then
     deallocate(u%design%orb, stat=istat)
     deallocate(u%base%orb, stat=istat)
     
-    ! Beams: All s%u(i)%ele point to the same place with unified_lattices.
+    ! Beams: All s%u(i)%ele point to the same place with common_base_lat.
 
-    if (i == 0 .or. .not. tao_com%unified_lattices) then
+    if (i == 0 .or. .not. tao_com%common_base_lat) then
       do j = lbound(u%ele, 1), ubound(u%ele, 1)
         call reallocate_beam(u%ele(j)%beam, 0, 0)
       enddo

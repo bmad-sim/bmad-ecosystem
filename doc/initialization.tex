@@ -201,7 +201,7 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
 \index{design_lattice!file}
 \index{design_lattice!parser}
 \index{n_universes}
-\index{unified_lattices}
+\index{common_base_lat}
 \begin{example}
   &tao_design_lattice
     n_universes        = <integer>      ! Number of universes. Default = 1.
@@ -209,7 +209,7 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
     aperture_limit_on  = <logical>
     unique_name_suffix = "<string>"
     combine_consecutive_elements_of_like_name = <logical>
-    unified_lattices = <logical>        ! Default = False
+    common_base_lat = <logical>        ! Default = False
     design_lattice(i) = "\{<parser>::\}<lattice_file>", \{"<lattice2_file>"\}
   /
 \end{example}
@@ -281,17 +281,17 @@ Setting \vn{aperture_limit_on} to \vn{False} will turn off the
 aperture limits set in all lattices. This overrides the setting of
 \vn{parameter[aperture_limit_on]} in a lattice file.
 
-The \vn{unified_lattices} switch can be used when there is a baseline
+The \vn{common_base_lat} switch can be used when there is a baseline
 lattice that is common to all universes. This case can occur, for
 example, with an \vn{orbit response matrix} analysis where each
 universe is associated with a measured orbit when a particular
-steering magnet is varied. When \vn{unified_lattices} is set to True,
+steering magnet is varied. When \vn{common_base_lat} is set to True,
 \tao will set up \vn{common} \vn{model}, \vn{design} and \vn{base}
 lattices in memory for all universes to share. This is unlike the
 standard setup where a \vn{model}, a \vn{design} and a \vn{base}
 lattice is instantiated in memory for each universe. For problems
 using a large number of universes, this can result is a substatial
-savings in memory. With \vn{unified_lattices}, the difference between
+savings in memory. With \vn{common_base_lat}, the difference between
 a lattice and the common lattice is defined soley by the variables
 (\sref{s:init.var}) that vary attributes in that lattice. That is,
 changing a lattice attribute using the \vn{change} (\sref{s:change})

@@ -22,7 +22,7 @@ character(20) :: r_name = 'tao_view_cmd'
 
 ! Check range
 
-if (tao_com%unified_lattices .and. i_universe == -1) then
+if (tao_com%common_base_lat .and. i_universe == -1) then
   s%global%u_view = i_universe
   return
 endif  

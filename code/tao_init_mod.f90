@@ -1344,7 +1344,7 @@ do
 
   if (default_universe == '*' .or. default_universe == '') then
     dflt_good_unis = .true.
-    if (tao_com%unified_lattices .and. gang) then
+    if (tao_com%common_base_lat .and. gang) then
       dflt_good_unis = .false.
       dflt_good_unis(tao_com%u_common%ix_uni) = .true.
     endif
@@ -1876,7 +1876,7 @@ character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
 err = .true.
 
 u => s%u(ix_uni)
-if (tao_com%unified_lattices) u => tao_com%u_working
+if (tao_com%common_base_lat) u => tao_com%u_working
 
 ! allocate space for var%this.
 
@@ -1925,7 +1925,7 @@ endif
 ! instead of pointing to var%this(1). 
 ! Exception: If variable controls a common parameter
 
-if (tao_com%unified_lattices) then
+if (tao_com%common_base_lat) then
   if (this%ix_uni == tao_com%u_common%ix_uni) then
     var%model_value => var%common%model_value
     var%base_value => var%common%base_value

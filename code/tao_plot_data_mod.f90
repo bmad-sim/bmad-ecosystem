@@ -400,7 +400,7 @@ do k = 1, size(graph%curve)
   u => tao_pointer_to_universe (curve%ix_universe)
   if (.not. associated(u)) return
 
-  if (tao_com%unified_lattices) then
+  if (tao_com%common_base_lat) then
     call tao_lattice_calc (ok, u%ix_uni, base$)
     call tao_lattice_calc (ok, u%ix_uni, model$)
   endif
