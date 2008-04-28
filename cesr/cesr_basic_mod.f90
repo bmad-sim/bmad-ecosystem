@@ -790,7 +790,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
   character(len=*), optional :: choice
   character(*) lat_file, lattice, current_lat
   character(40) lat_list(200)
-  character(80) line, lat_dir
+  character(80) lat_choise, lat_dir
    
   integer i, num_lats, i_lat, ix, ios
 
@@ -804,8 +804,9 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
   ask_for_lat = .true.
 
   if (present(choice)) then
-    line = choice
-    call string_trim (line, line, ix)
+    lat_choise = choice
+    call downcase_string (lat_choise)
+    call string_trim (lat_choise, lat_choise, ix)
     if (ix /= 0) ask_for_lat = .false.
   endif
 
@@ -837,23 +838,23 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
       else
         write (*, '(a, i3, a)', advance = 'no') ' Choice: <CR =', i_lat, '> '
       endif
-      read (*, '(a)') line
+      read (*, '(a)') lat_choise
     endif
 
-    call string_trim (line, line, ix)
-    line = line(:ix)
+    call string_trim (lat_choise, lat_choise, ix)
+    lat_choise = lat_choise(:ix)
 
-    if (ix == 0 .or. (ix == 1 .and. (line == '*' .or. line == '0'))) then
+    if (ix == 0 .or. (ix == 1 .and. (lat_choise == '*' .or. lat_choise == '0'))) then
       default_flag = .true.
       do i_lat = 1, num_lats
         if (lat_list(i_lat) == current_lat) exit
       enddo
     else
       default_flag = .false.
-      read (line, *, iostat = ios) i_lat
+      read (lat_choise, *, iostat = ios) i_lat
     endif
 
-    if (default_flag .or. (ios == 0 .and. index('0123456789', line(1:1)) /= 0)) then
+    if (default_flag .or. (ios == 0 .and. index('0123456789', lat_choise(1:1)) /= 0)) then
       if (i_lat < 1 .or. i_lat > num_lats) then
         print *, 'ERROR: WHICH LATTICE? TRY AGAIN...'
         ask_for_lat = .true.
@@ -863,10 +864,10 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
       call lattice_to_bmad_file_name (lattice, lat_file)
     else
       lattice = ""
-      lat_file = line
+      lat_file = lat_choise
       inquire (file = lat_file, exist = is_there, name = lat_file)
       if (.not. is_there) then
-        lattice = line
+        lattice = lat_choise
         lat_file = trim(lat_dir) // '/bmad_' // lattice
         if (index(lattice, '.') == 0) lat_file = trim(lat_file) // '.lat' 
         ix = index(lattice, '.lat')
