@@ -111,6 +111,8 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
   character(40) match_file
   character(200) lat_file
 
+  integer, automatic :: indx(size(lat_list))
+
   logical ok
 
   ! get twiss file names for matching files 
@@ -149,6 +151,11 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
     lat_list(num_lats) = lat_file  ! Strip of beginning "bmad_"
 
   enddo
+
+  ! Sort in alphabetical order
+
+  call indexx (lat_list(1:num_lats), indx(1:num_lats))
+  lat_list(1:num_lats) = lat_list(indx(1:num_lats))
 
 end subroutine get_lattice_list
 
