@@ -235,6 +235,11 @@ if (s%global%track_type == 'beam') then
           call init_beam(s%u(i))
         enddo
       else
+        if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
+          call out_io (s_error$, r_name, &
+                'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
+          call err_exit
+        endif
         call init_beam(s%u(ix_universe))
       endif
 
@@ -1538,14 +1543,14 @@ if (search_for_lat_eles /= '') then
   endif
 
   ! find matching elements...
-  ! first count how many variables wee need
+  ! first count how many variables we need
 
   num_ele = 0
   allocate(ele_names(100), an_indexx(100))
   do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     if (ix_uni > -1 .and. iu /= ix_uni) cycle
-    call tao_find_elements (s%u(iu), search_string, ix_eles)
+    call tao_find_elements (s%u(iu), search_string, ix_eles, default_attribute)
     do kk = 1, size(ix_eles)
       ix_ele = ix_eles(kk)
       ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
@@ -1565,7 +1570,7 @@ if (search_for_lat_eles /= '') then
   deallocate(ele_names, an_indexx)
 
   if (num_ele == 0) then
-    call out_io (s_warn$, r_name, &
+    call out_io (s_error$, r_name, &
               'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
               'WHILE SETTING UP VARIABLE ARRAY: ' // v1_var%name)
     return
@@ -1582,7 +1587,7 @@ if (search_for_lat_eles /= '') then
   do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     if (ix_uni > -1 .and. iu /= ix_uni) cycle
-    call tao_find_elements (s%u(iu), search_string, ix_eles)
+    call tao_find_elements (s%u(iu), search_string, ix_eles, default_attribute)
     kk_loop: do kk = 1, size(ix_eles)
       ix_ele = ix_eles(kk)
       ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
@@ -1679,26 +1684,6 @@ where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
  
 s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
 where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
- 
-! Veto any variable that is not free
-
-if (searching) then
-  do n = n1, n2
-    var_ptr => s%var(n)
-    if (var_ptr%ix_attrib <= 0) cycle
-    do j = 1, size(var_ptr%this)
-      this => var_ptr%this(j)
-      u => s%u(this%ix_uni)
-      if (.not. attribute_free (this%ix_ele, var_ptr%ix_attrib, u%model%lat, .false.)) then
-        call out_io (s_info$, r_name, &
-              'Warning: Variable: ' // tao_var1_name(var_ptr), &
-            '       is trying to control a non-free attribute. %exists will be set to False.')
-        var_ptr%exists = .false.
-        var_ptr%key_bound = .false.
-      endif
-    enddo
-  enddo
-endif
 
 end subroutine
   
@@ -1740,7 +1725,6 @@ enddo
 
 if (size(var%this) > 0) then
   var%exists = .true.
-  var%design_value = var%this(1)%model_value
 endif
 
 end subroutine
@@ -1775,7 +1759,7 @@ end subroutine
 !-----------------------------------------------------------------------------------------
 ! This searches the lattice for the specified element and flags ix_eles(:)
 
-subroutine tao_find_elements (u, search_string, ix_eles)
+subroutine tao_find_elements (u, search_string, ix_eles, attribute)
 
 implicit none
 
@@ -1783,15 +1767,16 @@ type (tao_universe_struct), target :: u
 type (ele_struct), pointer :: ele
 
 character(*) search_string
+character(*), optional :: attribute
 character(80) string
 character(40) ele_name, key_name_in
 character(20) :: r_name = 'tao_find_elements'
 
-integer key, found_key
+integer key, found_key, ix_attrib
 integer i, k, ix, ii, j, ix0, ix1, ix2, n_ele
 
 integer, allocatable :: ix_eles(:)
-logical no_slaves, no_lords, err
+logical no_slaves, no_lords, err, warn_given
 
 ! Sort switches
 
@@ -1818,6 +1803,7 @@ end select
 
 call tao_ele_locations_given_name (u, string, ix_eles, err)
 
+warn_given = .false.
 n_ele = 0
 do j = 1, size(ix_eles)
   ele => u%design%lat%ele(ix_eles(j))
@@ -1827,6 +1813,28 @@ do j = 1, size(ix_eles)
   case (girder_lord$, overlay_lord$, super_lord$)
     if (no_lords) cycle
   end select
+  ! If attribute is not free then don't count it
+  if (present(attribute)) then
+    ix_attrib = attribute_index(u%model%lat%ele(ix_eles(j)), attribute)
+    if (ix_attrib < 1) then
+      call out_io (s_error$, r_name, &
+                      'BAD ATTRIBUTE: ' // attribute, &
+                      'FOR VARIABLE SEARCH: ' // search_string, &
+                      'FOR ELEMENT: ' // u%model%lat%ele(ix_eles(j))%name)
+      return
+    endif
+    if (.not. attribute_free (ix_eles(j), ix_attrib, u%model%lat, .false.)) then
+      if (.not. warn_given) then
+        call out_io (s_info$, r_name, &
+                  'Non-free attribute ' // attribute, &
+                  'For variable search: ' // search_string, &
+                  'For element: ' // u%model%lat%ele(ix_eles(j))%name)
+        warn_given = .true.
+      endif
+      cycle
+    endif
+  endif
+  ! Passes test so add it to the list
   n_ele = n_ele + 1
   ix_eles(n_ele) = ix_eles(j)
 enddo
@@ -1908,6 +1916,7 @@ call pointer_to_attribute (u%base%lat%ele(ix_ele),  var%attrib_name, .true., &
 
 var%model_value => var%this(1)%model_value
 var%base_value  => var%this(1)%base_value
+var%design_value = var%this(1)%model_value
 
 this%ix_ele = ix_ele
 this%ix_uni = ix_uni

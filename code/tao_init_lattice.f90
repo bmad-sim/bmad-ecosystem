@@ -242,7 +242,7 @@ if (tao_com%common_base_lat) then
     u%ele    => tao_com%u_common%ele
     u%design => tao_com%u_working%design
     u%model  => tao_com%u_working%model
-    u%base   => tao_com%u_working%base
+    u%base   => tao_com%u_common%model
   enddo
 
 endif

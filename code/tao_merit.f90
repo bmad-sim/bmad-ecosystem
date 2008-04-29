@@ -22,7 +22,7 @@ type (tao_var_struct), pointer :: var
 type (tao_data_struct), pointer :: data(:)
 type (tao_d1_data_struct), pointer :: d1
 
-real(rp) this_merit, ave, value, model_value, base_value
+real(rp) this_merit, ave, value, model_value
 
 integer i, j, n, iu0
 
@@ -121,22 +121,14 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       model_value = data(j)%model_value
     endif
 
-    if (opt_with_base) then
-      if (tao_com%common_base_lat) then
-        base_value = s%u(iu0)%data(j)%model_value
-      else
-        base_value = data(j)%base_value
-      endif
-    endif
-
     if (opt_with_ref .and. opt_with_base) then
-      data(j)%delta_merit = (model_value - base_value) - &
+      data(j)%delta_merit = (model_value - data(j)%base_value) - &
                                   (data(j)%meas_value - data(j)%ref_value) 
     elseif (opt_with_ref) then
       data(j)%delta_merit = (model_value - data(j)%design_value) - &
                                   (data(j)%meas_value - data(j)%ref_value)
     elseif (opt_with_base) then
-        data(j)%delta_merit = (model_value - base_value) - data(j)%meas_value
+        data(j)%delta_merit = (model_value - data(j)%base_value) - data(j)%meas_value
     else
       if (data(j)%merit_type(1:3) == 'int') then
         data(j)%delta_merit = data(j)%model_value

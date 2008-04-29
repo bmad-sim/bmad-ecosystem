@@ -97,7 +97,7 @@ call tao_init_data (data_file)
 call tao_init_variables (var_file)
 call tao_init_wall (wall_file)
 
-call tao_hook_init (tao_com%init_tao_file)
+call tao_hook_init1 (tao_com%init_tao_file)
 
 bmad_status%exit_on_error = .false.
 
@@ -202,6 +202,8 @@ endif
 call tao_set_data_useit_opt()
 call tao_set_var_useit_opt()
 if (present(err_flag)) err_flag = .false.
+
+call tao_hook_init2 ()
 
 ! Close the log file and route all messages back to the terminal
 
