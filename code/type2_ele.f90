@@ -261,6 +261,12 @@ if (attribute_index(ele, 'FIELD_CALC') /= 0) then
                                     calc_method_name(ele%field_calc)
 endif
 
+if (ele%control_type /= overlay_lord$ .and. ele%control_type /= group_lord$ .and. &
+    ele%control_type /= super_slave$ .and. ele%control_type /= girder_lord$) then
+  nl=nl+1; write (li(nl), '(2a)') ' Field_master:       ', &
+                                    on_off_logic(ele%field_master)
+endif
+
 if (attribute_index(ele, 'INTEGRATOR_ORDER') /= 0) then
   nl=nl+1; write (li(nl), '(a, i4)') ' Integrator_order:', ele%integrator_order 
 endif
