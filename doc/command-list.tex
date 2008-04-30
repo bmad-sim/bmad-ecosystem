@@ -174,7 +174,7 @@ In the above example the argument ``abc'' is substituted for any
 Format:
 \begin{example}
   change ele <name_or_number> <attribute> <number>
-  change var <name> <locations> <number>
+  change \{-silent\} var <name> <locations> <number>
   change beam_start <coordinate> <number>
 \end{example}
 
@@ -211,6 +211,9 @@ vary the starting Twiss parameters where \vn{<twiss>} is one of:
   beta_a, beta_b, alpha_a, alpha_b 
   eta_a, eta_b,etap_a, etap_b    
 \end{example}
+
+The \vn{-silent} switch, if present, supresses the printing of what
+variables are changed.
 
 Examples:
 \begin{example}

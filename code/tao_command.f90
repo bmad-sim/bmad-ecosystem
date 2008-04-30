@@ -56,7 +56,7 @@ character(16) :: set_names(8) = (/ &
 
 
 
-logical quit_tao, err
+logical quit_tao, err, silent
 
 ! blank line => nothing to do
 
@@ -117,16 +117,21 @@ case ('call')
 case ('change')
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) return
-  cmd_line = cmd_word(2)
+
+  silent = .false.
+  if (index('-silent', trim(cmd_word(1))) == 1) then
+    silent = .true.
+    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) return
+  endif
 
   if (cmd_word(1) == 'var') then
-    call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) return
-    call tao_change_var (cmd_word(1), cmd_word(2))
+    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) return
+    call tao_change_var (cmd_word(1), cmd_word(2), silent)
   elseif (cmd_word(1) == 'ele') then
-    call tao_cmd_split (cmd_line, 3, cmd_word, .false., err); if (err) return
+    call tao_cmd_split (cmd_word(2), 3, cmd_word, .false., err); if (err) return
     call tao_change_ele (cmd_word(1), cmd_word(2), cmd_word(3))
   elseif (cmd_word(1) == 'beam_start') then
-    call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) return
+    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) return
     call tao_change_ele ('beam_start', cmd_word(1), cmd_word(2))
   else
     call out_io (s_error$, r_name, &

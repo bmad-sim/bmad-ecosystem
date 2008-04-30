@@ -9,7 +9,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_change_var (name, num_str)
+! Subroutine tao_change_var (name, num_str, silent)
 !
 ! Routine to change a variable in the model lattice.
 !
@@ -18,12 +18,13 @@ contains
 !   num_str  -- Character(*): Change in value. 
 !                                A '@' signifies a absolute set.
 !                                A 'd' signifies a set relative design.        
+!   silent   -- Logical: If True then do not print any info.
 !
 ! Output:
 !    %u(s%global%u_view)%model -- model lattice where the variable lives.
 !-
 
-subroutine tao_change_var (name, num_str)
+subroutine tao_change_var (name, num_str, silent)
 
 implicit none
 
@@ -43,7 +44,7 @@ character(20) abs_or_rel, component
 character(100) l1, num, fmt
 character(200), allocatable, save :: lines(:)
 
-logical err, exists
+logical err, exists, silent
 
 !-------------------------------------------------
 
@@ -138,7 +139,7 @@ if (delta /= 0) then
                                      (new_merit-old_merit) / delta
 endif
 
-call out_io (s_blank$, r_name, lines(1:nl))
+if (.not. silent) call out_io (s_blank$, r_name, lines(1:nl))
 
 end subroutine
 

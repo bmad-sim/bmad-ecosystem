@@ -215,8 +215,8 @@ logical no_extra_words
 !
 
 err = .false.
-cmd_word(:) = ''
 line = cmd_line
+cmd_word(:) = ''
 nw = 0
 
 nw_loop: do 
