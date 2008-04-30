@@ -13,7 +13,7 @@ subroutine read_cesr_data_parameters (iu, pc_dat, err)
 
 implicit none
 
-type (all_phase_cbar_data_struct) pc_dat
+type (cesr_raw_data_struct) pc_dat
 
 integer i, iu, ios
 integer save_set, species
@@ -111,6 +111,84 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Subroutine read_cesr_dispersion_data (eta_number, data, err)
+!
+! Routine to read the data in a raw dispersion file.
+!
+! Modules needed:
+!   use cesr_read_data_mod
+!
+! Input:
+!   eta_number -- Integer: Number of the eta data file.
+!
+! Output:
+!   data   -- All_eta_cbar_data_struct: Holds everything from the data
+!                     file: eta, cbar, and raw orbit data along with 
+!                     data base and measurement parameters.
+!-
+
+subroutine read_cesr_dispersion_data (eta_number, data, err)
+
+implicit none
+
+type (cesr_raw_data_struct) data
+type (cesr_xy_datum_struct) eta_(0:120)
+
+integer eta_number
+integer ix, iu, ios
+
+logical err
+
+character(40) :: r_name = 'read_cesr_dispersion_data'
+character(100) file_name
+
+namelist / dispersion_data / eta_
+
+!
+
+! first construct the file name
+
+call calc_file_number ('$CESR_MNT/eta/eta.number', eta_number, ix, err)
+if (err) return
+call form_file_name_with_number ('ETA', ix, file_name, err)
+if (err) return
+
+! open the file and read the contents
+
+err = .true.
+
+iu = lunget()
+open (iu, file = file_name, status = 'old', action = 'read', iostat = ios)
+if (ios /= 0) then       ! abort on open error
+  call out_io (s_error$, r_name, 'ERROR OPENING: ' // file_name)
+  return
+endif
+
+! Read header info
+
+call read_cesr_data_parameters (iu, data, err)
+if (err) then
+  close (iu)
+  return
+endif
+
+! Read phase parameters
+
+rewind (iu)
+eta_%good = .false.
+eta_%x = 0
+eta_%y = 0
+read (iu, nml = dispersion_data)
+close (iu)
+
+data%eta = eta_
+
+end subroutine
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine read_cesr_phase_data (phase_number, data, err)
 !
 ! Routine to read the data in a raw phase/coupling file.
@@ -122,7 +200,7 @@ end subroutine
 !   phase_number -- Integer: Number of the phase data file.
 !
 ! Output:
-!   data   -- All_phase_cbar_data_struct: Holds everything from the data
+!   data   -- Cesr_raw_data_struct: Holds everything from the data
 !                     file: phase, cbar, and raw orbit data along with 
 !                     data base and measurement parameters.
 !-
@@ -131,7 +209,7 @@ subroutine read_cesr_phase_data (phase_number, data, err)
 
 implicit none
 
-type (all_phase_cbar_data_struct) data
+type (cesr_raw_data_struct) data
 type (phase_cbar_data_struct) pc_(0:120)
 type (detector_struct) orbit_(0:120)
 type (db_struct) db
@@ -157,7 +235,7 @@ namelist / raworbit / orbit_
 ! read a data file...
 ! first construct the file name
 
-call calc_file_number ('CESR_MNT:[phase]phase.number', phase_number, ix, err)
+call calc_file_number ('$CESR_MNT/phase/phase.number', phase_number, ix, err)
 if (err) return
 call form_file_name_with_number ('PHASE', ix, file_name, err)
 if (err) return
@@ -237,7 +315,7 @@ end subroutine
 !   data_file -- Character(*): Name of the data file.
 !
 ! Output:
-!   all_data  -- Cesr_data_struct: Structure holding the data.
+!   all_data  -- Cesr_cooked_data_struct: Structure holding the data.
 !   param     -- Cesr_data_params_struct: Parameters 
 !   err       -- Logical: Set true if there is a read error.
 !-
@@ -246,14 +324,14 @@ subroutine read_cesr_cooked_data (data_file, all_data, param, err)
 
 implicit none
 
-type (cesr_data_struct) d, all_data
+type (cesr_cooked_data_struct) d, all_data
 type (cesr_data_params_struct) param
 
 integer i, j, iu, ios
 
 character(*) data_file
 character(20) dat_name
-character(40) :: r_name = 'read_cesr_data'
+character(40) :: r_name = 'read_cesr_cooked_data'
 
 logical err
 

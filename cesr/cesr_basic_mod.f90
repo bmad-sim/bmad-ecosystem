@@ -259,7 +259,7 @@ type cesr_xy_datum_struct
   logical good
 end type
 
-type cesr_data_struct
+type cesr_cooked_data_struct
   type (cesr_xy_datum_struct) orbit(0:120), phase(0:120), eta(0:120)
   type (cesr_cbar_datum_struct) cbar11(0:120), cbar12(0:120)
   type (cesr_cbar_datum_struct) cbar21(0:120), cbar22(0:120)
@@ -271,7 +271,8 @@ type phase_cbar_data_struct
   logical ok_x, ok_y
 end type
 
-type all_phase_cbar_data_struct
+type cesr_raw_data_struct
+  type (cesr_xy_datum_struct) eta(0:120)
   type (phase_cbar_data_struct) phase_cbar(0:120)
   type (detector_struct) raw_orbit(0:120)
   type (db_struct) db
