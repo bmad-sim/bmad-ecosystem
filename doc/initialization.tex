@@ -214,9 +214,10 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
   /
 \end{example}
 
-\vn{n_universes} is the number of universes to be created. The default is 1.
-\vn{design_lattice(i)} gives the lattice file name for universe \vn{i}.
-Example:
+\vn{n_universes} is the number of universes to be created not counting
+the possible common universe created when using \vn{CBL} anlysis. The
+default is 1.  \vn{design_lattice(i)} gives the lattice file name for
+universe \vn{i}.  Example:
 \begin{example}
   &tao_design_lattice
     n_universe = 4
@@ -282,22 +283,8 @@ aperture limits set in all lattices. This overrides the setting of
 \vn{parameter[aperture_limit_on]} in a lattice file.
 
 The \vn{common_base_lat} switch can be used when there is a baseline
-lattice that is common to all universes. This case can occur, for
-example, with an \vn{orbit response matrix} analysis where each
-universe is associated with a measured orbit when a particular
-steering magnet is varied. When \vn{common_base_lat} is set to True,
-\tao will set up \vn{common} \vn{model}, \vn{design} and \vn{base}
-lattices in memory for all universes to share. This is unlike the
-standard setup where a \vn{model}, a \vn{design} and a \vn{base}
-lattice is instantiated in memory for each universe. For problems
-using a large number of universes, this can result is a substatial
-savings in memory. With \vn{common_base_lat}, the difference between
-a lattice and the common lattice is defined soley by the variables
-(\sref{s:init.var}) that vary attributes in that lattice. That is,
-changing a lattice attribute using the \vn{change} (\sref{s:change})
-command will only affect the common \vn{model} lattice. By convention,
-this common lattice has universe index 0 and the total number of
-universes, including the common one, will be \vn{n_universes + 1}.
+lattice that is common to all universes. See \sref{s:cbl} for more
+details.
 
 %-----------------------------------------------------------------
 \section{Initializing Globals}\index{Initialization!Globals}
