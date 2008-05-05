@@ -3187,7 +3187,7 @@ integer ix_lord, ix_slave(1000), k_slave, k_slave_original
 integer, allocatable :: r_indexx(:)
 
 character(40), allocatable :: name_list(:)
-character(40) name, name1, slave_name, attrib_name
+character(40) name, name1, slave_name, attrib_name, missing_slave_name
 
 logical err, slave_not_in_lat
 
@@ -3234,12 +3234,15 @@ main_loop: do n = 1, n2
       name = plat%ele(ixx)%name(i)
       call find_indexx (name, name_list, r_indexx, ix1, k, k2)
 
-      if (k == 0) slave_not_in_lat = .true.
+      if (k == 0) then
+        slave_not_in_lat = .true.
+        missing_slave_name = name
+      endif
 
       if ((k == 0 .and. j > 0) .or. (k > 0 .and. slave_not_in_lat) .or. &
           (k == 0 .and. all(in_lat%ele(1:n2)%name /= name))) then
         call warning ('CANNOT FIND SLAVE FOR: ' // lord%name, &
-                      'CANNOT FIND: '// name, pele = plat%ele(ixx))
+                      'CANNOT FIND: '// missing_slave_name, pele = plat%ele(ixx))
         lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
         cycle main_loop
       endif
