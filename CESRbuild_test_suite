@@ -114,7 +114,7 @@ else:
   print "Incorrect number or arguments provided to " + sys.argv[0]
   sys.exit(3)
 
-srcpath = LIBS_DIR +'/'+ platform +'/'+ release +'/'+ src
+path = LIBS_DIR +'/'+ platform +'/'+ release +'/'
 bindir = LIBS_DIR +'/'+ platform +'/'+ release +'/'+ bin
 
 #============================================================================
@@ -192,13 +192,13 @@ def prep_for_tests(progs, testdir):
       if not os.path.exists( destination ):
           os.mkdir(destination)
       if entry[-1] == "/":
-          for name in os.listdir(srcpath + entry):
+          for name in os.listdir(path + entry):
               if name.find("svn") == -1:  # exclude SVN admin dirs
-                  #print srcpath + entry + name
+                  #print path + entry + name
                   #print "-->" 
-                  shutil.copy(srcpath + entry + name,  destination )
+                  shutil.copy(path + entry + name,  destination )
       else:
-          shutil.copy( srcpath + entry,  destination  )
+          shutil.copy( path + entry,  destination  )
   for prog in progs:
     shutil.copy(LIBS_DIR +'/'+ platform+"/"+ release + "/bin/" + prog, testdir)
   return testdir
