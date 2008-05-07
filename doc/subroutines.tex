@@ -32,7 +32,7 @@ solely meant for \bmad internal use.
   Lattice Choosing                        & \ref{r:lat}        \\ \hline
   Lattice Files - Reading and Writing     & \ref{r:read}       \\ \hline
   Lattice Geometry                        & \ref{r:geom}       \\ \hline
-  Low Level Beam Tracking                 & \ref{r:low.part.track} \\ hline
+  Low Level Beam Tracking                 & \ref{r:low.part.track} \\hline
   Low level Matrix                        & \ref{r:low.mat}    \\ \hline
   Low Level Tracking                      & \ref{r:low.track}  \\ \hline
   Macroparticle Tracking                  & \ref{r:macro}      \\ \hline
@@ -109,6 +109,37 @@ Dummy routine for custom bunch tracking.
 \item[track_beam (lat, beam, ix1, ix2)] \Newline 
      Subroutine to track a beam of macroparticles from the end of
      lat\%ele(ix1) Through to the end of lat\%ele(ix2).
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Long Range Beam-Beam Interaction}
+\label{r:lrbbi}    
+
+\begin{description}
+
+\index{Routine!init_lrbb}
+\item[init_lrbbi(lat, oppos_lat, lrbbi_ele, ix_lrbbi, ix_oppos)] \Newline 
+     Subroutine to calculate the basic parameters of a beambeam element. 
+     Initializes the element and establishes the following values.
+
+\index{Routine!insert_lrbbi}
+\item[insert_lrbbi (lat, lat_oppos, cross_positions, ix_lrbbi)] \Newline
+Subroutine to create and insert beambeam elements at each parasitic crossing
+point as specified form a list of crossing points.
+
+\index{Routine!lrbbi_crossings}
+\item[lrbbi_crossings (n_bucket, oppos_buckets, cross_positions)] \Newline
+Subroutine to calculate the location of the parasitic crossings points 
+given a bunch and an array of positions of the bunches it will cross. 
+
+\index{Routine!make_lrbb}
+\item[make_lrbbi(master_lat, master_lat_oppos, lat, ix_lrbbi, master_ix_lrbbi)] \Newline
+Subroutine to turn elements marking parasitic crossings into beam-beam elements. 
+
+\index{Routine!mark_lrbb}
+\item[mark_lrbbi(master_lat, master_lat_oppos, lat, crossings)] \Newline
+Subroutine to insert named markers into the lat structure at the positions of parasitic crossings. 
 
 \end{description}
 
@@ -200,22 +231,6 @@ Subroutine to read in the information in a BUTNS.nnnnn file.
 \item[\protect\parbox{6in}{lat_to_quad_calib (lat, cesr, k_theory, k_base, 
 \\ \hspace*{2in} len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)}] \Newline
 Subroutine to return the calibration constants for the CESR quads. 
-
-\end{description}
-
-%------------------------------------------------------------------------
-\section{Choosing a Lattice}
-\label{r:lat}
-
-\begin{description}
-
-\index{Routine!choose_cesr_lattice}
-\item[choose_cesr_lattice (lattice, lat_file, current_lat, lat)] \Newline
-Subroutine to let the user choose a lattice. The subroutine will present a list to choose from. 
-
-\index{Routine!get_lattice_list}
-\item[get_lattice_list (lat_list, num_lats, directory)] \Newline
-Subroutine to get the names of the lattices of the form: directory/bmad_*.lat 
 
 \end{description}
 
@@ -416,82 +431,6 @@ element.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Helper Routines: Informational}
-\label{r:info}     
-
-\begin{description}
-
-\index{Routine!attribute_index}
-\item[attribute_index (key, name)] \Newline
-Function to return the index of an attribute for a given element 
-type and the name of the attribute 
-
-\index{Routine!attribute_name}
-\item[attribute_name (key, index)] \Newline
-Function to return the name of an attribute for a particular type of element. 
-
-\index{Routine!check_lat_controls}
-\item[check_lat_controls (lat, exit_on_error)] \Newline
-Subroutine to check if the control links in a lat structure are valid. 
-
-\index{Routine!attribute_free}
-\item[attribute_free (ele, ix_attrib, lat, err_print_flag) result (free)] \Newline
-Function to check if an attribute is free to vary.
-
-\index{Routine!elements_locator}
-\item[elements_locator (key, lat, indx)] \Newline
-Subroutine to locate all the elements of a certain kind in a lat. 
-
-\index{Routine!element_locator}
-\item[element_locator (ele_name, lat, ix_ele)] \Newline
-Subroutine to locate an element in a lat. 
-
-\index{Routine!ele_at_s}
-\item[ele_at_s (lat, s, ix_ele)] \Newline 
-Subroutine to return the index of the element at position s.
-
-\index{Routine!equivalent_eles}
-\item[equivalent_eles (ele1, ele2) result (equiv)] \Newline 
-Subroutine to see if two elements are equivalent in terms of their attributes so
-that their Taylor Maps, if they existed, would be the same.
-
-\index{Routine!find_element_ends}
-\item[find_element_ends (lat, ix_ele, ix_start, ix_end)] \Newline
-Subroutine to find the end points of an element. 
-
-\index{Routine!get_element_lord_list}
-\item[get_element_lord_list (lat, ix_slave, lord_list, n_lord)] \Newline 
-Subroutine to get the list of lords for an element.
-
-\index{Routine!get_element_slave_list}
-\item[get_element_slave_list (lat, ix_lord, slave_list, n_slave)] \Newline 
-Subroutine to get the list of slaves for an element.
-
-\index{Routine!key_name_to_key_index}
-\item[key_name_to_key_index (key_str, abbrev_allowed) result (key_index)] \Newline 
-Function to convert a character string  (eg: "drift") to an index (eg: drift\$).
-
-\index{Routine!type_ele}
-\item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, \\ 
-\hspace*{1in} type_twiss, type_control, type_wake, type_floor_coords)}] \Newline
-Subroutine to print the contents of an element at the terminal. 
-
-\index{Routine!type2_ele}
-\item[\protect\parbox{6in}{type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, \\
-\hspace*{1in} type_twiss, type_control, type_wake, type_floor_coords)}] \Newline
-Like \vn{type_ele} but the output is stored in a string array. 
-
-\index{Routine!type_twiss}
-\item[type_twiss (ele, frequency_units)] \Newline
-Subroutine to type out the Twiss parameters from an element. 
-
-\index{Routine!type2_twiss}
-\item[type2_twiss (ele, frequency_units, lines, n_lines)] \Newline
-Like \vn{type_twiss} but the output is stored in a string array. 
-
-\end{description}
-
-%------------------------------------------------------------------------
 \section{Helper Routines: Elemental}
 \label{r:elem}     
 
@@ -573,6 +512,82 @@ Subroutine to split a lat at a point.
 \item[update_hybrid_list (lat, n_in, use_ele)] \Newline
 Subroutine used to specify a list of element that should not be
 hyberdized by \vn{make_hybrid_lat}.
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Helper Routines: Informational}
+\label{r:info}     
+
+\begin{description}
+
+\index{Routine!attribute_index}
+\item[attribute_index (key, name)] \Newline
+Function to return the index of an attribute for a given element 
+type and the name of the attribute 
+
+\index{Routine!attribute_name}
+\item[attribute_name (key, index)] \Newline
+Function to return the name of an attribute for a particular type of element. 
+
+\index{Routine!check_lat_controls}
+\item[check_lat_controls (lat, exit_on_error)] \Newline
+Subroutine to check if the control links in a lat structure are valid. 
+
+\index{Routine!attribute_free}
+\item[attribute_free (ele, ix_attrib, lat, err_print_flag) result (free)] \Newline
+Function to check if an attribute is free to vary.
+
+\index{Routine!elements_locator}
+\item[elements_locator (key, lat, indx)] \Newline
+Subroutine to locate all the elements of a certain kind in a lat. 
+
+\index{Routine!element_locator}
+\item[element_locator (ele_name, lat, ix_ele)] \Newline
+Subroutine to locate an element in a lat. 
+
+\index{Routine!ele_at_s}
+\item[ele_at_s (lat, s, ix_ele)] \Newline 
+Subroutine to return the index of the element at position s.
+
+\index{Routine!equivalent_eles}
+\item[equivalent_eles (ele1, ele2) result (equiv)] \Newline 
+Subroutine to see if two elements are equivalent in terms of their attributes so
+that their Taylor Maps, if they existed, would be the same.
+
+\index{Routine!find_element_ends}
+\item[find_element_ends (lat, ix_ele, ix_start, ix_end)] \Newline
+Subroutine to find the end points of an element. 
+
+\index{Routine!get_element_lord_list}
+\item[get_element_lord_list (lat, ix_slave, lord_list, n_lord)] \Newline 
+Subroutine to get the list of lords for an element.
+
+\index{Routine!get_element_slave_list}
+\item[get_element_slave_list (lat, ix_lord, slave_list, n_slave)] \Newline 
+Subroutine to get the list of slaves for an element.
+
+\index{Routine!key_name_to_key_index}
+\item[key_name_to_key_index (key_str, abbrev_allowed) result (key_index)] \Newline 
+Function to convert a character string  (eg: "drift") to an index (eg: drift\$).
+
+\index{Routine!type_ele}
+\item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, \\ 
+\hspace*{1in} type_twiss, type_control, type_wake, type_floor_coords)}] \Newline
+Subroutine to print the contents of an element at the terminal. 
+
+\index{Routine!type2_ele}
+\item[\protect\parbox{6in}{type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, \\
+\hspace*{1in} type_twiss, type_control, type_wake, type_floor_coords)}] \Newline
+Like \vn{type_ele} but the output is stored in a string array. 
+
+\index{Routine!type_twiss}
+\item[type_twiss (ele, frequency_units)] \Newline
+Subroutine to type out the Twiss parameters from an element. 
+
+\index{Routine!type2_twiss}
+\item[type2_twiss (ele, frequency_units, lines, n_lines)] \Newline
+Like \vn{type_twiss} but the output is stored in a string array. 
 
 \end{description}
 
@@ -848,6 +863,22 @@ Subroutine to propagate the twiss parameters of a single mode.
 \end{description}
 
 %------------------------------------------------------------------------
+\section{Lattice Choosing}
+\label{r:lat}
+
+\begin{description}
+
+\index{Routine!choose_cesr_lattice}
+\item[choose_cesr_lattice (lattice, lat_file, current_lat, lat)] \Newline
+Subroutine to let the user choose a lattice. The subroutine will present a list to choose from. 
+
+\index{Routine!get_lattice_list}
+\item[get_lattice_list (lat_list, num_lats, directory)] \Newline
+Subroutine to get the names of the lattices of the form: directory/bmad_*.lat 
+
+\end{description}
+
+%------------------------------------------------------------------------
 \section{Lattice Geometry}
 \label{r:geom}     
 \index{Coordinates!global!list of routines}
@@ -862,37 +893,6 @@ That is, the layout on the floor.
 \index{Routine!s_calc}
 \item[s_calc (lat)] \Newline
 Subroutine to calculate the longitudinal distance S for the elements in a lat. 
-
-\end{description}
-
-%------------------------------------------------------------------------
-\section{Long Range Beam-Beam Interaction}
-\label{r:lrbbi}    
-
-\begin{description}
-
-\index{Routine!init_lrbb}
-\item[init_lrbbi(lat, oppos_lat, lrbbi_ele, ix_lrbbi, ix_oppos)] \Newline 
-     Subroutine to calculate the basic parameters of a beambeam element. 
-     Initializes the element and establishes the following values.
-
-\index{Routine!insert_lrbbi}
-\item[insert_lrbbi (lat, lat_oppos, cross_positions, ix_lrbbi)] \Newline
-Subroutine to create and insert beambeam elements at each parasitic crossing
-point as specified form a list of crossing points.
-
-\index{Routine!lrbbi_crossings}
-\item[lrbbi_crossings (n_bucket, oppos_buckets, cross_positions)] \Newline
-Subroutine to calculate the location of the parasitic crossings points 
-given a bunch and an array of positions of the bunches it will cross. 
-
-\index{Routine!make_lrbb}
-\item[make_lrbbi(master_lat, master_lat_oppos, lat, ix_lrbbi, master_ix_lrbbi)] \Newline
-Subroutine to turn elements marking parasitic crossings into beam-beam elements. 
-
-\index{Routine!mark_lrbb}
-\item[mark_lrbbi(master_lat, master_lat_oppos, lat, crossings)] \Newline
-Subroutine to insert named markers into the lat structure at the positions of parasitic crossings. 
 
 \end{description}
 
