@@ -1,11 +1,10 @@
 program closed_orbit
 
-  use bmad_struct
-  use bmad_interface
   use bmadz_interface
   use cesr_utils
   use cbar_mod
- 
+  use bookkeeper_mod
+
   implicit none
 
   interface
@@ -195,7 +194,7 @@ program closed_orbit
        transfer_line = .false.
        print *,' Transfer line mode off'
      endif
-     call set_on( rfcavity$, ring, .false.)
+     call set_on_off (rfcavity$, ring, off$)
      cycle
    endif
 

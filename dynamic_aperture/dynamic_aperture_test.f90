@@ -37,6 +37,7 @@ program dynamic_aperture_test
   use dynamic_aperture_mod                                      
   use bmadz_interface
   use cesr_crossings_mod
+  use bookkeeper_mod
 
   implicit none
 
@@ -132,10 +133,10 @@ program dynamic_aperture_test
     do i=0,ring%n_ele_max
      co(i)%vec = 0
     end do
-   call set_on(elseparator$, ring, .false.) 
+   call set_on_off(elseparator$, ring, off$)
    call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
     if (.not. ok) type *,' Qtune failed'
-   call set_on(elseparator$, ring, .true.) 
+   call set_on_off(elseparator$, ring, on$)
   endif
 
   type '(a28,f12.6,a9,f12.6)', &

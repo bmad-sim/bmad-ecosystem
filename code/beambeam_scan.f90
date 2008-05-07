@@ -155,7 +155,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   call reallocate_coord(end, scan_params%n_part)
 
   call setup_radiation_tracking(ring, co, .false., .false.)
-  call set_on (rfcavity$, ring, .false.)
+  call set_on_off (rfcavity$, ring, off$)
 
   ring%param%particle = positron$
 

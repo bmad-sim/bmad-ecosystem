@@ -177,7 +177,7 @@ program freq_map
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ring%param%aperture_limit_on = aperture_limits
   CALL reallocate_coord(orb,ring%n_ele_max)
-  CALL set_on(rfcavity$, ring, .true.)
+  CALL set_on_off(rfcavity$, ring, on$)
   CALL twiss_and_track(ring,orb)
   CALL calc_z_tune(ring)
   ring%param%particle = particle
