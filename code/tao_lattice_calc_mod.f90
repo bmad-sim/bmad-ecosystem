@@ -286,8 +286,8 @@ end subroutine tao_single_track
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
-! Right now, there is no beam tracking in lattices. If extracting from a
-! lat then the beam is generated at the extraction point.
+! Right now, there is no beam tracking in circular lattices. 
+! If extracting from a lat then the beam is generated at the extraction point.
 
 subroutine tao_beam_track (u, tao_lat, who, calc_ok)
 
@@ -303,7 +303,7 @@ type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 
 integer what_lat, who
-integer j, i_uni, ip, ig, ic, ie1, ie2
+integer i, j, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to
 integer extract_at_ix_ele, n_lost
 integer, allocatable, save :: ix_ele(:)
@@ -329,8 +329,8 @@ beam => u%current_beam
 beam = u%beam0
 beam_init => u%beam_init
 lat => tao_lat%lat
-lat%param%ix_lost = not_lost$
 
+lat%param%ix_lost = not_lost$
 all_lost = .false.
 
 if (lat%param%lattice_type == circular_lattice$) then
@@ -346,34 +346,28 @@ extract_at_ix_ele = -1
 do i_uni_to = u%ix_uni+1, ubound(s%u, 1)
   if (.not. s%u(i_uni_to)%connect%connected) cycle
   if (s%u(i_uni_to)%connect%from_uni /= u%ix_uni) cycle
-  if (s%u(i_uni_to)%connect%from_uni_ix_ele /= -1) then
-    extract_at_ix_ele = s%u(i_uni_to)%connect%from_uni_ix_ele
-    exit ! save i_uni_to for connected universe
-  else
+  if (s%u(i_uni_to)%connect%from_uni_ix_ele == -1) then
     call out_io (s_abort$, r_name, &
          "Must specify an element when connecting lattices with a beam.")
-    ! set initial beam centroid
     call err_exit
   endif
+  extract_at_ix_ele = s%u(i_uni_to)%connect%from_uni_ix_ele
+  exit ! save i_uni_to for connected universe
 enddo
 
 ! If beam is injected into this lattice then no initialization wanted.
 
 if (.not. u%connect%connected) then
-  ! no beam tracking in lattices
   if (lat%param%lattice_type == circular_lattice$) then
     call tao_single_track (u, tao_lat, who, calc_ok) 
-    if (u%calc_beam_emittance) then
-      call radiation_integrals (lat, tao_lat%orb, modes)
-      if (extract_at_ix_ele /= -1) then
+    if (extract_at_ix_ele /= -1) then
+      if (u%calc_beam_emittance) then
+        call radiation_integrals (lat, tao_lat%orb, modes)
         f = lat%ele(extract_at_ix_ele)%value(E_tot$) * &
              (1+tao_lat%orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
         beam_init%a_norm_emitt  = modes%a%emittance * f
         beam_init%b_norm_emitt  = modes%b%emittance * f
       endif
-    endif
-    ! transfer extracted particle info into beam_init
-    if (extract_at_ix_ele /= -1) then
       beam_init%center  = tao_lat%lat%beam_start%vec
       ! other beam_init parameters will be as in tao.init, or as above
       if (beam_init%a_norm_emitt == 0 .and. beam_init%b_norm_emitt == 0) then
@@ -384,14 +378,19 @@ if (.not. u%connect%connected) then
       call init_beam_distribution (lat%ele(extract_at_ix_ele), &
                                beam_init, s%u(i_uni_to)%connect%injecting_beam)
     endif
+    ! no beam tracking in circular lattices
     return
   endif
 endif
 
-! track through the lattice elements
+! track through the lattice elements.
+! The reference orbit for the transfer matrix calculation is taken to be the nominal 
+! bunch center rather then the computed center to prevent jitter from changing things.
 
 ie1 = 0
 if (u%ix_track_start > -1) ie1 = u%ix_track_start
+i = max(0, ie1-1)
+lat%ele(i)%ref_orb_out = lat%beam_start
 
 ie2 = lat%n_ele_track
 if (u%ix_track_end > -1) ie2 = u%ix_track_end
@@ -411,7 +410,7 @@ do j = ie1, ie2
       if (j /= ie1) then 
         ! if doing linear tracking, first compute transfer matrix
         if (u%mat6_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
-               call make_mat6 (lat%ele(j), lat%param) 
+                                            call make_mat6 (lat%ele(j), lat%param) 
         call track_beam (lat, beam, j-1, j)
       endif
 
@@ -435,9 +434,10 @@ do j = ie1, ie2
   ! Find lattice and beam parameters and load data
 
   if (j /= 0) then
-    if (u%mat6_recalc_on) call make_mat6 (lat%ele(j), &
-                        lat%param, u%model%orb(j-1), u%model%orb(j), .true.)
-    call twiss_propagate1 (lat%ele(j-1), lat%ele(j))
+    if (u%mat6_recalc_on) then
+      call make_mat6 (lat%ele(j), lat%param, lat%ele(j-1)%ref_orb_out)
+      call twiss_propagate1 (lat%ele(j-1), lat%ele(j))
+    endif
   endif
 
   !
@@ -671,8 +671,10 @@ if (tao_com%use_saved_beam_in_tracking) return
 
 if (present(orb0_in)) then
   orb0 => orb0_in
+  model%lat%beam_start = orb0_in
 else
   orb0 => model%orb(0)
+  model%lat%beam_start%vec = u%beam_init%center
 endif
 
 ! If there is an init file then read from the file
