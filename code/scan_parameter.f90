@@ -157,7 +157,7 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
   call twiss_at_start(ring_oppos)
 !  type *,' beambeam_setup:3 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
   call twiss_propagate_all (ring_oppos)
-  call set_on (rfcavity$, ring_oppos, .true.)
+  call set_on_off (rfcavity$, ring_oppos, on$)
   call set_z_tune(ring_oppos)
   call radiation_integrals (ring_oppos, co_oppos, mode)
 

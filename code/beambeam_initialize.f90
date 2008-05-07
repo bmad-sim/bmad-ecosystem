@@ -93,7 +93,7 @@
   call reallocate_coord(end, scan_params%n_part)
 
   call setup_radiation_tracking(ring, co, .false., .false.)
-  call set_on (rfcavity$, ring, .false.)
+  call set_on_off (rfcavity$, ring, off$)
 
   ring%param%particle = scan_params%particle
 
@@ -179,7 +179,7 @@
 
  endif
 
-  call set_on (rfcavity$, ring, .true.)
+  call set_on_off (rfcavity$, ring, on$)
   call set_z_tune(ring)
 
 
@@ -284,7 +284,7 @@
     write(23, '(1x,a9,e12.4)') '  Tilt = ', beambeam_ele%value(tilt$)
 
 
-  call set_on (rfcavity$, ring, .true.)
+  call set_on_off (rfcavity$, ring, on$)
   call set_z_tune(ring)
   if(scan_params%radiation)then
     call setup_radiation_tracking(ring, co, .true., .true.)
