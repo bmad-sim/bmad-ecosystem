@@ -848,13 +848,13 @@ class builder:
       
     self.lq.close()
 
-    if self.status_list[-1].find("ERROR") != -1:
-      build_status = -1                                # any errors give return value of -1
-    elif self.status_list[-1].find("COMPLETE") != -1:
-      build_status = 1                                 # code 1 means complete with no errors
-    self.status_list = []
+    if len(self.status_list) != 0:  # Allow this to continue checking gracefully in case the log file(s)
+      if self.status_list[-1].find("ERROR") != -1:  # -are not populated yet.
+        build_status = -1                                # any errors give return value of -1
+      elif self.status_list[-1].find("COMPLETE") != -1:
+        build_status = 1                                 # code 1 means complete with no errors
+      self.status_list = []
     return build_status                                    # still building will return value of 0
-
 
 
     
