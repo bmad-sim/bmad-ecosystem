@@ -583,7 +583,7 @@ case ('element')
   do
     if (ix == 0) exit
     if (stuff2(1:1) /= '-') exit
-    call match_word (stuff2(:ix), (/ '-taylor        ', '-wig_term      ', &
+    call match_word (stuff2(:ix), (/ '-taylor        ', '-wig_terms     ', &
                       '-all_attributes', '-data          ' /), n, .true., name)
     if (n < 1) then
       call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2(:ix))
@@ -624,6 +624,12 @@ case ('element')
   endif
 
   ! No wildcard case...
+  ! Normal: Show the element info
+
+  call tao_locate_elements (ele_name, s%global%u_view, ix_eles)
+  loc = ix_eles(1)
+  if (loc < 0) return
+  ele => lat%ele(loc)
 
   ! Show data associated with this element
   if (print_data) then
@@ -631,13 +637,6 @@ case ('element')
     call out_io (s_blank$, r_name, lines(1:nl))
     return
   endif
-
-  ! Normal: Show the element info
-
-  call tao_locate_elements (ele_name, s%global%u_view, ix_eles)
-  loc = ix_eles(1)
-  if (loc < 0) return
-  ele => lat%ele(loc)
 
   call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, &
             s%global%phase_units, .true., lat, .true., .true., print_wig_terms)
@@ -1727,7 +1726,7 @@ enddo
 if (found_one) then
   nl=nl+1; lines(nl) = l1
 else
-  nl=nl+1; write (lines(nl), '(a)') "No data associated with this element."
+  write (lines(nl), '(a)') "No data associated with this element."
 endif
 
 end subroutine show_ele_data
