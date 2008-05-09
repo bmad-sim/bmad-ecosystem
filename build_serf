@@ -148,8 +148,8 @@ if build_type == "PACKAGES":  # make gets slightly different args depending on t
                 while line:
                     print line.strip()
                     line = dep_process.fromchild.readline()
-            shutil.move(full_pkg_name + "/recipes_c-ansi", full_pkg_name + "/recipes_c_ansi")
-            shutil.move(full_pkg_name + "/recipes_f-90", full_pkg_name + "/recipes_f_90")
+        shutil.move(full_pkg_name + "/recipes_c-ansi", full_pkg_name + "/recipes_c_ansi")
+        shutil.move(full_pkg_name + "/recipes_f-90", full_pkg_name + "/recipes_f_90")
         build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_pkg_name) # FTP upload to VMS cluster
 
         
