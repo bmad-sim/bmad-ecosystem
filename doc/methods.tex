@@ -68,7 +68,13 @@ conserved quantities more accurately than \vn{Runge_Kutta}.
 
 \index{Bmad_Standard}
 \item[\vn{Bmad_Standard}]
-Uses formulas for tracking. The emphasis here is on speed.
+Uses formulas for tracking. The emphasis here is on speed. Note: If an
+element has non-zero multipole values, \vn{Bmad_Standard} tracking
+will generally put half the multipole kick at the beginning of the
+element and half at the end. This is generally a good approximation
+but in it can result in differences between this and tracking methods
+like \vn{Symp_Lie_PTC} which model multipoles as as distributed evenly
+throughout an element.
 
 \index{Custom}
 \item[\vn{Custom}]

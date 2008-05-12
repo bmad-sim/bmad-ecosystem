@@ -1,7 +1,9 @@
 !+
 ! Subroutine track1_taylor (start, ele, param, end)
 !
-! Subroutine to track through an element using the elements taylor series.
+! Subroutine to track through an element using the element's taylor map.
+! If the taylor map does not exist, one will be created using the old
+! reference (ele%taylor%ref) trajectory.
 !
 ! Moudules needed:
 !   use bmad
@@ -23,8 +25,8 @@ subroutine track1_taylor (start, ele, param, end)
 
   implicit none
 
-  type (coord_struct) :: start
-  type (coord_struct) :: end
+  type (coord_struct) :: start, end
+  type (coord_struct) :: orb0
   type (lat_param_struct) :: param
   type (ele_struct) :: ele
 
@@ -32,11 +34,12 @@ subroutine track1_taylor (start, ele, param, end)
 
   if (.not. associated(ele%taylor(1)%term)) then
     if (bmad_status%type_out) then
-      print *, 'WARNING FROM TRACK1_TAYLOR: TAYLOR SERIES NOT PRESENT FOR: ', &
-                                                                      ele%name
-      print *, '        I WILL MAKE A TAYLOR SERIES AROUND THE GIVEN ORBIT...'
+      ! print *, 'WARNING FROM TRACK1_TAYLOR: TAYLOR SERIES NOT PRESENT FOR: ', &
+      !                                                                ele%name
+      ! print *, '        I WILL MAKE A TAYLOR SERIES AROUND THE GIVEN ORBIT...'
     endif
-    call ele_to_taylor(ele, param, start)
+    orb0%vec = ele%taylor%ref
+    call ele_to_taylor(ele, param, orb0)
   endif
 
 ! If the Taylor map does not have the offsets included then do the appropriate

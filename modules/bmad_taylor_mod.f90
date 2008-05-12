@@ -14,7 +14,7 @@ module bmad_taylor_mod
   end type
 
   type taylor_struct
-    real (rp) ref             
+    real (rp) :: ref = 0
     type (taylor_term_struct), pointer :: term(:) => null()
   end type
 
