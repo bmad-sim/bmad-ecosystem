@@ -17,6 +17,8 @@ subroutine tao_cl (prompt_string)
 
   implicit none
 
+  type (tao_super_universe_struct), pointer :: s_ptr  ! For debug purposes
+
   character(100) cmd_line
   character(16) :: r_name = 'tao_cl'
   character(*), optional :: prompt_string
@@ -24,6 +26,8 @@ subroutine tao_cl (prompt_string)
   logical end_flag, found, err
 
 ! init
+
+  s_ptr => s
 
   call tao_parse_command_args (err)
   if (err) stop

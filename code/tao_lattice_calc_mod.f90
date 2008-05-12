@@ -680,12 +680,14 @@ endif
 ! If there is an init file then read from the file
 
 if (u%beam0_file /= "") then
-  call open_beam_file (u%beam0_file)
-  call set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, &
+  if (tao_com%init_beam0 .or. .not. allocated(u%beam0%bunch)) then
+    call open_beam_file (u%beam0_file)
+    call set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, &
                                                        u%beam_init%bunch_charge)
-  call read_beam (u%beam0)
-  call close_beam_file()
-  call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
+    call read_beam (u%beam0)
+    call close_beam_file()
+    call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
+  endif
   call tao_find_beam_centroid (u%beam0, orb0) 
   if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
   return
