@@ -155,7 +155,8 @@ case ('bmad_lattice')
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. subin_uni_number (file_name0, i, file_name)) return
-    call write_bmad_lattice_file (file_name, s%u(i)%model%lat)
+    call write_bmad_lattice_file (file_name, s%u(i)%model%lat, err)
+    if (err) return
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
 
@@ -169,7 +170,8 @@ case ('mad_lattice')
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. subin_uni_number (file_name0, i, file_name)) return
-    call bmad_to_mad (file_name, s%u(i)%model%lat)
+    call bmad_to_mad (file_name, s%u(i)%model%lat, err = err)
+    if (err) return
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
 
