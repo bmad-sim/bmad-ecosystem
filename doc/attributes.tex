@@ -466,7 +466,7 @@ A \vn{Multipole} element specifies its multipole components using an
 Amplitude (\vn{KnL}) and a tilt (\vn{Tn})
 \begin{example}
   KnL = <Real>
-  Tn  = <Real>
+  Tn  = <Real>  ! Default is $pi$/(2n + 2)
 \end{example}
 \vn{AB_Multipole} and all other elements that
 have multipole attributes specify the multipoles using normal
@@ -485,6 +485,13 @@ Multipole formulas for are given in \sref{s:fields}.  Note that for
 \vn{Multipole} and \vn{AB_multipole} (but not any other element) a
 non-zero dipole component will affect the reference orbit (just like a
 normal dipole will).
+
+The \vn{Tn} tilt component without a value takes a default of $pi$/(2n + 2) which makes
+the component \vn{skew}.
+Example:
+\begin{example}
+  m: multipole, k1l = 0.45, t1  ! Skew quadrupole
+\end{example}
 
 For everything other than a \vn{Multipole} and \vn{AB_multipole}, the
 multipole strength is scaled by a factor $F \, r_0^{n_\text{ref}} /

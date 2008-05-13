@@ -507,6 +507,7 @@ subroutine get_attribute (how, ele, lat, plat, &
                          'FOR ELEMENT: ' // ele%name)
         err_flag = .true.
       endif
+      return
     endif
 
     select case (ix_attrib)
