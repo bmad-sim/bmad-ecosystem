@@ -12,7 +12,7 @@ contains
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine write_bmad_lattice_file (bmad_file, lat)
+! Subroutine write_bmad_lattice_file (bmad_file, lat, err)
 !
 ! Subroutine to write a Bmad lattice file using the information in
 ! a lat_struct. Optionally only part of the lattice can be generated.
@@ -27,9 +27,12 @@ contains
 !                       used for output.
 !   ix_end        -- Integer, optional: Ending index of lat%ele(i)
 !                       used for output.
+!
+! Output:
+!   err    -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-subroutine write_bmad_lattice_file (bmad_file, lat)
+subroutine write_bmad_lattice_file (bmad_file, lat, err)
 
   implicit none
 
@@ -46,7 +49,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
   character(4000) line
   character(4) last
   character(40) name
-  character(200) wake_name
+  character(200) wake_name, file_name
   character(40), allocatable :: names(:)
   character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
   character(40) :: r_name = 'write_bmad_lattice_file'
@@ -55,10 +58,12 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
   integer unit(6), ix_names, ix_match
 
   logical unit_found, write_term, match_found, found
+  logical, optional :: err
 
   ! Init...
   ! Count the number of foreign wake files
 
+  if (present(err)) err = .true.
   call init_ele (ele_init)
 
   n_sr = 0
@@ -78,10 +83,10 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
   ! Open the file
 
   iu = lunget()
-  open (iu, file = bmad_file, iostat = ios)
+  call fullfilename (bmad_file, file_name)
+  open (iu, file = file_name, iostat = ios)
   if (ios /= 0) then
-    call out_io (s_error$, r_name, &
-        'ERROR IN WRITE_BMAD_LATTICE_FILE: CANNOT OPEN FILE: ' // trim(bmad_file))
+    call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(bmad_file))
     return
   endif
 
@@ -557,7 +562,8 @@ subroutine write_bmad_lattice_file (bmad_file, lat)
 
   close(iu)
   deallocate (names)
-
+  if (present(err)) err = .false.
+  
 end subroutine
 
 !-------------------------------------------------------
@@ -788,7 +794,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
+! Subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end, err)
 !
 ! Subroutine to write a mad lattice file using the information in
 ! a lat_struct. Optionally only part of the lattice can be generated.
@@ -803,19 +809,23 @@ end subroutine
 !                       used for output.
 !   ix_end      -- Integer, optional: Ending index of lat%ele(i)
 !                       used for output.
+!
+! Output:
+!   err    -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end)
+subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end, err)
 
   implicit none
 
   type (lat_struct)  lat
   integer, optional :: ix_start, ix_end
   character(*) mad_file 
+  logical, optional :: err
 
 !
 
-  call bmad_to_mad_or_xsif ('MAD', mad_file, lat, ix_start, ix_end)
+  call bmad_to_mad_or_xsif ('MAD', mad_file, lat, ix_start, ix_end, err)
 
 end subroutine
 
@@ -823,7 +833,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end)
+! Subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end, err)
 !
 ! Subroutine to write a xsif lattice file using the information in
 ! a lat_struct. Optionally only part of the lattice can be generated.
@@ -838,19 +848,23 @@ end subroutine
 !                       used for output.
 !   ix_end      -- Integer, optional: Ending index of lat%ele(i)
 !                       used for output.
+!
+! Output:
+!   err    -- Logical: Set True if, say a file could not be opened.
 !-
 
-subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end)
+subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end, err)
 
   implicit none
 
   type (lat_struct)  lat
   integer, optional :: ix_start, ix_end
   character(*) xsif_file 
+  logical, optional :: err
 
 ! 
 
-  call bmad_to_mad_or_xsif ('XSIF', xsif_file, lat, ix_start, ix_end)
+  call bmad_to_mad_or_xsif ('XSIF', xsif_file, lat, ix_start, ix_end, err)
 
 end subroutine
 
@@ -858,7 +872,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
+subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end, err)
 
   type (lat_struct), target :: lat
   type (ele_struct), save :: ele
@@ -866,7 +880,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
 
   integer, optional :: ix_start, ix_end
   integer i, j, n, ix, i_unique, i_line, iout, iu, n_list, j_count
-  integer ie1, ie2
+  integer ie1, ie2, ios
 
   character(*) out_type, out_file_name
   character(40) ele_name
@@ -875,11 +889,18 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
   character(40), allocatable :: name_list(:)
 
   logical init_needed
+  logical, optional :: err
 
 ! open file
 
+  if (present(err)) err = .true.
   iu = lunget()
-  open (iu, file = out_file_name)
+  call fullfilename (out_file_name, line)
+  open (iu, file = line, iostat = ios)
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(out_file_name))
+    return
+  endif
 
 ! lat lattice name
 
@@ -1057,7 +1078,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end)
                                   ' lattice file: ' // trim(out_file_name))
 
   deallocate (name_list)
-
+  if (present(err)) err = .false.
 
 end subroutine
 
