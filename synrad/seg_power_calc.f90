@@ -245,8 +245,8 @@ subroutine seg_power_calc (fan, i_ray, walls, lat, gen, power)
       ray%ix_source = fan(i)%ix_ele
       ray%direction = -fan(i)%direction  ! track backwards
       ray%now = ray%start
-      ray%now%vec(1) = ray%start%vec(1) + 2.0e-4 * ray%direction * tan(theta)
-      ray%now%vec(5) = ray%start%vec(5) + 2.0e-4 * ray%direction
+      ray%now%vec(1) = ray%start%vec(1) + 1.0e-7 * ray%direction * tan(theta)
+      ray%now%vec(5) = ray%start%vec(5) + 1.0e-7 * ray%direction
       ray%track_len = 0
       ray%crossed_end = fan(i)%crossed_end
       track_len = abs((1 - rr)*fan(i-1)%start%vec(5) + &
