@@ -213,7 +213,7 @@ program synrad
     write (1, *) '                         |   Start      End  | Radiated  Hit_Wall | Radiated  Hit_Wall |'
     do i = 1, lat%n_ele_max
       if (fwd_power(i)%radiated > 1 .or. back_power(i)%radiated > 1) then
-        write (1, '(i4, 2x, a20, 2f10.3, 2f10.0)') i, lat%ele(i)%name, &
+        write (1, '(i4, 2x, a20, 2f10.3, 4f10.0)') i, lat%ele(i)%name, &
                 lat%ele(i-1)%s, lat%ele(i)%s, &
                 fwd_power(i)%radiated, fwd_power(i)%at_wall, &
                 back_power(i)%radiated, back_power(i)%at_wall
