@@ -192,6 +192,7 @@ case ('derivative_matrix')
 
   file_name = arg(2)%name
   if (file_name == ' ') file_name = 'derivative_matrix.dat'
+  call fullfilename (file_name, file_name)
 
   iu = lunget()
   open (iu, file = file_name)
@@ -262,6 +263,8 @@ case ('curve')
 
   file_name = 'curve'
   if (arg(3)%name /= ' ') file_name = arg(3)%name
+  call fullfilename (file_name, file_name)
+
   c => curve(1)%c
   iu = lunget()
 
@@ -326,6 +329,7 @@ case ('beam')
 
     u => s%u(i)
     if (.not. subin_uni_number (file_name0, i, file_name)) return
+    call fullfilename (file_name, file_name)
 
   ! Write file
 
