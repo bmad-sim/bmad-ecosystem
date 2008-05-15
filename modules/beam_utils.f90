@@ -688,7 +688,11 @@ end subroutine
 ! Subroutine to initialize a distribution of particles matched to
 ! the Twiss parameters, centroid position, and Energy - z correlation
 ! as specified. Coupling in the element ele is incorporated into the
-! distribution
+! distribution.
+!
+! Note: Except for the random number seed, the random number generator 
+! parameters used for this routine are set from the beam_init argument.
+! That is, these parameters are independent of what is used everywhere else.
 !
 ! Note: Make sure: |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 !
@@ -702,7 +706,7 @@ end subroutine
 !
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at
-!   beam_init   -- beam_init_struct
+!   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
 !     %renorm_center -- Logical: If True then distribution is rescaled to
 !                    the desired centroid (to take care of
 !                    possible statistical errors in distribution).
@@ -716,9 +720,12 @@ end subroutine
 !     %init_spin     -- Logical: If True then the particle spinors will be
 !                    initialized with the parameters in beam_init%spin
 !                    (default is False)
+!     %random_engine          -- Character: "pseudo" (default) or "quasi".
+!     %random_gauss_converter -- Character: "exact" (default) or "limited".
+!     %random_sigma_cutoff    -- Real: Used with "limited" converter. Default is 4.0.
 !
 ! Output:
-!   beam        -- beam_struct
+!   beam        -- Beam_struct: Structure with initialized particles.
 !
 !-
  
@@ -741,20 +748,27 @@ real(rp) ave(6), sigma(6), a, b
 real(rp) r(6), v_mat(4,4), v_inv(4,4)
 real(rp) y, alpha(6), sig_mat(6,6)
 real(rp) center(6) ! includes jitter
-real(rp) ran(6)
+real(rp) ran(6), old_cutoff
 real(rp), save, allocatable :: ran_save(:,:)
 
 integer i, j, j2, n
-  
+
+character(16) old_engine, old_converter  
 character(22) :: r_name = "init_beam_distribution"
 
 logical, save :: init = .true.
 
-! Generate a set of random numbers.
+! resize the beam to the number of particles and the number of bunches.
 
 call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
 bunch => beam%bunch(1)
  
+! Set and set the random number generator parameters.
+
+call ran_engine (beam_init%random_engine, old_engine)
+call ran_gauss_converter (beam_init%random_gauss_converter, &
+                  beam_init%random_sigma_cutoff, old_converter, old_cutoff)
+
 ! if preserve_dist and first call to routine then make a distribution
 
 if (beam_init%preserve_dist) then
@@ -764,7 +778,6 @@ if (beam_init%preserve_dist) then
   endif
 endif
 
-  
 sig_mat = 0
 ave = 0
 do n = 1, beam_init%n_particle
@@ -945,6 +958,11 @@ do i = 2, size(beam%bunch)
   beam%bunch(i)%z_center = (1-i) * beam_init%ds_bunch
 enddo
   
+! Reset the random number generator parameters.
+
+call ran_engine (old_engine)
+call ran_gauss_converter (old_converter, old_cutoff)
+
 end subroutine init_beam_distribution
 
 !--------------------------------------------------------------------------

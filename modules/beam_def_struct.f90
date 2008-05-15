@@ -57,6 +57,10 @@ type beam_init_struct
   logical :: renorm_sigma = .true.   ! Renormalize sigma?
   logical :: preserve_dist = .false. ! use the same grid distributon each time
   logical :: init_spin     = .false. ! initialize beam spinors
+  character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
+  character(16) :: random_gauss_converter = 'exact'  
+                                            ! Or 'limited'. Uniform to gauss conversion method.
+  real(rp) :: random_sigma_cutoff = 4.0     ! Used with 'limited' converter. Cut-off in sigmas.
 end type
 
 type bunch_lat_param_struct
