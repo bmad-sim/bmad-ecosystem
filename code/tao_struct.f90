@@ -417,12 +417,12 @@ type tao_global_struct
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   integer :: random_seed = 0             ! Use system clock by default
   integer :: n_top10 = 10                ! Number of top constraints to print.
-  real(rp) :: random_gauss_cutoff = 4    ! cut-off in sigmas.
-  character(16) :: random_engine = 'pseudo' 
-  character(16) :: random_gauss_converter = 'exact'
-  character(16) :: track_type    = 'single'    ! or 'beam'  
+  real(rp) :: random_sigma_cutoff = 4    ! cut-off in sigmas.
+  character(16) :: random_engine = 'pseudo'         ! Non-beam random number engine
+  character(16) :: random_gauss_converter = 'exact' ! Non-beam
+  character(16) :: track_type    = 'single'         ! or 'beam'  
   character(16) :: prompt_string = 'Tao'
-  character(16) :: optimizer     = 'de'        ! optimizer to use.
+  character(16) :: optimizer     = 'de'             ! optimizer to use.
   character(16) :: default_key_merit_type 
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'

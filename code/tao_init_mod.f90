@@ -102,26 +102,8 @@ tao_com%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  
 ! Seed random number generator
 
 call ran_seed_put (s%global%random_seed)
-
-select case (s%global%random_engine)
-case ('pseudo')
-  call ran_engine (pseudo_random$)
-case ('quasi')
-  call ran_engine (quasi_random$)
-case default
-  call out_io (s_error$, r_name, &
-        'BAD GLOBAL%RANDOM_ENGINE SWITCH: ' // s%global%random_engine)
-end select
-
-select case (s%global%random_gauss_converter)
-case ('exact')
-  call ran_gauss_converter (exact_gaussian$)
-case ('limited')
-  call ran_gauss_converter (limited_gaussian$, sigma_cut = s%global%random_gauss_cutoff)
-case default
-  call out_io (s_error$, r_name, &
-        'BAD GLOBAL%RANDOM_GAUSS_CONVERTER SWITCH: ' // s%global%random_gauss_converter)
-end select
+call ran_engine (s%global%random_engine)
+call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
 
 !-----------------------------------------------------------------------
 ! Init connected universes

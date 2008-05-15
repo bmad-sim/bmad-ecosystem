@@ -311,7 +311,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{y_axis_plot_dmin}\index{u_view}\index{n_opti_cycles}\index{ix_key_bank}
 \index{n_lat_layout_label_rows}\index{phase_units}
 \index{bunch_to_plot}\index{n_curve_pts}\index{random_seed}
-\index{random_engine}\index{random_gauss_converter}
+\index{beam_random_engine}\index{beam_random_gauss_converter}
 \index{track_type}\index{prompt_string}\index{Optimization!setting the optimizer}
 \index{default_key_merit_type}\index{write_file}\index{var_limits_on}
 \index{plot_on}\index{auto_scale}\index{opt_with_ref}\index{opt_with_base}
@@ -333,9 +333,9 @@ type tao_global_struct
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Num points used to construct a smooth curve
   integer :: random_seed = 0             ! use system clock by default
-  real(rp) :: random_gauss_limit = 4     ! cut-off in sigmas.
-  character(16) :: random_engine = 'quasi'            ! 'pseudo' or 'quasi'
-  character(16) :: random_gauss_converter = 'exact'  ! 'exact' or 'limited'
+  character(16) :: random_engine = 'pseudo'         ! random number engine to use
+  character(16) :: random_gauss_converter = 'exact' ! Uniform to gauss conversion method
+  real(rp) :: random_sigma_cutoff = 4.0             ! Cut-off in sigmas.
   character(16) :: track_type = 'single'             ! or 'beam' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'              ! optimizer to use.
@@ -355,9 +355,16 @@ type tao_global_struct
 end type
 \end{example}
 
-Random numbers are used by \tao in various algorithms. For example in
-generating the initial coordinates of the particles in a beam. There
+Random numbers are used by \tao in various algorithms. For example,
+random numbers are used in generating the initial coordinates of the
+particles in a beam and for misaligning elements in a lattice.  There
 are four parameters that govern how random numbers are generated.
+These can be set in the \vn{tao_global_struct}. Note: Except for the
+\vn{random_seed}, these settings are used for everything {\em but}
+initializing the particles in the beam. Use the corresponding
+parameters in the \vn{tao_beam_init} (\sref{s:beam.init}) namelist for
+setting the random number generator parameters for beam
+initialization.
 
 \vn{global%random_seed} sets the seed number for the pseudo-random
 number generator. A value of \vn{0} (the default) causes the seed
@@ -368,7 +375,7 @@ global} command to see what the seed number is.
 the random numbers. \vn{'pseudo'} causes \tao to use a pseudo-random
 number generator. \vn{'quasi'} uses Sobel quasi-random number
 generator which generates a distribution that is smoother then the
-pseudo-random number generator. \vn{'quasi'} is the default.
+pseudo-random number generator. \vn{'pseudo'} is the default.
 
 \vn{global%random_gauss_converter} selects the alogithm used in the
 conversion from a uniform distribution to a Gaussian distribution.
@@ -570,6 +577,9 @@ The syntax is as follows:
     beam_init%spin%phi      = <number>       ! spin orientation  (polar coordinate)
     beam_init%init_spin     = <logical>      ! Initialize the spin (default: False)
     beam_init%preserve_dist = <logical>      ! Use the same particle distribution.
+    beam_init%random_engine = 'pseudo'         ! random number engine to use
+    beam_init%random_gauss_converter = 'exact' ! Uniform to gauss conversion method
+    beam_init%random_sigma_cutoff = 4.0        ! Cut-off in sigmas.
   /
 \end{example}
 \vn{ix_universe} refers to the universe index. See \bmad documentation on what
@@ -665,6 +675,13 @@ distribution is to be saved at. Each element in the \vn{save_beam_at}
 array is in \vn{class:ele_name} format as explained in \sref{s:class:name}.
 The \vn{BEGINNING} element (with index 0 in the lattice
 list) and the last element are automatically saved.
+
+The random number generator parameters in the \vn{beam_init} structure
+used in initializing the particles in the bunch are
+\vn{%random_engine}, \vn{%random_gauss_converter}, and
+\vn{%random_sigma_cutoff}. These parameters are explained in
+Section~\sref{s:globals}. These parameters are only used in beam
+initialization and not used in any other calculations.
 
 %-----------------------------------------------------------------
 \section{Initializing Variables}\index{Initialization!Variables}
