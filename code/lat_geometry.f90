@@ -35,14 +35,36 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
+type (photon_line_struct), pointer :: line
 
-integer i, ix2, ie
+integer i, n, ix2, ie
 
 !
 
 do i = 1, lat%n_ele_track
   call ele_geometry (lat%ele(i-1), lat%ele(i), lat%param)
 enddo
+
+if (allocated(lat%photon_line)) then
+  do n = 1, size(lat%photon_line)
+    line => lat%photon_line(n)
+
+    call pointer_to_ele (lat, line%ix_from_line, line%ix_from_ele, ele)
+    line%ele(0)%floor = ele%floor
+
+    if (ele%key == photon_branch$) then
+      if (nint(ele%value(direction$)) == -1) then
+        line%ele(0)%floor%theta = -line%ele(0)%floor%theta
+        line%ele(0)%floor%phi   = -line%ele(0)%floor%phi
+      endif
+    endif
+
+    do i = 1, line%n_ele_track
+      call ele_geometry (line%ele(i-1), line%ele(i), lat%param)
+    enddo
+
+  enddo
+endif
 
 ! put info in superimpose lords
 

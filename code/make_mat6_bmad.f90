@@ -106,7 +106,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 !--------------------------------------------------------
 ! marker
 
-  if (ele%key == marker$) return
+  if (ele%key == marker$ .or. ele%key == photon_branch$) return
 
 !--------------------------------------------------------
 ! selection

@@ -6,7 +6,7 @@ use macroparticle_mod
 !type macro_bunch_lat_param_struct
 !  real(rp) beta, alpha, gamma
 !  real(rp) sigma, p_sigma
-!  real(rp) emitt ! normalized emittance
+!  real(rp) emit ! normalized emittance
 !endtype
 
 !type macro_bunch_params_struct
@@ -25,7 +25,7 @@ type macro_bunch_lat_param_struct
   real(rp) eta, etap
   real(rp) sigma, p_sigma
   real(rp) dpx_dx ! x x' correlation
-  real(rp) norm_emitt ! normalized emittance
+  real(rp) norm_emit ! normalized emittance
 end type
 
 type macro_bunch_params_struct
@@ -59,19 +59,19 @@ contains
 ! Output     -- Macro_bunch_params_struct
 !                 %a%alpha; %a%beta; %a%gamma
 !                 %a%sigma; %a%p_sigma
-!                 %a%emitt; %a%dpx_dx
+!                 %a%emit;  %a%dpx_dx
 !                 %b%alpha; %b%beta; %b%gamma
 !                 %b%sigma; %b%p_sigma
-!                 %b%emitt; %b%dpx_dx
+!                 %b%emit;  %b%dpx_dx
 !                 %z%alpha; %z%beta; %z%gamma
 !                 %z%sigma; %z%p_sigma
-!                 %z%emitt; %z%dpx_dx
+!                 %z%emit;  %z%dpx_dx
 !                 %a%alpha; %a%beta; %a%gamma
 !                 %a%sigma; %a%p_sigma
-!                 %a%emitt; %a%dpx_dx
+!                 %a%emit;  %a%dpx_dx
 !                 %b%alpha; %b%beta; %b%gamma
 !                 %b%sigma; %b%p_sigma
-!                 %b%emitt; %b%dpx_dx
+!                 %b%emit;  %b%dpx_dx
 !                 %centroid
 !                 %n_part
 !
@@ -198,7 +198,7 @@ subroutine zero_plane (param)
   param%sigma      = 0.0
   param%p_sigma    = 0.0
   param%dpx_dx     = 0.0
-  param%norm_emitt = 0.0
+  param%norm_emit  = 0.0
 
 end subroutine zero_plane
   
@@ -343,32 +343,32 @@ subroutine param_stuffit (param, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
 
   type (macro_bunch_lat_param_struct), intent(out) :: param
   real(rp), intent(in) :: exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
-  real(rp) emitt
+  real(rp) emit
 
   if (exp_x2*exp_p_x2 < exp_x_p_x**2) then
-    emitt = 0.0
+    emit = 0.0
     param%alpha = 0.0
     param%beta  = 0.0
     param%gamma = 0.0
     param%eta   = 0.0
     param%etap  = 0.0
-    param%norm_emitt = 0.0
+    param%norm_emit = 0.0
     param%sigma = 0.0
     param%p_sigma = 0.0
     param%dpx_dx = 0.0
     return
   else
-    emitt = SQRT(exp_x2*exp_p_x2 - exp_x_p_x**2)
+    emit = SQRT(exp_x2*exp_p_x2 - exp_x_p_x**2)
   endif
 
-  param%alpha = exp_x_p_x / emitt
-  param%beta  = exp_x2 / emitt
-  param%gamma = exp_p_x2 / emitt
+  param%alpha = exp_x_p_x / emit
+  param%beta  = exp_x2 / emit
+  param%gamma = exp_p_x2 / emit
   
   param%eta   = exp_x_d / exp_delta2
   param%etap  = exp_px_d / exp_delta2
 
-  param%norm_emitt = (avg_energy/m_electron) * emitt
+  param%norm_emit = (avg_energy/m_electron) * emit
 
   param%sigma = SQRT(exp_x2)
   param%p_sigma = SQRT(exp_p_x2)

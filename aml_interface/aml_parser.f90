@@ -237,7 +237,7 @@ endif
 
 if (bmad_status%ok) then
   call set_taylor_order (lat%input_taylor_order, .false.)
-  call set_ptc (lat%E_tot, lat%param%particle)
+  call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
   if (lat%input_taylor_order == bmad_com%taylor_order) then
     if (present(digested_read_ok)) digested_read_ok = .true.
     return

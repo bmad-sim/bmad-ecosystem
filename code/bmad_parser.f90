@@ -50,22 +50,18 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   type (lat_struct), target :: lat, in_lat
   type (ele_struct) this_ele
   type (seq_struct), save, target :: sequence(1000)
-  type (seq_struct), pointer :: seq, seq2
   type (ele_struct), pointer :: beam_ele, param_ele, beam_start_ele
-  type (seq_ele_struct), target :: dummy_seq_ele
-  type (seq_ele_struct), pointer :: s_ele, this_seq_ele
+  type (photon_line_struct), pointer :: p_line
   type (parser_lat_struct) plat
-  type (seq_stack_struct) stack(40)
   type (ele_struct), save, pointer :: ele
   type (ele_struct), allocatable, save :: old_ele(:) 
-  type (used_seq_struct), allocatable, save ::  used_line(:), used2(:)
+  type (used_seq_struct), allocatable ::  used_line(:)
 
-  integer, allocatable :: ix_lat(:)
   integer, allocatable :: seq_indexx(:), in_indexx(:)
   character(40), allocatable ::  in_name(:), seq_name(:)
 
-  integer ix_word, i_use, i, j, k, n, ix, ix1, ix2, i_lev, ixm(100)
-  integer n_ele_use, digested_version, key, n0_multi, loop_counter
+  integer ix_word, i_use, i, j, k, n, ix, ix1, ix2, ixm(100)
+  integer n_ele_use, digested_version, key, loop_counter
   integer  iseq_tot, ix_multipass, n_ele_max, n_multi
   integer, pointer :: n_max
 
@@ -73,7 +69,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   character(*), optional :: use_line
 
   character(1) delim
-  character(40) word_2, name, multipass_line
+  character(40) word_2, name
   character(16) :: r_name = 'bmad_parser'
   character(40) this_name, word_1
   character(200) full_lat_file_name, digested_file, call_file
@@ -83,7 +79,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   real(rp) energy_beam, energy_param, energy_0
 
   logical, optional :: make_mats6, digested_read_ok
-  logical parsing, delim_found, arg_list_found, doit, xsif_called
+  logical delim_found, arg_list_found, doit, xsif_called
   logical file_end, found, err_flag, finished, exit_on_error
   logical detected_expand_lattice_cmd, multipass, write_digested
 
@@ -107,7 +103,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   if (bmad_status%ok) then
     call set_taylor_order (lat%input_taylor_order, .false.)
-    call set_ptc (lat%E_TOT, lat%param%particle)
+    call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
     if (lat%input_taylor_order == bmad_com%taylor_order) then
       if (present(digested_read_ok)) digested_read_ok = .true.
       return
@@ -268,18 +264,13 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
     if (word_1(:ix_word) == 'BEAM') then
       if (delim /= ',') call warning ('"BEAM" NOT FOLLOWED BY COMMA')
-      parsing = .true.
-      do while (parsing)
-        if (.not. delim_found) then
-          parsing = .false.
-        elseif (delim /= ',') then
-          call warning ('EXPECTING: "," BUT GOT: ' // delim,  &
-                                                     'FOR "BEAM" COMMAND')
-          parsing = .false.
-        else
-          call get_attribute (def$, beam_ele, &
-                                 in_lat, plat, delim, delim_found, err_flag)
+      do 
+        if (.not. delim_found) exit
+        if (delim /= ',') then
+          call warning ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
+          exit
         endif
+        call get_attribute (def$, beam_ele, in_lat, plat, delim, delim_found, err_flag)
       enddo
       cycle parsing_loop
     endif
@@ -460,7 +451,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
       n_max = n_max + 1
       if (n_max > ubound(in_lat%ele, 1)) then
-        call allocate_lat_ele (in_lat)
+        call allocate_lat_ele (in_lat%ele)
         beam_ele => in_lat%ele(1)
         param_ele => in_lat%ele(2)
         beam_start_ele => in_lat%ele(3)
@@ -531,25 +522,23 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
 ! Second: We need to get the attribute values for the element.
 
-      parsing = .true.
-      do while (parsing)
-        if (.not. delim_found) then          ! if nothing more
-          parsing = .false.
-        elseif (delim /= ',') then
+      do 
+        if (.not. delim_found) exit          ! if nothing more
+        if (delim /= ',') then
           call warning ('EXPECTING: "," BUT GOT: ' // delim,  &
                         'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
-          cycle parsing_loop
-        else
-          call get_attribute (def$, in_lat%ele(n_max), &
-                                  in_lat, plat, delim, delim_found, err_flag)
-          if (err_flag) cycle parsing_loop
+          exit
         endif
+        call get_attribute (def$, in_lat%ele(n_max), &
+                                  in_lat, plat, delim, delim_found, err_flag)
+        if (err_flag) cycle parsing_loop
       enddo
 
     endif
 
   enddo parsing_loop       ! main parsing loop
 
+!---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 ! we now have read in everything. 
 
@@ -561,11 +550,11 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   allocate (seq_indexx(iseq_tot), seq_name(iseq_tot))
   seq_name = sequence(1:iseq_tot)%name
-  call indexx (seq_name, seq_indexx(1:iseq_tot))
+  call indexx (seq_name, seq_indexx)
 
   allocate (in_indexx(n_max), in_name(n_max))
   in_name = in_lat%ele(1:n_max)%name
-  call indexx (in_name, in_indexx(1:n_max))
+  call indexx (in_name, in_indexx)
 
   do i = 1, iseq_tot-1
     ix1 = seq_indexx(i)
@@ -596,277 +585,43 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
     endif
   enddo
 
-! find line corresponding to the "use" statement.
+! find line corresponding to the "use" statement and expand the used line.
 
   if (present (use_line)) call str_upcase (lat%name, use_line)
   if (lat%name == blank) call error_exit &
             ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
 
-  call find_indexx (lat%name, seq_name, seq_indexx, iseq_tot, i_use)
-  if (i_use == 0) call error_exit &
-      ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // lat%name, ' ')
+  allocate (used_line(n_max))
 
-  if (sequence(i_use)%type /= line$) call error_exit  &
-                      ('NAME IN "USE" STATEMENT IS NOT A LINE!', ' ')
+  call parser_expand_line (0, lat%name, sequence, in_name, in_indexx, &
+                  seq_name, seq_indexx, in_lat%ele, lat%ele, used_line, n_ele_use)
+  if (bp_com%error_flag) stop
 
-! Now to expand the lines and lists to find the elements to use.
-! First go through the lines and lists and index everything.
+! First work on multipass before overlays, groups, and usuperimpose. 
+! This is important since the elements in the lattice get
+! renamed and if not done first would confuse any overlays, girders, etc.
+! Multipass elements are paired by multipass index and multipass line name
 
-  do k = 1, iseq_tot
-    do i = 1, size(sequence(k)%ele(:))
-
-      s_ele => sequence(k)%ele(i)
-      name = s_ele%name
-
-!      ix = index(name, '\')   ! ' 
-!      if (ix /= 0) name = name(:ix-1) ! strip off everything after \
-  
-      if (s_ele%ix_arg > 0) then   ! dummy arg
-        s_ele%type = element$
-        cycle
+  do i = 1, n_ele_use
+    if (used_line(i)%ix_multipass == 0) cycle
+    n_multi = 0  ! number of elements to slave together
+    ix_multipass = used_line(i)%ix_multipass
+    do j = i, n_ele_use
+      if (used_line(j)%ix_multipass == ix_multipass .and. &
+          used_line(j)%multipass_line == used_line(i)%multipass_line) then
+        n_multi = n_multi + 1
+        ixm(n_multi) = j
+        used_line(j)%ix_multipass = 0  ! mark as taken care of
       endif
-
-      call find_indexx (name, in_name, in_indexx, n_max, j)
-      if (j == 0) then  ! if not an element it must be a sequence
-        call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
-        if (j == 0) then  ! if not a sequence then I don't know what it is
-          s_ele%ix_ele = -1
-          s_ele%type = element$
-        else
-          s_ele%ix_ele = j
-          s_ele%type = sequence(j)%type
-        endif
-        if (s_ele%type == list$ .and. s_ele%reflect) call warning ( &
-                          'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
-                          // sequence(k)%name, 'FOR LIST: ' // s_ele%name, &
-                          seq = sequence(k))
-        if (sequence(k)%type == list$) &
-                call warning ('A REPLACEMENT LIST: ' // sequence(k)%name, &
-                'HAS A NON-ELEMENT MEMBER: ' // s_ele%name)
- 
-      else    ! if an element...
-        s_ele%ix_ele = j
-        s_ele%type = element$
-      endif
-
     enddo
+    call add_this_multipass (lat, ixm(1:n_multi))
   enddo
-
-! to expand the "used" line we use a stack for nested sublines.
-! IX_LAT is the expanded array of elements in the lat.
-! init stack
-
-  i_lev = 1                          ! level on the stack
-  seq => sequence(i_use)
-
-  stack(1)%ix_seq    = i_use           ! which sequence to use for the lat
-  stack(1)%ix_ele    =  1              ! we start at the beginning
-  stack(1)%direction = +1              ! and move forward
-  stack(1)%rep_count = seq%ele(1)%rep_count
-  stack(1)%multipass = .false.
-  stack(1)%tag = ''
-
-  n_ele_use = 0
-           
-  allocate (used_line(ubound(in_lat%ele, 1)))
-  allocate (ix_lat(ubound(in_lat%ele, 1)))
-  ix_lat = -1
-  sequence(:)%ix = 1  ! Init. Used for replacement list index
-
-! Expand "used" line...
-
-  parsing = .true.
-  line_expansion: do while (parsing)
-
-    ! if rep_count is zero then change %ix_ele index by +/- 1 and reset the rep_count.
-    ! if we have got to the end of the current line then pop the stack back to
-    ! the next lower level.
-    ! Also check if we have gotten to level 0 which says that we are done.
-    ! If we have stepped out of a multipass line which has been trasversed in reverse
-    !   then we need to do some bookkeeping to keep the elements straight.
-
-    if (stack(i_lev)%rep_count == 0) then      ! goto next element in the sequence
-      stack(i_lev)%ix_ele = stack(i_lev)%ix_ele + stack(i_lev)%direction 
-      ix = stack(i_lev)%ix_ele
-
-      if (ix > 0 .and. ix <= size(seq%ele)) then
-        stack(i_lev)%rep_count = seq%ele(ix)%rep_count
-      else
-        i_lev = i_lev - 1
-        if (i_lev == 0) exit line_expansion
-        seq => sequence(stack(i_lev)%ix_seq)
-        if (.not. stack(i_lev)%multipass .and. stack(i_lev+1)%multipass) then
-          if (stack(i_lev+1)%direction == -1) then
-            used_line(n0_multi:n_ele_use)%ix_multipass = &
-                          used_line(n_ele_use:n0_multi:-1)%ix_multipass
-          endif
-        endif
-        cycle
-      endif
-
-    endif
-
-    ! 
-
-    s_ele => seq%ele(stack(i_lev)%ix_ele)  ! next element, line, or list
-    stack(i_lev)%rep_count = stack(i_lev)%rep_count - 1
-
-    ! if s_ele is a dummy arg then get corresponding actual arg.
-
-    ix = s_ele%ix_arg
-    if (ix /= 0) then  ! it is a dummy argument.
-      name = seq%corresponding_actual_arg(ix)
-      s_ele => dummy_seq_ele
-      s_ele%name = name
-      call find_indexx (name, in_name, in_indexx, n_max, j)
-      if (j == 0) then  ! if not an element it must be a sequence
-        call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
-        if (j == 0) then  ! if not a sequence then I don't know what it is
-          call warning ('CANNOT FIND DEFINITION FOR: ' // name, &
-                          'IN LINE: ' // seq%name, seq = seq)
-          call err_exit
-        endif
-        s_ele%ix_ele = j
-        s_ele%type = sequence(j)%type
-      else
-        s_ele%ix_ele = j 
-        s_ele%type = element$
-      endif
-      
-    endif
-
-! if an element
-
-    select case (s_ele%type)
-
-    case (element$, list$) 
-
-      if (s_ele%type == list$) then
-        seq2 => sequence(s_ele%ix_ele)
-        j = seq2%ix
-        this_seq_ele => seq2%ele(j)
-        seq2%ix = seq2%ix + 1
-        if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
-      else
-        if (s_ele%tag /= '') then
-          call warning ('ELEMENTS IN A LINE OR LIST ARE NOT ALLOWED TO HAVE A TAG.', &
-                        'FOUND ILLEGAL TAG FOR ELEMENT: ' // s_ele%name, &
-                        'IN THE LINE/LIST: ' // seq%name, seq)
-        endif
-        this_seq_ele => s_ele
-      endif
-
-      if (this_seq_ele%ix_ele < 1) call warning('NOT A DEFINED ELEMENT: ' // &
-                          s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq = seq)
-
-
-      if (n_ele_use+1 > size(ix_lat)) then
-        n = 1.5*n_ele_use
-        call re_allocate (ix_lat, n)
-        ix = size(used_line) 
-        allocate (used2(ix))
-        used2(1:ix) = used_line(1:ix)
-        deallocate (used_line)
-        allocate (used_line(1:n))
-        used_line(1:ix) = used2(1:ix)
-        deallocate (used2)
-      endif
-
-      call pushit (ix_lat, n_ele_use, this_seq_ele%ix_ele)
-
-      used_line(n_ele_use)%name = this_seq_ele%name
-
-      if (stack(i_lev)%tag /= '' .and. s_ele%tag /= '') then
-        used_line(n_ele_use)%tag =  trim(stack(i_lev)%tag) // '.' // s_ele%tag
-      elseif (s_ele%tag /= '') then
-        used_line(n_ele_use)%tag = s_ele%tag
-      else
-        used_line(n_ele_use)%tag =  stack(i_lev)%tag
-      endif
-
-      if (stack(i_lev)%multipass) then
-        ix_multipass = ix_multipass + 1
-        used_line(n_ele_use)%ix_multipass = ix_multipass
-        used_line(n_ele_use)%multipass_line = multipass_line
-      else
-        used_line(n_ele_use)%ix_multipass = 0
-      endif
-
-
-! if a line:
-!     a) move pointer on current level past line element
-!     b) go to the next higher level
-!     c) initialize pointers for the higher level to use the line
-
-    case (line$, replacement_line$)
-      i_lev = i_lev + 1
-      if (i_lev > size(stack)) then
-        call warning ('NESTED LINES EXCEED STACK DEPTH!')
-        call err_exit
-      endif
-      if (s_ele%type == replacement_line$) then
-        seq2 => sequence(s_ele%ix_ele)
-        if (size(seq2%dummy_arg) /= size(s_ele%actual_arg)) then
-          call warning ('WRONG NUMBER OF ARGUMENTS FORREPLACEMENT LINE: ' // &
-              s_ele%name, 'WHEN USED IN LINE: ' // seq%name, seq = seq)
-          call err_exit
-        endif
-        arg_loop: do i = 1, size(seq2%dummy_arg)
-          seq2%corresponding_actual_arg(i) = s_ele%actual_arg(i)
-          if (associated(seq%dummy_arg)) then
-            do j = 1, size(seq%dummy_arg)
-              if (seq2%corresponding_actual_arg(i) == seq%dummy_arg(j)) then
-                seq2%corresponding_actual_arg(i) = seq%corresponding_actual_arg(j)
-                cycle arg_loop
-              endif
-            enddo
-          endif
-          name = seq2%corresponding_actual_arg(i)
-        enddo arg_loop
-      endif
-
-      seq => sequence(s_ele%ix_ele)
-      stack(i_lev)%ix_seq = s_ele%ix_ele
-      stack(i_lev)%direction = stack(i_lev-1)%direction
-      stack(i_lev)%multipass = (stack(i_lev-1)%multipass .or. seq%multipass)
-      if (stack(i_lev-1)%tag /= '' .and. s_ele%tag /= '') then
-         stack(i_lev)%tag = trim(stack(i_lev-1)%tag) // '.' // s_ele%tag
-      elseif (stack(i_lev-1)%tag /= '') then
-         stack(i_lev)%tag = trim(stack(i_lev-1)%tag)
-      else
-         stack(i_lev)%tag = s_ele%tag
-      endif
-      if (s_ele%reflect) stack(i_lev)%direction = -stack(i_lev)%direction
-
-      if (stack(i_lev)%direction == 1) then
-        ix = 1
-      else
-        ix = size(seq%ele(:))
-      endif
-
-      stack(i_lev)%ix_ele = ix
-      stack(i_lev)%rep_count = seq%ele(ix)%rep_count
-
-      if (stack(i_lev)%multipass .and. .not. stack(i_lev-1)%multipass) then
-        ix_multipass = 1
-        n0_multi = n_ele_use + 1
-        multipass_line = sequence(stack(i_lev)%ix_seq)%name
-      endif
-
-    case default
-      call warning ('INTERNAL SEQUENCE ERROR!')
-
-    end select
-
-  enddo line_expansion
 
 !---------------------------------------------------------------
 ! we now have the line to use in constructing the lat.
 ! now to put the elements in LAT in the correct order.
 ! superimpose, overlays, and groups are handled later.
 ! first load beam parameters.
-
-  call allocate_lat_ele(lat, n_ele_use+100)
 
   lat%version            = bmad_inc_version$
   lat%input_file_name    = full_lat_file_name             ! save input file  
@@ -948,63 +703,29 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   if (lat%input_taylor_order /= 0) &
        call set_taylor_order (lat%input_taylor_order, .false.)
 
-
-! Transfer the ele information from the in_lat to lat and
-! do the bookkeeping for settable dependent variables.
-
-  do i = 1, n_ele_use
-    ele => lat%ele(i)
-    ele = in_lat%ele(ix_lat(i)) 
-    ele%name = used_line(i)%name
-    if (used_line(i)%tag /= '') ele%name = trim(used_line(i)%tag) // '.' // ele%name
-    call settable_dep_var_bookkeeping (ele)
-  enddo
-
-! First work on multipass before overlays, groups, and usuperimpose. 
-! This is important since the elements in the lattice get
-! renamed and if not done first would confuse any overlays, girders, etc.
-! Multipass elements are paired by multipass index and multipass line name
-
-  n_ele_max = lat%n_ele_max
-  do i = 1, n_ele_max
-    if (used_line(i)%ix_multipass /= 0) then 
-      n_multi = 0  ! number of elements to slave together
-      ix_multipass = used_line(i)%ix_multipass
-      do j = i, n_ele_max
-        if (used_line(j)%ix_multipass == ix_multipass .and. &
-            used_line(j)%multipass_line == used_line(i)%multipass_line) then
-          n_multi = n_multi + 1
-          ixm(n_multi) = j
-          used_line(j)%ix_multipass = 0  ! mark as taken care of
-        endif
-      enddo
-      call add_this_multipass (lat, ixm(1:n_multi))
-    endif
-  enddo
-
 !-------------------------------------------------------------------------
 ! energy bookkeeping.
 
   energy_beam  = 1d9 * beam_ele%value(energy_gev$)  
-  energy_param = param_ele%value(E_TOT$)
-  energy_0     = lat%ele(0)%value(E_TOT$) 
+  energy_param = param_ele%value(e_tot$)
+  energy_0     = lat%ele(0)%value(e_tot$) 
 
   if (energy_beam == 0 .and. energy_param == 0 .and. energy_0 == 0) then
-    call out_io (s_warn$, r_name, 'E_TOT IS 0!')
+    call out_io (s_warn$, r_name, 'e_tot IS 0!')
   elseif (energy_beam /= 0 .and. energy_param == 0 .and. energy_0 == 0) then
-    lat%ele(0)%value(E_TOT$) = energy_beam
+    lat%ele(0)%value(e_tot$) = energy_beam
   elseif (energy_beam == 0 .and. energy_param /= 0 .and. energy_0 == 0) then
-    lat%ele(0)%value(E_TOT$) = energy_param
+    lat%ele(0)%value(e_tot$) = energy_param
   elseif (energy_beam == 0 .and. energy_param == 0 .and. energy_0 /= 0) then
-    lat%ele(0)%value(E_TOT$) = energy_0
+    lat%ele(0)%value(e_tot$) = energy_0
   else
     call warning ('BEAM ENERGY SET MULTIPLE TIMES ')
   endif
 
-  call convert_total_energy_to (lat%E_TOT, lat%param%particle, &
+  call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, &
                                              pc = lat%ele(0)%value(p0c$))
 
-  call set_ptc (lat%E_TOT, lat%param%particle)
+  call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
 
 ! Go through the IN_LAT elements and put in the superpositions, groups, etc.
 ! First put in the superpositions and remove the null_ele elements
@@ -1016,6 +737,33 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   enddo
 
   call remove_ele_from_lat (lat)  ! remove all null_ele elements.
+
+! Add photon lines
+! First sum the number of branches
+
+  n = 0
+  do i = 1, lat%n_ele_track
+    if (lat%ele(i)%key == photon_branch$) n = n + 1
+  enddo
+
+  ! Now create the lines
+
+  if (n > 0) then
+    allocate (lat%photon_line(n))
+    n = 0
+    do i = 1, lat%n_ele_track
+      if (lat%ele(i)%key /= photon_branch$) cycle
+      n = n + 1
+      p_line => lat%photon_line(n)
+      p_line%ix_photon_line = n
+      p_line%ix_from_line = 0
+      p_line%ix_from_ele = i
+      call parser_expand_line (n, lat%ele(i)%attribute_name, sequence, in_name, in_indexx, &
+                  seq_name, seq_indexx, in_lat%ele, p_line%ele, used_line, n_ele_use)
+      p_line%ele(0)%key = init_ele$
+      p_line%ele(0)%name = lat%ele(i)%attribute_name
+    enddo
+  endif
 
 ! Now put in the overlay_lord, girder, and group elements
 
@@ -1081,12 +829,11 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   if (associated (in_lat%ele))     call deallocate_lat_pointers (in_lat)
   if (associated (plat%ele))       deallocate (plat%ele)
-  if (allocated (ix_lat))          deallocate (ix_lat)
   if (allocated (seq_indexx))      deallocate (seq_indexx, seq_name)
   if (allocated (in_indexx))       deallocate (in_indexx, in_name)
+  if (allocated (in_lat%control))  deallocate (in_lat%control)
+  if (allocated (in_lat%ic))       deallocate (in_lat%ic)
   if (allocated (used_line))       deallocate (used_line)
-  if (associated (in_lat%control)) deallocate (in_lat%control)
-  if (associated (in_lat%ic))      deallocate (in_lat%ic)
 
 ! error check
 

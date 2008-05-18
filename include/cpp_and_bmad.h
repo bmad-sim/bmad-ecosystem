@@ -15,6 +15,7 @@ class C_control;
 class C_ele;
 class C_wig_term;
 class C_taylor;
+class C_photon_line;
 
 typedef const double    Re;
 typedef const int       Int;
@@ -32,6 +33,7 @@ typedef valarray<C_sr_table_wake>       C_sr_table_wake_array;
 typedef valarray<C_sr_mode_wake>        C_sr_mode_wake_array;
 typedef valarray<C_lr_wake>             C_lr_wake_array;
 typedef valarray<C_control>             C_control_array;
+typedef valarray<C_photon_line>         C_photon_line_array;
 typedef valarray<C_ele>                 C_ele_array;
 typedef valarray<C_taylor>              C_taylor_array;
 typedef valarray<Real_Array>            Real_Matrix;
@@ -400,13 +402,14 @@ public:
   double coef;                // control coefficient
   int ix_lord;                // index to lord element
   int ix_slave;               // index to slave element
+  int ix_photon_line;         // index to a photon line
   int ix_attrib;              // index of attribute controlled
 
-  C_control (double c, int il, int is, int ia) :
-      coef(c), ix_lord(il), ix_slave(is), ix_attrib(ia) {}
+  C_control (double c, int il, int is, int ip, int ia) :
+      coef(c), ix_lord(il), ix_slave(is), ix_photon_line(ip), ix_attrib(ia) {}
 
   C_control () :
-      coef(0), ix_lord(0), ix_slave(0), ix_attrib(0) {}
+      coef(0), ix_lord(0), ix_slave(0), ix_photon_line(0), ix_attrib(0) {}
 };    // End Class
 
 extern "C" void control_to_c_(control_struct*, C_control&);
@@ -712,6 +715,7 @@ public:
   int ix_pointer;               // For general use. Not used by Bmad.
   int ixx;                      // Index for Bmad internal use
   int ix_ele;                   // Index in ring%ele(:) array
+  int ix_photon_line;           // Photon line index
   int mat6_calc_method;         // bmad_standard$, taylor$, etc.
   int tracking_method;          // bmad_standard$, taylor$, etc.
   int field_calc;               // Used with Boris, Runge-Kutta integrators.
@@ -758,9 +762,12 @@ public:
   double tune;      // "fractional" tune in radians: 0 < tune < 2pi
   double emit;      // Emittance
   double chrom;     // Chromaticity
+  double sigma;    
+  double sigmap;
 
   C_mode_info () : tune(0), emit(0), chrom(0) {}
-  C_mode_info (Re t, Re e, Re c) : tune(t), emit(e), chrom(c) {}
+  C_mode_info (Re t, Re e, Re c, Re s, Re sp) : 
+          tune(t), emit(e), chrom(c), sigma(s), sigmap(sp) {}
 
 };    // End Class
 
@@ -771,6 +778,30 @@ bool operator== (const C_mode_info&, const C_mode_info&);
 
 void operator>> (C_mode_info&, mode_info_struct*);
 void operator>> (mode_info_struct*, C_mode_info&);
+
+//--------------------------------------------------------------------
+// photon_line
+
+class photon_line_struct {};
+
+class C_photon_line {
+
+  string name;
+  int ix_photon_line;
+  int n_ele_track;
+  C_ele_array ele;
+
+  C_photon_line () : ix_photon_line(0), n_ele_track(0) {}
+
+};
+
+extern "C" void photon_line_to_c_(photon_line_struct*, C_photon_line&);
+extern "C" void photon_line_to_f_(C_photon_line&, photon_line_struct*);
+
+bool operator== (const C_photon_line&, const C_photon_line&);
+
+void operator>> (C_photon_line&, photon_line_struct*);
+void operator>> (photon_line_struct*, C_photon_line&);
 
 //--------------------------------------------------------------------
 // Ring 
@@ -793,6 +824,7 @@ public:
   int input_taylor_order;    // As set in the input file
   C_ele ele_init;            // For use by any program
   C_ele_array ele;           // Array of elements
+  C_photon_line_array photon_line;
   C_control_array control;   // control list
   Int_Array ic;              // index to %control(:)
 

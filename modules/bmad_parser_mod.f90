@@ -167,8 +167,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_attribute (how, ele, lat, plat,
-!                                             delim, delim_found, err_flag)
+! Subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
 ! an attribute from the input file.
@@ -176,9 +175,7 @@ contains
 ! This subroutine is not intended for general use.
 !-
 
-
-subroutine get_attribute (how, ele, lat, plat, &
-                                             delim, delim_found, err_flag)
+subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
 
   use random_mod
          
@@ -591,7 +588,7 @@ subroutine get_attribute (how, ele, lat, plat, &
     ic = ele%ixx
     plat%ele(ic)%s = value
 
-  case(type$, alias$, descrip$, sr_wake_file$, lr_wake_file$, lattice$)
+  case(type$, alias$, descrip$, sr_wake_file$, lr_wake_file$, lattice$, to$)
     call type_get (ele, ix_attrib, delim, delim_found)
 
   case (symplectify$) 
@@ -1725,6 +1722,8 @@ subroutine type_get (ele, ix_type, delim, delim_found)
     call read_sr_wake (ele, type_name)
   case (lr_wake_file$) 
     call read_lr_wake (ele, type_name)
+  case (to$)
+    ele%attribute_name = type_name
   case default
     print *, 'INTERNAL ERROR IN TYPE_GET: I NEED HELP!'
     call err_exit
@@ -2718,7 +2717,7 @@ if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
 endif
 
 lat%n_ele_max = lat%n_ele_max + 1
-if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele(lat)
+if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele(lat%ele)
 
 nn = lat%n_ele_max 
 
@@ -3439,6 +3438,9 @@ subroutine parser_set_ele_defaults (ele)
     ele%value(fintx$) = real_garbage$
     ele%value(hgapx$) = real_garbage$
 
+  case (photon_branch$)
+    ele%value(direction$) = 1
+
   end select
 
 end subroutine
@@ -3765,6 +3767,322 @@ subroutine reuse_taylor_elements (lat, ele_array)
   enddo
 
   deallocate(ele_array)
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine parser_expand_line
+!
+! Subroutine to do line expansion.
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine parser_expand_line (ix_line, use_name, sequence, in_name, in_indexx, &
+                          seq_name, seq_indexx, ele_in, ele_out, used_line, n_ele_use)
+
+implicit none
+
+type (ele_struct), pointer :: ele_in(:), ele_out(:)
+type (seq_struct), target :: sequence(:)
+type (seq_ele_struct), pointer :: s_ele, this_seq_ele
+type (seq_stack_struct) stack(40)
+type (seq_struct), pointer :: seq, seq2
+type (used_seq_struct), allocatable ::  used_line(:), used2(:)
+type (seq_ele_struct), target :: dummy_seq_ele
+
+integer, allocatable :: ix_lat(:)
+integer, allocatable :: seq_indexx(:), in_indexx(:)
+integer iseq_tot, i_lev, i_use, n0_multi, n_ele_use, n_max
+integer i, j, k, n, ix, ix_multipass, ix_line
+
+character(*), allocatable ::  in_name(:), seq_name(:)
+character(*) use_name
+character(40) name, multipass_line
+
+! find line corresponding to the "use" statement.
+
+  iseq_tot = size(seq_indexx)
+  n_max = size(in_name)
+
+  call find_indexx (use_name, seq_name, seq_indexx, iseq_tot, i_use)
+  if (i_use == 0) call error_exit &
+      ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // use_name, ' ')
+
+  if (sequence(i_use)%type /= line$) call error_exit  &
+                      ('NAME IN "USE" STATEMENT IS NOT A LINE!', ' ')
+
+! Now to expand the lines and lists to find the elements to use.
+! First go through the lines and lists and index everything.
+
+  do k = 1, iseq_tot
+    do i = 1, size(sequence(k)%ele(:))
+
+      s_ele => sequence(k)%ele(i)
+      name = s_ele%name
+
+!      ix = index(name, '\')   ! ' 
+!      if (ix /= 0) name = name(:ix-1) ! strip off everything after \
+  
+      if (s_ele%ix_arg > 0) then   ! dummy arg
+        s_ele%type = element$
+        cycle
+      endif
+
+      call find_indexx (name, in_name, in_indexx, n_max, j)
+      if (j == 0) then  ! if not an element it must be a sequence
+        call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
+        if (j == 0) then  ! if not a sequence then I don't know what it is
+          s_ele%ix_ele = -1
+          s_ele%type = element$
+        else
+          s_ele%ix_ele = j
+          s_ele%type = sequence(j)%type
+        endif
+        if (s_ele%type == list$ .and. s_ele%reflect) call warning ( &
+                          'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
+                          // sequence(k)%name, 'FOR LIST: ' // s_ele%name, &
+                          seq = sequence(k))
+        if (sequence(k)%type == list$) &
+                call warning ('A REPLACEMENT LIST: ' // sequence(k)%name, &
+                'HAS A NON-ELEMENT MEMBER: ' // s_ele%name)
+ 
+      else    ! if an element...
+        s_ele%ix_ele = j
+        s_ele%type = element$
+      endif
+
+    enddo
+  enddo
+
+! to expand the "used" line we use a stack for nested sublines.
+! IX_LAT is the expanded array of elements in the lat.
+! init stack
+
+  i_lev = 1                          ! level on the stack
+  seq => sequence(i_use)
+
+  stack(1)%ix_seq    = i_use           ! which sequence to use for the lat
+  stack(1)%ix_ele    =  1              ! we start at the beginning
+  stack(1)%direction = +1              ! and move forward
+  stack(1)%rep_count = seq%ele(1)%rep_count
+  stack(1)%multipass = .false.
+  stack(1)%tag = ''
+
+  n_ele_use = 0
+           
+  allocate (ix_lat(n_max))
+  ix_lat = -1
+  sequence(:)%ix = 1  ! Init. Used for replacement list index
+
+! Expand "used" line...
+
+  line_expansion: do
+
+    ! if rep_count is zero then change %ix_ele index by +/- 1 and reset the rep_count.
+    ! if we have got to the end of the current line then pop the stack back to
+    ! the next lower level.
+    ! Also check if we have gotten to level 0 which says that we are done.
+    ! If we have stepped out of a multipass line which has been trasversed in reverse
+    !   then we need to do some bookkeeping to keep the elements straight.
+
+    if (stack(i_lev)%rep_count == 0) then      ! goto next element in the sequence
+      stack(i_lev)%ix_ele = stack(i_lev)%ix_ele + stack(i_lev)%direction 
+      ix = stack(i_lev)%ix_ele
+
+      if (ix > 0 .and. ix <= size(seq%ele)) then
+        stack(i_lev)%rep_count = seq%ele(ix)%rep_count
+      else
+        i_lev = i_lev - 1
+        if (i_lev == 0) exit line_expansion
+        seq => sequence(stack(i_lev)%ix_seq)
+        if (.not. stack(i_lev)%multipass .and. stack(i_lev+1)%multipass) then
+          if (stack(i_lev+1)%direction == -1) then
+            used_line(n0_multi:n_ele_use)%ix_multipass = &
+                          used_line(n_ele_use:n0_multi:-1)%ix_multipass
+          endif
+        endif
+        cycle
+      endif
+
+    endif
+
+    ! 
+
+    s_ele => seq%ele(stack(i_lev)%ix_ele)  ! next element, line, or list
+    stack(i_lev)%rep_count = stack(i_lev)%rep_count - 1
+
+    ! if s_ele is a dummy arg then get corresponding actual arg.
+
+    ix = s_ele%ix_arg
+    if (ix /= 0) then  ! it is a dummy argument.
+      name = seq%corresponding_actual_arg(ix)
+      s_ele => dummy_seq_ele
+      s_ele%name = name
+      call find_indexx (name, in_name, in_indexx, n_max, j)
+      if (j == 0) then  ! if not an element it must be a sequence
+        call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
+        if (j == 0) then  ! if not a sequence then I don't know what it is
+          call warning ('CANNOT FIND DEFINITION FOR: ' // name, &
+                          'IN LINE: ' // seq%name, seq = seq)
+          call err_exit
+        endif
+        s_ele%ix_ele = j
+        s_ele%type = sequence(j)%type
+      else
+        s_ele%ix_ele = j 
+        s_ele%type = element$
+      endif
+      
+    endif
+
+! if an element
+
+    select case (s_ele%type)
+
+    case (element$, list$) 
+
+      if (s_ele%type == list$) then
+        seq2 => sequence(s_ele%ix_ele)
+        j = seq2%ix
+        this_seq_ele => seq2%ele(j)
+        seq2%ix = seq2%ix + 1
+        if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
+      else
+        if (s_ele%tag /= '') then
+          call warning ('ELEMENTS IN A LINE OR LIST ARE NOT ALLOWED TO HAVE A TAG.', &
+                        'FOUND ILLEGAL TAG FOR ELEMENT: ' // s_ele%name, &
+                        'IN THE LINE/LIST: ' // seq%name, seq)
+        endif
+        this_seq_ele => s_ele
+      endif
+
+      if (this_seq_ele%ix_ele < 1) call warning('NOT A DEFINED ELEMENT: ' // &
+                          s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq = seq)
+
+
+      if (n_ele_use+1 > size(ix_lat)) then
+        n = 1.5*n_ele_use
+        call re_allocate (ix_lat, n)
+        ix = size(used_line) 
+        allocate (used2(ix))
+        used2(1:ix) = used_line(1:ix)
+        deallocate (used_line)
+        allocate (used_line(1:n))
+        used_line(1:ix) = used2(1:ix)
+        deallocate (used2)
+      endif
+
+      call pushit (ix_lat, n_ele_use, this_seq_ele%ix_ele)
+
+      used_line(n_ele_use)%name = this_seq_ele%name
+
+      if (stack(i_lev)%tag /= '' .and. s_ele%tag /= '') then
+        used_line(n_ele_use)%tag =  trim(stack(i_lev)%tag) // '.' // s_ele%tag
+      elseif (s_ele%tag /= '') then
+        used_line(n_ele_use)%tag = s_ele%tag
+      else
+        used_line(n_ele_use)%tag =  stack(i_lev)%tag
+      endif
+
+      if (stack(i_lev)%multipass) then
+        ix_multipass = ix_multipass + 1
+        used_line(n_ele_use)%ix_multipass = ix_multipass
+        used_line(n_ele_use)%multipass_line = multipass_line
+      else
+        used_line(n_ele_use)%ix_multipass = 0
+      endif
+
+
+! if a line:
+!     a) move pointer on current level past line element
+!     b) go to the next higher level
+!     c) initialize pointers for the higher level to use the line
+
+    case (line$, replacement_line$)
+      i_lev = i_lev + 1
+      if (i_lev > size(stack)) then
+        call warning ('NESTED LINES EXCEED STACK DEPTH!')
+        call err_exit
+      endif
+      if (s_ele%type == replacement_line$) then
+        seq2 => sequence(s_ele%ix_ele)
+        if (size(seq2%dummy_arg) /= size(s_ele%actual_arg)) then
+          call warning ('WRONG NUMBER OF ARGUMENTS FORREPLACEMENT LINE: ' // &
+              s_ele%name, 'WHEN USED IN LINE: ' // seq%name, seq = seq)
+          call err_exit
+        endif
+        arg_loop: do i = 1, size(seq2%dummy_arg)
+          seq2%corresponding_actual_arg(i) = s_ele%actual_arg(i)
+          if (associated(seq%dummy_arg)) then
+            do j = 1, size(seq%dummy_arg)
+              if (seq2%corresponding_actual_arg(i) == seq%dummy_arg(j)) then
+                seq2%corresponding_actual_arg(i) = seq%corresponding_actual_arg(j)
+                cycle arg_loop
+              endif
+            enddo
+          endif
+          name = seq2%corresponding_actual_arg(i)
+        enddo arg_loop
+      endif
+
+      seq => sequence(s_ele%ix_ele)
+      stack(i_lev)%ix_seq = s_ele%ix_ele
+      stack(i_lev)%direction = stack(i_lev-1)%direction
+      stack(i_lev)%multipass = (stack(i_lev-1)%multipass .or. seq%multipass)
+      if (stack(i_lev-1)%tag /= '' .and. s_ele%tag /= '') then
+         stack(i_lev)%tag = trim(stack(i_lev-1)%tag) // '.' // s_ele%tag
+      elseif (stack(i_lev-1)%tag /= '') then
+         stack(i_lev)%tag = trim(stack(i_lev-1)%tag)
+      else
+         stack(i_lev)%tag = s_ele%tag
+      endif
+      if (s_ele%reflect) stack(i_lev)%direction = -stack(i_lev)%direction
+
+      if (stack(i_lev)%direction == 1) then
+        ix = 1
+      else
+        ix = size(seq%ele(:))
+      endif
+
+      stack(i_lev)%ix_ele = ix
+      stack(i_lev)%rep_count = seq%ele(ix)%rep_count
+
+      if (stack(i_lev)%multipass .and. .not. stack(i_lev-1)%multipass) then
+        ix_multipass = 1
+        n0_multi = n_ele_use + 1
+        multipass_line = sequence(stack(i_lev)%ix_seq)%name
+      endif
+
+    case default
+      call warning ('INTERNAL SEQUENCE ERROR!')
+
+    end select
+
+  enddo line_expansion
+
+! Transfer the ele information from the in_lat to lat and
+! do the bookkeeping for settable dependent variables.
+
+  call allocate_lat_ele(ele_out, n_ele_use)
+  ele_out(0)%ix_photon_line = ix_line
+
+  do i = 1, n_ele_use
+    ele_out(i) = ele_in(ix_lat(i)) 
+    ele_out(i)%name = used_line(i)%name
+    ele_out(i)%ix_photon_line = ix_line
+    if (used_line(i)%tag /= '') ele_out(i)%name = &
+                  trim(used_line(i)%tag) // '.' // ele_out(i)%name
+    call settable_dep_var_bookkeeping (ele_out(i))
+  enddo
+
+  ! Cleanup
+
+  deallocate (ix_lat)
 
 end subroutine
 

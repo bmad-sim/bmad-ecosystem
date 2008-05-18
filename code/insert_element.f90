@@ -18,7 +18,6 @@
 !
 ! Output:
 !     lat -- lat_struct: lat with new element inserted
-!
 !-
 
 #include "CESR_platform.inc"
@@ -30,18 +29,19 @@ subroutine insert_element (lat, insert_ele, insert_index)
 
   implicit none
 
-  type (lat_struct)  lat
+  type (lat_struct), target :: lat
   type (ele_struct)  insert_ele
-  integer insert_index, index
+  type (photon_line_struct), pointer :: line
+  integer insert_index, ix
 
 ! transfer_ele is fast since re reuse storage.
 
   lat%n_ele_max = lat%n_ele_max + 1
-  if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele(lat)
+  if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele(lat%ele)
 
-  do index = lat%n_ele_max-1, insert_index, -1
-    call transfer_ele (lat%ele(index), lat%ele(index+1))
-    lat%ele(index+1)%ix_ele = index+1
+  do ix = lat%n_ele_max-1, insert_index, -1
+    call transfer_ele (lat%ele(ix), lat%ele(ix+1))
+    lat%ele(ix+1)%ix_ele = ix+1
   enddo
   
 ! lat%ele(insert_index) pointers need to be nullified since they now point to
@@ -53,11 +53,11 @@ subroutine insert_element (lat, insert_ele, insert_index)
 
 ! correct the control info
 
-  do index = 1, lat%n_control_max
-    if (lat%control(index)%ix_slave >= insert_index)  &
-           lat%control(index)%ix_slave = lat%control(index)%ix_slave + 1
-    if (lat%control(index)%ix_lord >= insert_index)  &
-           lat%control(index)%ix_lord = lat%control(index)%ix_lord + 1
+  do ix = 1, lat%n_control_max
+    if (lat%control(ix)%ix_slave >= insert_index)  &
+           lat%control(ix)%ix_slave = lat%control(ix)%ix_slave + 1
+    if (lat%control(ix)%ix_lord >= insert_index)  &
+           lat%control(ix)%ix_lord = lat%control(ix)%ix_lord + 1
   enddo
 
   if (insert_index <= lat%n_ele_track + 1) then
@@ -69,6 +69,14 @@ subroutine insert_element (lat, insert_ele, insert_index)
     print *, '        ELEMENT: ', insert_ele%name
   endif
 
+  if (allocated(lat%photon_line)) then
+    do ix = 1, size(lat%photon_line)
+      line => lat%photon_line(ix)
+      if (line%ix_from_ele >= insert_index .and. line%ix_from_line == 0) &
+                                   line%ix_from_ele = line%ix_from_ele + 1
+    enddo
+  endif
+
   if (insert_ele%value(l$) /= 0) call s_calc(lat)
 
-end
+end subroutine

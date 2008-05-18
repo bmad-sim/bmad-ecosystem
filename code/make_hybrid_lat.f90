@@ -118,11 +118,12 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
 
 ! on to the next out-element which is a simple element
 
-      if (remove_markers .and. ele_in%key == marker$) then
+      if (remove_markers .and. &
+                (ele_in%key == marker$ .or. ele_in%key == photon_branch$)) then
         ix_out(j_in) = i_out
       else
         i_out = i_out + 1                     ! starting next element
-        if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out)
+        if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out%ele)
         ele_out => r_out%ele(i_out)
         ele_out = ele_in   ! single element
         ix_out(j_in) = i_out
@@ -140,7 +141,7 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
 
       if (init_hybrid_needed) then
         i_out = i_out + 1                       ! starting next element
-        if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out)
+        if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out%ele)
         ele_out => r_out%ele(i_out)
         ele_out = ele_in
         ele_out%control_type = free$
@@ -172,7 +173,7 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
         init_hybrid_needed = .false.
 
       else
-        if (ele_in%key == marker$) cycle
+        if (ele_in%key == marker$ .or. ele_in%key == photon_branch$) cycle
 
         if (z_decoupled) then
           e_vec = matmul(ele_in%mat6(1:4,1:4), e_vec)
@@ -208,7 +209,7 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
 
         o_key = ele_out%key 
         if (ele_in%key == drift$ .and. &
-                            (o_key == drift$ .or. o_key == marker$)) then
+             (o_key == drift$ .or. o_key == marker$ .or. o_key == photon_branch$)) then
           ele_out%name = 'DRIFT_HYBRID' 
           ele_out%key = drift$
         else
@@ -250,7 +251,7 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
     ele_in => r_in%ele(j_in)    
     if (keep_ele(j_in)) then
       i_out = i_out + 1
-      if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out)
+      if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out%ele)
       ele_out => r_out%ele(i_out)
       ix_out(j_in) = i_out
       ele_out = ele_in

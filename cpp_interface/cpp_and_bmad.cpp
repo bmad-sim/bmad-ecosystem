@@ -395,14 +395,14 @@ C_wake& C_wake::operator= (const C_wake& c) {
 //---------------------------------------------------------------------------
 // control
 
-extern "C" void control_to_f2_(control_struct*, Re&, Int&, Int&, Int&);
+extern "C" void control_to_f2_(control_struct*, Re&, Int&, Int&, Int&, Int&);
 
 extern "C" void control_to_f_(C_control& c, control_struct* f) {
-  control_to_f2_(f, c.coef, c.ix_lord, c.ix_slave, c.ix_attrib);
+  control_to_f2_(f, c.coef, c.ix_lord, c.ix_slave, c.ix_photon_line, c.ix_attrib);
 }
 
-extern "C" void control_to_c2_(C_control& c, Re& coef, Int& il, Int& is, Int& ia) {
-  c = C_control(coef, il, is, ia);
+extern "C" void control_to_c2_(C_control& c, Re& coef, Int& il, Int& is, Int& pl, Int& ia) {
+  c = C_control(coef, il, is, pl, ia);
 }
 
 void operator>> (C_control& c, control_struct* f) {
@@ -580,7 +580,7 @@ extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char
   ReArr, ReArr, Re&, Re&, ReArr, Int&, Int&, ReArr, ReArr, Int&, ReArr, Int&, 
   Char, Int&, void*, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, 
   C_taylor&, C_wake&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
-  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
+  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
   Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
 
 extern "C" void wig_term_in_ele_to_f2_(ele_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Int&);
@@ -613,8 +613,8 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     n_sr_mode_trans, n_lr, n_wig, c.key, 
     c.sub_key, c.control_type, c.ix_value, c.n_slave, c.ix1_slave, 
     c.ix2_slave, c.n_lord, c.ic1_lord, c.ic2_lord, c.ix_pointer, 
-    c.ixx, c.ix_ele, c.mat6_calc_method, c.tracking_method, c.field_calc,
-    c.num_steps, c.integrator_order, c.ptc_kind, c.taylor_order, 
+    c.ixx, c.ix_ele, c.ix_photon_line, c.mat6_calc_method, c.tracking_method, 
+    c.field_calc, c.num_steps, c.integrator_order, c.ptc_kind, c.taylor_order, 
     c.aperture_at, c.coupler_at, c.symplectify, c.mode_flip, c.multipoles_on, 
     c.map_with_offsets, c.field_master, c.is_on, c.old_is_on, c.logic, c.on_a_girder, 
     c.csr_calc_on, c.offset_moves_aperture);
@@ -637,8 +637,8 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     taylor_struct* tlr3, taylor_struct* tlr4, taylor_struct* tlr5, 
     wake_struct* wake, Int& wake_here, Int& n_wig, Int& key, Int& sub_key, 
     Int& control, Int& ix_v, Int& n_s, Int& ix1_s, Int& ix2_s, Int& n_l, 
-    Int& ic1_l, Int& ic2_l, Int& ix_p, Int& ixx, Int& ix_e, Int& mat6_calc, 
-    Int& tracking, Int& f_calc, Int& num_s, Int& int_ord, 
+    Int& ic1_l, Int& ic2_l, Int& ix_p, Int& ixx, Int& ix_e, Int& ix_photon, 
+    Int& mat6_calc, Int& tracking, Int& f_calc, Int& num_s, Int& int_ord, 
     Int& ptc, Int& t_ord, Int& aperture_at, Int& coupler_at, Int& symp, 
     Int& flip, Int& multi, Int& rad, Int& f_master, Int& is_on, 
     Int& internal, Int& logic, Int& girder, Int& csr_calc, Int& offset_moves_ap) {
@@ -666,6 +666,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.ix_pointer            = ix_p;
   c.ixx                   = ixx;
   c.ix_ele                = ix_e;
+  c.ix_photon_line        = ix_photon;
   c.mat6_calc_method      = mat6_calc;
   c.tracking_method       = tracking;
   c.field_calc            = f_calc;
@@ -773,6 +774,7 @@ C_ele& C_ele::operator= (const C_ele& c) {
   ix_pointer           = c.ix_pointer;
   ixx                  = c.ixx;
   ix_ele               = c.ix_ele;
+  ix_photon_line       = c.ix_photon_line;
   mat6_calc_method     = c.mat6_calc_method;
   tracking_method      = c.tracking_method;
   field_calc           = c.field_calc;
@@ -798,14 +800,15 @@ C_ele& C_ele::operator= (const C_ele& c) {
 //---------------------------------------------------------------------------
 // mode_info
 
-extern "C" void mode_info_to_f2_(mode_info_struct*, Re&, Re&, Re&);
+extern "C" void mode_info_to_f2_(mode_info_struct*, Re&, Re&, Re&, Re&, Re&);
 
 extern "C" void mode_info_to_f_(C_mode_info& c, mode_info_struct* f) {
-  mode_info_to_f2_(f, c.tune, c.emit, c.chrom);
+  mode_info_to_f2_(f, c.tune, c.emit, c.chrom, c.sigma, c.sigmap);
 }
 
-extern "C" void mode_info_to_c2_(C_mode_info& c, Re& tune, Re& emit, Re& chrom) {
-  c = C_mode_info(tune, emit, chrom);
+extern "C" void mode_info_to_c2_(C_mode_info& c, Re& tune, Re& emit, Re& chrom,
+                               Re& sigma, Re& sigmap) {
+  c = C_mode_info(tune, emit, chrom, sigma, sigmap);
 }
 
 void operator>> (C_mode_info& c, mode_info_struct* f) {

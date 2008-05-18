@@ -83,7 +83,7 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == group$)    cycle
       if (i == overlay$)  cycle
       if (i == girder$)   cycle
-
+      if (i == photon_branch$) cycle
 
       attrib_array(i, superimpose$)       = 'SUPERIMPOSE'
       attrib_array(i, offset$)            = 'OFFSET'
@@ -179,6 +179,9 @@ function attribute_name (ele, ix_att) result (at_name)
     enddo
 
 !
+
+    attrib_array(photon_branch$, direction$) = 'DIRECTION'
+    attrib_array(photon_branch$, to$)        = 'TO'
 
     attrib_array(init_ele$, E_tot$)       = 'E_TOT'
     attrib_array(init_ele$, p0c$)         = 'P0C'

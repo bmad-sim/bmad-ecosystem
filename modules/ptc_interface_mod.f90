@@ -1935,7 +1935,7 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
     ptc_key%list%bsol = ele%value(ks$)
     ptc_key%list%k(2) = ele%value(k1$)
 
-  case (marker$, init_ele$)
+  case (marker$, photon_branch$, init_ele$)
     ptc_key%magnet = 'marker'
 
   case (kicker$, hkicker$, vkicker$)

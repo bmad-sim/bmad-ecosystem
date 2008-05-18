@@ -72,7 +72,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
   if (bmad_status%ok) then
     if (present(digested_read_ok)) digested_read_ok = .true.
     call set_taylor_order (lat%input_taylor_order, .false.)
-    call set_ptc (lat%E_TOT, lat%param%particle)
+    call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
     return
   endif
 
@@ -160,7 +160,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
   enddo
 
   lat%param%particle = positron$
-  lat%ele(0)%value(E_TOT$) = 0
+  lat%ele(0)%value(e_tot$) = 0
 
   lat%ele(0)%name = 'BEGINNING'     ! Beginning element
   lat%ele(0)%key = init_ele$
@@ -542,7 +542,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
     lat%a%emit = pdata(dat_indx+6)
     lat%b%emit = pdata(dat_indx+8)
 
-    if (pdata(dat_indx+3) /= 0) ele%value(E_TOT$) = &
+    if (pdata(dat_indx+3) /= 0) ele%value(e_tot$) = &
                                                   pdata(dat_indx+3) * 1e9
   endif
 
@@ -565,16 +565,16 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
   lat%name = ktext  ! ktext is global xsif variable
 
   call set_taylor_order (lat%input_taylor_order, .false.)
-  call set_ptc (lat%E_TOT, lat%param%particle)
+  call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
 
 ! Element cleanup
 
   call compute_reference_energy (lat)
   do i = 1, lat%n_ele_max
     if (ele%key == elseparator$) then
-      if (ele%value(E_TOT$) == 0) cycle
+      if (ele%value(e_tot$) == 0) cycle
       ele%value(vkick$) = ele%value(e_field$) * ele%value(l$) / &
-                                                      ele%value(E_TOT$)
+                                                      ele%value(e_tot$)
     endif
   enddo
 

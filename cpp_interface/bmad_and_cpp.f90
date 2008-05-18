@@ -861,7 +861,7 @@ type (control_struct), pointer :: f
 type (c_dummy_struct) c_control
 
 f => f_control
-call control_to_c2 (c_control, f%coef, f%ix_lord, f%ix_slave, f%ix_attrib)
+call control_to_c2 (c_control, f%coef, f%ix_lord, f%ix_slave, f%ix_photon_line, f%ix_attrib)
 
 end subroutine
 
@@ -874,7 +874,7 @@ end subroutine
 ! a Bmad control_struct. This routine is not for general use.
 !-
 
-subroutine control_to_f2 (f_control, coef, ix_lord, ix_slave, ix_attrib)
+subroutine control_to_f2 (f_control, coef, ix_lord, ix_slave, ix_photon_line, ix_attrib)
 
 use fortran_and_cpp
 use bmad_struct
@@ -884,9 +884,9 @@ implicit none
 
 type (control_struct) f_control
 real(rp) coef
-integer ix_lord, ix_slave, ix_attrib
+integer ix_lord, ix_slave, ix_photon_line, ix_attrib
 
-f_control = control_struct(coef, ix_lord, ix_slave, ix_attrib)
+f_control = control_struct(coef, ix_lord, ix_slave, ix_photon_line, ix_attrib)
 
 end subroutine
 
@@ -1342,7 +1342,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       c_logic(associated(f%wake)), n_wig, f%key, &
       f%sub_key, f%control_type, f%ix_value, f%n_slave, f%ix1_slave, &
       f%ix2_slave, f%n_lord, f%ic1_lord, f%ic2_lord, f%ix_pointer, f%ixx, &
-      f%ix_ele, f%mat6_calc_method, f%tracking_method, f%field_calc, &
+      f%ix_ele, f%ix_photon_line, f%mat6_calc_method, f%tracking_method, f%field_calc, &
       f%num_steps, f%integrator_order, f%ptc_kind, f%taylor_order, &
       f%aperture_at, f%coupler_at, f%symplectify, f%mode_flip, &
       f%multipoles_on, f%map_with_offsets, &
@@ -1365,9 +1365,9 @@ end subroutine
 ! Subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
 !    n_attrib, x, y, a, b, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
 !    a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
-!    tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, n_wig, key, sub, &
-!    con_tp, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
-!    ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, int_ord, &
+!    tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
+!    n_lr, n_wig, key, sub, con_tp, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
+!    ixp, ixx, ixe, ix_photon, m6_meth, tk_meth, f_calc, steps, int_ord, &
 !    ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad,  &
 !    f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)
 !
@@ -1378,9 +1378,9 @@ end subroutine
 subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
     n_attrib, x, y, a, b, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
     a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
-    tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, n_wig, key, sub, &
-    con_tp, ixv, nsl, ix1s, ix2s, &
-    nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
+    tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
+    n_lr, n_wig, key, sub, con_tp, ixv, nsl, ix1s, ix2s, &
+    nlrd, ic1_l, ic2_l, ixp, ixx, ixe, ix_photon, m6_meth, tk_meth, f_calc, steps, &
     int_ord, ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad, &
     f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)   
 
@@ -1399,7 +1399,7 @@ type (genfield), target :: gen
 integer n_nam, nr1, nr2, n_ab, n_const, key, sub, con_tp, ixv, nsl, ix1s, &
     ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
     int_ord, ptc, tlr_ord, aperture_at, symp, mode, mult, ex_rad, f_master, &
-    on, intern, logic, girder, csr_calc, n_typ, n_ali, n_attrib, n_des, &
+    on, intern, logic, girder, csr_calc, n_typ, n_ali, n_attrib, n_des, ix_photon, &
     n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, coupler_at, offset_moves_ap
 
 real(rp) val(n_attrib_maxx), g0(6), v0(6), m6(36), c2(4), gam, s
@@ -1445,6 +1445,7 @@ f%ic2_lord              = ic2_l
 f%ix_pointer            = ixp
 f%ixx                   = ixx
 f%ix_ele                = ixe
+f%ix_photon_line        = ix_photon
 f%mat6_calc_method      = m6_meth
 f%tracking_method       = tk_meth
 f%field_calc            = f_calc
@@ -1590,14 +1591,14 @@ type (mode_info_struct), pointer :: f
 type (c_dummy_struct) c_mode_info
 
 f => f_mode_info
-call mode_info_to_c2 (c_mode_info, f%tune, f%emit, f%chrom)
+call mode_info_to_c2 (c_mode_info, f%tune, f%emit, f%chrom, f%sigma, f%sigmap)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine mode_info_to_f2 (f_mode_info, tune, emit, chrom)
+! Subroutine mode_info_to_f2 (f_mode_info, tune, emit, chrom, sigma, sigamp)
 !
 ! Subroutine used by mode_info_to_f to convert a C++ C_mode_info into
 ! a Bmad mode_info_struct. This routine is not for general use.
@@ -1612,9 +1613,9 @@ use bmad_interface
 implicit none
 
 type (mode_info_struct) f_mode_info
-real(rp) tune, emit, chrom
+real(rp) tune, emit, chrom, sigma, sigmap
 
-f_mode_info = mode_info_struct(tune, emit, chrom)
+f_mode_info = mode_info_struct(tune, emit, chrom, sigma, sigmap)
 
 end subroutine
 
@@ -1644,23 +1645,26 @@ implicit none
 type (lat_struct), target :: f_lat
 type (lat_struct), pointer :: f
 type (c_dummy_struct) C_lat, c_ele
-integer i, n_con, n_ele
+integer i, n_con, n_ele, n_ic
 
 !
 
 f => f_lat
 
 n_con = 0
-if (associated(f%control)) n_con = size(f%control)
+if (allocated(f%control)) n_con = size(f%control)
 
 n_ele = 0
 if (associated(f%ele)) n_ele = size(f%ele)
+
+n_ic = 0
+if (allocated(f%ic)) n_ic = size(f%ic)
 
 call lat_to_c2 (C_lat, c_str(f%name), c_str(f%lattice), &
       c_str(f%input_file_name), c_str(f%title), f%a, f%b, f%z, f%param, &
       f%version, f%n_ele_track, f%n_ele_max, n_ele, &
       f%n_control_max, f%n_ic_max, f%input_taylor_order, &
-      f%ele_init, n_con, f%ic, i_size(f%ic))
+      f%ele_init, n_con, f%ic, n_ic)
 
 do i = 1, n_con
   call control_from_lat_to_c2 (C_lat, i, f%control(i))
@@ -1722,11 +1726,10 @@ call mode_info_to_f (y, f%b)
 call mode_info_to_f (z, f%z)
 call param_to_f (param, f%param)
 call ele_to_f (ele_init, f%ele_init)
-call allocate_lat_ele(f, n_maxx)
+call allocate_lat_ele(f%ele, n_maxx)
 allocate (f%control(n_con))
 allocate (f%ic(n_ic))
 f%ic = ic
-f%E_TOT => f%ele(0)%value(E_TOT$)
 
 end subroutine
 

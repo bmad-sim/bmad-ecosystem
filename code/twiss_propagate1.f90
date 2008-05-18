@@ -56,7 +56,7 @@ subroutine twiss_propagate1 (ele1, ele2)
   !---------------------------------------------------------------------
   ! markers are easy
 
-  if (ele2%key == marker$) then
+  if (ele2%key == marker$ .or. ele2%key == photon_branch$) then
     ele2%x = ele1%x
     ele2%y = ele1%y
     ele2%a = ele1%a

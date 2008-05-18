@@ -165,8 +165,8 @@ wake_out%lr(1) = lr_wake_struct (-1.0_rp, -2.0_rp, -3.0_rp, -4.0_rp, -5.0_rp, &
 wake_out%lr(2) = lr_wake_struct (-11.0_rp, -12.0_rp, -13.0_rp, -14.0_rp, -15.0_rp, &
                                 -16.0_rp, -17.0_rp, -18.0_rp, -19.0_rp, 20, .false.)
 
-control_in  = control_struct(1.0_rp, 2, 3, 4)
-control_out = control_struct(4.0_rp, 3, 2, 1)
+control_in  = control_struct(1.0_rp, 2, 3, 4, 5)
+control_out = control_struct(5.0_rp, 4, 3, 2, 1)
 
 param_in  = lat_param_struct (1.0_rp, 2.0_rp, &
       3.0_rp, mat6_a, mat6_b, 11, 12, 13, 14, 15, 16, T, F, T)
@@ -192,8 +192,8 @@ bmad_com_out = bmad_common_struct(12.0_rp, vec6_b, 13_rp, 14.0_rp, 15.0_rp, 16.0
 em_field_in  = em_field_struct (vec3_a, vec3_b, vec3_c, mat3_a, mat3_b, mat3_c, 77)
 em_field_out = em_field_struct (vec3_c, vec3_b, vec3_a, mat3_c, mat3_b, mat3_a, -77)
 
-mode_info_in   = mode_info_struct (1.0_rp, 2.0_rp, 3.0_rp)
-mode_info_out  = mode_info_struct (-1.0_rp, -2.0_rp, -3.0_rp)
+mode_info_in   = mode_info_struct (1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp)
+mode_info_out  = mode_info_struct (-1.0_rp, -2.0_rp, -3.0_rp, -4.0_rp, -5.0_rp)
 
 call init_ele (ele_in)
 call init_ele (ele_out)
@@ -292,7 +292,6 @@ allocate(lat_in%ic(6))
 lat_in%ic = nint(vec6_a)
 lat_in%ele_init = ele_in
 lat_in%ele_init%name = 'ele_init'
-lat_in%E_TOT => lat_in%ele(0)%value(E_TOT$)
 lat_in%ele(0)%ix_ele = 0
 lat_in%ele(1)%ix_ele = 1
 

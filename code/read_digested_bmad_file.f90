@@ -33,45 +33,29 @@ use multipole_mod
 
 implicit none
 
-type old_twiss_struct
-  real(rp) beta, alpha, gamma, phi, eta, etap
-  real(rp) sigma, emit
-end type  
-
-type old_lat_param_struct
-  real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
-  real(rp) total_length       ! total_length of lat
-  real(rp) growth_rate        ! growth rate/turn if not stable
-  real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.
-  real(rp) t1_no_RF(6,6)      ! Full 1-turn matrix with RF off.
-  integer particle            ! positron$, electron$, etc.
-  integer ix_lost             ! Index of element particle was lost at.
-  integer end_lost_at         ! entrance_end$ or exit_end$
-  integer lattice_type        ! linear_lattice$, etc...
-  integer ixx                 ! Integer for general use
-  logical stable              ! is closed lat stable?
-  logical aperture_limit_on   ! use apertures in tracking?
-  logical lost                ! for use in tracking
+type old_mode_info_struct
+  real(rp) tune      ! "fractional" tune in radians: 0 < tune < 2pi
+  real(rp) emit      ! Emittance.
+  real(rp) chrom     ! Chromaticity.
 end type
+type (old_mode_info_struct) old_a, old_b, old_z
 
 type (lat_struct), target, intent(inout) :: lat
-type (ele_struct), pointer :: ele
-type (old_twiss_struct) old_a, old_b, old_z
-type (old_lat_param_struct) old_param
+type (photon_line_struct), pointer :: line
 
 real(rp) value(n_attrib_maxx)
 
 integer d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
 integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios, k_max
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
-integer stat_b(12), idate_old
+integer stat_b(12), idate_old, n_line, n
 
 character(*) digested_name
 character(200) fname1, fname2, fname3, input_file_name, full_digested_name
 character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 
-logical found_it, v83, v84, v85, v86, v_old, mode3
+logical found_it, v85, v86, v87, v_old, mode3, error
 
 ! init all elements in lat
 
@@ -92,11 +76,11 @@ open (unit = d_unit, file = full_digested_name, status = 'old',  &
 
 read (d_unit, err = 9100) n_files, version
 
-v83 = (version == 83)
-v84 = (version == 84)
 v85 = (version == 85)
 v86 = (version == 86)
-v_old = v83 .or. v84 .or. v85
+v87 = (version == 87)
+
+v_old = v85 .or. v86
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -137,7 +121,7 @@ do i = 1, n_files
       bmad_status%ok = .false.
     endif
     cycle
- endif
+  endif
 
   if (fname1 == '!RAN FUNCTION WAS CALLED') then
     if (bmad_status%type_out) call out_io(s_warn$, r_name, &
@@ -158,33 +142,30 @@ do i = 1, n_files
 #ifndef CESR_VMS 
     ierr = stat(fname2, stat_b)
 #endif
-   endif
-   inquire (file = fname2, exist = found_it, name = fname3)
-   call simplify_path (fname3, fname3)
-   if (.not. found_it .or. fname1 /= fname3 .or. stat_b(10) /= idate_old) then
-     if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
+  endif
+  inquire (file = fname2, exist = found_it, name = fname3)
+  call simplify_path (fname3, fname3)
+  if (.not. found_it .or. fname1 /= fname3 .or. stat_b(10) /= idate_old) then
+    if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
                                       r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
-     bmad_status%ok = .false.
-   endif
+    bmad_status%ok = .false.
+  endif
 
- enddo
+enddo
 
 ! we read (and write) the lat in pieces since it is
 ! too big to write in one piece
 
-if (v83 .or. v84) then
+if (v85 .or. v86) then
   read (d_unit, err = 9100)  &   
             lat%name, lat%lattice, lat%input_file_name, lat%title, &
-            lat%a, lat%b, lat%z, old_param, lat%version, lat%n_ele_track, &
+            old_a, old_b, old_z, lat%param, lat%version, lat%n_ele_track, &
             lat%n_ele_track, lat%n_ele_max, &
             lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
-  
-  lat%param%n_part            = old_param%n_part
-  lat%param%total_length      = old_param%total_length
-  lat%param%particle          = old_param%particle
-  lat%param%lattice_type      = old_param%lattice_type
-  lat%param%aperture_limit_on = old_param%aperture_limit_on
-  
+  lat%a%chrom = old_a%chrom; lat%a%emit = old_a%emit; lat%a%tune = old_a%tune
+  lat%b%chrom = old_b%chrom; lat%b%emit = old_b%emit; lat%b%tune = old_b%tune
+  lat%z%chrom = old_z%chrom; lat%z%emit = old_z%emit; lat%z%tune = old_z%tune
+
 else
   read (d_unit, err = 9100)  &   
             lat%name, lat%lattice, lat%input_file_name, lat%title, &
@@ -195,181 +176,15 @@ endif
 
 ! %control and %ic are allocated to the same length for convenience.
 
-call allocate_lat_ele(lat, lat%n_ele_max+100)
+call allocate_lat_ele(lat%ele, lat%n_ele_max+100)
 allocate (lat%control(lat%n_control_max+100))
 allocate (lat%ic(lat%n_control_max+100))
 
 !
 
 do i = 0, lat%n_ele_max
-
-  ele => lat%ele(i)
-
-  if (v83) then
-    read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
-            old_a, old_b, old_z, ele%value(1:55), ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
-            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
-            ele%taylor_order, ele%symplectify, ele%mode_flip, &
-            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_a_girder, ele%csr_calc_on
-  elseif (v84) then
-    read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
-            old_a, old_b, old_z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
-            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
-            ele%taylor_order, ele%symplectify, ele%mode_flip, &
-            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
-            ele%ref_orb_in%vec, ele%ref_orb_out%vec
-  elseif (v85) then
-    read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
-            ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
-            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
-            ele%taylor_order, ele%symplectify, ele%mode_flip, &
-            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
-            ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture
-
-    read (d_unit, err = 9100) k_max
-    read (d_unit, err = 9100) ix_value(1:k_max), value(1:k_max)
-    do k = 1, k_max
-      ele%value(ix_value(k)) = value(k)
-    enddo
-
-  elseif (v86) then
-    read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
-            ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
-            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
-            ele%taylor_order, ele%symplectify, ele%mode_flip, &
-            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
-            ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture
- 
-    read (d_unit, err = 9100) k_max
-    read (d_unit, err = 9100) ix_value(1:k_max), value(1:k_max)
-    do k = 1, k_max
-      ele%value(ix_value(k)) = value(k)
-    enddo
-
-  endif
-
-  !
-
-  if (v83 .or. v84 .or. v85) then
-    if (ele%key == wiggler$ .and. ele%value(check_sum$) == 0) &
-                                        ele%value(check_sum$) = ele%value(28)
-  endif
-
-  if (v83 .or. v84) then
-    ele%value(radius$)   = ele%value(32)
-    ele%value(p0c$)      = ele%value(44)
-    ele%value(44)        = 0
-    ele%value(x1_limit$) = ele%value(29)
-    ele%value(x2_limit$) = ele%value(29)
-    ele%value(y1_limit$) = ele%value(30)
-    ele%value(y2_limit$) = ele%value(30)
-  endif
-
-  if (v86) then
-    if (mode3) then
-      allocate(ele%mode3)
-      read (d_unit, err = 9150) ele%mode3
-    endif
-  endif
-
-  if (ix_wig /= 0) then
-    allocate (ele%wig_term(ix_wig))
-    do j = 1, ix_wig
-      read (d_unit, err = 9200) ele%wig_term(j)
-    enddo
-  endif
-
-  ! This is to cover up the change where periodic_type wigglers now have a single wig_term
-  ! where before they did not have any.
-  if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ .and. &
-                                                       .not. associated(ele%wig_term)) then
-    allocate (ele%wig_term(1))
-  endif
-
-  if (ix_const /= 0) then
-    allocate (ele%const(ix_const))
-    read (d_unit, err = 9300) ele%const
-  endif
-
-  if (any (ix_r /= 0)) then
-    allocate (ele%r(ix_r(1):ix_r(3), ix_r(2):ix_r(4)))
-    read (d_unit, err = 9400) ele%r
-  endif
-
-  if (ix_d /= 0) then
-    allocate (ele%descrip)
-    read (d_unit, err = 9500) ele%descrip
-  endif
-
-  if (ix_m /= 0) then
-    call multipole_init (ele)
-    read (d_unit, err = 9600) ele%a_pole, ele%b_pole
-  endif
-  
-  do j = 1, 6
-    if (ix_t(j) == 0) cycle
-    read (d_unit) ele%taylor(j)%ref
-    allocate (ele%taylor(j)%term(ix_t(j)))
-    do k = 1, ix_t(j)
-      read (d_unit, err = 9700) ele%taylor(j)%term(k)
-    enddo
-  enddo
-
-  ! If ix_lr is negative then it is a pointer to a previously read wake. 
-  ! See write_digested_bmad_file.
-
-  if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. ix_lr /= 0) then
-    if (ix_lr < 0) then
-      call transfer_wake (lat%ele(abs(ix_lr))%wake, ele%wake)
-
-    else
-      call init_wake (ele%wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
-      read (d_unit, err = 9800) ele%wake%sr_file
-      read (d_unit, err = 9810) ele%wake%sr_table
-      read (d_unit, err = 9840) ele%wake%sr_mode_long
-      read (d_unit, err = 9850) ele%wake%sr_mode_trans
-      read (d_unit, err = 9820) ele%wake%lr_file
-      read (d_unit, err = 9830) ele%wake%lr
-      read (d_unit, err = 9860) ele%wake%z_sr_mode_max
-    endif
-  endif
-
+  call read_this_ele(lat%ele(i), error)
+  if (error) return
 enddo
 
 !
@@ -383,6 +198,26 @@ do i = 1, lat%n_ic_max
 enddo
 
 read (d_unit, iostat = ios) lat%beam_start
+
+! read photon lines
+
+if (version > 86) then
+  read (d_unit, err = 9100) n_line
+  if (n_line > 0) then
+    allocate(lat%photon_line(n_line))
+    do i = 1, n_line
+      line => lat%photon_line(i)
+      line%ix_photon_line = i
+      read (d_unit) line%ix_from_line, line%ix_from_ele, line%n_ele_track, n
+      do j = 0, n
+        call read_this_ele (line%ele(j), error)
+        if (error) return
+      enddo
+    enddo
+  endif
+endif
+
+! And finish
 
 close (d_unit)
 
@@ -399,6 +234,171 @@ endif
 close (d_unit)
 bmad_status%ok = .false.
 version = -1
+return
+
+!--------------------------------------------------------------
+
+9100  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.')
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+!-----------------------------------------------------------------------------------
+contains
+
+subroutine read_this_ele (ele, error)
+
+type (ele_struct) ele
+logical error
+
+!
+
+error = .true.
+
+if (v85) then
+  read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+          ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
+          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+          ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+          ele%num_steps, ele%integrator_order, ele%ptc_kind, &
+          ele%taylor_order, ele%symplectify, ele%mode_flip, &
+          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+          ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
+          ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture
+
+elseif (v86) then
+  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+          ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
+          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+          ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+          ele%num_steps, ele%integrator_order, ele%ptc_kind, &
+          ele%taylor_order, ele%symplectify, ele%mode_flip, &
+          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+          ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
+          ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture
+ 
+elseif (version > 86) then
+  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+          ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
+          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+          ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+          ele%num_steps, ele%integrator_order, ele%ptc_kind, &
+          ele%taylor_order, ele%symplectify, ele%mode_flip, &
+          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+          ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
+          ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture, &
+          ele%ix_photon_line
+ 
+endif
+
+! Decompress value array
+
+read (d_unit, err = 9100) k_max
+read (d_unit, err = 9100) ix_value(1:k_max), value(1:k_max)
+do k = 1, k_max
+  ele%value(ix_value(k)) = value(k)
+enddo
+
+!
+
+if (v85) then
+  if (ele%key == wiggler$ .and. ele%value(check_sum$) == 0) &
+                                        ele%value(check_sum$) = ele%value(28)
+endif
+
+if (version > 85) then
+  if (mode3) then
+    allocate(ele%mode3)
+    read (d_unit, err = 9150) ele%mode3
+  endif
+endif
+
+if (ix_wig /= 0) then
+  allocate (ele%wig_term(ix_wig))
+  do j = 1, ix_wig
+    read (d_unit, err = 9200) ele%wig_term(j)
+  enddo
+endif
+
+! This is to cover up the change where periodic_type wigglers now have a single wig_term
+! where before they did not have any.
+
+if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ .and. &
+                                                       .not. associated(ele%wig_term)) then
+  allocate (ele%wig_term(1))
+endif
+
+if (ix_const /= 0) then
+  allocate (ele%const(ix_const))
+  read (d_unit, err = 9300) ele%const
+endif
+
+if (any (ix_r /= 0)) then
+  allocate (ele%r(ix_r(1):ix_r(3), ix_r(2):ix_r(4)))
+  read (d_unit, err = 9400) ele%r
+endif
+
+if (ix_d /= 0) then
+  allocate (ele%descrip)
+  read (d_unit, err = 9500) ele%descrip
+endif
+
+if (ix_m /= 0) then
+  call multipole_init (ele)
+  read (d_unit, err = 9600) ele%a_pole, ele%b_pole
+endif
+  
+do j = 1, 6
+  if (ix_t(j) == 0) cycle
+  read (d_unit) ele%taylor(j)%ref
+  allocate (ele%taylor(j)%term(ix_t(j)))
+  do k = 1, ix_t(j)
+    read (d_unit, err = 9700) ele%taylor(j)%term(k)
+  enddo
+enddo
+
+! If ix_lr is negative then it is a pointer to a previously read wake. 
+! See write_digested_bmad_file.
+
+if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. ix_lr /= 0) then
+  if (ix_lr < 0) then
+    call transfer_wake (lat%ele(abs(ix_lr))%wake, ele%wake)
+
+  else
+    call init_wake (ele%wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
+    read (d_unit, err = 9800) ele%wake%sr_file
+    read (d_unit, err = 9810) ele%wake%sr_table
+    read (d_unit, err = 9840) ele%wake%sr_mode_long
+    read (d_unit, err = 9850) ele%wake%sr_mode_trans
+    read (d_unit, err = 9820) ele%wake%lr_file
+    read (d_unit, err = 9830) ele%wake%lr
+    read (d_unit, err = 9860) ele%wake%z_sr_mode_max
+  endif
+endif
+
+error = .false.
+
 return
 
 !--------------------------------------------------------------
@@ -536,5 +536,7 @@ endif
 close (d_unit)
 bmad_status%ok = .false.
 return
+
+end subroutine
 
 end subroutine

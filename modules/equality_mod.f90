@@ -665,7 +665,6 @@ is_eq = is_eq .and. (f1%ele_init == f2%ele_init)
 is_eq = is_eq .and. (size(f1%ele) == size(f2%ele)) 
 is_eq = is_eq .and. (size(f1%control) == size(f2%control)) 
 is_eq = is_eq .and. (size(f1%ic) == size(f2%ic)) 
-is_eq = is_eq .and. (f1%E_TOT == f2%E_TOT)
 
 if (.not. is_eq) return
 

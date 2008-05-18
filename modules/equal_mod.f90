@@ -255,59 +255,61 @@ subroutine lat_equal_lat (lat_out, lat_in)
 ! a problem somewhere
 
   if (.not. associated (lat_in%ele)) then
-    print *, 'ERROR IN lat_equal_lat: LAT%ele(:) ON RHS NOT ASSOCIATED!'
+    print *, 'ERROR IN lat_EQUAL_LAT: LAT%ELE(:) ON RHS NOT ASSOCIATED!'
     call err_exit
   endif
 
 ! resize %ele array if needed
 
   if (ubound(lat_out%ele, 1) < ubound(lat_in%ele, 1)) &
-               call allocate_lat_ele(lat_out, ubound(lat_in%ele, 1))
+               call allocate_lat_ele(lat_out%ele, ubound(lat_in%ele, 1))
   
-  do i = 0, lat_in%n_ele_max
-    lat_out%ele(i) = lat_in%ele(i)
-  enddo
+  lat_out%ele = lat_in%ele
   lat_out%ele_init = lat_in%ele_init
 
 ! handle lat%control array
 
-  n = size(lat_in%control)
-  if (associated (lat_in%control)) then
-    if (associated(lat_out%control)) then
-      if (size (lat_in%control) < size (lat_out%control)) then
-        lat_out%control(1:n) = lat_in%control(1:n)
-      else
-        deallocate (lat_out%control)
-        allocate (lat_out%control(n))
-        lat_out%control = lat_in%control
-      endif
-    else
+  if (allocated (lat_in%control)) then
+    n = size(lat_in%control)
+    if (.not. allocated(lat_out%control)) allocate(lat_out%control(n))
+    if (size(lat_in%control) /= size(lat_out%control)) then
+      deallocate (lat_out%control)
       allocate (lat_out%control(n))
-      lat_out%control = lat_in%control
     endif
+    lat_out%control = lat_in%control
   else
-    if (associated(lat_out%control)) deallocate (lat_out%control)
+    if (allocated(lat_out%control)) deallocate (lat_out%control)
   endif
 
 ! handle lat%ic array
 
-  n = size(lat_in%ic)
-  if (associated (lat_in%ic)) then
-    if (associated(lat_out%ic)) then
-      if (size (lat_in%ic) < size (lat_out%ic)) then
-        lat_out%ic(1:n) = lat_in%ic(1:n)
-      else
-        deallocate (lat_out%ic)
-        allocate (lat_out%ic(n))
-        lat_out%ic = lat_in%ic
-      endif
-    else
-      allocate (lat_out%ic(n))
-      lat_out%ic = lat_in%ic
-    endif
+  if (allocated(lat_in%ic)) then
+    call re_allocate(lat_out%ic, size(lat_in%ic))
+    lat_out%ic = lat_in%ic
   else
-    if (associated(lat_out%ic)) deallocate (lat_out%ic)
+    if (allocated(lat_out%ic)) deallocate (lat_out%ic)
   endif
+
+! photon lines
+
+  if (allocated (lat_in%photon_line)) then
+    n = size(lat_in%photon_line)
+    if (.not. allocated(lat_out%photon_line)) allocate(lat_out%photon_line(n))
+    if (size(lat_in%photon_line) /= size(lat_out%photon_line)) then
+      call deallocate_photon_line (lat_out%photon_line)
+      allocate (lat_out%photon_line(n))
+    endif
+
+    do i = 1, n
+      call allocate_lat_ele (lat_out%photon_line(i)%ele, ubound(lat_in%photon_line(i)%ele, 1))
+      lat_out%photon_line(i)%ele = lat_in%photon_line(i)%ele
+    enddo
+
+  else
+    if (allocated(lat_out%photon_line)) deallocate (lat_out%photon_line)
+  endif
+
+
 
 ! non-pointer transfer
 

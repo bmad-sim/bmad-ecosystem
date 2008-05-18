@@ -41,7 +41,7 @@ subroutine track1_particle (start, ele, param, end)
 
   end = start
   if (start%ix_lost /= not_lost$) return
-  if (ele%key == marker$) return
+  if (ele%key == marker$ .or. ele%key == photon_branch$) return
 
   call track1 (start%r, ele, param, end%r)
   if (param%lost) end%ix_lost = ele%ix_ele

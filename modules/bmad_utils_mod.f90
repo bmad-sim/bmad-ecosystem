@@ -21,6 +21,54 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Subroutine pointer_to_ele (lat, ix_line, ix_ele, ele)
+! 
+! Subroutine to point to a given element.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   lat     -- Lat_struct: Structure holding the element.
+!   ix_line -- Integer: Line number. 0 => main lattice.
+!   ix_ele  -- Integer: Element index in the line.
+!
+! Output:
+!   ele   -- Ele_struct, pointer: Pointer to the element. Null if does not exist
+!-
+
+subroutine pointer_to_ele (lat, ix_line, ix_ele, ele)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele
+
+integer ix_line, ix_ele
+
+!
+
+nullify(ele)
+
+if (ix_line == 0) then
+  if (ix_ele < 0 .or. ix_ele > lat%n_ele_max) return
+  ele => lat%ele(ix_ele)
+  return
+endif
+
+if (.not. allocated(lat%photon_line)) return
+
+if (ix_line < 0 .or. ix_line > size(lat%photon_line)) return
+if (ix_ele < 0 .or. ix_ele > lat%photon_line(ix_line)%n_ele_track) return
+
+ele => lat%photon_line(ix_line)%ele(ix_ele)
+
+end subroutine
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine init_coord (orb, vec)
 ! 
 ! Subroutine to initialize a coord_struct.
@@ -538,7 +586,7 @@ subroutine init_lat (lat, n)
 !
 
   call deallocate_lat_pointers (lat)
-  call allocate_lat_ele(lat, n)
+  call allocate_lat_ele(lat%ele, n)
   call init_ele (lat%ele_init)
 
   allocate (lat%control(1000))
@@ -859,7 +907,7 @@ subroutine reallocate_control(lat, n)
 
 !
 
-  if (.not. associated(lat%control)) then
+  if (.not. allocated(lat%control)) then
     allocate (lat%control(n), lat%ic(n))
     return
   endif
@@ -1030,6 +1078,7 @@ subroutine init_ele (ele)
   ele%n_slave = 0
   ele%ix_pointer = 0
   ele%s = 0
+  ele%ix_photon_line = 0
 
   ele%floor%x = 0
   ele%floor%y = 0
@@ -1108,64 +1157,69 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine allocate_lat_ele (lat, des_size)
+! Subroutine allocate_lat_ele (ele, upper_bound)
 !
-! Subroutine to allocate or re-allocate the ele pointer in a lat.
-! The upper bound of lat%ele(0:n) will be des_size if it is present
-! or the maximum of: (1000, 1.3*lat%ele(:)).
+! Subroutine to allocate or re-allocate an element array.
+! The lower bound is always 0.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   lat     -- lat_struct: Lat with del pointer.
-!   des_size -- integer, Optional: Optional desired upper bound for 
-!                 lat%ele(:).
+!   ele(:)      -- Ele_struct, pointer: Element array.
+!   upper_bound -- Integer, Optional: Optional desired upper bound.
+!                    Default: maximum (1000, 1.3*ele(:)).
 !
 ! Output:
-!   lat     -- lat_struct: Lat with re-allocated %ele(:) pointer. 
+!   ele(:)      -- Ele_struct, pointer: Element array.
 !-
 
-subroutine allocate_lat_ele (lat, des_size)
+subroutine allocate_lat_ele (ele, upper_bound)
 
   implicit none
 
-  type (lat_struct) lat
-  integer, optional :: des_size
+  type (ele_struct), pointer :: ele(:)
+  integer, optional :: upper_bound
 
   type (ele_struct), pointer :: temp_ele(:)
-  integer curr_n_ele, desired_size, i
+  integer curr_lb, curr_ub, lb, ub, i
+
+  character(20) :: r_name = 'allocate_lat_ele'
 
 ! get new size
 
-  desired_size = 1000
-  if (associated (lat%ele)) &
-        desired_size = max (int(1.3*size(lat%ele)), desired_size)
-  if (present(des_size))  desired_size = des_size
+  ub = 1000
+  if (associated (ele)) ub = max (int(1.3*size(ele)), ub)
+  if (present(upper_bound))  ub = upper_bound
 
-!  save lat%ele if present
+  lb = 0
 
-  if (associated (lat%ele)) then
-    curr_n_ele = size (lat%ele) - 1
-    allocate (temp_ele(0:curr_n_ele))
-    call transfer_eles (lat%ele, temp_ele)
-    deallocate (lat%ele)
-    allocate(lat%ele(0:desired_size))
-    call transfer_eles (temp_ele(0:curr_n_ele), lat%ele(0:curr_n_ele))
+!  save ele if present
+
+  if (associated (ele)) then
+    curr_lb = lbound(ele, 1)
+    curr_ub = ubound(ele, 1)
+    if (curr_ub > ub) then
+      call out_io (s_fatal$, r_name, 'UPPER BOUND IS SMALLER THAN CURRENT BOUND!')
+      call err_exit
+    endif
+    allocate (temp_ele(curr_lb:curr_ub))
+    call transfer_eles (ele, temp_ele)
+    deallocate (ele)
+    allocate(ele(lb:ub))
+    call transfer_eles (temp_ele(curr_lb:curr_ub), ele(curr_lb:curr_ub))
     deallocate (temp_ele)
   else
-    curr_n_ele = -1
-    allocate(lat%ele(0:desired_size))
+    curr_ub = lb - 1
+    allocate(ele(lb:ub))
   endif
 
 ! 
 
-  do i = curr_n_ele+1, desired_size
-    call init_ele (lat%ele(i))
-    lat%ele(i)%ix_ele = i
+  do i = curr_ub+1, ub
+    call init_ele (ele(i))
+    ele(i)%ix_ele = i
   end do
-
-  lat%E_TOT => lat%ele(0)%value(E_TOT$)
 
 end subroutine
 
@@ -1197,20 +1251,88 @@ subroutine deallocate_lat_pointers (lat)
 !
 
   if (associated (lat%ele)) then
-
-    do i = lbound(lat%ele, 1), ubound(lat%ele, 1)
-      call deallocate_ele_pointers (lat%ele(i))
-    enddo
+    call deallocate_ele_array_pointers (lat%ele)
     call deallocate_ele_pointers (lat%ele_init)
-
-    deallocate (lat%ele)
     deallocate (lat%control)
     deallocate (lat%ic)
-
   endif
+
+  call deallocate_photon_line (lat%photon_line)
 
   lat%n_ele_track  = -1
   lat%n_ele_max  = -1
+
+end subroutine
+
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!+
+! Subroutine deallocate_photon_line (photon_line)
+!
+! Subroutine to deallocate a photon_line array and everything in it.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   photon_line(:) -- Photon_line_struct, allocatable: Array of lines.
+!
+! Output:
+!   Photon_line(:) -- Photon_line_struct, allocatable: Deallocated array.
+!-
+
+subroutine deallocate_photon_line (photon_line)
+
+implicit none
+
+type (photon_line_struct), allocatable :: photon_line(:)
+integer i
+
+!
+
+  if (allocated (photon_line)) then
+    do i = 1, ubound(photon_line, 1)
+      call deallocate_ele_array_pointers (photon_line(i)%ele)
+    enddo
+    deallocate (photon_line)
+  endif
+
+end subroutine
+
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!+
+! Subroutine deallocate_ele_array_pointers (eles)
+!
+! Routine to deallocate the pointers of all the elements in an 
+! element array and the array itself.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   eles(:) -- Ele_struct, pointer: Array of elements.
+!
+! Output:
+!   eles(:) -- Ele_struct, pointer: Deallocated array.
+!-
+
+subroutine deallocate_ele_array_pointers (eles)
+
+implicit none
+
+type (ele_struct), pointer :: eles(:)
+integer i
+
+!
+
+do i = lbound(eles, 1), ubound(eles, 1)
+  call deallocate_ele_pointers (eles(i))
+enddo
+
+deallocate (eles)
 
 end subroutine
 

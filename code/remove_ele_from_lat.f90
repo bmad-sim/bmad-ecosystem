@@ -26,7 +26,7 @@ subroutine remove_ele_from_lat (lat, ix_ele)
 
   type (lat_struct) lat
   integer, optional :: ix_ele
-  integer i, j, ix, n_remove
+  integer i, j, n, ix, n_remove
   real(rp) length
   character(20) :: r_name = 'remove_ele_from_lat'
 
@@ -71,13 +71,21 @@ subroutine remove_ele_from_lat (lat, ix_ele)
 
   enddo
 
+  if (allocated(lat%photon_line)) then
+    do n = 1, size(lat%photon_line)
+      if (lat%photon_line(n)%ix_from_line /= 0) cycle
+      ix = lat%photon_line(n)%ix_from_ele
+      lat%photon_line(n)%ix_from_ele = lat%ele(ix)%ix_ele
+    enddo
+  endif
+
 ! Remove the elements
 
   do i = 1, lat%n_ele_max
     ix = lat%ele(i)%ix_ele 
     if (ix == i .or. ix == 0) cycle
     lat%ele(ix) = lat%ele(i)
-    lat%ele(ix)%ix_ele = ix  ! Need this sice "=" does not transfer ix_ele
+    lat%ele(ix)%ix_ele = ix  ! Need this since "=" does not transfer ix_ele
   enddo
 
   do i = lat%n_ele_max-n_remove+1, lat%n_ele_max

@@ -21,221 +21,247 @@
 subroutine write_digested_bmad_file (digested_name, lat,  &
                                                   n_files, file_names)
 
-  use bmad_struct
-  use equality_mod, only: operator(==)
-  use bmad_parser_mod, except_dummy => write_digested_bmad_file
+use bmad_struct
+use equality_mod, only: operator(==)
+use bmad_parser_mod, except_dummy => write_digested_bmad_file
 
-  implicit none
+implicit none
 
-  type (lat_struct), target, intent(in) :: lat
-  type (ele_struct), pointer :: ele
-  type (taylor_struct), pointer :: tt(:)
-  type (wake_struct), pointer :: wake
+type (lat_struct), target, intent(in) :: lat
+type (photon_line_struct), pointer :: line
   
-  real(rp) value(n_attrib_maxx)
+real(rp) value(n_attrib_maxx)
 
-  integer, intent(in), optional :: n_files
-  integer d_unit, i, j, k, n_file, ix_value(n_attrib_maxx)
-  integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
-  integer stat_b(12), stat, n_wake
-  integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr
-  integer :: ix_wake(lat%n_ele_max)
+integer, intent(in), optional :: n_files
+integer d_unit, i, j, k, n_file, ix_value(n_attrib_maxx)
+integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
+integer stat_b(12), stat, n_wake
+integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr
+integer :: ix_wake(lat%n_ele_max)
 
-  character(*) digested_name
-  character(*), optional :: file_names(:)
-  character(200) fname, full_digested_name
-  character(32) :: r_name = 'write_digested_bmad_file'
+character(*) digested_name
+character(*), optional :: file_names(:)
+character(200) fname, full_digested_name
+character(32) :: r_name = 'write_digested_bmad_file'
 
-  logical write_wake, mode3
+logical write_wake, mode3
 
-  external stat
+external stat
 
 ! Write input file names to the digested file
 ! The idea is that read_digested_bmad_file can look at these files and see
 ! if a file has been modified since the digested file has been created.
 ! Additionally record if one of the random number functions was called.
 
-  n_file = 0
-  if (present(n_files)) n_file = n_files
+n_file = 0
+if (present(n_files)) n_file = n_files
 
-  d_unit = lunget()
+d_unit = lunget()
 
-  call fullfilename (digested_name, full_digested_name)
-  inquire (file = full_digested_name, name = full_digested_name)
-  open (unit = d_unit, file = full_digested_name, form = 'unformatted', err = 9000)
+call fullfilename (digested_name, full_digested_name)
+inquire (file = full_digested_name, name = full_digested_name)
+open (unit = d_unit, file = full_digested_name, form = 'unformatted', err = 9000)
 
 ! Ran function called?
 
-  if (bp_com%ran_function_was_called) then
-    write (d_unit, err = 9010) n_file+2, bmad_inc_version$
-    fname = '!RAN FUNCTION WAS CALLED'
-    write (d_unit) fname, 0
-  else
-    write (d_unit, err = 9010) n_file+1, bmad_inc_version$
-  endif
+if (bp_com%ran_function_was_called) then
+  write (d_unit, err = 9010) n_file+2, bmad_inc_version$
+  fname = '!RAN FUNCTION WAS CALLED'
+  write (d_unit) fname, 0
+else
+  write (d_unit, err = 9010) n_file+1, bmad_inc_version$
+endif
 
 ! Write digested file name
 
-  stat_b = 0
+stat_b = 0
 #ifndef CESR_VMS 
-  ierr = stat(full_digested_name, stat_b)
+ierr = stat(full_digested_name, stat_b)
 #endif
-  fname = '!DIGESTED:' // full_digested_name
-  write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
+fname = '!DIGESTED:' // full_digested_name
+write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
  
 ! write other file names.
 
-  do j = 1, n_file
-    fname = file_names(j)
-    stat_b = 0
+do j = 1, n_file
+  fname = file_names(j)
+  stat_b = 0
 #ifndef CESR_VMS 
-    ierr = stat(fname, stat_b)
+  ierr = stat(fname, stat_b)
 #endif
-    write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
-  enddo
+  write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
+enddo
 
 ! Write the lat structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
 
-  write (d_unit) &
-          lat%name, lat%lattice, lat%input_file_name, lat%title, &
-          lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
-          lat%n_ele_track, lat%n_ele_max, &
-          lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
+write (d_unit) &
+        lat%name, lat%lattice, lat%input_file_name, lat%title, &
+        lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
+        lat%n_ele_track, lat%n_ele_max, &
+        lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
   
-  n_wake = 0  ! number of wakes written to the digested file.
+n_wake = 0  ! number of wakes written to the digested file.
 
-  do i = 0, lat%n_ele_max
-  
-    ele => lat%ele(i)
-    tt => ele%taylor
-    
-    ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_const = 0; ix_r = 0
-    ix_sr_table = 0; ix_sr_mode_long = 0; ix_sr_mode_trans = 0; ix_lr = 0
-    mode3 = .false.
-
-    if (associated(ele%mode3)) mode3 = .true.
-    if (associated(ele%wig_term)) ix_wig = size(ele%wig_term)
-    if (associated(ele%const))    ix_const = size(ele%const)
-    if (associated(ele%r))        ix_r = (/ lbound(ele%r), ubound(ele%r) /)
-    if (associated(ele%descrip))  ix_d = 1
-    if (associated(ele%a_pole))        ix_m = 1
-    if (associated(tt(1)%term))   ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
-
-    ! Since some large lattices with a large number of wakes can take a lot of time writing 
-    ! the wake info we only write a wake when needed.
-    ! The idea is that ix_lr serves as a pointer to a previously written wake.
-
-    write_wake = .true.
-    if (associated(ele%wake)) then
-      do j = 1, n_wake
-        if (.not. lat%ele(ix_wake(j))%wake == ele%wake) cycle
-        write_wake = .false.
-        ix_lr = -ix_wake(j)        
-      enddo
-
-      if (write_wake) then
-        if (associated(ele%wake%sr_table))      ix_sr_table      = size(ele%wake%sr_table)
-        if (associated(ele%wake%sr_mode_long))  ix_sr_mode_long  = size(ele%wake%sr_mode_long)
-        if (associated(ele%wake%sr_mode_trans)) ix_sr_mode_trans = size(ele%wake%sr_mode_trans)
-        if (associated(ele%wake%lr))            ix_lr            = size(ele%wake%lr)
-        n_wake = n_wake + 1
-        ix_wake(n_wake) = i
-      endif
-    endif
-
-    ! Now write the element info
-
-    write (d_unit) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-            ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
-            ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
-            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
-            ele%taylor_order, ele%symplectify, ele%mode_flip, &
-            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-            ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
-            ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture
-
-    ! This compresses the ele%value array
-
-    k = 0
-    do j = 1, size(ele%value)
-      if (ele%value(j) == 0) cycle
-      k = k + 1
-      value(k) = ele%value(j)
-      ix_value(k) = j
-    enddo
-    write (d_unit) k
-    write (d_unit) ix_value(1:k), value(1:k)
-
-    ! 
-
-    if (mode3) write (d_unit) ele%mode3
-
-    do j = 1, ix_wig
-      write (d_unit) ele%wig_term(j)
-    enddo
-
-    if (associated(ele%const))    write (d_unit) ele%const
-    if (associated(ele%r))        write (d_unit) ele%r
-    if (associated(ele%descrip))  write (d_unit) ele%descrip
-    if (associated(ele%a_pole))        write (d_unit) ele%a_pole, ele%b_pole
-    
-    do j = 1, 6
-      if (ix_t(j) == 0) cycle
-      write (d_unit) tt(j)%ref
-      do k = 1, ix_t(j)
-        write (d_unit) tt(j)%term(k)
-      enddo
-    enddo
-
-    if (associated(ele%wake) .and. write_wake) then
-      write (d_unit) ele%wake%sr_file
-      write (d_unit) ele%wake%sr_table
-      write (d_unit) ele%wake%sr_mode_long
-      write (d_unit) ele%wake%sr_mode_trans
-      write (d_unit) ele%wake%lr_file
-      write (d_unit) ele%wake%lr
-      write (d_unit) ele%wake%z_sr_mode_max
-    endif
-
-  enddo
+do i = 0, lat%n_ele_max
+  call write_this_ele (lat%ele(i))
+enddo
 
 ! write the control info, etc
 
-  do i = 1, lat%n_control_max
-    write (d_unit) lat%control(i)
+do i = 1, lat%n_control_max
+  write (d_unit) lat%control(i)
+enddo
+
+do i = 1, lat%n_ic_max
+  write (d_unit) lat%ic(i)
+enddo
+
+write (d_unit) lat%beam_start
+
+! Write the photon line info
+
+if (allocated(lat%photon_line)) then
+  write (d_unit) size(lat%photon_line)
+  do i = 1, size(lat%photon_line)
+    line => lat%photon_line(i)
+    write (d_unit) line%ix_from_line, line%ix_from_ele, line%n_ele_track, ubound(line%ele, 1)
+    do j = 0, ubound(line%ele, 1)
+      call write_this_ele(line%ele(j))
+    enddo
   enddo
+else 
+  write (d_unit) 0
+endif
 
-  do i = 1, lat%n_ic_max
-    write (d_unit) lat%ic(i)
-  enddo
+close (d_unit)
 
-  write (d_unit) lat%beam_start
-
-  close (d_unit)
-
-  return
+return
 
 ! Errors
 
 9000  print *
-  print *, 'WRITE_DIGESTED_BMAD_FILE: NOTE: CANNOT OPEN FILE FOR OUTPUT:'
-  print *, '    ', trim(digested_name)
-  print *, '     [This does not affect program operation]'
-  return
+print *, 'WRITE_DIGESTED_BMAD_FILE: NOTE: CANNOT OPEN FILE FOR OUTPUT:'
+print *, '    ', trim(digested_name)
+print *, '     [This does not affect program operation]'
+return
 
 9010  print *
-  print *, 'WRITE_DIGESTED_BMAD_FILE: NOTE: CANNOT WRITE TO FILE FOR OUTPUT:'
-  print *, '    ', trim(digested_name)
-  print *, '     [This does not affect program operation]'
-  close (d_unit)
-  return
+print *, 'WRITE_DIGESTED_BMAD_FILE: NOTE: CANNOT WRITE TO FILE FOR OUTPUT:'
+print *, '    ', trim(digested_name)
+print *, '     [This does not affect program operation]'
+close (d_unit)
+return
+
+!-------------------------------------------------------------------------------------
+contains
+
+subroutine write_this_ele (ele)
+
+type (ele_struct), target :: ele
+type (taylor_struct), pointer :: tt(:)
+type (wake_struct), pointer :: wake
+
+!
+
+tt => ele%taylor
+    
+ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_const = 0; ix_r = 0
+ix_sr_table = 0; ix_sr_mode_long = 0; ix_sr_mode_trans = 0; ix_lr = 0
+mode3 = .false.
+
+if (associated(ele%mode3)) mode3 = .true.
+if (associated(ele%wig_term)) ix_wig = size(ele%wig_term)
+if (associated(ele%const))    ix_const = size(ele%const)
+if (associated(ele%r))        ix_r = (/ lbound(ele%r), ubound(ele%r) /)
+if (associated(ele%descrip))  ix_d = 1
+if (associated(ele%a_pole))        ix_m = 1
+if (associated(tt(1)%term))   ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
+
+! Since some large lattices with a large number of wakes can take a lot of time writing 
+! the wake info we only write a wake when needed.
+! The idea is that ix_lr serves as a pointer to a previously written wake.
+
+write_wake = .true.
+if (associated(ele%wake)) then
+  do j = 1, n_wake
+    if (.not. lat%ele(ix_wake(j))%wake == ele%wake) cycle
+    write_wake = .false.
+    ix_lr = -ix_wake(j)        
+  enddo
+
+  if (write_wake) then
+    if (associated(ele%wake%sr_table))      ix_sr_table      = size(ele%wake%sr_table)
+    if (associated(ele%wake%sr_mode_long))  ix_sr_mode_long  = size(ele%wake%sr_mode_long)
+    if (associated(ele%wake%sr_mode_trans)) ix_sr_mode_trans = size(ele%wake%sr_mode_trans)
+    if (associated(ele%wake%lr))            ix_lr            = size(ele%wake%lr)
+    n_wake = n_wake + 1
+    ix_wake(n_wake) = i
+  endif
+endif
+
+! Now write the element info
+
+write (d_unit) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+          ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
+          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+          ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+          ele%num_steps, ele%integrator_order, ele%ptc_kind, &
+          ele%taylor_order, ele%symplectify, ele%mode_flip, &
+          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+          ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
+          ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture, &
+          ele%ix_photon_line
+
+! This compresses the ele%value array
+
+k = 0
+do j = 1, size(ele%value)
+  if (ele%value(j) == 0) cycle
+  k = k + 1
+  value(k) = ele%value(j)
+  ix_value(k) = j
+  enddo
+write (d_unit) k
+write (d_unit) ix_value(1:k), value(1:k)
+
+! 
+
+if (mode3) write (d_unit) ele%mode3
+
+do j = 1, ix_wig
+  write (d_unit) ele%wig_term(j)
+enddo
+
+if (associated(ele%const))    write (d_unit) ele%const
+if (associated(ele%r))        write (d_unit) ele%r
+if (associated(ele%descrip))  write (d_unit) ele%descrip
+if (associated(ele%a_pole))        write (d_unit) ele%a_pole, ele%b_pole
+    
+do j = 1, 6
+  if (ix_t(j) == 0) cycle
+  write (d_unit) tt(j)%ref
+  do k = 1, ix_t(j)
+    write (d_unit) tt(j)%term(k)
+  enddo
+enddo
+
+if (associated(ele%wake) .and. write_wake) then
+  write (d_unit) ele%wake%sr_file
+  write (d_unit) ele%wake%sr_table
+  write (d_unit) ele%wake%sr_mode_long
+  write (d_unit) ele%wake%sr_mode_trans
+  write (d_unit) ele%wake%lr_file
+  write (d_unit) ele%wake%lr
+  write (d_unit) ele%wake%z_sr_mode_max
+endif
+
+end subroutine
 
 end subroutine

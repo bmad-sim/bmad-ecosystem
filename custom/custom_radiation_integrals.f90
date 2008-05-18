@@ -5,7 +5,7 @@
 ! A valid custom_radiation_integrals is needed only if the 
 ! radiation_integrals routine is being used.
 !
-! Modules and arguments needed to construct a custom_emitt_calc routine:
+! Modules and arguments needed to construct a custom_emit_calc routine:
 !
 ! Modules needed:
 !   use rad_int_common

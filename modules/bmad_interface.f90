@@ -295,7 +295,7 @@ interface
 end interface
 
 interface
-  subroutine emitt_calc (lat, what, mode)
+  subroutine emit_calc (lat, what, mode)
     use bmad_struct, only: lat_struct, normal_modes_struct
     implicit none
     type (lat_struct) lat
@@ -621,13 +621,13 @@ interface
 end interface
 
 interface
-  subroutine phase_space_fit (x, xp, twiss, tune, emitt, x_0, xp_0, chi, tol)
+  subroutine phase_space_fit (x, xp, twiss, tune, emit, x_0, xp_0, chi, tol)
     use bmad_struct, only: rp, twiss_struct
     implicit none
     type (twiss_struct) twiss
     real(rp), optional :: tol
     real(rp) x(:), xp(:)
-    real(rp) tune, emitt
+    real(rp) tune, emit
     real(rp) x_0, xp_0, chi
   end subroutine
 end interface

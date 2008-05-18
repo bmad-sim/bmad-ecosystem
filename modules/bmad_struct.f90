@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 86
+integer, parameter :: bmad_inc_version$ = 87
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -148,7 +148,7 @@ type mode3_struct
 end type
 
 ! Ele_struct:
-! REMEMBER: If this struct is changed you have to:
+! Remember: If this struct is changed you have to:
 !     Increase bmad_inc_version by 1.
 !     Modify read_digested_bmad_file.
 !     Modify write_digested_bmad_file.
@@ -195,7 +195,8 @@ type ele_struct
   integer ic2_lord           ! Stop  index for lord elements
   integer ix_pointer         ! For general use. Not used by Bmad.
   integer ixx                ! Index for Bmad internal use
-  integer ix_ele             ! Index in lat%ele(:) array
+  integer ix_ele             ! Index in lat%ele(:) array.
+  integer ix_photon_line     ! Index in lat%photon(:) array. 0 => In lat%ele(:)
   integer mat6_calc_method   ! bmad_standard$, taylor$, etc.
   integer tracking_method    ! bmad_standard$, taylor$, etc.
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
@@ -215,17 +216,17 @@ type ele_struct
   logical logic              ! For general use. Not used by Bmad.
   logical on_a_girder        ! Have an Girder overlay_lord?
   logical csr_calc_on        ! Coherent synchrotron radiation calculation
-  logical offset_moves_aperture  ! element offsets affects aperture?
-          
+  logical offset_moves_aperture  ! element offsets affects aperture?          
 end type
 
 ! struct for element to element control
 
 type control_struct
-  real(rp) coef                  ! control coefficient
-  integer ix_lord                ! index to lord element
-  integer ix_slave               ! index to slave element
-  integer ix_attrib              ! index of attribute controlled
+  real(rp) coef                  ! Control coefficient
+  integer ix_lord                ! Index to lord element
+  integer ix_slave               ! Index to slave element
+  integer ix_photon_line         ! Index to photon line of slave
+  integer ix_attrib              ! Index of attribute controlled
 end type
 
 ! parameter and mode structures
@@ -249,8 +250,19 @@ end type
 
 type mode_info_struct
   real(rp) tune      ! "fractional" tune in radians: 0 < tune < 2pi
-  real(rp) emit      ! Emittance
-  real(rp) chrom     ! Chromaticity
+  real(rp) emit      ! Emittance.
+  real(rp) chrom     ! Chromaticity.
+  real(rp) sigma     ! Beam size.
+  real(rp) sigmap    ! Beam divergence.
+end type
+
+type photon_line_struct
+  character(40) name
+  integer ix_photon_line
+  integer ix_from_line    ! 0 => main lattice line
+  integer ix_from_ele
+  integer n_ele_track
+  type (ele_struct), pointer :: ele(:)
 end type
 
 type dummy_parameter_struct
@@ -272,17 +284,17 @@ type lat_struct
   type (mode_info_struct) a, b, z     ! Tunes, etc.
   type (lat_param_struct) param       ! Parameters
   type (ele_struct)  ele_init         ! For use by any program
-  type (ele_struct), pointer ::  ele(:) => null()        ! Array of elements
-  type (control_struct), pointer :: control(:) => null() ! control list
+  type (ele_struct), pointer ::  ele(:) => null()          ! Array of elements
+  type (photon_line_struct), allocatable :: photon_line(:) !
+  type (control_struct), allocatable :: control(:)         ! Control list
   type (coord_struct) beam_start      ! Starting coords
   integer version                     ! Version number
   integer n_ele_track                 ! Number of lat elements to track through.
   integer n_ele_max                   ! Index of last valid element in %ele(:) array
-  integer n_control_max               ! Last index used in CONTROL_array
-  integer n_ic_max                    ! Last index used in IC_array
+  integer n_control_max               ! Last index used in control_array
+  integer n_ic_max                    ! Last index used in ic_array
   integer input_taylor_order          ! As set in the input file
-  integer, pointer :: ic(:) => null() ! Index to %control(:)
-  real(rp), pointer :: E_TOT          ! points to lat%ele(0)%value(E_TOT$)
+  integer, allocatable :: ic(:)       ! Index to %control(:)
 end type
 
 !
@@ -306,9 +318,9 @@ integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
 integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
 integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
-integer, parameter :: def_beam_start$ = 39
+integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
 
-integer, parameter :: n_key = 39
+integer, parameter :: n_key = 40
 
 character(16) :: key_name(n_key) = (/ &
     'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
@@ -320,7 +332,7 @@ character(16) :: key_name(n_key) = (/ &
     'LCAVITY      ', 'DEF_PARAMETER', 'NULL_ELE     ', 'INIT_ELE     ', &
     'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
-    'GIRDER       ', 'BEND_SOL_QUAD', 'BEAM_START   ' /)
+    'GIRDER       ', 'BEND_SOL_QUAD', 'BEAM_START   ', 'PHOTON_BRANCH' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -355,6 +367,7 @@ integer, parameter :: x$ = 1, p_x$ = 2, y$ = 3, p_y$ = 4, z$ = 5, p_z$ = 6
 integer, parameter :: l$=1
 integer, parameter :: tilt$=2, command$=2
 integer, parameter :: old_command$=3, angle$=3, kick$=3, gradient_err$=3, x_gain_err$=3
+integer, parameter :: direction$=3
 integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4, y_gain_err$=4
 integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, phi0_err$=5, crunch$=5
 integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, g_err$=6, noise$=6
@@ -457,11 +470,13 @@ integer, parameter :: ref_center$     = 97
 integer, parameter :: ref_end$        = 98
 integer, parameter :: common_lord$    = 99
 
-integer, parameter :: a0$  = 100, k0l$  = 100
-integer, parameter :: a20$ = 120, k20l$ = 120
+integer, parameter :: to$ = 100
 
-integer, parameter :: b0$  = 130, t0$  = 130
-integer, parameter :: b20$ = 150, t20$ = 150 
+integer, parameter :: a0$  = 110, k0l$  = 110
+integer, parameter :: a20$ = 130, k20l$ = 130
+
+integer, parameter :: b0$  = 140, t0$  = 140
+integer, parameter :: b20$ = 160, t20$ = 160 
 
 integer, parameter :: n_attrib_special_maxx = t20$
 

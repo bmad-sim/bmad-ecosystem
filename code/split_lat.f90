@@ -215,7 +215,7 @@ subroutine split_lat (lat, s_split, ix_split, split_done)
 
   ix_super_lord = lat%n_ele_max + 1
   if (ix_super_lord > ubound(lat%ele, 1)) then
-    call allocate_lat_ele(lat)
+    call allocate_lat_ele(lat%ele)
     ele1 => lat%ele(ix_split)
     ele2 => lat%ele(ix_split+1)
   endif            
@@ -251,7 +251,7 @@ subroutine split_lat (lat, s_split, ix_split, split_done)
 
 ! split elements must now be pointing towards their lord
 
-  if (lat%n_ic_max+2 > size(lat%ic)) call re_associate (lat%ic, lat%n_ic_max+500)
+  if (lat%n_ic_max+2 > size(lat%ic)) call re_allocate (lat%ic, lat%n_ic_max+500)
 
   ele1%control_type = super_slave$
   inc = lat%n_ic_max + 1

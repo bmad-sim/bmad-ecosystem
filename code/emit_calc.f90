@@ -1,5 +1,5 @@
 !+
-! Subroutine EMITT_CALC (LAT, WHAT, MODE)
+! Subroutine EMIT_CALC (LAT, WHAT, MODE)
 !
 ! Subroutine to calculate the emittance, energy spread, and synchrotron
 ! integrals. This subroutine assumes that bends are in the horizontal plane.
@@ -39,7 +39,7 @@
 !-
 
 
-subroutine emitt_calc (lat, what, mode)
+subroutine emit_calc (lat, what, mode)
 
   use bmad_struct
   implicit none
@@ -90,7 +90,7 @@ subroutine emitt_calc (lat, what, mode)
     do_bends = .true.
     do_wigs  = .true.
   else
-    print *, 'ERROR IN EMITT_CALC: UNKNOWN "WHAT" SWITCH:', what
+    print *, 'ERROR IN EMIT_CALC: UNKNOWN "WHAT" SWITCH:', what
     call err_exit
   endif
 
@@ -259,7 +259,7 @@ subroutine emitt_calc (lat, what, mode)
 
       if (lat%ele(ir)%sub_key == map_type$) then
         if (print_wig_err_message) then
-          print *, 'WARNING FROM EMITT_CALC: ',&
+          print *, 'WARNING FROM EMIT_CALC: ',&
                         'I AM NOT UP TO HANDLING "NEW STYLE" WIGGLERS.'
           print *, '        RESULTS WILL NOT BE VALID.'
           print_wig_err_message = .false.
@@ -311,7 +311,7 @@ subroutine emitt_calc (lat, what, mode)
 ! custom contribution
 
     elseif (do_wigs .and. lat%ele(ir)%key == custom$) then
-       call custom_emitt_calc (lat, ir, i2, i3, i5a, i5b)
+       call custom_emit_calc (lat, ir, i2, i3, i5a, i5b)
 
     elseif (lat%ele(ir)%key == rfcavity$) then
       m65 = m65 + lat%ele(ir)%mat6(6,5)   ! add up the m65s

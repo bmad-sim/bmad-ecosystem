@@ -54,7 +54,7 @@ subroutine add_lattice_control_structs (lat, ix_ele)
     n_con2 = lat%n_control_max + n_add
     if (n_con2 > size(lat%control)) &
                         call reallocate_control(lat, n_con2+500)
-    lat%control(lat%n_control_max+1:) = control_struct(0.0_rp, 0, 0, 0)
+    lat%control(lat%n_control_max+1:) = control_struct(0.0_rp, 0, 0, 0, 0)
 
     if (i2 < 0) then
       ele%ix1_slave = n_con + 1

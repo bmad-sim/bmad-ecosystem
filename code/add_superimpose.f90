@@ -169,7 +169,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   ix_super = lat%n_ele_max + 1
   lat%n_ele_max = ix_super
-  if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele(lat)
+  if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele(lat%ele)
   lat%ele(ix_super) = sup_ele
   lat%ele(ix_super)%control_type = super_lord$
 
@@ -206,7 +206,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
     if (setup_lord) then
       ixn = lat%n_ele_max + 1
-      if (ixn > ubound(lat%ele, 1)) call allocate_lat_ele(lat)
+      if (ixn > ubound(lat%ele, 1)) call allocate_lat_ele(lat%ele)
       lat%ele(ixn) = slave_ele
       lat%ele(ixn)%control_type = super_lord$
       lat%n_ele_max = ixn

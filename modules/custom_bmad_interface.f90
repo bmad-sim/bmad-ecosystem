@@ -3,7 +3,7 @@
 module custom_bmad_interface
 
 interface
-  subroutine custom_emitt_calc (lat, ir, i2, i3, i5a, i5b)
+  subroutine custom_emit_calc (lat, ir, i2, i3, i5a, i5b)
     use bmad_struct, only: lat_struct, rp
     type (lat_struct) lat
     integer ir
