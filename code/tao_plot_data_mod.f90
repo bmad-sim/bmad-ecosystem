@@ -2,6 +2,7 @@ module tao_plot_data_mod
 
 use tao_mod
 use tao_lattice_calc_mod
+use tao_plot_mod
 
 contains
 
@@ -346,6 +347,7 @@ type (tao_v1_var_struct) , pointer :: v1_ptr
 type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
 type (tao_var_struct), pointer :: v_ptr
+type (ele_struct), pointer :: ele
 
 real(rp) f, y_val, eps, gs, l_tot, s0, s1, x_max, x_min
 real(rp), pointer :: value(:)
@@ -683,15 +685,18 @@ do k = 1, size(graph%curve)
       ! Symbols are to be put at the ends of displayed elements in the lat_layout
       eps = 1e-4 * (plot%x%max - plot%x%min)             ! a small number
       do i = 1, model_lat%n_ele_max
-        model_lat%ele(i)%logic = (u%ele(i)%ix_ele_end_lat_layout > 0)
+        ele => model_lat%ele(i)
+        call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, model_lat%n_ele_track, ix)
+        ele%logic = (ix > 0)
+        if (ix > 0) model_lat%ele(i-1)%logic = .true.
         if (plot%x%min == plot%x%max) cycle
-        s0 = model_lat%ele(i)%s - model_lat%ele(i)%value(l$)
-        s1 = model_lat%ele(i)%s
+        s0 = ele%s - ele%value(l$)
+        s1 = ele%s
         in_graph = (s0 >= plot%x%min-eps) .and. (s1 <= plot%x%max+eps)
         l_tot = model_lat%param%total_length
         if (model_lat%param%lattice_type == circular_lattice$) in_graph = in_graph .or. &
                         (s0-l_tot >= plot%x%min-eps) .and. (s1-l_tot <= plot%x%max+eps)
-        model_lat%ele(i)%logic = model_lat%ele(i)%logic .and. in_graph
+        ele%logic = ele%logic .and. in_graph
                                  
       enddo
       n_dat = count (model_lat%ele(:)%logic)
@@ -707,7 +712,7 @@ do k = 1, size(graph%curve)
       if (n_dat > 0) ix_symb = (/ (i, i = nint(x_min), nint(x_max)) /)
       x_symb = ix_symb
     elseif (plot%x_axis_type == 's') then
-      ix_symb = pack(u%ele(:)%ix_ele_end_lat_layout, mask = model_lat%ele(:)%logic)
+      ix_symb = pack(model_lat%ele(:)%ix_ele, mask = model_lat%ele(:)%logic)
       do i = 1, n_dat
         x_symb(i) = model_lat%ele(ix_symb(i))%s
       enddo

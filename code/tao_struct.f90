@@ -543,11 +543,7 @@ end type
 type tao_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
   logical save_beam               ! Save beam here?
-  integer ix_shape_floor_plan
-  integer ix_ele_end_floor_plan
-  integer ix_shape_lat_layout
-  integer ix_ele_end_lat_layout
-  integer ixx            ! Scratch variable
+  integer ixx                     ! Scratch variable
 end type
 
 !-----------------------------------------------------------------------

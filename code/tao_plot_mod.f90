@@ -319,7 +319,7 @@ lat => s%u(isu)%model%lat
 do i = 1, lat%n_ele_max
 
   ele => lat%ele(i)
-  ix_shape = s%u(isu)%ele(i)%ix_shape_floor_plan
+  call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, lat%n_ele_track, ix_shape)
 
   if (ele%control_type == super_slave$) cycle
   if (i > lat%n_ele_track .and. ix_shape < 1) cycle
@@ -655,7 +655,7 @@ height = s%plot_page%text_height * s%plot_page%legend_text_scale
 do i = 1, lat%n_ele_max
 
   ele => lat%ele(i)
-  ix_shape = s%u(isu)%ele(i)%ix_shape_lat_layout
+  call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, lat%n_ele_track, ix_shape)
 
   if (ele%control_type == multipass_lord$) cycle
   if (ele%control_type == super_slave$) cycle
@@ -893,5 +893,52 @@ else
 endif
 
 end function
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+
+subroutine tao_find_ele_shape (ele, ele_shapes, n_ele_track, ix_shape)
+
+implicit none
+
+type (ele_struct) ele
+type (tao_ele_shape_struct) :: ele_shapes(:)
+
+integer k, ix_shape, n_ele_track, ix_class
+
+character(20) :: r_name = 'tao_find_ele_shape'
+character(40) ele_name
+
+logical err
+
+!
+
+ix_shape = 0
+
+if (ele%control_type == group_lord$) return
+if (ele%control_type == multipass_lord$) return
+if (ele%control_type == overlay_lord$) return
+if (ele%control_type == super_slave$) return
+if (ele%ix_ele > n_ele_track .and. ele%control_type == free$) return
+
+do k = 1, size(ele_shapes)
+
+  if (ele_shapes(k)%ele_name == '') cycle
+
+  call tao_string_to_element_id (ele_shapes(k)%ele_name, ix_class, ele_name, err, .false.)
+  if (err) then
+    call out_io (s_error$, r_name, 'BAD ELEMENT KEY IN SHAPE: ' // ele_shapes(k)%ele_name)
+    cycle
+  endif
+
+  if (ix_class /= 0 .and. ix_class /= ele%key) cycle
+  if (.not. match_wild(ele%name, ele_name)) cycle
+
+  ix_shape = k
+  return
+enddo
+
+end subroutine
 
 end module

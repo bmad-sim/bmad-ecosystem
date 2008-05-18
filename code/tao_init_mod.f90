@@ -353,7 +353,7 @@ u%ix_track_end   = ix_track_end
 ! in the lattice file.
 
 lat => u%design%lat
-call convert_total_energy_to (lat%E_tot, lat%param%particle, gamma)
+call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, gamma)
 
 if (beam_init%a_norm_emitt /= 0) then
   lat%a%emit = beam_init%a_norm_emitt / gamma
