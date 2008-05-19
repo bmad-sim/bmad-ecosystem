@@ -45,12 +45,12 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
   ix2 = ele%ix2_slave
 
   if (ele%n_slave == 0) then
-    call pointer_to_element (lat, ele%ix_photon_line, ix_ele-1, ele1)
+    call pointer_to_ele (lat, ele%ix_photon_line, ix_ele-1, ele1)
     ele2 => ele
 
   elseif (ele%control_type == super_lord$) then
-    call pointer_to_element (lat, ele%ix_photon_line, lat%control(ix1)%ix_slave - 1, ele1)
-    call pointer_to_element (lat, lat%control(ix2)%ix_slave, ele2)
+    call pointer_to_ele (lat, ele%ix_photon_line, lat%control(ix1)%ix_slave - 1, ele1)
+    call pointer_to_ele (lat, ele%ix_photon_line, lat%control(ix2)%ix_slave, ele2)
 
   else  ! overlay_lord$ or group_lord$
     ix_start = lat%n_ele_track + 1
@@ -88,8 +88,8 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
       endif
     enddo
 
-    call pointer_to_element (lat, ix_start, ix_start_line, ele1)
-    call pointer_to_element (lat, ix_end, ix_end_line, ele2)
+    call pointer_to_ele (lat, ix_start, ix_start_line, ele1)
+    call pointer_to_ele (lat, ix_end, ix_end_line, ele2)
 
   endif
 
