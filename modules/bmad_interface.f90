@@ -305,13 +305,12 @@ interface
 end interface
 
 interface
-  subroutine find_element_ends (lat, ix_ele, ix_start, ix_end)
-    use bmad_struct, only: lat_struct
+  subroutine find_element_ends (lat, ele, ele1, ele2)
+    use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (lat_struct) lat
-    integer ix_ele
-    integer ix_start
-    integer ix_end
+    type (ele_struct) ele
+    type (ele_struct), pointer :: ele1, ele2
   end subroutine
 end interface
 
