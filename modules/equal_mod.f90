@@ -9,7 +9,7 @@ interface assignment (=)
   module procedure ele_vec_equal_ele_vec
   module procedure lat_equal_lat 
   module procedure lat_vec_equal_lat_vec 
-!    module procedure coord_equal_coord
+  module procedure branch_equal_branch
 end interface
 
 contains
@@ -262,7 +262,7 @@ subroutine lat_equal_lat (lat_out, lat_in)
 ! resize %ele array if needed
 
   if (ubound(lat_out%ele, 1) < ubound(lat_in%ele, 1)) &
-               call allocate_lat_ele(lat_out%ele, ubound(lat_in%ele, 1))
+               call allocate_ele_array(lat_out%ele, ubound(lat_in%ele, 1))
   
   lat_out%ele = lat_in%ele
   lat_out%ele_init = lat_in%ele_init
@@ -290,26 +290,24 @@ subroutine lat_equal_lat (lat_out, lat_in)
     if (allocated(lat_out%ic)) deallocate (lat_out%ic)
   endif
 
-! photon lines
+! branch lines
 
-  if (allocated (lat_in%photon_line)) then
-    n = size(lat_in%photon_line)
-    if (.not. allocated(lat_out%photon_line)) allocate(lat_out%photon_line(n))
-    if (size(lat_in%photon_line) /= size(lat_out%photon_line)) then
-      call deallocate_photon_line (lat_out%photon_line)
-      allocate (lat_out%photon_line(n))
+  if (allocated (lat_in%branch)) then
+    n = size(lat_in%branch)
+    if (.not. allocated(lat_out%branch)) allocate(lat_out%branch(n))
+    if (size(lat_in%branch) /= size(lat_out%branch)) then
+      call deallocate_branch (lat_out%branch)
+      allocate (lat_out%branch(n))
     endif
 
     do i = 1, n
-      call allocate_lat_ele (lat_out%photon_line(i)%ele, ubound(lat_in%photon_line(i)%ele, 1))
-      lat_out%photon_line(i)%ele = lat_in%photon_line(i)%ele
+      call allocate_ele_array (lat_out%branch(i)%ele, ubound(lat_in%branch(i)%ele, 1))
+      lat_out%branch(i)%ele = lat_in%branch(i)%ele
     enddo
 
   else
-    if (allocated(lat_out%photon_line)) deallocate (lat_out%photon_line)
+    if (allocated(lat_out%branch)) deallocate (lat_out%branch)
   endif
-
-
 
 ! non-pointer transfer
 
@@ -359,6 +357,48 @@ subroutine lat_vec_equal_lat_vec (lat1, lat2)
   enddo
 
 end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine branch_equal_branch (branch1, branch2)
+!
+! Subroutine that is used to set one branch equal to another. 
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		branch1 = branch2
+!
+! Input:
+!   branch2 -- branch_struct: Input branch.
+!
+! Output:
+!   branch1 -- branch_struct: Output branch.
+!-
+
+elemental subroutine branch_equal_branch (branch1, branch2)
+
+  implicit none
+	
+  type (branch_struct), intent(out) :: branch1
+  type (branch_struct), intent(in) :: branch2
+
+!
+
+  branch1%name         = branch2%name
+  branch1%kind         = branch2%kind
+  branch1%ix_branch    = branch2%ix_branch
+  branch1%ix_from_line = branch2%ix_from_line
+  branch1%ix_from_ele  = branch2%ix_from_ele
+  branch1%n_ele_track  = branch2%n_ele_track
+  branch1%n_ele_max    = branch2%n_ele_max
+  call allocate_ele_array (branch1%ele, ubound(branch2%ele, 1))
+  branch1%ele = branch2%ele
+
+  branch1%ele = branch2%ele
+
+end subroutine
+
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------

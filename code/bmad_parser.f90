@@ -51,7 +51,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   type (ele_struct) this_ele
   type (seq_struct), save, target :: sequence(1000)
   type (ele_struct), pointer :: beam_ele, param_ele, beam_start_ele
-  type (photon_line_struct), pointer :: p_line
+  type (branch_struct), pointer :: branch
   type (parser_lat_struct) plat
   type (ele_struct), save, pointer :: ele
   type (ele_struct), allocatable, save :: old_ele(:) 
@@ -451,7 +451,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
       n_max = n_max + 1
       if (n_max > ubound(in_lat%ele, 1)) then
-        call allocate_lat_ele (in_lat%ele)
+        call allocate_ele_array (in_lat%ele)
         beam_ele => in_lat%ele(1)
         param_ele => in_lat%ele(2)
         beam_start_ele => in_lat%ele(3)
@@ -739,7 +739,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   call remove_ele_from_lat (lat)  ! remove all null_ele elements.
 
-! Add photon lines
+! Add branch lines
 ! First sum the number of branches
 
   n = 0
@@ -750,23 +750,44 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   ! Now create the lines
 
   if (n > 0) then
-    allocate (lat%photon_line(n))
+    allocate (lat%branch(n))
     n = 0
     do i = 1, lat%n_ele_track
       if (lat%ele(i)%key /= photon_branch$) cycle
       n = n + 1
-      p_line => lat%photon_line(n)
-      p_line%ix_photon_line = n
-      p_line%ix_from_line = 0
-      p_line%ix_from_ele = i
-      call parser_expand_line (n, lat%ele(i)%attribute_name, sequence, in_name, in_indexx, &
-                  seq_name, seq_indexx, in_lat%ele, p_line%ele, used_line, n_ele_use)
-      p_line%ele(0)%key = init_ele$
-      p_line%ele(0)%name = lat%ele(i)%attribute_name
-      p_line%n_ele_track = n_ele_use
-      p_line%n_ele_max   = n_ele_use
+      if (n > size(lat%branch)) call allocate_branch_array (lat%branch, n)
+      branch => lat%branch(n)
+      branch%ix_branch = n
+      branch%ix_from_line = 0
+      branch%ix_from_ele = i
+      call parser_expand_line (n, lat%ele(i)%attribute_name, sequence, in_name, &
+        in_indexx, seq_name, seq_indexx, in_lat%ele, branch%ele, used_line, n_ele_use)
+      branch%ele(0)%key = init_ele$
+      branch%ele(0)%name = lat%ele(i)%attribute_name
+      branch%n_ele_track = n_ele_use
+      branch%n_ele_max   = n_ele_use
+      nn = n
+      do 
+        do ii = 1, branch%n_ele_track
+          if (branch%ele(ii)%key /= photon_branch$) cycle
+          n = n + 1
+          if (n > size(lat%branch)) call allocate_branch_array (lat%branch, n)
+          branch2 => lat%branch(n)
+          branch%ix_branch = n
+          branch%ix_from_line = 0
+          branch%ix_from_ele = i
+          call parser_expand_line (n, lat%ele(i)%attribute_name, sequence, in_name, &
+            in_indexx, seq_name, seq_indexx, in_lat%ele, branch%ele, used_line, n_ele_use)
+          branch%ele(0)%key = init_ele$
+          branch%ele(0)%name = lat%ele(i)%attribute_name
+          branch%n_ele_track = n_ele_use
+          branch%n_ele_max   = n_ele_use
+
+        endif
     enddo
+
   endif
+
 
 ! Now put in the overlay_lord, girder, and group elements
 

@@ -28,7 +28,7 @@ use bmad_parser_mod, except_dummy => write_digested_bmad_file
 implicit none
 
 type (lat_struct), target, intent(in) :: lat
-type (photon_line_struct), pointer :: line
+type (branch_struct), pointer :: line
   
 real(rp) value(n_attrib_maxx)
 
@@ -119,12 +119,12 @@ enddo
 
 write (d_unit) lat%beam_start
 
-! Write the photon line info
+! Write the branch line info
 
-if (allocated(lat%photon_line)) then
-  write (d_unit) size(lat%photon_line)
-  do i = 1, size(lat%photon_line)
-    line => lat%photon_line(i)
+if (allocated(lat%branch)) then
+  write (d_unit) size(lat%branch)
+  do i = 1, size(lat%branch)
+    line => lat%branch(i)
     write (d_unit) line%kind, line%ix_from_line, line%ix_from_ele, &
                                 line%n_ele_track, line%n_ele_max
     do j = 0, line%n_ele_max
@@ -218,7 +218,7 @@ write (d_unit) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
           ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_photon_line
+          ele%ix_branch
 
 ! This compresses the ele%value array
 

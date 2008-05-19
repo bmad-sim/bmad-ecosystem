@@ -196,7 +196,7 @@ type ele_struct
   integer ix_pointer         ! For general use. Not used by Bmad.
   integer ixx                ! Index for Bmad internal use
   integer ix_ele             ! Index in lat%ele(:) array.
-  integer ix_photon_line     ! Index in lat%photon(:) array. 0 => In lat%ele(:)
+  integer ix_branch          ! Index in lat%lat(:) array. 0 => In lat%ele(:)
   integer mat6_calc_method   ! bmad_standard$, taylor$, etc.
   integer tracking_method    ! bmad_standard$, taylor$, etc.
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
@@ -225,7 +225,7 @@ type control_struct
   real(rp) coef                  ! Control coefficient
   integer ix_lord                ! Index to lord element
   integer ix_slave               ! Index to slave element
-  integer ix_photon_line         ! Index to photon line of slave
+  integer ix_branch         ! Index to branch line of slave
   integer ix_attrib              ! Index of attribute controlled
 end type
 
@@ -256,15 +256,15 @@ type mode_info_struct
   real(rp) sigmap    ! Beam divergence.
 end type
 
-type photon_line_struct
+type branch_struct
   character(40) name
   integer kind            ! photon_branch$, branch$, etc.
-  integer ix_photon_line
+  integer ix_branch
   integer ix_from_line    ! 0 => main lattice line
   integer ix_from_ele
   integer n_ele_track
   integer n_ele_max
-  type (ele_struct), pointer :: ele(:)
+  type (ele_struct), pointer :: ele(:) => null()
 end type
 
 type dummy_parameter_struct
@@ -286,9 +286,9 @@ type lat_struct
   type (mode_info_struct) a, b, z     ! Tunes, etc.
   type (lat_param_struct) param       ! Parameters
   type (ele_struct)  ele_init         ! For use by any program
-  type (ele_struct), pointer ::  ele(:) => null()          ! Array of elements
-  type (photon_line_struct), allocatable :: photon_line(:) !
-  type (control_struct), allocatable :: control(:)         ! Control list
+  type (ele_struct), pointer ::  ele(:) => null()       ! Array of elements
+  type (branch_struct), allocatable :: branch(:)    !
+  type (control_struct), allocatable :: control(:)      ! Control list
   type (coord_struct) beam_start      ! Starting coords
   integer version                     ! Version number
   integer n_ele_track                 ! Number of lat elements to track through.

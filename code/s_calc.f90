@@ -25,7 +25,7 @@ subroutine s_calc (lat)
 
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: ele
-  type (photon_line_struct), pointer :: line
+  type (branch_struct), pointer :: line
 
   integer i, j, n, ix2
   real*8 ss
@@ -52,11 +52,11 @@ subroutine s_calc (lat)
     endif
   enddo
 
-! calculate photon line distances
+! calculate branch line distances
 
-  if (allocated(lat%photon_line)) then
-    do i = 1, size(lat%photon_line)
-      line => lat%photon_line(i)
+  if (allocated(lat%branch)) then
+    do i = 1, size(lat%branch)
+      line => lat%branch(i)
       line%ele(0)%s = 0
       if (line%ix_from_line /= 0) then
         call pointer_to_ele (lat, line%ix_from_line, line%ix_from_ele, ele)

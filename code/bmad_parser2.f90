@@ -340,7 +340,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 
       n_max = n_max + 1
       if (n_max > ubound(lat%ele, 1)) then
-        call allocate_lat_ele(lat%ele)
+        call allocate_ele_array(lat%ele)
         call allocate_plat (lat, plat)
       endif
 

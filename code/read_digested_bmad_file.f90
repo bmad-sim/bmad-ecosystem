@@ -41,7 +41,7 @@ end type
 type (old_mode_info_struct) old_a, old_b, old_z
 
 type (lat_struct), target, intent(inout) :: lat
-type (photon_line_struct), pointer :: line
+type (branch_struct), pointer :: line
 
 real(rp) value(n_attrib_maxx)
 
@@ -176,7 +176,7 @@ endif
 
 ! %control and %ic are allocated to the same length for convenience.
 
-call allocate_lat_ele(lat%ele, lat%n_ele_max+100)
+call allocate_ele_array(lat%ele, lat%n_ele_max+100)
 allocate (lat%control(lat%n_control_max+100))
 allocate (lat%ic(lat%n_control_max+100))
 
@@ -199,18 +199,18 @@ enddo
 
 read (d_unit, iostat = ios) lat%beam_start
 
-! read photon lines
+! read branch lines
 
 if (version > 86) then
   read (d_unit, err = 9100) n_line
   if (n_line > 0) then
-    allocate(lat%photon_line(n_line))
+    allocate(lat%branch(0:n_line))
     do i = 1, n_line
-      line => lat%photon_line(i)
-      line%ix_photon_line = i
+      line => lat%branch(i)
+      line%ix_branch = i
       read (d_unit) line%kind, line%ix_from_line, line%ix_from_ele, &
                                 line%n_ele_track, line%n_ele_max
-      call allcate_lat_ele (line%ele, line%n_ele_max)
+      call allocate_ele_array (line%ele, line%n_ele_max)
       do j = 0, line%n_ele_max
         call read_this_ele (line%ele(j), error)
         if (error) return
@@ -310,7 +310,7 @@ elseif (version > 86) then
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
           ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_photon_line
+          ele%ix_branch
  
 endif
 

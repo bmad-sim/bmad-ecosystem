@@ -123,7 +123,7 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
         ix_out(j_in) = i_out
       else
         i_out = i_out + 1                     ! starting next element
-        if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out%ele)
+        if (i_out > ubound(r_out%ele, 1)) call allocate_ele_array(r_out%ele)
         ele_out => r_out%ele(i_out)
         ele_out = ele_in   ! single element
         ix_out(j_in) = i_out
@@ -141,7 +141,7 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
 
       if (init_hybrid_needed) then
         i_out = i_out + 1                       ! starting next element
-        if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out%ele)
+        if (i_out > ubound(r_out%ele, 1)) call allocate_ele_array(r_out%ele)
         ele_out => r_out%ele(i_out)
         ele_out = ele_in
         ele_out%control_type = free$
@@ -251,7 +251,7 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
     ele_in => r_in%ele(j_in)    
     if (keep_ele(j_in)) then
       i_out = i_out + 1
-      if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele(r_out%ele)
+      if (i_out > ubound(r_out%ele, 1)) call allocate_ele_array(r_out%ele)
       ele_out => r_out%ele(i_out)
       ix_out(j_in) = i_out
       ele_out = ele_in

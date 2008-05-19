@@ -56,12 +56,12 @@ if (ix_line == 0) then
   return
 endif
 
-if (.not. allocated(lat%photon_line)) return
+if (.not. allocated(lat%branch)) return
 
-if (ix_line < 0 .or. ix_line > size(lat%photon_line)) return
-if (ix_ele < 0 .or. ix_ele > lat%photon_line(ix_line)%n_ele_track) return
+if (ix_line < 0 .or. ix_line > size(lat%branch)) return
+if (ix_ele < 0 .or. ix_ele > lat%branch(ix_line)%n_ele_track) return
 
-ele => lat%photon_line(ix_line)%ele(ix_ele)
+ele => lat%branch(ix_line)%ele(ix_ele)
 
 end subroutine
 
@@ -586,7 +586,7 @@ subroutine init_lat (lat, n)
 !
 
   call deallocate_lat_pointers (lat)
-  call allocate_lat_ele(lat%ele, n)
+  call allocate_ele_array(lat%ele, n)
   call init_ele (lat%ele_init)
 
   allocate (lat%control(1000))
@@ -787,6 +787,70 @@ subroutine transfer_eles (ele1, ele2)
   type (ele_struct) :: ele2(:)
 
   ele2 = ele1
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine transfer_branch (branch1, branch2)
+!
+! Subroutine to set branch2 = branch1. 
+! This is a plain transfer of information not using the overloaded equal.
+! Thus at the end branch2's pointers point to the same memory as branch1's.
+!
+! NOTE: Do not use this routine unless you know what you are doing!
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   branch1 -- Branch_struct:
+!
+! Output:
+!   branch2 -- Branch_struct:
+!-
+
+subroutine transfer_branch (branch1, branch2)
+
+  type (branch_struct) :: branch1
+  type (branch_struct) :: branch2
+
+!
+
+  branch2 = branch1
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine transfer_branches (branch1, branch2)
+!
+! Subroutine to set branch2 = branch1. 
+! This is a plain transfer of information not using the overloaded equal.
+! Thus at the end branch2's pointers point to the same memory as branch1's.
+!
+! NOTE: Do not use this routine unless you know what you are doing!
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   branch1(:) -- Branch_struct:
+!
+! Output:
+!   branch2(:) -- Branch_struct:
+!-
+
+subroutine transfer_branches (branch1, branch2)
+
+  type (branch_struct) :: branch1(:)
+  type (branch_struct) :: branch2(:)
+
+  branch2 = branch1
 
 end subroutine
 
@@ -1078,7 +1142,7 @@ subroutine init_ele (ele)
   ele%n_slave = 0
   ele%ix_pointer = 0
   ele%s = 0
-  ele%ix_photon_line = 0
+  ele%ix_branch = 0
 
   ele%floor%x = 0
   ele%floor%y = 0
@@ -1157,9 +1221,10 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine allocate_lat_ele (ele, upper_bound)
+! Subroutine allocate_ele_array (ele, upper_bound)
 !
 ! Subroutine to allocate or re-allocate an element array.
+! The old information is saved.
 ! The lower bound is always 0.
 !
 ! Modules needed:
@@ -1168,13 +1233,13 @@ end subroutine
 ! Input:
 !   ele(:)      -- Ele_struct, pointer: Element array.
 !   upper_bound -- Integer, Optional: Optional desired upper bound.
-!                    Default: maximum (1000, 1.3*ele(:)).
+!                    Default: 1.3*ubound(ele(:)) or 1000 if ele is not allocated.
 !
 ! Output:
 !   ele(:)      -- Ele_struct, pointer: Element array.
 !-
 
-subroutine allocate_lat_ele (ele, upper_bound)
+subroutine allocate_ele_array (ele, upper_bound)
 
   implicit none
 
@@ -1182,9 +1247,9 @@ subroutine allocate_lat_ele (ele, upper_bound)
   integer, optional :: upper_bound
 
   type (ele_struct), pointer :: temp_ele(:)
-  integer curr_lb, curr_ub, lb, ub, i
+  integer curr_ub, ub, i
 
-  character(20) :: r_name = 'allocate_lat_ele'
+  character(20) :: r_name = 'allocate_ele_array'
 
 ! get new size
 
@@ -1192,26 +1257,23 @@ subroutine allocate_lat_ele (ele, upper_bound)
   if (associated (ele)) ub = max (int(1.3*size(ele)), ub)
   if (present(upper_bound))  ub = upper_bound
 
-  lb = 0
-
 !  save ele if present
 
   if (associated (ele)) then
-    curr_lb = lbound(ele, 1)
-    curr_ub = ubound(ele, 1)
-    if (curr_ub > ub) then
-      call out_io (s_fatal$, r_name, 'UPPER BOUND IS SMALLER THAN CURRENT BOUND!')
-      call err_exit
-    endif
-    allocate (temp_ele(curr_lb:curr_ub))
-    call transfer_eles (ele, temp_ele)
+    if (ub == ubound(ele, 1)) return
+    curr_ub = min(ub, ubound(ele, 1))
+    allocate (temp_ele(0:curr_ub))
+    call transfer_eles (ele(0:curr_ub), temp_ele)
+    do i = curr_ub+1, ubound(ele, 1)
+      call deallocate_ele_pointers(ele(i))
+    enddo
     deallocate (ele)
-    allocate(ele(lb:ub))
-    call transfer_eles (temp_ele(curr_lb:curr_ub), ele(curr_lb:curr_ub))
+    allocate(ele(0:ub))
+    call transfer_eles (temp_ele(0:curr_ub), ele(0:curr_ub))
     deallocate (temp_ele)
   else
-    curr_ub = lb - 1
-    allocate(ele(lb:ub))
+    curr_ub = -1
+    allocate(ele(0:ub))
   endif
 
 ! 
@@ -1219,6 +1281,68 @@ subroutine allocate_lat_ele (ele, upper_bound)
   do i = curr_ub+1, ub
     call init_ele (ele(i))
     ele(i)%ix_ele = i
+  end do
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine allocate_branch_array (branch, upper_bound)
+!
+! Subroutine to allocate or re-allocate an branch array.
+! The old information is saved.
+! The lower bound is always 0.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   branch(:)   -- Branch_struct, pointer: Branch array.
+!   upper_bound -- Integer, Optional: Optional desired upper bound.
+!
+! Output:
+!   branch(:)   -- Branch_struct, pointer: Branch array.
+!-
+
+subroutine allocate_branch_array (branch, upper_bound)
+
+  implicit none
+
+  type (branch_struct), pointer :: branch(:)
+  integer :: upper_bound
+
+  type (branch_struct), pointer :: temp_branch(:)
+  integer curr_ub, ub, i
+
+  character(20) :: r_name = 'allocate_branch_array'
+
+!  save branch if present
+
+  ub = upper_bound
+  if (associated (branch)) then
+    if (ub == ubound(branch, 1)) return
+    curr_ub = min(ub, ubound(branch, 1))
+    allocate (temp_branch(0:curr_ub))
+    call transfer_branches (branch(0:curr_ub), temp_branch)
+    do i = curr_ub+1, ubound(branch, 1)
+      call deallocate_ele_array_pointers(branch(i)%ele)
+    enddo
+    deallocate (branch)
+    allocate(branch(0:ub))
+    call transfer_branchs (temp_branch(0:curr_ub), branch(0:curr_ub))
+    deallocate (temp_branch)
+  else
+    curr_ub = -1
+    allocate(branch(0:ub))
+  endif
+
+! 
+
+  do i = curr_ub+1, ub
+    call init_branch (branch(i))
+    branch(i)%ix_branch = i
   end do
 
 end subroutine
@@ -1257,7 +1381,7 @@ subroutine deallocate_lat_pointers (lat)
     deallocate (lat%ic)
   endif
 
-  call deallocate_photon_line (lat%photon_line)
+  call deallocate_branch (lat%branch)
 
   lat%n_ele_track  = -1
   lat%n_ele_max  = -1
@@ -1268,34 +1392,34 @@ end subroutine
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine deallocate_photon_line (photon_line)
+! Subroutine deallocate_branch (branch)
 !
-! Subroutine to deallocate a photon_line array and everything in it.
+! Subroutine to deallocate a branch array and everything in it.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   photon_line(:) -- Photon_line_struct, allocatable: Array of lines.
+!   branch(:) -- Branch_struct, allocatable: Array of lines.
 !
 ! Output:
-!   Photon_line(:) -- Photon_line_struct, allocatable: Deallocated array.
+!   branch(:) -- Branch_struct, allocatable: Deallocated array.
 !-
 
-subroutine deallocate_photon_line (photon_line)
+subroutine deallocate_branch (branch)
 
 implicit none
 
-type (photon_line_struct), allocatable :: photon_line(:)
+type (branch_struct), allocatable :: branch(:)
 integer i
 
 !
 
-  if (allocated (photon_line)) then
-    do i = 1, ubound(photon_line, 1)
-      call deallocate_ele_array_pointers (photon_line(i)%ele)
+  if (allocated (branch)) then
+    do i = 1, ubound(branch, 1)
+      call deallocate_ele_array_pointers (branch(i)%ele)
     enddo
-    deallocate (photon_line)
+    deallocate (branch)
   endif
 
 end subroutine

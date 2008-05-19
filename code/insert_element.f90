@@ -31,13 +31,13 @@ subroutine insert_element (lat, insert_ele, insert_index)
 
   type (lat_struct), target :: lat
   type (ele_struct)  insert_ele
-  type (photon_line_struct), pointer :: line
+  type (branch_struct), pointer :: line
   integer insert_index, ix
 
 ! transfer_ele is fast since re reuse storage.
 
   lat%n_ele_max = lat%n_ele_max + 1
-  if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele(lat%ele)
+  if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_ele_array(lat%ele)
 
   do ix = lat%n_ele_max-1, insert_index, -1
     call transfer_ele (lat%ele(ix), lat%ele(ix+1))
@@ -69,9 +69,9 @@ subroutine insert_element (lat, insert_ele, insert_index)
     print *, '        ELEMENT: ', insert_ele%name
   endif
 
-  if (allocated(lat%photon_line)) then
-    do ix = 1, size(lat%photon_line)
-      line => lat%photon_line(ix)
+  if (allocated(lat%branch)) then
+    do ix = 1, size(lat%branch)
+      line => lat%branch(ix)
       if (line%ix_from_ele >= insert_index .and. line%ix_from_line == 0) &
                                    line%ix_from_ele = line%ix_from_ele + 1
     enddo

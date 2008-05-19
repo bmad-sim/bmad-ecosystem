@@ -71,11 +71,11 @@ subroutine remove_ele_from_lat (lat, ix_ele)
 
   enddo
 
-  if (allocated(lat%photon_line)) then
-    do n = 1, size(lat%photon_line)
-      if (lat%photon_line(n)%ix_from_line /= 0) cycle
-      ix = lat%photon_line(n)%ix_from_ele
-      lat%photon_line(n)%ix_from_ele = lat%ele(ix)%ix_ele
+  if (allocated(lat%branch)) then
+    do n = 1, size(lat%branch)
+      if (lat%branch(n)%ix_from_line /= 0) cycle
+      ix = lat%branch(n)%ix_from_ele
+      lat%branch(n)%ix_from_ele = lat%ele(ix)%ix_ele
     enddo
   endif
 

@@ -7,8 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/photon_line/lat_line/;
-    s/photon([^_])/lat\1/g
+    s/allocate_lat_ele/allocate_ele_array/g;
     print (F_OUT);
 
   }

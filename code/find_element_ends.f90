@@ -45,12 +45,12 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
   ix2 = ele%ix2_slave
 
   if (ele%n_slave == 0) then
-    call pointer_to_ele (lat, ele%ix_photon_line, ix_ele-1, ele1)
+    call pointer_to_ele (lat, ele%ix_branch, ix_ele-1, ele1)
     ele2 => ele
 
   elseif (ele%control_type == super_lord$) then
-    call pointer_to_ele (lat, ele%ix_photon_line, lat%control(ix1)%ix_slave - 1, ele1)
-    call pointer_to_ele (lat, ele%ix_photon_line, lat%control(ix2)%ix_slave, ele2)
+    call pointer_to_ele (lat, ele%ix_branch, lat%control(ix1)%ix_slave - 1, ele1)
+    call pointer_to_ele (lat, ele%ix_branch, lat%control(ix2)%ix_slave, ele2)
 
   else  ! overlay_lord$ or group_lord$
     ix_start = lat%n_ele_track + 1
@@ -60,7 +60,7 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
     call re_allocate(ix_slave_array, n_slave)
     call re_allocate(ix_line_array, n_slave)
     ix_slave_array(1:n_slave) = lat%control(ix1:ix2)%ix_slave
-    ix_line_array(1:n_slave) = lat%control(ix1:ix2)%ix_photon_line
+    ix_line_array(1:n_slave) = lat%control(ix1:ix2)%ix_branch
     n_end = n_slave
     do 
       n = n + 1
@@ -74,7 +74,7 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
         call re_allocate(ix_slave_array, n_slave+n_end)
         call re_allocate(ix_line_array, n_slave+n_end)
         ix_slave_array(n_end+1:n_end+n_slave) = lat%control(ix1:ix2)%ix_slave
-        ix_line_array(n_end+1:n_end+n_slave) = lat%control(ix1:ix2)%ix_photon_line
+        ix_line_array(n_end+1:n_end+n_slave) = lat%control(ix1:ix2)%ix_branch
         n_end = n_end + n_slave
       else
         if (ix_slave - 1 < ix_start) then

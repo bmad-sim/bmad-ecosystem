@@ -30,7 +30,7 @@ subroutine new_control (lat, ix_ele)
   lat%n_ele_max = lat%n_ele_max + 1
   ix_ele = lat%n_ele_max
 
-  if (ix_ele > ubound(lat%ele, 1))  call allocate_lat_ele(lat%ele)
+  if (ix_ele > ubound(lat%ele, 1))  call allocate_ele_array(lat%ele)
   call init_ele (lat%ele(ix_ele))
 
 end subroutine

@@ -2717,7 +2717,7 @@ if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
 endif
 
 lat%n_ele_max = lat%n_ele_max + 1
-if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele(lat%ele)
+if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_ele_array(lat%ele)
 
 nn = lat%n_ele_max 
 
@@ -4068,13 +4068,13 @@ enddo line_expansion
 ! Transfer the ele information from the in_lat to lat and
 ! do the bookkeeping for settable dependent variables.
 
-call allocate_lat_ele(ele_out, n_ele_use)
-ele_out(0)%ix_photon_line = ix_line
+call allocate_ele_array(ele_out, n_ele_use)
+ele_out(0)%ix_branch = ix_line
 
 do i = 1, n_ele_use
   ele_out(i) = ele_in(ix_lat(i)) 
   ele_out(i)%name = used_line(i)%name
-  ele_out(i)%ix_photon_line = ix_line
+  ele_out(i)%ix_branch = ix_line
   if (used_line(i)%tag /= '') ele_out(i)%name = &
                 trim(used_line(i)%tag) // '.' // ele_out(i)%name
   call settable_dep_var_bookkeeping (ele_out(i))
