@@ -54,19 +54,17 @@ subroutine s_calc (lat)
 
 ! calculate branch line distances
 
-  if (allocated(lat%branch)) then
-    do i = 1, size(lat%branch)
-      line => lat%branch(i)
-      line%ele(0)%s = 0
-      if (line%ix_from_line /= 0) then
-        call pointer_to_ele (lat, line%ix_from_line, line%ix_from_ele, ele)
-        line%ele(0)%s = ele%s
-      endif
-      do j = 1, line%n_ele_track
-        ss = line%ele(n-1)%s + line%ele(n)%value(l$)
-        line%ele(n)%s = ss
-      enddo
+  do i = 1, ubound(lat%branch, 1)
+    line => lat%branch(i)
+    line%ele(0)%s = 0
+    if (line%ix_from_branch /= 0) then
+      call pointer_to_ele (lat, line%ix_from_branch, line%ix_from_ele, ele)
+      line%ele(0)%s = ele%s
+    endif
+    do j = 1, line%n_ele_track
+      ss = line%ele(n-1)%s + line%ele(n)%value(l$)
+      line%ele(n)%s = ss
     enddo
-  endif
+  enddo
 
 end subroutine

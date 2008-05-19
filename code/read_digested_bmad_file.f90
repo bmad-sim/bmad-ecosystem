@@ -41,14 +41,14 @@ end type
 type (old_mode_info_struct) old_a, old_b, old_z
 
 type (lat_struct), target, intent(inout) :: lat
-type (branch_struct), pointer :: line
+type (branch_struct), pointer :: branch
 
 real(rp) value(n_attrib_maxx)
 
 integer d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
 integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios, k_max
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
-integer stat_b(12), idate_old, n_line, n
+integer stat_b(12), idate_old, n_branch, n
 
 character(*) digested_name
 character(200) fname1, fname2, fname3, input_file_name, full_digested_name
@@ -176,7 +176,7 @@ endif
 
 ! %control and %ic are allocated to the same length for convenience.
 
-call allocate_ele_array(lat%ele, lat%n_ele_max+100)
+call allocate_lat_ele_array(lat, lat%n_ele_max+100)
 allocate (lat%control(lat%n_control_max+100))
 allocate (lat%ic(lat%n_control_max+100))
 
@@ -202,21 +202,20 @@ read (d_unit, iostat = ios) lat%beam_start
 ! read branch lines
 
 if (version > 86) then
-  read (d_unit, err = 9100) n_line
-  if (n_line > 0) then
-    allocate(lat%branch(0:n_line))
-    do i = 1, n_line
-      line => lat%branch(i)
-      line%ix_branch = i
-      read (d_unit) line%kind, line%ix_from_line, line%ix_from_ele, &
-                                line%n_ele_track, line%n_ele_max
-      call allocate_ele_array (line%ele, line%n_ele_max)
-      do j = 0, line%n_ele_max
-        call read_this_ele (line%ele(j), error)
-        if (error) return
-      enddo
+  read (d_unit, err = 9100) n_branch
+  call allocate_branch_array (lat%branch, n_branch, lat)  ! Initial allocation
+
+  do i = 1, n_branch
+    branch => lat%branch(i)
+    branch%ix_branch = i
+    read (d_unit) branch%key, branch%ix_from_branch, branch%ix_from_ele, &
+                                      branch%n_ele_track, branch%n_ele_max
+    call allocate_ele_array (branch%ele, branch%n_ele_max)
+    do j = 0, branch%n_ele_max
+      call read_this_ele (branch%ele(j), error)
+      if (error) return
     enddo
-  endif
+  enddo
 endif
 
 ! And finish

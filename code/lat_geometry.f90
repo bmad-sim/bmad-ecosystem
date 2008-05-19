@@ -45,26 +45,24 @@ do i = 1, lat%n_ele_track
   call ele_geometry (lat%ele(i-1), lat%ele(i), lat%param)
 enddo
 
-if (allocated(lat%branch)) then
-  do n = 1, size(lat%branch)
-    line => lat%branch(n)
+do n = 1, ubound(lat%branch, 1)
+  line => lat%branch(n)
 
-    call pointer_to_ele (lat, line%ix_from_line, line%ix_from_ele, ele)
-    line%ele(0)%floor = ele%floor
+  call pointer_to_ele (lat, line%ix_from_branch, line%ix_from_ele, ele)
+  line%ele(0)%floor = ele%floor
 
-    if (ele%key == photon_branch$) then
-      if (nint(ele%value(direction$)) == -1) then
-        line%ele(0)%floor%theta = -line%ele(0)%floor%theta
-        line%ele(0)%floor%phi   = -line%ele(0)%floor%phi
-      endif
+  if (ele%key == photon_branch$) then
+    if (nint(ele%value(direction$)) == -1) then
+      line%ele(0)%floor%theta = -line%ele(0)%floor%theta
+      line%ele(0)%floor%phi   = -line%ele(0)%floor%phi
     endif
+  endif
 
-    do i = 1, line%n_ele_track
-      call ele_geometry (line%ele(i-1), line%ele(i), lat%param)
-    enddo
-
+  do i = 1, line%n_ele_track
+    call ele_geometry (line%ele(i-1), line%ele(i), lat%param)
   enddo
-endif
+
+enddo
 
 ! put info in superimpose lords
 

@@ -262,7 +262,7 @@ subroutine lat_equal_lat (lat_out, lat_in)
 ! resize %ele array if needed
 
   if (ubound(lat_out%ele, 1) < ubound(lat_in%ele, 1)) &
-               call allocate_ele_array(lat_out%ele, ubound(lat_in%ele, 1))
+               call allocate_lat_ele_array(lat_out, ubound(lat_in%ele, 1))
   
   lat_out%ele = lat_in%ele
   lat_out%ele_init = lat_in%ele_init
@@ -292,22 +292,12 @@ subroutine lat_equal_lat (lat_out, lat_in)
 
 ! branch lines
 
-  if (allocated (lat_in%branch)) then
-    n = size(lat_in%branch)
-    if (.not. allocated(lat_out%branch)) allocate(lat_out%branch(n))
-    if (size(lat_in%branch) /= size(lat_out%branch)) then
-      call deallocate_branch (lat_out%branch)
-      allocate (lat_out%branch(n))
-    endif
-
-    do i = 1, n
-      call allocate_ele_array (lat_out%branch(i)%ele, ubound(lat_in%branch(i)%ele, 1))
-      lat_out%branch(i)%ele = lat_in%branch(i)%ele
-    enddo
-
-  else
-    if (allocated(lat_out%branch)) deallocate (lat_out%branch)
-  endif
+  n = ubound(lat_in%branch, 1)
+  call allocate_branch_array (lat_out%branch, n, lat_out)
+  do i = 1, n
+    call allocate_ele_array (lat_out%branch(i)%ele, ubound(lat_in%branch(i)%ele, 1))
+    lat_out%branch(i)%ele = lat_in%branch(i)%ele
+  enddo
 
 ! non-pointer transfer
 
@@ -376,7 +366,7 @@ end subroutine
 !   branch1 -- branch_struct: Output branch.
 !-
 
-elemental subroutine branch_equal_branch (branch1, branch2)
+subroutine branch_equal_branch (branch1, branch2)
 
   implicit none
 	
@@ -386,16 +376,14 @@ elemental subroutine branch_equal_branch (branch1, branch2)
 !
 
   branch1%name         = branch2%name
-  branch1%kind         = branch2%kind
+  branch1%key          = branch2%key 
   branch1%ix_branch    = branch2%ix_branch
-  branch1%ix_from_line = branch2%ix_from_line
+  branch1%ix_from_branch = branch2%ix_from_branch
   branch1%ix_from_ele  = branch2%ix_from_ele
   branch1%n_ele_track  = branch2%n_ele_track
   branch1%n_ele_max    = branch2%n_ele_max
   call allocate_ele_array (branch1%ele, ubound(branch2%ele, 1))
-  branch1%ele = branch2%ele
-
-  branch1%ele = branch2%ele
+  branch1%ele          = branch2%ele
 
 end subroutine
 

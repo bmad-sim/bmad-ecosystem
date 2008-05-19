@@ -56,7 +56,7 @@ subroutine remove_ele_from_lat (lat, ix_ele)
     ix = lat%control(i)%ix_lord
     if (lat%ele(ix)%ix_ele == 0) then
       call out_io (s_fatal$, r_name, &
-                        'ELEMENT TO BE REMOVED FROM LATTICE IS CONTROLLER:' // lat%ele(ix)%name)
+               'ELEMENT TO BE REMOVED FROM LATTICE IS CONTROLLER:' // lat%ele(ix)%name)
       call err_exit
     endif
     lat%control(i)%ix_lord = lat%ele(ix)%ix_ele
@@ -64,20 +64,18 @@ subroutine remove_ele_from_lat (lat, ix_ele)
     ix = lat%control(i)%ix_slave
     if (lat%ele(ix)%ix_ele == 0) then
       call out_io (s_fatal$, r_name, &
-                        'ELEMENT TO BE REMOVED FROM LATTICE IS CONTROLLED:' // lat%ele(ix)%name)
+              'ELEMENT TO BE REMOVED FROM LATTICE IS CONTROLLED:' // lat%ele(ix)%name)
       call err_exit
     endif
     lat%control(i)%ix_slave = lat%ele(ix)%ix_ele
 
   enddo
 
-  if (allocated(lat%branch)) then
-    do n = 1, size(lat%branch)
-      if (lat%branch(n)%ix_from_line /= 0) cycle
-      ix = lat%branch(n)%ix_from_ele
-      lat%branch(n)%ix_from_ele = lat%ele(ix)%ix_ele
-    enddo
-  endif
+  do n = 1, ubound(lat%branch, 1)
+    if (lat%branch(n)%ix_from_branch /= 0) cycle
+    ix = lat%branch(n)%ix_from_ele
+    lat%branch(n)%ix_from_ele = lat%ele(ix)%ix_ele
+  enddo
 
 ! Remove the elements
 

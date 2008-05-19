@@ -51,7 +51,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   type (ele_struct) this_ele
   type (seq_struct), save, target :: sequence(1000)
   type (ele_struct), pointer :: beam_ele, param_ele, beam_start_ele
-  type (branch_struct), pointer :: branch
+  type (branch_struct), pointer :: branch0, branch
   type (parser_lat_struct) plat
   type (ele_struct), save, pointer :: ele
   type (ele_struct), allocatable, save :: old_ele(:) 
@@ -62,7 +62,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   integer ix_word, i_use, i, j, k, n, ix, ix1, ix2, ixm(100)
   integer n_ele_use, digested_version, key, loop_counter
-  integer  iseq_tot, ix_multipass, n_ele_max, n_multi
+  integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0
   integer, pointer :: n_max
 
   character(*) lat_file
@@ -451,7 +451,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
       n_max = n_max + 1
       if (n_max > ubound(in_lat%ele, 1)) then
-        call allocate_ele_array (in_lat%ele)
+        call allocate_lat_ele_array (in_lat)
         beam_ele => in_lat%ele(1)
         param_ele => in_lat%ele(2)
         beam_start_ele => in_lat%ele(3)
@@ -596,30 +596,10 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   call parser_expand_line (0, lat%name, sequence, in_name, in_indexx, &
                   seq_name, seq_indexx, in_lat%ele, lat%ele, used_line, n_ele_use)
   if (bp_com%error_flag) stop
+
   lat%n_ele_track        = n_ele_use
   lat%n_ele_max          = n_ele_use
-
-
-! First work on multipass before overlays, groups, and usuperimpose. 
-! This is important since the elements in the lattice get
-! renamed and if not done first would confuse any overlays, girders, etc.
-! Multipass elements are paired by multipass index and multipass line name
-
-  do i = 1, n_ele_use
-    if (used_line(i)%ix_multipass == 0) cycle
-    n_multi = 0  ! number of elements to slave together
-    ix_multipass = used_line(i)%ix_multipass
-    do j = i, n_ele_use
-      if (used_line(j)%ix_multipass == ix_multipass .and. &
-          used_line(j)%multipass_line == used_line(i)%multipass_line) then
-        n_multi = n_multi + 1
-        ixm(n_multi) = j
-        used_line(j)%ix_multipass = 0  ! mark as taken care of
-      endif
-    enddo
-    call add_this_multipass (lat, ixm(1:n_multi))
-  enddo
-
+  
 !---------------------------------------------------------------
 ! we now have the line to use in constructing the lat.
 ! now to put the elements in LAT in the correct order.
@@ -661,6 +641,26 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
     lat%lattice = param_ele%descrip
     deallocate (param_ele%descrip)
   endif
+
+! Work on multipass before overlays, groups, and usuperimpose. 
+! This is important since the elements in the lattice get
+! renamed and if not done first would confuse any overlays, girders, etc.
+! Multipass elements are paired by multipass index and multipass line name
+
+  do i = 1, lat%n_ele_track
+    if (used_line(i)%ix_multipass == 0) cycle
+    n_multi = 0  ! number of elements to slave together
+    ix_multipass = used_line(i)%ix_multipass
+    do j = i, lat%n_ele_track
+      if (used_line(j)%ix_multipass == ix_multipass .and. &
+          used_line(j)%multipass_line == used_line(i)%multipass_line) then
+        n_multi = n_multi + 1
+        ixm(n_multi) = j
+        used_line(j)%ix_multipass = 0  ! mark as taken care of
+      endif
+    enddo
+    call add_this_multipass (lat, ixm(1:n_multi))
+  enddo
 
 ! Make sure that taylor order and lattice_type are not being set via
 ! the old way of doing things.
@@ -749,16 +749,20 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   ! Now create the lines
 
-  if (n > 0) then
-    allocate (lat%branch(n))
-    n = 0
-    do i = 1, lat%n_ele_track
-      if (lat%ele(i)%key /= photon_branch$) cycle
+  call allocate_branch_array (lat%branch, n, lat)  ! Initial allocation
+
+  n0 = 0
+  n = 0
+  do
+    branch0 => lat%branch(n0)
+    do i = 1, branch0%n_ele_track
+      if (branch0%ele(i)%key /= photon_branch$) cycle
       n = n + 1
-      if (n > size(lat%branch)) call allocate_branch_array (lat%branch, n)
+      if (n > ubound(lat%branch, 1)) call allocate_branch_array (lat%branch, n)
       branch => lat%branch(n)
+      branch%key = branch0%ele(i)%key
       branch%ix_branch = n
-      branch%ix_from_line = 0
+      branch%ix_from_branch = 0
       branch%ix_from_ele = i
       call parser_expand_line (n, lat%ele(i)%attribute_name, sequence, in_name, &
         in_indexx, seq_name, seq_indexx, in_lat%ele, branch%ele, used_line, n_ele_use)
@@ -766,28 +770,10 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
       branch%ele(0)%name = lat%ele(i)%attribute_name
       branch%n_ele_track = n_ele_use
       branch%n_ele_max   = n_ele_use
-      nn = n
-      do 
-        do ii = 1, branch%n_ele_track
-          if (branch%ele(ii)%key /= photon_branch$) cycle
-          n = n + 1
-          if (n > size(lat%branch)) call allocate_branch_array (lat%branch, n)
-          branch2 => lat%branch(n)
-          branch%ix_branch = n
-          branch%ix_from_line = 0
-          branch%ix_from_ele = i
-          call parser_expand_line (n, lat%ele(i)%attribute_name, sequence, in_name, &
-            in_indexx, seq_name, seq_indexx, in_lat%ele, branch%ele, used_line, n_ele_use)
-          branch%ele(0)%key = init_ele$
-          branch%ele(0)%name = lat%ele(i)%attribute_name
-          branch%n_ele_track = n_ele_use
-          branch%n_ele_max   = n_ele_use
-
-        endif
     enddo
-
-  endif
-
+    n0 = n0 + 1
+    if (n0 > n) exit
+  enddo
 
 ! Now put in the overlay_lord, girder, and group elements
 

@@ -37,7 +37,7 @@ subroutine insert_element (lat, insert_ele, insert_index)
 ! transfer_ele is fast since re reuse storage.
 
   lat%n_ele_max = lat%n_ele_max + 1
-  if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_ele_array(lat%ele)
+  if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
 
   do ix = lat%n_ele_max-1, insert_index, -1
     call transfer_ele (lat%ele(ix), lat%ele(ix+1))
@@ -69,13 +69,11 @@ subroutine insert_element (lat, insert_ele, insert_index)
     print *, '        ELEMENT: ', insert_ele%name
   endif
 
-  if (allocated(lat%branch)) then
-    do ix = 1, size(lat%branch)
-      line => lat%branch(ix)
-      if (line%ix_from_ele >= insert_index .and. line%ix_from_line == 0) &
-                                   line%ix_from_ele = line%ix_from_ele + 1
-    enddo
-  endif
+  do ix = 1, ubound(lat%branch, 1)
+    line => lat%branch(ix)
+    if (line%ix_from_ele >= insert_index .and. line%ix_from_branch == 0) &
+                                 line%ix_from_ele = line%ix_from_ele + 1
+  enddo
 
   if (insert_ele%value(l$) /= 0) call s_calc(lat)
 

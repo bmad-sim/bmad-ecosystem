@@ -121,19 +121,15 @@ write (d_unit) lat%beam_start
 
 ! Write the branch line info
 
-if (allocated(lat%branch)) then
-  write (d_unit) size(lat%branch)
-  do i = 1, size(lat%branch)
-    line => lat%branch(i)
-    write (d_unit) line%kind, line%ix_from_line, line%ix_from_ele, &
-                                line%n_ele_track, line%n_ele_max
-    do j = 0, line%n_ele_max
-      call write_this_ele(line%ele(j))
-    enddo
+write (d_unit) ubound(lat%branch, 1)
+do i = 1, ubound(lat%branch, 1)
+  line => lat%branch(i)
+  write (d_unit) line%key, line%ix_from_branch, line%ix_from_ele, &
+                                      line%n_ele_track, line%n_ele_max
+  do j = 0, line%n_ele_max
+    call write_this_ele(line%ele(j))
   enddo
-else 
-  write (d_unit) 0
-endif
+enddo
 
 close (d_unit)
 

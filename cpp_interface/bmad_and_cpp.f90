@@ -1726,7 +1726,7 @@ call mode_info_to_f (y, f%b)
 call mode_info_to_f (z, f%z)
 call param_to_f (param, f%param)
 call ele_to_f (ele_init, f%ele_init)
-call allocate_ele_array(f%ele, n_maxx)
+call allocate_lat_ele_array(f, n_maxx)
 allocate (f%control(n_con))
 allocate (f%ic(n_ic))
 f%ic = ic

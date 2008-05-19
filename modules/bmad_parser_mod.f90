@@ -2717,7 +2717,7 @@ if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
 endif
 
 lat%n_ele_max = lat%n_ele_max + 1
-if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_ele_array(lat%ele)
+if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
 
 nn = lat%n_ele_max 
 

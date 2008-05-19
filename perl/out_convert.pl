@@ -7,9 +7,8 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/allocate_lat_ele/allocate_ele_array/g;
+    s/ix_from_line/ix_from_branch/g;
     print (F_OUT);
-
   }
 
   close (F_IN);

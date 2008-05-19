@@ -258,12 +258,12 @@ end type
 
 type branch_struct
   character(40) name
-  integer kind            ! photon_branch$, branch$, etc.
+  integer key               ! photon_branch$, branch$, etc.
   integer ix_branch
-  integer ix_from_line    ! 0 => main lattice line
+  integer ix_from_branch    ! 0 => main lattice line
   integer ix_from_ele
-  integer n_ele_track
-  integer n_ele_max
+  integer, pointer :: n_ele_track
+  integer, pointer :: n_ele_max
   type (ele_struct), pointer :: ele(:) => null()
 end type
 
