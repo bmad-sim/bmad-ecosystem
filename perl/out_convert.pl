@@ -7,8 +7,8 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/unified_lattices/common_base_lat/g;
-
+    s/photon_line/lat_line/;
+    s/photon([^_])/lat\1/g
     print (F_OUT);
 
   }

@@ -258,10 +258,12 @@ end type
 
 type photon_line_struct
   character(40) name
+  integer kind            ! photon_branch$, branch$, etc.
   integer ix_photon_line
   integer ix_from_line    ! 0 => main lattice line
   integer ix_from_ele
   integer n_ele_track
+  integer n_ele_max
   type (ele_struct), pointer :: ele(:)
 end type
 

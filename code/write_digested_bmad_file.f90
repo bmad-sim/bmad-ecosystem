@@ -125,8 +125,9 @@ if (allocated(lat%photon_line)) then
   write (d_unit) size(lat%photon_line)
   do i = 1, size(lat%photon_line)
     line => lat%photon_line(i)
-    write (d_unit) line%ix_from_line, line%ix_from_ele, line%n_ele_track, ubound(line%ele, 1)
-    do j = 0, ubound(line%ele, 1)
+    write (d_unit) line%kind, line%ix_from_line, line%ix_from_ele, &
+                                line%n_ele_track, line%n_ele_max
+    do j = 0, line%n_ele_max
       call write_this_ele(line%ele(j))
     enddo
   enddo

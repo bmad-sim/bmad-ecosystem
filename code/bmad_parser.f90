@@ -596,6 +596,9 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   call parser_expand_line (0, lat%name, sequence, in_name, in_indexx, &
                   seq_name, seq_indexx, in_lat%ele, lat%ele, used_line, n_ele_use)
   if (bp_com%error_flag) stop
+  lat%n_ele_track        = n_ele_use
+  lat%n_ele_max          = n_ele_use
+
 
 ! First work on multipass before overlays, groups, and usuperimpose. 
 ! This is important since the elements in the lattice get
@@ -625,8 +628,6 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   lat%version            = bmad_inc_version$
   lat%input_file_name    = full_lat_file_name             ! save input file  
-  lat%n_ele_track        = n_ele_use
-  lat%n_ele_max          = n_ele_use
   lat%n_ic_max           = 0                     
   lat%n_control_max      = 0    
   lat%param%growth_rate  = 0
@@ -762,6 +763,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
                   seq_name, seq_indexx, in_lat%ele, p_line%ele, used_line, n_ele_use)
       p_line%ele(0)%key = init_ele$
       p_line%ele(0)%name = lat%ele(i)%attribute_name
+      p_line%n_ele_track = n_ele_use
+      p_line%n_ele_max   = n_ele_use
     enddo
   endif
 

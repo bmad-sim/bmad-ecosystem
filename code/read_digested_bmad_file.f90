@@ -208,8 +208,10 @@ if (version > 86) then
     do i = 1, n_line
       line => lat%photon_line(i)
       line%ix_photon_line = i
-      read (d_unit) line%ix_from_line, line%ix_from_ele, line%n_ele_track, n
-      do j = 0, n
+      read (d_unit) line%kind, line%ix_from_line, line%ix_from_ele, &
+                                line%n_ele_track, line%n_ele_max
+      call allcate_lat_ele (line%ele, line%n_ele_max)
+      do j = 0, line%n_ele_max
         call read_this_ele (line%ele(j), error)
         if (error) return
       enddo
