@@ -304,17 +304,11 @@ lat => s%u(isu)%model%lat
 
 ! loop over all elements in the lattice. 
 
-do i = 1, lat%n_ele_max
-  call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%ele(i))
-enddo
-
-if (allocated(lat%branch)) then
-  do n = 1, size(lat%branch)
-    do i = 1, lat%branch(n)%n_ele_track
-      call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%branch(n)%ele(i))
-    enddo
+do n = 0, ubound(lat%branch, 1)
+  do i = 1, lat%branch(n)%n_ele_track
+    call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%branch(n)%ele(i))
   enddo
-endif
+enddo
 
 ! Draw the tunnel wall
 
@@ -383,7 +377,6 @@ character(2) justify
 !
 
 call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, lat%n_ele_track, ix_shape)
-ele_shape => tao_com%ele_shape_floor_plan(ix_shape)
 
 if (ele%control_type == super_slave$) return
 if (ele%ix_branch == 0 .and. ele%ix_ele > lat%n_ele_track .and. ix_shape < 1) return
@@ -456,6 +449,8 @@ if (ix_shape < 1) then
 endif
 
 ! Here if element is to be drawn...
+
+ele_shape => tao_com%ele_shape_floor_plan(ix_shape)
 
 select case (ele_shape%shape)
 case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE')
