@@ -308,10 +308,10 @@ do i = 1, lat%n_ele_max
   call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%ele(i))
 enddo
 
-if (allocated(lat%photon_line)) then
-  do n = 1, size(lat%photon_line)
-    do i = 1, lat%photon_line(n)%n_ele_track
-      call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%photon_line(n)%ele(i))
+if (allocated(lat%branch)) then
+  do n = 1, size(lat%branch)
+    do i = 1, lat%branch(n)%n_ele_track
+      call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%branch(n)%ele(i))
     enddo
   enddo
 endif
@@ -386,7 +386,7 @@ call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, lat%n_ele_track, ix_
 ele_shape => tao_com%ele_shape_floor_plan(ix_shape)
 
 if (ele%control_type == super_slave$) return
-if (ele%ix_photon_line == 0 .and. ele%ix_ele > lat%n_ele_track .and. ix_shape < 1) return
+if (ele%ix_branch == 0 .and. ele%ix_ele > lat%n_ele_track .and. ix_shape < 1) return
 
 call find_element_ends (lat, ele, ele1, ele2)
 call floor_to_screen_coords (ele1%floor, end1)
