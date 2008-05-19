@@ -272,25 +272,15 @@ implicit none
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
-type (ele_struct), pointer :: ele
 type (floor_position_struct) end1, end2, floor
 type (tao_wall_point_struct), pointer :: pt(:)
-type (tao_ele_shape_struct), pointer :: ele_shape(:)
 
-integer i, j, k, ix_shape, icol, ix1, ix2, isu, n_bend, n, ix
+real(rp) theta, v_vec(3)
+real(rp) x_bend(0:1000), y_bend(0:1000)
 
-real(rp) off, off1, off2, angle, rho, x0, y0, dx1, dy1, dx2, dy2
-real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta
-real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
-real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
-real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
-real(rp) x_inch, y_inch, x1, x2, y1, y2
+integer i, j, k, n, n_bend, isu
 
-character(80) str
-character(40) name
 character(20) :: r_name = 'tao_plot_floor_plan'
-character(16) this_shape
-character(2) justify
 
 ! Each graph is a separate lattice layout (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
@@ -304,8 +294,6 @@ if (graph%correct_xy_distortion) call qp_eliminate_xy_distortion
 
 !
 
-ele_shape => tao_com%ele_shape_floor_plan
-
 if (graph%draw_axes) then
   call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
   call qp_draw_axes
@@ -317,228 +305,16 @@ lat => s%u(isu)%model%lat
 ! loop over all elements in the lattice. 
 
 do i = 1, lat%n_ele_max
-
-  ele => lat%ele(i)
-  call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, lat%n_ele_track, ix_shape)
-
-  if (ele%control_type == super_slave$) cycle
-  if (i > lat%n_ele_track .and. ix_shape < 1) cycle
-
-  call find_element_ends (lat, i, ix1, ix2)
-  call floor_to_screen_coords (lat%ele(ix1)%floor, end1)
-  call floor_to_screen_coords (lat%ele(ix2)%floor, end2)
-
-  ! Only draw those element that have at least one point in bounds.
-  
-  if ((end1%x < plot%x%min .or. plot%x%max < end1%x .or. &
-      end1%y < graph%y%min .or. graph%y%max < end1%y) .and. &
-      (end2%x < plot%x%min .or. plot%x%max < end2%x .or. &
-      end2%y < graph%y%min .or. graph%y%max < end2%y)) cycle
-
-  ! Bends can be tricky if they are not in the X-Z plane. 
-  ! Bends are parameterized by a set of points (x_bend, y_bend) along their  
-  ! centerline and a set of vectors (dx_bend, dy_bend) perpendicular to the centerline.
-
-  if (ele%key == sbend$) then
-
-    if (ele%value(g$) == 0) then
-      n_bend = 1
-      x_bend(0) = end1%x; y_bend(0) = end1%y
-      x_bend(1) = end2%x; y_bend(1) = end2%y
-
-    else
-      floor = lat%ele(ix1)%floor
-      v_old = (/ floor%x, floor%y, floor%z /)
-      cos_t = cos(floor%theta)
-      sin_t = sin(floor%theta)
-      cos_p = cos(floor%phi)
-      sin_p = sin(floor%phi)
-      w_old(1, 1:3) = (/  cos_t,  -sin_t * sin_p, sin_t * cos_p /)
-      w_old(2, 1:3) = (/ 0.0_rp,   cos_p,         sin_p /)
-      w_old(3, 1:3) = (/ -sin_t,  -cos_t * sin_p, cos_t * cos_p /)
-
-      rho = ele%value(rho$)
-
-      n_bend = abs(int(100 * ele%value(angle$))) + 1
-       do j = 0, n_bend
-        angle = j * ele%value(angle$) / n_bend
-        cos_t = cos(ele%value(tilt$))
-        sin_t = sin(ele%value(tilt$))
-        cos_a = cos(angle)
-        sin_a = sin(angle)
-        r_vec = rho * (/ cos_t * (cos_a - 1), sin_t * (cos_a - 1), sin_a /)
-        dr_vec = rho * (/ -cos_t * sin_a, -sin_t * sin_a, cos_a /)
-        ! This keeps dr_vec pointing to the inside (important for the labels).
-        if (cos_t < 0) dr_vec = -dr_vec
-        v_vec = matmul (w_old, r_vec) + v_old
-        dv_vec = matmul (w_old, dr_vec) 
-        call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
-        call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx_bend(j), dy_bend(j))
-      enddo
-    endif
-
-  endif
-
-  ! Only those elements with ix_shape > 0 are to be drawn in full.
-  ! All others are drawn with a simple line or arc
-
-  if (ix_shape < 1) then
-    if (ele%key == sbend$) then
-      call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
-    else
-      call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
-    endif
-    cycle
-  endif
-
-  ! Here if element is to be drawn...
-
-  this_shape = ele_shape(ix_shape)%shape
-
-  select case (this_shape)
-  case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE')
-  case default
-    print *, 'ERROR: UNKNOWN SHAPE: ', this_shape
-    call err_exit
-  end select
-
-  call qp_translate_to_color_index (ele_shape(ix_shape)%color, icol)
-
-  off = ele_shape(ix_shape)%dy_pix
-  off1 = off
-  off2 = off
-  if (this_shape == 'VAR_BOX' .or. this_shape == 'ASYM_VAR_BOX') then
-    select case (ele%key)
-    case (quadrupole$)
-      off1 = off * ele%value(k1$)
-    case (sextupole$)
-      off1 = off * ele%value(k2$)
-    case (octupole$)
-      off1 = off * ele%value(k3$)
-    case (solenoid$)
-      off1 = off * ele%value(ks$)
-    end select
-    off1 = max(-s%plot_page%shape_height_max, min(off1, s%plot_page%shape_height_max))
-    off2 = off1
-    if (this_shape == 'ASYM_VAR_BOX') off1 = 0
-  end if
-
-  ! Draw the shape. Since the conversion from floor coords and screen pixels can
-  ! be different along x and y we convert to pixels to make sure that rectangles
-  ! remain rectangular.
-
-  call qp_convert_point_abs (end1%x, end1%y, 'DATA', end1%x, end1%y, 'POINTS')
-  call qp_convert_point_abs (end2%x, end2%y, 'DATA', end2%x, end2%y, 'POINTS')
-
-  ! dx1, etc. are offsets perpendicular to the refernece orbit
-
-  call qp_convert_point_rel (cos(end1%theta), sin(end1%theta), 'DATA', dt_x, dt_y, 'POINTS')
-  dx1 =  off1 * dt_y / sqrt(dt_x**2 + dt_y**2)
-  dy1 = -off1 * dt_x / sqrt(dt_x**2 + dt_y**2)
-
-  call qp_convert_point_rel (cos(end2%theta), sin(end2%theta), 'DATA', dt_x, dt_y, 'POINTS')
-  dx2 =  off2 * dt_y / sqrt(dt_x**2 + dt_y**2)
-  dy2 = -off2 * dt_x / sqrt(dt_x**2 + dt_y**2)
-
-  if (ele%key == sbend$) then
-    do j = 0, n_bend
-      call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', x_bend(j), y_bend(j), 'POINTS')
-      call qp_convert_point_rel (dx_bend(j), dy_bend(j), 'DATA', dt_x, dt_y, 'POINTS')
-      dx_bend(j) =  off * dt_y / sqrt(dt_x**2 + dt_y**2)
-      dy_bend(j) = -off * dt_x / sqrt(dt_x**2 + dt_y**2)
-    enddo
-  endif
-
-  ! Draw the element...
-  ! Draw top and bottom
-
-  if (this_shape /= 'DIAMOND') then
-    if (ele%key == sbend$) then
-      call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
-                            y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
-      call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
-                            y_bend(:n_bend) - dy_bend(:n_bend), units = 'POINTS', color = icol)
-
-    else
-      call qp_draw_line (end1%x+dx1, end2%x+dx2, end1%y+dy1, end2%y+dy2, &
-                                                      units = 'POINTS', color = icol)
-      call qp_draw_line (end1%x-dx1, end2%x-dx2, end1%y-dy1, end2%y-dy2, &
-                                                      units = 'POINTS', color = icol)
-    endif
-  endif
-
-  if (this_shape == 'DIAMOND') then
-    if (ele%key == sbend$) then
-      n = n_bend / 2
-      x1 = (x_bend(n) + dx_bend(n)) / 2
-      x2 = (x_bend(n) - dx_bend(n)) / 2
-      y1 = (y_bend(n) + dy_bend(n)) / 2
-      y2 = (y_bend(n) - dy_bend(n)) / 2
-    else
-      x1 = ((end1%x + end2%x) + (dx1 + dx2)) / 2
-      x2 = ((end1%x + end2%x) - (dx1 + dx2)) / 2
-      y1 = ((end1%y + end2%y) + (dy1 + dy2)) / 2
-      y2 = ((end1%y + end2%y) - (dy1 + dy2)) / 2
-    endif
-    call qp_draw_line (end1%x, x1, end1%y, y1, units = 'POINTS', color = icol)
-    call qp_draw_line (end1%x, x2, end1%y, y2, units = 'POINTS', color = icol)
-    call qp_draw_line (end2%x, x1, end2%y, y1, units = 'POINTS', color = icol)
-    call qp_draw_line (end2%x, x2, end2%y, y2, units = 'POINTS', color = icol)
-
-  elseif (this_shape /= 'BOW_TIE') then
-    ! Draw sides
-    call qp_draw_line (end1%x+dx1, end1%x-dx1, end1%y+dy1, end1%y-dy1, &
-                                                    units = 'POINTS', color = icol)
-    call qp_draw_line (end2%x+dx2, end2%x-dx2, end2%y+dy2, end2%y-dy2, &
-                                                    units = 'POINTS', color = icol)
-  endif
-
-  ! Draw X for xbox or bow_tie
-
-  if (this_shape == 'XBOX' .or. this_shape == 'BOW_TIE') then
-    call qp_draw_line (end1%x+dx1, end2%x-dx2, end1%y+dy1, end2%y-dy2, &
-                                                    units = 'POINTS', color = icol)
-    call qp_draw_line (end1%x-dx1, end2%x+dx2, end1%y-dy1, end2%y+dy2, &
-                                                    units = 'POINTS', color = icol)
-  endif
-
-  ! Draw the label.
-  ! Since multipass slaves are on top of one another, just draw the multipass lord's name.
-  ! Also place a bend's label to the outside of the bend.
-
-  if (ele_shape(ix_shape)%draw_name) then
-    if (ele%control_type == multipass_slave$) then
-      ix = ele%ic1_lord
-      ix = lat%control(lat%ic(ix))%ix_lord
-      name = lat%ele(ix)%name
-    else
-      name = ele%name
-    endif
-
-    if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
-      x_center = (end1%x + end2%x) / 2 
-      y_center = (end1%y + end2%y) / 2 
-      dx = -2 * dt_y / sqrt(dt_x**2 + dt_y**2)
-      dy =  2 * dt_x / sqrt(dt_x**2 + dt_y**2)
-    else
-      n = n_bend / 2
-      x_center = x_bend(n) 
-      y_center = y_bend(n) 
-      dx = -2 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
-      dy = -2 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
-    endif
-    theta = modulo2 (atan2d(dy, dx), 90.0_rp)
-    if (dx > 0) then
-      justify = 'LC'
-    else
-      justify = 'RC'
-    endif
-    height = s%plot_page%text_height * s%plot_page%legend_text_scale
-    call qp_draw_text (name, x_center+dx*off2, y_center+dy*off2, units = 'POINTS', &
-                                 height = height, justify = justify, ANGLE = theta)    
-  endif
-
+  call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%ele(i))
 enddo
+
+if (allocated(lat%photon_line)) then
+  do n = 1, size(lat%photon_line)
+    do i = 1, lat%photon_line(n)%n_ele_track
+      call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%photon_line(n)%ele(i))
+    enddo
+  enddo
+endif
 
 ! Draw the tunnel wall
 
@@ -576,6 +352,260 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
+subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele)
+
+implicit none
+
+type (tao_plot_struct) :: plot
+type (tao_graph_struct) :: graph
+type (lat_struct) :: lat
+type (ele_struct) :: ele
+type (ele_struct), pointer :: ele1, ele2
+type (floor_position_struct) end1, end2, floor
+type (tao_wall_point_struct), pointer :: pt(:)
+type (tao_ele_shape_struct), pointer :: ele_shape
+
+integer i, j, k, ix_shape, icol, isu, n_bend, n, ix
+
+real(rp) off, off1, off2, angle, rho, x0, y0, dx1, dy1, dx2, dy2
+real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta
+real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
+real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
+real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
+real(rp) x_inch, y_inch, x1, x2, y1, y2
+
+character(80) str
+character(40) name
+character(20) :: r_name = 'tao_draw_ele_for_floor_plan'
+character(16) this_shape
+character(2) justify
+
+!
+
+call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, lat%n_ele_track, ix_shape)
+ele_shape => tao_com%ele_shape_floor_plan(ix_shape)
+
+if (ele%control_type == super_slave$) return
+if (ele%ix_photon_line == 0 .and. ele%ix_ele > lat%n_ele_track .and. ix_shape < 1) return
+
+call find_element_ends (lat, ele, ele1, ele2)
+call floor_to_screen_coords (ele1%floor, end1)
+call floor_to_screen_coords (ele2%floor, end2)
+
+! Only draw those element that have at least one point in bounds.
+  
+if ((end1%x < plot%x%min .or. plot%x%max < end1%x .or. &
+    end1%y < graph%y%min .or. graph%y%max < end1%y) .and. &
+    (end2%x < plot%x%min .or. plot%x%max < end2%x .or. &
+    end2%y < graph%y%min .or. graph%y%max < end2%y)) return
+
+! Bends can be tricky if they are not in the X-Z plane. 
+! Bends are parameterized by a set of points (x_bend, y_bend) along their  
+! centerline and a set of vectors (dx_bend, dy_bend) perpendicular to the centerline.
+
+if (ele%key == sbend$) then
+
+  if (ele%value(g$) == 0) then
+    n_bend = 1
+    x_bend(0) = end1%x; y_bend(0) = end1%y
+    x_bend(1) = end2%x; y_bend(1) = end2%y
+
+  else
+    floor = ele1%floor
+    v_old = (/ floor%x, floor%y, floor%z /)
+    cos_t = cos(floor%theta)
+    sin_t = sin(floor%theta)
+    cos_p = cos(floor%phi)
+    sin_p = sin(floor%phi)
+    w_old(1, 1:3) = (/  cos_t,  -sin_t * sin_p, sin_t * cos_p /)
+    w_old(2, 1:3) = (/ 0.0_rp,   cos_p,         sin_p /)
+    w_old(3, 1:3) = (/ -sin_t,  -cos_t * sin_p, cos_t * cos_p /)
+
+    rho = ele%value(rho$)
+
+    n_bend = abs(int(100 * ele%value(angle$))) + 1
+     do j = 0, n_bend
+      angle = j * ele%value(angle$) / n_bend
+      cos_t = cos(ele%value(tilt$))
+      sin_t = sin(ele%value(tilt$))
+      cos_a = cos(angle)
+      sin_a = sin(angle)
+      r_vec = rho * (/ cos_t * (cos_a - 1), sin_t * (cos_a - 1), sin_a /)
+      dr_vec = rho * (/ -cos_t * sin_a, -sin_t * sin_a, cos_a /)
+      ! This keeps dr_vec pointing to the inside (important for the labels).
+      if (cos_t < 0) dr_vec = -dr_vec
+      v_vec = matmul (w_old, r_vec) + v_old
+      dv_vec = matmul (w_old, dr_vec) 
+      call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
+      call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx_bend(j), dy_bend(j))
+    enddo
+  endif
+
+endif
+
+! Only those elements with ix_shape > 0 are to be drawn in full.
+! All others are drawn with a simple line or arc
+
+if (ix_shape < 1) then
+  if (ele%key == sbend$) then
+    call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
+  else
+    call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
+  endif
+  return
+endif
+
+! Here if element is to be drawn...
+
+select case (ele_shape%shape)
+case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE')
+case default
+  print *, 'ERROR: UNKNOWN SHAPE: ', ele_shape%shape
+  call err_exit
+end select
+
+call qp_translate_to_color_index (ele_shape%color, icol)
+
+off = ele_shape%dy_pix
+off1 = off
+off2 = off
+if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
+  select case (ele%key)
+  case (quadrupole$)
+    off1 = off * ele%value(k1$)
+  case (sextupole$)
+    off1 = off * ele%value(k2$)
+  case (octupole$)
+    off1 = off * ele%value(k3$)
+  case (solenoid$)
+    off1 = off * ele%value(ks$)
+  end select
+  off1 = max(-s%plot_page%shape_height_max, min(off1, s%plot_page%shape_height_max))
+  off2 = off1
+  if (ele_shape%shape == 'ASYM_VAR_BOX') off1 = 0
+endif
+
+! Draw the shape. Since the conversion from floor coords and screen pixels can
+! be different along x and y we convert to pixels to make sure that rectangles
+! remain rectangular.
+
+call qp_convert_point_abs (end1%x, end1%y, 'DATA', end1%x, end1%y, 'POINTS')
+call qp_convert_point_abs (end2%x, end2%y, 'DATA', end2%x, end2%y, 'POINTS')
+
+! dx1, etc. are offsets perpendicular to the refernece orbit
+
+call qp_convert_point_rel (cos(end1%theta), sin(end1%theta), 'DATA', dt_x, dt_y, 'POINTS')
+dx1 =  off1 * dt_y / sqrt(dt_x**2 + dt_y**2)
+dy1 = -off1 * dt_x / sqrt(dt_x**2 + dt_y**2)
+
+call qp_convert_point_rel (cos(end2%theta), sin(end2%theta), 'DATA', dt_x, dt_y, 'POINTS')
+dx2 =  off2 * dt_y / sqrt(dt_x**2 + dt_y**2)
+dy2 = -off2 * dt_x / sqrt(dt_x**2 + dt_y**2)
+
+if (ele%key == sbend$) then
+  do j = 0, n_bend
+    call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', x_bend(j), y_bend(j), 'POINTS')
+    call qp_convert_point_rel (dx_bend(j), dy_bend(j), 'DATA', dt_x, dt_y, 'POINTS')
+    dx_bend(j) =  off * dt_y / sqrt(dt_x**2 + dt_y**2)
+    dy_bend(j) = -off * dt_x / sqrt(dt_x**2 + dt_y**2)
+  enddo
+endif
+
+! Draw the element...
+! Draw top and bottom
+
+if (ele_shape%shape /= 'DIAMOND') then
+  if (ele%key == sbend$) then
+    call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
+                          y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
+    call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
+                          y_bend(:n_bend) - dy_bend(:n_bend), units = 'POINTS', color = icol)
+
+  else
+    call qp_draw_line (end1%x+dx1, end2%x+dx2, end1%y+dy1, end2%y+dy2, &
+                                                    units = 'POINTS', color = icol)
+    call qp_draw_line (end1%x-dx1, end2%x-dx2, end1%y-dy1, end2%y-dy2, &
+                                                    units = 'POINTS', color = icol)
+  endif
+endif
+
+if (ele_shape%shape == 'DIAMOND') then
+  if (ele%key == sbend$) then
+    n = n_bend / 2
+    x1 = (x_bend(n) + dx_bend(n)) / 2
+    x2 = (x_bend(n) - dx_bend(n)) / 2
+    y1 = (y_bend(n) + dy_bend(n)) / 2
+    y2 = (y_bend(n) - dy_bend(n)) / 2
+  else
+    x1 = ((end1%x + end2%x) + (dx1 + dx2)) / 2
+    x2 = ((end1%x + end2%x) - (dx1 + dx2)) / 2
+    y1 = ((end1%y + end2%y) + (dy1 + dy2)) / 2
+    y2 = ((end1%y + end2%y) - (dy1 + dy2)) / 2
+  endif
+  call qp_draw_line (end1%x, x1, end1%y, y1, units = 'POINTS', color = icol)
+  call qp_draw_line (end1%x, x2, end1%y, y2, units = 'POINTS', color = icol)
+  call qp_draw_line (end2%x, x1, end2%y, y1, units = 'POINTS', color = icol)
+  call qp_draw_line (end2%x, x2, end2%y, y2, units = 'POINTS', color = icol)
+
+elseif (ele_shape%shape /= 'BOW_TIE') then
+  ! Draw sides
+  call qp_draw_line (end1%x+dx1, end1%x-dx1, end1%y+dy1, end1%y-dy1, &
+                                                  units = 'POINTS', color = icol)
+  call qp_draw_line (end2%x+dx2, end2%x-dx2, end2%y+dy2, end2%y-dy2, &
+                                                  units = 'POINTS', color = icol)
+endif
+
+! Draw X for xbox or bow_tie
+
+if (ele_shape%shape == 'XBOX' .or. ele_shape%shape == 'BOW_TIE') then
+  call qp_draw_line (end1%x+dx1, end2%x-dx2, end1%y+dy1, end2%y-dy2, &
+                                                  units = 'POINTS', color = icol)
+  call qp_draw_line (end1%x-dx1, end2%x+dx2, end1%y-dy1, end2%y+dy2, &
+                                                  units = 'POINTS', color = icol)
+endif
+
+! Draw the label.
+! Since multipass slaves are on top of one another, just draw the multipass lord's name.
+! Also place a bend's label to the outside of the bend.
+
+if (ele_shape%draw_name) then
+  if (ele%control_type == multipass_slave$) then
+    ix = ele%ic1_lord
+    ix = lat%control(lat%ic(ix))%ix_lord
+    name = lat%ele(ix)%name
+  else
+    name = ele%name
+  endif
+
+  if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
+    x_center = (end1%x + end2%x) / 2 
+    y_center = (end1%y + end2%y) / 2 
+    dx = -2 * dt_y / sqrt(dt_x**2 + dt_y**2)
+    dy =  2 * dt_x / sqrt(dt_x**2 + dt_y**2)
+  else
+    n = n_bend / 2
+    x_center = x_bend(n) 
+    y_center = y_bend(n) 
+    dx = -2 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
+    dy = -2 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
+  endif
+  theta = modulo2 (atan2d(dy, dx), 90.0_rp)
+  if (dx > 0) then
+    justify = 'LC'
+  else
+    justify = 'RC'
+  endif
+  height = s%plot_page%text_height * s%plot_page%legend_text_scale
+  call qp_draw_text (name, x_center+dx*off2, y_center+dy*off2, units = 'POINTS', &
+                               height = height, justify = justify, ANGLE = theta)    
+endif
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
 subroutine tao_plot_lat_layout (plot, graph)
 
 implicit none
@@ -583,13 +613,13 @@ implicit none
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele1, ele2
 type (tao_ele_shape_struct), pointer :: ele_shape(:)
 
 real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top
 real(rp) lat_len, height, dy, key_number_height
 
-integer i, j, ix_shape, k, kk, ix, ix1, ix2, isu
+integer i, j, ix_shape, k, kk, ix, ix1, isu
 integer icol, ix_var, ixv
 
 character(80) str
@@ -662,9 +692,9 @@ do i = 1, lat%n_ele_max
   if (i > lat%n_ele_track .and. ix_shape < 1) cycle
 
   if (plot%x_axis_type == 's') then
-    call find_element_ends (lat, i, ix1, ix2)
-    x1 = lat%ele(ix1)%s
-    x2 = lat%ele(ix2)%s
+    call find_element_ends (lat, ele, ele1, ele2)
+    x1 = ele1%s
+    x2 = ele2%s
     ! If out of range then try a negative position
     if (lat%param%lattice_type == circular_lattice$ .and. x1 > plot%x%max) then
       x1 = x1 - lat_len
@@ -784,7 +814,7 @@ if (s%global%label_keys) then
       if (ix > lat%n_ele_track) then
         do j = lat%ele(ix)%ix1_slave, lat%ele(ix)%ix2_slave
           ix1 = lat%control(j)%ix_slave
-          s_pos = lat%ele(ix1)%s - lat%ele(ix1)%value(l$)/2
+          s_pos = ele1%s - ele1%value(l$)/2
           if (s_pos > plot%x%max .and. s_pos-lat_len > plot%x%min) s_pos = s_pos - lat_len
           call qp_draw_text (trim(str), s_pos, y_top, &
                               justify = 'CT', height = key_number_height)  
