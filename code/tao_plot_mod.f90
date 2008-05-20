@@ -305,7 +305,7 @@ lat => s%u(isu)%model%lat
 ! loop over all elements in the lattice. 
 
 do n = 0, ubound(lat%branch, 1)
-  do i = 1, lat%branch(n)%n_ele_track
+  do i = 1, lat%branch(n)%n_ele_max
     call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%branch(n)%ele(i))
   enddo
 enddo
