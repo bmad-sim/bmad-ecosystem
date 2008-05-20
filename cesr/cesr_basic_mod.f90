@@ -790,7 +790,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
 
   character(len=*), optional :: choice
   character(*) lat_file, lattice, current_lat
-  character(40) lat_list(200)
+  character(40) lat_list(200), cur_lat
   character(80) lat_choise, lat_dir
    
   integer i, num_lats, i_lat, ix, ios
@@ -811,6 +811,9 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
     if (ix /= 0) ask_for_lat = .false.
   endif
 
+  cur_lat = current_lat
+  call downcase_string (cur_lat)
+
 ! loop until we have a valid choice
 
   do
@@ -819,7 +822,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
       print *
       i_lat = 0
       do i = 1, num_lats
-        if (lat_list(i) == current_lat) then
+        if (lat_list(i) == cur_lat) then
           print '(1x, a, i3, 3a)', '**', i, ') ', trim(lat_list(i)), &
                                            '   ! Current lattice in Data Base'
           i_lat = i
@@ -848,7 +851,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
     if (ix == 0 .or. (ix == 1 .and. (lat_choise == '*' .or. lat_choise == '0'))) then
       default_flag = .true.
       do i_lat = 1, num_lats
-        if (lat_list(i_lat) == current_lat) exit
+        if (lat_list(i_lat) == cur_lat) exit
       enddo
     else
       default_flag = .false.
