@@ -600,6 +600,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   lat%n_ele_track        = n_ele_use
   lat%n_ele_max          = n_ele_use
   
+  call allocate_branch_array (lat%branch, 0, lat)  ! Initial allocation
+
 !---------------------------------------------------------------
 ! we now have the line to use in constructing the lat.
 ! now to put the elements in LAT in the correct order.
@@ -740,16 +742,6 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   call remove_ele_from_lat (lat)  ! remove all null_ele elements.
 
 ! Add branch lines
-! First sum the number of branches
-
-  n = 0
-  do i = 1, lat%n_ele_track
-    if (lat%ele(i)%key == photon_branch$) n = n + 1
-  enddo
-
-  ! Now create the lines
-
-  call allocate_branch_array (lat%branch, n, lat)  ! Initial allocation
 
   n0 = 0
   n = 0
@@ -758,7 +750,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
     do i = 1, branch0%n_ele_track
       if (branch0%ele(i)%key /= photon_branch$) cycle
       n = n + 1
-      if (n > ubound(lat%branch, 1)) call allocate_branch_array (lat%branch, n)
+      call allocate_branch_array (lat%branch, n)
+      branch0 => lat%branch(n0)
       branch => lat%branch(n)
       branch%key = branch0%ele(i)%key
       branch%ix_branch = n

@@ -296,7 +296,7 @@ subroutine lat_equal_lat (lat_out, lat_in)
   call allocate_branch_array (lat_out%branch, n, lat_out)
   do i = 1, n
     call allocate_ele_array (lat_out%branch(i)%ele, ubound(lat_in%branch(i)%ele, 1))
-    lat_out%branch(i)%ele = lat_in%branch(i)%ele
+    lat_out%branch(i) = lat_in%branch(i)
   enddo
 
 ! non-pointer transfer
@@ -370,7 +370,7 @@ subroutine branch_equal_branch (branch1, branch2)
 
   implicit none
 	
-  type (branch_struct), intent(out) :: branch1
+  type (branch_struct), intent(inout) :: branch1
   type (branch_struct), intent(in) :: branch2
 
 !
@@ -410,7 +410,7 @@ elemental subroutine coord_equal_coord (coord1, coord2)
 
   implicit none
 	
-  type (coord_struct), intent(out) :: coord1
+  type (coord_struct), intent(inout) :: coord1
   type (coord_struct), intent(in) :: coord2
 
   coord1%vec = coord2%vec

@@ -228,7 +228,7 @@ subroutine lattice_bookkeeper (lattice)
 implicit none
 
 type (lat_struct) lattice
-integer i
+integer i, j
 
 ! Control bookkeeper is called twice to make sure that the z_patch for a 
 ! wiggler super_lord is computed.
@@ -239,8 +239,10 @@ call control_bookkeeper (lattice, wiggler_only = .true.)
 
   ! Make sure attributes are updated
 
-do i = 1, lattice%n_ele_track
-  call attribute_bookkeeper (lattice%ele(i), lattice%param)
+do i = 0, ubound(lattice%branch, 1)
+  do j = 1, lattice%branch(i)%n_ele_track
+    call attribute_bookkeeper (lattice%branch(i)%ele(j), lattice%param)
+  enddo
 enddo
 
 ! Global geometry

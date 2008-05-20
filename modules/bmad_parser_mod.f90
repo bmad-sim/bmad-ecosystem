@@ -1724,6 +1724,7 @@ subroutine type_get (ele, ix_type, delim, delim_found)
     call read_lr_wake (ele, type_name)
   case (to$)
     ele%attribute_name = type_name
+    call upcase_string (ele%attribute_name)
   case default
     print *, 'INTERNAL ERROR IN TYPE_GET: I NEED HELP!'
     call err_exit
