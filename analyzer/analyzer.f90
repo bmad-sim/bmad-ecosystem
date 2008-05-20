@@ -4,7 +4,7 @@ program closed_orbit
   use cesr_utils
   use cbar_mod
   use bookkeeper_mod
-
+ 
   implicit none
 
   interface
@@ -38,7 +38,7 @@ program closed_orbit
   integer nd
   integer plot_flag, last
   integer, parameter :: orbit$=1,beta$=2,cbar$=3,diff$=4, de_beta$=5
-  integer, parameter :: eta$=6, de_cbar$=7
+  integer, parameter :: eta$=6, de_cbar$=7, eta_prop$=8
   integer ix_cache
   integer, allocatable :: n_ele(:)
   integer i_dim/4/
@@ -369,6 +369,14 @@ program closed_orbit
       ring_two(-1) = ring
       do i = -1,1,2
        co_off(0)%vec(6) = de *i
+       if(transfer_line)then
+         co_off(0)%vec(1) = ring_two(i)%ele(0)%a%eta * co_off(0)%vec(6)
+         co_off(0)%vec(2) = ring_two(i)%ele(0)%a%etap * co_off(0)%vec(6)
+         co_off(0)%vec(3) = ring_two(i)%ele(0)%b%eta * co_off(0)%vec(6)
+         co_off(0)%vec(4) = ring_two(i)%ele(0)%b%etap * co_off(0)%vec(6)
+
+         call track_all(ring_two(i), co_off)
+       endif
        if(.not. transfer_line) call closed_orbit_calc(ring_two(i), co_off,i_dim)
        call lat_make_mat6(ring_two(i), -1, co_off)
        if(.not. transfer_line) call twiss_at_start(ring_two(i))
@@ -497,7 +505,9 @@ program closed_orbit
        plot_flag=de_beta$
       elseif(index(answer(1:ix),'CB') /= 0)then
        plot_flag=cbar$
-      elseif(index(answer(1:ix),'ET') /=0)then
+      elseif(index(answer(1:ix),'ETA_PROP') /= 0)then
+       plot_flag=eta_prop$
+      elseif(index(answer(1:ix),'ET') /=0 .and. index(answer(1:ix),'PROP') == 0)then
        plot_flag=eta$
       elseif(index(answer(1:ix),'DC') /=0)then
        plot_flag=de_cbar$
@@ -624,6 +634,11 @@ program closed_orbit
        y(i) = (co_high(i)%vec(3) - co_low(i)%vec(3))/2/de
       endif
 
+      if(plot_flag == eta_prop$)then
+       x(i) = ring%ele(i)%a%eta
+       y(i) = ring%ele(i)%b%eta
+      endif
+
       if(plot_flag == cbar$)then
        call c_to_cbar(ring%ele(i),cbar_mat)
        x(i) = cbar_mat(1,2)
@@ -690,6 +705,11 @@ program closed_orbit
       if(plot_flag == eta$)then
        xx_diff(l) = (co_high(i)%vec(1) - co_low(i)%vec(1))/2/de - x(j)
        yy_diff(l) = (co_high(i)%vec(3) - co_low(i)%vec(3))/2/de - y(j)
+      endif
+
+      if(plot_flag == eta_prop$)then
+       xx_diff(l) = ring%ele(i)%a%eta - x(j)
+       yy_diff(l) = ring%ele(i)%b%eta - y(j)
       endif
 
 
@@ -759,7 +779,7 @@ program closed_orbit
          call pgenv(start, end,-xscale,xscale,0,1)
          call pglab('z (m)','dBx/dE(m)',' dBeta/dE')
        endif
-       if(plot_flag == eta$)then
+       if(plot_flag == eta$ .or. plot_flag == eta_prop$)then
          xscale=(int(xmax/5.)+1)*5
          if(xmax0 /= 0.)xscale = xmax0
          call pgenv(start, end,-xscale,xscale,0,1)
@@ -819,7 +839,7 @@ program closed_orbit
          call pgenv(start, end,-yscale,yscale,0,1)
          call pglab('z (m)','dBy/dE(m)',' dBeta/dE')
        endif
-       if(plot_flag == eta$)then
+       if(plot_flag == eta$ .or. plot_flag == eta_prop$)then
          yscale=(int(ymax/0.5)+1)*0.5
          if(ymax0 /= 0.)yscale=ymax0
          call pgenv(start, end,-yscale,yscale,0,1)
