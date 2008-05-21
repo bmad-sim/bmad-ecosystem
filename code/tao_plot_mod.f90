@@ -274,11 +274,12 @@ type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
 type (floor_position_struct) end1, end2, floor
 type (tao_wall_point_struct), pointer :: pt(:)
+type (ele_struct), pointer :: ele
 
 real(rp) theta, v_vec(3)
 real(rp) x_bend(0:1000), y_bend(0:1000)
 
-integer i, j, k, n, n_bend, isu
+integer i, j, k, n, n_bend, isu, ic, ix_shape
 
 character(20) :: r_name = 'tao_plot_floor_plan'
 
@@ -305,8 +306,19 @@ lat => s%u(isu)%model%lat
 ! loop over all elements in the lattice. 
 
 do n = 0, ubound(lat%branch, 1)
+  lat%branch(n)%ele%logic = .false.  ! Used to mark as drawn.
   do i = 1, lat%branch(n)%n_ele_max
-    call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%branch(n)%ele(i))
+    ele => lat%branch(n)%ele(i)
+    call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, lat%n_ele_track, ix_shape)
+    if (ele%ix_ele > lat%n_ele_track .and. ix_shape == 0) cycle   ! Nothing to draw
+    if (ele%control_type == multipass_lord$) then
+      do j = ele%ix1_slave, ele%ix2_slave
+        ic = lat%control(j)%ix_slave
+        call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%branch(n)%ele(ic), ix_shape)        
+      enddo
+    else
+      call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, ix_shape)
+    endif
   enddo
 enddo
 
@@ -346,7 +358,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
-subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele)
+recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, ix_shape)
 
 implicit none
 
@@ -375,11 +387,6 @@ character(16) this_shape
 character(2) justify
 
 !
-
-call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, lat%n_ele_track, ix_shape)
-
-if (ele%control_type == super_slave$) return
-if (ele%ix_branch == 0 .and. ele%ix_ele > lat%n_ele_track .and. ix_shape < 1) return
 
 call find_element_ends (lat, ele, ele1, ele2)
 call floor_to_screen_coords (ele1%floor, end1)
@@ -942,7 +949,6 @@ logical err
 ix_shape = 0
 
 if (ele%control_type == group_lord$) return
-if (ele%control_type == multipass_lord$) return
 if (ele%control_type == overlay_lord$) return
 if (ele%control_type == super_slave$) return
 if (ele%ix_ele > n_ele_track .and. ele%control_type == free$) return

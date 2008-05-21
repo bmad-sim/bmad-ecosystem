@@ -347,13 +347,13 @@ type (tao_v1_var_struct) , pointer :: v1_ptr
 type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
 type (tao_var_struct), pointer :: v_ptr
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele1, ele2
 
 real(rp) f, y_val, eps, gs, l_tot, s0, s1, x_max, x_min
 real(rp), pointer :: value(:)
 real(rp), allocatable, save :: ix_symb(:), x_symb(:), y_symb(:)
 
-integer ii, k, m, n_dat, ie, jj, iv, ic
+integer ii, k, m, n, n_dat, ie, jj, iv, ic
 integer ix, ir, jg, i, j, ix_this
 integer, allocatable, save :: ix_ele(:)
 
@@ -684,11 +684,27 @@ do k = 1, size(graph%curve)
     elseif (plot%x_axis_type == 's') then
       ! Symbols are to be put at the ends of displayed elements in the lat_layout
       eps = 1e-4 * (plot%x%max - plot%x%min)             ! a small number
+      model_lat%ele%logic = .false.
       do i = 1, model_lat%n_ele_max
         ele => model_lat%ele(i)
         call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, model_lat%n_ele_track, ix)
-        ele%logic = (ix > 0)
-        if (ix > 0) model_lat%ele(i-1)%logic = .true.
+        if (ix == 0) cycle
+        if (ele%control_type == multipass_lord$) then
+          do j = ele%ix1_slave, ele%ix2_slave
+            n = model_lat%control(j)%ix_slave
+            call find_element_ends (model_lat, model_lat%ele(n), ele1, ele2)
+            ele1%logic = .true.
+            ele2%logic = .true.
+          enddo
+        else
+          call find_element_ends (model_lat, ele, ele1, ele2)
+          ele1%logic = .true.
+          ele2%logic = .true.
+        endif
+      enddo
+      do i = 1, model_lat%n_ele_max
+        ele => model_lat%ele(i)
+        if (.not. ele%logic) cycle
         if (plot%x%min == plot%x%max) cycle
         s0 = ele%s - ele%value(l$)
         s1 = ele%s
@@ -696,8 +712,7 @@ do k = 1, size(graph%curve)
         l_tot = model_lat%param%total_length
         if (model_lat%param%lattice_type == circular_lattice$) in_graph = in_graph .or. &
                         (s0-l_tot >= plot%x%min-eps) .and. (s1-l_tot <= plot%x%max+eps)
-        ele%logic = ele%logic .and. in_graph
-                                 
+        ele%logic = ele%logic .and. in_graph                                 
       enddo
       n_dat = count (model_lat%ele(:)%logic)
     endif

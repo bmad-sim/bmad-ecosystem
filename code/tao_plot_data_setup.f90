@@ -22,7 +22,6 @@ type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 type (ele_struct), pointer :: ele
 type (tao_universe_struct), pointer :: u
-type (tao_ele_shape_struct), pointer :: shape(:)
 
 integer i, ii, k, m, i_uni, ie, jj, ic
 integer ix, ir, jg

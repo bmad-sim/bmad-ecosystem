@@ -269,12 +269,12 @@ ix0 = datum%ix_ele0
 ix1 = datum%ix_ele
 
 if (datum%ele_name /= '') then
-  ix1 = tao_valid_datum_index (lat, ix1, valid_value)
+  ix1 = tao_valid_datum_index (lat, ix1, datum, valid_value)
   if (.not. valid_value) return
 endif
 
 if (datum%ele0_name /= '') then
-  ix0 = tao_valid_datum_index (lat, ix0, valid_value)
+  ix0 = tao_valid_datum_index (lat, ix0, datum, valid_value)
   if (.not. valid_value) return
 endif
 
@@ -1544,7 +1544,7 @@ end function tao_do_wire_scan
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Function tao_valid_datum_index (lat, ix_ele, valid) result (ix_loc)
+! Function tao_valid_datum_index (lat, ix_ele, datum, valid) result (ix_loc)
 ! 
 ! Routine to see if an element index corresponds to an element with a definite 
 ! location such as an overlay or multipass element. 
@@ -1555,16 +1555,17 @@ end function tao_do_wire_scan
 ! Input:
 !   lat    -- Lat_struct: Lattice
 !   ix_ele -- Integer: Index of element.
-!
+!   datum  -- Tao_data_struct: Used for error messages
 !   valid  -- Logical: Set false if element does not have a definite location.
 !   ix_loc -- Integer: Location of element in the tracking part of the lat%ele(:) array.
 !-
 
-function tao_valid_datum_index (lat, ix_ele, valid) result (ix_loc)
+function tao_valid_datum_index (lat, ix_ele, datum, valid) result (ix_loc)
 
 implicit none
 
 type (lat_struct) lat
+type (tao_data_struct) datum
 integer ix_ele, ix_loc, ixc
 logical valid
 character(40) :: r_name = 'tao_valid_datum_index'
@@ -1590,10 +1591,11 @@ endif
 
 valid = .false.
 call out_io (s_error$, r_name, &
-            'ELEMENT: ' // lat%ele(ix_ele)%name, &
-            'WHICH IS A: ' // control_name(lat%ele(ix_ele)%control_type), &
+            'ELEMENT: ' // trim(lat%ele(ix_ele)%name) // &
+            '    WHICH IS A: ' // control_name(lat%ele(ix_ele)%control_type), &
             'CANNOT BE USED IN DEFINING A DATUM SINCE IT DOES NOT HAVE ', &
-            '   A DEFINITE LOCATION IN THE LATTICE.')
+            '   A DEFINITE LOCATION IN THE LATTICE.', &
+            'FOR DATUM: ' // tao_datum_name(datum) )
 
 end function
 
