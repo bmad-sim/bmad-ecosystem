@@ -320,37 +320,45 @@ other elements). Possible values for \vn{%control_type} are:
 \end{example}
 
 \begin{description}
-\item[free element] 
+\item[free element]\break 
 A \vn{free} element is just that, An element that is neither
 controls or is controlled. The exception is that attributes of this element
 may be controlled by a \vn{group_lord}.
 
-\item[super_lord and super_slave]
+\item[super_lord and super_slave]\break 
 \vn{super_lord} and \vn{super_slave} elements
 come from superimposing elements on top of other elements (\sref{s:super}).
 
-\item[overlay_lord, overlay_slave]
-An \vn{overlay_lord} is an \vn{overlay} element and the elements it
-controls are \vn{overlay_slave}s (\sref{s:overlay}).
+\item[overlay_lord, overlay_slave]\break 
+An \vn{overlay_lord} is an \vn{overlay} element. If an element it
+controls would otherwise be a \vn{free} element, that element becomes
+and \vn{overlay_slave} element (\sref{s:overlay}). The
+\vn{control_type} of a lord element, such as a \vn{super_lord} is not
+affected by being controlled by an \vn{overlay} lord.
 
-\item[group_lord]
+\item[group_lord]\break 
 A \vn{group_lord} is a \vn{group} element (\sref{s:group}). Since a
 \vn{group_lord} element only modifies the attributes of the elements
 it is linked to when the \vn{command} attribute of the \vn{group_lord}
 is modified, there is no corresponding \vn{group_slave} designation
 for the corresponding ``slave'' elements.
 
-\item[girder_lord]
+\item[girder_lord]\break 
 \index{on_a_girder}
 An \vn{girder_lord} is an \vn{girder} element. In this case, the slaves
 are marked by setting the \vn{%on_a_girder} component in the
 \vn{ele_struct}.
 
-\item{multipass_lord, multipass_slave}
+\item[multipass_lord, multipass_slave]\break
 \vn{multipass_lord}s and \vn{multipass_slave}s are created when
 multipass lines are present (\sref{s:multipass}). In the example in
 \sref{s:multipass}, Element \vn{A} would be a \vn{multipass_lord} and
-\vn{A\B1} and \vn{A\B2} would be \vn{multipass_slave}s.
+\vn{A\B1} and \vn{A\B2} would be \vn{multipass_slave}s. When
+superposition is combined with multipass, the elements in the tracking
+part of the lattice will be \vn{super_slave}s.  These elements will be
+controlled by \vn{super_lord}s. And finally, the \vn{super_lord}s will
+be controlled by \vn{multipass_lord}s.
+
 \end{description}
 
 %--------------------------------------------------------------------------
