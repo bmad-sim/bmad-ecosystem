@@ -1,13 +1,3 @@
-!+
-! Subroutine tao_show_cmd (what, stuff)
-!
-! Show information on variable, parameters, elements, etc.
-!
-! Input:
-!   what  -- Character(*): What to show.
-!   stuff -- Character(*): Particular stuff to show.
-!-
-
 module tao_show_mod
 
 use tao_mod
@@ -33,6 +23,16 @@ contains
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+!+
+! Subroutine tao_show_cmd (what, stuff)
+!
+! Show information on variable, parameters, elements, etc.
+!
+! Input:
+!   what  -- Character(*): What to show.
+!   stuff -- Character(*): Particular stuff to show.
+!-
+
 subroutine tao_show_cmd (what, stuff)
 
 implicit none
@@ -109,7 +109,7 @@ type (tao_curve_struct), pointer :: c
 type (tao_plot_region_struct), pointer :: region
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_ele_shape_struct), pointer :: shape
-
+type (branch_struct), pointer :: branch
 type (beam_struct), pointer :: beam
 type (lat_struct), pointer :: lat
 type (bunch_struct), pointer :: bunch
@@ -144,11 +144,12 @@ character(100) file_name
 character(40) ele_name, name, sub_name
 character(60) nam
 
-character(16) :: show_what, show_names(20) = (/ &
+character(16) :: show_what, show_names(21) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    'beam        ', '----------- ', 'graph       ', 'curve       ', 'particle    ', &
-   'hom         ', 'opt_vars    ', 'universe    ', 'orbit       ', 'derivative  ' /)
+   'hom         ', 'opt_vars    ', 'universe    ', 'orbit       ', 'derivative  ', &
+   'branches    ' /)
 
 character(n_char), allocatable, save :: lines(:)
 character(n_char) line, line1, line2, line3
@@ -351,10 +352,33 @@ case ('beam')
 !----------------------------------------------------------------------
 ! constraints
 
+case ('branches')
+
+  if (ubound(lat%branch, 1) == 0) then
+    call out_io (s_blank$, r_name, 'No branches')
+    return
+  endif
+
+  nl=nl+1; lines(nl) = '                        N_ele  N_ele    From  From  From Ele'
+  nl=nl+1; lines(nl) = 'Ix  Name                Track    Max  Branch   Ele  Name'
+  do i = 1, ubound(lat%branch, 1)
+    branch => lat%branch(i)
+    nl=nl+1; write (lines(nl), '(i2, 2x, a21, 1x, i3, i7, i8, i6, 2x, a)') &
+                i, branch%name, branch%n_ele_track, &
+                branch%n_ele_max, branch%ix_from_branch, branch%ix_from_ele, &
+                lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele)%name
+  enddo
+
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+!----------------------------------------------------------------------
+! constraints
+
 case ('constraints')
 
   call tao_show_constraints (0, 'ALL')
   call tao_show_constraints (0, 'TOP10')
+  return
 
 !----------------------------------------------------------------------
 ! data
