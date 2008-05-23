@@ -90,15 +90,14 @@ module mia_types
   end type known_spacings
 
   !Global variables
-!  type (data_file), allocatable :: file(:) !File being used
   type(cbpm_analysis), target :: data_struc
   !BPM pairs with known spacing:
   type(known_spacings), allocatable:: bpm_pairs(:) 
 
   integer:: NUM_BPMS, &                  !Number of BPMs
        NUM_TURNS, &                      !Number of turns
+       power2, &                         !Number of turns as the next power of two
        nset                              !Number of files
-  !Change FREQ for use with machines other than CESR
   real(rp), parameter :: FREQ=390.12         !Frequency of the machine (in MHz)
 
 contains
@@ -130,6 +129,7 @@ contains
        data_struc%loc(i)%cbar(1:2,1:2) = 0.
        data_struc%loc(i)%sqrt_beta_cbar(1:2,1:2) = 0.
        data_struc%loc(i)%gamma = 0.
+
        data_struc%loc(i)%a%gam2_beta_ratio = 0.
        data_struc%loc(i)%a%d_phase_adv = 0.
        data_struc%loc(i)%a%d_delta = 0.
@@ -156,9 +156,6 @@ contains
        data_struc%loc(i)%b%inv_gamma_cbar_sqrt_betas(1:2,1:2) = 0.
        data_struc%loc(i)%b%gam2_beta = 0.
 
-
-
-
        data_struc%proc(i)%label = ""
        data_struc%proc(i)%is_west = .false.
        data_struc%proc(i)%number = 0
@@ -178,4 +175,23 @@ contains
     deallocate (data_struc%loc)
     deallocate (data_struc%proc)
   end subroutine clean
+
+  subroutine sort_l(list, length)
+    real (rp) :: list(:), temp
+    integer:: length, i, j
+
+    do i=1, length
+       do j=1, length
+          if (list(i) > list(j)) then
+             temp = list(i)
+             list(i) = list(j)
+             list(j) = temp
+          endif
+       enddo
+    enddo
+
+  end subroutine sort_l
+
+
+
 end module mia_types

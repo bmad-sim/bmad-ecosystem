@@ -117,17 +117,18 @@ LOCAL_INCS    := include
 #           MAIN_FILE := test_prog.f90
 #-------------------------------------------------------------
 MAIN_FILE := mia.f90
-
-
+DEBUG = n
 #--------------------------------------------------------------
 # name of job, executable (if needed), and library (if needed)
 #--------------------------------------------------------------
 ifeq "$(JOB)" ""
   WHERE := $(shell pwd)
   JOB   := $(notdir $(WHERE))
+  DEBUG = n
 endif
 ifneq "$(LIB_SRC_DIRS)" ""
   LIBNAME := $(JOB)
+  DEBUG = n
 endif
 
 
@@ -195,7 +196,7 @@ LOCAL_LFLAGS   :=
 #                           packages)
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
-LOCAL_LIBS := 
+LOCAL_LIBS := lapack
 CESR_LIBS  := bmad dcslib recipes_f-90_LEPP cesr_utils 
 PKG_LIBS   := forest pgplot
 CERN_LIBS  :=

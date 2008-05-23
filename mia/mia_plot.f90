@@ -193,6 +193,7 @@ contains
              lam_log(count) = log10(data%lambda(count))
              count = count+1
           enddo
+          call sort_l(lam_log, 2*NUM_BPMS)
           call min_max_y(lam_log(:), miny, maxy, ycoord(:), arr_length)   
           write(titl,24) iset,  data%shortName
 24        format('Lambda (log10) - Iset =',i2,'  File = ', a)
@@ -598,6 +599,7 @@ contains
           do count=1, arr_length
              lam_log(count) = log10(data(iset)%lambda(count))
           enddo
+          call sort_l(lam_log, 2*NUM_BPMS)
           call min_max_y(lam_log(:), miny, maxy, ycoord(:), arr_length)   
           write(titl,24) iset,  data(iset)%shortName
 24        format('Lambda (log10) - Iset =',i2,'  File = ', a)

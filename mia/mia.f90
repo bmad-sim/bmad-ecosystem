@@ -54,6 +54,7 @@ program mia
      call match_tau_column(nset,data)
      call convert_data_from_pi_matrix(data)
      call calculate_with_known_spacing(data)
+     !call regen(data(1))
      call plots(data, 2, 2)         !Use plot_it2
      call output (data(1))
 

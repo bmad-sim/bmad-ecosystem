@@ -53,8 +53,10 @@ contains
     integer :: east, west, bpm, n_bpm_e
 
     call tune(data) 
+    Print *, "set num a ", data_struc%set_num_a
+    Print *, "set num b ", data_struc%set_num_b
 
-    do n_bpm = 1, data(1)%bpmproc
+    do n_bpm = 1, NUM_BPMS
 
        DO count = 1, 2
 
@@ -99,9 +101,11 @@ contains
     call phase_adv(data_struc%loc(east)%b, data_struc%loc(west)%b, 2) 
 
     data_struc%loc(east)%a%d_phase_adv = &
-         data_struc%loc(east)%a%d_phase_adv - data_struc%phi_t(1)
+         mod((data_struc%loc(east)%a%d_phase_adv - &
+         data_struc%phi_t(1))+7.0*pi, 2.0*pi) -pi
     data_struc%loc(east)%b%d_phase_adv = &
-         data_struc%loc(east)%b%d_phase_adv - data_struc%phi_t(2)
+         mod((data_struc%loc(east)%b%d_phase_adv - &
+         data_struc%phi_t(2)+7.0*pi),2.0*pi) - pi
 
     !BPMs must be in clockwise order (first BPM is west, last BPM is east)
     !Gives an error if they are not.
@@ -239,7 +243,6 @@ contains
   
   end subroutine pi_calc
 
-
   subroutine inv_gamma_cbar_sqrt_betas(twiss, ix, iy, mag)
 
     !
@@ -271,7 +274,6 @@ contains
 
   end subroutine inv_gamma_cbar_sqrt_betas
 
-
   subroutine d_delta(twiss, count)
 
     !
@@ -291,11 +293,9 @@ contains
   end subroutine d_delta
 
   subroutine phase_adv(twiss, twiss_old, count)
-
     !
     !Finds phase advance and gamma^2 beta ratio (both pg 15)
     !
-
     type(twiss_parameters) twiss, & !Location of this numer, denom
          twiss_old                  !Location of previous number, denom
     INTEGER :: count                !Counter (1 for A, 2 for B mode)
@@ -313,7 +313,6 @@ contains
          twiss%magnitude2(count) / twiss_old%magnitude2(count)
 
   end subroutine phase_adv
-
 
   subroutine ring_beta(ring, ring2, i)
     !
@@ -339,7 +338,6 @@ contains
     !i changes the sign of the second term
 
     twiss_ring%alpha = twiss_ring%beta / bpm_l +i*1.0/tan(twiss%d_phase_adv)
-  !  Print *, "Alpha: ", twiss_ring%alpha
   end subroutine alpha
 
   subroutine inv_gamma_cbar(ring, index)
@@ -393,9 +391,7 @@ contains
 
     enddo
 
-
     ring%inv_gamma_cbar(1,2) = -(temp(1)+temp(2))/2
-
 
   end subroutine inv_gamma_cbar12
 
@@ -473,8 +469,6 @@ contains
     n_ring = bpm_pairs(1)%number
     allocate (ring(n_ring))
 
-
-!***i goes from 1 to 4... Something using i only has two elements. TO BE FIXED
     do i = 1, n_ring
 
        allocate (ring(i)%loc(NUM_BPMS))
@@ -507,7 +501,8 @@ contains
        !Betas are accurate
        call ring_beta(ring_p(1)%loc%a, ring_p(2)%loc%a, i)
        call ring_beta(ring_p(1)%loc%b, ring_p(2)%loc%b, i)
-
+       print *, "Beta B: ", ring_p(1)%loc%b%beta
+       print *, "Beta B: ", ring_p(2)%loc%b%beta
        do q = 1,2
 
 
@@ -593,13 +588,14 @@ contains
 
           !
           !Compute J_amp (aka the Action) (pg 16) +
+          !In mm
           !
 
-          j_amp_a(q) = &
+          j_amp_a(q) = 1000. * 1000. * &
                ring_p(q)%loc%a%magnitude2(1) / &
                ring_p(q)%loc%gamma**2 / ring_p(q)%loc%a%beta
 
-          j_amp_b(q) = &
+          j_amp_b(q) = 1000. * 1000.* &
                ring_p(q)%loc%b%magnitude2(2) / &
                ring_p(q)%loc%gamma**2 / ring_p(q)%loc%b%beta
 
@@ -625,9 +621,9 @@ contains
              !
 
              ring(i)%loc(j)%a%gam2_beta = ring(i)%loc(j)%a%magnitude2(1)/ &
-                  ring(i)%j_amp_ave(1)
+                  ring(i)%j_amp_ave(1)*1000.*1000.
              ring(i)%loc(j)%b%gam2_beta = ring(i)%loc(j)%b%magnitude2(2)/ &
-                  ring(i)%j_amp_ave(2)
+                  ring(i)%j_amp_ave(2)*1000.*1000.
 
              !
              !Compute Inv Gamma Cbar (pg 17) +
@@ -668,11 +664,9 @@ contains
              !
              !Compute sqrt(beta) cbar
              !
-
              ring(i)%loc(j)%sqrt_beta_cbar(1,1) = &
                   sqrt(data_struc%loc(j)%b%magnitude2(1) / &
                   ring(i)%j_amp_ave(2)) * sin(data_struc%loc(j)%b%d_delta)
-
 
              ring(i)%loc(j)%sqrt_beta_cbar(1,2) = &
                   (sqrt_beta_cbar_prelim(1) + sqrt_beta_cbar_prelim(2)) / 2.0
@@ -680,7 +674,6 @@ contains
              ring(i)%loc(j)%sqrt_beta_cbar(2,2) = &
                   sqrt(data_struc%loc(j)%a%magnitude2(2) / &
                   ring(i)%j_amp_ave(1)) * sin(0.-data_struc%loc(j)%a%d_delta)
-
           end if
        end do
     end do
@@ -717,19 +710,13 @@ contains
 
           end do
 
-          !Copy dat_twiss back into data_struc
-!          data_struc%loc(jm)%a = dat_twiss(1) 
-!          data_struc%loc(jm)%b = dat_twiss(2)
-
           !
           !Compute sqrt(beta) cbar
           !
           call avg(data_struc%loc(jm)%sqrt_beta_cbar(1,1), &
                ring(ik)%loc(jm)%sqrt_beta_cbar(1,1), n_ring)
-
           call avg(data_struc%loc(jm)%sqrt_beta_cbar(1,2), &
                ring(ik)%loc(jm)%sqrt_beta_cbar(1,2), n_ring)
-
           call avg(data_struc%loc(jm)%sqrt_beta_cbar(2,2), &
                ring(ik)%loc(jm)%sqrt_beta_cbar(2,2), n_ring)
 
@@ -739,10 +726,8 @@ contains
 
           call avg(data_struc%loc(jm)%inv_gamma_cbar(1,1), &
                ring(ik)%loc(jm)%inv_gamma_cbar(1,1), n_ring)
-
           call avg(data_struc%loc(jm)%inv_gamma_cbar(1,2), &
                ring(ik)%loc(jm)%inv_gamma_cbar(1,2), n_ring)
-
           call avg(data_struc%loc(jm)%inv_gamma_cbar(2,2), &
                ring(ik)%loc(jm)%inv_gamma_cbar(2,2), n_ring)
 
@@ -866,9 +851,9 @@ contains
     if (openstatus > 0) print *, "*** Cannot open output file ***",&
          openstatus
 9   format(1x, f10.7, a3, f10.7, a7, 5x, f10.7, a3, f10.7)
-11  format(5x, f10.7, a3,2x, f10.7)
+11  format(5x, f11.7, a2,2x, f11.7)
 12  format(3(4x, a8, 7x))
-17  format(a10, 3x, f10.7, 3x, f10.7)
+17  format(a10, 3x, f11.7, 1x,",", 1x, f11.7)
 18  format(4x, a20, 4x, 20x, a5)
 34  format(1x, 3(e14.7, a2, 3x))
 56  format(a10,3x,f10.7)
