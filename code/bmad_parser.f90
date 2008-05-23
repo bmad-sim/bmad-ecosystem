@@ -761,6 +761,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
         in_indexx, seq_name, seq_indexx, in_lat%ele, branch%ele, used_line, n_ele_use)
       branch%ele(0)%key = init_ele$
       branch%ele(0)%name = lat%ele(i)%attribute_name
+      branch%name        = lat%ele(i)%attribute_name
       branch%n_ele_track = n_ele_use
       branch%n_ele_max   = n_ele_use
     enddo
