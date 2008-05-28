@@ -3,11 +3,12 @@
 !
 ! Routine to give elements in a lattice unique names.
 !
-! This is done by appending the "suffix" argument to all elements that share a common name.
-! The "suffix" argument must have a single "#" charater in it. When the suffix is applied,
-! to the n^th element having a common name, the number "n" is substituted for "#".
+! This is done by appending the "suffix" argument to all elements that share 
+! a common name. The "suffix" argument must have a single "?" charater in it. 
+! When the suffix is applied, to the n^th element having a common name, 
+! the number "n" is substituted for "?".
 ! 
-! For example: If suffix is "_#" and the following elements are in the lattice:
+! For example: If suffix is "_?" and the following elements are in the lattice:
 !				QA    QB    QX    QA    QB     QB
 ! then after the suffix is applied the elements will have names:
 !				QA_1  QB_1  QX    QA_2  QB_2   QB_3
@@ -23,7 +24,7 @@
 ! Input:
 !	  lat    -- Lat_struct: Lattice holding the elements.
 !	  key    -- Integer: Class key of elements to consider.
-!	  suffix -- Character(*): Suffix string. Must have a single "#" character.
+!	  suffix -- Character(*): Suffix string. Must have a single "?" character.
 !
 ! Output:
 !		lat    -- Lat_struct: Lattice with names made unique.
@@ -48,11 +49,11 @@ character(40) suff
 character(40), allocatable :: original_name(:)
 character(40) :: r_name = 'create_unique_ele_names'
 
-! Find '#' character
+! Find '?' character
 
-ix_p = index(suffix, '#')
+ix_p = index(suffix, '?')
 if (ix_p == 0) then
-	call out_io (s_error$, r_name, 'SUFFIX DOES NOT HAVE A "#" CHARACTER: ' // suffix)
+	call out_io (s_error$, r_name, 'SUFFIX DOES NOT HAVE A "?" CHARACTER: ' // suffix)
 	return
 endif
 

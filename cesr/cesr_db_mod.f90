@@ -494,9 +494,10 @@ subroutine read_butns_file (butns_num, nonlinear_calc, butns, db, &
 
   logical nonlinear_calc, read_ok, type_err, err_flag, is_ok(120)
 
-! init comments
+! init
 
   butns%comment = ' '
+  call db_struct_init (db)
 
 ! compute filename
 

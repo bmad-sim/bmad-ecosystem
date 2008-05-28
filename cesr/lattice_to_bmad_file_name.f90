@@ -24,6 +24,7 @@ subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
 
   character(*) lattice, bmad_file_name
   character(len(lattice)) lat
+  character(40) lat_dir
   logical is_there
 
 !
@@ -31,12 +32,18 @@ subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
   lat = lattice
   call downcase_string(lat)
 
-  bmad_file_name = '$CESR_MNT/lattice/CESR/bmad/' // trim(lat) // '.lat'
+#ifdef CESR_VMS
+  lat_dir = '$CESR_MNT/vms_lattice/cesr/bmad/'
+#else
+  lat_dir = '$CESR_MNT/lattice/cesr/bmad/'
+#endif
+
+  bmad_file_name = trim(lat_dir) // trim(lat) // '.lat'
   call FullFileName(bmad_file_name, bmad_file_name)
 
   inquire (file = bmad_file_name, exist = is_there)
   if (.not. is_there) then
-    bmad_file_name = '$CESR_MNT/lattice/CESR/bmad/bmad_' // trim(lat) // '.lat'
+    bmad_file_name = trim(lat_dir) // 'bmad_' // trim(lat) // '.lat'
     call FullFileName(bmad_file_name, bmad_file_name)
   endif
 

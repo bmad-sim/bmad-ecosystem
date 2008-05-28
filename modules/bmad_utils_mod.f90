@@ -21,6 +21,53 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Subroutine check_controller_controls (contrl, name, err)
+!
+! Routine to check for problems when setting up group or overlay controllers.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   contrl(:)   -- Control_struct: control info. 1 element for each slave.
+!   name        -- Character(*): Lord name. Used for error reporting.
+!
+! Output:
+!   err         -- Logical: Set true if there is a problem. False otherwise.
+!-
+
+subroutine check_controller_controls (contrl, name, err)
+
+implicit none
+
+type (control_struct) contrl(:)
+integer i, j
+logical err
+character(*) name
+character(40) :: r_name = 'check_controller_controls'
+
+!
+
+err = .true.
+
+do i = 1, size(contrl)
+  do j = i+1, size(contrl)
+    if (contrl(i)%ix_slave == contrl(j)%ix_slave .and. &
+              contrl(i)%ix_attrib == contrl(j)%ix_attrib) then
+      call out_io (s_error$, r_name, 'DUPLICATE SLAVE CONTROL FOR LORD: ' // name)
+      return
+    endif
+  enddo
+enddo
+
+err = .false.
+
+end subroutine
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine pointer_to_ele (lat, ix_line, ix_ele, ele)
 ! 
 ! Subroutine to point to a given element.

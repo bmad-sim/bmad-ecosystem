@@ -26,7 +26,7 @@
 ! Note: Use NEW_CONTROL to get an index for the overlay element
 !
 ! Example:
-!   call new_control (lat, ix_ovr)      ! get index of overlay in lat%ele
+!   call new_control (lat, ix_ovr)     ! get index of overlay in lat%ele
 !   lat%ele(ix_ovr)%name = 'OVERLAY1'  ! overlay name
 !   lat%ele(ix_ovr)%value(k1$) = 0.1   ! starting value
 !
@@ -67,7 +67,9 @@ subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_f
 
 ! Mark element as an overlay lord
 
-  err = .false.
+  call check_controller_controls (contl, lat%ele(ix_overlay)%name, err)
+  if (err) return
+
   lord => lat%ele(ix_overlay)
   n_slave = size (contl)
 

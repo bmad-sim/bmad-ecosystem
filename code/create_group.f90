@@ -1,5 +1,5 @@
 !+
-! Subroutine create_group (lat, ix_ele, contrl)
+! Subroutine create_group (lat, ix_lord, contrl, err, err_print_flag)
 !
 ! Subroutine to create a group control element.
 !
@@ -8,13 +8,16 @@
 !
 ! Input:
 !   lat          -- lat_struct: Lattice
-!     %ele(ix_ele)%value(command$) -- Real(rp): Initial command value.
-!   ix_ele        -- Integer: Index of group element (see below)
+!     %ele(ix_lord)%value(command$) -- Real(rp): Initial command value.
+!   ix_lord       -- Integer: Index of group lord element (see below).
 !   contrl(:)     -- Control_struct: What to control.
 !     %ix_slave       -- Integer: Index in LAT%ele() of element controlled.
 !     %ix_attrib      -- Integer: Index in %VALUE() array of
 !                                 attribute controlled.
 !     %coef           -- Real(rp): Coefficient.
+!   err            -- Logical: Set True if an attribute is not free to be controlled.
+!   err_print_flag -- Logical, optional: If present and False then supress                                
+!                       printing of an error message if attribute is not free.  
 !
 ! Output:
 !     lat -- lat_struct: Appropriate values are set in the LAT structure.
@@ -22,9 +25,9 @@
 ! Note: Use NEW_CONTROL to get an index for the group element
 !
 ! Example:
-!   call new_control (lat, ix_ele)   ! get IX_ELE index
-!   lat%ele(ix_ele)%name = 'GROUP1' ! group name
-!   lat%ele(ix_ele)%value(command$) = 0 ! start at zero
+!   call new_control (lat, ix_lord)   ! get IX_LORD index
+!   lat%ele(ix_lord)%name = 'GROUP1' ! group name
+!   lat%ele(ix_lord)%value(command$) = 0 ! start at zero
 !   n_control = 2               ! control 2 elements
 !
 !   contrl(1)%ix_slave = 10   ! LAT%ele(10) is Q01W say.
@@ -36,27 +39,27 @@
 !   contrl(2)%ix_attrib = k1$ ! The group controls the quadrupole strength.
 !   contrl(2)%coef = -0.1     ! make changes antisymmetric.
 !
-!   call create_group (lat, ix_ele, 2, contrl)  ! create the group
+!   call create_group (lat, ix_lord, 2, contrl)  ! create the group
 !
 ! Notes:
-!   A) The value of the group is stored in LAT%ele(IX_ELE)%VALUE(COMMAND$)
+!   A) The value of the group is stored in LAT%ele(IX_LORD)%VALUE(COMMAND$)
 !   B) Only changes from the previous value are significant. The
-!      old value is stored in LAT%ele(IX_ELE)%VALUE(OLD_COMMAND$).
+!      old value is stored in LAT%ele(IX_LORD)%VALUE(OLD_COMMAND$).
 !   C) Use CONTROL_BOOKKEEPER to update the attributes of the elements
 !      controlled by the group element.
 !   D) Use lat_make_mat6 to update the attributes AND remake MAT6 for the
 !     elements controlled by the group element.
 !
 ! Proceeding with the previous example:
-!   ix_ele1 = ix_ele                        ! save the group index
-!   lat%ele(ix_ele1)%value(command$) = 10 ! put in a value for the group
-!   call lat_make_mat6 (lat, ix_ele1)     ! update the k1's for the 2 quads
-!                                           !   AND remake the MAT6's
-!   call control_bookkeeper (lat, ix_ele1) ! use this instead
-!                                           !   to only update the k1's
-!   lat%ele(ix_ele1)%value(command$) = 13 ! put in a new value for the group
-!   call lat_make_mat6 (lat, ix_ele1)     ! the change now in k1's is
-!                                           !   based upon the delta: 13 - 10
+!   ix_lord1 = ix_lord                       ! save the group index
+!   lat%ele(ix_lord1)%value(command$) = 10   ! put in a value for the group
+!   call lat_make_mat6 (lat, ix_lord1)       ! update the k1's for the 2 quads
+!                                            !   AND remake the MAT6's
+!   call control_bookkeeper (lat, ix_lord1)  ! use this instead
+!                                            !   to only update the k1's
+!   lat%ele(ix_lord1)%value(command$) = 13   ! put in a new value for the group
+!   call lat_make_mat6 (lat, ix_lord1)       ! the change now in k1's is
+!                                            !   based upon the delta: 13 - 10
 !
 ! Note: You can control an element's position by setting:
 !       CONTRL(i)%IX_ATTRIB = START_EDGE$      or
@@ -79,7 +82,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
+subroutine create_group (lat, ix_lord, contrl, err, err_print_flag)
 
   use bmad_struct
   use bmad_interface, except_dummy => create_group
@@ -89,7 +92,7 @@ subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
   type (lat_struct)  lat
   type (control_struct)  contrl(:)
 
-  integer i, ix_ele, ixa, n_control, n_con
+  integer i, ix_lord, ixa, n_control, n_con
   integer ix1, ix2, ix_min, ix_max, ixe
 
   logical err, free
@@ -97,11 +100,14 @@ subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
 
 ! init
 
+  call check_controller_controls (contrl, lat%ele(ix_lord)%name, err)
+  if (err) return
+
   n_control = size(contrl)
-  lat%ele(ix_ele)%control_type = group_lord$
-  lat%ele(ix_ele)%key = group$
+  lat%ele(ix_lord)%control_type = group_lord$
+  lat%ele(ix_lord)%key = group$
   n_con = lat%n_control_max
-  lat%ele(ix_ele)%ix1_slave = n_con + 1
+  lat%ele(ix_lord)%ix1_slave = n_con + 1
 
 ! loop over all controlled elements
 
@@ -158,7 +164,7 @@ subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
         if (ix1 < 1) then
           print *, 'ERROR IN CREATE_GROUP: START_EDGE OF CONTROLED'
           print *, '      ELEMENT IS AT BEGINNING OF LAT AND CANNOT BE'
-          print *, '      VARIED FOR GROUP: ', lat%ele(ix_ele)%name
+          print *, '      VARIED FOR GROUP: ', lat%ele(ix_lord)%name
           call err_exit
         endif
       endif
@@ -168,7 +174,7 @@ subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
         if (ix2 > lat%n_ele_track) then
           print *, 'ERROR IN CREATE_GROUP: END_EDGE OF CONTROLED'
           print *, '      ELEMENT IS AT END OF LAT AND CANNOT BE'
-          print *, '      VARIED FOR GROUP: ', lat%ele(ix_ele)%name
+          print *, '      VARIED FOR GROUP: ', lat%ele(ix_lord)%name
           call err_exit
         endif
       endif
@@ -208,8 +214,8 @@ subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
       if (n_con+2 > size(lat%control)) call reallocate_control (lat, n_con+100)
       lat%control(n_con+1) = contrl(i)
       lat%control(n_con+2) = contrl(i)
-      lat%control(n_con+1)%ix_lord = ix_ele
-      lat%control(n_con+2)%ix_lord = ix_ele
+      lat%control(n_con+1)%ix_lord = ix_lord
+      lat%control(n_con+2)%ix_lord = ix_lord
       if (ixa == x_limit$) then
         lat%control(n_con+1)%ix_attrib = x1_limit$
         lat%control(n_con+2)%ix_attrib = x2_limit$
@@ -225,7 +231,7 @@ subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
 
       if (n_con+4 > size(lat%control)) call reallocate_control (lat, n_con+100)
       lat%control(n_con+1:n_con+4) = contrl(i)
-      lat%control(n_con+1:n_con+4)%ix_lord = ix_ele
+      lat%control(n_con+1:n_con+4)%ix_lord = ix_lord
       lat%control(n_con+1)%ix_attrib = x1_limit$
       lat%control(n_con+2)%ix_attrib = x2_limit$
       lat%control(n_con+3)%ix_attrib = y1_limit$
@@ -241,7 +247,7 @@ subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
       n_con = n_con + 1
       if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
       lat%control(n_con) = contrl(i)
-      lat%control(n_con)%ix_lord = ix_ele
+      lat%control(n_con)%ix_lord = ix_lord
 
     endif
 
@@ -249,8 +255,8 @@ subroutine create_group (lat, ix_ele, contrl, err, err_print_flag)
 
 ! final bookkeping
 
-  lat%ele(ix_ele)%ix2_slave = n_con
-  lat%ele(ix_ele)%n_slave = n_con - lat%ele(ix_ele)%ix1_slave + 1
+  lat%ele(ix_lord)%ix2_slave = n_con
+  lat%ele(ix_lord)%n_slave = n_con - lat%ele(ix_lord)%ix1_slave + 1
   lat%n_control_max = n_con
 
 !---------------------------------------------------------------------------
@@ -263,7 +269,7 @@ subroutine bookit (i_ele, scale)
 
   n_con = n_con + 1
   if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
-  lat%control(n_con)%ix_lord = ix_ele
+  lat%control(n_con)%ix_lord = ix_lord
   lat%control(n_con)%ix_slave = i_ele
   lat%control(n_con)%ix_attrib = l$
   lat%control(n_con)%coef = scale * contrl(i)%coef

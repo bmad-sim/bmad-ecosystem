@@ -9,11 +9,11 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine read_cesr_data_parameters (iu, pc_dat, err)
+subroutine read_cesr_data_parameters (iu, all_dat, err)
 
 implicit none
 
-type (cesr_raw_data_struct) pc_dat
+type (cesr_all_data_struct) all_dat
 
 integer i, iu, ios
 integer save_set, species
@@ -48,7 +48,9 @@ namelist / data_base / &
      ir_sksxcur, scir_pos_stp, scir_enc_cnt, scir_pos_rd , scwig_contrl, &
      scw_cur_read, nir_shuntcur, scsol_contrl
 
-!
+! Init
+
+call cesr_all_data_struct_init (all_dat)
 
 err = .true.
 rewind (iu)
@@ -62,18 +64,18 @@ if (ios /= 0) then
   return
 endif
 
-pc_dat%param%data_date  = data_date 
-pc_dat%param%lattice    = lattice
-pc_dat%param%comment    = comment
-pc_dat%param%csr_set    = save_set
-pc_dat%param%route_name = route_name
+all_dat%param%data_date  = data_date 
+all_dat%param%lattice    = lattice
+all_dat%param%comment    = comment
+all_dat%param%csr_set    = save_set
+all_dat%param%route_name = route_name
 
 if (file_type(:5) == 'PHASE') then
-  pc_dat%param%data_type = 'PHASE'
+  all_dat%param%data_type = 'PHASE'
 elseif (file_type(:10) == 'DISPERSION') then
-  pc_dat%param%data_type = 'ETA'
+  all_dat%param%data_type = 'ETA'
 else
-  pc_dat%param%data_type = file_type
+  all_dat%param%data_type = file_type
 endif
 
 read (iu, nml = data_base, iostat = ios)
@@ -82,26 +84,26 @@ if (ios /= 0) then
   return
 endif
 
-pc_dat%db%csr_quad_cur%cu_now = csr_quad_cur
-pc_dat%db%csr_qadd_cur%cu_now = csr_qadd_cur
-pc_dat%db%nir_shuntcur%cu_now = nir_shuntcur
-pc_dat%db%csr_sext_cur%cu_now = csr_sext_cur
-pc_dat%db%csr_sqewquad%cu_now = csr_sqewquad
-pc_dat%db%csr_scsolcur%cu_now = scsol_contrl
-pc_dat%db%csr_sqewsext%cu_now = csr_sqewsext
-pc_dat%db%csr_horz_cur%cu_now = csr_horz_cur
-pc_dat%db%csr_hbnd_cur%cu_now = csr_hbnd_cur
-pc_dat%db%csr_vert_cur%cu_now = csr_vert_cur
-call hsp_vval_to_volt (csr_hsp_vval, pc_dat%db%csr_hsp_volt%cu_now)
-pc_dat%db%csr_vsp_volt%cu_now = csr_vsp_volt
-pc_dat%db%csr_octu_cur%cu_now = csr_octu_cur
-pc_dat%db%scir_quadcur%cu_now = scir_quadcur
-pc_dat%db%scir_skqucur%cu_now = scir_skqucur
-pc_dat%db%scir_vertcur%cu_now = scir_vertcur
-pc_dat%db%ir_sksxcur%cu_now = ir_sksxcur
-pc_dat%db%scir_pos_stp(:)%cu_now = scir_pos_stp
-pc_dat%db%scir_pos_rd(:)%cu_now  = scir_pos_rd
-pc_dat%db%scir_enc_cnt(:)%cu_now = scir_enc_cnt
+all_dat%db%csr_quad_cur%cu_now = csr_quad_cur
+all_dat%db%csr_qadd_cur%cu_now = csr_qadd_cur
+all_dat%db%nir_shuntcur%cu_now = nir_shuntcur
+all_dat%db%csr_sext_cur%cu_now = csr_sext_cur
+all_dat%db%csr_sqewquad%cu_now = csr_sqewquad
+all_dat%db%csr_scsolcur%cu_now = scsol_contrl
+all_dat%db%csr_sqewsext%cu_now = csr_sqewsext
+all_dat%db%csr_horz_cur%cu_now = csr_horz_cur
+all_dat%db%csr_hbnd_cur%cu_now = csr_hbnd_cur
+all_dat%db%csr_vert_cur%cu_now = csr_vert_cur
+call hsp_vval_to_volt (csr_hsp_vval, all_dat%db%csr_hsp_volt%cu_now)
+all_dat%db%csr_vsp_volt%cu_now = csr_vsp_volt
+all_dat%db%csr_octu_cur%cu_now = csr_octu_cur
+all_dat%db%scir_quadcur%cu_now = scir_quadcur
+all_dat%db%scir_skqucur%cu_now = scir_skqucur
+all_dat%db%scir_vertcur%cu_now = scir_vertcur
+all_dat%db%ir_sksxcur%cu_now = ir_sksxcur
+all_dat%db%scir_pos_stp(:)%cu_now = scir_pos_stp
+all_dat%db%scir_pos_rd(:)%cu_now  = scir_pos_rd
+all_dat%db%scir_enc_cnt(:)%cu_now = scir_enc_cnt
 
 err = .false.
 
@@ -131,8 +133,8 @@ subroutine read_cesr_dispersion_data (eta_number, data, err)
 
 implicit none
 
-type (cesr_raw_data_struct) data
-type (cesr_xy_datum_struct) eta_(0:120)
+type (cesr_all_data_struct) data
+type (cesr_xy_data_struct) eta_(0:120)
 
 integer eta_number
 integer ix, iu, ios
@@ -181,7 +183,10 @@ eta_%y = 0
 read (iu, nml = dispersion_data)
 close (iu)
 
-data%eta = eta_
+data%eta_x%value = eta_%x
+data%eta_y%value = eta_%y
+data%eta_x%good  = eta_%good
+data%eta_y%good  = eta_%good
 
 end subroutine
 
@@ -200,7 +205,7 @@ end subroutine
 !   phase_number -- Integer: Number of the phase data file.
 !
 ! Output:
-!   data   -- Cesr_raw_data_struct: Holds everything from the data
+!   data   -- Cesr_all_data_struct: Holds everything from the data
 !                     file: phase, cbar, and raw orbit data along with 
 !                     data base and measurement parameters.
 !-
@@ -209,7 +214,7 @@ subroutine read_cesr_phase_data (phase_number, data, err)
 
 implicit none
 
-type (cesr_raw_data_struct) data
+type (cesr_all_data_struct) data
 type (phase_cbar_data_struct) pc_(0:120)
 type (detector_struct) orbit_(0:120)
 type (db_struct) db
@@ -294,7 +299,19 @@ if (ios /= 0) then
   return
 endif
 
-data%phase_cbar = pc_
+data%phase_x%value = pc_%x_phase * twopi / 360
+data%phase_x%good  = pc_%ok_x
+data%phase_y%value = pc_%y_phase * twopi / 360
+data%phase_y%good  = pc_%ok_y
+
+data%cbar11_y%value = pc_%y_cbar11
+data%cbar11_y%good  = pc_%ok_y
+data%cbar12_x%value = pc_%x_cbar12
+data%cbar12_x%good  = pc_%ok_x
+data%cbar12_y%value = pc_%y_cbar12
+data%cbar12_y%good  = pc_%ok_y
+data%cbar22_x%value = pc_%x_cbar22
+data%cbar22_x%good  = pc_%ok_x
 
 err = .false.
 
@@ -304,7 +321,7 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_cooked_data (data_file, all_data, param, err)
+! Subroutine read_cesr_cooked_data (data_file, all_data, err)
 !
 ! Routine to read in the orbit, phase, cbar, or eta cooked data from a file. 
 ! 
@@ -315,17 +332,21 @@ end subroutine
 !   data_file -- Character(*): Name of the data file.
 !
 ! Output:
-!   all_data  -- Cesr_cooked_data_struct: Structure holding the data.
-!   param     -- Cesr_data_params_struct: Parameters 
+!   all_data  -- Cesr_all_data_struct: Structure holding the data.
 !   err       -- Logical: Set true if there is a read error.
 !-
 
-subroutine read_cesr_cooked_data (data_file, all_data, param, err)
+subroutine read_cesr_cooked_data (data_file, all_data, err)
 
 implicit none
 
-type (cesr_cooked_data_struct) d, all_data
-type (cesr_data_params_struct) param
+type xy_data_input_struct
+  real(rp) x, y
+end type
+
+type (cesr_all_data_struct) all_data
+type (xy_data_input_struct) orbit(0:120), phase(0:120), eta(0:120)
+real(rp) cbar11(0:120), cbar12_x(0:120), cbar12_y(0:120), cbar22(0:120)
 
 integer i, j, iu, ios
 
@@ -335,23 +356,23 @@ character(40) :: r_name = 'read_cesr_cooked_data'
 
 logical err
 
-namelist / cesr_data / d
+namelist / cesr_data / orbit, phase, eta, cbar11, cbar12_x, cbar12_y, cbar22
 
 !--------------------------------------------------------------------
 
-call read_cesr_cooked_data_parameters (data_file, param, err)
+call read_cesr_cooked_data_parameters (data_file, all_data%param, err)
 if (err) return
 
-d%orbit%x  = real_garbage$
-d%orbit%y  = real_garbage$
-d%phase%x  = real_garbage$
-d%phase%y  = real_garbage$
-d%eta%x    = real_garbage$
-d%eta%y    = real_garbage$
-d%cbar11%val = real_garbage$
-d%cbar12%val = real_garbage$
-d%cbar21%val = real_garbage$
-d%cbar22%val = real_garbage$
+orbit%x  = real_garbage$
+orbit%y  = real_garbage$
+phase%x  = real_garbage$
+phase%y  = real_garbage$
+eta%x    = real_garbage$
+eta%y    = real_garbage$
+cbar11   = real_garbage$
+cbar12_x = real_garbage$
+cbar12_y = real_garbage$
+cbar22   = real_garbage$
 
 err = .true.
 
@@ -362,41 +383,45 @@ if (ios /= 0) then       ! abort on open error
   return
 endif
 
-read (iu, nml = cesr_data)
-
-call mark_good_data (d%orbit%y, d%orbit%good, d%orbit%x)
-call mark_good_data (d%phase%y, d%phase%good, d%phase%x)
-call mark_good_data (d%eta%y, d%eta%good, d%eta%x)
-call mark_good_data (d%cbar11%val, d%cbar11%good)
-call mark_good_data (d%cbar12%val, d%cbar12%good)
-call mark_good_data (d%cbar21%val, d%cbar21%good)
-call mark_good_data (d%cbar22%val, d%cbar22%good)
-
+read (iu, nml = cesr_data, iostat = ios)
 close (iu)
-err = .false.
+if (ios /= 0) then       ! abort on read error
+  call out_io (s_error$, r_name, 'ERROR READING DATA FROM: ' // data_file)
+  return
+endif
 
-all_data = d
+call transfer_data (orbit%x,  all_data%orbit_x)
+call transfer_data (orbit%y,  all_data%orbit_y)
+call transfer_data (phase%x,  all_data%phase_x)
+call transfer_data (phase%y,  all_data%phase_y)
+call transfer_data (eta%x,    all_data%eta_x)
+call transfer_data (eta%y,    all_data%eta_y)
+call transfer_data (cbar11,   all_data%cbar11_y)
+call transfer_data (cbar12_x, all_data%cbar12_x)
+call transfer_data (cbar12_y, all_data%cbar12_y)
+call transfer_data (cbar22,   all_data%cbar22_x)
+
+err = .false.
 
 !--------------------------------------------------------
 contains
 
-subroutine mark_good_data (value, good, value2)
+subroutine transfer_data (from, to)
 
-real(rp) value(:)
-real(rp), optional :: value2(:)
-logical good(:)
+real(rp) from(:)
+type (cesr_data1_struct) to(:)
 
 integer i
 
 !
 
-do i = lbound(value, 1), ubound(value, 1)
-  if (value(i) == real_garbage$) then
-    good(i) = .false.
-    value(i) = 0
-    if (present(value2)) value2(i) = 0
+do i = lbound(from, 1), ubound(from, 1)
+  if (from(i) == real_garbage$) then
+    to(i)%good = .false.
+    to(i)%value = 0
   else
-    good(i) = .true.
+    to(i)%good = .true.
+    to(i)%value = from(i)
   endif
 end do
 

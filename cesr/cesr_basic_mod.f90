@@ -30,20 +30,20 @@ integer, parameter :: n_sc_sol_maxx = 2
 ! for an individual element
 
 type db_element_struct
-  character(16) bmad_name    ! bmad name of element
-  real(rp) dvar_dcu             ! calibration factor
-  real(rp) var_theory           ! theory var value
-  real(rp) var_0                ! extrapolated var value at CU = 0
-  integer ix_lat           ! index to element array in lat struct
-  integer ix_attrib         ! index to element attribute
-  integer ix_cesrv          ! index to cesr_struct arrays
-  character(12) db_node_name ! node name ("CSR QUAD CUR")
-  integer ix_db             ! element index for data base node (5 for Q05W)
-  character(16) db_ele_name  ! element name
-  integer cu_high_lim       ! high limit
-  integer cu_low_lim        ! low limit
-  integer cu_now            ! current CU
-  integer ix                ! Integer for general use.
+  character(16) bmad_name     ! bmad name of element
+  real(rp) dvar_dcu           ! calibration factor
+  real(rp) var_theory         ! theory var value
+  real(rp) var_0              ! extrapolated var value at CU = 0
+  integer ix_lat              ! index to element array in lat struct
+  integer ix_attrib           ! index to element attribute
+  integer ix_cesrv            ! index to cesr_struct arrays
+  character(12) db_node_name  ! node name ("CSR QUAD CUR")
+  integer ix_db               ! element index for data base node (5 for Q05W)
+  character(16) db_ele_name   ! element name
+  integer cu_high_lim         ! high limit
+  integer cu_low_lim          ! low limit
+  integer cu_now              ! current CU
+  integer ix                  ! Integer for general use.
 end type              
 
 ! for pointing to a db_struct array
@@ -181,7 +181,7 @@ type butns_struct
 end type
 
 !-----------------------------------------------------------------------------
-! For phase 
+! For cesrv
 
 type a_cesr_freq_struct 
   real(rp) tune
@@ -232,11 +232,29 @@ type cesr_det_plane_struct
   integer system_id   ! 0 = old_system, 1 = new_system
 end type
 
+type phase_cbar_data_struct
+  real(rp) x_phase, x_cbar22, x_cbar12
+  real(rp) y_phase, y_cbar12, y_cbar11
+  logical ok_x, ok_y
+end type
+
 type cesr_det_dc_position_struct
   real(rp) x, y
   real(rp) signal(4)
 end type
 
+type raw_det_struct
+  real(rp) phase(4)
+  real(rp) amp(4)
+  integer system_id
+end type
+
+type cesr_xy_data_struct
+  real(rp) x, y
+  logical good
+end type
+
+! New
 
 type cesr_data_params_struct
   character(20) data_date, data_type
@@ -249,42 +267,20 @@ type cesr_data_params_struct
   real(rp) dvar
 end type
 
-type cesr_cbar_datum_struct
-  real(rp) val
+type cesr_data1_struct
+  real(rp) value
   logical good
 end type
 
-type cesr_xy_datum_struct
-  real(rp) x, y
-  logical good
-end type
-
-type cesr_cooked_data_struct
-  type (cesr_xy_datum_struct) orbit(0:120), phase(0:120), eta(0:120)
-  type (cesr_cbar_datum_struct) cbar11(0:120), cbar12(0:120)
-  type (cesr_cbar_datum_struct) cbar21(0:120), cbar22(0:120)
-end type
-
-type phase_cbar_data_struct
-  real(rp) x_phase, x_cbar22, x_cbar12
-  real(rp) y_phase, y_cbar12, y_cbar11
-  logical ok_x, ok_y
-end type
-
-type cesr_raw_data_struct
-  type (cesr_xy_datum_struct) eta(0:120)
-  type (phase_cbar_data_struct) phase_cbar(0:120)
+type cesr_all_data_struct
+  type (cesr_data1_struct) orbit_x(0:120), phase_x(0:120), eta_x(0:120)
+  type (cesr_data1_struct) orbit_y(0:120), phase_y(0:120), eta_y(0:120)
+  type (cesr_data1_struct) cbar11_y(0:120), cbar12_x(0:120), cbar12_y(0:120), cbar22_x(0:120) 
   type (detector_struct) raw_orbit(0:120)
   type (db_struct) db
   type (cesr_data_params_struct) param
 end type
 
-type raw_det_struct
-  real(rp) phase(4)
-  real(rp) amp(4)
-  integer system_id
-end type
- 
 contains
 
 !----------------------------------------------------------------------------
@@ -799,7 +795,12 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
 
 !                   
 
-  lat_dir = '$CESR_MNT/lattice/CESR/bmad'
+#ifdef CESR_VMS
+  lat_dir = '$CESR_MNT/vms_lattice/cesr/bmad/'
+#else
+  lat_dir = '$CESR_MNT/lattice/cesr/bmad/'
+#endif
+
   call get_lattice_list (lat_list, num_lats, lat_dir)
 
   ask_for_lat = .true.
@@ -832,8 +833,8 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
       enddo
   
       print *, ' [Note: To be in this list a lattice file must have a name of the  ]'
-      print *, ' [      form: $CESR_MNT/lattice/CESR/bmad/bmad_<lattice_name>.lat  ]'
-      print *, ' [        or: $CESR_MNT/lattice/CESR/bmad/<lattice_name>.lat       ]'
+      print *, ' [      form: $CESR_MNT/lattice/cesr/bmad/bmad_<lattice_name>.lat  ]'
+      print *, ' [        or: $CESR_MNT/lattice/cesr/bmad/<lattice_name>.lat       ]'
 
       print *
       print *, 'You can enter a Lattice number or a full file name.'
@@ -1163,6 +1164,126 @@ subroutine do_setup_nir_shuntcur (quad, ix_quad, ix_nir)
   enddo
 
 end subroutine
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine db_struct_init (db)
+! 
+! Subroutine to initialize a db_struct variable to zero.
+!
+! Modules Needed:
+!   use cesr_basic_mod
+!
+! Output:
+!   db -- Db_struct: Structure to initialize.
+!-
+
+subroutine db_struct_init (db)
+
+implicit none
+
+type (db_struct) db
+integer i
+
+!
+
+call init_this_db_ele (db%csr_quad_cur)
+call init_this_db_ele (db%csr_qadd_cur)
+call init_this_db_ele (db%csr_horz_cur)
+call init_this_db_ele (db%csr_hbnd_cur)
+call init_this_db_ele (db%csr_vert_cur)
+call init_this_db_ele (db%csr_hsp_volt)
+call init_this_db_ele (db%csr_vsp_volt)
+call init_this_db_ele (db%csr_sext_cur)
+call init_this_db_ele (db%csr_octu_cur)
+call init_this_db_ele (db%csr_sqewquad)
+call init_this_db_ele (db%csr_scsolcur)
+call init_this_db_ele (db%csr_sqewsext)
+call init_this_db_ele (db%scir_quadcur)
+call init_this_db_ele (db%scir_skqucur)
+call init_this_db_ele (db%scir_vertcur)
+call init_this_db_ele (db%nir_shuntcur)
+call init_this_db_ele (db%ir_sksxcur)
+call init_this_db_ele (db%scir_pos_stp)
+call init_this_db_ele (db%scir_enc_cnt)
+call init_this_db_ele (db%scir_pos_rd)
+call init_this_db_ele (db%quad)
+call init_this_db_ele (db%detector)
+call init_this_db_ele (db%wiggler)
+call init_this_db_ele (db%scir_cam_rho)
+call init_this_db_ele (db%scir_tilt)
+
+do i = 1, 17
+  nullify (db%node(i)%ptr)
+enddo
+
+!-------------------------------------------------------
+contains
+subroutine init_this_db_ele (db_ele)
+
+type (db_element_struct) db_ele(:)
+integer j
+
+!
+
+do i = lbound(db_ele, 1), ubound(db_ele, 1)
+  db_ele%dvar_dcu = 0
+  db_ele%var_theory = 0
+  db_ele%var_0 = 0
+  db_ele%ix_lat = 0
+  db_ele%ix_attrib = 0
+  db_ele%ix_cesrv = 0
+  db_ele%db_node_name = ''
+  db_ele%ix_db = 0
+  db_ele%db_ele_name = ''
+  db_ele%cu_high_lim = 0
+  db_ele%cu_low_lim = 0
+  db_ele%cu_now = 0
+enddo
+
+end subroutine
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine cesr_all_data_struct_init (data)
+! 
+! Subroutine to initialize a cesr_all_data_struct variable to zero/False.
+!
+! Modules Needed:
+!   use cesr_basic_mod
+!
+! Output:
+!   data -- Cesr_all_data_struct: Structure to initialize.
+!-
+
+subroutine cesr_all_data_struct_init (data)
+
+implicit none
+
+type (cesr_all_data_struct) data
+
+!
+
+data%orbit_x%value  = 0;  data%orbit_x%good   = .false.
+data%orbit_y%value  = 0;  data%orbit_y%good   = .false.
+data%phase_x%value  = 0;  data%phase_x%good   = .false.
+data%phase_y%value  = 0;  data%phase_y%good   = .false.
+data%eta_x%value    = 0;  data%eta_x%good     = .false.
+data%eta_y%value    = 0;  data%eta_y%good     = .false.
+data%cbar11_y%value = 0;  data%cbar11_y%good  = .false.
+data%cbar12_x%value = 0;  data%cbar12_x%good  = .false.
+data%cbar12_y%value = 0;  data%cbar12_y%good  = .false.
+data%cbar22_x%value = 0;  data%cbar22_x%good  = .false.
+
+call db_struct_init (data%db)
 
 end subroutine
 
