@@ -50,13 +50,16 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   use bmadz_interface
   use bsim_interface
   use scan_parameters
-  use beambeam_interface
+  use beambeam_interface 
   
   implicit none
 
 #if defined(CESR_LINUX) || defined(CESR_WINCVF)
-#include "mpif.h"  
+#include "mpif.h"
+  double precision MPI_WTIME_
+  external MPI_WTIME_
 #endif
+
 
   type (lat_struct) ring
   type (lat_struct), save :: ring_in, ring_out
@@ -169,7 +172,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 
 #if defined(CESR_LINUX) || defined(CESR_WINCVF)
   if(scan_params%parallel)then
-     call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
+     call MPI_COMM_RANK_(MPI_COMM_WORLD,rank,ierr)
   end if
 #endif
 
@@ -478,7 +481,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 
 !rank 0 will be in charge or keeping track of all particles as well as luminocity calculations
 
-     call MPI_COMM_SIZE(MPI_COMM_WORLD,size,ierr)
+     call MPI_COMM_SIZE_(MPI_COMM_WORLD,size,ierr)
      size=size-1
      allocate(list(scan_params%n_part))
      do sib_i=1,scan_params%n_part
@@ -489,8 +492,8 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
         do sib_i=1,size
            onepart(1:6)=start(sib_i)%vec
            onepart(7)=0
-           call MPI_SEND(transmit,2,MPI_LOGICAL,sib_i,go,MPI_COMM_WORLD,ierr)
-           call MPI_SEND(onepart,7,mpi_type,sib_i,sib_i,MPI_COMM_WORLD,ierr)
+           call MPI_SEND_(transmit,2,MPI_LOGICAL,sib_i,go,MPI_COMM_WORLD,ierr)
+           call MPI_SEND_(onepart,7,mpi_type,sib_i,sib_i,MPI_COMM_WORLD,ierr)
            list(sib_i)=1
         enddo
      else
@@ -498,21 +501,21 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
         do sib_i=1,scan_params%n_part
            onepart(1:6)=start(sib_i)%vec
            onepart(7)=0
-           call MPI_SEND(onepart,7,mpi_type,sib_i,sib_i,MPI_COMM_WORLD,ierr)
-           call MPI_SEND(transmit,2,MPI_LOGICAL,sib_i,go,MPI_COMM_WORLD,ierr)
+           call MPI_SEND_(onepart,7,mpi_type,sib_i,sib_i,MPI_COMM_WORLD,ierr)
+           call MPI_SEND_(transmit,2,MPI_LOGICAL,sib_i,go,MPI_COMM_WORLD,ierr)
            list(sib_i)=1
         enddo
         transmit(1) = .false.
         !the rest of the nodes are not needed
         do sib_i=scan_params%n_part+1,size
-           call MPI_SEND(onepart,7,mpi_type,sib_i,sib_i,MPI_COMM_WORLD,ierr)
-           call MPI_SEND(transmit,2,MPI_LOGICAL,sib_i,go,MPI_COMM_WORLD,ierr)
+           call MPI_SEND_(onepart,7,mpi_type,sib_i,sib_i,MPI_COMM_WORLD,ierr)
+           call MPI_SEND_(transmit,2,MPI_LOGICAL,sib_i,go,MPI_COMM_WORLD,ierr)
         enddo
         transmit(1) =.true.
         size = scan_params%n_part
      endif
      
-     call MPI_IRECV(recvpart,7,mpi_type,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,request,ierr)
+     call MPI_IRECV_(recvpart,7,mpi_type,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,request,ierr)
      
 ! Main Loop:  cycle over total number of turns
      if(fit_sig) print *, "Adjusting strong beam size using gaussian-fitted weak beam sizes"
@@ -526,7 +529,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
         end if
         
         round_flag = .true.
-        t3 = MPI_Wtime()
+        t3 = MPI_Wtime_()
         t_count = 0
         do while(round_flag)
            
@@ -534,9 +537,9 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 !of the particle number in the list. The particle is immediatly stored and another non-blocking recv is started
 
            t_count = t_count + 1
-           t5 = MPI_Wtime()
-           call MPI_WAIT(request,status,ierr)
-           t6 = MPI_Wtime()
+           t5 = MPI_Wtime_()
+           call MPI_WAIT_(request,status,ierr)
+           t6 = MPI_Wtime_()
            ! record the mean time spent waiting to receive a particle
            t_wait = (t_wait*(t_count-1)+(t6-t5))/t_count
            
@@ -544,7 +547,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
            start(status(MPI_TAG))%vec = end(status(MPI_TAG))%vec
            list(status(MPI_TAG)) = 2
 
-           call  MPI_IRECV(recvpart,7,mpi_type,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,request,ierr)
+           call  MPI_IRECV_(recvpart,7,mpi_type,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,request,ierr)
            sib_i=0
            found_flag=.false.
 !we scan through the list of particles, if one is not processed(i.e. list(particle number) == 0), we send it out
@@ -553,10 +556,10 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
               if(list(sib_i)==0) then
                  onepart(1:6) = start(sib_i)%vec
                  onepart(7) = sib_j - 1
-                 t1 = MPI_Wtime()
-                 call MPI_SEND(transmit,2,MPI_LOGICAL,status(MPI_SOURCE),go,MPI_COMM_WORLD,ierr)
-                 call MPI_SEND(onepart,7,mpi_type,status(MPI_SOURCE),sib_i,MPI_COMM_WORLD,ierr)
-                 t2 = MPI_Wtime()
+                 t1 = MPI_Wtime_()
+                 call MPI_SEND_(transmit,2,MPI_LOGICAL,status(MPI_SOURCE),go,MPI_COMM_WORLD,ierr)
+                 call MPI_SEND_(onepart,7,mpi_type,status(MPI_SOURCE),sib_i,MPI_COMM_WORLD,ierr)
+                 t2 = MPI_Wtime_()
                  t_send = (t_send*(sib_i-1)+(t2-t1))/sib_i
                  list(sib_i) = 1
                  found_flag = .true.
@@ -571,7 +574,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
            if(.not.found_flag) then
               onepart(1:6) = start(status(MPI_TAG))%vec
               onepart(7) = sib_j
-              call MPI_SEND(onepart,7,mpi_tag,status(MPI_SOURCE),status(MPI_TAG),MPI_COMM_WORLD,ierr)
+              call MPI_SEND_(onepart,7,mpi_tag,status(MPI_SOURCE),status(MPI_TAG),MPI_COMM_WORLD,ierr)
               list(status(MPI_TAG))=3
            endif
 
@@ -581,7 +584,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
               round_flag = round_flag.or.(list(sib_i).lt.2)
            enddo
         enddo
-        t4 = MPI_Wtime()
+        t4 = MPI_Wtime_()
 
         ! write .times file
         ti_unit=lunget()
@@ -602,24 +605,24 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 !tell all of the processes that they can transmit if they have been holding or that they can quit if it is the end
 
      do sib_i=1,size
-        call MPI_ISEND(transmit,2,MPI_LOGICAL,sib_i,go,MPI_COMM_WORLD,tempreq,ierr)
+        call MPI_ISEND_(transmit,2,MPI_LOGICAL,sib_i,go,MPI_COMM_WORLD,tempreq,ierr)
      enddo
 
 !check is the strong beam size was updated. 
      if(transmit(2)) then
-        call MPI_BCAST(ring%ele(1)%value(sig_x$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
-        call MPI_BCAST(ring%ele(1)%value(sig_y$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
-        call MPI_BCAST(ring%ele(1)%value(sig_z$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST_(ring%ele(1)%value(sig_x$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST_(ring%ele(1)%value(sig_y$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST_(ring%ele(1)%value(sig_z$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
 !transmit(2) should always be false at this point
         transmit(2)=.false.
         do sib_i=1,size
-           call MPI_ISEND(transmit,2,MPI_LOGICAL,sib_i,go,MPI_COMM_WORLD,tempreq,ierr)
+           call MPI_ISEND_(transmit,2,MPI_LOGICAL,sib_i,go,MPI_COMM_WORLD,tempreq,ierr)
         enddo
      end if
 
 !if we are done, send  final message to yourself so clear the non-blocking recv and then exit
      if(.not.transmit(1)) then
-        call MPI_ISEND(onepart,7,mpi_type,0,0,MPI_COMM_WORLD,tempreq,ierr)
+        call MPI_ISEND_(onepart,7,mpi_type,0,0,MPI_COMM_WORLD,tempreq,ierr)
         exit
      endif
   end do ! matches do sib_j=1,num_rpt
@@ -638,16 +641,16 @@ else
      do
 
 !check to see what kind of message we have and recieve accordingly
-        call MPI_PROBE(0,MPI_ANY_TAG,MPI_COMM_WORLD,status,ierr)
+        call MPI_PROBE_(0,MPI_ANY_TAG,MPI_COMM_WORLD,status,ierr)
         if(status(MPI_TAG).eq.go) then 
            round_flag = .true.
-           call MPI_RECV(transmit,2,MPI_LOGICAL,0,go,MPI_COMM_WORLD,status,ierr)
+           call MPI_RECV_(transmit,2,MPI_LOGICAL,0,go,MPI_COMM_WORLD,status,ierr)
            if (.not.transmit(1)) exit
-           call MPI_RECV(recvpart,7,mpi_type,0,MPI_ANY_TAG,MPI_COMM_WORLD,status,ierr)
+           call MPI_RECV_(recvpart,7,mpi_type,0,MPI_ANY_TAG,MPI_COMM_WORLD,status,ierr)
         else 
            round_flag = .false.
-           call MPI_RECV(recvpart,7,mpi_type,0,MPI_ANY_TAG,MPI_COMM_WORLD,status,ierr)
-           call MPI_IRECV(transmit,2,MPI_LOGICAL,0,go,MPI_COMM_WORLD,request,ierr)
+           call MPI_RECV_(recvpart,7,mpi_type,0,MPI_ANY_TAG,MPI_COMM_WORLD,status,ierr)
+           call MPI_IRECV_(transmit,2,MPI_LOGICAL,0,go,MPI_COMM_WORLD,request,ierr)
         endif
         deallocate(sib_co)
         call reallocate_coord(sib_co,ring%n_ele_max)
@@ -686,18 +689,18 @@ else
            onepart = recvpart
         end if
 !wait to get the recieve and if it says not to transmit, leave, otherwise, keep on going
-        if(.not.round_flag) call MPI_WAIT(request,status,ierr)
+        if(.not.round_flag) call MPI_WAIT_(request,status,ierr)
         if(transmit(2))then
-           call MPI_BCAST(ring%ele(1)%value(sig_x$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(ring%ele(1)%value(sig_y$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(ring%ele(1)%value(sig_z$),1,mpi_type,0,MPI_COMM_WORLD,ierr)           
-           call MPI_IRECV(transmit,2,MPI_LOGICAL,0,go,MPI_COMM_WORLD,request,ierr)
+           call MPI_BCAST_(ring%ele(1)%value(sig_x$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST_(ring%ele(1)%value(sig_y$),1,mpi_type,0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST_(ring%ele(1)%value(sig_z$),1,mpi_type,0,MPI_COMM_WORLD,ierr)           
+           call MPI_IRECV_(transmit,2,MPI_LOGICAL,0,go,MPI_COMM_WORLD,request,ierr)
            recvpart=partstart
 ! I hate go to statements but as written this is the easiest way to do it
            go to 308
         end if
         if(.not.transmit(1)) exit
-        call MPI_SEND(onepart,7,mpi_type,0,idnum,MPI_COMM_WORLD,ierr)
+        call MPI_SEND_(onepart,7,mpi_type,0,idnum,MPI_COMM_WORLD,ierr)
         
      enddo
   endif

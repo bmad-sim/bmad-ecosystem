@@ -212,10 +212,10 @@ size=2
 !SIBREN
 #if ( defined(CESR_LINUX) && defined(MPI) ) || ( defined(CESR_WINCVF) && defined(MPI) )
 if(scan_params%parallel)then
-   call MPI_INIT(ierr)
-   call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
+   call MPI_INIT_(ierr)
+   call MPI_COMM_RANK_(MPI_COMM_WORLD,rank,ierr)
    global_rank = rank
-   call MPI_COMM_SIZE(MPI_COMM_WORLD,size,ierr)
+   call MPI_COMM_SIZE_(MPI_COMM_WORLD,size,ierr)
    size = size-1
    if(rank.eq.0) print *,"Using parallel code"
 else
@@ -268,7 +268,7 @@ end if
      end if
 #if ( defined(CESR_LINUX) && defined(MPI) ) || ( defined(CESR_WINCVF) && defined(MPI) )
      if(scan_params%parallel)then
-        call MPI_BCAST(line,120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST_(line,120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
      end if
 #endif
      last_line = line
@@ -278,7 +278,7 @@ end if
      if(line(1:2) == 'EX' .or. line(1:2) == 'QU')then
 #if defined (CESR_LINUX) || defined(CESR_WINCVF)
         if(scan_params%parallel)then
-           call MPI_FINALIZE(ierr)
+           call MPI_FINALIZE_(ierr)
         endif
 #endif
         stop
@@ -404,7 +404,7 @@ end if
     deallocate(orb)
 #if ( defined(CESR_LINUX) && defined(MPI) ) || ( defined(CESR_WINCVF) && defined(MPI) )
     if(scan_params%parallel)then
-       call MPI_FINALIZE(ierr)
+       call MPI_FINALIZE_(ierr)
     end if
 #endif
     
