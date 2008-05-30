@@ -202,7 +202,7 @@ if (what == ' ') then
   return
 endif
 
-call match_word (what, show_names, ix)
+call match_word (what, show_names, ix, matched_name = show_what)
 if (ix == 0) then
   call out_io (s_error$, r_name, 'SHOW WHAT? WORD NOT RECOGNIZED: ' // what)
   return
@@ -214,8 +214,6 @@ if (ix < 0) then
 endif
 
 call tao_cmd_split (stuff, 2, word, .false., err)
-
-show_what = show_names(ix)
 
 select case (show_what)
 
