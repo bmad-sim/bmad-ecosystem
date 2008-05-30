@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 87
+integer, parameter :: bmad_inc_version$ = 88
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -321,8 +321,9 @@ integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
 integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
 integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
 integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
+integer, parameter :: branch$ = 41
 
-integer, parameter :: n_key = 40
+integer, parameter :: n_key = 41
 
 character(16) :: key_name(n_key) = (/ &
     'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
@@ -334,7 +335,8 @@ character(16) :: key_name(n_key) = (/ &
     'LCAVITY      ', 'DEF_PARAMETER', 'NULL_ELE     ', 'INIT_ELE     ', &
     'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
-    'GIRDER       ', 'BEND_SOL_QUAD', 'BEAM_START   ', 'PHOTON_BRANCH' /)
+    'GIRDER       ', 'BEND_SOL_QUAD', 'BEAM_START   ', 'PHOTON_BRANCH', &
+    'BRANCH       ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -397,24 +399,24 @@ integer, parameter :: BL_vkick$=24
 integer, parameter :: x_offset$=25
 integer, parameter :: y_offset$=26
 integer, parameter :: s_offset$=27, z_offset$=27
-integer, parameter :: B_field_err$=28
-
-integer, parameter :: radius$=31
-integer, parameter :: p0c$ = 32
+integer, parameter :: B_field_err$=28, BL_kick$ = 28
+integer, parameter :: radius$=29
+integer, parameter :: p0c_ref_geometry$=30
+integer, parameter :: e_tot_ref_geometry$=31
+integer, parameter :: p0c$=32
 integer, parameter :: e_tot$=33
-integer, parameter :: rel_tol$=34
-integer, parameter :: abs_tol$=35
-integer, parameter :: B_field$=36, Bs_field$ = 36, E_field$=36
-integer, parameter :: B_gradient$=37, B1_gradient$=37, B2_gradient$=37, B3_gradient$=37
-integer, parameter :: E_gradient$=37, E1_gradient$=37, E2_gradient$=37, E3_gradient$=37
-integer, parameter :: tilt_tot$=38
-integer, parameter :: x_pitch_tot$=39
-integer, parameter :: y_pitch_tot$=40
-integer, parameter :: x_offset_tot$=41
-integer, parameter :: y_offset_tot$=42
-integer, parameter :: s_offset_tot$=43
-
-integer, parameter :: BL_kick$ = 45
+integer, parameter :: Bs_field$=34, n_multipass_ref$=34
+integer, parameter :: B_field$=35, E_field$=35
+integer, parameter :: B_gradient$=36, E_gradient$=36
+integer, parameter :: B1_gradient$=37, E1_gradient$=37
+integer, parameter :: B2_gradient$=38, E2_gradient$=38
+integer, parameter :: B3_gradient$=39, E3_gradient$=39
+integer, parameter :: tilt_tot$=40
+integer, parameter :: x_pitch_tot$=41
+integer, parameter :: y_pitch_tot$=42
+integer, parameter :: x_offset_tot$=43
+integer, parameter :: y_offset_tot$=44
+integer, parameter :: s_offset_tot$=45
 integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46
 integer, parameter :: coupler_phase$ = 47
 integer, parameter :: coupler_angle$ = 48
@@ -688,8 +690,11 @@ type bmad_common_struct
   real(rp) :: rel_tolerance = 1e-3
   real(rp) :: abs_tolerance = 1e-6
 #endif
+  real(rp) :: rel_tol_adaptive_tracking = 1e-6  ! Adaptive tracking relative tolerance.
+  real(rp) :: abs_tol_adaptive_tracking = 1e-7  ! Adaptive tracking absolute tolerance.
   integer :: taylor_order = 3                ! 3rd order is default
   integer :: default_integ_order = 2         ! PTC integration order
+  integer :: n_attrib_string_max_len         ! Maximum length of all attribute names.
   logical :: canonical_coords = .true.       ! Use (x, px) [not (x, x')]
   logical :: use_liar_lcavity = .false.      ! Liar like tracking?
   logical :: sr_wakes_on = .true.            ! Short range wakefields?

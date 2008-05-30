@@ -51,7 +51,7 @@ do n = 1, ubound(lat%branch, 1)
   call pointer_to_ele (lat, line%ix_from_branch, line%ix_from_ele, ele)
   line%ele(0)%floor = ele%floor
 
-  if (ele%key == photon_branch$) then
+  if (ele%key == photon_branch$ .or. ele%key == photon_branch$) then
     if (nint(ele%value(direction$)) == -1) then
       line%ele(0)%floor%theta = -line%ele(0)%floor%theta
       line%ele(0)%floor%phi   = -line%ele(0)%floor%phi

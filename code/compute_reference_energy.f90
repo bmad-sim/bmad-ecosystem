@@ -1,5 +1,5 @@
 !+
-! Subroutine compute_reference_energy (lattice, compute)
+! Subroutine compute_reference_energy (lat, compute)
 !
 ! Subroutine to compute the energy and momentum of the reference particle for 
 ! each element in a lat structure.
@@ -8,94 +8,115 @@
 !   use bmad
 !
 ! Input:
-!   lattice -- lat_struct: Input lattice.
+!   lat     -- lat_struct: Input lattice.
 !     %ele(0)%value(E_tot$) -- Energy at the start.
-!   bmad_com -- bmad_common_struct: Bmad global common block.
-!     %compute_ref_energy -- Logical: If set False then do not recompute the
-!                 reference energy.
 !   compute -- Logical, optional: If present then overrides the setting of
 !                bmad_com%compute_ref_energy
 !
+!   bmad_com -- bmad_common_struct: Bmad global common block.
+!     %compute_ref_energy -- Logical: If set False then do not recompute the
+!                 reference energy.
+!
 ! Output:
-!   lattice -- lat_struct
+!   lat -- lat_struct
 !     %ele(:)%value(E_tot$) -- Reference energy at the end of the element.
 !     %ele(:)%value(p0c$)         -- Reference momentum at the end of the element.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine compute_reference_energy (lattice, compute)
+subroutine compute_reference_energy (lat, compute)
 
-  use bmad_struct
-  use bmad_utils_mod
+use bmad_struct
+use bmad_utils_mod
 
-  implicit none
+implicit none
 
-  type (lat_struct) lattice
-  type (ele_struct), pointer :: ele, lord, slave
-  real(rp) E_tot, p0c, phase
+type (lat_struct) lat
+type (ele_struct), pointer :: ele, lord, slave
+real(rp) E_tot, p0c, phase
 
-  integer i, j, k, ix
-  logical, optional :: compute
+integer i, j, k, ix, ixs
+logical, optional :: compute
 
 ! Init energy
 
-  if (.not. logic_option(bmad_com%compute_ref_energy, compute)) return
+if (.not. logic_option(bmad_com%compute_ref_energy, compute)) return
 
-  E_tot = lattice%ele(0)%value(E_tot$)
-  call convert_total_energy_to (E_tot, lattice%param%particle, pc = p0c)
-  lattice%ele(0)%value(p0c$) = p0c
+E_tot = lat%ele(0)%value(E_tot$)
+call convert_total_energy_to (E_tot, lat%param%particle, pc = p0c)
+lat%ele(0)%value(p0c$) = p0c
 
-! propagate the energy through the lattice
+! propagate the energy through the tracking part of the lattice
 
-  do i = 1, lattice%n_ele_track
-    ele => lattice%ele(i)
+do i = 1, lat%n_ele_track
+  ele => lat%ele(i)
 
-    select case (ele%key)
-    case (lcavity$) 
-      ele%value(E_tot_START$) = E_tot
-      ele%value(p0c_start$) = p0c
+  select case (ele%key)
+  case (lcavity$) 
+    ele%value(E_tot_START$) = E_tot
+    ele%value(p0c_start$) = p0c
 
-      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-      E_tot = E_tot + ele%value(gradient$) * ele%value(l$) * cos(phase)
-      E_tot = E_tot - ele%value(e_loss$) * lattice%param%n_part * e_charge
-      call convert_total_energy_to (E_tot, lattice%param%particle, pc = p0c)
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+    E_tot = E_tot + ele%value(gradient$) * ele%value(l$) * cos(phase)
+    E_tot = E_tot - ele%value(e_loss$) * lat%param%n_part * e_charge
+    call convert_total_energy_to (E_tot, lat%param%particle, pc = p0c)
 
-    case (custom$) 
-      E_tot = E_tot + ele%value(gradient$) * ele%value(l$)
-      call convert_total_energy_to (E_tot, lattice%param%particle, pc = p0c)
-    end select
+  case (custom$) 
+    E_tot = E_tot + ele%value(gradient$) * ele%value(l$)
+    call convert_total_energy_to (E_tot, lat%param%particle, pc = p0c)
+  end select
 
-    ele%value(E_tot$) = E_tot
-    ele%value(p0c$) = p0c
+  ele%value(E_tot$) = E_tot
+  ele%value(p0c$) = p0c
 
-  enddo
+enddo
 
-! Put energy in the lord elements. 
+! Put the appropriate energy values in the lord elements...
 
-  do i = lattice%n_ele_track+1, lattice%n_ele_max
+do i = lat%n_ele_track+1, lat%n_ele_max
 
-    lord => lattice%ele(i)
-    if (lord%ix2_slave < 1) cycle  ! lord has no slaves
+  lord => lat%ele(i)
+  if (lord%ix2_slave < 1) cycle  ! lord has no slaves
 
-    slave => lord
-    do
-      ix = slave%ix2_slave
-      j = lattice%control(ix)%ix_slave
-      slave => lattice%ele(j)
-      if (j <= lattice%n_ele_track) exit
-    enddo
+  ! Multipass lords have their own reference energy.
+  ! If n_multipass_ref /= 0 then get this reference energy from the n^th slave.
 
-    lord%value(p0c$) = slave%value(p0c$)
-    lord%value(E_tot$) = slave%value(E_tot$)
-
-    if (lord%key == lcavity$ .or. lord%key == custom$) then
-      ix = lord%ix1_slave
-      j = lattice%control(ix)%ix_slave
-      lord%value(E_tot_start$) = lattice%ele(j)%value(E_tot_start$)
-      lord%value(p0c_start$) = lattice%ele(j)%value(p0c_start$)
+  if (lord%control_type == multipass_lord$) then
+    ix = nint(lord%value(n_multipass_ref$))
+    if (ix /= 0) then
+      j = lord%ix1_slave + ix - 1
+      ixs = lat%control(j)%ix_slave
+      lord%value(e_tot_ref_geometry$) = lat%ele(ixs)%value(e_tot$)
     endif
 
+    if (lord%value(e_tot_ref_geometry$) /= 0) then
+      call convert_total_energy_to (lord%value(e_tot_ref_geometry$), &
+                            lat%param%particle, lord%value(p0c_ref_geometry$))
+    endif
+    cycle
+  endif
+
+  ! Now for everything but multipass_lord elements...
+
+  slave => lord
+  do
+    ix = slave%ix2_slave
+    j = lat%control(ix)%ix_slave
+    slave => lat%ele(j)
+    if (j <= lat%n_ele_track) exit
   enddo
+
+  lord%value(p0c$) = slave%value(p0c$)
+  lord%value(E_tot$) = slave%value(E_tot$)
+
+  if (lord%key == lcavity$ .or. lord%key == custom$) then
+    ix = lord%ix1_slave
+    j = lat%control(ix)%ix_slave
+    lord%value(E_tot_start$) = lat%ele(j)%value(E_tot_start$)
+    lord%value(p0c_start$) = lat%ele(j)%value(p0c_start$)
+  endif
+
+enddo
 
 end subroutine

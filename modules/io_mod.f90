@@ -1192,7 +1192,7 @@ subroutine element_out (out_type, ele, ele_name, lat, name_list, n_list, iu)
 
 ! marker
 
-  case (marker$, photon_branch$)
+  case (marker$, branch$, photon_branch$)
 
     line = trim(ele_name) // ': marker'
 

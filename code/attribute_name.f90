@@ -96,6 +96,7 @@ function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, common_lord$)       = 'COMMON_LORD'
 
       if (i == photon_branch$) cycle
+      if (i == branch$) cycle
 
       attrib_array(i, E_tot$)                 = 'E_TOT'
       attrib_array(i, p0c$)                   = 'P0C'
@@ -129,8 +130,6 @@ function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, integrator_order$)  = 'INTEGRATOR_ORDER'
       attrib_array(i, num_steps$)         = 'NUM_STEPS'
       attrib_array(i, ds_step$)           = 'DS_STEP'
-      attrib_array(i, rel_tol$)           = 'REL_TOL'
-      attrib_array(i, abs_tol$)           = 'ABS_TOL'
       attrib_array(i, csr_calc_on$)       = 'CSR_CALC_ON'
 
       if (i == hkicker$)      cycle
@@ -183,6 +182,8 @@ function attribute_name (ele, ix_att) result (at_name)
 
     attrib_array(photon_branch$, direction$) = 'DIRECTION'
     attrib_array(photon_branch$, to$)        = 'TO'
+
+    attrib_array(branch$, :) = attrib_array(photon_branch$, :)
 
     attrib_array(init_ele$, E_tot$)       = 'E_TOT'
     attrib_array(init_ele$, p0c$)         = 'P0C'
@@ -285,12 +286,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(monitor$, y_pitch$)     = 'Y_PITCH'
     attrib_array(monitor$, tilt$)        = 'TILT'
 
-    attrib_array(instrument$, l$) = 'L'
-    attrib_array(instrument$, x_offset$) = 'X_OFFSET'
-    attrib_array(instrument$, y_offset$) = 'Y_OFFSET'
-    attrib_array(instrument$, x_pitch$)  = 'X_PITCH'
-    attrib_array(instrument$, y_pitch$)  = 'Y_PITCH'
-    attrib_array(instrument$, tilt$)     = 'TILT'
+    attrib_array(instrument$, :) = attrib_array(monitor$, :)
 
     attrib_array(marker$, x_offset$) = 'X_OFFSET'
     attrib_array(marker$, y_offset$) = 'Y_OFFSET'
@@ -305,14 +301,9 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(hkicker$, kick$)       = 'KICK'
     attrib_array(hkicker$, field_calc$) = 'FIELD_CALC'
     attrib_array(hkicker$, bl_kick$)    = 'BL_KICK'
-    attrib_array(Hkicker$, s_offset$)   = 'S_OFFSET'
+    attrib_array(hkicker$, s_offset$)   = 'S_OFFSET'
 
-    attrib_array(vkicker$, l$)          = 'L'
-    attrib_array(vkicker$, tilt$)       = 'TILT'
-    attrib_array(vkicker$, kick$)       = 'KICK'
-    attrib_array(vkicker$, field_calc$) = 'FIELD_CALC'
-    attrib_array(vkicker$, bl_kick$)    = 'BL_KICK'
-    attrib_array(vkicker$, s_offset$)   = 'S_OFFSET'
+    attrib_array(vkicker$, :) = attrib_array(hkicker$, :)
 
     attrib_array(kicker$, l$)           = 'L'
     attrib_array(kicker$, tilt$)        = 'TILT'
@@ -344,6 +335,9 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sbend$, b_field_err$)  = 'B_FIELD_ERR'
     attrib_array(sbend$, radius$)       = 'RADIUS'
     attrib_array(sbend$, field_calc$)   = 'FIELD_CALC'
+    attrib_array(sbend$, n_multipass_ref$)    = 'N_MULTIPASS_REF'
+    attrib_array(sbend$, p0c_ref_geometry$)   = 'P0C_REF_GEOMETRY'
+    attrib_array(sbend$, e_tot_ref_geometry$) = 'E_TOT_REF_GEOMETRY'
 
     attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
@@ -517,6 +511,8 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(custom$, y_pitch$)    = 'Y_PITCH'
     attrib_array(custom$, field_calc$) = 'FIELD_CALC'
     attrib_array(custom$, delta_e$)    = 'DELTA_E'
+
+    bmad_com%n_attrib_string_max_len = maxval(len_trim(attrib_array(1:n_key, 1:n_attrib_maxx)))
 
     init_needed = .false.
 

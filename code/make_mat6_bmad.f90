@@ -69,6 +69,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   length = ele%value(l$)
   mat6 => ele%mat6
   rel_p = 1 + c0%vec(6)  ! E/E_0
+  key = ele%key
 
   if (.not. logic_option (.false., end_in)) then
     if (ele%tracking_method == linear$) then
@@ -92,11 +93,9 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 ! drift or element is off or
 ! Electric Separator or Kicker.
 
-  key = ele%key
   if (.not. ele%is_on .and. key /= lcavity$) key = drift$
   if (any (key == (/ drift$, elseparator$, kicker$, rcollimator$, &
           ecollimator$, monitor$, instrument$, hkicker$, vkicker$ /) )) then
-
     call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
     call add_multipoles_and_s_offset
     ele%vec0 = c1%vec - matmul(mat6, c0%vec)
@@ -104,17 +103,17 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   endif
 
 !--------------------------------------------------------
-! marker
-
-  if (ele%key == marker$ .or. ele%key == photon_branch$) return
-
-!--------------------------------------------------------
 ! selection
 
-  key = ele%key
   if (key == sol_quad$ .and. ele%value(k1$) == 0) key = solenoid$
 
   select case (key)
+
+!--------------------------------------------------------
+! Marker, photon_branch, branch
+
+  case (marker$, branch$, photon_branch$) 
+    return
 
 !--------------------------------------------------------
 ! Match

@@ -50,8 +50,6 @@ namelist / data_base / &
 
 ! Init
 
-call cesr_all_data_struct_init (all_dat)
-
 err = .true.
 rewind (iu)
 
@@ -113,6 +111,63 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Subroutine read_cesr_orbit_data (orbit_number, data, err)
+!
+! Routine to read the data in a raw orbit file.
+!
+! Modules needed:
+!   use cesr_read_data_mod
+!
+! Input:
+!   orbit_number -- Integer: Number of the orbit data file.
+!
+! Output:
+!   data   -- All_data_struct: Holds the data along with 
+!                     data base and measurement parameters.
+!-
+
+subroutine read_cesr_orbit_data (orbit_number, data, err)
+
+implicit none
+
+type (butns_struct) butns
+type (cesr_all_data_struct) data
+
+character(40) :: r_name = 'read_cesr_orbit_data'
+
+integer i, ix_in, ix_set, orbit_number
+
+logical err_flag, read_ok, err
+
+! 
+
+call cesr_all_data_struct_init (data)
+
+err_flag = .true.
+call calc_file_number ('CESR_MNT:[orbit]next_butnum.num', orbit_number, ix_set, err)
+if (err) call err_exit
+if (orbit_number < 1)  ix_set = ix_set - 1  ! Number in file is 1 + current number
+
+call read_butns_file (ix_set, .true., butns, data%db, read_ok, .true.)
+if (.not. read_ok) call err_exit
+data%param%ix_data_set = ix_set
+
+data%param%lattice   = butns%lattice
+data%param%data_date = butns%date
+data%param%comment   = butns%comment(1)
+data%param%csr_set   = butns%save_set
+
+data%orbit_x%value = butns%det%x_orb
+data%orbit_y%value = butns%det%y_orb
+data%orbit_x%good  = butns%det%ok
+data%orbit_y%good  = butns%det%ok
+
+end subroutine
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine read_cesr_dispersion_data (eta_number, data, err)
 !
 ! Routine to read the data in a raw dispersion file.
@@ -124,8 +179,7 @@ end subroutine
 !   eta_number -- Integer: Number of the eta data file.
 !
 ! Output:
-!   data   -- All_eta_cbar_data_struct: Holds everything from the data
-!                     file: eta, cbar, and raw orbit data along with 
+!   data   -- All_data_struct: Holds the data along with 
 !                     data base and measurement parameters.
 !-
 
@@ -146,7 +200,9 @@ character(100) file_name
 
 namelist / dispersion_data / eta_
 
-!
+! Init
+
+call cesr_all_data_struct_init (data)
 
 ! first construct the file name
 
@@ -236,6 +292,10 @@ namelist / phase_parameters / species, horiz_beta_freq, vert_beta_freq, &
 namelist / phase_cbar_data / pc_
 namelist / rawdata / h_, v_
 namelist / raworbit / orbit_
+
+! Init
+
+call cesr_all_data_struct_init (data)
 
 ! read a data file...
 ! first construct the file name
@@ -360,6 +420,8 @@ namelist / cesr_data / orbit, phase, eta, cbar11, cbar12_x, cbar12_y, cbar22
 
 !--------------------------------------------------------------------
 
+call cesr_all_data_struct_init (all_data)
+
 call read_cesr_cooked_data_parameters (data_file, all_data%param, err)
 if (err) return
 
@@ -456,7 +518,7 @@ type (cesr_data_params_struct) param
 integer ios, iu
 
 character(*) data_file
-character(40) :: r_name = 'read_cesr_data_parameters'
+character(40) :: r_name = 'read_cesr_cooked_data_parameters'
 
 namelist / data_parameters / param
 

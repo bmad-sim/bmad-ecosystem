@@ -55,7 +55,7 @@ character(200) fname1, fname2, fname3, input_file_name, full_digested_name
 character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 
-logical found_it, v85, v86, v87, v_old, mode3, error
+logical found_it, v85, v86, v87, v88, v_old, mode3, error
 
 ! init all elements in lat
 
@@ -79,8 +79,9 @@ read (d_unit, err = 9100) n_files, version
 v85 = (version == 85)
 v86 = (version == 86)
 v87 = (version == 87)
+v88 = (version == 88)
 
-v_old = v85 .or. v86
+v_old = v85 .or. v86 .or. v87
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &

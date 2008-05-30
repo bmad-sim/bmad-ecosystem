@@ -263,6 +263,7 @@ type cesr_data_params_struct
   character(40) route_name
   integer csr_set
   integer species
+  integer ix_data_set        ! Index of the data set. EG: butns.nnnnnn
   real(rp) horiz_beta_freq, vert_beta_freq
   real(rp) dvar
 end type
@@ -1171,7 +1172,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine db_struct_init (db)
+! Subroutine db_struct_init_cu_now (db)
 ! 
 ! Subroutine to initialize a db_struct variable to zero.
 !
@@ -1182,7 +1183,7 @@ end subroutine
 !   db -- Db_struct: Structure to initialize.
 !-
 
-subroutine db_struct_init (db)
+subroutine db_struct_init_cu_now (db)
 
 implicit none
 
@@ -1217,10 +1218,6 @@ call init_this_db_ele (db%wiggler)
 call init_this_db_ele (db%scir_cam_rho)
 call init_this_db_ele (db%scir_tilt)
 
-do i = 1, 17
-  nullify (db%node(i)%ptr)
-enddo
-
 !-------------------------------------------------------
 contains
 subroutine init_this_db_ele (db_ele)
@@ -1231,17 +1228,6 @@ integer j
 !
 
 do i = lbound(db_ele, 1), ubound(db_ele, 1)
-  db_ele%dvar_dcu = 0
-  db_ele%var_theory = 0
-  db_ele%var_0 = 0
-  db_ele%ix_lat = 0
-  db_ele%ix_attrib = 0
-  db_ele%ix_cesrv = 0
-  db_ele%db_node_name = ''
-  db_ele%ix_db = 0
-  db_ele%db_ele_name = ''
-  db_ele%cu_high_lim = 0
-  db_ele%cu_low_lim = 0
   db_ele%cu_now = 0
 enddo
 
@@ -1262,6 +1248,9 @@ end subroutine
 !
 ! Output:
 !   data -- Cesr_all_data_struct: Structure to initialize.
+!     %...%value     -> 0
+!     %...%good      -> False
+!     %db%...%cu_now -> 0
 !-
 
 subroutine cesr_all_data_struct_init (data)
@@ -1271,6 +1260,18 @@ implicit none
 type (cesr_all_data_struct) data
 
 !
+
+data%param%var_attrib_name = ''
+data%param%var_ele_name    = ''
+data%param%data_type       = ''
+data%param%dvar            = 0
+data%param%csr_set         = 0
+data%param%lattice         = ''
+data%param%species         = 0
+data%param%horiz_beta_freq = 0
+data%param%vert_beta_freq  = 0
+data%param%data_date       = ''
+data%param%comment         = ''
 
 data%orbit_x%value  = 0;  data%orbit_x%good   = .false.
 data%orbit_y%value  = 0;  data%orbit_y%good   = .false.
@@ -1283,7 +1284,7 @@ data%cbar12_x%value = 0;  data%cbar12_x%good  = .false.
 data%cbar12_y%value = 0;  data%cbar12_y%good  = .false.
 data%cbar22_x%value = 0;  data%cbar22_x%good  = .false.
 
-call db_struct_init (data%db)
+call db_struct_init_cu_now (data%db)
 
 end subroutine
 

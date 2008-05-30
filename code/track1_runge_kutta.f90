@@ -12,15 +12,15 @@
 ! Input:
 !   start      -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct
-!     %value(rel_tol$)    -- Real(rp): % Error tolerance. 
-!                             A good value would be, say, 1e-5.
-!     %value(abs_tol$)    -- Real(rp): absolute error. 
-!                             A good value would be, say, 1e-8.
 !   param      -- lat_param_struct: Beam parameters.
 !     %enegy     -- Energy in GeV
 !     %particle  -- Particle type [positron$, or electron$]
 !   track      -- Track_struct: Structure holding the track information.
 !     %save_track -- Logical: Set True if track is to be saved.
+!
+!   bmad_com -- Bmad common block.
+!     %rel_tol_adaptive_tracking -- Relative tolerance. Default is 1e-6.
+!     %abs_tol_adaptive_tracking -- Absolute tolerance. Default is 1e-7.
 !
 ! Output:
 !   end        -- Coord_struct: Ending coords.
@@ -47,20 +47,6 @@ subroutine track1_runge_kutta (start, ele, param, end, track)
 
   real(rp) rel_tol, abs_tol, del_s_step, del_s_min
 
-! init
-
-  if (ele%value(rel_tol$) == 0) then
-    rel_tol = 1e-6
-  else
-    rel_tol = ele%value(rel_tol$)
-  endif
-  
-  if (ele%value(abs_tol$) == 0) then
-    abs_tol = 1e-7
-  else
-    abs_tol = ele%value(abs_tol$)
-  endif
-  
 ! Track.
 ! Remember: offset_particle converts from cononical momentum P_x, P_y to x', y'
 
@@ -69,7 +55,8 @@ subroutine track1_runge_kutta (start, ele, param, end, track)
   
   call offset_particle (ele, param, end, set$)
   call odeint_bmad (start, ele, param, end, 0.0_rp, ele%value(l$), &
-                          rel_tol, abs_tol, del_s_step, del_s_min, .true., track)
+          bmad_com%rel_tol_adaptive_tracking, bmad_com%abs_tol_adaptive_tracking, &
+          del_s_step, del_s_min, .true., track)
   call offset_particle (ele, param, end, unset$)
 
 end subroutine

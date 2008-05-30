@@ -25,3 +25,26 @@ pointers -> allocatable in ele_struct, lat_struct, etc.
 add function to calc: ring%param%s_start
 add function to calc: ring%param%s_end
 
+-----------------
+
+1) e_tot_ref_geometry.
+		a) debug
+		b) Talk to Jim
+
+2) Branch:
+	a) track_all & 
+	b) lat_mat6 calc with branch.
+	c) twiss propagate
+	d) emit calc
+	e) doc
+
+3) tao_cesr
+
+4) aml/uap
+
+5) tao & branch
+
+6) bmad_to_autocad: extend for branches.
+
+7) tao
+		a) new doc.

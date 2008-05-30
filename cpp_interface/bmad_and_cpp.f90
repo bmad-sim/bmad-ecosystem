@@ -1170,7 +1170,8 @@ f = bmad_com
 call bmad_com_to_c2 (c_bmad_com, &
       f%max_aperture_limit, f%d_orb, f%grad_loss_sr_wake, &
       f%default_ds_step, f%rel_tolerance, f%abs_tolerance, &
-      f%taylor_order, f%default_integ_order, &
+      f%rel_tol_adaptive_tracking, f%abs_tol_adaptive_tracking, &
+      f%taylor_order, f%default_integ_order, f%n_attrib_string_max_len, &
       c_logic(f%canonical_coords), c_logic(f%use_liar_lcavity), &
       c_logic(f%sr_wakes_on), c_logic(f%lr_wakes_on), &
       c_logic(f%mat6_track_symmetric), c_logic(f%auto_bookkeeper), & 
@@ -1184,18 +1185,18 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, rel, 
-!                abs, taylor_ord, dflt_integ, cc, liar, sr, lr, sym, &
-!                a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, conserve_t)
+! Subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, rel, abs, rel_track, 
+!              abs_track, taylor_ord, dflt_integ, n_str_max, cc, liar, sr, lr, sym,
+!              a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, conserve_t)
 !
 ! Subroutine used by bmad_com_to_f to transfer the data from a C++ 
 ! C_bmad_com variable into the Bmad bmad_com_stuct common block.
 ! This routine is not for general use.
 !-
 
-subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, rel, &
-                abs, taylor_ord, dflt_integ, cc, liar, sr, lr, sym, &
-                a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, conserve_t)
+subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, rel, abs, rel_track, &
+        abs_track, taylor_ord, dflt_integ, n_str_max, cc, liar, sr, lr, sym, &
+        a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, conserve_t)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1203,13 +1204,13 @@ use bmad_interface
 
 implicit none
 
-real(rp) orb(6), max_ap, grad_loss, rel, abs, ds_step
+real(rp) orb(6), max_ap, grad_loss, rel, abs, rel_track, abs_track, ds_step
 integer taylor_ord, dflt_integ, cc, liar, sr, lr, sym
 integer st_on, rad_d, rad_f, ref_e, a_book, tsc_on, csr_on
-integer conserve_t
+integer conserve_t, n_str_max
 
 bmad_com = bmad_common_struct(max_ap, orb, grad_loss, ds_step, &
-    rel, abs, taylor_ord, dflt_integ, &
+    rel, abs, rel_track, abs_track, taylor_ord, dflt_integ, n_str_max, &
     f_logic(cc), f_logic(liar), f_logic(sr), f_logic(lr), f_logic(sym), &
     f_logic(a_book), f_logic(tsc_on), f_logic(csr_on), f_logic(st_on), &
     f_logic(rad_d), f_logic(rad_f), f_logic(ref_e), f_logic(conserve_t))

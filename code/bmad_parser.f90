@@ -748,7 +748,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   do
     branch0 => lat%branch(n0)
     do i = 1, branch0%n_ele_track
-      if (branch0%ele(i)%key /= photon_branch$) cycle
+      if (branch0%ele(i)%key /= photon_branch$ .and. branch0%ele(i)%key /= branch$) cycle
       n = n + 1
       call allocate_branch_array (lat%branch, n)
       branch0 => lat%branch(n0)

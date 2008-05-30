@@ -1221,91 +1221,119 @@ use symp_lie_mod, only: symp_lie_bmad
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (coord_struct) start, end
 
-real(rp) factor, check_sum, phase, E_tot, offset_check_sum
+real(rp) factor, f2, check_sum, phase, E_tot, offset_check_sum
+real(rp), pointer :: val(:)
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
 ! Transfer tilt to tilt_tot, etc.
 
+val => ele%value
+
 if (.not. ele%on_a_girder .and. ele%key /= match$) then
-  ele%value(tilt_tot$)     = ele%value(tilt$)
-  ele%value(x_offset_tot$) = ele%value(x_offset$)
-  ele%value(y_offset_tot$) = ele%value(y_offset$)
-  ele%value(s_offset_tot$) = ele%value(s_offset$)
-  ele%value(x_pitch_tot$)  = ele%value(x_pitch$)
-  ele%value(y_pitch_tot$)  = ele%value(y_pitch$)
+  val(tilt_tot$)     = val(tilt$)
+  val(x_offset_tot$) = val(x_offset$)
+  val(y_offset_tot$) = val(y_offset$)
+  val(s_offset_tot$) = val(s_offset$)
+  val(x_pitch_tot$)  = val(x_pitch$)
+  val(y_pitch_tot$)  = val(y_pitch$)
 endif
 
-! field_master
+! Field_master...
+! For an sbend multipass_slave: The reference energy is obtained from 
 
 if (ele%field_master) then
 
-  if (ele%value(p0c$) == 0) then
+  if (val(p0c$) == 0) then
     factor = 0
   else
-    factor = c_light / ele%value(p0c$)
+    factor = c_light / val(p0c$)
   endif
 
   select case (ele%key)
   case (quadrupole$)
-    ele%value(k1$) = factor * ele%value(B1_gradient$)
+    val(k1$) = factor * val(B1_gradient$)
   case (sextupole$)
-    ele%value(k2$) = factor * ele%value(B2_gradient$)
+    val(k2$) = factor * val(B2_gradient$)
   case (octupole$)
-    ele%value(k3$) = factor * ele%value(B3_gradient$)
+    val(k3$) = factor * val(B3_gradient$)
   case (solenoid$)
-    ele%value(ks$) = factor * ele%value(Bs_field$)
+    val(ks$) = factor * val(Bs_field$)
   case (sol_quad$)
-    ele%value(ks$) = factor * ele%value(Bs_field$)
-    ele%value(k1$) = factor * ele%value(B1_gradient$)
+    val(ks$) = factor * val(Bs_field$)
+    val(k1$) = factor * val(B1_gradient$)
   case (sbend$)
-    ele%value(g$)     = factor * ele%value(B_field$)
-    ele%value(g_err$) = factor * ele%value(B_field_err$)
+    if (ele%control_type == multipass_slave$ .or. ele%control_type == multipass_lord$) then
+      if (val(p0c_ref_geometry$) == 0) then
+        f2 = 0
+      else
+        f2 = c_light / val(p0c_ref_geometry$)
+      endif
+    endif
+    if (ele%control_type == multipass_slave$) then
+      val(g$)     = f2 * val(B_field$)
+      val(g_err$) = factor * (val(B_field$) + val(B_field_err$)) - val(g$)
+    else
+      if (ele%control_type == multipass_lord$) factor = f2
+      val(g$)     = factor * val(B_field$)
+      val(g_err$) = factor * val(B_field_err$)
+    endif
+    val(k1$)    = factor * val(B1_gradient$)
+    val(k2$)    = factor * val(B2_gradient$)
   case (hkicker$)
-    ele%value(kick$) = factor * ele%value(BL_kick$)
+    val(kick$) = factor * val(BL_kick$)
   case (vkicker$)
-    ele%value(kick$) = factor * ele%value(BL_kick$)
+    val(kick$) = factor * val(BL_kick$)
   case (lcavity$, drift$, monitor$, instrument$, &
-        ecollimator$, rcollimator$, elseparator$)
+                               ecollimator$, rcollimator$, elseparator$)
   case default
-     call out_io(s_abort$, r_name, '"FIELD_MASTER" NOT IMPLEMENTED FOR: ' // trim(ele%name))
+    call out_io(s_abort$, r_name, '"FIELD_MASTER" NOT IMPLEMENTED FOR: ' // trim(ele%name))
     call err_exit
   end select
 
-  ele%value(hkick$) = factor * ele%value(BL_hkick$)
-  ele%value(vkick$) = factor * ele%value(BL_vkick$)
+  val(hkick$) = factor * val(BL_hkick$)
+  val(vkick$) = factor * val(BL_vkick$)
 
 else
 
-  factor = ele%value(p0c$) / c_light
+  factor = val(p0c$) / c_light
 
   select case (ele%key)
   case (quadrupole$)
-    ele%value(B1_gradient$) = factor * ele%value(k1$)
+    val(B1_gradient$) = factor * val(k1$)
   case (sextupole$)
-    ele%value(B2_gradient$) = factor * ele%value(k2$)
+    val(B2_gradient$) = factor * val(k2$)
   case (octupole$)
-    ele%value(B3_gradient$) = factor * ele%value(k3$)
+    val(B3_gradient$) = factor * val(k3$)
   case (solenoid$)
-    ele%value(Bs_field$)    = factor * ele%value(ks$)
+    val(Bs_field$)    = factor * val(ks$)
   case (sol_quad$)
-    ele%value(Bs_field$ )   = factor * ele%value(ks$)
-    ele%value(B1_gradient$) = factor * ele%value(k1$)
+    val(Bs_field$)    = factor * val(ks$)
+    val(B1_gradient$) = factor * val(k1$)
   case (sbend$)
-    ele%value(B_field$)     = factor * ele%value(g$)
-    ele%value(B_field_err$) = factor * ele%value(g_err$)
+    f2 = val(p0c_ref_geometry$) / c_light
+    if (ele%control_type == multipass_slave$) then
+      val(B_field$)     = f2 * val(g$)
+      val(B_field_err$) = factor * (val(g$) + val(g_err$)) - val(B_field$)
+    else
+      if (ele%control_type == multipass_lord$) factor = f2
+      val(B_field$)     = factor * val(g$)
+      val(B_field_err$) = factor * val(g_err$)
+    endif
+    val(B1_gradient$) = factor * val(k1$)
+    val(B2_gradient$) = factor * val(k2$)
   case (hkicker$)
-    ele%value(BL_kick$) = factor * ele%value(kick$)
+    val(BL_kick$) = factor * val(kick$)
   case (vkicker$) 
-    ele%value(BL_kick$) = factor * ele%value(kick$)
+    val(BL_kick$) = factor * val(kick$)
   end select
 
-  ele%value(BL_hkick$) = factor * ele%value(hkick$)
-  ele%value(BL_vkick$) = factor * ele%value(vkick$)
+  val(BL_hkick$) = factor * val(hkick$)
+  val(BL_vkick$) = factor * val(vkick$)
 
 endif
 
@@ -1319,24 +1347,24 @@ select case (ele%key)
 
 case (sbend$)
 
-  ele%value(angle$) = ele%value(l$) * ele%value(g$)
+  val(angle$) = val(l$) * val(g$)
 
-  if (ele%value(l$) == 0 .or. ele%value(g$) == 0) then
-    ele%value(l_chord$) = 0
+  if (val(l$) == 0 .or. val(g$) == 0) then
+    val(l_chord$) = 0
   else
-    ele%value(l_chord$) = 2 * sin(ele%value(angle$)/2) / ele%value(g$)
+    val(l_chord$) = 2 * sin(val(angle$)/2) / val(g$)
   endif
 
-  if (ele%value(g$) == 0) then
-    ele%value(rho$) = 0
+  if (val(g$) == 0) then
+    val(rho$) = 0
   else
-    ele%value(rho$) = 1 / ele%value(g$)
+    val(rho$) = 1 / val(g$)
   endif
 
-  if (ele%value(l$) /= 0 .and. associated(ele%a_pole)) then
-    ele%value(k2$) = 2 * ele%b_pole(2) / ele%value(l$)
+  if (val(l$) /= 0 .and. associated(ele%a_pole)) then
+    val(k2$) = 2 * ele%b_pole(2) / val(l$)
   else
-    ele%value(k2$) = 0
+    val(k2$) = 0
   endif
 
 ! Lcavity
@@ -1344,42 +1372,39 @@ case (sbend$)
 ! attribute_bookkeeper can be called before the attributes are set.
 
 case (lcavity$)
-  if (ele%value(E_tot_start$) /= 0) then
-    ele%value(delta_e$) = ele%value(gradient$) * ele%value(L$) 
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-    E_tot = ele%value(E_tot_start$) + ele%value(gradient$) * &
-                                              ele%value(l$) * cos(phase)
-    E_tot = E_tot - ele%value(e_loss$) * param%n_part * e_charge
-    ele%value(E_tot$) = E_tot
-    call convert_total_energy_to (E_tot, param%particle, pc = ele%value(p0c$))
+  if (val(E_tot_start$) /= 0) then
+    val(delta_e$) = val(gradient$) * val(L$) 
+    phase = twopi * (val(phi0$) + val(dphi0$)) 
+    E_tot = val(E_tot_start$) + val(gradient$) * val(l$) * cos(phase)
+    E_tot = E_tot - val(e_loss$) * param%n_part * e_charge
+    val(E_tot$) = E_tot
+    call convert_total_energy_to (E_tot, param%particle, pc = val(p0c$))
   endif
 
 ! RFcavity
 
 case (rfcavity$)
-  if (ele%value(harmon$) /= 0) ele%value(rf_frequency$) =  &
-                            ele%value(harmon$) * c_light / param%total_length 
+  if (val(harmon$) /= 0) val(rf_frequency$) =  val(harmon$) * c_light / param%total_length 
 
 ! BeamBeam
 
 case (beambeam$)
 
-  if (ele%value(n_slice$) == 0) ele%value(n_slice$) = 1.0 ! revert to default
+  if (val(n_slice$) == 0) val(n_slice$) = 1.0 ! revert to default
 
-  if (ele%value(charge$) == 0 .or. param%n_part == 0) then
-    ele%value(bbi_const$) = 0
+  if (val(charge$) == 0 .or. param%n_part == 0) then
+    val(bbi_const$) = 0
 
   else
 
-    if (ele%value(sig_x$) == 0 .or. ele%value(sig_y$) == 0) then
+    if (val(sig_x$) == 0 .or. val(sig_y$) == 0) then
       call out_io(s_abort$, r_name, 'ZERO SIGMA IN BEAMBEAM ELEMENT!')
       call type_ele(ele, .true., 0, .false., 0, .false.)
       call err_exit
     endif
 
-    ele%value(bbi_const$) = &
-      -param%n_part * m_electron * ele%value(charge$) * r_e /  &
-      (2 * pi * ele%value(p0c$) * (ele%value(sig_x$) + ele%value(sig_y$)))
+    val(bbi_const$) = -param%n_part * m_electron * val(charge$) * r_e /  &
+                             (2 * pi * val(p0c$) * (val(sig_x$) + val(sig_y$)))
 
   endif
 
@@ -1387,13 +1412,12 @@ case (beambeam$)
 
 case (elseparator$)
 
-  if (ele%value(l$) == 0 .or. ele%value(gap$) == 0) then
-    ele%value(e_field$) = 0
-    ele%value(voltage$) = 0
+  if (val(l$) == 0 .or. val(gap$) == 0) then
+    val(e_field$) = 0
+    val(voltage$) = 0
   else
-    ele%value(e_field$) = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) * &
-                                             ele%value(p0c$) / ele%value(l$)
-    ele%value(voltage$) = ele%value(e_field$) * ele%value(gap$) 
+    val(e_field$) = sqrt(val(hkick$)**2 + val(vkick$)**2) * val(p0c$) / val(l$)
+    val(voltage$) = val(e_field$) * val(gap$) 
   endif
 
 
@@ -1402,37 +1426,36 @@ case (elseparator$)
 
 case (wiggler$) 
 
-  if (ele%value(p0c$) == 0) then
-    ele%value(k1$) = 0
+  if (val(p0c$) == 0) then
+    val(k1$) = 0
   else
-    ele%value(k1$) = -0.5 * &
-                  (c_light * ele%value(b_max$) / ele%value(p0c$))**2
+    val(k1$) = -0.5 * (c_light * val(b_max$) / val(p0c$))**2
   endif
 
-  if (ele%value(b_max$) == 0) then
-    ele%value(rho$) = 0
+  if (val(b_max$) == 0) then
+    val(rho$) = 0
   else
-    ele%value(rho$) = ele%value(p0c$) / (c_light * ele%value(b_max$))
+    val(rho$) = val(p0c$) / (c_light * val(b_max$))
   endif
 
-  if (ele%value(l_pole$) == 0) then
-    ele%value(n_pole$) = 0
+  if (val(l_pole$) == 0) then
+    val(n_pole$) = 0
   else
-    ele%value(n_pole$) = ele%value(l$) / ele%value(l_pole$)
+    val(n_pole$) = val(l$) / val(l_pole$)
   endif
 
   if (ele%sub_key == periodic_type$) then
     if (.not. associated(ele%wig_term)) allocate (ele%wig_term(1))
 
-    if (ele%value(l_pole$) == 0) then
+    if (val(l_pole$) == 0) then
       ele%wig_term(1)%ky = 0
     else
-      ele%wig_term(1)%ky = pi / ele%value(l_pole$)
+      ele%wig_term(1)%ky = pi / val(l_pole$)
     endif
-    ele%wig_term(1)%coef   = ele%value(b_max$)
+    ele%wig_term(1)%coef   = val(b_max$)
     ele%wig_term(1)%kx     = 0
     ele%wig_term(1)%kz     = ele%wig_term(1)%ky
-    ele%wig_term(1)%phi_z  = (ele%value(l_pole$) - ele%value(l$)) / 2
+    ele%wig_term(1)%phi_z  = (val(l_pole$) - val(l$)) / 2
     ele%wig_term(1)%type   = hyper_y$
   endif
 
@@ -1440,56 +1463,54 @@ end select
 
 ! num_steps
 
-if (ele%value(ds_step$) /= 0) ele%num_steps = abs(nint(ele%value(l$) / ele%value(ds_step$)))
+if (val(ds_step$) /= 0) ele%num_steps = abs(nint(val(l$) / val(ds_step$)))
 if (ele%num_steps == 0) ele%num_steps = 1
 
 ! We need to kill the Taylor Map, etc. if things have changed.
 ! calculate a check sum to see if things have changed.
-! ele%value(check_sum$) == 0 means that the check_sum has never been 
+! val(check_sum$) == 0 means that the check_sum has never been 
 ! computed so in this case do not kill the Taylor Map
 
 select case (ele%key)
 
 case (wiggler$)
-  check_sum = ele%value(polarity$)
+  check_sum = val(polarity$)
   check_sum = check_sum
 
 case (quadrupole$)
-  check_sum = ele%value(k1$) 
+  check_sum = val(k1$) 
 
 case (sol_quad$)
-  check_sum = ele%value(ks$) + ele%value(k1$)
+  check_sum = val(ks$) + val(k1$)
 
 case (solenoid$)
-  check_sum = ele%value(ks$)
+  check_sum = val(ks$)
 
 case (sbend$)
-  check_sum = ele%value(g$) + ele%value(g_err$) + ele%value(e1$) + ele%value(e2$)
+  check_sum = val(g$) + val(g_err$) + val(e1$) + val(e2$)
 
 case (sextupole$)
-  check_sum = ele%value(k2$)
+  check_sum = val(k2$)
 
 case (octupole$)
-  check_sum = ele%value(k3$)
+  check_sum = val(k3$)
 
 case (rfcavity$)
-  check_sum = ele%value(voltage$) + ele%value(phi0$) 
+  check_sum = val(voltage$) + val(phi0$) 
 
 case (elseparator$)
-  check_sum = check_sum + ele%value(hkick$) + ele%value(vkick$)
+  check_sum = check_sum + val(hkick$) + val(vkick$)
 
 case (lcavity$)
-  check_sum = ele%value(gradient$) + ele%value(phi0$) + ele%value(gradient_err$) + &
-              ele%value(phi0_err$)
+  check_sum = val(gradient$) + val(phi0$) + val(gradient_err$) + val(phi0_err$)
 case default
   return
 
 end select
 
-check_sum = check_sum + ele%value(l$) + ele%value(ds_step$)
-offset_check_sum = ele%value(x_offset$) + &
-      ele%value(y_offset$) + ele%value(x_pitch$) + ele%value(y_pitch$) + &
-      ele%value(s_offset$) + ele%value(tilt$)
+check_sum = check_sum + val(l$) + val(ds_step$)
+offset_check_sum = val(x_offset$) + val(y_offset$) + val(x_pitch$) + &
+                          val(y_pitch$) + val(s_offset$) + val(tilt$)
 
 
 ! If an element has just been offset and bmad_com%conserve_taylor_map = T then 
@@ -1497,8 +1518,8 @@ offset_check_sum = ele%value(x_offset$) + &
 
 if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
         offset_check_sum /= 0 .and. bmad_com%conserve_taylor_maps .and. &
-        abs(ele%value(check_sum$) - check_sum) < &
-        1d-14 * (abs(check_sum) + abs(ele%value(check_sum$)))) then
+        abs(val(check_sum$) - check_sum) < &
+        1d-14 * (abs(check_sum) + abs(val(check_sum$)))) then
   ele%map_with_offsets = .false.
   call out_io (s_info$, r_name, 'Element has been offset: ' // ele%name, &
                                 'Will set %map_with_offsets = F')
@@ -1509,33 +1530,32 @@ if (ele%map_with_offsets) check_sum = check_sum + offset_check_sum
 ! For some very strange reason there can be round off error in the check sum.
 ! Hence we use a non-exact test.
 
-if (abs(ele%value(check_sum$) - check_sum) > &
-                    1d-14 * (abs(check_sum) + abs(ele%value(check_sum$)))) then
+if (abs(val(check_sum$) - check_sum) > &
+                    1d-14 * (abs(check_sum) + abs(val(check_sum$)))) then
 
-  if (ele%value(check_sum$) /= 0) then
+  if (val(check_sum$) /= 0) then
     if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
     if (associated(ele%gen_field)) call kill_gen_field(ele%gen_field)
     if (ele%key == wiggler$) then
-      ele%value(z_patch$) = 0
-      ele%value(x_patch$) = 0
+      val(z_patch$) = 0
+      val(x_patch$) = 0
     endif
   endif
 
-  ele%value(check_sum$) = check_sum
+  val(check_sum$) = check_sum
 
 endif
 
 ! compute the z_patch for a wiggler if needed.
 ! This is normally zero except for split wiggler sections.
 
-if (ele%key == wiggler$ .and. &
-                    ele%value(z_patch$) == 0 .and. ele%value(p0c$) /= 0) then
+if (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. val(p0c$) /= 0) then
   start = ele%ref_orb_in
   call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
-  ele%value(z_patch$) = end%vec(5)
-  if (ele%value(z_patch$) == 0) ele%value(z_patch$) = 1e-30 ! something non-zero.
-  if (ele%sub_key == periodic_type$) ele%value(x_patch$) = end%vec(1)
-  end%vec(5) = end%vec(5) - ele%value(z_patch$)
+  val(z_patch$) = end%vec(5)
+  if (val(z_patch$) == 0) val(z_patch$) = 1e-30 ! something non-zero.
+  if (ele%sub_key == periodic_type$) val(x_patch$) = end%vec(1)
+  end%vec(5) = end%vec(5) - val(z_patch$)
   ele%ref_orb_out = end             ! save for next super_slave
 endif
 

@@ -58,6 +58,26 @@ subroutine check_lat_controls (lat, exit_on_error)
     ele => lat%ele(i_t)
     t_type = ele%control_type
 
+! sbend multipass lord must have non-zero e_tot_ref_geometry or n_multipass_ref
+
+    if (ele%key == sbend$ .and. t_type == multipass_lord$) then
+      ix = nint(ele%value(n_multipass_ref$))
+
+      if (ix == 0 .and. ele%value(e_tot_ref_geometry$) == 0) then
+        print *, 'ERROR IN check_lat_controls: ELEMENT: ', trim(ele%name)
+        print *, '      WHICH IS A: ', control_name(t_type)
+        print *, '      DOES *NOT* HAVE A NON-ZERO N_MULTIPASS_REF OR E_TOT_REF_GEOMETRY VALUE'
+        found_err = .true.
+      endif
+
+      if (ix < 0 .or. ix > ele%n_slave) then
+        print *, 'ERROR IN check_lat_controls: ELEMENT: ', trim(ele%name)
+        print *, '      WHICH IS A: ', control_name(t_type)
+        print *, '      HAS A BAD N_MULTIPASS_REF VALUE VALUE:', ix
+        found_err = .true.
+      endif
+    endif
+
 ! check that element is in correct part of the ele(:) array
 
     if (ele%key == null_ele$ .and. i_t > lat%n_ele_track) cycle      
@@ -143,7 +163,7 @@ subroutine check_lat_controls (lat, exit_on_error)
       enddo
     endif
 
-! The slaves of a multipass_lord cannot be controlled by anything else
+! The slaves of a multipass_lord cannot be controlled by anything else.
 
     if (t_type == multipass_lord$) then
       do i = ele%ix1_slave, ele%ix2_slave

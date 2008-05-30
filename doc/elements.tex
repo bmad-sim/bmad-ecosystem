@@ -304,8 +304,12 @@ Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
   h1, h2      = <Real>     ! Face curvature.
   roll        = <Real>     ! See \ref{s:offset}.
   k1          = <Real>     ! Quadrupole strength.
+  b1_gradient = <Real>     ! Quadrupole field strength. (\sref{s:depend}).
   k2          = <Real>     ! Sextupole strength. A settable dependent variable (\sref{s:depend}).
-  l_chord                  ! Chord length. Dependent attribute. See \sref{s:l}.
+  b2_gradient = <Real>     ! Sextupole field strength. (\sref{s:depend}).
+  n_ref_multipass    = <Int>   ! Multipass reference turn.
+  e_tot_ref_geometry = <Real>  ! Reference energy for multipass elements. 
+  l_chord                      ! Chord length. Dependent attribute. See \sref{s:l}.
 \end{example}
 
 \index{L}
@@ -417,6 +421,11 @@ For example:
   my_overlay: overlay = \{my_bend, my_bend[e1]/l_coef, my_bend[e2]/l_coef\}, g = g_in
 \end{example}
 Notice that \vn{l_coef} is just \vn{arc_length/2}.
+
+The \vn{e_tot_ref_geometry} or \vn{n_multipass_ref} attributes are
+only used when a bend is part of a \vn{multipass} line and is used to
+set the reference geometry of the bend. See section~\sref{s:multipass}
+for more details.
 
 Example bend specification:
 \begin{example}

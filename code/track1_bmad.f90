@@ -79,7 +79,7 @@ subroutine track1_bmad (start, ele, param, end)
 !-----------------------------------------------
 ! marker
 
-  case (marker$, photon_branch$)
+  case (marker$, branch$, photon_branch$)
 
     return
 

@@ -68,7 +68,7 @@ type (sr_mode_wake_struct), pointer :: sr_mode
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
 integer i, j, n, ix, iv, ic, con_type, nl2
-integer nl, nt, n_max, particle, n_term
+integer nl, nt, n_max, particle, n_term, n_att
 integer pos_tot(n_attrib_maxx)
 
 real(rp) coef
@@ -140,25 +140,27 @@ else
     nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero values shown]:'
   endif
 
+  n_att = bmad_com%n_attrib_string_max_len + 2
+
   if (con_type == overlay_lord$) then
     i = ele%ix_value
     name = ele%attribute_name
-    nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)') i, name, ' =', ele%value(i)
+    nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)') i, name(1:n_att), '=', ele%value(i)
 
   else
     do i = 1, n_attrib_maxx
-      if (attribute_name(ele, i) == null_name) cycle
+      a_name = attribute_name(ele, i)
+      if (a_name == null_name) cycle
       ix = pos_tot(i)
       if (ix == 0) then
         if (ele%value(i) == 0 .and. .not. type_zero) cycle
-        nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)')  i, &
-                        attribute_name(ele, i), ' =', ele%value(i)
+        nl=nl+1; write (li(nl), '(i6, 3x, a, a, 1pe15.7)')  i, &
+                                        a_name(1:n_att), '=', ele%value(i)
       else
         if (ele%value(i) == 0 .and. ele%value(ix) == 0 .and. &
                                                  .not. type_zero) cycle
-        nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7, 4x, a, e15.7)')  i, &
-                        attribute_name(ele, i), ' =', ele%value(i), &
-                        'Total:', ele%value(ix)
+        nl=nl+1; write (li(nl), '(i6, 3x, a, a, 1pe15.7, 4x, a, e15.7)')  i, &
+                        a_name(1:n_att), '=', ele%value(i), 'Total:', ele%value(ix)
       endif
     enddo
 

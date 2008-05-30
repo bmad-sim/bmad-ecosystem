@@ -118,8 +118,8 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
 
 ! on to the next out-element which is a simple element
 
-      if (remove_markers .and. &
-                (ele_in%key == marker$ .or. ele_in%key == photon_branch$)) then
+      if (remove_markers .and. (ele_in%key == marker$ .or. &
+                ele_in%key == photon_branch$ .or. ele_in%key == branch$)) then
         ix_out(j_in) = i_out
       else
         i_out = i_out + 1                     ! starting next element
@@ -173,7 +173,8 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
         init_hybrid_needed = .false.
 
       else
-        if (ele_in%key == marker$ .or. ele_in%key == photon_branch$) cycle
+        if (ele_in%key == marker$ .or. ele_in%key == photon_branch$ .or. &
+                                                       ele_in%key == branch$) cycle
 
         if (z_decoupled) then
           e_vec = matmul(ele_in%mat6(1:4,1:4), e_vec)
@@ -208,8 +209,8 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
         ele_out%value(y2_limit$) = ele_in%value(y2_limit$)
 
         o_key = ele_out%key 
-        if (ele_in%key == drift$ .and. &
-             (o_key == drift$ .or. o_key == marker$ .or. o_key == photon_branch$)) then
+        if (ele_in%key == drift$ .and. (o_key == drift$ .or. &
+             o_key == marker$ .or. o_key == photon_branch$ .or. o_key == branch$)) then
           ele_out%name = 'DRIFT_HYBRID' 
           ele_out%key = drift$
         else

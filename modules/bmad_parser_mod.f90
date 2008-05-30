@@ -3438,7 +3438,7 @@ subroutine parser_set_ele_defaults (ele)
     ele%value(fintx$) = real_garbage$
     ele%value(hgapx$) = real_garbage$
 
-  case (photon_branch$)
+  case (branch$, photon_branch$)
     ele%value(direction$) = 1
 
   end select

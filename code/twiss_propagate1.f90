@@ -34,6 +34,8 @@ subroutine twiss_propagate1 (ele1, ele2)
   type (ele_struct), target :: ele1, ele2
   type (twiss_struct) twiss_a
 
+  integer key2
+
   real(rp), pointer :: mat6(:,:), orb(:), orb_out(:)
   real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det, mat2_a(2,2), mat2_b(2,2)
   real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
@@ -52,11 +54,12 @@ subroutine twiss_propagate1 (ele1, ele2)
   endif
 
   ele2%mode_flip = ele1%mode_flip          ! assume no flip
+  key2 = ele2%key
 
   !---------------------------------------------------------------------
   ! markers are easy
 
-  if (ele2%key == marker$ .or. ele2%key == photon_branch$) then
+  if (key2 == marker$ .or. key2 == photon_branch$ .or. key2 == branch$) then
     ele2%x = ele1%x
     ele2%y = ele1%y
     ele2%a = ele1%a
@@ -89,7 +92,7 @@ subroutine twiss_propagate1 (ele1, ele2)
     ! det_factor is a renormalization factor since det_original != 1
 
     det_factor = 1
-    if (ele2%key == lcavity$)  det_factor = sqrt(determinant (mat4))
+    if (key2 == lcavity$)  det_factor = sqrt(determinant (mat4))
 
     mat4 = ele2%mat6(1:4,1:4)
 
@@ -172,7 +175,7 @@ subroutine twiss_propagate1 (ele1, ele2)
   eta1_vec = (/ ele1%x%eta, ele1%x%etap * rel_p1, &
                 ele1%y%eta, ele1%y%etap * rel_p1, ele1%z%eta, 1.0_rp /)
 
-  if (ele2%key == rfcavity$) then
+  if (key2 == rfcavity$) then
     eta1_vec(5) = 0
     dpz2_dpz1 = dot_product (mat6(6,1:4), eta1_vec(1:4)) + 1
   else

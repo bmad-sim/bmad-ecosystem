@@ -52,16 +52,16 @@ contains
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field
-!     %value(rel_tol$) -- Real: Relative error tolerance.
-!                           Default if zero: 1e-6.
-!     %value(abs_tol$) -- Real: Absolute error tolerance.
-!                           Default if zero: 1e-7.
 !   param    -- lat_param_struct: Beam parameters.
 !     %particle    -- Particle type [positron$, or electron$]
 !   track    -- Track_struct: Structure holding the track information.
 !     %save_track -- Logical: Set True if track is to be saved.
 !   s_start  -- Real, optional: Starting point.
 !   s_end    -- Real, optional: Ending point.
+!
+!   bmad_com -- Bmad common block.
+!     %rel_tol_adaptive_tracking -- Relative tolerance. Default is 1e-6.
+!     %abs_tol_adaptive_tracking -- Absolute tolerance. Default is 1e-7.
 !
 ! Output:
 !   end        -- Coord_struct: Ending coords.
@@ -81,7 +81,7 @@ subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
   type (track_struct) :: track
 
   real(rp), optional, intent(in) :: s_start, s_end
-  real(rp) :: ds, s, s_sav, rel_tol, abs_tol, sqrt_N
+  real(rp) :: ds, s, s_sav, sqrt_N
   real(rp), parameter :: err_5 = 0.0324, safety = 0.9
   real(rp) :: s1, s2, scale_orb, err_max, ds_temp, rel_tol_N, abs_tol_N
   real(rp) :: scale_spin
@@ -107,18 +107,6 @@ subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
     s2 = s_end
   else 
     s2 = ele%value(l$)
-  endif
-
-  if (ele%value(rel_tol$) == 0) then
-    rel_tol = 1e-6 
-  else
-    rel_tol = ele%value(rel_tol$) 
-  endif
-
-  if (ele%value(abs_tol$) == 0) then
-    abs_tol = 1e-7 
-  else
-    abs_tol = ele%value(abs_tol$) 
   endif
 
   s = s1
@@ -151,8 +139,8 @@ subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
   do n_step = 1, track%max_step
 
     sqrt_N = sqrt(abs((s2-s1)/ds))  ! N = estimated number of steps
-    rel_tol_N = rel_tol / sqrt_N
-    abs_tol_N = abs_tol / sqrt_N
+    rel_tol_N = bmad_com%rel_tol_adaptive_tracking / sqrt_N
+    abs_tol_N = bmad_com%abs_tol_adaptive_tracking / sqrt_N
 
 ! record a track if we went far enough.
 

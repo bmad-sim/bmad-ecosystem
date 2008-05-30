@@ -97,14 +97,14 @@ Table~\ref{t:dep.field}.
 \begin{table}[ht]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
-  {\em Element} & {\em Normalized Strength Attribute} & {\em Field Attribute} \HH
+  {\em Element} & {\em Normalized Strength} & {\em Field Attribute} \HH
   \vn{Sbend}, \vn{Rbend}     & \vn{g}      &  \vn{b_field}        \HH
   \vn{Sbend}, \vn{Rbend}     & \vn{g_err}  &  \vn{b_field_err}    \HH
-  \vn{Solenoid}              & \vn{ks}     &  \vn{bs_field}       \HH
-  \vn{Sol_quad}              & \vn{ks}     &  \vn{bs_field}       \HH
-  \vn{Sol_quad}              & \vn{k1}     &  \vn{b1_gradient}    \HH
-  \vn{Quadrupole}            & \vn{k1}     &  \vn{b1_gradient}    \HH
-  \vn{Sextupole}             & \vn{k2}     &  \vn{b2_gradient}    \HH
+  \vn{Solenoid, Sol_quad}    & \vn{ks}     &  \vn{bs_field}       \HH
+  \vn{Quadrupole, Sol_quad, Sbend, Rbend}            
+                             & \vn{k1}     &  \vn{b1_gradient}    \HH
+  \vn{Sextupole, Sbend, Rbend}             
+                             & \vn{k2}     &  \vn{b2_gradient}    \HH
   \vn{Octupole}              & \vn{k3}     &  \vn{b3_gradient}    \HH
   \vn{HKicker}, \vn{VKicker} & \vn{kick}   &  \vn{bl_kick}        \HH
   Most                       & \vn{hkick}  &  \vn{bl_hkick}       \HH

@@ -593,7 +593,7 @@ subroutine track1_macroparticle (start, ele, param, end)
   end = start
 
   if (start%lost) return
-  if (ele%key == marker$ .or. ele%key == photon_branch$) return
+  if (ele%key == marker$ .or. ele%key == photon_branch$ .or. ele%key == branch$) return
 
 ! Init
 
