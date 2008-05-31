@@ -195,8 +195,8 @@ type ele_struct
   integer ic2_lord           ! Stop  index for lord elements
   integer ix_pointer         ! For general use. Not used by Bmad.
   integer ixx                ! Index for Bmad internal use
-  integer ix_ele             ! Index in lat%ele(:) array.
-  integer ix_branch          ! Index in lat%lat(:) array. 0 => In lat%ele(:)
+  integer ix_ele             ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
+  integer ix_branch          ! Index in lat%branch(:) array [0 => In lat%ele(:)].
   integer mat6_calc_method   ! bmad_standard$, taylor$, etc.
   integer tracking_method    ! bmad_standard$, taylor$, etc.
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
@@ -286,9 +286,9 @@ type lat_struct
   type (mode_info_struct) a, b, z     ! Tunes, etc.
   type (lat_param_struct) param       ! Parameters
   type (ele_struct)  ele_init         ! For use by any program
-  type (ele_struct), pointer ::  ele(:) => null()       ! Array of elements
-  type (branch_struct), allocatable :: branch(:)    !
-  type (control_struct), allocatable :: control(:)      ! Control list
+  type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
+  type (branch_struct), allocatable :: branch(:)   ! Branch arrays
+  type (control_struct), allocatable :: control(:) ! Control list
   type (coord_struct) beam_start      ! Starting coords
   integer version                     ! Version number
   integer n_ele_track                 ! Number of lat elements to track through.

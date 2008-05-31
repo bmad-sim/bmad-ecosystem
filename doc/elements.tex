@@ -23,8 +23,9 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
   AB_Multipole   & \ref{s:ab.m}      &  Multipole     & \ref{s:mult}     \HH
   BeamBeam       & \ref{s:bbi}       &  Null_Ele      & \ref{s:null.ele} \HH
   Bend_Sol_Quad  & \ref{s:bsq}       &  Octupole      & \ref{s:oct}      \HH
-  Custom         & \ref{s:custom}    &  Overlay       & \ref{s:overlay}  \HH
-  Drift          & \ref{s:drift}     &  Patch         & \ref{s:patch}    \HH
+  Branch         & \ref{s:branch}    &  Overlay       & \ref{s:overlay}  \HH
+  Custom         & \ref{s:custom}    &  Patch         & \ref{s:patch}    \HH
+  Drift          & \ref{s:drift}     &  Photon_Branch & \ref{s:branch}   \HH
   Ecollimator    & \ref{s:col}       &  Quadrupole    & \ref{s:quad}     \HH
   ElSeparator    & \ref{s:elsep}     &  Rbend         & \ref{s:bend}     \HH
   Group          & \ref{s:group}     &  Rcollimator   & \ref{s:col}      \HH
@@ -430,6 +431,39 @@ for more details.
 Example bend specification:
 \begin{example}
   b03w: sbend, l = 0.6, k1 = 0.003, fint  ! gives fint = fintx = 0.5
+\end{example}
+
+%-----------------------------------------------------------------
+\section{Branch and Photon_Branch}
+\label{s:branch}
+\index{Branch|textbf}
+\index{Photon_Branchtextbf}
+
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
+  Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+                         &                 & Is_on                      & \ref{s:is.on}   \HH 
+\end{tabular}
+\end{center}
+\toffset
+
+Attributes specific to a \vn{Branch and Photon_Branch} element are:
+\begin{example}
+  direction = <Integer>  ! +1 for branch forward (default). -1 for branch backward.
+  to = <line_name>       ! Name of line connected at the branch point.
+\end{example}
+
+A \vn{Branch} element marks the start of an alternative line for the
+particle beam.  A \vn{Photon_Branch} element marks the start of a
+photon beam line. See \sref{s:branching} for more details.
+Example:
+\begin{example}
+  b_mark: branch, to = b_line
+  b_line: line = (...)
 \end{example}
 
 %-----------------------------------------------------------------
@@ -1024,7 +1058,7 @@ also not used by \bmad proper. Example:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Reference energy       & \ref{s:energy}  & Integration settings       & \ref{s:integ}   \HH
 \end{tabular}

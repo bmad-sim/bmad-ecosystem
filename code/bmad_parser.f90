@@ -601,6 +601,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   lat%n_ele_max          = n_ele_use
   
   call allocate_branch_array (lat%branch, 0, lat)  ! Initial allocation
+  lat%branch(0)%name = 'MAIN'
 
 !---------------------------------------------------------------
 ! we now have the line to use in constructing the lat.
@@ -760,8 +761,9 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
       call parser_expand_line (n, lat%ele(i)%attribute_name, sequence, in_name, &
         in_indexx, seq_name, seq_indexx, in_lat%ele, branch%ele, used_line, n_ele_use)
       branch%ele(0)%key = init_ele$
-      branch%ele(0)%name = lat%ele(i)%attribute_name
+      branch%ele(0)%name = 'BEGINNING'
       branch%name        = lat%ele(i)%attribute_name
+      if (lat%ele(i)%alias /= '') branch%name = lat%ele(i)%alias
       branch%n_ele_track = n_ele_use
       branch%n_ele_max   = n_ele_use
     enddo

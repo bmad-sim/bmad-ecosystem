@@ -1,4 +1,4 @@
-\chapter{Beam Lines, and Replacement Lists}
+\chapter{Beam Lines, Replacement Lists, and Branching}
 \label{c:sequence}
 
 \index{MAD}
@@ -19,6 +19,11 @@ would pick the Line \vn{my_line} for analysis.
 Note that the names of the elements in the
 lattice are always converted to upper case.
 
+\Bmad associates a number with each element staring at 1 for the first
+element in the lattice, 2 for the second element, etc. Additionally,
+\bmad always automatically creates a 0\th element to mark the
+beginning of the lattice. The name of this element is always \vn{BEGINNING}.
+
 %-----------------------------------------------------------------------------
 \section{Beam Lines without Arguments}
 \label{s:lines.wo.arg}
@@ -26,7 +31,7 @@ lattice are always converted to upper case.
 
 A Beam Line without arguments has the format
 \begin{example}
-  label: LINE = (member1, member2, ...)
+  label: line = (member1, member2, ...)
 \end{example}
 where \vn{member1}, \vn{member2}, etc. are either elements, other Beam
 Lines or Replacement Lists, or sublines enclosed in parentheses.
@@ -236,7 +241,8 @@ The lattice elements in this case are:
 \end{example}
 
 \index{Expand_lattice!statement}
-To modify a particular tagged element the lattice must be expanded first (\sref{s:expand}). For example:
+To modify a particular tagged element the lattice must be expanded
+first (\sref{s:expand}). For example:
 \begin{example}
   line1: line = (a, b)
   line2: line = (line1[t1], line1[t2])
@@ -249,3 +255,42 @@ After the lattice has been expanded there is no connection between
 the original \vn{a} and \vn{b} elements and the elements in the lattice like
 \vn{t1.b}. Thus the last line in the example where the \vn{k1} attribute of\vn{b} 
 is modified do not have any effect on the lattice elements. 
+
+%-----------------------------------------------------------------------------
+\section{Branching}
+\index{Branch}\index{Photon_Branch}
+\label{s:branching}
+
+Lines that branch off from the main lattice can be defined in
+\bmad. There are two types of branch elements. \vn{Branch} elements define
+where the particle beam can branch off, say to a beam dump.
+\vn{Photon_Branch} elements define the source point for photon beams.
+Example:
+\begin{example}
+  erl: line = (..., b_mark, ...)             ! Define the main lattice with a branch 
+  use, erl
+  b_mark: branch, to = b_line, &             ! Define the branch point
+               direction = -1, alias = dump  
+  b_line: line = (..., q3d, ...)             ! Define the branch line
+\end{example}
+
+Branch lines can themselves have branch elements. A branch line always
+starts out tangential to the line it is branching from. The
+\vm{direction} attribute of the branch element indicates whether the
+branch line is oriented in the forward or backward direction with
+respect to the line being branched from. 
+
+Branches are named after the setting of the \vn{alias} attribute of
+the branch element. In the above example, the branch line would be
+named \vn{DUMP}. If the \vn{alias} attribute is not set, the name of
+the branch line (\vn{B_LINE} in the above example) is used instead.
+To syntax for specifying a particular element in a branch line is
+\begin{example}
+  <branch_line_name>%<element_name>
+\end{example}
+Thus, in the above example, the syntax for specifying the \vn{Q3D}
+element is \vn{DUMP%Q3D}. The main lattice specified by the \vn{use}
+statement can be considered to be a branch and automatically has the
+name \vn{MAIN}. Like the main lattice, \bmad always automatically
+creates an element at the beginning of the branch called
+\vn{BEGINNING}.
