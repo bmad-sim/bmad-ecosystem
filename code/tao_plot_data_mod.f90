@@ -402,7 +402,7 @@ do k = 1, size(graph%curve)
   u => tao_pointer_to_universe (curve%ix_universe)
   if (.not. associated(u)) return
 
-  if (tao_com%common_base_lat) then
+  if (tao_com%common_lattice) then
     call tao_lattice_calc (ok, u%ix_uni, base$)
     call tao_lattice_calc (ok, u%ix_uni, model$)
   endif
@@ -906,7 +906,8 @@ do k = 1, size(graph%curve)
 ! Note: Since there is an arbitrary overall phase, the phase data 
 ! gets renormalized so that the average value is zero.
 
-  if (curve%data_type(1:6) == 'phase.' .and. n_dat /= 0 .and. zero_average_phase) then
+  if ((curve%data_type(1:6) == 'phase.' .or. curve%data_type(1:10) == 'bpm_phase.') &
+                                      .and. n_dat /= 0 .and. zero_average_phase) then
     f = sum(curve%y_symb) / n_dat
     curve%y_symb = curve%y_symb - f
     curve%y_line = curve%y_line - f 

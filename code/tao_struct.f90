@@ -478,7 +478,7 @@ type tao_common_struct
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: optimizer_running 
   logical :: combine_consecutive_elements_of_like_name
-  logical :: common_base_lat = .false.      
+  logical :: common_lattice = .false.      
   character(100) cmd                         ! Used for the cmd history
   character(16) :: init_name = "Tao"               ! label for initialization
   character(80) :: init_tao_file     = 'tao.init'  ! '-init' argument.

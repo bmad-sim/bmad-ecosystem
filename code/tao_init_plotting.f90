@@ -203,6 +203,7 @@ do
       write (curve(j)%name, '(a, i0)') 'c', j
     enddo
     curve(:)%data_source = 'lattice'
+    curve(:)%data_type   = ''
     curve(:)%x_axis_scale_factor = 1
     curve(:)%y_axis_scale_factor = 1
     curve(:)%ix_bunch = 0
@@ -258,7 +259,7 @@ do
 
     call qp_calc_axis_places (grph%y)
 
-    if (.not. tao_com%common_base_lat .and. grph%ix_universe == 0) then
+    if (.not. tao_com%common_lattice .and. grph%ix_universe == 0) then
       call out_io (s_warn$, r_name, (/ &
           '**********************************************************', &
           '***** SYNTAX CHANGE: GRAPH%IX_UNIVERSE = 0           *****', &
@@ -313,6 +314,10 @@ do
       ix = index(crv%data_type, 'emittance.')
       if (ix /= 0) crv%data_type = crv%data_type(1:ix-1) // 'emit.' // crv%data_type(ix+10:)
 
+      ! Default data type
+
+      if (crv%data_type == '') crv%data_type = trim(plt%name) // '.' // trim(grph%name)
+
       ! A dot in the name is verboten.
       do
         ix = index(crv%name, '.')
@@ -332,7 +337,7 @@ do
 
       ! Enable the radiation integrals calculation if needed.
 
-      if (.not. tao_com%common_base_lat .and. crv%ix_universe == 0) then
+      if (.not. tao_com%common_lattice .and. crv%ix_universe == 0) then
         call out_io (s_warn$, r_name, (/ &
           '**********************************************************', &
           '***** SYNTAX CHANGE: CURVE%IX_UNIVERSE = 0           *****', &

@@ -357,7 +357,7 @@ case ('beam')
           write (iu, *) bunch%z_center
           write (iu, *) bunch%t_center
           do ip = 1, size(bunch%particle)
-            write (iu, '(6es24.15, i6, 4es24.15)') &
+            write (iu, '(6es19.10, i6, 4es19.10)') &
                           bunch%particle(ip)%r%vec, bunch%particle(ip)%ix_lost, &
                           bunch%particle(ip)%r%spin 
           enddo

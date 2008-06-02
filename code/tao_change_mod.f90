@@ -191,7 +191,7 @@ logical err
 
 !-------------------------------------------------
 
-if (tao_com%common_base_lat) then
+if (tao_com%common_lattice) then
   u => tao_com%u_common
 else
   u => tao_pointer_to_universe(-1)

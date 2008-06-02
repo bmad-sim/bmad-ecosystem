@@ -85,7 +85,7 @@ Templates define the basics of, say, how to display an orbit.
 /
 
 &tao_template_graph
-  graph%name = 'x'
+  graph%name = 'a'
   graph_index = 1
   graph%box = 1, 2, 1, 2
   graph%title = 'Horizontal Phase (deg)'
@@ -98,12 +98,11 @@ Templates define the basics of, say, how to display an orbit.
   graph%who(1) = 'model', +1
   graph%who(2) = 'design', -1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_type = 'phase.a'
   curve(1)%y_axis_scale_factor = 57.29578
 /
 
 &tao_template_graph
-  graph%name = 'y'
+  graph%name = 'b'
   graph_index = 2
   graph%box = 1, 1, 1, 2
   graph%title = 'Vertical Phase (deg)'
@@ -116,7 +115,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%who(1) = 'model', +1
   graph%who(2) = 'design', -1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_type = 'phase.b'
   curve(1)%y_axis_scale_factor = 57.29578
 /
 

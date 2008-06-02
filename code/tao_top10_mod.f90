@@ -424,7 +424,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   close (iu)
   call out_io (s_blank$, r_name, 'Written: ' // file_name)
 
-  if (tao_com%common_base_lat) exit
+  if (tao_com%common_lattice) exit
 
 enddo
 
@@ -441,7 +441,7 @@ endif
 
 ! For unified lattices write the variables affecting the specific universes.
 
-if (tao_com%common_base_lat) then
+if (tao_com%common_lattice) then
 
   file_name = 'lat_specific_vars.list'
   open (iu, file = file_name, carriagecontrol = 'list', recl = 100, iostat = ios)

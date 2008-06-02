@@ -738,7 +738,7 @@ case ('global')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; lines(nl) = 'Internal Variables:'
   nl=nl+1; write (lines(nl), imt) 'Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
-  nl=nl+1; write (lines(nl), lmt) 'common_base_lat             = ', tao_com%common_base_lat
+  nl=nl+1; write (lines(nl), lmt) 'common_lattice             = ', tao_com%common_lattice
   nl=nl+1; write (lines(nl), amt) 'tao_com%beam_all_file        = ', tao_com%beam_all_file
   nl=nl+1; write (lines(nl), amt) 'tao_com%beam0_file           = ', tao_com%beam0_file
   nl=nl+1; write (lines(nl), lmt) 'tao_com%combine_consecutive_elements_of_like_name = ', &

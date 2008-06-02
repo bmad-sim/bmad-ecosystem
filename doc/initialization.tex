@@ -201,7 +201,7 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
 \index{design_lattice!file}
 \index{design_lattice!parser}
 \index{n_universes}
-\index{common_base_lat}
+\index{common_lattice}
 \begin{example}
   &tao_design_lattice
     n_universes        = <integer>      ! Number of universes. Default = 1.
@@ -209,7 +209,7 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
     aperture_limit_on  = <logical>
     unique_name_suffix = "<string>"
     combine_consecutive_elements_of_like_name = <logical>
-    common_base_lat = <logical>        ! Default = False
+    common_lattice = <logical>        ! Default = False
     design_lattice(i) = "\{<parser>::\}<lattice_file>", \{"<lattice2_file>"\}
   /
 \end{example}
@@ -282,7 +282,7 @@ Setting \vn{aperture_limit_on} to \vn{False} will turn off the
 aperture limits set in all lattices. This overrides the setting of
 \vn{parameter[aperture_limit_on]} in a lattice file.
 
-The \vn{common_base_lat} switch can be used when there is a baseline
+The \vn{common_lattice} switch can be used when there is a baseline
 lattice that is common to all universes. See \sref{s:cbl} for more
 details.
 
@@ -1443,28 +1443,25 @@ points come from the \vn{d1_data} array structure named by
 \vn{curve%data_type}. Thus in the above example the curve point values
 are obtained from \vn{orbit.x} data. To be valid the data structure
 named by \vn{curve%data_type} must be set up in an initialization
-file. Similarly, \vn{var_array} indicates that the values of the curve
-points come from a \vn{v1_var} array structure. \vn{lattice} means
-that the curve data points are calculated from the lattice without
-regard to any data structures. \vn{beam} is used when
-tracking beams of particles. In this case the curve
-points are calculated from the tracking. With \vn{beam}, the particular
-bunch that the data is extracted from can be specified via \vn{curve%ix_bunch}.
-The default is \vn{0} which combines all the bunches for the calculation.
+file. If not given, the default \vn{curve%data_type} is
+\begin{example}
+  <plot%name>.<graph%name>
+\end{example}
+If \vn{curve%data_source} is set to \vn{var_array}, the values of the
+curve points come from a \vn{v1_var} array structure. If it is set to
+\vn{lattice} the curve data points are calculated from the lattice
+without regard to any data structures. \vn{curve%data_source} can be
+set to \vn{beam} when tracking beams of particles. In this case, the
+curve points are calculated from the tracking. With \vn{beam}, the
+particular bunch that the data is extracted from can be specified via
+\vn{curve%ix_bunch}. The default is \vn{0} which combines all the
+bunches of the beam for the calculation.
 
 Example: With
 \vn{curve%data_type} set to \vn{beta.x}, the setting of
 \vn{curve%data_source} to \vn{lattice} gives the beta as calculated
 from the lattice and \vn{beam} gives the beta as calculated
 from the shape of the beam.
-
-For a curve with the \vn{curve%data_source} set to \vn{"data_array"} the
-possible \vn{curve%data_type} values are the same as the possible
-\vn{d1_data%type} values as given in \sref{s:data.types}. If the
-\vn{curve%data_source} is \vn{"var_array"} then the possible
-\vn{curve%data_type} values are any of the \vn{v1_var} names. This is
-what points the curve to the proper data so there needs to be a
-corresponding data or var type defined in the initialization file.  
 
 \vn{curve%draw_symbols} determines whether a symbol is drawn at the
 data points. The size, shape and color of the symbols is determined by

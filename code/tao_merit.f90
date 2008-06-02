@@ -20,16 +20,15 @@ implicit none
 
 type (tao_var_struct), pointer :: var
 type (tao_data_struct), pointer :: data(:)
-type (tao_d1_data_struct), pointer :: d1
 
-real(rp) this_merit, ave, value, model_value
+real(rp) this_merit, value, model_value
 
 integer i, j, n, iu0
 
 character(16) :: r_name = "tao_merit"
 
 logical, optional :: calc_ok
-logical err, ok, opt_with_ref, opt_with_base
+logical ok, opt_with_ref, opt_with_base
 
 
 ! make sure all calculations are up to date.
@@ -53,7 +52,7 @@ do j = 1, size(s%var)
   select case (var%merit_type)
   case ('target', 'match')
     if (s%global%opt_with_ref .and. s%global%opt_with_base) then
-      if (tao_com%common_base_lat) then
+      if (tao_com%common_lattice) then
         var%delta_merit = (var%model_value - var%common%model_value) - &
                                                 (var%meas_value - var%ref_value)
       else
@@ -64,7 +63,7 @@ do j = 1, size(s%var)
       var%delta_merit = (var%model_value - var%design_value) - &
                                                 (var%meas_value - var%ref_value)
     elseif (s%global%opt_with_base) then
-      if (tao_com%common_base_lat) then
+      if (tao_com%common_lattice) then
         var%delta_merit = (var%model_value - var%common%model_value) - var%meas_value
       else
         var%delta_merit = (var%model_value - var%base_value) - var%meas_value
@@ -90,7 +89,7 @@ enddo
 !----------------------------------------
 ! Merit contribution from the data:
 
-if (tao_com%common_base_lat) iu0 = tao_com%u_common%ix_uni
+if (tao_com%common_lattice) iu0 = tao_com%u_common%ix_uni
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
@@ -141,23 +140,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 ! For phase data, since there is an arbitrary overall phase,
 ! we choose to make the average delta zero.
 
-  call tao_find_data (err, 'phase.x', d1_ptr = d1, ix_uni = i, print_err = .false.)
-  if (.not. err) then
-    n = count(d1%d%useit_opt .and. d1%d%good_model)
-    if (n /= 0 .and. all(d1%d%ele0_name == ' ')) then
-      ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt .and. d1%d%good_model) / n
-      d1%d%delta_merit = d1%d%delta_merit - ave
-    endif
-  endif
-
-  call tao_find_data (err, 'phase.y', d1_ptr = d1, ix_uni = i, print_err = .false.)
-  if (.not. err) then
-    n = count(d1%d%useit_opt .and. d1%d%good_model)
-    if (n /= 0 .and. all(d1%d%ele0_name == ' ')) then
-      ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt) / n
-      d1%d%delta_merit = d1%d%delta_merit - ave
-    endif
-  endif
+  call zero_phase_merit ('phase.a', i)
+  call zero_phase_merit ('phase.b', i)
+  call zero_phase_merit ('bpm_phase.a', i)
+  call zero_phase_merit ('bpm_phase.b', i)
 
 ! for max or min merit_types the delta might be modified.
 
@@ -177,5 +163,29 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   this_merit = this_merit + sum (data%merit, mask = data%useit_opt .and. data%good_model)
 
 enddo
+
+!-------------------------------------------------------------------------------------------
+contains
+
+subroutine zero_phase_merit (who, ix_uni)
+
+type (tao_d1_data_struct), pointer :: d1
+character(*) who
+real(rp) ave
+integer ix_uni, n
+logical err
+
+!
+
+call tao_find_data (err, who, d1_ptr = d1, ix_uni = ix_uni, print_err = .false.)
+if (.not. err) then
+  n = count(d1%d%useit_opt .and. d1%d%good_model)
+  if (n /= 0 .and. all(d1%d%ele0_name == ' ')) then
+    ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt .and. d1%d%good_model) / n
+    d1%d%delta_merit = d1%d%delta_merit - ave
+  endif
+endif
+
+end subroutine
 
 end function

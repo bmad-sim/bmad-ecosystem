@@ -121,7 +121,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 
   ! In u%model_orb0 is saved the last computed orbit. 
-  ! This is important with common_base_lat since tao_lat%orb(0) has been overwritten.
+  ! This is important with common_lattice since tao_lat%orb(0) has been overwritten.
 
   if (tao_lat%lat%param%lattice_type == linear_lattice$) then
     tao_lat%orb(0) = tao_lat%lat%beam_start
