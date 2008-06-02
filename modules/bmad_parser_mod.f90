@@ -193,7 +193,7 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
   integer i, ic, ix_word, how, ix_word1, ix_word2, ios, ix, i_out
   integer expn(6), ix_attrib
 
-  character(40) :: word, str_ix
+  character(40) :: word, str_ix, attrib_word
   character(1) delim, delim1, delim2
   character(80) str, err_str, line
 
@@ -370,6 +370,8 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
   if (word == 'B_GRADIENT') call b_grad_warning (ele)
 
   ix_attrib = attribute_index(ele, word)
+  attrib_word = word
+
   if (ix_word == 0) then  ! no word
     call warning  ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name)
     return
@@ -664,8 +666,11 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
       ele%value(y2_limit$) = value
     else
       ele%value(ix_attrib) = value
-      if (any (ix_attrib == (/ b_field$, b_field_err$, b_gradient$, e_field$, e_field$, &
-                bl_hkick$, bl_vkick$, bl_kick$ /))) ele%field_master = .true.
+      ix = len_trim(attrib_word)
+      if (ix > 9 .and. index(attrib_word, '_GRADIENT') == ix-8) ele%field_master = .true.
+      if (ix > 6 .and. index(attrib_word, '_FIELD') == ix-5) ele%field_master = .true.
+      if (ix > 10 .and. index(attrib_word, '_FIELD_ERR') == ix-9) ele%field_master = .true.
+
       if (ele%key == custom$ .and. ix_attrib == l$) ele%value(l_original$) = value
     endif
 

@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/ix_from_line/ix_from_branch/g;
+    s/common_base_lat/common_lattice/g;
     print (F_OUT);
   }
 
