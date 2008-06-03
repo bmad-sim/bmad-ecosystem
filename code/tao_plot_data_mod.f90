@@ -447,7 +447,7 @@ do k = 1, size(graph%curve)
       return
     endif
 
-    if (d2_ptr%name == 'phase') then
+    if (d2_ptr%name == 'phase' .or. d2_ptr%name == 'bpm_phase') then
       if (all(d1_ptr%d%ele0_name == ' ')) then
         zero_average_phase = .true.
       else

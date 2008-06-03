@@ -1220,8 +1220,6 @@ s%n_var_used = 0
 
 ! First count how many v1_var definitions there are
 
-if (allocated(s%v1_var)) deallocate (s%v1_var)
-
 call tao_hook_init_var(is_set) 
 if (is_set) then
   call tao_init_var_end_stuff ()
@@ -1254,9 +1252,7 @@ do
   default_key_d(n) = default_key_delta
 enddo
 
-allocate (s%v1_var(n))
-s%v1_var%name = ''  ! blank name means it doesn't (yet) exist
-s%n_v1_var_used = 0       ! size of s%v1_var(:) array
+call tao_allocate_v1_var (n)
 
 ! Now fill in all the information
 
@@ -1670,6 +1666,31 @@ where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
 end subroutine
   
 end subroutine tao_init_variables
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+
+subroutine tao_allocate_v1_var (n_v1)
+
+implicit none
+
+integer i, n_v1
+
+!
+
+if (allocated(s%v1_var)) deallocate (s%v1_var)
+allocate (s%v1_var(n_v1))
+
+do i = 1, n_v1
+  s%v1_var(i)%name = ''  ! blank name means it doesn't (yet) exist
+  s%v1_var(i)%ix_v1 = i
+enddo
+
+s%n_v1_var_used = 0
+s%n_var_used = 0
+
+end subroutine
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------

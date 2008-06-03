@@ -369,6 +369,7 @@ end type tao_var_struct
 type tao_v1_var_struct
   character(40) :: name = ' '  ! Eg: "quad_k1"
   integer ix_var0              ! Index of the 0th element in s%var
+  integer ix_v1                ! Index to s%v1_var(:) array
   type (tao_var_struct), pointer :: v(:) => null() 
                                ! Pointer to the appropriate section in s%var.
 end type

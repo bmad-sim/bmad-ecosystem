@@ -1568,15 +1568,15 @@ case ('variable')
   endif
 
   if (word(1) == ' ') then
-    write (lines(1), '(5x, a)') '                      Bounds'
-    write (lines(2), '(5x, a)') 'Name                Lower  Upper'
+    write (lines(1), '(12x, a)') '                      Bounds'
+    write (lines(2), '(12x, a)') 'Name                Lower  Upper'
     nl = 2
     do i = 1, size(s%v1_var)
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-      nl=nl+1; write(lines(nl), '(5x, a20, i5, i7)') v1_ptr%name, &
-                                       lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
+      nl=nl+1; write(lines(nl), '(5x, i5, 2x, a20, i5, i7)') v1_ptr%ix_v1, &
+                              v1_ptr%name, lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
     enddo
     call out_io (s_blank$, r_name, lines(1:nl))
     return
