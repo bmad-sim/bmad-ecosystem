@@ -44,6 +44,7 @@ type db_element_struct
   integer cu_low_lim          ! low limit
   integer cu_now              ! current CU
   integer ix                  ! Integer for general use.
+  logical valid_cu_now        ! Valid cu_now value
 end type              
 
 ! for pointing to a db_struct array
@@ -1229,6 +1230,7 @@ integer j
 
 do i = lbound(db_ele, 1), ubound(db_ele, 1)
   db_ele%cu_now = 0
+  db_ele%valid_cu_now = .false.
 enddo
 
 end subroutine

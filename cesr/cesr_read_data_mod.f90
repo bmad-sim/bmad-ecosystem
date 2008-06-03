@@ -103,6 +103,27 @@ all_dat%db%scir_pos_stp(:)%cu_now = scir_pos_stp
 all_dat%db%scir_pos_rd(:)%cu_now  = scir_pos_rd
 all_dat%db%scir_enc_cnt(:)%cu_now = scir_enc_cnt
 
+all_dat%db%csr_quad_cur%valid_cu_now = .true.
+all_dat%db%csr_qadd_cur%valid_cu_now = .true.
+all_dat%db%nir_shuntcur%valid_cu_now = .true.
+all_dat%db%csr_sext_cur%valid_cu_now = .true.
+all_dat%db%csr_sqewquad%valid_cu_now = .true.
+all_dat%db%csr_scsolcur%valid_cu_now = .true.
+all_dat%db%csr_sqewsext%valid_cu_now = .true.
+all_dat%db%csr_horz_cur%valid_cu_now = .true.
+all_dat%db%csr_hbnd_cur%valid_cu_now = .true.
+all_dat%db%csr_vert_cur%valid_cu_now = .true.
+all_dat%db%csr_hsp_volt%valid_cu_now = .true.
+all_dat%db%csr_vsp_volt%valid_cu_now = .true.
+all_dat%db%csr_octu_cur%valid_cu_now = .true.
+all_dat%db%scir_quadcur%valid_cu_now = .true.
+all_dat%db%scir_skqucur%valid_cu_now = .true.
+all_dat%db%scir_vertcur%valid_cu_now = .true.
+all_dat%db%ir_sksxcur%valid_cu_now = .true.
+all_dat%db%scir_pos_stp(:)%valid_cu_now = .true.
+all_dat%db%scir_pos_rd(:)%valid_cu_now  = .true.
+all_dat%db%scir_enc_cnt(:)%valid_cu_now = .true.
+
 err = .false.
 
 end subroutine

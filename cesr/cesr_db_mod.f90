@@ -580,24 +580,33 @@ subroutine read_butns_file (butns_num, nonlinear_calc, butns, db, &
 
     if (line_in(2:13) == 'CSR HORZ CUR') then
       db%csr_horz_cur(1:n_ele)%cu_now = vec(1:n_ele)
+      db%csr_horz_cur(1:n_ele)%valid_cu_now = .true.
     elseif (line_in(2:13) == 'CSR VERT CUR') then
       db%csr_vert_cur(1:n_ele)%cu_now = vec(1:n_ele)
+      db%csr_vert_cur(1:n_ele)%valid_cu_now = .true.
     elseif (line_in(2:13) == 'CSR HBND CUR') then
       db%csr_hbnd_cur(1:n_ele)%cu_now = vec(1:n_ele)
+      db%csr_hbnd_cur(1:n_ele)%valid_cu_now = .true.
     elseif (line_in(2:13) == 'CSR HSP VVAL') then
       call hsp_vval_to_volt (vec, vec)
       n_ele = size(db%csr_hsp_volt)
       db%csr_hsp_volt(1:n_ele)%cu_now = vec(1:n_ele)
+      db%csr_hsp_volt(1:n_ele)%valid_cu_now = .true.
     elseif (line_in(2:13) == 'CSR VSP VOLT') then
       db%csr_vsp_volt(1:n_ele)%cu_now = vec(1:n_ele)
+      db%csr_vsp_volt(1:n_ele)%valid_cu_now = .true.
     elseif (line_in(2:13) == 'SCIR VERTCUR') then
       db%scir_vertcur(1:n_ele)%cu_now = vec(1:n_ele)
+      db%scir_vertcur(1:n_ele)%valid_cu_now = .true.
     elseif (line_in(2:13) == 'SCIR POS STP') then
       db%scir_pos_stp(1:n_ele)%cu_now = vec(1:n_ele)
+      db%scir_pos_stp(1:n_ele)%valid_cu_now = .true.
     elseif (line_in(2:13) == 'SCIR ENC CNT') then
       db%scir_enc_cnt(1:n_ele)%cu_now = vec(1:n_ele)
+      db%scir_enc_cnt(1:n_ele)%valid_cu_now = .true.
     elseif (line_in(2:13) == 'SCIR POS RD ') then
       db%scir_pos_rd(1:n_ele)%cu_now = vec(1:n_ele)
+      db%scir_pos_rd(1:n_ele)%valid_cu_now = .true.
     else
       print *, 'ERROR IN ORBIT_READ: UNKNOWN NODE IN ORBIT FILE: ', line_in(2:13)
       goto 1000
