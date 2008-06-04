@@ -333,6 +333,8 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sbend$, l_chord$)      = 'L_CHORD'
     attrib_array(sbend$, b_field$)      = 'B_FIELD'
     attrib_array(sbend$, b_field_err$)  = 'B_FIELD_ERR'
+    attrib_array(sbend$, b1_gradient$)  = 'B1_GRADIENT'
+    attrib_array(sbend$, b2_gradient$)  = 'B2_GRADIENT'
     attrib_array(sbend$, radius$)       = 'RADIUS'
     attrib_array(sbend$, field_calc$)   = 'FIELD_CALC'
     attrib_array(sbend$, n_multipass_ref$)    = 'N_MULTIPASS_REF'

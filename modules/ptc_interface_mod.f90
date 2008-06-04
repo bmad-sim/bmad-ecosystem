@@ -1917,6 +1917,7 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
     ptc_key%list%t2   = ele%value(e2$)
     ptc_key%list%k(1) = ele%value(g_err$)
     ptc_key%list%k(2) = ele%value(k1$)
+    ptc_key%list%k(3) = ele%value(k2$) / 2
 
   case (sextupole$)
     ptc_key%magnet = 'sextupole'

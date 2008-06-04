@@ -811,7 +811,7 @@ subroutine mad_sbend_body (ele, energy, map)
   gamma = energy%gamma
 
   sk1 = ele%value(k1$)
-  sk2 = 0     ! sextupole strength
+  sk2 = ele%value(k2$)     ! sextupole strength
   h = ele%value(g$)
 
   ek => map%k

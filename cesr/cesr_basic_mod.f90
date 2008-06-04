@@ -44,7 +44,11 @@ type db_element_struct
   integer cu_low_lim          ! low limit
   integer cu_now              ! current CU
   integer ix                  ! Integer for general use.
-  logical valid_cu_now        ! Valid cu_now value
+  logical valid_cu_now        ! Valid cu_now value.
+  integer cu_meas             ! Value when measured data is taken.
+  integer cu_ref              ! Value when reference data is taken
+  integer cu_target           ! Target to load into the data base.
+  integer cu_design           ! Design value.
 end type              
 
 ! for pointing to a db_struct array
@@ -260,7 +264,7 @@ end type
 type cesr_data_params_struct
   character(20) data_date, data_type
   character(40) var_ele_name, var_attrib_name
-  character(100) comment, lattice
+  character(100) comment, lattice, file_name
   character(40) route_name
   integer csr_set
   integer species

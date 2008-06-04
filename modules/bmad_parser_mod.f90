@@ -3552,11 +3552,6 @@ case (sbend$, rbend$)
   if (ele%value(hgapx$) == real_garbage$) ele%value(hgapx$) = ele%value(hgap$)
   if (ele%value(fintx$) == real_garbage$) ele%value(fintx$) = ele%value(fint$)
 
-  if (ele%value(k2$) /= 0) then
-    call multipole_init (ele)
-    ele%b_pole(2) = ele%value(k2$) * ele%value(l$) / 2
-  endif
-
 ! Accept Use of Delta_E for lcavities and vary the mode frequencies.
 
 case (lcavity$) 

@@ -184,6 +184,8 @@ end subroutine
 
 subroutine track_a_bend (start, ele, param, end)
 
+  use multipole_mod
+
   implicit none
 
   type (coord_struct), intent(in)  :: start
@@ -193,7 +195,7 @@ subroutine track_a_bend (start, ele, param, end)
 
   real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t
   real(rp) rel_p, rel_p2, Dy, px_t, factor, rho, g, g_err
-  real(rp) length, g_tot, dP, eps, pxy2, f
+  real(rp) length, g_tot, dP, eps, pxy2, f, k_2
   real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 
 ! simple case
@@ -223,6 +225,11 @@ subroutine track_a_bend (start, ele, param, end)
   rel_p  = 1 + dP
   rel_p2 = rel_p**2
   k_1 = ele%value(k1$)
+
+! 1/2 sextupole kick
+
+  k_2 = ele%value(k2$) * ele%value(l$) / 2
+  if (k_2 /= 0) call multipole_kick (k_2, 0.0_rp, 2, end)
 
 ! with k1 /= 0 use small angle approximation
 
@@ -291,6 +298,10 @@ subroutine track_a_bend (start, ele, param, end)
     end%vec(6) = pz
 
   endif
+
+! 1/2 sextupole kick
+
+  if (k_2 /= 0) call multipole_kick (k_2, 0.0_rp, 2, end)
 
 ! Track through the exit face. Treat as thin lens.
 

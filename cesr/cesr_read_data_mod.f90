@@ -132,7 +132,7 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_orbit_data (orbit_number, data, err)
+! Subroutine read_cesr_orbit_data (orbit_number, all_dat, err)
 !
 ! Routine to read the data in a raw orbit file.
 !
@@ -143,45 +143,49 @@ end subroutine
 !   orbit_number -- Integer: Number of the orbit data file.
 !
 ! Output:
-!   data   -- All_data_struct: Holds the data along with 
+!   all_dat   -- cesr_all_data_struct: Holds the data along with 
 !                     data base and measurement parameters.
 !-
 
-subroutine read_cesr_orbit_data (orbit_number, data, err)
+subroutine read_cesr_orbit_data (orbit_number, all_dat, err)
 
 implicit none
 
 type (butns_struct) butns
-type (cesr_all_data_struct) data
+type (cesr_all_data_struct) all_dat
 
+character(100) file_name, dir
 character(40) :: r_name = 'read_cesr_orbit_data'
 
-integer i, ix_in, ix_set, orbit_number
+integer i, ix, ix_in, ix_set, orbit_number
 
-logical err_flag, read_ok, err
+logical err_flag, read_ok, err, is_rel
 
 ! 
 
-call cesr_all_data_struct_init (data)
+call cesr_all_data_struct_init (all_dat)
 
 err_flag = .true.
 call calc_file_number ('CESR_MNT:[orbit]next_butnum.num', orbit_number, ix_set, err)
 if (err) call err_exit
 if (orbit_number < 1)  ix_set = ix_set - 1  ! Number in file is 1 + current number
 
-call read_butns_file (ix_set, .true., butns, data%db, read_ok, .true.)
+call read_butns_file (ix_set, .true., butns, all_dat%db, read_ok, .true.)
 if (.not. read_ok) call err_exit
-data%param%ix_data_set = ix_set
 
-data%param%lattice   = butns%lattice
-data%param%data_date = butns%date
-data%param%comment   = butns%comment(1)
-data%param%csr_set   = butns%save_set
+all_dat%param%ix_data_set = ix_set
+all_dat%param%lattice   = butns%lattice
+all_dat%param%data_date = butns%date
+all_dat%param%comment   = butns%comment(1)
+all_dat%param%csr_set   = butns%save_set
 
-data%orbit_x%value = butns%det%x_orb
-data%orbit_y%value = butns%det%y_orb
-data%orbit_x%good  = butns%det%ok
-data%orbit_y%good  = butns%det%ok
+call form_file_name_with_number ('ORBIT', ix_set, file_name, err_flag)
+ix = splitfilename (file_name, dir, all_dat%param%file_name, is_rel)
+
+all_dat%orbit_x%value = butns%det%x_orb
+all_dat%orbit_y%value = butns%det%y_orb
+all_dat%orbit_x%good  = butns%det%ok
+all_dat%orbit_y%good  = butns%det%ok
 
 end subroutine
 
@@ -189,7 +193,7 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_dispersion_data (eta_number, data, err)
+! Subroutine read_cesr_dispersion_data (eta_number, all_dat, err)
 !
 ! Routine to read the data in a raw dispersion file.
 !
@@ -200,15 +204,15 @@ end subroutine
 !   eta_number -- Integer: Number of the eta data file.
 !
 ! Output:
-!   data   -- All_data_struct: Holds the data along with 
+!   all_dat   -- Cesr_all_data_struct: Holds the data along with 
 !                     data base and measurement parameters.
 !-
 
-subroutine read_cesr_dispersion_data (eta_number, data, err)
+subroutine read_cesr_dispersion_data (eta_number, all_dat, err)
 
 implicit none
 
-type (cesr_all_data_struct) data
+type (cesr_all_data_struct) all_dat
 type (cesr_xy_data_struct) eta_(0:120)
 
 integer eta_number
@@ -217,13 +221,15 @@ integer ix, iu, ios
 logical err
 
 character(40) :: r_name = 'read_cesr_dispersion_data'
-character(100) file_name
+character(100) file_name, dir
+
+logical is_rel
 
 namelist / dispersion_data / eta_
 
 ! Init
 
-call cesr_all_data_struct_init (data)
+call cesr_all_data_struct_init (all_dat)
 
 ! first construct the file name
 
@@ -245,7 +251,7 @@ endif
 
 ! Read header info
 
-call read_cesr_data_parameters (iu, data, err)
+call read_cesr_data_parameters (iu, all_dat, err)
 if (err) then
   close (iu)
   return
@@ -260,10 +266,12 @@ eta_%y = 0
 read (iu, nml = dispersion_data)
 close (iu)
 
-data%eta_x%value = eta_%x
-data%eta_y%value = eta_%y
-data%eta_x%good  = eta_%good
-data%eta_y%good  = eta_%good
+ix = splitfilename (file_name, dir, all_dat%param%file_name, is_rel)
+
+all_dat%eta_x%value = eta_%x
+all_dat%eta_y%value = eta_%y
+all_dat%eta_x%good  = eta_%good
+all_dat%eta_y%good  = eta_%good
 
 end subroutine
 
@@ -271,7 +279,7 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_phase_data (phase_number, data, err)
+! Subroutine read_cesr_phase_data (phase_number, all_dat, err)
 !
 ! Routine to read the data in a raw phase/coupling file.
 !
@@ -282,16 +290,16 @@ end subroutine
 !   phase_number -- Integer: Number of the phase data file.
 !
 ! Output:
-!   data   -- Cesr_all_data_struct: Holds everything from the data
+!   all_dat   -- Cesr_all_data_struct: Holds everything from the data
 !                     file: phase, cbar, and raw orbit data along with 
 !                     data base and measurement parameters.
 !-
 
-subroutine read_cesr_phase_data (phase_number, data, err)
+subroutine read_cesr_phase_data (phase_number, all_dat, err)
 
 implicit none
 
-type (cesr_all_data_struct) data
+type (cesr_all_data_struct) all_dat
 type (phase_cbar_data_struct) pc_(0:120)
 type (detector_struct) orbit_(0:120)
 type (db_struct) db
@@ -303,10 +311,10 @@ real(rp) horiz_reflection_shake, vert_reflection_shake
 integer phase_number
 integer ix, ios, iu, species
 
-character(100) file_name
+character(100) file_name, dir
 character(40) :: r_name = 'read_cesr_phase_data'
 
-logical err
+logical err, is_rel
 
 namelist / phase_parameters / species, horiz_beta_freq, vert_beta_freq, &
           horiz_reflection_shake, vert_reflection_shake
@@ -316,7 +324,7 @@ namelist / raworbit / orbit_
 
 ! Init
 
-call cesr_all_data_struct_init (data)
+call cesr_all_data_struct_init (all_dat)
 
 ! read a data file...
 ! first construct the file name
@@ -339,7 +347,7 @@ endif
 
 ! Read header info
 
-call read_cesr_data_parameters (iu, data, err)
+call read_cesr_data_parameters (iu, all_dat, err)
 if (err) then
   close (iu)
   return
@@ -355,9 +363,10 @@ if (ios /= 0) then
   rewind(iu)
 endif
 
-data%param%horiz_beta_freq = horiz_beta_freq
-data%param%vert_beta_freq  = vert_beta_freq
-data%param%species = species
+ix = splitfilename (file_name, dir, all_dat%param%file_name, is_rel)
+all_dat%param%horiz_beta_freq = horiz_beta_freq
+all_dat%param%vert_beta_freq  = vert_beta_freq
+all_dat%param%species = species
 
 ! read the raw orbit
 
@@ -367,7 +376,7 @@ if (ios /= 0) then
   return
 endif
 
-data%raw_orbit = orbit_
+all_dat%raw_orbit = orbit_
 
 ! read the phase and cbar data
 
@@ -380,19 +389,19 @@ if (ios /= 0) then
   return
 endif
 
-data%phase_x%value = pc_%x_phase * twopi / 360
-data%phase_x%good  = pc_%ok_x
-data%phase_y%value = pc_%y_phase * twopi / 360
-data%phase_y%good  = pc_%ok_y
+all_dat%phase_x%value = pc_%x_phase * twopi / 360
+all_dat%phase_x%good  = pc_%ok_x
+all_dat%phase_y%value = pc_%y_phase * twopi / 360
+all_dat%phase_y%good  = pc_%ok_y
 
-data%cbar11_y%value = pc_%y_cbar11
-data%cbar11_y%good  = pc_%ok_y
-data%cbar12_x%value = pc_%x_cbar12
-data%cbar12_x%good  = pc_%ok_x
-data%cbar12_y%value = pc_%y_cbar12
-data%cbar12_y%good  = pc_%ok_y
-data%cbar22_x%value = pc_%x_cbar22
-data%cbar22_x%good  = pc_%ok_x
+all_dat%cbar11_y%value = pc_%y_cbar11
+all_dat%cbar11_y%good  = pc_%ok_y
+all_dat%cbar12_x%value = pc_%x_cbar12
+all_dat%cbar12_x%good  = pc_%ok_x
+all_dat%cbar12_y%value = pc_%y_cbar12
+all_dat%cbar12_y%good  = pc_%ok_y
+all_dat%cbar22_x%value = pc_%x_cbar22
+all_dat%cbar22_x%good  = pc_%ok_x
 
 err = .false.
 
@@ -402,7 +411,7 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_cooked_data (data_file, all_data, err)
+! Subroutine read_cesr_cooked_data (file_name, all_dat, err)
 !
 ! Routine to read in the orbit, phase, cbar, or eta cooked data from a file. 
 ! 
@@ -410,14 +419,14 @@ end subroutine
 !   use read_cesr_data_mod
 !
 ! Input:
-!   data_file -- Character(*): Name of the data file.
+!   file_name -- Character(*): Name of the data file.
 !
 ! Output:
 !   all_data  -- Cesr_all_data_struct: Structure holding the data.
 !   err       -- Logical: Set true if there is a read error.
 !-
 
-subroutine read_cesr_cooked_data (data_file, all_data, err)
+subroutine read_cesr_cooked_data (file_name, all_dat, err)
 
 implicit none
 
@@ -425,13 +434,13 @@ type xy_data_input_struct
   real(rp) x, y
 end type
 
-type (cesr_all_data_struct) all_data
+type (cesr_all_data_struct) all_dat
 type (xy_data_input_struct) orbit(0:120), phase(0:120), eta(0:120)
 real(rp) cbar11(0:120), cbar12_x(0:120), cbar12_y(0:120), cbar22(0:120)
 
 integer i, j, iu, ios
 
-character(*) data_file
+character(*) file_name
 character(20) dat_name
 character(40) :: r_name = 'read_cesr_cooked_data'
 
@@ -441,9 +450,9 @@ namelist / cesr_data / orbit, phase, eta, cbar11, cbar12_x, cbar12_y, cbar22
 
 !--------------------------------------------------------------------
 
-call cesr_all_data_struct_init (all_data)
+call cesr_all_data_struct_init (all_dat)
 
-call read_cesr_cooked_data_parameters (data_file, all_data%param, err)
+call read_cesr_cooked_data_parameters (file_name, all_dat%param, err)
 if (err) return
 
 orbit%x  = real_garbage$
@@ -460,29 +469,31 @@ cbar22   = real_garbage$
 err = .true.
 
 iu = lunget()
-open (iu, file = data_file, status = 'old', iostat = ios)
+open (iu, file = file_name, status = 'old', iostat = ios)
 if (ios /= 0) then       ! abort on open error
-  call out_io (s_error$, r_name, 'ERROR OPENING: ' // data_file)
+  call out_io (s_error$, r_name, 'ERROR OPENING: ' // file_name)
   return
 endif
 
 read (iu, nml = cesr_data, iostat = ios)
 close (iu)
 if (ios /= 0) then       ! abort on read error
-  call out_io (s_error$, r_name, 'ERROR READING DATA FROM: ' // data_file)
+  call out_io (s_error$, r_name, 'ERROR READING DATA FROM: ' // file_name)
   return
 endif
 
-call transfer_data (orbit%x,  all_data%orbit_x)
-call transfer_data (orbit%y,  all_data%orbit_y)
-call transfer_data (phase%x,  all_data%phase_x)
-call transfer_data (phase%y,  all_data%phase_y)
-call transfer_data (eta%x,    all_data%eta_x)
-call transfer_data (eta%y,    all_data%eta_y)
-call transfer_data (cbar11,   all_data%cbar11_y)
-call transfer_data (cbar12_x, all_data%cbar12_x)
-call transfer_data (cbar12_y, all_data%cbar12_y)
-call transfer_data (cbar22,   all_data%cbar22_x)
+call transfer_data (orbit%x,  all_dat%orbit_x)
+call transfer_data (orbit%y,  all_dat%orbit_y)
+call transfer_data (phase%x,  all_dat%phase_x)
+call transfer_data (phase%y,  all_dat%phase_y)
+call transfer_data (eta%x,    all_dat%eta_x)
+call transfer_data (eta%y,    all_dat%eta_y)
+call transfer_data (cbar11,   all_dat%cbar11_y)
+call transfer_data (cbar12_x, all_dat%cbar12_x)
+call transfer_data (cbar12_y, all_dat%cbar12_y)
+call transfer_data (cbar22,   all_dat%cbar22_x)
+
+all_dat%param%file_name = file_name
 
 err = .false.
 
@@ -515,7 +526,7 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_cooked_data_parameters (data_file, param, err)
+! Subroutine read_cesr_cooked_data_parameters (file_name, param, err)
 !
 ! Routine to read in the header information from a data file.
 ! 
@@ -523,14 +534,14 @@ end subroutine
 !   use read_cesr_data_mod
 !
 ! Input:
-!   data_file -- Character(*): Name of the data file.
+!   file_name -- Character(*): Name of the data file.
 !
 ! Output:
 !   param     -- Cesr_data_params_struct: Parameters 
 !   err       -- Logical: Set true if there is a read error.
 !-
 
-subroutine read_cesr_cooked_data_parameters (data_file, param, err)
+subroutine read_cesr_cooked_data_parameters (file_name, param, err)
 
 implicit none
 
@@ -538,7 +549,7 @@ type (cesr_data_params_struct) param
 
 integer ios, iu
 
-character(*) data_file
+character(*) file_name
 character(40) :: r_name = 'read_cesr_cooked_data_parameters'
 
 namelist / data_parameters / param
@@ -564,16 +575,16 @@ param%comment         = ''
 err = .true.
 
 iu = lunget()
-open (iu, file = data_file, status = 'old', iostat = ios)
+open (iu, file = file_name, status = 'old', iostat = ios)
 if (ios /= 0) then       ! abort on open error
-  call out_io (s_error$, r_name, 'ERROR OPENING: ' // data_file)
+  call out_io (s_error$, r_name, 'ERROR OPENING: ' // file_name)
   return
 endif
 
 read (iu, nml = data_parameters, iostat = ios)
 if (ios /= 0) then
   call out_io (s_fatal$, r_name, &
-          'ERROR READING "DATA_PARAMETERS" NAMELIST IN FILE: ' // data_file)
+          'ERROR READING "DATA_PARAMETERS" NAMELIST IN FILE: ' // file_name)
   rewind (iu)
   read (iu, nml = data_parameters)
 endif

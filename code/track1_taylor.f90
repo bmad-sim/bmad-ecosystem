@@ -50,11 +50,11 @@ subroutine track1_taylor (start, ele, param, end)
 
   else
     end = start
-    call offset_particle (ele, param, end, set$, &
-                          set_canonical = .false., set_multipoles = .false.)
+    call offset_particle (ele, param, end, set$, set_canonical = .false., &
+                                set_multipoles = .false., set_hvkicks = .false.)
     call track_taylor (end%vec, ele%taylor, end%vec)
-    call offset_particle (ele, param, end, unset$, &
-                          set_canonical = .false., set_multipoles = .false.)
+    call offset_particle (ele, param, end, unset$, set_canonical = .false., &
+                                set_multipoles = .false., set_hvkicks = .false.)
   endif
 
 end subroutine

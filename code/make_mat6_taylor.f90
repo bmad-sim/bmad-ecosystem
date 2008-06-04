@@ -30,7 +30,8 @@ type (ele_struct), target :: ele
 type (coord_struct) :: orb0, orb_in, orb_out
 type (lat_param_struct)  param
 
-!
+! If ele%map_with_offsets = False then the Taylor map does not have
+! any offsets in it and we must put them in explicitly using offset_particle.
 
 if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, orb_in)
 
@@ -39,9 +40,11 @@ if (ele%map_with_offsets) then
 
 else
   orb0 = orb_in
-  call offset_particle (ele, param, orb0, set$, set_canonical = .false.)
+  call offset_particle (ele, param, orb0, set$, set_canonical = .false., &
+                                  set_multipoles = .false., set_hvkicks = .false.)
   call taylor_to_mat6 (ele%taylor, orb0%vec, ele%vec0, ele%mat6, orb_out%vec)
-  call offset_particle (ele, param, orb_out, unset$, set_canonical = .false.)
+  call offset_particle (ele, param, orb_out, unset$, set_canonical = .false., &
+                                  set_multipoles = .false., set_hvkicks = .false.)
 
   if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (ele%mat6, ele%value(tilt_tot$))
 

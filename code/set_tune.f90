@@ -11,6 +11,7 @@
 !   phi_a_set -- Real(rp): Horizontal set tune (radians)
 !   phi_b_set -- Real(rp): Vertical set tune (radians)
 !   dk1(:)    -- Real(rp): Relative amount to vary a quad in tuning.
+!                  That is, the variation will be proportional to dk1.
 !                  dk1(i) relates to lat%ele(i). Those quads with a
 !                  positive dk1(i) will be varied as one group and the
 !                  quads with negative dk1(i) will be varied as another group.

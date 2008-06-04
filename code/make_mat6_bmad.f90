@@ -143,7 +143,6 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
 !--------------------------------------------------------
 ! sbend
-! if k1 /= 0 then just use the MAD 2nd order map.
 
   case (sbend$)
 
@@ -237,6 +236,16 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     mat6(2,1:6) = mat6(2,1:6) + kx_2 * mat6(1,1:6) 
     mat6(4,1:6) = mat6(4,1:6) + ky_2 * mat6(3,1:6)
+
+    if (ele%value(k2$) /= 0) then
+      k2l = ele%value(k2$) * ele%value(l$) / 2
+      call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, mat6_m(1:4,1:4))
+      mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
+      mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
+      call mat4_multipole (k2l, 0.0_rp, 2, c11%vec, mat6_m(1:4,1:4))
+      mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
+      mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
+    endif
 
     if (ele%value(tilt_tot$)+ele%value(roll$) /= 0) then
       call tilt_mat6 (mat6, ele%value(tilt_tot$)+ele%value(roll$))

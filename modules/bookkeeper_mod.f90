@@ -1189,7 +1189,6 @@ end subroutine
 !     angle$   = L$ * G$
 !     l_chord$ = 2 * sin(Angle$/2) / G$
 !     rho$     = 1 / G$
-!     k2$      = 2 * B(2) / L$
 !
 ! WIGGLER:    
 !     k1$  = -0.5 * (c_light * b_max$ / p0c$)**2
@@ -1361,12 +1360,6 @@ case (sbend$)
     val(rho$) = 1 / val(g$)
   endif
 
-  if (val(l$) /= 0 .and. associated(ele%a_pole)) then
-    val(k2$) = 2 * ele%b_pole(2) / val(l$)
-  else
-    val(k2$) = 0
-  endif
-
 ! Lcavity
 ! Only do the calculation if the starting energy is not zero since 
 ! attribute_bookkeeper can be called before the attributes are set.
@@ -1487,7 +1480,7 @@ case (solenoid$)
   check_sum = val(ks$)
 
 case (sbend$)
-  check_sum = val(g$) + val(g_err$) + val(e1$) + val(e2$)
+  check_sum = val(g$) + val(g_err$) + val(e1$) + val(e2$) + val(k1$) + val(k2$)
 
 case (sextupole$)
   check_sum = val(k2$)
