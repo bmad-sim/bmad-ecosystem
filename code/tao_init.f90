@@ -88,13 +88,14 @@ tao_com%init_name = init_name
 tao_com%n_universes = n_universes
 
 ! Tao inits.
+! Data can have variable info so init vars first.
 
 if (allocated(s%u)) call deallocate_everything ()
 
 call tao_init_lattice (lattice_file) 
 call tao_init_global(tao_com%init_tao_file)
-call tao_init_data (data_file)
 call tao_init_variables (var_file)
+call tao_init_data (data_file)
 call tao_init_wall (wall_file)
 
 call tao_hook_init1 (tao_com%init_tao_file)

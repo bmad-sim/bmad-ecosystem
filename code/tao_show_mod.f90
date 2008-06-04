@@ -1662,6 +1662,8 @@ case ('variable')
     nl=nl+1; write(lines(nl), lmt)  '%Useit_opt        = ', v_ptr%useit_opt
     nl=nl+1; write(lines(nl), lmt)  '%Useit_plot       = ', v_ptr%useit_plot
 
+    call tao_hook_show_variable (v_ptr, lines, nl)
+
 ! check if there is a variable number
 ! if no variable number requested, show a range
 

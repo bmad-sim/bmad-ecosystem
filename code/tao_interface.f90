@@ -192,6 +192,16 @@ interface
 end interface
  
 interface
+  subroutine tao_hook_show_variable (var, lines, nl)
+    use tao_struct, only: tao_var_struct
+    implicit none
+    type (tao_var_struct) var
+    character(*) lines(:)
+    integer nl
+  end subroutine
+end interface
+
+interface
   subroutine tao_hook_lattice_calc (calc_ok)
     implicit none
     logical calc_ok
