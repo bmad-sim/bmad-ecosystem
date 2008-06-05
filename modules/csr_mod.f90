@@ -198,7 +198,7 @@ do i = 0, n_step
 
   ! Cannot do binning if there are less than 2 particles
 
-  if (count(bunch_end%particle%ix_lost /= not_lost$) < 2) return
+  if (count(bunch_end%particle%ix_lost == not_lost$) < 2) return
 
   call csr_bin_particles (bunch_end%particle, bin)    
 
