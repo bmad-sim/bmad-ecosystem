@@ -423,10 +423,12 @@ do j = ie1, ie2
     endif
 
     ! compute centroid orbit
-    call tao_find_beam_centroid (beam, tao_lat%orb(j), u, j, too_many_lost, lat%ele(j))
+    call tao_find_beam_centroid (beam, tao_lat%orb(j), too_many_lost, u, j, lat%ele(j))
 
     if (too_many_lost) then
       lat%param%ix_lost = j
+      call out_io (s_warn$, r_name, "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\': " &
+              // trim(lat%ele(j)%name), j)
     endif
 
   endif
@@ -480,7 +482,7 @@ end subroutine tao_beam_track
 ! Find the centroid of all particles in viewed bunches
 ! Also keep track of lost particles if the optional arguments are passed
 
-subroutine tao_find_beam_centroid (beam, orb, u, ix_ele, too_many_lost, ele)
+subroutine tao_find_beam_centroid (beam, orb, too_many_lost, u, ix_ele, ele)
 
 implicit none
 
@@ -494,7 +496,7 @@ integer, optional :: ix_ele
 integer n_bunch, n_part, n_lost, tot_part, i_ele
 
 logical record_lost
-logical, optional :: too_many_lost
+logical too_many_lost
 
 character(100) line
 character(24) :: r_name = "tao_find_beam_centroid"
@@ -541,10 +543,9 @@ endif
 
 if (tot_part > 1) then
   orb%vec = coord%vec / tot_part
+  too_many_lost = .false.
 else 
   ! lost too many particles
-  if (record_lost .and. present (too_many_lost)) &
-           call out_io (s_warn$, r_name, "Too many particles have been lost!!!")
   too_many_lost = .true.
   orb%vec = 0.0
 endif
@@ -666,6 +667,8 @@ integer i, iu, ios, n_in_file, n_in
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
 
+logical too_many_lost
+
 ! Init
 
 if (tao_com%use_saved_beam_in_tracking) return
@@ -689,7 +692,11 @@ if (u%beam0_file /= "") then
     call close_beam_file()
     call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
   endif
-  call tao_find_beam_centroid (u%beam0, orb0) 
+  call tao_find_beam_centroid (u%beam0, orb0, too_many_lost) 
+  if (too_many_lost) then
+    call out_io (s_warn$, r_name, "Not enough particles for beam init!")
+    call err_exit
+  endif
   if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
   return
 endif
@@ -705,7 +712,11 @@ if (.not. u%connect%connected) then
       call err_exit
     endif
     call init_beam_distribution (model%lat%ele(0), u%beam_init, u%beam0)
-    call tao_find_beam_centroid (u%beam0, orb0)
+    call tao_find_beam_centroid (u%beam0, orb0, too_many_lost)
+    if (too_many_lost) then
+      call out_io (s_warn$, r_name, "Not enough particles for beam init!")
+      call err_exit
+    endif
     tao_com%init_beam0 = .false.
   endif
   if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
@@ -748,7 +759,11 @@ model%lat%ele(0)%c_mat   = extract_ele%c_mat
 model%lat%ele(0)%gamma_c = extract_ele%gamma_c
 model%lat%ele(0)%floor   = extract_ele%floor
 u%beam0 = u%connect%injecting_beam
-call tao_find_beam_centroid (u%connect%injecting_beam, orb0)
+call tao_find_beam_centroid (u%connect%injecting_beam, orb0, too_many_lost)
+if (too_many_lost) then
+  call out_io (s_warn$, r_name, "Not enough particles for beam init!")
+  call err_exit
+endif
 
 if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
 
