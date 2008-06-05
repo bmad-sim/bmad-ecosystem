@@ -312,7 +312,7 @@ character(20) :: r_name = "tao_beam_track"
 
 real(rp) :: value1, value2, f
 
-logical post, calc_ok, all_lost, print_err, err
+logical post, calc_ok, too_many_lost, print_err, err
 
 ! Initialize moment structure
 
@@ -331,7 +331,7 @@ beam_init => u%beam_init
 lat => tao_lat%lat
 
 lat%param%ix_lost = not_lost$
-all_lost = .false.
+too_many_lost = .false.
 
 if (lat%param%lattice_type == circular_lattice$) then
   call out_io (s_fatal$, r_name, &
@@ -401,7 +401,7 @@ do j = ie1, ie2
 
   ! track to the element and save for phase space plot
 
-  if (.not. all_lost) then
+  if (.not. too_many_lost) then
 
     if (tao_com%use_saved_beam_in_tracking) then
       beam = u%ele(j)%beam
@@ -423,9 +423,9 @@ do j = ie1, ie2
     endif
 
     ! compute centroid orbit
-    call tao_find_beam_centroid (beam, tao_lat%orb(j), u, j, all_lost, lat%ele(j))
+    call tao_find_beam_centroid (beam, tao_lat%orb(j), u, j, too_many_lost, lat%ele(j))
 
-    if (all_lost) then
+    if (too_many_lost) then
       lat%param%ix_lost = j
     endif
 
@@ -442,7 +442,7 @@ do j = ie1, ie2
 
   !
 
-  if (.not. all_lost) then
+  if (.not. too_many_lost) then
       call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
                              lat%ele(j), u%model%bunch_params(j), err, print_err)
   endif
@@ -480,7 +480,7 @@ end subroutine tao_beam_track
 ! Find the centroid of all particles in viewed bunches
 ! Also keep track of lost particles if the optional arguments are passed
 
-subroutine tao_find_beam_centroid (beam, orb, u, ix_ele, all_lost, ele)
+subroutine tao_find_beam_centroid (beam, orb, u, ix_ele, too_many_lost, ele)
 
 implicit none
 
@@ -494,7 +494,7 @@ integer, optional :: ix_ele
 integer n_bunch, n_part, n_lost, tot_part, i_ele
 
 logical record_lost
-logical, optional :: all_lost
+logical, optional :: too_many_lost
 
 character(100) line
 character(24) :: r_name = "tao_find_beam_centroid"
@@ -538,13 +538,14 @@ if (record_lost .and. n_lost > 0) then
 endif
   
 ! average
-if (tot_part /= 0) then
+
+if (tot_part > 1) then
   orb%vec = coord%vec / tot_part
 else 
-  ! lost all particles
-  if (record_lost .and. present (all_lost)) &
-    call out_io (s_warn$, r_name, "All particles have been lost!!!!!!!!!!!!!")
-    all_lost = .true.
+  ! lost too many particles
+  if (record_lost .and. present (too_many_lost)) &
+           call out_io (s_warn$, r_name, "Too many particles have been lost!!!")
+  too_many_lost = .true.
   orb%vec = 0.0
 endif
  
