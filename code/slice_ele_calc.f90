@@ -47,7 +47,8 @@ logical bookit
 bookit = .false.
 
 if (i_slice == 1) then
-  sliced_ele = ele
+  sliced_ele = ele                ! Note: Does not transfer %ix_ele
+  sliced_ele%ix_ele = ele%ix_ele
   sliced_ele%value(l$) = ele%value(l$) / n_slice_tot
   sliced_ele%value(hkick$) = ele%value(hkick$) / n_slice_tot
   sliced_ele%value(vkick$) = ele%value(vkick$) / n_slice_tot
