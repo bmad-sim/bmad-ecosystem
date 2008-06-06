@@ -25,53 +25,45 @@ contains
     implicit none
     type(data_set) data   !Data set
     integer :: i, j, info, lwork
-    real(rp), allocatable :: work(:), A(:,:), temp(:,:), tau_mat(:,:), pi_mat(:,:)
+    real(rp), allocatable :: work(:), A(:,:), temp(:,:)
     integer, allocatable :: iwork(:)
     real(rp) :: q(1,1)
-    allocate(tau_mat(2*NUM_BPMS, NUM_TURNS))    
     allocate(data%tau_mat(NUM_TURNS, 2*NUM_BPMS))    
     allocate(data%lambda(2*NUM_BPMS))
     allocate(data%pi_mat(2*NUM_BPMS, 2*NUM_BPMS)) 
-    allocate(pi_mat(NUM_TURNS, NUM_TURNS)) 
     allocate(iwork(16*NUM_BPMS))
     allocate(A(NUM_TURNS, 2*NUM_BPMS))    
     allocate(temp(2*NUM_BPMS, 2*NUM_BPMS))
     !allocates the pi, tau and lambda matrices based on turns and active
     !processors
- !   data%tau_mat = data%poshis
-    data%tau_mat = data%poshis  
+
+!    data%tau_mat = data%poshis  
 
     info = 0
     do i=1, 2*NUM_BPMS
        data%lambda(i) = 0.0_rp
        do j=1, 2*NUM_BPMS
           data%pi_mat(i,j) = 0.0_rp
+          data%tau_mat(i,j) = 0.0
        enddo
     enddo
-    data%poshis = data%poshis
+
     A = data%poshis
     call out(data%poshis, "poshis")
     lwork = 22*NUM_BPMS**2 + 8*NUM_BPMS
-!    lwork = 11*NUM_TURNS**2 + 4*NUM_TURNS
-    Print *, "lwork", lwork
     allocate(work(lwork))
-!    call transpose(A, NUM_TURNS, 2*NUM_BPMS)
-!    data%tau_mat = A
     call dgesdd('S', NUM_TURNS, 2*NUM_BPMS, A, NUM_TURNS, data%lambda, &
          data%tau_mat, NUM_TURNS, data%pi_mat, 2*NUM_BPMS, work, lwork, &
          iwork, info)
-!    call dgesdd('S', 2*NUM_BPMS, NUM_TURNS, A, 2*NUM_BPMS, data%lambda, &
-!         tau_mat, 2*NUM_BPMS, pi_mat, NUM_TURNS, work, lwork, &
-!         iwork, info)
 !    call svdcmp(data%tau_mat, data%lambda, data%pi_mat)
     if (.not.(info==0)) then
        Print *, "Error in column", info
     endif
 
-    Print *, "Lambda: ", data%lambda
+!    Print *, "Lambda: ", data%lambda
     call transpose(data%pi_mat,2*NUM_BPMS, 2*NUM_BPMS)
-!    call svdcmp(data%tau_mat, lam, data%pi_mat)
-!    Print *, "lam", lam
+
+
 ! Error
 !    call ddisna('L', NUM_TURNS, 2*NUM_BPMS, data%lambda, septau, info)
 !    call ddisna('R', NUM_TURNS, 2*NUM_BPMS, data%lambda, seppi, info)
@@ -83,22 +75,9 @@ contains
 !    Print *, "Tau error: ", tauerr(1:10)
 !    Print *, "Pi error: ", pierr(1:10)
 
-!    do i=1, NUM_TURNS
-!       do j=1, 2*NUM_BPMS
-!          data%tau_mat(i,j) = pi_mat(j,i)
-!       enddo
-!    enddo
-!    do i=1, 2*NUM_BPMS
-!       do j=1, 2*NUM_BPMS
-!          data%pi_mat(i,j) = tau_mat(i,j)
-!       enddo
-!    enddo
-
     call regen(data)
     deallocate(work)
     deallocate(iwork)
-    deallocate(pi_mat)
-    deallocate(tau_mat)
   end subroutine svd
 
   subroutine transpose(matrix, row, col)
@@ -117,71 +96,49 @@ contains
     matrix = temp
   end subroutine transpose
 
-  subroutine gullotine(poshis)
+  subroutine gullotine(arr, length)
     !
-    !Truncates the position history matrix to 512 turns
+    !Truncates an array to a certain length.
     !
-    real(rp), allocatable :: poshis(:,:), temp(:,:)
-    integer :: i, j
+    real(rp), allocatable :: arr(:), temp(:)
+    integer :: i, j, length
 
-    NUM_TURNS = 512
-    allocate(temp(NUM_TURNS, 2*NUM_BPMS))
-   !512 is the maximum number of turns for reliable results 
- 
-    do i=1, NUM_TURNS
-       do j=1, 2*NUM_BPMS
-          temp(i,j) = poshis(i,j)
-       enddo
+!    NUM_TURNS = turns
+    allocate(temp(length))
+    do i=1, length
+       temp(i) = arr(i)
     enddo
 
-    deallocate(poshis)
-    allocate(poshis(NUM_TURNS, 2*NUM_BPMS))
-    poshis = temp
+    deallocate(arr)
+    allocate(arr(length))
+    arr = temp
 
   end subroutine gullotine
 
-  subroutine powerof2(a)
-    real(rp), allocatable :: a(:), temp(:)
-    integer :: i, power, length, temlen
+  subroutine powerof2(n)
+    integer :: i, power, length, n
     logical :: goOn
-    length = NUM_TURNS
-    temLen = length
+    length =  NUM_TURNS
     goOn = .true.
     power = 0
     do while (goOn)
-       temLen = temLen / 2
+       length = length / 2
        power = power + 1
-       if (temLen < 2) then
+       if (length < 2) then
           goOn = .false.
        endif
     enddo
-    if (temLen > 0) then
-       power = power+1
-       temLen = length
-       length = 2**power
-       allocate(temp(temLen))
-       temp = a
-       deallocate(a)
-       allocate(a(length))
-       power2 = length       
-       do i=1, length
-          if (i<=temLen) then
-             a(i) = temp(i)
-          else
-             a(i) = 0
-          endif
-       enddo
-    else
-       power2 = NUM_TURNS
+    if (length > 0) then
+       n = 2**power
+    else 
+       n = NUM_TURNS
     endif
   end subroutine powerof2
 
   subroutine fft(data)
-
     !
     !calls fft routine
     !
-
     implicit none
     type(data_set) data         !Data set
     integer :: n, &             !Number of turns
@@ -190,8 +147,8 @@ contains
     real(rp), allocatable :: a(:), & !Col of tau_mat to be analyzed
          p(:)                   !Column of phi_spec   
 
-    n = NUM_TURNS
-
+    call powerof2(n)            !Make n the next smaller power of 2
+                                !if n is not a power of 2 already.
     allocate(data%spectrum(n,2*data%bpmproc))
     allocate(data%phi_spec(n,2*data%bpmproc))
     allocate(p(n))
@@ -200,9 +157,8 @@ contains
     do i = 1, 2*NUM_BPMS
 
        allocate(a(n))
-       a(:) = data%tau_mat(:,i)
+       a(:) = data%tau_mat(1:n,i)
 
-       call powerof2(a)
        call polar_fft_f77(a,p,n,fr_peak)
        data%phi_spec(:,i) = p(:)
        data%spectrum(:,i) = a(:)
@@ -376,12 +332,13 @@ contains
          noise_sum(2), &          !Sum of filtered noise (last 5 lambda values)
          sum_a(4), &              !Sum of odd rows of pi matrix
          sum_b(4)                 !Sum of even rows of pi matrix
-    logical :: mode(2)
+    logical :: mode(2), more
 
     mode(1) = .true.
     mode(2) = .true.
     noise_sum(1) = 0.0_rp
     noise_sum(2) = 0.0_rp
+    more = .false.
 
     !Number of lambdas used only affects if data is rejected for
     !having too much noise.
@@ -390,13 +347,17 @@ contains
     !Last 5 lambda values are assumed to be noise. Nothing 2x the
     !average of these values is used to determine the eigenmode pairs.
     !(ave(cset) is the threshold)
-
-    do cset = 1,nset
-       do i = lambdas, 2*NUM_BPMS
-          noise_sum(cset) = noise_sum(cset) + data(cset)%lambda(i)
-       end do
-       ave(cset) = 2.0*(noise_sum(cset)/(2*data(1)%bpmproc - lambdas))
+    do cset = 1, nset
+       call findNoise(data(cset)%lambda, ave(cset))
+       ave(cset) = 2.0*ave(cset)
+!       print *, ave(cset)
     end do
+!    do cset = 1,nset
+!       do i = lambdas, 2*NUM_BPMS
+!          noise_sum(cset) = noise_sum(cset) + data(cset)%lambda(i)
+!       end do
+!       ave(cset) = 2.0*(noise_sum(cset)/(2*data(1)%bpmproc - lambdas))
+!    end do
 
     !Compares all BPMs to each other to find eigen mode matches.
     ! Stops at the first match.
@@ -413,19 +374,27 @@ contains
                 write (*, '(1x,2a,i2,a,i2,a,i2, a/)', advance = "no") &
                      "Potential", " Eigen Mode match for file ", cset,  &
                      " found in columns:", i, "  and ", q, "."
-                pair_cap = pair_cap + 1
-                !Pair cap is the number of pairs to find before moving on
-                !to the next file.
-                !   PRINT *, "q:", q
-                colu1(cset) = i        
-                colu2(cset) = q
 
+                ! Pair cap is the number of pairs to find before moving on
+                ! to the next file.
+                ! pair_cap = pair_cap + 1
+                call logic_get('N', 'Y', 'Use this match?', more)
+                !more = .not. more
+                if (.not. more) then
+                   colu1(cset) = i
+                   colu2(cset) = q
+                   pair_cap = pair_cap + 1
+                   goto 101
+                endif
                 if (nset == 2 .and. pair_cap == 1) then
                    go to 101
                 end if
              end if
           end do
        end do
+       if (pair_cap == 0) then
+         Print *, "No eigen mode match found. Try again with a different file."
+      endif
 101    continue  
     end do
 
@@ -567,6 +536,41 @@ contains
 
   end subroutine match_tau_column
 
+  subroutine findNoise(lambda, ave)
+
+    real(rp) :: lambda(:), current, sum, ave
+    integer :: i, j, k
+    logical :: found
+
+    sum = 0
+    j = 0
+    found = .false.
+    do i = (2*NUM_BPMS-1), 6, -1
+       if (lambda(i) > lambda(i+1)*10 .and. .not. found) then
+          k = i
+          current = lambda(i)
+          found = .true.
+          j = 1
+          sum = lambda(i)
+       endif
+
+       if (found .and. lambda(i) < 10*current) then
+          j = j+1
+          sum = sum + lambda(i)
+       end if
+    end do
+
+    if (.not. found) then
+       j = 1
+       sum = lambda(12) !Arbitrary, but will be near average...
+    endif
+    ave = sum / j
+    Print *, j
+    Print *, sum
+    Print *, ave
+
+  end subroutine findNoise
+
   subroutine splitsum(pi_mat, sum_a, sum_b)
 
     !
@@ -596,13 +600,12 @@ contains
     !Finds the tune of the machine and phi(t)
     !
     type(data_set) data(*)
-    integer :: n, i, j, x(2), y(2), k, f, bin(2,3), n_set
+    integer :: n, i, j, x(2), y(2), k, f, bin(2,3), n_set, turns
     real(rp) :: detM, M(3,3), C(3), M_inv(3,3), smallDet, MC(3), temp, &
          smallM(2,2), x_max, temp_tune(2), temp_phi_t(2)
     REAL :: tu, switch 
 
-
-
+    call powerof2(turns)
     do n_set = 1, 2
        bin(1,2) = data(n_set)%fr_peak(data_struc%col_a_p)
        bin(2,2) = data(n_set)%fr_peak(data_struc%col_b_p)
@@ -666,7 +669,7 @@ contains
           enddo
 
           x_max = -MC(2) / (2*MC(1))
-          temp_tune(n) = ((x_max / NUM_TURNS) * FREQ)
+          temp_tune(n) = ((x_max / turns) * FREQ)
           if (temp_tune(n) < FREQ) then
              temp_tune(n) = FREQ - temp_tune(n)
           endif
@@ -733,12 +736,11 @@ contains
 
   subroutine regen(data)
     type(data_set) data
-    real(rp), allocatable :: temp(:,:), tlambda(:,:), tpi(:,:)
+    real(rp), allocatable :: temp(:,:), tlambda(:,:)
     integer :: i, j
 
     allocate(temp(NUM_TURNS, 2*NUM_BPMS))
     allocate(tlambda(NUM_TURNS, 2*NUM_BPMS))
-    !   allocate(tpi(2*NUM_BPMS, 2*NUM_BPMS))
 
     do i=1, NUM_TURNS
        do j=1, 2*NUM_BPMS
@@ -761,7 +763,9 @@ contains
   end subroutine regen
 
   subroutine wls()
-
+    !
+    !Matrix svd and regeneration experiment by Willard Louis Sigma
+    !
     INTEGER i,j
     INTEGER, PARAMETER :: M=2,N=3
 
@@ -832,7 +836,9 @@ contains
   end subroutine wls
 
   subroutine out(temp, name)
-    !Not done yet.
+    !
+    !Output function for a position history matrix.
+    !
     implicit none
     real(rp) :: temp(:,:)
     integer :: i,j, openstatus

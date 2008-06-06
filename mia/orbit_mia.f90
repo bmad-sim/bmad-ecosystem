@@ -53,8 +53,8 @@ contains
     integer :: east, west, bpm, n_bpm_e
 
     call tune(data) 
-    Print *, "set num a ", data_struc%set_num_a
-    Print *, "set num b ", data_struc%set_num_b
+!    Print *, "set num a ", data_struc%set_num_a
+!    Print *, "set num b ", data_struc%set_num_b
 
     do n_bpm = 1, NUM_BPMS
 
@@ -73,25 +73,19 @@ contains
 
     !
     !Calculates phase adv around ring in clockwise direction(pg15 Delta Phi)
+    !Phase is defined as 0 at BPM 0W.
     !
-
-    !*****************************************************************
-    !Phase begins is 0 at BPM 0W.
-    !*****************************************************************
-
-    do bpm = 1, data(1)%bpmproc !Find BPMs 0E and 0W
+    !Find BPMs 0E and 0W
+    do bpm = 1, NUM_BPMS
        if (data_struc%proc(bpm)%number == 0) then
           if (data_struc%proc(bpm)%is_west) then
              west = bpm
-            ! print *, "Found BPM 0W at ", bpm
           else
              east = bpm
-            ! print *, "Found BPM 0E at ", bpm
           endif
        endif
     enddo
 
-    !Initially set east bpm's phase advance to 0
     data_struc%loc(west)%a%d_phase_adv = 0.
     data_struc%loc(west)%b%d_phase_adv = 0.
     data_struc%loc(west)%a%gam2_beta_ratio = 1.0
@@ -110,7 +104,7 @@ contains
     !BPMs must be in clockwise order (first BPM is west, last BPM is east)
     !Gives an error if they are not.
     if (data_struc%proc(1)%is_west) then
-       do n_bpm = 2, data(1)%bpmproc
+       do n_bpm = 2, NUM_BPMS
           !Calculate phase advance clockwise around the ring (skipping 0W):
           if (data_struc%proc(n_bpm)%is_west) then 
 
@@ -121,9 +115,8 @@ contains
                   data_struc%loc(n_bpm-1)%b, 2)
           else
              !Calculate phase counterclockwise for east BPMs (skipping 0E):
-             if (.not. data_struc%proc(data(1)%bpmproc)%is_west) then
-               ! Print *, "INVERT"
-                do n_bpm_e = data(1)%bpmproc-1, n_bpm, -1
+             if (.not. data_struc%proc(NUM_BPMS)%is_west) then
+                do n_bpm_e = NUM_BPMS-1, n_bpm, -1
                    call phase_adv(data_struc%loc(n_bpm_e)%a, &
                         data_struc%loc(n_bpm_e+1)%a, 1)
                    call phase_adv(data_struc%loc(n_bpm_e)%b, &
@@ -132,7 +125,7 @@ contains
 
                 Exit
              else
-                print *, "ERROR: Found BPMs that are not east, but last BPM is west."
+          print *, "ERROR: Found BPMs that are not east, but last BPM is west."
              endif
           end if
        end do
@@ -166,9 +159,6 @@ contains
           data_struc%loc(NUM_BPMS-(i-numWest))%b%phi = sum_b
        endif
     end do
-
-!    do i = 1, data(1)%bpmproc
-!    end do
 
     do n_bpm = 1, NUM_BPMS
 
@@ -210,24 +200,17 @@ contains
   end subroutine convert_data_from_pi_matrix
 
 
-  !**********************************************************************
-  !The next four subroutines are for use in convert_data_from_pi_matrix
-  !**********************************************************************
-
   subroutine pi_calc(data_snum, twiss, col_p, col_n, count, n_bpm)
-
     !
     !Calculates numer, denom, and magnitude^2
     !
-
     type(data_set) data_snum      !Data from file
     INTEGER :: col_p, col_n, &    !Positive or negative col
          count, n_bpm             !Counter, bpm number
     type(twiss_parameters) twiss  !Location of values in data structure
 
     !Numer is lambda*pi of positive col, denom same of negative col.
-    !Numer is x, denom is y
-    !Count is 1 or 2.
+    !Count is 1 for A mode, 2 for B mode
     twiss%numer(count)= &
          data_snum%lambda(col_p) &
          * data_snum%pi_mat(2*n_bpm+(count-2),col_p)
@@ -236,19 +219,17 @@ contains
          data_snum%lambda(col_n) &
          * data_snum%pi_mat(2*n_bpm+(count-2),col_n)
 
-    !Ratio is a graph option, but is never used elsewhere. What is its purpose?
+    !Ratio is only used as a graphing option. It may be useless.
     twiss%ratio(count) = twiss%numer(count)/ twiss%denom(count)
-
     twiss%magnitude2(count) = twiss%numer(count)**2 + twiss%denom(count)**2
   
   end subroutine pi_calc
 
-  subroutine inv_gamma_cbar_sqrt_betas(twiss, ix, iy, mag)
 
+  subroutine inv_gamma_cbar_sqrt_betas(twiss, ix, iy, mag)
     !
     !Finds (C bar/gamma of i,j * sqrt(beta-B/beta-A))*sin(d_delta) (pg 16)
     !
-
     type(twiss_parameters) twiss !Location of inv_gam... in data struct
     INTEGER :: ix, iy, &         !Counter for index of Cbar
          mag                     !Either 1 or 2; counter for magnitude^2
@@ -275,20 +256,18 @@ contains
   end subroutine inv_gamma_cbar_sqrt_betas
 
   subroutine d_delta(twiss, count)
-
     !
     !Finds d_delta+
     !
-
     type(twiss_parameters) twiss !Location of d_delta in dat struct
     INTEGER ::count              !Counter (either 1 or 2)
-    !Count should be 2 for A mode and 1         for B mode
+    !Count is 2 for A mode and 1 for B mode
 
     !?@@
+    !Mod function maps d_delta from -pi to +pi
     twiss%d_delta = mod(atan2(twiss%numer(count), twiss%denom(count)) &
          - atan2(twiss%numer(3-count), twiss%denom(3-count))&
          +7.0*pi+pi/2, 2.0*pi)-pi
-    !Mod function maps d_delta from -pi to +pi
 
   end subroutine d_delta
 
@@ -300,17 +279,14 @@ contains
          twiss_old                  !Location of previous number, denom
     INTEGER :: count                !Counter (1 for A, 2 for B mode)
 
+    !Mod function maps d_phase_advance from -pi to +pi
     twiss%d_phase_adv =  &
          mod( atan2(twiss%numer(count), twiss%denom(count) ) - &
          atan2(twiss_old%numer(count), &
          twiss_old%denom(count)) +7.0 * pi , 2.0 * pi) - pi
-    !Mod function maps d_phase_advance from -pi to +pi
-
-    !@@ Inverted gam2_beta_ratio. It can be done either here
-    !or in ring_beta.
 
     twiss%gam2_beta_ratio =  &
-         twiss%magnitude2(count) / twiss_old%magnitude2(count)
+         twiss_old%magnitude2(count) / twiss%magnitude2(count)
 
   end subroutine phase_adv
 
@@ -323,21 +299,22 @@ contains
     type(twiss_parameters) ring, ring2     !Ring(i)
     !First BPM:
     ring%beta = bpm_pairs(i)%length / &
-         sin(ring2%d_phase_adv) * sqrt(1/ring2%gam2_beta_ratio)
+         sin(ring2%d_phase_adv) * sqrt(ring2%gam2_beta_ratio)
     !Second BPM:
     ring2%beta = bpm_pairs(i)%length / &
-         sin(ring2%d_phase_adv) * sqrt(ring2%gam2_beta_ratio)
+         sin(ring2%d_phase_adv) * sqrt(1/ring2%gam2_beta_ratio)
 
   end subroutine ring_beta
 
-  subroutine alpha(twiss_ring, bpm_l, twiss, i)
-    type(twiss_parameters) twiss_ring, &  !Location of ring in data struct
-         twiss                            !Location for phase advance
-    real(rp) :: bpm_l                     !Distance between BPMs
-    integer :: i                          !+-1
-    !i changes the sign of the second term
+  subroutine alpha(twiss, d_phase_adv, i)
+    !
+    !Calculates alpha
+    !
+    type(twiss_parameters) twiss          !A or B mode in ring structure
+    real(rp) :: d_phase_adv               !d_phase_adv between BPM pair
+    integer :: i                          !BPM pair number
 
-    twiss_ring%alpha = twiss_ring%beta / bpm_l +i*1.0/tan(twiss%d_phase_adv)
+    twiss%alpha = twiss%beta / bpm_pairs(i)%length - 1.0/tan(d_phase_adv)
   end subroutine alpha
 
   subroutine inv_gamma_cbar(ring, index)
@@ -388,7 +365,6 @@ contains
           temp(i) = ring%a%inv_gamma_cbar_sqrt_betas(1,2) * &
                sqrt(beta_ratio)
        endif
-
     enddo
 
     ring%inv_gamma_cbar(1,2) = -(temp(1)+temp(2))/2
@@ -415,7 +391,6 @@ contains
     integer :: i,j, k, ik, jm, &  !Counters
          bpm1a, bpm2a, &          !Pair of BPMs from set_num_a
          bpm1b, bpm2b, &          !Pair of BPMs from set_num_b
-!         set_num_a, set_num_b, &  !Takes set_num_* from data_struc
          n_ring, &                !Number of BPM pairs in use
          r, q,u                   !Counters
     INTEGER :: countx, county, &  !Counters
@@ -428,7 +403,6 @@ contains
     type(processor_analysis) temp(2)
     type (twiss_parameters), pointer :: ring_a, ring_b,dat_a, dat_b
     type (processor_analysis), pointer :: loc_1, loc_2
-
 
     type self_consistent  
        type (processor_analysis), allocatable :: loc(:)
@@ -460,9 +434,6 @@ contains
     loc_1 => null()
     loc_2 => null()
 
-!    set_num_a = data_struc%set_num_a
-!    set_num_b = data_struc%set_num_b
-
     if (.not. bpm_pairs(1)%has_one) return   !Does not continue if there are
     !not BPMs with known spacing
 
@@ -470,20 +441,11 @@ contains
     allocate (ring(n_ring))
 
     do i = 1, n_ring
-
        allocate (ring(i)%loc(NUM_BPMS))
-
-       !?@@           
-       !ring(i)%loc(i) = data_struc%loc(i)  !loc # is not = i.
-       !Moved below          
-       !
-       ! Determine info about the known pair of BPMs first.
-       !
-
-       bpm1a = bpm_pairs(i)%bpm_pntr(1)                 !A mode BPM pair  
+       bpm1a = bpm_pairs(i)%bpm_pntr(1)           !A mode BPM pair  
        bpm2a = bpm_pairs(i)%bpm_pntr(2)
 
-       bpm1b = bpm_pairs(i)%bpm_pntr(1) !B mode BPM pair    
+       bpm1b = bpm_pairs(i)%bpm_pntr(1)           !B mode BPM pair    
        bpm2b = bpm_pairs(i)%bpm_pntr(2)
        !BPM1A = BPM1B, BPM2A = BPM2B (why have A and B?)
 
@@ -498,38 +460,28 @@ contains
        !
        !Compute Beta (page 15) +
        !
-       !Betas are accurate
        call ring_beta(ring_p(1)%loc%a, ring_p(2)%loc%a, i)
        call ring_beta(ring_p(1)%loc%b, ring_p(2)%loc%b, i)
-       print *, "Beta B: ", ring_p(1)%loc%b%beta
-       print *, "Beta B: ", ring_p(2)%loc%b%beta
-       do q = 1,2
 
+       do q = 1,2
 
           !
           !Compute Alphas
           !
-          !**Alphas are wrong
-          call alpha(ring_p(q)%loc%a, bpm_pairs(i)%length, &
-               ring(i)%loc(2)%a, -1)
-          call alpha(ring_p(q)%loc%b, bpm_pairs(i)%length, &
-               ring_p(2)%loc%b, -1)
-
+          call alpha(ring_p(q)%loc%a,ring_p(2)%loc%a%d_phase_adv, i)
+          call alpha(ring_p(q)%loc%b,ring_p(2)%loc%b%d_phase_adv, i)
+          print *, "Alpha A: ", ring_p(q)%loc%a%alpha
+          print *, "Alpha B: ", ring_p(q)%loc%b%alpha
           !
           !Compute Inv Gamma Cbars (pg 17)+
           !
-
           call inv_gamma_cbar(ring_p(q)%loc, 1)
-    !      print *,"Cbar(1,1):",  ring_p(q)%loc%inv_gamma_cbar(1,1)
           call inv_gamma_cbar12(ring_p(q)%loc)
-    !      print *,"Cbar(1,2):",  ring_p(q)%loc%inv_gamma_cbar(1,2)     
           call inv_gamma_cbar(ring_p(q)%loc, 2)
-    !      print *,"Cbar(2,2):",  ring_p(q)%loc%inv_gamma_cbar(2,2)     
 
           !
           !Compute Inv Gamma Cbar (2,1) (pg 14)
           !
-
           ca = cos(ring(i)%loc(bpm2a)%a%d_phase_adv)
           cb = cos(ring(i)%loc(bpm2b)%b%d_phase_adv)
           sa = sin(ring(i)%loc(bpm2a)%a%d_phase_adv)
@@ -546,19 +498,17 @@ contains
                sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,2) - &
                cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,2)) / sb
 
-
           !
           !Checking Inv Gamma Cbar Consistency
           !
-
           !*Check this
           ring(i)%loc(bpm1a)%inv_gamma_cbar_check(1) =  &
                (ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,2) + &
                sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,2) - &
                sb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,1) - &
                cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,2))
-          !          Print *, "Inv gamma cbar check: ", &
-          !               ring(i)%loc(bpm1a)%inv_gamma_cbar_check(1)
+!          Print *, "Inv gamma cbar check: ", &
+!               ring(i)%loc(bpm1a)%inv_gamma_cbar_check(1)
           ring(i)%loc(bpm1a)%inv_gamma_cbar_check(2) =  &
                (-sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,1) + &
                ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,1) - &
@@ -570,7 +520,6 @@ contains
           !
           !Gamma (pg 16) +
           !
-
           ring_p(q)%loc%gamma = sqrt(1.0 / (1.0 + &
                (ring_p(q)%loc%inv_gamma_cbar(1,1) * &
                ring_p(q)%loc%inv_gamma_cbar(2,2) - &
@@ -580,50 +529,45 @@ contains
           !
           !Compute Cbar
           !
-
-
           !?@@
           ring_p(q)%loc%cbar =  &
                ring_p(q)%loc%inv_gamma_cbar * ring_p(q)%loc%gamma
 
           !
           !Compute J_amp (aka the Action) (pg 16) +
-          !In mm
+          !The factor of 5000 is a mystery. However, empirical evidence
+          !suggests that it works.
           !
-
-          j_amp_a(q) = 1000. * 1000. * &
+          j_amp_a(q) = 5000. * &
                ring_p(q)%loc%a%magnitude2(1) / &
                ring_p(q)%loc%gamma**2 / ring_p(q)%loc%a%beta
 
-          j_amp_b(q) = 1000. * 1000.* &
+          j_amp_b(q) = 5000. * &
                ring_p(q)%loc%b%magnitude2(2) / &
                ring_p(q)%loc%gamma**2 / ring_p(q)%loc%b%beta
 
        enddo    !End calculations for BPMs 1, 2 (using q)
+
        !
        !Compute J_amp_ave +
        !
-
        ring(i)%j_amp_ave(1) = (j_amp_a(1) + j_amp_a(2)) / 2.0
-
        ring(i)%j_amp_ave(2) = (j_amp_b(1) + j_amp_b(2)) / 2.0
 
        !
        !Compute parameters for rest of ring
        !
-
-       do j = 1, data(1)%bpmproc
+       do j = 1, NUM_BPMS
        !***This is always true. Does it have a purpose or should it be .and.?
           if (j /= bpm1a .or. j /= bpm2a) then 
 
              !
              !Compute Gamma**2 Beta (pg 17) +
              !
-
              ring(i)%loc(j)%a%gam2_beta = ring(i)%loc(j)%a%magnitude2(1)/ &
-                  ring(i)%j_amp_ave(1)*1000.*1000.
+                  ring(i)%j_amp_ave(1)*5000.
              ring(i)%loc(j)%b%gam2_beta = ring(i)%loc(j)%b%magnitude2(2)/ &
-                  ring(i)%j_amp_ave(2)*1000.*1000.
+                  ring(i)%j_amp_ave(2)*5000.
 
              !
              !Compute Inv Gamma Cbar (pg 17) +
@@ -652,7 +596,6 @@ contains
              !
              !Compute sqrt(beta) cbar prelim
              !
-
              sqrt_beta_cbar_prelim(1) = &
                   - sqrt(data_struc%loc(j)%a%magnitude2(2) / &
                   ring(i)%j_amp_ave(1)) * cos(0.-data_struc%loc(j)%a%d_delta)
@@ -677,23 +620,18 @@ contains
           end if
        end do
     end do
+
     !
     !Copy averages from rings to data struct
     !
     !**Some of these don't actually do anything...
-
     do ik = 1, n_ring
-       do jm = 1, data(1)%bpmproc
+       do jm = 1, NUM_BPMS
           ring_twiss(1)%twiss => ring(ik)%loc(jm)%a
           ring_twiss(2)%twiss => ring(ik)%loc(jm)%b
           dat_twiss(1)%twiss => data_struc%loc(jm)%a
           dat_twiss(2)%twiss => data_struc%loc(jm)%b
     
-!          dat_twiss(1) => data_struc%loc(jm)%a
-!          dat_twiss(2) => data_struc%loc(jm)%b
-!          ring_twiss(1) => ring(ik)%loc(jm)%a
-!          ring_twiss(2) => ring(ik)%loc(jm)%b
-
           do r = 1, 2
              !This loop calculates some values that depend upon mode.
              !r=1 does A mode, r=2 does B mode
@@ -703,11 +641,13 @@ contains
              !
              !This takes half of ring_twiss(r)%gam2_beta for each r 
              !(averages gam2_beta from the two files)
-             !Final value is accurate to about 0.01
              dat_twiss(r)%twiss%gam2_beta = &
                   dat_twiss(r)%twiss%gam2_beta + &
                   ring_twiss(r)%twiss%gam2_beta / n_ring
 
+             dat_twiss(r)%twiss%j_amp(r) = 1000. * &
+                  dat_twiss(r)%twiss%magnitude2(r) / &
+                  dat_twiss(r)%twiss%gam2_beta
           end do
 
           !
@@ -723,7 +663,6 @@ contains
           !
           !Compute Inv Gamma Cbar
           !
-
           call avg(data_struc%loc(jm)%inv_gamma_cbar(1,1), &
                ring(ik)%loc(jm)%inv_gamma_cbar(1,1), n_ring)
           call avg(data_struc%loc(jm)%inv_gamma_cbar(1,2), &
@@ -739,18 +678,6 @@ contains
           !Compute Beta
           !
           !***Does not compute beta.
-!          data_struc%loc(jm)%a%beta  = &
-!               min( data_struc%loc(jm)%a%beta, &
-!               ring(ik)%loc(jm)%a%beta) + &
-!               max( data_struc%loc(jm)%a%beta, &
-!               ring(ik)%loc(jm)%a%beta) 
-
-!          data_struc%loc(jm)%b%beta  = &
-!               min( data_struc%loc(jm)%b%beta, &
-!               ring(ik)%loc(jm)%b%beta) + &
-!               max( data_struc%loc(jm)%b%beta, &
-!               ring(ik)%loc(jm)%b%beta) 
-
           data_struc%loc(jm)%a%beta = ring(ik)%loc(jm)%a%beta + &
                data_struc%loc(jm)%a%beta
           data_struc%loc(jm)%b%beta = ring(ik)%loc(jm)%b%beta + &
@@ -759,19 +686,6 @@ contains
           !
           !Compute Alphas
           !
-          !***What is the purpose of min and max?
-!          data_struc%loc(jm)%a%alpha  = &
-!               min( data_struc%loc(jm)%a%alpha, &
-!               ring(ik)%loc(jm)%a%alpha) + &
-!               max( data_struc%loc(jm)%a%alpha, &
-!               ring(ik)%loc(jm)%a%alpha) 
-
-!          data_struc%loc(jm)%b%alpha  = &
-!               min( data_struc%loc(jm)%b%alpha, &
-!               ring(ik)%loc(jm)%b%alpha) + &
-!               max( data_struc%loc(jm)%b%alpha, &
-!               ring(ik)%loc(jm)%b%alpha) 
-
           data_struc%loc(jm)%a%alpha = ring(ik)%loc(jm)%a%alpha + &
                data_struc%loc(jm)%a%alpha
           data_struc%loc(jm)%b%alpha = ring(ik)%loc(jm)%b%alpha + &
@@ -780,7 +694,6 @@ contains
           !
           !Compute Inv Gamma Cbar (2,1)
           !
-
           data_struc%loc(jm)%inv_gamma_cbar(2,1)  = &
                min( data_struc%loc(jm)%inv_gamma_cbar(2,1), &
                ring(ik)%loc(jm)%inv_gamma_cbar(2,1)) + &
@@ -789,39 +702,24 @@ contains
 
           !
           !Checking Inv Gamma Cbar Consistency
-          !
-
-
           !*Check this
-          DO count = 1, 2                               
-             data_struc%loc(jm)%inv_gamma_cbar_check(count)  = &
-                  min( data_struc%loc(jm)%inv_gamma_cbar_check(count), &
-                  ring(ik)%loc(jm)%inv_gamma_cbar_check(count)) + &
-                  max( data_struc%loc(jm)%inv_gamma_cbar_check(count), &
-                  ring(ik)%loc(jm)%inv_gamma_cbar_check(count)) 
-          ENDDO
+          !
+!          DO count = 1, 2                               
+!             data_struc%loc(jm)%inv_gamma_cbar_check(count)  = &
+!                  min( data_struc%loc(jm)%inv_gamma_cbar_check(count), &
+!                  ring(ik)%loc(jm)%inv_gamma_cbar_check(count)) + &
+!                  max( data_struc%loc(jm)%inv_gamma_cbar_check(count), &
+!                  ring(ik)%loc(jm)%inv_gamma_cbar_check(count)) 
+!          ENDDO
 
           !
           !Gamma
           !
-
-!          data_struc%loc(jm)%gamma  = &
-!               min( data_struc%loc(jm)%gamma, &
-!               ring(ik)%loc(jm)%gamma) + &
-!               max( data_struc%loc(jm)%gamma, &
-!               ring(ik)%loc(jm)%gamma) 
           data_struc%loc(jm)%gamma  = ring(ik)%loc(jm)%gamma + &
                data_struc%loc(jm)%gamma
           !
           !Cbar
           !
-
-!          data_struc%loc(jm)%cbar  = &
-!               min( data_struc%loc(jm)%cbar, &
-!               ring(ik)%loc(jm)%cbar) + &
-!               max( data_struc%loc(jm)%cbar, &
-!               ring(ik)%loc(jm)%cbar) 
-
           data_struc%loc(jm)%cbar  = ring(ik)%loc(jm)%cbar + &
                data_struc%loc(jm)%cbar
 
@@ -835,11 +733,9 @@ contains
   subroutine output (data)
 
     implicit none
-    type(data_set)data
-!    type (data_file)file
+    type(data_set)data(*)
     integer :: i,j, openstatus
     integer :: n_pairs                  !Number of BPM pairs
-   ! type (processor_analysis) :: proc_data
     integer :: bpm
 
 
@@ -853,6 +749,7 @@ contains
 9   format(1x, f10.7, a3, f10.7, a7, 5x, f10.7, a3, f10.7)
 11  format(5x, f11.7, a2,2x, f11.7)
 12  format(3(4x, a8, 7x))
+13  format(5x, e14.7, a2,2x, e14.7)
 17  format(a10, 3x, f11.7, 1x,",", 1x, f11.7)
 18  format(4x, a20, 4x, 20x, a5)
 34  format(1x, 3(e14.7, a2, 3x))
@@ -867,40 +764,40 @@ contains
     write (27, *), " Values of Lambda"
 
     do i=1, 2*NUM_BPMS
-       write (27, *), data%lambda(i)
+       write (27, *), data(1)%lambda(i), " , ", data(2)%lambda(i)
     enddo
 
     do i=1, n_pairs
        do j=1, 2
-       bpm = bpm_pairs(i)%bpm_pntr(j)
-       write (27, *) data_struc%proc(bpm)%label
-       write (27, 17) "Beta: ", data_struc%loc(bpm)%a%beta, &
-            data_struc%loc(bpm)%b%beta
-       write (27, 17) "Alpha: ", data_struc%loc(bpm)%a%alpha, &
-            data_struc%loc(bpm)%b%alpha
-       write (27, 56) "Gamma: ", data_struc%loc(bpm)%gamma
-       write (27, 56) "Cbar (1,1): ", data_struc%loc(bpm)%cbar(1,1)
-       write (27,56) "(1,2):", data_struc%loc(bpm)%cbar(1,2)
-       write (27,56) "(2,1):", data_struc%loc(bpm)%cbar(2,1)
-       write (27,56) "(2,2):", data_struc%loc(bpm)%cbar(2,2)
+          bpm = bpm_pairs(i)%bpm_pntr(j)
+          write (27, *) data_struc%proc(bpm)%label
+          write (27, 17) "Beta: ", data_struc%loc(bpm)%a%beta, &
+               data_struc%loc(bpm)%b%beta
+          write (27, 17) "Alpha: ", data_struc%loc(bpm)%a%alpha, &
+               data_struc%loc(bpm)%b%alpha
+          write (27, 56) "Gamma: ", data_struc%loc(bpm)%gamma
+          write (27, 56) "Cbar (1,1): ", data_struc%loc(bpm)%cbar(1,1)
+          write (27,56) "(1,2):", data_struc%loc(bpm)%cbar(1,2)
+          write (27,56) "(2,1):", data_struc%loc(bpm)%cbar(2,1)
+          write (27,56) "(2,2):", data_struc%loc(bpm)%cbar(2,2)
        enddo
     enddo
 
     write (27, 18) "Delta phase advance", "Phi"
-    do i = 1, data%bpmproc
+    do i = 1, NUM_BPMS
        write (27, 9) data_struc%loc(i)%a%d_phase_adv, &
             ",", data_struc%loc(i)%b%d_phase_adv, "||", &
             data_struc%loc(i)%a%phi, ",", data_struc%loc(i)%b%phi
     enddo
 
     write (27, "(8x, a12)") "d_delta"
-    do i = 1, data%bpmproc
+    do i = 1, NUM_BPMS
        write (27, 11) data_struc%loc(i)%a%d_delta, &
             ",", data_struc%loc(i)%b%d_delta
     enddo
 
     write (27,"(10x, a12)") "Gamma^2 Beta"
-    do i = 1, data%bpmproc
+    do i = 1, NUM_BPMS
        write (27,11) data_struc%loc(i)%a%gam2_beta, ",", &
             data_struc%loc(i)%b%gam2_beta
     enddo
@@ -908,16 +805,16 @@ contains
     write (27,"(20x, a15)") "1/gamma * Cbar"
     write (27,12) "(1,1)", "(1,2)", "(2,2)"
 
-    do i = 1, data%bpmproc
+    do i = 1, NUM_BPMS
        write (27,34) data_struc%loc(i)%inv_gamma_cbar(1,1), ",", &
             data_struc%loc(i)%inv_gamma_cbar(1,2), ",", &
             data_struc%loc(i)%inv_gamma_cbar(2,2)
     enddo
 
-    write (27,"(4x, a22)") "Average amplitude (J)"
+    write (27,"(4x, a22)") "<J>"
     do i=1, 2
        write (27, "(7x, a5, i2)") "File ", i
-       write (27, 11) data_struc%j_amp_ave(1,i),",", &
+       write (27, 13) data_struc%j_amp_ave(1,i),",", &
             data_struc%j_amp_ave(2,i)
     enddo
 

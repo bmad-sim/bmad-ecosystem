@@ -27,6 +27,7 @@ module mia_types
      real(rp) :: inv_gamma_cbar_sqrt_betas(2,2) 
                           !(C bar of i,j * sqrt(beta-B/beta-A))/gamma (pg 16)
      real(rp) :: gam2_beta         !gamma^2*beta
+     real(rp) :: j_amp(2)               !Amplitude (A and B modes)
   end type twiss_parameters
 
   type processor_analysis
@@ -96,9 +97,8 @@ module mia_types
 
   integer:: NUM_BPMS, &                  !Number of BPMs
        NUM_TURNS, &                      !Number of turns
-       power2, &                         !Number of turns as the next power of two
        nset                              !Number of files
-  real(rp), parameter :: FREQ=390.12         !Frequency of the machine (in MHz)
+  real(rp), parameter :: FREQ=390.12     !Frequency of the machine (in MHz)
 
 contains
 
@@ -191,7 +191,5 @@ contains
     enddo
 
   end subroutine sort_l
-
-
 
 end module mia_types

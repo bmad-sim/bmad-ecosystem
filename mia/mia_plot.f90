@@ -193,7 +193,8 @@ contains
              lam_log(count) = log10(data%lambda(count))
              count = count+1
           enddo
-          call sort_l(lam_log, 2*NUM_BPMS)
+          !LAPACK sorts lambdas
+          !          call sort_l(lam_log, 2*NUM_BPMS)
           call min_max_y(lam_log(:), miny, maxy, ycoord(:), arr_length)   
           write(titl,24) iset,  data%shortName
 24        format('Lambda (log10) - Iset =',i2,'  File = ', a)
@@ -326,10 +327,6 @@ contains
          lam_log(:)                    !Log of lambda (for plotting)
     real(rp) :: xmin, xmax
     logical :: badFile, badColumn
-
-!    call qp_set_page_border (0.02_rp, 0.02_rp, 0.035_rp, 0.035_rp, "%PAGE")
-!    call qp_set_margin (0.09_rp, 0.01_rp, 0.01_rp, 0.05_rp, "%PAGE")
-!    call qp_draw_text (" ", 0.5_rp, 1.0_rp, "%PAGE", "CT")
 
     allocate (b(2*NUM_BPMS))
     allocate (phi(2*NUM_BPMS))
@@ -599,7 +596,7 @@ contains
           do count=1, arr_length
              lam_log(count) = log10(data(iset)%lambda(count))
           enddo
-          call sort_l(lam_log, 2*NUM_BPMS)
+!          call sort_l(lam_log, 2*NUM_BPMS)
           call min_max_y(lam_log(:), miny, maxy, ycoord(:), arr_length)   
           write(titl,24) iset,  data(iset)%shortName
 24        format('Lambda (log10) - Iset =',i2,'  File = ', a)
@@ -659,10 +656,10 @@ contains
           !east BPMs first
           numEast = i
           phi(i) = phi_old(NUM_BPMS-i+1)
-          xcoord(i) = data_struc%proc(NUM_BPMS-i+1)%number
+  !        xcoord(i) = data_struc%proc(NUM_BPMS-i+1)%number
        else
           phi(i) = phi_old(i-numEast)
-          xcoord(i) = data_struc%proc(i-numEast)%number
+ !         xcoord(i) = data_struc%proc(i-numEast)%number
        endif
     enddo
 
@@ -670,7 +667,7 @@ contains
     phi_old(:) = phi(:)
     do i=1, numEast
        phi(i) = phi_old(numEast-i+1)
-       xcoord(i) = data_struc%proc(NUM_BPMS-numEast+i)%number
+!       xcoord(i) = data_struc%proc(NUM_BPMS-numEast+i)%number
     enddo
 
     deallocate(phi_old)

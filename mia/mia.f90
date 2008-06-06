@@ -34,7 +34,6 @@ program mia
   first_run = .true.
   do while (more_files)
      allocate (data(nset))
-     !  allocate (file(nset))
 
      do i_set = 1, nset             !Do for first input data 
         call read_bpm_data(data(i_set),i_set,nset)
@@ -54,9 +53,8 @@ program mia
      call match_tau_column(nset,data)
      call convert_data_from_pi_matrix(data)
      call calculate_with_known_spacing(data)
-     !call regen(data(1))
      call plots(data, 2, 2)         !Use plot_it2
-     call output (data(1))
+     call output (data)
 
 
      call logic_get('Y', 'N', 'Repeat calculations with different files?',&

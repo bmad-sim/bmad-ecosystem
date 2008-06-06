@@ -259,7 +259,6 @@ contains
     if (inputstatus > 0) stop "*** INPUT ERROR ***"
     if (inputstatus < 0) stop "*** Not enough data ***"	
     allocate (bpm_old(num))
-!    allocate (bpm_pairs(num))
     call allocate_bpm_pairs(num)
 
     bpm_old(1)%number = num
@@ -274,10 +273,6 @@ contains
        if (inputstatus < 0) stop "*** Not enough data ***"	
        bpm_old(i)%in_use = .true.
     end do
-
-    !Removed file from bpm_pairs; there is no file specified in knownl.inp,
-    !and if BPM numbers are not the same between files the program exits
-    !in match_processors
 
     !This could be made more efficient by finding a BPM number for 
     !the pairs and scanning for that.
@@ -329,7 +324,6 @@ contains
     !    enddo
     bpm_pairs(1)%number = rnum
     deallocate (bpm_old)    
-
 
   end subroutine find_L
 
