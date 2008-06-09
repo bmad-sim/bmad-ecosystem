@@ -3,6 +3,7 @@
 !
 ! Subroutine to Q_tune a lat. Program will set the tunes to
 ! within 0.001 radian (0.06 deg).
+! Note: The tune is computed with reference to the closed orbit.
 !                                    
 ! Modules Needed:
 !   use bmad
@@ -18,7 +19,7 @@
 !   orb(0)%vec(6) -- Coord_struct: Energy dE/E at which the tune is computed.
 !
 ! Output:
-!   lat     -- lat_struct: Q_tuned lat
+!   lat      -- lat_struct: Q_tuned lat
 !   orb(0:)  -- Coord_struct: New closed orbit.
 !   ok       -- Logical: Set True if everything is ok. False otherwise.
 !-

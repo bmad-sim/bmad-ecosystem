@@ -264,7 +264,7 @@ end type
 type cesr_data_params_struct
   character(20) data_date, data_type
   character(40) var_ele_name, var_attrib_name
-  character(100) comment, lattice, file_name
+  character(100) comment, lattice, file_name, lattice_file_name
   character(40) route_name
   integer csr_set
   integer species
@@ -774,6 +774,10 @@ end subroutine
 !                       NOTE: You must be connected to the mpm to use GETLAT.
 !   choice      -- Character(*): [Optional] If present then this will be
 !                       used as input instead of querying the user.
+!                       ''         -> Query the user.
+!                       '0'        -> Use current_lat.
+!                       <number>   -> Use N^th lattice in list.
+!                       <lat_name> -> Use lattice corresponding to this name.
 !
 ! Output:
 !   lattice  -- Character(40): Lattice name choisen. If a file name is given
@@ -813,6 +817,9 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
 
   if (present(choice)) then
     lat_choise = choice
+#ifdef CESR_VMS
+    if (lat_choise == '*') lat_choise = '0'
+#endif
     call downcase_string (lat_choise)
     call string_trim (lat_choise, lat_choise, ix)
     if (ix /= 0) ask_for_lat = .false.
@@ -855,7 +862,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
     call string_trim (lat_choise, lat_choise, ix)
     lat_choise = lat_choise(:ix)
 
-    if (ix == 0 .or. (ix == 1 .and. (lat_choise == '*' .or. lat_choise == '0'))) then
+    if (ix == 0 .or. (ix == 1 .and. lat_choise == '0')) then
       default_flag = .true.
       do i_lat = 1, num_lats
         if (lat_list(i_lat) == cur_lat) exit
@@ -1267,17 +1274,19 @@ type (cesr_all_data_struct) data
 
 !
 
-data%param%var_attrib_name = ''
-data%param%var_ele_name    = ''
-data%param%data_type       = ''
-data%param%dvar            = 0
-data%param%csr_set         = 0
-data%param%lattice         = ''
-data%param%species         = 0
-data%param%horiz_beta_freq = 0
-data%param%vert_beta_freq  = 0
-data%param%data_date       = ''
-data%param%comment         = ''
+data%param%var_attrib_name   = ''
+data%param%var_ele_name      = ''
+data%param%data_type         = ''
+data%param%dvar              = 0
+data%param%csr_set           = 0
+data%param%lattice           = ''
+data%param%species           = 0
+data%param%horiz_beta_freq   = 0
+data%param%vert_beta_freq    = 0
+data%param%data_date         = ''
+data%param%comment           = ''
+data%param%lattice           = ''
+data%param%lattice_file_name = ''
 
 data%orbit_x%value  = 0;  data%orbit_x%good   = .false.
 data%orbit_y%value  = 0;  data%orbit_y%good   = .false.

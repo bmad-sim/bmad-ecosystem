@@ -795,7 +795,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine kick_csr_lsc (kick1, k_factor, bin) result (kick_this)
+! Subroutine kick_csr_lsc (kick1, k_factor, bin) 
 !
 ! Routine to calculate the CSR kick integral.
 !
