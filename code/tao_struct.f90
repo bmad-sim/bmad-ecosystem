@@ -317,6 +317,8 @@ end type
 !                  = %exists & %good_user & %good_opt
 ! %useit_plot -- Variable value to be plotted:
 !                  = %exists & %good_plot
+!
+! With common_lattice = True => var%this(:)%model_value will point to the working universe.
 
 type tao_this_var_struct
   integer ix_uni            ! universe index.

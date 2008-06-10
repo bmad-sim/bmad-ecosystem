@@ -163,7 +163,8 @@ call tao_lattice_calc (calc_ok, init_design = .true.)
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%design = s%u(i)%model; s%u(i)%design%orb = s%u(i)%model%orb
-  s%u(i)%base  = s%u(i)%design; s%u(i)%base%orb  = s%u(i)%design%orb
+  if (.not. tao_com%common_lattice) &
+          s%u(i)%base  = s%u(i)%design; s%u(i)%base%orb  = s%u(i)%design%orb
   s%u(i)%data%design_value = s%u(i)%data%model_value
   s%u(i)%data%base_value = s%u(i)%data%model_value
 enddo
