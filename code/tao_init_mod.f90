@@ -1032,6 +1032,7 @@ do
   j1 = j2 + 1
   if (j1 > n0) exit
   d1 => u%data(j1)%d1
+  if (.not. associated(d1)) exit
   do 
     if (j2 == n0) exit
     if (.not. associated(u%data(j2+1)%d1, d1)) exit
