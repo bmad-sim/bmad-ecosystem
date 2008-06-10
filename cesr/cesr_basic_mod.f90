@@ -262,15 +262,15 @@ end type
 ! New
 
 type cesr_data_params_struct
-  character(20) data_date, data_type
-  character(40) var_ele_name, var_attrib_name
-  character(100) comment, lattice, file_name, lattice_file_name
-  character(40) route_name
-  integer csr_set
-  integer species
-  integer ix_data_set        ! Index of the data set. EG: butns.nnnnnn
-  real(rp) horiz_beta_freq, vert_beta_freq
-  real(rp) dvar
+  character(20) :: data_date = '', data_type = ''
+  character(40) :: var_ele_name = '', var_attrib_name = ''
+  character(100) :: comment = '', lattice = '', file_name = '', lattice_file_name = ''
+  character(40) :: route_name = ''
+  integer :: csr_set = 0
+  integer :: species = 0
+  integer :: ix_data_set = 0       ! Index of the data set. EG: butns.nnnnnn
+  real(rp) :: horiz_beta_freq  = 0, vert_beta_freq  = 0
+  real(rp) :: dvar = 0
 end type
 
 type cesr_data1_struct
