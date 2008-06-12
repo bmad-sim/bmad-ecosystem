@@ -36,7 +36,7 @@ subroutine tao_cl (prompt_string)
 
   call tao_init (err)
   if (err) then
-    call out_io (s_fatal$, r_name, 'INIT FILE NOT FOUND. STOPPING.')
+    call out_io (s_fatal$, r_name, 'TAO INIT FILE NOT FOUND. STOPPING.')
     stop
   endif
 
