@@ -223,7 +223,7 @@ end type
 
 type cesr_det_plane_struct 
   type (cesr_but_struct) but(4)
-  type (cesr_det_xy_struct) x, y
+  type (cesr_det_xy_struct) x, y, z
   real(rp) phase_meas
   real(rp) rms_phase_meas
   real(rp) phase_design
@@ -271,6 +271,8 @@ type cesr_data_params_struct
   integer :: ix_data_set = 0       ! Index of the data set. EG: butns.nnnnnn
   real(rp) :: horiz_beta_freq  = 0, vert_beta_freq  = 0
   real(rp) :: dvar = 0
+  real(rp) :: chisq = 0
+  real(rp) :: ac_z_amp_fit, ac_z_phase_fit
 end type
 
 type cesr_data1_struct
@@ -282,6 +284,7 @@ type cesr_all_data_struct
   type (cesr_data1_struct) orbit_x(0:120), phase_x(0:120), eta_x(0:120)
   type (cesr_data1_struct) orbit_y(0:120), phase_y(0:120), eta_y(0:120)
   type (cesr_data1_struct) cbar11_y(0:120), cbar12_x(0:120), cbar12_y(0:120), cbar22_x(0:120) 
+  type (cesr_data1_struct) ac_eta_x(0:120), ac_etap_x(0:120), ac_eta_y(0:120), ac_etap_y(0:120)
   type (detector_struct) raw_orbit(0:120)
   type (db_struct) db
   type (cesr_data_params_struct) param

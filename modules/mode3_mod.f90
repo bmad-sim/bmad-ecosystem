@@ -264,11 +264,6 @@ call mode1_calc (g(1:2, 1:2), tune3(1), lat%ele(0)%mode3%a)
 call mode1_calc (g(3:4, 3:4), tune3(2), lat%ele(0)%mode3%b)
 call mode1_calc (g(5:6, 5:6), tune3(3), lat%ele(0)%mode3%c)
 
-n = lat%n_ele_track
-lat%ele(n)%mode3%a%phi = tune3(1)
-lat%ele(n)%mode3%b%phi = tune3(2)
-lat%ele(n)%mode3%c%phi = tune3(3)
-
 !-------------------------------------------------------------------------------------
 contains
 
