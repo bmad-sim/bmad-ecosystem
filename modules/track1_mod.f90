@@ -195,7 +195,7 @@ subroutine track_a_bend (start, ele, param, end)
 
   real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t
   real(rp) rel_p, rel_p2, Dy, px_t, factor, rho, g, g_err
-  real(rp) length, g_tot, dP, eps, pxy2, f, k_2
+  real(rp) length, g_tot, del_p, eps, pxy2, f, k_2
   real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 
 ! simple case
@@ -221,8 +221,8 @@ subroutine track_a_bend (start, ele, param, end)
   b1 = g_tot
   angle = ele%value(g$) * length
   rho = 1 / g
-  dP = start%vec(6)
-  rel_p  = 1 + dP
+  del_p = start%vec(6)
+  rel_p  = 1 + del_p
   rel_p2 = rel_p**2
   k_1 = ele%value(k1$)
 
@@ -266,7 +266,7 @@ subroutine track_a_bend (start, ele, param, end)
 
     if (pxy2 < 1e-5) then  
       f = pxy2 / (2 * rel_p)
-      f = dP - f - f*f/2 - g_err*rho - b1*x
+      f = del_p - f - f*f/2 - g_err*rho - b1*x
     else
       f = sqrt(rel_p2 - pxy2) - 1 - g_err*rho - b1*x
     endif
@@ -286,7 +286,7 @@ subroutine track_a_bend (start, ele, param, end)
     eps = px_t**2 + py**2
     if (eps < 1e-5 * rel_p2 ) then  ! use small angle approximation
       eps = eps / (2 * rel_p)
-      end%vec(1) = (dP - g_err / g - rho*dpx_t + eps * (eps / (2 * rel_p) - 1)) / b1
+      end%vec(1) = (del_p - g_err / g - rho*dpx_t + eps * (eps / (2 * rel_p) - 1)) / b1
     else
       end%vec(1) = (sqrt(rel_p2 - eps) - rho*dpx_t - rho*b1) / b1
     endif
@@ -294,7 +294,7 @@ subroutine track_a_bend (start, ele, param, end)
     end%vec(2) = px_t
     end%vec(3) = y + py * (angle/b1 + factor)
     end%vec(4) = py
-    end%vec(5) = end%vec(5) + length * (g_err - g*dP) / g_tot - rel_p * factor
+    end%vec(5) = end%vec(5) + length * (g_err - g*del_p) / g_tot - rel_p * factor
     end%vec(6) = pz
 
   endif
