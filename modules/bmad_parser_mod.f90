@@ -950,12 +950,21 @@ subroutine file_stack (how, file_name_in, finished)
   integer, parameter :: f_maxx = 20
   type (stack_file_struct), save, target :: file(0:f_maxx)
 
-  integer :: i_level = 0
+  integer, save :: i_level
   integer i, ix, ios
 
-  character(*) how, file_name_in
+  character(*) how
+  character(*), optional :: file_name_in
   character(200) file_name, basename
-  logical finished, found_it, is_relative
+  logical, optional :: finished
+  logical found_it, is_relative
+
+! "Init" means init
+
+  if (how == 'init') then
+    i_level = 0
+    return
+  endif
 
 ! "push" means open a file and put its name on the stack.
 

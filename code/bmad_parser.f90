@@ -138,6 +138,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
        call out_io (s_info$, r_name, 'Creating new digested file...')
 
   bp_com%error_flag = .false.                 ! set to true on an error
+  call file_stack('init')
   call file_stack('push', lat_file, finished)  ! open file on stack
   if (.not. bmad_status%ok) return
   iseq_tot = 0                            ! number of sequences encountered

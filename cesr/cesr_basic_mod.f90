@@ -886,10 +886,11 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
     else
       lattice = ""
       lat_file = lat_choise
-      inquire (file = lat_file, exist = is_there, name = lat_file)
-      if (.not. is_there) then
+      ! Look to see if this is a file name.
+      inquire (file = lat_file, exist = is_there, name = lat_file) 
+      if (.not. is_there) then   ! If not a file name then...
         lattice = lat_choise
-        lat_file = trim(lat_dir) // '/bmad_' // lattice
+        lat_file = trim(lat_dir) // 'bmad_' // lattice
         if (index(lattice, '.') == 0) lat_file = trim(lat_file) // '.lat' 
         ix = index(lattice, '.lat')
         if (ix /= 0) lattice = lattice(:ix-1)

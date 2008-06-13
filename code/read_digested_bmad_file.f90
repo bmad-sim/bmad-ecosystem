@@ -55,7 +55,7 @@ character(200) fname1, fname2, fname3, input_file_name, full_digested_name
 character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 
-logical found_it, v85, v86, v87, v88, v_old, mode3, error
+logical found_it, v85, v86, v87, v88, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -71,6 +71,7 @@ lat%n_ele_track = 0
 
 call fullfilename (digested_name, full_digested_name)
 inquire (file = full_digested_name, name = full_digested_name)
+call simplify_path (full_digested_name, full_digested_name)
 open (unit = d_unit, file = full_digested_name, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
 
@@ -116,7 +117,8 @@ do i = 1, n_files
       
   if (fname1(1:10) == '!DIGESTED:') then
     fname1 = fname1(11:)
-    if (fname1 /= full_digested_name) then
+    inquire (file = fname1, opened = is_open)
+    if (.not. is_open) then
       if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
                                           r_name, ' NOTE: MOVED DIGESTED FILE.')
       bmad_status%ok = .false.

@@ -8,6 +8,7 @@
 !
 ! Input:
 !   directory  -- Character(*): Directory to use. E.g: "U:[CESR.BMAD.LAT]"
+!                 If Unix style, directory must end with a "/".
 !
 ! Output:
 !   lat_list(*) -- Character(40): List of lattice names.
