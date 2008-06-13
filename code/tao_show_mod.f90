@@ -1132,7 +1132,7 @@ case ('plot', 'graph', 'curve')
   do
     if (ix == 0) exit
     if (stuff2(1:1) /= '-') exit
-    call match_word (stuff2(:ix), (/ '-shapes', '-symbol', '-line ' /), n, .true., name)
+    call match_word (stuff2(:ix), (/ '-shapes', '-symbol', '-line  ' /), n, .true., name)
     if (n < 1) then
       call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2(:ix))
       return

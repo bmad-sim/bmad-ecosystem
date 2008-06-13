@@ -1470,7 +1470,7 @@ if (use_same_lat_eles_as /= '') then
     endif
 
     s%var(n)%key_delta = v1_ptr%v(ip)%key_delta
-    if (var(ix)%key_delta /= '') s%var(n)%key_delta = var(ix)%key_delta
+    if (var(ix)%key_delta /= 0) s%var(n)%key_delta = var(ix)%key_delta
 
     s%var(n)%attrib_name = v1_ptr%v(ip)%attrib_name
     if (default_attribute /= '') s%var(n)%attrib_name = default_attribute
