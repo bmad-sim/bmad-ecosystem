@@ -1139,14 +1139,14 @@ plots go. The syntax of this block is:
   &tao_plot_page
     plot_page%size        = <x_size>, <y_size>         ! size in POINTS 
     plot_page%border      = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
-    plot_page%text_height = 12             ! height in POINTS
-    plot_page%main_title_text_scale  = 1.3  ! Relative to text_height
-    plot_page%graph_title_text_scale = 1.1  ! Relative to text_height
-    plot_page%axis_number_text_scale = 0.9  ! Relative to text_height
-    plot_page%axis_label_text_scale  = 1.0  ! Relative to text_height
-    plot_page%legend_text_scale      = 0.8  ! Relative to text_height
-    plot_page%key_table_text_scale   = 0.9  ! Relative to text_height
-    plot_page%title(i)    = <string>, {<x>, <y>, "<justify>", "<units>"}
+    plot_page%text_height = <num>            ! height in POINTS. Def = 12
+    plot_page%main_title_text_scale  = <num> ! Relative to text_height. Def = 1.3
+    plot_page%graph_title_text_scale = <num> ! Relative to text_height. Def = 1.1
+    plot_page%axis_number_text_scale = <num> ! Relative to text_height. Def = 0.9
+    plot_page%axis_label_text_scale  = <num> ! Relative to text_height. Def = 1.0
+    plot_page%legend_text_scale      = <num> ! Relative to text_height. Def = 0.8
+    plot_page%key_table_text_scale   = <num> ! Relative to text_height. Def = 0.9
+    plot_page%title(i)    = <string>, {<x>, <y>, "<units>", "<justify>"}
     plot_page%shape_height_max = 40  ! maximum half height for drawing elements.
     region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
     place(i)  = "<region_name>", "<template_name>"
@@ -1158,7 +1158,7 @@ For example:
     plot_page%size        = 700, 800           ! Points
     plot_page%border      = 0, 0, 0, 50, "POINTS"  
     plot_page%text_height = 12.0
-    plot_page%title(1)    = "CESR Lattice"
+    plot_page%title(1)    = "CESR Lattice", 0.5, 0.996, '%PAGE', 'CC'
     region(1) = "top"    0.0, 1.0, 0.5, 1.0
     region(2) = "bottom" 0.0, 1.0, 0.0, 0.5
     place(1)  = "top",    "orbit"
@@ -1170,8 +1170,9 @@ For example:
 window in \vn{POINTS} units (72 points = 1 inch. Roughly 1 point = 1
 pixel). 
 
-\vn{plot_page%text_height} sets the overall height of the text that
-is drawn. Relative to this, various parameters can be used to scale individual types of text:
+\vn{plot_page%text_height} sets the overall height of the text that is
+drawn. Relative to this, various parameters can be used to scale
+individual types of text:
 \begin{example}
   plot_page%main_title_text_scale  = 1.3 ! Main title height. 
   plot_page%graph_title_text_scale = 1.1 ! Graph title height.

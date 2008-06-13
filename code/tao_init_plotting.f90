@@ -227,7 +227,11 @@ do
     call out_io (s_blank$, r_name, &
             'Init: Read tao_template_graph namelist: ' // graph_name)
     if (graph_index /= i) then
-      call out_io (s_error$, r_name, 'BAD "GRAPH_INDEX" FOR: ' // graph_name)
+      call out_io (s_error$, r_name, (/ &
+            'BAD "GRAPH_INDEX" FOR PLOT: ' // plot%name, &
+            'LOOKING FOR GRAPH_INDEX: \I0\ ', &
+            'BUT TAO_TEMPLACE_GRAPH HAD GRAPH_INDEX: \I0\ ' /), &
+            i_array = (/ i, graph_index /) )
       call err_exit
     endif
     grph => plt%graph(i)

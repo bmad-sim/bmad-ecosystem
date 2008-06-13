@@ -51,9 +51,9 @@ end type
 
 type tao_title_struct
   character(100) string      ! title character string.
-  character(2) justify       ! Left, Center, or Right justification.
   real(rp) x, y              ! x, y rwt lower left corner
   character(16) units        ! %BOX, POINTS, etc...
+  character(2) justify       ! Left, Center, or Right justification.
   logical draw_it            ! draw the title
 end type
 

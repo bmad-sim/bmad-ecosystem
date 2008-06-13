@@ -1374,6 +1374,7 @@ case ('top10')
   call string_trim(stuff, stuff2, ix)
   if (ix == 0) then
     call tao_show_constraints (0, 'TOP10')
+    call tao_top10_merit_categories_print (0)
   elseif (index('-derivative', trim(stuff2)) == 1) then 
     call tao_top10_derivative_print ()
   else

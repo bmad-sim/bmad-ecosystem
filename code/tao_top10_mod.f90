@@ -22,11 +22,92 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine tao_top10_merit_categories_print (iunit)
+!
+! Routine to print the top data and variable categories that contribute to
+! the merit function.
+!
+! Input:
+!   iunit   -- Integer: File unit to write to. 0 => print to the terminal.
+!-
+
+subroutine tao_top10_merit_categories_print (iunit)
+
+implicit none
+
+type (tao_top10_struct), allocatable :: tao_merit(:), temp_merit(:)
+
+integer i, j, k, m, n, nl, num, iunit
+
+character(100) fmt, lines(100)
+character(40) name
+character(20) :: r_name = 'tao_top10_print'
+
+!
+
+n = 0
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  do j = 1, size(s%u(i)%d2_data)
+    n = n + size(s%u(i)%d2_data(j)%d1(:))
+  enddo
+enddo
+
+allocate (temp_merit(n))
+
+num = 0
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  do j = 1, size(s%u(i)%d2_data)
+    k_loop: do k = 1, size(s%u(i)%d2_data(j)%d1)
+      name = trim(s%u(i)%d2_data(j)%name) // '.' // trim(s%u(i)%d2_data(j)%d1(k)%name)
+      do m = 1, num
+        if (name == temp_merit(m)%name) then
+          temp_merit(m)%value = temp_merit(m)%value + &
+                                        sum(s%u(i)%d2_data(j)%d1(k)%d(:)%merit)
+          cycle k_loop
+        endif
+      enddo
+      num = num + 1
+      temp_merit(num)%name = name
+      temp_merit(num)%value = sum(s%u(i)%d2_data(j)%d1(k)%d(:)%merit)
+    enddo k_loop
+  enddo
+enddo
+
+allocate (tao_merit(num+s%n_v1_var_used))
+
+do i = 1, s%n_v1_var_used
+  call tao_to_top10 (tao_merit, sum(s%v1_var(i)%v(:)%merit), s%v1_var(i)%name, 0, 'max')
+enddo
+
+do i = 1, num
+  call tao_to_top10 (tao_merit, temp_merit(i)%value, temp_merit(i)%name, 0, 'max')
+enddo
+
+!
+
+nl = 0
+nl=nl+1; lines(nl) = ''
+nl=nl+1; lines(nl) = 'List of non-zero contributors to the Merit Function:'
+nl=nl+1; lines(nl) = 'Name                                          Merit'
+do i = 1, size(tao_merit)
+  if (.not. tao_merit(i)%valid) exit
+  if (tao_merit(i)%value == 0) exit
+  nl=nl+1; write (lines(nl), '(a, es16.4)') tao_merit(i)%name, tao_merit(i)%value
+enddo
+
+call tao_write_out (iunit, lines(1:nl))
+
+deallocate (tao_merit, temp_merit)
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine tao_top10_derivative_print ()
 !
 ! Routine to print out the top10 contributors to the merit function.
-!
-! Input:
 !-
 
 subroutine tao_top10_derivative_print ()
@@ -75,21 +156,18 @@ n = max(0, 6 - int(log10(a_max)))
 write (fmt, '(a, i1, a)') '((a10, i5, 1pe12.3, 3x), (a10, i5, 0pf11.', n, '))'
 
 nl = 0
-lines(nl+1) = ' '
-lines(nl+2) = '      Top10 derivative       |       Top10 delta'
-lines(nl+3) = ' Name         ix  Derivative | Name         ix     delta'
-nl = nl + 3
+nl=nl+1; lines(nl) = ' '
+nl=nl+1; lines(nl) = '      Top10 derivative       |       Top10 delta'
+nl=nl+1; lines(nl) = ' Name         ix  Derivative | Name         ix     delta'
 
 do i = 1, s%global%n_top10
-  nl = nl + 1
-  if (top_dmerit(i)%name == '' .and. top_delta(i)%name == '') exit
-  write (lines(nl), fmt) &
-      top_dmerit(i)%name, top_dmerit(i)%index, top_dmerit(i)%value,  &
-      top_delta(i)%name,  top_delta(i)%index,  top_delta(i)%value
+  if (.not. top_dmerit(i)%valid .and. .not. top_delta(i)%valid) exit
+  nl=nl+1; write (lines(nl), fmt) &
+        top_dmerit(i)%name, top_dmerit(i)%index, top_dmerit(i)%value,  &
+        top_delta(i)%name,  top_delta(i)%index,  top_delta(i)%value
 enddo
 
-nl = nl + 1
-write (lines(nl), *) 'Merit:  ', merit
+nl=nl+1; write (lines(nl), *) 'Merit:  ', merit
 
 call out_io (s_blank$, r_name, lines(1:nl))
 
@@ -345,7 +423,7 @@ nl=nl+1; line(nl) = ' '
 nl=nl+1; write (line(nl), '(1x, a, 1pe12.6)') &
                                   'figure of merit: ', this_merit
 
-call tao_write_out (iunit, line, nl)
+call tao_write_out (iunit, line(1:nl))
 
 deallocate (con, ixm)
 
@@ -380,10 +458,10 @@ subroutine tao_var_write (out_file, good_opt_vars_only)
 implicit none
 
 
-integer i, j, iu, ix, ios, ix_hash
+integer i, j, iu, iu2, ix, ios, ix_hash
 
 character(*) out_file
-character(200) file_name
+character(200) file_name, file_name2
 character(20) :: r_name = 'tao_var_write'
 character(200) str(1)
 
@@ -417,7 +495,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   endif
 
   call print_vars (iu, i, good_opt_vars_only)
-  call tao_write_out (iu, (/ '        ', 'end_file', '        ' /), 3)
+  call tao_write_out (iu, (/ '        ', 'end_file', '        ' /))
   call tao_show_constraints (iu, 'TOP10')
   if (size(s%u) == 1) call tao_show_constraints (iu, 'ALL')
 
@@ -439,20 +517,21 @@ if (size(s%u) > 1) then
   call out_io (s_blank$, r_name, 'Written constraints file: ' // file_name)
 endif
 
-! For unified lattices write the variables affecting the specific universes.
+! For unified lattices write a file for those variables affecting a specific universe.
 
 if (tao_com%common_lattice) then
 
   file_name = 'lat_specific_vars.list'
-  open (iu, file = file_name, carriagecontrol = 'list', recl = 100, iostat = ios)
+  open (iu, file = file_name, recl = 100, iostat = ios)
 
   do j = 1, size(s%var)
     if (.not. s%var(j)%exists) cycle
-    if (all (s%var(j)%this(:)%ix_uni == 0)) cycle
     if (logic_option(.false., good_opt_vars_only) .and. .not. s%var(j)%useit_opt) cycle
-    write (str(1), '(2a, es22.14)')  trim(tao_var1_name(s%var(j))), &
-                                  '|model =', s%var(j)%model_value
-    call tao_write_out (iu, str, 1)
+    if (all (s%var(j)%this(:)%ix_uni == 0)) cycle
+    write (str(1), '(3a, es22.14)')  "set var ", trim(tao_var1_name(s%var(j))), &
+                                                    '|model =', s%var(j)%model_value
+
+    call tao_write_out (iu, str(1:1))
   enddo  
 
   close (iu)
@@ -482,7 +561,7 @@ do j = 1, size(s%var)
   if (logic_option(.false., good_opt_vars_only) .and. .not. s%var(j)%useit_opt) cycle
   write (str(1), '(4a, es22.14)')  trim(s%var(j)%ele_name), &
             '[', trim(s%var(j)%attrib_name), '] = ', s%var(j)%model_value
-  call tao_write_out (iu, str, 1)
+  call tao_write_out (iu, str(1:1))
 enddo
 
 end subroutine print_vars
@@ -491,7 +570,7 @@ end subroutine print_vars
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_write_out (iunit, line, nl)
+! Subroutine tao_write_out (iunit, line)
 !
 ! Subroutine to write out a series of lines to a file or to the terminal.
 ! It is assumed that any file has already been opened.
@@ -499,25 +578,24 @@ end subroutine print_vars
 ! Input:
 !   iunit   -- Integer: File unit to write to. 0 => print to the terminal.
 !   line(:) -- Character(*): A series of lines.
-!   nl      -- Integer: The number of lines to write.
 !-
 
-subroutine tao_write_out (iunit, line, nl)
+subroutine tao_write_out (iunit, line)
 
 implicit none
 
-integer iunit, i, nl
+integer iunit, i
 character(*) line(:)
 
 !
 
-do i = 1, nl
-  if (iunit == 0) then
-    call out_io (s_blank$, ' ', line(i))
-  else
+if (iunit == 0) then
+  call out_io (s_blank$, ' ', line)
+else
+ do i = 1, size(line)
     write (iunit, *) trim(line(i))
-  endif
-enddo
+  enddo
+endif
 
 end subroutine
 
