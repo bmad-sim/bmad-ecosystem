@@ -403,7 +403,6 @@ do k = 1, size(graph%curve)
   if (.not. associated(u)) return
 
   if (tao_com%common_lattice) then
-    call tao_lattice_calc (ok, u%ix_uni, base$)
     call tao_lattice_calc (ok, u%ix_uni, model$)
   endif
 

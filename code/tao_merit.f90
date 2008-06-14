@@ -89,7 +89,7 @@ enddo
 !----------------------------------------
 ! Merit contribution from the data:
 
-if (tao_com%common_lattice) iu0 = tao_com%u_common%ix_uni
+if (tao_com%common_lattice) iu0 = ix_common_uni$
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 

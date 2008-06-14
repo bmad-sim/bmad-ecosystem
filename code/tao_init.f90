@@ -162,9 +162,10 @@ s%u%universe_recalc = .true.
 call tao_lattice_calc (calc_ok, init_design = .true.) 
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%design = s%u(i)%model; s%u(i)%design%orb = s%u(i)%model%orb
-  if (.not. tao_com%common_lattice) &
-          s%u(i)%base  = s%u(i)%design; s%u(i)%base%orb  = s%u(i)%design%orb
+  s%u(i)%design = s%u(i)%model
+  s%u(i)%design%orb = s%u(i)%model%orb
+  s%u(i)%base  = s%u(i)%design
+  s%u(i)%base%orb  = s%u(i)%design%orb
   s%u(i)%data%design_value = s%u(i)%data%model_value
   s%u(i)%data%base_value = s%u(i)%data%model_value
 enddo
@@ -189,6 +190,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 enddo
 
+call tao_hook_init2 ()
+
 ! Look for a startup file
 
 call tao_open_file ('TAO_INIT_DIR', startup_file, iu, file_name)
@@ -204,8 +207,6 @@ endif
 call tao_set_data_useit_opt()
 call tao_set_var_useit_opt()
 if (present(err_flag)) err_flag = .false.
-
-call tao_hook_init2 ()
 
 ! Close the log file and route all messages back to the terminal
 

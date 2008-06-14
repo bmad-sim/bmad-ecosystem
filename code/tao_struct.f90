@@ -18,6 +18,7 @@ use tao_parameters
 use rad_int_common, only: rad_int_common_struct
 
 integer, parameter :: model$ = 1, base$ = 2, design$ = 3
+integer, parameter :: ix_common_uni$ = 0
 
 interface assignment (=)
   module procedure tao_lat_equal_tao_lat

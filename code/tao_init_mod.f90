@@ -1330,7 +1330,7 @@ do
     dflt_good_unis = .true.
     if (tao_com%common_lattice .and. gang) then
       dflt_good_unis = .false.
-      dflt_good_unis(tao_com%u_common%ix_uni) = .true.
+      dflt_good_unis(ix_common_uni$) = .true.
     endif
 
   else
@@ -1939,7 +1939,7 @@ endif
 ! Exception: If variable controls a common parameter
 
 if (tao_com%common_lattice) then
-  if (this%ix_uni == tao_com%u_common%ix_uni) then
+  if (this%ix_uni == ix_common_uni$) then
     var%model_value => var%common%model_value
     var%base_value => var%common%base_value
   else

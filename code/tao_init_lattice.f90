@@ -89,7 +89,7 @@ if (tao_com%common_lattice) then
   allocate (s%u(0:tao_com%n_universes))
   allocate (tao_com%u_working)
 
-  tao_com%u_common => s%u(0)
+  tao_com%u_common => s%u(ix_common_uni$)
   tao_com%u_common%common_uni = .true.
 
 else
@@ -238,9 +238,9 @@ if (tao_com%common_lattice) then
     if (u%common_uni) cycle
     u%common => tao_com%u_common
     u%ele    => tao_com%u_common%ele
-    u%design => tao_com%u_working%design
+    u%design => tao_com%u_common%design
+    u%base   => tao_com%u_common%model  ! Base is identical to common model
     u%model  => tao_com%u_working%model
-    u%base   => tao_com%u_common%model
   enddo
 
 endif
