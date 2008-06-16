@@ -8,10 +8,10 @@ use tao_dmerit_mod
 ! structure for making lists of the biggest contributors to the merit function.
 
 type tao_top10_struct
-  character(40) name   ! name of contributor
-  real(rp) value       ! contribution to the merit function
-  integer index        ! index of contributor.
-  logical valid        ! valid entry?
+  character(40) :: name = ''   ! name of contributor
+  real(rp) :: value = 0        ! contribution to the merit function
+  integer :: index = 0         ! index of contributor.
+  logical :: valid = .false.   ! valid entry?
 end type
 
 private print_vars
