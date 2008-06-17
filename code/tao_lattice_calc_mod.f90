@@ -77,6 +77,8 @@ initing_design = logic_option (.false., init_design)
 
 ! do a custom lattice calculation if desired
 
+if (.not. s%global%lattice_calc_on) return
+
 recalc = tao_com%lattice_recalc .or. present(ix_uni)
 if (.not. recalc) return
 

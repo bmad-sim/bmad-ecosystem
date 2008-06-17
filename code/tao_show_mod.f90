@@ -398,9 +398,7 @@ case ('data')
       u => s%u(iu)
 
       nl=nl+1; lines(nl) = ''
-      if (size(s%u) > 1) then
-        nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', iu
-      endif
+      nl=nl+1; write(lines(nl), '(t40, a)') 'Using'
 
       do i = 1, size(u%d2_data)
         d2_ptr => u%d2_data(i)
@@ -408,9 +406,11 @@ case ('data')
         nl=nl+1; lines(nl) = ' '
         do j = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
           d1_ptr => d2_ptr%d1(j)
-          nl=nl+1; write (lines(nl), '(i5, 2x, 4a, i0, a, i0, a)') j, &
-                      trim(d2_ptr%name), '.', trim(d1_ptr%name), &
-                      '[', lbound(d1_ptr%d, 1), ':', ubound(d1_ptr%d, 1), ']'
+          call location_encode(line, d1_ptr%d%useit_opt, &
+                                  d1_ptr%d%exists, lbound(d1_ptr%d, 1))
+          nl=nl+1; write (lines(nl), '(2a, i0, a, i0, a, t40, a)') &
+                  trim(tao_d2_d1_name(d1_ptr)), '[', &
+                  lbound(d1_ptr%d, 1), ':', ubound(d1_ptr%d, 1), ']', trim(line)
         enddo
       enddo
     enddo
@@ -528,17 +528,15 @@ case ('data')
 
     call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%d1))
 
-    if (size(s%u) > 1) then
-      nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d2_ptr%ix_uni
-    endif
-    nl=nl+1; write(lines(nl), '(2a)') 'D2_Data type:    ', d2_ptr%name
-    nl=nl+1; write(lines(nl), '(5x, a, 28x, a)') '            ', '   Bounds'
-    nl=nl+1; write(lines(nl), '(5x, a, 28x, a)') 'D1_Data name', 'lower: Upper' 
+    nl=nl+1; write(lines(nl), '(t40, a)')     'Using' 
 
     do i = 1, size(d2_ptr%d1)
       if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
-      nl=nl+1; write(lines(nl), '(5x, a, i5, a, i5)') d2_ptr%d1(i)%name, &
-                  lbound(d2_ptr%d1(i)%d, 1), ':', ubound(d2_ptr%d1(i)%d, 1)
+      call location_encode(line, d2_ptr%d1(i)%d%useit_opt, &
+                      d2_ptr%d1(i)%d%exists, lbound(d2_ptr%d1(i)%d, 1))
+      nl=nl+1; write(lines(nl), '(2x, 2a, i0, a, i0, a, t40, a)') &
+                  trim(tao_d2_d1_name(d2_ptr%d1(i))), '[', lbound(d2_ptr%d1(i)%d, 1), &
+                  ':', ubound(d2_ptr%d1(i)%d, 1), ']', trim(line)
     enddo
 
     if (any(d2_ptr%descrip /= ' ')) then
@@ -1569,15 +1567,16 @@ case ('variable')
   endif
 
   if (word(1) == ' ') then
-    write (lines(1), '(12x, a)') '                      Bounds'
-    write (lines(2), '(12x, a)') 'Name                Lower  Upper'
-    nl = 2
+    nl=nl+1; write (lines(2), '(7x, a, t50, a)') 'Name', 'Using'
     do i = 1, size(s%v1_var)
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-      nl=nl+1; write(lines(nl), '(5x, i5, 2x, a20, i5, i7)') v1_ptr%ix_v1, &
-                              v1_ptr%name, lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
+      call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
+      nl=nl+1; write(lines(nl), '(i5, 2x, 2a, i0, a, i0, a, t50, a)') v1_ptr%ix_v1, &
+                      trim(v1_ptr%name), '[', lbound(v1_ptr%v, 1), ':', &
+                      ubound(v1_ptr%v, 1), ']', trim(line)
+      
     enddo
     call out_io (s_blank$, r_name, lines(1:nl))
     return

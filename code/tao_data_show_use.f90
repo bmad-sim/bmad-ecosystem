@@ -25,13 +25,8 @@ integer i
 do i = 1, size(d2_data%d1)
   call location_encode (line, d2_data%d1(i)%d%useit_opt, &
                       d2_data%d1(i)%d%exists, lbound(d2_data%d1(i)%d, 1))
-  if (size(s%u) > 1) then
-    write (line, '(2x, i0, 4a, t25, 2a)') d2_data%ix_uni, '@', trim(d2_data%name), &
-                  '.',  trim(d2_data%d1(i)%name), "Using: ", trim(line)
-  else
-    write (line, '(2x, 3a, t25, 2a)') trim(d2_data%name), &
-                  '.',  trim(d2_data%d1(i)%name), "Using: ", trim(line)
-  endif
+  write (line, '(2x, a, t25, 2a)') &
+            trim(tao_d2_d1_name(d2_data%d1(i))), "Using: ", trim(line)
   call out_io (s_blank$, r_name, line)
 enddo
 

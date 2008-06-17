@@ -33,6 +33,8 @@ logical ok, opt_with_ref, opt_with_base
 
 ! make sure all calculations are up to date.
 
+if (.not. s%global%lattice_calc_on) return
+
 call tao_lattice_calc (ok)
 if (present(calc_ok)) calc_ok = ok
 

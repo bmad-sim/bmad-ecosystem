@@ -440,6 +440,7 @@ type tao_global_struct
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
   logical :: orm_analysis = .false.          ! orm using mdsa? 
+  logical :: lattice_calc_on = .true.        ! Turn on/off calculations.
 end type
 
 ! tao_common_struct is for those global parameters that the user 

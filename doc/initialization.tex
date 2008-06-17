@@ -352,6 +352,7 @@ type tao_global_struct
   logical :: label_keys = T             ! For lat_layout plots
   logical :: derivative_recalc = T      ! Recalc before each optimizer run?
   logical :: init_plot_needed = T       ! reinitialize plotting?
+  logical :: lattice_calc_on = T        ! Master switch.
 end type
 \end{example}
 
@@ -382,6 +383,15 @@ conversion from a uniform distribution to a Gaussian distribution.
 \vn{'exact'} is an exact conversion and \vn{'limited'} has a cut-off
 so that no particles are generated beyond. This cutoff is set by
 \vn{global%random_gauss_cutoff}.
+
+\vn{global%lattice_calc_on} controls whether lattice calculations are
+done. This swtch is useful in controlling unnecessary calculational
+overhead.  A typical scenario where this switch is used involves first
+setting \vn{%lattice_calc_on} to \vn{False} (using the \vn{set}
+command (\sref{s:set})), then executing a set of commands, and finally
+setting \vn{%lattice_calc_on} back to \vn{True}. This saves some of
+the calculational overhead that each command generates. Similarly,
+\vn{global%plot_on} can be toggled to save even more time.
 
 The \vn{bmad_com_struct} holds bmad global variables. 
 \index{radiation_damping_on}

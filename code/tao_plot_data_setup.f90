@@ -35,6 +35,8 @@ character(20) :: r_name = 'tao_plot_data_setup'
 
 ! setup the plots
 
+if (.not. s%global%plot_on) return
+
 plot_loop: do ir = 1, size(s%plot_region)
 
   plot => s%plot_region(ir)%plot

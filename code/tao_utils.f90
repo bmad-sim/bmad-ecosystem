@@ -2578,13 +2578,54 @@ logical, optional :: show_universe
 
 if (.not. associated(datum%d1)) then
   datum_name = datum%data_type
-else
-  write (datum_name, '(4a, i0, a)') &
-      trim(datum%d1%d2%name), '.', trim(datum%d1%name), '[', datum%ix_d1, ']'
+  if (size(s%u) > 1 .and. logic_option(.true., show_universe)) &
+       write (datum_name, '(i0, 2a)') datum%d1%d2%ix_uni, '@', trim(datum_name)
+  return
 endif
 
+! Normal case
+
+datum_name = tao_d2_d1_name (datum%d1, show_universe)
+write (datum_name, '(2a, i0, a)') trim(datum_name), '[', datum%ix_d1, ']'
+
+end function
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+! Function tao_d2_d1_name (d1, show_universe) result (d2_d1_name)
+!
+! Function to return the datum name in the form:
+!   d2_name.d1_name
+! or (if show_universe is True and there is more than one universe):
+!   universe@d2_name.d1_name
+! For example:
+!   2@orbit.x
+!   
+!
+! Input:
+!   d1            -- Tao_d1_data_struct: Data array.
+!   show_universe -- Logical, optional: Show the datum's universe.
+!                       Default is True.
+!
+! Output:
+!   d2_d1_name -- Character(60): Appropriate name.
+!-
+
+function tao_d2_d1_name(d1, show_universe) result (d2_d1_name)
+
+implicit none
+
+type (tao_d1_data_struct) d1
+character(60) d2_d1_name
+logical, optional :: show_universe
+
+!
+
+write (d2_d1_name, '(3a)') trim(d1%d2%name), '.', trim(d1%name)
+
 if (size(s%u) > 1 .and. logic_option(.true., show_universe)) &
-       write (datum_name, '(i0, 2a)') datum%d1%d2%ix_uni, '@', trim(datum_name)
+       write (d2_d1_name, '(i0, 2a)') d1%d2%ix_uni, '@', trim(d2_d1_name)
 
 end function
 
