@@ -116,11 +116,9 @@ do i = 1, size(s%plot_region)
       else
         beam_source = .false.
         call tao_find_data (err, curve%data_type, d_array = d_array, print_err = .false.)
-        if (allocated(d_array)) then
-          do id = 1, size(d_array)
-            if (d_array(id)%d%data_source == 'beam') beam_source = .true.
-          enddo
-        endif
+        do id = 1, size(d_array)
+          if (d_array(id)%d%data_source == 'beam') beam_source = .true.
+        enddo
       endif
       if (beam_source) then
         call qp_set_layout (box = graph%box)

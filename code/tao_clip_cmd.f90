@@ -74,11 +74,11 @@ subroutine clip_graph (plot, graph)
 
 type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
-type (tao_d1_data_struct), pointer :: d1_ptr
+type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_curve_struct), pointer :: curve
 
 real(rp) this_min, this_max
-integer i, j, iu
+integer i, j, k, iu
 
 ! If y_min = y_max then clip to graph boundries.
 
@@ -99,9 +99,11 @@ do i = 1, size(graph%curve)
   if (.not. allocated(curve%y_symb)) cycle
   do j = 1, size(curve%y_symb)
     if (this_min <= curve%y_symb(j) .and. curve%y_symb(j) <= this_max) cycle
-    call tao_find_data (err, curve%data_type, d1_ptr = d1_ptr, ix_uni = curve%ix_universe)
+    call tao_find_data (err, curve%data_type, d1_array = d1_array, ix_uni = curve%ix_universe)
     if (err) return
-    d1_ptr%d(curve%ix_symb(j))%good_user = .false.  ! and clip it
+    do k = 1, size(d1_array)
+      d1_array(k)%d1%d(curve%ix_symb(j))%good_user = .false.  ! and clip it
+    enddo
   enddo
 enddo
 

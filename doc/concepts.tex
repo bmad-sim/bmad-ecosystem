@@ -217,6 +217,15 @@ lattice element is associated with more than one variable in a
 an element's \vn{x_offset} and another variable controlls the same element's
 \vn{y_offset}. 
 
+In referring to variables, a ``\vn{*}'' can be used as a wild card to 
+denote ``all''. Thus:
+\begin{example}
+  *                ! All the variables
+  quad_k1[*]|model ! All model values of quad_k1.
+  quad_k1[]|model  ! No values. That is, the empty set.
+  quad_k1|model    ! Same as quad_k1[*]|model
+\end{example}
+
 A given variable may control a single attribute of one element in a
 \vn{model} lattice of a single universe or it can be configured to
 simultaneously control an element attribute across multiple

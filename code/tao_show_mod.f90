@@ -94,9 +94,10 @@ subroutine tao_show_this (what, stuff)
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_d2_data_struct), pointer :: d2_ptr
+type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_data_struct), pointer :: d_ptr
+type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
 type (tao_var_array_struct), allocatable, save, target :: v_array(:)
@@ -107,6 +108,7 @@ type (tao_plot_struct), pointer :: p
 type (tao_graph_struct), pointer :: g
 type (tao_curve_struct), pointer :: c
 type (tao_plot_region_struct), pointer :: region
+type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_ele_shape_struct), pointer :: shape
 type (branch_struct), pointer :: branch
@@ -144,12 +146,12 @@ character(100) file_name
 character(40) ele_name, name, sub_name
 character(60) nam
 
-character(16) :: show_what, show_names(21) = (/ &
+character(16) :: show_what, show_names(22) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    'beam        ', '----------- ', 'graph       ', 'curve       ', 'particle    ', &
    'hom         ', 'opt_vars    ', 'universe    ', 'orbit       ', 'derivative  ', &
-   'branches    ' /)
+   'branches    ', 'use         ' /)
 
 character(n_char), allocatable, save :: lines(:)
 character(n_char) line, line1, line2, line3
@@ -384,7 +386,7 @@ case ('constraints')
 case ('data')
 
 
-! If just "show data" then show all names
+  ! If just "show data" then show all names
 
   call tao_pick_universe (word(1), line1, picked_uni, err)
   if (err) return
@@ -419,15 +421,15 @@ case ('data')
     return
   endif
 
-! get pointers to the data
+  ! get pointers to the data
 
-  call tao_find_data (err, word(1), d2_ptr, d1_ptr, d_array)
+  call tao_find_data (err, word(1), d2_ptr, d1_array, d_array)
   if (err) return
 
   n_size = 0
   if (allocated(d_array)) n_size = size(d_array)
 
-! If d_ptr points to something then show the datum info.
+  ! If d_ptr points to something then show the datum info.
 
   if (n_size == 1) then
     d_ptr => d_array(1)%d
@@ -469,10 +471,11 @@ case ('data')
     nl=nl+1; write(lines(nl), lmt)  '%useit_plot        = ', d_ptr%useit_plot
     nl=nl+1; write(lines(nl), lmt)  '%useit_opt         = ', d_ptr%useit_opt
 
-! Else show the d1_data info.
+  ! Else show the d1_data info.
 
-  elseif (associated(d1_ptr)) then
+  elseif (size(d1_array) == 1) then
 
+    d1_ptr => d1_array(1)%d1
     if (size(s%u) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d1_ptr%d2%ix_uni
     endif
@@ -492,7 +495,7 @@ case ('data')
       n_e1 = max(n_e1, len_trim(d_ptr%ele_name))
     enddo
 
-    ! write header
+    ! Write header
 
     line1 = ''; line2 = ''
     n=9+n_name;               line2(n:) = 'Where0'
@@ -503,7 +506,7 @@ case ('data')
     nl=nl+1; lines(nl) = line1
     nl=nl+1; lines(nl) = line2
 
-! if a range is specified, show the data range   
+    ! if a range is specified, show the data range   
 
     call re_allocate (lines, len(lines(1)), nl+100+size(d_array))
 
@@ -522,7 +525,7 @@ case ('data')
     nl=nl+1; lines(nl) = line2
     nl=nl+1; lines(nl) = line1
 
-! else we must have a valid d2_ptr.
+  ! else we must have a valid d2_ptr.
 
   elseif (associated(d2_ptr)) then
 
@@ -550,7 +553,7 @@ case ('data')
       enddo
     endif
 
-! error
+  ! error
 
   else
     lines(1) = 'TRY BEING MORE SPECIFIC.'
@@ -564,10 +567,10 @@ case ('data')
 
 case ('derivative')
 
-  call tao_find_data (err, word(1), d2_ptr, d1_ptr, d_array)
+  call tao_find_data (err, word(1), d_array = d_array)
   if (err) return
 
-  call tao_find_var(err, word(2), v1_ptr, v_array) 
+  call tao_find_var(err, word(2), v_array = v_array) 
   if (err) return
 
   do id = 1, size(d_array)
@@ -1516,6 +1519,36 @@ case ('universe')
 !----------------------------------------------------------------------
 ! variable
     
+case ('use')  
+
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    do j = 1, s%u(i)%n_d2_data_used
+      d2_ptr => s%u(i)%d2_data(j)
+      do k = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
+        d1_ptr => d2_ptr%d1(k)
+        call location_encode(line, d1_ptr%d%useit_opt, &
+                                  d1_ptr%d%exists, lbound(d1_ptr%d, 1))
+        nl=nl+1; write (lines(nl), '(5a)') 'use data ', &
+                      trim(tao_d2_d1_name(d1_ptr)), '[', trim(line), ']'
+      enddo
+    enddo
+  enddo
+  nl=nl+1; lines(nl) = ''
+
+  do i = 1, size(s%v1_var)
+    v1_ptr => s%v1_var(i)
+    if (v1_ptr%name == ' ') cycle
+    if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
+    call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
+    nl=nl+1; write (lines(nl), '(5a)') 'use var ', trim(v1_ptr%name), '[', trim(line), ']'
+  enddo
+
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+
+!----------------------------------------------------------------------
+! variable
+    
 case ('variable')
 
   if (.not. allocated (s%v1_var)) then
@@ -1588,7 +1621,7 @@ case ('variable')
 
 ! are we looking at a range of locations?
 
-  call tao_find_var(err, word(1), v1_ptr, v_array) 
+  call tao_find_var(err, word(1), v1_array, v_array) 
   if (err) return
   n_size = 0
   if (allocated(v_array)) n_size = size(v_array)
@@ -1667,7 +1700,7 @@ case ('variable')
 ! check if there is a variable number
 ! if no variable number requested, show a range
 
-  elseif (associated(v1_ptr)) then
+  elseif (size(v1_array) == 1) then
 
     nc = 0
     do i = 1, size(v_array)
@@ -1676,7 +1709,7 @@ case ('variable')
       nc = max(nc, len_trim(tao_var_attrib_name(v_ptr)))
     enddo
 
-    write(lines(1), '(2a)') 'Variable name:  ', v1_ptr%name
+    write(lines(1), '(2a)') 'Variable name:  ', v1_array(1)%v1%name
     lines(2) = ' '
     line1 = '       Name'
     line1(nc+17:) = 'Meas         Model        Design  Useit_opt'

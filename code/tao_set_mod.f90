@@ -568,7 +568,7 @@ call tao_find_var (err, var_str, v_array = v_var, re_array=r_var, &
 
 ! A logical value_str is either a logical or an array of datum values.
 
-if (allocated(l_var)) then
+if (size(l_var) > 0) then
   if (is_logical(value_str)) then
     read (value_str, *) l_value
     do i = 1, size(l_var)
@@ -577,10 +577,6 @@ if (allocated(l_var)) then
 
   else
     call tao_find_var (err, value_str, log_array=l_set)
-    if (.not. allocated (l_set)) then
-      call out_io (s_error$, r_name, 'BAD LOGICAL VALUES')
-      return
-    endif
     if (size(l_set) /= size(l_var)) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
@@ -593,7 +589,7 @@ if (allocated(l_var)) then
 ! Must be merit_type for a string.
 ! If value_string has "|" then it must be a datum array
 
-elseif (allocated(s_var)) then
+elseif (size(s_var) /= 0) then
   if (index(value_str, '|') == 0) then
     if (all (value_str /= merit_type_names)) then
       call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
@@ -605,10 +601,6 @@ elseif (allocated(s_var)) then
 
   else
     call tao_find_var (err, value_str, str_array=s_set)
-    if (.not. allocated (l_set)) then
-      call out_io (s_error$, r_name, 'BAD STRING VALUES')
-      return
-    endif
     if (size(l_set) /= size(l_var)) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
@@ -621,7 +613,7 @@ elseif (allocated(s_var)) then
 ! Only possibility left is real/ The value_str might be a number or it might 
 ! be a mathematical expression involving datum values or array of values.
 
-elseif (allocated(r_var)) then
+elseif (size(r_var) /= 0) then
   call tao_to_real_vector (value_str, 'VAR', size(r_var), r_value, err)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
@@ -684,7 +676,7 @@ if (err) return
 
 ! A logical value_str is either a logical or an array of datum values.
 
-if (allocated(l_dat)) then
+if (size(l_dat) /= 0) then
   if (is_logical(value_str)) then
     read (value_str, *) l_value
     do i = 1, size(l_dat)
@@ -693,10 +685,6 @@ if (allocated(l_dat)) then
 
   else
     call tao_find_data (err, value_str, log_array=l_set)
-    if (.not. allocated (l_set)) then
-      call out_io (s_error$, r_name, 'BAD LOGICAL VALUES')
-      return
-    endif
     if (size(l_set) /= size(l_dat)) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
@@ -709,7 +697,7 @@ if (allocated(l_dat)) then
 ! Must be merit_type for a string.
 ! If value_string has "|" then it must be a datum array
 
-elseif (allocated(s_dat)) then
+elseif (size(s_dat) /= 0) then
   if (index(value_str, '|') == 0) then
     if (all (value_str /= merit_type_names)) then
       call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
@@ -721,10 +709,6 @@ elseif (allocated(s_dat)) then
 
   else
     call tao_find_data (err, value_str, str_array=s_set)
-    if (.not. allocated (l_set)) then
-      call out_io (s_error$, r_name, 'BAD STRING VALUES')
-      return
-    endif
     if (size(l_set) /= size(l_dat)) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
@@ -737,7 +721,7 @@ elseif (allocated(s_dat)) then
 ! Only possibility left is real/ The value_str might be a number or it might 
 ! be a mathematical expression involving datum values or array of values.
 
-elseif (allocated(r_dat)) then
+elseif (size(r_dat) /= 0) then
   call tao_to_real_vector (value_str, 'DATA', size(r_dat), r_value, err)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)

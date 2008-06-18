@@ -171,7 +171,7 @@ contains
 
 subroutine zero_phase_merit (who, ix_uni)
 
-type (tao_d1_data_struct), pointer :: d1
+type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 character(*) who
 real(rp) ave
 integer ix_uni, n
@@ -179,13 +179,14 @@ logical err
 
 !
 
-call tao_find_data (err, who, d1_ptr = d1, ix_uni = ix_uni, print_err = .false.)
-if (.not. err) then
-  n = count(d1%d%useit_opt .and. d1%d%good_model)
-  if (n /= 0 .and. all(d1%d%ele0_name == ' ')) then
-    ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt .and. d1%d%good_model) / n
-    d1%d%delta_merit = d1%d%delta_merit - ave
-  endif
+call tao_find_data (err, who, d1_array = d1_array, ix_uni = ix_uni, print_err = .false.)
+if (err) return
+if (size(d1_array) == 0) return
+n = count(d1_array(1)%d1%d%useit_opt .and. d1_array(1)%d1%d%good_model)
+if (n /= 0 .and. all(d1_array(1)%d1%d%ele0_name == ' ')) then
+  ave = sum(d1_array(1)%d1%d%delta_merit, &
+                  mask = d1_array(1)%d1%d%useit_opt .and. d1_array(1)%d1%d%good_model) / n
+  d1_array(1)%d1%d%delta_merit = d1_array(1)%d1%d%delta_merit - ave
 endif
 
 end subroutine

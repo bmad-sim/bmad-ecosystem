@@ -663,7 +663,7 @@ subroutine d1_data_stuffit (i_d1, u, n_d2)
 
 type (tao_universe_struct), target :: u
 type (tao_d1_data_struct), pointer :: d1_this
-type (tao_d1_data_struct), pointer :: d1_ptr
+type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 
 integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 
@@ -732,27 +732,27 @@ if (search_for_lat_eles /= '') then
 
 elseif (use_same_lat_eles_as /= '') then
   call string_trim (use_same_lat_eles_as, name, ix)
-  call tao_find_data (err, name, d1_ptr = d1_ptr, ix_uni = u%ix_uni)
-  if (err .or. .not. associated(d1_ptr)) then
+  call tao_find_data (err, name, d1_array = d1_array, ix_uni = u%ix_uni)
+  if (err .or. size(d1_array) /= 1) then
     call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
     call err_exit
   endif
   n1 = u%n_data_used + 1
-  n2 = u%n_data_used + size(d1_ptr%d)
+  n2 = u%n_data_used + size(d1_array(1)%d1%d)
   u%n_data_used = n2
   call tao_allocate_data_array (u, n2)
 
-  ix_min_data = lbound(d1_ptr%d, 1)
+  ix_min_data = lbound(d1_array(1)%d1%d, 1)
   ix1 = ix_min_data
   ix2 = ix1 + (n2 - n1)
 
-  u%data(n1:n2)%ele_name    = d1_ptr%d%ele_name
-  u%data(n1:n2)%ix_ele      = d1_ptr%d%ix_ele
-  u%data(n1:n2)%ele0_name   = d1_ptr%d%ele0_name
-  u%data(n1:n2)%ix_ele0     = d1_ptr%d%ix_ele0
-  u%data(n1:n2)%exists      = d1_ptr%d%exists
-  u%data(n1:n2)%data_source = d1_ptr%d%data_source
-  u%data(n1:n2)%relative    = d1_ptr%d%relative
+  u%data(n1:n2)%ele_name    = d1_array(1)%d1%d%ele_name
+  u%data(n1:n2)%ix_ele      = d1_array(1)%d1%d%ix_ele
+  u%data(n1:n2)%ele0_name   = d1_array(1)%d1%d%ele0_name
+  u%data(n1:n2)%ix_ele0     = d1_array(1)%d1%d%ix_ele0
+  u%data(n1:n2)%exists      = d1_array(1)%d1%d%exists
+  u%data(n1:n2)%data_source = d1_array(1)%d1%d%data_source
+  u%data(n1:n2)%relative    = d1_array(1)%d1%d%relative
 
 ! Not SEARCH or SAME:
 
@@ -1407,6 +1407,7 @@ contains
 
 subroutine tao_var_stuffit1 (v1_var_ptr, ix_uni, searching)
 
+type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_var_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: var_ptr
@@ -1433,11 +1434,12 @@ v1_var_ptr%name = v1_var%name
 
 if (use_same_lat_eles_as /= '') then
   call string_trim (use_same_lat_eles_as, name, ix)
-  call tao_find_var (err, name, v1_ptr = v1_ptr)
-  if (err .or. .not. associated(v1_ptr)) then
+  call tao_find_var (err, name, v1_array = v1_array)
+  if (err .or. size(v1_array) /= 1) then
     call out_io (s_abort$, r_name, 'CANNOT MATCH "USE_SAME_LAT_ELES_AS": ' // name)
     call err_exit
   endif
+  v1_ptr => v1_array(1)%v1
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + size(v1_ptr%v)
   s%n_var_used = n2

@@ -167,6 +167,16 @@ In the above example the argument ``abc'' is substituted for any
   enddo
 \end{example}
 
+Note: To reduce unnecessary calculations, \vn{global%lattice_calc_on}
+and \vn{global%plot_on} can be toggled. Example
+\begin{example}
+  set global lattice_calc_on = F  ! Turn off lattice calculations
+  set global plot_on = F          ! Turn off plot calculations
+  ... do some stuff ...
+  set global plot_on = T          ! Turn back on 
+  set global lattice_calc_on = T  ! Turn back on
+\end{example}
+  
 %% change --------------------------------------------------------------
 \section{change}\index{Commands!change}
 \label{s:change}
@@ -894,6 +904,7 @@ Format:
   show plot -shapes
   show top10 \{-derivative\}
   show universe \{universe_number\}
+  show use
   show variable \{<var_name> <locations>\}
   show variable <universe_number>@
 \end{example}
@@ -1197,6 +1208,12 @@ Shows various parameters associated with a given universe. If no
 universe is specified then the current viewed universe is
 used. Parameters displayed include tune, chromaticity, radiation
 integrals, etc.
+
+%% show use --------------------------------------------------------------
+
+  \item[show use] \Newline
+Shows what data and variables are used in a format that, if saved to a file, can
+be read in with a \vn{call} command.
 
 %% show variable --------------------------------------------------------------
 

@@ -343,7 +343,9 @@ type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: model_lat, base_lat
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
-type (tao_v1_var_struct) , pointer :: v1_ptr
+type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
+type (tao_v1_var_struct), pointer :: v1_ptr
+type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
 type (tao_var_struct), pointer :: v_ptr
@@ -438,8 +440,8 @@ do k = 1, size(graph%curve)
 
     ! point d1_ptr to the data to be plotted
 
-    call tao_find_data (err, curve%data_type, d2_ptr, d1_ptr, ix_uni = curve%ix_universe)
-    if (err) then
+    call tao_find_data (err, curve%data_type, d2_ptr, d1_array, ix_uni = curve%ix_universe)
+    if (err .or. size(d1_array) /= 1) then
       call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
       graph%valid = .false.
@@ -456,6 +458,7 @@ do k = 1, size(graph%curve)
 
     ! Set %good_plot True for all data that is within the x-axis limits
 
+    d1_ptr => d1_array(1)%d1
     d1_ptr%d%good_plot = .false.
     if (plot%x%min /= plot%x%max) then
       eps = 1e-4 * (plot%x%max - plot%x%min)
@@ -563,11 +566,12 @@ do k = 1, size(graph%curve)
 ! Case: data_source is a var_array
 
   case ('var_array')
-    call tao_find_var (err, curve%data_type, v1_ptr)
-    if (err) then
+    call tao_find_var (err, curve%data_type, v1_array)
+    if (err .or. size(v1_array) /= 1) then
       graph%valid = .false.
       return
     endif
+    v1_ptr => v1_array(1)%v1
 
     ! find which universe we're viewing
     ix_this = -1

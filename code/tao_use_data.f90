@@ -17,6 +17,7 @@ use tao_mod
 
 implicit none
 
+type (tao_d1_data_array_struct), allocatable, save :: d1_dat(:)
 type (tao_data_array_struct), allocatable, save :: d_dat(:)
 
 character(*) :: action
@@ -34,18 +35,16 @@ call match_word (action, name$%use_veto_restore, which)
 
 ! If "use" is choisen then must veto everything first.
 
+call tao_find_data (err, data_name, d1_array = d1_dat, d_array = d_dat)
+
 if (which == use$) then
-  call tao_find_data (err, data_name, d_array = d_dat, all_elements = .true.)
   if (err) return
-  do i = 1, size(d_dat)
-    d_dat(i)%d%good_user = .false.
+  do i = 1, size(d1_dat)
+    d1_dat(i)%d1%d%good_user = .false.
   enddo
 endif
 
 ! now do the set
-
-call tao_find_data (err, data_name, d_array = d_dat)
-if (err) return
 
 do i = 1, size(d_dat)
   select case (which)
@@ -54,8 +53,7 @@ do i = 1, size(d_dat)
   case (veto$)
     d_dat(i)%d%good_user = .false.
   case default
-    call out_io (s_error$, r_name, &
-                    "Internal error picking name$%use_veto_restore")
+    call out_io (s_error$, r_name, "Internal error picking name$%use_veto_restore")
     err = .true.
   end select
 enddo
@@ -64,10 +62,11 @@ enddo
 
 call tao_set_data_useit_opt()
 
-call tao_data_show_use (d_dat(1)%d%d1%d2)
-do i = 2, size(d_dat)
-  if (.not. associated(d_dat(i)%d%d1%d2, d_dat(i-1)%d%d1%d2)) &
-        call tao_data_show_use (d_dat(i)%d%d1%d2)
+do i = 1, size(d1_dat)
+  if (i > 1) then
+    if (associated(d1_dat(i)%d1%d2, d1_dat(i-1)%d1%d2)) cycle
+  endif
+  call tao_data_show_use (d1_dat(i)%d1%d2)
 enddo
 
 end subroutine tao_use_data

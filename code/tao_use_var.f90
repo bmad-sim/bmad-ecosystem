@@ -18,6 +18,7 @@ character(*) :: action
 character(*) :: var_name
 
 type (tao_var_array_struct), allocatable, save :: var(:)
+type (tao_v1_var_array_struct), allocatable, save :: v1(:)
 
 logical, allocatable :: action_logic(:) !which elements do we take action on?
 
@@ -31,20 +32,19 @@ logical err
 
 call match_word (action, name$%use_veto_restore, which)
 
+call tao_find_var (err, var_name, v1_array = v1, v_array = var)
+if (err) return
+
 ! If "use" then must veto everything first
 
+
 if (which == use$) then
-  call tao_find_var (err, var_name, v_array = var, all_elements = .true.)
-  if (err) return
-  do i = 1, size(var)
-    var(i)%v%good_user = .false.
+  do i = 1, size(v1)
+    v1(i)%v1%v%good_user = .false.
   enddo
 endif
 
 ! now do the set.
-
-call tao_find_var (err, var_name, v_array = var)
-if (err) return
 
 do i = 1, size(var)
   select case (which)

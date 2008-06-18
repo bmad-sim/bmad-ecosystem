@@ -600,9 +600,8 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_data (err, data_name, d2_ptr, d1_ptr, d_array, 
-!                           re_array, log_array, str_array, ix_uni, print_err, 
-!                           all_elements, blank_is_null, component)
+! Subroutine tao_find_data (err, data_name, d2_ptr, d1_array, d_array, re_array, 
+!                               log_array, str_array, ix_uni, print_err, component)
 !
 ! Routine to set data pointers to the correct data structures. 
 !
@@ -611,27 +610,16 @@ end subroutine
 ! The l_array will be used if the component is one of:
 !   exists, good_meas, good_ref, good_user, good_opt, good_plot
 ! 
-! Setting all_elements = .true. forces something like:
-!   data_name = 'orbit.x[3:10]'
-! to behave like
-!   data_name = 'orbit.x' (= 'orbit.x[*]')
-! That is, all elements of orbit.x are selected
-!
-! Normally 'orbit.x[*]' is synonymous with 'orbit.x' and in both cases d_array
-! will contain all the elements of the data array. If blank_is_null = .true.
-! then 'orbit.x' will be treated as if no elements are specified and d_array
-! will be nullified.
-!
 ! Example:
 !   data_name = '*@orbit.x'
-! In this case d2_ptr and d1_ptr will be nullifed since the data can refer to
+! In this case d2_ptr will be nullifed since the data can refer to
 ! more than one universe. 
 ! re_array & l_array will also be nullified since there is no data component specified.
 !
 ! Example:
 !   data_name = 'orbit'
-! In this case the default universe will be used. The d1_ptr will be nullified 
-! unless there is only one d1_data struct associated with 'orbit'. 
+! In this case the default universe will be used. The d1_array will have two components
+! pointing to orbit.x and orbit.y.
 ! re_array & l_array will also be nullified since there is no data component specified.
 !
 ! Example:
@@ -646,18 +634,15 @@ end subroutine
 !                     Also, if not present then the "viewed" universe will be used.
 !   print_err    -- Logical, optional: Print error message if data is 
 !                     not found? Default is True.
-!   all_elements -- Logical, optional: If present and True then override element 
-!                     selection and d_array will point to all elements.
-!   blank_is_null -- Logical, optional: See above for sxpanation.
 !
 ! Output:
 !   err          -- Logical: Err condition
-!   d2_ptr       -- Tao_d2_data_struct, optional, Pointer: to the d2 data structure if
+!   d2_ptr       -- Tao_d2_data_struct, pointer, optional: Pointer to the d2 data structure if
 !                     there is a unique structure to point to. Null otherwise.
-!   d1_ptr       -- Tao_d1_data_struct, optional: Pointer to the d1 data structure if
-!                     there is a unique structure to point to. Null otherwise.
+!   d1_array(:)  -- Tao_d1_data_array_struct, allocatable, optional: Pointers to all 
+!                     the matching d1_data structures.
 !   d_array(:)   -- Tao_data_array_struct, allocatable, optional: Pointers to all 
-!                   the matching tao_data_structs.
+!                     the matching tao_data_structs.
 !   re_array(:)  -- Tao_real_array_struct, allocatable, optional: Pointers to real 
 !                     component values.
 !   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers to
@@ -668,14 +653,14 @@ end subroutine
 !                     set to ' ' if no component present.
 !-
 
-subroutine tao_find_data (err, data_name, d2_ptr, d1_ptr, d_array, re_array, &
-     log_array, str_array, ix_uni, print_err, all_elements, blank_is_null, component)
+subroutine tao_find_data (err, data_name, d2_ptr, d1_array, d_array, re_array, &
+                                   log_array, str_array, ix_uni, print_err, component)
 
 implicit none
 
 type (tao_d2_data_struct), pointer, optional :: d2_ptr
-type (tao_d1_data_struct), pointer, optional :: d1_ptr
 type (tao_d2_data_struct), pointer :: d2_ptr_loc
+type (tao_d1_data_array_struct), allocatable, optional :: d1_array(:)
 type (tao_data_array_struct), allocatable, optional    :: d_array(:)
 type (tao_real_array_struct), allocatable, optional    :: re_array(:)
 type (tao_logical_array_struct), allocatable, optional :: log_array(:)
@@ -699,7 +684,7 @@ integer :: data_num, ios
 integer i, ix, iu
 
 logical err, component_here, this_err, print_error, error
-logical, optional :: print_err, all_elements, blank_is_null
+logical, optional :: print_err
 
 ! Init
 
@@ -707,7 +692,10 @@ print_error = logic_option(.true., print_err)
 
 nullify (d2_ptr_loc)
 if (present(d2_ptr)) nullify(d2_ptr)
-if (present(d1_ptr)) nullify(d1_ptr)
+
+if (present(d1_array)) then
+  if (allocated (d1_array)) deallocate (d1_array)
+endif
 if (present(d_array)) then
   if (allocated (d_array)) deallocate (d_array)
 endif
@@ -717,7 +705,6 @@ endif
 if (present(log_array)) then
   if (allocated (log_array)) deallocate (log_array)
 endif
-
 if (present(str_array)) then
   if (allocated (str_array)) deallocate (str_array)
 endif
@@ -768,7 +755,6 @@ else ! read universe number
       if (this_err) return
     enddo
     if (present(d2_ptr)) nullify(d2_ptr)
-    if (present(d1_ptr)) nullify(d1_ptr)
 
   else
     read (dat_name(:ix-1), '(i)', iostat = ios) iu
@@ -782,17 +768,27 @@ else ! read universe number
   endif
 endif
 
-! If d2_ptr points to something and there is only one d1 component then point d1_ptr to this.
-
-if (associated(d2_ptr_loc) .and. present(d1_ptr)) then
-  if (allocated(d2_ptr_loc%d1) .and. size(d2_ptr_loc%d1) == 1) d1_ptr => d2_ptr_loc%d1(1)
-endif
-
 ! error check
 
 if (err) then
   if (print_error) call out_io (s_error$, r_name, "Couldn't find data: " // data_name)
   return
+endif
+
+if (present(d1_array)) then
+  if (.not. allocated (d1_array)) allocate (d1_array(0))
+endif
+if (present(d_array)) then
+  if (.not. allocated (d_array)) allocate (d_array(0))
+endif
+if (present(re_array)) then
+  if (.not. allocated (re_array)) allocate (re_array(0))
+endif
+if (present(log_array)) then
+  if (.not. allocated (log_array)) allocate (log_array(0))
+endif
+if (present(str_array)) then
+  if (.not. allocated (str_array)) allocate (str_array(0))
 endif
 
 !----------------------------------------------------------------------------
@@ -828,12 +824,12 @@ endif
 
 do i = 1, uu%n_d2_data_used
   if (d2_name == '*') then
-    call find_this_d1 (uu%d2_data(i), d1_name, this_err)
+    call find_this_d1 (uu%d2_data(i), d1_name, .false., this_err)
     if (this_err) return
   elseif (d2_name == uu%d2_data(i)%name) then
     d2_ptr_loc => uu%d2_data(i)
     if (present(d2_ptr)) d2_ptr => uu%d2_data(i)
-    call find_this_d1 (uu%d2_data(i), d1_name, this_err)
+    call find_this_d1 (uu%d2_data(i), d1_name, .true., this_err)
     exit
   endif
 enddo
@@ -843,13 +839,13 @@ end subroutine
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine find_this_d1 (d2, name, this_err)
+subroutine find_this_d1 (d2, name, found_d1, this_err)
 
 type (tao_d2_data_struct), target :: d2
 integer i, ix
 character(*) name
 character(80) d1_name, d_name
-logical this_err
+logical found_d1, this_err
 
 ! Everything before a '[' is the d1 name.
 
@@ -857,7 +853,7 @@ ix = index(name, '[')
 
 if (ix == 0) then
   d1_name = name
-  d_name = ' '
+  d_name = '*'
 else
   d1_name = name(1:ix-1)
   d_name = name(ix+1:)
@@ -877,13 +873,11 @@ endif
 
 do i = 1, size(d2%d1)
   if (size(d2%d1) == 1 .and. d1_name == '') then
-    if (present(d1_ptr)) d1_ptr => d2%d1(i)
     call find_this_data (d2%d1(i), d_name, this_err)
   elseif (d1_name == '*') then
     call find_this_data (d2%d1(i), d_name, this_err)
     if (this_err) return
   elseif (d1_name == d2%d1(i)%name) then
-    if (present(d1_ptr)) d1_ptr => d2%d1(i)
     call find_this_data (d2%d1(i), d_name, this_err)
     exit
   endif
@@ -896,7 +890,8 @@ end subroutine
 
 subroutine find_this_data (d1, name, this_err)
 
-type (tao_d1_data_struct) :: d1
+type (tao_d1_data_struct), target :: d1
+type (tao_d1_data_array_struct), allocatable :: d1_temp(:)
 type (tao_data_array_struct), allocatable, save :: da(:)
 type (tao_real_array_struct), allocatable, save :: ra(:)
 type (tao_logical_array_struct), allocatable, save :: la(:)
@@ -910,6 +905,29 @@ character(80) d1_name, d_name
 logical this_err
 logical, allocatable, save :: list(:)
 
+! d1_array
+
+if (present(d1_array)) then
+  if (allocated(d1_array)) then
+    nd = size(d1_array)
+    if (nd > 0) then
+      allocate (d1_temp(nd))
+      d1_temp = d1_array
+      deallocate(d1_array)
+      allocate (d1_array(nd+1))
+      d1_array(1:nd) = d1_temp
+      deallocate(d1_temp)
+    else
+      deallocate(d1_array)
+      allocate (d1_array(1))
+    endif
+    d1_array(nd+1)%d1 => d1
+  else
+    allocate (d1_array(1))
+    d1_array(1)%d1 => d1
+  endif
+endif
+
 !
 
 if (allocated(list)) deallocate(list)
@@ -918,16 +936,12 @@ i2 = ubound(d1%d, 1)
 allocate (list(i1:i2))
 this_err = .false.
 
-if (logic_option(.false., blank_is_null) .and. name == ' ') then
-  err = .false. 
-  return
-
-elseif (logic_option(.false., all_elements) .or. name == '*' .or. name == ' ') then
+if (name == '*') then
   list = .true.
 
 else
   call location_decode (name, list, i1, num)
-  if (num <  1) then
+  if (num <  0) then
     call out_io (s_error$, r_name, "BAD DATA INDEX NUMBER(S): " // name)
     this_err = .true.
     return  
@@ -1095,8 +1109,8 @@ end subroutine tao_find_data
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine: tao_find_var (err, var_name, v1_ptr, v_array, re_array, log_array,  
-!                    str_array, print_err, all_elements, blank_is_null, component)
+! Subroutine: tao_find_var (err, var_name, v1_array, v_array, re_array, log_array,  
+!                                                    str_array, print_err, component)
 !
 ! Find a v1 variable type, and variable data then point to it.
 !
@@ -1105,17 +1119,6 @@ end subroutine tao_find_data
 ! The log_array will be used if the component is one of:
 !   exists, good_var, good_user, good_opt, good_plot
 ! 
-! Setting all_elements = .true. forces something like:
-!   var_name = 'quad_k1[3:10]'
-! to behave like
-!   var_name = 'quad_k1' (= 'quad_k1[*]')
-! That is, all elements of quad_k1 are selected
-!
-! Normally 'quad_k1[*]' is synonymous with 'quad_k1' and in both cases v_array
-! will contain all the elements of the data array. If blank_is_null = .true.
-! then 'quad_k1' will be treated as if no elements are specified and v_array
-! will be nullified.
-!
 ! Example:
 !   var_name = 'quad_k1[3]|design'
 !
@@ -1123,15 +1126,13 @@ end subroutine tao_find_data
 !   var_name     -- Character(*): Name of the variable.
 !   print_err    -- Logical, optional: Print error message if data is 
 !                     not found? Default is True.
-!   all_elements -- Logical, optional: If present and True then override element 
-!                     selection and v_array will point to all elements.
-!   blank_is_null -- Logical, optional: See above for sxpanation.
 !
 ! Output:
 !   err          -- Logical: err condition
-!   v1_ptr       -- Tao_v1_var_struct: pointer to the v1 variable
+!   v1_array(:)  -- Tao_v1_var_array_struct, allocatable, optional: Pointers to 
+!                     all the v1_var structures.
 !   v_array(:)   -- Tao_var_array_struct, allocatable, optional: Pointers to the 
-!                     variable data point
+!                     variable data point.
 !   re_array(:)  -- Tao_real_array_struct, allocatable, optional: Pointers to real 
 !                     component values.
 !   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers to
@@ -1142,12 +1143,12 @@ end subroutine tao_find_data
 !                   set to ' ' if no component present.
 !-
 
-subroutine tao_find_var (err, var_name, v1_ptr, v_array, re_array, log_array, &
-                    str_array, print_err, all_elements, blank_is_null, component)
+subroutine tao_find_var (err, var_name, v1_array, v_array, re_array, log_array, &
+                                                    str_array, print_err, component)
 
 implicit none
 
-type (tao_v1_var_struct), pointer, optional            :: v1_ptr
+type (tao_v1_var_array_struct), allocatable, optional  :: v1_array(:)
 type (tao_var_array_struct), allocatable, optional     :: v_array(:)
 type (tao_real_array_struct), allocatable, optional    :: re_array(:)
 type (tao_logical_array_struct), allocatable, optional :: log_array(:)
@@ -1167,14 +1168,16 @@ character(*), optional :: component
 character(20) :: r_name = 'tao_find_var'
 character(80) v1_name, v_name, component_name
 
-logical, optional :: print_err, all_elements, blank_is_null
+logical, optional :: print_err
 logical err, component_here, this_err, print_error
 
 ! Init
 
 print_error = logic_option(.true., print_err)
 
-if (present(v1_ptr)) nullify (v1_ptr)
+if (present(v1_array)) then
+  if (allocated (v1_array)) deallocate (v1_array)
+endif
 if (present(v_array)) then
   if (allocated (v_array)) deallocate (v_array)
 endif
@@ -1228,7 +1231,7 @@ endif
 
 ix = index(var_name, '[')
 if (ix == 0) then
-  v_name = ' '
+  v_name = '*'
 else
   v_name  = v1_name(ix+1:)
   v1_name = v1_name(1:ix-1)
@@ -1252,22 +1255,49 @@ endif
 
 ! Point to the correct v1 var type 
 
-do i = 1, s%n_v1_var_used
-  if (v1_name == '*') then
+
+if (v1_name == '*') then
+  if (present(v1_array)) allocate (v1_array(s%n_v1_var_used))
+  do i = 1, s%n_v1_var_used
+    if (present(v1_array)) v1_array(i)%v1 => s%v1_var(i)
     call find_this_var (s%v1_var(i), v_name, this_err)
     if (this_err) return
-  elseif (v1_name == s%v1_var(i)%name) then
-    if (present(v1_ptr)) v1_ptr => s%v1_var(i)
-    call find_this_var (s%v1_var(i), v_name, this_err)
-    exit
-  endif
-enddo
+  enddo
+
+else
+  do i = 1, s%n_v1_var_used
+    if (v1_name == s%v1_var(i)%name) then
+      if (present(v1_array)) then
+        allocate (v1_array(1))
+        v1_array(1)%v1 => s%v1_var(i)
+      endif
+      call find_this_var (s%v1_var(i), v_name, this_err)
+      exit
+    endif
+  enddo
+endif
 
 ! error check
 
 if (err) then
   if (print_error) call out_io (s_error$, r_name, "COULDN'T FIND VARIABLE: " // var_name)
   return
+endif
+
+if (present(v1_array)) then
+  if (.not. allocated (v1_array)) allocate (v1_array(0))
+endif
+if (present(v_array)) then
+  if (.not. allocated (v_array)) allocate (v_array(0))
+endif
+if (present(re_array)) then
+  if (.not. allocated (re_array)) allocate (re_array(0))
+endif
+if (present(log_array)) then
+  if (.not. allocated (log_array)) allocate (log_array(0))
+endif
+if (present(str_array)) then
+  if (.not. allocated (str_array)) allocate (str_array(0))
 endif
 
 !----------------------------------------------------------------------------
@@ -1298,11 +1328,7 @@ i2 = ubound(v1%v, 1)
 allocate (list(i1:i2), names(i1:i2))
 this_err = .false.
 
-if (logic_option(.false., blank_is_null) .and. name == ' ') then
-  err = .false. 
-  return
-
-elseif (logic_option(.false., all_elements) .or. name == '*' .or. name == ' ') then
+if (name == '*') then
   list = .true.
 
 else
@@ -1310,7 +1336,7 @@ else
     names(i) = v1%v(i)%ele_name
   enddo
   call location_decode (name, list, i1, num, names)
-  if (num <  1) then
+  if (num <  0) then
     call out_io (s_error$, r_name, "BAD VAR INDEX NUMBER(S): " // name)
     this_err = .true.
     return  
@@ -2357,17 +2383,17 @@ if (wild_type_com == 'DATA' .or. wild_type_com == 'BOTH') &
 if (.not. allocated(re_array) .and. (wild_type_com == 'VAR' .or. wild_type_com == 'BOTH')) &
                call tao_find_var (err_flag, str, re_array = re_array, print_err = .false.)
 
-if (allocated(re_array)) then
-  n = size(re_array)
-  allocate (value(n))
-  do i = 1, n
-    value(i) = re_array(i)%r
-  enddo
-else
+if (size(re_array) == 0) then
   call out_io (s_warn$, r_name, "This doesn't seem to be datum or variable value: " // str)
   err_flag = .true.
   return
 endif
+
+n = size(re_array)
+allocate (value(n))
+do i = 1, n
+  value(i) = re_array(i)%r
+enddo
 
 end subroutine
 

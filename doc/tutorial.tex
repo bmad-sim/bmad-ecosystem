@@ -282,34 +282,32 @@ defined in \tao type
 \end{example}
 the output should look like:
 \begin{example}
-                                                              Bounds
-     d2\_Name                       Ix  d1\_Name              Lower  Upper
-     orbit
-                                    1  x                      0    99
-                                    2  y                      0    99
-     phase
-                                    1  a                      0    99
-                                    2  b                      0    99
-     eta
-                                    1  x                      0    99
-                                    2  y                      0    99
-     beta
-                                    1  a                      0    99
-                                    2  b                      0    99
-     cbar
-                                    1  11                     0    99
-                                    2  12                     0    99
-                                    3  21                     0    99
-                                    4  22                     0    99
-
+   orbit.x[0:99]
+   orbit.y[0:99]
+ 
+   phase.a[0:99]
+   phase.b[0:99]
+ 
+   eta.x[0:99]
+   eta.y[0:99]
+ 
+   beta.a[0:99]
+   beta.b[0:99]
+ 
+   cbar.11[0:99]
+   cbar.12[0:99]
+   cbar.21[0:99]
+   cbar.22[0:99]
+ 
+   k.11b[0:99]
+   k.12a[0:99]
+   k.12b[0:99]
+   k.22a[0:99]
 \end{example}
-There are five data types defined in the initialization file. 
-For the first four data types there are two
-data dimensions defined corresponding to the horizontal and vertical
-planes. Coupling is parameterized by a 2x2 matrix so there are four
-``dimensions'' for these two data types. the ``Bounds'' columns refer
-to the lower and upper indexes on the datums. there are 100 BPMs in
-CESR so there are 100 data points.
+There are six \vn{d2} data types (\sref{s:data.org}) defined in the
+initialization file: \vn{orbit}, \vn{phase}, etc.  The \vn{beta} data is further
+subdivided into two \vn{d1} data arrays labeled \vn{beta.a} and \vn{beta.b}.
+Each of these arrays has 100 data points indexed from 0 to 99.
 
 To see the data values for the horizontal beta function for \cesr BPMs
 1 through 50 type

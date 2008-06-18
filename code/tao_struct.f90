@@ -253,7 +253,7 @@ end type tao_data_struct
 !   the u%data array. 
 
 type tao_d1_data_struct
-  character(40) name        ! Eg: "X", etc.
+  character(40) name        ! Eg: "x", etc.
   integer ix_data           ! index of the 0th element in u%data.
   type (tao_d2_data_struct), pointer :: d2 => null() ! ptr to parent d2_data
   type (tao_data_struct), pointer :: d(:) => null()  
@@ -285,6 +285,10 @@ end type
 
 type tao_data_array_struct
   type (tao_data_struct), pointer :: d
+end type
+
+type tao_d1_data_array_struct
+  type (tao_d1_data_struct), pointer :: d1
 end type
 
 ! A tao_real_array_struct is just a pointer to a real number.
@@ -382,6 +386,10 @@ end type
 
 type tao_var_array_struct
   type (tao_var_struct), pointer :: v
+end type
+
+type tao_v1_var_array_struct
+  type (tao_v1_var_struct), pointer :: v1
 end type
 
 
