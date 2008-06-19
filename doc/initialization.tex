@@ -111,7 +111,7 @@ lattice file specified in the initialization file
 \end{example}
 If there is more than one universe and the universes have different
 lattices, separate the different lattice names using a "|" character.
-Do not put any spaces inbetween. Example:
+Do not put any spaces in between. Example:
 \begin{example}
   \$CESR_EXE/tao -lat xsif::slac.xsif|cesr.bmad
 \end{example}
@@ -215,7 +215,7 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
 \end{example}
 
 \vn{n_universes} is the number of universes to be created not counting
-the possible common universe created when using \vn{CBL} anlysis. The
+the possible common universe created when using \vn{CBL} analysis. The
 default is 1.  \vn{design_lattice(i)} gives the lattice file name for
 universe \vn{i}.  Example:
 \begin{example}
@@ -317,7 +317,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{plot_on}\index{auto_scale}\index{opt_with_ref}\index{opt_with_base}
 \index{single_mode}\index{init_opt_wrapper}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
-\index{init_plot_needed}
+\index{init_plot_needed}\index{lattice_calc_on}\index{command_file_print_on}
 \index{print_command}\index{default_init_file}
 \index{current_init_file}\index{var_out_file}
 \begin{example}
@@ -342,17 +342,18 @@ type tao_global_struct
   character(16) :: default_key_merit_type
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
-  logical :: var_limits_on = T         ! Respect the variable limits?
-  logical :: plot_on = T               ! Do plotting?
-  logical :: auto_scale = F            ! Automatically scale and x-scale the plots?
-  logical :: opt_with_ref = F          ! use reference data in optimization?
-  logical :: opt_with_base = F         ! use base data in optimization?
+  logical :: var_limits_on = T           ! Respect the variable limits?
+  logical :: auto_scale = F              ! Automatically scale and x-scale the plots?
+  logical :: opt_with_ref = F            ! use reference data in optimization?
+  logical :: opt_with_base = F           ! use base data in optimization?
   logical :: init_opt_wrapper = T
-  logical :: label_lattice_elements = T ! For lat_layout plots
-  logical :: label_keys = T             ! For lat_layout plots
-  logical :: derivative_recalc = T      ! Recalc before each optimizer run?
-  logical :: init_plot_needed = T       ! reinitialize plotting?
-  logical :: lattice_calc_on = T        ! Master switch.
+  logical :: label_lattice_elements = T  ! For lat_layout plots
+  logical :: label_keys = T              ! For lat_layout plots
+  logical :: derivative_recalc = T       ! Recalc before each optimizer run?
+  logical :: init_plot_needed = T        ! reinitialize plotting?
+  logical :: plot_on = T                 ! Do plotting?
+  logical :: lattice_calc_on = T         ! Master switch.
+  logical :: command_file_print_on = T   ! Toggle printing when using a command file.
 end type
 \end{example}
 
@@ -385,13 +386,16 @@ so that no particles are generated beyond. This cutoff is set by
 \vn{global%random_gauss_cutoff}.
 
 \vn{global%lattice_calc_on} controls whether lattice calculations are
-done. This swtch is useful in controlling unnecessary calculational
+done. This switch is useful in controlling unnecessary calculational
 overhead.  A typical scenario where this switch is used involves first
 setting \vn{%lattice_calc_on} to \vn{False} (using the \vn{set}
 command (\sref{s:set})), then executing a set of commands, and finally
 setting \vn{%lattice_calc_on} back to \vn{True}. This saves some of
 the calculational overhead that each command generates. Similarly,
 \vn{global%plot_on} can be toggled to save even more time.
+
+The \vn{global%command_file_print_on} switch controlls whether printing
+is suppressed when a command file is called.
 
 The \vn{bmad_com_struct} holds bmad global variables. 
 \index{radiation_damping_on}
@@ -493,11 +497,11 @@ lattice will be used as the connection point. If
 occur.
 
 \vn{match_to_design} will set up a connection element that will match
-the design twiss parameters between the two lattices. This is
-performed by first finding the design twiss parameters for the
+the design Twiss parameters between the two lattices. This is
+performed by first finding the design Twiss parameters for the
 extraction point for the first lattice then by use of a \bmad
-\vn{match} element match those twiss parameters to the design
-beginning twiss parameters for the second lattice. The matching
+\vn{match} element match those Twiss parameters to the design
+beginning Twiss parameters for the second lattice. The matching
 element is not inserted into either lattice. Instead, it resides in
 the \tao connection structure and is tracked through separately. Note
 that the matching element is not an extraction kicker element. If an
@@ -635,9 +639,9 @@ set the variable \vn{use_saved_beam_in_tracking} to \vn{True}
 to prevent actual tracking.
 Note: A \vn{beam_all_file} will supersede a \vn{beam0_file}
 
-When there is no \vn{beam0_file} the twiss parameters at the beginning
+When there is no \vn{beam0_file} the Twiss parameters at the beginning
 of the lattice are used in initializing the beam distribution.  For
-circular lattices the twiss parameters will be found from the closed
+circular lattices the Twiss parameters will be found from the closed
 orbit, and the emittance will be calculated using the \bmad routine
 \vn{radiation_integrals}.
 

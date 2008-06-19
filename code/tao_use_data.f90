@@ -60,9 +60,8 @@ enddo
 
 ! Optimizer bookkeeping and Print out changes.
 
-call tao_set_data_useit_opt()
-
 do i = 1, size(d1_dat)
+  call tao_set_data_useit_opt(d1_dat(i)%d1%d)
   if (i > 1) then
     if (associated(d1_dat(i)%d1%d2, d1_dat(i-1)%d1%d2)) cycle
   endif

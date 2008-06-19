@@ -33,6 +33,7 @@ character(5) :: sub_str(9) = (/ '[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &
                             '[[6]]', '[[7]]', '[[8]]', '[[9]]' /)
 character(40) tag
 character(200), save :: saved_line
+character(40) :: r_name = 'tao_get_user_input'
 
 logical err, wait, flush
 logical, save :: init_needed = .true.
@@ -81,6 +82,8 @@ endif
 
 if (tao_com%cmd_file_level /= 0) then
 
+  call output_direct (do_print = s%global%command_file_print_on)
+
   n_level = tao_com%cmd_file_level
   if (.not. tao_com%multi_commands_here) then
     do
@@ -93,7 +96,7 @@ if (tao_com%cmd_file_level /= 0) then
     ! nothing more to do if an alias definition
 
     if (cmd_line(1:5) == 'alias') then
-      write (*, '(3a)') trim(prompt_string), ': ', trim(cmd_line)
+      call out_io (s_blank$, r_name, trim(prompt_string) // ': ' // trim(cmd_line))
       return
     endif
 
@@ -105,7 +108,7 @@ if (tao_com%cmd_file_level /= 0) then
                           trim(tao_com%cmd_file(n_level)%cmd_arg(i)) // cmd_line(ix+5:)
     enddo
     
-    write (*, '(3a)') trim(prompt_string), ': ', trim(cmd_line)
+    call out_io (s_blank$, r_name, trim(prompt_string) // ': ' // trim(cmd_line))
     
     ! Check if in a do loop
     call do_loop()

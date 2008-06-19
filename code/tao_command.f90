@@ -56,7 +56,7 @@ character(16) :: set_names(8) = (/ &
 
 
 
-logical quit_tao, err, silent
+logical quit_tao, err, silent, gang
 
 ! blank line => nothing to do
 
@@ -144,9 +144,16 @@ case ('change')
 
 case ('clip')
 
-  call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 4, cmd_word, .true., err); if (err) return
+
+  gang = .false.
+  if (index('-gang', cmd_word(1)) == 1 .and. len_trim(cmd_word(1)) > 0) then
+    gang = .true.
+    cmd_word(1:3) = cmd_word(2:4)
+  endif
+
   if (cmd_word(2) == ' ') then
-    call tao_clip_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
+    call tao_clip_cmd (gang, cmd_word(1), 0.0_rp, 0.0_rp) 
   else
     call tao_to_real (cmd_word(2), value1, err);  if (err) return
     if (cmd_word(3) /= ' ') then
@@ -155,7 +162,7 @@ case ('clip')
       value2 = value1
       value1 = -value1
     endif
-    call tao_clip_cmd (cmd_word(1), value1, value2)
+    call tao_clip_cmd (gang, cmd_word(1), value1, value2)
   endif
 
 !--------------------------------

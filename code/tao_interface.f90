@@ -39,9 +39,10 @@ interface
 end interface
  
 interface
-  subroutine tao_clip_cmd (where, value1, value2)
+  subroutine tao_clip_cmd (gang, where, value1, value2)
     use precision_def
     implicit none
+    logical gang
     character(*) :: where
     real(rp) value1, value2
   end subroutine
@@ -359,6 +360,7 @@ end interface
 interface
   subroutine tao_plot_struct_transfer (plot_in, plot_out)
     use tao_struct, only: tao_plot_struct
+    implicit none
     type (tao_plot_struct) plot_in
     type (tao_plot_struct) plot_out
   end subroutine
@@ -379,7 +381,10 @@ interface
 end interface
  
 interface
-  subroutine tao_set_data_useit_opt ()
+  subroutine tao_set_data_useit_opt (data)
+    use tao_struct, only : tao_data_struct
+    implicit none
+    type (tao_data_struct), optional :: data(:)
   end subroutine
 end interface
 

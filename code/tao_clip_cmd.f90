@@ -1,13 +1,17 @@
 !+
-! Subroutine tao_clip_cmd (where, y_min, y_max)
+! Subroutine tao_clip_cmd (gang, where, y_min, y_max)
 !
 ! Routine to veto (clip) data points whose plotted values lie outside of a 
 ! given range. 
+!
 ! The veto is applied by setting %good_user = .false. for the data.
 ! If y_min = y_max then the clip range will be the y_min and y_max of 
 ! the graph.
+!
+! The gang argument, if True, transferrs 
 ! 
 ! Input:
+!   gang    -- Logical: Gang all data d1 arrays together.
 !   where   -- Character(*): Graph() to clip. Eg: 'top:x'
 !   y_min   -- Real(rp): Min clip value.
 !   y_max   -- Real(rp): Max clip value.
@@ -15,7 +19,7 @@
 !  Output:
 !-
 
-subroutine tao_clip_cmd (where, y_min, y_max)
+subroutine tao_clip_cmd (gang, where, y_min, y_max)
 
 use tao_mod
 
@@ -31,7 +35,7 @@ integer i, j, ix
 
 character(*) where
 
-logical err
+logical err, gang
 
 ! If the where argument is blank then clip all graphs
 
