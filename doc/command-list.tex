@@ -244,27 +244,43 @@ Examples:
 
 Format:
 \begin{example}
-  clip \{<where> <limit1> <limit2>\}
+  clip \{-gang\} \{<where> \{<limit1> \{<limit2>\}\}\}
 \end{example}
 
-\vskip 0.2in 
-\vn{clip} vetoes data points for optimizing. If points are vetoed and
-either measured or reference data is being plotted then the points
-clipped will no longer be plotted. The points vetoed are those points
-whose $y$ values are outside a certain range defined by \vn{<limit1>}
-\vn{<limit2>}. If neither \vn{<limit1>} nor \vn{<limit2>} is present
-then the clip range is taken to be outside the graph minimum and
-maximum $y$--axis values. If only \vn{<limit1>} is present then the
-clip range is outside the range from -\vn{<limit1>} to
-+\vn{<limit1>}. If both are present than the range is from
-\vn{<limit1>} to \vn{<limit2>}.  Which graphs are clipped is
-determined by the \vn{<where>} switch.  If \vn{<where>} is not present
-all graphs are scaled.
+\vskip 0.2in \vn{clip} vetoes data points for plotting and
+optimizing. That is, the \vn{good_user} logical of the datums
+associated with the out-of-bound plotted points are set to False.
 
-Examples
+Which graphs are clipped is determined by the \vn{<where>} switch. If
+\vn{<where>} is not present, all graphs are clipped. If \vn{where} is a
+plot name, then all the graphs of that plot are clipped. If \vn{where}
+is the name of a \vn{d2_data} (for example, \vn{orbit}) or a
+\vn{d1_data} (for example, \vn{orbit.x}) structure, then those graphs
+that display this data are clipped.
+
+The points that are clipped those points whose $y$ values are outside
+a certain range defined by \vn{<limit1>} and \vn{<limit2>}. If neither
+\vn{<limit1>} nor \vn{<limit2>} are present, the clip range is taken
+to be outside the graph minimum and maximum $y$--axis values. If only
+\vn{<limit1>} is present then the clip range is outside the region
+from -\vn{<limit1>} to +\vn{<limit1>}. If both are present than the
+range is from \vn{<limit1>} to \vn{<limit2>}.
+
+The \vn{-gang} switch is apply a clip to corresponding data in a \vn{d2_data}
+structure. For example
 \begin{example}
-  clip top.x -3  7  ! clip the x graph in the top region
-  clip bottom       ! clip the graphs in the bottom region
+  clip -g orbit.x   ! Clips both orbit.x and orbit.y 
+\end{example}
+Here the \vn{orbit.x} data is clipped and the corresponding data in
+\vn{orbit.y} is also vetoed. For example, if datum number 23 in
+\vn{orbit.x} is clipped, datum number 23 in \vn{orbit.y} will be
+vetoed.
+
+Examples:
+\begin{example}
+  clip top.x -3  7  ! Clip the curves in the x graph in the top region
+  clip bottom       ! Clip the graphs in the bottom region
+  clip -g orbit.x   ! Clip the 
 \end{example}
 
 %% end-file --------------------------------------------------------------

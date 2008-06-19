@@ -147,7 +147,7 @@ case ('clip')
   call tao_cmd_split (cmd_line, 4, cmd_word, .true., err); if (err) return
 
   gang = .false.
-  if (index('-gang', cmd_word(1)) == 1 .and. len_trim(cmd_word(1)) > 0) then
+  if (index('-gang', trim(cmd_word(1))) == 1 .and. len_trim(cmd_word(1)) > 1) then
     gang = .true.
     cmd_word(1:3) = cmd_word(2:4)
   endif

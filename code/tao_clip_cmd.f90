@@ -78,11 +78,12 @@ subroutine clip_graph (plot, graph)
 
 type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
-type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
+type (tao_d1_data_array_struct), allocatable, save, target :: d1_array(:)
+type (tao_d2_data_struct), pointer :: d2
 type (tao_curve_struct), pointer :: curve
 
 real(rp) this_min, this_max
-integer i, j, k, iu
+integer i, j, k, iu, id
 
 ! If y_min = y_max then clip to graph boundries.
 
@@ -95,19 +96,25 @@ else
 endif
 
 ! Loop over all data points of all the curves of the graph.
-! If curve%ix_universe = 0 then universe the data came from is the
-! universe currently on view (s%global%u_view).
 
 do i = 1, size(graph%curve)
   curve => graph%curve(i)
   if (.not. allocated(curve%y_symb)) cycle
   do j = 1, size(curve%y_symb)
     if (this_min <= curve%y_symb(j) .and. curve%y_symb(j) <= this_max) cycle
+
     call tao_find_data (err, curve%data_type, d1_array = d1_array, ix_uni = curve%ix_universe)
-    if (err) return
-    do k = 1, size(d1_array)
-      d1_array(k)%d1%d(curve%ix_symb(j))%good_user = .false.  ! and clip it
-    enddo
+    if (err .or. size(d1_array) == 0) return    
+    id = curve%ix_symb(j)
+    d1_array(1)%d1%d(id)%good_user = .false.  ! and clip it
+
+    if (gang) then
+      d2 => d1_array(1)%d1%d2
+      do k = 1, size(d2%d1)
+        d2%d1(k)%d(id)%good_user = .false.
+      enddo
+    endif
+
   enddo
 enddo
 
