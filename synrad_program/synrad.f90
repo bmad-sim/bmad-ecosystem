@@ -202,7 +202,7 @@ program synrad
   endif
 
 ! write out results
-
+  ! set lat elements and twiss at wall segments
   call write_power_results(positive_x_wall, lat, sr_param, use_ele_ix)
   call write_power_results(negative_x_wall, lat, sr_param, use_ele_ix)
 
@@ -267,9 +267,9 @@ subroutine synch_calc (direction, beam_type, power)
   endif
 
   call twiss_and_track (lat, orb)
-
   call calculate_sr_power(lat, orb, direction, power, &
                                 walls, sr_param, use_ele_ix)
+  call set_wall_eles (walls, lat) 
 
 end subroutine
 

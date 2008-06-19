@@ -49,6 +49,8 @@ module sr_struct
     real(rp) s_mid, x_mid    ! s, x position of the segment at the midpoint
     real(rp) len             ! length of segment
     type (sr_power_struct) sr_power
+    integer ix_ele           ! lattice ele at s_mid
+    type (twiss_struct) :: a,b ! twiss info at s_mid
   end type wall_seg_struct
 
   type alley_struct
