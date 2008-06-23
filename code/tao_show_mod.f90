@@ -281,6 +281,8 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt) 'csr_param%lcsr_component_on    = ', csr_param%lcsr_component_on
     nl=nl+1; write(lines(nl), lmt) 'csr_param%lsc_component_on     = ', csr_param%lsc_component_on
     nl=nl+1; write(lines(nl), lmt) 'csr_param%tsc_component_on     = ', csr_param%tsc_component_on
+    nl=nl+1; write(lines(nl), lmt) 'csr_param%ix1_ele_csr          = ', csr_param%ix1_ele_csr
+    nl=nl+1; write(lines(nl), lmt) 'csr_param%ix2_ele_csr          = ', csr_param%ix2_ele_csr
     nl=nl+1; lines(nl) = ''
     call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, gamma = gam)
     nl=nl+1; write(lines(nl), rmt) 'model%lat%a%emit               = ', lat%a%emit

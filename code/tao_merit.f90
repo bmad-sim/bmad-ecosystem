@@ -51,9 +51,22 @@ do j = 1, size(s%var)
 
   if (.not. var%useit_opt) cycle
 
+  ! The common universe does not have ref or base so turn these off for
+  ! variables that control parameters in the common universe.
+
+  if (var%this(1)%ix_uni == ix_common_uni$) then
+    opt_with_ref = .false.
+    opt_with_base = .false.
+  else
+    opt_with_ref = s%global%opt_with_ref
+    opt_with_base = s%global%opt_with_base
+  endif
+
+  ! Calculate the merit delta
+
   select case (var%merit_type)
   case ('target', 'match')
-    if (s%global%opt_with_ref .and. s%global%opt_with_base) then
+    if (opt_with_ref .and. opt_with_base) then
       if (tao_com%common_lattice) then
         var%delta_merit = (var%model_value - var%common%model_value) - &
                                                 (var%meas_value - var%ref_value)
@@ -61,10 +74,10 @@ do j = 1, size(s%var)
         var%delta_merit = (var%model_value - var%base_value) - &
                                                 (var%meas_value - var%ref_value)
       endif
-    elseif (s%global%opt_with_ref) then
+    elseif (opt_with_ref) then
       var%delta_merit = (var%model_value - var%design_value) - &
                                                 (var%meas_value - var%ref_value)
-    elseif (s%global%opt_with_base) then
+    elseif (opt_with_base) then
       if (tao_com%common_lattice) then
         var%delta_merit = (var%model_value - var%common%model_value) - var%meas_value
       else
@@ -99,14 +112,18 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   data%merit = 0
   data%delta_merit = 0
 
-  opt_with_ref = s%global%opt_with_ref
-  opt_with_base = s%global%opt_with_base
+  ! The common universe does not have ref or base so turn these off for
+  ! data in the common universe.
+
   if (s%u(i)%common_uni) then
     opt_with_ref = .false.
     opt_with_base = .false.
+  else
+    opt_with_ref = s%global%opt_with_ref
+    opt_with_base = s%global%opt_with_base
   endif
 
-! check if universe is turned off
+! Check if universe is turned off
 
   if (.not. s%u(i)%is_on) cycle
 

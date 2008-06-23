@@ -209,6 +209,12 @@ Table~\ref{t:delta}.
 \caption{The form of \vn{delta}}  
 \label{t:delta}
 \end{table}
+An exception occurs when using a \vn{common base lattice}
+(\sref{s:cbl}). In this case, the common universe does not have base
+or reference values associated with it. Thus all data and variables
+that are associated with the common universe calculate their
+\vn{delta} as if both \vn{opt_with_ref} and \vn{opt_with_base} were
+set to \vn{False}.
 
 The \vn{Non-Zero-Condition} needed for a non--zero $D_i$ is dependent
 upon the \vn{merit_type} of the datum (\sref{s:data.anatomy}).

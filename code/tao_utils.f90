@@ -711,6 +711,11 @@ endif
 
 err = .true.
 
+if (data_name == '') then
+  if (print_error) call out_io (s_error$, r_name, 'DATA NAME IS BLANK')
+  return
+endif
+
 ! Select meas, ref, etc.
 
 ix = index(data_name, '|')

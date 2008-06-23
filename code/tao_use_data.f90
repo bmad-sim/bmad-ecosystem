@@ -36,15 +36,15 @@ call match_word (action, name$%use_veto_restore, which)
 ! If "use" is choisen then must veto everything first.
 
 call tao_find_data (err, data_name, d1_array = d1_dat, d_array = d_dat)
+if (err) return
 
 if (which == use$) then
-  if (err) return
   do i = 1, size(d1_dat)
     d1_dat(i)%d1%d%good_user = .false.
   enddo
 endif
 
-! now do the set
+! Now do the set
 
 do i = 1, size(d_dat)
   select case (which)
@@ -58,10 +58,15 @@ do i = 1, size(d_dat)
   end select
 enddo
 
-! Optimizer bookkeeping and Print out changes.
+! Optimizer bookkeeping 
 
 do i = 1, size(d1_dat)
   call tao_set_data_useit_opt(d1_dat(i)%d1%d)
+enddo
+
+! And print changes.
+
+do i = 1, size(d1_dat)
   if (i > 1) then
     if (associated(d1_dat(i)%d1%d2, d1_dat(i-1)%d1%d2)) cycle
   endif
