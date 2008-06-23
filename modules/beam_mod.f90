@@ -189,19 +189,24 @@ type (ele_struct), save :: rf_ele
 
 real(rp) charge
 integer i, j, n, ix_ele
+logical csr_on
 
 !------------------------------------------------
 ! space charge tracking will also include wakes if they are on too.
 
 if (lat%ele(ix_ele)%tracking_method == custom$) then
   call track1_bunch_custom (bunch_start, lat, ix_ele, bunch_end)
+  return
+endif
 
-elseif (bmad_com%coherent_synch_rad_on .and. lat%ele(ix_ele)%csr_calc_on) then
+csr_on = bmad_com%coherent_synch_rad_on .and. lat%ele(ix_ele)%csr_calc_on
+if (csr_param%ix1_ele_csr > -1) csr_on = csr_on .and. (ix_ele > csr_param%ix1_ele_csr) 
+if (csr_param%ix2_ele_csr > -1) csr_on = csr_on .and. (ix_ele <= csr_param%ix2_ele_csr) 
+
+if (csr_on) then
   call track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)
-
 else
   call track1_bunch_ele (bunch_start, lat%ele(ix_ele), lat%param, bunch_end)
-
 endif
 
 end subroutine track1_bunch_lat

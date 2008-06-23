@@ -99,11 +99,11 @@ interface
 end interface
 
 interface
-  subroutine cbar_to_c (cbar_mat, ele)
-    use bmad_struct, only: ele_struct, rp
+  subroutine cbar_to_c (cbar_mat, a, b, c_mat)
+    use bmad_struct, only: twiss_struct, rp
     implicit none
-    real(rp) cbar_mat(2,2)
-    type (ele_struct) ele
+    real(rp) cbar_mat(2,2), c_mat(2,2)
+    type (twiss_struct) a, b
   end subroutine
 end interface
 

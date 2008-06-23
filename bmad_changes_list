@@ -27,24 +27,23 @@ add function to calc: ring%param%s_end
 
 -----------------
 
-1) e_tot_ref_geometry.
-		a) debug
-		b) Talk to Jim
+*) cesrv
+		mode3 from dlr
 
-2) Branch:
+*) tao
+		csr tracking section
+		add branch stuff
+
+*) tao_cesr
+		read meas data from command line
+		read ref data from command line (make sure ref_vales set).
+
+*) Branch:
 	a) track_all & 
 	b) lat_mat6 calc with branch.
 	c) twiss propagate
 	d) emit calc
 	e) doc
 
-3) tao_cesr
+*) aml/uap
 
-4) aml/uap
-
-5) tao & branch
-
-6) bmad_to_autocad: extend for branches.
-
-7) tao
-		a) new doc.
