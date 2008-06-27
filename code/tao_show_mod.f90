@@ -1400,7 +1400,7 @@ case ('universe')
       call out_io (s_error$, r_name, 'BAD UNIVERSE NUMBER')
       return
     endif
-    if (ix_u < 1 .or. ix_u > ubound(s%u, 1)) then
+    if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
       call out_io (s_error$, r_name, 'UNIVERSE NUMBER OUT OF RANGE')
       return
     endif
@@ -1437,13 +1437,7 @@ case ('universe')
   endif
 
   nl=nl+1; write (lines(nl), '(a, f0.3)') "Lattice length: ", lat%param%total_length
-
-  if (u%is_on) then
-    nl=nl+1; write (lines(nl), '(a)') 'This universe is turned ON'
-  else
-    nl=nl+1; write (lines(nl), '(a)') 'This universe is turned OFF'
-  endif
-  
+  nl=nl+1; write (lines(nl), '(a)') 'This universe is turned: on_off_logic(u%is_on)'  
   nl=nl+1; write (lines(nl), lmt) 'Aperture limits on?: ', lat%param%aperture_limit_on
 
   if (.not. lat%param%stable .or. .not. lat%param%stable) then
@@ -1610,7 +1604,7 @@ case ('variable')
   endif
 
   if (word(1) == ' ') then
-    nl=nl+1; write (lines(2), '(7x, a, t50, a)') 'Name', 'Using'
+    nl=nl+1; write (lines(nl), '(7x, a, t50, a)') 'Name', 'Using'
     do i = 1, size(s%v1_var)
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle

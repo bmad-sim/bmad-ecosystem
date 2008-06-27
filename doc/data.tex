@@ -422,3 +422,9 @@ results.
 \end{equation}
 where the average \vn{<>} is over all the particles in the beam.
 
+\vn{unstable_ring} is used for storage rings. The value of an
+\vn{unstable_ring} datum is zero if the ring is stable and set to the
+largest growth rate of all the normal modes of oscillation if the ring
+is unstable. The value of an \vn{unstable_ring} datum is thus always
+non-zero.  \vn{unstable_ring} is used in an optimization to avoid
+unstable solutions (\sref{s:generalized.design}).

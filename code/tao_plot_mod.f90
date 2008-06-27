@@ -40,6 +40,8 @@ logical found, err, beam_source
 ! inits
 
 if (.not. s%global%plot_on) return
+call tao_create_plot_window () ! This routine knows not to create multiple windows.
+call qp_clear_page
 
 h = s%plot_page%text_height
 call qp_set_text_attrib ('TEXT', height = h)
@@ -48,10 +50,6 @@ call qp_set_text_attrib ('GRAPH_TITLE', height = h * s%plot_page%graph_title_tex
 call qp_set_text_attrib ('LEGEND', height = h * s%plot_page%legend_text_scale)
 call qp_set_text_attrib ('AXIS_NUMBERS', height = h * s%plot_page%axis_number_text_scale)
 call qp_set_text_attrib ('AXIS_LABEL', height = h * s%plot_page%axis_label_text_scale)
-
-call tao_create_plot_window () ! This routine knows not to create multiple windows.
-
-call qp_clear_page
 
 ! print the title 
 

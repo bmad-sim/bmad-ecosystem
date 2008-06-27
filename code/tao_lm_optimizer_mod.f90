@@ -200,7 +200,6 @@ do j = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. u%is_on) cycle
   do i = 1, size(u%data)
     if (.not. u%data(i)%useit_opt) cycle
-    if (.not. u%data(j)%good_model) cycle
     if (u%data(i)%weight == 0) cycle
     k = k + 1
     y_fit(k) = u%data(i)%delta_merit

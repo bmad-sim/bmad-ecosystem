@@ -78,7 +78,6 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
       if (.not. u%data(j)%useit_opt) cycle
       if (u%data(j)%weight == 0) cycle
       k = k + 1
-      if (.not. u%data(j)%good_model) cycle
       merit_vec(k) = sqrt(u%data(j)%weight) * u%data(j)%delta_merit
     enddo
   enddo
