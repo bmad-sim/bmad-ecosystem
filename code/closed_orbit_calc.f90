@@ -22,6 +22,15 @@
 ! significantly enough you might want to force a remake of the 1-turn matrices
 ! by calling clear_lat_1turn_mats.
 !
+! The closed orbit calculation stops when the following condition is satisfied:
+!   amp_del < amp_co * bmad_com%rel_tolerance + bmad_com%abs_tolerance
+! Where:
+!   amp_co = sum(abs(closed_orb[at beginning of lattice]))
+!   amp_del = sum(abs(closed_orb[at beginning] - closed_orb[at end]))
+!   closed_orb = vector: (x, px, y, py, z, pz)
+! closed_orb[at end] is calculated by tracking through the lattice starting 
+! from closed_orb[at start].
+!
 ! Note: See also closed_orbit_from_tracking as an alternative method
 ! of finding the closed orbit.
 !
@@ -50,10 +59,13 @@
 !                         programif the orbit does not converge. Default is
 !                         determined by bmad_status%exit_on_error
 !
-!   bmad_status    -- Bmad status common block
+!   bmad_status    -- Bmad_status_struct: Bmad status common block
 !     %exit_on_error -- Default for exit_on_error argument.
 !     %type_out      -- If True then the subroutine will type out
 !                         a warning message if the orbit does not converge.
+!   bmad_com       -- Bmad_common_struct: Bmad common block.
+!     %rel_tolerance -- Relative error. See above. Default = 1e-5
+!     %abs_tolerance -- Absolute error. See above. Default = 1e-8
 !
 ! Output:
 !   closed_orb(0:) -- Coord_struct, allocatable: Closed orbit. closed_orb(i)
@@ -231,7 +243,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
     endif
 
     amp_co = sum(abs(start%vec(1:nc)))
-    amp_del = sum(abs(del_co%vec(1:nc)))                                  
+    amp_del = sum(abs(del_co%vec(1:nc)))
 
     if (amp_del < amp_co * bmad_com%rel_tolerance + bmad_com%abs_tolerance) exit
 

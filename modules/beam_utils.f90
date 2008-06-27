@@ -97,10 +97,10 @@ character(20) :: r_name = 'track1_bunch_ele'
 
 ! It is not possible to calculate space charge without the entire lattice.
 
-if (bmad_com%coherent_synch_rad_on .and. ele%csr_calc_on) then
-  call out_io (s_abort$, r_name, 'CANNOT COMPUTE CSR WITHOUT ENTIRE LATTICE!')
-  call err_exit
-endif
+!if (bmad_com%coherent_synch_rad_on .and. ele%csr_calc_on) then
+!  call out_io (s_abort$, r_name, 'CANNOT COMPUTE CSR WITHOUT ENTIRE LATTICE!')
+!  call err_exit
+!endif
 
 ! Charge and center
 
