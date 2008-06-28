@@ -106,7 +106,7 @@ endif
 s%var%old_value = s%var%delta_merit
 if (s%global%orm_analysis) then 
   s%u(:)%mat6_recalc_on = .false.
-  tao_com%u_common%mat6_recalc_on = .false.
+  s%u(ix_common_uni$)%mat6_recalc_on = .true.
 endif
 
 do j = 1, s%n_var_used

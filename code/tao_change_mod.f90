@@ -192,7 +192,7 @@ logical err
 !-------------------------------------------------
 
 if (tao_com%common_lattice) then
-  u => tao_com%u_common
+  u => s%u(ix_common_uni$)
 else
   u => tao_pointer_to_universe(-1)
 endif

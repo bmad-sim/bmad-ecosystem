@@ -471,7 +471,6 @@ type tao_common_struct
   type (tao_ele_shape_struct), allocatable :: ele_shape_floor_plan(:)
   type (tao_ele_shape_struct), allocatable :: ele_shape_lat_layout(:)
   type (taylor_struct) :: taylor(6) ! Saved taylor map
-  type (tao_universe_struct), pointer :: u_common           ! Index of common universe.
   type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
   integer ix0_taylor, ix1_taylor     ! Taylor map end points
   logical opti_init             ! init needed?

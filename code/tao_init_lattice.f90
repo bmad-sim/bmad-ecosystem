@@ -88,13 +88,10 @@ endif
 if (tao_com%common_lattice) then
   allocate (s%u(0:tao_com%n_universes))
   allocate (tao_com%u_working)
-
-  tao_com%u_common => s%u(ix_common_uni$)
-  tao_com%u_common%common_uni = .true.
+  s%u(ix_common_uni$)%common_uni = .true.
 
 else
   allocate (s%u(tao_com%n_universes))
-  nullify (tao_com%u_common)
   nullify (tao_com%u_working)
 endif
 
@@ -219,8 +216,8 @@ enddo
 if (tao_com%common_lattice) then
 
   u => tao_com%u_working
-  u%common => tao_com%u_common
-  u%ele    => tao_com%u_common%ele
+  u%common => s%u(ix_common_uni$)
+  u%ele    => s%u(ix_common_uni$)%ele
   allocate (u%design, u%base, u%model)
   u%design%lat = u%common%design%lat
   u%base%lat   = u%common%base%lat
@@ -236,10 +233,10 @@ if (tao_com%common_lattice) then
   do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
     if (u%common_uni) cycle
-    u%common => tao_com%u_common
-    u%ele    => tao_com%u_common%ele
-    u%design => tao_com%u_common%design
-    u%base   => tao_com%u_common%model  ! Base is identical to common model
+    u%common => s%u(ix_common_uni$)
+    u%ele    => s%u(ix_common_uni$)%ele
+    u%design => s%u(ix_common_uni$)%design
+    u%base   => s%u(ix_common_uni$)%model  ! Base is identical to common model
     u%model  => tao_com%u_working%model
   enddo
 
