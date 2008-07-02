@@ -281,8 +281,8 @@ type cesr_data1_struct
 end type
 
 type cesr_all_data_struct
-  type (cesr_data1_struct) orbit_x(0:120), phase_x(0:120), eta_x(0:120)
-  type (cesr_data1_struct) orbit_y(0:120), phase_y(0:120), eta_y(0:120)
+  type (cesr_data1_struct) orbit_x(0:120), phase_a(0:120), eta_x(0:120)
+  type (cesr_data1_struct) orbit_y(0:120), phase_b(0:120), eta_y(0:120)
   type (cesr_data1_struct) cbar11_y(0:120), cbar12_x(0:120), cbar12_y(0:120), cbar22_x(0:120) 
   type (cesr_data1_struct) ac_eta_x(0:120), ac_etap_x(0:120), ac_eta_y(0:120), ac_etap_y(0:120)
   type (detector_struct) raw_orbit(0:120)
@@ -601,7 +601,7 @@ subroutine bmad_to_cesr (lat, cesr)
         enddo
 
       elseif (ele%name(1:4) == 'SC_V') then
-        do j = 101, size(cesr%v_steer)
+        do j = 101, ubound(cesr%v_steer, 1)
           if (ele%name == cesr%v_steer(j)%name) then
             call insert_info (cesr%v_steer(j), ele, i)
             cycle ele_loop
@@ -1294,8 +1294,8 @@ data%param%lattice_file_name = ''
 
 data%orbit_x%value  = 0;  data%orbit_x%good   = .false.
 data%orbit_y%value  = 0;  data%orbit_y%good   = .false.
-data%phase_x%value  = 0;  data%phase_x%good   = .false.
-data%phase_y%value  = 0;  data%phase_y%good   = .false.
+data%phase_a%value  = 0;  data%phase_a%good   = .false.
+data%phase_b%value  = 0;  data%phase_b%good   = .false.
 data%eta_x%value    = 0;  data%eta_x%good     = .false.
 data%eta_y%value    = 0;  data%eta_y%good     = .false.
 data%cbar11_y%value = 0;  data%cbar11_y%good  = .false.

@@ -389,10 +389,10 @@ if (ios /= 0) then
   return
 endif
 
-all_dat%phase_x%value = pc_%x_phase * twopi / 360
-all_dat%phase_x%good  = pc_%ok_x
-all_dat%phase_y%value = pc_%y_phase * twopi / 360
-all_dat%phase_y%good  = pc_%ok_y
+all_dat%phase_a%value = pc_%x_phase * twopi / 360
+all_dat%phase_a%good  = pc_%ok_x
+all_dat%phase_b%value = pc_%y_phase * twopi / 360
+all_dat%phase_b%good  = pc_%ok_y
 
 all_dat%cbar11_y%value = pc_%y_cbar11
 all_dat%cbar11_y%good  = pc_%ok_y
@@ -484,8 +484,8 @@ endif
 
 call transfer_data (orbit%x,  all_dat%orbit_x)
 call transfer_data (orbit%y,  all_dat%orbit_y)
-call transfer_data (phase%x,  all_dat%phase_x)
-call transfer_data (phase%y,  all_dat%phase_y)
+call transfer_data (phase%x,  all_dat%phase_a)
+call transfer_data (phase%y,  all_dat%phase_b)
 call transfer_data (eta%x,    all_dat%eta_x)
 call transfer_data (eta%y,    all_dat%eta_y)
 call transfer_data (cbar11,   all_dat%cbar11_y)
