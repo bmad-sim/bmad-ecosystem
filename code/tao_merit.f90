@@ -115,7 +115,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! The common universe does not have ref or base so turn these off for
   ! data in the common universe.
 
-  if (s%u(i)%common_uni) then
+  if (i == ix_common_uni$) then
     opt_with_ref = .false.
     opt_with_base = .false.
   else

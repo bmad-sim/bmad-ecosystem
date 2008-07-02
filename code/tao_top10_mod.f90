@@ -481,7 +481,7 @@ ix_hash = index (out_file, '#')
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
-  if (.not. s%u(i)%is_on) cycle
+  if (.not. tao_com%common_lattice .and. .not. s%u(i)%is_on) cycle
 
   file_name = out_file
   if (ix_hash /= 0) write (file_name, '(a, i0, a)') &
@@ -510,7 +510,7 @@ enddo
 ! This can save a lot of memory when the number of universes is large.
 
 if (size(s%u) > 1) then
-  file_name = 'all_constrints.out'
+  file_name = 'all_constraints.out'
   open (iu, file = file_name, carriagecontrol = 'list', recl = 100, iostat = ios)
   call tao_show_constraints (iu, 'ALL')
   close (iu)

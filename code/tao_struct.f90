@@ -590,7 +590,6 @@ type tao_universe_struct
   logical is_on                          ! universe turned on
   logical calc_beam_emittance            ! for a lat calculate emittance
   logical universe_recalc                ! Allows for fine control of lattice calculations
-  logical :: common_uni = .false.
   logical :: mat6_recalc_on = .true.     ! calc linear transfer matrix
 end type
 

@@ -88,7 +88,6 @@ endif
 if (tao_com%common_lattice) then
   allocate (s%u(0:tao_com%n_universes))
   allocate (tao_com%u_working)
-  s%u(ix_common_uni$)%common_uni = .true.
 
 else
   allocate (s%u(tao_com%n_universes))
@@ -109,7 +108,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! If unified then only read in a lattice for the common universe.
 
-  if (tao_com%common_lattice .and. .not. u%common_uni) cycle
+  if (tao_com%common_lattice .and. i /= ix_common_uni$) cycle
 
   ! Get the name of the lattice file
 
@@ -201,7 +200,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Init model, base, and u%ele
 
-  n = u%design%lat%n_ele_max
+  n = ubound(u%design%lat%ele, 1)
   allocate (u%model%orb(0:n), u%model%bunch_params(0:n))
   allocate (u%design%orb(0:n), u%design%bunch_params(0:n))
   allocate (u%base%orb(0:n), u%base%bunch_params(0:n))
@@ -222,7 +221,7 @@ if (tao_com%common_lattice) then
   u%design%lat = u%common%design%lat
   u%base%lat   = u%common%base%lat
   u%model%lat  = u%common%model%lat
-  n = u%design%lat%n_ele_max
+  n = ubound(u%design%lat%ele, 1)
   allocate (u%model%orb(0:n), u%model%bunch_params(0:n))
   allocate (u%design%orb(0:n), u%design%bunch_params(0:n))
   allocate (u%base%orb(0:n), u%base%bunch_params(0:n))
@@ -231,8 +230,8 @@ if (tao_com%common_lattice) then
   ! If unified then point back to the common universe (#1) and the working universe (#2)
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
+    if (i == ix_common_uni$) cycle
     u => s%u(i)
-    if (u%common_uni) cycle
     u%common => s%u(ix_common_uni$)
     u%ele    => s%u(ix_common_uni$)%ele
     u%design => s%u(ix_common_uni$)%design

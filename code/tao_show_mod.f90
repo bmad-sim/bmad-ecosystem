@@ -1416,7 +1416,6 @@ case ('universe')
   nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
   nl=nl+1; write (lines(nl), lmt) '%calc_beam_emittance   = ', u%calc_beam_emittance
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
-  nl=nl+1; write (lines(nl), lmt) '%common_uni            = ', u%common_uni
   nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam0_file)
   nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam_all_file)
   nl=nl+1; write (lines(nl), amt) '%save_beam_at:'

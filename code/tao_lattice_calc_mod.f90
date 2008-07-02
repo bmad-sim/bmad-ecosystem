@@ -197,9 +197,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! If calc is on common model then transfer data to base of all other universes
 
-  if (tao_com%common_lattice .and. this_who == model$ .and. u%common_uni) then
+  if (tao_com%common_lattice .and. this_who == model$ .and. i == ix_common_uni$) then
     do j = lbound(s%u, 1), ubound(s%u, 1)
-      if (s%u(j)%common_uni) cycle
+      if (j == ix_common_uni$) cycle
       s%u(j)%data(:)%base_value = u%data(:)%model_value
     enddo
   endif
