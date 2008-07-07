@@ -231,6 +231,8 @@ type cesr_det_plane_struct
   real(rp) cbar11                
   real(rp) cbar12
   real(rp) cbar22
+  real(rp) k_in_phase
+  real(rp) k_out_phase
   integer n_buts
   logical ok     
   logical shake

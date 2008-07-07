@@ -2,20 +2,19 @@
 \index{Bmad|textbf}
 
 \bmad\ (Otherwise known as ``Baby MAD" or ``Better MAD" or just plain
-``Be MAD!")  is a subroutine library for relativistic
+``Be MAD!") is a subroutine library for relativistic
 charged--particle dynamics simulations in high energy accelerators and
-storage ringss. \bmad\ has been developed at Cornell University's
+storage ringss. \bmad has been developed at Cornell University's
 Laboratory for Elementary Particle Physics and has been in use since
-the mid 1990's. 
+1996. 
 
-Prior to \bmad, simulation programs at Cornell were written almost from 
-scratch to perform
-calculations that were beyond the capability of existing, generally
-available software. This practice was inefficient, leading to much
-duplication of effort.  Since it was time consuming to write
-simulations, needed calculations where not being done.  As a response,
-the \bmad\ subroutines, using an object oriented approach and written
-in Fortran90, were developed to:
+Prior to the development of \bmad, simulation programs at Cornell were
+written almost from scratch to perform calculations that were beyond
+the capability of existing, generally available software. This
+practice was inefficient, leading to much duplication of effort.
+Since it was time consuming to write simulations, needed calculations
+where not being done.  As a response, the \bmad subroutines, using an
+object oriented approach and written in Fortran90, were developed to:
 \begin{Itemize}
 \item Cut down on the time needed to develop programs.
 \item Minimize computation times.
@@ -27,26 +26,26 @@ from within control system programs.
 programs.
 \end{Itemize}
 
-\bmad has a wide range of routines to do many things.  \bmad\ can be
+\bmad has a wide range of routines to do many things.  \bmad can be
 used to study both single and multi--particle beam dynamics.  It has
 routines to track both particles and macroparticles. \bmad has various
 tracking algorithms including Runge--Kutta and symplectic (Lie
 algebraic) integration.  Wake fields, and radiation excitation and
-damping can be simulated. \bmad\ has routines for calculating transfer
+damping can be simulated. \bmad has routines for calculating transfer
 matrices, emittances, Twiss parameters, dispersion, coupling, etc. The
-elements that \bmad\ knows about include quadrupoles, RF cavities
-(both storage ring and LINAC accelerating types), solenoids, dipole
-bends, etc. In addition, elements can be defined to control the
-attributes of other elements. This can be used to simulate the
-``I--beams'' which physically support components in the accelerator
- or to easily simulate the action of control room ``knobs''
-that gang together, say, the current going through a set of quadrupoles.
+elements that \bmad knows about include quadrupoles, RF cavities (both
+storage ring and LINAC accelerating types), solenoids, dipole bends,
+etc. In addition, elements can be defined to control the attributes of
+other elements. This can be used to simulate the ``girder'' which
+physically support components in the accelerator or to easily simulate
+the action of control room ``knobs'' that gang together, say, the
+current going through a set of quadrupoles.
 
-To be able to extend \bmad easily, \bmad has been developed
-in a modular, object oriented, fashion to maximize flexibility. As just one 
-example, each individual element can be assigned a particular tracking method
-in order to maximize speed or accuracy and the tracking methods can be assigned
-via the lattice file or at run time in a program.
+To be able to extend \bmad easily, \bmad has been developed in a
+modular, object oriented, fashion to maximize flexibility. As just one
+example, each individual element can be assigned a particular tracking
+method in order to maximize speed or accuracy and the tracking methods
+can be assigned via the lattice file or at run time in a program.
 
 
 \vfill
