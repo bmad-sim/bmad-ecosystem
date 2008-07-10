@@ -472,18 +472,20 @@ type tao_common_struct
   type (tao_ele_shape_struct), allocatable :: ele_shape_lat_layout(:)
   type (taylor_struct) :: taylor(6) ! Saved taylor map
   type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
+  type (tao_command_file_struct), allocatable :: cmd_file(:)
+  real(rp), allocatable :: covar(:,:), alpha(:,:)
+  real(rp) :: dummy_target = 0         ! Dummy varaible
   integer ix0_taylor, ix1_taylor     ! Taylor map end points
-  logical opti_init             ! init needed?
-  logical opti_at_limit         ! Variable at limit?
-  logical opti_abort            ! Abort loops?
-  logical :: multi_commands_here = .false.
   integer :: n_alias = 0
   integer :: cmd_file_level = 0 ! for nested command files
               ! unit numbers for a command files. 0 -> no command file.
   integer :: ix_key_bank = 0             ! For single mode.
   integer n_universes
-  type (tao_command_file_struct), allocatable :: cmd_file(:)
   logical :: use_cmd_here  = .false.     ! Used for the cmd history stack
+  logical opti_init             ! init needed?
+  logical opti_at_limit         ! Variable at limit?
+  logical opti_abort            ! Abort loops?
+  logical :: multi_commands_here = .false.
   logical cmd_from_cmd_file              ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
@@ -501,7 +503,6 @@ type tao_common_struct
   character(16) :: aperture_limit_on
   character(40) :: unique_name_suffix
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...
-  real(rp) :: dummy_target = 0         ! Dummy varaible
 end type
 
 !------------------------------------------------------------------------

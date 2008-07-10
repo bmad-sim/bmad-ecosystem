@@ -436,6 +436,8 @@ Format:
   output bmad_lattice \{<file_name>\}       ! Write a Bmad lattice file of the model
   output beam \{-ascii\} \{-at <element_name_or_index>\} \{<file_name>\} 
                                           ! Write beam distribution data.
+  output covariance_matrix \{file_name\}    ! Write the covariance and alpha matricies from 
+                                          !   the Levenburg-Marquardt (lm) optimization.
   output curve <curve_name> \{<file_name>\} ! Write the curve data
   output derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
   output digested \{<file_name>\}     ! Write a digested Bmad lattice file of the model.

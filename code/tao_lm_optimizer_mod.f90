@@ -35,7 +35,6 @@ implicit none
 type (tao_universe_struct), pointer :: u
 
 real(rp), allocatable, save :: y(:), weight(:), a(:)
-real(rp), allocatable, save :: covar(:,:), alpha(:,:)
 real(rp), allocatable, save :: y_fit(:)
 real(rp), allocatable, save :: dy_da(:, :)
 real(rp), allocatable, save :: var_value(:), var_weight(:), var_meas_value(:)
@@ -67,9 +66,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0)
 enddo
 
-if (allocated(y)) deallocate(y, weight, a, covar, alpha, y_fit, dy_da)
+if (allocated(y)) deallocate(y, weight, a, tao_com%covar, tao_com%alpha, y_fit, dy_da)
 allocate (y(n_data), weight(n_data), y_fit(n_data))
-allocate (a(n_var), covar(n_var,n_var), alpha(n_var,n_var))
+allocate (a(n_var), tao_com%covar(n_var,n_var), tao_com%alpha(n_var,n_var))
 allocate (dy_da(n_data, n_var))
 
 ! init a and y arrays
@@ -100,7 +99,8 @@ call out_io (s_blank$, r_name, '   Loop      Merit   A_lambda')
 do i = 1, s%global%n_opti_cycles+1
 
   if (a_lambda > 1e10) then
-    call out_io (s_blank$, r_name, 'Optimizer at minimum or derivatives need to be recalculated.')
+    call out_io (s_blank$, r_name, &
+                    'Optimizer at minimum or derivatives need to be recalculated.')
     finished = .true.
   endif
 
@@ -109,7 +109,7 @@ do i = 1, s%global%n_opti_cycles+1
     call tao_var_write (s%global%var_out_file)
   endif
 
-  call tao_mrqmin (y, weight, a, covar, alpha, chi_sq, a_lambda, limited) 
+  call tao_mrqmin (y, weight, a, tao_com%covar, tao_com%alpha, chi_sq, a_lambda, limited) 
   call tao_mrq_func (a, y_fit, dy_da, limited2)  ! put a -> model
   write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)

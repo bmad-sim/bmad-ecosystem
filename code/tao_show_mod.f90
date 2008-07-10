@@ -71,7 +71,6 @@ if (n > 1 .and. (index('-append', trim(what)) == 1 .or. &
 
   call output_direct (iu)  ! tell out_io to write to a file
 
-  !! call out_io (s_blank$, r_name, ' ', 'Tao> show ' // trim(show_what) // ' ' // stuff, ' ')
   call string_trim (stuff2, stuff2, ix)
   call tao_show_this (stuff2(1:ix), stuff2(ix+1:))  
 
@@ -149,7 +148,7 @@ character(60) nam
 character(16) :: show_what, show_names(22) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
-   'beam        ', '----------- ', 'graph       ', 'curve       ', 'particle    ', &
+   'beam        ', '------------', 'graph       ', 'curve       ', 'particle    ', &
    'hom         ', 'opt_vars    ', 'universe    ', 'orbit       ', 'derivative  ', &
    'branches    ', 'use         ' /)
 
@@ -164,8 +163,9 @@ integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2
 integer num_locations, ix_ele, n_name, n_e0, n_e1
 integer, allocatable, save :: ix_eles(:)
 
-logical err, found, at_ends, first_time, by_s, print_header_lines, show_sym, show_line, show_shape
-logical show_all, name_found, print_taylor, print_wig_terms, print_all, print_data
+logical err, found, at_ends, first_time, by_s, print_header_lines
+logical show_sym, show_line, show_shape, print_data
+logical show_all, name_found, print_taylor, print_wig_terms, print_all
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 
