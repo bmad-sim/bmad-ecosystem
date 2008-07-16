@@ -9,12 +9,25 @@ integer, private, save :: iu
 
 logical, private, save :: ascii_file
 
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
 contains
 
-subroutine open_beam_file (file_name)
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine tao_open_beam_file (file_name)
+!
+! Routine to open a beam file for reading.
+! Call tao_close_beam_file when done.
+!
+! Modules needed:
+!   use tao_read_beam_mod
+!
+! Input:
+!   file_name -- Character(*): Name of the beam file.
+!-
+
+subroutine tao_open_beam_file (file_name)
 
 implicit none
 
@@ -44,9 +57,16 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
-! contains
+!+
+! Subroutine tao_close_beam_file ()
+!
+! Routine to close a beam file that was opened with open_beam_file.
+!
+! Modules needed:
+!   use tao_read_beam_mod
+!-
 
-subroutine close_beam_file ()
+subroutine tao_close_beam_file ()
 
 implicit none
 
@@ -63,31 +83,46 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
-! contains
+!+
+! Subroutine tao_read_beam_file_header (ix_ele, n_bunch, n_particle)
+!
+! Routine to read in the beam parameters from a file
+!
+! Modules needed:
+!   use tao_read_beam_mod
+!
+! Output:
+!   ix_ele     -- Integer: Index of the lattice element at which the beam is to
+!                   be specified. 0 => beginning of lattice. -1 => End of file.
+!   n_bunch    -- Integer: Number of bunches.
+!   n_particle -- Integer: Number of particles per bunch.
+!-
 
-subroutine read_beam_params (ix_ele, n_bunch, n_particle, charge_bunch)
+
+subroutine tao_read_beam_file_header (ix_ele, n_bunch, n_particle)
 
 implicit none
 
 real(rp) charge_bunch
 integer n_bunch, n_particle, ix_ele, ios
-character(20) :: r_name = 'read_beam_params'
+character(20) :: r_name = 'read_beam_file_header'
 
 ! Read numbers
 
 if (ascii_file) then
-  read (iu, *, iostat = ios) ix_ele, n_bunch, n_particle, charge_bunch
+  read (iu, *, iostat = ios) ix_ele
+  read (iu, *, iostat = ios) n_bunch
+  read (iu, *, iostat = ios) n_particle
 else
-  read (iu, iostat = ios) ix_ele, n_bunch, n_particle, charge_bunch
+  read (iu, iostat = ios) ix_ele, n_bunch, n_particle
 endif
 
-if (ios < 0) then
-  ix_ele = -1
-elseif (ios > 0) then
-  ix_ele = -2
-  call out_io (s_error$, r_name, 'ERROR READING BEAM PARAMS')
+if (ios > 0) then
+  call out_io (s_error$, r_name, 'ERROR READING HEADER INFO!')
   call err_exit
 endif
+
+if (ios < 0) ix_ele = -1  ! End of file 
 
 end subroutine
 
@@ -95,13 +130,22 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine set_beam_params (n_bunch, n_particle, charge_bunch)
+! Subroutine tao_set_beam_params (n_bunch, n_particle, charge_bunch)
 !
-! Subroutine to set beam parameters.
-! This subroutine should be called before read_beam.
+! Subroutine to set some beam parameters.
+! These parameters will override the parameters set in the beam file.
+! This subroutine must be called before read_beam.
+!
+! Modules needed:
+!   use tao_read_beam_mod
+!
+! Input:
+!   n_bunch       -- Integer: Number of bunches.
+!   n_particle    -- Integer: Number of particles in a bunch.
+!   charge_bunch  -- Real(rp): Bunch charge
 !-
 
-subroutine set_beam_params (n_bunch, n_particle, charge_bunch)
+subroutine tao_set_beam_params (n_bunch, n_particle, charge_bunch)
 
 implicit none
 
@@ -120,27 +164,49 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine read_beam (beam)
+subroutine tao_read_beam (beam)
 
 implicit none
 
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
+type (particle_struct), pointer :: p(:)
 
-integer i, j, ios
-integer n_bunch, n_particle, ix_lost
-real(rp) charge_bunch, vec(6)
+integer i, j, k, ix, ios
+integer n_bunch, n_particle, n_particle_lines, ix_lost
+
+real(rp) vec(6), sum_charge
 complex(rp) spin(2)
+
 character(16) :: r_name = 'read_beam'
 character(200) line
 
-! parameters come from file unless set_beam_params has been called.
+! If an ASCII file: Count the number of particle lines.
 
-call read_beam_params (i, n_bunch, n_particle, charge_bunch)
+if (ascii_file) then
+  n_particle_lines = -3
+  do 
+    read (iu, '(a)', iostat = ios) line
+    if (ios /= 0) then
+      call out_io (s_fatal$, r_name, 'NO "END_BUNCH" MARKER FOUND!')
+      call err_exit
+    endif
+    call string_trim (line, line, ix)
+    if (line(1:9) == 'END_BUNCH') exit
+    n_particle_lines = n_particle_lines + 1
+  enddo  
+  rewind (iu)
+endif
+
+! Parameters come from the beam file unless set_beam_params has been called.
+
+call tao_read_beam_file_header (i, n_bunch, n_particle)
+if (n_particle == 0) n_particle = n_particle_lines
 
 if (num_bunch_set > 0) n_bunch = num_bunch_set
 if (num_particle_set > 0) n_particle = num_particle_set
-if (bunch_charge_set /= 0) charge_bunch = bunch_charge_set
+
+! Allocate space
 
 call reallocate_beam (beam, n_bunch, n_particle)
 
@@ -149,30 +215,57 @@ call reallocate_beam (beam, n_bunch, n_particle)
 
 do i = 1, n_bunch
   bunch => beam%bunch(i)
+  p => bunch%particle
+
   if (ascii_file) then
     read (iu, *) bunch%charge
     read (iu, *) bunch%z_center
     read (iu, *) bunch%t_center
-  else
-    read (iu) bunch%charge
-    read (iu) bunch%z_center
-    read (iu) bunch%t_center
-  endif
-  if (charge_bunch /= 0) bunch%charge = charge_bunch
-  do j = 1, n_particle
-    if (ascii_file) then
+    do j = 1, n_particle_lines 
+
+      if (j > n_particle) cycle
+      p(j)%charge = 0; p(j)%ix_lost = not_lost$; p(j)%r%spin = cmplx(0.0_rp, 0.0_rp)
+
       read (iu, '(a)') line
-      line = trim(line) // '  -1   0.0  0.0   0.0  0.0'   ! default ix_lost and spin
-      read (line, *) vec, ix_lost, spin
-    else
-      read (iu) vec, ix_lost, spin
-    endif
-    if (i > n_bunch .or. j > n_particle) cycle
-    bunch%particle(j)%r%vec = vec
-    bunch%particle(j)%r%spin = spin
-    bunch%particle(j)%ix_lost = ix_lost
-    bunch%particle(j)%charge = bunch%charge / n_particle
-  enddo
+
+      ix = 0
+      do k = 1, 6
+        call string_trim(line(ix+1:), line, ix)
+        read (line, *) p(j)%r%vec(k)
+      enddo
+
+      call string_trim(line(ix+1:), line, ix)
+      if (ix == 0) cycle
+      read (line, *) p(j)%charge
+
+      call string_trim(line(ix+1:), line, ix)
+      if (ix == 0) cycle
+      read (line, *) p(j)%ix_lost
+
+      call string_trim(line(ix+1:), line, ix)
+      if (ix == 0) cycle
+      read (line, *) p(j)%r%spin
+
+    enddo
+    read (iu, '(a)') line  ! END_BUNCH line
+
+  else
+    read (iu) bunch%charge, bunch%z_center, bunch%t_center, n_particle_lines
+    do j = 1, n_particle_lines
+      read (iu) p(j)%r%vec, p(j)%charge, p(j)%ix_lost, p(j)%r%spin
+      if (j > n_particle) cycle
+    enddo
+  endif
+
+  if (bunch_charge_set /= 0) bunch%charge = bunch_charge_set
+  sum_charge = sum(p(:)%charge)
+  if (bunch%charge == 0) then
+    bunch%charge = sum_charge
+  elseif (sum_charge == 0) then
+    p%charge = bunch%charge / n_particle
+  else
+    p%charge = p%charge * bunch%charge / sum_charge
+  endif
 enddo
 
 end subroutine

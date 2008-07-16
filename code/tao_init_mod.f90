@@ -402,19 +402,15 @@ if (i > 1) u%save_beam_at(1:i-1) = save_beam_at(1:i-1)
 
 if (u%beam_all_file /= '') then
   tao_com%use_saved_beam_in_tracking = .true.
-  call open_beam_file (beam_all_file)
-  
+  call tao_open_beam_file (beam_all_file)
+  call tao_read_beam_file_header (j, u%beam_init%n_bunch, u%beam_init%n_particle)  
   do
-    call read_beam_params (j, n_bunch, n_particle, bunch_charge)
     if (j == -1) exit
-    u%beam_init%n_bunch = n_bunch
-    u%beam_init%n_particle = n_particle
-    u%beam_init%bunch_charge = bunch_charge
-    call read_beam (u%ele(j)%beam)
+    call tao_read_beam (u%ele(j)%beam)
   enddo  
 
   call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam_all_file)
-  call close_beam_file ()
+  call tao_close_beam_file ()
 
 endif
 

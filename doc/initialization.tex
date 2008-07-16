@@ -96,12 +96,12 @@ The \vn{-init} optional argument can be used to replace the default
 initialization file name (\vn{tao.init}) with \vn{<init_file_name>}.
 
 The \vn{-beam_all} optional argument reads in a beam data file for the
-entire lattice.  This overrides the \vn{global%beam_file} variable
-(\sref{s:globals}.
+entire lattice and this data is used in place of beam tracking. This
+overrides the \vn{beam_all_file} variable (\sref{s:beam.init}.
 
 The \vn{-beam0} optional argument reads in a beam data file which is
-use to initialize the beam at the beginning of the lattice. This
-overrides the \vn{global%beam0_file} variable (\sref{s:beam.init}.
+used to initialize the beam at the beginning of the lattice. This
+overrides the \vn{beam0_file} variable (\sref{s:beam.init}.
 
 The \vn{<lattice_file>} is used to override the \vn{design_lattice}
 lattice file specified in the initialization file
@@ -615,38 +615,66 @@ construct the beam's particle distribution. If not set then the emittances set i
 the lattice file are used. These emittances are also used as the initial emittance
 in a linear lattice for the emittance calculation using the radiation integrals.
 
-\vn{beam0_file} specifies a beam data file (which can be
-created with the \vn{output beam -at <ele_name>} command) which contains a beam's
-particle coordinates which are to be used at the start of the lattice. 
-The file name can be overridden by using the \vn{-beam0}
-argument on the command line (\sref{s:command.line}. 
-
-If a \vn{beam0_file} is specified then \vn{beam_init} is ignored and
-the initial particle positions of the beam are read from the file. However,
-\vn{beam_init%bunch_charge} can be used to set the bunch charge and
-\vn{beam_init%n_particle}, if set, will be used to determine the number of
-particles in a bunch. In this case \vn{beam_init%n_particle} must not be
-greater then the number of particles specified in the file. The file format is
+The \vn{beam0_file} component specifies a beam data file (which can be
+created with the \vn{output beam -at <ele_name>} command) which
+contains a beam's particle coordinates which are to be used at the
+start of the lattice.  Note: The file name can be overridden by using
+the \vn{-beam0} argument on the command line
+(\sref{s:command.line}. The file can either be in binary format
+(binary files can be created by the \vn{output beam} command), or
+written in ASCII. The ASCII file format is:
 \begin{example}
-  0  <n_bunch> <n_particle> <bunch_charge>
-  [Repeat block: bunch index: ib = 1 to n_bunch]
-    <bunch(ib) charge>
-    <bunch(ib) z_center>
-    <bunch(ib) t_center>
-    [Repeat block: particle index ip = 1 to n_particle]
-      <x>    <px>   <y>    <py>   <z>   <pz> 
+  <ix_ele>         ! Lattice element index. This is ignored.
+  <n_bunch>        ! Number of bunches.
+  <n_particle>     ! Number of particles per bunch to use. 0 => Use all.
+  [bunch loop: ib = 1 to n_bunch]
+    <bunch_charge> ! Charge of bunch. 0 => Use <particle_charge>.
+    <z_center>     ! z position at center of bunch.
+    <t_center>     ! t position at center of bunch.
+    [particle loop: Stop when END_BUNCH marker found]
+      <x>    <px>   <y>    <py>   <z>   <pz>   <particle_charge> <ix_lost> <spin>
+    [end particle loop]
+    END_BUNCH   ! Marker to signal the end of the particle loop
+  [end bunch loop]
 \end{example}
+The first line of the file gives \vn{ix_ele}, the index of the lattice
+element at which the distribution was created. This is ignored when
+the file is readin. The second line gives \vn{<n_bunch>}, the number
+of bunches. The third line gives \vn{n_particle} the number of
+particles in a bunch. After this, there are \vn{<n_bunch>} blocks of
+data, one for each bunch. Each one of these blocks consists of three
+lines followed by a set of lines, one for each particle and ending
+with a line starting with a \vn{END_BUNCH} marker string. Only the
+phase space coordinates need to be specified for each particle. if
+\vn{<particle_charge>} is not present, or is zero, it defaults to
+\vn{bunch_charge/n_particle}. \vn{<ix_lost>} is the index at which the
+particle has been lost at. A value of -1 for \vn{<ix_lost>} indicates
+that the particle is still alive.
 
-\vn{beam_all_file} specifies a beam data file (which can be created
-with the \vn{output beam} command) which contains the particle
-coordinates of the tracked beam at every element. This causes \tao to
-use the data from the file in lieu of actual tracking. This can be
-helpful when the time for \tao to track a bunch through the lattice
-becomes long. The file name can be overridden by using the \vn{-beam_all}
-argument on the command line (\sref{s:command.line}. Note: \tao will
-set the variable \vn{use_saved_beam_in_tracking} to \vn{True}
-to prevent actual tracking.
-Note: A \vn{beam_all_file} will supersede a \vn{beam0_file}
+The number of particles specified may be more then
+\vn{<n_particle>}. In this case, particles will be discarded so that
+the the beam has \vn{<n_particle>} particles. If \vn{<n_particles>} is
+zero, all the particles will be used. Additionally, if
+\vn{beam_init%n_particle}, if set in the \tao input file, this will
+override the setting of \vn{<n_particle>} in the beam file.
+
+Each particle has an associated \vn{<particle_charge>}. If
+\vn{<bunch_charge>} is set to a non-zero value, the charge of all the
+particles will be scalled by a factor to make the bunch charge equal
+to \vn{<bunch_charge>}. Additionally, if \vn{beam_init%bunch_charge}
+is set in the \tao input file, this will override the setting of
+\vn{bunch_charge} in the beam file.
+
+The \vn{beam_all_file} component specifies a beam data file (which can
+be created with the \vn{output beam} command) which contains the
+particle coordinates of the tracked beam at every element. This causes
+\tao to use the data from the file in lieu of actual tracking. This
+can be helpful when the time for \tao to track a bunch through the
+lattice becomes long. The file name can be overridden by using the
+\vn{-beam_all} argument on the command line
+(\sref{s:command.line}. Note: \tao will set the variable
+\vn{use_saved_beam_in_tracking} to \vn{True} to prevent actual
+tracking.  Note: A \vn{beam_all_file} will supersede a \vn{beam0_file}
 
 When there is no \vn{beam0_file} the Twiss parameters at the beginning
 of the lattice are used in initializing the beam distribution.  For

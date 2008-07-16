@@ -448,8 +448,9 @@ do j = ie1, ie2
 
   if (j /= 0) then
     if (u%mat6_recalc_on) then
-      call make_mat6 (lat%ele(j), lat%param, lat%ele(j-1)%ref_orb_out)
+      call make_mat6 (lat%ele(j), lat%param, lat%ele(j-1)%ref_orb_out, err = err)
       call twiss_propagate1 (lat%ele(j-1), lat%ele(j))
+      if (.not. bmad_status%ok) exit
     endif
   endif
 
@@ -696,11 +697,11 @@ endif
 
 if (u%beam0_file /= "") then
   if (tao_com%init_beam0 .or. .not. allocated(u%beam0%bunch)) then
-    call open_beam_file (u%beam0_file)
-    call set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, &
+    call tao_open_beam_file (u%beam0_file)
+    call tao_set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, &
                                                        u%beam_init%bunch_charge)
-    call read_beam (u%beam0)
-    call close_beam_file()
+    call tao_read_beam (u%beam0)
+    call tao_close_beam_file()
     call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
   endif
   call tao_find_beam_centroid (u%beam0, orb0, too_many_lost) 
@@ -839,21 +840,23 @@ endif
 ! set up matching element
 connection_ele%value( beta_a0$) = extract_ele%a%beta
 connection_ele%value(alpha_a0$) = extract_ele%a%alpha
-connection_ele%value(  eta_a0$) = extract_ele%a%eta
-connection_ele%value( etap_a0$) = extract_ele%a%etap
+connection_ele%value(  eta_x0$) = extract_ele%x%eta
+connection_ele%value( etap_x0$) = extract_ele%x%etap
+
 connection_ele%value( beta_b0$) = extract_ele%b%beta
 connection_ele%value(alpha_b0$) = extract_ele%b%alpha
-connection_ele%value(  eta_b0$) = extract_ele%b%eta
-connection_ele%value( etap_b0$) = extract_ele%b%etap
+connection_ele%value(  eta_y0$) = extract_ele%y%eta
+connection_ele%value( etap_y0$) = extract_ele%y%etap
   
 connection_ele%value( beta_a1$) = inject_ele%a%beta
 connection_ele%value(alpha_a1$) = inject_ele%a%alpha
-connection_ele%value(  eta_a1$) = inject_ele%a%eta
-connection_ele%value( etap_a1$) = inject_ele%a%etap
+connection_ele%value(  eta_x1$) = inject_ele%x%eta
+connection_ele%value( etap_x1$) = inject_ele%x%etap
+
 connection_ele%value( beta_b1$) = inject_ele%b%beta
 connection_ele%value(alpha_b1$) = inject_ele%b%alpha
-connection_ele%value(  eta_b1$) = inject_ele%b%eta
-connection_ele%value( etap_b1$) = inject_ele%b%etap
+connection_ele%value(  eta_y1$) = inject_ele%y%eta
+connection_ele%value( etap_y1$) = inject_ele%y%etap
   
 connection_ele%value(dphi_a$)   = mod(inject_ele%a%phi - extract_ele%a%phi,twopi)
 connection_ele%value(dphi_b$)   = mod(inject_ele%b%phi - extract_ele%b%phi,twopi)
