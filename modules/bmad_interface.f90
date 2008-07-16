@@ -418,13 +418,14 @@ interface
 end interface
  
 interface
-  subroutine make_mat6 (ele, param, start, end, end_in)
+  subroutine make_mat6 (ele, param, start, end, end_in, err)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct) ele
     type (coord_struct), optional :: start, end
     type (lat_param_struct) param
     logical, optional :: end_in
+    logical, optional :: err
   end subroutine
 end interface
 
@@ -439,13 +440,14 @@ interface
 end interface
 
 interface
-  subroutine make_mat6_bmad (ele, param, start, end, end_in)
+  subroutine make_mat6_bmad (ele, param, start, end, end_in, err)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start, end
     type (lat_param_struct) param
     logical, optional :: end_in
+    logical, optional :: err
   end subroutine
 end interface
 
@@ -1035,11 +1037,10 @@ interface
 end interface
 
 interface
-  subroutine twiss_propagate_all (lat, set_match)
+  subroutine twiss_propagate_all (lat)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) lat
-    logical, optional :: set_match
   end subroutine
 end interface
 

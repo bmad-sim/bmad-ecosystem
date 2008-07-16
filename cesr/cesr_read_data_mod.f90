@@ -132,32 +132,146 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_orbit_data (orbit_number, all_dat, err)
+! Subroutine number_to_cesr_data_file (number, who, file_name, err, print_err)
 !
-! Routine to read the data in a raw orbit file.
+! Routine to form the file name for a phase, orbit, eta, or ac_dispersion
+! data file. 
+! If number is negative then the number of the data file will be:
+!   number_of_last_data_set + number
 !
 ! Modules needed:
 !   use cesr_read_data_mod
 !
 ! Input:
-!   orbit_number -- Integer: Number of the orbit data file.
+!   number    -- Integer: Number of the orbit data file.
+!   who       -- Character(*): 'phase', 'orbit', 'eta', or 'ac_eta'  
+!   print_err -- Logical, optional: Print an error message if there is an error?
+!                 Default is True.
+!
+! Output:
+!   file_name -- Character(*): Full file name including directory spec.
+!   err       -- Logical: Set True if there is an error. False otherwise.
+!-
+
+subroutine number_to_cesr_data_file (number, who, file_name, err, print_err)
+
+implicit none
+
+integer number, ix_set
+
+character(*) who, file_name
+character(40) :: r_name = 'number_to_cesr_data_file'
+logical err
+logical, optional :: print_err
+
+!
+
+file_name = ''
+call number_to_data_file_number (number, who, ix_set, err, print_err)
+if (err) return
+call form_file_name_with_number (who, ix_set, file_name, err)
+
+end subroutine
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine number_to_data_file_number (num_in, who, num_out, err, print_err)
+!
+! Routine to form the file name for a phase, orbit, eta, or ac_dispersion
+! data file. 
+!   num_out = num_in                             if num_in > 0
+!           = number_of_last_data_set + num_in   otherwise
+!
+! Modules needed:
+!   use cesr_read_data_mod
+!
+! Input:
+!   num_in    -- Integer: Number of the orbit data file.
+!   who       -- Character(*): 'phase', 'orbit', 'eta', or 'ac_eta'  
+!   print_err -- Logical, optional: Print an error message if there is an error?
+!                 Default is True.
+!
+! Output:
+!   file_name -- Character(*): Full file name including directory spec.
+!                   Set to '' if there is an error.
+!   err       -- Logical: Set True if there is an error. False otherwise.
+!-
+
+subroutine number_to_data_file_number (num_in, who, num_out, err, print_err)
+
+implicit none
+
+integer num_in, num_out
+
+character(*) who
+character(40) :: r_name = 'number_to_data_file_number'
+logical err
+logical, optional :: print_err
+
+!
+
+select case (who)
+
+case ('phase')
+  call calc_file_number ('$CESR_MNT/phase/phase.number', num_in, num_out, err)
+
+case ('orbit')
+  call calc_file_number ('CESR_MNT:[orbit]next_butnum.num', num_in, num_out, err)
+  if (err) return
+  if (num_in < 1)  num_out = num_out - 1  ! Number in file is 1 + current number
+
+case ('eta')
+  call calc_file_number ('$CESR_MNT/eta/eta.number', num_in, num_out, err)
+  if (err) return
+
+case ('ac_eta')
+
+case default
+  if (logic_option(.true., print_err)) &
+                call out_io (s_error$, r_name, 'BAD "WHO": ' // who)
+  return
+end select
+
+
+
+
+end subroutine
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine read_cesr_orbit_data (file_name, all_dat, err)
+!
+! Routine to read the data in a raw orbit file.
+! Note: You can use number_to_cesr_data_file to convert from an orbit number
+! to a data file name.
+!
+! Modules needed:
+!   use cesr_read_data_mod
+!
+! Input:
+!   file_name -- Character(*): Name of the orbit data file. 
 !
 ! Output:
 !   all_dat   -- cesr_all_data_struct: Holds the data along with 
 !                     data base and measurement parameters.
 !-
 
-subroutine read_cesr_orbit_data (orbit_number, all_dat, err)
+subroutine read_cesr_orbit_data (file_name, all_dat, err)
 
 implicit none
 
 type (butns_struct) butns
 type (cesr_all_data_struct) all_dat
 
-character(100) file_name, dir
+character(*) file_name
+character(100) dir, name
 character(40) :: r_name = 'read_cesr_orbit_data'
 
-integer i, ix, ix_in, ix_set, orbit_number
+integer i, ix, ix_in
 
 logical err_flag, read_ok, err, is_rel
 
@@ -166,21 +280,19 @@ logical err_flag, read_ok, err, is_rel
 call cesr_all_data_struct_init (all_dat)
 
 err_flag = .true.
-call calc_file_number ('CESR_MNT:[orbit]next_butnum.num', orbit_number, ix_set, err)
-if (err) call err_exit
-if (orbit_number < 1)  ix_set = ix_set - 1  ! Number in file is 1 + current number
 
-call read_butns_file (ix_set, .true., butns, all_dat%db, read_ok, .true.)
+call read_butns_file (file_name, .true., butns, all_dat%db, read_ok, .true.)
 if (.not. read_ok) call err_exit
 
-all_dat%param%ix_data_set = ix_set
+ix = splitfilename (file_name, dir, name, is_rel)
+all_dat%param%file_name = name
+ix = index(name, '.')
+if (is_integer(name(ix+1:))) read (name(ix+1:), *) all_dat%param%ix_data_set 
+
 all_dat%param%lattice   = butns%lattice
 all_dat%param%data_date = butns%date
 all_dat%param%comment   = butns%comment(1)
 all_dat%param%csr_set   = butns%save_set
-
-call form_file_name_with_number ('ORBIT', ix_set, file_name, err_flag)
-ix = splitfilename (file_name, dir, all_dat%param%file_name, is_rel)
 
 all_dat%orbit_x%value = butns%det%x_orb
 all_dat%orbit_y%value = butns%det%y_orb
@@ -193,35 +305,37 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_dispersion_data (eta_number, all_dat, err)
+! Subroutine read_cesr_dispersion_data (file_name, all_dat, err)
 !
 ! Routine to read the data in a raw dispersion file.
+! Note: You can use number_to_cesr_data_file to convert from an orbit number
+! to a data file name.
 !
 ! Modules needed:
 !   use cesr_read_data_mod
 !
 ! Input:
-!   eta_number -- Integer: Number of the eta data file.
+!   file_name -- Character(*): Name of the orbit data file. 
 !
 ! Output:
 !   all_dat   -- Cesr_all_data_struct: Holds the data along with 
 !                     data base and measurement parameters.
 !-
 
-subroutine read_cesr_dispersion_data (eta_number, all_dat, err)
+subroutine read_cesr_dispersion_data (file_name, all_dat, err)
 
 implicit none
 
 type (cesr_all_data_struct) all_dat
 type (cesr_xy_data_struct) eta_(0:120)
 
-integer eta_number
 integer ix, iu, ios
 
 logical err
 
+character(*) file_name
+character(100) dir, name
 character(40) :: r_name = 'read_cesr_dispersion_data'
-character(100) file_name, dir
 
 logical is_rel
 
@@ -230,13 +344,6 @@ namelist / dispersion_data / eta_
 ! Init
 
 call cesr_all_data_struct_init (all_dat)
-
-! first construct the file name
-
-call calc_file_number ('$CESR_MNT/eta/eta.number', eta_number, ix, err)
-if (err) return
-call form_file_name_with_number ('ETA', ix, file_name, err)
-if (err) return
 
 ! open the file and read the contents
 
@@ -266,7 +373,10 @@ eta_%y = 0
 read (iu, nml = dispersion_data)
 close (iu)
 
-ix = splitfilename (file_name, dir, all_dat%param%file_name, is_rel)
+ix = splitfilename (file_name, dir, name, is_rel)
+all_dat%param%file_name = name
+ix = index(name, '.')
+if (is_integer(name(ix+1:))) read (name(ix+1:), *) all_dat%param%ix_data_set 
 
 all_dat%eta_x%value = eta_%x
 all_dat%eta_y%value = eta_%y
@@ -279,15 +389,17 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_phase_data (phase_number, all_dat, err)
+! Subroutine read_cesr_phase_data (file_name, all_dat, err)
 !
 ! Routine to read the data in a raw phase/coupling file.
+! Note: You can use number_to_cesr_data_file to convert from an orbit number
+! to a data file name.
 !
 ! Modules needed:
 !   use cesr_read_data_mod
 !
 ! Input:
-!   phase_number -- Integer: Number of the phase data file.
+!   file_name -- Character(*): Name of the orbit data file. 
 !
 ! Output:
 !   all_dat   -- Cesr_all_data_struct: Holds everything from the data
@@ -295,7 +407,7 @@ end subroutine
 !                     data base and measurement parameters.
 !-
 
-subroutine read_cesr_phase_data (phase_number, all_dat, err)
+subroutine read_cesr_phase_data (file_name, all_dat, err)
 
 implicit none
 
@@ -308,10 +420,10 @@ type (raw_det_struct) :: h_(0:120), v_(0:120)
 real(rp) horiz_beta_freq, vert_beta_freq
 real(rp) horiz_reflection_shake, vert_reflection_shake
 
-integer phase_number
 integer ix, ios, iu, species
 
-character(100) file_name, dir
+character(*) file_name
+character(100) name, dir
 character(40) :: r_name = 'read_cesr_phase_data'
 
 logical err, is_rel
@@ -326,15 +438,7 @@ namelist / raworbit / orbit_
 
 call cesr_all_data_struct_init (all_dat)
 
-! read a data file...
-! first construct the file name
-
-call calc_file_number ('$CESR_MNT/phase/phase.number', phase_number, ix, err)
-if (err) return
-call form_file_name_with_number ('PHASE', ix, file_name, err)
-if (err) return
-
-! open the file and read the contents
+! Open the file and read the contents
 
 err = .true.
 
@@ -363,10 +467,25 @@ if (ios /= 0) then
   rewind(iu)
 endif
 
-ix = splitfilename (file_name, dir, all_dat%param%file_name, is_rel)
+ix = splitfilename (file_name, dir, name, is_rel)
+all_dat%param%file_name = name
+ix = index(name, '.')
+if (is_integer(name(ix+1:))) read (name(ix+1:), *) all_dat%param%ix_data_set 
+
 all_dat%param%horiz_beta_freq = horiz_beta_freq
 all_dat%param%vert_beta_freq  = vert_beta_freq
 all_dat%param%species = species
+
+! Read in raw data
+
+read (iu, nml = rawdata)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'WARNING: ERROR READING "RAWDATA" NAMELIST')
+  rewind(iu)
+endif
+
+all_dat%raw_phase%a = h_
+all_dat%raw_phase%b = v_
 
 ! read the raw orbit
 
@@ -394,14 +513,14 @@ all_dat%phase_a%good  = pc_%ok_x
 all_dat%phase_b%value = pc_%y_phase * twopi / 360
 all_dat%phase_b%good  = pc_%ok_y
 
-all_dat%cbar11_y%value = pc_%y_cbar11
-all_dat%cbar11_y%good  = pc_%ok_y
-all_dat%cbar12_x%value = pc_%x_cbar12
-all_dat%cbar12_x%good  = pc_%ok_x
-all_dat%cbar12_y%value = pc_%y_cbar12
-all_dat%cbar12_y%good  = pc_%ok_y
-all_dat%cbar22_x%value = pc_%x_cbar22
-all_dat%cbar22_x%good  = pc_%ok_x
+all_dat%cbar11_b%value = pc_%y_cbar11
+all_dat%cbar11_b%good  = pc_%ok_y
+all_dat%cbar12_a%value = pc_%x_cbar12
+all_dat%cbar12_a%good  = pc_%ok_x
+all_dat%cbar12_b%value = pc_%y_cbar12
+all_dat%cbar12_b%good  = pc_%ok_y
+all_dat%cbar22_a%value = pc_%x_cbar22
+all_dat%cbar22_a%good  = pc_%ok_x
 
 err = .false.
 
@@ -488,10 +607,10 @@ call transfer_data (phase%x,  all_dat%phase_a)
 call transfer_data (phase%y,  all_dat%phase_b)
 call transfer_data (eta%x,    all_dat%eta_x)
 call transfer_data (eta%y,    all_dat%eta_y)
-call transfer_data (cbar11,   all_dat%cbar11_y)
-call transfer_data (cbar12_x, all_dat%cbar12_x)
-call transfer_data (cbar12_y, all_dat%cbar12_y)
-call transfer_data (cbar22,   all_dat%cbar22_x)
+call transfer_data (cbar11,   all_dat%cbar11_b)
+call transfer_data (cbar12_x, all_dat%cbar12_a)
+call transfer_data (cbar12_y, all_dat%cbar12_b)
+call transfer_data (cbar22,   all_dat%cbar22_a)
 
 all_dat%param%file_name = file_name
 
@@ -591,6 +710,214 @@ endif
 
 close (iu)
 err = .false.
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine read_butns_file (file_name, nonlinear_calc, butns, db, read_ok, type_err)
+!
+! Subroutine to read the raw information from a BUTNS.nnnnn file and convert
+! it to orbit x-y positions.
+!
+! Modules Needed:
+!   use cesr_read_data_mod
+!
+! Input:
+!   file_name      -- Character(*): Name of the orbit data file. 
+!   nonlinear_calc -- Logical: Calculate orbit using Rich Helms nonlinear 
+!                       routines? Recomendation: True.
+!   type_err       -- Logical: If True then open error message will be printed.
+!                         If False then open error message will be supressed.
+!
+! Output:
+!   butns -- Butns_struct: Orbit information.
+!       %lattice    -- Character(40): Lattice name.
+!       %save_set   -- Integer: Save set number.
+!       %date       -- Character(20): Date orbit was taken
+!       %turn       -- Integer: Turn number for injection orbits. 0 otherwise.
+!       %comment(5) -- Character(72): Comment.
+!       %det(0:99)%ok     -- Logical: Was there a valid orbit reading?
+!       %det(0:99)%amp(4) -- Integer: raw button numbers.
+!       %det(0:99)%x_orb  -- Real(rp): Horizontal orbit in meters.
+!       %det(0:99)%y_orb  -- Real(rp): Horizontal orbit in meters.
+!   db    -- Db_struct: Structure holding the steering settings.
+!     %csr_horz_cur(i)%cu_now -- CU settings for CSR HORZ CUR
+!     %csr_hbnd_cur(i)%cu_now -- CU settings for CSR HBND CUR
+!     %csr_vert_cur(i)%cu_now -- CU settings for CSR VERT CUR
+!     %csr_hsp_volt(i)%cu_now -- CU settings for CSR HSP VVAL
+!     %csr_vsp_volt(i)%cu_now -- CU settings for CSR VSP VOLT
+!     %scir_vertcur(i)%cu_now -- CU settings for SCIR VERTCUR
+!     %scir_pos_stp(i)%cu_now -- CU settings for SCIR POS STP
+!     %scir_enc_cnt(i)%cu_now -- CU settings for SCIR ENC CNT
+!     %scir_pos_rd(i)%cu_now  -- CU settings for SCIR POS RD
+!   read_ok -- Logical: Set True if butns file was successfuly parsed.
+!
+! Note: orbit numbers are from 0 to 99
+!
+! Note: db%csr_hsp_volt is actually obtained from the node CSR HSP VVAL which
+! records the actual voltage as opposed to the command. Since CSR HSP VVAL
+! is a readback node the values put in db%csr_hsp_volt will not be exactly the
+! actual commands (and if the separators have been turned off they will not
+! even be approximately the same).
+!-
+
+subroutine read_butns_file (file_name, nonlinear_calc, butns, db, &
+                                                          read_ok, type_err)
+
+  implicit none
+
+  type (db_struct) db
+  type (butns_struct) butns
+
+  integer vec(120), det_type(120)
+  integer i, ix, j, iu, ios, raw(4, 120)
+  integer n_node, n_ele
+
+  real x_orbit(120), y_orbit(120), rdummy
+  character(*) file_name
+
+  character(130) line_in
+
+  logical nonlinear_calc, read_ok, type_err, err_flag, is_ok(120)
+
+! init
+
+  butns%comment = ' '
+  read_ok = .false.
+
+! read header line in the data file (to get lattice name)
+! and sterlat strengths
+
+  iu = lunget()
+  open(unit = iu, file = file_name, status = 'old', action = 'READ', iostat = ios)
+  if (ios /= 0) then
+    if (type_err) print *, &
+          'ERROR IN READ_BUTNS_FILE: ERROR OPENING: ', trim(file_name)
+    return
+  endif
+
+  read (iu, '(a)') line_in
+  butns%lattice = line_in(61:)
+  call string_trim (butns%lattice, butns%lattice, ix)
+
+  butns%date = line_in(30:)                     ! get date
+  read (line_in(54:), *) butns%save_set
+
+  do
+    read (iu, '(a)', iostat = ios) line_in
+    if (ios /= 0) then
+      print *, 'ERROR IN ORBIT_READ: ERROR READING STEERINGS IN ORBIT FILE'
+      goto 1000
+    endif
+    ix = index(line_in, 'END BUTNS')
+    if (ix /= 0) exit
+    ix = index(line_in, 'TURN=')
+    if (ix /= 0) then
+      read (line_in(ix+5:), *, iostat = ios) butns%turn
+      if (ios /= 0) then
+        print *, 'ERROR IN READ_BUTNS_FILE: ERROR READING TURN NUMBER.'
+        print *, '      IN FILE: ', trim(file_name)
+      endif
+    endif
+  enddo
+
+  read (line_in(ix+10:), *, iostat = ios) n_node
+  if (ios /= 0) then
+    print *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE NUMBER IN ORBIT FILE'
+    goto 1000
+  endif
+
+! read data base valuse stored in the orbit file
+
+  do i = 1, n_node
+
+    read (iu, '(a)', iostat = ios) line_in
+    if (ios /= 0) then
+      print *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE IN ORBIT FILE'
+      exit
+    endif
+
+    read (line_in(14:), *, iostat = ios) n_ele
+
+    if (line_in(2:13) == 'CSR COMMENTS') then
+      do j = 1, n_ele
+        read (iu, '(1x, a)', iostat = ios) butns%comment(j)
+        if (ios /= 0) then
+          print *, 'ERROR IN ORBIT_READ: ERROR READING COMMENT #', j
+          exit
+        endif
+      enddo
+      cycle
+    endif
+
+    read (iu, '(12x, 10i6)') vec(1:n_ele)
+
+    if (line_in(2:13) == 'CSR HORZ CUR') then
+      db%csr_horz_cur(1:n_ele)%cu_now = vec(1:n_ele)
+      db%csr_horz_cur(1:n_ele)%valid_cu_now = .true.
+    elseif (line_in(2:13) == 'CSR VERT CUR') then
+      db%csr_vert_cur(1:n_ele)%cu_now = vec(1:n_ele)
+      db%csr_vert_cur(1:n_ele)%valid_cu_now = .true.
+    elseif (line_in(2:13) == 'CSR HBND CUR') then
+      db%csr_hbnd_cur(1:n_ele)%cu_now = vec(1:n_ele)
+      db%csr_hbnd_cur(1:n_ele)%valid_cu_now = .true.
+    elseif (line_in(2:13) == 'CSR HSP VVAL') then
+      call hsp_vval_to_volt (vec, vec)
+      n_ele = size(db%csr_hsp_volt)
+      db%csr_hsp_volt(1:n_ele)%cu_now = vec(1:n_ele)
+      db%csr_hsp_volt(1:n_ele)%valid_cu_now = .true.
+    elseif (line_in(2:13) == 'CSR VSP VOLT') then
+      db%csr_vsp_volt(1:n_ele)%cu_now = vec(1:n_ele)
+      db%csr_vsp_volt(1:n_ele)%valid_cu_now = .true.
+    elseif (line_in(2:13) == 'SCIR VERTCUR') then
+      db%scir_vertcur(1:n_ele)%cu_now = vec(1:n_ele)
+      db%scir_vertcur(1:n_ele)%valid_cu_now = .true.
+    elseif (line_in(2:13) == 'SCIR POS STP') then
+      db%scir_pos_stp(1:n_ele)%cu_now = vec(1:n_ele)
+      db%scir_pos_stp(1:n_ele)%valid_cu_now = .true.
+    elseif (line_in(2:13) == 'SCIR ENC CNT') then
+      db%scir_enc_cnt(1:n_ele)%cu_now = vec(1:n_ele)
+      db%scir_enc_cnt(1:n_ele)%valid_cu_now = .true.
+    elseif (line_in(2:13) == 'SCIR POS RD ') then
+      db%scir_pos_rd(1:n_ele)%cu_now = vec(1:n_ele)
+      db%scir_pos_rd(1:n_ele)%valid_cu_now = .true.
+    else
+      print *, 'ERROR IN ORBIT_READ: UNKNOWN NODE IN ORBIT FILE: ', line_in(2:13)
+      goto 1000
+    endif
+
+  enddo
+
+! close
+
+  1000 continue
+  close (unit = iu)
+
+! read in the raw data
+
+  call butfilget (raw, file_name, rdummy, det_type)      ! read in raw data
+  if (nonlinear_calc) then
+    call nonlin_butcon (raw, 1, 100, y_orbit, x_orbit)
+  else
+    call butcon (raw, 1, 100, y_orbit, x_orbit)
+  endif
+
+  is_ok = .false.
+  call det_ok (raw, 1, 100, det_type, is_ok)
+
+  do i = 1, 100
+    j = i
+    if (i == 100) j = 0
+    butns%det(j)%amp = raw(1:4, i)
+    butns%det(j)%x_orb = x_orbit(i) / 1000.0   ! convert to m
+    butns%det(j)%y_orb = y_orbit(i) / 1000.0   ! convert to m
+    butns%det(j)%ok = is_ok(i)
+  end do
+
+  read_ok = .true.
 
 end subroutine
 

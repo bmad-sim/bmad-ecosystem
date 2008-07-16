@@ -1,5 +1,9 @@
 a0/b0 -> a_1/b_1
 
+Take out setting of bmad_struct%ok and replace this with added "err" subroutine argument.
+
+Convert all print statements to out_io
+
 Put RF on warning in 
   b) twiss_propagate1  ?!
   c) twiss_at_start    ?!
@@ -27,23 +31,25 @@ add function to calc: ring%param%s_end
 
 -----------------
 
-*) cesrv
-		mode3 from dlr
+*) Bmad/CesrV/tao_cesr
+    Change phase data files to incude "raw" a/b-mode x_amp, y_amp, x_phase, y_phase numbers
+      Remake old phase files to include this?
+		Need x_amp, y_amp, etc. structure components!?
 
 *) tao
-		csr tracking section
-		add branch stuff
+    csr tracking section
+    add branch stuff
 
 *) tao_cesr
-		read meas data from command line
-		read ref data from command line (make sure ref_vales set).
+    read meas data from command line
+    read ref data from command line (make sure ref_vales set).
 
 *) Branch:
-	a) track_all & 
-	b) lat_mat6 calc with branch.
-	c) twiss propagate
-	d) emit calc
-	e) doc
+  a) track_all & 
+  b) lat_mat6 calc with branch.
+  c) twiss propagate
+  d) emit calc
+  e) doc
 
 *) aml/uap
 

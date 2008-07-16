@@ -1567,6 +1567,7 @@ end subroutine
 !       %beta   -- Beta parameter.
 !       %alpha  -- Alpha parameter.
 !       %phi    -- Phase at initial point.
+!     %x  %y -- dispersion values
 !       %eta    -- Dispersion at initial point.
 !       %etap   -- Dispersion derivative at initial point.
 !     %c_mat(2,2) -- Coupling matrix
@@ -1620,12 +1621,11 @@ if (any(ele2%c_mat /= 0)) then
 endif
 
 ! Add in dispersion.
-! The m(5,x) terms follow from the symplectic condition.
 
-m(1:2,6) = (/ ele2%a%eta, ele2%a%etap /) - &
-                   matmul (m(1:2,1:2), (/ ele1%a%eta, ele1%a%etap /)) 
-m(3:4,6) = (/ ele2%b%eta, ele2%b%etap /) - &
-                   matmul (m(3:4,3:4), (/ ele1%b%eta, ele1%b%etap /)) 
+m(1:4,6) = (/ ele2%x%eta, ele2%x%etap, ele2%y%eta, ele2%y%etap /) - &
+        matmul (m(1:4,1:4), (/ ele1%x%eta, ele1%x%etap, ele1%y%eta, ele1%y%etap /)) 
+
+! The m(5,x) terms follow from the symplectic condition.
 
 m(5,1) = -m(2,6)*m(1,1) + m(1,6)*m(2,1) - m(4,6)*m(3,1) + m(3,6)*m(4,1)
 m(5,2) = -m(2,6)*m(1,2) + m(1,6)*m(2,2) - m(4,6)*m(3,2) + m(3,6)*m(4,2)
@@ -1671,30 +1671,34 @@ v = ele%value
 
 ele0%a%beta   = v(beta_a0$)
 ele0%a%alpha  = v(alpha_a0$)
-ele0%a%eta    = v(eta_a0$)
-ele0%a%etap   = v(etap_a0$)
 ele0%a%phi    = 0
+ele0%x%eta    = v(eta_x0$)
+ele0%x%etap   = v(etap_x0$)
 
 ele0%b%beta   = v(beta_b0$)
 ele0%b%alpha  = v(alpha_b0$)
-ele0%b%eta    = v(eta_b0$)
-ele0%b%etap   = v(etap_b0$)
 ele0%b%phi    = 0
+ele0%y%eta    = v(eta_y0$)
+ele0%y%etap   = v(etap_y0$)
 
 ele1%a%beta   = v(beta_a1$)
 ele1%a%alpha  = v(alpha_a1$)
-ele1%a%eta    = v(eta_a1$)
-ele1%a%etap   = v(etap_a1$)
 ele1%a%phi    = v(dphi_a$)
+ele1%x%eta    = v(eta_x1$)
+ele1%x%etap   = v(etap_x1$)
 
 ele1%b%beta   = v(beta_b1$)
 ele1%b%alpha  = v(alpha_b1$)
-ele1%b%eta    = v(eta_b1$)
-ele1%b%etap   = v(etap_b1$)
 ele1%b%phi    = v(dphi_b$)
+ele1%y%eta    = v(eta_y1$)
+ele1%y%etap   = v(etap_y1$)
 
-ele0%c_mat = 0 
+ele0%c_mat(1,:) = (/ v(c11$), v(c12$) /)
+ele0%c_mat(2,:) = (/ v(c21$), v(c22$) /)
+ele0%gamma_c    = v(gamma_c$)
+
 ele1%c_mat = 0 
+ele1%gamma_c = 1
 
 ele0%name = ele%name
 ele1%name = ele%name

@@ -1067,15 +1067,16 @@ also not used by \bmad proper. Example:
 
 Attributes specific to a \vn{Match} element are:
 \begin{example}
-  beta_a0  = <Real>,  beta_b0  = <Real>   ! Beginning betas
-  beta_a1  = <Real>,  beta_b1  = <Real>   ! Ending betas
-  alpha_a0 = <Real>,  alpha_b0 = <Real>   ! Beginning alphas
-  alpha_a1 = <Real>,  alpha_b1 = <Real>   ! Ending alphas
-  eta_a0   = <Real>,  eta_b0   = <Real>   ! Beginning etas 
-  eta_a1   = <Real>,  eta_b1   = <Real>   ! Ending etas 
-  etap_a0  = <Real>,  etap_b0  = <Real>   ! Beginning eta' 
-  etap_a1  = <Real>,  etap_b1  = <Real>   ! Ending eta'
-  dphi_a   = <Real>,  dphi_b   = <Real>   ! Phase advances
+  beta_a0   = <Real>,  beta_b0  = <Real>   ! Beginning betas
+  beta_a1   = <Real>,  beta_b1  = <Real>   ! Ending betas
+  alpha_a0  = <Real>,  alpha_b0 = <Real>   ! Beginning alphas
+  alpha_a1  = <Real>,  alpha_b1 = <Real>   ! Ending alphas
+  eta_x0    = <Real>,  eta_y0   = <Real>   ! Beginning etas 
+  eta_x1    = <Real>,  eta_y1   = <Real>   ! Ending etas 
+  etap_x0   = <Real>,  etap_y0  = <Real>   ! Beginning eta' 
+  etap_x1   = <Real>,  etap_y1  = <Real>   ! Ending eta'
+  dphi_a    = <Real>,  dphi_b   = <Real>   ! Phase advances
+  match_end = <Logical>            ! See below. Default is False.
 \end{example}
 
 \index{Beta_a0}
@@ -1093,6 +1094,15 @@ at the exit end of the \vn{match} element will be \vn{beta_a1},
 \vn{beta_b1}, etc. \vn{dphi_x} and \vn{dphi_y} are the phase advances
 in radians.
 
+\index{Linear_lattice}
+If the \vn{match_end} attribute is set to True then the beginning
+Twiss parameters are ignored and the transfer matrix matrix is
+calculated using the Twiss parameters from the exit end of the
+previous element.  That is, the actual Twiss parameters at the exit
+end of the match element will be the Twiss parameters as set in the
+element. The \vn{match_end} attribute may only be used with
+\vn{linear_lattice} lattices (\sref{s:param}).
+
 \index{L}
 The attribute \vn{l} is not used in the transfer matrix
 calculation. It is sometimes needed by a program for other
@@ -1101,7 +1111,7 @@ a match element.
 
 Example:
 \begin{example}
-  mm: match, beta_a0 = 12.5, beta_b0 = 3.4, eta_a0 = 1.0, ...
+  mm: match, beta_a0 = 12.5, beta_b0 = 3.4, eta_x0 = 1.0, ...
 \end{example}
 
 %-----------------------------------------------------------------
@@ -1114,7 +1124,7 @@ Example:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   K$n$L, T$n$ multipoles & \ref{s:multip}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   &                            &                 \HH
 \end{tabular}

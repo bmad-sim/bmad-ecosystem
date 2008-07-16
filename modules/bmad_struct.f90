@@ -356,8 +356,9 @@ integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
 integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
           alpha_b0$ = 5, beta_a1$ = 6, alpha_a1$ = 7, beta_b1$ = 8, &
           alpha_b1$ = 9, dphi_a$ = 10, dphi_b$ = 11, &
-          eta_a0$ = 12, etap_a0$ = 13, eta_b0$ = 14, etap_b0$ = 15, &
-          eta_a1$ = 16, etap_a1$ = 17, eta_b1$ = 18, etap_b1$ = 19
+          eta_x0$ = 12, etap_x0$ = 13, eta_y0$ = 14, etap_y0$ = 15, &
+          eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19, &
+          match_end$ = 20
 
 integer, parameter :: x$ = 1, p_x$ = 2, y$ = 3, p_y$ = 4, z$ = 5, p_z$ = 6
 
@@ -417,11 +418,11 @@ integer, parameter :: y_pitch_tot$=42
 integer, parameter :: x_offset_tot$=43
 integer, parameter :: y_offset_tot$=44
 integer, parameter :: s_offset_tot$=45
-integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46
-integer, parameter :: coupler_phase$ = 47
-integer, parameter :: coupler_angle$ = 48
-integer, parameter :: kick_tilt$ = 49
-integer, parameter :: ds_step$ = 50
+integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46, c11$ = 46
+integer, parameter :: coupler_phase$ = 47, c12$ = 47
+integer, parameter :: coupler_angle$ = 48, c21$ = 48
+integer, parameter :: kick_tilt$ = 49, c22$ = 49
+integer, parameter :: ds_step$ = 50, gamma_c$ = 50
 integer, parameter :: general1$ = 51   ! For general use
 integer, parameter :: general2$ = 52   ! For general use
 integer, parameter :: general3$ = 53   ! For general use

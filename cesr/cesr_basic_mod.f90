@@ -181,7 +181,6 @@ type butns_struct
   character(72) comment(5)
   type (detector_struct) det(0:120)
   integer save_set
-  integer file_num
   integer turn    ! turn number for injection data
 end type
 
@@ -231,8 +230,10 @@ type cesr_det_plane_struct
   real(rp) cbar11                
   real(rp) cbar12
   real(rp) cbar22
-  real(rp) k_in_phase
-  real(rp) k_out_phase
+  real(rp) x_amp
+  real(rp) x_phase
+  real(rp) y_amp
+  real(rp) y_phase
   integer n_buts
   logical ok     
   logical shake
@@ -282,12 +283,17 @@ type cesr_data1_struct
   logical good
 end type
 
+type raw_det2_struct
+  type (raw_det_struct) a, b
+end type
+
 type cesr_all_data_struct
   type (cesr_data1_struct) orbit_x(0:120), phase_a(0:120), eta_x(0:120)
   type (cesr_data1_struct) orbit_y(0:120), phase_b(0:120), eta_y(0:120)
-  type (cesr_data1_struct) cbar11_y(0:120), cbar12_x(0:120), cbar12_y(0:120), cbar22_x(0:120) 
+  type (cesr_data1_struct) cbar11_b(0:120), cbar12_a(0:120), cbar12_b(0:120), cbar22_a(0:120) 
   type (cesr_data1_struct) ac_eta_x(0:120), ac_etap_x(0:120), ac_eta_y(0:120), ac_etap_y(0:120)
   type (detector_struct) raw_orbit(0:120)
+  type (raw_det2_struct) raw_phase(0:120)
   type (db_struct) db
   type (cesr_data_params_struct) param
 end type
@@ -1300,10 +1306,10 @@ data%phase_a%value  = 0;  data%phase_a%good   = .false.
 data%phase_b%value  = 0;  data%phase_b%good   = .false.
 data%eta_x%value    = 0;  data%eta_x%good     = .false.
 data%eta_y%value    = 0;  data%eta_y%good     = .false.
-data%cbar11_y%value = 0;  data%cbar11_y%good  = .false.
-data%cbar12_x%value = 0;  data%cbar12_x%good  = .false.
-data%cbar12_y%value = 0;  data%cbar12_y%good  = .false.
-data%cbar22_x%value = 0;  data%cbar22_x%good  = .false.
+data%cbar11_b%value = 0;  data%cbar11_b%good  = .false.
+data%cbar12_a%value = 0;  data%cbar12_a%good  = .false.
+data%cbar12_b%value = 0;  data%cbar12_b%good  = .false.
+data%cbar22_a%value = 0;  data%cbar22_a%good  = .false.
 
 call db_struct_init_cu_now (data%db)
 

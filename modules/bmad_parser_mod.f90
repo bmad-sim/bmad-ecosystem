@@ -197,7 +197,7 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
   character(1) delim, delim1, delim2
   character(80) str, err_str, line
 
-  logical delim_found, err_flag
+  logical delim_found, err_flag, logic
 
 ! Get next WORD.
 ! If an overlay or group element then word is just an attribute to control
@@ -575,24 +575,24 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
 ! The TYPE, ALIAS, and DESCRIP attributes are special because their "values"
 ! are character strings
 
-  select case (ix_attrib)
+  select case (attrib_word)
 
-  case (reference$)
+  case ('REFERENCE')
     ic = ele%ixx
     call get_next_word(plat%ele(ic)%ref_name, ix_word,  &
                                          ':=,', delim, delim_found, .true.)
 
-  case (offset$)
+  case ('OFFSET')
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                       lat, delim, delim_found, err_flag)
     if (err_flag) return
     ic = ele%ixx
     plat%ele(ic)%s = value
 
-  case(type$, alias$, descrip$, sr_wake_file$, lr_wake_file$, lattice$, to$)
+  case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO')
     call type_get (ele, ix_attrib, delim, delim_found)
 
-  case (symplectify$) 
+  case ('SYMPLECTIFY') 
     if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then
       ele%symplectify = .true.
     else
@@ -600,23 +600,30 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
       if (ios /= 0 .or. ix_word == 0) return
     endif
     
-  case (is_on$)
+  case ('IS_ON')
     call get_logical ('IS_ON', ele%is_on)
     if (ios /= 0 .or. ix_word == 0) return
 
-  case (aperture_limit_on$) 
+  case ('MATCH_END')
+    call get_logical ('MATCH_END', logic)
+    if (logic) then; ele%value(match_end$) = 1
+    else;            ele%value(match_end$) = 0
+    endif
+    if (ios /= 0 .or. ix_word == 0) return
+
+  case ('APERTURE_LIMIT_ON') 
     call get_logical ('APERTURE_LIMIT_ON', lat%param%aperture_limit_on)
     if (ios /= 0 .or. ix_word == 0) return
 
-  case (csr_calc_on$)
+  case ('CSR_CALC_ON')
     call get_logical ('CSR_CALC_ON', ele%csr_calc_on)
     if (ios /= 0 .or. ix_word == 0) return
 
-  case (map_with_offsets$)
+  case ('MAP_WITH_OFFSETS')
     call get_logical ('MAP_WITH_OFFSETS', ele%map_with_offsets)
     if (ios /= 0 .or. ix_word == 0) return
 
-  case (offset_moves_aperture$)
+  case ('OFFSET_MOVES_APERTURE')
     call get_logical ('OFFSET_MOVES_APERTURE', ele%offset_moves_aperture)
     if (ios /= 0 .or. ix_word == 0) return
 

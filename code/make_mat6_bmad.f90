@@ -1,5 +1,5 @@
 !+
-! Subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
+! Subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
@@ -18,11 +18,12 @@
 !     %vec0  -- 0th order map component
 !     %mat6  -- 6x6 transfer matrix.
 !   c1     -- Coord_struct: Coordinates at the end of element.
+!   err    -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
+subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
 
   use bmad, except_dummy => make_mat6_bmad
 
@@ -60,12 +61,13 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
   integer i, n_slice, key
 
-  logical, optional :: end_in
+  logical, optional :: end_in, err
   character(16) :: r_name = 'make_mat6_bmad'
 
 !--------------------------------------------------------
 ! init
 
+  if (present(err)) err = .false.
   length = ele%value(l$)
   mat6 => ele%mat6
   rel_p = 1 + c0%vec(6)  ! E/E_0
@@ -79,6 +81,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     endif
     if (param%lost) then
       mat6 = 0
+      err = .true.
+      call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING AT: ' // ele%name)
       return
     endif
   endif
@@ -503,8 +507,9 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
                                       E_tot = e_start, beta = beta_start)
     e_end = e_start + gradient * length
     if (e_end <= 0) then
-      call out_io (s_fatal$, r_name, 'END ENERGY IS NEGATIVE!')
+      call out_io (s_error$, r_name, 'END ENERGY IS NEGATIVE AT ELEMENT: ' // ele%name)
       mat6 = 0   ! garbage.
+      err = .true.
       return 
     endif
     call convert_total_energy_to (e_end, param%particle, &

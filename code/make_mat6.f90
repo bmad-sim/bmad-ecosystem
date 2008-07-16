@@ -1,5 +1,5 @@
 !+
-! Subroutine make_mat6 (ele, param, start, end, end_in)
+! Subroutine make_mat6 (ele, param, start, end, end_in, err)
 !
 ! Subroutine to make the 6x6 1st order transfer matrix for an element 
 ! along with the 0th order transfer vector.
@@ -27,11 +27,12 @@
 !   param  -- lat_param_struct:
 !     %lost  -- Since make_mat6 may do tracking %lost may be set to True if
 !                 tracking was unsuccessful. %lost set to False otherwise.
+!   err    -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine make_mat6 (ele, param, start, end, end_in)
+subroutine make_mat6 (ele, param, start, end, end_in, err)
 
   use symp_lie_mod, only: symp_lie_bmad
   use bookkeeper_mod, only: attribute_bookkeeper
@@ -48,7 +49,7 @@ subroutine make_mat6 (ele, param, start, end, end_in)
 
   integer mat6_calc_method
 
-  logical, optional :: end_in
+  logical, optional :: end_in, err
   logical end_input
 
 !--------------------------------------------------------
@@ -62,8 +63,8 @@ subroutine make_mat6 (ele, param, start, end, end_in)
 
 !
 
-  end_input = .false.
-  if (present(end_in)) end_input = end_in
+  end_input = logic_option (.false., end_in)
+  if (present(err)) err = .false.
 
   if (end_input .and. .not. present(end)) then
     print *, 'ERROR IN MAKE_MAT6: CONFUSED END_IN WITHOUT AN END!'
@@ -88,7 +89,7 @@ subroutine make_mat6 (ele, param, start, end, end_in)
     call make_mat6_custom (ele, param, a_start, a_end)
 
   case (bmad_standard$)
-    call make_mat6_bmad (ele, param, a_start, a_end, end_in)
+    call make_mat6_bmad (ele, param, a_start, a_end, end_in, err)
 
   case (symp_lie_ptc$)
     call make_mat6_symp_lie_ptc (ele, param, a_start)
