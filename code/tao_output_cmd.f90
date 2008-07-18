@@ -36,10 +36,11 @@ character(20) :: names(13) = (/ &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
       'covariance_matrix' /)
 
-integer :: n_arg_max(12) = (/ &
+integer :: n_arg_max(13) = (/ &
       1, 2, 2, 2, &
       2, 2, 2, 3, &
-      2, 4, 2, 2 /)      
+      2, 4, 2, 2, &
+      2 /)      
 
 character(20) :: arg_names(2) = (/ '-ascii', '-at   ' /)
 integer :: n_arg_values(2) = (/ 0, 1 /)
@@ -193,7 +194,7 @@ case ('covariance_matrix')
   iu = lunget()
   open (iu, file = file_name)
 
-  write (iu, *) count(s%var%useit_opt), '  ! n_var'
+  write (iu, '(i7, 2x, a)') count(s%var%useit_opt), '! n_var'
 
   write (iu, *)
   write (iu, *) '! Index   Variable'
@@ -204,7 +205,7 @@ case ('covariance_matrix')
   enddo
 
   write (iu, *)
-  write (iu, *) '! Covariance_Matrix  Alpha_Curvature_Matrix'
+  write (iu, *) '!   i     j    Covar_Mat    Alpha_Mat'
 
   do i = 1, ubound(tao_com%covar, 1)
     do j = 1, ubound(tao_com%covar, 2)
