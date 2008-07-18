@@ -16,7 +16,7 @@ implicit none
 type (cesr_all_data_struct) all_dat
 
 integer i, iu, ios
-integer save_set, species
+integer save_set
 integer orbit_num1, orbit_num2, orbit_num
 integer csr_quad_cur(98), csr_qadd_cur(n_qadd_maxx), csr_sext_cur(98)
 integer csr_sqewquad(98), csr_sqewsext(n_csr_sqewsext_maxx), csr_horz_cur(98)
