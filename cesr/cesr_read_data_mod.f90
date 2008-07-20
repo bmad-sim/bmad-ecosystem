@@ -502,6 +502,7 @@ all_dat%raw_orbit = orbit_
 pc_(:)%ok_x = .false.
 pc_(:)%ok_y = .false.
 read (iu, nml = phase_cbar_data, iostat = ios)
+close (iu)
 
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'ERROR READING PHASE_CBAR_DATA')

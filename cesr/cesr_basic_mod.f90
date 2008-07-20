@@ -220,6 +220,15 @@ type cesr_det_xy_struct
   real(rp) phase
 end type
 
+type shaking_mode_struct
+  type (cesr_det_xy_struct) x_plane, y_plane
+  logical ok
+end type
+
+type shaking_modes_struct
+  type (shaking_mode_struct) a_mode, b_mode
+end type
+
 type cesr_det_plane_struct 
   type (cesr_but_struct) but(4)
   type (cesr_det_xy_struct) x, y, z
