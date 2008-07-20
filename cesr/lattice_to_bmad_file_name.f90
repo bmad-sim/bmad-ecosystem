@@ -23,6 +23,8 @@
 !  bmad_file_name -- Character(*): Appropriate name of the bmad file
 !-
 
+#include "CESR_platform.inc"
+
 subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
 
 use cesr_utils
