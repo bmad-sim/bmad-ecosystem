@@ -68,7 +68,7 @@ subroutine twiss_propagate1 (ele1, ele2)
     ele2%value(eta_y0$)   = ele1%y%eta
     ele2%value(etap_x0$)  = ele1%x%etap
     ele2%value(etap_y0$)  = ele1%y%etap
-    ele2%value(c11$:c22$) = &
+    ele2%value(c_11$:c_22$) = &
                 (/ ele1%c_mat(1,1), ele1%c_mat(1,2), ele1%c_mat(2,1), ele1%c_mat(2,2) /)
     ele2%value(gamma_c$) = ele1%gamma_c
     call make_mat6 (ele2, param)

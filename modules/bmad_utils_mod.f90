@@ -1693,8 +1693,8 @@ ele1%b%phi    = v(dphi_b$)
 ele1%y%eta    = v(eta_y1$)
 ele1%y%etap   = v(etap_y1$)
 
-ele0%c_mat(1,:) = (/ v(c11$), v(c12$) /)
-ele0%c_mat(2,:) = (/ v(c21$), v(c22$) /)
+ele0%c_mat(1,:) = (/ v(c_11$), v(c_12$) /)
+ele0%c_mat(2,:) = (/ v(c_21$), v(c_22$) /)
 ele0%gamma_c    = v(gamma_c$)
 
 ele1%c_mat = 0 

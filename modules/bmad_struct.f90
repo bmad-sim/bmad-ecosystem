@@ -418,10 +418,10 @@ integer, parameter :: y_pitch_tot$=42
 integer, parameter :: x_offset_tot$=43
 integer, parameter :: y_offset_tot$=44
 integer, parameter :: s_offset_tot$=45
-integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46, c11$ = 46
-integer, parameter :: coupler_phase$ = 47, c12$ = 47
-integer, parameter :: coupler_angle$ = 48, c21$ = 48
-integer, parameter :: kick_tilt$ = 49, c22$ = 49
+integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46, c_11$ = 46
+integer, parameter :: coupler_phase$ = 47, c_12$ = 47
+integer, parameter :: coupler_angle$ = 48, c_21$ = 48
+integer, parameter :: kick_tilt$ = 49, c_22$ = 49
 integer, parameter :: ds_step$ = 50, gamma_c$ = 50
 integer, parameter :: general1$ = 51   ! For general use
 integer, parameter :: general2$ = 52   ! For general use

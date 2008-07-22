@@ -221,7 +221,7 @@ type cesr_det_xy_struct
 end type
 
 type shaking_mode_struct
-  type (cesr_det_xy_struct) x_plane, y_plane
+  type (cesr_det_xy_struct) x, y
   logical ok
 end type
 
@@ -281,7 +281,7 @@ type cesr_data_params_struct
   integer :: csr_set = 0
   integer :: species = 0
   integer :: ix_data_set = 0       ! Index of the data set. EG: butns.nnnnnn
-  real(rp) :: horiz_beta_freq  = 0, vert_beta_freq  = 0
+  real(rp) :: horiz_beta_freq  = 0, vert_beta_freq  = 0  ! Hz
   real(rp) :: dvar = 0
   real(rp) :: chisq = 0
   real(rp) :: ac_z_amp_fit, ac_z_phase_fit
@@ -303,6 +303,7 @@ type cesr_all_data_struct
   type (cesr_data1_struct) ac_eta_x(0:120), ac_etap_x(0:120), ac_eta_y(0:120), ac_etap_y(0:120)
   type (detector_struct) raw_orbit(0:120)
   type (raw_det2_struct) raw_phase(0:120)
+  type (shaking_modes_struct) shake(0:120)
   type (db_struct) db
   type (cesr_data_params_struct) param
 end type

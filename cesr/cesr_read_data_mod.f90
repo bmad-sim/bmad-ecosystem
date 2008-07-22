@@ -416,6 +416,7 @@ type (phase_cbar_data_struct) pc_(0:120)
 type (detector_struct) orbit_(0:120)
 type (db_struct) db
 type (raw_det_struct) :: h_(0:120), v_(0:120)
+type (shaking_modes_struct) shake(0:120)
 
 real(rp) horiz_beta_freq, vert_beta_freq
 real(rp) horiz_reflection_shake, vert_reflection_shake
@@ -433,6 +434,7 @@ namelist / phase_parameters / species, horiz_beta_freq, vert_beta_freq, &
 namelist / phase_cbar_data / pc_
 namelist / rawdata / h_, v_
 namelist / raworbit / orbit_
+namelist / shake_data / shake
 
 ! Init
 
@@ -472,8 +474,8 @@ all_dat%param%file_name = name
 ix = index(name, '.')
 if (is_integer(name(ix+1:))) read (name(ix+1:), *) all_dat%param%ix_data_set 
 
-all_dat%param%horiz_beta_freq = horiz_beta_freq
-all_dat%param%vert_beta_freq  = vert_beta_freq
+all_dat%param%horiz_beta_freq = horiz_beta_freq * 1e3
+all_dat%param%vert_beta_freq  = vert_beta_freq  * 1e3
 all_dat%param%species = species
 
 ! Read in raw data
@@ -501,13 +503,26 @@ all_dat%raw_orbit = orbit_
 
 pc_(:)%ok_x = .false.
 pc_(:)%ok_y = .false.
-read (iu, nml = phase_cbar_data, iostat = ios)
-close (iu)
 
+read (iu, nml = phase_cbar_data, iostat = ios)
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'ERROR READING PHASE_CBAR_DATA')
+  close (iu)
   return
 endif
+
+read (iu, nml = shake_data, iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'ERROR READING SHAKE_DATA')
+endif
+
+close (iu)
+
+all_dat%shake = shake
+all_dat%shake%a_mode%x%phase = all_dat%shake%a_mode%x%phase * twopi / 360
+all_dat%shake%a_mode%y%phase = all_dat%shake%a_mode%y%phase * twopi / 360
+all_dat%shake%b_mode%x%phase = all_dat%shake%b_mode%x%phase * twopi / 360
+all_dat%shake%b_mode%y%phase = all_dat%shake%b_mode%y%phase * twopi / 360
 
 all_dat%phase_a%value = pc_%x_phase * twopi / 360
 all_dat%phase_a%good  = pc_%ok_x

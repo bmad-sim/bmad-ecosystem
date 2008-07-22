@@ -32,6 +32,7 @@ solely meant for \bmad internal use.
   Lattice: Reading and Writing Files          & \ref{r:read}           \\ \hline
   Matrices                                    & \ref{r:mat}            \\ \hline
   Matrix: Low Level Routines                  & \ref{r:low.mat}        \\ \hline
+  Measurement Simulation Routines             & \ref{r:meas}           \\ \hline
   Multipoles                                  & \ref{r:multi}          \\ \hline
   DCSLIB and CESR_UTILS                       & \ref{r:dcs.misc}       \\ \hline
   Optimizers (Nonlinear)                      & \ref{r:opti}           \\ \hline
@@ -191,14 +192,6 @@ the Twiss parameters, centroid position, and Energy - z correlation
 \item[reallocate_beam (beam, n_bunch, n_particle)] \Newline 
 Subroutine to reallocate memory within a beam_struct.
 
-\index{Routine!track1_beam}
-\item[track1_beam (beam_start, ele, param, beam_end)] \Newline 
-Subroutine to track a beam of particles through a single element.
-
-\index{Routine!track1_bunch}
-\item[track1_bunch] \Newline 
-Subroutine to track a bunch of particles through an element.
-
 \index{Routine!track1_bunch_custom}
 \item[track1_bunch_custom (bunch_start, lat, ix_ele, bunch_end)] \Newline 
 Dummy routine for custom bunch tracking. 
@@ -227,6 +220,10 @@ Subroutine to transfer information from the lat structure returned from
 \index{Routine!bmad_to_db}
 \item[bmad_to_db (lat, db)] \Newline
 Subroutine to return information on the database that pertains to CESR elements. 
+
+\index{Routine!cesr_all_data_struct_init}
+\item[cesr_all_data_struct_init (data)] \Newline 
+Subroutine to initialize a cesr_all_data_struct variable to zero/False.
 
 \index{Routine!cesr_crossings}
 \item[\protect\parbox{6in}{cesr_crossings (i_train, j_car, species, n_trains_tot, \\
@@ -269,9 +266,19 @@ controlled along with the coefficients.
   \hspace*{3in} i_biggrp, lat, ix_ele, ok, type_err)}] \Newline
 Subroutine to set up a database group knob in a Bmad lat structure. 
 
+\index{Routine!db_struct_init_cu_now}
+\item[db_struct_init_cu_now (db)] \Newline 
+Subroutine to initialize a db_struct variable to zero.
+
 \index{Routine!identify_db_node}
 \item[identify_db_node (db_name, db, dp_ptr, ok, type_err)] \Newline
 Subroutine to find which array in DB is associated with DB_NAME. 
+
+\index{Routine!k_to_quad_calibrations}
+\item[k_to_quad_calibrations (k_theory, &] \Newline 
+         energy, cu_theory, k_base, dk_gev_dcu, cu_per_k_gev)
+Single/double precision wrapper routine for k_to_quad_calib. 
+See k_to_quad_calib for more details.
 
 \index{Routine!lattice_to_bmad_file_name}
 \item[lattice_to_bmad_file_name (lattice, bmad_file_name)] \Newline
@@ -285,6 +292,16 @@ Subroutine to set a list of locations in a logical array to True.
 \item[location_encode (string, loc, exists, ix_min)] \Newline 
 Subroutine to encode a list of locations.
 
+\index{Routine!number_to_cesr_data_file}
+\item[number_to_cesr_data_file (number, who, file_name, err, print_err)] \Newline 
+Routine to form the file name for a phase, orbit, eta, or ac_dispersion
+data file. 
+
+\index{Routine!number_to_data_file_number}
+\item[number_to_data_file_number (num_in, who, num_out, err, print_err)] \Newline 
+Routine to form the file name for a phase, orbit, eta, or ac_dispersion
+data file. 
+
 \index{Routine!quad_calib}
 \item[\protect\parbox{6in}{quad_calib (lattice, k_theory, k_base, len_quad, 
 \\ \hspace*{2in} cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)}] \Newline
@@ -293,6 +310,29 @@ Subroutine to return the calibration constants for the CESR quads.
 \index{Routine!read_butns_file}
 \item[read_butns_file (butns_num, butns, db, ok)] \Newline
 Subroutine to read in the information in a BUTNS.nnnnn file. 
+
+\index{Routine!read_cesr_cooked_data}
+\item[read_cesr_cooked_data (file_name, all_dat, err)] \Newline 
+Routine to read in the orbit, phase, cbar, or eta cooked data from a file. 
+
+\index{Routine!read_cesr_cooked_data_parameters}
+\item[read_cesr_cooked_data_parameters (file_name, param, err)] \Newline 
+Routine to read in the header information from a data file.
+
+\index{Routine!read_cesr_dispersion_data}
+\item[read_cesr_dispersion_data (file_name, all_dat, err)] \Newline 
+Routine to read the data in a raw dispersion file.
+Note: You can use number_to_cesr_data_file to convert from an orbit number
+
+\index{Routine!read_cesr_orbit_data}
+\item[read_cesr_orbit_data (file_name, all_dat, err)] \Newline 
+Routine to read the data in a raw orbit file.
+Note: You can use number_to_cesr_data_file to convert from an orbit number
+
+\index{Routine!read_cesr_phase_data}
+\item[read_cesr_phase_data (file_name, all_dat, err)] \Newline 
+Routine to read the data in a raw phase/coupling file.
+Note: You can use number_to_cesr_data_file to convert from an orbit number
 
 \index{Routine!lat_to_quad_calib}
 \item[\protect\parbox{6in}{lat_to_quad_calib (lat, cesr, k_theory, k_base, 
@@ -409,6 +449,10 @@ Subroutine to convert a Bmad wake_struct to a C++ C_wake.
 \index{Routine!wig_term_to_c}
 \item[wig_term_to_c (f_wig_term, c_wig_term)] \Newline 
 Subroutine to convert a Bmad wig_term_struct to a C++ C_wig_term.
+
+\index{Routine!xy_disp_to_c}
+\item[xy_disp_to_c (f_xy_disp, c_xy_disp)] \Newline
+Subroutine to convert a Bmad xy_disp_struct to a C++ C_xy_disp.
 
 \end{description}
 
@@ -639,12 +683,6 @@ Subroutine to make a superimposed element.
 \item[attribute_bookkeeper (ele, param)] \Newline
 Subroutine to make sure the attributes of an element are self-consistent. 
 
-\index{Routine!change_basis}
-\item[change_basis (coord, ref_energy, ref_z, to_cart, time_disp)] \Newline
-Subroutine to convert accelerator coordinates (x, x', y, y', z, z') to
-Cartesian coordinates and time derivatives (x, x_dot, y, y_dot, z,
-z_dot) or vice-versa.
-
 \index{Routine!changed_attribute_bookkeeper}
 \item[changed_attribute_bookkeeper (lat, a_ptr)] \Newline 
 Subroutine to do bookkeeping when a particular attribute has been altered.
@@ -774,10 +812,6 @@ Subroutine to propagate the twiss parameters of a single mode.
 
 \begin{description}
 
-\index{Routine!allocate_lat_ele}
-\item[allocate_lat_ele(lat, des_size)] \Newline 
-Subroutine to allocate or re-allocate the lat\%ele(:) pointer in a lat.
-
 \index{Routine!control_bookkeeper}
 \item[control_bookkeeper (lat, ix_ele)] \Newline
 Subroutine to calculate the combined strength of the attributes for
@@ -877,10 +911,6 @@ c_multi(n, m) = +/- ("n choose m")/n!
 \index{Routine!compute_reference_energy}
 \item[compute_reference_energy (lat)] \Newline
 Subroutine to compute the reference energy for each element in a lattice. 
-
-\index{Routine!custom_emitt_calc}
-\item[custom_emitt_calc (ele, param, c0, c1)] \Newline
-Dummy routine for the emittance calculation for CUSTOM elements. 
 
 \index{Routine!custom_radiation_integrals}
 \item[custom_radiation_integrals (lat, ir, orb)] \Newline
@@ -1141,7 +1171,44 @@ tilted in (x, Px, y, Py) with respect to the old reference frame.
 
 \end{description}
 
-n%------------------------------------------------------------------------
+%------------------------------------------------------------------------
+\section{Measurement Simulation Routines}
+\label{r:meas}  
+\index{Measurement Simulations!list of routines}
+
+Routines to simulate errors in orbit, dispersion, betatron phase, and
+coupling measurements
+
+\begin{description}
+
+\index{Routine!check_if_ele_is_monitor}
+\item[check_if_ele_is_monitor (ele, err)] \Newline
+Routine to check that the element is either an instrument, monitor, or marker.
+This routine is private and not meant for general use.
+
+\index{Routine!compute_bpm_transformation_numbers}
+\item[compute_bpm_transformation_numbers (ele)] \Newline
+Routine to compute the numbers associated with the transformation between
+the actual orbit, phase, eta, and coupling, and what the measured values.
+
+\index{Routine!to_eta_reading}
+\item[to_eta_reading (eta, ele, axis, reading, err)] \Newline
+Compute the measured dispersion reading given the true dispersion and the
+monitor offsets, noise, etc.
+
+\index{Routine!to_orbit_reading}
+\item[to_orbit_reading (orb, ele, axis, reading, err)] \Newline
+Calculate the measured reading on a bpm given the actual orbit and the
+BPM's offsets, noise, etc.
+
+\index{Routine!to_phase_and_coupling_reading}
+\item[to_phase_and_coupling_reading (ele, mon, err)] \Newline
+Find the measured coupling values given the actual ones
+
+
+\end{description}
+
+%------------------------------------------------------------------------
 \section{Lattice: Multipoles}
 \label{r:multi}    
 \index{Multipole!list of routines}
@@ -1424,12 +1491,18 @@ This optimizer is based upon the work of Storn and Price.
 \section{Overloading the equal sign}
 \label{r:equal}    
 
+These routines are overloaded by the equal sign so should not be called explicitly.
+
 \begin{description}
 
 \index{Routine!beam_equal_beam}
 \item[mp_beam_equal_mp_beam (beam1, beam2)] \Newline
 Subroutine that is used to set one macroparticle beam to another. This routine
 takes care of the pointers in beam1.
+
+\index{Routine!branch_equal_branch}
+\item[branch_equal_branch (branch1, branch2)] \Newline 
+Subroutine that is used to set one branch equal to another. 
 
 \index{Routine!bunch_equal_bunch}
 \item[bunch_equal_bunch (bunch1, bunch2)] \Newline
@@ -1679,11 +1752,6 @@ of major divisions for fixed axis minimum and maximum.
 \item[qp_clear_page] \Newline 
      Subroutine to clear all drawing from the page.
 
-\index{Routine!qp_clear_box}
-\item[qp_clear_box] \Newline 
-     Subroutine to clear all drawing from the current box.
-     That is, white out the box region.
-
 \index{Routine!qp_draw_circle}
 \item[qp_draw_circle (x0, y0, r, angle0, del_angle, ] \Newline 
                                    units, width, color, style, clip)
@@ -1781,6 +1849,11 @@ See also: qp_draw_text.
 \item[qp_draw_y_axis (who, x_pos)] \Newline 
      Subroutine to draw a horizontal axis.
 
+\index{Routine!qp_paint_rectangle}
+\item[qp_paint_rectangle (x1, x2, y1, y2, units, color)] \Newline 
+Subroutine to paint a rectangular region a specified color.
+The default color is the background color (white\$).
+
 \index{Routine!qp_to_axis_number_text}
 \item[qp_to_axis_number_text (axis, ix_n, text)] \Newline 
      Subroutine to form the text string for an axis number.
@@ -1843,6 +1916,11 @@ to the edges of the actual graph.
 \index{Routine!qp_set_page_border}
 \item[qp_set_page_border (x1_b, x2_b, y1_b, y2_b, units)] \Newline 
      Subroutine to set the border around the physical page.
+
+\index{Routine!qp_set_page_border_to_box}
+\item[qp_set_page_border_to_box ()] \Newline 
+Subroutine to set the page border to correspond to the region of the
+current box. This allows qp_set_box to subdivide the current box.
 
 \index{Routine!qp_set_clip}
 \item[qp_set_clip (clip)] \Newline 
@@ -2010,6 +2088,11 @@ Subroutine to form a units from its components.
 \item[qp_open_page_basic (page_type, x_len, y_len, plot_file] \Newline 
       x_page, y_page, i_chan)
 Subroutine to Initialize a page (window) for plotting.
+
+\index{Routine!qp_paint_rectangle_basic}
+\item[qp_paint_rectangle_basic (x1, x2, y1, y2, color, page_type)] \Newline 
+Subroutine to fill a rectangle with a given color. 
+A color of white essentially eraces the rectangle.
 
 \index{Routine!qp_pointer_to_axis}
 \item[qp_pointer_to_axis (axis, axis_ptr)] \Newline 
@@ -2650,10 +2733,6 @@ change when then energy is changed.
 \item[chrom_tune (lat, delta_e, target_x, target_y, err_flag)] \Newline
 Subroutine to set the sextupole strengths so that the lat 
 has the desired chromaticities. 
-
-\index{Routine!emitt_calc}
-\item[emitt_calc (lat, what, mode)] \Newline
-Subroutine to calculate the emittance, energy spread, and synchrotron integrals. 
 
 \index{Routine!quad_beta_ave}
 \item[quad_beta_ave (lat, ix_ele, beta_x_ave, beta_y_ave)] \Newline

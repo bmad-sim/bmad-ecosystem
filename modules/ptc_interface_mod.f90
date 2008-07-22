@@ -1369,7 +1369,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine cacat_ele_taylor (taylor1, ele, taylor3)
+! Subroutine concat_ele_taylor (taylor1, ele, taylor3)
 !
 ! Routine to concatinate two taylor series.
 ! If ele%map_with_offset = True then: 
