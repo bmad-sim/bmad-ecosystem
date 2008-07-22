@@ -47,6 +47,17 @@ if (-r catfile( $curdir, "dcslib", "modules", "dcslib.f90" )) {
 }
 
 
+if (-r catfile( $curdir, "pecklib", "code", "butout.f90" )) {
+  $pecklib_dir = catfile( $curdir, "pecklib" );
+} elsif (-r catfile( $updir, "pecklib", "code", "butout.f90")) {
+  $pecklib_dir = catfile( $updir, "pecklib" );
+} elsif (-r catfile( $updir, $updir, "pecklib", "code", "butout.f90")) {
+  $pecklib_dir = catfile( $updir, $updir, "pecklib" );
+} else {
+  $pecklib_dir = catfile( $ENV{"CESR_SRC"}, "pecklib" );
+}
+
+
 if (-r catfile( $curdir, "recipes_f-90_LEPP", "lib_src", "nr.f90" )) {
   $recipes_dir = catfile( $curdir, "recipes_f-90_LEPP" );
 } elsif (-r catfile( $updir, "recipes_f-90_LEPP", "lib_src", "nr.f90")) {
@@ -85,6 +96,7 @@ find(\&searchit, $bmad_dir);
 find(\&searchit, $dcslib_dir);
 find(\&searchit, $cesr_utils_dir);
 find(\&searchit, $tao_dir);
+find(\&searchit, $pecklib_dir);
 ## find(\&searchit, $recipes_dir);
 ## find(\&searchit, $forest_dir);
 
@@ -94,6 +106,8 @@ print "\n";
 #---------------------------------------------------------
 
 sub searchit {
+
+  if ($File::Find::name =~ /pecklib\/f77/) {return;}  # Do not search this directory.
 
   if (/\#/) {return;}
   $file = $_;
