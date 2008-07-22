@@ -28,6 +28,7 @@ implicit none
 type (tao_plot_struct), pointer :: p
 type (tao_plot_array_struct), allocatable, save :: plot(:)
 type (tao_graph_array_struct), allocatable, save :: graph(:)
+type (tao_d2_data_struct), pointer :: d2_old
 
 real(rp) y_min, y_max
 
@@ -38,6 +39,8 @@ character(*) where
 logical err, gang
 
 ! If the where argument is blank then clip all graphs
+
+nullify(d2_old)
 
 if (len_trim(where) == 0) then
   do j = 1, size(s%plot_region)
@@ -98,24 +101,35 @@ endif
 ! Loop over all data points of all the curves of the graph.
 
 do i = 1, size(graph%curve)
+
   curve => graph%curve(i)
   if (.not. allocated(curve%y_symb)) cycle
+  call tao_find_data (err, curve%data_type, d1_array = d1_array, ix_uni = curve%ix_universe)
+  if (err) return    
+  if (size(d1_array) == 0) cycle
+  d2 => d1_array(1)%d1%d2
+
   do j = 1, size(curve%y_symb)
     if (this_min <= curve%y_symb(j) .and. curve%y_symb(j) <= this_max) cycle
 
-    call tao_find_data (err, curve%data_type, d1_array = d1_array, ix_uni = curve%ix_universe)
-    if (err .or. size(d1_array) == 0) return    
     id = curve%ix_symb(j)
     d1_array(1)%d1%d(id)%good_user = .false.  ! and clip it
 
     if (gang) then
-      d2 => d1_array(1)%d1%d2
       do k = 1, size(d2%d1)
         d2%d1(k)%d(id)%good_user = .false.
       enddo
     endif
 
   enddo
+
+  do k = 1, size(d2%d1)
+    call tao_set_data_useit_opt (d2%d1(k)%d)
+  enddo
+
+  if (.not. associated (d2, d2_old)) call tao_data_show_use (d2)
+  d2_old => d2
+
 enddo
 
 

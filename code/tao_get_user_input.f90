@@ -125,6 +125,7 @@ if (tao_com%cmd_file_level /= 0) then
   tao_com%cmd_file(n_level)%ix_unit = 0 
   tao_com%cmd_file_level = n_level - 1 ! signal that the file has been closed
   if (tao_com%cmd_file_level /= 0) return ! still lower nested command file to complete
+  call output_direct (do_print = .true.)
 endif
 
 ! Here if no command file is being used.
