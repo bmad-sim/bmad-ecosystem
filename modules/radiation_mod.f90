@@ -79,13 +79,13 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   implicit none
 
-  type (coord_struct), intent(in) :: start
+  type (coord_struct) :: start
   type (ele_struct) :: ele
-  type (lat_param_struct), intent(in) :: param
-  type (coord_struct), intent(out) :: end
+  type (lat_param_struct) :: param
+  type (coord_struct) :: end
   type (coord_struct) start2
 
-  integer, intent(in) :: edge
+  integer :: edge
 
   real(rp), save :: z_start
   real(rp) s_len, g, g2, g3, g_x, g_y, this_ran
@@ -253,7 +253,7 @@ subroutine setup_radiation_tracking (lat, closed_orb, &
   implicit none
 
   type (lat_struct), target :: lat
-  type (coord_struct), intent(in) :: closed_orb(0:)
+  type (coord_struct) :: closed_orb(0:)
   type (coord_struct) start0, start1, start, end
   type (track_struct), save :: track
 
@@ -262,7 +262,7 @@ subroutine setup_radiation_tracking (lat, closed_orb, &
 
   integer i, j
 
-  logical, optional, intent(in) :: fluctuations_on, damping_on
+  logical, optional :: fluctuations_on, damping_on
 
 ! Set logicals.
 
