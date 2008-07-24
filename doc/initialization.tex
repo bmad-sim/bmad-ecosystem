@@ -1535,8 +1535,8 @@ be drawn. Notice that simply giving the \vn{y2} axis a label does {\em
 not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 
 %-----------------------------------------------------------------
-\subsection{Graphing a Data Slice}\index{Lattice Layout}
-\label{s:lat.layout}
+\subsection{Graphing a Data Slice}\index{Data Slice}
+\label{s:graph.data.slice}
 
 The standard data graph, as presented in the previous subsection,
 plots data from a given \vn{d1_data} arrays. It is also possible to
@@ -1585,7 +1585,7 @@ the corresponding \vn{curve(:)%ele_ref_name} is used. Example:
 \end{example}
 In this example, \vn{bpm_orbit.y[23]} from universes 1 through 57 is
 plotted as a function of \vn{bpm_orbit.x[23]}. The \vn{set curve
-ele_ref_name} command (\sref{s:curve}) can be used to change the index
+ele_ref_name} command (\sref{s:set}) can be used to change the index
 from the initial value of \vn{23}. If the universe number is wanted
 for either the x or y-axis, then use the string \vn{'ix_uni'} for
 \vn{x_data_slice} or \vn{y_data_slice}. Example:
