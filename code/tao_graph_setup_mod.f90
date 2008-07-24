@@ -1,8 +1,9 @@
-module tao_plot_data_mod
+module tao_graph_setup_mod
 
 use tao_mod
 use tao_lattice_calc_mod
 use tao_plot_mod
+use tao_command_mod
 
 contains
 
@@ -10,7 +11,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_graph_data_setup (plot, graph)
+subroutine tao_graph_setup (plot, graph)
 
 implicit none
 
@@ -26,14 +27,16 @@ logical found
 graph%valid = .true.   ! assume everything OK
 graph%legend = ' '
 
-call tao_hook_graph_data_setup (plot, graph, found)
+call tao_hook_graph_setup (plot, graph, found)
 if (found) return
 
 select case (graph%type)
 case ('phase_space')
-  call tao_phase_space_plot_data_setup (plot, graph)
+  call tao_phase_space_graph_setup (plot, graph)
 case ('data')
-  call tao_data_plot_data_setup(plot, graph)
+  call tao_data_graph_setup(plot, graph)
+case ('data_slice')
+  call tao_data_slice_graph_setup(plot, graph)
 end select
 
 ! Renormalize
@@ -52,15 +55,165 @@ if (allocated (graph%curve)) then
   enddo
 endif
 
-call tao_hook_graph_data_postsetup (plot, graph)
+call tao_hook_graph_postsetup (plot, graph)
 
-end subroutine
+end subroutine tao_graph_setup
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_phase_space_plot_data_setup (plot, graph)
+subroutine tao_data_slice_graph_setup (plot, graph)
+
+implicit none
+
+type (tao_plot_struct) plot
+type (tao_graph_struct), target :: graph
+type (tao_curve_struct), pointer :: curve
+type (tao_data_array_struct), allocatable, save :: d_array(:)
+
+real(rp), pointer :: symb(:)
+real(rp) value
+
+integer i, j, k, m, n_symb, ix
+
+character(40) data_type(3), name
+character(40) :: r_name = 'tao_data_slice_graph_setup'
+
+logical err
+
+! setup the graph suffix
+
+graph%valid = .false.
+if (size(graph%curve) == 0) return
+
+graph%title_suffix = ''
+do k = 1, size(graph%curve)
+  curve => graph%curve(k)
+  if (index(curve%data_type, '#') /= 0) graph%title_suffix = &
+                  trim(graph%title_suffix) // '[At: ' // trim(curve%ele_ref_name) // ']'
+enddo
+
+! loop over all curves
+
+curve_loop: do k = 1, size(graph%curve)
+
+  curve => graph%curve(k)
+  call tao_cmd_split (curve%data_type, 3, data_type, .true., err)
+  if (err) return
+  if (data_type(3) /= '') then
+    call out_io (s_error$, r_name, 'EXTRA STUFF IN DATA_TYPE STRING: ' // curve%data_type)
+    return
+  endif
+
+  ! Find data points
+
+  axis_loop: do i = 1, 2  ! x-axis, y-axis
+    name = data_type(i)
+    ix = index(name, '#')
+    if (ix /= 0) data_type(i) = trim(name(:ix-1)) // trim(curve%ele_ref_name) // trim(name(ix+1:))
+    call tao_find_data (err, data_type(i), d_array = d_array)
+    if (err .or. size(d_array) == 0) then
+      call out_io (s_error$, r_name, &
+                'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // data_type(i))      
+      return
+    endif
+
+    ! Mark bad data
+
+    n_symb = 0
+    do j = 1, size(d_array)
+      d_array(j)%d%useit_plot = d_array(j)%d%good_model .and. d_array(j)%d%good_user
+      do m = 1, size(graph%who)
+        select case (graph%who(m)%name)
+        case ('meas')
+          d_array(j)%d%useit_plot = d_array(j)%d%useit_plot .and. d_array(j)%d%good_meas
+        case ('ref')
+          d_array(j)%d%useit_plot = d_array(j)%d%useit_plot .and. d_array(j)%d%good_ref
+        end select
+      enddo
+      if (d_array(j)%d%useit_plot) n_symb = n_symb + 1
+    enddo
+
+    ! Which axis?
+
+    if (i == 1) then
+      call re_allocate (curve%ix_symb, n_symb)
+      call re_allocate (curve%x_symb, n_symb)
+      symb => curve%x_symb
+    else
+      call re_allocate (curve%y_symb, n_symb)
+      symb => curve%y_symb
+    endif
+
+    ! calc data values
+
+    symb = 0
+    n_symb = 0
+
+    d_array_loop: do j = 1, size(d_array)
+      if (.not. d_array(j)%d%useit_plot) cycle
+      n_symb = n_symb + 1
+      do m = 1, size(graph%who)
+        select case (graph%who(m)%name)
+        case (' ') 
+          cycle
+        case ('model') 
+          value = d_array(j)%d%model_value
+        case ('base')  
+          value = d_array(j)%d%base_value
+        case ('design')  
+          value = d_array(j)%d%design_value
+        case ('ref')     
+          value = d_array(j)%d%ref_value
+        case ('meas')    
+          value = d_array(j)%d%meas_value
+        case default
+          call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
+          return
+        end select
+        symb(n_symb) = symb(n_symb) + graph%who(m)%sign * value
+      enddo
+
+      ! If the data array slice is over multiple universes then store the universe number
+      ! in the curve%ix_symb array. Else store the index of the datum in the d1_data_array.
+
+      if (i == 1) then
+        if (d_array(1)%d%ix_d1 == d_array(size(d_array))%d%ix_d1) then
+          curve%ix_symb(n_symb) = d_array(j)%d%d1%d2%ix_uni
+        else
+          curve%ix_symb(n_symb) = d_array(j)%d%ix_d1
+        endif
+      endif
+
+    enddo d_array_loop
+
+  enddo axis_loop
+
+  if (size(curve%x_symb) /= size(curve%y_symb)) then
+    call out_io (s_error$, r_name, &
+            'DATA ARRAYS DO NOT HAVE THE SAME LENGTH FOR CURVE: ' // curve%name)
+    return
+  endif
+
+  ! The line data just goes through the symbols
+
+  call re_allocate (curve%x_line, n_symb)
+  call re_allocate (curve%y_line, n_symb)
+  curve%x_line = curve%x_symb
+  curve%y_line = curve%y_symb
+
+enddo curve_loop
+
+graph%valid = .true.
+
+end subroutine tao_data_slice_graph_setup
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+subroutine tao_phase_space_graph_setup (plot, graph)
 
 implicit none
 
@@ -81,8 +234,8 @@ integer k, n, m, ib, ix1_ax, ix2_ax, ix, i
 
 logical err, same_uni
 
-character(40) name, phase1_str, phase2_str
-character(40) :: r_name = 'tao_phase_space_plot_data_setup'
+character(40) name, phase_str(3)
+character(40) :: r_name = 'tao_phase_space_graph_setup'
 
 ! Set up the graph suffix
 
@@ -128,17 +281,18 @@ do k = 1, size(graph%curve)
 
   ! find phase space axes to plot
 
-  ix = index(curve%data_type, '-')
-  if (ix == 0) then
-    call out_io (s_abort$, r_name, 'INVALID PHASE_SPACE CURVE DATA_TYPE: ' // &
-                                                                  curve%data_type)
-    call err_exit
+  ix = index(curve%data_type, '-')  ! Old style
+  if (ix /= 0) curve%data_type(ix:ix) = ' '
+
+  call tao_cmd_split (curve%data_type, 3, phase_str, .true., err); if (err) return
+  if (phase_str(3) /= '') then
+    call out_io (s_error$, r_name, 'EXTRA STUFF IN DATA_TYPE STRING: ' // curve%data_type)
+    return
   endif
+
   err = .false.
-  phase1_str = curve%data_type(:ix-1)
-  phase2_str = curve%data_type(ix+1:)
-  call tao_phase_space_axis (phase1_str, ix1_ax, err); if (err) return
-  call tao_phase_space_axis (phase2_str, ix2_ax, err); if (err) return
+  call tao_phase_space_axis (phase_str(1), ix1_ax, err); if (err) return
+  call tao_phase_space_axis (phase_str(2), ix2_ax, err); if (err) return
 
   ! fill the curve data arrays
 
@@ -193,18 +347,18 @@ do k = 1, size(graph%curve)
 
     nullify (d1_x, d1_y)
     do i = 1, size(d2_ptr%d1)
-      if (phase1_str == d2_ptr%d1(i)%name) d1_x => d2_ptr%d1(i)
-      if (phase2_str == d2_ptr%d1(i)%name) d1_y => d2_ptr%d1(i)
+      if (phase_str(1) == d2_ptr%d1(i)%name) d1_x => d2_ptr%d1(i)
+      if (phase_str(2) == d2_ptr%d1(i)%name) d1_y => d2_ptr%d1(i)
     enddo
     if (.not. associated(d1_x)) then
       call out_io (s_error$, r_name, &
-              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // phase1_str, &
+              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // phase_str(1), &
               'FOR CURVE: ' // curve%name)
       call err_exit
     endif
     if (.not. associated(d1_y)) then
       call out_io (s_error$, r_name, &
-              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // phase2_str, &
+              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // phase_str(2), &
               'FOR CURVE: ' // curve%name)
       call err_exit
     endif
@@ -293,7 +447,7 @@ enddo
 
 graph%valid = .true.
 
-end subroutine
+end subroutine tao_phase_space_graph_setup
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -329,7 +483,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_data_plot_data_setup (plot, graph)
+subroutine tao_data_graph_setup (plot, graph)
 
 use tao_data_mod
 use nrutil, only: swap
@@ -363,7 +517,7 @@ logical err, smooth_curve, found, zero_average_phase, valid, in_graph, ok
 logical, allocatable, save :: valid_value(:)
 
 character(12)  :: u_view_char
-character(30) :: r_name = 'tao_data_plot_data_setup'
+character(30) :: r_name = 'tao_data_graph_setup'
 
 !
 

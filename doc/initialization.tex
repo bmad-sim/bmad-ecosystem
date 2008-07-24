@@ -1535,6 +1535,10 @@ be drawn. Notice that simply giving the \vn{y2} axis a label does {\em
 not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 
 %-----------------------------------------------------------------
+\subsection{Graphing a Data Slice}\index{Lattice Layout}
+\label{s:lat.layout}
+
+%-----------------------------------------------------------------
 \subsection{Drawing a Lattice Layout}\index{Lattice Layout}
 \label{s:lat.layout}
 
@@ -1825,7 +1829,7 @@ Example Phase Space template:
     graph%y%min = -3
     graph%y%major_div = 4
     graph%n_curve = 1
-    curve(1)%data_type = 'z-p_z' 
+    curve(1)%data_type = 'z p_z' 
     curve(1)%data_source = 'beam'
     curve(1)%ele_ref_name = "BEGINNING"
   /
@@ -1844,9 +1848,11 @@ determines what planes are plotted. A plane is either:
 \end{example}
 For example:
 \begin{example}
-  curve%data_type = "x-p_x"  ! x-axis - y-axis
+  curve%data_type = "x p_x"  ! x-axis - y-axis
 \end{example}
-The dash \vn{-} is mandatory as the separator between the plane names. 
+In this example the $x$-axis will correspond to the $x$ phase space
+coordinate and the $y$-axis will correspond to the $p_x$ coordinate.
+A space is mandatory as the separator between the plane names.
 
 To change the place at which the \vn{phase_space} curve is drawn use
 the \vn{set curve ele_ref_name} or \vn{set curve ix_ele_ref} commands.

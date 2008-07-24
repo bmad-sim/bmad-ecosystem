@@ -170,7 +170,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%data%base_value = s%u(i)%data%model_value
 enddo
 
-call tao_plot_data_setup ()  ! transfer data to the plotting structures
+call tao_plot_setup ()  ! transfer data to the plotting structures
 call tao_draw_plots ()         ! Update the plotting window
 
 ! Print bad data

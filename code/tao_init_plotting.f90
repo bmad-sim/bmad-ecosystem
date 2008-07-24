@@ -142,6 +142,7 @@ default_graph%ix_universe     = -1
 default_graph%clip            = .true.
 default_graph%draw_axes       = .true.
 default_graph%who%name        = '' 
+default_graph%who%sign        = 1
 default_graph%correct_xy_distortion = .false.
 default_graph%who(1)  = tao_plot_who_struct('model', +1) 
 default_graph%box     = (/ 1, 1, 1, 1 /)

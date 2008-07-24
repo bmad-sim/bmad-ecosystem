@@ -5,6 +5,7 @@ use tao_top10_mod
 use tao_command_mod, only: tao_cmd_split
 use random_mod
 use csr_mod, only: csr_param
+use tao_lattice_calc_mod
 
 type show_common_struct
   type (ele_struct), pointer :: ele 
@@ -159,12 +160,12 @@ character(9) angle
 
 integer :: data_number, ix_plane, ix_class, n_live, n_tot
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
-integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2
+integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_e0, n_e1
 integer, allocatable, save :: ix_eles(:)
 
 logical err, found, at_ends, first_time, by_s, print_header_lines
-logical show_sym, show_line, show_shape, print_data
+logical show_sym, show_line, show_shape, print_data, ok
 logical show_all, name_found, print_taylor, print_wig_terms, print_all
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
@@ -622,36 +623,49 @@ case ('element')
   enddo
 
   call str_upcase (ele_name, stuff2)
+  call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
+  if (err) return
 
   ! Wildcard: show all elements.
 
   if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0 .or. &
-                    (ele_name(1:2) /= 'S:' .and. index(ele_name, ':') /= 0)) then
-    call tao_ele_locations_given_name (u, ele_name, ix_eles, err, .true.)
-    if (err) return
-    if (size(ix_eles) == 0) then
-      call out_io (s_blank$, r_name, '*** No Matches to Name Found ***')
-      return
-    endif
+                (ele_name(1:2) /= 'S:' .and. index(ele_name, ':') /= 0) .or. &
+                count(picked_uni) > 1) then
 
-    write (lines(1), '(a, i0)') 'Matches: ', size(ix_eles)
-    nl = 1
-    do i = 1, size(ix_eles)
-      loc = ix_eles(i)
-      if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200, .false.)
-      nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, lat%ele(loc)%name
+    nl=1; write (lines(1), '(a, i0)') 'Matches: ', size(ix_eles)
+
+    do i_uni = lbound(s%u, 1), ubound(s%u, 1)
+      if (.not. picked_uni(i_uni)) cycle
+      call tao_ele_locations_given_name (u, ele_name, ix_eles, err, .true.)
+      if (err) return
+      do i = 1, size(ix_eles)
+        loc = ix_eles(i)
+        if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200, .false.)
+        if (count(picked_uni) > 1) then
+          nl=nl+1; write (lines(nl), '(i0, a, i8, 2x, a)') &
+                                                i_uni, '@', loc, lat%ele(loc)%name
+        else
+          nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, lat%ele(loc)%name
+        endif
+      enddo
     enddo
 
     deallocate(ix_eles)
 
+    if (nl == 1) then
+      call out_io (s_blank$, r_name, '*** No Matches to Name Found ***')
+      return
+    endif
+
     call out_io (s_blank$, r_name, lines(1:nl))
     return
+
   endif
 
   ! No wildcard case...
   ! Normal: Show the element info
 
-  call tao_locate_elements (ele_name, s%global%u_view, ix_eles)
+  call tao_locate_elements (ele_name, ix_u, ix_eles)
   loc = ix_eles(1)
   if (loc < 0) return
   ele => lat%ele(loc)
@@ -663,8 +677,11 @@ case ('element')
     return
   endif
 
-  call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, &
-            s%global%phase_units, .true., lat, .true., .true., print_wig_terms)
+  if (tao_com%common_lattice) then
+    call tao_lattice_calc (ok, ix_u, model$)
+  endif
+  call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, s%global%phase_units, &
+            .true., s%u(ix_u)%model%lat, .true., .true., print_wig_terms)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100, .false.)
   lines(nl+1:nl+n) = ptr_lines(1:n)
@@ -1269,7 +1286,7 @@ case ('plot', 'graph', 'curve')
       if (n > size(lines)) call re_allocate(lines, len(lines(1)), n, .false.)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Symbol points:'
-      nl=nl+1; lines(nl) = '             x             y'
+      nl=nl+1; lines(nl) = '    ix             x             y'
       err = .false.
       do j = 2, size(curve)
         if (size(curve(j)%c%y_symb) /= size(c%y_symb)) then
@@ -1280,7 +1297,7 @@ case ('plot', 'graph', 'curve')
       enddo
       if (.not. err) then
         do i = 1, size(c%x_symb)
-          nl=nl+1; write (lines(nl), '(10es14.6)') c%x_symb(i), &
+          nl=nl+1; write (lines(nl), '(i6, 10es14.6)') c%ix_symb(i), c%x_symb(i), &
                                         (/ (curve(j)%c%y_symb(i), j = 1, size(curve)) /)
         enddo
       endif

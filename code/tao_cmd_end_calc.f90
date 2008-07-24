@@ -31,8 +31,8 @@ this_merit =  tao_merit()
 
 ! update variable values to reflect lattice values
 
-call tao_plot_data_setup()       ! transfer data to the plotting structures
-call tao_hook_plot_data_setup()
+call tao_plot_setup()       ! transfer data to the plotting structures
+call tao_hook_plot_setup()
 if (s%global%auto_scale) then
   call tao_scale_cmd (' ', '', 0.0_rp, 0.0_rp) 
   call tao_x_scale_cmd (' ', 0.0_rp, 0.0_rp, err)

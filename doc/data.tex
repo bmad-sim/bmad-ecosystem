@@ -55,7 +55,7 @@ structure. In this case the data can be referred to simply by using
 the \vn{d2_data} structure's name. The individual datums can be
 referred to using the notation
 \begin{example}
-  d2_name.d1_name[datum_index]
+  <d2_name>.<d1_name>[<datum_index_range>]
 \end{example}
 For example, \vn{orbit.x[10]} refers to the horizontal orbit datum
 with index 10. Notice that the beginning (lowest) datum index is user
@@ -69,15 +69,20 @@ all the datums between \vn{n1} and \vn{n2} inclusive. For example
 \end{example}
 refers to datums 3, 4, 5, 6, and 23. 
 
-If multiple universes (\sref{s:universe}) are present, then the prefix
-\vn{n@} signifies the n\Th universe. For example
+If multiple universes (\sref{s:universe}) are present, then the prefix \vn{"@"}
+may be used to specify which universe the data applies to. The general notation is
 \begin{example}
-  2@orbit.x
+  <universe_range>@<d2_name>.<d1_name>[<datum_index>]
 \end{example}
-would refer to the \vn{orbit.x} data in universe 2. When not
-specified, the current ``viewed'' universe is assumed. The current
-\vn{viewed} universe has index \vn{0} so \vn{orbit.x} is
-equivalent to \vn{0@orbit.x}.
+When not specified, the current ``viewed'' universe (\sref{s:view}) is
+assumed. The current \vn{viewed} universe can also be specified using
+the number \vn{-1}. Examples:
+\begin{example}
+  2@orbit.x       ! The \vn{orbit.x} data in universe 2. 
+  orbit.x         ! The \vn{orbit.x} data in the current viewd universe.
+  -1@orbit.x      ! Same as above.
+  2:4,7@orbit.x   ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
+\end{example}
 
 As explained in Section~\sref{s:data.anatomy}, each individual datum
 has a number of components. The syntax to refer to a component is:
@@ -94,9 +99,9 @@ denote ``all''. Thus:
 \begin{example}
   *@orbit.x       ! The \vn{orbit.x} data in all universes.
   *               ! All the data in the currently viewed universe.
-  *.*             ! Same as *
+  *.*             ! Same as "*"
   *@*             ! All the data in all the universes. 
-  *@*.*           ! Same as *@*
+  *@*.*           ! Same as "*@*"
   orbit.x[*]|meas ! All measured values of orbit.x
   orbit.x[]|meas  ! No values. That is, the empty set.
   orbit.x|meas    ! Same as orbit.x[*]|meas

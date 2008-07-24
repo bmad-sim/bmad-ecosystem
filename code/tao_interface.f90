@@ -130,7 +130,7 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_graph_data_setup (plot, graph, found)
+  subroutine tao_hook_graph_setup (plot, graph, found)
     use tao_struct, only: tao_plot_struct, tao_graph_struct
     implicit none
     type (tao_plot_struct) plot
@@ -140,7 +140,7 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_graph_data_postsetup (plot, graph)
+  subroutine tao_hook_graph_postsetup (plot, graph)
     use tao_struct, only: tao_plot_struct, tao_graph_struct
     implicit none
     type (tao_plot_struct) plot
@@ -352,7 +352,7 @@ interface
 end interface
  
 interface
-  subroutine tao_plot_data_setup ()
+  subroutine tao_plot_setup ()
     implicit none
   end subroutine
 end interface

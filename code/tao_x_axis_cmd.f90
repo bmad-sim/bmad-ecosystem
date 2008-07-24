@@ -13,7 +13,7 @@ subroutine tao_x_axis_cmd (where, what)
 
 use tao_mod
 use quick_plot
-use tao_plot_data_mod
+use tao_graph_setup_mod
 
 implicit none
 
@@ -79,7 +79,7 @@ elseif (what == 'ele_index') then
 elseif (what == 'index') then
   plot%x%min = -1e30; plot%x%max = 1e30
   do ig = 1, size(plot%graph)
-    call tao_graph_data_setup(plot, plot%graph(ig))
+    call tao_graph_setup(plot, plot%graph(ig))
   enddo
   minn = 1e30; maxx = -1e30
   do ig = 1, size(plot%graph)

@@ -133,7 +133,7 @@ do i = 1, size(s%plot_region)
     if (found) cycle
 
     select case (graph%type)
-    case ('data', 'phase_space')
+    case ('data', 'phase_space', 'data_slice')
       call tao_plot_data (plot, graph)
     case ('lat_layout')
       call tao_plot_lat_layout (plot, graph)

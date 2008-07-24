@@ -81,7 +81,7 @@ type tao_curve_struct
   real(rp) y_axis_scale_factor ! y-axis conversion from internal to plotting units.
   type (qp_line_struct) line   ! Line attributes
   type (qp_symbol_struct) symbol ! Symbol attributes
-  integer ix_universe          ! universe to take the data from. 0 => use s%global%u_view
+  integer ix_universe          ! universe to take the data from. -1 => use s%global%u_view
   integer symbol_every         ! symbol every how many points.
   integer ix_ele_ref           ! Index in lattice of reference element.
   integer ix_ele_ref_track     ! = ix_ele_ref except for super_lord elements.

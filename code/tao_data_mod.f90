@@ -413,9 +413,9 @@ case ('phase.b')
   if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%b%phi + lat%ele(n_lat)%b%phi 
 
 case ('tune.a')
-  datum_value = lat%ele(n_lat)%a%phi - lat%ele(0)%a%phi
+  datum_value = lat%a%tune
 case ('tune.b')
-  datum_value = lat%ele(n_lat)%b%phi - lat%ele(0)%b%phi
+  datum_value = lat%b%tune
 
 case ('phase_frac_diff')
   px = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi

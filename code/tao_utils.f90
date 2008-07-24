@@ -67,76 +67,91 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_pick_universe (data_type_in, data_type_out, picked, err)
+! Subroutine tao_pick_universe (name_in, name_out, picked, err, ix_uni)
 !
 ! Subroutine to pick what universe the data name is comming from.
-! If data_type_in begins with "*@" choose all universes.
-! If data_type_in begins with "n@" then choose universe n.
-! If not then choose universe s%global%u_view.
-! data_type_out is data_type_in without any "n@"
+! Examples:
+!   "*@..."           -- Choose all universes.
+!   "3@..."           -- Choose universe 3. 
+!   "1:30,34@..."     -- Choose universes 1 through 30 and 34
+!   No "@" in name    -- Choose universe s%global%u_view.
 !
 ! Input:
-!   data_type_in -- Character(*): data name.
+!   name_in    -- Character(*): data name.
 !
 ! Output:
-!   data_type_out -- Character(*): data_type_in without any "n@" beginning.
-!   picked(:)     -- Logical: Array showing picked universes.
-!   err           -- Logical: Set True if an error is detected.
+!   name_out   -- Character(*): name_in without any "n@" beginning.
+!   picked(:)  -- Logical, allocatable: Array showing picked universes.
+!                   The array will be resized if necessary.
+!   err        -- Logical: Set True if an error is detected.
+!   ix_uni     -- Integer, optional: Set to the picked universe with the highest index.
 !-
 
-subroutine tao_pick_universe (data_type_in, data_type_out, picked, err)
+subroutine tao_pick_universe (name_in, name_out, picked, err, ix_uni)
 
 implicit none
 
-character(*) data_type_in, data_type_out
+character(*) name_in, name_out
 character(20) :: r_name = 'tao_pick_universe'
 character(8) uni
 
-integer ix, n, ios, iu
+integer, optional :: ix_uni
+integer i, ix, n, ios, iu, num
 
 logical, allocatable :: picked(:)
+logical, allocatable, save :: p(:)
 logical err
 
 ! Init
 
 call re_allocate(picked, lbound(s%u, 1), ubound(s%u, 1))
+call re_allocate(p, -1, ubound(s%u, 1))
 
 err = .false.
 picked = .false.
+p = .false.
+if (present(ix_uni)) ix_uni = -1
 
 ! No "@" then simply choose s%global%u_view
 
-ix = index (data_type_in, '@')
+ix = index (name_in, '@')
 if (ix == 0) then
   picked (s%global%u_view) = .true.
-  data_type_out = data_type_in
+  name_out = name_in
+  if (present(ix_uni)) ix_uni = s%global%u_view
   return
 endif
 
 ! Here whn "@" is found...
 
-data_type_out = data_type_in(ix+1:)
-uni = data_type_in(:ix-1)
+uni = name_in(:ix-1)
+name_out = name_in(ix+1:)
 
 if (uni == '*') then
   picked = .true.
+  if (present(ix_uni)) ix_uni = lbound(s%u, 1)
   return
 endif
 
-read (uni, '(i)', iostat = ios) iu
-if (ios /= 0) then
+
+call location_decode (uni, p, lbound(p, 1), num)
+if (num == -1) then
   call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // uni)
   err = .true.
   return
 endif
-iu = tao_universe_number (iu)
-if (iu < lbound(s%u, 1) .or. iu > ubound(s%u, 1)) then
-  call out_io (s_error$, r_name, "NUMBER DOES NOT CORRESPOND TO A UNIVERSE: " // uni)
-  err = .true.
-  return
-endif
 
-picked(iu) = .true.
+do i = lbound(p, 1), ubound(p, 1)
+  if (.not. p(i)) cycle
+  iu = tao_universe_number (i)
+  if (iu < lbound(s%u, 1) .or. iu > ubound(s%u, 1)) then
+    call out_io (s_error$, r_name, "NUMBER DOES NOT CORRESPOND TO A UNIVERSE: " // uni)
+    err = .true.
+    return
+  endif
+  picked(iu) = .true.
+  if (present(ix_uni)) ix_uni = iu
+enddo
 
 end subroutine
 
@@ -685,6 +700,7 @@ integer i, ix, iu
 
 logical err, component_here, this_err, print_error, error
 logical, optional :: print_err
+logical, allocatable, save :: picked(:)
 
 ! Init
 
@@ -744,38 +760,24 @@ endif
 
 ! Select universe
 
-ix = index(dat_name, '@')
-
-if (ix == 0) then ! No universe specified. Use default
-  iu = integer_option (s%global%u_view, ix_uni)
-  u => tao_pointer_to_universe (iu)
+call tao_pick_universe (dat_name, dat_name, picked, err)
+if (err) return
+if (present(ix_uni)) then
+  u => tao_pointer_to_universe (ix_uni)
   if (.not. associated(u)) return
   call find_this_d2 (u, dat_name, this_err)
-
-else ! read universe number
-
-  if (dat_name(:ix-1) == '*') then
-    do i = lbound(s%u, 1), ubound(s%u, 1)
-      call find_this_d2 (s%u(i), dat_name(ix+1:), this_err)
-      if (this_err) return
-    enddo
-    if (present(d2_ptr)) nullify(d2_ptr)
-
-  else
-    read (dat_name(:ix-1), '(i)', iostat = ios) iu
-    if (ios /= 0) then
-      if (print_error) call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_name)
-      return
-    endif
-    u => tao_pointer_to_universe (iu)
-    if (.not. associated(u)) return
-    call find_this_d2 (u, dat_name(ix+1:), this_err)
-  endif
+else
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    if (.not. picked(i)) cycle
+    u => tao_pointer_to_universe (i)
+    call find_this_d2 (u, dat_name, this_err)
+    if (this_err) return
+  enddo
 endif
 
 ! error check
 
-if (err) then
+if (this_err) then
   if (print_error) call out_io (s_error$, r_name, "Couldn't find data: " // data_name)
   return
 endif

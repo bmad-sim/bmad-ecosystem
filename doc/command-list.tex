@@ -12,11 +12,13 @@ limited.
 
 \index{Commands!Command List} 
 Commands are case sensitive. The list of commands is shown in
-Table~\ref{t:commands}. Multiple commands
-may be entered on one line using the ``;'' character as a separator.
-An exclamation mark ``\vn{!}'' denotes the beginning of a comment and the
-exclamation mark and everything after it to the end of the line is ignored.
-Example:
+Table~\ref{t:commands}. Multiple commands may be entered on one line
+using the semicolon ``;'' character as a separator.  [However, a
+semicolon used as as part of an \vn{alias} (\sref{s:alias} definition
+is part of that definition.]
+An exclamation mark ``\vn{!}'' denotes the beginning of
+a comment and the exclamation mark and everything after it to the end
+of the line is ignored.  Example:
 \begin{example}
   view 2; show global  ! Two commands and a comment
 \end{example}
@@ -105,7 +107,9 @@ in a printout of the aliases that have been defined. When using an
 alias up to 9 arguments may be substituted in the \vn{<string>}. The
 i\Th argument is substituted in place of the sub-string ``[[i]]''.
 arguments that do not have a corresponding ``[[i]]'' are placed at the end
-of \vn{<string>}
+of \vn{<string>}.
+
+Aliases can be set up for multiple commands using semicolons.
 
 Examples:
 \begin{example}
@@ -114,6 +118,7 @@ Examples:
     xyzzy top                     ! Use an alias
     plot top model                ! Equivalent to "xyzzy top"
     xyzzy top abc                 ! Equivalent to "plot top model abc"
+    alias foo  show uni; show top ! "foo" equivalent to "show uni; show top"
 \end{example}
 In the above example ``xyzzy'' is the alias for the string ``plot [[1]]
 model''.  When the command xyzzy is used ``top'' is substituted
@@ -1195,7 +1200,7 @@ with the given index. Also see \vn{show beam}.
 
 %% show plot --------------------------------------------------------------
 
-  \item[\protect\parbox{6in}{
+  \item[\protect\parbox{6in}{ 
         show plot \\
         show plot \{<template\_plot\_name>\} \\
         show plot \{<plot\_region\_name>\} \\

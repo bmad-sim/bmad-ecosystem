@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_hook_graph_data_postsetup (plot, graph)
+! Subroutine tao_hook_graph_postsetup (plot, graph)
 !
 ! Subroutine to customize the calculation of data to be plotted.
 !
@@ -11,7 +11,7 @@
 !   graph -- Tao_graph_struct: Structure with plot data calulated.
 !-
 
-subroutine tao_hook_graph_data_postsetup (plot, graph)
+subroutine tao_hook_graph_postsetup (plot, graph)
 
 use tao_mod
 

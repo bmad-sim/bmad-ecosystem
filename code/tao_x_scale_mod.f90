@@ -66,7 +66,7 @@ if (x_min == x_max) then
     plot(i)%p%x%min = -1e30  ! So no cliping of points
     plot(i)%p%x%max = 1e30   ! So no cliping of points
   enddo
-  call tao_plot_data_setup()
+  call tao_plot_setup()
 endif
 
 ! Set max and min

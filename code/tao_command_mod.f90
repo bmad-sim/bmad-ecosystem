@@ -178,7 +178,7 @@ end subroutine
 !
 ! Input: 
 !   cmd_line       -- Character(*): The command line.
-!   n_word         -- Integer: number of words to split command line into
+!   n_word         -- Integer: Maximum number of words to split command line into.
 !   no_extra_words -- Logical: are extra words allowed at the end?
 !                        If False then cmd_word(n_word) will contain everything after 
 !                        the n_word-1 word.

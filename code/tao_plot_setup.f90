@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_plot_data_setup ()
+! Subroutine tao_plot_setup ()
 !
 ! Subroutine to set the data for plotting.
 ! Essentially transfer info from the s%u(:)%data arrays
@@ -8,11 +8,11 @@
 ! Input/Output:
 !-
 
-subroutine tao_plot_data_setup ()
+subroutine tao_plot_setup ()
 
 use tao_x_scale_mod
 use tao_scale_mod
-use tao_plot_data_mod
+use tao_graph_setup_mod
 
 implicit none
 
@@ -31,7 +31,7 @@ real(rp) ax_min, ax_max, slop
 integer, allocatable, save :: ix_ele(:)
 logical err
 
-character(20) :: r_name = 'tao_plot_data_setup'
+character(20) :: r_name = 'tao_plot_setup'
 
 ! setup the plots
 
@@ -45,9 +45,11 @@ plot_loop: do ir = 1, size(s%plot_region)
   if (.not. s%plot_region(ir)%visible) cycle  
 
   select case (plot%x_axis_type)
-  case ('index', 's', 'ele_index', 'phase_space', 'none')
+  case ('index', 's', 'ele_index', 'phase_space', 'data', 'none')
   case default
-    call out_io (s_abort$, r_name, 'BAD X_AXIS_TYPE: ' // plot%x_axis_type)
+    call out_io (s_abort$, r_name, &
+                    'BAD X_AXIS_TYPE: ' // plot%x_axis_type, &
+                    'FOR PLOT: ' // plot%name)
     plot%graph%valid = .false.
     cycle
   endselect
@@ -58,7 +60,7 @@ plot_loop: do ir = 1, size(s%plot_region)
 
   do jg = 1, size(plot%graph)
     graph => plot%graph(jg)
-    call tao_graph_data_setup (plot, graph)
+    call tao_graph_setup (plot, graph)
     if (graph%y%min == graph%y%max) call tao_scale_graph (graph, '', 0.0_rp, 0.0_rp)
     graph%limited = .false.
     if (allocated(graph%curve)) then
