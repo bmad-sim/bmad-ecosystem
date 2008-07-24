@@ -88,11 +88,23 @@ graph%valid = .false.
 if (size(graph%curve) == 0) return
 
 graph%title_suffix = ''
+
 do k = 1, size(graph%curve)
   curve => graph%curve(k)
   if (index(curve%data_type, '#') /= 0) graph%title_suffix = &
                   trim(graph%title_suffix) // '[At: ' // trim(curve%ele_ref_name) // ']'
 enddo
+
+name = ''
+do m = 1, size(graph%who)
+  if (graph%who(m)%name == ' ') cycle
+  if (graph%who(m)%sign == 1) then
+    name = trim(name) // ' + ' // graph%who(m)%name
+  elseif (graph%who(m)%sign == -1) then
+    name = trim(name) // ' - ' // graph%who(m)%name
+  endif
+enddo
+graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(name(4:)) // ']'
 
 ! loop over all curves
 
@@ -109,9 +121,12 @@ curve_loop: do k = 1, size(graph%curve)
   ! Find data points
 
   axis_loop: do i = 1, 2  ! x-axis, y-axis
+
     name = data_type(i)
+    if (name == 'ix_uni') cycle  ! handle this later
     ix = index(name, '#')
-    if (ix /= 0) data_type(i) = trim(name(:ix-1)) // trim(curve%ele_ref_name) // trim(name(ix+1:))
+    if (ix /= 0) data_type(i) = &
+                    trim(name(:ix-1)) // trim(curve%ele_ref_name) // trim(name(ix+1:))
     call tao_find_data (err, data_type(i), d_array = d_array)
     if (err .or. size(d_array) == 0) then
       call out_io (s_error$, r_name, &
@@ -138,7 +153,6 @@ curve_loop: do k = 1, size(graph%curve)
     ! Which axis?
 
     if (i == 1) then
-      call re_allocate (curve%ix_symb, n_symb)
       call re_allocate (curve%x_symb, n_symb)
       symb => curve%x_symb
     else
@@ -175,20 +189,50 @@ curve_loop: do k = 1, size(graph%curve)
         symb(n_symb) = symb(n_symb) + graph%who(m)%sign * value
       enddo
 
-      ! If the data array slice is over multiple universes then store the universe number
-      ! in the curve%ix_symb array. Else store the index of the datum in the d1_data_array.
-
-      if (i == 1) then
-        if (d_array(1)%d%ix_d1 == d_array(size(d_array))%d%ix_d1) then
-          curve%ix_symb(n_symb) = d_array(j)%d%d1%d2%ix_uni
-        else
-          curve%ix_symb(n_symb) = d_array(j)%d%ix_d1
-        endif
-      endif
-
     enddo d_array_loop
 
   enddo axis_loop
+
+  ! If the data array slice is over multiple universes then store the universe number
+  ! in the curve%ix_symb array. Else store the index of the datum in the d1_data_array.
+
+  call re_allocate (curve%ix_symb, n_symb)
+  n_symb = 0
+  do j = 1, size(d_array)
+    if (.not. d_array(j)%d%useit_plot) cycle
+    n_symb = n_symb + 1
+    if (d_array(1)%d%ix_d1 == d_array(size(d_array))%d%ix_d1) then
+      curve%ix_symb(n_symb) = d_array(j)%d%d1%d2%ix_uni
+    else
+      curve%ix_symb(n_symb) = d_array(j)%d%ix_d1
+    endif
+  enddo
+
+  ! Now handle the ix_uni case
+
+  do i = 1, 2
+
+    name = data_type(i)
+    if (name /= 'ix_uni') cycle 
+
+    if (i == 1) then
+      call re_allocate (curve%x_symb, n_symb)
+      symb => curve%x_symb
+    else
+      call re_allocate (curve%y_symb, n_symb)
+      symb => curve%y_symb
+    endif
+
+    n_symb = 0
+    do j = 1, size(d_array)
+      if (.not. d_array(j)%d%useit_plot) cycle
+      n_symb = n_symb + 1
+      symb(n_symb) = d_array(j)%d%d1%d2%ix_uni
+    enddo
+
+  enddo
+
+  ! Error check
 
   if (size(curve%x_symb) /= size(curve%y_symb)) then
     call out_io (s_error$, r_name, &

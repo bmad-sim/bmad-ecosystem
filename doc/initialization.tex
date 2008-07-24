@@ -1538,6 +1538,62 @@ not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 \subsection{Graphing a Data Slice}\index{Lattice Layout}
 \label{s:lat.layout}
 
+The standard data graph, as presented in the previous subsection,
+plots data from a given \vn{d1_data} arrays. It is also possible to
+graph data that has been ``sliced'' in other ways. For example,
+suppose a number of universes have been extablished, with each
+universe representing the same machine but with different steerings
+powered. If in each universe an \vn{orbit} \vn{d2_data} structure has
+been defined then an example of a data slice is the collection of
+points (x, y) where:
+\begin{example}
+  (x, y) = (<n>@orbit.x[23], <n>@orbit.y[23]),   <n> = 1, ..., n_universe
+\end{example}
+When defining a template for graphing a data slice, \vn{graph%type}
+must be set to \vn{'data_slice'}, the \vn{curve(:)%data_source} must be
+set to \vn{'data_array'} and the \vn{curve(:)%data_type} is of the form:
+\begin{example}
+  curve(:) = '<x_data_slice> <y_data_slice>'
+\end{example}
+A space is used as the separator between \vn{<x_data_slice>} and
+\vn{y_data_slice}. If either \vn{<x_data_slice>} or
+\vn{<y_data_slice>} has a \vn{'\#'} character then the string given by
+the corresponding \vn{curve(:)%ele_ref_name} is used. Example:
+\begin{example}
+  &tao_template_plot
+    plot%name = 'at_bpm'
+    plot%x%label = 'x'
+    plot%x_axis_type = 'data'
+    plot%n_graph = 1
+  /
+
+  &tao_template_graph
+    graph_index = 1
+    graph%title = 'Orbit at BPM'
+    graph%y%label = 'y'
+  	graph%who(1) = 'meas', 1
+  	graph%who(2) = 'ref', -1
+  	graph%type = 'data_slice'
+    graph%n_curve = 1
+    curve(1)%data_source = 'data_array'
+    curve(1)%data_type   = '1:57@bpm_orbit.x[\#]  1:57@bpm_orbit.y[\#]'
+    curve(1)%y_axis_scale_factor = 1000
+    curve(1)%x_axis_scale_factor = 1000
+  	curve(1)%ele_ref_name = '23'
+  	curve(1)%draw_line = .false.
+  /
+\end{example}
+In this example, \vn{bpm_orbit.y[23]} from universes 1 through 57 is
+plotted as a function of \vn{bpm_orbit.x[23]}. The \vn{set curve
+ele_ref_name} command (\sref{s:curve}) can be used to change the index
+from the initial value of \vn{23}. If the universe number is wanted
+for either the x or y-axis, then use the string \vn{'ix_uni'} for
+\vn{x_data_slice} or \vn{y_data_slice}. Example:
+\begin{example}
+  curve(1)%data_type   = 'ix_uni  *@bpm_orbit.x[23]'
+\end{example}
+This would plot \vn{bpm_orbit.x[23]} as a function of universe number for all universes.
+
 %-----------------------------------------------------------------
 \subsection{Drawing a Lattice Layout}\index{Lattice Layout}
 \label{s:lat.layout}

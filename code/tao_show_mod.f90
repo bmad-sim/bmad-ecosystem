@@ -384,6 +384,113 @@ case ('constraints')
   return
 
 !----------------------------------------------------------------------
+! curve
+
+case ('curve')
+
+  ! Look for switches
+
+  show_sym = .false.
+  show_line = .false.
+  call string_trim(stuff, stuff2, ix)
+
+  do
+    if (ix == 0) exit
+    if (stuff2(1:1) /= '-') exit
+    call match_word (stuff2(:ix), (/ '-symbol', '-line  ' /), n, .true., name)
+    if (n < 1) then
+      call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2(:ix))
+      return
+    endif
+    if (name == '-symbol') show_sym = .true.
+    if (name == '-line')   show_line = .true.
+    call string_trim(stuff2(ix+1:), stuff2, ix)
+  enddo
+
+  ! Find particular plot
+
+  call tao_find_plots (err, stuff2, 'BOTH', curve = curve, &
+                                    print_flag = .false., always_allocate = .true.)
+  if (err) return
+
+  ! print info on particular plot, graph, or curve
+
+  if (allocated(curve)) then
+    c => curve(1)%c
+    nl=nl+1; lines(nl) = 'Region.Graph.Curve: ' // trim(tao_curve_name(c, .true.))
+    do i = 2, size(curve)
+      nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c, .true.))
+    enddo
+    nl=nl+1; lines(nl) = 'Plot.Graph.Curve:   ' // trim(tao_curve_name(c))
+    do i = 2, size(curve)
+      nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
+    enddo
+    nl=nl+1; write (lines(nl), amt) 'data_source             = ', c%data_source
+    nl=nl+1; write (lines(nl), amt) 'data_type               = ', c%data_type
+    nl=nl+1; write (lines(nl), amt) 'ele_ref_name            = ', c%ele_ref_name
+    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref              = ', c%ix_ele_ref
+    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref_track        = ', c%ix_ele_ref_track
+    nl=nl+1; write (lines(nl), imt) 'ix_bunch                = ', c%ix_bunch
+    nl=nl+1; write (lines(nl), imt) 'ix_universe             = ', c%ix_universe
+    nl=nl+1; write (lines(nl), imt) 'symbol_every            = ', c%symbol_every
+    nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor     = ', c%x_axis_scale_factor
+    nl=nl+1; write (lines(nl), rmt) 'y_axis_scale_factor     = ', c%y_axis_scale_factor
+    nl=nl+1; write (lines(nl), lmt) 'use_y2                  = ', c%use_y2
+    nl=nl+1; write (lines(nl), lmt) 'draw_line               = ', c%draw_line
+    nl=nl+1; write (lines(nl), lmt) 'draw_symbols            = ', c%draw_symbols
+    nl=nl+1; write (lines(nl), lmt) 'draw_interpolated_curve = ', c%draw_interpolated_curve
+    
+    if (show_sym) then
+      n = nl + size(c%x_symb) + 10
+      if (n > size(lines)) call re_allocate(lines, len(lines(1)), n, .false.)
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Symbol points:'
+      nl=nl+1; lines(nl) = '    ix             x             y'
+      err = .false.
+      do j = 2, size(curve)
+        if (size(curve(j)%c%y_symb) /= size(c%y_symb)) then
+          nl=nl+1; lines(nl) = 'NUMBER OF SYMBOL POINTS NOT THE SAME IN ALL CURVES!'
+          err = .true.
+          exit
+        endif
+      enddo
+      if (.not. err) then
+        do i = 1, size(c%x_symb)
+          nl=nl+1; write (lines(nl), '(i6, 10es14.6)') c%ix_symb(i), c%x_symb(i), &
+                                        (/ (curve(j)%c%y_symb(i), j = 1, size(curve)) /)
+        enddo
+      endif
+    endif
+
+    if (show_line) then
+      n = nl + size(c%x_line) + 10
+      if (n > size(lines)) call re_allocate(lines, len(lines(1)), n, .false.)
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Smooth line points:'
+      nl=nl+1; lines(nl) = '             x             y'
+      do j = 2, size(curve)
+        if (size(curve(j)%c%y_line) /= size(c%y_line)) then
+          nl=nl+1; lines(nl) = 'NUMBER OF LINE POINTS NOT THE SAME IN ALL CURVES!'
+          err = .true.
+          exit
+        endif
+      enddo
+      if (.not. err) then
+        do i = 1, size(c%x_line)
+          nl=nl+1; write (lines(nl), '(2es14.6)') c%x_line(i), &
+                                        (/ (curve(j)%c%y_line(i), j = 1, size(curve)) /)
+        enddo
+      endif
+    endif
+
+  else
+    call out_io (s_error$, r_name, 'This is not a curve name')
+    return
+  endif
+
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+!----------------------------------------------------------------------
 ! data
 
 case ('data')
@@ -770,6 +877,64 @@ case ('global')
   call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
+! graph
+
+case ('graph')
+
+  ! Look for switches
+
+  call string_trim(stuff, stuff2, ix)
+
+  ! Find particular graph
+
+  call tao_find_plots (err, stuff2, 'BOTH', graph = graph, &
+                                      print_flag = .false., always_allocate = .true.)
+  if (err) return
+
+  if (allocated(graph)) then
+    g => graph(1)%g
+    if (associated(g%p%r)) then
+      nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%r%name) // '.' // trim(g%name)
+    endif
+    nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(g%p%name) // '.' // trim(g%name)
+    nl=nl+1; write (lines(nl), amt) 'type                  = ', g%type
+    nl=nl+1; write (lines(nl), amt) 'title                 = ', g%title
+    nl=nl+1; write (lines(nl), amt) 'title_suffix          = ', g%title_suffix
+    nl=nl+1; write (lines(nl), '(a, 4f10.2, 2x, a)') &
+                                    'margin                = ', g%margin
+    nl=nl+1; write (lines(nl), imt) 'box                   = ', g%box
+    nl=nl+1; write (lines(nl), imt) 'ix_universe           = ', g%ix_universe
+    nl=nl+1; write (lines(nl), lmt) 'valid                 = ', g%valid
+    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y          = ', g%y2_mirrors_y
+    nl=nl+1; write (lines(nl), rmt) 'y%max                 = ', g%y%max
+    nl=nl+1; write (lines(nl), rmt) 'y%min                 = ', g%y%min
+    nl=nl+1; write (lines(nl), imt) 'y%major_div           = ', g%y%major_div
+    nl=nl+1; write (lines(nl), imt) 'y%places              = ', g%y%places
+    nl=nl+1; write (lines(nl), lmt) 'y%draw_label          = ', g%y%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers        = ', g%y%draw_numbers
+    nl=nl+1; write (lines(nl), rmt) 'y2%max                = ', g%y2%max
+    nl=nl+1; write (lines(nl), rmt) 'y2%min                = ', g%y2%min
+    nl=nl+1; write (lines(nl), imt) 'y2%major_div          = ', g%y2%major_div
+    nl=nl+1; write (lines(nl), imt) 'y2%places             = ', g%y2%places
+    nl=nl+1; write (lines(nl), lmt) 'y2%draw_label         = ', g%y2%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers       = ', g%y2%draw_numbers
+    nl=nl+1; write (lines(nl), lmt) 'limited               = ', g%limited
+    nl=nl+1; write (lines(nl), lmt) 'clip                  = ', g%clip
+    nl=nl+1; write (lines(nl), lmt) 'draw_axes             = ', g%draw_axes
+    nl=nl+1; write (lines(nl), lmt) 'correct_xy_distortion = ', g%correct_xy_distortion
+    nl=nl+1; lines(nl) = 'Curves:'
+    do i = 1, size(g%curve)
+      nl=nl+1; write (lines(nl), amt) '   ', g%curve(i)%name
+    enddo
+
+  else
+    call out_io (s_error$, r_name, 'This is not a graph')
+    return
+  endif
+
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+!----------------------------------------------------------------------
 ! hom
 
 case ('hom')
@@ -1140,28 +1305,24 @@ case ('particle')
   call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
-! plots
+! plot
 
-case ('plot', 'graph', 'curve')
+case ('plot')
 
   ! Look for switches
 
-  show_sym = .false.
-  show_line = .false.
   show_shape = .false.
   call string_trim(stuff, stuff2, ix)
 
   do
     if (ix == 0) exit
     if (stuff2(1:1) /= '-') exit
-    call match_word (stuff2(:ix), (/ '-shapes', '-symbol', '-line  ' /), n, .true., name)
+    call match_word (stuff2(:ix), (/ '-shapes' /), n, .true., name)
     if (n < 1) then
       call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2(:ix))
       return
     endif
     if (name == '-shapes') show_shape = .true.
-    if (name == '-symbol') show_sym = .true.
-    if (name == '-line')   show_line = .true.
     call string_trim(stuff2(ix+1:), stuff2, ix)
   enddo
 
@@ -1251,116 +1412,10 @@ case ('plot', 'graph', 'curve')
 
 ! Find particular plot
 
-  call tao_find_plots (err, stuff2, 'BOTH', plot, graph, curve, print_flag = .false.)
+  call tao_find_plots (err, stuff2, 'BOTH', plot, print_flag = .false.)
   if (err) return
 
-! print info on particular plot, graph, or curve
-
-  if (allocated(curve)) then
-    c => curve(1)%c
-    nl=nl+1; lines(nl) = 'Region.Graph.Curve: ' // trim(tao_curve_name(c, .true.))
-    do i = 2, size(curve)
-      nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c, .true.))
-    enddo
-    nl=nl+1; lines(nl) = 'Plot.Graph.Curve:   ' // trim(tao_curve_name(c))
-    do i = 2, size(curve)
-      nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
-    enddo
-    nl=nl+1; write (lines(nl), amt) 'data_source             = ', c%data_source
-    nl=nl+1; write (lines(nl), amt) 'data_type               = ', c%data_type
-    nl=nl+1; write (lines(nl), amt) 'ele_ref_name            = ', c%ele_ref_name
-    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref              = ', c%ix_ele_ref
-    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref_track        = ', c%ix_ele_ref_track
-    nl=nl+1; write (lines(nl), imt) 'ix_bunch                = ', c%ix_bunch
-    nl=nl+1; write (lines(nl), imt) 'ix_universe             = ', c%ix_universe
-    nl=nl+1; write (lines(nl), imt) 'symbol_every            = ', c%symbol_every
-    nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor     = ', c%x_axis_scale_factor
-    nl=nl+1; write (lines(nl), rmt) 'y_axis_scale_factor     = ', c%y_axis_scale_factor
-    nl=nl+1; write (lines(nl), lmt) 'use_y2                  = ', c%use_y2
-    nl=nl+1; write (lines(nl), lmt) 'draw_line               = ', c%draw_line
-    nl=nl+1; write (lines(nl), lmt) 'draw_symbols            = ', c%draw_symbols
-    nl=nl+1; write (lines(nl), lmt) 'draw_interpolated_curve = ', c%draw_interpolated_curve
-    
-    if (show_sym) then
-      n = nl + size(c%x_symb) + 10
-      if (n > size(lines)) call re_allocate(lines, len(lines(1)), n, .false.)
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; lines(nl) = 'Symbol points:'
-      nl=nl+1; lines(nl) = '    ix             x             y'
-      err = .false.
-      do j = 2, size(curve)
-        if (size(curve(j)%c%y_symb) /= size(c%y_symb)) then
-          nl=nl+1; lines(nl) = 'NUMBER OF SYMBOL POINTS NOT THE SAME IN ALL CURVES!'
-          err = .true.
-          exit
-        endif
-      enddo
-      if (.not. err) then
-        do i = 1, size(c%x_symb)
-          nl=nl+1; write (lines(nl), '(i6, 10es14.6)') c%ix_symb(i), c%x_symb(i), &
-                                        (/ (curve(j)%c%y_symb(i), j = 1, size(curve)) /)
-        enddo
-      endif
-    endif
-
-    if (show_line) then
-      n = nl + size(c%x_line) + 10
-      if (n > size(lines)) call re_allocate(lines, len(lines(1)), n, .false.)
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; lines(nl) = 'Smooth line points:'
-      nl=nl+1; lines(nl) = '             x             y'
-      do j = 2, size(curve)
-        if (size(curve(j)%c%y_line) /= size(c%y_line)) then
-          nl=nl+1; lines(nl) = 'NUMBER OF LINE POINTS NOT THE SAME IN ALL CURVES!'
-          err = .true.
-          exit
-        endif
-      enddo
-      if (.not. err) then
-        do i = 1, size(c%x_line)
-          nl=nl+1; write (lines(nl), '(2es14.6)') c%x_line(i), &
-                                        (/ (curve(j)%c%y_line(i), j = 1, size(curve)) /)
-        enddo
-      endif
-    endif
-
-  elseif (allocated(graph)) then
-    g => graph(1)%g
-    if (associated(g%p%r)) then
-      nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%r%name) // '.' // trim(g%name)
-    endif
-    nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(g%p%name) // '.' // trim(g%name)
-    nl=nl+1; write (lines(nl), amt) 'type                  = ', g%type
-    nl=nl+1; write (lines(nl), amt) 'title                 = ', g%title
-    nl=nl+1; write (lines(nl), amt) 'title_suffix          = ', g%title_suffix
-    nl=nl+1; write (lines(nl), '(a, 4f10.2, 2x, a)') &
-                                    'margin                = ', g%margin
-    nl=nl+1; write (lines(nl), imt) 'box                   = ', g%box
-    nl=nl+1; write (lines(nl), imt) 'ix_universe           = ', g%ix_universe
-    nl=nl+1; write (lines(nl), lmt) 'valid                 = ', g%valid
-    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y          = ', g%y2_mirrors_y
-    nl=nl+1; write (lines(nl), rmt) 'y%max                 = ', g%y%max
-    nl=nl+1; write (lines(nl), rmt) 'y%min                 = ', g%y%min
-    nl=nl+1; write (lines(nl), imt) 'y%major_div           = ', g%y%major_div
-    nl=nl+1; write (lines(nl), imt) 'y%places              = ', g%y%places
-    nl=nl+1; write (lines(nl), lmt) 'y%draw_label          = ', g%y%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers        = ', g%y%draw_numbers
-    nl=nl+1; write (lines(nl), rmt) 'y2%max                = ', g%y2%max
-    nl=nl+1; write (lines(nl), rmt) 'y2%min                = ', g%y2%min
-    nl=nl+1; write (lines(nl), imt) 'y2%major_div          = ', g%y2%major_div
-    nl=nl+1; write (lines(nl), imt) 'y2%places             = ', g%y2%places
-    nl=nl+1; write (lines(nl), lmt) 'y2%draw_label         = ', g%y2%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers       = ', g%y2%draw_numbers
-    nl=nl+1; write (lines(nl), lmt) 'limited               = ', g%limited
-    nl=nl+1; write (lines(nl), lmt) 'clip                  = ', g%clip
-    nl=nl+1; write (lines(nl), lmt) 'draw_axes             = ', g%draw_axes
-    nl=nl+1; write (lines(nl), lmt) 'correct_xy_distortion = ', g%correct_xy_distortion
-    nl=nl+1; lines(nl) = 'Curves:'
-    do i = 1, size(g%curve)
-      nl=nl+1; write (lines(nl), amt) '   ', g%curve(i)%name
-    enddo
-
-  elseif (allocated(plot)) then
+  if (allocated(plot)) then
     p => plot(1)%p
     if (associated(p%r)) then
       nl=nl+1; lines(nl) = 'Region:  ' // trim(p%r%name)
@@ -1382,7 +1437,7 @@ case ('plot', 'graph', 'curve')
     enddo
 
   else
-    call out_io (s_error$, r_name, 'This is not a graph')
+    call out_io (s_error$, r_name, 'This is not a name of a plot')
     return
   endif
 

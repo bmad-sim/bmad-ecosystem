@@ -20,7 +20,7 @@ use cesr_utils
 
 implicit none
 
-integer nl, iu, ios, n, ix, ix2
+integer i, nl, iu, ios, n, ix, ix2
 
 character(*) :: what1, what2
 character(16) :: r_name = "TAO_HELP"
@@ -118,10 +118,7 @@ do
   call substitute ("``", '"')
   call substitute ("''", '"')
   call substitute ("$")
-  call substitute ("\Newline")
   call substitute ("\protect")
-  call substitute ("\{", "{")
-  call substitute ("\}", "}")
   call substitute ("\_", "_")
   call substitute ("\tao", "Tao")
   call eliminate2 ('\item[', ']', '     ', '')
@@ -131,11 +128,25 @@ do
   call eliminate_inbetween ('\sref{', '}', .false.)
   call eliminate_inbetween ('{\it ', '}', .false.)
   call eliminate_inbetween ('\parbox{', '}', .false.)
+  call substitute ("] \Newline")
+  call substitute ("\Newline")
   call substitute (" &")
   call substitute ('\\ \hline')
   call substitute ('\\')
   call substitute ('\W ', '^')
   call substitute ('"\W"', '"^"')
+
+  do
+    if (line(1:1) /= '{' .and. line(1:1) /= '}') exit
+    line = line(2:)
+  enddo
+  do i = 2, len(line)
+    if (line(i-1:i-1) == '\') cycle !'
+    if (line(i:i) == '{' .or. line(i:i) == '}') line = line(:i-1) // line(i+1:)
+  enddo
+
+  call substitute ("\{", "{")
+  call substitute ("\}", "}")
   
   if (line == ' ') then
     if (blank_line_before) cycle
