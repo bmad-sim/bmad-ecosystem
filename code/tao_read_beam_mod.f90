@@ -215,6 +215,7 @@ err = .true.
 
 rewind (rb_com%iu)
 call tao_read_beam_file_header (i, n_bunch, n_particle, error); if (error) return
+n_particle_lines = n_particle
 
 if (rb_com%n_bunch > 0) n_bunch = rb_com%n_bunch
 if (rb_com%n_particle > 0) n_particle = rb_com%n_particle
