@@ -35,6 +35,7 @@ end type
 type tao_eval_stack_struct
   integer type
   real(rp), allocatable :: value(:)
+  logical, allocatable :: good(:)
 end type
 
 !----------------------------------------------------------------------
@@ -297,10 +298,15 @@ end type
 
 type tao_real_array_struct
   real(rp), pointer :: r
+  logical :: good = .true.
 end type
 
 type tao_logical_array_struct
   logical, pointer :: l
+end type
+
+type tao_integer_array_struct
+  integer, pointer :: i
 end type
 
 type tao_string_array_struct

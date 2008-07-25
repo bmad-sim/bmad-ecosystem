@@ -8,7 +8,8 @@ single line of input. Conversely, \vn{Single Mode}, which is described
 in Chapter~\sref{c:single}, interprets each keystroke as a
 command. Single Mode is useful for quickly varying parameters to see
 how they affect a lattice but the number of commands in Single Mode is
-limited.
+limited. To put \tao into \vn{single mode} use the \vn{single-mode}
+command (\sref{s:sing}).
 
 \index{Commands!Command List} 
 Commands are case sensitive. The list of commands is shown in
@@ -50,42 +51,6 @@ of the line is ignored.  Example:
 \end{table}
 
 %% Marker: "help" will not display anything after this  -----------
-
-\index{Arithmetic expressions} 
-The \tao command prompt parser can handle arithmetic expressions. 
-Arithmetic expressions can be used in a place where a real value is required.
-The standard operators are defined: \hfil\break
-\hspace*{0.15in}
-\begin{tabular}{ll}
-  $a + b$           & Addition        \\
-  $a - b$           & Subtraction     \\
-  $a \, \ast \, b$  & Multiplication  \\
-  $a \; / \; b$     & Division        \\
-  $a \, \land \, b$ & Exponentiation  \\
-\end{tabular} \newline
-The following intrinsic functions are also recognized: \hfil\break
-\index{Intrinsic functions}
-\hspace*{0.15in}
-\begin{tabular}{ll}
-  \vn{sqrt}(x)      & Square Root    \\
-  \vn{log}(x)       & Logarithm      \\
-  \vn{exp}(x)       & Exponential    \\
-  \vn{sin}(x)       & Sine           \\
-  \vn{cos}(x)       & Cosine         \\
-  \vn{tan}(x)       & Tangent        \\
-  \vn{asin}(x)      & Arc sine       \\
-  \vn{acos}(x)      & Arc cosine     \\
-  \vn{atan}(x)      & Arc Tangent    \\
-  \vn{abs}(x)       & Absolute Value \\
-  \vn{ran}()        & Random number between 0 and 1 \\
-  \vn{ran_gauss}()  & Gaussian distributed random number with unit RMS \\
-\end{tabular} \newline
-Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
-Setting the seed is described in Section~\sref{s:globals}.
-
-For a description of \vn{single mode} commands see
-Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
-\vn{single_mode} command. 
 
 \vfil
 \break

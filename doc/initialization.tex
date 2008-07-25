@@ -1591,26 +1591,28 @@ universes 1 through 57 is used for the x-axis and \vn{orbit.x[23]} is
 used for the y-axis. The \vn{set curve ele_ref_name} command
 (\sref{s:set}) can be used to change the index from the initial value
 of \vn{23}. If the universe number is wanted for either the x or
-y-axis, then use the string \vn{'ix_uni'}. Example:
+y-axis, then use the \vn{ix_uni} conponent. Example:
 \begin{example}
-  curve(1)%data_type   = 'ix_uni'
+  curve(1)%data_type   = '*@orbit.x[23]|ix_uni'
   curve(1)%data_type   = '*@orbit.x[23]'
 \end{example}
 This would plot \vn{orbit.x[23]} as a function of universe number
-for all universes. Additionally, the string \vn{'ix_d1'} can be used
-to specify the index in the \vn{d1_data} array.
+for all universes. Additionally, the component \vn{ix_d1} can be used
+to specify the index in the \vn{d1_data} array and the component \vn{ix_ele}
+can be used to specify the lattice element index.
 
-Arithmetic expressions may be mixed with explicit datum components in
-the specification of \vn{curve(:)%data_type_x} and
-\vn{curve(:)%data_type}. Example:
+Arithmetic expressions (\sref{s:arithmetic}) may be mixed with
+explicit datum components in the specification of
+\vn{curve(:)%data_type_x} and \vn{curve(:)%data_type}. Example:
 \begin{example}
   curve(1)%data_type_x = '#@orbit.x|model'
-  curve(1)%data_type   = '#@orbit.x|meas - #@orbit.x|ref'
+  curve(1)%data_type   = '#@orbit.x|meas-ref'
   curve(1)%ele_ref_name = '3'
 \end{example}
 The plots the \vn{model} values of \vn{orbit.x} verses \vn{meas - ref}
 of \vn{orbit.x} for the data in unverse 3. Note: Whenever explicit
-components are specified, the \vn{graph%who} settings are ignored.
+components are specified, the \vn{graph%who} settings are ignored for
+that expression.
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Lattice Layout}\index{Lattice Layout}

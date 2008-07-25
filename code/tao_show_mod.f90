@@ -1,6 +1,7 @@
 module tao_show_mod
 
 use tao_mod
+use tao_evaluate_mod
 use tao_top10_mod
 use tao_command_mod, only: tao_cmd_split
 use random_mod
@@ -1870,13 +1871,12 @@ end subroutine tao_show_this
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 
-subroutine tao_ele_value_routine (str, value, err_flag)
+subroutine tao_ele_value_routine (str, value, good, err_flag)
 
 implicit none
 
-type (ele_struct) ele
-
 real(rp), allocatable :: value(:)
+logical, allocatable :: good(:)
 type (tao_universe_struct), pointer :: u
 integer ios, i, n, ie
 

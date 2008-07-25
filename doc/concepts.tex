@@ -272,6 +272,52 @@ component. The list of components that can be set or refered to are:
 Use the \vn{show var} (\sref{s:show}) command to view variable information
 
 %------------------------------------------------------------------------
+\section{Plotting}\index{Arithmetic Expressions}
+\label{s:arithmetic}
+
+\tao is able to handle arithmetic expressions within commands
+(\sref{c:command}) and in strings in a \tao initialization file.
+Arithmetic expressions can be used in a place where a real value or an
+array of real values are required.  The standard operators are
+defined: \hfil\break \hspace*{0.15in}
+\begin{tabular}{ll}
+  $a + b$           & Addition        \\
+  $a - b$           & Subtraction     \\
+  $a \, \ast \, b$  & Multiplication  \\
+  $a \; / \; b$     & Division        \\
+  $a \, \land \, b$ & Exponentiation  \\
+\end{tabular} \newline
+The following intrinsic functions are also recognized: \hfil\break
+\index{Intrinsic functions}
+\hspace*{0.15in}
+\begin{tabular}{ll}
+  \vn{sqrt}(x)      & Square Root    \\
+  \vn{log}(x)       & Logarithm      \\
+  \vn{exp}(x)       & Exponential    \\
+  \vn{sin}(x)       & Sine           \\
+  \vn{cos}(x)       & Cosine         \\
+  \vn{tan}(x)       & Tangent        \\
+  \vn{asin}(x)      & Arc sine       \\
+  \vn{acos}(x)      & Arc cosine     \\
+  \vn{atan}(x)      & Arc Tangent    \\
+  \vn{abs}(x)       & Absolute Value \\
+  \vn{ran}()        & Random number between 0 and 1 \\
+  \vn{ran_gauss}()  & Gaussian distributed random number with unit RMS \\
+\end{tabular} \newline
+Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
+Setting the seed is described in Section~\sref{s:globals}.
+
+When combining components from the same datum or variable in an
+expression, the common prefix can be eliminated. For example
+\begin(example}
+  orbit.x[2:7,8]|model - 2*orbit.x[2:7,8]|meas
+\end{example}
+is equivalent to
+\begin(example}
+  orbit.x[2:7,8]|model - 2*meas
+\end{example}
+
+%------------------------------------------------------------------------
 \section{Plotting}\index{Plotting}
 \label{s:plotting}
 

@@ -1396,4 +1396,43 @@ end subroutine
 
 end subroutine
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_data_useit_plot_calc (graph, data)
+!
+! Subroutine to set the data for plotting.
+!
+! Input:
+!
+! Output:
+!   data     -- Tao_data_struct:
+!     %useit_plot -- True if good for plotting.
+!                  = %exists & %good_plot (w/o measured & reference data)
+!                  = %exists & %good_plot & %good_user & %good_meas (w/ meas data)
+!                  = %exists & %good_plot & %good_user & %good_ref (w/ reference data)
+!                  = %exists & %good_plot & %good_user & %good_meas & %good_ref 
+!                                                        (w/ measured & reference data)
+!-
+
+subroutine tao_data_useit_plot_calc (graph, data)
+
+implicit none
+
+type (tao_graph_struct) graph
+type (tao_data_struct) data(:)
+
+!
+
+data%useit_plot = data%exists .and. data%good_plot .and. data%good_user
+if (any(graph%who%name == 'meas')) &
+         data%useit_plot = data%useit_plot .and. data%good_meas
+if (any(graph%who%name == 'ref'))  &
+         data%useit_plot = data%useit_plot .and. data%good_ref
+if (any(graph%who%name == 'model'))  &
+         data%useit_plot = data%useit_plot .and. data%good_model
+
+end subroutine
+
 end module

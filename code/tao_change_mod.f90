@@ -1,6 +1,7 @@
 module tao_change_mod
 
 use tao_mod
+use tao_evaluate_mod
 use quick_plot
 
 contains

@@ -1,6 +1,7 @@
 module tao_set_mod
 
 use tao_mod
+use tao_evaluate_mod
 use quick_plot
 use tao_lattice_calc_mod
 
