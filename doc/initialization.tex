@@ -626,15 +626,16 @@ written in ASCII. The ASCII file format is:
 \begin{example}
   <ix_ele>         ! Lattice element index. This is ignored.
   <n_bunch>        ! Number of bunches.
-  <n_particle>     ! Number of particles per bunch to use. 0 => Use all.
+  <n_particle>     ! Number of particles per bunch to use
   [bunch loop: ib = 1 to n_bunch]
+    BEGIN_BUNCH    ! Marker to mark the beginning of a bunch specification block.
     <bunch_charge> ! Charge of bunch. 0 => Use <particle_charge>.
     <z_center>     ! z position at center of bunch.
     <t_center>     ! t position at center of bunch.
     [particle loop: Stop when END_BUNCH marker found]
-      <x>    <px>   <y>    <py>   <z>   <pz>   <particle_charge> <ix_lost> <spin>
+      <x> <px> <y> <py> <z> <pz> <particle_charge> <ix_lost> <spin1> ... <spin4>
     [end particle loop]
-    END_BUNCH   ! Marker to signal the end of the particle loop
+    END_BUNCH      ! Marker to mark the end of the bunch specification block
   [end bunch loop]
 \end{example}
 The first line of the file gives \vn{ix_ele}, the index of the lattice
@@ -642,19 +643,23 @@ element at which the distribution was created. This is ignored when
 the file is readin. The second line gives \vn{<n_bunch>}, the number
 of bunches. The third line gives \vn{n_particle} the number of
 particles in a bunch. After this, there are \vn{<n_bunch>} blocks of
-data, one for each bunch. Each one of these blocks consists of three
-lines followed by a set of lines, one for each particle and ending
-with a line starting with a \vn{END_BUNCH} marker string. Only the
-phase space coordinates need to be specified for each particle. if
-\vn{<particle_charge>} is not present, or is zero, it defaults to
-\vn{bunch_charge/n_particle}. \vn{<ix_lost>} is the index at which the
-particle has been lost at. A value of -1 for \vn{<ix_lost>} indicates
-that the particle is still alive.
+data, one for each bunch. Each one of these blocks starts with a
+\vn{BEGIN_BUNCH} line to mark the beginning of the block and ends with
+a \vn{END_BUNCH} marker line. Inbetween, the first three lines give
+the bunch_charge, z_center, and t_center values followed by a set of
+lines, one for each particle. Only the phase space coordinates need to
+be specified for each particle. if \vn{<particle_charge>} is not
+present, or is zero, it defaults to \vn{bunch_charge/n_particle}.
+\vn{<ix_lost>} is the index at which the particle has been lost at. A
+value of -1 for \vn{<ix_lost>} indicates that the particle is still
+alive.
+
+The particle spin is specified by 4 numbers \vn{<spin1>} through
+\vn{<spin4>} using complex spinor notation.
 
 The number of particles specified may be more then
 \vn{<n_particle>}. In this case, particles will be discarded so that
-the the beam has \vn{<n_particle>} particles. If \vn{<n_particles>} is
-zero, all the particles will be used. Additionally, if
+the the beam has \vn{<n_particle>} particles. If
 \vn{beam_init%n_particle}, if set in the \tao input file, this will
 override the setting of \vn{<n_particle>} in the beam file.
 
@@ -1550,15 +1555,12 @@ points (x, y) where:
   (x, y) = (<n>@orbit.x[23], <n>@orbit.y[23]),   <n> = 1, ..., n_universe
 \end{example}
 When defining a template for graphing a data slice, \vn{graph%type}
-must be set to \vn{'data_slice'}, the \vn{curve(:)%data_source} must be
-set to \vn{'data_array'} and the \vn{curve(:)%data_type} is of the form:
-\begin{example}
-  curve(:) = '<x_data_slice> <y_data_slice>'
-\end{example}
-A space is used as the separator between \vn{<x_data_slice>} and
-\vn{y_data_slice}. If either \vn{<x_data_slice>} or
-\vn{<y_data_slice>} has a \vn{'\#'} character then the string given by
-the corresponding \vn{curve(:)%ele_ref_name} is used. Example:
+must be set to \vn{'data_slice'}, the \vn{curve(:)%data_source} must
+be set to \vn{'data_array'} and the \vn{curve(:)%data_type_x} and
+\vn{curve%data_type} are used to define the x and y axes respectively.
+If either \vn{<curve(:)%data_type_x} or \vn{<curve(:)%data_type} has a
+\vn{'\#'} character, then the string given by the corresponding
+\vn{curve(:)%ele_ref_name} is used in place of the \vn{\#}. Example:
 \begin{example}
   &tao_template_plot
     plot%name = 'at_bpm'
@@ -1576,23 +1578,39 @@ the corresponding \vn{curve(:)%ele_ref_name} is used. Example:
   	graph%type = 'data_slice'
     graph%n_curve = 1
     curve(1)%data_source = 'data_array'
-    curve(1)%data_type   = '1:57@bpm_orbit.x[\#]  1:57@bpm_orbit.y[\#]'
+    curve(1)%data_type_x = '1:57@orbit.x[\#];
+    curve(1)%data_type   = '1:57@orbit.y[\#]'
     curve(1)%y_axis_scale_factor = 1000
     curve(1)%x_axis_scale_factor = 1000
   	curve(1)%ele_ref_name = '23'
   	curve(1)%draw_line = .false.
   /
 \end{example}
-In this example, \vn{bpm_orbit.y[23]} from universes 1 through 57 is
-plotted as a function of \vn{bpm_orbit.x[23]}. The \vn{set curve
-ele_ref_name} command (\sref{s:set}) can be used to change the index
-from the initial value of \vn{23}. If the universe number is wanted
-for either the x or y-axis, then use the string \vn{'ix_uni'} for
-\vn{x_data_slice} or \vn{y_data_slice}. Example:
+In this example, the \vn{meas - ref} values of \vn{orbit.x[23]} from
+universes 1 through 57 is used for the x-axis and \vn{orbit.x[23]} is
+used for the y-axis. The \vn{set curve ele_ref_name} command
+(\sref{s:set}) can be used to change the index from the initial value
+of \vn{23}. If the universe number is wanted for either the x or
+y-axis, then use the string \vn{'ix_uni'}. Example:
 \begin{example}
-  curve(1)%data_type   = 'ix_uni  *@bpm_orbit.x[23]'
+  curve(1)%data_type   = 'ix_uni'
+  curve(1)%data_type   = '*@orbit.x[23]'
 \end{example}
-This would plot \vn{bpm_orbit.x[23]} as a function of universe number for all universes.
+This would plot \vn{orbit.x[23]} as a function of universe number
+for all universes. Additionally, the string \vn{'ix_d1'} can be used
+to specify the index in the \vn{d1_data} array.
+
+Arithmetic expressions may be mixed with explicit datum components in
+the specification of \vn{curve(:)%data_type_x} and
+\vn{curve(:)%data_type}. Example:
+\begin{example}
+  curve(1)%data_type_x = '#@orbit.x|model'
+  curve(1)%data_type   = '#@orbit.x|meas - #@orbit.x|ref'
+  curve(1)%ele_ref_name = '3'
+\end{example}
+The plots the \vn{model} values of \vn{orbit.x} verses \vn{meas - ref}
+of \vn{orbit.x} for the data in unverse 3. Note: Whenever explicit
+components are specified, the \vn{graph%who} settings are ignored.
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Lattice Layout}\index{Lattice Layout}
@@ -1861,7 +1879,6 @@ drawings are specified via one \vn{element_shapes} namelist.
 
 A \vn{Phase Space} plot displays a particle or particles phase space
 coordinates at a given location. An example is show in Figure~\ref{f:phase.space}.
-
 Example Phase Space template:
 \begin{example}
   &tao_template_plot
@@ -1885,14 +1902,17 @@ Example Phase Space template:
     graph%y%min = -3
     graph%y%major_div = 4
     graph%n_curve = 1
-    curve(1)%data_type = 'z p_z' 
+    curve(1)%data_type_x = 'z' 
+    curve(1)%data_type = 'p_z' 
     curve(1)%data_source = 'beam'
     curve(1)%ele_ref_name = "BEGINNING"
   /
 \end{example}
 
-For a \vn{"phase_space"} type graph, \vn{curve%data_type}
-determines what planes are plotted. A plane is either:
+For a \vn{"phase_space"} type graph, \vn{curve%data_type_x} determines
+what phase space coordinate is plotted along the x-axis and
+\vn{curve%data_type} determines what phase space coordinate is plotted
+along the y-axis. The phase space coordinates are:
 \index{x}\index{p_x}\index{y}\index{p_y}\index{z}\index{p_z}
 \begin{example}
   "x"
@@ -1902,13 +1922,9 @@ determines what planes are plotted. A plane is either:
   "z"
   "p_z"
 \end{example}
-For example:
-\begin{example}
-  curve%data_type = "x p_x"  ! x-axis - y-axis
-\end{example}
-In this example the $x$-axis will correspond to the $x$ phase space
-coordinate and the $y$-axis will correspond to the $p_x$ coordinate.
-A space is mandatory as the separator between the plane names.
+In this example above, the $x$-axis of the plot will correspond to the
+$x$ phase space coordinate and the $y$-axis will correspond to the
+$p_x$ coordinate.
 
 To change the place at which the \vn{phase_space} curve is drawn use
 the \vn{set curve ele_ref_name} or \vn{set curve ix_ele_ref} commands.

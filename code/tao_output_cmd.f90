@@ -126,6 +126,7 @@ case ('beam')
       endif
 
       if (ascii) then
+        write (iu, *) 'BEGIN_BUNCH'
         write (iu, *) j, '  ! ix_ele' 
         write (iu, *) size(beam%bunch), '  ! n_bunch'
         write (iu, *) size(beam%bunch(1)%particle), '  ! n_particle'

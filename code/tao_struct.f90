@@ -69,7 +69,8 @@ end type
 type tao_curve_struct
   character(40) :: name                    ! Name identifying the curve.
   character(40) :: data_source             ! "lattice", "data_array", "var_array", etc.
-  character(40) :: data_type = ' '         ! "orbit.x", etc.
+  character(100) :: data_type_x = ' '      ! Used for data slices and phase space plots.
+  character(100) :: data_type = ' '        ! "orbit.x", etc.
   character(40) :: ele_ref_name            ! Reference element.
   type (tao_graph_struct), pointer :: g    ! pointer to parent graph 
   real(rp), allocatable :: x_line(:)       ! coords for drawing a curve

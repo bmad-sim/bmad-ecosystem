@@ -204,6 +204,7 @@ do
       write (curve(j)%name, '(a, i0)') 'c', j
     enddo
     curve(:)%data_source = 'lattice'
+    curve(:)%data_type_x = ''
     curve(:)%data_type   = ''
     curve(:)%x_axis_scale_factor = 1
     curve(:)%y_axis_scale_factor = 1
@@ -298,6 +299,7 @@ do
       crv%g                       => grph
       crv%data_source             = curve(j)%data_source
       if (crv%data_source == 'beam_tracking') crv%data_source = 'beam'
+      crv%data_type_x             = curve(j)%data_type_x
       crv%data_type               = curve(j)%data_type
       crv%x_axis_scale_factor     = curve(j)%x_axis_scale_factor
       crv%y_axis_scale_factor     = curve(j)%y_axis_scale_factor
@@ -331,6 +333,16 @@ do
                      'SUBSTITUTING "-"')
         crv%name(ix:ix) = '-'
       enddo
+
+      ! Convert old style phase_space data_type to new style
+
+      if (grph%type == 'phase_space') then
+        ix = index(crv%data_type, '-')
+        if (ix /= 0 .and. crv%data_type_x == '') then
+          crv%data_type_x = crv%data_type(ix+1:)
+          crv%data_type = crv%data_type(1:ix-1)
+        endif
+      endif  
 
       ! Turn on the y2 axis numbering if needed.
 

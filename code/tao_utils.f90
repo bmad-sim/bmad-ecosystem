@@ -1735,11 +1735,14 @@ end subroutine
 !   wild_type    -- Character(*): If something like "*|meas" is in the 
 !                     expression does this refer to data or variables? 
 !                     Possibilities are "DATA", "VAR", and "BOTH"
-!   n_size       -- Integer: Size of the value array.
+!   n_size       -- Integer: Size of the value array. If the expression
+!                              is a scaler then the value will be spread.
+!                              If n_size = 0 then the natural size determined 
+!                              by expression is used.
 !  
 ! Output:
-!   value(:)     -- Real(rp): Value of arithmetic expression.
-!   err_flag     -- Logical: TRUE on error.
+!   value(:)     -- Real(rp), allocatable: Value of arithmetic expression.
+!   err_flag     -- Logical: True on error. False otherwise
 !-
 
 subroutine tao_to_real_vector (expression, wild_type, n_size, value, err_flag)

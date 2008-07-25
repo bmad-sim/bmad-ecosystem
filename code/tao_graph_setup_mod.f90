@@ -77,7 +77,7 @@ real(rp) value
 
 integer i, j, k, m, n_symb, ix
 
-character(40) data_type(3), name
+character(40) name
 character(40) :: r_name = 'tao_data_slice_graph_setup'
 
 logical err
@@ -104,33 +104,27 @@ do m = 1, size(graph%who)
     name = trim(name) // ' - ' // graph%who(m)%name
   endif
 enddo
-graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(name(4:)) // ']'
+if (name /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(name(4:)) // ']'
 
 ! loop over all curves
 
 curve_loop: do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
-  call tao_cmd_split (curve%data_type, 3, data_type, .true., err)
-  if (err) return
-  if (data_type(3) /= '') then
-    call out_io (s_error$, r_name, 'EXTRA STUFF IN DATA_TYPE STRING: ' // curve%data_type)
-    return
-  endif
 
   ! Find data points
 
   axis_loop: do i = 1, 2  ! x-axis, y-axis
 
-    name = data_type(i)
-    if (name == 'ix_uni') cycle  ! handle this later
+    if (i == 1) name = curve%data_type_x
+    if (i == 2) name = curve%data_type
+    if (name == 'ix_uni' .or. name == 'ix_d1') cycle  ! handle this later
     ix = index(name, '#')
-    if (ix /= 0) data_type(i) = &
-                    trim(name(:ix-1)) // trim(curve%ele_ref_name) // trim(name(ix+1:))
-    call tao_find_data (err, data_type(i), d_array = d_array)
+    if (ix /= 0) name = trim(name(:ix-1)) // trim(curve%ele_ref_name) // trim(name(ix+1:))
+    call tao_find_data (err, name, d_array = d_array)
     if (err .or. size(d_array) == 0) then
       call out_io (s_error$, r_name, &
-                'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // data_type(i))      
+                'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // name)      
       return
     endif
 
@@ -212,8 +206,9 @@ curve_loop: do k = 1, size(graph%curve)
 
   do i = 1, 2
 
-    name = data_type(i)
-    if (name /= 'ix_uni') cycle 
+    if (i == 1) name = curve%data_type_x
+    if (i == 2) name = curve%data_type
+    if (name /= 'ix_uni' .or. name /= 'ix_d1') cycle 
 
     if (i == 1) then
       call re_allocate (curve%x_symb, n_symb)
@@ -227,7 +222,11 @@ curve_loop: do k = 1, size(graph%curve)
     do j = 1, size(d_array)
       if (.not. d_array(j)%d%useit_plot) cycle
       n_symb = n_symb + 1
-      symb(n_symb) = d_array(j)%d%d1%d2%ix_uni
+      if (name == 'ix_uni') then
+        symb(n_symb) = d_array(j)%d%d1%d2%ix_uni
+      else
+        symb(n_symb) = d_array(j)%d%ix_d1
+      endif
     enddo
 
   enddo
@@ -278,7 +277,7 @@ integer k, n, m, ib, ix1_ax, ix2_ax, ix, i
 
 logical err, same_uni
 
-character(40) name, phase_str(3)
+character(40) name
 character(40) :: r_name = 'tao_phase_space_graph_setup'
 
 ! Set up the graph suffix
@@ -325,18 +324,9 @@ do k = 1, size(graph%curve)
 
   ! find phase space axes to plot
 
-  ix = index(curve%data_type, '-')  ! Old style
-  if (ix /= 0) curve%data_type(ix:ix) = ' '
-
-  call tao_cmd_split (curve%data_type, 3, phase_str, .true., err); if (err) return
-  if (phase_str(3) /= '') then
-    call out_io (s_error$, r_name, 'EXTRA STUFF IN DATA_TYPE STRING: ' // curve%data_type)
-    return
-  endif
-
   err = .false.
-  call tao_phase_space_axis (phase_str(1), ix1_ax, err); if (err) return
-  call tao_phase_space_axis (phase_str(2), ix2_ax, err); if (err) return
+  call tao_phase_space_axis (curve%data_type_x, ix1_ax, err); if (err) return
+  call tao_phase_space_axis (curve%data_type,   ix2_ax, err); if (err) return
 
   ! fill the curve data arrays
 
@@ -391,18 +381,18 @@ do k = 1, size(graph%curve)
 
     nullify (d1_x, d1_y)
     do i = 1, size(d2_ptr%d1)
-      if (phase_str(1) == d2_ptr%d1(i)%name) d1_x => d2_ptr%d1(i)
-      if (phase_str(2) == d2_ptr%d1(i)%name) d1_y => d2_ptr%d1(i)
+      if (curve%data_type_x == d2_ptr%d1(i)%name) d1_x => d2_ptr%d1(i)
+      if (curve%data_type   == d2_ptr%d1(i)%name) d1_y => d2_ptr%d1(i)
     enddo
     if (.not. associated(d1_x)) then
       call out_io (s_error$, r_name, &
-              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // phase_str(1), &
+              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type_x, &
               'FOR CURVE: ' // curve%name)
       call err_exit
     endif
     if (.not. associated(d1_y)) then
       call out_io (s_error$, r_name, &
-              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // phase_str(2), &
+              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type, &
               'FOR CURVE: ' // curve%name)
       call err_exit
     endif

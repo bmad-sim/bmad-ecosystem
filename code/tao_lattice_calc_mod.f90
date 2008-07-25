@@ -679,7 +679,7 @@ integer i, iu, ios, n_in_file, n_in
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
 
-logical too_many_lost
+logical too_many_lost, err
 
 ! Init
 
@@ -700,7 +700,8 @@ if (u%beam0_file /= "") then
     call tao_open_beam_file (u%beam0_file)
     call tao_set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, &
                                                        u%beam_init%bunch_charge)
-    call tao_read_beam (u%beam0)
+    call tao_read_beam (u%beam0, err)
+    if (err) call err_exit
     call tao_close_beam_file()
     call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
   endif

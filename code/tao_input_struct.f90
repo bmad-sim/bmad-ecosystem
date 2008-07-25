@@ -73,7 +73,8 @@ end type
 type tao_curve_input
   character(40) name
   character(40) data_source
-  character(40) data_type
+  character(100) data_type_x
+  character(100) data_type
   real(rp) x_axis_scale_factor
   real(rp) y_axis_scale_factor
   integer symbol_every

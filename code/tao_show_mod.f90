@@ -426,6 +426,7 @@ case ('curve')
       nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
     enddo
     nl=nl+1; write (lines(nl), amt) 'data_source             = ', c%data_source
+    nl=nl+1; write (lines(nl), amt) 'data_type_x             = ', c%data_type_x
     nl=nl+1; write (lines(nl), amt) 'data_type               = ', c%data_type
     nl=nl+1; write (lines(nl), amt) 'ele_ref_name            = ', c%ele_ref_name
     nl=nl+1; write (lines(nl), imt) 'ix_ele_ref              = ', c%ix_ele_ref
