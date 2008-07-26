@@ -37,11 +37,11 @@ contains
 !                     orbit.x[23]|good_user is False.
 !-
 
-subroutine tao_to_real (expression, value, err_flag)
+subroutine tao_to_real (expression, value, err_flag, good)
 
 implicit none
 
-character(*), intent(in) :: expression
+character(*) :: expression
 real(rp) value
 real(rp), allocatable, save :: vec(:)
 logical, allocatable, save :: ok(:)
@@ -96,7 +96,7 @@ logical, allocatable :: good(:)
 
 integer n_size
 
-character(*), intent(in) :: expression, wild_type
+character(*) :: expression, wild_type
 character(16) :: r_name = "tao_to_real_vector"
 
 logical err_flag, err, wild
@@ -160,9 +160,9 @@ integer i_lev, i_op, i, ios, n, n_size, n__size
 integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
 
 real(rp), allocatable :: value(:)
-logical(rp), allocatable :: good(:)
+logical, allocatable :: good(:)
 
-character(*), intent(in) :: expression
+character(*) :: expression
 character(len(expression)) phrase
 character(1) delim
 character(40) word, word2
@@ -298,6 +298,7 @@ parsing_loop: do
           wild = .false.
         endif
       endif
+      if (phrase(1:1) == '@') wild = .true.  ! '*@...' universe construct
       if (wild) then
         word = word(:ix_word) // '*' // phrase(1:ixb)
         phrase = phrase(ixb+1:)
@@ -311,6 +312,17 @@ parsing_loop: do
 
   !---------------------------
   ! Now see what we got...
+
+  ! For a word ending in '|' then must be a construct like 'orbit.x|-model'.
+  ! So store the 'orbit.x|' prefix
+
+  if (ix_word /= 0) then
+    if (word(ix_word:ix_word) == '|') then
+      saved_prefix = word
+      word = ''
+      ix_word = 0
+    endif
+  endif
 
   ! For a "(" delim we must have a function
 
@@ -728,7 +740,7 @@ else
   if (ix == 0) then
     str2 = trim(saved_prefix) // str
   else
-    saved_prefix = str(1:ix-1)
+    saved_prefix = str(1:ix)
     str2 = str
   endif
   call param_value_routine (str2, stack%value, stack%good, err_flag)
@@ -761,14 +773,17 @@ logical err_flag
 
 !
 
+if (.not. allocated(re_array)) allocate (re_array(0))
+
 if (wild_type_com == 'VAR' .or. wild_type_com == 'BOTH') &
                call tao_find_var (err_flag, str, re_array = re_array, print_err = .false.)
 
-if (.not. allocated(re_array) .and. &
-                              (wild_type_com == 'DATA' .or. wild_type_com == 'BOTH')) then
+if (wild_type_com == 'DATA' .or. (err_flag .and. wild_type_com == 'BOTH')) then
   call tao_find_data (err_flag, str, re_array = re_array, &
                                                 int_array = int_array, print_err = .false.)
 endif
+
+if (err_flag) return
 
 if (size(re_array) /= 0) then
   n = size(re_array)

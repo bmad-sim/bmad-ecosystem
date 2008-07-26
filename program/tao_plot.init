@@ -95,8 +95,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  graph%who(1) = 'model', +1
-  graph%who(2) = 'design', -1
+  graph%component = 'model - design'
   curve(1)%data_source = 'data_array'
   curve(1)%y_axis_scale_factor = 57.29578
 /
@@ -112,8 +111,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  graph%who(1) = 'model', +1
-  graph%who(2) = 'design', -1
+  graph%component = 'model - design'
   curve(1)%data_source = 'data_array'
   curve(1)%y_axis_scale_factor = 57.29578
 /

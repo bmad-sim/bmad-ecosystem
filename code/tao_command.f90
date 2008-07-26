@@ -264,24 +264,8 @@ case ('plot')
     return
   endif
 
-  call tao_cmd_split (cmd_line, 9, cmd_word, .false., err, '+-')
-
-  i = 1; j = 1
-  do 
-    j = j + 1
-    if (cmd_word(j) == ' ') exit
-    i = i + 1
-    if (cmd_word(j) == '+' .or. cmd_word(j) == '-') then
-      cmd_word(i) = cmd_word(j)(1:1) // cmd_word(j+1)
-      j = j + 1
-    elseif (i == 2) then
-      cmd_word(i) = '+' // cmd_word(j)
-    else
-      cmd_word(i) = cmd_word(j)
-    endif
-  enddo
-
-  call tao_plot_cmd (cmd_word(1), cmd_word(2:i))
+  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err)
+  call tao_plot_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
 ! VETO, RESTORE, USE

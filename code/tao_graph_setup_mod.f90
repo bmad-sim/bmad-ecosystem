@@ -4,6 +4,7 @@ use tao_mod
 use tao_lattice_calc_mod
 use tao_plot_mod
 use tao_command_mod
+use tao_evaluate_mod
 
 contains
 
@@ -70,8 +71,8 @@ implicit none
 type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
-type (tao_data_array_struct), allocatable, save :: d_array(:)
 
+real(rp), allocatable, save :: x(:), y(:)
 real(rp), pointer :: symb(:)
 real(rp) value
 
@@ -81,6 +82,7 @@ character(40) name
 character(40) :: r_name = 'tao_data_slice_graph_setup'
 
 logical err
+logical, allocatable, save :: gx(:), gy(:)
 
 ! setup the graph suffix
 
@@ -95,16 +97,8 @@ do k = 1, size(graph%curve)
                   trim(graph%title_suffix) // '[At: ' // trim(curve%ele_ref_name) // ']'
 enddo
 
-name = ''
-do m = 1, size(graph%who)
-  if (graph%who(m)%name == ' ') cycle
-  if (graph%who(m)%sign == 1) then
-    name = trim(name) // ' + ' // graph%who(m)%name
-  elseif (graph%who(m)%sign == -1) then
-    name = trim(name) // ' - ' // graph%who(m)%name
-  endif
-enddo
-if (name /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(name(4:)) // ']'
+if (graph%component /= '') graph%title_suffix = &
+              trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
 
 ! loop over all curves
 
@@ -114,130 +108,46 @@ curve_loop: do k = 1, size(graph%curve)
 
   ! Find data points
 
-  axis_loop: do i = 1, 2  ! x-axis, y-axis
+  do i = 1, 2  ! x-axis, y-axis
 
     if (i == 1) name = curve%data_type_x
     if (i == 2) name = curve%data_type
-    if (name == 'ix_uni' .or. name == 'ix_d1') cycle  ! handle this later
-    ix = index(name, '#')
-    if (ix /= 0) name = trim(name(:ix-1)) // trim(curve%ele_ref_name) // trim(name(ix+1:))
-    call tao_find_data (err, name, d_array = d_array)
-    if (err .or. size(d_array) == 0) then
+    do
+      ix = index(name, '#')
+      if (ix == 0) exit
+      name = trim(name(:ix-1)) // trim(curve%ele_ref_name) // trim(name(ix+1:))
+    enddo
+    if (index(name, '|') == 0) name = trim(name) // '|' // graph%component
+    if (i == 1) call tao_to_real_vector (name, 'BOTH', 0, x, gx, err)
+    if (i == 2) call tao_to_real_vector (name, 'BOTH', 0, y, gy, err)
+    if (err) then
       call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // name)      
       return
     endif
 
-    ! Mark bad data
-
-    n_symb = 0
-    do j = 1, size(d_array)
-      d_array(j)%d%useit_plot = d_array(j)%d%good_model .and. d_array(j)%d%good_user
-      do m = 1, size(graph%who)
-        select case (graph%who(m)%name)
-        case ('meas')
-          d_array(j)%d%useit_plot = d_array(j)%d%useit_plot .and. d_array(j)%d%good_meas
-        case ('ref')
-          d_array(j)%d%useit_plot = d_array(j)%d%useit_plot .and. d_array(j)%d%good_ref
-        end select
-      enddo
-      if (d_array(j)%d%useit_plot) n_symb = n_symb + 1
-    enddo
-
-    ! Which axis?
-
-    if (i == 1) then
-      call re_allocate (curve%x_symb, n_symb)
-      symb => curve%x_symb
-    else
-      call re_allocate (curve%y_symb, n_symb)
-      symb => curve%y_symb
-    endif
-
-    ! calc data values
-
-    symb = 0
-    n_symb = 0
-
-    d_array_loop: do j = 1, size(d_array)
-      if (.not. d_array(j)%d%useit_plot) cycle
-      n_symb = n_symb + 1
-      do m = 1, size(graph%who)
-        select case (graph%who(m)%name)
-        case (' ') 
-          cycle
-        case ('model') 
-          value = d_array(j)%d%model_value
-        case ('base')  
-          value = d_array(j)%d%base_value
-        case ('design')  
-          value = d_array(j)%d%design_value
-        case ('ref')     
-          value = d_array(j)%d%ref_value
-        case ('meas')    
-          value = d_array(j)%d%meas_value
-        case default
-          call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
-          return
-        end select
-        symb(n_symb) = symb(n_symb) + graph%who(m)%sign * value
-      enddo
-
-    enddo d_array_loop
-
-  enddo axis_loop
-
-  ! If the data array slice is over multiple universes then store the universe number
-  ! in the curve%ix_symb array. Else store the index of the datum in the d1_data_array.
-
-  call re_allocate (curve%ix_symb, n_symb)
-  n_symb = 0
-  do j = 1, size(d_array)
-    if (.not. d_array(j)%d%useit_plot) cycle
-    n_symb = n_symb + 1
-    if (d_array(1)%d%ix_d1 == d_array(size(d_array))%d%ix_d1) then
-      curve%ix_symb(n_symb) = d_array(j)%d%d1%d2%ix_uni
-    else
-      curve%ix_symb(n_symb) = d_array(j)%d%ix_d1
-    endif
   enddo
 
-  ! Now handle the ix_uni case
+  ! How many good points?
 
-  do i = 1, 2
-
-    if (i == 1) name = curve%data_type_x
-    if (i == 2) name = curve%data_type
-    if (name /= 'ix_uni' .or. name /= 'ix_d1') cycle 
-
-    if (i == 1) then
-      call re_allocate (curve%x_symb, n_symb)
-      symb => curve%x_symb
-    else
-      call re_allocate (curve%y_symb, n_symb)
-      symb => curve%y_symb
-    endif
-
-    n_symb = 0
-    do j = 1, size(d_array)
-      if (.not. d_array(j)%d%useit_plot) cycle
-      n_symb = n_symb + 1
-      if (name == 'ix_uni') then
-        symb(n_symb) = d_array(j)%d%d1%d2%ix_uni
-      else
-        symb(n_symb) = d_array(j)%d%ix_d1
-      endif
-    enddo
-
-  enddo
-
-  ! Error check
-
-  if (size(curve%x_symb) /= size(curve%y_symb)) then
+  if (size(x) /= size(y)) then
     call out_io (s_error$, r_name, &
-            'DATA ARRAYS DO NOT HAVE THE SAME LENGTH FOR CURVE: ' // curve%name)
+                  'ARRAY SIZES ARE NOT THE SAME FOR BOTH AXES.', &
+                  'FOR: ' // tao_curve_name(curve))
     return
   endif
+
+  n_symb = count(gx .and. gy)
+
+  call re_allocate (curve%x_symb, n_symb)
+  call re_allocate (curve%y_symb, n_symb)
+  call re_allocate (curve%ix_symb, n_symb)
+
+  ! Transfer the values
+
+  curve%x_symb = pack (x, mask = gx .and. gy)
+  curve%y_symb = pack (y, mask = gx .and. gy)
+  curve%ix_symb = (/ (i, i = 1, n_symb) /)
 
   ! The line data just goes through the symbols
 
@@ -538,9 +448,10 @@ type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
 type (tao_var_struct), pointer :: v_ptr
 type (ele_struct), pointer :: ele, ele1, ele2
+type (tao_data_var_component_struct), allocatable, save :: comp(:)
 
 real(rp) f, y_val, eps, gs, l_tot, s0, s1, x_max, x_min
-real(rp), pointer :: value(:)
+real(rp), allocatable :: value(:)
 real(rp), allocatable, save :: ix_symb(:), x_symb(:), y_symb(:)
 
 integer ii, k, m, n, n_dat, ie, jj, iv, ic
@@ -548,30 +459,18 @@ integer ix, ir, jg, i, j, ix_this
 integer, allocatable, save :: ix_ele(:)
 
 logical err, smooth_curve, found, zero_average_phase, valid, in_graph, ok
-logical, allocatable, save :: valid_value(:)
+logical, allocatable, save :: good(:)
 
-character(12)  :: u_view_char
+character(60) data_type
+character(12) :: u_view_char
 character(30) :: r_name = 'tao_data_graph_setup'
 
 !
 
+graph%valid = .false.
 call re_allocate (ix_ele, 1)
 
-! For the title_suffix: strip off leading "+" and enclose in "[ ]".
-
-graph%title_suffix = ' '
-do m = 1, size(graph%who)
-  if (graph%who(m)%name == ' ') cycle
-  if (graph%who(m)%sign == 1) then
-    graph%title_suffix = trim(graph%title_suffix) // ' + ' // graph%who(m)%name
-  elseif (graph%who(m)%sign == -1) then
-    graph%title_suffix = trim(graph%title_suffix) // ' - ' // graph%who(m)%name
-  endif
-enddo
-
-if (graph%title_suffix(2:2) == '+') graph%title_suffix = graph%title_suffix(4:)
-
-graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
+graph%title_suffix = '[' // trim(graph%component) // ']'
 
 ! attach x-axis type to title suffix 
  
@@ -606,33 +505,29 @@ do k = 1, size(graph%curve)
   else
     zero_average_phase = .false.
     call tao_locate_elements (curve%ele_ref_name, curve%ix_universe, ix_ele, .true.)
-    if (ix_ele(1) < 0) then
-      graph%valid = .false.
-      return
-    endif
+    if (ix_ele(1) < 0) return
     curve%ix_ele_ref = ix_ele(1)
     call tao_ele_ref_to_ele_ref_track(curve%ix_universe, ix_ele(1), curve%ix_ele_ref_track)
   endif
 
 
 
-!----------------------------------------------------------------------------
-! Calculate where the symbols are to be drawn on the graph.
+  !----------------------------------------------------------------------------
+  ! Calculate where the symbols are to be drawn on the graph.
 
   select case (curve%data_source)
 
-!----------------------------------------------------------------------------
-! Case: data_source is a data_array
+  !----------------------------------------------------------------------------
+  ! Case: data_source is a data_array
 
   case ('data_array')
 
-    ! point d1_ptr to the data to be plotted
+    ! point d1_array to the data to be plotted
 
     call tao_find_data (err, curve%data_type, d2_ptr, d1_array, ix_uni = curve%ix_universe)
     if (err .or. size(d1_array) /= 1) then
       call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
-      graph%valid = .false.
       return
     endif
 
@@ -718,47 +613,26 @@ do k = 1, size(graph%curve)
 
     else
       call out_io (s_error$, r_name, "Unknown axis type!")
-      graph%valid = .false.
       return
     endif
 
-! calculate the y-axis data point values.
+    ! calculate the y-axis data point values.
 
-    curve%y_symb = 0
+    data_type = trim(curve%data_type) // '|' // graph%component
+    call tao_to_real_vector (data_type, 'DATA', 0, value, good, err)
+    if (err) then
+      call out_io (s_error$, r_name, 'BAD PLOT COMPONENT: ' // data_type)
+      return
+    end if
 
-    do m = 1, size(graph%who)
-      select case (graph%who(m)%name)
-      case (' ') 
-        cycle
-      case ('model') 
-        value => d1_ptr%d%model_value
-      case ('base')  
-        value => d1_ptr%d%base_value
-      case ('design')  
-        value => d1_ptr%d%design_value
-      case ('ref')     
-        value => d1_ptr%d%ref_value
-      case ('meas')    
-        value => d1_ptr%d%meas_value
-      case default
-        call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
-        graph%valid = .false.
-        return
-      end select
-      curve%y_symb = curve%y_symb + &
-                   graph%who(m)%sign * pack(value, mask = d1_ptr%d%useit_plot)
-    enddo
+    curve%y_symb = pack(value, mask = d1_ptr%d%useit_plot)
 
-
-!----------------------------------------------------------------------------
-! Case: data_source is a var_array
+  !----------------------------------------------------------------------------
+  ! Case: data_source is a var_array
 
   case ('var_array')
     call tao_find_var (err, curve%data_type, v1_array)
-    if (err .or. size(v1_array) /= 1) then
-      graph%valid = .false.
-      return
-    endif
+    if (err .or. size(v1_array) /= 1) return
     v1_ptr => v1_array(1)%v1
 
     ! find which universe we're viewing
@@ -776,7 +650,6 @@ do k = 1, size(graph%curve)
     if (ix_this .eq. -1) then
       call out_io (s_error$, r_name, &
                      "This variable doesn't point to the currently displayed  universe.")
-      graph%valid = .false.
       return
     endif
 
@@ -820,47 +693,19 @@ do k = 1, size(graph%curve)
       enddo
     endif
 
-! calculate the y-axis data point values.
+    ! calculate the y-axis data point values.
 
-    curve%y_symb = 0
+    data_type = trim(curve%data_type) // '|' // graph%component
+    call tao_to_real_vector (data_type, 'VAR', 0, value, good, err)
+    if (err) then
+      call out_io (s_error$, r_name, 'BAD PLOT COMPONENT: ' // data_type)
+      return
+    end if
 
-    do m = 1, size(graph%who)
+    curve%y_symb = pack(value, mask = d1_ptr%d%useit_plot)
 
-      gs = graph%who(m)%sign
-
-      ic = 0
-      do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
-
-        v_ptr => v1_ptr%v(jj)
-        if (.not. v_ptr%useit_plot) cycle
-
-        select case (graph%who(m)%name)
-        case (' ') 
-          cycle
-        case ('model') 
-          y_val = v_ptr%model_value
-        case ('base')  
-          y_val = v_ptr%base_value
-        case ('design')  
-          y_val = v_ptr%design_value
-        case ('ref')     
-          y_val = v_ptr%ref_value
-        case ('meas')    
-          y_val = v_ptr%meas_value
-        case default
-          call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
-          graph%valid = .false.
-          return
-        end select
-
-        ic = ic + 1
-        curve%y_symb(ic) = curve%y_symb(ic) + gs * y_val
-
-      enddo
-    enddo
-
-!----------------------------------------------------------------------------
-! Case: data_source is from lattice, or beam
+  !----------------------------------------------------------------------------
+  ! Case: data_source is from lattice, or beam
 
   case ('lattice', 'beam')
 
@@ -911,7 +756,7 @@ do k = 1, size(graph%curve)
     call re_allocate (ix_symb, n_dat)
     call re_allocate (y_symb, n_dat) ! allocate space for the data
     call re_allocate (x_symb, n_dat) ! allocate space for the data
-    call re_allocate (valid_value, n_dat) ! allocate space for the data
+    call re_allocate (good, n_dat) ! allocate space for the data
 
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
@@ -946,7 +791,7 @@ do k = 1, size(graph%curve)
     ! calculate the y-axis data point values.
 
     y_symb = 0
-    valid_value = .true.
+    good = .true.
 
     datum%ix_ele0     = curve%ix_ele_ref_track
     datum%merit_type  = 'target'
@@ -954,7 +799,10 @@ do k = 1, size(graph%curve)
     datum%ele0_name   = curve%ele_ref_name
     datum%data_source = curve%data_source
 
-    do m = 1, size(graph%who)
+    call tao_split_component (graph%component, comp, err)
+    if (err) return
+    do m = 1, size(comp)
+
       do ie = 1, n_dat
 
         if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
@@ -967,7 +815,7 @@ do k = 1, size(graph%curve)
 
         datum%ix_ele = ix_symb(ie)
 
-        select case (graph%who(m)%name)
+        select case (comp(m)%name)
         case (' ') 
           cycle
         case ('model')   
@@ -978,20 +826,18 @@ do k = 1, size(graph%curve)
           call tao_evaluate_a_datum (datum, u, u%design, y_val, valid, t_map)
         case ('ref', 'meas')
           call out_io (s_error$, r_name, &
-                  'PLOT "WHO" WHICH IS: ' // graph%who(m)%name, &
+                  'PLOT COMPONENT WHICH IS: ' // comp(m)%name, &
                   '    FOR DATA_TYPE: ' // curve%data_type, &
                   '    NOT ALLOWED SINCE DATA_SOURCE IS SET TO: ' // curve%data_source)
-          graph%valid = .false.
           return
         case default
           call out_io (s_error$, r_name, &
-                  'BAD PLOT "WHO": ' // graph%who(m)%name, &
+                  'BAD PLOT COMPONENT: ' // comp(m)%name, &
                   '    FOR DATA_TYPE: ' // curve%data_type)
-          graph%valid = .false.
           return
         end select
-        y_symb(ie) = y_symb(ie) + graph%who(m)%sign * y_val
-        if (.not. valid) valid_value(ie) = .false.
+        y_symb(ie) = y_symb(ie) + comp(m)%sign * y_val
+        if (.not. valid) good(ie) = .false.
 
         if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
           if (datum%ix_ele < datum%ix_ele0) datum%ix_ele0 = datum%ix_ele
@@ -1000,31 +846,30 @@ do k = 1, size(graph%curve)
       enddo
     enddo
 
-    n_dat = count(valid_value)
+    n_dat = count(good)
     call re_allocate (curve%x_symb, n_dat) ! allocate space for the data
     call re_allocate (curve%y_symb, n_dat) ! allocate space for the data
     call re_allocate (curve%ix_symb, n_dat)
 
-    curve%x_symb  = pack(x_symb, mask = valid_value)
-    curve%y_symb  = pack(y_symb, mask = valid_value)
-    curve%ix_symb = pack(ix_symb, mask = valid_value)
+    curve%x_symb  = pack(x_symb, mask = good)
+    curve%y_symb  = pack(y_symb, mask = good)
+    curve%ix_symb = pack(ix_symb, mask = good)
 
-!----------------------------------------------------------------------------
-! Case: Bad data_source
+  !----------------------------------------------------------------------------
+  ! Case: Bad data_source
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATA_SOURCE: ' // curve%data_source)
-    graph%valid = .false.
     return
   end select
 
-!----------------------------------------------------------------------------
-! Now calculate the points for drawing the curve through the symbols.
-! If the x-axis is by index or ele_index then these points are the same as the symbol points.
-! That is, for x-axis = index or ele_index the line is piece-wise linear between the symbols.
-! If the axis is by s-value then the line is a "smooth" curve with n_curve_pts points if
-! plotting model, base or design data. It's the same as the symbol points otherwise.
-! Smoothing will only be performed if performing single particle tracking.
+  !----------------------------------------------------------------------------
+  ! Now calculate the points for drawing the curve through the symbols.
+  ! If the x-axis is by index or ele_index then these points are the same as the symbol points.
+  ! That is, for x-axis = index or ele_index the line is piece-wise linear between the symbols.
+  ! If the axis is by s-value then the line is a "smooth" curve with n_curve_pts points if
+  ! plotting model, base or design data. It's the same as the symbol points otherwise.
+  ! Smoothing will only be performed if performing single particle tracking.
 
   select case (plot%x_axis_type)
   case ('index')
@@ -1047,9 +892,8 @@ do k = 1, size(graph%curve)
     if (curve%data_source == 'lattice' .and. index(curve%data_type, 'emit.') /= 0) &
                                                                        smooth_curve = .false.
 
-    do m = 1, size(graph%who)
-      if (graph%who(m)%name == 'meas' .or. graph%who(m)%name == 'ref') smooth_curve = .false.
-    enddo
+    if (index(graph%component, 'meas') /= 0 .or. &
+                          index(graph%component, 'ref') /= 0) smooth_curve = .false.
 
     if (smooth_curve) then
 
@@ -1059,26 +903,24 @@ do k = 1, size(graph%curve)
       call re_allocate (curve%x_line, s%global%n_curve_pts) 
       curve%y_line = 0
 
-      do m = 1, size(graph%who)
-        select case (graph%who(m)%name)
+      call tao_split_component(graph%component, comp, err)
+      if (err) return
+      do 
+        select case (comp(m)%name)
         case (' ') 
           cycle
         case ('model')
-          call calc_data_at_s (u%model, curve, graph%who(m), err)
+          call calc_data_at_s (u%model, curve, comp(m)%sign, err)
         case ('base')  
-          call calc_data_at_s (u%base, curve, graph%who(m), err)
+          call calc_data_at_s (u%base, curve, comp(m)%sign, err)
         case ('design')  
-          call calc_data_at_s (u%design, curve, graph%who(m), err)
+          call calc_data_at_s (u%design, curve, comp(m)%sign, err)
         case default
           call out_io (s_error$, r_name, &
-                       'BAD PLOT "WHO" WITH "S" X-AXIS: ' // graph%who(m)%name)
-          graph%valid = .false.
+                       'BAD PLOT COMPONENT WITH "S" X-AXIS: ' // comp(m)%name)
           return
         end select
-        if (err) then
-          graph%valid = .false.
-          return
-        endif
+        if (err) return
       enddo
 
     endif
@@ -1093,9 +935,9 @@ do k = 1, size(graph%curve)
 
   end select
 
-!----------------------------------------------------------------------------
-! Note: Since there is an arbitrary overall phase, the phase data 
-! gets renormalized so that the average value is zero.
+  !----------------------------------------------------------------------------
+  ! Note: Since there is an arbitrary overall phase, the phase data 
+  ! gets renormalized so that the average value is zero.
 
   if ((curve%data_type(1:6) == 'phase.' .or. curve%data_type(1:10) == 'bpm_phase.') &
                                       .and. n_dat /= 0 .and. zero_average_phase) then
@@ -1106,13 +948,14 @@ do k = 1, size(graph%curve)
 
 enddo
 
+graph%valid = .true.
+
 !----------------------------------------------------------------------------
 contains 
 
-subroutine calc_data_at_s (tao_lat, curve, who, err)
+subroutine calc_data_at_s (tao_lat, curve, comp_sign, err)
 
 type (tao_lattice_struct), target :: tao_lat
-type (tao_plot_who_struct) who
 type (tao_curve_struct) curve
 type (bunch_params_struct), pointer :: bunch_params
 type (coord_struct), pointer :: orb(:)
@@ -1125,8 +968,10 @@ type (taylor_struct) t_map(6)
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
+real(rp) comp_sign
 
 integer i, ii, j, k, expnt(6), ix_ele, ix0
+
 character(40) data_type
 character(40) data_type_select, data_source
 character(20) :: r_name = 'calc_data_at_s'
@@ -1361,7 +1206,7 @@ do ii = 1, size(curve%x_line)
     return
   end select
 
-  curve%y_line(ii) = curve%y_line(ii) + who%sign * value
+  curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
   s_last = s_now
 
 enddo
@@ -1426,11 +1271,11 @@ type (tao_data_struct) data(:)
 !
 
 data%useit_plot = data%exists .and. data%good_plot .and. data%good_user
-if (any(graph%who%name == 'meas')) &
+if (index(graph%component, 'meas') /= 0) &
          data%useit_plot = data%useit_plot .and. data%good_meas
-if (any(graph%who%name == 'ref'))  &
+if (index(graph%component, 'ref') /= 0)  &
          data%useit_plot = data%useit_plot .and. data%good_ref
-if (any(graph%who%name == 'model'))  &
+if (index(graph%component, 'model') /= 0)  &
          data%useit_plot = data%useit_plot .and. data%good_model
 
 end subroutine

@@ -59,9 +59,9 @@ type tao_title_struct
   logical draw_it            ! draw the title
 end type
 
-type tao_plot_who_struct     ! Who to plot
+type tao_data_var_component_struct    ! Components to plot
   character(16) name         ! Eg: 'meas', 'ref', 'model', etc.
-  integer sign               ! +1 or -1
+  real(rp) sign              ! +1 or -1
 end type
 
 ! A curve is defined by a set of (x,y) points and the axis parameters.
@@ -104,10 +104,10 @@ type tao_graph_struct
   character(100) title
   character(100) title_suffix 
   character(100) legend(n_legend_maxx) ! Array for holding descriptive info.
+  character(60) component       ! Who to plot. Eg: 'meas - design'
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
   type (qp_point_struct) legend_origin
-  type (tao_plot_who_struct) who(n_who_maxx)  ! Who to plot. Eg: Data - Design
   type (qp_axis_struct) y       ! Y-axis attributes.
   type (qp_axis_struct) y2      ! Y-axis attributes.
   type (qp_rect_struct) margin  ! Margin around the graph.

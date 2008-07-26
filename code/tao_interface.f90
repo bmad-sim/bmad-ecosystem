@@ -344,10 +344,10 @@ interface
 end interface
  
 interface
-  subroutine tao_plot_cmd (where, who)
+  subroutine tao_plot_cmd (where, component)
     implicit none
     character(*) :: where
-    character(*) :: who(:)
+    character(*) :: component
   end subroutine
 end interface
  

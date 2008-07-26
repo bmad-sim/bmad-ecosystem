@@ -461,28 +461,11 @@ logical logic, error
 i_uni = this_graph%ix_universe
 if (i_uni == 0) i_uni = s%global%u_view
 comp = component
-if (comp(1:4) == 'who(') comp = 'who('
 
 select case (comp)
 
-  case ('who(')
-    read (component(5:5), '(i)', iostat = ios) iw
-    if (ios /= 0) then
-      call out_io (s_error$, r_name, 'BAD WHO(#) INDEX.')
-      return
-    endif
-    ix = index(set_value, ',')
-    if (ix == 0) then
-      this_graph%who(iw)%name = set_value
-    else
-      read (set_value(ix+1:), '(i)', iostat = ios) iset
-      if (ios /= 0) then
-        call out_io (s_error$, r_name, 'BAD SIGN VALUE.')
-        return
-      endif
-      this_graph%who(iw)%name = set_value(1:ix-1)
-      this_graph%who(iw)%sign = iset
-    endif
+  case ('component')
+    this_graph%component = set_value
 
   case ('clip')
     read (set_value, '(l)', iostat = ios) logic
@@ -561,6 +544,7 @@ character(20) set_is, component
 character(40) :: merit_type_names(2) = (/ 'target ', 'limit  ' /)
 
 logical err, l_value, err_flag
+logical, allocatable, save :: good(:)
 
 ! Decode variable component to set.
 
@@ -615,7 +599,7 @@ elseif (size(s_var) /= 0) then
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (size(r_var) /= 0) then
-  call tao_to_real_vector (value_str, 'VAR', size(r_var), r_value, err)
+  call tao_to_real_vector (value_str, 'VAR', size(r_var), r_value, good, err)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
     return
@@ -668,6 +652,7 @@ character(20) :: r_name = 'tao_set_data_cmd'
 character(40) :: merit_type_names(5) = &
               (/ 'target ', 'min    ', 'max    ', 'abs_min', 'abs_max' /)
 logical err, l_value
+logical, allocatable :: good(:)
 
 ! Decode data component to set.
 
@@ -723,7 +708,7 @@ elseif (size(s_dat) /= 0) then
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (size(r_dat) /= 0) then
-  call tao_to_real_vector (value_str, 'DATA', size(r_dat), r_value, err)
+  call tao_to_real_vector (value_str, 'DATA', size(r_dat), r_value, good, err)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
     return

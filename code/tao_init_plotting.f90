@@ -50,7 +50,7 @@ type (qp_axis_struct) init_axis
 real(rp) shape_height_max
 
 integer iu, i, j, ix, ip, n, ng, ios, i_uni
-integer graph_index, color
+integer graph_index, color, i_graph
 integer, allocatable, save :: ix_ele(:)
 
 character(*) plot_file
@@ -141,10 +141,10 @@ default_graph%y2%draw_numbers = .false.
 default_graph%ix_universe     = -1
 default_graph%clip            = .true.
 default_graph%draw_axes       = .true.
-default_graph%who%name        = '' 
-default_graph%who%sign        = 1
 default_graph%correct_xy_distortion = .false.
-default_graph%who(1)  = tao_plot_who_struct('model', +1) 
+default_graph%component       = 'model'
+default_graph%who%name        = ''
+default_graph%who%sign        = 1
 default_graph%box     = (/ 1, 1, 1, 1 /)
 default_graph%margin  = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 default_graph%n_curve = 0
@@ -196,10 +196,10 @@ do
     allocate (plt%graph(ng))
   endif
 
-  do i = 1, ng
+  do i_graph = 1, ng
     graph_index = 0         ! setup defaults
     graph = default_graph
-    write (graph%name, '(a, i0)') 'g', i
+    write (graph%name, '(a, i0)') 'g', i_graph
     do j = 1, size(curve)
       write (curve(j)%name, '(a, i0)') 'c', j
     enddo
@@ -228,19 +228,43 @@ do
     graph_name = trim(plot%name) // '.' // graph%name
     call out_io (s_blank$, r_name, &
             'Init: Read tao_template_graph namelist: ' // graph_name)
-    if (graph_index /= i) then
+    if (graph_index /= i_graph) then
       call out_io (s_error$, r_name, &
             'BAD "GRAPH_INDEX" FOR PLOT: ' // plot%name, &
             'LOOKING FOR GRAPH_INDEX: \I0\ ', &
             'BUT TAO_TEMPLACE_GRAPH HAD GRAPH_INDEX: \I0\ ', &
-            i_array = (/ i, graph_index /) )
+            i_array = (/ i_graph, graph_index /) )
       call err_exit
     endif
-    grph => plt%graph(i)
+    grph => plt%graph(i_graph)
     grph%p             => plt
     grph%name          = graph%name
     grph%type          = graph%type
-    grph%who           = graph%who
+    grph%component     = graph%component
+    if (graph%who(1)%name /= '') then  ! Old style
+      call out_io (s_error$, r_name, (/ &
+          '**********************************************************', &
+          '**********************************************************', &
+          '**********************************************************', &
+          '***** SYNTAX CHANGE:          GRAPH%WHO              *****', &
+          '***** NEEDS TO BE CHANGED TO: GRAPH%COMPONENT        *****', &
+          '***** SEE THE TAO MANUAL FOR MORE DETAILS!           *****'
+          '**********************************************************', &
+          '**********************************************************', &
+          '**********************************************************' /) )
+      grph%component = graph%who(1)%name
+      do i = 2, size(graph%who)
+        if (graph%who(i)%name == '') exit
+        if (nint(graph%who(i)%sign) == 1) then
+          grph%component = trim(grph%component) // ' + ' // graph%who(i)%name
+        elseif (nint(graph%who(i)%sign) == -1) then
+          grph%component = trim(grph%component) // ' - ' // graph%who(i)%name
+        else
+          call out_io (s_fatal$, r_name, 'BAD "WHO" IN PLOT TEMPLATE: ' // plot%name)
+          call err_exit
+        endif
+      enddo
+    endif
     grph%legend_origin = graph%legend_origin
     grph%box           = graph%box
     grph%title         = graph%title
@@ -266,10 +290,14 @@ do
     call qp_calc_axis_places (grph%y)
 
     if (.not. tao_com%common_lattice .and. grph%ix_universe == 0) then
-      call out_io (s_warn$, r_name, (/ &
+      call out_io (s_error$, r_name, (/ &
+          '**********************************************************', &
+          '**********************************************************', &
           '**********************************************************', &
           '***** SYNTAX CHANGE: GRAPH%IX_UNIVERSE = 0           *****', &
           '***** NEEDS TO BE CHANGED TO: GRAPH%IX_UNIVERSE = -1 *****', &
+          '**********************************************************', &
+          '**********************************************************', &
           '**********************************************************' /) )
       grph%ix_universe = -1
     endif
@@ -355,10 +383,14 @@ do
       ! Enable the radiation integrals calculation if needed.
 
       if (.not. tao_com%common_lattice .and. crv%ix_universe == 0) then
-        call out_io (s_warn$, r_name, (/ &
+        call out_io (s_error$, r_name, (/ &
+          '**********************************************************', &
+          '**********************************************************', &
           '**********************************************************', &
           '***** SYNTAX CHANGE: CURVE%IX_UNIVERSE = 0           *****', &
           '***** NEEDS TO BE CHANGED TO: CURVE%IX_UNIVERSE = -1 *****', &
+          '**********************************************************', &
+          '**********************************************************', &
           '**********************************************************' /) )
         crv%ix_universe = -1
       endif

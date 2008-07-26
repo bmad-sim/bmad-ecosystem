@@ -94,11 +94,12 @@ type tao_graph_input
   character(40) name
   character(40) type
   character(80) title
+  character(60) component
   integer box(4)
   integer ix_universe
   integer n_curve
   type (qp_point_struct) legend_origin
-  type (tao_plot_who_struct) who(n_who_maxx)
+  type (tao_data_var_component_struct) who(n_who_maxx)
   type (qp_rect_struct) margin
   type (qp_axis_struct) y
   type (qp_axis_struct) y2

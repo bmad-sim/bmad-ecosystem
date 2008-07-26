@@ -1359,16 +1359,16 @@ each one needs a \vn{tao_template_graph} namelist to define it. These
 namelists should be placed directly after their respective
 \vn{tao_template_graph} namelists. The general format of the
 \vn{tao_template_graph} namelist is:
-\index{tao_template_graph}\index{graph!y}\index{curve!name}
-\index{graph_index}\index{graph}\index{graph!name}\index{curve}
-\index{graph!type}\index{graph!box}\index{graph!title}\index{graph!margin}
-\index{graph!y2}\index{graph!n_curve}\index{graph!clip}\index{graph!who}
-\index{curve!data_type}\index{curve!data_source}
-\index{curve!x_axis_units_factor}\index{curve!y_axis_units_factor}
-\index{curve!use_y2}\index{curve!line}\index{curve!ele_ref_name}
-\index{curve!draw_line}\index{curve!draw_symbols}\index{curve!ix_universe}
-\index{curve!symbol}\index{curve!symbol_every}\index{curve!convert}
-\index{curve!ix_bunch}
+\index{Tao_template_graph}\index{Graph!y}\index{Curve!name}
+\index{Graph_index}\index{Graph}\index{Graph!name}\index{Curve}
+\index{Graph!type}\index{Graph!box}\index{Graph!title}\index{Graph!margin}
+\index{Graph!y2}\index{Graph!n_curve}\index{Graph!clip}\index{Graph!component}
+\index{Curve!data_type}\index{Curve!data_source}
+\index{Curve!x_axis_units_factor}\index{Curve!y_axis_units_factor}
+\index{Curve!use_y2}\index{Curve!line}\index{Curve!ele_ref_name}
+\index{Curve!draw_line}\index{Curve!draw_symbols}\index{Curve!ix_universe}
+\index{Curve!symbol}\index{Curve!symbol_every}\index{Curve!convert}
+\index{Curve!ix_bunch}
 \begin{example}
   &tao_template_graph
     graph_index           = <number>
@@ -1382,7 +1382,7 @@ namelists should be placed directly after their respective
     graph%n_curve         = <number_of_curves>
     graph%clip            = <logical>       ! Clip plot at grpah boundary. default = T
     graph%draw_axes       = <logical>       ! Default = T
-    graph%who(i)          = "<who_to_plot>", <sign>
+    graph%component       = "<variable_or_data_components>"
     graph%correct_xy_distortion = <logical>   ! For Floor Plan plots: Default = F
     curve(i)%name         = "<curve_name>"
     curve(i)%data_type    = "<data_type>"
@@ -1415,8 +1415,7 @@ For example:
     graph%y%min           = -4
     graph%y%major_div     = 4
     graph%n_curve         = 1
-    graph%who(1)          = "model", +1
-    graph%who(2)          = "design", -1
+    graph%component       = 'model - design'
     curve(1)%data_source  = 'data_array'
     curve(1)%data_type    = "orbit.x"
     curve(1)%units_factor = 1000
@@ -1431,10 +1430,10 @@ of the curve defaults to \vn{c1} and it would be referred to as
 \vn{orbit.x.c1}.  It is important that these names do not contain any
 blank spaces since \tao uses this fact in parsing the command line.
 
-\vn{graph%who(i)} sets what is plotted. In the above example, what will be
-plotted is \vn{model - design}. Possible \vn{graph%who}
-settings are:
-\index{model}\index{design}\index{base}\index{meas}\index{ref}
+\vn{graph%component} sets what variable or data components are to be
+plotted. In the above example, what will be plotted is \vn{model -
+design}. Possible components are:
+\index{Model}\index{Design}\index{Base}\index{Meas}\index{Ref}
 \begin{example}
   "model"     ! model values.
   "design"    ! design values.
@@ -1442,13 +1441,13 @@ settings are:
   "meas"      ! data values.
   "ref"       ! reference data values.
 \end{example}
-The default, if \vn{graph%who} is not
+The default, if \vn{graph%component} is not
 specified, is for the graph will show \vn{model} values. 
 
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
-\index{data}\index{lat_layout}\index{key_table}\index{phase_space}
-\index{floor_plan}
+\index{Data}\index{Lat_layout}\index{Key_table}\index{Phase_space}
+\index{Floor_plan}
 \begin{example}
   "data"         ! Data plots (default) 
   "floor_plan"   ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
@@ -1482,8 +1481,8 @@ documentation in the \bmad reference manual. In the above example the
 graph divides the region into two vertically stacked boxes and places
 itself into the bottom one. 
 
-\index{data_array}\index{var_array}\index{calculation}
-\index{curve!data_source}
+\index{Data_array}\index{Var_array}\index{Calculation}
+\index{Curve!data_source}
 The \vn{curve} structure is used to define the curves that are plotted
 in each graph. \vn{curve%data_source} is the type of information for
 the source of the data points. \vn{curve%data_source} must be one of:
@@ -1573,8 +1572,7 @@ If either \vn{<curve(:)%data_type_x} or \vn{<curve(:)%data_type} has a
     graph_index = 1
     graph%title = 'Orbit at BPM'
     graph%y%label = 'y'
-  	graph%who(1) = 'meas', 1
-  	graph%who(2) = 'ref', -1
+  	graph%component = 'meas - ref'
   	graph%type = 'data_slice'
     graph%n_curve = 1
     curve(1)%data_source = 'data_array'
@@ -1611,7 +1609,7 @@ explicit datum components in the specification of
 \end{example}
 The plots the \vn{model} values of \vn{orbit.x} verses \vn{meas - ref}
 of \vn{orbit.x} for the data in unverse 3. Note: Whenever explicit
-components are specified, the \vn{graph%who} settings are ignored for
+components are specified, the \vn{graph%component} settings are ignored for
 that expression.
 
 %-----------------------------------------------------------------
@@ -1635,11 +1633,11 @@ A lattice layout plot draws the lattice
 along a straight line with colored rectangles representing the various elements.
 An example is shown in Figure~\ref{f:layout.table}.
 The \vn{tao_template_plot} needed to define a lattice layout looks like:
-\index{tao_template_plot}\index{plot!name}\index{plot!box_layout}
-\index{plot!x!min}\index{plot!x!max}\index{plot!n_graph}
-\index{tao_template_graph}\index{graph_index}\index{graph!name}
-\index{graph!type}\index{graph!title}\index{graph!box}
-\index{graph!ix_universe}\index{graph!margin}\index{graph!n_curve}
+\index{Tao_template_plot}\index{Plot!name}\index{Plot!box_layout}
+\index{Plot!x!min}\index{Plot!x!max}\index{Plot!n_graph}
+\index{Tao_template_graph}\index{Graph_index}\index{Graph!name}
+\index{Graph!type}\index{Graph!title}\index{Graph!box}
+\index{Graph!ix_universe}\index{Graph!margin}\index{Graph!n_curve}
 \begin{example}
   &tao_template_plot
     plot%name        = "<plot_name>"
@@ -1841,8 +1839,7 @@ the \vn{K1} focusing strength. Not all elements can be used with a
 \vn{var_height_box}.
 
 \vn{<color>} is the color of the shape. Good colors to use are:
-\index{black}\index{Red}\index{orange}\index{magenta}\index{yellow}
-\index{green}\index{cyan}\index{blue}\index{purple}
+\index{Element shape!color}
 \begin{example}
   "BLACK"
   "RED"

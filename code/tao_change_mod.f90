@@ -292,7 +292,7 @@ subroutine to_number (num_str, n_size, change_number, abs_or_rel, err)
 implicit none
 
 real(rp), allocatable :: change_number(:)
-
+logical, allocatable, save :: good(:)
 integer ix, ios, n_size
 
 character(*) num_str
@@ -324,7 +324,7 @@ if (ix /= 0) then
   number_str(ix:ix) = ' '
 endif
 
-call tao_to_real_vector (number_str, 'BOTH', n_size, change_number, err)
+call tao_to_real_vector (number_str, 'BOTH', n_size, change_number, good, err)
 
 end subroutine
 

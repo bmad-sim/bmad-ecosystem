@@ -170,6 +170,7 @@ logical show_sym, show_line, show_shape, print_data, ok
 logical show_all, name_found, print_taylor, print_wig_terms, print_all
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
+logical, allocatable, save :: good(:)
 
 namelist / custom_show_list / column
 
@@ -902,6 +903,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), amt) 'type                  = ', g%type
     nl=nl+1; write (lines(nl), amt) 'title                 = ', g%title
     nl=nl+1; write (lines(nl), amt) 'title_suffix          = ', g%title_suffix
+    nl=nl+1; write (lines(nl), amt) 'component             = ', g%component
     nl=nl+1; write (lines(nl), '(a, 4f10.2, 2x, a)') &
                                     'margin                = ', g%margin
     nl=nl+1; write (lines(nl), imt) 'box                   = ', g%box
@@ -1176,7 +1178,7 @@ case ('lattice')
         show_common%orbit => orb
         show_common%ix_ele = ie
         show_common%u => u
-        call tao_evaluate_expression (column(i)%name, 1, value, &
+        call tao_evaluate_expression (column(i)%name, 1, value, good, &
                                              .false., err, tao_ele_value_routine)
         if (err) then
           j = ix + column(i)%field_width - 5
