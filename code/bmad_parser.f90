@@ -678,26 +678,26 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   do i = 1, bp_com%ivar_tot
 
     if (bp_com%var_name(i) == 'LATTICE_TYPE') then
-      do i = 1, 10
+      do j = 1, 10
         print *, '*********************************************************'
       enddo
       print *, 'BMAD_PARSER NOTE:'
       print *, '   DEPRECATED USE OF SYNTAX: "LATTICE_TYPE = ...".'
       print *, '   USE "PARAMETER[LATTICE_TYPE] = ..." SYNTAX INSTEAD.'
-      do i = 1, 10
+      do j = 1, 10
         print *, '*********************************************************'
       enddo
       lat%param%lattice_type = nint(bp_com%var_value(i))
     endif
 
     if (bp_com%var_name(i) == 'TAYLOR_ORDER') then
-      do i = 1, 10
+      do j = 1, 10
         print *, '*********************************************************'
       enddo
       print *, 'BMAD_PARSER NOTE:'
       print *, '   DEPRECATED USE OF SYNTAX: "TAYLOR_ORDER = ...".'
       print *, '   USE "PARAMETER[TAYLOR_ORDER] = ..." SYNTAX INSTEAD.'
-      do i = 1, 10
+      do j = 1, 10
         print *, '*********************************************************'
       enddo
       lat%input_taylor_order = nint(bp_com%var_value(i))
