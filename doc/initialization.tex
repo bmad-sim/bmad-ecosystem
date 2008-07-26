@@ -646,7 +646,7 @@ particles in a bunch. After this, there are \vn{<n_bunch>} blocks of
 data, one for each bunch. Each one of these blocks starts with a
 \vn{BEGIN_BUNCH} line to mark the beginning of the block and ends with
 a \vn{END_BUNCH} marker line. Inbetween, the first three lines give
-the bunch_charge, z_center, and t_center values followed by a set of
+the \vn{bunch_charge}, \vn{z_center}, and \vn{t_center} values followed by a set of
 lines, one for each particle. Only the phase space coordinates need to
 be specified for each particle. if \vn{<particle_charge>} is not
 present, or is zero, it defaults to \vn{bunch_charge/n_particle}.
