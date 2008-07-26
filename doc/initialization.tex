@@ -70,16 +70,16 @@ elements are selected based upon their class (Eg: \vn{quadrupole},
   <element class>:<element name>
 \end{example}
 where \vn{<element class>} is an element class and \vn{<element name>}
-is the name of the element.  The wild-card character \vn{'*'} will match
-to any number of characters and \vn{`\%'} matches to any
+is the name of the element.  The wild-card character \vn{"*"} will match
+to any number of characters and \vn{"\%"} matches to any
 single character.  For example
 \begin{example}
-  'quad:q*'
+  "quad:q*"
 \end{example}
 will match to all quadrupole elements whose name starts with a
-\vn{'q'}. If there is no \vn{':'} in the name then this is equivalent
-to using \vn{'*'} as the class.  Thus \vn{'*'} is equivalent to
-\vn{'*:*'} which will match to all elements.
+\vn{"q"}. If there is no \vn{":"} in the name then this is equivalent
+to using \vn{"*"} as the class.  Thus \vn{"*"} is equivalent to
+\vn{"*:*"} which will match to all elements.
 
 %-----------------------------------------------------------------
 \section{Initialization from the Command Line}
@@ -143,7 +143,7 @@ are used).  This namelist contains the variables:
     plot_file         = "<file_name>"  ! Default = Initialization file.
     single_mode_file  = "<file_name>"  ! Default = Initialization file.
     startup_file      = "<file_name>"  ! Default = "tao.startup"
-    init_name         = "<init_name>"  ! Default = 'Tao"
+    init_name         = "<init_name>"  ! Default = "Tao"
   /
 \end{example}
 \vn{init_name} is for naming the initialization. This is useful to
@@ -170,9 +170,9 @@ these initialization namelists and their locations are listed in table
 \begin{tabular}{|l|l|l|l|} \hline
   {\it Namelist} & {\it File Name} & {\it Initialized here}  & {\it Section} \\ \hline
   \vn{tao_design_lattice}     & \vn{lattice_file} & lattice files    & \sref{s:init.lat}      \\ \hline
-  \vn{tao_params}             & 'tao.init' & Global Variables        & \sref{s:globals}       \\ \hline
-  \vn{tao_connected_uni_init} & 'tao.init' & Connected Universes     & \sref{s:connected.uni} \\ \hline
-  \vn{tao_beam_init}          & 'tao.init' & Particle beam           & \sref{s:beam.init}     \\ \hline
+  \vn{tao_params}             & "tao.init" & Global Variables        & \sref{s:globals}       \\ \hline
+  \vn{tao_connected_uni_init} & "tao.init" & Connected Universes     & \sref{s:connected.uni} \\ \hline
+  \vn{tao_beam_init}          & "tao.init" & Particle beam           & \sref{s:beam.init}     \\ \hline
   \vn{tao_var}                & \vn{var_file}     & Variables        & \sref{s:init.var}      \\ \hline
   \vn{tao_d2_data}            & \vn{data_file}    & Data             & \sref{s:init.data}     \\ \hline
   \vn{tao_d1_data}            & \vn{data_file}    & Data             & \sref{s:init.data}     \\ \hline
@@ -333,15 +333,15 @@ type tao_global_struct
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Num points used to construct a smooth curve
   integer :: random_seed = 0             ! use system clock by default
-  character(16) :: random_engine = 'pseudo'         ! random number engine to use
-  character(16) :: random_gauss_converter = 'exact' ! Uniform to gauss conversion method
+  character(16) :: random_engine = "pseudo"         ! random number engine to use
+  character(16) :: random_gauss_converter = "exact" ! Uniform to gauss conversion method
   real(rp) :: random_sigma_cutoff = 4.0             ! Cut-off in sigmas.
-  character(16) :: track_type = 'single'             ! or 'beam' 
-  character(16) :: prompt_string = 'Tao'
-  character(16) :: optimizer     = 'de'              ! optimizer to use.
+  character(16) :: track_type = "single"             ! or "beam" 
+  character(16) :: prompt_string = "Tao"
+  character(16) :: optimizer     = "de"              ! optimizer to use.
   character(16) :: default_key_merit_type
-  character(40) :: print_command = 'lpr'
-  character(80) :: var_out_file  = 'var#.out'
+  character(40) :: print_command = "lpr"
+  character(80) :: var_out_file  = "var#.out"
   logical :: var_limits_on = T           ! Respect the variable limits?
   logical :: auto_scale = F              ! Automatically scale and x-scale the plots?
   logical :: opt_with_ref = F            ! use reference data in optimization?
@@ -374,14 +374,14 @@ number to be picked based upon the system clock. Use the \vn{show
 global} command to see what the seed number is.
 
 \vn{global%random_engine} selects the algorithm used for generating
-the random numbers. \vn{'pseudo'} causes \tao to use a pseudo-random
-number generator. \vn{'quasi'} uses Sobel quasi-random number
+the random numbers. \vn{"pseudo"} causes \tao to use a pseudo-random
+number generator. \vn{"quasi"} uses Sobel quasi-random number
 generator which generates a distribution that is smoother then the
-pseudo-random number generator. \vn{'pseudo'} is the default.
+pseudo-random number generator. \vn{"pseudo"} is the default.
 
 \vn{global%random_gauss_converter} selects the alogithm used in the
 conversion from a uniform distribution to a Gaussian distribution.
-\vn{'exact'} is an exact conversion and \vn{'limited'} has a cut-off
+\vn{"exact"} is an exact conversion and \vn{"limited"} has a cut-off
 so that no particles are generated beyond. This cutoff is set by
 \vn{global%random_gauss_cutoff}.
 
@@ -600,8 +600,8 @@ The syntax is as follows:
     beam_init%spin%phi      = <number>       ! spin orientation  (polar coordinate)
     beam_init%init_spin     = <logical>      ! Initialize the spin (default: False)
     beam_init%preserve_dist = <logical>      ! Use the same particle distribution.
-    beam_init%random_engine = 'pseudo'         ! random number engine to use
-    beam_init%random_gauss_converter = 'exact' ! Uniform to gauss conversion method
+    beam_init%random_engine = "pseudo"         ! random number engine to use
+    beam_init%random_gauss_converter = "exact" ! Uniform to gauss conversion method
     beam_init%random_sigma_cutoff = 4.0        ! Cut-off in sigmas.
   /
 \end{example}
@@ -717,12 +717,12 @@ new distribution, use the \vn{reinitialize beam} command
 (\sref{s:reinit}).
 
 The default is single particle tracking. To turn on particle tracking the
-\vn{global%track_type} perameter must be set to 'beam.' This can be placed in
+\vn{global%track_type} perameter must be set to \vn{"beam"}. This can be placed in
 the \vn{tao_params} namelist above, for example,
 \begin{example}
   &tao_params
     global%optimizer = "lm"  ! Set the default optimizer.
-    global%track_type = 'beam'
+    global%track_type = "beam"
   /
 \end{example}
 
@@ -780,7 +780,7 @@ format for this is
     default_step         = <number>            ! Small step value.
                                                ! default = 0.0
     default_merit_type   = "<merit_type>"      ! Sets how the merit is calculated.
-                                               ! default = 'limit'
+                                               ! default = "limit"
     default_low_lim      = <number>            ! Lower variable value limit. 
                                                ! default = -1e30
     default_high_lim     = <number>            ! Upper variable value limit. 
@@ -1045,10 +1045,10 @@ Alternatively, one can specify a datum in a single line. For example,
     d1_data%name      = "t"  
     !          data_      ele0_     ele_     merit_   meas_    weight good_
     !            type       name      name     type     value           user
-    data( 1) = 'beta.a'   'S:12.3'  'Q16_1'  'max'      30      0.1     T
-    data( 2) = 'phase.b'  'Q09_1'   'Q16_1'  'max'      30      0.1     T
-    data( 3) = 'floor.x'  ' '       'end'    'target'    3      0.01    T       
-    data( 4) = 'floor.x'  'B1'      'B2'     'target'    3      0.01    T       
+    data( 1) = "beta.a"   "S:12.3"  "Q16_1"  "max"      30      0.1     T
+    data( 2) = "phase.b"  "Q09_1"   "Q16_1"  "max"      30      0.1     T
+    data( 3) = "floor.x"  " "       "end"    "target"    3      0.01    T       
+    data( 4) = "floor.x"  "B1"      "B2"     "target"    3      0.01    T       
     ... etc. ...
   /
 \end{example}
@@ -1214,7 +1214,7 @@ For example:
     plot_page%size        = 700, 800           ! Points
     plot_page%border      = 0, 0, 0, 50, "POINTS"  
     plot_page%text_height = 12.0
-    plot_page%title(1)    = "CESR Lattice", 0.5, 0.996, '%PAGE', 'CC'
+    plot_page%title(1)    = "CESR Lattice", 0.5, 0.996, "%PAGE", "CC"
     region(1) = "top"    0.0, 1.0, 0.5, 1.0
     region(2) = "bottom" 0.0, 1.0, 0.0, 0.5
     place(1)  = "top",    "orbit"
@@ -1352,6 +1352,7 @@ the plot. It is important that this name not contain any blank spaces since
     "index"      ! Data Index
     "ele_index"  ! Element lattice number index
     "s"          ! Longitudinal position in the lattice.
+    "data"       ! From a data array
 \end{example}
 
 \vn{n_graph} sets the number of graphs associated with the plot and
@@ -1371,34 +1372,35 @@ namelists should be placed directly after their respective
 \index{Curve!ix_bunch}
 \begin{example}
   &tao_template_graph
-    graph_index           = <number>
-    graph%name            = "<graph_name>"
-    graph%type            = "<graph_type>"
-    graph%box             = <ix>, <iy>, <ix_tot>, <iy_tot>
-    graph%title           = "<label>"
-    graph%margin          =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
-    graph%y               = <qp_axis_struct> ! Left axis.
-    graph%y2              = <qp_axis_struct> ! Right axis.
-    graph%n_curve         = <number_of_curves>
-    graph%clip            = <logical>       ! Clip plot at grpah boundary. default = T
-    graph%draw_axes       = <logical>       ! Default = T
-    graph%component       = "<variable_or_data_components>"
+    graph_index            = <number>
+    graph%name             = "<string>"       ! Default is  "g<n>" <n> = graph_index. 
+    graph%type             = "<string>"       ! "data", "floor_plan", etc.
+    graph%box              = <ix>, <iy>, <ix_tot>, <iy_tot>
+    graph%title            = "<string>"       ! Title above the graph.
+    graph%margin           =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
+    graph%y                = <qp_axis_struct> ! Left axis.
+    graph%y2               = <qp_axis_struct> ! Right axis.
+    graph%n_curve          = <number>         ! number of curves
+    graph%clip             = <logical>        ! Clip curves at boundary? Default = T
+    graph%draw_axes        = <logical>        ! Default = T
+    graph%component        = "<string>"       ! Eg: "model - design"
     graph%correct_xy_distortion = <logical>   ! For Floor Plan plots: Default = F
-    curve(i)%name         = "<curve_name>"
-    curve(i)%data_type    = "<data_type>"
-    curve(i)%data_source  = "<source_name>" ! source for the data curve points
-    curve(i)%x_axis_scale_factor = <factor> ! scale the x-axis by this.
-    curve(i)%y_axis_scale_factor = <factor> ! scale the y-axis by this.
-    curve(i)%use_y2       = <logical>       ! Use left-axis scale?
-    curve(i)%draw_line    = <logical>
-    curve(i)%draw_symbols = <logical>
-    curve(i)%ix_universe  = <universe_number> ! default = -1 => use viewed universe
-    curve(i)%ix_bunch     = <integer>         ! Bunch index. Default = 0 (all bunches).
-    curve(i)%line         = <qp_line_struct>
-    curve(i)%symbol       = <qp_symbol_struct>
-    curve(i)%symbol_every = <integer>         ! plot symbol every # datums
-    curve(i)%ele_ref_name = "<element_name>"     ! reference element.
-    curve(i)%draw_interpolated_curve = <Logical>
+    curve(i)%name          = "<string>"       ! Default is "c<i>", <i> = curve num.
+    curve(i)%data_type     = "<string>"       ! Default = plot%name.graph%name
+    curve(i)%data_source_x = "<string>"       ! Used with plot%x_axis_type = "data".
+    curve(i)%data_source   = "<string>"       ! Source for the data curve points
+    curve(i)%x_axis_scale_factor = <factor>   ! Scale the x-axis by this.
+    curve(i)%y_axis_scale_factor = <factor>   ! Scale the y-axis by this.
+    curve(i)%use_y2        = <logical>        ! Use left-axis scale?
+    curve(i)%draw_line     = <logical>        ! Connect data with lines?
+    curve(i)%draw_symbols  = <logical>        ! Draw data symbols?
+    curve(i)%ix_universe   = <number>         ! Default = -1 => Use viewed universe
+    curve(i)%ix_bunch      = <integer>        ! Bunch index. Default = 0 (all bunches).
+    curve(i)%line          = <qp_line_struct>    ! Line spec (color, width, etc.)
+    curve(i)%symbol        = <qp_symbol_struct>  ! Symbol spec (color size, etc.)
+    curve(i)%symbol_every  = <integer>           ! Plot symbol every # datums
+    curve(i)%ele_ref_name  = "<string>"          ! Name of reference element.
+    curve(i)%draw_interpolated_curve = <Logical> ! Calc and draw smooth curve? 
   /
 \end{example}
 For example:
@@ -1415,8 +1417,8 @@ For example:
     graph%y%min           = -4
     graph%y%major_div     = 4
     graph%n_curve         = 1
-    graph%component       = 'model - design'
-    curve(1)%data_source  = 'data_array'
+    graph%component       = "model - design"
+    curve(1)%data_source  = "data_array"
     curve(1)%data_type    = "orbit.x"
     curve(1)%units_factor = 1000
     curve(1)%use_y2       = F
@@ -1553,34 +1555,35 @@ points (x, y) where:
 \begin{example}
   (x, y) = (<n>@orbit.x[23], <n>@orbit.y[23]),   <n> = 1, ..., n_universe
 \end{example}
-When defining a template for graphing a data slice, \vn{graph%type}
-must be set to \vn{'data_slice'}, the \vn{curve(:)%data_source} must
-be set to \vn{'data_array'} and the \vn{curve(:)%data_type_x} and
+When defining a template for graphing a data slice, the
+plot%x_axis_type is set to \vn{"data"}, and the \vn{graph%type} must
+be set to \vn{"data"}, the \vn{curve(:)%data_source} must be set to
+\vn{"data_array"} and the \vn{curve(:)%data_type_x} and
 \vn{curve%data_type} are used to define the x and y axes respectively.
 If either \vn{<curve(:)%data_type_x} or \vn{<curve(:)%data_type} has a
-\vn{'\#'} character, then the string given by the corresponding
+\vn{"\#"} character, then the string given by the corresponding
 \vn{curve(:)%ele_ref_name} is used in place of the \vn{\#}. Example:
 \begin{example}
   &tao_template_plot
-    plot%name = 'at_bpm'
-    plot%x%label = 'x'
-    plot%x_axis_type = 'data'
+    plot%name = "at_bpm"
+    plot%x%label = "x"
+    plot%x_axis_type = "data"
     plot%n_graph = 1
   /
 
   &tao_template_graph
     graph_index = 1
-    graph%title = 'Orbit at BPM'
-    graph%y%label = 'y'
-  	graph%component = 'meas - ref'
-  	graph%type = 'data_slice'
+    graph%title = "Orbit at BPM"
+    graph%y%label = "y"
+  	graph%component = "meas - ref"
+  	graph%type = "data"
     graph%n_curve = 1
-    curve(1)%data_source = 'data_array'
-    curve(1)%data_type_x = '1:57@orbit.x[\#];
-    curve(1)%data_type   = '1:57@orbit.y[\#]'
+    curve(1)%data_source = "data_array"
+    curve(1)%data_type_x = "1:57@orbit.x[\#]"
+    curve(1)%data_type   = "1:57@orbit.y[\#]"
     curve(1)%y_axis_scale_factor = 1000
     curve(1)%x_axis_scale_factor = 1000
-  	curve(1)%ele_ref_name = '23'
+  	curve(1)%ele_ref_name = "23"
   	curve(1)%draw_line = .false.
   /
 \end{example}
@@ -1591,8 +1594,8 @@ used for the y-axis. The \vn{set curve ele_ref_name} command
 of \vn{23}. If the universe number is wanted for either the x or
 y-axis, then use the \vn{ix_uni} conponent. Example:
 \begin{example}
-  curve(1)%data_type   = '*@orbit.x[23]|ix_uni'
-  curve(1)%data_type   = '*@orbit.x[23]'
+  curve(1)%data_type   = "*@orbit.x[23]|ix_uni"
+  curve(1)%data_type   = "*@orbit.x[23]"
 \end{example}
 This would plot \vn{orbit.x[23]} as a function of universe number
 for all universes. Additionally, the component \vn{ix_d1} can be used
@@ -1603,9 +1606,9 @@ Arithmetic expressions (\sref{s:arithmetic}) may be mixed with
 explicit datum components in the specification of
 \vn{curve(:)%data_type_x} and \vn{curve(:)%data_type}. Example:
 \begin{example}
-  curve(1)%data_type_x = '#@orbit.x|model'
-  curve(1)%data_type   = '#@orbit.x|meas-ref'
-  curve(1)%ele_ref_name = '3'
+  curve(1)%data_type_x = "#@orbit.x|model"
+  curve(1)%data_type   = "#@orbit.x|meas-ref"
+  curve(1)%ele_ref_name = "3"
 \end{example}
 The plots the \vn{model} values of \vn{orbit.x} verses \vn{meas - ref}
 of \vn{orbit.x} for the data in unverse 3. Note: Whenever explicit
@@ -1660,7 +1663,7 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
 Example:
 \begin{example}
   &tao_template_plot
-    plot%name       = 'layout'
+    plot%name       = "layout"
     plot%x%min      =   0
     plot%x%max      = 100
     plot%n_graph    = 1
@@ -1668,11 +1671,11 @@ Example:
 
   &tao_template_graph
     graph_index       = 1
-    graph%name        = 'u1'
-    graph%type        = 'lat_layout'
+    graph%name        = "u1"
+    graph%type        = "lat_layout"
     graph%this_box    = 1, 1
     graph%ix_universe = 1
-    graph%margin      = 0.12, 0.12, 0.12, 0.12, '%BOX'
+    graph%margin      = 0.12, 0.12, 0.12, 0.12, "%BOX"
     graph%n_curve     = 0
   /
 \end{example}
@@ -1691,12 +1694,12 @@ Section~\sref{s:key.bind}.  An example is shown in
 Figure~\ref{f:layout.table}. A template to create a key table looks like:
 \begin{example}
   &tao_template_plot
-    plot%name = 'table' 
+    plot%name = "table" 
     plot%n_graph = 1
   /
 
   &tao_template_graph
-    graph%type = 'key_table' 
+    graph%type = "key_table" 
     graph_index = 1
     graph%n_curve = 0
   /
@@ -1758,12 +1761,12 @@ more details.
 Example Floor Plan template:
 \begin{example}
   &tao_template_plot
-    plot%name = 'floor'
+    plot%name = "floor"
     plot%x%min = -12  
     plot%x%max = 0    
     plot%x%major_div = 4
     plot%x%minor_div = 3
-    plot%x%label = 'Meters'
+    plot%x%label = "Meters"
     plot%n_graph = 1
   /
 
@@ -1772,7 +1775,7 @@ Example Floor Plan template:
     graph%name = "1"
     graph%type = "floor_plan"
     graph%box = 1, 1, 1, 1
-    graph%margin = 0.10, 0.10, 0.10, 0.10, '%BOX'
+    graph%margin = 0.10, 0.10, 0.10, 0.10, "%BOX"
     graph%ix_universe = 1
     graph%y%label = "Meters"
     graph%y%max = 2  
@@ -1881,29 +1884,29 @@ coordinates at a given location. An example is show in Figure~\ref{f:phase.space
 Example Phase Space template:
 \begin{example}
   &tao_template_plot
-    plot%name = 'zphase'
+    plot%name = "zphase"
     plot%x%min =   -10e-3
     plot%x%max = 10e-3
     plot%x%major_div = 4
-    plot%x%label = 'z'
+    plot%x%label = "z"
     plot%n_graph = 1
   /
 
   &tao_template_graph
     graph_index = 1
-    graph%name = 'z'
-    graph%type = 'phase_space'
+    graph%name = "z"
+    graph%type = "phase_space"
     graph%box = 1, 1, 1, 1
-    graph%title = 'Z-Pz'
-    graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
-    graph%y%label = 'Pz'
+    graph%title = "Z-Pz"
+    graph%margin =  0.12, 0.12, 0.12, 0.12, "%BOX"
+    graph%y%label = "Pz"
     graph%y%max = 3
     graph%y%min = -3
     graph%y%major_div = 4
     graph%n_curve = 1
-    curve(1)%data_type_x = 'z' 
-    curve(1)%data_type = 'p_z' 
-    curve(1)%data_source = 'beam'
+    curve(1)%data_type_x = "z" 
+    curve(1)%data_type = "p_z" 
+    curve(1)%data_source = "beam"
     curve(1)%ele_ref_name = "BEGINNING"
   /
 \end{example}

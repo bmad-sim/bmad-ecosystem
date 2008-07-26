@@ -35,9 +35,11 @@ select case (graph%type)
 case ('phase_space')
   call tao_phase_space_graph_setup (plot, graph)
 case ('data')
-  call tao_data_graph_setup(plot, graph)
-case ('data_slice')
-  call tao_data_slice_graph_setup(plot, graph)
+  if (plot%x_axis_type == 'data') then
+    call tao_data_slice_graph_setup(plot, graph)
+  else
+    call tao_data_graph_setup(plot, graph)
+  endif
 end select
 
 ! Renormalize
