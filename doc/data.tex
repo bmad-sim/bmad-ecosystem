@@ -72,16 +72,20 @@ refers to datums 3, 4, 5, 6, and 23.
 If multiple universes (\sref{s:universe}) are present, then the prefix \vn{"@"}
 may be used to specify which universe the data applies to. The general notation is
 \begin{example}
-  <universe_range>@<d2_name>.<d1_name>[<datum_index>]
+  [<universe_range>]@<d2_name>.<d1_name>[<datum_index>]
 \end{example}
-When not specified, the current ``viewed'' universe (\sref{s:view}) is
-assumed. The current \vn{viewed} universe can also be specified using
-the number \vn{-1}. Examples:
+Commas and colons can be used in the syntax for \vn{<universe_range>}
+like they are used in the syntax for \vn{datum_index_range}. When
+there is only a single Universe specified, the brackets \vn{[} and
+\vn{]} are optional. When not specified, the current ``viewed''
+universe (\sref{s:view}) is assumed. The current \vn{viewed} universe
+can also be specified using the number \vn{-1}. Examples:
 \begin{example}
-  2@orbit.x       ! The \vn{orbit.x} data in universe 2. 
+  [2:4,7]@orbit.x ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
+  [2]@orbit.x     ! The \vn{orbit.x} data in universe 2. 
+  2@orbit.x       ! Same as "2@orbit.x".
   orbit.x         ! The \vn{orbit.x} data in the current viewd universe.
-  -1@orbit.x      ! Same as above.
-  2:4,7@orbit.x   ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
+  -1@orbit.x      ! Same as "orbit.x".
 \end{example}
 
 As explained in Section~\sref{s:data.anatomy}, each individual datum

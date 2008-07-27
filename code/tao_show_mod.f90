@@ -428,6 +428,7 @@ case ('curve')
       nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
     enddo
     nl=nl+1; write (lines(nl), amt) 'data_source             = ', c%data_source
+    nl=nl+1; write (lines(nl), amt) 'data_index              = ', c%data_index
     nl=nl+1; write (lines(nl), amt) 'data_type_x             = ', c%data_type_x
     nl=nl+1; write (lines(nl), amt) 'data_type               = ', c%data_type
     nl=nl+1; write (lines(nl), amt) 'ele_ref_name            = ', c%ele_ref_name
@@ -441,6 +442,7 @@ case ('curve')
     nl=nl+1; write (lines(nl), lmt) 'use_y2                  = ', c%use_y2
     nl=nl+1; write (lines(nl), lmt) 'draw_line               = ', c%draw_line
     nl=nl+1; write (lines(nl), lmt) 'draw_symbols            = ', c%draw_symbols
+    nl=nl+1; write (lines(nl), lmt) 'draw_symbol_index       = ', c%draw_symbol_index
     nl=nl+1; write (lines(nl), lmt) 'draw_interpolated_curve = ', c%draw_interpolated_curve
     
     if (show_sym) then

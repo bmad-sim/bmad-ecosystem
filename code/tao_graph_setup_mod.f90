@@ -84,7 +84,7 @@ character(40) name
 character(40) :: r_name = 'tao_data_slice_graph_setup'
 
 logical err
-logical, allocatable, save :: gx(:), gy(:)
+logical, allocatable, save :: gx(:), gy(:), gix(:)
 
 ! setup the graph suffix
 
@@ -124,7 +124,7 @@ curve_loop: do k = 1, size(graph%curve)
     if (i == 2) call tao_to_real_vector (name, 'BOTH', 0, y, gy, err)
     if (err) then
       call out_io (s_error$, r_name, &
-                'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // name)      
+                'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // tao_curve_name(curve))   
       return
     endif
 
@@ -149,7 +149,27 @@ curve_loop: do k = 1, size(graph%curve)
 
   curve%x_symb = pack (x, mask = gx .and. gy)
   curve%y_symb = pack (y, mask = gx .and. gy)
-  curve%ix_symb = (/ (i, i = 1, n_symb) /)
+
+  ! Calc symbol index
+
+  if (curve%data_index == '') then
+    curve%ix_symb = (/ (i, i = 1, n_symb) /)
+  else
+    name = curve%data_index
+    do
+      ix = index(name, '#')
+      if (ix == 0) exit
+      name = trim(name(:ix-1)) // trim(curve%ele_ref_name) // trim(name(ix+1:))
+    enddo
+    call tao_to_real_vector (name, 'BOTH', 0, x, gix, err)
+    if (size(gx) == size(gy)) then
+      curve%ix_symb = pack (nint(x), mask = gx .and. gy)
+    else
+      call out_io (s_error$, r_name, &
+          'SIZE OF SYMBOL INDEX ARRAY IS WRONG IN CURVE: ' // tao_curve_name(curve), &
+          'CURVE%DATA_INDEX: ' // curve%data_index)
+    endif
+  endif
 
   ! The line data just goes through the symbols
 

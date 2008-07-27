@@ -59,7 +59,7 @@ end subroutine
 ! Examples:
 !   "*@..."           -- Choose all universes.
 !   "3@..."           -- Choose universe 3. 
-!   "1:30,34@..."     -- Choose universes 1 through 30 and 34
+!   "[1:30,34]@..."   -- Choose universes 1 through 30 and 34
 !   No "@" in name    -- Choose universe s%global%u_view.
 !
 ! Input:
@@ -79,7 +79,7 @@ implicit none
 
 character(*) name_in, name_out
 character(20) :: r_name = 'tao_pick_universe'
-character(8) uni
+character(40) uni
 
 integer, optional :: ix_uni
 integer i, ix, n, ios, iu, num
@@ -112,6 +112,10 @@ endif
 
 uni = name_in(:ix-1)
 name_out = name_in(ix+1:)
+
+! Strip off '[' and ']'
+
+if (uni(1:1) == '[' .and. uni(ix-1:ix-1) == ']') uni = uni(2:ix-2)
 
 if (uni == '*') then
   picked = .true.
@@ -707,6 +711,7 @@ if (component_here) then
   call string_trim (component_name, component_name, ix)
   if (.not. any(component_name == real_components) .and. &
       .not. any(component_name == logic_components) .and. &
+      .not. any(component_name == integer_components) .and. &
       .not. any(component_name == string_components)) then
     if (print_error) call out_io (s_error$, r_name, "BAD COMPONENT NAME: " // data_name)
     return            

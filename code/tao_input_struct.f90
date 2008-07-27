@@ -75,12 +75,14 @@ type tao_curve_input
   character(40) data_source
   character(100) data_type_x
   character(100) data_type
+  character(100) data_index
   real(rp) x_axis_scale_factor
   real(rp) y_axis_scale_factor
   integer symbol_every
   integer ix_universe
   logical draw_line
   logical draw_symbols
+  logical draw_symbol_index
   logical use_y2
   logical draw_interpolated_curve
   type (qp_line_struct) line

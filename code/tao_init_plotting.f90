@@ -204,6 +204,7 @@ do
       write (curve(j)%name, '(a, i0)') 'c', j
     enddo
     curve(:)%data_source = 'lattice'
+    curve(:)%data_index  = ''
     curve(:)%data_type_x = ''
     curve(:)%data_type   = ''
     curve(:)%x_axis_scale_factor = 1
@@ -213,6 +214,7 @@ do
     curve(:)%ix_universe = -1
     curve(:)%draw_line = .true.
     curve(:)%draw_symbols = .true.
+    curve(:)%draw_symbol_index = .false.
     curve(:)%use_y2 = .false.
     curve(:)%symbol = default_symbol
     curve(:)%line   = default_line
@@ -328,6 +330,7 @@ do
       crv%g                       => grph
       crv%data_source             = curve(j)%data_source
       if (crv%data_source == 'beam_tracking') crv%data_source = 'beam'
+      crv%data_index              = curve(j)%data_index
       crv%data_type_x             = curve(j)%data_type_x
       crv%data_type               = curve(j)%data_type
       crv%x_axis_scale_factor     = curve(j)%x_axis_scale_factor
@@ -336,6 +339,7 @@ do
       crv%ix_universe             = curve(j)%ix_universe
       crv%draw_line               = curve(j)%draw_line
       crv%draw_symbols            = curve(j)%draw_symbols
+      crv%draw_symbol_index       = curve(j)%draw_symbol_index
       crv%use_y2                  = curve(j)%use_y2
       crv%symbol                  = curve(j)%symbol
       crv%line                    = curve(j)%line
@@ -369,7 +373,7 @@ do
         ix = index(crv%data_type, '-')
         if (ix /= 0 .and. crv%data_type_x == '') then
           crv%data_type_x = crv%data_type(ix+1:)
-          crv%data_type = crv%data_type(1:ix-1)
+          crv%data_type   = crv%data_type(1:ix-1)
         endif
       endif  
 

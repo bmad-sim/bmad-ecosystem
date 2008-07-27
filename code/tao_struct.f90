@@ -70,27 +70,29 @@ end type
 type tao_curve_struct
   character(40) :: name                    ! Name identifying the curve.
   character(40) :: data_source             ! "lattice", "data_array", "var_array", etc.
+  character(100) :: data_index  = ' '      ! Used for calculating %ix_symb(:).
   character(100) :: data_type_x = ' '      ! Used for data slices and phase space plots.
-  character(100) :: data_type = ' '        ! "orbit.x", etc.
+  character(100) :: data_type   = ' '      ! "orbit.x", etc.
   character(40) :: ele_ref_name            ! Reference element.
   type (tao_graph_struct), pointer :: g    ! pointer to parent graph 
-  real(rp), allocatable :: x_line(:)       ! coords for drawing a curve
+  real(rp), allocatable :: x_line(:)       ! Coords for drawing a curve
   real(rp), allocatable :: y_line(:) 
-  real(rp), allocatable :: x_symb(:)       ! coords for drawing the symbols
+  real(rp), allocatable :: x_symb(:)       ! Coords for drawing the symbols
   real(rp), allocatable :: y_symb(:) 
-  integer, allocatable :: ix_symb(:)       ! corresponding index in d1_data%d(:) array.
+  integer, allocatable :: ix_symb(:)       ! Corresponding index in d1_data%d(:) array.
   real(rp) x_axis_scale_factor ! x-axis conversion from internal to plotting units.
   real(rp) y_axis_scale_factor ! y-axis conversion from internal to plotting units.
   type (qp_line_struct) line   ! Line attributes
   type (qp_symbol_struct) symbol ! Symbol attributes
-  integer ix_universe          ! universe to take the data from. -1 => use s%global%u_view
-  integer symbol_every         ! symbol every how many points.
+  integer ix_universe          ! Universe to take the data from. -1 => use s%global%u_view
+  integer symbol_every         ! Symbol every how many points.
   integer ix_ele_ref           ! Index in lattice of reference element.
   integer ix_ele_ref_track     ! = ix_ele_ref except for super_lord elements.
   integer ix_bunch             ! Bunch to plot.
   logical use_y2               ! Use y2 axis?
-  logical draw_line            ! draw a line through the data points?
-  logical draw_symbols         ! draw a line through the data points?
+  logical draw_line            ! Draw a line through the data points?
+  logical draw_symbols         ! Draw a line through the data points?
+  logical draw_symbol_index    ! Draw the symbol index number curve%ix_symb?
   logical draw_interpolated_curve  ! Interpolate between element edge points?
 end type
 

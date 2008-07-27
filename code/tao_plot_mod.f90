@@ -103,30 +103,6 @@ do i = 1, size(s%plot_region)
       cycle
     endif
 
-    ! Check for mismatch between where the data is comming from and what tracking 
-    ! has been done.
-
-    do ic = 1, size(graph%curve)
-      curve => graph%curve(ic)
-      if (s%global%track_type == 'beam') cycle
-      if (curve%data_source == 'beam') then
-        beam_source = .true.
-      else
-        beam_source = .false.
-        call tao_find_data (err, curve%data_type, d_array = d_array, print_err = .false.)
-        do id = 1, size(d_array)
-          if (d_array(id)%d%data_source == 'beam') beam_source = .true.
-        enddo
-      endif
-      if (beam_source) then
-        call qp_set_layout (box = graph%box)
-        call qp_draw_text (&
-                 'GRAPH NEEDS DATA FROM BEAM TRACKING BUT GLOBAL%TRACK_TYPE IS NOT "beam"', &
-                  0.1_rp, 0.5_rp, '%BOX', color = red$)
-        cycle g_loop
-      endif
-    enddo
-
     ! Now we can draw the graph
 
     call tao_hook_draw_graph (plot, graph, found)
@@ -841,9 +817,9 @@ type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 
-integer k
+integer i, k
 logical have_data
-
+character(16) num_str
 !
 
 call qp_set_layout (box = graph%box, margin = graph%margin)
@@ -865,19 +841,31 @@ do k = 1, size(graph%curve)
   if (curve%use_y2) call qp_use_axis (y = 'Y2')
   call qp_set_symbol (curve%symbol)
   call qp_set_line ('PLOT', curve%line) 
+
   if (curve%draw_symbols .and. allocated(curve%x_symb)) then
-    if (size(curve%x_symb) > 0) then
-      call qp_draw_data (curve%x_symb, curve%y_symb, .false., curve%symbol_every, graph%clip)
-      have_data = .true.
-    endif
+    if (size(curve%x_symb) > 0) have_data = .true.
+    call qp_draw_data (curve%x_symb, curve%y_symb, .false., curve%symbol_every, graph%clip)
   endif
+
+  if (curve%draw_symbol_index .and. allocated(curve%ix_symb)) then
+    if (size(curve%ix_symb) > 0) have_data = .true.
+    do i = 1, size(curve%ix_symb)
+      if (graph%clip) then
+        if (curve%x_symb(i) < plot%x%min  .or. curve%x_symb(i) > plot%x%max)  cycle
+        if (curve%y_symb(i) < graph%y%min .or. curve%y_symb(i) > graph%y%max) cycle
+      endif
+      write (num_str, '(i0)') curve%ix_symb(i)
+      call qp_draw_text (num_str, curve%x_symb(i), curve%y_symb(i))
+    enddo
+  endif
+
   if (curve%draw_line .and. allocated(curve%x_line)) then
-    if (size(curve%x_line) > 0) then
-      call qp_draw_data (curve%x_line, curve%y_line, curve%draw_line, 0, graph%clip)
-      have_data = .true.
-    endif
+    if (size(curve%x_line) > 0) have_data = .true.
+    call qp_draw_data (curve%x_line, curve%y_line, curve%draw_line, 0, graph%clip)
   endif
+
   call qp_use_axis (y = 'Y')  ! reset
+
 enddo
 
 if (.not. have_data) call qp_draw_text ('**No Plottable Data**', &

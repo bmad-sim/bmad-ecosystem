@@ -370,6 +370,15 @@ case ('symbol_every')
   call tao_integer_set_value (this_curve%symbol_every, component, &
                                             set_value, error, 0, size(this_curve%x_symb))
 
+case ('draw_line')
+  call tao_logical_set_value (this_curve%draw_line, component, set_value, error)
+
+case ('draw_symbols')
+  call tao_logical_set_value (this_curve%draw_symbols, component, set_value, error)
+
+case ('draw_symbol_index')
+  call tao_logical_set_value (this_curve%draw_symbol_index, component, set_value, error)
+
 case default
   call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
   return
@@ -792,6 +801,52 @@ call tao_set_data_useit_opt()
 if (recalc) tao_com%lattice_recalc = .true.
   
 end subroutine tao_set_uni_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_logical_set_value (var, var_str, value_str, error)
+!
+! Subroutine to read and set the value of an logical varialbe.
+!
+! If the value is out of the range [min_val, max_val] then an error message will
+! be generated and the variable will not be set.
+!
+! Input:
+!   var_str   -- Character(*): Used for error messages.
+!   value_str -- Character(*): String with encoded value.
+!
+! Output:
+!   var   -- Logical: Variable to set.
+!   error -- Logical: Set True on an error. False otherwise.
+!-
+
+subroutine tao_logical_set_value (var, var_str, value_str, error)
+
+implicit none
+
+logical var, ix
+integer ios
+
+character(*) var_str, value_str
+character(24) :: r_name = 'tao_logical_set_value'
+logical error
+
+!
+
+error = .true.
+read (value_str, '(l)', iostat = ios) ix
+
+if (ios /= 0 .or. len_trim(value_str) == 0) then
+  call out_io (s_error$, r_name, 'BAD ' // trim(var_str) // ' VALUE.')
+  return
+endif
+
+var = ix      
+error = .false.
+
+end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

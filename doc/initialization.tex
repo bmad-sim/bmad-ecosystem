@@ -1386,9 +1386,10 @@ namelists should be placed directly after their respective
     graph%component        = "<string>"       ! Eg: "model - design"
     graph%correct_xy_distortion = <logical>   ! For Floor Plan plots: Default = F
     curve(i)%name          = "<string>"       ! Default is "c<i>", <i> = curve num.
-    curve(i)%data_type     = "<string>"       ! Default = plot%name.graph%name
-    curve(i)%data_source_x = "<string>"       ! Used with plot%x_axis_type = "data".
     curve(i)%data_source   = "<string>"       ! Source for the data curve points
+    curve(i)%data_type_x   = "<string>"       ! Used with plot%x_axis_type = "data".
+    curve(i)%data_type     = "<string>"       ! Default = plot%name.graph%name
+    curve(i)%data_index    = "<string>"       ! Index number for data points.
     curve(i)%x_axis_scale_factor = <factor>   ! Scale the x-axis by this.
     curve(i)%y_axis_scale_factor = <factor>   ! Scale the y-axis by this.
     curve(i)%use_y2        = <logical>        ! Use left-axis scale?
@@ -1523,11 +1524,23 @@ from the shape of the beam.
 
 \vn{curve%draw_symbols} determines whether a symbol is drawn at the
 data points. The size, shape and color of the symbols is determined by
-\vn{curve%symbol}.
+\vn{curve%symbol}. A given symbol point that is drawn has three
+numbers attached to it: The $(x, y)$ position on the graph and an
+index number to help identify it. The index number of a particular
+symbol is the index of the datum or variable corresponding the symbol
+in the \vn{d1_data} or \vn{v1_var} array. These three numbers can be
+printed using the \vn{show curve -symbol} command (\sref{s:show}).
 
 \vn{curve%draw_line} determines whether a curve is drawn through the
-data points. The thickness, style (solid, dashed, etc.), and color
-is determined by \vn{curve%line}
+data point symbols. The thickness, style (solid, dashed, etc.), and
+color of the line can be controlled by setting \vn{curve%line}.
+Sometimes \tao will attempt to calculate ``intermediate'' values in
+order to draw a smooth, accurate curve. Occasionally, this process is
+too slow or not desired for other reasons so setting
+\vn{curve%draw_interpolated_curve} to False will prevent this
+calculation and the curve will be drawn as a series of lines
+connecting the symbols.  Setting \vn{curve%draw_interpolated_curve} to
+True does not affect anything.
 
 A graph has two vertical axes. The one on the left is called \vn{"y"}
 and the one on the right is called \vn{"y2"}. For example,
@@ -1579,8 +1592,9 @@ If either \vn{<curve(:)%data_type_x} or \vn{<curve(:)%data_type} has a
   	graph%type = "data"
     graph%n_curve = 1
     curve(1)%data_source = "data_array"
-    curve(1)%data_type_x = "1:57@orbit.x[\#]"
-    curve(1)%data_type   = "1:57@orbit.y[\#]"
+    curve(1)%data_type_x = "[2:57]@orbit.x[\#]"
+    curve(1)%data_type   = "[2:57]@orbit.y[\#]"
+    curve(1)%data_index  = "[2:57]@orbit.y[\#]|ix_uni"
     curve(1)%y_axis_scale_factor = 1000
     curve(1)%x_axis_scale_factor = 1000
   	curve(1)%ele_ref_name = "23"
@@ -1588,19 +1602,15 @@ If either \vn{<curve(:)%data_type_x} or \vn{<curve(:)%data_type} has a
   /
 \end{example}
 In this example, the \vn{meas - ref} values of \vn{orbit.x[23]} from
-universes 1 through 57 is used for the x-axis and \vn{orbit.x[23]} is
+universes 2 through 57 is used for the x-axis and \vn{orbit.x[23]} is
 used for the y-axis. The \vn{set curve ele_ref_name} command
 (\sref{s:set}) can be used to change the index from the initial value
-of \vn{23}. If the universe number is wanted for either the x or
-y-axis, then use the \vn{ix_uni} conponent. Example:
-\begin{example}
-  curve(1)%data_type   = "*@orbit.x[23]|ix_uni"
-  curve(1)%data_type   = "*@orbit.x[23]"
-\end{example}
-This would plot \vn{orbit.x[23]} as a function of universe number
-for all universes. Additionally, the component \vn{ix_d1} can be used
-to specify the index in the \vn{d1_data} array and the component \vn{ix_ele}
-can be used to specify the lattice element index.
+of \vn{23}. \vn{curve%data_index} sets the index for the symbol points
+(\sref{s:template}). In this example, the \vn{ix_uni} component will
+result in the symbol index being the universe number.  Additionally,
+the component \vn{ix_d1} can be used to specify the index in the
+\vn{d1_data} array and the component \vn{ix_ele} can be used to
+specify the lattice element index.
 
 Arithmetic expressions (\sref{s:arithmetic}) may be mixed with
 explicit datum components in the specification of

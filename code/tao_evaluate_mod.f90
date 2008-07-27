@@ -160,7 +160,6 @@ integer i_lev, i_op, i, ios, n, n_size, n__size
 integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
 
 real(rp), allocatable :: value(:)
-logical, allocatable :: good(:)
 
 character(*) :: expression
 character(len(expression)) phrase
@@ -169,6 +168,7 @@ character(40) word, word2
 character(40) :: r_name = "tao_evaluate_expression"
 character(40) saved_prefix
 
+logical, allocatable :: good(:)
 logical delim_found, split, ran_function_pending
 logical err_flag, err, wild, zero_divide_print_err
 
@@ -200,7 +200,6 @@ endif
 
 ! init
 
-err_flag = .false.
 i_lev = 0
 i_op = 0
 ran_function_pending = .false.
@@ -218,16 +217,8 @@ parsing_loop: do
   call word_read (phrase, '+-*/()^,:}[ ', word, ix_word, delim, &
                     delim_found, phrase)
 
-  !  if (delim == '*' .and. word(1:1) == '*') then
-  !    call out_io (s_warn$, r_name, 'EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**"')
-  !    err_flag = .true.
-  !    return
-  !  endif
-
   if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) then
-        call out_io (s_warn$, r_name, &
-                   'RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT')
-    err_flag = .true.
+    call out_io (s_warn$, r_name, 'RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT')
     return
   endif
 
@@ -259,25 +250,25 @@ parsing_loop: do
     ix_word = ix_word + ix_word2
   endif
 
-  ! Something like "lcav[lr(2).freq]" will get split on the "["
+  ! Something like "lcav[lr(2).freq]" or "[2,4]@orbit.x[1,4] will get split on the "["
 
-  if (delim == '[') then
+  do
+    if (delim /= '[') exit
     call word_read (phrase, ']', word2, ix_word2, delim, &
                     delim_found, phrase)
     if (.not. delim_found) then
       call out_io (s_warn$, r_name, "NO MATCHING ']' FOR OPENING '[':" // expression)
-      err_flag = .true.
       return
     endif
     word = word(:ix_word) // '[' // trim(word2) // ']'
     ix_word = ix_word + ix_word2 + 2
     if (phrase(1:1) /= ' ') then  ! even more...
-      call word_read (phrase, '+-*/()^,:}', word2, ix_word2, delim, &
+      call word_read (phrase, '[+-*/()^,:}', word2, ix_word2, delim, &
                                                   delim_found, phrase)
       word = word(:ix_word) // trim(word2)       
       ix_word = ix_word + ix_word2 
     endif
-  endif
+  enddo
 
   ! If delim = "*" then see if this is being used as a wildcard
 
@@ -360,9 +351,8 @@ parsing_loop: do
         call pushit (op, i_op, ran_gauss$)
         ran_function_pending = .true.
       case default
-        call out_io (s_warn$, r_name, &
-               'UNEXPECTED CHARACTERS ON RHS BEFORE "(": ')
-        err_flag = .true.
+        call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS BEFORE "(": ', &
+                                      'IN EXPRESSION: ' // expression)
         return
       end select
     endif
@@ -386,14 +376,19 @@ parsing_loop: do
   elseif (delim == ')') then
     if (ix_word == 0) then
       if (.not. ran_function_pending) then
-        call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING BEFORE ")"')
-        err_flag = .true.
+        call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING BEFORE ")"', &
+                                      'IN EXPRESSION: ' // expression)
         return
       endif
     else
       call pushit (stk%type, i_lev, numeric$)
-      call all_value_routine (word, stk(i_lev), err_flag)
-      if (err_flag) return
+      call all_value_routine (word, stk(i_lev), err)
+      if (err) then
+        call out_io (s_error$, r_name, &
+                        'ERROR IN EXPRESSION: ' // expression, &
+                        'CANNOT EVALUATE: ' // word)
+        return
+      endif
     endif
 
     do
@@ -403,8 +398,7 @@ parsing_loop: do
       enddo
 
       if (i == 0) then
-        call out_io (s_warn$, r_name, 'UNMATCHED ")" ON RHS')
-        err_flag = .true.
+        call out_io (s_warn$, r_name, 'UNMATCHED ")" IN EXPRESSION: ' // expression)
         return
       endif
 
@@ -414,8 +408,7 @@ parsing_loop: do
                     delim_found, phrase)
       if (ix_word /= 0) then
         call out_io (s_warn$, r_name, &
-                   'UNEXPECTED CHARACTERS ON RHS AFTER ")"')
-        err_flag = .true.
+                'UNEXPECTED CHARACTERS AFTER ")" IN EXPRESSION: ' // expression)
         return
       endif
 
@@ -424,8 +417,8 @@ parsing_loop: do
 
 
     if (delim == '(') then
-      call out_io (s_warn$, r_name, '")(" CONSTRUCT DOES NOT MAKE SENSE')
-      err_flag = .true.
+      call out_io (s_warn$, r_name, &
+          '")(" CONSTRUCT DOES NOT MAKE SENSE IN EXPRESSION: ' // expression)
       return
     endif
 
@@ -433,18 +426,22 @@ parsing_loop: do
 
   else
     if (ix_word == 0) then
-      call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING')
-      err_flag = .true.
+      call out_io (s_warn$, r_name, &
+            'CONSTANT OR VARIABLE MISSING IN EXPRESSION: ' // expression)
       return
     endif
     call pushit (stk%type, i_lev, numeric$)
-    call all_value_routine (word, stk(i_lev), err_flag)
-    if (err_flag) return
+    call all_value_routine (word, stk(i_lev), err)
+    if (err) then
+      call out_io (s_error$, r_name, &
+                        'ERROR IN EXPRESSION: ' // expression, &
+                        'CANNOT EVALUATE: ' // word)
+      return
+    endif
   endif
 
   ! If we are here then we have an operation that is waiting to be identified
 
-  if (.not. delim_found) delim = ':'
 
   select case (delim)
   case ('+')
@@ -461,9 +458,17 @@ parsing_loop: do
     i_delim = power$
   case (',', '}', ':')
     i_delim = no_delim$
+    call out_io (s_error$, r_name, &
+                      'DELIMITOR FOUND OUT OF PLACE: ' // delim, &
+                      'IN EXPRESSION: ' // expression)
+
+      return
   case default
+    if (delim_found) then
       call out_io (s_error$, r_name, 'INTERNAL ERROR')
       call err_exit
+    endif
+    i_delim = no_delim$
   end select
 
   ! now see if there are operations on the OP stack that need to be transferred
@@ -472,8 +477,7 @@ parsing_loop: do
   do i = i_op, 1, -1
     if (eval_level(op(i)) >= eval_level(i_delim)) then
       if (op(i) == l_parens$) then
-        call out_io (s_warn$, r_name, 'UNMATCHED "("')
-        err_flag = .true.
+        call out_io (s_warn$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
         return
       endif
       call pushit (stk%type, i_lev, op(i))
@@ -498,14 +502,12 @@ enddo parsing_loop
 ! First some error checks
 
 if (i_op /= 0) then
-  call out_io (s_warn$, r_name, 'UNMATCHED "("')
-  err_flag = .true.
+  call out_io (s_warn$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
   return
 endif
 
 if (i_lev == 0) then
-  call out_io (s_warn$, r_name, 'NO VALUE FOUND')
-  err_flag = .true.
+  call out_io (s_warn$, r_name, 'NO VALUE FOUND IN EXPRESSION: ' // expression)
   return
 endif
 
@@ -516,16 +518,14 @@ do i = 1, i_lev
   if (n == 1) cycle
   if (n__size == 1) n__size = n
   if (n /= n__size) then
-    call out_io (s_warn$, r_name, 'ARRAY SIZE MISMATCH')
-    err_flag = .true.
+    call out_io (s_warn$, r_name, 'ARRAY SIZE MISMATCH IN EXPRESSION: ' // expression)
     return
   endif
 enddo
 
 if (n_size /= 0) then
   if (n__size /= 1 .and. n_size /= n__size) then
-    call out_io (s_warn$, r_name, 'ARRAY SIZE MISMATCH')
-    err_flag = .true.
+    call out_io (s_warn$, r_name, 'ARRAY SIZE MISMATCH IN EXPRESSION: ' // expression)
     return
   endif
   n__size = n_size
@@ -591,8 +591,8 @@ do i = 1, i_lev
   case (divide$) 
     if (any(stk(i2)%value == 0)) then
       stk(1)%value = 0
-      if (zero_divide_print_err) call out_io (s_warn$, r_name, 'DIVIDE BY 0 ON RHS')
-      err_flag = .true.
+      if (zero_divide_print_err) call out_io (s_warn$, r_name, &
+                            'DIVIDE BY 0 IN EXPRESSION: ' // expression)
       return
     endif
     if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
@@ -656,12 +656,14 @@ do i = 1, i_lev
 
   case default
     call out_io (s_warn$, r_name, 'INTERNAL ERROR')
-    err_flag = .true.
-    return
+    call err_exit
   end select
 enddo
 
-if (i2 /= 1) call out_io (s_warn$, r_name, 'INTERNAL ERROR')
+if (i2 /= 1) then
+  call out_io (s_warn$, r_name, 'INTERNAL ERROR')
+  call err_exit
+endif
 
 if (size(stk(1)%value) == 1 .and. n__size > 1) then
   call re_allocate (value, n_size)
@@ -669,6 +671,8 @@ if (size(stk(1)%value) == 1 .and. n__size > 1) then
 else
   call value_transfer (value, stk(1)%value)
 endif
+
+err_flag = .false.
 
 !-------------------------------------------------------------------------
 contains
@@ -721,21 +725,23 @@ integer ios, i, n
 character(*) str
 character(40) str2
 
-logical err_flag
+logical err_flag, err
 
 !
+
+err_flag = .true.
 
 if (is_real(str)) then
   allocate (stack%value(1))
   read (str, *, iostat = ios) stack%value(1)
   if (ios /= 0) then
     call out_io (s_warn$, r_name, "This doesn't seem to be a number: " // str)
-    err_flag = .true.
     return
   endif
 
 else
-  ! Remember last string so that 'orbit.x|meas-ref' translates to orbit.x|meas - orbit.x|ref.
+  ! Remember the last string.
+  ! So 'orbit.x|meas-ref' translates to orbit.x|meas - orbit.x|ref.
   ix = index(str, '|')
   if (ix == 0) then
     str2 = trim(saved_prefix) // str
@@ -743,9 +749,11 @@ else
     saved_prefix = str(1:ix)
     str2 = str
   endif
-  call param_value_routine (str2, stack%value, stack%good, err_flag)
-  
+  call param_value_routine (str2, stack%value, stack%good, err)
+  if (err) return
 endif
+
+err_flag = .false.
 
 end subroutine
 
@@ -776,11 +784,11 @@ logical err_flag
 if (.not. allocated(re_array)) allocate (re_array(0))
 
 if (wild_type_com == 'VAR' .or. wild_type_com == 'BOTH') &
-               call tao_find_var (err_flag, str, re_array = re_array, print_err = .false.)
+         call tao_find_var (err_flag, str, re_array = re_array, print_err = .false.)
 
 if (wild_type_com == 'DATA' .or. (err_flag .and. wild_type_com == 'BOTH')) then
   call tao_find_data (err_flag, str, re_array = re_array, &
-                                                int_array = int_array, print_err = .false.)
+                                    int_array = int_array, print_err = .false.)
 endif
 
 if (err_flag) return
