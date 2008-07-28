@@ -164,21 +164,21 @@ seen in Figure~\ref{f:plot.out}, it chooses 5 divisions.
 
 After drawing the first data curve (the solid curve) in the left
 graph, the routines \vnr{qp_set_symbol_attrib} and
-\vnr{qp_set_line_attrib} are called on lines 43 and 44 to plot the next
-data curve in blue with a dashed line style. By default, this curve
-goes where the last one did: in the left graph. To keep the setting of
-the line and symbol attributes from affecting other plots the routines
-\vnr{qp_save_state} and \vnr{qp_restore_state} on lines 42 and 46 are
-used. \vnr{qp_save_state} saves the current attributes in a attribute
-stack. \vnr{qp_restore_state} restores the saved attributes from the
-attribute stack. \vnr{qp_draw_data} on line 45 is similar to
-\vnr{qp_draw_graph} except only the data is drawn. Not the axes and
-associated labels.
+\vnr{qp_set_line_attrib} are called on lines 44 and 45 to plot the
+next data curve in blue with a dashed line style. By default, this
+curve goes where the last one did: in the left graph. To keep the
+setting of the line and symbol attributes from affecting other plots
+the routines \vnr{qp_save_state} and \vnr{qp_restore_state} on lines
+43 and 47 are used. \vnr{qp_save_state} saves the current attributes
+in a attribute stack. \vnr{qp_restore_state} restores the saved
+attributes from the attribute stack. \vnr{qp_draw_axes} is called on
+line 40 to draw the $x$ and $y$-axes along, and \vn{qp_draw_data} is called
+on lines 41 and 46 to draw the two data curves.
 
-Lines 49 through 58 draw the third curve in the right hand graph.  The
-\vn{qp_set_axis} call on lines 54/55 sets a log scale for the \vn{y2}
+Lines 50 through 60 draw the third curve in the right hand graph.  The
+\vn{qp_set_axis} call on lines 55/56 sets a log scale for the \vn{y2}
 (right hand) axis. The syntax of the string arguments of
-\vnr{qp_draw_graph} in lines 40 and 56/57 comes from PGPLOT and allows
+\vnr{qp_draw_axes} in lines 40 and 57/58 comes from PGPLOT and allows
 special symbols along with subscripts and superscripts.
 
 %----------------------------------------------------------------------------
@@ -217,9 +217,10 @@ settable (like for X--windows). The page is divided up into a grid of
 boxes. For example, in Figure~\ref{f:plot.coords}, the grid is 1 box
 wide by 3 boxes tall. The border between the grid of boxes and the
 edges of the page are set by \vnr{qp_set_page_border}.  The box that
-the graph falls into is set by \vnr{qp_set_box}. The default is to have
-no margins with 1 box covering the entire page. The \vnr{qp_set_margin}
-routine sets the distance between the box edges and the axes.
+the graph falls into is set by \vnr{qp_set_box}. The default is to
+have no margins with 1 box covering the entire page. The
+\vnr{qp_set_margin} routine sets the distance between the box edges
+and the axes (See the PGPLOT manual for more details).
 
 
 %----------------------------------------------------------------------------
