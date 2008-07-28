@@ -80,7 +80,7 @@ real(rp) value
 
 integer i, j, k, m, n_symb, ix
 
-character(40) name
+character(160) name
 character(40) :: r_name = 'tao_data_slice_graph_setup'
 
 logical err
@@ -554,7 +554,7 @@ do k = 1, size(graph%curve)
     endif
 
     if (d2_ptr%name == 'phase' .or. d2_ptr%name == 'bpm_phase') then
-      if (all(d1_ptr%d%ele0_name == ' ')) then
+      if (all(d1_array(1)%d1%d(:)%ele0_name == '')) then
         zero_average_phase = .true.
       else
         zero_average_phase = .false.

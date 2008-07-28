@@ -720,8 +720,8 @@ endif
 
 ! Select universe
 
-call tao_pick_universe (dat_name, dat_name, picked, err)
-if (err) return
+call tao_pick_universe (dat_name, dat_name, picked, this_err)
+if (this_err) return
 if (present(ix_uni)) then
   u => tao_pointer_to_universe (ix_uni)
   if (.not. associated(u)) return
@@ -761,6 +761,8 @@ if (present(str_array)) then
   if (.not. allocated (str_array)) allocate (str_array(0))
 endif
 
+err = .false.
+
 !----------------------------------------------------------------------------
 contains
 
@@ -774,6 +776,8 @@ logical this_err
 
 ! Everything before a period is the d2 name.
 ! if no period then must be something like name = "orbit" and everything is the d2 name.
+
+this_err = .false.
 
 ix = index(name, '.')
 if (ix == 0) then
@@ -905,7 +909,6 @@ if (allocated(list)) deallocate(list)
 i1 = lbound(d1%d, 1)
 i2 = ubound(d1%d, 1)
 allocate (list(i1:i2))
-this_err = .false.
 
 if (name == '*') then
   list = .true.
