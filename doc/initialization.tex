@@ -1574,9 +1574,9 @@ be set to \vn{"data"}, the \vn{curve(:)%data_source} must be set to
 \vn{"data_array"} and the \vn{curve(:)%data_type_x} and
 \vn{curve%data_type} are used to define the x and y axes respectively.
 In the strings given by \vn{<curve%data_type_x} or
-\vn{<curve%data_type}, all substrings that look like \vn{#ref} are
+\vn{<curve%data_type}, all substrings that look like \vn{\#ref} are
 eliminated and the string given by \vn{curve%ele_ref_name} is
-substituted in its place.  Similarly, a \vn{#comp} string is used as a
+substituted in its place.  Similarly, a \vn{\#comp} string is used as a
 place holder for the \vn{graph%component} Example:
 \begin{example}
   &tao_template_plot
@@ -1594,9 +1594,9 @@ place holder for the \vn{graph%component} Example:
   	graph%type = "data"
     graph%n_curve = 1
     curve(1)%data_source = "data_array"
-    curve(1)%data_type_x = "[2:57]@orbit.x[\#ref]|\#comp"
-    curve(1)%data_type   = "[2:57]@orbit.y[\#ref]|\#comp"
-    curve(1)%data_index  = "[2:57]@orbit.y[\#ref]|ix_uni"
+    curve(1)%data_type_x = "[2:57]@orbit.x[#ref]|#comp"
+    curve(1)%data_type   = "[2:57]@orbit.y[#ref]|#comp"
+    curve(1)%data_index  = "[2:57]@orbit.y[#ref]|ix_uni"
     curve(1)%y_axis_scale_factor = 1000
     curve(1)%x_axis_scale_factor = 1000
   	curve(1)%ele_ref_name = "23"
