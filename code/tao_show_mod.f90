@@ -150,7 +150,7 @@ character(60) nam
 character(16) :: show_what, show_names(22) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
-   'beam        ', '------------', 'graph       ', 'curve       ', 'particle    ', &
+   'beam        ', 'tune        ', 'graph       ', 'curve       ', 'particle    ', &
    'hom         ', 'opt_vars    ', 'universe    ', 'orbit       ', 'derivative  ', &
    'branches    ', 'use         ' /)
 
@@ -450,7 +450,7 @@ case ('curve')
       if (n > size(lines)) call re_allocate(lines, len(lines(1)), n, .false.)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Symbol points:'
-      nl=nl+1; lines(nl) = '    ix             x             y'
+      nl=nl+1; lines(nl) = '     i index             x             y'
       err = .false.
       do j = 2, size(curve)
         if (size(curve(j)%c%y_symb) /= size(c%y_symb)) then
@@ -461,7 +461,7 @@ case ('curve')
       enddo
       if (.not. err) then
         do i = 1, size(c%x_symb)
-          nl=nl+1; write (lines(nl), '(i6, 10es14.6)') c%ix_symb(i), c%x_symb(i), &
+          nl=nl+1; write (lines(nl), '(i6, 10es14.6)') i, c%ix_symb(i), c%x_symb(i), &
                                         (/ (curve(j)%c%y_symb(i), j = 1, size(curve)) /)
         enddo
       endif
@@ -1464,6 +1464,13 @@ case ('top10')
     call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2)
     return
   endif
+
+!----------------------------------------------------------------------
+! tune
+
+case ('tune')
+
+
 
 !----------------------------------------------------------------------
 ! universe

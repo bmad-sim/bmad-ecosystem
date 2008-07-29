@@ -1573,9 +1573,11 @@ plot%x_axis_type is set to \vn{"data"}, and the \vn{graph%type} must
 be set to \vn{"data"}, the \vn{curve(:)%data_source} must be set to
 \vn{"data_array"} and the \vn{curve(:)%data_type_x} and
 \vn{curve%data_type} are used to define the x and y axes respectively.
-If either \vn{<curve(:)%data_type_x} or \vn{<curve(:)%data_type} has a
-\vn{"\#"} character, then the string given by the corresponding
-\vn{curve(:)%ele_ref_name} is used in place of the \vn{\#}. Example:
+In the strings given by \vn{<curve%data_type_x} or
+\vn{<curve%data_type}, all substrings that look like \vn{#ref} are
+eliminated and the string given by \vn{curve%ele_ref_name} is
+substituted in its place.  Similarly, a \vn{#comp} string is used as a
+place holder for the \vn{graph%component} Example:
 \begin{example}
   &tao_template_plot
     plot%name = "at_bpm"
@@ -1592,32 +1594,35 @@ If either \vn{<curve(:)%data_type_x} or \vn{<curve(:)%data_type} has a
   	graph%type = "data"
     graph%n_curve = 1
     curve(1)%data_source = "data_array"
-    curve(1)%data_type_x = "[2:57]@orbit.x[\#]"
-    curve(1)%data_type   = "[2:57]@orbit.y[\#]"
-    curve(1)%data_index  = "[2:57]@orbit.y[\#]|ix_uni"
+    curve(1)%data_type_x = "[2:57]@orbit.x[\#ref]|\#comp"
+    curve(1)%data_type   = "[2:57]@orbit.y[\#ref]|\#comp"
+    curve(1)%data_index  = "[2:57]@orbit.y[\#ref]|ix_uni"
     curve(1)%y_axis_scale_factor = 1000
     curve(1)%x_axis_scale_factor = 1000
   	curve(1)%ele_ref_name = "23"
   	curve(1)%draw_line = .false.
   /
 \end{example}
-In this example, the \vn{meas - ref} values of \vn{orbit.x[23]} from
-universes 2 through 57 is used for the x-axis and \vn{orbit.x[23]} is
-used for the y-axis. The \vn{set curve ele_ref_name} command
-(\sref{s:set}) can be used to change the index from the initial value
-of \vn{23}. \vn{curve%data_index} sets the index for the symbol points
-(\sref{s:template}). In this example, the \vn{ix_uni} component will
-result in the symbol index being the universe number.  Additionally,
-the component \vn{ix_d1} can be used to specify the index in the
-\vn{d1_data} array and the component \vn{ix_ele} can be used to
-specify the lattice element index.
+In this example, \vn{curve(1)%data_type_x} expands to
+\vn{"[2:57]@orbit.x[50]|meas-ref"}. That is, the \vn{meas - ref}
+values of \vn{orbit.x[23]} from universes 2 through 57 is used for the
+x-axis.  Similarly, \vn{orbit.y[23]} is used for the y-axis. The
+\vn{set} command (\sref{s:set}) can be used to change
+\vn{curve%ele_ref_name} and \vn{graph%component} strings. 
+
+\vn{curve%data_index} sets the
+index for the symbol points (\sref{s:template}). In this example, the
+\vn{ix_uni} component will result in the symbol index being the
+universe number.  Additionally, the component \vn{ix_d1} can be used
+to specify the index in the \vn{d1_data} array, and the component
+\vn{ix_ele} can be used to specify the lattice element index.
 
 Arithmetic expressions (\sref{s:arithmetic}) may be mixed with
 explicit datum components in the specification of
 \vn{curve(:)%data_type_x} and \vn{curve(:)%data_type}. Example:
 \begin{example}
-  curve(1)%data_type_x = "#@orbit.x|model"
-  curve(1)%data_type   = "#@orbit.x|meas-ref"
+  curve(1)%data_type_x = "[#ref]@orbit.x|model"
+  curve(1)%data_type   = "[#ref]@orbit.x|meas-ref"
   curve(1)%ele_ref_name = "3"
 \end{example}
 The plots the \vn{model} values of \vn{orbit.x} verses \vn{meas - ref}

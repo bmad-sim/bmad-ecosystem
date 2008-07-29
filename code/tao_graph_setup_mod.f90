@@ -95,7 +95,7 @@ graph%title_suffix = ''
 
 do k = 1, size(graph%curve)
   curve => graph%curve(k)
-  if (index(curve%data_type, '#') /= 0) graph%title_suffix = &
+  if (index(curve%data_type, '#ref') /= 0) graph%title_suffix = &
                   trim(graph%title_suffix) // '[At: ' // trim(curve%ele_ref_name) // ']'
 enddo
 
@@ -114,12 +114,7 @@ curve_loop: do k = 1, size(graph%curve)
 
     if (i == 1) name = curve%data_type_x
     if (i == 2) name = curve%data_type
-    do
-      ix = index(name, '#')
-      if (ix == 0) exit
-      name = trim(name(:ix-1)) // trim(curve%ele_ref_name) // trim(name(ix+1:))
-    enddo
-    if (index(name, '|') == 0) name = trim(name) // '|' // graph%component
+    call tao_data_type_substitute (name, name, curve%ele_ref_name, graph%component)
     if (i == 1) call tao_to_real_vector (name, 'BOTH', 0, x, gx, err)
     if (i == 2) call tao_to_real_vector (name, 'BOTH', 0, y, gy, err)
     if (err) then
@@ -155,12 +150,7 @@ curve_loop: do k = 1, size(graph%curve)
   if (curve%data_index == '') then
     curve%ix_symb = (/ (i, i = 1, n_symb) /)
   else
-    name = curve%data_index
-    do
-      ix = index(name, '#')
-      if (ix == 0) exit
-      name = trim(name(:ix-1)) // trim(curve%ele_ref_name) // trim(name(ix+1:))
-    enddo
+    call tao_data_type_substitute (curve%data_index, name, curve%ele_ref_name, graph%component)
     call tao_to_real_vector (name, 'BOTH', 0, x, gix, err)
     if (size(gx) == size(gy)) then
       curve%ix_symb = pack (nint(x), mask = gx .and. gy)
@@ -183,6 +173,37 @@ enddo curve_loop
 graph%valid = .true.
 
 end subroutine tao_data_slice_graph_setup
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+subroutine tao_data_type_substitute (template, str_out, ref_name, component)
+
+implicit none
+
+character(*) template, str_out, ref_name, component
+integer ix
+
+!
+
+str_out = template
+
+do
+  ix = index(str_out, '#ref')
+  if (ix == 0) exit
+  str_out = trim(str_out(:ix-1)) // trim(ref_name) // trim(str_out(ix+4:))
+enddo
+
+do
+  ix = index(str_out, '#comp')
+  if (ix == 0) exit
+  str_out = trim(str_out(:ix-1)) // trim(component) // trim(str_out(ix+5:))
+enddo
+
+if (index(str_out, '|') == 0) str_out = trim(str_out) // '|' // component
+
+end subroutine
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
