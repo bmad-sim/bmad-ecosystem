@@ -372,8 +372,8 @@ do
       if (grph%type == 'phase_space') then
         ix = index(crv%data_type, '-')
         if (ix /= 0 .and. crv%data_type_x == '') then
-          crv%data_type_x = crv%data_type(ix+1:)
-          crv%data_type   = crv%data_type(1:ix-1)
+          crv%data_type_x = crv%data_type(1:ix-1)
+          crv%data_type   = crv%data_type(ix+1:)
         endif
       endif  
 
