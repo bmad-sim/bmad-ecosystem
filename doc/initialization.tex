@@ -333,12 +333,12 @@ type tao_global_struct
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Num points used to construct a smooth curve
   integer :: random_seed = 0             ! use system clock by default
-  character(16) :: random_engine = "pseudo"         ! random number engine to use
+  character(16) :: random_engine = "pseudo"         ! Random number engine to use
   character(16) :: random_gauss_converter = "exact" ! Uniform to gauss conversion method
   real(rp) :: random_sigma_cutoff = 4.0             ! Cut-off in sigmas.
-  character(16) :: track_type = "single"             ! or "beam" 
+  character(16) :: track_type = "single"            ! or "beam" 
   character(16) :: prompt_string = "Tao"
-  character(16) :: optimizer     = "de"              ! optimizer to use.
+  character(16) :: optimizer     = "de"             ! optimizer to use.
   character(16) :: default_key_merit_type
   character(40) :: print_command = "lpr"
   character(80) :: var_out_file  = "var#.out"
@@ -359,14 +359,14 @@ end type
 
 Random numbers are used by \tao in various algorithms. For example,
 random numbers are used in generating the initial coordinates of the
-particles in a beam and for misaligning elements in a lattice.  There
-are four parameters that govern how random numbers are generated.
-These can be set in the \vn{tao_global_struct}. Note: Except for the
-\vn{random_seed}, these settings are used for everything {\em but}
-initializing the particles in the beam. Use the corresponding
-parameters in the \vn{tao_beam_init} (\sref{s:beam.init}) namelist for
-setting the random number generator parameters for beam
-initialization.
+particles in a beam and for misaligning elements in a lattice. As
+explained below, there are four parameters that govern how random
+numbers are generated.  These can be set in the
+\vn{tao_global_struct}. For particle beam generation, these parameters
+may be overridden by setting the corresponding parameters in the
+\vn{beam_init} struct (\sref{s:beam.init}). That is, separate
+parameters may be setup for beam particle generation verses everthing
+else.
 
 \vn{global%random_seed} sets the seed number for the pseudo-random
 number generator. A value of \vn{0} (the default) causes the seed
@@ -732,12 +732,14 @@ array is in \vn{class:ele_name} format as explained in \sref{s:class:name}.
 The \vn{BEGINNING} element (with index 0 in the lattice
 list) and the last element are automatically saved.
 
-The random number generator parameters in the \vn{beam_init} structure
-used in initializing the particles in the bunch are
-\vn{%random_engine}, \vn{%random_gauss_converter}, and
-\vn{%random_sigma_cutoff}. These parameters are explained in
-Section~\sref{s:globals}. These parameters are only used in beam
-initialization and not used in any other calculations.
+The random number generator parameters (\vn{%random_engine},
+\vn{%random_gauss_converter}, and \vn{%random_sigma_cutoff}) used for
+initializing the beam are set in the \vn{tao_global_struct}
+(\sref{s:globals}). They may, however, be overridden for beam particle
+generation by setting the corresponding parameters in the
+\vn{beam_init} structure. That is, separate parameters may be setup
+for beam particle generation verses everthing else.  These parameters
+are explained in Section~\sref{s:globals}.
 
 %-----------------------------------------------------------------
 \section{Initializing Variables}\index{Initialization!Variables}
