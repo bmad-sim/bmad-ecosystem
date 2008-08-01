@@ -1399,11 +1399,11 @@ namelists should be placed directly after their respective
     curve(i)%draw_symbols  = <logical>        ! Draw data symbols?
     curve(i)%ix_universe   = <number>         ! Default = -1 => Use viewed universe
     curve(i)%ix_bunch      = <integer>        ! Bunch index. Default = 0 (all bunches).
-    curve(i)%line          = <qp_line_struct>    ! Line spec (color, width, etc.)
-    curve(i)%symbol        = <qp_symbol_struct>  ! Symbol spec (color size, etc.)
-    curve(i)%symbol_every  = <integer>           ! Plot symbol every # datums
-    curve(i)%ele_ref_name  = "<string>"          ! Name of reference element.
-    curve(i)%draw_interpolated_curve = <Logical> ! Calc and draw smooth curve? 
+    curve(i)%line          = <qp_line_struct> ! Line spec (color, width, etc.)
+    curve(i)%symbol      = <qp_symbol_struct> ! Symbol spec (color size, etc.)
+    curve(i)%symbol_every  = <integer>        ! Plot symbol every # datums
+    curve(i)%ele_ref_name  = "<string>"       ! Name of reference element.
+    curve(i)%smooth_line_calc = <Logical>     ! Calc data between symbol points? 
   /
 \end{example}
 For example:
@@ -1518,11 +1518,10 @@ particular bunch that the data is extracted from can be specified via
 \vn{curve%ix_bunch}. The default is \vn{0} which combines all the
 bunches of the beam for the calculation.
 
-Example: With
-\vn{curve%data_type} set to \vn{beta.x}, the setting of
+Example: With \vn{curve%data_type} set to \vn{beta.x}, the setting of
 \vn{curve%data_source} to \vn{lattice} gives the beta as calculated
-from the lattice and \vn{beam} gives the beta as calculated
-from the shape of the beam.
+from the lattice and \vn{beam} gives the beta as calculated from the
+shape of the beam.
 
 \vn{curve%draw_symbols} determines whether a symbol is drawn at the
 data points. The size, shape and color of the symbols is determined by
@@ -1535,14 +1534,15 @@ printed using the \vn{show curve -symbol} command (\sref{s:show}).
 
 \vn{curve%draw_line} determines whether a curve is drawn through the
 data point symbols. The thickness, style (solid, dashed, etc.), and
-color of the line can be controlled by setting \vn{curve%line}.
-Sometimes \tao will attempt to calculate ``intermediate'' values in
-order to draw a smooth, accurate curve. Occasionally, this process is
-too slow or not desired for other reasons so setting
-\vn{curve%draw_interpolated_curve} to False will prevent this
-calculation and the curve will be drawn as a series of lines
-connecting the symbols.  Setting \vn{curve%draw_interpolated_curve} to
-True does not affect anything.
+color of the line can be controlled by setting \vn{curve%line}. If
+\vn{plot%x_axis_type} is \vn{"s"}, and \vn{graph%component} does not
+contain \vn{"meas"} or \vn{"ref"}, \tao will attempt to calculate
+intermediate values in order to draw a smooth, accurate curve is
+drawn. Occasionally, this process is too slow or not desired for other
+reasons so setting \vn{curve%smooth_line_calc} to False will prevent
+this calculation and the curve will be drawn as a series of lines
+connecting the symbols. The default of \vn{curve%smooth_line_calc} is
+True.
 
 A graph has two vertical axes. The one on the left is called \vn{"y"}
 and the one on the right is called \vn{"y2"}. For example,

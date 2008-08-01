@@ -93,7 +93,7 @@ type tao_curve_struct
   logical draw_line            ! Draw a line through the data points?
   logical draw_symbols         ! Draw a line through the data points?
   logical draw_symbol_index    ! Draw the symbol index number curve%ix_symb?
-  logical draw_interpolated_curve  ! Interpolate between element edge points?
+  logical smooth_line_calc     ! Calculate data between element edge points?
 end type
 
 ! A graph is a collection of overlayed curves with associated graph title, etc.

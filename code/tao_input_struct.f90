@@ -84,7 +84,8 @@ type tao_curve_input
   logical draw_symbols
   logical draw_symbol_index
   logical use_y2
-  logical draw_interpolated_curve
+  character(16) draw_interpolated_curve
+  logical smooth_line_calc
   type (qp_line_struct) line
   type (qp_symbol_struct) symbol
   character(40) ele_ref_name

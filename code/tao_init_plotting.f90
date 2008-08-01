@@ -220,7 +220,8 @@ do
     curve(:)%line   = default_line
     curve(:)%ele_ref_name   = ' '
     curve(:)%ix_ele_ref = -1
-    curve(:)%draw_interpolated_curve = .true.
+    curve(:)%smooth_line_calc = .true.
+    curve(:)%draw_interpolated_curve = ''
     curve(2:7)%symbol%type = &
                 (/ times$, square$, plus$, triangle$, x_symbol$, diamond$ /)
     curve(2:7)%symbol%color = &
@@ -250,6 +251,11 @@ do
           '**********************************************************', &
           '***** SYNTAX CHANGE:          GRAPH%WHO              *****', &
           '***** NEEDS TO BE CHANGED TO: GRAPH%COMPONENT        *****', &
+          '***** EXAMPLE:                                       *****', &
+          '*****   GRAPH%WHO(1) = "MODEL", +1                   *****', &
+          '*****   GRAPH%WHO(2) = "DESIGN", -1                  *****', &
+          '***** GETS CHANGED TO:                               *****', &
+          '*****   GRAPH%COMPONENT = "MODEL - DESIGN"           *****', &
           '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
           '***** SEE THE TAO MANUAL FOR MORE DETAILS!           *****', &
           '**********************************************************', &
@@ -327,28 +333,44 @@ do
 
     do j = 1, graph%n_curve
       crv => grph%curve(j)
-      crv%g                       => grph
-      crv%data_source             = curve(j)%data_source
+      crv%g                    => grph
+      crv%data_source          = curve(j)%data_source
       if (crv%data_source == 'beam_tracking') crv%data_source = 'beam'
-      crv%data_index              = curve(j)%data_index
-      crv%data_type_x             = curve(j)%data_type_x
-      crv%data_type               = curve(j)%data_type
-      crv%x_axis_scale_factor     = curve(j)%x_axis_scale_factor
-      crv%y_axis_scale_factor     = curve(j)%y_axis_scale_factor
-      crv%symbol_every            = curve(j)%symbol_every
-      crv%ix_universe             = curve(j)%ix_universe
-      crv%draw_line               = curve(j)%draw_line
-      crv%draw_symbols            = curve(j)%draw_symbols
-      crv%draw_symbol_index       = curve(j)%draw_symbol_index
-      crv%use_y2                  = curve(j)%use_y2
-      crv%symbol                  = curve(j)%symbol
-      crv%line                    = curve(j)%line
-      crv%draw_interpolated_curve = curve(j)%draw_interpolated_curve
-      crv%name                    = curve(j)%name
-      crv%ele_ref_name            = curve(j)%ele_ref_name
+      crv%data_index           = curve(j)%data_index
+      crv%data_type_x          = curve(j)%data_type_x
+      crv%data_type            = curve(j)%data_type
+      crv%x_axis_scale_factor  = curve(j)%x_axis_scale_factor
+      crv%y_axis_scale_factor  = curve(j)%y_axis_scale_factor
+      crv%symbol_every         = curve(j)%symbol_every
+      crv%ix_universe          = curve(j)%ix_universe
+      crv%draw_line            = curve(j)%draw_line
+      crv%draw_symbols         = curve(j)%draw_symbols
+      crv%draw_symbol_index    = curve(j)%draw_symbol_index
+      crv%use_y2               = curve(j)%use_y2
+      crv%symbol               = curve(j)%symbol
+      crv%line                 = curve(j)%line
+      crv%smooth_line_calc     = curve(j)%smooth_line_calc
+      crv%name                 = curve(j)%name
+      crv%ele_ref_name         = curve(j)%ele_ref_name
       call str_upcase (crv%ele_ref_name, crv%ele_ref_name)
-      crv%ix_ele_ref              = curve(j)%ix_ele_ref
-      crv%ix_bunch                = curve(j)%ix_bunch
+      crv%ix_ele_ref           = curve(j)%ix_ele_ref
+      crv%ix_bunch             = curve(j)%ix_bunch
+
+      ! Old style
+
+      if (curve(j)%draw_interpolated_curve /= '') then
+        call out_io (s_error$, r_name, (/ &
+          '**********************************************************', &
+          '**********************************************************', &
+          '**********************************************************', &
+          '***** SYNTAX CHANGE: CURVE%DRAW_INTERPOLATED_CURVE   *****', &
+          '***** NEEDS TO BE CHANGED TO: CURVE%SMOOTH_LINE_CALC *****', &
+          '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
+          '**********************************************************', &
+          '**********************************************************', &
+          '**********************************************************' /) )
+        read (curve(j)%draw_interpolated_curve, *) crv%smooth_line_calc
+      endif
 
       ! Convert old syntax to new
       ix = index(crv%data_type, 'emittance.')

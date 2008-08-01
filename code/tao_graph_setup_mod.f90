@@ -931,7 +931,7 @@ do k = 1, size(graph%curve)
 
     smooth_curve = (curve%data_source == 'lattice') .or. &
                    (curve%data_source == 'beam' .and. allocated(u%model%bunch_params2))
-    smooth_curve = smooth_curve .and. curve%draw_interpolated_curve
+    smooth_curve = smooth_curve .and. curve%smooth_line_calc
     if (curve%data_source == 'lattice' .and. index(curve%data_type, 'emit.') /= 0) &
                                                                        smooth_curve = .false.
 

@@ -427,23 +427,23 @@ case ('curve')
     do i = 2, size(curve)
       nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
     enddo
-    nl=nl+1; write (lines(nl), amt) 'data_source             = ', c%data_source
-    nl=nl+1; write (lines(nl), amt) 'data_index              = ', c%data_index
-    nl=nl+1; write (lines(nl), amt) 'data_type_x             = ', c%data_type_x
-    nl=nl+1; write (lines(nl), amt) 'data_type               = ', c%data_type
-    nl=nl+1; write (lines(nl), amt) 'ele_ref_name            = ', c%ele_ref_name
-    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref              = ', c%ix_ele_ref
-    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref_track        = ', c%ix_ele_ref_track
-    nl=nl+1; write (lines(nl), imt) 'ix_bunch                = ', c%ix_bunch
-    nl=nl+1; write (lines(nl), imt) 'ix_universe             = ', c%ix_universe
-    nl=nl+1; write (lines(nl), imt) 'symbol_every            = ', c%symbol_every
-    nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor     = ', c%x_axis_scale_factor
-    nl=nl+1; write (lines(nl), rmt) 'y_axis_scale_factor     = ', c%y_axis_scale_factor
-    nl=nl+1; write (lines(nl), lmt) 'use_y2                  = ', c%use_y2
-    nl=nl+1; write (lines(nl), lmt) 'draw_line               = ', c%draw_line
-    nl=nl+1; write (lines(nl), lmt) 'draw_symbols            = ', c%draw_symbols
-    nl=nl+1; write (lines(nl), lmt) 'draw_symbol_index       = ', c%draw_symbol_index
-    nl=nl+1; write (lines(nl), lmt) 'draw_interpolated_curve = ', c%draw_interpolated_curve
+    nl=nl+1; write (lines(nl), amt) 'data_source          = ', c%data_source
+    nl=nl+1; write (lines(nl), amt) 'data_index           = ', c%data_index
+    nl=nl+1; write (lines(nl), amt) 'data_type_x          = ', c%data_type_x
+    nl=nl+1; write (lines(nl), amt) 'data_type            = ', c%data_type
+    nl=nl+1; write (lines(nl), amt) 'ele_ref_name         = ', c%ele_ref_name
+    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref           = ', c%ix_ele_ref
+    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref_track     = ', c%ix_ele_ref_track
+    nl=nl+1; write (lines(nl), imt) 'ix_bunch             = ', c%ix_bunch
+    nl=nl+1; write (lines(nl), imt) 'ix_universe          = ', c%ix_universe
+    nl=nl+1; write (lines(nl), imt) 'symbol_every         = ', c%symbol_every
+    nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor  = ', c%x_axis_scale_factor
+    nl=nl+1; write (lines(nl), rmt) 'y_axis_scale_factor  = ', c%y_axis_scale_factor
+    nl=nl+1; write (lines(nl), lmt) 'use_y2               = ', c%use_y2
+    nl=nl+1; write (lines(nl), lmt) 'draw_line            = ', c%draw_line
+    nl=nl+1; write (lines(nl), lmt) 'draw_symbols         = ', c%draw_symbols
+    nl=nl+1; write (lines(nl), lmt) 'draw_symbol_index    = ', c%draw_symbol_index
+    nl=nl+1; write (lines(nl), lmt) 'smooth_line_calc     = ', c%smooth_line_calc
     
     if (show_sym) then
       n = nl + size(c%x_symb) + 10
