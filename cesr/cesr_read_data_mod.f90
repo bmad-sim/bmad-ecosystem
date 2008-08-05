@@ -243,7 +243,7 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_orbit_data (file_name, all_dat, err)
+! Subroutine read_cesr_orbit_data (file_name, all_dat, err, nonlin_calc, gain_correction)
 !
 ! Routine to read the data in a raw orbit file.
 ! Note: You can use number_to_cesr_data_file to convert from an orbit number
@@ -253,14 +253,19 @@ end subroutine
 !   use cesr_read_data_mod
 !
 ! Input:
-!   file_name -- Character(*): Name of the orbit data file. 
+!   file_name       -- Character(*): Name of the orbit data file. 
+!   nonlin_calc     -- Logical, optional: Calculate orbit using Rich Helms nonlinear 
+!                        routines? Default: True.
+!   gain_correction -- Logical, optional: If True then button signals will be corrected
+!                        by their measured gain. Recomendation: True.
 !
 ! Output:
 !   all_dat   -- cesr_all_data_struct: Holds the data along with 
 !                     data base and measurement parameters.
+!   err       -- Logical: Set True if there is an error, False otherwise.
 !-
 
-subroutine read_cesr_orbit_data (file_name, all_dat, err)
+subroutine read_cesr_orbit_data (file_name, all_dat, err, nonlin_calc, gain_correction)
 
 implicit none
 
@@ -273,16 +278,16 @@ character(40) :: r_name = 'read_cesr_orbit_data'
 
 integer i, ix, ix_in
 
-logical err_flag, read_ok, err, is_rel
+logical, optional :: nonlin_calc, gain_correction
+logical err, is_rel
 
 ! 
 
 call cesr_all_data_struct_init (all_dat)
 
-err_flag = .true.
-
-call read_butns_file (file_name, .true., butns, all_dat%db, read_ok, .true.)
-if (.not. read_ok) call err_exit
+call read_butns_file (file_name, butns, all_dat%db, err, .true., &
+                                                    nonlin_calc, gain_correction)
+if (err) return
 
 ix = splitfilename (file_name, dir, name, is_rel)
 all_dat%param%file_name = name
@@ -733,7 +738,8 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine read_butns_file (file_name, nonlinear_calc, butns, db, read_ok, type_err)
+! Subroutine read_butns_file (file_name, butns, db, err, type_err, 
+!                                                       nonlin_calc, gain_correction)
 !
 ! Subroutine to read the raw information from a BUTNS.nnnnn file and convert
 ! it to orbit x-y positions.
@@ -742,12 +748,14 @@ end subroutine
 !   use cesr_read_data_mod
 !
 ! Input:
-!   file_name      -- Character(*): Name of the orbit data file. 
-!   nonlinear_calc -- Logical: Calculate orbit using Rich Helms nonlinear 
-!                       routines? Recomendation: True.
-!   type_err       -- Logical: If True then open error message will be printed.
+!   file_name       -- Character(*): Name of the orbit data file. 
+!   type_err        -- Logical: If True then open error message will be printed.
 !                         If False then open error message will be supressed.
-!
+!   nonlin_calc     -- Logical, optional: Calculate orbit using Rich Helms nonlinear 
+!                        routines? Default: True.
+!   gain_correction -- Logical, optional: If True then button signals will be corrected
+!                        by their measured gain. Recomendation: True.
+!   
 ! Output:
 !   butns -- Butns_struct: Orbit information.
 !       %lattice    -- Character(40): Lattice name.
@@ -769,7 +777,7 @@ end subroutine
 !     %scir_pos_stp(i)%cu_now -- CU settings for SCIR POS STP
 !     %scir_enc_cnt(i)%cu_now -- CU settings for SCIR ENC CNT
 !     %scir_pos_rd(i)%cu_now  -- CU settings for SCIR POS RD
-!   read_ok -- Logical: Set True if butns file was successfuly parsed.
+!   err -- Logical: Set True if there is an error.
 !
 ! Note: orbit numbers are from 0 to 99
 !
@@ -780,160 +788,170 @@ end subroutine
 ! even be approximately the same).
 !-
 
-subroutine read_butns_file (file_name, nonlinear_calc, butns, db, &
-                                                          read_ok, type_err)
+subroutine read_butns_file (file_name, butns, db, err, type_err, &
+                                               nonlin_calc, gain_correction)
 
-  implicit none
+implicit none
 
-  type (db_struct) db
-  type (butns_struct) butns
+type (db_struct) db
+type (butns_struct) butns
 
-  integer vec(120), det_type(120)
-  integer i, ix, j, iu, ios, raw(4, 120)
-  integer n_node, n_ele
+integer vec(120), det_type(120)
+integer i, ix, j, iu, ios, raw(4, 120)
+integer n_node, n_ele
 
-  real x_orbit(120), y_orbit(120), rdummy
-  character(*) file_name
+real x_orbit(120), y_orbit(120), rdummy
 
-  character(130) line_in
+character(*) file_name
+character(130) line_in, gain_file
 
-  logical nonlinear_calc, read_ok, type_err, err_flag, is_ok(120)
+logical err, type_err, err_flag, is_ok(120)
+logical, optional :: nonlin_calc, gain_correction
 
 ! init
 
-  butns%comment = ' '
-  read_ok = .false.
+butns%comment = ' '
+err = .true.
 
 ! read header line in the data file (to get lattice name)
 ! and sterlat strengths
 
-  iu = lunget()
-  open(unit = iu, file = file_name, status = 'old', action = 'READ', iostat = ios)
+iu = lunget()
+open(unit = iu, file = file_name, status = 'old', action = 'READ', iostat = ios)
+if (ios /= 0) then
+  if (type_err) print *, &
+        'ERROR IN READ_BUTNS_FILE: ERROR OPENING: ', trim(file_name)
+  return
+endif
+
+read (iu, '(a)') line_in
+butns%lattice = line_in(61:)
+call string_trim (butns%lattice, butns%lattice, ix)
+
+butns%date = line_in(30:)                     ! get date
+read (line_in(54:), *) butns%save_set
+
+do
+  read (iu, '(a)', iostat = ios) line_in
   if (ios /= 0) then
-    if (type_err) print *, &
-          'ERROR IN READ_BUTNS_FILE: ERROR OPENING: ', trim(file_name)
-    return
-  endif
-
-  read (iu, '(a)') line_in
-  butns%lattice = line_in(61:)
-  call string_trim (butns%lattice, butns%lattice, ix)
-
-  butns%date = line_in(30:)                     ! get date
-  read (line_in(54:), *) butns%save_set
-
-  do
-    read (iu, '(a)', iostat = ios) line_in
-    if (ios /= 0) then
-      print *, 'ERROR IN ORBIT_READ: ERROR READING STEERINGS IN ORBIT FILE'
-      goto 1000
-    endif
-    ix = index(line_in, 'END BUTNS')
-    if (ix /= 0) exit
-    ix = index(line_in, 'TURN=')
-    if (ix /= 0) then
-      read (line_in(ix+5:), *, iostat = ios) butns%turn
-      if (ios /= 0) then
-        print *, 'ERROR IN READ_BUTNS_FILE: ERROR READING TURN NUMBER.'
-        print *, '      IN FILE: ', trim(file_name)
-      endif
-    endif
-  enddo
-
-  read (line_in(ix+10:), *, iostat = ios) n_node
-  if (ios /= 0) then
-    print *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE NUMBER IN ORBIT FILE'
+    print *, 'ERROR IN ORBIT_READ: ERROR READING STEERINGS IN ORBIT FILE'
     goto 1000
   endif
+  ix = index(line_in, 'END BUTNS')
+  if (ix /= 0) exit
+  ix = index(line_in, 'TURN=')
+  if (ix /= 0) then
+    read (line_in(ix+5:), *, iostat = ios) butns%turn
+    if (ios /= 0) then
+      print *, 'ERROR IN READ_BUTNS_FILE: ERROR READING TURN NUMBER.'
+      print *, '      IN FILE: ', trim(file_name)
+    endif
+  endif
+enddo
+
+read (line_in(ix+10:), *, iostat = ios) n_node
+if (ios /= 0) then
+  print *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE NUMBER IN ORBIT FILE'
+  goto 1000
+endif
 
 ! read data base valuse stored in the orbit file
 
-  do i = 1, n_node
+do i = 1, n_node
 
-    read (iu, '(a)', iostat = ios) line_in
-    if (ios /= 0) then
-      print *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE IN ORBIT FILE'
-      exit
-    endif
+  read (iu, '(a)', iostat = ios) line_in
+  if (ios /= 0) then
+    print *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE IN ORBIT FILE'
+    exit
+  endif
 
-    read (line_in(14:), *, iostat = ios) n_ele
+  read (line_in(14:), *, iostat = ios) n_ele
 
-    if (line_in(2:13) == 'CSR COMMENTS') then
-      do j = 1, n_ele
-        read (iu, '(1x, a)', iostat = ios) butns%comment(j)
-        if (ios /= 0) then
-          print *, 'ERROR IN ORBIT_READ: ERROR READING COMMENT #', j
-          exit
-        endif
-      enddo
-      cycle
-    endif
+  if (line_in(2:13) == 'CSR COMMENTS') then
+    do j = 1, n_ele
+      read (iu, '(1x, a)', iostat = ios) butns%comment(j)
+      if (ios /= 0) then
+        print *, 'ERROR IN ORBIT_READ: ERROR READING COMMENT #', j
+        exit
+      endif
+    enddo
+    cycle
+  endif
 
-    read (iu, '(12x, 10i6)') vec(1:n_ele)
+  read (iu, '(12x, 10i6)') vec(1:n_ele)
 
-    if (line_in(2:13) == 'CSR HORZ CUR') then
-      db%csr_horz_cur(1:n_ele)%cu_now = vec(1:n_ele)
-      db%csr_horz_cur(1:n_ele)%valid_cu_now = .true.
-    elseif (line_in(2:13) == 'CSR VERT CUR') then
-      db%csr_vert_cur(1:n_ele)%cu_now = vec(1:n_ele)
-      db%csr_vert_cur(1:n_ele)%valid_cu_now = .true.
-    elseif (line_in(2:13) == 'CSR HBND CUR') then
-      db%csr_hbnd_cur(1:n_ele)%cu_now = vec(1:n_ele)
-      db%csr_hbnd_cur(1:n_ele)%valid_cu_now = .true.
-    elseif (line_in(2:13) == 'CSR HSP VVAL') then
-      call hsp_vval_to_volt (vec, vec)
-      n_ele = size(db%csr_hsp_volt)
-      db%csr_hsp_volt(1:n_ele)%cu_now = vec(1:n_ele)
-      db%csr_hsp_volt(1:n_ele)%valid_cu_now = .true.
-    elseif (line_in(2:13) == 'CSR VSP VOLT') then
-      db%csr_vsp_volt(1:n_ele)%cu_now = vec(1:n_ele)
-      db%csr_vsp_volt(1:n_ele)%valid_cu_now = .true.
-    elseif (line_in(2:13) == 'SCIR VERTCUR') then
-      db%scir_vertcur(1:n_ele)%cu_now = vec(1:n_ele)
-      db%scir_vertcur(1:n_ele)%valid_cu_now = .true.
-    elseif (line_in(2:13) == 'SCIR POS STP') then
-      db%scir_pos_stp(1:n_ele)%cu_now = vec(1:n_ele)
-      db%scir_pos_stp(1:n_ele)%valid_cu_now = .true.
-    elseif (line_in(2:13) == 'SCIR ENC CNT') then
-      db%scir_enc_cnt(1:n_ele)%cu_now = vec(1:n_ele)
-      db%scir_enc_cnt(1:n_ele)%valid_cu_now = .true.
-    elseif (line_in(2:13) == 'SCIR POS RD ') then
-      db%scir_pos_rd(1:n_ele)%cu_now = vec(1:n_ele)
-      db%scir_pos_rd(1:n_ele)%valid_cu_now = .true.
-    else
-      print *, 'ERROR IN ORBIT_READ: UNKNOWN NODE IN ORBIT FILE: ', line_in(2:13)
-      goto 1000
-    endif
+  if (line_in(2:13) == 'CSR HORZ CUR') then
+    db%csr_horz_cur(1:n_ele)%cu_now = vec(1:n_ele)
+    db%csr_horz_cur(1:n_ele)%valid_cu_now = .true.
+  elseif (line_in(2:13) == 'CSR VERT CUR') then
+    db%csr_vert_cur(1:n_ele)%cu_now = vec(1:n_ele)
+    db%csr_vert_cur(1:n_ele)%valid_cu_now = .true.
+  elseif (line_in(2:13) == 'CSR HBND CUR') then
+    db%csr_hbnd_cur(1:n_ele)%cu_now = vec(1:n_ele)
+    db%csr_hbnd_cur(1:n_ele)%valid_cu_now = .true.
+  elseif (line_in(2:13) == 'CSR HSP VVAL') then
+    call hsp_vval_to_volt (vec, vec)
+    n_ele = size(db%csr_hsp_volt)
+    db%csr_hsp_volt(1:n_ele)%cu_now = vec(1:n_ele)
+    db%csr_hsp_volt(1:n_ele)%valid_cu_now = .true.
+  elseif (line_in(2:13) == 'CSR VSP VOLT') then
+    db%csr_vsp_volt(1:n_ele)%cu_now = vec(1:n_ele)
+    db%csr_vsp_volt(1:n_ele)%valid_cu_now = .true.
+  elseif (line_in(2:13) == 'SCIR VERTCUR') then
+    db%scir_vertcur(1:n_ele)%cu_now = vec(1:n_ele)
+    db%scir_vertcur(1:n_ele)%valid_cu_now = .true.
+  elseif (line_in(2:13) == 'SCIR POS STP') then
+    db%scir_pos_stp(1:n_ele)%cu_now = vec(1:n_ele)
+    db%scir_pos_stp(1:n_ele)%valid_cu_now = .true.
+  elseif (line_in(2:13) == 'SCIR ENC CNT') then
+    db%scir_enc_cnt(1:n_ele)%cu_now = vec(1:n_ele)
+    db%scir_enc_cnt(1:n_ele)%valid_cu_now = .true.
+  elseif (line_in(2:13) == 'SCIR POS RD ') then
+    db%scir_pos_rd(1:n_ele)%cu_now = vec(1:n_ele)
+    db%scir_pos_rd(1:n_ele)%valid_cu_now = .true.
+  else
+    print *, 'ERROR IN ORBIT_READ: UNKNOWN NODE IN ORBIT FILE: ', line_in(2:13)
+    goto 1000
+  endif
 
-  enddo
+enddo
 
 ! close
 
-  1000 continue
-  close (unit = iu)
+1000 continue
+close (unit = iu)
 
 ! read in the raw data
 
-  call butfilget (raw, file_name, rdummy, det_type)      ! read in raw data
-  if (nonlinear_calc) then
-    call nonlin_butcon (raw, 1, 100, y_orbit, x_orbit)
-  else
-    call butcon (raw, 1, 100, y_orbit, x_orbit)
-  endif
+call butfilget (raw, file_name, rdummy, det_type)      ! read in raw data
 
-  is_ok = .false.
-  call det_ok (raw, 1, 100, det_type, is_ok)
+! Correct for button gain errors
 
-  do i = 1, 100
-    j = i
-    if (i == 100) j = 0
-    butns%det(j)%amp = raw(1:4, i)
-    butns%det(j)%x_orb = x_orbit(i) / 1000.0   ! convert to m
-    butns%det(j)%y_orb = y_orbit(i) / 1000.0   ! convert to m
-    butns%det(j)%ok = is_ok(i)
-  end do
+if (gain_correction) then
+  gain_file = '$CESR_MNT/'
+endif
 
-  read_ok = .true.
+! Calculate x and y orbit
+
+if (logic_option (.true., nonlin_calc)) then
+  call nonlin_butcon (raw, 1, 100, y_orbit, x_orbit)
+else
+  call butcon (raw, 1, 100, y_orbit, x_orbit)
+endif
+
+is_ok = .false.
+call det_ok (raw, 1, 100, det_type, is_ok)
+
+do i = 1, 100
+  j = i
+  if (i == 100) j = 0
+  butns%det(j)%amp = raw(1:4, i)
+  butns%det(j)%x_orb = x_orbit(i) / 1000.0   ! convert to m
+  butns%det(j)%y_orb = y_orbit(i) / 1000.0   ! convert to m
+  butns%det(j)%ok = is_ok(i)
+end do
+
+err = .false.
 
 end subroutine
 
