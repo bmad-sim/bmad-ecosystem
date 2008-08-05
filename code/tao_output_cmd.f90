@@ -13,7 +13,7 @@ use tao_mod
 use tao_top10_mod
 use quick_plot
 use tao_plot_mod
-use io_mod
+use write_lat_file_mod
 use tao_command_mod
 
 implicit none
