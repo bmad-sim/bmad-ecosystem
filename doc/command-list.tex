@@ -488,11 +488,11 @@ Examples:
 
 Format:
 \begin{example}
-  plot <region> <who>
+  plot <region> <component>
 \end{example}
 
 \vskip 0.2in 
-The \vn{plot} command is used to determine who is plotted
+The \vn{plot} command is used to determine what components are plotted
 in the graphs of a given region. Use a ``-'' for baselines. 
 
 Examples:
@@ -758,8 +758,7 @@ Example:
 
 For \vn{set graph}, the \vn{component}s that can be set are:
 \begin{example}
-  who(<n>)    = <string>
-  who(<n>)    = <string>, <integer>
+  component   = <string>
   clip        = <logical>
   ix_universe = <number>
   margin%x1   = <number>
@@ -770,8 +769,8 @@ For \vn{set graph}, the \vn{component}s that can be set are:
 
 Example:
 \begin{example}
-  set graph orbit.x who(1) = model      ! Plot the model orbit in the graph
-  set graph orbit.x who(2) = design, -1 ! With the previous line: Plot model - design 
+  set graph orbit.x component = model - design  
+                          ! Plot model orbit - design orbit in the graph
 \end{example}
 
 %% set lattice --------------------------------------------------------------

@@ -1386,23 +1386,24 @@ namelists should be placed directly after their respective
     graph%clip             = <logical>        ! Clip curves at boundary? Default = T
     graph%draw_axes        = <logical>        ! Default = T
     graph%component        = "<string>"       ! Eg: "model - design"
-    graph%correct_xy_distortion = <logical>   ! For Floor Plan plots: Default = F
-    curve(i)%name          = "<string>"       ! Default is "c<i>", <i> = curve num.
-    curve(i)%data_source   = "<string>"       ! Source for the data curve points
-    curve(i)%data_type_x   = "<string>"       ! Used with plot%x_axis_type = "data".
-    curve(i)%data_type     = "<string>"       ! Default = plot%name.graph%name
-    curve(i)%data_index    = "<string>"       ! Index number for data points.
+    graph%correct_xy_distortion  = <logical>  ! For Floor Plan plots: Default = F
+    curve(i)%name                = "<string>" ! Default is "c<i>", <i> = curve num.
+    curve(i)%data_source         = "<string>" ! Source for the data curve points
+    curve(i)%data_type_x         = "<string>" ! Used with plot%x_axis_type = "data".
+    curve(i)%data_type           = "<string>" ! Default = plot%name.graph%name
+    curve(i)%data_index          = "<string>" ! Index number for data points.
     curve(i)%x_axis_scale_factor = <factor>   ! Scale the x-axis by this.
     curve(i)%y_axis_scale_factor = <factor>   ! Scale the y-axis by this.
-    curve(i)%use_y2        = <logical>        ! Use left-axis scale?
-    curve(i)%draw_line     = <logical>        ! Connect data with lines?
-    curve(i)%draw_symbols  = <logical>        ! Draw data symbols?
-    curve(i)%ix_universe   = <number>         ! Default = -1 => Use viewed universe
-    curve(i)%ix_bunch      = <integer>        ! Bunch index. Default = 0 (all bunches).
-    curve(i)%line          = <qp_line_struct> ! Line spec (color, width, etc.)
+    curve(i)%use_y2              = <logical>  ! Use left-axis scale?
+    curve(i)%draw_line           = <logical>  ! Connect data with lines?
+    curve(i)%draw_symbols        = <logical>  ! Draw data symbols?
+    curve(i)%draw_symbol_index   = <logical>  ! Draw data symbols?
+    curve(i)%ix_universe         = <number>   ! Default = -1 => Use viewed universe
+    curve(i)%ix_bunch            = <integer>  ! Bunch index. Default = 0 (all bunches).
+    curve(i)%line        = <qp_line_struct>   ! Line spec (color, width, etc.)
     curve(i)%symbol      = <qp_symbol_struct> ! Symbol spec (color size, etc.)
-    curve(i)%symbol_every  = <integer>        ! Plot symbol every # datums
-    curve(i)%ele_ref_name  = "<string>"       ! Name of reference element.
+    curve(i)%symbol_every     = <integer>     ! Plot symbol every # datums
+    curve(i)%ele_ref_name     = "<string>"    ! Name of reference element.
     curve(i)%smooth_line_calc = <Logical>     ! Calc data between symbol points? 
   /
 \end{example}
@@ -1531,6 +1532,9 @@ index number to help identify it. The index number of a particular
 symbol is the index of the datum or variable corresponding the symbol
 in the \vn{d1_data} or \vn{v1_var} array. These three numbers can be
 printed using the \vn{show curve -symbol} command (\sref{s:show}).
+\vn{curve%draw_symbol_index} determines whether the index number is
+printed besides the symbol. Use the \vn{set curve} command 
+(\sref{s:curve}) to toggle the drawing of symbols.
 
 \vn{curve%draw_line} determines whether a curve is drawn through the
 data point symbols. The thickness, style (solid, dashed, etc.), and
@@ -1542,7 +1546,8 @@ drawn. Occasionally, this process is too slow or not desired for other
 reasons so setting \vn{curve%smooth_line_calc} to False will prevent
 this calculation and the curve will be drawn as a series of lines
 connecting the symbols. The default of \vn{curve%smooth_line_calc} is
-True.
+True. Use the \vn{set curve} command (\sref{s:curve}) to toggle the
+drawing of lines.
 
 A graph has two vertical axes. The one on the left is called \vn{"y"}
 and the one on the right is called \vn{"y2"}. For example,
