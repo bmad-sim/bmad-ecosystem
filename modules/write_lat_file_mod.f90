@@ -1,4 +1,4 @@
-module io_mod
+module write_lat_file_mod
 
   use bmad_struct
   use bmad_interface
@@ -18,7 +18,7 @@ contains
 ! a lat_struct. Optionally only part of the lattice can be generated.
 !
 ! Modules needed:
-!   use io_mod
+!   use write_lat_file_mod
 !
 ! Input:
 !   bmad_file     -- Character(*): Name of the output lattice file.
@@ -206,7 +206,7 @@ subroutine write_bmad_lattice_file (bmad_file, lat, err)
         ix = ctl%ix_slave
         slave => lat%ele(ix)
         do k = ele%ix1_slave, j-1 ! do not use elements w/ duplicate names
-          if (lat%ele(lat%control(k)%ix_slave)%name == slave%name) exit j_loop
+          if (lat%ele(lat%control(k)%ix_slave)%name == slave%name) cycle j_loop
         enddo
         if (j == ele%ix1_slave) then
           write (line, '(3a)') trim(line), trim(slave%name)
@@ -800,7 +800,7 @@ end subroutine
 ! a lat_struct. Optionally only part of the lattice can be generated.
 !
 ! Modules needed:
-!   use io_mod
+!   use write_lat_file_mod
 !
 ! Input:
 !   mad_file    -- Character(*): Name of the mad output lattice file.
@@ -839,7 +839,7 @@ end subroutine
 ! a lat_struct. Optionally only part of the lattice can be generated.
 !
 ! Modules needed:
-!   use io_mod
+!   use write_lat_file_mod
 !
 ! Input:
 !   xsif_file   -- Character(*): Name of the xsif output lattice file.
