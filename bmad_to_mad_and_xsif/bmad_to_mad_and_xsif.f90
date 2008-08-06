@@ -17,7 +17,7 @@
 program bmad_to_mad_and_xsif
 
 use bmad
-use io_mod
+use write_lat_file_mod
 
 implicit none
 

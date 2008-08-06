@@ -28,7 +28,7 @@ type (ele_struct), pointer :: ele
 integer i, j, n, i0
 real(dp) x0, z0, th0, c0, s0, xloc, zloc, xmap, zmap, tmap
 character(*) file_name, ele_name
-character(80) file_name1
+character(80) file_name1, file_name2
 character(40) name
 
 !
@@ -37,6 +37,8 @@ file_name1 = file_name
 
 call file_suffixer (file_name1, file_name1, '.lat_list', .true.)
 open (1, file = file_name1)
+call file_suffixer (file_name1, file_name2, '.lat_list_no_offset', .true.)
+open (2, file = file_name2)
 
 call element_locator(ele_name, erl, i0)
 if (i0 < 0) then
@@ -61,12 +63,14 @@ do n = 0, ubound(erl%branch, 1)
     if (i == 0) name = 'BRANCH'
 
     write (1, '(2es18.10, 2x, a)') xloc, zloc, name
-
+    write (2, '(i6, 2es18.10, 2x, a)') i, ele%floor%x, ele%floor%z, name
   end do
 enddo
 
 print *, 'Created: ', trim(file_name1)
+print *, 'Created: ', trim(file_name2)
 close (1)
+close (2)
 
 ! list of elements by name
 
