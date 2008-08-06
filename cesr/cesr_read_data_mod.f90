@@ -754,7 +754,7 @@ end subroutine
 !   nonlin_calc     -- Logical, optional: Calculate orbit using Rich Helms nonlinear 
 !                        routines? Default: True.
 !   gain_correction -- Logical, optional: If True then button signals will be corrected
-!                        by their measured gain. Recomendation: True.
+!                        by their measured gain. Default: False.
 !   
 ! Output:
 !   butns -- Butns_struct: Orbit information.
@@ -793,6 +793,11 @@ subroutine read_butns_file (file_name, butns, db, err, type_err, &
 
 implicit none
 
+type but_gain_struct
+  real(rp) gain(4)
+end type
+
+type (but_gain_struct) button(0:120)
 type (db_struct) db
 type (butns_struct) butns
 
@@ -807,6 +812,8 @@ character(130) line_in, gain_file
 
 logical err, type_err, err_flag, is_ok(120)
 logical, optional :: nonlin_calc, gain_correction
+
+namelist / button_gains / button
 
 ! init
 
@@ -927,8 +934,19 @@ call butfilget (raw, file_name, rdummy, det_type)      ! read in raw data
 
 ! Correct for button gain errors
 
-if (gain_correction) then
-  gain_file = '$CESR_MNT/'
+if (logic_option (.false., gain_correction)) then
+  do i = lbound(button, 1), ubound(button, 1)
+    button(i)%gain = 1
+  enddo
+  call fullfilename ('$CESR_MNT/orbit/button_gain.dat', gain_file)
+  open (iu, file = gain_file, status = 'old')
+  read (iu, nml = button_gains)
+  close (iu)
+  do i = 1, 100
+    j = i
+    if (i == 100) j = 0
+    raw(:, i) = raw(:, i) * button(j)%gain
+  enddo
 endif
 
 ! Calculate x and y orbit
