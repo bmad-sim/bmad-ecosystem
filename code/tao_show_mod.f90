@@ -40,13 +40,23 @@ subroutine tao_show_cmd (what, stuff)
 implicit none
 
 
-integer iu, ix, n
+integer iu, ix, n, nl
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
 character(*) what, stuff
-character(100) file_name
+character(100) file_name, result_id
+character(len(what)) what2
 character(len(stuff)) stuff2
+character(n_char), allocatable, save :: lines(:)
 character(16) :: r_name = 'tao_show_cmd'
+
+logical opened
+
+! Init
+
+what2 = what
+stuff2 = stuff
+opened = .false.
 
 ! See if the results need to be written to a file.
 
@@ -74,14 +84,30 @@ if (n > 1 .and. (index('-append', trim(what)) == 1 .or. &
   call output_direct (iu)  ! tell out_io to write to a file
 
   call string_trim (stuff2, stuff2, ix)
-  call tao_show_this (stuff2(1:ix), stuff2(ix+1:))  
+  what2 = stuff2(1:ix)
+  stuff2 = what2(ix+1:)
+  opened = .true.
+endif
 
+! Get restults
+
+call tao_show_this (what2, stuff2, result_id, lines, nl)  
+call tao_hook_show_cmd (what2, stuff2, result_id, lines, nl)
+
+if (result_id == 'ERROR') then
+  call out_io (s_error$, r_name, lines(1:nl))
+else
+  call out_io (s_blank$, r_name, lines(1:nl))
+endif
+
+! Finish
+
+if (opened) then
   call output_direct (0)  ! reset to not write to a file
   close (iu)
   call out_io (s_blank$, r_name, 'Written to file: ' // file_name)
 
-else
-  call tao_show_this (what, stuff)
+  call tao_show_this (what, stuff, result_id, lines, nl)
 endif
 
 end subroutine
@@ -90,7 +116,7 @@ end subroutine
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 
-subroutine tao_show_this (what, stuff)
+subroutine tao_show_this (what, stuff, result_id, lines, nl)
 
 implicit none
 
@@ -154,7 +180,8 @@ character(16) :: show_what, show_names(22) = (/ &
    'hom         ', 'opt_vars    ', 'universe    ', 'orbit       ', 'derivative  ', &
    'branches    ', 'use         ' /)
 
-character(n_char), allocatable, save :: lines(:)
+character(*), allocatable :: lines(:)
+character(*) result_id
 character(n_char) line, line1, line2, line3
 character(n_char) stuff2
 character(9) angle
@@ -203,22 +230,27 @@ if (s%global%phase_units == cycles$)  f_phi = 1 / twopi
 ! find what to show
 
 if (what == ' ') then
-  call out_io (s_error$, r_name, 'SHOW WHAT?')
+  nl=1; lines(1) = 'SHOW WHAT?' 
+  result_id = 'ERROR'
   return
 endif
 
 call match_word (what, show_names, ix, matched_name = show_what)
 if (ix == 0) then
-  call out_io (s_error$, r_name, 'SHOW WHAT? WORD NOT RECOGNIZED: ' // what)
+  nl=1; lines(1) = 'SHOW WHAT? WORD NOT RECOGNIZED: ' // what
+  result_id = 'ERROR'
   return
 endif
 
 if (ix < 0) then
-  call out_io (s_error$, r_name, 'SHOW WHAT? AMBIGUOUS: ' // what)
+  nl=1; lines(1) = 'SHOW WHAT? AMBIGUOUS: ' // what
+  result_id = 'ERROR'
   return
 endif
 
 call tao_cmd_split (stuff, 2, word, .false., err)
+
+result_id = show_what
 
 select case (show_what)
 
@@ -235,8 +267,6 @@ case ('alias')
                                     trim(tao_com%alias(i)%string) // '"'
   enddo
   
-  call out_io (s_blank$, r_name, lines(1:nl))
-
 !----------------------------------------------------------------------
 ! beam
 
@@ -352,15 +382,14 @@ case ('beam')
   
   endif
 
-  call out_io (s_blank$, r_name, lines(1:nl))
-
 !----------------------------------------------------------------------
 ! constraints
 
 case ('branches')
 
   if (ubound(lat%branch, 1) == 0) then
-    call out_io (s_blank$, r_name, 'No branches')
+    nl=1; lines(1) = 'NO BRANCHES'
+    result_id = 'ERROR'
     return
   endif
 
@@ -373,8 +402,6 @@ case ('branches')
                 branch%n_ele_max, branch%ix_from_branch, branch%ix_from_ele, &
                 lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele)%name
   enddo
-
-  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! constraints
@@ -401,7 +428,8 @@ case ('curve')
     if (stuff2(1:1) /= '-') exit
     call match_word (stuff2(:ix), (/ '-symbol', '-line  ' /), n, .true., name)
     if (n < 1) then
-      call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2(:ix))
+      nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2(:ix)
+      result_id = 'ERROR'
       return
     endif
     if (name == '-symbol') show_sym = .true.
@@ -450,7 +478,7 @@ case ('curve')
       if (n > size(lines)) call re_allocate(lines, len(lines(1)), n, .false.)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Symbol points:'
-      nl=nl+1; lines(nl) = '     i index             x             y'
+      nl=nl+1; lines(nl) = '      i  index             x             y'
       err = .false.
       do j = 2, size(curve)
         if (size(curve(j)%c%y_symb) /= size(c%y_symb)) then
@@ -461,8 +489,8 @@ case ('curve')
       enddo
       if (.not. err) then
         do i = 1, size(c%x_symb)
-          nl=nl+1; write (lines(nl), '(i6, 10es14.6)') i, c%ix_symb(i), c%x_symb(i), &
-                                        (/ (curve(j)%c%y_symb(i), j = 1, size(curve)) /)
+          nl=nl+1; write (lines(nl), '(2i7, 10es14.6)') i, c%ix_symb(i), &
+                      c%x_symb(i), (/ (curve(j)%c%y_symb(i), j = 1, size(curve)) /)
         enddo
       endif
     endif
@@ -489,11 +517,10 @@ case ('curve')
     endif
 
   else
-    call out_io (s_error$, r_name, 'This is not a curve name')
+    nl=1; lines(1) = 'THIS IS NOT A CURVE NAME'
+    result_id = 'ERROR'
     return
   endif
-
-  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! data
@@ -532,7 +559,7 @@ case ('data')
       enddo
     enddo
 
-    call out_io (s_blank$, r_name, lines(1:nl))
+    result_id = 'data:'
     return
   endif
 
@@ -671,11 +698,9 @@ case ('data')
   ! error
 
   else
-    lines(1) = 'TRY BEING MORE SPECIFIC.'
-    nl = 1
+    nl=1; lines(1) = 'TRY BEING MORE SPECIFIC.'
+    result_id = 'ERROR'
   endif
-
-  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! derivative
@@ -705,8 +730,6 @@ case ('derivative')
     enddo
   enddo
 
-  call out_io (s_blank$, r_name, lines(1:nl))
-
 !----------------------------------------------------------------------
 ! ele
 
@@ -724,7 +747,8 @@ case ('element')
     call match_word (stuff2(:ix), (/ '-taylor        ', '-wig_terms     ', &
                       '-all_attributes', '-data          ' /), n, .true., name)
     if (n < 1) then
-      call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2(:ix))
+      nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2(:ix)
+      result_id = 'ERROR'
       return
     endif
     if (name == '-taylor') print_taylor = .true.
@@ -764,12 +788,13 @@ case ('element')
 
     deallocate(ix_eles)
 
+    result_id = 'element:*'
+
     if (nl == 1) then
-      call out_io (s_blank$, r_name, '*** No Matches to Name Found ***')
+      lines(1) = '*** No Matches to Name Found ***'
       return
     endif
 
-    call out_io (s_blank$, r_name, lines(1:nl))
     return
 
   endif
@@ -783,9 +808,10 @@ case ('element')
   ele => lat%ele(loc)
 
   ! Show data associated with this element
+
   if (print_data) then
     call show_ele_data (u, loc, lines, nl)
-    call out_io (s_blank$, r_name, lines(1:nl))
+    result_id = 'element:data'
     return
   endif
 
@@ -823,8 +849,6 @@ case ('element')
     endif 
     nl=nl+1;  write (lines(nl), '(a, i0)') 'Note: Found another element with same name at: ', i
   enddo
-
-  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! global
@@ -872,14 +896,13 @@ case ('global')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; lines(nl) = 'Internal Variables:'
   nl=nl+1; write (lines(nl), imt) 'Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
-  nl=nl+1; write (lines(nl), lmt) 'common_lattice             = ', tao_com%common_lattice
+  nl=nl+1; write (lines(nl), lmt) 'common_lattice               = ', tao_com%common_lattice
   nl=nl+1; write (lines(nl), amt) 'tao_com%beam_all_file        = ', tao_com%beam_all_file
   nl=nl+1; write (lines(nl), amt) 'tao_com%beam0_file           = ', tao_com%beam0_file
   nl=nl+1; write (lines(nl), lmt) 'tao_com%combine_consecutive_elements_of_like_name = ', &
                                               tao_com%combine_consecutive_elements_of_like_name
   nl=nl+1; write (lines(nl), amt) 'tao_com%init_lat_file        = ', tao_com%init_lat_file
   nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file        = ', tao_com%init_tao_file
-  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! graph
@@ -934,11 +957,11 @@ case ('graph')
     enddo
 
   else
-    call out_io (s_error$, r_name, 'This is not a graph')
+    nl=1; lines(1) = 'This is not a graph'
+    result_id = 'ERROR'
     return
   endif
 
-  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! hom
@@ -963,7 +986,6 @@ case ('hom')
   enddo
   nl=nl+1; lines(nl) = '       #        Freq         R/Q           Q   m  Polarization_Angle'
 
-  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! lattice
@@ -1011,14 +1033,16 @@ case ('lattice')
       iu = lunget()
       open (iu, file = file_name, status = 'old', iostat = ios)
       if (ios /= 0) then
-        call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // file_name)
+        nl=1; lines(1) = 'CANNOT OPEN FILE: ' // file_name
+        result_id = 'ERROR'
         return
       endif
       column(:)%name = ""
       column(:)%label = ""
       read (iu, nml = custom_show_list, iostat = ios)
       if (ios /= 0) then
-        call out_io (s_error$, r_name, 'CANNOT READ "CUSTOM_SHOW_LIST" NAMELIST IN FILE: ' // file_name)
+        nl=1; lines(1) = 'CANNOT READ "CUSTOM_SHOW_LIST" NAMELIST IN FILE: ' // file_name
+        result_id = 'ERROR'
         return
       endif
 
@@ -1052,13 +1076,15 @@ case ('lattice')
   elseif (by_s) then
     ix = index(stuff2, ':')
     if (ix == 0) then
-      call out_io (s_error$, r_name, 'NO ":" FOUND FOR RANGE SELECTION')
+      nl=1; lines(1) = 'NO ":" FOUND FOR RANGE SELECTION'
+      result_id = 'ERROR'
       return
     endif
     read (stuff2(1:ix-1), *, iostat = ios1) s1
     read (stuff2(ix+1:), *, iostat = ios2) s2
     if (ios1 /= 0 .or. ios2 /= 0) then
-      call out_io (s_error$, r_name, 'ERROR READING RANGE SELECTION: ' // stuff2)
+      nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // stuff2
+      result_id = 'ERROR'
       return
     endif
 
@@ -1075,7 +1101,8 @@ case ('lattice')
   else
     call location_decode (stuff2, picked_ele, 0, num_locations)
     if (num_locations .eq. -1) then
-      call out_io (s_error$, r_name, "SYNTAX ERROR IN RANGE LIST:" // stuff2)
+      nl=1; lines(1) = 'SYNTAX ERROR IN RANGE LIST:' // stuff2
+      result_id = 'ERROR'
       deallocate(picked_ele)
       return
     endif
@@ -1191,9 +1218,10 @@ case ('lattice')
       end select
 
       if (ios /= 0) then
-        call out_io (s_error$, r_name, &
-            'TOO MANY CHARACTERS ON A LINE OR BAD FORMAT: ' // column(i)%format, &
-            'FOR DISPLAYING: ' // column(i)%name)
+        lines(1) = 'TOO MANY CHARACTERS ON A LINE OR BAD FORMAT: ' // column(i)%format
+        lines(2) = 'FOR DISPLAYING: ' // column(i)%name
+        nl = 2
+        result_id = 'ERROR'
         return
       endif
 
@@ -1230,8 +1258,6 @@ case ('lattice')
     enddo
   endif
 
-  call out_io (s_blank$, r_name, lines(1:nl))
-
   deallocate(picked_ele)
 
 !----------------------------------------------------------------------
@@ -1259,6 +1285,7 @@ case ('optimizer')
   nl=nl+1; lines(nl) = ' '
   nl=nl+1; write (lines(nl), amt) 'optimizer:        ', s%global%optimizer
   call out_io (s_blank$, r_name, lines(1:nl))
+  nl = 0
 
 !----------------------------------------------------------------------
 ! optimized_vars
@@ -1277,8 +1304,6 @@ case ('orbit')
   do i = 1, 6
     nl=nl+1; write (lines(nl), rmt) '     ', u%model%orb(ix)%vec(i)
   enddo
-  call out_io (s_blank$, r_name, lines(1:nl))
-
 
 !----------------------------------------------------------------------
 ! particle
@@ -1297,7 +1322,7 @@ case ('particle')
       ie = bunch%particle(i)%ix_lost
       nl=nl+1; write (lines(nl), '(i6, i7, 2x, a)') i, ie, lat%ele(ie)%name
     enddo
-    call out_io (s_blank$, r_name, lines(1:nl))
+    result_id = 'particle:lost'
     return
   endif
 
@@ -1308,7 +1333,6 @@ case ('particle')
   do i = 1, 6
     nl=nl+1; write (lines(nl), rmt) '     ', bunch%particle(ix)%r%vec(i)
   enddo
-  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! plot
@@ -1325,7 +1349,8 @@ case ('plot')
     if (stuff2(1:1) /= '-') exit
     call match_word (stuff2(:ix), (/ '-shapes' /), n, .true., name)
     if (n < 1) then
-      call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2(:ix))
+      nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2(:ix)
+      result_id = 'ERROR'
       return
     endif
     if (name == '-shapes') show_shape = .true.
@@ -1366,7 +1391,7 @@ case ('plot')
                 shape%dy_pix, shape%draw_name
     enddo
 
-    call out_io (s_blank$, r_name, lines(1:nl))
+    result_id = 'plot:shape'
     return 
    
   endif
@@ -1412,7 +1437,7 @@ case ('plot')
                                     region%name, '<-->  ', region%plot%name
     enddo
 
-    call out_io (s_blank$, r_name, lines(1:nl))
+    result_id = 'plot:'
     return
   endif
 
@@ -1443,11 +1468,10 @@ case ('plot')
     enddo
 
   else
-    call out_io (s_error$, r_name, 'This is not a name of a plot')
+    nl=1; lines(1) = 'This is not a name of a plot'
+    result_id = 'ERROR'
     return
   endif
-
-  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! top10
@@ -1461,7 +1485,8 @@ case ('top10')
   elseif (index('-derivative', trim(stuff2)) == 1) then 
     call tao_top10_derivative_print ()
   else
-    call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // stuff2)
+    nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2
+    result_id = 'ERROR'
     return
   endif
 
@@ -1482,11 +1507,13 @@ case ('universe')
   else
     read (word(1), *, iostat = ios) ix_u
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'BAD UNIVERSE NUMBER')
+      nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
+      result_id = 'ERROR'
       return
     endif
     if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
-      call out_io (s_error$, r_name, 'UNIVERSE NUMBER OUT OF RANGE')
+      nl=1; lines(1) = 'UNIVERSE NUMBER OUT OF RANGE'
+      result_id = 'ERROR'
       return
     endif
   endif
@@ -1524,12 +1551,12 @@ case ('universe')
   nl=nl+1; write (lines(nl), '(a)') 'This universe is turned: on_off_logic(u%is_on)'  
   nl=nl+1; write (lines(nl), lmt) 'Aperture limits on?: ', lat%param%aperture_limit_on
 
-  if (.not. lat%param%stable .or. .not. lat%param%stable) then
+  if (.not. lat%param%stable) then
     nl=nl+1; write (lines(nl), '(a, l)') 'Model lattice stability: ', &
                                                           lat%param%stable
     nl=nl+1; write (lines(nl), '(a, l)') 'Design lattice stability:', &
                                                           u%design%lat%param%stable
-    call out_io (s_blank$, r_name, lines(1:nl))
+    result_id = 'universe:unstable'
     return
   endif
  
@@ -1596,8 +1623,6 @@ case ('universe')
   nl=nl+1; write (lines(nl), fmt) 'I3:', u%model%modes%synch_int(3), &
                u%design%modes%synch_int(3), '! Radiation Integral'
 
-  call out_io (s_blank$, r_name, lines(1:nl)) 
-
 !----------------------------------------------------------------------
 ! variable
     
@@ -1631,16 +1656,14 @@ case ('use')
     nl=nl+1; write (lines(nl), '(5a)') 'use var ', trim(v1_ptr%name), '[', trim(line), ']'
   enddo
 
-  call out_io (s_blank$, r_name, lines(1:nl))
-
-
 !----------------------------------------------------------------------
 ! variable
     
 case ('variable')
 
   if (.not. allocated (s%v1_var)) then
-    call out_io (s_error$, r_name, 'NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!')
+    nl=1; lines(1) = 'NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!'
+    result_id = 'ERROR'
     return 
   endif
 
@@ -1653,12 +1676,14 @@ case ('variable')
     else
       read (word(1)(:ix-1), *, iostat = ios) ix_u
       if (ios /= 0) then
-        call out_io (s_error$, r_name, 'BAD UNIVERSE NUMBER')
+        nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
+        result_id = 'ERROR'
         return
       endif
       if (ix_u == 0) ix_u = s%global%u_view
       if (ix_u < 1 .or. ix_u > ubound(s%u, 1)) then
-        call out_io (s_error$, r_name, 'UNIVERSE NUMBER OUT OF RANGE')
+        nl=1; lines(1) = 'UNIVERSE NUMBER OUT OF RANGE'
+        result_id = 'ERROR'
         return
       endif
     endif
@@ -1676,11 +1701,11 @@ case ('variable')
       nl=nl+1; write(lines(nl), '(5x, a25, a40)') tao_var1_name(s%var(i)), &
                                                       tao_var_attrib_name(s%var(i))
     enddo
-    call out_io (s_blank$, r_name, lines(1:nl))
+    result_id = 'variable:@'
     return
   endif
 
-! If just "show var" then show all namees
+! If just "show var" then show all names
 
   if (word(1) == '*') then
     call tao_var_write (' ')
@@ -1699,7 +1724,8 @@ case ('variable')
                       ubound(v1_ptr%v, 1), ']', trim(line)
       
     enddo
-    call out_io (s_blank$, r_name, lines(1:nl))
+
+    result_id = 'variable:'
     return
   endif
 
@@ -1783,7 +1809,7 @@ case ('variable')
     nl=nl+1; write(lines(nl), lmt)  '%Useit_opt        = ', v_ptr%useit_opt
     nl=nl+1; write(lines(nl), lmt)  '%Useit_plot       = ', v_ptr%useit_plot
 
-    call tao_hook_show_variable (v_ptr, lines, nl)
+    result_id = 'variable:1:' // word(1)
 
 ! check if there is a variable number
 ! if no variable number requested, show a range
@@ -1816,21 +1842,16 @@ case ('variable')
     nl=nl+1; lines(nl) = line1
 
   else
-    lines(1) = '???'
-    nl = 1
+    nl=1; lines(1) = '???'
+    result_id = 'variable:?'
   endif
-
-! print out results
-
-  call out_io (s_blank$, r_name, lines(1:nl))
-
 
 !----------------------------------------------------------------------
 
 case default
 
-  call out_io (s_error$, r_name, "INTERNAL ERROR, SHOULDN'T BE HERE!")
-  return
+  nl=1; lines(1) = "INTERNAL ERROR, SHOULDN'T BE HERE!"
+  result_id = 'ERROR'
 
 end select
 

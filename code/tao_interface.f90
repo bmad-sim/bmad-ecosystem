@@ -193,11 +193,10 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_show_variable (var, lines, nl)
-    use tao_struct, only: tao_var_struct
+  subroutine tao_hook_show_cmd (what, stuff, result_id, lines, nl)
     implicit none
-    type (tao_var_struct) var
-    character(*) lines(:)
+    character(*) what, stuff, result_id
+    character(*), allocatable :: lines(:)
     integer nl
   end subroutine
 end interface
@@ -224,10 +223,11 @@ interface
 end interface
 
 interface
-  subroutine tao_hook_init_global (global)
+  subroutine tao_hook_init_global (init_file, global)
     use tao_struct, only: tao_global_struct
     implicit none
     type (tao_global_struct) global
+    character(*) init_file
   end subroutine
 end interface
  

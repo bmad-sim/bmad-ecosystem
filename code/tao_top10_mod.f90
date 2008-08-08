@@ -36,8 +36,11 @@ subroutine tao_top10_merit_categories_print (iunit)
 implicit none
 
 type (tao_top10_struct), allocatable :: tao_merit(:), temp_merit(:)
+type (tao_d1_data_struct), pointer :: d1
 
-integer i, j, k, m, n, nl, num, iunit
+integer i, j, k, m, n, id, nl, num, iunit
+integer, allocatable :: n_points(:)
+real(rp), allocatable :: chi2(:)
 
 character(100) fmt, lines(100)
 character(40) name
@@ -52,24 +55,37 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 enddo
 
-allocate (temp_merit(n))
+allocate (temp_merit(n), n_points(n), chi2(n))
+
+temp_merit(:)%value = 0
+chi2(:) = 0
+n_points(:) = 0
 
 num = 0
 do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, size(s%u(i)%d2_data)
-    k_loop: do k = 1, size(s%u(i)%d2_data(j)%d1)
-      name = trim(s%u(i)%d2_data(j)%name) // '.' // trim(s%u(i)%d2_data(j)%d1(k)%name)
+    do k = 1, size(s%u(i)%d2_data(j)%d1)
+      d1 => s%u(i)%d2_data(j)%d1(k)
+      name = trim(s%u(i)%d2_data(j)%name) // '.' // trim(d1%name)
+
       do m = 1, num
-        if (name == temp_merit(m)%name) then
-          temp_merit(m)%value = temp_merit(m)%value + &
-                                        sum(s%u(i)%d2_data(j)%d1(k)%d(:)%merit)
-          cycle k_loop
-        endif
+        if (name == temp_merit(m)%name) exit
       enddo
-      num = num + 1
-      temp_merit(num)%name = name
-      temp_merit(num)%value = sum(s%u(i)%d2_data(j)%d1(k)%d(:)%merit)
-    enddo k_loop
+
+      if (m == num + 1) then
+        num = num + 1
+        temp_merit(num)%name = name
+        temp_merit(num)%index = num
+      endif
+
+      do id = lbound(d1%d, 1), ubound(d1%d, 1)
+        if (d1%d(id)%weight == 0) cycle
+        if (d1%d(id)%merit == 0) cycle
+        temp_merit(m)%value = temp_merit(m)%value + d1%d(id)%merit
+        chi2(m) = chi2(m) + d1%d(id)%delta_merit**2
+        n_points(m) = n_points(m) + 1
+      enddo
+    enddo
   enddo
 enddo
 
@@ -88,16 +104,17 @@ enddo
 nl = 0
 nl=nl+1; lines(nl) = ''
 nl=nl+1; lines(nl) = 'List of non-zero contributors to the Merit Function:'
-nl=nl+1; lines(nl) = 'Name                                          Merit'
+nl=nl+1; write (lines(nl), '(a, 42x, a)') 'Name', 'Merit           Sigma [= sqrt(Chi^2/N)]'
 do i = 1, size(tao_merit)
   if (.not. tao_merit(i)%valid) exit
   if (tao_merit(i)%value == 0) exit
-  nl=nl+1; write (lines(nl), '(a, es16.4)') tao_merit(i)%name, tao_merit(i)%value
+  m = tao_merit(i)%index
+  nl=nl+1; write (lines(nl), '(a, es16.4)') tao_merit(i)%name, tao_merit(i)%value, sqrt(chi2(m)/n_points(m))
 enddo
 
 call tao_write_out (iunit, lines(1:nl))
 
-deallocate (tao_merit, temp_merit)
+deallocate (tao_merit, temp_merit, n_points, chi2)
 
 end subroutine
 

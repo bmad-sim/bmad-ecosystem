@@ -66,7 +66,7 @@ namelist / tao_beam_init / ix_universe, beam0_file, &
 global = default_global         ! establish defaults
 global%default_key_merit_type = 'limit'
 
-call tao_hook_init_global (global)
+call tao_hook_init_global (init_file, global)
 
 call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
