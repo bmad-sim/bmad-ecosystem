@@ -96,10 +96,10 @@ if (any(m_com%value(ix_attribs) /= ele%value(ix_attribs))) then
   y_angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) - &
                         (ele%value(crunch$) - ele%value(crunch_calib$))
   if (x_angle == 0 .and. y_angle == 0) then
-    m_com%M_m(1,1) = 1
+    m_com%M_m(1,1) = x_gain
     m_com%M_m(1,2) = 0
     m_com%M_m(2,1) = 0
-    m_com%M_m(2,2) = 1
+    m_com%M_m(2,2) = y_gain
   else
     m_com%M_m(1,1) =  x_gain * cos(x_angle)
     m_com%M_m(1,2) =  x_gain * sin(x_angle)
