@@ -732,7 +732,7 @@ array is in \vn{class:ele_name} format as explained in \sref{s:class:name}.
 The \vn{BEGINNING} element (with index 0 in the lattice
 list) and the last element are automatically saved.
 
-The random number generator parameters (\vn{%random_engine},
+The three random number generator parameters (\vn{%random_engine},
 \vn{%random_gauss_converter}, and \vn{%random_sigma_cutoff}) used for
 initializing the beam are set in the \vn{tao_global_struct}
 (\sref{s:globals}). They may, however, be overridden for beam particle
@@ -930,7 +930,7 @@ element will be assigned an individual variable.  For example:
 \end{example}
 will search for all non-lord bend lattice elements whose names begins
 with \vn{"B"} followed by any set of characters. In this example, if,
-say, two bends have the name "bend_0" then a single variable will be
+say, two bends have the name "bend0" then a single variable will be
 set up to control these two bends.
 
 Note: \vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be
@@ -1540,7 +1540,7 @@ in the \vn{d1_data} or \vn{v1_var} array. These three numbers can be
 printed using the \vn{show curve -symbol} command (\sref{s:show}).
 \vn{curve%draw_symbol_index} determines whether the index number is
 printed besides the symbol. Use the \vn{set curve} command 
-(\sref{s:curve}) to toggle the drawing of symbols.
+(\sref{s:set}) to toggle the drawing of symbols.
 
 \vn{curve%draw_line} determines whether a curve is drawn through the
 data point symbols. The thickness, style (solid, dashed, etc.), and
@@ -1552,7 +1552,7 @@ drawn. Occasionally, this process is too slow or not desired for other
 reasons so setting \vn{curve%smooth_line_calc} to False will prevent
 this calculation and the curve will be drawn as a series of lines
 connecting the symbols. The default of \vn{curve%smooth_line_calc} is
-True. Use the \vn{set curve} command (\sref{s:curve}) to toggle the
+True. Use the \vn{set curve} command (\sref{s:set}) to toggle the
 drawing of lines.
 
 A graph has two vertical axes. The one on the left is called \vn{"y"}
