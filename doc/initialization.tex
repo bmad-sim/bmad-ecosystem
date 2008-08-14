@@ -916,19 +916,25 @@ For example:
 Instead of specifying a list of lattice element names for \vn{var(:)%ele_name}, 
 \tao can be told to search for the elements by name using the syntax:
 \begin{example}
-   search_for_lat_eles = "<element class>:<element name>"  
+   search_for_lat_eles = "{-no_grouping} <element class>:<element name>"  
 \end{example}
 \vn{<element class>:<element name>} specifies elements using
 \vn{class:name} format (\sref{s:class:name}. The searching will
 automatically exclude any superposition and multipass slaves elements.
-For example:
+All elements with the same name are grouped under a single
+variable. That is, a single variable can control multiple element.
+If the \vn{-no_grouping} flag is present, however, each
+element will be assigned an individual variable.  For example:
 \begin{example}
-  search_for_lat_eles = "sbend:b*
+  search_for_lat_eles = "sbend:b*"
 \end{example}
 will search for all non-lord bend lattice elements whose names begins
-with \vn{"B"} followed by any set of characters.
-\vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be used
-together.
+with \vn{"B"} followed by any set of characters. In this example, if,
+say, two bends have the name "bend_0" then a single variable will be
+set up to control these two bends.
+
+Note: \vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be
+used together.
 
 %-----------------------------------------------------------------
 \section{Initializing Data and

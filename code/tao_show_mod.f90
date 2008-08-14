@@ -768,12 +768,12 @@ case ('element')
                 (ele_name(1:2) /= 'S:' .and. index(ele_name, ':') /= 0) .or. &
                 count(picked_uni) > 1) then
 
-    nl=1; write (lines(1), '(a, i0)') 'Matches: ', size(ix_eles)
-
+    n_tot = 0
     do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. picked_uni(i_uni)) cycle
       call tao_ele_locations_given_name (u, ele_name, ix_eles, err, .true.)
       if (err) return
+      n_tot = n_tot + size(ix_eles)
       do i = 1, size(ix_eles)
         loc = ix_eles(i)
         if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200, .false.)
@@ -787,10 +787,11 @@ case ('element')
     enddo
 
     deallocate(ix_eles)
+    nl=nl+1; write (lines(nl), '(a, i0)') 'Number of Matches: ', n_tot
 
     result_id = 'element:*'
 
-    if (nl == 1) then
+    if (nl == 0) then
       lines(1) = '*** No Matches to Name Found ***'
       return
     endif

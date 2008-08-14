@@ -1422,7 +1422,7 @@ integer i, iu, ip, j, jj, k, kk, n, nn, n1, n2, ix1, ix2, ix
 integer num_ele, ios, ix_uni, ixm, ix2m
 integer, allocatable, save :: ix_eles(:), an_indexx(:)
 
-logical searching
+logical searching, grouping
 
 ! count number of v1 entries
 
@@ -1517,7 +1517,13 @@ endif
 if (search_for_lat_eles /= '') then
 
   searching = .true.
-  search_string = '-no_slaves ' // trim(search_for_lat_eles)
+  call string_trim (search_for_lat_eles, search_string, ix)
+  grouping = .true.  ! Default
+  if (search_string(1:12) == '-no_grouping') then
+    grouping = .false.
+    search_string = search_string(13:)
+  endif
+  search_string = '-no_slaves ' // trim(search_string)
   if (any(var%universe /= '')) then
     call out_io (s_abort$, r_name, &
            "CANNOT SPECIFY INDIVIDUAL UNIVERSES WHEN SEARCHING FOR VARIABLES")
@@ -1533,21 +1539,25 @@ if (search_for_lat_eles /= '') then
     if (.not. dflt_good_unis(iu)) cycle
     if (ix_uni > -1 .and. iu /= ix_uni) cycle
     call tao_find_elements (s%u(iu), search_string, ix_eles, default_attribute)
-    do kk = 1, size(ix_eles)
-      ix_ele = ix_eles(kk)
-      ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
-      call find_indexx(ele_name, ele_names, an_indexx, num_ele, ixm, ix2m)
-      if (ixm == 0) then
-        if (num_ele+1 > size(ele_names)) then
-          call re_allocate(ele_names, len(ele_names(1)), size(ele_names) + 100)
-          call re_allocate(an_indexx, size(an_indexx) + 100)
+    if (grouping) then
+      do kk = 1, size(ix_eles)
+        ix_ele = ix_eles(kk)
+        ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
+        call find_indexx(ele_name, ele_names, an_indexx, num_ele, ixm, ix2m)
+        if (ixm == 0) then
+          if (num_ele+1 > size(ele_names)) then
+            call re_allocate(ele_names, len(ele_names(1)), size(ele_names) + 100)
+            call re_allocate(an_indexx, size(an_indexx) + 100)
+          endif
+          an_indexx(ix2m+1:num_ele+1) = an_indexx(ix2m:num_ele)
+          an_indexx(ix2m) = num_ele + 1
+          ele_names(num_ele+1) = ele_name
+          num_ele = num_ele + 1
         endif
-        an_indexx(ix2m+1:num_ele+1) = an_indexx(ix2m:num_ele)
-        an_indexx(ix2m) = num_ele + 1
-        ele_names(num_ele+1) = ele_name
-        num_ele = num_ele + 1
-      endif
-    enddo
+      enddo
+    else
+      num_ele = num_ele + size(ix_eles)
+    endif
   enddo
   deallocate(ele_names, an_indexx)
 
@@ -1574,12 +1584,14 @@ if (search_for_lat_eles /= '') then
       ix_ele = ix_eles(kk)
       ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
       ! If the name matches an existing variable then use that variable
-      do j = n1, nn
-        if (s%var(j)%ele_name == ele_name) then
-          call tao_pointer_to_var_in_lattice (s%var(j), iu, ix_ele, err)
-          cycle kk_loop
-        endif
-      enddo
+      if (grouping) then
+        do j = n1, nn
+          if (s%var(j)%ele_name == ele_name) then
+            call tao_pointer_to_var_in_lattice (s%var(j), iu, ix_ele, err)
+            cycle kk_loop
+          endif
+        enddo
+      endif
       ! Here if there is no match...
       ! create a new variable and stuff the info into it.
       nn = nn + 1
@@ -1792,19 +1804,23 @@ no_lords = .false.
 
 call string_trim(search_string, string, ix)
 
-select case (string(1:ix))
-case ('-no_lords') 
-  no_lords = .true.
-  call string_trim (string(ix+1:), string, ix)
-case ('-no_slaves') 
-  no_slaves = .true.
-  call string_trim (string(ix+1:), string, ix)
-case default
-  if (string(1:1) == '-') then
-    call out_io (s_abort$, r_name, "BAD SEARCH RESTRICTION: " // search_string)
+do
+
+  if (string(1:1) /= '-') exit
+
+  select case (string(1:ix))
+  case ('-no_lords') 
+    no_lords = .true.
+  case ('-no_slaves') 
+    no_slaves = .true.
+  case default
+    call out_io (s_abort$, r_name, "BAD SEARCH SWITCH: " // search_string)
     call err_exit
-  endif
-end select
+  end select
+
+  call string_trim (string(ix+1:), string, ix)
+
+enddo
 
 ! Find elements
 
