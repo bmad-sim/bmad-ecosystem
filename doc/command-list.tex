@@ -169,17 +169,21 @@ the \vn{set} command.
 Generally \vn{<number>} is added to the existing value of the
 attribute or variable. That is:
 \begin{example}
-  final_value = initial_value + <number>
+  final_model_value = initial_model_value + <number>
 \end{example}
 If "@" is prepended to \vn{<number>} then just the value of
 \vn{<number>} is used to set the value
 \begin{example}
-  final_value = <number>
+  final_model_value = <number>
 \end{example}
-If "d" is prepended to \vn{<number>} then the value relative to the design
-value is used:
+If "d" is prepended to \vn{<number>} then the final value will be the
+\vn{design} value plus \vn{<number>}:
 \begin{example}
-  final_value = design_value + <number>
+  final_model_value = design_value + <number>
+\end{example}
+If "\%" is prepended to \vn{<number>} then the final value will be
+\begin{example}
+  final_model_value = initial_model_value * (1 + <number> / 100)
 \end{example}
 
 For linear lattices, \vn{change beam_start <coordinate> <number>} 
@@ -200,10 +204,10 @@ variables are changed.
 
 Examples:
 \begin{example}
-  change ele 124 x_offset  0.1     ! Offset element #124 by 0.1
+  change ele 124 x_offset 0.1      ! Offset element #124 by 0.1
   change ele q02w k1 d 1.2e-2      ! set the k1 strength of q02w relative to the design
   change var steering[34:36] @1e-3 ! set the steering strength #34-36 to 0.001
-  change var steering[*] @0.0      ! set all steering strengths to 0.0
+  change var steering[*] \%10       ! vary all steering strengths by 10\%
   change beam_start x @0.001       ! set beginning x position to 1 mm
 \end{example}
 

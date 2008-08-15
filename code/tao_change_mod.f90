@@ -86,10 +86,12 @@ do i = 1, size(v_array)
   var => v_array(i)%v
   if (.not. var%exists) cycle
   var%old_value = var%model_value
-  if (abs_or_rel == 'ABS') then
+  if (abs_or_rel == '@') then
     call tao_set_var_model_value (var, change_number(i))
-  elseif (abs_or_rel == 'REL') then
+  elseif (abs_or_rel == 'd') then
     call tao_set_var_model_value (var, var%design_value + change_number(i))
+  elseif (abs_or_rel == '%') then
+    call tao_set_var_model_value (var, var%model_value * (1 + 0.01 * change_number(i)))
   else
     call tao_set_var_model_value (var, var%model_value + change_number(i))
   endif
@@ -229,10 +231,12 @@ do i = 1, size(d_ptr)
 
   old_value = m_ptr(i)%r
      
-  if (abs_or_rel == 'ABS') then
+  if (abs_or_rel == '@') then
     m_ptr(i)%r = change_number(i)
-  elseif (abs_or_rel == 'REL') then
+  elseif (abs_or_rel == 'd') then
     m_ptr(i)%r = d_ptr(i)%r + change_number(i)
+  elseif (abs_or_rel == '%') then
+    m_ptr(i)%r = m_ptr(i)%r * (1 + 0.01 * change_number(i))
   else
     m_ptr(i)%r = m_ptr(i)%r + change_number(i)
   endif
@@ -304,25 +308,14 @@ logical err
 
 !
 
-number_str = num_str
+call string_trim(num_str, number_str, ix)
 abs_or_rel = ' ' 
 
-ix = index (number_str, '@')
-if (ix /= 0) then
-  abs_or_rel = 'ABS'
-  number_str(ix:ix) = ' '
-endif
-
-ix = index (number_str, 'd')
-if (ix /= 0) then
-  if (abs_or_rel /= ' ') then
-    call out_io (s_error$, r_name, &
-        '"@" AND "d" QUALIFIERS CANNONT BOTH BE USED AT THE SAME TIME.')
-    return
-  endif
-  abs_or_rel = 'REL'
-  number_str(ix:ix) = ' '
-endif
+select case (number_str(1:1))
+case ('@', 'd', '%')
+  abs_or_rel = number_str(1:1)
+  number_str(1:1) = ' '
+end select
 
 call tao_to_real_vector (number_str, 'BOTH', n_size, change_number, good, err)
 
