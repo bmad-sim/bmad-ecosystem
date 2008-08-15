@@ -388,6 +388,8 @@ parsing_loop: do
       endif
     endif
 
+    ran_function_pending = .false.
+
     do
       do i = i_op, 1, -1       ! release pending ops
         if (op(i) == l_parens$) exit            ! break do loop
