@@ -271,34 +271,31 @@ parsing_loop: do
   enddo
 
   ! If delim = "*" then see if this is being used as a wildcard
+  ! Examples: "[*]|", "*.*|", "*.x|", "*@orbit.x|", "*@*|", "orbit.*[3]|"
+  ! If so, we have split in the wrong place and we need to correct this.
 
   if (delim == '*') then
-    ixb = index(phrase, '|')
-    if (ixb /= 0) then
+
+    wild = .false.
+
+    select case (phrase(1:1))
+    case ( ']', '[', '|', '@')
       wild = .true.
-      if (index(phrase(1:ixb), '+') /= 0) wild = .false.
-      if (index(phrase(1:ixb), '-') /= 0) wild = .false.
-      if (index(phrase(1:ixb), '/') /= 0) wild = .false.
-      if (index(phrase(1:ixb), '^') /= 0) wild = .false.
-      if (index(phrase(1:ixb), '(') /= 0) wild = .false.
-      ix = index(phrase(1:ixb), '*')
-      if (ix /= 0) then
-        if (ix == 1) then
-          wild = .false.
-        elseif (phrase(ix-1:ix-1) /= '.' .and. phrase(ix-1:ix-1) /= '@') then
-          wild = .false.
-        endif
-      endif
-      if (phrase(1:1) == '@') wild = .true.  ! '*@...' universe construct
-      if (wild) then
-        word = word(:ix_word) // '*' // phrase(1:ixb)
-        phrase = phrase(ixb+1:)
-        call word_read (phrase, '+-*/()^,:}', word2, ix_word2, delim, &
-                                                  delim_found, phrase)
-        word = trim(word) // trim(word2)       
-        ix_word = len_trim(word)
-      endif
+    case ('.')
+      if (index('0123456789', phrase(2:2)) /= 0) wild = .true.
+    end select
+    ixb = index(phrase, '|')
+    if (ixb == 0) wild = .false.
+
+    if (wild) then
+      word = word(:ix_word) // '*' // phrase(1:ixb) 
+      phrase = phrase(ixb+1:)
+      call word_read (phrase, '+-*/()^,:}', word2, ix_word2, delim, &
+                                                delim_found, phrase)
+      word = trim(word) // trim(word2)       
+      ix_word = len_trim(word)
     endif
+
   endif
 
   !---------------------------
@@ -783,10 +780,12 @@ logical err_flag
 
 if (.not. allocated(re_array)) allocate (re_array(0))
 
+err_flag = .true.
+
 if (wild_type_com == 'VAR' .or. wild_type_com == 'BOTH') &
          call tao_find_var (err_flag, str, re_array = re_array, print_err = .false.)
 
-if (wild_type_com == 'DATA' .or. (err_flag .and. wild_type_com == 'BOTH')) then
+if ((wild_type_com == 'DATA' .or. wild_type_com == 'BOTH') .and. err_flag) then
   call tao_find_data (err_flag, str, re_array = re_array, &
                                     int_array = int_array, print_err = .false.)
 endif

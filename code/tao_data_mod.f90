@@ -249,7 +249,7 @@ integer, save :: ix_save = -1
 integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_lat
 
 character(20) :: r_name = 'tao_evaluate_a_datum'
-character(40) data_type, data_source
+character(40) data_type, data_source, name
 
 logical found, valid_value, err
 
@@ -284,12 +284,12 @@ n_lat = tao_lat%lat%n_ele_track
 datum_value = 0           ! default
 datum%ix_ele_merit = ix1  ! default
 
-if (data_type(1:2) == 'r.') data_type = 'r.'
-if (data_type(1:2) == 't.') data_type = 't.'
-if (data_type(1:3) == 'tt.') data_type = 'tt.'
-if (data_type(1:5) == 'wire.') data_type = 'wire.'
-
-if (data_type(1:4) == 'emit') call convert_total_energy_to ( &
+if (data_type(1:2)  == 'r.') data_type = 'r.'
+if (data_type(1:2)  == 't.') data_type = 't.'
+if (data_type(1:3)  == 'tt.') data_type = 'tt.'
+if (data_type(1:5)  == 'wire.') data_type = 'wire.'
+if (data_type(1:14) == 'element_param.') data_type = 'element_param.'
+if (data_type(1:4)  == 'emit') call convert_total_energy_to ( &
                     lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
 
 if (data_source /= "lattice" .and. data_source /= "beam") then
@@ -335,6 +335,16 @@ endif
 !---------------------------------------------------
 
 select case (data_type)
+
+case ('element_param.')
+  call str_upcase (name, datum%data_type(15:))
+  ix = attribute_index (lat%ele(ix1), name)
+  if (ix < 1) then
+    call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // datum%data_type)
+    call err_exit
+  endif
+  call load_it (lat%ele(0:n_lat)%value(ix), &
+                                     ix0, ix1, datum_value, valid_value, datum, lat)
 
 case ('bpm_orbit.x')
   call to_orbit_reading (tao_lat%orb(ix1), lat%ele(ix1), x_plane$, datum_value, err)

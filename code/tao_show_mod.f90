@@ -1753,8 +1753,8 @@ case ('variable')
     nl=nl+1; write(lines(nl), imt)  'Ix_var        = ', v_ptr%ix_var
     nl=nl+1; write(lines(nl), imt)  'Ix_dvar       = ', v_ptr%ix_dvar           
     nl=nl+1; write(lines(nl), imt)  'Ix_v1         = ', v_ptr%ix_v1
-    nl=nl+1; write(lines(nl), rmt)  'Model_value   = ', v_ptr%model_value
-    nl=nl+1; write(lines(nl), rmt)  'Base_value    = ', v_ptr%base_value
+    nl=nl+1; write(lines(nl), rmt)  'Model         = ', v_ptr%model_value
+    nl=nl+1; write(lines(nl), rmt)  'Base          = ', v_ptr%base_value
 
     if (.not. allocated (v_ptr%this)) then
       nl=nl+1; write(lines(nl), imt)  'this(:) -- Not associated!'
@@ -1785,11 +1785,11 @@ case ('variable')
       nl=nl+1; write(lines(nl), rmt)  '%common%Base_value:  ', v_ptr%common%base_value
     endif
 
-    nl=nl+1; write(lines(nl), rmt)  '%Design_value     = ', v_ptr%design_value
-    nl=nl+1; write(lines(nl), rmt)  '%Old_value        = ', v_ptr%old_value
-    nl=nl+1; write(lines(nl), rmt)  '%Meas_value       = ', v_ptr%meas_value
-    nl=nl+1; write(lines(nl), rmt)  '%Ref_value        = ', v_ptr%ref_value
-    nl=nl+1; write(lines(nl), rmt)  '%Correction_value = ', v_ptr%correction_value
+    nl=nl+1; write(lines(nl), rmt)  '%Design           = ', v_ptr%design_value
+    nl=nl+1; write(lines(nl), rmt)  '%Old              = ', v_ptr%old_value
+    nl=nl+1; write(lines(nl), rmt)  '%Meas             = ', v_ptr%meas_value
+    nl=nl+1; write(lines(nl), rmt)  '%Ref              = ', v_ptr%ref_value
+    nl=nl+1; write(lines(nl), rmt)  '%Correction       = ', v_ptr%correction_value
     nl=nl+1; write(lines(nl), rmt)  '%High_lim         = ', v_ptr%high_lim
     nl=nl+1; write(lines(nl), rmt)  '%Low_lim          = ', v_ptr%low_lim
     nl=nl+1; write(lines(nl), rmt)  '%Step             = ', v_ptr%step
