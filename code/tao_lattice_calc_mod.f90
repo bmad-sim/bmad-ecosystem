@@ -505,7 +505,9 @@ type (tao_universe_struct), optional :: u
 
 integer, optional :: ix_ele
 
-integer n_bunch, n_part, n_lost, tot_part, i_ele
+real(rp) charge_tot, charge
+
+integer n_bunch, n_part, n_lost, i_ele
 
 logical record_lost
 logical too_many_lost
@@ -516,9 +518,8 @@ character(24) :: r_name = "tao_find_beam_centroid"
 !
 
 coord%vec = 0.0
-tot_part = 0
 n_lost = 0
-
+charge_tot = 0
 n_bunch = s%global%bunch_to_plot
   
 ! If optional arguments not present no verbose and
@@ -540,8 +541,9 @@ do n_part = 1, size(beam%bunch(n_bunch)%particle)
   elseif (beam%bunch(n_bunch)%particle(n_part)%ix_lost /= not_lost$) then
     cycle
   endif
-  tot_part = tot_part + 1
-  coord%vec = coord%vec + beam%bunch(n_bunch)%particle(n_part)%r%vec
+  charge = beam%bunch(n_bunch)%particle(n_part)%charge
+  coord%vec = coord%vec + beam%bunch(n_bunch)%particle(n_part)%r%vec * charge
+  charge_tot = charge_tot + charge
 enddo
       
 ! Post lost particles
@@ -553,8 +555,8 @@ endif
   
 ! average
 
-if (tot_part > 1) then
-  orb%vec = coord%vec / tot_part
+if (charge_tot /= 0) then
+  orb%vec = coord%vec / charge_tot
   too_many_lost = .false.
 else 
   ! lost too many particles
