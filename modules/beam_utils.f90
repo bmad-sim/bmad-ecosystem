@@ -156,7 +156,7 @@ if (associated(ele%a_pole)) deallocate(ele%a_pole)
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
-  if (bunch_end%particle(j)%ix_lost .ne. not_lost$) cycle
+  if (bunch_end%particle(j)%ix_lost /= not_lost$) cycle
   call add_sr_long_wake (rf_ele, bunch_end, j-1, bunch_end%particle(j)%ix_z)
   call track1_particle (bunch_end%particle(bunch_end%particle(j)%ix_z), &
                         rf_ele, param, &
@@ -181,7 +181,7 @@ rf_ele%value(p0c$)          = ele%value(p0c$)
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
-  if (bunch_end%particle(j)%ix_lost .ne. not_lost$) cycle
+  if (bunch_end%particle(j)%ix_lost /= not_lost$) cycle
   call add_sr_long_wake (rf_ele, bunch_end, j-1, bunch_end%particle(j)%ix_z)
   call track1_particle (bunch_end%particle(bunch_end%particle(j)%ix_z), &
                         rf_ele, param, &
@@ -999,7 +999,7 @@ polar%xi = 0.0 ! spinor phase is zero
 
 sigma = acos(beam_init%spin%polarization)
 
-if (beam_init%spin%polarization .ne. 1.0) then
+if (beam_init%spin%polarization /= 1.0) then
   call out_io (s_error$, "init_spin_distribution", &
         "Right now, will only set 100% polarization")
 endif
@@ -1176,7 +1176,9 @@ s(6,5) = -1.0
 ! n_particle and centroid
 
 params%n_live_particle = count(bunch%particle%ix_lost == not_lost$)
-if (params%n_live_particle == 0) then
+params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%ix_lost == not_lost$))
+
+if (params%charge_live == 0) then
   params%centroid%vec = 0.0     ! zero everything
   call zero_plane (params%a)
   call zero_plane (params%b)
@@ -1188,9 +1190,9 @@ endif
   
 ! average the energy
 
-avg_energy = sum((1+bunch%particle%r%vec(6)), & 
+avg_energy = sum((1+bunch%particle%r%vec(6))*bunch%particle%charge, & 
                               mask = (bunch%particle%ix_lost == not_lost$))
-avg_energy = avg_energy * ele%value(E_TOT$) / params%n_live_particle
+avg_energy = avg_energy * ele%value(E_TOT$) / params%charge_live
 
 ! Convert to geometric coords and find the sigma matrix
 
@@ -1401,12 +1403,12 @@ params%spin%phi   = 0.0
 
 ave_vec = 0.0
 do i = 1, size(bunch%particle)
-  if (bunch%particle(i)%ix_lost .ne. not_lost$) cycle
+  if (bunch%particle(i)%ix_lost /= not_lost$) cycle
   call spinor_to_vec (bunch%particle(i)%r, vec)
-  ave_vec = ave_vec + vec
+  ave_vec = ave_vec + vec * bunch%particle(i)%charge
 enddo
 
-ave_vec = ave_vec / params%n_live_particle
+ave_vec = ave_vec / params%charge_live
 call vec_to_polar (ave_vec, ave_polar)
 params%spin%theta = ave_polar%theta
 params%spin%phi   = ave_polar%phi
@@ -1417,13 +1419,13 @@ params%spin%polarization = 0.0
 
   
 do i = 1, size(bunch%particle)
-  if (bunch%particle(i)%ix_lost .ne. not_lost$) cycle
+  if (bunch%particle(i)%ix_lost /= not_lost$) cycle
   call spinor_to_polar (bunch%particle(i)%r, polar)
   params%spin%polarization = params%spin%polarization + &
-               cos(angle_between_polars (polar, ave_polar))
+           cos(angle_between_polars (polar, ave_polar)) * bunch%particle(i)%charge
 enddo
 
-params%spin%polarization = params%spin%polarization / params%n_live_particle
+params%spin%polarization = params%spin%polarization / params%charge_live
     
 end subroutine calc_spin_params
 
@@ -1454,18 +1456,19 @@ subroutine find_bunch_sigma_matrix (particle, avg, sigma, sigma_s)
 implicit none
 
 type (particle_struct) :: particle(:)
-real(rp) sigma(21)
-real(rp) avg(6)
+
+real(rp) charge_live, avg(6), sigma(21)
 real(rp) sigma_s(6,6), s(6,6)
 
-integer i, n_live
+integer i
 
 !
 
-n_live = count(particle(:)%ix_lost == not_lost$)
+charge_live = sum(particle%charge, mask = (particle%ix_lost == not_lost$))
 
 do i = 1, 6
-  avg(i) = sum(particle(:)%r%vec(i), mask = (particle(:)%ix_lost == not_lost$)) / n_live
+  avg(i) = sum(particle(:)%r%vec(i)*particle(:)%charge, &
+                      mask = (particle(:)%ix_lost == not_lost$)) / charge_live
 enddo
 
 sigma(s11$) = exp_calc (particle, 1, 1, avg)
@@ -1556,10 +1559,10 @@ integer ix1, ix2
 !
                                     
 this_sigma = sum((particle(:)%r%vec(ix1) - avg(ix1)) * &
-                               (particle(:)%r%vec(ix2) - avg(ix2)), &
+                               (particle(:)%r%vec(ix2) - avg(ix2)) * particle(:)%charge, &
                                mask = (particle%ix_lost == not_lost$))
 
-this_sigma = this_sigma / n_live
+this_sigma = this_sigma / charge_live
 
 end function exp_calc
 

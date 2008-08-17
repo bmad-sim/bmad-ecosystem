@@ -75,6 +75,7 @@ type bunch_params_struct
   type (beam_spin_struct) :: spin  ! polarization
   real(rp) sigma(21)               ! projected sigma matrix
   real(rp) s                       ! Longitudinal position.
+  real(rp) charge_live             ! Charge of all non-lost particle
   integer n_live_particle          ! all non-lost particles
 end type
 
