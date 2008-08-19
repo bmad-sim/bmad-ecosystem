@@ -791,7 +791,8 @@ end subroutine
 !
 ! Input:
 !   file_name       -- Character(*): Name of the orbit data file. 
-!   type_err        -- Logical: If True then open error message will be printed.
+!   type_err        -- Logical, optional: If True then an error message will be 
+!                         printed when there is an error. Default is True.
 !                         If False then open error message will be supressed.
 !   nonlin_calc     -- Logical, optional: Calculate orbit using Rich Helms nonlinear 
 !                        routines? Default: True.
@@ -857,8 +858,8 @@ character(*) file_name
 character(130) line_in, correction_file
 character(20) :: r_name = 'read_butns_file'
 
-logical err, type_err, err_flag, is_ok(120)
-logical, optional :: nonlin_calc, offset_correction, gain_correction
+logical err, err_flag, is_ok(120)
+logical, optional :: type_err, nonlin_calc, offset_correction, gain_correction
 logical, save :: gain_init_needed = .true., offset_init_needed = .true.
 
 namelist / button_gains / gain
@@ -875,7 +876,7 @@ err = .true.
 iu = lunget()
 open(unit = iu, file = file_name, status = 'old', action = 'READ', iostat = ios)
 if (ios /= 0) then
-  if (type_err) call out_io (s_error$, r_name, 'ERROR OPENING: ' // file_name)
+  if (logic_option(.true., type_err)) call out_io (s_error$, r_name, 'ERROR OPENING: ' // file_name)
   return
 endif
 
