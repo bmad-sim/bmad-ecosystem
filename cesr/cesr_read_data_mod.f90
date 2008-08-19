@@ -3,6 +3,9 @@ module cesr_read_data_mod
 use cesr_basic_mod
 use cesr_db_mod
 
+character(100), save, private :: offset_correction_file = ''
+character(100), save, private :: gain_correction_file = ''
+
 contains
 
 !------------------------------------------------------------------------------
@@ -243,7 +246,8 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine read_cesr_orbit_data (file_name, all_dat, err, nonlin_calc, gain_correction)
+! Subroutine read_cesr_orbit_data (file_name, all_dat, err, nonlin_calc, 
+!                                               offset_correction, gain_correction)
 !
 ! Routine to read the data in a raw orbit file.
 ! Note: You can use number_to_cesr_data_file to convert from an orbit number
@@ -256,8 +260,12 @@ end subroutine
 !   file_name       -- Character(*): Name of the orbit data file. 
 !   nonlin_calc     -- Logical, optional: Calculate orbit using Rich Helms nonlinear 
 !                        routines? Default: True.
-!   gain_correction -- Logical, optional: If True then button signals will be corrected
-!                        by their measured gain. Recomendation: True.
+!   offset_correction -- Logical, optional: If True then an offset correction will be 
+!                          applied to the measured button signals. Default: False.
+!                          Use set_bpm_button_correction_file to switch the offset data file.
+!   gain_correction   -- Logical, optional: If True then a gain correction will be 
+!                          applied to the measured button signals. Default: False.
+!                          Use set_bpm_button_correction_file to switch the gain data file.
 !
 ! Output:
 !   all_dat   -- cesr_all_data_struct: Holds the data along with 
@@ -265,7 +273,8 @@ end subroutine
 !   err       -- Logical: Set True if there is an error, False otherwise.
 !-
 
-subroutine read_cesr_orbit_data (file_name, all_dat, err, nonlin_calc, gain_correction)
+subroutine read_cesr_orbit_data (file_name, all_dat, err, nonlin_calc, &
+                                             offset_correction, gain_correction)
 
 implicit none
 
@@ -278,7 +287,7 @@ character(40) :: r_name = 'read_cesr_orbit_data'
 
 integer i, ix, ix_in
 
-logical, optional :: nonlin_calc, gain_correction
+logical, optional :: nonlin_calc, offset_correction, gain_correction
 logical err, is_rel
 
 ! 
@@ -286,7 +295,7 @@ logical err, is_rel
 call cesr_all_data_struct_init (all_dat)
 
 call read_butns_file (file_name, butns, all_dat%db, err, .true., &
-                                                    nonlin_calc, gain_correction)
+                                          nonlin_calc, offset_correction, gain_correction)
 if (err) return
 
 ix = splitfilename (file_name, dir, name, is_rel)
@@ -738,8 +747,41 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine set_bpm_button_correction_file (offset_file, gain_file)
+!
+! Routine to set the bpm button gain and offset data files.
+!
+! Modules Needed:
+!   use cesr_read_data_mod
+!
+! Input:
+!   offset_file -- Character(*), optional: New offset file name. 
+!                   Initially this file is: '$CESR_MNT/orbit/button_offset.dat'
+!                   If offset_file == '' then use this initial file name 
+!   gain_file -- Character(*), optional: New gain file name. 
+!                   Initially this file is: '$CESR_MNT/orbit/button_gain.dat'
+!                   If gain_file == '' then use this initial file name 
+!-
+
+subroutine set_bpm_button_correction_file (offset_file, gain_file)
+
+implicit none
+
+character(*), optional :: offset_file, gain_file
+
+!
+
+if (present(offset_file)) offset_correction_file = offset_file
+if (present(gain_file)) gain_correction_file = gain_file
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine read_butns_file (file_name, butns, db, err, type_err, 
-!                                                       nonlin_calc, gain_correction)
+!                                    nonlin_calc, offset_correction, gain_correction)
 !
 ! Subroutine to read the raw information from a BUTNS.nnnnn file and convert
 ! it to orbit x-y positions.
@@ -753,8 +795,12 @@ end subroutine
 !                         If False then open error message will be supressed.
 !   nonlin_calc     -- Logical, optional: Calculate orbit using Rich Helms nonlinear 
 !                        routines? Default: True.
-!   gain_correction -- Logical, optional: If True then button signals will be corrected
-!                        by their measured gain. Default: False.
+!   offset_correction -- Logical, optional: If True then an offset correction will be 
+!                          applied to the measured button signals. Default: False.
+!                          Use set_bpm_button_correction_file to switch the offset data file.
+!   gain_correction   -- Logical, optional: If True then a gain correction will be 
+!                          applied to the measured button signals. Default: False.
+!                          Use set_bpm_button_correction_file to switch the gain data file.
 !   
 ! Output:
 !   butns -- Butns_struct: Orbit information.
@@ -789,15 +835,15 @@ end subroutine
 !-
 
 subroutine read_butns_file (file_name, butns, db, err, type_err, &
-                                               nonlin_calc, gain_correction)
+                                    nonlin_calc, offset_correction, gain_correction)
 
 implicit none
 
-type but_gain_struct
-  real(rp) gain(4)
+type but_value_struct
+  real(rp) value(4)
 end type
 
-type (but_gain_struct) button(0:120)
+type (but_value_struct), save :: gain(0:120), offset(0:120)
 type (db_struct) db
 type (butns_struct) butns
 
@@ -808,12 +854,15 @@ integer n_node, n_ele
 real x_orbit(120), y_orbit(120), rdummy
 
 character(*) file_name
-character(130) line_in, gain_file
+character(130) line_in, correction_file
+character(20) :: r_name = 'read_butns_file'
 
 logical err, type_err, err_flag, is_ok(120)
-logical, optional :: nonlin_calc, gain_correction
+logical, optional :: nonlin_calc, offset_correction, gain_correction
+logical, save :: gain_init_needed = .true., offset_init_needed = .true.
 
-namelist / button_gains / button
+namelist / button_gains / gain
+namelist / button_offsets / offset
 
 ! init
 
@@ -826,8 +875,7 @@ err = .true.
 iu = lunget()
 open(unit = iu, file = file_name, status = 'old', action = 'READ', iostat = ios)
 if (ios /= 0) then
-  if (type_err) print *, &
-        'ERROR IN READ_BUTNS_FILE: ERROR OPENING: ', trim(file_name)
+  if (type_err) call out_io (s_error$, r_name, 'ERROR OPENING: ' // file_name)
   return
 endif
 
@@ -841,7 +889,7 @@ read (line_in(54:), *) butns%save_set
 do
   read (iu, '(a)', iostat = ios) line_in
   if (ios /= 0) then
-    print *, 'ERROR IN ORBIT_READ: ERROR READING STEERINGS IN ORBIT FILE'
+    call out_io (s_error$, r_name, 'ERROR READING STEERINGS IN ORBIT FILE')
     goto 1000
   endif
   ix = index(line_in, 'END BUTNS')
@@ -850,15 +898,15 @@ do
   if (ix /= 0) then
     read (line_in(ix+5:), *, iostat = ios) butns%turn
     if (ios /= 0) then
-      print *, 'ERROR IN READ_BUTNS_FILE: ERROR READING TURN NUMBER.'
-      print *, '      IN FILE: ', trim(file_name)
+      call out_io (s_error$, r_name, 'ERROR READING TURN NUMBER.', &
+                                     'IN FILE: ' // file_name)
     endif
   endif
 enddo
 
 read (line_in(ix+10:), *, iostat = ios) n_node
 if (ios /= 0) then
-  print *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE NUMBER IN ORBIT FILE'
+  call out_io (s_error$, r_name, 'ERROR READING STEERING NODE NUMBER IN ORBIT FILE')
   goto 1000
 endif
 
@@ -868,7 +916,7 @@ do i = 1, n_node
 
   read (iu, '(a)', iostat = ios) line_in
   if (ios /= 0) then
-    print *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE IN ORBIT FILE'
+    call out_io (s_error$, r_name, 'ERROR READING STEERING NODE IN ORBIT FILE')
     exit
   endif
 
@@ -878,7 +926,7 @@ do i = 1, n_node
     do j = 1, n_ele
       read (iu, '(1x, a)', iostat = ios) butns%comment(j)
       if (ios /= 0) then
-        print *, 'ERROR IN ORBIT_READ: ERROR READING COMMENT #', j
+        call out_io (s_error$, r_name, 'ERROR READING COMMENT # \i0\ ', j)
         exit
       endif
     enddo
@@ -917,7 +965,7 @@ do i = 1, n_node
     db%scir_pos_rd(1:n_ele)%cu_now = vec(1:n_ele)
     db%scir_pos_rd(1:n_ele)%valid_cu_now = .true.
   else
-    print *, 'ERROR IN ORBIT_READ: UNKNOWN NODE IN ORBIT FILE: ', line_in(2:13)
+    call out_io (s_error$, r_name, 'UNKNOWN NODE IN ORBIT FILE: ' // line_in(2:13))
     goto 1000
   endif
 
@@ -932,20 +980,55 @@ close (unit = iu)
 
 call butfilget (raw, file_name, rdummy, det_type)      ! read in raw data
 
-! Correct for button gain errors
+! Correct for button offset errors
 
-if (logic_option (.false., gain_correction)) then
-  do i = lbound(button, 1), ubound(button, 1)
-    button(i)%gain = 1
-  enddo
-  call fullfilename ('$CESR_MNT/orbit/button_gain.dat', gain_file)
-  open (iu, file = gain_file, status = 'old')
-  read (iu, nml = button_gains)
-  close (iu)
+if (logic_option (.false., offset_correction)) then
+  if (offset_init_needed) then
+    do i = lbound(offset, 1), ubound(offset, 1)
+      offset(i)%value = 0
+    enddo
+    if (offset_correction_file == '') offset_correction_file = '$CESR_MNT/orbit/button_offset.dat'
+    call fullfilename (offset_correction_file, correction_file)
+    open (iu, file = correction_file, status = 'old', iostat = ios)
+    if (ios /= 0) then
+      call out_io (s_fatal$, r_name, 'CANNOT OPEN BPM OFFSET FILE: ' // correction_file)
+      call err_exit
+    endif
+    read (iu, nml = button_offsets)
+    close (iu)
+    offset_init_needed = .false.
+  endif
+
   do i = 1, 100
     j = i
     if (i == 100) j = 0
-    raw(:, i) = raw(:, i) * button(j)%gain
+    raw(:, i) = raw(:, i) - offset(j)%value(:)
+  enddo
+endif
+
+! Correct for button gain errors
+
+if (logic_option (.false., gain_correction)) then
+  if (gain_init_needed) then
+    do i = lbound(gain, 1), ubound(gain, 1)
+      gain(i)%value = 1
+    enddo
+    if (gain_correction_file == '') gain_correction_file = '$CESR_MNT/orbit/button_gain.dat'
+    call fullfilename (gain_correction_file, correction_file)
+    open (iu, file = correction_file, status = 'old', iostat = ios)
+    if (ios /= 0) then
+      call out_io (s_fatal$, r_name, 'CANNOT OPEN BPM OFFSET FILE: ' // correction_file)
+      call err_exit
+    endif
+    read (iu, nml = button_gains)
+    close (iu)
+    gain_init_needed = .false.
+  endif
+
+  do i = 1, 100
+    j = i
+    if (i == 100) j = 0
+    raw(:, i) = raw(:, i) * gain(j)%value(:)
   enddo
 endif
 
