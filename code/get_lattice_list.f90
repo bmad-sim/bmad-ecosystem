@@ -74,7 +74,7 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
       if (ix /= 0) l_file = l_file(1:ix-1)
       ix = index(l_file, '.lat')
       if (ix /= 0) l_file = l_file(1:ix-1)
-      if (l_file(1:5) == 'bmad_' .or. l_file(1:5) = 'BMAD_') l_file = l_file(6:)
+      if (l_file(1:5) == 'bmad_' .or. l_file(1:5) == 'BMAD_') l_file = l_file(6:)
       i = i + 1
       lat_list(i) = l_file
     else if (stat == rms$_nmf .or. stat == rms$_fnf) then
