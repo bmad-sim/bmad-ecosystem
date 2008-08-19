@@ -258,7 +258,7 @@ character(20) :: r_name = 'tao_plot_floor_plan'
 ! Each graph is a separate lattice layout (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
 
-call qp_set_layout (x_axis = plot%x, y_axis = graph%y, &
+call qp_set_layout (x_axis = graph%x, y_axis = graph%y, &
                     box = graph%box, margin = graph%margin)
 
 ! Adjust the margins if there is to be no distortion of the drawing
@@ -366,9 +366,9 @@ call floor_to_screen_coords (ele2%floor, end2)
 
 ! Only draw those element that have at least one point in bounds.
   
-if ((end1%x < plot%x%min .or. plot%x%max < end1%x .or. &
+if ((end1%x < graph%x%min .or. graph%x%max < end1%x .or. &
     end1%y < graph%y%min .or. graph%y%max < end1%y) .and. &
-    (end2%x < plot%x%min .or. plot%x%max < end2%x .or. &
+    (end2%x < graph%x%min .or. graph%x%max < end2%x .or. &
     end2%y < graph%y%min .or. graph%y%max < end2%y)) return
 
 ! Bends can be tricky if they are not in the X-Z plane. 
@@ -612,7 +612,7 @@ key_number_height = 10
 ! Without labels: Vertically Center the graph.
 ! With labels: Shift the graph up to give room for the labels.
 
-call qp_set_layout (x_axis = plot%x, box = graph%box, margin = graph%margin)
+call qp_set_layout (x_axis = graph%x, box = graph%box, margin = graph%margin)
 
 call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
 dy = (y2 - y1) 
@@ -670,7 +670,7 @@ do i = 1, lat%n_ele_max
     x1 = ele1%s
     x2 = ele2%s
     ! If out of range then try a negative position
-    if (lat%param%lattice_type == circular_lattice$ .and. x1 > plot%x%max) then
+    if (lat%param%lattice_type == circular_lattice$ .and. x1 > graph%x%max) then
       x1 = x1 - lat_len
       x2 = x2 - lat_len
     endif
@@ -692,8 +692,8 @@ do i = 1, lat%n_ele_max
   endif
     
 
-  if (x1 > plot%x%max) cycle
-  if (x2 < plot%x%min) cycle
+  if (x1 > graph%x%max) cycle
+  if (x2 < graph%x%min) cycle
 
   ! Only those elements with ix_shape > 0 are to be drawn.
   ! All others have the zero line drawn through them.
@@ -764,7 +764,7 @@ do i = 1, lat%n_ele_max
   if (s%global%label_lattice_elements .and. ele_shape(ix_shape)%draw_name) then
     y_off = y_bottom   
     s_pos = ele%s - ele%value(l$)/2
-    if (s_pos > plot%x%max .and. s_pos-lat_len > plot%x%min) s_pos = s_pos - lat_len
+    if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
     call qp_draw_text (ele%name, s_pos, y_off, &
                                  height = height, justify = 'LC', ANGLE = 90.0_rp)
   endif
@@ -789,7 +789,7 @@ if (s%global%label_keys) then
         do j = lat%ele(ix)%ix1_slave, lat%ele(ix)%ix2_slave
           ix1 = lat%control(j)%ix_slave
           s_pos = ele1%s - ele1%value(l$)/2
-          if (s_pos > plot%x%max .and. s_pos-lat_len > plot%x%min) s_pos = s_pos - lat_len
+          if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
           call qp_draw_text (trim(str), s_pos, y_top, &
                               justify = 'CT', height = key_number_height)  
         enddo
@@ -823,7 +823,7 @@ character(16) num_str
 !
 
 call qp_set_layout (box = graph%box, margin = graph%margin)
-call qp_set_layout (x_axis = plot%x, x2_mirrors_x = .true.)
+call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .true.)
 call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, &
                                                 y2_mirrors_y = graph%y2_mirrors_y)
 call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
@@ -851,7 +851,7 @@ do k = 1, size(graph%curve)
     if (size(curve%ix_symb) > 0) have_data = .true.
     do i = 1, size(curve%ix_symb)
       if (graph%clip) then
-        if (curve%x_symb(i) < plot%x%min  .or. curve%x_symb(i) > plot%x%max)  cycle
+        if (curve%x_symb(i) < graph%x%min .or. curve%x_symb(i) > graph%x%max)  cycle
         if (curve%y_symb(i) < graph%y%min .or. curve%y_symb(i) > graph%y%max) cycle
       endif
       write (num_str, '(i0)') curve%ix_symb(i)

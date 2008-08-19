@@ -9,21 +9,20 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_scale_cmd (where, axis, y_min, y_max)
+! Subroutine tao_scale_cmd (where, y_min, y_max, axis, gang)
 !
 ! Routine to scale a plot. If y_min = y_max
 ! Then the scales will be chosen to show all the data.
 ! 
 ! Input:
 !   where -- Character(*): Region to scale. Eg: "top:x"
-!   axis  -- Character(*): 'y', 'y2', or '' (both).
 !   y_min -- Real(rp): Plot y-axis min value.
 !   y_max -- Real(rp): Plot y-axis max value.
-!
-!  Output:
+!   axis  -- Character(*), optional: 'y', 'y2', or '' (both). Default = ''.
+!   gang  -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
 !-
 
-subroutine tao_scale_cmd (where, axis, y_min, y_max)
+subroutine tao_scale_cmd (where, y_min, y_max, axis, gang)
 
 implicit none
 
@@ -34,24 +33,28 @@ real(rp) y_min, y_max
 
 integer i, j, ix, places
 
-character(*) where, axis
+character(*) where
+character(*), optional :: axis, gang
+character(8) this_axis, this_gang
 character(20) :: r_name = 'tao_scale_cmd'
 
 logical err
 
 ! Error check
 
-if (axis /= 'y' .and. axis /= 'y2' .and. axis /= '') then
-  call out_io (s_error$, r_name, 'BAD AXIS NAME: ' // axis)
-  return
+if (present(axis)) then
+  if (axis /= 'y' .and. axis /= 'y2' .and. axis /= '') then
+    call out_io (s_error$, r_name, 'BAD AXIS NAME: ' // axis)
+    return
+  endif
 endif
 
 ! If the where argument is blank or 'all' then scale all plots.
 
-if (len_trim(where) == 0 .or. where(1:3) == 'all') then
+if (len_trim(where) == 0 .or. where == 'all') then
   do j = 1, size(s%plot_region)
     if (.not. s%plot_region(j)%visible) cycle
-    call tao_scale_plot (s%plot_region(j)%plot, axis, y_min, y_max)
+    call tao_scale_plot (s%plot_region(j)%plot, y_min, y_max, axis, gang)
   enddo
   return
 endif
@@ -64,11 +67,11 @@ if (err) return
 
 if (allocated(graph)) then                ! If all the graphs of a plot...
   do j = 1, size(graph)
-    call tao_scale_graph (graph(j)%g, axis, y_min, y_max)
+    call tao_scale_graph (graph(j)%g, y_min, y_max, axis)
   enddo
 else                          ! else just the one graph...
   do i = 1, size(plot)
-    call tao_scale_plot (plot(i)%p, axis, y_min, y_max)
+    call tao_scale_plot (plot(i)%p, y_min, y_max, axis, gang)
   enddo
 endif
 
@@ -78,13 +81,19 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_scale_plot (plot, axis, y_min, y_max)
+subroutine tao_scale_plot (plot, y_min, y_max, axis, gang)
 
 type (tao_plot_struct), target :: plot
 type (tao_graph_struct), pointer :: graph
+
 real(rp) y_min, y_max, this_min, this_max
-character(*) axis
+
+character(*), optional :: axis, gang
+character(16) this_axis
+character(16) :: r_name = 'tao_scale_plot'
 integer i
+
+logical do_gang
 
 ! If we scale a whole plot with auto scale then at the end all graphs
 ! are adjusted to have the same scale such that all the data fits on
@@ -93,12 +102,26 @@ integer i
 if (.not. allocated (plot%graph)) return
 
 do i = 1, size(plot%graph)
-  call tao_scale_graph (plot%graph(i), axis, y_min, y_max)
+  call tao_scale_graph (plot%graph(i), y_min, y_max, axis)
 enddo
 
-if (y_min == y_max .and. .not. plot%independent_graphs) then  ! if auto scale was done...
+! if auto scale was done...
 
-  if (axis == '' .or. axis == 'y') then
+call string_option (this_axis, '', axis)
+
+do_gang = plot%autoscale_gang_y
+if (present(gang)) then
+  if (gang == 'gang') do_gang = .true.
+  if (gang == 'nogang') do_gang = .false.
+  if (gang /= '') then
+    call out_io (s_error$, r_name, 'BAD GANG SWITCH: ' // gang)
+    call err_exit
+  endif
+endif
+
+if (y_min == y_max .and. do_gang) then
+
+  if (this_axis == '' .or. this_axis == 'y') then
     this_min = minval (plot%graph(:)%y%min)
     this_max = maxval (plot%graph(:)%y%max)
     do i = 1, size(plot%graph)
@@ -107,7 +130,7 @@ if (y_min == y_max .and. .not. plot%independent_graphs) then  ! if auto scale wa
     enddo
   endif
 
-  if (axis == '' .or. axis == 'y2') then
+  if (this_axis == '' .or. this_axis == 'y2') then
     this_min = minval (plot%graph(:)%y2%min)
     this_max = maxval (plot%graph(:)%y2%max)
     do i = 1, size(plot%graph)
@@ -124,7 +147,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_scale_graph (graph, axis, y_min, y_max)
+subroutine tao_scale_graph (graph, y_min, y_max, axis)
 
 type (tao_graph_struct) graph
 type (lat_struct), pointer :: lat
@@ -133,20 +156,23 @@ type (floor_position_struct) end
 real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2
 
 integer i, ix
-character(*) axis
+character(*), optional :: axis
+character(4) this_axis
 logical found_data, found_data2
 
 ! If specific min/max values are given then life is easy.
 
+call string_option (this_axis, '', axis)
+
 if (y_min /= y_max) then
 
-  if (axis == '' .or. axis == 'y') then
+  if (this_axis == '' .or. this_axis == 'y') then
     graph%y%min = y_min
     graph%y%max = y_max
     call qp_calc_axis_places (graph%y)
   endif
 
-  if (axis == '' .or. axis == 'y2') then
+  if (this_axis == '' .or. this_axis == 'y2') then
     graph%y2%min = y_min
     graph%y2%max = y_max
     call qp_calc_axis_places (graph%y2)

@@ -34,8 +34,8 @@ this_merit =  tao_merit()
 call tao_plot_setup()       ! transfer data to the plotting structures
 call tao_hook_plot_setup()
 if (s%global%auto_scale) then
-  call tao_scale_cmd (' ', '', 0.0_rp, 0.0_rp) 
-  call tao_x_scale_cmd (' ', 0.0_rp, 0.0_rp, err)
+  call tao_scale_cmd ('', 0.0_rp, 0.0_rp) 
+  call tao_x_scale_cmd ('', 0.0_rp, 0.0_rp, err)
 endif
 call tao_draw_plots()              ! Update the plotting window
 

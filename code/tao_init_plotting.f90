@@ -155,7 +155,9 @@ do
   plot%x = init_axis
   plot%x%minor_div_max = 6
   plot%x%major_div = 6
-  plot%independent_graphs = .true.
+  plot%independent_graphs = .false.
+  plot%autoscale_gang_x = .true.
+  plot%autoscale_gang_y = .true.
   plot%n_graph = 0
 
   read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
@@ -174,11 +176,30 @@ do
   
   plt => s%template_plot(ip)
   nullify(plt%r)
-  plt%name            = plot%name
-  plt%x_axis_type     = plot%x_axis_type
-  plt%x               = plot%x
-  plt%x%major_div_nominal = plot%x%major_div
-  plt%independent_graphs  = plot%independent_graphs
+  plt%name                 = plot%name
+  plt%x_axis_type          = plot%x_axis_type
+  plt%x                    = plot%x
+  plt%x%major_div_nominal  = plot%x%major_div
+  plt%autoscale_gang_x = plot%autoscale_gang_x 
+  plt%autoscale_gang_y = plot%autoscale_gang_y 
+
+  if (plot%independent_graphs) then  ! Old style
+    call out_io (s_error$, r_name, (/ &
+          '**********************************************************', &
+          '**********************************************************', &
+          '**********************************************************', &
+          '***** SYNTAX CHANGE:                                 *****', &
+          '*****     PLOT%INDEPENDENT_GRAPHS = True             *****', &
+          '***** NEEDS TO BE CHANGED TO:                        *****', &
+          '*****     PLOT%AUTOSCALE_GANG_Y = False              *****', &
+          '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
+          '***** SEE THE TAO MANUAL FOR MORE DETAILS!           *****', &
+          '**********************************************************', &
+          '**********************************************************', &
+          '**********************************************************' /) )
+    plt%autoscale_gang_y = .false.
+  endif
+
   call qp_calc_axis_places (plt%x)
 
   do
@@ -199,6 +220,7 @@ do
   do i_graph = 1, ng
     graph_index = 0         ! setup defaults
     graph = default_graph
+    graph%x = plot%x
     write (graph%name, '(a, i0)') 'g', i_graph
     do j = 1, size(curve)
       write (curve(j)%name, '(a, i0)') 'c', j
@@ -221,7 +243,7 @@ do
     curve(:)%ele_ref_name   = ' '
     curve(:)%ix_ele_ref = -1
     curve(:)%smooth_line_calc = .true.
-    curve(:)%draw_interpolated_curve = ''
+    curve(:)%draw_interpolated_curve = .true.
     curve(2:7)%symbol%type = &
                 (/ times$, square$, plus$, triangle$, x_symbol$, diamond$ /)
     curve(2:7)%symbol%color = &
@@ -278,6 +300,7 @@ do
     grph%box           = graph%box
     grph%title         = graph%title
     grph%margin        = graph%margin
+    grph%x             = graph%x
     grph%y             = graph%y
     grph%y2            = graph%y2
     grph%ix_universe   = graph%ix_universe
@@ -287,6 +310,8 @@ do
     grph%title_suffix = ' '
     grph%legend = ' '
     grph%y2_mirrors_y = .true.
+
+    call qp_calc_axis_places (grph%x)
 
     do
       ix = index(grph%name, '.')
@@ -358,21 +383,24 @@ do
 
       ! Old style
 
-      if (curve(j)%draw_interpolated_curve /= '') then
+      if (.not. curve(j)%draw_interpolated_curve) then
         call out_io (s_error$, r_name, (/ &
           '**********************************************************', &
           '**********************************************************', &
           '**********************************************************', &
-          '***** SYNTAX CHANGE: CURVE%DRAW_INTERPOLATED_CURVE   *****', &
-          '***** NEEDS TO BE CHANGED TO: CURVE%SMOOTH_LINE_CALC *****', &
+          '***** SYNTAX CHANGE:                                 *****', &
+          '*****         CURVE%DRAW_INTERPOLATED_CURVE          *****', &
+          '***** NEEDS TO BE CHANGED TO:                        *****', &
+          '*****         CURVE%SMOOTH_LINE_CALC                 *****', &
           '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
           '**********************************************************', &
           '**********************************************************', &
           '**********************************************************' /) )
-        read (curve(j)%draw_interpolated_curve, *) crv%smooth_line_calc
+        crv%smooth_line_calc = .false.
       endif
 
       ! Convert old syntax to new
+
       ix = index(crv%data_type, 'emittance.')
       if (ix /= 0) crv%data_type = crv%data_type(1:ix-1) // 'emit.' // crv%data_type(ix+10:)
 

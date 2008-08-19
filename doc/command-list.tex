@@ -59,20 +59,19 @@ of the line is ignored.  Example:
 \section{alias}\index{Commands!alias}
 \label{s:alias}
 
-Format: 
+The \vn{alias} command defines command shortcuts. Format:
 \begin{example}
   alias \{<alias_name> <string>\}
 \end{example}
 
 \vskip 0.2in
 
-\vn{Alias} is like Unix aliases and allows the defining of alias
-commands. Using the \vn{alias} command without any arguments results
-in a printout of the aliases that have been defined. When using an
-alias up to 9 arguments may be substituted in the \vn{<string>}. The
-i\Th argument is substituted in place of the sub-string ``[[i]]''.
-arguments that do not have a corresponding ``[[i]]'' are placed at the end
-of \vn{<string>}.
+\vn{Alias} is like Unix aliases. Using the \vn{alias} command without
+any arguments results in a printout of the aliases that have been
+defined. When using an alias up to 9 arguments may be substituted in
+the \vn{<string>}. The i\Th argument is substituted in place of the
+sub-string ``[[i]]''.  arguments that do not have a corresponding
+``[[i]]'' are placed at the end of \vn{<string>}.
 
 Aliases can be set up for multiple commands using semicolons.
 
@@ -93,14 +92,14 @@ for ``[[1]]'' in the string.
 \section{call}\index{Commands!call}
 \label{s:call}
 
-Format: 
+The \vn{call} command opens a command file and executes the commands
+in it.  Format:
 \begin{example}
   call <filename> \{<arg_list>\}  \Strut
 \end{example}
 
 \vskip 0.2in 
-\vn{call} opens a command file and executes the commands
-in it.  \tao first looks in the current directory for the file. If not
+\tao first looks in the current directory for the file. If not
 found \tao will look in the directory pointed to by the
 \vn{TAO_COMMAND_DIR} directory.  Up to 9 arguments may be passed to
 the command file. The i\Th argument is substituted in place of the
@@ -154,7 +153,8 @@ is suppressed when a command file is called.
 \section{change}\index{Commands!change}
 \label{s:change}
 
-Format:
+The \vn{change} command changes element attribute values or variable
+values in the \vn{model} lattice. Format:
 \begin{example}
   change ele <name_or_number> <attribute> <number>
   change \{-silent\} var <name> <locations> <number>
@@ -162,10 +162,6 @@ Format:
 \end{example}
 
 \vskip 0.2in 
-\vn{change} changes element attribute values or variable
-values in the \vn{model} lattice. To set, say, datum values, etc. use
-the \vn{set} command.
-
 Generally \vn{<number>} is added to the existing value of the
 attribute or variable. That is:
 \begin{example}
@@ -199,8 +195,10 @@ vary the starting Twiss parameters where \vn{<twiss>} is one of:
   eta_a, eta_b,etap_a, etap_b    
 \end{example}
 
-The \vn{-silent} switch, if present, supresses the printing of what
+The \vn{-silent} switch, if present, suppresses the printing of what
 variables are changed.
+
+Note: To set, say, datum values, etc. use the \vn{set} command.
 
 Examples:
 \begin{example}
@@ -216,14 +214,15 @@ Examples:
 \section{clip}\index{Commands!clip}
 \label{s:clip}
 
+The \vn{clip} command vetoes data points for plotting and
+optimizing. That is, the \vn{good_user} logical of the datums
+associated with the out-of-bound plotted points are set to False.
 Format:
 \begin{example}
   clip \{-gang\} \{<where> \{<limit1> \{<limit2>\}\}\}
 \end{example}
 
-\vskip 0.2in \vn{clip} vetoes data points for plotting and
-optimizing. That is, the \vn{good_user} logical of the datums
-associated with the out-of-bound plotted points are set to False.
+\vskip 0.2in 
 
 Which graphs are clipped is determined by the \vn{<where>} switch. If
 \vn{<where>} is not present, all graphs are clipped. If \vn{where} is a
@@ -262,61 +261,58 @@ Examples:
 \label{s:end.file}
 \index{Commands!end-file}
 
-The \vn{end-file} is used in command files (\sref{s:call}) to signal
-the end of the file. Everything after an \vn{end-file} command is
-ignored. An \vn{end-file} command entered at the command line will
-simply generate an error message.
+The \vn{end-file} command is used in command files (\sref{s:call}) to
+signal the end of the file. Everything after an \vn{end-file} command
+is ignored. An \vn{end-file} command entered at the command line will
+simply generate an error message.  Format:
+\begin{example}
+  end-file
+\end{example}
 
 %% exit --------------------------------------------------------------
 \section{exit}\index{Commands!exit}
 \label{s:exit}
 
-Format:
+The \vn{exit} command exits the program. Same as \vn{Quit}.  Format:
 \begin{example}
   exit
 \end{example}
-
-\vskip 0.2in
-\vn{Exit} exits the program. Same as \vn{Quit}.
 
 %% derivative --------------------------------------------------------------
 \section{derivative}\index{Commands!derivative}
 \label{s:deriv}
 
+The \vn{derivative} command calculates the \vn{dModel_Data/dVar} derivative
+matrix needed for the \vn{lm} optimizer.
 Format:
 \begin{example}
   derivative
 \end{example}
 
-\vskip 0.2in 
-\vn{Derivative} calculates the \vn{dModel_Data/dVar} derivative
-matrix needed for the \vn{lm} optimizer.
-
 %% flatten --------------------------------------------------------------
 \section{flatten}\index{Commands!flatten}
 \label{s:flatten}
 
-Format:
+The \vn{Flatten} command runs the optimizer to minimize the merit
+function. This is the same as \vn{run}. See the \vn{run} command for
+more details.  Format:
 \begin{example}
   flatten \{<optimizer>\}
 \end{example}
 
 \vskip 0.2in
-\vn{Flatten} runs the optimizer to minimize the merit function. This is the 
-same as \vn{run}. See the \vn{run} command for more details.
 
 %% help --------------------------------------------------------------
 \section{help}\index{Commands!help}
 \label{s:help}
 
-Format:
+The \vn{help} command gives help on \tao commands. Format:
 \begin{example}
-  help \{<command>\} \{<subcommand>\}
+  help \{<command> \{<subcommand>\}\}
 \end{example}
 
-\vskip 0.2in 
-The \vn{help} command gives help on \tao commands. The environmental
-variable \vn{TAO_DIR} must be defined so \tao can find any help files.
+\vskip 0.2in The environmental variable \vn{TAO_DIR} must be defined
+so \tao can find any help files.
 
 The \vn{help} command without any arguments gives a list of all commands.
 Some commands, like \vn{show}, are so large that help on these commands
@@ -334,7 +330,7 @@ Examples:
 \section{history}\index{Commands!history}
 \label{s:history}
 
-Format:
+The \vn{history} command shows or reruns prior commands.  Format:
 \begin{example}
   history           ! Print the command history.
   history <number>  ! Re-execute a command by number.
@@ -355,25 +351,27 @@ Examples
 \section{misalign}\index{Command!misalign}
 \label{s:misalign}
 
-Format:
+The \vn{misalign} command misaligns a set of lattice elements. Format:
 \begin{example}
-   misalign <wrt> <ele_type> <locations> <ele_attrib> <misalign_value>
+   misalign <wrt> <ele_type> <range> <ele_attrib> <misalign_value>
 \end{example}
 
-\vskip 0.2in
-Misaligns a set of elements of type \vn{<ele_type>} at lattice
-locations \vn{<locations>}.  The element attribute \vn{<ele_attrib>}
-is ``misaligned'' by the rms value \vn{<misalign_value>} with respect
-to the setting of \vn{<wrt>}. Any element attribute can be misaligned
-provided the attribute is free to vary.
+\vskip 0.2in 
 
+\vn{<ele_type>} is the type of element to misalign.  Only
+elements of type \vn{<ele_type>} will be misaligned within the range.
 If \vn{<ele_type>} begins with "*@" then choose all universes. If
 \vn{<ele_type>} begin with "n@" then choose universe n. Otherwise the
 viewed universe is used.
 
-\vn{<locations>} is a range of lattice indices in the form
-\vn{nnn:mmm} or the work \vn{ALL}. Only elements of type
-\vn{<ele_type>} will be misaligned within the range.
+A lattice element will only be misaligned if its lattice index falls within
+a range given by \vn{<range>}. \vn{<range>} is of the form
+\vn{nnn:mmm} or the word \vn{ALL}. 
+
+The element attribute \vn{<ele_attrib>} is ``misaligned'' by the rms
+value \vn{<misalign_value>} with respect to the setting of
+\vn{<wrt>}. Any element attribute can be misaligned provided the
+attribute is free to vary.
 
 If \vn{<misalign_value>} is prepended by 'x' then the misalignment value will be
 a relative misalignment with respect to the \vn{<wrt>} value. Otherwise, it's an 
@@ -405,12 +403,13 @@ Examples
 \section{output}\index{Commands!output}
 \label{s:output}
 
+The \vn{output} command creates various files.
 Format:
 \begin{example}
   output bmad_lattice \{<file_name>\}       ! Write a Bmad lattice file of the model
   output beam \{-ascii\} \{-at <element_name_or_index>\} \{<file_name>\} 
                                           ! Write beam distribution data.
-  output covariance_matrix \{file_name\}    ! Write the covariance and alpha matricies from 
+  output covariance_matrix \{file_name\}    ! Write the covariance and alpha matrices from 
                                           !   the Levenburg-Marquardt (lm) optimization.
   output curve <curve_name> \{<file_name>\} ! Write the curve data
   output derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
@@ -425,8 +424,8 @@ Format:
 \end{example}
 
 \vskip 0.2in 
-The \vn{output} command creates various files. If
-\vn{<file_name>} is not given then the defaults are:
+
+If \vn{<file_name>} is not given then the defaults are:
 \begin{example}
   Command                         Default File Name
   ------------------              ------------------
@@ -467,18 +466,18 @@ making a postscript file instead and using a ps to gif converter.
 \section{place}\index{Commands!place}
 \label{s:place}
 
-Format:
+The \vn{place} command is used to associate a \vn{<template>} plot
+with a \vn{<region>} and thus create a visible plot in that region. Format:
 \begin{example}
   place <region> <template>
   place <region> none
 \end{example}
 
 \vskip 0.2in 
-The \vn{place} command is used to associate a \vn{<template>} plot
-with a \vn{<region>} and thus create a visible plot in that region. To
-erase a plot from a region use the \vn{none} switch. Notice that by
-using multiple \vn{place} commands a \vn{template} can be associated
-with more than one region.
+
+To erase a plot from a region use \vn{none} in place of a template
+name. Notice that by using multiple \vn{place} commands a
+\vn{template} can be associated with more than one region.
 
 Examples:
 \begin{example}
@@ -490,14 +489,15 @@ Examples:
 \section{plot}\index{Commands!plot}
 \label{s:plot}
 
-Format:
+The \vn{plot} command is used to determine what components are plotted
+in the graphs of a given region. Format:
 \begin{example}
   plot <region> <component>
 \end{example}
 
 \vskip 0.2in 
-The \vn{plot} command is used to determine what components are plotted
-in the graphs of a given region. Use a ``-'' for baselines. 
+
+Use a ``-'' for baselines. 
 
 Examples:
 \begin{example}
@@ -509,26 +509,24 @@ Examples:
 \section{quit}\index{Commands!quit}
 \label{s:quit}
 
+\vn{Quit} exits the program. Same as \vn{exit}.
 Format:
 \begin{example}
   quit
 \end{example}
 
-\vskip 0.2in
-\vn{Quit} exits the program. Same as \vn{exit}.
-
 %% read --------------------------------------------------------------
 \section{read}\index{Commands!read}
 \label{s:read}
 
-Format:
+The \vn{read} command is used to modify the currently
+viewed \vn{model} lattice. Format:
 \begin{example}
   read lattice <file_name>
 \end{example}
 
 \vskip 0.2in 
-The \vn{read} command is used to modify the currently
-viewed \vn{model} lattice. For example, with the appropriate file,
+For example, with the appropriate file,
 the \vn{read} command can be used to misalign the lattice
 elements. The input file must be in Bmad standard lattice format.
 
@@ -536,15 +534,15 @@ elements. The input file must be in Bmad standard lattice format.
 \section{restore}\index{Commands!restore}
 \label{s:restore}
 
-Format:
+The \vn{restore} command cancels data or variable
+vetoes. Format:
 \begin{example}
   restore data  <data_name> <locations>
   restore var <var_name> <locations>
 \end{example}
 
 \vskip 0.2in 
-The \vn{restore} command cancels data or variable
-vetoes. See also the \vn{use}
+See also the \vn{use}
 and \vn{veto} commands.
 
 Examples:
@@ -560,7 +558,7 @@ Examples:
 \section{reinitialize}\index{Commands!reinitialize}
 \label{s:reinit}
 
-Format:
+The \vn{reinitialize} command reinitializes various things. Format:
 \begin{example}
   reinitialize beam
   reinitialize data
@@ -569,9 +567,10 @@ Format:
 \end{example}
 
 \vskip 0.2in 
-\vn{reinitialize beam} reinitializes the beam at the start of the
-lattice.  That is, a new random distribution is generated. This also
-reinitializes the model data.
+
+The \vn{reinitialize beam} command reinitializes the beam at the start
+of the lattice. That is, a new random distribution is generated. 
+Note: This also reinitializes the model data.
 
 \vn{reinitialize data} forces a recalculation of the model data.
 Normally, a recalculation is done automatically when any lattice
@@ -601,18 +600,18 @@ Examples:
 \section{run}\index{Commands!run}
 \label{s:run}
 
-Format:
+The \vn{run} command runs an optimizer. Format:
 \begin{example}
   run \{<optimizer>\}
 \end{example}
 
-\index{de!optimizer}\index{lm!optimizer}
 \vskip 0.2in 
-The \vn{run} command runs an optimizer. If \vn{<optimizer>} is not
-given then the default optimizer is used. To stop the optimizer before
-it is finished press the period ``.''  key. If you want the optimizer
-to run forever run the optimizer in \vn{single mode}. Valid optimizers
-are:
+
+\index{de!optimizer}\index{lm!optimizer}
+If \vn{<optimizer>} is not given then the default optimizer is
+used. To stop the optimizer before it is finished press the period
+``.''  key. If you want the optimizer to run forever run the optimizer
+in \vn{single mode}. Valid optimizers are:
 \begin{example}
   lm            ! Levenburg-Marquardt from Numerical Recipes 
   lmdif         ! Levenburg-Marquardt 
@@ -629,34 +628,43 @@ Examples:
 \section{scale}\index{Commands!scale}
 \label{s:scale}
 
+The \vn{scale} command scales the vertical axis of a graph or set of graphs.
 Format:
 \begin{example}
-  scale \{-axis\} \{<where> <value1> <value2>\}
+  scale \{-y\} \{-y2\} \{-gang\} \{-nogang\} \{<where>} \{<value1> \}<value2>\}\}\}
 \end{example}
 
-\vskip 0.2in 
-\vn{scale} adjusts the vertical scale of graphs. If neither
-\vn{<value1>} nor \vn{<value2>} is present then the scale is adjusted
-so that all the data points are within the graph region.  If only
-\vn{<value1>} is present then the scale is taken to be from
--\vn{<value1>} to +\vn{<value1>}. If both are present than the scale
-is from \vn{<value1>} to \vn{<value2>}.  Which graphs are scaled is
-determined by the \vn{<where>} switch. If \vn{<where>} is not present
-or \vn{<where>} is \vn{all} then all graphs are scaled.
+Which graphs are scaled is determined by the \vn{<where>} switch. If
+\vn{<where>} is not present or \vn{<where>} is \vn{all} then all
+graphs are scaled. \vn{<where>} can be a plot name or the name of an
+individual graph withing a plot.
 
-A graph can have a \vn{y2} (left) axis scale that is separate from the \vn{y} (right) 
-axis. Normally, the \vn{scale} command will scale both axes.  Scaling of just one of these
-axes can be achieved by using the \vn{/axis} switch. Possible values for \vn{/axis} are:
-\begin{example}
-  -y                 ! Scale only the y axis.
-  -y2                ! Scale only the y2 axis.
-\end{example}
+\vskip 0.2in \vn{scale} adjusts the vertical scale of graphs. If
+neither \vn{<value1>} nor \vn{<value2>} is present then an
+\vn{autoscale} is performed and the scale is adjusted so that all the
+data points are within the graph region. If an autoscale is performed
+upon an entire plot, and if \vn{plot%autoscale_gang_y}
+(\sref{s:template}) is True, then the chosen scales will be the same
+for all graphs. That is, a single scale is calculated so that all the
+data of all the graphs is within the plot region. The affect of
+\vn{plot%autoscale_gang_y} can be overridden by using the \vn{-gang}
+or \vn{-nogang} switches.
+
+If only \vn{<value1>} is
+present then the scale is taken to be from -\vn{<value1>} to
++\vn{<value1>}. If both are present than the scale is from
+\vn{<value1>} to \vn{<value2>}.
+
+A graph can have a \vn{y2} (left) axis scale that is separate from the
+\vn{y} (right) axis. Normally, the \vn{scale} command will scale both
+axes.  Scaling of just one of these axes can be achieved by using the
+\vn{-y} or \vn{-y2} switches.
 
 Examples:
 \begin{example}
   scale top.x -3  7  ! Scale the x graph in the top region
   scale -y2 top.x    ! Scale only the y2 axis of the top.x graph.
-  scale bottom       ! Scale the graphs in the bottom region
+  scale bottom       ! Autoscale the graphs of the plot in the bottom region
   scale              ! Scale everything
 \end{example}
 
@@ -665,7 +673,9 @@ Examples:
 \section{set}\index{Commands!set}
 \label{s:set}
 
-Format:
+
+The \vn{set} command is used to set values for datums,
+variables, etc. Format:
 \begin{example}
   set curve <curve> <component> = <value>
   set data <data_name>|<component> = <value>
@@ -679,8 +689,7 @@ Format:
 \end{example}
 
 \vskip 0.2in 
-The \vn{set} command is used to set values for datums,
-variables, etc.  For setting element attributes in the \vn{model}
+Note: For setting element attributes in the \vn{model}
 lattice use the \vn{change} command.
 
 To apply a set to all data or variable classes use ``*''
@@ -878,6 +887,7 @@ Example:
 \section{show}\index{Commands!show}
 \label{s:show}
 
+The \vn{show} command is used to display various about the state of \tao. 
 Format:
 \begin{example}
   show -append <file_name> ...
@@ -910,8 +920,6 @@ Format:
 \end{example}
 
 \vskip 0.2in 
-\vn{Show} is used to display various about the state of \tao. 
-
 The \vn{show} command has an optional argument to write the results to a file.
 as well as printing the information at the terminal. The format for this is:
 \begin{example}
@@ -1238,26 +1246,25 @@ Examples:
 \section{single-mode}\index{Commands!single-mode}
 \label{s:sing}
 
+The \vn{sing-mode} command puts \tao into \vn{single mode} (\sref{c:single}).
 Format:
 \begin{example}
   single-mode
 \end{example}
 
-\vskip 0.2in 
-This command puts \tao into \vn{single mode}. 
-
 %% spawn --------------------------------------------------------------
 \section{spawn}\index{Commands!spawn}
 \label{s:spawn}
 
-Format:
+The \vn{spawn} command is used to pass a command to the command shell. Format:
 \begin{example}
   spawn <shell_command>
 \end{example}
 
 \vskip 0.2in
-Use the \vn{spawn} command to pass a command to the command shell.  The users
-default shell is used. \vn{spawn} only works in Linux and Unix environments.
+
+The users default shell is used. \vn{spawn} only works in Linux and
+Unix environments.
 
 Examples:
 \begin{example}
@@ -1271,16 +1278,16 @@ Examples:
 \section{use}\index{Commands!use}
 \label{s:use}
 
-Format:
+The \vn{use} command un-vetoes data or variables and sets a veto for
+the rest of the data. Format:
 \begin{example}
   use data  <data_name>
   use var <var_name>
 \end{example}
 
 \vskip 0.2in 
-The \vn{use} command un-vetoes data or variables and sets a veto for
-the rest of the data. See also the \vn{restore} and \vn{veto}
-commands.
+
+See also the \vn{restore} and \vn{veto} commands.
 
 Examples:
 \begin{example}
@@ -1297,15 +1304,15 @@ Examples:
 \section{veto}\index{Commands!veto}
 \label{s:veto}
 
-Format:
+The \vn{veto} command vetoes data or variables. Format:
 \begin{example}
   veto data <data_name> <locations>
   veto var <var_name> <locations>
 \end{example}
 
 \vskip 0.2in 
-The \vn{veto} command vetoes data or variables. See also the
-\vn{restore} and \vn{use} commands.
+
+See also the \vn{restore} and \vn{use} commands.
 
 Examples:
 \begin{example}
@@ -1327,15 +1334,16 @@ elements.
 \section{view}\index{Commands!view}
 \label{s:view}
 
-Format:
+The \vn{view} command changes which universe data is taken from for
+plotting. Format:
 \begin{example}
   view <number>
 \end{example}
 
 \vskip 0.2in 
-The \vn{view} command changes which universe data is taken from for
-plotting.  This also sets the default universe that commands are
-applied to in the absence of a star prefix.
+
+This also sets the default universe that commands are applied to in
+the absence of a star prefix.
 
 Examples:
 \begin{example}
@@ -1346,9 +1354,10 @@ Examples:
 \section{x-Axis}\index{Commands!x-axis}
 \label{s:x.axis}
 
+The \vn{x-axis} command sets the data type used for the x-axis coordinate.
 Format:
 \begin{example}
-  x-axis <where> <axis_type> ! Sets horizontal data type
+  x-axis <where> <axis_type>
 \end{example}
 
 \vskip 0.2in 
@@ -1375,20 +1384,32 @@ Examples:
 \section{x-Scale}\index{Commands!x-scale}
 \label{s:x.scale}
 
+The \vn{x-scale} command scales the horizontal axis of a graph or set of graphs.
 Format:
 \begin{example}
-  x-scale \{<where>\} \{<bound1>\} \{<bound2>\} ! Sets horizontal axis bounds.
+  x-scale \{-gang\} \{-nogang\} \{<where>} \{<value1> \}<value2>\}\}\}
 \end{example}
+
+Which graphs are scaled is determined by the \vn{<where>} switch. If
+\vn{<where>} is not present or \vn{<where>} is \vn{all} then all
+graphs are scaled. \vn{<where>} can be a plot name or the name of an
+individual graph withing a plot.  If \vn{<where>} is \vn{s} then the
+scaling is done only for the plots where the x--axis scale is the
+longitudinal s-position.
 
 \vskip 0.2in \vn{x-scale} sets the lower and upper bounds for the
 horizontal axis.  If both \vn{<bound1>} and \vn{<bound2>} are present
 then \vn{<bound1>} is taken to be the lower (left) bound and
 \vn{<bound2>} is the upper (right) bound. If only \vn{<bound1>} is
 present then the bounds will be from -\vn{<bound1>} to \vn{<bound1>}.
-If neither is present then autoscale will be invoked to give the
-largest bounds commensurate with the data. If \vn{<where>} is \vn{s}
-then the scaling is done only for the plots where the x--axis scale is
-the longitudinal s-position.
+If neither is present then an \vn{autoscale} will be invoked to give
+the largest bounds commensurate with the data. If an autoscale is
+performed upon an entire plot, and if \vn{plot%autoscale_gang_x}
+(\sref{s:template}) is True, then the chosen scales will be the same
+for all graphs. That is, a single scale is calculated so that all the
+data of all the graphs is within the plot region. The affect of
+\vn{plot%autoscale_gang_x} can be overridden by using the \vn{-gang}
+or \vn{-nogang} switches.
 
 Example:
 \begin{example}
@@ -1397,25 +1418,32 @@ Example:
 \end{example}
 
 %% xy-scale --------------------------------------------------------------
-\section{xy-Scale}\index{Commands!xy-scale}
+\section{xy-scale}\index{Commands!xy-scale}
 \label{s:xy.scale}
 
-Format:
+The \vn{xy-scale} command sets horizontal and vertical axis bounds. Format:
 \begin{example}
-  xy-scale \{<where>\} \{<bound1>\} \{<bound2>\} \{force\} 
-                                        ! Sets horizontal and vertical axis bounds.
+  xy-scale \{<where>} \{<value1> \}<value2>\}\}\}
 \end{example}
 
+\vn{xy-scale} is equivalent to an \vn{x-scale} followed by a \vn{y-scale}.
+
+Which graphs are scaled is determined by the \vn{<where>} switch. If
+\vn{<where>} is not present or \vn{<where>} is \vn{all} then all
+graphs are scaled. \vn{<where>} can be a plot name or the name of an
+individual graph withing a plot. 
+
 \vskip 0.2in \vn{xy-scale} sets the lower and upper bounds for both
-the horizontal and vertical axes.  This is just a shortcut for doing an
-\vn{x-scale} followed by a \vn{scale}.  If both \vn{<bound1>} and
+the horizontal and vertical axes.  This is just a shortcut for doing
+an \vn{x-scale} followed by a \vn{scale}.  If both \vn{<bound1>} and
 \vn{<bound2>} are present then \vn{<bound1>} is taken to be the lower
 (left) bound and \vn{<bound2>} is the upper (right) bound. If only
 \vn{<bound1>} is present then the bounds will be from -\vn{<bound1>}
-to \vn{<bound1>}. If neither is present then autoscale will be invoked
-to give the largest bounds commensurate with the data.if \vn{force} is
-present then the specified ranges will be used and QuickPlot will not
-try to find ``nice'' plot scales.
+to \vn{<bound1>}. 
+
+If neither \{<bound1>\} nor \{<bound2>\} is present then an
+\vn{autoscale} will be invoked to give the largest bounds commensurate
+with the data.
 
 Example:
 \begin{example}

@@ -935,6 +935,14 @@ case ('graph')
     nl=nl+1; write (lines(nl), imt) 'box                   = ', g%box
     nl=nl+1; write (lines(nl), imt) 'ix_universe           = ', g%ix_universe
     nl=nl+1; write (lines(nl), lmt) 'valid                 = ', g%valid
+
+    nl=nl+1; write (lines(nl), rmt) 'x%max                 = ', g%x%max
+    nl=nl+1; write (lines(nl), rmt) 'x%min                 = ', g%x%min
+    nl=nl+1; write (lines(nl), imt) 'x%major_div           = ', g%x%major_div
+    nl=nl+1; write (lines(nl), imt) 'x%places              = ', g%x%places
+    nl=nl+1; write (lines(nl), lmt) 'x%draw_label          = ', g%x%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers        = ', g%x%draw_numbers
+
     nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y          = ', g%y2_mirrors_y
     nl=nl+1; write (lines(nl), rmt) 'y%max                 = ', g%y%max
     nl=nl+1; write (lines(nl), rmt) 'y%min                 = ', g%y%min
@@ -942,6 +950,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), imt) 'y%places              = ', g%y%places
     nl=nl+1; write (lines(nl), lmt) 'y%draw_label          = ', g%y%draw_label
     nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers        = ', g%y%draw_numbers
+
     nl=nl+1; write (lines(nl), rmt) 'y2%max                = ', g%y2%max
     nl=nl+1; write (lines(nl), rmt) 'y2%min                = ', g%y2%min
     nl=nl+1; write (lines(nl), imt) 'y2%major_div          = ', g%y2%major_div
@@ -1461,7 +1470,8 @@ case ('plot')
     nl=nl+1; write (lines(nl), imt) 'x%places             = ', p%x%places
     nl=nl+1; write (lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label
     nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers
-    nl=nl+1; write (lines(nl), lmt) 'independent_graphs   = ', p%independent_graphs
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_x     = ', p%autoscale_gang_x
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_y     = ', p%autoscale_gang_y
     
     nl=nl+1; lines(nl) = 'Graphs:'
     do i = 1, size(p%graph)

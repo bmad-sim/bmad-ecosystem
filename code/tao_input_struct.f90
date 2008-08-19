@@ -84,7 +84,7 @@ type tao_curve_input
   logical draw_symbols
   logical draw_symbol_index
   logical use_y2
-  character(16) draw_interpolated_curve
+  logical draw_interpolated_curve
   logical smooth_line_calc
   type (qp_line_struct) line
   type (qp_symbol_struct) symbol
@@ -104,6 +104,7 @@ type tao_graph_input
   type (qp_point_struct) legend_origin
   type (tao_data_var_component_struct) who(n_who_maxx)
   type (qp_rect_struct) margin
+  type (qp_axis_struct) x
   type (qp_axis_struct) y
   type (qp_axis_struct) y2
   logical clip
@@ -117,6 +118,8 @@ type tao_plot_input
   character(16) x_axis_type
   integer n_graph
   logical independent_graphs
+  logical autoscale_gang_x      ! scale cmd scales graphs independently?
+  logical autoscale_gang_y      ! scale cmd scales graphs independently?
 end type
 
 !-------------------------------------------------------------

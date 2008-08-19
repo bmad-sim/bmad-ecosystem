@@ -567,14 +567,14 @@ case ('/')
     read '(a)', line
     call string_trim (line, line, ix)
     if (ix == 0) then
-      call tao_scale_cmd ('all', '', 0.0_rp, 0.0_rp)
+      call tao_scale_cmd ('all', 0.0_rp, 0.0_rp)
     else
       read (line, *, iostat = ios) m1, m2
       if (ios /= 0) then
         write (*, *) 'ERROR READING MIN/MAX.'
         return
       endif
-      call tao_scale_cmd ('all', '', m1, m2)
+      call tao_scale_cmd ('all', m1, m2)
     endif
 
   ! '/' Error:
@@ -622,9 +622,9 @@ do i = 1, size(s%plot_region)
   if (.not. allocated (plot%graph)) cycle
   do j = 1, size(plot%graph)
     graph => plot%graph(j) 
-    call tao_scale_graph (graph, 'y', graph%y%min * factor, graph%y%max * factor)
+    call tao_scale_graph (graph, graph%y%min * factor, graph%y%max * factor, 'y')
     if (graph%y2%min == graph%y2%max) cycle
-    call tao_scale_graph (graph, 'y2', graph%y2%min * factor, graph%y2%max * factor)
+    call tao_scale_graph (graph, graph%y2%min * factor, graph%y2%max * factor, 'y2')
   enddo
 enddo
 
@@ -671,12 +671,12 @@ do i = 1, size(s%plot_region)
 
     w = (graph%y%max - graph%y%min) * factor / 2
     c = (graph%y%max + graph%y%min) / 2
-    call tao_scale_graph (graph, 'y', c-w, c+w)
+    call tao_scale_graph (graph, c-w, c+w, 'y')
 
     w = (graph%y2%max - graph%y2%min) * factor / 2
     c = (graph%y2%max + graph%y2%min) / 2
     if (w == 0) cycle
-    call tao_scale_graph (graph, 'y2', c-w, c+w)
+    call tao_scale_graph (graph, c-w, c+w, 'y2')
 
   enddo
 enddo
@@ -722,11 +722,11 @@ do i = 1, size(s%plot_region)
     graph => plot%graph(j)
 
     w = factor * (graph%y%max - graph%y%min)
-    call tao_scale_graph (graph, 'y', graph%y%min + w, graph%y%max + w)
+    call tao_scale_graph (graph, graph%y%min + w, graph%y%max + w, 'y')
 
     w = factor * (graph%y2%max - graph%y2%min)
     if (w == 0) cycle
-    call tao_scale_graph (graph, 'y2', graph%y2%min + w, graph%y2%max + w)
+    call tao_scale_graph (graph, graph%y2%min + w, graph%y2%max + w, 'y2')
 
   enddo
 enddo

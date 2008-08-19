@@ -56,12 +56,14 @@ plot_loop: do ir = 1, size(s%plot_region)
 
 ! loop over all graphs and curves
 
-  if (plot%x%min == plot%x%max) call tao_x_scale_plot (plot, 0.0_rp, 0.0_rp)
+  if (plot%x%min == plot%x%max .and. plot%autoscale_gang_x) &
+                                  call tao_x_scale_plot (plot, 0.0_rp, 0.0_rp)
 
   do jg = 1, size(plot%graph)
     graph => plot%graph(jg)
+    if (graph%x%min == graph%x%max) call tao_x_scale_graph (graph, 0.0_rp, 0.0_rp)
     call tao_graph_setup (plot, graph)
-    if (graph%y%min == graph%y%max) call tao_scale_graph (graph, '', 0.0_rp, 0.0_rp)
+    if (graph%y%min == graph%y%max) call tao_scale_graph (graph, 0.0_rp, 0.0_rp)
     graph%limited = .false.
     if (allocated(graph%curve)) then
       do ic = 1, size(graph%curve)

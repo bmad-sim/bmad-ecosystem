@@ -41,6 +41,7 @@ character(*) :: command_line
 character(140) cmd_line
 character(20) :: r_name = 'tao_command'
 character(80) :: cmd_word(12)
+character(40) gang_str, switch
 character(16) cmd_name, set_word, axis_name
 
 character(16) :: cmd_names(30) = (/  &
@@ -405,14 +406,27 @@ case ('scale')
   call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) return
 
   axis_name = ''
-  if (cmd_word(1) == '-y' .or. cmd_word(1) == '-y2') then
-   axis_name = cmd_word(1)
-   axis_name = axis_name(2:)
-   cmd_word(1:3) = cmd_word(2:4)
-  endif 
+  gang_str = ''
+
+  do 
+    if (cmd_word(1) /= '-') exit
+    call match_word (cmd_word(1), (/ '-y     ', 'y2    ', '-nogang', '-gang  ' /), &
+                ix, .true., switch)
+
+    select case (switch)
+    case ('-y', '-y2') 
+     axis_name = switch(2:)
+    case ('-gang', '-nogang')
+      gang_str = switch(2:)
+    case default
+      call out_io (s_error$, r_name, 'BAD SWITCH: ' // switch)
+      return
+    end select
+    cmd_word(1:4) = cmd_word(2:5)
+  enddo
 
   if (cmd_word(2) == ' ') then
-    call tao_scale_cmd (cmd_word(1), axis_name, 0.0_rp, 0.0_rp) 
+    call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, axis_name, gang_str) 
   else
     call tao_to_real (cmd_word(2), value1, err);  if (err) return
     if (cmd_word(3) /= ' ') then
@@ -421,7 +435,7 @@ case ('scale')
       value2 = value1
       value1 = -value1
     endif
-    call tao_scale_cmd (cmd_word(1), axis_name, value1, value2)
+    call tao_scale_cmd (cmd_word(1), value1, value2, axis_name, gang_str)
   endif
 
 !--------------------------------
@@ -495,13 +509,28 @@ case ('x-scale')
     return
   endif
 
+  gang_str = ''
+  do 
+    if (cmd_word(1) /= '-') exit
+    call match_word (cmd_word(1), (/ '-nogang', '-gang  ' /), ix, .true., switch)
+
+    select case (switch)
+    case ('-gang', '-nogang')
+      gang_str = switch(2:)
+    case default
+      call out_io (s_error$, r_name, 'BAD SWITCH: ' // switch)
+      return
+    end select
+    cmd_word(1:4) = cmd_word(2:5)
+  enddo
+
   call tao_cmd_split (cmd_line, 4, cmd_word, .true., err); if (err) return
   if (cmd_word(2) == ' ') then
-    call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err)
+    call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err, gang_str)
   else
     call tao_to_real (cmd_word(2), value1, err); if (err) return
     call tao_to_real (cmd_word(3), value2, err); if (err) return
-    call tao_x_scale_cmd (cmd_word(1), value1, value2, err)
+    call tao_x_scale_cmd (cmd_word(1), value1, value2, err, gang_str)
   endif
 
 !--------------------------------
@@ -515,9 +544,10 @@ case ('xy-scale')
   endif
 
   call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+
   if (cmd_word(2) == ' ') then
     call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err)
-    call tao_scale_cmd (cmd_word(1), '', 0.0_rp, 0.0_rp) 
+    call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
   else
     call tao_to_real (cmd_word(2), value1, err);  if (err) return
     if (cmd_word(3) /= ' ') then
@@ -527,7 +557,7 @@ case ('xy-scale')
       value1 = -value1
     endif
     call tao_x_scale_cmd (cmd_word(1), value1, value2, err)
-    call tao_scale_cmd (cmd_word(1), '', value1, value2)
+    call tao_scale_cmd (cmd_word(1), value1, value2)
   endif
 
 !--------------------------------

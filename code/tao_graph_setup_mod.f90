@@ -586,21 +586,21 @@ do k = 1, size(graph%curve)
 
     d1_ptr => d1_array(1)%d1
     d1_ptr%d%good_plot = .false.
-    if (plot%x%min /= plot%x%max) then
-      eps = 1e-4 * (plot%x%max - plot%x%min)
+    if (graph%x%min /= graph%x%max) then
+      eps = 1e-4 * (graph%x%max - graph%x%min)
       if (plot%x_axis_type == 'index') then
-        where (d1_ptr%d%ix_d1 > plot%x%min-eps .and. &
-               d1_ptr%d%ix_d1 < plot%x%max+eps) d1_ptr%d%good_plot = .true.
+        where (d1_ptr%d%ix_d1 > graph%x%min-eps .and. &
+               d1_ptr%d%ix_d1 < graph%x%max+eps) d1_ptr%d%good_plot = .true.
       elseif (plot%x_axis_type == 'ele_index') then
-        where (d1_ptr%d%ix_ele > plot%x%min-eps .and. &
-               d1_ptr%d%ix_ele < plot%x%max+eps) d1_ptr%d%good_plot = .true.
+        where (d1_ptr%d%ix_ele > graph%x%min-eps .and. &
+               d1_ptr%d%ix_ele < graph%x%max+eps) d1_ptr%d%good_plot = .true.
       else ! s
-        where (d1_ptr%d%s > plot%x%min-eps .and. &
-               d1_ptr%d%s < plot%x%max+eps) d1_ptr%d%good_plot = .true.
+        where (d1_ptr%d%s > graph%x%min-eps .and. &
+               d1_ptr%d%s < graph%x%max+eps) d1_ptr%d%good_plot = .true.
         if (model_lat%param%lattice_type == circular_lattice$) then 
           l_tot = model_lat%param%total_length
-          where (d1_ptr%d%s-l_tot > plot%x%min-eps .and. &
-                 d1_ptr%d%s-l_tot < plot%x%max+eps) d1_ptr%d%good_plot = .true.
+          where (d1_ptr%d%s-l_tot > graph%x%min-eps .and. &
+                 d1_ptr%d%s-l_tot < graph%x%max+eps) d1_ptr%d%good_plot = .true.
         endif
 
       endif
@@ -636,7 +636,7 @@ do k = 1, size(graph%curve)
       curve%x_symb = model_lat%ele(d1_ptr%d(curve%ix_symb)%ix_ele)%s
       ! If there is a wrap-around then reorder data
       do i = 1, n_dat
-        if (curve%x_symb(i) > plot%x%max+eps) then
+        if (curve%x_symb(i) > graph%x%max+eps) then
           curve%ix_symb = (/ curve%ix_symb(i:), curve%ix_symb(:i-1) /)
           curve%x_symb = (/ curve%x_symb(i:)-l_tot, curve%x_symb(:i-1) /)
           exit
@@ -697,19 +697,19 @@ do k = 1, size(graph%curve)
     endif
 
     v1_ptr%v%good_plot = .true.
-    if (plot%x%min /= plot%x%max) then
-      eps = 1e-4 * (plot%x%max - plot%x%min)
+    if (graph%x%min /= graph%x%max) then
+      eps = 1e-4 * (graph%x%max - graph%x%min)
       if (plot%x_axis_type == 'index') then
-        where (v1_ptr%v%ix_v1 < plot%x%min-eps) v1_ptr%v%good_plot = .false.
-        where (v1_ptr%v%ix_v1 > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+        where (v1_ptr%v%ix_v1 < graph%x%min-eps) v1_ptr%v%good_plot = .false.
+        where (v1_ptr%v%ix_v1 > graph%x%max+eps) v1_ptr%v%good_plot = .false.
       elseif (plot%x_axis_type == 'ele_index') then
         do jj = lbound(v1_ptr%v, 1), ubound(v1_ptr%v,1)
-          if (v1_ptr%v(jj)%this(ix_this)%ix_ele < plot%x%min-eps) v1_ptr%v%good_plot = .false.
-          if (v1_ptr%v(jj)%this(ix_this)%ix_ele > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+          if (v1_ptr%v(jj)%this(ix_this)%ix_ele < graph%x%min-eps) v1_ptr%v%good_plot = .false.
+          if (v1_ptr%v(jj)%this(ix_this)%ix_ele > graph%x%max+eps) v1_ptr%v%good_plot = .false.
         enddo
       else
-        where (v1_ptr%v%s < plot%x%min-eps) v1_ptr%v%good_plot = .false.
-        where (v1_ptr%v%s > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+        where (v1_ptr%v%s < graph%x%min-eps) v1_ptr%v%good_plot = .false.
+        where (v1_ptr%v%s > graph%x%max+eps) v1_ptr%v%good_plot = .false.
       endif
     endif
 
@@ -722,7 +722,7 @@ do k = 1, size(graph%curve)
 
     curve%ix_symb = pack(v1_ptr%v%ix_v1, mask = v1_ptr%v%useit_plot)
 
-    plot%x%label = plot%x_axis_type
+    graph%x%label = plot%x_axis_type
 
     if (plot%x_axis_type == 'index') then
       curve%x_symb = curve%ix_symb
@@ -755,14 +755,14 @@ do k = 1, size(graph%curve)
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
       x_min = 1
       x_max = model_lat%n_ele_track
-      if (plot%x%min /= plot%x%max) then
-        x_min = max(x_min, plot%x%min)
-        x_max = min(x_max, plot%x%max)
+      if (graph%x%min /= graph%x%max) then
+        x_min = max(x_min, graph%x%min)
+        x_max = min(x_max, graph%x%max)
       endif 
       n_dat = max(0, nint(x_max+1-x_min))
     elseif (plot%x_axis_type == 's') then
       ! Symbols are to be put at the ends of displayed elements in the lat_layout
-      eps = 1e-4 * (plot%x%max - plot%x%min)             ! a small number
+      eps = 1e-4 * (graph%x%max - graph%x%min)             ! a small number
       model_lat%ele%logic = .false.
       do i = 1, model_lat%n_ele_max
         ele => model_lat%ele(i)
@@ -784,13 +784,13 @@ do k = 1, size(graph%curve)
       do i = 1, model_lat%n_ele_max
         ele => model_lat%ele(i)
         if (.not. ele%logic) cycle
-        if (plot%x%min == plot%x%max) cycle
+        if (graph%x%min == graph%x%max) cycle
         s0 = ele%s - ele%value(l$)
         s1 = ele%s
-        in_graph = (s0 >= plot%x%min-eps) .and. (s1 <= plot%x%max+eps)
+        in_graph = (s0 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
         l_tot = model_lat%param%total_length
         if (model_lat%param%lattice_type == circular_lattice$) in_graph = in_graph .or. &
-                        (s0-l_tot >= plot%x%min-eps) .and. (s1-l_tot <= plot%x%max+eps)
+                        (s0-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps)
         ele%logic = ele%logic .and. in_graph                                 
       enddo
       n_dat = count (model_lat%ele(:)%logic)
@@ -812,7 +812,7 @@ do k = 1, size(graph%curve)
       enddo
       ! If there is a wrap-around then reorder the data
       do i = 1, n_dat
-        if (x_symb(i)-l_tot > plot%x%min) then
+        if (x_symb(i)-l_tot > graph%x%min) then
           ix_symb = (/ ix_symb(i:), ix_symb(:i-1) /)
           x_symb = (/ x_symb(i:)-l_tot, x_symb(:i-1) /)
           exit
@@ -948,7 +948,7 @@ do k = 1, size(graph%curve)
 
       call tao_split_component(graph%component, comp, err)
       if (err) return
-      do 
+      do m = 1, size(comp)
         select case (comp(m)%name)
         case (' ') 
           cycle
@@ -1053,13 +1053,13 @@ endif
 x1 = lat%ele(0)%s
 x2 = lat%ele(lat%n_ele_track)%s
 len_tot = lat%param%total_length
-if (plot%x%min /= plot%x%max) then
+if (graph%x%min /= graph%x%max) then
   if (lat%param%lattice_type == circular_lattice$) then
-    x1 = min(lat%ele(lat%n_ele_track)%s, max(plot%x%min, x1-len_tot))
-    x2 = min(x2, max(plot%x%max, lat%ele(0)%s-len_tot))
+    x1 = min(lat%ele(lat%n_ele_track)%s, max(graph%x%min, x1-len_tot))
+    x2 = min(x2, max(graph%x%max, lat%ele(0)%s-len_tot))
   else
-    x1 = min(lat%ele(lat%n_ele_track)%s, max(plot%x%min, x1))
-    x2 = min(x2, max(plot%x%max, lat%ele(0)%s))
+    x1 = min(lat%ele(lat%n_ele_track)%s, max(graph%x%min, x1))
+    x2 = min(x2, max(graph%x%max, lat%ele(0)%s))
   endif
 endif
 ele0 => lat%ele(ix0)

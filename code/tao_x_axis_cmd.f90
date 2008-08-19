@@ -14,6 +14,7 @@ subroutine tao_x_axis_cmd (where, what)
 use tao_mod
 use quick_plot
 use tao_graph_setup_mod
+use tao_x_scale_mod
 
 implicit none
 
@@ -79,6 +80,7 @@ elseif (what == 'ele_index') then
 elseif (what == 'index') then
   plot%x%min = -1e30; plot%x%max = 1e30
   do ig = 1, size(plot%graph)
+    plot%graph(ig)%x%min = -1e30; plot%graph(ig)%x%max = 1e30
     call tao_graph_setup(plot, plot%graph(ig))
   enddo
   minn = 1e30; maxx = -1e30
@@ -96,11 +98,9 @@ elseif (what == 'index') then
   if (all(.not. plot%graph%valid)) return
 endif
 
-!
+! Calc places and divisions.
 
-p1 = nint(0.7 * plot%x%major_div_nominal)  ! Used to be 8
-p2 = nint(1.3 * plot%x%major_div_nominal)  ! Used to be 15
-call qp_calc_axis_params (minn, maxx, p1, p2, plot%x)
+call tao_x_scale_plot (plot, minn, maxx)
 
 end subroutine
 

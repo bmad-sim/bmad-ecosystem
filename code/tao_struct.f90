@@ -110,6 +110,7 @@ type tao_graph_struct
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
   type (qp_point_struct) legend_origin
+  type (qp_axis_struct) x       ! X-axis parameters.
   type (qp_axis_struct) y       ! Y-axis attributes.
   type (qp_axis_struct) y2      ! Y-axis attributes.
   type (qp_rect_struct) margin  ! Margin around the graph.
@@ -134,7 +135,8 @@ type tao_plot_struct
   type (qp_axis_struct) x       ! X-axis parameters.
   type (tao_plot_region_struct), pointer :: r ! pointer to parent.
   character(16) x_axis_type     ! 'index', 'ele_index', 's', 'none', or 'phase_space'
-  logical independent_graphs    ! scale cmd scales graphs independently?
+  logical autoscale_gang_x      ! scale cmd scales graphs together?
+  logical autoscale_gang_y      ! scale cmd scales graphs together?
 end type
 
 ! A region defines a plot and where to position the plot on the plot page

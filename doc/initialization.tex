@@ -365,7 +365,7 @@ numbers are generated.  These can be set in the
 \vn{tao_global_struct}. For particle beam generation, these parameters
 may be overridden by setting the corresponding parameters in the
 \vn{beam_init} struct (\sref{s:beam.init}). That is, separate
-parameters may be setup for beam particle generation verses everthing
+parameters may be setup for beam particle generation verses everything
 else.
 
 \vn{global%random_seed} sets the seed number for the pseudo-random
@@ -640,12 +640,12 @@ written in ASCII. The ASCII file format is:
 \end{example}
 The first line of the file gives \vn{ix_ele}, the index of the lattice
 element at which the distribution was created. This is ignored when
-the file is readin. The second line gives \vn{<n_bunch>}, the number
+the file is Reading. The second line gives \vn{<n_bunch>}, the number
 of bunches. The third line gives \vn{n_particle} the number of
 particles in a bunch. After this, there are \vn{<n_bunch>} blocks of
 data, one for each bunch. Each one of these blocks starts with a
 \vn{BEGIN_BUNCH} line to mark the beginning of the block and ends with
-a \vn{END_BUNCH} marker line. Inbetween, the first three lines give
+a \vn{END_BUNCH} marker line. In between, the first three lines give
 the \vn{bunch_charge}, \vn{z_center}, and \vn{t_center} values followed by a set of
 lines, one for each particle. Only the phase space coordinates need to
 be specified for each particle. if \vn{<particle_charge>} is not
@@ -665,7 +665,7 @@ override the setting of \vn{<n_particle>} in the beam file.
 
 Each particle has an associated \vn{<particle_charge>}. If
 \vn{<bunch_charge>} is set to a non-zero value, the charge of all the
-particles will be scalled by a factor to make the bunch charge equal
+particles will be scaled by a factor to make the bunch charge equal
 to \vn{<bunch_charge>}. Additionally, if \vn{beam_init%bunch_charge}
 is set in the \tao input file, this will override the setting of
 \vn{bunch_charge} in the beam file.
@@ -738,7 +738,7 @@ initializing the beam are set in the \vn{tao_global_struct}
 (\sref{s:globals}). They may, however, be overridden for beam particle
 generation by setting the corresponding parameters in the
 \vn{beam_init} structure. That is, separate parameters may be setup
-for beam particle generation verses everthing else.  These parameters
+for beam particle generation verses everything else.  These parameters
 are explained in Section~\sref{s:globals}.
 
 %-----------------------------------------------------------------
@@ -1305,7 +1305,8 @@ Template plots are defined using namelists with a name of
 \index{plot!x_axis_type}
 \index{plot!ix_universe}
 \index{plot!n_graph}
-\index{plot!independent_graphs}
+\index{plot!autoscale_gang_x}
+\index{plot!autoscale_gang_y}
 \begin{example}
   &tao_template_plot
     plot%name        = "<plot_name>"
@@ -1313,7 +1314,8 @@ Template plots are defined using namelists with a name of
     plot%x_axis_type = "<x_axis_type>"   ! "index" or "s". Default is "index".
     plot%ix_universe = <number> ! used for lat_layout plots
     plot%n_graph     = <n_graphs>
-    plot%independent_graphs = <logical>  ! scale graph y-axis independently
+    plot%autoscale_gang_x = <logical>  ! Default: True.
+    plot%autoscale_gang_y = <logical>  ! Default: True.
   /
 \end{example}
 For example:
@@ -1346,6 +1348,10 @@ information see the \vn{Quick Plot} documentation on the
 \end{example}
 If \vn{min} and \vn{max} are absent, then \tao will autoscale the axis.
 
+The \vn{plot%autoscale_gang_x} and \vn{plot%autoscale_gang_y}
+components set how the \vn{x-scale} (\sref{s:x-scale}) and \vn{scale}
+(\sref{s:scale}) commands behave when autoscaling entire plots. See
+these individual commands for more details.
 
 \vn{plot%name} is the name that is used with \tao commands to identify
 the plot. It is important that this name not contain any blank spaces since
@@ -1386,6 +1392,7 @@ namelists should be placed directly after their respective
     graph%box              = <ix>, <iy>, <ix_tot>, <iy_tot>
     graph%title            = "<string>"       ! Title above the graph.
     graph%margin           =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
+    plot%x                 = <qp_axis_struct> ! Horizontal axis.
     graph%y                = <qp_axis_struct> ! Left axis.
     graph%y2               = <qp_axis_struct> ! Right axis.
     graph%n_curve          = <number>         ! number of curves
@@ -1566,6 +1573,10 @@ independent second scale. In this case, the \vn{y2} axis numbers will
 be drawn. Notice that simply giving the \vn{y2} axis a label does {\em
 not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 
+Typically, a graph's horizontal scale is set by the \vn{plot%x}
+component. If it is desired to have differeng scales for different
+graphs, the \vn{graph%x} component can be used.
+
 %-----------------------------------------------------------------
 \subsection{Graphing a Data Slice}\index{Data Slice}
 \label{s:graph.data.slice}
@@ -1573,7 +1584,7 @@ not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 The standard data graph, as presented in the previous subsection,
 plots data from a given \vn{d1_data} arrays. It is also possible to
 graph data that has been ``sliced'' in other ways. For example,
-suppose a number of universes have been extablished, with each
+suppose a number of universes have been established, with each
 universe representing the same machine but with different steerings
 powered. If in each universe an \vn{orbit} \vn{d2_data} structure has
 been defined then an example of a data slice is the collection of
@@ -1639,7 +1650,7 @@ explicit datum components in the specification of
   curve(1)%ele_ref_name = "3"
 \end{example}
 The plots the \vn{model} values of \vn{orbit.x} verses \vn{meas - ref}
-of \vn{orbit.x} for the data in unverse 3. Note: Whenever explicit
+of \vn{orbit.x} for the data in universe 3. Note: Whenever explicit
 components are specified, the \vn{graph%component} settings are ignored for
 that expression.
 
