@@ -491,6 +491,8 @@ if (is_integer(name(ix+1:))) read (name(ix+1:), *) all_dat%param%ix_data_set
 all_dat%param%horiz_beta_freq = horiz_beta_freq * 1e3
 all_dat%param%vert_beta_freq  = vert_beta_freq  * 1e3
 all_dat%param%species = species
+all_dat%param%horiz_reflection_shake = horiz_reflection_shake
+all_dat%param%vert_reflection_shake  = vert_reflection_shake
 
 ! Read in raw data
 

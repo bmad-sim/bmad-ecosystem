@@ -285,6 +285,7 @@ type cesr_data_params_struct
   real(rp) :: dvar = 0
   real(rp) :: chisq = 0
   real(rp) :: ac_z_amp_fit, ac_z_phase_fit
+  logical :: horiz_reflection_shake, vert_reflection_shake
 end type
 
 type cesr_data1_struct
