@@ -813,7 +813,7 @@ end subroutine
 !       %turn       -- Integer: Turn number for injection orbits. 0 otherwise.
 !       %comment(5) -- Character(72): Comment.
 !       %det(0:99)%ok     -- Logical: Was there a valid orbit reading?
-!       %det(0:99)%amp(4) -- Integer: raw button numbers.
+!       %det(0:99)%amp(4) -- Integer: gain and offset corrected button signals. 
 !       %det(0:99)%x_orb  -- Real(rp): Horizontal orbit in meters.
 !       %det(0:99)%y_orb  -- Real(rp): Horizontal orbit in meters.
 !   db    -- Db_struct: Structure holding the steering settings.

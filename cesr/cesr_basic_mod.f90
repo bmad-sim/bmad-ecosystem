@@ -795,7 +795,7 @@ end subroutine
 !                       Set CURRENT_LAT = ' ' if you do not want to use this
 !                       feature.
 !                       NOTE: You must be connected to the mpm to use GETLAT.
-!   choice      -- Character(*): [Optional] If present then this will be
+!   choice      -- Character(*), optional: If present then this will be
 !                       used as input instead of querying the user.
 !                       ''         -> Query the user.
 !                       '0'        -> Use current_lat.
