@@ -182,6 +182,7 @@ type butns_struct
   type (detector_struct) det(0:120)
   integer save_set
   integer turn    ! turn number for injection data
+  real(rp) e_cur, p_cur  ! Current in mAmps
 end type
 
 !-----------------------------------------------------------------------------

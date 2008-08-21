@@ -855,6 +855,7 @@ integer i, ix, j, iu, ios, raw(4, 120)
 integer n_node, n_ele
 
 real x_orbit(120), y_orbit(120), rdummy
+real(rp) currents(9)
 
 character(*) file_name
 character(130) line_in, correction_file
@@ -872,8 +873,7 @@ namelist / button_offsets / offset
 butns%comment = ' '
 err = .true.
 
-! read header line in the data file (to get lattice name)
-! and sterlat strengths
+! Read header line in the data file (to get lattice name) and steering strengths
 
 iu = lunget()
 open(unit = iu, file = file_name, status = 'old', action = 'READ', iostat = ios)
@@ -882,12 +882,20 @@ if (ios /= 0) then
   return
 endif
 
-read (iu, '(a)') line_in
+read (iu, '(a)') line_in   ! Line #1
 butns%lattice = line_in(61:)
 call string_trim (butns%lattice, butns%lattice, ix)
 
 butns%date = line_in(30:)                     ! get date
 read (line_in(54:), *) butns%save_set
+
+read (iu, '(a)') line_in  ! Line #2
+read (line_in(11:), *) currents
+butns%e_cur = sum(currents)
+
+read (iu, '(a)') line_in  ! Line #3
+read (line_in(11:), *) currents
+butns%p_cur = sum(currents)
 
 do
   read (iu, '(a)', iostat = ios) line_in
