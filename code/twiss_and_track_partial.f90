@@ -93,6 +93,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   if (del_s == 0) then
 
     if (present(ele3)) then
+      ele3 = ele1
       call mat_make_unit(ele3%mat6)
       ele3%vec0 = 0
     endif
