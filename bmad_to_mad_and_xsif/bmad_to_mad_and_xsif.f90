@@ -4,6 +4,8 @@
 ! Usage:
 !   bmad_to_leo bmad_file_name
 !
+! The MAD and XSIF files will be created in the current directory.
+!
 ! The bmad_file_name will have a '.bmad' appended to the name if there
 ! is no '.' in the original name.
 !
@@ -23,8 +25,9 @@ implicit none
 
 type (lat_struct) lat
 
-integer n_arg
-character(80) file_name
+integer n_arg, ix
+character(80) file_name, dir
+logical is_rel
 
 !
 
@@ -47,6 +50,7 @@ endif
 call file_suffixer (file_name, file_name, 'bmad', .false.)
 call bmad_parser (file_name, lat)
 
+ix = splitfilename (file_name, dir, file_name, is_rel)
 call file_suffixer (file_name, file_name, 'xsif', .true.)
 call bmad_to_xsif (file_name, lat)
 

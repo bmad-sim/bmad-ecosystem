@@ -159,4 +159,36 @@ module sr_struct
 
   integer no_local_alley$ / 0 /, out_of_alley$ / 1 /, in_alley$ / 2 /
 
+  !--------------
+
+  integer, parameter :: n_max_hits$ = 5000
+  integer, parameter :: n_windows$ = 7
+  integer, parameter :: forward$ = -1
+  integer, parameter :: reverse$ = 1
+  integer, parameter :: w_east$ = -1
+  integer, parameter :: w_west$ = 1
+
+  type ray_hit_struct
+    type (ray_struct) ray
+    type (coord_struct) hit_coord, target_coord
+    real(rp) sig_y, sig_yp     ! Source point
+    real(rp) sig_y_eff         ! Effective sigma at the target distance.
+    real(rp) window_sig_y      ! Effective sigma at the crotch window.
+    real(rp) dist
+  end type
+
+  type crotch_window_struct   ! struct for input points
+    character*16 name         ! name of element (sliding_joint, etc.)
+    integer ix_pt             ! index to wall pt() array
+    integer n_ray_hit         ! Number of rays hitting this window
+    real(rp) length               ! Length of window horizontally 
+    integer side              ! East or West side of cesr
+    integer layout            ! The crotch is forward or reverse in
+                              ! terms of s (positron) direction
+    real(rp) angle                ! Angle of window found by: 
+                              !    atan(ds_window/dx_window)
+    type (ray_hit_struct)  ray_hit_(n_max_hits$)
+                              ! Array of rays hitting the window
+  end type
+
 end module
