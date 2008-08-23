@@ -143,7 +143,7 @@ subroutine write_power_header (iu, file, gen_params)
 
 !
 
-  open (unit = iu, file = file, carriagecontrol = 'list')
+  open (unit = iu, file = file)
   write (iu, *) 'Lattice: ', gen_params%lat_file
   write (iu, *) 'I_beam    =', gen_params%i_beam,    ' ! Amps/beam'
   write (iu, *) 'Epsilon_y =', gen_params%epsilon_y, ' ! Vertical emittance'

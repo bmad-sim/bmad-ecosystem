@@ -42,7 +42,7 @@ subroutine writefile(in_file, parameters)
 
 
   if(index(in_file,'junk') == 0)then
-     open (unit=2, file = in_file, carriagecontrol='list')
+     open (unit=2, file = in_file)
      write(2,'(a8,a1,e12.4,a1)') '   Ax = ',"`",parameters(1,1),"'"
 !??     write(2,'(a13,a1,e12.4,a1)')'   disp_Ax = ',"`",disp_a(1),"'"
      write(2,'(a15,a1,e12.4,a1)')'  disp_avg_x = ',"`",parameters(2,1),"'"

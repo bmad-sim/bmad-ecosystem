@@ -175,8 +175,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
 ! write output
   call file_suffixer (in_file, in_file, '.dat', .true.)
-  open (unit = 2, file = in_file,   &
-                                        carriagecontrol = 'list')
+  open (unit = 2, file = in_file)
   write (2, *) 'Lattice  = ', ring.lattice
   write (2, '(a11,i5,3(a10,f7.5))') ' N_turn   =', track_input.n_turn
   write(2,'(a8,a1,f8.4,a1)') '  Q_x = ',"`",ring%a%tune/twopi,"'"
@@ -208,8 +207,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
     call string_trim (in_file, in_file, ix)
     write (da_file, '(a, i1.1, a)') in_file(1:ix-4), i_e, '.dat'
-    open (unit = 3, file = da_file,   &
-                                        carriagecontrol = 'list')
+    open (unit = 3, file = da_file)
 
     file_name = ring%input_file_name
     ix=0

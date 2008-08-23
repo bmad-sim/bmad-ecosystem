@@ -206,7 +206,7 @@ program synrad
   call write_power_results(positive_x_wall, lat, sr_param, use_ele_ix)
   call write_power_results(negative_x_wall, lat, sr_param, use_ele_ix)
 
-  open (unit = 1, file = 'element_power.dat', carriagecontrol = 'list')
+  open (unit = 1, file = 'element_power.dat')
 
   if (beam_direction == 0) then
     write (1, *) '  Ix  Name               |    S Position     |   Fwd_Power (W)    |   Back_Power (W)   |'

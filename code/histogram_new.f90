@@ -132,7 +132,7 @@
 
 !           write(6,4)a(k),avg(k),rms(k)
 
-           open (unit=2, file = in_file, carriagecontrol='list')
+           open (unit=2, file = in_file)
            write(2,'(a8,a1,e12.4,a1)') '   Ax = ',"`",a(1),"'"
            write(2,'(a11,a1,e12.4,a1)') '   sig_x = ',"`",rms(1),"'"
            write(2,'(a8,a1,e12.4,a1)') '   Ay = ',"`",a(2),"'"
