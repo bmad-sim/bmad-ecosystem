@@ -16,6 +16,7 @@ real(rp) seg_len_max, wall_len, rr
 ! x_seg and s_seg are the (x,s) coords of the center of the segment
 
 n = wall%pt(wall%n_pt_tot)%s / seg_len_max + wall%n_pt_tot
+if (allocated(wall%seg)) deallocate(wall%seg)
 allocate (wall%seg(n))
 
 i_seg = 0

@@ -339,6 +339,7 @@ do j = 1, n_vac_parts
   ix_out = ix_out + outline_(i)%n_out
 enddo
 
+if (allocated(outside%pt)) deallocate(outside%pt, inside%pt)
 allocate (outside%pt(0:ix_out), inside%pt(0:ix_in))
 
 outside%pt(0)%s = 0.0

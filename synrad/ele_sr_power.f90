@@ -2,8 +2,7 @@
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine ele_sr_power (lat, ie, orb, direction, 
-!                             power, walls, gen)
+! subroutine ele_sr_power (lat, ie, orb, direction, power, walls, gen)
 !
 ! subroutine to calculate the synch radiation power from
 !      one element of the lat
@@ -27,8 +26,7 @@
 !   wall   -- walls_struct: both walls with power information
 !-
 
-subroutine ele_sr_power (lat, ie, orb, direction, power, &
-     walls, gen)
+subroutine ele_sr_power (lat, ie, orb, direction, power, walls, gen)
 
   use sr_struct
   use sr_interface
@@ -49,43 +47,37 @@ subroutine ele_sr_power (lat, ie, orb, direction, power, &
 
   real(rp) l_off, del_l, l0, l1, l_try
 
-! set pointers
+  ! set pointers
   positive_x_wall => walls%positive_x_wall
   negative_x_wall => walls%negative_x_wall
 
-! power calculation is only for bends, quads and wigglers.
+  ! power calculation is only for bends, quads and wigglers.
 
   ele => lat%ele(ie)
 
   if (ele%key /= sbend$ .and. ele%key /= quadrupole$ .and. &
                      ele%key /= wiggler$ .and. ele%key /= sol_quad$) return
 
-  ! check if periodic wiggler has non-zero b_field
-  if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ &
-       .and. ele%value(b_max$) == 0.) return
-
-
   ! check if ele is on
   if (.not. ele%is_on) return
 
+  ! Partition the quad/bend/wiggler into slices and track the synch
+  ! radiation comming from each slice to see where it hits the wall.
+  ! this is called a "ray".
 
-! Partition the quad/bend/wiggler into slices and track the synch
-! radiation comming from each slice to see where it hits the wall.
-! this is called a "ray".
-
-! seg_power_calc takes a set of rays (called a "fan") from a set of consecutive slices.
-! seg_power_calc demands that all the rays of a fan are all hitting the same wall.
-! Thus, if one ray hits one wall and the ray from the next ray hits the other wall, 
-! then we need to divide the slace to find the "transition" ray.
+  ! seg_power_calc takes a set of rays (called a "fan") from a set of consecutive slices.
+  ! seg_power_calc demands that all the rays of a fan are all hitting the same wall.
+  ! Thus, if one ray hits one wall and the ray from the next ray hits the other wall, 
+  ! then we need to divide the slace to find the "transition" ray.
 
   i_ray = 0
   n_slice = gen%n_slice 
 
   if (ele%key == wiggler$) then
+
+    ! If periodic wiggler, do n_slices per pole
     if (ele%sub_key == periodic_type$) then
-
-      ! If periodic wiggler, do n_slices per pole
-
+      if (ele%value(b_max$) == 0) return
       if (ele%value(n_pole$) == 0) then
         type *, 'WARNING IN ELE_SR_POWER: "N_POLE" FOR WIGGLER = 0.'
         type *, '      CALCULATED RADIATION FROM THIS WIGGLER WILL BE 0!'

@@ -84,26 +84,15 @@ main_loop: do while (.true.)
 
   call string_trim (line, line, ix)
   call str_upcase (line, line)
+  if (ix == 0) cycle
 
-  if (line(1:ix) == 'SYNRAD') then
+  if (line(1:ix) == 'SYNRAD' .or. line(1:ix) == 'SR') then
     call do_synrad (walls, u, u%ring, gen_params, window)
   elseif (line(1:ix) == 'SEXT') then
     call sextupole_output (u)
-  elseif (line(1:ix) == 'SR') then
-    call do_synrad (walls, u, u%ring, gen_params, window)
   elseif (line(1:ix) == 'HARD') then
     print *, 'NOT YET IMPLEMENTED...'
-  elseif (line(1:ix) == 'ROUT') then
-    call ray_output (window, u%ring)
-  elseif (line(1:ix) == 'RP') then
-    print *, '*** Only first window selected will be plotted. ***'
-    call get_window_numbers ( window, iw )
-    call ray_plot (window, iw(1))
-  elseif (line(1:ix) == 'RPLOT') then
-    print *, '*** Only first window selected will be plotted. ***'
-    call get_window_numbers ( window, iw )
-    call ray_plot (window, iw(1))
-  elseif (line(1:ix) == 'RAYPLOT') then
+  elseif (line(1:ix) == 'RP' .or. (index('RAYPLOT', line(1:ix)) == 1 .and. ix > 3)) then
     print *, '*** Only first window selected will be plotted. ***'
     call get_window_numbers ( window, iw )
     call ray_plot (window, iw(1))
@@ -111,27 +100,13 @@ main_loop: do while (.true.)
     print *, '*** Only first window selected will be plotted. ***'
     call get_window_numbers ( window, iw )
     call burn_plot ( window, iw(1), u%ring, gen_params, logic )
-  elseif (line(1:ix) == 'RO') then
+  elseif (line(1:ix) == 'RO' .or. (index('RAYOUTPUT', line(1:ix)) == 1 .and. ix > 3)) then
     call ray_output (window, u%ring)
-  elseif (line(1:ix) == 'RAYOUT') then
-    call ray_output (window, u%ring)
-  elseif (line(1:ix) == 'RAYOUTPUT') then
-    call ray_output (window, u%ring)
-  elseif (line(1:ix) == 'PR') then
+  elseif (index('PROJECT', line(1:ix)) == 1 .and. ix > 1) then
     call project_from_windows ( window )
-  elseif (line(1:ix) == 'PROJ') then
-    call project_from_windows ( window )
-  elseif (line(1:ix) == 'PROJECT') then
-    call project_from_windows ( window )
-  elseif (line(1:ix) == 'FW') then
+  elseif (line(1:ix) == 'FW' .or. &
+                  (index('FINDWINDOWS', line(1:ix)) == 1 .and. ix > 3)) then
     call find_windows (walls%positive_x_wall, window)
-  elseif (line(1:ix) == 'FINDWIND') then
-    call find_windows (walls%positive_x_wall, window)
-  elseif (line(1:ix) == 'FINDWINDOW') then
-    call find_windows (walls%positive_x_wall, window)
-  elseif (line(1:ix) == 'FINDWINDOWS') then
-    call find_windows (walls%positive_x_wall, window)
-
   elseif (line(1:ix) == 'CHECK') then
     call check_aperture(u, hit)
 
