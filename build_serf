@@ -233,7 +233,7 @@ if build_type == "RELEASE":
                 print "Copying .f90_module_rules file from OSF1 " + dir + " area.\n"
                 shutil.copyfile(OSF_reldir+"/src/"+dir+"/.f90_module_rules", full_rel_name+"/src/"+dir+"/.f90_module_rules")
             os.chdir(full_rel_name +'/src/'+ dir)
-            if flag1 and flag2:
+            if flag1:
                 print "Changed directory to: " + os.getcwd()
                 print "Generating .depvms file..."
                 dep_process = popen2.Popen4(bin_dir + "/util/filtercesr " + full_rel_name + ' ' + dir)
