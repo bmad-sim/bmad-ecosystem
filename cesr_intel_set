@@ -14,7 +14,7 @@
 ###############################################
 # . /nfs/opt/intel_fc_80/bin/ifortvars.sh
 if ( [ $# -eq 0 ] ) then
- CESRF90=intel; CESRLIB=devel;. /home/cesrulib/bin/cesrdefs
+ CESRF90=intel; CESRLIB=devel;. /home/cesrulib/bin/accdefs
 else
-  CESRF90=intel; CESRLIB=$1;. /home/cesrulib/bin/cesrdefs
+  CESRF90=intel; CESRLIB=$1;. /home/cesrulib/bin/accdefs
 fi

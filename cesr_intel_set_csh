@@ -14,8 +14,8 @@
 ###############################################
 # source /nfs/opt/intel_fc_80/bin/ifortvars.csh
 if ( $#argv == 0  ) then
- setenv CESRF90 intel; setenv CESRLIB devel; source /home/cesrulib/bin/cesrdef
+ setenv CESRF90 intel; setenv CESRLIB devel; source /home/cesrulib/bin/accdef
 else
- setenv CESRF90 intel; setenv CESRLIB $1; source /home/cesrulib/bin/cesrdef
+ setenv CESRF90 intel; setenv CESRLIB $1; source /home/cesrulib/bin/accdef
 endif
 

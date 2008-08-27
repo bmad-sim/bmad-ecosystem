@@ -14,7 +14,7 @@
 ###############################################
 # . /nfs/opt/lf9562/bash_setup
 if ( [ $# -eq 0 ] ) then
- CESRF90=lahey; CESRLIB=devel;. /home/cesrulib/bin/cesrdefs
+ CESRF90=lahey; CESRLIB=devel;. /home/cesrulib/bin/accdefs
 else
- CESRF90=lahey; CESRLIB=$1;. /home/cesrulib/bin/cesrdefs
+ CESRF90=lahey; CESRLIB=$1;. /home/cesrulib/bin/accdefs
 fi
