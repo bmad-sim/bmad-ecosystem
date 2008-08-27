@@ -83,14 +83,14 @@ $!--------------------------------------------------
 $! building odysseus
 $!--------------------------------------------------
 $!  
-$ write sys$output "========== Building odysseus =========="
-$ gmake --directory=[.src.odysseus] "''par1'" "''par2'"
+$! write sys$output "========== Building odysseus =========="
+$! gmake --directory=[.src.odysseus] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building toad
 $!--------------------------------------------------
 $!  
-$ write sys$output "========== Building toad =========="
+$! write sys$output "========== Building toad =========="
 $! gmake --directory=[.src.toad] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
@@ -112,8 +112,8 @@ $! building MPMnet
 $!--------------------------------------------------
 $!  
 $ write sys$output "========== Building MPMnet =========="
-$ gmake --directory=[.src.MPMnet] "''par1'" "''par2'"
-$ gmake --directory=[.src.MPMnet] --file=MAKEFILE_MPMEQ.VMS  "''par1'" "''par2'"
+$ gmake --directory=[.src.mpmnet] "''par1'" "''par2'"
+$ gmake --directory=[.src.mpmnet] --file=MAKEFILE_MPMEQ.VMS  "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $ set def 'crsdir'
