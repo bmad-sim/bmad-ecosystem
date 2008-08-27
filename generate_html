@@ -158,16 +158,19 @@ part1.seek(0)
 part2.seek(0)
 part3.seek(0)
 
-log = open("/home/cesrulib/cesr_libs/log/VMS_alpha_hp/"+rel_name+".log")
+if os.path.exists("/home/cesrulib/cesr_libs/log/VMS_alpha_hp/"+rel_name+".log"):
+    log = open("/home/cesrulib/cesr_libs/log/VMS_alpha_hp/"+rel_name+".log")
 
-vhl=open("/home/cesrulib/public_html/builds/vhl.html","w")
+    vhl=open("/home/cesrulib/public_html/builds/vhl.html","w")
 
-vhl.write(part1.read())
-vhl.write(rel_name)
-vhl.write(part2.read())
+    vhl.write(part1.read())
+    vhl.write(rel_name)
+    vhl.write(part2.read())
 
-for line in log:
-    vhl.write(line)
-vhl.write(part3.read())
-vhl.close()
-log.close()
+    for line in log:
+      vhl.write(line)
+    vhl.write(part3.read())
+    vhl.close()
+    log.close()
+else:
+    vhl.write("No build initiated on this platform.\n")
