@@ -33,44 +33,8 @@
 # Author : Matt Rendina
 #             
 ################################################################
-#
-# $Id$
-#
-# $Log$
-# Revision 1.12  2006/11/07 16:21:55  cesrulib
-# Cosmetic changes.
-#
-# Revision 1.11  2006/10/17 12:54:14  cesrulib
-# Changed output formatting.
-#
-# Revision 1.10  2006/10/13 21:12:54  cesrulib
-# Edited mail footer content and cosmetic changes.
-#
-# Revision 1.9  2006/09/27 19:28:33  cesrulib
-# Various minor bugfixes, cosmetics
-#
-# Revision 1.8  2006/09/26 20:31:04  cesrulib
-# Added code to gracefully abort if no arguments are provided.
-#
-# Revision 1.7  2006/09/18 19:17:44  cesrulib
-# Added '-mail' flag to notify mailing list of release rotations.
-#
-# Revision 1.6  2006/09/14 18:42:55  cesrulib
-# Aesthetic changes to output
-#
-# Revision 1.5  2006/09/13 17:27:37  cesrulib
-# *** empty log message ***
-#
-# Revision 1.3  2006/09/12 18:26:42  cesrulib
-# Fixed bug where devel rotation would always occur even if a current or nightly flag was used.
-#
-# Revision 1.2  2006/09/12 17:13:10  cesrulib
-# Added nightly release rotation functionality
-#       RCS Id and Log keywords to comments
-#
-#
-################################################################
-# One hardcoded line here necessary for subsequent getting of config vars.
+
+# One hardcoded path here necessary for subsequent getting of config vars.
 UTIL_DIR=`/home/cesrulib/bin/util/getcfg Paths UTIL_DIR`
 
 #---------------------------------+
