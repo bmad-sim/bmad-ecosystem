@@ -487,8 +487,8 @@ inside%n_pt_tot = ix_in
 call delete_overlaping_wall_points (outside)
 call delete_overlaping_wall_points (inside)
 
-forall (i = 1:ix_out) outside%pt(i)%ix_pt = i
-forall (i = 1:ix_in)  inside%pt(i)%ix_pt = i
+forall (i = 0:ix_out) outside%pt(i)%ix_pt = i
+forall (i = 0:ix_in)  inside%pt(i)%ix_pt = i
 
 call create_alley (inside)
 call create_alley (outside)
