@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/csr_sleep/milli_sleep/g;
+    s/\t/  /g;
     print (F_OUT);
   }
 
