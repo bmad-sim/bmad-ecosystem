@@ -354,11 +354,11 @@ case ('bpm_orbit.y')
   valid_value = .not. err
 
 case ('bpm_eta.x')
-  vec = (/ tao_lat%bunch_params(ix1)%x%eta, tao_lat%bunch_params(ix1)%y%eta /)
+  vec = (/ lat%ele(ix1)%x%eta, lat%ele(ix1)%y%eta /)
   call to_eta_reading (vec, lat%ele(ix1), x_plane$, datum_value, err)
   valid_value = .not. err
 case ('bpm_eta.y')
-  vec = (/ tao_lat%bunch_params(ix1)%x%eta, tao_lat%bunch_params(ix1)%y%eta /)
+  vec = (/ lat%ele(ix1)%x%eta, lat%ele(ix1)%y%eta /)
   call to_eta_reading (vec, lat%ele(ix1), y_plane$, datum_value, err)
   valid_value = .not. err
 
