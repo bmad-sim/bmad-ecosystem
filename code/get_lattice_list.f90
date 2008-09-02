@@ -62,19 +62,20 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
     call str_upcase (lat_file, lat_file)
 
     if (stat) then
-      if (lat_file(1:8) == 'digested') cycle
+      ix = index(lat_file, ']') + 1       ! strip [...] prefix
+      ixx = index(lat_file, ';') - 1      ! strip version number suffix
+      l_file = lat_file(ix:ixx)
+      if (l_file(1:8) == 'DIGESTED') cycle
+      if (index(l_file, '.DIR') /= 0) cycle  ! Ignore layout subdirectory.
       if (i > size(lat_list)) then
         print *, 'ERROR IN GET_LATTICE_LIST: NUMBER OF LATTICES EXCEEDS ARRAY SIZE!'
         call err_exit
       endif
-      ix = index(lat_file, ']') + 1       ! strip [...] prefix
-      ixx = index(lat_file, ';') - 1      ! strip version number suffix
-      l_file = lat_file(ix:ixx)
       ix = index(l_file, '.LAT')
       if (ix /= 0) l_file = l_file(1:ix-1)
       ix = index(l_file, '.lat')
       if (ix /= 0) l_file = l_file(1:ix-1)
-      if (l_file(1:5) == 'bmad_' .or. l_file(1:5) == 'BMAD_') l_file = l_file(6:)
+      if (l_file(1:5) == 'BMAD_') l_file = l_file(6:)
       i = i + 1
       lat_list(i) = l_file
     else if (stat == rms$_nmf .or. stat == rms$_fnf) then
