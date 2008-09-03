@@ -233,6 +233,7 @@ do i = 0, n_step
   ! loop over all particles and give them a kick
 
   do j = 1, size(bunch_end%particle)
+    if (bunch_end%particle(j)%ix_lost /= not_lost$) cycle
     call csr_kick_calc (bin, bunch_end%particle(j))
   enddo
 
@@ -358,7 +359,7 @@ f = 2.0 / dz_particle**2
 ic = 0
 do i = 1, size(particle)
   p => particle(i)
-  if (.not. (p%ix_lost == not_lost$)) cycle
+  if (p%ix_lost /= not_lost$) cycle
   zp_center = p%r%vec(5) ! center of particle
   zp0 = zp_center - dz_particle / 2       ! particle left edge 
   zp1 = zp_center + dz_particle / 2       ! particle right edge 

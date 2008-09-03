@@ -1,6 +1,6 @@
 !+
 ! Subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
-!                                                     start, end, body_only)
+!                                                     start, end, body_only, err)
 !
 ! Subroutine to propagate partially through ELE2 the twiss parameters and the
 ! orbit. 
@@ -36,12 +36,14 @@
 !     %vec0(6)       -- 0th order part of the transfer map.
 !     %value(l$)     -- Set to DEL_S
 !   end  -- Coord_struct, optional: End position at DEL_S.
+!   err  -- Logical, optional: Set True if there is a problem like 
+!            the particle gets lost in tracking
 !-
 
 #include "CESR_platform.inc"
 
 subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
-                                                     start, end, body_only)
+                                                   start, end, body_only, err)
 
   use bmad_struct
   use bmad_interface, except_dummy => twiss_and_track_partial
@@ -58,12 +60,13 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
 
   real(rp) del_s, l_orig, ratio
   integer track, mat6
-  logical, optional :: body_only
   character(24) :: r_name = 'twiss_and_track_partial'
   character(80) line
+  logical, optional :: body_only, err
 
 ! Error check
 
+  if (present(err)) err = .true.
   l_orig = ele2%value(l$)
 
   if (del_s*l_orig < 0 .or. abs(del_s) > abs(l_orig)+1e-6) then
@@ -106,6 +109,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
       endif
     endif
 
+    if (present(err)) err = .false.
     return
 
   endif
@@ -138,14 +142,17 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   end select
 
   call track1 (c0, ele, param, c1)
+  if (param%lost) return
 
   if (present(end)) end = c1
 
   if (present(ele3)) then
     if (ele2%key == sbend$) c1%vec = 0
-    call make_mat6 (ele, param, c0, c1)   
+    call make_mat6 (ele, param, c0, c1, .true.)   
     call twiss_propagate1(ele1, ele)      
     ele3 = ele
   endif
+
+  if (present(err)) err = .false.
 
 end subroutine

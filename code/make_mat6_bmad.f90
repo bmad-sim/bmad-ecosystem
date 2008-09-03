@@ -81,7 +81,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
     endif
     if (param%lost) then
       mat6 = 0
-      err = .true.
+      if (present(err)) err = .true.
       call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING AT: ' // ele%name)
       return
     endif

@@ -1,5 +1,5 @@
 !+
-! Subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s)
+! Subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s, err)
 ! 
 ! Subroutine to return the twiss parameters and particle orbit at a 
 ! given longitudinal position. See also twiss_and_track_partial.
@@ -25,11 +25,12 @@
 !   orb_at_s -- Coord_struct, optional: Particle position at the position s.
 !             If orb_at_s is present then this routine assumes that orb is
 !             present.
+
 !-
 
 #include "CESR_platform.inc"
 
-subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s)
+subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s, err)
 
   use bmad_struct
   use bmad_interface, except_dummy => twiss_and_track_at_s
@@ -44,6 +45,8 @@ subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s)
   real(rp) s, s_use
 
   integer i
+
+  logical, optional :: err
 
 ! For negative s use lat%param%total_length - s
 ! Actually take into account that the lattice may start from some non-zero s.
@@ -81,10 +84,10 @@ subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s)
 
     if (present(orb)) then
       call twiss_and_track_partial (lat%ele(i-1), lat%ele(i), &
-                   lat%param, s_use-lat%ele(i-1)%s, ele, orb(i-1), orb_at_s)
+                   lat%param, s_use-lat%ele(i-1)%s, ele, orb(i-1), orb_at_s, err = err)
     else
       call twiss_and_track_partial (lat%ele(i-1), lat%ele(i), &
-                   lat%param, s_use-lat%ele(i-1)%s, ele)
+                   lat%param, s_use-lat%ele(i-1)%s, ele, err = err)
     endif
 
     call ele_geometry (lat%ele(i-1), ele, lat%param)
