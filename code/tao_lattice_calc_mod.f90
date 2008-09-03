@@ -421,8 +421,9 @@ do j = ie1, ie2
       if (j /= ie1) then 
         ! if doing linear tracking, first compute transfer matrix
         if (u%mat6_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
-                                            call make_mat6 (lat%ele(j), lat%param) 
-        call track_beam (lat, beam, j-1, j)
+                                        call make_mat6 (lat%ele(j), lat%param) 
+        call track_beam (lat, beam, j-1, j, err)
+        if (err) exit
       endif
 
       if (u%ele(j)%save_beam) u%ele(j)%beam = beam
@@ -434,11 +435,12 @@ do j = ie1, ie2
     endif
 
     ! compute centroid orbit
-    call tao_find_beam_centroid (beam, tao_lat%orb(j), too_many_lost, u, j, lat%ele(j))
 
+    call tao_find_beam_centroid (beam, tao_lat%orb(j), too_many_lost, u, j, lat%ele(j))
     if (too_many_lost) then
       lat%param%ix_lost = j
-      call out_io (s_warn$, r_name, "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\': " &
+      call out_io (s_warn$, r_name, &
+              "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\': " &
               // trim(lat%ele(j)%name), j)
     endif
 
