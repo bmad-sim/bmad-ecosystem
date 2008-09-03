@@ -52,7 +52,6 @@ if (rb_com%ascii_file) then
 else
   close (rb_com%iu)
   open (rb_com%iu, file = full_file_name, form = 'unformatted', status = 'old')
-  read (rb_com%iu) line(1:7)  ! read "!binary" line
 endif
 
 rb_com%file_name = full_file_name
@@ -111,6 +110,7 @@ implicit none
 
 real(rp) charge_bunch
 integer n_bunch, n_particle, ix_ele, ios
+character(80) line
 character(20) :: r_name = 'read_beam_file_header'
 logical err
 
@@ -123,6 +123,7 @@ if (rb_com%ascii_file) then
   read (rb_com%iu, *, iostat = ios) n_bunch
   read (rb_com%iu, *, iostat = ios) n_particle
 else
+  read (rb_com%iu) line(1:7)  ! read "!BINARY" line
   read (rb_com%iu, iostat = ios) ix_ele, n_bunch, n_particle
 endif
 
@@ -331,13 +332,13 @@ do i = 1, n_bunch
     endif
 
     do j = 1, n_particle_lines
+      if (j > n_particle) exit
       read (rb_com%iu, iostat = ios) p(j)%r%vec, p(j)%charge, p(j)%ix_lost, p(j)%r%spin
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
                         'ERROR READING PARTICLE COORDINATES IN: ' // rb_com%file_name)
         return
       endif
-      if (j > n_particle) cycle
     enddo
   endif
 
