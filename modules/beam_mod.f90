@@ -13,7 +13,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track_beam (lat, beam, ix1, ix2)
+! Subroutine track_beam (lat, beam, ix1, ix2, err)
 !
 ! Subroutine to track a beam of particles from the end of
 ! lat%ele(ix1) Through to the end of lat%ele(ix2).
@@ -31,9 +31,11 @@ contains
 !
 ! Output:
 !   beam   -- beam_struct: Beam at end of element ix2.
+!   err       -- Logical: Set true if there is an error. 
+!                  EG: Too many particles lost for a CSR calc.
 !-
 
-subroutine track_beam (lat, beam, ix1, ix2)
+subroutine track_beam (lat, beam, ix1, ix2, err)
 
 implicit none
 
@@ -42,6 +44,8 @@ type (beam_struct) :: beam
 
 integer, optional, intent(in) :: ix1, ix2
 integer i, i1, i2, j
+
+logical err
 
 ! Init
 
@@ -53,7 +57,8 @@ if (present(ix2)) i2 = ix2
 ! Loop over all elements in the lattice
 
 do i = i1+1, i2
-  call track1_beam_lat (beam, lat, i, beam)
+  call track1_beam_lat (beam, lat, i, beam, err)
+  if (err) return
 enddo
 
 end subroutine track_beam
@@ -62,7 +67,7 @@ end subroutine track_beam
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_beam_lat (beam_start, lat, ix_ele, beam_end)
+! Subroutine track1_beam_lat (beam_start, lat, ix_ele, beam_end, err)
 !
 ! Subroutine to track a beam of particles through a single element.
 !
@@ -79,9 +84,11 @@ end subroutine track_beam
 !
 ! Output:
 !   beam_end    -- beam_struct: Ending beam position.
+!   err         -- Logical: Set true if there is an error. 
+!                    EG: Too many particles lost for a CSR calc.
 !-
 
-subroutine track1_beam_lat (beam_start, lat, ix_ele, beam_end)
+subroutine track1_beam_lat (beam_start, lat, ix_ele, beam_end, err)
 
 implicit none
 
@@ -90,6 +97,7 @@ type (beam_struct) :: beam_end
 type (lat_struct) :: lat
 
 integer i, ix_ele, n_mode
+logical err
 
 ! zero the long-range wakes if they exist.
 
@@ -101,7 +109,8 @@ endif
 ! loop over all bunches in a beam
 
 do i = 1, size(beam_start%bunch)
-  call track1_bunch_lat (beam_start%bunch(i), lat, ix_ele, beam_end%bunch(i))
+  call track1_bunch_lat (beam_start%bunch(i), lat, ix_ele, beam_end%bunch(i), err)
+  if (err) return
 enddo
 
 end subroutine track1_beam_lat
@@ -159,7 +168,7 @@ end subroutine track1_beam_ele
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_lat (bunch_start, lat, ix_ele, bunch_end)
+! Subroutine track1_bunch_lat (bunch_start, lat, ix_ele, bunch_end, err)
 !
 ! Subroutine to track a bunch of particles through an element.
 !
@@ -176,9 +185,11 @@ end subroutine track1_beam_ele
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
+!   err       -- Logical: Set true if there is an error. 
+!                  EG: Too many particles lost for a CSR calc.
 !-
 
-subroutine track1_bunch_lat (bunch_start, lat, ix_ele, bunch_end)
+subroutine track1_bunch_lat (bunch_start, lat, ix_ele, bunch_end, err)
 
 implicit none
 
@@ -189,7 +200,7 @@ type (ele_struct), save :: rf_ele
 
 real(rp) charge
 integer i, j, n, ix_ele
-logical csr_on
+logical csr_on, err
 
 !------------------------------------------------
 ! space charge tracking will also include wakes if they are on too.
@@ -204,8 +215,9 @@ if (csr_param%ix1_ele_csr > -1) csr_on = csr_on .and. (ix_ele > csr_param%ix1_el
 if (csr_param%ix2_ele_csr > -1) csr_on = csr_on .and. (ix_ele <= csr_param%ix2_ele_csr) 
 
 if (csr_on) then
-  call track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)
+  call track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end, err)
 else
+  err = .false.
   call track1_bunch_ele (bunch_start, lat%ele(ix_ele), lat%param, bunch_end)
 endif
 

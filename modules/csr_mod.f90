@@ -113,7 +113,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)
+! Subroutine track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end, err)
 !
 ! Routine to track a bunch of particles through the element lat%ele(ix_ele)
 ! with csr radiation effects.
@@ -128,9 +128,10 @@ contains
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
+!   err       -- Logical: Set true if there is an error. EG: Too many particles lost.
 !-
 
-subroutine track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)
+subroutine track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end, err)
 
 implicit none
 
@@ -142,13 +143,14 @@ type (ele_struct), save :: runt
 type (csr_bin_struct), save :: bin
 
 real(rp) s_start
-integer i, j, ns, nb, ix_ele, n_step
+integer i, j, ns, nb, ix_ele, n_step, n_live
 
-character(20) :: r_name = 'track1_bunch_sc'
-logical auto_bookkeeper
+character(20) :: r_name = 'track1_bunch_csr'
+logical err, auto_bookkeeper
 
 ! Init
 
+err = .true.
 ele => lat%ele(ix_ele)
 
 ! No CSR for a zero length element.
@@ -198,9 +200,16 @@ do i = 0, n_step
 
   s_start = i * bin%ds_track_step
 
-  ! Cannot do binning if there are less than 2 particles
+  ! Cannot do a realistic calculation if there are less particles than bins
 
-  if (count(bunch_end%particle%ix_lost == not_lost$) < 2) return
+  n_live = count(bunch_end%particle%ix_lost == not_lost$)
+  if (n_live < csr_param%n_bin) then
+    call out_io (s_error$, r_name, 'NUMBER OF LIVE PARTICLES: \i0\ ', &
+                          'LESS THAN NUMBER OF BINS FOR CSR CALC.', &
+                          'AT ELEMENT: ' // trim(ele%name) // '  [# \i0\] ', &
+                          i_array = (/ n_live, ix_ele /) )
+    return
+  endif
 
   call csr_bin_particles (bunch_end%particle, bin)    
 
@@ -242,6 +251,7 @@ do i = 0, n_step
 enddo
 
 bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
+err = .false.
 
 end subroutine
 
@@ -698,6 +708,8 @@ character(16) :: r_name = 'lsc_bin_kicks'
 
 sig_x_ave = dot_product(bin%bin1(:)%sig_x, bin%bin1(:)%charge) / sum(bin%bin1(:)%charge)
 sig_y_ave = dot_product(bin%bin1(:)%sig_y, bin%bin1(:)%charge) / sum(bin%bin1(:)%charge)
+
+if (sig_y_ave == 0 .or. sig_x_ave == 0) return  ! Symptom of not enough particles.
 
 ! Compute the kick at the center of each bin
 

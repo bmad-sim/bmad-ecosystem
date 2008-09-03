@@ -22,6 +22,8 @@ contains
 ! Subroutine check_aperture_limit (orb, ele, at, param)
 !
 ! Subroutine to check if an orbit is outside the aperture.
+! Note: A particle will also be considered to have hit an aperture
+! if |p_x| or |p_y| > 1.
 !
 ! Modules needed:
 !   use bmad
@@ -62,7 +64,19 @@ subroutine check_aperture_limit (orb, ele, at, param)
   real(rp) x_lim, y_lim, x_beam, y_beam, s_here
   integer at
 
-!
+  ! Check p_x and p_y
+
+  if (abs(orb%vec(2)) > 1) then
+    param%lost = .true.
+    param%plane_lost_at = x_plane$
+  endif
+    
+  if (abs(orb%vec(4)) > 1) then
+    param%lost = .true.
+    param%plane_lost_at = y_plane$
+  endif
+
+  !
 
   if (ele%offset_moves_aperture) then
     orb2 = orb
@@ -78,7 +92,7 @@ subroutine check_aperture_limit (orb, ele, at, param)
     y_beam = orb%vec(3)
   endif
 
-!
+  !
 
   if (x_beam < 0) then
     x_lim = ele%value(x1_limit$)
