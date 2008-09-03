@@ -1082,7 +1082,8 @@ do ii = 1, size(curve%x_line)
 
   select case (curve%data_source)
   case ('lattice')   
-    call twiss_and_track_at_s (lat, s_now, ele, orb, here)
+    call twiss_and_track_at_s (lat, s_now, ele, orb, here, err)
+    if (err) return
   case ('beam')
     call find_nearest_bunch_params (tao_lat, s_now, bunch_params)
     call ele_at_s (lat, s_now, ix_ele)
