@@ -224,6 +224,7 @@ if build_type == "RELEASE":
         print dirlist
         for dir in dirlist:           # copy over the hidden directory .depend and file .f90_module_rules
             ( flag1 , flag2 ) = ( 0 , 0 )
+            print "\n\n\n======================================"
             if os.path.exists(OSF_reldir + "/src/" + dir + "/.depend"):
                 flag1 = True
                 print "Copying .depend directory from OSF1 " + dir + " area.\n" 
@@ -242,10 +243,41 @@ if build_type == "RELEASE":
                     print line.strip()
                     line = dep_process.fromchild.readline()
                 print ""
-        #Taken care of when release build is set up in this script.      
-        #print "Copying config directory from OSF1 area.\n"
-        #shutil.copytree(OSF_reldir + "/config", full_rel_name + "/config")
-        #build_process = popen2.Popen4(bin_dir + "/util/cesr_to_vms " + full_rel_name) # FTP upload to VMS cluster
+                # KLUDGE! --> post-process the .depvms files as they are generated to
+                # replace incorrect [nfs...] path info with correct makefile variable names
+                # This is to fix a problem with filtercesr.  That script needs to be debugged
+                # to obviate this cumbersome extra step.
+                print "FIXME: Post-processing incorrect .depvms file for "+rel_name+"/"+dir
+                badline1 = "\\[nfs\\.acc\\.libs\\.OSF1_alpha_hp\\."+rel_name+"\\.modules\\]"
+                badline2 = "\\[nfs\\.acc\\.libs\\.OSF1_alpha_hp\\."+rel_name+"\\.packages.modules\\]"
+                badline3 = "\\[nfs\\.acc\\.libs\\.OSF1_alpha_hp\\."+rel_name+"\\.src.include\\]"
+                badline4 = "\\[nfs\\.acc\\.libs\\.OSF1_alpha_hp\\."+rel_name+"\\.packages.cfortran.include\\]"
+                
+                dep_process = popen2.Popen4("perl -p -i -e 's/" + badline1 +"/\\$\\(MOD_OUT_DIR\\)/g' *.depvms")
+                line = dep_process.fromchild.readline()
+                while line:
+                    print line.strip()
+                    line = dep_process.fromchild.readline()
+                dep_process = popen2.Popen4("perl -p -i -e 's/" + badline2 +"/\\$\\(PKG_MOD\\)/g' *.depvms")
+                line = dep_process.fromchild.readline()
+                while line:
+                    print line.strip()
+                    line = dep_process.fromchild.readline()
+                dep_process = popen2.Popen4("perl -p -i -e 's/" + badline3 +"/\\$\\(CLBASE\\).src.include\\]/g' *.depvms")
+                line = dep_process.fromchild.readline()
+                while line:
+                    print line.strip()
+                    line = dep_process.fromchild.readline()
+                dep_process = popen2.Popen4("perl -p -i -e 's/" + badline4 +"/\\$\\(PBASE\\).cfortran.include\\]/g' *.depvms")
+                line = dep_process.fromchild.readline()
+                while line:
+                    print line.strip()
+                    line = dep_process.fromchild.readline()
+                    
+                
+        # Rename recipes directory to conform to VMS expectations
+        shutil.move(full_rel_name + "/src/recipes_f-90_LEPP", full_rel_name + "/src/RECIPES_F_90_LEPP")
+
         xfer_cmd = [bin_dir + "/util/cesr_to_vms", rel_name]
         print "Executing transfer of archive file to VMS cluster.\n"
         print "xfer: " + str(xfer_cmd)
