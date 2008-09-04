@@ -59,6 +59,19 @@ $ write sys$output "========== Building dcslib =========="
 $ gmake --directory=[.src.dcslib] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
+$! building pecklib
+$!--------------------------------------------------
+$ write sys$output "========== Building pecklib =========="
+$ gmake --directory=[.src.pecklib] "''par1'" "''par2'"
+$!
+$!--------------------------------------------------
+$! building pecklib
+$!--------------------------------------------------
+$!
+$ write sys$output "========== Building pecklib =========="
+$ gmake --directory=[.src.pecklib] "''par1'" "''par2'"
+$!
+$!--------------------------------------------------
 $! building bmad
 $!--------------------------------------------------
 $!  
