@@ -435,10 +435,10 @@ synchrotron radiation calculations.
     integer :: n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
     integer :: ix1_ele_csr = -1            ! Start index for csr tracking
     integer :: ix2_ele_csr = -1            ! Stop index for csr tracking
-    logical :: lcsr_component_on = .true.  ! Longitudinal csr component
-    logical :: lsc_component_on = .true.   ! Longitudinal space charge component
-    logical :: tsc_component_on = .true.   ! Transverse space charge component
-    logical :: small_angle_approx = .true. ! Use lcsr small angle approximation?
+    logical :: lcsr_component_on = T       ! Longitudinal csr component
+    logical :: lsc_component_on = T        ! Longitudinal space charge component
+    logical :: tsc_component_on = T        ! Transverse space charge component
+    logical :: small_angle_approx = T      ! Use lcsr small angle approximation?
   end type
 \end{example}
 the \vn{global%track_type} must be set to \vn{"beam"} for the CSR computation.
@@ -1624,7 +1624,7 @@ place holder for the \vn{graph%component} Example:
     curve(1)%y_axis_scale_factor = 1000
     curve(1)%x_axis_scale_factor = 1000
   	curve(1)%ele_ref_name = "23"
-  	curve(1)%draw_line = .false.
+  	curve(1)%draw_line = F
   /
 \end{example}
 In this example, \vn{curve(1)%data_type_x} expands to
@@ -1845,24 +1845,24 @@ and lattice layouts.
 The namelist syntax is the same for both:
 \begin{example}
   &element_shapes_lat_layout
-    ele_shape(i) = "<class:name>" "<shape>" "<color>" "<v_size>" "<print_Label>"
+    ele_shape(i) = "<class:name>" "<shape>" "<color>" "<v_size>" "<Label_type>"
   /
 \end{example}
 For Example:                 
 \begin{example}
   &element_shapes_floor_plan
-    !               Class:Name       Shape     Color     Size   Label?
-    ele_shape(1) = "Quadrupole:Q*"   "Box"     "Red"     30     T 
-    ele_shape(2) = "Quadrupole:*"    "XBox"    "Red"     30     F 
-    ele_shape(3) = "SBend:*"         "Box"     "Blue"    15     F
-    ele_shape(4) = "Wiggler:*"       "XBox"    "Green"   20     T
+    !               Class:Name       Shape     Color     Size   Label_Type
+    ele_shape(1) = "quadrupole:q*"   "box"     "red"     30     name 
+    ele_shape(2) = "quadrupole:*"    "xbox"    "red"     30     none 
+    ele_shape(3) = "sbend:*"         "box"     "blue"    15     none
+    ele_shape(4) = "wiggler:*"       "xbox"    "green"   20     name
   /
 \end{example}
 A figure is drawn for each element in the lattice that matches a
 \vn{<class:name>} (\sref{s:class:name} of any \vn{ele_shape(:)}. 
 Thus, in the
 example above, \vn{ele_shape(1)} will match to all quadrupoles whose name
-begins with ``Q'' and \vn{ele_shape(2)} will match all quadrupoles. If an
+begins with ``q'' and \vn{ele_shape(2)} will match all quadrupoles. If an
 element matches more than one shape the last shape matched will be
 used. \vn{<shape>} is the shape of the figure drawn. Valid Shapes are:
 \index{Box}\index{Xbox}
@@ -1883,15 +1883,15 @@ the \vn{K1} focusing strength. Not all elements can be used with a
 \vn{<color>} is the color of the shape. Good colors to use are:
 \index{Element shape!color}
 \begin{example}
-  "BLACK"
-  "RED"
-  "ORANGE"
-  "MAGENTA"
-  "YELLOW"
-  "GREEN"
-  "CYAN"
-  "BLUE"
-  "PURPLE"
+  "black"
+  "red"
+  "orange"
+  "magenta"
+  "yellow"
+  "green"
+  "cyan"
+  "blue"
+  "purple"
 \end{example}
 
 \vn{<v_size>} is the vertical size of the shape in points (72 points =
@@ -1901,8 +1901,14 @@ a \vn{var_box} or \vn{asym_var_box} can get arbitrarily large, the
 parameter \vn{plot_page%shape_height_max} (\sref{s:plot.page}).
 sets the maximum drawn size.
 
-Finally \vn{<print_label>} is a logical indicating whether
-the element name is to be printed underneath the corresponding glyph.
+Finally \vn{<Label_Type>} indicates what type of label to print next to the corresponding
+element glyph. Possibilities are:
+\begin{example}
+  name            -- The element name
+  none            -- No label is drawn.
+  s               -- Draw longitudinal s position.
+\end{example}
+The default is \vn{"name"}
 
 Note: There is an old, deprecated syntax where both the lattice layout and floor plan
 drawings are specified via one \vn{element_shapes} namelist. 

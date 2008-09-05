@@ -466,10 +466,12 @@ do
       ! If plotting something like the phase then the default is for ele_ref 
       ! to be the beginning element.
 
-      if (crv%ele_ref_name == ' ' .and. crv%ix_ele_ref >= 0) then ! if ix_ele_ref has been set ...
-        crv%ele_ref_name = s%u(i_uni)%design%lat%ele(crv%ix_ele_ref)%name ! then find the name
-      elseif (crv%ele_ref_name /= ' ') then                    ! if ele_ref_name has been set ...
-        call tao_locate_elements (crv%ele_ref_name, i_uni, ix_ele, .true.) ! then find the index
+      ! if ix_ele_ref has been set ...
+      if (crv%ele_ref_name == ' ' .and. crv%ix_ele_ref >= 0) then 
+        crv%ele_ref_name = s%u(i_uni)%design%lat%ele(crv%ix_ele_ref)%name ! find the name
+      ! if ele_ref_name has been set ...
+      elseif (crv%ele_ref_name /= ' ') then
+        call tao_locate_elements (crv%ele_ref_name, i_uni, ix_ele, .true.) ! find the index
         crv%ix_ele_ref = ix_ele(1)
       elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r.' .or. &
               crv%data_type(1:2) == 't.' .or. crv%data_type(1:3) == 'tt.') then
@@ -523,7 +525,11 @@ if (element_shapes_needed) then
       ele_shape(i)%shape     = shape(i)%shape
       ele_shape(i)%color     = shape(i)%color
       ele_shape(i)%dy_pix    = shape(i)%dy_pix
-      ele_shape(i)%draw_name = shape(i)%draw_name
+      if (shape(i)%draw_name) then
+        ele_shape(i)%label_type = 'name'
+      else
+        ele_shape(i)%label_type = 'none'
+      endif
     enddo
 
     call tao_uppercase_shapes (n)
@@ -537,6 +543,7 @@ if (element_shapes_needed) then
 
     rewind (iu)
     ele_shape(:)%ele_name = ' '
+    ele_shape(:)%label_type = 'name'
     read (iu, nml = element_shapes_floor_plan, iostat = ios)
 
     if (ios > 0) then
@@ -614,6 +621,11 @@ do n = 1, size(ele_shape)
   call str_upcase (ele_shape(n)%ele_name, ele_shape(n)%ele_name)
   call str_upcase (ele_shape(n)%shape,    ele_shape(n)%shape)
   call str_upcase (ele_shape(n)%color,    ele_shape(n)%color)
+  call downcase_string (ele_shape(n)%label_type)
+  if (ele_shape(n)%label_type == '') ele_shape(n)%label_type = 'name'
+  if (index('false', trim(ele_shape(n)%label_type)) == 1) ele_shape(n)%label_type = 'none'
+  if (index('true', trim(ele_shape(n)%label_type)) == 1) ele_shape(n)%label_type = 'name'
+
   if (ele_shape(n)%ele_name /= '') n_shape = n
 enddo
 

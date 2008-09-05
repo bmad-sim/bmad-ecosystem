@@ -45,7 +45,7 @@ type tao_ele_shape_struct    ! for the element layout plot
   character(16) shape        ! plot shape
   character(16) color        ! plot color
   real(rp) dy_pix            ! plot vertical height 
-  Logical :: draw_name = .true.
+  character(16) label_type 
 end type
 
 !-----------------------------------------------------------------------

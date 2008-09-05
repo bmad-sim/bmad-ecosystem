@@ -354,7 +354,7 @@ real(rp) x_inch, y_inch, x1, x2, y1, y2
 
 character(80) str
 character(40) name
-character(20) :: r_name = 'tao_draw_ele_for_floor_plan'
+character(40) :: r_name = 'tao_draw_ele_for_floor_plan'
 character(16) this_shape
 character(2) justify
 
@@ -542,7 +542,7 @@ endif
 ! Since multipass slaves are on top of one another, just draw the multipass lord's name.
 ! Also place a bend's label to the outside of the bend.
 
-if (ele_shape%draw_name) then
+if (ele_shape%label_type == 'name') then
   if (ele%control_type == multipass_slave$) then
     ix = ele%ic1_lord
     ix = lat%control(lat%ic(ix))%ix_lord
@@ -550,7 +550,15 @@ if (ele_shape%draw_name) then
   else
     name = ele%name
   endif
+elseif (ele_shape%label_type == 's') then
+  write (name, '(f16.2)') ele%s - ele%value(l$) / 2
+  call string_trim (name, name, ix)
+elseif (ele_shape%label_type /= 'none') then
+  call out_io (s_error$, r_name, 'BAD ELEMENT LABEL: ' // ele_shape%label_type)
+  call err_exit
+endif 
 
+if (ele_shape%label_type /= 'none') then
   if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
     x_center = (end1%x + end2%x) / 2 
     y_center = (end1%y + end2%y) / 2 
@@ -597,6 +605,7 @@ integer i, j, ix_shape, k, kk, ix, ix1, isu
 integer icol, ix_var, ixv
 
 character(80) str
+character(40) name
 character(20) :: r_name = 'tao_plot_lat_layout'
 character(20) this_shape
 
@@ -761,12 +770,27 @@ do i = 1, lat%n_ele_max
 
   ! Put on a label
   
-  if (s%global%label_lattice_elements .and. ele_shape(ix_shape)%draw_name) then
-    y_off = y_bottom   
-    s_pos = ele%s - ele%value(l$)/2
-    if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
-    call qp_draw_text (ele%name, s_pos, y_off, &
-                                 height = height, justify = 'LC', ANGLE = 90.0_rp)
+  if (s%global%label_lattice_elements) then
+
+    
+    if (ele_shape(ix_shape)%label_type == 'name') then
+      name = ele%name
+    elseif (ele_shape(ix_shape)%label_type == 's') then
+      write (name, '(f16.2)') ele%s - ele%value(l$) / 2
+      call string_trim (name, name, ix)
+    elseif (ele_shape(ix_shape)%label_type /= 'none') then
+      call out_io (s_error$, r_name, 'BAD ELEMENT LABEL: ' // ele_shape(ix_shape)%label_type)
+      call err_exit
+    endif 
+
+    if (ele_shape(ix_shape)%label_type /= 'none') then
+      y_off = y_bottom   
+      s_pos = ele%s - ele%value(l$)/2
+      if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
+      call qp_draw_text (name, s_pos, y_off, &
+                                   height = height, justify = 'LC', ANGLE = 90.0_rp)
+    endif
+
   endif
 
   call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
