@@ -286,7 +286,7 @@ do n = 0, ubound(lat%branch, 1)
     if (ele%control_type == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
         ic = lat%control(j)%ix_slave
-        call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%branch(n)%ele(ic), ix_shape)        
+        call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%branch(n)%ele(ic), ix_shape)
       enddo
     else
       call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, ix_shape)
