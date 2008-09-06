@@ -63,6 +63,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   character(24) :: r_name = 'twiss_and_track_partial'
   character(80) line
   logical, optional :: body_only, err
+  logical error
 
 ! Error check
 
@@ -149,7 +150,8 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   if (present(ele3)) then
     if (ele2%key == sbend$) c1%vec = 0
     call make_mat6 (ele, param, c0, c1, .true.)   
-    call twiss_propagate1(ele1, ele)      
+    call twiss_propagate1(ele1, ele, error)      
+    if (error) return
     ele3 = ele
   endif
 

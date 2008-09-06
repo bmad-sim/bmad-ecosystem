@@ -1492,19 +1492,35 @@ case (rfcavity$)
   check_sum = val(voltage$) + val(phi0$) 
 
 case (elseparator$)
-  check_sum = check_sum + val(hkick$) + val(vkick$)
+  check_sum = val(hkick$) + val(vkick$)
 
 case (lcavity$)
   check_sum = val(gradient$) + val(phi0$) + val(gradient_err$) + val(phi0_err$)
+
+case (match$, patch$)
+  check_sum = sum(val) - val(check_sum$) - sum(val(general1$:general5$))
+
+case (drift$, rcollimator$, ecollimator$, monitor$, instrument$)
+  check_sum = sum(val) - val(check_sum$)
+
+case (marker$, branch$, photon_branch$)
+  check_sum = sum(val) - val(check_sum$) - sum(val(general1$:general5$))
+
+case (kicker$, hkicker$, vkicker$)
+  check_sum = sum(val) - val(check_sum$) - sum(val(general1$:general5$))
+
 case default
-  return
+  if (associated(ele%taylor(1)%term)) then
+    call out_io(s_abort$, r_name, 'CHECK_SUM FOR ELEMENT OF THIS TYPE:' // key_name(ele%key), &
+                                  'NOT YET IMPLEMENTED. PLEASE CONTACT DAVID SAGAN')
+    call err_exit
+  endif
 
 end select
 
 check_sum = check_sum + val(l$) + val(ds_step$)
 offset_check_sum = val(x_offset$) + val(y_offset$) + val(x_pitch$) + &
                           val(y_pitch$) + val(s_offset$) + val(tilt$)
-
 
 ! If an element has just been offset and bmad_com%conserve_taylor_map = T then 
 ! conserve the taylor map.

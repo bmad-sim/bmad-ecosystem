@@ -418,16 +418,16 @@ Here the 1\St and 6\Th elements are connected to a multipass lord and the
 \index{Sbend}\index{Rbend}\index{Lcavity}
 If there are \vn{lcavity} elements in the lattice then the reference
 energy at a given element may differ from pass to pass. For a magnetic
-element, the field strength should be setup to be the independent
-attribute (\sref{s:depend}) since the normalized strength is not
-constant from pass to pass. For a bend, there is the added
-complication that, without a definite reference energy, it is only
-possible to calculate the total bending strength \vn{g + g_err} but
-not \vn{g} or \vn{g_err} separately. This is important since \vn{g}
-determines the layout of the elements downstream from the bend. To
-alleviate this problem, \vn{Sbend} and \vn{Rbend} elements have
-\vn{e_tot_ref_geometry} and \vn{n_multipass_ref} attributes which are
-used to set the reference energy for calculating \vn{g}. If
+element, since the normalized strength is not constant from pass to
+pass, the magnetic field strength should be setup to be the
+independent attribute (\sref{s:depend}). For a bend, there is the
+added complication that, without a definite reference energy, it is
+only possible to calculate the total bending strength \vn{g + g_err}
+but not \vn{g} or \vn{g_err} separately. This is important since
+\vn{g} determines the layout of the elements downstream from the
+bend. To alleviate this problem, \vn{Sbend} and \vn{Rbend} elements
+have \vn{e_tot_ref_geometry} and \vn{n_multipass_ref} attributes which
+are used to set the reference energy for calculating \vn{g}. If
 \vn{n_multipass_ref} is non-zero, the reference energy is taken to be
 the reference energy at the element on the n\th turn. If
 \vn{n_multipass_ref} is zero then \vn{e_tot_ref_geometry} is used as

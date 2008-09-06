@@ -24,6 +24,28 @@ emittance, emitt -> emit
 
 pointers -> allocatable in ele_struct, lat_struct, etc.
 
+multipass with a reversed line and superimpose does the wrong thing:
+  b: marker, superimpose, ref = a, offset = 1
+  a: quad, l = 3
+  lm: line[multipass] = (a)
+  out: line = (lm, -lm)
+  use, out
+produces:
+ List:                                 Key                 Length         S
+   1) A\1\1                            QUADRUPOLE            2.50      2.50
+   2) B\1                              MARKER                0.00      2.50
+   3) A\1\2                            QUADRUPOLE            0.50      3.00
+   4) A\2\1                            QUADRUPOLE            2.50      5.50
+   5) B\2                              MARKER                0.00      5.50
+   6) A\2\2                            QUADRUPOLE            0.50      6.00
+ ---- Lord Elements ----
+     7) A                                QUADRUPOLE            3.00      0.00
+     8) A\2                              QUADRUPOLE            3.00      6.00
+     9) A\1                              QUADRUPOLE            3.00      3.00
+    10) B                                MARKER                0.00      0.00
+Note that A\2\1 should be 0.5 m long.
+
+
 -----------------
 
 add function to calc: ring%param%s_start

@@ -1,5 +1,5 @@
 !+
-! Subroutine twiss_propagate1 (ele1, ele2)
+! Subroutine twiss_propagate1 (ele1, ele2, err)
 !
 ! Subroutine to propagate the twiss parameters from the end of ELE1 to
 ! the end of ELE2.
@@ -19,13 +19,14 @@
 !
 ! Output:
 !   ele2   -- Ele_struct: Structure for the ending Twiss parameters.
+!   err    -- Logical, optional: Set True if there is an error. False otherwise.
 !   bmad_status -- Common block status structure:
-!       %ok         -- Set False if an input beta is zero
+!       %ok         -- Set False if an input beta is zero (deprecated).
 !-
 
 #include "CESR_platform.inc"
 
-subroutine twiss_propagate1 (ele1, ele2)
+subroutine twiss_propagate1 (ele1, ele2, err)
 
   use bmad_struct
   use bmad_interface, except_dummy => twiss_propagate1
@@ -43,8 +44,12 @@ subroutine twiss_propagate1 (ele1, ele2)
   real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), dpz2_dpz1, rel_p1, rel_p2
   real(rp) mat4(4,4), det_factor
 
+  logical, optional :: err
+
   !---------------------------------------------------------------------
   ! init
+
+  if (present(err)) err = .true.
 
   if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
     print *, 'ERROR IN TWISS_PROPAGATE1: ZERO BETA DETECTED.'
@@ -85,6 +90,7 @@ subroutine twiss_propagate1 (ele1, ele2)
     ele2%z = ele1%z
     ele2%gamma_c = ele1%gamma_c
     ele2%c_mat = ele1%c_mat
+    if (present(err)) err = .false.
     return
   endif
 
@@ -230,6 +236,8 @@ subroutine twiss_propagate1 (ele1, ele2)
   ele2%a%etap = eta_vec(2)
   ele2%b%eta  = eta_vec(3)
   ele2%b%etap = eta_vec(4)
+
+  if (present(err)) err = .false.
 
 end subroutine
 

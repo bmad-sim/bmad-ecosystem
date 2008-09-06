@@ -510,6 +510,17 @@ interface
 end interface
 
 interface
+  function multipass_lord_index (ix_slave, lat, ix_pass, &
+                                                  ix_super_lord) result (ix_multi_lord)
+    use bmad_struct, only: lat_struct
+    implicit none
+    type (lat_struct) lat
+    integer ix_slave, ix_multi_lord
+    integer, optional :: ix_pass, ix_super_lord
+  end function
+end interface
+
+interface
   subroutine name_to_list (lat, ele_names, use_ele)
     use bmad_struct, only: lat_struct
     implicit none
@@ -1029,11 +1040,12 @@ interface
 end interface
 
 interface
-  subroutine twiss_propagate1 (ele1, ele2)
+  subroutine twiss_propagate1 (ele1, ele2, err)
     use bmad_struct, only: ele_struct
     implicit none
     type (ele_struct) ele1
     type (ele_struct) ele2
+    logical, optional :: err
   end subroutine
 end interface
 
