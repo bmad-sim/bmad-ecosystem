@@ -1329,7 +1329,7 @@ integer curr_ub, ub, i
 
 ! get new size
 
-ub = 100
+ub = 10
 if (associated (ele)) ub = max (int(1.3*size(ele)), ub)
 if (present(upper_bound))  ub = upper_bound
 

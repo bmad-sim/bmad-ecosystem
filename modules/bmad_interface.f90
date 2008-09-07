@@ -181,17 +181,7 @@ interface
 end interface
 
 interface
-  subroutine compress_lat (lat, ok)
-    use bmad_struct, only: lat_struct
-    implicit none
-    type (lat_struct), target :: lat
-    logical ok
-  end subroutine
-end interface
-
-interface
-  subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, &
-                                                                 coord_out)
+  subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
     use bmad_struct, only: ele_struct, coord_struct
     implicit none
     character(*) in_type_str
@@ -709,11 +699,10 @@ interface
 end interface
 
 interface
-  subroutine remove_ele_from_lat (lat, ix_ele)
+  subroutine remove_eles_from_lat (lat)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) lat
-    integer, optional :: ix_ele
   end subroutine
 end interface
 

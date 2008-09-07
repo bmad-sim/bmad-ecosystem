@@ -66,7 +66,7 @@ do i = 1, lat%n_ele_track
     cycle
   endif
 
-  ele2%key = null_ele$   ! mark for deletion
+  ele2%key = -1   ! mark for deletion
 
   ele1%value(l$) = 2 * ele1%value(l$)
   ele1%value(hkick$) = 2 * ele1%value(hkick$)
@@ -76,6 +76,6 @@ do i = 1, lat%n_ele_track
 
 enddo
 
-call remove_ele_from_lat (lat)     ! Remove all null_ele elements
+call remove_eles_from_lat (lat)     ! Remove all null_ele elements
 
 end subroutine

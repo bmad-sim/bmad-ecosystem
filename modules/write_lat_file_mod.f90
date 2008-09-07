@@ -65,12 +65,12 @@ character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
 character(40) :: r_name = 'write_bmad_lattice_file'
 
 integer i, j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1
-integer unit(6), ix_names, ix_match, n_pass_max, n_lord
+integer unit(6), ix_names, ix_match, n_pass_max, n_1st_pass
 integer ix_slave, ix_ss, ix_l, ixs1, ixs2, ix_r, ix_pass
 integer ix_ss1, ix_ss2, ix_multi_lord
 integer, allocatable :: ix_slave_series(:,:)
 
-logical unit_found, write_term, match_found, found, in_multi_region
+logical unit_found, write_term, match_found, found, in_multi_region, expand_lat_out
 logical, optional :: err
 
 ! Init...
@@ -273,15 +273,19 @@ ele_loop: do i = 1, lat%n_ele_max
 
   if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
   if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
-
-  ix1 = lat%control(ele%ix1_slave)%ix_slave
-  if (ele%control_type == super_lord$ .or. (ele%control_type == multipass_lord$ .and. &
-                                        lat%ele(ix1)%control_type == super_lord$)) then
-    line = trim(line) // ', superimpose, ele_beginning, ref = x__' // trim(ele%name)
-  endif
-
   if (associated(ele%descrip)) line = trim(line) // &
                             ', descrip = "' // trim(ele%descrip) // '"'
+
+  ! Create a null_ele element for a superposition and fill in the superposition
+  ! information.
+
+  ix1 = lat%control(ele%ix1_slave)%ix_slave
+
+  if (ele%control_type == super_lord$ .or. (ele%control_type == multipass_lord$ .and. &
+                                        lat%ele(ix1)%control_type == super_lord$)) then
+    write (iu, '(a)') "x__" // trim(ele%name) // ": null_ele"
+    line = trim(line) // ', superimpose, ele_beginning, ref = x__' // trim(ele%name)
+  endif
 
   ! If the wake file is not BMAD Format (Eg: XSIF format) then create a new wake file.
   ! If first three characters of the file name are '...' then it is a foreign file.
@@ -531,23 +535,17 @@ ele_loop: do i = 1, lat%n_ele_max
     call write_out (line, iu, .true.)  
   endif
 
-  ! Create a null_ele element for a superposition.
-
-  if (ele%control_type == super_lord$) then
-    line = "x__" // trim(ele%name) // ": null_ele"
-    call write_out (line, iu, .true.)
-  endif
-
 enddo ele_loop
 
 !----------------------------------------------------------
 ! Lattice Layout...
 
 ! Multipass stuff...
-! First count the number of lords and the maximum number of passes
+! First get an upper bound on the number of 1st pass slaves in the tracking lattice 
+! and the maximum number of passes. 
 
 n_pass_max = 0
-n_lord = 0
+n_1st_pass = 0
 
 do i = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(i)
@@ -555,13 +553,13 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   n_pass_max = max(n_pass_max, lord%n_slave) 
   ix_slave = lat%control(lord%ix1_slave)%ix_slave
   if (lat%ele(ix_slave)%control_type == super_lord$) then
-    n_lord = n_lord + lat%ele(ix_slave)%n_slave
+    n_1st_pass = n_1st_pass + lat%ele(ix_slave)%n_slave
   else
-    n_lord = n_lord + 1
+    n_1st_pass = n_1st_pass + 1
   endif
 enddo
 
-allocate (ix_slave_series(n_lord, n_pass_max))
+allocate (ix_slave_series(n_1st_pass, n_pass_max))
 allocate (multipass(lat%n_ele_max))
 multipass(:)%ix_pass = 0
 multipass(:)%ix_region = 0
@@ -728,7 +726,24 @@ write (iu, *) 'use, main_line'
 ! If there are multipass lines then expand the lattice and write out
 ! the post-expand info as needed.
 
-
+if (n_pass_max > 0) then
+  expand_lat_out = .false.
+  do i = 1, lat%n_ele_max
+    ele => lat%ele(i)
+    if (ele%control_type == super_slave$) cycle
+    if (ele%key /= lcavity$ .and. ele%key /= rfcavity$) cycle
+    if (ele%value(dphi0$) == 0) cycle
+    if (.not. expand_lat_out) then
+      write (iu, *)
+      write (iu, '(a)') '!-------------------------------------------------------'
+      write (iu, *)
+      write (iu, '(a)') 'expand_lattice'
+      write (iu, *)
+      expand_lat_out = .true.
+    endif
+    write (iu, '(3a)') trim(ele%name), '[dphi0] = ', trim(str(ele%value(dphi0$)))
+  enddo
+endif
 
 ! cleanup
 

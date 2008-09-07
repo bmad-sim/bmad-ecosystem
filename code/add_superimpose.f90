@@ -156,8 +156,9 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   if (all_drift) then  
     do i = ix2_split, ix1_split+2, -1 ! remove all drifts but one
-      call remove_ele_from_lat(lat, i)
+      lat%ele(i)%key = -1  ! mark for deletion
     enddo
+    call remove_eles_from_lat(lat)  ! And delete
     ix_super = ix1_split + 1
     lat%ele(ix_super) = sup_ele
     lat%ele(ix_super)%control_type = free$
@@ -262,9 +263,11 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
     call calc_superimpose_key(slave_ele, sup_ele, lat%ele(ix_slave))
     if (lat%ele(ix_slave)%key <= 0) then
-      print *, 'ERROR IN ADD_SUPERIMPOSE: BAD SUPERIMPOSE FOR ',  &
-                                        sup_ele%name
-      print *, '      SUPERIMPOSED UPON: ', slave_ele%name
+      print *, 'ERROR IN ADD_SUPERIMPOSE:'
+      print *, '      ELEMENT: ', trim(sup_ele%name), ' OF TYPE: ', key_name(sup_ele%key)
+      print *, '      IS TO BE SUPERIMPOSED UPON: ', trim(slave_ele%name), &
+                                                  ' OF TYPE: ', key_name(slave_ele%key)
+      print *, '      I DO NOT KNOW HOW TO DO THIS!'
       call err_exit                    
     endif
 

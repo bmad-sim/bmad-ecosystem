@@ -759,7 +759,10 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
     call add_all_superimpose (lat, in_lat%ele(i), plat%ele(i))
   enddo
 
-  call remove_ele_from_lat (lat)  ! remove all null_ele elements.
+  do i = 1, lat%n_ele_max
+    if (lat%ele(i)%key == null_ele$) lat%ele(i)%key = -1 ! mark for deletion
+  enddo
+  call remove_eles_from_lat (lat)  ! remove all null_ele elements.
 
 ! Add branch lines
 

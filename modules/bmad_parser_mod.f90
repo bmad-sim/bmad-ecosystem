@@ -2597,7 +2597,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct) ele_in
 type (ele_struct), save :: ele, ele2
-type (ele_struct), pointer :: this_ele
+type (ele_struct), pointer :: ref_ele
 type (parser_ele_struct) pele
 type (ele_struct), pointer :: eles(:)
 type (control_struct), pointer :: control(:)
@@ -2638,6 +2638,8 @@ endif
 ! insert ele in the lat
 ! do not insert twice at the same spot
 
+lat%ele%ix_pointer = -1
+
 do 
 
   have_inserted = .false.
@@ -2646,38 +2648,43 @@ do
 
     if (lat%ele(i_ele)%control_type /= free$)  &
                                  call control_bookkeeper (lat, i_ele)
-    this_ele => lat%ele(i_ele)
-    ic = this_ele%control_type
+    ref_ele => lat%ele(i_ele)
+    ic = ref_ele%control_type
      
     if (ic == group_lord$ .or. ic == super_slave$) cycle
     if (ic == girder_lord$) cycle
-    if (this_ele%old_is_on) cycle
+    if (ref_ele%old_is_on) cycle
 
-    if (match_wild(this_ele%name, pele%ref_name)) then
+    if (match_wild(ref_ele%name, pele%ref_name)) then
 
       do i = 1, n_inserted
-        if (this_ele%name == matched_name(i)) cycle ele_loop
+        if (ref_ele%name == matched_name(i)) cycle ele_loop
       enddo
      
-      this_ele%old_is_on = .true.
+      ref_ele%old_is_on = .true.
 
       ! If superimposing on a multipass_lord then the superposition
       ! must be done at all multipass locations
 
-      if (this_ele%control_type == multipass_lord$) then
-        allocate (ixs(this_ele%n_slave), multi_name(this_ele%n_slave))
-        ixs = lat%control(this_ele%ix1_slave:this_ele%ix2_slave)%ix_slave
+      if (ref_ele%control_type == multipass_lord$) then
+        allocate (ixs(ref_ele%n_slave), multi_name(ref_ele%n_slave))
+        ixs = lat%control(ref_ele%ix1_slave:ref_ele%ix2_slave)%ix_slave
         call string_trim(ele%name, ele%name, ix)
         ele2%name = ele%name(:ix)
 
         ! Put in the superposition at the multipass locations.
-        ! Since elements get shuffled around:
-        !  a) Loop over ixs in reverse order.
-        !  b) Tag the superimposed elements with a dummy name
-        !     to identify them later.
+        ! Since elements get shuffled around tag the superimposed elements 
+        !     with a dummy name to identify them later.
 
-        do i = size(ixs), 1, -1  ! reverse order in decreasing s
-          call compute_super_lord_s (lat, ixs(i), ele2, pele)
+        do i = 1, size(ixs)  
+          lat%ele(ixs(i))%ix_pointer = 1  ! tag
+        enddo
+
+        i = 0
+        do while (i < lat%n_ele_max)
+          i = i + 1
+          if (lat%ele(i)%ix_pointer /= 1) cycle
+          call compute_super_lord_s (lat, i, ele2, pele)
           call add_superimpose (lat, ele2, i_sup)
           lat%ele(i_sup)%name = 'dummy name'
         enddo
