@@ -26,10 +26,10 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 
-integer i, j, ix, i2
+integer i, j, ix, i1, i2
 integer, allocatable :: ixa(:), ic(:), control(:)
 
-! Compess lat%ele(:) array and fill in ixa(:) array.
+! Allocate
 
 allocate (ixa(lat%n_ele_max))           ! ixa(old_ele_index) = new_ele_index
 allocate (control(lat%n_control_max))
@@ -38,13 +38,24 @@ allocate (ic(lat%n_ic_max))
 control = 0
 ic = 0
 
+! Mark entries in control and ic arrays for deletion.
+
+do i = 1, lat%n_control_max
+  if (lat%ele(lat%control(i)%ix_slave)%key == -1) control(i) = -1
+  if (lat%ele(lat%control(i)%ix_lord)%key == -1) control(i) = -1
+enddo
+
+do i = 1, lat%n_ic_max
+  if (control(lat%ic(i)) == -1) ic(i) = -1
+enddo
+
+! Compress lat%ele(:) array and fill in ixa(:) array.
+
 i2 = 0
 do i = 1, lat%n_ele_max
   ele => lat%ele(i)
   if (ele%key == -1) then
     ixa(i) = -1
-    control(ele%ix1_slave:ele%ix2_slave) = -1
-    ic(ele%ic1_lord:ele%ic2_lord) = -1
   else
     i2 = i2 + 1
     ixa(i) = i2
@@ -66,7 +77,7 @@ enddo
 
 lat%n_ele_max = i2
 
-! Renumber lat%control()%ix_ele  
+! Compress lat%control() array and correct %ix_lord and %ix_slave pointers.
 
 i2 = 0
 do i = 1, lat%n_control_max
@@ -80,13 +91,23 @@ enddo
 
 lat%n_control_max = i2
 
+! Correct ele%ix1_slave, etc.
+
 do i = 1, lat%n_ele_max
   ele => lat%ele(i)
-  if (ele%ix1_slave > 0) ele%ix1_slave = control(ele%ix1_slave)
-  if (ele%ix2_slave > 0) ele%ix2_slave = control(ele%ix2_slave)
+  if (ele%ix1_slave < 1) cycle
+  i1 = ele%ix1_slave; i2 = ele%ix2_slave
+  ele%ix1_slave = 0  ! Assume no slaves
+  ele%ix2_slave = -1
+  ele%n_slave = 0
+  do j = i1, i2
+    if (control(j) /= -1 .and. ele%ix1_slave == 0) ele%ix1_slave = control(j)
+    if (control(j) /= -1) ele%ix2_slave = control(j)
+  enddo
+  ele%n_slave = ele%ix2_slave - ele%ix1_slave + 1
 enddo
 
-! Renumber lat%ic() array
+! Compress lat%ic() array
 
 i2 = 0
 do i = 1, lat%n_ic_max
@@ -98,10 +119,22 @@ enddo
 
 lat%n_ic_max = i2
 
+! Correct ele%ic1_lord, etc.
+
 do i = 1, lat%n_ele_max
   ele => lat%ele(i)
-  if (ele%ic1_lord > 0) ele%ic1_lord = ic(ele%ic1_lord)
-  if (ele%ic2_lord > 0) ele%ic2_lord = ic(ele%ic2_lord)
+  if (ele%ic1_lord < 1) cycle
+
+  i1 = ele%ic1_lord; i2 = ele%ic2_lord
+  ele%ic1_lord = 0  ! Assume no lords
+  ele%ic2_lord = -1
+  ele%n_lord = 0
+  do j = i1, i2
+    if (ic(j) /= -1 .and. ele%ic1_lord == 0) ele%ic1_lord = ic(j)
+    if (ic(j) /= -1) ele%ic2_lord = ic(j)
+  enddo
+  ele%n_lord = ele%ic2_lord - ele%ic1_lord + 1
+  if (ele%control_type == super_slave$ .and. ele%n_lord == 0) ele%control_type = free$
 enddo
 
 ! deallocate and do a check

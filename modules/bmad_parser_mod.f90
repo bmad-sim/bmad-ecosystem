@@ -2502,7 +2502,7 @@ subroutine add_this_multipass (lat, ixm)
   type (lat_struct) lat
   type (ele_struct), pointer :: slave, lord
 
-  integer i, n_multipass, ixm(:), ixc, ixic, ix_lord, ix_slave
+  integer i, j, ix, n_multipass, ixm(:), ixc, ixic, ix_lord, ix_slave
 
 ! Count slaves.
 ! If i > lat%n_ele_track we are looking at cloning a super_lord which should
@@ -2541,6 +2541,11 @@ subroutine add_this_multipass (lat, ixm)
     if (slave%control_type /= super_lord$) slave%control_type = multipass_slave$
     ixic = slave%ic1_lord
     lat%ic(ixic) = ixc
+    ! If slave is a super_lord then mark the super_slave names
+    do j = slave%ix1_slave, slave%ix2_slave  
+      ix = lat%control(j)%ix_slave
+      write (lat%ele(ix)%name, '(2a, i1)') trim(lat%ele(ix)%name), '\', i   ! '      
+    enddo
   enddo
 
 end subroutine
@@ -2590,14 +2595,14 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine add_all_superimpose (lat, ele_in, pele)
+subroutine add_all_superimpose (lat, super_ele_in, pele)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct) ele_in
-type (ele_struct), save :: ele, ele2
-type (ele_struct), pointer :: ref_ele
+type (ele_struct) super_ele_in
+type (ele_struct), save :: super_ele_saved, super_ele
+type (ele_struct), pointer :: ref_ele, ele
 type (parser_ele_struct) pele
 type (ele_struct), pointer :: eles(:)
 type (control_struct), pointer :: control(:)
@@ -2615,23 +2620,23 @@ logical have_inserted
 
 ! init
 
-call init_ele(ele)
-call init_ele(ele2)
+call init_ele(super_ele_saved)
+call init_ele(super_ele)
 
 eles => lat%ele
 control => lat%control
 ics => lat%ic
 
-ele = ele_in   ! in case ele changes
-ele2 = ele
+super_ele_saved = super_ele_in      ! in case super_ele_in changes
+super_ele = super_ele_saved        ! 
 n_inserted = 0
 lat%ele%old_is_on = .false.    ! to keep track of where we have inserted
 
 ! If no refrence point then superposition is simple
 
 if (pele%ref_name == blank) then
-  call compute_super_lord_s (lat, 0, ele2, pele)
-  call add_superimpose (lat, ele2, i_sup)
+  call compute_super_lord_s (lat, 0, super_ele, pele)
+  call add_superimpose (lat, super_ele, i_sup)
   return
 endif
 
@@ -2668,52 +2673,72 @@ do
 
       if (ref_ele%control_type == multipass_lord$) then
         allocate (ixs(ref_ele%n_slave), multi_name(ref_ele%n_slave))
-        ixs = lat%control(ref_ele%ix1_slave:ref_ele%ix2_slave)%ix_slave
-        call string_trim(ele%name, ele%name, ix)
-        ele2%name = ele%name(:ix)
+        do i = ref_ele%ix1_slave, ref_ele%ix2_slave  
+          ix = lat%control(i)%ix_slave 
+          lat%ele(ix)%ix_pointer = i + 1 - ref_ele%ix1_slave  ! tag ref element
+        enddo
+        call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
+        super_ele%name = super_ele_saved%name(:ix)
 
         ! Put in the superposition at the multipass locations.
         ! Since elements get shuffled around tag the superimposed elements 
         !     with a dummy name to identify them later.
 
-        do i = 1, size(ixs)  
-          lat%ele(ixs(i))%ix_pointer = 1  ! tag
-        enddo
-
-        i = 0
+        i = 0  ! Element index
+        j = 0  ! Number of superpositions done.
         do while (i < lat%n_ele_max)
           i = i + 1
-          if (lat%ele(i)%ix_pointer /= 1) cycle
-          call compute_super_lord_s (lat, i, ele2, pele)
-          call add_superimpose (lat, ele2, i_sup)
+          if (lat%ele(i)%ix_pointer /= j+1) cycle
+          j = j + 1
+          call compute_super_lord_s (lat, i, super_ele, pele)
+          call add_superimpose (lat, super_ele, i_sup)
           lat%ele(i_sup)%name = 'dummy name'
         enddo
         ! add a multipass_lord to control the created super loards.
         j = 0
         do i = 1, lat%n_ele_max
           if (lat%ele(i)%name == 'dummy name') then
-            lat%ele(i)%name = ele%name
+            lat%ele(i)%name = super_ele_saved%name
             j = j + 1
             ixs(j) = i
           endif
         enddo
         call add_this_multipass (lat, ixs)    
         deallocate (ixs, multi_name)
-        ele2%name = ele%name
+        super_ele%name = super_ele_saved%name
+
+        ! Remove any multipass_lord drifts that no longer do anything.
+        ! We can recognize these elements since they control super_slaves.
+        ! Also mark any of their lords for deletion.
+
+        i = lat%n_ele_track ! Element index
+        do while (i < lat%n_ele_max)
+          i = i + 1
+          ele => lat%ele(i)
+          if (ele%key /= drift$) cycle
+          ix = lat%control(ele%ix1_slave)%ix_slave
+          if (lat%ele(ix)%control_type /= super_slave$) cycle
+          ele%key = -1 ! mark for deletion
+          do j = ele%ic1_lord, ele%ic2_lord
+            ix = lat%control(lat%ic(j))%ix_lord
+            lat%ele(ix)%key = -1  ! Mark lord for deletion
+          enddo
+        enddo
+        call remove_eles_from_lat (lat) ! and delete
 
       ! not superimposing on a multipass_lord 
 
       else
-        call compute_super_lord_s (lat, i_ele, ele2, pele)
-        call string_trim(ele%name, ele%name, ix)
-        ele2%name = ele%name(:ix)            
-        call add_superimpose (lat, ele2, i_sup)
+        call compute_super_lord_s (lat, i_ele, super_ele, pele)
+        call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
+        super_ele%name = super_ele_saved%name(:ix)            
+        call add_superimpose (lat, super_ele, i_sup)
       endif
 
       call s_calc (lat)
 
       n_inserted = n_inserted + 1
-      matched_name(n_inserted) = ele2%name
+      matched_name(n_inserted) = super_ele%name
       have_inserted = .true.   
 
     endif
@@ -2727,7 +2752,7 @@ enddo
 ! error check
 
 if (n_inserted == 0) call warning ('NO MATCH FOR REFERENCE ELEMENT: ' //  &
-          pele%ref_name, 'FOR SUPERPOSITION OF: ' // ele%name, pele = pele)
+          pele%ref_name, 'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
 
 
 ! if there is to be no common lord then we are done
@@ -2736,7 +2761,7 @@ if (.not. pele%common_lord) return
 
 ! here for common_lord, not scalled multipoles
 
-if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
+if (super_ele_saved%key /= multipole$ .and. super_ele_saved%key /= ab_multipole$) then
   call warning ( &
           'ELEMENT ' // lat%ele(i)%name, &
           'IS USED WITH THE "COMMON_LORD" ATTRIBUTE BUT', &
@@ -2755,7 +2780,7 @@ if (lat%n_control_max > size(lat%control)) &
            call reallocate_control(lat, lat%n_control_max+1000)
 
 
-lat%ele(nn) = ele
+lat%ele(nn) = super_ele_saved
 lat%ele(nn)%control_type = super_lord$
 lat%ele(nn)%n_slave = n_inserted
 lat%ele(nn)%ix1_slave = n_con + 1
@@ -2772,7 +2797,7 @@ do i = 1, lat%n_ele_max-1
     it = lat%ele(i)%control_type
     if (it /= free$) then
       call warning ('SLAVE: ' // lat%ele(i)%name, &
-                    'OF LORD: ' // ele%name, &
+                    'OF LORD: ' // super_ele_saved%name, &
                     'IS NOT A "FREE" ELEMENT BUT IS: ' // control_name(it), pele = pele)
       return
     endif

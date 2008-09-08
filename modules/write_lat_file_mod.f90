@@ -70,8 +70,9 @@ integer ix_slave, ix_ss, ix_l, ixs1, ixs2, ix_r, ix_pass
 integer ix_ss1, ix_ss2, ix_multi_lord
 integer, allocatable :: ix_slave_series(:,:)
 
-logical unit_found, write_term, match_found, found, in_multi_region, expand_lat_out
 logical, optional :: err
+logical unit_found, write_term, match_found, found, in_multi_region, expand_lat_out
+logical is_multi_sup
 
 ! Init...
 ! Count the number of foreign wake files
@@ -279,10 +280,13 @@ ele_loop: do i = 1, lat%n_ele_max
   ! Create a null_ele element for a superposition and fill in the superposition
   ! information.
 
-  ix1 = lat%control(ele%ix1_slave)%ix_slave
+  is_multi_sup = .false.
+  if (ele%control_type == multipass_lord$) then
+    ix1 = lat%control(ele%ix1_slave)%ix_slave
+    if (lat%ele(ix1)%control_type == super_lord$) is_multi_sup = .true.
+  endif
 
-  if (ele%control_type == super_lord$ .or. (ele%control_type == multipass_lord$ .and. &
-                                        lat%ele(ix1)%control_type == super_lord$)) then
+  if (ele%control_type == super_lord$ .or. is_multi_sup) then
     write (iu, '(a)') "x__" // trim(ele%name) // ": null_ele"
     line = trim(line) // ', superimpose, ele_beginning, ref = x__' // trim(ele%name)
   endif
@@ -777,7 +781,7 @@ ele => lat%ele(ix_ele)
 
 if (ele%control_type == super_slave$) then
   ! If a super_lord element starts at the beginning of this slave element,
-  !  put in the null_ele marker 'X__' + lord_name for the superposition.
+  !  put in the null_ele marker 'x__' + lord_name for the superposition.
   do j = ele%ic1_lord, ele%ic2_lord
     ix = lat%control(lat%ic(j))%ix_lord
     lord => lat%ele(ix)
@@ -785,7 +789,7 @@ if (ele%control_type == super_slave$) then
     ixm = multipass_lord_index(ix, lat)
     if (ixm > 0) lord_name = lat%ele(ixm)%name
     if (lat%control(lord%ix1_slave)%ix_slave == ix_ele) then
-      write (line, '(4a)') trim(line), ' X__', trim(lord_name), ',' 
+      write (line, '(4a)') trim(line), ' x__', trim(lord_name), ',' 
     endif
   enddo
   write (line, '(2a, i3.3, a)') trim(line), ' slave_drift_', ele%ixx, ','

@@ -158,6 +158,7 @@ ele => lat%ele(ix_ele)
 if (ele%value(l$) == 0) then
   ele%csr_calc_on = .false.
   call track1_bunch_ele (bunch_end, ele, lat%param, bunch_end)
+  err = .false.
   return
 endif
 
