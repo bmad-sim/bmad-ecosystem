@@ -2669,7 +2669,7 @@ do
       ref_ele%old_is_on = .true.
 
       ! If superimposing on a multipass_lord then the superposition
-      ! must be done at all multipass locations
+      ! must be done at all multipass locations.
 
       if (ref_ele%control_type == multipass_lord$) then
         allocate (ixs(ref_ele%n_slave), multi_name(ref_ele%n_slave))
@@ -2726,7 +2726,7 @@ do
         enddo
         call remove_eles_from_lat (lat) ! and delete
 
-      ! not superimposing on a multipass_lord 
+      ! Else not superimposing on a multipass_lord ...
 
       else
         call compute_super_lord_s (lat, i_ele, super_ele, pele)

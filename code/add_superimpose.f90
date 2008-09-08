@@ -8,15 +8,15 @@
 !   use bmad
 !
 ! Input:
-!     lat      -- lat_struct: Lat to modify
-!     super_ele -- Ele_struct: Element to superimpose
+!   lat       -- lat_struct: Lat to modify.
+!   super_ele -- Ele_struct: Element to superimpose.
 !         %s       -- Position of end of element.
 !                      Negative distances mean distance from the end.
 !
 !
 ! Output:
-!     lat     -- lat_struct: Modified lat.
-!     ix_super -- Integer: Index where element is put
+!   lat      -- lat_struct: Modified lat.
+!   ix_super -- Integer: Index where element is put.
 !-
 
 #include "CESR_platform.inc"
@@ -157,13 +157,22 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   enddo
 
   if (all_drift) then  
-    do i = ix2_split, ix1_split+2, -1   ! remove all drifts but one
+    do i = ix1_split+2, ix2_split    ! remove all drifts but one
       lat%ele(i)%key = -1    ! mark for deletion
     enddo
     call remove_eles_from_lat(lat)    ! And delete
     ix_super = ix1_split + 1
     lat%ele(ix_super) = sup_ele
     lat%ele(ix_super)%control_type = free$
+    ! If a single drift was split give the runt drifts on either end 
+    ! Unique names by adding "1" and "2" suffixes.
+    if (split1_done .and. split2_done) then
+      if (lat%ele(ix_super-1)%name == lat%ele(ix_super+1)%name .and. &
+                                    lat%ele(ix_super-1)%key == drift$) then
+        lat%ele(ix_super-1)%name = trim(lat%ele(ix_super-1)%name) // '1'
+        lat%ele(ix_super+1)%name = trim(lat%ele(ix_super+1)%name) // '2'
+      endif
+    endif
     return
   endif
 

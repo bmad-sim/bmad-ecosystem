@@ -563,125 +563,128 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   endif
 enddo
 
-allocate (ix_slave_series(n_1st_pass, n_pass_max))
 allocate (multipass(lat%n_ele_max))
 multipass(:)%ix_pass = 0
 multipass(:)%ix_region = 0
 multipass(:)%region_start_pt = .false.
 multipass(:)%region_stop_pt   = .false.
 
-! Mark all the corresponding slaves
+if (n_1st_pass > 0) then
 
-ix_ss = 0
+  ! Mark all the corresponding slaves
 
-do i = lat%n_ele_track+1, lat%n_ele_max
-  lord => lat%ele(i)
-  if (lord%control_type /= multipass_lord$) cycle 
-  ixs = lat%control(lord%ix1_slave)%ix_slave
-  if (lat%ele(ixs)%control_type == super_lord$) then
-    do j = lord%ix1_slave, lord%ix2_slave
-      ix_pass = j + 1 - lord%ix1_slave
-      ixs = lat%control(j)%ix_slave
-      super => lat%ele(ixs)
-      do k = super%ix1_slave, super%ix2_slave
-        ix_ss2 = ix_ss + k + 1 - super%ix1_slave
-        ixs = lat%control(k)%ix_slave
-        ix_slave_series(ix_ss2, ix_pass) = ixs
-        multipass(ixs)%ix_slave_series = ix_ss2
+  ix_ss = 0
+  allocate (ix_slave_series(n_1st_pass, n_pass_max))
+
+  do i = lat%n_ele_track+1, lat%n_ele_max
+    lord => lat%ele(i)
+    if (lord%control_type /= multipass_lord$) cycle 
+    ixs = lat%control(lord%ix1_slave)%ix_slave
+    if (lat%ele(ixs)%control_type == super_lord$) then
+      do j = lord%ix1_slave, lord%ix2_slave
+        ix_pass = j + 1 - lord%ix1_slave
+        ixs = lat%control(j)%ix_slave
+        super => lat%ele(ixs)
+        do k = super%ix1_slave, super%ix2_slave
+          ix_ss2 = ix_ss + k + 1 - super%ix1_slave
+          ixs = lat%control(k)%ix_slave
+          ix_slave_series(ix_ss2, ix_pass) = ixs
+          multipass(ixs)%ix_slave_series = ix_ss2
+          multipass(ixs)%ix_pass = ix_pass
+        enddo
+      enddo
+      ix_ss = ix_ss + super%n_slave
+    else
+      ix_ss = ix_ss + 1
+      do j = lord%ix1_slave, lord%ix2_slave
+        ix_pass = j + 1 - lord%ix1_slave
+        ixs = lat%control(j)%ix_slave
+        ix_slave_series(ix_ss, ix_pass) = ixs
+        multipass(ixs)%ix_slave_series = ix_ss
         multipass(ixs)%ix_pass = ix_pass
       enddo
-    enddo
-    ix_ss = ix_ss + super%n_slave
-  else
-    ix_ss = ix_ss + 1
-    do j = lord%ix1_slave, lord%ix2_slave
-      ix_pass = j + 1 - lord%ix1_slave
-      ixs = lat%control(j)%ix_slave
-      ix_slave_series(ix_ss, ix_pass) = ixs
-      multipass(ixs)%ix_slave_series = ix_ss
-      multipass(ixs)%ix_pass = ix_pass
-    enddo
-  endif
-enddo
-
-! Now go through and mark all 1st pass regions
-! In theory the original lattice file could have something like:
-!   lat: line = (..., m1, m2, ..., m1, -m2, ...)
-! where m1 and m2 are multipass lines. The first pass region (m1, m2) looks 
-! like this is one big region but the later (m1, -m2) signals that this 
-! is not so.
-! We thus go through all the first pass regions and compare them to the
-! corresponding higher pass regions. If we find two elements that are contiguous
-! in the first pass region but not contiguous in some higher pass region, 
-! we need to break the first pass region into two.
-
-ix_r = 0
-in_multi_region = .false.
-
-do i = 1, lat%n_ele_track+1
-  ele => lat%ele(i)
-  ix_pass = multipass(i)%ix_pass
-  if (ix_pass /= 1) then  ! Not a first pass region
-    if (in_multi_region) multipass(i-1)%region_stop_pt = .true.
-    in_multi_region = .false.
-    cycle
-  endif
-  ! If start of a new region...
-  if (.not. in_multi_region) then  
-    ix_r = ix_r + 1
-    multipass(i)%ix_region = ix_r
-    multipass(i)%region_start_pt = .true.
-    in_multi_region = .true.
-    ix_ss1 = multipass(i)%ix_slave_series
-    cycle
-  endif
-  ix_ss2 = multipass(i)%ix_slave_series
-  do ix_pass = 2, size(ix_slave_series, 2)
-    ixs1 = ix_slave_series(ix_ss1, ix_pass)
-    ixs2 = ix_slave_series(ix_ss2, ix_pass)
-    if (abs(ixs1 - ixs2) /= 1) then  ! If not contiguous then need a new region
-      ix_r = ix_r + 1
-      multipass(i-1)%region_stop_pt = .true.
-      multipass(i)%region_start_pt = .true.
-      exit
     endif
   enddo
-  ix_ss1 = ix_ss2
-  multipass(i)%ix_region = ix_r
-enddo
 
-! Each 1st pass region is now a valid multipass line.
-! Write out this info.
+  ! Now go through and mark all 1st pass regions
+  ! In theory the original lattice file could have something like:
+  !   lat: line = (..., m1, m2, ..., m1, -m2, ...)
+  ! where m1 and m2 are multipass lines. The first pass region (m1, m2) looks 
+  ! like this is one big region but the later (m1, -m2) signals that this 
+  ! is not so.
+  ! We thus go through all the first pass regions and compare them to the
+  ! corresponding higher pass regions. If we find two elements that are contiguous
+  ! in the first pass region but not contiguous in some higher pass region, 
+  ! we need to break the first pass region into two.
 
-write (iu, *)
-write (iu, '(a)') '!-------------------------------------------------------'
+  ix_r = 0
+  in_multi_region = .false.
 
-ix_r = 0
-in_multi_region = .false.
-
-do i = 1, lat%n_ele_track
-
-  ix_pass = multipass(i)%ix_pass
-  if (ix_pass /= 1) cycle 
-
-  if (multipass(i)%region_start_pt) then
-    if (ix_r > 0) then
-      line = line(:len_trim(line)-1) // ')'
-      call write_out (line, iu, .true.)
+  do i = 1, lat%n_ele_track+1
+    ele => lat%ele(i)
+    ix_pass = multipass(i)%ix_pass
+    if (ix_pass /= 1) then  ! Not a first pass region
+      if (in_multi_region) multipass(i-1)%region_stop_pt = .true.
+      in_multi_region = .false.
+      cycle
     endif
-    ix_r = ix_r + 1
-    write (iu, *)
-    write (line, '(a, i2.2, a)') 'multi_line_', ix_r, ': line[multipass] = ('
-  endif
+    ! If start of a new region...
+    if (.not. in_multi_region) then  
+      ix_r = ix_r + 1
+      multipass(i)%ix_region = ix_r
+      multipass(i)%region_start_pt = .true.
+      in_multi_region = .true.
+      ix_ss1 = multipass(i)%ix_slave_series
+      cycle
+    endif
+    ix_ss2 = multipass(i)%ix_slave_series
+    do ix_pass = 2, size(ix_slave_series, 2)
+      ixs1 = ix_slave_series(ix_ss1, ix_pass)
+      ixs2 = ix_slave_series(ix_ss2, ix_pass)
+      if (abs(ixs1 - ixs2) /= 1) then  ! If not contiguous then need a new region
+        ix_r = ix_r + 1
+        multipass(i-1)%region_stop_pt = .true.
+        multipass(i)%region_start_pt = .true.
+        exit
+      endif
+    enddo
+    ix_ss1 = ix_ss2
+    multipass(i)%ix_region = ix_r
+  enddo
 
-  call write_line_element (line, iu, i, lat)
+  ! Each 1st pass region is now a valid multipass line.
+  ! Write out this info.
 
-enddo
+  write (iu, *)
+  write (iu, '(a)') '!-------------------------------------------------------'
 
-if (ix_r /= 0) then
+  ix_r = 0
+  in_multi_region = .false.
+
+  do i = 1, lat%n_ele_track
+
+    ix_pass = multipass(i)%ix_pass
+    if (ix_pass /= 1) cycle 
+
+    if (multipass(i)%region_start_pt) then
+      if (ix_r > 0) then
+        line = line(:len_trim(line)-1) // ')'
+        call write_out (line, iu, .true.)
+      endif
+      ix_r = ix_r + 1
+      write (iu, *)
+      write (line, '(a, i2.2, a)') 'multi_line_', ix_r, ': line[multipass] = ('
+    endif
+
+    call write_line_element (line, iu, i, lat)
+
+  enddo
+
   line = line(:len_trim(line)-1) // ')'
   call write_out (line, iu, .true.)
-endif
+
+  deallocate (ix_slave_series)
+end if
 
 ! Main line.
 ! If we get into a multipass region then name in the main_line list is "multi_line_nn".
@@ -753,7 +756,7 @@ endif
 
 close(iu)
 deallocate (names)
-deallocate (multipass, ix_slave_series)
+deallocate (multipass)
 if (present(err)) err = .false.
 
 end subroutine
