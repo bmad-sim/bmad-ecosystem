@@ -183,6 +183,8 @@ end subroutine
 
 subroutine get_window_numbers (window, iw)
 
+  use input_mod
+
   implicit none
 
   type (crotch_window_struct) window(:)
@@ -193,8 +195,7 @@ subroutine get_window_numbers (window, iw)
 
   iw(1:n_windows$) = 0
   print *, 'Enter crotch window(s) of interest, separated by a space,'
-  print '(a,$)', ' (4E 5E 6E 4W 5W 6W 11W WEST EAST or ALL) > '
-  accept '(a)', line
+  call read_a_line ('(4E 5E 6E 4W 5W 6W 11W WEST EAST or ALL) >', line)
   call str_upcase(line, line)
   count = 0
   do
