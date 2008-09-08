@@ -152,7 +152,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   all_drift = (ix2_split > ix1_split)
   do i = ix1_split+1, ix2_split
     if (lat%ele(i)%key /= drift$) all_drift = .false.
-    if (lat%ele(i)%control_type == multipass_slave$) all_drift = .false.
+    if (lat%ele(i)%control_type /= free$) all_drift = .false.
     if (.not. all_drift) exit
   enddo
 
