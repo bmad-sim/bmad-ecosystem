@@ -47,12 +47,12 @@ inside%side = negative_x$
 ! read in list of elements
 
 lun = lunget()
-open (lun, file = 'vac_db_sr.txt', status = 'old', readonly, iostat = ios)
+open (lun, file = 'vac_db_sr.txt', status = 'old', iostat = ios)
 if (ios == 0) then
   print *, 'Note: Local Vacuum Element File used: vac_db_sr.txt'
 else
   call fullfilename('$CESR_MNT/cesr/vacuum/vac_db_sr.txt', file_name)
-  open (lun, file = file_name, status = 'old', readonly)
+  open (lun, file = file_name, status = 'old')
   print *, 'Note: Using Vacuum Element File: $CESR_MNT/cesr/vacuum/vac_db_sr.txt'
 endif
 
@@ -83,13 +83,13 @@ end do
 ! use a local file if there is one
 
 lun = lunget()
-open (lun, file = 'beam_pipe.outline',  status = 'old', readonly, iostat = ios)
+open (lun, file = 'beam_pipe.outline',  status = 'old', iostat = ios)
 if (ios == 0) then
   print *, 'Note: Local Outline File used: beam_pipe.outline'
 else
   print *, 'Note: Using Outline File: $CESR_MNT/cesr/vacuum/beam_pipe.outline'
   call fullfilename ('$CESR_MNT/cesr/vacuum/beam_pipe.outline', file_name)
-  open (unit = lun, file = file_name, status = 'old', readonly)
+  open (unit = lun, file = file_name, status = 'old')
 endif
 
 ixx = 0
@@ -187,7 +187,7 @@ do
     endif
   enddo
 
-  if (z%n_out == 0 .xor. z%n_in == 0) then
+  if (z%n_out == 0 .neqv. z%n_in == 0) then
     print *, 'ERROR: OUTLINE HAS ONE SIDE BUT NOT THE OTHER:', z%name
     print *, '       N_OUT, N_IN:', z%n_out, z%n_in
     z%n_out = 0; z%n_in = 0

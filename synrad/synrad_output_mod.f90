@@ -28,8 +28,7 @@ subroutine ray_output ( window, ring )
   call get_window_numbers( window, iw )
 
   print *, 'Do you want ray information at the projected target '
-  print '(a,$)', ' or at the window (default) ?  (Enter t or w) '
-  accept '(a)', line
+  call get_input_string ('or at the window (default) ?  (Enter t or w)', line)
   call str_upcase(line, line)
   line = adjustl(line)
   target = .false.
