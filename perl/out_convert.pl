@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/\t/  /g;
+    s/, logic\)/\)/g;
     print (F_OUT);
   }
 

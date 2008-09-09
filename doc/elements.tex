@@ -305,9 +305,9 @@ Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
   h1, h2      = <Real>     ! Face curvature.
   roll        = <Real>     ! See \ref{s:offset}.
   k1          = <Real>     ! Quadrupole strength.
-  b1_gradient = <Real>     ! Quadrupole field strength. (\sref{s:depend}).
-  k2          = <Real>     ! Sextupole strength. A settable dependent variable (\sref{s:depend}).
-  b2_gradient = <Real>     ! Sextupole field strength. (\sref{s:depend}).
+  b1_gradient = <Real>     ! Quadrupole field strength (\sref{s:depend}).
+  k2          = <Real>     ! Sextupole strength (\sref{s:depend}).
+  b2_gradient = <Real>     ! Sextupole field strength (\sref{s:depend}).
   n_ref_multipass    = <Int>   ! Multipass reference turn.
   e_tot_ref_geometry = <Real>  ! Reference energy for multipass elements. 
   l_chord                      ! Chord length. Dependent attribute. See \sref{s:l}.
@@ -359,16 +359,12 @@ An \vn{Sbend} with an \vn{e1} = \vn{e2} =
   \item[angle]
 The total design bend angle. A positive \vn{angle} represents a
 bend towards negative $x$ values (see Figure~\ref{f:local.coords}).
-  \item[k1]
+  \item[k1, b1_gradient]
 \index{K1}
-The quadrupole strength.
-  \item[k2]
+The normalized and unnormalized quadrupole strength.
+  \item[k2, b2_gradient]
 \index{K2}
-The sextupole strength. This is a settable dependent attribute (\sref{s:depend}). 
-\vn{k2} is dependent upon the \vn{b2} multipole attribute via:
-\Begineq
-  k_2 = 2 \, b_2 / l
-\Endeq 
+The normalized and unnormalized sextupole strength. 
   \item[g, g_err, rho]
 \index{G}
 \index{Rho}

@@ -121,7 +121,7 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
 
   select case (ele%key)
   case (sbend$)
-    if (any(ix_attrib == (/ angle$, l_chord$, rho$, k2$ /))) free = .false.
+    if (any(ix_attrib == (/ angle$, l_chord$, rho$ /))) free = .false.
   case (rfcavity$)
     if (ix_attrib == rf_frequency$ .and. ele%value(harmon$) /= 0) free = .false.
   case (beambeam$)
@@ -155,6 +155,7 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
     case (sol_quad$)
       if (ix_attrib == ks$) free = .false.
       if (ix_attrib == k1$) free = .false.
+      if (ix_attrib == k2$) free = .false.
     case (sbend$)
       if (ix_attrib == g$) free = .false.
       if (ix_attrib == g_err$) free = .false.
@@ -181,6 +182,8 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
     case (sbend$)
       if (ix_attrib == b_field$) free = .false.
       if (ix_attrib == b_field_err$) free = .false.
+      if (ix_attrib == b1_gradient$) free = .false.
+      if (ix_attrib == b2_gradient$) free = .false.
     case (hkicker$, vkicker$)
       if (ix_attrib == bl_kick$) free = .false.
     end select
@@ -223,18 +226,17 @@ subroutine print_error (ix_ele, ix_attrib, l1, l2)
 
   if (.not. do_print) return
 
-  li(1) =   'ERROR IN ATTRIBUTE_FREE:'
-  li(2) =   '      THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele0), ix_attrib0)
-  li(3) =   '      OF THE ELEMENT: ' // lat%ele(ix_ele0)%name
+  li(2) =   'THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele0), ix_attrib0)
+  li(3) =   'OF THE ELEMENT: ' // lat%ele(ix_ele0)%name
 
   if (ix_ele == ix_ele0) then
-    li(4) = '      IS NOT FREE TO VARY SINCE:'
+    li(4) = 'IS NOT FREE TO VARY SINCE:'
     nl = 4
   else 
-    li(4) = '      IS NOT FREE TO VARY SINCE IT IS TRYING TO CONTROL:'
-    li(5) = '      THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele), ix_attrib)
-    li(6) = '      OF THE ELEMENT: ' // lat%ele(ix_ele)%name
-    li(7) = '      AND THIS IS NOT FREE TO VARY SINCE:'
+    li(4) = 'IS NOT FREE TO VARY SINCE IT IS TRYING TO CONTROL:'
+    li(5) = 'THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele), ix_attrib)
+    li(6) = 'OF THE ELEMENT: ' // lat%ele(ix_ele)%name
+    li(7) = 'AND THIS IS NOT FREE TO VARY SINCE:'
     nl = 7
   endif
 

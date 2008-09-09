@@ -1243,7 +1243,7 @@ if (.not. ele%on_a_girder .and. ele%key /= match$) then
 endif
 
 ! Field_master...
-! For an sbend multipass_slave: The reference energy is obtained from 
+! For an sbend multipass_slave: The reference energy is obtained from p0c_ref_geometry.
 
 if (ele%field_master) then
 
