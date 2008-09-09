@@ -56,7 +56,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
                               set_tilt, set_multipoles, set_hvkicks, s_pos)
 
   use bmad_interface, except_dummy => offset_particle
-  use multipole_mod, only: multipole_ele_to_kt, multipole_kick
+  use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
   use track1_mod, only: track_a_drift
 
   implicit none
@@ -174,9 +174,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
     if (set_multi .and. associated(ele%a_pole)) then
       call multipole_ele_to_kt(ele, param%particle, knl, tilt, .true.)
       knl = knl / 2
-      do n = 0, n_pole_maxx
-        call multipole_kick (knl(n), tilt(n), n, coord)
-      enddo
+      call multipole_kicks (knl, tilt, coord)
     endif
 
 ! Set: Tilt
@@ -267,9 +265,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 ! Unset: Multipoles
 
     if (set_multi .and. associated(ele%a_pole)) then
-      do n = 0, n_pole_maxx
-        call multipole_kick (knl(n), tilt(n), n, coord)
-      enddo
+      call multipole_kicks (knl, tilt, coord)
     endif
 
 ! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.

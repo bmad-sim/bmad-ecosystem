@@ -368,6 +368,54 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
+! Subroutine multipole_kicks (knl, tilt, coord, ref_orb_offset)
+!
+! Subroutine to put in the kick due to a multipole.
+!
+! Modules Needed:
+!   use bmad
+!                          
+! Input:
+!   knl(0:)        -- Real(rp): Multipole strengths (mad units).
+!   tilt(0:)       -- Real(rp): Multipole tilts.
+!   coord          -- Coord_struct:
+!     %vec(1)          -- X position.
+!     %vec(3)          -- Y position.
+!   ref_orb_offset -- Logical, optional: If present and n = 0 then the
+!                       multipole simulates a zero length bend with bending
+!                       angle knl.
+!
+! Output:
+!   coord -- Coord_struct: 
+!     %vec(2) -- X kick.
+!     %vec(4) -- Y kick.
+!-
+
+subroutine multipole_kicks (knl, tilt, coord, ref_orb_offset)
+
+  implicit none
+
+  type (coord_struct)  coord
+
+  real(rp) knl(0:), tilt(0:)
+
+  integer n
+
+  logical, optional :: ref_orb_offset
+
+  !
+  
+  do n = 0, n_pole_maxx
+    if (knl(n) == 0) cycle
+    call multipole_kick (knl(n), tilt(n), n, coord, ref_orb_offset)
+  enddo
+
+end subroutine
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
 ! Subroutine multipole_kick (knl, tilt, n, coord, ref_orb_offset)
 !
 ! Subroutine to put in the kick due to a multipole.

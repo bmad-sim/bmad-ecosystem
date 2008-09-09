@@ -8,10 +8,10 @@
 
 module track1_mod
 
-  use bmad_struct
-  use bmad_interface
-  use make_mat6_mod
-  use mad_mod
+use bmad_struct
+use bmad_interface
+use make_mat6_mod
+use mad_mod
 
 contains
 
@@ -54,90 +54,90 @@ contains
 
 subroutine check_aperture_limit (orb, ele, at, param)
 
-  implicit none
+implicit none
 
-  type (coord_struct) :: orb
-  type (coord_struct) orb2 
-  type (ele_struct) :: ele
-  type (lat_param_struct), intent(inout) :: param
+type (coord_struct) :: orb
+type (coord_struct) orb2 
+type (ele_struct) :: ele
+type (lat_param_struct), intent(inout) :: param
 
-  real(rp) x_lim, y_lim, x_beam, y_beam, s_here
-  integer at
+real(rp) x_lim, y_lim, x_beam, y_beam, s_here
+integer at
 
-  ! Check p_x and p_y
+! Check p_x and p_y
 
-  if (abs(orb%vec(2)) > 1) then
+if (abs(orb%vec(2)) > 1) then
+  param%lost = .true.
+  param%plane_lost_at = x_plane$
+endif
+  
+if (abs(orb%vec(4)) > 1) then
+  param%lost = .true.
+  param%plane_lost_at = y_plane$
+endif
+
+!
+
+if (ele%offset_moves_aperture) then
+  orb2 = orb
+  s_here = 0
+  if (at == exit_end$) s_here = ele%value(l$)
+  call offset_particle (ele, param, orb2, set$, set_canonical = .false., &
+               set_tilt = .false., set_multipoles = .false., set_hvkicks = .false., &
+               s_pos = s_here)
+  x_beam = orb2%vec(1)
+  y_beam = orb2%vec(3)
+else
+  x_beam = orb%vec(1)
+  y_beam = orb%vec(3)
+endif
+
+!
+
+if (x_beam < 0) then
+  x_lim = ele%value(x1_limit$)
+else
+  x_lim = ele%value(x2_limit$)
+endif
+
+if (x_lim <= 0 .or. .not. param%aperture_limit_on) &
+                                  x_lim = bmad_com%max_aperture_limit
+
+if (y_beam < 0) then
+  y_lim = ele%value(y1_limit$)
+else
+  y_lim = ele%value(y2_limit$)
+endif
+
+if (y_lim <= 0 .or. .not. param%aperture_limit_on) &
+                                  y_lim = bmad_com%max_aperture_limit
+
+if (x_lim == 0 .and. y_lim == 0) return
+
+if (ele%key == ecollimator$) then
+  if (x_lim == 0 .or. y_lim == 0) then
+    print *, 'ERROR IN CHECK_APERTURE_LIMIT: ECOLLIMATOR HAS ONE LIMIT ZERO'
+    print *, '      AND THE OTHER NOT: ', ele%name
+    call err_exit
+  endif
+  if ((x_beam / x_lim)**2 + (y_beam / y_lim)**2 > 1) then
     param%lost = .true.
-    param%plane_lost_at = x_plane$
-  endif
-    
-  if (abs(orb%vec(4)) > 1) then
-    param%lost = .true.
-    param%plane_lost_at = y_plane$
-  endif
-
-  !
-
-  if (ele%offset_moves_aperture) then
-    orb2 = orb
-    s_here = 0
-    if (at == exit_end$) s_here = ele%value(l$)
-    call offset_particle (ele, param, orb2, set$, set_canonical = .false., &
-                 set_tilt = .false., set_multipoles = .false., set_hvkicks = .false., &
-                 s_pos = s_here)
-    x_beam = orb2%vec(1)
-    y_beam = orb2%vec(3)
-  else
-    x_beam = orb%vec(1)
-    y_beam = orb%vec(3)
-  endif
-
-  !
-
-  if (x_beam < 0) then
-    x_lim = ele%value(x1_limit$)
-  else
-    x_lim = ele%value(x2_limit$)
-  endif
-
-  if (x_lim <= 0 .or. .not. param%aperture_limit_on) &
-                                    x_lim = bmad_com%max_aperture_limit
-
-  if (y_beam < 0) then
-    y_lim = ele%value(y1_limit$)
-  else
-    y_lim = ele%value(y2_limit$)
-  endif
-
-  if (y_lim <= 0 .or. .not. param%aperture_limit_on) &
-                                    y_lim = bmad_com%max_aperture_limit
-
-  if (x_lim == 0 .and. y_lim == 0) return
-
-  if (ele%key == ecollimator$) then
-    if (x_lim == 0 .or. y_lim == 0) then
-      print *, 'ERROR IN CHECK_APERTURE_LIMIT: ECOLLIMATOR HAS ONE LIMIT ZERO'
-      print *, '      AND THE OTHER NOT: ', ele%name
-      call err_exit
-    endif
-    if ((x_beam / x_lim)**2 + (y_beam / y_lim)**2 > 1) then
-      param%lost = .true.
-      if (abs(x_beam / x_lim) > abs(y_beam / y_lim)) then
-        param%plane_lost_at = x_plane$
-      else
-        param%plane_lost_at = y_plane$
-      endif
-    endif
-  else
-    if (abs(x_beam) > x_lim) then
-      param%lost = .true.
+    if (abs(x_beam / x_lim) > abs(y_beam / y_lim)) then
       param%plane_lost_at = x_plane$
-    endif
-    if (abs(y_beam) > y_lim) then
-      param%lost = .true.
+    else
       param%plane_lost_at = y_plane$
     endif
   endif
+else
+  if (abs(x_beam) > x_lim) then
+    param%lost = .true.
+    param%plane_lost_at = x_plane$
+  endif
+  if (abs(y_beam) > y_lim) then
+    param%lost = .true.
+    param%plane_lost_at = y_plane$
+  endif
+endif
 
 end subroutine
 
@@ -162,15 +162,15 @@ end subroutine
 
 subroutine track_a_drift (orb, length)
 
-  implicit none
+implicit none
 
-  real(rp) orb(6), length, rel_E
+real(rp) orb(6), length, rel_E
 
-  rel_E = 1 + orb(6)
+rel_E = 1 + orb(6)
 
-  orb(1) = orb(1) + length * orb(2) / rel_E
-  orb(3) = orb(3) + length * orb(4) / rel_E
-  orb(5) = orb(5) - length * (orb(2)**2 + orb(4)**2) / (2 * rel_E**2)
+orb(1) = orb(1) + length * orb(2) / rel_E
+orb(3) = orb(3) + length * orb(4) / rel_E
+orb(5) = orb(5) - length * (orb(2)**2 + orb(4)**2) / (2 * rel_E**2)
 
 end subroutine
 
@@ -198,62 +198,84 @@ end subroutine
 
 subroutine track_a_bend (start, ele, param, end)
 
-  use multipole_mod
+use multipole_mod
 
-  implicit none
+implicit none
 
-  type (coord_struct), intent(in)  :: start
-  type (coord_struct), intent(out) :: end
-  type (ele_struct),   intent(inout)  :: ele
-  type (lat_param_struct), intent(inout) :: param
+type (coord_struct), intent(in)  :: start
+type (coord_struct), intent(out) :: end
+type (ele_struct),   intent(inout)  :: ele
+type (lat_param_struct), intent(inout) :: param
 
-  real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t
-  real(rp) rel_p, rel_p2, Dy, px_t, factor, rho, g, g_err
-  real(rp) length, g_tot, del_p, eps, pxy2, f, k_2
-  real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
+real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t
+real(rp) rel_p, rel_p2, Dy, px_t, factor, rho, g, g_err
+real(rp) length, g_tot, del_p, eps, pxy2, f, k_2
+real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
+real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
+integer n, n_step
+
+!-----------------------------------------------------------------------
 ! simple case
 
-  if (ele%value(g$) == 0) then
-    end = start
-    end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
-    call track_a_drift (end%vec, ele%value(l$))
-    end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
-    return
-  endif
+if (ele%value(g$) == 0) then
+  end = start
+  end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
+  call track_a_drift (end%vec, ele%value(l$))
+  end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
+  return
+endif
 
 !-----------------------------------------------------------------------
 
-  end = start
-  call offset_particle (ele, param, end, set$, set_canonical = .false.)
-  call track_bend_edge (end, ele, .true., .false.)
+end = start
+call offset_particle (ele, param, end, set$, set_canonical = .false., set_multipoles = .false.)
+call track_bend_edge (end, ele, .true., .false.)
 
-  length = ele%value(l$)
-  g = ele%value(g$)
-  g_err = ele%value(g_err$)
-  g_tot = g + g_err
-  b1 = g_tot
-  angle = ele%value(g$) * length
-  rho = 1 / g
-  del_p = start%vec(6)
-  rel_p  = 1 + del_p
-  rel_p2 = rel_p**2
-  k_1 = ele%value(k1$)
+! If we have a sextupole component then step through in steps of length ds_step
 
-! 1/2 sextupole kick
+n_step = 1
+if (ele%value(k2$) /= 0 .or. associated(ele%a_pole)) &
+                  n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 
-  k_2 = ele%value(k2$) * ele%value(l$) / 2
-  if (k_2 /= 0) call multipole_kick (k_2, 0.0_rp, 2, end)
+if (associated(ele%a_pole)) then
+  call multipole_ele_to_kt(ele, param%particle, knl, tilt, .true.)
+  knl = knl / n_step
+endif
 
-! with k1 /= 0 use small angle approximation
+! Set some parameters
+
+length = ele%value(l$) / n_step
+g = ele%value(g$)
+g_err = ele%value(g_err$)
+g_tot = g + g_err
+b1 = g_tot
+angle = ele%value(g$) * length
+rho = 1 / g
+del_p = start%vec(6)
+rel_p  = 1 + del_p
+rel_p2 = rel_p**2
+k_1 = ele%value(k1$)
+k_2 = ele%value(k2$) * length
+
+! 1/2 sextupole kick at the beginning.
+
+if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end)
+if (associated(ele%a_pole)) call multipole_kicks (knl/2, tilt, end)
+
+! And track with n_step steps
+
+do n = 1, n_step
+
+  ! with k1 /= 0 use small angle approximation
 
   if (k_1 /= 0) then
 
     call sbend_body_with_k1_map (g, g_err, length, k_1, end%vec, end = end%vec)
 
-!-----------------------------------------------------------------------
-! Track through main body...
-! Use Eqs (12.18) from Etienne Forest: Beam Dynamics.
+  !-----------------------------------------------------------------------
+  ! Track through main body...
+  ! Use Eqs (12.18) from Etienne Forest: Beam Dynamics.
 
   else
 
@@ -266,7 +288,7 @@ subroutine track_a_bend (start, ele, param, end)
     py = end%vec(4)
     z  = end%vec(5)
     pz = end%vec(6)
- 
+   
     pxy2 = px**2 + py**2
     if (rel_p2 - pxy2 < 0.1) then  ! somewhat arbitrary cutoff
       param%lost = .true.
@@ -276,7 +298,8 @@ subroutine track_a_bend (start, ele, param, end)
       return
     endif 
 
-! The following is to make sure that a beam entering on-axis remains *exactly* on-axis.
+    ! The following is to make sure that a beam entering on-axis remains 
+    ! *exactly* on-axis.
 
     if (pxy2 < 1e-5) then  
       f = pxy2 / (2 * rel_p)
@@ -313,14 +336,22 @@ subroutine track_a_bend (start, ele, param, end)
 
   endif
 
-! 1/2 sextupole kick
+  ! sextupole kick
 
-  if (k_2 /= 0) call multipole_kick (k_2, 0.0_rp, 2, end)
+  if (k_2 /= 0 .and. n /= n_step) call multipole_kick (k_2, 0.0_rp, 2, end)
+  if (associated(ele%a_pole)) call multipole_kicks (knl, tilt, end)
+
+enddo
+
+! 1/2 sextupole kick at the end
+
+if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end)
+if (associated(ele%a_pole)) call multipole_kicks (knl/2, tilt, end)
 
 ! Track through the exit face. Treat as thin lens.
 
-  call track_bend_edge (end, ele, .false., .false.)
-  call offset_particle (ele, param, end, unset$, set_canonical = .false.)
+call track_bend_edge (end, ele, .false., .false.)
+call offset_particle (ele, param, end, unset$, set_canonical = .false., set_multipoles = .false.)
 
 end subroutine
 
@@ -336,43 +367,43 @@ end subroutine
 
 subroutine track_bend_edge (orb, ele, start_edge, reverse, kx, ky)
 
-  type (ele_struct) ele
-  type (coord_struct) orb
-  real(rp), optional :: kx, ky
-  real(rp) e, g_tot, del
-  logical start_edge, reverse
+type (ele_struct) ele
+type (coord_struct) orb
+real(rp), optional :: kx, ky
+real(rp) e, g_tot, del
+logical start_edge, reverse
 
 ! Track through the entrence face. Treat as thin lens.
 
-  g_tot = ele%value(g$) + ele%value(g_err$)
-  if (reverse) g_tot = -g_tot
+g_tot = ele%value(g$) + ele%value(g_err$)
+if (reverse) g_tot = -g_tot
 
-  if (start_edge) then
-    e = ele%value(e1$)
-    del = tan(e) * g_tot
-    if (present(kx)) kx = del 
-    orb%vec(2) = orb%vec(2) + del * orb%vec(1)
-    if (ele%value(fint$) /= 0) del = g_tot * tan(e - 2 * ele%value(fint$) * &
-                      abs(g_tot) * ele%value(hgap$) *  (1 + sin(e)**2) / cos(e))
-    if (present(ky)) ky = -del
-    orb%vec(4) = orb%vec(4) - del * orb%vec(3)
+if (start_edge) then
+  e = ele%value(e1$)
+  del = tan(e) * g_tot
+  if (present(kx)) kx = del 
+  orb%vec(2) = orb%vec(2) + del * orb%vec(1)
+  if (ele%value(fint$) /= 0) del = g_tot * tan(e - 2 * ele%value(fint$) * &
+                    abs(g_tot) * ele%value(hgap$) *  (1 + sin(e)**2) / cos(e))
+  if (present(ky)) ky = -del
+  orb%vec(4) = orb%vec(4) - del * orb%vec(3)
 
-  else
-    e = ele%value(e2$)
-    del = tan(e) * g_tot
-    if (present(ky)) kx = del
-    orb%vec(2) = orb%vec(2) + del * orb%vec(1)
-    if (ele%value(fintx$) /= 0) del = g_tot * tan(e - 2 * ele%value(fintx$) * &
-                      abs(g_tot) * ele%value(hgapx$) *  (1 + sin(e)**2) / cos(e))
-    if (present(ky)) ky = -del
-    orb%vec(4) = orb%vec(4) - del * orb%vec(3)
+else
+  e = ele%value(e2$)
+  del = tan(e) * g_tot
+  if (present(ky)) kx = del
+  orb%vec(2) = orb%vec(2) + del * orb%vec(1)
+  if (ele%value(fintx$) /= 0) del = g_tot * tan(e - 2 * ele%value(fintx$) * &
+                    abs(g_tot) * ele%value(hgapx$) *  (1 + sin(e)**2) / cos(e))
+  if (present(ky)) ky = -del
+  orb%vec(4) = orb%vec(4) - del * orb%vec(3)
 
-  endif
+endif
 
-  if (reverse) then
-    if (present(kx)) kx = -kx
-    if (present(ky)) ky = -ky
-  endif
+if (reverse) then
+  if (present(kx)) kx = -kx
+  if (present(ky)) ky = -ky
+endif
 
 end subroutine
 

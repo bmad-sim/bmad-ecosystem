@@ -587,9 +587,7 @@ subroutine track1_bmad (start, ele, param, end)
                           set_canonical = .false., set_multipoles = .false.)
 
     call multipole_ele_to_kt(ele, param%particle, knl, tilt, .false.)
-    do n = 0, n_pole_maxx
-      call multipole_kick (knl(n), tilt(n), n, end, .true.)
-    enddo
+    call multipole_kicks (knl, tilt, end, .true.)
 
     call offset_particle (ele, param, end, unset$, &
                            set_canonical = .false., set_multipoles = .false.)
