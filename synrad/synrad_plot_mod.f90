@@ -55,11 +55,9 @@ do j=1,window(iw)%n_ray_hit
 
 enddo
 
-call get_input_string ('x min?  (Enter in meters, or enter 999 for auto)', line)
-read (line, *) xmin
+call get_input_string ('x min?  (Enter in meters, or <CR> for auto)', line)
 
-type *, xmin
-if (xmin == 999.0) then
+if (line == '') then
   if (target) then
     xmax =  real((maxval(x)))
     xmin =  real((minval(x)))
@@ -68,17 +66,17 @@ if (xmin == 999.0) then
     xmin =  0.0
   endif
 else
+  read (line, *) xmin
   call get_input_string ('x max?  (Enter in meters)', line)
   read (line, *) xmax
 endif
 
-call get_input_string ('y min?  (Enter in meters, or enter 999 for auto)', line)
-read (line, *) ymin
-
-if (ymin == 999.0) then
+call get_input_string ('y min?  (Enter in meters, or <CR> for auto)', line)
+if (line == '') then
   ymax =  real((maxval(y)))
   ymin =  real((minval(y)))
 else
+  read (line, *) ymin
   call get_input_string ('y max?  (Enter in meters)', line)
   read (line, *) ymax
 endif
