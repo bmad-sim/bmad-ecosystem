@@ -322,6 +322,7 @@ subroutine ele_wind_power (ring, ie, orb, direction, power, walls, gen, window)
   type (crotch_window_struct) window(:)
 
   integer direction, ie, i_ray, n_slice, ns
+  integer :: n_slice_basic = 5 !! 0
 
   real(rp) l_off, del_l, l0, l1, l_try
 
@@ -344,7 +345,7 @@ subroutine ele_wind_power (ring, ie, orb, direction, power, walls, gen, window)
 !!      if (abs(ele%value(tilt$)) > 20*twopi/360) cycle   ! ignore skew quads
 
   i_ray = 0
-  n_slice = 50
+  n_slice = n_slice_basic
 
   if (ele%key == wiggler$) then
     if (ele%value(n_pole$) == 0) then
@@ -352,7 +353,7 @@ subroutine ele_wind_power (ring, ie, orb, direction, power, walls, gen, window)
       type *, '      CALCULATED RADIATION FROM ', trim(ele%name),' WILL BE 0!'
       return
     endif
-    n_slice = 50 * ele%value(n_pole$)
+    n_slice = n_slice_basic * ele%value(n_pole$)
   endif
 
   del_l = ele%value(l$) / n_slice
@@ -364,32 +365,36 @@ subroutine ele_wind_power (ring, ie, orb, direction, power, walls, gen, window)
     call init_ray (rays(i_ray), ring, ie, l_off, orb, direction)
     call track_ray_to_window (rays(i_ray), ring, walls, window)
 
-    if (i_ray > 1 .and. rays(i_ray)%wall%side /= rays(i_ray-1)%wall%side) then
-      ray_temp = rays(i_ray)
-      rays(i_ray) = rays(i_ray-1)
-      l0 = l_off - del_l
-      l1 = l_off
-      do
-        l_try = (l0 + l1) / 2
-        call init_ray (ray, ring, ie, l_try, orb, direction)
-        call track_ray_to_window (ray, ring, walls, window)
-        if (ray%wall%side == rays(i_ray)%wall%side) then
-          rays(i_ray) = ray
-          l0 = l_try
-        else
-          ray_temp = ray
-          l1 = l_try
-        endif
-        if ((l1 - l0) .le. 5e-4) then
-          if (abs(rays(i_ray)%start%vec(5) - &
-                          rays(i_ray-1)%start%vec(5)) < 5e-4) i_ray = i_ray - 1
-          call seg_power_calc (rays, i_ray, walls, ring, gen, power(ie))
-          rays(1) = ray_temp
-          i_ray = 1
-          exit
-        endif
-      enddo
-    endif
+    if (i_ray < 2) cycle
+    if (rays(i_ray)%wall%side == rays(i_ray-1)%wall%side) cycle
+
+    ! Rays hit different sides so construct a ray that just hits the first
+    ! Wall and call seg_power_calc on the set of rays that hit the first wall.
+
+    ray_temp = rays(i_ray)
+    rays(i_ray) = rays(i_ray-1)
+    l0 = l_off - del_l
+    l1 = l_off
+    do
+      l_try = (l0 + l1) / 2
+      call init_ray (ray, ring, ie, l_try, orb, direction)
+      call track_ray_to_window (ray, ring, walls, window)
+      if (ray%wall%side == rays(i_ray)%wall%side) then
+        rays(i_ray) = ray
+        l0 = l_try
+      else
+        ray_temp = ray
+        l1 = l_try
+      endif
+      if ((l1 - l0) .le. 5e-4) then
+        if (abs(rays(i_ray)%start%vec(5) - &
+                        rays(i_ray-1)%start%vec(5)) < 5e-4) i_ray = i_ray - 1
+        call seg_power_calc (rays, i_ray, walls, ring, gen, power(ie))
+        rays(1) = ray_temp
+        i_ray = 1
+        exit
+      endif
+    enddo
 
   enddo
 

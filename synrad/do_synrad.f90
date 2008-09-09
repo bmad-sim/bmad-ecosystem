@@ -23,22 +23,7 @@ subroutine do_synrad (walls, u, ring, gen_params, window)
   allocate(  e_power(ring%n_ele_max) )
   allocate(  p_power(ring%n_ele_max) )
 
-! query user for parameters
-
-!  type '(a, $)', ' Set Pretzel OFF <CR = No>: '
-!  accept '(a)', line
-!  if (line(1:1) == 'Y' .or. line(1:1) == 'y') then
-!    do i = 1, ring%n_ele_max
-!      if (ring%ele_(i)%key == elseparator$) then
-!        ring%ele_(i)%value(hkick$) = 0
-!        ring%ele_(i)%value(vkick$) = 0
-!      endif
-!    enddo
-!    type *, 'Separator kicks set to zero'
-!  endif
-
-  type '(a, $)', ' Current per beam <CR = 0.2 Amps>: '
-  accept '(a)', line
+  call get_input_string ('Current per beam <CR = 0.2 Amps>:', line)
   call string_trim (line, line, ix)
   if (ix /= 0) then
     read (line, *)gen_params%i_beam
@@ -48,8 +33,7 @@ subroutine do_synrad (walls, u, ring, gen_params, window)
 
   gen_params%epsilon_y = 2e-9
   print *, 'Default emittance is: ',gen_params%epsilon_y
-  type '(a, $)', ' Vertical Emittance <CR = DEFAULT>: '
-  accept '(a)', line
+  call get_input_string ('Vertical Emittance <CR = DEFAULT>:', line)
   call string_trim (line, line, ix)
   if (ix /= 0) then
     read (line, *) gen_params%epsilon_y

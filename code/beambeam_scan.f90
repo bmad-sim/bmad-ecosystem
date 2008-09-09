@@ -876,7 +876,7 @@ end subroutine lum_tracker
 !          write(wordx,'(i3.3)')i
 !          name = 'lost.'//wordx
 !          d_unit = lunget()
-!          open(unit = d_unit , file=name, status='new')
+!          open(unit = d_unit , file=name)
 !           write(d_unit ,'(a12,i5,a15,i5,a6,i5,a6)')' Particle # ',i, '  lost in turn ',turn, ' last ',j,' turns'
 !           do k=1,j
 !             write(d_unit, '(6e12.4)')turnsave(k)%coord(i)%vec(1:6)

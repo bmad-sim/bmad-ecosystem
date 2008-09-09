@@ -10,6 +10,7 @@ subroutine check_aperture ( u, hit )
 
   integer i
   real(rp) epsx, epsy, sige, n_sigma
+  character(40) line
 
   !
 
@@ -18,11 +19,11 @@ subroutine check_aperture ( u, hit )
   epsy = u%ring%b%emit
   sige = u%energy_data%d1%d(1)%model
 
-  type '(a, $)', ' Number of sigma to use?'
-  read *, n_sigma
-  type *, ' epsx is : ',epsx
-  type *, ' epsy is : ',epsy
-  type *, ' dE/E is : ',sige
+  call get_input_string ('Number of sigma to use?', line)
+  read (line, *) n_sigma
+  print *, ' epsx is : ',epsx
+  print *, ' epsy is : ',epsy
+  print *, ' dE/E is : ',sige
 
   call bmad_parser2( 'u:[cesr.bmad.layout]aperture.bmad',u%ring )
 

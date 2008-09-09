@@ -13,12 +13,11 @@ contains
 
 ! Integrates the power hit info for a window or target location
 
-subroutine burn_plot (window, iw, ring, gen, logic)
+subroutine burn_plot (window, iw, ring, gen)
 
 implicit none
 
 type (crotch_window_struct), target :: window(:)
-type (logic_struct) :: logic
 type (lat_struct) :: ring
 type (synrad_param_struct) :: gen
 
@@ -36,8 +35,7 @@ real(rp) :: grid(1:n_grid$,1:n_grid$), dx, dy, gen_factor
 real(rp) :: power_factor, r, dpower, track_len, level(10)
 
 print *, 'Do you want the burn plot at the projected target '
-print '(a,$)', ' or at the window (default) ?  (Enter t or w) '
-accept '(a)', line
+call get_input_string ('or at the window (default) ?  (Enter t or w)', line)
 call str_upcase(line, line)
 line = adjustl(line)
 target = .false.
@@ -57,8 +55,8 @@ do j=1,window(iw)%n_ray_hit
 
 enddo
 
-print '(a,$)', ' x min?  (Enter in meters, or enter 999 for auto) '
-accept '(f)', xmin
+call get_input_string ('x min?  (Enter in meters, or enter 999 for auto)', line)
+read (line, *) xmin
 
 type *, xmin
 if (xmin == 999.0) then
@@ -70,19 +68,19 @@ if (xmin == 999.0) then
     xmin =  0.0
   endif
 else
-  print '(a,$)', ' x max?  (Enter in meters) '
-  accept '(f)', xmax
+  call get_input_string ('x max?  (Enter in meters)', line)
+  read (line, *) xmax
 endif
 
-print '(a,$)', ' y min?  (Enter in meters, or enter 999 for auto) '
-accept '(f)', ymin
+call get_input_string ('y min?  (Enter in meters, or enter 999 for auto)', line)
+read (line, *) ymin
 
 if (ymin == 999.0) then
   ymax =  real((maxval(y)))
   ymin =  real((minval(y)))
 else
-  print '(a,$)', ' y max?  (Enter in meters) '
-  accept '(f)', ymax
+  call get_input_string ('y max?  (Enter in meters)', line)
+  read (line, *) ymax
 endif
 
 dx = (xmax - xmin)/n_grid$
@@ -120,7 +118,7 @@ do j=1,window(iw)%n_ray_hit
 enddo
 
 lun = lunget()
-open (lun, file = 'burn.out', status = 'new')
+open (lun, file = 'burn.out')
 write(lun,*) grid
 
 do m=1,n_grid$
@@ -375,8 +373,7 @@ logical target
 !
 
 print *, 'Do you want ray information at the projected target '
-print '(a,$)', ' or at the window (default) ?  (Enter t or w) '
-accept '(a)', line
+call get_input_string ('or at the window (default) ?  (Enter t or w)', line)
 call str_upcase(line, line)
 line = adjustl(line)
 target = .false.

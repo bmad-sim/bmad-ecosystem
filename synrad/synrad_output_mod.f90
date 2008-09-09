@@ -36,7 +36,7 @@ subroutine ray_output ( window, ring )
   if (line(1:1) == 'T') target = .true.
 
   lun = lunget()
-  open (lun, file = 'windows.out', status = 'new')
+  open (lun, file = 'windows.out')
 
   if (target) then
     print *, 'Crotch Window Data'
@@ -104,7 +104,7 @@ subroutine sextupole_output ( u )
   bytotal = 0
 
   lun = lunget()
-  open (lun, file = 'sexts.out', status = 'new')
+  open (lun, file = 'sexts.out')
   write (lun, '(1x, 7a12)') 'ix_ele  ', 'name   ', 'kl      ', &
            'bxlocal   ', 'bxtotal  ', 'bylocal  ', 'bytotal  '
   write (*, '(1x, 7a12)') 'ix_ele  ', 'name   ', 'kl      ', &

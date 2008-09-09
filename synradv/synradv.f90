@@ -18,7 +18,6 @@ implicit none
 
 type (walls_struct) walls
 type (universe_struct), pointer :: u
-type (logic_struct),target :: logic
 type (graph_struct), target :: graph
 
 type (lat_struct) p_ring, e_ring
@@ -38,17 +37,17 @@ call mpm_init
 
 allocate (super%u_(1))
 u => super%u_(1)
-super%logic => logic
 
 logic%u_num = 1
 logic%u_view = 1
 
-call init_logic (logic)
-call init_universe (u, logic)
-call init_plotting(.true., graph, u, logic)
-call init_init(u, graph, logic,'')
+bmad_status%exit_on_error = .false.
+call init_logic ()
+call init_universe (u)
+call init_plotting(.true., graph, u)
+call init_init(u, graph, '')
 
-call plotdo('X', graph, .false., u, logic)
+call plotdo('X', graph, .false., u)
 
 !
 
@@ -78,8 +77,7 @@ main_loop: do while (.true.)
 
   print *
   if (.not. logic%command_file_open) then
-    print '(a, $)', ' SYNRAD> '
-    accept '(a)', line
+    call get_input_string ('SYNRAD>', line)
   endif
 
   call string_trim (line, line, ix)
@@ -99,7 +97,7 @@ main_loop: do while (.true.)
   elseif (line(1:ix) == 'BURN') then
     print *, '*** Only first window selected will be plotted. ***'
     call get_window_numbers ( window, iw )
-    call burn_plot ( window, iw(1), u%ring, gen_params, logic )
+    call burn_plot ( window, iw(1), u%ring, gen_params)
   elseif (line(1:ix) == 'RO' .or. (index('RAYOUTPUT', line(1:ix)) == 1 .and. ix > 3)) then
     call ray_output (window, u%ring)
   elseif (index('PROJECT', line(1:ix)) == 1 .and. ix > 1) then
@@ -113,19 +111,19 @@ main_loop: do while (.true.)
   elseif (line(1:ix) == 'IW') then
     if (.not.logic%ring_initialized) then
       print *, 'Please pick Lattice first...'
-      call cesrv_command('L:', u, graph, logic, err_flag)
+      call cesrv_command('L:', u, graph, err_flag)
     endif
     call read_outline(walls,u%ring,.true.)
 
   elseif (line(1:ix) == 'INITWALLS') then
     if (.not.logic%ring_initialized) then
       print *, 'Please pick Lattice first...'
-      call cesrv_command('L:', u, graph, logic, err_flag)
+      call cesrv_command('L:', u, graph, err_flag)
     endif
     call read_outline(walls,u%ring,.true.)
 
   else
-    call cesrv_command(line, u, graph, logic, err_flag)
+    call cesrv_command(line, u, graph, err_flag)
   endif
 
 end do main_loop
