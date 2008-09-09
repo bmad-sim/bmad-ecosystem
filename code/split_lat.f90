@@ -85,8 +85,8 @@ subroutine split_lat (lat, s_split, ix_split, split_done)
   ele2 => lat%ele(ix_split+1)
 
   ix = len_trim(ele%name)
-  ele1%name = ele%name(:ix) // '\1'
-  ele2%name = ele%name(:ix) // '\2'
+  ele1%name = ele%name(:ix) // '_1'
+  ele2%name = ele%name(:ix) // '_2'
 
 ! kill any talyor series
 

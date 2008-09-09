@@ -683,7 +683,6 @@ if (n_1st_pass > 0) then
   line = line(:len_trim(line)-1) // ')'
   call write_out (line, iu, .true.)
 
-  deallocate (ix_slave_series)
 end if
 
 ! Main line.
@@ -757,6 +756,7 @@ endif
 close(iu)
 deallocate (names)
 deallocate (multipass)
+if (allocated(ix_slave_series)) deallocate (ix_slave_series)
 if (present(err)) err = .false.
 
 end subroutine

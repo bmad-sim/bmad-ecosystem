@@ -138,7 +138,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   endif
 
-  ! split_lat adds "\1" and "\2" to the names of the split elements.
+  ! split_lat adds "_1" and "_2" to the names of the split elements.
   ! For aesthetic reasons remove the last digit of the names.
 
   call delete_double_slash (ix1_split)
@@ -169,8 +169,8 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     if (split1_done .and. split2_done) then
       if (lat%ele(ix_super-1)%name == lat%ele(ix_super+1)%name .and. &
                                     lat%ele(ix_super-1)%key == drift$) then
-        lat%ele(ix_super-1)%name = trim(lat%ele(ix_super-1)%name) // '1'
-        lat%ele(ix_super+1)%name = trim(lat%ele(ix_super+1)%name) // '2'
+        lat%ele(ix_super-1)%name = trim(lat%ele(ix_super-1)%name) // '_1'
+        lat%ele(ix_super+1)%name = trim(lat%ele(ix_super+1)%name) // '_2'
       endif
     endif
     return
@@ -290,8 +290,8 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   if (split1_done .and. split2_done .and. &
                 lat%ele(ix1_split)%name == lat%ele(ix2_split+1)%name) then
-    lat%ele(ix1_split)%name = trim(lat%ele(ix1_split)%name) // '1'
-    lat%ele(ix2_split+1)%name = trim(lat%ele(ix2_split+1)%name) // '2'
+    lat%ele(ix1_split)%name = trim(lat%ele(ix1_split)%name) // '_1'
+    lat%ele(ix2_split+1)%name = trim(lat%ele(ix2_split+1)%name) // '_2'
   endif
 
   ! transfer control info from sup_con array
@@ -334,13 +334,19 @@ end subroutine
 !------------------------------------------------------------------------------
 ! contains
 
+! Delete trailing "-" or "--"
+
 subroutine delete_double_slash(ix_ele)
 
-  integer ix_ele
+  implicit none
 
-  ix = index(lat%ele(ix_ele)%name, '\\')
-  if (ix /= 0) lat%ele(ix_ele)%name = lat%ele(ix_ele)%name(:ix) // &
-                                              lat%ele(ix_ele)%name(ix+2:)
+  integer ix, ix_ele
+
+  ix = len_trim(lat%ele(ix_ele)%name)
+  if (lat%ele(ix_ele)%name(ix:ix) /= '_') return
+  lat%ele(ix_ele)%name(ix:ix) = ' '
+  if (lat%ele(ix_ele)%name(ix-1:ix-1) /= '_') return
+  lat%ele(ix_ele)%name(ix-1:ix-1) = ' '
 
 end subroutine
 
