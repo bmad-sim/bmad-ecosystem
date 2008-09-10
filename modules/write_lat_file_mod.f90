@@ -64,7 +64,7 @@ character(40), allocatable :: names(:)
 character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
 character(40) :: r_name = 'write_bmad_lattice_file'
 
-integer i, j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1
+integer j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1, ie
 integer unit(6), ix_names, ix_match, n_pass_max, n_1st_pass
 integer ix_slave, ix_ss, ix_l, ixs1, ixs2, ix_r, ix_pass
 integer ix_ss1, ix_ss2, ix_multi_lord
@@ -82,8 +82,8 @@ call init_ele (ele_init)
 
 n_sr = 0
 n_lr = 0
-do i = 1, lat%n_ele_max
-  ele => lat%ele(i)
+do ie = 1, lat%n_ele_max
+  ele => lat%ele(ie)
   if (.not. associated(ele%wake)) cycle
   if (ele%wake%sr_file(1:6) == 'xsif::') n_sr = n_sr + 1 
   if (ele%wake%lr_file(1:6) == 'xsif::') n_lr = n_lr + 1  
@@ -177,18 +177,18 @@ ixs = 0
 ix_names = 0
 allocate (names(lat%n_ele_max))
 
-ele_loop: do i = 1, lat%n_ele_max
+ele_loop: do ie = 1, lat%n_ele_max
 
-  ele => lat%ele(i)
+  ele => lat%ele(ie)
 
-  ix_multi_lord = multipass_lord_index(i, lat, ix_pass) 
+  ix_multi_lord = multipass_lord_index(ie, lat, ix_pass) 
 
   if (ele%key == null_ele$) cycle
   if (ele%control_type == multipass_slave$) cycle ! Ignore for now
   if (ele%control_type == super_lord$ .and. ix_multi_lord > 0) cycle
   if (ele%control_type == super_slave$ .and. ix_pass > 1) cycle
 
-  if (i == lat%n_ele_track+1) then
+  if (ie == lat%n_ele_track+1) then
     write (iu, *)
     write (iu, '(a)') '!-------------------------------------------------------'
     write (iu, '(a)') '! Overlays, groups, etc.'
@@ -385,97 +385,9 @@ ele_loop: do i = 1, lat%n_ele_max
 
   do j = 1, n_attrib_maxx
 
-    ! Exclude dependent variables
-
-    if (j == check_sum$ .and. ele%key /= patch$) cycle
-    if (j == E_TOT$) cycle
-    if (j == p0c$) cycle
-    if (j == tilt_tot$) cycle
-    if (j == x_pitch_tot$) cycle
-    if (j == y_pitch_tot$) cycle
-    if (j == x_offset_tot$) cycle
-    if (j == y_offset_tot$) cycle
-    if (j == s_offset_tot$) cycle
-
-
-    select case (ele%key)
-    case (beambeam$)
-      if (j == bbi_const$) cycle
-    case (elseparator$)
-      if (j == e_field$) cycle
-      if (j == voltage$) cycle
-    case (lcavity$)
-      if (j == e_loss$) cycle
-      if (j == delta_e$) cycle
-      if (j == p0c_start$) cycle
-      if (j == E_TOT_START$) cycle
-    case (wiggler$)
-      if (j == k1$) cycle
-      if (j == rho$) cycle
-    case (sbend$)
-      if (j == l_chord$) cycle
-      if (j == angle$) cycle
-      if (j == rho$) cycle
-    end select
-
-    if (ele%field_master) then
-      select case (ele%key)
-      case (quadrupole$)
-        if (j == k1$) cycle
-      case (sextupole$)
-        if (j == k2$) cycle
-      case (octupole$)
-        if (j == k3$) cycle
-      case (solenoid$)
-        if (j == ks$) cycle
-      case (sol_quad$) 
-        if (j == ks$) cycle
-        if (j == k1$) cycle
-      case (sbend$)
-        if (j == g$) cycle
-        if (j == g_err$) cycle
-      case (hkicker$)
-        if (j == kick$) cycle
-      case (vkicker$)
-        if (j == kick$) cycle
-      end select
-
-      if (j == hkick$) cycle
-      if (j == vkick$) cycle
-
-    else
-      select case (ele%key)
-      case (quadrupole$)
-        if (j == b1_gradient$) cycle
-      case (sextupole$)
-        if (j == b2_gradient$) cycle
-      case (octupole$)
-        if (j == b3_gradient$) cycle
-      case (solenoid$)
-        if (j == bs_field$) cycle
-      case (sol_quad$) 
-        if (j == bs_field$) cycle
-        if (j == b1_gradient$) cycle
-      case (sbend$)
-        if (j == b_field$) cycle
-        if (j == b_field_err$) cycle
-      case (hkicker$)
-        if (j == bl_kick$) cycle
-      case (vkicker$)
-        if (j == bl_kick$) cycle
-      end select
-
-      if (j == bl_hkick$) cycle
-      if (j == bl_vkick$) cycle
-
-    endif
-      
-    !
-
     if (ele%value(j) == 0) cycle
-    line = trim(line) // ', ' // trim(attribute_name(ele, j)) // &
-                                                  ' = ' // str(ele%value(j))
-
+    if (.not. attribute_free (ie, j, lat, .false., .true.)) cycle
+      
     if (attribute_name(ele, j) == null_name) then
       print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
       print *, '      ELEMENT: ', ele%name
@@ -483,7 +395,12 @@ ele_loop: do i = 1, lat%n_ele_max
       stop
     endif
 
+    line = trim(line) // ', ' // trim(attribute_name(ele, j)) // &
+                                                  ' = ' // str(ele%value(j))
+
   enddo ! attribute loop
+
+  ! Encode methods
 
   if (ele%mat6_calc_method /= bmad_standard$) line = trim(line) // &
           ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
@@ -492,6 +409,8 @@ ele_loop: do i = 1, lat%n_ele_max
   if (ele%symplectify) line = trim(line) // ', symplectify'
   if (.not. ele%is_on) line = trim(line) // ', is_on = False'
   call write_out (line, iu, .false.)  
+
+  ! Encode taylor
 
   if (ele%key == taylor$) then
     do j = 1, 6
@@ -551,8 +470,8 @@ enddo ele_loop
 n_pass_max = 0
 n_1st_pass = 0
 
-do i = lat%n_ele_track+1, lat%n_ele_max
-  lord => lat%ele(i)
+do ie = lat%n_ele_track+1, lat%n_ele_max
+  lord => lat%ele(ie)
   if (lord%control_type /= multipass_lord$) cycle
   n_pass_max = max(n_pass_max, lord%n_slave) 
   ix_slave = lat%control(lord%ix1_slave)%ix_slave
@@ -576,8 +495,8 @@ if (n_1st_pass > 0) then
   ix_ss = 0
   allocate (ix_slave_series(n_1st_pass, n_pass_max))
 
-  do i = lat%n_ele_track+1, lat%n_ele_max
-    lord => lat%ele(i)
+  do ie = lat%n_ele_track+1, lat%n_ele_max
+    lord => lat%ele(ie)
     if (lord%control_type /= multipass_lord$) cycle 
     ixs = lat%control(lord%ix1_slave)%ix_slave
     if (lat%ele(ixs)%control_type == super_lord$) then
@@ -620,36 +539,36 @@ if (n_1st_pass > 0) then
   ix_r = 0
   in_multi_region = .false.
 
-  do i = 1, lat%n_ele_track+1
-    ele => lat%ele(i)
-    ix_pass = multipass(i)%ix_pass
+  do ie = 1, lat%n_ele_track+1
+    ele => lat%ele(ie)
+    ix_pass = multipass(ie)%ix_pass
     if (ix_pass /= 1) then  ! Not a first pass region
-      if (in_multi_region) multipass(i-1)%region_stop_pt = .true.
+      if (in_multi_region) multipass(ie-1)%region_stop_pt = .true.
       in_multi_region = .false.
       cycle
     endif
     ! If start of a new region...
     if (.not. in_multi_region) then  
       ix_r = ix_r + 1
-      multipass(i)%ix_region = ix_r
-      multipass(i)%region_start_pt = .true.
+      multipass(ie)%ix_region = ix_r
+      multipass(ie)%region_start_pt = .true.
       in_multi_region = .true.
-      ix_ss1 = multipass(i)%ix_slave_series
+      ix_ss1 = multipass(ie)%ix_slave_series
       cycle
     endif
-    ix_ss2 = multipass(i)%ix_slave_series
+    ix_ss2 = multipass(ie)%ix_slave_series
     do ix_pass = 2, size(ix_slave_series, 2)
       ixs1 = ix_slave_series(ix_ss1, ix_pass)
       ixs2 = ix_slave_series(ix_ss2, ix_pass)
       if (abs(ixs1 - ixs2) /= 1) then  ! If not contiguous then need a new region
         ix_r = ix_r + 1
-        multipass(i-1)%region_stop_pt = .true.
-        multipass(i)%region_start_pt = .true.
+        multipass(ie-1)%region_stop_pt = .true.
+        multipass(ie)%region_start_pt = .true.
         exit
       endif
     enddo
     ix_ss1 = ix_ss2
-    multipass(i)%ix_region = ix_r
+    multipass(ie)%ix_region = ix_r
   enddo
 
   ! Each 1st pass region is now a valid multipass line.
@@ -661,12 +580,12 @@ if (n_1st_pass > 0) then
   ix_r = 0
   in_multi_region = .false.
 
-  do i = 1, lat%n_ele_track
+  do ie = 1, lat%n_ele_track
 
-    ix_pass = multipass(i)%ix_pass
+    ix_pass = multipass(ie)%ix_pass
     if (ix_pass /= 1) cycle 
 
-    if (multipass(i)%region_start_pt) then
+    if (multipass(ie)%region_start_pt) then
       if (ix_r > 0) then
         line = line(:len_trim(line)-1) // ')'
         call write_out (line, iu, .true.)
@@ -676,7 +595,7 @@ if (n_1st_pass > 0) then
       write (line, '(a, i2.2, a)') 'multi_line_', ix_r, ': line[multipass] = ('
     endif
 
-    call write_line_element (line, iu, i, lat)
+    call write_line_element (line, iu, ie, lat)
 
   enddo
 
@@ -693,14 +612,14 @@ write (iu, *)
 line = 'main_line: line = ('
 
 in_multi_region = .false.
-do i = 1, lat%n_ele_track
+do ie = 1, lat%n_ele_track
 
-  if (multipass(i)%ix_pass == 0) then
-    call write_line_element (line, iu, i, lat)
+  if (multipass(ie)%ix_pass == 0) then
+    call write_line_element (line, iu, ie, lat)
     cycle
   endif
 
-  ix_ss = multipass(i)%ix_slave_series
+  ix_ss = multipass(ie)%ix_slave_series
   ix1 = ix_slave_series(ix_ss, 1)
   ix_r = multipass(ix1)%ix_region
 
@@ -734,8 +653,8 @@ write (iu, *) 'use, main_line'
 
 if (n_pass_max > 0) then
   expand_lat_out = .false.
-  do i = 1, lat%n_ele_max
-    ele => lat%ele(i)
+  do ie = 1, lat%n_ele_max
+    ele => lat%ele(ie)
     if (ele%control_type == super_slave$) cycle
     if (ele%key /= lcavity$ .and. ele%key /= rfcavity$) cycle
     if (ele%value(dphi0$) == 0) cycle

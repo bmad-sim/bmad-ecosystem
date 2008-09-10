@@ -129,10 +129,20 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
   case (wiggler$)
     if (ix_attrib == k1$ .or. ix_attrib == rho$) free = .false. 
   case (lcavity$)
-    if (ix_attrib == delta_e$) free = .false.
+    if (any(ix_attrib == (/ delta_e$, p0c_start$, e_tot_start$ /))) free = .false.
   case (elseparator$)
     if (ix_attrib == e_field$ .or. ix_attrib == voltage$) free = .false.
   end select
+
+  if (ix_attrib == tilt_tot$) free = .false.
+  if (ix_attrib == x_pitch_tot$) free = .false.
+  if (ix_attrib == y_pitch_tot$) free = .false.
+  if (ix_attrib == x_offset_tot$) free = .false.
+  if (ix_attrib == y_offset_tot$) free = .false.
+  if (ix_attrib == s_offset_tot$) free = .false.
+  if (ix_attrib == check_sum$ .and. ele%key /= patch$) free = .false.
+  if (ix_attrib == e_tot$) free = .false.
+  if (ix_attrib == p0c$) free = .false.
 
   if (.not.free) then
     call print_error (ix_ele, ix_attrib, 'THE ATTRIBUTE IS A DEPENDENT VARIABLE.')
