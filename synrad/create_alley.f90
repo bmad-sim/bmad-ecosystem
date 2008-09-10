@@ -1,6 +1,13 @@
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
+!+
+! this routine marks the wall points according to whether they are part of an
+! alley.
+!
+! To make the calculations tractible, there is a required restriction: 
+! A "vertical" line (line drawn at constant s) must go through the wall
+! exactly once or three times or be tangent to some wall segment. There
+! is no restriction on x values except that a wall cannot intersect
+! itself.
+!-
 
 subroutine create_alley (wall)
 
