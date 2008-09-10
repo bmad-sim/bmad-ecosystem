@@ -364,7 +364,7 @@ type (crotch_window_struct), target :: window(:)
 type (coord_struct), pointer :: coord
 
 integer  j, iw
-real(rp) :: x(window(iw)%n_ray_hit), y(window(iw)%n_ray_hit)
+real(rp) :: x(window(iw)%n_ray_hit), y(window(iw)%n_ray_hit), min, max
 character*16 line
 logical target
 
@@ -400,7 +400,14 @@ else
   call qp_set_axis ('X', 0.0_rp, window(iw)%length*1e3, 5, 5)
 endif
 
-call qp_set_axis ('Y', real(floor(minval(y)), rp), real(ceiling(maxval(y)), rp), 20, 5)
+min = real(floor(minval(y)), rp)
+max = real(ceiling(maxval(y)), rp)
+! put in arbitrary values to prevent qp error if all y values are equal
+if (min == max) then
+  min = min - 0.001  
+  max = max + 0.001
+endif
+call qp_set_axis ('Y', min, max, 20, 5)
 call qp_draw_graph (x, y, 'X (in millimeters)', 'Y (in microns)', window(iw)%name)
 
 end subroutine
