@@ -140,7 +140,8 @@ that are far from the expansion point about which the map was
 made. This method is non-symplectic away from the expansion
 point. Whether the Taylor map is generated taking into account the
 offset an element has is governed by the \vn{map_with_offsets}
-attribute (\sref{s:mapoff}).
+attribute (\sref{s:mapoff}). Note: Taylor maps for \vn{lcavity}, \vn{match},
+and \vn{patch} elements are limited to first order.
 
 \index{Wiedemann}
 \item[\vn{Wiedemann}]
@@ -179,7 +180,7 @@ that it can be used for long term tracking.
 \begin{sideways}\vn{Taylor}\end{sideways} &
 \begin{sideways}\vn{Wiedemann}\end{sideways}
 \\ \hline
-%                               AB  BS   B   C   L   M   N  RK  SLB SLP SM   T   W
+%                               AB  BS   B   C   L   M  RK  SLB SLP SM   T   W
   \vn{ab_multipole}            &   & D &   & X & X &   &   &   & X & X & X &   \\ \hline 
   \vn{beambeam}                &   & D &   & X & X &   &   &   &   &   &   &   \\ \hline 
   \vn{bend_sol_quad}           &   &   &   &   &   &   &   & D &   &   &   &   \\ \hline 
@@ -190,13 +191,13 @@ that it can be used for long term tracking.
   \vn{hkicker}                 & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline 
   \vn{instrument}              & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline 
   \vn{kicker}                  & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline 
-  \vn{lcavity}                 &   & D &   & X & X &   &   &   &   &   &   &   \\ \hline 
+  \vn{lcavity}                 &   & D &   & X & X &   &   &   &   &   & * &   \\ \hline 
   \vn{marker}                  &   & D &   & X & X &   &   &   & X & X & X &   \\ \hline 
-  \vn{match}                   &   & D &   &   &   &   &   &   &   &   &   &   \\ \hline
+  \vn{match}                   &   & D &   &   &   &   &   &   &   &   & * &   \\ \hline
   \vn{monitor}                 & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline 
   \vn{multipole}               &   & D &   & X & X &   &   &   & X & X & X &   \\ \hline 
   \vn{octupole}                & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline
-  \vn{patch}                   &   & D &   & X &   &   &   &   &   &   &   &   \\ \hline
+  \vn{patch}                   &   & D &   & X &   &   &   &   &   &   & * &   \\ \hline
   \vn{quadrupole}              & X & D & X & X & X & X & X &   & X & X & X &   \\ \hline
   \vn{rbend}                   &   & D &   & X & X & X &   &   & X & X & X &   \\ \hline
   \vn{rcollimator}             & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline
@@ -210,11 +211,14 @@ that it can be used for long term tracking.
   \vn{wiggler} (periodic type) &   & D &   & X & X &   &   &   &   &   &   & X \\ \hline
   \vn{wiggler} (map type)      & X & D & X & X & X &   & X & X & X & X & X &   \\ \hline
 \end{tabular}
-}
+} 
+
 \caption[Table of available {\bf tracking_method}\ switches for a
 given element class.]{Table of available {\bf tracking_method}\
-switches for a given element class. D denotes the default method. X
-denotes an available method.}
+switches for a given element class. ``D'' denotes the default
+method. ``X'' denotes an available method. ``*'' denotes that the
+Taylor map will only be first order.}
+
 \label{t:track.methods}
 \end{table}
 
@@ -301,6 +305,8 @@ made. This method is non-symplectic away from the expansion
 point. Whether the Taylor map is generated taking into account the
 offset an element has is governed by the \vn{map_with_offsets}
 attribute (\sref{s:mapoff}).
+Note: Taylor maps for \vn{lcavity}, \vn{match},
+and \vn{patch} elements are limited to first order.
 
 \index{Tracking}
 \item[\vn{Tracking}]
@@ -363,8 +369,9 @@ is that it is directly related to any tracking results.
 
 \caption[Table of available \vn{mat6_calc_method}\ switches for a
 given element class.]{Table of available \vn{mat6_calc_method}\
-switches for a given element class. D denotes the default method.  X
-denotes an available method.}
+switches for a given element class. ``D'' denotes the default
+method. ``X'' denotes an available method. ``*'' denotes that the
+Taylor map will only be first order.}
 
 \label{t:mat6.methods}
 \end{table}

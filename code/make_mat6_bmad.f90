@@ -467,7 +467,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
 ! One must keep in mind that we are NOT using good canonical coordinates since
 !   the energy of the reference particle is changing.
 ! This means that the resulting matrix will NOT be symplectic.
-! Since things are very complicated we simplify things by ignolat the
+! Since things are very complicated we simplify things by ignoring the
 !   off-axis corrections to mat6.
 !
 ! bmad_com%grad_loss_sr_wake is an internal variable used with macroparticles.

@@ -1554,7 +1554,7 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
   type (ele_struct), intent(inout) :: ele
   type (lat_param_struct) :: param
   type (coord_struct), optional, intent(in) :: orb0
-  type (coord_struct) start0, end0
+  type (coord_struct) start0, end0, c0
 
   type (fibre), pointer, save :: a_fibre
   type (real_8) y(6), y2(6)
@@ -1565,6 +1565,7 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
   integer i
   
   logical, optional :: map_with_offsets
+  logical :: warning_given = .false.
   logical use_offsets
 
   character(16) :: r_name = 'ele_to_taylor'
@@ -1581,8 +1582,14 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
   if (ele%key == taylor$) return
 
   if (ele%key == lcavity$ .or. ele%key == match$ .or. ele%key == patch$) then
-    call make_mat6 (ele, param)
+    c0%vec = 0
+    call make_mat6_bmad (ele, param, c0, c0, .true.)
     call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
+    if (.not. warning_given) then
+      call out_io (s_warn$, r_name, &
+        'Note: Taylor maps for lcavity, match, and patch elements are always 1st order!')
+      warning_given = .true.
+    endif
     return
   endif
 
