@@ -20,6 +20,7 @@ type (walls_struct), target :: walls
 type (wall_struct), pointer :: wall_in, wall_out
 
 real(rp) x_min, x_max, y_min, y_max
+real(rp) x_last, y_last, x_next, y_next
 
 integer i
 integer i1_in, i2_in, i1_out, i2_out
@@ -60,8 +61,10 @@ enddo
 call qp_calc_and_set_axis ('X', x_min, x_max, 5, 11, 'GENERAL')
 call qp_calc_and_set_axis ('Y', y_min, y_max, 5, 11, 'GENERAL')
 call qp_draw_axes ('S', 'X', 'Wall Outline')
-call qp_draw_polyline (wall_in%pt(i1_in:i2_in)%s, wall_in%pt(i1_in:i2_in)%x)
-call qp_draw_polyline (wall_out%pt(i1_out:i2_out)%s, wall_out%pt(i1_out:i2_out)%x)
+call qp_draw_polyline (wall_in%pt(i1_in-1:i2_in+1)%s, &
+     wall_in%pt(i1_in-1:i2_in+1)%x)
+call qp_draw_polyline (wall_out%pt(i1_out-1:i2_out+1)%s, &
+     wall_out%pt(i1_out-1:i2_out+1)%x)
 
 end subroutine
 
@@ -104,9 +107,9 @@ grid = 0
 do j=1,window(iw)%n_ray_hit
 
   if (target) then
-    coord => window(iw)%ray_hit_(j)%target_coord
+    coord => window(iw)%ray_hits(j)%target_coord
   else
-    coord => window(iw)%ray_hit_(j)%hit_coord
+    coord => window(iw)%ray_hits(j)%hit_coord
   endif
   x(j) = coord%vec(1) 
   y(j) = coord%vec(3) 
@@ -147,15 +150,15 @@ gen_factor = 14.1e3 * gen%i_beam * ring%ele(0)%value(e_tot$)**4
 
 do j=1,window(iw)%n_ray_hit
 
-  ray_hit => window(iw)%ray_hit_(j)
+  ray_hit => window(iw)%ray_hits(j)
   if (target) then
     sigma = ray_hit%sig_y_eff 
     track_len = ray_hit%dist + ray_hit%ray%track_len
-    coord => window(iw)%ray_hit_(j)%target_coord
+    coord => window(iw)%ray_hits(j)%target_coord
   else
     sigma = ray_hit%window_sig_y
     track_len = ray_hit%ray%track_len
-    coord => window(iw)%ray_hit_(j)%hit_coord
+    coord => window(iw)%ray_hits(j)%hit_coord
   endif
   power_factor = gen_factor * ray_hit%ray%g_bend * dx * dy / &
                      (sqrt(twopi) * sigma * track_len)
@@ -439,9 +442,9 @@ call qp_clear_page
 do j=1,window(iw)%n_ray_hit
 
   if (target) then
-    coord => window(iw)%ray_hit_(j)%target_coord
+    coord => window(iw)%ray_hits(j)%target_coord
   else
-    coord => window(iw)%ray_hit_(j)%hit_coord
+    coord => window(iw)%ray_hits(j)%hit_coord
   endif
   x(j) = coord%vec(1)
   y(j) = coord%vec(3)

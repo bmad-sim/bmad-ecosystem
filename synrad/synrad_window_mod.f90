@@ -108,7 +108,7 @@ do i=1,n_windows$
 
   do j=1,window(i)%n_ray_hit
 
-    ray_hit => window(i)%ray_hit_(j)
+    ray_hit => window(i)%ray_hits(j)
     ray_hit%sig_y = sqrt(gen%epsilon_y * ray_hit%ray%y_twiss%beta)
     ray_hit%sig_yp = sqrt(gen%epsilon_y / ray_hit%ray%y_twiss%beta)
     ray_hit%window_sig_y = sqrt(ray_hit%sig_y**2 + &
@@ -153,7 +153,7 @@ subroutine project_from_windows (window)
       if (iw_(i) == 0) exit
       do j=1,window(iw_(i))%n_ray_hit
 
-        ray_hit => window(iw_(i))%ray_hit_(j)
+        ray_hit => window(iw_(i))%ray_hits(j)
         wind = ray_hit%hit_coord
         targ = wind
         targ%vec(1) = wind%vec(1) + (wind%vec(2) * dist)
@@ -719,7 +719,7 @@ subroutine hit_spot_calc_wind (ray, wall, ix_wall, is_hit, ring, window, circula
 
     if ( window(i)%ix_pt == ray%ix_wall_pt ) then
       window(i)%n_ray_hit = window(i)%n_ray_hit + 1
-      window(i)%ray_hit_(window(i)%n_ray_hit)%ray = ray
+      window(i)%ray_hits(window(i)%n_ray_hit)%ray = ray
       temp = ray%now
       if (window(i)%side == forward$) then
         temp%vec(1) = (1 - ray%r_wall) * window(i)%length
@@ -727,7 +727,7 @@ subroutine hit_spot_calc_wind (ray, wall, ix_wall, is_hit, ring, window, circula
         temp%vec(1) = ray%r_wall * window(i)%length
       endif
       temp%vec(2) = tan(atan(ray%now%vec(2)) + window(i)%angle)
-      window(i)%ray_hit_(window(i)%n_ray_hit)%hit_coord = temp
+      window(i)%ray_hits(window(i)%n_ray_hit)%hit_coord = temp
     endif
 
   enddo

@@ -58,19 +58,19 @@ subroutine ray_output ( window, ring )
     do j=1,window(iw(i))%n_ray_hit
       
       if (target) then
-        sigma => window(iw(i))%ray_hit_(j)%sig_y_eff 
-        coord => window(iw(i))%ray_hit_(j)%target_coord
+        sigma => window(iw(i))%ray_hits(j)%sig_y_eff 
+        coord => window(iw(i))%ray_hits(j)%target_coord
       else
-        sigma => window(iw(i))%ray_hit_(j)%window_sig_y
-        coord => window(iw(i))%ray_hit_(j)%hit_coord
+        sigma => window(iw(i))%ray_hits(j)%window_sig_y
+        coord => window(iw(i))%ray_hits(j)%hit_coord
       endif
 
       write (*, '(1x, 5f13.9, 1x, a16)') coord%vec(1), coord%vec(3), &
             sigma, coord%vec(2), coord%vec(4), &
-            ring%ele(window(iw(i))%ray_hit_(j)%ray%ix_source)%name
+            ring%ele(window(iw(i))%ray_hits(j)%ray%ix_source)%name
       write (lun, '(1x, 5f13.9, 1x, a16)') coord%vec(1), coord%vec(3), &
             sigma, coord%vec(2), coord%vec(4), &
-            ring%ele(window(iw(i))%ray_hit_(j)%ray%ix_source)%name
+            ring%ele(window(iw(i))%ray_hits(j)%ray%ix_source)%name
     
     enddo
 

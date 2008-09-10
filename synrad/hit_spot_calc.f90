@@ -113,6 +113,10 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
   else
     if (pt0%type /= no_alley$) then
       type *, 'ERROR IN HIT_SPOT_CALC: CALCULATION IN ALLEY BUT BETWEEN POINTS.'
+      print *, "ray%now%vec(5): <", ray%now%vec(5), &
+           ">  pt0%s: <", pt0%s, ">"
+      print *, "ray%now%vec(1): <", ray%now%vec(1), &
+           ">  pt0%x: <", pt0%x, ">"
       call err_exit
     endif
   endif

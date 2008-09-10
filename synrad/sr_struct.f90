@@ -187,7 +187,7 @@ module sr_struct
                               ! terms of s (positron) direction
     real(rp) angle                ! Angle of window found by: 
                               !    atan(ds_window/dx_window)
-    type (ray_hit_struct)  ray_hit_(n_max_hits$)
+    type (ray_hit_struct)  ray_hits(n_max_hits$)
                               ! Array of rays hitting the window
   end type
 
