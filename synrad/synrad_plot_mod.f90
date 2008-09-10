@@ -143,7 +143,7 @@ call qp_set_axis ('X', xmin, xmax, 10, 3)
 call qp_set_axis ('Y', ymin, ymax, 25, 4) 
 level(1) =  (minval(grid) + maxval(grid)) / 2
 title = "Burn Plot for " // logic%lattice
-call plot_contour (grid, level, 'x', 'y', title)
+call plot_contour (grid, level, 'x (m)', 'y (m)', title)
 
 end subroutine
 
@@ -385,8 +385,8 @@ do j=1,window(iw)%n_ray_hit
   else
     coord => window(iw)%ray_hit_(j)%hit_coord
   endif
-  x(j) = coord%vec(1) * 1e3
-  y(j) = coord%vec(3) * 1e6
+  x(j) = coord%vec(1)
+  y(j) = coord%vec(3)
 
 enddo
 
@@ -397,7 +397,7 @@ call qp_set_page_border (0.0_rp, 0.0_rp, 0.0_rp, 20.0_rp, 'POINTS')
 if (target) then
   call qp_set_axis ('X', real(floor(minval(x)), rp), real(ceiling(maxval(x)), rp), 5, 5)
 else
-  call qp_set_axis ('X', 0.0_rp, window(iw)%length*1e3, 5, 5)
+  call qp_set_axis ('X', 0.0_rp, window(iw)%length, 5, 5)
 endif
 
 min = real(floor(minval(y)), rp)
@@ -408,7 +408,7 @@ if (min == max) then
   max = max + 0.001
 endif
 call qp_set_axis ('Y', min, max, 20, 5)
-call qp_draw_graph (x, y, 'X (in millimeters)', 'Y (in microns)', window(iw)%name)
+call qp_draw_graph (x, y, 'X (m)', 'Y (m)', window(iw)%name)
 
 end subroutine
 
