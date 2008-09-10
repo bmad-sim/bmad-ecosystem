@@ -17,17 +17,23 @@ subroutine create_alley (wall)
   integer i, j, i1, i2, i3, i4, i5, i6
   integer closed_end_direct
 
-  real(rp) s_left, s_right, x_wall
+  real(rp) s_min_local, s_max_local, x_wall
 
 ! loop over all points until we come to a switchback which indicates
 ! we are in an alley.
-! i1 is the beginning of the alley with s_wall(i1) >= s_wall(i4).
-! i2 is the first point after i1 where s_wall is a local maximum.
-! i3 is the point at which the wall starts going backward (s_wall
+! i1 is the beginning of the alley with i2 being the first point such that
+!     s_wall(i1) >= s_min_local == s_wall(i4).
+! i2 is the first point after i1 where s_wall is a local maximum == s_max_local.
+!    [Note: There might be multiple points with s = s_max_local.]
+! i3 is the point after i2 at which the wall starts going backward (s_wall
 !    starts decreasing).
 ! i4 is the first point after i3 where s_wall is a local minimum.
+!    [Note: There might be multiple points with s = s_min_local.]
 ! i5 is the point after i3 where the wall starts to go forward again.
-! i6 is the end of the alley with s_wall(i6) <= s_wall(i2).
+! i6 is the end of the alley. It is the first point after i5 with:
+!    s_wall(i6) >= s_max_local == s_wall(i2).
+
+
 
   pt => wall%pt
 
@@ -38,15 +44,19 @@ subroutine create_alley (wall)
     do
       i3 = i3 + 1
       if (pt(i3)%s < pt(i3-1)%s) exit
+
+      ! At end cleanup: possible_alley -> no_alley$
+
       if (i3 == wall%n_pt_tot) then
         do i = 1, wall%n_pt_tot
           if (pt(i)%type == possible_alley$) pt(i)%type = no_alley$
         enddo
         return
       endif
+
     enddo
 
-    s_right = pt(i3-1)%s
+    s_max_local = pt(i3-1)%s
 
 ! go forward to 2nd switchback of the alley
 
@@ -56,13 +66,13 @@ subroutine create_alley (wall)
       if (pt(i5)%s > pt(i5-1)%s) exit
     enddo
 
-    s_left = pt(i5-1)%s
+    s_min_local = pt(i5-1)%s
 
 ! find the beginning of the second switchback
 
     i4 = i3
       do
-        if (pt(i4)%s == s_left) exit
+        if (pt(i4)%s == s_min_local) exit
         i4 = i4 + 1
       enddo
 
@@ -87,8 +97,8 @@ subroutine create_alley (wall)
 
     i1 = i3
     do
-      if (pt(i1)%s == s_right) i2 = i1
-      if (pt(i1-1)%s < s_left) exit
+      if (pt(i1)%s == s_max_local) i2 = i1
+      if (pt(i1-1)%s < s_min_local) exit
       i1 = i1 - 1
     enddo
 
@@ -106,7 +116,7 @@ subroutine create_alley (wall)
         enddo
         call err_exit
       endif
-      if (pt(i6)%s > s_right) exit
+      if (pt(i6)%s > s_max_local) exit
       i6 = i6 + 1
     enddo
 

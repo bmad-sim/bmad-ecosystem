@@ -18,20 +18,22 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
 
   logical has_hit, circular
 
-! init
+  ! init
 
   pt => wall%pt
   pt0 => pt(ix_wall)
 
   has_hit = .false.  ! assume no hit
 
-! if the ray is on the opposite side of the beam centerline from the wall there
-! is no hit
+  ! if the ray is on the opposite side of the beam centerline from the wall there
+  ! is no hit
 
   if (sign(1.0, ray%now%vec(1)) /= sign(1.0, pt0%x)) return
 
-! figure out if there is a hit.
-! if there is no alley here then we have not hit if x_pos < x_wall
+  ! figure out if there is a hit.
+  ! if there is no alley here then we have not hit if x_pos < x_wall.
+  ! We interpolate here between points since points may be very far apart and
+  ! and we don't want to wait until the next time that s_ray = s_wall.
 
   if (pt0%type == no_alley$) then
     ray%alley_status = no_local_alley$
@@ -44,12 +46,17 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
     endif
     if (abs(ray%now%vec(1)) < abs(x)) return  ! return if no hit.
 
-! Here for an alley...
-! Note. To simplify the program we do not allow a calculation of whether
-! we have hit if we are in an ally but between wall points (that is, in
-! an alley the wall points cannot be further apart than 1 meter).
+  ! Here for an alley...
+  ! If the ray is in between points (in terms of s) then the calculation is
+  ! very complicated so we will just wait until the ray is propagated so that
+  ! s_ray = s_wall_pt.
 
-  elseif (ray%now%vec(5) == pt0%s) then   ! in alley at a wall pt
+  elseif (ray%now%vec(5) /= pt0%s) then
+    return
+
+  ! else in alley with s_ray = s_wall_pt...
+
+  else
 
     if (pt0%type == open_end$) then
       if (ray%direction == pt0%closed_end_direct) then
@@ -110,15 +117,6 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
       call err_exit
     endif
 
-  else
-    if (pt0%type /= no_alley$) then
-      type *, 'ERROR IN HIT_SPOT_CALC: CALCULATION IN ALLEY BUT BETWEEN POINTS.'
-      print *, "ray%now%vec(5): <", ray%now%vec(5), &
-           ">  pt0%s: <", pt0%s, ">"
-      print *, "ray%now%vec(1): <", ray%now%vec(1), &
-           ">  pt0%x: <", pt0%x, ">"
-      call err_exit
-    endif
   endif
 
   ix0 = min(ix_wall, ix1)
@@ -126,13 +124,13 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
   has_hit = .true.
   ray%ix_wall_pt = ix2
 
-! Here if we have a hit.
-! We need to find where exactly the ray hit the wall.
-! ray%r_wall is the percentage distance along the wall piece from pt(ix0)
-! where the ray hits.
-! ray%r_wall = 0.0 => the hit is at pt(ix0)
-! ray%r_wall = 1.0 => the hit is at pt(ix2)
-! we need to iterate in a bend since the wall is actually curved.
+  ! Here if we have a hit.
+  ! We need to find where exactly the ray hit the wall.
+  ! ray%r_wall is the percentage distance along the wall piece from pt(ix0)
+  ! where the ray hits.
+  ! ray%r_wall = 0.0 => the hit is at pt(ix0)
+  ! ray%r_wall = 1.0 => the hit is at pt(ix2)
+  ! we need to iterate in a bend since the wall is actually curved.
 
   ray0 = ray
   ray1 = ray

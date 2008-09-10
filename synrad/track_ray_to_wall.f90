@@ -67,19 +67,21 @@ subroutine track_ray_to_wall (ray, lat, walls, &
 ! Propagate the ray. Figure out how far to advance in s.
 ! Do not advance past the next wall point 
 ! (either negative_x_wall or positive_x_wall).
+! Also since the next wall point may be a very long ways off, 
+!    do not propagate more than 1 meter.
 
   do
 
     if (ray%direction == 1) then
       s_next = min(negative_x_wall%pt(ix_neg)%s, &
-           positive_x_wall%pt(ix_pos)%s, ray%now%vec(5) + 1.0)
-      if (present(track_max)) s_next = min(s_next, &
-           ray%now%vec(5) + (1.0001 * track_max - ray%track_len))
+                positive_x_wall%pt(ix_pos)%s, ray%now%vec(5) + 1.0)
+      if (present(track_max)) s_next = &
+                min(s_next, ray%now%vec(5) + (1.0001 * track_max - ray%track_len))
     else
       s_next = max(negative_x_wall%pt(ix_neg)%s, &
-           positive_x_wall%pt(ix_pos)%s, ray%now%vec(5) - 1.0)
-      if (present(track_max)) s_next = max(s_next, &
-           ray%now%vec(5) - (1.0001 * track_max - ray%track_len))
+                positive_x_wall%pt(ix_pos)%s, ray%now%vec(5) - 1.0)
+      if (present(track_max)) s_next = &
+                max(s_next, ray%now%vec(5) - (1.0001 * track_max - ray%track_len))
     endif
 
     call propagate_ray (ray, s_next, lat, .true.,walls%circular)
