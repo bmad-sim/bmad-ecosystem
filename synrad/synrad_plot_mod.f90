@@ -11,6 +11,64 @@ contains
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
+subroutine wall_plot (x_min, x_max, walls, ring)
+
+implicit none
+
+type (lat_struct) ring
+type (walls_struct), target :: walls
+type (wall_struct), pointer :: wall_in, wall_out
+
+real(rp) x_min, x_max, y_min, y_max
+
+integer i
+integer i1_in, i2_in, i1_out, i2_out
+
+!
+
+call qp_clear_page
+call qp_set_box (1, 1, 1, 1)
+call qp_set_margin (120.0_rp, 40.0_rp, 30.0_rp, 20.0_rp, 'POINTS')
+call qp_set_page_border (0.0_rp, 0.0_rp, 0.0_rp, 20.0_rp, 'POINTS')
+
+y_min = 0; y_max = 0
+
+wall_out => walls%positive_x_wall
+i1_out = -1; i2_out = -1
+do i = 1, wall_out%n_pt_tot
+  if (wall_out%pt(i)%s < x_min) cycle
+  if (wall_out%pt(i)%s > x_max) cycle
+  if (i1_out == -1) i1_out = i
+  i2_out = i
+  y_min = min(y_min, wall_out%pt(i)%x)
+  y_max = max(y_max, wall_out%pt(i)%x)
+enddo 
+
+wall_in => walls%negative_x_wall
+i1_in = -1; i2_in = -1
+do i = 1, wall_in%n_pt_tot
+  if (wall_in%pt(i)%s < x_min) cycle
+  if (wall_in%pt(i)%s > x_max) cycle
+  if (i1_in == -1) i1_in = i
+  i2_in = i
+  y_min = min(y_min, wall_in%pt(i)%x)
+  y_max = max(y_max, wall_in%pt(i)%x)
+enddo 
+
+!
+
+call qp_calc_and_set_axis ('X', x_min, x_max, 5, 11, 'GENERAL')
+call qp_calc_and_set_axis ('Y', y_min, y_max, 5, 11, 'GENERAL')
+call qp_draw_axes ('S', 'X', 'Wall Outline')
+call qp_draw_polyline (wall_in%pt(i1_in:i2_in)%s, wall_in%pt(i1_in:i2_in)%x)
+call qp_draw_polyline (wall_out%pt(i1_out:i2_out)%s, wall_out%pt(i1_out:i2_out)%x)
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+
 ! Integrates the power hit info for a window or target location
 
 subroutine burn_plot (window, iw, ring, gen)

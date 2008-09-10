@@ -495,23 +495,18 @@ call create_alley (outside)
 
 ! check that endpoints are correct
 
-if (abs(outside%pt(outside%n_pt_tot)%s - ring%ele(ring%n_ele_track)%s) > &
-                                                                  0.01) then
-  print *, 'ERROR: OUTSIDE WALL ENDS AT:', outside%pt(outside%n_pt_tot)%s
-  print *, '       AND NOT AT RING END OF:', ring%ele(ring%n_ele_track)%s
-  call err_exit
-else
-  outside%pt(outside%n_pt_tot)%s = ring%ele(ring%n_ele_track)%s
+if (abs(outside%pt(outside%n_pt_tot)%s - ring%ele(ring%n_ele_track)%s) > 0.01) then
+  print *, 'WARNING: OUTSIDE WALL ENDS AT:', outside%pt(outside%n_pt_tot)%s
+  print *, '         AND NOT AT RING END OF:', ring%ele(ring%n_ele_track)%s
 endif
 
-if (abs(inside%pt(inside%n_pt_tot)%s - ring%ele(ring%n_ele_track)%s) > &
-                                                                  0.01) then
-  print *, 'ERROR: INSIDE WALL ENDS AT:', inside%pt(inside%n_pt_tot)%s
-  print *, '       AND NOT AT RING END OF:', ring%ele(ring%n_ele_track)%s
-  call err_exit
-else
-  inside%pt(inside%n_pt_tot)%s = ring%ele(ring%n_ele_track)%s
+if (abs(inside%pt(inside%n_pt_tot)%s - ring%ele(ring%n_ele_track)%s) > 0.01) then
+  print *, 'WARNING: INSIDE WALL ENDS AT:', inside%pt(inside%n_pt_tot)%s
+  print *, '         AND NOT AT RING END OF:', ring%ele(ring%n_ele_track)%s
 endif
+
+outside%pt(outside%n_pt_tot)%s = ring%ele(ring%n_ele_track)%s
+inside%pt(inside%n_pt_tot)%s = ring%ele(ring%n_ele_track)%s
 
 ! write to file
 
