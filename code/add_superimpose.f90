@@ -253,7 +253,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     if (slave_ele%key == drift$) then
       ix_slave_name = ix_slave_name + 1
       write (lat%ele(ix_slave)%name, '(2a, i0)') &
-                                   trim(sup_ele%name), '\', ix_slave_name
+                                   trim(sup_ele%name), '_', ix_slave_name
     else
       lat%ele(ix_slave)%name = trim(lat%ele(ix_slave)%name) //  &
                                                          '\' // sup_ele%name

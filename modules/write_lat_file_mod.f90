@@ -3,6 +3,7 @@ module write_lat_file_mod
 use bmad_struct
 use bmad_interface
 use multipole_mod
+use multipass_mod
 
 private str, rchomp, write_out, element_out, bmad_to_mad_or_xsif
 
@@ -37,8 +38,6 @@ subroutine write_bmad_lattice_file (bmad_file, lat, err)
 implicit none
 
 type multipass_info_struct
-  integer ix_slave_series
-  integer ix_pass
   integer ix_region
   logical region_start_pt
   logical region_stop_pt
@@ -52,6 +51,7 @@ type (ele_struct), save :: ele_init
 type (wig_term_struct) wt
 type (control_struct) ctl
 type (taylor_term_struct) tm
+type (multipass_all_info_struct), target :: m_info
 
 real(rp) s0
 
@@ -66,9 +66,9 @@ character(40) :: r_name = 'write_bmad_lattice_file'
 
 integer j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1, ie
 integer unit(6), ix_names, ix_match, n_pass_max, n_1st_pass
-integer ix_slave, ix_ss, ix_l, ixs1, ixs2, ix_r, ix_pass
-integer ix_ss1, ix_ss2, ix_multi_lord
-integer, allocatable :: ix_slave_series(:,:)
+integer ix_slave, ix_ss, ix_l, ixs1, ixs2, ix_r, ix_pass, ix_multi_lord
+integer ix_top, ix_super
+integer, pointer :: ix_ss1(:), ix_ss2(:)
 
 logical, optional :: err
 logical unit_found, write_term, match_found, found, in_multi_region, expand_lat_out
@@ -464,68 +464,17 @@ enddo ele_loop
 ! Lattice Layout...
 
 ! Multipass stuff...
-! First get an upper bound on the number of 1st pass slaves in the tracking lattice 
-! and the maximum number of passes. 
-
-n_pass_max = 0
-n_1st_pass = 0
-
-do ie = lat%n_ele_track+1, lat%n_ele_max
-  lord => lat%ele(ie)
-  if (lord%control_type /= multipass_lord$) cycle
-  n_pass_max = max(n_pass_max, lord%n_slave) 
-  ix_slave = lat%control(lord%ix1_slave)%ix_slave
-  if (lat%ele(ix_slave)%control_type == super_lord$) then
-    n_1st_pass = n_1st_pass + lat%ele(ix_slave)%n_slave
-  else
-    n_1st_pass = n_1st_pass + 1
-  endif
-enddo
 
 allocate (multipass(lat%n_ele_max))
-multipass(:)%ix_pass = 0
 multipass(:)%ix_region = 0
 multipass(:)%region_start_pt = .false.
 multipass(:)%region_stop_pt   = .false.
 
-if (n_1st_pass > 0) then
+call multipass_all_info (lat, m_info)
 
-  ! Mark all the corresponding slaves
+if (size(m_info%top) /= 0) then
 
-  ix_ss = 0
-  allocate (ix_slave_series(n_1st_pass, n_pass_max))
-
-  do ie = lat%n_ele_track+1, lat%n_ele_max
-    lord => lat%ele(ie)
-    if (lord%control_type /= multipass_lord$) cycle 
-    ixs = lat%control(lord%ix1_slave)%ix_slave
-    if (lat%ele(ixs)%control_type == super_lord$) then
-      do j = lord%ix1_slave, lord%ix2_slave
-        ix_pass = j + 1 - lord%ix1_slave
-        ixs = lat%control(j)%ix_slave
-        super => lat%ele(ixs)
-        do k = super%ix1_slave, super%ix2_slave
-          ix_ss2 = ix_ss + k + 1 - super%ix1_slave
-          ixs = lat%control(k)%ix_slave
-          ix_slave_series(ix_ss2, ix_pass) = ixs
-          multipass(ixs)%ix_slave_series = ix_ss2
-          multipass(ixs)%ix_pass = ix_pass
-        enddo
-      enddo
-      ix_ss = ix_ss + super%n_slave
-    else
-      ix_ss = ix_ss + 1
-      do j = lord%ix1_slave, lord%ix2_slave
-        ix_pass = j + 1 - lord%ix1_slave
-        ixs = lat%control(j)%ix_slave
-        ix_slave_series(ix_ss, ix_pass) = ixs
-        multipass(ixs)%ix_slave_series = ix_ss
-        multipass(ixs)%ix_pass = ix_pass
-      enddo
-    endif
-  enddo
-
-  ! Now go through and mark all 1st pass regions
+  ! Go through and mark all 1st pass regions
   ! In theory the original lattice file could have something like:
   !   lat: line = (..., m1, m2, ..., m1, -m2, ...)
   ! where m1 and m2 are multipass lines. The first pass region (m1, m2) looks 
@@ -541,8 +490,8 @@ if (n_1st_pass > 0) then
 
   do ie = 1, lat%n_ele_track+1
     ele => lat%ele(ie)
-    ix_pass = multipass(ie)%ix_pass
-    if (ix_pass /= 1) then  ! Not a first pass region
+    ix_pass = m_info%bottom(ie)%ix_pass
+    if (ix_pass /= 1 .or. ie == lat%n_ele_track+1) then  ! Not a first pass region
       if (in_multi_region) multipass(ie-1)%region_stop_pt = .true.
       in_multi_region = .false.
       cycle
@@ -553,13 +502,17 @@ if (n_1st_pass > 0) then
       multipass(ie)%ix_region = ix_r
       multipass(ie)%region_start_pt = .true.
       in_multi_region = .true.
-      ix_ss1 = multipass(ie)%ix_slave_series
+      ix_top = m_info%bottom(ie)%ix_top
+      ix_super = m_info%bottom(ie)%ix_super
+      ix_ss1 => m_info%top(ix_top)%ix_slave(:,ix_super)
       cycle
     endif
-    ix_ss2 = multipass(ie)%ix_slave_series
-    do ix_pass = 2, size(ix_slave_series, 2)
-      ixs1 = ix_slave_series(ix_ss1, ix_pass)
-      ixs2 = ix_slave_series(ix_ss2, ix_pass)
+    ix_top = m_info%bottom(ie)%ix_top
+    ix_super = m_info%bottom(ie)%ix_super
+    ix_ss2 => m_info%top(ix_top)%ix_slave(:,ix_super)
+    do ix_pass = 2, size(ix_ss1)
+      ixs1 = ix_ss1(ix_pass)
+      ixs2 = ix_ss2(ix_pass)
       if (abs(ixs1 - ixs2) /= 1) then  ! If not contiguous then need a new region
         ix_r = ix_r + 1
         multipass(ie-1)%region_stop_pt = .true.
@@ -567,7 +520,7 @@ if (n_1st_pass > 0) then
         exit
       endif
     enddo
-    ix_ss1 = ix_ss2
+    ix_ss1 => ix_ss2
     multipass(ie)%ix_region = ix_r
   enddo
 
@@ -582,7 +535,7 @@ if (n_1st_pass > 0) then
 
   do ie = 1, lat%n_ele_track
 
-    ix_pass = multipass(ie)%ix_pass
+    ix_pass = m_info%bottom(ie)%ix_pass
     if (ix_pass /= 1) cycle 
 
     if (multipass(ie)%region_start_pt) then
@@ -614,13 +567,14 @@ line = 'main_line: line = ('
 in_multi_region = .false.
 do ie = 1, lat%n_ele_track
 
-  if (multipass(ie)%ix_pass == 0) then
+  if (.not. m_info%bottom(ie)%multipass) then
     call write_line_element (line, iu, ie, lat)
     cycle
   endif
 
-  ix_ss = multipass(ie)%ix_slave_series
-  ix1 = ix_slave_series(ix_ss, 1)
+  ix_top = m_info%bottom(ie)%ix_top
+  ix_super = m_info%bottom(ie)%ix_super
+  ix1 = m_info%top(ix_top)%ix_slave(1,ix_super)
   ix_r = multipass(ix1)%ix_region
 
   ! If entering new multipass region
@@ -675,7 +629,7 @@ endif
 close(iu)
 deallocate (names)
 deallocate (multipass)
-if (allocated(ix_slave_series)) deallocate (ix_slave_series)
+deallocate (m_info%top, m_info%bottom)
 if (present(err)) err = .false.
 
 end subroutine

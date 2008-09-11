@@ -2500,9 +2500,9 @@ subroutine add_this_multipass (lat, ixm)
   implicit none
 
   type (lat_struct) lat
-  type (ele_struct), pointer :: slave, lord
+  type (ele_struct), pointer :: slave, lord, slave2
 
-  integer i, j, ix, n_multipass, ixm(:), ixc, ixic, ix_lord, ix_slave
+  integer i, j, n, ix, n_multipass, ixm(:), ixc, ixic, ix_lord, ix_slave
 
 ! Count slaves.
 ! If i > lat%n_ele_track we are looking at cloning a super_lord which should
@@ -2544,7 +2544,14 @@ subroutine add_this_multipass (lat, ixm)
     ! If slave is a super_lord then mark the super_slave names
     do j = slave%ix1_slave, slave%ix2_slave  
       ix = lat%control(j)%ix_slave
-      write (lat%ele(ix)%name, '(2a, i1)') trim(lat%ele(ix)%name), '\', i   ! '      
+      slave2 => lat%ele(ix)
+      n = len_trim(slave2%name)
+      if (slave2%n_lord == 1 .and. slave2%name(n-1:n-1) == '_') then
+        write (slave2%name, '(2a, i1, a)') slave2%name(1:n-2), '\', i, &      ! '
+                                                       slave2%name(n-1:n) 
+      else
+        write (slave2%name, '(2a, i1)') slave2%name(1:n), '\', i      ! '      
+      endif
     enddo
   enddo
 
@@ -2597,6 +2604,8 @@ end subroutine
 
 subroutine add_all_superimpose (lat, super_ele_in, pele)
 
+use multipass_mod
+
 implicit none
 
 type (lat_struct), target :: lat
@@ -2606,9 +2615,10 @@ type (ele_struct), pointer :: ref_ele, ele
 type (parser_ele_struct) pele
 type (ele_struct), pointer :: eles(:)
 type (control_struct), pointer :: control(:)
-integer, pointer :: ics(:)
+type (multipass_all_info_struct) m_info
 
-integer ix, i, j, it, nic, nn, i_sup, i_ele, ic
+integer, pointer :: ics(:)
+integer ix, i, j, k, it, nic, nn, i_sup, i_ele, ic, ib
 integer n_inserted, n_con
 integer, allocatable :: ixs(:)
 
@@ -2694,26 +2704,14 @@ do
           call add_superimpose (lat, super_ele, i_sup)
           lat%ele(i_sup)%name = 'dummy name'
         enddo
-        ! add a multipass_lord to control the created super loards.
-        j = 0
-        do i = 1, lat%n_ele_max
-          if (lat%ele(i)%name == 'dummy name') then
-            lat%ele(i)%name = super_ele_saved%name
-            j = j + 1
-            ixs(j) = i
-          endif
-        enddo
-        call add_this_multipass (lat, ixs)    
-        deallocate (ixs, multi_name)
-        super_ele%name = super_ele_saved%name
 
         ! Remove any multipass_lord drifts that no longer do anything.
         ! We can recognize these elements since they control super_slaves.
         ! Also mark any of their lords for deletion.
 
-        i = lat%n_ele_track ! Element index
-        do while (i < lat%n_ele_max)
-          i = i + 1
+        call multipass_all_info (lat, m_info) ! Save multipass info for later.
+
+        do i = lat%n_ele_track+1, lat%n_ele_max 
           ele => lat%ele(i)
           if (ele%key /= drift$) cycle
           ix = lat%control(ele%ix1_slave)%ix_slave
@@ -2725,6 +2723,55 @@ do
           enddo
         enddo
         call remove_eles_from_lat (lat) ! and delete
+
+        ! Add a multipass_lord to control the created super_lords.
+        ! If the super_lords have a single super_slave and the super_slave
+        ! has only a single super_lord, the super_lords
+        ! can be eliminated and the created multipass_lord can control the
+        ! super_slaves directly
+
+        j = 0
+        do i = 1, lat%n_ele_max
+          if (lat%ele(i)%name == 'dummy name') then
+            lat%ele(i)%name = super_ele_saved%name
+            j = j + 1
+            ixs(j) = i
+          endif
+        enddo
+
+        ele => lat%ele(ixs(1))
+        if (ele%control_type == super_lord$ .and. ele%n_slave == 1) then
+          ix = lat%control(ele%ix1_slave)%ix_slave
+          if (lat%ele(ix)%n_lord == 1) then
+            do i = 1, size(ixs)
+              ele => lat%ele(ixs(i))
+              ele%key = -1 ! Mark for deletion
+              ixs(i) = lat%control(ele%ix1_slave)%ix_slave ! point to super_slave
+              lat%ele(ixs(i))%name = super_ele_saved%name
+            enddo
+            call remove_eles_from_lat (lat)
+          endif
+        endif
+
+        call add_this_multipass (lat, ixs)    
+        super_ele%name = super_ele_saved%name
+
+        ! Reconnect drifts that were part of the multipass region.
+
+        do i = 1, size(m_info%top)
+          do j = 1, size(m_info%top(i)%ix_slave, 2)
+            ix = m_info%top(i)%ix_slave(1, j)
+            if (lat%ele(ix)%key /= drift$) cycle
+            if (lat%ele(ix)%control_type == multipass_slave$) cycle
+            ixs = m_info%top(i)%ix_slave(:, j)
+            do k = 1, size(ixs)
+              ele => lat%ele(ixs(k))
+              ib = index(ele%name, '\') ! '
+              if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
+            enddo
+            call add_this_multipass (lat, ixs)
+          enddo
+        enddo
 
       ! Else not superimposing on a multipass_lord ...
 

@@ -19,7 +19,8 @@
 
 subroutine remove_eles_from_lat (lat)
 
-use bmad_utils_mod
+use bmad_struct
+use bmad_interface
 
 implicit none
                          
