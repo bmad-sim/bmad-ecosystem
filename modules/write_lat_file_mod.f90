@@ -65,7 +65,7 @@ character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
 character(40) :: r_name = 'write_bmad_lattice_file'
 
 integer j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1, ie
-integer unit(6), ix_names, ix_match, n_pass_max, n_1st_pass
+integer unit(6), ix_names, ix_match
 integer ix_slave, ix_ss, ix_l, ixs1, ixs2, ix_r, ix_pass, ix_multi_lord
 integer ix_top, ix_super
 integer, pointer :: ix_ss1(:), ix_ss2(:)
@@ -605,24 +605,22 @@ write (iu, *) 'use, main_line'
 ! If there are multipass lines then expand the lattice and write out
 ! the post-expand info as needed.
 
-if (n_pass_max > 0) then
-  expand_lat_out = .false.
-  do ie = 1, lat%n_ele_max
-    ele => lat%ele(ie)
-    if (ele%control_type == super_slave$) cycle
-    if (ele%key /= lcavity$ .and. ele%key /= rfcavity$) cycle
-    if (ele%value(dphi0$) == 0) cycle
-    if (.not. expand_lat_out) then
-      write (iu, *)
-      write (iu, '(a)') '!-------------------------------------------------------'
-      write (iu, *)
-      write (iu, '(a)') 'expand_lattice'
-      write (iu, *)
-      expand_lat_out = .true.
-    endif
-    write (iu, '(3a)') trim(ele%name), '[dphi0] = ', trim(str(ele%value(dphi0$)))
-  enddo
-endif
+expand_lat_out = .false.
+do ie = 1, lat%n_ele_max
+  ele => lat%ele(ie)
+  if (ele%control_type == super_slave$) cycle
+  if (ele%key /= lcavity$ .and. ele%key /= rfcavity$) cycle
+  if (ele%value(dphi0$) == 0) cycle
+  if (.not. expand_lat_out) then
+    write (iu, *)
+    write (iu, '(a)') '!-------------------------------------------------------'
+    write (iu, *)
+    write (iu, '(a)') 'expand_lattice'
+    write (iu, *)
+    expand_lat_out = .true.
+  endif
+  write (iu, '(3a)') trim(ele%name), '[dphi0] = ', trim(str(ele%value(dphi0$)))
+enddo
 
 ! cleanup
 

@@ -179,9 +179,9 @@ endif
 
 ! %control and %ic are allocated to the same length for convenience.
 
-call allocate_lat_ele_array(lat, lat%n_ele_max+100)
-allocate (lat%control(lat%n_control_max+100))
-allocate (lat%ic(lat%n_control_max+100))
+call allocate_lat_ele_array(lat, lat%n_ele_max+10)
+allocate (lat%control(lat%n_control_max+10))
+allocate (lat%ic(lat%n_control_max+10))
 
 !
 
