@@ -72,7 +72,7 @@ MAKE_SRC := CESR_PORTING:[cesr_libs.$(CESRLIB).Gmake]
 #-----------------------------------------------------------------------------
 
 
-OLB_SRC_DIRS  := [.modules] [.code] [.cesr]
+OLB_SRC_DIRS  := [.modules] [.code] [.cesr] [.custom]
 MOD_SRC_DIRS  := 
 OBJ_SRC_DIRS  :=
 CFG_SRC_DIRS  :=
