@@ -675,6 +675,11 @@ These routine are for adding elements, moving elements, etc.
 
 \begin{description}
 
+\index{Routine!add_lattice_control_structs}
+\item[add_lattice_control_structs (lat, ix_ele)] \Newline 
+Subroutine to adjust the control structure of a lat so that extra control
+elements can be added.
+
 \index{Routine!add_superimpose}
 \item[add_superimpose (lat, super_ele, ix_super)] \Newline
 Subroutine to make a superimposed element. 
@@ -725,10 +730,9 @@ Returns a pointer to an attribute of an element with name attrib_name.
 Returns an array of pointers to an attribute with name attrib_name within 
 elements with name ele_name.
 
-\index{Routine!remove_ele_from_lat}
-\item[remove_ele_from_lat (lat, ix_ele)] \Newline 
-Subroutine to remove an element from the lattice.
-This subroutine assumes that the element has no controllers.
+\index{Routine!remove_eles_from_lat}
+\item[remove_ele_from_lat (lat)] \Newline 
+Subroutine to remove an elements from the lattice.
 
 \index{Routine!split_lat}
 \item[split_lat (lat, s_split, ix_split, split_done)] \Newline
@@ -748,10 +752,15 @@ hyberdized by \vn{make_hybrid_lat}.
 
 \begin{description}
 
+\index{Routine!ele_geometry}
+\item[ele_geometry (ele0, ele, param)] \Newline 
+Subroutine to calculate the physical (floor) placement of an element given the
+placement of the preceeding element. This is the same as the MAD convention.
+
 \index{Routine!lat_geometry}
 \item[lat_geometry (lat)] \Newline
-Subroutine to calculate the physical placement of all the elements in a lat. 
-That is, the layout on the floor. 
+Subroutine to calculate the physical placement of all the elements in a lattice. 
+That is, the physical machine layout on the floor. 
 
 \index{Routine!s_calc}
 \item[s_calc (lat)] \Newline
@@ -1474,6 +1483,12 @@ Subroutine that clears out previous saved values of the optimizer.
 \index{Routine!suggest_lmdif}
 \item[suggest_lmdif (xv,fv,eps,itermx,iend,reset_flag)] \Newline 
 Reverse communication subroutine. 
+
+\index{Routine!super_mrqmin}
+\item[\protect\parbox{6in}{super_mrqmin (y, weight, a, covar, alpha, chisq, funcs, \\
+  \hspace*{2in} alamda, status, maska)}] \Newline 
+Routine to do non-linear optimizations. 
+This routine is essentially mrqmin from Numerical Recipes with some added features.
 
 \index{Routine!opti_de}
 \item[opti_de (v_best, generations, population, merit_func, v0, v_del)] \Newline 
@@ -2458,6 +2473,11 @@ for every element in the lat.
 \index{Routine!odeint_bmad}
 \item[odeint_bmad (start, ele, param, end, s1, s2, rel_tol, abs_tol, h1, hmin)] \Newline
 Subroutine to do Runge Kutta tracking. 
+
+\index{Routine!slice_ele_calc}
+\item[slice_ele_calc (ele, param, i_slice, n_slice_tot, sliced_ele)] \Newline 
+Routine to create an element that represents a slice of another element.
+This routine can be used for detailed tracking through an element.
 
 \index{Routine!track1_boris_partial}
 \item[track1_boris_partial (start, ele, param, s, ds, end)] \Newline

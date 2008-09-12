@@ -128,7 +128,8 @@ symplectic but can be slow.
 This uses a partially inverted, implicit Taylor map. The calculation
 uses Etienne's PTC software.  Since the map is implicit, a Newton
 search method must be used. This will slow things down from the Taylor
-method but this is guaranteed symplectic.
+method but this is guaranteed symplectic. Note: Due to memory limitations
+in PTC, the number of elements using symp_map is limited to be of order 50.
 
 \index{Taylor}
 \item[\vn{Taylor}]
