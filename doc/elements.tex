@@ -338,17 +338,17 @@ Additionally, the following conversion is done on all \vn{Rbend}s
 \end{figure}
 
   \begin{description}
-  \item[l, l_chord]  
+  \item[l, l_chord]  \Newline
 For a \vn{Rbend}, \vn{l} is the chord length and not the arc length as
 it is for a \vn{Sbend}.  However, after reading in a lattice, \bmad will
 internally convert all \vn{Rbend}s into \vn{Sbend}s, additionally, the
 \vn{l_chord} attribute will be set to the input \vn{l}, and \vn{l} 
 will be set to the true path length (see above).
-  \item[h1, h2]
+  \item[h1, h2] \Newline
 The attributes \vn{h1} and \vn{h2} are the curvature of the entrance
 and exit pole faces. They are present for compatibility with MAD but
 are not yet implemented in terms of tracking and other calculations.
-  \item[e1, e2]
+  \item[e1, e2] \Newline
 the rotation angle of the entrance pole face is \vn{e1} and at the
 exit face it is \vn{e2}. Zero \vn{e1} and \vn{e2} for an \vn{Rbend}
 gives a rectangular magnet  (Figure~\ref{f:bend}a). Zero \vn{e1} and \vn{e2}
@@ -356,16 +356,16 @@ for a \vn{Sbend} gives a wedge shaped magnet (Figure~\ref{f:bend}b).
 An \vn{Sbend} with an \vn{e1} = \vn{e2} =
 \vn{angle}/2 is equivalent to an \vn{Rbend} with \vn{e1} = \vn{e2} =
 0 (see above).
-  \item[angle]
+  \item[angle] \Newline
 The total design bend angle. A positive \vn{angle} represents a
 bend towards negative $x$ values (see Figure~\ref{f:local.coords}).
-  \item[k1, b1_gradient]
+  \item[k1, b1_gradient] \Newline
 \index{K1}
 The normalized and unnormalized quadrupole strength.
-  \item[k2, b2_gradient]
+  \item[k2, b2_gradient] \Newline
 \index{K2}
 The normalized and unnormalized sextupole strength. 
-  \item[g, g_err, rho]
+  \item[g, g_err, rho] \Newline
 \index{G}
 \index{Rho}
 \index{g_err}
@@ -375,7 +375,8 @@ the curvature function and is proportional to the design dipole
 magnetic field. The true field strength is given by
 \vn{g}~+~\vn{g_err} so changing \vn{g_err} leaves the design orbit
 unchanged but varies a particle's orbit.
-  \item[fint, fintx, hgap, hgapx]\index{Fint}\index{Fintx}
+  \index{Fint}\index{Fintx}
+  \item[fint, fintx, hgap, hgapx] \Newline
 The field integrals for the entrance and
 exit pole faces are give by \vn{fint} and \vn{fintx} respectively
 \Begineq
@@ -393,7 +394,8 @@ entrance and exit faces. For compatibility with \mad, if \vn{fint} is
 given but \vn{fintx} is not, then \vn{fintx} is set equal to
 \vn{fint}. Similarly, \vn{hgapx} will be set to \vn{hgap} if
 \vn{hgapx} is not given.
-  \item[tilt]\index{Tilt}
+  \index{Tilt}
+  \item[tilt] \Newline
 The roll angle about the longitudinal axis at the entrance face of the
 bend is given by \vn{tilt}.  \vn{tilt} = 0 bends the reference
 trajectory in the $-x$ direction.  If the \vn{tilt} attribute is given

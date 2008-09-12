@@ -1654,9 +1654,11 @@ of the storage ring. Finally the emittances are given by
     \epsilon_b \AND= C_q \, \gamma_0^2 \frac{I_{5b}}{I_2 - I_{4b}}
   \Endeqs
 
-For a linac radiation integrals are still of interest if there are
-bends but in this case the appropriate energy factors must be included
-to take account the changing energy in the line. $I_1$ is not altered and
+For a non-circular machine, radiation integrals are still of interest if there are
+bends or steering elements but, in this case, 
+the appropriate energy factors must be included
+to take account any changes in energy due to any \vn{LCavity} elements. 
+The $I_1$ integral is not altered and
 the $I_4$ integrals are not relevant. The other integrals become
   \Begineqs
     L_2 &=& \int ds \, G^2 \, \gamma_0^4 \\
@@ -1664,7 +1666,7 @@ the $I_4$ integrals are not relevant. The other integrals become
     L_{5a} &=& \int ds \, G^3 \, \calh_a \, \gamma_0^6 \\
     L_{5b} &=& \int ds \, G^3 \, \calh_b \, \gamma_0^6
   \Endeqs
-In terms of these integrals the energy loss through the linac is
+In terms of these integrals, the energy loss through the lattice is
   \Begineq
     U_0 = \frac{2 \, r_e \, mc^2}{3} L_2
   \Endeq
@@ -1674,14 +1676,14 @@ any damping is
     \sigma_E^2 = \frac{4}{3} \, C_q \, r_e \, \left( m c^2 \right)^2 \, L_3
   \Endeq
 and, again neglecting any initial beam width, the transverse beam size
-at the end of the linac is
+at the end of the lattice is
   \Begineqs
     \epsilon_a \AND= \frac{2}{3} \, C_q \, r_e \, 
     \frac{L_{5a}}{\gamma_f} \CRNO
     \epsilon_b \AND= \frac{2}{3} \, C_q \, r_e \, 
     \frac{L_{5b}}{\gamma_f} 
   \Endeqs
-Where $\gamma_f$ is the final gamma
+Where $\gamma_f$ is the final gamma.
 
 %-----------------------------------------------------------------   
 \section{Spin Dynamics}   
