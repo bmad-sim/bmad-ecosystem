@@ -104,8 +104,6 @@ end subroutine
 !        %psi              -- Roll angle.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine ele_geometry (ele0, ele, param)
 
 use bmad_struct

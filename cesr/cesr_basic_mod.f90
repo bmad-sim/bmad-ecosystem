@@ -1,3 +1,5 @@
+#include "CESR_platform.inc"
+
 module cesr_basic_mod
 
 use bmad_struct

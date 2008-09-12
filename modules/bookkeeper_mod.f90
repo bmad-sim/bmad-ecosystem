@@ -1799,8 +1799,6 @@ end subroutine
 !   lat -- lat_struct: Modified lattice.
 !-
 
-#include "CESR_platform.inc"
-                                    
 subroutine set_on_off (key, lat, switch, orb, use_ref_orb)
 
 use bmad_struct
