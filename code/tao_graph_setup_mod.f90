@@ -313,11 +313,13 @@ do k = 1, size(graph%curve)
         m = size(beam%bunch(ib)%particle)
         curve%x_symb(n+1:n+m) = beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
         curve%y_symb(n+1:n+m) = beam%bunch(ib)%particle(:)%r%vec(ix2_ax)
+        forall (i = 1:m) curve%ix_symb(n+i) = i
         n = n + m
       enddo
     else
       curve%x_symb = beam%bunch(curve%ix_bunch)%particle(:)%r%vec(ix1_ax)
       curve%y_symb = beam%bunch(curve%ix_bunch)%particle(:)%r%vec(ix2_ax)
+      forall (i = 1:m) curve%ix_symb(i) = i
     endif
 
   !----------------------------

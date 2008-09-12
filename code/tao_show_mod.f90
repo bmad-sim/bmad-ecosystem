@@ -189,7 +189,7 @@ character(9) angle
 integer :: data_number, ix_plane, ix_class, n_live, n_tot
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
-integer num_locations, ix_ele, n_name, n_e0, n_e1
+integer num_locations, ix_ele, n_name, n_e0, n_e1, ix_p
 integer, allocatable, save :: ix_eles(:)
 
 logical err, found, at_ends, first_time, by_s, print_header_lines
@@ -428,7 +428,7 @@ case ('curve')
     if (stuff2(1:1) /= '-') exit
     call match_word (stuff2(:ix), (/ '-symbol', '-line  ' /), n, .true., name)
     if (n < 1) then
-      nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2(:ix)
+      nl=1; lines(1) = 'AMBIGUOUS OR UNKNOWN SWITCH: ' // stuff2(:ix)
       result_id = 'ERROR'
       return
     endif
@@ -856,7 +856,7 @@ case ('element')
 
 case ('global')
 
-  nl=nl+1; lines(nl) = 'Global:'
+  nl=nl+1; lines(nl) = 'Global Tao Parameters:'
   nl=nl+1; write (lines(nl), lmt) '%auto_scale                 = ', s%global%auto_scale
   nl=nl+1; write (lines(nl), imt) '%bunch_to_plot              = ', s%global%bunch_to_plot
   nl=nl+1; write (lines(nl), rmt) '%de_lm_step_ratio           = ', s%global%de_lm_step_ratio
@@ -895,7 +895,7 @@ case ('global')
   nl=nl+1; write (lines(nl), rmt) '%y_axis_plot_dmin           = ', s%global%y_axis_plot_dmin
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; lines(nl) = 'Internal Variables:'
+  nl=nl+1; lines(nl) = 'Internal Tao Parameters:'
   nl=nl+1; write (lines(nl), imt) 'Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
   nl=nl+1; write (lines(nl), lmt) 'common_lattice               = ', tao_com%common_lattice
   nl=nl+1; write (lines(nl), amt) 'tao_com%beam_all_file        = ', tao_com%beam_all_file
@@ -904,6 +904,28 @@ case ('global')
                                               tao_com%combine_consecutive_elements_of_like_name
   nl=nl+1; write (lines(nl), amt) 'tao_com%init_lat_file        = ', tao_com%init_lat_file
   nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file        = ', tao_com%init_tao_file
+
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; lines(nl) = 'Bmad Parameters:'
+  nl=nl+1; write (lines(nl), imt) 'taylor_order              = ', bmad_com%taylor_order
+  nl=nl+1; write (lines(nl), lmt) 'auto_bookkeeper           = ', bmad_com%auto_bookkeeper
+  nl=nl+1; write (lines(nl), lmt) 'trans_space_charge_on     = ', bmad_com%trans_space_charge_on
+  nl=nl+1; write (lines(nl), lmt) 'coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
+  nl=nl+1; write (lines(nl), lmt) 'spin_tracking_on          = ', bmad_com%spin_tracking_on
+  nl=nl+1; write (lines(nl), lmt) 'radiation_damping_on      = ', bmad_com%radiation_damping_on
+  nl=nl+1; write (lines(nl), lmt) 'radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
+  nl=nl+1; write (lines(nl), lmt) 'spin_tracking_on          = ', bmad_com%spin_tracking_on
+
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; lines(nl) = 'CSR Parameters:'
+  nl=nl+1; write(lines(nl), rmt) 'csr_param%ds_track_step        = ', csr_param%ds_track_step
+  nl=nl+1; write(lines(nl), imt) 'csr_param%n_bin                = ', csr_param%n_bin
+  nl=nl+1; write(lines(nl), imt) 'csr_param%particle_bin_span    = ', csr_param%particle_bin_span
+  nl=nl+1; write(lines(nl), lmt) 'csr_param%lcsr_component_on    = ', csr_param%lcsr_component_on
+  nl=nl+1; write(lines(nl), lmt) 'csr_param%lsc_component_on     = ', csr_param%lsc_component_on
+  nl=nl+1; write(lines(nl), lmt) 'csr_param%tsc_component_on     = ', csr_param%tsc_component_on
+  nl=nl+1; write(lines(nl), lmt) 'csr_param%ix1_ele_csr          = ', csr_param%ix1_ele_csr
+  nl=nl+1; write(lines(nl), lmt) 'csr_param%ix2_ele_csr          = ', csr_param%ix2_ele_csr
 
 !----------------------------------------------------------------------
 ! graph
@@ -1322,7 +1344,7 @@ case ('particle')
 
   nb = s%global%bunch_to_plot
 
-  if (index('lost', word(1)) == 1) then
+  if (index('-lost', word(1)) == 1) then
     bunch => u%ele(lat%n_ele_track)%beam%bunch(nb)
     nl=nl+1; lines(nl) = 'Particles lost at:'
     nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
@@ -1336,12 +1358,31 @@ case ('particle')
     return
   endif
 
-  bunch => u%ele(0)%beam%bunch(nb)
-  read (word(1), *, iostat = ios) ix
+  read (word(1), *, iostat = ios) ix_p
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'CANNOT READ PARTICLE INDEX')
+    return
+  endif
 
-  nl=nl+1; write (lines(nl), imt) '  Starting Coords for Particle: ', ix
+  ix_ele = 0
+  if (word(2) /= '') then
+    read (word(2), *, iostat = ios) ix_ele
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'CANNOT READ PARTICLE INDEX')
+      return
+    endif
+  endif
+
+  bunch => u%ele(ix_ele)%beam%bunch(nb)
+  if (.not. associated(bunch)) then
+    call out_io (s_error$, r_name, 'BUNCH NOT ASSOCIATED WITH THIS ELEMENT.')
+    return
+  endif
+
+  nl=nl+1; write (lines(nl), imt) '  At lattice element: ', ix_ele
+  nl=nl+1; write (lines(nl), imt) '  Coords for Particle: ', ix_p
   do i = 1, 6
-    nl=nl+1; write (lines(nl), rmt) '     ', bunch%particle(ix)%r%vec(i)
+    nl=nl+1; write (lines(nl), rmt) '     ', bunch%particle(ix_p)%r%vec(i)
   enddo
 
 !----------------------------------------------------------------------

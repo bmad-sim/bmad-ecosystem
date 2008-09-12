@@ -906,8 +906,8 @@ Format:
                             \{-s\} \{-elements <name>\} \{<location_range>\}
   show optimizer
   show opt_vars
-  show particle lost
-  show particle <particle_index>
+  show particle -lost
+  show particle <particle_index> \{<element_index>\}
   show plot
   show plot \{<template_plot_name>\}
   show plot \{<plot_region_name>\}
@@ -1178,7 +1178,9 @@ Bmad standard lattice input format.
 \item[show particle <particle\_index>] \Newline
 \vn{show particle lost} shows which particles are lost during beam
 tracking. \vn{show particle <index>} shows information on the particle
-with the given index. Also see \vn{show beam}.
+with the given index. At the exit end of the element given by  \vn{<element_index>}.
+The default \vn{<element_index>} is 0 (the starting position).
+Also see \vn{show beam}.
 
 %% show plot --------------------------------------------------------------
 

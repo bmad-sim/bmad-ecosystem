@@ -26,15 +26,15 @@ type (tao_universe_struct), pointer :: u
 type (tao_arg_struct) arg(10)
 
 character(*) what
-character(20) action
+character(20) action, name
 character(20) :: r_name = 'tao_output_cmd'
 character(100) file_name0, file_name
 
-character(20) :: names(13) = (/ &
+character(20) :: names(14) = (/ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
-      'covariance_matrix' /)
+      'covariance_matrix', 'orbit            ' /)
 
 integer :: n_arg_max(13) = (/ &
       1, 2, 2, 2, &
@@ -45,8 +45,8 @@ integer :: n_arg_max(13) = (/ &
 character(20) :: arg_names(2) = (/ '-ascii', '-at   ' /)
 integer :: n_arg_values(2) = (/ 0, 1 /)
 
-integer i, j, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
-integer n_arg, i_chan
+integer i, j, n, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
+integer n_arg, i_chan, ix_beam
 integer, allocatable, save :: ix_ele_at(:)
 
 logical is_open, ascii, ok, err
@@ -88,7 +88,12 @@ case ('beam')
   is_open = .false.
 
   do i = 2, n_arg
-    select case (arg(i)%name)
+    call match_word (arg(i)%name, (/ '-ascii', '-at   ' /), n, .true., name)
+    if (n < 0) then
+      call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // arg(i)%name)
+      return
+    endif
+    select case (name)
     case ('-ascii') 
       ascii = .true.
     case ('-at')
@@ -398,6 +403,59 @@ case ('mad_lattice')
     if (err) return
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
+
+!---------------------------------------------------
+! orbit
+
+case ('orbit')
+
+  file_name0 = 'orbit.dat'
+  i = 1
+  do while (i < n_arg)
+    i = i + 1
+    call match_word (arg(i)%name, &
+                      (/ '-beam_index', '-design    ', '-base      ' /), n, .true., name)
+    if (n < 1) then
+      call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // arg(i)%name)
+      return
+    endif
+    select case (name)
+    case ('-beam_index') 
+      i = i + 1
+      read (arg(i)%name, *, iostat = ios) ix_beam
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'CANNOT READ BEAM INDEX.')
+        return
+      endif
+      action = name
+    case ('-design')
+      action = name
+    case ('-base')
+      action = name
+    case default
+      file_name0 = arg(i)%name
+    end select
+  enddo
+
+  !
+
+  u => tao_pointer_to_universe (-1) 
+
+  iu = lunget()
+  open (iu, file = file_name0)
+
+  write (iu, '(a)') '&particle_orbit'
+
+  do i = 0, u%model%lat%n_ele_track
+    select case (action)
+    case ('-beam_index') 
+      
+    case ('-design')
+    case ('-base')
+    end select
+  enddo
+
+  write (iu, '(a)') '/'
 
 !---------------------------------------------------
 ! ps

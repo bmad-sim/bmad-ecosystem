@@ -1,3 +1,5 @@
+#include "CESR_platform.inc"
+                                    
 !+
 ! Subroutine tao_get_user_input (cmd_line, prompt_str)
 !

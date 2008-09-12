@@ -56,13 +56,33 @@ plot_loop: do ir = 1, size(s%plot_region)
 
 ! loop over all graphs and curves
 
-  if (plot%x%min == plot%x%max .and. plot%autoscale_gang_x) &
-                                  call tao_x_scale_plot (plot, 0.0_rp, 0.0_rp)
+  ! If x%min = x%max we need to autoscale but first we need to call tao_graph_setup to make sure
+  ! the curves contain all the data.
+
+  if (plot%x%min == plot%x%max .and. plot%autoscale_gang_x) then
+    call tao_x_scale_plot (plot, -1.0e30_rp, 1.0e30_rp) ! To include all the data
+    do jg = 1, size(plot%graph)
+      call tao_graph_setup (plot, plot%graph(jg))  ! And populate the curves
+    enddo
+    call tao_x_scale_plot (plot, 0.0_rp, 0.0_rp)  ! Now we can autoscale
+
+  else
+    do jg = 1, size(plot%graph)
+      graph => plot%graph(jg)
+      if (graph%x%min == graph%x%max) then
+        call tao_x_scale_graph (graph, -1.0e30_rp, 1.0e30_rp)
+        call tao_graph_setup (plot, graph)
+        call tao_x_scale_graph (graph, 0.0_rp, 0.0_rp)
+      else
+        call tao_graph_setup (plot, graph)
+      endif
+    enddo
+  endif
+
+  ! Now scale the y axis if needed and determine if any points are out-of-bounds.
 
   do jg = 1, size(plot%graph)
     graph => plot%graph(jg)
-    if (graph%x%min == graph%x%max) call tao_x_scale_graph (graph, 0.0_rp, 0.0_rp)
-    call tao_graph_setup (plot, graph)
     if (graph%y%min == graph%y%max) call tao_scale_graph (graph, 0.0_rp, 0.0_rp)
     graph%limited = .false.
     if (allocated(graph%curve)) then
