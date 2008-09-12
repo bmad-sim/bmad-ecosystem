@@ -21,51 +21,44 @@
 
 subroutine track1_symp_lie_ptc (start, ele, param, end)
 
-  use ptc_interface_mod, except_dummy => track1_symp_lie_ptc
-  use s_tracking, only: DEFAULT, alloc_fibre
-  use mad_like, only: kill, ptc_track => track
+use ptc_interface_mod, except_dummy => track1_symp_lie_ptc
+use s_tracking, only: DEFAULT, alloc_fibre
+use mad_like, only: kill, ptc_track => track
 
-  implicit none
+implicit none
 
-  type (coord_struct) :: start
-  type (coord_struct) :: end
-  type (ele_struct) :: ele
-  type (lat_param_struct) :: param
-  type (fibre), pointer :: fibre_ele
+type (coord_struct) :: start
+type (coord_struct) :: end
+type (ele_struct) :: ele
+type (lat_param_struct) :: param
+type (fibre), pointer :: fibre_ele
 
-  real(dp) re(6)
-  integer charge
+real(dp) re(6)
 
-  character(20) :: r_name = 'track1_symp_lie_ptc'
+character(20) :: r_name = 'track1_symp_lie_ptc'
 
 ! Construct a PTC fibre out of the ele element.
 ! A fibre is PTC's structure analogous to BMAD's ele_struct.  
 
-  call alloc_fibre (fibre_ele)
-  call ele_to_fibre (ele, fibre_ele, param, .true.)
-
-  if (param%particle > 0) then
-    charge = +1
-  else
-    charge = -1
-  endif
+call alloc_fibre (fibre_ele)
+call ele_to_fibre (ele, fibre_ele, param, .true.)
 
 ! call the PTC routines to track through the fibre.
 
-  if (ele%key == wiggler$ .and. ele%value(z_patch$) == 0) then
-    call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
-    call err_exit 
-  endif
+if (ele%key == wiggler$ .and. ele%value(z_patch$) == 0) then
+  call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
+  call err_exit 
+endif
 
-  call vec_bmad_to_ptc (start%vec, re)  ! convert BMAD coords to PTC coords
-  call ptc_track (fibre_ele, re, DEFAULT, charge)  ! "track" in PTC
-  call vec_ptc_to_bmad (re, end%vec)
+call vec_bmad_to_ptc (start%vec, re)  ! convert BMAD coords to PTC coords
+call ptc_track (fibre_ele, re, DEFAULT, +1)  ! "track" in PTC
+call vec_ptc_to_bmad (re, end%vec)
 
-  if (ele%key == wiggler$) then
-    end%vec(5) = end%vec(5) - ele%value(z_patch$)
-    if (ele%sub_key == periodic_type$) end%vec(1) = end%vec(1) - ele%value(x_patch$)
-  endif
+if (ele%key == wiggler$) then
+  end%vec(5) = end%vec(5) - ele%value(z_patch$)
+  if (ele%sub_key == periodic_type$) end%vec(1) = end%vec(1) - ele%value(x_patch$)
+endif
 
-  call kill(fibre_ele)  ! clean up allocated memory.
+call kill(fibre_ele)  ! clean up allocated memory.
 
 end subroutine
