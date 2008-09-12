@@ -27,6 +27,7 @@ type (ele_power_struct), allocatable :: e_power(:), p_power(:)
 type (crotch_window_struct) window(n_windows$)
 
 real(rp) x_min, x_max
+integer n_slice
 
 integer ios, ix, i, n, iw(n_windows$)
 logical err_flag, hit
@@ -140,6 +141,14 @@ main_loop: do while (.true.)
     endif
     call read_outline(walls,u%ring,.true.)
 
+  elseif (line(1:ix) == 'ns' .or. (index('N_SLICE', line(1:ix)) == 1 .and. ix > 3)) then
+    line = line(ix+1:)
+    read (line, *, iostat = ios) n_slice
+    if (ios /= 0) then
+      print *, 'CANNOT READ N_SLICE.'
+      cycle
+    endif
+    gen_params%n_slice = n_slice
   else
     call cesrv_command(line, u, graph, err_flag)
   endif
