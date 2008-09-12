@@ -377,6 +377,8 @@ if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. i
 endif
 
 ele%value(check_sum$) = 0
+if (associated(ele%a_pole)) ele%value(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
+ 
 ele%old_value = ele%value
 
 error = .false.

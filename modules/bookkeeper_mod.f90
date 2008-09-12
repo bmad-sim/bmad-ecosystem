@@ -1230,6 +1230,8 @@ logical :: init_needed = .true.
 ! If no change then we don't need to do anything
 
 val => ele%value
+ele%value(check_sum$) = 0
+if (associated(ele%a_pole)) ele%value(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
 z_patch_calc_needed = (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. val(p0c$) /= 0)
 
 if (all(ele%value == ele%old_value) .and. .not. z_patch_calc_needed) return

@@ -433,7 +433,7 @@ integer, parameter :: x1_limit$ = 56
 integer, parameter :: x2_limit$ = 57
 integer, parameter :: y1_limit$ = 58
 integer, parameter :: y2_limit$ = 59
-integer, parameter :: check_sum$ = 60 ! Note: This is getting zeroed in read_digested_bmad_file!
+integer, parameter :: check_sum$ = 60 
 
 integer, parameter :: term$ = 61       ! 61 = 1 + n_attrib_maxx
 integer, parameter :: ptc_kind$ = 62
