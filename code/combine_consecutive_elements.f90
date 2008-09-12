@@ -53,9 +53,6 @@ do i = 1, lat%n_ele_track
     ele2%value(e1$) = ele2%value(e1$)
   endif
 
-  ele1%value(check_sum$) = 0
-  ele2%value(check_sum$) = 0
-
   if (any(ele1%value /= ele2%value)) then
     call out_io (s_error$, r_name, 'ELEMENT PARAMETERS DO NOT MATCH FOR: ' // ele1%name)
     cycle

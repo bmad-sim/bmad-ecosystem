@@ -165,6 +165,7 @@ type ele_struct
   type (floor_position_struct) floor ! Global floor position at end of ele.
   type (mode3_struct), pointer :: mode3
   real(rp) value(n_attrib_maxx)      ! attribute values.
+  real(rp) old_value(n_attrib_maxx)  ! Used to see if value(:) attribute array has changed.
   type (coord_struct) ref_orb_in     ! Reference orbit for mat6 calc at entrance of element.
   type (coord_struct) ref_orb_out    ! Reference orbit at exit of element.
   real(rp) gen0(6)                   ! constant part of the genfield map.
@@ -432,7 +433,7 @@ integer, parameter :: x1_limit$ = 56
 integer, parameter :: x2_limit$ = 57
 integer, parameter :: y1_limit$ = 58
 integer, parameter :: y2_limit$ = 59
-integer, parameter :: check_sum$ = 60
+integer, parameter :: check_sum$ = 60 ! Note: This is getting zeroed in read_digested_bmad_file!
 
 integer, parameter :: term$ = 61       ! 61 = 1 + n_attrib_maxx
 integer, parameter :: ptc_kind$ = 62
@@ -667,6 +668,21 @@ end type
 type real_array_struct
   real(rp), pointer :: r
 end type 
+
+! This is for debugging radiation damping and fluctuations.
+
+type synch_rad_common_struct
+  type (ele_struct), pointer :: ele0    ! Previous element. For i5 calc.
+  real(rp) :: scale = 1.0               ! used to scale the radiation
+  real(rp) :: i2 = 0, i3 = 0            ! radiation integrals
+  real(rp) :: i5a = 0, i5b = 0
+  logical :: i_calc_on = .false.        ! For calculating i2 and i3    
+end type
+
+type (synch_rad_common_struct), save :: synch_rad_com
+
+real(rp), parameter :: rad_fluct_const = 1.3231 * r_e * h_bar_planck * &
+                                                       c_light / (m_electron * e_charge)
 
 !------------------------------------------------------------------------------
 ! common stuff

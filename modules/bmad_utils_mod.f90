@@ -705,7 +705,7 @@ if (ele1%name /= ele2%name .and. any(ele1%taylor%ref /= 0)) return
 
 vmask = .true.
 if (ele1%key == wiggler$ .and. ele1%sub_key == map_type$) then
-  vmask( (/ k1$, rho$, b_max$, z_patch$, p0c$, check_sum$ /) ) = .false.
+  vmask( (/ k1$, rho$, b_max$, z_patch$, p0c$ /) ) = .false.
 endif
 if (.not. ele1%map_with_offsets) then
   vmask( (/ x_offset$, y_offset$, s_offset$, tilt$, x_pitch$, &
@@ -1165,6 +1165,7 @@ ele%key = 0
 ele%sub_key = 0
 
 ele%value(:) = 0
+ele%old_value(:) = 0
 call init_coord (ele%ref_orb_in)
 call init_coord (ele%ref_orb_out)
 

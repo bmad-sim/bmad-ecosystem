@@ -6,6 +6,7 @@ module ptc_interface_mod
   use bmad_struct
   use bmad_interface
   use multipole_mod
+  use bookkeeper_mod
 
   use definition, only: real_8, universal_taylor
   use s_def_all_kinds, only: fibre, layout
@@ -1575,6 +1576,8 @@ subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
   if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) then
     call set_ptc (taylor_order = bmad_com%taylor_order)
   endif
+
+  call attribute_bookkeeper (ele, param)
 
 ! LCavity, Patch and Match elements are not implemented in PTC so just use the matrix.
 ! Also Taylor elements already have a taylor map.

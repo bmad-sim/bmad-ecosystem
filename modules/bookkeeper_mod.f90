@@ -497,7 +497,6 @@ if (slave%n_lord == 1) then
   !
 
   value = lord%value
-  value(check_sum$) = slave%value(check_sum$) ! do not change the check_sum
   value(l$) = slave%value(l$)                 ! do not change slave length
   if (lord%key == wiggler$) then
     value(z_patch$) = slave%value(z_patch$)
@@ -637,7 +636,6 @@ value = 0
 value(l$) = slave%value(l$)
 value(E_tot$) = slave%value(E_tot$)
 value(p0c$) = slave%value(p0c$)
-value(check_sum$) = slave%value(check_sum$) ! do not change the check_sum
 
 s_slave = slave%s - value(l$)/2  ! center of slave
 slave%is_on = .false.
@@ -995,8 +993,6 @@ end subroutine
 
 subroutine compute_slave_aperture (value, slave, lord, ix_con)
 
-use bmad_struct
-
 implicit none
 
 type (ele_struct) slave, lord
@@ -1039,8 +1035,6 @@ end subroutine
 !-
 
 subroutine compute_slave_coupler (value, slave, lord, ix_con)
-
-use bmad_struct
 
 implicit none
 
@@ -1224,14 +1218,23 @@ type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (coord_struct) start, end
 
-real(rp) factor, f2, check_sum, phase, E_tot, offset_check_sum
+real(rp) factor, f2, phase, E_tot
 real(rp), pointer :: val(:)
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
-! Transfer tilt to tilt_tot, etc.
+logical non_offset_changed, offset_changed, offset_nonzero, z_patch_calc_needed
+logical v_mask(n_attrib_maxx), offset_mask(n_attrib_maxx)
+logical :: init_needed = .true.
+
+! If no change then we don't need to do anything
 
 val => ele%value
+z_patch_calc_needed = (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. val(p0c$) /= 0)
+
+if (all(ele%value == ele%old_value) .and. .not. z_patch_calc_needed) return
+
+! Transfer tilt to tilt_tot, etc.
 
 if (.not. ele%on_a_girder .and. ele%key /= match$) then
   val(tilt_tot$)     = val(tilt$)
@@ -1459,106 +1462,49 @@ end select
 if (val(ds_step$) /= 0) ele%num_steps = abs(nint(val(l$) / val(ds_step$)))
 if (ele%num_steps == 0) ele%num_steps = 1
 
-! We need to kill the Taylor Map, etc. if things have changed.
-! calculate a check sum to see if things have changed.
-! val(check_sum$) == 0 means that the check_sum has never been 
-! computed so in this case do not kill the Taylor Map
+! If things have changed we need to kill the Taylor Map and gen_field.
+! The old_value array tells us this.
 
-select case (ele%key)
+if (init_needed) then
+  v_mask = .true.
+  v_mask( (/ x_offset$, y_offset$, s_offset$, tilt$, x_pitch$, &
+            y_pitch$, x_offset_tot$, y_offset_tot$, s_offset_tot$, &
+            tilt_tot$, x_pitch_tot$, y_pitch_tot$, z_patch$ /) ) = .false.
+  offset_mask = .not. v_mask
+  offset_mask(z_patch$) = .false.
+  init_needed = .false.
+endif
 
-case (wiggler$)
-  check_sum = val(polarity$)
-  check_sum = check_sum
-
-case (quadrupole$)
-  check_sum = val(k1$) 
-
-case (sol_quad$)
-  check_sum = val(ks$) + val(k1$)
-
-case (solenoid$)
-  check_sum = val(ks$)
-
-case (sbend$)
-  check_sum = val(g$) + val(g_err$) + val(e1$) + val(e2$) + val(k1$) + val(k2$)
-
-case (sextupole$)
-  check_sum = val(k2$)
-
-case (octupole$)
-  check_sum = val(k3$)
-
-case (rfcavity$)
-  check_sum = val(voltage$) + val(phi0$) 
-
-case (elseparator$)
-  check_sum = val(hkick$) + val(vkick$)
-
-case (lcavity$)
-  check_sum = val(gradient$) + val(phi0$) + val(gradient_err$) + val(phi0_err$)
-
-case (match$, patch$)
-  check_sum = sum(val) - val(check_sum$) - sum(val(general1$:general5$))
-
-case (drift$, rcollimator$, ecollimator$, monitor$, instrument$)
-  check_sum = sum(val) - val(check_sum$)
-
-case (marker$, branch$, photon_branch$)
-  check_sum = sum(val) - val(check_sum$) - sum(val(general1$:general5$))
-
-case (kicker$, hkicker$, vkicker$)
-  check_sum = sum(val) - val(check_sum$) - sum(val(general1$:general5$))
-
-case default
-  if (associated(ele%taylor(1)%term)) then
-    call out_io(s_abort$, r_name, 'CHECK_SUM FOR ELEMENT OF THIS TYPE:' // key_name(ele%key), &
-                                  'NOT YET IMPLEMENTED. PLEASE CONTACT DAVID SAGAN')
-    call err_exit
-  endif
-
-end select
-
-check_sum = check_sum + val(l$) + val(ds_step$)
-offset_check_sum = val(x_offset$) + val(y_offset$) + val(x_pitch$) + &
-                          val(y_pitch$) + val(s_offset$) + val(tilt$)
+non_offset_changed = (any(val /= ele%old_value .and. v_mask))
+offset_changed =  (any(val /= ele%old_value .and. offset_mask))
+offset_nonzero = (any(val /= 0 .and. offset_mask))
 
 ! If an element has just been offset and bmad_com%conserve_taylor_map = T then 
 ! conserve the taylor map.
 
 if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
-        offset_check_sum /= 0 .and. bmad_com%conserve_taylor_maps .and. &
-        abs(val(check_sum$) - check_sum) < &
-        1d-14 * (abs(check_sum) + abs(val(check_sum$)))) then
+        offset_nonzero .and. bmad_com%conserve_taylor_maps .and. &
+        .not. non_offset_changed) then
   ele%map_with_offsets = .false.
   call out_io (s_info$, r_name, 'Element has been offset: ' // ele%name, &
-                                'Will set %map_with_offsets = F')
+                                'Will set ele%map_with_offsets = F')
 endif
 
-if (ele%map_with_offsets) check_sum = check_sum + offset_check_sum
+! Kill the taylor map and gen_field if necessary.
 
-! For some very strange reason there can be round off error in the check sum.
-! Hence we use a non-exact test.
-
-if (abs(val(check_sum$) - check_sum) > &
-                    1d-14 * (abs(check_sum) + abs(val(check_sum$)))) then
-
-  if (val(check_sum$) /= 0) then
-    if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
-    if (associated(ele%gen_field)) call kill_gen_field(ele%gen_field)
-    if (ele%key == wiggler$) then
-      val(z_patch$) = 0
-      val(x_patch$) = 0
-    endif
+if (non_offset_changed .or. (offset_changed .and. ele%map_with_offsets)) then
+  if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
+  if (associated(ele%gen_field)) call kill_gen_field(ele%gen_field)
+  if (ele%key == wiggler$) then
+    val(z_patch$) = 0
+    val(x_patch$) = 0
   endif
-
-  val(check_sum$) = check_sum
-
 endif
 
 ! compute the z_patch for a wiggler if needed.
 ! This is normally zero except for split wiggler sections.
 
-if (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. val(p0c$) /= 0) then
+if (z_patch_calc_needed) then
   start = ele%ref_orb_in
   call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
   val(z_patch$) = end%vec(5)
@@ -1567,6 +1513,8 @@ if (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. val(p0c$) /= 0) then
   end%vec(5) = end%vec(5) - val(z_patch$)
   ele%ref_orb_out = end             ! save for next super_slave
 endif
+
+ele%old_value = val
 
 end subroutine
 
@@ -1738,7 +1686,7 @@ enddo
 ! Go through lattice_out and match elements.
 ! If we have a match transfer the Taylor map.
 ! Call attribute_bookkeeper before transfering the taylor map to make sure
-! the check_sum is correct. 
+! the ele_out%value(:) arry is correct. 
 
 out_loop: do i = 1, lattice_out%n_ele_max
 
@@ -1800,9 +1748,6 @@ end subroutine
 !-
 
 subroutine set_on_off (key, lat, switch, orb, use_ref_orb)
-
-use bmad_struct
-use bmad_interface
 
 implicit none
 

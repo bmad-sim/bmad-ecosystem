@@ -150,7 +150,6 @@ if (ix_attrib == y_pitch_tot$) free = .false.
 if (ix_attrib == x_offset_tot$) free = .false.
 if (ix_attrib == y_offset_tot$) free = .false.
 if (ix_attrib == s_offset_tot$) free = .false.
-if (ix_attrib == check_sum$ .and. ele%key /= patch$) free = .false.
 if (ix_attrib == e_tot$) free = .false.
 if (ix_attrib == p0c$) free = .false.
 

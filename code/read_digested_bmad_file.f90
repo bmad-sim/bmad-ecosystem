@@ -55,7 +55,7 @@ character(200) fname1, fname2, fname3, input_file_name, full_digested_name
 character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 
-logical found_it, v85, v86, v87, v88, v_old, mode3, error, is_open
+logical found_it, v86, v87, v88, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -77,12 +77,11 @@ open (unit = d_unit, file = full_digested_name, status = 'old',  &
 
 read (d_unit, err = 9100) n_files, version
 
-v85 = (version == 85)
 v86 = (version == 86)
 v87 = (version == 87)
 v88 = (version == 88)
 
-v_old = v85 .or. v86 .or. v87
+v_old = v86 .or. v87
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -159,7 +158,7 @@ enddo
 ! we read (and write) the lat in pieces since it is
 ! too big to write in one piece
 
-if (v85 .or. v86) then
+if (v86) then
   read (d_unit, err = 9100)  &   
             lat%name, lat%lattice, lat%input_file_name, lat%title, &
             old_a, old_b, old_z, lat%param, lat%version, lat%n_ele_track, &
@@ -262,24 +261,7 @@ logical error
 
 error = .true.
 
-if (v85) then
-  read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-          ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
-          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-          ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
-          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          ele%num_steps, ele%integrator_order, ele%ptc_kind, &
-          ele%taylor_order, ele%symplectify, ele%mode_flip, &
-          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
-          ele%ref_orb_in, ele%ref_orb_out, ele%offset_moves_aperture
-
-elseif (v86) then
+if (v86) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
           ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
@@ -326,16 +308,9 @@ enddo
 
 !
 
-if (v85) then
-  if (ele%key == wiggler$ .and. ele%value(check_sum$) == 0) &
-                                        ele%value(check_sum$) = ele%value(28)
-endif
-
-if (version > 85) then
-  if (mode3) then
-    allocate(ele%mode3)
-    read (d_unit, err = 9150) ele%mode3
-  endif
+if (mode3) then
+  allocate(ele%mode3)
+  read (d_unit, err = 9150) ele%mode3
 endif
 
 if (ix_wig /= 0) then
@@ -400,6 +375,9 @@ if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. i
     read (d_unit, err = 9860) ele%wake%z_sr_mode_max
   endif
 endif
+
+ele%value(check_sum$) = 0
+ele%old_value = ele%value
 
 error = .false.
 
