@@ -31,7 +31,7 @@ subroutine do_synrad (walls, u, ring, gen_params, window)
     gen_params%i_beam = 0.2   ! 100 mA / beam
   endif
 
-  gen_params%epsilon_y = 2e-9
+  gen_params%epsilon_y = max( (ring%a%emit * .02), ring%b%emit )
   print *, 'Default emittance is: ',gen_params%epsilon_y
   call get_input_string ('Vertical Emittance <CR = DEFAULT>:', line)
   call string_trim (line, line, ix)
