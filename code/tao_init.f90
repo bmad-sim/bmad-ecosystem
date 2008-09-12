@@ -213,25 +213,6 @@ if (present(err_flag)) err_flag = .false.
 close (iu_log)
 call output_direct (0, .true.)
 
-! Check if a csr calc is being done with taylor map tracking. 
-
-if (bmad_com%coherent_synch_rad_on) then
-  do i = lbound(s%u, 1), ubound(s%u, 1)
-    u => s%u(i)
-    do j = 1, u%model%lat%n_ele_track
-      if (u%model%lat%ele(j)%csr_calc_on) then
-        call out_io (s_warn$, r_name, &
-            '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
-            '!!!  CSR CALC COMBINED WITH TAYLOR TRACKING_METHOD  !!!', &
-            '!!!  WILL POTENTIALLY AFFECT THE RESULTS!           !!!', &
-            '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        exit
-      endif
-    enddo
-  enddo
-endif
-
-
 contains
 !------------------------------------------------------------------------------
 ! every pointer and allocatable needs to be deallocated now before the universe
