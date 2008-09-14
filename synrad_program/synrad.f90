@@ -2,6 +2,7 @@ program synrad
 
   use bmad
   use sr_mod
+  use synrad_output_mod
 
   implicit none
 
