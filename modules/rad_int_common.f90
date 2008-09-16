@@ -18,8 +18,8 @@ use runge_kutta_mod
 type rad_int_track_point_struct
   real(rp) mat6(6,6)
   real(rp) vec0(6)
-  type (coord_struct) ref_orb_in
-  type (coord_struct) ref_orb_out
+  type (coord_struct) map_ref_orb_in
+  type (coord_struct) map_ref_orb_out
   real(rp) g_x0, g_y0     ! Additional g factors for wiggler/bends.
   real(rp) dgx_dx, dgx_dy   ! bending strength gradiant
   real(rp) dgy_dx, dgy_dy   ! bending strength gradiant
@@ -321,14 +321,14 @@ if (associated(info%cache_ele)) then
   pt%dgy_dx = f0 * pt0%dgy_dx + f1 * pt1%dgy_dx
   pt%dgy_dy = f0 * pt0%dgy_dy + f1 * pt1%dgy_dy
 
-  info%g_x   = f0 * (pt0%g_x0 + pt0%dgx_dx * (orb0%vec(1) - pt0%ref_orb_out%vec(1)) + &
-                                pt0%dgx_dy * (orb0%vec(3) - pt0%ref_orb_out%vec(3))) + &
-               f1 * (pt1%g_x0 + pt1%dgx_dx * (orb1%vec(1) - pt1%ref_orb_out%vec(1)) + &
-                                pt1%dgx_dy * (orb1%vec(3) - pt1%ref_orb_out%vec(3)))
-  info%g_y   = f0 * (pt0%g_y0 + pt0%dgy_dx * (orb0%vec(1) - pt0%ref_orb_out%vec(1)) + &
-                                pt0%dgy_dy * (orb0%vec(3) - pt0%ref_orb_out%vec(3))) + &
-               f1 * (pt1%g_y0 + pt1%dgy_dx * (orb1%vec(1) - pt1%ref_orb_out%vec(1)) + &
-                                pt1%dgy_dy * (orb1%vec(3) - pt1%ref_orb_out%vec(3)))
+  info%g_x   = f0 * (pt0%g_x0 + pt0%dgx_dx * (orb0%vec(1) - pt0%map_ref_orb_out%vec(1)) + &
+                                pt0%dgx_dy * (orb0%vec(3) - pt0%map_ref_orb_out%vec(3))) + &
+               f1 * (pt1%g_x0 + pt1%dgx_dx * (orb1%vec(1) - pt1%map_ref_orb_out%vec(1)) + &
+                                pt1%dgx_dy * (orb1%vec(3) - pt1%map_ref_orb_out%vec(3)))
+  info%g_y   = f0 * (pt0%g_y0 + pt0%dgy_dx * (orb0%vec(1) - pt0%map_ref_orb_out%vec(1)) + &
+                                pt0%dgy_dy * (orb0%vec(3) - pt0%map_ref_orb_out%vec(3))) + &
+               f1 * (pt1%g_y0 + pt1%dgy_dx * (orb1%vec(1) - pt1%map_ref_orb_out%vec(1)) + &
+                                pt1%dgy_dy * (orb1%vec(3) - pt1%map_ref_orb_out%vec(3)))
                
   info%dg2_x = 2 * (info%g_x * pt%dgx_dx + info%g_y * pt%dgy_dx)
   info%dg2_y = 2 * (info%g_x * pt%dgx_dy + info%g_y * pt%dgy_dy) 
@@ -351,8 +351,8 @@ if (associated(info%cache_ele)) then
 
   runt%mat6 = pt0%mat6
   runt%vec0 = pt0%vec0
-  runt%ref_orb_in  = pt0%ref_orb_in
-  runt%ref_orb_out = pt0%ref_orb_out
+  runt%map_ref_orb_in  = pt0%map_ref_orb_in
+  runt%map_ref_orb_out = pt0%map_ref_orb_out
 
   call mat6_add_offsets (runt)  ! back to lab coords
   call twiss_propagate1 (ele0, runt)
@@ -363,8 +363,8 @@ if (associated(info%cache_ele)) then
 
   runt%mat6 = pt1%mat6
   runt%vec0 = pt1%vec0
-  runt%ref_orb_in  = pt1%ref_orb_in
-  runt%ref_orb_out = pt1%ref_orb_out
+  runt%map_ref_orb_in  = pt1%map_ref_orb_in
+  runt%map_ref_orb_out = pt1%map_ref_orb_out
 
   call mat6_add_offsets (runt)  ! back to lab coords
   call twiss_propagate1 (ele0, runt)

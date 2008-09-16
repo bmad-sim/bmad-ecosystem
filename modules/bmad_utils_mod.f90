@@ -1166,8 +1166,8 @@ ele%sub_key = 0
 
 ele%value(:) = 0
 ele%old_value(:) = 0
-call init_coord (ele%ref_orb_in)
-call init_coord (ele%ref_orb_out)
+call init_coord (ele%map_ref_orb_in)
+call init_coord (ele%map_ref_orb_out)
 
 ele%control_type = free$
 ele%ix_value = 0

@@ -837,8 +837,8 @@ if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on)) the
     temp_ele%mat6 = mat6
     temp_ele%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
     temp_ele%vec0(6) = 0
-    temp_ele%ref_orb_in = start
-    temp_ele%ref_orb_out = end
+    temp_ele%map_ref_orb_in = start
+    temp_ele%map_ref_orb_out = end
     call twiss_propagate1 (synch_rad_com%ele0, temp_ele)
     synch_rad_com%i5a = synch_rad_com%i5a + g3 * ds * &
                   (temp_ele%a%gamma * temp_ele%a%eta**2 + &

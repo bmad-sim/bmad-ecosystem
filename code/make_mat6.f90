@@ -124,8 +124,8 @@ subroutine make_mat6 (ele, param, start, end, end_in, err)
 
 ! Finish up
 
-  ele%ref_orb_in = a_start
-  ele%ref_orb_out = a_end
+  ele%map_ref_orb_in = a_start
+  ele%map_ref_orb_out = a_end
   if (present(end) .and. .not. end_input) end = a_end
 
 end subroutine

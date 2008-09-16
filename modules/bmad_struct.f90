@@ -156,18 +156,24 @@ end type
 !     Modify ele_equal_ele
 
 type ele_struct
-  character(40) name                 ! name of element.
-  character(40) type                 ! type name.
-  character(40) alias                ! Another name.
-  character(40) attribute_name       ! Used by overlays.
-  type (twiss_struct)  a, b, z       ! Twiss parameters at end of element
-  type (xy_disp_struct) x, y         ! Projected dispersions.
-  type (floor_position_struct) floor ! Global floor position at end of ele.
+  character(40) name                   ! name of element.
+  character(40) type                   ! type name.
+  character(40) alias                  ! Another name.
+  character(40) attribute_name         ! Used by overlays.
+  character(200), pointer :: descrip => null() ! Description string.
+  type (twiss_struct)  a, b, z         ! Twiss parameters at end of element
+  type (xy_disp_struct) x, y           ! Projected dispersions.
+  type (floor_position_struct) floor   ! Global floor position at end of ele.
   type (mode3_struct), pointer :: mode3
+  type (coord_struct) map_ref_orb_in   ! Ref orbit at entrance of element.
+  type (coord_struct) map_ref_orb_out  ! Ref orbit at exit of element.
+  type (genfield), pointer :: gen_field => null() ! For symp_map$
+  type (taylor_struct) :: taylor(6)               ! Taylor terms
+  type (wake_struct), pointer :: wake => null()   ! Wakefields
+  type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
+  type (trans_space_charge_struct), pointer :: trans_sc => null()
   real(rp) value(n_attrib_maxx)      ! attribute values.
-  real(rp) old_value(n_attrib_maxx)  ! Used to see if value(:) attribute array has changed.
-  type (coord_struct) ref_orb_in     ! Reference orbit for mat6 calc at entrance of element.
-  type (coord_struct) ref_orb_out    ! Reference orbit at exit of element.
+  real(rp) old_value(n_attrib_maxx)  ! Used to see if %value(:) array has changed.
   real(rp) gen0(6)                   ! constant part of the genfield map.
   real(rp) vec0(6)                   ! 0th order transport vector.
   real(rp) mat6(6,6)                 ! 1st order transport matrix.
@@ -178,12 +184,6 @@ type ele_struct
   real(rp), pointer :: a_pole(:) => null()        ! multipole
   real(rp), pointer :: b_pole(:) => null()        ! multipoles
   real(rp), pointer :: const(:) => null()         ! Working constants.
-  character(200), pointer :: descrip => null()    ! For general use
-  type (genfield), pointer :: gen_field => null() ! For symp_map$
-  type (taylor_struct) :: taylor(6)               ! Taylor terms
-  type (wake_struct), pointer :: wake => null()   ! Wakefields
-  type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
-  type (trans_space_charge_struct), pointer :: trans_sc => null()
   integer key                ! key value
   integer sub_key            ! For wigglers: map_type$, periodic_type$
   integer control_type       ! SUPER_SLAVE$, OVERLAY_LORD$, etc.

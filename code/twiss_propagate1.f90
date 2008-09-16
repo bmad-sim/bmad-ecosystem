@@ -191,8 +191,8 @@ subroutine twiss_propagate1 (ele1, ele2, err)
   ! This is just 1.0 (except for RF cavities).
 
   mat6 => ele2%mat6
-  orb  => ele2%ref_orb_in%vec
-  orb_out => ele2%ref_orb_out%vec
+  orb  => ele2%map_ref_orb_in%vec
+  orb_out => ele2%map_ref_orb_out%vec
   rel_p1 = 1 + orb(6)               ! reference energy 
   rel_p2 = 1 + orb_out(6)
 

@@ -7,7 +7,8 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/, logic\)/\)/g;
+    s/ref_orb_in/map_ref_orb_in/g;
+    s/ref_orb_out/map_ref_orb_out/g;
     print (F_OUT);
   }
 

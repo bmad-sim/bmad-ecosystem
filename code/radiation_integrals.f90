@@ -308,8 +308,8 @@ if (init_cache) then
         call calc_wiggler_g_params (ele2, z_here, end, c_pt, ri_info)
         c_pt%mat6        = track%pt(k)%mat6
         c_pt%vec0        = track%pt(k)%vec0
-        c_pt%ref_orb_in  = start
-        c_pt%ref_orb_out = end
+        c_pt%map_ref_orb_in  = start
+        c_pt%map_ref_orb_out = end
       enddo
 
     ! non-wiggler element
@@ -337,8 +337,8 @@ if (init_cache) then
                                                       z1, start = start, end = end1)
         c_pt%mat6 = runt%mat6
         c_pt%vec0 = runt%vec0
-        c_pt%ref_orb_in  = start
-        c_pt%ref_orb_out = end
+        c_pt%map_ref_orb_in  = start
+        c_pt%map_ref_orb_out = end
         c_pt%g_x0 = -(end1%vec(2) - end%vec(2)) / (z1 - z_here)
         c_pt%g_y0 = -(end1%vec(4) - end%vec(4)) / (z1 - z_here)
         c_pt%dgx_dx = 0

@@ -508,7 +508,7 @@ if (slave%n_lord == 1) then
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (ix_con /= lord%ix1_slave) then
-    slave%ref_orb_in = lattice%ele(ix_slave-1)%ref_orb_out
+    slave%map_ref_orb_in = lattice%ele(ix_slave-1)%map_ref_orb_out
   endif
 
   !
@@ -677,7 +677,7 @@ do j = slave%ic1_lord, slave%ic2_lord
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (ix_con /= lord%ix1_slave) then
-    slave%ref_orb_in = lattice%ele(ix_slave-1)%ref_orb_out
+    slave%map_ref_orb_in = lattice%ele(ix_slave-1)%map_ref_orb_out
   endif
 
   !
@@ -1217,7 +1217,7 @@ end subroutine
 !
 ! Output:
 !   ele            -- Ele_struct: Element with self-consistant attributes.
-!     %ref_orb_out -- Reference orbit to be used for the next
+!     %map_ref_orb_out -- Reference orbit to be used for the next
 !                         super_slave wiggler z_patch calculation. 
 !                         This is to be only used by the control_bookkeeper routine.
 !
@@ -1504,13 +1504,13 @@ endif
 ! This is normally zero except for split wiggler sections.
 
 if (z_patch_calc_needed) then
-  start = ele%ref_orb_in
+  start = ele%map_ref_orb_in
   call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
   val(z_patch$) = end%vec(5)
   if (val(z_patch$) == 0) val(z_patch$) = 1e-30 ! something non-zero.
   if (ele%sub_key == periodic_type$) val(x_patch$) = end%vec(1)
   end%vec(5) = end%vec(5) - val(z_patch$)
-  ele%ref_orb_out = end             ! save for next super_slave
+  ele%map_ref_orb_out = end             ! save for next super_slave
 endif
 
 ele%old_value = val
@@ -1787,7 +1787,7 @@ do i = 1, lat%n_ele_max
 
   if (old_state .neqv. lat%ele(i)%is_on) then
     if (logic_option (.false., use_ref_orb)) then
-      ref_orb = lat%ele(i)%ref_orb_in
+      ref_orb = lat%ele(i)%map_ref_orb_in
       call make_mat6(lat%ele(i), lat%param, ref_orb)
     else
       call lat_make_mat6(lat, i, orb)
