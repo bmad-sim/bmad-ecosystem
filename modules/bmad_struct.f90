@@ -699,7 +699,7 @@ type bmad_common_struct
   real(rp) :: max_aperture_limit = 1e3       ! Max Aperture.
   real(rp) :: d_orb(6)           = 1e-5      ! for the make_mat6_tracking routine.
   real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.
-  real(rp) :: default_ds_step    = 0.2       ! Integration step size.  
+  real(rp) :: default_ds_step    = 0.2_rp    ! Integration step size.  
 #if defined(CESR_F90_DOUBLE)
   real(rp) :: rel_tolerance = 1e-5
   real(rp) :: abs_tolerance = 1e-8

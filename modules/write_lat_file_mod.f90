@@ -387,7 +387,9 @@ ele_loop: do ie = 1, lat%n_ele_max
 
     if (ele%value(j) == 0) cycle
     if (.not. attribute_free (ie, j, lat, .false., .true.)) cycle
-      
+    if (attribute_name(ele, j) == 'DS_STEP' .and. &
+                                    ele%value(j) == bmad_com%default_ds_step) cycle
+
     if (attribute_name(ele, j) == null_name) then
       print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
       print *, '      ELEMENT: ', ele%name
