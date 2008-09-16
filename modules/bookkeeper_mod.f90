@@ -388,17 +388,33 @@ slave => lattice%ele(ix_slave)
 j =  lattice%ic(slave%ic1_lord)
 lord => lattice%ele(lattice%control(j)%ix_lord)
 
-val = slave%value
+val = slave%value  ! save
 
 slave%value = lord%value
 if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
   slave%value(dphi0$)        = val(dphi0$)
-  slave%value(E_tot_start$) = val(E_tot_start$)
+  slave%value(E_tot_start$)  = val(E_tot_start$)
   slave%value(p0c_start$)    = val(p0c_start$)
 endif
 
-slave%value(E_tot$) = val(E_tot$)
-slave%value(p0c$)         = val(p0c$)
+slave%value(e_tot$) = val(e_tot$)
+slave%value(p0c$)   = val(p0c$)
+slave%value(p0c_ref_geometry$)   = 0
+slave%value(e_tot_ref_geometry$) = 0
+slave%value(n_multipass_ref$)    = 0
+
+if (lord%field_master) then
+  if (lord%value(p0c_ref_geometry$) /= 0) then
+    slave%value(b_field$)     = lord%value(b_field$) * slave%value(p0c$) / lord%value(p0c$) 
+    slave%value(b_field_err$) = lord%value(b_field$) + lord%value(b_field_err$) - &
+                                                                 slave%value(b_field$)
+  endif
+else
+  if (slave%value(p0c$) /= 0) then
+    slave%value(g_err$) = (lord%value(g$) + lord%value(g_err$)) * &
+                                  lord%value(p0c$) / slave%value(p0c$) - lord%value(g$)
+  endif
+endif
 
 if (associated (slave%a_pole)) then
   slave%a_pole = lord%a_pole
@@ -408,10 +424,10 @@ endif
 if (associated (slave%r)) slave%r = lord%r
 if (associated (slave%const)) slave%const = lord%const
 if (associated (slave%wake)) then
-  slave%wake%sr_table       = lord%wake%sr_table
+  slave%wake%sr_table      = lord%wake%sr_table
   slave%wake%sr_mode_long  = lord%wake%sr_mode_long
   slave%wake%sr_mode_trans = lord%wake%sr_mode_trans
-  slave%wake%lr        = lord%wake%lr
+  slave%wake%lr            = lord%wake%lr
 endif
 
 slave%mat6_calc_method = lord%mat6_calc_method
@@ -420,6 +436,7 @@ slave%num_steps        = lord%num_steps
 slave%is_on            = lord%is_on
 slave%aperture_at      = lord%aperture_at
 slave%coupler_at       = lord%coupler_at
+slave%field_master     = lord%field_master
 
 end subroutine
 
@@ -1271,21 +1288,8 @@ if (ele%field_master) then
     val(ks$) = factor * val(Bs_field$)
     val(k1$) = factor * val(B1_gradient$)
   case (sbend$)
-    if (ele%control_type == multipass_slave$ .or. ele%control_type == multipass_lord$) then
-      if (val(p0c_ref_geometry$) == 0) then
-        f2 = 0
-      else
-        f2 = c_light / val(p0c_ref_geometry$)
-      endif
-    endif
-    if (ele%control_type == multipass_slave$) then
-      val(g$)     = f2 * val(B_field$)
-      val(g_err$) = factor * (val(B_field$) + val(B_field_err$)) - val(g$)
-    else
-      if (ele%control_type == multipass_lord$) factor = f2
-      val(g$)     = factor * val(B_field$)
-      val(g_err$) = factor * val(B_field_err$)
-    endif
+    val(g$)     = factor * val(B_field$)
+    val(g_err$) = factor * val(B_field_err$)
     val(k1$)    = factor * val(B1_gradient$)
     val(k2$)    = factor * val(B2_gradient$)
   case (hkicker$)
@@ -1319,15 +1323,8 @@ else
     val(Bs_field$)    = factor * val(ks$)
     val(B1_gradient$) = factor * val(k1$)
   case (sbend$)
-    f2 = val(p0c_ref_geometry$) / c_light
-    if (ele%control_type == multipass_slave$) then
-      val(B_field$)     = f2 * val(g$)
-      val(B_field_err$) = factor * (val(g$) + val(g_err$)) - val(B_field$)
-    else
-      if (ele%control_type == multipass_lord$) factor = f2
-      val(B_field$)     = factor * val(g$)
-      val(B_field_err$) = factor * val(g_err$)
-    endif
+    val(B_field$)     = factor * val(g$)
+    val(B_field_err$) = factor * val(g_err$)
     val(B1_gradient$) = factor * val(k1$)
     val(B2_gradient$) = factor * val(k2$)
   case (hkicker$)

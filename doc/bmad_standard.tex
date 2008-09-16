@@ -72,16 +72,18 @@ approximation, \Eq{h1gx1} becomes
   \label{hpapa}
 \Endeq
 
-The change in $z$, once the transverse trajectory is
-known, is obtained from symplectic integration of \Eq{hpapa} 
+Once the transverse trajectory is
+known, the longitudinal position $z_2$ at the exit end of an element
+is obtained from symplectic integration of \Eq{hpapa} 
 \Begineq
-  z \rightarrow z - \frac{1}{2 (1 + p_z)^2} \int \! ds \, 
+  z_2 = z_1 - \frac{1}{2 (1 + p_{z1})^2} \int \! ds \, 
   \left[ (p_x - a_x)^2 + (p_y - a_y)^2 \right] - \int \! ds \, g \, x
   \label{zz121p}
 \Endeq
+where $z_1$ is the longitudinal position at the entrance end of the element.
 Using the equations of motion \Eqs{rshp} this can also be rewritten as
 \Begineq
-  z \rightarrow z - \frac{1}{2} \int \! ds \, 
+  z_2 = z_1 - \frac{1}{2} \int \! ds \, 
   \left[ \left( \frac{dx}{ds} \right)^2 + \left( \frac{dy}{ds} \right)^2 \right] - 
   \int \! ds \, g \, x
   \label{zz12sx}
@@ -90,18 +92,20 @@ Using the equations of motion \Eqs{rshp} this can also be rewritten as
 For elements without electric fields the transfer map
 for a given coordinate $r_i$ may be expanded in a Taylor series
 \Begineq
-  r_i \rightarrow m_i + \sum_{j = 1}^4 m_{ij} \, r_j + 
-  \sum_{j = 1}^4 \sum_{k = j}^4 m_{ijk} \, r_j \, r_k + \ldots
+  r_{i,2} \rightarrow m_i + \sum_{j = 1}^4 m_{ij} \, r_{j,1} + 
+  \sum_{j = 1}^4 \sum_{k = j}^4 m_{ijk} \, r_{j,1} \, r_{k,1} + \ldots
 \Endeq
 where the map coefficients $m_{ij\cdots}$ are functions of $p_z$.  For
 linear elements the transfer map is linear for the transverse
 coordinates and quadratic for $z$.
 
-
 %-----------------------------------------
 \subsection{BeamBeam}
 \index{BeamBeam}
 
+The beam-beam interaction is modeled using the Bassetti-Erskine
+complex error function formula\cite{b:bassetti}. This formula assumes that
+the strong beam
 
 %-----------------------------------------
 \subsection{Bend\_Sol\_Quad}
@@ -117,12 +121,12 @@ A drift has $\Bf a = 0$ and $g = 0$. The Hamiltonian for a drift is
 \Endeq
 This gives the map
 \begin{align}
-  x   &\rightarrow x + \frac{L \, p_x}{1 + p_z} \CRNO
+  x   &\rightarrow x + \frac{L \, p_x}{1 + p_{z1}} \CRNO
   p_x &\rightarrow p_x  \CRNO
-  y   &\rightarrow y + \frac{L \, p_y}{1 + p_z} \CRNO
+  y   &\rightarrow y + \frac{L \, p_y}{1 + p_{z1}} \CRNO
   p_y &\rightarrow p_y  \\
-  z   &\rightarrow z - \frac{L \, (p_x^2 + p_y^2)}{2 (1 + p_z)^2} \CRNO
-  p_z &\rightarrow p_z \nonumber
+  z   &\rightarrow z - \frac{L \, (p_x^2 + p_y^2)}{2 (1 + p_{z1})^2} \CRNO
+  p_{z2} &= p_{z1} \nonumber
 \end{align}
 
 %-----------------------------------------
@@ -206,17 +210,17 @@ The Hamiltonian for an upright quadrupole is
 \Endeq
 This is simply solved
 \begin{align}
-  x   &\rightarrow c_x \, x + s_x \, \frac{p_x}{1 + p_z} \CRNO
-  p_x &\rightarrow \tau_x \, \om^2 \, \, (1 + p_z) \, s_x \, x + c_x \, p_x \CRNO
-  y   &\rightarrow c_y \, y + s_y \, \frac{p_y}{1 + p_z} \CRNO
-  p_y &\rightarrow \tau_y \, \om^2 \, \, (1 + p_z) \, s_y \, y + c_y \, p_y \CRNO
+  x   &\rightarrow c_x \, x + s_x \, \frac{p_x}{1 + p_{z1}} \CRNO
+  p_x &\rightarrow \tau_x \, \om^2 \, \, (1 + p_{z1}) \, s_x \, x + c_x \, p_x \CRNO
+  y   &\rightarrow c_y \, y + s_y \, \frac{p_y}{1 + p_{z1}} \CRNO
+  p_y &\rightarrow \tau_y \, \om^2 \, \, (1 + p_{z1}) \, s_y \, y + c_y \, p_y \CRNO
   z   &\rightarrow z + m_{511} \, x^2 + m_{512} \, x \, p_x + m_{522} \, p_x^2 + 
                    m_{533} \, y^2 + m_{534} \, y \, p_y + m_{544} \, p_y^2 \CRNO
-  p_z &\rightarrow p_z \nonumber
+  p_{z2} &= p_{z1} \nonumber
 \end{align}
 where 
 \Begineq
-  \om \equiv \sqrt{\frac{|k_1|}{1 + p_z}}
+  \om \equiv \sqrt{\frac{|k_1|}{1 + p_{z1}}}
 \Endeq
 and
 \begin{alignat}{6}
@@ -233,11 +237,11 @@ with this
 \begin{alignat}{2}
   m_{511} &= \frac{\tau_x \,\, \om^2}{4} \, (L - c_x \, s_x) & \qqquad
   m_{533} &= \frac{\tau_y \,\, \om^2}{4} \, (L - c_y \, s_y) \CRNO
-  m_{512} &= \frac{-\tau_x \,\, \om^2}{2 \, (1 + p_z)} \, s_x^2 & \qqquad
-  m_{534} &= \frac{-\tau_y \,\, \om^2}{2 \, (1 + p_z)} \, s_y^2 \CRNO
-  m_{522} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_x \, s_x) & \qqquad
-  m_{544} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_y \, s_y) \nonumber
-\end{alignat}{2}
+  m_{512} &= \frac{-\tau_x \,\, \om^2}{2 \, (1 + p_{z1})} \, s_x^2 & \qqquad
+  m_{534} &= \frac{-\tau_y \,\, \om^2}{2 \, (1 + p_{z1})} \, s_y^2 \CRNO
+  m_{522} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_x \, s_x) & \qqquad
+  m_{544} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_y \, s_y) \nonumber
+\end{alignat}
 
 
 %-----------------------------------------
@@ -268,21 +272,21 @@ The Hamiltonian is
 
 This is simply solved
 \begin{align}
-  x   &\rightarrow c_x \, (x - x_c) + s_x \, \frac{p_x}{1 + p_z} + x_c \CRNO
-  p_x &\rightarrow \tau_x \, \om_x^2 \, \, (1 + p_z) \, s_x \, (x -x_c) + c_x \, p_x \CRNO
-  y   &\rightarrow c_y \, y + s_y \, \frac{p_y}{1 + p_z} \CRNO
-  p_y &\rightarrow \tau_y \, \om_y^2 \, \, (1 + p_z) \, s_y \, y + c_y \, p_y \CRNO
+  x   &\rightarrow c_x \, (x - x_c) + s_x \, \frac{p_x}{1 + p_{z1}} + x_c \CRNO
+  p_x &\rightarrow \tau_x \, \om_x^2 \, \, (1 + p_{z1}) \, s_x \, (x -x_c) + c_x \, p_x \CRNO
+  y   &\rightarrow c_y \, y + s_y \, \frac{p_y}{1 + p_{z1}} \CRNO
+  p_y &\rightarrow \tau_y \, \om_y^2 \, \, (1 + p_{z1}) \, s_y \, y + c_y \, p_y \CRNO
   z   &\rightarrow z + m_5 + m_{51} (x - x_c) + m_{52} p_x + \CRNO
       &\hspace*{20ex} m_{511} \, (x-x_c)^2 + m_{512} \, (x-x_c) \, p_x + m_{522} \, p_x^2 + 
                    m_{533} \, y^2 + m_{534} \, y \, p_y + m_{544} \, p_y^2 \CRNO
-  p_z &\rightarrow p_z \nonumber
+  p_{z2} &= p_{z1} \nonumber
 \end{align}
 where 
 \begin{alignat}{2}
   k_x &= k_1 + g \, k_0 & \qqquad
-  \om_x &\equiv \sqrt{\frac{|k_x|}{1 + p_z}} \CRNO
-  x_c &= \frac{g \, (1 + p_z) - k_0}{k_x} & \qqquad
-  \om_y &\equiv \sqrt{\frac{|k_1|}{1 + p_z}} \CRNO
+  \om_x &\equiv \sqrt{\frac{|k_x|}{1 + p_{z1}}} \CRNO
+  x_c &= \frac{g \, (1 + p_{z1}) - k_0}{k_x} & \qqquad
+  \om_y &\equiv \sqrt{\frac{|k_1|}{1 + p_{z1}}} \CRNO
 \end{alignat}
 and
 \begin{alignat}{6}
@@ -299,13 +303,13 @@ with this
 \begin{alignat}{2}
   m_5     &= -g \, x_c \, L & \qqquad & \CRNO
   m_{51}  &= -g \, s_x & \qqquad
-  m_{52}  &= \frac{\tau_x \, g}{1 + p_z} \, \frac{1 - c_x}{\om_x^2} \CRNO
+  m_{52}  &= \frac{\tau_x \, g}{1 + p_{z1}} \, \frac{1 - c_x}{\om_x^2} \CRNO
   m_{511} &= \frac{\tau_x \,\, \om_x^2}{4} \, (L - c_x \, s_x) & \qqquad
   m_{533} &= \frac{\tau_y \,\, \om_y^2}{4} \, (L - c_y \, s_y) \CRNO
-  m_{512} &= \frac{-\tau_x \,\, \om_x^2}{2 \, (1 + p_z)} \, s_x^2 & \qqquad
-  m_{534} &= \frac{-\tau_y \,\, \om_y^2}{2 \, (1 + p_z)} \, s_y^2 \CRNO
-  m_{522} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_x \, s_x) & \qqquad
-  m_{544} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_y \, s_y) \nonumber
+  m_{512} &= \frac{-\tau_x \,\, \om_x^2}{2 \, (1 + p_{z1})} \, s_x^2 & \qqquad
+  m_{534} &= \frac{-\tau_y \,\, \om_y^2}{2 \, (1 + p_{z1})} \, s_y^2 \CRNO
+  m_{522} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_x \, s_x) & \qqquad
+  m_{544} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_y \, s_y) \nonumber
 \end{alignat}
 
 %-----------------------------------------
@@ -328,28 +332,28 @@ Solving the equations of motion gives
   y   &\rightarrow m_{31} \, x + m_{32} \, p_x + m_{33} \, y + m_{34} \, p_y \CRNO
   p_y &\rightarrow m_{41} \, x + m_{42} \, p_x + m_{43} \, y + m_{44} \, p_y \CRNO
   z   &\rightarrow z + \sum_{j = 1}^4 \sum_{k = j}^4 m_{5jk} \, r_j \, r_k  \CRNO
-  p_z &\rightarrow p_z \nonumber
+  p_{z2} &= p_{z1} \nonumber
 \end{align}
 where
 \begin{alignat}{2}
   m_{11} &= \frac{1}{2 \, f} \, \left( f_{0+} \, c + f_{0-} \, c_h \right) & \qqquad
   m_{31} &= -m_{24} \CRNO
-  m_{12} &= \frac{1}{2 \, f \, (1 + p_z)} \, 
+  m_{12} &= \frac{1}{2 \, f \, (1 + p_{z1})} \, 
             \left( \frac{f_{++}}{\om_+} \,  s + \frac{f_{--}}{\om_-} \, s_h \right) & \qqquad
   m_{32} &= -m_{14} \CRNO
   m_{13} &= \frac{\ks}{4 \, f} \, 
             \left( \frac{f_{+-}}{\om_+} \, s +\frac{f_{-+}}{\om_-} \, s_h \right) & \qqquad
   m_{33} &= \frac{1}{2 \, f} \, \left( f_{0-} \, c + f_{0+} \, c_h \right) \CRNO
-  m_{14} &= \frac{\ks}{f \, (1 + p_z)} \, \left( -c + c_h \right) & \qqquad
-  m_{34} &= \frac{1}{2 \, f \, (1 + p_z)} \, 
+  m_{14} &= \frac{\ks}{f \, (1 + p_{z1})} \, \left( -c + c_h \right) & \qqquad
+  m_{34} &= \frac{1}{2 \, f \, (1 + p_{z1})} \, 
             \left( \frac{f_{+-}}{\om_+} \, s + \frac{f_{-+}}{\om_-} \, s_h \right) \CRNO
-  m_{21} &= \frac{-(1 + p_z)}{8 \, f} \, 
+  m_{21} &= \frac{-(1 + p_{z1})}{8 \, f} \, 
             \left( \frac{\xi_{1+}}{\om_+} \, s + \frac{\xi_{2+}}{\om_-} s_h \right) & \qqquad
   m_{41} &= -m_{23} \CRNO
   m_{22} &= m_{11} & \qqquad
   m_{42} &= -m_{13} \CRNO
-  m_{23} &= \frac{\ks^3 \, (1 + p_z)}{4 \, f} \, \left( c - c_h \right) & \qqquad
-  m_{43} &= \frac{-(1 + p_z)}{8 \, f} \, 
+  m_{23} &= \frac{\ks^3 \, (1 + p_{z1})}{4 \, f} \, \left( c - c_h \right) & \qqquad
+  m_{43} &= \frac{-(1 + p_{z1})}{8 \, f} \, 
             \left( \frac{\xi_{1-}}{\om_+} \, s + \frac{\xi_{2-}}{\om_-} \, s_h \right) \CRNO
   m_{24} &= \frac{\ks}{4 \, f} \, 
             \left( \frac{f_{++}}{\om_+} \, s + \frac{f_{--}}{\om_-} \, s_h \right) & \qqquad
@@ -357,8 +361,8 @@ where
 \end{alignat}
 and
 \begin{alignat}{2}
-  \kone        &= \frac{k_1}{1 + p_z} & \qqquad 
-  \ks          &= \frac{k_s}{1 + p_z} \CRNO
+  \kone        &= \frac{k_1}{1 + p_{z1}} & \qqquad 
+  \ks          &= \frac{k_s}{1 + p_{z1}} \CRNO
   f            &= \sqrt{\ks^4 + 4 \, \kone^2} & \qqquad
   f_{\pm0}     &= f \pm \ks^2 \CRNO
   f_{0\pm}     &= f \pm 2 \, \kone & \qqquad
@@ -375,7 +379,7 @@ and
 
 The $m_{5jk}$ terms are obtained via \Eq{zz121p}
 \begin{align}
-  m_{5jk} = - \frac{\tau_{jk}}{2 (1 + p_z)^2} \int \! ds \, 
+  m_{5jk} = - \frac{\tau_{jk}}{2 (1 + p_{z1})^2} \int \! ds \, 
   & \left[ 
     \left( m_{2j} + \frac{k_s}{2} \, m_{3j} \right) \, 
     \left( m_{2k} + \frac{k_s}{2} \, m_{3k} \right)   
@@ -417,10 +421,10 @@ The solution is
            \frac{1 + c}{2} \, y + \frac{s}{k_s} \, p_y \\      
   p_y &\rightarrow \frac{k_s \, (1 - c)}{4} \, x + \frac{-s}{2} \, p_x -
             \frac{k_s \, s}{4} \, y + \frac{1 + c}{2} \, p_y \CRNO 
-  z   &\rightarrow z + \frac{L}{2 \, (1 + p_z)^2} \, 
+  z   &\rightarrow z + \frac{L}{2 \, (1 + p_{z1})^2} \, 
                    \left[ \left( p_x + \frac{k_s}{2} \, y \right)^2 +
                           \left( p_y - \frac{k_s}{2} \, x \right)^2 \right] \CRNO
-  p_z &\rightarrow p_z \nonumber
+  p_{z2} &= p_{z1} \nonumber
 \end{align}
 where
 \begin{align}

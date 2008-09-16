@@ -338,15 +338,15 @@ do n = 1, n_step
 
   ! sextupole kick
 
-  if (k_2 /= 0 .and. n /= n_step) call multipole_kick (k_2, 0.0_rp, 2, end)
-  if (associated(ele%a_pole)) call multipole_kicks (knl, tilt, end)
+  if (n == n_step) then
+    if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end)
+    if (associated(ele%a_pole)) call multipole_kicks (knl/2, tilt, end)
+  else
+    if (k_2 /= 0) call multipole_kick (k_2, 0.0_rp, 2, end)
+    if (associated(ele%a_pole)) call multipole_kicks (knl, tilt, end)
+  endif
 
 enddo
-
-! 1/2 sextupole kick at the end
-
-if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end)
-if (associated(ele%a_pole)) call multipole_kicks (knl/2, tilt, end)
 
 ! Track through the exit face. Treat as thin lens.
 

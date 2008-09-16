@@ -830,7 +830,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
 
 !                   
 
-#ifdef CESR_VMS
+#if defined (CESR_VMS)
   lat_dir = '$CESR_MNT/vms_lattice/cesr/bmad/'
 #else
   lat_dir = '$CESR_MNT/lattice/cesr/bmad/'
@@ -842,7 +842,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
 
   if (present(choice)) then
     lat_choise = choice
-#ifdef CESR_VMS
+#if defined (CESR_VMS)
     if (lat_choise == '*') lat_choise = '0'
 #endif
     call downcase_string (lat_choise)

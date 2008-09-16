@@ -88,16 +88,22 @@ do i = lat%n_ele_track+1, lat%n_ele_max
       j = lord%ix1_slave + ix - 1
       ixs = lat%control(j)%ix_slave
       lord%value(e_tot_ref_geometry$) = lat%ele(ixs)%value(e_tot$)
+      lord%value(p0c_ref_geometry$)   = lat%ele(ixs)%value(p0c$)
+
+    elseif (lord%value(e_tot_ref_geometry$) /= 0) then
+      call convert_total_energy_to (lord%value(e_tot_ref_geometry$), &
+                            lat%param%particle, pc = lord%value(p0c_ref_geometry$))
     endif
 
-    if (lord%value(e_tot_ref_geometry$) /= 0) then
-      call convert_total_energy_to (lord%value(e_tot_ref_geometry$), &
-                            lat%param%particle, lord%value(p0c_ref_geometry$))
-    endif
+    lord%value(e_tot$) = lord%value(e_tot_ref_geometry$)
+    lord%value(p0c$) = lord%value(p0c_ref_geometry$)
+
     cycle
   endif
 
   ! Now for everything but multipass_lord elements...
+  ! The lord inherits the energy from the last slave.
+  ! First find this slave.
 
   slave => lord
   do
@@ -107,8 +113,12 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     if (j <= lat%n_ele_track) exit
   enddo
 
+  ! Now transfer the information to the lord.
+
   lord%value(p0c$) = slave%value(p0c$)
   lord%value(E_tot$) = slave%value(E_tot$)
+
+  ! Transfer the starting energy if needed.
 
   if (lord%key == lcavity$ .or. lord%key == custom$) then
     ix = lord%ix1_slave
