@@ -1246,6 +1246,8 @@ logical :: init_needed = .true.
 
 ! If no change then we don't need to do anything
 
+if (ele%key == taylor$) return
+
 val => ele%value
 ele%value(check_sum$) = 0
 if (associated(ele%a_pole)) ele%value(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
