@@ -75,6 +75,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
 
   if (.not. logic_option (.false., end_in)) then
     if (ele%tracking_method == linear$) then
+      param%lost = .false.
       call track1_bmad (c0, ele, param, c1)
     else
       call track1 (c0, ele, param, c1)
