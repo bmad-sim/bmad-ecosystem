@@ -140,7 +140,7 @@ else
     nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero values shown]:'
   endif
 
-  n_att = bmad_com%n_attrib_string_max_len + 2
+  n_att = n_attrib_string_max_len() + 2
 
   if (con_type == overlay_lord$) then
     i = ele%ix_value

@@ -711,7 +711,6 @@ type bmad_common_struct
   real(rp) :: abs_tol_adaptive_tracking = 1e-7  ! Adaptive tracking absolute tolerance.
   integer :: taylor_order = 3                ! 3rd order is default
   integer :: default_integ_order = 2         ! PTC integration order
-  integer :: n_attrib_string_max_len         ! Maximum length of all attribute names.
   logical :: canonical_coords = .true.       ! Use (x, px) [not (x, x')]
   logical :: use_liar_lcavity = .false.      ! Liar like tracking?
   logical :: sr_wakes_on = .true.            ! Short range wakefields?

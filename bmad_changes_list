@@ -60,7 +60,7 @@ Solution:
 	3) superimpose s_calc needs to take the reversed logical into account.
 	4) multipass slave keeping must know to reverse e1/e2.
 	5) reverse wiggler terms in bmad_parser.
-
+	6) revise type2_ele to print the reverse logical.
 
 -----------------
 

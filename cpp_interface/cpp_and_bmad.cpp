@@ -520,13 +520,15 @@ void operator>> (normal_modes_struct* f, C_modes& c) {
 //---------------------------------------------------------------------------
 // bmad_com
 
-extern "C" void bmad_com_to_f2_(Re&, ReArr, Re&, Re&, Re&, Re&, 
+extern "C" void bmad_com_to_f2_(Re&, ReArr, Re&, Re&, Re&, Re&, Re&, Re&, 
      Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
      Int&, Int&, Int&, Int&);
 
 extern "C" void bmad_com_to_f_(C_bmad_com& c) {
   bmad_com_to_f2_(c.max_aperture_limit, &c.d_orb[0], c.grad_loss_sr_wake, 
-    c.default_ds_step, c.rel_tollerance, c.abs_tollerance, c.taylor_order, 
+    c.default_ds_step, c.rel_tolerance, c.abs_tolerance, 
+    c.rel_tol_adaptive_tracking, c.abs_tol_adaptive_tracking, 
+    c.taylor_order, 
     c.default_integ_order, c.canonical_coords, 
     c.use_liar_lcavity, c.sr_wakes_on, c.lr_wakes_on, c.mat6_track_symmetric,
     c.auto_bookkeeper, c.trans_space_charge_on, c.coherent_synch_rad_on, 
@@ -535,11 +537,11 @@ extern "C" void bmad_com_to_f_(C_bmad_com& c) {
 }
 
 extern "C" void bmad_com_to_c2_(C_bmad_com& c, 
-              Re& ap, ReArr orb, Re& kl, Int& ds, Re& rel, Re& abs, 
+              Re& ap, ReArr orb, Re& kl, Int& ds, Re& rel, Re& abs, Re& rel_adapt, Re& abs_adapt, 
               Int& to, Int& dflt_ord, Int& cc, Int& liar, 
               Int& sr, Int& lr, Int& sym, Int& a_book, Int& tsc_on, Int& csr_on, 
               Int& st_on, Int& rad_d, Int& rad_f, Int& ref_e, Int& con_t) {
-  c = C_bmad_com (ap, orb, kl, ds, rel, abs, to, dflt_ord, cc, liar, sr, 
+  c = C_bmad_com (ap, orb, kl, ds, rel, abs, rel_adapt, abs_adapt, to, dflt_ord, cc, liar, sr, 
              lr, sym, a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, con_t);
 }
 

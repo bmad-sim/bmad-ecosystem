@@ -11,6 +11,7 @@ use bmad_basic_mod
 use equal_mod
 use nrutil, only: reallocate
 use custom_bmad_interface
+use attribute_mod
 
 !---------------------------------------------------------
 
@@ -44,26 +45,6 @@ interface
   end subroutine
 end interface
   
-interface
-  function attribute_index (ele, name)
-    use bmad_struct, only: ele_struct
-    implicit none
-    integer attribute_index
-    type (ele_struct) ele
-    character(*) name
-  end function
-end interface
-
-interface
-  function attribute_name(ele, index)
-    use bmad_struct, only: ele_struct
-    implicit none
-    character(40) attribute_name
-    type (ele_struct) ele
-    integer index
-  end function
-end interface
-
 interface
   subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
     use bmad_struct, only: lat_struct

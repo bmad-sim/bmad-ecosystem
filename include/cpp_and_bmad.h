@@ -581,12 +581,14 @@ extern "C" void bmad_com_to_f_(C_bmad_com&);
 
 class C_bmad_com {
 public:
-  Real_Array d_orb;              // for the make_mat6_tracking routine
   double max_aperture_limit;   
+  Real_Array d_orb;              // for the make_mat6_tracking routine
   double grad_loss_sr_wake;      // Internal var for LCavities.
   double default_ds_step;        // Number integration steps
-  double rel_tollerance; 
-  double abs_tollerance; 
+  double rel_tolerance; 
+  double abs_tolerance; 
+  double rel_tol_adaptive_tracking;
+  double abs_tol_adaptive_tracking;
   int taylor_order;              // 3rd order is default
   int default_integ_order;       // PTC integration order
   bool canonical_coords;         // Use (x, px) [not (x, x')]
@@ -606,12 +608,15 @@ public:
   C_bmad_com () : d_orb(double(0), 6) {bmad_com_to_c_(*this);}
 
   C_bmad_com (double max_ap, ReArr orb, double kl, double steps, 
-                double rel_t, double abs_t, int to, int io, int cc,
+                double rel_t, double abs_t, double rel_t_adapt, double abs_t_adapt,
+                int to, int io, int cc,
                 int liar, int sr, int lr, int sym, int a_book,
                 int tsc_on, int csr_on, int st_on, int rad_d, int rad_f, int cre,
                 int con_t) :
       d_orb(orb, 6), max_aperture_limit(max_ap), grad_loss_sr_wake(kl), 
-      rel_tollerance(rel_t), abs_tollerance(abs_t), taylor_order(to), 
+      rel_tolerance(rel_t), abs_tolerance(abs_t), 
+      rel_tol_adaptive_tracking(rel_t_adapt), abs_tol_adaptive_tracking(abs_t_adapt), 
+      taylor_order(to), 
       default_integ_order(io), default_ds_step(steps), canonical_coords(cc), 
       use_liar_lcavity(liar), sr_wakes_on(sr), lr_wakes_on(lr), 
       mat6_track_symmetric(sym), auto_bookkeeper(a_book), 
@@ -621,11 +626,14 @@ public:
       conserve_taylor_maps(con_t) {}
 
   C_bmad_com (double max_ap, Real_Array orb, double kl, double steps, 
-                double rel_t, double abs_t, int to, int io, int cc,
+                double rel_t, double abs_t, double rel_t_adapt, double abs_t_adapt,
+                int to, int io, int cc,
                 int liar, int sr, int lr, int sym, int a_book, int tsc_on, 
                 int csr_on, int st_on, int rad_d, int rad_f, int cre, int con_t) :
       d_orb(orb), max_aperture_limit(max_ap), grad_loss_sr_wake(kl), 
-      rel_tollerance(rel_t), abs_tollerance(abs_t), taylor_order(to), 
+      rel_tolerance(rel_t), abs_tolerance(abs_t), 
+      rel_tol_adaptive_tracking(rel_t_adapt), abs_tol_adaptive_tracking(abs_t_adapt), 
+      taylor_order(to), 
       default_integ_order(io), default_ds_step(steps), canonical_coords(cc), 
       use_liar_lcavity(liar), sr_wakes_on(sr), lr_wakes_on(lr), 
       mat6_track_symmetric(sym), auto_bookkeeper(a_book), 

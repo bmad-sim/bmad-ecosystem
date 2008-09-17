@@ -160,8 +160,10 @@ bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
   return is_all_true(x.d_orb, y.d_orb) && 
       (x.max_aperture_limit == y.max_aperture_limit) && 
       (x.grad_loss_sr_wake == y.grad_loss_sr_wake) && 
-      (x.rel_tollerance == y.rel_tollerance) && 
-      (x.abs_tollerance == y.abs_tollerance) && 
+      (x.rel_tolerance == y.rel_tolerance) && 
+      (x.abs_tolerance == y.abs_tolerance) && 
+      (x.rel_tol_adaptive_tracking == y.rel_tol_adaptive_tracking) && 
+      (x.abs_tol_adaptive_tracking == y.abs_tol_adaptive_tracking) && 
       (x.taylor_order == y.taylor_order) && 
       (x.default_integ_order == y.default_integ_order) && 
       (x.default_ds_step == y.default_ds_step) &&  
