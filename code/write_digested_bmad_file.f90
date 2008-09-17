@@ -167,12 +167,12 @@ ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_const = 0; ix_r = 0
 ix_sr_table = 0; ix_sr_mode_long = 0; ix_sr_mode_trans = 0; ix_lr = 0
 mode3 = .false.
 
-if (associated(ele%mode3)) mode3 = .true.
+if (associated(ele%mode3))    mode3 = .true.
 if (associated(ele%wig_term)) ix_wig = size(ele%wig_term)
 if (associated(ele%const))    ix_const = size(ele%const)
 if (associated(ele%r))        ix_r = (/ lbound(ele%r), ubound(ele%r) /)
 if (associated(ele%descrip))  ix_d = 1
-if (associated(ele%a_pole))        ix_m = 1
+if (associated(ele%a_pole))   ix_m = 1
 if (associated(tt(1)%term))   ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
 
 ! Since some large lattices with a large number of wakes can take a lot of time writing 
@@ -239,7 +239,7 @@ enddo
 if (associated(ele%const))    write (d_unit) ele%const
 if (associated(ele%r))        write (d_unit) ele%r
 if (associated(ele%descrip))  write (d_unit) ele%descrip
-if (associated(ele%a_pole))        write (d_unit) ele%a_pole, ele%b_pole
+if (associated(ele%a_pole))   write (d_unit) ele%a_pole, ele%b_pole
     
 do j = 1, 6
   if (ix_t(j) == 0) cycle

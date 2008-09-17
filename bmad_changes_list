@@ -1,3 +1,9 @@
+Symplectic integration for lcav !?
+
+implement bmad_standard bend_sol_quad
+
+finish bmad_standard doc.
+
 a0/b0 -> a_1/b_1
 
 Take out setting of bmad_struct%ok and replace this with added "err" subroutine argument.
@@ -24,6 +30,8 @@ emittance, emitt -> emit
 
 pointers -> allocatable in ele_struct, lat_struct, etc.
 
+-----------------
+
 multipass with a reversed line and superimpose does the wrong thing:
   b: marker, superimpose, ref = a, offset = 1
   a: quad, l = 3
@@ -44,6 +52,14 @@ produces:
      9) A\1                              QUADRUPOLE            3.00      3.00
     10) B                                MARKER                0.00      0.00
 Note that A\2\1 should be 0.5 m long.
+Also: e1/e2 for a bend should be reversed.
+
+Solution: 
+	1) Put in element structure a reversed logical.
+	2) Read & write digested needs to be modified.
+	3) superimpose s_calc needs to take the reversed logical into account.
+	4) multipass slave keeping must know to reverse e1/e2.
+	5) reverse wiggler terms in bmad_parser.
 
 
 -----------------
@@ -56,15 +72,9 @@ add function to calc: ring%param%s_end
 *) Bmad/CesrV/tao_cesr
     Change phase data files to incude "raw" a/b-mode x_amp, y_amp, x_phase, y_phase numbers
       Remake old phase files to include this?
-		Need x_amp, y_amp, etc. structure components!?
 
 *) tao
-    csr tracking section
     add branch stuff
-
-*) tao_cesr
-    read meas data from command line
-    read ref data from command line (make sure ref_vales set).
 
 *) Branch:
   a) track_all & 
