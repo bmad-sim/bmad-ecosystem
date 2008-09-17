@@ -369,7 +369,7 @@ a lord element (that doesn't get tracked through) called \vn{A} in the
 lord part of the lattice. Changes to attributes of the lord \vn{A}
 element will be passed to the slave elements by \bmad's bookkeeping
 routines. Assuming \vn{A\B1} is an accelerating cavity, to make
-\vn{A\B2} a deaccelerating cavity the \vn{dphi0} attribute of
+\vn{A\B2} a decelerating cavity the \vn{dphi0} attribute of
 \vn{A\B2} is set to 0.5. This is the one attribute that \bmad's
 bookkeeping routines will not touch when transferring attribute values
 from \vn{A} to its slaves. Notice that the \vn{dphi0} attribute had to
@@ -415,20 +415,57 @@ In this example the tracking part of the lattice is
 Here the 1\St and 6\Th elements are connected to a multipass lord and the
 2\Nd and 5\Th elements are connected to a different multipass lord.
 
-\index{Sbend}\index{Rbend}\index{Lcavity}
+\index{Lcavity}
 If there are \vn{lcavity} elements in the lattice then the reference
 energy at a given element may differ from pass to pass. For a magnetic
 element, since the normalized strength is not constant from pass to
 pass, the magnetic field strength should be setup to be the
-independent attribute (\sref{s:depend}). For a bend, there is the
+independent attribute (\sref{s:depend}). 
+
+\index{Sbend}\index{Rbend}
+For a bend, there is the added complication that, the reference orbit
+needs to be defined unambiguously. The \bmad standard mandates that
+the reference orbit through a bend is the same on all passes. For
+example, if element \vn{B} in the above example where a bend, then the
+reference orbit for slaves \vn{B\B1} and \vn{B\B2} will have the same
+bending radius and same bending angle. This is true even if the
+reference beam energy at \vn{B\B1} and \vn{B\B2} are different. 
+To see how this affects things, consider the following. The total magnetic
+field of a bend is 
+\begin{example}
+  B_tot = (g + g_err) * P_0
+\end{example}
+where \vn{g} is the design bending strength, \vn{g_err} is the bending
+strength error and \vn{P_0} is the reference momentum. \vn{B_tot} must
+be the same for \vn{B\B1} and \vn{B\B2} since they both represent the
+same physical element. Consider the case where element \vn{B\B1} has
+an associated \vn{g} a zero \vn{g_err}. Element \vn{B\B2} will have
+the same \vn{g} since this sets the reference orbit. However, if the
+reference energy at \vn{B\B2} is different, \vn{B\B2} Must have a
+finite \vn{g_err} to give a constant \vn{B_tot}. This situation may
+seem odd. Why not just define a separate reference orbit for different
+passes so that \vn{g_err} would be zero on all passes? The problem is
+that there is no good consistent way to do this. To see this, consider
+what happens if a finite \vn{k1} quadrupole moment is added to the
+above example. Now a particle with the reference energy and on the
+reference orbit entering \vn{B\B2} will not travel on a circle so no
+matter what circular reference trajectory is chosen, the particle
+cannot remain on the reference orbit. One could imagine defining
+non-circular reference orbits but this has its own complications.
+When it is desired to have different reference orbits for different
+passes, \vn{Patch} elements (\sref{s:patch}) can be used after any
+multipass lines.
+
+The upshot of the above discussion is that for a bend, there is the
 added complication that, without a definite reference energy, it is
 only possible to calculate the total bending strength \vn{g + g_err}
 but not \vn{g} or \vn{g_err} separately. This is important since
-\vn{g} determines the layout of the elements downstream from the
-bend. To alleviate this problem, \vn{Sbend} and \vn{Rbend} elements
-have \vn{e_tot_ref_geometry} and \vn{n_multipass_ref} attributes which
-are used to set the reference energy for calculating \vn{g}. If
-\vn{n_multipass_ref} is non-zero, the reference energy is taken to be
+\vn{g} determines the reference orbit and hence the layout of the
+elements downstream from the bend. To alleviate this problem,
+\vn{Sbend} and \vn{Rbend} elements have \vn{e_tot_ref_geometry} and
+\vn{n_multipass_ref} attributes which are used to set the reference
+energy for calculating \vn{g}. If \vn{n_multipass_ref} is non-zero,
+the reference energy for computing the reference orbit is taken to be
 the reference energy at the element on the n\th turn. If
 \vn{n_multipass_ref} is zero then \vn{e_tot_ref_geometry} is used as
 the reference energy.  It is required that either
