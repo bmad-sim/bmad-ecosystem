@@ -610,10 +610,10 @@ end subroutine
 !   use ptc_interface_mod
 !
 ! Input:
-!   bmad_taylor(:) -- Taylor_struct: Input taylor series array.
+!   bmad_taylor(:) -- Taylor_struct: Input taylor map.
 !
 ! Output:
-!   y8(:) -- real_8: PTC Taylor series array.
+!   y8(:) -- real_8: PTC Taylor map.
 !-
 
 subroutine real_8_equal_taylor (y8, bmad_taylor)
@@ -640,10 +640,10 @@ end subroutine
 !   use ptc_interface_mod
 !
 ! Input:
-!   y8(:) -- real_8: PTC Taylor series array.
+!   y8(:) -- real_8: PTC Taylor map.
 !
 ! Output:
-!   bmad_taylor(:) -- Taylor_struct: Input taylor series array.
+!   bmad_taylor(:) -- Taylor_struct: Input taylor map.
 !-
 
 subroutine taylor_equal_real_8 (bmad_taylor, y8)
@@ -1152,7 +1152,7 @@ end subroutine
 ! Subroutine remove_constant_taylor (taylor_in, taylor_out, c0, &
 !                                                 remove_higher_order_terms)
 !
-! Subroutine to remove the constant part of a taylor series.
+! Subroutine to remove the constant part of a taylor map.
 ! Optionally terms that are higher order than bmad_com%taylor_order can
 ! be removed.
 !
@@ -1372,18 +1372,17 @@ end subroutine
 !+
 ! Subroutine concat_ele_taylor (taylor1, ele, taylor3)
 !
-! Routine to concatinate two taylor series.
-! If ele%map_with_offset = True then: 
-!   taylor3[x] = ele%taylor(taylor2[x])
-! If ele%map_with_offset = False then the misalignment will be added 
-! factored in.
+! Routine to concatinate two taylor maps:
+!   taylor3[x] = ele_taylor(taylor1[x])
+! If ele%map_with_offset = True:  ele_taylor == ele%taylor 
+! If ele%map_with_offset = False: ele_taylor == ele%taylor + offset corrections. 
 !
 ! Modules needed:
 !   use ptc_interface_mod
 !
 ! Input:
 !   taylor1(6) -- Taylor_struct: Taylor map.
-!   ele        -- ele_struct: Element containing the taylor series.
+!   ele        -- ele_struct: Element containing the taylor map.
 !
 ! Output
 !   taylor3(6) -- Taylor_struct: Concatinated map
@@ -1533,7 +1532,7 @@ end subroutine
 !     %integrator_order  -- Order for the symplectic integrator: 2, 4, or 6.
 !     %value(ds_step$)   -- Integrater step size.
 !     %map_with_offsets  -- Make Taylor map with element offsets, pitches, and tilt?
-!   orb0  -- Coord_struct, optional: Starting coords around which the Taylor series 
+!   orb0  -- Coord_struct, optional: Starting coords around which the Taylor map 
 !              is evaluated.
 !   param -- lat_param_struct: 
 !     %e_tot -- Needed for wigglers.
@@ -1677,13 +1676,13 @@ end subroutine
 !+
 ! Subroutine type_real_8_taylors (y, switch_z)
 !
-! Subroutine to type out the taylor series from a real_8 array.
+! Subroutine to type out the taylor map from a real_8 array.
 !
 ! Modules needed:
 !   use ptc_interface_mod
 !
 ! Input
-!   y(6)     -- Real_8: 6 taylor series: (x, P_x, y, P_y, P_z, -z)
+!   y(6)     -- Real_8: 6 taylor map: (x, P_x, y, P_y, P_z, -z)
 !   switch_z -- Logical, optional: If True then switch from PTC coordinate
 !                       convention to BMAD's. Default is True.
 !-
