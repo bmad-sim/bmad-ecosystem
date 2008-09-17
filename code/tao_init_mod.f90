@@ -935,6 +935,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       ix_ele = -2
     elseif (data%data_type(1:2) == 'i5') then
       ix_ele = -1
+    elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
+      ix_ele = -1
     elseif (data%ix_ele == -1) then
       ix_ele = -1
     elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lattice') then
@@ -967,6 +969,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (data%data_type(1:17) == 'multi_turn_orbit.') then
       ix_ele = -2
     elseif (data%data_type(1:2) == 'i5') then
+      ix_ele = -1
+    elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
       ix_ele = -1
     elseif (data%ix_ele == -1) then
       ix_ele = -1
@@ -1276,6 +1280,7 @@ do
   default_low_lim    = -1e30
   default_high_lim   = 1e30
   ix_min_var         = 1
+  ix_max_var         = 0
   var%name           = ''
   var%ele_name       = ''
   var%merit_type     = ''
@@ -1422,7 +1427,7 @@ integer i, iu, ip, j, jj, k, kk, n, nn, n1, n2, ix1, ix2, ix
 integer num_ele, ios, ix_uni, ixm, ix2m
 integer, allocatable, save :: ix_eles(:), an_indexx(:)
 
-logical searching, grouping
+logical searching, grouping, found_one
 
 ! count number of v1 entries
 
@@ -1614,6 +1619,27 @@ if (search_for_lat_eles /= '') then
 
 else  
   searching = .false.
+
+  ! if ix_max/min_var has not been set then just search for elements that have been named
+  ! and use this info to set ix_max/min
+
+  if (ix_max_var < ix_min_var) then
+    found_one = .false.
+    do i = lbound(var, 1), ubound(var, 1)
+      if (var(i)%ele_name /= '') then
+        ix_max_var = i
+        if (.not. found_one) ix_min_var = i
+        found_one = .true.
+      endif
+    enddo
+    if (ix_min_var > 1) ix_min_var = 1 
+  endif
+
+  if (ix_max_var < ix_min_var) then
+    call out_io (s_abort$, r_name, 'NO ELEMENTS FOR: ' // v1_var%name)
+    call err_exit
+  endif
+
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + ix_max_var - ix_min_var + 1
   ix1 = ix_min_var
@@ -1723,7 +1749,7 @@ type (tao_universe_struct), pointer :: u
 integer i, j, n, n1, n2, ie, iu
 
 character(20) :: r_name = 'tao_var_stuffit2'
-logical err, good_unis(lbound(s%u, 1):)
+logical err, good_unis(lbound(s%u, 1):), found
 
 ! 
 
@@ -1733,14 +1759,23 @@ if (var%ele_name == '') then
   return
 endif
 
+found = .false.
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. good_unis(iu)) cycle
   do ie = 0, s%u(iu)%model%lat%n_ele_max
     if (var%ele_name /= s%u(iu)%model%lat%ele(ie)%name) cycle
     call tao_pointer_to_var_in_lattice (var, iu, ie, err)
     if (err) return
+    found = .true.
   enddo
 enddo
+
+if (.not. found) then
+  call out_io (s_error$, r_name, &
+            'CANNOT FIND LATTICE ELEMENT WITH NAME: "' // trim(var%ele_name) // '"', &
+            'FOR VARIABLE: ' // var%v1%name)
+  return
+endif
 
 if (size(var%this) > 0) then
   var%exists = .true.

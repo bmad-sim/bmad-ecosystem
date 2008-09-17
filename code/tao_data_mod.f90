@@ -246,7 +246,7 @@ real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz
 real(rp) gamma, vec(2)
 
 integer, save :: ix_save = -1
-integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_lat
+integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_track, n_max
 
 character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) data_type, data_source, name
@@ -280,7 +280,9 @@ endif
 
 !
 
-n_lat = tao_lat%lat%n_ele_track
+n_track = tao_lat%lat%n_ele_track
+n_max   = tao_lat%lat%n_ele_max
+
 datum_value = 0           ! default
 datum%ix_ele_merit = ix1  ! default
 
@@ -343,7 +345,7 @@ case ('element_param.')
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // datum%data_type)
     call err_exit
   endif
-  call load_it (lat%ele(0:n_lat)%value(ix), &
+  call load_it (lat%ele(0:n_max)%value(ix), &
                                      ix0, ix1, datum_value, valid_value, datum, lat)
 
 case ('bpm_orbit.x')
@@ -417,10 +419,10 @@ case ('orbit.p_z')
 
 case ('phase.a')
   datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
-  if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%a%phi + lat%ele(n_lat)%a%phi 
+  if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%a%phi + lat%ele(n_track)%a%phi 
 case ('phase.b')
   datum_value = lat%ele(ix1)%b%phi - lat%ele(ix0)%b%phi
-  if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%b%phi + lat%ele(n_lat)%b%phi 
+  if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%b%phi + lat%ele(n_track)%b%phi 
 
 case ('tune.a')
   datum_value = lat%a%tune
@@ -429,9 +431,9 @@ case ('tune.b')
 
 case ('phase_frac_diff')
   px = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
-  if (ix0 > ix1) px = px - lat%ele(0)%a%phi + lat%ele(n_lat)%a%phi 
+  if (ix0 > ix1) px = px - lat%ele(0)%a%phi + lat%ele(n_track)%a%phi 
   py = lat%ele(ix1)%b%phi - lat%ele(ix0)%b%phi
-  if (ix0 > ix1) py = py - lat%ele(0)%b%phi + lat%ele(n_lat)%b%phi 
+  if (ix0 > ix1) py = py - lat%ele(0)%b%phi + lat%ele(n_track)%b%phi 
   datum_value = modulo (px, twopi) - modulo (py, twopi)
 
 case ('beta.x')
@@ -572,11 +574,11 @@ case ('etap.b')
   endif
 
 case ('e_tot')
-  call load_it (lat%ele(0:n_lat)%value(E_TOT$) * (1+tao_lat%orb(0:n_lat)%vec(6)), &
+  call load_it (lat%ele(0:n_track)%value(E_TOT$) * (1+tao_lat%orb(0:n_track)%vec(6)), &
                                      ix0, ix1, datum_value, valid_value, datum, lat)
 
 case ('%e_tot')
-  call load_it (tao_lat%orb(0:n_lat)%vec(6), ix0, ix1, &
+  call load_it (tao_lat%orb(0:n_track)%vec(6), ix0, ix1, &
                                             datum_value, valid_value, datum, lat)
   
 case ('k.11b')
@@ -930,7 +932,7 @@ real(rp) datum_value
 
 character(20) :: r_name = 'tao_evaluate_a_datum'
 
-integer ix_m, i, ix0, ix1, n_lat, ix_m2
+integer ix_m, i, ix0, ix1, n_track, ix_m2
 logical, optional :: coupling_here, valid_value
 
 !
@@ -946,7 +948,7 @@ endif
  
 !
 
-n_lat = lat%n_ele_track
+n_track = lat%n_ele_track
 
 if (datum%ele0_name == ' ') then
   ix_m = ix1
@@ -966,7 +968,7 @@ else
   if (ix1 < ix0) then   ! wrap around
 
     if (present(coupling_here)) then
-      do i = ix0, n_lat
+      do i = ix0, n_track
         call coupling_calc (i, datum, lat)
       enddo
       do i = 0, ix1
@@ -977,25 +979,25 @@ else
     select case (datum%merit_type)
     case ('min')
       ix_m = minloc (vec(0:ix1), 1) - 1
-      ix_m2 = minloc (vec(ix0:n_lat), 1) + ix0 - 1
+      ix_m2 = minloc (vec(ix0:n_track), 1) + ix0 - 1
       if (vec(ix_m2) < vec(ix_m2)) ix_m = ix_m2
       datum_value = vec(ix_m)
 
     case ('max')
       ix_m = maxloc (vec(0:ix1), 1) - 1
-      ix_m2 = maxloc (vec(ix0:n_lat), 1) + ix0 - 1
+      ix_m2 = maxloc (vec(ix0:n_track), 1) + ix0 - 1
       if (vec(ix_m2) > vec(ix_m2)) ix_m = ix_m2
       datum_value = vec(ix_m)
 
     case ('abs_min')
       ix_m = minloc (abs(vec(0:ix1)), 1) - 1
-      ix_m2 = minloc (abs(vec(ix0:n_lat)), 1) + ix0 - 1
+      ix_m2 = minloc (abs(vec(ix0:n_track)), 1) + ix0 - 1
       if (abs(vec(ix_m2)) < abs(vec(ix_m2))) ix_m = ix_m2
       datum_value = abs(vec(ix_m))
 
     case ('abs_max')
       ix_m = maxloc (abs(vec(0:ix1)), 1) - 1
-      ix_m2 = maxloc (abs(vec(ix0:n_lat)), 1) + ix0 - 1
+      ix_m2 = maxloc (abs(vec(ix0:n_track)), 1) + ix0 - 1
       if (abs(vec(ix_m2)) > abs(vec(ix_m2))) ix_m = ix_m2
       datum_value = abs(vec(ix_m))
 
@@ -1590,6 +1592,8 @@ if (ix_ele < 0 .or. ix_ele > lat%n_ele_max) then
   valid = .false.
   return
 endif
+
+if (datum%data_type(1:14) == 'element_param.') return
 
 if (ix_ele <= lat%n_ele_track) return
 

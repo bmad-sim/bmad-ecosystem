@@ -176,10 +176,14 @@ call tao_draw_plots ()         ! Update the plotting window
 ! Print bad data
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  if (any(s%u(i)%data%exists .and. .not. s%u(i)%data%good_model)) then
-    call out_io(s_warn$, r_name, 'BAD DATA LIST (CANNOT COMPUTE A MODEL VALUE):')
-    exit
-  endif
+  do j = 1, size(s%u(i)%data)
+    data => s%u(i)%data(j)
+    if (data%exists .and. .not. data%good_model) then
+      call out_io(s_warn$, r_name, &
+                    'DATUM EXISTS BUT CANNOT COMPUTE A MODEL VALUE:' // tao_datum_name(data))
+      cycle
+    endif
+  enddo
 enddo
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
