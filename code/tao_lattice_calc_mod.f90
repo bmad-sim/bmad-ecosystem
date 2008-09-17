@@ -401,7 +401,7 @@ endif
 ie1 = 0
 if (u%ix_track_start > -1) ie1 = u%ix_track_start
 i = max(0, ie1-1)
-lat%ele(i)%ref_orb_out = lat%beam_start
+lat%ele(i)%map_ref_orb_out = lat%beam_start
 
 ie2 = lat%n_ele_track
 if (u%ix_track_end > -1) ie2 = u%ix_track_end
@@ -451,7 +451,7 @@ do j = ie1, ie2
 
   if (j /= 0) then
     if (u%mat6_recalc_on) then
-      call make_mat6 (lat%ele(j), lat%param, lat%ele(j-1)%ref_orb_out, err = err)
+      call make_mat6 (lat%ele(j), lat%param, lat%ele(j-1)%map_ref_orb_out, err = err)
       call twiss_propagate1 (lat%ele(j-1), lat%ele(j))
       if (.not. bmad_status%ok) exit
     endif
