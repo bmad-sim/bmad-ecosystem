@@ -719,6 +719,10 @@ function n_attrib_string_max_len () result (max_len)
 
 implicit none
 integer max_len
+
+!
+
+if (init_needed) call init_attribute_name_array
 max_len = maxval(len_trim(attrib_array(1:n_key, 1:n_attrib_maxx)))
 
 end function
