@@ -549,7 +549,7 @@ do i = 1, i_lev
   select case (stk(i)%type)
   case (numeric$) 
     i2 = i2 + 1
-    stk(i2)%value = stk(i)%value
+    call value_transfer (stk(i2)%value, stk(i)%value)
 
   case (unary_minus$) 
     stk(i2)%value = -stk(i2)%value
