@@ -969,12 +969,11 @@ interface
 end interface
 
 interface
-  subroutine twiss1_propagate (twiss1, mat2, length, twiss2, err)
+  subroutine twiss1_propagate (twiss1, mat2, length, twiss2)
     use bmad_struct, only: twiss_struct, rp
     implicit none
     type (twiss_struct) twiss1, twiss2
     real(rp) mat2(2,2), length
-    logical err
   end subroutine
 end interface
 
