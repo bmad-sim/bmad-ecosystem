@@ -1,5 +1,5 @@
 module correct_ring_mod
-  use super_mrqmin_mod
+  use super_recipes_mod
   use bmad
   use nr
   implicit none
