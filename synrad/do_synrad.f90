@@ -14,6 +14,7 @@ subroutine do_synrad (walls, u, ring, gen_params, window)
   type (synrad_param_struct) gen_params
   type (ele_power_struct), allocatable :: p_power(:), e_power(:)
   type (crotch_window_struct) window(:)
+  type (normal_modes_struct) modes
 
   integer ix
   character*80 line
@@ -31,7 +32,10 @@ subroutine do_synrad (walls, u, ring, gen_params, window)
     gen_params%i_beam = 0.2   ! 100 mA / beam
   endif
 
-  gen_params%epsilon_y = max( (ring%a%emit * .02), ring%b%emit )
+  call emit_calc( ring, All$, modes )
+
+  gen_params%epsilon_y = max( (modes%a%emittance * .02), modes%b%emittance )
+  print *, "a%emit: ", modes%a%emittance, " b%emit: ", modes%b%emittance
   print *, 'Default emittance is: ',gen_params%epsilon_y
   call get_input_string ('Vertical Emittance <CR = DEFAULT>:', line)
   call string_trim (line, line, ix)
