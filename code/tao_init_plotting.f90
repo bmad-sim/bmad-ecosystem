@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_init_plotting (plot_file)
+! Subroutine tao_init_plotting (plot_file_in)
 !
 ! Subroutine to initialize the tao plotting structures.
 ! If plot_file is not in the current directory then it will be searched
@@ -7,12 +7,12 @@
 !   TAO_INIT_DIR
 !
 ! Input:
-!   plot_file -- Character(*): Plot initialization file.
+!   plot_file_in -- Character(*): Plot initialization file.
 !
 ! Output:
 !-
 
-subroutine tao_init_plotting (plot_file)
+subroutine tao_init_plotting (plot_file_in)
 
 use tao_mod
 use tao_input_struct
@@ -50,15 +50,14 @@ type (qp_axis_struct) init_axis
 real(rp) shape_height_max
 
 integer iu, i, j, ix, ip, n, ng, ios, i_uni
-integer graph_index, color, i_graph
+integer graph_index, color, i_graph, ix_file
 integer, allocatable, save :: ix_ele(:)
 
-character(*) plot_file
-character(100) graph_name, file_name
+character(*) plot_file_in
+character(len(plot_file_in)) plot_file_array
+character(100) plot_file, graph_name, file_name
 character(80) label
 character(20) :: r_name = 'tao_init_plotting'
-
-logical element_shapes_needed
 
 namelist / tao_plot_page / plot_page, region, place
 namelist / tao_template_plot / plot, default_graph
@@ -76,6 +75,12 @@ init_axis%min = 0
 init_axis%max = 0
 
 ! Read in the plot page parameters
+! plot_file_in may contain multiple file names separated by spaces.
+
+plot_file_array = plot_file_in
+call string_trim(plot_file_array, plot_file_array, ix)
+plot_file = plot_file_array(1:ix)
+call string_trim (plot_file_array(ix+1:), plot_file_array, ix_file)
 
 call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
 call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
@@ -124,11 +129,84 @@ do i = 1, n
   s%plot_region(i)%location = region(i)%location
 enddo
 
+!-----------------------------------------------------------------------------------
+! Read in element shapes
+
+rewind (iu)
+shape(:)%key_name = ''
+shape(:)%ele_name = ''
+read (iu, nml = element_shapes, iostat = ios)
+
+if (ios > 0) then
+  call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES NAMELIST IN FILE.')
+  rewind (iu)
+  read (iu, nml = element_shapes)  ! To generate error message
+endif
+
+if (ios == 0) then
+!    call out_io (s_error$, r_name, 'DEPRECATED ELEMENT_SHAPES NAMELIST DETECTED.', &
+!                                   'PLEASE CHANGE TO THE NEW SYNTAX (SEE THE MANUAL)!')
+  do i = 1, size(shape)
+    ele_shape(i)%ele_name = shape(i)%ele_name
+    if (shape(i)%key_name /= '') &
+            ele_shape(i)%ele_name = trim(shape(i)%key_name) // ':' // ele_shape(i)%ele_name
+    ele_shape(i)%shape     = shape(i)%shape
+    ele_shape(i)%color     = shape(i)%color
+    ele_shape(i)%dy_pix    = shape(i)%dy_pix
+    if (shape(i)%draw_name) then
+      ele_shape(i)%label_type = 'name'
+    else
+      ele_shape(i)%label_type = 'none'
+    endif
+  enddo
+
+  call tao_uppercase_shapes (n)
+  allocate (tao_com%ele_shape_floor_plan(n), tao_com%ele_shape_lat_layout(n))
+  tao_com%ele_shape_floor_plan = ele_shape(1:n)
+  tao_com%ele_shape_lat_layout = ele_shape(1:n)
+endif
+
+
+if (ios < 0) then
+
+  rewind (iu)
+  ele_shape(:)%ele_name = ' '
+  ele_shape(:)%label_type = 'name'
+  read (iu, nml = element_shapes_floor_plan, iostat = ios)
+
+  if (ios > 0) then
+    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_FLOOR_PLAN NAMELIST')
+    rewind (iu)
+    read (iu, nml = element_shapes_floor_plan)  ! To generate error message
+  endif
+
+  call tao_uppercase_shapes (n)
+  allocate (tao_com%ele_shape_floor_plan(n))
+  tao_com%ele_shape_floor_plan = ele_shape(1:n)
+
+  rewind (iu)
+  ele_shape(:)%ele_name = ' '
+  read (iu, nml = element_shapes_lat_layout, iostat = ios)
+
+  if (ios > 0) then
+    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_LAT_LAYOUT NAMELIST')
+    rewind (iu)
+    read (iu, nml = element_shapes_lat_layout)  ! To generate error message
+  endif
+
+  call tao_uppercase_shapes (n)
+  allocate (tao_com%ele_shape_lat_layout(n))
+  tao_com%ele_shape_lat_layout = ele_shape(1:n)
+
+endif
+
+!------------------------------------------------------------------------------------
 ! Read in the plot templates and transfer the info to the 
 ! s%tamplate_plot structures
 
+rewind (iu)
+
 ip = 0   ! number of template plots
-element_shapes_needed = .false.
 
 default_graph%title           = ''
 default_graph%type            = 'data'
@@ -162,9 +240,28 @@ do
   plot%n_graph = 0
 
   read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
-  if (ios /= 0) exit                                 ! exit on end of file.
+  if (ios /= 0) then
+    if (plot_file_array == '') exit  ! exit if no more plot files.
+    close (iu)
+    plot_file = plot_file_array(1:ix_file)
+    call string_trim(plot_file_array(ix_file+1:), plot_file_array, ix_file)
+    call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
+    call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
+    if (iu == 0) then
+      call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')
+      call err_exit
+    endif
+  endif
+
   call out_io (s_blank$, r_name, &
                   'Init: Read tao_template_plot namelist: ' // plot%name)
+  do i = 1, ip
+    if (plot%name == s%template_plot(ip)%name) then
+      call out_io (s_error$, r_name, 'DUPLICATE PLOT NAME: ' // plot%name)
+      exit
+    endif
+  enddo
+
   ip = ip + 1
 
   if (ip .gt. n_template_maxx) then
@@ -212,11 +309,8 @@ do
   enddo
 
   ng = plot%n_graph
-  if (ng == 0) then
-    deallocate (plt%graph)
-  else
-    allocate (plt%graph(ng))
-  endif
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  if (ng /= 0) allocate (plt%graph(ng))
 
   do i_graph = 1, ng
     graph_index = 0         ! setup defaults
@@ -344,11 +438,14 @@ do
       call err_exit
     endif
 
-    if (grph%type == 'floor_plan') element_shapes_needed = .true.
+    if (grph%type == 'floor_plan' .and. .not. allocated (tao_com%ele_shape_floor_plan)) &
+              call out_io (s_error$, r_name, 'NO ELEMENT SHAPES DEFINED FOR FLOOR_PLAN PLOT.')
+ 
     if (grph%type == 'lat_layout') then
-      element_shapes_needed = .true.
+      if (.not. allocated (tao_com%ele_shape_lat_layout)) call out_io (s_error$, r_name, &
+                            'NO ELEMENT SHAPES DEFINED FOR LAT_LAYOUT PLOT.')
       if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
-                'A lat_layout must have x_axis_type = "s" for a visible plot!')
+                            'A LAT_LAYOUT MUST HAVE X_AXIS_TYPE = "s" FOR A VISIBLE PLOT!')
     endif
 
     if (graph%n_curve == 0) then
@@ -500,80 +597,6 @@ do
     endif
   enddo  ! graph
 enddo  ! plot
-
-! Read in element shapes
-
-if (element_shapes_needed) then
-
-  rewind (iu)
-  shape(:)%key_name = ''
-  shape(:)%ele_name = ''
-  read (iu, nml = element_shapes, iostat = ios)
-
-  if (ios > 0) then
-    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES NAMELIST IN FILE.')
-    rewind (iu)
-    read (iu, nml = element_shapes)  ! To generate error message
-  endif
-
-  if (ios == 0) then
-!    call out_io (s_error$, r_name, 'DEPRECATED ELEMENT_SHAPES NAMELIST DETECTED.', &
-!                                   'PLEASE CHANGE TO THE NEW SYNTAX (SEE THE MANUAL)!')
-    do i = 1, size(shape)
-      ele_shape(i)%ele_name = shape(i)%ele_name
-      if (shape(i)%key_name /= '') &
-              ele_shape(i)%ele_name = trim(shape(i)%key_name) // ':' // ele_shape(i)%ele_name
-      ele_shape(i)%shape     = shape(i)%shape
-      ele_shape(i)%color     = shape(i)%color
-      ele_shape(i)%dy_pix    = shape(i)%dy_pix
-      if (shape(i)%draw_name) then
-        ele_shape(i)%label_type = 'name'
-      else
-        ele_shape(i)%label_type = 'none'
-      endif
-    enddo
-
-    call tao_uppercase_shapes (n)
-    allocate (tao_com%ele_shape_floor_plan(n), tao_com%ele_shape_lat_layout(n))
-    tao_com%ele_shape_floor_plan = ele_shape(1:n)
-    tao_com%ele_shape_lat_layout = ele_shape(1:n)
-  endif
-
-
-  if (ios < 0) then
-
-    rewind (iu)
-    ele_shape(:)%ele_name = ' '
-    ele_shape(:)%label_type = 'name'
-    read (iu, nml = element_shapes_floor_plan, iostat = ios)
-
-    if (ios > 0) then
-      call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_FLOOR_PLAN NAMELIST')
-      rewind (iu)
-      read (iu, nml = element_shapes_floor_plan)  ! To generate error message
-    endif
-
-    call tao_uppercase_shapes (n)
-    allocate (tao_com%ele_shape_floor_plan(n))
-    tao_com%ele_shape_floor_plan = ele_shape(1:n)
-
-    rewind (iu)
-    ele_shape(:)%ele_name = ' '
-    read (iu, nml = element_shapes_lat_layout, iostat = ios)
-
-    if (ios > 0) then
-      call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_LAT_LAYOUT NAMELIST')
-      rewind (iu)
-      read (iu, nml = element_shapes_lat_layout)  ! To generate error message
-    endif
-
-    call tao_uppercase_shapes (n)
-    allocate (tao_com%ele_shape_lat_layout(n))
-    tao_com%ele_shape_lat_layout = ele_shape(1:n)
-
-  endif
-
-endif
 
 close (iu)
 
