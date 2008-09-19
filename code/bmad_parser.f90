@@ -79,7 +79,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   real(rp) energy_beam, energy_param, energy_0
 
   logical, optional :: make_mats6, digested_read_ok
-  logical delim_found, arg_list_found, doit, xsif_called
+  logical delim_found, arg_list_found, xsif_called
   logical file_end, found, err_flag, finished, exit_on_error
   logical detected_expand_lattice_cmd, multipass, write_digested
 
@@ -797,22 +797,12 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   call parser_add_lord (in_lat, n_max, plat, lat)
 
-! global computations
 ! Reuse the old taylor series if they exist
 ! and the old taylor series has the same attributes.
 
   call lattice_bookkeeper (lat)
   lat%input_taylor_order = bmad_com%taylor_order
-
   call reuse_taylor_elements (lat, old_ele)
-
-! make matrices for entire lat
-
-  doit = .true.
-  if (present(make_mats6)) doit = make_mats6
-  if (doit) then
-    call lat_make_mat6(lat)      ! make 6x6 transport matrices
-  endif
 
 ! Do we need to expand the lattice and call bmad_parser2?
 
@@ -823,9 +813,11 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
     bmad_status%exit_on_error = .false.
     bp_com%bmad_parser_calling = .true.
     bp_com%old_lat => in_lat
-    call bmad_parser2 ('FROM: BMAD_PARSER', lat)
+    call bmad_parser2 ('FROM: BMAD_PARSER', lat, make_mats6 = make_mats6)
     bp_com%bmad_parser_calling = .false.
     bmad_status%exit_on_error = exit_on_error
+  else
+    if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1) 
   endif
 
 !-------------------------------------------------------------------------

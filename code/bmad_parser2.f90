@@ -78,7 +78,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
   character(80) debug_line
 
   logical, optional :: make_mats6, digested_read_ok
-  logical parsing, delim_found, found, doit, xsif_called
+  logical parsing, delim_found, found, xsif_called
   logical file_end, err_flag, finished, write_digested
 
 ! Init...
@@ -528,12 +528,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 ! make matrices for entire lat
 
   call lattice_bookkeeper (lat)
-  call compute_reference_energy (lat, .true.)
-  doit = .true.
-  if (present(make_mats6)) doit = make_mats6
-  if (doit) call lat_make_mat6(lat, -1, orbit)  ! make transport matrices
-  call s_calc (lat)                       ! calc loginitudinal distances
-  call lat_geometry (lat)                ! lat layout
+  if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1, orbit) 
 
 !-----------------------------------------------------------------------------
 ! error check
