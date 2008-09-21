@@ -345,15 +345,23 @@ subroutine ele_wind_power (ring, ie, orb, direction, power, walls, gen, window)
 !!      if (abs(ele%value(tilt$)) > 20*twopi/360) cycle   ! ignore skew quads
 
   i_ray = 0
-  n_slice = n_slice_basic
+  n_slice = gen%n_slice
 
   if (ele%key == wiggler$) then
-    if (ele%value(n_pole$) == 0) then
-      type *, 'WARNING IN ELE_WIND_POWER: "N_POLE" FOR WIGGLER = 0.'
-      type *, '      CALCULATED RADIATION FROM ', trim(ele%name),' WILL BE 0!'
-      return
-    endif
-    n_slice = n_slice_basic * ele%value(n_pole$)
+
+    ! If periodic wiggler, do n_slices per pole
+    if (ele%sub_key == periodic_type$) then
+      if (ele%value(b_max$) == 0) return
+      if (ele%value(n_pole$) == 0) then
+        type *, 'WARNING IN ELE_SR_POWER: "N_POLE" FOR WIGGLER = 0.'
+        type *, '      CALCULATED RADIATION FROM THIS WIGGLER WILL BE 0!'
+      endif
+      n_slice = max(1, nint(n_slice * ele%value(n_pole$)))
+    else
+      ! Rather arbitrary choice of 10 * n_slice for non-periodic wigglers
+      n_slice = max(10*n_slice, ele%num_steps)
+    endif      
+
   endif
 
   del_l = ele%value(l$) / n_slice

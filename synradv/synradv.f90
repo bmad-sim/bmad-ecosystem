@@ -36,6 +36,8 @@ character*80 line
 !----------------------------------------------------------------------------
 ! init
 
+gen_params%n_slice = 20
+
 call mpm_init
 
 allocate (super%u_(1))
@@ -141,14 +143,15 @@ main_loop: do while (.true.)
     endif
     call read_outline(walls,u%ring,.true.)
 
-  elseif (line(1:ix) == 'ns' .or. (index('N_SLICE', line(1:ix)) == 1 .and. ix > 3)) then
+  elseif (line(1:ix) == 'NS' .or. (index('N_SLICE', line(1:ix)) == 1 .and. ix > 3)) then
     line = line(ix+1:)
     read (line, *, iostat = ios) n_slice
     if (ios /= 0) then
-      print *, 'CANNOT READ N_SLICE.'
+      print *, 'CURRENT N_SLICE = ', gen_params%n_slice
       cycle
     endif
     gen_params%n_slice = n_slice
+    print *, 'CURRENT N_SLICE = ', gen_params%n_slice
   else
     call cesrv_command(line, u, graph, err_flag)
   endif

@@ -42,8 +42,6 @@ subroutine do_synrad (walls, u, ring, gen_params, window)
   if (ix /= 0) then
     read (line, *) gen_params%epsilon_y
     print *, ' Vertical Emittance set to: ',gen_params%epsilon_y
-  else
-    gen_params%epsilon_y = 2e-9   ! 100 mA / beam
   endif
 
 ! initialize the window ray counters
