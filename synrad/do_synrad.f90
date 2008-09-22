@@ -32,7 +32,7 @@ subroutine do_synrad (walls, u, ring, gen_params, window)
     gen_params%i_beam = 0.2   ! 100 mA / beam
   endif
 
-  call emit_calc( ring, All$, modes )
+  call radiation_integrals( ring, u%orb, modes )
 
   gen_params%epsilon_y = max( (modes%a%emittance * .02), modes%b%emittance )
   print *, "a%emit: ", modes%a%emittance, " b%emit: ", modes%b%emittance
