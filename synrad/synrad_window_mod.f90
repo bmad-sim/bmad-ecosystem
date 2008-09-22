@@ -98,7 +98,7 @@ implicit none
 type (crotch_window_struct),target :: window(:)
 type (synrad_param_struct) gen
 
-integer i, j, dist, count, ix
+integer i, j, count, ix
 type (coord_struct) wind,targ
 type (ray_hit_struct), pointer :: ray_hit
 
@@ -356,7 +356,7 @@ subroutine ele_wind_power (ring, ie, orb, direction, power, walls, gen, window)
         type *, 'WARNING IN ELE_SR_POWER: "N_POLE" FOR WIGGLER = 0.'
         type *, '      CALCULATED RADIATION FROM THIS WIGGLER WILL BE 0!'
       endif
-      n_slice = max(1, nint(n_slice * ele%value(n_pole$)))
+      n_slice = max(1, nint(n_slice/4 * ele%value(n_pole$)))
     else
       ! Rather arbitrary choice of 10 * n_slice for non-periodic wigglers
       n_slice = max(10*n_slice, ele%num_steps)
