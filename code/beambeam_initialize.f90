@@ -35,7 +35,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
   subroutine beambeam_initialize(ring, scan_params, phi_x, phi_y)
     

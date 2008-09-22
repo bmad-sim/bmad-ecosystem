@@ -25,7 +25,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
 subroutine read_turns()
   use precision_def

@@ -35,7 +35,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
 module scan_parameters
 

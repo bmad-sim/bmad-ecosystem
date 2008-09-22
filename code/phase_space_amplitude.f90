@@ -31,7 +31,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
 subroutine phase_space_amplitude (ele, orb, amp_x, amp_y)
 

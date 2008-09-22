@@ -32,7 +32,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
 module beambeam_interface
 

@@ -54,7 +54,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
 
 subroutine da_driver (ring, track_input, n_xy_pts, point_range, &

@@ -33,7 +33,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
 SUBROUTINE gfit3D(phase_coords,parameters)
   use precision_def

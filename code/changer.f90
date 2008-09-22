@@ -31,7 +31,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
    subroutine changer (ring)
 
      use bmad_struct

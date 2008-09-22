@@ -31,7 +31,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
  subroutine ellipse(ele, major,minor,theta)
 
   use bmad_struct

@@ -40,7 +40,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
 subroutine beambeam_scan(ring, scan_params, phi_x, phi_y) 
   

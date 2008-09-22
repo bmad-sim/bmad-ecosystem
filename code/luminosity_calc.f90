@@ -37,7 +37,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
   subroutine luminosity_calc (ele, coord, param, n_ok, lum)
 
   use bmad_struct

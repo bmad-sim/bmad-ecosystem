@@ -25,7 +25,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
   subroutine q_tune (ring, Q_x, Q_y, ok)
 

@@ -31,7 +31,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
  subroutine longitudinal_beta(ring, mode)
 
   use bmad_struct

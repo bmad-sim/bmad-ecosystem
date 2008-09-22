@@ -28,7 +28,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
 subroutine writefile(in_file, parameters)
   

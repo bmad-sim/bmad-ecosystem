@@ -34,7 +34,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
 subroutine histogram (ele, coord, in_file, sig, a_out)
   

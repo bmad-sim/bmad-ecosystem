@@ -41,7 +41,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
 subroutine close_vertical(ring, i_dim, final_pos_in, final_pos_out)
   

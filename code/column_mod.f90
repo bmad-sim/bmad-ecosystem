@@ -17,7 +17,7 @@
 !
 !........................................................................
 !
-#include "CESR_platform.h"
+#include "CESR_platform.inc"
 
 module column_mod
    type column_struct 
