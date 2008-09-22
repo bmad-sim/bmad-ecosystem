@@ -98,12 +98,14 @@ main_loop: do while (.true.)
   elseif (line(1:ix) == 'HARD') then
     print *, 'NOT YET IMPLEMENTED...'
 
-  elseif (line(1:ix) == 'RP' .or. (index('RAYPLOT', line(1:ix)) == 1 .and. ix > 3)) then
+  elseif (line(1:ix) == 'RP' .or. &
+       (index('RAYPLOT', line(1:ix)) == 1 .and. ix > 3)) then
     print *, '*** Only first window selected will be plotted. ***'
     call get_window_numbers ( window, iw )
     call ray_plot (window, iw(1))
 
-  elseif (line(1:ix) == 'WP' .or. (index('WALLPLOT', line(1:ix)) == 1 .and. ix > 3)) then
+  elseif (line(1:ix) == 'WP' .or. &
+       (index('WALLPLOT', line(1:ix)) == 1 .and. ix > 3)) then
     line = line(ix+1:)
     if (line == '') then
       x_min = u%ring%ele(0)%s
@@ -121,10 +123,10 @@ main_loop: do while (.true.)
   elseif (line(1:ix) == 'BURN') then
     print *, '*** Only first window selected will be plotted. ***'
     call get_window_numbers ( window, iw )
-    call burn_plot ( window, iw(1), u%ring, gen_params)
+    call burn_plot ( window, iw(1), u%ring, gen_params )
 
   elseif (line(1:ix) == 'RO' .or. (index('RAYOUTPUT', line(1:ix)) == 1 .and. ix > 3)) then
-    call ray_output (window, u%ring)
+    call ray_output (window, u%ring, gen_params)
 
   elseif (index('PROJECT', line(1:ix)) == 1 .and. ix > 1) then
     call project_from_windows ( window )
