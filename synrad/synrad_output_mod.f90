@@ -12,18 +12,20 @@ contains
 !-----------------------------------------------------------------------
 ! Types out the crotch window hit information
 
-subroutine ray_output ( window, ring )
+subroutine ray_output ( window, ring, gen )
 
   implicit none
 
   type (crotch_window_struct), target :: window(:)
   type (lat_struct) ring
+  type (synrad_param_struct) gen
 
   integer i, j, lun, lunget, iw(n_windows$)
   real(rp), pointer :: sigma
   type (coord_struct), pointer :: coord
   character*16 line
   logical target
+  real(rp) gen_factor, power_per_area, track_len
 
   call get_window_numbers( window, iw )
 
@@ -39,37 +41,59 @@ subroutine ray_output ( window, ring )
 
   if (target) then
     print *, 'Crotch Window Data'
-    write (lun, '(1x, a)') 'Crotch Window Data'
+    write (lun, '(1x, a)') 'Projected Target Data'
   else
     print *, 'Crotch Window Data'
     write (lun, '(1x, a)') 'Crotch Window Data'
   endif
 
-  write (lun, '(1x, 6a13)') 'x pos   ', 'y pos   ', 'sigma_y   ', &
-           'dx/ds   ', 'dy/ds   ', 'Source Ele '
-  write (*, '(1x, 6a13)') 'x pos   ', 'y pos   ', 'sigma_y   ', &
-           'dx/ds   ', 'dy/ds   ', 'Source Ele '
+  write (lun, '(1x, a13, f10.5)') 'I_beam', gen%i_beam
+  write (lun, '(1x, a13, e13.5)') 'Vert. Emit.', gen%epsilon_y
+  write (lun, '(1x, a13, i)') 'N_slice', gen%n_slice
+
+
+  write (lun, '(1x, 7a13)') 'x       ,', 'dx/ds   ,', 'y         ,', &
+           'dy/ds   ,', 'sigma y ,', 'Power/area,', 'Source Ele ,'
+  write (*, '(1x, 7a13)') 'x       ', 'dx/ds   ', 'y         ', &
+           'dy/ds   ', 'sigma y ', 'Power/area', 'Source Ele '
+
+
+  ! 14.1e3 [m (eV)^-3] (used below) is  Cgamma * 1e9 / (2 pi) 
+  !    Cgamma is from Sands (p98) which is 8.85e-5 m (GeV)^-3 
+  !    for electrons.  Not valid for protons, etc!!!
+  gen_factor = 14.1e3 * gen%i_beam * (ring%ele(0)%value(e_tot$)/1e9)**4 
 
   do i=1,n_windows$
 
     if (iw(i) == 0) exit
-    write (lun, '(1x a)') window(iw(i))%name
-    print *, window(iw(i))%name," has ",window(iw(i))%n_ray_hit,"ray hits."
+    write (lun, '(1x 2a, f10.5)') window(iw(i))%name, ", length =,", &
+         window(iw(i))%length
+    print *, window(iw(i))%name, ", length =,", &
+         window(iw(i))%length
     do j=1,window(iw(i))%n_ray_hit
       
       if (target) then
         sigma => window(iw(i))%ray_hits(j)%sig_y_eff 
+        track_len = window(iw(i))%ray_hits(j)%dist + &
+             window(iw(i))%ray_hits(j)%ray%track_len
         coord => window(iw(i))%ray_hits(j)%target_coord
       else
         sigma => window(iw(i))%ray_hits(j)%window_sig_y
+        track_len = window(iw(i))%ray_hits(j)%ray%track_len
         coord => window(iw(i))%ray_hits(j)%hit_coord
       endif
+      power_per_area = gen_factor * window(iw(i))%ray_hits(j)%ray%g_bend / &
+           (sqrt(twopi) * sigma * track_len)
+      if (power_per_area < 10) cycle
 
-      write (*, '(1x, 5f13.9, 1x, a16)') coord%vec(1), coord%vec(3), &
-            sigma, coord%vec(2), coord%vec(4), &
+      write (*, '(1x, 5(f13.9, 1h,), e13.4, 1h,, a16)') &
+           coord%vec(1), coord%vec(2), &
+            coord%vec(3), coord%vec(4), sigma, power_per_area, &
             ring%ele(window(iw(i))%ray_hits(j)%ray%ix_source)%name
-      write (lun, '(1x, 5f13.9, 1x, a16)') coord%vec(1), coord%vec(3), &
-            sigma, coord%vec(2), coord%vec(4), &
+!      print *, power_per_area
+      write (lun, '(1x, 5(f13.9, 1h,), e13.4, 1h,, a16)') &
+           coord%vec(1), coord%vec(2), &
+            coord%vec(3), coord%vec(4), sigma, power_per_area, &
             ring%ele(window(iw(i))%ray_hits(j)%ray%ix_source)%name
     
     enddo
