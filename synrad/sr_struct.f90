@@ -174,7 +174,7 @@ module sr_struct
     real(rp) sig_y, sig_yp     ! Source point
     real(rp) sig_y_eff         ! Effective sigma at the target distance.
     real(rp) window_sig_y      ! Effective sigma at the crotch window.
-    real(rp) dist
+    real(rp) dist              ! Projection distance past window
   end type
 
   type crotch_window_struct   ! struct for input points
