@@ -22,7 +22,7 @@
 !---------------------------------------------------------------------
 ! VMS version
 
-#ifdef CESR_VMS
+#if defined (CESR_VMS)
 
 subroutine get_lattice_list (lat_list, num_lats, directory)
 

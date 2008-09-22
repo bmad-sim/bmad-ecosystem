@@ -245,23 +245,23 @@ character(100) li(8)
 
 if (.not. do_print) return
 
-li(2) =   'THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele0), ix_attrib0)
-li(3) =   'OF THE ELEMENT: ' // lat%ele(ix_ele0)%name
+nl = 0
+
+nl=nl+1; li(nl) =   'THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele0), ix_attrib0)
+nl=nl+1; li(nl) =   'OF THE ELEMENT: ' // lat%ele(ix_ele0)%name
 
 if (ix_ele == ix_ele0) then
-  li(4) = 'IS NOT FREE TO VARY SINCE:'
-  nl = 4
+  nl=nl+1; li(nl) = 'IS NOT FREE TO VARY SINCE:'
 else 
-  li(4) = 'IS NOT FREE TO VARY SINCE IT IS TRYING TO CONTROL:'
-  li(5) = 'THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele), ix_attrib)
-  li(6) = 'OF THE ELEMENT: ' // lat%ele(ix_ele)%name
-  li(7) = 'AND THIS IS NOT FREE TO VARY SINCE:'
-  nl = 7
+  nl=nl+1; li(nl) = 'IS NOT FREE TO VARY SINCE IT IS TRYING TO CONTROL:'
+  nl=nl+1; li(nl) = 'THE ATTRIBUTE: ' // attribute_name(lat%ele(ix_ele), ix_attrib)
+  nl=nl+1; li(nl) = 'OF THE ELEMENT: ' // lat%ele(ix_ele)%name
+  nl=nl+1; li(nl) = 'AND THIS IS NOT FREE TO VARY SINCE'
 endif
 
-nl=nl+1; li(nl) = '     ' // l1
+nl=nl+1; li(nl) = l1
 if (present(l2)) then
-  nl=nl+1; li(nl) = '     ' // l2
+  nl=nl+1; li(nl) = l2
 endif
 
 call out_io (s_error$, r_name, li(1:nl))   

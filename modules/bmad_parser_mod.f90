@@ -627,6 +627,10 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
     call get_logical ('OFFSET_MOVES_APERTURE', ele%offset_moves_aperture)
     if (ios /= 0 .or. ix_word == 0) return
 
+  case ('FIELD_MASTER')
+    call get_logical ('FIELD_MASTER', ele%field_master)
+    if (ios /= 0 .or. ix_word == 0) return
+
   case default   ! normal attribute
 
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
@@ -677,7 +681,6 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
       if (ix > 9 .and. index(attrib_word, '_GRADIENT') == ix-8) ele%field_master = .true.
       if (ix > 6 .and. index(attrib_word, '_FIELD') == ix-5) ele%field_master = .true.
       if (ix > 10 .and. index(attrib_word, '_FIELD_ERR') == ix-9) ele%field_master = .true.
-
       if (ele%key == custom$ .and. ix_attrib == l$) ele%value(l_original$) = value
     endif
 

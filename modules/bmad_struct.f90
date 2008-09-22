@@ -477,6 +477,7 @@ integer, parameter :: ref_end$        = 98
 integer, parameter :: common_lord$    = 99
 
 integer, parameter :: to$ = 100
+integer, parameter :: field_master$ = 101
 
 integer, parameter :: a0$  = 110, k0l$  = 110
 integer, parameter :: a20$ = 130, k20l$ = 130

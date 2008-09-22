@@ -43,7 +43,7 @@ lat = lattice
 call downcase_string(lat)
 ix = index(lattice, '.')
 
-#ifdef CESR_VMS
+#if defined (CESR_VMS)
   lat_dir = '$CESR_MNT/vms_lattice/cesr/bmad/'
 #else
   lat_dir = '$CESR_MNT/lattice/cesr/bmad/'
