@@ -965,9 +965,9 @@ subroutine file_stack (how, file_name_in, finished)
 
   character(*) how
   character(*), optional :: file_name_in
-  character(200) file_name, basename
+  character(200) file_name, basename, file_name2
   logical, optional :: finished
-  logical found_it, is_relative
+  logical found_it, is_relative, valid
 
 ! "Init" means init
 
@@ -999,11 +999,22 @@ subroutine file_stack (how, file_name_in, finished)
       call init_bmad_parser_common
     endif
 
-    ix = splitfilename (file_name_in, file(i_level)%dir, basename, is_relative)
-    if (is_relative) file(i_level)%dir = trim(file(i_level-1)%dir) // file(i_level)%dir
+    call fullfilename (file_name_in, file_name2, valid)
+    if (.not. valid) then
+      call warning ('MALFORMED FILE NAME: ' // file_name_in)
+      if (bmad_status%exit_on_error) call err_exit
+      do i = 1, i_level-1
+        close (file(i_level)%f_unit)
+      enddo
+      return
+    endif
+
+    ix = splitfilename (file_name2, file(i_level)%dir, basename, is_relative)
+    if (is_relative) call append_subdirectory (trim(file(i_level-1)%dir), &
+                                             file(i_level)%dir, file(i_level)%dir)
     bp_com%dirs(2) = file(i_level-1)%dir
-    call find_file (file_name_in, found_it, file_name, bp_com%dirs)
-    file(i_level)%logical_name = file_name_in
+    call find_file (file_name2, found_it, file_name, bp_com%dirs)
+    file(i_level)%logical_name = file_name2
     file(i_level)%full_name = file_name
     file(i_level)%f_unit = lunget()
 
@@ -1011,15 +1022,13 @@ subroutine file_stack (how, file_name_in, finished)
                                  status = 'OLD', action = 'READ', iostat = ios)
     if (ios /= 0 .or. .not. found_it) then
       bp_com%current_file => file(i_level-1)  ! For warning
-      if (file_name_in == file_name)  then
+      if (file_name2 == file_name)  then
         call warning ('UNABLE TO OPEN FILE: ' // file_name)
       else
         call warning ('UNABLE TO OPEN FILE: ' // file_name, &
-                      'THIS FROM THE LOGICAL FILE NAME: ' // file_name_in)
+                      'THIS FROM THE LOGICAL FILE NAME: ' // file_name2)
       endif
       if (bmad_status%exit_on_error) call err_exit
-      bmad_status%ok = .false.
-      bp_com%error_flag = .true.
       do i = 1, i_level-1
         close (file(i_level)%f_unit)
       enddo
