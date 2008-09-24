@@ -837,6 +837,9 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
 #endif
 
   call get_lattice_list (lat_list, num_lats, lat_dir)
+  do i = 1, num_lats
+    call upcase_string(lat_list(i))
+  enddo
 
   ask_for_lat = .true.
 
@@ -845,13 +848,13 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
 #if defined (CESR_VMS)
     if (lat_choise == '*') lat_choise = '0'
 #endif
-    call downcase_string (lat_choise)
+    call upcase_string (lat_choise)
     call string_trim (lat_choise, lat_choise, ix)
     if (ix /= 0) ask_for_lat = .false.
   endif
 
   cur_lat = current_lat
-  call downcase_string (cur_lat)
+  call upcase_string (cur_lat)
 
 ! loop until we have a valid choice
 
@@ -937,7 +940,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
     call bmad_parser (lat_file, lat)
     if (lattice /= "") then
       lat_choise = lat%lattice
-      call downcase_string(lat_choise)
+      call upcase_string(lat_choise)
       if (lattice /= lat_choise) print *, &
            'WARNING FROM CHOOSE_CESR_LATTICE: LATTICE NAME IN LAT DOES MATCH FILE NAME!'
     endif
