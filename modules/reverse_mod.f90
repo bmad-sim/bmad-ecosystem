@@ -49,7 +49,7 @@ subroutine lat_reverse (lat_in, lat_rev)
   type (lat_struct), intent(in) :: lat_in
   type (lat_struct), intent(out), target :: lat_rev
   type (lat_struct), save :: lat
-  type (ele_struct), pointer :: lord
+  type (ele_struct), pointer :: lord, ele
   type (control_struct), pointer :: con
 
   integer i, n, i1, i2, nr, n_con
@@ -70,7 +70,9 @@ subroutine lat_reverse (lat_in, lat_rev)
 ! Flip longitudinal stuff, maps
 
   do i = 1, lat_rev%n_ele_max
-    call reverse_ele (lat_rev%ele(i))
+    ele => lat_rev%ele(i)
+    call reverse_ele (ele)
+    if (i <= nr) ele%s = lat_rev%param%total_length - (ele%s - ele%value(l$))
   enddo
 
 ! Correct control information
@@ -94,7 +96,11 @@ subroutine lat_reverse (lat_in, lat_rev)
     i2 = lord%ix2_slave
     lat_rev%control(i1:i2) = lat_rev%control(i2:i1:-1)
     ix_con(i1:i2) = ix_con(i2:i1:-1)
-    lord%s = lat_rev%param%total_length - lord%s + lord%value(l$)
+    if (lord%s > lord%value(l$)) then
+      lord%s = lat_rev%param%total_length - (lord%s - lord%value(l$))
+    else  ! Lord wraps around zero case
+      lord%s = lord%value(l$) - lord%s
+    endif
   enddo
 
   n = lat_rev%n_ic_max
