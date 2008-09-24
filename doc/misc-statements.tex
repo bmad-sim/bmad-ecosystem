@@ -184,26 +184,23 @@ files. The syntax is
 \end{example}
 Example:
 \begin{example}
-  call, filename = "../layout/my_layout.bmad"
+  call, filename = "../layout/my_layout.bmad"      ! Relative pathname
+  call, filename = "/nfs/cesr/lat/my_layout.bmad"  ! Absolute pathname
 \end{example}
 \bmad will read the called file until a \vn{return} or \vn{end_file}
 statement is encountered or the end of the file is reached.
 
-The called file will be searched for in multiple directories.
-The search path for files without a directory specification in their name is:
+For filenames that are relative, the called file will be searched for in
+two different locations:
 \begin{example}
-	1) Current directory
-	2) directory of the calling file
-	3) BMAD_LAYOUT (system logical)
+  1) Relative to the directory of the calling file.
+  2) Relative to the current directory.
 \end{example}
 The first instance where a file is found is used.
-The search path for files with a directory specification in their name
-is relative to the above list. Thus, in the above example, the search
-would be
+Thus, in the above example, the first call will search for:
 \begin{example}
-  1) ../layout/my_layout.bmad  (relative to the current directory)
   2) ../layout/my_layout.bmad  (relative to the calling file directory)
-  3) \$BMAD_LAYOUT:../layout/my_layout.bmad 
+  1) ../layout/my_layout.bmad  (relative to the current directory)
 \end{example}
 
 An XSIF (\sref{s:lattice.file.formats}) lattice file may be called

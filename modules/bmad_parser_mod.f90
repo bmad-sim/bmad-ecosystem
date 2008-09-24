@@ -147,7 +147,7 @@ type bp_common_struct
   character(n_parse_line) input_line1          ! For debug messages
   character(n_parse_line) input_line2          ! For debug messages
   character(40) parser_name
-  character(200) :: dirs(2) = (/ './', './' /)
+  character(200) :: dirs(2) 
   logical :: bmad_parser_calling = .false.     ! used for expand_lattice
   logical error_flag
   logical input_line_meaningful
@@ -973,6 +973,7 @@ subroutine file_stack (how, file_name_in, finished)
 
   if (how == 'init') then
     i_level = 0
+    call fullfilename('./', bp_com%dirs(2))
     return
   endif
 
@@ -1012,7 +1013,7 @@ subroutine file_stack (how, file_name_in, finished)
     ix = splitfilename (file_name2, file(i_level)%dir, basename, is_relative)
     if (is_relative) call append_subdirectory (trim(file(i_level-1)%dir), &
                                              file(i_level)%dir, file(i_level)%dir)
-    bp_com%dirs(2) = file(i_level-1)%dir
+    bp_com%dirs(1) = file(i_level-1)%dir
     call find_file (file_name2, found_it, file_name, bp_com%dirs)
     file(i_level)%logical_name = file_name2
     file(i_level)%full_name = file_name
