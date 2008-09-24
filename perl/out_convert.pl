@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/\#ifdef +(\w+)/\#if defined \(\1\)/;
+    s/append_subdirectory/
     print (F_OUT);
   }
 
