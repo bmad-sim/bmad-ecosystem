@@ -28,19 +28,21 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   implicit none
 
-  type (lat_struct)  lat
+  type (lat_struct), target :: lat
   type (ele_struct)  super_ele
-  type (ele_struct), save :: sup_ele, slave_ele, drift
+  type (ele_struct), save :: super_saved, slave_saved, drift
+  type (ele_struct), pointer :: slave, lord
   type (control_struct)  sup_con(100)
 
   real(rp) s1, s2, length, s1_lat, s2_lat
 
   integer i, j, jj, k, ix, n, i2, ic, n_con
   integer ix1_split, ix2_split, ix_super, ix_super_con
-  integer ix_slave, ixn, ixc, ix_slave_name
+  integer ix_slave, ixn, ixc, ix_1lord, n_ele_max_old
 
   logical setup_lord, split1_done, split2_done, all_drift
 
+  character(100) name
   character(20) fmt
   character(20) :: r_name = "add_superimpose"
 
@@ -48,13 +50,12 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   ! We need a copy of super_ele since the actual argument may be in the lat
   ! and split_lat can then overwrite it.
 
-  call init_ele (sup_ele)
-  call init_ele (slave_ele)
+  call init_ele (super_saved)
+  call init_ele (slave_saved)
   call init_ele (drift)
   drift%key = drift$
 
-  sup_ele = super_ele
-  ix_slave_name = 0
+  super_saved = super_ele
 
   ! s1 is the left edge of the superimpose.
   ! s2 is the right edge of the superimpose.
@@ -63,19 +64,20 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   s1_lat = lat%ele(0)%s                 ! normally this is zero.
   s2_lat = lat%ele(lat%n_ele_track)%s
 
-  s1 = sup_ele%s - sup_ele%value(l$)
-  s2 = sup_ele%s                 
+  s1 = super_saved%s - super_saved%value(l$)
+  s2 = super_saved%s                 
 
   if (s1 < s1_lat) then
     if (lat%param%lattice_type == linear_lattice$) call out_io (s_warn$, &
-           r_name, 'superimpose is being wrapped around for: ' // sup_ele%name)
+           r_name, 'superimpose is being wrapped around for: ' // super_saved%name)
     s1 = s1 + lat%param%total_length
   endif
 
   if (s2 < s1_lat .or. s1 > s2_lat) then
-    call out_io (s_abort$, r_name, 'SUPERIMPOSE POSITION BEYOUND END OF LATTICE')
-    call out_io (s_blank$, r_name, 'LEFT EDGE: \F10.1\ ', s1)
-    call out_io (s_blank$, r_name, 'RIGHT EDGE:\F10.1\ ', s2)
+    call out_io (s_abort$, r_name, &
+      'SUPERIMPOSE POSITION BEYOUND END OF LATTICE', &
+      'LEFT EDGE: \F10.1\ ', &
+      'RIGHT EDGE:\F10.1\ ', r_array = (/ s1, s2 /))
     call err_exit
   endif
  
@@ -83,9 +85,9 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   ! If element has zero length then just insert it in the tracking part 
   ! of the lattice list.
 
-  if (sup_ele%value(l$) == 0) then
+  if (super_saved%value(l$) == 0) then
     call split_lat (lat, s1, ix1_split, split1_done)
-    call insert_element (lat, sup_ele, ix1_split+1)
+    call insert_element (lat, super_saved, ix1_split+1)
     ix_super = ix1_split + 1
     lat%ele(ix_super)%control_type = free$
     return
@@ -97,10 +99,8 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   ! so that the numbering of the elments after the split changes.
 
   if (s2 < s1) then     ! if superimpose wraps around 0 ...
-    call split_lat (lat, s2, ix2_split, split2_done)
-    if (split2_done) call delete_last_chars (ix2_split)
-    call split_lat (lat, s1, ix1_split, split1_done)
-    if (split1_done) call delete_last_chars (ix1_split)
+    call split_lat (lat, s2, ix2_split, split2_done, .false.)
+    call split_lat (lat, s1, ix1_split, split1_done, .false.)
 
   else                  ! no wrap case
     if (s1 < s1_lat) then    ! superimpose off end case
@@ -114,8 +114,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
       endif
       ix1_split = 0
     else
-      call split_lat (lat, s1, ix1_split, split1_done)
-      if (split1_done) call delete_last_chars (ix1_split)
+      call split_lat (lat, s1, ix1_split, split1_done, .false.)
     endif
 
     if (s2 > s2_lat) then    ! superimpose off end case
@@ -126,8 +125,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
       endif
       ix2_split = lat%n_ele_track
     else
-      call split_lat (lat, s2, ix2_split, split2_done)
-      if (split2_done) call delete_last_chars (ix2_split)
+      call split_lat (lat, s2, ix2_split, split2_done, .false.)
     endif
 
     if (s1 < s1_lat) lat%ele(1)%value(l$) = lat%ele(1)%s - s1
@@ -137,14 +135,6 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     endif
 
   endif
-
-  ! split_lat adds "_1" and "_2" to the names of the split elements.
-  ! For aesthetic reasons remove the last digit of the names.
-
-  call delete_underscore (lat%ele(ix1_split))
-  call delete_underscore (lat%ele(ix1_split+1))
-  call delete_underscore (lat%ele(ix2_split))
-  call delete_underscore (lat%ele(ix2_split+1))
 
   ! If element overlays only drifts then just 
   ! insert it in the tracking part of the lat list.
@@ -162,7 +152,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     enddo
     call remove_eles_from_lat(lat)    ! And delete
     ix_super = ix1_split + 1
-    lat%ele(ix_super) = sup_ele
+    lat%ele(ix_super) = super_saved
     lat%ele(ix_super)%control_type = free$
     ! If a single drift was split give the runt drifts on either end 
     ! Unique names by adding "1" and "2" suffixes.
@@ -179,14 +169,15 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   ! Only possibility left means we have to set up a super_lord element for the
   ! superposition
 
+  n_ele_max_old = lat%n_ele_max
   ix_super = lat%n_ele_max + 1
   lat%n_ele_max = ix_super
   if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
-  lat%ele(ix_super) = sup_ele
+  lat%ele(ix_super) = super_saved
   lat%ele(ix_super)%control_type = super_lord$
 
   ix_super_con = 0
-  length = sup_ele%value(l$)
+  length = super_saved%value(l$)
 
   ix_slave = ix1_split
 
@@ -197,19 +188,19 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
     ix_slave = ix_slave + 1
     if (ix_slave == ix2_split + 1) exit
-
     if (ix_slave == lat%n_ele_track + 1) ix_slave = 1
-    slave_ele = lat%ele(ix_slave)
-    if (slave_ele%value(l$) == 0) cycle
+
+    slave => lat%ele(ix_slave)
+    slave_saved = slave
+    if (slave_saved%value(l$) == 0) cycle
 
     ! Do we need to set up a super lord to control this slave element?
 
-    if (slave_ele%control_type == overlay_slave$) then
+    if (slave%control_type == overlay_slave$) then
       setup_lord = .true.
-    elseif (slave_ele%control_type == super_slave$) then
+    elseif (slave%control_type == super_slave$) then
       setup_lord = .false.
-    elseif (slave_ele%key == drift$ .and. &
-                         slave_ele%control_type /= multipass_slave$) then
+    elseif (slave%key == drift$ .and. slave%control_type /= multipass_slave$) then
       setup_lord = .false.
     else
       setup_lord = .true.
@@ -220,7 +211,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     if (setup_lord) then
       ixn = lat%n_ele_max + 1
       if (ixn > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
-      lat%ele(ixn) = slave_ele
+      lat%ele(ixn) = slave_saved
       lat%ele(ixn)%control_type = super_lord$
       lat%n_ele_max = ixn
       ixc = lat%n_control_max + 1
@@ -239,47 +230,37 @@ subroutine add_superimpose (lat, super_ele, ix_super)
       enddo
 
       ic = lat%n_ic_max + 1
-      lat%ele(ix_slave)%ic1_lord = ic
-      lat%ele(ix_slave)%ic2_lord = ic + 1
-      lat%ele(ix_slave)%n_lord = 2
+      slave%ic1_lord = ic
+      slave%ic2_lord = ic + 1
+      slave%n_lord = 2
       lat%n_ic_max = ic + 1
       lat%ic(ic) = ixc 
 
     else
-      lat%ele(ix_slave)%n_lord = slave_ele%n_lord + 1
+      slave%n_lord = slave_saved%n_lord + 1
       call add_lattice_control_structs (lat, ix_slave)
     endif
 
-    if (slave_ele%key == drift$) then
-      ix_slave_name = ix_slave_name + 1
-      write (lat%ele(ix_slave)%name, '(2a, i0)') &
-                                   trim(sup_ele%name), '_', ix_slave_name
-    else
-      lat%ele(ix_slave)%name = trim(lat%ele(ix_slave)%name) //  &
-                                                         '\' // sup_ele%name !'
-    endif
-
-    call delete_underscore (lat%ele(ix_slave))
-
-    lat%ele(ix_slave)%control_type = super_slave$
+    slave%control_type = super_slave$
 
     ! add control info for main super lord to list
 
     ix_super_con = ix_super_con + 1
     sup_con(ix_super_con)%ix_slave = ix_slave
     sup_con(ix_super_con)%ix_lord = ix_super
-    sup_con(ix_super_con)%coef = slave_ele%value(l$) / length
+    sup_con(ix_super_con)%coef = slave_saved%value(l$) / length
     sup_con(ix_super_con)%ix_attrib = 0
 
     ! change the element key
 
-    call calc_superimpose_key(slave_ele, sup_ele, lat%ele(ix_slave))
-    if (lat%ele(ix_slave)%key <= 0) then
-      print *, 'ERROR IN ADD_SUPERIMPOSE:'
-      print *, '      ELEMENT: ', trim(sup_ele%name), ' OF TYPE: ', key_name(sup_ele%key)
-      print *, '      IS TO BE SUPERIMPOSED UPON: ', trim(slave_ele%name), &
-                                                  ' OF TYPE: ', key_name(slave_ele%key)
-      print *, '      I DO NOT KNOW HOW TO DO THIS  !'
+    call calc_superimpose_key(slave_saved, super_saved, slave)
+    if (slave%key <= 0) then
+      call out_io (s_abort$, r_name, (/ &
+              'ELEMENT: ' // trim(super_saved%name), &
+              'OF TYPE: ' // key_name(super_saved%key), &
+              'IS TO BE SUPERIMPOSED UPON: ' // trim(slave_saved%name), &
+              'OF TYPE: ' // key_name(slave_saved%key), &
+              'I DO NOT KNOW HOW TO DO THIS!' /) )
       call err_exit                    
     endif
 
@@ -319,22 +300,30 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   call s_calc (lat)  ! just in case superimpose extended before beginning of lattice.
   call order_super_lord_slaves (lat, ix_super)
 
+  ! Adjust the names of the slaves
+
+  ix_1lord = 0
+
+  do i = n_ele_max_old+1, lat%n_ele_max
+    lord => lat%ele(i)
+    do j = lord%ix1_slave, lord%ix2_slave
+      slave => lat%ele(lat%control(j)%ix_slave)
+      if (slave%n_lord == 1) then
+        ix_1lord = ix_1lord + 1
+        write (slave%name, '(2a, i0)') trim(lord%name), '_', ix_1lord
+      else
+        name = lord%name
+        do k = slave%ic1_lord, slave%ic2_lord
+          ix = lat%control(k)%ix_lord
+          name = trim(name) //  '\' // lat%ele(ix)%name !'
+        enddo
+        slave%name = name(1:len(slave%name))
+      endif
+    enddo
+  enddo
+
 !------------------------------------------------------------------------------
 contains
-
-subroutine delete_last_chars (ix_split)
-
-  integer ix_split
-
-  ix = len_trim(lat%ele(ix_split)%name) - 1
-  lat%ele(ix_split)%name = lat%ele(ix_split)%name(1:ix)
-  ix = len_trim(lat%ele(ix_split+1)%name) - 1
-  lat%ele(ix_split+1)%name = lat%ele(ix_split+1)%name(1:ix)
-
-end subroutine
-
-!------------------------------------------------------------------------------
-! contains
 
 ! Modify: "_\" -> "\"
 !         "__" -> "_"
