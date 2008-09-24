@@ -764,13 +764,14 @@ interface
 end interface
 
 interface
-  subroutine split_lat (lat, s_split, ix_split, split_done)
+  subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix)
     use bmad_struct, only: lat_struct, rp
     implicit none
     type (lat_struct), target :: lat
     real(rp) s_split
     integer ix_split
     logical split_done
+    logical, optional :: add_suffix
   end subroutine
 end interface
 
