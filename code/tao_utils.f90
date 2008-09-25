@@ -2436,4 +2436,47 @@ err = .false.
 
 end subroutine
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting ()
+! 
+! Routine to set u%dynch_rad_int_clac = T if needed for a plot.
+!-
+
+subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting ()
+
+type (tao_universe_struct), pointer :: u
+type (tao_graph_struct), pointer :: graph
+type (tao_curve_struct), pointer :: curve
+
+integer i, j, k
+logical do_synch
+
+!
+
+do_synch = .false.
+do i = 1, size(s%plot_region)
+  if (.not. s%plot_region(i)%visible) cycle
+  do j = 1, size(s%plot_region(i)%plot%graph)
+    graph => s%plot_region(i)%plot%graph(j)
+    do k = 1, size(graph%curve)
+      curve => graph%curve(k)
+      u => tao_pointer_to_universe(curve%ix_universe)
+      
+      if ((index(curve%data_type, 'emit.') /= 0) .and. &
+                        curve%data_source == 'lattice') do_synch = .true. 
+      if (curve%data_type(1:2) == 'i5') do_synch = .true.
+    enddo
+  enddo
+enddo
+
+if (do_synch .and. .not. u%do_synch_rad_int_calc) then
+  u%do_synch_rad_int_calc = .true. 
+  tao_com%lattice_recalc = .true.
+endif
+
+end subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting
+
 end module tao_utils

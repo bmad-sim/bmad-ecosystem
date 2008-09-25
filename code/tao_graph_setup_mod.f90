@@ -16,20 +16,29 @@ subroutine tao_graph_setup (plot, graph)
 
 implicit none
 
+type (tao_universe_struct), pointer :: u
 type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 
-integer i
+integer i, iu
 logical found
 
 !
 
 graph%valid = .true.   ! assume everything OK
-graph%legend = ' '
+graph%why_invalid = ''
+graph%legend = ''
 
 call tao_hook_graph_setup (plot, graph, found)
 if (found) return
+
+u => tao_pointer_to_universe(graph%ix_universe)
+if (.not. u%is_on) then
+  graph%valid = .false.
+  write (graph%why_invalid, '(a, i0, a)') 'UNIVERSE ', u%ix_uni, ' IS OFF!'
+  return
+endif
 
 select case (graph%type)
 case ('phase_space')
@@ -883,7 +892,11 @@ do k = 1, size(graph%curve)
         end select
         y_symb(ie) = y_symb(ie) + comp(m)%sign * y_val
         if (.not. valid) good(ie) = .false.
-
+        if (.not. valid) then
+          graph%valid = .false.
+          graph%why_invalid = 'ERROR IN TAO_EVALUATE_A_DATUM!'
+          return
+        endif
         if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
           if (datum%ix_ele < datum%ix_ele0) datum%ix_ele0 = datum%ix_ele
         endif

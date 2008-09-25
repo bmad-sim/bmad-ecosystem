@@ -800,7 +800,7 @@ else
     call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
     call element_locator (u%data(j)%ele_name, u%design%lat, ix)
     if (ix < 0) then
-      call out_io (s_abort$, r_name, 'ELEMENT NOT LOCATED: ' // &
+      call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // &
                                                        u%data(j)%ele_name)
       u%data(j)%exists = .false.
       cycle
@@ -813,7 +813,7 @@ else
     call str_upcase (u%data(j)%ele0_name, u%data(j)%ele0_name)
     call element_locator (u%data(j)%ele0_name, u%design%lat, ix)
     if (ix < 0) then
-      call out_io (s_abort$, r_name, 'ELEMENT2 NOT LOCATED: ' // &
+      call out_io (s_error$, r_name, 'ELEMENT2 NOT LOCATED: ' // &
                                                        u%data(j)%ele0_name)
       u%data(j)%exists = .false.
       cycle

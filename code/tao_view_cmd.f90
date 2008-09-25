@@ -28,5 +28,6 @@ if (i_universe < lbound(s%u, 1) .or. ubound(s%u, 1) < i_universe) then
 endif
 
 s%global%u_view = i_universe
+call tao_turn_on_rad_int_calc_if_needed_for_plotting()
 
 end subroutine

@@ -32,6 +32,7 @@ real(rp) location(4), dx, dy, h
 
 integer i, j, k, ic, id
 
+character(80) text
 character(16) :: r_name = 'tao_draw_plots'
 character(3) view_str
 
@@ -98,8 +99,9 @@ do i = 1, size(s%plot_region)
 
     if (.not. graph%valid) then
       call qp_set_layout (box = graph%box)
-      call qp_draw_text ('Error In The Plot Calculation', &
-                          0.1_rp, 0.5_rp, '%BOX', color = red$)
+      text = 'Error In The Plot Calculation'
+      if (graph%why_invalid /= '') text = graph%why_invalid
+      call qp_draw_text (text, 0.1_rp, 0.5_rp, '%BOX', color = red$)
       cycle
     endif
 
