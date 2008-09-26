@@ -973,7 +973,9 @@ subroutine file_stack (how, file_name_in, finished)
 
   if (how == 'init') then
     i_level = 0
-    call fullfilename('./', bp_com%dirs(2))
+    call fullfilename('./', file_name)
+    bp_com%dirs(2) = file_name
+    file(:)%dir = file_name
     return
   endif
 
