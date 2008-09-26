@@ -85,7 +85,7 @@ v_old = v86 .or. v87
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
-         (/ 'DIGESTED FILE VERSION OUT OF DATE \i4\ > \i4\ ' /),  &
+         (/ 'DIGESTED FILE VERSION OUT OF DATE \i0\ > \i0\ ' /),  &
           i_array = (/ bmad_inc_version$, version /) )
   if (v_old) then 
     allocate (file_names(n_files))
@@ -99,8 +99,8 @@ endif
 
 if (version > bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
-       'DIGESTED FILE HAS VERSION: \i4\ ', &
-       'GREATER THAN VERSION OF THIS PROGRAM: \i4\ ', &
+       'DIGESTED FILE HAS VERSION: \i0\ ', &
+       'GREATER THAN VERSION OF THIS PROGRAM: \i0\ ', &
        'WILL NOT USE THE DIGESTED FILE. YOU SHOULD RECOMPILE THIS PROGRAM.', &
        i_array = (/ version, bmad_inc_version$ /) )
   close (d_unit)
