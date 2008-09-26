@@ -27,7 +27,7 @@ character(16) :: r_name = "TAO_HELP"
 character(40) start_tag, left_over_eliminate, left_over_sub
 character(200) line, file_name
 
-logical blank_line_before
+logical blank_line_before, in_example
 
 ! Help depends upon if we are in single mode or not.
 ! Determine what file to open and starting tag.
@@ -88,11 +88,15 @@ endif
 blank_line_before = .true.
 left_over_eliminate = ''
 left_over_sub = ''
+in_example = .false.
 
 do
   read (iu, '(a)', iostat = ios) line
   if (ios /= 0) return
   if (line(1:2) == '%%') return
+
+  if (index(line, '\begin{example}') /= 0) in_example = .true.
+  if (index(line, '\end{example}') /= 0) in_example = .true.
 
   if (line(1:8)  == '\section')   cycle
   if (line(1:6)  == '\label')     cycle
@@ -130,7 +134,7 @@ do
   call eliminate_inbetween ('\parbox{', '}', .false.)
   call substitute ("] \Newline")
   call substitute ("\Newline")
-  call substitute (" &")
+  if (.not. in_example) call substitute (" &")
   call substitute ('\\ \hline')
   call substitute ('\\')
   call substitute ('\W ', '^')

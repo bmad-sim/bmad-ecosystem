@@ -85,7 +85,7 @@ if (n > 1 .and. (index('-append', trim(what)) == 1 .or. &
 
   call string_trim (stuff2, stuff2, ix)
   what2 = stuff2(1:ix)
-  stuff2 = what2(ix+1:)
+  stuff2 = stuff2(ix+1:)
   opened = .true.
 endif
 
