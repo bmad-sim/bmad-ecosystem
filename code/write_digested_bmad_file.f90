@@ -43,6 +43,7 @@ character(*) digested_name
 character(*), optional :: file_names(:)
 character(200) fname, full_digested_name
 character(32) :: r_name = 'write_digested_bmad_file'
+character(30) time_stamp
 
 logical write_wake, mode3
 
@@ -75,9 +76,14 @@ endif
 ! Write digested file name
 
 stat_b = 0
-#ifndef CESR_VMS 
-ierr = stat(full_digested_name, stat_b)
+
+#if defined (CESR_VMS) 
+  call get_file_time_stamp (full_digested_name, time_stamp)
+  full_digested_name = trim(full_digested_name) // '@' // time_stamp
+#else
+  ierr = stat(full_digested_name, stat_b)
 #endif
+
 fname = '!DIGESTED:' // full_digested_name
 write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
  
@@ -86,7 +92,10 @@ write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
 do j = 1, n_file
   fname = file_names(j)
   stat_b = 0
-#ifndef CESR_VMS 
+#if defined (CESR_VMS) 
+  call get_file_time_stamp (fname, time_stamp)
+  fname = trim(fname) // '@' // time_stamp
+#else
   ierr = stat(fname, stat_b)
 #endif
   write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
@@ -262,3 +271,4 @@ endif
 end subroutine
 
 end subroutine
+

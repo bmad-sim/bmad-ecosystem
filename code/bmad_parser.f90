@@ -79,7 +79,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   real(rp) energy_beam, energy_param, energy_0
 
   logical, optional :: make_mats6, digested_read_ok
-  logical delim_found, arg_list_found, xsif_called
+  logical delim_found, arg_list_found, xsif_called, err
   logical file_end, found, err_flag, finished, exit_on_error
   logical detected_expand_lattice_cmd, multipass, write_digested
 
@@ -139,8 +139,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
   bp_com%error_flag = .false.                 ! set to true on an error
   call file_stack('init')
-  call file_stack('push', lat_file, finished)  ! open file on stack
-  if (.not. bmad_status%ok) return
+  call file_stack('push', lat_file, finished, err)  ! open file on stack
+  if (err) return
   iseq_tot = 0                            ! number of sequences encountered
 
   bp_com%input_line_meaningful = .true.
@@ -247,8 +247,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 ! CALL command
 
     if (word_1(:ix_word) == 'CALL') then
-      call get_called_file(delim, call_file, xsif_called)
-      if (.not. bmad_status%ok) return
+      call get_called_file(delim, call_file, xsif_called, err)
+      if (err) return
 
       if (xsif_called) then
         call warning ('XSIF_PARSER TEMPORARILY DISABLED. PLEASE SEE DCS.')
@@ -310,8 +310,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
     if (word_1(:ix_word) == 'RETURN' .or.  &
                                     word_1(:ix_word) == 'END_FILE') then
-      call file_stack ('pop', ' ', finished)
-      if (.not. bmad_status%ok) return
+      call file_stack ('pop', ' ', finished, err)
+      if (err) return
       if (finished) exit parsing_loop ! break loop
       cycle parsing_loop
     endif

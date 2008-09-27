@@ -51,9 +51,11 @@ integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
 integer stat_b(12), idate_old, n_branch, n
 
 character(*) digested_name
-character(200) fname1, fname2, fname3, input_file_name, full_digested_name
+character(200) fname_read, fname_versionless, fname_full
+character(200) input_file_name, full_digested_name
 character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
+character(40) old_time_stamp, new_time_stamp
 
 logical found_it, v86, v87, v88, v_old, mode3, error, is_open
 
@@ -112,11 +114,24 @@ endif
 ! we can possibly reuse the taylor series.
 
 do i = 1, n_files
-  read (d_unit, err = 9100) fname1, idate_old
-      
-  if (fname1(1:10) == '!DIGESTED:') then
-    fname1 = fname1(11:)
-    inquire (file = fname1, opened = is_open)
+
+  old_time_stamp = ''
+  new_time_stamp = ''
+  stat_b = 0
+
+  read (d_unit, err = 9100) fname_read, idate_old
+
+#if defined (CESR_VMS) 
+  ix = index(fname_read, '@')
+  if (ix /= 0) then
+    old_time_stamp = fname_read(ix+1:)
+    fname_read = fname_read(:ix-1)
+  endif
+#endif
+
+  if (fname_read(1:10) == '!DIGESTED:') then
+    fname_read = fname_read(11:)
+    inquire (file = fname_read, opened = is_open)
     if (.not. is_open) then
       if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
                                           r_name, ' NOTE: MOVED DIGESTED FILE.')
@@ -125,7 +140,7 @@ do i = 1, n_files
     cycle
   endif
 
-  if (fname1 == '!RAN FUNCTION WAS CALLED') then
+  if (fname_read == '!RAN FUNCTION WAS CALLED') then
     if (bmad_status%type_out) call out_io(s_warn$, r_name, &
                 'NOTE: THE RANDOM NUMBER FUNCTION WAS USED IN THE LATTICE FILE SO THIS', &
                 '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')
@@ -133,21 +148,22 @@ do i = 1, n_files
     cycle
   endif
 
-  call simplify_path (fname1, fname1)
-  if (v_old) file_names(i) = fname1  ! fake out
-  ix = index(fname1, ';')
-  stat_b = 0
-  if (ix > 0) then    ! has VMS version number
-    fname2 = fname1(:ix-1)
-  else
-    fname2 = fname1
-#ifndef CESR_VMS 
-    ierr = stat(fname2, stat_b)
+  call simplify_path (fname_read, fname_read)
+  if (v_old) file_names(i) = fname_read  ! fake out
+
+#if defined (CESR_VMS) 
+  ix = index(fname_read, ';')
+  fname_versionless = fname_read(:ix-1)
+  call get_file_time_stamp (fname_versionless, new_time_stamp)
+#else
+  ierr = stat(fname_read, stat_b)
+  fname_versionless = fname_read
 #endif
-  endif
-  inquire (file = fname2, exist = found_it, name = fname3)
-  call simplify_path (fname3, fname3)
-  if (.not. found_it .or. fname1 /= fname3 .or. stat_b(10) /= idate_old) then
+
+  inquire (file = fname_versionless, exist = found_it, name = fname_full)
+  call simplify_path (fname_full, fname_full)
+  if (.not. found_it .or. fname_read /= fname_full .or. stat_b(10) /= idate_old .or. &
+                                                    old_time_stamp /= new_time_stamp) then
     if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
                                       r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
     bmad_status%ok = .false.

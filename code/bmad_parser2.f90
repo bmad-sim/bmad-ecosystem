@@ -78,7 +78,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
   character(80) debug_line
 
   logical, optional :: make_mats6, digested_read_ok
-  logical parsing, delim_found, found, xsif_called
+  logical parsing, delim_found, found, xsif_called, err
   logical file_end, err_flag, finished, write_digested
 
 ! Init...
@@ -92,8 +92,8 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 ! In this case we just read from the current open file.
 
   if (lat_file /= 'FROM: BMAD_PARSER') then
-    call file_stack('push', lat_file, finished)   ! open file on stack
-    if (.not. bmad_status%ok) return
+    call file_stack('push', lat_file, finished, err)   ! open file on stack
+    if (err) return
   endif
 
   debug_line = ''
@@ -182,8 +182,8 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 ! CALL command
 
     if (word_1(:ix_word) == 'CALL') then
-      call get_called_file(delim, call_file, xsif_called)
-      if (.not. bmad_status%ok) return
+      call get_called_file(delim, call_file, xsif_called, err)
+      if (err) return
       cycle parsing_loop
 
     endif
@@ -191,16 +191,14 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 ! BEAM command
 
     if (word_1(:ix_word) == 'BEAM') then
-      if (delim /= ',')  &
-              call warning ('"BEAM" NOT FOLLOWED BY COMMA', ' ')
+      if (delim /= ',')  call warning ('"BEAM" NOT FOLLOWED BY COMMA', ' ')
 
       parsing = .true.
       do while (parsing)
         if (.not. delim_found) then
           parsing = .false.
         elseif (delim /= ',') then
-          call warning ('EXPECTING: "," BUT GOT: ' // delim,  &
-                                             'FOR "BEAM" COMMAND')
+          call warning ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
           parsing = .false.
         else
           call get_attribute (def$, beam_ele, lat, plat, &
@@ -231,9 +229,8 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 
     if (word_1(:ix_word) == 'RETURN' .or.  &
                                     word_1(:ix_word) == 'END_FILE') then
-      call file_stack ('pop', ' ', finished)
-      if (.not. bmad_status%ok .and. bmad_status%exit_on_error) call err_exit
-      if (.not. bmad_status%ok) return
+      call file_stack ('pop', ' ', finished, err)
+      if (err) return
       if (finished) then
         exit parsing_loop
       else
@@ -535,7 +532,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 
   if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 
-  if (bp_com%error_flag .and. bmad_status%exit_on_error) then
+  if (.not. bmad_status%ok .and. bmad_status%exit_on_error) then
     print *, 'BMAD_PARSER2 FINISHED. EXITING ON ERRORS'
     stop
   endif

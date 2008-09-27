@@ -149,7 +149,7 @@ type bp_common_struct
   character(40) parser_name
   character(200) :: dirs(2) 
   logical :: bmad_parser_calling = .false.     ! used for expand_lattice
-  logical error_flag
+  logical error_flag     ! Needed since bmad_status%ok gets set by many routines.
   logical input_line_meaningful
   logical ran_function_was_called
 end type
@@ -742,7 +742,7 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine get_called_file (delim, call_file, xsif_called)
+subroutine get_called_file (delim, call_file, xsif_called, err)
 
 implicit none
 
@@ -750,27 +750,29 @@ character(1) delim
 character(*) call_file
 
 integer ix_word, ix
-logical delim_found, finished, xsif_called
+logical delim_found, finished, xsif_called, err
 
 !
 
-if (delim /= ',')  call warning ('"CALL" NOT FOLLOWED BY COMMA')
+err = .true.
+
+if (delim /= ',')  call warning ('"CALL" NOT FOLLOWED BY COMMA', stop_here = .true.)
 call get_next_word(call_file, ix_word, ':=,', delim, delim_found, .true.)
 
 if (ix_word == 0) then
-  call warning ('NOTHING AFTER "CALL"')
+  call warning ('NOTHING AFTER "CALL"', stop_here = .true.)
   return
 elseif (index('FILENAME', call_file(:ix_word)) /= 1) then
-  call warning ('INVALID "CALL" COMMAND')
+  call warning ('INVALID "CALL" COMMAND', stop_here = .true.)
   return
 elseif (delim /= '=') then
-  call warning ('NO "=" AFTER "FILENAME"')
+  call warning ('NO "=" AFTER "FILENAME"', stop_here = .true.)
   return
 endif
 
 call get_next_word(call_file, ix_word, ',', delim, delim_found, .false.)
 if (ix_word == 0) then
-  call warning ('NO FILE NAME SPECIFIED')
+  call warning ('NO FILE NAME SPECIFIED', stop_here = .true.)
   return
 endif
 
@@ -778,7 +780,7 @@ if (call_file(1:1) == '"') then
   call_file = call_file(2:)
   ix = index(call_file, '"')
   if (ix == 0 .or. ix /= len_trim(call_file)) then
-    call warning ('MISSING DOUBLE QUOTE MARK (") FOR CALL STATEMENT')
+    call warning ('MISSING DOUBLE QUOTE MARK (") FOR CALL STATEMENT', stop_here = .true.)
     return
   endif
   call_file(ix:ix) = ' '
@@ -788,7 +790,7 @@ if (call_file(1:1) == "'") then
   call_file = call_file(2:)
   ix = index(call_file, "'")
   if (ix == 0 .or. ix /= len_trim(call_file)) then
-    call warning ("MISSING SINGLE QUOTE MARK (') FOR CALL STATEMENT")
+    call warning ("MISSING SINGLE QUOTE MARK (') FOR CALL STATEMENT", stop_here = .true.)
     return
   endif
   call_file(ix:ix) = ' '
@@ -803,7 +805,7 @@ if (call_file(1:6) == 'xsif::') then
 endif
 
 xsif_called = .false.
-call file_stack ('push', call_file, finished)
+call file_stack ('push', call_file, finished, err) ! err gets set here
 
 end subroutine
 
@@ -946,14 +948,14 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine file_stack (how, file_name_in, finished)
+! Subroutine file_stack (how, file_name_in, finished, err)
 !
 ! Subroutine to keep track of the files that are opened for reading.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-subroutine file_stack (how, file_name_in, finished)
+subroutine file_stack (how, file_name_in, finished, err)
 
   implicit none
 
@@ -966,16 +968,19 @@ subroutine file_stack (how, file_name_in, finished)
   character(*) how
   character(*), optional :: file_name_in
   character(200) file_name, basename, file_name2
-  logical, optional :: finished
+  logical, optional :: finished, err
   logical found_it, is_relative, valid
 
 ! "Init" means init
+
+  if (present(err)) err = .true.
 
   if (how == 'init') then
     i_level = 0
     call fullfilename('./', file_name)
     bp_com%dirs(2) = file_name
     file(:)%dir = file_name
+    if (present(err)) err = .false.
     return
   endif
 
@@ -1004,7 +1009,7 @@ subroutine file_stack (how, file_name_in, finished)
 
     call fullfilename (file_name_in, file_name2, valid)
     if (.not. valid) then
-      call warning ('MALFORMED FILE NAME: ' // file_name_in)
+      call warning ('MALFORMED FILE NAME: ' // file_name_in, stop_here = .true.)
       if (bmad_status%exit_on_error) call err_exit
       do i = 1, i_level-1
         close (file(i_level)%f_unit)
@@ -1026,12 +1031,12 @@ subroutine file_stack (how, file_name_in, finished)
     if (ios /= 0 .or. .not. found_it) then
       bp_com%current_file => file(i_level-1)  ! For warning
       if (file_name2 == file_name)  then
-        call warning ('UNABLE TO OPEN FILE: ' // file_name)
+        call warning ('UNABLE TO OPEN FILE: ' // file_name, stop_here = .true.)
       else
         call warning ('UNABLE TO OPEN FILE: ' // file_name, &
-                      'THIS FROM THE LOGICAL FILE NAME: ' // file_name2)
+                      'THIS FROM THE LOGICAL FILE NAME: ' // file_name2, &
+                      stop_here = .true.)
       endif
-      if (bmad_status%exit_on_error) call err_exit
       do i = 1, i_level-1
         close (file(i_level)%f_unit)
       enddo
@@ -1061,6 +1066,7 @@ subroutine file_stack (how, file_name_in, finished)
     call err_exit
   endif
 
+  if (present(err)) err = .false.
 
 end subroutine
 
@@ -2354,14 +2360,17 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine warning (what1, what2, what3, seq, pele)
+subroutine warning (what1, what2, what3, seq, pele, stop_here)
 
   implicit none
 
-  character(*) what1
-  character(*), optional :: what2, what3
   type (seq_struct), optional :: seq
   type (parser_ele_struct), optional :: pele
+
+  character(*) what1
+  character(*), optional :: what2, what3
+  
+  logical, optional :: stop_here
 
 ! BP_COM%ERROR_FLAG is a common logical used so program will stop at end of parsing
 
@@ -2399,6 +2408,9 @@ subroutine warning (what1, what2, what3, seq, pele)
   endif
 
   bp_com%error_flag = .true.
+  bmad_status%ok = .false.
+
+  if (logic_option(.false., stop_here) .and. bmad_status%exit_on_error) stop
 
 end subroutine
 

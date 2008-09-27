@@ -938,6 +938,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, lat, choice)
 
   if (present (lat)) then
     call bmad_parser (lat_file, lat)
+    if (.not. bmad_status%ok) return
     if (lattice /= "") then
       lat_choise = lat%lattice
       call upcase_string(lat_choise)
