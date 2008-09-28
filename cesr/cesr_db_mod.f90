@@ -71,12 +71,7 @@ subroutine bmad_to_db (lat, db, calib_date, use_mpm)
   real(rp) gev, cu_per_k_gev(0:120)
   real(rp) k_theory(0:120), k_base(0:120), len_quad(0:120)
   real(rp) quad_tilt(0:120), dk_gev_dcu(0:120)
-
-  real h_stren(120), v_stren(120), gev_sp
-  real hsp_dvar_dcu(n_sep_maxx), vsp_dvar_dcu(n_sep_maxx)
-  real sqewquad_dvar_dcu(98), scir_skqucur_dvar_dcu(n_scir_quad_maxx)
-  real sext_dvar_dcu(98), scsolcur_dvar_dcu(5*n_sc_sol_maxx)
-  real sqewsext_dvar_dcu(n_csr_sqewsext_maxx), ir_sksxcur_dvar_dcu(1)
+  real(rp) h_stren(120), v_stren(120)
 
   integer i, ix, ios, cu_theory(0:120), nq100
 
@@ -186,7 +181,6 @@ subroutine bmad_to_db (lat, db, calib_date, use_mpm)
   if (present(calib_date)) this_date = calib_date
 
   gev = 1e-9 * lat%ele(0)%value(E_TOT$)
-  gev_sp = gev
   if (gev == 0) then
     print *, 'ERROR IN BMAD_TO_DB: BEAM ENERGY IS ZERO!'
     call err_exit
@@ -200,17 +194,16 @@ subroutine bmad_to_db (lat, db, calib_date, use_mpm)
 
 ! separator calibration
 
-  call get_sep_strength (hsp_dvar_dcu, vsp_dvar_dcu)
-  db%csr_hsp_volt(:)%dvar_dcu = 1.0e-6 * hsp_dvar_dcu / gev
-  db%csr_vsp_volt(:)%dvar_dcu = 1.0e-6 * vsp_dvar_dcu / gev
+  call get_sep_strength (db%csr_hsp_volt(:)%dvar_dcu, db%csr_vsp_volt(:)%dvar_dcu)
+  db%csr_hsp_volt(:)%dvar_dcu = 1.0e-6 * db%csr_hsp_volt(:)%dvar_dcu / gev
+  db%csr_vsp_volt(:)%dvar_dcu = 1.0e-6 * db%csr_vsp_volt(:)%dvar_dcu / gev
 
   call get_ele_theory (lat, db%csr_hsp_volt)
   call get_ele_theory (lat, db%csr_vsp_volt)
 
 ! sextupole calibration
 
-  call sext_calib (gev_sp, sext_dvar_dcu)
-  db%csr_sext_cur%dvar_dcu = sext_dvar_dcu
+  call sext_calib (gev, db%csr_sext_cur%dvar_dcu)
   call get_ele_theory (lat, db%csr_sext_cur)
 
 ! octupole calibration
@@ -220,18 +213,18 @@ subroutine bmad_to_db (lat, db, calib_date, use_mpm)
 
 ! skew quad calibration
 
-  call skew_quad_calib (sqewquad_dvar_dcu, scir_skqucur_dvar_dcu)
-  db%csr_sqewquad(:)%dvar_dcu = sqewquad_dvar_dcu / gev
-  db%scir_skqucur(:)%dvar_dcu = scir_skqucur_dvar_dcu / gev
+  call skew_quad_calib (db%csr_sqewquad(:)%dvar_dcu, db%scir_skqucur(:)%dvar_dcu)
+  db%csr_sqewquad(:)%dvar_dcu = db%csr_sqewquad(:)%dvar_dcu  / gev
+  db%scir_skqucur(:)%dvar_dcu = db%scir_skqucur(:)%dvar_dcu / gev
 
   call get_ele_theory (lat, db%csr_sqewquad) 
   call get_ele_theory (lat, db%scir_skqucur) 
 
 ! skew sextupole calibration
 
-  call skew_sex_calib (sqewsext_dvar_dcu, ir_sksxcur_dvar_dcu)
-  db%csr_sqewsext(:)%dvar_dcu = sqewsext_dvar_dcu / gev
-  db%ir_sksxcur(:)%dvar_dcu   = ir_sksxcur_dvar_dcu / gev
+  call skew_sex_calib (db%csr_sqewsext(:)%dvar_dcu, db%ir_sksxcur(:)%dvar_dcu)
+  db%csr_sqewsext(:)%dvar_dcu = db%csr_sqewsext(:)%dvar_dcu / gev
+  db%ir_sksxcur(:)%dvar_dcu   = db%ir_sksxcur(:)%dvar_dcu / gev
 
   call get_ele_theory (lat, db%csr_sqewsext) 
   call get_ele_theory (lat, db%ir_sksxcur) 
@@ -262,8 +255,8 @@ subroutine bmad_to_db (lat, db, calib_date, use_mpm)
 
 ! sc solenoid calibration
 
-  call sc_sol_calib (scsolcur_dvar_dcu)
-  db%csr_scsolcur(:)%dvar_dcu = scsolcur_dvar_dcu / gev
+  call sc_sol_calib (db%csr_scsolcur(:)%dvar_dcu)
+  db%csr_scsolcur(:)%dvar_dcu = db%csr_scsolcur(:)%dvar_dcu / gev
 
   call get_ele_theory (lat, db%csr_scsolcur) 
 

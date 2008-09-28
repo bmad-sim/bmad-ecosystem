@@ -86,7 +86,7 @@ subroutine lat_to_quad_calib (lat, cesr, k_theory, k_base,  &
       
 ! convert k_theory to scalar computer units given the specified design energy
 
-  call k_to_quad_calibrations (k_theory, gev, &
+  call k_to_quad_calib (k_theory, gev, &
                                     cu_theory, k_base, dk_gev_dcu, cu_per_k_gev)
 
 end subroutine
@@ -179,60 +179,8 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
 
 ! convert k_theory to scalar computer units given the specified design energy
 
-  call k_to_quad_calibrations (k_theory, energy, &
+  call k_to_quad_calib (k_theory, energy, &
                                    cu_theory, k_base, dk_gev_dcu, cu_per_k_gev)
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine k_to_quad_calibrations (k_theory, &
-!          energy, cu_theory, k_base, dk_gev_dcu, cu_per_k_gev)
-!
-! Single/double precision wrapper routine for k_to_quad_calib. 
-! See k_to_quad_calib for more details.
-!
-! Modules needed:
-!   use cesr_quad_mod
-!
-! Input:
-!   energy          -- Real(rp): Energy in GeV
-!   k_theory(0:120) -- Real(rp): Theory K of quad_i,
-!
-! Output:
-!   k_base(0:120)       -- Real(rp): Extrapolated K for zero CU command
-!   cu_per_k_gev(0:120) -- Real(rp): CU to K*GEV calibration
-!   dk_gev_dcu(0:120)   -- Real(rp): Derivative of K*GEV vs CU curve.
-!   cu_theory(0:120)    -- Integer: Scaler needed to get K_THEORY.
-!-
-
-Subroutine k_to_quad_calibrations (k_theory, &
-          energy, cu_theory, k_base, dk_gev_dcu, cu_per_k_gev)
-
-implicit none
-
-real(rp) energy, k_theory(0:), k_base(0:)
-real(rp) cu_per_k_gev(0:), dk_gev_dcu(0:)
-
-real energy_sp, k_theory_sp(0:120), k_base_sp(0:120)
-real dk_gev_dcu_sp(0:120), cu_per_k_gev_sp(0:120)
-
-integer cu_theory(0:)
-
-!
-
-energy_sp   = energy
-k_theory_sp = k_theory
-
-call k_to_quad_calib (k_theory_sp, energy_sp, cu_theory, &
-                          k_base_sp, dk_gev_dcu_sp, cu_per_k_gev_sp)
-
-k_base        = k_base_sp
-cu_per_k_gev  = cu_per_k_gev_sp
-dk_gev_dcu    = dk_gev_dcu_sp
-
 
 end subroutine
 
