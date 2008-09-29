@@ -61,6 +61,8 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   ! s2 is the right edge of the superimpose.
   ! For a lat a superimpose can wrap around the ends of the lattice.
 
+  n_ele_max_old = lat%n_ele_max
+
   s1_lat = lat%ele(0)%s                 ! normally this is zero.
   s2_lat = lat%ele(lat%n_ele_track)%s
 
@@ -169,7 +171,6 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   ! Only possibility left means we have to set up a super_lord element for the
   ! superposition
 
-  n_ele_max_old = lat%n_ele_max
   ix_super = lat%n_ele_max + 1
   lat%n_ele_max = ix_super
   if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
@@ -306,18 +307,19 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   do i = n_ele_max_old+1, lat%n_ele_max
     lord => lat%ele(i)
+    if (lord%control_type /= super_lord$) cycle
     do j = lord%ix1_slave, lord%ix2_slave
       slave => lat%ele(lat%control(j)%ix_slave)
       if (slave%n_lord == 1) then
         ix_1lord = ix_1lord + 1
         write (slave%name, '(2a, i0)') trim(lord%name), '_', ix_1lord
       else
-        name = lord%name
+        name = ''
         do k = slave%ic1_lord, slave%ic2_lord
-          ix = lat%control(k)%ix_lord
+          ix = lat%control(lat%ic(k))%ix_lord
           name = trim(name) //  '\' // lat%ele(ix)%name !'
         enddo
-        slave%name = name(1:len(slave%name))
+        slave%name = name(2:len(slave%name))
       endif
     enddo
   enddo
