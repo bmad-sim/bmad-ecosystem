@@ -62,7 +62,17 @@ sub run_command {
 
 sub setup_commands {
     @os=`uname`;
-    $command="makedepend @includes $cpp -o'$suffix' -p'$prefix' -f$out_file $src_file";
+
+    # Switch here depending on verbosity level set before building to determine whether or not to suppress ALL
+    # output from makedepend.  Normal build mode suppresses output.  Finally gets rid of repeated whitespace warning for
+    # things like /usr/include/gnu/stubs.h and the like.
+    $verbosity = $ENV{'VERBOSE'};
+    if( $verbosity eq "Y" || $verbosity eq "y" ) {
+        $command="makedepend @includes $cpp -o'$suffix' -p'$prefix' -f$out_file $src_file";
+    } else {
+        $command="makedepend @includes $cpp -o'$suffix' -p'$prefix' -f$out_file $src_file > /dev/null 2>&1";
+    }
+
     if($os[0]=~/Darwin/i) {
         #print "Setting makedepend path correctly for Darwin.\n";
         $command="/usr/X11R6/bin/makedepend @includes $cpp -o'$suffix' -p'$prefix' -f$out_file $src_file";
