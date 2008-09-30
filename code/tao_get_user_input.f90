@@ -82,11 +82,11 @@ endif
 
 ! If a command file is open then read a line from the file.
 
-if (tao_com%cmd_file_level /= 0) then
+n_level = tao_com%cmd_file_level
+if (n_level /= 0 .and. .not. tao_com%cmd_file(n_level)%paused) then
 
   call output_direct (do_print = s%global%command_file_print_on)
 
-  n_level = tao_com%cmd_file_level
   if (.not. tao_com%multi_commands_here) then
     do
       read (tao_com%cmd_file(n_level)%ix_unit, '(a)', end = 8000) cmd_line
@@ -126,7 +126,15 @@ if (tao_com%cmd_file_level /= 0) then
   close (tao_com%cmd_file(n_level)%ix_unit)
   tao_com%cmd_file(n_level)%ix_unit = 0 
   tao_com%cmd_file_level = n_level - 1 ! signal that the file has been closed
-  if (tao_com%cmd_file_level /= 0) return ! still lower nested command file to complete
+  ! If still lower nested command file to complete then return
+  if (tao_com%cmd_file_level /= 0) then
+    if (tao_com%cmd_file(n_level-1)%paused) then
+      call out_io (s_info$, r_name, &
+                      'To continue the paused command file type "continue".')
+    else
+      return 
+    endif
+  endif
   call output_direct (do_print = .true.)
 endif
 
@@ -258,7 +266,7 @@ character(8) :: r_name = "do_loop"
   if (ix .le. len(do_word)) &
     call str_upcase(do_word(1:ix), cmd_line(1:ix))
   if (ix .eq. 2 .and. do_word(1:3) .eq. "DO ") then
-    call set_loop_cmd_file_level (in_loop + 1)
+    call set_loop_level (in_loop + 1)
     ! next word is loop index
     indx_name(in_loop) = ' '
     call string_trim (cmd_line(ix+1:), cmd_line, ix)
@@ -349,7 +357,7 @@ character(8) :: r_name = "do_loop"
         "negative step size in loops not yet implemented: will ignore loop")
     else
       ! looped correct number of times, now exit loop
-      call set_loop_cmd_file_level (in_loop - 1)
+      call set_loop_level (in_loop - 1)
       if (in_loop .ge. 1) then
         read (tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit, '(a)', end = 9000) cmd_line
         goto 1001
@@ -405,7 +413,7 @@ end subroutine do_loop
 ! contains
 !
 
-subroutine set_loop_cmd_file_level (level)
+subroutine set_loop_level (level)
 
 implicit none
 
@@ -419,7 +427,7 @@ integer level
   call re_allocate (indx_step, in_loop)
   call re_allocate (indx_name, 10, in_loop)
 
-end subroutine set_loop_cmd_file_level
+end subroutine set_loop_level
 
 end subroutine tao_get_user_input
 

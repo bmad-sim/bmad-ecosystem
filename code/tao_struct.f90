@@ -475,7 +475,8 @@ end type
 
 type tao_command_file_struct
   integer :: ix_unit
-  character(40) cmd_arg(9) ! Command file arguments.
+  character(40) cmd_arg(9)          ! Command file arguments.
+  logical :: paused = .false.       ! Is the command file paused?
 end type
 
 type tao_common_struct
@@ -486,19 +487,19 @@ type tao_common_struct
   type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   real(rp), allocatable :: covar(:,:), alpha(:,:)
-  real(rp) :: dummy_target = 0         ! Dummy varaible
-  integer ix0_taylor, ix1_taylor     ! Taylor map end points
+  real(rp) :: dummy_target = 0           ! Dummy varaible
+  integer ix0_taylor, ix1_taylor         ! Taylor map end points
   integer :: n_alias = 0
-  integer :: cmd_file_level = 0 ! for nested command files
-              ! unit numbers for a command files. 0 -> no command file.
+  integer :: cmd_file_level = 0          ! For nested command files. 0 -> no command file.
   integer :: ix_key_bank = 0             ! For single mode.
-  integer n_universes
+  integer :: n_universes
+  logical :: cmd_file_paused
   logical :: use_cmd_here  = .false.     ! Used for the cmd history stack
-  logical opti_init             ! init needed?
-  logical opti_at_limit         ! Variable at limit?
-  logical opti_abort            ! Abort loops?
+  logical :: opti_init                   ! init needed?
+  logical :: opti_at_limit               ! Variable at limit?
+  logical :: opti_abort                  ! Abort loops?
   logical :: multi_commands_here = .false.
-  logical cmd_from_cmd_file              ! was command from a command file?
+  logical :: cmd_from_cmd_file              ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
   logical :: init_beam0 = .false.            ! Init beam
@@ -506,7 +507,7 @@ type tao_common_struct
   logical :: optimizer_running 
   logical :: combine_consecutive_elements_of_like_name
   logical :: common_lattice = .false.      
-  character(100) cmd                         ! Used for the cmd history
+  character(100) :: cmd                            ! Used for the cmd history
   character(16) :: init_name = "Tao"               ! label for initialization
   character(80) :: init_tao_file     = 'tao.init'  ! '-init' argument.
   character(200) :: init_lat_file = '' ! '-lat' argument.

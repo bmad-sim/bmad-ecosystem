@@ -31,11 +31,11 @@ use tao_evaluate_mod
 
 implicit none
 
-integer i, j, iu
+integer i, j, iu, ios
 integer ix, ix_line, ix_cmd, which
 integer int1, int2, uni, wrt, n_level
 
-real(rp) value1, value2
+real(rp) value1, value2, time
 
 character(*) :: command_line
 character(140) cmd_line
@@ -44,13 +44,14 @@ character(80) :: cmd_word(12)
 character(40) gang_str, switch
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(30) = (/  &
+character(16) :: cmd_names(32) = (/  &
     'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
     'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
     'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
     'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
     'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ', &
-    'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end-file    ' /)
+    'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end-file    ', &
+    'pause       ', 'continue    ' /)
 
 character(16) :: set_names(8) = (/ &
     'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
@@ -118,6 +119,7 @@ case ('call')
 
   call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
   call tao_call_cmd (cmd_word(1), cmd_word(2:10))
+  return
 
 !--------------------------------
 ! CHANGE
@@ -174,12 +176,28 @@ case ('clip')
   endif
 
 !--------------------------------
+! CONTINUE
+
+case ('continue')
+
+  n_level = tao_com%cmd_file_level
+  if (tao_com%cmd_file(n_level)%paused) then
+    tao_com%cmd_file(n_level)%paused = .false.
+  else
+    call out_io (s_error$, r_name, 'NO PAUSED COMMAND FILE HERE.')
+  endif
+
+  return
+
+!--------------------------------
 ! DERIVATIVE
 
 case ('derivative')
 
   call tao_dmodel_dvar_calc(.true.)
   call out_io (s_blank$, r_name, 'Derivative calculated')
+
+  return
 
 !--------------------------------
 ! END_FILE
@@ -191,9 +209,16 @@ case ('end-file')
     call out_io (s_error$, r_name, 'END_FILE COMMAND ONLY ALLOWED IN A COMMAND FILE!')
     return
   endif
+
   close (tao_com%cmd_file(n_level)%ix_unit)
   tao_com%cmd_file(n_level)%ix_unit = 0 
   tao_com%cmd_file_level = n_level - 1 ! signal that the file has been closed
+
+  if (tao_com%cmd_file(n_level-1)%paused) then
+    call out_io (s_info$, r_name, 'To continue the paused command file type "continue".')
+  endif
+
+  return
 
 !--------------------------------
 ! EXIT/QUIT
@@ -241,6 +266,24 @@ case ('misalign')
 case ('output')
 
   call tao_output_cmd (cmd_line)
+  return
+
+!--------------------------------
+! PAUSE
+
+case ('pause')
+
+  time = 0
+  call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
+  if (cmd_word(1) /= '') then
+    read (cmd_word(1), *, iostat = ios) time
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'TIME IS NOT A NUMBER.')
+      return
+    endif
+  endif
+
+  call tao_pause_cmd (time)
   return
 
 !--------------------------------

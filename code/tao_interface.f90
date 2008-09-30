@@ -336,6 +336,14 @@ interface
 end interface
  
 interface
+  subroutine tao_pause_cmd (time)
+    use precision_def
+    implicit none
+    real(rp) time
+  end subroutine
+end interface
+ 
+interface
   subroutine tao_place_cmd (where, who)
     implicit none
     character(*) who

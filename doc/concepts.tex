@@ -63,7 +63,7 @@ Machine layout and component strengths, and the beam orbit (\sref{s:lattice}).
 Anything that can be measured.
 For example: The orbit of a particle or the lattice beta 
 functions, etc. (\sref{c:data})
-  \index{Varialbe}
+  \index{Variable}
   \item[Variables] \Newline
 Essentially, any lattice parameter or initial condition that can be varied.
 For example: quadrupole strengths, etc. (\sref{s:variable.overview}).
@@ -73,7 +73,7 @@ Information used to draw graphs, display the lattice
 floor plan, etc. (\sref{s:plotting}).
   \index{Global parameters}
   \item[Global Parameters] \Newline
- \tao has a set of parameters to control every aspect of how it behavies from
+ \tao has a set of parameters to control every aspect of how it behaves from
 the random number seed \tao uses to what optimizer is used for fitting data.
 \end{description}
 
@@ -127,7 +127,7 @@ defined to simultaneously vary the corresponding quadrupoles in each
 universe and \tao's built in optimizer can vary the variables until
 the data as determined from the \vn{model} lattice (\sref{s:lattice})
 matches the measured data. This \vn{orbit response matrix} (ORM) analysis
-is, in fact, a widly used procedure at many laboratories.
+is, in fact, a widely used procedure at many laboratories.
 
 %------------------------------------------------------------------------
 \section{Lattices}
@@ -194,19 +194,19 @@ variables.
 Blocks of variables are associated with what is called a \vn{v1_var}
 structure and each of these structures has a \vn{name} with which to
 refer to them in \tao commands. For example, if \vn{quad_k1} is the
-name of a \vn{v1_var}, then \vn{quad_k1[5]} referres to the variable 
+name of a \vn{v1_var}, then \vn{quad_k1[5]} referees to the variable 
 with index 5 in the block. 
 
 A set of variables within a \vn{v1_var} block
 can be referred to by using using a comma \vn{,} to
-separate their indexes. Additionally, a colan \vn{:} can be use to
+separate their indexes. Additionally, a Colon \vn{:} can be use to
 specify a range of variables. For example
 \begin{example}
   quad_k1[3:6,23]
 \end{example}
 refers to variables 3, 4, 5, 6, and 23. Instead of a number, the
 associated lattice element name can be used so if, in the above
-example, the lattice element named \vn{q01} is assocaited with
+example, the lattice element named \vn{q01} is associated with
 \vn{quad_k1[1]}, etc., then the following is equivalent:
 \begin{example}
   quad_k1[q03:q06,q23]
@@ -214,7 +214,7 @@ example, the lattice element named \vn{q01} is assocaited with
 Using lattice names instead of numbers is not valid if the same
 lattice element is associated with more than one variable in a
 \vn{v1_var} array. This can happen, for example, if one variable controls
-an element's \vn{x_offset} and another variable controlls the same element's
+an element's \vn{x_offset} and another variable controls the same element's
 \vn{y_offset}. 
 
 In referring to variables, a ``\vn{*}'' can be used as a wild card to 
@@ -249,12 +249,12 @@ The value as given in the \vn{design} lattice.
   \item[Base Value] \Newline
 The value as given in the \vn{base} lattice.
   \end{description}
-These components and others can be refered to using the notaion
+These components and others can be refereed to using the notation
 \vn{|name} where \vn{name} is the appropriate name for the
-component. The list of components that can be set or refered to are:
+component. The list of components that can be set or refereed to are:
 \begin{example}
   quad_k1[1]|meas      ! Value at time of data measurement
-  quad_k1[1]|ref       ! VAlue at time of the reference data measurement
+  quad_k1[1]|ref       ! Value at time of the reference data measurement
   quad_k1[1]|model     ! Value in the model lattice
   quad_k1[1]|base      ! Value in the base lattice
   quad_k1[1]|design    ! Value in  the design lattice
@@ -419,7 +419,7 @@ plotting \vn{model}, \vn{design} and/or \vn{base} data then the data
 will be displayed irregardless. If plotting \vn{meas} and/or \vn{ref} data
 then the data displayed will vary with these commands.  \vn{meas} or
 \vn{ref} data vetoed for display is also vetoed for fitting.  However,
-measured data that is off the vetical or horizontal scale may still be
+measured data that is off the vertical or horizontal scale may still be
 used by the optimizer unless vetoed with the \vn{veto} or \vn{clip}
 command.  If there are data points off the vertical scale then
 ``**Limited**'' will appear in the upper right-hand corner of the
@@ -429,7 +429,7 @@ still be used by the optimizer.
 The \vn{x-axis} and \vn{x-scale} commands are used to set the axis
 type and scale for each graph. The axis type can be either \vn{index},
 \vn{ele_index} or \vn{s} which corresponds to the data index number,
-element index number and longitudinal poisition in the lattice (from
+element index number and longitudinal position in the lattice (from
 element 0) respectively.
 
 Figure~\ref{f:plot.page2} shows another example of a plot \vn{page}.
@@ -484,6 +484,58 @@ the variable is varied. This association between variables and keys is
 called a \vn{key table}. See Chapter~\sref{c:single} for more details.
 
 %------------------------------------------------------------------------
+\section{Aliases and Command Files}
+\label{s:command.files}
+\index{Command Files}
+\index{Alias}
+
+Typing repetitive commands can become tedious. \tao has two constructs
+to mitigate this: Aliases and Command Files. Aliases are just like
+aliases in Unix. See Section~\sref{s:alias} for more details.
+
+Command files are like Unix shell scripts. A series of commands are
+put in a file and then that file can be called using the \vn{call}
+command (\sref{s:call}).
+
+Do loops are allowed with the following syntax:
+\begin{example}
+  do <var> <begin> <end> <step> 
+    ...
+    tao command [[<var>]]
+    ...
+  enddo
+\end{example}
+The \vn{<var>} can be used as a variable in the loop body but must be
+bracketed ``[[<var>]]''.  The step size can be any integer positive or
+negative but not zero.  Nested loops are allowed and command files can
+be called within do loops.
+
+\begin{example}
+  do i 1 100
+    call set_quad_misalignment [[i]] ! command file to misalign quadrupoles
+    zero_quad 1e-5*2^([[i]]-1) ! Some user supplied command to zero quad number [[i]]
+  enddo
+\end{example}
+
+To reduce unnecessary calculations, the logicals \vn{global%lattice_calc_on}
+and \vn{global%plot_on} can be toggled from within the command file. Example
+\begin{example}
+  set global lattice_calc_on = F  ! Turn off lattice calculations
+  set global plot_on = F          ! Turn off plot calculations
+  ... do some stuff ...
+  set global plot_on = T          ! Turn back on 
+  set global lattice_calc_on = T  ! Turn back on
+\end{example}
+Additionally, the \vn{global%command_file_print_on} switch controls
+whether printing is suppressed when a command file is called.
+
+A \vn{end-file} command (\sref{s:end.file}) can be used to signal the
+end of the command file.
+
+The \vn{pause} command (\sref{s:pause}) can be used to temporarily
+pause the command file.
+
+%------------------------------------------------------------------------
 \section{Tracking Types}
 \index{Tracking!Types}
 
@@ -491,15 +543,14 @@ called a \vn{key table}. See Chapter~\sref{c:single} for more details.
 \index{tao_global_struct}
 \index{Global%track_type}
 The are two types of tracking implemented in \tao: single particle
-tracking and many particle multi-bunch tracking.
-Single particle tracking is just that, the
-tracking of a single particle through the lattice. Many particle
-multi-bunch tracking creates a gaussian distribution of particles at
-the beginning of the lattice and tracks each particle through the
-lattice, including any wakefields. 
-Single particle tracking is used by default. The
-\vn{global%track_type} parameter (\sref{s:globals}), which is set in
-the initialization file, is used to set the tracking.
+tracking and many particle multi-bunch tracking.  Single particle
+tracking is just that, the tracking of a single particle through the
+lattice. Many particle multi-bunch tracking creates a Gaussian
+distribution of particles at the beginning of the lattice and tracks
+each particle through the lattice, including any wakefields.  Single
+particle tracking is used by default. The \vn{global%track_type}
+parameter (\sref{s:globals}), which is set in the initialization file,
+is used to set the tracking.
 
 Particle spin tracking has also been set up for single particle and many
 particle tracking. See Sections~\sref{s:globals} and \sref{s:beam.init} for
@@ -527,7 +578,7 @@ If changes have been made to the lattice (e.g. variables changed) then
 the model lattice for all universes will be recalculated. The
 \vn{model} orbit, linear transfer matrices and twiss parameters are
 recalculated for every element. All data types will also be calculated
-at each element specified in the initialiation file.  For single
+at each element specified in the initialization file.  For single
 particle tracking the linear transfer matrices and twiss parameters
 are found about the tracked orbit. Tracking is
 performed using the tracking method defined for each element

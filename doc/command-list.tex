@@ -30,10 +30,11 @@ of the line is ignored.  Example:
 \centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}  & {\it Command} & {\it Section}    \\ \hline
-  alias      & \sref{s:alias}    & read         & \sref{s:read}     \\ \hline
-  call       & \sref{s:call}     & restore      & \sref{s:restore}  \\ \hline 
-  change     & \sref{s:change}   & reinitialize & \sref{s:reinit}   \\ \hline 
-  clip       & \sref{s:clip}     & run          & \sref{s:run}      \\ \hline 
+  alias      & \sref{s:alias}    & quit         & \sref{s:quit}     \\ \hline
+  call       & \sref{s:call}     & read         & \sref{s:read}     \\ \hline
+  change     & \sref{s:change}   & restore      & \sref{s:restore}  \\ \hline 
+  clip       & \sref{s:clip}     & reinitialize & \sref{s:reinit}   \\ \hline 
+  continue   & \sref{s:continue} & run          & \sref{s:run}      \\ \hline 
   derivative & \sref{s:deriv}    & scale        & \sref{s:scale}    \\ \hline 
   end-file   & \sref{s:end.file} & set          & \sref{s:set}      \\ \hline  
   exit       & \sref{s:exit}     & show         & \sref{s:show}     \\ \hline 
@@ -42,9 +43,9 @@ of the line is ignored.  Example:
   history    & \sref{s:history}  & use          & \sref{s:use}      \\ \hline 
   misalign   & \sref{s:misalign} & veto         & \sref{s:veto}     \\ \hline 
   output     & \sref{s:output}   & view         & \sref{s:view}     \\ \hline 
-  place      & \sref{s:place}    & x-axis       & \sref{s:x.axis}   \\ \hline 
-  plot       & \sref{s:plot}     & x-scale      & \sref{s:x.scale}  \\ \hline 
-  quit       & \sref{s:quit}     & xy-scale     & \sref{s:xy.scale} \\ \hline
+  pause      & \sref{s:pause}    & x-axis       & \sref{s:x.axis}   \\ \hline 
+  place      & \sref{s:place}    & x-scale      & \sref{s:x.scale}  \\ \hline 
+  plot       & \sref{s:plot}     & xy-scale     & \sref{s:xy.scale} \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -92,8 +93,9 @@ for ``[[1]]'' in the string.
 \section{call}\index{Commands!call}
 \label{s:call}
 
-The \vn{call} command opens a command file and executes the commands
-in it.  Format:
+The \vn{call} command opens a command file (\sref{s:command.file}) and
+executes the commands in it. 
+Format:
 \begin{example}
   call <filename> \{<arg_list>\}  \Strut
 \end{example}
@@ -107,19 +109,6 @@ string ``[[i]]'' in the file. Nesting of command files (command files
 calling other command files) is allowed. There is no limit to the
 number of nested files.
 
-Do loops are allowed with the following syntax:
-\begin{example}
-  do <var> <begin> <end> <step> 
-    ...
-    tao command [[<var>]]
-    ...
-  enddo
-\end{example}
-\vn{<var>} can be any character string up to 10 characters long.
-The \vn{<var>} can be used as a variable in the loop body but must be
-bracketed.  The step size can be any integer positive or negative but not zero.
-Nested loops are allowed. Command files can be called within do loops.
-
 Examples:
 \begin{example}
     call my_cmd_file abc def 
@@ -128,26 +117,6 @@ In the above example the argument ``abc'' is substituted for any
 ``[[1]]'' appearing the file and ``def'' is substituted for any
 ``[[2]]''.
 \Newline
-
-\begin{example}
-  do i 1 100
-    call set_quad_misalignment [[i]] ! command file to misalign quadrupoles
-    zero_quad 1e-5*2^([[i]]-1) ! Some user supplied command to zero quad number [[i]]
-  enddo
-\end{example}
-
-Note: To reduce unnecessary calculations, \vn{global%lattice_calc_on}
-and \vn{global%plot_on} can be toggled. Example
-\begin{example}
-  set global lattice_calc_on = F  ! Turn off lattice calculations
-  set global plot_on = F          ! Turn off plot calculations
-  ... do some stuff ...
-  set global plot_on = T          ! Turn back on 
-  set global lattice_calc_on = T  ! Turn back on
-\end{example}
-  
-The \vn{global%command_file_print_on} switch controls whether printing
-is suppressed when a command file is called.
 
 %% change --------------------------------------------------------------
 \section{change}\index{Commands!change}
@@ -256,15 +225,27 @@ Examples:
   clip -g orbit.x   ! Clip the 
 \end{example}
 
-%% end-file --------------------------------------------------------------
-\section{end-file}
-\label{s:end.file}
+%% continue --------------------------------------------------------------
+\section{continue}\index{Commands!continue}
+\label{s:continue}
+
+The \vn{continue} command is used to continue reading of a suspended
+command file (\sref{s:command.file}) after a \vn{pause} command
+(\vn{s:pause}). Format:
+\begin{example}
+  continue
+\end{example}
+
+%% end-file
+--------------------------------------------------------------
+\section{end-file} \label{s:end.file}
 \index{Commands!end-file}
 
-The \vn{end-file} command is used in command files (\sref{s:call}) to
-signal the end of the file. Everything after an \vn{end-file} command
-is ignored. An \vn{end-file} command entered at the command line will
-simply generate an error message.  Format:
+The \vn{end-file} command is used in command files
+(\sref{s:command.file}) to signal the end of the file. Everything
+after an \vn{end-file} command is ignored. An \vn{end-file} command
+entered at the command line will simply generate an error message.
+Format:
 \begin{example}
   end-file
 \end{example}
@@ -461,6 +442,37 @@ initialize \tao (\sref{s:command.line}).
 
 Note: PGPLOT does a poor job producing gif files so consider
 making a postscript file instead and using a ps to gif converter.
+
+%% place --------------------------------------------------------------
+\section{pause}\index{Commands!pause}
+\label{s:pause}
+
+The \vn{pause} command is used to pause \tao when executing a command
+file (\sref{s:command.file}). Format:
+\begin{example}
+  pause \{<time>\} ! Pause time in seconds.
+\end{example}
+\vskip 0.2in
+
+If \vn{<time>} is not present or zero, \tao will pause until the
+\vn{CR} key is pressed. Once the \vn{CR} key is pressed, the command
+file will be resumed. If \vn{<time>} is negative, \tao will suspend
+the command file. Commands can now be issued from the keyboard and the
+command file will be resumed when a \vn{continue} command
+(\sref{s:continue}) is issued. Multiple command files can be
+simultaneously suspended.  Thus, while one command file is suspended, a
+second command file can be run and this command file too can be
+suspended. A \vn{continue} command will resume the second command file
+and when that command file ends, another \vn{continue} command will be
+needed to complete the first suspended command file. Use the \vn{show
+global} command to see the number of suspended command files.
+
+Example:
+\begin{example}
+  pause 1.5    ! Pause for 1.5 seconds.
+  pause -1     ! Suspend the command file until a \vn{continue} 
+               !   command is issued.
+\end{example}
 
 %% place --------------------------------------------------------------
 \section{place}\index{Commands!place}

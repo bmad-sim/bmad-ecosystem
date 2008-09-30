@@ -43,6 +43,16 @@ logical, optional :: err_flag
 namelist / tao_start / lattice_file, startup_file, wall_file, &
                data_file, var_file, plot_file, n_universes, init_name
 
+! global inits
+
+tao_com%n_alias = 0
+tao_com%cmd_file_level = 0          ! for nested command files
+tao_com%ix_key_bank = 0             ! For single mode.
+tao_com%multi_commands_here = .false.
+tao_com%cmd_from_cmd_file   = .false.
+tao_com%use_saved_beam_in_tracking = .false.
+allocate (tao_com%cmd_file(0:0))
+
 ! Put all informational messages in the tao_init.log file.
 ! Only print error messages. Not standard ones.
 

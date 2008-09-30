@@ -904,6 +904,7 @@ case ('global')
                                               tao_com%combine_consecutive_elements_of_like_name
   nl=nl+1; write (lines(nl), amt) 'tao_com%init_lat_file        = ', tao_com%init_lat_file
   nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file        = ', tao_com%init_tao_file
+  nl=nl+1; write (lines(nl), imt) 'Number paused command files  = ', count(tao_com%cmd_file%paused)
 
   nl=nl+1; lines(nl) = ''
   nl=nl+1; lines(nl) = 'Bmad Parameters:'

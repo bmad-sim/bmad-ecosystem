@@ -133,7 +133,9 @@ case ("'")
     call tao_hook_command (line, found)
     if (.not. found) call tao_command (line, err)
     if (tao_com%multi_commands_here) cycle ! Use up all commands on line
-    if (tao_com%cmd_file_level == 0) exit  ! Keep on going if a command file is open
+    ! Keep on going if a command file is open
+    ix = tao_com%cmd_file_level
+    if (ix == 0 .and. .not. tao_com%cmd_file(ix)%paused) exit  
   enddo
   tao_com%single_mode = .true.
 
@@ -224,7 +226,7 @@ case ('=')
       call out_io (s_error$, r_name, 'THE KEY TABLE HAS NOT BEEN SET UP IN THE INIT FILES!')
       return
     endif
-    write (*, '(a, $)', advance = "NO") ' Enter Key# and Value: '
+    write (*, '(a)', advance = "NO") 'Enter Key# and Value: '
     read (*, '(a)') line
     read (line, *, iostat = ios) ix, value
     if (ios /= 0 .or. .not. is_integer(line)) then

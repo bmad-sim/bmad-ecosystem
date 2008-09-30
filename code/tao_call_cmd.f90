@@ -26,7 +26,7 @@ character(200) full_name
 character(16) :: r_name = 'tao_call_cmd'
 
 integer iu
-type (tao_command_file_struct), automatic :: cmd_file(tao_com%cmd_file_level)
+type (tao_command_file_struct), automatic :: cmd_file(0:tao_com%cmd_file_level)
 
 ! Open the command file and store the unit number
 
@@ -34,14 +34,12 @@ tao_com%cmd_file_level = tao_com%cmd_file_level + 1
 
 ! reallocate cmd_file array
 
-if (tao_com%cmd_file_level .gt. 1) &
-  cmd_file = tao_com%cmd_file(1:tao_com%cmd_file_level-1)
+if (tao_com%cmd_file_level > 1) cmd_file = tao_com%cmd_file
 
 if (allocated (tao_com%cmd_file)) deallocate (tao_com%cmd_file)
-allocate (tao_com%cmd_file(tao_com%cmd_file_level))
+allocate (tao_com%cmd_file(0:tao_com%cmd_file_level))
 
-if (tao_com%cmd_file_level .gt. 1) &
-  tao_com%cmd_file(1:tao_com%cmd_file_level-1) = cmd_file
+if (tao_com%cmd_file_level > 1) tao_com%cmd_file(0:tao_com%cmd_file_level-1) = cmd_file
   
 iu = lunget()
 call tao_open_file ('TAO_COMMAND_DIR', file_name, iu, full_name)
