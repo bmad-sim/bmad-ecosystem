@@ -136,7 +136,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
     endif
     call save_taylor_elements (lat2, old_ele)
     call deallocate_lat_pointers (lat2)
-    write_digested = .true.
+    if (digested_version <= bmad_inc_version$) write_digested = .true.
     if (bmad_status%type_out) &
              call out_io (s_info$, r_name, 'Creating new digested file...')
   endif
@@ -559,7 +559,6 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 
 ! write to digested file
 
-  write_digested = write_digested .and. digested_version <= bmad_inc_version$
   if (write_digested) call write_digested_bmad_file (digested_name, &
                              lat, bp_com%num_lat_files, bp_com%lat_file_names)
 
