@@ -1019,7 +1019,7 @@ if (.not. logic_option(.false., exact) .and. n_data < size(u%data)) return
 
 n0 = min(n_data, size(u%data))
 allocate (data(n0))
-data = u%data
+data = u%data(1:n0)
 deallocate (u%data)
 if (logic_option(.false., exact)) then
   allocate (u%data(n_data))
