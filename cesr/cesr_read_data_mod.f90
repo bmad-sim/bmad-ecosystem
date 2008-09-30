@@ -433,7 +433,6 @@ type (raw_det_struct) :: h_(0:120), v_(0:120)
 type (shaking_modes_struct) shake(0:120)
 
 real(rp) horiz_beta_freq, vert_beta_freq
-real(rp) horiz_reflection_shake, vert_reflection_shake
 
 integer ix, ios, iu, species
 
@@ -441,6 +440,7 @@ character(*) file_name
 character(100) name, dir
 character(40) :: r_name = 'read_cesr_phase_data'
 
+logical horiz_reflection_shake, vert_reflection_shake
 logical err, is_rel
 
 namelist / phase_parameters / species, horiz_beta_freq, vert_beta_freq, &
