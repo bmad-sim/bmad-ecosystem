@@ -1058,6 +1058,12 @@ Show information on a particular graph of a particular plot. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names.
 Use \vn{show plot} to get a list of plot names.
 
+Example:
+\begin{example}
+  show curve r2.g1         ! Show the attributes of graph "g1" which is 
+                           !   plotted in region "r2".
+\end{example}
+
 %% show hom --------------------------------------------------------------
 
 \item[show hom] \Newline
@@ -1093,7 +1099,7 @@ Alternatively, a range of elements can be specified using the element
 index or the element's longitudinal position with a \vn{":"} being
 used to separate the index. For example
 \begin{example}  
-  Show lat  45:76, 101, 106    ! Show element #45 through #76 and 101 and 106.
+  show lat  45:76, 101, 106    ! Show element #45 through #76 and 101 and 106.
   show lat -s  23.9:55.3       ! Show elements whose position is between 
                                !   23.9 meters and 55.3 meters .
 \end{example}
@@ -1175,12 +1181,15 @@ Bmad standard lattice input format.
 
 %% show particle --------------------------------------------------------------
 
-\item[show particle <particle\_index>] \Newline
-\vn{show particle lost} shows which particles are lost during beam
-tracking. \vn{show particle <index>} shows information on the particle
-with the given index. At the exit end of the element given by  \vn{<element_index>}.
-The default \vn{<element_index>} is 0 (the starting position).
-Also see \vn{show beam}.
+\item[\protect\parbox{6in}{
+        show particle <particle\_index> \{<element\_index>\} \\
+        show particle -lost}] \Newline
+\vn{show particle -lost} shows which particles are lost during beam
+tracking. \vn{show particle <particle_index> \{<element_index>\}}
+shows information on the particle with the given beam index at the
+exit end of the element given by \vn{<element_index>}. The default
+\vn{<element_index>} is 0 (the starting position).  Also see \vn{show
+beam}.
 
 %% show plot --------------------------------------------------------------
 

@@ -50,7 +50,7 @@ character(16) :: cmd_names(30) = (/  &
     'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
     'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
     'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ', &
-    'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end_file    ' /)
+    'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end-file    ' /)
 
 character(16) :: set_names(8) = (/ &
     'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
@@ -83,6 +83,12 @@ if (ix /= 0) cmd_line = cmd_line(:ix-1)        ! strip off comments
 call match_word (cmd_line, cmd_names, ix_cmd, .true.)
 if (ix_cmd == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED COMMAND: ' // cmd_line)
+  ! And close any open command files
+  do i = 1, tao_com%cmd_file_level
+    close (tao_com%cmd_file(i)%ix_unit)
+    tao_com%cmd_file(i)%ix_unit = 0 
+  enddo
+  tao_com%cmd_file_level = 0
   return
 elseif (ix_cmd < 0) then
   call out_io (s_error$, r_name, 'AMBIGUOUS COMMAND')
@@ -178,7 +184,7 @@ case ('derivative')
 !--------------------------------
 ! END_FILE
 
-case ('end_file')
+case ('end-file')
 
   n_level = tao_com%cmd_file_level
   if (n_level == 0) then

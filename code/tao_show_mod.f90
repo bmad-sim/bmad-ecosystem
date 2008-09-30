@@ -1373,11 +1373,12 @@ case ('particle')
     endif
   endif
 
-  bunch => u%ele(ix_ele)%beam%bunch(nb)
-  if (.not. associated(bunch)) then
+  
+  if (.not. allocated(u%ele(ix_ele)%beam%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH NOT ASSOCIATED WITH THIS ELEMENT.')
     return
   endif
+  bunch => u%ele(ix_ele)%beam%bunch(nb)
 
   nl=nl+1; write (lines(nl), imt) '  At lattice element: ', ix_ele
   nl=nl+1; write (lines(nl), imt) '  Coords for Particle: ', ix_p
