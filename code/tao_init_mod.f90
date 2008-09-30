@@ -1221,7 +1221,7 @@ namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delt
 !-----------------------------------------------------------------------
 ! Init
 
-allocate (s%var(0))
+allocate (s%var(1))
 s%n_var_used = 0
 
 ! First count how many v1_var definitions there are
@@ -1448,7 +1448,6 @@ if (use_same_lat_eles_as /= '') then
   v1_ptr => v1_array(1)%v1
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + size(v1_ptr%v)
-  s%n_var_used = n2
   call tao_allocate_var_array (n2)
 
   ix_min_var = lbound(v1_ptr%v, 1)
@@ -1577,7 +1576,6 @@ if (search_for_lat_eles /= '') then
 
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + num_ele
-  s%n_var_used = n2
   call tao_allocate_var_array (n2)
 
   nn = n1 - 1
@@ -1645,7 +1643,6 @@ else
   ix1 = ix_min_var
   ix2 = ix_max_var
  
-  s%n_var_used = n2
   call tao_allocate_var_array (n2)
 
   s%var(n1:n2)%ele_name = var(ix1:ix2)%ele_name
@@ -2018,8 +2015,9 @@ integer i, j1, j2, n0, n_var
 
 ! Allocate 
 
+n0 = s%n_var_used
+
 if (allocated(s%var)) then
-  n0 = size(s%var)
   do i = 1, n0
     allocate(var(i)%this(size(s%var(i)%this)))
   enddo
@@ -2066,6 +2064,9 @@ do i = n0+1, size(s%var)
   allocate(s%var(i)%this(0))
 enddo
   
+s%n_var_used = n_var
+
+
 end subroutine tao_allocate_var_array
 
 !----------------------------------------------------------------------------

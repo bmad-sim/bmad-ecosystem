@@ -641,6 +641,7 @@ implicit none
 
 type (tao_lattice_struct), intent(inout) :: lat1
 type (tao_lattice_struct), intent(in) :: lat2
+integer ix2
 
 !
 
@@ -649,8 +650,18 @@ lat1%orb   = lat2%orb
 lat1%modes = lat2%modes
 lat1%a     = lat2%a
 lat1%b     = lat2%b
-lat1%bunch_params    = lat2%bunch_params
-lat1%bunch_params2   = lat2%bunch_params2
+lat1%bunch_params = lat2%bunch_params
+
+if (allocated(lat2%bunch_params2)) then
+  ix2 = size(lat2%bunch_params2)
+  if (allocated(lat1%bunch_params2)) then
+    if (size(lat1%bunch_params2) /= ix2) deallocate(lat1%bunch_params2)
+  endif
+  if (.not. allocated(lat1%bunch_params2)) allocate(lat1%bunch_params2(ix2))
+else
+  if (allocated(lat1%bunch_params2)) deallocate(lat1%bunch_params2)
+endif
+
 lat1%n_bunch_params2 = lat2%n_bunch_params2
 
 end subroutine
