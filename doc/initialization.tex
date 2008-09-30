@@ -140,7 +140,7 @@ are used).  This namelist contains the variables:
     lattice_file      = "<file_name>"  ! Default = Initialization file.
     data_file         = "<file_name>"  ! Default = Initialization file.
     var_file          = "<file_name>"  ! Default = Initialization file.
-    plot_file         = "<file_name1> \{file_name2>} ..."  ! Default = Initialization file.
+    plot_file         = "<file_name1> \{<file_name2>\} ..."  ! Default = Initialization file.
     single_mode_file  = "<file_name>"  ! Default = Initialization file.
     startup_file      = "<file_name>"  ! Default = "tao.startup"
     init_name         = "<init_name>"  ! Default = "Tao"
@@ -176,21 +176,20 @@ however, can contain \vn{tao_template_plot} and
 \centering {\tt
 \begin{tabular}{|l|l|l|l|} \hline
   {\it Namelist} & {\it File Name} & {\it Initialized here}  & {\it Section} \\ \hline
-  \vn{tao_design_lattice}        & \vn{lattice_file} & lattice files  & \sref{s:init.lat}      \\ \hline
-  \vn{tao_params}                & "tao.init" & Global Variables      & \sref{s:globals}       \\ \hline
-  \vn{tao_connected_uni_init}    & "tao.init" & Connected Universes   & \sref{s:connected.uni} \\ \hline
-  \vn{tao_beam_init}             & "tao.init" & Particle beam         & \sref{s:beam.init}     \\ \hline
-  \vn{tao_var}                   & \vn{var_file}     & Variables      & \sref{s:init.var}      \\ \hline
-  \vn{tao_d2_data}               & \vn{data_file}    & Data           & \sref{s:init.data}     \\ \hline
-  \vn{tao_d1_data}               & \vn{data_file}    & Data           & \sref{s:init.data}     \\ \hline
-  \vn{tao_plot_page}             & \vn{plot_file} $^*$ & Plotting     & \sref{s:init.plot}     \\ \hline
-  \vn{element_shapes_lat_layout} & \vn{plot_file} $^*$ & Plotting     & \sref{s:ele.shape}     \\ \hline
-  \vn{element_shapes_floor_plan} & \vn{plot_file} $^*$ & Plotting     & \sref{s:ele.shape}     \\ \hline
-  \vn{tao_template_plot}         & \vn{plot_file}    & Plotting       & \sref{s:init.plot}     \\ \hline
-  \vn{tao_template_graph}        & \vn{plot_file}    & Plotting       & \sref{s:init.plot}     \\ \hline
+  \vn{tao_design_lattice}        & \vn{lattice_file} & lattice files & \sref{s:init.lat}      \\ \hline
+  \vn{tao_params}                & "tao.init" & Global Variables     & \sref{s:globals}       \\ \hline
+  \vn{tao_connected_uni_init}    & "tao.init" & Connected Universes  & \sref{s:connected.uni} \\ \hline
+  \vn{tao_beam_init}             & "tao.init" & Particle beam        & \sref{s:beam.init}     \\ \hline
+  \vn{tao_var}                   & \vn{var_file}      & Variables    & \sref{s:init.var}      \\ \hline
+  \vn{tao_d2_data}               & \vn{data_file}     & Data         & \sref{s:init.data}     \\ \hline
+  \vn{tao_d1_data}               & \vn{data_file}     & Data         & \sref{s:init.data}     \\ \hline
+  \vn{tao_plot_page}             & \vn{plot_file}$^*$ & Plotting     & \sref{s:init.plot}     \\ \hline
+  \vn{element_shapes_lat_layout} & \vn{plot_file}$^*$ & Plotting     & \sref{s:ele.shape}     \\ \hline
+  \vn{element_shapes_floor_plan} & \vn{plot_file}$^*$ & Plotting     & \sref{s:ele.shape}     \\ \hline
+  \vn{tao_template_plot}         & \vn{plot_file}     & Plotting     & \sref{s:init.plot}     \\ \hline
+  \vn{tao_template_graph}        & \vn{plot_file}     & Plotting     & \sref{s:init.plot}     \\ \hline
 \end{tabular}}
-\caption{Table of \vn{tao} Initialization Namelists. $^*$ This namelist taken from the first file in the
-\vn{plot_file} array.
+\caption{Table of \vn{tao} Initialization Namelists. $^*$This namelist taken from the first file in the \vn{plot\_file} array.}
 \label{t:init.files}
 \end{table}
 
