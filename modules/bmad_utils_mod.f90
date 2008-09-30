@@ -62,7 +62,7 @@ enddo
 
 err = .false.
 
-end subroutine
+end subroutine check_controller_controls
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -102,7 +102,7 @@ if (ix_ele < 0 .or. ix_ele > lat%branch(ix_line)%n_ele_track) return
 
 ele => lat%branch(ix_line)%ele(ix_ele)
 
-end subroutine
+end subroutine pointer_to_ele
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -136,7 +136,7 @@ if (present(vec)) orb%vec = vec
 
 orb%spin = 0
 
-end subroutine
+end subroutine init_coord
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -226,7 +226,7 @@ ele%value(x_offset_tot$) = 0
 ele%value(y_offset_tot$) = 0
 ele%value(s_offset_tot$) = 0
 
-end subroutine
+end subroutine zero_ele_offsets
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -287,7 +287,7 @@ mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
 mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
                     mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
 
-end subroutine
+end subroutine mat6_add_pitch
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -327,15 +327,7 @@ character(20) :: r_name = 'convert_total_energy_to'
 
 !
 
-if (particle == positron$ .or. particle == electron$) then
-  mc2 = m_electron
-elseif (particle == proton$ .or. particle == antiproton$) then
-  mc2 = m_proton
-else
-  call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PARTICLE TYPE:\i4\ ', particle)
-  call err_exit
-endif
-
+mc2 = rest_energy(particle)
 if (E_tot < mc2) then
   call out_io (s_abort$, r_name, &
             'ERROR: TOTAL ENERGY IS LESS THAN REST MASS:\f10.0\ ', E_tot)
@@ -349,7 +341,7 @@ if (present(kinetic)) kinetic = E_tot - mc2
 if (present(brho))    brho    = pc_new / c_light
 if (present(gamma))   gamma   = E_tot / mc2
 
-end subroutine
+end subroutine convert_total_energy_to
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -387,23 +379,55 @@ character(20) :: r_name = 'convert_pc_to'
 
 !
 
-if (particle == positron$ .or. particle == electron$) then
-  mc2 = m_electron
-elseif (particle == proton$ .or. particle == antiproton$) then
-  mc2 = m_proton
-else
-  call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PARTICLE TYPE:\i4\ ', particle)
-  call err_exit
-endif
-
+mc2 = rest_energy(particle)
 E_tot_new = sqrt(pc**2 + mc2**2)
+
 if (present(E_tot))   E_tot   = E_tot_new
 if (present(beta))    beta    = pc / E_tot_new
 if (present(kinetic)) kinetic = E_tot_new - mc2
 if (present(brho))    brho    = pc / c_light
 if (present(gamma))   gamma   = E_tot_new / mc2
 
-end subroutine
+end subroutine convert_pc_to
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Function rest_energy (particle) result (energy)
+!
+! Routine to return the rest energy in eV of a particle.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   particle -- Integer: Type of particle. positron$, etc.
+!
+! Output:
+!   energy -- Real(rp): Rest energy.
+!-
+
+function rest_energy (particle) result (energy)
+
+implicit none
+
+integer particle
+real(rp) energy
+character(16) :: r_name = 'rest_energy'
+
+!
+
+if (particle == positron$ .or. particle == electron$) then
+  energy = m_electron
+elseif (particle == proton$ .or. particle == antiproton$) then
+  energy = m_proton
+else
+  call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PARTICLE TYPE: \i0\ ', particle)
+  call err_exit
+endif
+
+end function rest_energy
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -489,7 +513,7 @@ do i = 1, size(ele%wig_term)
   enddo
 
 
-end subroutine
+end subroutine wiggler_vec_potential
 
 
 !------------------------------------------------------------------------
@@ -537,7 +561,7 @@ lat_out%n_ic_max =             lat_in%n_ic_max
 lat_out%input_taylor_order =   lat_in%input_taylor_order
 lat_out%beam_start =           lat_in%beam_start
 
-end subroutine
+end subroutine transfer_lat_parameters
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -592,7 +616,7 @@ ele_out%taylor(:)%ref = ele_in%taylor(:)%ref
 
 if (ele_in%key == wiggler$) ele_out%value(z_patch$) = ele_in%value(z_patch$)
 
-end subroutine
+end subroutine transfer_ele_taylor
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -656,9 +680,9 @@ type (mode_info_struct) t
 t%tune = 0
 t%emit = 0
 t%chrom = 0
-end subroutine
+end subroutine 
 
-end subroutine
+end subroutine init_lat
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -759,7 +783,7 @@ type (lat_struct) lat
 lat%param%t1_no_RF = 0
 lat%param%t1_with_RF = 0
 
-end subroutine
+end subroutine clear_lat_1turn_mats
 
 
 !----------------------------------------------------------------------
@@ -793,7 +817,7 @@ type (ele_struct) :: ele2
 
 ele2 = ele1
 
-end subroutine
+end subroutine transfer_ele
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -824,7 +848,7 @@ type (ele_struct), intent(inout) :: ele2(:)
 
 ele2 = ele1
 
-end subroutine
+end subroutine transfer_eles
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -857,7 +881,7 @@ type (branch_struct) :: branch2
 
 branch2 = branch1
 
-end subroutine
+end subroutine transfer_branch
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -888,7 +912,7 @@ type (branch_struct) :: branch2(:)
 
 branch2 = branch1
 
-end subroutine
+end subroutine transfer_branches
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -919,7 +943,7 @@ type (lat_struct), intent(out) :: lat2
 
 lat2 = lat1
 
-end subroutine
+end subroutine transfer_lat
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -971,7 +995,7 @@ else
   enddo
 endif
 
-end subroutine
+end subroutine reallocate_coord
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -995,7 +1019,7 @@ end subroutine
 !     %ic(:)      -- Control Array with size at least n.
 !-
 
-subroutine reallocate_control(lat, n)
+subroutine reallocate_control (lat, n)
 
 implicit none
 
@@ -1025,7 +1049,7 @@ lat%ic(1:n_old) = ic
 
 deallocate (control, ic)
 
-end subroutine
+end subroutine reallocate_control
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -1095,7 +1119,7 @@ if (associated (ele%taylor(1)%term)) deallocate &
 
 call kill_gen_field (ele%gen_field)
 
-end subroutine
+end subroutine deallocate_ele_pointers
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1130,7 +1154,7 @@ if (associated(gen_field)) then
   deallocate (gen_field)
 endif
 
-end subroutine
+end subroutine kill_gen_field
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -1252,7 +1276,7 @@ ele%z%emit     = 0
 allocate (ele%r(1,1))
 ele%r = 0.0
 
-end subroutine
+end subroutine init_ele
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -1292,7 +1316,7 @@ integer, optional :: upper_bound
 call allocate_ele_array (lat%ele, upper_bound)
 if (allocated(lat%branch)) lat%branch(0)%ele => lat%ele
 
-end subroutine
+end subroutine allocate_lat_ele_array
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -1360,7 +1384,7 @@ do i = curr_ub+1, ub
   ele(i)%ix_ele = i
 end do
 
-end subroutine
+end subroutine allocate_ele_array
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -1435,7 +1459,7 @@ do i = curr_ub+1, ub
   allocate(branch(i)%n_ele_max)
 end do
 
-end subroutine
+end subroutine allocate_branch_array
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1476,7 +1500,7 @@ call deallocate_branch (lat%branch)
 lat%n_ele_track  = -1
 lat%n_ele_max  = -1
 
-end subroutine
+end subroutine deallocate_lat_pointers
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
@@ -1512,7 +1536,7 @@ if (allocated (branch)) then
   deallocate (branch)
 endif
 
-end subroutine
+end subroutine deallocate_branch
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
@@ -1548,7 +1572,7 @@ enddo
 
 deallocate (eles)
 
-end subroutine
+end subroutine deallocate_ele_array_pointers
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
@@ -1634,7 +1658,7 @@ m(5,3) = -m(2,6)*m(1,3) + m(1,6)*m(2,3) - m(4,6)*m(3,3) + m(3,6)*m(4,3)
 m(5,4) = -m(2,6)*m(1,4) + m(1,6)*m(2,4) - m(4,6)*m(3,4) + m(3,6)*m(4,4)
 
 
-end subroutine
+end subroutine transfer_mat_from_twiss
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
@@ -1706,7 +1730,7 @@ ele1%name = ele%name
 
 call transfer_mat_from_twiss (ele0, ele1, mat6)
 
-end subroutine
+end subroutine match_ele_to_mat6
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1752,7 +1776,7 @@ else
   if (associated(wake_out)) call init_wake (wake_out, 0, 0, 0, 0)
 endif
 
-end subroutine
+end subroutine transfer_wake
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1824,7 +1848,7 @@ else
   allocate (wake%lr(n_lr))
 endif
 
-end subroutine
+end subroutine init_wake
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1934,6 +1958,6 @@ case (bend_sol_quad$)
   end select
 end select
 
-end subroutine
+end subroutine calc_superimpose_key
 
 end module

@@ -344,7 +344,7 @@ character(16) :: key_name(n_key) = (/ &
 !     L$, TILT$, X_PITCH$ and higher
 
 integer, parameter :: particle$ = 1, n_part$   = 2, taylor_order$ = 3
-integer, parameter :: energy_gev$ = 4, lattice_type$ = 5, symmetry$ = 6
+integer, parameter :: lattice_type$ = 5, symmetry$ = 6
 
 integer, parameter :: x_beg_limit$=2, y_beg_limit$=3, b_x2$=4, &
           b_y2$=5, l_st2$=9, b_z$=10, l_st1$=11, s_st2$=12, s_st1$=13, &

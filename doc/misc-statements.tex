@@ -12,6 +12,7 @@ This chapter deals with the statements not covered in the previous chapters.
 \index{Lattice_type!parameter statement}
 \index{Taylor_order!parameter statement}
 \index{E_tot!parameter statement}
+\index{P0C!parameter statement}
 \index{Ran_seed!parameter statement}
 \index{N_part!parameter statement}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
@@ -20,7 +21,9 @@ other variables.  The variables that can be set by \vn{parameter} is
   parameter[lattice]      = <String>        ! Lattice name 
   parameter[lattice_type] = <Switch>        ! 
   parameter[taylor_order] = <Integer>       ! Default: 3
-  parameter[E_tot]        = <Real>          ! Total Energy. Default: 0
+  parameter[e_tot]        = <Real>          ! Reference total Energy. 
+                                            !      Default: 1000 * rest_energy.
+  parameter[p0c]          = <Real>          ! Reference momentum.
   parameter[n_part]       = <Real>          ! Number of particles in a bunch.
   parameter[ran_seed]     = <Integer>       ! Random number generator init.
   parameter[particle]     = <particle_type> ! Eg: positron, antiproton, etc.
@@ -47,11 +50,14 @@ Valid \vn{particle} switches are:
   antiproton
 \end{example}
 
-The \vn{parameter[E_tot]} is the reference energy at the start of the
-lattice.  Each element in a lattice has an individual reference
-\vn{E_tot} which is a dependent parameter. 
-The reference energy will only change between \vn{LCavity} or
-\vn{Patch} elements. The starting reference energy must always be set.
+The \vn{parameter[e_tot]} and \vn{parameter[p0c]} are the reference
+total energy and momentum at the start of the lattice.  Each element
+in a lattice has an individual reference \vn{e_tot} and \vn{p0c} which
+are dependent parameters. The reference energy and momentum will only
+change between \vn{LCavity} or \vn{Patch} elements. The starting
+reference energy, if not set, will be set to 1000 time the particle
+rest energy.  Note: \vn{beginning[e_tot]} and \vn{beginning[p0c]} are
+equivalent to \vn{parameter[e_tot]} and \vn{parameter[p0c]}.
 
 \index{BeamBeam}
 The \vn{parameter[n_part]} is the number of particle in a bunch.
@@ -104,7 +110,6 @@ This syntax is obsolete since a typographical error is not easily caught.
 \label{s:beam.start}
 \index{Beam_start statement|textbf}
 
-
 \index{Beam_start!x, p_x, y, p_y, z, p_z}
 The \vn{beam_start} statement is used to set the starting coordinates
 for particle tracking
@@ -136,7 +141,7 @@ Examples
 \index{MAD}
 The \vn{Beam} statement is provided for compatibility with \mad. The syntax is
 \begin{example}
-  beam, energy = GeV, particle = <Switch>, n_part = <Real>
+  beam, energy = GeV, pc = GeV, particle = <Switch>, n_part = <Real>
 \end{example}
 For example
 \index{MAD}
@@ -144,9 +149,10 @@ For example
   beam, energy = 5.6  ! Note: GeV to be compatible with \mad
   beam, particle = electron, n_part = 1.6e10
 \end{example}
-Setting the reference energy using the \vn{energy} attribute is the same
-as using \vn{parameter[E_tot]}. Valid \vn{particle}
-switches are the same as \vn{parameter[particle]}.
+Setting the reference energy using the \vn{energy} attribute is the
+same as using \vn{parameter[e_tot]}. Similarly, setting \vn{pc} is
+equivalent to setting \vn{parameter[p0c]}. Valid \vn{particle} switches
+are the same as \vn{parameter[particle]}.
 
 %-----------------------------------------------------------------------------
 \section{Title Statement}
@@ -242,6 +248,7 @@ the file.
 \index{Etap_b!initialization}
 \index{Cij!initialization}
 \index{E_tot!initialization}
+\index{P0C!initialization}
 For non--circular lattices the \vn{beginning} statement can be used to
 set the Twiss parameters and beam energy at the beginning of the lat
 \begin{example}
@@ -257,14 +264,16 @@ set the Twiss parameters and beam energy at the beginning of the lat
   beginning[etap_b]  = <Real>  ! "b" mode dispersion derivative.
   beginning[cmat_ij] = <Real>  ! C coupling matrix. i, j = {``1'', or ``2''} 
   beginning[s]       = <Real>  ! Longitudinal starting position.
-  beginning[E_tot] = <Real>  ! Total energy in eV.
+  beginning[e_tot]   = <Real>  ! Reference total energy in eV.
+  beginning[p0c]     = <Real>  ! Reference momentum in eV.
 \end{example}
 \index{E_tot!initialization}
 The \vn{gamma_a}, \vn{gamma_b}, and \vn{gamma_c} (the coupling gamma
 factor) will be kept consistent with the values set. If not set the
-default values are all zero.  \vn{beginning[energy]} and
-\vn{parameter[E_tot]} are equivalent and one or the other may be
-set but not both.
+default values are all zero.  \vn{beginning[e_tot]} and
+\vn{parameter[e_tot]} are equivalent and one or the other may be
+set but not both. Similarly, \vn{beginning[p0c]} and
+\vn{parameter[p0c]} are equivalent.
 
 \index{X_position!initialization}
 \index{Y_position!initialization}

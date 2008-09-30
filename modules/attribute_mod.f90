@@ -366,7 +366,8 @@ attrib_array(def_parameter$, particle$)           = 'PARTICLE'
 attrib_array(def_parameter$, aperture_limit_on$)  = 'APERTURE_LIMIT_ON'
 
 attrib_array(def_beam$, particle$)   = 'PARTICLE'
-attrib_array(def_beam$, energy_gev$) = 'ENERGY'
+attrib_array(def_beam$, e_tot$)      = 'ENERGY'
+attrib_array(def_beam$, p0c$)        = 'PC'
 attrib_array(def_beam$, n_part$)     = 'N_PART'
 
 attrib_array(def_beam_start$, x$)     = 'X'

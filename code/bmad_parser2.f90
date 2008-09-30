@@ -107,7 +107,6 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
   call init_ele(beam_ele)
   beam_ele%name = 'BEAM'              ! fake beam element
   beam_ele%key = def_beam$            ! "definition of beam"
-  beam_ele%value(energy_gev$) = 0
   beam_ele%value(n_part$)     = lat%param%n_part
   beam_ele%value(particle$)   = lat%param%particle
 
@@ -115,7 +114,6 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
   param_ele%name = 'PARAMETER'
   param_ele%key = def_parameter$
   param_ele%value(lattice_type$) = lat%param%lattice_type
-  param_ele%value(E_TOT$)  = 0
   param_ele%value(taylor_order$) = lat%input_taylor_order
   param_ele%value(n_part$)       = lat%param%n_part
   param_ele%value(particle$)     = lat%param%particle
@@ -450,10 +448,16 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
   lat%param%lattice_type = nint(param_ele%value(lattice_type$))
   lat%input_taylor_order = nint(param_ele%value(taylor_order$))
 
-  if (beam_ele%value(energy_gev$) /= 0) then
-    lat%ele(0)%value(E_TOT$) = beam_ele%value(energy_gev$) * 1e9
-  elseif (param_ele%value(E_TOT$) /= 0) then
-    lat%ele(0)%value(E_TOT$) = param_ele%value(E_TOT$)
+  if (beam_ele%value(p0c$) /= 0) then
+    call convert_pc_to (1d9 * beam_ele%value(p0c$), lat%param%particle, &
+                                             e_tot = lat%ele(0)%value(e_tot$))    
+  elseif (param_ele%value(p0c$) /= 0) then
+    call convert_pc_to (param_ele%value(p0c$), lat%param%particle, &
+                                             e_tot = lat%ele(0)%value(e_tot$))
+  elseif (beam_ele%value(e_tot$) /= 0) then
+    lat%ele(0)%value(e_tot$) = beam_ele%value(e_tot$) * 1d9
+  elseif (param_ele%value(e_tot$) /= 0) then
+    lat%ele(0)%value(e_tot$) = param_ele%value(e_tot$)
   endif
 
   v1 = param_ele%value(n_part$)

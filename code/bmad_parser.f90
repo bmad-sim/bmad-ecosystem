@@ -76,8 +76,6 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
   character(280) parse_line_save
   character(80) debug_line
 
-  real(rp) energy_beam, energy_param, energy_0
-
   logical, optional :: make_mats6, digested_read_ok
   logical delim_found, arg_list_found, xsif_called, err
   logical file_end, found, err_flag, finished, exit_on_error
@@ -729,20 +727,35 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 !-------------------------------------------------------------------------
 ! energy bookkeeping.
 
-  energy_beam  = 1d9 * beam_ele%value(energy_gev$)  
-  energy_param = param_ele%value(e_tot$)
-  energy_0     = lat%ele(0)%value(e_tot$) 
+  n = 0
+  if (beam_ele%value(e_tot$) /= 0)   n = n + 1
+  if (param_ele%value(e_tot$) /= 0)  n = n + 1
+  if (lat%ele(0)%value(e_tot$) /= 0) n = n + 1
+  if (beam_ele%value(p0c$) /= 0)     n = n + 1
+  if (param_ele%value(p0c$) /= 0)    n = n + 1
+  if (lat%ele(0)%value(p0c$) /= 0)   n = n + 1
 
-  if (energy_beam == 0 .and. energy_param == 0 .and. energy_0 == 0) then
-    call out_io (s_warn$, r_name, 'e_tot IS 0!')
-  elseif (energy_beam /= 0 .and. energy_param == 0 .and. energy_0 == 0) then
-    lat%ele(0)%value(e_tot$) = energy_beam
-  elseif (energy_beam == 0 .and. energy_param /= 0 .and. energy_0 == 0) then
-    lat%ele(0)%value(e_tot$) = energy_param
-  elseif (energy_beam == 0 .and. energy_param == 0 .and. energy_0 /= 0) then
-    lat%ele(0)%value(e_tot$) = energy_0
-  else
-    call warning ('BEAM ENERGY SET MULTIPLE TIMES ')
+  if (n > 1) then
+    call warning ('REFERENCE ENERGY SET MULTIPLE TIMES!', stop_here = .true.)
+    return
+  endif
+
+  if (beam_ele%value(e_tot$) /= 0) then      ! beam, energy = ...
+    lat%ele(0)%value(e_tot$) = 1d9 * beam_ele%value(e_tot$)
+  elseif (beam_ele%value(p0c$) /= 0) then    ! beam, pc = ...
+    call convert_pc_to (1d9 * beam_ele%value(p0c$), lat%param%particle, &
+                                             e_tot = lat%ele(0)%value(e_tot$))
+  elseif (param_ele%value(e_tot$) /= 0) then ! parameter[e_tot] = ...
+    lat%ele(0)%value(e_tot$) = param_ele%value(e_tot$)
+  elseif (param_ele%value(p0c$) /= 0) then   ! parameter[p0c] = ...
+    call convert_pc_to (param_ele%value(p0c$), lat%param%particle, &
+                                             e_tot = lat%ele(0)%value(e_tot$))
+  elseif (lat%ele(0)%value(p0c$) /= 0) then  ! beginning[p0c] = ...
+    call convert_pc_to (lat%ele(0)%value(p0c$), lat%param%particle, &
+                                             e_tot = lat%ele(0)%value(e_tot$))
+  elseif (lat%ele(0)%value(e_tot$) == 0) then
+    call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET! WILL USE SOMETHING LARGE!')
+    lat%ele(0)%value(e_tot$) = 1000 * rest_energy(lat%param%particle)
   endif
 
   call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, &
