@@ -452,8 +452,9 @@ do j = ie1, ie2
   if (j /= 0) then
     if (u%mat6_recalc_on) then
       call make_mat6 (lat%ele(j), lat%param, lat%ele(j-1)%map_ref_orb_out, err = err)
-      call twiss_propagate1 (lat%ele(j-1), lat%ele(j))
-      if (.not. bmad_status%ok) exit
+      if (err) exit
+      call twiss_propagate1 (lat%ele(j-1), lat%ele(j), err)
+      if (err) exit
     endif
   endif
 
