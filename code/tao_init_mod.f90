@@ -1195,7 +1195,7 @@ real(rp) default_low_lim, default_high_lim, default_key_delta
 real(rp), allocatable, save :: default_key_d(:)
 
 integer ios, iu, i, j, j1, j2, k, ix, num
-integer n, iostat
+integer n, iostat, n_list
 integer ix_min_var, ix_max_var, ix_ele, n_v1, n_v1_var_max
 
 character(*) var_file
@@ -1250,7 +1250,7 @@ do
   endif
   if (ios < 0) exit
   n = n + 1
-  if (n > size(default_key_b)) then
+  if (n >= size(default_key_b)) then
     call re_allocate (default_key_b, len(default_key_b(1)), 2*size(default_key_b))
     call re_allocate (default_key_d, 2*size(default_key_d))
   endif
@@ -1259,6 +1259,7 @@ do
 enddo
 
 call tao_allocate_v1_var (n)
+n_list = n
 
 ! Now fill in all the information
 
@@ -1269,6 +1270,8 @@ allocate (dflt_good_unis(lbound(s%u,1):ubound(s%u, 1)), good_unis(lbound(s%u,1):
 n_v1 = 0
 do
   n_v1 = n_v1 + 1
+  if (n_v1 > n_list) exit
+
   use_same_lat_eles_as = ''
   search_for_lat_eles  = ''
   v1_var%name        = " "         ! set default
@@ -2015,19 +2018,18 @@ integer i, j1, j2, n0, n_var
 
 ! Allocate 
 
-n0 = s%n_var_used
-
 if (allocated(s%var)) then
+  n0 = s%n_var_used
   do i = 1, n0
     allocate(var(i)%this(size(s%var(i)%this)))
   enddo
-  var = s%var
+  var(1:n0) = s%var(1:n0)
   deallocate (s%var)
   allocate (s%var(n_var))
   do i = 1, n0
     allocate(s%var(i)%this(size(var(i)%this)))
   enddo
-  s%var(1:n0) = var
+  s%var(1:n0) = var(1:n0)
 else
   n0 = 0
   allocate (s%var(n_var))
