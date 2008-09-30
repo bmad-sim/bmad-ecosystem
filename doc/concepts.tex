@@ -499,7 +499,7 @@ command (\sref{s:call}).
 
 Do loops are allowed with the following syntax:
 \begin{example}
-  do <var> <begin> <end> <step> 
+  do <var> = <begin>, <end> \{, <step>\} 
     ...
     tao command [[<var>]]
     ...
@@ -511,7 +511,7 @@ negative but not zero.  Nested loops are allowed and command files can
 be called within do loops.
 
 \begin{example}
-  do i 1 100
+  do i = 1, 100
     call set_quad_misalignment [[i]] ! command file to misalign quadrupoles
     zero_quad 1e-5*2^([[i]]-1) ! Some user supplied command to zero quad number [[i]]
   enddo

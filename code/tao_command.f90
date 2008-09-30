@@ -84,23 +84,19 @@ if (ix /= 0) cmd_line = cmd_line(:ix-1)        ! strip off comments
 call match_word (cmd_line, cmd_names, ix_cmd, .true.)
 if (ix_cmd == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED COMMAND: ' // cmd_line)
-  ! And close any open command files
-  do i = 1, tao_com%cmd_file_level
-    close (tao_com%cmd_file(i)%ix_unit)
-    tao_com%cmd_file(i)%ix_unit = 0 
-  enddo
-  tao_com%cmd_file_level = 0
+  call tao_abort_command_file()
   return
 elseif (ix_cmd < 0) then
   call out_io (s_error$, r_name, 'AMBIGUOUS COMMAND')
+  call tao_abort_command_file()
   return
 endif
 
-cmd_name = cmd_names(ix_cmd)
-
 ! Strip off command name from cmd_line and select the appropriate command.
 
+cmd_name = cmd_names(ix_cmd)
 call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
+
 select case (cmd_name)
 
 !--------------------------------

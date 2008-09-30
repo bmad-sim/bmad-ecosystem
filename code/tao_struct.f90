@@ -474,9 +474,11 @@ type tao_alias_struct
 end type
 
 type tao_command_file_struct
+  character(200) name
   integer :: ix_unit
   character(40) cmd_arg(9)          ! Command file arguments.
   logical :: paused = .false.       ! Is the command file paused?
+  integer :: n_line = 0             ! Current line number
 end type
 
 type tao_common_struct

@@ -25,37 +25,39 @@ character(*), optional :: cmd_arg(:)
 character(200) full_name
 character(16) :: r_name = 'tao_call_cmd'
 
-integer iu
+integer iu, nl
 type (tao_command_file_struct), automatic :: cmd_file(0:tao_com%cmd_file_level)
 
 ! Open the command file and store the unit number
 
-tao_com%cmd_file_level = tao_com%cmd_file_level + 1
+nl = tao_com%cmd_file_level + 1
+tao_com%cmd_file_level = nl
 
 ! reallocate cmd_file array
 
-if (tao_com%cmd_file_level > 1) cmd_file = tao_com%cmd_file
+if (nl > 1) cmd_file = tao_com%cmd_file
 
 if (allocated (tao_com%cmd_file)) deallocate (tao_com%cmd_file)
-allocate (tao_com%cmd_file(0:tao_com%cmd_file_level))
+allocate (tao_com%cmd_file(0:nl))
 
-if (tao_com%cmd_file_level > 1) tao_com%cmd_file(0:tao_com%cmd_file_level-1) = cmd_file
+if (nl > 1) tao_com%cmd_file(0:nl-1) = cmd_file
   
 iu = lunget()
 call tao_open_file ('TAO_COMMAND_DIR', file_name, iu, full_name)
 if (iu == 0) then ! open failed
-  tao_com%cmd_file_level = tao_com%cmd_file_level - 1
+  tao_com%cmd_file_level = nl - 1
   return
 endif
 
-tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit = iu
+tao_com%cmd_file(nl)%ix_unit = iu
+tao_com%cmd_file(nl)%name = file_name
 
 ! Save command arguments.
 
 if(present(cmd_arg)) then
-  tao_com%cmd_file(tao_com%cmd_file_level)%cmd_arg = cmd_arg
+  tao_com%cmd_file(nl)%cmd_arg = cmd_arg
 else
-  tao_com%cmd_file(tao_com%cmd_file_level)%cmd_arg = ' '
+  tao_com%cmd_file(nl)%cmd_arg = ' '
 endif
 
 end subroutine 

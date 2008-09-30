@@ -440,7 +440,7 @@ do j = ie1, ie2
       if (too_many_lost) then
         lat%param%ix_lost = j
         call out_io (s_warn$, r_name, &
-                "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\': " &
+                "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\: " &
                 // trim(lat%ele(j)%name), j)
       endif
     endif
