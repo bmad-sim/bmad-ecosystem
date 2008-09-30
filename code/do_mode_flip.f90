@@ -32,6 +32,7 @@ type (ele_struct)  ele
 type (twiss_struct) a
 
 real(rp) cg_mat(2,2), cg_conj(2,2), gamma_flip
+logical err
 
 ! Check that a flip can be done.
 
@@ -51,8 +52,8 @@ cg_mat = ele%c_mat / gamma_flip
 call mat_symp_conj (cg_mat, cg_conj)
 
 a = ele%a
-call twiss1_propagate (ele%b, cg_mat, 0.0_rp, ele%a)
-call twiss1_propagate (a, -cg_conj, 0.0_rp, ele%b)
+call twiss1_propagate (ele%b, cg_mat, 0.0_rp, ele%a, err)
+call twiss1_propagate (a, -cg_conj, 0.0_rp, ele%b, err)
 
 ele%mode_flip = .not. ele%mode_flip
 ele%c_mat = -cg_mat * ele%gamma_c

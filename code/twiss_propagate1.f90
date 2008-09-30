@@ -169,8 +169,10 @@ subroutine twiss_propagate1 (ele1, ele2, err)
   !---------------------------------------------------------------------
   ! Propagate twiss.
 
-  call twiss1_propagate (ele1%a, mat2_a, ele2%value(l$), ele2%a)
-  call twiss1_propagate (ele1%b, mat2_b, ele2%value(l$), ele2%b)
+  call twiss1_propagate (ele1%a, mat2_a, ele2%value(l$), ele2%a, error)
+  if (error) return
+  call twiss1_propagate (ele1%b, mat2_b, ele2%value(l$), ele2%b, error)
+  if (error) return
 
   if (ele2%mode_flip .neqv. ele1%mode_flip) then
     twiss_a = ele2%a
@@ -248,7 +250,7 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine twiss1_propagate (twiss1, mat2, length, twiss2)
+! Subroutine twiss1_propagate (twiss1, mat2, length, twiss2, err)
 !
 ! Subroutine to propagate the twiss parameters of a single mode.
 !
@@ -269,9 +271,10 @@ end subroutine
 !
 ! Output:
 !   twiss2    -- Twiss_struct: Output Twiss parameters.
+!   err       -- Logical: Set True if there is an error, false otherwise.
 !-
 
-subroutine twiss1_propagate (twiss1, mat2, length, twiss2)
+subroutine twiss1_propagate (twiss1, mat2, length, twiss2, err)
 
   use bmad_struct
   use bmad_interface, except_dummy => twiss1_propagate
@@ -283,11 +286,17 @@ subroutine twiss1_propagate (twiss1, mat2, length, twiss2)
   real(rp) m11, m12, m21, m22, del_phi, length
   real(rp) a1, b1, g1, a2, b2, g2, mat2(2,2), det
 
+  logical err
+
   !----------------------------------------------------
   ! Basic equation is given by Bovet 2.5.b page 16
   ! Linac rf matrices need to be renormalized.
 
+  err = .true.
+
   det = determinant (mat2)
+
+  if (det == 0 .or. twiss1%beta == 0) return
 
   m11 = mat2(1,1)
   m12 = mat2(1,2)
@@ -310,5 +319,7 @@ subroutine twiss1_propagate (twiss1, mat2, length, twiss2)
   twiss2%alpha = a2
   twiss2%gamma = g2
   twiss2%phi = twiss1%phi + del_phi
+
+  err = .false.
 
 end subroutine
