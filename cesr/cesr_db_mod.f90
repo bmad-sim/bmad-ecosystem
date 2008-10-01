@@ -111,10 +111,10 @@ subroutine bmad_to_db (lat, db, calib_date, use_mpm)
           'CSR VERT CUR', vkick$, db%node, cesr%v_steer(1:98), 1, use_mpm)
 
   call db_init_it (db%csr_hsp_volt, lbound(db%csr_hsp_volt, 1), &
-          'CSR HSP VOLT', hkick$, db%node, use_mpm = use_mpm)
+          'CSR HSP VOLT', hkick$, db%node, cesr%h_sep, 1, use_mpm)
 
   call db_init_it (db%csr_vsp_volt, lbound(db%csr_vsp_volt, 1), &
-          'CSR VSP VOLT', vkick$, db%node, use_mpm = use_mpm)
+          'CSR VSP VOLT', vkick$, db%node, cesr%v_sep, 1, use_mpm)
 
   call db_init_it (db%csr_sext_cur, lbound(db%csr_sext_cur, 1), &
           'CSR SEXT CUR',    k2$,    db%node, cesr%sex(1:98), 1, use_mpm)
@@ -140,37 +140,6 @@ subroutine bmad_to_db (lat, db, calib_date, use_mpm)
 
   call db_init_it (db%ir_sksxcur, lbound(db%ir_sksxcur, 1), &
           'IR SKSXCUR  ',   k2$,    db%node, cesr%skew_sex(11:11), 11, use_mpm)
-
-!-----------------------------------------------------------------------------
-! find the separators
-
-  do i = 1, lat%n_ele_max
-
-    type_str = lat%ele(i)%type
-
-    if (type_str(:12) == db%csr_vsp_volt(1)%db_node_name) then 
-      if (type_str(13:) /= '    ') then
-        read (type_str(13:), *, iostat = ios) ix
-        if (ios .ne. 0) then
-          print *, 'ERROR IN BAMD_TO_DB: READ ERROR FOR NODE INDEX: ', type_str
-        endif
-        db%csr_vsp_volt(ix)%bmad_name = lat%ele(i)%name
-        db%csr_vsp_volt(ix)%ix_lat = i
-      endif
-    endif
-
-    if (type_str(:12) == db%csr_hsp_volt(1)%db_node_name) then 
-      if (type_str(13:) /= '    ') then
-        read (type_str(13:), *, iostat = ios) ix
-        if (ios .ne. 0) then
-          print *, 'ERROR IN BAMD_TO_DB: READ ERROR FOR NODE INDEX: ', type_str
-        endif
-        db%csr_hsp_volt(ix)%bmad_name = lat%ele(i)%name
-        db%csr_hsp_volt(ix)%ix_lat = i
-      endif
-    endif
-
-  enddo
 
 !--------------------------------------------------------------------
 ! get calibrations...

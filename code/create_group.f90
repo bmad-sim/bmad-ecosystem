@@ -16,7 +16,7 @@
 !                                 attribute controlled.
 !     %coef           -- Real(rp): Coefficient.
 !   err            -- Logical: Set True if an attribute is not free to be controlled.
-!   err_print_flag -- Logical, optional: If present and False then supress                                
+!   err_print_flag -- Logical, optional: If present and False then supress
 !                       printing of an error message if attribute is not free.  
 !
 ! Output:
@@ -98,6 +98,8 @@ subroutine create_group (lat, ix_lord, contrl, err, err_print_flag)
   logical err, free
   logical, optional :: err_print_flag
 
+  character(16) :: r_name = 'create_group'
+
 ! init
 
   call check_controller_controls (contrl, lat%ele(ix_lord)%name, err)
@@ -132,9 +134,10 @@ subroutine create_group (lat, ix_lord, contrl, err, err_print_flag)
         ix_min = ixe
         ix_max = ixe
       else
-        print *, 'ERROR IN CREATE_GROUP: A GROUP IS NOT ALLOWED TO CONTROL'
-        print *, '      A ', control_name(lat%ele(ixe)%control_type)
-        print *, '      YOU TRIED TO CONTROL: ', lat%ele(ixe)%name
+        call out_io (s_fatal$, r_name, &
+                      'A GROUP IS NOT ALLOWED TO CONTROL', &
+                      'A ' // control_name(lat%ele(ixe)%control_type), &
+                      'YOU TRIED TO CONTROL: ' // lat%ele(ixe)%name)
         call err_exit
       endif
 
@@ -162,9 +165,10 @@ subroutine create_group (lat, ix_lord, contrl, err, err_print_flag)
       if (ixa == start_edge$ .or. ixa == accordion_edge$ .or. &
                                        ixa == symmetric_edge$) then
         if (ix1 < 1) then
-          print *, 'ERROR IN CREATE_GROUP: START_EDGE OF CONTROLED'
-          print *, '      ELEMENT IS AT BEGINNING OF LAT AND CANNOT BE'
-          print *, '      VARIED FOR GROUP: ', lat%ele(ix_lord)%name
+          call out_io (s_fatal$, r_name, &
+                        'START_EDGE OF CONTROLED', &
+                        'ELEMENT IS AT BEGINNING OF LAT AND CANNOT BE', &
+                        'VARIED FOR GROUP: ' // lat%ele(ix_lord)%name)
           call err_exit
         endif
       endif
@@ -172,9 +176,10 @@ subroutine create_group (lat, ix_lord, contrl, err, err_print_flag)
       if (ixa == end_edge$ .or. ixa == accordion_edge$ .or. &
                                         ixa == symmetric_edge$) then
         if (ix2 > lat%n_ele_track) then
-          print *, 'ERROR IN CREATE_GROUP: END_EDGE OF CONTROLED'
-          print *, '      ELEMENT IS AT END OF LAT AND CANNOT BE'
-          print *, '      VARIED FOR GROUP: ', lat%ele(ix_lord)%name
+          call out_io (s_fatal$, r_name, &
+                        'END_EDGE OF CONTROLED', &
+                        'ELEMENT IS AT END OF LAT AND CANNOT BE', &
+                        'VARIED FOR GROUP: ' // lat%ele(ix_lord)%name)
           call err_exit
         endif
       endif
@@ -243,7 +248,11 @@ subroutine create_group (lat, ix_lord, contrl, err, err_print_flag)
     else
 
       free = attribute_free (contrl(i)%ix_slave, ixa, lat, err_print_flag)
-      err = err .or. .not. free
+      if (.not. free) then
+        if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, &
+              'SLAVE ATTRIBUTE NOT FREE TO VARY FOR GROUP LORD: ' // lat%ele(ix_lord)%name)
+        err = .true.
+      endif
       n_con = n_con + 1
       if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
       lat%control(n_con) = contrl(i)

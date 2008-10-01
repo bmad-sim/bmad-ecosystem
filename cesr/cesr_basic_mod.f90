@@ -108,15 +108,6 @@ end type
 !-------------------------------------------------------------------------
 ! CESR logical names
 
-integer, parameter :: q49aw$ = 101, q47aw$ = 102
-integer, parameter :: q47ae$ = 103, q49ae$ = 104
-integer, parameter :: q43aw$ = 105, q43ae$ = 106
-integer, parameter :: q08aw$ = 107
-
-integer, parameter :: h_sep_08w$ = 1, h_sep_45w$ = 2
-integer, parameter :: h_sep_45e$ = 3, h_sep_08e$ = 4
-integer, parameter :: v_sep_48w$ = 5, v_sep_48e$ = 6
-
 integer, parameter :: wig_w$ = 1, wig_e$ = 2
 
 integer, parameter :: rf_w1$ = 1, rf_w2$ = 2, rf_e1$ = 3, rf_e2$ = 4
@@ -154,7 +145,8 @@ type cesr_struct
   type (cesr_element_struct) oct(n_oct_maxx)
   type (cesr_element_struct) rf(n_rf_maxx)
   type (cesr_element_struct) wig(n_wig_maxx)
-  type (cesr_element_struct) sep(n_sep_maxx)
+  type (cesr_element_struct) h_sep(n_sep_maxx)
+  type (cesr_element_struct) v_sep(n_sep_maxx)
   type (cesr_element_struct) h_steer(0:n_steer_maxx)
   type (cesr_element_struct) v_steer(0:n_steer_maxx)
   type (cesr_element_struct) solenoid       ! solenoid struct
@@ -368,7 +360,8 @@ cesr%quad(:)%ix_lat         = 0
 cesr%skew_quad(:)%ix_lat    = 0
 cesr%scsol_cur(:)%ix_lat    = 0
 cesr%skew_sex(:)%ix_lat     = 0
-cesr%sep(:)%ix_lat          = 0
+cesr%h_sep(:)%ix_lat        = 0
+cesr%v_sep(:)%ix_lat        = 0
 cesr%sex(:)%ix_lat          = 0
 cesr%det(:)%ix_lat          = 0
 cesr%oct(:)%ix_lat          = 0
@@ -383,7 +376,8 @@ cesr%quad(:)%name         = 'DUMMY'            ! assume nothing here
 cesr%skew_quad(:)%name    = 'DUMMY'
 cesr%skew_sex(:)%name     = 'DUMMY'
 cesr%scsol_cur(:)%name    = 'DUMMY'
-cesr%sep(:)%name          = 'DUMMY'
+cesr%h_sep(:)%name        = 'DUMMY'
+cesr%v_sep(:)%name        = 'DUMMY'
 cesr%sex(:)%name          = 'DUMMY'
 cesr%det(:)%name          = 'DUMMY'
 cesr%oct(:)%name          = 'DUMMY'
@@ -398,61 +392,14 @@ cesr%scir_tilt(:)%name    = 'DUMMY'
 
 do i = 0, 49
   write (cc2, '(i2.2)') i
-  cesr%quad(i)%name    = 'Q' // cc2 // 'W'
-  cesr%quad(99-i)%name = 'Q' // cc2 // 'E'
-  cesr%skew_quad(i)%name    = 'SK_Q' // cc2 // 'W'
-  cesr%skew_quad(99-i)%name = 'SK_Q' // cc2 // 'E'
-  cesr%sex(i)%name    = 'SEX_' // cc2 // 'W'
-  cesr%sex(99-i)%name = 'SEX_' // cc2 // 'E'
   cesr%det(i)%name    = 'DET_' // cc2 // 'W'
   cesr%det(99-i)%name = 'DET_' // cc2 // 'E'
 enddo
-
-do i = 0, 99
-  write (cc4, '(i4)') i
-  hsteer_name(i) = 'CSR HORZ CUR' // cc4
-  vsteer_name(i) = 'CSR VERT CUR' // cc4
-enddo
-
-do i = 1, n_hbnd_maxx
-  write (cc4, '(i4)') i
-  hsteer_name(i+100) = 'CSR HBND CUR' // cc4
-enddo
-
-cesr%quad(q49aw$)%name = 'Q49AW'
-cesr%quad(q47aw$)%name = 'Q47AW'
-cesr%quad(q47ae$)%name = 'Q47AE'
-cesr%quad(q49ae$)%name = 'Q49AE'
-cesr%quad(q43aw$)%name = 'Q43AW'
-cesr%quad(q43ae$)%name = 'Q43AE'
-cesr%quad(q08aw$)%name = 'Q08AW'
-
-cesr%sep(h_sep_08w$)%name = 'H_SEP_08W'
-cesr%sep(h_sep_08e$)%name = 'H_SEP_08E'
-cesr%sep(h_sep_45w$)%name = 'H_SEP_45W'
-cesr%sep(h_sep_45e$)%name = 'H_SEP_45E'
-cesr%sep(v_sep_48w$)%name = 'V_SEP_48W'
-cesr%sep(v_sep_48e$)%name = 'V_SEP_48E'
-
-cesr%oct(1)%name = 'OCT_45W'
-cesr%oct(2)%name = 'OCT_48W'
-cesr%oct(3)%name = 'OCT_48E'
-cesr%oct(4)%name = 'OCT_45E'
 
 cesr%rf(rf_w1$)%name = 'RF_W1'
 cesr%rf(rf_w2$)%name = 'RF_W2'
 cesr%rf(rf_e1$)%name = 'RF_E1'
 cesr%rf(rf_e2$)%name = 'RF_E2'
-
-cesr%skew_sex(1)%name = 'SK_SEX_07W'
-cesr%skew_sex(2)%name = 'SK_SEX_23W'
-cesr%skew_sex(3)%name = 'SK_SEX_23E'
-cesr%skew_sex(4)%name = 'SK_SEX_07E'
-cesr%skew_sex(5)%name = 'SK_SEX_29W'
-cesr%skew_sex(6)%name = 'SK_SEX_29E'
-cesr%skew_sex(7)%name = 'SK_SEX_12W'
-cesr%skew_sex(8)%name = 'SK_SEX_12E'
-cesr%skew_sex(11)%name = 'SK_SEX_02E'
 
 cesr%wig(wig_w$)%name = 'WIG_W'
 cesr%wig(wig_e$)%name = 'WIG_E'
@@ -465,16 +412,6 @@ cesr%v_steer(111)%name = 'SC_V01W'
 cesr%v_steer(112)%name = 'SC_V02W'
 cesr%v_steer(113)%name = 'SC_V02E'
 cesr%v_steer(114)%name = 'SC_V01E'
-
-cesr%skew_quad(111)%name = 'SC_SK_Q01W'
-cesr%skew_quad(112)%name = 'SC_SK_Q02W'
-cesr%skew_quad(113)%name = 'SC_SK_Q02E'
-cesr%skew_quad(114)%name = 'SC_SK_Q01E'
-
-cesr%quad(111)%name = 'SC_Q01W'
-cesr%quad(112)%name = 'SC_Q02W'
-cesr%quad(113)%name = 'SC_Q02E'
-cesr%quad(114)%name = 'SC_Q01E'
 
 do i = 1, 5                          
   write (cesr%scir_cam_rho(i)%name,   '(a, i1, a)') 'SC_CAM_', i, 'W'
@@ -503,9 +440,7 @@ ele_loop: do i = 1, lat%n_ele_max
 
   ele = lat%ele(i)
 
-  ! quads and skew quads
-
-  if (ele%key == quadrupole$) then
+  if (ele%type /= '') then
 
     if (ele%type(1:12) == 'CSR QUAD CUR') then
       read (ele%type(13:16), *) ix
@@ -537,32 +472,6 @@ ele_loop: do i = 1, lat%n_ele_max
       cycle ele_loop
     endif
 
-    if (ele%name(1:1) == 'Q' .or. ele%name(1:4) == 'SC_Q') then
-      do j = 0, 120
-        if (ele%name == cesr%quad(j)%name) then
-          cesr%ix_cesr(i) = j
-          call insert_info (cesr%quad(j), ele, i)
-          cycle ele_loop
-        endif
-      enddo
-    endif
-
-    if (ele%name(:2) == 'SK' .or. ele%name(1:5) == 'SC_SK') then
-      do j = 0, 120
-        if (ele%name == cesr%skew_quad(j)%name) then
-          cesr%ix_cesr(i) = j
-          call insert_info (cesr%skew_quad(j), ele, i)
-          cycle ele_loop
-        endif
-      enddo
-    endif
-
-  endif
-
-  ! sex and skew sex
-
-  if (ele%key == sextupole$) then
-
     if (ele%type(1:12) == 'CSR SEXT CUR') then
       read (ele%type(13:16), *) ix
       call insert_info (cesr%sex(ix), ele, i)
@@ -575,31 +484,11 @@ ele_loop: do i = 1, lat%n_ele_max
       cycle ele_loop
     endif
 
-    if (ele%name(:3) == 'SEX') then
-      do j = 0, 120
-        if (ele%name == cesr%sex(j)%name) then
-          cesr%ix_cesr(i) = j
-          call insert_info (cesr%sex(j), ele, i)
-          cycle ele_loop
-        endif
-      enddo
+    if (ele%type(1:12) == 'SCIR SKSXCUR') then
+      read (ele%type(13:16), *) ix
+      call insert_info (cesr%skew_sex(10+ix), ele, i)
+      cycle ele_loop
     endif
-
-    if (ele%name(:6) == 'SK_SEX') then
-      do j = 1, n_skew_sex_maxx
-        if (ele%name == cesr%skew_sex(j)%name) then
-          cesr%ix_cesr(i) = j
-          call insert_info (cesr%skew_sex(j), ele, i)
-          cycle ele_loop
-        endif
-      enddo
-    endif
-
-  endif
-
-  ! octupoles
-
-  if (ele%key == octupole$) then
 
     if (ele%type(1:12) == 'CSR OCTU CUR') then
       read (ele%type(13:16), *) ix
@@ -607,41 +496,17 @@ ele_loop: do i = 1, lat%n_ele_max
       cycle ele_loop
     endif
 
-    do j = 1, n_oct_maxx
-      if (ele%name == cesr%oct(j)%name) then
-        cesr%oct(j)%ix_lat = i
-        cesr%ix_cesr(i) = j
-        call insert_info (cesr%oct(j), ele, i)
-        cycle ele_loop
-      endif
-    enddo
-
-  endif
-
-  ! separators
-
-  if (ele%key == elseparator$) then
-
     if (ele%type(1:12) == 'CSR HSP VOLT') then
       read (ele%type(13:16), *) ix
-      call insert_info (cesr%sep(ix), ele, i)
+      call insert_info (cesr%h_sep(ix), ele, i)
       cycle ele_loop
     endif
 
-    do j = 1, n_sep_maxx
-      if (ele%name == cesr%sep(j)%name) then
-        cesr%ix_cesr(i) = j
-        call insert_info (cesr%sep(j), ele, i)
-        cycle ele_loop
-      endif
-    enddo
-
-  endif
-
-  ! markers... Detectors or IP_L3
-  ! detector markers
-
-  if (ele%key == marker$) then
+    if (ele%type(1:12) == 'CSR VSP VOLT') then
+      read (ele%type(13:16), *) ix
+      call insert_info (cesr%v_sep(ix), ele, i)
+      cycle ele_loop
+    endif
 
     if (ele%type(1:12) == 'BPM DETECTOR') then
       read (ele%type(13:16), *) ix
@@ -649,43 +514,51 @@ ele_loop: do i = 1, lat%n_ele_max
       cycle ele_loop
     endif
 
-    if (ele%name(:3) == 'DET') then
-      do j = 0, 120
-        if (ele%name == cesr%det(j)%name) then
-          cesr%ix_cesr(i) = j
-          call insert_info (cesr%det(j), ele, i)
-          cycle ele_loop
-        endif
-      enddo
+    if (ele%type(1:12) == 'CSR HORZ CUR') then
+      read (ele%type(13:16), *) ix
+      call insert_info (cesr%h_steer(ix), ele, i)
+      cycle ele_loop
+    endif
 
-    elseif (ele%name(:5) == 'IP_L3') then
-      cesr%ix_ip_l3 = i
+    if (ele%type(1:12) == 'CSR HBND CUR') then
+      read (ele%type(13:16), *) ix
+      call insert_info (cesr%h_steer(100+ix), ele, i)
+      cycle ele_loop
+    endif
+
+    if (ele%type(1:12) == 'CSR VERT CUR') then
+      read (ele%type(13:16), *) ix
+      call insert_info (cesr%v_steer(ix), ele, i)
+      cycle ele_loop
+    endif
+
+    if (ele%type(1:12) == 'NIR SHUNTCUR') then
+      read (ele%type(13:16), *) ix
+      call insert_info (cesr%nir_shuntcur(ix), ele, i)
+      cycle ele_loop
     endif
 
   endif
 
+  if (ele%name(:3) == 'DET') then
+    do j = 0, 120
+      if (ele%name == cesr%det(j)%name) then
+        cesr%ix_cesr(i) = j
+        call insert_info (cesr%det(j), ele, i)
+        cycle ele_loop
+      endif
+    enddo
+  endif
 
-  ! overlays: horz & vert steerings, scir cam & tilts, etc.
+  if (ele%name(:5) == 'IP_L3') then
+    cesr%ix_ip_l3 = i
+  endif
+
+  ! Overlays: horz & vert steerings, scir cam & tilts, etc.
 
   if (ele%key == overlay_lord$) then
 
-    if (ele%name(:1) == 'H') then
-      do j = 0, 120
-        if (ele%type == hsteer_name(j)) then
-          call insert_info (cesr%h_steer(j), ele, i)
-          cycle ele_loop
-        endif
-      enddo
-
-    elseif (ele%name(1:1) == 'V') then
-      do j = 0, 99
-        if (ele%type == vsteer_name(j)) then
-          call insert_info (cesr%v_steer(j), ele, i)
-          cycle ele_loop
-        endif
-      enddo
-
-    elseif (ele%name(1:4) == 'SC_V') then
+    if (ele%name(1:4) == 'SC_V') then
       do j = 101, ubound(cesr%v_steer, 1)
         if (ele%name == cesr%v_steer(j)%name) then
           call insert_info (cesr%v_steer(j), ele, i)
@@ -708,14 +581,6 @@ ele_loop: do i = 1, lat%n_ele_max
           cycle ele_loop
         endif
       enddo
-
-    elseif (ele%name(1:12) == 'NIR_SHUNTCUR') then
-      do j = 1, size(cesr%nir_shuntcur)
-        if (ele%name == cesr%nir_shuntcur(j)%name) then
-          call insert_info (cesr%nir_shuntcur(j), ele, i)
-          cycle ele_loop
-        endif
-      enddo     
 
     endif
 
@@ -765,20 +630,16 @@ enddo ele_loop
 ! check that we have loaded everything...
 ! do not check Q01 and Q02's
 
-if (cesr%quad( 1)%ix_lat == 0) cesr%quad( 1)%name = 'DUMMY'
-if (cesr%quad( 2)%ix_lat == 0) cesr%quad( 2)%name = 'DUMMY'
-if (cesr%quad(97)%ix_lat == 0) cesr%quad(97)%name = 'DUMMY'
-if (cesr%quad(98)%ix_lat == 0) cesr%quad(98)%name = 'DUMMY'
-
 call bmad_to_cesr_err_type (cesr%quad,         'QUADRUPOLE')
-call bmad_to_cesr_err_type (cesr%sep,          'SEPARATOR')
+call bmad_to_cesr_err_type (cesr%h_sep,        'H SEP')
+call bmad_to_cesr_err_type (cesr%v_sep,        'V SEP')
 call bmad_to_cesr_err_type (cesr%skew_sex,     'SKEW SEXTUPOLE')
 call bmad_to_cesr_err_type (cesr%oct,          'OCTUPOLE')
 call bmad_to_cesr_err_type (cesr%wig,          'WIGGLER')
 call bmad_to_cesr_err_type (cesr%rf,           'RF CAVITY')
-call bmad_to_cesr_err_type (cesr%scir_cam_rho, 'SCIR CAM')
-call bmad_to_cesr_err_type (cesr%scir_tilt,    'SCIR TILT')
-call bmad_to_cesr_err_type (cesr%scsol_cur,    'SC SOL CUR')
+!! call bmad_to_cesr_err_type (cesr%scir_cam_rho, 'SCIR CAM')
+!! call bmad_to_cesr_err_type (cesr%scir_tilt,    'SCIR TILT')
+!! call bmad_to_cesr_err_type (cesr%scsol_cur,    'SC SOL CUR')
 
 !----------------------------------------------------------------
 contains
@@ -792,8 +653,7 @@ character(*) str
 !
 
 do i = lbound(cesr_ele, 1), ubound(cesr_ele, 1)
-  if (cesr_ele(i)%ix_lat == 0 .and.  &
-                                cesr_ele(i)%name(:5) /= 'DUMMY') then
+  if (cesr_ele(i)%ix_lat == 0 .and. cesr_ele(i)%name(:5) /= 'DUMMY') then
     bmad_status%ok = .false.
     if (bmad_status%type_out) then
       print *, 'WARNING FROM BMAD_TO_CESR. ELEMENT: ', cesr_ele(i)%name
@@ -1071,10 +931,10 @@ enddo
 
 do j = 1, 2
   if (.not. found_vsp(j)) then
-    print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: CANNOT FIND: ', &
-                                                          vsep_name(j)
-    if (bmad_status%exit_on_error) call err_exit
+    !! print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: CANNOT FIND: ', vsep_name(j)
+    !! if (bmad_status%exit_on_error) call err_exit
     bmad_status%ok = .false.
+    return
   endif
 enddo
 
