@@ -760,18 +760,6 @@ ele_loop: do i = 1, lat%n_ele_max
   enddo
 
 enddo ele_loop
-         
-
-!-------------------------------------------------------------------
-! Point to quad overlay instead of quad for nir_shuntcur quads
-
-do i = lat%n_ele_track+1, lat%n_ele_max
-  ele = lat%ele(i)
-  if (ele%type(1:12) == 'CSR QUAD CUR') then
-    read (ele%type(13:16), *) ix
-    call insert_info (cesr%quad(ix), ele, i)
-  endif
-enddo
 
 !-------------------------------------------------------------------
 ! check that we have loaded everything...
