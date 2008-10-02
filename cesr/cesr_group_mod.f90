@@ -95,6 +95,7 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, csr_set, &
       endif
       n_con = n_con + 1
       con(n_con)%ix_slave = db_ptr(n)%ix_lat
+      con(n_con)%ix_branch = 0
       con(n_con)%ix_attrib = db_ptr(n)%ix_attrib
       con(n_con)%coef = grp%ele(nn)%coef * db_ptr(n)%dvar_dcu  
     enddo

@@ -3385,6 +3385,7 @@ main_loop: do n = 1, n2
         k = r_indexx(k2)
         cs(j)%coef = plat%ele(ixx)%coef(i)
         cs(j)%ix_slave = k
+        cs(j)%ix_branch = lat%ele(k)%ix_branch
         cs(j)%ix_lord = -1             ! dummy value
         attrib_name = plat%ele(ixx)%attrib_name(i)
         if (attrib_name == blank) then

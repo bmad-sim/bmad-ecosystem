@@ -223,11 +223,11 @@ end type
 ! struct for element to element control
 
 type control_struct
-  real(rp) coef                  ! Control coefficient
-  integer ix_lord                ! Index to lord element
-  integer ix_slave               ! Index to slave element
-  integer ix_branch         ! Index to branch line of slave
-  integer ix_attrib              ! Index of attribute controlled
+  real(rp) :: coef = 0           ! Control coefficient
+  integer :: ix_lord = -1        ! Index to lord element
+  integer :: ix_slave = -1       ! Index to slave element
+  integer :: ix_branch = 0       ! Index to branch line of slave
+  integer :: ix_attrib = 0       ! Index of attribute controlled
 end type
 
 ! parameter and mode structures
