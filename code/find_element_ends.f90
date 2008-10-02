@@ -34,9 +34,9 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
   type (ele_struct), target :: ele
   type (ele_struct), pointer :: ele1, ele2
 
-  integer ix_ele, ix_start, ix_end, ix_start_line, ix_end_line
-  integer ix1, ix2, n, n_end, n_slave, ix_slave, ix_line
-  integer, allocatable, save :: ix_slave_array(:), ix_line_array(:)
+  integer ix_ele, ix_start, ix_end, ix_start_branch, ix_end_branch
+  integer ix1, ix2, n, n_end, n_slave, ix_slave, ix_branch
+  integer, allocatable, save :: ix_slave_array(:), ix_branch_array(:)
 
 !
 
@@ -58,38 +58,38 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
     n = 0
     n_slave = ele%n_slave
     call re_allocate(ix_slave_array, n_slave)
-    call re_allocate(ix_line_array, n_slave)
+    call re_allocate(ix_branch_array, n_slave)
     ix_slave_array(1:n_slave) = lat%control(ix1:ix2)%ix_slave
-    ix_line_array(1:n_slave) = lat%control(ix1:ix2)%ix_branch
+    ix_branch_array(1:n_slave) = lat%control(ix1:ix2)%ix_branch
     n_end = n_slave
     do 
       n = n + 1
-      if (n > n_end) return
+      if (n > n_end) exit
       ix_slave = ix_slave_array(n)
-      ix_line = ix_line_array(n)
-      if (ix_slave > lat%n_ele_track .and. ix_line == 0) then
+      ix_branch = ix_branch_array(n)
+      if (ix_slave > lat%n_ele_track .and. ix_branch == 0) then
         n_slave = lat%ele(ix_slave)%n_slave
         ix1 = lat%ele(ix_slave)%ix1_slave
         ix2 = lat%ele(ix_slave)%ix2_slave
         call re_allocate(ix_slave_array, n_slave+n_end)
-        call re_allocate(ix_line_array, n_slave+n_end)
+        call re_allocate(ix_branch_array, n_slave+n_end)
         ix_slave_array(n_end+1:n_end+n_slave) = lat%control(ix1:ix2)%ix_slave
-        ix_line_array(n_end+1:n_end+n_slave) = lat%control(ix1:ix2)%ix_branch
+        ix_branch_array(n_end+1:n_end+n_slave) = lat%control(ix1:ix2)%ix_branch
         n_end = n_end + n_slave
       else
         if (ix_slave - 1 < ix_start) then
           ix_start = ix_slave - 1
-          ix_start_line = ix_line
+          ix_start_branch = ix_branch
         endif
         if (ix_start > ix_end) then
           ix_end = ix_slave 
-          ix_end_line = ix_line
+          ix_end_branch = ix_branch
         endif
       endif
     enddo
 
-    call pointer_to_ele (lat, ix_start, ix_start_line, ele1)
-    call pointer_to_ele (lat, ix_end, ix_end_line, ele2)
+    call pointer_to_ele (lat, ix_start_branch, ix_start, ele1)
+    call pointer_to_ele (lat, ix_end_branch, ix_end, ele2)
 
   endif
 
