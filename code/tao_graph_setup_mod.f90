@@ -383,7 +383,7 @@ do k = 1, size(graph%curve)
 
   elseif (curve%data_source == 'twiss') then
 
-    n = 2 * s%global%n_curve_pts
+    n = 2 * s%plot_page%n_curve_pts
     call re_allocate (curve%x_line, n)
     call re_allocate (curve%y_line, n)
 
@@ -424,7 +424,7 @@ do k = 1, size(graph%curve)
       write (graph%legend(3), '(a, f10.4)') 'Theta_tilt (rad):', phi
   endif
 
-    n = 2 * s%global%n_curve_pts
+    n = 2 * s%plot_page%n_curve_pts
     call re_allocate (curve%x_line, n)
     call re_allocate (curve%y_line, n)
 
@@ -957,8 +957,8 @@ do k = 1, size(graph%curve)
 
       ! allocate data space
 
-      call re_allocate (curve%y_line, s%global%n_curve_pts) 
-      call re_allocate (curve%x_line, s%global%n_curve_pts) 
+      call re_allocate (curve%y_line, s%plot_page%n_curve_pts) 
+      call re_allocate (curve%x_line, s%plot_page%n_curve_pts) 
       curve%y_line = 0
 
       call tao_split_component(graph%component, comp, err)

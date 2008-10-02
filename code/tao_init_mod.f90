@@ -84,7 +84,8 @@ else
   close (iu)
 endif
 
-s%global = global  ! transfer global to s%global
+s%global = global                             ! transfer global to s%global
+s%plot_page%n_curve_pts = global%n_curve_pts  ! For backwards compatibility.
 
 if (s%global%track_type == "macro") then
   call out_io (s_error$, r_name, &

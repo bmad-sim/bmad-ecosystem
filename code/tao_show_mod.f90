@@ -867,7 +867,6 @@ case ('global')
   nl=nl+1; write (lines(nl), rmt) '%lmdif_eps                  = ', s%global%lmdif_eps
   nl=nl+1; write (lines(nl), rmt) '%merit_finish               = ', s%global%merit_finish
   nl=nl+1; write (lines(nl), imt) '%n_top10                    = ', s%global%n_top10
-  nl=nl+1; write (lines(nl), imt) '%n_curve_pts                = ', s%global%n_curve_pts
   nl=nl+1; write (lines(nl), imt) '%n_opti_loops               = ', s%global%n_opti_loops
   nl=nl+1; write (lines(nl), imt) '%n_opti_cycles              = ', s%global%n_opti_cycles
   nl=nl+1; write (lines(nl), lmt) '%opt_with_ref               = ', s%global%opt_with_ref 
@@ -1453,6 +1452,7 @@ case ('plot')
 
   if (stuff2 == ' ') then
 
+    nl=nl+1; write (lines(nl), imt)  'plot_page%n_curve_pts            = ', s%global%n_curve_pts
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%text_height            = ', s%plot_page%text_height 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%main_title_text_scale  = ', s%plot_page%main_title_text_scale 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%graph_title_text_scale = ', s%plot_page%graph_title_text_scale 

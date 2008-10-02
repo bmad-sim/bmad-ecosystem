@@ -90,7 +90,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%box = 1, 2, 1, 2
   graph%title = 'Horizontal Phase (deg)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
-  graph%y%label = 'X'
+  graph%y%label = 'A'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
@@ -106,7 +106,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%box = 1, 1, 1, 2
   graph%title = 'Vertical Phase (deg)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
-  graph%y%label = 'Y'
+  graph%y%label = 'B'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
@@ -129,12 +129,12 @@ Templates define the basics of, say, how to display an orbit.
 /
 
 &tao_template_graph
-  graph%name = 'x'
+  graph%name = 'a'
   graph_index = 1
   graph%box = 1, 2, 1, 2
   graph%title = 'Horizontal Beta (m)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
-  graph%y%label = 'X'
+  graph%y%label = 'A'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
@@ -145,12 +145,12 @@ Templates define the basics of, say, how to display an orbit.
 /
 
 &tao_template_graph
-  graph%name = 'y'
+  graph%name = 'b'
   graph_index = 2
   graph%box = 1, 1, 1, 2
   graph%title = 'Vertical Beta (m)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
-  graph%y%label = 'y'
+  graph%y%label = 'B'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
@@ -185,7 +185,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'eta.x'
-  curve(1)%y_axis_scale_factor = 1
 /
 
 &tao_template_graph
@@ -201,7 +200,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type = 'eta.y'
-  curve(1)%y_axis_scale_factor = 1
 /
 
 !----------------------------------------------------------------

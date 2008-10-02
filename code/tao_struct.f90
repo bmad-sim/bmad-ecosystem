@@ -171,6 +171,7 @@ type tao_plot_page_struct
   real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
   real(rp) :: legend_text_scale      = 0.8  ! Relative to text_height
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
+  integer :: n_curve_pts = 401       ! Number of points for plotting a smooth curve
   integer id_window                  ! X window id number.
 end type
 
@@ -438,7 +439,7 @@ type tao_global_struct
   integer :: n_opti_loops = 1            ! number of optimization loops
   integer :: phase_units = radians$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
-  integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
+  integer :: n_curve_pts = -1            ! For backward compatability
   integer :: random_seed = 0             ! Use system clock by default
   integer :: n_top10 = 10                ! Number of top constraints to print.
   real(rp) :: random_sigma_cutoff = 4    ! cut-off in sigmas.

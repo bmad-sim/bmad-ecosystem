@@ -315,7 +315,7 @@ Example:
 The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{y_axis_plot_dmin}\index{u_view}\index{n_opti_cycles}\index{ix_key_bank}
 \index{n_lat_layout_label_rows}\index{phase_units}
-\index{bunch_to_plot}\index{n_curve_pts}\index{random_seed}
+\index{bunch_to_plot}\index{random_seed}
 \index{beam_random_engine}\index{beam_random_gauss_converter}
 \index{track_type}\index{prompt_string}\index{Optimization!setting the optimizer}
 \index{default_key_merit_type}\index{write_file}\index{var_limits_on}
@@ -336,7 +336,6 @@ type tao_global_struct
   integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
   integer :: phase_units = radians\$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
-  integer :: n_curve_pts = 401           ! Num points used to construct a smooth curve
   integer :: random_seed = 0             ! use system clock by default
   character(16) :: random_engine = "pseudo"         ! Random number engine to use
   character(16) :: random_gauss_converter = "exact" ! Uniform to gauss conversion method
@@ -1198,6 +1197,7 @@ name of \vn{tao_plot_page}. This block sets the size of the plot
 window (also called the plot page) and defines the ``regions'' where
 plots go. The syntax of this block is:
 \index{tao_plot_page}    
+\index{plot_page!n_curve_pts}
 \index{plot_page!size}
 \index{plot_page!border}
 \index{plot_page!text_height}
@@ -1218,6 +1218,7 @@ plots go. The syntax of this block is:
     plot_page%key_table_text_scale   = <num> ! Relative to text_height. Def = 0.9
     plot_page%title(i)    = <string>, {<x>, <y>, "<units>", "<justify>"}
     plot_page%shape_height_max = 40  ! maximum half height for drawing elements.
+    plot_page%n_curve_pts = 401           ! Num points used to construct a smooth curve
     region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
     place(i)  = "<region_name>", "<template_name>"
   /
