@@ -224,7 +224,7 @@ ele_loop: do ie = 1, lat%n_ele_max
     endif
     j_loop: do j = ele%ix1_slave, ele%ix2_slave
       ctl = lat%control(j)
-      call pointer_to_ele (slave, ctl%ix_branch, ctl%ix_slave)
+      call pointer_to_ele (lat, ctl%ix_branch, ctl%ix_slave, slave)
       do k = ele%ix1_slave, j-1 ! do not use elements w/ duplicate names
         if (lat%ele(lat%control(k)%ix_slave)%name == slave%name) cycle j_loop
       enddo
