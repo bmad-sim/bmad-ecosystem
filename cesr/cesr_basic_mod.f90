@@ -115,6 +115,10 @@ integer, parameter :: rf_w1$ = 1, rf_w2$ = 2, rf_e1$ = 3, rf_e2$ = 4
 integer, parameter :: scir_tilt_w$ = 1, scir_tilt_sk_w$ = 2
 integer, parameter :: scir_tilt_e$ = 3, scir_tilt_sk_e$ = 4
 
+integer, parameter :: h_sep_08w$ = 1, h_sep_45w$ = 2
+integer, parameter :: h_sep_45e$ = 3, h_sep_08e$ = 4
+integer, parameter :: v_sep_48w$ = 5, v_sep_48e$ = 6
+
 !---------------------------------------------------------------
 ! the cesr_struct is used by bmad_to_cesr.
 ! the element ordering here is similar to what is used by cesrv
