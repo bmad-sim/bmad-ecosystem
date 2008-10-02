@@ -1499,6 +1499,7 @@ if (non_offset_changed .or. (offset_changed .and. ele%map_with_offsets)) then
   if (ele%key == wiggler$) then
     val(z_patch$) = 0
     val(x_patch$) = 0
+    z_patch_calc_needed = (ele%key == wiggler$ .and. val(p0c$) /= 0)
   endif
 endif
 
