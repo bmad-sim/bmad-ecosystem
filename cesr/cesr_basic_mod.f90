@@ -831,17 +831,17 @@ do
     inquire (file = lat_file, exist = is_there, name = lat_file) 
     if (.not. is_there) then   ! If not a file name then...
       lattice = lat_choise
-      lat_file = trim(lat_dir) // 'bmad_' // lattice
-      if (index(lattice, '.') == 0) lat_file = trim(lat_file) // '.lat' 
-      ix = index(lattice, '.lat')
-      if (ix /= 0) lattice = lattice(:ix-1)
-      call FullFileName(lat_file, lat_file)
-      inquire (file = lat_file, exist = is_there, name = lat_file)
-      if (.not. is_there) then
+      call upcase_string (lattice)
+      do i = 1, num_lats
+        if (lat_list(i) == lattice) exit
+      enddo
+      if (i > num_lats) then
         print *, 'READ ERROR OR FILE DOES NOT EXIST. TRY AGAIN...'
         ask_for_lat = .true.
         cycle
       endif
+      lattice = lat_list(i)
+      call lattice_to_bmad_file_name (lattice, lat_file)
     endif
     ix = index(lat_file, ';')
     if (ix /= 0) lat_file = lat_file(:ix-1)
