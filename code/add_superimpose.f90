@@ -161,8 +161,8 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     if (split1_done .and. split2_done) then
       if (lat%ele(ix_super-1)%name == lat%ele(ix_super+1)%name .and. &
                                     lat%ele(ix_super-1)%key == drift$) then
-        lat%ele(ix_super-1)%name = trim(lat%ele(ix_super-1)%name) // '_1'
-        lat%ele(ix_super+1)%name = trim(lat%ele(ix_super+1)%name) // '_2'
+        lat%ele(ix_super-1)%name = trim(lat%ele(ix_super-1)%name) // '#1'
+        lat%ele(ix_super+1)%name = trim(lat%ele(ix_super+1)%name) // '#2'
       endif
     endif
     return
@@ -272,8 +272,8 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   if (split1_done .and. split2_done .and. &
                 lat%ele(ix1_split)%name == lat%ele(ix2_split+1)%name) then
-    lat%ele(ix1_split)%name = trim(lat%ele(ix1_split)%name) // '_1'
-    lat%ele(ix2_split+1)%name = trim(lat%ele(ix2_split+1)%name) // '_2'
+    lat%ele(ix1_split)%name = trim(lat%ele(ix1_split)%name) // '#1'
+    lat%ele(ix2_split+1)%name = trim(lat%ele(ix2_split+1)%name) // '#2'
     call delete_underscore (lat%ele(ix1_split))
     call delete_underscore (lat%ele(ix2_split+1))
   endif
@@ -312,7 +312,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
       slave => lat%ele(lat%control(j)%ix_slave)
       if (slave%n_lord == 1) then
         ix_1lord = ix_1lord + 1
-        write (slave%name, '(2a, i0)') trim(lord%name), '_', ix_1lord
+        write (slave%name, '(2a, i0)') trim(lord%name), '#', ix_1lord
       else
         name = ''
         do k = slave%ic1_lord, slave%ic2_lord
@@ -327,8 +327,8 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 !------------------------------------------------------------------------------
 contains
 
-! Modify: "_\" -> "\"
-!         "__" -> "_"
+! Modify: "#\" -> "\"
+!         "##" -> "#"
 
 subroutine delete_underscore(ele)
 
@@ -339,10 +339,10 @@ subroutine delete_underscore(ele)
 
   !
 
-  ix = index(ele%name, '_\')  ! '
+  ix = index(ele%name, '#\')  ! '
   if (ix /= 0) ele%name = ele%name(1:ix-1) // ele%name(ix+1:)
 
-  ix = index(ele%name, '__')
+  ix = index(ele%name, '##')
   if (ix /= 0) ele%name = ele%name(1:ix-1) // ele%name(ix+1:)
 
 end subroutine

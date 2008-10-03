@@ -91,8 +91,8 @@ ele2 => lat%ele(ix_split+1)
 
 if (logic_option(.true., add_suffix) .or. ele1%key == drift$) then
   ix = len_trim(ele%name)
-  ele1%name = ele%name(:ix) // '_1'
-  ele2%name = ele%name(:ix) // '_2'
+  ele1%name = ele%name(:ix) // '#1'
+  ele2%name = ele%name(:ix) // '#2'
 endif
 
 ! kill any talyor series
