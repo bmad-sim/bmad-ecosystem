@@ -77,7 +77,7 @@ call simplify_path (full_digested_name, full_digested_name)
 open (unit = d_unit, file = full_digested_name, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
 
-read (d_unit, err = 9100) n_files, version
+read (d_unit, err = 9010) n_files, version
 
 v86 = (version == 86)
 v87 = (version == 87)
@@ -119,7 +119,7 @@ do i = 1, n_files
   new_time_stamp = ''
   stat_b = 0
 
-  read (d_unit, err = 9100) fname_read, idate_old
+  read (d_unit, err = 9020) fname_read, idate_old
 
 #if defined (CESR_VMS) 
   ix = index(fname_read, '@')
@@ -175,7 +175,7 @@ enddo
 ! too big to write in one piece
 
 if (v86) then
-  read (d_unit, err = 9100)  &   
+  read (d_unit, err = 9030)  &   
             lat%name, lat%lattice, lat%input_file_name, lat%title, &
             old_a, old_b, old_z, lat%param, lat%version, lat%n_ele_track, &
             lat%n_ele_track, lat%n_ele_max, &
@@ -185,7 +185,7 @@ if (v86) then
   lat%z%chrom = old_z%chrom; lat%z%emit = old_z%emit; lat%z%tune = old_z%tune
 
 else
-  read (d_unit, err = 9100)  &   
+  read (d_unit, err = 9030)  &   
             lat%name, lat%lattice, lat%input_file_name, lat%title, &
             lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
             lat%n_ele_track, lat%n_ele_max, &
@@ -201,18 +201,18 @@ allocate (lat%ic(lat%n_control_max+10))
 !
 
 do i = 0, lat%n_ele_max
-  call read_this_ele(lat%ele(i), error)
+  call read_this_ele(lat%ele(i), i, error)
   if (error) return
 enddo
 
 !
 
 do i = 1, lat%n_control_max
-  read (d_unit, err = 9100) lat%control(i)
+  read (d_unit, err = 9040) lat%control(i)
 enddo
 
 do i = 1, lat%n_ic_max
-  read (d_unit, err = 9100) lat%ic(i)
+  read (d_unit, err = 9050) lat%ic(i)
 enddo
 
 read (d_unit, iostat = ios) lat%beam_start
@@ -220,7 +220,7 @@ read (d_unit, iostat = ios) lat%beam_start
 ! read branch lines
 
 if (version > 86) then
-  read (d_unit, err = 9100) n_branch
+  read (d_unit, err = 9060) n_branch
   call allocate_branch_array (lat%branch, n_branch, lat)  ! Initial allocation
 
   do i = 1, n_branch
@@ -230,7 +230,7 @@ if (version > 86) then
                                       branch%n_ele_track, branch%n_ele_max
     call allocate_ele_array (branch%ele, branch%n_ele_max)
     do j = 0, branch%n_ele_max
-      call read_this_ele (branch%ele(j), error)
+      call read_this_ele (branch%ele(j), j, error)
       if (error) return
     enddo
   enddo
@@ -257,9 +257,59 @@ return
 
 !--------------------------------------------------------------
 
-9100  continue
+9010  continue
 if (bmad_status%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.')
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE VERSION.')
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+!--------------------------------------------------------------
+
+9020  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE FILE AND DATE.')
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+!--------------------------------------------------------------
+
+9030  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE LATTICE GLOBALS.')
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+!--------------------------------------------------------------
+
+9040  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL.')
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+!--------------------------------------------------------------
+
+9050  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE IC.')
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+!--------------------------------------------------------------
+
+9060  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE N_BRANCH.')
 endif
 close (d_unit)
 bmad_status%ok = .false.
@@ -268,9 +318,10 @@ return
 !-----------------------------------------------------------------------------------
 contains
 
-subroutine read_this_ele (ele, error)
+subroutine read_this_ele (ele, ix_ele, error)
 
 type (ele_struct) ele
+integer ix_ele
 logical error
 
 !
@@ -316,8 +367,8 @@ endif
 
 ! Decompress value array
 
-read (d_unit, err = 9100) k_max
-read (d_unit, err = 9100) ix_value(1:k_max), value(1:k_max)
+read (d_unit, err = 9110) k_max
+read (d_unit, err = 9120) ix_value(1:k_max), value(1:k_max)
 do k = 1, k_max
   ele%value(ix_value(k)) = value(k)
 enddo
@@ -405,7 +456,29 @@ return
 
 9100  continue
 if (bmad_status%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.')
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+                                 'ERROR READING ELEMENT # \i0\ ', &
+                                  i_array = (/ ix_ele /) )
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+9110  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+                                 'ERROR READING K_MAX OF ELEMENT # \i0\ ', &
+                                  i_array = (/ ix_ele /) )
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+9120  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+                                 'ERROR READING VALUES OF ELEMENT # \i0\ ', &
+                                  i_array = (/ ix_ele /) )
 endif
 close (d_unit)
 bmad_status%ok = .false.
