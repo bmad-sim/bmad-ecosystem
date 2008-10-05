@@ -68,32 +68,32 @@ end type
 ! for example the horizontal orbit is one curve.
 
 type tao_curve_struct
-  character(40) :: name                    ! Name identifying the curve.
-  character(40) :: data_source             ! "lattice", "data_array", "var_array", etc.
-  character(100) :: data_index  = ' '      ! Used for calculating %ix_symb(:).
-  character(100) :: data_type_x = ' '      ! Used for data slices and phase space plots.
-  character(100) :: data_type   = ' '      ! "orbit.x", etc.
-  character(40) :: ele_ref_name            ! Reference element.
+  character(40) :: name = ''               ! Name identifying the curve.
+  character(40) :: data_source  = ''       ! "lattice", "data_array", "var_array", etc.
+  character(100) :: data_index  = ''       ! Used for calculating %ix_symb(:).
+  character(100) :: data_type_x = ''       ! Used for data slices and phase space plots.
+  character(100) :: data_type   = ''       ! "orbit.x", etc.
+  character(40) :: ele_ref_name = ''       ! Reference element.
   type (tao_graph_struct), pointer :: g    ! pointer to parent graph 
   real(rp), allocatable :: x_line(:)       ! Coords for drawing a curve
   real(rp), allocatable :: y_line(:) 
   real(rp), allocatable :: x_symb(:)       ! Coords for drawing the symbols
   real(rp), allocatable :: y_symb(:) 
   integer, allocatable :: ix_symb(:)       ! Corresponding index in d1_data%d(:) array.
-  real(rp) x_axis_scale_factor ! x-axis conversion from internal to plotting units.
-  real(rp) y_axis_scale_factor ! y-axis conversion from internal to plotting units.
-  type (qp_line_struct) line   ! Line attributes
-  type (qp_symbol_struct) symbol ! Symbol attributes
-  integer ix_universe          ! Universe to take the data from. -1 => use s%global%u_view
-  integer symbol_every         ! Symbol every how many points.
-  integer ix_ele_ref           ! Index in lattice of reference element.
-  integer ix_ele_ref_track     ! = ix_ele_ref except for super_lord elements.
-  integer ix_bunch             ! Bunch to plot.
-  logical use_y2               ! Use y2 axis?
-  logical draw_line            ! Draw a line through the data points?
-  logical draw_symbols         ! Draw a line through the data points?
-  logical draw_symbol_index    ! Draw the symbol index number curve%ix_symb?
-  logical smooth_line_calc     ! Calculate data between element edge points?
+  real(rp) :: x_axis_scale_factor = 1  ! x-axis conversion from internal to plotting units.
+  real(rp) :: y_axis_scale_factor = 1  ! y-axis conversion from internal to plotting units.
+  type (qp_line_struct) line       ! Line attributes
+  type (qp_symbol_struct) symbol   ! Symbol attributes
+  integer :: ix_universe = -1      ! Universe where data is. -1 => use s%global%u_view
+  integer :: symbol_every = 1      ! Symbol every how many points.
+  integer :: ix_ele_ref = -1       ! Index in lattice of reference element.
+  integer :: ix_ele_ref_track = -1 ! = ix_ele_ref except for super_lord elements.
+  integer :: ix_bunch = 0          ! Bunch to plot.
+  logical :: use_y2 = .false.      ! Use y2 axis?
+  logical :: draw_line = .true.    ! Draw a line through the data points?
+  logical :: draw_symbols = .true. ! Draw a line through the data points?
+  logical :: draw_symbol_index = .false. ! Draw the symbol index number curve%ix_symb?
+  logical :: smooth_line_calc = .true.   ! Calculate data between element edge points?
 end type
 
 ! A graph is a collection of overlayed curves with associated graph title, etc.
@@ -117,7 +117,7 @@ type tao_graph_struct
   type (qp_rect_struct) margin  ! Margin around the graph.
   logical clip                  ! Clip plot at graph boundary.
   integer box(4)                ! Defines which box the plot is put in.
-  integer ix_universe           ! Used for lat_layout plots.
+  integer :: ix_universe = -1   ! Used for lat_layout plots.
   logical valid                 ! valid if all curve y_dat computed OK.
   logical y2_mirrors_y          ! Y2-axis same as Y-axis?
   logical limited               ! True if at least one data point past graph bounds.
@@ -146,7 +146,7 @@ end type
 ! Eg: %location = (0.0, 1.0, 0.5, 1.0) gives the top half of the page inside the border.
 
 type tao_plot_region_struct
-  character(40) name             ! Eg: 'top', 'bottom'.
+  character(40) :: name = ''     ! Eg: 'top', 'bottom'.
   type (tao_plot_struct) plot    ! Plot associated with this region
   real(rp) location(4)           ! location on page.
   logical visible                ! To draw or not to draw.
@@ -495,7 +495,7 @@ type tao_common_struct
   integer :: n_alias = 0
   integer :: cmd_file_level = 0          ! For nested command files. 0 -> no command file.
   integer :: ix_key_bank = 0             ! For single mode.
-  integer :: n_universes
+  integer :: n_universes = 1   
   logical :: cmd_file_paused
   logical :: use_cmd_here  = .false.     ! Used for the cmd history stack
   logical :: opti_init                   ! init needed?
@@ -510,12 +510,13 @@ type tao_common_struct
   logical :: optimizer_running 
   logical :: combine_consecutive_elements_of_like_name
   logical :: common_lattice = .false.      
-  character(100) :: cmd                            ! Used for the cmd history
-  character(16) :: init_name = "Tao"               ! label for initialization
-  character(80) :: init_tao_file     = 'tao.init'  ! '-init' argument.
-  character(200) :: init_lat_file = '' ! '-lat' argument.
-  character(80) :: beam_all_file = ''  ! Command line input beam data file.
-  character(80) :: beam0_file    = ''  ! Command line input beam data file.
+  character(100) :: cmd                                ! Used for the cmd history
+  character(16) :: init_name = "Tao"                   ! label for initialization
+  character(200) :: init_lat_file = ''                 ! '-lat' argument.
+  character(100) :: init_tao_file                      ! '-init' argument.
+  character(100) :: default_init_tao_file = 'tao.init'          
+  character(100) :: beam_all_file = ''  ! Command line input beam data file.
+  character(100) :: beam0_file    = ''  ! Command line input beam data file.
   character(16) :: aperture_limit_on
   character(40) :: unique_name_suffix
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...

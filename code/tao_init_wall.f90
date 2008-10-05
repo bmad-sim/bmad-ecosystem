@@ -4,8 +4,8 @@
 ! Subroutine to initialize the tunnel wall.
 !
 ! Input:
-!   wall_file  -- character(*): file name containing lattice file
-!                                             namestructs
+!   wall_file  -- character(*): file name containing the wall definition.
+!                   If blank then there is no wall.
 !-
 
 subroutine tao_init_wall (wall_file)
@@ -34,10 +34,12 @@ subroutine tao_init_wall (wall_file)
 
 ! Open file
 
+  if (wall_file == '') return
+
   call tao_open_file ('TAO_INIT_DIR', wall_file, iu, complete_file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // complete_file_name)
   if (iu == 0) then
-    call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')
+    call out_io (s_fatal$, r_name, 'ERROR OPENING TUNNEL WALL FILE. WILL EXIT HERE...')
     call err_exit
   endif
 

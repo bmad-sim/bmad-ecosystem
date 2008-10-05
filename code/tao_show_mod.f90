@@ -1452,7 +1452,8 @@ case ('plot')
 
   if (stuff2 == ' ') then
 
-    nl=nl+1; write (lines(nl), imt)  'plot_page%n_curve_pts            = ', s%global%n_curve_pts
+    nl=nl+1; write (lines(nl), rmt)  'plot_page%size                   = ', s%plot_page%size       
+    nl=nl+1; write (lines(nl), imt)  'plot_page%n_curve_pts            = ', s%plot_page%n_curve_pts
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%text_height            = ', s%plot_page%text_height 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%main_title_text_scale  = ', s%plot_page%main_title_text_scale 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%graph_title_text_scale = ', s%plot_page%graph_title_text_scale 
@@ -1486,6 +1487,7 @@ case ('plot')
     nl=nl+1; lines(nl) = '---------     -----------               ------------'
     do i = 1, size(s%plot_region)
       region => s%plot_region(i)
+      if (region%name == '') cycle
       nl=nl+1; write (lines(nl), '(3x l1, 10x, a20, 2a)') region%visible, &
                                     region%name, '<-->  ', region%plot%name
     enddo

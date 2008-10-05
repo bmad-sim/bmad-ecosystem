@@ -16,7 +16,8 @@ contains
 !   TAO_INIT_DIR
 !
 ! Input:
-!   init_file      -- Character(*): Tao initialization file.
+!   init_file  -- Character(*): Tao initialization file.
+!                  If blank, there is no file so just use the defaults.
 !-
 
 subroutine tao_init_global (init_file)
@@ -68,24 +69,29 @@ global%default_key_merit_type = 'limit'
 
 call tao_hook_init_global (init_file, global)
 
-call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
-call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
-if (iu == 0) then
-  call out_io (s_blank$, r_name, "Note: Cannot open init file for tao_params namelist read")
-else
-  call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
-  read (iu, nml = tao_params, iostat = ios)
-  if (ios > 0) then
-    call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST.')
-    rewind (iu)
-    read (iu, nml = tao_params)  ! To give error message
+  ! init_file == '' means there is no lattice file so just use the defaults.
+
+if (init_file /= '') then
+  call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
+  call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
+  if (iu == 0) then
+    call out_io (s_blank$, r_name, "Note: Cannot open init file for tao_params namelist read")
+  else
+    call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
+    read (iu, nml = tao_params, iostat = ios)
+    if (ios > 0) then
+      call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST.')
+      rewind (iu)
+      read (iu, nml = tao_params)  ! To give error message
+    endif
+    if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
+    close (iu)
   endif
-  if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
-  close (iu)
 endif
 
 s%global = global                             ! transfer global to s%global
-s%plot_page%n_curve_pts = global%n_curve_pts  ! For backwards compatibility.
+! This for backwards compatibility.
+if (global%n_curve_pts > 0) s%plot_page%n_curve_pts = global%n_curve_pts  
 
 if (s%global%track_type == "macro") then
   call out_io (s_error$, r_name, &
@@ -111,7 +117,7 @@ call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma
 
 call tao_hook_init_connected_uni (is_set)
 
-if (.not. is_set) then
+if (.not. is_set .and. init_file /= '') then
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
 
   ! defaults
@@ -439,7 +445,8 @@ end subroutine tao_init_global
 !   TAO_INIT_DIR
 !
 ! Input:
-!   data_file      -- Character(*): Tao data initialization file.
+!   data_file -- Character(*): Tao data initialization file.
+!                  If blank, there is no file so just use the defaults.
 !-
 
 subroutine tao_init_data (data_file)
@@ -488,7 +495,7 @@ namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
 ! Find out how many d2_data structures we need for each universe
 
 call tao_hook_init_data(is_set) 
-if (is_set) then
+if (is_set .or. data_file == '') then
   call tao_init_data_end_stuff ()
   return
 endif
@@ -1171,7 +1178,8 @@ end subroutine
 !   TAO_INIT_DIR
 !
 ! Input:
-!   var_file       -- Character(*): Tao variable initialization file.
+!   var_file  -- Character(*): Tao variable initialization file.
+!                  If blank, there is no file so just use the defaults.
 !-
 
 subroutine tao_init_variables (var_file)
@@ -1228,7 +1236,7 @@ s%n_var_used = 0
 ! First count how many v1_var definitions there are
 
 call tao_hook_init_var(is_set) 
-if (is_set) then
+if (is_set .or. var_file == '') then
   call tao_init_var_end_stuff ()
   return
 endif

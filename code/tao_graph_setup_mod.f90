@@ -593,7 +593,9 @@ do k = 1, size(graph%curve)
       endif
     endif
 
-    ! Set %good_plot True for all data that is within the x-axis limits
+    ! Set %good_plot True for all data that is within the x-axis limits.
+    ! For a circular lattice "wrap around" at s = 0 may mean 
+    !   some data points show up twice.
 
     d1_ptr => d1_array(1)%d1
     d1_ptr%d%good_plot = .false.
@@ -625,7 +627,7 @@ do k = 1, size(graph%curve)
       forall (m = lbound(d1_ptr%d,1):ubound(d1_ptr%d,1), &
                      d1_ptr%d(m)%ix_ele > model_lat%n_ele_track)
         d1_ptr%d(m)%useit_plot = .false.
-      endforall
+      end forall
     endif
     n_dat = count (d1_ptr%d%useit_plot)       
 
@@ -646,13 +648,16 @@ do k = 1, size(graph%curve)
     elseif (plot%x_axis_type == 's') then
       curve%x_symb = model_lat%ele(d1_ptr%d(curve%ix_symb)%ix_ele)%s
       ! If there is a wrap-around then reorder data
-      do i = 1, n_dat
-        if (curve%x_symb(i) > graph%x%max+eps) then
-          curve%ix_symb = (/ curve%ix_symb(i:), curve%ix_symb(:i-1) /)
-          curve%x_symb = (/ curve%x_symb(i:)-l_tot, curve%x_symb(:i-1) /)
-          exit
-        endif
-      enddo
+      if (model_lat%param%lattice_type == circular_lattice$) then
+        do i = 1, n_dat
+          if (curve%x_symb(i) > graph%x%max+eps .and. & 
+                        curve%x_symb(i)-l_tot > graph%x%min-eps) then
+            curve%ix_symb = (/ curve%ix_symb(i:), curve%ix_symb(:i-1) /)
+            curve%x_symb = (/ curve%x_symb(i:)-l_tot, curve%x_symb(:i-1) /)
+            exit
+          endif
+        enddo
+      endif
       ! Super lords will be out of order so reorder in increasing s.
       do i = 2, n_dat
         do j = i, 2, -1

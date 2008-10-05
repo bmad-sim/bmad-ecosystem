@@ -49,11 +49,16 @@ design_lattice%parser = ''
 call tao_hook_init_read_lattice_info (input_file_name, is_set)
 
 if (.not. is_set) then
-  call tao_open_file ('TAO_INIT_DIR', input_file_name, iu, full_input_name)
-  call out_io (s_blank$, r_name, '*Init: Opening File: ' // full_input_name)
-  if (iu == 0) then
-    call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')
-    call err_exit
+
+  ! input_file_name == '' means there is no lattice file so just use the defaults.
+
+  if (input_file_name /= '') then
+    call tao_open_file ('TAO_INIT_DIR', input_file_name, iu, full_input_name)
+    call out_io (s_blank$, r_name, '*Init: Opening File: ' // full_input_name)
+    if (iu == 0) then
+      call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')
+      call err_exit
+    endif
   endif
 
   ! Defaults
@@ -65,15 +70,17 @@ if (.not. is_set) then
   unique_name_suffix = ''
   aperture_limit_on = ''
 
-  read (iu, nml = tao_design_lattice, iostat = ios)
-  if (ios /= 0) then
-    call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR.')
-    rewind (iu)
-    do
-      read (iu, nml = tao_design_lattice)  ! force printing of error message
-    enddo
+  if (input_file_name /= '') then
+    read (iu, nml = tao_design_lattice, iostat = ios)
+    if (ios /= 0) then
+      call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR.')
+      rewind (iu)
+      do
+        read (iu, nml = tao_design_lattice)  ! force printing of error message
+      enddo
+    endif
+    close (iu)
   endif
-  close (iu)
 
   if (taylor_order /= 0) call set_taylor_order (taylor_order)
   tao_com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name

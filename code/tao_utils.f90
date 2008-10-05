@@ -2038,9 +2038,9 @@ subroutine tao_parse_command_args (error, cmd_words)
 
 ! since there are arguments reset things to their initial state
 
-  tao_com%init_tao_file  = 'tao.init'
-  tao_com%beam_all_file     = ''
-  tao_com%beam0_file    = ''
+  tao_com%init_tao_file  = tao_com%default_init_tao_file
+  tao_com%beam_all_file  = ''
+  tao_com%beam0_file     = ''
   tao_com%init_lat_file  = ''
 
 ! loop over all arguments
@@ -2064,6 +2064,15 @@ subroutine tao_parse_command_args (error, cmd_words)
 
     case ('-lat')
       call get_next_arg (tao_com%init_lat_file)
+
+    case ('help', '-help')
+      call out_io (s_blank$, r_name, (/ &
+          'Switches:', &
+          '  -init <tao_init_file>', &
+          '  -lat <bmad_lattice_file>', &
+          '  -beam_all <beam_all_file>', &
+          '  -beam0 <beam_init_file>' /) )
+      stop
 
     case ('')
       exit

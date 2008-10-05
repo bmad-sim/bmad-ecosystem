@@ -67,11 +67,21 @@ else
                 'NOTE: Cannot open a file for logging initialization information')
 endif
 
-! Open the first init file.
+! Open the init file.
+! If the init file name is *not* the default (that is, it has been set by
+! the user) then an open failure is considered fatal.
+! Additionally, if there is an open failure and no lattice file has been specified
+! by the user, then there is nothing to do and is considered fatal.
 
 if (present(err_flag)) err_flag = .true.
+
 call tao_open_file ('TAO_INIT_DIR', tao_com%init_tao_file, iu, file_name)
-if (iu == 0) return
+if (iu == 0) then ! If open failure
+  call out_io (s_warn$, r_name, 'CANNOT OPEN TAO INITIALIZATION FILE!')
+  if (tao_com%init_tao_file /= tao_com%default_init_tao_file .or. &
+                                    tao_com%init_lat_file == '') stop
+  tao_com%init_tao_file = ''
+endif
 
 ! Set defaults.
 ! n_universes is present to accomodate files with the old syntax.
@@ -80,22 +90,25 @@ lattice_file       = tao_com%init_tao_file      ! set default
 plot_file          = tao_com%init_tao_file      ! set default
 data_file          = tao_com%init_tao_file      ! set default
 var_file           = tao_com%init_tao_file      ! set default
-wall_file          = tao_com%init_tao_file      ! set default
+wall_file          = ''
 n_universes        = 1              ! set default
 init_name          = "Tao"          ! set default
 startup_file       = "tao.startup"
 
 ! Read the info
 
-read (iu, nml = tao_start, iostat = ios)
-close (iu)
+if (iu /= 0) then
+  read (iu, nml = tao_start, iostat = ios)
+  close (iu)
 
-if (ios /= 0) then
-  call out_io (s_info$, r_name, 'Cannot read "tao_start" namelist in file: ' // file_name)
+  if (ios /= 0) then
+    call out_io (s_info$, r_name, &
+                    'Cannot read "tao_start" namelist in file: ' // file_name)
+  endif
+
+  tao_com%init_name = init_name
+  tao_com%n_universes = n_universes
 endif
-
-tao_com%init_name = init_name
-tao_com%n_universes = n_universes
 
 ! Tao inits.
 ! Data can have variable info so init vars first.

@@ -47,9 +47,9 @@ type (qp_symbol_struct) default_symbol
 type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
 
-real(rp) shape_height_max
+real(rp) shape_height_max, y1, y2
 
-integer iu, i, j, ix, ip, n, ng, ios, i_uni
+integer iu, i, j, k, ix, ip, n, ng, ios, i_uni
 integer graph_index, color, i_graph, ix_file
 integer, allocatable, save :: ix_ele(:)
 
@@ -71,8 +71,51 @@ namelist / element_shapes_lat_layout / ele_shape
 call qp_init_com_struct()  ! Init quick_plot
 if (.not. s%global%init_plot_needed) return
 s%global%init_plot_needed = .false.
+
+! Init
+
 init_axis%min = 0
 init_axis%max = 0
+
+place%region = ' '
+region%name = ' '       ! a region exists only if its name is not blank 
+plot_page = plot_page_default
+plot_page%title(:)%draw_it = .false.
+plot_page%title(:)%string = ' '
+plot_page%title(:)%justify = 'CC'
+plot_page%title(:)%x = 0.50
+plot_page%title(:)%y = 0.990
+plot_page%title(1)%y = 0.996
+plot_page%title(2)%y = 0.97
+plot_page%title(:)%units = '%PAGE'
+plot_page%size = (/ 600, 800 /)
+
+default_graph%title           = ''
+default_graph%type            = 'data'
+default_graph%legend_origin   = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
+default_graph%y               = init_axis
+default_graph%y%major_div     = 4
+default_graph%y2              = init_axis
+default_graph%y2%major_div    = 4
+default_graph%y2%label_color  = blue$
+default_graph%y2%draw_numbers = .false.
+default_graph%ix_universe     = -1
+default_graph%clip            = .true.
+default_graph%draw_axes       = .true.
+default_graph%correct_xy_distortion = .false.
+default_graph%component       = 'model'
+default_graph%who%name        = ''
+default_graph%who%sign        = 1
+default_graph%box     = (/ 1, 1, 1, 1 /)
+default_graph%margin  = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
+default_graph%n_curve = 0
+
+! If there is no plot file then use the built-in defaults.
+
+if (plot_file_in == '') then
+  call tao_setup_default_plotting()
+  return
+endif
 
 ! Read in the plot page parameters
 ! plot_file_in may contain multiple file names separated by spaces.
@@ -88,18 +131,6 @@ if (iu == 0) then
   call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')
   call err_exit
 endif
-
-place%region = ' '
-region%name = ' '       ! a region exists only if its name is not blank 
-plot_page = plot_page_default
-plot_page%title(:)%draw_it = .false.
-plot_page%title(:)%string = ' '
-plot_page%title(:)%justify = 'CC'
-plot_page%title(:)%x = 0.50
-plot_page%title(:)%y = 0.990
-plot_page%title(1)%y = 0.996
-plot_page%title(2)%y = 0.97
-plot_page%title(:)%units = '%PAGE'
 
 call out_io (s_blank$, r_name, 'Init: Reading tao_plot_page namelist')
 read (iu, nml = tao_plot_page, iostat = ios)
@@ -207,26 +238,6 @@ endif
 rewind (iu)
 
 ip = 0   ! number of template plots
-
-default_graph%title           = ''
-default_graph%type            = 'data'
-default_graph%legend_origin   = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
-default_graph%y               = init_axis
-default_graph%y%major_div     = 4
-default_graph%y2              = init_axis
-default_graph%y2%major_div    = 4
-default_graph%y2%label_color  = blue$
-default_graph%y2%draw_numbers = .false.
-default_graph%ix_universe     = -1
-default_graph%clip            = .true.
-default_graph%draw_axes       = .true.
-default_graph%correct_xy_distortion = .false.
-default_graph%component       = 'model'
-default_graph%who%name        = ''
-default_graph%who%sign        = 1
-default_graph%box     = (/ 1, 1, 1, 1 /)
-default_graph%margin  = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
-default_graph%n_curve = 0
 
 do
   plot%name = ' '
@@ -652,6 +663,151 @@ do n = 1, size(ele_shape)
 
   if (ele_shape(n)%ele_name /= '') n_shape = n
 enddo
+
+end subroutine
+
+!----------------------------------------------------------------------------------------
+! contains
+
+subroutine tao_setup_default_plotting()
+
+s%plot_page = plot_page
+
+allocate (tao_com%ele_shape_floor_plan(10), tao_com%ele_shape_lat_layout(10))
+
+tao_com%ele_shape_floor_plan(:)%ele_name = ''
+tao_com%ele_shape_floor_plan(1:5) = (/ &
+          tao_ele_shape_struct('SBEND:*',      'BOX',  'BLUE',    15.0_rp, 'none'), &
+          tao_ele_shape_struct('QUADRUPOLE:*', 'XBOX', 'MAGENTA', 30.0_rp, 'name'), &
+          tao_ele_shape_struct('SEXTUPOLE:*',  'XBOX', 'GREEN',   30.0_rp, 'none'), &
+          tao_ele_shape_struct('LCAVITY:*',    'XBOX', 'RED',     40.0_rp, 'none'), &
+          tao_ele_shape_struct('RFCAVITY:*',   'XBOX', 'RED',     40.0_rp, 'none') /)
+
+tao_com%ele_shape_lat_layout = tao_com%ele_shape_floor_plan
+
+! beta
+
+plt => s%template_plot(1)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(2))
+plt%graph(1)%p => plt
+plt%graph(2)%p => plt
+allocate (plt%graph(1)%curve(1))
+allocate (plt%graph(2)%curve(1))
+
+plt%name                 = 'beta'
+plt%x_axis_type          = 's'
+plt%x                    = init_axis
+plt%x%major_div_nominal  = 10
+plt%x%minor_div_max = 6
+plt%x%major_div = 6
+plt%autoscale_gang_x = .true.
+plt%autoscale_gang_y = .true.
+
+
+grph => plt%graph(1)
+grph%name          = 'a'
+grph%title         = 'Horizontal Beta'
+grph%type          = 'data'
+grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%box           = (/ 1, 2, 1, 2 /)
+grph%y             = init_axis
+grph%y%label       = '\gb\dA\u'
+grph%y%major_div   = 4
+grph%y2%draw_numbers = .false.
+grph%component     = 'model'
+crv => grph%curve(1)
+crv%data_source = 'lattice'
+crv%data_type = 'beta.a'
+
+grph => plt%graph(2)
+grph               = plt%graph(1)
+grph%name          = 'b'
+grph%title         = 'Vertical Beta'
+grph%y%label       = '\gb\dB\u'
+grph%box           = (/ 1, 1, 1, 2 /)
+crv => grph%curve(1)
+crv%data_type = 'beta.b'
+
+! eta
+
+plt => s%template_plot(2)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(2))
+plt%graph(1)%p => plt
+plt%graph(2)%p => plt
+allocate (plt%graph(1)%curve(1))
+allocate (plt%graph(2)%curve(1))
+
+plt = s%template_plot(1)
+plt%name           = 'eta'
+
+grph => plt%graph(1)
+grph%name          = 'x'
+grph%title         = 'Horizontal Eta'
+grph%y%label       = '\gy\dX\u'
+grph%y%major_div   = 4
+crv => grph%curve(1)
+crv%data_type = 'eta.x'
+
+grph => plt%graph(2)
+grph%name          = 'y'
+grph%title         = 'Vertical Eta'
+grph%y%label       = '\gy\dY\u'
+crv => grph%curve(1)
+crv%data_type = 'eta.y'
+
+! Orbit
+
+plt => s%template_plot(3)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(2))
+plt%graph(1)%p => plt
+plt%graph(2)%p => plt
+allocate (plt%graph(1)%curve(1))
+allocate (plt%graph(2)%curve(1))
+
+plt = s%template_plot(1)
+plt%name           = 'orbit'
+
+grph => plt%graph(1)
+grph%name          = 'x'
+grph%title         = 'Horizontal Orbit'
+grph%y%label       = 'X'
+grph%y%major_div   = 4
+crv => grph%curve(1)
+crv%data_type = 'orbit.x'
+
+grph => plt%graph(2)
+grph%name          = 'y'
+grph%title         = 'Vertical Orbit'
+grph%y%label       = 'Y'
+crv => grph%curve(1)
+crv%data_type = 'orbit.y'
+
+! Regions
+
+allocate (s%plot_region(20))
+
+k = 0
+do i = 1, 4
+  do j = 1, i
+    k = k + 1
+    write (s%plot_region(k)%name, '(a, 2i0)') 'r', j, i
+    y1 = 0.95 * real(j-1)/ i
+    y2 = 0.95 * real(j) / i
+    s%plot_region(k)%location = (/ 0.0_rp, 1.0_rp, y1, y2 /)
+  enddo
+enddo
+
+call tao_place_cmd ('r12', 'beta')
+call tao_place_cmd ('r22', 'eta')
 
 end subroutine
 

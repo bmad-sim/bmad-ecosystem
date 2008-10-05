@@ -2,6 +2,7 @@ module tao_x_scale_mod
 
 use tao_mod
 use quick_plot
+use tao_graph_setup_mod
 
 contains
 
@@ -66,26 +67,7 @@ else
   if (err) return
 endif
 
-! If autoscaling then figure out the limits of the data by calling tao_plot_setup.
-
-if (x_min == x_max) then
-  if (allocated(graph)) then
-    do i = 1, size(graph)
-      graph(i)%g%x%min = -1e30  ! So no cliping of points
-      graph(i)%g%x%max = 1e30   ! So no cliping of points
-    enddo
-  else
-    do i = 1, size(plot)
-      do j = 1, size(plot(i)%p%graph)
-        plot(i)%p%graph(j)%x%min = -1e30  ! So no cliping of points
-        plot(i)%p%graph(j)%x%max = 1e30   ! So no cliping of points
-      enddo
-    enddo
-  endif
-  call tao_plot_setup()
-endif
-
-! Set max and min
+! Set max and min.
 
 if (allocated(graph)) then
   do i = 1, size(graph)
@@ -167,6 +149,8 @@ end subroutine
 
 subroutine tao_x_scale_graph (graph, x_min, x_max)
 
+implicit none
+
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 type (floor_position_struct) end
@@ -220,6 +204,11 @@ else if (graph%p%x_axis_type == 's') then
   curve_here = .true.
 else
   if (.not. allocated(graph%curve)) return
+  if (x_min == x_max) then
+    graph%x%min = -1e30  ! So no cliping of points
+    graph%x%max = 1e30   ! So no cliping of points
+    call tao_graph_setup(graph%p, graph)
+  endif
   do k = 1, size(graph%curve)
     curve => graph%curve(k)
     if (allocated (curve%x_symb)) then
