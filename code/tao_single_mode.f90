@@ -597,12 +597,21 @@ type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 
 real(rp) factor
+integer i, j
 
 !
 
 do i = 1, size(s%plot_region)
+  if (.not. s%plot_region(i)%visible) cycle
   plot => s%plot_region(i)%plot
-  call tao_x_scale_plot (plot, plot%x%min * factor, plot%x%max * factor)
+  if (plot%autoscale_gang_x) then
+    call tao_x_scale_plot (plot, plot%x%min * factor, plot%x%max * factor)
+  else
+    if (.not. allocated(plot%graph)) cycle
+    do j = 1, size(plot%graph)
+      call tao_x_scale_graph (graph, graph%x%min * factor, graph%x%max * factor)
+    enddo
+  endif
 enddo
 
 end subroutine

@@ -82,15 +82,24 @@ do i = 1, size(region%plot%graph)
   enddo
 enddo
 
-! If the plot uses 's' for the x-axis and min/max have not been set then use the scale for 
-! an existing 's' plot.
+! If a graph uses 's' for the x-axis and min/max have not been set then use the scale for 
+! an existing 's' graph. First find an existing graph.
 
-if (region%plot%x_axis_type == 's' .and. region%plot%x%min == region%plot%x%max) then
-  do i = 1, size(s%plot_region)
-    if (.not. s%plot_region(i)%visible) cycle
-    if (s%plot_region(i)%plot%x_axis_type /= 's') cycle
-    region%plot%x = s%plot_region(i)%plot%x
-    exit
+nullify(ax)
+do i = 1, size(s%plot_region)
+  if (.not. s%plot_region(i)%visible) cycle
+  if (s%plot_region(i)%plot%x_axis_type /= 's') cycle
+  ax => s%plot_region(i)%plot%graph(1)%x
+  exit
+enddo
+
+! Now do the set.
+
+if (associated(ax) .and. region%plot%x_axis_type == 's' .and. &
+                                              allocated(region%plot%graph)) then
+  do i = 1, size(region%plot%graph)
+    if (region%plot%graph(i)%x%min /= region%plot%graph(i)%x%max) cycle
+    region%plot%graph(i)%x = ax
   enddo
 endif
 

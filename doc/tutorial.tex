@@ -13,27 +13,30 @@ reference manual. See Chapter~\sref{c:concepts} for a discussion of
 Instructions for setting up the appropriate environmental variables
 and for obtaining the source files can be found at:
 \begin{example}
-  http://www.lepp.cornell.edu/~dcs/bmad/tao_entry_point.html
+  http://www.lepp.cornell.edu/~dcs/bmad/
 \end{example}
 
 Briefly, you should be able to run \tao using the command
 \begin{example}
-  \$CESR_EXE/tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
+  \$ACC_EXE/tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
                                   \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
 \end{example}
-\vn{\$CESR_EXE} is an environmental variable pointing to the directory
+\vn{\$ACC_EXE} is an environmental variable pointing to the directory
 the \tao executable is in.  The root initialization file
 \vn{<tao_input_file>} is the file that \tao reads to start \tao's
 initialization process. If not present, \vn{<tao_input_file>} defaults
 to \vn{tao.init}. The \vn{-beam_all} switch is for reading in data
 generated from beam tracking (\sref{s:beam.init}). The \vn{-beam0}
 switch is for specifying the initial beam distribution.  The
-\vn{<lattice_file>} is used to override the lattice file specified in
+\vn{-lat} switch is used to override the lattice file specified in
 the root initialization file. See section~\sref{s:command.line} for
 more details. Example:
 \begin{example}
-  \$CESR_EXE/tao -init my.init -lat xsif::slac.xsif
+  \$ACC_EXE/tao -init my.init -lat xsif::slac.xsif
 \end{example}
+An initialization file is actually not needed. In this case, a
+\vn{-lat} switch is manditory and \tao will use a set of default plot
+templates for plotting.
 
 This tutorial uses the example set of input files that comes with the \tao library.
 These files can be viewd and/or downloaded at:
@@ -60,7 +63,7 @@ files as discussed in Section~\sref{s:init.global}.
 Using the example files provided with \tao (\sref{s:obtaining}), \tao
 is started with the command:
 \begin{example}
-  \$CESR_EXE/tao
+  \$ACC_EXE/tao
 \end{example}
 Since no initialization file is specified on the command line, the
 default file \vn{tao.init} is used. In the example \vn{tao.init} there

@@ -117,7 +117,7 @@ do j = 1, size(plot%graph)
   call tao_x_scale_graph (plot%graph(j), x_min, x_max)
 enddo
 
-! if auto scale was done...
+! if auto scale is needed...
 
 do_gang = plot%autoscale_gang_x
 if (present(gang)) then

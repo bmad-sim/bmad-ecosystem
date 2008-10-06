@@ -592,6 +592,8 @@ do
         crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
       elseif (graph%type == 'key_table') then
         plt%x_axis_type = 'none'
+      elseif (graph%type == 'floor_plan') then
+        plt%x_axis_type = 'floor'
       endif
 
       call tao_ele_ref_to_ele_ref_track (crv%ix_universe, crv%ix_ele_ref, crv%ix_ele_ref_track)
@@ -671,17 +673,21 @@ end subroutine
 
 subroutine tao_setup_default_plotting()
 
+real(rp) y_top
+
+!
+
 s%plot_page = plot_page
 
 allocate (tao_com%ele_shape_floor_plan(10), tao_com%ele_shape_lat_layout(10))
 
 tao_com%ele_shape_floor_plan(:)%ele_name = ''
 tao_com%ele_shape_floor_plan(1:5) = (/ &
-          tao_ele_shape_struct('SBEND:*',      'BOX',  'BLUE',    15.0_rp, 'none'), &
-          tao_ele_shape_struct('QUADRUPOLE:*', 'XBOX', 'MAGENTA', 30.0_rp, 'name'), &
-          tao_ele_shape_struct('SEXTUPOLE:*',  'XBOX', 'GREEN',   30.0_rp, 'none'), &
-          tao_ele_shape_struct('LCAVITY:*',    'XBOX', 'RED',     40.0_rp, 'none'), &
-          tao_ele_shape_struct('RFCAVITY:*',   'XBOX', 'RED',     40.0_rp, 'none') /)
+          tao_ele_shape_struct('SBEND:*',      'BOX',  'BLUE',    08.0_rp, 'none'), &
+          tao_ele_shape_struct('QUADRUPOLE:*', 'XBOX', 'MAGENTA', 15.0_rp, 'name'), &
+          tao_ele_shape_struct('SEXTUPOLE:*',  'XBOX', 'GREEN',   15.0_rp, 'none'), &
+          tao_ele_shape_struct('LCAVITY:*',    'XBOX', 'RED',     20.0_rp, 'none'), &
+          tao_ele_shape_struct('RFCAVITY:*',   'XBOX', 'RED',     20.0_rp, 'none') /)
 
 tao_com%ele_shape_lat_layout = tao_com%ele_shape_floor_plan
 
@@ -791,21 +797,68 @@ grph%y%label       = 'Y'
 crv => grph%curve(1)
 crv%data_type = 'orbit.y'
 
+! Lat Layout
+
+plt => s%template_plot(4)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+plt%graph(1)%p => plt
+
+plt%name           = 'lat_layout'
+plt%x_axis_type    = 's'
+plt%x              = init_axis
+
+grph => plt%graph(1)
+grph%name          = 'g1'
+grph%box           = (/ 1, 1, 1, 1 /)
+grph%type          = 'lat_layout'
+grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%x             = init_axis
+
+! Floor Plan
+
+plt => s%template_plot(5)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+plt%graph(1)%p => plt
+
+plt%name           = 'floor_plan'
+plt%x_axis_type          = 'floor'
+plt%x                    = init_axis
+
+grph => plt%graph(1)
+grph%name          = 'g1'
+grph%box           = (/ 1, 1, 1, 1 /)
+grph%type          = 'floor_plan'
+grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%correct_xy_distortion = .true.
+grph%x             = init_axis
+grph%y             = init_axis
+
 ! Regions
 
 allocate (s%plot_region(20))
 
-k = 0
+y_top = 0.85
+s%plot_region(1)%name = 'r_top'
+s%plot_region(1)%location = (/ 0.0_rp, 1.0_rp, y_top, 1.00_rp /)
+
+k = 1
 do i = 1, 4
   do j = 1, i
     k = k + 1
     write (s%plot_region(k)%name, '(a, 2i0)') 'r', j, i
-    y1 = 0.95 * real(j-1)/ i
-    y2 = 0.95 * real(j) / i
+    y1 = y_top * real(j-1)/ i
+    y2 = y_top * real(j) / i
     s%plot_region(k)%location = (/ 0.0_rp, 1.0_rp, y1, y2 /)
   enddo
 enddo
 
+call tao_place_cmd ('r_top', 'lat_layout')
 call tao_place_cmd ('r12', 'beta')
 call tao_place_cmd ('r22', 'eta')
 

@@ -130,14 +130,15 @@ end type
 ! One for Cbar12, and one for Cbar22.
 
 type tao_plot_struct
-  character(40) :: name = ' '   ! Identifying name
+  character(40) :: name = ' '                 ! Identifying name
   type (tao_graph_struct), allocatable :: graph(:)
-                                ! individual graphs of a plot
-  type (qp_axis_struct) x       ! X-axis parameters.
+                                              ! individual graphs of a plot
+  type (qp_axis_struct) x                     ! X-axis parameters.
   type (tao_plot_region_struct), pointer :: r ! pointer to parent.
-  character(16) x_axis_type     ! 'index', 'ele_index', 's', 'none', or 'phase_space'
-  logical autoscale_gang_x      ! scale cmd scales graphs together?
-  logical autoscale_gang_y      ! scale cmd scales graphs together?
+  character(16) x_axis_type                   ! 'index', 'ele_index', 's', 'none', 
+                                              !         'floor', or 'phase_space'
+  logical :: autoscale_gang_x = .true.        ! scale cmd scales graphs together?
+  logical :: autoscale_gang_y = .true.        ! scale cmd scales graphs together?
 end type
 
 ! A region defines a plot and where to position the plot on the plot page

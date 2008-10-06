@@ -1,8 +1,7 @@
 !+
 ! Subroutine tao_x_axis_cmd (where, what)
 !
-! Routine to axis a plot. If x_min = x_max
-! Then the axiss will be chosen to show all the data.
+! Routine to set the type of axis for a plot.
 ! 
 ! Input:
 !   where -- Character(*): Region to axis. Eg: "top"
@@ -39,7 +38,8 @@ endif
 if (len_trim(where) == 0 .or. where == 'all') then
   do j = 1, size(s%plot_region)
     if (.not. s%plot_region(j)%visible) cycle
-    call set_axis (s%plot_region(j)%plot)
+    s%plot_region(j)%plot%x_axis_type = what
+    call tao_x_scale_plot (s%plot_region(j)%plot, 0.0_rp, 0.0_rp)
   enddo
   return
 endif
@@ -49,60 +49,10 @@ endif
 call tao_find_plots (err, where, 'REGION', plot)
 if (err) return
 do i = 1, size(plot)
-  call set_axis (plot(i)%p)
+  plot(i)%p%x_axis_type = what
+  call tao_x_scale_plot (plot(i)%p, 0.0_rp, 0.0_rp)
 enddo
 
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-contains
-
-subroutine set_axis (plot)
-
-type (tao_plot_struct) plot
-type (tao_d1_data_struct), pointer :: d1_ptr
-integer iu, n, p1, p2, ig, ic
-real(rp) minn, maxx
-
-!
-
-plot%x_axis_type = what
-iu = s%global%u_view
-
-if (what == 's') then
-  minn = s%u(iu)%model%lat%ele(0)%s
-  n = s%u(iu)%model%lat%n_ele_track
-  maxx = s%u(iu)%model%lat%param%total_length
-
-elseif (what == 'ele_index') then
-  minn = 0
-  maxx = s%u(s%global%u_view)%model%lat%n_ele_track 
-
-elseif (what == 'index') then
-  plot%x%min = -1e30; plot%x%max = 1e30
-  do ig = 1, size(plot%graph)
-    plot%graph(ig)%x%min = -1e30; plot%graph(ig)%x%max = 1e30
-    call tao_graph_setup(plot, plot%graph(ig))
-  enddo
-  minn = 1e30; maxx = -1e30
-  do ig = 1, size(plot%graph)
-    plot%graph(ig)%valid = .false.
-    if (allocated(plot%graph(ig)%curve)) then
-      plot%graph(ig)%valid = .true.
-      do ic = 1, size(plot%graph(ig)%curve)
-        minn = min(minn, plot%graph(ig)%curve(ic)%x_symb(1))
-        n = size(plot%graph(ig)%curve(ic)%x_symb)
-        maxx = max(maxx, plot%graph(ig)%curve(ic)%x_symb(n))
-      enddo
-    endif
-  enddo
-  if (all(.not. plot%graph%valid)) return
-endif
-
-! Calc places and divisions.
-
-call tao_x_scale_plot (plot, minn, maxx)
-
-end subroutine
 
 end subroutine 
 

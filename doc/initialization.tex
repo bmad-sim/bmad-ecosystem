@@ -94,6 +94,9 @@ The syntax of the command line is:
 
 The \vn{-init} optional argument can be used to replace the default
 initialization file name (\vn{tao.init}) with \vn{<init_file_name>}.
+An initialization file is actually not needed. In this case, a
+\vn{-lat} switch is manditory and \tao will use a set of default plot
+templates for plotting.
 
 The \vn{-beam_all} optional argument reads in a beam data file for the
 entire lattice and this data is used in place of beam tracking. This
@@ -103,17 +106,17 @@ The \vn{-beam0} optional argument reads in a beam data file which is
 used to initialize the beam at the beginning of the lattice. This
 overrides the \vn{beam0_file} variable (\sref{s:beam.init}.
 
-The \vn{<lattice_file>} is used to override the \vn{design_lattice}
+The \vn{-lat} switch is used to override the \vn{design_lattice}
 lattice file specified in the initialization file
 (\sref{s:init.lat}). Example:
 \begin{example}
-  \$CESR_EXE/tao -init my.init -lat xsif::slac.xsif
+  \$ACC_EXE/tao -init my.init -lat xsif::slac.xsif
 \end{example}
 If there is more than one universe and the universes have different
 lattices, separate the different lattice names using a "|" character.
 Do not put any spaces in between. Example:
 \begin{example}
-  \$CESR_EXE/tao -lat xsif::slac.xsif|cesr.bmad
+  \$ACC_EXE/tao -lat xsif::slac.xsif|cesr.bmad
 \end{example}
 
 %-----------------------------------------------------------------
