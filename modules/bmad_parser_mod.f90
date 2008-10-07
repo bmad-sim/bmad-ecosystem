@@ -3781,22 +3781,36 @@ subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file)
 
   character(*) lat_file, digested_file
   character(*), optional :: full_lat_file
-  character(200) path, basename
+  character(200) full_name, path, basename
 
   integer ix
 
 !
 
-  call fullfilename (lat_file, full_lat_file)
-  inquire (file = full_lat_file, name = full_lat_file)  ! full input file_name
-  ix = index(full_lat_file, ';')
-  if (ix /= 0) full_lat_file = full_lat_file(:ix-1)
+  call fullfilename (lat_file, full_name)
+  inquire (file = full_name, name = full_name)  ! full input file_name
+  ix = index(full_name, ';')
+  if (ix /= 0) full_name = full_name(:ix-1)
 
-  ix = SplitFileName(lat_file, path, basename)
+  if (present (full_lat_file)) full_lat_file = full_name
+
+  ix = SplitFileName(full_name, path, basename)
   if (rp == 8) then
-    digested_file = lat_file(:ix) // 'digested8_' // lat_file(ix+1:)
+    digested_file = trim(path) // 'digested8_' // basename
   else
-    digested_file = lat_file(:ix) // 'digested_' // lat_file(ix+1:)
+    digested_file = trim(path) // 'digested_' // basename
+  endif
+
+  ! This only affects VMS programs.
+  ! What we want to do is change the directory for lattice files in CESR_MNT:[lattice...].
+  ! However 'CESR_MNT' is a logical that will get translated by the inquire function so
+  ! we only check that 'lattice' is the top directory.
+
+  ix = max (index_nocase(digested_file, '[vms_lattice.'), &
+            index_nocase(digested_file, '[000000.vms_lattice.'))
+  if (ix /= 0) then
+    ix = index_nocase(digested_file, 'lattice.')
+    digested_file = 'U:[cesr.lattice.' // digested_file(ix+8:)
   endif
 
 end subroutine
