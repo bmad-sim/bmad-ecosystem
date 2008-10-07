@@ -13,7 +13,7 @@
 #-----------------------------------------------------------------------------
 LIBNAME  := bmad
 RELEASE  :=
-PACKAGE  := PACKAGES
+PACKAGES := PACKAGES
 
 # absrcdir (absolute source directory) and CESRLIB MUST be set 
 # The following clase allows 
