@@ -4,15 +4,15 @@
 ! Subroutine to convert a lattice name to the appropriate bmad file name.
 ! If lattice *has* a "." then:
 !   First tried is:
-!       "$CESR_MNT/lattice/CESR/bmad/" + lattice
+!       "$CESR_MNT/lattice/cesr/bmad/" + lattice
 !   If this does not exist, bmad_file_name is set to:
-!       "$CESR_MNT/lattice/CESR/bmad/bmad_" + lattice
+!       "$CESR_MNT/lattice/cesr/bmad/bmad_" + lattice
 !
 ! If lattice does *not* have a "."
 !   First tried is:
-!       "$CESR_MNT/lattice/CESR/bmad/" + lattice + ".lat"
+!       "$CESR_MNT/lattice/cesr/bmad/" + lattice + ".lat"
 !   If this does not exist, bmad_file_name is set to:
-!       "$CESR_MNT/lattice/CESR/bmad/bmad_" + lattice + ".lat"
+!       "$CESR_MNT/lattice/cesr/bmad/bmad_" + lattice + ".lat"
 !
 ! Note: lattice is always converted to lower case.
 !
