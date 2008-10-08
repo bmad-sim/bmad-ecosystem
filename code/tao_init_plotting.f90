@@ -92,7 +92,8 @@ plot_page%size = (/ 600, 800 /)
 
 default_graph%title           = ''
 default_graph%type            = 'data'
-default_graph%legend_origin   = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
+default_graph%text_legend_origin   = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
+default_graph%curve_legend_origin  = qp_point_struct(5.0_rp, -2.0_rp, 'POINTS/GRAPH/LT')
 default_graph%y               = init_axis
 default_graph%y%major_div     = 4
 default_graph%y2              = init_axis
@@ -103,6 +104,7 @@ default_graph%ix_universe     = -1
 default_graph%clip            = .true.
 default_graph%draw_axes       = .true.
 default_graph%correct_xy_distortion = .false.
+default_graph%draw_curve_legend     = .true.
 default_graph%component       = 'model'
 default_graph%who%name        = ''
 default_graph%who%sign        = 1
@@ -402,20 +404,22 @@ do
         endif
       enddo
     endif
-    grph%legend_origin = graph%legend_origin
-    grph%box           = graph%box
-    grph%title         = graph%title
-    grph%margin        = graph%margin
-    grph%x             = graph%x
-    grph%y             = graph%y
-    grph%y2            = graph%y2
-    grph%ix_universe   = graph%ix_universe
-    grph%clip          = graph%clip
-    grph%draw_axes     = graph%draw_axes
+    grph%text_legend_origin    = graph%text_legend_origin
+    grph%curve_legend_origin   = graph%curve_legend_origin
+    grph%box                   = graph%box
+    grph%title                 = graph%title
+    grph%margin                = graph%margin
+    grph%x                     = graph%x
+    grph%y                     = graph%y
+    grph%y2                    = graph%y2
+    grph%ix_universe           = graph%ix_universe
+    grph%clip                  = graph%clip
+    grph%draw_axes             = graph%draw_axes
     grph%correct_xy_distortion = graph%correct_xy_distortion
-    grph%title_suffix = ' '
-    grph%legend = ' '
-    grph%y2_mirrors_y = .true.
+    grph%draw_curve_legend     = graph%draw_curve_legend
+    grph%title_suffix          = ''
+    grph%text_legend           = ''
+    grph%y2_mirrors_y          = .true.
 
     call qp_calc_axis_places (grph%x)
 

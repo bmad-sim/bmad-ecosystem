@@ -1458,6 +1458,7 @@ case ('plot')
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%axis_number_text_scale = ', s%plot_page%axis_number_text_scale 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%axis_label_text_scale  = ', s%plot_page%axis_label_text_scale 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%key_table_text_scale   = ', s%plot_page%key_table_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) 'plot_page%legend_text_scale      = ', s%plot_page%legend_text_scale 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%shape_height_max       = ', s%plot_page%shape_height_max  
 
     nl=nl+1; lines(nl) = ''

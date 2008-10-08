@@ -260,8 +260,8 @@ character(20) :: r_name = 'tao_plot_floor_plan'
 ! Each graph is a separate lattice layout (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
 
-call qp_set_layout (x_axis = graph%x, y_axis = graph%y, &
-                    box = graph%box, margin = graph%margin)
+call qp_set_layout (x_axis = graph%x, y_axis = graph%y, y2_axis = graph%y2, &
+                                        box = graph%box, margin = graph%margin)
 
 ! Adjust the margins if there is to be no distortion of the drawing
 
@@ -896,10 +896,18 @@ enddo
 
 if (.not. have_data) call qp_draw_text ('**No Plottable Data**', &
                             0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
-! draw the legend if there is one
+! Draw the text legend if there is one
 
-if (any(graph%legend /= ' ')) call qp_draw_legend (graph%legend, &
-          graph%legend_origin%x, graph%legend_origin%y, graph%legend_origin%units)
+if (any(graph%text_legend /= ' ')) call qp_draw_text_legend (graph%text_legend, &
+       graph%text_legend_origin%x, graph%text_legend_origin%y, graph%text_legend_origin%units)
+
+! Draw the curve legend if needed
+
+if (graph%draw_curve_legend .and. size(graph%curve) > 1) then
+  call qp_draw_curve_legend (graph%curve_legend_origin, s%plot_page%curve_legend_text_offset, &
+            s%plot_page%curve_legend_line_len, graph%curve%line, graph%curve%symbol, &
+            graph%curve%data_type, graph%curve(1)%draw_line, graph%curve(1)%draw_symbols)
+endif
 
 end subroutine
 

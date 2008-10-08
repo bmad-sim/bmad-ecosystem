@@ -101,7 +101,9 @@ type tao_graph_input
   integer box(4)
   integer ix_universe
   integer n_curve
-  type (qp_point_struct) legend_origin
+  type (qp_point_struct) legend_origin  ! For backwards compatibility
+  type (qp_point_struct) text_legend_origin
+  type (qp_point_struct) curve_legend_origin
   type (tao_data_var_component_struct) who(n_who_maxx)
   type (qp_rect_struct) margin
   type (qp_axis_struct) x
@@ -110,6 +112,7 @@ type tao_graph_input
   logical clip
   logical draw_axes
   logical correct_xy_distortion
+  logical draw_curve_legend     ! For identifying curves. 
 end type 
 
 type tao_plot_input

@@ -132,7 +132,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   else
     ! If %file is blank then default is to use last one
     if (design_lattice(i)%file /= '') design_lat = design_lattice(i)
-    if (design_lat%parser /= '') then
+    if (design_lattice(i)%parser /= '') then
       design_lat%file = trim(design_lat%parser) // '::' // trim(design_lat%file)
       call out_io (s_error$, r_name, (/ &
         '************************************************************', &

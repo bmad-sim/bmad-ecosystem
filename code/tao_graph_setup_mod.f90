@@ -28,7 +28,7 @@ logical found
 
 graph%valid = .true.   ! assume everything OK
 graph%why_invalid = ''
-graph%legend = ''
+graph%text_legend = ''
 
 call tao_hook_graph_setup (plot, graph, found)
 if (found) return
@@ -411,17 +411,17 @@ do k = 1, size(graph%curve)
 
     rx = sqrt(sigma_mat(ix1_ax, ix1_ax))
     ry = sqrt(sigma_mat(ix2_ax, ix2_ax))
-    write (graph%legend(1), '(a, es9.2)') 'emit_a:', emit_a
-    write (graph%legend(2), '(a, es9.2)') 'emit_b:', emit_b
+    write (graph%text_legend(1), '(a, es9.2)') 'emit_a:', emit_a
+    write (graph%text_legend(2), '(a, es9.2)') 'emit_b:', emit_b
 
     if(rx == 0 .or. ry == 0) then
       theta_xy = 0
-      write (graph%legend(3), '(a, f10.4)') 'Theta_tilt (rad):', 0
+      write (graph%text_legend(3), '(a, f10.4)') 'Theta_tilt (rad):', 0
     else
       theta_xy =  asin(sigma_mat(ix1_ax, ix2_ax) / (rx * ry))
       phi = 0.5 *atan2((rx**2+ry**2) * sin(2*theta_xy), &
                               (rx**2-ry**2) * cos(2*theta_xy)) - theta_xy
-      write (graph%legend(3), '(a, f10.4)') 'Theta_tilt (rad):', phi
+      write (graph%text_legend(3), '(a, f10.4)') 'Theta_tilt (rad):', phi
   endif
 
     n = 2 * s%plot_page%n_curve_pts

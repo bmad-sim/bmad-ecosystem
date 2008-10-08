@@ -101,16 +101,17 @@ end type
 ! contain both overlayed horizontal and vertical orbits.
 
 type tao_graph_struct
-  character(40) name           ! Name identifying the graph
-  character(40) type           ! "data", "lat_layout", "key_table", "phase_space"
+  character(40) name            ! Name identifying the graph
+  character(40) type            ! "data", "lat_layout", "key_table", "phase_space"
   character(100) title
   character(100) title_suffix 
-  character(100) legend(n_legend_maxx) ! Array for holding descriptive info.
+  character(100) text_legend(n_legend_maxx) ! Array for holding descriptive info.
   character(60) component       ! Who to plot. Eg: 'meas - design'
   character(40) why_invalid     ! Informative string to print.
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
-  type (qp_point_struct) legend_origin
+  type (qp_point_struct) text_legend_origin
+  type (qp_point_struct) curve_legend_origin
   type (qp_axis_struct) x       ! X-axis parameters.
   type (qp_axis_struct) y       ! Y-axis attributes.
   type (qp_axis_struct) y2      ! Y-axis attributes.
@@ -123,6 +124,7 @@ type tao_graph_struct
   logical limited               ! True if at least one data point past graph bounds.
   logical draw_axes             ! Draw axes, labels, etc?
   logical correct_xy_distortion ! T -> Shrink floor plan along one axis.
+  logical draw_curve_legend     ! For identifying curves. 
 end type
 
 ! A plot is collection of graphs.
@@ -172,6 +174,8 @@ type tao_plot_page_struct
   real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
   real(rp) :: legend_text_scale      = 0.8  ! Relative to text_height
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
+  real(rp) :: curve_legend_line_len  = 50   ! Points
+  real(rp) :: curve_legend_text_offset = 10 ! Points
   integer :: n_curve_pts = 401       ! Number of points for plotting a smooth curve
   integer id_window                  ! X window id number.
 end type

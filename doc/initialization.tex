@@ -1356,7 +1356,10 @@ information see the \vn{Quick Plot} documentation on the
   minor_div  ! Number of minor divisions. 0 = auto choose.
   label      ! Axis label.
 \end{example}
-If \vn{min} and \vn{max} are absent, then \tao will autoscale the axis.
+If \vn{min} and \vn{max} are absent, then \tao will autoscale the
+axis.  If it is desired to have differeng scales for different graphs,
+the \vn{graph%x} component can be used (see below).
+
 
 The \vn{plot%autoscale_gang_x} and \vn{plot%autoscale_gang_y}
 components set how the \vn{x-scale} (\sref{s:x.scale}) and \vn{scale}
@@ -1402,7 +1405,7 @@ namelists should be placed directly after their respective
     graph%box              = <ix>, <iy>, <ix_tot>, <iy_tot>
     graph%title            = "<string>"       ! Title above the graph.
     graph%margin           =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
-    plot%x                 = <qp_axis_struct> ! Horizontal axis.
+    graph%x                = <qp_axis_struct> ! Horizontal axis.
     graph%y                = <qp_axis_struct> ! Left axis.
     graph%y2               = <qp_axis_struct> ! Right axis.
     graph%n_curve          = <number>         ! number of curves
