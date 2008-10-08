@@ -1460,34 +1460,33 @@ case ('plot')
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%key_table_text_scale   = ', s%plot_page%key_table_text_scale 
     nl=nl+1; write (lines(nl), f3mt) 'plot_page%shape_height_max       = ', s%plot_page%shape_height_max  
 
-    nl=nl+1; lines(nl) = ' '
-    nl=nl+1; lines(nl) = 'Templates:        Plot.Graph'
-    nl=nl+1; lines(nl) = '             --------- ----------'
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'Templates:'
+    nl=nl+1; lines(nl) = '   Plot                .Graph'
+    nl=nl+1; lines(nl) = '   ------------------  ----------'
     do i = 1, size(s%template_plot)
       p => s%template_plot(i)
-      if (p%name == ' ') cycle
-      ix = 21 - len_trim(p%name)
-      name = ' '
-      name(ix:) = trim(p%name)
+      if (p%name == '') cycle
       if (allocated(p%graph)) then
-        do j = 1, size(p%graph)
-          nl=nl+1; write (lines(nl), '(2x, 3a)') name(1:20), '.', p%graph(j)%name
-          name = ' '
-        enddo
+          nl=nl+1; write (lines(nl), '(3x, a, 100(2a, 2x))') &
+                            p%name(1:20), ('.', trim(p%graph(j)%name), j = 1, size(p%graph))
       else
-        nl=nl+1; write (lines(nl), '(2x, 2a)') name(1:20), '.'
+        nl=nl+1; write (lines(nl), '(3x, a)') p%name 
       endif
-      nl=nl+1; lines(nl) = ' '
     enddo
 
-    nl=nl+1; lines(nl) = ' '
-    nl=nl+1; lines(nl) = '[Visible]     Plot Region         <-->  Template' 
-    nl=nl+1; lines(nl) = '---------     -----------               ------------'
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = '                    ' // &
+                         '                                    Location on Page'
+    nl=nl+1; lines(nl) = 'Visible  Plot Region' // &
+                         '         <-->  Template             x1    x2    y1    y2'  
+    nl=nl+1; lines(nl) = '-------  -----------' // &
+                         '               -----------------------------------------'
     do i = 1, size(s%plot_region)
       region => s%plot_region(i)
       if (region%name == '') cycle
-      nl=nl+1; write (lines(nl), '(3x l1, 10x, a20, 2a)') region%visible, &
-                                    region%name, '<-->  ', region%plot%name
+      nl=nl+1; write (lines(nl), '(3x l1, 5x, a20, a, a18, 4f6.2)') region%visible, &
+                                    region%name, '<-->  ', region%plot%name, region%location
     enddo
 
     result_id = 'plot:'
