@@ -746,11 +746,7 @@ logical is_there, ask_for_lat, default_flag
 
 !                   
 
-#if defined (CESR_VMS)
-lat_dir = '$CESR_MNT/vms_lattice/cesr/bmad/'
-#else
 lat_dir = '$CESR_MNT/lattice/cesr/bmad/'
-#endif
 
 call get_lattice_list (lat_list, num_lats, lat_dir)
 do i = 1, num_lats

@@ -43,11 +43,7 @@ lat = lattice
 call downcase_string(lat)
 ix = index(lattice, '.')
 
-#if defined (CESR_VMS)
-  lat_dir = '$CESR_MNT/vms_lattice/cesr/bmad/'
-#else
-  lat_dir = '$CESR_MNT/lattice/cesr/bmad/'
-#endif
+lat_dir = '$CESR_MNT/lattice/cesr/bmad/'
 
 bmad_file_name = trim(lat_dir) // trim(lat)
 if (ix == 0) bmad_file_name = trim(bmad_file_name) // '.lat'

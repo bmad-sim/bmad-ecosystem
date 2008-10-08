@@ -681,6 +681,7 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
       if (ix > 9 .and. index(attrib_word, '_GRADIENT') == ix-8) ele%field_master = .true.
       if (ix > 6 .and. index(attrib_word, '_FIELD') == ix-5) ele%field_master = .true.
       if (ix > 10 .and. index(attrib_word, '_FIELD_ERR') == ix-9) ele%field_master = .true.
+      if (attrib_word(1:3) == 'BL_') ele%field_master = .true.
       if (ele%key == custom$ .and. ix_attrib == l$) ele%value(l_original$) = value
     endif
 
@@ -3430,9 +3431,9 @@ main_loop: do n = 1, n2
 
     select case (lord%control_type)
     case (overlay_lord$)
-      call create_overlay (lat, ix_lord, lord%attribute_name, cs(1:ns), err, .false.)
+      call create_overlay (lat, ix_lord, lord%attribute_name, cs(1:ns), err)
     case (group_lord$)
-      call create_group (lat, ix_lord, cs(1:ns), err, .false.)
+      call create_group (lat, ix_lord, cs(1:ns), err)
     end select
     if (err) call warning ('ELEMENT OR GROUP: ' // lord%name, &
                            'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!', &
@@ -3806,8 +3807,8 @@ subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file)
   ! However 'CESR_MNT' is a logical that will get translated by the inquire function so
   ! we only check that 'lattice' is the top directory.
 
-  ix = max (index_nocase(digested_file, '[vms_lattice.'), &
-            index_nocase(digested_file, '[000000.vms_lattice.'))
+  ix = max (index_nocase(digested_file, '[lattice.'), &
+            index_nocase(digested_file, '[000000.lattice.'))
   if (ix /= 0) then
     ix = index_nocase(digested_file, 'lattice.')
     digested_file = 'U:[cesr.lattice.' // digested_file(ix+8:)
