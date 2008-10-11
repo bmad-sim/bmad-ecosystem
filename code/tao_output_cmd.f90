@@ -227,11 +227,16 @@ case ('covariance_matrix')
 
 case ('curve')
 
-  call tao_find_plots (err, arg(2)%name, 'BOTH', curve = curve)
-  if (.not. allocated(curve)) then
-    call out_io (s_error$, r_name, 'NO CURVE SPECIFIED.')
+  call tao_find_plots (err, arg(2)%name, 'BOTH', curve = curve, always_allocate = .true.)
+  if (err .or. size(curve) == 0) then
+    call out_io (s_error$, r_name, 'CANNOT FIND CURVE')
     return
   endif
+  if (size(curve) > 0) then
+    call out_io (s_error$, r_name, 'MULTIPLE CURVES FIT NAME')
+    return
+  endif
+
 
   file_name = 'curve'
   if (arg(3)%name /= ' ') file_name = arg(3)%name

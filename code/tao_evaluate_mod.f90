@@ -9,7 +9,7 @@ integer, parameter, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
 integer, parameter, private :: sin$ = 11, cos$ = 12, tan$ = 13
 integer, parameter, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
 integer, parameter, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-integer, parameter, private :: numeric$ = 100
+integer, parameter, private :: numeric$ = 100, var$ = 101
 
 integer, parameter, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
                             9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
@@ -22,7 +22,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_to_real (expression, value, err_flag, good)
+! Subroutine tao_to_real (expression, value, err_flag, good, stack)
 !
 ! Mathematically evaluates an expression.
 !
@@ -35,11 +35,17 @@ contains
 !   good         -- Logical, optional: Is the value valid? 
 !                     Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
 !                     orbit.x[23]|good_user is False.
+!   stack(:)  -- Tao_eval_stack1_struct, optional: Evaluation stack for the
+!                  expression. This is useful to save if the same expression is
+!                  to be evaluated repeatedly. 
+!                  With this, tao_evaluate_stack can be called directly.
 !-
 
-subroutine tao_to_real (expression, value, err_flag, good)
+subroutine tao_to_real (expression, value, err_flag, good, stack)
 
 implicit none
+
+type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 
 character(*) :: expression
 real(rp) value
@@ -52,7 +58,7 @@ logical, optional :: good
 
 wild_type_com = 'BOTH'
 call tao_evaluate_expression (expression, 1, vec, ok, &
-                      .true., err_flag, tao_param_value_routine)
+                      .true., err_flag, tao_param_value_routine, stack)
 if (err_flag) return
 value = vec(1)
 if (present(good)) good = ok(1)
@@ -114,7 +120,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !+
 ! Subroutine tao_evaluate_expression (expression, n_size, value, good, &
-!                         zero_divide_print_err, err_flag, param_value_routine)
+!                 zero_divide_print_err, err_flag, param_value_routine, stack)
 !
 ! Mathematically evaluates a character expression.
 !
@@ -129,32 +135,37 @@ end subroutine
 !   param_value_routine   -- Subroutine: Routine to translate a variable to a value.
 !   
 ! Output:
-!   value(:)     -- Real(rp), allocatable: Value of arithmetic expression.
-!   good(:)      -- Logical, allocatable: Is the value valid? 
-!                     Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
-!                     orbit.x[23]|good_user is False.
-!   err_flag     -- Logical: TRUE on error.
+!   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
+!   good(:)   -- Logical, allocatable: Is the value valid? 
+!                  Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
+!                  orbit.x[23]|good_user is False.
+!   err_flag  -- Logical: True on an error. EG: Invalid expression.
+!                  A divide by zero is not an error but good(:) will be set to False.
+!   stack(:)  -- Tao_eval_stack1_struct, optional: Evaluation stack for the
+!                  expression. This is useful to save if the same expression is
+!                  to be evaluated repeatedly. 
+!                  With this, tao_evaluate_stack can be called directly.
 !-
 
 subroutine tao_evaluate_expression (expression, n_size, value, good, &
-                          zero_divide_print_err, err_flag, param_value_routine)
+                          zero_divide_print_err, err_flag, param_value_routine, stack)
 
 use random_mod
 
 implicit none
 
 interface
-  subroutine param_value_routine (str, value, good, err_flag)
-    use tao_struct
+  subroutine param_value_routine (str, stack, err_flag)
+    use tao_struct, only: tao_eval_stack1_struct
     implicit none
+    type (tao_eval_stack1_struct) stack
     character(*) str
-    real(rp), allocatable :: value(:)
-    logical, allocatable :: good(:)
     logical err_flag
   end subroutine
 end interface
 
-type (tao_eval_stack_struct) stk(100)
+type (tao_eval_stack1_struct), save :: stk(100)
+type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 
 integer i_lev, i_op, i, ios, n, n_size, n__size
 integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
@@ -497,8 +508,7 @@ parsing_loop: do
 enddo parsing_loop
 
 !------------------------------------------------------------------
-! Now go through the stack and perform the operations...
-! First some error checks
+! Some error checks
 
 if (i_op /= 0) then
   call out_io (s_warn$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
@@ -512,7 +522,7 @@ endif
 
 n__size = 1
 do i = 1, i_lev
-  if (stk(i)%type /= numeric$) cycle
+  if (stk(i)%type /= numeric$ .and. stk(i)%type /= var$) cycle
   n = size(stk(i)%value)
   if (n == 1) cycle
   if (n__size == 1) n__size = n
@@ -530,166 +540,27 @@ if (n_size /= 0) then
   n__size = n_size
 endif
 
-! Calculate good
+call tao_evaluate_stack (stk(1:i_lev), n__size, value, good, err_flag)
 
-call re_allocate (good, n__size)
-good = .true.
-do i = 1, i_lev
-  if (.not. allocated(stk(i)%good)) cycle
-  if (size(stk(i)%good) == 1) then; good = good .and. stk(i)%good(1:1)
-  else;                             good = good .and. stk(i)%good
-  endif
-enddo
+! If the stack argument is present then copy stk to stack
 
-!
-
-i2 = 0  ! stack pointer
-do i = 1, i_lev
-
-  select case (stk(i)%type)
-  case (numeric$) 
-    i2 = i2 + 1
-    call value_transfer (stk(i2)%value, stk(i)%value)
-
-  case (unary_minus$) 
-    stk(i2)%value = -stk(i2)%value
-
-  case (unary_plus$) 
-    stk(i2)%value = stk(i2)%value
-
-  case (plus$) 
-    if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
-      stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value(1)
-    elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
-      call value_transfer (stk(i2-1)%value, stk(i2-1)%value(1) + stk(i2)%value)
-    else
-      stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value
+if (present(stack)) then
+  if (allocated(stack)) deallocate(stack)
+  allocate (stack(i_lev))
+  do i = 1, i_lev
+    if (allocated (stk(i)%value)) then
+      n = size(stk(i)%value)
+      allocate (stack(i)%value(n), stack(i)%good(n))
+      if (allocated (stack(i)%value_ptr)) allocate (stack(i)%value_ptr(n))
     endif
-    i2 = i2 - 1
-
-  case (minus$) 
-    if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
-      stk(i2-1)%value = stk(i2-1)%value - stk(i2)%value(1)
-    elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
-      call value_transfer (stk(i2-1)%value, stk(i2-1)%value(1) - stk(i2)%value)
-    else
-      stk(i2-1)%value = stk(i2-1)%value - stk(i2)%value
-    endif
-    i2 = i2 - 1
-
-  case (times$) 
-    if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
-      stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value(1)
-    elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
-      call value_transfer (stk(i2-1)%value, stk(i2-1)%value(1) * stk(i2)%value)
-    else
-      stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value
-    endif
-    i2 = i2 - 1
-
-  case (divide$) 
-    if (any(stk(i2)%value == 0)) then
-      stk(1)%value = 0
-      if (zero_divide_print_err) call out_io (s_warn$, r_name, &
-                            'DIVIDE BY 0 IN EXPRESSION: ' // expression)
-      return
-    endif
-    if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
-      stk(i2-1)%value = stk(i2-1)%value / stk(i2)%value(1)
-    elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
-      call value_transfer (stk(i2-1)%value, stk(i2-1)%value(1) / stk(i2)%value)
-    else
-      stk(i2-1)%value = stk(i2-1)%value / stk(i2)%value
-    endif
-    i2 = i2 - 1
-
-  case (power$) 
-    if (size(stk(i2)%value) < size(stk(i2-1)%value)) then
-      stk(i2-1)%value = stk(i2-1)%value ** stk(i2)%value(1)
-    elseif (size(stk(i2)%value) > size(stk(i2-1)%value)) then
-      call value_transfer (stk(i2-1)%value, stk(i2-1)%value(1) ** stk(i2)%value)
-    else
-      stk(i2-1)%value = stk(i2-1)%value ** stk(i2)%value
-    endif
-    i2 = i2 - 1
-
-  case (sin$) 
-    stk(i2)%value = sin(stk(i2)%value)
-
-  case (cos$) 
-    stk(i2)%value = cos(stk(i2)%value)
-
-  case (tan$) 
-    stk(i2)%value = tan(stk(i2)%value)
-
-  case (asin$) 
-    stk(i2)%value = asin(stk(i2)%value)
-
-  case (acos$) 
-    stk(i2)%value = acos(stk(i2)%value)
-
-  case (atan$) 
-    stk(i2)%value = atan(stk(i2)%value)
-
-  case (abs$) 
-    stk(i2)%value = abs(stk(i2)%value)
-
-  case (sqrt$) 
-    stk(i2)%value = sqrt(stk(i2)%value)
-
-  case (log$) 
-    stk(i2)%value = log(stk(i2)%value)
-
-  case (exp$) 
-    stk(i2)%value = exp(stk(i2)%value)
-
-  case (ran$) 
-    i2 = i2 + 1
-    call re_allocate(stk(i2)%value, n__size)
-    call ran_uniform(stk(i2)%value)
-
-  case (ran_gauss$) 
-    i2 = i2 + 1
-    call re_allocate(stk(i2)%value, n__size)
-    call ran_gauss(stk(i2)%value)
-
-  case default
-    call out_io (s_warn$, r_name, 'INTERNAL ERROR')
-    call err_exit
-  end select
-enddo
-
-if (i2 /= 1) then
-  call out_io (s_warn$, r_name, 'INTERNAL ERROR')
-  call err_exit
+    stack(i) = stk(i)
+  enddo
 endif
 
-if (size(stk(1)%value) == 1 .and. n__size > 1) then
-  call re_allocate (value, n_size)
-  value = stk(1)%value(1)
-else
-  call value_transfer (value, stk(1)%value)
-endif
 
-err_flag = .false.
-
+!-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 contains
-
-subroutine value_transfer (to_array, from_array)
-
-real(rp), allocatable :: to_array(:)
-real(rp) from_array(:)
-
-!
-
-call re_allocate (to_array, size(from_array))
-to_array = from_array
-
-end subroutine
-
-!-------------------------------------------------------------------------
-! contains
 
 subroutine pushit (stack, i_lev, value)
 
@@ -713,48 +584,48 @@ stack(i_lev) = value
 end subroutine pushit
                        
 !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 ! contains
 
 subroutine all_value_routine (str, stack, err_flag)
 
-type (tao_eval_stack_struct) stack
+type (tao_eval_stack1_struct) stack
 
 integer ios, i, n
 
 character(*) str
 character(40) str2
 
-logical err_flag, err
+logical err_flag
 
-!
-
-err_flag = .true.
+! Case where str represents a number.
 
 if (is_real(str)) then
-  allocate (stack%value(1))
+
+  call re_allocate(stack%value, 1)
   read (str, *, iostat = ios) stack%value(1)
   if (ios /= 0) then
     call out_io (s_warn$, r_name, "This doesn't seem to be a number: " // str)
     return
   endif
-
-else
-  ! Remember the last string.
-  ! So 'orbit.x|meas-ref' translates to orbit.x|meas - orbit.x|ref.
-  ix = index(str, '|')
-  if (ix == 0) then
-    str2 = trim(saved_prefix) // str
-  else
-    saved_prefix = str(1:ix)
-    str2 = str
-  endif
-  call param_value_routine (str2, stack%value, stack%good, err)
-  if (err) return
+  err_flag = .false.
+  return
 endif
 
-err_flag = .false.
+! Case where str is a variable name.
+! Remember the last string so 'orbit.x|meas-ref' translates to 'orbit.x|meas - orbit.x|ref.'
 
-end subroutine
+ix = index(str, '|')
+if (ix == 0) then
+  str2 = trim(saved_prefix) // str
+else
+  saved_prefix = str(1:ix)
+  str2 = str
+endif
+call param_value_routine (str2, stack, err_flag)
+if (err_flag) return
+
+end subroutine all_value_routine
 
 end subroutine tao_evaluate_expression
 
@@ -762,15 +633,14 @@ end subroutine tao_evaluate_expression
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_param_value_routine (str, value, good, err_flag)
+subroutine tao_param_value_routine (str, stack, err_flag)
 
 implicit none
 
+type (tao_eval_stack1_struct) stack
 type (tao_real_array_struct), allocatable, save :: re_array(:)
 type (tao_integer_array_struct), allocatable, save :: int_array(:)
 
-real(rp), allocatable :: value(:)
-logical, allocatable :: good(:)
 integer ios, i, n
 
 character(*) str
@@ -795,30 +665,255 @@ endif
 if (err_flag) return
 
 if (size(re_array) /= 0) then
+  stack%type = var$
   n = size(re_array)
-  call re_allocate (value, n)
-  call re_allocate (good, n)
+  if (allocated(stack%value_ptr)) then
+    if (size(stack%value_ptr) /= n) deallocate (stack%value_ptr)
+  endif
+  if (.not. allocated(stack%value_ptr)) allocate (stack%value_ptr(n))
+  call re_allocate (stack%value, n)
+  call re_allocate (stack%good, n)
   do i = 1, n
-    value(i) = re_array(i)%r
-    good(i)  = re_array(i)%good
+    stack%value(i) = re_array(i)%r
+    stack%good(i)  = re_array(i)%good1 .and. re_array(i)%good2
+    stack%value_ptr(i)%r     => re_array(i)%r
+    stack%value_ptr(i)%good1 => re_array(i)%good1
+    stack%value_ptr(i)%good2 => re_array(i)%good2
   enddo
 
 elseif (size(int_array) /= 0) then
   n = size(int_array)
-  call re_allocate (value, n)
-  call re_allocate (good, n)
+  call re_allocate (stack%value, n)
+  call re_allocate (stack%good, n)
   do i = 1, n
-    value(i) = int_array(i)%i
-    good(i)  = .true.
+    stack%value(i) = int_array(i)%i
+    stack%good(i)  = .true.
   enddo
 
 else
-  call out_io (s_warn$, r_name, "This doesn't seem to be datum or variable value: " // str)
+  call out_io (s_warn$, r_name, &
+                  "This doesn't seem to be datum value or variable value: " // str)
   err_flag = .true.
   return
 endif
 
 end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine tao_evaluate_stack (stack, n_size, value, good, err_flag)
+!
+! Routine to evaluate an expression stack.
+!
+! Input:
+!   stack(:) -- Tao_eval_stack1_struct: Expression stack
+!   n_size   -- Integer: Result array size.
+!
+! Output:
+!   value(:)     -- Real(rp), allocatable: Value of arithmetic expression.
+!   good(:)      -- Logical, allocatable: Is the value valid? 
+!                     Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
+!                     orbit.x[23]|good_user is False.
+!   err_flag     -- Logical: True on error. False otherwise
+!-
+
+
+subroutine tao_evaluate_stack (stack, n_size, value, good, err_flag)
+
+implicit none
+
+type (tao_eval_stack1_struct) stack(:)
+type (tao_eval_stack1_struct) stk2(20)
+
+real(rp), allocatable :: value(:)
+
+integer i, i2, j, n
+integer n_size
+
+logical, allocatable :: good(:)
+logical zero_divide_print_err, err_flag
+
+character(20) :: r_name = 'tao_evaluate_stack'
+
+! Calculate good
+
+err_flag = .true.
+
+call re_allocate (good, n_size)
+call re_allocate (value, n_size)
+
+good = .true.
+do i = 1, size(stack)
+  if (.not. allocated(stack(i)%good)) cycle
+  if (size(stack(i)%good) == 1) then; good = good .and. stack(i)%good(1:1)
+  else;                               good = good .and. stack(i)%good
+  endif
+enddo
+
+! Go through the stack and perform the operations...
+
+i2 = 0  ! stack pointer
+do i = 1, size(stack)
+
+  select case (stack(i)%type)
+  case (numeric$) 
+    i2 = i2 + 1
+    call value_transfer (stk2(i2)%value, stack(i)%value)
+
+  case (var$) 
+    do j = 1, size(stack(i)%value)
+      stack(i)%value(j) = stack(i)%value_ptr(j)%r
+    enddo
+    i2 = i2 + 1
+    call value_transfer (stk2(i2)%value, stack(i)%value)
+
+  case (unary_minus$) 
+    stk2(i2)%value = -stk2(i2)%value
+
+  case (unary_plus$) 
+    ! Nothing to do
+
+  case (plus$) 
+    if (size(stk2(i2)%value) < size(stk2(i2-1)%value)) then
+      stk2(i2-1)%value = stk2(i2-1)%value + stk2(i2)%value(1)
+    elseif (size(stk2(i2)%value) > size(stk2(i2-1)%value)) then
+      call value_transfer (stk2(i2-1)%value, stk2(i2-1)%value(1) + stk2(i2)%value)
+    else
+      stk2(i2-1)%value = stk2(i2-1)%value + stk2(i2)%value
+    endif
+    i2 = i2 - 1
+
+  case (minus$) 
+    if (size(stk2(i2)%value) < size(stk2(i2-1)%value)) then
+      stk2(i2-1)%value = stk2(i2-1)%value - stk2(i2)%value(1)
+    elseif (size(stk2(i2)%value) > size(stk2(i2-1)%value)) then
+      call value_transfer (stk2(i2-1)%value, stk2(i2-1)%value(1) - stk2(i2)%value)
+    else
+      stk2(i2-1)%value = stk2(i2-1)%value - stk2(i2)%value
+    endif
+    i2 = i2 - 1
+
+  case (times$) 
+    if (size(stk2(i2)%value) < size(stk2(i2-1)%value)) then
+      stk2(i2-1)%value = stk2(i2-1)%value * stk2(i2)%value(1)
+    elseif (size(stk2(i2)%value) > size(stk2(i2-1)%value)) then
+      call value_transfer (stk2(i2-1)%value, stk2(i2-1)%value(1) * stk2(i2)%value)
+    else
+      stk2(i2-1)%value = stk2(i2-1)%value * stk2(i2)%value
+    endif
+    i2 = i2 - 1
+
+  case (divide$) 
+    n = size(stk2(i2)%value)
+    do j = 1, n
+      if (stk2(i2)%value(j) == 0) then  ! Divide by 0 error!
+        stk2(i2)%value(j) = 1
+        if (n == 1) then
+          good = .false.  ! All are false
+        else
+          good(j) = .false.
+        endif
+      endif
+    enddo
+
+    if (size(stk2(i2)%value) < size(stk2(i2-1)%value)) then
+      stk2(i2-1)%value = stk2(i2-1)%value / stk2(i2)%value(1)
+    elseif (size(stk2(i2)%value) > size(stk2(i2-1)%value)) then
+      call value_transfer (stk2(i2-1)%value, stk2(i2-1)%value(1) / stk2(i2)%value)
+    else
+      stk2(i2-1)%value = stk2(i2-1)%value / stk2(i2)%value
+    endif
+    i2 = i2 - 1
+
+  case (power$) 
+    if (size(stk2(i2)%value) < size(stk2(i2-1)%value)) then
+      stk2(i2-1)%value = stk2(i2-1)%value ** stk2(i2)%value(1)
+    elseif (size(stk2(i2)%value) > size(stk2(i2-1)%value)) then
+      call value_transfer (stk2(i2-1)%value, stk2(i2-1)%value(1) ** stk2(i2)%value)
+    else
+      stk2(i2-1)%value = stk2(i2-1)%value ** stk2(i2)%value
+    endif
+    i2 = i2 - 1
+
+  case (sin$) 
+    stk2(i2)%value = sin(stk2(i2)%value)
+
+  case (cos$) 
+    stk2(i2)%value = cos(stk2(i2)%value)
+
+  case (tan$) 
+    stk2(i2)%value = tan(stk2(i2)%value)
+
+  case (asin$) 
+    stk2(i2)%value = asin(stk2(i2)%value)
+
+  case (acos$) 
+    stk2(i2)%value = acos(stk2(i2)%value)
+
+  case (atan$) 
+    stk2(i2)%value = atan(stk2(i2)%value)
+
+  case (abs$) 
+    stk2(i2)%value = abs(stk2(i2)%value)
+
+  case (sqrt$) 
+    stk2(i2)%value = sqrt(stk2(i2)%value)
+
+  case (log$) 
+    stk2(i2)%value = log(stk2(i2)%value)
+
+  case (exp$) 
+    stk2(i2)%value = exp(stk2(i2)%value)
+
+  case (ran$) 
+    i2 = i2 + 1
+    call re_allocate(stk2(i2)%value, n_size)
+    call ran_uniform(stk2(i2)%value)
+
+  case (ran_gauss$) 
+    i2 = i2 + 1
+    call re_allocate(stk2(i2)%value, n_size)
+    call ran_gauss(stk2(i2)%value)
+
+  case default
+    call out_io (s_warn$, r_name, 'INTERNAL ERROR')
+    call err_exit
+  end select
+enddo
+
+if (i2 /= 1) then
+  call out_io (s_warn$, r_name, 'INTERNAL ERROR')
+  call err_exit
+endif
+
+if (size(stk2(1)%value) == 1 .and. n_size > 1) then
+  value = stk2(1)%value(1)
+else
+  call value_transfer (value, stk2(1)%value)
+endif
+
+where (.not. good) value = 0
+
+err_flag = .false.
+
+!-------------------------------------------------------------------------
+contains
+
+subroutine value_transfer (to_array, from_array)
+
+real(rp), allocatable :: to_array(:)
+real(rp) from_array(:)
+
+!
+
+call re_allocate (to_array, size(from_array))
+to_array = from_array
+
+end subroutine
+
+end subroutine tao_evaluate_stack 
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

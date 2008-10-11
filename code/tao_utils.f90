@@ -1015,28 +1015,36 @@ if (present(re_array) .and.  any(component_name == real_components)) then
       select case (component_name)
       case ('model')
         re_array(j)%r => d1%d(i)%model_value
-        re_array(j)%good = d1%d(i)%good_user .and. d1%d(i)%good_model
+        re_array(j)%good1 => d1%d(i)%good_user
+        re_array(j)%good2 => d1%d(i)%good_model
       case ('base')
         re_array(j)%r => d1%d(i)%base_value
-        re_array(j)%good = d1%d(i)%good_user .and. d1%d(i)%good_model
+        re_array(j)%good1 => d1%d(i)%good_user
+        re_array(j)%good2 => d1%d(i)%good_model
       case ('design')
         re_array(j)%r => d1%d(i)%design_value
-        re_array(j)%good = d1%d(i)%good_user .and. d1%d(i)%good_model
+        re_array(j)%good1 => d1%d(i)%good_user
+        re_array(j)%good2 => d1%d(i)%good_model
       case ('meas')
         re_array(j)%r => d1%d(i)%meas_value
-        re_array(j)%good = d1%d(i)%good_user .and. d1%d(i)%good_meas
+        re_array(j)%good1 => d1%d(i)%good_user
+        re_array(j)%good2 => d1%d(i)%good_meas
       case ('ref')
         re_array(j)%r => d1%d(i)%ref_value
-        re_array(j)%good = d1%d(i)%good_user .and. d1%d(i)%good_ref
+        re_array(j)%good1 => d1%d(i)%good_user
+        re_array(j)%good2 => d1%d(i)%good_ref
       case ('old')
         re_array(j)%r => d1%d(i)%old_value
-        re_array(j)%good = d1%d(i)%good_user
+        re_array(j)%good1 => d1%d(i)%good_user
+        re_array(j)%good2 => forever_true$
       case ('fit')
         re_array(j)%r => d1%d(i)%fit_value
-        re_array(j)%good = d1%d(i)%good_user
+        re_array(j)%good1 => d1%d(i)%good_user
+        re_array(j)%good2 => forever_true$
       case ('weight')
         re_array(j)%r => d1%d(i)%weight
-        re_array(j)%good = d1%d(i)%good_user
+        re_array(j)%good1 => d1%d(i)%good_user
+        re_array(j)%good2 => forever_true$
       case default
         call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL DATA")
         call err_exit

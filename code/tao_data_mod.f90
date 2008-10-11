@@ -1,6 +1,7 @@
 module tao_data_mod
 
 use tao_mod
+use tao_evaluate_mod
 use spin_mod
 use utilities_mod
 use measurement_mod
@@ -244,6 +245,7 @@ type (bpm_phase_coupling_struct) bpm_data
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz
 real(rp) gamma, vec(2)
+real(rp), allocatable, save ::value1(:)
 
 integer, save :: ix_save = -1
 integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_track, n_max
@@ -252,6 +254,7 @@ character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) data_type, data_source, name
 
 logical found, valid_value, err
+logical, allocatable, save :: good1(:)
 
 ! See if there is a hook for this datum
 
@@ -286,10 +289,11 @@ n_max   = tao_lat%lat%n_ele_max
 datum_value = 0           ! default
 datum%ix_ele_merit = ix1  ! default
 
-if (data_type(1:2)  == 'r.') data_type = 'r.'
-if (data_type(1:2)  == 't.') data_type = 't.'
-if (data_type(1:3)  == 'tt.') data_type = 'tt.'
-if (data_type(1:5)  == 'wire.') data_type = 'wire.'
+if (data_type(1:11) == 'expression:')    data_type = 'expression:'
+if (data_type(1:2)  == 'r.')             data_type = 'r.'
+if (data_type(1:2)  == 't.')             data_type = 't.'
+if (data_type(1:3)  == 'tt.')            data_type = 'tt.'
+if (data_type(1:5)  == 'wire.')          data_type = 'wire.'
 if (data_type(1:14) == 'element_param.') data_type = 'element_param.'
 if (data_type(1:4)  == 'emit') call convert_total_energy_to ( &
                     lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
@@ -337,6 +341,18 @@ endif
 !---------------------------------------------------
 
 select case (data_type)
+
+case ('expression:')
+  ! The point here is that tao_evaluate_stack is much quicker than tao_to_real
+  if (allocated (datum%stack)) then
+    call tao_evaluate_stack (datum%stack, 1, value1, good1, err)
+    if (err) call err_exit
+    datum_value = value1(1)
+    valid_value = .not. err
+  else
+    call tao_to_real (datum%data_type(12:), datum_value, err, valid_value, datum%stack)
+    valid_value = .not. err
+  endif
 
 case ('element_param.')
   call str_upcase (name, datum%data_type(15:))

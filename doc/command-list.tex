@@ -925,6 +925,7 @@ Format:
   show plot -shapes
   show top10 \{-derivative\}
   show universe \{universe_number\}
+  show universe -connections
   show use
   show variable \{<var_name> <locations>\}
   show variable <universe_number>@
@@ -1233,11 +1234,14 @@ be shown.
 
 %% show universe --------------------------------------------------------------
 
-\item[show universe \{universe\_number\}] \Newline
-Shows various parameters associated with a given universe. If no
-universe is specified then the current viewed universe is
-used. Parameters displayed include tune, chromaticity, radiation
-integrals, etc.
+\item[\protect\parbox{6in}{ 
+        show universe \{universe\_number\} \\
+        show universe -connections}] \Newline
+If the \vn{-connections} switch is present, show information on the
+connections between various universes. Otherwise, shows various
+parameters associated with a given universe. If no universe is
+specified then the current viewed universe is used. Parameters
+displayed include tune, chromaticity, radiation integrals, etc.
 
 %% show use --------------------------------------------------------------
 

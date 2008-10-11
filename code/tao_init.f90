@@ -315,7 +315,7 @@ if (allocated (s%u)) then
     call reallocate_beam(u%current_beam, 0, 0)
 
     ! Connected universes
-    call deallocate_ele_pointers (u%connect%connect_ele)
+    call deallocate_ele_pointers (u%connect%match_ele)
     call reallocate_beam (u%connect%injecting_beam, 0, 0)
     
     ! d2_data

@@ -3,6 +3,7 @@
 !
 ! Lattice calculation routines are here. It's a module so that custom lattice
 ! calculations has access to the subroutines.
+!-
 
 module tao_lattice_calc_mod
 
@@ -631,15 +632,15 @@ call twiss_and_track_at_s (s%u(u%connect%from_uni)%model%lat, &
 
 ! track through connect element
 
-if (u%connect%use_connect_ele) then
-  if (u%mat6_recalc_on) call make_mat6 (u%connect%connect_ele, &
+if (u%connect%match_to_design) then
+  if (u%mat6_recalc_on) call make_mat6 (u%connect%match_ele, &
                                              s%u(u%connect%from_uni)%model%lat%param)
-  call twiss_propagate1 (extract_ele, u%connect%connect_ele)
-  call track1 (pos, u%connect%connect_ele, &
+  call twiss_propagate1 (extract_ele, u%connect%match_ele)
+  call track1 (pos, u%connect%match_ele, &
                     s%u(u%connect%from_uni)%model%lat%param, pos)
-  u%connect%connect_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
-  u%connect%connect_ele%floor = extract_ele%floor
-  extract_ele = u%connect%connect_ele
+  u%connect%match_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
+  u%connect%match_ele%floor = extract_ele%floor
+  extract_ele = u%connect%match_ele
 endif
   
 ! transfer to this lattice
@@ -758,15 +759,15 @@ extract_ele = s%u(u%connect%from_uni)%model%lat%ele(u%connect%from_uni_ix_ele)
   
 ! track through connection element
 
-if (u%connect%use_connect_ele) then
+if (u%connect%match_to_design) then
   param => s%u(u%connect%from_uni)%model%lat%param
-  if (u%mat6_recalc_on) call make_mat6 (u%connect%connect_ele, param)
-  call twiss_propagate1 (extract_ele, u%connect%connect_ele)
-  call track1_beam_ele (u%connect%injecting_beam, u%connect%connect_ele, &
+  if (u%mat6_recalc_on) call make_mat6 (u%connect%match_ele, param)
+  call twiss_propagate1 (extract_ele, u%connect%match_ele)
+  call track1_beam_ele (u%connect%injecting_beam, u%connect%match_ele, &
                       param, u%connect%injecting_beam)
-  u%connect%connect_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
-  u%connect%connect_ele%floor = extract_ele%floor
-  extract_ele = u%connect%connect_ele
+  u%connect%match_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
+  u%connect%match_ele%floor = extract_ele%floor
+  extract_ele = u%connect%match_ele
 endif
     
 ! transfer to this lattice
@@ -809,9 +810,9 @@ character(20) :: r_name = "match_lats_init"
 
 !
 
-if (.not. (u%connect%connected .and. u%connect%use_connect_ele)) return
+if (.not. (u%connect%connected .and. u%connect%match_to_design)) return
 
-connection_ele => u%connect%connect_ele
+connection_ele => u%connect%match_ele
 call init_ele (extract_ele)
 call init_ele (inject_ele)
   

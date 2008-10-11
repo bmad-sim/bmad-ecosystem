@@ -385,6 +385,9 @@ results.
   etap.x, etap.y              & Projected dispersion derivative    &          \\ \hline 
   etap.a, etap.b              & Normal-Mode dispersion derivative  &          \\ \hline 
 
+  expression: <arithmetic expression>
+                              & See the text                       &          \\ \hline 
+
   floor.x, floor.y, floor.z, floor.theta 
                               & Global (``floor'') position        & relative \\ \hline 
 
@@ -473,3 +476,21 @@ largest growth rate of all the normal modes of oscillation if the ring
 is unstable. The value of an \vn{unstable_ring} datum is thus always
 non-zero.  \vn{unstable_ring} is used in an optimization to avoid
 unstable solutions (\sref{s:generalized.design}).
+
+The \vn{expression:} data type allows the value of a datum to depend upon
+the value of other datums or the value of variables. For example:
+\begin{example}
+  data_type = "expression: 1@beta.a[12]|model - 2@beta.a[12]|model"
+\end{example}
+With this, the value of the datum will be the difference between
+\vn{beta.a[12]} for universe 1 and universe 2. To be valid, an
+expression must be evaluated after it's components are evaluated. In
+this example, the components are \vn{1@beta.a[12]|model} and
+\vn{2@beta.a[12]|model}. Data evaluation is done universe by universe
+starting with universe 1, then universe 2, etc. Within a given
+universe, the order of evaluation can be complicated but in this case
+a datum using an expression will always be evaluated after any datum
+that appears earlier in the initialization file. In this example, the
+datum should be in universe 2 or higher. Notice that while all datums
+must be assigned a universe, in this case the value of the datum will
+be independent of the universe it is in.

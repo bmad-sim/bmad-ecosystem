@@ -123,6 +123,13 @@ do i = 1, size(s%plot_region)
       call out_io (s_fatal$, r_name, 'UNKNOWN GRAPH TYPE: ' // graph%type)
     end select
 
+    ! Draw a rectangle so the box and graph boundries can be seen.
+
+    if (s%global%box_plots) then
+      call qp_draw_rectangle (0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp, '%GRAPH/LB')
+      call qp_draw_rectangle (0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp, '%BOX/LB')
+    endif
+
   enddo g_loop
 
 enddo
@@ -257,7 +264,7 @@ integer i, j, k, n, n_bend, isu, ic, ix_shape
 
 character(20) :: r_name = 'tao_plot_floor_plan'
 
-! Each graph is a separate lattice layout (presumably for different universes). 
+! Each graph is a separate floor plan plot (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
 
 call qp_set_layout (x_axis = graph%x, y_axis = graph%y, y2_axis = graph%y2, &

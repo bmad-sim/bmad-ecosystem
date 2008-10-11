@@ -480,8 +480,6 @@ To immediately stop the optimizer the period key
 \index{Initialization!Connected Universes}
 \label{s:connected.uni}
 
-Universes can be connected together. This can be useful, for example, to attach a
-damping ring a pre-accelerator to a linac. The syntax is as follows:
 \index{tao_connected_uni_init}
 \index{connect}
 \index{connect!from_universe}
@@ -489,9 +487,16 @@ damping ring a pre-accelerator to a linac. The syntax is as follows:
 \index{connect!at_ele_index}
 \index{connect!at_s}
 \index{connect!match_to_design}
+Universes can be connected together. This can be useful, for example,
+to attach a damping ring a pre-accelerator to a linac. Only one
+connection between two given universes is allowed.  A universe can
+only inject into a universe with a greater universe index, so for
+example, universe 3 can inject into 4 or 5 but not 1 or 2. Each
+connection between two universes needs a separate
+\vn{tao_connected_uni_init} namelist. The syntax of this namelist is:
 \begin{example}
   &tao_connected_uni_init
-    ix_universe           = <Integer>     ! Injecting into this Universe.
+    to_universe           = <Integer>     ! Injecting into this Universe.
     connect%from_universe = <Integer>     ! connect from this universe
     connect%at_element    = <ele_name>    ! connect at end of element 
     connect%at_ele_index  = <ele_index>   ! connect at end of ele with this index
@@ -499,7 +504,7 @@ damping ring a pre-accelerator to a linac. The syntax is as follows:
     connect%match_to_design = <logical>   ! match optics to design parameters
   /
 \end{example}
-\vn{ix_universe} refers to the universe which is to be injected
+\vn{to_universe} refers to the universe which is to be injected
 into. Any of \vn{at_element}, \vn{at_ele_index} or \vn{at_s} must be
 specified but not more than one. These refer to the location in the
 ``from'' lattice where the beam/particle is extracted.  The injection
@@ -508,43 +513,52 @@ lattice to inject back into itself will not work to make a circular
 lattice. This must be set in the lattice file.  If there are more than
 one element named \vn{<ele_name>} then the last element named as such
 will be used. If \vn{ele_name = "end"} then the end of the injection
-lattice will be used as the connection point. If
-\vn{connect%from_universe} = -1 (the default) then no injection will
-occur.
+lattice will be used as the connection point.
 
-\vn{match_to_design} will set up a connection element that will match
-the design Twiss parameters between the two lattices. This is
-performed by first finding the design Twiss parameters for the
-extraction point for the first lattice then by use of a \bmad
-\vn{match} element match those Twiss parameters to the design
-beginning Twiss parameters for the second lattice. The matching
-element is not inserted into either lattice. Instead, it resides in
-the \tao connection structure and is tracked through separately. Note
-that the matching element is not an extraction kicker element. If an
-extraction kicker element is needed then it should be added to either
-the extraction point of the first lattice or the beginning of the
-second lattice.
+Setting \vn{match_to_design} to True will set up a \vn{match} element
+(see the \bmad manual for details on match elements) between the two
+universes that will match the \vn{design} Twiss parameters from the
+injecting lattice to the \vn{design} Twiss parameters as specified by
+the lattice injected into. This is, the input Twiss parameters of the
+match element will be the design Twiss parameters at the extraction
+point for the first lattice and the output Twiss parameters of the
+match element are the design Twiss parameters at the beginning of the
+second lattice. These input parameters to the match element are not
+affected by changes in the \vn{model} lattice so optics errors can be
+simulated.
+
+The match element is not inserted into either lattice. Instead, it
+resides in the \tao connection structure and is tracked through
+separately. Note that the match element is not an extraction kicker
+element. If an extraction kicker element is needed then it should be
+added to either the extraction point of the first lattice or the
+beginning of the second lattice.
+
+Setting \vn{match_to_design} to False (the default) will cause \tao to
+continually maintain the \vn{model} Twiss parameters and reference
+energy at the start of the injected lattice equal to the \vn{model}
+Twiss parameters and reference energy at the extraction point in the
+injecting lattice independent of any Twiss parameter or reference
+energy settings in the lattice file for the injected lattice.
 
 Initialization due to a connection between lattices takes precedence
 over other types of initialization. For example, any particle beam
 initialization settings (\sref{s:beam.init}) will be ignored for a
 lattice that is being injected into from another lattice.
 
-Even if the connection point is not the end of a lattice the standard lattice
-calculations will still be performed through to the end of the
-lattice.  A universe can only inject into a universe with a greater
-universe index, so for example, universe 3 can inject into 4 or 5 but
-not 1 or 2.
+Even if the connection point is not the end of the injection lattice,
+the standard lattice calculations will still be performed through to
+the end of that lattice.
 
 Example:
 \begin{example}
   &tao_connected_uni_init
-    ix_universe = 1
+    to_universe = 1
     coupled%from_universe = -1      ! no injection into this universe
     coupled%at_element    = "none"
   /
   &tao_connected_uni_init
-    ix_universe = 2
+    to_universe = 2
     coupled%from_universe = 1      ! inject beam/particle form universe 1
     coupled%at_element    = "end"  ! inject from the end of universe 1
     coupled%match_to_design = T    ! match the design lattice optics
@@ -1219,9 +1233,10 @@ plots go. The syntax of this block is:
     plot_page%axis_label_text_scale  = <num> ! Relative to text_height. Def = 1.0
     plot_page%legend_text_scale      = <num> ! Relative to text_height. Def = 0.8
     plot_page%key_table_text_scale   = <num> ! Relative to text_height. Def = 0.9
-    plot_page%title(i)    = <string>, {<x>, <y>, "<units>", "<justify>"}
-    plot_page%shape_height_max = 40  ! maximum half height for drawing elements.
-    plot_page%n_curve_pts = 401           ! Num points used to construct a smooth curve
+    plot_page%title(i)         = <string>, {<x>, <y>, "<units>", "<justify>"}
+    plot_page%shape_height_max = 40    ! maximum half height for drawing elements.
+    plot_page%n_curve_pts      = 401   ! Num points used to construct a smooth curve
+    plot_page%box_plots        = <T/F> ! For debugging layout problems. Def = F.
     region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
     place(i)  = "<region_name>", "<template_name>"
   /

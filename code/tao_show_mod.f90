@@ -439,7 +439,7 @@ case ('curve')
 
   ! Find particular plot
 
-  call tao_find_plots (err, stuff2, 'BOTH', curve = curve)
+  call tao_find_plots (err, stuff2, 'BOTH', curve = curve, always_allocate = .true.)
   if (err) return
 
   ! print info on particular plot, graph, or curve
@@ -805,7 +805,7 @@ case ('element')
   call tao_locate_elements (ele_name, ix_u, ix_eles)
   loc = ix_eles(1)
   if (loc < 0) return
-  ele => lat%ele(loc)
+  ele => s%u(ix_u)%model%lat%ele(loc)
 
   ! Show data associated with this element
 
@@ -937,7 +937,7 @@ case ('graph')
 
   ! Find particular graph
 
-  call tao_find_plots (err, stuff2, 'BOTH', graph = graph)
+  call tao_find_plots (err, stuff2, 'BOTH', graph = graph, always_allocate = .true.)
   if (err) return
 
   if (allocated(graph)) then
@@ -1556,6 +1556,26 @@ case ('tune')
     
 case ('universe')
 
+  if (len_trim(word(1)) > 1 .and. index('-connections', trim(word(1))) == 1) then
+    do i = lbound(s%u, 1), ubound(s%u, 1)
+      u => s%u(i)
+      if (.not. u%connect%connected) cycle
+      n = u%connect%from_uni_ix_ele
+      ix_u = u%connect%from_uni
+      nl=nl+1; write (lines(nl), imt) 'Connection into universe:', i
+      nl=nl+1; write (lines(nl), imt) 'Connection from universe:', ix
+      nl=nl+1; write (lines(nl), '(3a, i0, a)') '  From element:    ', &
+                                    trim(s%u(ix_u)%model%lat%ele(n)%name), ' (# ', n, ')'
+      nl=nl+1; write (lines(nl), '(a, f10.2)')  '  From s:          ', u%connect%from_uni_s
+      nl=nl+1; write (lines(nl), '(a, l1)')     '  Match_to_design: ', u%connect%match_to_design
+      nl=nl+1; lines(nl) = ''
+    enddo
+    if (nl > 1) nl = nl - 1  ! Erase last blank line.
+    return
+  endif
+
+
+
   if (word(1) == ' ') then
     ix_u = s%global%u_view
   else
@@ -1957,12 +1977,11 @@ end subroutine tao_show_this
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 
-subroutine tao_ele_value_routine (str, value, good, err_flag)
+subroutine tao_ele_value_routine (str, stack, err_flag)
 
 implicit none
 
-real(rp), allocatable :: value(:)
-logical, allocatable :: good(:)
+type (tao_eval_stack1_struct) stack
 type (tao_universe_struct), pointer :: u
 integer ios, i, n, ie
 
@@ -1976,8 +1995,11 @@ logical err_flag
 
 !
 
-call re_allocate (value, 1, .true.)
-value = 0  ! Default
+call re_allocate (stack%value, 1)
+call re_allocate (stack%good, 1)
+
+stack%value(1) = 0  ! Default
+stack%good(1) = .false.
 err_flag = .true.
 
 ie = show_common%ix_ele
@@ -1986,40 +2008,41 @@ u => show_common%u
 attribute = str
 select case (attribute)
 case ("orbit_x")
-  value(1) = show_common%orbit%vec(1)
+  stack%value(1) = show_common%orbit%vec(1)
 case ("orbit_px")
-  value(1) = show_common%orbit%vec(2)
+  stack%value(1) = show_common%orbit%vec(2)
 case ("orbit_y")
-  value(1) = show_common%orbit%vec(3)
+  stack%value(1) = show_common%orbit%vec(3)
 case ("orbit_py")
-  value(1) = show_common%orbit%vec(4)
+  stack%value(1) = show_common%orbit%vec(4)
 case ("orbit_z")
-  value(1) = show_common%orbit%vec(5)
+  stack%value(1) = show_common%orbit%vec(5)
 case ("orbit_pz")
-  value(1) = show_common%orbit%vec(6)
+  stack%value(1) = show_common%orbit%vec(6)
 case ("sigma_x", "sigma_y", "sigma_z", "sigma_px", "sigma_py", "sigma_pz")
-  if (attribute == "sigma_x")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s11$))
-  if (attribute == "sigma_px") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s22$))
-  if (attribute == "sigma_y")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s33$))
-  if (attribute == "sigma_py") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s44$))
-  if (attribute == "sigma_z")  value(1) = sqrt(u%model%bunch_params(ie)%sigma(s55$))
-  if (attribute == "sigma_pz") value(1) = sqrt(u%model%bunch_params(ie)%sigma(s66$))
+  if (attribute == "sigma_x")  stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s11$))
+  if (attribute == "sigma_px") stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s22$))
+  if (attribute == "sigma_y")  stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s33$))
+  if (attribute == "sigma_py") stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s44$))
+  if (attribute == "sigma_z")  stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s55$))
+  if (attribute == "sigma_pz") stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s66$))
 case ("i5a_e6")
   if (.not. allocated (u%model%rad_int%lin_i5a_e6)) return
-  value(1) = sum(u%model%rad_int%lin_i5a_e6(1:ie))
+  stack%value(1) = sum(u%model%rad_int%lin_i5a_e6(1:ie))
 case ("i5b_e6")
   if (.not. allocated (u%model%rad_int%lin_i5b_e6)) return
-  value(1) = sum(u%model%rad_int%lin_i5b_e6(1:ie))
+  stack%value(1) = sum(u%model%rad_int%lin_i5b_e6(1:ie))
 
 ! Must be an element attribute
 case default
   call upcase_string(attribute)
   call pointer_to_attribute (show_common%ele, attribute, .true., real_ptr, err_flag, .false.)
-  if (.not. err_flag) value(1) = real_ptr
+  if (.not. err_flag) stack%value(1) = real_ptr
 end select
 
 err_flag = .false.
+stack%good(1) = .true.
 
-end subroutine
+end subroutine tao_ele_value_routine
 
 end module

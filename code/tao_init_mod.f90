@@ -40,7 +40,7 @@ type (spin_polar_struct) spin
 integer ios, iu, i, j, k, ix, n_uni, num
 integer n_data_max, n_var_max, ix_track_start, ix_track_end
 integer n_d2_data_max, n_v1_var_max ! Deprecated variables
-integer n, iostat, ix_universe
+integer n, iostat, ix_universe, to_universe
 
 character(*) init_file
 character(40) :: r_name = 'tao_init_global'
@@ -55,7 +55,7 @@ logical err, is_set
 namelist / tao_params / global, bmad_com, csr_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
   
-namelist / tao_connected_uni_init / ix_universe, connect
+namelist / tao_connected_uni_init / to_universe, connect
   
 namelist / tao_beam_init / ix_universe, beam0_file, &
   ix_track_start, ix_track_end, beam_all_file, beam_init, save_beam_at
@@ -125,14 +125,13 @@ if (.not. is_set .and. init_file /= '') then
   do i = lbound(s%u, 1), ubound(s%u, 1)
     s%u(i)%connect%connected = .false.
     s%u(i)%connect%match_to_design = .false.
-    s%u(i)%connect%use_connect_ele = .false.
     s%u(i)%connect%from_uni = -1
     s%u(i)%connect%from_uni_s = -1
     s%u(i)%connect%from_uni_ix_ele = -1
   enddo
 
   do
-    ix_universe = -1
+    to_universe = -1
     connect%from_universe = -1
     connect%at_element = ''
     connect%at_ele_index = -1
@@ -151,15 +150,14 @@ if (.not. is_set .and. init_file /= '') then
       if (ios < 0) exit
     endif
 
-    if (ix_universe == -1) then
+    if (to_universe == -1) then
       call out_io (s_abort$, r_name, &
-            'INIT: READ TAO_CONNECTED_UNI_INIT NAMELIST HAS NOT SET IX_UNIVERSE!')
+            'INIT: READ TAO_CONNECTED_UNI_INIT NAMELIST HAS NOT SET TO_UNIVERSE!')
       call err_exit
     endif
     call out_io (s_blank$, r_name, &
-        'Init: Read tao_connected_uni_init namelist for universe \i3\ ', ix_universe)
-    i = ix_universe
-    call init_connected_uni (s%u(i), connect, i)
+           'Init: Read tao_connected_uni_init namelist for universe \i3\ ', to_universe)
+    call init_connected_uni (connect, to_universe)
 
   enddo
 
@@ -249,12 +247,12 @@ contains
 ! Initialize universe connections
 !-
 
-subroutine init_connected_uni (u, connect, this_uni_index)
+subroutine init_connected_uni (connect, this_uni_index)
 
 implicit none
 
-type (tao_universe_struct) u
-type (tao_universe_struct), pointer ::  from_uni
+type (tao_universe_struct), pointer :: u_to
+type (tao_universe_struct), pointer ::  u_from
 type (tao_connected_uni_input) connect 
 integer this_uni_index
 
@@ -264,8 +262,12 @@ character(40) :: r_name = 'init_connected_uni'
 integer j, ix
 
 !
+
+u_from => s%u(connect%from_universe)
+u_to   => s%u(to_universe)
+
 if (connect%from_universe .eq. 0 .or. connect%at_element .eq. "none") then
-  u%connect%connected = .false.
+  u_to%connect%connected = .false.
   return
 endif
 
@@ -275,33 +277,32 @@ if (connect%from_universe .ge. this_uni_index) then
   call err_exit
 endif
   
-u%connect%connected = .true.
-u%connect%from_uni = connect%from_universe
-from_uni => s%u(connect%from_universe)
+u_to%connect%connected = .true.
+u_to%connect%from_uni = connect%from_universe
 
-call init_ele (u%connect%connect_ele)
-u%connect%connect_ele%key = match$
-u%connect%match_to_design = connect%match_to_design
-if (u%connect%match_to_design) u%connect%use_connect_ele = .true.
+call init_ele (u_to%connect%match_ele)
+u_to%connect%match_ele%key = match$
+u_to%connect%match_to_design = connect%match_to_design
           
 ! find extraction element
 call string_trim (connect%at_element, ele_name, ix)
+call str_upcase (ele_name, ele_name)
 if (ix /= 0) then
   if (connect%at_s /= -1 .or. connect%at_ele_index /= -1) then
     call out_io (s_error$, r_name, &
         "CANNOT SPECIFY AN ELEMENT, IT'S INDEX OR POSITION AT SAME TIME!", &
         "WILL USE ELEMENT NAME.")
   endif
-  if (ele_name == "end") then
-    u%connect%from_uni_s  = from_uni%design%lat%ele(from_uni%design%lat%n_ele_track)%s
-    u%connect%from_uni_ix_ele = from_uni%design%lat%n_ele_track
+  if (ele_name == "END") then
+    u_to%connect%from_uni_s  = u_from%design%lat%ele(u_from%design%lat%n_ele_track)%s
+    u_to%connect%from_uni_ix_ele = u_from%design%lat%n_ele_track
   else
     ! using element name 
     ! find last element with name
-    do j = from_uni%design%lat%n_ele_track, 0, -1
-      if (ele_name(1:ix) == trim(from_uni%design%lat%ele(j)%name)) then
-        u%connect%from_uni_s = from_uni%design%lat%ele(j)%s
-        u%connect%from_uni_ix_ele = j
+    do j = u_from%design%lat%n_ele_track, 0, -1
+      if (ele_name == trim(u_from%design%lat%ele(j)%name)) then
+        u_to%connect%from_uni_s = u_from%design%lat%ele(j)%s
+        u_to%connect%from_uni_ix_ele = j
         return
       endif
       if (j == 0) then
@@ -318,8 +319,8 @@ elseif (connect%at_ele_index /= -1) then
         "YOU CANNOT SPECIFY AN ELEMENT, IT'S INDEX OR POSITION AT SAME TIME!", &
         "WILL USE ELEMENT INDEX.")
   endif
-    u%connect%from_uni_s = from_uni%design%lat%ele(connect%at_ele_index)%s
-    u%connect%from_uni_ix_ele = connect%at_ele_index
+    u_to%connect%from_uni_s = u_from%design%lat%ele(connect%at_ele_index)%s
+    u_to%connect%from_uni_ix_ele = connect%at_ele_index
 else
   ! using s position
   if (s%global%track_type /= 'single' ) then
@@ -328,7 +329,7 @@ else
     call err_exit
   endif
   !FIX_ME: get ix_ele for element right before this s position
-  u%connect%from_uni_s = connect%at_s
+  u_to%connect%from_uni_s = connect%at_s
 endif
 
 end subroutine init_connected_uni
@@ -678,7 +679,6 @@ integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 
 integer i_d1
 
-character(40) d2_d1_name
 character(20) fmt
 
 integer, allocatable, save :: ix_eles(:)
@@ -694,8 +694,6 @@ else
   d1_this%name = d1_data%name    ! stuff in the data
 endif
 
-d2_d1_name = trim(u%d2_data(n_d2)%name) // '.' // d1_this%name
-
 ! Check if we are searching for elements or repeating elements
 ! and record the element names in the data structs.
     
@@ -704,7 +702,7 @@ if (search_for_lat_eles /= '') then
   if (size(ix_eles) == 0) then
     call out_io (s_warn$, r_name, &
       'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
-      'WHILE SETTING UP DATA ARRAY: ' // d2_d1_name)
+      'WHILE SETTING UP DATA ARRAY: ' // tao_d2_d1_name(d1_this))
     return
   endif
   ! finish finding data array limits
@@ -778,7 +776,7 @@ else
   endif
 
   if (ix_max_data == int_garbage$) then
-    call out_io (s_error$, r_name, 'NO DATA FOUND FOR: ' // d2_d1_name)
+    call out_io (s_error$, r_name, 'NO DATA FOUND FOR: ' // tao_d2_d1_name(d1_this))
     return
   endif
 
@@ -856,9 +854,15 @@ else
                                                     default_data_type
 endif
 
-! point the %data back to the d1_data_struct
+! Point the %data back to the d1_data_struct
 
 call tao_point_d1_to_data (d1_this, u%data(n1:n2), ix_min_data)
+
+! In a d1_data array, not all the datums need to exist. 
+! If a datum is not associated with an element, that generally means that
+! it does not exist. There are, however, a few exceptions. EG: unstable_ring, etc.
+! Here we mark data%exists for such datums.
+! Also determine if we need to do the radiation integrals. This can save a lot of time.
 
 do j = n1, n2
   u%data(j)%d1 => d1_this
@@ -870,14 +874,14 @@ do j = n1, n2
   ix = index(u%data(j)%data_type, 'emittance.')
   if (ix /= 0) u%data(j)%data_type = u%data(j)%data_type(1:ix-1) // &
                                          'emit.' // u%data(j)%data_type(ix+10:)
-  ! do we need to do the radiation integrals?
   data_type = u%data(j)%data_type
   emit_here = (index(data_type, 'emit.') /= 0)
   if (emit_here .and. u%data(j)%data_source == 'lattice') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
 
-  if (u%design%lat%param%lattice_type == circular_lattice$ .and. &
+  if (data_type(1:11) == 'expression:' .or. &
+              u%design%lat%param%lattice_type == circular_lattice$ .and. &
               (data_type(1:6)  == 'chrom.' .or. data_type(1:2) == 'i5' .or. &
                data_type(1:13) == 'unstable_ring' .or. emit_here .or. &
                data_type(1:17) == 'multi_turn_orbit.')) then
@@ -890,6 +894,12 @@ do j = n1, n2
   endif
 
 enddo
+
+if (.not. any(u%data(n1:n2)%exists)) then
+  call out_io (s_warn$, r_name, &
+            'Note: All datums in: ' // tao_d2_d1_name(d1_this), &
+            'are marked as non-existant')
+endif
 
 end subroutine d1_data_stuffit
 

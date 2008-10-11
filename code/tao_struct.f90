@@ -25,17 +25,39 @@ interface assignment (=)
 end interface
 
 !-----------------------------------------------------------------------
-! misc.
+! A tao_real_array_struct is just a pointer to a real number.
+! This is used to construct arrays of reals.
+
+logical, save, target :: forever_true$ = .true.
+
+type tao_real_array_struct
+  real(rp), pointer :: r => null()
+  logical, pointer :: good1
+  logical, pointer :: good2
+end type
+
+type tao_logical_array_struct
+  logical, pointer :: l => null()
+end type
+
+type tao_integer_array_struct
+  integer, pointer :: i => null()
+end type
+
+type tao_string_array_struct
+  character(40), pointer :: s => null()
+end type
 
 type tao_arg_struct
   character(100) name
   character(100) value(3)
 end type
 
-type tao_eval_stack_struct
+type tao_eval_stack1_struct
   integer type
   real(rp), allocatable :: value(:)
   logical, allocatable :: good(:)
+  type (tao_real_array_struct), allocatable :: value_ptr(:)
 end type
 
 !----------------------------------------------------------------------
@@ -226,9 +248,9 @@ end type
 type tao_data_struct
   character(40) ele_name     ! Name of the element in the Lattice corresponding to the datum.
   character(40) ele0_name    ! Name lattice element when there is a range 
-  character(40) data_type    ! Type of data: "orbit.x", etc.
-  character(40) merit_type   ! Type of constraint: 'target', 'max', 'min', etc.
-  character(40) data_source  ! 'lattice', or 'beam'
+  character(100) data_type   ! Type of data: "orbit.x", etc.
+  character(20) merit_type   ! Type of constraint: 'target', 'max', 'min', etc.
+  character(20) data_source  ! 'lattice', or 'beam'
   integer ix_ele             ! Index of the element in the lattice element array.
   integer ix_ele0            ! Index of lattice elment when there is a range or reference.
   integer ix_ele_merit       ! Index of lattice elment where merit is evaluated.
@@ -259,6 +281,7 @@ type tao_data_struct
   logical useit_opt          ! See above
   type (tao_d1_data_struct), pointer :: d1 => null() 
                              ! Pointer to the parent d1_data_struct 
+  type (tao_eval_stack1_struct), allocatable :: stack(:)
 end type tao_data_struct
 
 ! A d1_data_struct represents, say, all the horizontal orbit data.
@@ -302,26 +325,6 @@ end type
 
 type tao_d1_data_array_struct
   type (tao_d1_data_struct), pointer :: d1
-end type
-
-! A tao_real_array_struct is just a pointer to a real number.
-! This is used to construct arrays of reals.
-
-type tao_real_array_struct
-  real(rp), pointer :: r
-  logical :: good = .true.
-end type
-
-type tao_logical_array_struct
-  logical, pointer :: l
-end type
-
-type tao_integer_array_struct
-  integer, pointer :: i
-end type
-
-type tao_string_array_struct
-  character(40), pointer :: s
 end type
 
 !-----------------------------------------------------------------------
@@ -468,6 +471,7 @@ type tao_global_struct
   logical :: plot_on = .true.                ! Do plotting?
   logical :: lattice_calc_on = .true.        ! Turn on/off calculations.
   logical :: command_file_print_on = .true.  ! print to terminal when using a cmd file?
+  logical :: box_plots = .false.             ! For debugging plot layout issues.
 end type
 
 ! tao_common_struct is for those global parameters that the user 
@@ -531,13 +535,12 @@ end type
 ! for connected universes
 
 type tao_connected_uni_struct
-  logical connected       ! This universe is connected to another
+  logical connected       ! This universe is injected from another
   logical match_to_design ! match the design lattices
-  logical use_connect_ele ! to use the connected_ele
   integer from_uni        ! The universe whose beam injects into this universe
   integer from_uni_ix_ele ! element index where the connection occurs
   real(rp) from_uni_s     ! s position in from_uni where the connection occurs
-  type (ele_struct) :: connect_ele ! element used to match universes
+  type (ele_struct) :: match_ele ! element used to match universes
   type (beam_struct) injecting_beam ! used for beam injection
 end type
 
@@ -593,7 +596,7 @@ type tao_universe_struct
   type (beam_struct) beam0                         ! Beam at the beginning of lattice
   type (beam_init_struct) :: beam_init             ! Beam distrubution
                                                    !  at beginning of lattice
-  type (tao_connected_uni_struct)   :: connect     ! Used for connected lattices
+  type (tao_connected_uni_struct)   :: connect     ! Connection data put in "to" uni.
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
   type (coord_struct) model_orb0                         ! For saving beginning orbit
