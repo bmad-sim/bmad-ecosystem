@@ -93,7 +93,7 @@ for ``[[1]]'' in the string.
 \section{call}\index{Commands!call}
 \label{s:call}
 
-The \vn{call} command opens a command file (\sref{s:command.file}) and
+The \vn{call} command opens a command file (\sref{s:command.files}) and
 executes the commands in it. 
 Format:
 \begin{example}
@@ -230,7 +230,7 @@ Examples:
 \label{s:continue}
 
 The \vn{continue} command is used to continue reading of a suspended
-command file (\sref{s:command.file}) after a \vn{pause} command
+command file (\sref{s:command.files}) after a \vn{pause} command
 (\vn{s:pause}). Format:
 \begin{example}
   continue
@@ -241,7 +241,7 @@ command file (\sref{s:command.file}) after a \vn{pause} command
 \index{Commands!end-file}
 
 The \vn{end-file} command is used in command files
-(\sref{s:command.file}) to signal the end of the file. Everything
+(\sref{s:command.files}) to signal the end of the file. Everything
 after an \vn{end-file} command is ignored. An \vn{end-file} command
 entered at the command line will simply generate an error message.
 Format:
@@ -447,7 +447,7 @@ making a postscript file instead and using a ps to gif converter.
 \label{s:pause}
 
 The \vn{pause} command is used to pause \tao when executing a command
-file (\sref{s:command.file}). Format:
+file (\sref{s:command.files}). Format:
 \begin{example}
   pause \{<time>\} ! Pause time in seconds.
 \end{example}
