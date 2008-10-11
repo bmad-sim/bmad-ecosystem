@@ -192,7 +192,7 @@ The general form of the data merit terms $D_i$ is
     0             & \mbox{Otherwise}
     \end{cases}
 \Endeq
-The equation used to cacluate \vn{delta} is determined by two global logicals called
+The equation used to calculate \vn{delta} is determined by two global logicals called
 \vn{opt_with_ref} and \vn{opt_with_base} (\sref{s:globals}) as shown in
 Table~\ref{t:delta}. 
 \begin{table}[ht] 
@@ -265,6 +265,12 @@ set to zero. This tends to lower the merit function and in this case
 an optimizer will never leave the unstable region. To avoid this,
 an \vn{unstable_ring} constraint (\sref{s:data.types}) must be set.
 
+To see a list of constraints when running \tao use the \vn{show
+constraints} command (\sref{s:show). To see how a particular variable
+or datum is doing use the \vn{show data} or \vn{show variable}
+commands.  See \sref{s:datum.opt} for details on how datums are
+chosen to be included in an optimization.
+
 %------------------------------------------------------------------------
 \section{Common Base Lattice (CBL) Analysis}
 \label{s:cbl}
@@ -297,7 +303,7 @@ into two classes. One class consists of the parameters that were
 varied to get the data of the different universes. With \vn{ORM},
 these are the steering strengths. At initialization
 (\sref{s:init.var}), variables must be set up that control these
-parmeters. A single variable will control that particular parameter in
+parameters. A single variable will control that particular parameter in
 a particular universe, that was varied to create the data for that
 universe. 
 
@@ -309,7 +315,7 @@ is, parameters that did {\em not} change during data taking. The
 parameters of the \vn{model} lattice in the common universe.
 
 To cut down on memory usage when using \vn{CBL} (the number of data
-sets, hense the number of universes, can be very large), \tao does
+sets, hence the number of universes, can be very large), \tao does
 not, except for the common \vn{model} lattice, reserve separate memory
 for each \vn{model} lattice. Rather, it reserves memory for a single
 \vn{``working''} lattice and the \vn{model} lattice for a particular
@@ -325,7 +331,7 @@ the common \vn{model} lattice.
 With \vn{CBL}, the \vn{opt_with_base} and \vn{opt_with_ref}
 (\sref{s:generalized.design}) global logicals are generally set to
 True. Since \vn{opt_with_base}, and \vn{opt_with_ref} do not make
-sense when applield to the data in the common universe, The
+sense when applied to the data in the common universe, The
 contribution to the merit function from data in this universe is
 always calculated as if \vn{opt_with_base} and \vn{opt_with_ref} were
 set to False.
@@ -333,6 +339,6 @@ set to False.
 With \vn{opt_with_base} set to True, the \vn{base} value for a
 datum is evaluated by looking for a corresponding datum in the common
 universe and using its \vn{model} value. To simplify the bookkeeping,
-it is assumed that the structure of the data arrrays is identical from
+it is assumed that the structure of the data arrays is identical from
 universe to universe. That is, the \vn{show data} command gives
 identical results independent of the viewed universe. 

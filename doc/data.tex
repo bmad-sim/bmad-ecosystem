@@ -84,7 +84,7 @@ can also be specified using the number \vn{-1}. Examples:
   [2:4,7]@orbit.x ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
   [2]@orbit.x     ! The \vn{orbit.x} data in universe 2. 
   2@orbit.x       ! Same as "2@orbit.x".
-  orbit.x         ! The \vn{orbit.x} data in the current viewd universe.
+  orbit.x         ! The \vn{orbit.x} data in the current viewed universe.
   -1@orbit.x      ! Same as "orbit.x".
 \end{example}
 
@@ -231,6 +231,31 @@ as set by the global variable \vn{opt_with_ref} (\sref{s:globals}).
 Finally \vn{good_opt} is meant for use in custom versions of \tao
 (\sref{c:custom.tao}) and is always left True by the standard \tao code.
 
+Example of using a \vn{show data} (\sref{show}) to check the logicals
+in a datum:
+\begin{example}
+  Tao> show data 3@beta[1]
+
+  Universe:   3
+  %ele0_name         =
+  %ele_name          = IP_L0
+  %data_type         = beta.a
+      ... etc ...
+  %relative          =  F
+  %exists            =  T
+  %good_model        =  T
+  %good_meas         =  F
+  %good_ref          =  F
+  %good_user         =  T
+  %good_opt          =  T
+  %good_plot         =  F
+  %useit_plot        =  F
+  %useit_opt         =  F
+\end{example}
+Here \vn{useit_opt} is False since \vn{good_meas} is False and
+\vn{good_meas} is False since the \vn{meas} value of the datum (not
+shown) was not set in the \tao initialization file.
+
 %------------------------------------------------------------------------
 \section{Tao Data Types}\index{Data!Data Types}
 \label{s:data.types}
@@ -252,7 +277,7 @@ value depending upon what \vn{data_source} is used.
 \index{Data!Relative}
 Associated with a datum are two lattice elements named
 \vn{ele0_name} and \vn{ele_name}. Datums can be divided up into four
-classes: vn{Global} Datums, like the emittance in a circular
+classes: \vn{Global} Datums, like the emittance in a circular
 ring, do not have associated lattice elements and their corresponding
 element names will be blank. Datums in the second class, like the beta
 function at a given point, will only have one associated lattice
@@ -455,7 +480,7 @@ results.
 
 
 \vn{beta.a} and \vn{beta.b} are the lattice beta functions. \vn{beta.x} and
-\vn{beta.y} are beam prejected beta functions defined by
+\vn{beta.y} are beam projected beta functions defined by
 \begin{equation}
   \beta.x = \frac{<x^{2}>}{\sqrt{<x^{2}> <x'^{2}> - <x x'>^{2}}}.
 \end{equation}

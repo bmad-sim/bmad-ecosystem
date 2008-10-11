@@ -55,9 +55,10 @@ The first line to set the \vn{var_array} may look like it is setting
 the four values \vn{var_array(8:11)} but the general rule is that with \vn{n}
 values on the RHS, only \vn{n} values in the array are set. Notice the notation
 \vn{n*number} does not denote multiplication but instead can be used to denote
-multiple values.
+multiple values. Also note that the compiler may be picky about blanks so 
+that ``2*34'' will be accepted but ``2 * 34'' will not.
 
-Note: Some string variables are case sensitive.
+Note: Some \tao string variables are case sensitive.
 
 %-----------------------------------------------------------------
 \subsection{Class:Name Format}
