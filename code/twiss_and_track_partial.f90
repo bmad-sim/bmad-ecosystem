@@ -40,8 +40,6 @@
 !            the particle gets lost in tracking
 !-
 
-#include "CESR_platform.inc"
-
 subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
                                                    start, end, body_only, err)
 
@@ -65,7 +63,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   logical, optional :: body_only, err
   logical error
 
-! Error check
+  ! Error check
 
   if (present(err)) err = .true.
   l_orig = ele2%value(l$)
@@ -75,22 +73,6 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
     call out_io (s_abort$, r_name, line)
     call err_exit
   endif
-
-! The only real complication comes with a dipole where we have to negate
-! the focusing of the exit face (we never get to the exit face since we are
-! only partially tracking through).
-
-  ele = ele2
-  ele%value(l$) = del_s
-  ratio = del_s / l_orig
-  ele%value(hkick$) = ele2%value(hkick$) * ratio
-  ele%value(vkick$) = ele2%value(vkick$) * ratio
-  if (ele%key == hkicker$ .or. ele%key == vkicker$) &
-                        ele%value(kick$) = ele2%value(kick$) * ratio
-  if (ele%key == lcavity$) ele%value(e_loss$) = ele%value(e_loss$) * ratio
-
-  ! Need to do bookkeeping if auto_bookkeeper is off
-  if (.not. bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
   ! Easy case when del_s is zero.
 
@@ -114,6 +96,22 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
     return
 
   endif
+
+  ! The only real complication comes with a dipole where we have to negate
+  ! the focusing of the exit face (we never get to the exit face since we are
+  ! only partially tracking through).
+
+  ele = ele2
+  ele%value(l$) = del_s
+  ratio = del_s / l_orig
+  ele%value(hkick$) = ele2%value(hkick$) * ratio
+  ele%value(vkick$) = ele2%value(vkick$) * ratio
+  if (ele%key == hkicker$ .or. ele%key == vkicker$) &
+                        ele%value(kick$) = ele2%value(kick$) * ratio
+  if (ele%key == lcavity$) ele%value(e_loss$) = ele%value(e_loss$) * ratio
+
+  ! Need to do bookkeeping if auto_bookkeeper is off
+  if (.not. bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
   ! If not easy case then do tracking...
 

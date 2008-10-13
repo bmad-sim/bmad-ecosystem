@@ -16,6 +16,7 @@ solely meant for \bmad internal use.
   Beam: Long Range Beam-Beam Interaction      & \ref{r:lrbbi}          \\ \hline
   Beam: Low Level Routines                    & \ref{r:low.beam}       \\ \hline
   Beam: Tracking and Manipulation             & \ref{r:beam}           \\ \hline
+  Branch Handling                             & \ref{r:branch}         \\ \hline
   CESR Specific                               & \ref{r:cesr}           \\ \hline
   \cpp Interface                              & \ref{r:cpp}            \\ \hline
   Coherent Synchrotron Radiation (CSR)        & \ref{r:csr}            \\ \hline
@@ -202,6 +203,10 @@ Dummy routine for custom bunch tracking.
      lat\%ele(ix1) Through to the end of lat\%ele(ix2).
 
 \end{description}
+
+%------------------------------------------------------------------------
+\section{Branch Handling Routines}
+\label{r:branch}
 
 %------------------------------------------------------------------------
 \section{CESR Specific}
@@ -730,8 +735,12 @@ Returns a pointer to an attribute of an element with name attrib_name.
 Returns an array of pointers to an attribute with name attrib_name within 
 elements with name ele_name.
 
+\index{Routine!pointer_to_ele}
+\item[pointer_to_ele (lat, ix_line, ix_ele, ele)] \Newline 
+Subroutine to point to a given element.
+
 \index{Routine!remove_eles_from_lat}
-\item[remove_ele_from_lat (lat)] \Newline 
+\item[remove_eles_from_lat (lat)] \Newline 
 Subroutine to remove an elements from the lattice.
 
 \index{Routine!split_lat}
@@ -1570,6 +1579,10 @@ structure equal to another.
 Subroutine to convert between lab frame, normal mode, normalized normal mode, 
 and action-angle coordinates. 
 
+\index{Routine!init_coord}
+\item[init_coord (orb, vec)] \Newline 
+Subroutine to initialize a coord_struct.
+
 \index{Routine!type_coord}
 \item[type_coord (coord)] \Newline
 Subroutine to type out a coordinate. 
@@ -1797,9 +1810,15 @@ Subroutine to plot a section of an ellipse.
 \item[qp_draw_histogram (x_dat, y_dat, x_lab, y_lab, title, draw_axes)] \Newline 
      Subroutine to plot data, axes with labels, a grid, and a title.
 
-\index{Routine!qp_draw_legend}
-\item[qp_draw_legend (lines, x, y, units)] \Newline 
-     Subroutine to draw a legend.
+\index{Routine!qp_draw_curve_legend}
+\item[\protext\parbox{6in}{qp_draw_curve_legend (origin, text_offset, line_length, \\ 
+\hspace*{2in}  line, symbol, text, draw_line, draw_symbol, draw_text) }] \Newline
+Subroutine to draw a legend with each line in the legend having
+  a line, a symbol, some text.
+
+\index{Routine!qp_draw_text_legend}
+\item[qp_draw_text_legend (lines, x, y, units)] \Newline 
+Subroutine to draw a legend of lines of text.
 
 \index{Routine!qp_draw_main_title}
 \item[qp_draw_main_title (lines, justify)] \Newline 
