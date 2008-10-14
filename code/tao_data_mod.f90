@@ -440,6 +440,15 @@ case ('phase.b')
   datum_value = lat%ele(ix1)%b%phi - lat%ele(ix0)%b%phi
   if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%b%phi + lat%ele(n_track)%b%phi 
 
+case ('phase_frac.a')
+  datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
+  if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%a%phi + lat%ele(n_track)%a%phi 
+  datum_value = modulo2(datum_value, pi)
+case ('phase_frac.b')
+  datum_value = lat%ele(ix1)%b%phi - lat%ele(ix0)%b%phi
+  if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%b%phi + lat%ele(n_track)%b%phi 
+  datum_value = modulo2(datum_value, pi)
+
 case ('tune.a')
   datum_value = lat%a%tune
 case ('tune.b')
@@ -450,7 +459,7 @@ case ('phase_frac_diff')
   if (ix0 > ix1) px = px - lat%ele(0)%a%phi + lat%ele(n_track)%a%phi 
   py = lat%ele(ix1)%b%phi - lat%ele(ix0)%b%phi
   if (ix0 > ix1) py = py - lat%ele(0)%b%phi + lat%ele(n_track)%b%phi 
-  datum_value = modulo (px, twopi) - modulo (py, twopi)
+  datum_value = modulo2 (px - py, pi)
 
 case ('beta.x')
   if (data_source == "beam") then

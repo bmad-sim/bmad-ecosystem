@@ -260,19 +260,22 @@ shown) was not set in the \tao initialization file.
 \section{Tao Data Types}\index{Data!Data Types}
 \label{s:data.types}
 
-Table~\ref{t:data.types} lists the predefined data types in \tao. 
-
 Data can be classified by how it is calculated. This is set by the
 \vn{data_source} parameter associated with an attribute. If the data
 comes from particle beam tracking, \vn{data_source} must be set to
 \vn{"beam"}. For everything else, \vn{data_source} must be set to
-\vn{"lattice"}. Some datum types, like the floor position of an element,
-only make sense with a \vn{"lattice"} \vn{data_source}. Other types, like
-\vn{dpx_dx}, only make sense with a \vn{"beam"} \vn{data_source}. There
-is a third class of data types, like \vn{emit.a} that can take a
-\vn{"lattice"} or \vn{"beam"} \vn{data_source}. It is important to keep
-in mind that with this third case, such datums will have a different
-value depending upon what \vn{data_source} is used.
+\vn{"lattice"}. Some datum types, like the floor position of an
+element, only make sense with a \vn{"lattice"} \vn{data_source}. Other
+types, like \vn{dpx_dx}, only make sense with a \vn{"beam"}
+\vn{data_source}. There is a third class of data types, like
+\vn{emit.a} that can take a \vn{"lattice"} or \vn{"beam"}
+\vn{data_source}. It is important to keep in mind that with this third
+case, such datums will have a different value depending upon what
+\vn{data_source} is used.  Table~\ref{t:data.types.beam} lists the
+predefined data types in \tao that are valid for a \vn{"beam"}
+\vn{data_source} (\sref{s:init.data}) and
+Table~\ref{t:data.types.lattice} lists the predefined data types in
+\tao that are valid for a \vn{"lattice"} \vn{data_source}.
 
 \index{Data!Relative}
 Associated with a datum are two lattice elements named
@@ -362,16 +365,60 @@ results.
 \index{unstable_ring}\index{emittance}\index{chrom}\index{norm_emittance}
 \index{sigma}\index{dpx_dx}\index{dpy_dy}\index{dpz_dz}\index{dpa_da}
 \index{dpb_db}
+
+
+\begin{table}[ht] 
+\centering 
+{\tt\small
+\begin{tabular}{|l|l|l|} \hline
+
+  beta.x, beta.y  beta.z      & Projected beta function            &          \\ \hline 
+  beta.a, beta.b              & Normal-mode beta function          &          \\ \hline 
+
+  dpx\_dx, dpx\_dy, etc.      & Bunch <x p\_x> / <$x^2$> \& Etc... &          \\ \hline 
+
+  \begin{tabular}{@{}l}
+    emit.x, emit.y, emit.z \\
+    emit.a, emit.b, emit.c \\
+  \end{tabular}               & Emittance                          & global   \\ \hline
+
+  eta.x, eta.y                & Projected dispersion               &          \\ \hline 
+  eta.a, eta.b                & Normal-Mode dispersion             &          \\ \hline 
+  etap.x, etap.y              & Projected dispersion derivative    &          \\ \hline 
+  etap.a, etap.b              & Normal-Mode dispersion derivative  &          \\ \hline 
+
+  \begin{tabular}{@{}l}  
+    norm\_emit.x, norm\_emit.x, norm\_emit.z \\ 
+    norm\_emit.a, norm\_emit.b, norm\_emit.c 
+  \end{tabular}               & Normalized beam emittance          &          \\ \hline 
+
+  \begin{tabular}{@{}l}   
+    sigma.x, sigma.y, sigma.z \\ 
+    sigma.p\_x, sigma.p\_y, sigma.p\_z
+  \end{tabular}               & Bunch size                         &          \\ \hline 
+
+  spin.polarization, spin.theta, spin.phi
+                              & Particle spin                      &          \\ \hline 
+
+  wire.<angle>                & Wire scanner at wire angle <angle> &          \\ \hline
+
+
+\end{tabular}
+} 
+\label{t:data.types.beam}
+\caption{Predefined Data Types for \vn{"beam"} data\_source}}
+\end{table}
+
+%----------------------------------------------------------------------------------------------
+
 \begin{table}[ht] 
 \centering 
 {\tt\small
 \begin{tabular}{|l|l|l|} \hline
   {\it Data\_Type}            & {\it Description}                  &          \\ \hline 
 
-  alpha.x, alpha.y            & Projected alpha function           &          \\ \hline 
-  alpha.a, alpha.b, alpha.z   & Normal-Mode alpha function         &          \\ \hline 
-  beta.x, beta.y              & Projected beta function            &          \\ \hline 
-  beta.a, beta.b, beta.z      & Normal-mode beta function          &          \\ \hline 
+  alpha.a, alpha.b            & Normal-Mode alpha function         &          \\ \hline 
+  beta.a, beta.b              & Normal-mode beta function          &          \\ \hline 
   bpm\_orbit.x, bpm\_orbit.y  & Measured orbit                     &          \\ \hline
   bpm\_phase.a, bpm\_phase.b  & Measured betatron phase            &          \\ \hline
   bpm\_eta.x, bpm\_eta.y      & Measured dispersion                &          \\ \hline
@@ -395,16 +442,14 @@ results.
     chrom.a, chrom.b  \\
   \end{tabular}               & Chromaticity for a ring            & global   \\ \hline
 
-  dpx\_dx, dpx\_dy, etc.      & Bunch <x p\_x> / <$x^2$> \& Etc... &          \\ \hline 
-
   e\_tot                      & Beam total energy                  &          \\ \hline
 
-  element\_param.<param\_name> & Lattice element parameter          &          \\ \hline
+  element\_param.<param\_name> & Lattice element parameter         &          \\ \hline
 
   \begin{tabular}{@{}l}
-    emit.x, emit.y, emit.z \\
     emit.a, emit.b, emit.c \\
   \end{tabular}               & Emittance                          & global   \\ \hline
+
   eta.x, eta.y                & Projected dispersion               &          \\ \hline 
   eta.a, eta.b                & Normal-Mode dispersion             &          \\ \hline 
   etap.x, etap.y              & Projected dispersion derivative    &          \\ \hline 
@@ -415,6 +460,8 @@ results.
 
   floor.x, floor.y, floor.z, floor.theta 
                               & Global (``floor'') position        & relative \\ \hline 
+
+  gamma.a, gamma.b            & Normal-mode gamma function         &          \\ \hline 
 
   i5a\_e6, i5b\_e6            & Normalized I5 radiation integral   &          \\ \hline
 
@@ -428,7 +475,6 @@ results.
   \end{tabular}               & Bunch size                         &          \\ \hline 
 
   \begin{tabular}{@{}l}  
-    norm\_emit.x, norm\_emit.x, norm\_emit.z \\ 
     norm\_emit.a, norm\_emit.b, norm\_emit.c 
   \end{tabular}               & Normalized beam emittance          &          \\ \hline 
 
@@ -437,20 +483,24 @@ results.
   orbit.z, orbit.z\_p         & Longitudinal orbit and momenta     &          \\ \hline 
 
   phase.a, phase.b            & Betatron phase                     & relative \\ \hline 
-  phase\_frac\_diff           & Fractional phase difference (x-y)  & relative \\ \hline
+
+  phase\_frac.a, phase\_frac.b            
+                              & \begin{tabular}{l}
+                                  Fractional betatron phase \\       
+                                  $-\pi < \phi_{\mbox{frac}} < \pi$ \\
+                                \end{tabular}                      & relative \\ \hline 
+
+  phase\_frac\_diff           & \begin{tabular}{l}
+                                  Fractional betatron phase \\
+                                  difference (a-b) $-\pi < d\phi_{\mbox{frac}} < \pi$
+                                \end{tabular}                      & relative \\ \hline 
 
   r.$ij$                      & \begin{tabular}{l}
                                   Term in linear transfer map \\
                                   $1 \le i,j \le 6$
                                 \end{tabular}                      & relative \\ \hline 
 
-
   s\_position                 & longitudinal length constraint     & relative \\ \hline 
-
-  \begin{tabular}{@{}l}   
-    sigma.x, sigma.y, sigma.z \\ 
-    sigma.p\_x, sigma.p\_y, sigma.p\_z
-  \end{tabular}               & Bunch size                         &          \\ \hline 
 
   spin.polarization, spin.theta, spin.phi
                               & Particle spin                      &          \\ \hline 
@@ -467,12 +517,10 @@ results.
   tune.a, tune.b              & Tune                               &          \\ \hline 
   unstable\_ring              & Nonzero if a ring is unstable      & global   \\ \hline
 
-  wire.<angle>                & Wire scanner at wire angle <angle> &          \\ \hline
-
 \end{tabular}
 } 
-\label{t:data.types}
-\caption{Predefined Data Types}
+\label{t:data.types.lattice}
+\caption{Predefined Data Types for \vn{"lattice"} data\_source}}
 \end{table}
 
 \vfill \break

@@ -1663,12 +1663,17 @@ x-axis.  Similarly, \vn{orbit.y[23]} is used for the y-axis. The
 \vn{set} command (\sref{s:set}) can be used to change
 \vn{curve%ele_ref_name} and \vn{graph%component} strings. 
 
-\vn{curve%data_index} sets the
-index for the symbol points (\sref{s:template}). In this example, the
-\vn{ix_uni} component will result in the symbol index being the
-universe number.  Additionally, the component \vn{ix_d1} can be used
-to specify the index in the \vn{d1_data} array, and the component
-\vn{ix_ele} can be used to specify the lattice element index.
+\vn{curve%data_index} sets the index number for the symbol points
+(\sref{s:template}). In the above example, \vn{curve%data_index} is
+set to \vn{"[2:57]@orbit.y[#ref]|ix_uni"}. The \vn{|ix_uni} component
+will result in the symbol index number being the universe number.
+Additionally, the component \vn{|ix_d1} can be used to specify the
+index in the \vn{d1_data} array, and the component \vn{|ix_ele} can be
+used to specify the lattice element index. Setting the symbol index
+number is important when \vn{curve%draw_symbol_index} is set to True
+so that the symbol index is drawn with the curve. Additionally, the
+command \vn{show curve -symbol} (\serf{s:show}) will print the symbol
+index number along with the $(x, y)$ coordinates of the symbols.
 
 Arithmetic expressions (\sref{s:arithmetic}) may be mixed with
 explicit datum components in the specification of

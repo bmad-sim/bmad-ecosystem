@@ -20,6 +20,8 @@ use rad_int_common, only: rad_int_common_struct
 integer, parameter :: model$ = 1, base$ = 2, design$ = 3
 integer, parameter :: ix_common_uni$ = 0
 
+logical, save, target :: forever_true$ = .true.
+
 interface assignment (=)
   module procedure tao_lat_equal_tao_lat
 end interface
@@ -27,8 +29,6 @@ end interface
 !-----------------------------------------------------------------------
 ! A tao_real_array_struct is just a pointer to a real number.
 ! This is used to construct arrays of reals.
-
-logical, save, target :: forever_true$ = .true.
 
 type tao_real_array_struct
   real(rp), pointer :: r => null()
@@ -328,6 +328,16 @@ type tao_d1_data_array_struct
 end type
 
 !-----------------------------------------------------------------------
+! tao_this_var_struct is for defining an array of pointers to variables
+! in the tao_var_struct
+
+type tao_this_var_struct
+  integer ix_uni            ! universe index.
+  integer ix_ele            ! Index of element in the u%lattice%ele(:) array.
+  real(rp), pointer :: model_value => null() ! Pointer to the variable in the model lat.
+  real(rp), pointer :: base_value => null()  ! Pointer to the variable in the base lat.
+end type  
+
 ! The var_struct defined the fundamental variable structure.
 ! The super_universe_struct will hold an array of var_structs: s%var(:).
 !
@@ -345,13 +355,6 @@ end type
 !                  = %exists & %good_plot
 !
 ! With common_lattice = True => var%this(:)%model_value will point to the working universe.
-
-type tao_this_var_struct
-  integer ix_uni            ! universe index.
-  integer ix_ele            ! Index of element in the u%lattice%ele(:) array.
-  real(rp), pointer :: model_value => null() ! Pointer to the variable in the model lat.
-  real(rp), pointer :: base_value => null()  ! Pointer to the variable in the base lat.
-end type  
 
 type tao_var_struct
   character(40) ele_name    ! Associated lattice element name.
@@ -474,9 +477,7 @@ type tao_global_struct
   logical :: box_plots = .false.             ! For debugging plot layout issues.
 end type
 
-! tao_common_struct is for those global parameters that the user 
-! should not have direct access to.
-! Also see tao_global_struct.
+!
 
 type tao_alias_struct
   character(40) :: name
@@ -490,6 +491,10 @@ type tao_command_file_struct
   logical :: paused = .false.       ! Is the command file paused?
   integer :: n_line = 0             ! Current line number
 end type
+
+! tao_common_struct is for those global parameters that the user 
+! should not have direct access to.
+! Also see tao_global_struct.
 
 type tao_common_struct
   type (tao_alias_struct) alias(100)
@@ -556,14 +561,15 @@ end type
   endtype
 
 !-----------------------------------------------------------------------
-! The %bunch_params(:) array has a 1-to-1 correspondence with the lattice elements.
-! The %bunch_params2(:) array, if used, is for drawing smooth data lines and has 
-! a lot more elements than the %bunch_params(:) array
 
 type tao_lat_mode_struct
   real(rp) chrom
   real(rp) growth_rate
 end type
+
+! The %bunch_params(:) array has a 1-to-1 correspondence with the lattice elements.
+! The %bunch_params2(:) array, if used, is for drawing smooth data lines and has 
+! a lot more elements than the %bunch_params(:) array
 
 type tao_lattice_struct
   type (lat_struct) lat                           ! lattice structures
