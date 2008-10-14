@@ -139,7 +139,8 @@ print "\n";
 
 sub searchit {
 
-  if ($File::Find::name =~ /pecklib\/f77/) {return;}  # Do not search this directory.
+  # Do not search this directory.
+  if ($File::Find::name =~ /pecklib\/original_from_vms/) {return;}  
 
   if (/\#/) {return;}
   $file = $_;
@@ -208,11 +209,16 @@ sub searchit {
       } elsif (/^ *type +$str[ \n]/i) {
         $found_one = 1;
         print "\n$File::Find::name\n";
+        foreach $line (@comments) {print $line;}
+        print "\n";
         print $_;
         while (<F_IN>) {
           print $_;
           if (/^ *end type/i) {last;}
         }
+
+        @comments = ();
+        $recording = 0;
 
       # match to subroutine, function, etc.
 
@@ -223,6 +229,7 @@ sub searchit {
           print "\n$File::Find::name\n";
           foreach $line (@comments) {print $line;}
         }
+
         @comments = ();
         $recording = 0;
 
