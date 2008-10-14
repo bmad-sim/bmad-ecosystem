@@ -173,7 +173,7 @@ sub searchit {
   # Check contents of .f90 file.
 
   } elsif ($file =~ /\.f90$/) {
-    $recording = 0;
+    $n_com = 0;
     @comments = ();     
 
     $stat = open (F_IN, $file);
@@ -185,31 +185,31 @@ sub searchit {
 
     while (<F_IN>) {
 
-      if (/^ *interface *$/i) {    # skip interface blocks
+      # skip interface blocks
+
+      if (/^ *interface *$/i) {
         while (<F_IN>) {
           if (/^ *end +interface/i) {last;}
         }
       }
 
-      if (/^ *type *\(/i) {next;}   # skip "type (" constructs
+      # skip "type (" constructs and separator comments.
 
-      if (/^!\+/) {      # if match to "!+" start recording comment lines
-        @comments = ($_);
-        $recording = 1;
+      if (/^ *type *\(/i) {next;}   
+      if ($n_com == 0 && /^!\-\-\-\-\-\-\-\-\-/) {next;}
 
-      } elsif ($recording == 1 && /^!\-/) {
-        @comments = (@comments, $_);
-        $recording = 0;
+      # Add to comment block if a comment line
 
-      } elsif ($recording == 1) {
-        @comments = (@comments, $_)
+      if (/^!/) {
+        @comments[$n_com] = $_;
+        $n_com++
 
       # match to type statement
 
       } elsif (/^ *type +$str[ \n]/i) {
         $found_one = 1;
         print "\n$File::Find::name\n";
-        foreach $line (@comments) {print $line;}
+        for ($i = 0; $i < $n_com; $i++) {print @comments[$i];}
         print "\n";
         print $_;
         while (<F_IN>) {
@@ -217,8 +217,7 @@ sub searchit {
           if (/^ *end type/i) {last;}
         }
 
-        @comments = ();
-        $recording = 0;
+        $n_com = 0;
 
       # match to subroutine, function, etc.
 
@@ -227,11 +226,10 @@ sub searchit {
         if (/^\s*$str[ |\(\n]/i) {
           $found_one = 1;
           print "\n$File::Find::name\n";
-          foreach $line (@comments) {print $line;}
+          for ($i = 0; $i < $n_com; $i++) {print @comments[$i];}
         }
 
-        @comments = ();
-        $recording = 0;
+        $n_com = 0;
 
         # skip rest of routine including contained routines
 
@@ -248,6 +246,11 @@ sub searchit {
           }
           if ($count == 0) {last;}
         }
+
+      # If not a blank line, reset comment block
+
+      } elsif (/[^\s]/) {
+        $n_com = 0; 
 
       }
 
