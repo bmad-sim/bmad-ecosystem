@@ -23,12 +23,14 @@ type (tao_curve_struct), pointer :: c
 type (beam_struct), pointer :: beam
 type (bunch_struct), pointer :: bunch
 type (tao_universe_struct), pointer :: u
-type (tao_arg_struct) arg(10)
+
+real(rp) scale
 
 character(*) what
 character(20) action, name
 character(20) :: r_name = 'tao_output_cmd'
 character(100) file_name0, file_name
+character(80) :: word(10)
 
 character(20) :: names(14) = (/ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
@@ -36,27 +38,18 @@ character(20) :: names(14) = (/ &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
       'covariance_matrix', 'orbit            ' /)
 
-integer :: n_arg_max(13) = (/ &
-      1, 2, 2, 2, &
-      2, 2, 2, 3, &
-      2, 4, 2, 2, &
-      2 /)      
-
-character(20) :: arg_names(2) = (/ '-ascii', '-at   ' /)
-integer :: n_arg_values(2) = (/ 0, 1 /)
-
 integer i, j, n, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
-integer n_arg, i_chan, ix_beam
+integer i_chan, ix_beam
 integer, allocatable, save :: ix_ele_at(:)
 
 logical is_open, ascii, ok, err
 
 !
 
-call tao_arg_split (what, arg_names, n_arg_values, arg, n_arg, err)
+call tao_cmd_split (what, 10, word, .true., err)
 if (err) return
 
-action = arg(1)%name
+action = word(1)
 call match_word (action, names, ix, .true.)
 
 if (ix == 0) then
@@ -67,13 +60,6 @@ elseif (ix < 0) then
   return
 endif
 action = names(ix)
-
-! Make sure number of arguments is ok
-
-if (n_arg_max(ix) < n_arg) then
-  call out_io (s_error$, r_name, 'THERE ARE TOO MANY ARGUMENTS HERE.')
-  return
-endif
 
 select case (action)
 
@@ -87,21 +73,28 @@ case ('beam')
   loc = -1
   is_open = .false.
 
-  do i = 2, n_arg
-    call match_word (arg(i)%name, (/ '-ascii', '-at   ' /), n, .true., name)
-    if (n < 0) then
-      call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // arg(i)%name)
+  i = 1
+  do while (i <= size(word))
+    i = i + 1
+    if (word(i) == '') exit
+    call match_word (word(i), (/ '-ascii', '-at   ' /), n, .true., name)
+    if (n < 0 .or. (n == 0 .and. word(i)(1:1) == '-')) then
+      call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // word(i))
       return
     endif
     select case (name)
     case ('-ascii') 
       ascii = .true.
     case ('-at')
-      call tao_locate_elements (arg(i)%value(1), s%global%u_view, ix_ele_at)
+      i=i+1; call tao_locate_elements (word(i), s%global%u_view, ix_ele_at)
       loc = ix_ele_at(1)
       if (loc < 0) return
     case default
-      file_name0 = arg(i)%name
+      file_name0 = word(i)
+      if (word(i+1) /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
     end select
   enddo
 
@@ -175,8 +168,13 @@ case ('beam')
 
 case ('bmad_lattice')
 
-  file_name0 = arg(2)%name
-  if (file_name0 == ' ') file_name0 = 'lat_#.bmad'
+  file_name0 = 'lat_#.bmad'
+  if (word(2) /= '') file_name0 = word(2) 
+
+  if (word(3) /= '') then
+    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+    return
+  endif
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. subin_uni_number (file_name0, i, file_name)) return
@@ -193,8 +191,14 @@ case ('covariance_matrix')
     return
   endif
 
-  file_name = arg(2)%name
-  if (file_name == ' ') file_name = 'covariance_matrix.dat'
+  file_name0 = 'lat_#.bmad'
+  if (word(2) /= '') file_name0 = word(2) 
+
+  if (word(3) /= '') then
+    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+    return
+  endif
+
   call fullfilename (file_name, file_name)
 
   iu = lunget()
@@ -227,19 +231,19 @@ case ('covariance_matrix')
 
 case ('curve')
 
-  call tao_find_plots (err, arg(2)%name, 'BOTH', curve = curve, always_allocate = .true.)
+  call tao_find_plots (err, word(2), 'BOTH', curve = curve, always_allocate = .true.)
   if (err .or. size(curve) == 0) then
     call out_io (s_error$, r_name, 'CANNOT FIND CURVE')
     return
   endif
+
   if (size(curve) > 0) then
     call out_io (s_error$, r_name, 'MULTIPLE CURVES FIT NAME')
     return
   endif
 
-
   file_name = 'curve'
-  if (arg(3)%name /= ' ') file_name = arg(3)%name
+  if (word(3) /= ' ') file_name = word(3)
   call fullfilename (file_name, file_name)
 
   c => curve(1)%c
@@ -292,7 +296,7 @@ case ('derivative_matrix')
     endif
   enddo
 
-  file_name = arg(2)%name
+  file_name = word(2)
   if (file_name == ' ') file_name = 'derivative_matrix.dat'
   call fullfilename (file_name, file_name)
 
@@ -343,7 +347,7 @@ case ('derivative_matrix')
 
 case ('digested')
 
-  file_name0 = arg(2)%name
+  file_name0 = word(2)
   if (file_name0 == ' ') file_name0 = 'digested_lat_universe_#.bmad'
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
@@ -357,8 +361,8 @@ case ('digested')
 
 case ('gif')
 
-  file_name = "tao.gif"
-  if (n_arg == 2) file_name = arg(2)%name
+  file_name0 = word(2)
+  if (file_name0 == ' ') file_name0 = 'digested_lat_universe_#.bmad'
 
   call qp_open_page ('GIF', i_chan, s%plot_page%size(1), &
                        s%plot_page%size(2), 'POINTS', file_name)
@@ -399,7 +403,7 @@ case ('hard', 'hard-l')
 
 case ('mad_lattice')
 
-  file_name0 = arg(2)%name
+  file_name0 = word(2)
   if (file_name0 == ' ') file_name0 = 'lat_#.mad'
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
@@ -416,18 +420,18 @@ case ('orbit')
 
   file_name0 = 'orbit.dat'
   i = 1
-  do while (i < n_arg)
+  do while (i <= size(word))
     i = i + 1
-    call match_word (arg(i)%name, &
+    if (word(i) == '') exit
+    call match_word (word(i), &
                       (/ '-beam_index', '-design    ', '-base      ' /), n, .true., name)
-    if (n < 1) then
-      call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // arg(i)%name)
+    if (n < 0 .or. (n == 0 .and. word(i)(1:1) == '-')) then
+      call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // word(i))
       return
     endif
     select case (name)
     case ('-beam_index') 
-      i = i + 1
-      read (arg(i)%name, *, iostat = ios) ix_beam
+      i=i+1; read (word(i), *, iostat = ios) ix_beam
       if (ios /= 0) then
         call out_io (s_error$, r_name, 'CANNOT READ BEAM INDEX.')
         return
@@ -438,9 +442,18 @@ case ('orbit')
     case ('-base')
       action = name
     case default
-      file_name0 = arg(i)%name
+      i=i+1; file_name0 = word(i)
+      if (word(i+1) /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
     end select
   enddo
+
+  if (i < size(word)) then
+    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+    return
+  endif
 
   !
 
@@ -468,13 +481,36 @@ case ('orbit')
 case ('ps', 'ps-l')
 
   file_name = "tao.ps"
-  if (n_arg == 2) file_name = arg(2)%name
+  scale = 0
+  call str_upcase (action, action)
+  i = 1
+  do while (i <= size(word))
+    i = i + 1
+    if (word(i) == '') exit
+    call match_word (word(i), (/ '-scale' /), n, .true., name)
+    if (n < 0 .or. (n == 0 .and. word(i)(1:1) == '-')) then
+      call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // word(i))
+      return
+    endif
+    select case (name)
+    case ('-scale')
+      i = i + 1
+      read (word(i), *, iostat = ios) scale
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'BAD SCALE NUMBER.')
+        return
+      endif
+    case default
+      i=i+1; file_name0 = word(i)
+      if (word(i+1) /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+    end select
+  enddo
 
-  if (action == 'ps') then
-    call qp_open_page ('PS', plot_file = file_name, scale = 0.0_rp)
-  else
-    call qp_open_page ('PS-L', plot_file = file_name, scale = 0.0_rp)
-  endif
+  call qp_open_page (action, plot_file = file_name, scale = scale)
+
   call tao_draw_plots ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
@@ -486,10 +522,10 @@ case ('ps', 'ps-l')
 
 case ('variable')
 
-  if (arg(2)%name == ' ') then
+  if (word(2) == ' ') then
     call tao_var_write (s%global%var_out_file)
   else
-    call tao_var_write (arg(2)%name)
+    call tao_var_write (word(2))
   endif
 
 !---------------------------------------------------

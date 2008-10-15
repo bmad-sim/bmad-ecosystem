@@ -48,11 +48,6 @@ type tao_string_array_struct
   character(40), pointer :: s => null()
 end type
 
-type tao_arg_struct
-  character(100) name
-  character(100) value(3)
-end type
-
 type tao_eval_stack1_struct
   integer type
   real(rp), allocatable :: value(:)

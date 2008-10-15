@@ -398,8 +398,8 @@ Format:
   output hard                       ! Print the plot window to a printer.
   output hard-l                     ! Like "hard" except use landscape orientation. 
   output mad_lattice \{<file_name>\}  ! Write a Mad lattice file of the model
-  output ps \{<file_name>\}           ! Create a postscript file of the plot window.
-  output ps-l \{<file_name>\}         ! Like "ps" except use landscape orientation.
+  output ps \{-scale <scale>\} \{<file_name>\}   ! Create a postscript file of the plot window.
+  output ps-l \{-scale <scale>\} \{<file_name>\} ! Like "ps" except use landscape orientation.
   output var \{<file_name>\}          ! Write a Bmad file of variable values.
 \end{example}
 
@@ -430,6 +430,11 @@ The particle data file is only produced if particle
 data is associated with the curve.
 The curve coordinates are the the set of points that are used to draw the
 (possibly smooth) curve through the symbols.
+
+For \vn{ps} and \vn{ps-l}, the optional \vn{-scale} switch sets the
+scale for the PostScript file. The default is 0 which autoscales to fit an
+8-1/2 by 11 sheet of paper. A value of 1.0 will result in no scaling,
+2.0 will double the size, etc.
 
 \vn{output beam} will create a file of the particle positions when
 beam tracking is being used. If the switch \vn{-at} is present then
