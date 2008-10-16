@@ -1,0 +1,37 @@
+echo "Compiling: cesr_utils"
+cd cesr_utils 
+gmake || exit 1
+
+echo "Compiling: dcslib"
+cd ../dcslib
+gmake || exit 1
+
+echo "Compiling: pecklib" 
+cd ../pecklib
+gmake || exit 1
+
+echo "Compiling: nonlin_bpm"
+cd ../nonlin_bpm
+gmake || exit 1
+
+echo "Compiling: bmad"
+cd ../bmad
+gmake || exit 1
+
+echo "Compiling: tao"
+cd ../tao
+./pg || exit 1
+
+echo "Compiling: cesrv"
+cd ../cesrv
+gmake || exit 1
+gmake -f M.cesrv || exit 1
+
+echo "Compiling: tao_cesr"
+cd ../tao_cesr
+gmake || exit 1
+
+echo "Compiling: bsim"
+cd ../bsim
+gmake || exit 1
+gmake -f M.synradv || exit 1

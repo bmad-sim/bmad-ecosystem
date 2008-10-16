@@ -1,0 +1,18 @@
+echo "cesr_utils:"
+svn st cesr_utils
+echo "dcslib:"
+svn st dcslib
+echo "bmad:"
+svn st bmad
+echo "tao:"
+svn st tao
+echo "pecklib:"
+svn st pecklib
+echo "cesrv:"
+svn st cesrv
+echo "tao_cesr:"
+svn st tao_cesr
+echo "bsim:"
+svn st bsim
+echo "cesr_programs:"
+svn st cesr_programs
