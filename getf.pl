@@ -162,6 +162,7 @@ sub searchit {
     $found = 0;
 
     while (<F_IN>) {
+      if (&routine_here) {last;}
       if (/^!/) {
         print "$_";
         $found = 1; }
@@ -169,10 +170,11 @@ sub searchit {
         last;
       }
     }
+  }
 
   # Check contents of .f90 file.
 
-  } elsif ($file =~ /\.f90$/) {
+  if ($file =~ /\.f90$/) {
     $n_com = 0;
     @comments = ();     
 
