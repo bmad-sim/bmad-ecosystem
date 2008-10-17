@@ -179,7 +179,7 @@ character(16) :: show_what, show_names(23) = (/ &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    'beam        ', 'tune        ', 'graph       ', 'curve       ', 'particle    ', &
    'hom         ', 'opt_vars    ', 'universe    ', 'orbit       ', 'derivative  ', &
-   'branches    ', 'use         ', 'transfer_map' /)
+   'branches    ', 'use         ', 'taylor_map  ' /)
 
 character(*), allocatable :: lines(:)
 character(*) result_id
@@ -1547,9 +1547,9 @@ case ('top10')
   endif
 
 !----------------------------------------------------------------------
-! transfer_map
+! taylor_map
 
-case ('transfer_map')
+case ('taylor_map')
 
   result_id = 'ERROR'
 

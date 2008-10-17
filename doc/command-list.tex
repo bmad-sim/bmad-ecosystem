@@ -929,7 +929,7 @@ Format:
   show plot \{<plot_region_name>\}
   show plot -shapes
   show top10 \{-derivative\}
-  show transfer_map \{-order <n_order>\} \{loc1 \{loc2\}\}
+  show taylor_map \{-order <n_order>\} \{loc1 \{loc2\}\}
   show universe \{universe_number\}
   show universe -connections
   show use
@@ -1237,9 +1237,9 @@ Note: To set the number of top contributors shown, use the command
 \vn{set global n_top10 = nnn} where \vn{nnn} is the desired number to
 be shown.
 
-%% show transfer_map --------------------------------------------------------------
+%% show taylor_map --------------------------------------------------------------
 
-\item[show transfer_map \{-order <n_order>\} \{loc1 \{loc2\}\}] \Newline
+\item[show taylor_map \{-order <n_order>\} \{loc1 \{loc2\}\}] \Newline
 
 Shows the Taylor transfer map for the \vn{model} lattice of the
 currently \vn{view}ed universe from the exit end of the element given
