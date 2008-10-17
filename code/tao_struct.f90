@@ -225,10 +225,8 @@ end type
 ! %good_ref   -- Like good_meas this is set for a reference data set.
 ! %good_user  -- What the user has selected using the use, veto, and restore 
 !                  commands.
-! %good_opt   -- Convenient way to veto data to use with optimization without 
-!                  touching the other logicals.
-! %good_plot  -- Conveninet way to veto data to plot without 
-!                  touching the other logicals.
+! %good_opt   -- Not modified by Tao proper and reserved for use by extension code.
+! %good_plot  -- Not modified by Tao proper and reserved for use by extension code.
 ! %useit_plot -- Datum is valid for plotting:
 !                  = %exists & %good_plot (w/o measured & reference data)
 !                  = %exists & %good_plot & %good_user & %good_meas (w/ meas data)
@@ -342,8 +340,8 @@ end type
 !                  generally considered not to be variables.
 ! %good_user  -- What the user has selected using the use, veto, and restore 
 !                  commands.
-! %good_plot  -- Conveninet way to veto variables to plot without 
-!                  touching the other logicals.
+! %good_opt   -- Not modified by Tao proper and reserved for use by extension code.
+! %good_plot  -- Not modified by Tao proper and reserved for use by extension code.
 ! %useit_opt  -- Variable is to be used for optimizing:
 !                  = %exists & %good_user & %good_opt
 ! %useit_plot -- Variable value to be plotted:

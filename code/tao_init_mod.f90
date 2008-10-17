@@ -2027,6 +2027,14 @@ end subroutine tao_pointer_to_var_in_lattice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+!+
+! Subroutine tao_allocate_var_array (n_var)
+!
+! Routine to increase the s%var(:) array size.
+!
+! Input:
+!   n_var -- Integer: Size of s%var(:) wanted.
+!-
 
 subroutine tao_allocate_var_array (n_var)
 
@@ -2035,7 +2043,8 @@ type (tao_v1_var_struct), pointer :: v1
 
 integer i, j1, j2, n0, n_var
 
-! Allocate 
+! First save the information presently in s%var(:) in the var(:) array.
+! s%n_var_used gives the present upper bound to s%var(:).
 
 if (allocated(s%var)) then
   n0 = s%n_var_used
@@ -2054,8 +2063,8 @@ else
   allocate (s%var(n_var))
 endif
 
-! Since the var array gets reallocated the pointer from var1 to the datums must 
-! be reestablished.
+! Since the s%var(:) array has been reallocated, the pointer from s%var(:)%v1 
+! to the datums must be reestablished.
 
 j2 = 0
 do
@@ -2070,7 +2079,7 @@ do
   call tao_point_v1_to_var (v1, s%var(j1:j2), s%var(j1)%ix_v1)
 enddo
 
-! set defaults
+! Set the defaults for the newly created slots in the s%var(:) array
 
 do i = n0+1, size(s%var)
   s%var(i)%ix_var    = i

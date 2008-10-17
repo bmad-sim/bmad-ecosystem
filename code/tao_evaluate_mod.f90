@@ -675,10 +675,15 @@ if (size(re_array) /= 0) then
   call re_allocate (stack%good, n)
   do i = 1, n
     stack%value(i) = re_array(i)%r
-    stack%good(i)  = re_array(i)%good1 .and. re_array(i)%good2
     stack%value_ptr(i)%r     => re_array(i)%r
-    stack%value_ptr(i)%good1 => re_array(i)%good1
-    stack%value_ptr(i)%good2 => re_array(i)%good2
+    ! good is only used with data and not variables
+    if (associated(re_array(i)%good2)) then
+      stack%good(i) = re_array(i)%good1 .and. re_array(i)%good2
+      stack%value_ptr(i)%good1 => re_array(i)%good1
+      stack%value_ptr(i)%good2 => re_array(i)%good2
+    else
+      stack%good(i) = .true.
+    endif
   enddo
 
 elseif (size(int_array) /= 0) then

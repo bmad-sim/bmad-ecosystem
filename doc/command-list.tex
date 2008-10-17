@@ -929,6 +929,7 @@ Format:
   show plot \{<plot_region_name>\}
   show plot -shapes
   show top10 \{-derivative\}
+  show transfer_map \{-order <n_order>\} \{loc1 \{loc2\}\}
   show universe \{universe_number\}
   show universe -connections
   show use
@@ -1236,6 +1237,28 @@ Note: To set the number of top contributors shown, use the command
 \vn{set global n_top10 = nnn} where \vn{nnn} is the desired number to
 be shown.
 
+%% show transfer_map --------------------------------------------------------------
+
+\item[show transfer_map \{-order <n_order>\} \{loc1 \{loc2\}\}] \Newline
+
+Shows the Taylor transfer map for the \vn{model} lattice of the
+currently \vn{view}ed universe from the exit end of the element given
+by \vn{loc1} to the exit end of the element given by \vn{loc2} where
+\vn{loc1} and \vn{loc2} are element names or indexes. The exception is
+that if \vn{loc1} is present but \vn{loc2} is not then the map is from
+the beginning of the lattice to the exit end of \vn{loc2}. If neither
+\vn{loc1} nor \vn{loc2} are pesent, the transfer map is computed for
+the entire lattice.
+
+The \vn{-order} switch, if present, gives the limiting order to
+display. In any case, the maximum order of the map is limited to the
+order set by the lattice file.
+
+Examples:
+\begin{example}
+  show transfer -order 1 q10e q10w  ! 0th and 1st order map from element q10e to q10w
+  show transfer 45                  ! Transfer map from element \# 0 to \# 45
+\end{example} 
 
 %% show universe --------------------------------------------------------------
 

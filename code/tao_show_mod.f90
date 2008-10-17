@@ -148,6 +148,7 @@ type (coord_struct), target :: orb
 type (ele_struct), target :: ele3
 type (bunch_params_struct) bunch_params
 type (bunch_params_struct), pointer :: bunch_p
+type (taylor_struct) taylor(6)
 
 type show_lat_column_struct
   character(80) name
@@ -165,20 +166,20 @@ real(rp), allocatable, save :: value(:)
 character(*) :: what, stuff
 character(24) :: var_name
 character(24)  :: plane, imt, lmt, amt, iamt, f3mt, rmt, irmt, iimt
-character(80) :: word(2), fmt, fmt2, fmt3
+character(80) :: word1, fmt, fmt2, fmt3
 character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(100), pointer :: ptr_lines(:)
 character(100) file_name
-character(40) ele_name, name, sub_name
+character(40) ele_name, name, sub_name, ele1, ele2, switch
 character(60) nam
 
-character(16) :: show_what, show_names(22) = (/ &
+character(16) :: show_what, show_names(23) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    'beam        ', 'tune        ', 'graph       ', 'curve       ', 'particle    ', &
    'hom         ', 'opt_vars    ', 'universe    ', 'orbit       ', 'derivative  ', &
-   'branches    ', 'use         ' /)
+   'branches    ', 'use         ', 'transfer_map' /)
 
 character(*), allocatable :: lines(:)
 character(*) result_id
@@ -186,10 +187,10 @@ character(n_char) line, line1, line2, line3
 character(n_char) stuff2
 character(9) angle
 
-integer :: data_number, ix_plane, ix_class, n_live, n_tot
+integer :: data_number, ix_plane, ix_class, n_live, n_tot, n_order
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
-integer num_locations, ix_ele, n_name, n_e0, n_e1, ix_p
+integer num_locations, ix_ele, n_name, n_e0, n_e1, ix_p, ix_word
 integer, allocatable, save :: ix_eles(:)
 
 logical err, found, at_ends, first_time, by_s, print_header_lines
@@ -248,7 +249,8 @@ if (ix < 0) then
   return
 endif
 
-call tao_cmd_split (stuff, 2, word, .false., err)
+call string_trim (stuff, stuff2, ix_word)
+word1 = stuff2(:ix_word)
 
 result_id = show_what
 
@@ -274,7 +276,7 @@ case ('beam')
 
   ! no element index
 
-  if (word(1) == '') then
+  if (word1 == '') then
 
     nl=nl+1; write(lines(nl), '(a, i3)') 'Universe: ', u%ix_uni
     nl=nl+1; lines(nl) = ''
@@ -334,7 +336,7 @@ case ('beam')
   ! have element index
 
   else
-    call tao_to_int (word(1), ix_ele, err)
+    call tao_to_int (word1, ix_ele, err)
     if (err) return
     n = s%global%bunch_to_plot
     bunch_p => u%model%bunch_params(ix_ele)
@@ -421,20 +423,16 @@ case ('curve')
 
   show_sym = .false.
   show_line = .false.
-  call string_trim(stuff, stuff2, ix)
 
   do
-    if (ix == 0) exit
-    if (stuff2(1:1) /= '-') exit
-    call match_word (stuff2(:ix), (/ '-symbol', '-line  ' /), n, .true., name)
-    if (n < 1) then
+    call next_switch (stuff2, (/ '-symbol', '-line  ' /), switch, err, ix)
+    if (err) then
       nl=1; lines(1) = 'AMBIGUOUS OR UNKNOWN SWITCH: ' // stuff2(:ix)
       result_id = 'ERROR'
-      return
     endif
-    if (name == '-symbol') show_sym = .true.
-    if (name == '-line')   show_line = .true.
-    call string_trim(stuff2(ix+1:), stuff2, ix)
+    if (switch == '') exit
+    if (switch == '-symbol') show_sym = .true.
+    if (switch == '-line')   show_line = .true.
   enddo
 
   ! Find particular plot
@@ -529,7 +527,7 @@ case ('data')
 
   ! If just "show data" then show all names
 
-  call tao_pick_universe (word(1), line1, picked_uni, err)
+  call tao_pick_universe (word1, line1, picked_uni, err)
   if (err) return
 
   if (line1 == ' ') then  ! just specified a universe
@@ -564,7 +562,7 @@ case ('data')
 
   ! get pointers to the data
 
-  call tao_find_data (err, word(1), d2_ptr, d1_array, d_array)
+  call tao_find_data (err, word1, d2_ptr, d1_array, d_array)
   if (err) return
 
   n_size = 0
@@ -706,10 +704,11 @@ case ('data')
 
 case ('derivative')
 
-  call tao_find_data (err, word(1), d_array = d_array)
+  call tao_find_data (err, word1, d_array = d_array)
   if (err) return
 
-  call tao_find_var(err, word(2), v_array = v_array) 
+  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
+  call tao_find_var(err, stuff2(:ix_word), v_array = v_array) 
   if (err) return
 
   do id = 1, size(d_array)
@@ -770,15 +769,16 @@ case ('element')
     n_tot = 0
     do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. picked_uni(i_uni)) cycle
-      call tao_ele_locations_given_name (u, ele_name, ix_eles, err, .true.)
+      call tao_ele_locations_given_name (s%u(i_uni), ele_name, ix_eles, err, .true.)
       if (err) return
+      lat => s%u(i_uni)%model%lat
       n_tot = n_tot + size(ix_eles)
       do i = 1, size(ix_eles)
         loc = ix_eles(i)
         if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200, .false.)
         if (count(picked_uni) > 1) then
-          nl=nl+1; write (lines(nl), '(i0, a, i8, 2x, a)') &
-                                                i_uni, '@', loc, lat%ele(loc)%name
+          nl=nl+1; write (lines(nl), '(i8, 2x, i0, 2a)') &
+                                                loc, i_uni, '@', lat%ele(loc)%name
         else
           nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, lat%ele(loc)%name
         endif
@@ -1329,7 +1329,7 @@ case ('opt_vars')
 
 case ('orbit')
 
-  read (word(1), *, iostat = ios) ix
+  read (word1, *, iostat = ios) ix
   nl=nl+1; write (lines(nl), imt) '  Orbit at Element:', ix
   do i = 1, 6
     nl=nl+1; write (lines(nl), rmt) '     ', u%model%orb(ix)%vec(i)
@@ -1342,7 +1342,7 @@ case ('particle')
 
   nb = s%global%bunch_to_plot
 
-  if (index('-lost', word(1)) == 1) then
+  if (index('-lost', word1) == 1) then
     bunch => u%ele(lat%n_ele_track)%beam%bunch(nb)
     nl=nl+1; lines(nl) = 'Particles lost at:'
     nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
@@ -1356,15 +1356,17 @@ case ('particle')
     return
   endif
 
-  read (word(1), *, iostat = ios) ix_p
+  read (word1, *, iostat = ios) ix_p
   if (ios /= 0) then
     call out_io (s_error$, r_name, 'CANNOT READ PARTICLE INDEX')
     return
   endif
 
   ix_ele = 0
-  if (word(2) /= '') then
-    read (word(2), *, iostat = ios) ix_ele
+  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
+  word1 = stuff2(:ix_word)
+  if (word1 /= '') then
+    read (word1, *, iostat = ios) ix_ele
     if (ios /= 0) then
       call out_io (s_error$, r_name, 'CANNOT READ PARTICLE INDEX')
       return
@@ -1545,18 +1547,84 @@ case ('top10')
   endif
 
 !----------------------------------------------------------------------
+! transfer_map
+
+case ('transfer_map')
+
+  result_id = 'ERROR'
+
+  n_order = -1
+  do
+    call next_switch (stuff2, (/ '-order' /), switch, err, ix)
+    if (err) then
+      nl=1; lines(1) = 'AMBIGUOUS OR UNKNOWN SWITCH: ' // stuff2(:ix)
+    endif
+    if (switch == '') exit
+    read (stuff2(:ix), *, iostat = ios) n_order
+    if (ios /= 0) then
+      nl=1; lines(1) = 'CANNOT READ ORDER NUMBER!'
+      return
+    endif
+    call string_trim (stuff2(ix+1:), stuff2, ix)
+  enddo
+
+  
+  ele1 = stuff2(:ix)
+  call string_trim(stuff2(ix+1:), stuff2, ix)
+  ele2 = stuff2(:ix)
+  if (stuff2(ix+1:) /= '') then
+    nl=1; lines(1) = 'EXTRA STUFF ON LINE!'
+    return
+  endif
+
+  if (ele1 == '') then
+    ix2 = lat%n_ele_track
+    ix1 = 0
+  else
+    call tao_locate_elements (ele1, ix_u, ix_eles)
+    if (size(ix_eles) > 1) then
+      nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele1
+      return
+    endif
+    ix1 = ix_eles(1)
+    if (ix1 < 0) return
+  endif
+
+  if (ele2 == '') then
+    ix2 = ix1
+    ix1 = 0
+  else
+    call tao_locate_elements (ele2, ix_u, ix_eles)
+    if (size(ix_eles) > 1) then
+      nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele2
+      return
+    endif
+    ix2 = ix_eles(1)
+    if (ix2 < 0) return
+  endif
+
+  call transfer_map_calc (lat, taylor, ix1, ix2)
+  if (n_order > -1) call truncate_taylor_to_order (taylor, n_order, taylor)
+
+  call type2_taylors (taylor, ptr_lines, nl)
+  if (size(lines) < nl) call re_allocate (lines, len(lines(1)), nl, .false.)
+  lines(1:nl) = ptr_lines(1:nl)
+  deallocate (ptr_lines)
+
+  result_id = show_what
+
+
+!----------------------------------------------------------------------
 ! tune
 
 case ('tune')
-
-
 
 !----------------------------------------------------------------------
 ! universe
     
 case ('universe')
 
-  if (len_trim(word(1)) > 1 .and. index('-connections', trim(word(1))) == 1) then
+  if (len_trim(word1) > 1 .and. index('-connections', trim(word1)) == 1) then
     do i = lbound(s%u, 1), ubound(s%u, 1)
       u => s%u(i)
       if (.not. u%connect%connected) cycle
@@ -1576,10 +1644,10 @@ case ('universe')
 
 
 
-  if (word(1) == ' ') then
+  if (word1 == ' ') then
     ix_u = s%global%u_view
   else
-    read (word(1), *, iostat = ios) ix_u
+    read (word1, *, iostat = ios) ix_u
     if (ios /= 0) then
       nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
       result_id = 'ERROR'
@@ -1743,12 +1811,12 @@ case ('variable')
 
 ! If 'n@' is present then write out stuff for universe n
 
-  ix = index(word(1), '@')
+  ix = index(word1, '@')
   if (ix /= 0) then
     if (ix == 1) then
       ix_u = s%global%u_view
     else
-      read (word(1)(:ix-1), *, iostat = ios) ix_u
+      read (word1(:ix-1), *, iostat = ios) ix_u
       if (ios /= 0) then
         nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
         result_id = 'ERROR'
@@ -1781,12 +1849,12 @@ case ('variable')
 
 ! If just "show var" then show all names
 
-  if (word(1) == '*') then
+  if (word1 == '*') then
     call tao_var_write (' ')
     return
   endif
 
-  if (word(1) == ' ') then
+  if (word1 == ' ') then
     nl=nl+1; write (lines(nl), '(7x, a, t50, a)') 'Name', 'Using'
     do i = 1, size(s%v1_var)
       v1_ptr => s%v1_var(i)
@@ -1803,13 +1871,9 @@ case ('variable')
     return
   endif
 
-! get pointers to the variables
-
-  call string_trim (word(2), word(2), ix)
-
 ! are we looking at a range of locations?
 
-  call tao_find_var(err, word(1), v1_array, v_array) 
+  call tao_find_var(err, word1, v1_array, v_array) 
   if (err) return
   n_size = 0
   if (allocated(v_array)) n_size = size(v_array)
@@ -1883,7 +1947,7 @@ case ('variable')
     nl=nl+1; write(lines(nl), lmt)  '%Useit_opt        = ', v_ptr%useit_opt
     nl=nl+1; write(lines(nl), lmt)  '%Useit_plot       = ', v_ptr%useit_plot
 
-    result_id = 'variable:1:' // word(1)
+    result_id = 'variable:1:' // word1
 
 ! check if there is a variable number
 ! if no variable number requested, show a range
@@ -2044,5 +2108,36 @@ err_flag = .false.
 stack%good(1) = .true.
 
 end subroutine tao_ele_value_routine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+
+subroutine next_switch (line, switch_list, switch, err, ix_word)
+
+character(*) line, switch, switch_list(:)
+character :: r_name = 'next_switch'
+logical err
+
+integer ix, n, ix_word
+
+!
+
+err = .false.
+switch = ''
+
+call string_trim(line, line, ix_word)
+if (ix_word == 0) return
+if (line(1:1) /= '-') return
+
+call match_word (line(:ix_word), switch_list, n, .true., switch)
+if (n < 1) then
+  err = .true.
+  return
+endif
+
+call string_trim(line(ix_word+1:), line, ix_word)
+
+end subroutine
 
 end module
