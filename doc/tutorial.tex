@@ -70,11 +70,10 @@ default file \vn{tao.init} is used. In the example \vn{tao.init} there
 is the following:
 \begin{example}
   &tao_start
-    n_universes = 1
     plot_file = 'tao_plot.init'
   /
 \end{example}
-\tao will setup a single universe and the plotting information will
+The plotting information will
 come from the file \vn{tao_plot.init}. Since no other initialization
 files are specified (\sref{s:init.global}), \tao will look for the
 non-plotting information (except for the lattice file) in \vn{tao.init}.
@@ -83,9 +82,11 @@ The lattice file is specified in the \vn{tao_design_lattice} namelist
 in \vn{tao.init}:
 \begin{example}
   &tao_design_lattice
+    n_universes = 1
     design_lattice(1) = "bmad_L9A18A000-_MOVEREC.lat"
   /
 \end{example}
+\tao will setup a single universe since \vn{n_universes = 1}.
 By default, \tao assumes that this lattice uses the \bmad lattice
 format.  With the above information, \tao has the information on what
 files it needs to read to initialize itself.
