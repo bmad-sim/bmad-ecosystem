@@ -773,4 +773,60 @@ subroutine track_taylor (start, bmad_taylor, end)
 end subroutine
 
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine truncate_taylor_to_order (taylor_in, order, taylor_out)
+!
+! Subroutine to throw out all terms in a taylor map that are above a certain order.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   taylor_in(:)   -- Taylor_struct: Input Taylor map.
+!   order          -- Integer: Order above which terms are dropped.
+!
+! Output:
+!   taylor_out(:)  -- Taylor_struct: Truncated Taylor map.
+!-
+
+subroutine truncate_taylor_to_order (taylor_in, order, taylor_out)
+
+implicit none
+
+type (taylor_struct) :: taylor_in(:), taylor_out(:)
+type (taylor_struct), save :: taylor
+
+integer order
+integer i, j, n
+
+!
+
+do i = 1, size(taylor_in)
+
+  taylor = taylor_in(i) ! in case actual args taylor_out and taylor_in are the same
+
+  ! Count the number of terms
+
+  n = 0
+  do j = 1, size(taylor%term)
+    if (sum(taylor%term(j)%exp) <= order) n = n + 1
+  enddo
+
+  call init_taylor_series (taylor_out(i), n)
+
+  n = 0
+  do j = 1, size(taylor%term)
+    if (sum(taylor%term(j)%exp) > order) cycle
+    n = n + 1
+    taylor_out(i)%term(n) = taylor%term(j)
+  enddo
+
+  taylor_out(i)%ref = taylor_in(i)%ref
+
+enddo
+
+end subroutine truncate_taylor_to_order
 end module
