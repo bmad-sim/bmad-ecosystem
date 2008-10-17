@@ -231,7 +231,7 @@ as set by the global variable \vn{opt_with_ref} (\sref{s:globals}).
 Finally \vn{good_opt} is meant for use in custom versions of \tao
 (\sref{c:custom.tao}) and is always left True by the standard \tao code.
 
-Example of using a \vn{show data} (\sref{show}) to check the logicals
+Example of using a \vn{show data} (\sref{s:show}) to check the logicals
 in a datum:
 \begin{example}
   Tao> show data 3@beta[1]
@@ -271,10 +271,10 @@ types, like \vn{dpx_dx}, only make sense with a \vn{"beam"}
 \vn{emit.a} that can take a \vn{"lattice"} or \vn{"beam"}
 \vn{data_source}. It is important to keep in mind that with this third
 case, such datums will have a different value depending upon what
-\vn{data_source} is used.  Table~\ref{t:data.types.beam} lists the
+\vn{data_source} is used.  Table~\ref{t:data.beam} lists the
 predefined data types in \tao that are valid for a \vn{"beam"}
 \vn{data_source} (\sref{s:init.data}) and
-Table~\ref{t:data.types.lattice} lists the predefined data types in
+Table~\ref{t:data.lattice} lists the predefined data types in
 \tao that are valid for a \vn{"lattice"} \vn{data_source}.
 
 \index{Data!Relative}
@@ -357,6 +357,49 @@ $x'$ and $y'$ in place of $p_x$ and $p_y$. However, in the vast
 majority of cases, this does not appreciably affect the numeric
 results.
 
+
+\vn{beta.a} and \vn{beta.b} are the lattice beta functions. \vn{beta.x} and
+\vn{beta.y} are beam projected beta functions defined by
+\begin{equation}
+  \beta.x = \frac{<x^{2}>}{\sqrt{<x^{2}> <x'^{2}> - <x x'>^{2}}}.
+\end{equation}
+where the average \vn{<>} is over all the particles in the beam.
+
+The \vn{element_param.<param_name>} data type is for using lattice
+element parameters. \vn{<param_name>} is the name of the
+parameter. See the \bmad manual for the names associated with each
+type of lattice element.  For example, the \vn{k1} quadrupole strength
+would be given by:
+\begin{example}
+  element_param.k1
+\end{example}
+
+\vn{unstable_ring} is used for storage rings. The value of an
+\vn{unstable_ring} datum is zero if the ring is stable and set to the
+largest growth rate of all the normal modes of oscillation if the ring
+is unstable. The value of an \vn{unstable_ring} datum is thus always
+non-zero.  \vn{unstable_ring} is used in an optimization to avoid
+unstable solutions (\sref{s:generalized.design}).
+
+The \vn{expression:} data type allows the value of a datum to depend upon
+the value of other datums or the value of variables. For example:
+\begin{example}
+  data_type = "expression: 1@beta.a[12]|model - 2@beta.a[12]|model"
+\end{example}
+With this, the value of the datum will be the difference between
+\vn{beta.a[12]} for universe 1 and universe 2. To be valid, an
+expression must be evaluated after it's components are evaluated. In
+this example, the components are \vn{1@beta.a[12]|model} and
+\vn{2@beta.a[12]|model}. Data evaluation is done universe by universe
+starting with universe 1, then universe 2, etc. Within a given
+universe, the order of evaluation can be complicated but in this case
+a datum using an expression will always be evaluated after any datum
+that appears earlier in the initialization file. In this example, the
+datum should be in universe 2 or higher. Notice that while all datums
+must be assigned a universe, in this case the value of the datum will
+be independent of the universe it is in.
+
+
 \index{Data!Calculation Method}
 \index{unstable_ring}\index{beta}\index{alpha}\index{eta}\index{eta}
 \index{etap}\index{phase}\index{orbit}\index{wire}\index{spin}
@@ -405,8 +448,8 @@ results.
 
 \end{tabular}
 } 
-\label{t:data.types.beam}
-\caption{Predefined Data Types for \vn{"beam"} data\_source}}
+\label{t:data.beam}
+\caption{Predefined Data Types for \vn{"beam"} data\_source}
 \end{table}
 
 %----------------------------------------------------------------------------------------------
@@ -519,51 +562,9 @@ results.
 
 \end{tabular}
 } 
-\label{t:data.types.lattice}
-\caption{Predefined Data Types for \vn{"lattice"} data\_source}}
+\label{t:data.lattice}
+\caption{Predefined Data Types for \vn{"lattice"} data\_source}
 \end{table}
 
 \vfill \break
 {\vfill}
-
-
-\vn{beta.a} and \vn{beta.b} are the lattice beta functions. \vn{beta.x} and
-\vn{beta.y} are beam projected beta functions defined by
-\begin{equation}
-  \beta.x = \frac{<x^{2}>}{\sqrt{<x^{2}> <x'^{2}> - <x x'>^{2}}}.
-\end{equation}
-where the average \vn{<>} is over all the particles in the beam.
-
-The \vn{element_param.<param_name>} data type is for using lattice
-element parameters. \vn{<param_name>} is the name of the
-parameter. See the \bmad manual for the names associated with each
-type of lattice element.  For example, the \vn{k1} quadrupole strength
-would be given by:
-\begin{example}
-  element_param.k1
-\end{example}
-
-\vn{unstable_ring} is used for storage rings. The value of an
-\vn{unstable_ring} datum is zero if the ring is stable and set to the
-largest growth rate of all the normal modes of oscillation if the ring
-is unstable. The value of an \vn{unstable_ring} datum is thus always
-non-zero.  \vn{unstable_ring} is used in an optimization to avoid
-unstable solutions (\sref{s:generalized.design}).
-
-The \vn{expression:} data type allows the value of a datum to depend upon
-the value of other datums or the value of variables. For example:
-\begin{example}
-  data_type = "expression: 1@beta.a[12]|model - 2@beta.a[12]|model"
-\end{example}
-With this, the value of the datum will be the difference between
-\vn{beta.a[12]} for universe 1 and universe 2. To be valid, an
-expression must be evaluated after it's components are evaluated. In
-this example, the components are \vn{1@beta.a[12]|model} and
-\vn{2@beta.a[12]|model}. Data evaluation is done universe by universe
-starting with universe 1, then universe 2, etc. Within a given
-universe, the order of evaluation can be complicated but in this case
-a datum using an expression will always be evaluated after any datum
-that appears earlier in the initialization file. In this example, the
-datum should be in universe 2 or higher. Notice that while all datums
-must be assigned a universe, in this case the value of the datum will
-be independent of the universe it is in.

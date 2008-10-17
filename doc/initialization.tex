@@ -1106,7 +1106,8 @@ relative or absolute as in the above example where the value of
 value of \vn{data(4)} is the \vn{floor.x} position at element \vn{B2}
 relative to element\vn{B1}.
 
-The relative data types are noted in Table~\ref{t:data.types}. With
+The relative data types are noted in Tables~\ref{t:data.beam} and
+\ref{t:data.lattice}. With
 these relative data types if \vn{ele0_name} is left blank then the
 beginning of the lattice is assumed. For the particular case when a
 \vn{d1_data} structure has a \vn{d2_data.d1_data} name of \vn{phase.a}
@@ -1665,14 +1666,14 @@ x-axis.  Similarly, \vn{orbit.y[23]} is used for the y-axis. The
 
 \vn{curve%data_index} sets the index number for the symbol points
 (\sref{s:template}). In the above example, \vn{curve%data_index} is
-set to \vn{"[2:57]@orbit.y[#ref]|ix_uni"}. The \vn{|ix_uni} component
+set to \vn{"[2:57]@orbit.y[\#ref]|ix_uni"}. The \vn{|ix_uni} component
 will result in the symbol index number being the universe number.
 Additionally, the component \vn{|ix_d1} can be used to specify the
 index in the \vn{d1_data} array, and the component \vn{|ix_ele} can be
 used to specify the lattice element index. Setting the symbol index
 number is important when \vn{curve%draw_symbol_index} is set to True
 so that the symbol index is drawn with the curve. Additionally, the
-command \vn{show curve -symbol} (\serf{s:show}) will print the symbol
+command \vn{show curve -symbol} (\sref{s:show}) will print the symbol
 index number along with the $(x, y)$ coordinates of the symbols.
 
 Arithmetic expressions (\sref{s:arithmetic}) may be mixed with
