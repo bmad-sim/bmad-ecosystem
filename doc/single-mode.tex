@@ -30,7 +30,7 @@ the \vn{key_bindings} namelist, the 1\St bank uses variables
 \vn{key(11)} through \vn{key(20)}, etc.  
 
 At any one time, only one bank is active. To see the status of this
-bank, a \vn{key table} plot can be setup as shown in
+bank, a \vn{key table} plot (\sref{s:key.table})can be setup as shown in
 Figure~\ref{f:key.table}. The relationship between the keys and a
 change in a variable is:
 \begin{example}
@@ -156,11 +156,11 @@ values will be written to files, one for each universe, whose name is
 \vn{tao_opt_vars\#.dat}. where \vn{\#} is the universe number.
 
 \item[v]
-Show variable values in bmad compatible lattice format. See also the
-\vn{/v} and \vn{\W v} commands.
+Show Bmad variable values in bmad lattice format. See also the
+\vn{/v} command. Equivalent to \vn{show vars -bmad} in line mode.
 
 \item[V] 
-Same an \vn{v} except only only variables used in the optimization are printed.
+Same an \vn{v}.
 
 \item[Z] 
 Go back to \vn{line mode}

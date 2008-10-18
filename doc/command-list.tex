@@ -921,7 +921,6 @@ Format:
   show lattice \{-no_header\} \{-middle\} \{-custom <file_name>\} 
                             \{-s\} \{-elements <name>\} \{<location_range>\}
   show optimizer
-  show opt_vars
   show particle -lost
   show particle <particle_index> \{<element_index>\}
   show plot
@@ -935,6 +934,7 @@ Format:
   show use
   show variable \{<var_name> <locations>\}
   show variable <universe_number>@
+  show variable \{-bmad_format\}
 \end{example}
 
 \vskip 0.2in 
@@ -1281,17 +1281,23 @@ be read in with a \vn{call} command.
 
 \item[\protect\parbox{6in}{
         show variable \{<var\_name> <locations>\} \\
-        show variable <universe\_number>@}] \Newline
+        show variable <universe\_number>@}
+        show variable \{-bmad_format\} ] \Newline
 Shows variable information. If \vn{<var_name>} \vn{<locations>} is not
-present shown is a list of \vn{v1_var} classes. If \vn{<var_name>} is
-\vn{*} then the variables will be printed in Bmad lattice format.
-To show variables associated with the \vn{n}th universe use
-the syntax: \vn{show var n@}.
+present shown is a list of \vn{v1_var} classes.  To show variables
+associated with the \vn{n}th universe use the syntax: \vn{show var
+n@}.
+
+If \vn{-bmad_format} is present then the Bmad lattice parameters that
+the \tao variables control will be printed in Bmad lattice
+format. This is the same syntax used in generating the variable files
+when an optimizer is run.
 
 Examples:
 \begin{example}
   show var *         ! list variables in Bmad lattice format.
   show var 2@        ! List all variables that control attributes in universe 2.
+  show var -bmad     ! List variables in Bmad Lattice format
 \end{example}
 
 \end{description}

@@ -1837,9 +1837,13 @@ implicit none
 type (tao_data_struct) datum
 character(60) datum_name
 
-! 
+! Expressions are too long so shorten the name
 
-datum_name = trim(datum%data_type) // ' ' // trim(datum%merit_type)
+if (datum%data_type(1:11) == 'expression:') then
+  datum_name = 'expression: ... ' // trim(datum%merit_type)
+else
+  datum_name = trim(datum%data_type) // ' ' // trim(datum%merit_type)
+endif
 
 end function
 

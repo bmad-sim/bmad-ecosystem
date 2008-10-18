@@ -101,7 +101,7 @@ case ('v')
 ! 'V' Show optimization variables 
 
 case ('V')
-  call tao_var_write (' ', .true.)
+  call tao_var_write (' ')
 
 ! 'Z' Quit single character input mode.
 

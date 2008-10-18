@@ -454,7 +454,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_var_write (out_file, good_opt_vars_only)
+! Subroutine tao_var_write (out_file)
 !
 ! Routine to write the optimized variables. 
 ! One file will be created for each universe.
@@ -468,13 +468,9 @@ end subroutine
 ! Input:
 !   out_file    -- Character(*): Name of output file. 
 !                  If blank. Ouput to the terminal.
-!   good_opt_vars_only 
-!               -- Logical, optional: Write only the variables used in
-!                  the optimization. Default is False.
-!
 !-
 
-subroutine tao_var_write (out_file, good_opt_vars_only)
+subroutine tao_var_write (out_file)
 
 implicit none
 
@@ -486,12 +482,10 @@ character(200) file_name, file_name2
 character(20) :: r_name = 'tao_var_write'
 character(200) str(1)
 
-logical, optional :: good_opt_vars_only
-
 ! Output to terminal?
 
 if (out_file == '') then
-  call print_vars (0, 0, good_opt_vars_only)
+  call print_vars (0, 0)
   return
 endif
 
@@ -515,7 +509,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     return
   endif
 
-  call print_vars (iu, i, good_opt_vars_only)
+  call print_vars (iu, i)
   call tao_write_out (iu, (/ '        ', 'end_file', '        ' /))
   call tao_show_constraints (iu, 'TOP10')
   if (size(s%u) == 1) call tao_show_constraints (iu, 'ALL')
@@ -547,7 +541,6 @@ if (tao_com%common_lattice) then
 
   do j = 1, size(s%var)
     if (.not. s%var(j)%exists) cycle
-    if (logic_option(.false., good_opt_vars_only) .and. .not. s%var(j)%useit_opt) cycle
     if (all (s%var(j)%this(:)%ix_uni == 0)) cycle
     write (str(1), '(3a, es22.14)')  "set var ", trim(tao_var1_name(s%var(j))), &
                                                     '|model =', s%var(j)%model_value
@@ -566,22 +559,25 @@ end subroutine tao_var_write
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine print_vars (iu, ix_uni, good_opt_vars_only)
+subroutine print_vars (iu, ix_uni)
 
 implicit none
 
 integer iu, ix_uni, j
+character(20) useit_str
 character(200) str(1)
-logical, optional :: good_opt_vars_only
 
 !
 
 do j = 1, size(s%var)
   if (.not. s%var(j)%exists) cycle
-  if (iu /= 0 .and. .not. any (s%var(j)%this(:)%ix_uni == ix_uni)) cycle
-  if (logic_option(.false., good_opt_vars_only) .and. .not. s%var(j)%useit_opt) cycle
-  write (str(1), '(4a, es22.14)')  trim(s%var(j)%ele_name), &
-            '[', trim(s%var(j)%attrib_name), '] = ', s%var(j)%model_value
+  if (iu /= 0 .and. .not. any (s%var(j)%this(:)%ix_uni == ix_uni)) then
+    useit_str = '! Not used in an optimizing'
+  else
+    useit_str = ''
+  endif
+  write (str(1), '(4a, es22.14, 3x, a)')  trim(s%var(j)%ele_name), &
+            '[', trim(s%var(j)%attrib_name), '] = ', s%var(j)%model_value, useit_str
   call tao_write_out (iu, str(1:1))
 enddo
 

@@ -178,7 +178,7 @@ character(16) :: show_what, show_names(23) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    'beam        ', 'tune        ', 'graph       ', 'curve       ', 'particle    ', &
-   'hom         ', 'opt_vars    ', 'universe    ', 'orbit       ', 'derivative  ', &
+   'hom         ', 'zzzzzzzzz   ', 'universe    ', 'orbit       ', 'derivative  ', &
    'branches    ', 'use         ', 'taylor_map  ' /)
 
 character(*), allocatable :: lines(:)
@@ -193,6 +193,7 @@ integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_e0, n_e1, ix_p, ix_word
 integer, allocatable, save :: ix_eles(:)
 
+logical bmad_format
 logical err, found, at_ends, first_time, by_s, print_header_lines
 logical show_sym, show_line, show_shape, print_data, ok
 logical show_all, name_found, print_taylor, print_wig_terms, print_all
@@ -544,7 +545,6 @@ case ('data')
       do i = 1, size(u%d2_data)
         d2_ptr => u%d2_data(i)
         if (d2_ptr%name == ' ') cycle
-        nl=nl+1; lines(nl) = ' '
         do j = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
           d1_ptr => d2_ptr%d1(j)
           call location_encode(line, d1_ptr%d%useit_opt, &
@@ -1318,13 +1318,6 @@ case ('optimizer')
   nl = 0
 
 !----------------------------------------------------------------------
-! optimized_vars
-
-case ('opt_vars')
-
-  call tao_var_write (' ')
-
-!----------------------------------------------------------------------
 ! particle
 
 case ('orbit')
@@ -1800,16 +1793,32 @@ case ('use')
 
 !----------------------------------------------------------------------
 ! variable
-    
+
 case ('variable')
 
+  do
+    call next_switch (stuff2, (/ '-bmad_format' /), switch, err, ix)
+    if (err) then
+      nl=1; lines(1) = 'AMBIGUOUS OR UNKNOWN SWITCH: ' // stuff2(:ix)
+    endif
+    if (switch == '') exit
+    if (switch == '-bmad_format') bmad_format = .true.
+  enddo
+  
   if (.not. allocated (s%v1_var)) then
     nl=1; lines(1) = 'NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!'
     result_id = 'ERROR'
     return 
   endif
 
-! If 'n@' is present then write out stuff for universe n
+  ! Bmad format
+
+  if (bmad_format) then
+    call tao_var_write (' ')
+    return
+  endif
+
+  ! If 'n@' is present then write out stuff for universe n
 
   ix = index(word1, '@')
   if (ix /= 0) then
@@ -1848,11 +1857,6 @@ case ('variable')
   endif
 
 ! If just "show var" then show all names
-
-  if (word1 == '*') then
-    call tao_var_write (' ')
-    return
-  endif
 
   if (word1 == ' ') then
     nl=nl+1; write (lines(nl), '(7x, a, t50, a)') 'Name', 'Using for Optimization'
