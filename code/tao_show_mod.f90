@@ -539,7 +539,7 @@ case ('data')
       u => s%u(iu)
 
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; write(lines(nl), '(t40, a)') 'Using'
+      nl=nl+1; write(lines(nl), '(a, t40, a)') 'Name', 'Using for Optimization'
 
       do i = 1, size(u%d2_data)
         d2_ptr => u%d2_data(i)
@@ -1855,7 +1855,7 @@ case ('variable')
   endif
 
   if (word1 == ' ') then
-    nl=nl+1; write (lines(nl), '(7x, a, t50, a)') 'Name', 'Using'
+    nl=nl+1; write (lines(nl), '(7x, a, t50, a)') 'Name', 'Using for Optimization'
     do i = 1, size(s%v1_var)
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle

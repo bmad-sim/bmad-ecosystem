@@ -124,15 +124,16 @@ The second section of the \vn{show plot} output
 lists the plot \vn{templates} (\sref{s:plotting} and
 \sref{s:template}) that \tao knows about:
 \begin{example}
- Templates:        Plot.Graph
-              --------- ----------
-                  orbit.x
-                       .y
- 
-                  phase.x
-                       .y
-
-                  ... etc. ...
+ Templates:
+   Plot                .Graph
+   ------------------  ----------
+   orbit               .x  .y
+   phase               .a  .b
+   beta                .a  .b
+   eta                 .x  .y
+   cbar                .22  .12  .11
+   quad_k1             .k1
+   floor               .this
 \end{example}
 In this case, these templates are defined in the \vn{tao_plot.init}
 file. There is an \vn{orbit} plot template which has two associated
@@ -150,10 +151,10 @@ information about the curves within each graph.
 
 The next block of information in the \vn{show plot} command is:
 \begin{example}
-  [Visible]     Plot Region         <-->  Template
-  ---------     -----------               ------------
-     T          top                 <-->  orbit
-     T          bottom              <-->  phase
+Visible  Plot Region         <-->  Template             x1    x2    y1    y2
+-------  -----------               -----------------------------------------
+   T     top                 <-->  orbit               0.00  1.00  0.48  0.95
+   T     bottom              <-->  phase               0.00  1.00  0.00  0.48
 \end{example}
 This shows that two plot regions have been defined called \vn{top} and
 \vn{bottom}. Each region contains a visible plot and the plot template
@@ -286,32 +287,37 @@ defined in \tao type
 \end{example}
 the output should look like:
 \begin{example}
-   orbit.x[0:99]
-   orbit.y[0:99]
- 
-   phase.a[0:99]
-   phase.b[0:99]
- 
-   eta.x[0:99]
-   eta.y[0:99]
- 
-   beta.a[0:99]
-   beta.b[0:99]
- 
-   cbar.11[0:99]
-   cbar.12[0:99]
-   cbar.21[0:99]
-   cbar.22[0:99]
- 
-   k.11b[0:99]
-   k.12a[0:99]
-   k.12b[0:99]
-   k.22a[0:99]
+  Name                                   Using for Optimization
+
+  orbit.x[0:99]
+  orbit.y[0:99]
+
+  phase.a[0:99]
+  phase.b[0:99]
+
+  eta.x[0:99]
+  eta.y[0:99]
+
+  beta.a[0:99]
+  beta.b[0:99]
+
+  cbar.11[0:99]
+  cbar.12[0:99]
+  cbar.21[0:99]
+  cbar.22[0:99]
+
+  k.11b[0:99]
+  k.12a[0:99]
+  k.12b[0:99]
+  k.22a[0:99]
 \end{example}
 There are six \vn{d2} data types (\sref{s:data.org}) defined in the
 initialization file: \vn{orbit}, \vn{phase}, etc.  The \vn{beta} data is further
 subdivided into two \vn{d1} data arrays labeled \vn{beta.a} and \vn{beta.b}.
 Each of these arrays has 100 data points indexed from 0 to 99.
+
+The \vn{``Using for Optimization''} column is blank indicating that no data
+would be used in an optimization (\sref{c:opti}).
 
 To see the data values for the horizontal beta function for \cesr BPMs
 1 through 50 type
