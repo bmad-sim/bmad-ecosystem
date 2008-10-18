@@ -62,7 +62,16 @@ call re_allocate (merit_vec, n_data)
 call re_allocate (var_at_min, n_var)
 var_at_min = var_value
 
-! run optimizer mrqmin from Numerical Recipes.
+if (s%global%n_opti_cycles <= 1.2*n_var+5) then
+  call out_io (s_warn$, r_name, &
+            '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
+            '!!!!! FOR THE LMDIF OPTIMIZER TO WORK WELL, N_OPTI_CYCLES (\i0\) !!!!!', &
+            '!!!!! MUST BE WELL ABOVE THE NUMBER OF VARIABLES (\i0\)          !!!!!', &
+            '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
+            i_array = (/ s%global%n_opti_cycles, n_var /))
+endif
+
+! run optimizer 
 
 call initial_lmdif
 

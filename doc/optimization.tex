@@ -70,16 +70,6 @@ second term in the merit function, the number of constraints (number of
 terms in the merit function) is always larger than the number of
 variables and degeneracies can never occur.
 
-\index{Optimization!Optimizer}
-The algorithm used to vary the \vn{var_model} variables to minimize
-\vn{M} is called an \vn{optimizer}. In \vn{command line mode} the
-\vn{run} command is used to invoke an \vn{optimizer}. In \vn{single
-mode} the \vn{g} key starts an optimizer and the \vn{.} key stops it.
-Running an optimizer is also called ``fitting'' since one is trying to
-get the \vn{data_model} to be equal to the \vn{data_meas}. With orbits
-this is also called ``flattening'' since one generally wants to end up
-with an orbit that is on--axis.
-
 In a correction one wants to change the machine variables so that the
 measured data corresponds to the design values \vn{data_design}. Thus
 the change in the data that one wants is
@@ -270,6 +260,69 @@ constraints} command (\sref{s:show}). To see how a particular variable
 or datum is doing use the \vn{show data} or \vn{show variable}
 commands.  See \sref{s:datum.opt} for details on how datums are
 chosen to be included in an optimization.
+
+%------------------------------------------------------------------------
+\section{Opimizers in Tao}
+\label{s:tao.opti}
+\index{Optimization!Optimizer}
+
+The algorithm used to vary the \vn{model} variables to minimize \vn{M}
+is called an \vn{optimizer}. In \vn{command line mode} the \vn{run}
+command is used to invoke an \vn{optimizer}. In \vn{single mode} the
+\vn{g} key starts an optimizer. In both modes the period key
+(\vn{``.''}) stops the optimization.  Running an optimizer is also
+called ``fitting'' since one is trying to get the \vn{model} data to
+be equal to the \vn{measured} data. With orbits this is also called
+``flattening'' since one generally wants to end up with an orbit that
+is on--axis.
+
+The optimizer that is used can be defined when using the \vn{run} command but
+the default optimizer can be set in the \tao input file by setting the
+\vn{global%optimizer} component (\sref{s:globals}.
+
+When the optimizer is run in \tao, the optimizer, after it initializes
+itself, takes a number of \vn{cycles}. Each cycle consists of changing
+the values of the variables the optimizer is allowed to change. The
+number of steps that the optimizer will take is determined by the
+parameter \vn{global%n_opti_cycles} (\sref{s:globals}). When the
+optimizer initializes itself and goes through
+\vn{global%n_opti_cycles}, it is said to have gone through one
+\vn{loop}. After going through through \vn{global%n_opti_loops} loops,
+the optimizer will automatically stop.  To immediately stop the
+optimizer the period key \vn{``.''} may be pressed.
+
+There are currently three optimizers that can be used: \vn{lm} is an
+optimizer based upon the Levenburg-Marquardt algorithm as implemented
+in \vn{Numerical Recipes}\cite{b:nr}. This algorithm looks at the
+local derivative matrix of \vn{dData/dVariable} and takes steps in
+variable space accordingly. The derivative matrix is calculated
+beforehand by varying all the variables by an amount set by the
+variable's \vn{step} component (\sref{s:init.var}). By default, the
+derivative matrix will be recalculated each \vn{loop} but this can be
+changed by setting the \vn{global%derivative_recalc} global parameter
+(\sref{s:globals}). The reason to not recalculate the derivative
+matrix is one of time.  However, if the calculated derivative matrix
+is not accurate (that is, if the variables have changed enough from
+the last time the matrix was calculated and the nonlinearities in the
+lattice are large enough), the \vn{lm} optimizer will not work very well.
+In any case, this method will only find local minimum.
+
+The \vn{lmdif} optimizer is like the \vn{lm} optimizer except that it
+builds up the information it needs on the derivative matrix by
+initially taking small steps over the first \vn{n} cycles where \vn{n}
+is the number of variables. The advantage of this is that you do not
+have to set a \vn{step} size for the variables. The disadvantage is
+that for \vn{lmdif} to be useful, the number of \vn{cycles} must be
+greater than the number of variables. Again, like \vn{lm}, this method
+will only find local minimum.
+
+The third optimizer is called \vn{de} which stands for
+\vn{differential evolution}\cite{b:de}. The advantage of this
+optimizer is that it looks for global minimum. The disadvantage is
+that it is slow to find the bottom of a local minimum. A good strategy
+sometimes when trying to find a global minimum is to use \vn{de} in
+combination with \vn{lm} or \vn{lmdif} one after the other.
+
 
 %------------------------------------------------------------------------
 \section{Common Base Lattice (CBL) Analysis}

@@ -459,22 +459,8 @@ region from the exit end of the lattice element with index
 \vn{ix2_ele_csr}. By restricting the CSR calculation,
 the calculational time to track through a lattice is reduced.
 
-%------------------------------------------------------------------------
-\section{Optimization Parameters}
-\label{s:opt.params}
-\index{Optimization!Parameters}
-
-When the optimizer is run in \tao (using the \vn{run} command), The
-optimizer, after it initializes itself, takes a number of
-\vn{cycles}. Each cycle consists of changing the values of the
-variables the optimizer is allowed to change. The number of steps that
-the optimizer will take is determined by the parameter
-\vn{global%n_opti_cycles}. When the optimizer initializes itself and
-goes through \vn{global%n_opti_cycles}, it is said to have gone
-through one \vn{loop}. After going through through
-\vn{global%n_opti_loops} loops, the optimizer will automatically stop.
-To immediately stop the optimizer the period key
-\vn{``.''} may be pressed.
+See \sref{s:lattice.correction} for more details on
+\vn{global%n_opti_cycles} and \vn{global%n_opti_loops}. 
 
 %-----------------------------------------------------------------
 \section{Initializing Connected Universes}
