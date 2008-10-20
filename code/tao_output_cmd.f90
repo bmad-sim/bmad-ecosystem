@@ -191,8 +191,8 @@ case ('covariance_matrix')
     return
   endif
 
-  file_name0 = 'lat_#.bmad'
-  if (word(1) /= '') file_name0 = word(1) 
+  file_name = 'lat_#.bmad'
+  if (word(1) /= '') file_name = word(1) 
 
   if (word(2) /= '') then
     call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
