@@ -278,7 +278,7 @@ is on--axis.
 
 The optimizer that is used can be defined when using the \vn{run} command but
 the default optimizer can be set in the \tao input file by setting the
-\vn{global%optimizer} component (\sref{s:globals}.
+\vn{global%optimizer} component (\sref{s:globals}).
 
 When the optimizer is run in \tao, the optimizer, after it initializes
 itself, takes a number of \vn{cycles}. Each cycle consists of changing
@@ -297,15 +297,19 @@ in \vn{Numerical Recipes}\cite{b:nr}. This algorithm looks at the
 local derivative matrix of \vn{dData/dVariable} and takes steps in
 variable space accordingly. The derivative matrix is calculated
 beforehand by varying all the variables by an amount set by the
-variable's \vn{step} component (\sref{s:init.var}). By default, the
-derivative matrix will be recalculated each \vn{loop} but this can be
-changed by setting the \vn{global%derivative_recalc} global parameter
-(\sref{s:globals}). The reason to not recalculate the derivative
-matrix is one of time.  However, if the calculated derivative matrix
-is not accurate (that is, if the variables have changed enough from
-the last time the matrix was calculated and the nonlinearities in the
-lattice are large enough), the \vn{lm} optimizer will not work very well.
-In any case, this method will only find local minimum.
+variable's \vn{step} component (\sref{s:init.var}). The \vn{step} size
+should be choisen large enough so that round-off errors will not make
+computation of the derivatives inaccurate but the step size should not
+be so large that the derivatives are effected by nonlinearities. By
+default, the derivative matrix will be recalculated each \vn{loop} but
+this can be changed by setting the \vn{global%derivative_recalc}
+global parameter (\sref{s:globals}). The reason to not recalculate the
+derivative matrix is one of time.  However, if the calculated
+derivative matrix is not accurate (that is, if the variables have
+changed enough from the last time the matrix was calculated and the
+nonlinearities in the lattice are large enough), the \vn{lm} optimizer
+will not work very well.  In any case, this method will only find
+local minimum.
 
 The \vn{lmdif} optimizer is like the \vn{lm} optimizer except that it
 builds up the information it needs on the derivative matrix by
@@ -321,7 +325,20 @@ The third optimizer is called \vn{de} which stands for
 optimizer is that it looks for global minimum. The disadvantage is
 that it is slow to find the bottom of a local minimum. A good strategy
 sometimes when trying to find a global minimum is to use \vn{de} in
-combination with \vn{lm} or \vn{lmdif} one after the other.
+combination with \vn{lm} or \vn{lmdif} one after the other. One
+important parameter with the \vn{de} optimizer is the \vn{step}
+size. A larger step size means that the optimizer will tend to explore
+larger areas of variable space but the tradeoff is that this will make
+it harder to find minimum in the locally. One good stategy is to vary
+the \vn{step} size to see what is effective. Remember, the optimal
+step size will be different for different problems and for different
+starting points. The \vn{step} size that is appropriate of the \vn{de}
+optimizer will, in general, be different from the \vn{step} size for
+the \vn{lm} optimizer. For this reason, and to facillitate changing
+the step size, the actual step size used by the \vn{de} optimizer is
+the step size given by a variable's \vn{step} component multiplied by
+the global variable \vn{global%de_lm_step_ratio}. This global variable
+can be varied using the \vn{set} command (\sref{s:set}).
 
 
 %------------------------------------------------------------------------

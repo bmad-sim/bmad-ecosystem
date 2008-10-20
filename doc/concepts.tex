@@ -3,11 +3,11 @@
 
 \tao stands for ``Tool for Accelerator Optics''. \tao is a general
 purpose program for simulating high energy particle beams in
-accelerators and storage rings. This tutorial assumes you are already
+accelerators and storage rings. This manual assumes you are already
 familiar with the basics of particle beam dynamics and its
 formalism. There are several books that introduce the topics very
 well. A good place to start is \textit{The Physics of Particle
-Accelerators} by Klaus Wille.
+Accelerators} by Klaus Wille\cite{b:wille}.
 
 \index{Bmad}
 \tao is based on the \bmad\cite{b:bmad} subroutine library. An
@@ -16,15 +16,20 @@ comprise \bmad is not necessary, however, one should be familiar with
 the conventions that \bmad uses and this is covered in the \bmad
 manual.
 
-So, what is \tao good for? A large variety of applications. It's
-versatility is that it's easily expandable. Think of it as an
-accelerator design and analysis environment. But even without any
-customizations, \tao will do much analysis. 
+So, what is \tao good for? A large variety of applications: Single and
+multiparticle tracking, lattice simulation and analysis, lattice
+design, machine commisioning and correction, etc. Furthermore, it is
+designed to be extensible using interface ``hooks'' built into the
+program.  This versatility has been used, for example, to enable \tao
+to directly read in measurement data from Cornell's Cesr storage ring
+and Jefferson Lab's FEL. Think of \tao as an accelerator design and
+analysis environment. But even without any customizations, \tao will
+do much analysis.
 
 This chapter discusses how \tao is organized. After you are familiar
 with the basics of \tao, there is a hands-on tutorial in
 Chapter~\sref{c:tutorial}. After you get more familiar with \tao, you
-might be interested exploit its versatility by extending \tao to do
+might be interested to exploit its versatility by extending \tao to do
 custom calculations. For this, see Chapter~\ref{c:custom.tao}.
 
 %----------------------------------------------------------------

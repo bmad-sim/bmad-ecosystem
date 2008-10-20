@@ -193,7 +193,8 @@ however, can contain \vn{tao_template_plot} and
   \vn{tao_template_plot}         & \vn{plot_file}     & Plotting     & \sref{s:init.plot}     \\ \hline
   \vn{tao_template_graph}        & \vn{plot_file}     & Plotting     & \sref{s:init.plot}     \\ \hline
 \end{tabular}}
-\caption{Table of \vn{tao} Initialization Namelists. $^*$This namelist taken from the first file in the \vn{plot\_file} array.}
+$^*$This namelist taken from the first file in the \vn{plot\_file} array.}
+\caption{Table of \vn{tao} Initialization Namelists. 
 \label{t:init.files}
 \end{table}
 
@@ -364,6 +365,9 @@ type tao_global_struct
   logical :: command_file_print_on = T   ! Toggle printing when using a command file.
 end type
 \end{example}
+
+All global parameters can be changed from their initial value using
+the \vn{set} command (\sref{s:set}).
 
 Random numbers are used by \tao in various algorithms. For example,
 random numbers are used in generating the initial coordinates of the
