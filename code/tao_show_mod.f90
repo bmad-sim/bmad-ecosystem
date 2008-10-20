@@ -3,7 +3,7 @@ module tao_show_mod
 use tao_mod
 use tao_evaluate_mod
 use tao_top10_mod
-use tao_command_mod, only: tao_cmd_split
+use tao_command_mod, only: tao_next_switch
 use random_mod
 use csr_mod, only: csr_param
 use tao_lattice_calc_mod
@@ -89,7 +89,9 @@ if (n > 1 .and. (index('-append', trim(what)) == 1 .or. &
   opened = .true.
 endif
 
-! Get restults
+! Get restults.
+! Result_id is for tao_show_this to show exactly what it did.
+! This info can be helpful in tao_hook_show_cmd.
 
 call tao_show_this (what2, stuff2, result_id, lines, nl)  
 call tao_hook_show_cmd (what2, stuff2, result_id, lines, nl)
@@ -231,29 +233,26 @@ if (s%global%phase_units == cycles$)  f_phi = 1 / twopi
 
 ! find what to show
 
+result_id = 'ERROR'
+
 if (what == ' ') then
   nl=1; lines(1) = 'SHOW WHAT?' 
-  result_id = 'ERROR'
   return
 endif
 
 call match_word (what, show_names, ix, matched_name = show_what)
 if (ix == 0) then
   nl=1; lines(1) = 'SHOW WHAT? WORD NOT RECOGNIZED: ' // what
-  result_id = 'ERROR'
   return
 endif
 
 if (ix < 0) then
   nl=1; lines(1) = 'SHOW WHAT? AMBIGUOUS: ' // what
-  result_id = 'ERROR'
   return
 endif
 
 call string_trim (stuff, stuff2, ix_word)
 word1 = stuff2(:ix_word)
-
-result_id = show_what
 
 select case (show_what)
 
@@ -270,6 +269,8 @@ case ('alias')
                                     trim(tao_com%alias(i)%string) // '"'
   enddo
   
+  result_id = show_what
+
 !----------------------------------------------------------------------
 ! beam
 
@@ -385,6 +386,8 @@ case ('beam')
   
   endif
 
+  result_id = show_what
+
 !----------------------------------------------------------------------
 ! constraints
 
@@ -392,7 +395,7 @@ case ('branches')
 
   if (ubound(lat%branch, 1) == 0) then
     nl=1; lines(1) = 'NO BRANCHES'
-    result_id = 'ERROR'
+    result_id = show_what
     return
   endif
 
@@ -406,6 +409,8 @@ case ('branches')
                 lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele)%name
   enddo
 
+  result_id = show_what
+
 !----------------------------------------------------------------------
 ! constraints
 
@@ -413,7 +418,7 @@ case ('constraints')
 
   call tao_show_constraints (0, 'ALL')
   call tao_show_constraints (0, 'TOP10')
-  return
+  result_id = show_what
 
 !----------------------------------------------------------------------
 ! curve
@@ -426,11 +431,8 @@ case ('curve')
   show_line = .false.
 
   do
-    call next_switch (stuff2, (/ '-symbol', '-line  ' /), switch, err, ix)
-    if (err) then
-      nl=1; lines(1) = 'AMBIGUOUS OR UNKNOWN SWITCH: ' // stuff2(:ix)
-      result_id = 'ERROR'
-    endif
+    call tao_next_switch (stuff2, (/ '-symbol', '-line  ' /), switch, err, ix)
+    if (err) return
     if (switch == '') exit
     if (switch == '-symbol') show_sym = .true.
     if (switch == '-line')   show_line = .true.
@@ -516,9 +518,10 @@ case ('curve')
 
   else
     nl=1; lines(1) = 'THIS IS NOT A CURVE NAME'
-    result_id = 'ERROR'
     return
   endif
+
+  result_id = show_what
 
 !----------------------------------------------------------------------
 ! data
@@ -696,8 +699,10 @@ case ('data')
 
   else
     nl=1; lines(1) = 'TRY BEING MORE SPECIFIC.'
-    result_id = 'ERROR'
+    return
   endif
+
+  result_id = show_what
 
 !----------------------------------------------------------------------
 ! derivative
@@ -728,6 +733,8 @@ case ('derivative')
     enddo
   enddo
 
+  result_id = show_what
+
 !----------------------------------------------------------------------
 ! ele
 
@@ -746,7 +753,6 @@ case ('element')
                       '-all_attributes', '-data          ' /), n, .true., name)
     if (n < 1) then
       nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2(:ix)
-      result_id = 'ERROR'
       return
     endif
     if (name == '-taylor') print_taylor = .true.
@@ -788,13 +794,12 @@ case ('element')
     deallocate(ix_eles)
     nl=nl+1; write (lines(nl), '(a, i0)') 'Number of Matches: ', n_tot
 
-    result_id = 'element:*'
-
     if (nl == 0) then
       lines(1) = '*** No Matches to Name Found ***'
       return
     endif
 
+    result_id = 'element:*'
     return
 
   endif
@@ -849,6 +854,8 @@ case ('element')
     endif 
     nl=nl+1;  write (lines(nl), '(a, i0)') 'Note: Found another element with same name at: ', i
   enddo
+
+  result_id = show_what
 
 !----------------------------------------------------------------------
 ! global
@@ -926,6 +933,8 @@ case ('global')
   nl=nl+1; write(lines(nl), lmt) 'csr_param%ix1_ele_csr          = ', csr_param%ix1_ele_csr
   nl=nl+1; write(lines(nl), lmt) 'csr_param%ix2_ele_csr          = ', csr_param%ix2_ele_csr
 
+  result_id = show_what
+
 !----------------------------------------------------------------------
 ! graph
 
@@ -988,10 +997,10 @@ case ('graph')
 
   else
     nl=1; lines(1) = 'This is not a graph'
-    result_id = 'ERROR'
     return
   endif
 
+  result_id = show_what
 
 !----------------------------------------------------------------------
 ! hom
@@ -1016,6 +1025,7 @@ case ('hom')
   enddo
   nl=nl+1; lines(nl) = '       #        Freq         R/Q           Q   m  Polarization_Angle'
 
+  result_id = show_what
 
 !----------------------------------------------------------------------
 ! lattice
@@ -1064,7 +1074,6 @@ case ('lattice')
       open (iu, file = file_name, status = 'old', iostat = ios)
       if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT OPEN FILE: ' // file_name
-        result_id = 'ERROR'
         return
       endif
       column(:)%name = ""
@@ -1072,7 +1081,6 @@ case ('lattice')
       read (iu, nml = custom_show_list, iostat = ios)
       if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT READ "CUSTOM_SHOW_LIST" NAMELIST IN FILE: ' // file_name
-        result_id = 'ERROR'
         return
       endif
 
@@ -1107,14 +1115,12 @@ case ('lattice')
     ix = index(stuff2, ':')
     if (ix == 0) then
       nl=1; lines(1) = 'NO ":" FOUND FOR RANGE SELECTION'
-      result_id = 'ERROR'
       return
     endif
     read (stuff2(1:ix-1), *, iostat = ios1) s1
     read (stuff2(ix+1:), *, iostat = ios2) s2
     if (ios1 /= 0 .or. ios2 /= 0) then
       nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // stuff2
-      result_id = 'ERROR'
       return
     endif
 
@@ -1132,7 +1138,6 @@ case ('lattice')
     call location_decode (stuff2, picked_ele, 0, num_locations)
     if (num_locations .eq. -1) then
       nl=1; lines(1) = 'SYNTAX ERROR IN RANGE LIST:' // stuff2
-      result_id = 'ERROR'
       deallocate(picked_ele)
       return
     endif
@@ -1251,7 +1256,6 @@ case ('lattice')
         lines(1) = 'TOO MANY CHARACTERS ON A LINE OR BAD FORMAT: ' // column(i)%format
         lines(2) = 'FOR DISPLAYING: ' // column(i)%name
         nl = 2
-        result_id = 'ERROR'
         return
       endif
 
@@ -1290,6 +1294,8 @@ case ('lattice')
 
   deallocate(picked_ele)
 
+  result_id = show_what
+
 !----------------------------------------------------------------------
 ! optimizer
 
@@ -1317,6 +1323,8 @@ case ('optimizer')
   call out_io (s_blank$, r_name, lines(1:nl))
   nl = 0
 
+  result_id = show_what
+
 !----------------------------------------------------------------------
 ! particle
 
@@ -1327,6 +1335,8 @@ case ('orbit')
   do i = 1, 6
     nl=nl+1; write (lines(nl), rmt) '     ', u%model%orb(ix)%vec(i)
   enddo
+
+  result_id = show_what
 
 !----------------------------------------------------------------------
 ! particle
@@ -1379,6 +1389,8 @@ case ('particle')
     nl=nl+1; write (lines(nl), rmt) '     ', bunch%particle(ix_p)%r%vec(i)
   enddo
 
+  result_id = show_what
+
 !----------------------------------------------------------------------
 ! plot
 
@@ -1395,7 +1407,6 @@ case ('plot')
     call match_word (stuff2(:ix), (/ '-shapes' /), n, .true., name)
     if (n < 1) then
       nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2(:ix)
-      result_id = 'ERROR'
       return
     endif
     if (name == '-shapes') show_shape = .true.
@@ -1518,9 +1529,10 @@ case ('plot')
 
   else
     nl=1; lines(1) = 'This is not a name of a plot'
-    result_id = 'ERROR'
     return
   endif
+
+  result_id = show_what
 
 !----------------------------------------------------------------------
 ! top10
@@ -1535,23 +1547,20 @@ case ('top10')
     call tao_top10_derivative_print ()
   else
     nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2
-    result_id = 'ERROR'
     return
   endif
+
+  result_id = show_what
 
 !----------------------------------------------------------------------
 ! taylor_map
 
 case ('taylor_map')
 
-  result_id = 'ERROR'
-
   n_order = -1
   do
-    call next_switch (stuff2, (/ '-order' /), switch, err, ix)
-    if (err) then
-      nl=1; lines(1) = 'AMBIGUOUS OR UNKNOWN SWITCH: ' // stuff2(:ix)
-    endif
+    call tao_next_switch (stuff2, (/ '-order' /), switch, err, ix)
+    if (err) return
     if (switch == '') exit
     read (stuff2(:ix), *, iostat = ios) n_order
     if (ios /= 0) then
@@ -1606,11 +1615,12 @@ case ('taylor_map')
 
   result_id = show_what
 
-
 !----------------------------------------------------------------------
 ! tune
 
 case ('tune')
+
+  result_id = show_what
 
 !----------------------------------------------------------------------
 ! universe
@@ -1632,6 +1642,7 @@ case ('universe')
       nl=nl+1; lines(nl) = ''
     enddo
     if (nl > 1) nl = nl - 1  ! Erase last blank line.
+    result_id = show_what
     return
   endif
 
@@ -1643,12 +1654,10 @@ case ('universe')
     read (word1, *, iostat = ios) ix_u
     if (ios /= 0) then
       nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
-      result_id = 'ERROR'
       return
     endif
     if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
       nl=1; lines(1) = 'UNIVERSE NUMBER OUT OF RANGE'
-      result_id = 'ERROR'
       return
     endif
   endif
@@ -1758,6 +1767,8 @@ case ('universe')
   nl=nl+1; write (lines(nl), fmt) 'I3:', u%model%modes%synch_int(3), &
                u%design%modes%synch_int(3), '! Radiation Integral'
 
+  result_id = show_what
+
 !----------------------------------------------------------------------
 ! variable
     
@@ -1791,6 +1802,8 @@ case ('use')
     nl=nl+1; write (lines(nl), '(5a)') 'use var ', trim(v1_ptr%name), '[', trim(line), ']'
   enddo
 
+  result_id = show_what
+
 !----------------------------------------------------------------------
 ! variable
 
@@ -1798,10 +1811,8 @@ case ('variable')
 
   good_opt_only = .false.
   do
-    call next_switch (stuff2, (/ '-bmad_format', '-good_opt_only' /), switch, err, ix)
-    if (err) then
-      nl=1; lines(1) = 'AMBIGUOUS OR UNKNOWN SWITCH: ' // stuff2(:ix)
-    endif
+    call tao_next_switch (stuff2, (/ '-bmad_format', '-good_opt_only' /), switch, err, ix)
+    if (err) return
     if (switch == '') exit
     if (switch == '-bmad_format') bmad_format = .true.
     if (switch == '-good_opt_only') good_opt_only = .true.
@@ -1809,7 +1820,6 @@ case ('variable')
   
   if (.not. allocated (s%v1_var)) then
     nl=1; lines(1) = 'NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!'
-    result_id = 'ERROR'
     return 
   endif
 
@@ -1817,6 +1827,7 @@ case ('variable')
 
   if (bmad_format) then
     call tao_var_write (' ', good_opt_only)
+    result_id = 'variable:bmad'
     return
   endif
 
@@ -1830,13 +1841,11 @@ case ('variable')
       read (word1(:ix-1), *, iostat = ios) ix_u
       if (ios /= 0) then
         nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
-        result_id = 'ERROR'
         return
       endif
       if (ix_u == 0) ix_u = s%global%u_view
       if (ix_u < 1 .or. ix_u > ubound(s%u, 1)) then
         nl=1; lines(1) = 'UNIVERSE NUMBER OUT OF RANGE'
-        result_id = 'ERROR'
         return
       endif
     endif
@@ -1990,12 +1999,13 @@ case ('variable')
     result_id = 'variable:?'
   endif
 
+  result_id = show_what
+
 !----------------------------------------------------------------------
 
 case default
 
   nl=1; lines(1) = "INTERNAL ERROR, SHOULDN'T BE HERE!"
-  result_id = 'ERROR'
 
 end select
 
@@ -2114,36 +2124,5 @@ err_flag = .false.
 stack%good(1) = .true.
 
 end subroutine tao_ele_value_routine
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-
-subroutine next_switch (line, switch_list, switch, err, ix_word)
-
-character(*) line, switch, switch_list(:)
-character :: r_name = 'next_switch'
-logical err
-
-integer ix, n, ix_word
-
-!
-
-err = .false.
-switch = ''
-
-call string_trim(line, line, ix_word)
-if (ix_word == 0) return
-if (line(1:1) /= '-') return
-
-call match_word (line(:ix_word), switch_list, n, .true., switch)
-if (n < 1) then
-  err = .true.
-  return
-endif
-
-call string_trim(line(ix_word+1:), line, ix_word)
-
-end subroutine
 
 end module

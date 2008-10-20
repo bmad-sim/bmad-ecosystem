@@ -296,5 +296,64 @@ endif
 
 end subroutine tao_cmd_split
 
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine tao_next_switch (line, switch_list, switch, err, ix_word)
+!
+! Subroutine return the next switch on the command line.
+! A switch is assumed to begin with the '-' character so that
+! if the first word on the command line starts with '-' it must
+! match something on the switch_list list.
+! Switch abbreviations are permitted.
+!
+! Input:
+!   line            -- Character(*): Command line
+!   switch_list(*)  -- Character(*): List of valid switches. 
+!
+! Output:
+!   line            -- Character(*): Line with switch word removed. If the first word
+!                       does not look like a switch then nothing is removed.
+!   switch          -- Character(*): Switch present. This is the full name
+!                       even if what was on the command line was an abbreviation.
+!                       Return '' if not a switch.
+!   err             -- Logical: Set True if switch is not recognized.
+!                       An error message will be printed.
+!   ix_word         -- Integer: Character length of first word left on line.
+!-
+
+subroutine tao_next_switch (line, switch_list, switch, err, ix_word)
+
+character(*) line, switch, switch_list(:)
+character :: r_name = 'next_switch'
+logical err
+
+integer ix, n, ix_word
+
+!
+
+err = .false.
+switch = ''
+
+call string_trim(line, line, ix_word)
+if (ix_word == 0) return
+if (line(1:1) /= '-') return
+
+call match_word (line(:ix_word), switch_list, n, .true., switch)
+if (n < 1) then
+  err = .true.
+  if (n == 0) then 
+    call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // line(:ix_word))
+  else
+    call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // line(:ix_word))
+  endif
+  return
+endif
+
+call string_trim(line(ix_word+1:), line, ix_word)
+
+end subroutine
+
 end module
 

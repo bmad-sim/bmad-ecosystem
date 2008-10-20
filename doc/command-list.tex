@@ -398,9 +398,9 @@ Format:
   output hard                       ! Print the plot window to a printer.
   output hard-l                     ! Like "hard" except use landscape orientation. 
   output mad_lattice \{<file_name>\}  ! Write a Mad lattice file of the model
-  output ps \{-scale <scale>\} \{<file_name>\}   ! Create a postscript file of the plot window.
-  output ps-l \{-scale <scale>\} \{<file_name>\} ! Like "ps" except use landscape orientation.
-  output var \{<file_name>\}          ! Write a Bmad file of variable values.
+  output ps \{-scale <scale>\} \{<file_name>\}      ! Create a postscript file of the plot window.
+  output ps-l \{-scale <scale>\} \{<file_name>\}    ! Like "ps" except use landscape orientation.
+  output variable \{-good_var_only\} {<file_name>\} ! Write a Bmad file of variable values.
 \end{example}
 
 \vskip 0.2in 
@@ -417,7 +417,7 @@ If \vn{<file_name>} is not given then the defaults are:
   output gif                      tao.gif
   output mad_lattice              lat_#.mad
   output ps                       tao.ps
-  output var                      global%var_out_file
+  output variable                 global%var_out_file
 \end{example}
 where \vn{\#} is replaced by the universe number. \vn{output
 curve} will produce two or three files: 
@@ -435,6 +435,10 @@ For \vn{ps} and \vn{ps-l}, the optional \vn{-scale} switch sets the
 scale for the PostScript file. The default is 0 which autoscales to fit an
 8-1/2 by 11 sheet of paper. A value of 1.0 will result in no scaling,
 2.0 will double the size, etc.
+
+The \vn{output variable} command has an optional \vn{-good_var_only}
+switch.  If present, only the information on variables that are
+currently used in the optimization is written.
 
 \vn{output beam} will create a file of the particle positions when
 beam tracking is being used. If the switch \vn{-at} is present then
