@@ -923,8 +923,8 @@ Format:
   show lattice \{-no_header\} \{-middle\} \{-custom <file_name>\} 
                             \{-s\} \{-elements <name>\} \{<location_range>\}
   show optimizer
-  show particle -lost
   show particle <particle_index> \{<element_index>\}
+  show particle -lost
   show plot
   show plot \{<template_plot_name>\}
   show plot \{<plot_region_name>\}
@@ -934,9 +934,9 @@ Format:
   show universe \{universe_number\}
   show universe -connections
   show use
-  show variable \{<var_name> <locations>\}
+  show variable \{<var_name>\}
   show variable <universe_number>@
-  show variable \{-bmad_format\}
+  show variable -bmad_format \{-good_opt_only\}
 \end{example}
 
 \vskip 0.2in 
@@ -1011,14 +1011,14 @@ Example:
 %% show data --------------------------------------------------------------
 
 \item[show data \{<data\_name>\}] \Newline
-Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
-present shown is a list of \vn{d2_data} names.
+Shows data information. If \vn{<data_name>} is not
+present then a list of all \vn{d2_data} names is printed.
 
 Examples:
 \begin{example}
-  show data                   ! lists d2_data arrays.
+  show data                   ! lists all d2_data arrays.
   show data orbit             ! Show orbit data.
-  show data orbit.x           ! list all orbit.x data elements
+  show data orbit.x           ! list all orbit.x data elements.
   show data orbit.x[35]       ! Show details for orbit.x element 35
   show data orbit.x[35,86:95] ! list orbit.x elements 35 and 86 through 95
   show data orbit.x[1:100:5]  ! list every fifth orbit.x element between 1 and 100  
@@ -1284,22 +1284,26 @@ be read in with a \vn{call} command.
 \item[\protect\parbox{6in}{
         show variable \{<var\_name> <locations>\} \\
         show variable <universe\_number>@}
-        show variable \{-bmad\_format\} ] \Newline
-Shows variable information. If \vn{<var_name>} \vn{<locations>} is not
-present shown is a list of \vn{v1_var} classes.  To show variables
-associated with the \vn{n}th universe use the syntax: \vn{show var
+        show variable -bmad\_format \{-good_opt_only\} ] \Newline
+Shows variable information. If \vn{<var_name>} is not
+present,  a list of all \vn{v1_var} classes is printed. To show variables
+associated with the \vn{n}th universe use the syntax \vn{show var
 n@}.
 
-If \vn{-bmad_format} is present then the Bmad lattice parameters that
+If the \vn{-bmad_format} switch is usedthen the Bmad lattice parameters that
 the \tao variables control will be printed in Bmad lattice
 format. This is the same syntax used in generating the variable files
-when an optimizer is run.
+when an optimizer is run. If \vn{-good_opt_only} is used in conjunction with
+\vn{-bmad_format} then the list of variables will be restricted to ones that
+are currently being used in the optimization.
 
 Examples:
 \begin{example}
-  show var *         ! list variables in Bmad lattice format.
-  show var 2@        ! List all variables that control attributes in universe 2.
-  show var -bmad     ! List variables in Bmad Lattice format
+  show var             ! List all variables.
+  show var quad_k1     ! List variables in the quad_k1[*] array.
+  show var quad_k1[10] ! List detailed information on the variable quad_k1[10].
+  show var 2@          ! List all variables that control attributes in universe 2.
+  show var -bmad       ! List variables in Bmad Lattice format.
 \end{example}
 
 \end{description}

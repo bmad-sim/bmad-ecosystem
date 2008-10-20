@@ -89,19 +89,19 @@ case ('g')
 
   tao_com%optimizer_running = .true.
   do
-    call tao_run_cmd (' ')
+    call tao_run_cmd ('')
     if (.not. tao_com%optimizer_running) exit
   enddo
 
 ! 'v' Show variables
 
 case ('v')
-  call tao_var_write (' ')
+  call tao_var_write ('')
 
 ! 'V' Show optimization variables 
 
 case ('V')
-  call tao_var_write (' ')
+  call tao_var_write ('', .true.)
 
 ! 'Z' Quit single character input mode.
 

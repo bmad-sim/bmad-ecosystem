@@ -193,7 +193,7 @@ integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_e0, n_e1, ix_p, ix_word
 integer, allocatable, save :: ix_eles(:)
 
-logical bmad_format
+logical bmad_format, good_opt_only
 logical err, found, at_ends, first_time, by_s, print_header_lines
 logical show_sym, show_line, show_shape, print_data, ok
 logical show_all, name_found, print_taylor, print_wig_terms, print_all
@@ -1796,13 +1796,15 @@ case ('use')
 
 case ('variable')
 
+  good_opt_only = .false.
   do
-    call next_switch (stuff2, (/ '-bmad_format' /), switch, err, ix)
+    call next_switch (stuff2, (/ '-bmad_format', '-good_opt_only' /), switch, err, ix)
     if (err) then
       nl=1; lines(1) = 'AMBIGUOUS OR UNKNOWN SWITCH: ' // stuff2(:ix)
     endif
     if (switch == '') exit
     if (switch == '-bmad_format') bmad_format = .true.
+    if (switch == '-good_opt_only') good_opt_only = .true.
   enddo
   
   if (.not. allocated (s%v1_var)) then
@@ -1814,7 +1816,7 @@ case ('variable')
   ! Bmad format
 
   if (bmad_format) then
-    call tao_var_write (' ')
+    call tao_var_write (' ', good_opt_only)
     return
   endif
 
