@@ -483,31 +483,28 @@ case ('ps', 'ps-l')
   file_name = "tao.ps"
   scale = 0
   call str_upcase (action, action)
-  i = 0
-  do while (i <= size(word))
-    i = i + 1
-    if (word(i) == '') exit
-    call match_word (word(i), (/ '-scale' /), n, .true., name)
-    if (n < 0 .or. (n == 0 .and. word(i)(1:1) == '-')) then
-      call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // word(i))
-      return
-    endif
-    select case (name)
-    case ('-scale')
-      i = i + 1
-      read (word(i), *, iostat = ios) scale
-      if (ios /= 0) then
+
+  do
+    call tao_next_switch (what2, (/ '-scale' /), switch, err, ix)
+    if (err) return
+    if (switch == '') exit
+    if (switch == '-scale') then
+      read (what2(1:ix), *, iostat = ios) scale
+      if (ios /= 0 .or. what2 == '') then
         call out_io (s_error$, r_name, 'BAD SCALE NUMBER.')
         return
       endif
-    case default
-      i=i+1; file_name0 = word(i)
-      if (word(i+1) /= '') then
-        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
-        return
-      endif
-    end select
+      what2 = what2(ix+1:)
+    endif
   enddo
+
+  if (what2 /= '') then
+    file_name = what2(1:ix)
+    if (what2(ix+1:) /= '') then
+      call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+      return
+    endif
+  endif
 
   call qp_open_page (action, plot_file = file_name, scale = scale)
 
