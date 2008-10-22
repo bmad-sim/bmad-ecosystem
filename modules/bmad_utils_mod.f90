@@ -98,7 +98,7 @@ integer ix_line, ix_ele
 nullify(ele)
 
 if (ix_line < 0 .or. ix_line > ubound(lat%branch, 1)) return
-if (ix_ele < 0 .or. ix_ele > lat%branch(ix_line)%n_ele_track) return
+if (ix_ele < 0 .or. ix_ele > lat%branch(ix_line)%n_ele_max) return
 
 ele => lat%branch(ix_line)%ele(ix_ele)
 
