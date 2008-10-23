@@ -1055,7 +1055,8 @@ subroutine file_stack (how, file_name_in, finished, err)
     close (unit = bp_com%current_file%f_unit)
     i_level = i_level - 1
     if (i_level < 0) then
-      call error_exit ('BAD "RETURN"')
+      call warning ('BAD "RETURN"')
+      return
     elseif (i_level > 0) then
       bp_com%current_file => file(i_level)
       bp_com%calling_file => file(i_level-1)
@@ -1258,7 +1259,7 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
 
 ! init
 
-  err_flag = .false.
+  err_flag = .true.
   i_lev = 0
   i_op = 0
   ran_function_pending = .false.
@@ -1274,12 +1275,13 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
     if (delim == '*' .and. word(1:1) == '*') then
       call warning ('EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**"!',  &
                     'for: ' // err_str)
-      err_flag = .true.
       return
     endif
 
-    if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) &
-          call error_exit ('RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT', 'FOR: ' // err_str)
+    if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) then
+      call warning ('RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT', 'FOR: ' // err_str)
+      return
+    endif
 
 !--------------------------
 ! Preliminary: If we have split up something that should have not been split
@@ -1357,7 +1359,6 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
         case default
           call warning ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
                                                   'FOR: ' // err_str)
-          err_flag = .true.
           return
         end select
       endif
@@ -1381,8 +1382,10 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
 
     elseif (delim == ')') then
       if (ix_word == 0) then
-        if (.not. ran_function_pending) call error_exit  &
-              ('CONSTANT OR VARIABLE MISSING BEFORE ")"', 'FOR: ' // err_str)
+        if (.not. ran_function_pending) then
+          call warning  ('CONSTANT OR VARIABLE MISSING BEFORE ")"', 'FOR: ' // err_str)
+          return
+        endif
         ran_function_pending = .false.
       else
         call word_to_value (word, lat, value)
@@ -1398,7 +1401,6 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
 
         if (i == 0) then
           call warning ('UNMATCHED ")" ON RHS', 'FOR: ' // err_str)
-          err_flag = .true.
           return
         endif
 
@@ -1408,7 +1410,6 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
         if (ix_word /= 0) then
           call warning ('UNEXPECTED CHARACTERS ON RHS AFTER ")"',  &
                                                     'FOR: ' // err_str)
-          err_flag = .true.
           return
         endif
 
@@ -1417,9 +1418,7 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
 
 
       if (delim == '(') then
-        call warning  &
-                    ('")(" CONSTRUCT DOES NOT MAKE SENSE FOR: ' // err_str)
-        err_flag = .true.
+        call warning ('")(" CONSTRUCT DOES NOT MAKE SENSE FOR: ' // err_str)
         return
       endif
 
@@ -1428,7 +1427,6 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
     else
       if (ix_word == 0) then
         call warning ('CONSTANT OR VARIABLE MISSING IN EVALUATING: ' // err_str)
-        err_flag = .true.
         return
       endif
       call word_to_value (word, lat, value)
@@ -1466,7 +1464,6 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
       if (eval_level(op(i)) >= eval_level(i_delim)) then
         if (op(i) == l_parens$) then
           call warning ('UNMATCHED "(" IN EVALUATING: ' // err_str)
-          err_flag = .true.
           return
         endif
         call pushit (stk%type, i_lev, op(i))
@@ -1491,7 +1488,6 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
 
   if (i_op /= 0) then
     call warning ('UNMATCHED "(" IN EVALUATING: ' // err_str)
-    err_flag = .true.
     return
   endif
 
@@ -1516,8 +1512,10 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
       stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value
       i2 = i2 - 1
     elseif (stk(i)%type == divide$) then
-      if (stk(i2)%value == 0) call error_exit  &
-              ('DIVIDE BY 0 ON RHS', 'FOR: ' // err_str)
+      if (stk(i2)%value == 0) then
+        call warning ('DIVIDE BY 0 ON RHS', 'FOR: ' // err_str)
+        return
+      endif
       stk(i2-1)%value= stk(i2-1)%value / stk(i2)%value
       i2 = i2 - 1
     elseif (stk(i)%type == power$) then
@@ -1558,6 +1556,7 @@ subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
   if (i2 /= 1) call error_exit ('INTERNAL ERROR #03: GET HELP')
 
   value = stk(1)%value
+  err_flag = .false.
 
 end subroutine
 
@@ -3948,11 +3947,15 @@ iseq_tot = size(seq_indexx)
 n_max = size(in_name)
 
 call find_indexx (use_name, seq_name, seq_indexx, iseq_tot, i_use)
-if (i_use == 0) call error_exit &
-    ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // use_name, ' ')
+if (i_use == 0) then
+  call warning ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // use_name, ' ')
+  return
+endif
 
-if (sequence(i_use)%type /= line$) call error_exit  &
-                      ('NAME IN "USE" STATEMENT IS NOT A LINE!', ' ')
+if (sequence(i_use)%type /= line$) then
+  call warning ('NAME IN "USE" STATEMENT IS NOT A LINE!', ' ')
+  return
+endif
 
 ! Now to expand the lines and lists to find the elements to use.
 ! First go through the lines and lists and index everything.
@@ -4152,7 +4155,7 @@ line_expansion: do
       if (size(seq2%dummy_arg) /= size(s_ele%actual_arg)) then
         call warning ('WRONG NUMBER OF ARGUMENTS FORREPLACEMENT LINE: ' // &
             s_ele%name, 'WHEN USED IN LINE: ' // seq%name, seq = seq)
-        call err_exit
+        return
       endif
       arg_loop: do i = 1, size(seq2%dummy_arg)
         seq2%corresponding_actual_arg(i) = s_ele%actual_arg(i)
