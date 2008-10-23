@@ -115,6 +115,8 @@ endif
 
 if (allocated(s%u)) call deallocate_everything ()
 
+bmad_status%exit_on_error = .false.
+
 call tao_init_lattice (lattice_file) 
 call tao_init_global(tao_com%init_tao_file)
 call tao_init_variables (var_file)
@@ -122,8 +124,6 @@ call tao_init_data (data_file)
 call tao_init_wall (wall_file)
 
 call tao_hook_init1 (tao_com%init_tao_file)
-
-bmad_status%exit_on_error = .false.
 
 ! check variables
 ! check if vars are good
