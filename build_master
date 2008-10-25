@@ -1298,4 +1298,10 @@ if build_type == "RELEASE":
   os.popen('/home/cesrulib/bin/util/generate_html '+rel_name)
 ### 
 
+###
+#Write the trigger file to the shared VMS directory to start the VMS build process
+###
+if build_type == "RELEASE":
+  os.popen('/home/cesrulib/bin/util/write_trigger_file '+rel_name)
+###
 sys.exit(0)
