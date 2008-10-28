@@ -142,8 +142,7 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
     lat_file = lat_file(1:ix-1)
 
     ! Strip of beginning "bmad_" if it is there
-    if (lat_file(1:5) /= 'bmad_') cycle
-    lat_file = lat_file(6:)  
+    if (lat_file(1:5) == 'bmad_') lat_file = lat_file(6:)  
 
     num_lats = num_lats + 1
     if (num_lats > size(lat_list)) then
