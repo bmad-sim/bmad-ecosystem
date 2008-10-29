@@ -1,0 +1,11 @@
+#!/bin/sh
+if [ $# != 1 ]
+then
+	echo "Invalid number or arguments. Sample usage: write_trigger_file cesr_2008_1023_d"
+	exit 1
+fi
+ssh -T -t lnx190c << EOI
+echo "$1" > /nfs/cesr/mnt/bctl/cesr_vms_builds.flag
+exit
+EOI
+exit
