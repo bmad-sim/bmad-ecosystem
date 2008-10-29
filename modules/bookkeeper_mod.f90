@@ -1419,7 +1419,6 @@ case (elseparator$)
 
 
 ! Wiggler
-! Periodic_type wigglers have a single %wig_term for use with tracking, etc.
 
 case (wiggler$) 
 
@@ -1441,6 +1440,11 @@ case (wiggler$)
     val(n_pole$) = val(l$) / val(l_pole$)
   endif
 
+  ! Periodic_type wigglers have a single %wig_term for use with tracking, etc.
+  ! The phase of this term is set so that tracking with a particle starting
+  ! on-axis gives at the exit end p_x = 0. The x_patch attribute is then calculated
+  ! To take care of the finite x coordinate. 
+
   if (ele%sub_key == periodic_type$) then
     if (.not. associated(ele%wig_term)) allocate (ele%wig_term(1))
 
@@ -1452,7 +1456,7 @@ case (wiggler$)
     ele%wig_term(1)%coef   = val(b_max$)
     ele%wig_term(1)%kx     = 0
     ele%wig_term(1)%kz     = ele%wig_term(1)%ky
-    ele%wig_term(1)%phi_z  = (val(l_pole$) - val(l$)) / 2
+    ele%wig_term(1)%phi_z  = pi * (val(l_pole$) - val(l$)) / (2 * val(l_pole$))
     ele%wig_term(1)%type   = hyper_y$
   endif
 
@@ -1510,9 +1514,12 @@ if (z_patch_calc_needed) then
   start = ele%map_ref_orb_in
   call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
   val(z_patch$) = end%vec(5)
+  end%vec(5) = 0
   if (val(z_patch$) == 0) val(z_patch$) = 1e-30 ! something non-zero.
-  if (ele%sub_key == periodic_type$) val(x_patch$) = end%vec(1)
-  end%vec(5) = end%vec(5) - val(z_patch$)
+  if (ele%sub_key == periodic_type$) then
+    val(x_patch$) = end%vec(1)
+    end%vec(1) = 0
+  endif
   ele%map_ref_orb_out = end             ! save for next super_slave
 endif
 

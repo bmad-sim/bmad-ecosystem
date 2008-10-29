@@ -219,6 +219,7 @@ Case (wiggler$)
     call err_exit 
   endif
 
+  if (ele%sub_key == periodic_type$) end%vec(1) = end%vec(1) - ele%value(x_patch$)
   end%vec(5) = end%vec(5) - ele%value(z_patch$)
 
 !----------------------------------------------------------------------------

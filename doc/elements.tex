@@ -1177,6 +1177,10 @@ superpositions (\sref{s:super}). It is not generally useful otherwise.
 \end{center}
 \toffset
 
+An \vn{Octupole} is a magnetic element with a cubic field dependence
+with transverse offset (\sref{s:fields}).  The \vn{Bmad_Standard}
+calculation treats an octupole using a kick--drift--kick model.
+
 \index{K3}
 \index{B3_gradient}
 Attributes specific to an \vn{Octupole} element are:
@@ -1184,9 +1188,6 @@ Attributes specific to an \vn{Octupole} element are:
   k3          = <Real>   ! Octupole strength.
   b3_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
-
-An \vn{Octupole} has a cubic field dependence.
-The \vn{Bmad_Standard} calculation treats an octupole using a kick--drift--kick model.
 
 \index{Tilt}
 If the \vn{tilt} attribute is present without a value then a value of 
@@ -1264,6 +1265,9 @@ Example:
 \end{center}
 \toffset
 
+An \vn{Octupole} is a magnetic element with a linear field dependence
+with transverse offset (\sref{s:fields}).
+
 \index{K1}
 \index{B1_gradient}
 Attributes specific to a \vn{Quadrupole} element are:
@@ -1273,7 +1277,6 @@ Attributes specific to a \vn{Quadrupole} element are:
 \end{example}
 
 \index{Tilt}
-A \vn{Quadrupole} has a linear field dependence.
 If the \vn{tilt} attribute is present without a value then a value of $\pi/4$
 is used.
 Example:
@@ -1359,6 +1362,9 @@ Example:
 \end{center}
 \toffset
 
+A \vn{Sextupole} is a magnetic element with a quadratic field
+dependence with transverse offset (\sref{s:fields}).
+
 \index{K2}
 \index{B2_gradient}
 Attributes specific to an \vn{Sextupole} element are:
@@ -1367,8 +1373,7 @@ Attributes specific to an \vn{Sextupole} element are:
   b2_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
-A \vn{Sextupole} is an element with a magnetic field that varies
-quadratically with transverse offset. The \vn{Bmad_Standard}
+The \vn{Bmad_Standard}
 calculation treats a sextupole using a kick--drift--kick model.
 
 If the \vn{tilt} attribute is present without a value then a value of 
@@ -1462,13 +1467,13 @@ Example:
 \end{center}
 \toffset
 
+A \vn{Taylor} is a Taylor map (\sref{s:taylor.phys}). This can be used in place of the \mad 
+\vn{matrix} element.
+
 Attributes specific to a \vn{Taylor} element are:
 \begin{example}
   \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6> \}  ! Taylor coefficient. 
 \end{example}
-
-A \vn{Taylor} is a Taylor map. This can be used in place of the \mad 
-\vn{matrix} element.
 
 A term in a Taylor map is of the form
 \Begineq
@@ -1535,7 +1540,11 @@ A \vn{Wiggler} is basically a periodic array of alternating bends.
 There are two types of wigglers. Those that that are described using a
 magnetic field map (``map type'') and those that are described
 assuming a periodic field (``periodic type''). See
-\sref{s:wiggler.phys} for more details.
+\sref{s:wiggler.phys} for more details.  Tracking a particle through a
+wiggler is always done so that if the particle starts on-axis with no
+momentum offsets, there is no change in the $z$ coordinate even though
+the actual trajectory through the wiggler does not follow the straight
+line reference trajectory.
 
 \index{Polarity}
 \index{X_ray_line_len}
