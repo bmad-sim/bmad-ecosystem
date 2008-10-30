@@ -53,13 +53,13 @@ for s in summaryoutput:                        #write summary to the index file
     index.write(s[:-1]+"<BR>")
 
 
-index.write('=======================================================================<BR>')
-summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/Linux_i686_lahey/'+rel_name+".log").readlines() #get a summary
+#index.write('=======================================================================<BR>')
+#summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/Linux_i686_lahey/'+rel_name+".log").readlines() #get a summary
 
-index.write("Summary for Linux_i686_lahey<BR>")
-for s in summaryoutput:                        #write summary to the index file    
-    index.write(s[:-1]+"<BR>")
-
+#index.write("Summary for Linux_i686_lahey<BR>")
+#for s in summaryoutput:                        #write summary to the index file    
+#    index.write(s[:-1]+"<BR>")
+#Lahey platform no longer supported
 
 index.write('=======================================================================<BR>')
 summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/OSF1_alpha_hp/'+rel_name+".log").readlines() #get a summary
