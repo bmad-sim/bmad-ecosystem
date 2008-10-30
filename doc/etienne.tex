@@ -41,7 +41,7 @@ conjunction with FPP) subroutines directly.
 %--------------------------------------------------------------------------
 \section{Phase Space}
 \label{s:etienne.space}
-\indexptc{phase space}
+\index{PTC/FPP!phase space}
 
 PTC uses different longitudinal phase space coordinates compared to \bmad.
 \bmad's phase space coordinates are
@@ -60,7 +60,7 @@ structures. See \sref{r:ptc} for more details.
 %--------------------------------------------------------------------------
 \section{Initialization}
 \label{s:etienne.init}
-\indexptc{initialization}
+\index{PTC/FPP!initialization}
 
 One important parameter in PTC is the order of the Taylor maps.
 By default \bmad\ will set this to 3. The order can be set within
@@ -76,11 +76,13 @@ to change the order in mid program.
 %--------------------------------------------------------------------------
 \section{Taylor Maps}
 \label{s:etienne.taylor}
-\indexptc{Taylor Maps}
+\index{PTC/FPP!Taylor Maps}
 
-FPP stores its \vnptc{real_8} Taylor maps in such a way that it is not easy to access them
-directly to look at the particular terms. To simplify life, Etienne has 
-implemented the \vnptc{universal_taylor}structure:
+\index{PTC/FPP!real_8}\index{PTC/FPP!universal_taylor}
+FPP stores its \vn{real_8} Taylor maps in such a way that it is not
+easy to access them directly to look at the particular terms. To
+simplify life, Etienne has implemented the
+\vn{universal_taylor}structure:
 \begin{example}
   type universal_taylor
     integer, pointer  :: n       ! Number of coefficients

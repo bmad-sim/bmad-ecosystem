@@ -22,8 +22,8 @@ The first two lines of this example have exactly the same effect in
 terms of setting the \vn{tracking_method}. The third line shows how to
 set the \vn{tracking_method} for an entire class of elements.
 
-\index{Sympliectify}
-\index{Map_with_offsets}
+\index{sympliectify}
+\index{map_with_offsets}
 Two element attributes that can affect the way the transfer matrix is
 calculated are \vn{symplectify} and \vn{map_with_offsets}. These are
 discussed in \sref{s:symp} and \sref{s:mapoff} respectively.
@@ -40,7 +40,7 @@ A table giving which methods are available with which element classes is
 given in Table~\ref{t:track.methods}.
 
 A note on terminology: Adaptive step size control used with the
-\vn{Adaptive_Boris} and \vn{Runge_Kutta} integrators means that 
+\vn{adaptive_boris} and \vn{Runge_Kutta} integrators means that 
 instead of taking fixed step sizes the integrator chooses the proper
 step size so that the error in the tracking is below the maximum
 allowable error set by \vn{rel_tol} and \vn{abs_tol} tolerances. The
@@ -53,8 +53,8 @@ uniform and you know what a good step size is you can save time by using
 a fixed step size.
 
 \begin{description}
-\index{Adaptive_Boris}
-\item[\vn{Adaptive_Boris}]
+\index{adaptive_boris}
+\item[\vn{adaptive_boris}]
 Second order Boris integration\cite{b:boris} with adaptive step size control.
 This should be nearly symplectic but slow.
 
@@ -168,7 +168,7 @@ that it can be used for long term tracking.
 \centering {
 \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|c|} \hline
 \rule{0pt}{80pt} &
-\begin{sideways}\vn{Adaptive_Boris}\end{sideways} &
+\begin{sideways}\vn{adaptive_boris}\end{sideways} &
 \begin{sideways}\vn{Bmad_Standard}\end{sideways} &
 \begin{sideways}\vn{Boris}\end{sideways} &
 \begin{sideways}\vn{Custom}\end{sideways} &
@@ -404,22 +404,22 @@ Example:
 
 \index{Ds_step}
 \index{Num_steps}
-\index{Taylor}
+\index{Taylor}\index{symp_lie_ptc}\index{symp_lie_bmad}\index{runge_kutta}\index{boris}
 One way to create a transfer map through an element is to divide the
 element up into slices and then to propagate the transfer map slice by
-slice.  There are several ways to do this integration. The \vni{Boris}
-and \vni{Runge_Kutta} methods integrate the equations of motion to
+slice.  There are several ways to do this integration. The \vn{boris}
+and \vn{runge_kutta} methods integrate the equations of motion to
 give the 0\Th order Taylor map which just represents a particle's
 orbit.  Symplectic integration\index{Symplectic!integration} using Lie
 algebraic techniques, on the other hand, can generate Taylor maps to
 any order.  The \vn{ds_step} attribute determines the slice thickness.
 Alternatively, \vn{num_steps} attribute can be used in place of
 \vn{ds_step} to specify the number of slices.
-This is applicable to \vn{Boris}, \vni{Symp_Lie_Bmad}, and
-\vni{Symp_Lie_PTC} integration.
+This is applicable to \vn{Boris}, \vn{symp_lie_bmad}, and
+\vn{symp_lie_ptc} integration.
 
 \index{Integrator_order}
-\index{Ds_step}
+\index{Ds_step}\index{symp_lie_bmad}
 \vn{integrator_order} is the order of the integration formula for 
 \vn{Symp_Lie_PTC}. Possible values are
 \begin{example}
@@ -432,13 +432,13 @@ accurate results but a higher order integrator will take more time per
 step. It turns out that for wigglers, after adjusting \vn{ds_step}
 for a given accuracy, the order 2 integrator is the fastest. This is
 not surprising given the highly nonlinear nature of a wiggler. Note
-that \vni{Symp_Lie_Bmad} always uses an order 2 integrator
+that \vn{symp_lie_bmad} always uses an order 2 integrator
 independent of the setting of \vn{integrator_order}.
 
 \index{Ds_step}
 \index{Rel_tol}
-\index{Abs_tol}
-\vni{Adaptive_Boris} and \vni{Runge_Kutta} use adaptive step
+\index{Abs_tol}\index{runge_kutta}\index{adaptive_boris}
+\vn{adaptive_boris} and \vn{runge_kutta} use adaptive step
 control independent of \vn{ds_step}. These methods use the \vn{rel_tol} and
 \vn{abs_tol} attributes to try to keep the estimated error of the integration
 such that
@@ -448,8 +448,8 @@ such that
 lowering the error bounds makes for greater accuracy (as long as round-off 
 doesn't hurt) but for slower tracking. 
 
-\index{Field_calc}
-\vni{Boris}, \vni{Adaptive_Boris}, and \vni{Runge_Kutta} tracking all use
+\index{Field_calc}\index{runge_kutta}\index{adaptive_boris}\index{boris}
+The \vn{boris}, \vn{adaptive_boris}, and \vn{runge_kutta} tracking all use
 as input the electric and magnetic fields of an element. How the EM fields
 are calculated is determined by the \vn{field_calc} attribute for an element.
 Possible values for \vn{field_calc} are:
@@ -463,17 +463,18 @@ Possible values for \vn{field_calc} are:
 need the appropriate custom routine. See \sref{s:custom.field} for more
 details.
 
-\vni{Boris} (Both \vn{Boris} and \vni{Adaptive_Boris}) tracking does not
-assume that a particle is relativistic so \vn{Boris} tracking can be
+\index{boris}\index{adaptive_boris}
+Both \vn{boris} and \vn{adaptive_boris} tracking do not
+assume that a particle is relativistic so these tracking methods can be
 used with non--relativistic particles. The phase space coordinates
-used in \vn{Boris} tracking are not the usual \bmad coordinates Rather
+used in these tracking methods are not the usual \bmad coordinates Rather
 what is used is
 \begin{example}
     (x, p_x/p_0, y, p_y/p_0, s-ct, dE/(cP_0))
 \end{example}
-At high energy $s-ct = z$ which is the distance of the particle from the 
-reference particle and $c \, P_0 = v \, E_0/C = E_0$ so that $dE/cP_0 = dE/E$ giving
-the standard \bmad coordinates.
+At high energy $s-ct = z$ which is the distance of the particle from
+the reference particle and $c \, P_0 = v \, E_0/C = E_0$ so that
+$dE/cP_0 = dE/E$ giving the standard \bmad coordinates.
 
 %-----------------------------------------------------------------
 \section{Symplectify Attribute}

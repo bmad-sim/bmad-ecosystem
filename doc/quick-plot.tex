@@ -491,8 +491,9 @@ PGPLOT defines a text background index:
 \label{s:qp.structs}
 \index{Quick_Plot!structures}
 
+\index{qp_line_struct}
 \quickplot uses several structures to hold data. The structure that
-defines a line is a \vni{qp_line_struct}
+defines a line is a \vn{qp_line_struct}
 \begin{example}
   type qp_line_struct
     integer width   ! Line width. Default = 1
@@ -501,7 +502,8 @@ defines a line is a \vni{qp_line_struct}
   end type
 \end{example}
 
-The \vni{qp_symbol_struct} defines how symbols are drawn 
+\index{qp_symbol_struct}
+The \vn{qp_symbol_struct} defines how symbols are drawn 
 \begin{example}
   type qp_symbol_struct
     integer  type        ! Default = circle_dot\$
@@ -512,7 +514,8 @@ The \vni{qp_symbol_struct} defines how symbols are drawn
   end type
 \end{example}
 
-The \vni{qp_axis_struct} defines how axes are drawn 
+\index{qp_axis_struct}
+The \vn{qp_axis_struct} defines how axes are drawn 
 \begin{example}
   type qp_axis_struct
     character(80) label       ! Axis label.

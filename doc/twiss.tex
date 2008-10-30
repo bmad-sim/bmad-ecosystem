@@ -133,8 +133,10 @@ the new routines should be explicitly listed in the linking list.
 \index{Fields (electric and magnetic)!custom calculation} 
 \index{Ele_struct!%field_calc}
 
+\index{runge_kutta}\index{boris}\index{ele_struct!%field_calc}
+\index{Routine!em_filed_custom}
 Custom Electric and Magnetic field calculations are used with
-\vni{Runge_Kutta} and \vni{Boris} tracking (See \sref{s:integ}).  To
+\vn{runge_kutta} and \vn{boris} tracking (See \sref{s:integ}).  To
 implement custom field calculations the \vn{ele%field_calc} component
 of an element must be set to \vn{custom\$}. This can be done either
 through the lattice input file or within a program. Additionally a

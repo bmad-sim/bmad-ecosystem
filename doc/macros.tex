@@ -16,6 +16,8 @@
 \newcommand{\comma}{\> ,}
 \newcommand{\period}{\> .}
 
+\newcommand{\hyperbf}[1]{\textbf{\hyperpage{#1}}}
+
 \newcommand{\om}{\omega}
 \newcommand{\qqquad}{\qquad \qquad}
 \newcommand{\ks}{\widetilde k_s}
@@ -62,25 +64,13 @@
 \newcommand{\vn}{\ttcmd}           % For variable names
 \newcommand{\cs}{\ttcmd}           % For code source
 \newcommand{\rn}{\ttcmd}           % For Routine names
-\newcommand{\vne}{\ttcmdz{Element}}
-\newcommand{\vnes}{\ttcmdz{Ele_struct}}
-\newcommand{\vnif}{\ttcmdz{Intrinsic functions}}
-\newcommand{\vnr}{\ttcmdz{Routine}}
-\newcommand{\vnptc}{\ttcmdz{PTC/FPP}}
-\newcommand{\indexptc}[1]{\index{PTC/FPP!#1}}
 \newcommand{\vnf}{\ttcmd}        % For functions/subroutines
-\newcommand{\vni}{\ttcmdindx}
+
+\newcommand{\vnr}{\ttcmdz{Routine}}
 
 
 \newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
 \newcommand\dottcmd[1]{\texttt{#1}\endgroup}
-
-\newcommand\ttcmdz{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmdz}
-\newcommand\dottcmdz[2]{\texttt{#2}\endgroup\index{#1!#2}}
-
-\newcommand\ttcmdindx{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmdindx}
-\newcommand\dottcmdindx[1]{\texttt{#1}\endgroup\index{#1}}
-
 
 %\newcommand\ttverb{
 %  \bgroup\let\do\@makeother\dospecials\catcode`{=1 \catcode`}=2 \DSAcode}

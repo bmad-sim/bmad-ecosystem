@@ -61,7 +61,9 @@ generally hidden  by the \bmad bookkeeping routines.
 %--------------------------------------------------------------------------
 \section{String components}
 
-\vnes{%name}, \vnes{%type}, \vnes{%alias}, and \vnes{%descrip} are character arrays
+\index{ele_struct!%descrip}\index{ele_struct!%alias}
+\index{ele_struct!%type}\index{ele_struct!%name}
+\vn{%name}, \vn{%type}, \vn{%alias}, and \vn{%descrip} are character arrays
 within an \vn{ele_struct}. All of these have a direct correspondence with
 the \vn{name}, \vn{type}, \vn{alias}, and \vn{descrip} element attributes in
 an input lattice file. The \vnr{bmad_parser} routine will convert 
@@ -74,7 +76,8 @@ make sure that it is allocated before hand.
 \section{Initialization and Element Key}
 \index{Ele_struct!initialization}
 
-The \vnes{%key} integer component gives the type of element
+\index{ele_struct!%key}
+The \vn{%key} integer component gives the type of element
 (\vn{Quadrupole}, \vn{RFcavity}, etc.). In general to get the
 corresponding integer parameter for an element class just add a ``\$''
 character to the type name. For example \vn{quadrupole\$} is the integer
@@ -91,9 +94,9 @@ outside of a \vn{lat_struct} structure.
 
 \index{Wiggler}
 \index{Rbend}
-\index{Sbend}
-The \vnes{%sub_key} component is only used for \vn{Wiggler} and \vn{Rbend} and
-\vn{Sbend} elements. For \vn{Wiggler} elements, \vnes{%sub_key} is either set to
+\index{Sbend}\index{ele_struct!%sub_key}
+The \vn{%sub_key} component is only used for \vn{Wiggler} and \vn{Rbend} and
+\vn{Sbend} elements. For \vn{Wiggler} elements, \vn{%sub_key} is either set to
 \begin{example}
   map_type$ or
   periodic_type$
@@ -138,8 +141,9 @@ of the element you need to look at the preceding element in the
 To get the parameters at a position within an element you can use the
 routines \vn{twiss_and_track_at_s} or \vn{twiss_and_track_partial}.
 
+\index{ele_struct!%z}\index{ele_struct!%b}\index{ele_struct!%a}
 \index{Normal Mode!in Ele_struct}
-The \vnes{%a}, \vnes{%b}, and \vnes{%z} components are
+The \vn{%a}, \vn{%b}, and \vn{%z} components are
 \vn{twiss_struct} structures that hold the Twiss parameters for the
 $a$, $b$ and $z$ modes respectively. The definition of
 the \vn{twiss_struct} structure is
@@ -191,8 +195,9 @@ dispersions from the projected ones. Thus a full transfer looks like
 \label{s:ele.dep}
 \index{Ele_struct!attribute values}
 
+\index{ele_struct!%value(:)}
 Most of the real valued attributes of an element are held in the
-\vnes{%value(:)} array. For example, the value of the \vn{k1} attribute
+\vn{%value(:)} array. For example, the value of the \vn{k1} attribute
 for a quadrupole element is stored in \vn{%value(k1\$)} where
 \vn{k1\$} is an integer parameter. In general to get the correct index
 in \vn{%value(:)} for a given attribute just add a ``\$" as a
@@ -224,9 +229,10 @@ like:
   lat%ele(i)%value(time_stamp$) = ...
 \end{example}
 
+\index{ele_struct!%b(:)}\index{ele_struct!%a(:)}\index{ele_struct!%value(:)}
 Certain real valued attributes are {\em not}
-found in the \vnes{%value(:)} array. For example, multipole components
-are stored in the \vnes{%a(:)} and \vnes{%b(:)} arrays. The full list
+found in the \vn{%value(:)} array. For example, multipole components
+are stored in the \vn{%a(:)} and \vn{%b(:)} arrays. The full list
 of real attributes not in \vn{%value(:)} is:
 \begin{center}
 \begin{tabular}{|l|l|} \hline
@@ -470,8 +476,9 @@ reference point is chosen (\sref{s:taylor.phys}).
 \section {Wake fields}
 \index{Wake fields!in ele_struct}
 
+\index{ele_struct!%wake}
 See \sref{s:wake fields} for the equations used in wake field
-calculations.  Wake fields are stored in the \vnes{%wake} struct:
+calculations.  Wake fields are stored in the \vn{%wake} struct:
 \begin{example}
   type wake_struct
     character(200) :: sr_file = ' '
@@ -603,10 +610,11 @@ can be used for tracking purposes, etc. The setting for this
 \section {Multipoles}
 \index{Ele_struct!multipoles}
 
+\index{ele_struct!%b(:)}\index{ele_struct!%a(:)}
 \index{Multipole!an, bn!in ele_struct}
 \index{Multipole!KnL, Tn!in ele_struct}
 The multipole components of an element (See \sref{s:fields}) are
-stored in the pointers \vnes{%a(:)} and \vnes{%b(:)}. If \vn{%a} and
+stored in the pointers \vn{%a(:)} and \vn{%b(:)}. If \vn{%a} and
 \vn{%b} are allocated they always have a range \vn{%a(0:n_pole_maxx)}
 and \vn{%b(0:n_pole_maxx)}. Currently \vn{n_pole_maxx} = 20. For a
 \vn{Multipole} element, the \vn{%a(n)} array stores the integrated
