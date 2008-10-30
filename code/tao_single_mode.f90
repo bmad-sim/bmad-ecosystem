@@ -96,11 +96,13 @@ case ('g')
 ! 'v' Show variables
 
 case ('v')
+  write (*, *)
   call tao_var_write ('')
 
 ! 'V' Show optimization variables 
 
 case ('V')
+  write (*, *)
   call tao_var_write ('', .true.)
 
 ! 'Z' Quit single character input mode.

@@ -1020,7 +1020,9 @@ present then a list of all \vn{d2_data} names is printed.
 
 Examples:
 \begin{example}
-  show data                   ! lists all d2_data arrays.
+  show data                   ! Lists d2_data for the currently viewed universe.
+  show data -1@               ! Same as "show data"
+  show data *@                ! Shows all d2_data in all universes.
   show data orbit             ! Show orbit data.
   show data orbit.x           ! list all orbit.x data elements.
   show data orbit.x[35]       ! Show details for orbit.x element 35

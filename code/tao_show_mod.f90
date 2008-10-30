@@ -536,14 +536,14 @@ case ('data')
 
   if (line1 == ' ') then  ! just specified a universe
 
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write(lines(nl), '(a, t40, a)') 'Name', 'Using for Optimization'
+
     do iu = lbound(s%u, 1), ubound(s%u, 1)
 
       if (.not. picked_uni(iu)) cycle
 
       u => s%u(iu)
-
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; write(lines(nl), '(a, t40, a)') 'Name', 'Using for Optimization'
 
       do i = 1, size(u%d2_data)
         d2_ptr => u%d2_data(i)

@@ -20,9 +20,10 @@ character(200) line
 
 ! find which variables to use
 
-call location_encode (line, v1_var%v%useit_opt, &
-                          v1_var%v%exists, lbound(v1_var%v,1))
-write (line, '(2x, a, 2a)') v1_var%name, "Using: " // trim(line)
+call location_encode (line, v1_var%v%useit_opt, v1_var%v%exists, lbound(v1_var%v,1))
+write (line, '(2x, 2a, i0, a, i0, a, t50, 2a)') trim(v1_var%name), &
+                      '[', lbound(v1_var%v, 1), ':', ubound(v1_var%v, 1), ']', &
+                      'Using: ' // trim(line)
 call out_io (s_blank$, r_name, line)
 
 end subroutine tao_var_show_use

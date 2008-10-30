@@ -284,7 +284,7 @@ call tao_mrqcof(atry, y, covar, da(1:mfit,1), weight, chisq, limited)
 if (limited) return
 
 if (chisq < ochisq) then
-  alamda=0.1_rp*alamda
+  if (alamda > 100*tiny(alamda)) alamda=0.1_rp*alamda
   ochisq=chisq
   alpha(1:mfit,1:mfit)=covar(1:mfit,1:mfit)
   beta(1:mfit)=da(1:mfit,1)
