@@ -72,6 +72,9 @@
 \newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
 \newcommand\dottcmd[1]{\texttt{#1}\endgroup}
 
+\newcommand\ttcmdz{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmdz}
+\newcommand\dottcmdz[2]{\texttt{#2}\endgroup\index{#1!#2}}
+
 %\newcommand\ttverb{
 %  \bgroup\let\do\@makeother\dospecials\catcode`{=1 \catcode`}=2 \DSAcode}
 %\newcommand*\DSAcode[1]{\texttt{#1}\egroup}
