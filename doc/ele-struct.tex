@@ -229,19 +229,20 @@ like:
   lat%ele(i)%value(time_stamp$) = ...
 \end{example}
 
-\index{ele_struct!\%b(:)}\index{ele_struct!\%a(:)}\index{ele_struct!\%value(:)}
+\index{ele_struct!\%b_pole(:)}\index{ele_struct!\%a_pole(:)}
+\index{ele_struct!\%value(:)}
 Certain real valued attributes are {\em not}
 found in the \vn{%value(:)} array. For example, multipole components
-are stored in the \vn{%a(:)} and \vn{%b(:)} arrays. The full list
+are stored in the \vn{%a_pole(:)} and \vn{%b_pole(:)} arrays. The full list
 of real attributes not in \vn{%value(:)} is:
 \begin{center}
 \begin{tabular}{|l|l|} \hline
   {\em Attribute} & {\em Component in Ele_struct} \\ \hline
-  a$n$, b$n$      & \%a(:), \%b(:)     \\ \hline
-  K$n$L, T$n$     & \%a(:), \%b(:)     \\ \hline
-  Taylor term     & \%taylor(:)        \\ \hline
-  wakes           & \%wake             \\ \hline
-  wiggler terms   & \%wig_term(:)      \\ \hline
+  a$n$, b$n$      & \%a_pole(:), \%b_pole(:) \\ \hline
+  K$n$L, T$n$     & \%a_pole(:), \%b_pole(:) \\ \hline
+  Taylor term     & \%taylor(:)              \\ \hline
+  wakes           & \%wake                   \\ \hline
+  wiggler terms   & \%wig_term(:)            \\ \hline
 \end{tabular}
 \end{center}
 

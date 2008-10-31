@@ -5,8 +5,8 @@
 \section{Lattice Files}
 \label{s:lattice.file.formats}
 
-\index{XSIF}
-\index{Attribute|hyperbf}
+\index{XSIF|hyperbf}
+\index{Bmad!lattice file format}
 A lattice file (or files) defines an accelerator: That is, a lattice
 file defines the sequence of elements that a particle will travel
 through along with the attributes of the elements (their lengths,
@@ -20,8 +20,8 @@ documentation which can be found at:
   http://www-project.slac.stanford.edu/
               lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
 \end{example}
-\index{lattice_type!parameter statement}
-\index{lCavity!and lattice_type}
+\index{parameter!lattice_type}
+\index{XSIF!lcavity and lattice_type}
 Since XSIF does not have a \vn{lattice_type} statement
 (\sref{s:param}), the type of the lattice (whether circular or linear)
 is determined by the presence or absence of any \vn{LCavity} elements
@@ -61,7 +61,7 @@ construct a valid lattice file.
 
 %---------------------------------------------------------------------------
 \section{File Example and Syntax}
-\index{lattice files!statement syntax}
+\index{Bmad!statement syntax}
 
 The following (rather silly) example shows the main features of a
 \bmad lattice file:
@@ -121,9 +121,8 @@ If \bmad is not able to create a digested file (typically because it
 does not have write permission in the directory), an error message will
 be generated but otherwise program operation will be normal.
 
-\index{Intrinsic functions!ran}
-\index{Intrinsic functions!ran_gauss}
-\index{ran_seed!parameter statement}
+\index{ran}
+\index{ran_gauss}
 Digested files contain the names of the lattice files used to create
 them. If a lattice file has been modified since the digested file has
 been created then the the lattice files will be reread and a new
@@ -169,8 +168,6 @@ details.
 %---------------------------------------------------------------------------
 \section{Lattice Elements}
 
-\index{MAD!lattice format}
-\index{Attribute}
 The syntax for defining a lattice element roughly follows \mad:
 \begin{example}
   label: keyword [, attributes]
@@ -339,7 +336,7 @@ The following intrinsic functions are recognized by \bmad: \hfil\break
   \vn{ran_gauss}()  & Gaussian distributed random number \\
 \end{tabular}
 
-\index{ran_seed!parameter statement}
+\index{ran_seed}
 \vn{ran_gauss} is a Gaussian distributed random number with unit RMS. 
 Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
 To choose the seed set 
@@ -351,7 +348,7 @@ different sequences of random numbers will be generated each time a
 program is run.  The default behavior if \vn{parameter[ran_seed]} is
 not present is to use the system clock for the seed.
 
-\index{expand_lattice!statement}
+\index{expand_lattice statement}
 If an element is used multiple times in a lattice, and if \vn{ran} or
 \vn{gauss_ran} is used to set an attribute value of this element, then
 to have all instances of the element have different attribute values

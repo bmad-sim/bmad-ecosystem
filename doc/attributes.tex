@@ -19,12 +19,12 @@ are set by the \vn{parameter} statement (See
 \sref{s:param}). \vn{l_lattice} is calculated when the
 lattice is read in.
 
-\index{BBI_const}\index{charge}\index{sig_x}\index{sig_y}
+\index{bbi_constant}\index{charge}\index{sig_x}\index{sig_y}
 \index{e_tot}\index{n_part}\index{e_field}\index{voltage}
 \index{hkick}\index{vkick}\index{gap}\index{l}
 \index{e_tot}\index{e_loss}\index{delta_e}\index{gradient}
 \index{l}\index{rho}\index{angle}\index{l_chord}
-\index{g}\index{l}\index{k1}\index{rho}
+\index{g}\index{l}\index{k1}\index{rho}\index{num_steps}\index{ds_step}
 \index{b_max}\index{e_tot}\index{beambeam}\index{elseparator}
 \index{lcavity}\index{rbend}\index{sbend}\index{wiggler}
 \begin{table}[ht]
@@ -32,13 +32,13 @@ lattice is read in.
 \begin{tabular}{|l|l|l|} \hline
  {\em Element}                & {\em Dependent Variables}    & {\em Independent Variables}        \HH
  \vn{BeamBeam}                & \vn{bbi_constant}            & 
-                                     \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{E_tot}, \vn{n_part} \HH
+                                     \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{e_tot}, \vn{n_part} \HH
  \vn{Elseparator}             & \vn{e_field}, \vn{voltage}   & 
-                                          \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{E_tot}    \HH
+                                          \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{e_tot}    \HH
  \vn{Lcavity}                 & \vn{e_loss}, \vn{delta_e}    & \vn{gradient}, \vn{l}              \HH
  \vn{Rbend}, \vn{Sbend}       & \vn{rho}, \vn{angle}, \vn{l_chord} 
                                                              & \vn{g}, \vn{l}                     \HH
- \vn{Wiggler} (periodic type) & \vn{k1}, \vn{rho}            & \vn{b_max}, \vn{E_tot}             \HH
+ \vn{Wiggler} (periodic type) & \vn{k1}, \vn{rho}            & \vn{b_max}, \vn{e_tot}             \HH
  All elements                 & \vn{num_steps}               & \vn{ds_step}                       \HH
 \end{tabular}
 }
@@ -161,21 +161,21 @@ comma (,) or the end of the line marks the end of the string. Example:
 \index{patch}\index{lcavity}\index{p0c}
 The attributes that define the reference energy and momentum at an element are:
 \begin{example}
-  E_tot = <Real>  ! Total energy in eV.
+  e_tot = <Real>  ! Total energy in eV.
   p0c         = <Real>  ! Momentum in eV.
 \end{example}
 The energy and momentum are defined at the exit end of the element.
 For ultra--relativistic particles these two values are the same.
 See~\sref{s:phase.space.coords}. These attributes are dependent and thus
 cannot be set for an element directly in the lattice input
-file. The value of \vn{E_tot} and \vn{p0c} for an element is calculated by
+file. The value of \vn{e_tot} and \vn{p0c} for an element is calculated by
 \bmad to be the same as the previous element except for \vn{Lcavity}
-and \vn{Patch} elements. To set the \vn{E_tot} or \vn{p0c} at the start of
+and \vn{Patch} elements. To set the \vn{e_tot} or \vn{p0c} at the start of
 the lattice use the \vn{beginning} or \vn{parameter} statements.
 See~\sref{s:param}. Since the energy changes from the start to the end
 of an \vn{Lcavity}, An \vn{Lcavity} has the attributes
 \begin{example}
-  E_tot_start
+  e_tot_start
   p0c_start
 \end{example}
 which is just the reference energy and momentum at the start of the element.
@@ -411,8 +411,8 @@ Example:
 \section{Length Attributes}
 \label{s:l}
 
-\index{l}
-\index{l_chord}
+\index{l|hyperbf}
+\index{l_chord|hyperbf}
 \index{rbend}
 \index{sbend}
 The length attributes are
@@ -434,7 +434,7 @@ with the reference energy starting on the reference orbit.
 %-----------------------------------------------------------------
 \section{Is_on Attribute}
 \label{s:is.on}
-\index{is_on}
+\index{is_on|hyperbf}
 
 The \vn{is_on} attribute
 \begin{example}
@@ -456,8 +456,8 @@ off an \vn{LCavity} will not affect the reference energy.
 \section{Multipole Attributes: An, Bn, KnL, Tn}
 \label{s:multip}
 
-\index{multipole!an, bn} 
-\index{multipole!KnL, Tn} 
+\index{multipole!an, bn|hyperbf} 
+\index{multipole!knl, tn|hyperbf} 
 \index{ab_multipole}
 \index{multipole}
 \index{radius}

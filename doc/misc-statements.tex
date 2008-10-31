@@ -8,13 +8,13 @@ This chapter deals with the statements not covered in the previous chapters.
 \index{parameter statement|hyperbf}
 
 
-\index{lattice!parameter statement}
-\index{lattice_type!parameter statement}
-\index{taylor_order!parameter statement}
-\index{e_tot!parameter statement}
-\index{p0c!parameter statement}
-\index{ran_seed!parameter statement}
-\index{n_part!parameter statement}
+\index{lattice}
+\index{lattice_type}
+\index{taylor_order}
+\index{e_tot}
+\index{p0c}
+\index{ran_seed}
+\index{n_part}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
 other variables.  The variables that can be set by \vn{parameter} is
 \begin{example}
@@ -50,16 +50,23 @@ Valid \vn{particle} switches are:
   antiproton
 \end{example}
 
+\index{e_tot}
+\index{e_tot}
+\index{lcavity}
+\index{patch}
+\index{p0c}
 The \vn{parameter[e_tot]} and \vn{parameter[p0c]} are the reference
 total energy and momentum at the start of the lattice.  Each element
-in a lattice has an individual reference \vn{e_tot} and \vn{p0c} which
-are dependent parameters. The reference energy and momentum will only
+in a lattice has an individual reference \vn{e_tot} and \vn{p0c} attributes
+which are dependent parameters. The reference energy and momentum will only
 change between \vn{LCavity} or \vn{Patch} elements. The starting
 reference energy, if not set, will be set to 1000 time the particle
 rest energy.  Note: \vn{beginning[e_tot]} and \vn{beginning[p0c]} are
 equivalent to \vn{parameter[e_tot]} and \vn{parameter[p0c]}.
 
 \index{beambeam}
+\index{n_part}
+\index{lcavity}
 The \vn{parameter[n_part]} is the number of particle in a bunch.
 it is used with \vn{BeamBeam} elements and is used to calculate the
 change in energy through an \vn{Lcavity}. See~\sref{s:lcav} for more
@@ -82,7 +89,7 @@ This syntax is obsolete since a typographical error cannot be caught.
 \noindent
 \index{circular_lattice}
 \index{linear_lattice}
-\index{lCavity!and lattice_type}
+\index{lcavity!and lattice_type}
 Valid \vn{lattice_type} switches are
 \begin{example}
   circular_lattice  ! Default w/o LCavity element present.
@@ -96,7 +103,7 @@ there are \vn{Lcavity} elements present, \vn{linear_lattice} will be used
 as the default.
 
 \index{taylor_order statement}
-\index{taylor_order!parameter statement}
+\index{taylor_order}
 The Taylor order (\sref{s:taylor.phys}) is set by
 \vn{parameter[taylor_order]} and is the maximum order for a Taylor map.
 Historically it is possible to set the Taylor order using the syntax
@@ -110,7 +117,15 @@ This syntax is obsolete since a typographical error is not easily caught.
 \label{s:beam.start}
 \index{beam_start statement|hyperbf}
 
-\index{beam_start!x, p_x, y, p_y, z, p_z}
+\index{x}
+\index{p_x}
+\index{y}
+\index{p_y}
+\index{z}
+\index{p_z}
+\index{emittance_a}
+\index{emittance_b}
+\index{emittance_z}
 The \vn{beam_start} statement is used to set the starting coordinates
 for particle tracking
 \begin{example}
@@ -133,13 +148,13 @@ Examples
 
 %-----------------------------------------------------------------------------
 \section{Beam Statement}
-\index{Beam statement|hyperbf}
+\index{beam statement|hyperbf}
 
-\index{energy!beam statement}
-\index{particle!beam statement}
-\index{n_part!beam statement}
-\index{MAD}
-The \vn{Beam} statement is provided for compatibility with \mad. The syntax is
+\index{energy}
+\index{particle}
+\index{n_part}
+\index{MAD!beam statement}
+The \vn{beam} statement is provided for compatibility with \mad. The syntax is
 \begin{example}
   beam, energy = GeV, pc = GeV, particle = <Switch>, n_part = <Real>
 \end{example}
@@ -177,7 +192,7 @@ For example
 %--------------------------------------------------------------------------
 \section{Call Statement}
 \label{s:call}
-\index{Call statement|hyperbf}
+\index{call statement|hyperbf}
 
 It is frequently convenient to separate the lattice definition into
 several files.  Typically there might be a file (or files) that define
@@ -224,8 +239,8 @@ the \bmad lattice file operate on the expanded lattice.
 
 %--------------------------------------------------------------------------
 \section{Return and End_File statements}
-\index{return statement}
-\index{end_file statement}
+\index{return statement|hyperbf}
+\index{end_file statement|hyperbf}
 
 \vn{Return} and \vn{end_file} have identical effect and tell \bmad to
 ignore anything beyond the \vn{return} or \vn{end_file} statement in
@@ -236,19 +251,19 @@ the file.
 \label{s:beginning}
 \index{beginning statement|hyperbf}
 
-\index{beta_a!initialization}
-\index{alpha_a!initialization}
-\index{phi_a!initialization}
-\index{eta_a!initialization}
-\index{etap_a!initialization}
-\index{beta_b!initialization}
-\index{alpha_b!initialization}
-\index{phi_b!initialization}
-\index{eta_b!initialization}
-\index{etap_b!initialization}
-\index{cij!initialization}
-\index{e_tot!initialization}
-\index{p0c!initialization}
+\index{beta_a}
+\index{alpha_a}
+\index{phi_a}
+\index{eta_a}
+\index{etap_a}
+\index{beta_b}
+\index{alpha_b}
+\index{phi_b}
+\index{eta_b}
+\index{etap_b}
+\index{cmat_ij}
+\index{e_tot}
+\index{p0c}
 For non--circular lattices the \vn{beginning} statement can be used to
 set the Twiss parameters and beam energy at the beginning of the lat
 \begin{example}
@@ -267,7 +282,7 @@ set the Twiss parameters and beam energy at the beginning of the lat
   beginning[e_tot]   = <Real>  ! Reference total energy in eV.
   beginning[p0c]     = <Real>  ! Reference momentum in eV.
 \end{example}
-\index{e_tot!initialization}
+\index{e_tot}
 The \vn{gamma_a}, \vn{gamma_b}, and \vn{gamma_c} (the coupling gamma
 factor) will be kept consistent with the values set. If not set the
 default values are all zero.  \vn{beginning[e_tot]} and
@@ -275,12 +290,12 @@ default values are all zero.  \vn{beginning[e_tot]} and
 set but not both. Similarly, \vn{beginning[p0c]} and
 \vn{parameter[p0c]} are equivalent.
 
-\index{x_position!initialization}
-\index{y_position!initialization}
-\index{z_position!initialization}
-\index{theta_position!initialization}
-\index{phi_position!initialization}
-\index{psi_position!initialization}
+\index{x_position}
+\index{y_position}
+\index{z_position}
+\index{theta_position}
+\index{phi_position}
+\index{psi_position}
 For any lattice the \vn{beginning} statement can be used to set the starting floor position 
 (see~\ref{s:global}). The syntax is
 \begin{example}

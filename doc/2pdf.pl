@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-`scp lnx209:/home/dcs/public_html/bmad/manual.html .`;
+`scp dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad/manual.html .`;
 
 $found = 0;
 open (FC, "cover-page.tex") || die ("Cannot open File: cover-page.tex\n");
@@ -37,6 +37,6 @@ close (FM);
 close (F_OUT);
 `mv temp.out $file`;
 
-`scp manual.html       lnx209:/home/dcs/public_html/bmad`;
-`scp bmad-manual-*.pdf lnx209:/home/dcs/public_html/bmad`;
-`scp bmad-manual-*.ps  lnx209:/home/dcs/public_html/bmad`;
+`scp manual.html       dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad`;
+`scp bmad-manual-*.pdf dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad`;
+`scp bmad-manual-*.ps  dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad`;
