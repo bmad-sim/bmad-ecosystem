@@ -96,7 +96,7 @@ The syntax of the command line is:
 The \vn{-init} optional argument can be used to replace the default
 initialization file name (\vn{tao.init}) with \vn{<init_file_name>}.
 An initialization file is actually not needed. In this case, a
-\vn{-lat} switch is manditory and \tao will use a set of default plot
+\vn{-lat} switch is mandatory and \tao will use a set of default plot
 templates for plotting.
 
 The \vn{-beam_all} optional argument reads in a beam data file for the
@@ -328,41 +328,41 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{single_mode}\index{init_opt_wrapper}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
 \index{init_plot_needed}\index{lattice_calc_on}\index{command_file_print_on}
-\index{print_command}\index{default_init_file}
+\index{print_command}\index{default_init_file}\index{no_symbols_without_layout}
 \index{current_init_file}\index{var_out_file}
 \begin{example}
 type tao_global_struct
-  real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
-  real(rp) :: lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
-  real(rp) :: de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
-  integer :: u_view = 1                  ! Which universe we are viewing.
-  integer :: n_opti_cycles = 20          ! number of optimization cycles
-  integer :: n_opti_cycles = 1           ! number of optimization loops
-  integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
-  integer :: phase_units = radians\$      ! Phase units on output.
-  integer :: bunch_to_plot = 1           ! Which bunch to plot
-  integer :: random_seed = 0             ! use system clock by default
-  character(16) :: random_engine = "pseudo"         ! Random number engine to use
-  character(16) :: random_gauss_converter = "exact" ! Uniform to gauss conversion method
-  real(rp) :: random_sigma_cutoff = 4.0             ! Cut-off in sigmas.
-  character(16) :: track_type = "single"            ! or "beam" 
-  character(16) :: prompt_string = "Tao"
-  character(16) :: optimizer     = "de"             ! optimizer to use.
-  character(16) :: default_key_merit_type
-  character(40) :: print_command = "lpr"
-  character(80) :: var_out_file  = "var#.out"
-  logical :: var_limits_on = T           ! Respect the variable limits?
-  logical :: auto_scale = F              ! Automatically scale and x-scale the plots?
-  logical :: opt_with_ref = F            ! use reference data in optimization?
-  logical :: opt_with_base = F           ! use base data in optimization?
-  logical :: init_opt_wrapper = T
-  logical :: label_lattice_elements = T  ! For lat_layout plots
-  logical :: label_keys = T              ! For lat_layout plots
-  logical :: derivative_recalc = T       ! Recalc before each optimizer run?
-  logical :: init_plot_needed = T        ! reinitialize plotting?
-  logical :: plot_on = T                 ! Do plotting?
-  logical :: lattice_calc_on = T         ! Master switch.
-  logical :: command_file_print_on = T   ! Toggle printing when using a command file.
+  real(rp) y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
+  real(rp) lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
+  real(rp) de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
+  integer u_view = 1                  ! Which universe we are viewing.
+  integer n_opti_cycles = 20          ! number of optimization cycles
+  integer n_opti_cycles = 1           ! number of optimization loops
+  integer n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
+  integer phase_units = radians\$      ! Phase units on output.
+  integer bunch_to_plot = 1           ! Which bunch to plot
+  integer random_seed = 0             ! use system clock by default
+  character(16) random_engine = "pseudo"         ! Random number engine to use
+  character(16) random_gauss_converter = "exact" ! Uniform to gauss conversion method
+  real(rp) random_sigma_cutoff = 4.0             ! Cut-off in sigmas.
+  character(16) track_type = "single"            ! or "beam" 
+  character(16) prompt_string = "Tao"
+  character(16) optimizer     = "de"             ! optimizer to use.
+  character(16) default_key_merit_type
+  character(40) print_command = "lpr"
+  character(80) var_out_file  = "var#.out"
+  logical var_limits_on = T             ! Respect the variable limits?
+  logical auto_scale = F                ! Automatically scale and x-scale the plots?
+  logical opt_with_ref = F              ! use reference data in optimization?
+  logical opt_with_base = F             ! use base data in optimization?
+  logical init_opt_wrapper = T
+  logical label_lattice_elements = T    ! For lat_layout plots
+  logical label_keys = T                ! For lat_layout plots
+  logical derivative_recalc = T         ! Recalc before each optimizer run?
+  logical init_plot_needed = T          ! reinitialize plotting?
+  logical plot_on = T                   ! Do plotting?
+  logical lattice_calc_on = T           ! Master switch.
+  logical command_file_print_on = T     ! Toggle printing when using a command file.
 end type
 \end{example}
 
@@ -414,22 +414,22 @@ The \vn{bmad_com_struct} holds bmad global variables.
 \index{radiation_fluctuations_on}\index{sr_wakes_on}\index{lr_wakes_on}
 \begin{example}
   type bmad_com_struct
-    real(rp) :: d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
-    real(rp) :: max_aperture_limit = 1e3    
-    real(rp) :: rel_tolerance = 1e-5
-    real(rp) :: abs_tolerance = 1e-8
-    integer :: taylor_order = 3               ! 3rd order is default
-    logical :: use_liar_lcavity = F           ! Liar like tracking?
-    logical :: sr_wakes_on = T                ! Short range wakefields?
-    logical :: lr_wakes_on = T                ! Long range wakefields
-    logical :: mat6_track_symmetric = T       ! symmetric offsets
-    logical :: auto_bookkeeper = T            ! Automatic bookkeeping?
-    logical :: radiation_damping_on = F       ! Damping toggle.
-    logical :: radiation_fluctuations_on = F  ! Fluctuations toggle.
-    logical :: compute_ref_energy = T         ! Enable recomputation?
-    logical :: trans_space_charge_on = F      ! Space charge switch
-    logical :: coherent_synch_rad_on = F      ! Longitudinal csr 
-    logical :: spin_tracking_on = T           ! Do particle spin tracking
+    real(rp) d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
+    real(rp) max_aperture_limit = 1e3    
+    real(rp) rel_tolerance = 1e-5
+    real(rp) abs_tolerance = 1e-8
+    integer taylor_order = 3               ! 3rd order is default
+    logical use_liar_lcavity = F           ! Liar like tracking?
+    logical sr_wakes_on = T                ! Short range wakefields?
+    logical lr_wakes_on = T                ! Long range wakefields
+    logical mat6_track_symmetric = T       ! symmetric offsets
+    logical auto_bookkeeper = T            ! Automatic bookkeeping?
+    logical radiation_damping_on = F       ! Damping toggle.
+    logical radiation_fluctuations_on = F  ! Fluctuations toggle.
+    logical compute_ref_energy = T         ! Enable recomputation?
+    logical trans_space_charge_on = F      ! Space charge switch
+    logical coherent_synch_rad_on = F      ! Longitudinal csr 
+    logical spin_tracking_on = T           ! Do particle spin tracking
   end type
 \end{example}
 See the Bmad manual for more details.
@@ -438,19 +438,19 @@ The \vn{csr_parameter_struct} holds global variables for the coherent
 synchrotron radiation calculations. 
 \begin{example}
   type csr_parameter_struct
-    real(rp) :: ds_track_step = 0          ! Tracking step size
-    real(rp) :: beam_chamber_height = 0    ! Used in shielding calculation.
-    real(rp) :: sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
+    real(rp) ds_track_step = 0          ! Tracking step size
+    real(rp) beam_chamber_height = 0    ! Used in shielding calculation.
+    real(rp) sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
                                            !  is < cutoff * sigma_ave then ignore.
-    integer :: n_bin = 0                   ! Number of bins used
-    integer :: particle_bin_span = 2       ! Longitudinal particle length / dz_bin
-    integer :: n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
-    integer :: ix1_ele_csr = -1            ! Start index for csr tracking
-    integer :: ix2_ele_csr = -1            ! Stop index for csr tracking
-    logical :: lcsr_component_on = T       ! Longitudinal csr component
-    logical :: lsc_component_on = T        ! Longitudinal space charge component
-    logical :: tsc_component_on = T        ! Transverse space charge component
-    logical :: small_angle_approx = T      ! Use lcsr small angle approximation?
+    integer n_bin = 0                   ! Number of bins used
+    integer particle_bin_span = 2       ! Longitudinal particle length / dz_bin
+    integer n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
+    integer ix1_ele_csr = -1            ! Start index for csr tracking
+    integer ix2_ele_csr = -1            ! Stop index for csr tracking
+    logical lcsr_component_on = T       ! Longitudinal csr component
+    logical lsc_component_on = T        ! Longitudinal space charge component
+    logical tsc_component_on = T        ! Transverse space charge component
+    logical small_angle_approx = T      ! Use lcsr small angle approximation?
   end type
 \end{example}
 the \vn{global%track_type} must be set to \vn{"beam"} for the CSR computation.
@@ -1216,19 +1216,20 @@ plots go. The syntax of this block is:
 \index{place}
 \begin{example}
   &tao_plot_page
-    plot_page%size        = <x_size>, <y_size>         ! size in POINTS 
-    plot_page%border      = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
-    plot_page%text_height = <num>            ! height in POINTS. Def = 12
+    plot_page%size                   = <x_size>, <y_size>         ! size in POINTS 
+    plot_page%border                 = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
+    plot_page%text_height            = <num>            ! height in POINTS. Def = 12
     plot_page%main_title_text_scale  = <num> ! Relative to text_height. Def = 1.3
     plot_page%graph_title_text_scale = <num> ! Relative to text_height. Def = 1.1
     plot_page%axis_number_text_scale = <num> ! Relative to text_height. Def = 0.9
     plot_page%axis_label_text_scale  = <num> ! Relative to text_height. Def = 1.0
     plot_page%legend_text_scale      = <num> ! Relative to text_height. Def = 0.8
     plot_page%key_table_text_scale   = <num> ! Relative to text_height. Def = 0.9
-    plot_page%title(i)         = <string>, {<x>, <y>, "<units>", "<justify>"}
-    plot_page%shape_height_max = 40    ! maximum half height for drawing elements.
-    plot_page%n_curve_pts      = 401   ! Num points used to construct a smooth curve
-    plot_page%box_plots        = <T/F> ! For debugging layout problems. Def = F.
+    plot_page%title(i)               = <string>, {<x>, <y>, "<units>", "<justify>"}
+    plot_page%shape_height_max       = <num> ! maximum half height for drawing elements. Def = 40
+    plot_page%n_curve_pts            = <num> ! Num points used to construct a smooth curve. Def = 401
+    plot_page%box_plots              = <T/F> ! For debugging layout problems. Def = F.
+    plot_page%no_symbols_without_layout = <T/F> ! Supresses drawing symbols? Def = T
     region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
     place(i)  = "<region_name>", "<template_name>"
   /
@@ -1364,7 +1365,7 @@ information see the \vn{Quick Plot} documentation on the
   label      ! Axis label.
 \end{example}
 If \vn{min} and \vn{max} are absent, then \tao will autoscale the
-axis.  If it is desired to have differeng scales for different graphs,
+axis.  If it is desired to have differing scales for different graphs,
 the \vn{graph%x} component can be used (see below).
 
 
@@ -1569,6 +1570,16 @@ printed using the \vn{show curve -symbol} command (\sref{s:show}).
 printed besides the symbol. Use the \vn{set curve} command 
 (\sref{s:set}) to toggle the drawing of symbols.
 
+If the \vn{plot_page%no_symbols_without_layout} switch is set to
+\vn{T} (which is the default), the drawing of symbols for a given
+curve is suppressed, irregardless of a \vn{curve%draw_symbols}
+setting, if three conditions are met:
+\begin{example}
+  The graph%type associated with the curve is set to "data".
+  The plot%x_axis_type associated with the curve is set to "s".
+  There is no visible lat_layout being drawn on the plot page.
+\end{example}
+
 \vn{curve%draw_line} determines whether a curve is drawn through the
 data point symbols. The thickness, style (solid, dashed, etc.), and
 color of the line can be controlled by setting \vn{curve%line}. If
@@ -1594,7 +1605,7 @@ be drawn. Notice that simply giving the \vn{y2} axis a label does {\em
 not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 
 Typically, a graph's horizontal scale is set by the \vn{plot%x}
-component. If it is desired to have differeng scales for different
+component. If it is desired to have differing scales for different
 graphs, the \vn{graph%x} component can be used.
 
 %-----------------------------------------------------------------

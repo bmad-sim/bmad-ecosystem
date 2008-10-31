@@ -283,11 +283,11 @@ real(rp) value, this_merit
 integer i, j, n, ix, iunit, nc, ir, n_max
 integer ir1, ir2, iu, ie, nl, ct
 integer, allocatable, save :: ixm(:)
-integer n_name, n_d2_d1_name, n_loc1, n_loc0
+integer n_name, n_d2_d1_name, n_loc1, n_loc0, n_tot
 
 character(*) form
 character(40) location, con_var, max_loc, loc1, loc0
-character(80) fmt
+character(80) fmt, fmt2
 character(1) plane
 character(24) :: r_name = 'tao_show_constraints'
 character(200), allocatable, save :: line(:)
@@ -295,11 +295,12 @@ character(200) l1
 
 type constraint_struct
   character(40) d2_d1_name
-  character(40) name
+  character(100) name
   character(40) loc1, loc0, max_loc
   real(rp) target_value
   real(rp) actual_value
   real(rp) merit
+  logical :: expression = .false.
 end type
 
 type (constraint_struct), allocatable, save :: con(:)
@@ -326,6 +327,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     nc = nc + 1
     con(nc)%name = tao_datum_type_name(data)
     con(nc)%d2_d1_name = trim(tao_datum_name(data))
+    if (data%data_type(1:11) == 'expression:') con(nc)%expression = .true.
 
     if (data%ix_ele < 0) then
       con(nc)%loc1 = ' '
@@ -403,16 +405,25 @@ else
 endif
 
 ! find string widths
+! Expressions generally have very long strings so we let this spill over to
+! the where0 and where fields
 
-n_d2_d1_name = 9;  n_name = 1; n_loc1 = 8;  n_loc0 = 8
+n_d2_d1_name = 9;  n_name = 1; n_loc1 = 8;  n_loc0 = 8; n_tot = 0
 
 do j = 1, n_max
   i = ixm(j)
   n_d2_d1_name = max(n_d2_d1_name, len_trim(con(i)%d2_d1_name))
-  n_name = max(n_name, len_trim(con(i)%name))
+  if (con(i)%expression) then
+    n_tot = max(n_tot,  len_trim(con(i)%name))
+  else
+    n_name = max(n_name, len_trim(con(i)%name))
+  endif
   n_loc1 = max(n_loc1, len_trim(con(i)%loc1))
   n_loc0 = max(n_loc0, len_trim(con(i)%loc0))
 enddo
+
+n_tot = max(n_tot, n_name + n_loc0 + n_loc1 + 4)
+n_loc1 = n_tot - n_name - n_loc0 - 4
 
 !
 
@@ -426,15 +437,22 @@ nl=nl+1; line(nl) = l1
 
 !
 
-fmt = '(a, 2x, a, 2x, a, 2x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
+fmt  = '(a, 2x, a, 2x, a, 2x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
+fmt2 = '(a, 2x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
 
 call re_allocate (line, 200, nl+n_max+100)
 do j = 1, n_max
   i = ixm(j)
-  nl=nl+1; write (line(nl), fmt) con(i)%d2_d1_name(1:n_d2_d1_name), &
+  if (con(i)%expression) then
+    nl=nl+1; write (line(nl), fmt2) con(i)%d2_d1_name(1:n_d2_d1_name), &
+            con(i)%name(1:n_tot), con(i)%target_value, &
+            con(i)%actual_value, con(i)%merit, con(i)%max_loc
+  else
+    nl=nl+1; write (line(nl), fmt) con(i)%d2_d1_name(1:n_d2_d1_name), &
             con(i)%name(1:n_name), &
             con(i)%loc0(1:n_loc0), con(i)%loc1(1:n_loc1), con(i)%target_value, &
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
+  endif
 end do
 nl=nl+1; line(nl) = l1
 

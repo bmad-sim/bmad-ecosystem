@@ -288,6 +288,9 @@ enddo
 
 if (allocated(tao_com%ele_shape_lat_layout)) deallocate (tao_com%ele_shape_lat_layout)
 if (allocated(tao_com%ele_shape_floor_plan)) deallocate (tao_com%ele_shape_floor_plan)
+if (allocated(tao_com%cmd_file))             deallocate (tao_com%cmd_file)
+if (allocated(tao_com%covar))                deallocate (tao_com%covar, tao_com%alpha)
+call kill_taylor(tao_com%taylor)
 
 ! Universes 
 
@@ -299,9 +302,22 @@ if (allocated (s%u)) then
     if (u%ix_rad_int_cache /= 0) call release_rad_int_cache(u%ix_rad_int_cache)
 
     ! Orbits
+
     deallocate(u%model%orb, stat=istat)
     deallocate(u%design%orb, stat=istat)
     deallocate(u%base%orb, stat=istat)
+    
+    deallocate(u%model%bunch_params, stat=istat)
+    deallocate(u%design%bunch_params, stat=istat)
+    deallocate(u%base%bunch_params, stat=istat)
+    
+    deallocate(u%model%bunch_params, stat=istat)
+    deallocate(u%design%bunch_params, stat=istat)
+    deallocate(u%base%bunch_params, stat=istat)
+    
+    deallocate(u%model%bunch_params2, stat=istat)
+    deallocate(u%design%bunch_params2, stat=istat)
+    deallocate(u%base%bunch_params2, stat=istat)
     
     ! Beams: All s%u(i)%ele point to the same place with common_lattice.
 

@@ -1835,15 +1835,13 @@ function tao_datum_type_name(datum) result (datum_name)
 implicit none
 
 type (tao_data_struct) datum
-character(60) datum_name
+character(200) datum_name
+integer ix
 
 ! Expressions are too long so shorten the name
 
-if (datum%data_type(1:11) == 'expression:') then
-  datum_name = 'expression: ... ' // trim(datum%merit_type)
-else
-  datum_name = trim(datum%data_type) // ' ' // trim(datum%merit_type)
-endif
+datum_name = trim(datum%data_type) // ' <' // trim(datum%merit_type) // '>'
+if (datum_name(1:11) == 'expression:') call string_trim (datum_name(12:), datum_name, ix)
 
 end function
 

@@ -195,6 +195,7 @@ type tao_plot_page_struct
   real(rp) :: curve_legend_text_offset = 10 ! Points
   integer :: n_curve_pts = 401       ! Number of points for plotting a smooth curve
   integer id_window                  ! X window id number.
+  logical :: no_symbols_without_layout = .true. ! Applied to s-plots only.
 end type
 
 ! Arrays of structures
@@ -455,19 +456,19 @@ type tao_global_struct
   character(16) :: default_key_merit_type 
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
-  logical :: var_limits_on = .true.          ! Respect the variable limits?
-  logical :: auto_scale = .false.            ! Automatically scale and x-scale the plots?
-  logical :: opt_with_ref = .false.          ! use reference data in optimization?
-  logical :: opt_with_base = .false.         ! use base data in optimization?
-  logical :: label_lattice_elements = .true. ! For lat_layout plots
-  logical :: label_keys = .true.             ! For lat_layout plots
-  logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
-  logical :: init_plot_needed = .true.       ! reinitialize plotting?
-  logical :: orm_analysis = .false.          ! orm using mdsa? 
-  logical :: plot_on = .true.                ! Do plotting?
-  logical :: lattice_calc_on = .true.        ! Turn on/off calculations.
-  logical :: command_file_print_on = .true.  ! print to terminal when using a cmd file?
-  logical :: box_plots = .false.             ! For debugging plot layout issues.
+  logical :: var_limits_on = .true.             ! Respect the variable limits?
+  logical :: auto_scale = .false.               ! Automatically scale and x-scale the plots?
+  logical :: opt_with_ref = .false.             ! use reference data in optimization?
+  logical :: opt_with_base = .false.            ! use base data in optimization?
+  logical :: label_lattice_elements = .true.    ! For lat_layout plots
+  logical :: label_keys = .true.                ! For lat_layout plots
+  logical :: derivative_recalc = .true.         ! Recalc before each optimizer run?
+  logical :: init_plot_needed = .true.          ! reinitialize plotting?
+  logical :: orm_analysis = .false.             ! orm using mdsa? 
+  logical :: plot_on = .true.                   ! Do plotting?
+  logical :: lattice_calc_on = .true.           ! Turn on/off calculations.
+  logical :: command_file_print_on = .true.     ! print to terminal when using a cmd file?
+  logical :: box_plots = .false.                ! For debugging plot layout issues.
 end type
 
 !

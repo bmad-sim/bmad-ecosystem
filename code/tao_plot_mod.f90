@@ -73,10 +73,10 @@ endif
 
 do i = 1, size(s%plot_region)
 
-  plot => s%plot_region(i)%plot
   if (.not. s%plot_region(i)%visible) cycle
+  plot => s%plot_region(i)%plot
 
-! set the s%plot_page border for this particular region
+  ! set the s%plot_page border for this particular region
 
   location = s%plot_region(i)%location
   border1%units = '%PAGE'
@@ -90,7 +90,7 @@ do i = 1, size(s%plot_region)
   border2%units = '%PAGE'
   call qp_set_layout (page_border = border2)
 
-! loop over all the graphs of the plot and draw them.
+  ! loop over all the graphs of the plot and draw them.
 
   g_loop: do j = 1, size(plot%graph)
     graph => plot%graph(j)
@@ -113,7 +113,7 @@ do i = 1, size(s%plot_region)
     select case (graph%type)
     case ('data', 'phase_space', 'data_slice')
       call tao_plot_data (plot, graph)
-    case ('lat_layout')
+     case ('lat_layout')
       call tao_plot_lat_layout (plot, graph)
     case ('key_table')
       call tao_plot_key_table (plot, graph)
@@ -850,10 +850,11 @@ type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 
-integer i, k
-logical have_data
+integer i, j, k
+logical have_data, draw_symbols
 character(16) num_str
-!
+
+! Set scales, margens, etc
 
 call qp_set_layout (box = graph%box, margin = graph%margin)
 call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .true.)
@@ -865,6 +866,21 @@ call qp_draw_axes
 if (graph%limited .and. graph%clip) &
   call qp_draw_text ('**Curve Off Scale**', -0.30_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
 
+! Symbol drawing will be supressed for data plots if the x-axis type is "s" 
+! and there is no layout being drawn anywhere.
+
+draw_symbols = .not. s%plot_page%no_symbols_without_layout
+if (graph%type /= 'data') draw_symbols = .true.
+if (plot%x_axis_type /= 's') draw_symbols = .true.
+
+do i = 1, size(s%plot_region)
+  if (draw_symbols) exit
+  if (.not. s%plot_region(i)%visible) cycle
+  do j = 1, size(s%plot_region(i)%plot%graph)
+    if (s%plot_region(i)%plot%graph(j)%type == 'lat_layout') draw_symbols = .true.
+  enddo
+enddo
+
 ! loop over all the curves of the graph and draw them
 
 have_data = .false.
@@ -875,7 +891,7 @@ do k = 1, size(graph%curve)
   call qp_set_symbol (curve%symbol)
   call qp_set_line ('PLOT', curve%line) 
 
-  if (curve%draw_symbols .and. allocated(curve%x_symb)) then
+  if (draw_symbols .and. curve%draw_symbols .and. allocated(curve%x_symb)) then
     if (size(curve%x_symb) > 0) have_data = .true.
     call qp_draw_data (curve%x_symb, curve%y_symb, .false., curve%symbol_every, graph%clip)
   endif
@@ -911,9 +927,10 @@ if (any(graph%text_legend /= ' ')) call qp_draw_text_legend (graph%text_legend, 
 ! Draw the curve legend if needed
 
 if (graph%draw_curve_legend .and. size(graph%curve) > 1) then
-  call qp_draw_curve_legend (graph%curve_legend_origin, s%plot_page%curve_legend_text_offset, &
-            s%plot_page%curve_legend_line_len, graph%curve%line, graph%curve%symbol, &
-            graph%curve%data_type, graph%curve(1)%draw_line, graph%curve(1)%draw_symbols)
+  call qp_draw_curve_legend (graph%curve_legend_origin, &
+            s%plot_page%curve_legend_text_offset, s%plot_page%curve_legend_line_len, &
+            graph%curve%line, graph%curve%symbol, graph%curve%data_type, &
+            graph%curve(1)%draw_line, graph%curve(1)%draw_symbols .and. draw_symbols)
 endif
 
 end subroutine

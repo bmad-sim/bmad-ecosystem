@@ -172,8 +172,8 @@ character(80) :: word1, fmt, fmt2, fmt3
 character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(100), pointer :: ptr_lines(:)
-character(100) file_name
-character(40) ele_name, name, sub_name, ele1, ele2, switch
+character(100) file_name, name
+character(40) ele_name, sub_name, ele1, ele2, switch
 character(60) nam
 
 character(16) :: show_what, show_names(23) = (/ &
@@ -189,10 +189,10 @@ character(n_char) line, line1, line2, line3
 character(n_char) stuff2
 character(9) angle
 
-integer :: data_number, ix_plane, ix_class, n_live, n_tot, n_order
+integer :: data_number, ix_plane, ix_class, n_live, n_order
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
-integer num_locations, ix_ele, n_name, n_e0, n_e1, ix_p, ix_word
+integer num_locations, ix_ele, n_name, n_e0, n_e1, n_tot, ix_p, ix_word
 integer, allocatable, save :: ix_eles(:)
 
 logical bmad_format, good_opt_only
@@ -625,17 +625,29 @@ case ('data')
     nl=nl+1; write(lines(nl), '(2a)') 'Data name: ', trim(d2_ptr%name) // '.' // d1_ptr%name
 
     ! find string widths
+    ! Expressions generally have very long strings so we let this spill over to
+    ! the where0 and where fields
 
     n_name = 9
     n_e0 = 8
     n_e1 = 8
+    n_tot = 0
+
     do i = 1, size(d_array)
       d_ptr => d_array(i)%d
       if (.not. d_ptr%exists) cycle
-      n_name = max(n_name, len_trim(tao_datum_type_name(d_ptr)))
-      n_e0 = max(n_e0, len_trim(d_ptr%ele0_name))
-      n_e1 = max(n_e1, len_trim(d_ptr%ele_name))
+      name = tao_datum_type_name(d_ptr)
+      if (d_ptr%data_type(1:11) == 'expression:') then
+        n_tot = max(n_tot, len_trim(name))
+      else
+        n_name = max(n_name, len_trim(name))
+        n_e0 = max(n_e0, len_trim(d_ptr%ele0_name))
+        n_e1 = max(n_e1, len_trim(d_ptr%ele_name))
+      endif
     enddo
+
+    n_tot = max(n_tot, n_name + n_e0 + n_e1 + 4)
+    n_e1 = n_tot - n_e0 - n_e1 - 4
 
     ! Write header
 
@@ -652,16 +664,23 @@ case ('data')
 
     call re_allocate (lines, len(lines(1)), nl+100+size(d_array), .false.)
 
-    fmt = '(i4, 2x, a, 2x, a, 2x, a, 3es14.4, 2l6)'
+    fmt2 = '(i4, 2x, a, 3es14.4, 2l6)'
+    fmt  = '(i4, 2x, a, 2x, a, 2x, a, 3es14.4, 2l6)'
 
     do i = 1, size(d_array)
       d_ptr => d_array(i)%d
       if (.not. d_ptr%exists) cycle
       name = tao_datum_type_name(d_ptr)
-      nl=nl+1; write(lines(nl), fmt) d_ptr%ix_d1, name(1:n_name), & 
+      if (d_ptr%data_type(1:11) == 'expression:') then
+        nl=nl+1; write(lines(nl), fmt2) d_ptr%ix_d1, name(1:n_tot), & 
+                     d_ptr%meas_value, d_ptr%model_value, &
+                     d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
+      else
+        nl=nl+1; write(lines(nl), fmt) d_ptr%ix_d1, name(1:n_name), & 
                      d_ptr%ele0_name(1:n_e0), d_ptr%ele_name(1:n_e1), &
                      d_ptr%meas_value, d_ptr%model_value, &
                      d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
+      endif
     enddo
 
     nl=nl+1; lines(nl) = line2
@@ -862,7 +881,7 @@ case ('element')
 
 case ('global')
 
-  nl=nl+1; lines(nl) = 'Global Tao Parameters:'
+  nl=nl+1; lines(nl) = 'Global parameters:'
   nl=nl+1; write (lines(nl), lmt) '%auto_scale                 = ', s%global%auto_scale
   nl=nl+1; write (lines(nl), imt) '%bunch_to_plot              = ', s%global%bunch_to_plot
   nl=nl+1; write (lines(nl), rmt) '%de_lm_step_ratio           = ', s%global%de_lm_step_ratio
@@ -1456,16 +1475,18 @@ case ('plot')
 
   if (stuff2 == ' ') then
 
-    nl=nl+1; write (lines(nl), rmt)  'plot_page%size                   = ', s%plot_page%size       
-    nl=nl+1; write (lines(nl), imt)  'plot_page%n_curve_pts            = ', s%plot_page%n_curve_pts
-    nl=nl+1; write (lines(nl), f3mt) 'plot_page%text_height            = ', s%plot_page%text_height 
-    nl=nl+1; write (lines(nl), f3mt) 'plot_page%main_title_text_scale  = ', s%plot_page%main_title_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) 'plot_page%graph_title_text_scale = ', s%plot_page%graph_title_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) 'plot_page%axis_number_text_scale = ', s%plot_page%axis_number_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) 'plot_page%axis_label_text_scale  = ', s%plot_page%axis_label_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) 'plot_page%key_table_text_scale   = ', s%plot_page%key_table_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) 'plot_page%legend_text_scale      = ', s%plot_page%legend_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) 'plot_page%shape_height_max       = ', s%plot_page%shape_height_max  
+    nl=nl+1; lines(nl) = 'plot_page parameters'
+    nl=nl+1; write (lines(nl), rmt)  '%size                       = ', s%plot_page%size       
+    nl=nl+1; write (lines(nl), imt)  '%n_curve_pts                = ', s%plot_page%n_curve_pts
+    nl=nl+1; write (lines(nl), f3mt) '%text_height                = ', s%plot_page%text_height 
+    nl=nl+1; write (lines(nl), f3mt) '%main_title_text_scale      = ', s%plot_page%main_title_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%graph_title_text_scale     = ', s%plot_page%graph_title_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%axis_number_text_scale     = ', s%plot_page%axis_number_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%axis_label_text_scale      = ', s%plot_page%axis_label_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%key_table_text_scale       = ', s%plot_page%key_table_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%legend_text_scale          = ', s%plot_page%legend_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%shape_height_max           = ', s%plot_page%shape_height_max  
+    nl=nl+1; write (lines(nl), lmt)  '%no_symbols_without_layout  = ', s%plot_page%no_symbols_without_layout
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'
