@@ -4,8 +4,8 @@
 %-----------------------------------------------------------------------------
 \section{Twiss Parameter Calculations}
 \label{s:twiss}
-\index{Twiss parameters}
-\index{Twiss parameters!calculation}
+\index{twiss parameters}
+\index{twiss parameters!calculation}
 
 The Twiss parameters for an element are stored in the
 \vn{ele_struct}. See Chapter~\ref{c:ele.struct} for more details.
@@ -66,7 +66,7 @@ the the routine \vnr{twiss_and_track_partial}.
 %-----------------------------------------------------------------------------
 \section{Tune Calculation}
 \label{s:tune}
-\index{Tune Calculation}
+\index{tune calculation}
 
 For a closed lat the tune is calculated via the routine \vnr{twiss_at_start}.
 This routine multiplies the transfer matrices of the elements together to form
@@ -104,14 +104,14 @@ based upon the local beta functions at the sextupoles.
 %-----------------------------------------------------------------------------
 \section{Custom Elements}
 \label{s:custom.ele}
-\index{Twiss parameters!calculation with custom elements}
-\index{Custom}
+\index{twiss parameters!calculation with custom elements}
+\index{custom}
 
 There are up to six routines that must be written to implement a custom 
 element they are:
-\index{Routine!custom_emitt_calc}\index{Routine!custom_radiation_integrals}
-\index{Routine!em_field_custom}\index{Routine!field_rk_custom}
-\index{Routine!make_mat6_custom}\index{Routine!track1_custom}
+\index{routine!custom_emitt_calc}\index{routine!custom_radiation_integrals}
+\index{routine!em_field_custom}\index{routine!field_rk_custom}
+\index{routine!make_mat6_custom}\index{routine!track1_custom}
 \begin{example}
    custom_emitt_calc            ! only needed if emitt_calc is called in a program.
    custom_radiation_integrals   ! only needed if radiation_integrals is called.
@@ -131,10 +131,10 @@ the new routines should be explicitly listed in the linking list.
 \section{Custom Field Calculations}
 \label{s:custom.field}
 \index{Fields (electric and magnetic)!custom calculation} 
-\index{Ele_struct!%field_calc}
+\index{ele_struct!%field_calc}
 
 \index{runge_kutta}\index{boris}\index{ele_struct!%field_calc}
-\index{Routine!em_filed_custom}
+\index{routine!em_filed_custom}
 Custom Electric and Magnetic field calculations are used with
 \vn{runge_kutta} and \vn{boris} tracking (See \sref{s:integ}).  To
 implement custom field calculations the \vn{ele%field_calc} component
@@ -146,7 +146,7 @@ custom calculations.
 %-----------------------------------------------------------------------------
 \section{Particle Information}
 \label{s:particle}
-\index{Particle!information}
+\index{particle!information}
 
 In a \vn{lat_struct} structure the particle type is stored in the
 integer variable \vn{%param%particle}. The value of this variable will

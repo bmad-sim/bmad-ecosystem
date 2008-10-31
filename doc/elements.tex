@@ -50,7 +50,7 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
 %-----------------------------------------------------------------
 \section{AB_Multipole}
 \label{s:ab.m}
-\index{AB_Multipole|hyperbf}
+\index{ab_multipole|hyperbf}
 
 \begin{center}
 \tt 
@@ -69,7 +69,7 @@ difference between this and a \vn{Multipole} is the input format.
 See~\sref{s:multip} for more details. For \vn{a$n$}
 and \vn{b$n$}, $n$ is in the range 0 through 20.
 
-\index{X_pitch}\index{Y_pitch}
+\index{x_pitch}\index{y_pitch}
 The length \vn{l} is a fictitious length that is used for synchrotron
 radiation computations and affects the longitudinal position of the
 next element but does not affect any tracking or transfer map
@@ -87,7 +87,7 @@ Example:
 %-----------------------------------------------------------------
 \section{BeamBeam}
 \label{s:bbi}
-\index{BeamBeam|hyperbf}
+\index{beambeam|hyperbf}
 
 \begin{center} 
 \tt
@@ -100,12 +100,12 @@ Example:
 \end{center}
 \toffset
 
-\index{Sig_x}
-\index{Sig_y}
-\index{Sig_z}
-\index{N_slice}
-\index{Charge}
-\index{BBI_constant}
+\index{sig_x}
+\index{sig_y}
+\index{sig_z}
+\index{n_slice}
+\index{charge}
+\index{bbi_constant}
 Attributes specific to a \vn{BeamBeam} element are:
 \begin{example}
   sig_x   = <Real>     ! Horizontal strong beam sigma   
@@ -122,7 +122,7 @@ is assumed to be Gaussian in shape. In the \vn{bmad_standard}
 calculation the beam--beam kick is computed using the
 Bassetti--Erskine complex error function formula\cite{b:talman}
 
-\index{N_part!in BeamBeam element}
+\index{n_part!in BeamBeam element}
 \vn{n_part} is the nominal number of particles of the strong
 beam. \vn{n_part} is set using the \vn{parameter} command
 (\sref{s:param}) and is thus common to all \vn{BeamBeam} elements.  To
@@ -130,8 +130,8 @@ vary the number of particles in an individual \vn{BeamBeam} element use the
 \vn{charge} attribute. The default is \vn{charge} = -1 which indicates
 that the strong beam has the opposite charge of the weak beam.
 
-\index{X_offset}
-\index{Y_offset}
+\index{x_offset}
+\index{y_offset}
 \vn{sig_x}, \vn{sig_y}, \vn{sig_z} are the strong beam's sigmas. 
 \vn{x_offset} and \vn{y_offset} are used to offset the
 \vn{BeamBeam} element. Note that in \mad the attributes used to
@@ -140,8 +140,8 @@ offsets might not be known until run time (they, of course, depend
 upon the particular orbits), often \vn{x_offset} and \vn{y_offset}
 will be set by a program rather than from the lattice file.
 
-\index{X_pitch}
-\index{Y_pitch}
+\index{x_pitch}
+\index{y_pitch}
 \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a
 crossing angle. This is the full crossing angle, not the half-angle.
 
@@ -183,7 +183,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Bend_Sol_Quad}
 \label{s:bsq}
-\index{Bend_Sol_Quad|hyperbf}
+\index{bend_sol_quad|hyperbf}
 
 \begin{center}
 \tt
@@ -199,17 +199,17 @@ Example:
 \end{center}
 \toffset
 
-\index{X_quad}
-\index{Y_quad}
-\index{Quad_tilt}
-\index{Tilt}
-\index{Dks_ds}
-\index{G}
-\index{Bend_tilt}
-\index{Angle}
-\index{Rho}
-\index{K1}
-\index{KS}
+\index{x_quad}
+\index{y_quad}
+\index{quad_tilt}
+\index{tilt}
+\index{dks_ds}
+\index{g}
+\index{bend_tilt}
+\index{angle}
+\index{rho}
+\index{k1}
+\index{ks}
 Attributes specific to a \vn{Bend_Sol_Quad} element are:
 \begin{example}
   g         = <Real>    ! Bend strength 1/rho
@@ -270,8 +270,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Bends: Rbend and Sbend}
 \label{s:bend}
-\index{Sbend|hyperbf}
-\index{Rbend|hyperbf}
+\index{sbend|hyperbf}
+\index{rbend|hyperbf}
 
 \begin{center}
 \tt
@@ -287,10 +287,10 @@ Example:
 \end{center}
 \toffset
 
-\index{G}\index{B_field}\index{g_err}\index{B_field_err}\index{Angle}
-\index{L_chord}\index{Angle}\index{H1}\index{H2}
-\index{E1}\index{E2}\index{Fint}\index{Fintx}
-\index{Hgap}\index{Hgapx}\index{Roll}\index{K1}
+\index{g}\index{b_field}\index{g_err}\index{b_field_err}\index{angle}
+\index{l_chord}\index{angle}\index{h1}\index{h2}
+\index{e1}\index{e2}\index{fint}\index{fintx}
+\index{hgap}\index{hgapx}\index{roll}\index{k1}
 Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
 \begin{example}
   g           = <Real>     ! Design bend strength (= 1/rho).
@@ -313,7 +313,7 @@ Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
   l_chord                      ! Chord length. Dependent attribute. See \sref{s:l}.
 \end{example}
 
-\index{L}
+\index{l}
 \vn{Rbend} and \vn{Sbend} are dipole bends. The difference between
 the two is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
 To ease the bookkeeping burden, after reading in a lattice, \bmad will
@@ -360,14 +360,14 @@ An \vn{Sbend} with an \vn{e1} = \vn{e2} =
 The total design bend angle. A positive \vn{angle} represents a
 bend towards negative $x$ values (see Figure~\ref{f:local.coords}).
   \item[k1, b1_gradient] \Newline
-\index{K1}
+\index{k1}
 The normalized and unnormalized quadrupole strength.
   \item[k2, b2_gradient] \Newline
-\index{K2}
+\index{k2}
 The normalized and unnormalized sextupole strength. 
   \item[g, g_err, rho] \Newline
-\index{G}
-\index{Rho}
+\index{g}
+\index{rho}
 \index{g_err}
 The design bending radius which determines the reference coordinate
 system is \vn{rho} (see \sref{s:ref}).  \vn{g} = 1/\vn{rho} is
@@ -375,7 +375,7 @@ the curvature function and is proportional to the design dipole
 magnetic field. The true field strength is given by
 \vn{g}~+~\vn{g_err} so changing \vn{g_err} leaves the design orbit
 unchanged but varies a particle's orbit.
-  \index{Fint}\index{Fintx}
+  \index{fint}\index{fintx}
   \item[fint, fintx, hgap, hgapx] \Newline
 The field integrals for the entrance and
 exit pole faces are give by \vn{fint} and \vn{fintx} respectively
@@ -383,7 +383,7 @@ exit pole faces are give by \vn{fint} and \vn{fintx} respectively
   F_{int} = \int_{pole} \! \! ds \, \frac{B_y(s) (B_0 - B_y(s))}
   {2 H_{gap} B_0^2}
 \Endeq
-\index{Hgap}\index{Hgapx}
+\index{hgap}\index{hgapx}
 with a similar equation for \vn{fintx}. \vn{hgap} and \vn{hgapx} are
 the half gaps at the entrance and exit faces. If \vn{fint} or
 \vn{fintx} is given without a value then a value of 0.5 is used. If
@@ -394,7 +394,7 @@ entrance and exit faces. For compatibility with \mad, if \vn{fint} is
 given but \vn{fintx} is not, then \vn{fintx} is set equal to
 \vn{fint}. Similarly, \vn{hgapx} will be set to \vn{hgap} if
 \vn{hgapx} is not given.
-  \index{Tilt}
+  \index{tilt}
   \item[tilt] \Newline
 The roll angle about the longitudinal axis at the entrance face of the
 bend is given by \vn{tilt}.  \vn{tilt} = 0 bends the reference
@@ -434,8 +434,8 @@ Example bend specification:
 %-----------------------------------------------------------------
 \section{Branch and Photon_Branch}
 \label{s:branch}
-\index{Branch|hyperbf}
-\index{Photon_Branchtextbf}
+\index{branch|hyperbf}
+\index{photon_branchtextbf}
 
 \begin{center}
 \tt
@@ -467,8 +467,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Collimators: Ecollimator and Rcollimator}
 \label{s:col}
-\index{Ecollimator|hyperbf}
-\index{Rcollimator|hyperbf}
+\index{ecollimator|hyperbf}
+\index{rcollimator|hyperbf}
 
 \begin{center}
 \tt
@@ -494,7 +494,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Custom}
 \label{s:custom}
-\index{Custom|hyperbf}
+\index{custom|hyperbf}
 
 \begin{center}
 \tt
@@ -509,8 +509,8 @@ Example:
 \end{center}
 \toffset
 
-\index{Delta_e}
-\index{Val1,  ..., Val12}
+\index{delta_e}
+\index{val1,  ..., Val12}
 Attributes specific to a \vn{Custom} element are
 \begin{example}
   val1,$\ldots$, val12 = <Real>  ! Custom values 
@@ -537,7 +537,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Drift}
 \label{s:drift}
-\index{Drift|hyperbf}
+\index{drift|hyperbf}
 
 \begin{center}
 \tt
@@ -560,7 +560,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Elseparator}
 \label{s:elsep}
-\index{Elseparator|hyperbf}
+\index{elseparator|hyperbf}
 
 \begin{center}
 \tt
@@ -576,9 +576,9 @@ Example:
 \end{center}
 \toffset
 
-\index{Gap}
-\index{E_field}
-\index{Voltage}
+\index{gap}
+\index{e_field}
+\index{voltage}
 Attributes specific to a \vn{Bend_Sol_Quad} element are:
 \begin{example}
   gap = <Real> ! Distance between electrodes
@@ -588,8 +588,8 @@ Attributes specific to a \vn{Bend_Sol_Quad} element are:
 
 A \vn{ElSeparator} is an electrostatic separator.
 
-\index{Hkick}
-\index{Vkick}
+\index{hkick}
+\index{vkick}
 For an \vn{Elseparator}, the kick is determined by \vn{hkick} and
 \vn{vkick}. The \vn{gap} for an \vn{Elseparator} is used to compute
 the electric field for a given kick. The voltage is a dependent
@@ -607,8 +607,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Hkicker and Vkicker}
 \label{s:hvkicker}
-\index{Hkicker|hyperbf}
-\index{Vkicker|hyperbf}
+\index{hkicker|hyperbf}
+\index{vkicker|hyperbf}
 
 \begin{center}
 \tt
@@ -624,9 +624,9 @@ Example:
 \end{center}
 \toffset
 
-\index{Kick}
-\index{Hkick}
-\index{Vkick}
+\index{kick}
+\index{hkick}
+\index{vkick}
 A \vn{Hkicker} is a horizontal bend and a \vn{Vkicker} is a vertical
 bend.  Note that \vn{Hkicker} and \vn{Vkicker} elements use the
 \vn{kick} attribute while a \vn{kicker} uses the \vn{hkick} and \vn{vkick} 
@@ -638,7 +638,7 @@ attributes. Example:
 %-----------------------------------------------------------------
 \section{Hybrid}
 \label{s:hybrid}
-\index{Hybrid|hyperbf}
+\index{hybrid|hyperbf}
 
 A \vn{Hybrid} element is an element that is formed by concatenating
 other element together. \vn{Hybrid} elements are not part of the input
@@ -647,7 +647,7 @@ lattice file but are created by a program, usually for speed purposes.
 %-----------------------------------------------------------------
 \section{Girder}
 \label{s:girder}
-\index{Girder|hyperbf}
+\index{girder|hyperbf}
 
 \begin{center}
 \tt
@@ -666,9 +666,9 @@ Attributes specific to an \vn{Girder} are:
 An \vn{Girder} is a support structure that orients the elements that
 are attached to it in space.
 
-\index{X_offset}
-\index{Y_pitch}
-\index{Tilt}
+\index{x_offset}
+\index{y_pitch}
+\index{tilt}
 When an \vn{Girder} overlays an element, then that elements
 orientation attributes (\vn{x_offset}, \vn{y_pitch}, \vn{tilt}, etc.) 
 give the orientation of
@@ -680,7 +680,7 @@ the element with respect to the \vn{Girder}. An example will make this clear:
   this_line: line = (q1, q2)
   use, this_line
 \end{example}
-\index{Overlay}
+\index{overlay}
 In this example \vn{ib} supports elements \vn{q1} and \vn{q2}. The
 center of \vn{ib} is at $s = 7.5$ (\vn{ib} starts at $s = 0$ which is
 the beginning of \vn{q1} and ends at $s = 15$ which is the end of
@@ -723,8 +723,8 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 %-----------------------------------------------------------------
 \section{Instrument and Monitor}
 \label{s:monitor}
-\index{Instrument|hyperbf}
-\index{Monitor|hyperbf}
+\index{instrument|hyperbf}
+\index{monitor|hyperbf}
 
 \begin{center}
 \tt
@@ -740,11 +740,11 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 \end{center}
 \toffset
 
-\index{X_offset}
-\index{Y_offset}
-\index{X_pitch}
-\index{Y_pitch}
-\index{Tilt}
+\index{x_offset}
+\index{y_offset}
+\index{x_pitch}
+\index{y_pitch}
+\index{tilt}
 \bmad treats \vn{Instrument} and \vn{Monitor} elements exactly like a
 \vn{Drift}.  The \vn{offset}, \vn{pitch}, and \vn{tilt} attributes are
 not used by any \bmad routines. If these attributes are used by a
@@ -758,7 +758,7 @@ proper. Example:
 %-----------------------------------------------------------------
 \section{Kicker}
 \label{s:kicker}
-\index{Kicker|hyperbf}
+\index{kicker|hyperbf}
 
 \begin{center}
 \tt
@@ -774,10 +774,10 @@ proper. Example:
 \end{center}
 \toffset
 
-\index{Hkick}
-\index{Vkick}
-\index{H_displace}
-\index{V_displace}
+\index{hkick}
+\index{vkick}
+\index{h_displace}
+\index{v_displace}
 A \vn{Kicker} can deflect a beam in both planes. Note that a
 \vn{Kicker} uses the \vn{hkick} and \vn{vkick} attributes while
 \vn{Hkicker} and \vn{Vkicker} elements use the \vn{kick} attribute. 
@@ -791,7 +791,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Lcavity}
 \label{s:lcav}
-\index{Lcavity|hyperbf}
+\index{lcavity|hyperbf}
 
 \begin{center}
 \tt
@@ -813,14 +813,14 @@ correct phase-space area at non ultra-relativistic energies.
 See Section \sref{s:lcav.phys} for more details.
 
 The attributes specific to an \vn{Lcavity} are 
-\index{Gradient}
-\index{Phi0}
-\index{Dphi0}
-\index{E_loss}
-\index{Rf_frequency}
-\index{Delta_e}
-\index{SR_wake_file}
-\index{LR_wake_file}
+\index{gradient}
+\index{phi0}
+\index{dphi0}
+\index{e_loss}
+\index{rf_frequency}
+\index{delta_e}
+\index{sr_wake_file}
+\index{lR_wake_file}
 \begin{example}
   coupler_at       = <Switch> ! Location of a coupler giving a transverse kick.
   coupler_strength = <Real>   ! Strength of the coupler.
@@ -852,7 +852,7 @@ The energy kick felt by a particle is
   dE = gradient_tot * L * cos(twopi * (phi_ref + phi_err + phi(z)) - 
                                                      e_loss * n_part * e_charge 
 \end{example}
-\index{Multipass}
+\index{multipass}
 where
 \begin{example}
   gradient_tot = gradient + gradient_err
@@ -887,10 +887,10 @@ This is incorrect.
 Note: The transfer matrix for an \vn{Lcavity} with finite
 \vn{gradient} is never symplectic. See \sref{s:phase.space.coords}.
 
-\index{Coupler_at}
-\index{Coupler_strength}
-\index{Coupler_angle}
-\index{Coupler_phase}
+\index{coupler_at}
+\index{coupler_strength}
+\index{coupler_angle}
+\index{coupler_phase}
 The attributes that characterize the dipole transverse kick due to a
 coupler port are:
 \begin{example}
@@ -914,7 +914,7 @@ For \vn{coupler_angle} = 0 the transverse kick due to the coupler is
 
 
 
-\index{Wake fields!in Lcavity}
+\index{wake fields!in Lcavity}
 The formulas used to compute the wake field are given in
 \sref{s:wake fields}.  The input file name for the short--range
 wake fields is specified using the \vn{sr_wake_file} attribute. The
@@ -1020,7 +1020,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Marker}
 \label{s:mark}
-\index{Marker|hyperbf}
+\index{marker|hyperbf}
 
 \begin{center} 
 \tt
@@ -1034,10 +1034,10 @@ Example:
 \end{center}
 \toffset
 
-\index{X_offset}
-\index{Y_offset}
-\index{Tilt}
-\index{Is_on}
+\index{x_offset}
+\index{y_offset}
+\index{tilt}
+\index{is_on}
 A \vn{Marker} is a zero length element meant to mark a position. The
 \vn{x_offset}, \vn{y_offset} and \vn{tilt} attributes are not used by any \bmad
 routines. Typically if these attributes are used by a program they are
@@ -1050,7 +1050,7 @@ also not used by \bmad proper. Example:
 %-----------------------------------------------------------------
 \section{Match}
 \label{s:match}
-\index{Match|hyperbf}
+\index{match|hyperbf}
 
 \begin{center} 
 \tt
@@ -1077,12 +1077,12 @@ Attributes specific to a \vn{Match} element are:
   match_end = <Logical>            ! See below. Default is False.
 \end{example}
 
-\index{Beta_a0}
-\index{Beta_b0}
-\index{Beta_a1}
-\index{Beta_b1}
-\index{Dphi_x}
-\index{Dphi_y}
+\index{beta_a0}
+\index{beta_b0}
+\index{beta_a1}
+\index{beta_b1}
+\index{dphi_x}
+\index{dphi_y}
 A \vn{Match} element is used to match the Twiss parameters between two
 points. That is, the transfer map for a match element, which is just a
 linear matrix, is calculated such that if the Twiss parameters at the
@@ -1092,7 +1092,7 @@ at the exit end of the \vn{match} element will be \vn{beta_a1},
 \vn{beta_b1}, etc. \vn{dphi_x} and \vn{dphi_y} are the phase advances
 in radians.
 
-\index{Linear_lattice}
+\index{linear_lattice}
 If the \vn{match_end} attribute is set to True then the beginning
 Twiss parameters are ignored and the transfer matrix matrix is
 calculated using the Twiss parameters from the exit end of the
@@ -1101,7 +1101,7 @@ end of the match element will be the Twiss parameters as set in the
 element. The \vn{match_end} attribute may only be used with
 \vn{linear_lattice} lattices (\sref{s:param}).
 
-\index{L}
+\index{l}
 The attribute \vn{l} is not used in the transfer matrix
 calculation. It is sometimes needed by a program for other
 computations. For example, to compute the time it takes to go through
@@ -1115,7 +1115,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Multipole}
 \label{s:mult}
-\index{Multipole|hyperbf}
+\index{multipole|hyperbf}
 
 \begin{center}
 \tt 
@@ -1133,7 +1133,7 @@ A \vn{Multipole} is a thin multipole lens up to 20th order. The only
 difference between this and an \vn{AB_Multipole} is the input format. See the 
 Magnetic fields section \ref{s:multip} for more details.
 
-\index{L}
+\index{l}
 The length \vn{l} is a fictitious length that is used for synchrotron
 radiation computations and affects the longitudinal position of the
 next element but does not affect any tracking or transfer map
@@ -1149,7 +1149,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Null_Ele}
 \label{s:null.ele}
-\index{Null_Ele|hyperbf}
+\index{null_ele|hyperbf}
 
 A \vn{Null_Ele} is a special type of element. It is like a \vn{Marker}
 but it has the property that when the lattice is expanded
@@ -1161,7 +1161,7 @@ superpositions (\sref{s:super}). It is not generally useful otherwise.
 %-----------------------------------------------------------------
 \section{Octupole}
 \label{s:oct}
-\index{Octupole|hyperbf}
+\index{octupole|hyperbf}
 
 \begin{center}
 \tt
@@ -1181,15 +1181,15 @@ An \vn{Octupole} is a magnetic element with a cubic field dependence
 with transverse offset (\sref{s:fields}).  The \vn{Bmad_Standard}
 calculation treats an octupole using a kick--drift--kick model.
 
-\index{K3}
-\index{B3_gradient}
+\index{k3}
+\index{b3_gradient}
 Attributes specific to an \vn{Octupole} element are:
 \begin{example}
   k3          = <Real>   ! Octupole strength.
   b3_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
-\index{Tilt}
+\index{tilt}
 If the \vn{tilt} attribute is present without a value then a value of 
 $\pi/8$ is used.
 Example:
@@ -1200,7 +1200,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Patch}
 \label{s:patch}
-\index{Patch|hyperbf}
+\index{patch|hyperbf}
 
 \begin{center}
 \tt
@@ -1214,8 +1214,8 @@ Example:
 \end{center}
 \toffset
 
-\index{X_offset}\index{Y_offset}\index{Z_offset}\index{Tilt}
-\index{X_pitch}\index{Y_pitch}\index{Pz_offset}
+\index{x_offset}\index{y_offset}\index{z_offset}\index{tilt}
+\index{x_pitch}\index{y_pitch}\index{pz_offset}
 Attributes specific to a \vn{Patch} elements are:
 \begin{example}
   x_offset  = <Real>  
@@ -1227,7 +1227,7 @@ Attributes specific to a \vn{Patch} elements are:
   pz_offset = <Real>  
 \end{example}
 
-\index{X_offset}
+\index{x_offset}
 A \vn{Patch} offsets the reference orbit. This is a generalization of
 \mad's \vn{yrot} and \vn{srot} elements. For example, a positive
 \vn{x_offset} offsets the reference orbit after the \vn{patch} in the
@@ -1249,7 +1249,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Quadrupole}
 \label{s:quad}
-\index{Quadrupole|hyperbf}
+\index{quadrupole|hyperbf}
 
 \begin{center}
 \tt
@@ -1268,15 +1268,15 @@ Example:
 An \vn{Octupole} is a magnetic element with a linear field dependence
 with transverse offset (\sref{s:fields}).
 
-\index{K1}
-\index{B1_gradient}
+\index{k1}
+\index{b1_gradient}
 Attributes specific to a \vn{Quadrupole} element are:
 \begin{example}
   k1          = <Real>   ! Quadrupole strength.
   b1_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
-\index{Tilt}
+\index{tilt}
 If the \vn{tilt} attribute is present without a value then a value of $\pi/4$
 is used.
 Example:
@@ -1287,7 +1287,7 @@ Example:
 %-----------------------------------------------------------------
 \section{RFcavity}
 \label{s:rfcav}
-\index{RFcavity|hyperbf}
+\index{rfcavity|hyperbf}
 
 \begin{center}
 \tt
@@ -1302,7 +1302,7 @@ Example:
 \end{center}
 \toffset
 
-\index{RF_frequency}\index{Harmon}\index{Voltage}\index{Phi0}\index{Dphi0}
+\index{rf_frequency}\index{harmon}\index{voltage}\index{phi0}\index{dphi0}
 Attributes specific to an \vn{RFcavity} are:
 \begin{example}
   rf_frequency = <Real>    ! Frequency
@@ -1320,7 +1320,7 @@ The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 \begin{example}
   dE = e_charge * voltage * sin(twopi * (phi_ref - phi(z)))
 \end{example}
-\index{Multipass}
+\index{multipass}
 where
 \begin{example}
   phi_ref = phi0 + dphi0
@@ -1346,7 +1346,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Sextupole}
 \label{s:sex}
-\index{Sextupole|hyperbf}
+\index{sextupole|hyperbf}
 
 \begin{center}
 \tt
@@ -1365,8 +1365,8 @@ Example:
 A \vn{Sextupole} is a magnetic element with a quadratic field
 dependence with transverse offset (\sref{s:fields}).
 
-\index{K2}
-\index{B2_gradient}
+\index{k2}
+\index{b2_gradient}
 Attributes specific to an \vn{Sextupole} element are:
 \begin{example}
   k2          = <Real>   ! Sextupole strength.
@@ -1386,7 +1386,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Solenoid}
 \label{s:sol}
-\index{Solenoid|hyperbf}
+\index{solenoid|hyperbf}
 
 \begin{center}
 \tt
@@ -1402,8 +1402,8 @@ Example:
 \end{center}
 \toffset
 
-\index{KS}
-\index{Bs_gradient}
+\index{ks}
+\index{bs_gradient}
 Attributes specific to an \vn{Solenoid} element are:
 \begin{example}
   ks         = <Real>   ! Solenoid strength.
@@ -1419,7 +1419,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Sol_Quad}
 \label{s:sq}
-\index{Sol_Quad|hyperbf}
+\index{sol_quad|hyperbf}
 
 \begin{center}
 \tt
@@ -1435,7 +1435,7 @@ Example:
 \end{center}
 \toffset
 
-\index{K1}\index{KS}\index{Bs_field}\index{B1_gradient}
+\index{k1}\index{ks}\index{bs_field}\index{b1_gradient}
 Attributes specific to a \vn{Sol_Quad} element are:
 \begin{example}
   k1          = <Real>    ! Quadrupole strength.
@@ -1453,7 +1453,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Taylor}
 \label{s:tay}
-\index{Taylor|hyperbf}
+\index{taylor|hyperbf}
 
 \begin{center} 
 \tt
@@ -1520,7 +1520,7 @@ Example \vn{Taylor} element definition:
 %-----------------------------------------------------------------
 \section{Wiggler} 
 \label{s:wiggler}
-\index{Wiggler|hyperbf} 
+\index{wiggler|hyperbf} 
 
 \begin{center}
 \tt
@@ -1546,8 +1546,8 @@ momentum offsets, there is no change in the $z$ coordinate even though
 the actual trajectory through the wiggler does not follow the straight
 line reference trajectory.
 
-\index{Polarity}
-\index{X_ray_line_len}
+\index{polarity}
+\index{x_ray_line_len}
 \index{Term (for a Wiggler)}
 Attributes specific to a map type \vn{Wiggler} element are:
 \begin{example}
@@ -1572,8 +1572,8 @@ Example:
 \end{example}
 
 For the periodic type \vn{Wiggler}s the attributes are: 
-\index{B_max}\index{N_pole}
-\index{K1}\index{Rho}
+\index{b_max}\index{n_pole}
+\index{k1}\index{rho}
 \begin{example}  
   b_max    = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline. 
   polarity = <Real>  ! Used to scale the field strength.

@@ -5,16 +5,16 @@ This chapter deals with the statements not covered in the previous chapters.
 %-----------------------------------------------------------------------------
 \section{Parameter Statement}
 \label{s:param}
-\index{Parameter statement|hyperbf}
+\index{parameter statement|hyperbf}
 
 
-\index{Lattice!parameter statement}
-\index{Lattice_type!parameter statement}
-\index{Taylor_order!parameter statement}
-\index{E_tot!parameter statement}
-\index{P0C!parameter statement}
-\index{Ran_seed!parameter statement}
-\index{N_part!parameter statement}
+\index{lattice!parameter statement}
+\index{lattice_type!parameter statement}
+\index{taylor_order!parameter statement}
+\index{e_tot!parameter statement}
+\index{p0c!parameter statement}
+\index{ran_seed!parameter statement}
+\index{n_part!parameter statement}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
 other variables.  The variables that can be set by \vn{parameter} is
 \begin{example}
@@ -59,18 +59,18 @@ reference energy, if not set, will be set to 1000 time the particle
 rest energy.  Note: \vn{beginning[e_tot]} and \vn{beginning[p0c]} are
 equivalent to \vn{parameter[e_tot]} and \vn{parameter[p0c]}.
 
-\index{BeamBeam}
+\index{beambeam}
 The \vn{parameter[n_part]} is the number of particle in a bunch.
 it is used with \vn{BeamBeam} elements and is used to calculate the
 change in energy through an \vn{Lcavity}. See~\sref{s:lcav} for more
 details.
 
-\index{Aperture_limit_on}
+\index{aperture_limit_on}
 Aperture limits may be set for elements in the lattice
 (\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
 disable all set apertures. \vn{True} is the default.
 
-\index{Lattice statement}
+\index{lattice statement}
 The \vn{lattice} name is stored by \bmad for use by a program but it does
 not otherwise effect any \bmad routines. 
 Historically it is possible to set the lattice name using the syntax
@@ -80,9 +80,9 @@ Historically it is possible to set the lattice name using the syntax
 This syntax is obsolete since a typographical error cannot be caught.
 
 \noindent
-\index{Circular_lattice}
-\index{Linear_lattice}
-\index{LCavity!and lattice_type}
+\index{circular_lattice}
+\index{linear_lattice}
+\index{lCavity!and lattice_type}
 Valid \vn{lattice_type} switches are
 \begin{example}
   circular_lattice  ! Default w/o LCavity element present.
@@ -95,8 +95,8 @@ computed. Although \vn{circular_lattice} is the nominal default, If
 there are \vn{Lcavity} elements present, \vn{linear_lattice} will be used
 as the default.
 
-\index{Taylor_order statement}
-\index{Taylor_order!parameter statement}
+\index{taylor_order statement}
+\index{taylor_order!parameter statement}
 The Taylor order (\sref{s:taylor.phys}) is set by
 \vn{parameter[taylor_order]} and is the maximum order for a Taylor map.
 Historically it is possible to set the Taylor order using the syntax
@@ -108,9 +108,9 @@ This syntax is obsolete since a typographical error is not easily caught.
 %-----------------------------------------------------------------------------
 \section{Beam_start Statement}
 \label{s:beam.start}
-\index{Beam_start statement|hyperbf}
+\index{beam_start statement|hyperbf}
 
-\index{Beam_start!x, p_x, y, p_y, z, p_z}
+\index{beam_start!x, p_x, y, p_y, z, p_z}
 The \vn{beam_start} statement is used to set the starting coordinates
 for particle tracking
 \begin{example}
@@ -135,9 +135,9 @@ Examples
 \section{Beam Statement}
 \index{Beam statement|hyperbf}
 
-\index{Energy!beam statement}
-\index{Particle!beam statement}
-\index{N_part!beam statement}
+\index{energy!beam statement}
+\index{particle!beam statement}
+\index{n_part!beam statement}
 \index{MAD}
 The \vn{Beam} statement is provided for compatibility with \mad. The syntax is
 \begin{example}
@@ -156,7 +156,7 @@ are the same as \vn{parameter[particle]}.
 
 %-----------------------------------------------------------------------------
 \section{Title Statement}
-\index{Title statement|hyperbf}
+\index{title statement|hyperbf}
 
 The \vn{title} statement sets a title string which can be used by a program. 
 For consistency with \mad there are two possible syntaxes
@@ -224,8 +224,8 @@ the \bmad lattice file operate on the expanded lattice.
 
 %--------------------------------------------------------------------------
 \section{Return and End_File statements}
-\index{Return statement}
-\index{End_file statement}
+\index{return statement}
+\index{end_file statement}
 
 \vn{Return} and \vn{end_file} have identical effect and tell \bmad to
 ignore anything beyond the \vn{return} or \vn{end_file} statement in
@@ -234,21 +234,21 @@ the file.
 %--------------------------------------------------------------------------
 \section{Beginning Statement}
 \label{s:beginning}
-\index{Beginning statement|hyperbf}
+\index{beginning statement|hyperbf}
 
-\index{Beta_a!initialization}
-\index{Alpha_a!initialization}
-\index{Phi_a!initialization}
-\index{Eta_a!initialization}
-\index{Etap_a!initialization}
-\index{Beta_b!initialization}
-\index{Alpha_b!initialization}
-\index{Phi_b!initialization}
-\index{Eta_b!initialization}
-\index{Etap_b!initialization}
-\index{Cij!initialization}
-\index{E_tot!initialization}
-\index{P0C!initialization}
+\index{beta_a!initialization}
+\index{alpha_a!initialization}
+\index{phi_a!initialization}
+\index{eta_a!initialization}
+\index{etap_a!initialization}
+\index{beta_b!initialization}
+\index{alpha_b!initialization}
+\index{phi_b!initialization}
+\index{eta_b!initialization}
+\index{etap_b!initialization}
+\index{cij!initialization}
+\index{e_tot!initialization}
+\index{p0c!initialization}
 For non--circular lattices the \vn{beginning} statement can be used to
 set the Twiss parameters and beam energy at the beginning of the lat
 \begin{example}
@@ -267,7 +267,7 @@ set the Twiss parameters and beam energy at the beginning of the lat
   beginning[e_tot]   = <Real>  ! Reference total energy in eV.
   beginning[p0c]     = <Real>  ! Reference momentum in eV.
 \end{example}
-\index{E_tot!initialization}
+\index{e_tot!initialization}
 The \vn{gamma_a}, \vn{gamma_b}, and \vn{gamma_c} (the coupling gamma
 factor) will be kept consistent with the values set. If not set the
 default values are all zero.  \vn{beginning[e_tot]} and
@@ -275,12 +275,12 @@ default values are all zero.  \vn{beginning[e_tot]} and
 set but not both. Similarly, \vn{beginning[p0c]} and
 \vn{parameter[p0c]} are equivalent.
 
-\index{X_position!initialization}
-\index{Y_position!initialization}
-\index{Z_position!initialization}
-\index{Theta_position!initialization}
-\index{Phi_position!initialization}
-\index{Psi_position!initialization}
+\index{x_position!initialization}
+\index{y_position!initialization}
+\index{z_position!initialization}
+\index{theta_position!initialization}
+\index{phi_position!initialization}
+\index{psi_position!initialization}
 For any lattice the \vn{beginning} statement can be used to set the starting floor position 
 (see~\ref{s:global}). The syntax is
 \begin{example}
@@ -295,8 +295,8 @@ For any lattice the \vn{beginning} statement can be used to set the starting flo
 %----------------------------------------------------------------------------
 \section{Expand_lattice Statement}
 \label{s:expand}
-\index{Lattice!expansion|hyperbf}
-\index{Expand_lattice statement}
+\index{lattice!expansion|hyperbf}
+\index{expand_lattice statement}
 
 At some point in parsing a lattice file, the ordered sequence of
 elements that form a lattice must be constructed. This process is called
@@ -317,22 +317,22 @@ after lattice expansion. See \sref{s:functions}.
 \item 
 Some dependent variables may be set as if they are independent
 variables but only if done before lattice expansion. See \sref{s:depend}.
-\index{Multipass}
+\index{multipass}
 \item 
 Setting the \vn{dphi0} attribute for an 
 \vn{Lcavity} or \vn{RFcavity} multipass
 slave may only be done after lattice expansion (\sref{s:multipass}).
 \item
-\index{Tags for Lines and Lists}
+\index{tags for Lines and Lists}
 Setting individual element attributes for tagged elements can only be done
 after lattice expansion (\sref{s:tag}).
 \end{Itemize}
 
 %--------------------------------------------------------------------------
 \section{Debugging Statements}
-\index{Parser_debug statement}
-\index{No_digested statement}
-\index{Lattice files!parser debugging}
+\index{parser_debug statement}
+\index{no_digested statement}
+\index{lattice files!parser debugging}
 
 There are two statements, \vn{parser_debug} and \vn{no_digested},
 which can help in debugging the \bmad lattice parser

@@ -7,8 +7,8 @@
 \label{s:depend} 
 \index{Element attribute!dependent and independent}
 
-\index{Parameter statement}
-\index{Dependent Attribute}
+\index{parameter statement}
+\index{Dependent attribute}
 For convenience, \bmad computes the values of some attributes based
 upon the values of other attributes. These dependent variables are
 listed in Table~\ref{t:dependent}. Also shown in
@@ -19,19 +19,19 @@ are set by the \vn{parameter} statement (See
 \sref{s:param}). \vn{l_lattice} is calculated when the
 lattice is read in.
 
-\index{BBI_const}\index{Charge}\index{Sig_x}\index{Sig_y}
-\index{E_tot}\index{N_part}\index{E_field}\index{Voltage}
-\index{Hkick}\index{Vkick}\index{Gap}\index{L}
-\index{E_tot}\index{E_loss}\index{Delta_e}\index{Gradient}
-\index{L}\index{Rho}\index{Angle}\index{L_chord}
-\index{G}\index{L}\index{K1}\index{Rho}
-\index{B_max}\index{E_tot}\index{BeamBeam}\index{Elseparator}
-\index{Lcavity}\index{Rbend}\index{Sbend}\index{Wiggler}
+\index{BBI_const}\index{charge}\index{sig_x}\index{sig_y}
+\index{e_tot}\index{n_part}\index{e_field}\index{voltage}
+\index{hkick}\index{vkick}\index{gap}\index{l}
+\index{e_tot}\index{e_loss}\index{delta_e}\index{gradient}
+\index{l}\index{rho}\index{angle}\index{l_chord}
+\index{g}\index{l}\index{k1}\index{rho}
+\index{b_max}\index{e_tot}\index{beambeam}\index{elseparator}
+\index{lcavity}\index{rbend}\index{sbend}\index{wiggler}
 \begin{table}[ht]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
  {\em Element}                & {\em Dependent Variables}    & {\em Independent Variables}        \HH
- \vn{BeamBeam}                & \vn{bbi_const}               & 
+ \vn{BeamBeam}                & \vn{bbi_constant}            & 
                                      \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{E_tot}, \vn{n_part} \HH
  \vn{Elseparator}             & \vn{e_field}, \vn{voltage}   & 
                                           \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{E_tot}    \HH
@@ -48,8 +48,8 @@ they are calculated from.}
 \label{t:dependent}
 \end{table}
 
-\index{Lattice!expansion}\index{Harmon}\index{Delta_e}\index{Gradient}
-\index{Rho}\index{G}\index{Angle}\index{Rf_frequency}
+\index{lattice!expansion}\index{harmon}\index{delta_e}\index{gradient}
+\index{rho}\index{g}\index{angle}\index{rf_frequency}
 No attempt should be made to set or vary within a program dependent
 attributes. It should be remarked that this is not an iron clad rule.
 If a program properly bypasses \bmad's attribute bookkeeping routine
@@ -61,8 +61,8 @@ Table~\ref{t:dep.except}.  After reading in the lattice \bmad will set
 the appropriate independent variable based upon the value of the
 dependent variable. \vn{harmon} is the exception in that it will never
 be set by the bookkeeping routine.
-\index{Lcavity}\index{Rbend}
-\index{Sbend}\index{RFcavity}
+\index{lcavity}\index{rbend}
+\index{sbend}\index{rfcavity}
 \begin{table}[ht]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
@@ -78,11 +78,11 @@ be set by the bookkeeping routine.
 \label{t:dep.except}
 \end{table}
 
-\index{G}\index{G_err}\index{B_field}\index{Bs_field}\index{B_field_err}
-\index{B1_gradient}\index{B2_gradient}\index{B3_gradient}\index{Ks}
-\index{K1}\index{K2}\index{K3}
-\index{BL_kick}\index{BL_hkick}\index{BL_vkick}
-\index{Kick}\index{HKick}\index{VKick}
+\index{g}\index{g_err}\index{b_field}\index{bs_field}\index{b_field_err}
+\index{b1_gradient}\index{b2_gradient}\index{b3_gradient}\index{ks}
+\index{k1}\index{k2}\index{k3}
+\index{bl_kick}\index{bl_hkick}\index{bl_vkick}
+\index{kick}\index{hkick}\index{vkick}
 The normal attribute used to vary the strength of, say, a
 \vn{quadrupole} is \vn{k1}.  It is sometimes convenient to be able to
 vary the magnetic field strength directly instead. To do this \bmad
@@ -91,8 +91,8 @@ primary lattice file then it becomes an independent variable and the
 normalized strength attribute (the strength attribute normalized by
 the reference energy) becomes a dependent variable as tabulated in
 Table~\ref{t:dep.field}.
-\index{Sbend}\index{Rbend}\index{Solenoid}\index{Quadrupole}
-\index{Sol_Quad}\index{Sextupole}\index{Octupole}
+\index{sbend}\index{rbend}\index{solenoid}\index{quadrupole}
+\index{sol_quad}\index{sextupole}\index{octupole}
 \begin{table}[ht]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
@@ -131,9 +131,9 @@ attribute without setting the strength just set the strength to zero. For exampl
 %-----------------------------------------------------------------
 \section{Type, Alias and Descrip Attributes}
 \label{s:string}
-\index{Type|hyperbf}
-\index{Alias|hyperbf}
-\index{Descrip|hyperbf}
+\index{type|hyperbf}
+\index{alias|hyperbf}
+\index{descrip|hyperbf}
 
 There are three string labels associated with any element:
 \begin{example}
@@ -156,9 +156,9 @@ comma (,) or the end of the line marks the end of the string. Example:
 %-----------------------------------------------------------------
 \section{Beam_Energy and P0C Attributes}
 \label{s:energy}
-\index{Parameter statement}\index{E_tot}
-\index{E_tot_start}\index{P0c_start}
-\index{Patch}\index{Lcavity}\index{P0c}
+\index{parameter statement}\index{e_tot}
+\index{e_tot_start}\index{p0c_start}
+\index{patch}\index{lcavity}\index{p0c}
 The attributes that define the reference energy and momentum at an element are:
 \begin{example}
   E_tot = <Real>  ! Total energy in eV.
@@ -184,13 +184,13 @@ which is just the reference energy and momentum at the start of the element.
 %-----------------------------------------------------------------
 \section{Offset, Pitch, Tilt, and Roll Attributes}
 \label{s:offset}
-\index{X_offset|hyperbf}
-\index{Y_offset|hyperbf}
-\index{S_offset|hyperbf}
-\index{X_pitch|hyperbf}
-\index{Y_pitch|hyperbf}
-\index{Roll|hyperbf}
-\index{Tilt|hyperbf}
+\index{x_offset|hyperbf}
+\index{y_offset|hyperbf}
+\index{s_offset|hyperbf}
+\index{x_pitch|hyperbf}
+\index{y_pitch|hyperbf}
+\index{roll|hyperbf}
+\index{tilt|hyperbf}
 
 There are up to 7 attributes that can offset a physical element
 from the reference orbit. They are
@@ -203,7 +203,7 @@ from the reference orbit. They are
   tilt     = <Real>
   roll     = <Real>
 \end{example}
-\index{Pitch}
+\index{pitch}
 The exception here is the \vn{Patch} element which uses these
 attributes to modify the reference orbit itself.
 
@@ -276,15 +276,15 @@ is to give a vertical kick to the beam.
 %-----------------------------------------------------------------
 \section{Hkick, Vkick, and Kick Attributes}
 \label{s:kick}
-\index{Hkick|hyperbf}\index{BL_hkick|hyperbf}
-\index{Vkick|hyperbf}\index{BL_vkick|hyperbf}
-\index{Kick|hyperbf}\index{BL_kick|hyperbf}
+\index{hkick|hyperbf}\index{bl_hkick|hyperbf}
+\index{vkick|hyperbf}\index{bl_vkick|hyperbf}
+\index{kick|hyperbf}\index{bl_kick|hyperbf}
 
 
-\index{Hkicker}
-\index{Vkicker}
-\index{Elseparator}
-\index{Kicker}
+\index{hkicker}
+\index{vkicker}
+\index{elseparator}
+\index{kicker}
 The kick attributes that an element may have are:
 \begin{example}
   kick,  bl_kick  = <Real>  ! Used only with a Hkicker or Vkicker
@@ -306,9 +306,9 @@ they appear in the lattice file (\sref{s:depend}).
 %-----------------------------------------------------------------
 \section{Aperture and Limit Attributes}
 \label{s:limit}
-\index{Aperture|hyperbf}
-\index{Limit|hyperbf}
-\index{Aperture_at|hyperbf}
+\index{aperture|hyperbf}
+\index{limit|hyperbf}
+\index{aperture_at|hyperbf}
 
 \begin{figure}[ht]
   \centering
@@ -317,16 +317,16 @@ they appear in the lattice file (\sref{s:depend}).
   \label{f:limit}
 \end{figure}
 
-\index{Ecollimator}
-\index{Rcollimator}
-\index{X_limit|hyperbf}
-\index{Y_limit|hyperbf}
-\index{X1_limit|hyperbf}
-\index{Y1_limit|hyperbf}
-\index{X2_limit|hyperbf}
-\index{Y2_limit|hyperbf}
-\index{X_offset|hyperbf}
-\index{Offset_moves_aperture|hyperbf}
+\index{ecollimator}
+\index{rcollimator}
+\index{x_limit|hyperbf}
+\index{y_limit|hyperbf}
+\index{x1_limit|hyperbf}
+\index{y1_limit|hyperbf}
+\index{x2_limit|hyperbf}
+\index{y2_limit|hyperbf}
+\index{x_offset|hyperbf}
+\index{offset_moves_aperture|hyperbf}
 The aperture attributes are:
 \begin{example}
   x1_limit    = <Real>      ! Horizontal, negative side, aperture limit
@@ -366,11 +366,11 @@ an error:
   q2: quad, aperture = q1[x1_limit]   ! Correct
 \end{example}
 
-\index{Tilt}
-\index{X_offset}
-\index{Y_offset}
-\index{X_pitch}
-\index{Y_pitch}
+\index{tilt}
+\index{x_offset}
+\index{y_offset}
+\index{x_pitch}
+\index{y_pitch}
 Normally, whether a particle hits an aperture or not is evaluated
 independent of any element offsets (\sref{s:offset}). This is equivalent
 to the situation where a beam pipe containing an aperture is
@@ -382,9 +382,9 @@ have shifted the aperture boundary. Notice that even in this case
 example, so that the tilt of a skew quadrupole does not affect the
 aperture.
 
-\index{Entrance_end|hyperbf}
-\index{Exit_end|hyperbf}
-\index{Aperture_at|hyperbf}
+\index{entrance_end|hyperbf}
+\index{exit_end|hyperbf}
+\index{aperture_at|hyperbf}
 By default the aperture is evaluated at the exit face only of the
 element. This can be changed by setting the \vn{aperture_at} attribute.
 Possible settings for \vn{aperture_at} are:
@@ -411,10 +411,10 @@ Example:
 \section{Length Attributes}
 \label{s:l}
 
-\index{L}
-\index{L_chord}
-\index{Rbend}
-\index{Sbend}
+\index{l}
+\index{l_chord}
+\index{rbend}
+\index{sbend}
 The length attributes are
 \begin{example}
   l       = <Real>  ! 
@@ -426,7 +426,7 @@ particle. The one exception that that for an \vn{Rbend} the length
 all \vn{Rbend}s to \vn{Sbend}s and stores the chord length
 under the \vn{l_chord} attribute.
 
-\index{Wiggler}
+\index{wiggler}
 Note that for \vn{Wiggler}s
 the length \vn{l} is not the same as the path length for a particle
 with the reference energy starting on the reference orbit.
@@ -434,7 +434,7 @@ with the reference energy starting on the reference orbit.
 %-----------------------------------------------------------------
 \section{Is_on Attribute}
 \label{s:is.on}
-\index{Is_on}
+\index{is_on}
 
 The \vn{is_on} attribute
 \begin{example}
@@ -456,11 +456,11 @@ off an \vn{LCavity} will not affect the reference energy.
 \section{Multipole Attributes: An, Bn, KnL, Tn}
 \label{s:multip}
 
-\index{Multipole!an, bn} 
-\index{Multipole!KnL, Tn} 
-\index{AB_Multipole}
-\index{Multipole}
-\index{Radius}
+\index{multipole!an, bn} 
+\index{multipole!KnL, Tn} 
+\index{ab_multipole}
+\index{multipole}
+\index{radius}
 A \vn{Multipole} element specifies its multipole components using an
 Amplitude (\vn{KnL}) and a tilt (\vn{Tn})
 \begin{example}
@@ -503,12 +503,12 @@ default value of $r_0$, if the \vn{radius} is not given, is 1.0.
 \section{Instrumental Measurement Attributes}
 \label{s:meas.attrib}
 
-\index{Instrument}\index{Monitor}\index{Marker}
-\index{X_gain_err}\index{Y_gain_err}\index{Crunch}\index{Noise}
-\index{X_gain_calib}\index{Y_gain_calib}\index{Crunch_calib}
-\index{X_offset}\index{Y_offset}\index{Tilt}
-\index{X_offset_calib}\index{Y_offset_calib}\index{Tilt_calib}
-\index{DE_eta_meas}\index{N_sample}\index{Osc_amplitude}
+\index{instrument}\index{monitor}\index{marker}
+\index{x_gain_err}\index{y_gain_err}\index{Crunch}\index{noise}
+\index{x_gain_calib}\index{y_gain_calib}\index{crunch_calib}
+\index{x_offset}\index{y_offset}\index{tilt}
+\index{x_offset_calib}\index{y_offset_calib}\index{tilt_calib}
+\index{de_eta_meas}\index{n_sample}\index{osc_amplitude}
 
 \vn{Instrument}, \vn{Monitor}, and \vn{Marker} elements have special
 attributes to describe orbit, betatron phase, dispersion and coupling

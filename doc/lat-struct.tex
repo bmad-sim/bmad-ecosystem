@@ -1,6 +1,6 @@
 \chapter{The lat_struct}
 \label{c:lat.struct}
-\index{Lat_struct|hyperbf}
+\index{lat_struct|hyperbf}
 
 The \vn{lat_struct} is the structure that holds of all the information 
 about a lattice.   Despite its name, \bmad\
@@ -39,13 +39,13 @@ end type
 \label{f:lat.struct}
 \end{figure}
 
-\index{Lat_struct!%ele(:)}
-\index{Lat_struct!%n_ele_track}
-\index{Lat_struct!%n_ele_max}
-\index{Ele_struct!in lat_struct} 
-\index{Girder}
-\index{Overlay}
-\index{Group}
+\index{lat_struct!%ele(:)}
+\index{lat_struct!%n_ele_track}
+\index{lat_struct!%n_ele_max}
+\index{ele_struct!in lat_struct} 
+\index{girder}
+\index{overlay}
+\index{group}
 The definition of the \vn{lat_struct} is shown in
 Figure~\ref{f:lat.struct}. The array \vn{%ele(:)} holds the elements
 of the lattice. This array is always allocated with zero as the lower
@@ -75,13 +75,13 @@ of the array \vn{\%ele(:)}.}
 \label{t:part.extent}
 \end{table}
 
-\index{Lat_struct!%ele_init}
+\index{lat_struct!%ele_init}
 The \vn{%ele_init} component within the \vn{lat_struct} is not used
 by \bmad\ and is available for general program use.
 
 %----------------------------------------------------------------------------
 \section{Param_struct Component}
-\index{Lat_param_struct}
+\index{lat_param_struct}
 
 The \vn{%param} component within the \vn{lat_struct} is a
 \vn{lat_param_struct} structure whose definition is shown in
@@ -110,7 +110,7 @@ Figure~\ref{f:lat.param.struct}
 \label{f:lat.param.struct}
 \end{figure}
 
-\index{Lat_param_struct!\%total_length}
+\index{lat_param_struct!\%total_length}
 \vn{%param%total_length} is the length of the lattice that a beam
 tracks through
 \begin{example}
@@ -119,19 +119,19 @@ tracks through
 Normally \vn{%ele(0)%s} = 0 so \vn{%param%total_length} =
 \vn{%ele(n_use)%s} but this is not always the case.
 
-\index{Lat_param_struct!\%n_part}
-\index{BeamBeam}
-\index{Lcavity}
+\index{lat_param_struct!\%n_part}
+\index{beambeam}
+\index{lcavity}
 \vn{%param%n_part} is the number of particles in a bunch and is used
 by \vn{BeamBeam} element to determine the strength of the beambeam
 interaction. \vn{%param%n_part} is also used by \vn{Lcavity} elements
 for wake field calculations.
 
-\index{Lat_param_struct!\%lost}
-\index{Lat_param_struct!\%ix_lost}
-\index{Lat_param_struct!\%end_lost_at}
-\index{Lat_param_struct!\%aperture_limit_on}
-\index{Lat_param_struct!\%plane_lost_at}
+\index{lat_param_struct!\%lost}
+\index{lat_param_struct!\%ix_lost}
+\index{lat_param_struct!\%end_lost_at}
+\index{lat_param_struct!\%aperture_limit_on}
+\index{lat_param_struct!\%plane_lost_at}
 When tracking particles through a lattice the variable
 \vn{%param%aperture_limit_on} determines if apertures are checked.
 \vn{%param%lost} is used to signal if a particle is lost and
@@ -141,9 +141,9 @@ which end the particle was lost at and \vn{%plane_lost_at} records whether
 the lost particle was lost horizontally, vertically or longitudinally.
 See Chapter~\ref{c:tracking} for more details.
 
-\index{Lat_param_struct!\%t1_with_RF}
-\index{Lat_param_struct!\%t1_no_RF}
-\index{Lat_param_struct!\%stable}
+\index{lat_param_struct!\%t1_with_RF}
+\index{lat_param_struct!\%t1_no_RF}
+\index{lat_param_struct!\%stable}
 \vn{%param%t1_with_RF} and \vn{%param%t1_no_RF} are the 1--turn transfer
 matrices from the start of the lattice to the end. \vn{%param%t1_with_RF}
 is the full transfer matrix with RF on. \vn{%param%t1_no_RF} is the
@@ -199,7 +199,7 @@ changing an element attribute generally involves changing values in the
   call element_locator ('Q01W', lat, ix_ele)
   call set_ele_attribute (lat, ix_ele, 'K1', 0.1_rp, err_flag, make_xfer_mat)
 \end{example}
-\index{Overlay}
+\index{overlay}
 This example sets the \vn{K1} attribute of an element named \vn{Q01W}.
 \vn{set_ele_attribute} checks whether this element is actually free to
 be varied and sets the \vn{err_flag} logical accordingly. An element's
@@ -236,8 +236,8 @@ used to do bookkeeping for the entire lattice:
 \section{Elements Controlling Other Elements}
 \label{s:lat.control}
 
-\index{Routine!get_element_lord_list}
-\index{Routine!get_element_slave_list}
+\index{routine!get_element_lord_list}
+\index{routine!get_element_slave_list}
 Generally anyone using \bmad routines will not need to bother with the
 details of how elements control other elements
 (\sref{s:lat.ele.change}).  It is always safer to use the bookkeeping
@@ -259,9 +259,9 @@ Each element of this array is a \vn{control_struct} structure
     integer ix_attrib              ! index of attribute controlled
   end type
 \end{example}
-\index{Girder}
-\index{Overlay}
-\index{Group}
+\index{girder}
+\index{overlay}
+\index{group}
 \vn{%ix_lord} and \vn{%ix_slave} give the indices in the \vn{%ele(:)}
 array of a lord element and an element it controls. A lord element
 \vn{%ele(i_lord)} has assigned to it a block \vn{%control(:)}
@@ -300,7 +300,7 @@ indirection using the \vn{%ic_} array as shown in the next example
     print *, '  ', i, '  ', lattice%ele(i_lord)%name
   enddo
 \end{example}
-\index{Group}
+\index{group}
 For historical reasons, since a \vn{Group} element only makes changes
 in the values of the attributes it controls, \vn{Group} elements are
 not included in the list of lords generated by the above example.
@@ -308,7 +308,7 @@ not included in the list of lords generated by the above example.
 %----------------------------------------------------------------------------
 \section{Pointers}
 \label{s:lat:point}
-\index{Lat_struct!pointers}
+\index{lat_struct!pointers}
 
 Since the \vn{lat_struct} has pointers within it there is an extra burden on
 the programmer to make sure that allocation and deallocation is done

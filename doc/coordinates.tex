@@ -28,11 +28,11 @@ bends, the $y$--axis is in the vertical direction and the $x$--axis is
 in the horizontal plane. Notice that by construction, the particle is
 always at $z = 0$.
 
-\index{Sbend}
-\index{Rbend}
-\index{Entrance_end}
-\index{Exit_end}
-\index{Patch}
+\index{sbend}
+\index{rbend}
+\index{entrance_end}
+\index{exit_end}
+\index{patch}
 In \bmad, a lattice is comprised of a sequence of elements such as
 quadrupoles, bends, RF cavities, etc. Each element has an entrance
 point, an exit point, and a reference curve between them. For a bend,
@@ -48,11 +48,11 @@ of an element with respect to the exit point of the previous element.
 See \sref{s:patch}.  If not specified otherwise, the $s = 0$
 position is the entrance point of the first element.
 
-\index{X_offset}
-\index{Y_offset}
-\index{X_pitch}
-\index{Y_pitch}
-\index{Wiggler}
+\index{x_offset}
+\index{y_offset}
+\index{x_pitch}
+\index{y_pitch}
+\index{wiggler}
 Notice that, in a \vn{Wiggler}, the reference orbit, which is a
 straight line, does {\em not} correspond to the orbit that any actual
 particle could travel. Typically the physical entity of an element is
@@ -102,7 +102,7 @@ positive $\psi$ forms a right--handed screw with the $z$--axis.
 \label{f:global.coords}
 \end{figure}
 
-\index{Beginning statement}
+\index{beginning statement}
 \index{Coordinates!reference orbit!origin in global coordinates}
 By default, at $s = 0$, the reference orbit's origin coincides with
 the $(X, Y, Z)$ origin and the $x$, $y$, and $z$ axes correspond to
@@ -164,7 +164,7 @@ end with respect to the entrance end. For all elements that are not a
 \vn{bend} or a \vn{patch} (that is, for all elements whose reference orbit
 through them is a straight line) the corresponding $\Bf R$ and $\Bf S$
 are
-\index{Rbend}\index{Sbend}\index{Patch}
+\index{rbend}\index{sbend}\index{patch}
 \Begineq
   \Bf R = 
   \begin{pmatrix}
@@ -179,7 +179,7 @@ are
   \end{pmatrix},
 \Endeq
 
-\index{Rbend}\index{Sbend}
+\index{rbend}\index{sbend}
 For a \vn{bend} $\Bf R$ and $\Bf S$ are given by
 \Begineq
   \Bf R = \Bf T \, \Bf R_0, \quad
@@ -206,13 +206,13 @@ where
     0            &  0            & 1                
   \end{pmatrix}
 \Endeq
-\index{Rho}\index{Tilt}\index{Angle}
+\index{rho}\index{tilt}\index{angle}
 where $\rho$ is bend radius (\vn{rho}), $\alpha$ is the bend
 \vn{angle} (\sref{s:bend}), and $\theta_t$ is the \vn{tilt} angle
 (\sref{s:offset}). Without a tilt, $\Bf T$ is the unit matrix
 resulting in $\Bf R = \Bf R_0$ and $\Bf S = \Bf S_0$.
 
-\index{Patch}\index{Tilt}
+\index{patch}\index{tilt}
 For a \vn{patch} element, the $\Bf S$ matrix corresponding to a
 non--zero \vn{tilt} is
 \Begineq
@@ -223,7 +223,7 @@ non--zero \vn{tilt} is
     0            &  0            & 1                
   \end{pmatrix}
 \Endeq
-\index{X_pitch}
+\index{x_pitch}
 The $\Bf S$ matrix corresponding to a non-zero \vn{x_pitch} is
 \Begineq
   \Bf S = 
@@ -233,7 +233,7 @@ The $\Bf S$ matrix corresponding to a non-zero \vn{x_pitch} is
     \sin\theta_x & 0 & \cos\theta_x
   \end{pmatrix}
 \Endeq
-\index{Y_pitch}
+\index{y_pitch}
 Finally, the $\Bf S$ matrix corresponding to a non-zero \vn{y_pitch} is
 \Begineq
   \Bf S = 
@@ -329,7 +329,7 @@ $p_z$ can be approximated by
 \begin{equation}
   p_z = \frac{\Delta E}{E_0}
 \end{equation}
-\index{Lcavity}
+\index{lcavity}
 where $E_0$ is the reference energy (energy here always refers to the
 total energy) and $\Delta E = E - E_0$ is the deviation of the
 particle's energy from the reference energy. For an \vn{Lcavity}

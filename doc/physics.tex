@@ -3,10 +3,10 @@
 %-----------------------------------------------------------------
 \section{Units}
 \label{s:units}
-\index{Units|hyperbf}
+\index{units|hyperbf}
 
 \index{MAD!units}
-\index{Units!with MAD}
+\index{units!with MAD}
 \bmad uses SI (Syst\'eme International) units as shown in
 Table~\ref{t:units}.  Note that \mad uses different units. For example,
 \mad's unit of Particle Energy is GeV not eV.
@@ -92,7 +92,7 @@ Reference Orbit is locally curved), the field up to $3^{rd}$ order is
 \end{alignat}
 The normalized integrated multipole $K_nL$ is used when specifying magnetic
 multipole components
-\index{Multipole!KnL, Tn|hyperbf}
+\index{multipole!KnL, Tn|hyperbf}
 \Begineq
   K_nL \equiv \frac{q \, L \, B_n}{P_0}
 \Endeq
@@ -128,7 +128,7 @@ horizontal focusing and vertical defocussing. The general form is
              (-1)^{m} \, x^{n-2m-1} \, y^{2m+1}
 \end{align}
 
-\index{Multipole!KnL, Tn|hyperbf}
+\index{multipole!KnL, Tn|hyperbf}
 So far only the normal components of the field have been
 considered. If the fields associated with a particular $B_n$ multipole
 component are rotated in the $(x, y)$ plane by an angle $\theta_n$, the
@@ -141,7 +141,7 @@ as
 \Endeq
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
 
-\index{Multipole!an, bn|hyperbf}
+\index{multipole!an, bn|hyperbf}
 Another representation of the magnetic field used by \bmad divides
 the fields into normal $b_n$ and skew $a_n$ components. In terms of
 these components the magnetic field for the $n$\Th\ order multipole is
@@ -166,8 +166,8 @@ about its longitudinal axis with a rotation angle of
 For example, a normal quadrupole rotated by $45^\circ$ becomes a
 skew quadrupole.
 
-\index{AB_Multipole}
-\index{Radius}
+\index{ab_multipole}
+\index{radius}
 When the $a_n$ and $b_n$ are associated with a physical element (as
 opposed to the $a_n$ and $b_n$ associated with an \vn{AB_Multipole} element),
 a measurement radius $r_0$ and a scale factor $F$ are used to scale
@@ -185,24 +185,24 @@ that are used in any simulation calculations. $r_0$ is set by the
 automatically depending upon the type of element as shown in
 Table~\ref{t:ab}.
 
-\index{AB_Multipole}
-\index{Multipole}
+\index{ab_multipole}
+\index{multipole}
 Note that the $n = 0$ component of an \vn{AB_Multipole} or \vn{Multipole}
 element rotates the reference orbit essentially acting as a zero length bend.
 This is not true for multipoles that are associated with 
 non-multipole elements.
 
-\index{Kicker}
-\index{Hkicker}
-\index{Vkicker}
-\index{Rbend}
-\index{Sbend}
-\index{Elseparator}
-\index{Quadrupole}
-\index{Solenoid}
-\index{Sol_Quad}
-\index{Sextupole}
-\index{Octupole}
+\index{kicker}
+\index{hkicker}
+\index{vkicker}
+\index{rbend}
+\index{sbend}
+\index{elseparator}
+\index{quadrupole}
+\index{solenoid}
+\index{sol_quad}
+\index{sextupole}
+\index{octupole}
 \begin{table}[ht]
 \centering
 \begin{tabular}{|l|l|l|} \hline
@@ -227,7 +227,7 @@ non-multipole elements.
 %-----------------------------------------------------------------
 \section{Taylor Maps}
 \label{s:taylor.phys}
-\index{Taylor map|hyperbf}
+\index{taylor map|hyperbf}
 
 A transport map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through
 an element or a section of a lattice is a function that maps the
@@ -289,7 +289,7 @@ the $e_{ijk}$ of \Eq{rcr}. In this example, the second Taylor series
   p_x(out) = -0.185 + 1.3 \, p_x(in) + 3.8 \, x^2(in) \, p_z(in)
 \Endeq
 
-\index{Taylor map!reference coordinates}
+\index{taylor map!reference coordinates}
 The reference column in the above example shows the input coordinates around
 which the Taylor map is calculated. In this case, the reference
 coordinates where 
@@ -316,7 +316,7 @@ point does not play any role when the Taylor map is evaluated to
 determine the output coordinates as a function of the input
 coordinates.
 
-\index{Taylor map!feed-down}
+\index{taylor map!feed-down}
 Of importance in working with Taylor maps is the concept of
 \vn{feed-down}.  This is best explained with an example. To keep the
 example simple, the discussion is limited to one phase space
@@ -365,7 +365,7 @@ coordinate $\widetilde x_0$ at point 0 given by
 \Begineq
   \widetilde x_0 = x_0 + 2
 \Endeq
-\index{Symplectic integration}
+\index{symplectic integration}
 The other possibility is to use symplectic integration. By its nature,
 symplectic integration never has problems with feed--down.
 
@@ -441,7 +441,7 @@ time for a given accuracy.
 %-----------------------------------------------------------------
 \section{Symplectification}
 \label{s:symp.method}
-\index{Symplectic!symplectification}
+\index{symplectic!symplectification}
 
 If the evolution of a system can be described using a Hamiltonian then
 it can be shown that the linear part of any transport map (the Jacobian)
@@ -537,7 +537,7 @@ reference particle.
 \section{Wigglers}
 \label{s:wiggler.phys}
 
-\index{Wiggler}
+\index{wiggler}
 As discussed in \sref{s:wiggler}, \bmad \vn{Wiggler} elements are
 split into two classes: map type and periodic type. The map type
 \vn{Wigglers} are modeled using the method of Sagan, Crittenden, and
@@ -607,7 +607,7 @@ calculations the true horizontal trajectory with $y = 0$ is needed
 %-----------------------------------------------------------------
 \section{Synchrotron Radiation Damping and Excitation}
 \label{s:radiation}
-\index{Synchrotron radiation!damping and excitation|hyperbf}
+\index{synchrotron radiation!damping and excitation|hyperbf}
 
 Emission of synchrotron radiation by a particle can be decomposed into
 two parts. The deterministic average radiation emitted produces damping
@@ -668,7 +668,7 @@ will be dominated by coupling so this approximation is generally a good one.
 %-----------------------------------------------------------------
 \section{Coupling and Normal Modes}
 \label{s:coupling}
-\index{Normal Mode!Coupling}
+\index{normal mode!Coupling}
 
 The coupling formalism used by \bmad is taken from the paper of Sagan
 and Rubin\cite{b:coupling}. The main equations are reproduced here.  A
@@ -688,8 +688,8 @@ where $\bfV$ is symplectic, and $\bfU$ is of the form
     \end{pmatrix}
     . \label{ua00b}
   \Endeq
-\index{Normal Mode!a--mode}
-\index{Normal Mode!b--mode}
+\index{normal mode!a--mode}
+\index{normal mode!b--mode}
 Since $\bfU$ is uncoupled the standard Twiss analysis can be
 performed on the matrices $\bfA$ and $\bfB$. The normal modes
 are labeled $a$ and $b$ and if the one--turn matrix $\bfT$ is
@@ -706,7 +706,7 @@ $\bfV$ is written in the form
     , \label{vgicc1}
   \Endeq
 where the symplectic conjugate is 
-\index{Symplectic!conjugate}
+\index{symplectic!conjugate}
   \Begineq
     \bfC^+ = 
     \begin{pmatrix}
@@ -800,7 +800,7 @@ dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
 %-----------------------------------------------------------------
 \section{Dispersion Calculation}
 \label{s:dispersion}
-\index{Dispersion|hyperbf}
+\index{dispersion|hyperbf}
 
 The dispersion ($\eta$) and the dispersion derivative ($\eta'$) are 
 defined by the equations
@@ -875,7 +875,7 @@ $dp_{z1}/dp_{z2}$ is 1.
 %-----------------------------------------------------------------
 \section{Instrumental Measurements}
 \label{s:meas.calc}
-\index{Measurement}
+\index{measurement}
 
 \bmad has the ability to simulate instrumental measurement errors
 for orbit, dispersion, betatron phase, and coupling measurements.
@@ -884,7 +884,7 @@ the conversion formulas are outlined below.
 
 %-----------------------------------------------------------------
 \subsection{Orbit Measurement}
-\index{Orbit!measurement}
+\index{orbit!measurement}
 
 For orbits, the
 relationship between measured position $(x, y)_{\mss{meas}}$ and true position 
@@ -1180,7 +1180,7 @@ previous subsection, the phase $\phi$ is
 %-----------------------------------------------------------------
 \section{Macroparticles}
 \label{s:macro}
-\index{Macroparticles|hyperbf}
+\index{macroparticles|hyperbf}
 
 A macroparticle\cite{b:transport.appendix} is a bundle of particles
 whose distribution is assumed to be Gaussian in shape. A macroparticle
@@ -1202,7 +1202,7 @@ at some point $s = s_1$, the sigma matrix at a different point $s_2$ is
 where $\bM_{21}$ is the Jacobian of the transport map between points
 $s_1$ and $s_2$.
 
-\index{Dispersion}
+\index{dispersion}
 The Twiss parameters can be calculated from the sigma matrix. The
 dispersion is given by
 \begin{align}
@@ -1313,11 +1313,11 @@ to the charge associated with the slice.
 %-----------------------------------------------------------------
 \section{Wake fields}
 \label{s:wake fields}
-\index{Wake fields|hyperbf}
+\index{wake fields|hyperbf}
 
 %-----------------------------
 \subsection{Short--Range Wakes}
-\index{Wake fields!short-range}
+\index{wake fields!short-range}
 
 Wake field effects are divided into short--range (within a bunch) and
 long--range (between bunches).
@@ -1388,7 +1388,7 @@ modes are used.
 
 %-----------------------------
 \subsection{Long--Range Wakes}
-\index{Wake fields!long-range}
+\index{wake fields!long-range}
 
 Following Chao\cite{b:chao} Eq.~2.88, The long--range wake fields are
 characterized by a set of cavity modes. The wake function $W$ for a
@@ -1529,7 +1529,7 @@ include factors of the beam pipe radius.
 %-----------------------------------------------------------------
 \section{Synchrotron Integrals}
 \label{s:synch.ints}
-\index{Synchrotron radiation!integrals}
+\index{synchrotron radiation!integrals}
 
 The standard formulas for the synchrotron integrals used to compute
 emittances, the energy spread, etc., for a lattice assume no
@@ -1537,7 +1537,7 @@ coupling between the horizontal and vertical
 planes\cite{b:helm,b:jowett}.  With coupling the equations need to be
 generalized.
 
-\index{Dispersion}
+\index{dispersion}
 In the general case the curvature function $\Bf G = (G_x, G_y)$, which
 points away from the center of curvature of the particle's orbit (see
 Figure~\ref{f:local.coords}), does not lie in the horizontal
@@ -1690,7 +1690,7 @@ Where $\gamma_f$ is the final gamma.
 %-----------------------------------------------------------------   
 \section{Spin Dynamics}   
 \label{s:spin.dyn}   
-\index{Spin tracking!Spin dynamics}   
+\index{spin tracking!Spin dynamics}   
     
  The matrix representation of the observable corresponding to the measurement of   
  spin along the unit vector $\Bf u$ in the ${ |+> = \left(\begin{matrix}1 \\ 0   

@@ -20,14 +20,14 @@ elements and a hierarchy of \vn{lord} elements may be established.
 There are five types of lord elements: 
 \begin{Itemize}
 \item 
-\index{Group}
+\index{group}
 \vn{Group} lord elements are used to make variations in
 attributes. For example, to simulate the action of a control room knob
 that changes the beam tune in a storage ring, a \vn{Group} can be used
 to vary the strength of selected quads in a specified
 manner. \vn{Groups} are covered in \sref{s:group}.
 \item
-\index{Overlay}
+\index{overlay}
 An \vn{Overlay} lord is like a \vn{group} except that \vn{overlays}
 set the value (not a change in) the attributes they
 control. \vn{Overlays} are covered in \sref{s:overlay}.
@@ -35,11 +35,11 @@ control. \vn{Overlays} are covered in \sref{s:overlay}.
 A \vn{superposition} lord is created when elements are superimposed on
 top of other elements. This is covered in \sref{s:super}.
 \item
-\index{Girder}
+\index{girder}
 \vn{Girder} elements mimic the effect of a support girder. This is
 covered in \sref{s:girder}.
 \item
-\index{Multipass}
+\index{multipass}
 \vn{Multipass} elements are used when the beam recirculates through
 the same element multiple times. This is covered in
 \sref{s:multipass}.
@@ -103,7 +103,7 @@ type of attribute as the following example shows
 %-----------------------------------------------------------------------------
 \section{Group Elements}
 \label{s:group}
-\index{Group}
+\index{group}
  
 \vn{group} is like \vn{overlay} in that a \vn{group} element controls
 the attribute values of other ``slave'' elements.  A \vn{group}
@@ -131,7 +131,7 @@ attribute and this change will be added to the value of
 \vn{q1[k1]} is. It only knows it has to change it by the change in
 \vn{gr[command]}.
 
-\index{Accordion_edge}
+\index{accordion_edge}
 \index{start_edge}
 \index{end_edge}
 \index{symmetric_edge}
@@ -176,7 +176,7 @@ This last line that defines \vn{gr2} is just a shorthand notation for
 The effect will be to lengthen the length of \vn{q10} and shorten the
 length of \vn{d1}.
 
-\index{Old_command}
+\index{old_command}
 \index{Command}
 \index{coef}
 \index{type}
@@ -212,7 +212,7 @@ change by $-1.0 = -2.0 * 0.5$.
 %-----------------------------------------------------------------------------
 \section{Superposition}
 \label{s:super}
-\index{Superimpose|hyperbf}
+\index{superimpose|hyperbf}
 
 In practice the field at a particular point in the lattice may be due
 to more than one physical element. A common example is a quadrupole
@@ -293,9 +293,9 @@ placement of a superimposed element is determined by three factors: A
 reference point on the superimposed element, a reference point in the
 lattice line, and an offset between the points. The attributes that
 determine these three quantities are: 
-\index{Ref}\index{Offset}
-\index{Ref_beginning}\index{Ref_center}\index{Ref_end}
-\index{Ele_beginning}\index{Ele_center}\index{Ele_end}
+\index{ref}\index{offset}
+\index{ref_beginning}\index{ref_center}\index{ref_end}
+\index{ele_beginning}\index{ele_center}\index{ele_end}
 \begin{example}
   ref = <element name in lattice>
   offset = <length>      (default = 0)
@@ -318,12 +318,12 @@ to use the element center. \vn{offset} is the longitudinal offset
 between the reference point on the reference element and the reference
 point on the superimposed element. The default if not present is zero.
 
-\index{Lattice_type}
-\index{Linear_lattice}
-\index{Drift}
-\index{Overlay}
-\index{Group}
-\index{Girder}
+\index{lattice_type}
+\index{linear_lattice}
+\index{drift}
+\index{overlay}
+\index{group}
+\index{girder}
 Superposition may be done with any element except \vn{Drift},
 \vn{Group}, \vn{Overlay}, and \vn{Girder} control elements. A superimposed element that
 extends beyond either end of the lattice will be wrapped around. For consistency's sake
@@ -343,14 +343,14 @@ For example
 %-----------------------------------------------------------------------------
 \section{Multipass}
 \label{s:multipass}
-\index{Multipass|hyperbf}
+\index{multipass|hyperbf}
 
 Some lattices have the beam recirculating through the same element
 multiple times. For example, an Energy Recovery Linac (ERL) will
 circulate the beam back through the LINAC part to retrieve the energy
 in the beam. In \bmad this situation can simulated using the
 \vn{multipass} attribute. A simple example shows how this works.
-\index{Expand_lattice!statement}
+\index{expand_lattice!statement}
 \begin{example}
   A: lcavity
   linac_part: line[multipass] = (A, ...)
@@ -415,14 +415,14 @@ In this example the tracking part of the lattice is
 Here the 1\St and 6\Th elements are connected to a multipass lord and the
 2\Nd and 5\Th elements are connected to a different multipass lord.
 
-\index{Lcavity}
+\index{lcavity}
 If there are \vn{lcavity} elements in the lattice then the reference
 energy at a given element may differ from pass to pass. For a magnetic
 element, since the normalized strength is not constant from pass to
 pass, the magnetic field strength should be setup to be the
 independent attribute (\sref{s:depend}). 
 
-\index{Sbend}\index{Rbend}
+\index{sbend}\index{rbend}
 For a bend, there is the added complication that, the reference orbit
 needs to be defined unambiguously. The \bmad standard mandates that
 the reference orbit through a bend is the same on all passes. For

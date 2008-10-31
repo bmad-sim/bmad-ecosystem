@@ -7,7 +7,7 @@ chapter analyzes a simple test program.
 
 %-----------------------------------------------------------------------------
 \section{A First Program}
-\index{Programming!example program}
+\index{programming!example program}
 
 Consider the simple test program shown in Figure~\ref{f:program}.
 This program is provided with the \bmad distribution in a file called
@@ -53,9 +53,9 @@ end program
 \label{f:program}
 \end{figure}
 
-\index{Programming!gmake}
-\index{Programming!production executable}
-\index{Programming!debug executable}
+\index{programming!gmake}
+\index{programming!production executable}
+\index{programming!debug executable}
 Making \vn{bmad/simple_program} the working directory, the \vn{gmake}
 command will compiling and link the program.  The
 executables, \vn{simple_program} and \vn{simple_program_g}, are to be
@@ -114,7 +114,7 @@ Figure~\ref{f:output}.
 %-----------------------------------------------------------------------------
 \section{Explanation of the Simple_Program}
 
-\index{Lat_struct!example use of}
+\index{lat_struct!example use of}
 A line by line explanation of the simple test program follows. 
 The \vn{use bmad} statement at line 3
 defines the \bmad structures and defines the interfaces
@@ -142,10 +142,10 @@ Twiss parameters and, using the transfer matrices of the individual
 elements, calculates the Twiss parameters at all the elements. Again
 the results of the calculation are stored in \vn{lat}. 
 
-\index{Ele_struct!%x}
-\index{Ele_struct!%key}
-\index{Ele_struct!%s}
-\index{Lat_struct!%ele(:)}
+\index{ele_struct!%x}
+\index{ele_struct!%key}
+\index{ele_struct!%s}
+\index{lat_struct!%ele(:)}
 The program is now ready to print out the results of the calculation
 which it does on lines 16 through 21 of the program and lines 1 through 12
 of the output. \vn{lat} has within it an array
@@ -174,7 +174,7 @@ if you look at this file you will find a call to another file
   \begin{example}
   call, file=bmad_test.layout
   \end{example}
-\index{Line}
+\index{line}
 It is in this second file
 that the layout of the lattice is defined. In particular, the \vn{line} used
 to define the element order looks like
@@ -193,7 +193,7 @@ the \vn{CLEO_SOL} element which appears in \vn{bmad_test.lat}:
   ks_solenoid    := -1.0e-9 * clight * solenoid_tesla / beam[energy]
   cleo_sol: solenoid, l = 3.51, ks = ks_solenoid, superimpose 
 \end{example}
-\index{Superimpose!example}
+\index{superimpose!example}
 The solenoid is 3.51 meters long
 and it is superimposed upon the lattice with its center at $s = 0$ (this
 is the default if the position is not specified). 

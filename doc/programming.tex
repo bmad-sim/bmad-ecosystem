@@ -18,10 +18,10 @@ initial check indicates that the distribution should be build able
 under Sun Solaris. The \bmad web site has contact information for
 questions about platform support and building problems.
 
-\index{Libraries, Software}
+\index{libraries, Software}
 The subsidiary libraries are: 
 \begin{description}
-\index{Cesr_Utils library}
+\index{cesr_utils library}
 \item[cesr_utils] 
 This is a low level library. Despite its name the
 routines in this library do not have anything to do with the Cornell
@@ -31,7 +31,7 @@ defines the precision that \bmad works at (see
 gives the physical and mathematical constants (\vn{pi}, \vn{c_light},
 etc.) that \bmad knows about.
 
-\index{Dcslib library}
+\index{dcslib library}
 \item[dcslib] 
 This library defines a set of miscellaneous helper
 routines.  Routines include spline fitting, Gaussian random number
@@ -50,7 +50,7 @@ web site at
    http://acc-physics.kek.jp/forest/PTC/Introduction.html
 \end{example}
 
-\index{Numerical Recipes!library}
+\index{numerical recipes!library}
 \item[recipes] 
 Numerical Recipes is a set of subroutines for doing
 scientific computing including Runge--Kutta integration, FFT's,
@@ -65,7 +65,7 @@ Recipes. For \bmad this library has been modified to handle both
 single or double precision reals as needed in the other libraries (See
 \sref{s:precision}).
 
-\index{PGPLOT!library}
+\index{pgplot!library}
 \item[PGPLOT] 
 The PGPLOT Graphics Subroutine Library is a Fortran or
 C-callable, device-independent graphics package for making simple
@@ -96,8 +96,8 @@ can be obtained from the \bmad web page, for more information.
 %-----------------------------------------------------------------------------
 \section{Getf and Listf}
 \label{s:getf}
-\index{Getf}
-\index{Listf}
+\index{getf}
+\index{listf}
 
 As can be seen from the program example in Chapter~\ref{c:program.info}
 there is a lot going on behind the scenes even for this
@@ -189,8 +189,8 @@ do not follow this format.
 %-----------------------------------------------------------------------
 \section{Precision}
 \label{s:precision}
-\index{Programming!precision (rp)}
-\index{RP}
+\index{programming!precision (rp)}
+\index{rp}
 
 \bmad comes in two flavors: One version where the real numbers are single
 precision and a second version with double precision reals. Which
@@ -227,13 +227,13 @@ respectively.
 
 %-----------------------------------------------------------------------------
 \section{Programming Conventions}
-\index{Programming!conventions}
+\index{programming!conventions}
 
 \bmad subroutines follow the following conventions:
 
 \begin{description}
 
-\index{Programming!\$}
+\index{programming!\$}
 \item[\$ Denotes Parameter:] A ``\$'' at the end of a name denotes an 
 integer parameter. For example, in the above program, to check
 whether an element is a quadrupole one would write:
@@ -254,7 +254,7 @@ importantly, the integer value of the parameters may at times be
 shuffled for practical internal reasons. The use of the integer value
 could thus lead to disastrous results.  
 
-\index{Programming!structures}
+\index{programming!structures}
 \item[Structure names have a _struct suffix:]
 For example: \vn{lat_struct}, \vn{ele_struct}, etc. Structures without a 
 \vn{_struct} are usually part of Etienne's PTC/FPP package.

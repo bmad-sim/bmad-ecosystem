@@ -2,7 +2,7 @@ chapter{Beam Lines, Replacement Lists, and Branching}
 \label{c:sequence}
 
 \index{MAD}
-To \bmad a ``lattice''\index{Lattice} is the sequence of physical
+To \bmad a ``lattice''\index{lattice} is the sequence of physical
 elements that is to be studied. The lattice is constructed in the
 input lattice file using what are know as Beam Lines and Replacement
 Lists. Beam Lines are further subdivided into Lines with and without
@@ -27,7 +27,7 @@ beginning of the lattice. The name of this element is always \vn{BEGINNING}.
 %-----------------------------------------------------------------------------
 \section{Beam Lines without Arguments}
 \label{s:lines.wo.arg}
-\index{Line|hyperbf}
+\index{line|hyperbf}
 
 A Beam Line without arguments has the format
 \begin{example}
@@ -111,7 +111,7 @@ A line can have the \vn{multipass} attribute. This is covered in
 
 %-----------------------------------------------------------------------------
 \section{Beam Lines with Replaceable Arguments}
-\index{Line!with arguments}
+\index{line!with arguments}
 
 Beam lines can have an argument list using the following syntax
 \begin{example}
@@ -138,7 +138,7 @@ Thus the following is not allowed
 
 %-----------------------------------------------------------------------------
 \section{Replacement Lists}
-\index{List}
+\index{list}
 
 When a lattice is expanded, all the lattice members that correspond to a 
 name of a Replacement List 
@@ -173,7 +173,7 @@ For example the following is not allowed:
 
 %-----------------------------------------------------------------------------
 \section{Line and List Tags}
-\index{Tags for Lines and Lists|hyperbf}
+\index{tags for Lines and Lists|hyperbf}
 \label{s:tag}
 
 When a lattice has repeating lines, it can be desirable to differentiate
@@ -240,7 +240,7 @@ The lattice elements in this case are:
   z1.t1.a, z1.t1.b, z1.hh.g, z2.t1.a, z2.t1.b, z1.hh.h 
 \end{example}
 
-\index{Expand_lattice!statement}
+\index{expand_lattice!statement}
 To modify a particular tagged element the lattice must be expanded
 first (\sref{s:expand}). For example:
 \begin{example}
@@ -258,7 +258,7 @@ is modified do not have any effect on the lattice elements.
 
 %-----------------------------------------------------------------------------
 \section{Branching}
-\index{Branch}\index{Photon_Branch}
+\index{branch}\index{photon_branch}
 \label{s:branching}
 
 Lines that branch off from the main lattice can be defined in

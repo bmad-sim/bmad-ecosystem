@@ -1,6 +1,6 @@
 \chapter{Tracking and Transfer Maps}
 \label{c:tracking}
-\index{Tracking}
+\index{tracking}
 
 \bmad can do two types of tracking. One type uses a single particle
 and tracks its coordinates throughout the lattice. The other type
@@ -10,7 +10,7 @@ deferred until the last section of this chapter.
 
 %----------------------------------------------------------------
 \section{The coord_struct}
-\index{Coord_struct}
+\index{coord_struct}
 
 For single particle tracking the starting point is the
 \vn{coord_struct} whose definition is 
@@ -23,7 +23,7 @@ For single particle tracking the starting point is the
 The \vn{coord_struct} defines the phase
 space vector of the particle at a certain longitudinal location.
 
-\index{Lat_struct!%n_ele_max}
+\index{lat_struct!%n_ele_max}
 To get an orbit, that is, the particle position at every element in a
 lattice, you will need an array of \vn{coord_struct}s. Since the
 number of elements in the lattice is not known in advance the array
@@ -45,7 +45,7 @@ An example of how to do multi-turn tracking (assuming a circular lattice) is
     orbit(0) = orbit(lat%n_ele_track)
   end do
 \end{example}
-\index{Super_lord}
+\index{super_lord}
 \vn{orbit(n)} holds the particle's position at the exit end of the
 $n$\Th element. Since \vn{super_lord} (\sref{s:control.type}) elements
 have an associated particle position, the upper bound of the
@@ -85,7 +85,7 @@ and closed orbit calculations are listed in Section \sref{r:track}.
 \index{lat_param_struct!ix_lost}
 \index{lat_param_struct!plane_lost_at}
 \index{lat_param_struct!end_lost_at}
-\index{Tracking!example}
+\index{tracking!example}
 The \vn{track_all} routine serves as a good example of how tracking
 works. \vn{track_all} tracks a particle through a lattice from
 beginning to end. Its code, condensed slightly, is shown in
@@ -135,7 +135,7 @@ what element the loss occurred.
 
 %----------------------------------------------------------------
 \section{Closed Orbit}
-\index{Closed orbit}
+\index{closed orbit}
 
 For a circular lattice the closed orbit may be calculated using
 \vn{closed_orbit_calc}. By default this routine will track in the
@@ -151,7 +151,7 @@ robust way but with a large speed penalty.
 
 %----------------------------------------------------------------
 \section{Apertures}
-\index{Tracking!apertures}
+\index{tracking!apertures}
 
 \index{lat_param_struct!aperture_limit_on}
 \index{bmad_common_struct!max_aperture_limit}
@@ -169,8 +169,8 @@ will result in an overflow.
 \index{lat_param_struct!end_lost_at}
 \index{lat_param_struct!lost}
 \index{lat_param_struct!ix_lost}
-\index{Entrance_end}
-\index{Exit_end}
+\index{entrance_end}
+\index{exit_end}
 \vn{lat%param%lost} is the logical to check to see if a particle has
 been lost. \vn{lat%param%ix_lost} is set by \vn{track_all} and gives
 the index of the element at which a particle is lost.
@@ -205,7 +205,7 @@ enough energy going into the cavity to make it to the exit.
 %----------------------------------------------------------------
 \section {Tracking Methods}
 
-\index{Ele_struct!%tracking_method}
+\index{ele_struct!%tracking_method}
 For each element the method of tracking may be set either via the
 input lattice file (see \sref{s:tkm}) or directly in the
 program by setting the \vn{%tracking_method} attribute of an element
@@ -219,13 +219,13 @@ put ``\$'' after the name. For example, the \vn{bmad_standard}
 tracking method is specified by the \vn{bmad_standard\$}
 parameter.
 
-\index{Ele_struct!%mat6}\index{linear}
+\index{ele_struct!%mat6}\index{linear}
 It should be noted that except for \vn{linear} tracking, none of the
 \bmad tracking routines make use of the \vn{ele%mat6} transfer
 matrix. The reverse, however, is not true.  The transfer matrix
 routines (\vn{lat_make_mat6}, etc.)  will do tracking.
 
-\index{Synchrotron radiation!calculating}
+\index{synchrotron radiation!calculating}
 \bmad simulates radiation damping and excitation by applying a kick
 just before and after each element. To turn on radiation damping
 and/or excitation use the \vnr{setup_radiation_tracking} routine.
@@ -233,7 +233,7 @@ and/or excitation use the \vnr{setup_radiation_tracking} routine.
 %----------------------------------------------------------------
 \section{Taylor Maps}
 \label{s:taylor.track}
-\index{Taylor Map}
+\index{taylor Map}
 
 A list of routines for manipulating Taylor maps is given
 in~\sref{r:taylor}. The order of the Taylor maps is set in the lattice
@@ -242,11 +242,11 @@ this can be overridden using the routine \vnr{set_taylor_order}. The
 routine \vnr{taylor_coef} can be used to get the coefficient of any
 given term.
 
-\index{Symp_Lie_Bmad}
-\index{Symp_Lie_PTC}
-\index{Symp_Map}
-\index{Taylor}
-\index{Taylor!deallocating}
+\index{symp_lie_Bmad}
+\index{symp_lie_PTC}
+\index{symp_map}
+\index{taylor}
+\index{taylor!deallocating}
 Transfer Taylor maps for an element are generated as needed when the
 \vn{ele%tracking_method} or \vn{ele%mat6_calc_method} is set to
 \vn{Symp_Lie_Bmad}, \vn{Symp_Lie_PTC}, \vn{Symp_Map}, or
@@ -296,8 +296,8 @@ using symplectic integration.
     call call taylor_propagate1 (taylor, lat%ele(i), lat%param)
   enddo
 \end{example}
-\index{Ds_step}
-\index{Integrator_order}
+\index{ds_step}
+\index{integrator_order}
 Symplectic integration is typically much slower than concatenation.
 The width of an integration step is given by \vn{%ele%value(ds_step\$}.
 The attribute \vn{%ele%value(num_steps\$)}, which gives the number
@@ -309,8 +309,8 @@ PTC (\sref{c:etienne}) currently implements integrators of order 2, 4, or 6.
 
 %----------------------------------------------------------------
 \section{Macroparticle Tracking}
-\index{Macroparticles!tracking}
-\index{Tracking!Macroparticles}
+\index{macroparticles!tracking}
+\index{tracking!Macroparticles}
 \label{s:macro.track}
 
 \begin{figure}[!tb]
@@ -411,7 +411,7 @@ elements need to be stored. Symbolic constants \vn{s$ij$\$} ($i$, $j$
 To convert \vn{%sigma(:)} into an actual matrix use the
 \vn{mp_sigma_to_mat} routine.
 
-\index{LIAR}
+\index{lIAR}
 \bmad uses canonical phase space
 coordinates(See \sref{s:phase.space.coords}). The LIAR program uses
 ``angle'' phase space coordinates
@@ -498,7 +498,7 @@ correlation.
 %----------------------------------------------------------------
 \section{Reverse Tracking}
 \label{s:reverse.track}
-\index{Tracking!reverse}
+\index{tracking!reverse}
 
 There are two ways to do reverse tracking in which the particle goes
 in the direction of decreasing \vn{s}. The first way is to use the
@@ -527,7 +527,7 @@ damping or excitation breaks this symmetry.
 %----------------------------------------------------------------
 \section{Particle Distribution Tracking}
 \label{s:part.track}
-\index{Tracking!particle distributions}
+\index{tracking!particle distributions}
 
 Initializing a distribution of particles to conform to some initial set of
 Twiss parameters and emittances can be done using the routine
@@ -537,7 +537,7 @@ macroparticle tracking.
 %----------------------------------------------------------------
 \section{Spin Tracking}
 \label{s:spin.track}
-\index{Tracking!spin}
+\index{tracking!spin}
 
 Spin tracking has been implemented for \vn{bmad_standard}, \vn{boris} and
 \vn{adaptive_boris} tracking methods. To turn spin tracking on use the

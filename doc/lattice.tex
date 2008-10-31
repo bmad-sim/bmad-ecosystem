@@ -1,5 +1,5 @@
 \chapter{Lattice File Overview}
-\index{Lattice files|hyperbf}
+\index{lattice files|hyperbf}
 
 %---------------------------------------------------------------------------
 \section{Lattice Files}
@@ -20,8 +20,8 @@ documentation which can be found at:
   http://www-project.slac.stanford.edu/
               lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
 \end{example}
-\index{Lattice_type!parameter statement}
-\index{LCavity!and lattice_type}
+\index{lattice_type!parameter statement}
+\index{lCavity!and lattice_type}
 Since XSIF does not have a \vn{lattice_type} statement
 (\sref{s:param}), the type of the lattice (whether circular or linear)
 is determined by the presence or absence of any \vn{LCavity} elements
@@ -61,7 +61,7 @@ construct a valid lattice file.
 
 %---------------------------------------------------------------------------
 \section{File Example and Syntax}
-\index{Lattice files!statement syntax}
+\index{lattice files!statement syntax}
 
 The following (rather silly) example shows the main features of a
 \bmad lattice file:
@@ -89,8 +89,8 @@ exclamation mark and everything after the exclamation mark on a line
 are ignored.  \bmad is case insensitive. All names are converted to
 uppercase except strings (\sref{s:var.types}).
 
-\index{Superimpose}
-\index{Lattice files!name syntax}
+\index{superimpose}
+\index{lattice files!name syntax}
 Names of constants, elements, lines, etc. are limited to 40
 characters. The first character must be a letter (\vn{A} --- \vn{Z}).
 The other characters may be a letter, a digit (\vn{0} --- \vn{9}) or
@@ -104,7 +104,7 @@ special characters may make the lattice files less portable to non-Bmad programs
 %----------------------------------------------------------------------------
 \section{Digested Files}
 \label{s:lattice.files}
-\index{Lattice files!digested files}
+\index{lattice files!digested files}
 
 Normally the \bmad parser routine will create what is called a
 ``digested file'' after it has parsed a lattice file so that when a
@@ -123,7 +123,7 @@ be generated but otherwise program operation will be normal.
 
 \index{Intrinsic functions!ran}
 \index{Intrinsic functions!ran_gauss}
-\index{Ran_seed!parameter statement}
+\index{ran_seed!parameter statement}
 Digested files contain the names of the lattice files used to create
 them. If a lattice file has been modified since the digested file has
 been created then the the lattice files will be reread and a new
@@ -140,7 +140,7 @@ lattice. This adjusted lattice can now be read in by another program.
 %---------------------------------------------------------------------------
 \section{Element Sequence Definition}
 
-\index{Line}
+\index{line}
 A \vn{line} defines a sequence of elements. \vn{lines} may contain
 other \vn{lines} and so a hierarchy may be established. One line is
 selected, via a \vn{use} statement, that defines the lattice. For
@@ -159,7 +159,7 @@ In this case the lattice would be
 \vn{Lines} can be defined in any order. See \cref{c:sequence} for more
 details.
 
-\index{Superimpose}
+\index{superimpose}
 The \vn{superimpose} construct allows elements to be placed in a
 lattice at a definite longitudinal position. What happens is that
 after a lattice is expanded, there is a reshuffling of the elements to
@@ -230,7 +230,7 @@ set. For example
 \label{s:var.types}
 \index{Arithmetic expressions!variables}
 
-\index{Logicals|hyperbf}
+\index{logicals|hyperbf}
 There are five types of variables in \bmad: Reals, Integers, Switches,
 Logicals (booleans), and Strings. Acceptable logical values are
 \begin{example}
@@ -242,7 +242,7 @@ For example
   rf1[is_on] = False
 \end{example}
 
-\index{Strings|hyperbf}
+\index{strings|hyperbf}
 String literals can be quoted using double quotes (") or single quotes ('). 
 If there are no
 blanks or commas within a string, the quotes can be omitted. For example:
@@ -252,7 +252,7 @@ blanks or commas within a string, the quotes can be omitted. For example:
 \end{example}
 Unlike most everything else, strings are not converted to uppercase.
 
-\index{Switches|hyperbf}
+\index{switches|hyperbf}
 Switches are variables that take discrete values. For example:
 \begin{example}
   parameter[particle] = positron          
@@ -339,7 +339,7 @@ The following intrinsic functions are recognized by \bmad: \hfil\break
   \vn{ran_gauss}()  & Gaussian distributed random number \\
 \end{tabular}
 
-\index{Ran_seed!parameter statement}
+\index{ran_seed!parameter statement}
 \vn{ran_gauss} is a Gaussian distributed random number with unit RMS. 
 Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
 To choose the seed set 
@@ -351,7 +351,7 @@ different sequences of random numbers will be generated each time a
 program is run.  The default behavior if \vn{parameter[ran_seed]} is
 not present is to use the system clock for the seed.
 
-\index{Expand_lattice!statement}
+\index{expand_lattice!statement}
 If an element is used multiple times in a lattice, and if \vn{ran} or
 \vn{gauss_ran} is used to set an attribute value of this element, then
 to have all instances of the element have different attribute values

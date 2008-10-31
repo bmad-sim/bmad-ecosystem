@@ -2,10 +2,10 @@
 
 %----------------------------------------------------------------------------
 \section{Reading in Lattices}
-\index{Lattice files!reading}
+\index{lattice files!reading}
 
-\index{XSIF}\index{Routine!xsif_parser}
-\index{Routine!bmad_parser}\index{Routine!bmad_parser2}
+\index{XSIF}\index{routine!xsif_parser}
+\index{routine!bmad_parser}\index{routine!bmad_parser2}
 
 \bmad has routines for reading XSIF (\sref{s:lattice.file.formats})
 and \bmad format files.
@@ -41,7 +41,7 @@ and then just use \vn{bmad_parser} to parse this third file.
 
 %----------------------------------------------------------------------------
 \section{Digested Files}
-\index{Lattice files!digested files}
+\index{lattice files!digested files}
 
 Since parsing can be slow, once \vn{bmad_parser} has transfered the
 information from a lattice file into the \vn{lat_struct} it will make
@@ -66,7 +66,7 @@ digested file does not agree with the current or the digested file is
 out--of--date a warning will be printed and the digested file will not
 be used.
 
-\index{Taylor map!with digested files}
+\index{taylor map!with digested files}
 Since computing Taylor Maps can be very time intensive,
 \vn{bmad_parser} tries to reuse Taylor Maps it finds in the digested
 file even if the lattice file has been changed in the meantime. To
@@ -82,8 +82,8 @@ digested file that has elements with the correct Taylor Maps, then to
 save on the map computation time simply make a copy of the digested
 file with the digested file name corresponding to the first lattice.
 
-\index{Routine!read_digested_bmad_file}
-\index{Routine!write_digested_bmad_file}
+\index{routine!read_digested_bmad_file}
+\index{routine!write_digested_bmad_file}
 The digested file is in binary format and is not human readable but it
 provides a convenient mechanism for transporting lattices between
 programs. For example, say you have read in a lattice, changed
@@ -102,10 +102,10 @@ using \vn{write_bmad_lattice_file}
 
 %----------------------------------------------------------------------------
 \section{Writing Lattice files}
-\index{Lattice files!MAD files}
+\index{lattice files!MAD files}
 \index{MAD}
 
-\index{MAD!MAD-8}\index{Routine!bmad_to_mad}
+\index{MAD!MAD-8}\index{routine!bmad_to_mad}
 \mad--8 compatible lattice files can be created using the routine \vnr{bmad_to_mad}:
 \begin{example}
   type (lat_struct) lat             ! lattice
@@ -115,6 +115,6 @@ using \vn{write_bmad_lattice_file}
 Since \mad has no concept of things such as \vn{overlay}s and \vn{group}s, such 
 information is lost in translation.
 
-\index{Routine!write_bmad_lattice_file}
+\index{routine!write_bmad_lattice_file}
 To write \bmad lattice files use the routine \vn{write_bmad_lattice_file}.
 

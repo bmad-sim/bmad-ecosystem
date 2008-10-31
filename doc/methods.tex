@@ -2,7 +2,7 @@
 \label{c:methods}
 
 \index{Element!class}
-\index{Tracking_method}
+\index{tracking_method}
 \index{mat6_calc_method}
 Typically, there are several ways to do tracking and transfer matrix
 calculations for a given element class within \bmad. What method is
@@ -32,7 +32,7 @@ discussed in \sref{s:symp} and \sref{s:mapoff} respectively.
 %----------------------------------------------------------------------------
 \section{tracking_method Switches}
 \label{s:tkm}
-\index{Tracking method|hyperbf}
+\index{tracking method|hyperbf}
 
 The \vn{tracking_method} attribute of an element sets the algorithm that is
 used for single particle tracking through that element.
@@ -58,7 +58,7 @@ a fixed step size.
 Second order Boris integration\cite{b:boris} with adaptive step size control.
 This should be nearly symplectic but slow.
 
-\index{Boris}
+\index{boris}
 \item[\vn{Boris}]
 Second order Boris Integration\cite{b:boris}. Like \vn{Runge_Kutta},
 \vn{Boris} does tracking by integrating the equation of
@@ -66,7 +66,7 @@ motion. \vn{Boris} handles both electric and magnetic fields and does
 not assume that the particle is ultra--relativistic. \vn{Boris} preserves
 conserved quantities more accurately than \vn{Runge_Kutta}.
 
-\index{Bmad_Standard}
+\index{bmad_standard}
 \item[\vn{Bmad_Standard}]
 Uses formulas for tracking. The emphasis here is on speed. Note: If an
 element has non-zero multipole values, \vn{Bmad_Standard} tracking
@@ -76,7 +76,7 @@ but in it can result in differences between this and tracking methods
 like \vn{Symp_Lie_PTC} which model multipoles as as distributed evenly
 throughout an element.
 
-\index{Custom}
+\index{custom}
 \item[\vn{Custom}]
 This method will call a routine \vn{track1_custom} which must be
 supplied by the programmer implementing the custom tracking. The
@@ -84,7 +84,7 @@ default \vn{track1_custom} supplied with the \bmad\ release will print
 an error message and stop the program if it is called which probably
 indicates a program linking problem.
 
-\index{Linear}
+\index{linear}
 \item[\vn{Linear}]
 Linear just uses the 0th order vector with the 1st order 6x6 transfer
 matrix for an element. Very simple.  Depending upon how the transfer
@@ -94,21 +94,21 @@ matrix was generated this may or may not be symplectic.
 \item[\vn{MAD}]
 This uses the MAD 2nd order transfer map.
 
-\index{None}
+\index{none}
 \item[\vn{None}]
 This prevents the transfer matrix from being recomputed.
 Using \vn{None} in the input file is generally not a good idea since
 it prevents the matrix from being computed in the first place.
 Typically \vn{None} is used internally in a program to prevent recomputation.
 
-\index{Runge_Kutta}
+\index{runge_kutta}
 \item[\vn{Runge_Kutta}]
 This uses a 4\Th\ order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially the \vn{ODEINT} subroutine
 from Numerical Recipes\cite{b:nr}. This may be slow but it should be
 accurate. This method is non-symplectic.
 
-\index{Symp_Lie_Bmad}
+\index{symp_lie_Bmad}
 \item[\vn{Symp_Lie_Bmad}]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
@@ -117,13 +117,13 @@ This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 \vn{Symp_Lie_PTC}. However, \vn{Symp_Lie_Bmad} is
 currently only implemented for Wigglers.
 
-\index{Symp_Lie_PTC}
+\index{symp_lie_PTC}
 \item[\vn{Symp_Lie_PTC}]
 Symplectic tracking using a Hamiltonian with Lie operator techniques.
 This uses Etienne's PTC software for the calculation. This method is
 symplectic but can be slow.
 
-\index{Symp_Map}
+\index{symp_map}
 \item[\vn{Symp_Map}]
 This uses a partially inverted, implicit Taylor map. The calculation
 uses Etienne's PTC software.  Since the map is implicit, a Newton
@@ -131,7 +131,7 @@ search method must be used. This will slow things down from the Taylor
 method but this is guaranteed symplectic. Note: Due to memory limitations
 in PTC, the number of elements using symp_map is limited to be of order 50.
 
-\index{Taylor}
+\index{taylor}
 \item[\vn{Taylor}]
 This uses a Taylor map generated from Etienne's PTC
 package. Generating the map may take time but once you have it it
@@ -144,7 +144,7 @@ offset an element has is governed by the \vn{map_with_offsets}
 attribute (\sref{s:mapoff}). Note: Taylor maps for \vn{lcavity}, \vn{match},
 and \vn{patch} elements are limited to first order.
 
-\index{Wiedemann}
+\index{wiedemann}
 \item[\vn{Wiedemann}]
 This is Wiedemann's hard edge model of a wiggler
 \cite{wiedemann}. This model divides a wiggler pole into a constant 
@@ -228,7 +228,7 @@ Taylor map will only be first order.}
 %----------------------------------------------------------------------------
 \section{mat6_calc_method Switches}
 \label{s:xfer}
-\index{Mat6_calc_method|hyperbf}
+\index{mat6_calc_method|hyperbf}
 
 
 The \vn{mat6_calc_method} attribute sets how the 6x6 Jacobian transfer
@@ -257,11 +257,11 @@ integration order does not necessarily imply higher accuracy.
 
 \begin{description}
 
-\index{Bmad_Standard}
+\index{bmad_standard}
 \item[\vn{Bmad_Standard}]
 Uses formulas for the calculation. The emphasis here is on speed
 
-\index{Custom}
+\index{custom}
 \item[\vn{Custom}]
 This method will call a routine \vn{make_mat6_custom} which must be
 supplied by the programmer implementing the custom transfer matrix
@@ -273,14 +273,14 @@ is called which probably indicates a program linking problem.
 \item[\vn{MAD}]
 This uses the MAD 2nd transfer map.
 
-\index{None}
+\index{none}
 \item[\vn{None}]
 This prevents the transfer matrix from being recomputed.
 Using \vn{None} in the input file is generally not a good idea since
 it prevents the matrix from being computed in the first place.
 Typically \vn{None} is used internally in a program to prevent recomputation.
 
-\index{Symp_Lie_Bmad}
+\index{symp_lie_Bmad}
 \item[\vn{Symp_Lie_Bmad}]
 A Symplectic calculation using a Hamiltonian with Lie operator techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
@@ -289,13 +289,13 @@ This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 \vn{Symp_Lie_PTC}. However, \vn{Symp_Lie_Bmad} is
 currently only implemented for Wigglers.
 
-\index{Symp_Lie_PTC}
+\index{symp_lie_PTC}
 \item[\vn{Symp_Lie_PTC}]
 Symplectic integration using a Hamiltonian and Lie operators.
 This uses Etienne's PTC software for the calculation.
 This method is symplectic but can be slow.
 
-\index{Taylor}
+\index{taylor}
 \item[\vn{Taylor}]
 This uses a Taylor map generated from Etienne's PTC
 package. Generating the map may take time but once you have it it
@@ -309,7 +309,7 @@ attribute (\sref{s:mapoff}).
 Note: Taylor maps for \vn{lcavity}, \vn{match},
 and \vn{patch} elements are limited to first order.
 
-\index{Tracking}
+\index{tracking}
 \item[\vn{Tracking}]
 This uses the tracking method set by \vn{tracking_method} to track 6
 particles around the central orbit. This method is susceptible to inaccuracies
@@ -382,10 +382,10 @@ Taylor map will only be first order.}
 %-----------------------------------------------------------------
 \section{Transfer Maps via Integration}
 \label{s:integ}
-\index{Transfer map|hyperbf}
+\index{transfer map|hyperbf}
 
-\index{Ds_step}
-\index{Num_steps}
+\index{ds_step}
+\index{num_steps}
 When calculating transfer (Taylor) maps and tracking through integration
 there are a number of attributes that can affect the calculation. They are
 \begin{example}
@@ -402,15 +402,15 @@ Example:
         mat6_calc_method = symp_lie_ptc, ds_step = 0.2, field_calc = custom
 \end{example}
 
-\index{Ds_step}
-\index{Num_steps}
-\index{Taylor}\index{symp_lie_ptc}\index{symp_lie_bmad}\index{runge_kutta}\index{boris}
+\index{ds_step}
+\index{num_steps}
+\index{taylor}\index{symp_lie_ptc}\index{symp_lie_bmad}\index{runge_kutta}\index{boris}
 One way to create a transfer map through an element is to divide the
 element up into slices and then to propagate the transfer map slice by
 slice.  There are several ways to do this integration. The \vn{boris}
 and \vn{runge_kutta} methods integrate the equations of motion to
 give the 0\Th order Taylor map which just represents a particle's
-orbit.  Symplectic integration\index{Symplectic!integration} using Lie
+orbit.  Symplectic integration\index{symplectic!integration} using Lie
 algebraic techniques, on the other hand, can generate Taylor maps to
 any order.  The \vn{ds_step} attribute determines the slice thickness.
 Alternatively, \vn{num_steps} attribute can be used in place of
@@ -418,8 +418,8 @@ Alternatively, \vn{num_steps} attribute can be used in place of
 This is applicable to \vn{Boris}, \vn{symp_lie_bmad}, and
 \vn{symp_lie_ptc} integration.
 
-\index{Integrator_order}
-\index{Ds_step}\index{symp_lie_bmad}
+\index{integrator_order}
+\index{ds_step}\index{symp_lie_bmad}
 \vn{integrator_order} is the order of the integration formula for 
 \vn{Symp_Lie_PTC}. Possible values are
 \begin{example}
@@ -435,9 +435,9 @@ not surprising given the highly nonlinear nature of a wiggler. Note
 that \vn{symp_lie_bmad} always uses an order 2 integrator
 independent of the setting of \vn{integrator_order}.
 
-\index{Ds_step}
-\index{Rel_tol}
-\index{Abs_tol}\index{runge_kutta}\index{adaptive_boris}
+\index{ds_step}
+\index{rel_tol}
+\index{abs_tol}\index{runge_kutta}\index{adaptive_boris}
 \vn{adaptive_boris} and \vn{runge_kutta} use adaptive step
 control independent of \vn{ds_step}. These methods use the \vn{rel_tol} and
 \vn{abs_tol} attributes to try to keep the estimated error of the integration
@@ -448,7 +448,7 @@ such that
 lowering the error bounds makes for greater accuracy (as long as round-off 
 doesn't hurt) but for slower tracking. 
 
-\index{Field_calc}\index{runge_kutta}\index{adaptive_boris}\index{boris}
+\index{field_calc}\index{runge_kutta}\index{adaptive_boris}\index{boris}
 The \vn{boris}, \vn{adaptive_boris}, and \vn{runge_kutta} tracking all use
 as input the electric and magnetic fields of an element. How the EM fields
 are calculated is determined by the \vn{field_calc} attribute for an element.
@@ -457,7 +457,7 @@ Possible values for \vn{field_calc} are:
   Bmad_Standard     ! This is the default
   Custom
 \end{example}
-\index{Custom}
+\index{custom}
 \vn{Custom} means that the field calculations are done outside of the
 \bmad software. A program doing \vn{Custom} field calculations will
 need the appropriate custom routine. See \sref{s:custom.field} for more
@@ -479,7 +479,7 @@ $dE/cP_0 = dE/E$ giving the standard \bmad coordinates.
 %-----------------------------------------------------------------
 \section{Symplectify Attribute}
 \label{s:symp}
-\index{Symplectify|hyperbf}
+\index{symplectify|hyperbf}
 
 The \vn{symplectify} attribute
 \begin{example}
@@ -504,7 +504,7 @@ defaults to true. Examples:
 %-----------------------------------------------------------------
 \section{Map_with_offsets Attribute}
 \label{s:mapoff}
-\index{Map_with_offsets|hyperbf}
+\index{map_with_offsets|hyperbf}
 
 The \vn{map_with_offsets} attribute sets whether the Taylor map
 generated for an element includes the affect due to the elements

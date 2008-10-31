@@ -6,10 +6,10 @@ This chapter gives an overview of various computational helper routines.
 %-----------------------------------------------------------------------------
 \section{Nonlinear Optimization}
 \label{s:opti}
-\index{Optimizers}
+\index{optimizers}
 
-\index{Numerical Recipes!library}
-\index{Tao}
+\index{numerical recipes!library}
+\index{tao}
 Nonlinear optimization is the process of finding a minimum (or
 maximum) of a nonlinear function (the "merit" function). Nonlinear
 optimization is frequently used for lattice design or matching of data
@@ -42,14 +42,14 @@ parallelized so it is a good routine for parallel processing.
 %-----------------------------------------------------------------------------
 \section{Matrix Manipulation}
 \label{s:matrix}
-\index{Matrix Manipulation}
+\index{matrix manipulation}
 
 There are a number of \bmad routines for matrix manipulation as listed
 in \sref{r:mat}. In fact, Fortran90 has a number of intrinsic matrix
 routines as well but this is outside the scope of this manual. The
 following example shows some of the \bmad matrix routines
-\index{Routine!mat_det}
-\index{Routine!mat_make_unit}
+\index{routine!mat_det}
+\index{routine!mat_make_unit}
 \begin{example}
   real(rp) mat(6,6), mat_inv(6,6)
   call mat_make_unit (mat)    ! make a unit matrix
