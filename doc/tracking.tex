@@ -23,7 +23,7 @@ For single particle tracking the starting point is the
 The \vn{coord_struct} defines the phase
 space vector of the particle at a certain longitudinal location.
 
-\index{lat_struct!%n_ele_max}
+\index{lat_struct!\%n_ele_max}
 To get an orbit, that is, the particle position at every element in a
 lattice, you will need an array of \vn{coord_struct}s. Since the
 number of elements in the lattice is not known in advance the array
@@ -205,7 +205,7 @@ enough energy going into the cavity to make it to the exit.
 %----------------------------------------------------------------
 \section {Tracking Methods}
 
-\index{ele_struct!%tracking_method}
+\index{ele_struct!\%tracking_method}
 For each element the method of tracking may be set either via the
 input lattice file (see \sref{s:tkm}) or directly in the
 program by setting the \vn{%tracking_method} attribute of an element
@@ -219,7 +219,7 @@ put ``\$'' after the name. For example, the \vn{bmad_standard}
 tracking method is specified by the \vn{bmad_standard\$}
 parameter.
 
-\index{ele_struct!%mat6}\index{linear}
+\index{ele_struct!\%mat6}\index{linear}
 It should be noted that except for \vn{linear} tracking, none of the
 \bmad tracking routines make use of the \vn{ele%mat6} transfer
 matrix. The reverse, however, is not true.  The transfer matrix
