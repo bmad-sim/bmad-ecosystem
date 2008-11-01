@@ -558,7 +558,7 @@ case (sextupole$)
   end%vec(4) = end%vec(4) + k2l * end%vec(1) * end%vec(3) / 2
 
   do i = 1, n_slice
-    call track_a_drift (end%vec, length)
+    call track_a_drift (end%vec, length/n_slice)
     if (i == n_slice) then
       end%vec(2) = end%vec(2) + k2l * (end%vec(3)**2 - end%vec(1)**2)/4
       end%vec(4) = end%vec(4) + k2l * end%vec(1) * end%vec(3) / 2
