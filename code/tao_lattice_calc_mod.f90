@@ -123,15 +123,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     tao_lat%orb%vec(j) = 0.0
   enddo
 
-  ! In u%model_orb0 is saved the last computed orbit. 
-  ! This is important with common_lattice since tao_lat%orb(0) has been overwritten.
-
-  if (tao_lat%lat%param%lattice_type == linear_lattice$) then
-    tao_lat%orb(0) = tao_lat%lat%beam_start
-  else
-    tao_lat%orb(0) = u%model_orb0
-  endif
-
   ! set up matching element
   if (initing_design) call tao_match_lats_init (u)
 
@@ -232,7 +223,7 @@ type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
 type (tao_universe_struct) u
 
-integer i, ii, who
+integer i, ii, who, ix_lost
 
 character(20) :: r_name = "tao_single_track"
 
@@ -261,11 +252,12 @@ else
   call track_all (lat, tao_lat%orb)
   if (lat%param%lost) then
     calc_ok = .false.
-    do ii = lat%param%ix_lost+1, lat%n_ele_track
+    ix_lost = lat%param%ix_lost
+    do ii = ix_lost+1, lat%n_ele_track
       tao_lat%orb(ii)%vec = 0
     enddo
     call out_io (s_blank$, r_name, &
-            "particle lost at element \I0\: " // lat%ele(i)%name, lat%param%ix_lost)
+            "particle lost at element \I0\: " // lat%ele(ix_lost)%name, ix_lost)
   endif
 endif
 
@@ -580,7 +572,7 @@ end subroutine tao_find_beam_centroid
 ! whatever the user has specified. As always, tracking only occure in the model
 ! lattice.
 
-subroutine tao_inject_particle (u, model, orb0_in)
+subroutine tao_inject_particle (u, model)
 
 implicit none
 
@@ -589,20 +581,22 @@ type (tao_lattice_struct), target :: model
 
 type (ele_struct), save :: extract_ele
 type (coord_struct) pos
-type (coord_struct), optional, target :: orb0_in
 type (coord_struct), pointer :: orb0
 
 type (spin_polar_struct) :: polar
 
 character(20) :: r_name = "inject_particle"
 
-! Init
+! In u%model_orb0 is saved the last computed orbit. 
+! This is important with common_lattice since tao_lat%orb(0) has been overwritten.
 
-if (present(orb0_in)) then
-  orb0 => orb0_in
+if (model%lat%param%lattice_type == linear_lattice$) then
+  model%orb(0) = model%lat%beam_start
 else
-  orb0 => model%orb(0)
+  model%orb(0) = u%model_orb0
 endif
+
+orb0 => model%orb(0)
 
 ! Not connected case is easy.
 
@@ -667,7 +661,7 @@ end subroutine tao_inject_particle
 !
 ! If there is no connection between lattice then this will initialize the beam
 
-subroutine tao_inject_beam (u, model, orb0_in)
+subroutine tao_inject_beam (u, model)
 
 use tao_read_beam_mod
 
@@ -676,7 +670,6 @@ implicit none
 type (tao_universe_struct) u
 type (tao_lattice_struct), target :: model
 type (ele_struct), save :: extract_ele
-type (coord_struct), optional, target :: orb0_in
 type (coord_struct), pointer :: orb0
 type (lat_param_struct), pointer :: param
 
@@ -692,13 +685,8 @@ logical too_many_lost, err
 
 if (tao_com%use_saved_beam_in_tracking) return
 
-if (present(orb0_in)) then
-  orb0 => orb0_in
-  model%lat%beam_start = orb0_in
-else
-  orb0 => model%orb(0)
-  model%lat%beam_start%vec = u%beam_init%center
-endif
+orb0 => model%orb(0)
+model%lat%beam_start%vec = u%beam_init%center
 
 ! If there is an init file then read from the file
 

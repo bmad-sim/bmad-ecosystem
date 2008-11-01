@@ -897,17 +897,18 @@ do k = 1, size(graph%curve)
         end select
         y_symb(ie) = y_symb(ie) + comp(m)%sign * y_val
         if (.not. valid) good(ie) = .false.
-        if (.not. valid) then
-          graph%valid = .false.
-          graph%why_invalid = 'ERROR IN TAO_EVALUATE_A_DATUM!'
-          return
-        endif
         if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
           if (datum%ix_ele < datum%ix_ele0) datum%ix_ele0 = datum%ix_ele
         endif
 
       enddo
     enddo
+
+    if (all(.not. good)) then
+      graph%valid = .false.
+      graph%why_invalid = 'ERROR IN TAO_EVALUATE_A_DATUM!'
+      return
+    endif
 
     n_dat = count(good)
     call re_allocate (curve%x_symb, n_dat) ! allocate space for the data

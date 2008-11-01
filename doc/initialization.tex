@@ -1404,7 +1404,7 @@ namelists should be placed directly after their respective
 \index{Curve!use_y2}\index{Curve!line}\index{Curve!ele_ref_name}
 \index{Curve!draw_line}\index{Curve!draw_symbols}\index{Curve!ix_universe}
 \index{Curve!symbol}\index{Curve!symbol_every}\index{Curve!convert}
-\index{Curve!ix_bunch}
+\index{Curve!ix_bunch}\index{Curve!ix_ele_ref}
 \begin{example}
   &tao_template_graph
     graph_index            = <number>
@@ -1438,6 +1438,7 @@ namelists should be placed directly after their respective
     curve(i)%symbol      = <qp_symbol_struct> ! Symbol spec (color size, etc.)
     curve(i)%symbol_every     = <integer>     ! Plot symbol every # datums
     curve(i)%ele_ref_name     = "<string>"    ! Name of reference element.
+    curve(i)%ix_ele_ref       = <num>         ! Index number of reference element.
     curve(i)%smooth_line_calc = <Logical>     ! Calc data between symbol points? 
   /
 \end{example}
@@ -2009,6 +2010,7 @@ In this example above, the $x$-axis of the plot will correspond to the
 $x$ phase space coordinate and the $y$-axis will correspond to the
 $p_x$ coordinate.
 
+\index{Curve!ele_ref_name}\index{Curve!ix_ele_ref}
 To change the place at which the \vn{phase_space} curve is drawn use
 the \vn{set curve ele_ref_name} or \vn{set curve ix_ele_ref} commands.
 

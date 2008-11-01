@@ -6,13 +6,14 @@ use spin_mod
 use utilities_mod
 use measurement_mod
 
-type this_coupling_struct
+type this_array_struct
   real(rp) cbar(2,2)
   real(rp) k_11a, k_12a, k_12b, k_22b
+  real(rp) amp
   logical calc_done
 end type
 
-type (this_coupling_struct), save, allocatable, target, private :: cc(:)
+type (this_array_struct), save, allocatable, target, private :: cc(:)
 
 contains
 
@@ -241,10 +242,11 @@ type (spin_polar_struct) polar
 type (ele_struct), pointer :: ele, ele0
 type (coord_struct), pointer :: orb0
 type (bpm_phase_coupling_struct) bpm_data
+type (twiss_struct) t
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py
-real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz
-real(rp) gamma, vec(2)
+real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4)
+real(rp) gamma, one_pz, vec(2)
 real(rp), allocatable, save ::value1(:)
 
 integer, save :: ix_save = -1
@@ -432,6 +434,24 @@ case ('orbit.p_y')
 case ('orbit.p_z')
   call load_it (tao_lat%orb(:)%vec(6), ix0, ix1, datum_value, valid_value, datum, lat)
   if (lat%param%ix_lost /= not_lost$ .and. ix1 >= lat%param%ix_lost) valid_value = .false.
+
+case ('orbit.amp_a')
+  do i = ix0, ix1
+    call make_v_mats (lat%ele(i), v_mat, v_inv_mat)
+    a_vec = matmul(v_inv_mat, tao_lat%orb(i)%vec(1:4))
+    t = lat%ele(i)%a
+    cc(i)%amp = sqrt(t%gamma * a_vec(1)**2 + 2 * t%alpha * a_vec(1) * a_vec(2) + t%beta * a_vec(2)**2)
+  enddo
+  call load_it (cc%amp, ix0, ix1, datum_value, valid_value, datum, lat)
+
+case ('orbit.amp_b')
+  do i = ix0, ix1
+    call make_v_mats (lat%ele(i), v_mat, v_inv_mat) 
+    a_vec = matmul(v_inv_mat, tao_lat%orb(i)%vec(1:4))
+    t = lat%ele(i)%b
+    cc(i)%amp = sqrt(t%gamma * a_vec(3)**2 + 2 * t%alpha * a_vec(3) * a_vec(4) + t%beta * a_vec(4)**2)
+  enddo
+  call load_it (cc%amp, ix0, ix1, datum_value, valid_value, datum, lat)
 
 case ('phase.a')
   datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
@@ -1179,7 +1199,7 @@ subroutine coupling_calc (ixd, datum, lat)
 implicit none
 
 type (ele_struct), pointer :: ele
-type (this_coupling_struct), pointer :: cc_p
+type (this_array_struct), pointer :: cc_p
 type (tao_data_struct) datum
 type (lat_struct) lat
 

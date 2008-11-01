@@ -381,7 +381,7 @@ case ('beam')
       nl=nl+1; write (lines(nl), rmt) '  z:       ', &
                                 bunch_params%z%norm_emitt, bunch_params%z%beta
     else
-      nl=nl+1; lines(nl) = 'No Allocated Beam At Element.'
+      nl=nl+1; lines(nl) = 'No allocated beam at element.'
     endif
   
   endif
