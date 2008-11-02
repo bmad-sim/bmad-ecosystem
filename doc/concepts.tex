@@ -85,12 +85,15 @@ the random number seed \tao uses to what optimizer is used for fitting data.
 %------------------------------------------------------------------------
 \section{The Super\_universe}
 \label{s:super.uni}
-\index{Super_universe}
-\index{Structure}
+\index{Super_universe|hyperbf}
+
+\index{Structure|hyperbf}
 The information in \tao deals is organized in a hierarchy of
 \vn{``structures''}. At the top level, everything known to \tao is
 placed in a single structure called the \vn{super_universe}.
 
+\index{Universe}
+\index{Variable}
 Within the \vn{super_universe}, lies one or more \vn{universes}
 (\sref{s:universe}), each \vn{universe} containing a particular
 machine lattice and its associated data. This allows for the user to
@@ -101,10 +104,10 @@ the \vn{variable}, \vn{plotting}, and \vn{global parameter} information.
 %------------------------------------------------------------------------
 \section{The Universe}
 \label{s:universe}
-\index{Universe!textbf}
+\index{Universe|hyperbf}
 
-\index{Lattice}\index{Design lattice}\index{Model lattice}\index{Base lattice}
-\index{Data}
+\index{Lattice}\index{Design lattice}\index{Model lattice}
+\index{Base lattice}\index{Data}\index{Super_universe}
 The \tao \vn{super_universe} (\sref{s:super.uni}) contains one or
 more \vn{universes}.  A \vn{universe} contains a \vn{lattice}
 (\sref{s:lattice}) plus whatever data (\sref{c:data}) one wishes to
@@ -136,29 +139,31 @@ is, in fact, a widely used procedure at many laboratories.
 
 %------------------------------------------------------------------------
 \section{Lattices}
-\index{Lattice!textbf}
+\index{Lattice|hyperbf}
 \label{s:lattice}
 
+\index{Design lattice}\index{Model lattice}
+\index{Base lattice}
 A \vn{lattice} consists of a machine description (the strength and
 placement of elements such as quadrupoles and bends, etc.), along with the
 beam orbit through them. There are actually three types of lattices:
   \vspace*{-3ex}
   \begin{description}
-  \index{Design lattice!textbf}
+  \index{Design lattice|hyperbf}
   \item[Design Lattice] \Newline 
 The \vn{design} lattice corresponds to the lattice read in from the
 lattice description file(s) (\sref{s:init.lat}). In many instances, this
 is the particular lattice that one wants the actual physical machine
 to conform to. The \vn{design} lattice is fixed. Nothing is allowed to
 vary in this lattice.
-  \index{Model lattice!textbf}
+  \index{Model lattice|hyperbf}
   \item[Model Lattice] \Newline
 Except for some commands that explicitly set the \vn{base} lattice,
 all \tao commands to vary lattice variables vary quantities in the
 \vn{model} lattice. In particular, things like orbit correction
 involve varying \vn{model} lattice variables until the \vn{data},
 as calculated from the \vn{model}, matches the \vn{data} as actually measured.
-  \index{Base lattice!textbf}
+  \index{Base lattice|hyperbf}
   \index{Base lattice!using set command}
   \item[Base Lattice] \Newline
 It is sometimes convenient to designate a reference lattice so that
@@ -173,7 +178,7 @@ command (\sref{s:set}) is used to transfer information from the
 \label{s:variable.overview}
 \index{Variables}
 
-\index{Change command}
+\index{change command}
 \index{Optimizer!variables}
 A variable is anything that can be varied. For example, quadrupole
 strengths or the initial position of a particle in a LINAC. Any
@@ -340,17 +345,17 @@ on the actual page the plot/region border is not visible.}
 Some definitions:
   \vspace*{-3ex}
 \begin{description}
-\index{Curve|textbf}
+\index{Curve|hyperbf}
 \item[Curve] \Newline
 A \vn{curve} is a set of (x,y) points to be plotted.
-\index{Graph|textbf}
+\index{Graph|hyperbf}
 \item[Graph] \Newline
 A \vn{graph} consists of horizontal and vertical axes along with a set
 of \vn{curve}s that are plotted within the graph. 
-\index{Plot|textbf}
+\index{Plot|hyperbf}
 \item[Plot] \Newline
 A \vn{plot} is essentially a collection of \vn{graphs}.
-\index{Page|textbf}
+\index{Page|hyperbf}
 \item[Page] \Newline
 The \vn{page} refers to the Xwindow where graphics are displayed or the 
 corresponding printed graphics page.
