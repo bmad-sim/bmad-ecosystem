@@ -220,7 +220,7 @@ f3mt  = '(a, 9f0.3)'
 irmt = '(a, i0, a, es16.8)'
 imt  = '(a, 9i8)'
 iimt = '(a, i0, a, i8)'
-lmt  = '(a, 9l)'
+lmt  = '(a, 9l0)'
 amt  = '(9a)'
 iamt = '(a, i0, 9a)'
 
@@ -1712,9 +1712,16 @@ case ('universe')
     nl=nl+1; write (lines(nl), '(a)') "There are NO Lord elements"
   endif
 
-  nl=nl+1; write (lines(nl), '(a, f0.3)') "Lattice length: ", lat%param%total_length
-  nl=nl+1; write (lines(nl), '(a)') 'This universe is turned: on_off_logic(u%is_on)'  
-  nl=nl+1; write (lines(nl), lmt) 'Aperture limits on?: ', lat%param%aperture_limit_on
+  nl=nl+1; write (lines(nl), '(a, f0.3)')   'Lattice length:             ', lat%param%total_length
+  nl=nl+1; write (lines(nl), lmt)           'Aperture limits on?:        ', lat%param%aperture_limit_on
+
+  if (lat%param%lattice_type == linear_lattice$ .and. lat%param%ix_lost /= not_lost$) then
+    if (s%global%track_type == 'beam') then
+      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost beam at:     ', lat%param%ix_lost
+    else
+      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost particle at: ', lat%param%ix_lost
+    endif
+  endif
 
   if (.not. lat%param%stable) then
     nl=nl+1; write (lines(nl), '(a, l)') 'Model lattice stability: ', &

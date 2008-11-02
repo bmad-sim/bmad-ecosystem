@@ -335,6 +335,7 @@ beam_init => u%beam_init
 lat => tao_lat%lat
 
 lat%param%ix_lost = not_lost$
+lat%param%lost = .false.
 too_many_lost = .false.
 
 if (lat%param%lattice_type == circular_lattice$) then
@@ -432,6 +433,7 @@ do j = ie1, ie2
       call tao_find_beam_centroid (beam, tao_lat%orb(j), too_many_lost, u, j, lat%ele(j))
       if (too_many_lost) then
         lat%param%ix_lost = j
+        lat%param%lost = .true.
         call out_io (s_warn$, r_name, &
                 "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\: " &
                 // trim(lat%ele(j)%name), j)

@@ -965,7 +965,9 @@ do k = 1, size(graph%curve)
 
       call re_allocate (curve%y_line, s%plot_page%n_curve_pts) 
       call re_allocate (curve%x_line, s%plot_page%n_curve_pts) 
+      call re_allocate (good,         s%plot_page%n_curve_pts) 
       curve%y_line = 0
+      good = .true.
 
       call tao_split_component(graph%component, comp, err)
       if (err) return
@@ -974,18 +976,24 @@ do k = 1, size(graph%curve)
         case (' ') 
           cycle
         case ('model')
-          call calc_data_at_s (u%model, curve, comp(m)%sign, err)
+          call calc_data_at_s (u%model, curve, comp(m)%sign, good)
         case ('base')  
-          call calc_data_at_s (u%base, curve, comp(m)%sign, err)
+          call calc_data_at_s (u%base, curve, comp(m)%sign, good)
         case ('design')  
-          call calc_data_at_s (u%design, curve, comp(m)%sign, err)
+          call calc_data_at_s (u%design, curve, comp(m)%sign, good)
         case default
           call out_io (s_error$, r_name, &
                        'BAD PLOT COMPONENT WITH "S" X-AXIS: ' // comp(m)%name)
           return
         end select
-        if (err) return
       enddo
+
+      if (all(.not. good)) return
+      n_dat = count(good)
+      curve%x_line(1:n_dat) = pack(curve%x_line, mask = good)
+      curve%y_line(1:n_dat) = pack(curve%y_line, mask = good)
+      call re_allocate (curve%y_line, n_dat) ! allocate space for the data
+      call re_allocate (curve%x_line, n_dat) ! allocate space for the data
 
     endif
 
@@ -1017,7 +1025,7 @@ graph%valid = .true.
 !----------------------------------------------------------------------------
 contains 
 
-subroutine calc_data_at_s (tao_lat, curve, comp_sign, err)
+subroutine calc_data_at_s (tao_lat, curve, comp_sign, good)
 
 type (tao_lattice_struct), target :: tao_lat
 type (tao_curve_struct) curve
@@ -1039,11 +1047,9 @@ integer i, ii, j, k, expnt(6), ix_ele, ix0
 character(40) data_type
 character(40) data_type_select, data_source
 character(20) :: r_name = 'calc_data_at_s'
-logical err
+logical err, good(:)
 
 !
-
-err = .false.
 
 data_type = curve%data_type
 
@@ -1053,7 +1059,7 @@ ix0 = curve%ix_ele_ref_track
 if (ix0 < 0) ix0 = 0
 
 if (lat%param%lattice_type == circular_lattice$ .and. .not. lat%param%stable) then
-  err = .true.
+  good = .false.
   return
 endif
 
@@ -1064,7 +1070,7 @@ if (curve%data_source == 'lattice') then
               'CURVE%DATA_SOURCE = "lattice" IS NOT COMPATABLE WITH DATA_TYPE: ' &
               // data_type)
     call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
-    err = .true.
+    good = .false.
     return
   end select 
 endif
@@ -1096,6 +1102,8 @@ if (data_type_select(1:3) == 'tt.') data_type_select = 'tt.'
 
 do ii = 1, size(curve%x_line)
 
+  if (.not. good(ii)) cycle
+
   s_now = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
   if (s_now .ge. lat%ele(lat%n_ele_track)%s) s_now = lat%ele(lat%n_ele_track)%s - 1e-9
   curve%x_line(ii) = s_now
@@ -1104,7 +1112,10 @@ do ii = 1, size(curve%x_line)
   select case (curve%data_source)
   case ('lattice')   
     call twiss_and_track_at_s (lat, s_now, ele, orb, here, err)
-    if (err) return
+    if (err) then
+      good(ii:) = .false.
+      return
+    endif
   case ('beam')
     call find_nearest_bunch_params (tao_lat, s_now, bunch_params)
     call ele_at_s (lat, s_now, ix_ele)
@@ -1131,6 +1142,14 @@ do ii = 1, size(curve%x_line)
     value = here%vec(4)
   case ('orbit.p_z')
     value = here%vec(6)
+  case ('orbit.amp_a')
+    call orbit_amplitude_calc (ele, here, amp_a = value)
+  case ('orbit.amp_b')
+    call orbit_amplitude_calc (ele, here, amp_b = value)
+  case ('orbit.norm_amp_a')
+    call orbit_amplitude_calc (ele, here, amp_na = value)
+  case ('orbit.norm_amp_b')
+    call orbit_amplitude_calc (ele, here, amp_nb = value)
   case ('phase.a')
     value = ele%a%phi
   case ('phase.b')
@@ -1267,7 +1286,7 @@ do ii = 1, size(curve%x_line)
     call out_io (s_fatal$, r_name, &
                   'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // data_type)
     call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
-    err = .true.
+    good = .false.
     return
   end select
 
