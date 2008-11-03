@@ -79,7 +79,7 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
       i = i + 1
       lat_list(i) = l_file
     else if (stat == rms$_nmf .or. stat == rms$_fnf) then
-      num_lats = i - 1
+      num_lats = i
       exit
     else
       print *, 'FIND FILE ERROR:', stat
