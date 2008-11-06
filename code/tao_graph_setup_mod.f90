@@ -485,6 +485,7 @@ subroutine tao_data_graph_setup (plot, graph)
 
 use tao_data_mod
 use nrutil, only: swap
+use transfer_map_mod
 
 implicit none
 
@@ -1249,7 +1250,7 @@ do ii = 1, size(curve%x_line)
     if (s_now < s_last) cycle
     i = tao_read_this_index (data_type, 3); if (i == 0) return
     j = tao_read_this_index (data_type, 4); if (j == 0) return
-    call tao_mat6_calc_at_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
+    call mat6_calc_at_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
     value = mat6(i, j)
   case ('t.')
     if (ii == 1) call taylor_make_unit (t_map)
@@ -1257,7 +1258,7 @@ do ii = 1, size(curve%x_line)
     i = tao_read_this_index (data_type, 3); if (i == 0) return
     j = tao_read_this_index (data_type, 4); if (j == 0) return
     k = tao_read_this_index (data_type, 5); if (k == 0) return
-    call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
+    call transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
     value = taylor_coef (t_map(i), j, k)
   case ('tt.')
     if (ii == 1) call taylor_make_unit (t_map)
@@ -1269,11 +1270,11 @@ do ii = 1, size(curve%x_line)
       k = tao_read_this_index (data_type, j); if (k == 0) return
       expnt(k) = expnt(k) + 1
     enddo
-    call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
+    call transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
     value = taylor_coef (t_map(i), expnt)
   case ('momentum_compaction')
     if (ii == 1) call mat_make_unit (mat6)
-    call tao_mat6_calc_at_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
+    call mat6_calc_at_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
     call make_v_mats (ele0, v_mat, v_inv_mat)
     eta_vec = (/ ele0%a%eta, ele0%a%etap, ele0%b%eta, ele0%b%etap /)
     eta_vec = matmul (v_mat, eta_vec)
