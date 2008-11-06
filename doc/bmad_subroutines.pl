@@ -251,6 +251,8 @@ $pl_hash{"find_file"} = "find_file.f90";
 $pl_hash{"assignment"} = "bmad_taylor_mod.f90";
 $pl_hash{"re_associate_integer"} = "reallocate_mod.f90";
 $pl_hash{"logical_typ"} = "logical_typ.f90";
+$pl_hash{"solenoid_mat_calc"} = "make_mat6_mod.f90";
+$pl_hash{"read_parameter"} = "aml_parser.f90";
 
 #---------------------------------------------------------
 # make a list of names from bmad_subroutines.html
