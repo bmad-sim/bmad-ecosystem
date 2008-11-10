@@ -119,8 +119,8 @@ for ($i = 0; $i <= @field; $i++) {
 
 #
  
-$str = $field[$i];
-$str =~ s/\*/\\w\*/g;   # replace "*" by "\w*" (any word characters)
+$match_str = $field[$i];
+$match_str =~ s/\*/\\w\*/g;   # replace "*" by "\w*" (any word characters)
 
 #
 
@@ -132,7 +132,7 @@ find(\&searchit, $pecklib_dir);
 ## find(\&searchit, $recipes_dir);
 ## find(\&searchit, $forest_dir);
 
-if ($found_one == 0) {print "Cannot match String! $str";}
+if ($found_one == 0) {print "Cannot match String! $match_str";}
 print "\n";
 
 #---------------------------------------------------------
@@ -144,33 +144,7 @@ sub searchit {
 
   if (/\#/) {return;}
   $file = $_;
-
-  # See if the file name matches.
-
-  if ($file =~ /^$str\.f90$/i) {
-
-    print "\n$File::Find::name\n";
-    $found_one = 1;
-
-    $stat = open (F_IN, $file);
-    if (! $stat) {
-      print STDOUT "Cannot open File: $file\n"; 
-      $_ = $file;
-      return;
-    }
-
-    $found = 0;
-
-    while (<F_IN>) {
-      if (&routine_here) {last;}
-      if (/^!/) {
-        print "$_";
-        $found = 1; }
-      elsif ($found == 1) {
-        last;
-      }
-    }
-  }
+  $matches_file_name = 0;
 
   # Check contents of .f90 file.
 
@@ -199,6 +173,7 @@ sub searchit {
 
       if (/^ *type *\(/i) {next;}   
       if ($n_com == 0 && /^!\-\-\-\-\-\-\-\-\-/) {next;}
+      if (/^#/) {next;}
 
       # Add to comment block if a comment line
 
@@ -208,7 +183,7 @@ sub searchit {
 
       # match to type statement
 
-      } elsif (/^ *type +$str[ \n]/i) {
+      } elsif (/^ *type +$match_str[ \n]/i) {
         $found_one = 1;
         print "\n$File::Find::name\n";
         for ($i = 0; $i < $n_com; $i++) {print @comments[$i];}
@@ -224,8 +199,11 @@ sub searchit {
       # match to subroutine, function, etc.
 
       } elsif (&routine_here) {
-        $_ = $routine_name;     # strip off "subroutine"
-        if (/^\s*$str[ |\(\n]/i) {
+        $routine_name =~ /^\s*(\w+)[ |\(\n]/i;
+        $_ = $1;     # strip off "subroutine"
+        if ($file eq "$_\.f90") {$matches_file_name = 1;}
+
+        if (/^$match_str$/i) {
           $found_one = 1;
           print "\n$File::Find::name\n";
           for ($i = 0; $i < $n_com; $i++) {print @comments[$i];}
@@ -275,7 +253,7 @@ sub searchit {
     while (<F_IN>) {
 
       if (/^ *class +(\w+) +\{ *$/) {     # match to "class xyz {"
-        if ($1 =~ /^$str$/i) {
+        if ($1 =~ /^$match_str$/i) {
           $in_class = 1;
           $found_one = 1;
           print "\n$File::Find::name\n";
@@ -288,7 +266,43 @@ sub searchit {
     }
     close (F_IN);
   }
-  
+
+  #--------------------------------------------------
+  # See if the file name matches.
+  # Only print the file name here if:
+  #    1) There are some comments at the top of the file or
+  #    2) There has not been a match to a routine within the file.
+
+  if ($matches_file_name == 0 && $file =~ /^$match_str\.f90$/i) {
+
+    $found_one = 1;
+    print "\n$File::Find::name\n";
+
+    $stat = open (F_IN, $file);
+    if (! $stat) {
+      print STDOUT "Cannot open File: $file\n"; 
+      $_ = $file;
+      return;
+    }
+
+    # Print header
+
+    $have_printed = 0;
+
+    while (<F_IN>) {
+      if (&routine_here) {last;}
+      if (/^!/) {
+        $have_printed = 1;
+        print "$_";
+      } elsif ($have_printed == 1) {
+        last;
+      }
+    }
+
+    close (F_IN);
+
+  }
+
 
   $_ = $file;
 
