@@ -1456,7 +1456,7 @@ case (wiggler$)
     ele%wig_term(1)%coef   = val(b_max$)
     ele%wig_term(1)%kx     = 0
     ele%wig_term(1)%kz     = ele%wig_term(1)%ky
-    ele%wig_term(1)%phi_z  = pi * (val(l_pole$) - val(l$)) / (2 * val(l_pole$))
+    ele%wig_term(1)%phi_z  = ele%wig_term(1)%ky * (val(l_pole$) - val(l$)) / 2 
     ele%wig_term(1)%type   = hyper_y$
   endif
 
