@@ -105,6 +105,10 @@ pointers so that they don't all point to the same place.
 Subroutine to order the particles longitudinally 
 The ordering uses the centroid of the particles:
 
+\index{Routine!rest_energy}
+\item[rest_energy (particle) result (energy)] \Newline 
+Routine to return the rest energy in eV of a particle.
+
 \index{Routine!track1_beam_lat}
 \item[track1_beam_lat (beam_start, lat, ix_ele, beam_end)] \Newline 
 Subroutine to track a beam of particles through a single element.
@@ -207,6 +211,25 @@ Dummy routine for custom bunch tracking.
 %------------------------------------------------------------------------
 \section{Branch Handling Routines}
 \label{r:branch}
+
+\index{Routine!allocate_branch_array}
+\item[allocate_branch_array (branch, upper_bound, lat)] \Newline 
+Subroutine to allocate or re-allocate an branch array.
+The old information is saved.
+
+\index{Routine!deallocate_branch}
+\item[deallocate_branch (branch)] \Newline 
+Subroutine to deallocate a branch array and everything in it.
+
+\index{Routine!transfer_branch}
+\item[transfer_branch (branch1, branch2)] \Newline 
+Subroutine to set branch2 = branch1. 
+This is a plain transfer of information not using the overloaded equal.
+
+\index{Routine!transfer_branches}
+\item[transfer_branches (branch1, branch2)] \Newline 
+Subroutine to set branch2 = branch1. 
+This is a plain transfer of information not using the overloaded equal.
 
 %------------------------------------------------------------------------
 \section{CESR Specific}
@@ -2292,6 +2315,10 @@ tracking 7 particle with different starting conditions.
 \index{taylor Map!list of routines}
 
 \begin{description}
+
+\index{Routine!concat_ele_taylor}
+\item[concat_ele_taylor (taylor1, ele, taylor3)] \Newline 
+Routine to concatinate two taylor maps.
 
 \index{Routine!concat_taylor}
 \item[concat_taylor (taylor1, taylor2, taylor3)] \Newline

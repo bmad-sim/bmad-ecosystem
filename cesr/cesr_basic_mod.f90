@@ -1080,7 +1080,7 @@ do i = quad%ic1_lord, quad%ic2_lord
   ix_lord = lat%control(lat%ic(i))%ix_lord
   if (lat%ele(ix_lord)%control_type == overlay_lord$ .and. &
       lat%ele(ix_lord)%ix_value == k1$) then
-    print *, 'ERROR IN CREATE_NIR_SHUNTCUR_ELEMENTS: VSEP NOT FREE!', ix_quad
+    print *, 'ERROR IN CREATE_NIR_SHUNTCUR_ELEMENTS: K1 ATTRIBUTE NOT FREE!', ix_quad
     return
   endif
 enddo

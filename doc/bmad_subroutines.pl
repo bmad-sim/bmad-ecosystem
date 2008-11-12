@@ -109,6 +109,7 @@ $pl_hash{"get_sequence_args"} = "bmad_parser_mod.f90";
 $pl_hash{"allocate_plat"} = "bmad_parser_mod.f90";
 $pl_hash{"add_taylor_term"} = "bmad_parser_mod.f90";
 $pl_hash{"file_stack"} = "bmad_parser_mod.f90";
+$pl_hash{"draw_graphs"} = "plot_example.f90";
 $pl_hash{"find_indexx"} = "bmad_parser_mod.f90";
 $pl_hash{"get_attribute"} = "bmad_parser_mod.f90";
 $pl_hash{"get_next_word"} = "bmad_parser_mod.f90";
