@@ -220,7 +220,6 @@ subroutine bmad_to_db (lat, db, calib_date, use_mpm)
   call nir_shuntcur_calib (db%nir_shuntcur%dvar_dcu)
   db%nir_shuntcur%dvar_dcu = &
                     db%nir_shuntcur%dvar_dcu * db%quad(48:51)%dvar_dcu
-  db%nir_shuntcur%ix_lat = db%quad(48:51)%ix_lat
 
 ! sc solenoid calibration
 
