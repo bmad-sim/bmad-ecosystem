@@ -173,8 +173,8 @@ subroutine write_power_header (iu, file, gen_params)
 
   write (iu, '(3(/,2x,a))') &
 '          Segment                                  ', &
-'  Ix  Name          S_seg      X_seg     P/len      P/Area     P_tot     Phot/sec      A Beta    B Beta    Ele Type       Relevant               Ele',&
-'                     (m)        (m)      (W/m)     (W/mm^2)      (W)      (1/s)         (m)        (m)     at s_mid       Attribute              Name'
+'  Ix  Name          S_seg      X_seg     P/len      P/Area     P_tot     Phot/sec      A Beta    B Beta    A Eta     Ele Type       Relevant               Ele',&
+'                     (m)        (m)      (W/m)     (W/mm^2)      (W)      (1/s)         (m)        (m)      (m)      at s_mid       Attribute              Name'
 
 end subroutine
 
@@ -255,13 +255,13 @@ subroutine write_power_results (wall, lat, gen_params, use_ele_ix)
 
     call convert_blanks_to_underscore (wall%pt(seg%ix_pt)%name, seg_name)
 
-    fmt = '(i6,1x,a10,f10.3,e11.3,e11.3,e12.4,e12.4,e12.4,f10.3,f10.3,2x,a16,1x,a10,e12.4,1x,a40)'
+    fmt = '(i6,1x,a10,f10.3,e11.3,e11.3,e12.4,e12.4,e12.4,f10.3,f10.3,f10.3,2x,a16,1x,a10,e12.4,1x,a40)'
     write (1, fmt) &
               i, seg_name, seg%s, seg%x, &
               ep%power_per_len, &
               1.e-6 * (ep%power_per_area), &
               ep%power, ep%photons_per_sec, &
-              seg%a%beta, seg%b%beta, key_name(key), &
+              seg%a%beta, seg%b%beta,seg%a%eta, key_name(key), &
               attrib, value, lat%ele(seg%ix_ele)%name
 
   enddo
