@@ -291,7 +291,7 @@ n_track = tao_lat%lat%n_ele_track
 n_max   = tao_lat%lat%n_ele_max
 
 datum_value = 0           ! default
-datum%ix_ele_merit = ix1  ! default
+datum%ix_ele_merit = -1   ! default
 
 if (data_type(1:11) == 'expression:')    data_type = 'expression:'
 if (data_type(1:2)  == 'r.')             data_type = 'r.'
@@ -710,10 +710,8 @@ case ('i5a_e6')
     ix0 = max(1, ix0)
     if (ix1 < 1) ix1 = lat%n_ele_track
     datum_value = sum(tao_lat%rad_int%lin_i5a_e6(ix0:ix1))
-    datum%ix_ele_merit = ix1
   else
     datum_value = tao_lat%modes%lin%i5a_e6
-    datum%ix_ele_merit = lat%n_ele_track
   endif
   valid_value = .true.
 
@@ -727,10 +725,8 @@ case ('i5b_e6')
     ix0 = max(1, ix0)
     if (ix1 < 1) ix1 = lat%n_ele_track
     datum_value = sum(tao_lat%rad_int%lin_i5b_e6(ix0:ix1))
-    datum%ix_ele_merit = ix1
   else
     datum_value = tao_lat%modes%lin%i5b_e6
-    datum%ix_ele_merit = lat%n_ele_track
   endif
   valid_value = .true.
 

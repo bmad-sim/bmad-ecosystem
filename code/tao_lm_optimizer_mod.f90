@@ -68,7 +68,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0)
 enddo
 
-if (allocated(y)) deallocate(y, weight, a, tao_com%covar, tao_com%alpha, y_fit, dy_da)
+if (allocated(y)) deallocate(y, weight, a, y_fit, dy_da)
+if (allocated(tao_com%covar)) deallocate (tao_com%covar, tao_com%alpha)
 allocate (y(n_data), weight(n_data), y_fit(n_data))
 allocate (a(n_var), tao_com%covar(n_var,n_var), tao_com%alpha(n_var,n_var))
 allocate (dy_da(n_data, n_var))

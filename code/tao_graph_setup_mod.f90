@@ -905,7 +905,7 @@ do k = 1, size(graph%curve)
       enddo
     enddo
 
-    if (all(.not. good)) then
+    if (n_dat > 0 .and. all(.not. good)) then
       graph%valid = .false.
       graph%why_invalid = 'ERROR IN TAO_EVALUATE_A_DATUM!'
       return
