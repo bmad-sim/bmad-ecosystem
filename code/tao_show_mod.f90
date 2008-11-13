@@ -96,10 +96,12 @@ endif
 call tao_show_this (what2, stuff2, result_id, lines, nl)  
 call tao_hook_show_cmd (what2, stuff2, result_id, lines, nl)
 
-if (result_id == 'ERROR') then
-  call out_io (s_error$, r_name, lines(1:nl))
-else
-  call out_io (s_blank$, r_name, lines(1:nl))
+if (nl > 0) then
+  if (result_id == 'ERROR') then
+    call out_io (s_error$, r_name, lines(1:nl))
+  else
+    call out_io (s_blank$, r_name, lines(1:nl))
+  endif
 endif
 
 ! Finish
@@ -220,7 +222,7 @@ f3mt  = '(a, 9f0.3)'
 irmt = '(a, i0, a, es16.8)'
 imt  = '(a, 9i8)'
 iimt = '(a, i0, a, i8)'
-lmt  = '(a, 9l0)'
+lmt  = '(a, 9(l1, 2x))'
 amt  = '(9a)'
 iamt = '(a, i0, 9a)'
 
