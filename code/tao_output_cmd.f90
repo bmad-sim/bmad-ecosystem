@@ -502,10 +502,7 @@ case ('ps', 'ps-l', 'gif', 'gif-l')
   call tao_draw_plots ()   ! Update the plotting window
 
   if (action(1:3) == 'GIF') then
-    call system_command ('gs -q -sDEVICE=pbm -sOutputFile=tao_out.pbm -dNOPAUSE - < tao_out.ps')
-    call system_command ('ppmtogif tao_out.pbm > ' // trim(file_name))
-    call system_command ('rm -f tao_out.pbm')
-    call system_command ('rm -f tao_out.ps')
+    call ps2gif ('tao_out.ps', file_name, .true.)
     call out_io (s_blank$, r_name, "Created GIF file: " // file_name)
   else
     call out_io (s_blank$, r_name, "Created PS file: " // file_name)
