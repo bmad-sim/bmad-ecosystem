@@ -357,23 +357,6 @@ case ('digested')
   enddo
 
 !---------------------------------------------------
-! gif
-
-case ('gif')
-
-  file_name0 = word(1)
-  if (file_name0 == ' ') file_name0 = 'digested_lat_universe_#.bmad'
-
-  call qp_open_page ('GIF', i_chan, s%plot_page%size(1), &
-                       s%plot_page%size(2), 'POINTS', file_name)
-  call qp_select_page (i_chan)
-  call tao_draw_plots ()   ! Update the plotting window
-  call qp_close_page
-  call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
-  call tao_draw_plots ()   ! Update the plotting window
-  call out_io (s_info$, r_name, "Created GIF file: " // file_name)
-
-!---------------------------------------------------
 ! hard
 
 case ('hard', 'hard-l')
@@ -478,9 +461,10 @@ case ('orbit')
 !---------------------------------------------------
 ! ps
 
-case ('ps', 'ps-l')
+case ('ps', 'ps-l', 'gif', 'gif-l')
 
   file_name = "tao.ps"
+  if (action(1:3) == 'gif') file_name = 'tao.gif'
   scale = 0
   call str_upcase (action, action)
 
@@ -506,13 +490,26 @@ case ('ps', 'ps-l')
     endif
   endif
 
-  call qp_open_page (action, plot_file = file_name, scale = scale)
+  if (action(1:3) == 'GIF') then
+    call qp_open_page ('PS' // trim(action(4:)), plot_file = 'tao_out.ps', scale = scale)
+  else
+    call qp_open_page (action, plot_file = file_name, scale = scale)
+  endif
 
   call tao_draw_plots ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
   call tao_draw_plots ()   ! Update the plotting window
-  call out_io (s_blank$, r_name, "Created PS file: " // file_name)
+
+  if (action(1:3) == 'GIF') then
+    call system_command ('gs -q -sDEVICE=pbm -sOutputFile=tao_out.pbm -dNOPAUSE - < tao_out.ps')
+    call system_command ('ppmtogif tao_out.pbm > ' // trim(file_name))
+    call system_command ('rm -f tao_out.pbm')
+    call system_command ('rm -f tao_out.ps')
+    call out_io (s_blank$, r_name, "Created GIF file: " // file_name)
+  else
+    call out_io (s_blank$, r_name, "Created PS file: " // file_name)
+  endif
 
 !---------------------------------------------------
 ! variables
