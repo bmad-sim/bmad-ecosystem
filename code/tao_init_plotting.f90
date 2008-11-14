@@ -352,6 +352,7 @@ do
     curve(:)%ix_ele_ref = -1
     curve(:)%smooth_line_calc = .true.
     curve(:)%draw_interpolated_curve = .true.
+    curve(:)%line%width = -1
     curve(2:7)%symbol%type = &
                 (/ times$, square$, plus$, triangle$, x_symbol$, diamond$ /)
     curve(2:7)%symbol%color = &
@@ -546,6 +547,16 @@ do
         grph%y2%draw_numbers = .true.
         grph%y2_mirrors_y = .false.
         grph%y2%label_color = crv%symbol%color
+      endif
+
+      ! Set curve line width
+
+      if (crv%line%width == -1) then
+        if (plt%x_axis_type == 's') then
+          crv%line%width = 6
+        else
+          crv%line%width = 1
+        endif
       endif
 
       ! Enable the radiation integrals calculation if needed.

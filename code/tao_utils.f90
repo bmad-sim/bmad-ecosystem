@@ -1881,8 +1881,6 @@ logical, optional :: show_universe
 
 if (.not. associated(datum%d1)) then
   datum_name = datum%data_type
-  if (size(s%u) > 1 .and. logic_option(.true., show_universe)) &
-       write (datum_name, '(i0, 2a)') datum%d1%d2%ix_uni, '@', trim(datum_name)
   return
 endif
 

@@ -7,6 +7,7 @@ use tao_command_mod, only: tao_next_switch
 use random_mod
 use csr_mod, only: csr_param
 use tao_lattice_calc_mod
+use quick_plot
 
 type show_common_struct
   type (ele_struct), pointer :: ele 
@@ -169,7 +170,7 @@ real(rp), allocatable, save :: value(:)
 
 character(*) :: what, stuff
 character(24) :: var_name
-character(24)  :: plane, imt, lmt, amt, iamt, f3mt, rmt, irmt, iimt
+character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(80) :: word1, fmt, fmt2, fmt3
 character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
@@ -224,7 +225,8 @@ imt  = '(a, 9i8)'
 iimt = '(a, i0, a, i8)'
 lmt  = '(a, 9(l1, 2x))'
 amt  = '(9a)'
-iamt = '(a, i0, 9a)'
+iamt = '(a, i0, 2x, 9a)'
+ramt = '(a, f0.3, 2x, 9a)'
 
 u => tao_pointer_to_universe(-1)
 lat => u%model%lat
@@ -457,23 +459,30 @@ case ('curve')
     do i = 2, size(curve)
       nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
     enddo
-    nl=nl+1; write (lines(nl), amt) 'data_source          = ', c%data_source
-    nl=nl+1; write (lines(nl), amt) 'data_index           = ', c%data_index
-    nl=nl+1; write (lines(nl), amt) 'data_type_x          = ', c%data_type_x
-    nl=nl+1; write (lines(nl), amt) 'data_type            = ', c%data_type
-    nl=nl+1; write (lines(nl), amt) 'ele_ref_name         = ', c%ele_ref_name
-    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref           = ', c%ix_ele_ref
-    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref_track     = ', c%ix_ele_ref_track
-    nl=nl+1; write (lines(nl), imt) 'ix_bunch             = ', c%ix_bunch
-    nl=nl+1; write (lines(nl), imt) 'ix_universe          = ', c%ix_universe
-    nl=nl+1; write (lines(nl), imt) 'symbol_every         = ', c%symbol_every
-    nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor  = ', c%x_axis_scale_factor
-    nl=nl+1; write (lines(nl), rmt) 'y_axis_scale_factor  = ', c%y_axis_scale_factor
-    nl=nl+1; write (lines(nl), lmt) 'use_y2               = ', c%use_y2
-    nl=nl+1; write (lines(nl), lmt) 'draw_line            = ', c%draw_line
-    nl=nl+1; write (lines(nl), lmt) 'draw_symbols         = ', c%draw_symbols
-    nl=nl+1; write (lines(nl), lmt) 'draw_symbol_index    = ', c%draw_symbol_index
-    nl=nl+1; write (lines(nl), lmt) 'smooth_line_calc     = ', c%smooth_line_calc
+    nl=nl+1; write (lines(nl), amt)  'data_source          = ', c%data_source
+    nl=nl+1; write (lines(nl), amt)  'data_index           = ', c%data_index
+    nl=nl+1; write (lines(nl), amt)  'data_type_x          = ', c%data_type_x
+    nl=nl+1; write (lines(nl), amt)  'data_type            = ', c%data_type
+    nl=nl+1; write (lines(nl), amt)  'ele_ref_name         = ', c%ele_ref_name
+    nl=nl+1; write (lines(nl), imt)  'ix_ele_ref           = ', c%ix_ele_ref
+    nl=nl+1; write (lines(nl), imt)  'ix_ele_ref_track     = ', c%ix_ele_ref_track
+    nl=nl+1; write (lines(nl), imt)  'ix_bunch             = ', c%ix_bunch
+    nl=nl+1; write (lines(nl), imt)  'ix_universe          = ', c%ix_universe
+    nl=nl+1; write (lines(nl), imt)  'symbol_every         = ', c%symbol_every
+    nl=nl+1; write (lines(nl), rmt)  'x_axis_scale_factor  = ', c%x_axis_scale_factor
+    nl=nl+1; write (lines(nl), rmt)  'y_axis_scale_factor  = ', c%y_axis_scale_factor
+    nl=nl+1; write (lines(nl), lmt)  'use_y2               = ', c%use_y2
+    nl=nl+1; write (lines(nl), lmt)  'draw_line            = ', c%draw_line
+    nl=nl+1; write (lines(nl), lmt)  'draw_symbols         = ', c%draw_symbols
+    nl=nl+1; write (lines(nl), lmt)  'draw_symbol_index    = ', c%draw_symbol_index
+    nl=nl+1; write (lines(nl), lmt)  'smooth_line_calc     = ', c%smooth_line_calc
+    nl=nl+1; write (lines(nl), iamt) 'line%width           = ', c%line%width
+    nl=nl+1; write (lines(nl), iamt) 'line%color           = ', c%line%color, qp_color_name(c%line%color)
+    nl=nl+1; write (lines(nl), iamt) 'line%style           = ', c%line%style, qp_line_style_name(c%line%style)
+    nl=nl+1; write (lines(nl), iamt) 'symbol%type          = ', c%symbol%type, qp_symbol_type_name(c%symbol%type)
+    nl=nl+1; write (lines(nl), f3mt) 'symbol%height        = ', c%symbol%height
+    nl=nl+1; write (lines(nl), iamt) 'symbol%fill_pattern  = ', c%symbol%fill_pattern, qp_fill_name(c%symbol%fill_pattern)
+    nl=nl+1; write (lines(nl), iamt) 'symbol%line_width    = ', c%symbol%line_width
     
     if (show_sym) then
       n = nl + size(c%x_symb) + 10
