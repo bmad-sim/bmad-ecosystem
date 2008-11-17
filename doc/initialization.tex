@@ -1426,6 +1426,7 @@ namelists should be placed directly after their respective
     curve(i)%data_type_x         = "<string>" ! Used with plot%x_axis_type = "data".
     curve(i)%data_type           = "<string>" ! Default = plot%name.graph%name
     curve(i)%data_index          = "<string>" ! Index number for data points.
+    curve(i)%legend_text         = "<string>" ! Text for curve legend. Default is the data_type.
     curve(i)%x_axis_scale_factor = <factor>   ! Scale the x-axis by this.
     curve(i)%y_axis_scale_factor = <factor>   ! Scale the y-axis by this.
     curve(i)%use_y2              = <logical>  ! Use left-axis scale?
@@ -1463,6 +1464,16 @@ For example:
     curve(1)%use_y2       = F
   /
 \end{example}
+
+\vn{graph%title} is the string just above the graph. The full string
+will also include information about what is being plotted and the
+horizontal axis type. To fully suppress the title leave it blank.
+
+If there are multiple curves drawn with a graph then a curve legend showing
+what lines are associated with what data will be drawn. The default is to
+draw this legend in the upper left hand corner of the graph. By default, the
+\vn{data_type} of each curve will be used as the text for that curve's line in the legend.
+This default can be changed by setting a curve's \vn{curve%legend_tex}.
 
 \vn{graph%name} and \vn{curve%name} define names to be used with
 commands. The default names are just the letter \vn{g} or \vn{c} with

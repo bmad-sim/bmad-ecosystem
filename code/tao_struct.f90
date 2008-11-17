@@ -91,6 +91,7 @@ type tao_curve_struct
   character(100) :: data_type_x = ''       ! Used for data slices and phase space plots.
   character(100) :: data_type   = ''       ! "orbit.x", etc.
   character(40) :: ele_ref_name = ''       ! Reference element.
+  character(40) :: legend_text = ''        ! String to print in a curve legend. 
   type (tao_graph_struct), pointer :: g    ! pointer to parent graph 
   real(rp), allocatable :: x_line(:)       ! Coords for drawing a curve
   real(rp), allocatable :: y_line(:) 

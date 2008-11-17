@@ -277,7 +277,11 @@ if (graph%correct_xy_distortion) call qp_eliminate_xy_distortion
 !
 
 if (graph%draw_axes) then
-  call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+  if (graph%title == '') then
+    call qp_set_graph (title = '')
+  else
+    call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+  endif
   call qp_draw_axes
 endif
 
@@ -849,10 +853,13 @@ implicit none
 type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
+type (qp_line_struct), allocatable :: line(:)
+type (qp_symbol_struct), allocatable :: symbol(:)
 
-integer i, j, k
-logical have_data, draw_symbols
+integer i, j, k, n
+logical have_data
 character(16) num_str
+character(100), allocatable :: text(:)
 
 ! Set scales, margens, etc
 
@@ -860,26 +867,15 @@ call qp_set_layout (box = graph%box, margin = graph%margin)
 call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .true.)
 call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, &
                                                 y2_mirrors_y = graph%y2_mirrors_y)
-call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+if (graph%title == '') then
+  call qp_set_graph (title = '')
+else
+  call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+endif
 call qp_draw_axes
 
 if (graph%limited .and. graph%clip) &
   call qp_draw_text ('**Curve Off Scale**', -0.30_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
-
-! Symbol drawing will be supressed for data plots if the x-axis type is "s" 
-! and there is no layout being drawn anywhere.
-
-draw_symbols = .not. s%plot_page%no_symbols_without_layout
-if (graph%type /= 'data') draw_symbols = .true.
-if (plot%x_axis_type /= 's') draw_symbols = .true.
-
-do i = 1, size(s%plot_region)
-  if (draw_symbols) exit
-  if (.not. s%plot_region(i)%visible) cycle
-  do j = 1, size(s%plot_region(i)%plot%graph)
-    if (s%plot_region(i)%plot%graph(j)%type == 'lat_layout') draw_symbols = .true.
-  enddo
-enddo
 
 ! loop over all the curves of the graph and draw them
 
@@ -891,7 +887,7 @@ do k = 1, size(graph%curve)
   call qp_set_symbol (curve%symbol)
   call qp_set_line ('PLOT', curve%line) 
 
-  if (draw_symbols .and. curve%draw_symbols .and. allocated(curve%x_symb)) then
+  if (curve%draw_symbols .and. allocated(curve%x_symb)) then
     if (size(curve%x_symb) > 0) have_data = .true.
     call qp_draw_data (curve%x_symb, curve%y_symb, .false., curve%symbol_every, graph%clip)
   endif
@@ -926,12 +922,27 @@ if (any(graph%text_legend /= ' ')) call qp_draw_text_legend (graph%text_legend, 
 
 ! Draw the curve legend if needed
 
-if (graph%draw_curve_legend .and. size(graph%curve) > 1) then
+n = size(graph%curve)
+allocate (text(n), symbol(n), line(n))
+
+do i = 1, n
+  text(i) = graph%curve(i)%legend_text
+  if (text(i) == '') text(i) = graph%curve(i)%data_type
+  symbol(i) = graph%curve(i)%symbol
+  if (size(graph%curve(i)%x_symb) == 0) symbol(i)%type = -1 ! Do not draw
+  if (.not. graph%curve(i)%draw_symbols) symbol(i)%type = -1
+  line(i) = graph%curve(i)%line
+  if (size(graph%curve(i)%x_line) == 0) line(i)%width = -1 ! Do not draw
+  if (.not. graph%curve(i)%draw_line) line(i)%width = -1
+enddo
+
+if (graph%draw_curve_legend .and. n > 1) then
   call qp_draw_curve_legend (graph%curve_legend_origin, &
             s%plot_page%curve_legend_text_offset, s%plot_page%curve_legend_line_len, &
-            graph%curve%line, graph%curve%symbol, graph%curve%data_type, &
-            graph%curve(1)%draw_line, graph%curve(1)%draw_symbols .and. draw_symbols)
+            line, symbol, text)
 endif
+
+deallocate (text, symbol, line)
 
 end subroutine
 

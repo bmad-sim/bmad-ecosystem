@@ -353,6 +353,7 @@ do
     curve(:)%smooth_line_calc = .true.
     curve(:)%draw_interpolated_curve = .true.
     curve(:)%line%width = -1
+    curve(:)%legend_text = ''
     curve(2:7)%symbol%type = &
                 (/ times$, square$, plus$, triangle$, x_symbol$, diamond$ /)
     curve(2:7)%symbol%color = &
@@ -494,6 +495,7 @@ do
       call str_upcase (crv%ele_ref_name, crv%ele_ref_name)
       crv%ix_ele_ref           = curve(j)%ix_ele_ref
       crv%ix_bunch             = curve(j)%ix_bunch
+      crv%legend_text          = curve(j)%legend_text
 
       ! Old style
 

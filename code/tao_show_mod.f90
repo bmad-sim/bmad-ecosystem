@@ -463,6 +463,7 @@ case ('curve')
     nl=nl+1; write (lines(nl), amt)  'data_index           = ', c%data_index
     nl=nl+1; write (lines(nl), amt)  'data_type_x          = ', c%data_type_x
     nl=nl+1; write (lines(nl), amt)  'data_type            = ', c%data_type
+    nl=nl+1; write (lines(nl), amt)  'legend_text          = ', c%legend_text
     nl=nl+1; write (lines(nl), amt)  'ele_ref_name         = ', c%ele_ref_name
     nl=nl+1; write (lines(nl), imt)  'ix_ele_ref           = ', c%ix_ele_ref
     nl=nl+1; write (lines(nl), imt)  'ix_ele_ref_track     = ', c%ix_ele_ref_track

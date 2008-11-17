@@ -76,6 +76,7 @@ type tao_curve_input
   character(100) data_type_x
   character(100) data_type
   character(100) data_index
+  character(40) legend_text
   real(rp) x_axis_scale_factor
   real(rp) y_axis_scale_factor
   integer symbol_every
