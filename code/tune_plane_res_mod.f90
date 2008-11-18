@@ -603,7 +603,7 @@ subroutine res_line_plot (plot_type, param, res)
   endif
 
   call qp_set_text_attrib ("LEGEND", height = 11.0_rp)
-  call qp_draw_legend (lines(1:nl))
+  call qp_draw_text_legend (lines(1:nl))
 
 end subroutine
 
