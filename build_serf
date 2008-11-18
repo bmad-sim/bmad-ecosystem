@@ -187,7 +187,7 @@ if build_type == "RELEASE":
         line = build_process.fromchild.readline()
         while line:                                     # print output as it is generated
             print line.strip()
-            if line[0:10] == "gmake: ***":            # be on the lookout for errors in the build
+            if ((line.find("gmake") != -1) and (line.lower().find("error") != -1))      # be on the lookout for errors in the build
                 errors = 1
             line = build_process.fromchild.readline()
         if errors:
