@@ -225,9 +225,10 @@ non-multipole elements.
 \end{table}
 
 %-----------------------------------------------------------------
-\section{Taylor Maps}
+\section{Taylor Maps and Symplectic Integration}
 \label{s:taylor.phys}
-\index{taylor map|hyperbf}
+\index{Taylor map|hyperbf}
+\index{Symplectic integration}
 
 A transport map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through
 an element or a section of a lattice is a function that maps the
@@ -365,7 +366,7 @@ coordinate $\widetilde x_0$ at point 0 given by
 \Begineq
   \widetilde x_0 = x_0 + 2
 \Endeq
-\index{symplectic integration}
+\index{Symplectic integration}
 The other possibility is to use symplectic integration. By its nature,
 symplectic integration never has problems with feed--down.
 
@@ -423,25 +424,28 @@ Recipes\cite{b:nr}. The concept of integrator order in symplectic
 integration is analogous. 
 
 The optimum number of slices is determined by the smallest number that
-gives an acceptable error. Integrators of higher order will generally
-need a smaller number of slices to achieve a given accuracy. However,
-since integrators of higher order take more time per slice step, and
-since it is computation time and not number of slices which is
-important, only a measurement of error and calculation time as a
-function of slice number and integrator order will unambiguously give
-the optimum integrator order and slice width.  In doing a timing test
-it must be remembered that since the magnitude of any non-linearities
-will depend upon position, the integration error will be dependent
-upon the starting map $M_1$. For example, \bmad has integrators of
-order 2, 4, and 6. To test them, timing tests were performed for some
-wiggler elements (which have strong nonlinearities) and it was found
-that in this case the 2\Nd order integrator gave the fastest computation 
-time for a given accuracy.
+gives an acceptable error. The slice size is given by the \vn{ds_step}
+attribute of an element (\sref{s:integ}).  Integrators of higher order
+will generally need a smaller number of slices to achieve a given
+accuracy. However, since integrators of higher order take more time
+per slice step, and since it is computation time and not number of
+slices which is important, only a measurement of error and calculation
+time as a function of slice number and integrator order will
+unambiguously give the optimum integrator order and slice width.  In
+doing a timing test, it must be remembered that since the magnitude of
+any non-linearities will depend upon the starting position, the
+integration error will be dependent upon the starting map $M_1$. \bmad
+has integrators of order 2, 4, and 6 (\sref{s:integ}). Timing tests
+performed for some wiggler elements (which have strong nonlinearities)
+showed that, in this case, the 2\Nd order integrator gave the fastest
+computation time for a given accuracy. However, the higher order
+integrators may give better results for elements with weaker
+nonlinearities.
 
 %-----------------------------------------------------------------
 \section{Symplectification}
 \label{s:symp.method}
-\index{symplectic!symplectification}
+\index{Symplectification}
 
 If the evolution of a system can be described using a Hamiltonian then
 it can be shown that the linear part of any transport map (the Jacobian)

@@ -394,13 +394,26 @@ Taylor map will only be first order.}
 \vfill \break
 
 %-----------------------------------------------------------------
-\section{Transfer Maps via Integration}
+\section{Integration Methods}
 \label{s:integ}
-\index{transfer map|hyperbf}
 
-\index{ds_step}
-\index{num_steps}
-When calculating transfer (Taylor) maps and tracking through integration
+Integration methods are split into two classes: Those that involve
+Taylor maps and those that simply track a particle's position.  The
+Taylor map methods are
+\begin{example}
+  symp_lie_bmad
+  symp_lie_ptc
+  taylor
+\end{example}
+See section \sref{s:taylor.phys} for more information on Taylor maps
+and symplectic integration.  The methods that do not involve Taylor
+maps are
+\begin{example}
+  adaptive_boris
+  boris
+  runge_kutta
+\begin{example}
+
 there are a number of attributes that can affect the calculation. They are
 \begin{example}
   ds_step = <Real>              ! Integration step length
@@ -410,6 +423,7 @@ there are a number of attributes that can affect the calculation. They are
   abs_tol = <Real>              ! Absolute tolerance
   field_calc = Switch           ! How the field is calculated
 \end{example}
+
 Example:
 \begin{example}
   q1: quadrupole, l = 0.6, tracking_method = bmad_standard, &

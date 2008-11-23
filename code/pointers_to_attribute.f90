@@ -8,6 +8,8 @@
 ! Note: ele_name can be a list of element indices. For example:
 !           ele_name = "3:5"
 !  This sets elements 3, 4, and 5 in the lat%ele(:) array.
+! Note: ele_name can be a class name such as "QUADRUPOLE".
+! Note: ele_name can include wild card "*" and "%" characters.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
 !
 ! Modules needed:
@@ -52,7 +54,7 @@ type (real_array_struct), allocatable :: ptr_array(:)
 
 integer, optional :: ix_attrib
 integer, optional, allocatable :: ix_eles(:)
-integer n, i, ix
+integer n, i, ix, key
 
 character(*) ele_name
 character(100) ele_name_temp
@@ -96,10 +98,9 @@ if (ele_name == 'BEAM_START') then
 
 endif
 
-!
+! If index array
 
 if (index(":1234567890", ele_name(1:1)) .ne. 0) then
-! index array
   ele_name_temp = ele_name
   if (allocated (this_ele)) deallocate(this_ele)
   allocate(this_ele(0:lat%n_ele_max))
@@ -123,13 +124,22 @@ if (index(":1234567890", ele_name(1:1)) .ne. 0) then
       if (err_flag) return
     endif
   enddo
+
+! else element name or class
+
 else
-! ele_name
   n = 0
   do i = 0, lat%n_ele_max
-    ele => lat%ele(i)
-    if (ele%name == ele_name) n = n + 1
+    if (match_wild(lat%ele(i)%name, ele_name)) n = n + 1
   enddo
+
+  key = -1
+  if (n == 0) then ! Try ele class if no match to ele name
+    key = key_name_to_key_index (ele_name, .true.)
+    do i = 1, lat%n_ele_max
+      if (lat%ele(i)%key == key) n = n + 1
+    enddo
+  endif 
 
   call reallocate_arrays (n)
   if (n == 0) then
@@ -141,13 +151,16 @@ else
   n = 0
   do i = 0, lat%n_ele_max
     ele => lat%ele(i)
-    if (ele%name == ele_name) then
-      n = n + 1
-      call pointer_to_attribute (ele, attrib_name, do_allocation, &
-                        ptr_array(n)%r, err_flag, err_print_flag, ix_attrib)
-      if (present(ix_eles)) ix_eles(n) = i
-      if (err_flag) return
+    if (key > 0) then
+      if (ele%key /= key) cycle
+    else
+      if (.not. match_wild(ele%name, ele_name)) cycle
     endif
+    n = n + 1
+    call pointer_to_attribute (ele, attrib_name, do_allocation, &
+                      ptr_array(n)%r, err_flag, err_print_flag, ix_attrib)
+    if (present(ix_eles)) ix_eles(n) = i
+    if (err_flag) return
   enddo
 endif
 
