@@ -124,6 +124,7 @@ do
   call substitute ("$")
   call substitute ("\protect")
   call substitute ("\_", "_")
+  call substitute ("\#", "#")
   call substitute ("\tao", "Tao")
   call eliminate2 ('\item[', ']', '     ', '')
   call eliminate2 ('\vn{', '}', '"', '"')

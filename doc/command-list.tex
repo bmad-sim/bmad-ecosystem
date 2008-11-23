@@ -151,6 +151,11 @@ If "\%" is prepended to \vn{<number>} then the final value will be
   final_model_value = initial_model_value * (1 + <number> / 100)
 \end{example}
 
+For \vn{change ele}, the \vn{<name_or_number>} may be a name, an element number or
+list of numbers, or an element class (EG: \vn{"quadrupole"}). Element names
+may contain the wild cards \vn{"*"} which represents any number of characters
+or can be \vn{"\%"} which represents any single character.
+
 For linear lattices, \vn{change beam_start <coordinate> <number>} 
 can be used to vary the starting coordinates where \vn{<coordinate>} is one of: 
 \begin{example}
@@ -171,11 +176,14 @@ Note: To set, say, datum values, etc. use the \vn{set} command.
 
 Examples:
 \begin{example}
-  change ele 124 x_offset 0.1      ! Offset element #124 by 0.1
-  change ele q02w k1 d 1.2e-2      ! set the k1 strength of q02w relative to the design
-  change var steering[34:36] @1e-3 ! set the steering strength #34-36 to 0.001
-  change var steering[*] \%10       ! vary all steering strengths by 10\%
-  change beam_start x @0.001       ! set beginning x position to 1 mm
+  change ele 124 x_offset 0.1       ! Offset element #124 by 0.1
+  change ele 1,3:5 x_offset 0.1     ! Offset elements 1, 3, 4, and 5 by 0.1
+  change ele q* k1 d 1.2e-2         ! Set the k1 strength of all elements starting with
+                                    !   the letter "q" relative to the design
+  change ele quadrupole k1 d 1.2e-2 ! Set the k1 strength of all quadrupole elements.
+  change var steering[34:36] @1e-3  ! set the steering strength #34-36 to 0.001
+  change var steering[*] \%10        ! vary all steering strengths by 10\%
+  change beam_start x @0.001        ! set beginning x position to 1 mm
 \end{example}
 
 
@@ -1264,8 +1272,8 @@ order set by the lattice file.
 
 Examples:
 \begin{example}
-  show transfer -order 1 q10e q10w  ! 0th and 1st order map from element q10e to q10w
-  show transfer 45                  ! Transfer map from element \# 0 to \# 45
+  show taylor -order 1 q10e q10w  ! 0th and 1st order map from element q10e to q10w
+  show taylor 45                  ! Transfer map from element \# 0 to \# 45
 \end{example} 
 
 %% show universe --------------------------------------------------------------

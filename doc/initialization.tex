@@ -125,15 +125,9 @@ Do not put any spaces in between. Example:
 \index{Initialization!beginning}
 \label{s:init.global} 
 
-\index{tao_start}
-\index{tao.init}
-\index{lattice_file}
-\index{data_file}
-\index{var_file}
-\index{plot_file}
-\index{single_mode_file}
-\index{startup_file}
-\index{startup_single_mode}
+\index{tao_start}\index{tao.init}\index{lattice_file}
+\index{data_file}\index{var_file}\index{plot_file}
+\index{single_mode_file}\index{startup_file}\index{startup_single_mode}
 The initialization starts with an initialization file. The default name for
 this file is \vn{tao.init} (See \sref{s:command.line}).
 The first namelist block read in from this initialization file is a 
@@ -164,17 +158,10 @@ namelists are taken from the first file on the list. All files,
 however, can contain \vn{tao_template_plot} and
 \vn{tao_template_graph} namelists.
 
-\index{tao_design_lattice}
-\index{tao_params}
-\index{tao_connected_uni_init}
-\index{tao_beam_init}
-\index{tao_var}
-\index{tao_d2_data}
-\index{tao_d1_data}
-\index{tao_plot_page}
-\index{tao_template_plot}
-\index{tao_template_graph}
-\index{element_shapes_lat_layout}
+\index{tao_design_lattice}\index{tao_params}\index{tao_connected_uni_init}
+\index{tao_beam_init}\index{tao_var}\index{tao_d2_data}
+\index{tao_d1_data}\index{tao_plot_page}\index{tao_template_plot}
+\index{tao_template_graph}\index{element_shapes_lat_layout}
 \index{element_shapes_floor_plan}
 \begin{table}[ht]
 \centering {\tt
@@ -206,12 +193,8 @@ In the \vn{tao_start} namelist, the \vn{lattice_file} variable gives
 the name of the file that contains the \vn{tao_design_lattice}
 namelist. This namelist defines where the lattice input files are. The
 variables that are set in the \vn{tao_design_lattice} namelist are:
-\index{tao_design_lattice}
-\index{design_lattice}
-\index{design_lattice!file}
-\index{design_lattice!parser}
-\index{n_universes}
-\index{common_lattice}
+\index{tao_design_lattice}\index{design_lattice}\index{design_lattice!file}
+\index{design_lattice!parser}\index{n_universes}\index{common_lattice}
 \begin{example}
   &tao_design_lattice
     n_universes        = <integer>      ! Number of universes. Default = 1.
@@ -328,7 +311,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{single_mode}\index{init_opt_wrapper}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
 \index{init_plot_needed}\index{lattice_calc_on}\index{command_file_print_on}
-\index{print_command}\index{default_init_file}\index{no_symbols_without_layout}
+\index{print_command}\index{default_init_file}
 \index{current_init_file}\index{var_out_file}
 \begin{example}
 type tao_global_struct
@@ -471,12 +454,8 @@ See \sref{s:lattice.correction} for more details on
 \index{Initialization!Connected Universes}
 \label{s:connected.uni}
 
-\index{tao_connected_uni_init}
-\index{connect}
-\index{connect!from_universe}
-\index{connect!at_element}
-\index{connect!at_ele_index}
-\index{connect!at_s}
+\index{tao_connected_uni_init}\index{connect}\index{connect!from_universe}
+\index{connect!at_element}\index{connect!at_ele_index}\index{connect!at_s}
 \index{connect!match_to_design}
 Universes can be connected together. This can be useful, for example,
 to attach a damping ring a pre-accelerator to a linac. Only one
@@ -562,25 +541,15 @@ Example:
 
 A particle beam is initialized in the \vn{tao_beam_init} namelist block.
 The syntax is as follows:
-\index{tao_beam_init}    
-\index{ix_universe}
-\index{beam_init}
-\index{beam_init!a_norm_emitt}
+\index{tao_beam_init}\index{ix_universe}
+\index{beam_init}\index{beam_init!a_norm_emitt}
 \index{beam_init!b_norm_emitt}
-\index{beam_init!dPz_dZ}
-\index{beam_init!center}
-\index{beam_init!sig_e}
-\index{beam_init!sig_z}
-\index{beam_init!n_bunch}
-\index{beam_init!ds_bunch}
-\index{beam_init!n_particle}
-\index{beam_init!bunch_charge}
-\index{beam_init!renorm_center}
-\index{beam_init!renorm_sigma}
-\index{beam_init!center_jitter}
-\index{beam_init!emitt_jitter}
-\index{beam_init!sig_z_jitter}
-\index{beam_init!sig_e_jitter}
+\index{beam_init!dPz_dZ}\index{beam_init!center}\index{beam_init!sig_e}
+\index{beam_init!sig_z}\index{beam_init!n_bunch}\index{beam_init!ds_bunch}
+\index{beam_init!n_particle}\index{beam_init!bunch_charge}
+\index{beam_init!renorm_center}\index{beam_init!renorm_sigma}
+\index{beam_init!center_jitter}\index{beam_init!emitt_jitter}
+\index{beam_init!sig_z_jitter}\index{beam_init!sig_e_jitter}
 \index{beam_init!polarization}
 \begin{example}
   &tao_beam_init
@@ -759,29 +728,14 @@ are explained in Section~\sref{s:globals}.
 
 \vn{Variable}s are initialized using the \vn{tao_var} namelist. The
 format for this is
-\index{tao_var}
-\index{v1_var!name}
-\index{default_universe}
-\index{default_attribute}
-\index{default_weight}
-\index{default_step}
-\index{default_merit_type}
-\index{default_low_lim}
-\index{default_high_lim}
-\index{ix_min_var}
-\index{ix_max_var}
-\index{var!name}
-\index{var!ele_name}
-\index{var!attribute}
-\index{var!universe}
-\index{var!weight}
-\index{var!step}
-\index{var!low_lim}
-\index{var!high_lim}
-\index{var!merit_type}
-\index{var!good_user}
-\index{use_same_lat_eles_as }
-\index{search_for_lat_eles}
+\index{tao_var}\index{v1_var!name}\index{default_universe}
+\index{default_attribute}\index{default_weight}\index{default_step}
+\index{default_merit_type}\index{default_low_lim}\index{default_high_lim}
+\index{ix_min_var}\index{ix_max_var}\index{var!name}
+\index{var!ele_name}\index{var!attribute}\index{var!universe}
+\index{var!weight}\index{var!step}\index{var!low_lim}
+\index{var!high_lim}\index{var!merit_type}\index{var!good_user}
+\index{use_same_lat_eles_as}\index{search_for_lat_eles}
 \begin{example}
   &tao_var
     v1_var%name          = "<var_array_name>"  ! Variable array name.
@@ -812,7 +766,7 @@ format for this is
     var(i)%high_lim      = <number>            ! Upper variable value limit
     var(i)%merit_type    = "<merit_type_name>" ! Sets how the merit is calculated.
     var(i)%good_user     = <logical>           ! Good optimization variable?
-    var(i)%key_bound     = <logica>            ! Variable bound to a key
+    var(i)%key_bound     = <logical>           ! Variable bound to a key
     var(i)%key_delta     = <number>            ! Change when key is pressed.
   /
 \end{example}
@@ -851,8 +805,8 @@ varying variables. If \vn{var%step(i)} is not given for a
 particular variable then the default \vn{default_step} is
 used. 
 
-\vn{var(i)%universe} gives the universe that the
-lattice element lives in. Multiple universes can be specified using a comma delimited list.
+\vn{var(i)%universe} gives the universe that the lattice element lives
+in. Multiple universes can be specified using a comma delimited list.
 For example:
 \begin{example}
   var(10)%universe = "2, 3"
@@ -986,11 +940,8 @@ value of \vn{"*"} means that a \vn{d2_data} structure is set up in each
 universe. \vn{default_merit_type} determines how the merit function
 terms are calculated for the individual datum points. Possibilities
 are:
-\index{target}
-\index{max}
-\index{min}
-\index{abs_max}
-\index{abs_min}
+\index{target}\index{max}\index{min}
+\index{abs_max}\index{abs_min}
 \begin{example}
   "target"
   "max"
@@ -1007,24 +958,12 @@ parameter in the \vn{tao_d2_data} namelist defines how many
 \vn{d1_data} structures are associated with the \vn{d2_data}
 structure. For each \vn{n_d1_data} structure there must be a
 \vn{tao_d1_data} namelist which has the form:
-\index{tao_d1_data}
-\index{ix_d1_data}
-\index{d1_data!name}
-\index{default_data_type}
-\index{default_weight}
-\index{ix_min_data}
-\index{ix_max_data}
-\index{data!name}
-\index{data!data_type}
-\index{data!ele_name}
-\index{data!ele0_name}
-\index{data!merit_type}
-\index{data!meas}
-\index{data!weight}
-\index{data!good_user}
-\index{data!ix_bunch}
-\index{use_same_lat_eles_as }
-\index{search_for_lat_eles}
+\index{tao_d1_data}\index{ix_d1_data}\index{d1_data!name}
+\index{default_data_type}\index{default_weight}\index{ix_min_data}
+\index{ix_max_data}\index{data!name}\index{data!data_type}
+\index{data!ele_name}\index{data!ele0_name}\index{data!merit_type}
+\index{data!meas}\index{data!weight}\index{data!good_user}
+\index{data!ix_bunch}\index{use_same_lat_eles_as}\index{search_for_lat_eles}
 \begin{example}
   &tao_d1_data
     ix_d1_data           = <integer>      ! d1_data index
@@ -1229,7 +1168,6 @@ plots go. The syntax of this block is:
     plot_page%shape_height_max       = <num> ! maximum half height for drawing elements. Def = 40
     plot_page%n_curve_pts            = <num> ! Num points used to construct a smooth curve. Def = 401
     plot_page%box_plots              = <T/F> ! For debugging layout problems. Def = F.
-    plot_page%no_symbols_without_layout = <T/F> ! Supresses drawing symbols? Def = T
     region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
     place(i)  = "<region_name>", "<template_name>"
   /
@@ -1582,16 +1520,6 @@ printed using the \vn{show curve -symbol} command (\sref{s:show}).
 printed besides the symbol. Use the \vn{set curve} command 
 (\sref{s:set}) to toggle the drawing of symbols.
 
-If the \vn{plot_page%no_symbols_without_layout} switch is set to
-\vn{T} (which is the default), the drawing of symbols for a given
-curve is suppressed, irregardless of a \vn{curve%draw_symbols}
-setting, if three conditions are met:
-\begin{example}
-  The graph%type associated with the curve is set to "data".
-  The plot%x_axis_type associated with the curve is set to "s".
-  There is no visible lat_layout being drawn on the plot page.
-\end{example}
-
 \vn{curve%draw_line} determines whether a curve is drawn through the
 data point symbols. The thickness, style (solid, dashed, etc.), and
 color of the line can be controlled by setting \vn{curve%line}. If
@@ -1723,7 +1651,7 @@ A lattice layout plot draws the lattice
 along a straight line with colored rectangles representing the various elements.
 An example is shown in Figure~\ref{f:layout.table}.
 The \vn{tao_template_plot} needed to define a lattice layout looks like:
-\index{Tao_template_plot}\index{Plot!name}\index{Plot!box_layout}
+\index{Tao_template_plot}\index{Plot!name}
 \index{Plot!x!min}\index{Plot!x!max}\index{Plot!n_graph}
 \index{Tao_template_graph}\index{Graph_index}\index{Graph!name}
 \index{Graph!type}\index{Graph!title}\index{Graph!box}
@@ -1731,17 +1659,17 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
 \begin{example}
   &tao_template_plot
     plot%name        = "<plot_name>"
-    plot%box_layout  = <ix>, <iy> 
     plot%x%min       = <number>
     plot%x%max       = <number>
     plot%n_graph     = <number>
+    plot%x_axis_type = "s"
   /
   &tao_template_graph
     graph_index       = <number>
     graph%name        = <name>
     graph%type        = "lat_layout"
     graph%title       = "Layout Title"
-    graph%box         = <ix>, <iy>
+    plot%box          = <ix>, <iy>, <ix_tot>, <iy_tot>
     graph%ix_universe = <integer> ! -1 => use currently viewed universe
     graph%margin      = <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%n_curve     = 0
@@ -1750,17 +1678,18 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
 Example:
 \begin{example}
   &tao_template_plot
-    plot%name       = "layout"
-    plot%x%min      =   0
-    plot%x%max      = 100
-    plot%n_graph    = 1
+    plot%name        = "layout"
+    plot%x%min       =   0
+    plot%x%max       = 100
+    plot%n_graph     = 1
+    plot%x_axis_type = "s"
   /
 
   &tao_template_graph
     graph_index       = 1
     graph%name        = "u1"
     graph%type        = "lat_layout"
-    graph%this_box    = 1, 1
+    graph%box         = 1, 1, 1, 1
     graph%ix_universe = 1
     graph%margin      = 0.12, 0.12, 0.12, 0.12, "%BOX"
     graph%n_curve     = 0

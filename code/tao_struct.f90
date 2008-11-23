@@ -196,7 +196,6 @@ type tao_plot_page_struct
   real(rp) :: curve_legend_text_offset = 10 ! Points
   integer :: n_curve_pts = 401       ! Number of points for plotting a smooth curve
   integer id_window                  ! X window id number.
-  logical :: no_symbols_without_layout = .true. ! Applied to s-plots only.
 end type
 
 ! Arrays of structures

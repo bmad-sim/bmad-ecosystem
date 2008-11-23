@@ -325,14 +325,30 @@ where \vn{i} goes from the \vn{ele} index to the \vn{ele0} index.
 \label{t:eval2}
 \end{table}
 
-\vn{wire} data simulates the measurement of a wire scanner. The angle specified
-is the angle of the wire with respect to the horizontal axis. The measurement
-then measures the second moment $<uu>$ along an axis which is 90 degrees off of
-the wire axis. For example, \vn{wire.90} is a wire scanner oriented in the
-vertical direction and measures the second moment of the beam along the
-horizontal axis, $<xx>$. The resultant data is not the beam size, but the beam
-size squared.
+  \begin{description}
 
+  \index{beta.*}
+  \item{beta.} \Newline
+\vn{beta.a} and \vn{beta.b} are the lattice beta functions. \vn{beta.x} and
+\vn{beta.y} are beam projected beta functions defined by
+\begin{equation}
+  \beta.x = \frac{<x^{2}>}{\sqrt{<x^{2}> <x'^{2}> - <x x'>^{2}}}.
+\end{equation}
+where the average \vn{<>} is over all the particles in the beam.
+
+  \index{element_param.*}
+  \item{element\_param.} \Newline
+The \vn{element_param.<param_name>} data type is for using lattice
+element parameters. \vn{<param_name>} is the name of the
+parameter. See the \bmad manual for the names associated with each
+type of lattice element.  For example, the \vn{k1} quadrupole strength
+would be given by:
+\begin{example}
+  element_param.k1
+\end{example}
+
+  \index{emitl.*}
+  \item{emit.} \Newline
 Emittance can be calculated in one of two ways. One way is to
 calculate it from a tracked beam. The other is from the lattice using
 the standard radiation integrals (see the Bmad manual). For a linear
@@ -343,12 +359,12 @@ beam tracking, there are also \vn{projected emittances} which give an
 indication of what the beam looks like if projected onto the $x$ or
 $y$ axes:
 \begin{equation}
-  \eta_x (\mbox{(projected)} = \sqrt{<x^2> <p_x^2> - <x p_x>^2}
+  \mbox{emit.x} \equiv \sqrt{<x^2> <p_x^2> - <x p_x>^2}
 \end{equation}
 Notice that this does {\emph not} correspond to the standard emittance
 definition in one dimension:
 \begin{equation}
-  \eta_x = \sqrt{<(x - \eta_x \, p_z)^2> <(p_x - \eta'_x \, p_z)^2> - 
+  \epsilon_x = \sqrt{<(x - \eta_x \, p_z)^2> <(p_x - \eta'_x \, p_z)^2> - 
   <(x - \eta_x \, p_z) \, (p_x - \eta'_x \, p_z)>^2}
 \end{equation}
 \vn{emit.x} and \vn{emit.y} are the projected emittances.
@@ -357,30 +373,8 @@ $x'$ and $y'$ in place of $p_x$ and $p_y$. However, in the vast
 majority of cases, this does not appreciably affect the numeric
 results.
 
-
-\vn{beta.a} and \vn{beta.b} are the lattice beta functions. \vn{beta.x} and
-\vn{beta.y} are beam projected beta functions defined by
-\begin{equation}
-  \beta.x = \frac{<x^{2}>}{\sqrt{<x^{2}> <x'^{2}> - <x x'>^{2}}}.
-\end{equation}
-where the average \vn{<>} is over all the particles in the beam.
-
-The \vn{element_param.<param_name>} data type is for using lattice
-element parameters. \vn{<param_name>} is the name of the
-parameter. See the \bmad manual for the names associated with each
-type of lattice element.  For example, the \vn{k1} quadrupole strength
-would be given by:
-\begin{example}
-  element_param.k1
-\end{example}
-
-\vn{unstable_ring} is used for storage rings. The value of an
-\vn{unstable_ring} datum is zero if the ring is stable and set to the
-largest growth rate of all the normal modes of oscillation if the ring
-is unstable. The value of an \vn{unstable_ring} datum is thus always
-non-zero.  \vn{unstable_ring} is used in an optimization to avoid
-unstable solutions (\sref{s:generalized.design}).
-
+  \index{expression: *}
+  \item{expression:} \Newline
 The \vn{expression:} data type allows the value of a datum to depend upon
 the value of other datums or the value of variables. For example:
 \begin{example}
@@ -399,6 +393,40 @@ datum should be in universe 2 or higher. Notice that while all datums
 must be assigned a universe, in this case the value of the datum will
 be independent of the universe it is in.
 
+  \index{t.* tt.*} 
+  \item{t.* tt.*} \Newline
+The \vn{t} and \vn{tt} data types involve symplectic integration
+through lattice elements. One point to be kept in mind is that results
+will be dependent upon the integration step size through an element
+set by the \vn{ds_step} attribute of that element (see the \bmad
+manual for more details).  When a smooth curve (\sref{s:template}) is
+plotted for \vn{t} and \vn{tt} data types, and the longitudinal
+(\vn{"s"}) position is used for the x-axis, the integration step used
+in generating the points that define this curve will be decreased if
+the the s-distance between points is smaller than the \vn{ds_step}.
+In this case, discrepencies between the plot and datum values may be observed.
+
+  \index{unstable_ring}
+  \item{unstable\_ring} \Newline
+\vn{unstable_ring} is used for storage rings. The value of an
+\vn{unstable_ring} datum is zero if the ring is stable and set to the
+largest growth rate of all the normal modes of oscillation if the ring
+is unstable. The value of an \vn{unstable_ring} datum is thus always
+non-zero.  \vn{unstable_ring} is used in an optimization to avoid
+unstable solutions (\sref{s:generalized.design}).
+
+  \index{wire.*}
+  \item{wire} \Newline
+\vn{wire} data simulates the measurement of a wire scanner. The angle specified
+is the angle of the wire with respect to the horizontal axis. The measurement
+then measures the second moment $<uu>$ along an axis which is 90 degrees off of
+the wire axis. For example, \vn{wire.90} is a wire scanner oriented in the
+vertical direction and measures the second moment of the beam along the
+horizontal axis, $<xx>$. The resultant data is not the beam size, but the beam
+size squared.
+
+  \end{description}
+
 
 \index{Data!Calculation Method}
 \index{unstable_ring}\index{beta}\index{alpha}\index{eta}\index{eta}
@@ -408,7 +436,6 @@ be independent of the universe it is in.
 \index{unstable_ring}\index{emittance}\index{chrom}\index{norm_emittance}
 \index{sigma}\index{dpx_dx}\index{dpy_dy}\index{dpz_dz}\index{dpa_da}
 \index{dpb_db}
-
 
 \begin{table}[ht] 
 \centering 

@@ -175,22 +175,24 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (real_array_struct), allocatable, save :: d_ptr(:), m_ptr(:)
 
-real(rp), allocatable :: change_number(:)
+real(rp), allocatable, save :: change_number(:), old_value(:)
+
+real(rp) new_merit, old_merit, new_value, delta
+
+integer i, ix, ix_a, nl, len_name
+integer, allocatable, save :: ix_ele(:)
+integer, parameter :: len_lines = 200
 
 character(*) ele_name
 character(*) attrib_name
 character(*) num_str
-character(40) e_name, a_name, fmt
+character(40) e_name, a_name, fmt, name
 character(20) :: r_name = 'tao_change_ele'
-character(200), allocatable, save :: lines(:)
+character(len_lines), allocatable, save :: lines(:)
 character(20) abs_or_rel
 
-real(rp) new_merit, old_merit, old_value, new_value, delta
-
-integer i, ix, ix_a, nl
-integer, allocatable, save :: ix_ele(:)
-
 logical err
+logical, allocatable, save :: good(:)
 
 !-------------------------------------------------
 
@@ -215,22 +217,40 @@ call pointers_to_attribute (u%model%lat, e_name, a_name, .true., &
                                                 m_ptr, err, .true., ix_ele, ix_a)
 if (err) return
 
+! Count to see if any of the attributes are free
+
+call re_allocate (old_value, size(d_ptr))
+call re_allocate (good, size(d_ptr))
+
+good = .false.
 do i = 1, size(d_ptr)
-  if (ix_ele(i) < 0) cycle  ! bunch_start variables are always free
-  if (.not. attribute_free (ix_ele(i), ix_a, u%model%lat, .true.)) return
+  if (ix_ele(i) > -1) then  ! bunch_start variables are always free
+    if (.not. attribute_free (ix_ele(i), ix_a, u%model%lat, .false.)) cycle
+  endif
+  good(i) = .true.
 end do
+
+if (all (.not. good)) then
+  call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE')
+  return
+endif
 
 ! Find change value(s)
 
 call to_number (num_str, size(d_ptr), change_number, abs_or_rel, err);  if (err) return
 old_merit = tao_merit()
+call re_allocate (old_value, size(d_ptr))
 
 ! put in change
 
+fmt = '(5f14.6, 4x, a)'
+
 do i = 1, size(d_ptr)
 
-  old_value = m_ptr(i)%r
-     
+  if (.not. good(i)) cycle
+
+  old_value(i) = m_ptr(i)%r
+
   if (abs_or_rel == '@') then
     m_ptr(i)%r = change_number(i)
   elseif (abs_or_rel == 'd') then
@@ -241,9 +261,10 @@ do i = 1, size(d_ptr)
     m_ptr(i)%r = m_ptr(i)%r + change_number(i)
   endif
      
-  new_value = m_ptr(i)%r
-
   call changed_attribute_bookkeeper (u%model%lat, ix_ele(i), m_ptr(i)%r)
+
+  if (max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) > 100) &
+                                                          fmt = '(5f14.0, 4x, a)'
 
 enddo
 
@@ -252,32 +273,34 @@ tao_com%lattice_recalc = .true.
 !----------------------------------
 ! print results
 
-if (size(d_ptr) /= 1) return ! don't print results if changing multiple elements
-
 new_merit = tao_merit()
-delta = new_value - old_value
-if (max(abs(old_value), abs(new_value), abs(d_ptr(1)%r)) > 100) then
-  fmt = '(5x, 2(a, f12.0), f12.0)'
-else
-  fmt = '(5x, 2(a, f12.6), f12.6)'
+
+call re_allocate (lines, len_lines, size(d_ptr)+10)
+nl = 0
+nl=nl+1;write (lines(nl), '(11x, a)') &
+                  'Old           New    Old-Design    New-Design         Delta'
+do i = 1, size(d_ptr)
+  if (.not. good(i)) cycle
+  if (nl > 10 .and. i /= size(d_ptr)) exit  
+  name = 'BEAM_START'
+  if (ix_ele(i) > -1) name = u%design%lat%ele(ix_ele(i))%name
+  nl=nl+1; write (lines(nl), fmt) old_value(i), m_ptr(i)%r, &
+                            old_value(i)-d_ptr(i)%r, m_ptr(i)%r-d_ptr(i)%r, &
+                            m_ptr(i)%r-old_value(i), trim(name)
+enddo
+
+if (i <= size(d_ptr)) then
+  nl=nl+1; lines(nl) = '   ... etc ...'
 endif
 
-call re_allocate (lines, 200, 200)
-nl = 0
-nl=nl+1;write (lines(nl), '(27x, a)') 'Old              New      Delta'
-nl=nl+1;write (lines(nl), fmt) 'Value:       ', old_value, '  ->', new_value, delta
-nl=nl+1;write (lines(nl), fmt) 'Value-Design:', old_value-d_ptr(1)%r, &
-                                  '  ->', new_value-d_ptr(1)%r
-
 if (max(abs(old_merit), abs(new_merit)) > 100) then
-  fmt = '(5x, 2(a, f13.2), f13.2)'
+  fmt = '(2(a, f13.2), a, f13.2)'
 else
-  fmt = '(5x, 2(a, f13.6), f13.6)'
+  fmt = '(2(a, f13.6), a, f13.6)'
 endif
 
 nl=nl+1;write (lines(nl), fmt) 'Merit:      ', &
-                        old_merit, '  ->', new_merit, new_merit-old_merit
-nl=nl+1;lines(nl) = ' '
+                        old_merit, '  ->', new_merit, '  Delta: ', new_merit-old_merit
 if (delta /= 0) then
   nl=nl+1
   write (lines(nl), '(a, es12.3)') 'dMerit/dValue:  ', (new_merit-old_merit) / delta

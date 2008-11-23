@@ -25,10 +25,9 @@ certain variables so that the pressing of these keys will change their
 associated variable. This is called a \vn{key binding}. Key bindings
 are established via the \vn{var(i)%key_bound} logical (See
 Section~\sref{s:init.var}). The variables are divided into banks of
-10. The 0\Th bank uses variables \vn{key(1)} through \vn{key(10)} from
-the \vn{key_bindings} namelist, the 1\St bank uses variables
-\vn{key(11)} through \vn{key(20)}, etc.  
-
+10. The 0\Th bank uses the first ten variables that have their
+\vn{key_bound} attribute (\sref{s:init.var}) set to True.
+the 1\St bank uses the next ten, etc.
 At any one time, only one bank is active. To see the status of this
 bank, a \vn{key table} plot (\sref{s:key.table})can be setup as shown in
 Figure~\ref{f:key.table}. The relationship between the keys and a
@@ -49,31 +48,27 @@ change in a variable is:
    10 + 10*ib     P    p    0   shift-0   (")")
 \end{example}
 In the above table ib is the bank number (0 for the 0\Th bank, etc.),
-and the change is in multiples of the \vn{step} for a variable as
-specified in the \vn{key_bindings} namelist. 
+and the change is in multiples of the \vn{step} (\sref{s:init.var}
+value for a variable.
 
 Initially the 0Th bank is active. The left arrow and right arrow are
 used to decrease or increase the bank number.  Additionally the
 "\vn{<}" and "$>$" keys can be used to change the deltas for the
 variables.
 
-For example, looking at Figure~\ref{f:key.table}, the \vn{"1:"} in
-the upper left corner of the \vn{Key Table} shows that the 1\St bank
-is active which corresponds to keys \vn{key(11)} through \vn{key(20)}
-from the \vn{key_bindings} namelist.  Since, in this case, keys
-\vn{key(19)} and \vn{key(20)} have not been defined, the corresponding
-rows in the \vn{Key Table} are blank.
-
-\vn{key(14)} is associated with the \vn{"4"} key and from the \vn{Key
-Table} it is seen that the bound attribute is the \vn{b1_gradient} of
-the element named \vn{Q15_2}.  Thus, if the \vn{"4"} key is depressed
-in single mode, the value of the \vn{b1_gradient} of element
-\vn{Q15_2} will be increased by the given Delta (0.1000 in this
-case). Pressing the \vn{"r"} key (which is just below the \vn{"4"}
-key) will decrease the value of the \vn{b1_gradient} by 0.1000. Using
-the shift key, which is shift-4 (\vn{"\$"}) will increase
-\vn{b1_gradient} by 10 times the given delta (1.000 in this case) and
-\vn{"R"} will decrease, by a factor of 10, the given delta.
+For example, looking at Figure~\ref{f:key.table}, the \vn{"1:"} in the
+upper left corner of the \vn{Key Table} shows that the 1\St bank is
+active. \vn{key(14)} is associated with the \vn{"4"} key and from the
+\vn{Key Table} it is seen that the bound attribute is the
+\vn{b1_gradient} of the element named \vn{Q15_2}.  Thus, if the
+\vn{"4"} key is depressed in single mode, the value of the
+\vn{b1_gradient} of element \vn{Q15_2} will be increased by the given
+Delta (0.1000 in this case). Pressing the \vn{"r"} key (which is just
+below the \vn{"4"} key) will decrease the value of the
+\vn{b1_gradient} by 0.1000. Using the shift key, which is shift-4
+(\vn{"\$"}) will increase \vn{b1_gradient} by 10 times the given delta
+(1.000 in this case) and \vn{"R"} will decrease, by a factor of 10,
+the given delta.
 
 Since element \vn{Q15_2} is also displayed in the \vn{Lattice Layout},
 there is a \vn{"4"} drawn above this element that reflects the fact

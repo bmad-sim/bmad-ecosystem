@@ -138,7 +138,7 @@ type (tao_graph_array_struct), allocatable, save :: graph(:)
 type (tao_curve_array_struct), allocatable, save :: curve(:)
 type (tao_plot_struct), pointer :: p
 type (tao_graph_struct), pointer :: g
-type (tao_curve_struct), pointer :: c
+type (tao_curve_struct), pointer :: c1
 type (tao_plot_region_struct), pointer :: region
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
@@ -450,79 +450,78 @@ case ('curve')
   ! print info on particular plot, graph, or curve
 
   if (allocated(curve)) then
-    c => curve(1)%c
-    nl=nl+1; lines(nl) = 'Region.Graph.Curve: ' // trim(tao_curve_name(c, .true.))
+    c1 => curve(1)%c
+    nl=nl+1; lines(nl) = 'Region.Graph.Curve: ' // trim(tao_curve_name(c1, .true.))
     do i = 2, size(curve)
       nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c, .true.))
     enddo
-    nl=nl+1; lines(nl) = 'Plot.Graph.Curve:   ' // trim(tao_curve_name(c))
+    nl=nl+1; lines(nl) = 'Plot.Graph.Curve:   ' // trim(tao_curve_name(c1))
     do i = 2, size(curve)
       nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
     enddo
-    nl=nl+1; write (lines(nl), amt)  'data_source          = ', c%data_source
-    nl=nl+1; write (lines(nl), amt)  'data_index           = ', c%data_index
-    nl=nl+1; write (lines(nl), amt)  'data_type_x          = ', c%data_type_x
-    nl=nl+1; write (lines(nl), amt)  'data_type            = ', c%data_type
-    nl=nl+1; write (lines(nl), amt)  'legend_text          = ', c%legend_text
-    nl=nl+1; write (lines(nl), amt)  'ele_ref_name         = ', c%ele_ref_name
-    nl=nl+1; write (lines(nl), imt)  'ix_ele_ref           = ', c%ix_ele_ref
-    nl=nl+1; write (lines(nl), imt)  'ix_ele_ref_track     = ', c%ix_ele_ref_track
-    nl=nl+1; write (lines(nl), imt)  'ix_bunch             = ', c%ix_bunch
-    nl=nl+1; write (lines(nl), imt)  'ix_universe          = ', c%ix_universe
-    nl=nl+1; write (lines(nl), imt)  'symbol_every         = ', c%symbol_every
-    nl=nl+1; write (lines(nl), rmt)  'x_axis_scale_factor  = ', c%x_axis_scale_factor
-    nl=nl+1; write (lines(nl), rmt)  'y_axis_scale_factor  = ', c%y_axis_scale_factor
-    nl=nl+1; write (lines(nl), lmt)  'use_y2               = ', c%use_y2
-    nl=nl+1; write (lines(nl), lmt)  'draw_line            = ', c%draw_line
-    nl=nl+1; write (lines(nl), lmt)  'draw_symbols         = ', c%draw_symbols
-    nl=nl+1; write (lines(nl), lmt)  'draw_symbol_index    = ', c%draw_symbol_index
-    nl=nl+1; write (lines(nl), lmt)  'smooth_line_calc     = ', c%smooth_line_calc
-    nl=nl+1; write (lines(nl), iamt) 'line%width           = ', c%line%width
-    nl=nl+1; write (lines(nl), iamt) 'line%color           = ', c%line%color, qp_color_name(c%line%color)
-    nl=nl+1; write (lines(nl), iamt) 'line%style           = ', c%line%style, qp_line_style_name(c%line%style)
-    nl=nl+1; write (lines(nl), iamt) 'symbol%type          = ', c%symbol%type, qp_symbol_type_name(c%symbol%type)
-    nl=nl+1; write (lines(nl), f3mt) 'symbol%height        = ', c%symbol%height
-    nl=nl+1; write (lines(nl), iamt) 'symbol%fill_pattern  = ', c%symbol%fill_pattern, qp_fill_name(c%symbol%fill_pattern)
-    nl=nl+1; write (lines(nl), iamt) 'symbol%line_width    = ', c%symbol%line_width
+    nl=nl+1; write (lines(nl), amt)  'data_source          = ', c1%data_source
+    nl=nl+1; write (lines(nl), amt)  'data_index           = ', c1%data_index
+    nl=nl+1; write (lines(nl), amt)  'data_type_x          = ', c1%data_type_x
+    nl=nl+1; write (lines(nl), amt)  'data_type            = ', c1%data_type
+    nl=nl+1; write (lines(nl), amt)  'legend_text          = ', c1%legend_text
+    nl=nl+1; write (lines(nl), amt)  'ele_ref_name         = ', c1%ele_ref_name
+    nl=nl+1; write (lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
+    nl=nl+1; write (lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
+    nl=nl+1; write (lines(nl), imt)  'ix_bunch             = ', c1%ix_bunch
+    nl=nl+1; write (lines(nl), imt)  'ix_universe          = ', c1%ix_universe
+    nl=nl+1; write (lines(nl), imt)  'symbol_every         = ', c1%symbol_every
+    nl=nl+1; write (lines(nl), rmt)  'x_axis_scale_factor  = ', c1%x_axis_scale_factor
+    nl=nl+1; write (lines(nl), rmt)  'y_axis_scale_factor  = ', c1%y_axis_scale_factor
+    nl=nl+1; write (lines(nl), lmt)  'use_y2               = ', c1%use_y2
+    nl=nl+1; write (lines(nl), lmt)  'draw_line            = ', c1%draw_line
+    nl=nl+1; write (lines(nl), lmt)  'draw_symbols         = ', c1%draw_symbols
+    nl=nl+1; write (lines(nl), lmt)  'draw_symbol_index    = ', c1%draw_symbol_index
+    nl=nl+1; write (lines(nl), lmt)  'smooth_line_calc     = ', c1%smooth_line_calc
+    nl=nl+1; write (lines(nl), iamt) 'line%width           = ', c1%line%width
+    nl=nl+1; write (lines(nl), iamt) 'line%color           = ', c1%line%color, qp_color_name(c1%line%color)
+    nl=nl+1; write (lines(nl), iamt) 'line%style           = ', c1%line%style, qp_line_style_name(c1%line%style)
+    nl=nl+1; write (lines(nl), iamt) 'symbol%type          = ', c1%symbol%type, qp_symbol_type_name(c1%symbol%type)
+    nl=nl+1; write (lines(nl), f3mt) 'symbol%height        = ', c1%symbol%height
+    nl=nl+1; write (lines(nl), iamt) 'symbol%fill_pattern  = ', c1%symbol%fill_pattern, qp_fill_name(c1%symbol%fill_pattern)
+    nl=nl+1; write (lines(nl), iamt) 'symbol%line_width    = ', c1%symbol%line_width
     
     if (show_sym) then
-      n = nl + size(c%x_symb) + 10
+      n = nl + size(c1%x_symb) + 10
       if (n > size(lines)) call re_allocate(lines, len(lines(1)), n, .false.)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Symbol points:'
       nl=nl+1; lines(nl) = '      i  index             x             y'
       err = .false.
       do j = 2, size(curve)
-        if (size(curve(j)%c%y_symb) /= size(c%y_symb)) then
+        if (size(curve(j)%c%y_symb) /= size(c1%y_symb)) then
           nl=nl+1; lines(nl) = 'NUMBER OF SYMBOL POINTS NOT THE SAME IN ALL CURVES!'
           err = .true.
           exit
         endif
       enddo
       if (.not. err) then
-        do i = 1, size(c%x_symb)
-          nl=nl+1; write (lines(nl), '(2i7, 10es14.6)') i, c%ix_symb(i), &
-                      c%x_symb(i), (/ (curve(j)%c%y_symb(i), j = 1, size(curve)) /)
+        do i = 1, size(c1%x_symb)
+          nl=nl+1; write (lines(nl), '(2i7, 10es14.6)') i, c1%ix_symb(i), &
+                      c1%x_symb(i), (/ (curve(j)%c%y_symb(i), j = 1, size(curve)) /)
         enddo
       endif
     endif
 
     if (show_line) then
-      n = nl + size(c%x_line) + 10
-      if (n > size(lines)) call re_allocate(lines, len(lines(1)), n, .false.)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Smooth line points:'
       nl=nl+1; lines(nl) = '             x             y'
       do j = 2, size(curve)
-        if (size(curve(j)%c%y_line) /= size(c%y_line)) then
+        if (size(curve(j)%c%y_line) /= size(c1%y_line)) then
           nl=nl+1; lines(nl) = 'NUMBER OF LINE POINTS NOT THE SAME IN ALL CURVES!'
           err = .true.
           exit
         endif
       enddo
       if (.not. err) then
-        do i = 1, size(c%x_line)
-          nl=nl+1; write (lines(nl), '(2es14.6)') c%x_line(i), &
+        call re_allocate (lines, len(lines(1)), nl+size(c1%x_line)+100, .false.)
+        do i = 1, size(c1%x_line)
+          nl=nl+1; write (lines(nl), '(10es14.6)') c1%x_line(i), &
                                         (/ (curve(j)%c%y_line(i), j = 1, size(curve)) /)
         enddo
       endif
@@ -787,7 +786,7 @@ case ('element')
       return
     endif
     if (name == '-taylor') print_taylor = .true.
-    if (name == '-wig_term') print_wig_terms = .true.
+    if (name == '-wig_terms') print_wig_terms = .true.
     if (name == '-all_attributes') print_all = .true.
     if (name == '-data') print_data = .true.
     call string_trim(stuff2(ix+1:), stuff2, ix)
@@ -1498,7 +1497,6 @@ case ('plot')
     nl=nl+1; write (lines(nl), f3mt) '%key_table_text_scale       = ', s%plot_page%key_table_text_scale 
     nl=nl+1; write (lines(nl), f3mt) '%legend_text_scale          = ', s%plot_page%legend_text_scale 
     nl=nl+1; write (lines(nl), f3mt) '%shape_height_max           = ', s%plot_page%shape_height_max  
-    nl=nl+1; write (lines(nl), lmt)  '%no_symbols_without_layout  = ', s%plot_page%no_symbols_without_layout
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'
@@ -1616,7 +1614,7 @@ case ('taylor_map')
     ix2 = lat%n_ele_track
     ix1 = 0
   else
-    call tao_locate_elements (ele1, ix_u, ix_eles)
+    call tao_locate_elements (ele1, u%ix_uni, ix_eles)
     if (size(ix_eles) > 1) then
       nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele1
       return
@@ -1629,7 +1627,7 @@ case ('taylor_map')
     ix2 = ix1
     ix1 = 0
   else
-    call tao_locate_elements (ele2, ix_u, ix_eles)
+    call tao_locate_elements (ele2, u%ix_uni, ix_eles)
     if (size(ix_eles) > 1) then
       nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele2
       return

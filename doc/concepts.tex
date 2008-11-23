@@ -180,25 +180,16 @@ command (\sref{s:set}) is used to transfer information from the
 
 \index{change command}
 \index{Optimizer!variables}
-A variable is anything that can be varied. For example, quadrupole
-strengths or the initial position of a particle in a LINAC. Any
-variable can be varied using the \vn{change} command
-(\sref{s:change}). However it can be convenient to set up within \tao
-predefined groups of variables. For example, the optimizer
-(\sref{s:optimizer}) will only work with such blocks.
-
-Variables control attributes of elements in the model lattice of one
-or more universes. They are not the same thing as attributes in
-lattice elements.  Instead, they \textit{control} attributes in
-lattice elements. They are more akin to \bmad \textit{overlays}. A
-given variable may control a single attribute of one element in one or
-more universes. If you want a variable to control a collection of
-elements like a \bmad \textit{group} then you need to insert the
-appropriate group element in your lattice. Variables are what you vary in
-order to change the model lattice. You can also change the model
-lattice by directly changing any lattice element attribute. However,
-if you plan on doing any optimization then you will need to use
-variables.
+For the \vn{model} lattice (or lattices if there are multiple
+\vn{universes}) the \vn{change} command (\sref{s:change}) can be used
+to vary lattice parameters such as element strengths or, the initial
+Twiss parameters, etc.  Additionally, \vn{variables} can be set up
+within \tao that vary these \vn{model} lattice parameters.  A given
+\tao variable may control a single attribute of one element in one or
+more universes.  There are a few reasons why this can be convenient.
+For example, the optimizer (\sref{s:optimizer}) will only work with
+\tao variables and blocks of these variables can be plotted for visual
+inspection.
 
 \index{Variables!v1_var}
 Blocks of variables are associated with what is called a \vn{v1_var}
@@ -417,14 +408,14 @@ one of the regions you would need to use the region name. A graph of a
 plot is specified using the format \vn{plot_name.graph_name} where
 \vn{plot_name} is a template or region name and \vn{graph_name} is the
 name of the graph. For example, if the horizontal orbit graph of the
-]\vn{orbit} plot is named \vn{x} then it would be referred to as
+\vn{orbit} plot is named \vn{x} then it would be referred to as
 \vn{orbit.x} or \vn{top.x}. A curve within a graph is specified using
 the format \vn{plot_name.graph_name.curve_name}.
 
 The \vn{use}, \vn{veto}, \vn{restore}, and \vn{clip} commands are used
 to control what data is used in fitting the model to the data in the
 optimization process (see Chapter~\ref{c:opti}). The general rule is
-that these commands only effect measured and reference data. If
+that these commands only affect measured and reference data. If
 plotting \vn{model}, \vn{design} and/or \vn{base} data then the data
 will be displayed irregardless. If plotting \vn{meas} and/or \vn{ref} data
 then the data displayed will vary with these commands.  \vn{meas} or

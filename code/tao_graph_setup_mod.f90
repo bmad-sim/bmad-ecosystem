@@ -485,7 +485,6 @@ subroutine tao_data_graph_setup (plot, graph)
 
 use tao_data_mod
 use nrutil, only: swap
-use transfer_map_mod
 
 implicit none
 
@@ -935,10 +934,17 @@ do k = 1, size(graph%curve)
 
 enddo
 
+end subroutine
+
 !----------------------------------------------------------------------------
-contains 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 
 subroutine calc_data_at_s (tao_lat, curve, comp_sign, good)
+
+use transfer_map_mod
+
+implicit none
 
 type (tao_lattice_struct), target :: tao_lat
 type (tao_curve_struct) curve
@@ -955,7 +961,7 @@ real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign
 
-integer i, ii, j, k, expnt(6), ix_ele, ix0
+integer i, ii, ix, j, k, expnt(6), ix_ele, ix0
 
 character(40) data_type
 character(40) data_type_select, data_source
@@ -993,13 +999,13 @@ endif
 x1 = lat%ele(0)%s
 x2 = lat%ele(lat%n_ele_track)%s
 len_tot = lat%param%total_length
-if (graph%x%min /= graph%x%max) then
+if (curve%g%x%min /= curve%g%x%max) then
   if (lat%param%lattice_type == circular_lattice$) then
-    x1 = min(lat%ele(lat%n_ele_track)%s, max(graph%x%min, x1-len_tot))
-    x2 = min(x2, max(graph%x%max, lat%ele(0)%s-len_tot))
+    x1 = min(lat%ele(lat%n_ele_track)%s, max(curve%g%x%min, x1-len_tot))
+    x2 = min(x2, max(curve%g%x%max, lat%ele(0)%s-len_tot))
   else
-    x1 = min(lat%ele(lat%n_ele_track)%s, max(graph%x%min, x1))
-    x2 = min(x2, max(graph%x%max, lat%ele(0)%s))
+    x1 = min(lat%ele(lat%n_ele_track)%s, max(curve%g%x%min, x1))
+    x2 = min(x2, max(curve%g%x%max, lat%ele(0)%s))
   endif
 endif
 ele0 => lat%ele(ix0)
@@ -1029,11 +1035,24 @@ do ii = 1, size(curve%x_line)
       good(ii:) = .false.
       return
     endif
+
   case ('beam')
-    call find_nearest_bunch_params (tao_lat, s_now, bunch_params)
+    if (.not. allocated(tao_lat%bunch_params2)) then
+      call out_io (s_fatal$, r_name, 'BUNCH_PARAMS2 NOT ALLOCATED.')
+      call err_exit
+    endif
+ 
+    call bracket_index (tao_lat%bunch_params2(:)%s, 1, tao_lat%n_bunch_params2, s_now, ix)
+    if (abs(tao_lat%bunch_params2(ix)%s - s_now) < abs(tao_lat%bunch_params2(ix+1)%s - s_now)) then
+      bunch_params => tao_lat%bunch_params2(ix)
+    else
+      bunch_params => tao_lat%bunch_params2(ix+1)
+    endif
+
     call ele_at_s (lat, s_now, ix_ele)
     ele = lat%ele(ix_ele)
     here = bunch_params%centroid
+
   case default
     call out_io (s_fatal$, r_name, &
             'I DO NOT KNOW HOW TO HANDLE THIS curve%data_source: ' // curve%data_source)
@@ -1207,34 +1226,6 @@ do ii = 1, size(curve%x_line)
   s_last = s_now
 
 enddo
-
-end subroutine
-
-!----------------------------------------------------------------------------
-! contains 
-
-subroutine find_nearest_bunch_params (tao_lat, s, bunch_params)
-
-type (tao_lattice_struct), target :: tao_lat
-type (bunch_params_struct), pointer :: bunch_params
-real(rp) s
-integer ix
-
-!
-
-if (.not. allocated(tao_lat%bunch_params2)) then
-  call out_io (s_fatal$, r_name, 'BUNCH_PARAMS2 NOT ALLOCATED.')
-  call err_exit
-endif
-
-call bracket_index (tao_lat%bunch_params2(:)%s, 1, tao_lat%n_bunch_params2, s, ix)
-if (abs(tao_lat%bunch_params2(ix)%s - s) < abs(tao_lat%bunch_params2(ix+1)%s - s)) then
-  bunch_params => tao_lat%bunch_params2(ix)
-else
-  bunch_params => tao_lat%bunch_params2(ix+1)
-endif
-
-end subroutine
 
 end subroutine
 
