@@ -917,8 +917,8 @@ format of the \vn{tao_d2_data} namelist is
 \index{n_d1_data}
 \begin{example}
   &tao_d2_data
-    d2_data%name = "<d2_name>"    ! d2_data name.
-    universe     = <integer>      ! Universe variables belong in.
+    d2_data%name = "<d2_name>"          ! d2_data name.
+    universe     = "<list>"             ! Universes data belong in.
                                         !   "*" => all universes (default).
     default_merit_type = "<merit_type>" ! Sets how the merit is calculated.
     n_d1_data          = <integer>      ! Number associated d1_data arrays.
@@ -929,17 +929,20 @@ For example:
 \begin{example}
   &tao_d2_data
     d2_data%name = "orbit"
-    universe     = "*"  ! apply to all universes
+    universe     = "1,3:5"  ! Apply to universes 1, 3, 4, and 5
     n_d1_data    = 2
   /
 \end{example}
 A \vn{tao_d2_data} block is needed for each \vn{d2_data} structure
-defined. \vn{d2_data%name} gives the name of the structure.
-\vn{universe} gives the universe that the data is associated with. A
-value of \vn{"*"} means that a \vn{d2_data} structure is set up in each
-universe. \vn{default_merit_type} determines how the merit function
-terms are calculated for the individual datum points. Possibilities
-are:
+defined. The \vn{d2_data%name} component gives the name of the
+structure. The \vn{universe} component gives a list of the universes
+that the data is associated with. A value of \vn{"*"} means that a
+\vn{d2_data} structure is set up in each universe. Ranges of universes
+can be specified in the list using a \vn{:}.
+
+The \vn{default_merit_type} component determines how the merit
+function terms are calculated for the individual datum
+points. Possibilities are:
 \index{target}\index{max}\index{min}
 \index{abs_max}\index{abs_min}
 \begin{example}

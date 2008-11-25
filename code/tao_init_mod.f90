@@ -483,6 +483,7 @@ character(40) use_same_lat_eles_as, search_for_lat_eles
 character(100) line
 
 logical err, free, gang, is_set
+logical, automatic :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
 logical, automatic :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
 namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
@@ -519,17 +520,20 @@ do
     enddo
   endif
   if (ios /= 0) exit
+
   if (universe == '*') then
-    n_d2_data = n_d2_data + 1
+    good_unis = .true.
   else
-    read (universe, *, iostat = ios) n_uni
-    if (ios /= 0 .or. n_uni > ubound(s%u, 1)) then
+    call location_decode (universe, good_unis, lbound(s%u, 1), num)
+    if (num < 0) then
       call out_io (s_abort$, r_name, &
             'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
       call err_exit
     endif
-    n_d2_data(n_uni) = n_d2_data(n_uni) + 1
   endif
+
+  where (good_unis) n_d2_data = n_d2_data + 1
+
 enddo
 
 rewind (iu)
@@ -551,35 +555,25 @@ do
   read (iu, nml = tao_d2_data, iostat = ios)
   if (ios < 0) exit         ! exit on end-of-file
   call out_io (s_blank$, r_name, 'Init: Read tao_d2_data namelist: ' // d2_data%name)
-    
-  if (universe == '*') then
-    uni_loop1: do i = lbound(s%u, 1), ubound(s%u, 1)
 
+  if (universe == '*') then
+    good_unis = .true.
+  else
+    call location_decode (universe, good_unis, lbound(s%u, 1), num)
+  endif
+
+  uni_loop: do i = lbound(s%u, 1), ubound(s%u, 1)
+    if (.not. good_unis(i)) cycle  
     ! check if this data type has already been defined for this universe
     do k = 1, size(s%u(i)%d2_data)
       if (trim(s%u(i)%d2_data(k)%name) == trim(d2_data%name)) then
         mask(i) = .false.
-        cycle uni_loop1
+        cycle uni_loop
       endif
     enddo
       
     call tao_d2_data_stuffit (s%u(i), d2_data%name, n_d1_data)
-    enddo uni_loop1
-  else
-    read (universe, *, iostat = ios) n_uni
-    if (ios /= 0 .or. n_uni > ubound(s%u, 1)) then
-      call out_io (s_abort$, r_name, &
-            'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
-      call err_exit
-    endif
-    if (n_uni == 0) then
-      call out_io (s_error$, r_name, &
-              '"UNIVERSE == 0" MUST BE REPLACED BY "UNIVERSE = *"', &
-              ' IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
-      call err_exit
-    endif
-    call tao_d2_data_stuffit (s%u(n_uni), d2_data%name, n_d1_data)
-  endif
+  enddo uni_loop
 
   do k = 1, n_d1_data
     use_same_lat_eles_as = ''
@@ -642,19 +636,14 @@ do
         call err_exit
       endif
     enddo
-    call out_io (s_blank$, r_name, &
-                      'Init: Read tao_d1_data namelist: ' // d1_data%name)
-    if (universe == '*') then          ! * => use all universes
-      uni_loop2: do i = lbound(s%u, 1), ubound(s%u, 1)
+    call out_io (s_blank$, r_name, 'Init: Read tao_d1_data namelist: ' // d1_data%name)
 
-      ! check if this data type has already been defined for this universe
-      if (.not. mask(i)) cycle uni_loop2
-      
-        call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used)
-      enddo uni_loop2
-    else
-      call d1_data_stuffit (k, s%u(n_uni), s%u(n_uni)%n_d2_data_used)
-    endif
+    do i = lbound(s%u, 1), ubound(s%u, 1)
+      if (.not. good_unis(i)) cycle
+      if (.not. mask(i)) cycle
+      call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used)
+    enddo
+
   enddo
 
 enddo
