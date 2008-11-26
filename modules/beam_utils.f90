@@ -1158,7 +1158,7 @@ complex(rp) :: n(6,6), e(6,6), q(6,6)
 integer i, j
 
 logical, optional :: print_err
-logical err
+logical err, err1
 
 character(18) :: r_name = "calc_bunch_params"
 
@@ -1200,14 +1200,16 @@ call find_bunch_sigma_matrix (bunch%particle, params%centroid%vec, params%sigma,
 
 ! Projected Parameters
 ! X
-call projected_twiss_calc (params%x, params%sigma(s11$), params%sigma(s22$), &
-                      params%sigma(s12$), params%sigma(s16$), params%sigma(s26$), .false.)
+call projected_twiss_calc ('X', params%x, params%sigma(s11$), params%sigma(s22$), &
+                      params%sigma(s12$), params%sigma(s16$), params%sigma(s26$))
+
 ! Y
-call projected_twiss_calc (params%y, params%sigma(s33$), params%sigma(s44$), &
-                      params%sigma(s34$), params%sigma(s36$), params%sigma(s46$), .false.)
+call projected_twiss_calc ('Y', params%y, params%sigma(s33$), params%sigma(s44$), &
+                      params%sigma(s34$), params%sigma(s36$), params%sigma(s46$))
+
 ! Z
-call projected_twiss_calc (params%z, params%sigma(s55$), params%sigma(s66$), &
-                      params%sigma(s56$), params%sigma(s56$), params%sigma(s66$), .true.)
+call projected_twiss_calc ('Z', params%z, params%sigma(s55$), params%sigma(s66$), &
+                      params%sigma(s56$), params%sigma(s56$), params%sigma(s66$))
      
 ! Normal-Mode Parameters.
 ! Use Andy Wolski's eigemode method to find normal-mode beam parameters.
@@ -1291,57 +1293,59 @@ if (bmad_com%spin_tracking_on) call calc_spin_params ()
   
 ! convert back to cannonical coords
 
-contains
 !----------------------------------------------------------------------
+contains
 subroutine zero_plane (param)
 
 implicit none
 
 type (bunch_lat_param_struct), intent(out) :: param
 
-param%beta       = 0.0
-param%alpha      = 0.0
-param%gamma      = 0.0
-param%eta        = 0.0
-param%etap       = 0.0
-param%norm_emitt = 0.0
+param%beta       = real_garbage$
+param%alpha      = real_garbage$
+param%gamma      = real_garbage$
+param%eta        = real_garbage$
+param%etap       = real_garbage$
+param%norm_emitt = real_garbage$
 
 end subroutine zero_plane
   
 !----------------------------------------------------------------------
 ! contains
 
-subroutine projected_twiss_calc (param, exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d, is_z)
+subroutine projected_twiss_calc (plane, param, exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d)
 
 implicit none
 
-type (bunch_lat_param_struct), intent(out) :: param
+type (bunch_lat_param_struct) :: param
+
 real(rp), intent(in) :: exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
 real(rp) emitt, x2, x_px, px2
-logical is_z
+
+logical err
+
+character(*) plane
 
 !
 
-param%eta   = exp_x_d / params%sigma(s66$)
-param%etap  = exp_px_d / params%sigma(s66$)
+if (params%sigma(s66$) /= 0) then
+  param%eta   = exp_x_d / params%sigma(s66$)
+  param%etap  = exp_px_d / params%sigma(s66$)
+endif
 
-!! if (is_z) then
-  x2   = exp_x2   
-  x_px = exp_x_px 
-  px2  = exp_px2  
-!! else
-!!   x2   = exp_x2   - params%sigma(s66$) * param%eta**2 
-!!   x_px = exp_x_px - params%sigma(s66$) * param%eta * param%etap
-!!   px2  = exp_px2  - params%sigma(s66$) * param%etap**2
-!! endif
+x2   = exp_x2   
+x_px = exp_x_px 
+px2  = exp_px2  
 
 emitt = sqrt(x2*px2 - x_px**2)
 
-param%alpha = -x_px / emitt
-param%beta  = x2 / emitt
-param%gamma = px2 / emitt
-
 param%norm_emitt = (avg_energy/m_electron) * emitt
+
+if (emitt /= 0) then
+  param%alpha = -x_px / emitt
+  param%beta  = x2 / emitt
+  param%gamma = px2 / emitt
+endif
 
 end subroutine projected_twiss_calc
 
