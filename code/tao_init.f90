@@ -285,6 +285,7 @@ do i = 1, size(s%template_plot)
   if (.not. allocated (plot%graph)) cycle
   deallocate(plot%graph, stat=istat)
 enddo
+deallocate (s%template_plot)
 
 if (allocated(tao_com%ele_shape_lat_layout)) deallocate (tao_com%ele_shape_lat_layout)
 if (allocated(tao_com%ele_shape_floor_plan)) deallocate (tao_com%ele_shape_floor_plan)

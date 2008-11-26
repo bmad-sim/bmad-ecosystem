@@ -22,12 +22,14 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_to_real (expression, value, err_flag, good, stack)
+! Subroutine tao_to_real (expression, value, err_flag, use_good_user, good, stack)
 !
 ! Mathematically evaluates an expression.
 !
 ! Input:
-!   expression   -- character(*): arithmetic expression
+!   expression    -- character(*): arithmetic expression
+!   use_good_user -- Logical, optional: Use the good_user logical in evaluating good(:)
+!                      Default is False.
 !  
 ! Output:
 !   value        -- real(rp): Value of arithmetic expression.
@@ -41,7 +43,7 @@ contains
 !                  With this, tao_evaluate_stack can be called directly.
 !-
 
-subroutine tao_to_real (expression, value, err_flag, good, stack)
+subroutine tao_to_real (expression, value, err_flag, use_good_user, good, stack)
 
 implicit none
 
@@ -52,13 +54,13 @@ real(rp) value
 real(rp), allocatable, save :: vec(:)
 logical, allocatable, save :: ok(:)
 logical err_flag
-logical, optional :: good
+logical, optional :: good, use_good_user
 
 !
 
 wild_type_com = 'BOTH'
-call tao_evaluate_expression (expression, 1, vec, ok, &
-                      .true., err_flag, tao_param_value_routine, stack)
+call tao_evaluate_expression (expression, 1, logic_option(.false., use_good_user), &
+                              vec, ok, .true., err_flag, tao_param_value_routine, stack)
 if (err_flag) return
 value = vec(1)
 if (present(good)) good = ok(1)
@@ -69,19 +71,21 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_to_real_vector (expression, wild_type, n_size, value, good, err_flag)
+! Subroutine tao_to_real_vector (expression, wild_type, n_size, use_good_user, 
+!                                                                value, good, err_flag)
 !
 ! Mathematically evaluates an expression.
 !
 ! Input:
-!   expression   -- Character(*): Arithmetic expression.
-!   wild_type    -- Character(*): If something like "*|meas" is in the 
-!                     expression does this refer to data or variables? 
-!                     Possibilities are "DATA", "VAR", and "BOTH"
-!   n_size       -- Integer: Size of the value array. If the expression
-!                              is a scaler then the value will be spread.
-!                              If n_size = 0 then the natural size determined 
-!                              by expression is used.
+!   expression    -- Character(*): Arithmetic expression.
+!   wild_type     -- Character(*): If something like "*|meas" is in the 
+!                      expression does this refer to data or variables? 
+!                      Possibilities are "DATA", "VAR", and "BOTH"
+!   n_size        -- Integer: Size of the value array. If the expression
+!                               is a scaler then the value will be spread.
+!                               If n_size = 0 then the natural size determined 
+!                               by expression is used.
+!   use_good_user -- Logical: Use the good_user logical in evaluating good(:)
 !  
 ! Output:
 !   value(:)     -- Real(rp), allocatable: Value of arithmetic expression.
@@ -91,7 +95,8 @@ end subroutine
 !   err_flag     -- Logical: True on error. False otherwise
 !-
 
-subroutine tao_to_real_vector (expression, wild_type, n_size, value, good, err_flag)
+subroutine tao_to_real_vector (expression, wild_type, n_size, use_good_user, &
+                                                                 value, good, err_flag)
 
 use random_mod
 
@@ -105,12 +110,12 @@ integer n_size
 character(*) :: expression, wild_type
 character(16) :: r_name = "tao_to_real_vector"
 
-logical err_flag, err, wild
+logical err_flag, err, wild, use_good_user
 
 !
 
 wild_type_com = wild_type
-call tao_evaluate_expression (expression, n_size, value, good, &
+call tao_evaluate_expression (expression, n_size, use_good_user, value, good, &
                                 .true., err_flag, tao_param_value_routine)
 
 end subroutine
@@ -119,7 +124,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_expression (expression, n_size, value, good, &
+! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, good, &
 !                 zero_divide_print_err, err_flag, param_value_routine, stack)
 !
 ! Mathematically evaluates a character expression.
@@ -130,6 +135,7 @@ end subroutine
 !                              is a scaler then the value will be spread.
 !                              If n_size = 0 then the natural size determined 
 !                              by expression is used.
+!   use_good_user -- Logical: Use the good_user logical in evaluating good(:)
 !   zero_divide_print_err -- Logical: If False just return zero without printing
 !                             an error message.
 !   param_value_routine   -- Subroutine: Routine to translate a variable to a value.
@@ -147,7 +153,7 @@ end subroutine
 !                  With this, tao_evaluate_stack can be called directly.
 !-
 
-subroutine tao_evaluate_expression (expression, n_size, value, good, &
+subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, good, &
                           zero_divide_print_err, err_flag, param_value_routine, stack)
 
 use random_mod
@@ -180,7 +186,7 @@ character(40) :: r_name = "tao_evaluate_expression"
 character(40) saved_prefix
 
 logical, allocatable :: good(:)
-logical delim_found, split, ran_function_pending
+logical delim_found, split, ran_function_pending, use_good_user
 logical err_flag, err, wild, zero_divide_print_err
 
 ! Don't destroy the input expression
@@ -540,7 +546,7 @@ if (n_size /= 0) then
   n__size = n_size
 endif
 
-call tao_evaluate_stack (stk(1:i_lev), n__size, value, good, err_flag)
+call tao_evaluate_stack (stk(1:i_lev), n__size, use_good_user, value, good, err_flag)
 
 ! If the stack argument is present then copy stk to stack
 
@@ -675,12 +681,11 @@ if (size(re_array) /= 0) then
   call re_allocate (stack%good, n)
   do i = 1, n
     stack%value(i) = re_array(i)%r
-    stack%value_ptr(i)%r     => re_array(i)%r
+    stack%value_ptr(i)%r => re_array(i)%r
     ! good is only used with data and not variables
-    if (associated(re_array(i)%good2)) then
-      stack%good(i) = re_array(i)%good1 .and. re_array(i)%good2
-      stack%value_ptr(i)%good1 => re_array(i)%good1
-      stack%value_ptr(i)%good2 => re_array(i)%good2
+    if (associated(re_array(i)%good_value)) then
+      stack%value_ptr(i)%good_user => re_array(i)%good_user
+      stack%value_ptr(i)%good_value => re_array(i)%good_value
     else
       stack%good(i) = .true.
     endif
@@ -708,13 +713,14 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_stack (stack, n_size, value, good, err_flag)
+! Subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, good, err_flag)
 !
 ! Routine to evaluate an expression stack.
 !
 ! Input:
-!   stack(:) -- Tao_eval_stack1_struct: Expression stack
-!   n_size   -- Integer: Result array size.
+!   stack(:)      -- Tao_eval_stack1_struct: Expression stack
+!   n_size        -- Integer: Result array size.
+!   use_good_user -- Logical: Use the good_user logical in evaluating good(:)
 !
 ! Output:
 !   value(:)     -- Real(rp), allocatable: Value of arithmetic expression.
@@ -725,7 +731,7 @@ end subroutine
 !-
 
 
-subroutine tao_evaluate_stack (stack, n_size, value, good, err_flag)
+subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, good, err_flag)
 
 implicit none
 
@@ -738,7 +744,7 @@ integer i, i2, j, n
 integer n_size
 
 logical, allocatable :: good(:)
-logical zero_divide_print_err, err_flag
+logical zero_divide_print_err, err_flag, use_good_user
 
 character(20) :: r_name = 'tao_evaluate_stack'
 
@@ -751,6 +757,17 @@ call re_allocate (value, n_size)
 
 good = .true.
 do i = 1, size(stack)
+  if (allocated(stack(i)%value_ptr)) then
+    if (associated(stack(i)%value_ptr(1)%good_value)) then    
+      do j = 1, size(stack(i)%value_ptr)
+        if (use_good_user) then
+          stack(i)%good(j) = stack(i)%value_ptr(j)%good_value .and. stack(i)%value_ptr(j)%good_user
+        else
+          stack(i)%good(j) = stack(i)%value_ptr(j)%good_value
+        endif
+      enddo
+    endif
+  endif
   if (.not. allocated(stack(i)%good)) cycle
   if (size(stack(i)%good) == 1) then; good = good .and. stack(i)%good(1:1)
   else;                               good = good .and. stack(i)%good

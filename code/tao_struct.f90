@@ -32,8 +32,8 @@ end interface
 
 type tao_real_array_struct
   real(rp), pointer :: r => null()
-  logical, pointer :: good1
-  logical, pointer :: good2
+  logical, pointer :: good_value => null()
+  logical, pointer :: good_user => null()
 end type
 
 type tao_logical_array_struct
@@ -624,7 +624,7 @@ end type
 
 type tao_super_universe_struct
   type (tao_global_struct) global                          ! global variables.
-  type (tao_plot_struct) :: template_plot(n_template_maxx) ! Templates for the plots.
+  type (tao_plot_struct), allocatable :: template_plot(:)  ! Templates for the plots.
   type (tao_plot_page_struct) :: plot_page                 ! Defines the plot window.
   type (tao_plot_region_struct), allocatable :: plot_region(:)
   type (tao_v1_var_struct), allocatable :: v1_var(:)       ! The variable types

@@ -336,6 +336,9 @@ where \vn{i} goes from the \vn{ele} index to the \vn{ele0} index.
 \end{equation}
 where the average \vn{<>} is over all the particles in the beam.
 
+Note: If the beta function is calculated from the beam distribution,
+the emittance must be non-zero.
+
   \index{element_param.*}
   \item{element\_param.} \Newline
 The \vn{element_param.<param_name>} data type is for using lattice
@@ -381,7 +384,7 @@ the value of other datums or the value of variables. For example:
   data_type = "expression: 1@beta.a[12]|model - 2@beta.a[12]|model"
 \end{example}
 With this, the value of the datum will be the difference between
-\vn{beta.a[12]} for universe 1 and universe 2. To be valid, an
+datums \vn{beta.a[12]} for universe 1 and universe 2. To be valid, an
 expression must be evaluated after it's components are evaluated. In
 this example, the components are \vn{1@beta.a[12]|model} and
 \vn{2@beta.a[12]|model}. Data evaluation is done universe by universe

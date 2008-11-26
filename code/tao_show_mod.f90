@@ -1272,7 +1272,7 @@ case ('lattice')
         show_common%orbit => orb
         show_common%ix_ele = ie
         show_common%u => u
-        call tao_evaluate_expression (column(i)%name, 1, value, good, &
+        call tao_evaluate_expression (column(i)%name, 1, .false., value, good, &
                                              .false., err, tao_ele_value_routine)
         if (err) then
           j = ix + column(i)%field_width - 5

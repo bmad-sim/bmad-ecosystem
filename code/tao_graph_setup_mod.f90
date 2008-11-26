@@ -124,8 +124,8 @@ curve_loop: do k = 1, size(graph%curve)
     if (i == 1) name = curve%data_type_x
     if (i == 2) name = curve%data_type
     call tao_data_type_substitute (name, name, curve%ele_ref_name, graph%component)
-    if (i == 1) call tao_to_real_vector (name, 'BOTH', 0, x, gx, err)
-    if (i == 2) call tao_to_real_vector (name, 'BOTH', 0, y, gy, err)
+    if (i == 1) call tao_to_real_vector (name, 'BOTH', 0, .true., x, gx, err)
+    if (i == 2) call tao_to_real_vector (name, 'BOTH', 0, .true., y, gy, err)
     if (err) then
       call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // tao_curve_name(curve))   
@@ -160,7 +160,7 @@ curve_loop: do k = 1, size(graph%curve)
     curve%ix_symb = (/ (i, i = 1, n_symb) /)
   else
     call tao_data_type_substitute (curve%data_index, name, curve%ele_ref_name, graph%component)
-    call tao_to_real_vector (name, 'BOTH', 0, x, gix, err)
+    call tao_to_real_vector (name, 'BOTH', 0, .true., x, gix, err)
     if (size(gx) == size(gy)) then
       curve%ix_symb = pack (nint(x), mask = gx .and. gy)
     else
@@ -681,7 +681,7 @@ do k = 1, size(graph%curve)
     ! calculate the y-axis data point values.
 
     data_type = trim(curve%data_type) // '|' // graph%component
-    call tao_to_real_vector (data_type, 'DATA', 0, value, good, err)
+    call tao_to_real_vector (data_type, 'DATA', 0, .true., value, good, err)
     if (err) then
       graph%why_invalid = 'BAD PLOT COMPONENT: ' // data_type
       return
@@ -758,7 +758,7 @@ do k = 1, size(graph%curve)
     ! calculate the y-axis data point values.
 
     data_type = trim(curve%data_type) // '|' // graph%component
-    call tao_to_real_vector (data_type, 'VAR', 0, value, good, err)
+    call tao_to_real_vector (data_type, 'VAR', 0, .true., value, good, err)
     if (err) then
       call out_io (s_error$, r_name, 'BAD PLOT COMPONENT: ' // data_type)
       return
@@ -900,8 +900,8 @@ do k = 1, size(graph%curve)
         endif
       enddo
 
-      call tao_curve_datum_calc (ix_ele, curve, 'LINE', valid)
-      if (.not. valid) return
+      call tao_curve_datum_calc (ix_ele, curve, 'LINE', graph%valid)
+      if (.not. graph%valid) return
 
       do i = 1, size(curve%x_line)
         curve%x_line(i) = model_lat%ele(ix_ele(i))%s

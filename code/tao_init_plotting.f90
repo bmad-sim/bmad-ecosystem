@@ -50,7 +50,7 @@ type (qp_axis_struct) init_axis
 real(rp) shape_height_max, y1, y2
 
 integer iu, i, j, k, ix, ip, n, ng, ios, i_uni
-integer graph_index, color, i_graph, ix_file
+integer graph_index, color, i_graph
 integer, allocatable, save :: ix_ele(:)
 
 character(*) plot_file_in
@@ -125,7 +125,6 @@ endif
 plot_file_array = plot_file_in
 call string_trim(plot_file_array, plot_file_array, ix)
 plot_file = plot_file_array(1:ix)
-call string_trim (plot_file_array(ix+1:), plot_file_array, ix_file)
 
 call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
 call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
@@ -233,400 +232,426 @@ if (ios < 0) then
 
 endif
 
+close (iu)
+
 !------------------------------------------------------------------------------------
 ! Read in the plot templates and transfer the info to the 
 ! s%tamplate_plot structures
 
-rewind (iu)
+! First count the number of plots needed
 
 ip = 0   ! number of template plots
+plot_file_array = plot_file_in
 
-do
-  plot%name = ' '
-  plot%x_axis_type = 'index'
-  plot%x = init_axis
-  plot%x%minor_div_max = 6
-  plot%x%major_div = 6
-  plot%independent_graphs = .false.
-  plot%autoscale_gang_x = .true.
-  plot%autoscale_gang_y = .true.
-  plot%n_graph = 0
+do   ! Loop over plot files
 
-  read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
-  if (ios /= 0) then
-    if (plot_file_array == '') exit  ! exit if no more plot files.
-    close (iu)
-    plot_file = plot_file_array(1:ix_file)
-    call string_trim(plot_file_array(ix_file+1:), plot_file_array, ix_file)
-    call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
-    call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
-    if (iu == 0) then
-      call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')
-      call err_exit
-    endif
+  call string_trim(plot_file_array, plot_file_array, ix)
+  if (ix == 0) exit
+  plot_file = plot_file_array(1:ix)
+  plot_file_array = plot_file_array(ix+1:)
+  call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
+  if (iu == 0) then
+    call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE: ' // plot_file, &
+                                   'WILL EXIT HERE...')
+    call err_exit
   endif
 
-  call out_io (s_blank$, r_name, &
-                  'Init: Read tao_template_plot namelist: ' // plot%name)
-  do i = 1, ip
-    if (plot%name == s%template_plot(ip)%name) then
-      call out_io (s_error$, r_name, 'DUPLICATE PLOT NAME: ' // plot%name)
-      exit
-    endif
+  do   ! Loop over templates in a file
+    read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
+    if (ios /= 0) exit
+    ip = ip + 1
   enddo
 
-  ip = ip + 1
+  close (iu)
+enddo
 
-  if (ip .gt. n_template_maxx) then
-    call out_io (s_warn$, r_name, &
-            "Number of plot templates exceeds maximum of \I2\ ", n_template_maxx)
-    call out_io (s_blank$, r_name, &
-                "Only first \I2\ will be used", n_template_maxx)
-    exit
-  endif
-  
-  plt => s%template_plot(ip)
-  nullify(plt%r)
-  plt%name                 = plot%name
-  plt%x_axis_type          = plot%x_axis_type
-  plt%x                    = plot%x
-  plt%x%major_div_nominal  = plot%x%major_div
-  plt%autoscale_gang_x = plot%autoscale_gang_x 
-  plt%autoscale_gang_y = plot%autoscale_gang_y 
+allocate (s%template_plot(ip))
 
-  if (plot%independent_graphs) then  ! Old style
-    call out_io (s_error$, r_name, (/ &
-          '**********************************************************', &
-          '**********************************************************', &
-          '**********************************************************', &
-          '***** SYNTAX CHANGE:                                 *****', &
-          '*****     PLOT%INDEPENDENT_GRAPHS = True             *****', &
-          '***** NEEDS TO BE CHANGED TO:                        *****', &
-          '*****     PLOT%AUTOSCALE_GANG_Y = False              *****', &
-          '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
-          '***** SEE THE TAO MANUAL FOR MORE DETAILS!           *****', &
-          '**********************************************************', &
-          '**********************************************************', &
-          '**********************************************************' /) )
-    plt%autoscale_gang_y = .false.
-  endif
+! Now read in the plots
 
-  call qp_calc_axis_places (plt%x)
+ip = 0   ! number of template plots
+plot_file_array = plot_file_in
 
-  do
-    ix = index(plt%name, '.')
-    if (ix == 0) exit
-    call out_io (s_error$, r_name, 'PLOT NAME HAS ".": ' // plt%name, &
-                 'SUBSTITUTING "-"')
-    plt%name(ix:ix) = '-'
-  enddo
+do  ! Loop over plot files
 
-  ng = plot%n_graph
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  if (ng /= 0) allocate (plt%graph(ng))
+  call string_trim(plot_file_array, plot_file_array, ix)
+  if (ix == 0) exit
+  plot_file = plot_file_array(1:ix)
+  plot_file_array = plot_file_array(ix+1:)
+  call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
+  call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
 
-  do i_graph = 1, ng
-    graph_index = 0         ! setup defaults
-    graph = default_graph
-    graph%x = plot%x
-    write (graph%name, '(a, i0)') 'g', i_graph
-    do j = 1, size(curve)
-      write (curve(j)%name, '(a, i0)') 'c', j
+  do   ! Loop over templates in a file
+
+    plot%name = ' '
+    plot%x_axis_type = 'index'
+    plot%x = init_axis
+    plot%x%minor_div_max = 6
+    plot%x%major_div = 6
+    plot%independent_graphs = .false.
+    plot%autoscale_gang_x = .true.
+    plot%autoscale_gang_y = .true.
+    plot%n_graph = 0
+
+    read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
+    if (ios /= 0) exit
+
+    call out_io (s_blank$, r_name, 'Init: Read tao_template_plot namelist: ' // plot%name)
+    do i = 1, ip
+      if (plot%name == s%template_plot(ip)%name) then
+        call out_io (s_error$, r_name, 'DUPLICATE PLOT NAME: ' // plot%name)
+        exit
+      endif
     enddo
-    curve(:)%data_source = 'lattice'
-    curve(:)%data_index  = ''
-    curve(:)%data_type_x = ''
-    curve(:)%data_type   = ''
-    curve(:)%x_axis_scale_factor = 1
-    curve(:)%y_axis_scale_factor = 1
-    curve(:)%ix_bunch = 0
-    curve(:)%symbol_every = 1
-    curve(:)%ix_universe = -1
-    curve(:)%draw_line = .true.
-    curve(:)%draw_symbols = .true.
-    curve(:)%draw_symbol_index = .false.
-    curve(:)%use_y2 = .false.
-    curve(:)%symbol = default_symbol
-    curve(:)%line   = default_line
-    curve(:)%ele_ref_name   = ' '
-    curve(:)%ix_ele_ref = -1
-    curve(:)%smooth_line_calc = .true.
-    curve(:)%draw_interpolated_curve = .true.
-    curve(:)%line%width = -1
-    curve(:)%legend_text = ''
-    curve(2:7)%symbol%type = &
-                (/ times$, square$, plus$, triangle$, x_symbol$, diamond$ /)
-    curve(2:7)%symbol%color = &
-                (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)
-    curve(2:7)%line%color = curve(2:7)%symbol%color
-    read (iu, nml = tao_template_graph, err = 9200)
-    graph_name = trim(plot%name) // '.' // graph%name
-    call out_io (s_blank$, r_name, &
-            'Init: Read tao_template_graph namelist: ' // graph_name)
-    if (graph_index /= i_graph) then
-      call out_io (s_error$, r_name, &
-            'BAD "GRAPH_INDEX" FOR PLOT: ' // plot%name, &
-            'LOOKING FOR GRAPH_INDEX: \I0\ ', &
-            'BUT TAO_TEMPLACE_GRAPH HAD GRAPH_INDEX: \I0\ ', &
-            i_array = (/ i_graph, graph_index /) )
-      call err_exit
-    endif
-    grph => plt%graph(i_graph)
-    grph%p             => plt
-    grph%name          = graph%name
-    grph%type          = graph%type
-    grph%component     = graph%component
-    if (graph%who(1)%name /= '') then  ! Old style
-      call out_io (s_error$, r_name, (/ &
-          '**********************************************************', &
-          '**********************************************************', &
-          '**********************************************************', &
-          '***** SYNTAX CHANGE:          GRAPH%WHO              *****', &
-          '***** NEEDS TO BE CHANGED TO: GRAPH%COMPONENT        *****', &
-          '***** EXAMPLE:                                       *****', &
-          '*****   GRAPH%WHO(1) = "MODEL", +1                   *****', &
-          '*****   GRAPH%WHO(2) = "DESIGN", -1                  *****', &
-          '***** GETS CHANGED TO:                               *****', &
-          '*****   GRAPH%COMPONENT = "MODEL - DESIGN"           *****', &
-          '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
-          '***** SEE THE TAO MANUAL FOR MORE DETAILS!           *****', &
-          '**********************************************************', &
-          '**********************************************************', &
-          '**********************************************************' /) )
-      grph%component = graph%who(1)%name
-      do i = 2, size(graph%who)
-        if (graph%who(i)%name == '') exit
-        if (nint(graph%who(i)%sign) == 1) then
-          grph%component = trim(grph%component) // ' + ' // graph%who(i)%name
-        elseif (nint(graph%who(i)%sign) == -1) then
-          grph%component = trim(grph%component) // ' - ' // graph%who(i)%name
-        else
-          call out_io (s_fatal$, r_name, 'BAD "WHO" IN PLOT TEMPLATE: ' // plot%name)
-          call err_exit
-        endif
-      enddo
-    endif
-    grph%text_legend_origin    = graph%text_legend_origin
-    grph%curve_legend_origin   = graph%curve_legend_origin
-    grph%box                   = graph%box
-    grph%title                 = graph%title
-    grph%margin                = graph%margin
-    grph%x                     = graph%x
-    grph%y                     = graph%y
-    grph%y2                    = graph%y2
-    grph%ix_universe           = graph%ix_universe
-    grph%clip                  = graph%clip
-    grph%draw_axes             = graph%draw_axes
-    grph%correct_xy_distortion = graph%correct_xy_distortion
-    grph%draw_curve_legend     = graph%draw_curve_legend
-    grph%title_suffix          = ''
-    grph%text_legend           = ''
-    grph%y2_mirrors_y          = .true.
 
-    call qp_calc_axis_places (grph%x)
+    ip = ip + 1
+
+    plt => s%template_plot(ip)
+    nullify(plt%r)
+    plt%name                 = plot%name
+    plt%x_axis_type          = plot%x_axis_type
+    plt%x                    = plot%x
+    plt%x%major_div_nominal  = plot%x%major_div
+    plt%autoscale_gang_x = plot%autoscale_gang_x 
+    plt%autoscale_gang_y = plot%autoscale_gang_y 
+
+    if (plot%independent_graphs) then  ! Old style
+      call out_io (s_error$, r_name, (/ &
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '***** SYNTAX CHANGE:                                 *****', &
+            '*****     PLOT%INDEPENDENT_GRAPHS = True             *****', &
+            '***** NEEDS TO BE CHANGED TO:                        *****', &
+            '*****     PLOT%AUTOSCALE_GANG_Y = False              *****', &
+            '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
+            '***** SEE THE TAO MANUAL FOR MORE DETAILS!           *****', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************' /) )
+      plt%autoscale_gang_y = .false.
+    endif
+
+    call qp_calc_axis_places (plt%x)
 
     do
-      ix = index(grph%name, '.')
+      ix = index(plt%name, '.')
       if (ix == 0) exit
-      call out_io (s_error$, r_name, 'GRAPH NAME HAS ".": ' // grph%name, &
+      call out_io (s_error$, r_name, 'PLOT NAME HAS ".": ' // plt%name, &
                    'SUBSTITUTING "-"')
-      grph%name(ix:ix) = '-'
+      plt%name(ix:ix) = '-'
     enddo
 
-    call qp_calc_axis_places (grph%y)
+    ng = plot%n_graph
+    if (allocated(plt%graph)) deallocate (plt%graph)
+    if (ng /= 0) allocate (plt%graph(ng))
 
-    if (.not. tao_com%common_lattice .and. grph%ix_universe == 0) then
-      call out_io (s_error$, r_name, (/ &
-          '**********************************************************', &
-          '**********************************************************', &
-          '**********************************************************', &
-          '***** SYNTAX CHANGE: GRAPH%IX_UNIVERSE = 0           *****', &
-          '***** NEEDS TO BE CHANGED TO: GRAPH%IX_UNIVERSE = -1 *****', &
-          '**********************************************************', &
-          '**********************************************************', &
-          '**********************************************************' /) )
-      grph%ix_universe = -1
-    endif
-
-    if (grph%ix_universe < -1 .or. grph%ix_universe > ubound(s%u, 1)) then
-      call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', & 
-                                     'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name, &
-                                     i_array = (/ grph%ix_universe /) )
-      call err_exit
-    endif
-
-    if (grph%type == 'floor_plan' .and. .not. allocated (tao_com%ele_shape_floor_plan)) &
-              call out_io (s_error$, r_name, 'NO ELEMENT SHAPES DEFINED FOR FLOOR_PLAN PLOT.')
- 
-    if (grph%type == 'lat_layout') then
-      if (.not. allocated (tao_com%ele_shape_lat_layout)) call out_io (s_error$, r_name, &
-                            'NO ELEMENT SHAPES DEFINED FOR LAT_LAYOUT PLOT.')
-      if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
-                            'A LAT_LAYOUT MUST HAVE X_AXIS_TYPE = "s" FOR A VISIBLE PLOT!')
-    endif
-
-    if (graph%n_curve == 0) then
-      if (allocated(grph%curve)) deallocate (grph%curve)
-    else
-      allocate (grph%curve(graph%n_curve))
-    endif
-
-    do j = 1, graph%n_curve
-      crv => grph%curve(j)
-      crv%g                    => grph
-      crv%data_source          = curve(j)%data_source
-      if (crv%data_source == 'beam_tracking') crv%data_source = 'beam'
-      crv%data_index           = curve(j)%data_index
-      crv%data_type_x          = curve(j)%data_type_x
-      crv%data_type            = curve(j)%data_type
-      crv%x_axis_scale_factor  = curve(j)%x_axis_scale_factor
-      crv%y_axis_scale_factor  = curve(j)%y_axis_scale_factor
-      crv%symbol_every         = curve(j)%symbol_every
-      crv%ix_universe          = curve(j)%ix_universe
-      crv%draw_line            = curve(j)%draw_line
-      crv%draw_symbols         = curve(j)%draw_symbols
-      crv%draw_symbol_index    = curve(j)%draw_symbol_index
-      crv%use_y2               = curve(j)%use_y2
-      crv%symbol               = curve(j)%symbol
-      crv%line                 = curve(j)%line
-      crv%smooth_line_calc     = curve(j)%smooth_line_calc
-      crv%name                 = curve(j)%name
-      crv%ele_ref_name         = curve(j)%ele_ref_name
-      call str_upcase (crv%ele_ref_name, crv%ele_ref_name)
-      crv%ix_ele_ref           = curve(j)%ix_ele_ref
-      crv%ix_bunch             = curve(j)%ix_bunch
-      crv%legend_text          = curve(j)%legend_text
-
-      ! Old style
-
-      if (.not. curve(j)%draw_interpolated_curve) then
-        call out_io (s_error$, r_name, (/ &
-          '**********************************************************', &
-          '**********************************************************', &
-          '**********************************************************', &
-          '***** SYNTAX CHANGE:                                 *****', &
-          '*****         CURVE%DRAW_INTERPOLATED_CURVE          *****', &
-          '***** NEEDS TO BE CHANGED TO:                        *****', &
-          '*****         CURVE%SMOOTH_LINE_CALC                 *****', &
-          '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
-          '**********************************************************', &
-          '**********************************************************', &
-          '**********************************************************' /) )
-        crv%smooth_line_calc = .false.
+    do i_graph = 1, ng
+      graph_index = 0         ! setup defaults
+      graph = default_graph
+      graph%x = plot%x
+      write (graph%name, '(a, i0)') 'g', i_graph
+      do j = 1, size(curve)
+        write (curve(j)%name, '(a, i0)') 'c', j
+      enddo
+      curve(:)%data_source = 'lattice'
+      curve(:)%data_index  = ''
+      curve(:)%data_type_x = ''
+      curve(:)%data_type   = ''
+      curve(:)%x_axis_scale_factor = 1
+      curve(:)%y_axis_scale_factor = 1
+      curve(:)%ix_bunch = 0
+      curve(:)%symbol_every = 1
+      curve(:)%ix_universe = -1
+      curve(:)%draw_line = .true.
+      curve(:)%draw_symbols = .true.
+      curve(:)%draw_symbol_index = .false.
+      curve(:)%use_y2 = .false.
+      curve(:)%symbol = default_symbol
+      curve(:)%line   = default_line
+      curve(:)%ele_ref_name   = ' '
+      curve(:)%ix_ele_ref = -1
+      curve(:)%smooth_line_calc = .true.
+      curve(:)%draw_interpolated_curve = .true.
+      curve(:)%line%width = -1
+      curve(:)%legend_text = ''
+      curve(2:7)%symbol%type = &
+                  (/ times$, square$, plus$, triangle$, x_symbol$, diamond$ /)
+      curve(2:7)%symbol%color = &
+                  (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)
+      curve(2:7)%line%color = curve(2:7)%symbol%color
+      read (iu, nml = tao_template_graph, err = 9200)
+      graph_name = trim(plot%name) // '.' // graph%name
+      call out_io (s_blank$, r_name, &
+              'Init: Read tao_template_graph namelist: ' // graph_name)
+      if (graph_index /= i_graph) then
+        call out_io (s_error$, r_name, &
+              'BAD "GRAPH_INDEX" FOR PLOT: ' // plot%name, &
+              'LOOKING FOR GRAPH_INDEX: \I0\ ', &
+              'BUT TAO_TEMPLACE_GRAPH HAD GRAPH_INDEX: \I0\ ', &
+              i_array = (/ i_graph, graph_index /) )
+        call err_exit
       endif
+      grph => plt%graph(i_graph)
+      grph%p             => plt
+      grph%name          = graph%name
+      grph%type          = graph%type
+      grph%component     = graph%component
+      if (graph%who(1)%name /= '') then  ! Old style
+        call out_io (s_error$, r_name, (/ &
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '***** SYNTAX CHANGE:          GRAPH%WHO              *****', &
+            '***** NEEDS TO BE CHANGED TO: GRAPH%COMPONENT        *****', &
+            '***** EXAMPLE:                                       *****', &
+            '*****   GRAPH%WHO(1) = "MODEL", +1                   *****', &
+            '*****   GRAPH%WHO(2) = "DESIGN", -1                  *****', &
+            '***** GETS CHANGED TO:                               *****', &
+            '*****   GRAPH%COMPONENT = "MODEL - DESIGN"           *****', &
+            '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
+            '***** SEE THE TAO MANUAL FOR MORE DETAILS!           *****', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************' /) )
+        grph%component = graph%who(1)%name
+        do i = 2, size(graph%who)
+          if (graph%who(i)%name == '') exit
+          if (nint(graph%who(i)%sign) == 1) then
+            grph%component = trim(grph%component) // ' + ' // graph%who(i)%name
+          elseif (nint(graph%who(i)%sign) == -1) then
+            grph%component = trim(grph%component) // ' - ' // graph%who(i)%name
+          else
+            call out_io (s_fatal$, r_name, 'BAD "WHO" IN PLOT TEMPLATE: ' // plot%name)
+            call err_exit
+          endif
+        enddo
+      endif
+      grph%text_legend_origin    = graph%text_legend_origin
+      grph%curve_legend_origin   = graph%curve_legend_origin
+      grph%box                   = graph%box
+      grph%title                 = graph%title
+      grph%margin                = graph%margin
+      grph%x                     = graph%x
+      grph%y                     = graph%y
+      grph%y2                    = graph%y2
+      grph%ix_universe           = graph%ix_universe
+      grph%clip                  = graph%clip
+      grph%draw_axes             = graph%draw_axes
+      grph%correct_xy_distortion = graph%correct_xy_distortion
+      grph%draw_curve_legend     = graph%draw_curve_legend
+      grph%title_suffix          = ''
+      grph%text_legend           = ''
+      grph%y2_mirrors_y          = .true.
 
-      ! Convert old syntax to new
+      call qp_calc_axis_places (grph%x)
 
-      ix = index(crv%data_type, 'emittance.')
-      if (ix /= 0) crv%data_type = crv%data_type(1:ix-1) // 'emit.' // crv%data_type(ix+10:)
-
-      ! Default data type
-
-      if (crv%data_type == '') crv%data_type = trim(plt%name) // '.' // trim(grph%name)
-
-      ! A dot in the name is verboten.
       do
-        ix = index(crv%name, '.')
+        ix = index(grph%name, '.')
         if (ix == 0) exit
-        call out_io (s_error$, r_name, 'CURVE NAME HAS ".": ' // crv%name, &
+        call out_io (s_error$, r_name, 'GRAPH NAME HAS ".": ' // grph%name, &
                      'SUBSTITUTING "-"')
-        crv%name(ix:ix) = '-'
+        grph%name(ix:ix) = '-'
       enddo
 
-      ! Convert old style phase_space data_type to new style
+      call qp_calc_axis_places (grph%y)
 
-      if (grph%type == 'phase_space') then
-        ix = index(crv%data_type, '-')
-        if (ix /= 0 .and. crv%data_type_x == '') then
-          crv%data_type_x = crv%data_type(1:ix-1)
-          crv%data_type   = crv%data_type(ix+1:)
-        endif
-      endif  
-
-      ! Turn on the y2 axis numbering if needed.
-
-      if (crv%use_y2) then
-        grph%y2%draw_numbers = .true.
-        grph%y2_mirrors_y = .false.
-        grph%y2%label_color = crv%symbol%color
-      endif
-
-      ! Set curve line width
-
-      if (crv%line%width == -1) then
-        if (plt%x_axis_type == 's') then
-          crv%line%width = 6
-        else
-          crv%line%width = 1
-        endif
-      endif
-
-      ! Enable the radiation integrals calculation if needed.
-
-      if (.not. tao_com%common_lattice .and. crv%ix_universe == 0) then
+      if (.not. tao_com%common_lattice .and. grph%ix_universe == 0) then
         call out_io (s_error$, r_name, (/ &
-          '**********************************************************', &
-          '**********************************************************', &
-          '**********************************************************', &
-          '***** SYNTAX CHANGE: CURVE%IX_UNIVERSE = 0           *****', &
-          '***** NEEDS TO BE CHANGED TO: CURVE%IX_UNIVERSE = -1 *****', &
-          '**********************************************************', &
-          '**********************************************************', &
-          '**********************************************************' /) )
-        crv%ix_universe = -1
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '***** SYNTAX CHANGE: GRAPH%IX_UNIVERSE = 0           *****', &
+            '***** NEEDS TO BE CHANGED TO: GRAPH%IX_UNIVERSE = -1 *****', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************' /) )
+        grph%ix_universe = -1
       endif
 
+      if (grph%ix_universe < -1 .or. grph%ix_universe > ubound(s%u, 1)) then
+        call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', & 
+                                       'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name, &
+                                       i_array = (/ grph%ix_universe /) )
+        call err_exit
+      endif
 
-      i_uni = tao_universe_number (crv%ix_universe)
+      if (grph%type == 'floor_plan' .and. .not. allocated (tao_com%ele_shape_floor_plan)) &
+                call out_io (s_error$, r_name, 'NO ELEMENT SHAPES DEFINED FOR FLOOR_PLAN PLOT.')
+   
+      if (grph%type == 'lat_layout') then
+        if (.not. allocated (tao_com%ele_shape_lat_layout)) call out_io (s_error$, r_name, &
+                              'NO ELEMENT SHAPES DEFINED FOR LAT_LAYOUT PLOT.')
+        if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
+                              'A LAT_LAYOUT MUST HAVE X_AXIS_TYPE = "s" FOR A VISIBLE PLOT!')
+      endif
 
-      if ((crv%data_type(1:5) == 'emit.' .or. &
-            crv%data_type(1:10) == 'norm_emit.') .and. crv%data_source == 'lattice') then
-        if (crv%ix_universe == -1) then
-          s%u%do_synch_rad_int_calc = .true.
-        else
-          s%u(i_uni)%do_synch_rad_int_calc = .true.
+      if (graph%n_curve == 0) then
+        if (allocated(grph%curve)) deallocate (grph%curve)
+      else
+        allocate (grph%curve(graph%n_curve))
+      endif
+
+      do j = 1, graph%n_curve
+        crv => grph%curve(j)
+        crv%g                    => grph
+        crv%data_source          = curve(j)%data_source
+        if (crv%data_source == 'beam_tracking') crv%data_source = 'beam'
+        crv%data_index           = curve(j)%data_index
+        crv%data_type_x          = curve(j)%data_type_x
+        crv%data_type            = curve(j)%data_type
+        crv%x_axis_scale_factor  = curve(j)%x_axis_scale_factor
+        crv%y_axis_scale_factor  = curve(j)%y_axis_scale_factor
+        crv%symbol_every         = curve(j)%symbol_every
+        crv%ix_universe          = curve(j)%ix_universe
+        crv%draw_line            = curve(j)%draw_line
+        crv%draw_symbols         = curve(j)%draw_symbols
+        crv%draw_symbol_index    = curve(j)%draw_symbol_index
+        crv%use_y2               = curve(j)%use_y2
+        crv%symbol               = curve(j)%symbol
+        crv%line                 = curve(j)%line
+        crv%smooth_line_calc     = curve(j)%smooth_line_calc
+        crv%name                 = curve(j)%name
+        crv%ele_ref_name         = curve(j)%ele_ref_name
+        call str_upcase (crv%ele_ref_name, crv%ele_ref_name)
+        crv%ix_ele_ref           = curve(j)%ix_ele_ref
+        crv%ix_bunch             = curve(j)%ix_bunch
+        crv%legend_text          = curve(j)%legend_text
+
+        ! Old style
+
+        if (.not. curve(j)%draw_interpolated_curve) then
+          call out_io (s_error$, r_name, (/ &
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '***** SYNTAX CHANGE:                                 *****', &
+            '*****         CURVE%DRAW_INTERPOLATED_CURVE          *****', &
+            '***** NEEDS TO BE CHANGED TO:                        *****', &
+            '*****         CURVE%SMOOTH_LINE_CALC                 *****', &
+            '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************' /) )
+          crv%smooth_line_calc = .false.
         endif
+
+        ! Convert old syntax to new
+
+        ix = index(crv%data_type, 'emittance.')
+        if (ix /= 0) crv%data_type = crv%data_type(1:ix-1) // 'emit.' // crv%data_type(ix+10:)
+
+        ! Default data type
+
+        if (crv%data_type == '') crv%data_type = trim(plt%name) // '.' // trim(grph%name)
+
+        ! A dot in the name is verboten.
+        do
+          ix = index(crv%name, '.')
+          if (ix == 0) exit
+          call out_io (s_error$, r_name, 'CURVE NAME HAS ".": ' // crv%name, &
+                       'SUBSTITUTING "-"')
+          crv%name(ix:ix) = '-'
+        enddo
+
+        ! Convert old style phase_space data_type to new style
+
+        if (grph%type == 'phase_space') then
+          ix = index(crv%data_type, '-')
+          if (ix /= 0 .and. crv%data_type_x == '') then
+            crv%data_type_x = crv%data_type(1:ix-1)
+            crv%data_type   = crv%data_type(ix+1:)
+          endif
+        endif  
+
+        ! Turn on the y2 axis numbering if needed.
+
+        if (crv%use_y2) then
+          grph%y2%draw_numbers = .true.
+          grph%y2_mirrors_y = .false.
+          grph%y2%label_color = crv%symbol%color
+        endif
+
+        ! Set curve line width
+
+        if (crv%line%width == -1) then
+          if (plt%x_axis_type == 's') then
+            crv%line%width = 6
+          else
+            crv%line%width = 1
+          endif
+        endif
+
+        ! Enable the radiation integrals calculation if needed.
+
+        if (.not. tao_com%common_lattice .and. crv%ix_universe == 0) then
+          call out_io (s_error$, r_name, (/ &
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '***** SYNTAX CHANGE: CURVE%IX_UNIVERSE = 0           *****', &
+            '***** NEEDS TO BE CHANGED TO: CURVE%IX_UNIVERSE = -1 *****', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************' /) )
+          crv%ix_universe = -1
+        endif
+
+
+        i_uni = tao_universe_number (crv%ix_universe)
+
+        if ((crv%data_type(1:5) == 'emit.' .or. &
+              crv%data_type(1:10) == 'norm_emit.') .and. crv%data_source == 'lattice') then
+          if (crv%ix_universe == -1) then
+            s%u%do_synch_rad_int_calc = .true.
+          else
+            s%u(i_uni)%do_synch_rad_int_calc = .true.
+          endif
+        endif
+
+        ! Find the ele_ref info if either ele_ref_name or ix_ele_ref has been set.
+        ! If plotting something like the phase then the default is for ele_ref 
+        ! to be the beginning element.
+
+        ! if ix_ele_ref has been set ...
+        if (crv%ele_ref_name == ' ' .and. crv%ix_ele_ref >= 0) then 
+          crv%ele_ref_name = s%u(i_uni)%design%lat%ele(crv%ix_ele_ref)%name ! find the name
+        ! if ele_ref_name has been set ...
+        elseif (crv%ele_ref_name /= ' ') then
+          call tao_locate_elements (crv%ele_ref_name, i_uni, ix_ele, .true.) ! find the index
+          crv%ix_ele_ref = ix_ele(1)
+        elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r.' .or. &
+                crv%data_type(1:2) == 't.' .or. crv%data_type(1:3) == 'tt.') then
+          crv%ix_ele_ref = 0
+          crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
+        elseif (graph%type == 'phase_space') then
+          plt%x_axis_type = 'phase_space'
+          crv%ix_ele_ref = 0
+          crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
+        elseif (graph%type == 'key_table') then
+          plt%x_axis_type = 'none'
+        elseif (graph%type == 'floor_plan') then
+          plt%x_axis_type = 'floor'
+        endif
+
+        call tao_ele_ref_to_ele_ref_track (crv%ix_universe, crv%ix_ele_ref, crv%ix_ele_ref_track)
+
+      enddo  ! curve
+
+      call qp_calc_axis_places (grph%y2)
+      if (grph%y2%min == grph%y2%max .and. .not. grph%y2_mirrors_y) then
+        label = grph%y2%label
+        color = grph%y2%label_color
+        grph%y2 = grph%y
+        grph%y2%label = label
+        grph%y2%label_color = color
       endif
+    enddo  ! graph
+  enddo  ! plot
 
-      ! Find the ele_ref info if either ele_ref_name or ix_ele_ref has been set.
-      ! If plotting something like the phase then the default is for ele_ref 
-      ! to be the beginning element.
+  close(iu)
 
-      ! if ix_ele_ref has been set ...
-      if (crv%ele_ref_name == ' ' .and. crv%ix_ele_ref >= 0) then 
-        crv%ele_ref_name = s%u(i_uni)%design%lat%ele(crv%ix_ele_ref)%name ! find the name
-      ! if ele_ref_name has been set ...
-      elseif (crv%ele_ref_name /= ' ') then
-        call tao_locate_elements (crv%ele_ref_name, i_uni, ix_ele, .true.) ! find the index
-        crv%ix_ele_ref = ix_ele(1)
-      elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r.' .or. &
-              crv%data_type(1:2) == 't.' .or. crv%data_type(1:3) == 'tt.') then
-        crv%ix_ele_ref = 0
-        crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
-      elseif (graph%type == 'phase_space') then
-        plt%x_axis_type = 'phase_space'
-        crv%ix_ele_ref = 0
-        crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
-      elseif (graph%type == 'key_table') then
-        plt%x_axis_type = 'none'
-      elseif (graph%type == 'floor_plan') then
-        plt%x_axis_type = 'floor'
-      endif
-
-      call tao_ele_ref_to_ele_ref_track (crv%ix_universe, crv%ix_ele_ref, crv%ix_ele_ref_track)
-
-    enddo  ! curve
-
-    call qp_calc_axis_places (grph%y2)
-    if (grph%y2%min == grph%y2%max .and. .not. grph%y2_mirrors_y) then
-      label = grph%y2%label
-      color = grph%y2%label_color
-      grph%y2 = grph%y
-      grph%y2%label = label
-      grph%y2%label_color = color
-    endif
-  enddo  ! graph
-enddo  ! plot
+enddo  ! file
 
 close (iu)
 

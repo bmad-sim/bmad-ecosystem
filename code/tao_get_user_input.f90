@@ -288,21 +288,26 @@ integer ix
 
 character(*) cmd_line
 character(8) :: r_name = "do_loop"
-character(16) cmd_word(9)
+character(20) cmd_word(9)
 
 logical err
 
 ! Check if a "do" statement
 
+call string_trim (cmd_line, cmd_word(1), ix)
+if (cmd_word(1) /= 'do' .and. cmd_word(1) /= 'enddo') return
+
+!
+
 call tao_cmd_split (cmd_line, 9, cmd_word, .false., err, '=,')
 
-if (cmd_word(1) == "do") then
+if (cmd_word(1) == 'do') then
 
   if (cmd_word(3) /= '=' .or. .not. is_integer(cmd_word(4)) .or. &
       cmd_word(5) /= ',' .or. .not. is_integer(cmd_word(6)) .or. &
      (cmd_word(7) /= '' .and. ( &
       cmd_word(7) /= ',' .or. .not. is_integer(cmd_word(8)) .or. cmd_word(9) /= ''))) then
-    call out_io (s_error$, r_name, "MALFORMED DO STATEMENT.")
+    call out_io (s_error$, r_name, 'MALFORMED DO STATEMENT.')
     call tao_abort_command_file()
     return
   endif
@@ -322,10 +327,10 @@ if (cmd_word(1) == "do") then
 
 ! Check if hit 'enddo'.
 
-elseif (cmd_word(1) == "enddo") then
+elseif (cmd_word(1) == 'enddo') then
   cmd_line = ''  ! so tao_command will not try to process this.
   if (in_loop == 0) then
-    call out_io (s_error$, r_name, "ENDDO FOUND WITHOUT CORRESPODING DO STATEMENT")
+    call out_io (s_error$, r_name, 'ENDDO FOUND WITHOUT CORRESPODING DO STATEMENT')
     call tao_abort_command_file()
     return
   endif
