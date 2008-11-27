@@ -101,8 +101,7 @@ do i = 1, size(s%plot_region)
       call qp_set_layout (box = graph%box)
       text = 'Error In The Plot Calculation'
       if (graph%why_invalid /= '') text = graph%why_invalid
-      call qp_draw_text (text, 0.1_rp, 0.5_rp, '%BOX', color = red$)
-      cycle
+      call qp_draw_text (text, 0.5_rp, 0.5_rp, '%BOX', color = red$, justify = 'CC')
     endif
 
     ! Now we can draw the graph
@@ -287,6 +286,8 @@ endif
 
 isu = tao_universe_number(graph%ix_universe)
 lat => s%u(isu)%model%lat
+
+if (.not. graph%valid) return
 
 ! loop over all elements in the lattice. 
 
@@ -624,6 +625,8 @@ character(20) this_shape
 
 ! Init
 
+if (.not. graph%valid) return
+
 isu = tao_universe_number(graph%ix_universe)
 lat => s%u(isu)%model%lat
 lat_len = lat%param%total_length
@@ -873,6 +876,8 @@ else
   call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
 endif
 call qp_draw_axes
+
+if (.not. graph%valid) return
 
 if (graph%limited .and. graph%clip) &
   call qp_draw_text ('**Curve Off Scale**', -0.30_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 

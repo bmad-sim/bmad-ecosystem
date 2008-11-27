@@ -1303,6 +1303,7 @@ logical valid, err
 
 character(*) who
 character(20) :: r_name = 'tao_curve_datum_calc'
+character(40) why_invalid
 
 integer m, ie, n_dat
 
@@ -1343,11 +1344,11 @@ do m = 1, size(comp)
     case (' ') 
       cycle
     case ('model')   
-      call tao_evaluate_a_datum (datum, u, u%model, y_val, valid, t_map)
+      call tao_evaluate_a_datum (datum, u, u%model, y_val, valid, why_invalid, t_map)
     case ('base')  
-      call tao_evaluate_a_datum (datum, u, u%base, y_val, valid, t_map)
+      call tao_evaluate_a_datum (datum, u, u%base, y_val, valid, why_invalid, t_map)
     case ('design')  
-      call tao_evaluate_a_datum (datum, u, u%design, y_val, valid, t_map)
+      call tao_evaluate_a_datum (datum, u, u%design, y_val, valid, why_invalid, t_map)
     case ('ref', 'meas')
       call out_io (s_error$, r_name, &
               'PLOT COMPONENT WHICH IS: ' // comp(m)%name, &
@@ -1371,7 +1372,7 @@ enddo
 
 if (n_dat > 0 .and. all(.not. good)) then
   valid = .false.
-  curve%g%why_invalid = 'ERROR IN TAO_EVALUATE_A_DATUM!'
+  curve%g%why_invalid = why_invalid
   return
 endif
 

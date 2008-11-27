@@ -210,27 +210,30 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, taylor_in)
+! Subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, 
+!                                                              why_invalid, taylor_map)
 !
 ! Subroutine to put the proper data in the specified datum
 !
 ! If datum results in NaN then datum_value = tiny(1.0_rp)
 !
 ! Input:
-!   datum        -- Tao_data_struct: What type of datum
-!   u            -- Tao_universe_struct: Which universe to use.
-!   tao_lat      -- Tao_lattice_struct: Lattice to use.
-!   taylor_in(6) -- Taylor_struct, optional: Starting point for 
-!                     tt: and t: constraints.
+!   datum         -- Tao_data_struct: What type of datum
+!   u             -- Tao_universe_struct: Which universe to use.
+!   tao_lat       -- Tao_lattice_struct: Lattice to use.
+!   taylor_map(6) -- Taylor_struct, optional: Starting point for tt: and t: constraints.
 !     
 ! Output:
-!   datum   -- Tao_data_struct: 
-!     %ix_ele_merit -- For max/min type constraints: Place where value is max/min. 
-!   datum_value -- Real(rp): Value of the datum.
-!   valid_value -- Logical: Set false when there is a problem. Set true otherwise.
+!   datum          -- Tao_data_struct: 
+!     %ix_ele_merit   -- For max/min type constraints: Place where value is max/min. 
+!   datum_value   -- Real(rp): Value of the datum.
+!   valid_value   -- Logical: Set false when there is a problem. Set true otherwise.
+!   why_invalid   -- Character(*), optional: Tells why datum value is invalid.
+!   taylor_map(6) -- Taylor_struct, optional: Ending map.
 !-
 
-subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, taylor_in)
+subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, &
+                                                               why_invalid, taylor_map)
 
 implicit none
 
@@ -239,7 +242,7 @@ type (tao_data_struct) datum
 type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
 type (normal_modes_struct) mode
-type (taylor_struct), optional :: taylor_in(6)
+type (taylor_struct), optional :: taylor_map(6)
 type (spin_polar_struct) polar
 type (ele_struct), pointer :: ele, ele0
 type (coord_struct), pointer :: orb0
@@ -253,6 +256,7 @@ real(rp), allocatable, save ::value1(:)
 integer, save :: ix_save = -1
 integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_track, n_max
 
+character(*), optional :: why_invalid
 character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) data_type, data_source, name
 
@@ -265,6 +269,8 @@ call tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_val
 if (found) return
 
 ! Check range
+
+if (present(why_invalid)) why_invalid =  'ERROR IN TAO_EVALUATE_A_DATUM!' ! Generic
 
 data_source = datum%data_source
 data_type = datum%data_type
@@ -522,6 +528,7 @@ case ('beta.y')
   if (data_source == 'beam') then
     datum_value = tao_lat%bunch_params(ix1)%y%beta
     valid_value = (tao_lat%bunch_params(ix1)%y%norm_emitt /= 0)
+    if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   else
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
                                    'WITH data_source: ' // data_source)
@@ -532,6 +539,7 @@ case ('beta.z')
   if (data_source == 'lattice') return
   datum_value = tao_lat%bunch_params(ix1)%z%beta
   valid_value = (tao_lat%bunch_params(ix1)%z%norm_emitt /= 0)
+    if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
 
 case ('beta.a')
   if (data_source == 'lattice') then
@@ -539,6 +547,7 @@ case ('beta.a')
   elseif (data_source == 'beam') then
     datum_value = tao_lat%bunch_params(ix1)%a%beta
     valid_value = (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
+    if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
     
 case ('beta.b')
@@ -547,6 +556,7 @@ case ('beta.b')
   elseif (data_source == 'beam') then
     datum_value = tao_lat%bunch_params(ix1)%b%beta
     valid_value = (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
+    if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
 
 case ('alpha.a')
@@ -555,6 +565,7 @@ case ('alpha.a')
   elseif (data_source == 'beam') then
     datum_value = tao_lat%bunch_params(ix1)%a%alpha
     valid_value = (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
+    if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
   
 case ('alpha.b')
@@ -563,6 +574,7 @@ case ('alpha.b')
   elseif (data_source == 'beam') then
     datum_value = tao_lat%bunch_params(ix1)%b%alpha
     valid_value = (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
+    if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
 
 case ('alpha.z')
@@ -576,6 +588,7 @@ case ('gamma.a')
   elseif (data_source == 'beam') then
     datum_value = tao_lat%bunch_params(ix1)%a%gamma
     valid_value = (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
+    if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
   
 case ('gamma.b')
@@ -584,6 +597,7 @@ case ('gamma.b')
   elseif (data_source == 'beam') then
     datum_value = tao_lat%bunch_params(ix1)%b%gamma
     valid_value = (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
+    if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
 
 case ('gamma.z')
@@ -742,9 +756,9 @@ case ('t.')
   i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
   k = tao_read_this_index (datum%data_type, 5); if (k == 0) return
-  if (present(taylor_in)) then
-    call transfer_map_calc (lat, taylor_in, ix0, ix1, unit_start = .false.)
-    datum_value = taylor_coef (taylor_in(i), j, k)
+  if (present(taylor_map)) then
+    call transfer_map_calc (lat, taylor_map, ix0, ix1, unit_start = .false.)
+    datum_value = taylor_coef (taylor_map(i), j, k)
   else
     if (tao_com%ix0_taylor /= ix0 .or. tao_com%ix1_taylor /= ix1) then
       call transfer_map_calc (lat, tao_com%taylor, ix0, ix1)
@@ -764,9 +778,9 @@ case ('tt.')
     k = tao_read_this_index (datum%data_type, j); if (k == 0) return
     expnt(k) = expnt(k) + 1
   enddo
-  if (present(taylor_in)) then
-    call transfer_map_calc (lat, taylor_in, ix0, ix1, unit_start = .false.)
-    datum_value = taylor_coef (taylor_in(i), expnt)
+  if (present(taylor_map)) then
+    call transfer_map_calc (lat, taylor_map, ix0, ix1, unit_start = .false.)
+    datum_value = taylor_coef (taylor_map(i), expnt)
   else
     if (tao_com%ix0_taylor /= ix0 .or. tao_com%ix1_taylor /= ix1) then
       call transfer_map_calc (lat, tao_com%taylor, ix0, ix1)
