@@ -237,7 +237,7 @@ case ('curve')
     return
   endif
 
-  if (size(curve) > 0) then
+  if (size(curve) > 1) then
     call out_io (s_error$, r_name, 'MULTIPLE CURVES FIT NAME')
     return
   endif
