@@ -125,7 +125,7 @@ type tao_graph_struct
   character(100) title_suffix 
   character(100) text_legend(n_legend_maxx) ! Array for holding descriptive info.
   character(60) component       ! Who to plot. Eg: 'meas - design'
-  character(40) why_invalid     ! Informative string to print.
+  character(80) why_invalid     ! Informative string to print.
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
   type (qp_point_struct) text_legend_origin

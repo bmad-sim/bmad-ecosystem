@@ -1303,7 +1303,7 @@ logical valid, err
 
 character(*) who
 character(20) :: r_name = 'tao_curve_datum_calc'
-character(40) why_invalid
+character(80) why_invalid
 
 integer m, ie, n_dat
 
