@@ -16,6 +16,7 @@
 
 ## Author: Siarhei Vishniakou
 ## Last modified: Nov 9, 2007
+## Removed statistics for Lahey platform November 2008
 
 
 import string, os, sys
@@ -47,14 +48,14 @@ index.write(rel_name)
 index.write(part2.read())
 
 index.write('=======================================================================<BR>')
-summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/Linux_i686_intel/'+rel_name+".log").readlines() #get a summary
+summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/Linux_i686_intel/'+rel_name+".log "+"Linux_i686_intel").readlines() #get a summary
 index.write("Summary for Linux_i686_intel<BR>")
 for s in summaryoutput:                        #write summary to the index file    
     index.write(s[:-1]+"<BR>")
 
 
 #index.write('=======================================================================<BR>')
-#summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/Linux_i686_lahey/'+rel_name+".log").readlines() #get a summary
+#summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/Linux_i686_lahey/'+rel_name+".log "+"Linux_i686_lahey").readlines() #get a summary
 
 #index.write("Summary for Linux_i686_lahey<BR>")
 #for s in summaryoutput:                        #write summary to the index file    
@@ -62,7 +63,7 @@ for s in summaryoutput:                        #write summary to the index file
 #Lahey platform no longer supported
 
 index.write('=======================================================================<BR>')
-summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/OSF1_alpha_hp/'+rel_name+".log").readlines() #get a summary
+summaryoutput = os.popen('/home/cesrulib/bin/util/extract_test_summary '+'/home/cesrulib/cesr_libs/log/OSF1_alpha_hp/'+rel_name+".log "+"OSF1_alpha_hp").readlines() #get a summary
 index.write("Summary for OSF1_alpha_hp<BR>")
 for s in summaryoutput:                        #write summary to the index file    
     index.write(s[:-1]+"<BR>")
@@ -133,24 +134,24 @@ log.close()
 ###########################
 #generating lll.html
 ###########################
-part1.seek(0)
-part2.seek(0)
-part3.seek(0)
+#part1.seek(0)
+#part2.seek(0)
+#part3.seek(0)
 
-log = open("/home/cesrulib/cesr_libs/log/Linux_i686_lahey/"+rel_name+".log")
+#log = open("/home/cesrulib/cesr_libs/log/Linux_i686_lahey/"+rel_name+".log")
 
-lll=open("/home/cesrulib/public_html/builds/lll.html","w")
+#lll=open("/home/cesrulib/public_html/builds/lll.html","w")
 
-lll.write(part1.read())
-lll.write(rel_name)
-lll.write(part2.read())
+#lll.write(part1.read())
+#lll.write(rel_name)
+#lll.write(part2.read())
 
-for line in log:
-    lll.write(line)
-lll.write(part2.read())
-lll.close()
-log.close()
-
+#for line in log:
+#    lll.write(line)
+#lll.write(part2.read())
+#lll.close()
+#log.close()
+# This is not necessary because Lahey platform builds have been disabled
 ###########################
 #generating vhl.html
 ###########################
@@ -158,10 +159,9 @@ part1.seek(0)
 part2.seek(0)
 part3.seek(0)
 
+vhl = open("/home/cesrulib/public_html/builds/vhl.html","w")
 if os.path.exists("/home/cesrulib/cesr_libs/log/VMS_alpha_hp/"+rel_name+".log"):
     log = open("/home/cesrulib/cesr_libs/log/VMS_alpha_hp/"+rel_name+".log")
-
-    vhl=open("/home/cesrulib/public_html/builds/vhl.html","w")
 
     vhl.write(part1.read())
     vhl.write(rel_name)
