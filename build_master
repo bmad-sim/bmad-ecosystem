@@ -1108,7 +1108,7 @@ if build_type == "RELEASE" and run_tests == "YES":
     if plat_combos[platform]['act'] == "FULL":
       print "Testing summary for " + platform
       logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
-      lines = os.popen(util_dir + "/extract_test_summary " + logfile).readlines()
+      lines = os.popen(util_dir + "/extract_test_summary " + logfile + " " + platform ).readlines()
       for line in lines:
         print line.strip()
         if line.find("FAILED!") != -1 :
@@ -1301,7 +1301,7 @@ if build_type == "RELEASE":
 ###
 #Write the trigger file to the shared VMS directory to start the VMS build process
 ###
-if build_type == "RELEASE":
-  os.popen('/home/cesrulib/bin/util/write_trigger_file '+rel_name)
+#if build_type == "RELEASE":
+#  os.popen('/home/cesrulib/bin/util/write_trigger_file '+rel_name)
 ###
 sys.exit(0)
