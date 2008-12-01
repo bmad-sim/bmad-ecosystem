@@ -8,8 +8,8 @@
 # summaries out of concatenated test job output.  It is called from
 # the build_master script near the very end of a CESR build process.
 #
-# Usage : extract_test_summary <test_output_file>
-#     i.e. extract_test_summary cesr_2007_0305_d.log
+# Usage : extract_test_summary <test_output_file> <platform>
+#     i.e. extract_test_summary cesr_2007_0305_d.log Linux_i686_intel
 #
 # Author : Matt Rendina
 # Date   : 5 March 2007
@@ -20,15 +20,12 @@ import sys, os, string, shutil, time, ConfigParser
 #================================
 # Command line argument handling
 #================================
-if len(sys.argv) == 1:
-  print "\nUsage: " + sys.argv[0] + " <file where test suite output resides>"
+if len(sys.argv) != 3:
+  print "\nUsage: " + sys.argv[0] + " <file where test suite output resides> + <platform>"
   sys.exit(0)
-elif len(sys.argv) > 2:
-  print "Invalid number of arguments."
-  sys.exit(2)
 else:
   file = sys.argv[1]
-
+  platform = sys.argv[2]
 
 #============================================================================
 # Set up config file machinery
@@ -52,7 +49,15 @@ test_list.remove("files")
 #============
 # Local vars
 #============
-num_tests = len(test_list)
+
+num_tests = 0 #initialize and get number of tests required
+for test in test_list:
+  platlist = sconfig.get(test,"PLATFORMS")
+  if platform in platlist:
+    num_tests = num_tests + 1
+    
+  
+
 num_completed = 0
 
 pad = ""
