@@ -223,6 +223,7 @@ ran_function_pending = .false.
 
 do i = 1, size(stk)
   if (allocated(stk(i)%good)) deallocate (stk(i)%good)
+  if (allocated(stk(i)%value_ptr)) deallocate (stk(i)%value_ptr)
 enddo
 
 ! parsing loop to build up the stack.
@@ -730,12 +731,12 @@ end subroutine
 !   err_flag     -- Logical: True on error. False otherwise
 !-
 
-
 subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, good, err_flag)
 
 implicit none
 
-type (tao_eval_stack1_struct) stack(:)
+type (tao_eval_stack1_struct), target :: stack(:)
+type (tao_eval_stack1_struct), pointer :: s(:)
 type (tao_eval_stack1_struct) stk2(20)
 
 real(rp), allocatable :: value(:)
@@ -750,6 +751,7 @@ character(20) :: r_name = 'tao_evaluate_stack'
 
 ! Calculate good
 
+s => stack   ! For debugging purposes
 err_flag = .true.
 
 call re_allocate (good, n_size)
