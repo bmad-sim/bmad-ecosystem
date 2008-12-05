@@ -377,7 +377,7 @@ type tao_var_struct
   real(rp) key_delta        ! Change in value when a key is pressed.
   real(rp) s                ! longitudinal position of ele.
   character(40) merit_type  ! 'target' or 'limit'
-  logical key_bound         ! Has a key binding?
+  logical ix_key_table      ! Has a key binding?
   logical exists            ! See above
   logical good_var          ! See above
   logical good_user         ! See above

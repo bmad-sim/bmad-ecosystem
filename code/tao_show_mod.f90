@@ -1938,14 +1938,14 @@ case ('variable')
 
     v_ptr => v_array(1)%v
 
-    nl=nl+1; write(lines(nl), amt)  'Ele_name      = ', v_ptr%ele_name
-    nl=nl+1; write(lines(nl), amt)  'Attrib_name   = ', v_ptr%attrib_name 
-    nl=nl+1; write(lines(nl), imt)  'Ix_attrib     = ', v_ptr%ix_attrib 
-    nl=nl+1; write(lines(nl), imt)  'Ix_var        = ', v_ptr%ix_var
-    nl=nl+1; write(lines(nl), imt)  'Ix_dvar       = ', v_ptr%ix_dvar           
-    nl=nl+1; write(lines(nl), imt)  'Ix_v1         = ', v_ptr%ix_v1
-    nl=nl+1; write(lines(nl), rmt)  'Model         = ', v_ptr%model_value
-    nl=nl+1; write(lines(nl), rmt)  'Base          = ', v_ptr%base_value
+    nl=nl+1; write(lines(nl), amt)  '%ele_name         = ', v_ptr%ele_name
+    nl=nl+1; write(lines(nl), amt)  '%attrib_name      = ', v_ptr%attrib_name 
+    nl=nl+1; write(lines(nl), imt)  '%ix_attrib        = ', v_ptr%ix_attrib 
+    nl=nl+1; write(lines(nl), imt)  '%ix_var           = ', v_ptr%ix_var
+    nl=nl+1; write(lines(nl), imt)  '%ix_dvar          = ', v_ptr%ix_dvar           
+    nl=nl+1; write(lines(nl), imt)  '%ix_v1            = ', v_ptr%ix_v1
+    nl=nl+1; write(lines(nl), rmt)  '%model            = ', v_ptr%model_value
+    nl=nl+1; write(lines(nl), rmt)  '%base             = ', v_ptr%base_value
 
     if (.not. allocated (v_ptr%this)) then
       nl=nl+1; write(lines(nl), imt)  'this(:) -- Not associated!'
@@ -1976,30 +1976,30 @@ case ('variable')
       nl=nl+1; write(lines(nl), rmt)  '%common%Base_value:  ', v_ptr%common%base_value
     endif
 
-    nl=nl+1; write(lines(nl), rmt)  '%Design           = ', v_ptr%design_value
-    nl=nl+1; write(lines(nl), rmt)  '%Old              = ', v_ptr%old_value
-    nl=nl+1; write(lines(nl), rmt)  '%Meas             = ', v_ptr%meas_value
-    nl=nl+1; write(lines(nl), rmt)  '%Ref              = ', v_ptr%ref_value
-    nl=nl+1; write(lines(nl), rmt)  '%Correction       = ', v_ptr%correction_value
-    nl=nl+1; write(lines(nl), rmt)  '%High_lim         = ', v_ptr%high_lim
-    nl=nl+1; write(lines(nl), rmt)  '%Low_lim          = ', v_ptr%low_lim
-    nl=nl+1; write(lines(nl), rmt)  '%Step             = ', v_ptr%step
-    nl=nl+1; write(lines(nl), rmt)  '%Weight           = ', v_ptr%weight
+    nl=nl+1; write(lines(nl), rmt)  '%design           = ', v_ptr%design_value
+    nl=nl+1; write(lines(nl), rmt)  '%old              = ', v_ptr%old_value
+    nl=nl+1; write(lines(nl), rmt)  '%meas             = ', v_ptr%meas_value
+    nl=nl+1; write(lines(nl), rmt)  '%ref              = ', v_ptr%ref_value
+    nl=nl+1; write(lines(nl), rmt)  '%correction       = ', v_ptr%correction_value
+    nl=nl+1; write(lines(nl), rmt)  '%high_lim         = ', v_ptr%high_lim
+    nl=nl+1; write(lines(nl), rmt)  '%low_lim          = ', v_ptr%low_lim
+    nl=nl+1; write(lines(nl), rmt)  '%step             = ', v_ptr%step
+    nl=nl+1; write(lines(nl), rmt)  '%weight           = ', v_ptr%weight
     nl=nl+1; write(lines(nl), rmt)  '%delta_merit      = ', v_ptr%delta_merit
-    nl=nl+1; write(lines(nl), amt)  '%Merit_type       = ', v_ptr%merit_type
-    nl=nl+1; write(lines(nl), rmt)  '%Merit            = ', v_ptr%merit
-    nl=nl+1; write(lines(nl), rmt)  '%dMerit_dVar      = ', v_ptr%dMerit_dVar
-    nl=nl+1; write(lines(nl), lmt)  '%Key_bound        = ', v_ptr%key_bound
-    if (v_ptr%key_bound) then
-      nl=nl+1; write(lines(nl), rmt)  '%Key_val0         = ', v_ptr%key_val0
-      nl=nl+1; write(lines(nl), rmt)  '%Key_delta        = ', v_ptr%key_delta
+    nl=nl+1; write(lines(nl), amt)  '%merit_type       = ', v_ptr%merit_type
+    nl=nl+1; write(lines(nl), rmt)  '%merit            = ', v_ptr%merit
+    nl=nl+1; write(lines(nl), rmt)  '%dmerit_dvar      = ', v_ptr%dMerit_dVar
+    nl=nl+1; write(lines(nl), imt)  '%ix_key_table     = ', v_ptr%ix_key_table
+    if (v_ptr%ix_key_table > 0 ) then
+      nl=nl+1; write(lines(nl), rmt)  '%key_val0         = ', v_ptr%key_val0
+      nl=nl+1; write(lines(nl), rmt)  '%key_delta        = ', v_ptr%key_delta
     endif
-    nl=nl+1; write(lines(nl), lmt)  '%Exists           = ', v_ptr%exists
-    nl=nl+1; write(lines(nl), lmt)  '%Good_var         = ', v_ptr%good_var
-    nl=nl+1; write(lines(nl), lmt)  '%Good_user        = ', v_ptr%good_user
-    nl=nl+1; write(lines(nl), lmt)  '%Good_opt         = ', v_ptr%good_opt
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt        = ', v_ptr%useit_opt
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot       = ', v_ptr%useit_plot
+    nl=nl+1; write(lines(nl), lmt)  '%exists           = ', v_ptr%exists
+    nl=nl+1; write(lines(nl), lmt)  '%good_var         = ', v_ptr%good_var
+    nl=nl+1; write(lines(nl), lmt)  '%good_user        = ', v_ptr%good_user
+    nl=nl+1; write(lines(nl), lmt)  '%good_opt         = ', v_ptr%good_opt
+    nl=nl+1; write(lines(nl), lmt)  '%useit_opt        = ', v_ptr%useit_opt
+    nl=nl+1; write(lines(nl), lmt)  '%useit_plot       = ', v_ptr%useit_plot
 
     result_id = 'variable:1:' // word1
 

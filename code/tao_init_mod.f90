@@ -1438,7 +1438,7 @@ integer i, iu, ip, j, jj, k, kk, n, nn, n1, n2, ix1, ix2, ix
 integer num_ele, ios, ix_uni, ixm, ix2m
 integer, allocatable, save :: ix_eles(:), an_indexx(:)
 
-logical searching, grouping, found_one
+logical searching, grouping, found_one, bound
 
 ! count number of v1 entries
 
@@ -1480,12 +1480,13 @@ if (use_same_lat_eles_as /= '') then
       call err_exit
     endif
 
-    s%var(n)%key_bound = v1_ptr%v(ip)%key_bound
-    if (var(ix)%key_bound /= '') read (var(ix)%key_bound, *, iostat = ios) s%var(n)%key_bound
+    s%var(n)%ix_key_table = v1_ptr%v(ip)%ix_key_table
+    if (var(ix)%key_bound /= '') read (var(ix)%key_bound, *, iostat = ios) bound
     if (ios /= 0) then
       call out_io (s_abort$, r_name, 'BAD "KEY_BOUND" COMPONENT FOR VAR: ' // v1_var%name)
       call err_exit
     endif
+    if (bound) s%var(n)%ix_key_table = 1
 
     s%var(n)%key_delta = v1_ptr%v(ip)%key_delta
     if (var(ix)%key_delta /= 0) s%var(n)%key_delta = var(ix)%key_delta
@@ -1514,7 +1515,7 @@ if (use_same_lat_eles_as /= '') then
     if (default_high_lim /= 1e30) s%var(n)%high_lim = default_high_lim
     if (var(ix)%high_lim /= 1e30) s%var(n)%high_lim = var(ix)%high_lim
 
-    s%var(n)%key_bound = v1_ptr%v(ip)%key_bound
+    s%var(n)%ix_key_table = v1_ptr%v(ip)%ix_key_table
 
     s%var(n)%ix_v1 = ix_min_var + n - n1
     s%var(n)%v1 => v1_var_ptr
@@ -1666,14 +1667,14 @@ endif
 do n = n1, n2
   i = ix1 + n - n1
 
-  if (var(i)%key_bound == '') then
-    s%var(n)%key_bound = .false.
-  else
-    read (var(i)%key_bound, *, iostat = ios) s%var(n)%key_bound
+  s%var(n)%ix_key_table = -1
+  if (var(i)%key_bound /= '') then
+    read (var(i)%key_bound, *, iostat = ios) bound
     if (ios /= 0) then
       call out_io (s_abort$, r_name, 'BAD "KEY_BOUND" COMPONENT FOR VAR: ' // v1_var%name)
       call err_exit
     endif
+    if (bound) s%var(n)%ix_key_table = 1
   endif
 
   if (var(i)%good_user == '') then
@@ -1763,7 +1764,7 @@ logical err, good_unis(lbound(s%u, 1):), found
 
 if (var%ele_name == '') then
   var%exists = .false.
-  var%key_bound = .false.
+  var%ix_key_table = -1
   return
 endif
 
@@ -1804,14 +1805,15 @@ integer i, j
 
 ! Key table setup
 
-allocate (s%key(count(s%var%key_bound)))
+allocate (s%key(count(s%var%ix_key_table > 0)))
 
 j = 0
 do i = 1, s%n_var_used
-  if (.not. s%var(i)%key_bound) cycle
+  if (s%var(i)%ix_key_table < 1) cycle
   j = j + 1
   s%key(j) = i
   s%var(i)%key_val0 = s%var(i)%model_value
+  s%var(i)%ix_key_table = j
 enddo
 
 end subroutine
@@ -1973,7 +1975,7 @@ if (err) then
   var%model_value => var%old_value
   var%base_value  => var%old_value
   var%exists = .false.
-  var%key_bound = .false.
+  var%ix_key_table = -1
   return
 endif
 
