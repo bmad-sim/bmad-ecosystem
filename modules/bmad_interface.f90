@@ -1028,7 +1028,7 @@ end interface
 
 interface
   subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
-        twiss_type, type_control, lattice, type_wake, type_floor_coords, type_wig_terms)
+        twiss_type, type_control, lattice, type_wake, type_floor_coords, type_wig_terms, nunit)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (ele_struct) ele
@@ -1038,6 +1038,7 @@ interface
     logical, optional :: type_zero_attrib, type_floor_coords
     logical, optional :: type_control, type_taylor, type_wake
     logical, optional :: type_wig_terms
+    integer, optional :: nunit
   end subroutine
 end interface
 
