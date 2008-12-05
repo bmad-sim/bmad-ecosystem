@@ -199,15 +199,6 @@ endif
 u => tao_pointer_to_universe (ix_universe)
 if (.not. associated(u)) return
 
-!if (is_integer(ele_name)) then
-!  read (ele_name, *, iostat = ios) ix_ele(1)
-!  if (ix_ele(1) < 0 .or. ix_ele(1) > u%model%lat%n_ele_max) then
-!    call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE: ' // ele_name)
-!    ix_ele(1) = -1
-!  endif
-!  return
-!endif
-
 if (is_integer(ele_name(1:1))) then ! must be an array of numbers
   if (allocated (here)) deallocate(here)
   allocate(here(0:u%model%lat%n_ele_max))

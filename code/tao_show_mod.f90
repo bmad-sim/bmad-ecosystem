@@ -175,6 +175,7 @@ character(80) :: word1, fmt, fmt2, fmt3
 character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(100), pointer :: ptr_lines(:)
+character(100), allocatable :: alloc_lines(:)
 character(100) file_name, name
 character(40) ele_name, sub_name, ele1, ele2, switch
 character(60) nam
@@ -1639,7 +1640,7 @@ case ('taylor_map')
   call transfer_map_calc (lat, taylor, ix1, ix2)
   if (n_order > -1) call truncate_taylor_to_order (taylor, n_order, taylor)
 
-  call type2_taylors (taylor, ptr_lines, nl)
+  call type2_taylors (taylor, alloc_lines, nl)
   if (size(lines) < nl) call re_allocate (lines, len(lines(1)), nl, .false.)
   lines(1:nl) = ptr_lines(1:nl)
   deallocate (ptr_lines)
