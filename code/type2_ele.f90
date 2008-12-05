@@ -75,8 +75,8 @@ real(rp) coef
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 
-character(100), pointer :: lines(:)
-character(100), pointer :: li(:), li2(:)
+character(100), pointer :: lines(:), li(:)
+character(100), allocatable :: li2(:)
 character(40) a_name, name
 character(12) val_str
 character(9) angle

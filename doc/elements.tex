@@ -1571,7 +1571,7 @@ Example:
   wig1[polarity] = -1  ! Reverse the polarity of the wiggler
 \end{example}
 
-For the periodic type \vn{Wiggler}s the attributes are: 
+For the \vn{periodic type} wigglers the attributes are: 
 \index{b_max}\index{n_pole}
 \index{k1}\index{rho}
 \begin{example}  
@@ -1583,15 +1583,14 @@ For the periodic type \vn{Wiggler}s the attributes are:
   k1                 ! Vertical focusing strength. Dependent attribute (\sref{s:depend}).
   rho                ! Bending radius. Dependent attribute (\sref{s:depend}).
 \end{example}
-As explained in \sref{s:wiggler.phys} this type of wiggler is
-considered to have infinitely wide poles so with \vn{bmad_standard}
-tracking and transfer matrix calculations the horizontal motion looks
-like a drift. The vertical motion is modeled as a combination focusing
-quadrupole and focusing octupole.
 Example:
 \begin{example}
   wig2: wiggler, l = 1.6, b_max = 2.1, n_pole = 7  ! periodic type wiggler
 \end{example}
 
 The type of wiggler is determined by whether there are \vn{term(i)}
-terms. If present, the wiggler is classed as a map type.
+terms. If present, the wiggler is classed as a \vn{map type}.
+
+Note: When using Taylor maps and symplectic tracking with a
+\vn{periodic} type wiggler, the number of poles must be even as
+explained in section~\sref{s:wiggler.phys}.

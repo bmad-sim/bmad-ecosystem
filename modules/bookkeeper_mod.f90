@@ -432,7 +432,6 @@ endif
 
 slave%mat6_calc_method = lord%mat6_calc_method
 slave%tracking_method  = lord%tracking_method
-slave%num_steps        = lord%num_steps      
 slave%is_on            = lord%is_on
 slave%aperture_at      = lord%aperture_at
 slave%coupler_at       = lord%coupler_at
@@ -524,7 +523,6 @@ if (slave%n_lord == 1) then
     value(hkick$) = lord%value(hkick$) * coef
     value(vkick$) = lord%value(vkick$) * coef
   endif
-  slave%num_steps = lord%num_steps * coef + 1
   if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
 
   slave%aperture_at = no_end$
@@ -680,10 +678,17 @@ do j = slave%ic1_lord, slave%ic2_lord
     slave%map_ref_orb_in = lattice%ele(ix_slave-1)%map_ref_orb_out
   endif
 
-  !
+  ! Choose the smallest ds_step of all the lords.
+
+  if (value(ds_step$) == 0 .or. lord%value(ds_step$) < value(ds_step$)) &
+                                        value(ds_step$) = lord%value(ds_step$)
+
+  ! Coupler and aperture calc.
 
   call compute_slave_aperture (value, slave, lord, ix_con)
   if (slave%key == lcavity$) call compute_slave_coupler (value, slave, lord, ix_con)
+
+  ! Methods
 
   if (j == slave%ic1_lord) then
     slave%mat6_calc_method = lord%mat6_calc_method
@@ -703,8 +708,10 @@ do j = slave%ic1_lord, slave%ic2_lord
     endif
   endif
 
+  ! kicks, etc.
+
   if (.not. lord%is_on) cycle
-  slave%is_on = .true.  ! on if at least one lord is on
+  slave%is_on = .true.  ! Slave is on if at least one lord is on
 
   tilt = lord%value(tilt_tot$)
 
@@ -1206,7 +1213,6 @@ end subroutine
 !     rho$ = p0c$ / (c_light * b_max$)
 !     n_pole$ = L$ / l_pole$
 !     z_patch$
-!     x_patch$ (for a periodic wiggler)
 !
 ! Modules needed:
 !   use bmad
@@ -1442,8 +1448,8 @@ case (wiggler$)
 
   ! Periodic_type wigglers have a single %wig_term for use with tracking, etc.
   ! The phase of this term is set so that tracking with a particle starting
-  ! on-axis gives at the exit end p_x = 0. The x_patch attribute is then calculated
-  ! To take care of the finite x coordinate. 
+  ! on-axis ends on-axis. For this to be true, there must be an integer number
+  ! of poles.
 
   if (ele%sub_key == periodic_type$) then
     if (.not. associated(ele%wig_term)) allocate (ele%wig_term(1))
@@ -1451,12 +1457,13 @@ case (wiggler$)
     if (val(l_pole$) == 0) then
       ele%wig_term(1)%ky = 0
     else
-      ele%wig_term(1)%ky = pi / val(l_pole$)
+      ! Use an integer number of poles in calculating ky.
+      ele%wig_term(1)%ky = pi * val(n_pole$) / val(l$)
     endif
     ele%wig_term(1)%coef   = val(b_max$)
     ele%wig_term(1)%kx     = 0
     ele%wig_term(1)%kz     = ele%wig_term(1)%ky
-    ele%wig_term(1)%phi_z  = ele%wig_term(1)%ky * (val(l_pole$) - val(l$)) / 2 
+    ele%wig_term(1)%phi_z  = -ele%wig_term(1)%ky * val(l$) / 2 
     ele%wig_term(1)%type   = hyper_y$
   endif
 
@@ -1465,7 +1472,7 @@ end select
 ! num_steps
 
 if (val(ds_step$) /= 0) ele%num_steps = abs(nint(val(l$) / val(ds_step$)))
-if (ele%num_steps == 0) ele%num_steps = 1
+if (val(ds_step$) == 0 .or. ele%num_steps == 0) ele%num_steps = 1
 
 ! If things have changed we need to kill the Taylor Map and gen_field.
 ! The old_value array tells us this.
@@ -1502,7 +1509,6 @@ if (non_offset_changed .or. (offset_changed .and. ele%map_with_offsets)) then
   if (associated(ele%gen_field)) call kill_gen_field(ele%gen_field)
   if (ele%key == wiggler$) then
     val(z_patch$) = 0
-    val(x_patch$) = 0
     z_patch_calc_needed = (ele%key == wiggler$ .and. val(p0c$) /= 0)
   endif
 endif
@@ -1516,10 +1522,6 @@ if (z_patch_calc_needed) then
   val(z_patch$) = end%vec(5)
   end%vec(5) = 0
   if (val(z_patch$) == 0) val(z_patch$) = 1e-30 ! something non-zero.
-  if (ele%sub_key == periodic_type$) then
-    val(x_patch$) = end%vec(1)
-    end%vec(1) = 0
-  endif
   ele%map_ref_orb_out = end             ! save for next super_slave
 endif
 

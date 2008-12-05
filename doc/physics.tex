@@ -542,11 +542,11 @@ reference particle.
 \label{s:wiggler.phys}
 
 \index{wiggler}
-As discussed in \sref{s:wiggler}, \bmad \vn{Wiggler} elements are
-split into two classes: map type and periodic type. The map type
-\vn{Wigglers} are modeled using the method of Sagan, Crittenden, and
-Rubin\cite{b:wiggler}. In this model the magnetic field is written as
-a sum of terms $B_i$
+As discussed in \sref{s:wiggler}, \bmad wiggler elements are
+split into two classes: \vn{map type} and \vn{periodic type}. The 
+\vn{map type} wigglers are modeled using the method of Sagan, Crittenden,
+and Rubin\cite{b:wiggler}. In this model the magnetic field is written
+as a sum of terms $B_i$
 \Begineq
   B(x,y,z) = \sum_i B_i(x, y, z; C, k_x, k_y, k_z, \phi_z)
 \Endeq 
@@ -578,16 +578,17 @@ Maxwell's equations are satisfied. Since the field is given by
 analytic equations, Lie algebraic techniques can be use to construct
 Taylor maps to arbitrary order.
 
-``Periodic type'' wigglers use a simplified model where the magnetic
+\vn{Periodic type} wigglers use a simplified model where the magnetic
 field components are
 \begin{alignat}{1}
-  B_y &= \hphantom{-} B_{\max} \, \cosh(k_z \, y) \, \cos(k_z \, z) \CRNO
-  B_z &= -B_{\max} \, \sinh(k_z \, y) \, \sin(k_z \, z) 
+  B_y &= \hphantom{-} B_{\max} \, \cosh(k_z \, y) \, \cos(ksss) \CRNO
+  B_z &= -B_{\max} \, \sinh(k_z \, y) \, \sin(ksss) 
+  \label{bbkykz}
 \end{alignat}
 where $B_{\max}$ is the maximum field on the centerline and $k$ is
 given in terms of the pole length (\vn{l_pole}) by
 \Begineq
-  k_z = \frac{\pi}{l_{\mbox{pole}}}
+  k_s = \frac{\pi}{l_{\mbox{pole}}}
 \Endeq
 This type of wiggler has infinitely wide poles. With
 \vn{bmad_standard} tracking and transfer matrix calculations the
@@ -596,7 +597,7 @@ horizontal motion looks like a drift and the vertical motion is
 modeled as a combination focusing quadrupole and focusing octupole
 giving a kick\cite{b:corbett}
 \Begineq
-  \frac{dp_y}{ds} = k_1 \left( y + \frac{2}{3} \, k_z^2 \, y^3 \right)
+  \frac{dp_y}{ds} = k_1 \left( y + \frac{2}{3} \, k_s^2 \, y^3 \right)
 \Endeq
 where
 \begin{alignat}{1}
@@ -605,8 +606,20 @@ where
 with $k_1$ being the linear focusing constant. For radiation
 calculations the true horizontal trajectory with $y = 0$ is needed
 \Begineq
-  x = \frac{\sqrt{2 \, |k_1|}}{k_z^2} \, \cos (k_z \, z)
+  x = \frac{\sqrt{2 \, |k_1|}}{k_s^2} \, \cos (k_s \, s)
 \Endeq
+
+With \vn{periodic type} wigglers and \vn{bmad_standard} tracking, the
+phase \vn{\phi_s} in \Eqs{bbkykz} is irrelavent. When the tracking
+involves Taylor maps and symplectic integration, the phase is
+important. Here the phase is chosen so that $B_y$ is symmetric about
+the center of the wiggler
+\Begineq
+  \phi_s = \frac{-k_y \, L}{2}
+\Endeq
+With this choice, a particle that enters the wiggler on-axis will
+leave the wiggler on-axis provided there is an even number of poles.
+
 
 %-----------------------------------------------------------------
 \section{Synchrotron Radiation Damping and Excitation}
@@ -818,11 +831,11 @@ defined by the equations
   \eta_z(s) &\equiv \left. \frac{dz}{dp_z} \right|_s \nonumber
 \end{align}
 
-The dispersion calculation is as follows: 
-Let $\bf r$ be the reference orbit, in canonical coordinates,
-around which the dispersion is to be calculated. 
-Let $\bf M$ be the transfer matrix between two points labeled 1 and 2, and
-let $\bV$ be a vector defined by the equation
+Given the dispersion at a given point, the dispersion at some other
+point is calculated as follows: Let $\Bf r = (x, p_x, y, p_y, z, p_z)$
+be the reference orbit, around which the dispersion is to be
+calculated. Let $\bV$ and $\bf M$ be the zeroth and first order components of 
+the transfer map between two points labeled 1 and 2. Thus
 \Begineq
   \Bf r_2 = \bM \, \Bf r_1 + \bV
   \label{rmrv}
@@ -834,7 +847,7 @@ Define the dispersion vector $\bfeta$ by
     \eta_x, \eta'_x \, (1 + p_z), \eta_y, \eta'_y \, (1 + p_z), \eta_z, 1
   \right)
 \Endeq
-Then differentiating \Eq{rmrv} with respect to energy, 
+Differentiating \Eq{rmrv} with respect to energy, 
 the dispersion at point 2 in terms of the dispersion at point 1 is
 \Begineq
   \bfeta_2 = \frac{dp_{z1}}{dp_{z2}} \left[ \bM \, \bfeta_1 \right] + \bV_\eta 

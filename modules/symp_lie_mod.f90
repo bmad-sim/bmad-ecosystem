@@ -211,15 +211,13 @@ Case (wiggler$)
 
   enddo
 
-  ! z_patch
-  ! This should have been computed if doing tracking with an offset.
+  ! z_patch: This should have been computed if doing tracking with an offset.
 
   if (ele%value(z_patch$) == 0 .and. do_offset) then
     call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
     call err_exit 
   endif
 
-  if (ele%sub_key == periodic_type$) end%vec(1) = end%vec(1) - ele%value(x_patch$)
   end%vec(5) = end%vec(5) - ele%value(z_patch$)
 
 !----------------------------------------------------------------------------

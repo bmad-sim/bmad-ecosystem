@@ -108,7 +108,7 @@ if (index(":1234567890", ele_name(1:1)) .ne. 0) then
 
   call reallocate_arrays (n)
   if (n == 0) then
-    if (do_print) call out_io (s_error$, r_name, 'ELEMENTS NOT FOUND: ' // ele_name)
+    if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
     err_flag = .true.
     return  
   endif

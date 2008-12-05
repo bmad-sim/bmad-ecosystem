@@ -229,7 +229,7 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
       return
     endif
 
-    call add_taylor_term (ele, i_out, coef, expn)
+    call add_this_taylor_term (ele, i_out, coef, expn)
     call get_next_word (word, ix_word, '},', delim, delim_found, .true.)
 
     if (ix_word /= 0 .or. (delim_found .and. delim /= ',')) then
@@ -332,7 +332,7 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
                                       lat, delim, delim_found, err_flag) 
     if (err_flag) return
     call pointers_to_attribute (lat, ele%name, word, .false., r_ptrs, err_flag, .false.)
-    if (err_flag) then
+    if (err_flag .or. size(r_ptrs) /= 1) then
       call warning ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
       bp_com%error_flag = .true.
       return
@@ -814,23 +814,19 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine add_taylor_term (ele, i_out, coef, expn) 
+! Subroutine add_this_taylor_term (ele, i_out, coef, expn) 
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to parse the input file.
 ! This subroutine is not intended for general use.
 !-
 
-subroutine add_taylor_term (ele, i_out, coef, expn)
+subroutine add_this_taylor_term (ele, i_out, coef, expn)
 
   implicit none
 
   type (ele_struct) ele
-  type (taylor_term_struct), allocatable :: term(:)
-
   real(rp) coef
-
-  integer i_out, expn(6), n, i
-
+  integer i_out, expn(6)
 
 !
 
@@ -846,30 +842,7 @@ subroutine add_taylor_term (ele, i_out, coef, expn)
     return
   endif
 
-! find if we already have a taylor term like this.
-! if so just substitute in for the new coef
-
-  n = size(ele%taylor(i_out)%term)
-
-  do i = 1, n
-    if (all(ele%taylor(i_out)%term(i)%exp == expn)) then
-      ele%taylor(i_out)%term(i)%coef = coef
-      return
-    endif
-  enddo
-
-! new term
-
-  allocate (term(n+1))
-  term(1:n) = ele%taylor(i_out)%term
-  term(n+1)%coef = coef
-  term(n+1)%exp = expn
-
-  deallocate (ele%taylor(i_out)%term)
-  allocate (ele%taylor(i_out)%term(n+1))
-  ele%taylor(i_out)%term = term
-
-  deallocate(term)
+  call add_taylor_term (ele%taylor(i_out), coef, expn, .true.)
 
 end subroutine
 
@@ -1650,7 +1623,7 @@ subroutine word_to_value (word, lat, value)
   endif
 
   call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err_flag, .false.)
-  if (err_flag) then
+  if (err_flag .or. size(ptr) /= 1) then
     call warning('BAD ATTRIBUTE: ' // word)
   else
     value = ptr(1)%r
@@ -2308,12 +2281,12 @@ subroutine preparse_element_init (ele)
     ele%tracking_method = taylor$  ! default
     ele%mat6_calc_method = taylor$ ! default
     ele%taylor_order = 999         ! make large.
-    call add_taylor_term (ele, 1, 1.0_rp, (/ 1, 0, 0, 0, 0, 0 /))
-    call add_taylor_term (ele, 2, 1.0_rp, (/ 0, 1, 0, 0, 0, 0 /))
-    call add_taylor_term (ele, 3, 1.0_rp, (/ 0, 0, 1, 0, 0, 0 /))
-    call add_taylor_term (ele, 4, 1.0_rp, (/ 0, 0, 0, 1, 0, 0 /))
-    call add_taylor_term (ele, 5, 1.0_rp, (/ 0, 0, 0, 0, 1, 0 /))
-    call add_taylor_term (ele, 6, 1.0_rp, (/ 0, 0, 0, 0, 0, 1 /))
+    call add_this_taylor_term (ele, 1, 1.0_rp, (/ 1, 0, 0, 0, 0, 0 /))
+    call add_this_taylor_term (ele, 2, 1.0_rp, (/ 0, 1, 0, 0, 0, 0 /))
+    call add_this_taylor_term (ele, 3, 1.0_rp, (/ 0, 0, 1, 0, 0, 0 /))
+    call add_this_taylor_term (ele, 4, 1.0_rp, (/ 0, 0, 0, 1, 0, 0 /))
+    call add_this_taylor_term (ele, 5, 1.0_rp, (/ 0, 0, 0, 0, 1, 0 /))
+    call add_this_taylor_term (ele, 6, 1.0_rp, (/ 0, 0, 0, 0, 0, 1 /))
   endif
 
 
@@ -2656,6 +2629,8 @@ character(80) line
 logical have_inserted
 
 ! init
+
+call settable_dep_var_bookkeeping (super_ele_in)
 
 call init_ele(super_ele_saved)
 call init_ele(super_ele)
@@ -3555,12 +3530,12 @@ subroutine parser_set_ele_defaults (ele)
     ele%tracking_method  = symp_lie_bmad$
 
   case (taylor$)   ! start with unit matrix
-    call add_taylor_term (ele, 1, 1.0_rp, (/ 1, 0, 0, 0, 0, 0 /)) 
-    call add_taylor_term (ele, 2, 1.0_rp, (/ 0, 1, 0, 0, 0, 0 /)) 
-    call add_taylor_term (ele, 3, 1.0_rp, (/ 0, 0, 1, 0, 0, 0 /)) 
-    call add_taylor_term (ele, 4, 1.0_rp, (/ 0, 0, 0, 1, 0, 0 /)) 
-    call add_taylor_term (ele, 5, 1.0_rp, (/ 0, 0, 0, 0, 1, 0 /)) 
-    call add_taylor_term (ele, 6, 1.0_rp, (/ 0, 0, 0, 0, 0, 1 /)) 
+    call add_this_taylor_term (ele, 1, 1.0_rp, (/ 1, 0, 0, 0, 0, 0 /)) 
+    call add_this_taylor_term (ele, 2, 1.0_rp, (/ 0, 1, 0, 0, 0, 0 /)) 
+    call add_this_taylor_term (ele, 3, 1.0_rp, (/ 0, 0, 1, 0, 0, 0 /)) 
+    call add_this_taylor_term (ele, 4, 1.0_rp, (/ 0, 0, 0, 1, 0, 0 /)) 
+    call add_this_taylor_term (ele, 5, 1.0_rp, (/ 0, 0, 0, 0, 1, 0 /)) 
+    call add_this_taylor_term (ele, 6, 1.0_rp, (/ 0, 0, 0, 0, 0, 1 /)) 
 
   case (rbend$, sbend$)
     ele%value(fintx$) = real_garbage$

@@ -885,17 +885,6 @@ interface
 end interface
 
 interface
-  subroutine track1_wiedemann_wiggler (start, ele, param, end)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
-    implicit none
-    type (coord_struct) start
-    type (coord_struct) end
-    type (lat_param_struct) param
-    type (ele_struct) ele
-  end subroutine
-end interface
-
-interface
   subroutine twiss_and_track (lat, orb, ok)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none

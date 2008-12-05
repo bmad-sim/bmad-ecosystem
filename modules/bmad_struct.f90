@@ -384,7 +384,7 @@ integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9, y_gain_calib$=9
 integer, parameter :: fint$=10, polarity$=10, gradient$=10, crunch_calib$=10
 integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11
 integer, parameter :: rho$=12, s_center$=12, p0c_start$=12, y_offset_calib$=12
-integer, parameter :: hgap$=13, e_tot_start$=13, x_patch$=13, tilt_calib$=13
+integer, parameter :: hgap$=13, e_tot_start$=13, tilt_calib$=13
 integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14
 integer, parameter :: de_eta_meas$=14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
@@ -542,13 +542,13 @@ logical, parameter :: set$ = .true., unset$ = .false.
 integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2
 integer, parameter :: runge_kutta$ = 3 
 integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
-integer, parameter :: wiedemann$ = 9, symp_lie_bmad$ = 10, none$ = 11
+integer, parameter :: symp_lie_bmad$ = 10, none$ = 11
 integer, parameter :: boris$ = 12, adaptive_boris$ = 13, mad$ = 14
 
 character(16), parameter :: calc_method_name(0:14) = (/ &
       "GARBAGE!      ", "Bmad_Standard ", "Symp_Lie_PTC  ", "Runge_Kutta   ", &
       "Linear        ", "Tracking      ", "Symp_Map      ", "Custom        ", &
-      "Taylor        ", "Wiedemann     ", "Symp_Lie_Bmad ", "None          ", &
+      "Taylor        ", "GARBAGE!      ", "Symp_Lie_Bmad ", "None          ", &
       "Boris         ", "Adaptive_Boris", "MAD           " /)
 
 ! sbend$ and rbend$ are from key definitions.

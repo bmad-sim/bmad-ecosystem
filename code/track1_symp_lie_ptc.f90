@@ -56,7 +56,6 @@ call vec_ptc_to_bmad (re, end%vec)
 
 if (ele%key == wiggler$) then
   end%vec(5) = end%vec(5) - ele%value(z_patch$)
-  if (ele%sub_key == periodic_type$) end%vec(1) = end%vec(1) - ele%value(x_patch$)
 endif
 
 call kill(fibre_ele)  ! clean up allocated memory.

@@ -2,28 +2,28 @@
 
 module bmad_taylor_mod
 
-  use precision_def
+use cesr_utils
 
 ! Note: the taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 
 ! the universal_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
 ! %ref is the reference point about which the taylor expansion was made
 
-  type taylor_term_struct
-    real(rp) :: coef
-    integer :: exp(6)  
-  end type
+type taylor_term_struct
+  real(rp) :: coef
+  integer :: exp(6)  
+end type
 
-  type taylor_struct
-    real (rp) :: ref = 0
-    type (taylor_term_struct), pointer :: term(:) => null()
-  end type
+type taylor_struct
+  real (rp) :: ref = 0
+  type (taylor_term_struct), pointer :: term(:) => null()
+end type
 
 !
 
-  interface assignment (=)
-    module procedure taylor_equal_taylor
-    module procedure taylors_equal_taylors
-  end interface
+interface assignment (=)
+  module procedure taylor_equal_taylor
+  module procedure taylors_equal_taylors
+end interface
 
 !+
 ! Function taylor_coef (bmad_taylor, exp)
@@ -93,21 +93,21 @@ contains
 
 subroutine taylor_equal_taylor (taylor1, taylor2)
 
-  implicit none
+implicit none
 	
-  type (taylor_struct), intent(inout) :: taylor1
-  type (taylor_struct), intent(in) :: taylor2
+type (taylor_struct), intent(inout) :: taylor1
+type (taylor_struct), intent(in) :: taylor2
 
 !
 
-  taylor1%ref = taylor2%ref
+taylor1%ref = taylor2%ref
 
-  if (associated(taylor2%term)) then
-    call init_taylor_series (taylor1, size(taylor2%term))
-    taylor1%term = taylor2%term
-  else
-    if (associated (taylor1%term)) deallocate (taylor1%term)
-  endif
+if (associated(taylor2%term)) then
+  call init_taylor_series (taylor1, size(taylor2%term))
+  taylor1%term = taylor2%term
+else
+  if (associated (taylor1%term)) deallocate (taylor1%term)
+endif
 
 end subroutine
 
@@ -132,18 +132,18 @@ end subroutine
 
 subroutine taylors_equal_taylors (taylor1, taylor2)
 
-  implicit none
+implicit none
 
-  type (taylor_struct), intent(inout) :: taylor1(:)
-  type (taylor_struct), intent(in)    :: taylor2(:)
+type (taylor_struct), intent(inout) :: taylor1(:)
+type (taylor_struct), intent(in)    :: taylor2(:)
 
-  integer i
+integer i
 
 !
 
-  do i = 1, size(taylor1)
-    taylor1(i) = taylor2(i)
-  enddo
+do i = 1, size(taylor1)
+  taylor1(i) = taylor2(i)
+enddo
 
 end subroutine
 
@@ -160,25 +160,25 @@ end subroutine
 
 function taylor_coef1 (bmad_taylor, exp) result (coef)
 
-  implicit none
+implicit none
 
-  type (taylor_struct), intent(in) :: bmad_taylor
+type (taylor_struct), intent(in) :: bmad_taylor
 
-  real(rp) coef
+real(rp) coef
 
-  integer, intent(in) :: exp(:)
-  integer i
+integer, intent(in) :: exp(:)
+integer i
 
 !
 
-  coef = 0
+coef = 0
 
-  do i = 1, size(bmad_taylor%term)
-    if (all(bmad_taylor%term(i)%exp == exp)) then
-      coef = bmad_taylor%term(i)%coef
-      return
-    endif
-  enddo
+do i = 1, size(bmad_taylor%term)
+  if (all(bmad_taylor%term(i)%exp == exp)) then
+    coef = bmad_taylor%term(i)%coef
+    return
+  endif
+enddo
 
 end function
 
@@ -194,38 +194,38 @@ end function
 !-
 
 function taylor_coef2 (bmad_taylor, i1, i2, i3, &
-                            i4, i5, i6, i7, i8, i9) result (coef)
+                          i4, i5, i6, i7, i8, i9) result (coef)
 
-  implicit none
+implicit none
 
-  type (taylor_struct), intent(in) :: bmad_taylor
+type (taylor_struct), intent(in) :: bmad_taylor
 
-  real(rp) coef
+real(rp) coef
 
-  integer, intent(in), optional :: i1, i2, i3, i4, i5, i6, i7, i8, i9
-  integer i, exp(6)
+integer, intent(in), optional :: i1, i2, i3, i4, i5, i6, i7, i8, i9
+integer i, exp(6)
 
 !
 
-  exp = 0
-  if (present (i1)) exp(i1) = exp(i1) + 1
-  if (present (i2)) exp(i2) = exp(i2) + 1
-  if (present (i3)) exp(i3) = exp(i3) + 1
-  if (present (i4)) exp(i4) = exp(i4) + 1
-  if (present (i5)) exp(i5) = exp(i5) + 1
-  if (present (i6)) exp(i6) = exp(i6) + 1
-  if (present (i7)) exp(i7) = exp(i7) + 1
-  if (present (i8)) exp(i8) = exp(i8) + 1
-  if (present (i9)) exp(i9) = exp(i9) + 1
+exp = 0
+if (present (i1)) exp(i1) = exp(i1) + 1
+if (present (i2)) exp(i2) = exp(i2) + 1
+if (present (i3)) exp(i3) = exp(i3) + 1
+if (present (i4)) exp(i4) = exp(i4) + 1
+if (present (i5)) exp(i5) = exp(i5) + 1
+if (present (i6)) exp(i6) = exp(i6) + 1
+if (present (i7)) exp(i7) = exp(i7) + 1
+if (present (i8)) exp(i8) = exp(i8) + 1
+if (present (i9)) exp(i9) = exp(i9) + 1
 
-  coef = 0
+coef = 0
 
-  do i = 1, size(bmad_taylor%term)
-    if (all(bmad_taylor%term(i)%exp == exp)) then
-      coef = bmad_taylor%term(i)%coef
-      return
-    endif
-  enddo
+do i = 1, size(bmad_taylor%term)
+  if (all(bmad_taylor%term(i)%exp == exp)) then
+    coef = bmad_taylor%term(i)%coef
+    return
+  endif
+enddo
 
 end function
 
@@ -233,7 +233,7 @@ end function
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine type_taylors (bmad_taylor)
+! Subroutine type_taylors (bmad_taylor, max_order)
 !
 ! Subroutine to print in a nice format a Bmad Taylor Map at the terminal.
 !
@@ -242,27 +242,27 @@ end function
 !
 ! Input:
 !   bmad_taylor(6) -- Taylor_struct: 6 taylor series: (x, P_x, y, P_y, z, P_z) 
+!   max_order      -- Integer, optional: Maximum order to print.
 !-
 
-subroutine type_taylors (bmad_taylor)
+subroutine type_taylors (bmad_taylor, max_order)
 
-  implicit none
+implicit none
 
-  type (taylor_struct), target :: bmad_taylor(:)
-  integer i, n_lines
-  character(100), pointer :: lines(:)
+type (taylor_struct), target :: bmad_taylor(:)
+integer i, n_lines
+integer, optional :: max_order
+character(100), allocatable :: lines(:)
 
 !
 
-  nullify (lines)
+call type2_taylors (bmad_taylor, lines, n_lines, max_order)
 
-  call type2_taylors (bmad_taylor, lines, n_lines)
+do i = 1, n_lines
+  print *, trim(lines(i))
+enddo
 
-  do i = 1, n_lines
-    print *, trim(lines(i))
-  enddo
-
-  deallocate(lines)
+deallocate(lines)
 
 end subroutine
 
@@ -270,7 +270,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine type2_taylors (bmad_taylor, lines, n_lines)
+! Subroutine type2_taylors (bmad_taylor, lines, n_lines, max_order)
 !
 ! Subroutine to write a Bmad taylor map in a nice format to a character array.
 !
@@ -279,6 +279,7 @@ end subroutine
 !
 ! Input:
 !   bmad_taylor(6) -- Taylor_struct: Array of taylors.
+!   max_order      -- Integer, optional: Maximum order to print.
 !
 ! Output:
 !   lines(:)     -- Character(80), allocatable: Character array to hold the 
@@ -287,75 +288,83 @@ end subroutine
 !   n_lines      -- Number of lines in lines(:).
 !-
 
-subroutine type2_taylors (bmad_taylor, lines, n_lines)
+subroutine type2_taylors (bmad_taylor, lines, n_lines, max_order)
 
-  implicit none
+use re_allocate_mod
 
-  type (taylor_struct), intent(in), target :: bmad_taylor(6)
-  type (taylor_term_struct), pointer :: tt
-  type (taylor_struct) tlr
+implicit none
 
-  integer, intent(out) :: n_lines
-  integer i, j, k, nl, ix
+type (taylor_struct), intent(in), target :: bmad_taylor(6)
+type (taylor_term_struct), pointer :: tt
+type (taylor_struct) tlr
 
-  character(*), pointer :: lines(:)
-  character(40) fmt1, fmt2, fmt
+integer, intent(out) :: n_lines
+integer, optional :: max_order
+integer i, j, k, nl, ix
+
+character(*), allocatable :: lines(:)
+character(40) fmt1, fmt2, fmt
 
 ! If not allocated then not much to do
 
-  if (.not. associated(bmad_taylor(1)%term)) then
-    n_lines = 2
-    allocate (lines(n_lines))
-    lines(1) = '---------------------------------------------------'
-    lines(2) = 'A Taylor Map Does Not Exist.' 
-    return
-  endif
+if (.not. associated(bmad_taylor(1)%term)) then
+  n_lines = 2
+  allocate (lines(n_lines))
+  lines(1) = '---------------------------------------------------'
+  lines(2) = 'A Taylor Map Does Not Exist.' 
+  return
+endif
 
 ! Normal case
 
-  deallocate (lines, stat = ix)
-  n_lines = 8 + sum( (/ (size(bmad_taylor(i)%term), i = 1, 6) /) )
-  allocate(lines(n_lines))
-  
+deallocate (lines, stat = ix)
+n_lines = 8 + sum( (/ (size(bmad_taylor(i)%term), i = 1, 6) /) )
+allocate(lines(n_lines))
 
-  write (lines(1), *) 'Taylor Terms:'
-  write (lines(2), *) &
-        'Out     Coef              Exponents           Order        Reference'
-  nl = 2
+write (lines(1), *) 'Taylor Terms:'
+write (lines(2), *) &
+      'Out     Coef              Exponents           Order        Reference'
+nl = 2
 
 
-  fmt1 = '(i4, a, f20.12, 6i3, i9, f18.9)'
-  fmt2 = '(i4, a, 1p, e20.11, 0p, 6i3, i9, f18.9)'
+fmt1 = '(i4, a, f20.12, 6i3, i9, f18.9)'
+fmt2 = '(i4, a, 1p, e20.11, 0p, 6i3, i9, f18.9)'
 
-  do i = 1, 6
-    nl=nl+1; lines(nl) = ' ---------------------------------------------------'
+do i = 1, 6
+  nl=nl+1; lines(nl) = ' ---------------------------------------------------'
 
-    nullify (tlr%term)
-    call sort_taylor_terms (bmad_taylor(i), tlr)
+  nullify (tlr%term)
+  call sort_taylor_terms (bmad_taylor(i), tlr)
 
-    do j = 1, size(bmad_taylor(i)%term)
+  do j = 1, size(bmad_taylor(i)%term)
 
-      tt => tlr%term(j)
+    tt => tlr%term(j)
 
-      if (abs(tt%coef) < 1e5) then
-        fmt = fmt1
-      else
-        fmt = fmt2
-      endif
+    if (present(max_order)) then
+      if (sum(tt%exp) > max_order) cycle
+    endif
 
-      if (j == 1) then
-        write (lines(nl+j), fmt) i, ':', tt%coef, &
-                    (tt%exp(k), k = 1, 6), sum(tt%exp), bmad_taylor(i)%ref
-      else
-        write (lines(nl+j), fmt) i, ':', tt%coef, &
-                    (tt%exp(k), k = 1, 6), sum(tt%exp)
-      endif
-    enddo
+    if (abs(tt%coef) < 1e5) then
+      fmt = fmt1
+    else
+      fmt = fmt2
+    endif
 
-    nl = nl + size(bmad_taylor(i)%term)
-    deallocate (tlr%term)
-
+    if (j == 1) then
+      nl=nl+1; write (lines(nl), fmt) i, ':', tt%coef, &
+                  (tt%exp(k), k = 1, 6), sum(tt%exp), bmad_taylor(i)%ref
+    else
+      nl=nl+1; write (lines(nl), fmt) i, ':', tt%coef, &
+                  (tt%exp(k), k = 1, 6), sum(tt%exp)
+    endif
   enddo
+
+  deallocate (tlr%term)
+
+enddo
+
+call re_allocate (lines, len(lines(1)), nl)
+n_lines = nl
 
 end subroutine
 
@@ -377,18 +386,18 @@ end subroutine
 
 subroutine taylor_make_unit (bmad_taylor)
 
-  implicit none
+implicit none
 
-  type (taylor_struct) bmad_taylor(:)
-  integer i
+type (taylor_struct) bmad_taylor(:)
+integer i
 
-  do i = 1, size(bmad_taylor)
-    call init_taylor_series (bmad_taylor(i), 1)
-    bmad_taylor(i)%term(1)%coef = 1.0
-    bmad_taylor(i)%term(1)%exp = 0
-    bmad_taylor(i)%term(1)%exp(i) = 1
-    bmad_taylor(i)%ref = 0
-  enddo
+do i = 1, size(bmad_taylor)
+  call init_taylor_series (bmad_taylor(i), 1)
+  bmad_taylor(i)%term(1)%coef = 1.0
+  bmad_taylor(i)%term(1)%exp = 0
+  bmad_taylor(i)%term(1)%exp(i) = 1
+  bmad_taylor(i)%ref = 0
+enddo
 
 end subroutine
 
@@ -396,7 +405,77 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_taylor_series (bmad_taylor, n_term)
+! Subroutine add_taylor_term (bmad_taylor, coef, expn, replace)
+!
+! Routine to add a Taylor term to a Taylor series.
+!
+! If bmad_taylor does not have a term with the same exponents as expn then a new
+! term is added to bmad_taylor so the total number of terms is increased by one.
+!
+! If bmad_taylor already has a term with the same exponents as expn then
+! the "replace" argument determines what happens:
+!   If replace = False (default) then
+!      coef is added to the coefficient of the old term.
+!   If replace = True then
+!      coef replaces the coefficient of the old term.
+! In both these cases, the number of terms in bmad_taylor remains the same.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   bmad_taylor -- Taylor_struct: Old series.
+!   coef        -- Real(rp): Coefficient of the new term
+!   expn        -- Integer(6): Exponents.
+!   replace     -- Logical, optional: Replace existing term? Default is False.
+!
+! Output:
+!   bmad_taylor -- Taylor_struct: New series with term added
+!-
+
+subroutine add_taylor_term (bmad_taylor, coef, expn, replace)
+
+implicit none
+
+type (taylor_struct) bmad_taylor
+
+real(rp) coef
+integer expn(:), i, n
+
+logical, optional :: replace
+
+! Search for an existing term of the same type
+
+n = size(bmad_taylor%term)
+
+do i = 1, n
+  if (all(bmad_taylor%term(i)%exp == expn)) then
+    if (logic_option(.false., replace)) then
+      bmad_taylor%term(i)%coef = coef
+    else
+      bmad_taylor%term(i)%coef = coef + bmad_taylor%term(i)%coef
+    endif
+    if (bmad_taylor%term(i)%coef == 0) then  ! Kill this term
+      bmad_taylor%term(i:n-1) = bmad_taylor%term(i+1:n)
+      call init_taylor_series (bmad_taylor, n-1, .true.)
+    endif
+    return
+  endif
+enddo
+
+! new term
+
+call init_taylor_series (bmad_taylor, n+1, .true.)
+bmad_taylor%term(n+1)%coef = coef
+bmad_taylor%term(n+1)%exp = expn
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine init_taylor_series (bmad_taylor, n_term, save)
 !
 ! Subroutine to initialize a Bmad Taylor series (6 of these series make
 ! a Taylor map). Note: This routine does not zero the structure. The calling
@@ -409,33 +488,52 @@ end subroutine
 !   bmad_taylor -- Taylor_struct: Old structure.
 !   n_term      -- Integer: Number of terms to allocate. 
 !                   0 => %term pointer will be disassociated.
+!   save        -- Logical, optional: If True then save any old terms when
+!                   bmad_taylor is resized. Default is False.
 !
 ! Output:
 !   bmad_taylor -- Taylor_struct: Initalized structure.
 !-
 
-subroutine init_taylor_series (bmad_taylor, n_term)
+subroutine init_taylor_series (bmad_taylor, n_term, save)
 
-  implicit none
+implicit none
 
-  type (taylor_struct) bmad_taylor
-  integer n_term
+type (taylor_struct) bmad_taylor
+type (taylor_term_struct), allocatable :: term(:)
+integer n_term
+integer n
+logical, optional :: save
 
 !
 
-  if (n_term == 0) then
-    if (associated (bmad_taylor%term)) deallocate (bmad_taylor%term)
-    return
-  endif
+if (n_term == 0) then
+  if (associated (bmad_taylor%term)) deallocate (bmad_taylor%term)
+  return
+endif
 
-  if (associated (bmad_taylor%term)) then
-    if (size(bmad_taylor%term) /= n_term) then
-      deallocate (bmad_taylor%term)
-      allocate (bmad_taylor%term(n_term))
-    endif
-  else
-    allocate (bmad_taylor%term(n_term))
-  endif
+if (.not. associated (bmad_taylor%term)) then
+  allocate (bmad_taylor%term(n_term))
+  return
+endif
+
+if (size(bmad_taylor%term) == n_term) return
+
+!
+
+if (logic_option (.false., save)) then
+  n = min (n_term, size(bmad_taylor%term))
+  allocate (term(n))
+  term = bmad_taylor%term(1:n)
+  deallocate (bmad_taylor%term)
+  allocate (bmad_taylor%term(n_term))
+  bmad_taylor%term(1:n) = term
+  deallocate (term)
+
+else
+  deallocate (bmad_taylor%term)
+  allocate (bmad_taylor%term(n_term))
+endif
 
 end subroutine
 
@@ -460,17 +558,17 @@ end subroutine
 
 subroutine kill_taylor (bmad_taylor)
 
-  implicit none
+implicit none
 
-  type (taylor_struct) bmad_taylor(:)
+type (taylor_struct) bmad_taylor(:)
 
-  integer i
+integer i
 
 !
 
-  do i = 1, size(bmad_taylor)
-    if (associated(bmad_taylor(i)%term)) deallocate (bmad_taylor(i)%term)
-  enddo
+do i = 1, size(bmad_taylor)
+  if (associated(bmad_taylor(i)%term)) deallocate (bmad_taylor(i)%term)
+enddo
 
 end subroutine
 
@@ -504,41 +602,41 @@ end subroutine
 
 subroutine sort_taylor_terms (taylor_in, taylor_sorted)
 
-  use nr
+use nr
 
-  implicit none
+implicit none
 
-  type (taylor_struct), intent(in)  :: taylor_in
-  type (taylor_struct) :: taylor_sorted
-  type (taylor_term_struct), allocatable :: tt(:)
-  
-  integer, allocatable :: ord(:), ix(:)
+type (taylor_struct), intent(in)  :: taylor_in
+type (taylor_struct) :: taylor_sorted
+type (taylor_term_struct), allocatable :: tt(:)
 
-  integer i, n, expn(6)
+integer, allocatable :: ord(:), ix(:)
+
+integer i, n, expn(6)
 
 ! init
 
-  n = size(taylor_in%term)
-  if (associated(taylor_sorted%term)) deallocate(taylor_sorted%term)
-  allocate(taylor_sorted%term(n), ix(n), ord(n), tt(n))
+n = size(taylor_in%term)
+if (associated(taylor_sorted%term)) deallocate(taylor_sorted%term)
+allocate(taylor_sorted%term(n), ix(n), ord(n), tt(n))
 
 !
 
-  tt = taylor_in%term
+tt = taylor_in%term
 
-  do i = 1, n
-    expn = tt(i)%exp
-    ord(i) = sum(expn)*10**6 + expn(6)*10**5 + expn(5)*10**4 + &
-                expn(4)*10**3 + expn(3)*10**2 + expn(2)*10**1 + expn(1)
-  enddo
+do i = 1, n
+  expn = tt(i)%exp
+  ord(i) = sum(expn)*10**6 + expn(6)*10**5 + expn(5)*10**4 + &
+              expn(4)*10**3 + expn(3)*10**2 + expn(2)*10**1 + expn(1)
+enddo
 
-  call indexx (ord, ix)
+call indexx (ord, ix)
 
-  do i = 1, n
-    taylor_sorted%term(i)= tt(ix(i))
-  enddo
+do i = 1, n
+  taylor_sorted%term(i)= tt(ix(i))
+enddo
 
-  deallocate(ord, ix, tt)
+deallocate(ord, ix, tt)
 
 end subroutine
 
@@ -556,76 +654,76 @@ end subroutine
 !
 ! Input:
 !   a_taylor(6) -- Taylor_struct: Taylor map.
-!   r_in        -- Coord_struct: Coordinates at the input. 
+!   r_in(6)     -- Real(rp): Coordinates at the input. 
 !
 ! Output:
 !   vec0(6)   -- Real(rp): 0th order tranfsfer map
 !   mat6(6,6) -- Real(rp): 1st order transfer map (6x6 matrix).
-!   r_out(6)  -- Coord_struct, optional: Coordinates at output.
+!   r_out(6)  -- Real(rp), optional: Coordinates at output.
 !-
 
 subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6, r_out)
 
-  implicit none
+implicit none
 
-  type (taylor_struct), target, intent(in) :: a_taylor(6)
-  real(rp), intent(in) :: r_in(:)
-  real(rp), optional :: r_out(:)
-  type (taylor_term_struct), pointer :: term
+type (taylor_struct), target, intent(in) :: a_taylor(6)
+real(rp), intent(in) :: r_in(:)
+real(rp), optional :: r_out(:)
+type (taylor_term_struct), pointer :: term
 
-  real(rp), intent(out) :: mat6(6,6), vec0(6)
-  real(rp) prod, t(6), t_out, out(6)
+real(rp), intent(out) :: mat6(6,6), vec0(6)
+real(rp) prod, t(6), t_out, out(6)
 
-  integer i, j, k, l
+integer i, j, k, l
 
 ! mat6 calc
 
-  mat6 = 0
-  vec0 = 0
-  out = 0
+mat6 = 0
+vec0 = 0
+out = 0
 
-  do i = 1, 6
+do i = 1, 6
 
-    terms: do k = 1, size(a_taylor(i)%term)
-      term => a_taylor(i)%term(k)
+  terms: do k = 1, size(a_taylor(i)%term)
+    term => a_taylor(i)%term(k)
  
-      t_out = term%coef
+    t_out = term%coef
+    do l = 1, 6
+      if (term%exp(l) == 0) cycle
+      t(l) = r_in(l) ** term%exp(l)
+      t_out = t_out * t(l)
+    enddo
+
+    out(i) = out(i) + t_out
+ 
+    do j = 1, 6
+ 
+      if (term%exp(j) == 0) cycle
+      if (term%exp(j) > 1 .and. r_in(j) == 0) cycle
+
+      if (term%exp(j) > 1)then
+        prod = term%coef * term%exp(j) * r_in(j) ** (term%exp(j)-1)
+      else  ! term%exp(j) == 1
+        prod = term%coef
+      endif
+
       do l = 1, 6
         if (term%exp(l) == 0) cycle
-        t(l) = r_in(l) ** term%exp(l)
-        t_out = t_out * t(l)
+        if (l == j) cycle
+        prod = prod * t(l)
       enddo
 
-      out(i) = out(i) + t_out
- 
-      do j = 1, 6
- 
-        if (term%exp(j) == 0) cycle
-        if (term%exp(j) > 1 .and. r_in(j) == 0) cycle
+      mat6(i,j) = mat6(i,j) + prod
 
-        if (term%exp(j) > 1)then
-          prod = term%coef * term%exp(j) * r_in(j) ** (term%exp(j)-1)
-        else  ! term%exp(j) == 1
-          prod = term%coef
-        endif
+    enddo
 
-        do l = 1, 6
-          if (term%exp(l) == 0) cycle
-          if (l == j) cycle
-          prod = prod * t(l)
-        enddo
+  enddo terms
 
-        mat6(i,j) = mat6(i,j) + prod
+  vec0(i) = out(i) - sum(mat6(i,:) * r_in)
 
-      enddo
+enddo
 
-    enddo terms
-
-    vec0(i) = out(i) - sum(mat6(i,:) * r_in)
-
-  enddo
-
-  if (present(r_out)) r_out = out
+if (present(r_out)) r_out = out
 
 end subroutine
 
@@ -651,41 +749,41 @@ end subroutine
 
 subroutine mat6_to_taylor (vec0, mat6, bmad_taylor)
 
-  implicit none
+implicit none
 
-  type (taylor_struct) bmad_taylor(6)
+type (taylor_struct) bmad_taylor(6)
 
-  real(rp), intent(in) :: mat6(6,6)
-  real(rp), intent(in) :: vec0(6)
+real(rp), intent(in) :: mat6(6,6)
+real(rp), intent(in) :: vec0(6)
 
-  integer i, j, n
+integer i, j, n
 !
 
-  call kill_taylor(bmad_taylor)
+call kill_taylor(bmad_taylor)
 
-  do i = 1, 6
-    n = count(mat6(i,1:6) /= 0)
-    if (vec0(i) /= 0) n = n + 1
-    allocate (bmad_taylor(i)%term(n))
+do i = 1, 6
+  n = count(mat6(i,1:6) /= 0)
+  if (vec0(i) /= 0) n = n + 1
+  allocate (bmad_taylor(i)%term(n))
 
-    n = 0
+  n = 0
 
-    if (vec0(i) /= 0) then
+  if (vec0(i) /= 0) then
+    n = n + 1
+    bmad_taylor(i)%term(1)%coef = vec0(i)
+    bmad_taylor(i)%term(1)%exp = 0
+  endif
+
+  do j = 1, 6
+    if (mat6(i,j) /= 0) then
       n = n + 1
-      bmad_taylor(i)%term(1)%coef = vec0(i)
-      bmad_taylor(i)%term(1)%exp = 0
+      bmad_taylor(i)%term(n)%coef = mat6(i,j)
+      bmad_taylor(i)%term(n)%exp = 0
+      bmad_taylor(i)%term(n)%exp(j) = 1
     endif
-
-    do j = 1, 6
-      if (mat6(i,j) /= 0) then
-        n = n + 1
-        bmad_taylor(i)%term(n)%coef = mat6(i,j)
-        bmad_taylor(i)%term(n)%exp = 0
-        bmad_taylor(i)%term(n)%exp(j) = 1
-      endif
-    enddo
-
   enddo
+
+enddo
 
 end subroutine
 
@@ -710,65 +808,65 @@ end subroutine
 
 subroutine track_taylor (start, bmad_taylor, end)
 
-  implicit none
-  
-  type (taylor_struct), intent(in) :: bmad_taylor(:)
+implicit none
 
-  real(rp), intent(in) :: start(:)
-  real(rp), intent(out) :: end(:)
-  real(rp) s0(6)
-  real(rp) delta
-  real(rp), allocatable, save :: expn(:, :)
+type (taylor_struct), intent(in) :: bmad_taylor(:)
 
-  integer i, j, k, ie, e_max, i_max
-  
+real(rp), intent(in) :: start(:)
+real(rp), intent(out) :: end(:)
+real(rp) s0(6)
+real(rp) delta
+real(rp), allocatable, save :: expn(:, :)
+
+integer i, j, k, ie, e_max, i_max
+
 ! size cash matrix
 
-  e_max = 0
-  i_max = size(bmad_taylor)
+e_max = 0
+i_max = size(bmad_taylor)
 
-  do i = 1, i_max
-    do j = 1, size(bmad_taylor(i)%term)
-      e_max = max (e_max, maxval(bmad_taylor(i)%term(j)%exp)) 
-    enddo
+do i = 1, i_max
+  do j = 1, size(bmad_taylor(i)%term)
+    e_max = max (e_max, maxval(bmad_taylor(i)%term(j)%exp)) 
   enddo
+enddo
 
-  if (.not. allocated(expn)) then
+if (.not. allocated(expn)) then
+  allocate (expn(i_max, e_max))
+else
+  if (ubound(expn, 2) < e_max) then
+    deallocate (expn)
     allocate (expn(i_max, e_max))
-  else
-    if (ubound(expn, 2) < e_max) then
-      deallocate (expn)
-      allocate (expn(i_max, e_max))
-    endif
   endif
+endif
 
 ! fill cash matrix
 
-  expn = 0
-  do i = 1, i_max
-    do j = 1, e_max
-      if (start(i) == 0) cycle
-      expn(i, j) = start(i) ** j
-    enddo
+expn = 0
+do i = 1, i_max
+  do j = 1, e_max
+    if (start(i) == 0) cycle
+    expn(i, j) = start(i) ** j
   enddo
+enddo
 
 ! compute taylor map
 
-  s0 = start  ! in case start and end are the same in memory.
-  end = 0
+s0 = start  ! in case start and end are the same in memory.
+end = 0
 
-  do i = 1, i_max
-    j_loop: do j = 1, size(bmad_taylor(i)%term)
-      delta =  bmad_taylor(i)%term(j)%coef
-      do k = 1, 6
-        ie = bmad_taylor(i)%term(j)%exp(k) 
-        if (ie == 0) cycle
-        if (s0(k) == 0) cycle j_loop  ! delta = 0 in this case 
-        delta = delta * expn(k, ie)
-      enddo
-      end(i) = end(i) + delta
-    enddo j_loop
-  enddo
+do i = 1, i_max
+  j_loop: do j = 1, size(bmad_taylor(i)%term)
+    delta =  bmad_taylor(i)%term(j)%coef
+    do k = 1, 6
+      ie = bmad_taylor(i)%term(j)%exp(k) 
+      if (ie == 0) cycle
+      if (s0(k) == 0) cycle j_loop  ! delta = 0 in this case 
+      delta = delta * expn(k, ie)
+    enddo
+    end(i) = end(i) + delta
+  enddo j_loop
+enddo
 
 end subroutine
 
@@ -829,4 +927,5 @@ do i = 1, size(taylor_in)
 enddo
 
 end subroutine truncate_taylor_to_order
+
 end module

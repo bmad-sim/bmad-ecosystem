@@ -84,7 +84,8 @@ logical detected_expand_lattice_cmd, multipass, write_digested
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
 
-bp_com%parser_name = 'BMAD_PARSER'  ! Used for error messages.
+bp_com%error_flag = .false.              ! set to true on an error
+bp_com%parser_name = 'BMAD_PARSER'       ! Used for error messages.
 write_digested = .true.
 debug_line = ''
 
@@ -104,6 +105,7 @@ if (bmad_status%ok) then
   call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
   if (lat%input_taylor_order == bmad_com%taylor_order) then
     if (present(digested_read_ok)) digested_read_ok = .true.
+    call parser_end_stuff ()
     return
   else
     if (bmad_status%type_out) then
@@ -112,8 +114,7 @@ if (bmad_status%ok) then
            'Taylor_order now:              \i4\ ', &
            i_array = (/ lat%input_taylor_order, bmad_com%taylor_order /) )
     endif
-    if (lat%input_taylor_order > bmad_com%taylor_order) &
-                                         write_digested = .false.
+    if (lat%input_taylor_order > bmad_com%taylor_order) write_digested = .false.
   endif
 endif
 
@@ -135,7 +136,6 @@ bmad_status%ok = .true.
 if (bmad_status%type_out) &
      call out_io (s_info$, r_name, 'Creating new digested file...')
 
-bp_com%error_flag = .false.                 ! set to true on an error
 call file_stack('init')
 call file_stack('push', lat_file, finished, err)  ! open file on stack
 if (err) return
@@ -897,6 +897,8 @@ write_digested = write_digested .and. digested_version <= bmad_inc_version$
 if (write_digested) call write_digested_bmad_file (digested_file, &
                               lat, bp_com%num_lat_files, bp_com%lat_file_names)
 
+call parser_end_stuff
+
 !---------------------------------------------------------------------
 contains
 
@@ -909,6 +911,24 @@ if (bp_com%error_flag) then
   endif
   bmad_status%ok = .false.
 endif
+
+! Check wiggler for integer number of periods
+
+do i = 1, lat%n_ele_max
+  ele => lat%ele(i)
+  if (ele%key /= wiggler$) cycle
+  if (ele%sub_key /= periodic_type$) cycle
+  if (ele%control_type == super_slave$) cycle
+  if (abs(mod(ele%value(n_pole$) / 2, 1.0_rp)) > 0.01) then
+    call out_io (s_warn$, r_name, (/ &
+          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
+          '!!!!! WARNING! WIGGLER: ' // ele%name, &
+          '!!!!! DOES NOT HAVE AN EVEN NUMBER OF POLES!                ', &
+          '!!!!! THIS WILL BE PROBLEMATIC IF YOU ARE USING TAYLOR MAPS!', &
+          '!!!!! SEE THE BMAD MANUAL FOR MORE DETAILS!                 ', &
+          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' /) )
+  endif
+enddo
 
 end subroutine
 

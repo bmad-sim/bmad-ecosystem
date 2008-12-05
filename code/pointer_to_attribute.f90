@@ -24,7 +24,7 @@
 !   ptr_attrib -- Real(rp), pointer: Pointer to the attribute.
 !                     Pointer will be deassociated if there is a problem.
 !   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
-!   ix_attrib  -- Ineger, optional: If applicable then this is the index to the 
+!   ix_attrib  -- Integer, optional: If applicable then this is the index to the 
 !                     attribute in the ele%value(:) array.
 !-
 
