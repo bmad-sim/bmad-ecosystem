@@ -7,9 +7,7 @@ use tao_dmerit_mod
 use tao_top10_mod
 use tao_var_mod
 use input_mod
-
-use nrtype; use nrutil, only : assert_eq,diagmult
-use nr, only : covsrt,gaussj
+use super_recipes_mod
 
 contains
 
@@ -39,14 +37,15 @@ type (tao_universe_struct), pointer :: u
 real(rp), allocatable, save :: y(:), weight(:), a(:)
 real(rp), allocatable, save :: y_fit(:)
 real(rp), allocatable, save :: dy_da(:, :)
-real(rp), allocatable, save :: var_value(:), var_weight(:), var_meas_value(:)
+real(rp), allocatable, save :: var_value(:), var_weight(:)
 real(rp) a_lambda, chi_sq, merit0
 
-integer i, j, k
+integer i, j, k, status, status2
 integer n_data, n_var
+integer, allocatable, save :: var_ix(:)
 
 logical :: finished, init_needed = .true.
-logical limited, limited2, abort
+logical abort
 
 character(20) :: r_name = 'tao_lm_optimizer'
 character(80) line
@@ -59,7 +58,7 @@ abort = .false.
 
 merit0 = tao_merit()
 
-call tao_get_vars (var_value, var_weight = var_weight, var_meas_value = var_meas_value)
+call tao_get_vars (var_value, var_weight = var_weight, var_ix = var_ix)
 n_var = size(var_value)
 
 n_data = n_var
@@ -112,14 +111,25 @@ do i = 1, s%global%n_opti_cycles+1
     call tao_var_write (s%global%var_out_file)
   endif
 
-  call tao_mrqmin (y, weight, a, tao_com%covar, tao_com%alpha, chi_sq, a_lambda, limited) 
-  call tao_mrq_func (a, y_fit, dy_da, limited2)  ! put a -> model
+  call super_mrqmin (y, weight, a, tao_com%covar, tao_com%alpha, chi_sq, &
+                                                       tao_mrq_func, a_lambda, status) 
+  call tao_mrq_func (a, y_fit, dy_da, status2)  ! put a -> model
   write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)
 
-  if (finished .or. limited) return
+  ! Try to find problem variable!
 
-! look for keyboard input to end optimization
+  if (status == -1 .or. status == -2) then  ! gaussj singular error
+    do k = 1, n_var
+      if (all (tao_com%covar(k,:) == 0) .or. all(tao_com%covar(:,k) == 0)) then
+        call out_io (s_error$, r_name, 'Problem variable: ' // tao_var1_name(s%var(var_ix(k))))
+      endif
+    enddo
+  endif
+
+  if (finished .or. status /= 0) return
+
+  ! look for keyboard input to end optimization
 
 #ifndef CESR_WINCVF
   do
@@ -135,7 +145,7 @@ do i = 1, s%global%n_opti_cycles+1
   enddo
 #endif
 
-! reinit the derivative matrix 
+  ! reinit the derivative matrix 
 
   if (s%global%lm_opt_deriv_reinit > 0 .and. a_lambda > s%global%lm_opt_deriv_reinit) then
     call tao_dmodel_dvar_calc (.true.)
@@ -150,11 +160,12 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_mrq_func (a, y_fit, dy_da, limited)
+! Subroutine tao_mrq_func (a, y_fit, dy_da, status)
 ! 
 ! Subroutine to be called by the Numerical Recipes routine mrqmin
+!-
 
-subroutine tao_mrq_func (a, y_fit, dy_da, limited)
+subroutine tao_mrq_func (a, y_fit, dy_da, status)
 
 implicit none
 
@@ -167,8 +178,10 @@ real(rp) merit0
 real(rp), allocatable, save :: var_delta(:)
 
 integer i, j, k, n, nn, im, iv, n_var
+integer status
 
 logical limited
+
 character(80) line
 
 ! transfer "a" array to model
@@ -180,6 +193,7 @@ call tao_set_vars (a)
 call tao_limit_calc (limited)
 
 if (limited) then
+  status = -999
   y_fit = 1e10 
   return
 endif
@@ -217,136 +231,8 @@ do j = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 enddo
 
+status = 0
+
 end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-
-subroutine tao_mrqmin(y,weight,a,covar,alpha,chisq,alamda, limited)
-
-implicit none
-
-real(rp) :: y(:), weight(:)
-real(rp) :: a(:)
-real(rp) :: covar(:,:), alpha(:,:)
-real(rp) :: chisq
-real(rp) :: alamda
-integer(i4b) :: ma,ndata
-integer(i4b), save :: mfit
-logical, allocatable, save :: mask(:)
-logical limited
-
-real(rp), save :: ochisq
-real(rp), dimension(:), allocatable, save :: atry,beta
-real(rp), dimension(:,:), allocatable, save :: da
-
-!
-
-ndata=assert_eq(size(y),size(weight),'mrqmin: ndata')
-ma=assert_eq((/size(a),size(covar,1),size(covar,2), &
-              size(alpha,1),size(alpha,2)/),'mrqmin: ma')
-mfit=size(a)
-
-if (allocated (mask)) then
-  if (size(mask) /= size(a)) deallocate (mask)
-endif
-if (.not. allocated(mask)) then
-  allocate (mask(size(a)))
-  mask = .true.
-endif
-
-if (alamda < 0.0) then
-  allocate(atry(ma),beta(ma),da(ma,1))
-  alamda=0.001_rp
-  call tao_mrqcof(a, y, alpha, beta, weight, chisq, limited)
-  if (limited) then
-    deallocate(atry,beta,da)
-    return
-  endif
-  ochisq=chisq
-  atry=a
-end if
-
-covar(1:mfit,1:mfit)=alpha(1:mfit,1:mfit)
-call diagmult(covar(1:mfit,1:mfit),1.0_rp+alamda)
-da(1:mfit,1)=beta(1:mfit)
-call gaussj(covar(1:mfit,1:mfit),da(1:mfit,1:1))
-
-if (alamda == 0.0) then
-  call covsrt(covar,mask)
-  call covsrt(alpha,mask)
-  deallocate(atry,beta,da)
-  return
-end if
-
-atry=a+unpack(da(1:mfit,1),mask,0.0_rp)
-call tao_mrqcof(atry, y, covar, da(1:mfit,1), weight, chisq, limited)
-if (limited) return
-
-if (chisq < ochisq) then
-  if (alamda > 100*tiny(alamda)) alamda=0.1_rp*alamda
-  ochisq=chisq
-  alpha(1:mfit,1:mfit)=covar(1:mfit,1:mfit)
-  beta(1:mfit)=da(1:mfit,1)
-  a=atry
-else
-  alamda=10.0_rp*alamda
-  chisq=ochisq
-end if
-
-end subroutine tao_mrqmin
-
-!-----------------------------------------------------------
-
-subroutine tao_mrqcof(a, y, alpha, beta, weight, chisq, limited)
-
-implicit none
-
-real(rp) :: y(:), a(:), weight(:)
-real(rp) :: beta(:)
-real(rp) :: alpha(:,:)
-real(rp) chisq
-integer(i4b) :: j,k,l,m, nv, nd
-real(rp), allocatable, save :: dyda(:,:)
-real(rp), allocatable, save :: dy(:),wt(:),ymod(:)
-logical limited
-
-!
-
-nd = size(weight)
-nv = size(a)
-
-if (allocated(dyda)) then
-  if (size(dyda, 1) /= nd .or. size(dyda, 2) /= nv) &
-                                        deallocate (dyda, dy, wt, ymod)
-endif
-if (.not. allocated(dyda)) then
-  allocate (dyda(nd,nv), dy(nd),wt(nd),ymod(nd))
-endif
-
-!
-
-call tao_mrq_func(a, ymod, dyda, limited)
-if (limited) return
-
-dy=y-ymod
-j=0
-
-do l=1,nv
-  j=j+1
-  wt=dyda(:,l) * weight
-  k=0
-  do m=1,l
-    k=k+1
-    alpha(j,k)=dot_product(wt,dyda(:,m))
-    alpha(k,j)=alpha(j,k)
-  end do
-  beta(j)=dot_product(dy,wt)
-end do
-
-chisq = dot_product(dy**2,weight)
-
-end subroutine tao_mrqcof
 
 end module

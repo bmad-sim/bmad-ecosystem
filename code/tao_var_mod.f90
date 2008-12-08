@@ -8,11 +8,10 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_get_vars (var_value, var_step, var_delta, var_weight, &
-!                          var_meas_value, var_ix_dVar)
+! Subroutine tao_get_vars (var_value, var_step, var_delta, var_weight, var_ix)
 !
 ! Subroutine to get the values of the variables used in optimization and put them
-! in an array. It is important that the variables in different universes be the same.
+! in an array.
 !
 ! Input:
 ! 
@@ -21,17 +20,16 @@ contains
 !   var_step(:)        -- Real, allocatable, optional: Variable step sizes.
 !   var_delta(:)       -- Real, allocatable, optional: Variable Merit deltas.
 !   var_weight(:)      -- Real, allocatable, optional: Variable weights in the merit function.
-!   var_meas_value(:)  -- Real, allocatable, optional: Variable values when the data was taken.
-!   var_ix_dVar(:)     -- Real, allocatable, optional: Variable ix_dVar indices
+!   var_ix(:)          -- Integer, allocatable, optional: Variable s%var(:) indexes
 !-
 
-subroutine tao_get_vars (var_value, var_step, var_delta, var_weight, &
-                         var_meas_value, var_ix_dVar)
+subroutine tao_get_vars (var_value, var_step, var_delta, var_weight, var_ix)
 
 implicit none
 
-real(rp), allocatable, optional :: var_value(:), var_meas_value(:), var_delta(:)
-real(rp), allocatable, optional :: var_step(:), var_weight(:), var_ix_dVar(:)
+real(rp), allocatable, optional :: var_value(:), var_delta(:)
+real(rp), allocatable, optional :: var_step(:), var_weight(:)
+integer, allocatable, optional :: var_ix(:)
 
 integer i, j
 integer n_var
@@ -39,23 +37,21 @@ integer n_var
 ! 
 
   n_var  = count(s%var(:)%useit_opt)
-  if (present(var_value))      call re_allocate (var_value, n_var)
-  if (present(var_delta))      call re_allocate (var_delta, n_var)
-  if (present(var_step))       call re_allocate (var_step, n_var)
-  if (present(var_meas_value)) call re_allocate (var_meas_value, n_var)
-  if (present(var_weight))     call re_allocate (var_weight, n_var)
-  if (present(var_ix_dVar))    call re_allocate (var_ix_dVar, n_var)
+  if (present(var_value))   call re_allocate (var_value, n_var)
+  if (present(var_delta))   call re_allocate (var_delta, n_var)
+  if (present(var_step))    call re_allocate (var_step, n_var)
+  if (present(var_weight))  call re_allocate (var_weight, n_var)
+  if (present(var_ix))      call re_allocate (var_ix, n_var)
 
   j = 0
   do i = 1, size(s%var)
     if (.not. s%var(i)%useit_opt) cycle
     j = j + 1
-    if (present(var_value))        var_value(j)      = s%var(i)%model_value
-    if (present(var_delta))        var_delta(j)      = s%var(i)%delta_merit
-    if (present(var_step))         var_step(j)       = s%var(i)%step
-    if (present(var_weight))       var_weight(j)     = s%var(i)%weight
-    if (present(var_meas_value))   var_meas_value(j) = s%var(i)%meas_value
-    if (present(var_ix_dVar))      var_ix_dVar(j)    = s%var(i)%ix_dVar
+    if (present(var_value))        var_value(j)   = s%var(i)%model_value
+    if (present(var_delta))        var_delta(j)   = s%var(i)%delta_merit
+    if (present(var_step))         var_step(j)    = s%var(i)%step
+    if (present(var_weight))       var_weight(j)  = s%var(i)%weight
+    if (present(var_ix))           var_ix(j)      = i
   enddo
 
 
