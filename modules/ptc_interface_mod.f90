@@ -1028,12 +1028,12 @@ end subroutine
 !   use ptc_interface_mod
 !
 ! Input:
-!   y(:)       -- Real_8: 
+!   y(6)       -- Real_8: 
 !   set_taylor -- Logical, optional :: If present and True then make
 !                   y the identity taylor series (kind = 2).
 !
 ! Output:
-!   y(:) -- Real_8:
+!   y(6) -- Real_8: Identity map.
 !-
 
 subroutine real_8_init (y, set_taylor)
@@ -1341,21 +1341,24 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_inverse (taylor_in, taylor_inv)
+! Subroutine taylor_inverse (taylor_in, taylor_inv, ref_pt)
 !
-! Subroutine to invert a taylor map.
+! Subroutine to invert a taylor map. Since the inverse map is truncated, it
+! is not exact and the reference point about which it is computed matters.
 !
 ! Moudules needed:
 !   use ptc_interface_mod
 !
 ! Input:
 !   taylor_in(6)  -- Taylor_struct: Input taylor map.
+!   ref_pt(6)     -- Real(rp), optional: Reference point about which the 
+!                     inverse is taken. Default is zero.
 !
 ! Output:
 !   taylor_inv(6) -- Taylor_struct: Inverted taylor map.
 !-
 
-subroutine taylor_inverse (taylor_in, taylor_inv)
+subroutine taylor_inverse (taylor_in, taylor_inv, ref_pt)
 
 use s_fitting, only: assignment(=), alloc, kill, operator(**), damap
 
@@ -1363,53 +1366,80 @@ implicit none
 
 type (taylor_struct) :: taylor_in(:)
 type (taylor_struct) :: taylor_inv(:)
-type (taylor_struct) tlr(6)
+type (taylor_struct) tlr(6), tlr2(6)
 type (real_8) y(6), yc(6)
 type (damap) da
 
+real(rp), optional :: ref_pt(:)
 real(rp) c0(6)
-real(dp) c8(6)
 
-! set the taylor order in PTC if not already done so
+integer i, expn(6)
+
+real(dp) c8(6), c_ref(6)
+
+! Set the taylor order in PTC if not already done so.
 
 if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
                        call set_ptc (taylor_order = bmad_com%taylor_order)
 
-! The inverse operation of PTC ignores constant terms so we have to take
-! them out and then put them back in.
-
-call remove_constant_taylor (taylor_in, tlr, c0, .true.)
-
 call alloc(da)
 call alloc(y)
 
-! compute inverse
+! If ref_pt is present then shift the map to the new reference point.
+! Also the inverse operation of PTC ignores constant terms so we have 
+! to take them out and then put them back in.
+
+if (present(ref_pt)) then
+  y = taylor_in
+  call real_8_init(yc)
+  call vec_bmad_to_ptc (ref_pt, c_ref)
+  yc = c_ref
+  call concat_real_8 (yc, y, y)
+  tlr2 = y
+  call kill (yc)
+  call kill (y)
+  call remove_constant_taylor (tlr2, tlr, c0, .true.)
+  call kill_taylor (tlr2)
+else
+  call remove_constant_taylor (taylor_in, tlr, c0, .true.)
+endif
+
+! Compute inverse.
 
 y = tlr
 da = y
 da = da**(-1)
 y = da
 
-! put constant terms back in.
+! Put constant terms back in.
 ! If the Map is written as:
 !   R_out = T * R_in + C
 ! Then inverting:
-!   R_in = T_inv * (R_out - C)
+!   R_in = T_inv * (R_out - C) = T_inv * (I - C) * R_out
 
 if (any(c0 /= 0)) then
   call real_8_init(yc)
-  call vec_bmad_to_ptc (c0, c8) ! Convert constant part to PTC coords
-  c8 = -c8                      ! negate
-  yc = c8                       ! Convert this to PTC taylor map
+  call vec_bmad_to_ptc (c0, c8)  ! Convert constant part to PTC coords
+  yc = -c8                       ! Convert this to taylor map: I - c8
   call concat_real_8 (yc, y, y) 
   call kill (yc)
+  taylor_inv%ref = c0
 endif
 
-! transfer inverse to taylor_inv
+! Transfer inverse to taylor_inv.
 
 taylor_inv = y
 
-! clean up
+! Take out the ref_pt offset if needed
+
+if (present(ref_pt)) then
+  expn = 0
+  do i = 1, 6
+    call add_taylor_term (taylor_inv(i), ref_pt(i), expn)
+  enddo
+endif
+
+! Clean up
 
 call kill (da)
 call kill (y)
@@ -1544,7 +1574,7 @@ param%particle = positron$  ! Actually this does not matter to the calculation
 call ele_to_fibre (ele, fib, param, use_offsets = .true.)
 
 x_dp = 0
-x_ele = x_dp
+x_ele = x_dp  ! x_ele = Identity map 
 
 call dtiltd (1, ele%value(tilt_tot$), 1, x_ele)
 call mis_fib (fib, x_ele, default, .true., entering = .true.)
@@ -1679,7 +1709,6 @@ type (coord_struct) start0, end0, c0
 
 type (fibre), pointer, save :: a_fibre
 type (real_8) y(6), y2(6)
-type (universal_taylor), save :: u_taylor(6)
 
 real(dp) x(6)
 
@@ -1731,32 +1760,23 @@ else
 endif
 
 call real_8_init(y)
-y = x
+y = x   ! y = IdentityMap + x
 call ptc_track (a_fibre, y, default, +1) ! "track" in PTC
 
 ! take out the offset
 
 call real_8_init(y2)
-y2 = -x
+y2 = -x  ! y2 = IdentityMap - x
 call concat_real_8 (y2, y, y)
 
 ! convert to bmad_taylor  
 
-do i = 1, 6
-  u_taylor(i) = 0  ! nullify
-  u_taylor(i) = y(i)%t
-enddo
-
-call universal_to_bmad_taylor (u_taylor, ele%taylor)
+ele%taylor = y
 ele%taylor_order = ptc_com%taylor_order_ptc
 
 call kill(a_fibre)
 call kill(y)
 call kill(y2)
-
-do i = 1, 6
-  u_taylor(i) = -1  ! deallocate
-enddo
 
 if (associated (ele%gen_field)) call kill_gen_field (ele%gen_field)
 

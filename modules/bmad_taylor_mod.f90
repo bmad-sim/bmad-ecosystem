@@ -446,6 +446,7 @@ logical, optional :: replace
 
 ! Search for an existing term of the same type
 
+if (coef == 0) return
 n = size(bmad_taylor%term)
 
 do i = 1, n
