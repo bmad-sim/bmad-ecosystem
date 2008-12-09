@@ -84,189 +84,194 @@
 
 subroutine create_group (lat, ix_lord, contrl, err, err_print_flag)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => create_group
+use bmad_struct
+use bmad_interface, except_dummy => create_group
 
-  implicit none
+implicit none
 
-  type (lat_struct)  lat
-  type (control_struct)  contrl(:)
+type (lat_struct)  lat
+type (control_struct)  contrl(:)
 
-  integer i, ix_lord, ixa, n_control, n_con
-  integer ix1, ix2, ix_min, ix_max, ixe
+integer i, ix_lord, ix_attrib, n_control, n_con
+integer ix1, ix2, ix_min, ix_max, ix_slave
 
-  logical err, free
-  logical, optional :: err_print_flag
+logical err, free
+logical, optional :: err_print_flag
 
-  character(16) :: r_name = 'create_group'
+character(16) :: r_name = 'create_group'
 
 ! init
 
-  call check_controller_controls (contrl, lat%ele(ix_lord)%name, err)
-  if (err) return
+call check_controller_controls (contrl, lat%ele(ix_lord)%name, err)
+if (err) return
 
-  n_control = size(contrl)
-  lat%ele(ix_lord)%control_type = group_lord$
-  lat%ele(ix_lord)%key = group$
-  n_con = lat%n_control_max
-  lat%ele(ix_lord)%ix1_slave = n_con + 1
+n_control = size(contrl)
+lat%ele(ix_lord)%control_type = group_lord$
+lat%ele(ix_lord)%key = group$
+n_con = lat%n_control_max
+lat%ele(ix_lord)%ix1_slave = n_con + 1
 
 ! loop over all controlled elements
 
-  do i = 1, n_control
+do i = 1, n_control
 
-    ! For position control: We need to figure out the elements that
-    ! need to be controlled.
-    ! Find beginning and ending positions of element
-    ! if a super_lord then we must go to the slave elements to find the ends
-    ! else not a super lord so finding the ends is simple
+  ! For position control: We need to figure out the elements that
+  ! need to be controlled.
+  ! Find beginning and ending positions of element
+  ! if a super_lord then we must go to the slave elements to find the ends
+  ! else not a super lord so finding the ends is simple
 
-    ixe = contrl(i)%ix_slave
-    ixa = contrl(i)%ix_attrib
+  ix_slave = contrl(i)%ix_slave
+  ix_attrib = contrl(i)%ix_attrib
 
-    if (ixa == start_edge$ .or. ixa == end_edge$ .or. &
-                                              ixa == accordion_edge$) then
+  if (ix_attrib == start_edge$ .or. ix_attrib == end_edge$ .or. &
+                                            ix_attrib == accordion_edge$) then
 
-      if (lat%ele(ixe)%control_type == super_lord$) then
-        ix_min = lat%control(lat%ele(ixe)%ix1_slave)%ix_slave
-        ix_max = lat%control(lat%ele(ixe)%ix2_slave)%ix_slave
-      elseif (ixe < lat%n_ele_track) then
-        ix_min = ixe
-        ix_max = ixe
-      else
-        call out_io (s_fatal$, r_name, &
-                      'A GROUP IS NOT ALLOWED TO CONTROL', &
-                      'A ' // control_name(lat%ele(ixe)%control_type), &
-                      'YOU TRIED TO CONTROL: ' // lat%ele(ixe)%name)
-        call err_exit
-      endif
-
-      ! now that we have the ends we find the elements to either side whose length
-      ! the group can adjust
-
-      ix1 = ix_min - 1
-      do 
-        if (lat%ele(ix1)%value(l$) == 0) then
-          ix1 = ix1 - 1
-        else
-          exit
-        endif
-      enddo
-
-      ix2 = ix_max + 1 
-      do
-        if (lat%ele(ix2)%value(l$) == 0) then
-          ix2 = ix2 + 1
-        else
-          exit
-        endif
-      enddo
-
-      if (ixa == start_edge$ .or. ixa == accordion_edge$ .or. &
-                                       ixa == symmetric_edge$) then
-        if (ix1 < 1) then
-          call out_io (s_fatal$, r_name, &
-                        'START_EDGE OF CONTROLED', &
-                        'ELEMENT IS AT BEGINNING OF LAT AND CANNOT BE', &
-                        'VARIED FOR GROUP: ' // lat%ele(ix_lord)%name)
-          call err_exit
-        endif
-      endif
-
-      if (ixa == end_edge$ .or. ixa == accordion_edge$ .or. &
-                                        ixa == symmetric_edge$) then
-        if (ix2 > lat%n_ele_track) then
-          call out_io (s_fatal$, r_name, &
-                        'END_EDGE OF CONTROLED', &
-                        'ELEMENT IS AT END OF LAT AND CANNOT BE', &
-                        'VARIED FOR GROUP: ' // lat%ele(ix_lord)%name)
-          call err_exit
-        endif
-      endif
-
-      ! put in coefficients
-
-      select case (ixa)
-
-      case (start_edge$)
-        call bookit (ix1, 1)
-        call bookit (ix_min, -1)
-
-      case (end_edge$)
-        call bookit (ix_max, 1)
-        call bookit (ix2, -1)
-
-      case (accordion_edge$)
-        call bookit (ix1, -1)
-        if (ix_min == ix_max) then
-          call bookit (ix_min, 2)
-        else
-          call bookit (ix_min, 1)
-          call bookit (ix_max, 1)
-        endif
-        call bookit (ix2, -1)
-
-      case (symmetric_edge$)
-        call bookit (ix1, 1)
-        call bookit (ix2, -1)
-
-      end select
-
-    ! x_limit and y_limit
-
-    elseif (ixa == x_limit$ .or. ixa == y_limit$) then
-
-      if (n_con+2 > size(lat%control)) call reallocate_control (lat, n_con+100)
-      lat%control(n_con+1) = contrl(i)
-      lat%control(n_con+2) = contrl(i)
-      lat%control(n_con+1)%ix_lord = ix_lord
-      lat%control(n_con+2)%ix_lord = ix_lord
-      if (ixa == x_limit$) then
-        lat%control(n_con+1)%ix_attrib = x1_limit$
-        lat%control(n_con+2)%ix_attrib = x2_limit$
-      else
-        lat%control(n_con+1)%ix_attrib = y1_limit$
-        lat%control(n_con+2)%ix_attrib = y2_limit$
-      endif
-      n_con = n_con + 2
-
-    ! x_limit and y_limit
-
-    elseif (ixa == aperture$) then
-
-      if (n_con+4 > size(lat%control)) call reallocate_control (lat, n_con+100)
-      lat%control(n_con+1:n_con+4) = contrl(i)
-      lat%control(n_con+1:n_con+4)%ix_lord = ix_lord
-      lat%control(n_con+1)%ix_attrib = x1_limit$
-      lat%control(n_con+2)%ix_attrib = x2_limit$
-      lat%control(n_con+3)%ix_attrib = y1_limit$
-      lat%control(n_con+4)%ix_attrib = y2_limit$
-      n_con = n_con + 4
-
-    ! For all else without position control the group setup is simple.
-
+    if (lat%ele(ix_slave)%control_type == super_lord$) then
+      ix_min = lat%control(lat%ele(ix_slave)%ix1_slave)%ix_slave
+      ix_max = lat%control(lat%ele(ix_slave)%ix2_slave)%ix_slave
+    elseif (ix_slave < lat%n_ele_track) then
+      ix_min = ix_slave
+      ix_max = ix_slave
     else
-
-      free = attribute_free (contrl(i)%ix_slave, ixa, lat, err_print_flag)
-      if (.not. free) then
-        if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, &
-              'SLAVE ATTRIBUTE NOT FREE TO VARY FOR GROUP LORD: ' // lat%ele(ix_lord)%name)
-        err = .true.
-      endif
-      n_con = n_con + 1
-      if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
-      lat%control(n_con) = contrl(i)
-      lat%control(n_con)%ix_lord = ix_lord
-
+      call out_io (s_fatal$, r_name, &
+                    'A GROUP IS NOT ALLOWED TO CONTROL', &
+                    'A ' // control_name(lat%ele(ix_slave)%control_type), &
+                    'YOU TRIED TO CONTROL: ' // lat%ele(ix_slave)%name)
+      call err_exit
     endif
 
-  enddo
+    ! now that we have the ends we find the elements to either side whose length
+    ! the group can adjust
+
+    ix1 = ix_min - 1
+    do 
+      if (lat%ele(ix1)%value(l$) == 0) then
+        ix1 = ix1 - 1
+      else
+        exit
+      endif
+    enddo
+
+    ix2 = ix_max + 1 
+    do
+      if (lat%ele(ix2)%value(l$) == 0) then
+        ix2 = ix2 + 1
+      else
+        exit
+      endif
+    enddo
+
+    if (ix_attrib == start_edge$ .or. ix_attrib == accordion_edge$ .or. &
+                                     ix_attrib == symmetric_edge$) then
+      if (ix1 < 1) then
+        call out_io (s_fatal$, r_name, &
+                      'START_EDGE OF CONTROLED', &
+                      'ELEMENT IS AT BEGINNING OF LAT AND CANNOT BE', &
+                      'VARIED FOR GROUP: ' // lat%ele(ix_lord)%name)
+        call err_exit
+      endif
+    endif
+
+    if (ix_attrib == end_edge$ .or. ix_attrib == accordion_edge$ .or. &
+                                      ix_attrib == symmetric_edge$) then
+      if (ix2 > lat%n_ele_track) then
+        call out_io (s_fatal$, r_name, &
+                      'END_EDGE OF CONTROLED', &
+                      'ELEMENT IS AT END OF LAT AND CANNOT BE', &
+                      'VARIED FOR GROUP: ' // lat%ele(ix_lord)%name)
+        call err_exit
+      endif
+    endif
+
+    ! put in coefficients
+
+    select case (ix_attrib)
+
+    case (start_edge$)
+      call bookit (ix1, 1)
+      call bookit (ix_min, -1)
+
+    case (end_edge$)
+      call bookit (ix_max, 1)
+      call bookit (ix2, -1)
+
+    case (accordion_edge$)
+      call bookit (ix1, -1)
+      if (ix_min == ix_max) then
+        call bookit (ix_min, 2)
+      else
+        call bookit (ix_min, 1)
+        call bookit (ix_max, 1)
+      endif
+      call bookit (ix2, -1)
+
+    case (symmetric_edge$)
+      call bookit (ix1, 1)
+      call bookit (ix2, -1)
+
+    end select
+
+  ! x_limit and y_limit
+
+  elseif (ix_attrib == x_limit$ .or. ix_attrib == y_limit$) then
+
+    if (n_con+2 > size(lat%control)) call reallocate_control (lat, n_con+100)
+    lat%control(n_con+1) = contrl(i)
+    lat%control(n_con+2) = contrl(i)
+    lat%control(n_con+1)%ix_lord = ix_lord
+    lat%control(n_con+2)%ix_lord = ix_lord
+    if (ix_attrib == x_limit$) then
+      lat%control(n_con+1)%ix_attrib = x1_limit$
+      lat%control(n_con+2)%ix_attrib = x2_limit$
+    else
+      lat%control(n_con+1)%ix_attrib = y1_limit$
+      lat%control(n_con+2)%ix_attrib = y2_limit$
+    endif
+    n_con = n_con + 2
+
+  ! x_limit and y_limit
+
+  elseif (ix_attrib == aperture$) then
+
+    if (n_con+4 > size(lat%control)) call reallocate_control (lat, n_con+100)
+    lat%control(n_con+1:n_con+4) = contrl(i)
+    lat%control(n_con+1:n_con+4)%ix_lord = ix_lord
+    lat%control(n_con+1)%ix_attrib = x1_limit$
+    lat%control(n_con+2)%ix_attrib = x2_limit$
+    lat%control(n_con+3)%ix_attrib = y1_limit$
+    lat%control(n_con+4)%ix_attrib = y2_limit$
+    n_con = n_con + 4
+
+  ! For all else without position control the group setup is simple.
+
+  else
+
+    ! If the slave attribute is a multipole component, make sure it exists.
+    if (ix_attrib > n_attrib_maxx .and. .not. associated (lat%ele(ix_slave)%a_pole)) then
+      call multipole_init(lat%ele(ix_slave))
+    endif
+
+    free = attribute_free (ix_slave, ix_attrib, lat, err_print_flag)
+    if (.not. free) then
+      if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, &
+            'SLAVE ATTRIBUTE NOT FREE TO VARY FOR GROUP LORD: ' // lat%ele(ix_lord)%name)
+      err = .true.
+    endif
+    n_con = n_con + 1
+    if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
+    lat%control(n_con) = contrl(i)
+    lat%control(n_con)%ix_lord = ix_lord
+
+  endif
+
+enddo
 
 ! final bookkeping
 
-  lat%ele(ix_lord)%ix2_slave = n_con
-  lat%ele(ix_lord)%n_slave = n_con - lat%ele(ix_lord)%ix1_slave + 1
-  lat%n_control_max = n_con
+lat%ele(ix_lord)%ix2_slave = n_con
+lat%ele(ix_lord)%n_slave = n_con - lat%ele(ix_lord)%ix1_slave + 1
+lat%n_control_max = n_con
 
 !---------------------------------------------------------------------------
 
@@ -274,14 +279,14 @@ contains
 
 subroutine bookit (i_ele, scale)
 
-  integer scale, i_ele
+integer scale, i_ele
 
-  n_con = n_con + 1
-  if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
-  lat%control(n_con)%ix_lord = ix_lord
-  lat%control(n_con)%ix_slave = i_ele
-  lat%control(n_con)%ix_attrib = l$
-  lat%control(n_con)%coef = scale * contrl(i)%coef
+n_con = n_con + 1
+if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
+lat%control(n_con)%ix_lord = ix_lord
+lat%control(n_con)%ix_slave = i_ele
+lat%control(n_con)%ix_attrib = l$
+lat%control(n_con)%coef = scale * contrl(i)%coef
 
 end subroutine
 

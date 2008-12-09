@@ -317,7 +317,9 @@ if (logic_option(present(lattice), type_control)) then
     call err_exit
   endif
 
-  nl=nl+1; write (li(nl), *) ' '
+  if (li(nl) /= '') then
+    nl=nl+1; write (li(nl), *) ' '
+  endif
 
   if (con_type <= 0) then
     nl=nl+1; write (li(nl), *) 'Control_type: UNKNOWN!', con_type

@@ -46,123 +46,123 @@
 
 subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_flag)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => create_overlay
-  use bookkeeper_mod, only: control_bookkeeper
+use bmad_struct
+use bmad_interface, except_dummy => create_overlay
+use bookkeeper_mod, only: control_bookkeeper
 
-  implicit none
+implicit none
 
-  type (lat_struct), target :: lat
-  type (ele_struct), pointer :: slave, lord
-  type (control_struct)  contl(:)
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: slave, lord
+type (control_struct)  contl(:)
 
-  integer i, j, nc0, ixc, ix_overlay, nc2
-  integer ix_slave, n_slave, ix_attrib, slave_type
+integer i, j, nc0, ixc, ix_overlay, nc2
+integer ix_slave, n_slave, ix_attrib, slave_type
 
-  character(*) attrib_name
-  character(40) at_name
+character(*) attrib_name
+character(40) at_name
 
-  logical err, free
-  logical, optional :: err_print_flag
+logical err, free
+logical, optional :: err_print_flag
 
 ! Mark element as an overlay lord
 
-  call check_controller_controls (contl, lat%ele(ix_overlay)%name, err)
-  if (err) return
+call check_controller_controls (contl, lat%ele(ix_overlay)%name, err)
+if (err) return
 
-  lord => lat%ele(ix_overlay)
-  n_slave = size (contl)
+lord => lat%ele(ix_overlay)
+n_slave = size (contl)
 
-  nc0 = lat%n_control_max
-  nc2 = nc0
+nc0 = lat%n_control_max
+nc2 = nc0
 
-  do j = 1, n_slave
-    ix_attrib = contl(j)%ix_attrib
-    ix_slave = contl(j)%ix_slave
-    if (nc2+4 > size(lat%control)) call reallocate_control (lat, nc2+100)
+do j = 1, n_slave
+  ix_attrib = contl(j)%ix_attrib
+  ix_slave = contl(j)%ix_slave
+  if (nc2+4 > size(lat%control)) call reallocate_control (lat, nc2+100)
 
-    if (ix_attrib == x_limit$) then
-      lat%control(nc2+1:nc2+2) = contl(j)
-      lat%control(nc2+1:nc2+2)%ix_lord = ix_overlay
-      lat%control(nc2+1)%ix_attrib = x1_limit$
-      lat%control(nc2+2)%ix_attrib = x2_limit$
-    elseif (ix_attrib == y_limit$) then
-      lat%control(nc2+1:nc2+2) = contl(j)
-      lat%control(nc2+1:nc2+2)%ix_lord = ix_overlay
-      lat%control(nc2+1)%ix_attrib = y1_limit$
-      lat%control(nc2+2)%ix_attrib = y2_limit$
-    elseif (ix_attrib == aperture$) then
-      lat%control(nc2+1:nc2+4) = contl(j)
-      lat%control(nc2+1:nc2+4)%ix_lord = ix_overlay
-      lat%control(nc2+1)%ix_attrib = x1_limit$
-      lat%control(nc2+2)%ix_attrib = x2_limit$
-      lat%control(nc2+3)%ix_attrib = y1_limit$
-      lat%control(nc2+4)%ix_attrib = y2_limit$
-      nc2 = nc2 + 4
-    else
-      ! If the slave attribute is a multipole component, make sure it exists.
-      if (ix_attrib > n_attrib_maxx .and. .not. associated (lat%ele(ix_slave)%a_pole)) then
-        call multipole_init(lat%ele(ix_slave))
-      endif
-      free = attribute_free (ix_slave, ix_attrib, lat, err_print_flag, .true.)
-      err = err .or. .not. free
-      lat%control(nc2+1) = contl(j)
-      lat%control(nc2+1)%ix_lord = ix_overlay
-      nc2 = nc2 + 1
+  if (ix_attrib == x_limit$) then
+    lat%control(nc2+1:nc2+2) = contl(j)
+    lat%control(nc2+1:nc2+2)%ix_lord = ix_overlay
+    lat%control(nc2+1)%ix_attrib = x1_limit$
+    lat%control(nc2+2)%ix_attrib = x2_limit$
+  elseif (ix_attrib == y_limit$) then
+    lat%control(nc2+1:nc2+2) = contl(j)
+    lat%control(nc2+1:nc2+2)%ix_lord = ix_overlay
+    lat%control(nc2+1)%ix_attrib = y1_limit$
+    lat%control(nc2+2)%ix_attrib = y2_limit$
+  elseif (ix_attrib == aperture$) then
+    lat%control(nc2+1:nc2+4) = contl(j)
+    lat%control(nc2+1:nc2+4)%ix_lord = ix_overlay
+    lat%control(nc2+1)%ix_attrib = x1_limit$
+    lat%control(nc2+2)%ix_attrib = x2_limit$
+    lat%control(nc2+3)%ix_attrib = y1_limit$
+    lat%control(nc2+4)%ix_attrib = y2_limit$
+    nc2 = nc2 + 4
+  else
+    ! If the slave attribute is a multipole component, make sure it exists.
+    if (ix_attrib > n_attrib_maxx .and. .not. associated (lat%ele(ix_slave)%a_pole)) then
+      call multipole_init(lat%ele(ix_slave))
     endif
-  enddo
-
-  lord%n_slave = n_slave
-  lord%ix1_slave = nc0 + 1
-  lord%ix2_slave = nc0 + n_slave
-  lord%control_type = overlay_lord$
-  lord%key = overlay$
-  lat%n_control_max = nc2
-
-  call str_upcase (at_name, attrib_name)
-  ix_attrib =  attribute_index (lord, at_name)
-  if (ix_attrib == 0) then
-    print *, 'ERROR IN CREATE_OVERLAY: BAD ATTRIBUTE_NAME: ', attrib_name
-    print *, '      TRYING TO CREATE OVERLAY: ', lord%name
-    call err_exit
+    free = attribute_free (ix_slave, ix_attrib, lat, err_print_flag, .true.)
+    err = err .or. .not. free
+    lat%control(nc2+1) = contl(j)
+    lat%control(nc2+1)%ix_lord = ix_overlay
+    nc2 = nc2 + 1
   endif
-  lord%attribute_name = at_name
-  lord%ix_value = ix_attrib
+enddo
+
+lord%n_slave = n_slave
+lord%ix1_slave = nc0 + 1
+lord%ix2_slave = nc0 + n_slave
+lord%control_type = overlay_lord$
+lord%key = overlay$
+lat%n_control_max = nc2
+
+call str_upcase (at_name, attrib_name)
+ix_attrib =  attribute_index (lord, at_name)
+if (ix_attrib == 0) then
+  print *, 'ERROR IN CREATE_OVERLAY: BAD ATTRIBUTE_NAME: ', attrib_name
+  print *, '      TRYING TO CREATE OVERLAY: ', lord%name
+  call err_exit
+endif
+lord%attribute_name = at_name
+lord%ix_value = ix_attrib
 
 ! Loop over all slaves
 ! Free elements convert to overlay slaves.
 
-  do i = lord%ix1_slave, lord%ix2_slave
+do i = lord%ix1_slave, lord%ix2_slave
 
-    ix_slave = lat%control(i)%ix_slave
-    if (ix_slave <= 0) then
-      print *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
-      call err_exit
-    endif
+  ix_slave = lat%control(i)%ix_slave
+  if (ix_slave <= 0) then
+    print *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
+    call err_exit
+  endif
 
-    slave => lat%ele(ix_slave)
-    slave_type = slave%control_type
+  slave => lat%ele(ix_slave)
+  slave_type = slave%control_type
 
-    if (slave_type == free$) slave%control_type = overlay_slave$
+  if (slave_type == free$) slave%control_type = overlay_slave$
 
-! You cannot overlay super_slaves 
+  ! You cannot overlay super_slaves 
 
-    if (slave_type == super_slave$) then
-      print *, 'ERROR IN CREATE_OVERLAY: ILLEGAL OVERLAY ON ', slave%name
-      print *, '      BY: ', lord%name
-      call err_exit
-    endif
+  if (slave_type == super_slave$) then
+    print *, 'ERROR IN CREATE_OVERLAY: ILLEGAL OVERLAY ON ', slave%name
+    print *, '      BY: ', lord%name
+    call err_exit
+  endif
 
-! update controller info for the slave ele
+  ! update controller info for the slave ele
 
-    slave%n_lord = slave%n_lord + 1
-    call add_lattice_control_structs (lat, ix_slave)
-    ixc = slave%ic2_lord
-    lat%ic(ixc) = i
+  slave%n_lord = slave%n_lord + 1
+  call add_lattice_control_structs (lat, ix_slave)
+  ixc = slave%ic2_lord
+  lat%ic(ixc) = i
 
-  enddo
+enddo
 
-  call control_bookkeeper (lat, ix_overlay)
+call control_bookkeeper (lat, ix_overlay)
 
 end subroutine
 

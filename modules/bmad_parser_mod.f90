@@ -3366,7 +3366,7 @@ main_loop: do n = 1, n2
         ix = attribute_index(lat%ele(k), attrib_name)
         cs(j)%ix_attrib = ix
         if (ix < 1) then
-          call warning ('IN OVERLAY OR SLAVE ELEMENT: ' // lord%name, &
+          call warning ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
                         'ATTRIBUTE: ' // attrib_name, &
                         'IS NOT A VALID ATTRIBUTE OF: ' // lat%ele(k)%name, &
                         pele = plat%ele(ixx))
