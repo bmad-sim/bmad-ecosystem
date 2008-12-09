@@ -487,8 +487,8 @@ integer, parameter :: b20$ = 160, t20$ = 160
 
 integer, parameter :: n_attrib_special_maxx = t20$
 
-character(40), parameter :: null_name = '!NULL' 
-character(40), parameter :: blank_name = ' '
+character(40), parameter :: null_name$ = '!NULL' 
+character(40), parameter :: blank_name$ = ' '
 
 ! electron/positron
 

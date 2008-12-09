@@ -77,18 +77,21 @@ subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_f
   nc2 = nc0
 
   do j = 1, n_slave
+    ix_attrib = contl(j)%ix_attrib
+    ix_slave = contl(j)%ix_slave
     if (nc2+4 > size(lat%control)) call reallocate_control (lat, nc2+100)
-    if (contl(j)%ix_attrib == x_limit$) then
+
+    if (ix_attrib == x_limit$) then
       lat%control(nc2+1:nc2+2) = contl(j)
       lat%control(nc2+1:nc2+2)%ix_lord = ix_overlay
       lat%control(nc2+1)%ix_attrib = x1_limit$
       lat%control(nc2+2)%ix_attrib = x2_limit$
-    elseif (contl(j)%ix_attrib == y_limit$) then
+    elseif (ix_attrib == y_limit$) then
       lat%control(nc2+1:nc2+2) = contl(j)
       lat%control(nc2+1:nc2+2)%ix_lord = ix_overlay
       lat%control(nc2+1)%ix_attrib = y1_limit$
       lat%control(nc2+2)%ix_attrib = y2_limit$
-    elseif (contl(j)%ix_attrib == aperture$) then
+    elseif (ix_attrib == aperture$) then
       lat%control(nc2+1:nc2+4) = contl(j)
       lat%control(nc2+1:nc2+4)%ix_lord = ix_overlay
       lat%control(nc2+1)%ix_attrib = x1_limit$
@@ -97,7 +100,11 @@ subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_f
       lat%control(nc2+4)%ix_attrib = y2_limit$
       nc2 = nc2 + 4
     else
-      free = attribute_free (contl(j)%ix_slave, contl(j)%ix_attrib, lat, err_print_flag, .true.)
+      ! If the slave attribute is a multipole component, make sure it exists.
+      if (ix_attrib > n_attrib_maxx .and. .not. associated (lat%ele(ix_slave)%a_pole)) then
+        call multipole_init(lat%ele(ix_slave))
+      endif
+      free = attribute_free (ix_slave, ix_attrib, lat, err_print_flag, .true.)
       err = err .or. .not. free
       lat%control(nc2+1) = contl(j)
       lat%control(nc2+1)%ix_lord = ix_overlay

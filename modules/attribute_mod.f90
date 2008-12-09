@@ -3,6 +3,9 @@
 module attribute_mod
 
 use bmad_struct
+use basic_bmad_interface
+use multipole_mod
+
 
 character(40), private, save :: attrib_array(n_key, n_attrib_special_maxx)
 character(40), private, save :: short_attrib_array(n_key, n_attrib_special_maxx)
@@ -13,6 +16,100 @@ logical, private, save :: init_needed = .true.
 private init_attribute_name_array
 
 contains
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation,
+!                                      ptr_attrib, err_flag, err_print_flag)
+!
+! Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
+! 
+! Use of this routine is restricted to attributes that have an index. That is,
+! attributes in the ele%value(:) array and ele%a_pole(:), and ele%b_pole(:) values.
+! A more general routine is pointer_to_attribute.
+! Alternatively, consider the routine pointers_to_attribute.
+! Note: Use attribute_free to see if the attribute may be varied independently.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele             -- Ele_struct: After this routine finishes Ptr_attrib 
+!                        will point to a variable within this element.
+!   ix_attrib       -- Integer, Attribute index.
+!   do_allocation   -- Logical: If True then do an allocation if needed.
+!                       EG: The multipole An and Bn arrays need to be allocated
+!                       before their use.
+!   err_print_flag  -- Logical, optional: If present and False then supress
+!                       printing of an error message on error.
+!
+! Output:
+!   ptr_attrib -- Real(rp), pointer: Pointer to the attribute.
+!                     Pointer will be deassociated if there is a problem.
+!   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
+!-
+
+subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, &
+                                        ptr_attrib, err_flag, err_print_flag)
+
+implicit none
+
+type (ele_struct), target :: ele
+
+real(rp), pointer :: ptr_attrib
+
+integer :: ix_attrib
+
+character(40) :: r_name = 'pointer_to_indexed_attribute'
+
+logical err_flag, do_allocation, do_print
+logical, optional :: err_print_flag
+
+! Init
+
+err_flag = .true.
+nullify (ptr_attrib)
+do_print = logic_option (.true., err_print_flag)
+
+! multipole?
+
+if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then   ! multipole attribute
+
+  if (.not. associated(ele%a_pole)) then
+    if (do_allocation) then
+      call multipole_init (ele)
+    else
+      if (do_print) call out_io (s_error$, r_name, &
+                      'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ' // ele%name)
+      return
+    endif
+  endif
+
+  if (ix_attrib >= b0$) then
+    ptr_attrib => ele%b_pole(ix_attrib-b0$)
+  else
+    ptr_attrib => ele%a_pole(ix_attrib-a0$)
+  endif
+
+elseif (ix_attrib < 1 .or. ix_attrib > n_attrib_maxx) then
+  if (do_print) call out_io (s_error$, r_name, &
+          'INVALID ATTRIBUTE INDEX: \i0\ ', 'FOR THIS ELEMENT: ' // ele%name, &
+          i_array = (/ ix_attrib /))
+  return
+
+! otherwise must be in ele%value(:) array
+
+else
+  ptr_attrib => ele%value(ix_attrib)
+endif
+
+
+err_flag = .false.
+return
+
+end subroutine
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -42,8 +139,6 @@ contains
 ! Result:
 !     ix -> k1$
 !-
-
-#include "CESR_platform.inc"
 
 function attribute_index (ele, name) result (at_index)
 
@@ -218,7 +313,7 @@ integer i, j, num
 
 !
 
-attrib_array = null_name
+attrib_array = null_name$
 
 do i = 1, n_key
                                 
@@ -447,7 +542,7 @@ attrib_array(group$, accordion_edge$) = 'ACCORDION_EDGE'
 attrib_array(group$, symmetric_edge$) = 'SYMMETRIC_EDGE'
 
 attrib_array(drift$, l$)             = 'L'
-attrib_array(drift$, is_on$)         =  null_name    
+attrib_array(drift$, is_on$)         =  null_name$    
 attrib_array(drift$, field_calc$)    = 'FIELD_CALC'
 attrib_array(drift$, field_master$)  = 'FIELD_MASTER'
 
@@ -706,7 +801,7 @@ attrib_array(custom$, delta_e$)      = 'DELTA_E'
 do i = 1, n_key
   num = 0
   do j = 1, n_attrib_special_maxx
-    if (attrib_array(i, j) /= null_name) then
+    if (attrib_array(i, j) /= null_name$) then
       num = num + 1
       short_attrib_array(i, num) = attrib_array(i, j)
       attrib_ix(i, num) = j

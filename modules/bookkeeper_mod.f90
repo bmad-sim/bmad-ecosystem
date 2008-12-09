@@ -323,10 +323,11 @@ type (lat_struct), target :: lattice
 type (ele_struct), pointer :: lord, slave
 
 real(rp) delta, coef
+real(rp), pointer :: r_ptr
 
 integer ix_lord, ix, iv, ict, i
 
-logical moved
+logical moved, err_flag
 
 character(20) :: r_name = 'makeup_group_slaves'
 
@@ -355,7 +356,9 @@ do i = lord%ix1_slave, lord%ix2_slave
     endif
   endif
   coef = lattice%control(i)%coef
-  slave%value(iv) = slave%value(iv) + delta * coef
+  call pointer_to_indexed_attribute (slave, iv, .false., r_ptr, err_flag)
+  if (err_flag) call err_exit
+  r_ptr = r_ptr + delta * coef
 enddo
 
 if (moved) call s_calc (lattice)       ! recompute s distances
@@ -1105,9 +1108,10 @@ implicit none
 type (lat_struct), target :: lattice
 type (ele_struct), pointer :: slave, lord
 
-real(rp) value(n_attrib_maxx), coef, ds
+real(rp) value(n_attrib_special_maxx), coef, ds
+real(rp), pointer :: r_ptr
 integer i, j, ix, iv, ix_ele, icom, ct
-logical used(n_attrib_maxx)
+logical used(n_attrib_special_maxx), multipole_set, err_flag
 
 character(40) :: r_name = 'makeup_overlay_and_girder_slave'
 
@@ -1125,6 +1129,7 @@ endif
 
 value = 0
 used = .false.
+multipole_set = .false.
 slave%on_a_girder = .false.
 
 do i = slave%ic1_lord, slave%ic2_lord
@@ -1156,12 +1161,18 @@ do i = slave%ic1_lord, slave%ic2_lord
 
   coef = lattice%control(j)%coef
   iv = lattice%control(j)%ix_attrib
-  icom = lord%ix_value
-  value(iv) = value(iv) + lord%value(icom)*coef
+  call pointer_to_indexed_attribute (lord, lord%ix_value, .false., r_ptr, err_flag)
+  if (err_flag) call err_exit
+  value(iv) = value(iv) + r_ptr * coef
   used(iv) = .true.
+  if (iv > n_attrib_maxx) multipole_set = .true.
 enddo
 
-where (used) slave%value = value
+where (used(1:n_attrib_maxx)) slave%value = value(1:n_attrib_maxx)
+if (multipole_set) then
+  where (used(a0$:a20$)) slave%a_pole = value(a0$:a20$)
+  where (used(b0$:b20$)) slave%b_pole = value(b0$:b20$)
+endif
 
 ! If no girder then simply transfer tilt to tilt_tot, etc.
 

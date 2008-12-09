@@ -600,7 +600,7 @@ enddo
 ! find line corresponding to the "use" statement and expand the used line.
 
 if (present (use_line)) call str_upcase (lat%name, use_line)
-if (lat%name == blank) then
+if (lat%name == blank_name$) then
   call warning ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
   call parser_end_stuff
   return

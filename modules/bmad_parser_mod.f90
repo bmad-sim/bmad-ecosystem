@@ -158,8 +158,6 @@ end type
 
 type (bp_common_struct), save :: bp_com
 
-character(40) :: blank = ''
-
 contains
 
 !-------------------------------------------------------------------------
@@ -250,7 +248,7 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
 
     else
 
-      if (i < 1 .or. i > n_attrib_maxx) then
+      if (i < 1) then
         call warning ('BAD OVERLAY ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
         return
       endif
@@ -267,14 +265,15 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
         return
       endif
 
+      value = 0
       if (delim == '=') then  ! value
         call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                       lat, delim, delim_found, err_flag)
         if (err_flag) return
-        ele%value(i) = value
-      else
-        ele%value(i) = 0
       endif
+      call pointer_to_indexed_attribute (ele, i, .true., r_ptr, err_flag, .true.)
+      r_ptr = value
+
     endif
 
     err_flag = .false.
@@ -2122,7 +2121,7 @@ subroutine get_overlay_group_names (ele, lat, plat, delim, delim_found)
         word = word(:j-1) // word(k+1:)
       endif
     else
-      attrib_name(ixs) = blank
+      attrib_name(ixs) = blank_name$
     endif
 
     name(ixs) = word
@@ -2646,7 +2645,7 @@ lat%ele%old_is_on = .false.    ! to keep track of where we have inserted
 
 ! If no refrence point then superposition is simple
 
-if (pele%ref_name == blank) then
+if (pele%ref_name == blank_name$) then
   call compute_super_lord_s (lat, 0, super_ele, pele)
   call add_superimpose (lat, super_ele, i_sup)
   return
@@ -3250,7 +3249,7 @@ Subroutine allocate_plat (lat, plat)
   do i = n_now+1, ubound(plat%ele, 1)
     nullify (plat%ele(i)%name)
 
-    plat%ele(i)%ref_name = blank
+    plat%ele(i)%ref_name = blank_name$
     plat%ele(i)%ref_pt  = center$
     plat%ele(i)%ele_pt  = center$
     plat%ele(i)%s       = 0
@@ -3363,15 +3362,15 @@ main_loop: do n = 1, n2
         cs(j)%ix_branch = lat%ele(k)%ix_branch
         cs(j)%ix_lord = -1             ! dummy value
         attrib_name = plat%ele(ixx)%attrib_name(i)
-        if (attrib_name == blank) then
-          cs(j)%ix_attrib = lord%ix_value
-        else
-          ix = attribute_index(lat%ele(k), attrib_name)
-          cs(j)%ix_attrib = ix
-          if (ix < 1) then
-            call warning ('BAD ATTRIBUTE NAME: ' // attrib_name, &
-                          'IN ELEMENT: ' // lord%name, pele = plat%ele(ixx))
-          endif
+        if (attrib_name == blank_name$) attrib_name = lord%attribute_name
+        ix = attribute_index(lat%ele(k), attrib_name)
+        cs(j)%ix_attrib = ix
+        if (ix < 1) then
+          call warning ('IN OVERLAY OR SLAVE ELEMENT: ' // lord%name, &
+                        'ATTRIBUTE: ' // attrib_name, &
+                        'IS NOT A VALID ATTRIBUTE OF: ' // lat%ele(k)%name, &
+                        pele = plat%ele(ixx))
+          cycle main_loop
         endif
         k2 = k2 + 1
         if (k2 > ix1) exit

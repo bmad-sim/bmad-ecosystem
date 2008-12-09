@@ -74,6 +74,7 @@ integer pos_tot(n_attrib_maxx)
 real(rp) coef
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
+real(rp), pointer :: r_ptr
 
 character(100), pointer :: lines(:), li(:)
 character(100), allocatable :: li2(:)
@@ -85,7 +86,7 @@ character(2) str_i
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
 logical, optional :: type_floor_coords, type_wig_terms
-logical type_zero
+logical type_zero, err_flag
 
 ! init
 
@@ -111,11 +112,11 @@ nl = 0
 nl=nl+1; write (li(nl), *) 'Element #', ele%ix_ele
 nl=nl+1; write (li(nl), *) 'Element Name: ', ele%name
 
-if (ele%type /= blank_name) then
+if (ele%type /= blank_name$) then
   nl=nl+1; write (li(nl), *) 'Element Type: "', ele%type, '"'
 endif
 
-if (ele%alias /= blank_name) then
+if (ele%alias /= blank_name$) then
   nl=nl+1; write (li(nl), *) 'Element Alias: "', ele%alias, '"'
 endif
 
@@ -144,13 +145,15 @@ else
 
   if (con_type == overlay_lord$) then
     i = ele%ix_value
+    call pointer_to_indexed_attribute (ele, i, .false., r_ptr, err_flag)
+    if (err_flag) call err_exit
     name = ele%attribute_name
-    nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)') i, name(1:n_att), '=', ele%value(i)
+    nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)') i, name(1:n_att), '=', r_ptr
 
   else
     do i = 1, n_attrib_maxx
       a_name = attribute_name(ele, i)
-      if (a_name == null_name) cycle
+      if (a_name == null_name$) cycle
       ix = pos_tot(i)
       if (ix == 0) then
         if (ele%value(i) == 0 .and. .not. type_zero) cycle
@@ -371,7 +374,8 @@ if (logic_option(present(lattice), type_control)) then
           if (ix == 0) then
             val_str = '  GARBAGE!'
           else
-            write (val_str, '(1p, e12.3)') lattice%ele(j)%value(ix)
+            call pointer_to_indexed_attribute (lattice%ele(j), ix, .false., r_ptr, err_flag)
+            write (val_str, '(1p, e12.3)') r_ptr
           endif
         endif
         nl=nl+1; write (li(nl), '(5x, a30, i10, 2x, a20, es11.3, a12)') &
