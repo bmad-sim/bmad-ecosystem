@@ -576,7 +576,7 @@ do  ! Loop over plot files
 
         if (crv%line%width == -1) then
           if (plt%x_axis_type == 's') then
-            crv%line%width = 6
+            crv%line%width = 2
           else
             crv%line%width = 1
           endif

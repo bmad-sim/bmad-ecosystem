@@ -117,11 +117,11 @@ templates for plotting.
 
 The \vn{-beam_all} optional argument reads in a beam data file for the
 entire lattice and this data is used in place of beam tracking. This
-overrides the \vn{beam_all_file} variable (\sref{s:beam.init}.
+overrides the \vn{beam_all_file} variable (\sref{s:beam.init}).
 
 The \vn{-beam0} optional argument reads in a beam data file which is
 used to initialize the beam at the beginning of the lattice. This
-overrides the \vn{beam0_file} variable (\sref{s:beam.init}.
+overrides the \vn{beam0_file} variable (\sref{s:beam.init}).
 
 The \vn{-lat} switch is used to override the \vn{design_lattice}
 lattice file specified in the initialization file
@@ -617,7 +617,7 @@ created with the \vn{output beam -at <ele_name>} command) which
 contains a beam's particle coordinates which are to be used at the
 start of the lattice.  Note: The file name can be overridden by using
 the \vn{-beam0} argument on the command line
-(\sref{s:command.line}. The file can either be in binary format
+(\sref{s:command.line}). The file can either be in binary format
 (binary files can be created by the \vn{output beam} command), or
 written in ASCII. The ASCII file format is:
 \begin{example}
@@ -674,7 +674,7 @@ particle coordinates of the tracked beam at every element. This causes
 can be helpful when the time for \tao to track a bunch through the
 lattice becomes long. The file name can be overridden by using the
 \vn{-beam_all} argument on the command line
-(\sref{s:command.line}. Note: \tao will set the variable
+(\sref{s:command.line}). Note: \tao will set the variable
 \vn{use_saved_beam_in_tracking} to \vn{True} to prevent actual
 tracking.  Note: A \vn{beam_all_file} will supersede a \vn{beam0_file}
 
@@ -901,7 +901,7 @@ Instead of specifying a list of lattice element names for \vn{var(:)%ele_name},
    search_for_lat_eles = "{-no_grouping} <element class>:<element name>"  
 \end{example}
 \vn{<element class>:<element name>} specifies elements using
-\vn{class:name} format (\sref{s:class:name}. The searching will
+\vn{class:name} format (\sref{s:class:name}). The searching will
 automatically exclude any superposition and multipass slaves elements.
 All elements with the same name are grouped under a single
 variable. That is, a single variable can control multiple element.
@@ -1110,7 +1110,7 @@ each data type by using the syntax:
    search_for_lat_eles = "{<restriction>} <element class>:<element name>"
 \end{example}
 \vn{<element class>:<element name>} specifies elements using
-\vn{class:name} format (\sref{s:class:name}. \vn{restriction}, if
+\vn{class:name} format (\sref{s:class:name}). \vn{restriction}, if
 present, is used to restrict the counting of lord or slave
 elements. The possible choices for \vn{restriction} are:
 \begin{example}
@@ -1138,7 +1138,7 @@ must have a corresponding definition in
 Chapter~\ref{c:prog.customizing} for details.
 
 \index{data%weight}
-\vn{data(:)%weight} gives the weight coefficient for a variable in the
+\vn{data(:)%weight} gives the weight coefficient for a datum in the
 merit function. If not present then the default weight of
 \vni{default_weight} is used. 
 
@@ -1855,7 +1855,7 @@ For Example:
   /
 \end{example}
 A figure is drawn for each element in the lattice that matches a
-\vn{<class:name>} (\sref{s:class:name} of any \vn{ele_shape(:)}. 
+\vn{<class:name>} (\sref{s:class:name}) of any \vn{ele_shape(:)}. 
 Thus, in the
 example above, \vn{ele_shape(1)} will match to all quadrupoles whose name
 begins with ``q'' and \vn{ele_shape(2)} will match all quadrupoles. If an

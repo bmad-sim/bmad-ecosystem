@@ -1487,7 +1487,7 @@ case ('plot')
 
   if (stuff2 == ' ') then
 
-    nl=nl+1; lines(nl) = 'plot_page parameters'
+    nl=nl+1; lines(nl) = 'plot_page parameters:'
     nl=nl+1; write (lines(nl), rmt)  '%size                       = ', s%plot_page%size       
     nl=nl+1; write (lines(nl), imt)  '%n_curve_pts                = ', s%plot_page%n_curve_pts
     nl=nl+1; write (lines(nl), f3mt) '%text_height                = ', s%plot_page%text_height 

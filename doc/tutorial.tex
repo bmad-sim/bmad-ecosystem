@@ -111,17 +111,22 @@ information using the command:
 The information will be displayed in the command window. The first
 section of the \vn{show plot} output shows information on font sizes:
 \begin{example}
-  plot_page%text_height            = 12.000
-  plot_page%main_title_text_scale  = 1.300
-  plot_page%graph_title_text_scale = 1.100
-  plot_page%axis_number_text_scale = 0.900
-  plot_page%axis_label_text_scale  = 1.000
-  plot_page%key_table_text_scale   = 0.900
+  plot_page parameters:
+  %size                       =   4.00000000E+02  5.00000000E+02
+  %n_curve_pts                =      401
+  %text_height                = 12.000
+  %main_title_text_scale      = 1.300
+  %graph_title_text_scale     = 1.100
+  %axis_number_text_scale     = 0.900
+  %axis_label_text_scale      = 1.000
+  %key_table_text_scale       = 0.900
+  %legend_text_scale          = 0.800
+  %shape_height_max           = 40.000
 \end{example}
 See section~\sref{s:init.plot} for more details. 
 
 The second section of the \vn{show plot} output
-lists the plot \vn{templates} (\sref{s:plotting} and
+lists the plot \vn{templates} (\sref{s:plotting}) and
 \sref{s:template}) that \tao knows about:
 \begin{example}
  Templates:
@@ -188,7 +193,7 @@ As expected, the phase increases approximately linearly as the
 particle travels through the ring. Zero phase is halfway through the
 ring (at L03 in \cesr lingo).  This is always true. Absolute phase is
 arbitrary so \tao sets the average phase to zero when generating the
-data. Lets' set this back to relative phase by typing
+data. To set this back to relative phase type:
 \begin{example}
   plot bottom model - design
 \end{example}
@@ -346,8 +351,8 @@ types. See the \bmad manual for how to convert from normal mode
 coordinates to lab-frame coordinates.
 
 This tutorial uses single particle tracking and the twiss parameters
-are found about the orbit of the tracked particle. there is another
-tracking type called particle beam tracking. this
+are found about the orbit of the tracked particle. There is another
+tracking type called particle beam tracking. This
 tracking type will not be explored in this tutorial.
 
 You can also view variables by typing
@@ -623,7 +628,7 @@ design lattice.
 
 In \vn{lattice design} (\sref{s:lattice.design}) it is generally
 easiest to specify constraint data using the ``\vn{single line}''
-input format (\sref{s:init.data}. For example:
+input format (\sref{s:init.data}). For example:
 \begin{example}
 &tao_d2_data
   d2_data%name = 'c1' 
