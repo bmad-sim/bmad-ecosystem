@@ -110,7 +110,7 @@ subroutine twiss_from_tracking (lat, ref_orb0, error, d_orb)
       mat(:,i) = (mo(i)%orb(j)%vec - mo(-i)%orb(j)%vec) / (2*delta(i))
     enddo
 
-    call mat_symp_check (mat, error)
+    error = mat_symp_error(mat)
     call mat_symplectify (mat, mat)
 
     r = mo(0)%orb(j)%vec - matmul(mat, mo(0)%orb(0)%vec)

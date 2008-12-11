@@ -91,7 +91,7 @@ end subroutine
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine mat_symp_check (mat, error)
+! Function mat_symp_error (mat) result (error)
 !
 ! Routine to check the symplecticity of a square matrix. The error is
 ! defined to via:
@@ -109,7 +109,7 @@ end subroutine
 !             = 1    --> Terrible.
 !-
 
-subroutine mat_symp_check (mat, error)
+function mat_symp_error (mat) result (error)
 
   implicit none
 
@@ -126,7 +126,7 @@ subroutine mat_symp_check (mat, error)
   n = ubound(mat, 1)
 
   if (mod(n, 2) /= 0) then
-    print *, 'ERROR IN MAT_SYMP_CHECK: MATRIX DOES NOT HAVE EVEN SIZE'
+    print *, 'ERROR IN MAT_SYMP_ERROR: MATRIX DOES NOT HAVE EVEN SIZE'
     call err_exit
   endif
 
@@ -156,14 +156,14 @@ subroutine mat_symp_check (mat, error)
   error = maxval(abs(m2))
 
   if (debug) then
-    print *, 'MAT_SYMP_CHECK:', error
+    print *, 'MAT_SYMP_ERROR:', error
     do i = 1, n
       print '(5x, (6f11.5))', &
                         (max(min(m2(i, j), 999.0_rp), -999.0_rp), j = 1, n)
     enddo
   endif
 
-end subroutine
+end function mat_symp_error
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------

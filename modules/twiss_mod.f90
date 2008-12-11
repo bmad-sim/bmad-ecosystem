@@ -56,7 +56,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
   real(rp) c(2,2), c_conj(2,2), H(2,2), temp2(2,2)
   real(rp) g1(2,2), g2(2,2), g1_inv(2,2), g2_inv(2,2)
   real(rp) gamma, det_H, det,  trace_t0_diff, denom
-  real(rp) scaler, tol, error
+  real(rp) scaler, tol
 
   logical type_out
 
@@ -70,8 +70,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
 ! check input matrix
 
-  call mat_symp_check (t0, error)
-  if (error > tol) then
+  if (mat_symp_error (t0) > tol) then
     stat = non_symplectic$
     if (type_out) then
       print *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC INPUT MATRIX'
@@ -132,8 +131,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
   U = matmul (matmul (V_inv, t0), V)
 
-  call mat_symp_check (U, error)
-  if (error > tol) then
+  if (mat_symp_error(U) > tol) then
     stat = non_symplectic$
     if (type_out) then
       print *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC U MATRIX'
@@ -198,8 +196,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
   Ubar = matmul (matmul (G, U), G_inv)
 
-  call mat_symp_check (Ubar, error)
-  if (error > tol) then
+  if (mat_symp_error (Ubar) > tol) then
     stat = non_symplectic$
     if (type_out) then
       print *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC UBAR MATRIX'

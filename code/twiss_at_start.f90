@@ -43,7 +43,7 @@ subroutine twiss_at_start (lat)
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: ele
 
-  real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), error, map0(4)
+  real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), map0(4)
 
   integer i, j, n, iu, n_lines
 
@@ -85,8 +85,8 @@ subroutine twiss_at_start (lat)
         write (iu, '(a)') lines(i)
       enddo
       deallocate (lines)
-      call mat_symp_check (t0_4, error)
-      write (iu, *) 'Symplectic Check:', error
+      write (iu, *) 'Symplectic Check:', mat_symp_error(t0_4)
+
       do i = 1, 4
         write (iu, '(4f18.13)') (t0_4(i, j), j = 1, 4)
       enddo

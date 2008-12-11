@@ -70,6 +70,65 @@ end interface
 
 private taylor_coef1, taylor_coef2
 
+!+
+! Subroutine add_taylor_term (bmad_taylor, coef, exp)
+! Subroutine add_taylor_term (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+!
+! Routine to add a Taylor term to a Taylor series.
+!
+! If bmad_taylor does not have a term with the same exponents as expn then a new
+! term is added to bmad_taylor so the total number of terms is increased by one.
+!
+! If bmad_taylor already has a term with the same exponents then
+! the "replace" argument determines what happens:
+!   If replace = False (default) then
+!      coef is added to the coefficient of the old term.
+!   If replace = True then
+!      coef replaces the coefficient of the old term.
+! In both these cases, the number of terms in bmad_taylor remains the same.
+!
+! Note: add_taylor_term is overloaded by:
+!   add_taylor_term1 (bmad_taylor, exp, replace)
+!   add_taylor_term2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+! Using the add_taylor_term2 form limits obtaining coefficients to 9th order
+! or less. Also: add_taylor_term2 does not check that all i1, ..., i9 are between
+! 1 and 6.
+!
+! For example: To add the 2nd order term corresponding to:
+!   y(out) = 1.34 * p_z(in)^2 
+! [This is somtimes refered to as the T_366 term]
+! The call would be:
+!   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
+!   ...
+!   coef = add_taylor_term (bmad_taylor(3), 1.34_rp, 6, 6)  ! 1st possibility or ...
+!   coef = add_taylor_term (bmad_taylor(3), 1.34_rp, (/ 0, 0, 0, 0, 0, 2 /) )  
+!
+! Modules needed:
+!   use bmad
+!
+! Input (add_taylor_term1):
+!   bmad_taylor -- Taylor_struct: Taylor series.
+!   coef        -- Real(rp): Coefficient.
+!   exp(6)      -- Integer: Array of exponent indices.
+!   replace     -- Logical, optional: Replace existing term? Default is False.
+!
+! Input (add_taylor_term2):
+!   bmad_taylor -- Taylor_struct: Taylor series.
+!   coef        -- Real(rp): Coefficient.
+!   i1, ..., i9 -- Integer, optional: Exponent indexes (each between 1 and 6).
+!   replace     -- Logical, optional: Replace existing term? Default is False.
+!
+! Output:
+!   bmad_taylor -- Taylor_struct: New series with term added
+!-
+
+interface add_taylor_term
+  module procedure add_taylor_term1
+  module procedure add_taylor_term2
+end interface
+
+private add_taylor_term1, add_taylor_term2
+
 contains
 
 !----------------------------------------------------------------------
@@ -405,35 +464,15 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine add_taylor_term (bmad_taylor, coef, expn, replace)
+! Subroutine add_taylor_term1 (bmad_taylor, coef, expn, replace)
 !
 ! Routine to add a Taylor term to a Taylor series.
 !
-! If bmad_taylor does not have a term with the same exponents as expn then a new
-! term is added to bmad_taylor so the total number of terms is increased by one.
-!
-! If bmad_taylor already has a term with the same exponents as expn then
-! the "replace" argument determines what happens:
-!   If replace = False (default) then
-!      coef is added to the coefficient of the old term.
-!   If replace = True then
-!      coef replaces the coefficient of the old term.
-! In both these cases, the number of terms in bmad_taylor remains the same.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   bmad_taylor -- Taylor_struct: Old series.
-!   coef        -- Real(rp): Coefficient of the new term
-!   expn        -- Integer(6): Exponents.
-!   replace     -- Logical, optional: Replace existing term? Default is False.
-!
-! Output:
-!   bmad_taylor -- Taylor_struct: New series with term added
+! This routine is used by the overloaded function add_taylor_term. 
+! See add_taylor_term for more details.
 !-
 
-subroutine add_taylor_term (bmad_taylor, coef, expn, replace)
+subroutine add_taylor_term1 (bmad_taylor, coef, expn, replace)
 
 implicit none
 
@@ -469,6 +508,50 @@ enddo
 call init_taylor_series (bmad_taylor, n+1, .true.)
 bmad_taylor%term(n+1)%coef = coef
 bmad_taylor%term(n+1)%exp = expn
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine add_taylor_term2 (bmad_taylor, coef, 
+!                        i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+!
+! Routine to add a Taylor term to a Taylor series.
+!
+! This routine is used by the overloaded function add_taylor_term. 
+! See add_taylor_term for more details.
+!-
+
+subroutine add_taylor_term2 (bmad_taylor, coef, &
+                        i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+
+implicit none
+
+type (taylor_struct) bmad_taylor
+
+real(rp) coef
+
+integer, intent(in), optional :: i1, i2, i3, i4, i5, i6, i7, i8, i9
+integer i, n, expn(6)
+
+logical, optional :: replace
+
+! 
+
+expn = 0
+if (present (i1)) expn(i1) = expn(i1) + 1
+if (present (i2)) expn(i2) = expn(i2) + 1
+if (present (i3)) expn(i3) = expn(i3) + 1
+if (present (i4)) expn(i4) = expn(i4) + 1
+if (present (i5)) expn(i5) = expn(i5) + 1
+if (present (i6)) expn(i6) = expn(i6) + 1
+if (present (i7)) expn(i7) = expn(i7) + 1
+if (present (i8)) expn(i8) = expn(i8) + 1
+if (present (i9)) expn(i9) = expn(i9) + 1
+
+call add_taylor_term1 (bmad_taylor, coef, expn, replace)
 
 end subroutine
 

@@ -183,7 +183,7 @@ subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
 
     call mat_inverse (start_mat(1:nnd,1:nnd), start_mat(1:nnd, 1:nnd))
     mat6(1:nnd,1:nnd) = matmul(end_mat(1:nnd,1:nnd), start_mat(1:nnd,1:nnd))
-    call mat_symp_check (mat6(1:nnd,1:nnd), error)
+    error = mat_symp_error (mat6(1:nnd,1:nnd))
     if (debug) print *, 'error:', error
     if (debug) print '(i4, a, 3p6f11.5)', j, ':', &
                                     (closed_orb(0)%vec(i), i = 1, nd)

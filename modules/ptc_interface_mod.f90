@@ -1433,9 +1433,8 @@ taylor_inv = y
 ! Take out the ref_pt offset if needed
 
 if (present(ref_pt)) then
-  expn = 0
   do i = 1, 6
-    call add_taylor_term (taylor_inv(i), ref_pt(i), expn)
+    call add_taylor_term (taylor_inv(i), ref_pt(i))
   enddo
 endif
 
@@ -1660,7 +1659,7 @@ call kill (y)
 ! Correct wiggler map
 
 if (ele%key == wiggler$) then
-  call add_taylor_term (tlr(5), -ele%value(z_patch$), (/ 0, 0, 0, 0, 0, 0 /))
+  call add_taylor_term (tlr(5), -ele%value(z_patch$))
 endif
 
 
@@ -1790,7 +1789,7 @@ if (ele%key == wiggler$) then
     call err_exit 
   endif
 
-  call add_taylor_term (ele%taylor(5), -ele%value(z_patch$), (/ 0, 0, 0, 0, 0, 0 /))
+  call add_taylor_term (ele%taylor(5), -ele%value(z_patch$))
 
 endif
 

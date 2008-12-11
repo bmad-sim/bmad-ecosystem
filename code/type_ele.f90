@@ -38,9 +38,9 @@
 !   type_wig_terms -- Logical, optional: If True then print the wiggler terms for
 !                        a map_type wiggler. Default is False.
 !   nunit     -- Integer, optional: Unit for writing:
-!                    < 0 output to file only with unit = abs(nunit)
+!                    > 0 output to file only with unit = nunit
 !                    = 0 output to terminal only (default)
-!                    > 0 output to terminal and file with unit = nunit
+!                    < 0 output to terminal and file with unit = abs(nunit).
 !-
 
 #include "CESR_platform.inc"
@@ -73,7 +73,7 @@ call type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, &
 
 iu = integer_option(0, nunit)
 
-if (iu >= 0) then
+if (iu <= 0) then
   do i = 1, n_lines
     print '(1x, a)', trim(lines(i))
   enddo
