@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-`scp lnx209:/home/dcs/public_html/bmad/tao.html .`;
+`scp dcs\@lnx209.lepp.cornell.edu:/home/dcs/public_html/bmad/tao.html .`;
 
 $found = 0;
 open (FC, "cover-page.tex") || die ("Cannot open File: cover-page.tex\n");
@@ -34,7 +34,7 @@ close (FM);
 close (F_OUT);
 `mv temp.out $file`;
 
-`scp tao.html       lnx209:/home/dcs/public_html/bmad`;
-`scp tao-manual-*.pdf lnx209:/home/dcs/public_html/bmad`;
-`scp tao-manual-*.ps  lnx209:/home/dcs/public_html/bmad`;
+`scp tao.html       dcs\@lnx209.lepp.cornell.edu:/home/dcs/public_html/bmad`;
+`scp tao-manual-*.pdf dcs\@lnx209.lepp.cornell.edu:/home/dcs/public_html/bmad`;
+`scp tao-manual-*.ps  dcs\@lnx209.lepp.cornell.edu:/home/dcs/public_html/bmad`;
 
