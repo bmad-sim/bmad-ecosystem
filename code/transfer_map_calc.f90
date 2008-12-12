@@ -36,8 +36,8 @@
 !                   integration instead of concatenation. 
 !                   Default = False.
 !   one_turn   -- Logical, optional: If present and True, and if ix1 = ix2,
-!                   then construct the one-turn map from ix1 back to ix1.
-!                   Default = False.
+!                   and the lattice is circular, then construct the one-turn 
+!                   map from ix1 back to ix1. Default = False.
 !   unit_start -- Logical, optional: If present and False then t_map will be
 !                   used as the starting map instead of the unit map.
 !                   Default = True
@@ -71,7 +71,8 @@ character(20) :: r_name = "transfer_map_calc"
 !
 
 integrate_this  = logic_option (.false., integrate)
-one_turn_this   = logic_option (.false., one_turn)
+one_turn_this   = logic_option (.false., one_turn) .and. &
+                                    lat%param%lattice_type == circular_lattice$
 unit_start_this = logic_option(.true., unit_start)
 
 i1 = integer_option(0, ix1) 
