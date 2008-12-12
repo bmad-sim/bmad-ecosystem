@@ -291,7 +291,6 @@ if (allocated(tao_com%ele_shape_lat_layout)) deallocate (tao_com%ele_shape_lat_l
 if (allocated(tao_com%ele_shape_floor_plan)) deallocate (tao_com%ele_shape_floor_plan)
 if (allocated(tao_com%cmd_file))             deallocate (tao_com%cmd_file)
 if (allocated(tao_com%covar))                deallocate (tao_com%covar, tao_com%alpha)
-call kill_taylor(tao_com%taylor)
 
 ! Universes 
 

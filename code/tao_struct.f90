@@ -494,7 +494,6 @@ type tao_common_struct
   type (tao_alias_struct) alias(100)
   type (tao_ele_shape_struct), allocatable :: ele_shape_floor_plan(:)
   type (tao_ele_shape_struct), allocatable :: ele_shape_lat_layout(:)
-  type (taylor_struct) :: taylor(6) ! Saved taylor map
   type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   real(rp), allocatable :: covar(:,:), alpha(:,:)

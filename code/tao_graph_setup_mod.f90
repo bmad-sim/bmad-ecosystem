@@ -1330,25 +1330,17 @@ do m = 1, size(comp)
 
   do ie = 1, n_dat
 
-    if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
-      if (ie == 1) then
-        call taylor_make_unit (t_map)
-      else
-        datum%ix_ele0 = datum%ix_ele
-      endif
-    endif
-
     datum%ix_ele = ix_ele(ie)
 
     select case (comp(m)%name)
     case (' ') 
       cycle
     case ('model')   
-      call tao_evaluate_a_datum (datum, u, u%model, y_val, valid, why_invalid, t_map)
+      call tao_evaluate_a_datum (datum, u, u%model, y_val, valid, why_invalid)
     case ('base')  
-      call tao_evaluate_a_datum (datum, u, u%base, y_val, valid, why_invalid, t_map)
+      call tao_evaluate_a_datum (datum, u, u%base, y_val, valid, why_invalid)
     case ('design')  
-      call tao_evaluate_a_datum (datum, u, u%design, y_val, valid, why_invalid, t_map)
+      call tao_evaluate_a_datum (datum, u, u%design, y_val, valid, why_invalid)
     case ('ref', 'meas')
       call out_io (s_error$, r_name, &
               'PLOT COMPONENT WHICH IS: ' // comp(m)%name, &
