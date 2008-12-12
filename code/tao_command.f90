@@ -59,7 +59,7 @@ character(16) :: set_names(8) = (/ &
 
 
 
-logical quit_tao, err, silent, gang
+logical quit_tao, err, silent, gang, abort
 
 ! blank line => nothing to do
 
@@ -388,7 +388,7 @@ case ('reinitialize')
 case ('run', 'flatten')
 
   call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
-  call tao_run_cmd (cmd_word(1))
+  call tao_run_cmd (cmd_word(1), abort)
 
 !--------------------------------
 ! SET

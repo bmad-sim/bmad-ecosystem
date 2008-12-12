@@ -125,6 +125,7 @@ do i = 1, s%global%n_opti_cycles+1
         call out_io (s_error$, r_name, 'Problem variable: ' // tao_var1_name(s%var(var_ix(k))))
       endif
     enddo
+    abort = .true.
   endif
 
   if (finished .or. status /= 0) return
@@ -135,7 +136,6 @@ do i = 1, s%global%n_opti_cycles+1
   do
     call get_tty_char (char, .false., .false.) 
     if (char == '.') then
-      tao_com%optimizer_running = .false.
       call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', 'Stopping now.')
       abort = .true.
       finished = .true.

@@ -41,7 +41,7 @@ character(2) char2
 character(80) this_file, line
 character(40) :: this_opt, str, r_name = 'tao_single_mode'
 
-logical doit, found, err
+logical doit, found, err, abort
 
 ! parse input.
 ! is it a variable change?
@@ -87,10 +87,9 @@ case ('c')
 
 case ('g')
 
-  tao_com%optimizer_running = .true.
   do
-    call tao_run_cmd ('')
-    if (.not. tao_com%optimizer_running) exit
+    call tao_run_cmd ('', abort)
+    if (abort) exit
   enddo
 
 ! 'v' Show variables

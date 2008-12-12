@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_run_cmd (which)
+! Subroutine tao_run_cmd (which, abort)
 !
 ! Subrutine to minimize the merit function by varying variables until
 ! the "data" as calculated from the model matches a constraint or measured data.
@@ -9,12 +9,14 @@
 !             ' '        -- Same as last time
 !             'de'       -- Differential Evolution.
 !             'lm'       -- Levenberg - Marquardt (aka lmdif).
-!              'custom'  -- Custom routine.
+!             'custom'   -- Custom routine.
 !
 ! Output:
+!  abort -- Logical: Set True if the run was aborted by the user, an at minimum 
+!             condition, a singular matrix condition, etc.. False otherwise.
 !-
 
-subroutine tao_run_cmd (which)
+subroutine tao_run_cmd (which, abort)
 
 use tao_mod
 use tao_var_mod
@@ -48,7 +50,7 @@ call out_io (s_blank$, r_name, &
 call tao_get_vars (var_vec)
 if (size(var_vec) == 0) then
   call out_io (s_fatal$, r_name, 'No variables to vary!')
-  tao_com%optimizer_running = .false.
+  abort = .true.
   return
 endif
 
@@ -60,7 +62,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 enddo
 if (n_data == 0) then
   call out_io (s_error$, r_name, 'No data constraints defined for the merit function!')
-  tao_com%optimizer_running = .false.
+  abort = .true.
   return
 endif
 

@@ -7,10 +7,11 @@
 module tao_interface
 
 interface
-  function merit_wrapper (var_vec, end_flag) result (merit)
+  function merit_wrapper (var_vec, status, iter_count) result (merit)
     use precision_def
     real(rp) var_vec(:)           ! Input: trial solution.
-    logical, optional :: end_flag ! Output: Set True to terminate opti_de.
+    integer status
+    integer iter_count
     real(rp) merit                ! Output: Merit value corresponting to vec.
   end function
 end interface
@@ -382,9 +383,10 @@ interface
 end interface
  
 interface
-  subroutine tao_run_cmd (which)
+  subroutine tao_run_cmd (which, abort)
     implicit none
     character(*) which
+    logical abort
   end subroutine
 end interface
  

@@ -505,16 +505,12 @@ type tao_common_struct
   integer :: n_universes = 1   
   logical :: cmd_file_paused
   logical :: use_cmd_here  = .false.     ! Used for the cmd history stack
-  logical :: opti_init                   ! init needed?
-  logical :: opti_at_limit               ! Variable at limit?
-  logical :: opti_abort                  ! Abort loops?
   logical :: multi_commands_here = .false.
   logical :: cmd_from_cmd_file              ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
   logical :: init_beam0 = .false.            ! Init beam
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
-  logical :: optimizer_running 
   logical :: combine_consecutive_elements_of_like_name
   logical :: common_lattice = .false.      
   character(100) :: cmd                                ! Used for the cmd history

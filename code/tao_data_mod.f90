@@ -564,7 +564,7 @@ case ('etap.b')
     call load_it (lat%ele(:)%b%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   endif
 
-case ('eta.order2', 'etap.order2')
+case ('eta.order2', 'etap.order2', 'momentum_compaction.order2')
   if (data_source == 'beam') return
   if (tao_com%ix0_taylor /= ix0 .or. tao_com%ix1_taylor /= ix1) then
     if (tao_com%ix0_taylor == ix0 .and. ix1 > tao_com%ix1_taylor) then
@@ -586,6 +586,8 @@ case ('eta.order2', 'etap.order2')
   case ('etap.order2.y')
     datum_value = taylor_coef(taylor(4), 6, 6) - &
                       2 * taylor_coef(taylor(4), 6) + 2 * taylor_coef(taylor(4))
+  case ('momentum_compaction.order2')
+    datum_value = taylor_coef(taylor(5), 6, 6) / lat%param%total_length
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     call err_exit
