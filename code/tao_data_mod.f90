@@ -300,8 +300,7 @@ if (data_type(1:2)  == 'r.')             data_type = 'r.'
 if (data_type(1:2)  == 't.')             data_type = 't.'
 if (data_type(1:3)  == 'tt.')            data_type = 'tt.'
 if (data_type(1:5)  == 'wire.')          data_type = 'wire.'
-if (data_type(1:10) == 'eta.order2')     data_type = 'eta.order2'
-if (data_type(1:11) == 'etap.order2')    data_type = 'etap.order2'
+if (data_type(1:12) == 'periodic.tt.')   data_type = 'periodic.tt.'
 if (data_type(1:14) == 'element_param.') data_type = 'element_param.'
 if (data_type(1:4)  == 'emit') call convert_total_energy_to ( &
                     lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
@@ -489,6 +488,31 @@ case ('cbar.22')
   call load_it (cc%cbar(2,2), ix0, ix1, datum_value, valid_value, &
                                      datum, tao_lat, calc_needed = .true.)
 
+case ('chrom.a')
+  if (data_source == 'beam') return
+  datum_value = tao_lat%a%chrom
+  valid_value = .true.
+
+case ('chrom.b')
+  if (data_source == 'beam') return
+  datum_value = tao_lat%b%chrom
+  valid_value = .true.
+
+case ('dpx_dx') 
+  if (data_source == 'lattice') return
+  datum_value = tao_lat%bunch_params(ix1)%sigma(s12$) / tao_lat%bunch_params(ix1)%sigma(s11$)
+  valid_value = .true.
+
+case ('dpy_dy') 
+  if (data_source == 'lattice') return
+  datum_value = tao_lat%bunch_params(ix1)%sigma(s34$) / tao_lat%bunch_params(ix1)%sigma(s33$)
+  valid_value = .true.
+
+case ('dpz_dz') 
+  if (data_source == 'lattice') return
+  datum_value = tao_lat%bunch_params(ix1)%sigma(s56$) / tao_lat%bunch_params(ix1)%sigma(s55$)
+  valid_value = .true.
+
 case ('element_param.')
   if (data_source == 'beam') return ! bad
   call str_upcase (name, datum%data_type(15:))
@@ -499,6 +523,61 @@ case ('element_param.')
   endif
   call load_it (lat%ele(0:n_max)%value(ix), &
                                      ix0, ix1, datum_value, valid_value, datum, tao_lat)
+
+case ('emit.x', 'norm_emit.x')
+  if (data_source == 'lattice') return
+  datum_value = tao_lat%bunch_params(ix1)%x%norm_emitt
+  if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
+  valid_value = .true.
+
+case ('emit.y', 'norm_emit.y')  
+  if (data_source == 'lattice') return
+  datum_value = tao_lat%bunch_params(ix1)%y%norm_emitt
+  if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
+  valid_value = .true.
+
+case ('emit.z', 'norm_emit.z')
+  if (data_source == 'lattice') return
+  datum_value = tao_lat%bunch_params(ix1)%z%norm_emitt
+  if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
+  valid_value = .true.
+
+case ('emit.a', 'norm_emit.a')
+  if (data_source == 'beam') then
+    datum_value = tao_lat%bunch_params(ix1)%a%norm_emitt
+  elseif (data_source == 'lattice') then
+    if (lat%param%lattice_type == linear_lattice$) then
+      if (.not. allocated(tao_lat%rad_int%lin_norm_emit_a)) then
+        call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
+        return
+      endif
+      call load_it (tao_lat%rad_int%lin_norm_emit_a, &
+                              ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    else
+      datum_value = gamma * tao_lat%modes%a%emittance  
+    endif
+  endif
+  if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
+  valid_value = .true.
+  
+case ('emit.b', 'norm_emit.b')  
+  if (data_source == 'beam') then
+    datum_value = tao_lat%bunch_params(ix1)%b%norm_emitt
+  elseif (data_source == 'lattice') then
+    if (lat%param%lattice_type == linear_lattice$) then
+      if (.not. allocated(tao_lat%rad_int%lin_norm_emit_b)) then
+        call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
+        valid_value = .false.
+        return
+      endif
+      call load_it (tao_lat%rad_int%lin_norm_emit_b, &
+                              ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    else
+      datum_value = gamma * tao_lat%modes%b%emittance
+    endif
+  endif
+  if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
+  valid_value = .true.
 
 case ('eta.x')
   if (data_source == 'beam') then
@@ -564,36 +643,6 @@ case ('etap.b')
     call load_it (lat%ele(:)%b%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   endif
 
-case ('eta.order2', 'etap.order2', 'momentum_compaction.order2')
-  if (data_source == 'beam') return
-  if (tao_com%ix0_taylor /= ix0 .or. tao_com%ix1_taylor /= ix1) then
-    if (tao_com%ix0_taylor == ix0 .and. ix1 > tao_com%ix1_taylor) then
-      call transfer_map_calc (lat, taylor, tao_com%ix1_taylor, ix1, unit_start = .false.)
-    else
-      call transfer_map_calc (lat, taylor, ix0, ix1, one_turn = .true.)
-    endif
-    tao_com%ix0_taylor = ix0
-    tao_com%ix1_taylor = ix1
-  endif
-  select case (datum%data_source)
-  case ('eta.order2.x')
-    datum_value = taylor_coef(taylor(1), 6, 6)
-  case ('etap.order2.x')
-    datum_value = taylor_coef(taylor(2), 6, 6) - &
-                      2 * taylor_coef(taylor(2), 6) + 2 * taylor_coef(taylor(2))
-  case ('eta.order2.y')
-    datum_value = taylor_coef(taylor(3), 6, 6)
-  case ('etap.order2.y')
-    datum_value = taylor_coef(taylor(4), 6, 6) - &
-                      2 * taylor_coef(taylor(4), 6) + 2 * taylor_coef(taylor(4))
-  case ('momentum_compaction.order2')
-    datum_value = taylor_coef(taylor(5), 6, 6) / lat%param%total_length
-  case default
-    call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
-    call err_exit
-  end select
-  valid_value = .true.
-
 case ('e_tot')
   if (data_source == 'beam') return
   call load_it (lat%ele(0:n_track)%value(E_TOT$) * (1+tao_lat%orb(0:n_track)%vec(6)), &
@@ -615,6 +664,42 @@ case ('expression:')
   else
     call tao_to_real (datum%data_type(12:), datum_value, err, .false., valid_value, datum%stack)
   endif
+
+case ('floor.x')
+  if (data_source == 'beam') return
+  if (datum%ele0_name /= '') then
+    datum_value = lat%ele(ix1)%floor%x - lat%ele(ix0)%floor%x
+  else
+    datum_value = lat%ele(ix1)%floor%x
+  endif
+  valid_value = .true.
+
+case ('floor.y')
+  if (data_source == 'beam') return
+  if (datum%ele0_name /= '') then
+    datum_value = lat%ele(ix1)%floor%y - lat%ele(ix0)%floor%y
+  else
+    datum_value = lat%ele(ix1)%floor%y 
+  endif
+  valid_value = .true.
+
+case ('floor.z')
+  if (data_source == 'beam') return
+  if (datum%ele0_name /= '') then
+    datum_value = lat%ele(ix1)%floor%z - lat%ele(ix0)%floor%z
+  else
+    datum_value = lat%ele(ix1)%floor%z 
+  endif
+  valid_value = .true.
+
+case ('floor.theta')
+  if (data_source == 'beam') return
+  if (datum%ele0_name /= '') then
+    datum_value = lat%ele(ix1)%floor%theta - lat%ele(ix0)%floor%theta
+  else
+    datum_value = lat%ele(ix1)%floor%theta 
+  endif
+  valid_value = .true.
 
 case ('gamma.a')
   if (data_source == 'lattice') then
@@ -639,6 +724,36 @@ case ('gamma.z')
   datum_value = tao_lat%bunch_params(ix1)%z%gamma
   valid_value = .true.
 
+case ('i5a_e6')
+  if (data_source == 'beam') return
+  if (ix0 > 0 .or. ix1 > 0) then
+    if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) then
+      call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
+      return
+    endif
+    ix0 = max(1, ix0)
+    if (ix1 < 1) ix1 = lat%n_ele_track
+    datum_value = sum(tao_lat%rad_int%lin_i5a_e6(ix0:ix1))
+  else
+    datum_value = tao_lat%modes%lin%i5a_e6
+  endif
+  valid_value = .true.
+
+case ('i5b_e6')
+  if (data_source == 'beam') return
+  if (ix0 > 0 .or. ix1 > 0) then
+    if (.not. allocated(tao_lat%rad_int%lin_i5b_e6)) then
+      call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
+      return
+    endif
+    ix0 = max(1, ix0)
+    if (ix1 < 1) ix1 = lat%n_ele_track
+    datum_value = sum(tao_lat%rad_int%lin_i5b_e6(ix0:ix1))
+  else
+    datum_value = tao_lat%modes%lin%i5b_e6
+  endif
+  valid_value = .true.
+
 case ('k.11b')
   if (data_source == 'beam') return
   call load_it (cc%k_11a, ix0, ix1, datum_value, valid_value, &
@@ -655,6 +770,20 @@ case ('k.22a')
   if (data_source == 'beam') return
   call load_it (cc%k_22b, ix0, ix1, datum_value, valid_value, &
                                  datum, tao_lat, calc_needed = .true.)
+
+case ('momentum_compaction')
+  if (data_source == 'beam') return
+  call transfer_matrix_calc (lat, .true., mat6, vec0, ix0, ix1)
+  ele0 => lat%ele(ix0)
+  orb0 => tao_lat%orb(ix0)
+  call make_v_mats (ele0, v_mat, v_inv_mat)
+  eta_vec = (/ ele0%a%eta, ele0%a%etap, ele0%b%eta, ele0%b%etap /)
+  eta_vec = matmul (v_mat, eta_vec)
+  one_pz = 1 + orb0%vec(6)
+  eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
+  eta_vec(4) = eta_vec(4) * one_pz + orb0%vec(4) / one_pz
+  datum_value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
+  valid_value = .true.
 
 case ('orbit.x')
   if (data_source == 'beam') return ! bad
@@ -696,6 +825,31 @@ case ('orbit.norm_amp_b')
   if (data_source == 'beam') return ! bad
   call load_it (cc%amp_nb, ix0, ix1, datum_value, valid_value, datum, tao_lat, calc_needed = .true.)
 
+case ('periodic.tt.')
+  if (data_source == 'beam') return
+  if (lat%param%lattice_type /= circular_lattice$) then
+    call out_io (s_fatal$, r_name, 'LATTICE MUST BE CIRCULAR FOR A DATUM LIKE: ' // &
+                                                                        datum%data_type)
+    call err_exit
+  endif
+  
+  call transfer_map_calc (lat, taylor, ix1, ix1, one_turn = .true.)
+  do i = 1, 4
+    call add_taylor_term (taylor(i), -1.0_rp, i)
+  enddo
+  call taylor_inverse (taylor, taylor)
+
+  expnt = 0
+  i = tao_read_this_index (datum%data_type, 13); if (i == 0) return
+  do j = 14, 24
+    if (datum%data_type(j:j) == ' ') exit
+    k = tao_read_this_index (datum%data_type, j); if (k == 0) return
+    expnt(k) = expnt(k) + 1
+  enddo
+
+  datum_value = taylor_coef (taylor(i), expnt)
+  valid_value = .true.
+
 case ('phase.a')
   if (data_source == 'beam') return ! bad
   datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
@@ -731,223 +885,12 @@ case ('phase_frac_diff')
   datum_value = modulo2 (px - py, pi)
   valid_value = .true.
 
-case ('tune.a')
-  if (data_source == 'beam') return ! bad
-  datum_value = lat%a%tune
-  valid_value = .true.
-
-case ('tune.b')
-  if (data_source == 'beam') return ! bad
-  datum_value = lat%b%tune
-  valid_value = .true.
-
-case ('i5a_e6')
-  if (data_source == 'beam') return
-  if (ix0 > 0 .or. ix1 > 0) then
-    if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) then
-      call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
-      return
-    endif
-    ix0 = max(1, ix0)
-    if (ix1 < 1) ix1 = lat%n_ele_track
-    datum_value = sum(tao_lat%rad_int%lin_i5a_e6(ix0:ix1))
-  else
-    datum_value = tao_lat%modes%lin%i5a_e6
-  endif
-  valid_value = .true.
-
-case ('i5b_e6')
-  if (data_source == 'beam') return
-  if (ix0 > 0 .or. ix1 > 0) then
-    if (.not. allocated(tao_lat%rad_int%lin_i5b_e6)) then
-      call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
-      return
-    endif
-    ix0 = max(1, ix0)
-    if (ix1 < 1) ix1 = lat%n_ele_track
-    datum_value = sum(tao_lat%rad_int%lin_i5b_e6(ix0:ix1))
-  else
-    datum_value = tao_lat%modes%lin%i5b_e6
-  endif
-  valid_value = .true.
-
 case ('r.')
   if (data_source == 'beam') return
   i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
   call transfer_matrix_calc (lat, .true., mat6, vec0, ix0, ix1)
   datum_value = mat6(i, j)
-  valid_value = .true.
-
-case ('t.', 'tt.')
-  if (data_source == 'beam') return
-    expnt = 0
-  if (data_type == 't.') then
-    i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
-    do j = 4, 5
-      k = tao_read_this_index (datum%data_type, j); if (k == 0) return
-      expnt(k) = expnt(k) + 1
-    enddo
-  else
-    i = tao_read_this_index (datum%data_type, 4); if (i == 0) return
-    do j = 5, 15
-      if (datum%data_type(j:j) == ' ') exit
-      k = tao_read_this_index (datum%data_type, j); if (k == 0) return
-      expnt(k) = expnt(k) + 1
-    enddo
-  endif
-
-  if (tao_com%ix0_taylor /= ix0 .or. tao_com%ix1_taylor /= ix1) then
-    if (tao_com%ix0_taylor == ix0 .and. ix1 > tao_com%ix1_taylor) then
-      call transfer_map_calc (lat, taylor, tao_com%ix1_taylor, ix1, unit_start = .false.)
-    else
-      call transfer_map_calc (lat, taylor, ix0, ix1)
-    endif
-    tao_com%ix0_taylor = ix0
-    tao_com%ix1_taylor = ix1
-  endif
-  datum_value = taylor_coef (taylor(i), expnt)
-  valid_value = .true.
-
-case ('floor.x')
-  if (data_source == 'beam') return
-  if (datum%ele0_name /= '') then
-    datum_value = lat%ele(ix1)%floor%x - lat%ele(ix0)%floor%x
-  else
-    datum_value = lat%ele(ix1)%floor%x
-  endif
-  valid_value = .true.
-
-case ('floor.y')
-  if (data_source == 'beam') return
-  if (datum%ele0_name /= '') then
-    datum_value = lat%ele(ix1)%floor%y - lat%ele(ix0)%floor%y
-  else
-    datum_value = lat%ele(ix1)%floor%y 
-  endif
-  valid_value = .true.
-
-case ('floor.z')
-  if (data_source == 'beam') return
-  if (datum%ele0_name /= '') then
-    datum_value = lat%ele(ix1)%floor%z - lat%ele(ix0)%floor%z
-  else
-    datum_value = lat%ele(ix1)%floor%z 
-  endif
-  valid_value = .true.
-
-case ('floor.theta')
-  if (data_source == 'beam') return
-  if (datum%ele0_name /= '') then
-    datum_value = lat%ele(ix1)%floor%theta - lat%ele(ix0)%floor%theta
-  else
-    datum_value = lat%ele(ix1)%floor%theta 
-  endif
-  valid_value = .true.
-
-case ('s_position') 
-  if (data_source == 'beam') return
-  if (ix0 >= 0) then
-    datum_value = lat%ele(ix1)%s - lat%ele(ix0)%s
-  else
-    datum_value = lat%ele(ix1)%s 
-  endif
-  valid_value = .true.
-
-case ('wall')
-  if (data_source == 'beam') return
-  print *, 'NOT YET IMPLEMENTED...'
-  call err_exit
-
-!---------------------------------------------------------
-! Beam Emittance
-  
-case ('emit.x', 'norm_emit.x')
-  if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%x%norm_emitt
-  if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
-  valid_value = .true.
-
-case ('emit.y', 'norm_emit.y')  
-  if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%y%norm_emitt
-  if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
-  valid_value = .true.
-
-case ('emit.z', 'norm_emit.z')
-  if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%z%norm_emitt
-  if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
-  valid_value = .true.
-
-case ('emit.a', 'norm_emit.a')
-  if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%a%norm_emitt
-  elseif (data_source == 'lattice') then
-    if (lat%param%lattice_type == linear_lattice$) then
-      if (.not. allocated(tao_lat%rad_int%lin_norm_emit_a)) then
-        call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
-        return
-      endif
-      call load_it (tao_lat%rad_int%lin_norm_emit_a, &
-                              ix0, ix1, datum_value, valid_value, datum, tao_lat)
-    else
-      datum_value = gamma * tao_lat%modes%a%emittance  
-    endif
-  endif
-  if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
-  valid_value = .true.
-  
-case ('emit.b', 'norm_emit.b')  
-  if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%b%norm_emitt
-  elseif (data_source == 'lattice') then
-    if (lat%param%lattice_type == linear_lattice$) then
-      if (.not. allocated(tao_lat%rad_int%lin_norm_emit_b)) then
-        call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
-        valid_value = .false.
-        return
-      endif
-      call load_it (tao_lat%rad_int%lin_norm_emit_b, &
-                              ix0, ix1, datum_value, valid_value, datum, tao_lat)
-    else
-      datum_value = gamma * tao_lat%modes%b%emittance
-    endif
-  endif
-  if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
-  valid_value = .true.
-
-!---------------------------------------------------------
-case ('chrom.a')
-  if (data_source == 'beam') return
-  datum_value = tao_lat%a%chrom
-  valid_value = .true.
-
-case ('chrom.b')
-  if (data_source == 'beam') return
-  datum_value = tao_lat%b%chrom
-  valid_value = .true.
-
-case ('unstable_ring')
-  if (data_source == 'beam') return
-  datum_value = lat%param%growth_rate
-  ! unstable_penalty is needed since at the meta stable borderline the growth rate is zero.
-  if (.not. lat%param%stable) datum_value = datum_value + s%global%unstable_penalty
-  valid_value = .true.
-
-case ('dpx_dx') 
-  if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%sigma(s12$) / tao_lat%bunch_params(ix1)%sigma(s11$)
-  valid_value = .true.
-
-case ('dpy_dy') 
-  if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%sigma(s34$) / tao_lat%bunch_params(ix1)%sigma(s33$)
-  valid_value = .true.
-
-case ('dpz_dz') 
-  if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%sigma(s56$) / tao_lat%bunch_params(ix1)%sigma(s55$)
   valid_value = .true.
 
 case ('sigma.x')  
@@ -985,12 +928,6 @@ case ('sigma.xy')
   datum_value = tao_lat%bunch_params(ix1)%sigma(s13$)
   valid_value = .true.
   
-case ('wire.')  
-  if (data_source == 'lattice') return
-  read (data_type(6:), '(a)') angle
-  datum_value = tao_do_wire_scan (lat%ele(ix1), angle, u%current_beam)
-  valid_value = .true.
-  
 case ('spin.theta')
   if (data_source == 'beam') then
     datum_value = tao_lat%bunch_params(ix1)%spin%theta
@@ -1017,20 +954,73 @@ case ('spin.polarity')
   endif
   valid_value = .true.
   
-case ('momentum_compaction')
+case ('s_position') 
   if (data_source == 'beam') return
-  call transfer_matrix_calc (lat, .true., mat6, vec0, ix0, ix1)
-  ele0 => lat%ele(ix0)
-  orb0 => tao_lat%orb(ix0)
-  call make_v_mats (ele0, v_mat, v_inv_mat)
-  eta_vec = (/ ele0%a%eta, ele0%a%etap, ele0%b%eta, ele0%b%etap /)
-  eta_vec = matmul (v_mat, eta_vec)
-  one_pz = 1 + orb0%vec(6)
-  eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
-  eta_vec(4) = eta_vec(4) * one_pz + orb0%vec(4) / one_pz
-  datum_value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
+  if (ix0 >= 0) then
+    datum_value = lat%ele(ix1)%s - lat%ele(ix0)%s
+  else
+    datum_value = lat%ele(ix1)%s 
+  endif
   valid_value = .true.
 
+case ('tune.a')
+  if (data_source == 'beam') return ! bad
+  datum_value = lat%a%tune
+  valid_value = .true.
+
+case ('tune.b')
+  if (data_source == 'beam') return ! bad
+  datum_value = lat%b%tune
+  valid_value = .true.
+
+case ('t.', 'tt.')
+  if (data_source == 'beam') return
+  expnt = 0
+  if (data_type == 't.') then
+    i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
+    do j = 4, 5
+      k = tao_read_this_index (datum%data_type, j); if (k == 0) return
+      expnt(k) = expnt(k) + 1
+    enddo
+  else
+    i = tao_read_this_index (datum%data_type, 4); if (i == 0) return
+    do j = 5, 15
+      if (datum%data_type(j:j) == ' ') exit
+      k = tao_read_this_index (datum%data_type, j); if (k == 0) return
+      expnt(k) = expnt(k) + 1
+    enddo
+  endif
+
+  if (tao_com%ix0_taylor /= ix0 .or. tao_com%ix1_taylor /= ix1) then
+    if (tao_com%ix0_taylor == ix0 .and. ix1 > tao_com%ix1_taylor) then
+      call transfer_map_calc (lat, taylor, tao_com%ix1_taylor, ix1, unit_start = .false.)
+    else
+      call transfer_map_calc (lat, taylor, ix0, ix1)
+    endif
+    tao_com%ix0_taylor = ix0
+    tao_com%ix1_taylor = ix1
+  endif
+  datum_value = taylor_coef (taylor(i), expnt)
+  valid_value = .true.
+
+case ('unstable_ring')
+  if (data_source == 'beam') return
+  datum_value = lat%param%growth_rate
+  ! unstable_penalty is needed since at the meta stable borderline the growth rate is zero.
+  if (.not. lat%param%stable) datum_value = datum_value + s%global%unstable_penalty
+  valid_value = .true.
+
+case ('wall')
+  if (data_source == 'beam') return
+  print *, 'NOT YET IMPLEMENTED...'
+  call err_exit
+
+case ('wire.')  
+  if (data_source == 'lattice') return
+  read (data_type(6:), '(a)') angle
+  datum_value = tao_do_wire_scan (lat%ele(ix1), angle, u%current_beam)
+  valid_value = .true.
+  
 case default
   call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
   call err_exit

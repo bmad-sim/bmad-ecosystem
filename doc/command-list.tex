@@ -1491,6 +1491,12 @@ data of all the graphs is within the plot region. The affect of
 \vn{plot%autoscale_gang_x} can be overridden by using the \vn{-gang}
 or \vn{-nogang} switches.
 
+Note: The \vn{x-scale} command will vary the number of major divisions
+(set by plot%x%major_divisions (\sref{s:template})) to try to give a
+nice looking axis. The result can be that if two plots have the same
+range of data but differing major division settings, the \vn{x-scale}
+command can produce differing results.
+
 Example:
 \begin{example}
   x-scale                   ! Autoscale all x-axes.

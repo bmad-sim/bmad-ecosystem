@@ -396,13 +396,43 @@ datum should be in universe 2 or higher. Notice that while all datums
 must be assigned a universe, in this case the value of the datum will
 be independent of the universe it is in.
 
+  \index{periodic.tt.*}
+  \item{periodic.tt.*} \Newline
+This is like the \vn{tt.*} datum except here the terms are from the
+periodic Taylor map defined by
+\Begineq
+  T_p \equiv (T_0 - I_4)^{-1}
+\Endeq
+This map is only defined for circular lattices. Here $T_p$ is the
+periodic map, $T_0$ is the one-turn map from some point back to that
+point, and I_4 is a linear map defined by the matrix
+\Begineq
+  I_4 \equiv 
+    \begin{pmatrix}
+      1 &   &   &   &   &   \\
+        & 1 &   &   &   &   \\
+        &   & 1 &   &   &   \\
+        &   &   & 1 &   &   \\
+        &   &   &   & 0 &   \\
+        &   &   &   &   & 0
+    \end{pmatrix}
+\Endeq
+The periodic map give information about the closed orbit, dispersion,
+etc. For example, the zeroth order terms are the closed orbit, the r16
+term gives the horizontal dispersion, etc.
+
   \index{t.* tt.*} 
   \item{t.* tt.*} \Newline
-The \vn{t} and \vn{tt} data types involve symplectic integration
+The \vn{t} and \vn{tt} data types give terms of the Taylor map between
+two points. The difference between \vn{t.*} and \vn{tt.*} is that
+\vn{t.*} is restricted to exactly three indices and \vn{tt.*} is
+not. \vn{t.*} is superfluous but is keep for backwards compatibility.
+
+Calculation of \vn{t.*} and \vn{tt.*} datums involve symplectic integration
 through lattice elements. One point to be kept in mind is that results
 will be dependent upon the integration step size through an element
 set by the \vn{ds_step} attribute of that element (see the \bmad
-manual for more details).  When a smooth curve (\sref{s:template}) is
+manual for more details). When a smooth curve (\sref{s:template}) is
 plotted for \vn{t} and \vn{tt} data types, and the longitudinal
 (\vn{"s"}) position is used for the x-axis, the integration step used
 in generating the points that define this curve will be decreased if
@@ -511,25 +541,18 @@ size squared.
   cbar.11, cbar.12, cbar.21, cbar.22
                                & Coupling                           &          \\ \hline 
 
-  \begin{tabular}{@{}l}
-    chrom.a, chrom.b  \\
-  \end{tabular}                & Chromaticity for a ring            & global   \\ \hline
+  chrom.a, chrom.b             & Chromaticity for a ring            & global   \\ \hline
 
   e\_tot                       & Beam total energy                  &          \\ \hline
 
   element\_param.<param\_name> & Lattice element parameter          &          \\ \hline
 
-  \begin{tabular}{@{}l}
-    emit.a, emit.b, emit.c \\
-  \end{tabular}                & Emittance                          & global   \\ \hline
+  emit.a, emit.b, emit.c       & Emittance                          & global   \\ \hline
 
   eta.x, eta.y                 & Lab Frame dispersion               &          \\ \hline 
   eta.a, eta.b                 & Normal-mode dispersion             &          \\ \hline 
   etap.x, etap.y               & Lab Frame dispersion derivative    &          \\ \hline 
   etap.a, etap.b               & Normal-mode dispersion derivative  &          \\ \hline 
-
-  eta.order2.x, eta.order2.y   & 2\Nd order lab frame dispersion            &          \\ \hline 
-  etap.order2.x, etap.order2.y & 2\Nd order lab frame dispersion derivative &          \\ \hline 
 
   expression: <arithmetic expression>
                                & See the text                       &          \\ \hline 
@@ -542,8 +565,7 @@ size squared.
   i5a\_e6, i5b\_e6             & Normalized I5 radiation integral   &          \\ \hline
 
   k.11b, k.12a, k.12b, k.22a   & Coupling                           &          \\ \hline 
-  momentum\_compaction         & Momentum compaction factor            & relative \\ \hline
-  momentum\_compaction.order2  & 2\Nd order momentum compaction factor & relative \\ \hline
+  momentum\_compaction         & Momentum compaction factor         & relative \\ \hline
 
   \begin{tabular}{@{}l}   
     multi\_turn\_orbit.x, multi\_turn\_orbit.p\_x \\ 
@@ -551,9 +573,8 @@ size squared.
     multi\_turn\_orbit.z, multi\_turn\_orbit.p\_z \\
   \end{tabular}                & Bunch size                         &          \\ \hline 
 
-  \begin{tabular}{@{}l}  
-    norm\_emit.a, norm\_emit.b, norm\_emit.c 
-  \end{tabular}                & Normalized beam emittance          &          \\ \hline 
+  norm\_emit.a, norm\_emit.b, norm\_emit.c 
+                               & Normalized beam emittance          &          \\ \hline 
 
   orbit.x, orbit.y             & Transverse orbit                   &          \\ \hline 
   orbit.p\_x, orbit.p\_y       & Transverse momenta                 &          \\ \hline 
@@ -562,23 +583,28 @@ size squared.
   orbit.norm\_amp\_a, orbit.norm\_amp\_b  
                                & Energy normalized ``invariant'' amplitude &          \\ \hline 
 
+  periodic.tt.$ijklm\ldots$    & \begin{tabular}{l}
+                                  Taylor term of the periodic map. \\
+                                  $1 \le i,j,k,\ldots \le 6$
+                                \end{tabular}                       & relative \\ \hline 
+
   phase.a, phase.b             & Betatron phase                     & relative \\ \hline 
 
   phase\_frac.a, phase\_frac.b            
                                & \begin{tabular}{l}
                                   Fractional betatron phase \\       
                                   $-\pi < \phi_{\mbox{frac}} < \pi$ \\
-                                \end{tabular}                      & relative \\ \hline 
+                                \end{tabular}                       & relative \\ \hline 
 
   phase\_frac\_diff            & \begin{tabular}{l}
                                   Fractional betatron phase \\
                                   difference (a-b) $-\pi < d\phi_{\mbox{frac}} < \pi$
-                                \end{tabular}                      & relative \\ \hline 
+                                \end{tabular}                       & relative \\ \hline 
 
   r.$ij$                       & \begin{tabular}{l}
                                   Term in linear transfer map \\
                                   $1 \le i,j \le 6$
-                                \end{tabular}                      & relative \\ \hline 
+                                \end{tabular}                       & relative \\ \hline 
 
   s\_position                  & longitudinal length constraint     & relative \\ \hline 
 
@@ -588,11 +614,11 @@ size squared.
   t.$ijk$                      & \begin{tabular}{l}
                                   Term in 2\Nd order transfer map \\
                                   $1 \le i,j,k \le 6$
-                                \end{tabular}                      & relative \\ \hline 
+                                \end{tabular}                       & relative \\ \hline 
   tt.$ijklm\ldots$             & \begin{tabular}{l}
                                   Term in n\Th order transfer map \\
                                   $1 \le i,j,k,\ldots \le 6$
-                                \end{tabular}                      & relative \\ \hline 
+                                \end{tabular}                       & relative \\ \hline 
 
   tune.a, tune.b               & Tune                               &          \\ \hline 
   unstable\_ring               & Nonzero if a ring is unstable      & global   \\ \hline
