@@ -103,7 +103,7 @@ Typically \vn{None} is used internally in a program to prevent recomputation.
 
 \index{runge_kutta}
 \item[\vn{Runge_Kutta}]
-This uses a 4\Th\ order Runge Kutta integration algorithm with adaptive
+This uses a 4\Th order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially the \vn{ODEINT} subroutine
 from Numerical Recipes\cite{b:nr}. This may be slow but it should be
 accurate. This method is non-symplectic.
@@ -235,7 +235,7 @@ solve the problem. See \sref{s:symp.method}.
 
 Symplectic integration is like ordinary integration of a function f(x)
 but what is integrated here is a Taylor map. Truncating the map to
-0\Th\ order gives the particle trajectory and truncating to 1\St\
+0\Th order gives the particle trajectory and truncating to 1\St\
 order gives the transfer matrix (Jacobian).  The order at which a
 Taylor series is truncated at is set by \vn{taylor_order} (see
 \sref{s:param}. Like ordinary integration there are various
