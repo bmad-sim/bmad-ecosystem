@@ -1344,7 +1344,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%sub_key, f%control_type, f%ix_value, f%n_slave, f%ix1_slave, &
       f%ix2_slave, f%n_lord, f%ic1_lord, f%ic2_lord, f%ix_pointer, f%ixx, &
       f%ix_ele, f%ix_branch, f%mat6_calc_method, f%tracking_method, f%field_calc, &
-      f%num_steps, f%integrator_order, f%ptc_kind, f%taylor_order, &
+      f%num_steps, f%integrator_order, f%ref_orbit, f%taylor_order, &
       f%aperture_at, f%coupler_at, f%symplectify, f%mode_flip, &
       f%multipoles_on, f%map_with_offsets, &
       f%field_master, f%is_on, f%old_is_on, f%logic, f%on_a_girder, &
@@ -1452,7 +1452,7 @@ f%tracking_method       = tk_meth
 f%field_calc            = f_calc
 f%num_steps             = steps
 f%integrator_order      = int_ord
-f%ptc_kind              = ptc
+f%ref_orbit              = ptc
 f%taylor_order          = tlr_ord
 f%aperture_at           = aperture_at
 f%coupler_at            = coupler_at

@@ -209,7 +209,7 @@ bool operator== (const C_ele& x, const C_ele& y) {
     (x.ix_ele == y.ix_ele) && (x.mat6_calc_method == y.mat6_calc_method) && 
     (x.tracking_method == y.tracking_method) && (x.field_calc == y.field_calc) && 
     (x.num_steps == y.num_steps) && (x.integrator_order == y.integrator_order) && 
-    (x.ptc_kind == y.ptc_kind) && (x.taylor_order == y.taylor_order) && 
+    (x.ref_orbit == y.ref_orbit) && (x.taylor_order == y.taylor_order) && 
     (x.aperture_at == y.aperture_at) && (x.coupler_at == y.coupler_at) && 
     (x.symplectify == y.symplectify) && 
     (x.mode_flip == y.mode_flip) && (x.multipoles_on == y.multipoles_on) && 
@@ -267,7 +267,7 @@ void ele_comp (const C_ele& x, const C_ele& y) {
   cout << "logic: " << ((x.mat6_calc_method == y.mat6_calc_method) && 
       (x.tracking_method == y.tracking_method) && (x.field_calc == y.field_calc) && 
       (x.num_steps == y.num_steps) && (x.integrator_order == y.integrator_order) && 
-      (x.ptc_kind == y.ptc_kind) && (x.taylor_order == y.taylor_order) && 
+      (x.ref_orbit == y.ref_orbit) && (x.taylor_order == y.taylor_order) && 
       (x.aperture_at == y.aperture_at) && (x.coupler_at == y.coupler_at) && 
       (x.symplectify == y.symplectify) && 
       (x.mode_flip == y.mode_flip) && (x.multipoles_on == y.multipoles_on) && 

@@ -80,23 +80,14 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   if (lord%ix2_slave < 1) cycle  ! lord has no slaves
 
   ! Multipass lords have their own reference energy.
-  ! If n_multipass_ref /= 0 then get this reference energy from the n^th slave.
+  ! If n_ref_pass /= 0 then get this reference energy from the n^th slave.
 
   if (lord%control_type == multipass_lord$) then
-    ix = nint(lord%value(n_multipass_ref$))
-    if (ix /= 0) then
-      j = lord%ix1_slave + ix - 1
-      ixs = lat%control(j)%ix_slave
-      lord%value(e_tot_ref_geometry$) = lat%ele(ixs)%value(e_tot$)
-      lord%value(p0c_ref_geometry$)   = lat%ele(ixs)%value(p0c$)
-
-    elseif (lord%value(e_tot_ref_geometry$) /= 0) then
-      call convert_total_energy_to (lord%value(e_tot_ref_geometry$), &
-                            lat%param%particle, pc = lord%value(p0c_ref_geometry$))
-    endif
-
-    lord%value(e_tot$) = lord%value(e_tot_ref_geometry$)
-    lord%value(p0c$) = lord%value(p0c_ref_geometry$)
+    ix = nint(lord%value(n_ref_pass$))
+    j = lord%ix1_slave + ix - 1
+    ixs = lat%control(j)%ix_slave
+    lord%value(e_tot$) = lat%ele(ixs)%value(e_tot$)
+    lord%value(p0c$)   = lat%ele(ixs)%value(p0c$)
 
     cycle
   endif

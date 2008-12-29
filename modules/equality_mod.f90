@@ -456,7 +456,7 @@ is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     (f1%field_calc == f2%field_calc) .and. (f1%coupler_at == f2%coupler_at) .and. &
     (f1%num_steps == f2%num_steps) .and. &
     (f1%integrator_order == f2%integrator_order) .and. &
-    (f1%ptc_kind == f2%ptc_kind) .and. (f1%taylor_order == f2%taylor_order) .and. &
+    (f1%ref_orbit == f2%ref_orbit) .and. (f1%taylor_order == f2%taylor_order) .and. &
     (f1%aperture_at == f2%aperture_at) .and. (f1%symplectify .eqv. f2%symplectify) .and. &
     (f1%mode_flip .eqv. f2%mode_flip) .and. (f1%multipoles_on .eqv. f2%multipoles_on) .and. &
     (f1%map_with_offsets .eqv. f2%map_with_offsets) .and. &
@@ -546,7 +546,7 @@ print *, 'logic:      ', (f1%mat6_calc_method == f2%mat6_calc_method) .and. &
     (f1%field_calc == f2%field_calc) .and. &
     (f1%num_steps == f2%num_steps) .and. (f1%coupler_at == f2%coupler_at) .and. &
     (f1%integrator_order == f2%integrator_order) .and. &
-    (f1%ptc_kind == f2%ptc_kind) .and. (f1%taylor_order == f2%taylor_order) .and. &
+    (f1%ref_orbit == f2%ref_orbit) .and. (f1%taylor_order == f2%taylor_order) .and. &
     (f1%aperture_at == f2%aperture_at) .and. (f1%symplectify .eqv. f2%symplectify) .and. &
     (f1%mode_flip .eqv. f2%mode_flip) .and. (f1%multipoles_on .eqv. f2%multipoles_on) .and. &
     (f1%map_with_offsets .eqv. f2%map_with_offsets) .and. &

@@ -308,9 +308,9 @@ Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
   b1_gradient = <Real>     ! Quadrupole field strength (\sref{s:depend}).
   k2          = <Real>     ! Sextupole strength (\sref{s:depend}).
   b2_gradient = <Real>     ! Sextupole field strength (\sref{s:depend}).
-  n_ref_multipass    = <Int>   ! Multipass reference turn.
-  e_tot_ref_geometry = <Real>  ! Reference energy for multipass elements. 
-  l_chord                      ! Chord length. Dependent attribute. See \sref{s:l}.
+  n_ref_pass  = <Int>      ! Multipass reference turn.
+  ref_orbit   = <Switch>   ! Multipass reference geomegry switch.
+  l_chord                  ! Chord length. Dependent attribute. See \sref{s:l}.
 \end{example}
 
 \index{l}
@@ -421,10 +421,10 @@ For example:
 \end{example}
 Notice that \vn{l_coef} is just \vn{arc_length/2}.
 
-The \vn{e_tot_ref_geometry} or \vn{n_multipass_ref} attributes are
-only used when a bend is part of a \vn{multipass} line and is used to
-set the reference geometry of the bend. See section~\sref{s:multipass}
-for more details.
+\vn{n_ref_pass}, and \vn{ref_orbit} attributes are only used
+when a bend is part of a \vn{multipass} line and is used to set the
+reference geometry of the bend. See section~\sref{s:multipass} for
+more details.
 
 Example bend specification:
 \begin{example}

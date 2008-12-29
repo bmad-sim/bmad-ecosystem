@@ -729,7 +729,7 @@ public:
   int field_calc;               // Used with Boris, Runge-Kutta integrators.
   int num_steps;                // number of slices for DA_maps
   int integrator_order;         // For Etiennes' PTC: 2, 4, or 6.
-  int ptc_kind;                 // For setting the ptc kind type.
+  int ref_orbit;                 // For setting the ptc kind type.
   int taylor_order;             // Order of the taylor series.
   int aperture_at;              // Where aperture is applied. exit_end$, ...
   int coupler_at;               // Where aperture is applied. exit_end$, ...

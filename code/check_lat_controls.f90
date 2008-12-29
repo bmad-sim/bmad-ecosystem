@@ -72,19 +72,10 @@ do i_t = 1, lat%n_ele_max
     endif
   endif
 
-  ! sbend multipass lord must have non-zero e_tot_ref_geometry or n_multipass_ref
+  ! sbend multipass lord must have non-zero n_ref_pass
 
   if (ele%key == sbend$ .and. t_type == multipass_lord$) then
-    ix = nint(ele%value(n_multipass_ref$))
-
-    if (ix == 0 .and. ele%value(e_tot_ref_geometry$) == 0) then
-      call out_io (s_fatal$, r_name, &
-                'A MULTIPASS_LORD WHICH IS A BEND MUST HAVE ONE OF', &
-                'N_MULTIPASS_REF OR E_TOT_REF_GEOMETRY ATTRIBUTES SET.', &
-                'THIS IS NOT TRUE FOR: ' // ele%name)
-      found_err = .true.
-    endif
-
+    ix = nint(ele%value(n_ref_pass$))
     if (ix < 0 .or. ix > ele%n_slave) then
       call out_io (s_fatal$, r_name, &
                 'BEND: ' // ele%name, &

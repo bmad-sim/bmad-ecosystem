@@ -135,7 +135,7 @@ do
   if (ix1 == ix2) exit
 enddo
 
-! First: Makup lords and group slaves.
+! First: Makup all lords.
 ! If an overlay_lord has lords above it then these lords must be overlay_lords.
 ! Therefore treat the overlay_lord as an overlay_slave.
 ! The same is true if a super_lord has lords except in this case the lord
@@ -147,7 +147,7 @@ do j = 1, ix2
   slave => lattice%ele(ix)
 
   if (slave%control_type == group_lord$) then
-    call makeup_group_slaves (lattice, ix)
+    call makeup_group_lord (lattice, ix)
     call attribute_bookkeeper (slave, lattice%param)
 
   elseif (slave%control_type == super_lord$) then
@@ -176,7 +176,7 @@ do j = 1, ix2
 
 enddo
 
-! Second: Makeup all slaves but group slaves.
+! Second: Makeup all slaves.
 
 do j = 1, ix2
 
@@ -310,12 +310,12 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_group_slaves (lattice, ix_slave)
+! Subroutine makeup_group_lord (lattice, ix_lord)
 !
 ! Subroutine to calculate the attributes of group slave elements
 !-
 
-Subroutine makeup_group_slaves (lattice, ix_lord)   
+Subroutine makeup_group_lord (lattice, ix_lord)   
 
 implicit none
 
@@ -329,7 +329,7 @@ integer ix_lord, ix, iv, ict, i
 
 logical moved, err_flag
 
-character(20) :: r_name = 'makeup_group_slaves'
+character(20) :: r_name = 'makeup_group_lord'
 
 !
 
@@ -383,7 +383,10 @@ type (lat_struct), target :: lattice
 type (ele_struct), pointer :: lord, slave
 
 real(rp) s, val(n_attrib_maxx)
+real(rp) d, e, r_lord, r_slave, cos_lord, cos_lorde, sin_lord, sin_lorde
+real(rp) ang_slave, ang_lord, ang_slave_old
 integer j, ix_slave
+character(40) :: r_name = 'makeup_multipass_slave'
 
 !
 
@@ -402,21 +405,54 @@ endif
 
 slave%value(e_tot$) = val(e_tot$)
 slave%value(p0c$)   = val(p0c$)
-slave%value(p0c_ref_geometry$)   = 0
-slave%value(e_tot_ref_geometry$) = 0
-slave%value(n_multipass_ref$)    = 0
+slave%value(n_ref_pass$)    = 0
 
-if (lord%field_master) then
-  if (lord%value(p0c_ref_geometry$) /= 0) then
+if (lord%key == sbend$ .and. slave%value(p0c$) /= 0) then
+  select case (lord%ref_orbit)
+  case (single_ref$)
     slave%value(b_field$)     = lord%value(b_field$) * slave%value(p0c$) / lord%value(p0c$) 
     slave%value(b_field_err$) = lord%value(b_field$) + lord%value(b_field_err$) - &
-                                                                 slave%value(b_field$)
-  endif
-else
-  if (slave%value(p0c$) /= 0) then
+                                                                   slave%value(b_field$)
     slave%value(g_err$) = (lord%value(g$) + lord%value(g_err$)) * &
-                                  lord%value(p0c$) / slave%value(p0c$) - lord%value(g$)
-  endif
+                                    lord%value(p0c$) / slave%value(p0c$) - lord%value(g$)
+
+  case (match_at_entrance$, match_at_exit$)
+    slave%value(g$) = lord%value(g$) * lord%value(p0c$) / slave%value(p0c$)
+    ! Iterate to converge to a solution
+    if (slave%value(g$) /= lord%value(g$)) then
+      if (lord%ref_orbit == match_at_entrance$) then
+        e = lord%value(e2$)
+      else
+        e = lord%value(e1$)
+      endif
+      r_lord  = 1 / lord%value(g$)
+      r_slave = 1 / slave%value(g$)
+      ang_lord = lord%value(angle$)
+      cos_lord = cos(ang_lord); cos_lorde = cos(ang_lord - e)
+      sin_lord = sin(ang_lord); sin_lorde = sin(ang_lord - e)
+      ang_slave     = ang_lord
+      ang_slave_old = ang_slave
+      do
+        d = (r_lord * (1 - cos_lord) - r_slave * (1 - cos(ang_slave))) / cos_lorde
+        ang_slave = asin((r_lord * sin_lord + d * sin_lorde)/r_slave)
+        if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
+        ang_slave_old = ang_slave
+      enddo
+      slave%value(angle$) = ang_slave
+      slave%value(l$) = ang_slave * r_slave
+      slave%value(rho$) = r_slave
+      if (lord%ref_orbit == match_at_entrance$) then
+        slave%value(e2$) = e + ang_lord - ang_slave
+      else
+        slave%value(e1$) = e + ang_lord - ang_slave
+      endif
+    endif
+
+  case default
+    call out_io (s_fatal$, r_name, 'BAD MATCH_ORBIT_AT VALUE FOR: ' // lord%name)
+    call err_exit
+
+  end select
 endif
 
 if (associated (slave%a_pole)) then
@@ -1284,7 +1320,6 @@ if (.not. ele%on_a_girder .and. ele%key /= match$) then
 endif
 
 ! Field_master...
-! For an sbend multipass_slave: The reference energy is obtained from p0c_ref_geometry.
 
 if (ele%field_master) then
 

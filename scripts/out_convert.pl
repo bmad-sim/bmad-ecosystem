@@ -7,7 +7,8 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/append_subdirectory/
+    s/n_multipass_ref/n_ref_pass/g;
+    s/match_orbit_at/ref_orbit/g;
     print (F_OUT);
   }
 

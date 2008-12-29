@@ -203,7 +203,7 @@ type ele_struct
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
   integer num_steps          ! number of slices for DA_maps
   integer integrator_order   ! For Etiennes' PTC: 2, 4, or 6.
-  integer ptc_kind           ! For setting the ptc kind type.
+  integer ref_orbit           ! For setting the ptc kind type.
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
   integer coupler_at         ! Lcavity coupler location: exit_end$, ...
@@ -403,11 +403,10 @@ integer, parameter :: y_offset$=26
 integer, parameter :: s_offset$=27, z_offset$=27
 integer, parameter :: B_field_err$=28, BL_kick$ = 28
 integer, parameter :: radius$=29
-integer, parameter :: p0c_ref_geometry$=30
-integer, parameter :: e_tot_ref_geometry$=31
+! 30 and 31 Free...                    
 integer, parameter :: p0c$=32
 integer, parameter :: e_tot$=33
-integer, parameter :: Bs_field$=34, n_multipass_ref$=34
+integer, parameter :: Bs_field$=34, n_ref_pass$=34
 integer, parameter :: B_field$=35, E_field$=35
 integer, parameter :: B_gradient$=36, E_gradient$=36
 integer, parameter :: B1_gradient$=37, E1_gradient$=37
@@ -436,7 +435,7 @@ integer, parameter :: y2_limit$ = 59
 integer, parameter :: check_sum$ = 60 
 
 integer, parameter :: term$ = 61       ! 61 = 1 + n_attrib_maxx
-integer, parameter :: ptc_kind$ = 62
+integer, parameter :: ref_orbit$ = 62
 integer, parameter :: symplectify$ = 63
 integer, parameter :: descrip$ = 64
 integer, parameter :: is_on$ = 65
@@ -566,6 +565,12 @@ integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
 integer, parameter :: no_end$ = 4
 character(16), parameter :: element_end_name(0:4) = (/ "GARBAGE!    ", &
       "Entrance_End", "Exit_End    ", "Both_Ends   ", "No_End      " /)
+
+! ref_orbit values.
+
+integer, parameter :: single_ref$ = 1, match_at_entrance$ = 2, match_at_exit$ = 3 
+character(20), parameter :: ref_orbit_name(0:3) = (/  "GARBAGE!         ", &
+            "Single_Ref       ", "Match_at_Entrance", "Match_at_Exit    " /)
 
 ! The linac_normal_mode_struct is basically the synchrotron integrals with the
 ! energy factors thrown in. Useful for linacs.

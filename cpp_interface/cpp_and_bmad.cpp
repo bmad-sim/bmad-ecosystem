@@ -616,7 +616,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.sub_key, c.control_type, c.ix_value, c.n_slave, c.ix1_slave, 
     c.ix2_slave, c.n_lord, c.ic1_lord, c.ic2_lord, c.ix_pointer, 
     c.ixx, c.ix_ele, c.ix_photon_line, c.mat6_calc_method, c.tracking_method, 
-    c.field_calc, c.num_steps, c.integrator_order, c.ptc_kind, c.taylor_order, 
+    c.field_calc, c.num_steps, c.integrator_order, c.ref_orbit, c.taylor_order, 
     c.aperture_at, c.coupler_at, c.symplectify, c.mode_flip, c.multipoles_on, 
     c.map_with_offsets, c.field_master, c.is_on, c.old_is_on, c.logic, c.on_a_girder, 
     c.csr_calc_on, c.offset_moves_aperture);
@@ -674,7 +674,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.field_calc            = f_calc;
   c.num_steps             = num_s;
   c.integrator_order      = int_ord;
-  c.ptc_kind              = ptc;
+  c.ref_orbit              = ptc;
   c.taylor_order          = t_ord;
   c.aperture_at           = aperture_at;
   c.coupler_at            = coupler_at;
@@ -782,7 +782,7 @@ C_ele& C_ele::operator= (const C_ele& c) {
   field_calc           = c.field_calc;
   num_steps            = c.num_steps;
   integrator_order      = c.integrator_order;
-  ptc_kind             = c.ptc_kind;
+  ref_orbit             = c.ref_orbit;
   taylor_order         = c.taylor_order;
   aperture_at          = c.aperture_at;
   symplectify          = c.symplectify;

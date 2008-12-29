@@ -90,7 +90,7 @@ namespace Bmad {
   const int NUM_STEPS = 59;
   const int INTEGRATOR_ORDER = 60;
   const int TERM = 61;
-  const int PTC_KIND = 62;
+  const int MATCH_ORBIT_AT = 62;
   const int SYMPLECTIFY = 63;
   const int DESCRIP = 64;
   const int IS_ON = 65;

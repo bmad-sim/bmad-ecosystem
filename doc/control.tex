@@ -422,55 +422,104 @@ element, since the normalized strength is not constant from pass to
 pass, the magnetic field strength should be setup to be the
 independent attribute (\sref{s:depend}). 
 
-\index{sbend}\index{rbend}
-For a bend, there is the added complication that, the reference orbit
-needs to be defined unambiguously. The \bmad standard mandates that
-the reference orbit through a bend is the same on all passes. For
-example, if element \vn{B} in the above example where a bend, then the
-reference orbit for slaves \vn{B\B1} and \vn{B\B2} will have the same
-bending radius and same bending angle. This is true even if the
-reference beam energy at \vn{B\B1} and \vn{B\B2} are different. 
-To see how this affects things, consider the following. The total magnetic
-field of a bend is 
-\begin{example}
-  B_tot = (g + g_err) * P_0
-\end{example}
-where \vn{g} is the design bending strength, \vn{g_err} is the bending
-strength error and \vn{P_0} is the reference momentum. \vn{B_tot} must
-be the same for \vn{B\B1} and \vn{B\B2} since they both represent the
-same physical element. Consider the case where element \vn{B\B1} has
-an associated \vn{g} a zero \vn{g_err}. Element \vn{B\B2} will have
-the same \vn{g} since this sets the reference orbit. However, if the
-reference energy at \vn{B\B2} is different, \vn{B\B2} Must have a
-finite \vn{g_err} to give a constant \vn{B_tot}. This situation may
-seem odd. Why not just define a separate reference orbit for different
-passes so that \vn{g_err} would be zero on all passes? The problem is
-that there is no good consistent way to do this. To see this, consider
-what happens if a finite \vn{k1} quadrupole moment is added to the
-above example. Now a particle with the reference energy and on the
-reference orbit entering \vn{B\B2} will not travel on a circle so no
-matter what circular reference trajectory is chosen, the particle
-cannot remain on the reference orbit. One could imagine defining
-non-circular reference orbits but this has its own complications.
-When it is desired to have different reference orbits for different
-passes, \vn{Patch} elements (\sref{s:patch}) can be used after any
-multipass lines.
+\begin{figure}[tb]
+\centering 
+\includegraphics{multipass_bend.eps} 
+\caption[The reference orbit with a multipass bend.] 
+{With the \vn{reference_orbit} attribute set to
+\vn{match_at_entrance}, the reference orbit through a bend will be
+different on different passes if there is a variation of the reference
+energy from pass to pass. In this case, all the reference orbits will
+be the same at the entrance end of the magnet.}
+\label{f:multipass_bend}
+\end{figure}
 
-The upshot of the above discussion is that for a bend, there is the
-added complication that, without a definite reference energy, it is
-only possible to calculate the total bending strength \vn{g + g_err}
-but not \vn{g} or \vn{g_err} separately. This is important since
-\vn{g} determines the reference orbit and hence the layout of the
-elements downstream from the bend. To alleviate this problem,
-\vn{Sbend} and \vn{Rbend} elements have \vn{e_tot_ref_geometry} and
-\vn{n_multipass_ref} attributes which are used to set the reference
-energy for calculating \vn{g}. If \vn{n_multipass_ref} is non-zero,
-the reference energy for computing the reference orbit is taken to be
-the reference energy at the element on the n\Th turn. If
-\vn{n_multipass_ref} is zero then \vn{e_tot_ref_geometry} is used as
-the reference energy.  It is required that either
-\vn{e_tot_ref_geometry} or \vn{n_multipass_ref} be set for bends in a
-multipass line. Since the reference energy is well defined for bends,
-the magnetic field can be computed from knowledge of \vn{g} and
-\vn{g_err}. Hence bend elements are the exception to the rule, and
+\index{sbend}\index{rbend}\index{patch}
+For a bend in a multipass line, there is the added complication of how
+to define the reference orbit when the reference energy is different
+from pass to pass. If, say, a different reference orbit is used for
+each pass there is a problem of how to interpolate multipole values
+like \vn{k1}. On the other hand, it is sometimes very convenient to be
+able to use separate reference orbits. 
+
+A bend element has two attributes that control the reference orbit:
+\vn{ref_orbit} and \vn{n_ref_pass}. \vn{n_ref_pass} is an
+integer indicating which pass is used to define the reference energy
+for the lord element. \vn{ref_orbit} is a switch that can take
+the values:
+\begin{example}
+  singe_ref            ! Default
+  match_at_entrance
+  match_at_exit
+\end{example}
+A value of \vn{singe_ref} (the default) means that the same reference
+orbit will be used for all passes. The \vn{match_at_entrance} and
+\vn{match_at_exit} values are used when separate reference orbits are
+desired as described below.
+
+An example will make this clear. Consider a bend defined by
+\begin{example} 
+  B: sbend, l = 1, b_field = 1.0, n_ref_pass = 1, ref_orbit = single_ref
+\end{example}
+Here the same reference orbit will be used for all passes.  Assume
+that positrons are being used and that the reference energy on the
+first pass is 5~GeV and on the second pass it is 10~GeV. Since
+\vn{n_ref_pass} has a value of \vn{1}, the first pass reference energy
+of 5~GeV will be used, along with the attribute values of \vn{B}, to
+define the reference reference orbit. In this case, this translates
+into a bending radius \vn{rho} of 16.7~m.  In the tracking lattice,
+the first pass element \vn{B\B1} will have a value for \vn{b_field} of
+\vn{1.0} just like its lord element. On the second pass, the reference
+orbit is the same so the bending radius of the reference orbit 
+is unchanged at 16.7~m. However, the bending radius is
+related to the \vn{b_field} by
+\begin{example}
+  rho = p0c / (c_light * b_field)
+\end{example}
+Since, on the second pass, \vn{p0c} is a factor of 2 larger, to keep
+the bending radius invariant the value of \vn{b_field} for the second
+pass element \vn{B\B2} will be a factor of 2 larger. That is, it will
+be \vn{2.0}. Since the total field must be the same on all passes
+(\vn{B\B1} and \vn{B\B2} represent the same physical element after
+all), and since the total field is the sum of \vn{b_field} and
+\vn{b_field_err}, \vn{B\B2} must have a value for \vn{b_field_err} of
+\vn{-1.0}.
+
+Now consider the same situation as above except that the value of
+\vn{ref_orbit} is changed:
+\begin{example} 
+  B: sbend, l = 1, b_field = 1.0, n_ref_pass = 1, ref_orbit = match_at_entrance
+\end{example}
+Here the reference orbit will be different on the two passes. The two
+reference orbits will coincide at the entrance edge of the magnet.
+This is illustrated in Figure~\ref{f:multipass_bend}. In both
+\vn{B\B1} and \vn{B\B2} the value of \vn{b_field} will be \vn{1.0}
+giving bending radii of \vn{16.7}~m and \vn{33.4}~m
+respectively. In the second pass, the element length \vn{l} will be
+increased slightly to \vn{1.0000045}. There will also be a non-zero
+exit face angle \vn{e2} of \vn{0.003}. With the different reference
+orbit for the second pass, there is no good way to handle a non-zero
+multipole attribute so \bmad disallows them in this case.
+
+\vn{match_at_exit} is similar to \vn{match_at_entrance} except that
+the different reference orbits will coincide at the exit edge of the
+magnet. If \vn{match_at_exit} is used with the parameters in the above
+example, the only change for \vn{B\B2} is that \vn{e1} will now be
+\vn{0.003} and \vn{e2} will be zero.
+
+The \vn{match_at_entrance} value for \vn{ref_orbit} is useful
+for simulating a bend at the end of a multipass line that is used to
+separate the beams on the various passes. Notice that the next
+elements downstream (labeled \vn{Q1} and \vn{Q2} in
+Figure~\ref{f:multipass_bend}) will be physically separated in
+space. That is, it does not make sense to use \vn{match_at_entrance}
+for a bend that is {\em not} at the end of a multipass
+line. Similarly, the \vn{match_at_exit} value is useful for simulating
+a bend that combines beams of different energies. Such a bend should
+be placed at the beginning of a multipass line.
+
+Due to the presence of \vn{n_ref_pass}, the reference energy is well
+defined for bends in a multipass line. This being the case, the
+magnetic field can be computed from knowledge of \vn{g} (or \vn{rho})
+and \vn{g_err}. Hence bend elements are the exception to the rule, and
 \vn{g} and \vn{g_err} can be used as the independent attributes.

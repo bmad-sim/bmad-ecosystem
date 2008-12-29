@@ -174,7 +174,7 @@ void init_all_c_structs () {
   c_ele_in.field_calc = 69;
   c_ele_in.num_steps = 70;
   c_ele_in.integrator_order = 71;
-  c_ele_in.ptc_kind = 72;
+  c_ele_in.ref_orbit = 72;
   c_ele_in.taylor_order = 73;
   c_ele_in.aperture_at = 74;
   c_ele_in.coupler_at = 75;

@@ -1216,7 +1216,7 @@ ele%mat6_calc_method = bmad_standard$
 ele%tracking_method  = bmad_standard$
 ele%field_calc       = bmad_standard$
 ele%integrator_order = bmad_com%default_integ_order
-ele%ptc_kind  = 0
+ele%ref_orbit  = 0
 ele%num_steps = 0
 
 ele%is_on             = .true.

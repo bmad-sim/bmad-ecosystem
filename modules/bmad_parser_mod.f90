@@ -654,8 +654,8 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
       ele%value(ds_step$) = abs(ele%value(l$) * ele%num_steps)
     elseif (ix_attrib == integrator_order$) then
       ele%integrator_order = nint(value)
-    elseif (ix_attrib == ptc_kind$) then
-      ele%ptc_kind = nint(value)
+    elseif (ix_attrib == ref_orbit$) then
+      ele%ref_orbit = nint(value)
     elseif (ix_attrib == aperture_at$) then
       ele%aperture_at = nint(value)
     elseif (ix_attrib == coupler_at$) then
@@ -2404,7 +2404,7 @@ subroutine init_bmad_parser_common
 
   nn = 20  ! number of "constant" variables
   bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
-                                             ubound(element_end_name, 1)
+                     + ubound(ref_orbit_name, 1) + ubound(element_end_name, 1)
   bp_com%ivar_tot = bp_com%ivar_init
 
   nt = bp_com%ivar_tot
@@ -2482,6 +2482,12 @@ subroutine init_bmad_parser_common
     bp_com%var_value(nn) = i
   enddo
 
+  do i = 1, ubound(ref_orbit_name, 1)
+    nn = nn + 1
+    call str_upcase (bp_com%var_name(nn), ref_orbit_name(i))
+    bp_com%var_value(nn) = i
+  enddo
+
   call indexx (bp_com%var_name(1:nt), bp_com%var_indexx(1:nt))
 
 end subroutine
@@ -2520,6 +2526,7 @@ subroutine add_this_multipass (lat, ixm)
   lord%ix1_slave = 0
   lord%ix2_slave = -1
   call add_lattice_control_structs (lat, ix_lord)
+  if (lord%key == sbend$ .and. lord%ref_orbit == 0) lord%ref_orbit = single_ref$
 
 ! Setup bookkeeping between lord and slaves
 
