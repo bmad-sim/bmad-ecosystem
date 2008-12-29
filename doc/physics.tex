@@ -548,10 +548,10 @@ split into two classes: \vn{map type} and \vn{periodic type}. The
 and Rubin\cite{b:wiggler}. In this model the magnetic field is written
 as a sum of terms $B_i$
 \Begineq
-  B(x,y,z) = \sum_i B_i(x, y, z; C, k_x, k_y, k_z, \phi_z)
+  B(x,y,s) = \sum_i B_i(x, y, s; C, k_x, k_y, k_s, \phi_s)
 \Endeq 
 Each term $B_i$ is specified using five numbers: 
-$(C, k_x, k_y, k_z, \phi_z)$. A term can take one of three forms: The first
+$(C, k_x, k_y, k_s, \phi_s)$. A term can take one of three forms: The first
 form is
 \begin{alignat}{4}
   B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
@@ -573,7 +573,7 @@ The third form is
   B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\ksss) \CRneg
   & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_s^2$ .} &&& \label{f3}
 \end{alignat}
-The relationship between $k_x$, $k_y$, and $k_z$ ensures that
+The relationship between $k_x$, $k_y$, and $k_s$ ensures that
 Maxwell's equations are satisfied. Since the field is given by
 analytic equations, Lie algebraic techniques can be use to construct
 Taylor maps to arbitrary order.
@@ -581,9 +581,9 @@ Taylor maps to arbitrary order.
 \vn{Periodic type} wigglers use a simplified model where the magnetic
 field components are
 \begin{alignat}{1}
-  B_y &= \hphantom{-} B_{\max} \, \cosh(k_z \, y) \, \cos(ksss) \CRNO
-  B_z &= -B_{\max} \, \sinh(k_z \, y) \, \sin(ksss) 
-  \label{bbkykz}
+  B_y &= \hphantom{-} B_{\max} \, \cosh(k_s \, y) \, \cos(ksss) \CRNO
+  B_s &= -B_{\max} \, \sinh(k_s \, y) \, \sin(ksss) 
+  \label{bbkyks}
 \end{alignat}
 where $B_{\max}$ is the maximum field on the centerline and $k$ is
 given in terms of the pole length (\vn{l_pole}) by
@@ -601,7 +601,7 @@ giving a kick\cite{b:corbett}
 \Endeq
 where
 \begin{alignat}{1}
-  k_1 &= \frac{-1}{2} \, \left( \frac{c \, B_{\max}}{P_0 \, (1 + p_z)} \right)^2 
+  k_1 &= \frac{-1}{2} \, \left( \frac{c \, B_{\max}}{P_0 \, (1 + p_s)} \right)^2 
 \end{alignat}
 with $k_1$ being the linear focusing constant. For radiation
 calculations the true horizontal trajectory with $y = 0$ is needed
@@ -610,7 +610,7 @@ calculations the true horizontal trajectory with $y = 0$ is needed
 \Endeq
 
 With \vn{periodic type} wigglers and \vn{bmad_standard} tracking, the
-phase \vn{\phi_s} in \Eqs{bbkykz} is irrelavent. When the tracking
+phase $\phi_s$ in \Eqs{bbkyks} is irrelavent. When the tracking
 involves Taylor maps and symplectic integration, the phase is
 important. Here the phase is chosen so that $B_y$ is symmetric about
 the center of the wiggler
