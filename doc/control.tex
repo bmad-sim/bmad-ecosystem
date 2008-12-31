@@ -426,11 +426,11 @@ independent attribute (\sref{s:depend}).
 \centering 
 \includegraphics{multipass_bend.eps} 
 \caption[The reference orbit with a multipass bend.] 
-{With the \vn{reference_orbit} attribute set to
-\vn{match_at_entrance}, the reference orbit through a bend will be
-different on different passes if there is a variation of the reference
-energy from pass to pass. In this case, all the reference orbits will
-be the same at the entrance end of the magnet.}
+{With the \vn{ref_orbit} attribute set to
+\vn{match_at_entrance}, if there is a variation of the reference
+energy through a bend from pass to pass, the reference orbit through the 
+bend will also vary from pass to pass. With \vn{match_at_entrance}, 
+all the reference orbits will be the same at the entrance end of the magnet.}
 \label{f:multipass.bend}
 \end{figure}
 
@@ -448,11 +448,11 @@ integer indicating which pass is used to define the reference energy
 for the lord element. \vn{ref_orbit} is a switch that can take
 the values:
 \begin{example}
-  singe_ref            ! Default
+  single_ref            ! Default
   match_at_entrance
   match_at_exit
 \end{example}
-A value of \vn{singe_ref} (the default) means that the same reference
+A value of \vn{single_ref} (the default) means that the same reference
 orbit will be used for all passes. The \vn{match_at_entrance} and
 \vn{match_at_exit} values are used when separate reference orbits are
 desired as described below.
@@ -466,7 +466,7 @@ that positrons are being used and that the reference energy on the
 first pass is 5~GeV and on the second pass it is 10~GeV. Since
 \vn{n_ref_pass} has a value of \vn{1}, the first pass reference energy
 of 5~GeV will be used, along with the attribute values of \vn{B}, to
-define the reference reference orbit. In this case, this translates
+define the reference orbit. In this case, this translates
 into a bending radius \vn{rho} of 16.7~m.  In the tracking lattice,
 the first pass element \vn{B\B1} will have a value for \vn{b_field} of
 \vn{1.0} just like its lord element. On the second pass, the reference
