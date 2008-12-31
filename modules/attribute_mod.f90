@@ -834,7 +834,7 @@ integer max_len
 !
 
 if (init_needed) call init_attribute_name_array
-max_len = maxval(len_trim(attrib_array(1:n_key, 1:n_attrib_maxx)))
+max_len = maxval(len_trim(attrib_array(1:n_key, 1:n_attrib_special_maxx)))
 
 end function
 

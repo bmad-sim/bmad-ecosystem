@@ -408,6 +408,7 @@ slave%value(p0c$)   = val(p0c$)
 slave%value(n_ref_pass$)    = 0
 
 if (lord%key == sbend$ .and. slave%value(p0c$) /= 0) then
+
   select case (lord%ref_orbit)
   case (single_ref$)
     slave%value(b_field$)     = lord%value(b_field$) * slave%value(p0c$) / lord%value(p0c$) 
@@ -446,6 +447,15 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0) then
       else
         slave%value(e1$) = e + ang_lord - ang_slave
       endif
+    endif
+
+    if (lord%value(k1$) /= 0 .or. lord%value(k2$) /= 0 .or. associated(lord%a_pole)) then
+      call out_io (s_fatal$, r_name, &
+            'MULTIPASS BEND ELEMENT: ' // lord%name, &
+            'WITH THE REF_ORBIT ATTRIBUTE SET TO: ' // ref_orbit_name(lord%ref_orbit), &
+            'HAS A NONZERO HIGHER ORDER MULTIPOLE!', &
+            'THIS IS NOT ALLOWED. SEE THE BMAD MANUAL FOR MORE DETAILS.')
+      call err_exit
     endif
 
   case default

@@ -78,7 +78,7 @@ real(rp), pointer :: r_ptr
 
 character(100), pointer :: lines(:), li(:)
 character(100), allocatable :: li2(:)
-character(40) a_name, name
+character(40) a_name, name, fmt_a, fmt_i, fmt_l
 character(12) val_str
 character(9) angle
 character(2) str_i
@@ -127,95 +127,88 @@ endif
 ! Encode element key and attributes
 
 if (ele%key <= 0) then
-  nl=nl+1; write (li(nl), *) 'Key: UNKNOWN!', ele%key
+  nl=nl+1; write (li(nl), *) 'Key: BAD VALUE!', ele%key
+else
+  nl=nl+1; write (li(nl), *) 'Key: ', key_name(ele%key)
+endif
+
+if (ele%sub_key /= 0) then
+  nl=nl+1; write (li(nl), *) 'Sub Key: ', sub_key_name(ele%sub_key)
+endif
+
+nl=nl+1; write (li(nl), '(1x, a, f13.4)') 'S:', ele%s
+
+nl=nl+1; li(nl) = ''
+if (type_zero) then
+  nl=nl+1; write (li(nl), *) 'Attribute values:'
+else
+  nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero values shown]:'
+endif
+
+n_att = n_attrib_string_max_len() + 2
+
+if (con_type == overlay_lord$) then
+  i = ele%ix_value
+  call pointer_to_indexed_attribute (ele, i, .false., r_ptr, err_flag)
+  if (err_flag) call err_exit
+  name = ele%attribute_name
+  nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)') i, name(1:n_att), '=', r_ptr
 
 else
+  do i = 1, n_attrib_maxx
+    a_name = attribute_name(ele, i)
+    if (a_name == null_name$) cycle
+    ix = pos_tot(i)
+    if (ix == 0) then
+      if (ele%value(i) == 0 .and. .not. type_zero) cycle
+      nl=nl+1; write (li(nl), '(i6, 3x, a, a, 1pe15.7)')  i, &
+                                      a_name(1:n_att), '=', ele%value(i)
+    else
+      if (ele%value(i) == 0 .and. ele%value(ix) == 0 .and. &
+                                               .not. type_zero) cycle
+      nl=nl+1; write (li(nl), '(i6, 3x, a, a, 1pe15.7, 4x, a, e15.7)')  i, &
+                      a_name(1:n_att), '=', ele%value(i), 'Total:', ele%value(ix)
+    endif
+  enddo
 
-  nl=nl+1; write (li(nl), *) 'Key: ', key_name(ele%key)
+  if (associated(ele%a_pole)) then
+    particle = +1
+    if (present(lattice)) particle = lattice%param%particle
 
-  if (ele%sub_key /= 0) then
-    nl=nl+1; write (li(nl), *) 'Sub Key: ', sub_key_name(ele%sub_key)
-  endif
+    if (ele%key == multipole$) then
+      call multipole_ele_to_kt (ele, particle, a,  b,  .false.)
+      call multipole_ele_to_kt (ele, particle, a2, b2, .true.)
+    else
+      call multipole_ele_to_ab (ele, particle, a,  b,  .false.)
+      call multipole_ele_to_ab (ele, particle, a2, b2, .true.)
+    endif
 
-  if (.not. type_zero) then
-    nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero values shown]:'
-  endif
-
-  n_att = n_attrib_string_max_len() + 2
-
-  if (con_type == overlay_lord$) then
-    i = ele%ix_value
-    call pointer_to_indexed_attribute (ele, i, .false., r_ptr, err_flag)
-    if (err_flag) call err_exit
-    name = ele%attribute_name
-    nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)') i, name(1:n_att), '=', r_ptr
-
-  else
-    do i = 1, n_attrib_maxx
-      a_name = attribute_name(ele, i)
-      if (a_name == null_name$) cycle
-      ix = pos_tot(i)
-      if (ix == 0) then
-        if (ele%value(i) == 0 .and. .not. type_zero) cycle
-        nl=nl+1; write (li(nl), '(i6, 3x, a, a, 1pe15.7)')  i, &
-                                        a_name(1:n_att), '=', ele%value(i)
+    do i = 0, n_pole_maxx
+      if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+      write (str_i, '(i2)') i
+      call string_trim (str_i, str_i, ix)
+      if (ele%key == ab_multipole$) then
+        write (li(nl+1), '(5x, 2a, 2(a, 1pe11.3))') &
+               'A', str_i, ' =', ele%a_pole(i), '   W/Tilt:', a2(i)
+        write (li(nl+2), '(5x, 2a, 2(a, 1pe11.3))') &
+               'B', str_i, ' =', ele%b_pole(i), '   W/Tilt:', b2(i)
+      elseif (ele%key == multipole$) then
+        write (li(nl+1), '(5x, 2a, 2(a, 1pe11.3))') &
+               'K', trim(str_i), 'L =', ele%a_pole(i), '   W/Tilt:', a2(i)
+        write (li(nl+2), '(5x, 2a, 2(a, 1pe11.3))') &
+               'T', trim(str_i), '  =', ele%b_pole(i), '   W/Tilt:', b2(i)
       else
-        if (ele%value(i) == 0 .and. ele%value(ix) == 0 .and. &
-                                                 .not. type_zero) cycle
-        nl=nl+1; write (li(nl), '(i6, 3x, a, a, 1pe15.7, 4x, a, e15.7)')  i, &
-                        a_name(1:n_att), '=', ele%value(i), 'Total:', ele%value(ix)
+        write (li(nl+1), '(5x, 2a, 3(a, 1pe11.3))') 'A', str_i, ' =', &
+               ele%a_pole(i), '   Scaled:', a(i), '   W/Tilt:', a2(i)
+        write (li(nl+2), '(5x, 2a, 3(a, 1pe11.3))') 'B', str_i, ' =', &
+               ele%b_pole(i), '   Scaled:', b(i), '   W/Tilt:', b2(i)
       endif
+
+      nl = nl + 2
     enddo
 
-    nl=nl+1; write (li(nl), '(9x, 2a)') &
-               'APERTURE_AT           = ', element_end_name(ele%aperture_at)
-    nl=nl+1; write (li(nl), '(9x, a, l1)') &
-               'OFFSET_MOVES_APERTURE = ', ele%offset_moves_aperture
-
-    if (ele%key == lcavity$) then
-      nl=nl+1; write (li(nl), '(9x, 2a)') 'COUPLER_AT           = ', &
-                                  element_end_name(ele%coupler_at)
-    endif
-
-    if (associated(ele%a_pole)) then
-      particle = +1
-      if (present(lattice)) particle = lattice%param%particle
-
-      if (ele%key == multipole$) then
-        call multipole_ele_to_kt (ele, particle, a,  b,  .false.)
-        call multipole_ele_to_kt (ele, particle, a2, b2, .true.)
-      else
-        call multipole_ele_to_ab (ele, particle, a,  b,  .false.)
-        call multipole_ele_to_ab (ele, particle, a2, b2, .true.)
-      endif
-
-      do i = 0, n_pole_maxx
-        if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
-        write (str_i, '(i2)') i
-        call string_trim (str_i, str_i, ix)
-        if (ele%key == ab_multipole$) then
-          write (li(nl+1), '(5x, 2a, 2(a, 1pe11.3))') &
-                 'A', str_i, ' =', ele%a_pole(i), '   W/Tilt:', a2(i)
-          write (li(nl+2), '(5x, 2a, 2(a, 1pe11.3))') &
-                 'B', str_i, ' =', ele%b_pole(i), '   W/Tilt:', b2(i)
-        elseif (ele%key == multipole$) then
-          write (li(nl+1), '(5x, 2a, 2(a, 1pe11.3))') &
-                 'K', trim(str_i), 'L =', ele%a_pole(i), '   W/Tilt:', a2(i)
-          write (li(nl+2), '(5x, 2a, 2(a, 1pe11.3))') &
-                 'T', trim(str_i), '  =', ele%b_pole(i), '   W/Tilt:', b2(i)
-        else
-          write (li(nl+1), '(5x, 2a, 3(a, 1pe11.3))') 'A', str_i, ' =', &
-                 ele%a_pole(i), '   Scaled:', a(i), '   W/Tilt:', a2(i)
-          write (li(nl+2), '(5x, 2a, 3(a, 1pe11.3))') 'B', str_i, ' =', &
-                 ele%b_pole(i), '   Scaled:', b(i), '   W/Tilt:', b2(i)
-        endif
-
-        nl = nl + 2
-      enddo
-
-    endif
-
   endif
+
 endif
 
 ! wiggler terms
@@ -245,47 +238,61 @@ if (.not. ele%multipoles_on) then
   nl=nl+1; write (li(nl), *) '*** Note: Element Multipoles are turned OFF ***'
 endif
 
-nl=nl+1; write (li(nl), '(1x, a, f13.4)') 'S:', ele%s
-
 ! Encode methods, etc.
+
+write (fmt_a, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, a)'
+write (fmt_i, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, i6)'
+write (fmt_l, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, l1)'
 
 nl=nl+1; write (li(nl), *) ' '
 
 if (attribute_index(ele, 'TRACKING_METHOD') /= 0) then
-  nl=nl+1; write (li(nl), '(2a)') ' Tracking_method:  ', &
-                                    calc_method_name(ele%tracking_method)
+  nl=nl+1; write (li(nl), fmt_a) &
+                  'TRACKING_METHOD', '=', calc_method_name(ele%tracking_method)
 endif
 
 if (attribute_index(ele, 'MAT6_CALC_METHOD') /= 0) then
-  nl=nl+1; write (li(nl), '(2a)') ' Mat6_calc_method: ', &
-                                    calc_method_name(ele%mat6_calc_method)
+  nl=nl+1; write (li(nl), fmt_a) &
+                  'MAT6_CALC_METHOD', '=', calc_method_name(ele%mat6_calc_method)
 endif
 
 if (attribute_index(ele, 'FIELD_CALC') /= 0) then
-  nl=nl+1; write (li(nl), '(2a)') ' Field_calc:       ', &
-                                    calc_method_name(ele%field_calc)
+  nl=nl+1; write (li(nl), fmt_a) 'FIELD_CALC', '=', calc_method_name(ele%field_calc)
+endif
+
+if (ele%aperture_at /= 0) then
+  nl=nl+1; write (li(nl), fmt_a) 'APERTURE_AT', '=', element_end_name(ele%aperture_at)
+  nl=nl+1; write (li(nl), fmt_l) 'OFFSET_MOVES_APERTURE', '=', ele%offset_moves_aperture
+endif
+
+
+if (ele%coupler_at /= 0) then
+  nl=nl+1; write (li(nl), fmt_a) 'COUPLER_AT', '=', element_end_name(ele%coupler_at)
+endif
+
+if (ele%ref_orbit /= 0) then
+  nl=nl+1; write (li(nl), fmt_a) 'REF_ORBIT', '=', ref_orbit_name(ele%ref_orbit) 
 endif
 
 if (ele%control_type /= overlay_lord$ .and. ele%control_type /= group_lord$ .and. &
     ele%control_type /= girder_lord$) then
-  nl=nl+1; write (li(nl), '(2a)') ' Field_master:       ', &
-                                    on_off_logic(ele%field_master)
+  nl=nl+1; write (li(nl), fmt_a) 'FIELD_MASTER', '=', on_off_logic(ele%field_master)
 endif
 
 if (attribute_index(ele, 'INTEGRATOR_ORDER') /= 0) then
-  nl=nl+1; write (li(nl), '(a, i4)') ' Integrator_order:', ele%integrator_order 
+  nl=nl+1; write (li(nl), fmt_i) ' INTEGRATOR_ORDER:', '=', ele%integrator_order 
 endif
 
 if (attribute_index(ele, 'NUM_STEPS') /= 0) then
-  write (li(nl), '(a, i4)') ' Num_steps:       ', ele%num_steps 
+  write (li(nl), fmt_i) 'NUM_STEPS', '=', ele%num_steps 
 endif
 
 if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
-  nl=nl+1; write (li(nl), '(a, l1)') ' Symplectify:       ', ele%symplectify
+  nl=nl+1; write (li(nl), fmt_l) 'SYMPLECTIFY', '=', ele%symplectify
 endif
   
 if (attribute_index(ele, 'CSR_CALC_ON') /= 0) then
-  nl=nl+1; write (li(nl), '(a, l1)') ' CSR_calc_on:       ', ele%csr_calc_on
+  nl=nl+1; write (li(nl), fmt_l) 'CSR_CALC_ON', '=', ele%csr_calc_on
 endif
   
 ! Encode lord info
@@ -322,9 +329,9 @@ if (logic_option(present(lattice), type_control)) then
   endif
 
   if (con_type <= 0) then
-    nl=nl+1; write (li(nl), *) 'Control_type: UNKNOWN!', con_type
+    nl=nl+1; write (li(nl), '(a)') 'Control_type: UNKNOWN!', con_type
   else
-    nl=nl+1; write (li(nl), *) 'Control_type: ', control_name(con_type)
+    nl=nl+1; write (li(nl), '(2a)') 'Control_type: ', control_name(con_type)
 
     if (ele%n_slave /= 0) then
       write (li(nl+1), '(1x, a, i4)') 'Slaves: Number:', ele%n_slave
