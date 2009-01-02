@@ -231,6 +231,9 @@ do i = 1, 3
   ele2%mode3%v(1:6, ik:ik+1) = matmul(tv(1:6, ik:ik+1), w_inv)
 enddo
 
+ele2%mode3%x%eta = ele2%mode3%v(1,6) 
+ele2%mode3%y%eta = ele2%mode3%v(3,6)
+
 call twiss1_propagate (ele1%mode3%a, w(1)%m,  ele2%value(l$), ele2%mode3%a, err)
 call twiss1_propagate (ele1%mode3%b, w(2)%m,  ele2%value(l$), ele2%mode3%b, err)
 call twiss1_propagate (ele1%mode3%c, w(3)%m,  0.0_rp,         ele2%mode3%c, err)
@@ -261,6 +264,12 @@ if (.not. associated(lat%ele(0)%mode3)) allocate(lat%ele(0)%mode3)
 call transfer_matrix_calc (lat, .true., lat%param%t1_with_RF)
 call normal_mode3_calc (lat%param%t1_with_RF, tune3, g, lat%ele(0)%mode3%v)
 
+lat%ele(0)%mode3%x%eta = lat%ele(0)%mode3%v(1,6) 
+lat%ele(0)%mode3%y%eta = lat%ele(0)%mode3%v(3,6)
+
+! lat%ele(0)%mode3%x%etap = lat%ele(0)%mode3%v(2,6) 
+! lat%ele(0)%mode3%y%etap = lat%ele(0)%mode3%v(4,6)
+ 
 call mode1_calc (g(1:2, 1:2), tune3(1), lat%ele(0)%mode3%a)
 call mode1_calc (g(3:4, 3:4), tune3(2), lat%ele(0)%mode3%b)
 call mode1_calc (g(5:6, 5:6), tune3(3), lat%ele(0)%mode3%c)

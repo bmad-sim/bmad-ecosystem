@@ -145,6 +145,7 @@ end type
 type mode3_struct
   real(rp) v(6,6)
   type (twiss_struct) a, b, c
+  type (twiss_struct) x, y
 end type
 
 ! Ele_struct:
