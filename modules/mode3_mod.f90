@@ -244,24 +244,50 @@ end subroutine
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
 !+
-! Subroutine twiss3_at_start (lat)
+! Subroutine twiss3_at_start (lat, error)
 !
-! Subroutine to propagate the twiss parameters using all three normal modes.
+! Subroutine to calculate the twiss parameters of the three modes of the full 6D transfer
+! matrix.
+! Note: The rf must be on for this calculation.
+!
+! Modules needed:
+!   use mode3_mod
+!
+! Input:
+!   lat -- lat_struct: Lattice with
+!
+! Output:
+!   lat   -- lat-struct:
+!     %ele(0)  -- Ele_struct: Starting element
+!       %mode3    -- Mode3_struct: Structure holding the normal modes.
+!         %v(6,6)    -- Real(rp): V coupling matrix.
+!         %a            -- Twiss_struct: "a" normal mode Twiss parameters.
+!         %b            -- Twiss_struct: "b" normal mode Twiss parameters.
+!         %c            -- Twiss_struct: "c" normal mode Twiss parameters.
+!   error -- Logical: Set True if there is no RF. False otherwise.
 !-
 
-subroutine twiss3_at_start (lat)
+subroutine twiss3_at_start (lat, error)
 
 implicit none
 
 type (lat_struct) lat
 real(rp) g(6,6), tune3(3)
 integer n
+logical error
+character(20) :: r_name = 'twiss3_at_start'
 
 !
+
+error = .true.
 
 if (.not. associated(lat%ele(0)%mode3)) allocate(lat%ele(0)%mode3)
 
 call transfer_matrix_calc (lat, .true., lat%param%t1_with_RF)
+if (all(lat%param%t1_with_RF(6,1:5) == 0)) then
+  call out_io (s_error$, r_name, 'RF IS OFF FOR THE MODE3 CALCULATION!')
+  return
+endif
 call normal_mode3_calc (lat%param%t1_with_RF, tune3, g, lat%ele(0)%mode3%v)
 
 lat%ele(0)%mode3%x%eta = lat%ele(0)%mode3%v(1,6) 
@@ -273,6 +299,8 @@ lat%ele(0)%mode3%y%eta = lat%ele(0)%mode3%v(3,6)
 call mode1_calc (g(1:2, 1:2), tune3(1), lat%ele(0)%mode3%a)
 call mode1_calc (g(3:4, 3:4), tune3(2), lat%ele(0)%mode3%b)
 call mode1_calc (g(5:6, 5:6), tune3(3), lat%ele(0)%mode3%c)
+
+error = .false.
 
 !-------------------------------------------------------------------------------------
 contains

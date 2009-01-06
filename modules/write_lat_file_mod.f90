@@ -401,14 +401,27 @@ ele_loop: do ie = 1, lat%n_ele_max
 
   enddo ! attribute loop
 
-  ! Encode methods
+  ! Encode methods, etc.
 
   if (ele%mat6_calc_method /= bmad_standard$) line = trim(line) // &
-          ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
+              ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
   if (ele%tracking_method /= bmad_standard$) line = trim(line) // &
-          ', tracking_method = ' // calc_method_name(ele%tracking_method)
+              ', tracking_method = ' // calc_method_name(ele%tracking_method)
+  if (ele%field_calc /= bmad_standard$) line = trim(line) // &
+              ', field_calc = ' // calc_method_name(ele%field_calc)
   if (ele%symplectify) line = trim(line) // ', symplectify'
   if (.not. ele%is_on) line = trim(line) // ', is_on = False'
+  if (.not. ele%map_with_offsets) line = trim(line) // ', map_with_offsets = False'
+  if (.not. ele%csr_calc_on) line = trim(line) // ', csr_calc_on = False'
+  if (ele%offset_moves_aperture) line = trim(line) // ', offset_moves_aperture = True'
+  if (ele%aperture_at /= exit_end$) line = trim(line) // ', aperture_at = ' // & 
+                                                       element_end_name(ele%aperture_at)
+  if (ele%coupler_at /= exit_end$) line = trim(line) // ', coupler_at = ' // & 
+                                                       element_end_name(ele%coupler_at)
+  if (ele%integrator_order /= bmad_com%default_integ_order) write (line, '(a, i0)') &
+                 trim(line) // ', integrator_order = ', ele%integrator_order
+  if (ele%ref_orbit /= 0) line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
+
   call write_out (line, iu, .false.)  
 
   ! Encode taylor
