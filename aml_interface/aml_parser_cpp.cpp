@@ -54,15 +54,18 @@ extern "C" void aml_parser_cpp_(char* lat_file, uap_node_f_struct* fort_root, in
     return;
   }
 
+  // Output expanded lattice.
+
   ofstream aml_out("expanded_lat.aml");
   aml_out << expand_root->toStringTree();
+  cout << "Expanded AML Lattice written to: expanded_lat.aml" << endl;
+  aml_out.close();
 
   // Put in the appropriate Bmad class into each element
 
-  UAPNode* expanded_node = uap_root_node->getSubNodesByName("expanded_lattice").front();
-  UAPNode* track_node = expanded_node->getSubNodesByName("tracking_lattice").front();
-  UAPNode* master_node = expanded_node->getSubNodesByName("master_list").front();
-  UAPNode* control_node = expanded_node->getSubNodesByName("control_list").front();
+  UAPNode* track_node = expand_root->getSubNodesByName("tracking_lattice").front();
+  UAPNode* master_node = expand_root->getSubNodesByName("master_list").front();
+  UAPNode* control_node = expand_root->getSubNodesByName("control_list").front();
 
   ubl.init (expand_root);
 
@@ -74,15 +77,15 @@ extern "C" void aml_parser_cpp_(char* lat_file, uap_node_f_struct* fort_root, in
   ubl.aml_element_to_bmad (master_node);
   ubl.aml_element_to_bmad (control_node);
 
-  UAPNode* param_node = expanded_node->addChild("param_list");
+  UAPNode* param_node = expand_root->addChild("param_list");
 
-  ubl.aml_parameter_to_bmad ("beam", expanded_node, param_node);
-  ubl.aml_parameter_to_bmad ("lattice", expanded_node, param_node);
-  ubl.aml_parameter_to_bmad ("global", expanded_node, param_node);
+  ubl.aml_parameter_to_bmad ("beam", expand_root, param_node);
+  ubl.aml_parameter_to_bmad ("lattice", expand_root, param_node);
+  ubl.aml_parameter_to_bmad ("global", expand_root, param_node);
 
   // Convert to a fortran tree.
 
-  uap_node_tree_to_f_(expanded_node, fort_root);
+  uap_node_tree_to_f_(expand_root, fort_root);
   ok = true;
 
 }

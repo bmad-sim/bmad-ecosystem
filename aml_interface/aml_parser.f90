@@ -178,8 +178,6 @@ end module
 !   lat%param%aperture_limit_on = .true.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
 use aml_parser_mod
