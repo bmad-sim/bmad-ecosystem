@@ -812,10 +812,10 @@ end subroutine
 !       %date       -- Character(20): Date orbit was taken
 !       %turn       -- Integer: Turn number for injection orbits. 0 otherwise.
 !       %comment(5) -- Character(72): Comment.
-!       %det(0:99)%ok     -- Logical: Was there a valid orbit reading?
-!       %det(0:99)%amp(4) -- Integer: gain and offset corrected button signals. 
-!       %det(0:99)%x_orb  -- Real(rp): Horizontal orbit in meters.
-!       %det(0:99)%y_orb  -- Real(rp): Horizontal orbit in meters.
+!       %det(0:120)%ok     -- Logical: Was there a valid orbit reading?
+!       %det(0:120)%amp(4) -- Integer: gain and offset corrected button signals. 
+!       %det(0:120)%x_orb  -- Real(rp): Horizontal orbit in meters.
+!       %det(0:120)%y_orb  -- Real(rp): Horizontal orbit in meters.
 !   db    -- Db_struct: Structure holding the steering settings.
 !     %csr_horz_cur(i)%cu_now -- CU settings for CSR HORZ CUR
 !     %csr_hbnd_cur(i)%cu_now -- CU settings for CSR HBND CUR
@@ -827,8 +827,6 @@ end subroutine
 !     %scir_enc_cnt(i)%cu_now -- CU settings for SCIR ENC CNT
 !     %scir_pos_rd(i)%cu_now  -- CU settings for SCIR POS RD
 !   err -- Logical: Set True if there is an error.
-!
-! Note: orbit numbers are from 0 to 99
 !
 ! Note: db%csr_hsp_volt is actually obtained from the node CSR HSP VVAL which
 ! records the actual voltage as opposed to the command. Since CSR HSP VVAL
@@ -1010,7 +1008,7 @@ if (logic_option (.false., offset_correction)) then
     offset_init_needed = .false.
   endif
 
-  do i = 1, 100
+  do i = 1, 120
     j = i
     if (i == 100) j = 0
     raw(:, i) = raw(:, i) - offset(j)%value(:)
@@ -1036,7 +1034,7 @@ if (logic_option (.false., gain_correction)) then
     gain_init_needed = .false.
   endif
 
-  do i = 1, 100
+  do i = 1, 120
     j = i
     if (i == 100) j = 0
     raw(:, i) = raw(:, i) * gain(j)%value(:)
@@ -1046,15 +1044,15 @@ endif
 ! Calculate x and y orbit
 
 if (logic_option (.true., nonlin_calc)) then
-  call nonlin_butcon (raw, 1, 100, y_orbit, x_orbit)
+  call nonlin_butcon (raw, 1, 120, y_orbit, x_orbit)
 else
-  call butcon (raw, 1, 100, y_orbit, x_orbit)
+  call butcon (raw, 1, 120, y_orbit, x_orbit)
 endif
 
 is_ok = .false.
-call det_ok (raw, 1, 100, det_type, is_ok)
+call det_ok (raw, 1, 120, det_type, is_ok)
 
-do i = 1, 100
+do i = 1, 120
   j = i
   if (i == 100) j = 0
   butns%det(j)%amp = raw(1:4, i)
