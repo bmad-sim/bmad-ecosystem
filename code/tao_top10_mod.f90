@@ -430,15 +430,15 @@ n_loc1 = n_tot - n_name - n_loc0 - 4
 l1 = 'Constraint'
 n=3+n_d2_d1_name+2+n_name; l1(n:) = 'Where0'
 n=len_trim(l1)+n_loc0-3;   l1(n:) = 'Where'
-n=len_trim(l1)+n_loc1-2;   l1(n:) = 'Target     Value      Merit     Max'
+n=len_trim(l1)+n_loc1-2;   l1(n:) = 'Target      Value      Merit     Max'
 
 nl=nl+1; line(nl) = ' '
 nl=nl+1; line(nl) = l1
 
 !
 
-fmt  = '(a, 2x, a, 2x, a, 2x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
-fmt2 = '(a, 2x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
+fmt  = '(a, 2x, a, 2x, a, 2x, a, es11.3, es12.3, es10.2, 2x, a)'
+fmt2 =               '(a, 2x, a, es11.3, es12.3, es10.2, 2x, a)'
 
 call re_allocate (line, 200, nl+n_max+100)
 do j = 1, n_max
