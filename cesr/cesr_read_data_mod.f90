@@ -135,32 +135,33 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine number_to_cesr_data_file (number, who, file_name, err, print_err)
+! Subroutine number_to_cesr_data_file (num_in, who, file_name, num_out, err, print_err)
 !
 ! Routine to form the file name for a phase, orbit, eta, or ac_dispersion
 ! data file. 
-! If number is negative then the number of the data file will be:
-!   number_of_last_data_set + number
+! If num_in is negative then the number of the data file will be:
+!   num_out = number_of_last_data_set + num_in
 !
 ! Modules needed:
 !   use cesr_read_data_mod
 !
 ! Input:
-!   number    -- Integer: Number of the orbit data file.
+!   num_in    -- Integer: Number of the orbit data file.
 !   who       -- Character(*): 'phase', 'orbit', 'eta', or 'ac_eta'  
 !   print_err -- Logical, optional: Print an error message if there is an error?
 !                 Default is True.
 !
 ! Output:
 !   file_name -- Character(*): Full file name including directory spec.
+!   num_out   -- Integer: Number of the data file.
 !   err       -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine number_to_cesr_data_file (number, who, file_name, err, print_err)
+subroutine number_to_cesr_data_file (num_in, who, file_name, num_out, err, print_err)
 
 implicit none
 
-integer number, ix_set
+integer num_in, num_out
 
 character(*) who, file_name
 character(40) :: r_name = 'number_to_cesr_data_file'
@@ -170,9 +171,9 @@ logical, optional :: print_err
 !
 
 file_name = ''
-call number_to_data_file_number (number, who, ix_set, err, print_err)
+call number_to_data_file_number (num_in, who, num_out, err, print_err)
 if (err) return
-call form_file_name_with_number (who, ix_set, file_name, err)
+call form_file_name_with_number (who, num_out, file_name, err)
 
 end subroutine
 
@@ -222,19 +223,18 @@ case ('phase')
 
 case ('orbit')
   call calc_file_number ('CESR_MNT:[orbit]next_butnum.num', num_in, num_out, err)
-  if (err) return
   if (num_in < 1)  num_out = num_out - 1  ! Number in file is 1 + current number
 
 case ('eta')
   call calc_file_number ('$CESR_MNT/eta/eta.number', num_in, num_out, err)
-  if (err) return
 
 case ('ac_eta')
+  call calc_file_number ('CESR_MNT/ac_eta/ac_eta.number', num_in, num_out, err)
 
 case default
   if (logic_option(.true., print_err)) &
                 call out_io (s_error$, r_name, 'BAD "WHO": ' // who)
-  return
+  err = .true.
 end select
 
 
