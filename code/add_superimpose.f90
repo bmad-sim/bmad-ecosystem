@@ -303,11 +303,10 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   ! Adjust the names of the slaves
 
-  ix_1lord = 0
-
   do i = n_ele_max_old+1, lat%n_ele_max
     lord => lat%ele(i)
     if (lord%control_type /= super_lord$) cycle
+    ix_1lord = 0
     do j = lord%ix1_slave, lord%ix2_slave
       slave => lat%ele(lat%control(j)%ix_slave)
       if (slave%n_lord == 1) then
