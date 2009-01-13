@@ -7,7 +7,7 @@ program test
 
 ! Read in a lattice and calculate the twiss parameters.
 
-  call bmad_parser ("bmad_test.lat", ring)    ! Read in a lattice.
+  call bmad_parser ("simple_program/lat.bmad", ring)    ! Read in a lattice.
   call twiss_at_start (ring)           ! Calculate starting Twiss params.
   call twiss_propagate_all (ring)      ! Propagate Twiss parameters
 
@@ -15,7 +15,7 @@ program test
 
   print *, ' Ix  Name              Ele_type                   S      Beta_a'
   do i = 0, 10
-    print '(i4, 2x, a, 2x, a, 2f12.4)', i, ring%ele(i)%name, &
+    print '(i4, 2x, a16, 2x, a, 2f12.4)', i, ring%ele(i)%name, &
                     key_name(ring%ele(i)%key), &
                     ring%ele(i)%s, ring%ele(i)%a%beta
   enddo

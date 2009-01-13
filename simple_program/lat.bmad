@@ -1,8 +1,8 @@
-! BMAD input file
+! BMAD lattice file
  
-lattice :=  L9A18A000-_MOVEREC
+parameter[lattice] = L9A18A000-_MOVEREC
  
-call, file="bmad_test.layout"
+call, file = "layout.bmad"
  
 ! cleo solenoid
  

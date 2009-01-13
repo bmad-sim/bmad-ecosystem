@@ -54,7 +54,7 @@ SHELL=/bin/sh
 # If this file is not renamed to Makefile before use, the user needs to 
 # set MAKEFILE to the name of the file
 #-----------------------------------------------------------------------------
-#MAKEFILE := M.job
+MAKEFILE := M.simple_program
 
 
 #-----------------------------------------------------------------------------
@@ -95,7 +95,7 @@ SHELL=/bin/sh
 #-----------------------------------------------------------------------------
 OBJ_SRC_DIRS  := .
 LOCAL_INCS    := include
-LOCAL_MODS    := ../../modules
+LOCAL_MODS    := ../modules
 
 #-------------------------------------------------------------
 # Optionally specify the base name of the file containing the 
@@ -107,7 +107,7 @@ LOCAL_MODS    := ../../modules
 #           Then you can specify 
 #           MAIN_FILE := test_prog.f90
 #-------------------------------------------------------------
-MAIN_FILE :=
+MAIN_FILE := simple_program.f90
 
 
 #--------------------------------------------------------------
@@ -125,9 +125,9 @@ LIBNAME := $(JOB)
 # MAIN_FILE has been explicitly specified
 #-------------------------------------------------------------
 ifeq "$(strip $(MAIN_FILE))" ""
-	EXE := ../../bin/$(JOB)
+	EXE := ../bin/$(JOB)
 else
-  EXE := ../../bin/$(basename $(notdir $(MAIN_FILE)))
+  EXE := ../bin/$(basename $(notdir $(MAIN_FILE)))
 endif
 
 
@@ -188,7 +188,6 @@ LOCAL_LIBS :=
 CESR_LIBS  := bmad dcslib cesr_utils recipes_f-90_LEPP
 PKG_LIBS   := forest pgplot
 CERN_LIBS  :=
-SYS_LIBS   := cxx X11 
 
 #-------------------------------------------------------------
 # Undefined symbols that must be forced to load when linking.

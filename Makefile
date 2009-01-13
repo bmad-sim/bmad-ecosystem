@@ -12,43 +12,6 @@
 #
 # Modifications:  MAP - 7/24/00-9/23/01 - Many bug fixes and improvements
 #
-#=============================================================================
-#
-# Revision 1.11  2005/01/21 13:53:13  palmer
-# Update bmad makefiles for addition of test_job area with sources for a
-# standard test program.
-#
-# Revision 1.10  2004/08/26 15:03:05  dcs
-# Added cpp_interface directory.
-#
-# Revision 1.9  2004/04/19 23:07:06  dcs
-# Added bmad/cesr directory.
-#
-# Revision 1.8  2003/11/10 14:05:08  palmer
-# Update for BMAD distributions.
-#
-# Revision 1.7  2003/04/21 17:24:14  cesrulib
-# new makefile
-#
-# Revision 1.6  2002/06/13 14:53:29  dcs
-# Interfaced with FPP/PTC
-#
-# Revision 1.5  2002/02/23 20:31:35  dcs
-# Double/Single Real toggle added
-#
-# Revision 1.4  2001/10/23 21:34:14  palmer
-# Update to work with M.tail infrastructure.
-#
-# Revision 1.3  2001/10/05 12:26:33  palmer
-# More bug fixes.
-#
-# Revision 1.2  2001/10/05 04:08:45  palmer
-# Bug fixes.
-#
-# Revision 1.1  2001/10/05 02:43:28  palmer
-# Install the Makefile for the BMAD library.
-#
-#
 
 #-----------------------------------------------------------------------------
 # Specify default source directories for code to be compiled and put into
@@ -81,12 +44,14 @@
 # LOCAL_INCS      - Local directories to search for include files
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := ./code ./custom ./cesr ./modules ./cpp_interface
-OBJ_SRC_DIRS := ./test_jobs
+LIB_SRC_DIRS := code custom cesr modules cpp_interface
+OBJ_SRC_DIRS := test_jobs simple_program
 
-CONFIG_DIRS   :=
-LOCAL_INCS    := ./include ../include
-LOCAL_MODS    := ../modules 
+CONFIG_DIRS  :=
+LOCAL_INCS   := ./include ../include
+LOCAL_MODS   := ../modules 
+
+M_FILE_LIST  := M.simple_program
 
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  
