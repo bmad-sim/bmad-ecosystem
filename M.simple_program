@@ -125,9 +125,9 @@ LIBNAME := $(JOB)
 # MAIN_FILE has been explicitly specified
 #-------------------------------------------------------------
 ifeq "$(strip $(MAIN_FILE))" ""
-	EXE := ../bin/$(JOB)
+	EXE = $(localbin)/$(JOB)
 else
-  EXE := ../bin/$(basename $(notdir $(MAIN_FILE)))
+  EXE = $(localbin)/$(basename $(notdir $(MAIN_FILE)))
 endif
 
 
