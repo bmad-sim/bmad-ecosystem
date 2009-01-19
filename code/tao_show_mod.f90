@@ -1110,6 +1110,7 @@ case ('lattice')
       column(:)%name = ""
       column(:)%label = ""
       read (iu, nml = custom_show_list, iostat = ios)
+      close (iu)
       if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT READ "CUSTOM_SHOW_LIST" NAMELIST IN FILE: ' // file_name
         return
