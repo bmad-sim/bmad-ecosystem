@@ -318,7 +318,7 @@ Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
 the two is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
 To ease the bookkeeping burden, after reading in a lattice, \bmad will
 internally convert all \vn{Rbend}s into \vn{Sbend}s. 
-Additionally, the following conversion is done on all \vn{Rbend}s
+this is done on using the following transformation on \vn{Rbend}s:
 \begin{example}
   l_chord(internal) = l(input)
   l(internal) = 2 * asin(l_chord * g / 2) / g
@@ -426,6 +426,20 @@ when a bend is part of a \vn{multipass} line and is used to set the
 reference geometry of the bend. See section~\sref{s:multipass} for
 more details.
 
+In the local coordinate system (\sref{s:ref}), looking from ``above''
+(bend viewed from positive $y$), and with \vn{tilt} = 0, a positive
+\vn{angle} represents a particle rotating clockwise. In this
+case. \vn{g} will also be positive. For counterclockwise rotation,
+both \vn{angle} and \vn{g} will be negative but the length \vn{l} is
+always positive. Also, looking from above, a positive \vn{e1}
+represents a clockwise rotation of the entrance face and a positive
+\vn{e2} represents a counterclockwise rotation of the exit face. This
+is true irregardless of the sign of \vn{angle} and \vn{g}. Also it is
+always the case that the pole faces will be parallel when
+\begin{example}
+  e1 + e2 = angle
+\end{example}
+
 Example bend specification:
 \begin{example}
   b03w: sbend, l = 0.6, k1 = 0.003, fint  ! gives fint = fintx = 0.5
@@ -435,7 +449,7 @@ Example bend specification:
 \section{Branch and Photon_Branch}
 \label{s:branch}
 \index{branch|hyperbf}
-\index{photon_branchtextbf}
+\index{photon_branch|hyperbf}
 
 \begin{center}
 \tt
@@ -820,7 +834,7 @@ The attributes specific to an \vn{Lcavity} are
 \index{rf_frequency}
 \index{delta_e}
 \index{sr_wake_file}
-\index{lR_wake_file}
+\index{lr_wake_file}
 \begin{example}
   coupler_at       = <Switch> ! Location of a coupler giving a transverse kick.
   coupler_strength = <Real>   ! Strength of the coupler.
@@ -838,7 +852,7 @@ The attributes specific to an \vn{Lcavity} are
                               !   Dependent attribute (\sref{s:depend}).
   sr_wake_file     = <String> ! Short range wake field definition file.
   lr_wake_file     = <String> ! Long range wake field definition file.
-  lr_freq_spread   = <Real>   ! Frequency sperad of the LR wake fields.
+  lr_freq_spread   = <Real>   ! Frequency spread of the LR wake fields.
 \end{example}
 The dependent variable \vn{delta_e} attribute can be used in place of
 \vn{gradient} as discussed in \sref{s:depend}.  \vn{delta_e} is a

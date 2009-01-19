@@ -619,9 +619,6 @@ endif
 lat%n_ele_track        = n_ele_use
 lat%n_ele_max          = n_ele_use
 
-call allocate_branch_array (lat%branch, 0, lat)  ! Initial allocation
-lat%branch(0)%name = 'MAIN'
-
 !---------------------------------------------------------------
 ! we now have the line to use in constructing the lat.
 ! now to put the elements in LAT in the correct order.

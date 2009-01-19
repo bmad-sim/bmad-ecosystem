@@ -122,7 +122,8 @@ end subroutine save_a_step
 !
 ! Input:
 !   ele    -- Ele_struct: Element
-!   s_pos  -- Real(rp): Longitudinal position.
+!   param  -- lat_param_struct: Lattice parameters.
+!   s_pos  -- Real(rp): Longitudinal position relative to the start of the element.
 !   here   -- Coord_struct: Transverse coordinates.
 !   local_ref_frame 
 !          -- Logical, If True then take the input coordinates and output fields 

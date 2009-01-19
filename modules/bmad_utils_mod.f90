@@ -657,6 +657,7 @@ lat%name = ' '
 lat%lattice = ' '
 lat%input_file_name = ' '
 lat%param%stable = .true.
+lat%param%particle = positron$
 
 call init_coord(lat%beam_start)
 
@@ -671,6 +672,8 @@ lat%n_ic_max = 0
 lat%input_taylor_order = 0
 lat%version = -1
 
+call allocate_branch_array (lat%branch, 0, lat)  
+lat%branch(0)%name = 'MAIN'
 
 !----------------------------------------
 contains
