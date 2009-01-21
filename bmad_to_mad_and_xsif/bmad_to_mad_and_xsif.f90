@@ -2,7 +2,7 @@
 ! Program to convert a Bmad file to an XSIF file and a MAD file
 !
 ! Usage:
-!   bmad_to_leo bmad_file_name
+!   bmad_to_mad_and_xsif bmad_file_name
 !
 ! The MAD and XSIF files will be created in the current directory.
 !
@@ -41,7 +41,7 @@ elseif (n_arg == 1) then
   call cesr_getarg (1, file_name)
 
 else
-  print *, 'Usage: bmad_to_mad_and_xsif bmad_file_name'
+  print *, 'Usage: bmad_to_mad_and_xsif <bmad_file_name>'
   stop
 endif
 
