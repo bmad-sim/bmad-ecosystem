@@ -1,23 +1,27 @@
-module wiggler_modeling_mod
+module element_modeling_mod
 
 use bmad
 
-type wiggler_modeling_common
-  real(rp) :: g2_wgt    = 1e4
-  real(rp) :: g3_wgt    = 1e4
+type wiggler_modeling_common_struct
+  real(rp) :: integral_g2_wgt    = 1e4
+  real(rp) :: integral_g3_wgt    = 1e4
   real(rp) :: x_wgt     = 1e10
   real(rp) :: mat6_wgt  = 1e6
-  real(rp) :: a_step(5) = (/ 1e-8, 1e-6, 1e-6, 1e-7, 1e-6 /)
+  real(rp) :: g_step   = 1e-8  ! Step size for calculating derivatives
+  real(rp) :: k_step   = 1e-7  ! Step size for calculating derivatives
+  real(rp) :: len_step = 1e-6  ! Step size for calculating derivatives
+  real(rp) :: integration_ds = 0.001 ! meters
+  logical :: print_results = .false.
 end type
 
-type (wiggler_modeling_common), save, target :: wig_model_com
+type (wiggler_modeling_common_struct), save, target :: wig_model_com
 type (ele_struct), private, save, pointer :: wig_com
 type (lat_struct), private, save, pointer :: lat_com
 
 private wig_func, yfit_calc, mat_flatten
 
+real(rp), private, save :: a_step(5) 
 integer, private, save :: n_ele, first_peak_polarity
-
 logical, private, save :: even_pole_num
 
 contains
@@ -26,19 +30,52 @@ contains
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
+! Subroutine create_sol_quad_model (sol_quad, lat)
+!
+! Not yet implemented!
+!-
+
+subroutine create_sol_quad_model (sol_quad, lat)
+
+implicit none
+
+type (ele_struct) sol_quad
+type (lat_struct) lat
+
+character(40) :: r_name = 'create_sol_quad_model'
+
+!
+
+call out_io (s_fatal$, r_name, 'THIS ROUTINE NOT YET IMPLEMENTED!')
+call err_exit
+
+end subroutine
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!+
 ! Subroutine create_wiggler_model (wiggler, lat)
 !
 ! Routine to create series of bend and drift elements to serve as a model for a wiggler.
-! This routine varies the parameters in the wiggler model to match:
+! This routine uses the mrqmin nonlinear optimizer to vary the parameters in the wiggler 
+! model to match:
 !   Integral g^2
 !   Integral g^3
 !   Transfer matrix.
+! Also the endding horizontal transverse offset of the reference orbit (floor%x) is
+! matched to zero.
+!
+! Note: The resulting model does not have the vertical cubic nonlinearity that
+! the actual wiggler has.
 !
 ! Modules needed:
-!   use wiggler_modeling_mod
+!   use element_modeling_mod
 !
 ! Input:
-!   wiggler -- Ele_struct: Map_type wiggler to match to.
+!   wiggler       -- Ele_struct: Map_type wiggler to match to.
+!   wig_model_com -- Wiggler_modeling_common_struct: Global variable that can be used
+!                      to set weights and step sizes for the optimization.
 !
 ! Output:
 !   lat -- Lat_struct: Lattice containing the wiggler model
@@ -58,10 +95,10 @@ type (ele_struct), pointer :: ele
 type (lat_param_struct) param
 type (coord_struct) here
 type (em_field_struct) field
-type (wiggler_modeling_common), pointer :: c
+type (wiggler_modeling_common_struct), pointer :: c
 
 real(rp) s, B_y, b2_int, b3_int, B_max, r, len_bend, sum_angle
-real(rp) g, g2_int, g3_int, g_factor, a_lambda, chisq_old, chisq
+real(rp) g_max, g2_int, g3_int, g_factor, a_lambda, chisq_old, chisq
 real(rp) mat6(6,6), vec0(6)
 real(rp), allocatable :: y(:), yfit(:), weight(:), a(:), covar(:,:), alpha(:,:)
 
@@ -72,63 +109,88 @@ character(40) :: r_name = 'create_wiggler_model'
 
 ! Check
 
-if (wiggler%key /= wiggler$ .or. wiggler%sub_key /= map_type$) then
-  call out_io (s_fatal$, r_name, 'Element is not a map_type wiggler!: ' // wiggler%name)
+if (wiggler%key /= wiggler$) then
+  call out_io (s_fatal$, r_name, 'Element is not a wiggler!: ' // wiggler%name)
   call err_exit
 endif
 
 ! Calculate integrals and maximum field
 
-i_max = 10000
-here%vec = 0
+c => wig_model_com
+g_factor = c_light / wiggler%value(p0c$)
 
-do i = 0, i_max
+if (wiggler%sub_key == map_type$) then
 
-  s = i * wiggler%value(l$) / i_max
-  call em_field_calc (wiggler, param, s, here, .true., field)
-  B_y = field%b(2)
+  here%vec = 0
+  i_max = nint(wiggler%value(l$) / c%integration_ds)
+  b_max = 0
+  b2_int = 0
+  b3_int = 0
 
-  b2_int = b2_int + B_y**2
-  b3_int = b3_int + abs(B_y)**3
-  B_max = max(B_max, abs(B_y))
-  
-enddo
+  do i = 0, i_max
 
-b2_int = b2_int * wiggler%value(l$) / i_max
-b3_int = b3_int * wiggler%value(l$) / i_max
+    s = i * wiggler%value(l$) / i_max
+    call em_field_calc (wiggler, param, s, here, .true., field)
+    B_y = field%b(2)
 
-! Find the number of poles
+    b2_int = b2_int + B_y**2
+    b3_int = b3_int + abs(B_y)**3
+    B_max = max(B_max, abs(B_y))
+    
+  enddo
 
-n_pole = 0
-last_peak_polarity = 0   ! Can be -1, 0, or 1
+  b2_int = b2_int * wiggler%value(l$) / i_max
+  b3_int = b3_int * wiggler%value(l$) / i_max
 
+  g_max = g_factor * b_max
+  g2_int = b2_int * g_factor**2
+  g3_int = b3_int * g_factor**3
 
-do i = 0, i_max
+  ! Find the number of poles
 
-  s = i * wiggler%value(l$) / i_max
-  call em_field_calc (wiggler, param, s, here, .true., field)
-  r = field%b(2) / B_max
+  n_pole = 0
+  last_peak_polarity = 0   ! Can be -1, 0, or 1
 
-  if (r > 0.1) then
-    if (last_peak_polarity == -1) then
-      n_pole = n_pole + 1
-    endif
-    if (n_pole == 0) first_peak_polarity = 1
-    last_peak_polarity = 1
-  elseif (r < -0.1) then
-    if (last_peak_polarity == 1) then
-      n_pole = n_pole + 1
-    endif
-    if (n_pole == 0) first_peak_polarity = -1
-    last_peak_polarity = -1
-  elseif (abs(r) < 0.01) then
-    if (last_peak_polarity /= 0) then
-      n_pole = n_pole + 1
-    endif
-    last_peak_polarity = 0
-  endif  
+  ! count the number of poles
 
-enddo
+  do i = 0, i_max
+
+    s = i * wiggler%value(l$) / i_max
+    call em_field_calc (wiggler, param, s, here, .true., field)
+    r = field%b(2) / B_max
+
+    if (r > 0.1) then
+      if (last_peak_polarity == -1) then
+        n_pole = n_pole + 1
+      endif
+      if (n_pole == 0) first_peak_polarity = 1
+      last_peak_polarity = 1
+    elseif (r < -0.1) then
+      if (last_peak_polarity == 1) then
+        n_pole = n_pole + 1
+      endif
+      if (n_pole == 0) first_peak_polarity = -1
+      last_peak_polarity = -1
+    elseif (abs(r) < 0.01) then
+      if (last_peak_polarity /= 0) then
+        n_pole = n_pole + 1
+      endif
+      last_peak_polarity = 0
+    endif  
+
+  enddo
+
+! Else it is a periodic type wiggler
+
+else
+
+  first_peak_polarity = 1 ! Arbitrary
+  g_max  = wiggler%value(b_max$) * g_factor
+  g2_int = g_max**2 / 2
+  g3_int = 4 * g_max**3 / (3 * pi)  
+  n_pole = wiggler%value(n_pole$)
+
+endif
 
 ! Construct the initial wiggler model.
 !
@@ -161,17 +223,30 @@ lat%ele(0)%value(p0c$) = wiggler%value(p0c$)
 lat%ele(0)%value(e_tot$) = wiggler%value(e_tot$)
 lat%param%particle = positron$
 
+! Simple model if there is no field
+
+if (g_max == 0) then
+  lat%n_ele_track = 1
+  lat%n_ele_max = 1
+  lat%ele(1)%key = drift$
+  lat%ele(1)%value(l$) = wiggler%value(l$)
+  lat%ele(1)%name = wiggler%name
+  call lattice_bookkeeper (lat_com)
+  call lat_make_mat6 (lat_com)
+  return
+endif
+
+!
+
 even_pole_num = (mod(n_pole, 2) == 0)
 
 if (even_pole_num) then
   len_bend = 4 * wiggler%value(l$) / (5 * n_pole - 7)
 else
-  len_bend =  4 * wiggler%value(l$) / (5 * n_pole - 3)
+  len_bend = 4 * wiggler%value(l$) / (5 * n_pole - 3)
 endif
 
 sum_angle = 0
-g_factor = c_light / wiggler%value(p0c$)
-g = g_factor * b_max
 
 do i = 1, n_pole
 
@@ -201,7 +276,7 @@ do i = 1, n_pole
   ele%key = sbend$
   ele%sub_key = sbend$
   ele%value(e1$) = -sum_angle
-  ele%value(g$) = first_peak_polarity * (-1)**(i-1) * g
+  ele%value(g$) = first_peak_polarity * (-1)**(i-1) * g_max
   sum_angle = sum_angle + ele%value(g$) * ele%value(l$)
   ele%value(e2$) = sum_angle
 
@@ -212,18 +287,6 @@ lat%ele(1:n_ele:2)%name      = trim(wiggler%name) // '_DFT'
 lat%ele(1:n_ele:2)%value(l$) = len_bend / 4
 
 call lattice_bookkeeper (lat)
-
-print *, 'Wiggler:'
-call mat_type (wiggler%mat6)
-print *
-print *, 'Model:'
-call lat_make_mat6 (lat, -1)
-call transfer_matrix_calc (lat, .true., mat6, vec0)
-call mat_type (mat6)
-print *
-print *, 'n_pole:', n_pole
-print *, lat%ele(n_ele)%floor%theta, lat%ele(n_ele)%floor%x, lat%ele(n_ele)%floor%z
-print *, 'L:', wiggler%value(l$), lat%ele(n_ele)%s
 
 ! Optimize the wiggler parameters:
 ! Variables:
@@ -238,7 +301,6 @@ print *, 'L:', wiggler%value(l$), lat%ele(n_ele)%s
 
 wig_com => wiggler
 lat_com => lat
-c => wig_model_com
 
 if (even_pole_num) then
   n_var = 5
@@ -250,12 +312,14 @@ n_data = 12
 allocate (y(n_data), yfit(n_data), weight(n_data))
 allocate (a(n_var), covar(n_var, n_var), alpha(n_var,n_var))
 
-g2_int = b2_int * g_factor**2
-g3_int = b3_int * g_factor**3
-
-a(1:4) = (/ g, len_bend, len_bend/4, 0.0_rp /)
+a(1:4) = (/ g_max, 0.0_rp, len_bend, len_bend/4 /)
 if (even_pole_num) a(5) = len_bend/4
-weight(1:3) = (/ c%g2_wgt, c%g3_wgt, c%x_wgt /)
+
+a_step = (/ c%g_step, c%k_step, c%len_step, c%len_step, c%len_step /)
+
+call make_mat6 (wiggler, lat%param)
+
+weight(1:3) = (/ c%integral_g2_wgt, c%integral_g3_wgt, c%x_wgt /)
 weight(4:)  = c%mat6_wgt
 y = (/ g2_int, g3_int, 0.0_rp, mat_flatten(wiggler%mat6) /)
 
@@ -264,29 +328,31 @@ chisq_old = 1e10
 
 do i = 1, 10000
   call super_mrqmin (y, weight, a, covar, alpha, chisq, wig_func, a_lambda, status)
-  if (chisq/chisq_old < 0.90 .or. i == 10000 .or. a_lambda > 1e10) then
-    print *, '---------------------------'
-    print '(i6, es12.3, es10.1)', i, chisq, a_lambda
-    call yfit_calc (a, yfit, status)
-    print *, 'Wiggler:'
-    call mat_type (wiggler%mat6)
-    print *
-    print *, 'Model:'
-    call lat_make_mat6 (lat, -1)
-    call transfer_matrix_calc (lat, .true., mat6, vec0)
-    call mat_type (mat6)
-    print *
-    print *, 'Wiggler g2_int, g3_int:', g2_int, g3_int
-    print *, 'Model   g2_int, g3_int:', yfit(1), yfit(2)
-    print *, 'Floor: ', lat%ele(n_ele)%floor%theta, lat%ele(n_ele)%floor%x, lat%ele(n_ele)%floor%z
-    print *, 'L:', wiggler%value(l$), lat%ele(n_ele)%s
-    print *, 'chi2_g2:   ', weight(1) * (yfit(1) - y(1))**2
-    print *, 'chi2_g3:   ', weight(2) * (yfit(2) - y(2))**2
-    print *, 'chi2_x:    ', weight(3) * (yfit(3) - y(3))**2
-    print *, 'chi2_m12:  ', weight(4) * sum((yfit(4: 7) - y(4: 7))**2)
-    print *, 'chi2_m34:  ', weight(8) * sum((yfit(8:11) - y(8:11))**2)
-    print *, 'chi2_m16:  ', weight(12)* (yfit(12) - y(12))**2
-    chisq_old = chisq
+  if (c%print_results) then
+    if (chisq/chisq_old < 0.90 .or. i == 10000 .or. a_lambda > 1e10) then
+      print *, '---------------------------'
+      print '(i6, es12.3, es10.1)', i, chisq, a_lambda
+      call yfit_calc (a, yfit, status)
+      print *, 'Wiggler:'
+      call mat_type (wiggler%mat6)
+      print *
+      print *, 'Model:'
+      call lat_make_mat6 (lat)
+      call transfer_matrix_calc (lat, .true., mat6, vec0)
+      call mat_type (mat6)
+      print *
+      print *, 'Wiggler g2_int, g3_int:', g2_int, g3_int
+      print *, 'Model   g2_int, g3_int:', yfit(1), yfit(2)
+      print *, 'Floor: ', lat%ele(n_ele)%floor%theta, lat%ele(n_ele)%floor%x, lat%ele(n_ele)%floor%z
+      print *, 'L:', wiggler%value(l$), lat%ele(n_ele)%s
+      print *, 'chi2_g2:   ', weight(1) * (yfit(1) - y(1))**2
+      print *, 'chi2_g3:   ', weight(2) * (yfit(2) - y(2))**2
+      print *, 'chi2_x:    ', weight(3) * (yfit(3) - y(3))**2
+      print *, 'chi2_m12:  ', weight(4) * sum((yfit(4: 7) - y(4: 7))**2)
+      print *, 'chi2_m34:  ', weight(8) * sum((yfit(8:11) - y(8:11))**2)
+      print *, 'chi2_m16:  ', weight(12)* (yfit(12) - y(12))**2
+      chisq_old = chisq
+    endif
   endif
   if (a_lambda > 1e10) exit
 enddo
@@ -319,9 +385,9 @@ integer status
 call yfit_calc (a, yfit, status)
 do i = 1, size(a)
   a_try = a
-  a_try(i) = a_try(i) + wig_model_com%a_step(i)
+  a_try(i) = a_try(i) + a_step(i)
   call yfit_calc (a_try, y_try, status)
-  dyda(:,i) = (y_try - yfit) / wig_model_com%a_step(i)
+  dyda(:,i) = (y_try - yfit) / a_step(i)
 enddo
 
 end subroutine
@@ -350,9 +416,9 @@ integer i, n_pole
 !
 
 g = a(1)
-len_bend = a(2)
-len_drift = a(3)
-k1 = a(4)
+k1 = a(2)
+len_bend = a(3)
+len_drift = a(4)
 n_pole = (n_ele - 1) / 2
 sum_angle = 0
 
@@ -397,7 +463,7 @@ lat_com%ele(n_ele)%value(l$) = len_d_end
 
 call lattice_bookkeeper (lat_com)
 
-call lat_make_mat6 (lat_com, -1)
+call lat_make_mat6 (lat_com)
 call transfer_matrix_calc (lat_com, .true., mat6, vec0)
 
 if (even_pole_num) then

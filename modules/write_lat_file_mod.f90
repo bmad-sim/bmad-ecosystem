@@ -4,8 +4,9 @@ use bmad_struct
 use bmad_interface
 use multipole_mod
 use multipass_mod
+use element_modeling_mod
 
-private str, rchomp, write_out, element_out, bmad_to_mad_or_xsif
+private str, rchomp, write_out, bmad_to_mad_or_xsif
 
 contains
 
@@ -924,38 +925,50 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end, err)
+! Subroutine bmad_to_mad (mad_file, lat, use_matrix_model, &
+!                                           ix_start, ix_end, converted_lat, err)
 !
 ! Subroutine to write a mad lattice file using the information in
 ! a lat_struct. Optionally only part of the lattice can be generated.
 !
+! Note: sol_quad elements are replaced by a drift-matrix-drift or solenoid-quad model.
+! Note: wiggler elements are replaced by a drift-matrix-drift or drift-bend model.
+
 ! Modules needed:
 !   use write_lat_file_mod
 !
 ! Input:
 !   mad_file    -- Character(*): Name of the mad output lattice file.
 !   lat         -- lat_struct: Holds the lattice information.
+!   use_matrix_model
+!               -- Logical, optional: Use a drift-matrix_drift model for wigglers
+!                       and sol_quad elements? Default is False.
 !   ix_start    -- Integer, optional: Starting index of lat%ele(i)
 !                       used for output.
 !   ix_end      -- Integer, optional: Ending index of lat%ele(i)
 !                       used for output.
 !
 ! Output:
-!   err    -- Logical, optional: Set True if, say a file could not be opened.
+!   converted_lat -- Lat_struct, optional: Equivalent Bmad lattice with wiggler and 
+!                       sol_quad elements replaced by their respective models.
+!   err           -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-subroutine bmad_to_mad (mad_file, lat, ix_start, ix_end, err)
+subroutine bmad_to_mad (mad_file, lat, use_matrix_model, &
+                                                ix_start, ix_end, converted_lat, err)
 
 implicit none
 
 type (lat_struct)  lat
+type (lat_struct), optional :: converted_lat
 integer, optional :: ix_start, ix_end
 character(*) mad_file 
-logical, optional :: err
+logical, optional :: use_matrix_model, err
 
 !
 
-call bmad_to_mad_or_xsif ('MAD', mad_file, lat, ix_start, ix_end, err)
+call bmad_to_mad_or_xsif ('MAD', mad_file, lat, use_matrix_model, &
+                                             ix_start, ix_end, converted_lat, err)
 
 end subroutine
 
@@ -963,7 +976,8 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end, err)
+! Subroutine bmad_to_xsif (xsif_file, lat, use_matrix_model, 
+!                                             ix_start, ix_end, converted_lat, err)
 !
 ! Subroutine to write a xsif lattice file using the information in
 ! a lat_struct. Optionally only part of the lattice can be generated.
@@ -974,27 +988,35 @@ end subroutine
 ! Input:
 !   xsif_file   -- Character(*): Name of the xsif output lattice file.
 !   lat         -- lat_struct: Holds the lattice information.
+!   use_matrix_model
+!               -- Logical, optional: Use a drift-matrix_drift model for wigglers
+!                       and sol_quad elements? Default is False.
 !   ix_start    -- Integer, optional: Starting index of lat%ele(i)
 !                       used for output.
 !   ix_end      -- Integer, optional: Ending index of lat%ele(i)
 !                       used for output.
 !
 ! Output:
+!   converted_lat -- Lat_struct, optional: Equivalent Bmad lattice with wiggler and 
+!                       sol_quad elements replaced by their respective models.
 !   err    -- Logical: Set True if, say a file could not be opened.
 !-
 
-subroutine bmad_to_xsif (xsif_file, lat, ix_start, ix_end, err)
+subroutine bmad_to_xsif (xsif_file, lat, use_matrix_model, ix_start, ix_end, converted_lat, err)
 
 implicit none
 
 type (lat_struct)  lat
+type (lat_struct), optional :: converted_lat
+
 integer, optional :: ix_start, ix_end
 character(*) xsif_file 
-logical, optional :: err
+logical, optional :: use_matrix_model, err
 
 ! 
 
-call bmad_to_mad_or_xsif ('XSIF', xsif_file, lat, ix_start, ix_end, err)
+call bmad_to_mad_or_xsif ('XSIF', xsif_file, lat, use_matrix_model, &
+                                        ix_start, ix_end, converted_lat, err)
 
 end subroutine
 
@@ -1002,24 +1024,33 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, ix_start, ix_end, err)
+subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, &
+                          use_matrix_model, ix_start, ix_end, converted_lat, err)
 
-type (lat_struct), target :: lat
-type (ele_struct), save :: ele
-type (ele_struct), save :: drift_ele, ab_ele
+type (lat_struct), target :: lat, lat_out, lat_model
+type (lat_struct), optional :: converted_lat
+type (ele_struct), pointer :: ele
+type (ele_struct), save :: drift_ele, ab_ele, taylor_ele
+type (taylor_term_struct) :: term
+
+real(rp) field, hk, vk, tilt
+real(rp), pointer :: val(:)
+real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx)
 
 integer, optional :: ix_start, ix_end
-integer i, j, n, ix, i_unique, i_line, iout, iu, n_list, j_count
+integer i, j, j2, k, n, ix, i_unique, i_line, iout, iu, n_list, j_count, ix_ele
 integer ie1, ie2, ios
 
 character(*) out_type, out_file_name
-character(40) ele_name
 character(300) line
-character(20) :: r_name = "write_lattice_line"
 character(40), allocatable :: name_list(:)
+character(1000) line_out
+character(8) str
+character(20) :: r_name = "write_lattice_line"
 
 logical init_needed
-logical, optional :: err
+logical parsing
+logical, optional :: use_matrix_model, err
 
 ! open file
 
@@ -1032,23 +1063,12 @@ if (ios /= 0) then
   return
 endif
 
-! lat lattice name
-
-write (iu, '(2a)') '! File generated by BMAD_TO_', out_type
-write (iu, '(2a)') '! Bmad Lattice File: ', trim(lat%input_file_name)
-write (iu, '(2a)') '! Bmad Lattice: ', trim(lat%lattice)
-write (iu, *)
-
 ! Init
 
-call init_ele (drift_ele)
-call init_ele (ab_ele)
-call init_ele (ele)
-
-drift_ele%key = drift$
-ab_ele%key = ab_multipole$
-
-j_count = 0    ! drift around solenoid or sol_quad index
+call init_ele (drift_ele, drift$)
+call init_ele (taylor_ele, taylor$)
+call init_ele (ab_ele, ab_multipole$)
+call multipole_init (ab_ele)
 
 ie1 = 1    ! element index
 if (present(ix_start)) ie1 = ix_start
@@ -1057,78 +1077,353 @@ ie2 = lat%n_ele_track
 if (present(ix_end)) ie2 = ix_end
 
 allocate (name_list(3*(ie2-ie1+1))) ! list of element names
-n_list = 0                          ! number of names stored in the list
 
-! beam definition
+! Transfer info to lat_out and make substitutions for sol_quad and wiggler elements.
 
-ele = lat%ele(ie1-1)
-
-write (iu, '(2a, 2(a, es12.5))')  &
-      'beam_def: Beam, Particle = ', trim(particle_name(lat%param%particle)),  &
-      ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', lat%param%n_part
-
-write (iu, *)
-
-! Write element definitions...
-
+lat_out = lat
+j_count = 0    ! drift around solenoid or sol_quad index
 i_unique = 1000
 
-do i = ie1, ie2
+ix_ele = ie1 
+do 
 
-  ele = lat%ele(i)
+  ix_ele = ix_ele + 1
+  if (ix_ele > ie2) exit
+  ele => lat_out%ele(ix_ele)
 
   ! If the name has more than 16 characters then replace the name by something shorter and unique.
 
-  ele_name = ele%name
-  if (len_trim(ele_name) > 16) then
+  if (len_trim(ele%name) > 16) then
     call out_io (s_warn$, r_name, 'Shortening element name: ' // ele%name)
-    do 
-      i_unique = i_unique + 1
-      write (ele_name, '(a4, i0)') key_name(ele%key), i_unique
-      if (all(ele_name /= name_list(1:n_list))) exit
-    enddo      
+    i_unique = i_unique + 1
+    write (ele%name, '(a, i0)') ele%name(1:11), i_unique
   endif
 
-  ! Replace element name containing "/" with "_"
+  ! Replace element name containing "/" or "#" with "_"
 
   do
-    j = index (ele_name, '\')         ! '
+    j = index (ele%name, '\')         ! '
+    j = index (ele%name, '#')   
     if (j == 0) exit
-    ele_name(j:j) = '_'
+    ele%name(j:j) = '_'
   enddo
 
   ! If there is a multipole component then put half at the beginning and half at the end
 
   if (associated(ele%a_pole) .and. ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
-    ab_ele%a_pole = ele%a_pole / 2
-    ab_ele%b_pole = ele%b_pole / 2
-    write (ab_ele%name, '(a, i3.3)') 'MULTIPOLE_Z', j_count
-    call element_out (out_type, ab_ele, ab_ele%name, lat, name_list, n_list, iu)
+    call multipole_ele_to_ab (ele, lat%param%particle, ab_ele%a_pole, ab_ele%b_pole, .true.)
+    ab_ele%a_pole = ab_ele%a_pole / 2
+    ab_ele%b_pole = ab_ele%b_pole / 2
+    deallocate (ele%a_pole, ele%b_pole)
+    j_count = j_count + 1
+    write (ab_ele%name,   '(a, i3.3)') 'MULTIPOLE_Z', j_count
+    call insert_element (lat_out, ab_ele, ix_ele)
+    call insert_element (lat_out, ab_ele, ix_ele+2)
+    ie2 = ie2 + 2
+    cycle
   endif
 
-  ! Add drifts before and after wigglers and sol_quads so total length is invariant
+  ! Convert sol_quad_and wiggler elements.
 
   if (ele%key == wiggler$ .or. ele%key == sol_quad$) then
-    j_count = j_count + 1
-    write (drift_ele%name, '(a, i3.3)') 'DRIFT_Z', j_count
-    drift_ele%value(l$) = ele%value(l$) / 2
-    call element_out (out_type, drift_ele, drift_ele%name, lat, name_list, n_list, iu)
+    if (logic_option(.false., use_matrix_model)) then
 
-    drift_ele%value(l$) = -drift_ele%value(l$)
-    call make_mat6 (drift_ele, lat%param)
-    ele%mat6 = matmul(matmul(drift_ele%mat6, ele%mat6), drift_ele%mat6)
-    call element_out (out_type, ele, ele_name, lat, name_list, n_list, iu)
+      drift_ele%value(l$) = -ele%value(l$) / 2
+      call make_mat6 (drift_ele, lat_out%param)
+      taylor_ele%mat6 = matmul(matmul(drift_ele%mat6, ele%mat6), drift_ele%mat6)
+      call mat6_to_taylor (taylor_ele%vec0, taylor_ele%mat6, taylor_ele%taylor)
 
-    drift_ele%value(l$) = ele%value(l$) / 2
-    call element_out (out_type, drift_ele, drift_ele%name, lat, name_list, n_list, iu)
+      ! Add drifts before and after wigglers and sol_quads so total length is invariant
+      j_count = j_count + 1
+      write (drift_ele%name, '(a, i3.3)') 'DRIFT_Z', j_count
+      drift_ele%value(l$) = ele%value(l$) / 2
+      call insert_element (lat_out, drift_ele, ix_ele)
+      call insert_element (lat_out, taylor_ele, ix_ele+1)
+      call insert_element (lat_out, drift_ele, ix_ele+2)
+      ie2 = ie2 + 2
+      cycle
 
-  else
-    call element_out (out_type, ele, ele_name, lat, name_list, n_list, iu)
+    ! non matrix model
+    else
+      if (ele%key == wiggler$) then
+        call create_wiggler_model (ele, lat_model)
+      else
+        call create_sol_quad_model (ele, lat_model)
+      endif
+      ele%key = -1 ! Mark for deletion
+      call remove_eles_from_lat (lat_out)
+      do j = 1, lat_model%n_ele_track
+        call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1)
+      enddo
+      ie2 = ie2 + lat_model%n_ele_track - 1
+      cycle
+    endif
   endif
 
-  if (associated(ele%a_pole) .and. ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
-    call element_out(out_type, ab_ele, ab_ele%name, lat, name_list, n_list, iu)
-  endif
+enddo
+
+! lat lattice name
+
+write (iu, '(2a)') '! File generated by BMAD_TO_', out_type
+write (iu, '(2a)') '! Bmad Lattice File: ', trim(lat_out%input_file_name)
+write (iu, '(2a)') '! Bmad Lattice: ', trim(lat_out%lattice)
+write (iu, *)
+
+! beam definition
+
+ele => lat_out%ele(ie1-1)
+
+write (iu, '(2a, 2(a, es12.5))')  &
+      'beam_def: Beam, Particle = ', trim(particle_name(lat_out%param%particle)),  &
+      ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', lat_out%param%n_part
+
+write (iu, *)
+
+! write element parameters
+
+n_list = 0                          ! number of names stored in the list
+
+do ix_ele = ie1, ie2
+
+  ele => lat_out%ele(ix_ele)
+
+  ! do not make duplicate specs
+
+  if (any (ele%name == name_list(1:n_list))) cycle
+
+  ! Add to the list of elements
+
+  n_list = n_list + 1
+  name_list(n_list) = ele%name
+
+  ! select key
+
+  val => ele%value
+
+  select case (ele%key)
+
+  ! drift
+
+  case (drift$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
+  ! beambeam
+
+  case (beambeam$)
+
+    line_out = trim(ele%name) // ': beambeam'
+    call value_to_line (line_out, val(sig_x$), 'sigx', 'es13.5', 'R')
+    call value_to_line (line_out, val(sig_y$), 'sigy', 'es13.5', 'R')
+    call value_to_line (line_out, val(x_offset$), 'xma', 'es13.5', 'R')
+    call value_to_line (line_out, val(y_offset$), 'yma', 'es13.5', 'R')
+    call value_to_line (line_out, val(charge$), 'charge', 'es13.5', 'R')
+
+  ! elseparator
+
+  case (elseparator$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': elseparator, l =', val(l$)
+    hk = val(hkick$)
+    vk = val(vkick$)
+
+    if (hk /= 0 .or. vk /= 0) then
+
+      ix = len_trim(line_out) + 1
+      field = 1.0e3 * sqrt(hk**2 + vk**2) * val(E_TOT$) / val(l$)
+      write (line_out(ix:), '(a, es13.5)') ', e =', field
+
+      if (lat_out%param%particle == positron$) then
+        tilt = -atan2(hk, vk) + val(tilt$)
+      else
+        tilt = -atan2(hk, vk) + val(tilt$) + pi
+      endif
+      ix = len_trim(line_out) + 1
+      write (line_out(ix:), '(a, es13.5)') ', tilt =', tilt
+
+    endif
+
+  ! kicker
+
+  case (kicker$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': kicker, l =', val(l$)
+
+    call value_to_line (line_out, val(hkick$), 'hkick', 'es13.5', 'R')
+    call value_to_line (line_out, val(vkick$), 'vkick', 'es13.5', 'R')
+    call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
+
+  ! hkicker
+
+  case (hkicker$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': hkicker, l =', val(l$)
+
+    call value_to_line (line_out, val(hkick$), 'kick', 'es13.5', 'R')
+    call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
+
+  ! vkicker
+
+  case (vkicker$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': vkicker, l =', val(l$)
+
+    call value_to_line (line_out, val(vkick$), 'kick', 'es13.5', 'R')
+    call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
+
+  ! marker
+
+  case (marker$, branch$, photon_branch$)
+
+    line_out = trim(ele%name) // ': marker'
+
+  ! octupole
+
+  case (octupole$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': octupole, l =', val(l$)
+
+    call value_to_line (line_out, val(k3$), 'k3', 'es13.5', 'R')
+    call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
+
+  ! quadrupole
+
+  case (quadrupole$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': quad, l =', val(l$)
+    call value_to_line (line_out, val(k1$), 'k1', 'es13.5', 'R')
+    call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
+
+  ! sbend
+
+  case (sbend$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': sbend, l =', val(l$)
+
+    call value_to_line (line_out, val(angle$), 'angle', 'es13.5', 'R')
+    call value_to_line (line_out, val(e1$), 'e1', 'es13.5', 'R')
+    call value_to_line (line_out, val(e2$), 'e2', 'es13.5', 'R')
+    call value_to_line (line_out, val(k1$), 'k1', 'es13.5', 'R')
+    call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
+
+  ! sextupole
+
+  case (sextupole$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': sextupole, l =', val(l$)
+    call value_to_line (line_out, val(k2$), 'k2', 'es13.5', 'R')
+    call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
+
+  ! taylor
+
+  case (taylor$)
+
+    line_out = trim(ele%name) // ': matrix'
+
+    do i = 1, 6
+      do k = 1, size(ele%taylor(i)%term)
+        term = ele%taylor(i)%term(k)
+
+        select case (sum(term%exp))
+        case (1)
+          j = maxloc(term%exp, 1)
+          if (out_type == 'MAD') then
+            write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', j, ')'
+          elseif (out_type == 'XSIF') then
+            write (str, '(a, 2i0)') 'r', i, j
+          endif
+          call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
+          
+        case (2)
+          j = maxloc(term%exp, 1)
+          term%exp(j) = term%exp(j) - 1
+          j2 = maxloc(term%exp, 1)
+          if (out_type == 'MAD') then
+            write (str, '(a, 3(i0, a))') 'tm(', i, ',', j, ',', j2, ')'
+          elseif (out_type == 'XSIF') then
+            write (str, '(a, 3i0)') 't', i, j, j2
+          endif
+          call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
+
+
+        case default
+          call out_io (s_error$, r_name, &
+                  'TAYLOR TERM: \es12.2\ : \6i3\ ', &
+                  'IN ELEMENT: ' // ele%name, &
+                  'CANNOT BE CONVERTED TO MAD MATRIX TERM', &
+                  r_array = (/ term%coef /), i_array = term%exp)
+        end select
+      enddo
+
+      if (ele%mat6(i,i) == 0) then
+        if (out_type == 'MAD') then
+          write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', i, ')'
+        elseif (out_type == 'XSIF') then
+          write (str, '(a, 2i0)') 'r', i, i
+        endif
+        call value_to_line (line_out, 0.0_rp, str, 'es13.5', 'R')
+      endif
+
+    enddo
+
+  ! rfcavity
+
+  case (rfcavity$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': rfcavity, l =', val(l$)
+    call value_to_line (line_out, val(voltage$)/1E6, 'volt', 'es13.5', 'R')
+    call value_to_line (line_out, val(phi0$)+val(dphi0$), 'lag', 'es13.5', 'R')
+    call value_to_line (line_out, val(harmon$), 'harmon', 'i8', 'I')
+
+  ! lcavity
+
+  case (lcavity$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': lcavity, l =', val(l$)
+    call value_to_line (line_out, val(gradient$)*val(l$)/1e6, 'deltae', 'f11.4', 'R')
+    call value_to_line (line_out, val(rf_frequency$)/1e6, 'freq', 'es13.5', 'R')
+    call value_to_line (line_out, val(phi0$)+val(dphi0$), 'phi0', 'es13.5', 'R')
+
+  ! solenoid
+
+  case (solenoid$)
+
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': solenoid, l =', val(l$)
+    call value_to_line (line_out, val(ks$), 'ks', 'es13.5', 'R')
+
+  ! multipole
+
+  case (multipole$, ab_multipole$)
+
+    call multipole_ele_to_kt (ele, lat_out%param%particle, knl, tilts, .true.)
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': multipole'  
+    do i = 0, 9
+      write (str, '(a, i1, a)') 'K', i, 'L'
+      call value_to_line (line_out, knl(i), str, 'es13.5', 'R')
+      write (str, '(a, i1)') 'T', i
+      call value_to_line (line_out, tilts(i), str, 'es13.5', 'R')
+    enddo
+
+  ! unknown
+
+  case default
+
+    print *, 'ERROR: UNKNOWN ELEMENT: ', key_name(ele%key), ele%key
+    print *, '       CONVERTING TO MARKER'
+
+    line_out = trim(ele%name) // ': marker'
+
+  end select
+
+  ! write element spec to file
+
+  do
+    if (len_trim(line_out) < 76) exit
+    ix = index(line_out(61:), ' ')
+    write (iu, '(2a)') line_out(:60+ix), '&'
+    line_out = '    ' // line_out(60+ix:)
+  enddo
+
+  write (iu, '(a)') trim(line_out(:75))
 
 enddo
 
@@ -1140,23 +1435,23 @@ i_line = 0
 init_needed = .true.
 line = ' '
 
-do n = 1, n_list
+do n = ie1, ie2
 
-  ele_name = name_list(n)
+  ele => lat_out%ele(n)
 
   ix = len_trim(line)
 
   if (ix > 60 .or. n == n_list) then
     if (iout >= 50 .or. n == n_list) then
-      i = len_trim(ele_name)
-      line(ix+1:) = ', ' // ele_name(:i) // ')'
+      i = len_trim(ele%name)
+      line(ix+1:) = ', ' // ele%name(:i) // ')'
       write (iu, '(2a)') trim(line)
       line = ' '
       init_needed = .true.
     else
       write (iu, '(2a)') trim(line(:ix)), ', &'
       iout = iout + 1
-      line = '   ' // ele_name
+      line = '   ' // ele%name
     endif
 
   elseif (init_needed) then
@@ -1164,12 +1459,12 @@ do n = 1, n_list
     write (iu, *) '!---------------------------------'
     write (iu, *)
     i_line = i_line + 1
-    write (line, '(a, i0, 2a)') 'line_', i_line, ': line = (', ele_name
+    write (line, '(a, i0, 2a)') 'line_', i_line, ': line = (', ele%name
     iout = 0
     init_needed = .false.
 
   else
-    line(ix+1:) = ', ' // ele_name
+    line(ix+1:) = ', ' // ele%name
   endif
 
 enddo
@@ -1187,8 +1482,8 @@ write (iu, *) 'use, lat'
 
 ! Write twiss parameters for a linear lattice.
 
-ele = lat%ele(ie1-1)
-if (lat%param%lattice_type /= circular_lattice$) then
+ele = lat_out%ele(ie1-1)
+if (lat_out%param%lattice_type /= circular_lattice$) then
   write (iu, *)
   write (iu, *) '!---------------------------------'
   write (iu, *)
@@ -1210,237 +1505,10 @@ call out_io (s_info$, r_name, 'Written ' // trim(out_type) // &
 deallocate (name_list)
 if (present(err)) err = .false.
 
-end subroutine
+if (present(converted_lat)) converted_lat = lat_out
 
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-
-subroutine element_out (out_type, ele, ele_name, lat, name_list, n_list, iu)
-
-type (ele_struct), target :: ele
-type (lat_struct) lat
-
-integer i, j, n_list, ix, iu
-
-character(*) out_type
-character(1000) line
-character(40) ele_name
-character(40), allocatable :: name_list(:)
-character(8) str
-
-real(rp) field, hk, vk, tilt
-real(rp), pointer :: val(:)
-real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx)
-
-logical parsing
-
-! Add to the list of elements
-
-n_list = n_list + 1
-name_list(n_list) = ele_name
-
-! do not make duplicate specs
-
-do i = 1, n_list - 1
-  if (ele_name == name_list(i)) return
-enddo
-
-! select key
-
-val => ele%value
-
-select case (ele%key)
-
-! drift
-
-case (drift$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': drift, l =', val(l$)
-! beambeam
-
-case (beambeam$)
-
-  line = trim(ele_name) // ': beambeam'
-  call value_to_line (line, val(sig_x$), 'sigx', 'es13.5', 'R')
-  call value_to_line (line, val(sig_y$), 'sigy', 'es13.5', 'R')
-  call value_to_line (line, val(x_offset$), 'xma', 'es13.5', 'R')
-  call value_to_line (line, val(y_offset$), 'yma', 'es13.5', 'R')
-  call value_to_line (line, val(charge$), 'charge', 'es13.5', 'R')
-
-! elseparator
-
-case (elseparator$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': elseparator, l =', val(l$)
-  hk = val(hkick$)
-  vk = val(vkick$)
-
-  if (hk /= 0 .or. vk /= 0) then
-
-    ix = len_trim(line) + 1
-    field = 1.0e3 * sqrt(hk**2 + vk**2) * val(E_TOT$) / val(l$)
-    write (line(ix:), '(a, es13.5)') ', e =', field
-
-    if (lat%param%particle == positron$) then
-      tilt = -atan2(hk, vk) + val(tilt$)
-    else
-      tilt = -atan2(hk, vk) + val(tilt$) + pi
-    endif
-    ix = len_trim(line) + 1
-    write (line(ix:), '(a, es13.5)') ', tilt =', tilt
-
-  endif
-
-! kicker
-
-case (kicker$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': kicker, l =', val(l$)
-
-  call value_to_line (line, val(hkick$), 'hkick', 'es13.5', 'R')
-  call value_to_line (line, val(vkick$), 'vkick', 'es13.5', 'R')
-  call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
-
-! hkicker
-
-case (hkicker$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': hkicker, l =', val(l$)
-
-  call value_to_line (line, val(hkick$), 'kick', 'es13.5', 'R')
-  call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
-
-! vkicker
-
-case (vkicker$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': vkicker, l =', val(l$)
-
-  call value_to_line (line, val(vkick$), 'kick', 'es13.5', 'R')
-  call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
-
-! marker
-
-case (marker$, branch$, photon_branch$)
-
-  line = trim(ele_name) // ': marker'
-
-! octupole
-
-case (octupole$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': octupole, l =', val(l$)
-
-  call value_to_line (line, val(k3$), 'k3', 'es13.5', 'R')
-  call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
-
-! quadrupole
-
-case (quadrupole$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': quad, l =', val(l$)
-  call value_to_line (line, val(k1$), 'k1', 'es13.5', 'R')
-  call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
-
-! sbend
-
-case (sbend$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': sbend, l =', val(l$)
-
-  call value_to_line (line, val(angle$), 'angle', 'es13.5', 'R')
-  call value_to_line (line, val(e1$), 'e1', 'es13.5', 'R')
-  call value_to_line (line, val(e2$), 'e2', 'es13.5', 'R')
-  call value_to_line (line, val(k1$), 'k1', 'es13.5', 'R')
-  call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
-
-! sextupole
-
-case (sextupole$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': sextupole, l =', val(l$)
-  call value_to_line (line, val(k2$), 'k2', 'es13.5', 'R')
-  call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
-
-! rfcavity
-
-case (rfcavity$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': rfcavity, l =', val(l$)
-  call value_to_line (line, val(voltage$)/1E6, 'volt', 'es13.5', 'R')
-  call value_to_line (line, val(phi0$)+val(dphi0$), 'lag', 'es13.5', 'R')
-  call value_to_line (line, val(harmon$), 'harmon', 'i8', 'I')
-
-! lcavity
-
-case (lcavity$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': lcavity, l =', val(l$)
-  call value_to_line (line, val(gradient$)*val(l$)/1e6, 'deltae', 'f11.4', 'R')
-  call value_to_line (line, val(rf_frequency$)/1e6, 'freq', 'es13.5', 'R')
-  call value_to_line (line, val(phi0$)+val(dphi0$), 'phi0', 'es13.5', 'R')
-
-! solenoid
-
-case (solenoid$)
-
-  write (line, '(a, es13.5)') trim(ele_name) // ': solenoid, l =', val(l$)
-  call value_to_line (line, val(ks$), 'ks', 'es13.5', 'R')
-
-! wiggler or solquad must be a matrix
-
-case (wiggler$, sol_quad$, match$)
-
-  line = trim(ele_name) // ': matrix'
-  do i = 1, 6
-    do j = 1, 6
-      if (out_type == 'MAD') then
-        write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', j, ')'
-      elseif (out_type == 'XSIF') then
-        write (str, '(a, i0, i0)') 'r', i, j
-      else
-        print *, 'ERROR: BMAD OUT_TYPE: ', out_type
-        call err_exit
-      endif
-      call value_to_line (line, ele%mat6(i,j), str, 'es13.5', 'R')
-    enddo
-  enddo
-
-! multipole
-
-case (multipole$, ab_multipole$)
-
-  call multipole_ele_to_kt (ele, lat%param%particle, knl, tilts, .true.)
-  write (line, '(a, es13.5)') trim(ele_name) // ': multipole'  
-  do i = 0, 9
-    write (str, '(a, i1, a)') 'K', i, 'L'
-    call value_to_line (line, knl(i), str, 'es13.5', 'R')
-    write (str, '(a, i1)') 'T', i
-    call value_to_line (line, tilts(i), str, 'es13.5', 'R')
-  enddo
-
-! unknown
-
-case default
-
-  print *, 'ERROR: UNKNOWN ELEMENT: ', key_name(ele%key), ele%key
-  print *, '       CONVERTING TO MARKER'
-
-  line = trim(ele_name) // ': marker'
-
-end select
-
-! write element spec to file
-
-do
-  if (len_trim(line) < 76) exit
-  ix = index(line(61:), ' ')
-  write (iu, '(2a)') line(:60+ix), '&'
-  line = '    ' // line(60+ix:)
-enddo
-
-write (iu, '(a)') trim(line(:75))
+call deallocate_lat_pointers (lat_out)
+call deallocate_lat_pointers (lat_model)
 
 end subroutine
 
