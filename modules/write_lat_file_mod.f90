@@ -250,6 +250,10 @@ ele_loop: do ie = 1, lat%n_ele_max
       if (ele%value(ix) /= 0) write (line, '(3a)') &
                           trim(line), ' = ', str(ele%value(ix))
     endif
+    if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
+    if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
+    if (associated(ele%descrip)) line = trim(line) // &
+                            ', descrip = "' // trim(ele%descrip) // '"'
     call write_out (line, iu, .true.)
     cycle
   endif
@@ -1441,8 +1445,8 @@ do n = ie1, ie2
 
   ix = len_trim(line)
 
-  if (ix > 60 .or. n == n_list) then
-    if (iout >= 50 .or. n == n_list) then
+  if (ix > 60 .or. n == ie2) then
+    if (iout >= 50 .or. n == ie2) then
       i = len_trim(ele%name)
       line(ix+1:) = ', ' // ele%name(:i) // ')'
       write (iu, '(2a)') trim(line)
@@ -1482,7 +1486,7 @@ write (iu, *) 'use, lat'
 
 ! Write twiss parameters for a linear lattice.
 
-ele = lat_out%ele(ie1-1)
+ele => lat_out%ele(ie1-1)
 if (lat_out%param%lattice_type /= circular_lattice$) then
   write (iu, *)
   write (iu, *) '!---------------------------------'

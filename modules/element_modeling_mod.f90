@@ -255,22 +255,29 @@ do i = 1, n_pole
   if (even_pole_num) then
     if (i == 1 .or. i == n_pole) then
       ele%value(l$) = len_bend / 4
-      ele%name = trim(wiggler%name) // '_BND_25'
+      ele%name = trim(wiggler%name) // '_B25'
     elseif (i == 2 .or. i == n_pole-1) then
       ele%value(l$) = 3 * len_bend / 4
-      ele%name = trim(wiggler%name) // '_BND_75'
+      ele%name = trim(wiggler%name) // '_B75'
     else
       ele%value(l$) = len_bend 
-      ele%name = trim(wiggler%name) // '_BND'
+      ele%name = trim(wiggler%name) // '_B'
     endif
   else
     if (i == 1 .or. i == n_pole) then
       ele%value(l$) = len_bend / 2
-      ele%name = trim(wiggler%name) // '_BND_50'
+      ele%name = trim(wiggler%name) // '_B50'
     else
       ele%value(l$) = len_bend 
-      ele%name = trim(wiggler%name) // '_BND'
+      ele%name = trim(wiggler%name) // '_B'
     endif
+  endif
+
+  ! Mark bend polarity
+  if (mod(i, 2) == 0) then
+    ele%name = trim(ele%name) // 'P'  
+  else
+    ele%name = trim(ele%name) // 'N'
   endif
 
   ele%key = sbend$
@@ -283,8 +290,14 @@ do i = 1, n_pole
 enddo
 
 lat%ele(1:n_ele:2)%key       = drift$
-lat%ele(1:n_ele:2)%name      = trim(wiggler%name) // '_DFT'
+lat%ele(1:n_ele:2)%name      = trim(wiggler%name) // '_D'
 lat%ele(1:n_ele:2)%value(l$) = len_bend / 4
+  lat%ele(1)%name        = trim(wiggler%name) // '_D1'
+  lat%ele(n_ele)%name    = trim(wiggler%name) // '_D1'
+if (even_pole_num) then
+  lat%ele(3)%name        = trim(wiggler%name) // '_D2'
+  lat%ele(n_ele-2)%name  = trim(wiggler%name) // '_D2'
+endif
 
 call lattice_bookkeeper (lat)
 
