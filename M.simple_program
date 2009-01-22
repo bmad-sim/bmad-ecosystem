@@ -186,7 +186,7 @@ LOCAL_LFLAGS   := -pg
 #--------------------------------------------------------------
 LOCAL_LIBS := 
 CESR_LIBS  := bmad dcslib cesr_utils recipes_f-90_LEPP
-PKG_LIBS   := forest pgplot
+PKG_LIBS   := forest
 CERN_LIBS  :=
 
 #-------------------------------------------------------------
@@ -204,7 +204,7 @@ BUILD_EXE := Y
 #------------------------------------------------
 # Include the standard CESR M.tail makefile
 #------------------------------------------------
-include $(CESR_GMAKE)/M.tail
+include $(BMAD_GMAKE)/M.tail
 
 
 
