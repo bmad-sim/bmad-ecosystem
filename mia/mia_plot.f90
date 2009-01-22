@@ -20,16 +20,16 @@ contains
     logical :: printit = .false.  !To print or not to print
     logical :: plot_more          !To plot or not to plot
 
-    call logic_get( 'Y', 'N', 'Plot data? (Y/N) ', plot_more)
-
+!    call logic_get( 'Y', 'N', 'Plot data? (Y/N) ', plot_more)
+    plot_more = .true.
     !Only opens a new page on the first call of the subroutine.
-    if (plot_more .and. windowOpen == .false.) then
+!    if (plot_more .and. windowOpen == .false.) then
        !Following calls open the digital displays
        call qp_open_page ("X", id, 600.0_rp, 470.0_rp, "POINTS")
        call qp_set_page_border (0.02_rp, 0.02_rp, 0.035_rp, 0.035_rp, "%PAGE")
        call qp_set_margin (0.07_rp, 0.01_rp, 0.01_rp, 0.05_rp, "%PAGE")
        windowOpen = .true.
-    endif
+!    endif
 
     do while(plot_more)
        call qp_draw_text (" Orbit MIA ", 0.5_rp, 1.0_rp, "%PAGE", "CT") 
@@ -362,7 +362,7 @@ contains
     DO WHILE (graph_more)
        IF (ALLOCATED(xcoord)) DEALLOCATE(xcoord)  
        IF (ALLOCATED(ycoord)) DEALLOCATE(ycoord)
-       !Moved inside loop because of changed x coordinates for phi
+       !Some of these options should be removed.
        write (*,'(1x,a)') "For A mode Beta Ratio (X), enter 1", &
             "For A mode Beta Ratio (Y), enter 2", &
             "For B mode Beta Ratio (X), enter 3", &
@@ -419,7 +419,7 @@ contains
           xdiv = NUM_BPMS
           xcoord = b
        endif
-       xmin = minval(xcoord)
+       xmin = 1
        xmax = maxval(xcoord)
 
        badFile = .true.

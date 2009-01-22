@@ -27,6 +27,7 @@ contains
     logical :: first_run
  
     call locate_bpm (iset, data(iset))
+    call get_ele_sPos(iset)
 
     if (first_run .and. iset == 1) then
        call find_L(nset,data)
@@ -306,15 +307,19 @@ contains
 
   end subroutine ring_beta
 
-  subroutine alpha(twiss, d_phase_adv, i)
+  subroutine alpha(twiss, d_phase_adv, i, q)
     !
     !Calculates alpha
     !
     type(twiss_parameters) twiss          !A or B mode in ring structure
     real(rp) :: d_phase_adv               !d_phase_adv between BPM pair
-    integer :: i                          !BPM pair number
+    integer :: i, q                       !BPM pair numbers
 
     twiss%alpha = twiss%beta / bpm_pairs(i)%length - 1.0/tan(d_phase_adv)
+    !Second BPM of the pair has the wrong sign.
+    if (q == 2) then
+       twiss%alpha = -twiss%alpha
+    endif
   end subroutine alpha
 
   subroutine inv_gamma_cbar(ring, index)
@@ -389,8 +394,7 @@ contains
     implicit none
     type (data_set)data(*)        !Data from file
     integer :: i,j, k, ik, jm, &  !Counters
-         bpm1a, bpm2a, &          !Pair of BPMs from set_num_a
-         bpm1b, bpm2b, &          !Pair of BPMs from set_num_b
+         bpm1, bpm2, &            !Pair of BPMs with known spacing
          n_ring, &                !Number of BPM pairs in use
          r, q,u                   !Counters
     INTEGER :: countx, county, &  !Counters
@@ -442,20 +446,20 @@ contains
 
     do i = 1, n_ring
        allocate (ring(i)%loc(NUM_BPMS))
-       bpm1a = bpm_pairs(i)%bpm_pntr(1)           !A mode BPM pair  
-       bpm2a = bpm_pairs(i)%bpm_pntr(2)
+       bpm1 = bpm_pairs(i)%bpm_pntr(1)
+       bpm2 = bpm_pairs(i)%bpm_pntr(2)
 
-       bpm1b = bpm_pairs(i)%bpm_pntr(1)           !B mode BPM pair    
-       bpm2b = bpm_pairs(i)%bpm_pntr(2)
+!      bpm1b = bpm_pairs(i)%bpm_pntr(1)           !B mode BPM pair    
+!      bpm2b = bpm_pairs(i)%bpm_pntr(2)
        !BPM1A = BPM1B, BPM2A = BPM2B (why have A and B?)
 
-       if (abs(data_struc%loc(bpm2a)%a%d_phase_adv) < 0.01) cycle
-       if (abs(data_struc%loc(bpm2b)%b%d_phase_adv) < 0.01) cycle
+       if (abs(data_struc%loc(bpm2)%a%d_phase_adv) < 0.01) cycle
+       if (abs(data_struc%loc(bpm2)%b%d_phase_adv) < 0.01) cycle
 
        ring(i)%loc = data_struc%loc
 
-       ring_p(1)%loc => ring(i)%loc(bpm1a)
-       ring_p(2)%loc => ring(i)%loc(bpm2a) 
+       ring_p(1)%loc => ring(i)%loc(bpm1)
+       ring_p(2)%loc => ring(i)%loc(bpm2) 
 
        !
        !Compute Beta (page 15) +
@@ -468,10 +472,8 @@ contains
           !
           !Compute Alphas
           !
-          call alpha(ring_p(q)%loc%a,ring_p(2)%loc%a%d_phase_adv, i)
-          call alpha(ring_p(q)%loc%b,ring_p(2)%loc%b%d_phase_adv, i)
-          print *, "Alpha A: ", ring_p(q)%loc%a%alpha
-          print *, "Alpha B: ", ring_p(q)%loc%b%alpha
+          call alpha(ring_p(q)%loc%a,ring_p(2)%loc%a%d_phase_adv, i, q)
+          call alpha(ring_p(q)%loc%b,ring_p(2)%loc%b%d_phase_adv, i, q)
           !
           !Compute Inv Gamma Cbars (pg 17)+
           !
@@ -482,10 +484,10 @@ contains
           !
           !Compute Inv Gamma Cbar (2,1) (pg 14)
           !
-          ca = cos(ring(i)%loc(bpm2a)%a%d_phase_adv)
-          cb = cos(ring(i)%loc(bpm2b)%b%d_phase_adv)
-          sa = sin(ring(i)%loc(bpm2a)%a%d_phase_adv)
-          sb = sin(ring(i)%loc(bpm2b)%b%d_phase_adv)
+          ca = cos(ring(i)%loc(bpm2)%a%d_phase_adv)
+          cb = cos(ring(i)%loc(bpm2)%b%d_phase_adv)
+          sa = sin(ring(i)%loc(bpm2)%a%d_phase_adv)
+          sb = sin(ring(i)%loc(bpm2)%b%d_phase_adv)
 
           !Is different for BPMs 1 and 2--can't use ring_p?
           ring_p(1)%loc%inv_gamma_cbar(2,1) =  &
@@ -493,29 +495,29 @@ contains
                sb * ring_p(1)%loc%inv_gamma_cbar(1,2) - &
                ca * ring_p(2)%loc%inv_gamma_cbar(1,1)) / sa
 
-          ring(i)%loc(bpm2a)%inv_gamma_cbar(2,1) =  &
-               (ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,2) - &
-               sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,2) - &
-               cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,2)) / sb
+          ring(i)%loc(bpm2)%inv_gamma_cbar(2,1) =  &
+               (ca * ring(i)%loc(bpm2)%inv_gamma_cbar(2,2) - &
+               sa * ring(i)%loc(bpm2)%inv_gamma_cbar(1,2) - &
+               cb * ring(i)%loc(bpm1)%inv_gamma_cbar(2,2)) / sb
 
           !
           !Checking Inv Gamma Cbar Consistency
           !
           !*Check this
-          ring(i)%loc(bpm1a)%inv_gamma_cbar_check(1) =  &
-               (ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,2) + &
-               sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,2) - &
-               sb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,1) - &
-               cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(1,2))
+          ring(i)%loc(bpm1)%inv_gamma_cbar_check(1) =  &
+               (ca * ring(i)%loc(bpm2)%inv_gamma_cbar(1,2) + &
+               sa * ring(i)%loc(bpm2)%inv_gamma_cbar(2,2) - &
+               sb * ring(i)%loc(bpm1)%inv_gamma_cbar(1,1) - &
+               cb * ring(i)%loc(bpm1)%inv_gamma_cbar(1,2))
 !          Print *, "Inv gamma cbar check: ", &
-!               ring(i)%loc(bpm1a)%inv_gamma_cbar_check(1)
-          ring(i)%loc(bpm1a)%inv_gamma_cbar_check(2) =  &
-               (-sa * ring(i)%loc(bpm2a)%inv_gamma_cbar(1,1) + &
-               ca * ring(i)%loc(bpm2a)%inv_gamma_cbar(2,1) - &
-               cb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,1) + &
-               sb * ring(i)%loc(bpm1a)%inv_gamma_cbar(2,2))
+!               ring(i)%loc(bpm1)%inv_gamma_cbar_check(1)
+          ring(i)%loc(bpm1)%inv_gamma_cbar_check(2) =  &
+               (-sa * ring(i)%loc(bpm2)%inv_gamma_cbar(1,1) + &
+               ca * ring(i)%loc(bpm2)%inv_gamma_cbar(2,1) - &
+               cb * ring(i)%loc(bpm1)%inv_gamma_cbar(2,1) + &
+               sb * ring(i)%loc(bpm1)%inv_gamma_cbar(2,2))
           !          Print *, "Inv gamma cbar check: ", &
-          !               ring(i)%loc(bpm1a)%inv_gamma_cbar_check(2)
+          !               ring(i)%loc(bpm1)%inv_gamma_cbar_check(2)
 
           !
           !Gamma (pg 16) +
@@ -535,14 +537,12 @@ contains
 
           !
           !Compute J_amp (aka the Action) (pg 16) +
-          !The factor of 5000 is a mystery. However, empirical evidence
-          !suggests that it works.
-          !
-          j_amp_a(q) = 5000. * &
+          !**Not correct, seems to be off by some scalar
+          j_amp_a(q) = 1. * &
                ring_p(q)%loc%a%magnitude2(1) / &
                ring_p(q)%loc%gamma**2 / ring_p(q)%loc%a%beta
 
-          j_amp_b(q) = 5000. * &
+          j_amp_b(q) = 1. * &
                ring_p(q)%loc%b%magnitude2(2) / &
                ring_p(q)%loc%gamma**2 / ring_p(q)%loc%b%beta
 
@@ -559,15 +559,15 @@ contains
        !
        do j = 1, NUM_BPMS
        !***This is always true. Does it have a purpose or should it be .and.?
-          if (j /= bpm1a .or. j /= bpm2a) then 
+          if (j /= bpm1 .or. j /= bpm2) then 
 
              !
              !Compute Gamma**2 Beta (pg 17) +
              !
              ring(i)%loc(j)%a%gam2_beta = ring(i)%loc(j)%a%magnitude2(1)/ &
-                  ring(i)%j_amp_ave(1)*5000.
+                  ring(i)%j_amp_ave(1)
              ring(i)%loc(j)%b%gam2_beta = ring(i)%loc(j)%b%magnitude2(2)/ &
-                  ring(i)%j_amp_ave(2)*5000.
+                  ring(i)%j_amp_ave(2)
 
              !
              !Compute Inv Gamma Cbar (pg 17) +
@@ -741,11 +741,35 @@ contains
 
     n_pairs = bpm_pairs(1)%number
 
-    open (unit = 27, file = "./data/mia.out", &
-         action = "write", position = "rewind",&
-         iostat = openstatus)
-    if (openstatus > 0) print *, "*** Cannot open output file ***",&
-         openstatus
+!51  if (.not. outfile) then
+       open (unit = 27, file = "./data/mia.out", &
+            action = "write", position = "rewind",&
+            iostat = openstatus)
+       if (openstatus > 0) print *, "*** Cannot open output file ***",&
+            openstatus
+       open (unit = 29, file = "./data/out.beta", &
+            action = "write", position = "rewind",&
+            iostat = openstatus)
+       if (openstatus > 0) print *, "*** Cannot open output file ***",&
+            openstatus
+       open (unit = 31, file = "./data/out.cbar", &
+            action = "write", position = "rewind",&
+            iostat = openstatus)
+       if (openstatus > 0) print *, "*** Cannot open output file ***",&
+            openstatus
+!    else
+!       open (unit = 27, file = trim(outname), &
+!            action = "write", position = "rewind",&
+!            iostat = openstatus)
+!       if (openstatus > 0) then
+!          print *, "*** Cannot open output file ***", openstatus
+!          Print *, "Enter a new output filename:"
+!          Read *, outfile
+!          goto 51
+!       endif
+!    endif
+
+
 9   format(1x, f10.7, a3, f10.7, a7, 5x, f10.7, a3, f10.7)
 11  format(5x, f11.7, a2,2x, f11.7)
 12  format(3(4x, a8, 7x))
@@ -754,6 +778,9 @@ contains
 18  format(4x, a20, 4x, 20x, a5)
 34  format(1x, 3(e14.7, a2, 3x))
 56  format(a10,3x,f10.7)
+
+    write (27, *) "A mode filename: ", trim(xfile)
+    write (27, *) "B mode filename: ", trim(yfile)
     write (27, *) "Number of BPMs: ", NUM_BPMS
     write (27, *) "Number of Turns: ", NUM_TURNS
     write (27, *) "Frequency of machine: ", FREQ
@@ -761,7 +788,12 @@ contains
     write (27, *), "Tune B: ", data_struc%tune(2)
     write (27, *), "Phi(t) A = ", data_struc%phi_t(1)
     write (27, *), "Phi(t) B = ", data_struc%phi_t(2)
+    !Probably don't want lambda in final output...
     write (27, *), " Values of Lambda"
+    write (29, *) "Tune A: ", data_struc%tune(1)
+    write (29, *), "Tune B: ", data_struc%tune(2)
+    write (31, *) "Tune A: ", data_struc%tune(1)
+    write (31, *), "Tune B: ", data_struc%tune(2)
 
     do i=1, 2*NUM_BPMS
        write (27, *), data(1)%lambda(i), " , ", data(2)%lambda(i)
@@ -802,11 +834,25 @@ contains
             data_struc%loc(i)%b%gam2_beta
     enddo
 
+    write (29,"(10x, a12)") "Gamma^2 Beta"
+    do i = 1, NUM_BPMS
+       write (29,11) data_struc%loc(i)%a%gam2_beta, ",", &
+            data_struc%loc(i)%b%gam2_beta
+    enddo
+
     write (27,"(20x, a15)") "1/gamma * Cbar"
     write (27,12) "(1,1)", "(1,2)", "(2,2)"
 
     do i = 1, NUM_BPMS
        write (27,34) data_struc%loc(i)%inv_gamma_cbar(1,1), ",", &
+            data_struc%loc(i)%inv_gamma_cbar(1,2), ",", &
+            data_struc%loc(i)%inv_gamma_cbar(2,2)
+    enddo
+    write (31,"(20x, a15)") "1/gamma * Cbar"
+    write (31,12) "(1,1)", "(1,2)", "(2,2)"
+
+    do i = 1, NUM_BPMS
+       write (31,34) data_struc%loc(i)%inv_gamma_cbar(1,1), ",", &
             data_struc%loc(i)%inv_gamma_cbar(1,2), ",", &
             data_struc%loc(i)%inv_gamma_cbar(2,2)
     enddo
@@ -819,6 +865,8 @@ contains
     enddo
 
     close(27)
+    close(29)
+    close(31)
 
   end subroutine output
 

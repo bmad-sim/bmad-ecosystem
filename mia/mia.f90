@@ -8,7 +8,7 @@ program mia
   implicit none
 
   character* 1 char
-  integer :: istat, i_set
+  integer :: istat, i_set, narg, b
   logical :: good_input, more_files, first_run
 
   type(data_set), allocatable :: data(:)
@@ -36,13 +36,28 @@ program mia
      allocate (data(nset))
 
      do i_set = 1, nset             !Do for first input data 
+        if (i_set==1) then
+           narg = IARGC()
+           Print *, "narg", narg
+           PRINT *, IARGC()
+           do b = 1, nset
+              if (narg .ge. b ) then
+                 call GETARG(b, data(b)%shortName)
+                 Print *, data(b)%shortName
+                 fileread(b) = .true.
+              endif
+           enddo
+        endif
+
         call read_bpm_data(data(i_set),i_set,nset)
+
         if (i_set==1) then
            call initialize_structures(data(1), nset)
         endif
         
         call svd_fft(data(i_set))
-        call plots(data, 1, i_set)      !Use plot_it
+!Just plot at end; if you want to plot for individual files, uncomment this.
+!        call plots(data, 1, i_set)      !Use plot_it
      end do
 
      do i_set =1, nset
@@ -53,7 +68,7 @@ program mia
      call match_tau_column(nset,data)
      call convert_data_from_pi_matrix(data)
      call calculate_with_known_spacing(data)
-     call plots(data, 2, 2)         !Use plot_it2
+!     call plots(data, 2, 2)         !Use plot_it2
      call output (data)
 
 

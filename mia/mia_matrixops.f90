@@ -34,7 +34,7 @@ contains
     allocate(iwork(16*NUM_BPMS))
     allocate(A(NUM_TURNS, 2*NUM_BPMS))    
     allocate(temp(2*NUM_BPMS, 2*NUM_BPMS))
-    !allocates the pi, tau and lambda matrices based on turns and active
+    !Allocates the pi, tau and lambda matrices based on turns and active
     !processors
 
 !    data%tau_mat = data%poshis  
@@ -47,8 +47,8 @@ contains
           data%tau_mat(i,j) = 0.0
        enddo
     enddo
-
-    A = data%poshis
+    NUM_TURNS = 256
+    A = data%poshis(1:NUM_TURNS,1:2*NUM_BPMS)
     call out(data%poshis, "poshis")
     lwork = 22*NUM_BPMS**2 + 8*NUM_BPMS
     allocate(work(lwork))
@@ -75,7 +75,8 @@ contains
 !    Print *, "Tau error: ", tauerr(1:10)
 !    Print *, "Pi error: ", pierr(1:10)
 
-    call regen(data)
+!Regen doesn't work, so it is disabled.
+!    call regen(data)
     deallocate(work)
     deallocate(iwork)
   end subroutine svd
@@ -378,14 +379,14 @@ contains
                 ! Pair cap is the number of pairs to find before moving on
                 ! to the next file.
                 ! pair_cap = pair_cap + 1
-                call logic_get('N', 'Y', 'Use this match?', more)
+!                call logic_get('N', 'Y', 'Use this match?', more)
                 !more = .not. more
-                if (.not. more) then
+!                if (.not. more) then
                    colu1(cset) = i
                    colu2(cset) = q
                    pair_cap = pair_cap + 1
                    goto 101
-                endif
+!                endif
                 if (nset == 2 .and. pair_cap == 1) then
                    go to 101
                 end if
@@ -438,9 +439,11 @@ contains
           Print *, "Excitation for file ", ceiling(1.0*c/nset), &
                "is in the A (x) mode."
           mode(1) = .false.
+          xfile = data(ceiling(1.0*c/nset))%filename
        else if (col_countb==2 .and. mode(2)) then
           Print *, "Excitation for file ", ceiling(1.0*c/nset), &
                "is in the B (y) mode."
+          yfile = data(ceiling(1.0*c/nset))%filename
           mode(2) = .false.
        endif
 
@@ -565,9 +568,9 @@ contains
        sum = lambda(12) !Arbitrary, but will be near average...
     endif
     ave = sum / j
-    Print *, j
-    Print *, sum
-    Print *, ave
+!    Print *, j
+!    Print *, sum
+!    Print *, ave
 
   end subroutine findNoise
 
@@ -692,6 +695,9 @@ contains
        data_struc%phi_t(2) = switch
     endif
 
+    data_struc%tune(1) = mod(data_struc%tune(1), FREQ)
+    data_struc%tune(2) = mod(data_struc%tune(2), FREQ)
+
   end subroutine tune
 
 
@@ -735,6 +741,9 @@ contains
   end subroutine det3x3
 
   subroutine regen(data)
+    !
+    !Should regenerate data file read in...doesn't quit work.
+    !
     type(data_set) data
     real(rp), allocatable :: temp(:,:), tlambda(:,:)
     integer :: i, j

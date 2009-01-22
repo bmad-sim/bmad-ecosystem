@@ -31,7 +31,7 @@ module mia_types
   end type twiss_parameters
 
   type processor_analysis
-     type (twiss_parameters) :: a, b         !A and B modes
+     type (twiss_parameters) :: a, b      !A and B modes
      real(rp) :: inv_gamma_cbar(2,2)      !(1/gamma)*Cbar
      real(rp) :: inv_gamma_cbar_check(2)  !Consistancy check value
      real(rp) :: gamma                    !Gamma (gamma^2 + det_Cbar = 1)
@@ -41,8 +41,10 @@ module mia_types
 
   type active_processors
      character (13) :: label      !Full BPM label (ex. BPM09E)
-     real(rp) :: number               !BPM number (negative for east BPMs)
+     real(rp) :: number, &        !BPM number (negative for east BPMs)
+          sPos                    !S position (for sorting and CESRV)
      logical :: is_west           !If the BPM is in the west   !Not needed now
+     integer :: eleNum            !Element number (for CESRV)
   end type active_processors
 
   type cbpm_analysis
@@ -61,8 +63,8 @@ module mia_types
   end type cbpm_analysis
 
   type data_set
-     character (60) :: filename    !Full filename
-     character (20) :: shortname   !Filename without path (used for printing)
+     character (120) :: filename    !Full filename
+     character (40) :: shortname   !Filename without path (used for printing)
      real(rp), allocatable :: tau_mat(:,:), &   !Position matrix
           pi_mat(:,:), &           !Pi matrix
           poshis(:,:), &           !Position history
@@ -78,8 +80,6 @@ module mia_types
   type data_file
      type (active_processors), allocatable :: proc(:) !Data for BPM processors
   end type data_file
-
-
 
   type known_spacings
      character (13) :: bpm_name(2) !Name of the BPM
@@ -99,7 +99,10 @@ module mia_types
        NUM_TURNS, &                      !Number of turns
        nset                              !Number of files
   real(rp), parameter :: FREQ=390.12     !Frequency of the machine (in MHz)
-
+  logical :: outfile                     !True if user specified an output file
+  character(100) :: outname              !Name of output file
+  logical :: fileread(2)                 !True if filename has been read
+  character (120) :: xfile,yfile         !Filenames for X and Y modes
 contains
 
   subroutine initialize_structures(data, nset)
@@ -160,6 +163,7 @@ contains
        data_struc%proc(i)%is_west = .false.
        data_struc%proc(i)%number = 0
     enddo
+
   end subroutine initialize_structures
 
   subroutine allocate_bpm_pairs(length)

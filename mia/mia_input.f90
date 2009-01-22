@@ -31,51 +31,71 @@ contains
          pos_temp(:,:)
 
     character(30) :: Plane(2)          !See next line:
-    data Plane/' data file.',' data file 2.'/
+    data Plane/' data file 1.',' data file 2.'/
 
     continue = .true.
   
 
     DO WHILE (continue == .true.)
+177    format (a120)
+       if (fileread(iset)==.false.) then
+          Write (*, '(1x, 3a)', advance = "no") "Enter path or number",&
+               " beginning with # (ex. #03081) of", Plane(iset)
+          read (*,177), data%filename
+          data%filename = trim(data%filename)
+!          call strget('Enter filename: ', data%shortName)
+       endif
 
-       Write (*, '(1x, 3a)', advance = "no") "Enter path or number",&
-            " beginning with # (ex. #03081) of", Plane(iset)
-
-       read *, data%shortName
-
-       if (scan(data%shortName, "#")>0) then
-          Print *, "Function not yet implemented for Linux."
+!      If data files are in the same location with the same naming pattern,
+!      this section can be modified and uncommented to make entering
+!      filenames easier. 
+!       if (scan(data%shortName, "#")>0) then
           !Remove first character from input (#) and concatenate with
           !the path for data files.
 !          data%shortName = data%shortName(2:len_trim(data%shortName))
 !          data%shortName = "cbpm_" // trim(data%shortName) // ".raw"
 !          data%filename = "log3$disk:[cesr.cesrbpm.raw.03]" // &
 !               data%shortName
-       else
-          data%shortName = trim(data%shortName)
+!       else
+!          data%filename = trim(data%shortName)
+!       endif
+
+       if (scan(data%filename, "#")>0) then
+
+          data%shortName = data%filename(scan(data%filename, &
+               "#")+1:len_trim(data%filename))
           data%filename = "./data/" // data%shortName
+       else
+          if (scan(data%filename, "/")>0) then
+             data%shortname = data%filename(scan(data%filename, &
+                  "/", .true.)+1:len_trim(data%filename))
+             Print *, data%shortName
+             Print *, scan(data%shortName, "/", .true.)
+          endif
        endif
 
        open (unit = 1, file = data%filename, status = "old", &
             iostat = openstatus)
 
-!       Print *, data%filename
+       !       Print *, data%filename
        !Check for bad filenames
        if (openstatus > 0) then
-          print *, "*** Cannot open file ", data%shortName, " ***"
+          print *, "*** Cannot open file ", data%filename, " ***"
           print *, "*** Try again. ***"
           continue = .true.
+          fileread(iset) = .false.
        else
           continue = .false.   
        endif
     enddo
 
-    call logic_get( 'T', 'C', ' (T)runcate values or (C)ontinue', trunc)
-    if (trunc) then
-       Print *, "Input number of decimal places (no greater than 7)"
-       read *, power
-       places = 10**power
-    endif
+!Truncation was for testing purpose. If needed, uncomment this section and 152.
+!151    call logic_get( 'T', 'C', ' (T)runcate values or (C)ontinue', trunc)
+!    if (trunc) then
+!       Print *, "Input number of decimal places (no greater than 7)"
+!       read *, power
+!       places = 10**power
+!    endif
 
 10  format (/ 1x, t28, i3)   !reads in number of processors
 
@@ -107,12 +127,11 @@ contains
        allocate (data%cdata(proc)%x(0:data%numturns-1))
        !allocates the x and y arrays to be as large as the number of turns 
        allocate (data%cdata(proc)%y(0:data%numturns-1)) 
-
        data%cdata(proc)%x(0) = tempx !assigns the temp values to the 
                                      !first posisitions
        data%cdata(proc)%y(0) = tempy !of the x and y arrays
 
-       turn: do turns = 1, data%numturns-1
+       turn: do turns = 1, 1023!data%numturns-1
           !starts at 1 and goes
           !to turns-1 because
           !temps are read and 
@@ -121,12 +140,13 @@ contains
                data%cdata(proc)%x(turns), data%cdata(proc)%y(turns)
           if (inputstatus > 0) stop "*** INPUT ERROR ***"
           if (inputstatus < 0) stop "*** Not enough data ***"	
-          if (trunc) then
-             data%cdata(proc)%x(turns) = &
-                  floor( data%cdata(proc)%x(turns) * places ) / (places*1.0)
-             data%cdata(proc)%y(turns) = &
-                  floor(data%cdata(proc)%y(turns)*places) / (places*1.0)
-          endif
+!Truncation was for testing. If needed, uncomment this if statement and 151.
+!          if (trunc) then
+!             data%cdata(proc)%x(turns) = &
+!                  floor( data%cdata(proc)%x(turns) * places ) / (places*1.0)
+!             data%cdata(proc)%y(turns) = &
+!                  floor(data%cdata(proc)%y(turns)*places) / (places*1.0)
+!          endif
        End do turn
     end do Processor
 
@@ -192,7 +212,6 @@ contains
 
     implicit none
     type(data_set)data       !Data set
- !   type (data_file) file    !File to read from
     integer :: nchar, &      !Place were a certain string was found.
          n_bpm,&             !Number of BPMs
          iset,i, &              !Counters
@@ -207,8 +226,8 @@ contains
           length = len_trim(file(iset)%proc(n_bpm)%label)
           temp = trim(file(iset)%proc(n_bpm)%label(nchar+4:length))
        end if
-       nchar = scan(temp, 'W') +	& !Scan temp so W can be truncated
-            scan(temp, 'w')	!Scans label for W(est)
+       nchar = scan(temp, 'W') + &   !Scan temp so W can be truncated
+            scan(temp, 'w')          !Scans label for W(est)
        if (nchar > 0 ) then 
           file(iset)%proc(n_bpm)%is_west = .true.
           temp = temp(1:nchar-1) !Remove W from temp
@@ -223,6 +242,12 @@ contains
           temp = temp(1:nchar-1) // ".5"  !Remove "A" from temp and add 0.5
        endif
        read (temp, *), file(iset)%proc(n_bpm)%number
+
+       if (file(iset)%proc(n_bpm)%number == 0 .and. &
+            .not. file(iset)%proc(n_bpm)%is_west) then
+          file(iset)%proc(n_bpm)%number = -0.000001
+       end if
+
     end do
 
   end subroutine locate_bpm
@@ -326,6 +351,58 @@ contains
     deallocate (bpm_old)    
 
   end subroutine find_L
+
+  subroutine get_ele_sPos(iset)
+    !
+    !Reads in a file containing bpms with their s positions and
+    !element numbers and matches them with bpms in the input file.
+    !
+    character(7) :: detName
+    integer :: eleNum, openstatus, i, inStat, iset, bpmInt
+    real(rp) :: sPos, bpmNum
+    logical :: continue
+    open (unit = 273, file = "./data/one_ring.det", &
+         status = "old", iostat = openstatus)
+    if (openstatus > 0) Stop "*** Cannot open file one_ring.det ***"
+
+188 format (1x,a7,5x,f10.6,5x,i3)
+56  format (2x,i2)
+
+    continue = .true.
+
+    do while (continue)
+
+       read (273,188,iostat=inStat) detName, sPos, eleNum
+       if (inStat>0) stop "*** Error reading one_ring.det ***"
+       if (inStat < 0) then
+          continue = .false.
+          cycle
+       endif
+       detName = trim(adjustL(detName))
+       read (detName,56) bpmInt
+       bpmNum = bpmInt
+       if (detName(5:5) == "A" .or. detName(6:6) == "2") then
+          bpmNum = bpmNum+0.5
+       endif
+       if ( detName(4:4) == "E" .or. detName(5:5) == "E") then
+          bpmNum  = -bpmNum
+          if (bpmNum == 0) then
+             bpmNum = -0.000001      !Since there is no -0...something close.
+          endif
+       endif
+
+       do i=1,num_bpms
+          if (file(iset)%proc(i)%number == bpmNum) then
+             file(iset)%proc(i)%sPos = sPos
+             file(iset)%proc(i)%eleNum = eleNum
+             Print *, "Input ", file(iset)%proc(i)%label, " matches ", detName
+          else
+!             Print *, "Input ", file(iset)%proc(i)%number, " /match ", bpmNum
+          end if
+       end do
+    end do
+
+  end subroutine get_ele_sPos
 
 
   subroutine match_processors(data)
