@@ -418,6 +418,7 @@ contains
           xlength = NUM_BPMS
           xdiv = NUM_BPMS
           xcoord = b
+          call sortSPos(xcoord)
        endif
        xmin = 1
        xmax = maxval(xcoord)
@@ -672,5 +673,20 @@ contains
 
     deallocate(phi_old)
   end subroutine arrange_phi
+
+
+  subroutine sortsPos(xcoord)
+    !
+    !Set S position for the x coordinates when plotting.
+    !
+
+    integer :: i
+    real(rp) :: xcoord(:)
+
+    do i=1, num_bpms
+       xcoord(i) = data_struc%proc(i)%sPos
+    end do
+
+  end subroutine sortsPos
 
 end module mia_plot
