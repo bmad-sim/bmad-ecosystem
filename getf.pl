@@ -26,8 +26,10 @@ if (-r catfile( $curdir, "bmad", "modules", "bmad_struct.f90" )) {
   $bmad_dir = catfile( $updir, "bmad" );
 } elsif (-r catfile( $updir, $updir, "bmad", "modules", "bmad_struct.f90")) {
   $bmad_dir = catfile( $updir, $updir, "bmad" );
-} else {
+} elsif (-r catfile( $ENV{"CESR_SRC"}, "bmad", "modules", "bmad_struct.f90")) {
   $bmad_dir = catfile( $ENV{"CESR_SRC"}, "bmad" );
+} else {
+  $bmad_dir = catfile( $ENV{"BMAD_SRC"}, "bmad" );
 }
 
 if (-r catfile( $curdir, "cesr_utils", "modules", "cesr_utils.f90" )) {
@@ -36,8 +38,10 @@ if (-r catfile( $curdir, "cesr_utils", "modules", "cesr_utils.f90" )) {
   $cesr_utils_dir = catfile( $updir, "cesr_utils" );
 } elsif (-r catfile( $updir, $updir, "cesr_utils", "modules", "cesr_utils.f90")) {
   $cesr_utils_dir = catfile( $updir, $updir, "cesr_utils" );
-} else {
+} elsif (-r catfile( $ENV{"CESR_SRC"}, "cesr_utils")) {
   $cesr_utils_dir = catfile( $ENV{"CESR_SRC"}, "cesr_utils" );
+} else {
+  $cesr_utils_dir = catfile( $ENV{"BMAD_SRC"}, "cesr_utils" );
 }
 
 
@@ -47,8 +51,10 @@ if (-r catfile( $curdir, "dcslib", "modules", "dcslib.f90" )) {
   $dcslib_dir = catfile( $updir, "dcslib" );
 } elsif (-r catfile( $updir, $updir, "dcslib", "modules", "dcslib.f90")) {
   $dcslib_dir = catfile( $updir, $updir, "dcslib" );
-} else {
+} elsif (-r catfile( $ENV{"CESR_SRC"}, "dcslib")) {
   $dcslib_dir = catfile( $ENV{"CESR_SRC"}, "dcslib" );
+} else {
+  $dcslib_dir = catfile( $ENV{"BMAD_SRC"}, "dcslib" );
 }
 
 if (-r catfile( $curdir, "pecklib", "code", "butout.f90" )) {
@@ -57,8 +63,10 @@ if (-r catfile( $curdir, "pecklib", "code", "butout.f90" )) {
   $pecklib_dir = catfile( $updir, "pecklib" );
 } elsif (-r catfile( $updir, $updir, "pecklib", "code", "butout.f90")) {
   $pecklib_dir = catfile( $updir, $updir, "pecklib" );
-} else {
+} elsif (-r catfile( $ENV{"CESR_SRC"}, "pecklib")) {
   $pecklib_dir = catfile( $ENV{"CESR_SRC"}, "pecklib" );
+} else {
+  $pecklib_dir = catfile( $ENV{"BMAD_SRC"}, "pecklib" );
 }
 
 
@@ -68,8 +76,10 @@ if (-r catfile( $curdir, "recipes_f-90_LEPP", "lib_src", "nr.f90" )) {
   $recipes_dir = catfile( $updir, "recipes_f-90_LEPP" );
 } elsif (-r catfile( $updir, $updir, "recipes_f-90_LEPP", "lib_src", "nr.f90")) {
   $recipes_dir = catfile( $updir, $updir, "recipes_f-90_LEPP" );
-} else {
+} elsif (-r catfile( $ENV{"CESR_SRC"}, "recipes_f-90_LEPP")) {
   $recipes_dir = catfile( $ENV{"CESR_SRC"}, "recipes_f-90_LEPP" );
+} else {
+  $recipes_dir = catfile( $ENV{"BMAD_SRC"}, "recipes_f-90_LEPP" );
 }
 
 
@@ -79,8 +89,10 @@ if (-r catfile( $curdir, "forest", "code", "i_tpsa.f90" )) {
   $forest_dir = catfile( $updir, "forest" );
 } elsif (-r catfile( $updir, $updir, "forest", "code", "i_tpsa.f90")) {
   $forest_dir = catfile( $updir, $updir, "forest" );
-} else {
+} elsif (-r catfile( $ENV{"CESR_SRC"}, "forest")) {
   $forest_dir = catfile( $ENV{"CESR_SRC"}, "forest" );
+} else {
+  $forest_dir = catfile( $ENV{"BMAD_SRC"}, "forest" );
 }
 
 if (-r catfile( $curdir, "tao", "code", "tao_struct.f90" )) {
@@ -89,8 +101,10 @@ if (-r catfile( $curdir, "tao", "code", "tao_struct.f90" )) {
   $tao_dir = catfile( $updir, "tao" );
 } elsif (-r catfile( $updir, $updir, "tao", "code", "tao_struct.f90")) {
   $tao_dir = catfile( $updir, $updir, "tao" );
-} else {
+} elsif (-r catfile( $ENV{"CESR_SRC"}, "tao")) {
   $tao_dir = catfile( $ENV{"CESR_SRC"}, "tao" );
+} else {
+  $tao_dir = catfile( $ENV{"BMAD_SRC"}, "tao" );
 }
 
 # Look for arguments
