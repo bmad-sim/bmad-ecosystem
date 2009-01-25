@@ -885,20 +885,29 @@ butns%lattice = line_in(61:)
 call string_trim (butns%lattice, butns%lattice, ix)
 
 butns%date = line_in(30:)                     ! get date
-read (line_in(54:), *) butns%save_set
+read (line_in(54:), *, iostat = ios) butns%save_set
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'ERROR READING SAVE SET NUMBER IN ORBIT FILE!' // file_name)
+endif
 
 read (iu, '(a)') line_in  ! Line #2
-read (line_in(11:), *) currents
+read (line_in(11:), *, iostat = ios) currents
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'ERROR READING E- CURRENT FROM ORBIT FILE!' // file_name)
+endif
 butns%e_cur = sum(currents)
 
 read (iu, '(a)') line_in  ! Line #3
-read (line_in(11:), *) currents
+read (line_in(11:), *, iostat = ios) currents
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'ERROR READING E+ CURRENT FROM ORBIT FILE!' // file_name)
+endif
 butns%p_cur = sum(currents)
 
 do
   read (iu, '(a)', iostat = ios) line_in
   if (ios /= 0) then
-    call out_io (s_error$, r_name, 'ERROR READING STEERINGS IN ORBIT FILE')
+    call out_io (s_error$, r_name, 'ERROR READING STEERINGS IN ORBIT FILE!' // file_name)
     goto 1000
   endif
   ix = index(line_in, 'END BUTNS')
@@ -915,7 +924,7 @@ enddo
 
 read (line_in(ix+10:), *, iostat = ios) n_node
 if (ios /= 0) then
-  call out_io (s_error$, r_name, 'ERROR READING STEERING NODE NUMBER IN ORBIT FILE')
+  call out_io (s_error$, r_name, 'ERROR READING STEERING NODE NUMBER IN ORBIT FILE!')
   goto 1000
 endif
 
