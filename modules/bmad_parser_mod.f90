@@ -3900,12 +3900,13 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_expand_line (ix_line, use_name, sequence, in_name, in_indexx, &
-                          seq_name, seq_indexx, ele_in, ele_out, used_line, n_ele_use)
+subroutine parser_expand_line (ix_line, lat, use_name, sequence, in_name, in_indexx, &
+                          seq_name, seq_indexx, ele_in, used_line, n_ele_use)
 
 implicit none
 
-type (ele_struct), pointer :: ele_in(:), ele_out(:)
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele_in(:), ele_line(:)
 type (seq_struct), target :: sequence(:)
 type (seq_ele_struct), pointer :: s_ele, this_seq_ele
 type (seq_stack_struct) stack(40)
@@ -4190,16 +4191,23 @@ enddo line_expansion
 ! Transfer the ele information from the in_lat to lat and
 ! do the bookkeeping for settable dependent variables.
 
-call allocate_ele_array(ele_out, n_ele_use)
-ele_out(0)%ix_branch = ix_line
+if (ix_line == 0) then  ! Main line
+  call allocate_lat_ele_array(lat, n_ele_use)
+  ele_line => lat%ele
+else                    ! branch line
+  call allocate_ele_array(lat%branch(ix_line)%ele, n_ele_use)
+  ele_line => lat%branch(ix_line)%ele
+endif
+
+ele_line(0)%ix_branch = ix_line
 
 do i = 1, n_ele_use
-  ele_out(i) = ele_in(ix_lat(i)) 
-  ele_out(i)%name = used_line(i)%name
-  ele_out(i)%ix_branch = ix_line
-  if (used_line(i)%tag /= '') ele_out(i)%name = &
-                trim(used_line(i)%tag) // '.' // ele_out(i)%name
-  call settable_dep_var_bookkeeping (ele_out(i))
+  ele_line(i) = ele_in(ix_lat(i)) 
+  ele_line(i)%name = used_line(i)%name
+  ele_line(i)%ix_branch = ix_line
+  if (used_line(i)%tag /= '') ele_line(i)%name = &
+                trim(used_line(i)%tag) // '.' // ele_line(i)%name
+  call settable_dep_var_bookkeeping (ele_line(i))
 enddo
 
 ! Cleanup

@@ -608,8 +608,8 @@ endif
 
 allocate (used_line(n_max))
 
-call parser_expand_line (0, lat%name, sequence, in_name, in_indexx, &
-                seq_name, seq_indexx, in_lat%ele, lat%ele, used_line, n_ele_use)
+call parser_expand_line (0, lat, lat%name, sequence, in_name, in_indexx, &
+                seq_name, seq_indexx, in_lat%ele, used_line, n_ele_use)
 
 if (bp_com%error_flag) then
   call parser_end_stuff
@@ -804,8 +804,8 @@ do
     branch%ix_branch = n
     branch%ix_from_branch = 0
     branch%ix_from_ele = i
-    call parser_expand_line (n, lat%ele(i)%attribute_name, sequence, in_name, &
-      in_indexx, seq_name, seq_indexx, in_lat%ele, branch%ele, used_line, n_ele_use)
+    call parser_expand_line (n, lat, lat%ele(i)%attribute_name, sequence, in_name, &
+      in_indexx, seq_name, seq_indexx, in_lat%ele, used_line, n_ele_use)
     branch%ele(0)%key = init_ele$
     branch%ele(0)%name = 'BEGINNING'
     branch%name        = lat%ele(i)%attribute_name
