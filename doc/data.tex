@@ -396,6 +396,12 @@ datum should be in universe 2 or higher. Notice that while all datums
 must be assigned a universe, in this case the value of the datum will
 be independent of the universe it is in.
 
+  index{floor.*}
+  \item{floor.*}
+This is the global floor position at the exit end of \vn{ele} relative to
+the exit end of \vn{ele0}. See the \bmad manual for details on the global
+coordinate system. See also \vn{rel_floor.*}.
+
   \index{periodic.tt.*}
   \item{periodic.tt.*} \Newline
 This is like the \vn{tt.*} datum except here the terms are from the
@@ -420,6 +426,14 @@ point, and I_4 is a linear map defined by the matrix
 The periodic map give information about the closed orbit, dispersion,
 etc. For example, the zeroth order terms are the closed orbit, the r16
 term gives the horizontal dispersion, etc.
+
+  index{rel_floor.*}
+  \item{rel_floor.*}
+This is the global floor position at the exit end of \vn{ele} relative
+to the exit end of \vn{ele0} in a global coordinate system where the
+exit end of \vn{ele0} is taken to be at \vn{x = y = z = theta = phi =
+0}. See the \bmad manual for details on the global coordinate
+system. See also \vn{floor.*}.
 
   \index{t.* tt.*} 
   \item{t.* tt.*} \Newline
@@ -605,6 +619,9 @@ size squared.
                                   Term in linear transfer map \\
                                   $1 \le i,j \le 6$
                                 \end{tabular}                       & relative \\ \hline 
+
+  rel_floor.x, rel_floor.y, rel_floor.z, rel_floor.theta 
+                               & Relative global (``floor'') position & relative \\ \hline 
 
   s\_position                  & longitudinal length constraint     & relative \\ \hline 
 

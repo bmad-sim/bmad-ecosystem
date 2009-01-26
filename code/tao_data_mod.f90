@@ -243,6 +243,7 @@ type (ele_struct), pointer :: ele, ele0
 type (coord_struct), pointer :: orb0
 type (bpm_phase_coupling_struct) bpm_data
 type (taylor_struct), save :: taylor(6) ! Saved taylor map
+type (floor_position_struct) floor
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4)
@@ -666,39 +667,23 @@ case ('expression:')
   endif
 
 case ('floor.x')
-  if (data_source == 'beam') return
-  if (datum%ele0_name /= '') then
-    datum_value = lat%ele(ix1)%floor%x - lat%ele(ix0)%floor%x
-  else
-    datum_value = lat%ele(ix1)%floor%x
-  endif
+  datum_value = lat%ele(ix1)%floor%x - lat%ele(ix0)%floor%x
   valid_value = .true.
 
 case ('floor.y')
-  if (data_source == 'beam') return
-  if (datum%ele0_name /= '') then
-    datum_value = lat%ele(ix1)%floor%y - lat%ele(ix0)%floor%y
-  else
-    datum_value = lat%ele(ix1)%floor%y 
-  endif
+  datum_value = lat%ele(ix1)%floor%y - lat%ele(ix0)%floor%y
   valid_value = .true.
 
 case ('floor.z')
-  if (data_source == 'beam') return
-  if (datum%ele0_name /= '') then
-    datum_value = lat%ele(ix1)%floor%z - lat%ele(ix0)%floor%z
-  else
-    datum_value = lat%ele(ix1)%floor%z 
-  endif
+  datum_value = lat%ele(ix1)%floor%z - lat%ele(ix0)%floor%z
   valid_value = .true.
 
 case ('floor.theta')
-  if (data_source == 'beam') return
-  if (datum%ele0_name /= '') then
-    datum_value = lat%ele(ix1)%floor%theta - lat%ele(ix0)%floor%theta
-  else
-    datum_value = lat%ele(ix1)%floor%theta 
-  endif
+  datum_value = lat%ele(ix1)%floor%theta - lat%ele(ix0)%floor%theta
+  valid_value = .true.
+
+case ('floor.phi')
+  datum_value = lat%ele(ix1)%floor%phi - lat%ele(ix0)%floor%phi
   valid_value = .true.
 
 case ('gamma.a')
@@ -891,6 +876,36 @@ case ('r.')
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
   call transfer_matrix_calc (lat, .true., mat6, vec0, ix0, ix1)
   datum_value = mat6(i, j)
+  valid_value = .true.
+
+case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z', 'rel_floor.theta', 'rel_floor.phi')
+  call init_floor (floor)
+
+  if (ix1 > ix0) then
+    do i = ix0+1, ix1
+      call ele_geometry (floor, lat%ele(i), floor)
+    enddo
+  else
+    do i = ix0+1, lat%n_ele_track
+      call ele_geometry (floor, lat%ele(i), floor)
+    enddo
+    do i = 1, ix1
+      call ele_geometry (floor, lat%ele(i), floor)
+    enddo
+  endif
+
+  select case (data_type)
+  case ('rel_floor.x')
+    datum_value = lat%ele(ix1)%floor%x - lat%ele(ix0)%floor%x
+  case ('rel_floor.y')
+    datum_value = lat%ele(ix1)%floor%y - lat%ele(ix0)%floor%y
+  case ('rel_floor.z')
+    datum_value = lat%ele(ix1)%floor%z - lat%ele(ix0)%floor%z
+  case ('rel_floor.theta')
+    datum_value = lat%ele(ix1)%floor%theta - lat%ele(ix0)%floor%theta
+  case ('rel_floor.phi')
+    datum_value = lat%ele(ix1)%floor%phi - lat%ele(ix0)%floor%phi
+  end select
   valid_value = .true.
 
 case ('sigma.x')  
