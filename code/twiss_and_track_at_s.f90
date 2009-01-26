@@ -92,6 +92,6 @@ else
                lat%param, s_use-lat%ele(i-1)%s, ele, err = err)
 endif
 
-call ele_geometry (lat%ele(i-1), ele, lat%param)
+call ele_geometry (lat%ele(i-1)%floor, ele, ele%floor)
 
 end subroutine

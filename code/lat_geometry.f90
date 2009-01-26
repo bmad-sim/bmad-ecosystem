@@ -42,7 +42,7 @@ integer i, n, ix2, ie
 !
 
 do i = 1, lat%n_ele_track
-  call ele_geometry (lat%ele(i-1), lat%ele(i), lat%param)
+  call ele_geometry (lat%ele(i-1)%floor, lat%ele(i), lat%ele(i)%floor)
 enddo
 
 do n = 1, ubound(lat%branch, 1)
@@ -59,7 +59,7 @@ do n = 1, ubound(lat%branch, 1)
   endif
 
   do i = 1, line%n_ele_track
-    call ele_geometry (line%ele(i-1), line%ele(i), lat%param)
+    call ele_geometry (line%ele(i-1)%floor, line%ele(i), lat%ele(i)%floor)
   enddo
 
 enddo
@@ -81,7 +81,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine ele_geometry (ele0, ele, param)
+! Subroutine ele_geometry (floor0, ele, floor)
 !
 ! Subroutine to calculate the physical (floor) placement of an element given the
 ! placement of the preceeding element. This is the same as the MAD convention.
@@ -90,12 +90,11 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   ele0   -- Ele_struct: The preceeding element
-!   param  -- lat_param_struct: lattice parameters
-!     %particle -- particle type. Needed if there are multipoles.
+!   floor0 -- Starting floor coordinates.
+!   ele    -- Ele_struct: Element to propagate the geometry through.
 !
 ! Output:
-!   ele%floor --  floor_position_struct: Floor position.
+!   floor -- floor_position_struct: Floor position at the exit end of ele.
 !        %a                -- X position at end of element
 !        %b                -- Y position at end of element
 !        %z                -- Z position at end of element
@@ -104,7 +103,7 @@ end subroutine
 !        %psi              -- Roll angle.
 !-
 
-subroutine ele_geometry (ele0, ele, param)
+subroutine ele_geometry (floor0, ele, floor)
 
 use bmad_struct
 use bmad_interface
@@ -112,8 +111,8 @@ use multipole_mod
 
 implicit none
 
-type (ele_struct) ele0, ele
-type (lat_param_struct) param
+type (ele_struct) ele
+type (floor_position_struct) floor0, floor
 
 integer i, key
 
@@ -129,12 +128,12 @@ real(dp), parameter :: twopi_dp = 2 * 3.14159265358979
 ! init
 ! old_theta is used to tell if we have to reconstruct the w_mat
 
-pos(1) = ele0%floor%x
-pos(2) = ele0%floor%y
-pos(3) = ele0%floor%z
-theta = ele0%floor%theta
-phi   = ele0%floor%phi
-psi   = ele0%floor%psi
+pos(1) = floor0%x
+pos(2) = floor0%y
+pos(3) = floor0%z
+theta = floor0%theta
+phi   = floor0%phi
+psi   = floor0%psi
 
 knl  = 0   ! initialize
 tilt = 0  
@@ -143,9 +142,8 @@ leng = ele%value(l$)
 key = ele%key
 if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
 
-if (key == ab_multipole$ .or. key == multipole$) then
-  call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
-  key = multipole$
+if (key == multipole$) then
+  call multipole_ele_to_kt (ele, positron$, knl, tilt, .true.)
 endif
 
 ! General case where layout is not in the horizontal plane
@@ -256,7 +254,7 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
   if (key == sbend$ .or. key == patch$ .or. key == multipole$) then
     theta = atan2 (w_mat(1,3), w_mat(3,3))
     theta = theta - twopi_dp * &
-                       nint((theta - ele0%floor%theta) / twopi_dp)
+                       nint((theta - floor0%theta) / twopi_dp)
     phi = atan2 (w_mat(2,3), sqrt(w_mat(1,3)**2 + w_mat(3,3)**2))
     psi = atan2 (w_mat(2,1), w_mat(2,2))
   endif
@@ -290,10 +288,10 @@ endif
 
 !
 
-ele%floor%x = pos(1)
-ele%floor%y = pos(2)
-ele%floor%z = pos(3)
-ele%floor%theta = theta
-ele%floor%phi   = phi
+floor%x = pos(1)
+floor%y = pos(2)
+floor%z = pos(3)
+floor%theta = theta
+floor%phi   = phi
 
 end subroutine

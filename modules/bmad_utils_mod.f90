@@ -1213,12 +1213,7 @@ ele%ix_pointer = 0
 ele%s = 0
 ele%ix_branch = 0
 
-ele%floor%x = 0
-ele%floor%y = 0
-ele%floor%z = 0
-ele%floor%theta = 0
-ele%floor%phi   = 0
-ele%floor%psi   = 0
+call init_floor (ele%floor)
 
 ele%mat6_calc_method = bmad_standard$
 ele%tracking_method  = bmad_standard$
@@ -1285,6 +1280,35 @@ allocate (ele%r(1,1))
 ele%r = 0.0
 
 end subroutine init_ele
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+ 
+! Subroutine init_floor (floor)
+!
+! Routine to initialize a floor_position_struct to zero.
+!
+! Output:
+!   floor -- Floor_position_struct: Floor coordinates to init.
+!-
+
+subroutine init_floor (floor)
+
+implicit none
+
+type (floor_position_struct) floor
+
+!
+
+floor%x = 0
+floor%y = 0
+floor%z = 0
+floor%theta = 0
+floor%phi   = 0
+floor%psi   = 0
+
+end subroutine init_floor
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
