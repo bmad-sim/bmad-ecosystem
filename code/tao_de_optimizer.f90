@@ -98,11 +98,8 @@ use tao_var_mod
 implicit none
 
 real(rp) var_vec(:)
-real(rp) this_merit
-real(rp) merit_min
-real(rp) merit_min_out
-real(rp) merit_min_type
-real(rp) merit
+real(rp) this_merit, merit
+real(rp), save :: merit_min, merit_min_out, merit_min_type
 
 integer i, status
 integer iter_count
