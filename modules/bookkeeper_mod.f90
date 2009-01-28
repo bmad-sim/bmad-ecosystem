@@ -459,7 +459,8 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0) then
     endif
 
   case default
-    call out_io (s_fatal$, r_name, 'BAD MATCH_ORBIT_AT VALUE FOR: ' // lord%name)
+    call out_io (s_fatal$, r_name, 'BAD REF_ORBIT VALUE: \i0\ ', &
+                           'FOR: ' // lord%name, i_array = (/ lord%ref_orbit /) )
     call err_exit
 
   end select
