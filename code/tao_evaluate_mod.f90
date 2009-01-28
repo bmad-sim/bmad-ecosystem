@@ -222,6 +222,7 @@ i_op = 0
 ran_function_pending = .false.
 
 do i = 1, size(stk)
+  stk%name = ''
   if (allocated(stk(i)%good)) deallocate (stk(i)%good)
   if (allocated(stk(i)%value_ptr)) deallocate (stk(i)%value_ptr)
 enddo
@@ -564,7 +565,6 @@ if (present(stack)) then
   enddo
 endif
 
-
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 contains
@@ -601,14 +601,12 @@ type (tao_eval_stack1_struct) stack
 integer ios, i, n
 
 character(*) str
-character(40) str2
 
 logical err_flag
 
 ! Case where str represents a number.
 
 if (is_real(str)) then
-
   call re_allocate(stack%value, 1)
   read (str, *, iostat = ios) stack%value(1)
   if (ios /= 0) then
@@ -624,12 +622,12 @@ endif
 
 ix = index(str, '|')
 if (ix == 0) then
-  str2 = trim(saved_prefix) // str
+  stack%name = trim(saved_prefix) // str
 else
   saved_prefix = str(1:ix)
-  str2 = str
+  stack%name = str
 endif
-call param_value_routine (str2, stack, err_flag)
+call param_value_routine (stack%name, stack, err_flag)
 if (err_flag) return
 
 end subroutine all_value_routine

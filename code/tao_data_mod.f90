@@ -235,6 +235,8 @@ implicit none
 
 type (tao_universe_struct), target :: u
 type (tao_data_struct) datum
+type (tao_data_struct), pointer :: dp
+type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
 type (normal_modes_struct) mode
@@ -656,14 +658,32 @@ case ('%e_tot')
   
 case ('expression:')
   if (data_source == 'beam') return ! bad
-  ! The point here is that tao_evaluate_stack is much quicker than tao_to_real
+
+  ! The point here is that tao_evaluate_stack is much quicker than tao_to_real.
+  ! So on the fist time through, construct datum%stack and for subsequent times, use
+  ! datum%stack with tao_evaluate_stack.
   if (allocated (datum%stack)) then
     call tao_evaluate_stack (datum%stack, 1, .false., value1, good1, err)
     if (err) call err_exit
     datum_value = value1(1)
     valid_value = good1(1)
-  else
+
+  else ! Only do this first time through...
     call tao_to_real (datum%data_type(12:), datum_value, err, .false., valid_value, datum%stack)
+    ! Make sure that any datums used in the expression have already been evaluated.
+    do i = 1, size(datum%stack)
+      if (datum%stack(i)%name == '') cycle
+      call tao_find_data (err, datum%stack(i)%name, d_array = d_array, print_err = .false.)
+      if (err .or. size(d_array) == 0) cycle  ! Err -> This is not associated then not a datum.
+      dp => d_array(1)%d
+      if (dp%d1%d2%ix_uni < datum%d1%d2%ix_uni) cycle ! OK
+      if (dp%d1%d2%ix_uni == datum%d1%d2%ix_uni .and. dp%ix_data < datum%d1%d2%ix_data) cycle
+      call out_io (s_fatal$, r_name, 'DATUM: ' // tao_datum_name(datum), &
+                                     'WHICH IS OF TYPE EXPRESSION:' // datum%data_type(12:), &
+                                     'THE EXPRESSION HAS A COMPONENT: ' // datum%stack(i)%name, &
+                                     'AND THIS COMPONENT IS EVALUATED AFTER THE EXPRESSION!')
+      call err_exit
+    enddo
   endif
 
 case ('floor.x')

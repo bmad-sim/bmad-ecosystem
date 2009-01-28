@@ -58,9 +58,9 @@ merit = opti_de (var_vec, s%global%n_opti_cycles, population, &
 call tao_set_vars (var_vec)
 merit_end = tao_merit ()
 
-write (line, *) 'Merit start:', merit_start
+write (line, '(a, es14.6)') 'Merit start:', merit_start
 call out_io (s_blank$, r_name, line)
-write (line, *) 'Merit end:', merit_end
+write (line, '(a, es14.6)') 'Merit end:  ', merit_end
 call out_io (s_blank$, r_name, line)
 
 call tao_var_write (s%global%var_out_file)
@@ -149,7 +149,7 @@ if (iter_count == 1000) then
 endif
 
 if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
-  write (line, *) ' So far the minimum is ', merit_min
+  write (line, '(a, es14.6)') ' So far the minimum is ', merit_min
   if (bmad_status%status == ok$) then
     call out_io (s_blank$, r_name, stars, line, stars)
   else

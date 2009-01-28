@@ -50,6 +50,7 @@ end type
 
 type tao_eval_stack1_struct
   integer type
+  character(40) :: name = ''  
   real(rp), allocatable :: value(:)
   logical, allocatable :: good(:)
   type (tao_real_array_struct), allocatable :: value_ptr(:)
