@@ -332,7 +332,8 @@ case ('beam')
     nl=nl+1; write(lines(nl), rmt) 'model%lat%b%emit               = ', lat%b%emit
     nl=nl+1; write(lines(nl), rmt) '          b%emit (normalized)  = ', lat%b%emit * gam
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), amt)  'global%track_type           = ', s%global%track_type
+    nl=nl+1; write(lines(nl), amt)  'global%track_type          = ', s%global%track_type
+    nl=nl+1; write(lines(nl), lmt)  'global%beam_timer_on       = ', s%global%beam_timer_on
     nl=nl+1; write (lines(nl), imt) 'u%ix_track_start           = ', u%ix_track_start 
     nl=nl+1; write (lines(nl), imt) 'u%ix_track_end             = ', u%ix_track_end
     nl=nl+1; write(lines(nl), amt)  'u%save_beam_at:'
@@ -914,6 +915,7 @@ case ('global')
   nl=nl+1; write (lines(nl), lmt) '%plot_on                    = ', s%global%plot_on
   nl=nl+1; write (lines(nl), lmt) '%lattice_calc_on            = ', s%global%lattice_calc_on
   nl=nl+1; write (lines(nl), lmt) '%command_file_print_on      = ', s%global%command_file_print_on
+  nl=nl+1; write(lines(nl), lmt)  'global%beam_timer_on        = ', s%global%beam_timer_on
   nl=nl+1; write (lines(nl), amt) '%prompt_string              = ', s%global%prompt_string
   nl=nl+1; write (lines(nl), amt) '%print_command              = ', s%global%print_command
   nl=nl+1; write (lines(nl), amt) '%random_engine              = ', s%global%random_engine
