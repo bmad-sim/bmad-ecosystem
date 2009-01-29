@@ -1189,6 +1189,8 @@ plots go. The syntax of this block is:
     plot_page%box_plots              = <T/F> ! For debugging layout problems. Def = F.
     region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
     place(i)  = "<region_name>", "<template_name>"
+    default_plot%...                         ! See below.
+    default_graph%...                        ! See below. 
   /
 \end{example}
 For example:
@@ -1202,6 +1204,8 @@ For example:
     region(2) = "bottom" 0.0, 1.0, 0.0, 0.5
     place(1)  = "top",    "orbit"
     place(2)  = "bottom", "phase"
+    default_plot%x%min = 100
+    default_plot%x%max = 200
   /
 \end{example}
 
@@ -1258,6 +1262,13 @@ Section~\sref{s:lat.layout} for more details.
 
 \vn{place(i)} determines the initial placement of plots.
 
+\vn{default_plot} set defaults for the \vn{plot} structure that is
+defined in the \vn{tao_template_plot} namelist (\sref{s:template}).
+Similarly, \vn{default_graph} sets defaults for the \vn{graph}
+structure defined in the \vn{tao_template_graph} namelist
+(\sref{s:template}). In the example above, the default x-axis min and
+max are set to 100 and 200 respectively.
+
 %-----------------------------------------------------------------
 \subsection{Plot Templates}
 \label{s:template}
@@ -1291,6 +1302,7 @@ Template plots are defined using namelists with a name of
     plot%n_graph     = <n_graphs>
     plot%autoscale_gang_x = <logical>  ! Default: True.
     plot%autoscale_gang_y = <logical>  ! Default: True.
+    default_graph%...                  ! See below
   /
 \end{example}
 For example:
@@ -1302,8 +1314,17 @@ For example:
     plot%x%major_div = 10
     plot%x%label     = "Index"
     plot%n_graph     = 2
+    default_graph%y%max = 10
   /
 \end{example}
+
+\vn{default_graph} sets defaults for the \vn{graph} structure defined
+in the \vn{tao_template_graph} namelist (\sref{s:template}). This
+overrides \vn{default_graph} settings made in the
+\vn{tao_template_plot} namelist (\sref{s:ini.plot}) but only for
+graphs associated with the \vn{tao_template_plot} the
+\vn{default_graph} is defined in.
+
 
 \vn{plot%x} sets the properties of the horizontal axis. For more
 information see the \vn{Quick Plot} documentation on the

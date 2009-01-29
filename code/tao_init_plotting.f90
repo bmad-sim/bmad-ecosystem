@@ -36,8 +36,8 @@ type (tao_plot_page_struct) plot_page, plot_page_default
 type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
 type (tao_curve_struct), pointer :: crv
-type (tao_plot_input) plot
-type (tao_graph_input) graph, default_graph
+type (tao_plot_input) plot, default_plot
+type (tao_graph_input) graph, default_graph, master_default_graph
 type (tao_region_input) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx)
 type (tao_place_input) place(10)
@@ -59,7 +59,7 @@ character(100) plot_file, graph_name, file_name
 character(80) label
 character(20) :: r_name = 'tao_init_plotting'
 
-namelist / tao_plot_page / plot_page, region, place
+namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place
 namelist / tao_template_plot / plot, default_graph
 namelist / tao_template_graph / graph, graph_index, curve
 namelist / element_shapes / shape
@@ -89,6 +89,16 @@ plot_page%title(1)%y = 0.996
 plot_page%title(2)%y = 0.97
 plot_page%title(:)%units = '%PAGE'
 plot_page%size = (/ 600, 800 /)
+
+default_plot%name = ' '
+default_plot%x_axis_type = 'index'
+default_plot%x = init_axis
+default_plot%x%minor_div_max = 6
+default_plot%x%major_div = 6
+default_plot%independent_graphs = .false.
+default_plot%autoscale_gang_x = .true.
+default_plot%autoscale_gang_y = .true.
+default_plot%n_graph = 0
 
 default_graph%title           = ''
 default_graph%type            = 'data'
@@ -141,6 +151,8 @@ if (ios > 0) then
   read (iu, nml = tao_plot_page)  ! To give error message
 endif
 if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_plot_page namelist found')
+
+master_default_graph = default_graph
 
 s%plot_page = plot_page
 page => s%plot_page
@@ -283,15 +295,8 @@ do  ! Loop over plot files
 
   do   ! Loop over templates in a file
 
-    plot%name = ' '
-    plot%x_axis_type = 'index'
-    plot%x = init_axis
-    plot%x%minor_div_max = 6
-    plot%x%major_div = 6
-    plot%independent_graphs = .false.
-    plot%autoscale_gang_x = .true.
-    plot%autoscale_gang_y = .true.
-    plot%n_graph = 0
+    plot = default_plot
+    default_graph = master_default_graph
 
     read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
     if (ios /= 0) exit

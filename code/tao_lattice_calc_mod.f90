@@ -314,7 +314,7 @@ integer, allocatable, save :: ix_ele(:)
 
 character(20) :: r_name = "tao_beam_track"
 
-real(rp) :: value1, value2, f
+real(rp) :: value1, value2, f, time, old_time
 
 logical post, calc_ok, too_many_lost, print_err, err
 
@@ -402,6 +402,11 @@ if (u%ix_track_end > -1) ie2 = u%ix_track_end
 
 print_err = .true.
 
+if (s%global%beam_timer_on) then
+  call run_timer ('START')
+  old_time = 0
+endif
+
 do j = ie1, ie2
 
   ! track to the element and save for phase space plot
@@ -462,6 +467,15 @@ do j = ie1, ie2
 
   if (err) print_err = .false.  ! Only generate one message.
   call tao_load_data_array (u, j, who) 
+
+  if (s%global%beam_timer_on) then
+    call run_timer ('READ', time)
+    if (time - old_time > 60) then
+      call out_io (s_blank$, r_name, 'Beam at Element: \i0\. Time: \i0\ min', &
+                          i_array = (/ j, nint(time/60) /) )
+      old_time = time
+    endif
+  endif
 
 enddo
 

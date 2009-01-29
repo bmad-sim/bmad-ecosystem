@@ -39,8 +39,9 @@ integer i, j, n, ix, places, im
 
 character(*) where
 character(*), optional :: gang
+character(20) :: r_name = 'tao_x_scale_cmd'
 
-logical err
+logical err, all_same
 
 ! find plots to scale
 
@@ -69,15 +70,26 @@ endif
 
 ! Set max and min.
 
+all_same = .true.
+
 if (allocated(graph)) then
   do i = 1, size(graph)
     call tao_x_scale_graph (graph(i)%g, x_min, x_max)
+    if (graph(i)%g%x%max /= graph(1)%g%x%max) all_same = .false.
+    if (graph(i)%g%x%min /= graph(1)%g%x%min) all_same = .false.
   enddo
 else
   do i = 1, size(plot)
     call tao_x_scale_plot (plot(i)%p, x_min, x_max, gang)
+    if (plot(i)%p%x%max /= plot(1)%p%x%max) all_same = .false.
+    if (plot(i)%p%x%min /= plot(1)%p%x%min) all_same = .false.
   enddo
 endif
+
+! Issue warning if not all plots have the same scale
+
+if (.not. all_same) call out_io (s_warn$, r_name, &
+      'Note: Not all plots have the same min/max due to different x-axis major_div values.')
 
 end subroutine
 

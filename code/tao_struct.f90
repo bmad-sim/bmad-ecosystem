@@ -470,6 +470,7 @@ type tao_global_struct
   logical :: lattice_calc_on = .true.           ! Turn on/off calculations.
   logical :: command_file_print_on = .true.     ! print to terminal when using a cmd file?
   logical :: box_plots = .false.                ! For debugging plot layout issues.
+  logical :: beam_timer_on = .false.            ! For timing the beam tracking calculation.
 end type
 
 !
