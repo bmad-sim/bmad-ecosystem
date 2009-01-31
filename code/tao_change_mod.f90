@@ -260,7 +260,9 @@ do i = 1, size(d_ptr)
   else
     m_ptr(i)%r = m_ptr(i)%r + change_number(i)
   endif
-     
+
+  if (e_name == 'BEAM_START') u%beam_init%center = u%model%lat%beam_start%vec
+
   call changed_attribute_bookkeeper (u%model%lat, ix_ele(i), m_ptr(i)%r)
 
   if (max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) > 100) &
