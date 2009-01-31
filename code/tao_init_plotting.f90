@@ -604,6 +604,13 @@ do  ! Loop over plot files
 
 
         i_uni = tao_universe_number (crv%ix_universe)
+        if (i_uni > ubound(s%u, 1)) then
+          call out_io (s_error$, r_name, &
+                          'CURVE OF PLOT: ' // plot%name, &
+                          'HAS UNIVERSE INDEX OUT OF RANGE: \I0\ ', &
+                          i_array = (/ i_uni /) )
+          call err_exit
+        endif
 
         if ((crv%data_type(1:5) == 'emit.' .or. &
               crv%data_type(1:10) == 'norm_emit.') .and. crv%data_source == 'lattice') then
@@ -639,7 +646,7 @@ do  ! Loop over plot files
           plt%x_axis_type = 'floor'
         endif
 
-        call tao_ele_ref_to_ele_ref_track (crv%ix_universe, crv%ix_ele_ref, crv%ix_ele_ref_track)
+        call tao_ele_ref_to_ele_ref_track (i_uni, crv%ix_ele_ref, crv%ix_ele_ref_track)
 
       enddo  ! curve
 
