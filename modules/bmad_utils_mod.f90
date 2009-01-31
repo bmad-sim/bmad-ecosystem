@@ -1717,14 +1717,24 @@ subroutine match_ele_to_mat6 (ele, vec0, mat6)
 
 implicit none
 
-type (ele_struct) ele, ele0, ele1
+type (ele_struct), target :: ele, ele0, ele1
 
-real(rp) mat6(6,6), vec0(6), v(n_attrib_maxx)
+real(rp) mat6(6,6), vec0(6)
+real(rp), pointer :: v(:)
+
+! Special case where match_end is set but there is no beginning beta value yet.
+! In this case, just return the unit matrix.
+
+if (ele%value(match_end$) /= 0 .and. ele%value(beta_a0$) == 0) then
+  call mat_make_unit (mat6)
+  vec0 = 0
+  return
+endif
 
 !
 
 vec0 = 0
-v = ele%value
+v => ele%value
 
 ele0%a%beta   = v(beta_a0$)
 ele0%a%alpha  = v(alpha_a0$)

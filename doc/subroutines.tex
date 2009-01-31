@@ -673,6 +673,11 @@ Subroutine to get the list of slaves for an element.
 \item[key_name_to_key_index (key_str, abbrev_allowed) result (key_index)] \Newline 
 Function to convert a character string  (eg: "drift") to an index (eg: drift\$).
 
+\index{Routine!pointer_to_indexed_attribute}
+\item[pointer_to_indexed_attribute (ele, ix_attrib, do_allocation,] \Newline 
+                                     ptr_attrib, err_flag, err_print_flag)
+Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
+
 \index{Routine!type_ele}
 \item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, \\ 
 \hspace*{1in} type_twiss, type_control, type_wake, type_floor_coords)}] \Newline
@@ -821,10 +826,6 @@ Subroutine to deallocate the pointers in an element.
 \index{Routine!dispersion_to_orbit}
 \item[dispersion_to_orbit (ele, disp_orb)] \Newline
 Subroutine to make an orbit vector proportional to the dispersion. 
-
-\index{Routine!makeup_group_slaves}
-\item[makeup_group_slaves (lat, ix_slave)] \Newline
-Subroutine to calculate the attributes of group slave elements.
 
 \index{Routine!makeup_super_slave}
 \item[makeup_super_slave (lat, ix_slave)] \Newline
@@ -1113,8 +1114,8 @@ Subroutine to take the inverse of a square matrix.
 Subroutine to form a symplectic matrix that is approximately equal to the input matrix. 
 
 \index{Routine!mat_symp_error}
-\item[mat_symp_check (mat, error)] \Newline
-Subroutine to check the symplecticity of a square matrix 
+\item[mat_symp_error (mat) result (error)] \Newline
+Routine to check the symplecticity of a square matrix 
 
 \index{Routine!mat_symp_conj}
 \item[mat_symp_conj (mat1, mat2)] \Newline 
