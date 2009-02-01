@@ -297,18 +297,18 @@ if build_type == "RELEASE":
     os.system("chgrp -R cesr " + config_dir)
     os.system("chmod -R g+w " + config_dir)
     os.chdir(full_rel_name)
-    print "Creating DB of files & functions from within " + os.getcwd()
-    fdb_cmd = bin_dir + "/create_fdb.pl"
-    print [fdb_cmd, full_rel_name]
-    fdb_process = sub.Popen([fdb_cmd, full_rel_name], stdout=sub.PIPE, stderr=sub.STDOUT)
-    lines = fdb_process.stdout.readlines()
-    for line in lines:
-        print line.strip()
-    pid = fdb_process.pid
-    returncode = fdb_process.wait()
-    if returncode != 0:
-        print "--> BUILD STATUS: ERROR(S) DETECTED"
-        sys.exit(92)
+#    print "Creating DB of files & functions from within " + os.getcwd()
+#    fdb_cmd = bin_dir + "/create_fdb.pl"
+#    print [fdb_cmd, full_rel_name]
+#    fdb_process = sub.Popen([fdb_cmd, full_rel_name], stdout=sub.PIPE, stderr=sub.STDOUT)
+#    lines = fdb_process.stdout.readlines()
+#    for line in lines:
+#        print line.strip()
+#    pid = fdb_process.pid
+#    returncode = fdb_process.wait()
+#    if returncode != 0:
+#        print "--> BUILD STATUS: ERROR(S) DETECTED"
+#        sys.exit(92)
 
 
 ############################################################################################
@@ -380,18 +380,18 @@ if build_type == "BMAD DISTRIBUTION":
         if errors:
             print "--> BUILD STATUS: ERROR(S) DETECTED"
             sys.exit(92)
-    print "Creating DB of files & functions from within " + os.getcwd()
-    fdb_cmd = bin_dir + "/create_fdb.pl"
-    print [fdb_cmd, full_rel_name]
-    fdb_process = sub.Popen([fdb_cmd, full_rel_name], stdout=sub.PIPE, stderr=sub.STDOUT)
-    lines = fdb_process.stdout.readlines()
-    for line in lines:
-        print line.strip()
-    pid = fdb_process.pid
-    returncode = fdb_process.wait()
-    if returncode != 0:
-        print "--> BUILD STATUS: ERROR(S) DETECTED"
-        sys.exit(93)
+#    print "Creating DB of files & functions from within " + os.getcwd()
+#    fdb_cmd = bin_dir + "/create_fdb.pl"
+#    print [fdb_cmd, full_rel_name]
+#    fdb_process = sub.Popen([fdb_cmd, full_rel_name], stdout=sub.PIPE, stderr=sub.STDOUT)
+#    lines = fdb_process.stdout.readlines()
+#    for line in lines:
+#        print line.strip()
+#    pid = fdb_process.pid
+#    returncode = fdb_process.wait()
+#    if returncode != 0:
+#        print "--> BUILD STATUS: ERROR(S) DETECTED"
+#        sys.exit(93)
 
 
 ############################################################################################
