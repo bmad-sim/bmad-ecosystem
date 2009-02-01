@@ -1,0 +1,40 @@
+#!/home/cesrulib/EXT/Python-2.5.1/Linux/python
+## The input to this script is the name of the release one wants to promote.
+## This script is just a wrapper to automate the process of a release rotation. It does the following:
+## 1) Calls the program "rotate_release" in the ../utils folder to push the release to the new devel
+## 2) Calls the build_master script to initiate a bmad distribution build 
+## to push an updated archive package to the web site
+
+import string, os, sys
+
+#================================
+# Command line argument handling
+#================================
+if len(sys.argv) == 1:
+  print "\nUsage: " + sys.argv[0] + " <release_name>\nExample: promote_release cesr_2007_1103_d"
+  sys.exit(0)
+elif len(sys.argv) > 2:
+  print "Invalid number of arguments."
+  sys.exit(2)
+else:
+  rel_name = sys.argv[1]
+
+#############################
+# Rotation
+#############################
+print "Performing rotation of the "+rel_name+" build"
+output = os.popen('/home/cesrulib/bin/util/rotate_release -devel -mail -tag '+rel_name).readlines()
+for line in output:
+    print line
+
+#############################
+# Bmad build
+#############################
+print "Initiating a bmad distribution build to push an updated archive package to the web site."
+print "Please wait while 'b -bmad_build' command is being executed..."
+print "build_master output:"
+output = os.popen('/home/cesrulib/bin/util/build_master -bmad_build')
+for line in output.readlines():
+    print line
+
+print "Rotation finished."
