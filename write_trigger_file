@@ -8,4 +8,13 @@ ssh -T -t lnx190c << EOI
 echo "$1" > /nfs/cesr/mnt/bctl/cesr_vms_builds.flag
 exit
 EOI
+SIGNAL="/nfs/cesr/mnt/bctl/buildstarted.flag"
+echo "Please wait 1 minute..."
+sleep 60
+if [ -f $SIGNAL ];
+then 
+  echo "The VMS build has started successfully"
+else 
+  echo "The VMS build is not responding"
+fi
 exit
