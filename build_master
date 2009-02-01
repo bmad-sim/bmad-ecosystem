@@ -1265,16 +1265,18 @@ if bmad_build:
 #==================================================
 #   Generate repository statistics reports
 #==================================================
+#if not fixes:
+#  print "Generating and publishing HTML repository statistics reports:"
+#  sr = sub.Popen([util_dir + "/" + reporter, "src"], stdout=sub.PIPE, stderr=sub.STDOUT )
+#  (outstream, errstream) = sr.communicate()
+#  sr_exit = sr.wait()
+#  print str(outstream)
+#  if sr_exit != 0:
+#    print "ERROR:  There was a problem generating the repository statistics reports."
+#    error_msg = error_msg + "ERROR:  There was a problem generating the repository statistics reports.\n"
 if not fixes:
-  print "Generating and publishing HTML repository statistics reports:"
-  sr = sub.Popen([util_dir + "/" + reporter, "src"], stdout=sub.PIPE, stderr=sub.STDOUT )
-  (outstream, errstream) = sr.communicate()
-  sr_exit = sr.wait()
-  print str(outstream)
-  if sr_exit != 0:
-    print "ERROR:  There was a problem generating the repository statistics reports."
-    error_msg = error_msg + "ERROR:  There was a problem generating the repository statistics reports.\n"
-
+    print "Starting a remote, independent HTML repository statistics report.."
+    os.spawnl(os.P_NOWAIT,util_dir + "/"+reporter+" > /home/cesrulib/output.dat","src")
 
 print "\n================== Build process finished completely. ====================\n"
 
