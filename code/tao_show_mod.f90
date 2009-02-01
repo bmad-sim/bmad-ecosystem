@@ -287,6 +287,8 @@ case ('beam')
 
     nl=nl+1; write(lines(nl), '(a, i3)') 'Universe: ', u%ix_uni
     nl=nl+1; lines(nl) = ''
+    nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', tao_com%beam0_file
+    nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', u%beam_all_file
     nl=nl+1; write(lines(nl), rmt) 'beam_init%a_norm_emitt      = ', u%beam_init%a_norm_emitt
     nl=nl+1; write(lines(nl), rmt) 'beam_init%b_norm_emitt      = ', u%beam_init%b_norm_emitt
     nl=nl+1; write(lines(nl), rmt) 'beam_init%dPz_dz            = ', u%beam_init%dPz_dz

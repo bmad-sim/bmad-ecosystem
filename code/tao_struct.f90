@@ -511,7 +511,6 @@ type tao_common_struct
   logical :: cmd_from_cmd_file              ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
-  logical :: init_beam0 = .false.            ! Init beam
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: combine_consecutive_elements_of_like_name
   logical :: common_lattice = .false.      
@@ -613,6 +612,7 @@ type tao_universe_struct
   logical is_on                          ! universe turned on
   logical calc_beam_emittance            ! for a lat calculate emittance
   logical universe_recalc                ! Allows for fine control of lattice calculations
+  logical :: init_beam0 = .false.        ! Init beam
   logical :: mat6_recalc_on = .true.     ! calc linear transfer matrix
 end type
 

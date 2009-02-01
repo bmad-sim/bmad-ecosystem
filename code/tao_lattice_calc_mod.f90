@@ -707,7 +707,7 @@ model%lat%beam_start%vec = u%beam_init%center
 ! If there is an init file then read from the file
 
 if (u%beam0_file /= "") then
-  if (tao_com%init_beam0 .or. .not. allocated(u%beam0%bunch)) then
+  if (u%init_beam0 .or. .not. allocated(u%beam0%bunch)) then
     call tao_open_beam_file (u%beam0_file)
     call tao_set_beam_params (u%beam_init%n_bunch, u%beam_init%n_particle, &
                                                        u%beam_init%bunch_charge)
@@ -728,7 +728,7 @@ endif
 ! Not connected case
 
 if (.not. u%connect%connected) then
-  if (tao_com%init_beam0 .or. .not. allocated(u%beam0%bunch)) then
+  if (u%init_beam0 .or. .not. allocated(u%beam0%bunch)) then
     u%beam_init%center = model%lat%beam_start%vec
     if (u%beam_init%n_bunch < 1 .or. u%beam_init%n_particle < 1) then
       call out_io (s_fatal$, r_name, &
@@ -741,7 +741,7 @@ if (.not. u%connect%connected) then
       call out_io (s_warn$, r_name, "Not enough particles for beam init!")
       call err_exit
     endif
-    tao_com%init_beam0 = .false.
+    u%init_beam0 = .false.
   endif
   if (u%ele(0)%save_beam) u%ele(0)%beam = u%beam0
   return

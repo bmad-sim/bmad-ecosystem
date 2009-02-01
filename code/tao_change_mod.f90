@@ -261,7 +261,10 @@ do i = 1, size(d_ptr)
     m_ptr(i)%r = m_ptr(i)%r + change_number(i)
   endif
 
-  if (e_name == 'BEAM_START') u%beam_init%center = u%model%lat%beam_start%vec
+  if (e_name == 'BEAM_START') then
+    u%beam_init%center = u%model%lat%beam_start%vec
+    u%init_beam0 = .true.
+  endif
 
   call changed_attribute_bookkeeper (u%model%lat, ix_ele(i), m_ptr(i)%r)
 

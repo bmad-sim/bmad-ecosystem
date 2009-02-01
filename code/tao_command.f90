@@ -350,7 +350,7 @@ case ('reinitialize')
   select case (cmd_word(1))
 
   case ('beam') 
-    tao_com%init_beam0 = .true.
+    s%u%init_beam0 = .true.
     tao_com%lattice_recalc = .true.
 
   case ('data') 
