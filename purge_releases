@@ -1,25 +1,25 @@
 #!/home/cesrulib/EXT/Python-2.5.1/Linux/python
-## This script deletes all releases retaining only those that fall into this retention criteria:
-## (criteria taken from /home/cesrulib/cesr_libs/release_retention_criteria
-## All releases labelled "current" are to be retained for 1+ year
-## All releases labelled "devel" are to be retained for the period spanning 2 previous "current" releases.
-## Nightlies are automatically deleted and replaced each morning.
-
-
-### Author: Siarhei Vishniakou
-### Date: Late November 2007
-
-
-import string, os, sys, time, math, ConfigParser
-
+#---------------------------------------------------
+# This script deletes all releases retaining only those that meet
+# the retention criteria defined in the
+# /home/cesrulib/bin/util/BUILD_SYSTEM.conf file.
+#
+#-------------------------------------------------------------
 # The program does the following:
-# 1) Get a list of all the releases of the type cesr_* based on log files from the directory 
-#  /nfs/acc/libs/log
+# 1) Get a list of all the releases of the type cesr_*
+#    based on log files from the directory /nfs/acc/libs/log
 # 2) Get an array(s) for the releases determining their age
 # 3) Do this for each release:
 # 4) Determine if a release needs to be deleted
-# 5) Delete the release if necessary using the /home/cesrulib/bin/util/DELETE_release script
-# #####
+# 5) Delete the release if necessary using the
+#    /home/cesrulib/bin/util/DELETE_release script
+#--------------------------------------------------------------
+# Author: Siarhei Vishniakou / Matt Rendina
+# Date: Late November 2007
+#--------------------------------------------------------------
+
+import string, os, sys, time, math, ConfigParser
+from string import ljust
 
 ################
 # Set up configuration parser
@@ -32,82 +32,80 @@ config.read(cfg_file)
 # Get values
 ################
 
-UTIL_DIR = config.get("Paths","UTIL_DIR")
-CURRENT_YEARS=int(config.get("Retention","CURRENT_YEARS"))
-CURRENT_MONTHS=int(config.get("Retention","CURRENT_MONTHS"))
-CURRENT_DAYS  =int(config.get("Retention","CURRENT_DAYS"))
+UTIL_DIR       = config.get("Paths","UTIL_DIR")
+CURRENT_YEARS  = int(config.get("Retention","CURRENT_YEARS"))
+CURRENT_MONTHS = int(config.get("Retention","CURRENT_MONTHS"))
+CURRENT_DAYS   = int(config.get("Retention","CURRENT_DAYS"))
 
 
 #### Initialization
-###########################################################################################
-###########################################################################################
+#--------------------------------------------------------------------------
 
-releases =    []    #array to hold release names
-prefix =      "cesr"  #the mask to discriminate releases. Idea: to get everything that starts with "cesr"
-dir =         config.get("Paths","LOG_DIR")   #directory with the .genlog files
-delete_util_path= UTIL_DIR+"/DELETE_release"
-log_file_path   = "/home/cesrulib/purge_releases_log.txt"
+releases            = []      #array to hold release names
+prefix              = "cesr"  #the mask to discriminate releases. Idea: to get everything that starts with "cesr"
+devel_link_prefix   = "devel"   # All symlinks to devel releases start with this
+current_link_prefix = "current" # All symlinks to current releases start with this
+log_dir             = config.get("Paths","LOG_DIR")   #directory with the .genlog files
+delete_util_path    = UTIL_DIR+"/DELETE_release"
+log_file            = log_dir + "/purge_releases_log.txt"
 
-years =       []    #array to hold how many years passed
-months =      []    #array to hold how many months passed
-days  =       []    #array to hold how many days passed
-status=       []    #array to hold info on whether a release is a "current", "devel", or neither ("none")
-delete=       []    #array to hold info whether or not a certain release needs to be deleted
 
-found_in_tags=[]    #array to hold whether a release is found in the repository /tags directory
-repo_logs=    []    #array to hold list of all available logs on file in repository (this is needed to check if a path exists)
+current_span    = [ CURRENT_YEARS, CURRENT_MONTHS, CURRENT_DAYS] # Lifespan for current
+devel_span      = int(config.get("Retention","DEVEL_SPAN"))      # Starting this many currents ago, all devels will be kept
 
-current_span= [ CURRENT_YEARS, CURRENT_MONTHS, CURRENT_DAYS] #lifespan for current - [years, months, days]
-devel_span  = int(config.get("Retention","DEVEL_SPAN"))      #starting this many currents ago, all devels will be kept
-if (config.get("Retention","KEEP_NIGHTLY")=="True"): #whether or not to keep the last nightly
-    nightly     = 1
-else:
-    nightly     = 0
-if (config.get("Retention","CREATE_LOG")=="True"):      #create log-file in log_file_path ?
-    create_log  = 1
-else: 
-    create_log  = 0
-devel_age   = [0, 0, 0] #initializing age for retention of devels
-timehere = time.localtime()
-#### Initialization end
-###########################################################################################
+    
+devel_age       = [0, 0, 0] # Age of oldest DEVEL to be retained
+timehere        = time.localtime()
 
-# Print information
-print "_______________________________________________________"
-print "Retention criteria:"
-print "All currents younger than "+str(current_span[0])+" year(s), "+str(current_span[1])+" month(s), and "+str(current_span[2])+" day(s) are kept."
-print "All devels within the last "+str(devel_span)+" current(s) are kept."
-if (nightly):
-    print "The last nightly is kept."
+#--------------------------------------------------------------------------------
+# Release dictionary:
+#     Keys are release names.  Each key has a 5-item list holding
+#     information relevant to that release, all components form an 'entry'.
+#
+# "release_name" : [age_years, age_months, age_days, release_type, deletion flag]
+#---------------------------------------------------------------------------------
+rel_entries  = {}
+
+#--------------------------------------------------------------------------------
+
+print "\npurge_releases:"
+print "------------------"
+print "All 'CURRENT' releases younger than "+str(current_span[0])+" year(s), "+str(current_span[1]) \
+      +" month(s), and "+str(current_span[2])+" day(s) are kept."
+print "All devels within the last "+str(devel_span)+" 'CURRENT's are kept."
 print "Everything else gets removed."
 print "_______________________________________________________"
-# End print information
 
-#_______________________________
+
+
 # Get a list of all the releases of the type cesr_* based on log files
-
-print "Getting a list of all releases..."
-output = os.popen('ls '+dir).readlines()
+output = os.listdir(log_dir)
 for line in output:
     if line[0:len(prefix)] == prefix:
-        releases = releases + [line[:-7]]   #remove the .genlog extension
+        line = line[:-7] # Remove the .genlog extension
+        rel_entries[line] = [-1, -1, -1, "--", "NO"]
 
-#------------------------------
 
 
 ################
 # Here we establish the age of each release (rough estimate only - using 365 days/year, 30 days/month)
 ################
-for i in range(len(releases)):
-    releases[i]=releases[i][:-1] #strip the end of line symbol to avoid confusion
-    time_rel= [int(releases[i][5:9]),int(releases[i][10:12]),int(releases[i][12:14]),0,0,0,0,0,0]
-    time_diff = time.mktime(timehere) - time.mktime(time_rel)
-    years = years   + [int(math.floor(time_diff/(60*60*24*365)))]  # how many years passed
-    time_diff = time_diff-(60*60*24*365)*years[i]
-    months= months  + [int(math.floor(time_diff/(60*60*24*30)))]# how many months passed
-    time_diff = time_diff-(60*60*24*30)*months[i]
-    days  = days    + [int(math.floor(time_diff/(60*60*24)))]# how many days passed
-################################################################################    
+
+for rel in rel_entries:
+    time_rel= int(rel[5:9]), int(rel[10:12]), int(rel[12:14]) ,0 ,0 ,0 ,0 ,0 ,0
+    
+    time_diff           = time.mktime(timehere) - time.mktime(time_rel)
+    years               = int(math.floor(time_diff/(60*60*24*365))) # how many years old is the release
+    rel_entries[rel][0] = years
+    
+    time_diff           = time_diff-(60*60*24*365) * years
+    months              = int(math.floor(time_diff/(60*60*24*30)))  # how many months old
+    rel_entries[rel][1] = months
+     
+    time_diff           = time_diff-(60*60*24*30) * months
+    days                = int(math.floor(time_diff/(60*60*24)))     # how many days old
+    rel_entries[rel][2] = days
+
 
 
 
@@ -121,26 +119,37 @@ for i in range(len(releases)):
 ### 07) Establish whether a release is found in repository in the /tags directory
 ### 08) If it is found, determine it's status (devel, current, or none). If not found, give it status none
 
-repo_logs = os.popen("svn list https://accserv.lepp.cornell.edu/svn/tags").readlines()  #step 05
 
-for release in releases:
-    found = 0
-    current = "none"
-    for line in repo_logs:            #step 07
-        if (release == line[:-2]):    #step 06
-            found = 1
-        if (release+"_current" == line[:-2]):
-            current = "current"
-    status = status + [current]
-    found_in_tags = found_in_tags + [found]
+devel_list = []
+for line in os.listdir("/home/cesrulib/acc_libs/Linux_i686_intel"):
+    if os.path.islink("/home/cesrulib/acc_libs/Linux_i686_intel/"+line) and line[:5] == 'devel':
+        devel_list.append( os.readlink("/home/cesrulib/acc_libs/Linux_i686_intel/"+line) ) 
 
 
-for i in range(len(releases)):
-    if ((found_in_tags[i]) and (status[i] != "current")): #if it's in the /tags directory, and not a current, it must be a devel
-        status[i] = "devel"
+current_list = []
+for line in os.listdir("/home/cesrulib/acc_libs/Linux_i686_intel"):
+    if os.path.islink("/home/cesrulib/acc_libs/Linux_i686_intel/"+line) and line[0:7] == 'current':
+        current_list.append( os.readlink("/home/cesrulib/acc_libs/Linux_i686_intel/"+line) )
 
 
-##### At this point, all releases that have a log file in /nfs/acc/libs/log have been gathered and identified as "current", "devel", or "none"
+
+# Determine which releases in the master release list are DEVEL releases
+# do this first, it can be overridden below if a release was promoted a
+# second time to CURRENT.
+for rel in rel_entries:
+    for name in devel_list:
+        if rel == name:
+            rel_entries[rel][3] = 'DEVEL'
+
+for rel in rel_entries:
+    for name in current_list:
+        if rel == name:
+            rel_entries[rel][3] = 'CURRENT'
+
+
+
+##### At this point, all releases that have a log file in /nfs/acc/libs/log have been
+##### gathered and identified as "current", "devel", or "none"
 ##### Also, their ages have been determined
 ##### Next we need:
 ##### 10) Find a value for devel_age variable (see description on top)
@@ -148,26 +157,25 @@ for i in range(len(releases)):
 ##### 
 
 
-#step 10
-current_number=0   #Initialize the number of currents there are
-for i in range(len(releases)):
-    if (status[i] == "current"):
-        current_number = current_number + 1
-print "There are "+str(current_number)+" currents on file."
+# Sort the DEVEL and CURRENT lists according to date in name
+devel_list.sort()
+current_list.sort()
+# Sort names of main release list for later sorted printing
+rels_sorted = rel_entries.keys()
+rels_sorted.sort()
+rels_sorted.reverse()
 
-index=0
-j = 0
-while ( index <= (current_number - devel_span)):
-    if (status[j] == "current"):
-        devel_age = [years[j], months[j], days[j]]  #this is the devel retention criteria
-        index = index+1
-    j= j + 1
+# Step 10)
+num_current = len(current_list)
+print "There are "+str(num_current)+" 'CURRENT' releases in the archive.\n"
+current_list.reverse() # Now in newest-to-oldest order
 
+current_boundary = current_list[devel_span-1]
+devel_age        = [ rel_entries[current_boundary][0], rel_entries[current_boundary][1], rel_entries[current_boundary][2] ]
 
-print "The current release after which all devels will be kept is "+releases[j-1]
+print "The archived 'CURRENT' release after which all 'DEVELs' will be kept is " + current_boundary
 print "This release is "+str(devel_age[0])+" years, "+str(devel_age[1])+" months, "+str(devel_age[2])+" days old."
-print "All non-current releases older than this will be deleted"
-
+print "All non-current releases older than this will be deleted.\n"
 
 
 ##########################################################
@@ -175,57 +183,81 @@ print "All non-current releases older than this will be deleted"
 ########## This is the removal criteria being implemented: (step 20)
 ##########
 ###########################################################
-num_deleted = len(releases)    #How many releases are to be deleted (counts down)
+time_devel_age   = time.mktime( devel_age + [0,0,0,0,0,0] )
+time_current_age = time.mktime( current_span + [0,0,0,0,0,0] )
 
-time_devel_age = time.mktime(devel_age + [0,0,0,0,0,0])
-time_current_age = time.mktime(current_span + [0,0,0,0,0,0])
-for i in range(len(releases)):
-    time_i = time.mktime([years[i],months[i],days[i]]+[0,0,0,0,0,0])
-    if (time_i-time_current_age)>0:  #if older than current retention criteria, delete it
-        delete = delete + ["yes"]
-    elif (status[i] != "current") and (time_i-time_devel_age > 0 ): #if not current, and older than devel_age (see above)
-        delete = delete + ["yes"]
-    elif (not (years[i]==0 and months[i]==0 and days[i]<=2)) and (status[i] == "none"):   #if a release is not the last nightly, devel, or current, delete it
-        delete = delete + ["yes"]
-    else:                                      #in the rest of the cases, do not delete
-        delete = delete + ["no"]
-        num_deleted = num_deleted - 1       #count down how many releases will be deleted
-########## end removal criteria
+for rel in rel_entries:
+    rel_time = time.mktime( rel_entries[rel][0:3] + [0,0,0,0,0,0] )
+    # If older than oldest retained CURRENT release, flag for deletion
+    if (rel_time - time_current_age) > 0: 
+        rel_entries[rel][4] = 'YES'
+    # If not current, and older than devel_age, flag.
+    elif (rel_entries[rel][3] != "CURRENT") and (rel_time - time_devel_age > 0): 
+        rel_entries[rel][4] = 'YES'
+    # If not CURRENT or DEVEL and older than 2 days, flag.
+    elif (rel_entries[rel][2] >= 2) and (rel_entries[rel][3] != "CURRENT") and (rel_entries[rel][3] != "DEVEL"):
+        rel_entries[rel][4] = 'YES' 
 
 
-##############
-### Make a log-file with a list of releases, saying which one will be deleted and which one will be kept
-#############
 
-if (create_log):
-    log = open(log_file_path,'w')
-    log.write('Release:                          |'+' Delete?\n')
-    for i in range(len(releases)):
-        log.write(releases[i])
-        for j in range(34-len(releases[i])):
-            log.write(" ")
-        log.write("| "+delete[i]+"\n")
-    log.write("A total of "+str(num_deleted)+" release(s) will be deleted.\n")
-    log.write("The following are the commands to be run:\n")
+# Tally up the number of releases flagged for deletion
+flagged = 0
+for rel in rel_entries:
+    if (rel_entries[rel][4] == 'YES'):
+        flagged = flagged + 1
+
+
+# Print a summary table of release names, ages, types and deletion flag.
+# Write same results to log file.
+#------------------------------------------------------------------------
+for ppass in range(2):
+    if ppass == 1:
+        log = open(log_file,'w')
+        sys.stdout = log # Redirect prints for this pass to log file.
+
+    print time.strftime('%X %x %Z')
+    
+    if flagged == 0:
+        print "There are no releases to be deleted."
+    else:
+        print "A total of "+str(flagged)+" release(s) will be deleted."
+    
+        print ""
+        print "                       Age                     "
+        print "      Name          (y, m, d)   Type   DELETE? "
+        print "-----------------------------------------------"
+
+        for rel in rels_sorted:
+            yr      = str(rel_entries[rel][0])
+            mo      = str(rel_entries[rel][1])
+            dy      = str(rel_entries[rel][2])
+            type    = rel_entries[rel][3]
+            delflag = rel_entries[rel][4]
+            print ljust(rel, 19), ljust(yr,3), ljust(mo,3), ljust(dy,3), ljust(type,8), delflag
+
+
 
 #########
 ######### Now use the utility "DELETE_release" in the utils folder with -PURGE flag to remove unwanted releases
 #########
-if (num_deleted == 0):
-    print "There are no releases to be deleted."
-else:
-    print "A total of "+str(num_deleted)+" release(s) will be deleted."
+cmd_output = []
 
-for i in range(len(releases)):
-    if delete[i] == "yes":
+print ""
+for rel in rel_entries:
+    if rel_entries[rel][4] == 'YES':
+        out = os.popen(delete_util_path+" -PURGE REL="+rel).readlines()
+        cmd_output.append(out)
 
-        out = os.popen(delete_util_path+" -PURGE REL="+releases[i]).readlines()
-        if (create_log):
-            log.write(delete_util_path+" -PURGE REL="+releases[i]+"\n") 
-            log.write(out[0][:-1]+"\n")
-        print out[0][:-1]
 
-############### -- log
-if (create_log):
-    log.close()
-############### -- /log
+# Dump output of DELETE_release script to logfile only
+for line in cmd_output:
+    print line
+
+
+# Restore print operator back to standard output
+sys.stdout = sys.__stdout__
+
+
+
+log.close()
+
