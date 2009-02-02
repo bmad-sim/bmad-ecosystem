@@ -152,6 +152,7 @@ type bp_common_struct
   logical error_flag     ! Needed since bmad_status%ok gets set by many routines.
   logical input_line_meaningful
   logical ran_function_was_called
+  logical write_digested
 end type
 
 !
@@ -712,8 +713,13 @@ end subroutine
 subroutine b_grad_warning (ele)
 
   type (ele_struct) ele
+  integer kk
 
-  print *, trim(bp_com%parser_name), ' WARNING!'
+  !
+
+  do kk = 1, 20
+    print *, trim(bp_com%parser_name), ' WARNING!'
+  enddo
 
   if (ele%key == group$ .or. ele%key == overlay$) then
     print *, '      B_GRADIENT NEEDS TO BE REPLACED BY B1_GRADIENT, B2_GRADIENT, OR B3_GRAIENT.'
@@ -729,6 +735,11 @@ subroutine b_grad_warning (ele)
       print *, '      ROOT FILE: ', trim(bp_com%current_file%full_name)
     endif
   endif
+
+  do kk = 1, 10
+    print *, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!'
+  enddo
+  bp_com%write_digested = .false.
 
 end subroutine
 
@@ -3733,6 +3744,26 @@ if (attribute_index(ele, 'DS_STEP') > 0) then  ! If this is an attribute for thi
     endif
   endif
 endif
+
+! multipass lord needs to have field_master = T or must define a reference energy.
+
+if (ele%control_type == multipass_lord$ .and. .not. ele%field_master) then
+  select case (ele%key)
+  case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
+        hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
+    n = 0
+    if (nint(ele%value(n_ref_pass$)) /= 0) n = n + 1 
+    if (ele%value(p0c$) /= 0) n = n + 1
+    if (ele%value(e_tot$) /= 0) n = n + 1
+    if (n == 0) call warning ( &
+          'FOR MULTIPASS LORD: ' // ele%name, &
+          'N_REF_PASS, E_TOT, AND P0C ARE ALL ZERO AND FIELD_MASTER = FALSE!')
+    if (n > 1) call warning ( &
+          'FOR MULTIPASS LORD: ' // ele%name, &
+          'MORE THAN ONE OF N_REF_PASS, E_TOT, AND P0C ARE SET NON-ZERO!')
+  end select
+endif
+
 
 end subroutine
 

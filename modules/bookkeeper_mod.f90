@@ -403,9 +403,14 @@ if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
   slave%value(p0c_start$)    = val(p0c_start$)
 endif
 
+! A slave's field_master = T irregardless of the lord's setting.
+
 slave%value(e_tot$) = val(e_tot$)
 slave%value(p0c$)   = val(p0c$)
 slave%value(n_ref_pass$)    = 0
+slave%field_master          = .true.
+
+! An sbend is tricky since the reference orbit changes with energy.
 
 if (lord%key == sbend$ .and. slave%value(p0c$) /= 0) then
 
@@ -485,7 +490,6 @@ slave%tracking_method  = lord%tracking_method
 slave%is_on            = lord%is_on
 slave%aperture_at      = lord%aperture_at
 slave%coupler_at       = lord%coupler_at
-slave%field_master     = lord%field_master
 
 end subroutine
 

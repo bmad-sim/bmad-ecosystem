@@ -121,12 +121,22 @@ independent variable or the field strengths \vn{b1_gradient}, \vn{bl_hkick} and
 \begin{example}
   Q1: quadrupole, k1 = 0.6, bl_hkick = 37.5  ! NO. Not VALID.
 \end{example}
+\index{field_master}
 To define an element with the field strength as the independent
-attribute without setting the strength just set the strength to zero. For example
+attribute without setting the strength just set the strength to zero
+or, alternatively, the \vn{field_master} logical can be set. For
+example
 \begin{example}
   Q1: quadrupole, b1_gradient = 0   ! Field strengths now the independent variables
+  Q1: quadrupole, field_master = T  ! Same as above
 \end{example}
-
+The same effect can be obtained by setting the field or \vn{field_master} attributes
+after the element has been defined.
+\begin{example}
+  q1: quadrupole        ! Define q1.
+  q1[b1_gradient] = 0   ! Field strengths now the independent variables.
+  q1[field_master] = T  ! Same as above.
+\end{example
 
 %-----------------------------------------------------------------
 \section{Type, Alias and Descrip Attributes}
@@ -159,27 +169,33 @@ comma (,) or the end of the line marks the end of the string. Example:
 \index{parameter statement}\index{e_tot}
 \index{e_tot_start}\index{p0c_start}
 \index{patch}\index{lcavity}\index{p0c}
+\index{n_ref_pass}
 The attributes that define the reference energy and momentum at an element are:
 \begin{example}
-  e_tot = <Real>  ! Total energy in eV.
-  p0c         = <Real>  ! Momentum in eV.
+  e_tot  = <Real>  ! Total energy in eV.
+  p0c    = <Real>  ! Momentum in eV.
 \end{example}
 The energy and momentum are defined at the exit end of the element.
-For ultra--relativistic particles these two values are the same.
-See~\sref{s:phase.space.coords}. These attributes are dependent and thus
-cannot be set for an element directly in the lattice input
-file. The value of \vn{e_tot} and \vn{p0c} for an element is calculated by
-\bmad to be the same as the previous element except for \vn{Lcavity}
-and \vn{Patch} elements. To set the \vn{e_tot} or \vn{p0c} at the start of
+For ultra--relativistic particles these two values are the same
+(\sref{s:phase.space.coords}). Except for multipass elements
+(\sref{s:multipass}), \vn{e_tot} and \vn{p0c} are dependent attributes
+and, except for multipass elements, any setting of \vn{e_tot} and
+\vn{p0c} in the lattice input file will be ignored. The value of
+\vn{e_tot} and \vn{p0c} for an element is calculated by \bmad to be
+the same as the previous element except for \vn{Lcavity} and
+\vn{Patch} elements. To set the \vn{e_tot} or \vn{p0c} at the start of
 the lattice use the \vn{beginning} or \vn{parameter} statements.
 See~\sref{s:param}. Since the energy changes from the start to the end
-of an \vn{Lcavity}, An \vn{Lcavity} has the attributes
+of an \vn{Lcavity}, An \vn{Lcavity} has the dependent attributes
 \begin{example}
-  e_tot_start
+  e_tot_start   and
   p0c_start
 \end{example}
-which is just the reference energy and momentum at the start of the element.
+which are just the reference energy and momentum at the start of the element.
 
+For \vn{multipass} elements, the reference energy is set by specifying
+one of \vn{e_tot}, \vn{p0c}, or \vn{n_ref_pass} as described in
+\sref{s:multipass}.
 
 %-----------------------------------------------------------------
 \section{Offset, Pitch, Tilt, and Roll Attributes}
@@ -450,7 +466,7 @@ Example
 
 \vn{is_on} does not affect any apertures that are set. Additionally,
 \vn{is_on} does not affect the reference orbit. Therefore, turning 
-off an \vn{LCavity} will not affect the reference energy.
+off an \vn{lcavity} will not affect the reference energy.
 
 %-----------------------------------------------------------------
 \section{Multipole Attributes: An, Bn, KnL, Tn}

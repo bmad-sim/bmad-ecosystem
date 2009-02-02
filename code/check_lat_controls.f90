@@ -72,17 +72,31 @@ do i_t = 1, lat%n_ele_max
     endif
   endif
 
-  ! sbend multipass lord must have non-zero n_ref_pass
+  ! sbend multipass lord must have non-zero ref_energy.
 
   if (ele%key == sbend$ .and. t_type == multipass_lord$) then
-    ix = nint(ele%value(n_ref_pass$))
-    if (ix < 0 .or. ix > ele%n_slave) then
+    if (ele%value(p0c$) == 0) then
       call out_io (s_fatal$, r_name, &
                 'BEND: ' // ele%name, &
                 'WHICH IS A: ' // control_name(t_type), &
-                'HAS A BAD N_MULTIPASS_REF VALUE VALUE: \i0\ ', i_array = (/ ix /) )
+                'DOES NOT HAVE A REFERENCE ENERGY DEFINED')
       found_err = .true.
     endif
+  endif
+
+  ! A multipass lord that is a magnetic or electric element must either:
+  !   1) Have field_master = True or
+  !   2) Have a defined reference energy.
+
+  if (t_type == multipass_lord$ .and. .not. ele%field_master .and. lord%value(p0c$) == 0) then
+    select case (ele%key)
+    case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
+          hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
+      call out_io (s_fatal$, r_name, &
+            'FOR MULTIPASS LORD: ' // lord%name, &
+            'N_REF_PASS, E_TOT, AND P0C ARE ALL ZERO AND FIELD_MASTER = FALSE!')
+      found_err = .true.
+    end select
   endif
 
   ! check that element is in correct part of the ele(:) array

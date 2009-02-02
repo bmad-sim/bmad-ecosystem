@@ -416,11 +416,17 @@ Here the 1\St and 6\Th elements are connected to a multipass lord and the
 2\Nd and 5\Th elements are connected to a different multipass lord.
 
 \index{lcavity}
+\index{p0c}\index{e_tot}
 If there are \vn{lcavity} elements in the lattice then the reference
-energy at a given element may differ from pass to pass. For a magnetic
-element, since the normalized strength is not constant from pass to
-pass, the magnetic field strength should be setup to be the
-independent attribute (\sref{s:depend}). 
+energy at a given element may differ from pass to pass. In this case,
+the normalized strength (k1, kick, etc.) for magnetic and electric
+elements will not be the same from pass to pass. To avoid an
+ambiguity, all magnetic and electric elements that are used in a
+multipass line must have their magnetic or electric field strength set
+as the independent attribute (\sref{s:depend}), {\em or} a reference
+energy (\sref{s:energy}) must be defined. A reference energy is
+defined by setting \vn{e_tot} or \vn{p0c}, or by setting
+\vn{n_ref_pass} as described below. 
 
 \begin{figure}[tb]
 \centering 
@@ -438,15 +444,13 @@ all the reference orbits will be the same at the entrance end of the magnet.}
 For a bend in a multipass line, there is the added complication of how
 to define the reference orbit when the reference energy is different
 from pass to pass. If, say, a different reference orbit is used for
-each pass there is a problem of how to interpolate multipole values
+each pass there is a problem of how to interpret multipole values
 like \vn{k1}. On the other hand, it is sometimes very convenient to be
 able to use separate reference orbits. 
 
-A bend element has two attributes that control the reference orbit:
-\vn{ref_orbit} and \vn{n_ref_pass}. \vn{n_ref_pass} is an
-integer indicating which pass is used to define the reference energy
-for the lord element. \vn{ref_orbit} is a switch that can take
-the values:
+A bend element has a \vn{ref_orbit} attribute that, when combined with
+the reference energy, define the reference orbit. \vn{ref_orbit} is a
+switch that can take the values:
 \begin{example}
   single_ref            ! Default
   match_at_entrance
@@ -457,7 +461,11 @@ orbit will be used for all passes. The \vn{match_at_entrance} and
 \vn{match_at_exit} values are used when separate reference orbits are
 desired as described below.
 
-An example will make this clear. Consider a bend defined by
+To set the reference energy, one (and only one) of the attributes
+\vn{n_ref_pass}, \vn{e_tot} or \vn{p0c} needs to be
+set. \vn{n_ref_pass} is an integer indicating which pass is used to
+define the reference energy for the lord element. An example will
+make this clear. Consider a bend defined by
 \begin{example} 
   B: sbend, l = 1, b_field = 1.0, n_ref_pass = 1, ref_orbit = single_ref
 \end{example}
@@ -517,9 +525,3 @@ for a bend that is {\em not} at the end of a multipass
 line. Similarly, the \vn{match_at_exit} value is useful for simulating
 a bend that combines beams of different energies. Such a bend should
 be placed at the beginning of a multipass line.
-
-Due to the presence of \vn{n_ref_pass}, the reference energy is well
-defined for bends in a multipass line. This being the case, the
-magnetic field can be computed from knowledge of \vn{g} (or \vn{rho})
-and \vn{g_err}. Hence bend elements are the exception to the rule, and
-\vn{g} and \vn{g_err} can be used as the independent attributes.

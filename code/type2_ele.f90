@@ -276,7 +276,7 @@ endif
 
 if (ele%control_type /= overlay_lord$ .and. ele%control_type /= group_lord$ .and. &
     ele%control_type /= girder_lord$) then
-  nl=nl+1; write (li(nl), fmt_a) 'FIELD_MASTER', '=', on_off_logic(ele%field_master)
+  nl=nl+1; write (li(nl), fmt_l) 'FIELD_MASTER', '=', ele%field_master
 endif
 
 if (attribute_index(ele, 'INTEGRATOR_ORDER') /= 0) then

@@ -212,13 +212,13 @@ character(16) :: r_name = 'aml_parser'
 character(80) debug_line
 
 logical, optional :: make_mats6, digested_read_ok
-logical write_digested, found, err_flag
+logical found, err_flag
 logical :: debug = .false.
 
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
 
-write_digested = .true.
+bp_com%write_digested = .true.
 debug_line = ''
 bp_com%parser_name = "AML_PARSER"
 
@@ -248,7 +248,7 @@ if (bmad_status%ok) then
        bmad_status%ok = .false.
     endif
     if (lat%input_taylor_order > bmad_com%taylor_order) &
-                                         write_digested = .false.
+                                         bp_com%write_digested = .false.
   endif
 endif
 

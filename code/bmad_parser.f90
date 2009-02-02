@@ -79,14 +79,14 @@ character(80) debug_line
 logical, optional :: make_mats6, digested_read_ok
 logical delim_found, arg_list_found, xsif_called, err
 logical file_end, found, err_flag, finished, exit_on_error
-logical detected_expand_lattice_cmd, multipass, write_digested
+logical detected_expand_lattice_cmd, multipass
 
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
 
 bp_com%error_flag = .false.              ! set to true on an error
 bp_com%parser_name = 'BMAD_PARSER'       ! Used for error messages.
-write_digested = .true.
+bp_com%write_digested = .true.
 debug_line = ''
 
 call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
@@ -114,7 +114,7 @@ if (bmad_status%ok) then
            'Taylor_order now:              \i4\ ', &
            i_array = (/ lat%input_taylor_order, bmad_com%taylor_order /) )
     endif
-    if (lat%input_taylor_order > bmad_com%taylor_order) write_digested = .false.
+    if (lat%input_taylor_order > bmad_com%taylor_order) bp_com%write_digested = .false.
   endif
 endif
 
@@ -202,7 +202,7 @@ parsing_loop: do
   ! NO_DIGESTED
 
   if (word_1(:ix_word) == 'NO_DIGESTED') then
-    write_digested = .false.
+    bp_com%write_digested = .false.
     call out_io (s_info$, r_name, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED')
     cycle parsing_loop
   endif
@@ -297,6 +297,8 @@ parsing_loop: do
         print *, '*********************************************************'
       enddo
     endif
+    print *, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!'
+    bp_com%write_digested = .false.
     cycle parsing_loop
   endif
 
@@ -696,6 +698,8 @@ do i = 1, bp_com%ivar_tot
     do j = 1, 10
       print *, '*********************************************************'
     enddo
+    print *, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!'
+    bp_com%write_digested = .false.
     lat%param%lattice_type = nint(bp_com%var_value(i))
   endif
 
@@ -709,6 +713,8 @@ do i = 1, bp_com%ivar_tot
     do j = 1, 10
       print *, '*********************************************************'
     enddo
+    print *, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!'
+    bp_com%write_digested = .false.
     lat%input_taylor_order = nint(bp_com%var_value(i))
   endif
 
@@ -890,8 +896,8 @@ call check_lat_controls (lat, .true.)
 
 ! write to digested file
 
-write_digested = write_digested .and. digested_version <= bmad_inc_version$
-if (write_digested) call write_digested_bmad_file (digested_file, &
+bp_com%write_digested = bp_com%write_digested .and. digested_version <= bmad_inc_version$
+if (bp_com%write_digested) call write_digested_bmad_file (digested_file, &
                               lat, bp_com%num_lat_files, bp_com%lat_file_names)
 
 call parser_end_stuff

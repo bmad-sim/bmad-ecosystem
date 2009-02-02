@@ -80,15 +80,19 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   if (lord%ix2_slave < 1) cycle  ! lord has no slaves
 
   ! Multipass lords have their own reference energy if n_ref_pass /= 0.
-  ! Otherwise a multipass lord does not have an energy.
 
   if (lord%control_type == multipass_lord$) then
     ix = nint(lord%value(n_ref_pass$))
-    if (ix == 0) cycle
-    j = lord%ix1_slave + ix - 1
-    ixs = lat%control(j)%ix_slave
-    lord%value(e_tot$) = lat%ele(ixs)%value(e_tot$)
-    lord%value(p0c$)   = lat%ele(ixs)%value(p0c$)
+    if (ix /= 0) then  
+      j = lord%ix1_slave + ix - 1
+      ixs = lat%control(j)%ix_slave
+      lord%value(e_tot$) = lat%ele(ixs)%value(e_tot$)
+      lord%value(p0c$)   = lat%ele(ixs)%value(p0c$)
+    elseif (lord%value(e_tot$) == 0 .and. lord%value(p0c$) /= 0) then
+      call convert_pc_to (lord%value(p0c$), lat%param%particle, e_tot = lord%value(e_tot$))
+    elseif (lord%value(p0c$) == 0 .and. lord%value(e_tot$) /= 0) then
+      call convert_total_energy_to (lord%value(e_tot$), lat%param%particle, pc = lord%value(p0c$))
+    endif
     cycle
   endif
 

@@ -79,12 +79,12 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, found, xsif_called, err
-  logical file_end, err_flag, finished, write_digested
+  logical file_end, err_flag, finished
 
 ! Init...
 
   bmad_status%ok = .true.
-  write_digested = .false.
+  bp_com%write_digested = .false.
   bp_com%parser_name = 'BMAD_PARSER2'
 
 ! If lat_file = 'FROM: BMAD_PARSER' then bmad_parser2 has been called by 
@@ -136,7 +136,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
     endif
     call save_taylor_elements (lat2, old_ele)
     call deallocate_lat_pointers (lat2)
-    if (digested_version <= bmad_inc_version$) write_digested = .true.
+    if (digested_version <= bmad_inc_version$) bp_com%write_digested = .true.
     if (bmad_status%type_out) &
              call out_io (s_info$, r_name, 'Creating new digested file...')
   endif
@@ -172,7 +172,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 ! NO_DIGESTED
 
     if (word_1(:ix_word) == 'NO_DIGESTED') then
-      write_digested = .false.
+      bp_com%write_digested = .false.
       print *, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED'
       cycle parsing_loop
     endif
@@ -559,7 +559,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
 
 ! write to digested file
 
-  if (write_digested) call write_digested_bmad_file (digested_name, &
+  if (bp_com%write_digested) call write_digested_bmad_file (digested_name, &
                              lat, bp_com%num_lat_files, bp_com%lat_file_names)
 
 end subroutine
