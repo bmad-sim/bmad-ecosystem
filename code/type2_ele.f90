@@ -266,7 +266,7 @@ if (ele%aperture_at /= 0) then
 endif
 
 
-if (ele%coupler_at /= 0) then
+if (attribute_index(ele, 'COUPLER_AT') /= 0) then
   nl=nl+1; write (li(nl), fmt_a) 'COUPLER_AT', '=', element_end_name(ele%coupler_at)
 endif
 
@@ -274,23 +274,23 @@ if (ele%ref_orbit /= 0) then
   nl=nl+1; write (li(nl), fmt_a) 'REF_ORBIT', '=', ref_orbit_name(ele%ref_orbit) 
 endif
 
-if (ele%control_type /= overlay_lord$ .and. ele%control_type /= group_lord$ .and. &
-    ele%control_type /= girder_lord$) then
-  nl=nl+1; write (li(nl), fmt_l) 'FIELD_MASTER', '=', ele%field_master
-endif
-
 if (attribute_index(ele, 'INTEGRATOR_ORDER') /= 0) then
-  nl=nl+1; write (li(nl), fmt_i) ' INTEGRATOR_ORDER:', '=', ele%integrator_order 
+  nl=nl+1; write (li(nl), fmt_i) 'INTEGRATOR_ORDER:', '=', ele%integrator_order 
 endif
 
 if (attribute_index(ele, 'NUM_STEPS') /= 0) then
-  write (li(nl), fmt_i) 'NUM_STEPS', '=', ele%num_steps 
+  nl=nl+1; write (li(nl), fmt_i) 'NUM_STEPS', '=', ele%num_steps 
 endif
 
 if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'SYMPLECTIFY', '=', ele%symplectify
 endif
   
+if (ele%control_type /= overlay_lord$ .and. ele%control_type /= group_lord$ .and. &
+    ele%control_type /= girder_lord$ .and. attribute_index(ele, 'FIELD_MASTER') /= 0) then
+  nl=nl+1; write (li(nl), fmt_l) 'FIELD_MASTER', '=', ele%field_master
+endif
+
 if (attribute_index(ele, 'CSR_CALC_ON') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'CSR_CALC_ON', '=', ele%csr_calc_on
 endif

@@ -1365,11 +1365,10 @@ if (ele%field_master) then
     val(kick$) = factor * val(BL_kick$)
   case (vkicker$)
     val(kick$) = factor * val(BL_kick$)
-  case (lcavity$, drift$, monitor$, instrument$, &
-                               ecollimator$, rcollimator$, elseparator$)
-  case default
-    call out_io(s_abort$, r_name, '"FIELD_MASTER" NOT IMPLEMENTED FOR: ' // trim(ele%name))
-    call err_exit
+  case (bend_sol_quad$)
+    val(g$)  = factor * val(B_field$)
+    val(k1$) = factor * val(B1_gradient$)
+    val(ks$) = factor * val(Bs_field$)
   end select
 
   val(hkick$) = factor * val(BL_hkick$)
@@ -1400,6 +1399,10 @@ else
     val(BL_kick$) = factor * val(kick$)
   case (vkicker$) 
     val(BL_kick$) = factor * val(kick$)
+  case (bend_sol_quad$)
+    val(B_field$)     = factor * val(g$)
+    val(B1_gradient$) = factor * val(k1$)
+    val(Bs_field$)    = factor * val(ks$)
   end select
 
   val(BL_hkick$) = factor * val(hkick$)
