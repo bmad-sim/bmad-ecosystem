@@ -2194,7 +2194,7 @@ subroutine verify_valid_name (name, ix_name)
 
   character(*) name
   character(27) :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
-  character(43) :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().'
+  character(44) :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#'
   character(1), parameter :: tab = achar(9)
 
   logical OK
