@@ -109,6 +109,9 @@ character(40) :: r_name = 'create_wiggler_model'
 
 ! Check
 
+wig_com => wiggler  ! For yfit_calc
+lat_com => lat      ! For yfit_calc
+
 if (wiggler%key /= wiggler$) then
   call out_io (s_fatal$, r_name, 'Element is not a wiggler!: ' // wiggler%name)
   call err_exit
@@ -311,9 +314,6 @@ call lattice_bookkeeper (lat)
 ! Data to fit:
 !   Difference: mat6(1:2,1:2), mat6(3:4,3:4), mat6(1,6), g2_int, g3_int
 !   ele%floor%x = 0
-
-wig_com => wiggler
-lat_com => lat
 
 if (even_pole_num) then
   n_var = 5
