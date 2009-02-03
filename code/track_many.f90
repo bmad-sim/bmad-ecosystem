@@ -71,7 +71,7 @@ subroutine track_many (lat, orbit, ix_start, ix_end, direction)
   if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
   lat%param%lost = .false.
-  lat%param%ix_lost = -1
+  lat%param%ix_lost = not_lost$
 
 ! track through elements.
 

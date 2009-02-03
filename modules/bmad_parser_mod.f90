@@ -953,7 +953,7 @@ subroutine file_stack (how, file_name_in, finished, err)
   character(*), optional :: file_name_in
   character(200) file_name, basename, file_name2
   logical, optional :: finished, err
-  logical found_it, is_relative, valid
+  logical found_it, is_relative, valid, err_flag
 
 ! "Init" means init
 
@@ -1003,7 +1003,8 @@ subroutine file_stack (how, file_name_in, finished, err)
 
     ix = splitfilename (file_name2, file(i_level)%dir, basename, is_relative)
     if (is_relative) call append_subdirectory (trim(file(i_level-1)%dir), &
-                                             file(i_level)%dir, file(i_level)%dir)
+                                             file(i_level)%dir, file(i_level)%dir, err_flag)
+    if (err_flag) call warning ('BAD DIRECTORY SYNTAX FOR: ' // file_name, stop_here = .true.)
     bp_com%dirs(1) = file(i_level-1)%dir
     call find_file (file_name2, found_it, file_name, bp_com%dirs)
     file(i_level)%logical_name = file_name2

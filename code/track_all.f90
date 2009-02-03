@@ -52,7 +52,7 @@ subroutine track_all (lat, orbit)
   if (size(orbit) < lat%n_ele_max+1) &
                   call reallocate_coord (orbit, lat%n_ele_max)
 
-  lat%param%ix_lost = -1
+  lat%param%ix_lost = not_lost$
 
   if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
