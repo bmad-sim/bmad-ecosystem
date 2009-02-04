@@ -2,6 +2,7 @@ module cesr_read_data_mod
 
 use cesr_basic_mod
 use cesr_db_mod
+use file_number_mod
 
 character(100), save, private :: offset_correction_file = ''
 character(100), save, private :: gain_correction_file = ''
@@ -128,98 +129,6 @@ all_dat%db%scir_pos_rd(:)%valid_cu_now  = .true.
 all_dat%db%scir_enc_cnt(:)%valid_cu_now = .true.
 
 err = .false.
-
-end subroutine
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!+
-! Subroutine number_to_cesr_data_file (num_in, who, file_name, num_out, err, print_err)
-!
-! Routine to form the file name for a phase, orbit, eta, or ac_dispersion
-! data file. 
-! If num_in is negative then the number of the data file will be:
-!   num_out = number_of_last_data_set + num_in
-!
-! Modules needed:
-!   use cesr_read_data_mod
-!
-! Input:
-!   num_in    -- Integer: Number of the orbit data file.
-!   who       -- Character(*): 'phase', 'orbit', 'eta', or 'ac_eta'  
-!   print_err -- Logical, optional: Print an error message if there is an error?
-!                 Default is True.
-!
-! Output:
-!   file_name -- Character(*): Full file name including directory spec.
-!   num_out   -- Integer: Number of the data file.
-!   err       -- Logical: Set True if there is an error. False otherwise.
-!-
-
-subroutine number_to_cesr_data_file (num_in, who, file_name, num_out, err, print_err)
-
-implicit none
-
-integer num_in, num_out
-
-character(*) who, file_name
-character(40) :: r_name = 'number_to_cesr_data_file'
-logical err
-logical, optional :: print_err
-
-!
-
-file_name = ''
-call number_to_data_file_number (num_in, who, num_out, err, print_err)
-if (err) return
-call form_file_name_with_number (who, num_out, file_name, err)
-
-end subroutine
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!+
-! Subroutine number_to_data_file_number (num_in, who, num_out, err, print_err)
-!
-! Routine to form the appropriate number for phase, orbit, eta, etc. data files. 
-!   num_out = num_in                             if num_in > 0
-!           = number_of_last_data_set + num_in   if num_in < 1
-!
-! Modules needed:
-!   use cesr_read_data_mod
-!
-! Input:
-!   num_in    -- Integer: Number of the data file.
-!   who       -- Character(*): 'graphic', 'phase', 'orbit', 'eta', or 'ac_eta'  
-!   print_err -- Logical, optional: Print an error message if there is an error?
-!                 Default is True.
-!
-! Output:
-!   num_out   -- Integer: Data file number.
-!   err       -- Logical: Set True if there is an error. False otherwise.
-!-
-
-subroutine number_to_data_file_number (num_in, who, num_out, err, print_err)
-
-implicit none
-
-integer num_in, num_out
-
-character(*) who
-character(100) number_file
-character(40) :: r_name = 'number_to_data_file_number'
-logical err
-logical, optional :: print_err
-
-!
-
-call number_file_name (who, number_file)
-call calc_file_number (number_file, num_in, num_out, err)
-if (who == 'orbit' .or. who == 'graphic') then
-  if (num_in < 1)  num_out = num_out - 1  ! Number in file is 1 + current number
-endif
 
 end subroutine
 
