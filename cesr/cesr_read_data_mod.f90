@@ -183,23 +183,21 @@ end subroutine
 !+
 ! Subroutine number_to_data_file_number (num_in, who, num_out, err, print_err)
 !
-! Routine to form the file name for a phase, orbit, eta, or ac_dispersion
-! data file. 
+! Routine to form the appropriate number for phase, orbit, eta, etc. data files. 
 !   num_out = num_in                             if num_in > 0
-!           = number_of_last_data_set + num_in   otherwise
+!           = number_of_last_data_set + num_in   if num_in < 1
 !
 ! Modules needed:
 !   use cesr_read_data_mod
 !
 ! Input:
-!   num_in    -- Integer: Number of the orbit data file.
-!   who       -- Character(*): 'phase', 'orbit', 'eta', or 'ac_eta'  
+!   num_in    -- Integer: Number of the data file.
+!   who       -- Character(*): 'graphic', 'phase', 'orbit', 'eta', or 'ac_eta'  
 !   print_err -- Logical, optional: Print an error message if there is an error?
 !                 Default is True.
 !
 ! Output:
-!   file_name -- Character(*): Full file name including directory spec.
-!                   Set to '' if there is an error.
+!   num_out   -- Integer: Data file number.
 !   err       -- Logical: Set True if there is an error. False otherwise.
 !-
 
@@ -210,35 +208,18 @@ implicit none
 integer num_in, num_out
 
 character(*) who
+character(100) number_file
 character(40) :: r_name = 'number_to_data_file_number'
 logical err
 logical, optional :: print_err
 
 !
 
-select case (who)
-
-case ('phase')
-  call calc_file_number ('$CESR_MNT/phase/phase.number', num_in, num_out, err)
-
-case ('orbit')
-  call calc_file_number ('CESR_MNT:[orbit]next_butnum.num', num_in, num_out, err)
+call number_file_name (who, number_file)
+call calc_file_number (number_file, num_in, num_out, err)
+if (who == 'orbit' .or. who == 'graphic') then
   if (num_in < 1)  num_out = num_out - 1  ! Number in file is 1 + current number
-
-case ('eta')
-  call calc_file_number ('$CESR_MNT/eta/eta.number', num_in, num_out, err)
-
-case ('ac_eta')
-  call calc_file_number ('CESR_MNT/ac_eta/ac_eta.number', num_in, num_out, err)
-
-case default
-  if (logic_option(.true., print_err)) &
-                call out_io (s_error$, r_name, 'BAD "WHO": ' // who)
-  err = .true.
-end select
-
-
-
+endif
 
 end subroutine
 
