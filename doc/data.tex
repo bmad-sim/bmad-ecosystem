@@ -467,10 +467,10 @@ tracking, the value of an \vn{unstable_orbit} datum is zero if the
 tracked particle survives (has not been lost) up to the \vn{ele}
 element and, if it has been lost, is set to 
 \Begineq
- 1 + i_\mbox{ele} - i_\mbox{lost}
+ 1 + i_{\mbox{ele}} - i_{\box{lost}}
 \Endeq
-where $i_\mbox{ele}$ is the index of \vn{ele} in the lattice and
-$i_\mbox{lost}$ is the index of the element where the particle was
+where $i_{\mbox{ele}}$ is the index of \vn{ele} in the lattice and
+$i_{\mbox{lost}}$ is the index of the element where the particle was
 lost. When tracking beams, the value of \vn{unstable_orbit} is the
 averaged value over all particles in the bunch. The default for
 \vn{ele}, if \vn{ele_name} nor \vn{ix_ele} is not specified, is to use
