@@ -2,7 +2,8 @@
 ! Subroutine set_z_tune (lat, z_tune)
 !
 ! Subroutine to set the longitudinal tune by scalling the RF voltages
-! in the RF cavities.
+! in the RF cavities. Note: RF cavity elements that are set OFF will not
+! have their voltages varied.
 !
 ! Modules Needed:
 !   use bmad
@@ -73,16 +74,18 @@ do i = 1, lat%n_ele_max
 
   ele => lat%ele(i)
 
+  ! RFcavity element
+
   if (ele%key == rfcavity$) then
 
     if (ele%control_type == super_slave$) cycle 
+    if (.not. ele%is_on) cycle
+    if (ele%value(rf_frequency$) == 0) cycle
 
     do j = ele%ic1_lord, ele%ic2_lord ! check any overlays.
       ix = lat%ic(j)
       if (lat%control(ix)%ix_attrib == voltage$) cycle
     enddo
-
-    if (ele%value(rf_frequency$) /= 0) rf_is_on = .true.
 
     n_rf = n_rf + 1
     ix_rf(n_rf) = i
@@ -93,26 +96,31 @@ do i = 1, lat%n_ele_max
 
   endif
 
+  ! Overlay element
+
   if (ele%key == overlay$) then
     found_control = .false.
     do j = ele%ix1_slave, ele%ix2_slave
       ix = lat%control(j)%ix_slave
       ele2 => lat%ele(ix)
-      if (ele2%key == rfcavity$ .and. &
-                        lat%control(j)%ix_attrib == voltage$) then
-        if (.not. found_control) n_rf = n_rf + 1
-        found_control = .true.
-        phase = twopi * (ele2%value(phi0$) + ele2%value(dphi0$))
-        coef_tot = coef_tot + lat%control(j)%coef * twopi * &
-                 cos(phase) * ele2%value(rf_frequency$) / (c_light * E0)
-        k = ele%ix_value
-        ix_attrib(n_rf) = k
-      else
-        if (found_control) then
-          print *, 'WARNING FROM SET_Z_TUNE: FOUND OVERLAY THAT DOES NOT'
-          print *, '        PURELY CONTROL RF VOLTAGE: ', ele%name
-        endif
+
+      if (found_control .and. &
+            (ele2%key /= rfcavity$ .or. lat%control(j)%ix_attrib /= voltage$)) then
+        print *, 'WARNING FROM SET_Z_TUNE: FOUND OVERLAY THAT DOES NOT'
+        print *, '        PURELY CONTROL RF VOLTAGE: ', ele%name
+        cycle
       endif
+
+      if (ele%value(rf_frequency$) == 0) cycle
+      if (.not. ele2%is_on) cycle
+
+      if (.not. found_control) n_rf = n_rf + 1
+      found_control = .true.
+      phase = twopi * (ele2%value(phi0$) + ele2%value(dphi0$))
+      coef_tot = coef_tot + lat%control(j)%coef * twopi * &
+               cos(phase) * ele2%value(rf_frequency$) / (c_light * E0)
+      k = ele%ix_value
+      ix_attrib(n_rf) = k
     enddo
   endif
 
@@ -120,10 +128,11 @@ enddo
 
 !
 
-if (.not. rf_is_on) then
-  print *, 'ERROR IN SET_Z_TUNE: RF_FREQUENCY ATTRIBUTE NOT SET'
-  print *, '      FOR ANY RF CAVITIES.'
-  print *, '      Z TUNE WILL NOT BE SET.'
+if (coef_tot == 0) then
+  print *, 'ERROR IN SET_Z_TUNE: CANNOT FIND ANY RFCAVITY ELEMENTS WHICH ARE:'
+  print *, '      1) ON,  AND' 
+  print *, '      2) HAVE A FINETE RF_FREQUENCY!'
+  print *, '      THE Z TUNE WILL NOT BE SET.'
   return
 endif
 
