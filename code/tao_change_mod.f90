@@ -136,9 +136,9 @@ endif
 
 nl=nl+1; lines(nl) = ' '
 nl=nl+1; write (lines(nl), fmt) 'Merit:      ', old_merit, '  ->', new_merit
-nl=nl+1; write (lines(nl), fmt) 'dMerit:     ', new_merit-old_merit
+nl=nl+1; write (lines(nl), fmt) 'dMerit:     ', new_merit - old_merit
 if (delta /= 0) then
-  nl=nl+1; write (lines(nl), '(5x, a, es11.3)') 'dMerit/dVar:', &
+  nl=nl+1; write (lines(nl), '(5x, a, es12.3)') 'dMerit/dVar:', &
                                      (new_merit-old_merit) / delta
 endif
 
@@ -261,6 +261,8 @@ do i = 1, size(d_ptr)
     m_ptr(i)%r = m_ptr(i)%r + change_number(i)
   endif
 
+  delta = m_ptr(i)%r - old_value(i)
+
   if (e_name == 'BEAM_START') then
     u%beam_init%center = u%model%lat%beam_start%vec
     u%init_beam0 = .true.
@@ -299,16 +301,17 @@ if (i <= size(d_ptr)) then
 endif
 
 if (max(abs(old_merit), abs(new_merit)) > 100) then
-  fmt = '(2(a, f13.2), a, f13.2)'
+  fmt = '(2(a, es13.4), a, es13.4)'
 else
   fmt = '(2(a, f13.6), a, f13.6)'
 endif
 
-nl=nl+1;write (lines(nl), fmt) 'Merit:      ', &
-                        old_merit, '  ->', new_merit, '  Delta: ', new_merit-old_merit
+nl=nl+1; lines(nl) = ' '
+nl=nl+1;write (lines(nl), fmt) 'Merit:      ', old_merit, '  ->', new_merit
+nl=nl+1;write (lines(nl), fmt) 'dMerit:     ', new_merit - old_merit
 if (delta /= 0) then
-  nl=nl+1
-  write (lines(nl), '(a, es12.3)') 'dMerit/dValue:  ', (new_merit-old_merit) / delta
+  nl=nl+1; write (lines(nl), '(a, es12.3)') 'dMerit/dValue:  ', &
+                                        (new_merit-old_merit) / delta
 endif
 
 call out_io (s_blank$, r_name, lines(1:nl))

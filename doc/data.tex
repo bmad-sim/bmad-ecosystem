@@ -120,8 +120,8 @@ encompassed by a \vn{d1_data} structure, the \vn{[*]} can be omitted.
 
 Each datum has a number of quantities associated with it:
 \begin{example}
-  ele_name       ! Character: Corresponding lattice element name.
-  ele0_name      ! Character: Name of range marker element.
+  ele_name       ! Character: Name of "ele" element.
+  ele0_name      ! Character: Name of "ele0" range marker element.
   data_type      ! Character: Type of data: "orbit.x", etc.
   merit_type     ! Character: Type of constraint: "target", "max", etc.
   data_source    ! Character: How the datum is calculated. "lattice", or "beam".
@@ -278,21 +278,28 @@ Table~\ref{t:data.lattice} lists the predefined data types in
 \tao that are valid for a \vn{"lattice"} \vn{data_source}.
 
 \index{Data!Relative}
-Associated with a datum are two lattice elements named
-\vn{ele0_name} and \vn{ele_name}. Datums can be divided up into four
-classes: \vn{Global} Datums, like the emittance in a circular
-ring, do not have associated lattice elements and their corresponding
-element names will be blank. Datums in the second class, like the beta
-function at a given point, will only have one associated lattice
-element given by \vn{ele_name} and \vn{ele0_name} will be blank.
-Datums in the third class are associated with a section of the
-lattice. For example, the maximum of the beta function in a lattice
-region. In this case the \vn{ele0} element marks the beginning of the
-region and \vn{ele} marks the end. The final class of datums, called
-\vn{relative} datums, means that the datum value is set by the
-difference between the value at the lattice element at \vn{ele0} and
-the value at \vn{ele}. The betatron phase advance falls into this
-category:
+Associated with a datum are two lattice elements called \vn{ele} and
+\vn{ele0}.  The names of these elements may be specified by setting
+the \vn{ele0_name} and \vn{ele_name} components of a
+datum. Alternatively, these elements may be specified by setting the
+\vn{ix_ele} and \vn{ix_ele0} components of a datum. \vn{ix_ele} and
+\vn{ix_ele0} are the index of the elements in the array of elements in
+the lattice. Using the element index over the element name is
+necessary when more than one element in the lattice has the same name.
+
+Datums can be divided up into four classes: \vn{Global} Datums, like
+the emittance in a circular ring, do not have associated lattice
+elements and their corresponding element names will be blank. Datums
+in the second class, like the beta function at a given point, will
+only have one associated lattice element given by \vn{ele_name} and
+\vn{ele0_name} will be blank.  Datums in the third class are
+associated with a section of the lattice. For example, the maximum of
+the beta function in a lattice region. In this case the \vn{ele0}
+element marks the beginning of the region and \vn{ele} marks the
+end. The final class of datums, called \vn{relative} datums, means
+that the datum value is set by the difference between the value at the
+lattice element at \vn{ele0} and the value at \vn{ele}. The betatron
+phase advance falls into this category:
 \begin{example}
   value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(ele0)
 \end{example}
@@ -453,13 +460,31 @@ in generating the points that define this curve will be decreased if
 the the s-distance between points is smaller than the \vn{ds_step}.
 In this case, discrepencies between the plot and datum values may be observed.
 
+  \index{unstable_orbit}
+  \item{unstable\_ring} \Newline
+\vn{unstable_orbit} is used for linear lattices. For single particle
+tracking, the value of an \vn{unstable_orbit} datum is zero if the
+tracked particle survives (has not been lost) up to the \vn{ele}
+element and, if it has been lost, is set to 
+\Begineq
+ 1 + i_\mbox{ele} - i_\mbox{lost}
+\Endeq
+where $i_\mbox{ele}$ is the index of \vn{ele} in the lattice and
+$i_\mbox{lost}$ is the index of the element where the particle was
+lost. When tracking beams, the value of \vn{unstable_orbit} is the
+averaged value over all particles in the bunch. The default for
+\vn{ele}, if \vn{ele_name} nor \vn{ix_ele} is not specified, is to use
+the last element in the lattice.
+
+\vn{unstable_orbit} is used in an optimization to avoid
+unstable solutions (\sref{s:generalized.design}).
+
   \index{unstable_ring}
   \item{unstable\_ring} \Newline
 \vn{unstable_ring} is used for storage rings. The value of an
 \vn{unstable_ring} datum is zero if the ring is stable and set to the
 largest growth rate of all the normal modes of oscillation if the ring
-is unstable. The value of an \vn{unstable_ring} datum is thus always
-non-zero.  \vn{unstable_ring} is used in an optimization to avoid
+is unstable. \vn{unstable_ring} is used in an optimization to avoid
 unstable solutions (\sref{s:generalized.design}).
 
   \index{wire.*}
@@ -476,7 +501,7 @@ size squared.
 
 
 \index{Data!Calculation Method}
-\index{unstable_ring}\index{beta}\index{alpha}\index{eta}\index{eta}
+\index{unstable_orbit}\index{beta}\index{alpha}\index{eta}\index{eta}
 \index{etap}\index{phase}\index{orbit}\index{wire}\index{spin}
 \index{cbar}\index{coupling}\index{floor}\index{r}\index{t}\index{tt}
 \index{i5a_e6}\index{i5b_e6}\index{s_position}\index{e_tot}
@@ -640,6 +665,7 @@ size squared.
                                 \end{tabular}                       & relative \\ \hline 
 
   tune.a, tune.b               & Tune                               &          \\ \hline 
+  unstable\_orbit              & Nonzero if particles are lost in tracking &   \\ \hline
   unstable\_ring               & Nonzero if a ring is unstable      & global   \\ \hline
 
 \end{tabular}

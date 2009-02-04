@@ -306,7 +306,7 @@ type (normal_modes_struct) :: modes
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 
-integer what_lat, who
+integer what_lat, who, n_alive, n_alive_old
 integer i, j, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to
 integer extract_at_ix_ele, n_lost
@@ -334,6 +334,7 @@ beam = u%beam0
 beam_init => u%beam_init
 lat => tao_lat%lat
 
+u%ele(:)%n_lost_here = 0
 lat%param%ix_lost = not_lost$
 lat%param%lost = .false.
 too_many_lost = .false.
@@ -407,6 +408,8 @@ if (s%global%beam_timer_on) then
   old_time = 0
 endif
 
+n_alive_old = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost /= not_lost$)
+
 do j = ie1, ie2
 
   ! track to the element and save for phase space plot
@@ -459,6 +462,10 @@ do j = ie1, ie2
   endif
 
   !
+
+  n_alive = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost /= not_lost$)
+  u%ele(j)%n_lost_here = n_alive_old - n_alive
+  n_alive_old = n_alive
 
   if (.not. too_many_lost) then
       call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &

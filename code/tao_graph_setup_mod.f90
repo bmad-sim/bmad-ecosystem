@@ -812,8 +812,8 @@ do k = 1, size(graph%curve)
 
   select case (plot%x_axis_type)
   case ('index', 'ele_index')
-    call re_allocate (curve%y_line, n_dat) ! allocate space for the data
-    call re_allocate (curve%x_line, n_dat) ! allocate space for the data
+    call re_allocate (curve%y_line, size(curve%x_symb)) ! allocate space for the data
+    call re_allocate (curve%x_line, size(curve%y_symb)) ! allocate space for the data
     curve%x_line = curve%x_symb
     curve%y_line = curve%y_symb
 

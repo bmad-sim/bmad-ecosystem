@@ -1038,6 +1038,20 @@ case ('t.', 'tt.')
   datum_value = taylor_coef (taylor(i), expnt)
   valid_value = .true.
 
+case ('unstable_orbit')
+  valid_value = .true.
+  if (lat%param%lattice_type /= linear_lattice$) return
+  if (datum%ele_name == '') ix1 = lat%n_ele_track
+  if (data_source == 'beam') then
+    do i = 1, ix1
+      datum_value = datum_value + (1 + ix1 - i) * u%ele(i)%n_lost_here
+    enddo
+    datum_value = datum_value / size(u%current_beam%bunch(s%global%bunch_to_plot)%particle)
+  else
+    if (lat%param%ix_lost == not_lost$) return
+    datum_value = max(0, 1 + ix1 - lat%param%ix_lost)
+  endif
+
 case ('unstable_ring')
   if (data_source == 'beam') return
   datum_value = lat%param%growth_rate

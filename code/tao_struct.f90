@@ -578,6 +578,7 @@ end type
 type tao_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
   logical save_beam               ! Save beam here?
+  integer n_lost_here             ! How many particles are lost here.
   integer ixx                     ! Scratch variable
 end type
 
