@@ -2166,8 +2166,9 @@ subroutine get_overlay_group_names (ele, lat, plat, delim, delim_found)
 !
 
   ixs = ele%n_slave
-  if (ixs == 0) call warning ( &
-          'NO SLAVE ELEMENTS ASSOCIATED WITH GROUP/OVERLAY ELEMENT: ' // ele%name)
+
+  ! if (ixs == 0) call warning ( &
+  !        'NO SLAVE ELEMENTS ASSOCIATED WITH GROUP/OVERLAY ELEMENT: ' // ele%name)
 
   ic = ele%ixx
   allocate (plat%ele(ic)%coef(ixs), plat%ele(ic)%name(ixs), &

@@ -165,9 +165,10 @@ end subroutine
 !
 ! Output:
 !   ix_pass       -- Integer, optional: Multipass turn number.
-!   ix_super_lord -- Integer, optional: Index of the super_lord of the element.
+!                      Set to -1 if element is not a multipass slave
+!   ix_super_lord -- Integer, optional: Index in lat%ele(:) of the super_lord of the element.
 !                      Set to -1 if the element is not a super_slave.
-!   ix_multi_lord -- Integer: Index of the multipass_lord if there is one.
+!   ix_multi_lord -- Integer: Index in lat%ele(:) of the multipass_lord if there is one.
 !                      Set to -1 if there is no multipass_lord.
 !-
 
@@ -188,6 +189,7 @@ ele => lat%ele(ix_ele)
 
 ix_multi_lord = -1
 if (present(ix_super_lord)) ix_super_lord = -1
+if (present(ix_pass))       ix_pass = -1
 
 if (ele%control_type == multipass_slave$) then
   ic = lat%ic(ele%ic1_lord)
