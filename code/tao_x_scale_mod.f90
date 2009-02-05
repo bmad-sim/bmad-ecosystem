@@ -112,8 +112,9 @@ end subroutine
 subroutine tao_x_scale_plot (plot, x_min, x_max, gang)
 
 type (tao_plot_struct), target :: plot
+type (tao_graph_struct), pointer :: graph
 
-real(rp) x_min, x_max, this_min, this_max
+real(rp) x_min, x_max, this_min, this_max, major_div_nominal
 integer i, j, p1, p2
 character(*), optional :: gang
 character(16) :: r_name = 'tao_x_scale_plot'
@@ -122,6 +123,7 @@ logical do_gang
 ! Check if the thing exists
 
 if (.not. allocated (plot%graph)) return
+if (size(plot%graph) == 0) return
 
 !
 
@@ -144,13 +146,15 @@ endif
 if (x_min == x_max .and. do_gang) then
   this_min = minval (plot%graph(:)%x%min)
   this_max = maxval (plot%graph(:)%x%max)
-  p1 = nint(0.7 * plot%x%major_div_nominal)  
-  p2 = nint(1.3 * plot%x%major_div_nominal)
-  call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', plot%x%type)
-  call qp_get_axis ('X', plot%x%min, plot%x%max, plot%x%major_div, plot%x%places)
+  major_div_nominal = real(sum(plot%graph(:)%x%major_div_nominal)) / size(plot%graph)
+  p1 = nint(0.7 * major_div_nominal)  
+  p2 = nint(1.3 * major_div_nominal)
   do i = 1, size(plot%graph)
-    plot%graph(i)%x = plot%x
+    graph => plot%graph(i)
+    call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
+    call qp_get_axis ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
   enddo
+  plot%x = graph%x
 endif
 
 end subroutine

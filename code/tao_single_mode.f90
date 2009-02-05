@@ -625,6 +625,7 @@ subroutine y_scale (factor)
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 
+integer i, j
 real(rp) factor
 
 !
@@ -650,15 +651,19 @@ subroutine x_zoom (factor)
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 
+integer i, j
 real(rp) factor, w, c
 
 !
 
 do i = 1, size(s%plot_region)
   plot => s%plot_region(i)%plot
-  w = (plot%x%max - plot%x%min) * factor / 2
-  c = (plot%x%max + plot%x%min) / 2
-  call tao_x_scale_plot (plot, c-w, c+w)
+  do j = 1, size(plot%graph)
+    graph => plot%graph(j)
+    w = (graph%x%max - graph%x%min) * factor / 2
+    c = (graph%x%max + graph%x%min) / 2
+    call tao_x_scale_graph (graph, c-w, c+w)
+  enddo
 enddo
 
 end subroutine
@@ -671,6 +676,7 @@ subroutine y_zoom (factor)
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 
+integer i, j
 real(rp) factor, w, c
 
 !
@@ -703,14 +709,18 @@ subroutine x_pan (factor)
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 
+integer i, j
 real(rp) factor, w
 
 !
 
 do i = 1, size(s%plot_region)
   plot => s%plot_region(i)%plot
-  w = factor * (plot%x%max - plot%x%min)
-  call tao_x_scale_plot (plot, plot%x%min + w, plot%x%max + w)
+  do j = 1, size(plot%graph)
+    graph => plot%graph(j) 
+    w = factor * (graph%x%max - graph%x%min)
+    call tao_x_scale_graph (graph, graph%x%min + w, graph%x%max + w)
+  enddo
 enddo
 
 end subroutine
@@ -723,6 +733,7 @@ subroutine y_pan (factor)
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 
+integer i, j
 real(rp) factor, w
 
 !
