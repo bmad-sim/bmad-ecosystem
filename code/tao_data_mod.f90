@@ -677,7 +677,7 @@ case ('expression:')
       if (err .or. size(d_array) == 0) cycle  ! Err -> This is not associated then not a datum.
       dp => d_array(1)%d
       if (dp%d1%d2%ix_uni < datum%d1%d2%ix_uni) cycle ! OK
-      if (dp%d1%d2%ix_uni == datum%d1%d2%ix_uni .and. dp%ix_data < datum%d1%d2%ix_data) cycle
+      if (dp%d1%d2%ix_uni == datum%d1%d2%ix_uni .and. dp%ix_data < datum%ix_data) cycle
       call out_io (s_fatal$, r_name, 'DATUM: ' // tao_datum_name(datum), &
                                      'WHICH IS OF TYPE EXPRESSION:' // datum%data_type(12:), &
                                      'THE EXPRESSION HAS A COMPONENT: ' // datum%stack(i)%name, &
