@@ -335,7 +335,7 @@ where \vn{i} goes from the \vn{ele} index to the \vn{ele0} index.
   \begin{description}
 
   \index{beta.*}
-  \item{beta.} \Newline
+  \item[beta.] \Newline
 \vn{beta.a} and \vn{beta.b} are the lattice beta functions. \vn{beta.x} and
 \vn{beta.y} are beam projected beta functions defined by
 \begin{equation}
@@ -347,7 +347,7 @@ Note: If the beta function is calculated from the beam distribution,
 the emittance must be non-zero.
 
   \index{element_param.*}
-  \item{element\_param.} \Newline
+  \item[element\_param.] \Newline
 The \vn{element_param.<param_name>} data type is for using lattice
 element parameters. \vn{<param_name>} is the name of the
 parameter. See the \bmad manual for the names associated with each
@@ -358,7 +358,7 @@ would be given by:
 \end{example}
 
   \index{emitl.*}
-  \item{emit.} \Newline
+  \item[emit.] \Newline
 Emittance can be calculated in one of two ways. One way is to
 calculate it from a tracked beam. The other is from the lattice using
 the standard radiation integrals (see the Bmad manual). For a linear
@@ -384,7 +384,7 @@ majority of cases, this does not appreciably affect the numeric
 results.
 
   \index{expression: *}
-  \item{expression:} \Newline
+  \item[expression:] \Newline
 The \vn{expression:} data type allows the value of a datum to depend upon
 the value of other datums or the value of variables. For example:
 \begin{example}
@@ -404,13 +404,17 @@ must be assigned a universe, in this case the value of the datum will
 be independent of the universe it is in.
 
   index{floor.*}
-  \item{floor.*}
+  \item[floor.*]
 This is the global floor position at the exit end of \vn{ele} relative to
 the exit end of \vn{ele0}. See the \bmad manual for details on the global
 coordinate system. See also \vn{rel_floor.*}.
 
+  \index{particle_loss}
+  \item[particle\_loss] \Newline
+\vn{particle_loss} gives the number of particles lost at element \vn{ele}.
+
   \index{periodic.tt.*}
-  \item{periodic.tt.*} \Newline
+  \item[periodic.tt.*] \Newline
 This is like the \vn{tt.*} datum except here the terms are from the
 periodic Taylor map defined by
 \Begineq
@@ -435,7 +439,7 @@ etc. For example, the zeroth order terms are the closed orbit, the r16
 term gives the horizontal dispersion, etc.
 
   \index{rel_floor.*}
-  \item{rel\_floor.*}
+  \item[rel\_floor.*]
 This is the global floor position at the exit end of \vn{ele} relative
 to the exit end of \vn{ele0} in a global coordinate system where the
 exit end of \vn{ele0} is taken to be at \vn{x = y = z = theta = phi =
@@ -443,7 +447,7 @@ exit end of \vn{ele0} is taken to be at \vn{x = y = z = theta = phi =
 system. See also \vn{floor.*}.
 
   \index{t.* tt.*} 
-  \item{t.* tt.*} \Newline
+  \item[t.* tt.*] \Newline
 The \vn{t} and \vn{tt} data types give terms of the Taylor map between
 two points. The difference between \vn{t.*} and \vn{tt.*} is that
 \vn{t.*} is restricted to exactly three indices and \vn{tt.*} is
@@ -461,7 +465,7 @@ the the s-distance between points is smaller than the \vn{ds_step}.
 In this case, discrepencies between the plot and datum values may be observed.
 
   \index{unstable_orbit}
-  \item{unstable\_ring} \Newline
+  \item[unstable\_ring] \Newline
 \vn{unstable_orbit} is used for linear lattices. For single particle
 tracking, the value of an \vn{unstable_orbit} datum is zero if the
 tracked particle survives (has not been lost) up to the \vn{ele}
@@ -480,7 +484,7 @@ the last element in the lattice.
 unstable solutions (\sref{s:generalized.design}).
 
   \index{unstable_ring}
-  \item{unstable\_ring} \Newline
+  \item[unstable\_ring] \Newline
 \vn{unstable_ring} is used for storage rings. The value of an
 \vn{unstable_ring} datum is zero if the ring is stable and set to the
 largest growth rate of all the normal modes of oscillation if the ring
@@ -488,7 +492,7 @@ is unstable. \vn{unstable_ring} is used in an optimization to avoid
 unstable solutions (\sref{s:generalized.design}).
 
   \index{wire.*}
-  \item{wire} \Newline
+  \item[wire] \Newline
 \vn{wire} data simulates the measurement of a wire scanner. The angle specified
 is the angle of the wire with respect to the horizontal axis. The measurement
 then measures the second moment $<uu>$ along an axis which is 90 degrees off of
@@ -533,6 +537,8 @@ size squared.
     norm\_emit.x, norm\_emit.x, norm\_emit.z \\ 
     norm\_emit.a, norm\_emit.b, norm\_emit.c 
   \end{tabular}               & Normalized beam emittance          &          \\ \hline 
+
+  particle\_loss              & Particle loss at an element        &          \\ \hline 
 
   \begin{tabular}{@{}l}   
     sigma.x, sigma.y, sigma.z \\ 

@@ -830,6 +830,11 @@ case ('orbit.norm_amp_b')
   if (data_source == 'beam') return ! bad
   call load_it (cc%amp_nb, ix0, ix1, datum_value, valid_value, datum, tao_lat, calc_needed = .true.)
 
+case ('particle_loss')
+  if (data_source /= 'beam') return
+  datum_value = u%ele(ix1)%n_lost_here
+  valid_value = .true.
+
 case ('periodic.tt.')
   if (data_source == 'beam') return
   if (lat%param%lattice_type /= circular_lattice$) then
