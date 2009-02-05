@@ -88,12 +88,12 @@ do i_t = 1, lat%n_ele_max
   !   1) Have field_master = True or
   !   2) Have a defined reference energy.
 
-  if (t_type == multipass_lord$ .and. .not. ele%field_master .and. lord%value(p0c$) == 0) then
+  if (t_type == multipass_lord$ .and. .not. ele%field_master .and. ele%value(p0c$) == 0) then
     select case (ele%key)
     case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
           hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
       call out_io (s_fatal$, r_name, &
-            'FOR MULTIPASS LORD: ' // lord%name, &
+            'FOR MULTIPASS LORD: ' // ele%name, &
             'N_REF_PASS, E_TOT, AND P0C ARE ALL ZERO AND FIELD_MASTER = FALSE!')
       found_err = .true.
     end select
