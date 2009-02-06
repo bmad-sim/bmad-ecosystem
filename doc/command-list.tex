@@ -125,9 +125,9 @@ In the above example the argument ``abc'' is substituted for any
 The \vn{change} command changes element attribute values or variable
 values in the \vn{model} lattice. Format:
 \begin{example}
-  change ele <name_or_number> <attribute> <number>
+  change ele \{n@\}<name_or_number> <attribute> <number>
   change \{-silent\} var <name> <locations> <number>
-  change beam_start <coordinate> <number>
+  change  beam_start \{n@\}<coordinate> <number>
 \end{example}
 
 \vskip 0.2in 
@@ -154,7 +154,11 @@ If "\%" is prepended to \vn{<number>} then the final value will be
 For \vn{change ele}, the \vn{<name_or_number>} may be a name, an element number or
 list of numbers, or an element class (EG: \vn{"quadrupole"}). Element names
 may contain the wild cards \vn{"*"} which represents any number of characters
-or can be \vn{"\%"} which represents any single character.
+or can be \vn{"\%"} which represents any single character. 
+
+For \vn{change ele}, and \vn{change beam_start}, The optional \vn{n@}
+universe specification (\sref{s:universe}) may be used to specify the
+universe or universes to apply the change command to.
 
 For linear lattices, \vn{change beam_start <coordinate> <number>} 
 can be used to vary the starting coordinates where \vn{<coordinate>} is one of: 
@@ -176,14 +180,14 @@ Note: To set, say, datum values, etc. use the \vn{set} command.
 
 Examples:
 \begin{example}
-  change ele 124 x_offset 0.1       ! Offset element #124 by 0.1
+  change ele 3@124 x_offset 0.1     ! Offset element #124 in universe 3 by 0.1
   change ele 1,3:5 x_offset 0.1     ! Offset elements 1, 3, 4, and 5 by 0.1
   change ele q* k1 d 1.2e-2         ! Set the k1 strength of all elements starting with
                                     !   the letter "q" relative to the design
   change ele quadrupole k1 d 1.2e-2 ! Set the k1 strength of all quadrupole elements.
   change var steering[34:36] @1e-3  ! set the steering strength #34-36 to 0.001
   change var steering[*] \%10        ! vary all steering strengths by 10\%
-  change beam_start x @0.001        ! set beginning x position to 1 mm
+  change beam_start 2@x @0.001      ! set beginning x position in universe 2 to 1 mm.
 \end{example}
 
 
@@ -821,23 +825,36 @@ Example:
 
 %% set lattice --------------------------------------------------------------
 
-\item[set lattice <component> = <value>] \Newline
+\item[set lattice \{n@\}<destination_lat> = <source_lat>] \Newline
 
-For \vn{set lattice}, the \vn{<component>}s that can be set are:
+The \vn{set lattice} command transfers lattice parameters (element
+strengths, etc., etc.) from one lattice (the \vn{source} lattice) to
+another (the \vn{destination} lattice). Both lattices are restricted
+to be from the same universe. The optional \vn{n@} prefix
+(\sref{s:universe}) of the destination lattice can be used to specify
+which universe the lattices are in. If multiple universes are
+specified, the corresponding destination lattice will be set to the
+corresponding source lattice in each universe. Note: At this time, it
+is not permitted to transfer parameters between lattices in different
+universes.
+
+The destination lattices that can be set are:
 \begin{example}
-  model      ! Model lattice value.
-  base       ! Base lattice value
+  model      ! Model lattice.
+  base       ! Base lattice
 \end{example}
-\vn{<value>} can be:
+The source lattice can be:
 \begin{example}
-  model       ! model lattice value.
-  base        ! base lattice value.
-  design      ! design lattice value
+  model       ! model lattice.
+  base        ! base lattice.
+  design      ! design lattice
 \end{example}
 
 Example:
 \begin{example}
-  set lattice *@*|model = *@*|design    ! Reset model to the design in all universes
+  set lattice *@model = design   ! Reset the model lattice to the design in all universes.
+  set lattice base = model       ! Set the base lattice to the model lattice in 
+                                 !   the currently viewed universe.
 \end{example}
 
 %% set plot --------------------------------------------------------------
@@ -1301,8 +1318,7 @@ be read in with a \vn{call} command.
         show variable -bmad\_format \{-good\_opt\_only\} ] \Newline
 Shows variable information. If \vn{<var_name>} is not
 present,  a list of all \vn{v1_var} classes is printed. To show variables
-associated with the \vn{n}th universe use the syntax \vn{show var
-n@}.
+associated with the \vn{n}th universe use the syntax \vn{show var n@}.
 
 If the \vn{-bmad_format} switch is usedthen the Bmad lattice parameters that
 the \tao variables control will be printed in Bmad lattice
@@ -1420,10 +1436,10 @@ plotting. Format:
   view <number>
 \end{example}
 
-\vskip 0.2in 
+\vskip 0.1in 
 
 This also sets the default universe that commands are applied to in
-the absence of a star prefix.
+the absence of a universe prefix (\sref{s:universe}).
 
 Examples:
 \begin{example}
@@ -1431,7 +1447,7 @@ Examples:
 \end{example}
 
 %% x-axis --------------------------------------------------------------
-\section{x-Axis}\index{Commands!x-axis}
+\section{x-axis}\index{Commands!x-axis}
 \label{s:x.axis}
 
 The \vn{x-axis} command sets the data type used for the x-axis coordinate.
@@ -1440,8 +1456,8 @@ Format:
   x-axis <where> <axis_type>
 \end{example}
 
-\vskip 0.2in 
-\vn{X-Axis} sets the \vn{plot%x_axis_type}. This determines 
+\vskip 0.1in 
+The \vn{x-axis} command sets the \vn{plot%x_axis_type}. This determines 
 what data is used for the horizontal axis. Possibilities
 for \vn{<axis_type>} are:
 \begin{example}
@@ -1461,7 +1477,7 @@ Examples:
 \end{example}
 
 %% x-scale --------------------------------------------------------------
-\section{x-Scale}\index{Commands!x-scale}
+\section{x-scale}\index{Commands!x-scale}
 \label{s:x.scale}
 
 The \vn{x-scale} command scales the horizontal axis of a graph or set of graphs.

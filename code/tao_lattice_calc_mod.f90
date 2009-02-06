@@ -334,7 +334,7 @@ beam = u%beam0
 beam_init => u%beam_init
 lat => tao_lat%lat
 
-u%ele(:)%n_lost_here = 0
+u%ele(:)%n_particle_lost_here = 0
 lat%param%ix_lost = not_lost$
 lat%param%lost = .false.
 too_many_lost = .false.
@@ -464,7 +464,7 @@ do j = ie1, ie2
   !
 
   n_alive = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost /= not_lost$)
-  u%ele(j)%n_lost_here = n_alive_old - n_alive
+  u%ele(j)%n_particle_lost_here = n_alive_old - n_alive
   n_alive_old = n_alive
 
   if (.not. too_many_lost) then
@@ -495,7 +495,7 @@ if (u%ix_uni < ubound(s%u, 1)) then
 endif
 
 if (post) then
-  n_lost = 0 
+  n_lost = 0
   do n_bunch = 1, size(beam%bunch)
     n_lost = n_lost + count(beam%bunch(n_bunch)%particle%ix_lost /= not_lost$)
   enddo

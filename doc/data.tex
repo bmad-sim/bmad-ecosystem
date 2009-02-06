@@ -69,17 +69,13 @@ all the datums between \vn{n1} and \vn{n2} inclusive. For example
 \end{example}
 refers to datums 3, 4, 5, 6, and 23. 
 
-If multiple universes (\sref{s:universe}) are present, then the prefix \vn{"@"}
-may be used to specify which universe the data applies to. The general notation is
+If multiple universes are present, then, as explained in
+\sref{s:universe}, the prefix \vn{"@"} may be used to specify which
+universe the data applies to. The general notation is
 \begin{example}
   [<universe_range>]@<d2_name>.<d1_name>[<datum_index>]
 \end{example}
-Commas and colons can be used in the syntax for \vn{<universe_range>}
-like they are used in the syntax for \vn{datum_index_range}. When
-there is only a single Universe specified, the brackets \vn{[} and
-\vn{]} are optional. When not specified, the current ``viewed''
-universe (\sref{s:view}) is assumed. The current \vn{viewed} universe
-can also be specified using the number \vn{-1}. Examples:
+Examples:
 \begin{example}
   [2:4,7]@orbit.x ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
   [2]@orbit.x     ! The \vn{orbit.x} data in universe 2. 
@@ -112,7 +108,6 @@ denote ``all''. Thus:
 \end{example}
 The last example shows that when referring to an entire block of data
 encompassed by a \vn{d1_data} structure, the \vn{[*]} can be omitted.
-
 
 %------------------------------------------------------------------------
 \section{Anatomy of a Datum}
@@ -304,10 +299,10 @@ phase advance falls into this category:
   value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(ele0)
 \end{example}
 If a relative datum has a blank \vn{ele0_name} then \vn{ele0} is taken
-to be the beginning element of the lattice which is marker element
-with index 0 named \vn{BEGINNING}.
-The datum components \vn{ix_ele} and \vn{ix_ele0} are the index of
-\vn{ele} and \vn{ele0} in the list of lattice elements.
+to be the beginning element of the lattice. This element is a marker
+element with index 0 named \vn{BEGINNING}. The datum components
+\vn{ix_ele} and \vn{ix_ele0} are the index of \vn{ele} and \vn{ele0}
+in the list of lattice elements.
 
 For datums with \vni{non-relative} \vn{data_types} if there is also an
 associated \vni{ele0} element then the \vn{model} value is dependent
@@ -409,9 +404,13 @@ This is the global floor position at the exit end of \vn{ele} relative to
 the exit end of \vn{ele0}. See the \bmad manual for details on the global
 coordinate system. See also \vn{rel_floor.*}.
 
-  \index{particle_loss}
-  \item[particle\_loss] \Newline
-\vn{particle_loss} gives the number of particles lost at element \vn{ele}.
+  \index{n_particle_loss}
+  \item[n\_particle\_loss] \Newline
+If \vn{ele0} is not specified, \vn{n_particle_loss} gives the number
+of particles lost at element \vn{ele}. If \vn{ele0} is specified,
+\vn{n_particle_loss} gives the cumulative loss between the exit end of
+\vn{ele0} and the exit end of \vn{ele}. That is, this sum does not
+count any losses at \vn{ele0} itself.
 
   \index{periodic.tt.*}
   \item[periodic.tt.*] \Newline
@@ -518,37 +517,37 @@ size squared.
 {\tt\small
 \begin{tabular}{|l|l|l|} \hline
 
-  beta.x, beta.y  beta.z      & Projected beta function            &          \\ \hline 
-  beta.a, beta.b              & Normal-mode beta function          &          \\ \hline 
+  beta.x, beta.y  beta.z      & Projected beta function             &          \\ \hline 
+  beta.a, beta.b              & Normal-mode beta function           &          \\ \hline 
 
-  dpx\_dx, dpx\_dy, etc.      & Bunch <x p\_x> / <$x^2$> \& Etc... &          \\ \hline 
+  dpx\_dx, dpx\_dy, etc.      & Bunch <x p\_x> / <$x^2$> \& Etc...  &          \\ \hline 
 
   \begin{tabular}{@{}l}
     emit.x, emit.y, emit.z \\
     emit.a, emit.b, emit.c \\
-  \end{tabular}               & Emittance                          & global   \\ \hline
+  \end{tabular}               & Emittance                           & global   \\ \hline
 
-  eta.x, eta.y                & Projected dispersion               &          \\ \hline 
-  eta.a, eta.b                & Normal-Mode dispersion             &          \\ \hline 
-  etap.x, etap.y              & Projected dispersion derivative    &          \\ \hline 
-  etap.a, etap.b              & Normal-Mode dispersion derivative  &          \\ \hline 
+  eta.x, eta.y                & Projected dispersion                &          \\ \hline 
+  eta.a, eta.b                & Normal-Mode dispersion              &          \\ \hline 
+  etap.x, etap.y              & Projected dispersion derivative     &          \\ \hline 
+  etap.a, etap.b              & Normal-Mode dispersion derivative   &          \\ \hline 
+
+  n\_particle\_loss           & Number of particles lost            &          \\ \hline 
 
   \begin{tabular}{@{}l}  
     norm\_emit.x, norm\_emit.x, norm\_emit.z \\ 
     norm\_emit.a, norm\_emit.b, norm\_emit.c 
-  \end{tabular}               & Normalized beam emittance          &          \\ \hline 
-
-  particle\_loss              & Particle loss at an element        &          \\ \hline 
+  \end{tabular}               & Normalized beam emittance           &          \\ \hline 
 
   \begin{tabular}{@{}l}   
     sigma.x, sigma.y, sigma.z \\ 
     sigma.p\_x, sigma.p\_y, sigma.p\_z
-  \end{tabular}               & Bunch size                         &          \\ \hline 
+  \end{tabular}               & Bunch size                          &          \\ \hline 
 
   spin.polarization, spin.theta, spin.phi
-                              & Particle spin                      &          \\ \hline 
+                              & Particle spin                       &          \\ \hline 
 
-  wire.<angle>                & Wire scanner at wire angle <angle> &          \\ \hline
+  wire.<angle>                & Wire scanner at wire angle <angle>  &          \\ \hline
 
 
 \end{tabular}

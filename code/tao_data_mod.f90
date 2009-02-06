@@ -790,6 +790,15 @@ case ('momentum_compaction')
   datum_value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
   valid_value = .true.
 
+case ('n_particle_loss')
+  if (data_source /= 'beam') return
+  if (datum%ele0_name == '') then
+    datum_value = u%ele(ix1)%n_particle_lost_here
+  else
+    datum_value = sum(u%ele(ix0:ix1)%n_particle_lost_here)
+  endif
+  valid_value = .true.
+
 case ('orbit.x')
   if (data_source == 'beam') return ! bad
   call load_it (tao_lat%orb(:)%vec(1), ix0, ix1, datum_value, valid_value, datum, tao_lat)
@@ -829,11 +838,6 @@ case ('orbit.norm_amp_a')
 case ('orbit.norm_amp_b')
   if (data_source == 'beam') return ! bad
   call load_it (cc%amp_nb, ix0, ix1, datum_value, valid_value, datum, tao_lat, calc_needed = .true.)
-
-case ('particle_loss')
-  if (data_source /= 'beam') return
-  datum_value = u%ele(ix1)%n_lost_here
-  valid_value = .true.
 
 case ('periodic.tt.')
   if (data_source == 'beam') return
@@ -1049,7 +1053,7 @@ case ('unstable_orbit')
   if (datum%ele_name == '') ix1 = lat%n_ele_track
   if (data_source == 'beam') then
     do i = 1, ix1
-      datum_value = datum_value + (1 + ix1 - i) * u%ele(i)%n_lost_here
+      datum_value = datum_value + (1 + ix1 - i) * u%ele(i)%n_particle_lost_here
     enddo
     datum_value = datum_value / size(u%current_beam%bunch(s%global%bunch_to_plot)%particle)
   else

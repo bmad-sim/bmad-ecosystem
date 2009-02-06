@@ -137,6 +137,35 @@ the data as determined from the \vn{model} lattice (\sref{s:lattice})
 matches the measured data. This \vn{orbit response matrix} (ORM) analysis
 is, in fact, a widely used procedure at many laboratories.
 
+If multiple universes are present, it is important to be able to
+specify, when issuing commands to tao and when constructing \tao
+initialization files, what universe is being referred to when
+referencing parameters such as data, lattice elements or other stuff
+that is universe specific. [Note: \tao variables are {\em not}
+universe specific.]
+
+the syntax used to specify a particular universe or range of universes
+is attach a prefix of the form:
+\begin{example}
+  [<universe_range>]@<parameter>
+\end{example}
+Commas and colons can be used in the syntax for \vn{<universe_range>}
+When there is only a single Universe specified, the brackets
+\vn{[...]} are optional. When the universe prefix is not present, the
+current ``viewed'' (default) universe (\sref{s:view}) is assumed. The
+current \vn{viewed} universe can also be specified using the number
+\vn{-1}. Additionally, a ``\vn{*}'' can be used as a wild card to 
+denote all of the universes. Examples:
+\begin{example}
+  [2:4,7]@orbit.x ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
+  [2]@orbit.x     ! The \vn{orbit.x} data in universe 2. 
+  2@orbit.x       ! Same as "2@orbit.x".
+  orbit.x         ! The \vn{orbit.x} data in the current viewed universe.
+  -1@orbit.x      ! Same as "orbit.x".
+  *@orbit.x       ! orbit.x data in all the universes.
+  *@*             ! All the data in all the universes. 
+\end{example}
+
 %------------------------------------------------------------------------
 \section{Lattices}
 \index{Lattice|hyperbf}
