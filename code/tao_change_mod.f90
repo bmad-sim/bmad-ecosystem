@@ -179,7 +179,7 @@ real(rp), allocatable, save :: change_number(:), old_value(:)
 
 real(rp) new_merit, old_merit, new_value, delta
 
-integer i, ix, ix_a, nl, len_name
+integer i, ix, ix_a, iu, nl, len_name
 integer, allocatable, save :: ix_ele(:)
 integer, parameter :: len_lines = 200
 
@@ -191,15 +191,18 @@ character(20) :: r_name = 'tao_change_ele'
 character(len_lines), allocatable, save :: lines(:)
 character(20) abs_or_rel
 
-logical err
+logical err, etc_added
 logical, allocatable, save :: good(:)
+logical, allocatable, save :: this_u(:)
 
 !-------------------------------------------------
 
 if (tao_com%common_lattice) then
-  u => s%u(ix_common_uni$)
+  this_u = .false.
+  this_u(ix_common_uni$) = .true.
 else
-  u => tao_pointer_to_universe(-1)
+  call tao_pick_universe (ele_name, ele_name, this_u, err)
+  if (err) return
 endif
 
 ! 
@@ -209,96 +212,104 @@ call string_trim (attrib_name, a_name, ix)
 call str_upcase (e_name, e_name)
 call str_upcase (a_name, a_name)
 
-call pointers_to_attribute (u%design%lat, e_name, a_name, .true., &
-                                                d_ptr, err, .true., ix_ele, ix_a)
-if (err) return
+etc_added = .false.
+nl = 0
+call re_allocate (lines, len_lines, 100)
+nl=nl+1;write (lines(nl), '(11x, a)') &
+                  'Old           New    Old-Design    New-Design         Delta'
 
-call pointers_to_attribute (u%model%lat, e_name, a_name, .true., &
-                                                m_ptr, err, .true., ix_ele, ix_a)
-if (err) return
+do iu = lbound(s%u, 1), ubound(s%u, 1)
 
-! Count to see if any of the attributes are free
+  if (.not. this_u(iu)) cycle
+  u => s%u(iu)
 
-call re_allocate (old_value, size(d_ptr))
-call re_allocate (good, size(d_ptr))
+  call pointers_to_attribute (u%design%lat, e_name, a_name, .true., &
+                                                  d_ptr, err, .true., ix_ele, ix_a)
+  if (err) return
 
-good = .false.
-do i = 1, size(d_ptr)
-  if (ix_ele(i) > -1) then  ! bunch_start variables are always free
-    if (.not. attribute_free (ix_ele(i), ix_a, u%model%lat, .false.)) cycle
-  endif
-  good(i) = .true.
-end do
+  call pointers_to_attribute (u%model%lat, e_name, a_name, .true., &
+                                                  m_ptr, err, .true., ix_ele, ix_a)
+  if (err) return
 
-if (all (.not. good)) then
-  call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE')
-  return
-endif
+  ! Count to see if any of the attributes are free
 
-! Find change value(s)
+  call re_allocate (old_value, size(d_ptr))
+  call re_allocate (good, size(d_ptr))
 
-call to_number (num_str, size(d_ptr), change_number, abs_or_rel, err);  if (err) return
-old_merit = tao_merit()
-call re_allocate (old_value, size(d_ptr))
+  good = .false.
+  do i = 1, size(d_ptr)
+    if (ix_ele(i) > -1) then  ! bunch_start variables are always free
+      if (.not. attribute_free (ix_ele(i), ix_a, u%model%lat, .false.)) cycle
+    endif
+    good(i) = .true.
+  end do
 
-! put in change
-
-fmt = '(5f14.6, 4x, a)'
-
-do i = 1, size(d_ptr)
-
-  if (.not. good(i)) cycle
-
-  old_value(i) = m_ptr(i)%r
-
-  if (abs_or_rel == '@') then
-    m_ptr(i)%r = change_number(i)
-  elseif (abs_or_rel == 'd') then
-    m_ptr(i)%r = d_ptr(i)%r + change_number(i)
-  elseif (abs_or_rel == '%') then
-    m_ptr(i)%r = m_ptr(i)%r * (1 + 0.01 * change_number(i))
-  else
-    m_ptr(i)%r = m_ptr(i)%r + change_number(i)
+  if (all (.not. good)) then
+    call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE')
+    return
   endif
 
-  delta = m_ptr(i)%r - old_value(i)
+  ! Find change value(s)
 
-  if (e_name == 'BEAM_START') then
-    u%beam_init%center = u%model%lat%beam_start%vec
-    u%init_beam0 = .true.
-  endif
+  call to_number (num_str, size(d_ptr), change_number, abs_or_rel, err);  if (err) return
+  old_merit = tao_merit()
+  call re_allocate (old_value, size(d_ptr))
 
-  call changed_attribute_bookkeeper (u%model%lat, ix_ele(i), m_ptr(i)%r)
+  ! put in change
 
-  if (max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) > 100) &
-                                                          fmt = '(5f14.0, 4x, a)'
+  do i = 1, size(d_ptr)
+
+    if (.not. good(i)) cycle
+
+    old_value(i) = m_ptr(i)%r
+
+    if (abs_or_rel == '@') then
+      m_ptr(i)%r = change_number(i)
+    elseif (abs_or_rel == 'd') then
+      m_ptr(i)%r = d_ptr(i)%r + change_number(i)
+    elseif (abs_or_rel == '%') then
+      m_ptr(i)%r = m_ptr(i)%r * (1 + 0.01 * change_number(i))
+    else
+      m_ptr(i)%r = m_ptr(i)%r + change_number(i)
+    endif
+
+    delta = m_ptr(i)%r - old_value(i)
+
+    if (e_name == 'BEAM_START') then
+      u%beam_init%center = u%model%lat%beam_start%vec
+      u%init_beam0 = .true.
+    endif
+
+    call changed_attribute_bookkeeper (u%model%lat, ix_ele(i), m_ptr(i)%r)
+
+    fmt = '(5f14.6, 4x, a)'
+    if (max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) > 100) &
+                                                            fmt = '(5f14.0, 4x, a)'
+
+    ! Record change but only for the first 10 variables.
+
+    if (nl < 11) then
+      name = 'BEAM_START'
+      if (ix_ele(i) > -1) name = u%design%lat%ele(ix_ele(i))%name
+      nl=nl+1; write (lines(nl), fmt) old_value(i), m_ptr(i)%r, &
+                              old_value(i)-d_ptr(i)%r, m_ptr(i)%r-d_ptr(i)%r, &
+                              m_ptr(i)%r-old_value(i), trim(name)
+    else
+      if (.not. etc_added) then
+        nl=nl+1; lines(nl) = '   ... etc ...'
+        etc_added = .true.
+      endif
+    endif
+
+  enddo
 
 enddo
-
-tao_com%lattice_recalc = .true.
 
 !----------------------------------
 ! print results
 
+tao_com%lattice_recalc = .true.
 new_merit = tao_merit()
-
-call re_allocate (lines, len_lines, size(d_ptr)+10)
-nl = 0
-nl=nl+1;write (lines(nl), '(11x, a)') &
-                  'Old           New    Old-Design    New-Design         Delta'
-do i = 1, size(d_ptr)
-  if (.not. good(i)) cycle
-  if (nl > 10 .and. i /= size(d_ptr)) exit  
-  name = 'BEAM_START'
-  if (ix_ele(i) > -1) name = u%design%lat%ele(ix_ele(i))%name
-  nl=nl+1; write (lines(nl), fmt) old_value(i), m_ptr(i)%r, &
-                            old_value(i)-d_ptr(i)%r, m_ptr(i)%r-d_ptr(i)%r, &
-                            m_ptr(i)%r-old_value(i), trim(name)
-enddo
-
-if (i <= size(d_ptr)) then
-  nl=nl+1; lines(nl) = '   ... etc ...'
-endif
 
 if (max(abs(old_merit), abs(new_merit)) > 100) then
   fmt = '(2(a, es13.4), a, es13.4)'
