@@ -153,6 +153,9 @@ if (ix_attrib == s_offset_tot$) free = .false.
 if (ix_attrib == e_tot$) free = .false.
 if (ix_attrib == p0c$) free = .false.
 
+if (ele%key == sbend$ .and. ele%control_type == multipass_lord$ .and. &
+    ele%value(n_ref_pass$) == 0 .and. ix_attrib == p0c$) free = .true.
+
 if (.not.free) then
   call print_error (ix_ele, ix_attrib, 'THE ATTRIBUTE IS A DEPENDENT VARIABLE.')
   return

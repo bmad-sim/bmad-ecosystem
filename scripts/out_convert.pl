@@ -7,8 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/n_multipass_ref/n_ref_pass/g;
-    s/match_orbit_at/ref_orbit/g;
+    s/..\///;
     print (F_OUT);
   }
 
