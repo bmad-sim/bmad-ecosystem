@@ -54,7 +54,7 @@ type (control_struct) ctl
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
 
-real(rp) s0
+real(rp) s0, x_lim, y_lim
 
 character(*) bmad_file
 character(4000) line
@@ -73,7 +73,7 @@ integer, pointer :: ix_ss1(:), ix_ss2(:)
 
 logical, optional :: err
 logical unit_found, write_term, match_found, found, in_multi_region, expand_lat_out
-logical is_multi_sup
+logical is_multi_sup, x_lim_good, y_lim_good
 
 ! Init...
 ! Count the number of foreign wake files
@@ -385,12 +385,24 @@ ele_loop: do ie = 1, lat%n_ele_max
 
   endif
 
-  ! Now for the rest of the element attributes.
+  ! Decide if x1_limit, etc. are to be output directly or combined. 
+
+  x_lim = ele%value(x1_limit$) 
+  x_lim_good = .false.
+  if (x_lim /=0 .and. ele%value(x2_limit$) == x_lim) x_lim_good = .true.
+
+  y_lim = ele%value(y1_limit$) 
+  y_lim_good = .false.
+  if (y_lim /=0 .and. ele%value(y2_limit$) == y_lim) y_lim_good = .true.
+
+  ! Print the element attributes.
 
   do j = 1, n_attrib_maxx
 
-    if (j == check_sum$) cycle
     if (ele%value(j) == 0) cycle
+    if (j == check_sum$) cycle
+    if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
+    if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
     if (.not. attribute_free (ie, j, lat, .false., .true.)) cycle
     if (attribute_name(ele, j) == 'DS_STEP' .and. &
                                     ele%value(j) == bmad_com%default_ds_step) cycle
@@ -403,8 +415,16 @@ ele_loop: do ie = 1, lat%n_ele_max
 
     line = trim(line) // ', ' // trim(attribute_name(ele, j)) // &
                                                   ' = ' // str(ele%value(j))
-
   enddo ! attribute loop
+
+  ! Print the combined limits if needed.
+
+  if (x_lim_good .and. y_lim_good .and. x_lim == y_lim) then
+    line = trim(line) // ', aperture = ' // str(x_lim)
+  else
+    if (x_lim_good) line = trim(line) // ', x_limit = ' // str(x_lim)
+    if (y_lim_good) line = trim(line) // ', y_limit = ' // str(y_lim)
+  endif
 
   ! Encode methods, etc.
 
@@ -415,6 +435,7 @@ ele_loop: do ie = 1, lat%n_ele_max
   if (ele%field_calc /= bmad_standard$) line = trim(line) // &
               ', field_calc = ' // calc_method_name(ele%field_calc)
   if (ele%symplectify) line = trim(line) // ', symplectify'
+  if (ele%field_master) line = trim(line) // ', field_master = True'
   if (.not. ele%is_on) line = trim(line) // ', is_on = False'
   if (.not. ele%map_with_offsets) line = trim(line) // ', map_with_offsets = False'
   if (.not. ele%csr_calc_on) line = trim(line) // ', csr_calc_on = False'
