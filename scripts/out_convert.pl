@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/..\///;
+    s/elements_locator/elements_locator_by_key/;
     print (F_OUT);
   }
 

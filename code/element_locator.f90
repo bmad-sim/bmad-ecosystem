@@ -3,7 +3,7 @@
 !
 ! Subroutine to locate an element in a lattice. If multipole elements
 ! match then ix_ele will point to the first one. Also see:
-!   elements_locator
+!   elements_locator_by_key
 ! The element name may be of the form: "S:<number>". This will match
 ! to the element whose longitudinal position at the exit end is
 ! closest to <number>.

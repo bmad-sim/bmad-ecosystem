@@ -62,7 +62,7 @@ subroutine chrom_tune(lat, delta_e, target_x, target_y, err_tol, err_flag)
  
   debug = .false.
 
-  call elements_locator(sextupole$, lat, ix_sex)
+  call elements_locator_by_key(sextupole$, lat, ix_sex)
   allocate (sex_type(size(ix_sex)))
 
   do i = 1, size(ix_sex)

@@ -1,5 +1,5 @@
 !+
-! Subroutine elements_locator (key, lat, indx)
+! Subroutine elements_locator_by_key (key, lat, indx)
 !
 ! Subroutine to locate all the elements of a certain kind in a lat. 
 ! Note: super_slave elements are not included in the list since super_slaves
@@ -20,10 +20,10 @@
 
 #include "CESR_platform.inc"
 
-subroutine elements_locator (key, lat, indx)
+subroutine elements_locator_by_key (key, lat, indx)
 
   use bmad_struct
-  use bmad_interface, except_dummy => elements_locator
+  use bmad_interface, except_dummy => elements_locator_by_key
   
   implicit none
 

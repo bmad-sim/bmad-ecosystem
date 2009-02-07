@@ -235,7 +235,7 @@ interface
 end interface
 
 interface
-  subroutine elements_locator (key, lat, indx)
+  subroutine elements_locator_by_key (key, lat, indx)
     use bmad_struct, only: lat_struct
     implicit none
     integer key
