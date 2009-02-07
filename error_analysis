@@ -1,0 +1,116 @@
+#!/home/cesrulib/EXT/Python-2.5.1/Linux/python
+## This script analyses the errors and tries to identify users responsible for build failure. It then notifies the approproate delelopers and the librarian.
+## Code 11 results in:
+## 1) use .genlog 
+## 2) use log files in specific platforms
+## 3) find the directory in which the problem resides
+## 4) 
+
+import string, os, sys, time, ConfigParser
+
+#================================
+# Command line argument handling
+#================================
+if (len(sys.argv)!=3):
+  print "Usage: error_analysis <release_name> <error code>"
+  sys.exit(0)
+rel_name= sys.argv[1] #release name
+messagepath = "/home/cesrulib/temporary_mail_file.tmp"
+errorcode   = sys.argv[2] #error code reported by the build_master script
+repopath = ""
+
+# error codes used:
+# 11: build ceased / failed
+# 13: build passed, but test suite failed
+# 14: bmad error
+# 16: other errors
+
+################
+# Set up configuration parser
+################
+cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
+config   = ConfigParser.ConfigParser()
+config.optionxform = lambda x: x
+config.read(cfg_file)
+################
+# Get values
+################
+platforms=[]
+LOG_DIR = config.get("Paths","LOG_DIR")
+platforms_all   = config.options("Platforms")
+for platform in platforms_all:
+  plat_llist = config.get("Platforms", platform).split(",")
+  if plat_llist[0].strip()[:4] == "FULL":
+    platforms=platforms+[platform] # we only take platforms that have activity status "FULL"
+
+def getauthor(repopath):#this function gets the last changed author of a repository path
+  repo_logs = os.popen("svn info $ACCR/trunk"+repopath).readlines() #repopath starts with /
+  for entry in repo_logs:
+    if (entry.find("Last Changed Author: ") != -1):
+      return entry[entry.find("Last Changed Author: ")+len("Last Changed Author: "):len(entry)].strip()
+  return ""
+
+## main script starts here
+
+time.sleep(60*5) #wait for 5 minutes to make sure that the build_master script has stopped
+
+
+if (errorcode=="11"): #means some changes in repository have caused some fatal problems
+    error_message = [] #stores the error message
+    #go to the platform-specific log files
+    for platform in platforms:
+    	error_message=error_message+["\n"+platform+"\n\n"]
+    	log=open(LOG_DIR+"/"+platform+"/"+rel_name+".log") #open the platform-specific log file
+   	lines = log.readlines()
+        position=0
+        error_position1 = 0;
+        error_position2 = 0;
+        for line in lines:
+          if (error_position2 == 0):#means not yet found an error, then keep looking
+            position=position+1 #counter
+            if (line.lower().find("gmake") != -1): #means gmake said something
+              if  (line.lower().find("error") != -1): #means that gmake says there's an error
+                error_position2=position
+              else:
+                error_position1=position #need the position of the line where gmake said something before error
+        if (error_position2 != 0): #means there is an error
+          position=0
+          for line in lines: #go back and extract all the stuff between the two gmake messages
+            position=position+1#counter
+            if (position >= error_position1)and(position <=error_position2): #then we are in the error place
+              error_message=error_message+[line] #append this to the error message
+              if (line.lower().find("entering directory")!=-1)and(repopath == ""): #then we can try to see which module is bad
+                if (line.find(rel_name) != -1):
+                  repopath = line[line.find(rel_name)+len(rel_name):line.find("'")] #where the bad module is
+    #now we can determine who was responsible for the module
+    if (repopath != ""):
+      author = getauthor(repopath)
+      error_message = error_message+["\n Bad module         : "+repopath[1:len(repopath)]]
+      error_message = error_message+["\n Last changed author: "+author]
+      #if this works correctly , could automate sending an email to the author
+      
+    log=open(messagepath,"a") #append to the end of this file the message just compiled
+    for line in error_message:
+    	log.write(line)
+    log.close()
+    os.popen('mail -s "Build failure notification" sv222@cornell.edu,cesrulib@lepp.cornell.edu < '+messagepath)
+    os.remove(messagepath)
+
+    
+elif (errorcode=="13"): #means the testing suite has failed
+    log=open(messagepath,"a")
+    log.write("Testing suite has failed")
+    log.close()
+    #insert code to deal with the test suite failure    	
+    os.popen('mail -s "Test suite failure notification" sv222@cornell.edu,cesrulib@lepp.cornell.edu < '+messagepath)
+    os.remove(messagepath)
+    
+elif (errorcode=="14"): #means the bmad distribution failed
+    #insert code to deal with the bmad distribution failure
+    os.popen('mail -s "Bmad build failure notification" sv222@cornell.edu,cesrulib@lepp.cornell.edu < '+messagepath)
+    os.remove(messagepath)
+
+else:                 #just notify the librarian about what happened
+    os.popen('mail -s "Build/other failure notification" sv222@cornell.edu,cesrulib@lepp.cornell.edu < '+messagepath)
+    os.remove(messagepath)    
+sys.exit(0)
