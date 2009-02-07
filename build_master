@@ -145,8 +145,7 @@ avail_cmd_labels   = [] # List of available command-line arg flags, generated fr
 poss_plat_combos   = {} # Dictionary of all possible platform combos direct from config file.
 plat_combos        = {} # Working dictionary of platform combos constructed after cmd line is parsed.
 
-# Error message to be mailed out if problems occur
-error_msg = ""
+# Error code to be mailed out if problems occur
 error_analysis_code = 0 #the code used by error_analysis script to diagnose the problem
 
 
@@ -254,7 +253,7 @@ def print_help():
   print ""
 
 #=== Function to notify about build failure by mail ===========================
-def report_errors(message, nightly, code):
+def report_errors(nightly, code):
 # error codes used:
 # 11: build ceased / failed
 # 13: build passed, but test suite failed
@@ -262,17 +261,15 @@ def report_errors(message, nightly, code):
 # 16: other errors
 
   ###
-  # Perform the final error check. If error_msg is not blank and this is a nightly build, run error_analysis script independently
+  # Perform the final error check. If error code is nonzero and this is a nightly build, run error_analysis script independently
   ###
-  if (message != "") and ((nightly)or(opt == "-bmad")):
-    mail_tmp = open ("/home/cesrulib/temporary_mail_file.tmp","w")
-    mail_tmp.write(message)
-    mail_tmp.close()    
+  if (code != 0 )and((nightly)or(opt == "-bmad")):  
     stout.close()   # Close stream to logfile before quitting
     #Generate a web-page with the summary (log files) of all builds
     if build_type == "RELEASE":
         os.popen('/home/cesrulib/bin/util/generate_html '+rel_name) 
-    os.spawnl(os.P_NOWAIT, "/home/cesrulib/error_analysis","test", "/home/cesrulib/temporary_mail_file.tmp", str(code))
+    os.spawnl(os.P_NOWAIT, "/home/cesrulib/bin/utils/error_analysis","test", rel_name, str(code))
+
 
 #=== Get Command Line Arguments and set vars =======================
 for opt in sys.argv[1:]:
@@ -916,8 +913,7 @@ if revision == 0:
       revision = line.split(':')[1].strip()
     elif line.find("failed") != -1:
       print "SVN repository access failed!  Quitting."
-      error_msg = error_msg + "SVN repository access failed!  Quitting.\n"
-      report_errors(error_msg, nightly, 16) #since we're about to exit, need to notify about the errors
+      report_errors(nightly, 16) #since we're about to exit, need to notify about the errors
       sys.exit(50)
 
 
@@ -936,8 +932,7 @@ if space_free <= space_needed:
   print "Insufficient disk space in " + libs_dir + "!"
   print "Disk free space = %i" % space_free
   print "Space required  = %i" % space_needed
-  error_msg = error_msg + "Insufficient disk space in " + libs_dir + "\n"
-  report_errors(error_msg, nightly, 16) #since we're about to exit, need to notify about the errors
+  report_errors(nightly, 16) #since we're about to exit, need to notify about the errors
   sys.exit(30)
 
 
@@ -1041,31 +1036,26 @@ while complete_fraction < 1 and loop < max_loops:
   #if error_fraction == 1.0:
   if error_tally    == rquant:
     print "All builds have failed.  Stopping."
-    error_msg = error_msg + "All builds have failed.\n"    
     failure = 1
 
   if (complete_tally > 0 and error_tally > 0) and (complete_tally + error_tally == rquant):
     print "All builds have ceased, with some due to failure."
-    error_msg = error_msg + "All builds have ceased, with some due to failure.\n"
     failure = 1
 
   if (loop == max_loops):
     print "One or more builds have ceased due to timeout!"
-    error_msg = error_msg + "One or more builds have ceased due to timeout!\n"
     failure = 1
 
   if failure:
     print "Summary:"
-    error_msg = error_msg + "Summary:\n"
     for platform in plat_combos:
       if type( plat_combos[platform]['builder'] ) == types.InstanceType:
         Status = plat_combos[platform]['builder'].status()  # -1 = ERROR :: 0 = building :: 1 = success
         print platform + " : " + statuses[ Status ]
-        error_msg = error_msg + platform + " : " + statuses[ Status ] +"\n"
       else:
         Status = plat_combos[platform]['builder']
         print platform + " : " + Status
-    report_errors(error_msg, nightly, 11) #since we're about to exit, need to notify about the errors
+    report_errors(nightly, 11) #since we're about to exit, need to notify about the errors
     sys.exit(56)
   
   if loop < 10:
@@ -1104,7 +1094,6 @@ if build_type != "FIXES":
 if build_type == "RELEASE" and run_tests == "YES":
   print "=========================  Test Suite Summary  ==========================="
   for platform in plat_combos:
-    flag=0
     if plat_combos[platform]['act'] == "FULL":
       print "Testing summary for " + platform
       logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
@@ -1112,11 +1101,7 @@ if build_type == "RELEASE" and run_tests == "YES":
       for line in lines:
         print line.strip()
         if line.find("FAILED!") != -1 :
-          if (flag==0):
             error_analysis_code = 13
-            error_msg = error_msg+platform+"\n"
-          error_msg = error_msg +line+"\n"
-          flag=1
       print ""
 
 print "=========================================================================="
@@ -1172,8 +1157,7 @@ if devel:
       else:
         print str(outstream)
         print "ERROR: There was a problem with the rotation initiation."
-        error_msg = error_msg + "ERROR: There was a problem with the rotation initiation.\n"
-        report_errors(error_msg, nightly, 16) #since we're about to exit, need to notify about the errors
+        report_errors(nightly, 16) #since we're about to exit, need to notify about the errors
         sys.exit(70)
       
       #= Schedule a Bmad distribution build and rotation.
@@ -1201,8 +1185,7 @@ if devel:
       else:
         print str(outstream)
         print "ERROR: There was a problem with the Bmad dist. initiation."
-        error_msg = error_msg + "ERROR: There was a problem with the Bmad dist. initiation.\n"
-        report_errors(error_msg, nightly, 14) #since we're about to exit, need to notify about the errors
+        report_errors(nightly, 14) #since we're about to exit, need to notify about the errors
         sys.exit(75)
 #==============================================================================
 #== Check to see if this release is a current candidate
@@ -1290,7 +1273,7 @@ if recommendation == 0 and not defer:
 stout.close()   # Close stream to logfile before quitting
 
 ## final error reporting via mail
-report_errors(error_msg, nightly, error_analysis_code)
+report_errors(nightly, error_analysis_code)
 ##
 
 ###
