@@ -11,7 +11,7 @@
     dQ_y = 0.05
     dQ_z = 0.0
     scan_params%Q_z = -0.089
-    scan_params%lat_file = 'ACC_REL:src/lattice/cesr/old_bmad/bmad_hibetainj_20040628_v01.lat'
+    scan_params%lat_file = 'ACC_REL:src/lattice/cesr/old_bmad/bmad_l9a18a000-_moverec.lat'
     scan_params%n_turn = 100
     scan_params%n_part = 1
     scan_params%init(1)%vec(1) =  0.0025
