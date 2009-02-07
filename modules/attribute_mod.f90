@@ -385,8 +385,8 @@ do i = 1, n_key
   if (i == multipole$)    cycle 
   if (i == ab_multipole$) cycle
 
-  attrib_array(i, symplectify$)       = 'SYMPLECTIFY'
-  attrib_array(i, map_with_offsets$)    = 'MAP_WITH_OFFSETS'
+  attrib_array(i, symplectify$)        = 'SYMPLECTIFY'
+  attrib_array(i, map_with_offsets$)   = 'MAP_WITH_OFFSETS'
 
   if (i == taylor$)       cycle
 
@@ -394,6 +394,7 @@ do i = 1, n_key
   attrib_array(i, num_steps$)         = 'NUM_STEPS'
   attrib_array(i, ds_step$)           = 'DS_STEP'
   attrib_array(i, csr_calc_on$)       = 'CSR_CALC_ON'
+  attrib_array(i, n_ref_pass$)        = 'N_REF_PASS'
 
   if (i == hkicker$)      cycle
   if (i == vkicker$)      cycle
@@ -607,7 +608,6 @@ attrib_array(sbend$, b2_gradient$)        = 'B2_GRADIENT'
 attrib_array(sbend$, radius$)             = 'RADIUS'
 attrib_array(sbend$, field_calc$)         = 'FIELD_CALC'
 attrib_array(sbend$, field_master$)       = 'FIELD_MASTER'
-attrib_array(sbend$, n_ref_pass$)         = 'N_REF_PASS'
 attrib_array(sbend$, ref_orbit$)          = 'REF_ORBIT'
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)

@@ -204,7 +204,7 @@ type ele_struct
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
   integer num_steps          ! number of slices for DA_maps
   integer integrator_order   ! For Etiennes' PTC: 2, 4, or 6.
-  integer ref_orbit           ! For setting the ptc kind type.
+  integer ref_orbit          ! For setting the ptc kind type.
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
   integer coupler_at         ! Lcavity coupler location: exit_end$, ...
@@ -216,6 +216,7 @@ type ele_struct
   logical is_on              ! For turning element on/off.
   logical old_is_on          ! For saving the element on/off state.
   logical logic              ! For general use. Not used by Bmad.
+  logical bmad_logic         ! For Bmad internal use only.
   logical on_a_girder        ! Have an Girder overlay_lord?
   logical csr_calc_on        ! Coherent synchrotron radiation calculation
   logical offset_moves_aperture  ! element offsets affects aperture?          

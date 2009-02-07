@@ -245,6 +245,17 @@ interface
 end interface
 
 interface
+  subroutine elements_locator (ele_name, lat, indx, err)
+    use bmad_struct, only: lat_struct
+    implicit none
+    character(*) ele_name
+    type (lat_struct) lat
+    integer, allocatable :: indx(:)
+    logical err
+  end subroutine
+end interface
+
+interface
   subroutine ele_at_s (lat, s, ix_ele)
     use bmad_struct, only: lat_struct, rp
     implicit none
