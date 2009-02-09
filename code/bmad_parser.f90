@@ -346,7 +346,7 @@ parsing_loop: do
       cycle parsing_loop
     endif
 
-    ! find associated element and evaluate the attribute value
+    ! Find associated element and evaluate the attribute value.
 
     do i = 0, n_max
 
@@ -367,7 +367,12 @@ parsing_loop: do
 
     enddo
 
-    if (.not. found) call warning ('ELEMENT NOT FOUND: ' // word_1)
+    ! If not found then issue a warning except if a general key redef ("quadrupole[...] = ...").
+
+    if (.not. found .and. key_name_to_key_index (word_1, .false.) == -1) then
+      call warning ('ELEMENT NOT FOUND: ' // word_1)
+    endif
+
     cycle parsing_loop
 
   ! else must be a variable

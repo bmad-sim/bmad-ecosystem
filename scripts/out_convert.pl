@@ -7,7 +7,8 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/elements_locator/elements_locator_by_key/;
+    s/tao_evaluate_mod/tao_data_and_eval_mod/;
+    s/tao_data_mod/tao_data_and_eval_mod/;
     print (F_OUT);
   }
 

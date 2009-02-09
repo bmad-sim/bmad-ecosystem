@@ -4028,7 +4028,7 @@ stack(1)%ix_seq    = i_use           ! which sequence to use for the lat
 stack(1)%ix_ele    =  1              ! we start at the beginning
 stack(1)%direction = +1              ! and move forward
 stack(1)%rep_count = seq%ele(1)%rep_count
-stack(1)%multipass = .false.
+stack(1)%multipass = seq%multipass
 stack(1)%tag = ''
 
 n_ele_use = 0
