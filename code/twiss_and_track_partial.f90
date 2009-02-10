@@ -102,6 +102,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   ! only partially tracking through).
 
   ele = ele2
+  ele%s = ele1%s + del_s
   ele%value(l$) = del_s
   ratio = del_s / l_orig
   ele%value(hkick$) = ele2%value(hkick$) * ratio

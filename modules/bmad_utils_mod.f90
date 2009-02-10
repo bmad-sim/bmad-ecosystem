@@ -173,21 +173,27 @@ integer i, n_name
 
 !
 
+key_index = -1
+if (key_str == '') return
+
 call str_upcase (name, key_str)
 call string_trim (name, name, n_name)
 
 abbrev = logic_option(.false., abbrev_allowed)
 
 do i = 1, n_key
-  key_index = i
   if (abbrev) then
-    if (name(:n_name) == key_name(i)(1:n_name)) return
+    if (name(:n_name) == key_name(i)(1:n_name)) then
+      key_index = i
+      return
+    endif
   else
-    if (name == key_name(i)) return
+    if (name == key_name(i)) then
+      key_index = i
+      return
+    endif
   endif
 enddo
-
-key_index = -1
 
 end function
 
