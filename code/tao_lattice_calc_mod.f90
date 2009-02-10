@@ -8,7 +8,7 @@
 module tao_lattice_calc_mod
 
 use tao_mod
-use tao_data_mod
+use tao_data_and_eval_mod
 use beam_mod
 use random_mod
 use rad_int_common

@@ -1,7 +1,7 @@
 module tao_change_mod
 
 use tao_mod
-use tao_evaluate_mod
+use tao_data_and_eval_mod
 use quick_plot
 
 contains
@@ -176,7 +176,6 @@ type (tao_universe_struct), pointer :: u
 type (real_array_struct), allocatable, save :: d_ptr(:), m_ptr(:)
 
 real(rp), allocatable, save :: change_number(:), old_value(:)
-
 real(rp) new_merit, old_merit, new_value, delta
 
 integer i, ix, ix_a, iu, nl, len_name
@@ -359,7 +358,7 @@ case ('@', 'd', '%')
   number_str(1:1) = ' '
 end select
 
-call tao_to_real_vector (number_str, 'BOTH', n_size, .false., change_number, good, err)
+call tao_to_real_vector (number_str, n_size, .false., change_number, good, err)
 
 end subroutine
 

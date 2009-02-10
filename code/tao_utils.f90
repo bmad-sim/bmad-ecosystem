@@ -47,7 +47,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 enddo
 
-end subroutine
+end subroutine tao_data_check
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -143,7 +143,7 @@ do i = lbound(p, 1), ubound(p, 1)
   if (present(ix_uni)) ix_uni = iu
 enddo
 
-end subroutine
+end subroutine tao_pick_universe
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -222,7 +222,7 @@ call element_locator (ele_name, u%model%lat, ix_ele(1))
 
 if (ix_ele(1) < 0) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // string)
 
-end subroutine
+end subroutine tao_locate_elements
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -279,7 +279,7 @@ if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
                                     'PLOT LOCATION NOT FOUND: ' // plot_name)
 err = .true.
 
-end subroutine
+end subroutine tao_find_plot_region
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -522,7 +522,7 @@ enddo
 
 if (present(curve)) curve = c
 
-end subroutine
+end subroutine tao_find_plots
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -551,7 +551,200 @@ type (tao_var_struct) var(:)
 var%useit_plot = var%exists .and. var%good_user .and. var%good_plot &
                                                 .and. var%good_var
 
-end subroutine
+end subroutine tao_var_useit_plot_calc
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_evaluate_element_parameters (err, param_name, values, print_err)
+!
+! Routine to evaluate a lattice element parameter of the form 
+!     <universe>@ele:{<class>}:<ele_name_or_num>[<parameter>]{|<component>}
+! or
+!     <universe>@ele@middle:{<class>}:<ele_name_or_num>[<parameter>]{|<component>}
+! Note: size(values) can be zero without an error
+! 
+! Input:
+!   param_name -- Character(*): parameter name.
+!   print_err -- Logical, optional :: Print error message? Default is True.
+!
+! Output:
+!   err       -- Logical: True if there is an error in syntax. False otherwise
+!   values(:) -- Real(rp), allocatable: Array of datum valuse.
+!-
+
+subroutine tao_evaluate_element_parameters (err, param_name, values, print_err)
+
+implicit none
+
+type (tao_universe_struct), pointer :: u
+type (lat_struct), pointer :: lat
+type (ele_struct) ele3
+type (coord_struct), pointer :: this_orb(:)
+type (coord_struct) orb
+
+character(*) param_name
+character(60) name, class_ele, parameter, component
+character(40) :: r_name = 'tao_evaluate_element_parameters'
+
+real(rp), allocatable :: values(:)
+real(rp), pointer :: real_ptr
+
+integer i, j, num, ix, ix1, ios, n_tot
+integer, allocatable, save :: ix_ele(:)
+
+logical err, printit, valid, middle
+logical, optional :: print_err
+logical, allocatable, save :: this_u(:)
+
+!
+
+call tao_pick_universe (param_name, name, this_u, err)
+if (err) return
+
+err = .true.
+printit = logic_option (.true., print_err)
+
+if (name(1:4) == 'ele:') then
+  name = name(5:)  ! Strip off 'ele:'
+  middle = .false.
+elseif (name(1:10) == 'ele@middle') then
+  name = name(11:)  ! Strip off 'ele@middle:'
+  middle = .true.
+else
+  return
+endif
+
+! Get class:name
+
+ix1 = index(name, '[');  if (ix1 == 0) return
+class_ele = name(1:ix1-1)
+name = name(ix1+1:)
+if (class_ele(1:1) == ':') class_ele = class_ele(2:)
+
+! Get parameter
+
+ix1 = index(name, ']');  if (ix1 == 0) return
+parameter = name(1:ix1-1)
+name = name(ix1+1:)
+
+! Get component
+
+if (name(1:1) == '|') then
+  component = name(2:)
+elseif (name(1:1) == ' ') then
+  component = 'model'
+else
+  if (printit) call out_io (s_error$, r_name, 'COMPONENT: ' // param_name)
+  return
+endif
+
+! Evaluate
+
+n_tot = 0
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  if (.not. this_u(i)) cycle
+  u => s%u(i)
+  call elements_locator (class_ele, u%model%lat, ix_ele, err)
+  if (err) return
+  call re_allocate (values, n_tot + size(ix_ele))
+
+  do j = 1, size(ix_ele)
+    ix = ix_ele(j)
+
+    select case (component)
+    case ('model')   
+      lat => u%model%lat
+      this_orb => u%model%orb
+    case ('base')  
+      lat => u%base%lat
+      this_orb => u%base%orb
+    case ('design')
+      lat => u%design%lat
+      this_orb => u%design%orb
+    case default
+      call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // param_name)
+      return
+    end select
+
+    if (middle) then
+      call twiss_and_track_partial (lat%ele(ix-1), lat%ele(ix), &
+                lat%param, lat%ele(ix)%value(l$)/2, ele3, this_orb(ix-1), orb)
+      if (parameter(1:6) == 'orbit_') then
+        call tao_orbit_value (parameter, orb, values(n_tot+j), err)
+      else
+        call pointer_to_attribute (ele3, parameter, .true., real_ptr, err, printit)
+      endif
+    else
+      if (parameter(1:6) == 'orbit_') then
+        call tao_orbit_value (parameter, this_orb(ix), values(n_tot+j), err)
+      else
+        call pointer_to_attribute (lat%ele(ix), parameter, .true., real_ptr, err, printit)
+      endif
+    endif
+
+    if (err) return
+    if (parameter(1:6) /= 'orbit_') values(n_tot+j) = real_ptr
+  enddo
+  n_tot = n_tot + size(values)
+enddo
+
+err = .false.
+
+end subroutine tao_evaluate_element_parameters
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_orbit_value (component, orbit, value, err)
+!
+! Routine to return the orbit component indicated by component
+!
+! Input:
+!   component -- Character(*): 'orbit_x', 'orbit_px', ... or 'orbit_pz'
+!   orbit     -- Coord_struct: orbit.
+!
+! Output:
+!   value -- Real(rp): orbit component.
+!   err   -- Logical: Set True if component is not recognized. False otherwise.
+!-
+
+subroutine tao_orbit_value (component, orbit, value, err)
+
+implicit none
+
+type (coord_struct) orbit
+
+real(rp) value
+character(*) component
+logical err
+
+!
+
+err = .true.
+
+select case (component)
+case ('orbit_x')
+  value = orbit%vec(1)
+case ('orbit_px')
+  value = orbit%vec(2)
+case ('orbit_y')
+  value = orbit%vec(3)
+case ('orbit_py')
+  value = orbit%vec(4)
+case ('orbit_z')
+  value = orbit%vec(5)
+case ('orbit_pz')
+  value = orbit%vec(6)
+case default
+  return
+end select
+
+err = .false.
+
+end subroutine tao_orbit_value
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -799,7 +992,7 @@ do i = 1, uu%n_d2_data_used
   endif
 enddo
 
-end subroutine
+end subroutine find_this_d2
 
 !----------------------------------------------------------------------------
 ! contains
@@ -848,7 +1041,7 @@ do i = 1, size(d2%d1)
   endif
 enddo
 
-end subroutine
+end subroutine find_this_d1
 
 !----------------------------------------------------------------------------
 ! contains
@@ -1121,7 +1314,7 @@ if (present(str_array) .and. any(component_name == string_components)) then
 
 endif
 
-end subroutine
+end subroutine find_this_data
 
 end subroutine tao_find_data
 
@@ -1518,7 +1711,7 @@ if (present(str_array) .and. any(component_name == string_components)) then
 
 endif
 
-end subroutine
+end subroutine find_this_var
 
 end subroutine tao_find_var
 
@@ -1551,7 +1744,7 @@ do j = 1, size(s%var)
   var%correction_value = var%meas_value + (var%design_value - var%model_value)
 enddo
 
-end subroutine
+end subroutine tao_var_target_calc
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1605,7 +1798,7 @@ enddo
 
 tao_com%lattice_recalc = .true.
 
-end subroutine
+end subroutine tao_set_var_model_value
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -2118,9 +2311,9 @@ subroutine get_next_arg(arg)
     call cesr_getarg(i_arg, arg)
   endif
 
-end subroutine
+end subroutine get_next_arg
 
-end subroutine
+end subroutine tao_parse_command_args
 
 
 !-----------------------------------------------------------------------
@@ -2211,7 +2404,7 @@ else  ! overlays, multipass_lords, etc.
   ix_ele_ref_track = -1
 endif
 
-end subroutine
+end subroutine tao_ele_ref_to_ele_ref_track
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2275,7 +2468,7 @@ do i = 1, n
   loc(i) = u%ele(i)%ixx
 enddo
 
-end subroutine
+end subroutine tao_ele_locations_given_name
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2348,7 +2541,7 @@ if (ix_class < 1) then
   err = .true.
 endif
 
-end subroutine
+end subroutine tao_string_to_element_id
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2365,7 +2558,7 @@ type (floor_position_struct) floor, screen
 call floor_to_screen (floor%x, floor%y, floor%z, screen%x, screen%y)
 screen%theta = pi + floor%theta
 
-end subroutine
+end subroutine floor_to_screen_coords
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2385,7 +2578,7 @@ real(rp) x_floor, y_floor, z_floor, x_screen, y_screen
 x_screen = -z_floor
 y_screen = -x_floor
 
-end subroutine
+end subroutine floor_to_screen
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2452,7 +2645,7 @@ enddo
 
 err = .false.
 
-end subroutine
+end subroutine tao_split_component
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

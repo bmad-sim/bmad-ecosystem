@@ -27,7 +27,7 @@ subroutine tao_hook_lattice_calc (calc_ok)
 
 use tao_mod
 use tao_lattice_calc_mod
-use tao_data_mod
+use tao_data_and_eval_mod
 
 implicit none
 

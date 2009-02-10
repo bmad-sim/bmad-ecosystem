@@ -272,6 +272,17 @@ predefined data types in \tao that are valid for a \vn{"beam"}
 Table~\ref{t:data.lattice} lists the predefined data types in
 \tao that are valid for a \vn{"lattice"} \vn{data_source}.
 
+It is important to note the difference between the \vn{d2.d1} name
+that is used to refer to a given set of data and the actual type of
+the data of the datums in the set. The \vn{d2.d1} name is arbitrary
+and is specified in the \tao initialization file
+(\sref{s:init.data}). Often, these names do reflect the actual type of
+data. However, there is no mandated relationship between the two. For example,
+it is perfectly possible to set create a data set with a \vn{d2.d1}
+name of \vn{orbit.x} to hold, say, global floor position data. In
+fact, the datums in a given \vn{d1} array do not all have to be of the
+same type. Thus the user is free to group data as s/he sees fit.
+
 \index{Data!Relative}
 Associated with a datum are two lattice elements called \vn{ele} and
 \vn{ele0}.  The names of these elements may be specified by setting
@@ -352,7 +363,7 @@ would be given by:
   element_param.k1
 \end{example}
 
-  \index{emitl.*}
+  \index{emit.*}
   \item[emit.] \Newline
 Emittance can be calculated in one of two ways. One way is to
 calculate it from a tracked beam. The other is from the lattice using
@@ -461,7 +472,7 @@ plotted for \vn{t} and \vn{tt} data types, and the longitudinal
 (\vn{"s"}) position is used for the x-axis, the integration step used
 in generating the points that define this curve will be decreased if
 the the s-distance between points is smaller than the \vn{ds_step}.
-In this case, discrepencies between the plot and datum values may be observed.
+In this case, discrepancies between the plot and datum values may be observed.
 
   \index{unstable_orbit}
   \item[unstable\_ring] \Newline
@@ -681,3 +692,32 @@ size squared.
 
 \vfill \break
 {\vfill}
+
+%------------------------------------------------------------------------
+\section{Referencing Datums on the Fly}
+\label{s:data.on.the.fly}
+
+An expression like "orbit.x[2]|model" referrs to an existing datum
+that has been set up in the \tao initialization file.  It is sometimes
+useful, however, in \tao commands to be able to refer to datums \vn{on-the-fly}
+that have not been so initialized. The syntax for this is:
+\begin{example}
+  \{[<universe_range>]@\}dat:\{<source>\}:<datum_type>[\{<ix_ele0>&\}<ix_ele>]\{|<component>\}
+\end{example}
+The components of this syntax are:
+\begin{example}
+  [<universe_range>]@    Optional universe specification (\sref{s:universe})
+  <source>               Optional source specification /
+                            Possibilities are "lattice" (default) or "beam".
+  <datum_type>           A data type defined in \sref{s:data.types}.
+  <ix_ele0>              Optional \vn{ele0} index number.
+  <ix_ele>               \vn{ele} index number.
+  <component>            Optional component. 
+                            Possibilities are "model" (default), "base", or "design".
+\end{example}
+Example:
+\begin{example}
+  3@dat::orbit.x[34]                 Orbit at element 34 in universe 3.
+  3@dat:lattice:orbit.x[34]|model    Same as above.
+  dat::n_particle_loss[2&56]         Particle loss between elements 2 and 56.
+\end example

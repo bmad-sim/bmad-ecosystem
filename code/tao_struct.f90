@@ -50,7 +50,7 @@ end type
 
 type tao_eval_stack1_struct
   integer type
-  character(40) :: name = ''  
+  character(60) :: name = ''  
   real(rp), allocatable :: value(:)
   logical, allocatable :: good(:)
   type (tao_real_array_struct), allocatable :: value_ptr(:)
@@ -615,6 +615,7 @@ type tao_universe_struct
   logical universe_recalc                ! Allows for fine control of lattice calculations
   logical :: init_beam0 = .false.        ! Init beam
   logical :: mat6_recalc_on = .true.     ! calc linear transfer matrix
+  logical picked_uni                     ! Scratch logical.
 end type
 
 ! The super_universe is the structure that holds an array of universes.

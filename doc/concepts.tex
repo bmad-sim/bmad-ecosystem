@@ -302,7 +302,8 @@ component. The list of components that can be set or refereed to are:
 Use the \vn{show var} (\sref{s:show}) command to view variable information
 
 %------------------------------------------------------------------------
-\section{Plotting}\index{Arithmetic Expressions}
+\section{Arithmetic Expressions}
+\index{Arithmetic Expressions}
 \label{s:arithmetic}
 
 \tao is able to handle arithmetic expressions within commands
@@ -337,14 +338,34 @@ The following intrinsic functions are also recognized: \hfil\break
 Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
 Setting the seed is described in Section~\sref{s:globals}.
 
-When combining components from the same datum or variable in an
-expression, the common prefix can be eliminated. For example
+When combining components from the same \vn{d1_data}
+(\sref{s:data.org}) or \vn{v1_var} (\sref{s:variable.overview}) array
+in an expression, the common prefix can be eliminated. For example
 \begin{example}
   orbit.x[2:7,8]|model - 2*orbit.x[2:7,8]|meas
 \end{example}
 is equivalent to
 \begin{example}
   orbit.x[2:7,8]|model - 2*meas
+\end{example}
+
+Data ``on-the-fly'' can be evaluated using the syntax in \sref{s:data.on.the.fly}.
+Additionally, lattice element parameters can be included using the syntax:
+\begin{example}
+  \{[universe_range]\}ele:\{<class>\}:<name_or_num>[<param_name>]\{<component\}
+\end{example}
+The element name can be in \vn{class:name} format (\sref{s:class:name}). 
+The optional \vn {<component>} lattice can be
+\begin{example}
+  model (default)
+  base
+  design
+\end{example}
+Examples:
+\begin{example}
+  3@ele:quad:q*[k1]    k1 of all quads in the model lattice of universe 3 with 
+                         names beginning with "q".
+  ele::34[l]|design    Length of element #34 in the design lattice of the viewed universe.
 \end{example}
 
 %------------------------------------------------------------------------

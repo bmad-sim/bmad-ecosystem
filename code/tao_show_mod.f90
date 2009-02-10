@@ -1,7 +1,7 @@
 module tao_show_mod
 
 use tao_mod
-use tao_evaluate_mod
+use tao_data_and_eval_mod
 use tao_top10_mod
 use tao_command_mod, only: tao_next_switch
 use random_mod
@@ -17,7 +17,6 @@ type show_common_struct
   integer ix_ele
 end type
 
-type (show_common_struct), private, save :: show_common
 integer, parameter, private :: n_char = 500
 
 
@@ -193,7 +192,7 @@ character(n_char) line, line1, line2, line3
 character(n_char) stuff2
 character(9) angle
 
-integer :: data_number, ix_plane, ix_class, n_live, n_order
+integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_e0, n_e1, n_tot, ix_p, ix_word
@@ -1069,19 +1068,19 @@ case ('lattice')
   
   column(:)%name = ""
   column(:)%label = ""
-  column(1)  = show_lat_column_struct("index",   "i6",       6, "")
-  column(2)  = show_lat_column_struct("x",       "x",        2, "")
-  column(3)  = show_lat_column_struct("name",    "a",        0, "")
-  column(4)  = show_lat_column_struct("key",     "a16",     16, "")
-  column(5)  = show_lat_column_struct("s",       "f10.3",   10, "")
-  column(6)  = show_lat_column_struct("beta_a",  "f7.2",     7, "Beta| A")
-  column(7)  = show_lat_column_struct("phi_a",   "f8.3",     8, "")
-  column(8)  = show_lat_column_struct("eta_a",   "f5.1",     5, "")
-  column(9)  = show_lat_column_struct("orbit_x", "3p, f8.3", 8, "")
-  column(10) = show_lat_column_struct("beta_b",  "f7.2",     7, "")
-  column(11) = show_lat_column_struct("phi_b",   "f8.3",     8, "")
-  column(12) = show_lat_column_struct("eta_b",   "f5.1",     5, "")
-  column(13) = show_lat_column_struct("orbit_y", "3p, f8.3", 8, "")
+  column(1)  = show_lat_column_struct('#',                 'i6',       6, '')
+  column(2)  = show_lat_column_struct('x',                 'x',        2, '')
+  column(3)  = show_lat_column_struct('ele::#[name]',      'a',        0, '')
+  column(4)  = show_lat_column_struct('ele::#[key]',       'a16',     16, '')
+  column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',   10, '')
+  column(6)  = show_lat_column_struct('ele::#[beta_a]',    'f7.2',     7, 'beta|  a')
+  column(7)  = show_lat_column_struct('ele::#[phi_a]',     'f8.3',     8, '')
+  column(8)  = show_lat_column_struct('ele::#[eta_a]',     'f5.1',     5, '')
+  column(9)  = show_lat_column_struct('ele::#[orbit_x]',   '3p, f8.3', 8, '')
+  column(10) = show_lat_column_struct('ele::#[beta_b]',    'f7.2',     7, '')
+  column(11) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',     8, '')
+  column(12) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',     5, '')
+  column(13) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3', 8, '')
 
   at_ends = .true.
   by_s = .false.
@@ -1185,43 +1184,59 @@ case ('lattice')
     write (line1, '(6x, a)') 'Model values at Center of Element:'
   endif
 
+  ! Setup columns
+
   ix1 = 1
   line2 = ""
   line3 = ""
   do i = 1, size(column)
     if (column(i)%name == "") cycle
-    if (column(i)%field_width == 0) then
+    column(i)%format = '(' // trim(column(i)%format) // ')'
+
+    if (column(i)%name == 'ele::#[name]' .and. column(i)%field_width == 0) then
       do ie = 0, lat%n_ele_track
         if (.not. picked_ele(ie)) cycle
         column(i)%field_width = &
                   max(column(i)%field_width, len_trim(lat%ele(ie)%name)+1)
       enddo
     endif
+
     ix2 = ix1 + column(i)%field_width
 
     if (column(i)%label == '') then
       name = column(i)%name
-      select case (name)
-      case ("name")
-        line2(ix1:) = "Name" 
-      case ("key")
-        line2(ix1:) = "Key" 
-      case ("index")
-        line2(ix2-5:) = "Index"
-      case ("x")
-      case default
-        if (name(1:5) == "beta_" .or. name(1:6) == "alpha_" .or. name(1:4) == "phi_" .or. &
-            name(1:4) == "eta_" .or. name(1:5) == "etap_" .or. name(1:6) == "orbit_") then
-          ix = index(name, '_')
-          call upcase_string(name(1:1))
-          call upcase_string(name(ix+1:ix+1))
-          line2(ix2-ix+1:) = name(1:ix-1)
-          line3(ix2-ix+2:) = name(ix+1:)
-        else
-          ix = min (len_trim(name), ix2-ix1+2)
-          line2(ix2-ix-1:) = name(1:ix)
-        endif
-      end select
+      if (index(name, 'ele:') /= 0) then
+        i1 = index(name, '[')
+        i2 = index(name, ']')
+        name = name(i1+1:i2-1)
+      elseif (index(name, 'dat:') /= 0) then
+        ix = index(name, 'dat:')
+        name = name(ix+4:)
+        i1 = index(name, ':')
+        i2 = index(name, '[')
+        name = name(i1+1:i2-1)
+      elseif  (name == '#') then
+        line2(ix2-5:) = 'Index'
+        ix1 = ix2
+        cycle    
+      elseif (name == 'x') then
+        ix1 = ix2
+        cycle    
+      else
+        name = ''
+      endif
+
+      ix = index(name, '_')
+      n = len_trim(name)
+      if (column(i)%format(2:2) == 'a') then
+        line2(ix1:) = name
+      elseif (ix == 0) then
+        line2(ix2-n:) = name
+      else
+        line2(ix2-ix+1:) = name(1:ix-1)
+        line3(ix2-n+ix-1:) = name(ix+1:)
+      endif
+
     else
       name = column(i)%label
       ix = index(name, '|')
@@ -1235,9 +1250,10 @@ case ('lattice')
       endif
     endif
 
-    column(i)%format = "(" // trim(column(i)%format) // ")"
     ix1 = ix2
   enddo
+
+  ! Collect lines
 
   if (print_header_lines) then
     nl=nl+1; lines(nl) = line1
@@ -1250,43 +1266,35 @@ case ('lattice')
   do ie = 0, lat%n_ele_track
     if (.not. picked_ele(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200, .false.)
-    ele => lat%ele(ie)
-    if (ie == 0 .or. at_ends) then
-      ele3 = ele
-      orb = u%model%orb(ie)
-    else
-      call twiss_and_track_partial (lat%ele(ie-1), ele, &
-                lat%param, ele%value(l$)/2, ele3, u%model%orb(ie-1), orb)
-      ele3%s = ele%s-ele%value(l$)/2
-    endif
-
-    line = ""
-    ix = 1
+    line = ''
+    nc = 1
+    ele => u%model%lat%ele(ie)
     do i = 1, size(column)
-      if (column(i)%name == "") cycle
-      select case (column(i)%name)
-      case ("index")
-        write (line(ix:), column(i)%format, iostat = ios) ie
-      case ("name")
-        write (line(ix:), column(i)%format, iostat = ios) ele%name
-      case ("key")
-        write (line(ix:), column(i)%format, iostat = ios) key_name(ele%key)
-      case ("x")
+      name = column(i)%name
+      if (name == '') cycle
+      if (name == '#') then
+        write (line(nc:), column(i)%format, iostat = ios) ie
+      elseif (name == 'ele::#[name]') then
+        write (line(nc:), column(i)%format, iostat = ios) ele%name
+      elseif (name == 'ele::#[key]') then
+        write (line(nc:), column(i)%format, iostat = ios) key_name(ele%key)
+      elseif (name == 'x') then
         ios = 0
-      case default
-        show_common%ele => ele3
-        show_common%orbit => orb
-        show_common%ix_ele = ie
-        show_common%u => u
-        call tao_evaluate_expression (column(i)%name, 1, .false., value, good, &
-                                             .false., err, tao_ele_value_routine)
+      else
+        write (nam, '(i0)') ie
+        call detab (name, '#', trim(nam))
+        ix = index(name, 'ele:')
+        if (.not. at_ends .and. ix /= 0) then
+          name = name(:ix+3) // '@middle' // trim(name(ix+4:))
+        endif
+        call tao_evaluate_expression (name, 1, .false., value, good, .false., err)
         if (err) then
-          j = ix + column(i)%field_width - 5
+          j = nc + column(i)%field_width - 5
           line(j:) = '-----'
         else
-          write (line(ix:), column(i)%format, iostat = ios) value(1)
+          write (line(nc:), column(i)%format, iostat = ios) value(1)
         endif
-      end select
+      endif
 
       if (ios /= 0) then
         lines(1) = 'TOO MANY CHARACTERS ON A LINE OR BAD FORMAT: ' // column(i)%format
@@ -1295,7 +1303,7 @@ case ('lattice')
         return
       endif
 
-      ix  = ix + column(i)%field_width
+      nc  = nc + column(i)%field_width
 
     enddo
 
@@ -1310,6 +1318,8 @@ case ('lattice')
     endif
     nl=nl+1; lines(nl) = line1
   endif
+
+  ! Lord info
 
   if (print_header_lines) then
     first_time = .true.  
@@ -1725,7 +1735,7 @@ case ('universe')
     nl=nl+1; write (lines(nl), '(a, i0, a, i0)') 'Lord elements:   ', &
                       lat%n_ele_track+1, '  through ', lat%n_ele_max
   else
-    nl=nl+1; write (lines(nl), '(a)') "There are NO Lord elements"
+    nl=nl+1; write (lines(nl), '(a)') 'There are NO Lord elements'
   endif
 
   nl=nl+1; write (lines(nl), '(a, f0.3)')   'Lattice length:             ', lat%param%total_length
@@ -2096,77 +2106,5 @@ endif
 end subroutine show_ele_data
 
 end subroutine tao_show_this
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-
-subroutine tao_ele_value_routine (str, stack, err_flag)
-
-implicit none
-
-type (tao_eval_stack1_struct) stack
-type (tao_universe_struct), pointer :: u
-integer ios, i, n, ie
-
-character(*) str
-character(40) attribute
-character(24) :: r_name = 'tao_ele_value_routine'
-
-real(rp), pointer :: real_ptr
-
-logical err_flag
-
-!
-
-call re_allocate (stack%value, 1)
-call re_allocate (stack%good, 1)
-
-stack%value(1) = 0  ! Default
-stack%good(1) = .false.
-err_flag = .true.
-
-ie = show_common%ix_ele
-u => show_common%u
-
-attribute = str
-select case (attribute)
-case ("orbit_x")
-  stack%value(1) = show_common%orbit%vec(1)
-case ("orbit_px")
-  stack%value(1) = show_common%orbit%vec(2)
-case ("orbit_y")
-  stack%value(1) = show_common%orbit%vec(3)
-case ("orbit_py")
-  stack%value(1) = show_common%orbit%vec(4)
-case ("orbit_z")
-  stack%value(1) = show_common%orbit%vec(5)
-case ("orbit_pz")
-  stack%value(1) = show_common%orbit%vec(6)
-case ("sigma_x", "sigma_y", "sigma_z", "sigma_px", "sigma_py", "sigma_pz")
-  if (attribute == "sigma_x")  stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s11$))
-  if (attribute == "sigma_px") stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s22$))
-  if (attribute == "sigma_y")  stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s33$))
-  if (attribute == "sigma_py") stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s44$))
-  if (attribute == "sigma_z")  stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s55$))
-  if (attribute == "sigma_pz") stack%value(1) = sqrt(u%model%bunch_params(ie)%sigma(s66$))
-case ("i5a_e6")
-  if (.not. allocated (u%model%rad_int%lin_i5a_e6)) return
-  stack%value(1) = sum(u%model%rad_int%lin_i5a_e6(1:ie))
-case ("i5b_e6")
-  if (.not. allocated (u%model%rad_int%lin_i5b_e6)) return
-  stack%value(1) = sum(u%model%rad_int%lin_i5b_e6(1:ie))
-
-! Must be an element attribute
-case default
-  call upcase_string(attribute)
-  call pointer_to_attribute (show_common%ele, attribute, .true., real_ptr, err_flag, .false.)
-  if (.not. err_flag) stack%value(1) = real_ptr
-end select
-
-err_flag = .false.
-stack%good(1) = .true.
-
-end subroutine tao_ele_value_routine
 
 end module

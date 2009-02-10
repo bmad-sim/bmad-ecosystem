@@ -452,7 +452,7 @@ end subroutine tao_init_global
 
 subroutine tao_init_data (data_file)
 
-use tao_data_mod
+use tao_data_and_eval_mod
 use tao_lattice_calc_mod
 use tao_input_struct
 use bmad_parser_mod
@@ -1066,7 +1066,7 @@ do i = n0+1, size(u%data)
   u%data(i)%ele_name   = ''
   u%data(i)%ix_ele     = -1
   u%data(i)%ele0_name  = ''
-  u%data(i)%ix_ele0    = 0 ! by default, data relative to beginning of lattice
+  u%data(i)%ix_ele0    = -1 
   u%data(i)%ix_data    = i
 enddo
   
