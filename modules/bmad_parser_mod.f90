@@ -152,7 +152,8 @@ type bp_common_struct
   logical error_flag     ! Needed since bmad_status%ok gets set by many routines.
   logical input_line_meaningful
   logical ran_function_was_called
-  logical write_digested
+  logical write_digested      ! For bmad_parser
+  logical write_digested2     ! For bmad_parser2
 end type
 
 !
@@ -740,6 +741,7 @@ subroutine b_grad_warning (ele)
     print *, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!'
   enddo
   bp_com%write_digested = .false.
+  bp_com%write_digested2 = .false.
 
 end subroutine
 
