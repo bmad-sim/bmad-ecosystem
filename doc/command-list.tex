@@ -620,6 +620,10 @@ The defaults will be used.  The default \vn{<init_file>} is what was
 used with the last reinitialization or, if this is the first
 reinitialization, what was used at startup.
 
+The \vn{-beam0} optional argument reads in a beam data file which is
+used to initialize the beam at the beginning of the lattice. This
+overrides the \vn{beam0_file} variable (\sref{s:beam.init}).
+
 Examples:
 \begin{example}
   reinit tao                         ! Reinit using previous arguments

@@ -697,7 +697,7 @@ type (coord_struct), pointer :: orb0
 type (lat_param_struct), pointer :: param
 
 real(rp) v(6)
-integer i, iu, ios, n_in_file, n_in
+integer i, j, iu, ios, n_in_file, n_in
 
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
@@ -721,7 +721,15 @@ if (u%beam0_file /= "") then
     call tao_read_beam (u%beam0, err)
     if (err) call err_exit
     call tao_close_beam_file()
-    call out_io (s_info$, r_name, 'Read initial beam distribution from: ' // u%beam0_file)
+    do i = 1, size(u%beam0%bunch)
+      do j = 1, size(u%beam0%bunch(i)%particle)
+        u%beam0%bunch(i)%particle(j)%r%vec = &
+                  u%beam0%bunch(i)%particle(j)%r%vec + model%lat%beam_start%vec
+      enddo
+    enddo
+    call out_io (s_info$, r_name, &
+                  'Read initial beam distribution from: ' // u%beam0_file, &
+                  'Centroid Offset: \6es12.3\ ', r_array = model%lat%beam_start%vec)
   endif
   call tao_find_beam_centroid (u%beam0, orb0, too_many_lost) 
   if (too_many_lost) then

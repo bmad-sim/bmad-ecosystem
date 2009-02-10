@@ -199,16 +199,18 @@ logical, allocatable, save :: this_u(:)
 if (tao_com%common_lattice) then
   this_u = .false.
   this_u(ix_common_uni$) = .true.
+  e_name = ele_name
 else
-  call tao_pick_universe (ele_name, ele_name, this_u, err)
+  call tao_pick_universe (ele_name, e_name, this_u, err)
   if (err) return
 endif
 
 ! 
 
-call string_trim (ele_name, e_name, ix)
-call string_trim (attrib_name, a_name, ix)
+call string_trim (e_name, e_name, ix)
 call str_upcase (e_name, e_name)
+
+call string_trim (attrib_name, a_name, ix)
 call str_upcase (a_name, a_name)
 
 etc_added = .false.
