@@ -804,7 +804,7 @@ case ('expression:')
   ! So on the fist time through, construct datum%stack and for subsequent times, use
   ! datum%stack with tao_evaluate_stack.
   if (allocated (datum%stack)) then
-    call tao_evaluate_stack (datum%stack, 1, .false., value1, good1, err)
+    call tao_evaluate_stack (datum%stack, 1, .false., value1, good1, err, .true.)
     if (err) call err_exit
     datum_value = value1(1)
     valid_value = good1(1)
@@ -1648,7 +1648,8 @@ end function
 !   expression    -- character(*): arithmetic expression
 !   use_good_user -- Logical, optional: Use the good_user logical in evaluating good(:)
 !                      Default is False.
-!  
+!   print_err     -- Logical, optional: Print an error message? Default is True.
+!
 ! Output:
 !   value        -- real(rp): Value of arithmetic expression.
 !   err_flag     -- Logical: TRUE on error.
@@ -1661,24 +1662,27 @@ end function
 !                  With this, tao_evaluate_stack can be called directly.
 !-
 
-subroutine tao_to_real (expression, value, err_flag, use_good_user, good, stack)
+subroutine tao_to_real (expression, value, err_flag, use_good_user, good, stack, print_err)
 
 implicit none
 
 type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 
 character(*) :: expression
+
 real(rp) value
 real(rp), allocatable, save :: vec(:)
+
 logical, allocatable, save :: ok(:)
 logical err_flag, good_user
 logical, optional :: good, use_good_user
+logical, optional :: print_err
 
 !
 
 good_user = logic_option(.false., use_good_user)
 call tao_evaluate_expression (expression, 1, good_user, &
-                                            vec, ok, .true., err_flag, stack)
+                                            vec, ok, err_flag, print_err, stack)
 if (err_flag) return
 value = vec(1)
 if (present(good)) good = ok(1)
@@ -1689,7 +1693,8 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_to_real_vector (expression, n_size, use_good_user, value, good, err_flag)
+! Subroutine tao_to_real_vector (expression, n_size, use_good_user, value, good, 
+!                                                                err_flag, print_err)
 !
 ! Mathematically evaluates an expression.
 !
@@ -1700,6 +1705,7 @@ end subroutine
 !                               If n_size = 0 then the natural size determined 
 !                               by expression is used.
 !   use_good_user -- Logical: Use the good_user logical in evaluating good(:)
+!   print_err     -- Logical, optional: Print an error message? Default is True.
 !  
 ! Output:
 !   value(:)     -- Real(rp), allocatable: Value of arithmetic expression.
@@ -1709,7 +1715,8 @@ end subroutine
 !   err_flag     -- Logical: True on error. False otherwise
 !-
 
-subroutine tao_to_real_vector (expression, n_size, use_good_user, value, good, err_flag)
+subroutine tao_to_real_vector (expression, n_size, use_good_user, value, good, &
+                                                                      err_flag, print_err)
 
 use random_mod
 
@@ -1724,11 +1731,12 @@ character(*) :: expression
 character(16) :: r_name = "tao_to_real_vector"
 
 logical err_flag, err, use_good_user
+logical, optional :: print_err
 
 !
 
 call tao_evaluate_expression (expression, n_size, use_good_user, &
-                                                       value, good, .true., err_flag)
+                                                       value, good, err_flag, print_err)
 
 end subroutine
 
@@ -1737,19 +1745,18 @@ end subroutine
 !-------------------------------------------------------------------------
 !+
 ! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, &
-!                                   value, good, zero_divide_print_err, err_flag, stack)
+!                                   value, good, err_flag, print_err, stack)
 !
 ! Mathematically evaluates a character expression.
 !
 ! Input:
-!   expression            -- Character(*): Arithmetic expression.
-!   n_size                -- Integer: Size of the value array. If the expression
-!                              is a scaler then the value will be spread.
-!                              If n_size = 0 then the natural size determined 
-!                              by expression is used.
+!   expression    -- Character(*): Arithmetic expression.
+!   n_size        -- Integer: Size of the value array. If the expression
+!                      is a scaler then the value will be spread.
+!                      If n_size = 0, the natural size is determined by expression is used.
 !   use_good_user -- Logical: Use the good_user logical in evaluating good(:)
-!   zero_divide_print_err -- Logical: If False just return zero without printing
-!                             an error message.
+!   print_err     -- Logical, optional: If False then supress evaluation error messages.
+!                      This does not affect syntax error messages. Default is True.
 !   
 ! Output:
 !   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
@@ -1765,7 +1772,7 @@ end subroutine
 !-
 
 subroutine tao_evaluate_expression (expression, n_size, use_good_user, &
-                                    value, good, zero_divide_print_err, err_flag, stack)
+                                    value, good, err_flag, print_err, stack)
 
 use random_mod
 
@@ -1788,12 +1795,14 @@ character(40) saved_prefix
 
 logical, allocatable :: good(:)
 logical delim_found, split, ran_function_pending, use_good_user
-logical err_flag, err, wild, zero_divide_print_err
+logical err_flag, err, wild, printit
+logical, optional :: print_err
 
 ! Don't destroy the input expression
 
 err_flag = .true.
 saved_prefix = ''
+printit = logic_option(.true., print_err)
 
 phrase = expression
 
@@ -2008,9 +2017,9 @@ parsing_loop: do
       endif
     else
       call pushit (stk%type, i_lev, numeric$)
-      call tao_param_value_routine (word, saved_prefix, stk(i_lev), err)
+      call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit)
       if (err) then
-        call out_io (s_error$, r_name, &
+        if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
                         'CANNOT EVALUATE: ' // word)
         return
@@ -2059,9 +2068,9 @@ parsing_loop: do
       return
     endif
     call pushit (stk%type, i_lev, numeric$)
-    call tao_param_value_routine (word, saved_prefix, stk(i_lev), err)
+    call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit)
     if (err) then
-      call out_io (s_error$, r_name, &
+      if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
                         'CANNOT EVALUATE: ' // word)
       return
@@ -2158,7 +2167,7 @@ if (n_size /= 0) then
   n__size = n_size
 endif
 
-call tao_evaluate_stack (stk(1:i_lev), n__size, use_good_user, value, good, err_flag)
+call tao_evaluate_stack (stk(1:i_lev), n__size, use_good_user, value, good, err_flag, printit)
 
 ! If the stack argument is present then copy stk to stack
 
@@ -2206,7 +2215,7 @@ end subroutine tao_evaluate_expression
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 
-subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag)
+subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_err)
 
 implicit none
 
@@ -2221,7 +2230,7 @@ character(*) str, saved_prefix
 character(60) name
 character(40) :: r_name = 'tao_param_value_routine'
 
-logical err_flag
+logical err_flag, print_err
 
 ! Case where str represents a number.
 
@@ -2229,7 +2238,7 @@ if (is_real(str)) then
   call re_allocate(stack%value, 1)
   read (str, *, iostat = ios) stack%value(1)
   if (ios /= 0) then
-    call out_io (s_warn$, r_name, "This doesn't seem to be a number: " // str)
+    if (print_err) call out_io (s_warn$, r_name, "This doesn't seem to be a number: " // str)
     return
   endif
   err_flag = .false.
@@ -2307,7 +2316,7 @@ elseif (size(int_array) /= 0) then
   enddo
 
 else
-  call out_io (s_warn$, r_name, &
+  if (print_err) call out_io (s_warn$, r_name, &
                "This doesn't seem to be datum value or variable value: " // name)
   err_flag = .true.
   return
@@ -2319,7 +2328,8 @@ end subroutine tao_param_value_routine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, good, err_flag)
+! Subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, good, 
+!                                                                err_flag, print_err)
 !
 ! Routine to evaluate an expression stack.
 !
@@ -2327,6 +2337,8 @@ end subroutine tao_param_value_routine
 !   stack(:)      -- Tao_eval_stack1_struct: Expression stack
 !   n_size        -- Integer: Result array size.
 !   use_good_user -- Logical: Use the good_user logical in evaluating good(:)
+!   print_err     -- Logical: If False then supress evaluation error messages.
+!                      This does not affect syntax error messages. Default is True.
 !
 ! Output:
 !   value(:)     -- Real(rp), allocatable: Value of arithmetic expression.
@@ -2336,7 +2348,7 @@ end subroutine tao_param_value_routine
 !   err_flag     -- Logical: True on error. False otherwise
 !-
 
-subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, good, err_flag)
+subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, good, err_flag, print_err)
 
 implicit none
 
@@ -2350,7 +2362,7 @@ integer i, i2, j, n
 integer n_size
 
 logical, allocatable :: good(:)
-logical zero_divide_print_err, err_flag, use_good_user
+logical err_flag, use_good_user, print_err
 
 character(20) :: r_name = 'tao_evaluate_stack'
 
@@ -2392,7 +2404,7 @@ do i = 1, size(stack)
     call value_transfer (stk2(i2)%value, stack(i)%value)
 
   case (var_on_the_fly$)
-    call tao_param_value_routine (stack(i)%name, '', stack(i), err_flag)
+    call tao_param_value_routine (stack(i)%name, '', stack(i), err_flag, print_err)
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, stack(i)%value)
 

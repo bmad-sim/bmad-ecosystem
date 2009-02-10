@@ -1287,8 +1287,8 @@ case ('lattice')
         if (.not. at_ends .and. ix /= 0) then
           name = name(:ix+3) // '@middle' // trim(name(ix+4:))
         endif
-        call tao_evaluate_expression (name, 1, .false., value, good, .false., err)
-        if (err) then
+        call tao_evaluate_expression (name, 1, .false., value, good, err, .false.)
+        if (err .or. .not. allocated(value) .or. size(value) /= 1) then
           j = nc + column(i)%field_width - 5
           line(j:) = '-----'
         else
