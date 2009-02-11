@@ -405,7 +405,7 @@ do k = 1, size(graph%curve)
 
     if (ix1_ax > 4 .or. ix2_ax > 4) then
       call out_io (s_error$, r_name, &
-        'Z OR P_Z PHASE SPACE PLOTTING NOT YET IMPLEMENTED FOR "twiss" DATA_SOURCE.')
+        'Z OR PZ PHASE SPACE PLOTTING NOT YET IMPLEMENTED FOR "twiss" DATA_SOURCE.')
       return
     endif
 
@@ -464,11 +464,11 @@ character(16) :: r_name = 'phase_space_axis'
 
 select case (data_type)
 case ('x');   ix_axis = 1
-case ('p_x'); ix_axis = 2
+case ('px');  ix_axis = 2
 case ('y');   ix_axis = 3
-case ('p_y'); ix_axis = 4
+case ('py');  ix_axis = 4
 case ('z');   ix_axis = 5
-case ('p_z'); ix_axis = 6
+case ('pz');  ix_axis = 6
 case default
   call out_io (s_abort$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // data_type)
   call err_exit
@@ -1068,11 +1068,11 @@ do ii = 1, size(curve%x_line)
     value = here%vec(3)
   case ('orbit.z')
     value = here%vec(5)
-  case ('orbit.p_x')
+  case ('orbit.px')
     value = here%vec(2)
-  case ('orbit.p_y')
+  case ('orbit.py')
     value = here%vec(4)
-  case ('orbit.p_z')
+  case ('orbit.pz')
     value = here%vec(6)
   case ('orbit.amp_a')
     call orbit_amplitude_calc (ele, here, amp_a = value)
@@ -1146,15 +1146,15 @@ do ii = 1, size(curve%x_line)
     value = cbar(2,2)* sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
   case ('sigma.x')
     value = sqrt(bunch_params%sigma(s11$))
-  case ('sigma.p_x')
+  case ('sigma.px')
     value = sqrt(bunch_params%sigma(s22$))
   case ('sigma.y')
     value = sqrt(bunch_params%sigma(s33$))
-  case ('sigma.p_y')
+  case ('sigma.py')
     value = sqrt(bunch_params%sigma(s44$))
   case ('sigma.z')
     value = sqrt(bunch_params%sigma(s55$))
-  case ('sigma.p_z')
+  case ('sigma.pz')
     value = sqrt(bunch_params%sigma(s66$))
   case ('norm_emit.a')
     value = bunch_params%a%norm_emitt

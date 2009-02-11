@@ -255,7 +255,7 @@ case ('curve')
     beam => s%u(i_uni)%ele(c%ix_ele_ref_track)%beam
     call file_suffixer (file_name, file_name, 'particle_dat', .true.)
     open (iu, file = file_name)
-    write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'p_x', '  y', 'p_y', '  z', 'p_z'
+    write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'px', '  y', 'py', '  z', 'pz'
     do i = 1, size(beam%bunch(1)%particle)
       write (iu, '(i6, 6es15.7)') i, (beam%bunch(1)%particle(i)%r%vec(j), j = 1, 6)
     enddo

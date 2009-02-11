@@ -170,11 +170,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         if (it >= lbound(d1_dat%d, 1) .and. it <= ubound(d1_dat%d, 1)) then
           select case (d1_dat%name)
           case ('x');   d1_dat%d(it)%model_value = orb(0)%vec(1)
-          case ('p_x'); d1_dat%d(it)%model_value = orb(0)%vec(2)
+          case ('px');  d1_dat%d(it)%model_value = orb(0)%vec(2)
           case ('y');   d1_dat%d(it)%model_value = orb(0)%vec(3)
-          case ('p_y'); d1_dat%d(it)%model_value = orb(0)%vec(4)
+          case ('py');  d1_dat%d(it)%model_value = orb(0)%vec(4)
           case ('z');   d1_dat%d(it)%model_value = orb(0)%vec(5)
-          case ('p_z'); d1_dat%d(it)%model_value = orb(0)%vec(6)
+          case ('pz');  d1_dat%d(it)%model_value = orb(0)%vec(6)
           case default
             call out_io (s_fatal$, r_name, &
                         'BAD MULTI_TURN_ORBIT D1_DATA%NAME: ' // d1_dat%name)
@@ -308,7 +308,7 @@ type (tao_curve_struct), pointer :: curve
 
 integer what_lat, who, n_alive, n_alive_old
 integer i, j, i_uni, ip, ig, ic, ie1, ie2
-integer n_bunch, n_part, i_uni_to
+integer n_bunch, n_part, i_uni_to, ix_lost
 integer extract_at_ix_ele, n_lost
 integer, allocatable, save :: ix_ele(:)
 
@@ -316,7 +316,7 @@ character(20) :: r_name = "tao_beam_track"
 
 real(rp) :: value1, value2, f, time, old_time
 
-logical post, calc_ok, too_many_lost, print_err, err
+logical post, calc_ok, too_many_lost, print_err, err, lost
 
 ! Initialize moment structure
 
@@ -335,8 +335,8 @@ beam_init => u%beam_init
 lat => tao_lat%lat
 
 u%ele(:)%n_particle_lost_here = 0
-lat%param%ix_lost = not_lost$
-lat%param%lost = .false.
+ix_lost = not_lost$
+lost = .false.
 too_many_lost = .false.
 
 if (lat%param%lattice_type == circular_lattice$) then
@@ -414,64 +414,53 @@ do j = ie1, ie2
 
   ! track to the element and save for phase space plot
 
-  if (.not. too_many_lost) then
+  if (tao_com%use_saved_beam_in_tracking) then
+    beam = u%ele(j)%beam
 
-    if (tao_com%use_saved_beam_in_tracking) then
-      beam = u%ele(j)%beam
-
-    else
-      if (j /= ie1) then 
-        ! if doing linear tracking, first compute transfer matrix
-        if (u%mat6_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
-                                        call make_mat6 (lat%ele(j), lat%param) 
-        call track_beam (lat, beam, j-1, j, too_many_lost)
-      endif
-
-      if (u%ele(j)%save_beam) u%ele(j)%beam = beam
+  else
+    if (j /= ie1) then 
+      ! if doing linear tracking, first compute transfer matrix
+      if (u%mat6_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
+                                      call make_mat6 (lat%ele(j), lat%param) 
+      call track_beam (lat, beam, j-1, j, too_many_lost)
     endif
+
+    if (u%ele(j)%save_beam) u%ele(j)%beam = beam
+  endif
  
-    ! Save beam at location if injecting into another lattice
-    if (extract_at_ix_ele == j) then
-      s%u(i_uni_to)%connect%injecting_beam = beam
-    endif
+  ! Save beam at location if injecting into another lattice
+  if (extract_at_ix_ele == j) then
+    s%u(i_uni_to)%connect%injecting_beam = beam
+  endif
 
-    ! compute centroid orbit
+  ! compute centroid orbit
 
-    if (.not. too_many_lost) then
-      call tao_find_beam_centroid (beam, tao_lat%orb(j), too_many_lost, u, j, lat%ele(j))
-      if (too_many_lost) then
-        lat%param%ix_lost = j
-        lat%param%lost = .true.
-        call out_io (s_warn$, r_name, &
-                "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\: " &
-                // trim(lat%ele(j)%name), j)
-      endif
-    endif
-
+  call tao_find_beam_centroid (beam, tao_lat%orb(j), too_many_lost, u, j, lat%ele(j))
+  if (too_many_lost .and. .not. lost) then
+    ix_lost = j
+    lost = .true.
+    call out_io (s_warn$, r_name, &
+            "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\: " &
+            // trim(lat%ele(j)%name), j)
   endif
 
   ! Find lattice and beam parameters and load data
 
   if (j /= 0) then
-    if (u%mat6_recalc_on) then
-      call make_mat6 (lat%ele(j), lat%param, lat%ele(j-1)%map_ref_orb_out, err = err)
-      if (err) exit
+    if (u%mat6_recalc_on .and. .not. too_many_lost) then
+      call make_mat6 (lat%ele(j), lat%param, tao_lat%orb(j-1), err = err)
       call twiss_propagate1 (lat%ele(j-1), lat%ele(j), err)
-      if (err) exit
     endif
   endif
 
   !
 
-  n_alive = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost /= not_lost$)
+  n_alive = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost == not_lost$)
   u%ele(j)%n_particle_lost_here = n_alive_old - n_alive
   n_alive_old = n_alive
 
-  if (.not. too_many_lost) then
-      call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
+  call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
                              lat%ele(j), u%model%bunch_params(j), err, print_err)
-  endif
-
   if (err) print_err = .false.  ! Only generate one message.
   call tao_load_data_array (u, j, who) 
 
@@ -504,6 +493,9 @@ if (post) then
       "Total number of lost particles by the end of universe \I2\: \I5\.", &
                                   i_array = (/u%ix_uni, n_lost /))
 endif
+
+lat%param%lost = lost
+lat%param%ix_lost = ix_lost
   
 end subroutine tao_beam_track
 
@@ -567,6 +559,7 @@ do n_part = 1, size(beam%bunch(n_bunch)%particle)
 enddo
       
 ! Post lost particles
+
 if (record_lost .and. n_lost > 0) then
   line = "\I4\ particle(s) lost at element \I0\: " // ele%name
   if (size(s%u) > 1) line = trim(line) // " in universe \I3\ "

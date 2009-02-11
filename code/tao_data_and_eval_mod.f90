@@ -954,15 +954,15 @@ case ('orbit.z')
   if (data_source == 'beam') return ! bad
   call load_it (tao_lat%orb(:)%vec(5), ix0, ix1, datum_value, valid_value, datum, tao_lat)
 
-case ('orbit.p_x')
+case ('orbit.px')
   if (data_source == 'beam') return ! bad
   call load_it (tao_lat%orb(:)%vec(2), ix0, ix1, datum_value, valid_value, datum, tao_lat)
 
-case ('orbit.p_y')
+case ('orbit.py')
   if (data_source == 'beam') return ! bad
   call load_it (tao_lat%orb(:)%vec(4), ix0, ix1, datum_value, valid_value, datum, tao_lat)
 
-case ('orbit.p_z')
+case ('orbit.pz')
   if (data_source == 'beam') return ! bad
   call load_it (tao_lat%orb(:)%vec(6), ix0, ix1, datum_value, valid_value, datum, tao_lat)
 
@@ -1085,7 +1085,7 @@ case ('sigma.x')
   datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s11$))
   valid_value = .true.
   
-case ('sigma.p_x')  
+case ('sigma.px')  
   if (data_source == 'lattice') return
   datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s22$))
   valid_value = .true.
@@ -1095,7 +1095,7 @@ case ('sigma.y')
   datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s33$))
   valid_value = .true.
   
-case ('sigma.p_y')  
+case ('sigma.py')  
   if (data_source == 'lattice') return
   datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s44$))
   valid_value = .true.
@@ -1105,7 +1105,7 @@ case ('sigma.z')
   datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s55$))
   valid_value = .true.
   
-case ('sigma.p_z')  
+case ('sigma.pz')  
   if (data_source == 'lattice') return
   datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s66$))
   valid_value = .true.
