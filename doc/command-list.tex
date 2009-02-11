@@ -1172,16 +1172,17 @@ To customize the output use the command \vn{show lattice -custom
     column(3) = "ele::#[name]",          "a",      0
     column(4) = "ele::#[key]",           "a16",   16
     column(5) = "ele::#[s]",             "f10.3", 10
-    column(6) = "ele::#[beta_a]",        "f7.2",   7
+    column(6) = "dat::beta.a[#]",        "f7.2",   7
     column(7) = "1e3 * ele::#[orbit_x]   "f8.3",   8, "Orbit_x| (mm)" 
   /
 \end{example}
 each \vn{column(1)} has four components. The first component is what
-is to be displayed in that column. Algebraic expressions are
-permitted (\sref{s:arithmatic}). To encode the element index, use a \vn{#}.
-Any element attribute is permitted ("show ele" will show
-element attributes or see the Bmad manual). Additionally, the following
-are recognized:
+is to be displayed in that column. Algebraic expressions are permitted
+(\sref{s:arithmatic}). This includes using data-on-the-fly
+(\sref{s:data.on.the.fly}). To encode the element index, use a \vn{#}.
+Any element attribute is permitted ("show ele" will show element
+attributes or see the Bmad manual). Additionally, the following are
+recognized:
 \begin{example}
   x                           ! Add spaces
   #                           ! Index number of element.
