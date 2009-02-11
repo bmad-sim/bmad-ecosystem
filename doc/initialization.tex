@@ -1188,7 +1188,7 @@ plots go. The syntax of this block is:
   &tao_plot_page
     plot_page%size                   = <x_size>, <y_size>         ! size in POINTS 
     plot_page%border                 = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
-    plot_page%text_height            = <num>            ! height in POINTS. Def = 12
+    plot_page%text_height            = <num> ! height in POINTS. Def = 12
     plot_page%main_title_text_scale  = <num> ! Relative to text_height. Def = 1.3
     plot_page%graph_title_text_scale = <num> ! Relative to text_height. Def = 1.1
     plot_page%axis_number_text_scale = <num> ! Relative to text_height. Def = 0.9
@@ -1196,8 +1196,10 @@ plots go. The syntax of this block is:
     plot_page%legend_text_scale      = <num> ! Relative to text_height. Def = 0.8
     plot_page%key_table_text_scale   = <num> ! Relative to text_height. Def = 0.9
     plot_page%title(i)               = <string>, {<x>, <y>, "<units>", "<justify>"}
-    plot_page%shape_height_max       = <num> ! maximum half height for drawing elements. Def = 40
-    plot_page%n_curve_pts            = <num> ! Num points used to construct a smooth curve. Def = 401
+    plot_page%shape_height_max       = <num> ! Max half height for drawing elements. 
+                                             !   Def = 40
+    plot_page%n_curve_pts            = <num> ! Num points used to construct a 
+                                             !   smooth curve. Def = 401
     plot_page%box_plots              = <T/F> ! For debugging layout problems. Def = F.
     region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
     place(i)  = "<region_name>", "<template_name>"
@@ -1416,7 +1418,8 @@ namelists should be placed directly after their respective
     curve(i)%data_type_x         = "<string>" ! Used with plot%x_axis_type = "data".
     curve(i)%data_type           = "<string>" ! Default = plot%name.graph%name
     curve(i)%data_index          = "<string>" ! Index number for data points.
-    curve(i)%legend_text         = "<string>" ! Text for curve legend. Default is the data_type.
+    curve(i)%legend_text         = "<string>" ! Text for curve legend. 
+                                              !   Default is the data_type.
     curve(i)%x_axis_scale_factor = <factor>   ! Scale the x-axis by this.
     curve(i)%y_axis_scale_factor = <factor>   ! Scale the y-axis by this.
     curve(i)%use_y2              = <logical>  ! Use left-axis scale?
