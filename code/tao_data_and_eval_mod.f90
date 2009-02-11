@@ -75,7 +75,7 @@ if (err) return
 
 err = .true.
 printit = logic_option (.true., print_err)
-name = name(5:)  ! Strip off 'ele:'
+name = name(5:)  ! Strip off 'dat:'
 
 ! Get data source. Default is 'lattice'
 
@@ -107,18 +107,17 @@ if (ix /= 0 .and. ix < ix1) then
     datum%ele0_name = name(:ix-1)
   endif
   name = name(ix+1:)
-  ix1 = ix1 - ix
 endif
 
 ! Get ele
 
+ix = index(name, ']')
 ele_name = name(:ix-1)
 name = name(ix+1:)
-datum%ele_name = ''
 
 ! Get component
 
-if (name(1:1) /= '|') then
+if (name(1:1) == '|') then
   component = name(2:)
 elseif (name(1:1) == ' ') then
   component = 'model'
@@ -446,8 +445,6 @@ if (data_type(1:3)  == 'tt.')            data_type = 'tt.'
 if (data_type(1:5)  == 'wire.')          data_type = 'wire.'
 if (data_type(1:12) == 'periodic.tt.')   data_type = 'periodic.tt.'
 if (data_type(1:14) == 'element_param.') data_type = 'element_param.'
-if (data_type(1:4)  == 'emit') call convert_total_energy_to ( &
-                    lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
 
 if (data_source /= "lattice" .and. data_source /= "beam") then
   call out_io (s_error$, r_name, &
@@ -679,24 +676,28 @@ case ('element_param.')
                                      ix0, ix1, datum_value, valid_value, datum, tao_lat)
 
 case ('emit.x', 'norm_emit.x')
+  call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
   datum_value = tao_lat%bunch_params(ix1)%x%norm_emitt
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
   valid_value = .true.
 
 case ('emit.y', 'norm_emit.y')  
+  call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
   datum_value = tao_lat%bunch_params(ix1)%y%norm_emitt
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
   valid_value = .true.
 
 case ('emit.z', 'norm_emit.z')
+  call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
   datum_value = tao_lat%bunch_params(ix1)%z%norm_emitt
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
   valid_value = .true.
 
 case ('emit.a', 'norm_emit.a')
+  call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
     datum_value = tao_lat%bunch_params(ix1)%a%norm_emitt
   elseif (data_source == 'lattice') then
@@ -715,6 +716,7 @@ case ('emit.a', 'norm_emit.a')
   valid_value = .true.
   
 case ('emit.b', 'norm_emit.b')  
+  call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
     datum_value = tao_lat%bunch_params(ix1)%b%norm_emitt
   elseif (data_source == 'lattice') then
