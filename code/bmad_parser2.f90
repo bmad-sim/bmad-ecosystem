@@ -92,6 +92,7 @@ bp_com%parser_name = 'BMAD_PARSER2'
 ! In this case we just read from the current open file.
 
 if (lat_file /= 'FROM: BMAD_PARSER') then
+  call file_stack('init')
   call file_stack('push', lat_file, finished, err)   ! open file on stack
   if (err) return
 endif
