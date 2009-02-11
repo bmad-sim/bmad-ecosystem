@@ -541,7 +541,7 @@ subroutine tao_set_var_cmd (var_str, value_str)
 implicit none
 
 type (tao_v1_var_struct), pointer :: v1_ptr
-type (tao_real_array_struct), allocatable, save    :: r_var(:), r_set(:)
+type (tao_real_pointer_struct), allocatable, save    :: r_var(:), r_set(:)
 type (tao_logical_array_struct), allocatable, save :: l_var(:), l_set(:)
 type (tao_var_array_struct), allocatable, save     :: v_var(:)
 type (tao_string_array_struct), allocatable, save :: s_var(:), s_set(:)
@@ -650,7 +650,7 @@ subroutine tao_set_data_cmd (who_str, value_str)
 
 implicit none
 
-type (tao_real_array_struct), allocatable, save    :: r_dat(:), r_set(:)
+type (tao_real_pointer_struct), allocatable, save    :: r_dat(:), r_set(:)
 type (tao_data_array_struct), allocatable, save    :: d_dat(:)
 type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
 type (tao_string_array_struct), allocatable, save :: s_dat(:), s_set(:)

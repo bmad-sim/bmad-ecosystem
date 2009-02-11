@@ -2220,7 +2220,7 @@ subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_er
 implicit none
 
 type (tao_eval_stack1_struct) stack
-type (tao_real_array_struct), allocatable, save :: re_array(:)
+type (tao_real_pointer_struct), allocatable, save :: re_array(:)
 type (tao_integer_array_struct), allocatable, save :: int_array(:)
 type (tao_data_struct) datum
 

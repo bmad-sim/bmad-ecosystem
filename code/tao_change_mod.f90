@@ -173,7 +173,7 @@ use quick_plot
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (real_array_struct), allocatable, save :: d_ptr(:), m_ptr(:)
+type (real_pointer_struct), allocatable, save :: d_ptr(:), m_ptr(:)
 
 real(rp), allocatable, save :: change_number(:), old_value(:)
 real(rp) new_merit, old_merit, new_value, delta

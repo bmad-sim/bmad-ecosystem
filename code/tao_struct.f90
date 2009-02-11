@@ -27,10 +27,10 @@ interface assignment (=)
 end interface
 
 !-----------------------------------------------------------------------
-! A tao_real_array_struct is just a pointer to a real number.
+! A tao_real_pointer_struct is just a pointer to a real number.
 ! This is used to construct arrays of reals.
 
-type tao_real_array_struct
+type tao_real_pointer_struct
   real(rp), pointer :: r => null()
   logical, pointer :: good_value => null()
   logical, pointer :: good_user => null()
@@ -53,7 +53,7 @@ type tao_eval_stack1_struct
   character(60) :: name = ''  
   real(rp), allocatable :: value(:)
   logical, allocatable :: good(:)
-  type (tao_real_array_struct), allocatable :: value_ptr(:)
+  type (tao_real_pointer_struct), allocatable :: value_ptr(:)
 end type
 
 !----------------------------------------------------------------------

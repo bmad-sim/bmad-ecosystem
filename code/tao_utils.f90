@@ -793,7 +793,7 @@ end subroutine tao_orbit_value
 !                     the matching d1_data structures.
 !   d_array(:)   -- Tao_data_array_struct, allocatable, optional: Pointers to all 
 !                     the matching tao_data_structs.
-!   re_array(:)  -- Tao_real_array_struct, allocatable, optional: Pointers to real 
+!   re_array(:)  -- Tao_real_pointer_struct, allocatable, optional: Pointers to real 
 !                     component values.
 !   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers to
 !                     logical component values.
@@ -814,7 +814,7 @@ type (tao_d2_data_struct), pointer, optional :: d2_ptr
 type (tao_d2_data_struct), pointer :: d2_ptr_loc
 type (tao_d1_data_array_struct), allocatable, optional :: d1_array(:)
 type (tao_data_array_struct), allocatable, optional    :: d_array(:)
-type (tao_real_array_struct), allocatable, optional    :: re_array(:)
+type (tao_real_pointer_struct), allocatable, optional    :: re_array(:)
 type (tao_integer_array_struct), allocatable, optional :: int_array(:)
 type (tao_logical_array_struct), allocatable, optional :: log_array(:)
 type (tao_string_array_struct), allocatable, optional  :: str_array(:)
@@ -1051,7 +1051,7 @@ subroutine find_this_data (d1, name, this_err)
 type (tao_d1_data_struct), target :: d1
 type (tao_d1_data_array_struct), allocatable :: d1_temp(:)
 type (tao_data_array_struct), allocatable, save :: da(:)
-type (tao_real_array_struct), allocatable, save :: ra(:)
+type (tao_real_pointer_struct), allocatable, save :: ra(:)
 type (tao_integer_array_struct), allocatable, save :: ia(:)
 type (tao_logical_array_struct), allocatable, save :: la(:)
 type (tao_string_array_struct), allocatable, save  :: sa(:)
@@ -1346,7 +1346,7 @@ end subroutine tao_find_data
 !                     all the v1_var structures.
 !   v_array(:)   -- Tao_var_array_struct, allocatable, optional: Pointers to the 
 !                     variable data point.
-!   re_array(:)  -- Tao_real_array_struct, allocatable, optional: Pointers to real 
+!   re_array(:)  -- Tao_real_pointer_struct, allocatable, optional: Pointers to real 
 !                     component values.
 !   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers to
 !                     logical component values.
@@ -1363,7 +1363,7 @@ implicit none
 
 type (tao_v1_var_array_struct), allocatable, optional  :: v1_array(:)
 type (tao_var_array_struct), allocatable, optional     :: v_array(:)
-type (tao_real_array_struct), allocatable, optional    :: re_array(:)
+type (tao_real_pointer_struct), allocatable, optional    :: re_array(:)
 type (tao_logical_array_struct), allocatable, optional :: log_array(:)
 type (tao_string_array_struct), allocatable, optional  :: str_array(:)
 
@@ -1520,7 +1520,7 @@ subroutine find_this_var (v1, name, this_err)
 
 type (tao_v1_var_struct) :: v1
 type (tao_var_array_struct), allocatable, save :: va(:)
-type (tao_real_array_struct), allocatable, save :: ra(:)
+type (tao_real_pointer_struct), allocatable, save :: ra(:)
 type (tao_logical_array_struct), allocatable, save :: la(:)
 type (tao_string_array_struct), allocatable, save  :: sa(:)
 
