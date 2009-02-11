@@ -30,7 +30,6 @@
 
 #include "CESR_platform.inc"
 
-
 function attribute_free (ix_ele, ix_attrib, lat, err_print_flag, except_overlay) result (free)
 
 use bmad_struct
@@ -44,6 +43,7 @@ integer ix_attrib, ix_ele, ix_ele0, ix_attrib0
 
 logical free, do_print
 logical, optional :: err_print_flag, except_overlay
+
 character(16) :: r_name = 'attribute_free'
 
 ! init & check
@@ -61,6 +61,7 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
 type (ele_struct), pointer :: ele
 integer ix_ele, ix_attrib, i, ir, ix
 integer, optional :: ix_lord
+character(40) name
 
 ! super_slaves attributes cannot be varied
 
@@ -123,11 +124,19 @@ if (ele%control_type == group_lord$) then
   endif
 endif
 
-! Everything OK so far
+! Check that this attribute index is appropriate for this element
 
-free = .true.
+name = attribute_name(ele, ix_attrib)
+if (name(1:1) == '!') then
+  free = .false.
+  call print_error (ix_ele, ix_attrib, &
+          'THIS ATTRIBUTE INDEX DOES NOT CORRESPOND TO A VALID ATTRIBUTE.')
+  return
+endif
 
 ! check if it is a dependent variable.
+
+free = .true.
 
 select case (ele%key)
 case (sbend$)

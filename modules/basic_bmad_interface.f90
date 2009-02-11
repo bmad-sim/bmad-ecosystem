@@ -630,10 +630,10 @@ end interface
 interface
   Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
                     ptr_array, err_flag, err_print_flag, ix_eles, ix_attrib)
-    use bmad_struct, only: lat_struct, real_array_struct
+    use bmad_struct, only: lat_struct, real_pointer_struct
     implicit none
     type (lat_struct) lat
-    type (real_array_struct), allocatable :: ptr_array(:)
+    type (real_pointer_struct), allocatable :: ptr_array(:)
     character(*) ele_name, attrib_name
     logical err_flag
     logical do_allocation

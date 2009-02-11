@@ -670,13 +670,6 @@ end type
 !------------------------------------------------------------------------------
 ! misc
 
-! A real_array_struct is just a pointer to a real number.
-! This is used to construct arrays of reals.
-
-type real_array_struct
-  real(rp), pointer :: r
-end type 
-
 ! This is for debugging radiation damping and fluctuations.
 
 type synch_rad_common_struct

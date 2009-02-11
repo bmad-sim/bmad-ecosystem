@@ -185,7 +185,7 @@ subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
   type (ele_struct), target ::  ele
   type (ele_struct), target, save ::  ele0
   type (wig_term_struct), pointer :: wig_term(:)
-  type (real_array_struct), allocatable, save :: r_ptrs(:)
+  type (real_pointer_struct), allocatable, save :: r_ptrs(:)
 
   real(rp) kx, ky, kz, tol, value, coef
   real(rp), pointer :: r_ptr
@@ -1591,7 +1591,7 @@ subroutine word_to_value (word, lat, value)
 
   type (lat_struct), target ::  lat
   type (ele_struct), pointer :: ele
-  type (real_array_struct), allocatable, save :: ptr(:)
+  type (real_pointer_struct), allocatable, save :: ptr(:)
 
   integer i, ix1, ix2, ix_word, ios, ix
   real(rp) value

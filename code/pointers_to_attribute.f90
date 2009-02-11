@@ -8,10 +8,11 @@
 ! Note: ele_name can be a list of element indices. For example:
 !           ele_name = "3:5"
 !  This sets elements 3, 4, and 5 in the lat%ele(:) array.
-! Note: ele_name can be a class name such as "QUADRUPOLE".
-! Note: ele_name can include wild card "*" and "%" characters.
+! Note: ele_name can be in key:name format and include the wild card characters "*" and "%".
+!       For example: "quad:q*"
 ! Note: Use attribute_free to see if the attribute may be varied independently.
-!
+! Note: When using wild cards, it is *not* an error if some of the matched elements do 
+!       not have the the required attribute as long as at least one does.
 ! Modules needed:
 !   use bmad
 !
@@ -27,7 +28,7 @@
 !                       printing of an error message on error.
 !
 ! Output:
-!   ptr_array(:) -- Real_array_struct, allocatable: Pointer to the attribute.
+!   ptr_array(:) -- Real_pointer_struct, allocatable: Pointer to the attribute.
 !                     Pointer will be deassociated if there is a problem.
 !   err_flag     -- Logical: Set True if attribtute not found or attriubte
 !                     cannot be changed directly.
@@ -49,12 +50,13 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), target :: beam_start
-type (ele_struct), pointer :: ele
-type (real_array_struct), allocatable :: ptr_array(:)
+type (real_pointer_struct), allocatable :: ptr_array(:)
+type (real_pointer_struct), allocatable, save :: ptrs(:)
 
 integer, optional :: ix_attrib
 integer, optional, allocatable :: ix_eles(:)
-integer n, i, ix, key
+integer, allocatable, save :: i_eles(:)
+integer n, i, ix, key, ix_a
 
 character(*) ele_name
 character(100) ele_name_temp
@@ -63,7 +65,6 @@ character(24) :: r_name = 'pointers_to_attribute'
 
 logical err_flag, do_allocation, do_print
 logical, optional :: err_print_flag
-logical, save, allocatable :: this_ele(:)
 
 ! init
 
@@ -74,8 +75,12 @@ do_print = logic_option (.true., err_print_flag)
 
 if (ele_name == 'BEAM_START') then
 
-  call reallocate_arrays (1)
-  if (present(ix_eles)) ix_eles(1) = -1
+  if (present(ix_eles)) then
+    call re_allocate (ix_eles, 1)
+    ix_eles(1) = -1
+  endif
+
+  call re_allocate (ptr_array, 1)
 
   select case(attrib_name)
   case ('EMITTANCE_A'); ptr_array(1)%r => lat%a%emit 
@@ -86,7 +91,7 @@ if (ele_name == 'BEAM_START') then
     if (ix < 1) then
       if (do_print) call out_io (s_error$, r_name, &
              'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
-      if (allocated(ptr_array)) call reallocate_arrays (0)
+      deallocate (ptr_array)
       err_flag = .true.
       return
     endif
@@ -98,124 +103,50 @@ if (ele_name == 'BEAM_START') then
 
 endif
 
-! If index array
+! Locate elements
 
-if (index(":1234567890", ele_name(1:1)) .ne. 0) then
-  ele_name_temp = ele_name
-  if (allocated (this_ele)) deallocate(this_ele)
-  allocate(this_ele(0:lat%n_ele_max))
-  call location_decode (ele_name_temp, this_ele, 0, n)
+call elements_locator (ele_name, lat, i_eles, err_flag)
+if (size(i_eles) == 0) then
+  if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
+  if (allocated(ptr_array)) deallocate (ptr_array)
+  err_flag = .true.
+  return  
+endif
 
-  call reallocate_arrays (n)
-  if (n == 0) then
-    if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
-    err_flag = .true.
-    return  
-  endif
+! Locate attributes
 
-  n = 0
-  do i = 0, lat%n_ele_max
-    if (this_ele(i)) then
-      ele => lat%ele(i)
-      n = n + 1
-      call pointer_to_attribute (ele, attrib_name, do_allocation, &
-                        ptr_array(n)%r, err_flag, err_print_flag, ix_attrib)
-      if (present(ix_eles)) ix_eles(n) = i
-      if (err_flag) return
-    endif
-  enddo
-
-! else element name or class
-
-else
-  n = 0
-  do i = 0, lat%n_ele_max
-    if (match_wild(lat%ele(i)%name, ele_name)) n = n + 1
-  enddo
-
-  key = -1
-  if (n == 0) then ! Try ele class if no match to ele name
-    key = key_name_to_key_index (ele_name, .true.)
-    do i = 1, lat%n_ele_max
-      if (lat%ele(i)%key == key) n = n + 1
-    enddo
-  endif 
-
-  call reallocate_arrays (n)
-  if (n == 0) then
-    if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
-    err_flag = .true.
-    return  
-  endif
-
-  n = 0
-  do i = 0, lat%n_ele_max
-    ele => lat%ele(i)
-    if (key > 0) then
-      if (ele%key /= key) cycle
-    else
-      if (.not. match_wild(ele%name, ele_name)) cycle
-    endif
+call re_allocate (ptrs, size(i_eles))
+n = 0
+do i = 1, size(i_eles)
+  call pointer_to_attribute (lat%ele(i_eles(i)), attrib_name, do_allocation, &
+                            ptrs(n+1)%r, err_flag, .false., ix_a)
+  if (.not. err_flag) then
     n = n + 1
-    call pointer_to_attribute (ele, attrib_name, do_allocation, &
-                      ptr_array(n)%r, err_flag, err_print_flag, ix_attrib)
-    if (present(ix_eles)) ix_eles(n) = i
-    if (err_flag) return
-  enddo
-endif
-
-!----------------------------------------------------------------------------
-contains
-
-subroutine reallocate_arrays (n_size)
-
-integer n_size
-
-!
-
-call reallocate_real_array (ptr_array, n_size)
-
-if (.not. present (ix_eles)) return
-
-if (n_size == 0) then
-  if (allocated(ix_eles)) deallocate (ix_eles)
-  return
-endif
-
-if (allocated(ix_eles)) then
-  if (size(ix_eles) /= n_size) deallocate (ix_eles)
-endif
-
-if (.not. allocated(ix_eles)) allocate(ix_eles(n_size))
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-
-subroutine reallocate_real_array (ptr_array, n)
-
-use bmad_struct
-use bmad_interface
-
-implicit none
-
-type (real_array_struct), allocatable :: ptr_array(:)
-integer n
+    if (present(ix_attrib)) ix_attrib = ix_a
+  endif
+enddo
 
 if (n == 0) then
+  if (do_print) call out_io (s_error$, r_name, 'ATTRIBUTE: ' // attrib_name, &
+                                               'NOT FOUND FOR: ' // ele_name)
   if (allocated(ptr_array)) deallocate (ptr_array)
-  return
+  err_flag = .true.
+  return  
 endif
 
-if (allocated(ptr_array)) then
-  if (size(ptr_array) /= n) deallocate (ptr_array)
+! Transfer pointers to ptr_array
+
+if (present(ix_eles)) then
+  call re_allocate (ix_eles, n)
+  ix_eles = i_eles(1:n)
 endif
 
-if (.not. allocated(ptr_array)) allocate(ptr_array(n))
+call re_allocate (ptr_array, n)
+do i = 1, n
+  ptr_array(i)%r => ptrs(i)%r
+enddo
 
-end subroutine
+err_flag = .false.
 
 end subroutine
 

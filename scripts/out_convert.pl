@@ -7,8 +7,8 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/tao_evaluate_mod/tao_data_and_eval_mod/;
-    s/tao_data_mod/tao_data_and_eval_mod/;
+    s/real_array_struct/real_pointer_struct/g;
+    s/Real_array_struct/Real_pointer_struct/g;
     print (F_OUT);
   }
 
