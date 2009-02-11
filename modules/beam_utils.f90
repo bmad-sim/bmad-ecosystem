@@ -1104,6 +1104,9 @@ end subroutine calc_bunch_params_slice
 !   "Alternate approach to general coupled linear optics" 
 !    A. Wolski, PRST AB 9, 024001 (2006)
 !
+! Note: If less than two particle remain then the various parameters will be
+! set to zero.
+! 
 ! Modules needed:
 !  use beam_mod
 !
@@ -1180,12 +1183,14 @@ params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%ix_lost =
 
 if (params%charge_live == 0) then
   params%centroid%vec = 0.0     ! zero everything
-  call zero_plane (params%a)
-  call zero_plane (params%b)
+  params%sigma = 0
+  call zero_plane (params%x)
+  call zero_plane (params%y)
   call zero_plane (params%z)
   call zero_plane (params%a)
   call zero_plane (params%b)
   call zero_plane (params%c)
+  return
 endif
   
 ! average the energy
@@ -1301,12 +1306,12 @@ implicit none
 
 type (bunch_lat_param_struct), intent(out) :: param
 
-param%beta       = real_garbage$
-param%alpha      = real_garbage$
-param%gamma      = real_garbage$
-param%eta        = real_garbage$
-param%etap       = real_garbage$
-param%norm_emitt = real_garbage$
+param%beta       = 0
+param%alpha      = 0
+param%gamma      = 0
+param%eta        = 0
+param%etap       = 0
+param%norm_emitt = 0
 
 end subroutine zero_plane
   

@@ -7,8 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/real_array_struct/real_pointer_struct/g;
-    s/Real_array_struct/Real_pointer_struct/g;
+    s/\.\.\///;
     print (F_OUT);
   }
 
