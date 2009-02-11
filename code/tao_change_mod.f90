@@ -197,6 +197,7 @@ logical, allocatable, save :: this_u(:)
 !-------------------------------------------------
 
 if (tao_com%common_lattice) then
+  call re_allocate (this_u, lbound(s%u, 1), ubound(s%u, 1))
   this_u = .false.
   this_u(ix_common_uni$) = .true.
   e_name = ele_name

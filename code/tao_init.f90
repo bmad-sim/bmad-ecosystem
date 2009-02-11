@@ -193,8 +193,14 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%data%base_value = s%u(i)%data%model_value
 enddo
 
-call tao_plot_setup ()  ! transfer data to the plotting structures
-call tao_draw_plots ()         ! Update the plotting window
+! tao_hook_init2 is for custom setup after the regular setup
+
+call tao_hook_init2 ()     
+
+! Draw everything
+
+call tao_plot_setup ()     ! transfer data to the plotting structures
+call tao_draw_plots ()     ! Update the plotting window
 
 ! Print bad data
 
@@ -216,8 +222,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
                                               '         ' // tao_datum_name(data))
   enddo
 enddo
-
-call tao_hook_init2 ()
 
 ! Look for a startup file
 
