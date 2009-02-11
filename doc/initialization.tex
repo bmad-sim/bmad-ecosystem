@@ -1982,7 +1982,7 @@ Example Phase Space template:
     graph%y%major_div = 4
     graph%n_curve = 1
     curve(1)%data_type_x = "z" 
-    curve(1)%data_type = "p_z" 
+    curve(1)%data_type = "pz" 
     curve(1)%data_source = "beam"
     curve(1)%ele_ref_name = "BEGINNING"
   /
@@ -1992,18 +1992,18 @@ For a \vn{"phase_space"} type graph, \vn{curve%data_type_x} determines
 what phase space coordinate is plotted along the x-axis and
 \vn{curve%data_type} determines what phase space coordinate is plotted
 along the y-axis. The phase space coordinates are:
-\index{x}\index{p_x}\index{y}\index{p_y}\index{z}\index{p_z}
+\index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \begin{example}
   "x"
-  "p_x"
+  "px"
   "y"
-  "p_y"
+  "py"
   "z"
-  "p_z"
+  "pz"
 \end{example}
 In this example above, the $x$-axis of the plot will correspond to the
 $x$ phase space coordinate and the $y$-axis will correspond to the
-$p_x$ coordinate.
+$px$ coordinate.
 
 \index{Curve!ele_ref_name}\index{Curve!ix_ele_ref}
 To change the place at which the \vn{phase_space} curve is drawn use
@@ -2024,8 +2024,8 @@ is recorded each turn. In this case, a \vn{d2_data} structure must
 have been set up to hold the turn--by--turn orbit. This \vn{d2_data}
 structure must be called \vn{multi_turn_orbit} and must have
 \vn{d1_data} data arrays for the phase space planes to be plotted. For
-example, if the phase space plot is \vn{x} versus \vn{p_x}, then there
-must be \vn{d1_data} arrays named \vn{"x"} and \vn{"p_x"}. The number
+example, if the phase space plot is \vn{x} versus \vn{px}, then there
+must be \vn{d1_data} arrays named \vn{"x"} and \vn{"px"}. The number
 of turns is determined by the setting of \vn{ix_max_data} in the
 \vn{tao_d1_data} namelist (\sref{s:init.data}). Using \vn{"twiss"} as
 the \vn{curve%data_source} indicates that the phase space plot will be
