@@ -1036,7 +1036,7 @@ end subroutine init_spin_distribution
 ! Input:
 !   bunch        -- Bunch_struct
 !   ele          -- ele_struct: element to find parameters at
-!   plane        -- Integer: plane to slice through (x$, p_x$, & etc...)
+!   plane        -- Integer: plane to slice through (x$, px$, & etc...)
 !   slice_center -- Real(rp): Center to take slice about
 !   slice_spread -- Real(rp): hard-wall spread in slice about center
 !   print_err -- Logical, optional: If present and False then suppress 
@@ -1143,7 +1143,7 @@ type (bunch_struct), intent(in) :: bunch
 type (ele_struct) :: ele
 type (bunch_params_struct) params
 
-real(rp) exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
+real(rp) exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
 real(rp) avg_energy, temp6(6)
 real(rp) eta, etap
 real(rp) :: sigma_s(6,6) 

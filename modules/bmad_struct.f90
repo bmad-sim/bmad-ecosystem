@@ -32,7 +32,7 @@ integer, parameter :: n_attrib_maxx = 60
 ! coordinate def
 
 type coord_struct            ! Particle coordinates at a single point
-  real(rp) :: vec(6) = 0     ! (x, p_x, y, p_y, z, p_z)
+  real(rp) :: vec(6) = 0     ! (x, px, y, py, z, pz)
   complex(rp) :: spin(2) = 0 ! Spin in spinor notation
 end type
 
@@ -305,7 +305,7 @@ end type
 !
 
 character(3), parameter :: coord_name(6) = &
-                              (/ "X  ", "P_x", "Y  ", "P_y", "Z  ", "P_z" /)
+                              (/ "X  ", "Px", "Y  ", "Py", "Z  ", "Pz" /)
 
 ! KEY value definitions
 ! Note: sbend$ and rbend$ also used for sub_key
@@ -363,7 +363,7 @@ integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
           eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19, &
           match_end$ = 20
 
-integer, parameter :: x$ = 1, p_x$ = 2, y$ = 3, p_y$ = 4, z$ = 5, p_z$ = 6
+integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 
 !  integer, parameter :: x_position$ = 2, y_position$ = 3, z_position$ = 4, &
 !          theta_position$ = 5, phi_position$ = 6, psi_position$ = 7, &
