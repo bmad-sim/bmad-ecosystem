@@ -1292,12 +1292,16 @@ case ('lattice')
           j = nc + column(i)%field_width - 5
           line(j:) = '-----'
         else
-          write (line(nc:), column(i)%format, iostat = ios) value(1)
+          if (index(column(i)%format, 'i') /= 0 .or. index(column(i)%format, 'I') /= 0) then
+            write (line(nc:), column(i)%format, iostat = ios) nint(value(1))
+          else
+            write (line(nc:), column(i)%format, iostat = ios) value(1)
+          endif
         endif
       endif
 
       if (ios /= 0) then
-        lines(1) = 'TOO MANY CHARACTERS ON A LINE OR BAD FORMAT: ' // column(i)%format
+        lines(1) = 'WIDTH TOO SMALL FOR NUMBER OR BAD FORMAT: ' // column(i)%format
         lines(2) = 'FOR DISPLAYING: ' // column(i)%name
         nl = 2
         return
