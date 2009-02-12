@@ -18,6 +18,8 @@ if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 `latex tao`;
 `dvips -P pdf -o tao.ps -z tao`; 
 `ps2pdf tao.ps`;
+`rm tao-manual-*pdf`;
+`rm tao-manual-*ps`;
 `mv tao.pdf tao-manual-$rev.pdf`; 
 `dvips -o tao.ps tao`;
 `mv tao.ps tao-manual-$rev.ps`; 
