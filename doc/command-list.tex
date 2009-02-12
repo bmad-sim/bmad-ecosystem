@@ -127,7 +127,7 @@ values in the \vn{model} lattice. Format:
 \begin{example}
   change ele \{n@\}<name_or_number> <attribute> <number>
   change \{-silent\} var <name> <locations> <number>
-  change  beam_start \{n@\}<coordinate> <number>
+  change  \{n@\}beam_start <coordinate> <number>
 \end{example}
 
 \vskip 0.2in 
@@ -187,7 +187,7 @@ Examples:
   change ele quadrupole k1 d 1.2e-2 ! Set the k1 strength of all quadrupole elements.
   change var steering[34:36] @1e-3  ! set the steering strength #34-36 to 0.001
   change var steering[*] \%10        ! vary all steering strengths by 10\%
-  change beam_start 2@x @0.001      ! set beginning x position in universe 2 to 1 mm.
+  change 2@beam_start x @0.001      ! set beginning x position in universe 2 to 1 mm.
 \end{example}
 
 

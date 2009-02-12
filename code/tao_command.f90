@@ -41,7 +41,7 @@ character(*) :: command_line
 character(140) cmd_line
 character(20) :: r_name = 'tao_command'
 character(80) :: cmd_word(12)
-character(40) gang_str, switch
+character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
 character(16) :: cmd_names(32) = (/  &
@@ -136,9 +136,10 @@ case ('change')
   elseif (cmd_word(1) == 'ele') then
     call tao_cmd_split (cmd_word(2), 3, cmd_word, .false., err); if (err) return
     call tao_change_ele (cmd_word(1), cmd_word(2), cmd_word(3))
-  elseif (cmd_word(1) == 'beam_start') then
+  elseif (index(cmd_word(1), 'beam_start') /= 0) then     ! Could be "2@beam_start"
+    word = cmd_word(1)
     call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) return
-    call tao_change_ele ('beam_start', cmd_word(1), cmd_word(2))
+    call tao_change_ele (word, cmd_word(1), cmd_word(2))
   else
     call out_io (s_error$, r_name, &
              'Error: Change who? (should be: "ele", "bunch_start", or "var")')
