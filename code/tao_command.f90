@@ -319,7 +319,8 @@ case ('plot')
 
 case ('use', 'veto', 'restore')
 
-  call tao_cmd_split(cmd_line, 3, cmd_word, .false., err)
+  call tao_cmd_split(cmd_line, 2, cmd_word, .true., err)
+  if (err) return
   
   call match_word (cmd_word(1), name$%data_or_var, which, .true.)
   

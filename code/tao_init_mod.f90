@@ -78,6 +78,8 @@ if (init_file /= '') then
     call out_io (s_blank$, r_name, "Note: Cannot open init file for tao_params namelist read")
   else
     call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
+    bmad_com%rel_tolerance = 1e-8   ! Need tighter tol for calculating derivatives
+    bmad_com%abs_tolerance = 1e-11  ! Need tighter tol for calculating derivatives
     read (iu, nml = tao_params, iostat = ios)
     if (ios > 0) then
       call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST.')
