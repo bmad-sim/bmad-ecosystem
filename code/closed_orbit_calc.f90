@@ -47,8 +47,8 @@
 !   i_dim          -- Integer: Dimensions to use:
 !                     = 4  Transverse closed orbit at constant energy (RF off).
 !                          (dE/E = closed_orb(0)%vec(6))
-!                     = 5 Transverse closed orbit at constant energy with the
-!                          energy adjusted so that vec(5) is the same 
+!                     = 5 Transverse closed orbit at constant energy (RF off) with 
+!                          the energy adjusted so that vec(5) is the same 
 !                          at the beginning and at the end.
 !                     = 6 True closed orbit.
 !   direction      -- Integer, optional: Direction of tracking. 

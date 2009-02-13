@@ -34,7 +34,8 @@ solely meant for \bmad internal use.
   Matrices                                    & \ref{r:mat}            \\ \hline
   Matrix: Low Level Routines                  & \ref{r:low.mat}        \\ \hline
   Measurement Simulation Routines             & \ref{r:meas}           \\ \hline
-  Multipoles                                  & \ref{r:multi}          \\ \hline
+  Multipass                                   & \ref{r:multipass}      \\ \hline
+  Multipoles                                  & \ref{r:multipoles}     \\ \hline
   DCSLIB and CESR_UTILS                       & \ref{r:dcs.misc}       \\ \hline
   Optimizers (Nonlinear)                      & \ref{r:opti}           \\ \hline
   Overload Equal Sign                         & \ref{r:equal}          \\ \hline
@@ -318,13 +319,13 @@ Subroutine to set a list of locations in a logical array to True.
 \item[location_encode (string, loc, exists, ix_min)] \Newline 
 Subroutine to encode a list of locations.
 
-\index{Routine!number_to_cesr_data_file}
-\item[number_to_cesr_data_file (number, who, file_name, err, print_err)] \Newline 
+\index{Routine!number_to_file_name}
+\item[number_to_file_name (number, who, file_name, num_out, err, print_err)] \Newline 
 Routine to form the file name for a phase, orbit, eta, or ac_dispersion
 data file. 
 
-\index{Routine!number_to_data_file_number}
-\item[number_to_data_file_number (num_in, who, num_out, err, print_err)] \Newline 
+\index{Routine!number_to_true_number}
+\item[number_to_true_number (num_in, who, num_out, err, print_err)] \Newline 
 Routine to form the file name for a phase, orbit, eta, or ac_dispersion
 data file. 
 
@@ -1245,8 +1246,24 @@ Find the measured coupling values given the actual ones
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Lattice: Multipoles}
-\label{r:multi}    
+\section{Multipass}
+\label{r:multipass}
+\index{multipass!list of routines}
+
+\index{Routine!multipass_all_info}
+\item[multipass_all_info (lat, info)] \Newline 
+Subroutine to put multipass to a multipass_all_info_struct structure.
+
+\index{Routine!multipass_lord_index}
+\item[multipass_lord_index (ix_ele, lat, ix_pass, ix_super_lord) result (ix_multi_lord)] \Newline 
+Routine to find the index of the multipass lord of a lattice element.
+ix_multi_lord will be positive for elements:
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Multipoles}
+\label{r:multipoles}
 \index{multipole!list of routines}
 
 \begin{description}
@@ -1254,6 +1271,10 @@ Find the measured coupling values given the actual ones
 \index{Routine!ab_multipole_kick}
 \item[ab_multipole_kick (a, b, n, coord, kx, ky)] \Newline 
 Subroutine to put in the kick due to an ab_multipole.
+
+\index{Routine!multipole_kicks}
+\item[multipole_kicks (knl, tilt, coord, ref_orb_offset)] \Newline 
+Subroutine to put in the kick due to a multipole.
 
 \index{Routine!mexp}
 \item[mexp (x, m) result (this_exp)] \Newline 
@@ -1396,7 +1417,7 @@ Function to return y = x + 2 * n * amp, n is an integer, such that y is
 in the interval [-amp, amp].
 
 \index{Routine!out_io}
-\item[out_io] \Newline 
+\item[out_io (...)] \Newline 
 Subroutine to print to the terminal for command line type programs.
 The idea is that for programs with a gui this routine can be easily
 replaced with another routine.
@@ -1804,13 +1825,15 @@ of major divisions for fixed axis minimum and maximum.
      Subroutine to clear all drawing from the page.
 
 \index{Routine!qp_draw_circle}
-\item[qp_draw_circle (x0, y0, r, angle0, del_angle, ] \Newline 
-                                   units, width, color, style, clip)
+\item[\protect\parbox{6in}{
+      qp_draw_circle (x0, y0, r, angle0, del_angle, \\
+      \hspace*{2in} units, width, color, style, clip)}] \Newline 
 Subroutine to plot a section of an ellipse.
 
 \index{Routine!qp_draw_ellipse}
-\item[\protect\parbox{6in}{qp_draw_ellipse (x0, y0, r_x, r_y, theta_xy, \\
-  \hspace*{2in} angle1, angle2, units, width, color, style, clip) }] \Newline 
+\item[\protect\parbox{6in}{
+    qp_draw_ellipse (x0, y0, r_x, r_y, theta_xy, \\
+    \hspace*{2in} angle1, angle2, units, width, color, style, clip) }] \Newline 
      Subroutine to plot a section of an ellipse.
 
 \index{Routine!qp_draw_axes}
@@ -1870,8 +1893,7 @@ This is similar to qp_draw_polyline except qp_set_line_attrib is not called.
      Subroutine to draw a line.
 
 \index{Routine!qp_draw_rectangle}
-\item[qp_draw_rectangle (x1, x2, y1, y2, units, color, width,
-                                             style, clip) ] \Newline 
+\item[qp_draw_rectangle (x1, x2, y1, y2, units, color, width, style, clip) ] \Newline 
      Subroutine to draw a rectangular box.
 
 \index{Routine!qp_draw_symbol}
@@ -1884,8 +1906,7 @@ This is similar to qp_draw_polyline except qp_set_line_attrib is not called.
      Draws a symbol at the (x, y) points. 
 
 \index{Routine!qp_draw_text}
-\item[qp_draw_text (text, x, y, units, justify, height
-        color, angle, ...) ] \Newline 
+\item[qp_draw_text (text, x, y, units, justify, height, color, angle, ...) ] \Newline 
      Subroutine to draw text.
 
 \index{Routine!qp_draw_text_no_set}
@@ -2320,6 +2341,14 @@ tracking 7 particle with different starting conditions.
 \index{taylor Map!list of routines}
 
 \begin{description}
+
+\index{Routine!add_taylor_term}
+\item[\protect\parbox{6.5in}{
+  add_taylor_term (bmad_taylor, coef, expn, replace) \\
+  add_taylor_term2 (bmad_taylor, coef,  \\
+  \hspace*{2in} i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)}] \Newline 
+Routine to add a Taylor term to a Taylor series.
+
 
 \index{Routine!concat_ele_taylor}
 \item[concat_ele_taylor (taylor1, ele, taylor3)] \Newline 
