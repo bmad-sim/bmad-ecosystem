@@ -1,4 +1,4 @@
-program closed_orbit
+program anaylzer
 
   use bmadz_interface
   use cesr_utils
@@ -69,6 +69,7 @@ program closed_orbit
   real(rp) res_cos, res_sin, res_amp
   real(rp) n_part_save
   real(rp) slopes(4)
+  real(rp) delta_frf, frf
      
   character*40 lattice
   character*120 lat_file
@@ -86,6 +87,7 @@ program closed_orbit
   logical transfer_line/.false./
   logical track/.false./
   logical cbarve/.false./
+  logical path_length_patch/.false./
 
 !
   nargs = cesr_iargc()
@@ -105,13 +107,8 @@ program closed_orbit
 
   call bmad_parser (lat_file, ring_1)
   ring  = ring_1
+  call implement_pathlength_patch(path_length_patch, ring)
 
-!      do i=1,ring%n_ele_max
-!       if(index(ring%ele(i)%name, 'WIG_DAMP') /= 0)then
-!          ring%ele(i)%exact_rad_int_calc = .true.
-!          type *, ring%ele(i)%name
-!       endif
-!      end do
   call reallocate_coord (co, ring%n_ele_max)
   call reallocate_coord (co_electron, ring%n_ele_max)
   call reallocate_coord (cot, ring%n_ele_max)
@@ -218,6 +215,24 @@ program closed_orbit
    if(line(1:2) == '6D')then
      i_dim=6
      print *,' Compute 6-d closed orbit'
+       call string_trim(line, line, ix)
+       call string_trim(line(ix+1:), line, ix)
+
+       if(ix /= 0)then
+          read(line(1:ix),*)delta_frf
+          call string_trim(line(ix+1:), line, ix)
+
+          if(ix /= 0)then
+            read(line(1:ix),*)frf
+            else
+            frf = 5.e8
+          endif
+
+          call implement_pathlength_patch(path_length_patch,ring,delta_frf,frf)
+          print '(1x,a13,1x,e12.4,a9,1x,e12.4)',' delta_frf = ', delta_frf, '   frf = ', frf
+
+       endif
+
      exit
    endif
    if(line(1:2) == '4D')then
@@ -246,7 +261,6 @@ program closed_orbit
        if(ix_start < 0) print *,' Element ', location, ' is not found in the ring'
        cycle
      endif
-
      If(index(line(1:ix),'END') /= 0)then
        call string_trim(line(ix+1:), line, ix)
        location = line(1:ix)
@@ -293,6 +307,7 @@ program closed_orbit
 
     if(.not. transfer_line)then
      call twiss_at_start(ring)
+     print *,' i_dim = ', i_dim
      call closed_orbit_calc(ring, co, i_dim)
     endif
 
@@ -969,6 +984,7 @@ program closed_orbit
     print *,' "CBAR_V_E ON(OFF)" : turn cbar vs energy calc on(off)'
     print *,' "TRANSFER ON(OFF)" :transfer line mode (ON) or closed +coring (OFF)'
     print *,' "6D" :compute 6-dimensional closed orbit'
+    print *,'  6D <delta f_rf (Hz)> < f_rf (Hz)> '
     print *,' "4D   Delta E/E" :compute 4-dimensional closed orbit with energy offset'
     print *,' "TRACK" :track and plot phase space'
     print *,' At <Plot> prompt:'
@@ -1253,9 +1269,112 @@ program closed_orbit
   return
   end
 
+!+           
+! Subroutine Implement_Pathlength_Patch(path_length_patch,ring,delta_frf, frf) 
+!
+! Insert a patch element at each RF cavity to adjust path length 
+!  due to frequency offset delta_frf
+! Input:
+!   ring -- lat_struct: New elements will be inserted
+!   delta_frf: optional - change in rf frequency (Hz)
+!   frf : optional - nominal rf frequency (Hz)
+!   patch_length_patch: logical, true if patch elements are already inserted
+!
+! Output:
+!   ring -- lat_struct: ring with new elements inserted
+!
+
+  subroutine implement_pathlength_patch(path_length_patch,ring, delta_frf, frf) 
+
+  use bmad_struct
+  use bmad_interface
+
+ implicit none
+
+ type (lat_struct) ring
+ type (ele_struct), allocatable :: patch(:)
+
+ integer i,j
+ integer j_max
+ integer ix, ii
+ integer, allocatable :: ix_ele(:)
+
+ real(rp), allocatable, save :: s_rf(:) 
+ real(rp), optional :: delta_frf, frf
+ real(rp) delta_s
+
+ character*16, allocatable, save :: rf_ele(:)
+ logical path_length_patch
+
+! find rf cavities
 
 
+  j=0
+  do i=1,ring%n_ele_track
+   if(ring%ele(i)%key == rfcavity$) then
+    j=j+1
+   endif
+  end do
 
+  j_max = j
+  allocate (patch(1:j), s_rf(1:j), rf_ele(1:j), ix_ele(1:j))
 
+ if( .not. path_length_patch)then  
+  j=0
+  do i=1,ring%n_ele_track
+   if(ring%ele(i)%key == rfcavity$) then
+    j=j+1
+    rf_ele(j) = ring%ele(i)%name
+    call init_ele(patch(j))
+    patch(j)%name = 'PATCH_'//ring%ele(i)%name(1:len_trim(ring%ele(i)%name))
+    patch(j)%key = patch$
+    patch(j)%s = ring%ele(i-1)%s
+   endif
+  end do
+ 
+  do j = 1,j_max
+    call element_locator(rf_ele(j), ring, ix)
+
+    call insert_element(ring,patch(j),ix)
+    call lat_make_mat6(ring,-1)
+  end do
+ endif
+
+  j=0
+  do i = 1,ring%n_ele_track
+   if(ring%ele(i)%key == patch$ .and. ring%ele(i+1)%key == rfcavity$)then
+     j = j+1
+     s_rf(j) = ring%ele(i)%s
+     ix_ele(j) = i
+   endif
+  end do
+
+  if(present(frf))then
+  do j = 1,j_max
+    if( j > 1)then
+     delta_s = (s_rf(j) - s_rf(j-1))
+    else
+     delta_s = s_rf(j) + ring%ele(ring%n_ele_track)%s - s_rf(j_max)
+    endif
+    ring%ele(ix_ele(j))%value(z_offset$) = delta_s * delta_frf/frf
+  end do
+  endif
+
+!  do ii = 1, j_max
+!    i = ix_ele(ii)
+!    print *,' i, ring%ele(i)%name, ring%ele(i)%value(z_offset$), ring%ele(i)%s '
+!    print '(i,1x,a,2e12.4)', i, ring%ele(i)%name, ring%ele(i)%value(z_offset$), ring%ele(i)%s
+!  end do
+
+  call lat_make_mat6(ring, -1)
+  
+  path_length_patch = .true.
+
+  deallocate (patch, s_rf, rf_ele, ix_ele)
+
+  return
+  end
+
+!-------------------------------------------------------
 
 
