@@ -625,6 +625,12 @@ elseif (size(r_var) /= 0) then
     endif
   enddo
 
+! Else must be an error
+
+else
+  call out_io (s_error$, r_name, 'NOTHING TO SET!')
+  return
+
 endif
 
 call tao_set_var_useit_opt()
