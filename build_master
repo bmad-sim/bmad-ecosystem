@@ -263,12 +263,12 @@ def report_errors(nightly, code):
   ###
   # Perform the final error check. If error code is nonzero and this is a nightly build, run error_analysis script independently
   ###
-  if (code != 0 )and((nightly)or(opt == "-bmad")):  
+  if (code != 0 )and((nightly)or(opt == "-bmad")):
     stout.close()   # Close stream to logfile before quitting
     #Generate a web-page with the summary (log files) of all builds
     if build_type == "RELEASE":
         os.popen('/home/cesrulib/bin/util/generate_html '+rel_name) 
-    os.spawnl(os.P_NOWAIT, "/home/cesrulib/bin/utils/error_analysis","test", rel_name, str(code))
+    os.spawnl(os.P_NOWAIT, "/home/cesrulib/bin/util/error_analysis","test", rel_name, str(code))
 
 
 #=== Get Command Line Arguments and set vars =======================
@@ -1011,7 +1011,6 @@ while complete_fraction < 1 and loop < max_loops:
 
       if Status == -1:                                  # Stopped with error(s)
         error_tally = error_tally + 1
-        error_msg = error_msg + "Error(s) found.\n" 
         plat_combos[platform]['done'] = True
         plat_combos[platform]['time'] = time.time() - plat_combos[platform]['time']
       
