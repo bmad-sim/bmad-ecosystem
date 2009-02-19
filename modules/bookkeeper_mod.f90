@@ -1548,6 +1548,7 @@ if (init_needed) then
             tilt_tot$, x_pitch_tot$, y_pitch_tot$, z_patch$ /) ) = .false.
   offset_mask = .not. v_mask
   offset_mask(z_patch$) = .false.
+  v_mask( (/ x1_limit$, x2_limit$, y1_limit$, y2_limit$ /) ) = .false.
   init_needed = .false.
 endif
 
