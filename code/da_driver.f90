@@ -1,6 +1,7 @@
 !+
 ! Subroutine da_driver (RING, TRACK_INPUT, n_xy_pts, &
-!                         point_range, energy, n_energy_pts, in_file,Qx,Qy,Qz, particle, Qp_x, Qp_y)
+!                         point_range, energy, n_energy_pts, in_file,Qx,Qy,Qz, particle, Qp_x, Qp_y, &
+!                          delta_fRF, fRF)
 !
 ! Subroutine to determine starting point for dynamic aperture tracking.
 ! The subroutine works by determining where on a radial line y = const * x
@@ -22,6 +23,7 @@
 !    ENERGY         -- Array of energy deviations of initial coordinates.
 !    N_ENERGY_PTS   -- Number of off energy runs to do.
 !    Qp_x, Qp_y     -- Real: Chromaticity
+!    delta_fRF, fRF -- Real: RF frequency offset and RF frequency
 !
 !    IN_FILE        -- name of input file 
 !
@@ -54,14 +56,20 @@
 !
 !........................................................................
 !
-#include "CESR_platform.inc"
+#include "CESR_platform.h"
 
 
 subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
-                                           energy, n_energy_pts, in_file, Qx,Qy,Qz, particle, Qp_x, Qp_y)
+                               energy, n_energy_pts, in_file, Qx,Qy,Qz, particle, Qp_x, Qp_y, &
+                               delta_fRF, fRF)
 
-  use dynamic_aperture_mod                                      
+!  use bmad_struct
+!  use bmad_interface
+  use bmad
   use bmadz_interface
+!  use bsim_interface
+  use dynamic_aperture_mod                                      
+
 
   implicit none
 
@@ -76,17 +84,20 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   integer n_xy_pts, point_range(2), n_energy_pts
   integer int_Q_y, int_Q_x
   integer particle
-  integer len 
+  integer len
+  integer i_dim/4/
+  integer j 
 
-  real(rp) eps_rel(4), eps_abs(4)
-  real(rp) e_init, theta                                   
-  real(rp) x0, x1, x2, y0, y1, y2
-  real(rp) energy(10)
-  real(rp), allocatable :: dk1(:)
-  real(rp) Qx, Qy, Qz
-  real(rp) Qp_x, Qp_y
-  real(rp) phy_x_set, phy_y_set
-  real(rp) delta_e/1.e-4/, chrom_x, chrom_y
+  real(rdef) eps_rel(4), eps_abs(4)
+  real(rdef) e_init, theta                                   
+  real(rdef) x0, x1, x2, y0, y1, y2
+  real(rdef) energy(10)
+  real(rdef), allocatable :: dk1(:)
+  real(rdef) Qx, Qy, Qz
+  real(rdef) Qp_x, Qp_y
+  real(rdef) phy_x_set, phy_y_set
+  real(rdef) delta_e/1.e-4/, chrom_x, chrom_y
+  real(rdef) delta_fRF, fRF
 
   logical aperture_bracketed, track_on
   logical ok
@@ -99,12 +110,12 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 !
 
   if (track_input%x_init == 0 .or. track_input%y_init == 0) then
-    type *, 'ERROR IN DYNAMIC_APERTURE: TRACK_INPUT.X_INIT OR',  &
+    type *, ' DA_DRIVER: ERROR IN DYNAMIC_APERTURE: TRACK_INPUT.X_INIT OR',  &
                                              ' TRACK_INPUT.Y_INIT = 0'
     call err_exit
   endif
 
-  ring_param_state = ring%param
+!  ring_param_state = ring%param
 
   do i=1,ring%n_ele_track
    if(ring%ele(i)%key /= wiggler$)cycle
@@ -116,7 +127,8 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 !   endif
   end do
 
-  call reallocate_coord (co, ring%n_ele_max)
+  call reallocate_coord (co, ring%n_ele_track)
+
   allocate(dk1(ring%n_ele_max))
 
   call twiss_at_start (ring)
@@ -125,45 +137,70 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   if(Qz /= 0.)then
    ring%z%tune = Qz * twopi
    call set_z_tune(ring)
-  endif
-  type *,' Q_z = ',ring%z%tune/twopi
 
-  type *,' Before Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  call element_locator('PATCH_RF_W1',ring,ix)
+   if(ix > 0) then
+     i_dim = 6  ! to get closed orbit right when there is an rf frequency shift
+     print *,' DA_DRIVER: RF frequency shift. i_dim = ', i_dim
+   endif
+  call closed_orbit_calc(ring, co, i_dim)
+
+  endif
+  type '(a24,1x,e12.4,1x,a8,1x,e12.4)',' DA_DRIVER: delta_fRF = ', delta_fRF,'  fRF = ', fRF
+  type *,' DA_DRIVER: Q_z = ',ring%z%tune/twopi
+
+
+  type '(a31,1x,e12.4,1x,a9,1x,e12.4)',' DA_DRIVER: Before Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
   if(Qx /= 0. .and. Qy /= 0.)then 
     int_Q_x = int(ring%ele(ring%n_ele_track)%a%phi / twopi)
     int_Q_y = int(ring%ele(ring%n_ele_track)%b%phi / twopi)
     phy_x_set = (int_Q_x + Qx)*twopi
     phy_y_set = (int_Q_y + Qy)*twopi
     call choose_quads(ring, dk1)
+    call calc_z_tune(ring)
+    print *,' DA_DRIVER: z_tune = ', ring%z%tune
+   print *,' DA_DRIVER: before first call custom_set_tune '
     call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
-    if(.not. ok) type *,' Qtune failed'
+   print *,' DA_DRIVER: after first call custom_set_tune '
+    if(.not. ok) type *,' DA_DRIVER: Qtune failed'
   endif
 
 
   call twiss_at_start (ring)
-  type '(a19,f12.4,a9,f12.4)',' After Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  type '(a31,f12.4,a9,f12.4)',' DA_DRIVER: After Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
 
 
   if(Qp_x /= 0. .and. Qp_y /= 0.)then
     call qp_tune(ring, qp_x, qp_y, ok)
     if( .not. ok)then
-     type *,' Qp_tune failed '
+     type *,' DA_DRIVER: Qp_tune failed '
     endif
   endif
   call chrom_calc(ring, delta_e, chrom_x, chrom_y) 
-  type '(a23,f12.4,a11,f12.4)',' After Qp_tune: Qp_x = ',chrom_x,'    Qp_y = ',chrom_y
+  type '(a34,f12.4,a11,f12.4)',' DA_DRIVER: After Qp_tune: Qp_x = ',chrom_x,'    Qp_y = ',chrom_y
   call twiss_at_start(ring)
-  type '(a21,f12.4,a9,f12.4)',' After Qp_tune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  type '(a32,f12.4,a9,f12.4)',' DA_DRIVER: After Qp_tune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
+   print *,' DA_DRIVER: before second call custom_set_tune '
     call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
-    if(.not. ok) type *,' Second Qtune failed'
+   print *,' DA_DRIVER: after second call custom_set_tune '
+    if(.not. ok) type *,' DA_DRIVER: Second Qtune failed'
 
   call twiss_at_start(ring)
-  type '(a26,f12.4,a9,f12.4)',' After second qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  type '(a37,f12.4,a9,f12.4)',' DA_DRIVER: After second qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
-
-  call closed_orbit_calc (ring, co, 4)
+  call element_locator('PATCH_RF_W1',ring,ix)
+   if(ix > 0) then
+     i_dim = 6  ! to get closed orbit right when there is an rf frequency shift
+     print *,' DA_DRIVER: RF frequency shift. i_dim = ', i_dim
+   endif
+  call closed_orbit_calc (ring, co, i_dim)
+  open(unit=11, file = 'orbit.dat',carriagecontrol='list')
+  do j = 1,ring%n_ele_track
+   write(11,'(1x,i,1x,2e12.4)')j, ring%ele(j)%s, co(j)%vec(1)
+  end do
+  close(unit=11)
 
 !  eps_rel(:) = 0.000001
 !  eps_abs(:) = 0.000001
@@ -175,12 +212,14 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
 ! write output
   call file_suffixer (in_file, in_file, '.dat', .true.)
-  open (unit = 2, file = in_file)
+  open (unit = 2, file = in_file,   &
+                                        carriagecontrol = 'list')
   write (2, *) 'Lattice  = ', ring.lattice
   write (2, '(a11,i5,3(a10,f7.5))') ' N_turn   =', track_input.n_turn
   write(2,'(a8,a1,f8.4,a1)') '  Q_x = ',"`",ring%a%tune/twopi,"'"
   write(2,'(a8,a1,f8.4,a1)') '  Q_y = ',"`",ring%b%tune/twopi,"'"
   write(2,'(a8,a1,f8.4,a1)') '  Q_z = ',"`",ring%z%tune/twopi,"'"
+  write(2,'(a13,a1,e12.4,a1)') ' Delta_fRF = ',"`",delta_fRF,"'"
   write (2, *) 'n_xy_pts =', n_xy_pts
   write (2, *) 'point_range =',point_range
   write (2, *) 'n_energy_pts =', n_energy_pts
@@ -200,14 +239,19 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
 
      e_init = energy(i_e)
+     co(0)%vec(6) = e_init+ co(0)%vec(6)
 
      aperture%closed_orbit = co(0)
+
+!     call closed_orbit_calc (ring, co, 4)  !add 4/18/08 to get reasonable start when there is finite dispersion
+
      orb0 = co(0)
-     orb0%vec(6) = e_init
+!     orb0%vec(6) = e_init
 
     call string_trim (in_file, in_file, ix)
     write (da_file, '(a, i1.1, a)') in_file(1:ix-4), i_e, '.dat'
-    open (unit = 3, file = da_file)
+    open (unit = 3, file = da_file,   &
+                                        carriagecontrol = 'list')
 
     file_name = ring%input_file_name
     ix=0
@@ -223,6 +267,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
     write(3,*)'Q_x = ',"`",'Q_x = ',ring%a%tune/twopi,"'"
     write(3,*)'Q_y = ',"`",'Q_y = ',ring%b%tune/twopi,"'"
     write(3,*)'Q_z = ',"`",'Q_z = ',ring%z%tune/twopi,"'"
+    write(3,*)'Delta_fRF = ',"`",'Delta_fRF = ',delta_fRF,"'"
     write(2,'(1x,a16,a1,a9,a1)')' particle_type =',"'", particle_type(particle),"'"  
     write (3, *) 'return'
     write (3, *)
@@ -234,7 +279,8 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
      theta = (i_xy - 1) * pi / max(1, n_xy_pts - 1)
 
-      call dynamic_aperture (ring, orb0, theta, track_input, aperture)
+      call dynamic_aperture (ring, orb0, theta, track_input, aperture, e_init)
+
 
 
       write (2, '(2f11.6, i7, 6x, a1, 3x, a)') aperture%x, &

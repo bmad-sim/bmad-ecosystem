@@ -38,8 +38,43 @@ program dynamic_aperture_test
   use bmadz_interface
   use cesr_crossings_mod
   use bookkeeper_mod
+  use bsim_interface
+
 
   implicit none
+
+interface
+ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
+                               energy, n_energy_pts, in_file, Qx,Qy,Qz, particle, Qp_x, Qp_y, &
+                               delta_fRF, fRF)
+
+!  use bmad_struct
+!  use bmad_interface
+  use bmad
+  use bmadz_interface
+!  use bsim_interface
+  use dynamic_aperture_mod                                      
+  implicit none
+  type (lat_struct)  ring
+  type (track_input_struct)  track_input
+
+  integer n_xy_pts, point_range(2), n_energy_pts
+  integer particle
+
+  real(rdef) energy(10)
+
+  real(rdef) Qx, Qy, Qz
+  real(rdef) Qp_x, Qp_y
+
+  real(rdef) delta_fRF, fRF
+
+
+  character*60 in_file
+
+ end subroutine da_driver
+end interface
+
+
 
   type (lat_struct) ring
   type (lat_struct), save :: ring_in, ring_out
@@ -56,6 +91,7 @@ program dynamic_aperture_test
   integer k
   integer n
   integer int_Q_x, int_Q_y
+  integer i_dim/4/  
 
   real(rp) x_init, y_init, e_max, accuracy, energy(10)
   real(rp) ap_mult, aperture_multiplier, Qx, Qy, Qz, Qx_ini, Qy_ini, Qp_x, Qp_y
@@ -64,6 +100,7 @@ program dynamic_aperture_test
   real(rp) current
   real(rp) phy_x_set, phy_y_set
   real(rp), allocatable :: dk1(:)
+  real(rp) delta_fRF/0./, fRF
 
   character*60 da_file, in_file
   character*100 lat_file
@@ -71,12 +108,13 @@ program dynamic_aperture_test
 
   logical ok
   logical rec_taylor
+  logical path_length_patch/.false./
 
   namelist / input / lat_file,n_turn, n_xy_pts, point_range, n_energy_pts,  &
                      x_init, y_init, e_max, energy, accuracy, &
                      aperture_multiplier, Qx, Qy, Qz, particle, &
                      i_train, j_car, n_trains_tot, n_cars, current, lat_file, &
-                     Qx_ini, Qy_ini, Qp_x, Qp_y, rec_taylor
+                     Qx_ini, Qy_ini, Qp_x, Qp_y, rec_taylor, delta_fRF, fRF
 
 ! init
 
@@ -106,6 +144,7 @@ program dynamic_aperture_test
   aperture_multiplier = 10.
   particle = positron$
   rec_taylor = .true.
+  fRF = 5.e8
   read (1, nml = input)
   track_input%n_turn = n_turn
   track_input%x_init = x_init
@@ -115,8 +154,12 @@ program dynamic_aperture_test
   close (unit = 1)
 
   call bmad_parser (lat_file, ring)
-
-  call reallocate_coord (co, ring%n_ele_max)
+  if(delta_fRF /= 0.)then
+     path_length_patch = .false.
+     call implement_pathlength_patch(path_length_patch,ring, delta_fRF, fRF)
+     i_dim = 6
+  endif
+  call reallocate_coord (co, ring%n_ele_track)
   allocate(dk1(ring%n_ele_max))
 
   call twiss_at_start(ring)
@@ -130,7 +173,7 @@ program dynamic_aperture_test
     phy_x_set = (int_Q_x + Qx_ini)*twopi
     phy_y_set = (int_Q_y + Qy_ini)*twopi
     call choose_quads(ring, dk1)
-    do i=0,ring%n_ele_max
+    do i=0,ring%n_ele_track
      co(i)%vec = 0
     end do
    call set_on_off(elseparator$, ring, off$)
@@ -145,8 +188,7 @@ program dynamic_aperture_test
 
 
   call twiss_at_start(ring)
-  co(0)%vec = 0
-  call closed_orbit_calc(ring, co, 4)
+  call closed_orbit_calc(ring, co, i_dim)
   call lat_make_mat6(ring,-1,co)
   call twiss_at_start(ring)
   call twiss_propagate_all (ring)
@@ -163,7 +205,7 @@ program dynamic_aperture_test
 
    call twiss_at_start(ring)
    co(0)%vec = 0
-   call closed_orbit_calc(ring, co, 4)
+   call closed_orbit_calc(ring, co, i_dim)
    call lat_make_mat6(ring,-1, co)
    call twiss_at_start(ring)
 
@@ -175,10 +217,16 @@ program dynamic_aperture_test
 
   endif
 
+  print *, ' DA_TEST: 1 before '
+  call closed_orbit_calc(ring, co, i_dim)
+  print *, ' DA_TEST: 1 after '
+
+
   call calc_z_tune (ring)
   call twiss_at_start(ring)
 
-  do i = 1, ring%n_ele_max
+  do i = 1, ring%n_ele_track
+   if(ring%ele(i)%key == wiggler$)cycle
     ring%ele(i)%value(x1_limit$) = ap_mult * ring%ele(i)%value(x1_limit$)
     ring%ele(i)%value(x2_limit$) = ap_mult * ring%ele(i)%value(x2_limit$)
     ring%ele(i)%value(y1_limit$) = ap_mult * ring%ele(i)%value(y1_limit$)
@@ -194,7 +242,8 @@ program dynamic_aperture_test
 ! track                                                
 
   call da_driver (ring, track_input,n_xy_pts, &
-                        point_range, energy, n_energy_pts, in_file,Qx,Qy,Qz,particle, Qp_x, Qp_y)
+                        point_range, energy, n_energy_pts, in_file,Qx,Qy,Qz,particle, Qp_x, Qp_y, &
+                        delta_fRF, fRF)
 
   deallocate(dk1)
 

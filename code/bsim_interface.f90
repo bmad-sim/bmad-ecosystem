@@ -166,4 +166,17 @@ module bsim_interface
      end subroutine save_last_pturns
   end interface
   
+ interface
+  subroutine implement_pathlength_patch(path_length_patch,ring, delta_frf, frf) 
+   use bmad_struct
+   use bmad_interface
+   implicit none
+   type (lat_struct) ring
+   real(rp), optional :: delta_frf, frf
+   logical path_length_patch
+  end subroutine implement_pathlength_patch
+ end interface
+
 end module bsim_interface
+
+
