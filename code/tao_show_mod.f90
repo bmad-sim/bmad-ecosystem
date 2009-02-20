@@ -1043,7 +1043,7 @@ case ('hom')
 
   nl=nl+1; lines(nl) = &
         '       #        Freq         R/Q           Q   m  Polarization_Angle'
-  do i = 1, size(lat%ele)
+  do i = 1, ubound(lat%ele, 1)
     ele => lat%ele(i)
     if (ele%key /= lcavity$) cycle
     if (ele%control_type == multipass_slave$) cycle

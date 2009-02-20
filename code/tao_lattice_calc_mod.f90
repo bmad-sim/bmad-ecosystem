@@ -775,7 +775,7 @@ if (u%connect%match_to_design) then
   param => s%u(u%connect%from_uni)%model%lat%param
   if (u%mat6_recalc_on) call make_mat6 (u%connect%match_ele, param)
   call twiss_propagate1 (extract_ele, u%connect%match_ele)
-  call track1_beam_ele (u%connect%injecting_beam, u%connect%match_ele, &
+  call track1_beam_simple (u%connect%injecting_beam, u%connect%match_ele, &
                       param, u%connect%injecting_beam)
   u%connect%match_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
   u%connect%match_ele%floor = extract_ele%floor
