@@ -157,7 +157,7 @@ ele => lat%ele(ix_ele)
 
 if (ele%value(l$) == 0) then
   ele%csr_calc_on = .false.
-  call track1_bunch_ele (bunch_end, ele, lat%param, bunch_end)
+  call track1_bunch_hom (bunch_end, ele, lat%param, bunch_end)
   err = .false.
   return
 endif
@@ -196,7 +196,7 @@ do i = 0, n_step
   if (i /= 0) then
     call slice_ele_calc (ele, lat%param, i, n_step, runt)
     runt%csr_calc_on = .false.
-    call track1_bunch_ele (bunch_end, runt, lat%param, bunch_end)
+    call track1_bunch_hom (bunch_end, runt, lat%param, bunch_end)
   endif
 
   s_start = i * bin%ds_track_step

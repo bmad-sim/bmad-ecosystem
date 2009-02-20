@@ -57,7 +57,7 @@ if (present(ix2)) i2 = ix2
 ! Loop over all elements in the lattice
 
 do i = i1+1, i2
-  call track1_beam_lat (beam, lat, i, beam, err)
+  call track1_beam (beam, lat, i, beam, err)
   if (err) return
 enddo
 
@@ -67,12 +67,10 @@ end subroutine track_beam
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_beam_lat (beam_start, lat, ix_ele, beam_end, err)
+! Subroutine track1_beam (beam_start, lat, ix_ele, beam_end, err)
 !
-! Subroutine to track a beam of particles through a single element.
-!
-! Note: This routine is overloaded by the routine track1_beam. See this
-! routine for more details.
+! Routine to track a beam of particles through a single element.
+! See also track1_beam_simple.
 !
 ! Modules needed:
 !   use beam_mod
@@ -88,7 +86,7 @@ end subroutine track_beam
 !                    EG: Too many particles lost for a CSR calc.
 !-
 
-subroutine track1_beam_lat (beam_start, lat, ix_ele, beam_end, err)
+subroutine track1_beam (beam_start, lat, ix_ele, beam_end, err)
 
 implicit none
 
@@ -109,22 +107,22 @@ endif
 ! loop over all bunches in a beam
 
 do i = 1, size(beam_start%bunch)
-  call track1_bunch_lat (beam_start%bunch(i), lat, ix_ele, beam_end%bunch(i), err)
+  call track1_bunch (beam_start%bunch(i), lat, ix_ele, beam_end%bunch(i), err)
   if (err) return
 enddo
 
-end subroutine track1_beam_lat
+end subroutine track1_beam
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_beam_ele (beam_start, ele, param, beam_end)
+! Subroutine track1_beam_simple (beam_start, ele, param, beam_end)
 !
-! Subroutine to track a beam of particles through a single element.
-!
-! Note: This routine is overloaded by the routine track1_beam. See this
-! routine for more details.
+! Routine to track a beam of particles through a single element.
+! This routine does *not* include multiparticle effects such as
+! wakefields or CSR. This routine should only be used when the
+! routine track1_beam cannot be used.
 !
 ! Modules needed:
 !   use beam_mod
@@ -138,7 +136,7 @@ end subroutine track1_beam_lat
 !   beam_end    -- beam_struct: ending beam position.
 !-
 
-subroutine track1_beam_ele (beam_start, ele, param, beam_end)
+subroutine track1_beam_simple (beam_start, ele, param, beam_end)
 
 implicit none
 
@@ -147,33 +145,29 @@ type (beam_struct), target :: beam_end
 type (ele_struct) ele
 type (lat_param_struct) param
 
-integer i, n_mode
-
-! zero the long-range wakes if they exist.
-
-if (associated(ele%wake)) then
-  ele%wake%lr%norm_sin = 0; ele%wake%lr%norm_cos = 0
-  ele%wake%lr%skew_sin = 0; ele%wake%lr%skew_cos = 0
-endif
+integer i, j
 
 ! loop over all bunches in a beam
 
 do i = 1, size(beam_start%bunch)
-  call track1_bunch_ele (beam_start%bunch(i), ele, param, beam_end%bunch(i))
+  do j = 1, size(beam_start%bunch(i)%particle)
+    call track1_particle (beam_start%bunch(i)%particle(j), ele, param, beam_end%bunch(i)%particle(j))
+  enddo
 enddo
 
-end subroutine track1_beam_ele
+end subroutine track1_beam_simple
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_lat (bunch_start, lat, ix_ele, bunch_end, err)
+! Subroutine track1_bunch (bunch_start, lat, ix_ele, bunch_end, err)
 !
 ! Subroutine to track a bunch of particles through an element.
 !
-! Note: This routine is overloaded by the routine track1_bunch. See this
-! routine for more details.
+! Each particle experiences a different longitudinal short-range wakefield.
+! bmad_com%grad_loss_sr_wake is used to tell track1_bmad the appropriate loss
+! for each particle.
 !
 ! Modules needed:
 !   use beam_mod
@@ -189,7 +183,7 @@ end subroutine track1_beam_ele
 !                  EG: Too many particles lost for a CSR calc.
 !-
 
-subroutine track1_bunch_lat (bunch_start, lat, ix_ele, bunch_end, err)
+subroutine track1_bunch (bunch_start, lat, ix_ele, bunch_end, err)
 
 implicit none
 
@@ -218,9 +212,10 @@ if (csr_on) then
   call track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end, err)
 else
   err = .false.
-  call track1_bunch_ele (bunch_start, lat%ele(ix_ele), lat%param, bunch_end)
+  call track1_bunch_hom (bunch_start, lat%ele(ix_ele), lat%param, bunch_end)
 endif
 
-end subroutine track1_bunch_lat
+end subroutine track1_bunch
+
 
 end module
