@@ -332,12 +332,14 @@ call re_allocate (ix_ele,1)
 beam => u%current_beam
 beam = u%beam0
 beam_init => u%beam_init
-lat => tao_lat%lat
 
-u%ele(:)%n_particle_lost_here = 0
+lat => tao_lat%lat
+lat%param%ix_lost = not_lost$  ! Needed by tao_evaluate_a_datum
 ix_lost = not_lost$
 lost = .false.
 too_many_lost = .false.
+
+u%ele(:)%n_particle_lost_here = 0
 
 if (lat%param%lattice_type == circular_lattice$) then
   call out_io (s_fatal$, r_name, &

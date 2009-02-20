@@ -209,7 +209,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     data => s%u(i)%data(j)
     if (data%exists .and. .not. data%good_model) then
       call out_io(s_warn$, r_name, &
-                    'DATUM EXISTS BUT CANNOT COMPUTE A MODEL VALUE:' // tao_datum_name(data))
+                    'DATUM EXISTS BUT CANNOT COMPUTE A MODEL VALUE: ' // tao_datum_name(data))
       cycle
     endif
   enddo

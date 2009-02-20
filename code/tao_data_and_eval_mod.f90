@@ -476,8 +476,8 @@ case ('alpha.a')
   if (data_source == 'lattice') then
     call load_it (lat%ele(:)%a%alpha, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   elseif (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%a%alpha
-    valid_value = (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
+    call load_it (tao_lat%bunch_params(:)%a%alpha, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
   
@@ -485,20 +485,19 @@ case ('alpha.b')
   if (data_source == 'lattice') then
     call load_it (lat%ele(:)%b%alpha, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   elseif (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%b%alpha
-    valid_value = (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
+    call load_it (tao_lat%bunch_params(:)%b%alpha, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
 
 case ('alpha.z')
   if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%z%alpha
-  valid_value = .true.
+  call load_it (tao_lat%bunch_params(:)%z%alpha, ix0, ix1, datum_value, valid_value, datum, tao_lat)
 
 case ('beta.x')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%x%beta
-    valid_value = (tao_lat%bunch_params(ix1)%x%norm_emitt /= 0)
+    call load_it (tao_lat%bunch_params(:)%x%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%x%norm_emitt /= 0)
   else
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
                                    'WITH data_source: ' // data_source)
@@ -507,8 +506,8 @@ case ('beta.x')
     
 case ('beta.y')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%y%beta
-    valid_value = (tao_lat%bunch_params(ix1)%y%norm_emitt /= 0)
+    call load_it (tao_lat%bunch_params(:)%y%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%y%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   else
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
@@ -518,16 +517,16 @@ case ('beta.y')
 
 case ('beta.z')
   if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%z%beta
-  valid_value = (tao_lat%bunch_params(ix1)%z%norm_emitt /= 0)
+  call load_it (tao_lat%bunch_params(:)%z%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%z%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
 
 case ('beta.a')
   if (data_source == 'lattice') then
     call load_it (lat%ele(:)%a%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   elseif (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%a%beta
-    valid_value = (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
+    call load_it (tao_lat%bunch_params(:)%a%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
     
@@ -535,8 +534,8 @@ case ('beta.b')
   if (data_source == 'lattice') then
     call load_it (lat%ele(:)%b%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   elseif (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%b%beta
-    valid_value = (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
+    call load_it (tao_lat%bunch_params(:)%b%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
 
@@ -678,28 +677,25 @@ case ('element_param.')
 case ('emit.x', 'norm_emit.x')
   call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%x%norm_emitt
+  call load_it (tao_lat%bunch_params(:)%x%norm_emitt, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
-  valid_value = .true.
 
 case ('emit.y', 'norm_emit.y')  
   call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%y%norm_emitt
+  call load_it (tao_lat%bunch_params(:)%y%norm_emitt, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
-  valid_value = .true.
 
 case ('emit.z', 'norm_emit.z')
   call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%z%norm_emitt
+  call load_it (tao_lat%bunch_params(:)%z%norm_emitt, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
-  valid_value = .true.
 
 case ('emit.a', 'norm_emit.a')
   call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%a%norm_emitt
+    call load_it (tao_lat%bunch_params(:)%a%norm_emitt, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   elseif (data_source == 'lattice') then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_a)) then
@@ -718,7 +714,7 @@ case ('emit.a', 'norm_emit.a')
 case ('emit.b', 'norm_emit.b')  
   call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%b%norm_emitt
+    call load_it (tao_lat%bunch_params(:)%b%norm_emitt, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   elseif (data_source == 'lattice') then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_b)) then
@@ -737,7 +733,7 @@ case ('emit.b', 'norm_emit.b')
 
 case ('eta.x')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%x%eta
+    call load_it (tao_lat%bunch_params(:)%x%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
     valid_value = .true.
   else
     call load_it (lat%ele(:)%x%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
@@ -745,7 +741,7 @@ case ('eta.x')
 
 case ('eta.y')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%y%eta
+    call load_it (tao_lat%bunch_params(:)%y%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
     valid_value = .true.
   else
     call load_it (lat%ele(:)%y%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
@@ -753,7 +749,7 @@ case ('eta.y')
 
 case ('etap.x')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%x%etap
+    call load_it (tao_lat%bunch_params(:)%x%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
     valid_value = .true.
   else
     call load_it (lat%ele(:)%x%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
@@ -761,7 +757,7 @@ case ('etap.x')
 
 case ('etap.y')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%y%etap
+    call load_it (tao_lat%bunch_params(:)%y%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
     valid_value = .true.
   else
     call load_it (lat%ele(:)%y%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
@@ -769,7 +765,7 @@ case ('etap.y')
 
 case ('eta.a')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%a%eta
+    call load_it (tao_lat%bunch_params(:)%a%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
     valid_value = .true.
   else
     call load_it (lat%ele(:)%a%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
@@ -777,7 +773,7 @@ case ('eta.a')
 
 case ('eta.b')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%b%eta
+    call load_it (tao_lat%bunch_params(:)%b%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
     valid_value = .true.
   else
     call load_it (lat%ele(:)%b%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
@@ -785,7 +781,7 @@ case ('eta.b')
 
 case ('etap.a')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%a%etap
+    call load_it (tao_lat%bunch_params(:)%a%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
     valid_value = .true.
   else
     call load_it (lat%ele(:)%a%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
@@ -793,7 +789,7 @@ case ('etap.a')
 
 case ('etap.b')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%b%etap
+    call load_it (tao_lat%bunch_params(:)%b%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
     valid_value = .true.
   else
     call load_it (lat%ele(:)%b%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
@@ -853,8 +849,8 @@ case ('gamma.a')
   if (data_source == 'lattice') then
     call load_it (lat%ele(:)%a%gamma, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   elseif (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%a%gamma
-    valid_value = (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
+    call load_it (tao_lat%bunch_params(:)%a%gamma, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
   
@@ -862,15 +858,14 @@ case ('gamma.b')
   if (data_source == 'lattice') then
     call load_it (lat%ele(:)%b%gamma, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   elseif (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%b%gamma
-    valid_value = (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
+    call load_it (tao_lat%bunch_params(:)%b%gamma, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
 
 case ('gamma.z')
   if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%z%gamma
-  valid_value = .true.
+  call load_it (tao_lat%bunch_params(:)%z%gamma, ix0, ix1, datum_value, valid_value, datum, tao_lat)
 
 case ('i5a_e6')
   if (data_source == 'beam') return
@@ -1082,42 +1077,35 @@ case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z', 'rel_floor.theta', 'rel_floor
 
 case ('sigma.x')  
   if (data_source == 'lattice') return
-  datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s11$))
-  valid_value = .true.
+  call load_it (tao_lat%bunch_params(:)%sigma(s11$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
   
 case ('sigma.px')  
   if (data_source == 'lattice') return
-  datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s22$))
-  valid_value = .true.
+  call load_it (tao_lat%bunch_params(:)%sigma(s22$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
   
 case ('sigma.y')  
   if (data_source == 'lattice') return
-  datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s33$))
-  valid_value = .true.
+  call load_it (tao_lat%bunch_params(:)%sigma(s33$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
   
 case ('sigma.py')  
   if (data_source == 'lattice') return
-  datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s44$))
-  valid_value = .true.
+  call load_it (tao_lat%bunch_params(:)%sigma(s44$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
   
 case ('sigma.z')  
   if (data_source == 'lattice') return
-  datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s55$))
-  valid_value = .true.
+  call load_it (tao_lat%bunch_params(:)%sigma(s55$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
   
 case ('sigma.pz')  
   if (data_source == 'lattice') return
-  datum_value = SQRT(tao_lat%bunch_params(ix1)%sigma(s66$))
-  valid_value = .true.
+  call load_it (tao_lat%bunch_params(:)%sigma(s66$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
   
 case ('sigma.xy')  
   if (data_source == 'lattice') return
-  datum_value = tao_lat%bunch_params(ix1)%sigma(s13$)
-  valid_value = .true.
+  call load_it (tao_lat%bunch_params(:)%sigma(s13$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
   
 case ('spin.theta')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%spin%theta
+    call load_it (tao_lat%bunch_params(:)%spin%theta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   else
     call spinor_to_polar (tao_lat%orb(ix1), polar)
     datum_value = polar%theta
@@ -1126,7 +1114,7 @@ case ('spin.theta')
   
 case ('spin.phi')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%spin%phi
+    call load_it (tao_lat%bunch_params(:)%spin%phi, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   else
     call spinor_to_polar (tao_lat%orb(ix1), polar)
     datum_value = polar%phi
@@ -1135,7 +1123,7 @@ case ('spin.phi')
   
 case ('spin.polarity')
   if (data_source == 'beam') then
-    datum_value = tao_lat%bunch_params(ix1)%spin%polarization
+    call load_it (tao_lat%bunch_params(:)%spin%polarization, ix0, ix1, datum_value, valid_value, datum, tao_lat)
   else
     datum_value = 1.0
   endif
