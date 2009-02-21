@@ -686,6 +686,7 @@ use tao_read_beam_mod
 implicit none
 
 type (tao_universe_struct) u
+type (beam_init_struct) beam_init
 type (tao_lattice_struct), target :: model
 type (ele_struct), save :: extract_ele
 type (coord_struct), pointer :: orb0
@@ -740,12 +741,14 @@ endif
 if (.not. u%connect%connected) then
   if (u%init_beam0 .or. .not. allocated(u%beam0%bunch)) then
     u%beam_init%center = model%lat%beam_start%vec
-    if (u%beam_init%n_bunch < 1 .or. u%beam_init%n_particle < 1) then
+    if (u%beam_init%n_particle < 1) then
       call out_io (s_fatal$, r_name, &
         'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
       call err_exit
     endif
-    call init_beam_distribution (model%lat%ele(0), u%beam_init, u%beam0)
+    beam_init = u%beam_init
+    if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
+    call init_beam_distribution (model%lat%ele(0), beam_init, u%beam0)
     call tao_find_beam_centroid (u%beam0, orb0, too_many_lost)
     if (too_many_lost) then
       call out_io (s_warn$, r_name, "Not enough particles for beam init!")
