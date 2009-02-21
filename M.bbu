@@ -1,0 +1,187 @@
+#=============================================================================
+#
+# File:     M.bbu
+#
+# Purpose:  Simple Makefile to build the bbu executable
+#
+# Author:   M. Palmer   7/24/00
+#
+# Acknowledgements:  Simon Patton's CLEO Makefile infrastructure
+#                    Dave Sagan's descrip.mms 
+#                    Mike Marsh and his makefiles
+#
+#=============================================================================
+
+#-----------------------------------------------------------------------------
+# Specify the SHELL in which to operate
+#-----------------------------------------------------------------------------
+SHELL=/bin/sh
+
+
+#-----------------------------------------------------------------------------
+# If this file is not renamed to Makefile before use, the user needs to 
+# set MAKEFILE to the name of the file
+#-----------------------------------------------------------------------------
+MAKEFILE := M.bbu
+
+
+#-----------------------------------------------------------------------------
+# Specify default source directories for code to be compiled and put into
+# libraries, for module files, for code to be compiled into explicit object
+# files, and initialization files to be copied to the config directory tree.
+# Also specify lists of LOCAL directories to search for include files and 
+# compiled module files (NOTE:  the directories $(CESR_INC) and $(CESR_MOD)
+# are automatically included in this list by M.tail).  
+#
+# Multiple directories should be separated by spaces.
+#
+#
+# WARNING:  DO NOT put a trailing SLASH on directory names
+#
+# WARNING:  EMPTY lists should have NO EXTRA SPACES after the :=
+#           It is better to simply delete them.  The ones shown here 
+#           are intended to show the full range of options available.
+#
+#
+# CODE_SRC_DIRS   - Put a list of code sub-directories here
+# MOD_SRC_DIRS    - Put a list of F90 module source sub-directories here
+# OBJ_SRC_DIRS    - Put a list of sub-directories with code that should be 
+#                   compiled into explicit .o files but NOT stored in the 
+#                   archive library here (for instance, object files for 
+#                   for programs).
+# CONFIG_DIRS     - Put a list of sub-directories with initialization files
+#                   here.   NOTE:  It is assumed that ALL config files in the
+#                   CONFIG_DIRS are of the form *.*  This is to avoid copying
+#                   of contained sub-directories (eg, the CVS sub-directory).
+# LOCAL_INCS      - Local directories to search for include files
+# LOCAL_MODS      - Local directories to search for F90 compiled module files
+# 
+# WARNING:  IF absolute search paths are included in the LOCAL_MODS or LOCAL_INCS 
+#           lists, they will TAKE PRECEDENCE over partial path specifications.  
+#           In general, it is recommended to AVOID the use of absolute path 
+#           specifications. 
+#-----------------------------------------------------------------------------
+LIB_SRC_DIRS  :=
+OBJ_SRC_DIRS  := .
+LOCAL_INCS    := 
+LOCAL_MODS    := ../modules
+
+#-------------------------------------------------------------
+# Optionally specify the base name of the file containing the 
+# MAIN routine with which to link an executable
+# NOTE:  If only one such MAIN routine exists in the area, it 
+#        will be picked up automatically
+#
+# Example:  PROGRAM TEST is defined in file test_prog.f90.  
+#           Then you can specify 
+#           MAIN_FILE := test_prog.f90
+#-------------------------------------------------------------
+MAIN_FILE := csbbu.f90
+
+
+#--------------------------------------------------------------
+# name of job, executable (if needed), and library (if needed)
+#--------------------------------------------------------------
+ifeq "$(JOB)" ""
+  WHERE := $(shell pwd)
+  JOB   := $(notdir $(WHERE))
+endif
+LIBNAME := $(JOB)
+
+
+#-------------------------------------------------------------
+# Generate the executable name - the default is $(JOB) unless  
+# MAIN_FILE has been explicitly specified
+#-------------------------------------------------------------
+ifeq "$(strip $(MAIN_FILE))" ""
+	EXE = $(localbin)/$(JOB)
+else
+  EXE = $(localbin)/$(basename $(notdir $(MAIN_FILE)))
+endif
+
+
+#------------------------------------------------------------------------------
+# Provide the list of individual object files required for linking this job. 
+# All lists should be space delimited.
+#
+# LOCAL_OBJS  Local object files to be linked into this job's executable
+#             NOTE:  ALL locally built object files will be automatically linked 
+#                    into the executable.  This list is intended for special
+#                    object files specified for this job.
+#
+# CESR_OBJS   Individual object files from the standard CESR libraries
+#
+# PKG_OBJS    Individual object files from the CESR installed packages 
+#             libraries (eg, numerical recipes)
+#
+#------------------------------------------------------------------------------
+LOCAL_OBJS :=
+CESR_OBJS  :=
+PKG_OBJS   :=
+
+
+#------------------------------------------------------------------------------
+# Specify compilation and linking flags to be used in addition to the standard
+# flags.
+#
+# LOCAL_FFLAGS   Additional fortran compiler flags
+# LOCAL_CFLAGS   Additional C       compiler flags
+# LOCAL_CXXFLAGS Additional C++     compiler flags
+# LOCAL_LFLAGS   Additional         linker   flags
+#------------------------------------------------------------------------------
+LOCAL_FFLAGS   :=
+LOCAL_CFLAGS   :=
+LOCAL_CXXFLAGS :=
+LOCAL_LFLAGS   := 
+
+
+#--------------------------------------------------------------
+# Provide the list of libraries required for linking this job.
+# All lists should be space delimited.
+#
+# LOCAL_LIBS    Local user-supplied libraries
+# CESR_LIBS     CESR libraries
+# PKG_LIBS      CESR outside packages libraries
+# CERN_LIBS     CERN libraries
+#
+# NOTE:  Search order is 
+#        1) locallib area  (typically ../lib)
+#        2) EXTRA_LIB area (optionally specified by the user)
+#        3) CESR_LIB area  (library area for currently specified 
+#                           CESR release)
+#        4) PKG_LIB area   (library area for outside CESR 
+#                           packages)
+#        5) CERN_LIB area  (CERN libraries)
+#--------------------------------------------------------------
+LOCAL_LIBS := 
+CESR_LIBS  := bsim bmad pecklib dcslib recipes_f-90_LEPP cesr_utils c_utils
+PKG_LIBS   := forest pgplot
+SYS_LIBS   := readline curses
+CERN_LIBS  :=
+
+
+#-------------------------------------------------------------
+# Undefined symbols that must be forced to load when linking.
+#-------------------------------------------------------------
+SYM_UNDEFS :=
+
+
+#-------------------------------------
+# Set the flag to build an executable
+#-------------------------------------
+BUILD_EXE := Y
+
+
+#------------------------------------------------
+# Include the standard CESR M.tail makefile
+#------------------------------------------------
+ifeq "$(BMAD_DIST)" "TRUE"
+  include $(BMAD_GMAKE)/M.tail
+else
+  include $(CESR_GMAKE)/M.tail
+endif
+
+
+
+
+

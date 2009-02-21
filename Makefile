@@ -78,12 +78,12 @@
 # SRC_EXCLUDE     - Source files to exclude from compilation (just the base 
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := code synrad
-OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif synrad_program beambeam bmad_to_autocad synradv
+LIB_SRC_DIRS := code synrad bbu
+OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif synrad_program beambeam bmad_to_autocad synradv bbu
 CONFIG_DIRS  :=
 LOCAL_INCS   :=
 SRC_EXCLUDE  :=
-M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif M.synrad M.bmad_to_autocad M.synradv
+M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif M.synrad M.bmad_to_autocad M.synradv M.bbu
 
 # beambeam_luminosity cannot be linked on OSF1 due to (intentionally) missing lammpio
 ifneq "$(CESR_PLATFORM)" "OSF1_alpha"
