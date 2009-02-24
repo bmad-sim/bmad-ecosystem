@@ -231,7 +231,7 @@ enddo
 
 u = 1
 do k = 1, c_num/2
-  i = cavityind(k)
+  ele => lattice%ele(cavityind(k))
   ic1 = ele%ic1_lord
   ic2 = lattice%ic(ic1)
   h_num = 1
