@@ -326,24 +326,24 @@ do i = lbound(track_node%children, 1) + 1, ubound(track_node%children, 1)
   ix_ele = ix_ele + 1
   ele => lat%ele(ix_ele)
 
-  ! Find the ele%control_type. 
+  ! Find the ele%slave_status. 
 
   found = get_attribute_value (node, 'slave_rank', slave_rank)
   select case (slave_rank)
 
   case ('SUPER_SLAVE')
-    ele%control_type = super_slave$
+    ele%slave_status = super_slave$
 
   case ('MULTIPASS_SLAVE')
-    ele%control_type = multipass_slave$
+    ele%slave_status = multipass_slave$
 
   case ('')
-    ele%control_type = free$
+    ele%slave_status = free$
     do j = lbound(node%controllers, 1), ubound(node%controllers, 1)
       controller_node => node%controllers(j)%node%parent
       found = get_attribute_value (controller_node, 'variation', value_str)
       if (value_str == 'ABSOLUTE' .or. value_str == '') then
-        ele%control_type = overlay_slave$
+        ele%slave_status = overlay_slave$
         exit
       endif
     enddo
@@ -376,14 +376,14 @@ do i = lbound(master_node%children, 1), ubound(master_node%children, 1)
   lat%n_ele_max = lat%n_ele_max + 1
   ele => lat%ele(lat%n_ele_max)
 
-  ! Find the ele%control_type
+  ! Find the ele%lord_type
 
   found = get_attribute_value (node, 'lord_rank', lord_rank)
   select case (lord_rank)
   case ('SUPER_LORD')
-    ele%control_type = super_lord$
+    ele%lord_status = super_lord$
   case ('MULTIPASS_LORD')
-    ele%control_type = multipass_lord$
+    ele%lord_status = multipass_lord$
   case default
     call parser_error ('UNKNOWN LORD STATUS: ' // lord_rank, node = node)
   end select
@@ -408,13 +408,13 @@ do i = lbound(control_node%children, 1), ubound(control_node%children, 1)
 
   call transfer_attribute_info_to_ele (lat, node, ele)
 
-  ! Find the ele%control_type
+  ! Find the ele%lord_status
 
   select case (ele%key)
   case (overlay$)
-    ele%control_type = overlay_lord$
+    ele%lord_status = overlay_lord$
   case (group$)
-    ele%control_type = group_lord$
+    ele%lord_status = group_lord$
   case default
     call parser_error ('UNKNOWN CONTROLLER LORD STATUS: ' // key_name(ele%key), node = node)
   end select
@@ -467,7 +467,7 @@ do i = lbound(control_node%children, 1), ubound(control_node%children, 1)
   found = get_attribute_value (attrib_node, 'coef', coef_str)
   found = get_attribute_value (attrib_node, 'attribute', dflt_attrib)
 
-  if (ele%control_type == overlay_lord$) then
+  if (ele%lord_status == overlay_lord$) then
     call str_upcase (dflt_attrib, dflt_attrib)
     ele%attribute_name = dflt_attrib
     ele%ix_value = attribute_index(ele, dflt_attrib)
@@ -555,7 +555,7 @@ enddo
 
 do i = 1, lat%n_control_max
   ix = lat%control(i)%ix_lord
-  if (lat%ele(ix)%control_type == group_lord$) cycle
+  if (lat%ele(ix)%lord_status == group_lord$) cycle
   ix = lat%control(i)%ix_slave
   lat%ele(ix)%n_lord = lat%ele(ix)%n_lord + 1
 enddo
@@ -572,7 +572,7 @@ enddo
 
 do i = 1, lat%n_control_max
   ix = lat%control(i)%ix_lord
-  if (lat%ele(ix)%control_type == group_lord$) cycle
+  if (lat%ele(ix)%lord_status == group_lord$) cycle
   ix = lat%control(i)%ix_slave
   slave_ele => lat%ele(ix)
   if (slave_ele%n_lord == 0) cycle
@@ -586,7 +586,7 @@ enddo
 
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
-  if (ele%control_type /= super_slave$) cycle
+  if (ele%slave_status /= super_slave$) cycle
 
   ele%name = ''
   do j = ele%ic1_lord, ele%ic2_lord

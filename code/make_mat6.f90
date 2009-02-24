@@ -104,7 +104,7 @@ subroutine make_mat6 (ele, param, start, end, end_in, err)
   case (mad$)
     call make_mat6_mad (ele, param, a_start, a_end)
 
-  case (none$)
+  case (no_method$)
     return
 
   case default

@@ -67,7 +67,7 @@ type (sr_mode_wake_struct), pointer :: sr_mode
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
-integer i, j, n, ix, iv, ic, con_type, nl2
+integer i, j, n, ix, iv, ic, nl2, l_status
 integer nl, nt, n_max, particle, n_term, n_att
 integer pos_tot(n_attrib_maxx)
 
@@ -93,7 +93,7 @@ logical type_zero, err_flag
 allocate (li(300))
 
 pos_tot = 0
-if (ele%control_type /= group_lord$  .and. ele%control_type /= overlay_lord$) then
+if (ele%lord_status /= group_lord$  .and. ele%lord_status /= overlay_lord$) then
   pos_tot(x_offset$) = x_offset_tot$
   pos_tot(y_offset$) = y_offset_tot$
   pos_tot(s_offset$) = s_offset_tot$
@@ -105,8 +105,6 @@ endif
 type_zero = logic_option(.false., type_zero_attrib)
 
 ! Encode element name and type
-
-con_type = ele%control_type
 
 nl = 0  
 nl=nl+1; write (li(nl), *) 'Element #', ele%ix_ele
@@ -136,7 +134,8 @@ if (ele%sub_key /= 0) then
   nl=nl+1; write (li(nl), *) 'Sub Key: ', sub_key_name(ele%sub_key)
 endif
 
-nl=nl+1; write (li(nl), '(1x, a, f13.4)') 'S:', ele%s
+nl=nl+1; write (li(nl), '(1x, a, f13.4)') 'S:       ', ele%s
+nl=nl+1; write (li(nl), '(1x, a, es13.4)') 'Ref_time:', ele%s
 
 nl=nl+1; li(nl) = ''
 if (type_zero) then
@@ -147,7 +146,7 @@ endif
 
 n_att = n_attrib_string_max_len() + 2
 
-if (con_type == overlay_lord$) then
+if (ele%lord_status == overlay_lord$) then
   i = ele%ix_value
   call pointer_to_indexed_attribute (ele, i, .false., r_ptr, err_flag)
   if (err_flag) call err_exit
@@ -286,8 +285,8 @@ if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'SYMPLECTIFY', '=', ele%symplectify
 endif
   
-if (ele%control_type /= overlay_lord$ .and. ele%control_type /= group_lord$ .and. &
-    ele%control_type /= girder_lord$ .and. attribute_index(ele, 'FIELD_MASTER') /= 0) then
+if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$ .and. &
+    ele%lord_status /= girder_lord$ .and. attribute_index(ele, 'FIELD_MASTER') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'FIELD_MASTER', '=', ele%field_master
 endif
 
@@ -328,78 +327,83 @@ if (logic_option(present(lattice), type_control)) then
     nl=nl+1; write (li(nl), *) ' '
   endif
 
-  if (con_type <= 0) then
-    nl=nl+1; write (li(nl), '(a)') 'Control_type: UNKNOWN!', con_type
+  if (ele%lord_status <= 0) then
+    nl=nl+1; write (li(nl), '(a)') 'Lord_status: UNKNOWN!', ele%lord_status
   else
-    nl=nl+1; write (li(nl), '(2a)') 'Control_type: ', control_name(con_type)
-
-    if (ele%n_slave /= 0) then
-      write (li(nl+1), '(1x, a, i4)') 'Slaves: Number:', ele%n_slave
-      write (li(nl+2), *) &
-          '    Name                           Lat_index  Attribute           Coefficient'
-      nl = nl + 2
-      do i = ele%ix1_slave, ele%ix2_slave
-        j = lattice%control(i)%ix_slave
-        iv = lattice%control(i)%ix_attrib
-        coef = lattice%control(i)%coef
-        select case (con_type)
-        case (super_lord$, girder_lord$, multipass_lord$) 
-          a_name = '--------'
-        case default
-          if (lattice%ele(j)%control_type == overlay_lord$) then
-            if (iv == lattice%ele(j)%ix_value) then
-              ix = lattice%control(lattice%ele(j)%ix1_slave)%ix_slave
-              a_name = attribute_name(lattice%ele(ix), iv)
-            else
-              a_name = '** BAD POINTER! **'
-            endif            
-          else
-            a_name = attribute_name(lattice%ele(j), iv)
-          endif
-        end select
-        nl=nl+1; write (li(nl), '(5x, a30, i10, 2x, a20, es11.3, es12.3)') &
-                                lattice%ele(j)%name, j, a_name, coef
-      enddo
-    endif
-
-    if (ele%n_lord /= 0) then
-      write (li(nl+1), '(1x, a, i4)') 'Lords: Number:', ele%n_lord
-      write (li(nl+2), *) &
-  '    Name                           Lat_index  Attribute           Coefficient       Value'
-      nl = nl + 2
-      do i = ele%ic1_lord, ele%ic2_lord
-        ic = lattice%ic(i)
-        j = lattice%control(ic)%ix_lord
-        coef = lattice%control(ic)%coef
-        con_type = ele%control_type
-        if (con_type == super_slave$ .or. con_type == multipass_slave$ .or. &
-                          lattice%ele(j)%control_type == girder_lord$) then
-          a_name = '--------'
-          val_str = '    --------'
-        else
-          iv = lattice%control(ic)%ix_attrib
-          a_name = attribute_name(ele, iv)
-          ix = lattice%ele(j)%ix_value
-          if (ix == 0) then
-            val_str = '  GARBAGE!'
-          else
-            call pointer_to_indexed_attribute (lattice%ele(j), ix, .false., r_ptr, err_flag)
-            write (val_str, '(1p, e12.3)') r_ptr
-          endif
-        endif
-        nl=nl+1; write (li(nl), '(5x, a30, i10, 2x, a20, es11.3, a12)') &
-                             lattice%ele(j)%name, j, a_name, coef, val_str
-      enddo
-    endif
-
+    nl=nl+1; write (li(nl), '(2a)') 'Lord_status:  ', control_name(ele%lord_status)
   endif
+
+  if (ele%slave_status <= 0) then
+    nl=nl+1; write (li(nl), '(a)') 'Slave_status: UNKNOWN!', ele%slave_status
+  else
+    nl=nl+1; write (li(nl), '(2a)') 'Slave_status: ', control_name(ele%slave_status)
+  endif
+
+  if (ele%n_slave /= 0) then
+    write (li(nl+1), '(a, i4)') 'Slaves: Number:', ele%n_slave
+    write (li(nl+2), *) &
+        '    Name                           Lat_index  Attribute           Coefficient'
+    nl = nl + 2
+    do i = ele%ix1_slave, ele%ix2_slave
+      j = lattice%control(i)%ix_slave
+      iv = lattice%control(i)%ix_attrib
+      coef = lattice%control(i)%coef
+      select case (ele%lord_status)
+      case (super_lord$, girder_lord$, multipass_lord$) 
+        a_name = '--------'
+      case default
+        if (lattice%ele(j)%lord_status == overlay_lord$) then
+          if (iv == lattice%ele(j)%ix_value) then
+            ix = lattice%control(lattice%ele(j)%ix1_slave)%ix_slave
+            a_name = attribute_name(lattice%ele(ix), iv)
+          else
+            a_name = '** BAD POINTER! **'
+          endif            
+        else
+          a_name = attribute_name(lattice%ele(j), iv)
+        endif
+      end select
+      nl=nl+1; write (li(nl), '(5x, a30, i10, 2x, a20, es11.3, es12.3)') &
+                              lattice%ele(j)%name, j, a_name, coef
+    enddo
+  endif
+
+  if (ele%n_lord /= 0) then
+    write (li(nl+1), '(a, i4)') 'Lords: Number:', ele%n_lord
+    write (li(nl+2), *) &
+'    Name                           Lat_index  Attribute           Coefficient       Value'
+    nl = nl + 2
+    do i = ele%ic1_lord, ele%ic2_lord
+      ic = lattice%ic(i)
+      j = lattice%control(ic)%ix_lord
+      coef = lattice%control(ic)%coef
+      if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$ .or. &
+                        lattice%ele(j)%lord_status == girder_lord$) then
+        a_name = '--------'
+        val_str = '    --------'
+      else
+        iv = lattice%control(ic)%ix_attrib
+        a_name = attribute_name(ele, iv)
+        ix = lattice%ele(j)%ix_value
+        if (ix == 0) then
+          val_str = '  GARBAGE!'
+        else
+          call pointer_to_indexed_attribute (lattice%ele(j), ix, .false., r_ptr, err_flag)
+          write (val_str, '(1p, e12.3)') r_ptr
+        endif
+      endif
+      nl=nl+1; write (li(nl), '(5x, a30, i10, 2x, a20, es11.3, a12)') &
+                           lattice%ele(j)%name, j, a_name, coef, val_str
+    enddo
+  endif
+
 endif
 
 ! Encode Twiss info
 
-con_type = ele%control_type
-if (con_type /= overlay_lord$ .and. con_type /= multipass_lord$ .and. &
-    con_type /= group_lord$ .and. con_type /= girder_lord$) then
+l_status = ele%lord_status
+if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
+    l_status /= group_lord$ .and. l_status /= girder_lord$) then
 
   if (integer_option(radians$, twiss_out) /= 0) then
     nl=nl+1; li(nl) = ' '

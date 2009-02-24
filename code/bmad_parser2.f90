@@ -395,9 +395,9 @@ parsing_loop: do
         call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
                     'FOR ELEMENT: ' // lat%ele(n_max)%name)
       else
-        if (key == overlay$) lat%ele(n_max)%control_type = overlay_lord$
-        if (key == group$)   lat%ele(n_max)%control_type = group_lord$
-        if (key == girder$)  lat%ele(n_max)%control_type = girder_lord$
+        if (key == overlay$) lat%ele(n_max)%lord_status = overlay_lord$
+        if (key == group$)   lat%ele(n_max)%lord_status = group_lord$
+        if (key == girder$)  lat%ele(n_max)%lord_status = girder_lord$
         call get_overlay_group_names(lat%ele(n_max), lat,  &
                                             plat, delim, delim_found)
       endif
@@ -431,7 +431,7 @@ parsing_loop: do
     ! Element must be a group, overlay, or superimpose element
 
     if (key /= overlay$ .and. key /= group$ .and. &
-            lat%ele(n_max)%control_type /= super_lord$) then
+            lat%ele(n_max)%lord_status /= super_lord$) then
       call warning ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  &
                                            'OR GROUP: ' // word_1, ' ')
       n_max = n_max - 1
@@ -499,7 +499,7 @@ enddo
 
 do i = 1, ele_num
   ele => lat2%ele(i)
-  if (ele%control_type /= super_lord$) cycle
+  if (ele%lord_status /= super_lord$) cycle
 
   select case (ele%key)
   case (wiggler$)

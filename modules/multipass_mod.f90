@@ -8,7 +8,7 @@ use bmad_interface
 ! If the multipass_lord has super_lords as slaves, n_super will be the number of 
 ! super_slaves per super_lord.
 ! ix_slave(1:n_pass, 1:n_super_slave) is a matrix of slaves in the tracking lattice.
-! If there are no super_lords then n_super_slave = 1.and 
+! If there are no super_lords then n_super_slave = 1 and 
 !      ix_super_lord(1:n_pass) = ix_slave (1:n_pass, 1)
 
 type multipass_top_info_struct
@@ -24,9 +24,9 @@ end type
 
 type multipass_bottom_info_struct
   logical multipass     ! True if involved in multipass. False otherwise
-  integer ix_top        ! Pointer to top(:) array
   integer ix_pass       ! Pass number
-  integer ix_super      ! Index to ix_slave(ix_pass, ix_super_slave) matrix
+  integer, allocatable :: ix_top(:) ! Pointers to top(:) array
+  integer, allocatable :: ix_super(:) ! Indexes to ix_slave(ix_pass, ix_super_slave) matrix
 end type
 
 ! top(i), i = 1, ..., n = number of multipass_lords in the lattice.
@@ -65,7 +65,7 @@ type (lat_struct), target :: lat
 type (multipass_all_info_struct) info
 type (ele_struct), pointer :: m_lord, super_lord
 
-integer j, k, ik, ie, nl, ixsl, ixss 
+integer i, j, k, n, ik, ie, nl, ixsl, ixss 
 integer n_multi_lord, n_pass, ix_pass, ix_slave, n_super_slave
 
 ! First get the number of multipass_lords.
@@ -73,36 +73,40 @@ integer n_multi_lord, n_pass, ix_pass, ix_slave, n_super_slave
 n_multi_lord = 0
 do ie = lat%n_ele_track+1, lat%n_ele_max
   m_lord => lat%ele(ie)
-  if (m_lord%control_type /= multipass_lord$) cycle
+  if (m_lord%lord_status /= multipass_lord$) cycle
   n_multi_lord = n_multi_lord + 1
 enddo
 
 if (allocated (info%top)) deallocate (info%top, info%bottom)
 allocate (info%top(n_multi_lord), info%bottom(lat%n_ele_max))
 info%bottom(:)%multipass = .false.
-info%bottom(:)%ix_top = -1
 info%bottom(:)%ix_pass = -1
-info%bottom(:)%ix_super = -1
+do i = 1, lat%n_ele_max
+  allocate (info%bottom(i)%ix_top(0))
+  allocate (info%bottom(i)%ix_super(0))
+enddo
 
 ! Fill in rest of the information
 
 nl = 0
 do ie = lat%n_ele_track+1, lat%n_ele_max
   m_lord => lat%ele(ie)
-  if (m_lord%control_type /= multipass_lord$) cycle
+  if (m_lord%lord_status /= multipass_lord$) cycle
   nl = nl + 1
 
   info%top(nl)%ix_lord = ie
   n_pass = m_lord%n_slave
   info%top(nl)%n_pass = n_pass
   info%bottom(ie)%multipass = .true.
-  info%bottom(ie)%ix_top = nl
+  n = size(info%bottom(ie)%ix_top)
+  call re_allocate(info%bottom(ie)%ix_top, n+1)
+  info%bottom(ie)%ix_top(n+1) = nl
 
   allocate (info%top(nl)%ix_super_lord(n_pass))
 
   ix_slave = lat%control(m_lord%ix1_slave)%ix_slave
 
-  if (lat%ele(ix_slave)%control_type == super_lord$) then
+  if (lat%ele(ix_slave)%lord_status == super_lord$) then
     n_super_slave = lat%ele(ix_slave)%n_slave
     info%top(nl)%n_super_slave = n_super_slave
     allocate (info%top(nl)%ix_slave(n_pass, n_super_slave))
@@ -112,16 +116,21 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       super_lord => lat%ele(ixsl)
       info%top(nl)%ix_super_lord(ix_pass) = ixsl
       info%bottom(ixsl)%multipass = .true.
-      info%bottom(ixsl)%ix_top = nl
+      n = size(info%bottom(ixsl)%ix_top)
+      call re_allocate(info%bottom(ixsl)%ix_top, n+1)
+      info%bottom(ixsl)%ix_top(n+1) = nl
       info%bottom(ixsl)%ix_pass = ix_pass
       do k = super_lord%ix1_slave, super_lord%ix2_slave
         ik = k + 1 - super_lord%ix1_slave
         ixss = lat%control(k)%ix_slave
         info%top(nl)%ix_slave(ix_pass, ik) = ixss
         info%bottom(ixss)%multipass = .true.
-        info%bottom(ixss)%ix_top = nl
         info%bottom(ixss)%ix_pass = ix_pass
-        info%bottom(ixss)%ix_super = ik
+        n = size(info%bottom(ixss)%ix_top)
+        call re_allocate(info%bottom(ixss)%ix_top, n+1)
+        call re_allocate(info%bottom(ixss)%ix_super, n+1)
+        info%bottom(ixss)%ix_top(n+1) = nl
+        info%bottom(ixss)%ix_super(n+1) = ik
       enddo
     enddo
 
@@ -134,9 +143,12 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       info%top(nl)%ix_super_lord(ix_pass) = ixss
       info%top(nl)%ix_slave(ix_pass, 1) = ixss
       info%bottom(ixss)%multipass = .true.
-      info%bottom(ixss)%ix_top = nl
       info%bottom(ixss)%ix_pass = ix_pass
-      info%bottom(ixss)%ix_super = 1
+      n = size(info%bottom(ixss)%ix_top)
+      call re_allocate(info%bottom(ixss)%ix_top, n+1)
+      call re_allocate(info%bottom(ixss)%ix_super, n+1)
+      info%bottom(ixss)%ix_top(n+1) = nl
+      info%bottom(ixss)%ix_super(n+1) = 1
     enddo
   endif
 
@@ -157,7 +169,7 @@ end subroutine
 !   super_slaves whose super_lord is a slave of a multipass_lord
 !
 ! Modules needed:
-!   use bmad
+!   use multipass_mod
 !
 ! Input:
 !   ix_ele   -- Integer: Index of the lattice element.
@@ -191,35 +203,118 @@ ix_multi_lord = -1
 if (present(ix_super_lord)) ix_super_lord = -1
 if (present(ix_pass))       ix_pass = -1
 
-if (ele%control_type == multipass_slave$) then
+if (ele%slave_status == multipass_slave$) then
   ic = lat%ic(ele%ic1_lord)
   ix_multi_lord = lat%control(ic)%ix_lord
   if (present(ix_pass)) ix_pass = ic + 1 - lat%ele(ix_multi_lord)%ix1_slave
   return
 endif
 
-if (ele%control_type == super_slave$) then
+if (ele%slave_status == super_slave$) then
   ic = lat%ic(ele%ic1_lord)
   ix_sup = lat%control(ic)%ix_lord
   if (lat%ele(ix_sup)%n_lord == 0) return
   ic = lat%ic(lat%ele(ix_sup)%ic1_lord)
   ix_mult = lat%control(ic)%ix_lord
-  if (lat%ele(ix_mult)%control_type /= multipass_lord$) return
+  if (lat%ele(ix_mult)%lord_status /= multipass_lord$) return
   ix_multi_lord = ix_mult
   if (present(ix_super_lord)) ix_super_lord = ix_sup
   if (present(ix_pass)) ix_pass = ic + 1 - lat%ele(ix_multi_lord)%ix1_slave
   return
 endif
 
-if (ele%control_type == super_lord$) then
+if (ele%lord_status == super_lord$) then
   if (ele%n_lord == 0) return
   ic = lat%ic(ele%ic1_lord)
   ix_mult = lat%control(ic)%ix_lord
-  if (lat%ele(ix_mult)%control_type /= multipass_lord$) return
+  if (lat%ele(ix_mult)%lord_status /= multipass_lord$) return
   ix_multi_lord = ix_mult
   if (present(ix_pass)) ix_pass = ic + 1 - lat%ele(ix_multi_lord)%ix1_slave
 endif
 
 end function
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine multipass_chain (ix_ele, lat, ix_pass, ix_chain)
+!
+! Routine to return the chain of elements that represent the same physical element
+! when there is multipass.
+!
+! Modules needed:
+!   use multipass_mod
+!
+! Input:
+!   ix_ele  -- Integer: Index in lat%ele(:) of an element in a multipass chain.
+!   lat     -- Lat_struct: Lattice structure.
+!
+! Output
+!   ix_pass     -- Integer: Multipass pass number of the input element. 
+!                    Set to -1 if input element is not in a multipass section.
+!   ix_chain(:) -- Integer, allocatable: Indexes in lat%ele(:) of the elements of the chain. 
+!                    Note: ix_chain(ix_pass) = ix_ele
+!-
+
+subroutine multipass_chain (ix_ele, lat, ix_pass, ix_chain)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele, m_lord, s_lord
+
+integer i, j, k, ix_ele, ix_pass, ic, ix_lord, ix_off
+integer, allocatable :: ix_chain(:)
+
+!
+
+ix_pass = -1
+call re_allocate (ix_chain, 0)
+
+ele => lat%ele(ix_ele)
+
+if (ele%slave_status == multipass_slave$) then
+  ic = lat%ic(ele%ic1_lord)
+  ix_lord = lat%control(ic)%ix_lord
+  m_lord => lat%ele(ix_lord)
+  call re_allocate (ix_chain, m_lord%n_slave)
+  do j = 1, m_lord%n_slave
+    k = j - 1 + m_lord%ix1_slave
+    ix_chain(j) = lat%control(k)%ix_slave
+    if (ix_chain(j) == ix_ele) ix_pass = j
+  enddo
+endif
+
+if (ele%slave_status == super_slave$) then
+  ic = lat%ic(ele%ic1_lord)
+  ix_lord = lat%control(ic)%ix_lord
+  if (lat%ele(ix_lord)%slave_status /= multipass_slave$) return
+
+  ! Find offset in super_lord
+
+  s_lord => lat%ele(ix_lord)
+  do j = 0, s_lord%n_slave - 1
+    k = j + m_lord%ix1_slave
+    if (lat%control(k)%ix_slave == ix_ele) ix_off = j
+  enddo
+
+  ! Construct chain
+
+  ic = lat%ic(s_lord%ic1_lord)
+  ix_lord = lat%control(ic)%ix_lord
+  m_lord => lat%ele(ix_lord)
+  call re_allocate (ix_chain, m_lord%n_slave)
+  do j = 1, m_lord%n_slave
+    k = j - 1 + m_lord%ix1_slave
+    s_lord => lat%ele(lat%control(k)%ix_slave)
+    k = s_lord%ix1_slave + ix_off
+    ix_chain(j) = lat%control(k)%ix_slave
+    if (ix_chain(j) == ix_ele) ix_pass = j
+  enddo
+
+endif
+
+end subroutine multipass_chain
 
 end module

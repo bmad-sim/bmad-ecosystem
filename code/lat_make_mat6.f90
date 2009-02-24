@@ -128,7 +128,7 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb)
       endif
 
       if (zero_orbit) then 
-        if (ele%control_type == super_slave$) then
+        if (ele%slave_status == super_slave$) then
           orb_start = orb_end
           call make_mat6(ele, lat%param, orb_start, orb_end)
         else

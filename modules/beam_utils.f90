@@ -91,7 +91,7 @@ type (ele_struct), save :: rf_ele
 type (lat_param_struct) param
 
 real(rp) charge
-integer i, j, n
+integer i, j, n, ix_z
 
 character(20) :: r_name = 'track1_bunch_hom'
 
@@ -123,6 +123,7 @@ endif
 
 ! first offset the cavity
 ! wakes applied in cononical coords so don't do canonical coord conversion
+
 do i = 1, size(bunch_end%particle)
   call offset_particle (ele, param, bunch_end%particle(i)%r, set$, &
       set_canonical = .false.)
@@ -131,15 +132,13 @@ enddo
 ! rf_ele is half the cavity
 
 rf_ele = ele
-rf_ele%value(l$) = ele%value(l$) / 2
-rf_ele%value(E_TOT$) = &
-        (ele%value(E_TOT_START$) + ele%value(E_TOT$)) / 2
-rf_ele%value(p0c$) = &
-            (ele%value(p0c_start$) + ele%value(p0c$)) / 2
+rf_ele%value(l$)      = ele%value(l$) / 2
+rf_ele%value(e_tot$)  = (ele%value(e_tot_start$) + ele%value(e_tot$)) / 2
+rf_ele%value(p0c$)    = (ele%value(p0c_start$) + ele%value(p0c$)) / 2
 rf_ele%value(e_loss$) = 0
 
-
 ! zero all offsets and kicks (offsetting already performed above)
+
 call zero_ele_offsets (rf_ele)
 rf_ele%value(hkick$) = 0.0
 rf_ele%value(vkick$) = 0.0
@@ -149,11 +148,10 @@ if (associated(ele%a_pole)) deallocate(ele%a_pole)
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
-  if (bunch_end%particle(j)%ix_lost /= not_lost$) cycle
-  call add_sr_long_wake (rf_ele, bunch_end, j-1, bunch_end%particle(j)%ix_z)
-  call track1_particle (bunch_end%particle(bunch_end%particle(j)%ix_z), &
-                        rf_ele, param, &
-                        bunch_end%particle(bunch_end%particle(j)%ix_z))
+  ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
+  if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
+  call add_sr_long_wake (rf_ele, bunch_end, j-1, ix_z)
+  call track1_particle (bunch_end%particle(ix_z), rf_ele, param, bunch_end%particle(ix_z))
 enddo
 
 bmad_com%grad_loss_sr_wake = 0.0
@@ -164,21 +162,27 @@ rf_ele%value(l$) = ele%value(l$)  ! restore the correct length for the moment
 call track1_sr_wake (bunch_end, rf_ele)
 call track1_lr_wake (bunch_end, rf_ele)
 
+! Transfer lr wake info to original ele.
+
+ele%wake%lr%norm_sin = rf_ele%wake%lr%norm_sin
+ele%wake%lr%norm_cos = rf_ele%wake%lr%norm_cos
+ele%wake%lr%skew_sin = rf_ele%wake%lr%skew_sin
+ele%wake%lr%skew_cos = rf_ele%wake%lr%skew_cos
+
 ! Track the last half of the lcavity.  This includes the sr longitudinal wakes 
 
 rf_ele%value(l$)            = ele%value(l$) / 2
-rf_ele%value(E_TOT_START$) = rf_ele%value(E_TOT$)
+rf_ele%value(e_tot_start$)  = rf_ele%value(e_tot$)
 rf_ele%value(p0c_start$)    = rf_ele%value(p0c$)
-rf_ele%value(E_TOT$)  = ele%value(E_TOT$)
+rf_ele%value(e_tot$)        = ele%value(e_tot$)
 rf_ele%value(p0c$)          = ele%value(p0c$)
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
-  if (bunch_end%particle(j)%ix_lost /= not_lost$) cycle
-  call add_sr_long_wake (rf_ele, bunch_end, j-1, bunch_end%particle(j)%ix_z)
-  call track1_particle (bunch_end%particle(bunch_end%particle(j)%ix_z), &
-                        rf_ele, param, &
-                        bunch_end%particle(bunch_end%particle(j)%ix_z))
+  ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
+  if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
+  call add_sr_long_wake (rf_ele, bunch_end, j-1, ix_z)
+  call track1_particle (bunch_end%particle(ix_z), rf_ele, param, bunch_end%particle(ix_z))
 enddo
 
 bmad_com%grad_loss_sr_wake = 0.0
@@ -186,14 +190,14 @@ bmad_com%grad_loss_sr_wake = 0.0
 bunch_end%charge = sum (bunch_end%particle(:)%charge, &
                          mask = (bunch_end%particle(:)%ix_lost == not_lost$))
 
-bmad_com%grad_loss_sr_wake = 0.0
+! Unset the cavity offset.
+! Wakes applied in cononical coords so don't do canonical coord conversion
 
-! unset the cavity offset
-! wakes applied in cononical coords so don't do canonical coord conversion
 do i = 1, size(bunch_end%particle)
   call offset_particle (ele, param, bunch_end%particle(i)%r, unset$, &
       set_canonical = .false.)
 enddo
+
       
 end subroutine track1_bunch_hom
 
@@ -229,7 +233,7 @@ integer ix_follower, i, num_in_front
 integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, k_start
 
 !-----------------------------------
-! If there is no wake for this element or the sr wakes are turned off then just 
+! If there is no wake for this element, or the sr wakes are turned off, then just 
 ! use the e_loss attribute (as set in track1_bmad).
 
 bmad_com%grad_loss_sr_wake = 0.0
@@ -248,11 +252,13 @@ endif
 ! charge of the simulated particle
 
 if (n_sr_table > 0) then
+
   bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake &
                         + ele%wake%sr_table(0)%long * e_charge / 2.0
 
-!-----------------------------------
-! add up all wakes from front of bunch to follower
+  !-----------------------------------
+  ! add up all wakes from front of bunch to follower
+
   do i = 1, num_in_front
     if (bunch%particle(bunch%particle(i)%ix_z)%ix_lost == not_lost$) &
       call sr_table_add_long_kick (ele, bunch%particle(bunch%particle(i)%ix_z)%r, &
@@ -397,7 +403,7 @@ end subroutine
 !
 ! Output:
 !   bunch -- Bunch_struct: Bunch with wakefields applied to the particles.
-!   ele   -- Ele_struct: Element with wakefields.
+!   ele   -- Ele_struct: Element with updated wakefields.
 !-
 
 subroutine track1_lr_wake (bunch, ele)

@@ -88,10 +88,11 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   ! of the lattice list.
 
   if (super_saved%value(l$) == 0) then
-    call split_lat (lat, s1, ix1_split, split1_done)
+    call split_lat (lat, s1, ix1_split, split1_done, check_controls = .false.)
     call insert_element (lat, super_saved, ix1_split+1)
     ix_super = ix1_split + 1
-    lat%ele(ix_super)%control_type = free$
+    lat%ele(ix_super)%lord_status  = free$
+    lat%ele(ix_super)%slave_status = free$
     return
   endif
 
@@ -101,8 +102,8 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   ! so that the numbering of the elments after the split changes.
 
   if (s2 < s1) then     ! if superimpose wraps around 0 ...
-    call split_lat (lat, s2, ix2_split, split2_done, .false.)
-    call split_lat (lat, s1, ix1_split, split1_done, .false.)
+    call split_lat (lat, s2, ix2_split, split2_done, .false., .false.)
+    call split_lat (lat, s1, ix1_split, split1_done, .false., .false.)
 
   else                  ! no wrap case
     if (s1 < s1_lat) then    ! superimpose off end case
@@ -116,7 +117,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
       endif
       ix1_split = 0
     else
-      call split_lat (lat, s1, ix1_split, split1_done, .false.)
+      call split_lat (lat, s1, ix1_split, split1_done, .false., .false.)
     endif
 
     if (s2 > s2_lat) then    ! superimpose off end case
@@ -127,7 +128,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
       endif
       ix2_split = lat%n_ele_track
     else
-      call split_lat (lat, s2, ix2_split, split2_done, .false.)
+      call split_lat (lat, s2, ix2_split, split2_done, .false., .false.)
     endif
 
     if (s1 < s1_lat) lat%ele(1)%value(l$) = lat%ele(1)%s - s1
@@ -144,7 +145,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   all_drift = (ix2_split > ix1_split)
   do i = ix1_split+1, ix2_split
     if (lat%ele(i)%key /= drift$) all_drift = .false.
-    if (lat%ele(i)%control_type /= free$) all_drift = .false.
+    if (lat%ele(i)%slave_status /= free$) all_drift = .false.
     if (.not. all_drift) exit
   enddo
 
@@ -155,7 +156,8 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     call remove_eles_from_lat(lat)    ! And delete
     ix_super = ix1_split + 1
     lat%ele(ix_super) = super_saved
-    lat%ele(ix_super)%control_type = free$
+    lat%ele(ix_super)%lord_status  = free$
+    lat%ele(ix_super)%slave_status = free$
     ! If a single drift was split give the runt drifts on either end 
     ! Unique names by adding "1" and "2" suffixes.
     if (split1_done .and. split2_done) then
@@ -175,7 +177,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   lat%n_ele_max = ix_super
   if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
   lat%ele(ix_super) = super_saved
-  lat%ele(ix_super)%control_type = super_lord$
+  lat%ele(ix_super)%lord_status = super_lord$
 
   ix_super_con = 0
   length = super_saved%value(l$)
@@ -197,11 +199,11 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
     ! Do we need to set up a super lord to control this slave element?
 
-    if (slave%control_type == overlay_slave$) then
+    if (slave%slave_status == overlay_slave$) then
       setup_lord = .true.
-    elseif (slave%control_type == super_slave$) then
+    elseif (slave%slave_status == super_slave$) then
       setup_lord = .false.
-    elseif (slave%key == drift$ .and. slave%control_type /= multipass_slave$) then
+    elseif (slave%key == drift$ .and. slave%slave_status /= multipass_slave$) then
       setup_lord = .false.
     else
       setup_lord = .true.
@@ -213,7 +215,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
       ixn = lat%n_ele_max + 1
       if (ixn > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
       lat%ele(ixn) = slave_saved
-      lat%ele(ixn)%control_type = super_lord$
+      lat%ele(ixn)%lord_status = super_lord$
       lat%n_ele_max = ixn
       ixc = lat%n_control_max + 1
       if (ixc > size(lat%control)) call reallocate_control(lat, ixc+100)
@@ -242,7 +244,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
       call add_lattice_control_structs (lat, ix_slave)
     endif
 
-    slave%control_type = super_slave$
+    slave%slave_status = super_slave$
 
     ! add control info for main super lord to list
 
@@ -305,7 +307,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   do i = n_ele_max_old+1, lat%n_ele_max
     lord => lat%ele(i)
-    if (lord%control_type /= super_lord$) cycle
+    if (lord%lord_status /= super_lord$) cycle
     ix_1lord = 0
     do j = lord%ix1_slave, lord%ix2_slave
       slave => lat%ele(lat%control(j)%ix_slave)

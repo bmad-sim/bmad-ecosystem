@@ -156,9 +156,11 @@ void init_all_c_structs () {
   c_ele_in.c_mat = m2a;
   c_ele_in.gamma_c = 51;
   c_ele_in.s = 52;
+  c_ele_in.ref_time = 53;
   c_ele_in.key = 54;
   c_ele_in.sub_key = 55;
-  c_ele_in.control_type = 56;
+  c_ele_in.lord_status = 561;
+  c_ele_in.slave_status = 562;
   c_ele_in.ix_value = 57;
   c_ele_in.n_slave = 58;
   c_ele_in.ix1_slave = 59;

@@ -1336,12 +1336,12 @@ value(1:) = f%value
 
 call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       c_str(f%attribute_name), f%x, f%y, f%a, f%b, f%z, f%floor, value, f%gen0, &
-      f%vec0, mat2arr(f%mat6), mat2arr(f%c_mat), f%gamma_c, f%s, &
+      f%vec0, mat2arr(f%mat6), mat2arr(f%c_mat), f%gamma_c, f%s, f%ref_time, &
       r_arr, nr1, nr2, f%a_pole, f%b_pole, r_size(f%a_pole), f%const, r_size(f%const), &
       c_str(descrip), f%gen_field, f%taylor(1), f%taylor(2), f%taylor(3), &
       f%taylor(4), f%taylor(5), f%taylor(6), f%wake, &
       c_logic(associated(f%wake)), n_wig, f%key, &
-      f%sub_key, f%control_type, f%ix_value, f%n_slave, f%ix1_slave, &
+      f%sub_key, f%lord_status, f%slave_status, f%ix_value, f%n_slave, f%ix1_slave, &
       f%ix2_slave, f%n_lord, f%ic1_lord, f%ic2_lord, f%ix_pointer, f%ixx, &
       f%ix_ele, f%ix_branch, f%mat6_calc_method, f%tracking_method, f%field_calc, &
       f%num_steps, f%integrator_order, f%ref_orbit, f%taylor_order, &
@@ -1364,10 +1364,10 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
-!    n_attrib, x, y, a, b, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
+!    n_attrib, x, y, a, b, z, floor, val, g0, v0, m6, c2, gam, s, ref_t, r_arr, nr1, nr2, &
 !    a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
 !    tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
-!    n_lr, n_wig, key, sub, con_tp, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
+!    n_lr, n_wig, key, sub, lord_status, slave_status, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
 !    ixp, ixx, ixe, ix_lat, m6_meth, tk_meth, f_calc, steps, int_ord, &
 !    ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad,  &
 !    f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)
@@ -1377,10 +1377,10 @@ end subroutine
 !-
 
 subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
-    n_attrib, x, y, a, b, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
+    n_attrib, x, y, a, b, z, floor, val, g0, v0, m6, c2, gam, s, ref_t, r_arr, nr1, nr2, &
     a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
     tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
-    n_lr, n_wig, key, sub, con_tp, ixv, nsl, ix1s, ix2s, &
+    n_lr, n_wig, key, sub, lord_status, slave_status, ixv, nsl, ix1s, ix2s, &
     nlrd, ic1_l, ic2_l, ixp, ixx, ixe, ix_lat, m6_meth, tk_meth, f_calc, steps, &
     int_ord, ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad, &
     f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)   
@@ -1397,13 +1397,13 @@ type (c_dummy_struct) a, b, x, y, z, floor, wake, wig
 type (c_dummy_struct) tlr1, tlr2, tlr3, tlr4, tlr5, tlr6
 type (genfield), target :: gen
 
-integer n_nam, nr1, nr2, n_ab, n_const, key, sub, con_tp, ixv, nsl, ix1s, &
+integer n_nam, nr1, nr2, n_ab, n_const, key, sub, lord_status, slave_status, ixv, nsl, ix1s, &
     ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
     int_ord, ptc, tlr_ord, aperture_at, symp, mode, mult, ex_rad, f_master, &
     on, intern, logic, girder, csr_calc, n_typ, n_ali, n_attrib, n_des, ix_lat, &
     n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, coupler_at, offset_moves_ap
 
-real(rp) val(n_attrib_maxx), g0(6), v0(6), m6(36), c2(4), gam, s
+real(rp) val(n_attrib_maxx), g0(6), v0(6), m6(36), c2(4), gam, s, ref_t
 real(rp) a_pole(n_ab), b_pole(n_ab), r_arr(nr1*nr2), const(n_const)
 
 character(n_nam)  nam
@@ -1433,9 +1433,11 @@ f%mat6                  = arr2mat(m6, 6, 6)
 f%c_mat                 = arr2mat(c2, 2, 2) 
 f%gamma_c               = gam
 f%s                     = s
+f%ref_time              = ref_t
 f%key                   = key
 f%sub_key               = sub
-f%control_type          = con_tp
+f%lord_status             = lord_status
+f%slave_status            = slave_status
 f%ix_value              = ixv
 f%n_slave               = nsl
 f%ix1_slave             = ix1s

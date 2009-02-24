@@ -78,7 +78,7 @@ do i = 1, lat%n_ele_max
 
   if (ele%key == rfcavity$) then
 
-    if (ele%control_type == super_slave$) cycle 
+    if (ele%slave_status == super_slave$) cycle 
     if (.not. ele%is_on) cycle
     if (ele%value(rf_frequency$) == 0) cycle
 

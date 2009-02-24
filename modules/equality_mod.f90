@@ -446,7 +446,8 @@ is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     all(f1%mat6 == f2%mat6) .and. all(f1%c_mat == f2%c_mat) .and. &
     (f1%gamma_c == f2%gamma_c) .and. (f1%s == f2%s) .and. &
     (f1%key == f2%key) .and. (f1%sub_key == f2%sub_key) .and. &
-    (f1%control_type == f2%control_type) .and. (f1%ix_value == f2%ix_value) .and. &
+    (f1%lord_status == f2%lord_status) .and. (f1%slave_status == f2%slave_status) .and. &
+    (f1%ix_value == f2%ix_value) .and. &
     (f1%n_slave == f2%n_slave) .and. (f1%ix1_slave == f2%ix1_slave) .and. &
     (f1%ix2_slave == f2%ix2_slave) .and. (f1%n_lord == f2%n_lord) .and. &
     (f1%ic1_lord == f2%ic1_lord) .and. (f1%ic2_lord == f2%ic2_lord) .and. &
@@ -463,7 +464,7 @@ is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     (f1%field_master .eqv. f2%field_master) .and. &
     (f1%is_on .eqv. f2%is_on) .and. (f1%old_is_on .eqv. f2%old_is_on) .and. &
     (f1%logic .eqv. f2%logic) .and. (f1%on_a_girder .eqv. f2%on_a_girder) .and. &
-    (f1%csr_calc_on .eqv. f2%csr_calc_on)
+    (f1%csr_calc_on .eqv. f2%csr_calc_on) .and. (f1%ref_time == f2%ref_time)
 
 is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .and. &
     (associated(f1%a_pole) .eqv. associated(f2%a_pole)) .and. &
@@ -535,12 +536,13 @@ print *, 'names:      ', (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     (f1%alias == f2%alias) .and. (f1%attribute_name == f2%attribute_name)
 print *, 'ints:       ', (f1%gamma_c == f2%gamma_c) .and. (f1%s == f2%s) .and. &
     (f1%key == f2%key) .and. (f1%sub_key == f2%sub_key) .and. &
-    (f1%control_type == f2%control_type) .and. (f1%ix_value == f2%ix_value) .and. &
+    (f1%lord_status == f2%lord_status) .and. (f1%slave_status == f2%slave_status) .and. &
+    (f1%ix_value == f2%ix_value) .and. &
     (f1%n_slave == f2%n_slave) .and. (f1%ix1_slave == f2%ix1_slave) .and. &
     (f1%ix2_slave == f2%ix2_slave) .and. (f1%n_lord == f2%n_lord) .and. &
     (f1%ic1_lord == f2%ic1_lord) .and. (f1%ic2_lord == f2%ic2_lord) .and. &
     (f1%ix_pointer == f2%ix_pointer) .and. (f1%ixx == f2%ixx) .and. &
-    (f1%ix_ele == f2%ix_ele)
+    (f1%ix_ele == f2%ix_ele) .and. (f1%ref_time == f2%ref_time)
 print *, 'logic:      ', (f1%mat6_calc_method == f2%mat6_calc_method) .and. &
     (f1%tracking_method == f2%tracking_method) .and. &
     (f1%field_calc == f2%field_calc) .and. &

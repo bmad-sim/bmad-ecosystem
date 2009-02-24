@@ -701,6 +701,7 @@ public:
   Real_Matrix c_mat;            // 2x2 C coupling matrix. size = 2x2
   double gamma_c;               // gamma associated with C matrix
   double s;                     // longitudinal position at the end
+  double ref_time;              // Time ref particle passes exit end.
   Real_Matrix r;                // For general use. Not used by Bmad.
   Real_Array a_pole;            // multipole
   Real_Array b_pole;            // multipoles
@@ -712,7 +713,8 @@ public:
   C_wake wake;                  // Wakefields
   int key;                      // key value
   int sub_key;                  // For wigglers: map_type$, periodic_type$
-  int control_type;             // SUPER_SLAVE$, OVERLAY_LORD$, etc.
+  int lord_status;                // overlay_lord$, etc.
+  int slave_status;               // super_slave$, etc.
   int ix_value;                 // Pointer for attribute to control
   int n_slave;                  // Number of slaves
   int ix1_slave;                // Start index for slave elements

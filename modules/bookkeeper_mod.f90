@@ -60,12 +60,12 @@ if (present(ix_ele)) then
 
 else
   do ie = lattice%n_ele_track+1, lattice%n_ele_max
-    if (lattice%ele(ie)%control_type /= group_lord$) &
+    if (lattice%ele(ie)%lord_status /= group_lord$) &
                          call this_bookkeeper (lattice, lattice%ele(ie), wig_only)
   enddo
 
   do ie = lattice%n_ele_track+1, lattice%n_ele_max
-    if (lattice%ele(ie)%control_type == group_lord$) &
+    if (lattice%ele(ie)%lord_status == group_lord$) &
                          call this_bookkeeper (lattice, lattice%ele(ie), wig_only)
   enddo
 
@@ -122,7 +122,7 @@ do
   lord => lattice%ele(ix_lord)
   do j = lord%ix1_slave, lord%ix2_slave
     ix = lattice%control(j)%ix_slave
-    if (lord%control_type == group_lord$ .and. lattice%ele(ix)%control_type == free$) cycle
+    if (lord%lord_status == group_lord$ .and. lattice%ele(ix)%slave_status == free$) cycle
     if (ix == ix_slaves(ix2)) cycle   ! do not use duplicates
     ix2 = ix2 + 1
     if (ix2 > size(ix_slaves)) then
@@ -130,7 +130,7 @@ do
       call re_allocate (ix_super, 2*size(ix_super), .false.)
     endif
     ix_slaves(ix2) = ix
-    if (lord%control_type == super_lord$) ix_super(ix2) = ix_lord
+    if (lord%lord_status == super_lord$) ix_super(ix2) = ix_lord
   enddo
   if (ix1 == ix2) exit
 enddo
@@ -146,16 +146,16 @@ do j = 1, ix2
   ix = ix_slaves(j)
   slave => lattice%ele(ix)
 
-  if (slave%control_type == group_lord$) then
+  if (slave%lord_status == group_lord$) then
     call makeup_group_lord (lattice, ix)
     call attribute_bookkeeper (slave, lattice%param)
 
-  elseif (slave%control_type == super_lord$) then
+  elseif (slave%lord_status == super_lord$) then
 
     if (slave%n_lord > 0) then
       k =  lattice%ic(slave%ic1_lord)
       lord => lattice%ele(lattice%control(k)%ix_lord)
-      if (lord%control_type == multipass_lord$) then
+      if (lord%lord_status == multipass_lord$) then
         call makeup_multipass_slave (lattice, ix)
       else
         call adjust_super_lord_s_position (lattice, ix)
@@ -164,11 +164,11 @@ do j = 1, ix2
       call attribute_bookkeeper (slave, lattice%param)
     endif
 
-  elseif (slave%control_type == multipass_lord$ .and. slave%n_lord > 0) then
+  elseif (slave%lord_status == multipass_lord$ .and. slave%n_lord > 0) then
     call makeup_overlay_and_girder_slave (lattice, ix)
     call attribute_bookkeeper (slave, lattice%param)
 
-  elseif (slave%control_type == overlay_lord$ .and. slave%n_lord > 0) then
+  elseif (slave%lord_status == overlay_lord$ .and. slave%n_lord > 0) then
     call makeup_overlay_and_girder_slave (lattice, ix)
     call attribute_bookkeeper (slave, lattice%param)
 
@@ -183,15 +183,15 @@ do j = 1, ix2
   ix = ix_slaves(j)
   slave => lattice%ele(ix)       
 
-  if (slave%control_type == super_slave$) then
+  if (slave%slave_status == super_slave$) then
     call makeup_super_slave (lattice, ix)
     call attribute_bookkeeper (slave, lattice%param)
 
-  elseif (slave%control_type == overlay_slave$) then
+  elseif (slave%slave_status == overlay_slave$) then
     call makeup_overlay_and_girder_slave (lattice, ix)
     call attribute_bookkeeper (slave, lattice%param)
 
-  elseif (slave%control_type == multipass_slave$) then
+  elseif (slave%slave_status == multipass_slave$) then
     call makeup_multipass_slave (lattice, ix)
     call attribute_bookkeeper (slave, lattice%param)
 
@@ -279,7 +279,7 @@ character(40) :: r_name = 'adjust_super_lord_s_position'
 
 lord => lattice%ele(ix_lord)
 
-if (lord%control_type /= super_lord$) then
+if (lord%lord_status /= super_lord$) then
    call out_io (s_abort$, r_name, 'ELEMENT IS NOT A LORD! ' // lord%name)
    call err_exit
 endif
@@ -325,7 +325,7 @@ type (ele_struct), pointer :: lord, slave
 real(rp) delta, coef
 real(rp), pointer :: r_ptr
 
-integer ix_lord, ix, iv, ict, i
+integer ix_lord, ix, iv, slave_stat, i
 
 logical moved, err_flag
 
@@ -344,12 +344,12 @@ do i = lord%ix1_slave, lord%ix2_slave
 
   ix = lattice%control(i)%ix_slave
   iv = lattice%control(i)%ix_attrib
-  ict = lattice%ele(ix)%control_type
+  slave_stat = lattice%ele(ix)%slave_status
   slave => lattice%ele(ix)
 
   if (iv == l$) then
     moved = .true.
-    if (ict /= free$ .and. ict /= super_slave$) then
+    if (slave_stat /= free$ .and. slave_stat /= super_slave$) then
       call out_io (s_abort$, r_name, "A GROUP: " // lord%name, &
                     "CONTROLS THE LENGTH OF A LORD ELEMENT: " // slave%name)
       call err_exit
@@ -539,7 +539,7 @@ endif
 
 slave => lattice%ele(ix_slave)
 
-if (slave%control_type /= super_slave$) then
+if (slave%slave_status /= super_slave$) then
    call out_io(s_abort$, r_name, "ELEMENT IS NOT AN SUPER SLAVE: " // slave%name)
   call err_exit
 endif
@@ -677,6 +677,18 @@ if (slave%n_lord == 1) then
     endif
   endif                       
 
+  ! If there are long range wakes they must be scaled.
+
+  if (associated (slave%wake)) then
+    slave%wake%lr%freq_in   = lord%wake%lr%freq_in
+    slave%wake%lr%freq      = lord%wake%lr%freq
+    slave%wake%lr%Q         = lord%wake%lr%Q
+    slave%wake%lr%angle     = lord%wake%lr%angle
+    slave%wake%lr%m         = lord%wake%lr%m
+    slave%wake%lr%polarized = lord%wake%lr%polarized
+    slave%wake%lr%r_over_q  = lord%wake%lr%r_over_q * coef
+  endif
+
   return
 
 endif
@@ -718,11 +730,18 @@ do j = slave%ic1_lord, slave%ic2_lord
   coef = lattice%control(ix_con)%coef
   lord => lattice%ele(ix)
 
-  if (lord%control_type /= super_lord$) then
+  if (lord%lord_status /= super_lord$) then
     call out_io (s_abort$, r_name, &
           "SUPER_SLAVE HAS A CONTROL ELEMENT THAT IS NOT A SUPER_LORD", &
           'SLAVE: ' //  slave%name // '  \i\ ', &
           'LORD:  ' //  lord%name  // '  \i\ ', i_array = (/ ix_slave, ix /) )
+    call err_exit
+  endif
+
+  if (associated(lord%wake)) then
+    call out_io (s_abort$, r_name, &
+            'SUPERPOSITION OF MULTIPLE ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
+            'SUPER_LORD: ' // lord%name)
     call err_exit
   endif
 
@@ -1161,7 +1180,7 @@ type (ele_struct), pointer :: slave, lord
 
 real(rp) value(n_attrib_special_maxx), coef, ds
 real(rp), pointer :: r_ptr
-integer i, j, ix, iv, ix_ele, icom, ct
+integer i, j, ix, iv, ix_ele, icom, l_stat
 logical used(n_attrib_special_maxx), multipole_set, err_flag
 
 character(40) :: r_name = 'makeup_overlay_and_girder_slave'
@@ -1169,10 +1188,10 @@ character(40) :: r_name = 'makeup_overlay_and_girder_slave'
 !
                              
 slave => lattice%ele(ix_ele)
-ct = slave%control_type
+l_stat = slave%lord_status
 
-if (ct /= super_lord$ .and. ct /= overlay_slave$ .and. &
-         ct /= overlay_lord$ .and. ct /= multipass_lord$) then
+if (l_stat /= super_lord$ .and. slave%slave_status /= overlay_slave$ .and. &
+         l_stat /= overlay_lord$ .and. l_stat /= multipass_lord$) then
   call out_io(s_abort$, r_name, 'ELEMENT IS NOT OF PROPER TYPE. lattice INDEX: \i\ ', ix_ele)
   call type_ele (slave, .true., 0, .false., 0, .true., lattice)
   call err_exit
@@ -1188,9 +1207,9 @@ do i = slave%ic1_lord, slave%ic2_lord
   ix = lattice%control(j)%ix_lord
   lord => lattice%ele(ix)
 
-  if (lord%control_type == multipass_lord$) cycle
+  if (lord%lord_status == multipass_lord$) cycle
 
-  if (lord%control_type == girder_lord$) then
+  if (lord%lord_status == girder_lord$) then
     ds = (slave%s - slave%value(l$)/2) - lord%value(s_center$) 
     slave%value(x_offset_tot$) = slave%value(x_offset$) + &
                    ds * lord%value(x_pitch$) + lord%value(x_offset$)
@@ -1204,7 +1223,7 @@ do i = slave%ic1_lord, slave%ic2_lord
     cycle
   endif
 
-  if (lord%control_type /= overlay_lord$) then
+  if (lord%lord_status /= overlay_lord$) then
     call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_ele)
     call type_ele (slave, .true., 0, .false., 0, .true., lattice)
     call err_exit

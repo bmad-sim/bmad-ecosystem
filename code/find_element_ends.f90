@@ -48,7 +48,7 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
     call pointer_to_ele (lat, ele%ix_branch, ix_ele-1, ele1)
     ele2 => ele
 
-  elseif (ele%control_type == super_lord$) then
+  elseif (ele%lord_status == super_lord$) then
     call pointer_to_ele (lat, ele%ix_branch, lat%control(ix1)%ix_slave - 1, ele1)
     call pointer_to_ele (lat, ele%ix_branch, lat%control(ix2)%ix_slave, ele2)
 

@@ -11,7 +11,7 @@
 !
 !   use_taylor    tracking_method     mat6_calc_method
 !   ----------    ---------------     ----------------  
-!   False         linear$             none$
+!   False         linear$             no_method$
 !   True          taylor$             taylor$
 !
 ! Note: For use_taylor = .false. You need to have made the 
@@ -144,7 +144,8 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
         if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele_array(r_out)
         ele_out => r_out%ele(i_out)
         ele_out = ele_in
-        ele_out%control_type = free$
+        ele_out%lord_status = free$
+        ele_out%slave_status = free$
         ele_out%n_slave = 0
         ele_out%ix1_slave = 0
         ele_out%ix2_slave = -1
@@ -152,7 +153,7 @@ subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
         ele_out%ic1_lord = 0
         ele_out%ic2_lord = -1
         ele_out%tracking_method = linear$
-        ele_out%mat6_calc_method = none$
+        ele_out%mat6_calc_method = no_method$
 
         if (present (orb0)) then
           c0 = orb0(j_in)

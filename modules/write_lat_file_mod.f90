@@ -185,9 +185,9 @@ ele_loop: do ie = 1, lat%n_ele_max
   ix_multi_lord = multipass_lord_index(ie, lat, ix_pass) 
 
   if (ele%key == null_ele$) cycle
-  if (ele%control_type == multipass_slave$) cycle ! Ignore for now
-  if (ele%control_type == super_lord$ .and. ix_multi_lord > 0) cycle
-  if (ele%control_type == super_slave$ .and. ix_pass > 1) cycle
+  if (ele%slave_status == multipass_slave$) cycle ! Ignore for now
+  if (ele%lord_status == super_lord$ .and. ix_multi_lord > 0) cycle
+  if (ele%slave_status == super_slave$ .and. ix_pass > 1) cycle
 
   if (ie == lat%n_ele_track+1) then
     write (iu, *)
@@ -198,7 +198,7 @@ ele_loop: do ie = 1, lat%n_ele_max
 
   ! For a super_slave just create a dummy drift. 
 
-  if (ele%control_type == super_slave$) then
+  if (ele%slave_status == super_slave$) then
     ixs = ixs + 1
     ele%ixx = ixs
     write (iu, '(a, i3.3, 2a)') 'slave_drift_', ixs, &
@@ -217,8 +217,8 @@ ele_loop: do ie = 1, lat%n_ele_max
 
   ! Overlays and groups
 
-  if (ele%control_type == overlay_lord$ .or. ele%control_type == group_lord$) then
-    if (ele%control_type == overlay_lord$) then
+  if (ele%lord_status == overlay_lord$ .or. ele%lord_status == group_lord$) then
+    if (ele%lord_status == overlay_lord$) then
       write (line, '(2a)') trim(ele%name), ': overlay = {'
     else
       write (line, '(2a)') trim(ele%name), ': group = {'
@@ -245,7 +245,7 @@ ele_loop: do ie = 1, lat%n_ele_max
     else
       line = trim(line) // ', ' // ele%attribute_name
     endif
-    if (ele%control_type == overlay_lord$) then
+    if (ele%lord_status == overlay_lord$) then
       ix = ele%ix_value
       if (ele%value(ix) /= 0) write (line, '(3a)') &
                           trim(line), ' = ', str(ele%value(ix))
@@ -260,7 +260,7 @@ ele_loop: do ie = 1, lat%n_ele_max
 
   ! Girder
 
-  if (ele%control_type == girder$) then
+  if (ele%lord_status == girder_lord$) then
     write (line, '(2a)') trim(ele%name), ': girder = {'
     do j = ele%ix1_slave, ele%ix2_slave
       ix1 = lat%control(j)%ix_slave
@@ -285,12 +285,12 @@ ele_loop: do ie = 1, lat%n_ele_max
   ! information.
 
   is_multi_sup = .false.
-  if (ele%control_type == multipass_lord$) then
+  if (ele%lord_status == multipass_lord$) then
     ix1 = lat%control(ele%ix1_slave)%ix_slave
-    if (lat%ele(ix1)%control_type == super_lord$) is_multi_sup = .true.
+    if (lat%ele(ix1)%lord_status == super_lord$) is_multi_sup = .true.
   endif
 
-  if (ele%control_type == super_lord$ .or. is_multi_sup) then
+  if (ele%lord_status == super_lord$ .or. is_multi_sup) then
     write (iu, '(a)') "x__" // trim(ele%name) // ": null_ele"
     line = trim(line) // ', superimpose, ele_beginning, ref = x__' // trim(ele%name)
   endif
@@ -542,13 +542,13 @@ if (size(m_info%top) /= 0) then
       multipass(ie)%ix_region = ix_r
       multipass(ie)%region_start_pt = .true.
       in_multi_region = .true.
-      ix_top = m_info%bottom(ie)%ix_top
-      ix_super = m_info%bottom(ie)%ix_super
+      ix_top = m_info%bottom(ie)%ix_top(1)
+      ix_super = m_info%bottom(ie)%ix_super(1)
       ix_ss1 => m_info%top(ix_top)%ix_slave(:,ix_super)
       cycle
     endif
-    ix_top = m_info%bottom(ie)%ix_top
-    ix_super = m_info%bottom(ie)%ix_super
+    ix_top = m_info%bottom(ie)%ix_top(1)
+    ix_super = m_info%bottom(ie)%ix_super(1)
     ix_ss2 => m_info%top(ix_top)%ix_slave(:,ix_super)
     do ix_pass = 2, size(ix_ss1)
       ixs1 = ix_ss1(ix_pass)
@@ -612,8 +612,8 @@ do ie = 1, lat%n_ele_track
     cycle
   endif
 
-  ix_top = m_info%bottom(ie)%ix_top
-  ix_super = m_info%bottom(ie)%ix_super
+  ix_top = m_info%bottom(ie)%ix_top(1)
+  ix_super = m_info%bottom(ie)%ix_super(1)
   ix1 = m_info%top(ix_top)%ix_slave(1,ix_super)
   ix_r = multipass(ix1)%ix_region
 
@@ -648,7 +648,7 @@ write (iu, *) 'use, main_line'
 expand_lat_out = .false.
 do ie = 1, lat%n_ele_max
   ele => lat%ele(ie)
-  if (ele%control_type == super_slave$) cycle
+  if (ele%slave_status == super_slave$) cycle
   if (ele%key /= lcavity$ .and. ele%key /= rfcavity$) cycle
   if (ele%value(dphi0$) == 0) cycle
   if (.not. expand_lat_out) then
@@ -693,7 +693,7 @@ integer j, ix, ic
 
 ele => lat%ele(ix_ele)
 
-if (ele%control_type == super_slave$) then
+if (ele%slave_status == super_slave$) then
   ! If a super_lord element starts at the beginning of this slave element,
   !  put in the null_ele marker 'x__' + lord_name for the superposition.
   do j = ele%ic1_lord, ele%ic2_lord
@@ -708,7 +708,7 @@ if (ele%control_type == super_slave$) then
   enddo
   write (line, '(2a, i3.3, a)') trim(line), ' slave_drift_', ele%ixx, ','
 
-elseif (ele%control_type == multipass_slave$) then
+elseif (ele%slave_status == multipass_slave$) then
   ic = lat%ic(ele%ic1_lord)
   ix = lat%control(ic)%ix_lord
   lord => lat%ele(ix)

@@ -37,7 +37,8 @@ generally hidden  by the \bmad bookkeeping routines.
     type (taylor_struct) :: taylor(6)             ! Taylor terms
     integer key                    ! key value
     integer sub_key                ! For wigglers: map_type$, periodic_type$
-    integer control_type           ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
+    integer lord_status            ! overlay_lord$, etc.
+    integer slave_status           ! super_slave$, etc.
     integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
     integer tracking_method        ! bmad_standard$, taylor$, etc.
     integer field_calc             ! Used with integrators (Runge-Kutta et. al)
@@ -300,37 +301,44 @@ appropriate attribute. For example:
 \end{example}
 
 %--------------------------------------------------------------------------
-\section{Control_type}
-\index{control_type}
-\label{s:control.type}
+\section{Element Lords and Element Slaves}
+\label{s:ele_control}
 
+\index{ele_struct!\%lord_status}\index{ele_struct!\%slave_status}
 In a \vn{lat_struct} (\sref{c:lat.struct}), elements in the lattice
-can control the attributes of other elements. The \vn{%control_type}
-component of an element identifies whether the element is a slave
+can control the attributes of other elements. The \vn{%lord_status} and
+\vn{%slave_status}
+components of an element identifies whether the element is a slave
 element (it is being controlled or is a lord element (it controls
-other elements). Possible values for \vn{%control_type} are:
+other elements) or both. Possible values for \vn{%lord_status} are:
 \index{free}\index{super_lord}
 \index{group_lord}\index{girder_lord}
-\index{multipass_lord}\index{super_slave}
-\index{overlay_slave}\index{overlay_lord}
-\index{multipass_slave}
+\index{multipass_lord}
+\begin{example}
+  free\$                No slaves.
+  super_lord\$          Has super_slaves.
+  multipass_lord\$      Has multipass_slaves.
+  group_lord\$          Is a group element.
+  girder_lord\$         Is a girder element.
+  overlay_lord\$        Is a overlay element.
+\end{example}
+With \vn{%lord_status} equal to \vn{free\$}, the element does not have
+any elements under its control. 
+The possible values for \vn{%slave_status} are:
+\index{free}\index{super_slave}
+\index{overlay_slave}\index{multipass_slave}
 \begin{example}
   free\$
-  super_lord\$
-  group_lord\$
-  girder_lord\$
-  multipass_lord\$
-  overlay_lord\$
   multipass_slave\$
   super_slave\$
   overlay_slave\$
 \end{example}
+With \vn{%lord_status} equal to \vn{free\$}, the element is is not
+controlled by any other element. The exception is that attributes of
+this element may be controlled by a \vn{group_lord}.
+
 
 \begin{description}
-\item[free element]\Newline 
-A \vn{free} element is just that, An element that neither
-controls or is controlled. The exception is that attributes of this element
-may be controlled by a \vn{group_lord}.
 
 \item[super_lord and super_slave]\Newline 
 \vn{super_lord} and \vn{super_slave} elements
@@ -339,9 +347,7 @@ come from superimposing elements on top of other elements (\sref{s:super}).
 \item[overlay_lord, overlay_slave]\Newline 
 An \vn{overlay_lord} is an \vn{overlay} element. If an element it
 controls would otherwise be a \vn{free} element, that element becomes
-and \vn{overlay_slave} element (\sref{s:overlay}). The
-\vn{control_type} of a lord element, such as a \vn{super_lord} is not
-affected by being controlled by an \vn{overlay} lord.
+and \vn{overlay_slave} element (\sref{s:overlay}).
 
 \item[group_lord]\Newline 
 A \vn{group_lord} is a \vn{group} element (\sref{s:group}). Since a
@@ -363,8 +369,9 @@ multipass lines are present (\sref{s:multipass}). In the example in
 \vn{A\B1} and \vn{A\B2} would be \vn{multipass_slave}s. When
 superposition is combined with multipass, the elements in the tracking
 part of the lattice will be \vn{super_slave}s.  These elements will be
-controlled by \vn{super_lord}s and the \vn{super_lord}s will
-be controlled by \vn{multipass_lord}s.
+controlled by \vn{super_lord}s which will also be
+\vn{multipass_slave}s and these \vn{super_lord}/\vn{multipass_slave}
+elements will be controlled by \vn{multipass_lord}s.
 
 \end{description}
 

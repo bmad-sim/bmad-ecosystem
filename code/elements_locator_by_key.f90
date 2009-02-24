@@ -36,14 +36,14 @@ subroutine elements_locator_by_key (key, lat, indx)
 !
 
   ix = count(lat%ele(:)%key == key .and. &
-                                  lat%ele(:)%control_type /= super_slave$)
+                                  lat%ele(:)%slave_status /= super_slave$)
 
   allocate(indx(ix))
 
   ix = 0
   do i = 0, lat%n_ele_max
     if (lat%ele(i)%key == key .and. &
-                              lat%ele(i)%control_type /= super_slave$) then
+                              lat%ele(i)%slave_status /= super_slave$) then
       ix = ix + 1
       indx(ix) = i
     endif

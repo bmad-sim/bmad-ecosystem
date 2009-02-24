@@ -44,7 +44,7 @@ lat%param%total_length = ss - lat%ele(0)%s
 ! now get fill in the positions of the super_lords
 
 do n = lat%n_ele_track+1, lat%n_ele_max
-  if (lat%ele(n)%control_type == super_lord$) then
+  if (lat%ele(n)%lord_status == super_lord$) then
     ix2 = lat%control(lat%ele(n)%ix2_slave)%ix_slave
     lat%ele(n)%s = lat%ele(ix2)%s
   else

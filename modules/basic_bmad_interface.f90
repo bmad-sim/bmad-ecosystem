@@ -677,10 +677,11 @@ interface
 end interface
 
 interface
-  subroutine remove_eles_from_lat (lat)
+  subroutine remove_eles_from_lat (lat, check_controls)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) lat
+    logical, optional :: check_controls
   end subroutine
 end interface
 
@@ -773,14 +774,14 @@ interface
 end interface
 
 interface
-  subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix)
+  subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix, check_controls)
     use bmad_struct, only: lat_struct, rp
     implicit none
     type (lat_struct), target :: lat
     real(rp) s_split
     integer ix_split
     logical split_done
-    logical, optional :: add_suffix
+    logical, optional :: add_suffix, check_controls
   end subroutine
 end interface
 

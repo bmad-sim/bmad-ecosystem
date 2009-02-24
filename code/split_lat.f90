@@ -1,5 +1,5 @@
 !+
-! Subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix)
+! Subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix, check_controls)
 !
 ! Subroutine to split a lat at a point. Subroutine will not split the lat
 ! if the split would create a "runt" element with length less than 10um
@@ -11,10 +11,12 @@
 !   use bmad
 !
 ! Input:
-!   lat        -- lat_struct: Original lat structure.
-!   s_split    -- Real(rp): Position at which lat is to be split.
-!   add_suffix -- Logical, optional: If True (default) add '_1' and '_2" suffixes
-!                   to the split elements. If False then only do this with drifts.
+!   lat            -- lat_struct: Original lat structure.
+!   s_split        -- Real(rp): Position at which lat is to be split.
+!   add_suffix     -- Logical, optional: If True (default) add '_1' and '_2" suffixes
+!                       to the split elements. If False then only do this with drifts.
+!   check_controls -- Logical, optional: If True (default) then call check_lat_controls
+!                       after the split to make sure everything is ok.
 !
 ! Output:
 !   lat        -- lat_struct: Modified lat structure.
@@ -24,7 +26,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix)
+subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix, check_controls)
 
 use bmad_struct
 use bmad_interface, except_dummy => split_lat
@@ -43,7 +45,7 @@ integer ix_split, ix_lord, ixc, ix_attrib, ix_super_lord
 integer icon, ix2, inc, nr, n_ic2, ct
 
 logical split_done
-logical, optional :: add_suffix
+logical, optional :: add_suffix, check_controls
 
 character(16) :: r_name = "split_lat"
 
@@ -163,13 +165,13 @@ ix_super_lord = 0   ! no super lord made yet.
 
 ! a free drift needs nothing more.
 
-if (ele%key == drift$ .and. ele%control_type == free$) goto 8000
+if (ele%key == drift$ .and. ele%slave_status == free$) goto 8000
 
 ! If we have split a super_slave we need to make a 2nd control list for one
 ! of the split elements (can't have both split elements using the same list).
 ! Also: Redo the control list for the lord elements.
 
-if (ele%control_type == super_slave$) then
+if (ele%slave_status == super_slave$) then
 
   if (ele%n_lord == 0) goto 8000  ! nothing to do for free element
 
@@ -188,7 +190,7 @@ if (ele%control_type == super_slave$) then
     ix_attrib = lat%control(icon)%ix_attrib
     ix_lord = lat%control(icon)%ix_lord
 
-    if (ele%control_type == super_slave$ .or.  &
+    if (ele%slave_status == super_slave$ .or.  &
           ix_attrib == hkick$ .or. ix_attrib == vkick$) then
       coef1 = coef_old * len1 / len_orig
       coef2 = coef_old * len2 / len_orig
@@ -208,7 +210,7 @@ if (ele%control_type == super_slave$) then
     lat%control(ix2)%coef = coef1
     lat%ic(ixc+j) = ix2
 
-    if (lat%ele(ix_lord)%control_type == super_lord$) &
+    if (lat%ele(ix_lord)%lord_status == super_lord$) &
                   call order_super_lord_slaves (lat, ix_lord)
 
   enddo
@@ -228,7 +230,7 @@ if (ix_super_lord > ubound(lat%ele, 1)) then
 endif            
 lat%n_ele_max = ix_super_lord
 lat%ele(ix_super_lord) = ele
-lat%ele(ix_super_lord)%control_type = super_lord$
+lat%ele(ix_super_lord)%lord_status = super_lord$
 lat%ele(ix_super_lord)%value(l$) = len_orig
 ixc = lat%n_control_max + 1
 if (ixc+1 > size(lat%control)) call reallocate_control (lat, ixc+500)
@@ -260,7 +262,7 @@ enddo
 
 if (lat%n_ic_max+2 > size(lat%ic)) call re_allocate (lat%ic, lat%n_ic_max+500)
 
-ele1%control_type = super_slave$
+ele1%slave_status = super_slave$
 inc = lat%n_ic_max + 1
 ele1%ic1_lord = inc
 ele1%ic2_lord = inc
@@ -268,7 +270,7 @@ ele1%n_lord = 1
 lat%n_ic_max = inc
 lat%ic(inc) = ixc
 
-ele2%control_type = super_slave$
+ele2%slave_status = super_slave$
 inc = lat%n_ic_max + 1
 ele2%ic1_lord = inc
 ele2%ic2_lord = inc
@@ -284,7 +286,7 @@ lat%ic(inc) = ixc + 1
 8000  continue
 
 do i = lat%n_ele_track+1, lat%n_ele_max
-  ct = lat%ele(i)%control_type
+  ct = lat%ele(i)%lord_status
   if (ct == group_lord$ .or. ct == girder_lord$) then
     do j = lat%ele(i)%ix1_slave, lat%ele(i)%ix2_slave
       if (lat%control(j)%ix_slave == ix_split+1) then
@@ -307,6 +309,6 @@ enddo
 call control_bookkeeper (lat, ix_split)
 call control_bookkeeper (lat, ix_split+1)
 
-call check_lat_controls (lat, .true.)
+if (logic_option(.true., check_controls)) call check_lat_controls (lat, .true.)
 
 end subroutine

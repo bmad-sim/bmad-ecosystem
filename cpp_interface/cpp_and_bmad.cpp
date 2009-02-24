@@ -579,9 +579,10 @@ void operator>> (em_field_struct* f, C_em_field& c) {
 extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char, 
   Int&, C_xy_disp, C_xy_disp, C_twiss&, C_twiss&, C_twiss&, C_floor_position&, 
   ReArr, ReArr, ReArr, 
-  ReArr, ReArr, Re&, Re&, ReArr, Int&, Int&, ReArr, ReArr, Int&, ReArr, Int&, 
-  Char, Int&, void*, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, 
-  C_taylor&, C_wake&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
+  ReArr, ReArr, Re&, Re&, Re&, ReArr, Int&, Int&, ReArr, ReArr, Int&, ReArr, Int&, 
+  Char, Int&, void*, 
+  C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_wake&, 
+  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
   Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
   Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
 
@@ -609,11 +610,13 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   matrix_to_array (c.r, r_arr);
   ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, n_attrib,
     c.x, c.y, c.a, c.b, c.z, c.floor, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat, 
-    c.gamma_c, c.s, r_arr, nr1, nr2, &c.a_pole[0], &c.b_pole[0], n_ab, &c.const_arr[0], 
-    n_const, des, n_des, c.gen_field, c.taylor[0], c.taylor[1], c.taylor[2], 
-    c.taylor[3], c.taylor[4], c.taylor[5], c.wake, n_sr_table, n_sr_mode_long, 
+    c.gamma_c, c.s, c.ref_time, r_arr, nr1, nr2, 
+    &c.a_pole[0], &c.b_pole[0], n_ab, &c.const_arr[0], 
+    n_const, des, n_des, c.gen_field, 
+    c.taylor[0], c.taylor[1], c.taylor[2], c.taylor[3], c.taylor[4], c.taylor[5], c.wake, 
+    n_sr_table, n_sr_mode_long, 
     n_sr_mode_trans, n_lr, n_wig, c.key, 
-    c.sub_key, c.control_type, c.ix_value, c.n_slave, c.ix1_slave, 
+    c.sub_key, c.lord_status, c.slave_status, c.ix_value, c.n_slave, c.ix1_slave, 
     c.ix2_slave, c.n_lord, c.ic1_lord, c.ic2_lord, c.ix_pointer, 
     c.ixx, c.ix_ele, c.ix_photon_line, c.mat6_calc_method, c.tracking_method, 
     c.field_calc, c.num_steps, c.integrator_order, c.ref_orbit, c.taylor_order, 
@@ -632,13 +635,13 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     char* attrib, xy_disp_struct* x, xy_disp_struct* y, 
     twiss_struct* a, twiss_struct* b, twiss_struct* z,
     floor_position_struct* floor, ReArr val, ReArr gen0, ReArr vec0,
-    ReArr mat6, ReArr c_mat, Re& gamma_c, Re& s, ReArr r_arr, Int& nr1, 
+    ReArr mat6, ReArr c_mat, Re& gamma_c, Re& s, Re& ref_t, ReArr r_arr, Int& nr1, 
     Int& nr2, ReArr a_pole, ReArr b_pole, 
     Int& n_ab, ReArr const_arr, Int& n_const, char* descrip, 
     void* gen, taylor_struct* tlr0, taylor_struct* tlr1, taylor_struct* tlr2,
     taylor_struct* tlr3, taylor_struct* tlr4, taylor_struct* tlr5, 
     wake_struct* wake, Int& wake_here, Int& n_wig, Int& key, Int& sub_key, 
-    Int& control, Int& ix_v, Int& n_s, Int& ix1_s, Int& ix2_s, Int& n_l, 
+    Int& lord_status, Int& slave_status, Int& ix_v, Int& n_s, Int& ix1_s, Int& ix2_s, Int& n_l, 
     Int& ic1_l, Int& ic2_l, Int& ix_p, Int& ixx, Int& ix_e, Int& ix_photon, 
     Int& mat6_calc, Int& tracking, Int& f_calc, Int& num_s, Int& int_ord, 
     Int& ptc, Int& t_ord, Int& aperture_at, Int& coupler_at, Int& symp, 
@@ -654,10 +657,12 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.vec0                  << vec0; 
   c.gamma_c               = gamma_c; 
   c.s                     = s; 
+  c.ref_time              = ref_t;
   c.descrip               = descrip;
   c.key                   = key;
   c.sub_key               = sub_key;
-  c.control_type          = control;
+  c.lord_status           = lord_status;
+  c.slave_status          = slave_status;
   c.ix_value              = ix_v;
   c.n_slave               = n_s;
   c.ix1_slave             = ix1_s;
@@ -737,63 +742,65 @@ void operator>> (ele_struct* f, C_ele& c) {
 }
 
 C_ele& C_ele::operator= (const C_ele& c) {
-  name                 = c.name;
-  type                 = c.type;
-  alias                = c.alias;
-  attribute_name       = c.attribute_name;
-  x                    = c.x;
-  y                    = c.y;
-  a                    = c.a;
-  b                    = c.b;
-  z                    = c.z;
-  floor                = c.floor;
-  value                << c.value;
-  gen0                 << c.gen0;
-  vec0                 << c.vec0;
-  mat6                 << c.mat6;
-  c_mat                << c.c_mat;
-  gamma_c              = c.gamma_c;
-  s                    = c.s;
-  r                    << c.r;
-  a_pole               << c.a_pole;
-  b_pole               << c.b_pole;
-  const_arr            << c.const_arr;
-  descrip              = c.descrip;
-  gen_field            = c.gen_field;
-  taylor               << c.taylor;
-  wig_term             << c.wig_term;
-  wake                 = c.wake;
-  key                  = c.key;
-  sub_key              = c.sub_key;
-  control_type         = c.control_type;
-  ix_value             = c.ix_value;
-  n_slave              = c.n_slave;
-  ix1_slave            = c.ix1_slave;
-  ix2_slave            = c.ix2_slave;
-  n_lord               = c.n_lord;
-  ic1_lord             = c.ic1_lord;
-  ic2_lord             = c.ic2_lord;
-  ix_pointer           = c.ix_pointer;
-  ixx                  = c.ixx;
-  ix_ele               = c.ix_ele;
-  ix_photon_line       = c.ix_photon_line;
-  mat6_calc_method     = c.mat6_calc_method;
-  tracking_method      = c.tracking_method;
-  field_calc           = c.field_calc;
-  num_steps            = c.num_steps;
+  name                  = c.name;
+  type                  = c.type;
+  alias                 = c.alias;
+  attribute_name        = c.attribute_name;
+  x                     = c.x;
+  y                     = c.y;
+  a                     = c.a;
+  b                     = c.b;
+  z                     = c.z;
+  floor                 = c.floor;
+  value                 << c.value;
+  gen0                  << c.gen0;
+  vec0                  << c.vec0;
+  mat6                  << c.mat6;
+  c_mat                 << c.c_mat;
+  gamma_c               = c.gamma_c;
+  s                     = c.s;
+  ref_time              = c.ref_time;
+  r                     << c.r;
+  a_pole                << c.a_pole;
+  b_pole                << c.b_pole;
+  const_arr             << c.const_arr;
+  descrip               = c.descrip;
+  gen_field             = c.gen_field;
+  taylor                << c.taylor;
+  wig_term              << c.wig_term;
+  wake                  = c.wake;
+  key                   = c.key;
+  sub_key               = c.sub_key;
+  lord_status           = c.lord_status;
+  slave_status          = c.slave_status;
+  ix_value              = c.ix_value;
+  n_slave               = c.n_slave;
+  ix1_slave             = c.ix1_slave;
+  ix2_slave             = c.ix2_slave;
+  n_lord                = c.n_lord;
+  ic1_lord              = c.ic1_lord;
+  ic2_lord              = c.ic2_lord;
+  ix_pointer            = c.ix_pointer;
+  ixx                   = c.ixx;
+  ix_ele                = c.ix_ele;
+  ix_photon_line        = c.ix_photon_line;
+  mat6_calc_method      = c.mat6_calc_method;
+  tracking_method       = c.tracking_method;
+  field_calc            = c.field_calc;
+  num_steps             = c.num_steps;
   integrator_order      = c.integrator_order;
   ref_orbit             = c.ref_orbit;
-  taylor_order         = c.taylor_order;
-  aperture_at          = c.aperture_at;
-  symplectify          = c.symplectify;
-  mode_flip            = c.mode_flip;
-  multipoles_on        = c.multipoles_on;
-  map_with_offsets     = c.map_with_offsets;
-  field_master         = c.field_master;
-  is_on                = c.is_on;
-  old_is_on            = c.old_is_on;
-  logic                = c.logic;
-  on_a_girder          = c.on_a_girder;
+  taylor_order          = c.taylor_order;
+  aperture_at           = c.aperture_at;
+  symplectify           = c.symplectify;
+  mode_flip             = c.mode_flip;
+  multipoles_on         = c.multipoles_on;
+  map_with_offsets      = c.map_with_offsets;
+  field_master          = c.field_master;
+  is_on                 = c.is_on;
+  old_is_on             = c.old_is_on;
+  logic                 = c.logic;
+  on_a_girder           = c.on_a_girder;
   offset_moves_aperture = c.offset_moves_aperture;
 
   return *this;

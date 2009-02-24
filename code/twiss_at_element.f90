@@ -72,7 +72,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
 
 ! Start and end calculation for the lord elements
 
-  select case (ele%control_type)
+  select case (ele%lord_status)
   case (super_lord$, multipass_lord$, girder_lord$)
     ix1 = ele%ix1_slave
     ix2 = ele%ix2_slave
@@ -103,7 +103,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
   if (.not. present(average)) return
   call zero_ave (average)
   if (ele%n_slave == 0) return
-  ct = ele%control_type
+  ct = ele%lord_status
 
   tot = 0
   do i = ele%ix1_slave, ele%ix2_slave

@@ -524,9 +524,9 @@ parsing_loop: do
         cycle parsing_loop        
       endif
 
-      if (key == overlay$) in_lat%ele(n_max)%control_type = overlay_lord$
-      if (key == group$)   in_lat%ele(n_max)%control_type = group_lord$
-      if (key == girder$)  in_lat%ele(n_max)%control_type = girder_lord$
+      if (key == overlay$) in_lat%ele(n_max)%lord_status = overlay_lord$
+      if (key == group$)   in_lat%ele(n_max)%lord_status = group_lord$
+      if (key == girder$)  in_lat%ele(n_max)%lord_status = girder_lord$
 
       call get_overlay_group_names(in_lat%ele(n_max), in_lat, &
                                                   plat, delim, delim_found)
@@ -790,8 +790,8 @@ call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
 
 call s_calc (lat)              ! calc longitudinal distances
 do i = 1, n_max
-  if (in_lat%ele(i)%control_type /= super_lord$) cycle
-  call add_all_superimpose (lat, in_lat%ele(i), plat%ele(i))
+  if (in_lat%ele(i)%lord_status /= super_lord$) cycle
+  call add_all_superimpose (lat, in_lat%ele(i), plat%ele(i), in_lat)
 enddo
 
 do i = 1, lat%n_ele_max
@@ -926,7 +926,7 @@ do i = 1, lat%n_ele_max
   ele => lat%ele(i)
   if (ele%key /= wiggler$) cycle
   if (ele%sub_key /= periodic_type$) cycle
-  if (ele%control_type == super_slave$) cycle
+  if (ele%slave_status == super_slave$) cycle
   if (abs(mod(ele%value(n_pole$) / 2, 1.0_rp)) > 0.01) then
     call out_io (s_warn$, r_name, (/ &
           '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &

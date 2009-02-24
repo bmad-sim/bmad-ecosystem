@@ -106,7 +106,7 @@ call check_controller_controls (contrl, lat%ele(ix_lord)%name, err)
 if (err) return
 
 n_control = size(contrl)
-lat%ele(ix_lord)%control_type = group_lord$
+lat%ele(ix_lord)%lord_status = group_lord$
 lat%ele(ix_lord)%key = group$
 n_con = lat%n_control_max
 lat%ele(ix_lord)%ix1_slave = n_con + 1
@@ -127,7 +127,7 @@ do i = 1, n_control
   if (ix_attrib == start_edge$ .or. ix_attrib == end_edge$ .or. &
                                             ix_attrib == accordion_edge$) then
 
-    if (lat%ele(ix_slave)%control_type == super_lord$) then
+    if (lat%ele(ix_slave)%lord_status == super_lord$) then
       ix_min = lat%control(lat%ele(ix_slave)%ix1_slave)%ix_slave
       ix_max = lat%control(lat%ele(ix_slave)%ix2_slave)%ix_slave
     elseif (ix_slave < lat%n_ele_track) then
@@ -136,7 +136,7 @@ do i = 1, n_control
     else
       call out_io (s_fatal$, r_name, &
                     'A GROUP IS NOT ALLOWED TO CONTROL', &
-                    'A ' // control_name(lat%ele(ix_slave)%control_type), &
+                    'A ' // control_name(lat%ele(ix_slave)%slave_status), &
                     'YOU TRIED TO CONTROL: ' // lat%ele(ix_slave)%name)
       call err_exit
     endif

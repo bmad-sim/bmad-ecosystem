@@ -1207,7 +1207,8 @@ ele%old_value(:) = 0
 call init_coord (ele%map_ref_orb_in)
 call init_coord (ele%map_ref_orb_out)
 
-ele%control_type = free$
+ele%lord_status = free$
+ele%slave_status = free$
 ele%ix_value = 0
 ele%ic1_lord = 0
 ele%ic2_lord = -1
@@ -1217,6 +1218,7 @@ ele%ix2_slave = -1
 ele%n_slave = 0
 ele%ix_pointer = 0
 ele%s = 0
+ele%ref_time = 0
 ele%ix_branch = 0
 
 call init_floor (ele%floor)

@@ -195,13 +195,15 @@ bool operator== (const C_ele& x, const C_ele& y) {
     (x.z == y.z) && (x.floor == y.floor) && is_all_true(x.value, y.value) && 
     is_all_true(x.gen0, y.gen0) && is_all_true(x.vec0, y.vec0) && 
     is_all_true(x.mat6, y.mat6) && is_all_true(x.c_mat, y.c_mat) && 
-    (x.gamma_c == y.gamma_c) && (x.s == y.s) && is_all_true(x.r, y.r) && 
+    (x.gamma_c == y.gamma_c) && (x.s == y.s) && (x.ref_time == y.ref_time) && 
+    is_all_true(x.r, y.r) && 
     is_all_true(x.a_pole, y.a_pole) && is_all_true(x.b_pole, y.b_pole) && 
     is_all_true(x.const_arr, y.const_arr) && (x.descrip == y.descrip) && 
     is_all_true(x.taylor, y.taylor) && 
     is_all_true(x.wig_term, y.wig_term) && (x.wake == y.wake) && 
     (x.key == y.key) && (x.sub_key == y.sub_key) && 
-    (x.control_type == y.control_type) && (x.ix_value == y.ix_value) && 
+    (x.lord_status == y.lord_status) && (x.slave_status == y.slave_status) && 
+    (x.ix_value == y.ix_value) && 
     (x.n_slave == y.n_slave) && (x.ix1_slave == y.ix1_slave) && 
     (x.ix2_slave == y.ix2_slave) && (x.n_lord == y.n_lord) && 
     (x.ic1_lord == y.ic1_lord) && (x.ic2_lord == y.ic2_lord) && 
@@ -255,10 +257,11 @@ void ele_comp (const C_ele& x, const C_ele& y) {
 
   cout << "name: " << ((x.name == y.name) && (x.type == y.type) && 
       (x.alias == y.alias) && (x.attribute_name == y.attribute_name)) << endl;
-  cout << "int:  " << ((x.gamma_c == y.gamma_c) && (x.s == y.s) && 
+  cout << "int:  " << ((x.gamma_c == y.gamma_c) && (x.s == y.s) && (x.ref_time == y.ref_time) &&
       (x.descrip == y.descrip) && (x.wake == y.wake) && 
       (x.key == y.key) && (x.sub_key == y.sub_key) && 
-      (x.control_type == y.control_type) && (x.ix_value == y.ix_value) && 
+      (x.lord_status == y.lord_status) && (x.slave_status == y.slave_status) && 
+      (x.ix_value == y.ix_value) && 
       (x.n_slave == y.n_slave) && (x.ix1_slave == y.ix1_slave) && 
       (x.ix2_slave == y.ix2_slave) && (x.n_lord == y.n_lord) && 
       (x.ic1_lord == y.ic1_lord) && (x.ic2_lord == y.ic2_lord) && 

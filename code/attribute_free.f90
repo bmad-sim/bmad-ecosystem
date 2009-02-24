@@ -77,9 +77,9 @@ if (.not. logic_option(.false., except_overlay)) then
     ir = lat%control(ix)%ix_lord
     if (present(ix_lord)) then
       if (ix_lord == ir) cycle
-      if (lat%ele(ix_lord)%control_type == overlay_lord$) cycle
+      if (lat%ele(ix_lord)%lord_status == overlay_lord$) cycle
     endif
-    if (lat%ele(ir)%control_type == overlay_lord$) then
+    if (lat%ele(ir)%lord_status == overlay_lord$) then
       if (lat%control(ix)%ix_attrib == ix_attrib) then 
         call print_error (ix_ele, ix_attrib, & 
            'IT IS CONTROLLED BY THE OVERLAY_LORD: ' // lat%ele(ir)%name)
@@ -91,7 +91,7 @@ endif
 
 ! Check for a super_slave
 
-if (ele%control_type == super_slave$) then
+if (ele%slave_status == super_slave$) then
   call print_error (ix_ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')
   return
 endif
@@ -99,7 +99,7 @@ endif
 ! Check for a multipass_slave.
 ! Exception: dphi0 can be varied for lcavity and rfcavity slaves.
 
-if (ele%control_type == multipass_slave$) then
+if (ele%slave_status == multipass_slave$) then
   if ((ele%key /= lcavity$ .and. ele%key /= rfcavity$) .or. ix_attrib /= dphi0$) then
     call print_error (ix_ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')
     return
@@ -108,7 +108,7 @@ endif
 
 ! only one particular attribute of an overlay lord is allowed to be adjusted
 
-if (ele%control_type == overlay_lord$) then
+if (ele%lord_status == overlay_lord$) then
   if (ix_attrib /= ele%ix_value) then
     call print_error (ix_ele, ix_attrib, &
            'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%attribute_name)
@@ -116,7 +116,7 @@ if (ele%control_type == overlay_lord$) then
   endif
 endif
 
-if (ele%control_type == group_lord$) then
+if (ele%lord_status == group_lord$) then
   if (ix_attrib /= command$ .and. ix_attrib /= old_command$) then
     call print_error (ix_ele, ix_attrib, &
           'FOR THIS GROUP ELEMENT THE ATTRIBUTE TO VARY IS: "COMMAND" OR "OLD_COMMAND"')
@@ -162,7 +162,7 @@ if (ix_attrib == s_offset_tot$) free = .false.
 if (ix_attrib == e_tot$) free = .false.
 if (ix_attrib == p0c$) free = .false.
 
-if (ele%key == sbend$ .and. ele%control_type == multipass_lord$ .and. &
+if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
     ele%value(n_ref_pass$) == 0 .and. ix_attrib == p0c$) free = .true.
 
 if (.not.free) then
@@ -233,7 +233,7 @@ endif
 
 ! check slaves
 
-if (ele%control_type == group_lord$ .or. ele%control_type == overlay_lord$) then
+if (ele%lord_status == group_lord$ .or. ele%lord_status == overlay_lord$) then
   do i = ele%ix1_slave, ele%ix2_slave
     call check_this_attribute_free (lat%control(i)%ix_slave, &
                                              lat%control(i)%ix_attrib, ix_ele)

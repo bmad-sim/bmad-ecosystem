@@ -1,6 +1,7 @@
 module beam_mod
 
 use csr_mod
+use multipass_mod
 
 interface assignment (=)
   module procedure bunch_equal_bunch
@@ -17,6 +18,8 @@ contains
 !
 ! Subroutine to track a beam of particles from the end of
 ! lat%ele(ix1) Through to the end of lat%ele(ix2).
+!
+! Note: zero_lr_wakes_in_lat needs to be called to initial wakes before tracking.
 !
 ! Modules needed:
 !   use beam_mod
@@ -72,6 +75,8 @@ end subroutine track_beam
 ! Routine to track a beam of particles through a single element.
 ! See also track1_beam_simple.
 !
+! Note: zero_lr_wakes_in_lat needs to be called to initial wakes before tracking.
+!
 ! Modules needed:
 !   use beam_mod
 !
@@ -96,13 +101,6 @@ type (lat_struct) :: lat
 
 integer i, ix_ele, n_mode
 logical err
-
-! zero the long-range wakes if they exist.
-
-if (associated(lat%ele(ix_ele)%wake)) then
-  lat%ele(ix_ele)%wake%lr%norm_sin = 0; lat%ele(ix_ele)%wake%lr%norm_cos = 0
-  lat%ele(ix_ele)%wake%lr%skew_sin = 0; lat%ele(ix_ele)%wake%lr%skew_cos = 0
-endif
 
 ! loop over all bunches in a beam
 
@@ -189,11 +187,14 @@ implicit none
 
 type (bunch_struct) bunch_start, bunch_end
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, lord, next_ele
 type (ele_struct), save :: rf_ele
 
 real(rp) charge
-integer i, j, n, ix_ele
+
+integer i, j, n, ix_ele, ix_pass, ixs, ix
+integer, save, allocatable :: ix_chain(:)
+
 logical csr_on, err
 
 !------------------------------------------------
@@ -210,9 +211,46 @@ if (csr_param%ix2_ele_csr > -1) csr_on = csr_on .and. (ix_ele <= csr_param%ix2_e
 
 if (csr_on) then
   call track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end, err)
-else
-  err = .false.
-  call track1_bunch_hom (bunch_start, lat%ele(ix_ele), lat%param, bunch_end)
+  return
+endif
+
+! Non-csr tracking
+
+err = .false.
+ele => lat%ele(ix_ele)
+call track1_bunch_hom (bunch_start, ele, lat%param, bunch_end)
+
+! If there are wakes...
+! If a super_slave, the lr wake in the lord is the sum of the slaves.
+
+if (associated(ele%wake)) then
+  if (ele%slave_status == super_slave$) then
+    do i = ele%ic1_lord, ele%ic2_lord
+      ixs = lat%control(lat%ic(i))%ix_lord
+      lord => lat%ele(ixs)
+      lord%wake%lr%norm_sin = 0;  lord%wake%lr%norm_cos = 0
+      lord%wake%lr%skew_sin = 0;  lord%wake%lr%skew_cos = 0
+      do j = lord%ix1_slave, lord%ix2_slave
+        ix = lat%control(j)%ix_slave
+        lord%wake%lr%norm_sin = lord%wake%lr%norm_sin + lat%ele(ix)%wake%lr%norm_sin
+        lord%wake%lr%norm_cos = lord%wake%lr%norm_cos + lat%ele(ix)%wake%lr%norm_cos
+        lord%wake%lr%skew_sin = lord%wake%lr%skew_sin + lat%ele(ix)%wake%lr%skew_sin
+        lord%wake%lr%skew_cos = lord%wake%lr%skew_cos + lat%ele(ix)%wake%lr%skew_cos
+      enddo
+    enddo
+  endif
+
+  ! If part of multipass: Transfer lr wake to next element in the chain
+
+  call multipass_chain (ix_ele, lat, ix_pass, ix_chain)
+  if (ix_pass > 0 .and. size(ix_chain) > ix_pass) then
+    next_ele => lat%ele(ix_chain(ix_pass+1))
+    next_ele%wake%lr%norm_sin = ele%wake%lr%norm_sin   ! THIS NEEDS TO BE MODIFIED!!!
+    next_ele%wake%lr%norm_cos = ele%wake%lr%norm_cos
+    next_ele%wake%lr%skew_sin = ele%wake%lr%skew_sin
+    next_ele%wake%lr%skew_cos = ele%wake%lr%skew_cos
+  endif
+
 endif
 
 end subroutine track1_bunch

@@ -27,7 +27,8 @@ end type
 type bunch_struct
   type (particle_struct), allocatable :: particle(:)
   real(rp) charge   ! total charge in a bunch (Coul).
-  real(rp) z_center ! longitudinal center of bunch (m).
+  real(rp) z_center ! longitudinal center of bunch (m). Note: Generally, z_center of 
+                    !   bunch #1 is 0 and z_center of the other bunches is negative.
   real(rp) t_center ! longitudinal center of bunch (sec).
 end type
 

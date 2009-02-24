@@ -1,5 +1,5 @@
 !+
-! Subroutine remove_eles_from_lat (lat)
+! Subroutine remove_eles_from_lat (lat, check_controls)
 !
 ! Subroutine to compress the ele(:), control(:), and ic(:) arrays to remove
 ! elements no longer used. Note: to mark an element for removal use:
@@ -9,15 +9,17 @@
 !   use bmad
 !
 ! Input:
-!     lat -- lat_struct: Lattice to compress.
+!   lat            -- lat_struct: Lattice to compress.
+!   check_controls -- Logical, optional: If True (default) then call check_lat_controls
+!                       after the split to make sure everything is ok.
 !
 ! Output:
-!     lat -- lat_struct: Compressed lattice.
+!   lat -- lat_struct: Compressed lattice.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine remove_eles_from_lat (lat)
+subroutine remove_eles_from_lat (lat, check_controls)
 
 use bmad_struct
 use bmad_interface
@@ -29,6 +31,8 @@ type (ele_struct), pointer :: ele
 
 integer i, j, ix, i1, i2
 integer, allocatable :: ixa(:), ic(:), control(:)
+
+logical, optional :: check_controls
 
 ! Allocate
 
@@ -135,14 +139,14 @@ do i = 1, lat%n_ele_max
     if (ic(j) /= -1) ele%ic2_lord = ic(j)
   enddo
   ele%n_lord = ele%ic2_lord - ele%ic1_lord + 1
-  if (ele%control_type == super_slave$ .and. ele%n_lord == 0) ele%control_type = free$
+  if (ele%slave_status == super_slave$ .and. ele%n_lord == 0) ele%slave_status = free$
 enddo
 
 ! deallocate and do a check
 
 deallocate (ixa, control, ic)
 
-call check_lat_controls (lat, .true.)
+if (logic_option(.true., check_controls)) call check_lat_controls (lat, .true.)
 
 end subroutine
           

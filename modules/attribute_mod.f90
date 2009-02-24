@@ -283,7 +283,7 @@ if (key <= 0 .or. key > n_key) then
   at_name = '!BAD ELE KEY'
 elseif (ix_att <= 0 .or. ix_att > n_attrib_special_maxx) then
   at_name = '!BAD INDEX'
-elseif (ele%control_type == overlay_lord$) then
+elseif (ele%lord_status == overlay_lord$) then
   if (ix_att == ele%ix_value) then
     at_name = ele%attribute_name
   else

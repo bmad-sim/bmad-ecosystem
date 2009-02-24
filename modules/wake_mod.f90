@@ -10,6 +10,47 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine zero_lr_wakes_in_lat (lat)
+!
+! Routine to zero the long range wake amplitudes for the elements that have
+! long range wakes in a lattice.
+!
+! Modules needed:
+!   use wake_mod
+!
+! Input:
+!   lat -- Lat_struct: Lattice
+!
+! Output:
+!   lat -- Lat_struct: Lattice
+!     %ele(:) -- Lattice elements
+!       %wake%lr(:)%norm_sin -> Set to zero
+!       %wake%lr(:)%norm_cos -> Set to zero
+!       %wake%lr(:)%skew_sin -> Set to zero
+!       %wake%lr(:)%skew_cos -> Set to zero
+!-       
+
+subroutine zero_lr_wakes_in_lat (lat)
+
+implicit none
+
+type (lat_struct) lat
+integer i
+
+!
+
+do i = 1, lat%n_ele_max
+  if (.not. associated(lat%ele(i)%wake)) cycle
+  lat%ele(i)%wake%lr%norm_sin = 0; lat%ele(i)%wake%lr%norm_cos = 0
+  lat%ele(i)%wake%lr%skew_sin = 0; lat%ele(i)%wake%lr%skew_cos = 0
+enddo
+
+end subroutine zero_lr_wakes_in_lat
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine lr_wake_add_to (ele, s_ref, orbit, charge)
 !
 ! Subroutine to add to the existing long-range wake the contribution from

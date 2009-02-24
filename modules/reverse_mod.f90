@@ -91,7 +91,7 @@ subroutine lat_reverse (lat_in, lat_rev)
 
   do i = nr+1, lat_rev%n_ele_max
     lord => lat_rev%ele(i)
-    if (lord%control_type /= super_lord$) cycle
+    if (lord%lord_status /= super_lord$) cycle
     i1 = lord%ix1_slave
     i2 = lord%ix2_slave
     lat_rev%control(i1:i2) = lat_rev%control(i2:i1:-1)

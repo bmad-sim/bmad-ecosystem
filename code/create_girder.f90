@@ -45,7 +45,7 @@ subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
 
   integer, intent(in) :: ix_girder, ix_slave(:)
   integer i, j, ix, ix2, ixc, n_con2
-  integer ixs, slave_type, idel, n_slave
+  integer ixs, idel, n_slave
 
   real(rp) s_max, s_min
 
@@ -69,7 +69,7 @@ subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
   girder%n_slave = n_slave
   girder%ix1_slave = ix + 1
   girder%ix2_slave = ix + n_slave
-  girder%control_type = girder_lord$
+  girder%lord_status = girder_lord$
   girder%key = girder$
   lat%n_control_max = n_con2
 
@@ -88,14 +88,13 @@ subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
     endif
 
     slave => lat%ele(ixs)
-    slave_type = slave%control_type
 
-    if (slave_type == free$) slave%control_type = overlay_slave$
+    if (slave%slave_status == free$) slave%slave_status = overlay_slave$
 
 ! You cannot control super_slaves, group_lords or overlay_lords
 
-    if (slave_type == super_slave$ .or. slave_type == group_lord$ .or. &
-                                            slave_type == overlay_lord$) then
+    if (slave%slave_status == super_slave$ .or. slave%lord_status == group_lord$ .or. &
+                                            slave%lord_status == overlay_lord$) then
       print *, 'ERROR IN CREATE_GIRDER: ILLEGAL GIRDER ON ', slave%name
       print *, '      BY: ', girder%name
       call err_exit

@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 88
+integer, parameter :: bmad_inc_version$ = 89
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -180,14 +180,16 @@ type ele_struct
   real(rp) mat6(6,6)                 ! 1st order transport matrix.
   real(rp) c_mat(2,2)                ! 2x2 C coupling matrix
   real(rp) gamma_c                   ! gamma associated with C matrix
-  real(rp) s                         ! longitudinal position at the end
+  real(rp) s                         ! longitudinal position at the exit end.
+  real(rp) ref_time                  ! Time ref particle passes exit end.
   real(rp), pointer :: r(:,:) => null()           ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:) => null()        ! multipole
   real(rp), pointer :: b_pole(:) => null()        ! multipoles
   real(rp), pointer :: const(:) => null()         ! Working constants.
   integer key                ! key value
   integer sub_key            ! For wigglers: map_type$, periodic_type$
-  integer control_type       ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
+  integer lord_status        ! overlay_lord$, etc.
+  integer slave_status       ! super_slave$, etc.
   integer ix_value           ! Pointer for attribute to control
   integer n_slave            ! Number of slaves
   integer ix1_slave          ! Start index for slave elements
@@ -405,10 +407,11 @@ integer, parameter :: y_offset$=26
 integer, parameter :: s_offset$=27, z_offset$=27
 integer, parameter :: B_field_err$=28, BL_kick$ = 28
 integer, parameter :: radius$=29
-! 30 and 31 Free...                    
+integer, parameter :: n_ref_pass$=30
+! 31 Free...                    
 integer, parameter :: p0c$=32
 integer, parameter :: e_tot$=33
-integer, parameter :: Bs_field$=34, n_ref_pass$=34
+integer, parameter :: Bs_field$=34
 integer, parameter :: B_field$=35, E_field$=35
 integer, parameter :: B_gradient$=36, E_gradient$=36
 integer, parameter :: B1_gradient$=37, E1_gradient$=37
@@ -522,12 +525,13 @@ logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
+integer, parameter :: not_a_lord$ = 10
 
 character(16) :: control_name(10) = (/ &
-            'FREE_ELEMENT   ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
+            'FREE           ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
             'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
             'GIRDER_LORD    ', 'MULTIPASS_LORD ', 'MULTIPASS_SLAVE', &
-            '               ' /)
+            'NOT_A_LORD     ' /)
 
 ! plane list, etc
 
@@ -543,13 +547,13 @@ logical, parameter :: set$ = .true., unset$ = .false.
 integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2
 integer, parameter :: runge_kutta$ = 3 
 integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
-integer, parameter :: symp_lie_bmad$ = 10, none$ = 11
+integer, parameter :: symp_lie_bmad$ = 10, no_method$ = 11
 integer, parameter :: boris$ = 12, adaptive_boris$ = 13, mad$ = 14
 
 character(16), parameter :: calc_method_name(0:14) = (/ &
       "GARBAGE!      ", "Bmad_Standard ", "Symp_Lie_PTC  ", "Runge_Kutta   ", &
       "Linear        ", "Tracking      ", "Symp_Map      ", "Custom        ", &
-      "Taylor        ", "GARBAGE!      ", "Symp_Lie_Bmad ", "None          ", &
+      "Taylor        ", "GARBAGE!      ", "Symp_Lie_Bmad ", "No_Method     ", &
       "Boris         ", "Adaptive_Boris", "MAD           " /)
 
 ! sbend$ and rbend$ are from key definitions.

@@ -1,7 +1,7 @@
 !+
 ! Subroutine compute_reference_energy (lat, compute)
 !
-! Subroutine to compute the energy and momentum of the reference particle for 
+! Subroutine to compute the energy, momentum and time of the reference particle for 
 ! each element in a lat structure.
 !
 ! Modules needed:
@@ -19,8 +19,9 @@
 !
 ! Output:
 !   lat -- lat_struct
-!     %ele(:)%value(E_tot$) -- Reference energy at the end of the element.
-!     %ele(:)%value(p0c$)         -- Reference momentum at the end of the element.
+!     %ele(:)%value(E_tot$) -- Reference energy at the exit end.
+!     %ele(:)%value(p0c$)   -- Reference momentum at the exit end.
+!     %ele(:)%ref_time      -- Reference time from the beginning at the exit end.
 !-
 
 #include "CESR_platform.inc"
@@ -70,6 +71,13 @@ do i = 1, lat%n_ele_track
   ele%value(E_tot$) = E_tot
   ele%value(p0c$) = p0c
 
+  if (ele%key == lcavity$ .and. lat%ele(i-1)%value(E_tot$) /= E_tot) then
+    ele%ref_time = lat%ele(i-1)%ref_time + ele%value(l$) * &
+              (p0c - lat%ele(i-1)%value(p0c$)) / ((E_tot - lat%ele(i-1)%value(E_tot$)) * c_light)
+  else
+    ele%ref_time = lat%ele(i-1)%ref_time + ele%value(l$) * p0c / (E_tot * c_light)
+  endif
+
 enddo
 
 ! Put the appropriate energy values in the lord elements...
@@ -81,7 +89,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
   ! Multipass lords have their own reference energy if n_ref_pass /= 0.
 
-  if (lord%control_type == multipass_lord$) then
+  if (lord%lord_status == multipass_lord$) then
     ix = nint(lord%value(n_ref_pass$))
     if (ix /= 0) then  
       j = lord%ix1_slave + ix - 1

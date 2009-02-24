@@ -962,7 +962,7 @@ logical err
 
 !
                
-if (lat%ele(i_vsep)%control_type /= free$) then
+if (lat%ele(i_vsep)%slave_status /= free$) then
   print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: VSEP NOT FREE!', i_vsep
   return
 endif
@@ -1078,7 +1078,7 @@ logical err
                
 do i = quad%ic1_lord, quad%ic2_lord
   ix_lord = lat%control(lat%ic(i))%ix_lord
-  if (lat%ele(ix_lord)%control_type == overlay_lord$ .and. &
+  if (lat%ele(ix_lord)%lord_status == overlay_lord$ .and. &
       lat%ele(ix_lord)%ix_value == k1$) then
     print *, 'ERROR IN CREATE_NIR_SHUNTCUR_ELEMENTS: K1 ATTRIBUTE NOT FREE!', ix_quad
     return

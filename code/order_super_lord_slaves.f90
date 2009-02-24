@@ -39,7 +39,7 @@ subroutine order_super_lord_slaves (lat, ix_lord)
   ele => lat%ele(ix_lord)
   ix1 = ele%ix1_slave; ix2 = ele%ix2_slave
 
-  if (ele%control_type /= super_lord$) then
+  if (ele%lord_status /= super_lord$) then
     print *, 'ERROR IN ORDER_SUPER_LORD_SLAVES: ELEMENT NOT A SUPER_LORD'
     call err_exit
   endif

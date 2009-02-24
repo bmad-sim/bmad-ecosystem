@@ -213,7 +213,7 @@ write (d_unit) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
           ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-          ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
           ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
           ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
           ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
@@ -223,7 +223,7 @@ write (d_unit) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch
+          ele%ix_branch, ele%ref_time
 
 ! This compresses the ele%value array
 

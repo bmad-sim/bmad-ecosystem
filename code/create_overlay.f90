@@ -57,7 +57,7 @@ type (ele_struct), pointer :: slave, lord
 type (control_struct)  contl(:)
 
 integer i, j, nc0, ixc, ix_overlay, nc2
-integer ix_slave, n_slave, ix_attrib, slave_type
+integer ix_slave, n_slave, ix_attrib
 
 character(*) attrib_name
 character(40) at_name
@@ -115,7 +115,7 @@ enddo
 lord%n_slave = n_slave
 lord%ix1_slave = nc0 + 1
 lord%ix2_slave = nc0 + n_slave
-lord%control_type = overlay_lord$
+lord%lord_status = overlay_lord$
 lord%key = overlay$
 lat%n_control_max = nc2
 
@@ -141,13 +141,12 @@ do i = lord%ix1_slave, lord%ix2_slave
   endif
 
   slave => lat%ele(ix_slave)
-  slave_type = slave%control_type
 
-  if (slave_type == free$) slave%control_type = overlay_slave$
+  if (slave%slave_status == free$) slave%slave_status = overlay_slave$
 
   ! You cannot overlay super_slaves 
 
-  if (slave_type == super_slave$) then
+  if (slave%slave_status == super_slave$) then
     print *, 'ERROR IN CREATE_OVERLAY: ILLEGAL OVERLAY ON ', slave%name
     print *, '      BY: ', lord%name
     call err_exit

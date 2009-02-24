@@ -233,21 +233,21 @@ superimposed elements get placed later). The tracking part of the
 lattice list (the part that one does tracking through) Looks like:
 \begin{example}
         Element   Key         Length
-  1)    Q{\B}        Quadrupole   7
+  1)    Q{\#}1       Quadrupole   7
   2)    Q{\B}S       Sol_quad     3
-  3)    S{\B}1       Solenoid     3
-  4)    D{\B}        Drift        1
+  3)    S{\#}1       Solenoid     3
+  4)    D{\#}2       Drift        1
 \end{example}
 What \bmad has done is to split the original elements \vn{(Q, D)} at
-the edges of \vn{S}.  The first element \vn{Q\B} is the part of \vn{Q}
+the edges of \vn{S}.  The first element \vn{Q\#1} is the part of \vn{Q}
 that is outside of \vn{S}. Since this is only part of \vn{Q} \bmad
-has put a \vn{\B} in the name so that there will be no confusion.
-(\vn{\B} has no special meaning other than the fact that \bmad uses
+has put a \vn{\#1} in the name so that there will be no confusion.
+(\vn{\#} has no special meaning other than the fact that \bmad uses
 it for mangling names). The next element, \vn{Q{\B}S}, is the part of
 \vn{Q} that is inside \vn{S}. \vn{Q{\B}S} is a combination
-solenoid/quadrupole element as one could expect. \vn{S{\B}1} is the part
+solenoid/quadrupole element as one could expect. \vn{S{\#}1} is the part
 of \vn{S} that is outside \vn{Q} so this element is just a
-solenoid. Finally, \vn{D\B} is the rest of the drift outside \vn{S}.
+solenoid. Finally, \vn{D\#2} is the rest of the drift outside \vn{S}.
 
 \begin{figure}[tb]
 \centering 
@@ -282,9 +282,9 @@ vice versa) the element is just split in two. For example:
 The resulting lattice (first part) would be
 \begin{example}
         Element   Key           Length
-  1)    Q{\B}1       Quadrupole    6
+  1)    Q{\#}1       Quadrupole    6
   2)    M         Marker        0
-  3)    Q{\B}2       Quadrupole    4
+  3)    Q{\#}2       Quadrupole    4
 \end{example}
 and the second part of the lattice would have the \vn{Q} element.
  

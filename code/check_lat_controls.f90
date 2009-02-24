@@ -23,7 +23,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, slave, lord
 
-integer i_t, j, i_t2, ix, t_type, t2_type, n, cc(100), i
+integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i
 integer ix1, ix2, ii
 
 character(24) :: r_name = 'check_lat_controls'
@@ -42,14 +42,11 @@ endif
 ! good_control specifies what elements can control what other elements.
 
 good_control = .false.
-good_control(group_lord$, (/ group_lord$, overlay_lord$, super_lord$, &
-              girder_lord$, free$, overlay_slave$, multipass_lord$ /)) = .true.
-good_control(girder_lord$, (/ super_lord$, overlay_slave$, &
-              multipass_lord$ /)) = .true.
-good_control(overlay_lord$, (/ overlay_lord$, &
-              girder_lord$, overlay_slave$, super_lord$, multipass_lord$ /)) = .true.
+good_control(group_lord$, (/ free$, overlay_slave$, multipass_slave$ /)) = .true.
+good_control(girder_lord$, (/ overlay_slave$, multipass_slave$ /)) = .true.
+good_control(overlay_lord$, (/ overlay_slave$, multipass_slave$ /)) = .true.
 good_control(super_lord$, (/ super_slave$ /)) = .true.
-good_control(multipass_lord$, (/ super_lord$, multipass_slave$ /)) = .true.
+good_control(multipass_lord$, (/ multipass_slave$ /)) = .true.
 
 found_err = .false.
            
@@ -58,7 +55,8 @@ found_err = .false.
 do i_t = 1, lat%n_ele_max
 
   ele => lat%ele(i_t)
-  t_type = ele%control_type
+  l_stat = ele%lord_status
+  s_stat = ele%slave_status
 
   ! match elements with match_end set should only appear in linear_lattices
 
@@ -74,11 +72,11 @@ do i_t = 1, lat%n_ele_max
 
   ! sbend multipass lord must have non-zero ref_energy.
 
-  if (ele%key == sbend$ .and. t_type == multipass_lord$) then
+  if (ele%key == sbend$ .and. l_stat == multipass_lord$) then
     if (ele%value(p0c$) == 0) then
       call out_io (s_fatal$, r_name, &
                 'BEND: ' // ele%name, &
-                'WHICH IS A: ' // control_name(t_type), &
+                'WITH LORD_STATUS: ' // control_name(l_stat), &
                 'DOES NOT HAVE A REFERENCE ENERGY DEFINED')
       found_err = .true.
     endif
@@ -88,7 +86,7 @@ do i_t = 1, lat%n_ele_max
   !   1) Have field_master = True or
   !   2) Have a defined reference energy.
 
-  if (t_type == multipass_lord$ .and. .not. ele%field_master .and. ele%value(p0c$) == 0) then
+  if (l_stat == multipass_lord$ .and. .not. ele%field_master .and. ele%value(p0c$) == 0) then
     select case (ele%key)
     case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
           hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
@@ -104,33 +102,38 @@ do i_t = 1, lat%n_ele_max
   if (ele%key == null_ele$ .and. i_t > lat%n_ele_track) cycle      
 
   if (i_t > lat%n_ele_track) then
-    if (t_type == free$ .or. t_type == super_slave$ .or. &
-        t_type == overlay_slave$ .or. t_type == multipass_slave$) then
+    if (s_stat == super_slave$) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // ele%name, &
-                'WHICH IS A: ' // control_name(t_type), &
+                'WITH SLAVE_STATUS: ' // control_name(s_stat), &
                 'IS *NOT* IN THE TRACKING PART OF LAT LIST AT: \i0\ ', &
                 i_array = (/ i_t /) )
       found_err = .true.
     endif                                             
   else                                                         
-    if (t_type == super_lord$ .or. t_type == overlay_lord$ .or. &
-        t_type == group_lord$ .or. t_type == girder_lord$ .or. &
-        t_type == multipass_lord$) then
+    if (l_stat == super_lord$ .or. l_stat == overlay_lord$ .or. &
+        l_stat == group_lord$ .or. l_stat == girder_lord$ .or. &
+        l_stat == multipass_lord$) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // ele%name, &
-                'WHICH IS A: ' // control_name(t_type), &
+                'WITH LORD_STATUS: ' // control_name(l_stat), &
                 'IS IN THE TRACKING PART OF LAT LIST AT: \i0\ ', i_array = (/ i_t /) )
       found_err = .true.
     endif
   endif
 
-  if (.not. any( (/ free$, super_slave$, overlay_slave$, girder_lord$, &
-                    super_lord$, overlay_lord$, group_lord$, multipass_lord$, &
-                    multipass_slave$ /) == t_type)) then
+  if (.not. any( (/ free$, girder_lord$, super_lord$, overlay_lord$, group_lord$, &
+                    multipass_lord$ /) == l_stat)) then
     call out_io (s_fatal$, r_name, &
               'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
-              'HAS UNKNOWN CONTROL INDEX: \i0\ ', i_array = (/ i_t, t_type /) )
+              'HAS UNKNOWN LORD_STATUS INDEX: \i0\ ', i_array = (/ i_t, l_stat /) )
+    found_err = .true.
+  endif
+
+  if (.not. any( (/ free$, super_slave$, overlay_slave$, multipass_slave$ /) == s_stat)) then
+    call out_io (s_fatal$, r_name, &
+              'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
+              'HAS UNKNOWN SLAVE_STATUS INDEX: \i0\ ', i_array = (/ i_t, s_stat /) )
     found_err = .true.
   endif
 
@@ -152,14 +155,14 @@ do i_t = 1, lat%n_ele_max
     cycle
   endif
 
-  if (t_type == overlay_slave$ .and. ele%n_lord == 0) then
+  if (s_stat == overlay_slave$ .and. ele%n_lord == 0) then
     call out_io (s_fatal$, r_name, &
               'OVERLAY_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
               'HAS ZERO LORDS!', i_array = (/ i_t /) )
     found_err = .true.
   endif
 
-  if (t_type == super_slave$ .and. ele%n_lord == 0) then
+  if (s_stat == super_slave$ .and. ele%n_lord == 0) then
     call out_io (s_fatal$, r_name, &
               'OVERLAY_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
               'HAS ZERO LORDS!', i_array = (/ i_t /) )
@@ -168,7 +171,7 @@ do i_t = 1, lat%n_ele_max
 
   ! check that super_lord elements have their slaves in the correct order
 
-  if (t_type == super_lord$) then
+  if (l_stat == super_lord$) then
     do i = ele%ix1_slave+1, ele%ix2_slave
       ix1 = lat%control(i-1)%ix_slave
       ix2 = lat%control(i)%ix_slave
@@ -195,7 +198,7 @@ do i_t = 1, lat%n_ele_max
 
   ! The slaves of a multipass_lord cannot be controlled by anything else.
 
-  if (t_type == multipass_lord$) then
+  if (l_stat == multipass_lord$) then
     do i = ele%ix1_slave, ele%ix2_slave
       ii = lat%control(i)%ix_slave
       if (lat%ele(ii)%n_lord /= 1) then
@@ -243,26 +246,26 @@ do i_t = 1, lat%n_ele_max
     endif
 
     slave => lat%ele(i_t2)  
-    t2_type = slave%control_type      
+    t2_type = slave%slave_status      
 
-    if (.not. good_control(t_type, t2_type) .and. &
+    if (.not. good_control(l_stat, t2_type) .and. &
                       lat%control(j)%ix_attrib /= l$) then
       call out_io (s_fatal$, r_name, &
                 'LORD: ' // trim(ele%name) // '  (\i0\)',  &
-                'WHICH IS A: ' // control_name(t_type), &
+                'WITH LORD_STATUS: ' // control_name(l_stat), &
                 'HAS A SLAVE: ' // trim(slave%name) // '  (\i0\)', &
-                'WHICH IS A: ' // control_name(t2_type), &
+                'WITH SLAVE_STATUS: ' // control_name(t2_type), &
                 i_array = (/ i_t, i_t2 /) )
       found_err = .true.
     endif
 
-    if (t_type /= group_lord$ .and. t_type /= girder_lord$) then
+    if (l_stat /= group_lord$ .and. l_stat /= girder_lord$) then
       n = slave%ic2_lord - slave%ic1_lord + 1
       cc(1:n) = (/ (lat%ic(i), i = slave%ic1_lord, slave%ic2_lord) /)
       if (.not. any(lat%control(cc(1:n))%ix_lord == i_t)) then
         call out_io (s_fatal$, r_name, &
                   'SLAVE: ', trim(slave%name) // '  (\i0\)', &
-                  'WHICH IS A: ' // control_name(t2_type), &
+                  'WITH SLAVE_STATUS: ' // control_name(t2_type), &
                   'DOES NOT HAVE A POINTER TO ITS LORD: ' // trim(ele%name) // '  (\i0\)', &
                   i_array = (/ i_t2, i_t /) )
         found_err = .true.
@@ -316,14 +319,14 @@ do i_t = 1, lat%n_ele_max
     endif
 
     lord => lat%ele(i_t2)
-    t2_type = lord%control_type
+    t2_type = lord%lord_status
 
-    if (.not. good_control(t2_type, t_type)) then
+    if (.not. good_control(t2_type, s_stat)) then
       call out_io (s_fatal$, r_name, &
                 'SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'WHICH IS A: ' // control_name(t_type), &
+                'WITH SLAVE_STATUS: ' // control_name(s_stat), &
                 'HAS A LORD: ' // trim(lord%name) // '  (\i0\)', &
-                'WHICH IS A: ' // control_name(t2_type), &
+                'WITH LORD_STATUS: ' // control_name(t2_type), &
                 i_array = (/ i_t, i_t2 /) )
       found_err = .true.
     endif
