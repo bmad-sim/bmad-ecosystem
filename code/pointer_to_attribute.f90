@@ -148,6 +148,8 @@ case ('CMAT_22')
   ptr_attrib => ele%c_mat(2,2)
 case ('S')
   ptr_attrib => ele%s
+case ('REF_TIME')
+  ptr_attrib => ele%ref_time
 end select
 
 if (len(a_name) >= 6) then
