@@ -944,7 +944,7 @@ Format:
   show -append <file_name> ...
   show -write <file_name> ...
   show alias
-  show beam \{<element_index>\}
+  show beam \{<element_name_or_index>\}
   show constraints
   show curve \{-symbol\} \{-line\} <curve_name> 
   show data \{<data_name>\} 
@@ -1005,10 +1005,10 @@ details.
 
 %% show beam --------------------------------------------------------------
 
-\item[show beam \{<element\_index>\}] \Newline
-If \vn{<element_index>} is absent, \vn{show beam} shows parameters 
+\item[show beam \{<element\_name\_or_index>\}] \Newline
+If \vn{<element_name_or_index>} is absent, \vn{show beam} shows parameters 
 used with beam tracking including the number of particles in a bunch, etc.
-If \vn{<element_index>} is present, \vn{show beam} will show 
+If \vn{<element_name_or_index>} is present, \vn{show beam} will show 
 beam parameters at the selected element. Also see \vn{show particle}.
 
 %% show constraints --------------------------------------------------------------
@@ -1228,12 +1228,12 @@ Bmad standard lattice input format.
 %% show particle --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-        show particle \{<bunch\_index>.\}<particle\_index> \{<element\_index>\} \\
+        show particle \{<bunch\_index>.\}<particle\_index> \{<element\_name\_or\_index>\} \\
         show particle -lost \{bunch\_index\}}] \Newline
 The command \vn{show particle \{<bunch_index>.\}<particle_index>}
 shows information on a particle at a given element. The default for
 the optional \vn{\{bunch_index\}} index is set by
-\vn{global%bunch_to_plot}. The default \vn{<element_index>} is 0 (the
+\vn{global%bunch_to_plot}. The default \vn{<element_name_or_index>} is 0 (the
 starting position).  Also see \vn{show beam}.
 
 \vn{show particle -lost} shows which particles are lost during beam

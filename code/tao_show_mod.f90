@@ -350,8 +350,12 @@ case ('beam')
   ! have element index
 
   else
-    call tao_to_int (word1, ix_ele, err)
+    call tao_pick_universe (word1, word1, picked_uni, err, ix_u)
     if (err) return
+    u => s%u(ix_u)
+    call tao_locate_elements (word1, ix_u, ix_eles)
+    ix_ele = ix_eles(1)
+    if (ix_ele < 0) return
     n = s%global%bunch_to_plot
     bunch_p => u%model%bunch_params(ix_ele)
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
@@ -1444,11 +1448,9 @@ case ('particle')
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
   word1 = stuff2(:ix_word)
   if (word1 /= '') then
-    read (word1, *, iostat = ios) ix_ele
-    if (ios /= 0) then
-      call out_io (s_error$, r_name, 'CANNOT READ PARTICLE INDEX')
-      return
-    endif
+    call tao_locate_elements (word1, ix_u, ix_eles)
+    ix_ele = ix_eles(1)
+    if (ix_ele < 0) return
   endif
 
   if (.not. allocated(u%ele(ix_ele)%beam%bunch)) then

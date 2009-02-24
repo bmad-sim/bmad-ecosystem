@@ -270,16 +270,17 @@ endif
 
 err = .false.
 
-do i = 1, size(s%plot_region)
-  region => s%plot_region(i)
-  if (plot_name == region%name) return
-enddo
+call match_word (plot_name, s%plot_region%name, ix, .true.)
 
-if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+if (ix < 1) then
+  if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
                                     'PLOT LOCATION NOT FOUND: ' // plot_name)
-err = .true.
+  err = .true.
+else
+  region => s%plot_region(ix)  
+endif
 
-end subroutine tao_find_plot_region
+end subroutine
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -391,14 +392,14 @@ np = 0
 
 if (where == 'REGION' .or. where == 'BOTH') then
   do i = 1, size(s%plot_region)
-    if (s%plot_region(i)%name == plot_name .or. plot_name == '*') np = np + 1
-    if (s%plot_region(i)%plot%name == plot_name .or. plot_name == '*') np = np + 1
+    if (index(s%plot_region(i)%name, trim(plot_name)) == 1 .or. &
+        index(s%plot_region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
   enddo
 endif
 
 if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
   do i = 1, size(s%template_plot)
-    if (plot_name == s%template_plot(i)%name .or. plot_name == '*') np = np + 1
+    if (index(s%template_plot(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
   enddo
 endif
 
@@ -420,11 +421,8 @@ np = 0
 
 if (where == 'REGION' .or. where == 'BOTH') then
   do i = 1, size(s%plot_region)
-    if (s%plot_region(i)%name == plot_name .or. plot_name == '*') then
-      np = np + 1
-      p(np)%p => s%plot_region(i)%plot
-    endif
-    if (s%plot_region(i)%plot%name == plot_name .or. plot_name == '*') then
+    if (index(s%plot_region(i)%name, trim(plot_name)) == 1 .or. &
+        index(s%plot_region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') then
       np = np + 1
       p(np)%p => s%plot_region(i)%plot
     endif
@@ -433,7 +431,7 @@ endif
 
 if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
   do i = 1, size(s%template_plot)
-    if (plot_name == s%template_plot(i)%name .or. plot_name == '*') then
+    if (index(s%template_plot(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') then
       np = np + 1
       p(np)%p => s%template_plot(i)
     endif
@@ -591,7 +589,7 @@ character(40) :: r_name = 'tao_evaluate_element_parameters'
 real(rp), allocatable :: values(:)
 real(rp), pointer :: real_ptr
 
-integer i, j, num, ix, ix1, ios, n_tot
+integer i, j, num, ixe, ix1, ios, n_tot
 integer, allocatable, save :: ix_ele(:)
 
 logical err, printit, valid, middle
@@ -651,7 +649,12 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   call re_allocate (values, n_tot + size(ix_ele))
 
   do j = 1, size(ix_ele)
-    ix = ix_ele(j)
+    ixe = ix_ele(j)
+
+    if (parameter == 'index') then
+      values(n_tot+j) = ixe
+      cycle
+    endif
 
     select case (component)
     case ('model')   
@@ -669,8 +672,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     end select
 
     if (middle) then
-      call twiss_and_track_partial (lat%ele(ix-1), lat%ele(ix), &
-                lat%param, lat%ele(ix)%value(l$)/2, ele3, this_orb(ix-1), orb)
+      call twiss_and_track_partial (lat%ele(ixe-1), lat%ele(ixe), &
+                lat%param, lat%ele(ixe)%value(l$)/2, ele3, this_orb(ixe-1), orb)
       if (parameter(1:6) == 'orbit_') then
         call tao_orbit_value (parameter, orb, values(n_tot+j), err)
       else
@@ -678,9 +681,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       endif
     else
       if (parameter(1:6) == 'orbit_') then
-        call tao_orbit_value (parameter, this_orb(ix), values(n_tot+j), err)
+        call tao_orbit_value (parameter, this_orb(ixe), values(n_tot+j), err)
       else
-        call pointer_to_attribute (lat%ele(ix), parameter, .true., real_ptr, err, printit)
+        call pointer_to_attribute (lat%ele(ixe), parameter, .true., real_ptr, err, printit)
       endif
     endif
 
