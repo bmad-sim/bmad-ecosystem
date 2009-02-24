@@ -956,8 +956,8 @@ Format:
   show lattice \{-no_header\} \{-middle\} \{-custom <file_name>\} 
                             \{-s\} \{-elements <name>\} \{<location_range>\}
   show optimizer
-  show particle <particle_index> \{<element_index>\}
-  show particle -lost
+  show particle \{<bunch_index>.\}<particle_index> \{<element_index>\}
+  show particle -lost \{<bunch_index>\}
   show plot
   show plot \{<template_plot_name>\}
   show plot \{<plot_region_name>\}
@@ -1228,14 +1228,26 @@ Bmad standard lattice input format.
 %% show particle --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-        show particle <particle\_index> \{<element\_index>\} \\
-        show particle -lost}] \Newline
+        show particle \{<bunch\_index>.\}<particle\_index> \{<element\_index>\} \\
+        show particle -lost \{bunch_index\}}] \Newline
+The command \vn{show particle \{<bunch_index>.\}<particle_index>}
+shows information on a particle at a given element. The default for
+the optional \vn{\{bunch_index\}} index is set by
+\vn{global%bunch_to_plot}. The default \vn{<element_index>} is 0 (the
+starting position).  Also see \vn{show beam}.
+
 \vn{show particle -lost} shows which particles are lost during beam
-tracking. \vn{show particle <particle_index> \{<element_index>\}}
-shows information on the particle with the given beam index at the
-exit end of the element given by \vn{<element_index>}. The default
-\vn{<element_index>} is 0 (the starting position).  Also see \vn{show
-beam}.
+tracking. The default for the optional \vn{\{bunch_index\}} index is
+set by \vn{global%bunch_to_plot}. Note: Using the \vn{-lost} option
+results in one line printed for each lost particle. It is thus meant
+for use with bunches with a small number of particles.
+
+Examples:
+\begin{example}
+  show part 3.47 8   ! Show information on particle 47 of bunch #3 at lattice element 8.
+  show part 47 8     ! Same as above except the default bunch is used.
+  show part -lost 3  ! Show lost particle positions for bunch #3
+\end{example}
 
 %% show plot --------------------------------------------------------------
 

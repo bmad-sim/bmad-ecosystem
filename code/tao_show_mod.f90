@@ -1401,7 +1401,17 @@ case ('particle')
   nb = s%global%bunch_to_plot
 
   if (index('-lost', word1) == 1) then
+    call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
+    word1 = stuff2(:ix_word)
+    if (word1 /= '') then
+      read (word1, *, iostat = ios) nb
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'CANNOT READ BUNCH INDEX.')
+        return
+      endif
+    endif
     bunch => u%ele(lat%n_ele_track)%beam%bunch(nb)
+    nl=nl+1; write (lines(nl), *) 'Bunch:', nb
     nl=nl+1; lines(nl) = 'Particles lost at:'
     nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
     do i = 1, size(bunch%particle)
@@ -1414,7 +1424,17 @@ case ('particle')
     return
   endif
 
-  read (word1, *, iostat = ios) ix_p
+  ix = index(stuff2, '.')
+  if (ix > 0 .and. ix < ix_word) then
+    read (stuff2(1:ix-1), *, iostat = ios) nb
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'CANNOT READ BUNCH INDEX.')
+      return
+    endif
+    call string_trim (stuff2(ix+1:), stuff2, ix_word)
+  endif
+
+  read (stuff2, *, iostat = ios) ix_p
   if (ios /= 0) then
     call out_io (s_error$, r_name, 'CANNOT READ PARTICLE INDEX')
     return
@@ -1431,18 +1451,29 @@ case ('particle')
     endif
   endif
 
-  
   if (.not. allocated(u%ele(ix_ele)%beam%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH NOT ASSOCIATED WITH THIS ELEMENT.')
     return
   endif
+
+  if (nb < 1 .or. nb > size(u%ele(ix_ele)%beam%bunch)) then
+    call out_io (s_error$, r_name, 'BUNCH INDEX OUT OF RANGE: \i0\ ', i_array = (/ nb /))
+    return
+  endif
+
   bunch => u%ele(ix_ele)%beam%bunch(nb)
 
-  nl=nl+1; write (lines(nl), imt) '  At lattice element: ', ix_ele
-  nl=nl+1; write (lines(nl), imt) '  Coords for Particle: ', ix_p
-  do i = 1, 6
-    nl=nl+1; write (lines(nl), rmt) '     ', bunch%particle(ix_p)%r%vec(i)
-  enddo
+  if (ix_p < 1 .or. ix_p > size(bunch%particle)) then
+    call out_io (s_error$, r_name, 'PARTICLE INDEX OUT OF RANGE: \i0\ ', i_array = (/ ix_p /))
+    return
+  endif
+
+  nl=nl+1; write (lines(nl), imt) 'At lattice element:', ix_ele
+  nl=nl+1; write (lines(nl), imt) 'Bunch:    ', nb
+  nl=nl+1; write (lines(nl), imt) 'Particle: ', ix_p
+  nl=nl+1; write (lines(nl), lmt) 'Is Alive? ', bunch%particle(ix_p)%ix_lost == not_lost$
+  nl=nl+1; write (lines(nl), lmt) 'Coords: '
+  nl=nl+1; write (lines(nl), '(a, 6es13.5)') '  ', bunch%particle(ix_p)%r%vec
 
   result_id = show_what
 

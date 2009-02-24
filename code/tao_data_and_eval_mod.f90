@@ -209,10 +209,10 @@ end subroutine
 ! Input:
 ! 
 ! Output:
-!   data_value(:)       -- Real, allocatable, optional: Data model values.
-!   data_weight(:)      -- Real, allocatable, optional: Data weights in the merit function.
-!   data_meas_value(:)  -- Real, allocatable, optional: Data values when the data was taken.
-!   data_ix_dModel(:)   -- Real, allocatable, optional: Data ix_dModel indices
+!   data_value(:)       -- Real(Rp), allocatable, optional: Data model values.
+!   data_weight(:)      -- Real(Rp), allocatable, optional: Data weights in the merit function.
+!   data_meas_value(:)  -- Real(Rp), allocatable, optional: Data values when the data was taken.
+!   data_ix_dModel(:)   -- Integer, allocatable, optional: Data ix_dModel indices
 !-
 
 subroutine tao_get_data (data_value, data_weight, data_meas_value, data_ix_dModel)
@@ -220,7 +220,7 @@ subroutine tao_get_data (data_value, data_weight, data_meas_value, data_ix_dMode
 implicit none
 
 real(rp), allocatable, optional :: data_value(:), data_meas_value(:), data_weight(:)
-real(rp), allocatable, optional :: data_ix_dModel(:)
+integer, allocatable, optional :: data_ix_dModel(:)
 
 integer i, j, iu
 integer n_data
