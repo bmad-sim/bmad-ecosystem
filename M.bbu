@@ -62,7 +62,7 @@ MAKEFILE := M.bbu
 #           specifications. 
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS  :=
-OBJ_SRC_DIRS  := .
+OBJ_SRC_DIRS  := bbu
 LOCAL_INCS    := 
 LOCAL_MODS    := ../modules
 
@@ -76,7 +76,7 @@ LOCAL_MODS    := ../modules
 #           Then you can specify 
 #           MAIN_FILE := test_prog.f90
 #-------------------------------------------------------------
-MAIN_FILE := csbbu.f90
+MAIN_FILE := bbu.f90
 
 
 #--------------------------------------------------------------

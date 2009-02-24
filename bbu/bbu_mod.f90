@@ -3,7 +3,7 @@ module bbu_mod
 use precision_def
 use bmad
 
-type bbu_info
+type bbu_info_struct
   real(rp), allocatable :: time_c(:)  ! Arrival time of each cavity.
   real(rp), allocatable :: mat_c(:)   ! Transfer matrices between cavities.
   real(rp), allocatable :: freq_c(:)  ! frequency of each hom.
@@ -21,7 +21,7 @@ type bbu_info
   real(rp)  n_on
   integer   cavity                    ! Number of cavities
   integer   hom_num
-end type bbu_info
+end type bbu_info_struct
 
 type pair_num
   real(rp), allocatable ::  var(:)
@@ -40,7 +40,7 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine get_info(lattice, cur, bbu, Hpower, output)
+! Subroutine get_info(lat, cur, bbu, Hpower, output)
 !
 ! Extract information from the lattice for bbu simulation
 !
@@ -48,24 +48,24 @@ contains
 !   use bbu_mod
 !
 ! Input:
-!   lattice -- lat_struct: lattice file of the accelerator
+!   lat     -- lat_struct: lattice file of the accelerator
 !   cur     -- real: initial trial threshold current
-!   bbu     -- bbu_info: will be used to store all the information needed for the bbu simulation
+!   bbu     -- bbu_info_struct: will be used to store all the information needed for the bbu simulation
 !   Hpower  -- HOM_power: containing the power of each HOM mode at the end of tracking
 !   Output  -- logical: if true write the lattice information into files.
 !
 ! Output
-!   bbu -- bbu_info: storing all the information extracted from lattice
+!   bbu -- bbu_info_struct: storing all the information extracted from lattice
 !-  
 
-subroutine get_info(lattice, cur, bbu, Hpower, output)
+subroutine get_info(lat, cur, bbu, Hpower, output)
 
 use random_mod
 
 implicit none
 
-type (bbu_info) :: bbu
-type (lat_struct), target  :: lattice
+type (bbu_info_struct) :: bbu
+type (lat_struct), target  :: lat
 type (hom_power), allocatable :: Hpower(:)
 type (ele_struct), pointer :: ele
 
@@ -93,8 +93,8 @@ real(rp), parameter :: pw = 0.1
 
 ! Compute the 6 by 6 transfer matrices 
 
-call twiss_propagate_all(lattice)
-call lat_make_mat6(lattice, -1)
+call twiss_propagate_all(lat)
+call lat_make_mat6(lat, -1)
 
 ! Print out the beta function
 
@@ -107,11 +107,11 @@ endif
 c_num=0
 if (allocated(bbu%hom)) deallocate (bbu%mat_c, bbu%time_c, bbu%Q_c, &
           bbu%hom, bbu%RoQ_c, bbu%freq_c, bbu%angle_c, bbu%power_c, Hpower)
-allocate(cavityind(lattice%n_ele_track))
+allocate(cavityind(lat%n_ele_track))
 
-do i=0, lattice%n_ele_track
+do i=0, lat%n_ele_track
 
-  ele => lattice%ele(i) 
+  ele => lat%ele(i) 
 
   if (ele%key /= lcavity$) cycle
   if (.not. associated(ele%wake)) cycle
@@ -131,7 +131,7 @@ k = 1
 
 do i= 1, c_num/2
 
-  ele => lattice%ele(cavityind(i))
+  ele => lat%ele(cavityind(i))
 
   h_num=0
   do j=1, size(ele%wake%lr)
@@ -166,26 +166,9 @@ allocate(Hpower(homtotal))
 ! Find the time between each cavity in the low energy lattice
 ! The time between two cavities is stored in erltime(k)
 
-time = 0
-k = 1     
-
-do i = 1, lattice%n_ele_track
-   
-  ele => lattice%ele(i) 
-  Vz = c_light * ele%value(p0c$) / ele%value(e_tot$)
-
-  if (ele%key == LCAVITY$ ) then
-    time=time+(ele%value(l$))/c_light*(1+0.5/(gamma*lattice%ele(i-1)%value(E_TOT$)/m_electron))
-  else
-    time = time + ele%value(l$) / Vz
-  endif
-
-  if (i == cavityind(k)) then
-    erltime(k)=time
-    time = 0
-    k = k + 1
-  endif
-   
+erltime(1) = lat%ele(cavityind(1))%ref_time
+do i = 2, c_num
+  erltime(i) = lat%ele(cavityind(i))%ref_time - erltime(i-1)
 enddo
 
 ! Calculate Transport Matrices for the low energy lattice
@@ -193,12 +176,12 @@ enddo
 
 call mat_make_unit (oldmat)
 call mat_make_unit (testmat)
-P0i = lattice%ele(0)%value(p0c$)     ! Get the first longitudinal reference momentum
+P0i = lat%ele(0)%value(p0c$)     ! Get the first longitudinal reference momentum
 k = 1
 
-do i = 0, lattice%n_ele_track
+do i = 0, lat%n_ele_track
    
-  ele => lattice%ele(i) 
+  ele => lat%ele(i) 
   mat = matmul(ele%mat6, oldmat) 
   
   if (i /= cavityind(k)) cycle
@@ -231,9 +214,9 @@ enddo
 
 u = 1
 do k = 1, c_num/2
-  ele => lattice%ele(cavityind(k))
+  ele => lat%ele(cavityind(k))
   ic1 = ele%ic1_lord
-  ic2 = lattice%ic(ic1)
+  ic2 = lat%ic(ic1)
   h_num = 1
 
   do l=1, size(ele%wake%lr)
@@ -246,7 +229,7 @@ do k = 1, c_num/2
       bbu%freq_c(u)=ele%wake%lr(l)%freq
       bbu%angle_c(u)=ele%wake%lr(l)%angle*2*pi
       bbu%power_c(u)=pw*abs(rr)
-      Hpower(u)%c_ind = lattice%control(ic2)%ix_lord
+      Hpower(u)%c_ind = lat%control(ic2)%ix_lord
       Hpower(u)%h_ind = h_num
       u = u + 1
       h_num = h_num + 1
@@ -256,7 +239,7 @@ do k = 1, c_num/2
       bbu%freq_c(u)=ele%wake%lr(l)%freq
       bbu%angle_c(u)=0
       bbu%power_c(u)=pw*abs(rr)
-      Hpower(u)%c_ind = lattice%control(ic2)%ix_lord
+      Hpower(u)%c_ind = lat%control(ic2)%ix_lord
       Hpower(u)%h_ind = h_num
 
       bbu%Q_c(u+1)=ele%wake%lr(l)%Q
@@ -264,7 +247,7 @@ do k = 1, c_num/2
       bbu%freq_c(u+1)=ele%wake%lr(l)%freq
       bbu%angle_c(u+1)=0.5*pi
       bbu%power_c(u+1)=pw*abs(rr)
-      Hpower(u+1)%c_ind = lattice%control(ic2)%ix_lord
+      Hpower(u+1)%c_ind = lat%control(ic2)%ix_lord
       Hpower(u+1)%h_ind = h_num+1 
 
       u=u+2
@@ -327,7 +310,7 @@ end subroutine
 !   use bbu_mod
 !
 ! Input
-!   bbu     -- bbu_info: containing all the information needed for bbu simulation
+!   bbu     -- bbu_info_struct: containing all the information needed for bbu simulation
 !   power_t -- an array containing the HOM power at different time 
 !   coor_t  -- an array containing the particle orbit at different time
 !   Hpower  -- HOM_power: to be used for storing the power of each HOM at the end of the tracking
@@ -340,7 +323,7 @@ subroutine Tracking(bbu,power_t,coor_t,Hpower,output)
 
 implicit none
 
-type (bbu_info), INTENT(INOUT) :: bbu
+type (bbu_info_struct), INTENT(INOUT) :: bbu
 real(rp), dimension(:), allocatable,INTENT(INOUT) :: power_t
 type (coord_struct), dimension(:), allocatable,INTENT(INOUT) :: coor_t
 type (HOM_power), dimension(:), INTENT(INOUT) :: Hpower
@@ -417,7 +400,7 @@ end subroutine
 !   use bbu_mod
 !
 ! Input
-!   bbu     -- bbu_info: containing all the information needed for bbu simulation
+!   bbu     -- bbu_info_struct: containing all the information needed for bbu simulation
 !   cur     -- real: initial trial threshold current
 !   power_t -- an array containing the HOM power at different time 
 !   coor_t  -- an array containing the particle orbit at different time
@@ -431,7 +414,7 @@ subroutine Threshold(bbu,cur,power_t, coor_t, Hpower, output)
 
 implicit none
 
-type (bbu_info), INTENT(INOUT) :: bbu
+type (bbu_info_struct), INTENT(INOUT) :: bbu
 real(rp),        INTENT(OUT)  :: cur
 real(rp), dimension(:), allocatable,INTENT(INOUT) :: power_t
 type (coord_struct), dimension(:), allocatable,INTENT(INOUT) :: coor_t
@@ -506,7 +489,7 @@ end subroutine
 !   use bbu_mod
 !
 ! Input
-!   bbu     -- bbu_info: containing all the information needed for bbu simulation
+!   bbu     -- bbu_info_struct: containing all the information needed for bbu simulation
 !   power_t -- an array containing the HOM power at different time 
 !   coor_t  -- an array containing the particle orbit at different time
 !   f_l     -- real: lower limit of the frequency spread
@@ -524,7 +507,7 @@ use random_mod
 
 implicit none
 
-type (bbu_info), INTENT(INOUT) :: bbu
+type (bbu_info_struct), INTENT(INOUT) :: bbu
 real(rp), dimension(:), allocatable,INTENT(INOUT) :: power_t
 type (coord_struct), dimension(:), allocatable,INTENT(INOUT) :: coor_t
 real(rp), INTENT(IN) :: f_l
@@ -603,7 +586,7 @@ end subroutine
 !   use bbu_mod
 !
 ! Input
-!   bbu     -- bbu_info: containing all the information needed for bbu simulation
+!   bbu     -- bbu_info_struct: containing all the information needed for bbu simulation
 !   power_t -- an array containing the HOM power at different time 
 !   coor_t  -- an array containing the particle orbit at different time
 !   a_l     -- real: lower limit of the polarization angle
@@ -621,7 +604,7 @@ subroutine Pdep(bbu,power_t, coor_t, a_l, a_u, check, N, thresh_dep, output)
 implicit none
 
 
-type (bbu_info), INTENT(INOUT) :: bbu
+type (bbu_info_struct), INTENT(INOUT) :: bbu
 real(rp), dimension(:), allocatable, INTENT(INOUT) :: power_t
 type (coord_struct), dimension(:), allocatable, INTENT(INOUT) :: coor_t
 real(rp), INTENT(IN) :: a_l
@@ -715,7 +698,7 @@ end subroutine
 !   use bbu_mod
 !
 ! Input
-!   bbu     -- bbu_info: containing all the information needed for bbu simulation
+!   bbu     -- bbu_info_struct: containing all the information needed for bbu simulation
 !   power_t -- an array containing the HOM power at different time 
 !   coor_t  -- an array containing the particle orbit at different time
 !   Q_l     -- real: lower limit of Q
@@ -732,7 +715,7 @@ subroutine Qdep(bbu,power_t,coor_t,Q_l,Q_u,ck,N,thresh_dep, output)
 
 implicit none
 
-type (bbu_info), INTENT(INOUT) :: bbu
+type (bbu_info_struct), INTENT(INOUT) :: bbu
 real(rp), dimension(:), allocatable, INTENT(INOUT) :: power_t
 type (coord_struct), dimension(:), allocatable, INTENT(INOUT) :: coor_t
 real(rp), INTENT(IN) :: Q_l

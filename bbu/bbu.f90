@@ -18,14 +18,13 @@
 ! Output to the screen
 ! 
 
-program csbbu
-
+program bbu
 
 use bbu_mod
 
 implicit none
 
-type (bbu_info) bbu
+type (bbu_info_struct) bbu_info
 type (lat_struct) lattice
 type (pair_num) thresh_dep
 type (HOM_power), dimension(:), allocatable :: Hpower
@@ -48,9 +47,9 @@ call bmad_parser ("erl.lat", lattice)
 Nt = NINT(beam_time*bunch_freq)
 n_prt = NINT(print_time*bunch_freq)
 
-bbu%b_time = Nt
-bbu%p_time = n_prt
-bbu%b_freq = bunch_freq
+bbu_info%b_time = Nt
+bbu_info%p_time = n_prt
+bbu_info%b_freq = bunch_freq
 
 ! Read in simulation choices
 
@@ -82,7 +81,7 @@ endif
 
 ! Extract lattice information
 
-call Get_info(lattice,cur,bbu,Hpower,output)
+call Get_info(lattice,cur,bbu_info,Hpower,output)
 
 ! Particle tracking
 
@@ -90,14 +89,14 @@ select case (response1)
 
 case(1)  !  Do the tracking at a given current
  
-   call Tracking(bbu,power_t,coor_t,Hpower,output)
+   call Tracking(bbu_info,power_t,coor_t,Hpower,output)
    if (plot ==.true.) then
       call check_result1(power_t,size(power_t))
    endif
 
 case(2)  !  Find the threshold current of a given lattice
   
-   call Threshold(bbu,cur,power_t,coor_t,Hpower,output)
+   call Threshold(bbu_info,cur,power_t,coor_t,Hpower,output)
    if (plot ==.true.) call check_result1(power_t,size(power_t))
 
 case(3)  !  Find the dependence of the threshold current on the HOM Q
@@ -108,7 +107,7 @@ case(3)  !  Find the dependence of the threshold current on the HOM Q
    Np  = 10         ! Np points are sampled within [Q_l, Q_u]
    allocate(thresh_dep%var(Np))
    allocate(thresh_dep%threshold(Np))
-   call Qdep(bbu,power_t,coor_t,Q_l,Q_u,ck,Np,thresh_dep,output)
+   call Qdep(bbu_info,power_t,coor_t,Q_l,Q_u,ck,Np,thresh_dep,output)
    do i=1,Np
       write(*,*) thresh_dep%var(i), thresh_dep%threshold(i)
    enddo  
@@ -124,7 +123,7 @@ case(4)  !  Find the dependence of the threshold current on the HOM frequency sp
    Np  = 1                   ! Np points are sampled within [f_l, f_u]
    allocate(thresh_dep%var(Np))
    allocate(thresh_dep%threshold(Np))
-   call Fdep(bbu,power_t,coor_t,f_l,f_u,Np,thresh_dep,output)
+   call Fdep(bbu_info,power_t,coor_t,f_l,f_u,Np,thresh_dep,output)
    do i=1,Np
       write(*,*) thresh_dep%var(i), thresh_dep%threshold(i)
    enddo  
@@ -138,7 +137,7 @@ case(5)  !  Find the dependence of the threshold current on the HOM polarization
    Np  = 10                 ! Np points are sampled within [a_l, a_u]
    allocate(thresh_dep%var(Np))
    allocate(thresh_dep%threshold(Np))
-   call Pdep(bbu,power_t,coor_t,a_l,a_u,ck,Np,thresh_dep,output)
+   call Pdep(bbu_info,power_t,coor_t,a_l,a_u,ck,Np,thresh_dep,output)
    do i=1,Np
       write(*,*) thresh_dep%var(i), thresh_dep%threshold(i)
    enddo  
