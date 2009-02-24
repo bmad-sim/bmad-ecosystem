@@ -2396,7 +2396,7 @@ if (ix_ele_ref < 0) then
 elseif (ix_ele_ref <= lat%n_ele_track) then
   ix_ele_ref_track = ix_ele_ref
 
-elseif (lat%ele(ix_ele_ref)%control_type == super_lord$) then
+elseif (lat%ele(ix_ele_ref)%lord_status == super_lord$) then
   ix_c = lat%ele(ix_ele_ref)%ix2_slave
   ix_ele_ref_track = lat%control(ix_c)%ix_slave ! element at exit end.
 

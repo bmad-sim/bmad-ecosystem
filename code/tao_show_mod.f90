@@ -1051,7 +1051,7 @@ case ('hom')
   do i = 1, ubound(lat%ele, 1)
     ele => lat%ele(i)
     if (ele%key /= lcavity$) cycle
-    if (ele%control_type == multipass_slave$) cycle
+    if (ele%slave_status == multipass_slave$) cycle
     nl=nl+1; write (lines(nl), '(a, i6)') ele%name, i
     do j = 1, size(ele%wake%lr)
       lr => ele%wake%lr(j)

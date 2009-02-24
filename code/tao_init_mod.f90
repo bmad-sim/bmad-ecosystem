@@ -1838,7 +1838,7 @@ character(80) string
 character(40) ele_name, key_name_in
 character(20) :: r_name = 'tao_find_elements'
 
-integer key, found_key, ix_attrib
+integer key, found_key, ix_attrib, t
 integer i, k, ix, ii, j, ix0, ix1, ix2, n_ele
 
 integer, allocatable :: ix_eles(:)
@@ -1877,12 +1877,10 @@ warn_given = .false.
 n_ele = 0
 do j = 1, size(ix_eles)
   ele => u%design%lat%ele(ix_eles(j))
-  select case (ele%control_type)
-  case (multipass_slave$, super_slave$)
-    if (no_slaves) cycle
-  case (girder_lord$, overlay_lord$, super_lord$)
-    if (no_lords) cycle
-  end select
+  t = ele%slave_status
+  if ((t == multipass_slave$ .or. t == super_slave$) .and. no_slaves) cycle
+  t = ele%lord_status 
+  if ((t == girder_lord$ .or. t == overlay_lord$ .or. t == super_lord$) .and. no_lords) cycle
   ! If attribute is not free then don't count it
   if (present(attribute)) then
     ix_attrib = attribute_index(u%model%lat%ele(ix_eles(j)), attribute)

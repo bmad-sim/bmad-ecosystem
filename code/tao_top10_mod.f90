@@ -360,7 +360,7 @@ do i = 1, size(s%var(:))
   con(nc)%d2_d1_name = trim(tao_var1_name(var))
   con(nc)%name = trim(tao_var_attrib_name(var))
   u => s%u(var%this(1)%ix_uni)
-  ct = u%model%lat%ele(var%this(1)%ix_ele)%control_type
+  ct = u%model%lat%ele(var%this(1)%ix_ele)%lord_status
   con(nc)%loc0 = ''
   con(nc)%loc1 = ''
   if (ct /= group_lord$ .and. ct /= overlay_lord$ .and. ct /= multipass_lord$) then

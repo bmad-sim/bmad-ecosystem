@@ -1610,7 +1610,7 @@ if (datum%data_type(1:14) == 'element_param.') return
 
 if (ix_ele <= lat%n_ele_track) return
 
-if (lat%ele(ix_ele)%control_type == super_lord$) then
+if (lat%ele(ix_ele)%lord_status == super_lord$) then
   ixc = lat%ele(ix_ele)%ix2_slave
   ix_loc = lat%control(ixc)%ix_slave
   return
@@ -1619,7 +1619,7 @@ endif
 valid = .false.
 call out_io (s_error$, r_name, &
             'ELEMENT: ' // trim(lat%ele(ix_ele)%name) // &
-            '    WHICH IS A: ' // control_name(lat%ele(ix_ele)%control_type), &
+            '    WHICH IS A: ' // control_name(lat%ele(ix_ele)%lord_status), &
             'CANNOT BE USED IN DEFINING A DATUM SINCE IT DOES NOT HAVE ', &
             '   A DEFINITE LOCATION IN THE LATTICE.', &
             'FOR DATUM: ' // tao_datum_name(datum) )

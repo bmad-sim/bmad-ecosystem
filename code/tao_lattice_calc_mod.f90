@@ -126,14 +126,16 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! set up matching element
   if (initing_design) call tao_match_lats_init (u)
 
+  call tao_lat_bookkeeper (u, tao_lat)
+
   select case (s%global%track_type)
   case ('single') 
     call tao_inject_particle (u, tao_lat)
-    call tao_lat_bookkeeper (u, tao_lat)
     call tao_single_track (u, tao_lat, this_who, this_calc_ok)
-  case ('beam') 
+  case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
+    call tao_inject_particle (u, tao_lat)
+    call tao_single_track (u, tao_lat, this_who, this_calc_ok)
     call tao_inject_beam (u, tao_lat)
-    call tao_lat_bookkeeper (u, tao_lat)
     call tao_beam_track (u, tao_lat, this_who, this_calc_ok)
   case default
     call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // s%global%track_type)
@@ -290,6 +292,7 @@ end subroutine tao_single_track
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
+
 ! Right now, there is no beam tracking in circular lattices. 
 ! If extracting from a lat then the beam is generated at the extraction point.
 
@@ -412,6 +415,8 @@ endif
 
 n_alive_old = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost /= not_lost$)
 
+call zero_lr_wakes_in_lat (lat)
+
 do j = ie1, ie2
 
   ! track to the element and save for phase space plot
@@ -421,9 +426,6 @@ do j = ie1, ie2
 
   else
     if (j /= ie1) then 
-      ! if doing linear tracking, first compute transfer matrix
-      if (u%mat6_recalc_on .and. lat%ele(j)%tracking_method == linear$) &
-                                      call make_mat6 (lat%ele(j), lat%param) 
       call track_beam (lat, beam, j-1, j, too_many_lost)
     endif
 
@@ -444,15 +446,6 @@ do j = ie1, ie2
     call out_io (s_warn$, r_name, &
             "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\: " &
             // trim(lat%ele(j)%name), j)
-  endif
-
-  ! Find lattice and beam parameters and load data
-
-  if (j /= 0) then
-    if (u%mat6_recalc_on .and. .not. too_many_lost) then
-      call make_mat6 (lat%ele(j), lat%param, tao_lat%orb(j-1), err = err)
-      call twiss_propagate1 (lat%ele(j-1), lat%ele(j), err)
-    endif
   endif
 
   !

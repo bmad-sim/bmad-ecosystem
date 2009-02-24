@@ -297,7 +297,7 @@ do n = 0, ubound(lat%branch, 1)
     ele => lat%branch(n)%ele(i)
     call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, lat%n_ele_track, ix_shape)
     if (ele%ix_ele > lat%n_ele_track .and. ix_shape == 0) cycle   ! Nothing to draw
-    if (ele%control_type == multipass_lord$) then
+    if (ele%lord_status == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
         ic = lat%control(j)%ix_slave
         call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%branch(n)%ele(ic), ix_shape)
@@ -557,7 +557,7 @@ endif
 ! Also place a bend's label to the outside of the bend.
 
 if (ele_shape%label_type == 'name') then
-  if (ele%control_type == multipass_slave$) then
+  if (ele%slave_status == multipass_slave$) then
     ix = ele%ic1_lord
     ix = lat%control(lat%ic(ix))%ix_lord
     name = lat%ele(ix)%name
@@ -686,8 +686,8 @@ do i = 1, lat%n_ele_max
   ele => lat%ele(i)
   call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, lat%n_ele_track, ix_shape)
 
-  if (ele%control_type == multipass_lord$) cycle
-  if (ele%control_type == super_slave$) cycle
+  if (ele%lord_status == multipass_lord$) cycle
+  if (ele%slave_status == super_slave$) cycle
   if (i > lat%n_ele_track .and. ix_shape < 1) cycle
 
   if (plot%x_axis_type == 's') then
@@ -1006,10 +1006,10 @@ logical err
 
 ix_shape = 0
 
-if (ele%control_type == group_lord$) return
-if (ele%control_type == overlay_lord$) return
-if (ele%control_type == super_slave$) return
-if (ele%ix_ele > n_ele_track .and. ele%control_type == free$) return
+if (ele%lord_status == group_lord$) return
+if (ele%lord_status == overlay_lord$) return
+if (ele%slave_status == super_slave$) return
+if (ele%ix_ele > n_ele_track .and. ele%lord_status == free$) return
 
 do k = 1, size(ele_shapes)
 
