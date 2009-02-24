@@ -135,7 +135,7 @@ if (ele%sub_key /= 0) then
 endif
 
 nl=nl+1; write (li(nl), '(1x, a, f13.4)') 'S:       ', ele%s
-nl=nl+1; write (li(nl), '(1x, a, es13.4)') 'Ref_time:', ele%s
+nl=nl+1; write (li(nl), '(1x, a, es13.4)') 'Ref_time:', ele%ref_time
 
 nl=nl+1; li(nl) = ''
 if (type_zero) then
