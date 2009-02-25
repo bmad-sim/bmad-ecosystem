@@ -129,7 +129,7 @@ judge=.false.    !  logical -- true if the rf cavity has wake fields
 homtotal = 0     !  Total number of HOMs
 k = 1
 
-do i= 1, c_num/2
+do i= 1, c_num/2  ! This assumes a two turn ERL.
 
   ele => lat%ele(cavityind(i))
 
@@ -148,6 +148,8 @@ do i= 1, c_num/2
   bbu%hom(k) = h_num
 
 enddo
+
+bbu%hom_num = homtotal
 
 ! Allocate the dimesion of the transport matrix arrays and time arrays
 
