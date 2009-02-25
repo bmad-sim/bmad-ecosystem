@@ -104,31 +104,33 @@ double theta2(double* v, int s, double& check) {
 }
 
 
-double tbbu(const double current,
-	    int    hom_all,
-            int    hom_total,
-	    int*   hom,
-	    int*   start,
-	    int    bunch_num,
-	    double bfreq,
-	    int    N,
-	    int    n_prt,
-	    double d_amp,
-	    double pos_err_amp,
-	    double t_noise,
-	    double*  hom_time,
-	    double*  mat,
-	    double*  homQ,
-	    double*  homRoverQ,
-	    double*  homf,
-	    double* cosang,
-	    double* sinang,
-	    complex<double>* pwi,
-	    double* cpower,
-	    double* pcoor,
-	    double* hompw,
-	    int& calls,
-	    double& crl)
+
+double tbbu(
+      const double current,     // cur
+	    int    hom_all,           // cav_num
+      int    hom_total,         // hom_total
+	    int*   hom,               // hom
+	    int*   start,             // start
+	    int    bunch_num,         // csbunch_num
+	    double bfreq,             // csbfreq
+	    int    N,                 // N
+	    int    n_prt,             // n_prt
+	    double d_amp,             // csd_amp
+	    double pos_err_amp,       // cspos_err_amp
+	    double t_noise,           // cst_noise
+	    double*  hom_time,        // cavtime
+	    double*  mat,             // cavmat
+	    double*  homQ,            // homQ
+	    double*  homRoverQ,       // homRoQ
+	    double*  homf,            // homfreq
+	    double* cosang,           // cosang
+	    double* sinang,           // sinang
+	    complex<double>* pwi,     // cspw
+	    double* cpower,           // power
+	    double* pcoor,            // pcoor
+	    double* hompw,            // hompw
+	    int& calls,               // cscalls
+	    double& crl)              // crl
 {
    
   int hom_uniq = hom_all;
@@ -417,9 +419,27 @@ double root(double x1, double fx1, double x2, double fx2, double xacc,
 }
 
  
-extern "C" void bbu_track_(double& cur, int& cav_num, int& hom_total, double* cavmat, double* cavtime, int* hom, double* homQ,
-			   double* homRoQ, double* cshomfreq, double* homang, double* hompw, double* power, double* pcoor, double& csbfreq,
-                           int& N, int& n_prt, double& csd_amp, double& cspos_err_amp, double& cst_noise, int& check)
+extern "C" void bbu_track_(
+double& cur,             // cur
+int& cav_num,            // bbu%num_unique_cav
+int& hom_total,          // bbu%hom_num
+double* cavmat,          // bbu%mat_c
+double* cavtime,         // bbu%time_c
+int* hom,                // bbu%hom
+double* homQ,            // bbu%Q_c
+double* homRoQ,          // bbu%RoQ_c
+double* cshomfreq,       // bbu%freq_c
+double* homang,          // bbu%angle_c
+double* hompw,           // bbu%power_c
+double* power,           // power_t
+double* pcoor,           // coor_t_c
+double& csbfreq,         // bbu%b_freq
+int& N,                  // bbu%b_time
+int& n_prt,              // bbu%p_time
+double& csd_amp,         // bbu%n_amp
+double& cspos_err_amp,   // bbu%p_amp
+double& cst_noise,       // bbu%n_on
+int& check)              // 1
 
 { 
   double cur_low = 0.0;
@@ -440,7 +460,7 @@ extern "C" void bbu_track_(double& cur, int& cav_num, int& hom_total, double* ca
   complex<double>* cspw;
 
 
-  int n_in = int(cavtime[cav_num*turns-1] *csbfreq);
+  int n_in = int(cavtime[cav_num*turns-1] *csbfreq); // Number of bunches in the lat at any one time.
  
  
   if (n_prt < 1) n_prt = 1;

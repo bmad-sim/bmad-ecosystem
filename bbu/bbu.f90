@@ -33,7 +33,8 @@ logical plot,output
 real(rp) cur,Q_l,Q_u,f_l,f_u,a_l,a_u
 real(rp), dimension(:), allocatable ::  power_t
 type (coord_struct), dimension(:), allocatable ::  coor_t
-integer Nt, n_prt
+integer Nt
+
 real, parameter :: bunch_freq = 1.3E9
 real, parameter :: beam_time = 1.0E-4
 real, parameter :: print_time = 1.0E-8
@@ -44,11 +45,11 @@ call bmad_parser ("erl.lat", lattice)
 
 ! Calculate the total number of bunches
 
-Nt = NINT(beam_time*bunch_freq)
-n_prt = NINT(print_time*bunch_freq)
+bbu_info%b_time = nint(beam_time*bunch_freq)
 
-bbu_info%b_time = Nt
-bbu_info%p_time = n_prt
+bbu_info%p_time = nint(print_time*bunch_freq)
+if (bbu_info%p_time < 1) bbu_info%p_time = 1
+
 bbu_info%b_freq = bunch_freq
 
 ! Read in simulation choices
