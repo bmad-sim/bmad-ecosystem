@@ -203,7 +203,7 @@ if (s%global%track_type == 'beam') then
       beam0_file = tao_com%beam0_file        ! From the command line
       beam_all_file = tao_com%beam_all_file  ! From the command line
       save_beam_at = ''
-      ix_track_start = -1
+      ix_track_start = 0
       ix_track_end = -1
 
       ! Read beam parameters

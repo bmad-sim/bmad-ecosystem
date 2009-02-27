@@ -398,11 +398,7 @@ endif
 ! The reference orbit for the transfer matrix calculation is taken to be the nominal 
 ! bunch center rather then the computed center to prevent jitter from changing things.
 
-ie1 = 0
-if (u%ix_track_start > -1) ie1 = u%ix_track_start
-i = max(0, ie1-1)
-lat%ele(i)%map_ref_orb_out = lat%beam_start
-
+ie1 = u%ix_track_start
 ie2 = lat%n_ele_track
 if (u%ix_track_end > -1) ie2 = u%ix_track_end
 
@@ -741,7 +737,7 @@ if (.not. u%connect%connected) then
     endif
     beam_init = u%beam_init
     if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
-    call init_beam_distribution (model%lat%ele(0), beam_init, u%beam0)
+    call init_beam_distribution (model%lat%ele(u%ix_track_start), beam_init, u%beam0)
     call tao_find_beam_centroid (u%beam0, orb0, too_many_lost)
     if (too_many_lost) then
       call out_io (s_warn$, r_name, "Not enough particles for beam init!")
