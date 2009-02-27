@@ -139,8 +139,8 @@ sr_mode_wake_out = sr_mode_wake_struct (31.0_rp, 32.0_rp, 33.0_rp, 34.0_rp, 35.0
                                                      36.0_rp, 37.0_rp, 38.0_rp)
 
 lr_wake_in  = lr_wake_struct(1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, &
-                             6.0_rp, 7.0_rp, 8.0_rp, 9.0_rp, 10, .true.)
-lr_wake_out = lr_wake_struct(10.0_rp, 9.0_rp, 8.0_rp, 7.0_rp, 6, 5.0_rp, &
+                             6.0_rp, 7.0_rp, 8.0_rp, 9.0_rp, 10.0_rp, 11, .true.)
+lr_wake_out = lr_wake_struct(11.0_rp, 10.0_rp, 9.0_rp, 8.0_rp, 7.0_rp, 6, 5.0_rp, &
                               4.0_rp, 3.0_rp, 2.0_rp, 1, .false.)
 
 allocate (wake_in%sr_table(0:1), wake_in%sr_mode_long(2), wake_in%sr_mode_trans(0), wake_in%lr(1))
@@ -161,9 +161,9 @@ wake_out%z_sr_mode_max = 101
 wake_out%sr_mode_trans(1) = sr_mode_wake_in
 wake_out%sr_mode_trans(2) = sr_mode_wake_out
 wake_out%lr(1) = lr_wake_struct (-1.0_rp, -2.0_rp, -3.0_rp, -4.0_rp, -5.0_rp, &
-                          -6.0_rp, -7.0_rp, -8.0_rp, -9.0_rp, 10, .true.)
+                          -6.0_rp, -7.0_rp, -8.0_rp, -9.0_rp, -10.0_rp, 11, .true.)
 wake_out%lr(2) = lr_wake_struct (-11.0_rp, -12.0_rp, -13.0_rp, -14.0_rp, -15.0_rp, &
-                                -16.0_rp, -17.0_rp, -18.0_rp, -19.0_rp, 20, .false.)
+                                -16.0_rp, -17.0_rp, -18.0_rp, -19.0_rp, -20.0_rp, 21, .false.)
 
 control_in  = control_struct(1.0_rp, 2, 3, 4, 5)
 control_out = control_struct(5.0_rp, 4, 3, 2, 1)

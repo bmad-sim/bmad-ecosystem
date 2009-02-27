@@ -43,6 +43,7 @@ do i = 1, lat%n_ele_max
   if (.not. associated(lat%ele(i)%wake)) cycle
   lat%ele(i)%wake%lr%norm_sin = 0; lat%ele(i)%wake%lr%norm_cos = 0
   lat%ele(i)%wake%lr%skew_sin = 0; lat%ele(i)%wake%lr%skew_cos = 0
+  lat%ele(i)%wake%lr%z_ref = 0
 enddo
 
 end subroutine zero_lr_wakes_in_lat
@@ -71,6 +72,7 @@ end subroutine zero_lr_wakes_in_lat
 !     %wake%lr(:)%norm_cos -- Non-skew cos-like wake components.
 !     %wake%lr(:)%skew_sin -- Non-skew sin-like wake components.
 !     %wake%lr(:)%skew_cos -- Non-skew cos-like wake components.
+!     %wake%lr(:)%z_ref    -- Set to s_ref.
 !+
 
 subroutine lr_wake_add_to (ele, s_ref, orbit, charge)
@@ -81,7 +83,7 @@ type (lr_wake_struct), pointer :: lr
 
 integer i
 real(rp) charge, s_ref, ds, k, f_exp, ff, c, s, kx, ky
-real(rp) c_a, s_a, kxx
+real(rp) c_a, s_a, kxx, exp_shift
 
 ! Check if we have to do any calculations
 
@@ -92,14 +94,17 @@ if (.not. associated(ele%wake)) return
 ! We use the following trick: The spatial variation of the normal and skew
 ! components is the same as the spatial variation of a multipole kick.
 
+! To prevent overflow, the exponential factor (but not the sin and cos factors) 
+! is evaluated with respect to lr%z_ref.
+
 do i = 1, size(ele%wake%lr)
 
   lr => ele%wake%lr(i)
-  ds = (s_ref + orbit%vec(5)) ! Note: ds < 0
+  ds = s_ref + orbit%vec(5) 
 
   k = twopi * lr%freq / c_light
   f_exp = k / (2 * lr%Q)
-  ff = charge * lr%r_over_q * c_light * exp(-ds * f_exp) / ele%value(p0c$) 
+  ff = charge * lr%r_over_q * c_light * exp(-orbit%vec(5) * f_exp) / ele%value(p0c$) 
 
   c = cos (ds * k)
   s = sin (ds * k)
@@ -113,10 +118,17 @@ do i = 1, size(ele%wake%lr)
     ky = kxx * c_a * s_a + ky * s_a * s_a
   endif
 
-  lr%norm_sin = lr%norm_sin - kx * c
-  lr%norm_cos = lr%norm_cos + kx * s
-  lr%skew_sin = lr%skew_sin - ky * c
-  lr%skew_cos = lr%skew_cos + ky * s
+  if (s_ref == lr%z_ref) then
+    exp_shift = 1
+  else
+    exp_shift = exp((s_ref - lr%z_ref) * f_exp)  ! Note: s_ref is generally more negative
+    lr%z_ref = s_ref
+  endif
+
+  lr%norm_sin = lr%norm_sin * exp_shift - kx * c
+  lr%norm_cos = lr%norm_cos * exp_shift + kx * s
+  lr%skew_sin = lr%skew_sin * exp_shift - ky * c
+  lr%skew_cos = lr%skew_cos * exp_shift + ky * s
 
 enddo
 
@@ -163,11 +175,11 @@ if (.not. associated(ele%wake)) return
 do i = 1, size(ele%wake%lr)
 
   lr => ele%wake%lr(i)
-  ds = s_ref + orbit%vec(5)  ! Note: ds < 0
+  ds = s_ref + orbit%vec(5) ! Note: ds is generally negative
 
   k = twopi * lr%freq / c_light
   f_exp = k / (2 * lr%Q)
-  ff = exp(ds * f_exp)
+  ff = exp((ds - lr%z_ref) * f_exp)
 
   c = cos (ds * k)
   s = sin (ds * k)

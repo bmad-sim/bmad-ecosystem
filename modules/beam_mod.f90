@@ -187,10 +187,11 @@ implicit none
 
 type (bunch_struct) bunch_start, bunch_end
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, next_ele
+type (ele_struct), pointer :: ele, lord, chain_ele
 type (ele_struct), save :: rf_ele
+type (lr_wake_struct), pointer :: lr
 
-real(rp) charge
+real(rp) charge, ds, c, s, k
 
 integer i, j, n, ix_ele, ix_pass, ixs, ix
 integer, save, allocatable :: ix_chain(:)
@@ -240,15 +241,27 @@ if (associated(ele%wake)) then
     enddo
   endif
 
-  ! If part of multipass: Transfer lr wake to next element in the chain
+  ! If part of multipass: Transfer the lr wake to all the elements in the chain.
+  ! A chain is a set of elements in the tracking lattice that all represent 
+  ! the same physical element.
 
   call multipass_chain (ix_ele, lat, ix_pass, ix_chain)
-  if (ix_pass > 0 .and. size(ix_chain) > ix_pass) then
-    next_ele => lat%ele(ix_chain(ix_pass+1))
-    next_ele%wake%lr%norm_sin = ele%wake%lr%norm_sin   ! THIS NEEDS TO BE MODIFIED!!!
-    next_ele%wake%lr%norm_cos = ele%wake%lr%norm_cos
-    next_ele%wake%lr%skew_sin = ele%wake%lr%skew_sin
-    next_ele%wake%lr%skew_cos = ele%wake%lr%skew_cos
+  if (ix_pass > 0) then
+    do i = 1, size(ix_chain)
+      if (i == ix_pass) cycle
+      lr => ele%wake%lr(i)
+      ds = chain_ele%s - ele%s
+      k = twopi * lr%freq / c_light
+      c = cos (ds * k)
+      s = sin (ds * k)
+
+      chain_ele => lat%ele(ix_chain(i))
+      chain_ele%wake%lr%norm_sin =  c * lr%norm_sin + s * lr%norm_cos
+      chain_ele%wake%lr%norm_cos = -s * lr%norm_sin + c * lr%norm_cos
+      chain_ele%wake%lr%skew_sin =  c * lr%skew_sin + s * lr%skew_cos
+      chain_ele%wake%lr%skew_cos = -s * lr%skew_sin + c * lr%skew_cos
+      chain_ele%wake%lr%z_ref    = lr%z_ref + ds
+    enddo
   endif
 
 endif

@@ -48,8 +48,8 @@ C_sr_table_wake   c_sr_table_wake_in(1, 2, 3);
 C_sr_table_wake   c_sr_table_wake_out(3, 2, 1);
 C_sr_mode_wake    c_sr_mode_wake_in(21, 22, 23, 24, 25, 26, 27, 28);
 C_sr_mode_wake    c_sr_mode_wake_out(31, 32, 33, 34, 35, 36, 37, 38);
-C_lr_wake         c_lr_wake_in(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1);
-C_lr_wake         c_lr_wake_out(10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+C_lr_wake         c_lr_wake_in(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1);
+C_lr_wake         c_lr_wake_out(11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 C_wake            c_wake_in("ABCD", "XYZZY", 2, 2, 0, 1);
 C_wake            c_wake_out("abcd", "xyzzy", 0, 0, 2, 2);
 C_control         c_control_in(1, 2, 3, 4, 5);
@@ -130,8 +130,8 @@ void init_all_c_structs () {
   c_wake_out.z_sr_mode_max = 101;
   c_wake_out.sr_mode_trans[0] = c_sr_mode_wake_in;
   c_wake_out.sr_mode_trans[1] = c_sr_mode_wake_out;
-  c_wake_out.lr[0] = C_lr_wake(-1, -2, -3, -4, 5, -6, -7, -8, -9, 10, 1);
-  c_wake_out.lr[1] = C_lr_wake(-11, -12, -13, -14, -15, -16, -17, -18, -19, 20, 0);
+  c_wake_out.lr[0] = C_lr_wake(-1, -2, -3, -4, 5, -6, -7, -8, -9, -10, 11, 1);
+  c_wake_out.lr[1] = C_lr_wake(-11, -12, -13, -14, -15, -16, -17, -18, -19, -20, 21, 0);
 
   c_param_in  = C_param(1, 2, 3, m6a, m6b, 11, 12, 13, 14, 15, 16, 1, 0, 1);
   c_param_out = C_param(11, 12, 13, m6b, m6a, 111, 112, 113, 114, 115, 116, 0, 0, 0);

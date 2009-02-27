@@ -585,7 +585,7 @@ type (c_dummy_struct) c_lr_wake
 
 f => f_lr_wake
 call lr_wake_to_c2 (c_lr_wake, f%freq, f%freq_in, f%R_over_Q, f%q, f%angle, &
-         f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos, f%m, f%polarized)
+         f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos, f%z_ref, f%m, f%polarized)
 
 end subroutine
 
@@ -593,7 +593,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, angle, &
-!                                   n_sin, n_cos, s_cos, s_sin, m, polarized)
+!                                   n_sin, n_cos, s_cos, s_sin, z_ref, m, polarized)
 !
 ! Subroutine used by lr_wake_to_f to convert a C++ C_lr_wake into
 ! a Bmad lr_wake_struct. This routine is not for general use.
@@ -611,12 +611,12 @@ implicit none
 
 type (lr_wake_struct) f_lr_wake
 real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, s_ref
-real(rp) angle
+real(rp) angle, z_ref
 integer m
 logical polarized
 
 f_lr_wake = lr_wake_struct(freq, freq_in, r_over_q, q, angle, &
-                                   n_sin, n_cos, s_cos, s_sin, m, polarized)
+                                   n_sin, n_cos, s_cos, s_sin, z_ref, m, polarized)
 
 end subroutine
 
@@ -808,14 +808,14 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, freq_in, r_over_q, q, angle, &
-!                                          n_sin, n_cos, s_cos, s_sin, m, polarized)
+!                                     n_sin, n_cos, s_cos, s_sin, z_ref, m, polarized)
 !
 ! Subroutine used by wake_to_f to convert a C++ C_wake into
 ! a Bmad wake_struct. This routine is not for general use.
 !-
 
 subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, freq_in, r_over_q, q, angle, &
-                                          n_sin, n_cos, s_cos, s_sin, m, polarized)
+                                    n_sin, n_cos, s_cos, s_sin, z_ref, m, polarized)
 
 use fortran_and_cpp
 use bmad_struct
@@ -824,12 +824,12 @@ use bmad_interface
 implicit none
 
 type (wake_struct) f_wake
-real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, angle
+real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, angle, z_ref
 integer it, m
 logical polarized
 
 f_wake%lr(it) = lr_wake_struct(freq, freq_in, r_over_q, q, angle, &
-                              n_sin, n_cos, s_cos, s_sin, m, polarized)
+                              n_sin, n_cos, s_cos, s_sin, z_ref, m, polarized)
 
 end subroutine
 

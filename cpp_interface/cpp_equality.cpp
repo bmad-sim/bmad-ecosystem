@@ -104,7 +104,7 @@ bool operator== (const C_lr_wake& x, const C_lr_wake& y) {
          (x.R_over_Q == y.R_over_Q) && (x.Q == y.Q) && (x.angle == y.angle) &&
          (x.norm_sin == y.norm_sin) && (x.norm_cos == y.norm_cos) && 
          (x.skew_sin == y.skew_sin) && (x.skew_cos == y.skew_cos) && 
-         (x.m == y.m) && (x.polarized == y.polarized);
+         (x.z_ref == y.z_ref) && (x.m == y.m) && (x.polarized == y.polarized);
 };
 
 bool operator== (const C_wake& x, const C_wake& y) {

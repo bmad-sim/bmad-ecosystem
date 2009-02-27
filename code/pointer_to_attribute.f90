@@ -85,7 +85,7 @@ if (a_name(1:3) == 'LR(') then
     deallocate (ele%wake%lr)
     allocate (ele%wake%lr(n))
     ele%wake%lr = lr_wake_struct (0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, &
-                                  0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0, .false.)
+                                  0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0, .false.)
     ele%wake%lr(1:n_lr) = lr
     deallocate (lr)
   endif

@@ -750,7 +750,7 @@ real(rp) center(6) ! includes jitter
 real(rp) ran(6), old_cutoff
 real(rp), save, allocatable :: ran_save(:,:)
 
-integer i, j, j2, n
+integer i, j, j2, n, i_bunch
 
 character(16) old_engine, old_converter  
 character(22) :: r_name = "init_beam_distribution"
@@ -760,8 +760,7 @@ logical, save :: init = .true.
 ! resize the beam to the number of particles and the number of bunches.
 
 call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
-bunch => beam%bunch(1)
- 
+
 ! Set and set the random number generator parameters.
 
 call ran_engine (beam_init%random_engine, old_engine)
@@ -777,184 +776,189 @@ if (beam_init%preserve_dist) then
   endif
 endif
 
-sig_mat = 0
-ave = 0
-do n = 1, beam_init%n_particle
-  p => bunch%particle(n)
-  if (beam_init%preserve_dist .and. init) then
-    call ran_gauss(r)
-    ran_save(n,:) = r
-  elseif (beam_init%preserve_dist .and. .not. init) then
-    r = ran_save(n,:)
-  else
-    call ran_gauss(r)
-  endif
-  p%r%vec = r
-  ave = ave + r
-  forall (i=1:6, j=1:6) sig_mat(i,j) = sig_mat(i,j) + r(i) * r(j)
-enddo  
+! Loop over all bunches
 
-if (beam_init%preserve_dist .and. init) init = .false.
-      
-ave = ave / beam_init%n_particle
-sig_mat = sig_mat / beam_init%n_particle
+do i_bunch = 1, size(beam%bunch)
 
-! Now the distribution of bunch%particle(:)%r%vec(n) for fixed n has
-! on average, unit sigma and the distribution for n = n1 is uncorrelated
-! with the distribution for n = n2, n1 /= n2.
-
-! However, since we are dealing with a finite number of particles, 
-! the sigmas of the distributions will not be exactly 1, and there will 
-! be some correlation between distributions.
-! If beam_init%renorm_sigma = True then take this out.
-
-! Zero the average for now
-
-do n = 1, beam_init%n_particle
-  bunch%particle(n)%r%vec = bunch%particle(n)%r%vec - ave
-enddo
-
-if (beam_init%renorm_sigma) then
-
-  if (beam_init%n_particle < 7) then
-    call out_io (s_abort$, r_name, &
-        'INITIALIZATION WITH RENORM_SIGMA MUST USE AT LEAST 7 PARTICLES!')
-    call err_exit
-  endif
-
-  ! This accounts for subtracting off the average
-  forall (i = 1:6, j = 1:6) sig_mat(i,j) = sig_mat(i,j) - ave(i) * ave(j)
-
-  ! To renormalize we want to make sig_mat = the unit matrix.
-  ! The first step is to zero the off-diagonal elements.
-  ! We have to do this in the correct order otherwise zeroing one element
-  ! might unzero others that have already been zeroed.
-
-  do i = 5, 1, -1
-    do j = i+1, 6
-      b = -sig_mat(i,j) / sig_mat(j,j)
-      ! Transform the distribution
-      do n = 1, beam_init%n_particle
-        p => bunch%particle(n)
-        p%r%vec(i) = p%r%vec(i) + b * p%r%vec(j)
-      enddo
-      ! Since we have transformed the distribution we need to transform
-      ! sig_mat to keep things consistant.
-      sig_mat(i,i) = sig_mat(i,i) + 2 * b * sig_mat(i,j) + b**2 * sig_mat(j,j)
-      do j2 = 1, 6
-        if (j2 == i) cycle
-        sig_mat(i,j2) = sig_mat(i,j2) + b * sig_mat(j ,j2)
-        sig_mat(j2,i) = sig_mat(i,j2)
-      enddo
-
-    enddo
-  enddo
-
-  ! Now we make the diagonal elements unity
-
-  forall (i = 1:6) alpha(i) = sqrt(1/sig_mat(i,i))
+  bunch => beam%bunch(1)
+   
+  sig_mat = 0
+  ave = 0
   do n = 1, beam_init%n_particle
     p => bunch%particle(n)
-    p%r%vec = p%r%vec * alpha
-  enddo
+    if (beam_init%preserve_dist .and. init) then
+      call ran_gauss(r)
+      ran_save(n,:) = r
+    elseif (beam_init%preserve_dist .and. .not. init) then
+      r = ran_save(n,:)
+    else
+      call ran_gauss(r)
+    endif
+    p%r%vec = r
+    ave = ave + r
+    forall (i=1:6, j=1:6) sig_mat(i,j) = sig_mat(i,j) + r(i) * r(j)
+  enddo  
 
-endif
+  if (beam_init%preserve_dist .and. init) init = .false.
+        
+  ave = ave / beam_init%n_particle
+  sig_mat = sig_mat / beam_init%n_particle
 
-! In general, since we are dealing with a finite number of particles, 
-! the averages will not be zero.
-! Put back the non-zero center if beam_init%renorm_center = False.
+  ! Now the distribution of bunch%particle(:)%r%vec(n) for fixed n has
+  ! on average, unit sigma and the distribution for n = n1 is uncorrelated
+  ! with the distribution for n = n2, n1 /= n2.
 
-if (.not. beam_init%renorm_center) then
+  ! However, since we are dealing with a finite number of particles, 
+  ! the sigmas of the distributions will not be exactly 1, and there will 
+  ! be some correlation between distributions.
+  ! If beam_init%renorm_sigma = True then take this out.
+
+  ! Zero the average for now
+
   do n = 1, beam_init%n_particle
-    bunch%particle(n)%r%vec = bunch%particle(n)%r%vec + ave
+    bunch%particle(n)%r%vec = bunch%particle(n)%r%vec - ave
   enddo
-endif
 
-! Put in beam jitter, include alpha correlations
-call ran_gauss(ran)
-center(1) = beam_init%center(1) + beam_init%center_jitter(1)*ran(1)
-center(2) = beam_init%center(2) + beam_init%center_jitter(2)*ran(2) + &
-                 (ele%a%alpha/ele%a%beta) * beam_init%center_jitter(1)*ran(1)
-center(3) = beam_init%center(3) + beam_init%center_jitter(3)*ran(3)
-center(4) = beam_init%center(4) + beam_init%center_jitter(4)*ran(4) + &
-                 (ele%b%alpha/ele%b%beta) * beam_init%center_jitter(3)*ran(3)
-center(5) = beam_init%center(5) + beam_init%center_jitter(5)*ran(5)
-center(6) = beam_init%center(6) + beam_init%center_jitter(6)*ran(6) + &
-                 beam_init%dpz_dz * beam_init%center_jitter(5)*ran(5)
-  
-! Now scale by the emittances, etc. and put in jitter
+  if (beam_init%renorm_sigma) then
 
-call ran_gauss(ran(1:4)) ! ran(3:4) for z and e jitter used below
-denom = (1 + center(6)) * ele%value(E_TOT$)
-a_emitt = beam_init%a_norm_emitt*(1+beam_init%emitt_jitter(1)*ran(1)) &
-                                                      * m_electron / denom
-b_emitt = beam_init%b_norm_emitt*(1+beam_init%emitt_jitter(2)*ran(2)) &
-                                                      * m_electron / denom
-  
-dpz_dz = beam_init%dpz_dz
-  
-call make_v_mats(ele, v_mat, v_inv)
+    if (beam_init%n_particle < 7) then
+      call out_io (s_abort$, r_name, &
+          'INITIALIZATION WITH RENORM_SIGMA MUST USE AT LEAST 7 PARTICLES!')
+      call err_exit
+    endif
 
-sigma(1) = sqrt(a_emitt * ele%a%beta)
-sigma(2) = sqrt(a_emitt / ele%a%beta)
-sigma(3) = sqrt(b_emitt * ele%b%beta)
-sigma(4) = sqrt(b_emitt / ele%b%beta)
-sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran(3))
-sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran(4))
+    ! This accounts for subtracting off the average
+    forall (i = 1:6, j = 1:6) sig_mat(i,j) = sig_mat(i,j) - ave(i) * ave(j)
 
-if (sigma(6) == 0 .or. dpz_dz == 0) then
-  a = 0
-else if (abs(dpz_dz * sigma(5)) > sigma(6)) then
-  call out_io (s_abort$, r_name, &
-              "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
-  call err_exit
-else
-  a = dpz_dz * sigma(5) / sigma(6)
-endif
+    ! To renormalize we want to make sig_mat = the unit matrix.
+    ! The first step is to zero the off-diagonal elements.
+    ! We have to do this in the correct order otherwise zeroing one element
+    ! might unzero others that have already been zeroed.
 
-b = sqrt(1-a**2)
-     
-!
+    do i = 5, 1, -1
+      do j = i+1, 6
+        b = -sig_mat(i,j) / sig_mat(j,j)
+        ! Transform the distribution
+        do n = 1, beam_init%n_particle
+          p => bunch%particle(n)
+          p%r%vec(i) = p%r%vec(i) + b * p%r%vec(j)
+        enddo
+        ! Since we have transformed the distribution we need to transform
+        ! sig_mat to keep things consistant.
+        sig_mat(i,i) = sig_mat(i,i) + 2 * b * sig_mat(i,j) + b**2 * sig_mat(j,j)
+        do j2 = 1, 6
+          if (j2 == i) cycle
+          sig_mat(i,j2) = sig_mat(i,j2) + b * sig_mat(j ,j2)
+          sig_mat(j2,i) = sig_mat(i,j2)
+        enddo
 
-do i = 1, beam_init%n_particle
+      enddo
+    enddo
 
-  p => bunch%particle(i)
-  r = p%r%vec
+    ! Now we make the diagonal elements unity
 
-  p%r%vec(1) = sigma(1) *  r(1)
-  p%r%vec(2) = - sigma(2) * (r(2) + r(1) * ele%a%alpha)
-  p%r%vec(3) = sigma(3) *  r(3)
-  p%r%vec(4) = - sigma(4) * (r(4) + r(3) * ele%b%alpha)
-  p%r%vec(5) = sigma(5) *  r(5)
-  p%r%vec(6) = sigma(6) * (r(6) * b + r(5) * a)
-      
-  ! Include Dispersion
-  p%r%vec(1:4) =  p%r%vec(1:4) + &
-              p%r%vec(6) * (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
-      
-  ! Include Coupling
-  p%r%vec(1:4) = matmul(v_mat, p%r%vec(1:4))
+    forall (i = 1:6) alpha(i) = sqrt(1/sig_mat(i,i))
+    do n = 1, beam_init%n_particle
+      p => bunch%particle(n)
+      p%r%vec = p%r%vec * alpha
+    enddo
 
-  p%r%vec = p%r%vec + center
-      
-end do
+  endif
 
-! set particle charge
+  ! In general, since we are dealing with a finite number of particles, 
+  ! the averages will not be zero.
+  ! Put back the non-zero center if beam_init%renorm_center = False.
 
-bunch%charge = beam_init%bunch_charge
-bunch%particle(:)%charge = beam_init%bunch_charge / beam_init%n_particle
-bunch%particle(:)%ix_lost = not_lost$
+  if (.not. beam_init%renorm_center) then
+    do n = 1, beam_init%n_particle
+      bunch%particle(n)%r%vec = bunch%particle(n)%r%vec + ave
+    enddo
+  endif
+
+  ! Put in beam jitter, include alpha correlations
+  call ran_gauss(ran)
+  center(1) = beam_init%center(1) + beam_init%center_jitter(1)*ran(1)
+  center(2) = beam_init%center(2) + beam_init%center_jitter(2)*ran(2) + &
+                   (ele%a%alpha/ele%a%beta) * beam_init%center_jitter(1)*ran(1)
+  center(3) = beam_init%center(3) + beam_init%center_jitter(3)*ran(3)
+  center(4) = beam_init%center(4) + beam_init%center_jitter(4)*ran(4) + &
+                   (ele%b%alpha/ele%b%beta) * beam_init%center_jitter(3)*ran(3)
+  center(5) = beam_init%center(5) + beam_init%center_jitter(5)*ran(5)
+  center(6) = beam_init%center(6) + beam_init%center_jitter(6)*ran(6) + &
+                   beam_init%dpz_dz * beam_init%center_jitter(5)*ran(5)
     
-! particle spin
-call init_spin_distribution (beam_init, bunch)
-  
-! init all bunches
-  
-bunch%z_center = 0.0
+  ! Now scale by the emittances, etc. and put in jitter
 
-do i = 2, size(beam%bunch)
-  call bunch_equal_bunch (beam%bunch(i), beam%bunch(1))
-  beam%bunch(i)%z_center = (1-i) * beam_init%ds_bunch
+  call ran_gauss(ran(1:4)) ! ran(3:4) for z and e jitter used below
+  denom = (1 + center(6)) * ele%value(E_TOT$)
+  a_emitt = beam_init%a_norm_emitt*(1+beam_init%emitt_jitter(1)*ran(1)) &
+                                                        * m_electron / denom
+  b_emitt = beam_init%b_norm_emitt*(1+beam_init%emitt_jitter(2)*ran(2)) &
+                                                        * m_electron / denom
+    
+  dpz_dz = beam_init%dpz_dz
+    
+  call make_v_mats(ele, v_mat, v_inv)
+
+  sigma(1) = sqrt(a_emitt * ele%a%beta)
+  sigma(2) = sqrt(a_emitt / ele%a%beta)
+  sigma(3) = sqrt(b_emitt * ele%b%beta)
+  sigma(4) = sqrt(b_emitt / ele%b%beta)
+  sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran(3))
+  sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran(4))
+
+  if (sigma(6) == 0 .or. dpz_dz == 0) then
+    a = 0
+  else if (abs(dpz_dz * sigma(5)) > sigma(6)) then
+    call out_io (s_abort$, r_name, &
+                "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
+    call err_exit
+  else
+    a = dpz_dz * sigma(5) / sigma(6)
+  endif
+
+  b = sqrt(1-a**2)
+       
+  !
+
+  do i = 1, beam_init%n_particle
+
+    p => bunch%particle(i)
+    r = p%r%vec
+
+    p%r%vec(1) = sigma(1) *  r(1)
+    p%r%vec(2) = - sigma(2) * (r(2) + r(1) * ele%a%alpha)
+    p%r%vec(3) = sigma(3) *  r(3)
+    p%r%vec(4) = - sigma(4) * (r(4) + r(3) * ele%b%alpha)
+    p%r%vec(5) = sigma(5) *  r(5)
+    p%r%vec(6) = sigma(6) * (r(6) * b + r(5) * a)
+        
+    ! Include Dispersion
+    p%r%vec(1:4) =  p%r%vec(1:4) + &
+                p%r%vec(6) * (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
+        
+    ! Include Coupling
+    p%r%vec(1:4) = matmul(v_mat, p%r%vec(1:4))
+
+    p%r%vec = p%r%vec + center
+        
+  end do
+
+  ! set particle charge
+
+  bunch%charge = beam_init%bunch_charge
+  bunch%particle(:)%charge = beam_init%bunch_charge / beam_init%n_particle
+  bunch%particle(:)%ix_lost = not_lost$
+      
+  ! particle spin
+
+  call init_spin_distribution (beam_init, bunch)
+
+  ! Note z_center is negative and t_center is posive for trailing bunches.
+
+  bunch%z_center = (1-i_bunch) * beam_init%ds_bunch
+  bunch%t_center = -bunch%z_center * ele%value(p0c$) / (c_light * ele%value(e_tot$))
+
 enddo
   
 ! Reset the random number generator parameters.
@@ -1077,6 +1081,8 @@ call reallocate_beam (beam, 1, n_part)
 
 beam%bunch(1)%charge = bunch%charge
 beam%bunch(1)%z_center = bunch%z_center
+beam%bunch(1)%t_center = bunch%t_center
+
 n_part = 1
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%r%vec(plane) .le. slice_center + abs(slice_spread) .and. &
@@ -1616,6 +1622,7 @@ endif
 bunch1%particle  = bunch2%particle
 bunch1%charge    = bunch2%charge
 bunch1%z_center  = bunch2%z_center
+bunch1%t_center  = bunch2%t_center
 
 end subroutine bunch_equal_bunch
 
