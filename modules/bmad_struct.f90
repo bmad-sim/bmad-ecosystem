@@ -98,7 +98,7 @@ type lr_wake_struct     ! Long-Range Wake struct.
   real(rp) norm_cos     ! non-skew cos-like component of the wake.
   real(rp) skew_sin     ! skew sin-like component of the wake.
   real(rp) skew_cos     ! skew cos-like component of the wake.
-  real(rp) z_ref        ! z reference value for computing the exponential term.
+  real(rp) t_ref        ! time reference value for computing the exponential term.
                         !  This is used to prevent value overflow with long trains.
   integer m             ! Order (1 = dipole, 2 = quad, etc.)
   logical polarized     ! Polaraized mode?

@@ -433,7 +433,7 @@ do k = 1, size(bunch%particle)
   j = bunch%particle(k)%ix_z
   particle => bunch%particle(j)
   if (particle%ix_lost /= not_lost$) cycle
-  call lr_wake_apply_kick (ele, bunch%z_center, particle%r)
+  call lr_wake_apply_kick (ele, bunch%t_center, particle%r)
 enddo
 
 ! Add the wakes left by this bunch to the existing wakes.
@@ -442,7 +442,7 @@ do k = 1, size(bunch%particle)
   j = bunch%particle(k)%ix_z
   particle => bunch%particle(j)
   if (particle%ix_lost /= not_lost$) cycle
-  call lr_wake_add_to (ele, bunch%z_center, particle%r, particle%charge)
+  call lr_wake_add_to (ele, bunch%t_center, particle%r, particle%charge)
 enddo
 
 end subroutine

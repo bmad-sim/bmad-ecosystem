@@ -43,7 +43,7 @@ do i = 1, lat%n_ele_max
   if (.not. associated(lat%ele(i)%wake)) cycle
   lat%ele(i)%wake%lr%norm_sin = 0; lat%ele(i)%wake%lr%norm_cos = 0
   lat%ele(i)%wake%lr%skew_sin = 0; lat%ele(i)%wake%lr%skew_cos = 0
-  lat%ele(i)%wake%lr%z_ref = 0
+  lat%ele(i)%wake%lr%t_ref = 0
 enddo
 
 end subroutine zero_lr_wakes_in_lat
@@ -52,7 +52,7 @@ end subroutine zero_lr_wakes_in_lat
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_add_to (ele, s_ref, orbit, charge)
+! Subroutine lr_wake_add_to (ele, t_ref, orbit, charge)
 !
 ! Subroutine to add to the existing long-range wake the contribution from
 ! a passing (macro)particle.
@@ -62,7 +62,7 @@ end subroutine zero_lr_wakes_in_lat
 !
 ! Input:
 !   ele     -- Ele_struct: Element with wakes.
-!   s_ref   -- Real(rp): S position of the reference particle.
+!   t_ref   -- Real(rp): Time of the reference particle.
 !   orbit   -- Coord_struct: Starting coords.
 !   charge  -- Real(rp): Charge of passing (macro)particle.
 !
@@ -72,18 +72,18 @@ end subroutine zero_lr_wakes_in_lat
 !     %wake%lr(:)%norm_cos -- Non-skew cos-like wake components.
 !     %wake%lr(:)%skew_sin -- Non-skew sin-like wake components.
 !     %wake%lr(:)%skew_cos -- Non-skew cos-like wake components.
-!     %wake%lr(:)%z_ref    -- Set to s_ref.
+!     %wake%lr(:)%t_ref    -- Set to t_ref.
 !+
 
-subroutine lr_wake_add_to (ele, s_ref, orbit, charge)
+subroutine lr_wake_add_to (ele, t_ref, orbit, charge)
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
 type (lr_wake_struct), pointer :: lr
 
 integer i
-real(rp) charge, s_ref, ds, k, f_exp, ff, c, s, kx, ky
-real(rp) c_a, s_a, kxx, exp_shift
+real(rp) charge, t_ref, dt, k, f_exp, ff, c, s, kx, ky
+real(rp) c_a, s_a, kxx, exp_shift, dt_part
 
 ! Check if we have to do any calculations
 
@@ -95,19 +95,20 @@ if (.not. associated(ele%wake)) return
 ! components is the same as the spatial variation of a multipole kick.
 
 ! To prevent overflow, the exponential factor (but not the sin and cos factors) 
-! is evaluated with respect to lr%z_ref.
+! is evaluated with respect to lr%t_ref.
 
 do i = 1, size(ele%wake%lr)
 
   lr => ele%wake%lr(i)
-  ds = s_ref + orbit%vec(5) 
+  dt_part = - orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$))
+  dt = t_ref + dt_part
 
-  k = twopi * lr%freq / c_light
+  k = twopi * lr%freq
   f_exp = k / (2 * lr%Q)
-  ff = charge * lr%r_over_q * c_light * exp(-orbit%vec(5) * f_exp) / ele%value(p0c$) 
+  ff = charge * lr%r_over_q * c_light * exp(dt_part * f_exp) / ele%value(p0c$) 
 
-  c = cos (ds * k)
-  s = sin (ds * k)
+  c = cos (-dt * k)
+  s = sin (-dt * k)
 
   call ab_multipole_kick (0.0_rp, ff, lr%m, orbit, kx, ky)
 
@@ -118,11 +119,11 @@ do i = 1, size(ele%wake%lr)
     ky = kxx * c_a * s_a + ky * s_a * s_a
   endif
 
-  if (s_ref == lr%z_ref) then
+  if (t_ref == lr%t_ref) then
     exp_shift = 1
   else
-    exp_shift = exp((s_ref - lr%z_ref) * f_exp)  ! Note: s_ref is generally more negative
-    lr%z_ref = s_ref
+    exp_shift = exp((lr%t_ref - t_ref) * f_exp) 
+    lr%t_ref = t_ref
   endif
 
   lr%norm_sin = lr%norm_sin * exp_shift - kx * c
@@ -138,7 +139,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_apply_kick (ele, s_ref, orbit)
+! Subroutine lr_wake_apply_kick (ele, t_ref, orbit)
 !
 ! Subroutine to apply the long-range wake kick to a particle.
 !
@@ -147,14 +148,14 @@ end subroutine
 !
 ! Input:
 !   ele     -- Ele_struct: Element with wakes
-!   s_ref   -- Real(rp): S position of the reference particle.
+!   t_ref   -- Real(rp): S position of the reference particle.
 !   orbit   -- Coord_struct: Starting coords of the particle.
 !
 ! Output:
 !   orbit   -- Coord_struct: coords after the kick.
 !+
 
-subroutine lr_wake_apply_kick (ele, s_ref, orbit)
+subroutine lr_wake_apply_kick (ele, t_ref, orbit)
 
 implicit none
 
@@ -163,7 +164,7 @@ type (coord_struct) orbit
 type (lr_wake_struct), pointer :: lr
 
 integer i
-real(rp) s_ref, ds, k, f_exp, ff, c, s, w_norm, w_skew, kx, ky, k_dum
+real(rp) t_ref, dt, dt_part, k, f_exp, ff, c, s, w_norm, w_skew, kx, ky, k_dum
 
 ! Check if we have to do any calculations
 
@@ -175,14 +176,15 @@ if (.not. associated(ele%wake)) return
 do i = 1, size(ele%wake%lr)
 
   lr => ele%wake%lr(i)
-  ds = s_ref + orbit%vec(5) ! Note: ds is generally negative
+  dt_part = -orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$)) 
+  dt = t_ref + dt_part
 
-  k = twopi * lr%freq / c_light
+  k = twopi * lr%freq
   f_exp = k / (2 * lr%Q)
-  ff = exp((ds - lr%z_ref) * f_exp)
+  ff = exp((lr%t_ref - dt) * f_exp)
 
-  c = cos (ds * k)
-  s = sin (ds * k)
+  c = cos (-dt * k)
+  s = sin (-dt * k)
 
 ! longitudinal kick
 

@@ -331,19 +331,19 @@ public:
   double norm_cos;
   double skew_sin;
   double skew_cos;
-  double z_ref;
+  double t_ref;
   int m;             // Order number (1 = dipole, etc.)
   bool polarized;
 
   C_lr_wake (double f, double f_in, double rq, double q, double ang,
-          double n_sin, double n_cos, double s_sin, double s_cos, double Z_ref,
+          double n_sin, double n_cos, double s_sin, double s_cos, double t_ref,
           int mm, bool pol) :
       freq(f), freq_in(f_in), R_over_Q(rq), Q(q), angle(ang), norm_sin(n_sin),
-      norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos), z_ref(Z_ref), m(mm), polarized(pol){}
+      norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos), t_ref(t_ref), m(mm), polarized(pol){}
 
   C_lr_wake (double f = 0) :
       freq(f), freq_in(0), R_over_Q(0), Q(0), angle(0), norm_sin(0), norm_cos(0),
-      skew_sin(0), skew_cos(0), z_ref(0), m(0), polarized(0){}
+      skew_sin(0), skew_cos(0), t_ref(0), m(0), polarized(0){}
 };    // End Class
 
 extern "C" void lr_wake_to_c_(lr_wake_struct*, C_lr_wake&);

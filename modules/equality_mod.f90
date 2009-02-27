@@ -212,7 +212,7 @@ is_eq = (f1%freq == f2%freq) .and. (f1%r_over_q == f2%r_over_q) .and. &
         (f1%freq_in == f2%freq_in) .and. (f1%Q == f2%Q) .and. &
         (f1%m == f2%m) .and. (f1%norm_sin == f2%norm_sin) .and. &
         (f1%norm_cos == f2%norm_cos) .and. (f1%skew_sin == f2%skew_sin) .and. &
-        (f1%skew_cos == f2%skew_cos) .and. (f1%z_ref == f2%z_ref) .and. &
+        (f1%skew_cos == f2%skew_cos) .and. (f1%t_ref == f2%t_ref) .and. &
         (f1%m == f2%m) .and. (f1%angle == f2%angle) .and. &
         (f1%polarized .eqv. f2%polarized)
 

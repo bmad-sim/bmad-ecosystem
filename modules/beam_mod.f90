@@ -191,7 +191,7 @@ type (ele_struct), pointer :: ele, lord, chain_ele
 type (ele_struct), save :: rf_ele
 type (lr_wake_struct), pointer :: lr
 
-real(rp) charge, ds, c, s, k
+real(rp) charge, dt, c, s, k
 
 integer i, j, n, ix_ele, ix_pass, ixs, ix
 integer, save, allocatable :: ix_chain(:)
@@ -250,17 +250,17 @@ if (associated(ele%wake)) then
     do i = 1, size(ix_chain)
       if (i == ix_pass) cycle
       lr => ele%wake%lr(i)
-      ds = chain_ele%s - ele%s
-      k = twopi * lr%freq / c_light
-      c = cos (ds * k)
-      s = sin (ds * k)
+      dt = chain_ele%ref_time - ele%ref_time
+      k = twopi * lr%freq
+      c = cos (-dt * k)
+      s = sin (-dt * k)
 
       chain_ele => lat%ele(ix_chain(i))
       chain_ele%wake%lr%norm_sin =  c * lr%norm_sin + s * lr%norm_cos
       chain_ele%wake%lr%norm_cos = -s * lr%norm_sin + c * lr%norm_cos
       chain_ele%wake%lr%skew_sin =  c * lr%skew_sin + s * lr%skew_cos
       chain_ele%wake%lr%skew_cos = -s * lr%skew_sin + c * lr%skew_cos
-      chain_ele%wake%lr%z_ref    = lr%z_ref + ds
+      chain_ele%wake%lr%t_ref    = lr%t_ref + dt
     enddo
   endif
 
