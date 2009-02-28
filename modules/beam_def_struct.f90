@@ -30,6 +30,7 @@ type bunch_struct
   real(rp) z_center ! longitudinal center of bunch (m). Note: Generally, z_center of 
                     !   bunch #1 is 0 and z_center of the other bunches is negative.
   real(rp) t_center ! longitudinal center of bunch (sec).
+  integer ix_ele    ! Element this bunch is at.
 end type
 
 type beam_struct
@@ -54,7 +55,6 @@ type beam_init_struct
   integer :: n_bunch = 0             ! Number of bunches.
   logical :: renorm_center = .true.  ! Renormalize centroid?
   logical :: renorm_sigma = .true.   ! Renormalize sigma?
-  logical :: preserve_dist = .false. ! use the same grid distributon each time
   logical :: init_spin     = .false. ! initialize beam spinors
   character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
   character(16) :: random_gauss_converter = 'exact'  

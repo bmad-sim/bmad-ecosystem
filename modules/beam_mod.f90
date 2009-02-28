@@ -201,6 +201,8 @@ logical csr_on, err
 !------------------------------------------------
 ! space charge tracking will also include wakes if they are on too.
 
+bunch_end%ix_ele = ix_ele
+
 if (lat%ele(ix_ele)%tracking_method == custom$) then
   call track1_bunch_custom (bunch_start, lat, ix_ele, bunch_end)
   return
