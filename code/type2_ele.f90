@@ -516,7 +516,7 @@ if (associated(ele%wake)) then
             '   #        Freq         R/Q           Q   m  Polarization_Angle'
       do i = 1, size(ele%wake%lr)
         lr => ele%wake%lr(i)
-        angle = '-'
+        angle = '   unpol'
         if (lr%polarized) write (angle, '(f9.4)') lr%angle
         nl=nl+1; write (li(nl), '(i4, 3es12.4, i4, a)') i, &
                 lr%freq, lr%R_over_Q, lr%Q, lr%m, angle
