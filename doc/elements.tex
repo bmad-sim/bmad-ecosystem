@@ -1004,11 +1004,12 @@ index. An example input file is:
               Freq       R/Q      Q       m  Polarization_Angle
               [Hz]  [Ohm/m^(2m)]             [Radians/2pi]
   &long_range_modes
-    lr(1) = 1.6506e9    0.76    7.0e4     1
+    lr(1) = 1.6506e9    0.76    7.0e4     1     unpol
     lr(2) = 1.6991e9   11.21    5.0e4     1     0.15
   /
 \end{example}
-If no polarization angle is given the mode is taken to be unpolarized.
+If ``\vn{unpolarized}'' is used for the polarization angle, the mode
+is taken to be unpolarized.
 
 \vn{lr_freq_spread} is used to randomly spread out the long range mode
 frequencies among different cavities. The spread is Gaussian in shape
