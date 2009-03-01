@@ -1788,7 +1788,7 @@ type lr_wake_input_struct
   real(rp) R_over_Q     ! Strength in V/C/m^2.
   real(rp) Q            ! Quality factor.
   integer m             ! Order (1 = dipole, 2 = quad, etc.)
-  real(rp) angle        ! polarization angle (radians/2pi).
+  character(16) angle   ! polarization angle (radians/2pi).
 end type
 
 type (ele_struct) ele
@@ -1814,12 +1814,12 @@ if (iu < 0) return
 
 ele%wake%lr_file = lr_file_name
 lr%freq = -1
-lr%angle = real_garbage$
+lr%angle = ''
 read (iu, nml = long_range_modes, iostat = ios)
 close (iu)
 if (ios /= 0) then
-  call warning ('CANNOT READ LONG_RANGE_MODES NAMELIST FROM FILE: ' & 
-                    // full_file_name, 'FOR ELEMENT: ' // ele%name)
+  call warning ('CANNOT READ LONG_RANGE_MODES NAMELIST FOR ELEMENT: ' // ele%name, & 
+                'FROM FILE: '// full_file_name)
   return
 endif
 
@@ -1838,11 +1838,27 @@ do i = 1, size(lr)
   ele%wake%lr(j)%norm_cos  = 0
   ele%wake%lr(j)%skew_sin  = 0
   ele%wake%lr(j)%skew_cos  = 0
-  ele%wake%lr(j)%angle     = 0
- ele%wake%lr(j)%polarized = .false.
-  if (lr(i)%angle /= real_garbage$) then
-    ele%wake%lr(j)%angle     = lr(i)%angle
-   ele%wake%lr(j)%polarized = .true.
+
+  call downcase_string(lr(i)%angle)
+  if (lr(i)%angle == '') then
+    call warning ('LONG_RANGE_MODE ANGLE IS MISSING. MUST BE NUMBER OR "UNPOLARIZED"', & 
+                  'FOR ELEMENT: ' // ele%name, &
+                  'IN FILE: ' // full_file_name)
+    cycle
+  endif
+
+  if (index('unpolarized', trim(lr(j)%angle)) == 1) then
+    ele%wake%lr(j)%polarized = .false.
+    ele%wake%lr(j)%angle     = 0
+  else
+    ele%wake%lr(j)%polarized = .true.
+    read (lr(j)%angle, *, iostat = ios) ele%wake%lr(j)%angle
+    if (ios /= 0) then
+      call warning ('BAD LONG_RANGE_MODE ANGLE.', &
+                    'FOR ELEMENT: ' // ele%name, &
+                    'IN FILE: ' // full_file_name)
+      cycle
+    endif
   endif
 enddo
 
@@ -2562,7 +2578,7 @@ do i = 1, n_multipass
   slave%n_lord = 1
   write (slave%name, '(2a, i1)') trim(slave%name), '\', i   ! '
   call add_lattice_control_structs (lat, ix_slave)
-  if (slave%lord_status /= super_lord$) slave%slave_status = multipass_slave$
+  slave%slave_status = multipass_slave$
   ixic = slave%ic1_lord
   lat%ic(ixic) = ixc
   ! If slave is a super_lord then mark the super_slave names
