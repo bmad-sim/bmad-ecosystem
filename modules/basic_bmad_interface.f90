@@ -377,7 +377,7 @@ interface
     implicit none
     type (lat_struct), target :: r_in
     type (lat_struct), target :: r_out
-    integer ix_out(:)
+    integer, optional :: ix_out(:)
     logical remove_markers
     logical use_ele(:)
     logical, optional :: use_taylor

@@ -757,10 +757,11 @@ call ran_gauss_converter (beam_init%random_gauss_converter, &
 do i_bunch = 1, size(beam%bunch)
 
   bunch => beam%bunch(i_bunch)
-
   call init_bunch_distribution (ele, beam_init, bunch)
+
   bunch%z_center = (1-i_bunch) * beam_init%ds_bunch
   bunch%t_center = -bunch%z_center * ele%value(p0c$) / (c_light * ele%value(e_tot$))
+  bunch%ix_bunch = i_bunch
 
 enddo
   
@@ -1003,6 +1004,10 @@ bunch%charge = beam_init%bunch_charge
 bunch%particle(:)%charge = beam_init%bunch_charge / beam_init%n_particle
 bunch%particle(:)%ix_lost = not_lost$
 bunch%ix_ele = ele%ix_ele  ! Current position of the bunch
+
+bunch%z_center = 0  ! Default
+bunch%t_center = 0  ! Default
+bunch%ix_bunch = 1  ! Default
 
 ! particle spin
 
