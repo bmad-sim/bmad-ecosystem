@@ -191,7 +191,7 @@ if build_type == "RELEASE":
                 errors = 1
             line = build_process.fromchild.readline()
         if errors:
-            print "--> BUILD STATUS: ERROR(S) DETECTED"
+            print "--> BUILD STATUS: ERROR(S) DETECTED [release:full]"
             sys.exit(90)
         else:
             if run_tests == "YES":
