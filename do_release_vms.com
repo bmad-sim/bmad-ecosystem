@@ -110,8 +110,8 @@ $!--------------------------------------------------
 $! building BeamInstSupport
 $!--------------------------------------------------
 $!  
-$ write sys$output "========== Building BeamInstSupport =========="
-$ gmake --directory=[.src.BEAMINSTSUPPORT] "''par1'" "''par2'"
+$! write sys$output "========== Building BeamInstSupport =========="
+$! gmake --directory=[.src.BEAMINSTSUPPORT] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building MPMnet
