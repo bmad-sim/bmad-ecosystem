@@ -25,7 +25,7 @@ integer i, nl, iu, ios, n, ix, ix2
 character(*) :: what1, what2
 character(16) :: r_name = "TAO_HELP"
 character(40) start_tag, left_over_eliminate, left_over_sub
-character(200) line, file_name
+character(200) line, file_name, full_file_name
 
 logical blank_line_before, in_example
 
@@ -33,10 +33,12 @@ logical blank_line_before, in_example
 ! Determine what file to open and starting tag.
 
 if (tao_com%single_mode) then
-  call fullfilename ('TAO_DIR:doc/single-mode.tex', file_name)
+  file_name = 'TAO_DIR:doc/single-mode.tex'
 else
-  call fullfilename ('TAO_DIR:doc/command-list.tex', file_name)
+  file_name = 'TAO_DIR:doc/command-list.tex'
 endif
+
+call fullfilename (file_name, full_file_name)
 
 if (what1 == '') then
   start_tag = '%% command_table'
@@ -47,7 +49,7 @@ endif
 ! Open the file 
 
 iu = lunget()
-open (iu, file = file_name, iostat = ios)
+open (iu, file = full_file_name, iostat = ios)
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // file_name)
   return

@@ -1445,9 +1445,11 @@ case ('particle')
 
   ix_ele = 0
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
-  word1 = stuff2(:ix_word)
-  if (word1 /= '') then
-    call tao_locate_elements (word1, ix_u, ix_eles)
+  ele_name = stuff2(:ix_word)
+  if (ele_name /= '') then
+    call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
+    if (err) return
+    call tao_locate_elements (ele_name, ix_u, ix_eles)
     ix_ele = ix_eles(1)
     if (ix_ele < 0) return
   endif
