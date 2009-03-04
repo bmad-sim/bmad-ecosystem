@@ -1,0 +1,9 @@
+
+ 
+          Frequency           R/Q              Q            n        Polarization_Angle
+           [Hz]           [Ohm/m^(2n)]                               [Radians/2pi]
+ 
+&long_range_modes
+ lr(1) =     2e9              2500           10000         1        0.00
+/
+

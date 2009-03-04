@@ -1,0 +1,25 @@
+ 
+
+betaa=20
+betab=20
+alphaa=0
+alphab=0
+ beginning[beta_a]  =    betaa
+ beginning[alpha_a]=   alphaa
+ beginning[beta_b] =    betab
+ beginning[alpha_b] =   alphab
+
+beginning[e_tot] = 5e9
+
+parameter[lattice_type] = linear_lattice
+
+
+rfw: lcavity, l = 0, gradient = 0.0, lr_wake_file="simple.dat", lr_freq_spread=0.0E-3, rf_frequency = 1.3e9
+
+m1: match, beta_a1=betaa, alpha_a1=alphaa, beta_b1=betab, alpha_b1=alphab, dphi_a=10, dphi_b=0, l=1.0, match_end=.true.
+
+simple: line[multipass] = (rfw,m1)
+
+dual: line = (simple,simple)
+
+use, dual
