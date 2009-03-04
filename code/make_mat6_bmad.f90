@@ -62,6 +62,7 @@ real(rp) dp_coupler, dp_x_coupler, dp_y_coupler
 integer i, n_slice, key
 
 logical, optional :: end_in, err
+logical err_flag
 character(16) :: r_name = 'make_mat6_bmad'
 
 !--------------------------------------------------------
@@ -126,7 +127,8 @@ case (marker$, branch$, photon_branch$)
 ! Match
 
 case (match$)
-  call match_ele_to_mat6 (ele, ele%vec0, ele%mat6)
+  call match_ele_to_mat6 (ele, ele%vec0, ele%mat6, err_flag)
+  if (present(err)) err = err_flag
 
 !--------------------------------------------------------
 ! Patch

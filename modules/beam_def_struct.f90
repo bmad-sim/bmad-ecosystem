@@ -53,7 +53,7 @@ type beam_init_struct
   real(rp) :: sig_e_jitter     = 0.0 ! energy spread RMS jitter 
   type(beam_spin_struct)  spin       ! Initialize the spin
   integer :: n_particle = 0          ! Number of simulated particles per bunch.
-  integer :: n_bunch = 0             ! Number of bunches.
+  integer :: n_bunch = 1             ! Number of bunches.
   logical :: renorm_center = .true.  ! Renormalize centroid?
   logical :: renorm_sigma = .true.   ! Renormalize sigma?
   logical :: init_spin     = .false. ! initialize beam spinors

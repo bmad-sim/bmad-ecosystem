@@ -1838,6 +1838,7 @@ do i = 1, size(lr)
   ele%wake%lr(j)%norm_cos  = 0
   ele%wake%lr(j)%skew_sin  = 0
   ele%wake%lr(j)%skew_cos  = 0
+  ele%wake%lr(j)%t_ref     = 0
 
   call downcase_string(lr(i)%angle)
   if (lr(i)%angle == '') then

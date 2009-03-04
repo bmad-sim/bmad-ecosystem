@@ -843,6 +843,13 @@ integer i, j, j2, n, i_bunch
 character(16) old_engine, old_converter  
 character(22) :: r_name = "init_bunch_distribution"
 
+! make sure the beam%particle array is the correct size.
+
+if (allocated(bunch%particle)) then
+  if (size(bunch%particle) /= beam_init%n_particle) deallocate (bunch%particle)
+endif
+if (.not. allocated(bunch%particle)) allocate (bunch%particle(beam_init%n_particle))
+
 !
 
 sig_mat = 0
@@ -873,7 +880,9 @@ do n = 1, beam_init%n_particle
   bunch%particle(n)%r%vec = bunch%particle(n)%r%vec - ave
 enddo
 
-if (beam_init%renorm_sigma) then
+! renormalize the beam sigmas. Ignore if n_particle = 1.
+
+if (beam_init%renorm_sigma .and. beam_init%n_particle > 1) then
 
   if (beam_init%n_particle < 7) then
     call out_io (s_abort$, r_name, &
@@ -930,6 +939,7 @@ if (.not. beam_init%renorm_center) then
 endif
 
 ! Put in beam jitter, include alpha correlations
+
 call ran_gauss(ran)
 center(1) = beam_init%center(1) + beam_init%center_jitter(1)*ran(1)
 center(2) = beam_init%center(2) + beam_init%center_jitter(2)*ran(2) + &
@@ -1021,7 +1031,7 @@ end subroutine init_bunch_distribution
 !+
 ! Subroutine init_spin_distribution (beam_init, bunch)
 !
-! Initializes a spin distribution according to init_beam%spin
+! Initializes a spin distribution according to beam_init%spin
 !
 ! Input:
 !  beam_init -- (beam_init_struct): 

@@ -1704,7 +1704,7 @@ end subroutine transfer_mat_from_twiss
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine match_ele_to_mat6 (ele, vec0, mat6)
+! Subroutine match_ele_to_mat6 (ele, vec0, mat6, err_flag)
 !
 ! Subroutine to make the 6 x 6 transfer matrix from the twiss parameters
 ! at the entrance and exit ends of the element.
@@ -1719,9 +1719,10 @@ end subroutine transfer_mat_from_twiss
 ! Output:
 !   vec0(6)   -- Real(rp): Currently just set to zero.
 !   mat6(6,6) -- Real(rp): Transfer matrix.
+!   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine match_ele_to_mat6 (ele, vec0, mat6)
+subroutine match_ele_to_mat6 (ele, vec0, mat6, err_flag)
 
 implicit none
 
@@ -1730,16 +1731,21 @@ type (ele_struct), target :: ele, ele0, ele1
 real(rp) mat6(6,6), vec0(6)
 real(rp), pointer :: v(:)
 
+logical err_flag
+
 ! Special case where match_end is set but there is no beginning beta value yet.
-! In this case, just return the unit matrix.
+! In this case, just return the unit matrix and set the err_flag.
 
 if (ele%value(match_end$) /= 0 .and. ele%value(beta_a0$) == 0) then
   call mat_make_unit (mat6)
   vec0 = 0
+  err_flag = .true.
   return
 endif
 
 !
+
+err_flag = .false.
 
 vec0 = 0
 v => ele%value

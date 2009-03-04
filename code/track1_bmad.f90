@@ -60,6 +60,10 @@ real(rp), parameter :: phase_cut = 1e-5
 
 integer i, n, n_slice, key
 
+logical err
+
+character(16) :: r_name = 'track1_bmad'
+
 ! initially set end = start
 
 end = start     ! transfer start to end
@@ -197,7 +201,7 @@ case (lcavity$)
   if (length == 0) return
 
   if (ele%value(E_tot_start$) == 0) then
-    print *, 'ERROR IN TRACK1_BMAD: E_TOT_START IS 0 FOR A LCAVITY!'
+    call out_io (s_fatal$, r_name, 'E_TOT_START IS 0 FOR A LCAVITY!')
     call err_exit
   endif
 
@@ -391,7 +395,12 @@ case (marker$, branch$, photon_branch$)
 
 case (match$)
 
-  call match_ele_to_mat6 (ele, vec0, mat6)
+  call match_ele_to_mat6 (ele, vec0, mat6, err)
+  if (err) then
+    call out_io (s_error$, r_name, &
+          'MATCH ELEMENT DOES NOT HAVE BEGINNING TWISS PARAMETERS: ' // ele%name)
+  endif
+
   end%vec = matmul (mat6, end%vec) + vec0
 
 !-----------------------------------------------
@@ -509,9 +518,9 @@ case (rfcavity$)
     k = 0
   else
     if (ele%value(RF_frequency$) == 0) then
-      print *, 'ERROR IN TRACK1_BMAD: ', &
-                 '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ', trim(ele%name)
-      print *, '      YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.'
+      call out_io (s_fatal$, r_name, &
+                 '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // ele%name, &
+                 'YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
       call err_exit
     endif
     ff = twopi * ele%value(rf_frequency$) / c_light
@@ -623,9 +632,10 @@ case (taylor$)
 case (wiggler$)
 
   if (ele%sub_key == map_type$) then
-    print *, 'ERROR IN TRACK1_BMAD: NEW STYLE WIGGLER: ', ele%name
-    print *, '       HAS TRACKING_METHOD = BMAD_STANDARD.'
-    print *, '       THIS IS NOT A POSSIBLE OPTION FOR THE TRACKING_METHOD.'
+    call out_io (s_fatal$, r_name, &
+            'NEW STYLE WIGGLER: ' // ele%name, &
+            'HAS TRACKING_METHOD = BMAD_STANDARD.', &
+            'THIS IS NOT A POSSIBLE OPTION FOR THE TRACKING_METHOD.')
     call err_exit
   endif
 
@@ -661,8 +671,8 @@ case (wiggler$)
 
 case default
 
-  print *, 'ERROR IN TRACK1_BMAD: UNKNOWN ELEMENT: ', &
-                                      key_name(ele%key), ele%type
+  call out_io (s_fatal$, r_name, &
+          'ERROR IN TRACK1_BMAD: UNKNOWN ELEMENT: ' // key_name(ele%key))
   call err_exit
 
 end select

@@ -187,9 +187,9 @@ implicit none
 
 type (bunch_struct) bunch_start, bunch_end
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, chain_ele
+type (ele_struct), pointer :: ele, lord
 type (ele_struct), save :: rf_ele
-type (lr_wake_struct), pointer :: lr
+type (lr_wake_struct), pointer :: lr, lr_chain
 
 real(rp) charge, dt, c, s, k
 
@@ -233,6 +233,7 @@ if (associated(ele%wake)) then
       lord => lat%ele(ixs)
       lord%wake%lr%norm_sin = 0;  lord%wake%lr%norm_cos = 0
       lord%wake%lr%skew_sin = 0;  lord%wake%lr%skew_cos = 0
+      lord%wake%lr%t_ref = 0
       do j = lord%ix1_slave, lord%ix2_slave
         ix = lat%control(j)%ix_slave
         lord%wake%lr%norm_sin = lord%wake%lr%norm_sin + lat%ele(ix)%wake%lr%norm_sin
@@ -251,18 +252,20 @@ if (associated(ele%wake)) then
   if (ix_pass > 0) then
     do i = 1, size(ix_chain)
       if (i == ix_pass) cycle
-      lr => ele%wake%lr(i)
-      dt = chain_ele%ref_time - ele%ref_time
-      k = twopi * lr%freq
-      c = cos (-dt * k)
-      s = sin (-dt * k)
+      do j = 1, size(ele%wake%lr)
+        lr       => ele%wake%lr(j)
+        lr_chain => lat%ele(ix_chain(i))%wake%lr(j)
+        dt = lat%ele(ix_chain(i))%ref_time - ele%ref_time
+        k = twopi * lr%freq
+        c = cos (-dt * k)
+        s = sin (-dt * k)
 
-      chain_ele => lat%ele(ix_chain(i))
-      chain_ele%wake%lr%norm_sin =  c * lr%norm_sin + s * lr%norm_cos
-      chain_ele%wake%lr%norm_cos = -s * lr%norm_sin + c * lr%norm_cos
-      chain_ele%wake%lr%skew_sin =  c * lr%skew_sin + s * lr%skew_cos
-      chain_ele%wake%lr%skew_cos = -s * lr%skew_sin + c * lr%skew_cos
-      chain_ele%wake%lr%t_ref    = lr%t_ref + dt
+        lr_chain%norm_sin =  c * lr%norm_sin + s * lr%norm_cos
+        lr_chain%norm_cos = -s * lr%norm_sin + c * lr%norm_cos
+        lr_chain%skew_sin =  c * lr%skew_sin + s * lr%skew_cos
+        lr_chain%skew_cos = -s * lr%skew_sin + c * lr%skew_cos
+        lr_chain%t_ref    = lr%t_ref + dt
+      enddo
     enddo
   endif
 
