@@ -239,13 +239,13 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
 
      e_init = energy(i_e)
-     co(0)%vec(6) = e_init+ co(0)%vec(6)
+     orb0%vec(6) = e_init+ co(0)%vec(6)
 
      aperture%closed_orbit = co(0)
 
 !     call closed_orbit_calc (ring, co, 4)  !add 4/18/08 to get reasonable start when there is finite dispersion
 
-     orb0 = co(0)
+!     orb0 = co(0)
 !     orb0%vec(6) = e_init
 
     call string_trim (in_file, in_file, ix)
@@ -264,10 +264,10 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
     write (3, *) 'dE_E     = ', e_init
     call date_and_time_stamp (date_str)
     write (3, '(4a)') 'data_date = `', date_str, "'"
-    write(3,*)'Q_x = ',"`",'Q_x = ',ring%a%tune/twopi,"'"
-    write(3,*)'Q_y = ',"`",'Q_y = ',ring%b%tune/twopi,"'"
-    write(3,*)'Q_z = ',"`",'Q_z = ',ring%z%tune/twopi,"'"
-    write(3,*)'Delta_fRF = ',"`",'Delta_fRF = ',delta_fRF,"'"
+    write(3,'(1x,a6,a1,a6,f8.4,a1)')'Q_x = ',"`",'Q_x = ',ring%a%tune/twopi,"'"
+    write(3,'(1x,a6,a1,a6,f8.4,a1)')'Q_y = ',"`",'Q_y = ',ring%b%tune/twopi,"'"
+    write(3,'(1x,a6,a1,a6,f8.4,a1)')'Q_z = ',"`",'Q_z = ',ring%z%tune/twopi,"'"
+    write(3,'(1x,a12,a1,a12,es7.2e1,a1)')'Delta_fRF = ',"`",'Delta_fRF = ',delta_fRF,"'"
     write(2,'(1x,a16,a1,a9,a1)')' particle_type =',"'", particle_type(particle),"'"  
     write (3, *) 'return'
     write (3, *)

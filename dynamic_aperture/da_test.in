@@ -1,25 +1,29 @@
  &input
-    lat_file = '$BMAD_LAT/bmad_hibetainj_20040628_v01.lat'
-    n_turn   = 10
+    lat_file = '/nfs/cesr/mnt/lattice/cesr/bmad/cta_2085mev_20081107.lat'
+    n_turn   = 1000
     n_xy_pts = 37
     point_range = 1 37
     n_energy_pts = 3
-    x_init   = 0.01
-    y_init   = 0.001
-    energy =  0.0 0.003 0.006
+    x_init   = 0.005
+    y_init   = 0.01
+    energy =  0.0 0.005 0.01
     accuracy = 0.00001
     aperture_multiplier = 1.
-    qx_ini = 0.53
-    qy_ini = 0.6
-    qx  = 0.518
-    qy = 0.584
-    qz = -0.089
+    qx_ini = 0.545
+    qy_ini = 0.62
+    qx  = 0.56
+    qy = 0.62
+    qz = -0.055
+    qp_x = 1.
+    qp_y = 1.
     particle = 1
     i_train = 1
     j_car = 1
     n_trains_tot = 9
-    n_cars = 4
-    current = 2.0
+    n_cars = 1
+    current = 0.
+    delta_fRF = 2.8e3
+    frf = 5.e8
  /
 
 

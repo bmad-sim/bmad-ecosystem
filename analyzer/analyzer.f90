@@ -5,7 +5,8 @@ program anaylzer
   use cbar_mod
   use bookkeeper_mod
   use bsim_interface
- 
+  use rad_int_common
+
   implicit none
 
   interface
@@ -39,7 +40,7 @@ program anaylzer
   integer nd
   integer plot_flag, last
   integer, parameter :: orbit$=1,beta$=2,cbar$=3,diff$=4, de_beta$=5
-  integer, parameter :: eta$=6, de_cbar$=7, eta_prop$=8
+  integer, parameter :: eta$=6, de_cbar$=7, eta_prop$=8, rad_int$=9
   integer ix_cache
   integer, allocatable :: n_ele(:)
   integer i_dim/4/
@@ -53,7 +54,7 @@ program anaylzer
 
   real*4, allocatable :: z(:), x(:), y(:), zz(:,:), xx(:,:), yy(:,:)
   real*4, allocatable :: zz_diff(:), xx_diff(:), yy_diff(:)
-  real*4 width/7./, aspect/1./
+  real*4 width/7./, aspect/1.4/
   real*4 xmax/0./, ymax/0./, xmax0, ymax0
   real*4 xscale, yscale, x_low, y_low
   real*4 xdet(1000), ydet(1000), zdet(1000)
@@ -75,7 +76,7 @@ program anaylzer
   character*40 lattice
   character*120 lat_file
   character*120 line, last_line, vec_start
-  character*16 x_or_y, answer, save_answer
+  character*20 x_or_y, answer, save_answer
   character*72 comment
   character*20 device_type, last_device_type/' '/
   character*40 ele_names(4)
@@ -501,7 +502,7 @@ program anaylzer
      diff=.false.
 
 20   print *, ' '
-     print '(a,$)',' Plot ? ([ORBIT,BETA,CBAR, DBETA/DE, ETA, DCBAR/DE, DIFF]) > '
+     print '(a,$)',' Plot ? ([ORBIT,BETA,CBAR, DBETA/DE, ETA, DCBAR/DE, RAD_INT, DIFF]) > '
      read(5, '(a)', err=20)answer
      save_answer = answer
 
@@ -527,6 +528,8 @@ program anaylzer
        plot_flag=eta$
       elseif(index(answer(1:ix),'DC') /=0)then
        plot_flag=de_cbar$
+      elseif(index(answer(1:ix),'RAD') /=0)then
+       plot_flag=rad_int$
       elseif(index(answer,'DI') /= 0 .or. diff)then
        diff = .true.
       else
@@ -584,7 +587,7 @@ program anaylzer
        istat1 = pgopen(device_type)
        if(istat1 .lt. 1) stop
        call pgpap (width, aspect)
-       call pgsubp(1,2)
+       call pgsubp(1,3)
        call pgask(.false.)
        call pgscr(0, 1., 1., 1.)
        call pgscr(1,0.,0.,0.)
@@ -606,86 +609,79 @@ program anaylzer
 
 
      nd=0
-     do i=0,ring%n_ele_track
-      z(i) = ring%ele(i)%s
+     n_all = ring%n_ele_track
+!     do i=0,ring%n_ele_track
+      z(0:n_all) = ring%ele(0:n_all)%s
 
       if(plot_flag == orbit$)then
-       x(i)= co(i)%vec(1)*1000.
-       y(i)= co(i)%vec(3)*1000.
-       if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
-       endif
-       if(index(ring_two(1)%ele(i)%name, 'IP_L0') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
-       endif
+       x(0:n_all)= co(0:n_all)%vec(1)*1000.
+       y(0:n_all)= co(0:n_all)%vec(3)*1000.
       endif
 
       if(plot_flag == beta$)then
-       x(i) = ring%ele(i)%a%beta
-       y(i) = ring%ele(i)%b%beta
-       if(i == 0)print '(1x,a16,3a12)','     Element    ','     z      ','   Beta_a   ','   Beta_b   '
-       if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),max(x(i-1),x(i)),max(y(i-1),y(i))
-       endif
-       if(index(ring_two(1)%ele(i)%name, 'IP_L0') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
-       endif
+       x(0:n_all) = ring%ele(0:n_all)%a%beta
+       y(0:n_all) = ring%ele(0:n_all)%b%beta
       endif
 
       if(plot_flag == de_beta$)then
-       x(i) = (ring_two(1)%ele(i)%a%beta - ring_two(-1)%ele(i)%a%beta)/2/de/ &
-                   ring%ele(i)%a%beta
-       y(i) = (ring_two(1)%ele(i)%b%beta - ring_two(-1)%ele(i)%b%beta)/2/de/ &
-                    ring%ele(i)%b%beta
-       if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
-!        type *,ring_two(1)%ele(i)%name,z(i),x(i),y(i)
-       endif
-       if(index(ring_two(1)%ele(i)%name, 'IP_L0') /= 0 )then
-!        type *,ring_two(1)%ele(i)%name,z(i),x(i),y(i)
-       endif
+       x(0:n_all) = (ring_two(1)%ele(0:n_all)%a%beta - ring_two(-1)%ele(0:n_all)%a%beta)/2/de/ &
+                   ring%ele(0:n_all)%a%beta
+       y(0:n_all) = (ring_two(1)%ele(0:n_all)%b%beta - ring_two(-1)%ele(0:n_all)%b%beta)/2/de/ &
+                    ring%ele(0:n_all)%b%beta
       endif
 
       if(plot_flag == eta$)then
-       x(i) = (co_high(i)%vec(1) - co_low(i)%vec(1))/2/de
-       y(i) = (co_high(i)%vec(3) - co_low(i)%vec(3))/2/de
+       x(0:n_all) = (co_high(0:n_all)%vec(1) - co_low(0:n_all)%vec(1))/2/de
+       y(0:n_all) = (co_high(0:n_all)%vec(3) - co_low(0:n_all)%vec(3))/2/de
       endif
 
       if(plot_flag == eta_prop$)then
-       x(i) = ring%ele(i)%a%eta
-       y(i) = ring%ele(i)%b%eta
+       x(0:n_all) = ring%ele(0:n_all)%a%eta
+       y(0:n_all) = ring%ele(0:n_all)%b%eta
       endif
 
       if(plot_flag == cbar$)then
-       call c_to_cbar(ring%ele(i),cbar_mat)
-       x(i) = cbar_mat(1,2)
-       y(i) = cbar_mat(2,2)
-!       if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele(ring%ni)%name,z(i),x(i),y(i)
-!       endif
-!       if(ring%ele(i)%s < 15. .or. ring%ele(ring%n_ele_track)%s - ring%ele(i)%s <15. )then
-!        print '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
-!       endif
+        do i = 0,n_all
+          call c_to_cbar(ring%ele(i),cbar_mat)
+          x(i) = cbar_mat(1,2)
+          y(i) = cbar_mat(2,2)
+        end do
       endif
 
       if(plot_flag == de_cbar$)then
-       call c_to_cbar(ring_two(1)%ele(i),cbar_mat1)
-       call c_to_cbar(ring_two(-1)%ele(i),cbar_mat2)
-       x(i) = (cbar_mat1(1,2)-cbar_mat2(1,2))/2/de
-       y(i) = (cbar_mat1(2,2)-cbar_mat2(2,2))/2/de
+       do i = 0,n_all
+         call c_to_cbar(ring_two(1)%ele(i),cbar_mat1)
+         call c_to_cbar(ring_two(-1)%ele(i),cbar_mat2)
+         x(i) = (cbar_mat1(1,2)-cbar_mat2(1,2))/2/de
+         y(i) = (cbar_mat1(2,2)-cbar_mat2(2,2))/2/de
+       end do
       endif
 
-      if(index(ring%ele(i)%name, 'DET') /= 0)then
-        nd = nd+1
-        zdet(nd) = z(i)
-        xdet(nd) = x(i)
-        ydet(nd) = y(i)
+      if(plot_flag == rad_int$)then
+       do i=0,n_all
+         x(i) = ric%i5a(i)
+         y(i) = ric%i5b(i)
+       end do
       endif
 
-      xmax = max(abs(x(i)),xmax)
-      ymax = max(abs(y(i)),ymax)
-      if(xmax0 /= 0.)xmax=xmax0
-      if(ymax0 /= 0.)ymax=ymax0
+      do i = 0,n_all
+        if(index(ring%ele(i)%name, 'DET') /= 0)then
+          nd = nd+1
+          zdet(nd) = z(i)
+          xdet(nd) = x(i)
+          ydet(nd) = y(i)
+        endif
+
+
+        xmax = max(abs(x(i)),xmax)
+        ymax = max(abs(y(i)),ymax)
+        if(xmax0 /= 0.)xmax=xmax0
+        if(ymax0 /= 0.)ymax=ymax0
+
+        write(61,'(1x,a,1x,3e12.4)')ring%ele(i)%name,z(i),x(i),y(i)
      end do
+
+
      n_all = ring%n_ele_track
      l = n_all
      endif
@@ -813,6 +809,17 @@ program anaylzer
          call pgenv(start, end,-xscale,xscale,0,1)
          call pglab('z (m)','d(cbar12)/dE',' cbar')
        endif
+
+       if(plot_flag==rad_int$)then
+         p = int(log10(xmax))
+         if(p<=0)p=p-1
+         f=xmax/10**p
+         xscale=(int(f*2+1)/2.)*10**p
+         print *,' p,f, xmax, xscale ',p,f, xmax, xscale
+         call pgenv(start, end,-xscale,xscale,0,1)
+         call pglab('z (m)','I5a[1/m]',' Radiation Integrals')
+       endif
+
 !       endif
 
 !       do i=1,ring%n_ele_track
@@ -827,9 +834,13 @@ program anaylzer
          call pgsci(j)
          forall(i=1:n_ele(j))z(i)=zz(i,j)
          forall(i=1:n_ele(j))x(i)=xx(i,j)
-         call pgline(n_ele(j), z, x)
+         if(plot_flag == rad_int$)then
+            call pgpt(n_ele(j), z,x,-4)
+          else
+           call pgline(n_ele(j), z, x)
+         endif
        end do
-       call pgpt(nd, zdet, xdet, 18)
+       if(plot_flag /= rad_int$)call pgpt(nd, zdet, xdet, 18)
        call pgmtxt('T',3.,0.,0.,comment)
 
        call pgsci(1)
@@ -838,6 +849,7 @@ program anaylzer
          if(p<=0)p=p-1
          f=ymax/10**p
          yscale=(int(f*2+1)/2.)*10**p
+         if(yscale < 1.e-20)yscale = 1.e-20
          print *,' p,f, ymax, yscale ',p,f, ymax, yscale
          call pgenv(start, end,-yscale,yscale,0,1)
          call pglab('z (m)','y(mm)',' Closed orbit')
@@ -874,6 +886,17 @@ program anaylzer
          call pglab('z (m)','d(cbar22)/dE',' cbar')
        endif
 
+       if(plot_flag == rad_int$)then
+         p = int(log10(ymax))
+         if(p<=0)p=p-1
+         f=ymax/10**p
+         yscale=(int(f*2+1)/2.)*10**p
+         if(yscale < 1.e-20)yscale = 1.e-20
+         print *,' p,f, ymax, yscale ',p,f, ymax, yscale
+         call pgenv(start, end,-yscale,yscale,0,1)
+         call pglab('z (m)','I5b[1/m]',' Radiation Integrals')
+       endif
+
 !       do i=1,ring%n_ele_track
        do i=1,l
          zz(i,n)=z(i)
@@ -884,11 +907,17 @@ program anaylzer
          call pgsci(j)
          forall(i=1:n_ele(j))z(i)=zz(i,j)
          forall(i=1:n_ele(j))y(i)=yy(i,j)
-         call pgline(n_ele(j), z, y)
+         if(plot_flag == rad_int$)then
+           call pgpt(n_ele(j),z,y,-4)
+          else
+           call pgline(n_ele(j), z, y)
+         endif
        end do
 
-         call pgpt(nd, zdet, ydet, 18)
-!     endif
+         if(plot_flag /= rad_int$)call pgpt(nd, zdet, ydet, 18)
+
+!  plot elements
+       call plot_elements(ring, start, end)
     
 
 !     answer = ' '
@@ -1269,3 +1298,45 @@ program anaylzer
 
   return
   end
+
+  subroutine plot_elements(ring, start, end)
+
+  use bmad
+  use bmad_struct
+
+  implicit none
+  type(lat_struct)ring
+  type (ele_struct) ele
+  real(rp) begin
+  real*4 x(4), y(4), xavg, y0, start, end, width
+  integer i, ix
+  integer n/4/
+  character*16 word
+
+
+  call pgenv(start, end,-10.,10.,0,0)
+  call pgsch(1.)
+  do i =1,ring%n_ele_track
+   begin = ring%ele(i-1)%s
+   ele = ring%ele(i)
+   if(ele%key /= sbend$ .and. ele%key /= quadrupole$ .and.ele%key /= rbend$)cycle
+   if(ele%key == sbend$ .or. ele%key == rbend$)width = 1.    
+   if(ele%key == quadrupole$)width = 2.    
+   x(1) = begin
+   x(2) = begin
+   x(3) = ele%s
+   x(4) = ele%s
+   y(1) = -width
+   y(2) = width
+   y(3) = width
+   y(4) = -width
+   xavg = 0.5*(x(1)+x(3))
+   y0 = -5.
+   call pgpoly(n,x(1:4), y(1:4)) 
+   call string_trim(ele%name, word, ix)
+   call pgptxt(xavg, y0,90.,0.5,word(1:ix))
+  end do
+
+  call pgsch(2.)
+  return
+ end
