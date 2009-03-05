@@ -84,8 +84,10 @@ Figure~\ref{f:output}.
   Element #         871
   Element Name: CLEO_SOL
   Key: SOLENOID
-  S:       1.7550
+  S:              1.7550
+  Ref_time:   0.0000E+00
  
+  Attribute values [Only non-zero values shown]:
       1   L                      =  3.5100000E+00
       7   KS                     = -8.5023386E-02
      32   P0C                    =  5.2890000E+09
@@ -98,21 +100,22 @@ Figure~\ref{f:output}.
           FIELD_CALC             =  Bmad_Standard
           APERTURE_AT            =  Exit_End
           OFFSET_MOVES_APERTURE  =  F
-          COUPLER_AT             =  Exit_End
-          FIELD_MASTER           =  OFF
+          INTEGRATOR_ORDER:      =     2
           NUM_STEPS              =    18
           SYMPLECTIFY            =  F
+          FIELD_MASTER           =  F
           CSR_CALC_ON            =  T
-
-  Control_type: SUPER_LORD
-  Slaves: Number:   6
-      Name             Lat_index  Attribute       Coefficient
-      Q00E\CLEO_SOL          865  --------          3.182E-01
-      CLEO_SOL#1             866  --------          4.460E-03
-      CLEO_SOL#2             868  --------          1.773E-01
-      CLEO_SOL#3               2  --------          1.773E-01
-      CLEO_SOL#4               4  --------          4.460E-03
-      Q00W\CLEO_SOL            5  --------          3.182E-01
+ 
+ Lord_status:  SUPER_LORD
+ Slave_status: FREE
+ Slaves: Number:   6
+      Name                           Lat_index  Attribute           Coefficient
+      Q00E\CLEO_SOL                        865  --------              3.182E-01
+      CLEO_SOL#1                           866  --------              4.460E-03
+      CLEO_SOL#2                           868  --------              1.773E-01
+      CLEO_SOL#3                             2  --------              1.773E-01
+      CLEO_SOL#4                             4  --------              4.460E-03
+      Q00W\CLEO_SOL                          5  --------              3.182E-01
 \end{listing}
 \caption{Output from a simple first program}
 \label{f:output}

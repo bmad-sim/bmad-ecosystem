@@ -63,7 +63,7 @@ type (lat_struct), optional :: lattice
 type (wig_term_struct), pointer :: term
 type (lr_wake_struct), pointer :: lr
 type (sr_table_wake_struct), pointer :: sr_table
-type (sr_mode_wake_struct), pointer :: sr_mode
+type (sr_mode_wake_struct), pointer :: sr_m
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
@@ -80,7 +80,7 @@ character(100), pointer :: lines(:), li(:)
 character(100), allocatable :: li2(:)
 character(40) a_name, name, fmt_a, fmt_i, fmt_l
 character(12) val_str
-character(9) angle
+character(8) angle
 character(2) str_i
 
 logical, optional, intent(in) :: type_taylor, type_wake
@@ -483,12 +483,11 @@ if (associated(ele%wake)) then
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
       do i = 1, size(ele%wake%sr_mode_long)
-        sr_mode => ele%wake%sr_mode_long(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr_mode%amp, sr_mode%damp, sr_mode%k, sr_mode%phi
+        sr_m => ele%wake%sr_mode_long(i)
+        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr_m%amp, sr_m%damp, sr_m%k, sr_m%phi
       enddo
     else
-      nl=nl+1; write (li(nl), *) &
-                  'Number of short-range longitudinal pseudo modes:', size(ele%wake%sr_mode_long)
+      nl=nl+1; li(nl) = 'No short-range longitudinal pseudo modes.'
     endif
   endif
 
@@ -499,12 +498,11 @@ if (associated(ele%wake)) then
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
       do i = 1, size(ele%wake%sr_mode_trans)
-        sr_mode => ele%wake%sr_mode_trans(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr_mode%amp, sr_mode%damp, sr_mode%k, sr_mode%phi
+        sr_m => ele%wake%sr_mode_trans(i)
+        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr_m%amp, sr_m%damp, sr_m%k, sr_m%phi
       enddo
     else
-      nl=nl+1; write (li(nl), *) &
-                'Number of short-range transitudinal pseudo-modes:', size(ele%wake%sr_mode_trans)
+     nl=nl+1; li(nl) = 'No short-range transverse pseudo modes.'
     endif
   endif
 
@@ -513,16 +511,18 @@ if (associated(ele%wake)) then
     if (logic_option (.true., type_wake)) then
       nl=nl+1; li(nl) = 'Long-range HOM modes:'
       nl=nl+1; li(nl) = &
-            '   #        Freq         R/Q           Q   m  Polarization_Angle'
+            '  #       Freq         R/Q           Q   m   Angle' // &
+            '    b_sin     b_cos     a_sin     a_cos     t_ref'
       do i = 1, size(ele%wake%lr)
         lr => ele%wake%lr(i)
-        angle = '   unpol'
-        if (lr%polarized) write (angle, '(f9.4)') lr%angle
-        nl=nl+1; write (li(nl), '(i4, 3es12.4, i4, a)') i, &
-                lr%freq, lr%R_over_Q, lr%Q, lr%m, angle
+        angle = ' unpolar'
+        if (lr%polarized) write (angle, '(f8.3)') lr%angle
+        nl=nl+1; write (li(nl), '(i3, 3es12.4, i3, a, 5es10.2)') i, &
+                lr%freq, lr%R_over_Q, lr%Q, lr%m, angle, &
+                lr%norm_sin, lr%norm_cos, lr%skew_sin, lr%skew_cos, lr%t_ref
       enddo
     else
-      nl=nl+1; write (li(nl), *) 'Number of long-range HOM modes:', size(ele%wake%lr)
+      nl=nl+1; li(nl) = 'No long-range HOM modes.'
     endif
   endif
 

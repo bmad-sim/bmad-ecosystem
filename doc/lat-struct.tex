@@ -54,11 +54,10 @@ bound.  \vn{%ele(0)} is a marker element with the name
 matrix. \vn{%ele(0:)} is divided up into two parts: A ``physical''
 part (also called the ``tracking'' part) and a ``control'' part (also
 called the ``lord'' part). The physical part of this array holds the
-elements that are tracked through. The physical part has \vn{free},
-\vn{overlay_slave}, and \vn{multipass_slave} \vn{control_type} elements. The
-control part holds the \vn{Overlay_lord}, \vn{Girder_lord},
-\vn{multipass_lord}, \vn{super_lord}, and \vn{Group_lord}
-\vn{control_type} elements (\sref{s:ele.control}).  The bounds of
+elements that are tracked through. The
+control part holds elements whose \vn{lord_status} (\sref{s:ele.control})
+is one of \vn{overlay_lord}, \vn{girder_lord},
+\vn{multipass_lord}, \vn{super_lord}, or \vn{Group_lord}.  The bounds of
 these two parts is given in Table~\ref{t:part.extent}.
 \begin{table}[htb]
 \begin{center}
@@ -278,7 +277,7 @@ attribute and the appropriate  coefficient
   print *, 'Slaves for lord: ', lattice%ele(i_lord)%name
   do i = ix1, ix2
     i_slave = lattice%control(i)%ix_slave
-    if (lattice%ele(i_lord)%control_type == super_lord$) then
+    if (lattice%ele(i_lord)%lord_status == super_lord$) then
       print *, '  ', i, '  ', lattice%ele(i_slave)%name
     else   ! must be overlay or slave
       ixa = lattice%control(i)%ix_attrib

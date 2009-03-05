@@ -186,7 +186,7 @@ do i = 1, size(ele%wake%lr)
   c = cos (-dt * k)
   s = sin (-dt * k)
 
-! longitudinal kick
+  ! longitudinal kick
 
   w_norm = lr%norm_sin * ff * (f_exp * s + k * c) + &
            lr%norm_cos * ff * (f_exp * c - k * s)
@@ -199,7 +199,7 @@ do i = 1, size(ele%wake%lr)
 
   orbit%vec(6) = orbit%vec(6) + kx + ky
 
-! transverse kick
+  ! transverse kick
 
   if (lr%m == 0) cycle
 
@@ -208,8 +208,8 @@ do i = 1, size(ele%wake%lr)
 
   call ab_multipole_kick (w_skew, w_norm, lr%m-1, orbit, kx, ky)
 
-  orbit%vec(2) = orbit%vec(2) - lr%m * kx
-  orbit%vec(4) = orbit%vec(4) - lr%m * ky
+  orbit%vec(2) = orbit%vec(2) + lr%m * kx
+  orbit%vec(4) = orbit%vec(4) + lr%m * ky
 
 enddo
 
