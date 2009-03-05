@@ -111,7 +111,7 @@ do
 enddo
 
 beam_init%bunch_charge = (charge0 + charge1) / 2
-print *, 'Final Current:', beam_init%bunch_charge * c_light / beam_init%ds_bunch 
+print *, 'Threshold Current (A):', beam_init%bunch_charge * c_light / beam_init%ds_bunch 
 
 
 end program
