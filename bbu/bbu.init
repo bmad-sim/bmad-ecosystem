@@ -1,8 +1,7 @@
 &bbu_params
-	bbu_param%lat_file_name = 'erl.lat'
-	bbu_param%simulation_time = 1e-4
-	bbu_param%bunch_freq = 1.3e9
-  bbu_param%init_hom_amp = 1e-6
-	bbu_param%high_power_lim = 1
-	bbu_param%low_power_lim = 1e-10
+	bbu_param%lat_file_name = 'erl.lat'  ! Bmad lattice file name
+	bbu_param%simulation_time = 1e-4     ! Time in sec.
+	bbu_param%bunch_freq = 1.3e9         ! Freq in Hz.
+  bbu_param%init_hom_amp = 1e-6        
+	bbu_param%limit_factor = 1e3
 /

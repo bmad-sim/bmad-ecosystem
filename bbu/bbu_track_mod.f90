@@ -20,6 +20,7 @@ end type
 type bbu_param_struct
   character(80) lat_file_name
   logical hyberdize
+  real(rp) limit_factor
   real(rp) low_power_lim, high_power_lim
   real(rp) simulation_time, bunch_freq, init_hom_amp
   real(rp) current

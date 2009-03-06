@@ -22,8 +22,7 @@ namelist / bbu_params / bbu_param, beam_init
 
 bbu_param%init_hom_amp = 1e-6
 bbu_param%hyberdize = .true.
-bbu_param%low_power_lim = 1e-10
-bbu_param%high_power_lim = 1e10
+bbu_param%limit_factor = 1e3
 bbu_param%current = 20e-3
 bbu_param%rel_tol = 1e-3
 
@@ -57,6 +56,12 @@ endif
 
 lat0 = lat
 
+call bbu_setup (lat, beam_init%ds_bunch, bbu_param%init_hom_amp, bbu_beam)
+call bbu_hom_power_calc (lat, bbu_beam, hom_power0)
+
+bbu_param%high_power_lim = hom_power0 * bbu_param%limit_factor
+bbu_param%low_power_lim  = hom_power0 / bbu_param%limit_factor
+
 ! Print some information
 
 print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
@@ -70,9 +75,6 @@ enddo
 print *, 'Number of physical lr wake elements:', n_ele
 
 ! Track to find upper limit
-
-call bbu_setup (lat, beam_init%ds_bunch, bbu_param%init_hom_amp, bbu_beam)
-call bbu_hom_power_calc (lat, bbu_beam, hom_power0)
 
 beam_init%bunch_charge = bbu_param%current * beam_init%ds_bunch / c_light
 charge0 = 0
