@@ -395,6 +395,8 @@ case (marker$, branch$, photon_branch$)
 
 case (match$)
 
+  if (all (end%vec(1:4) == 0)) return ! Special case: 0 -> 0
+
   call match_ele_to_mat6 (ele, vec0, mat6, err)
   if (err) then
     call out_io (s_error$, r_name, &

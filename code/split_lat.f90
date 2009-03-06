@@ -54,7 +54,8 @@ character(16) :: r_name = "split_lat"
 
 nr = lat%n_ele_track
 if (s_split < lat%ele(0)%s .or. s_split > lat%ele(nr)%s) then
-  print *, 'ERROR IN split_lat: POSITION OF SPLIT NOT WITHIN LAT: ', s_split
+  call out_io (s_fatal$, r_name, 'POSITION OF SPLIT NOT WITHIN LAT: \es12.3\ ',  &
+                                  r_array = (/ s_split /) )
   call err_exit
 endif
 
@@ -77,8 +78,8 @@ len1 = len_orig - len2
 ! there is a problem with custom elements in that we don't know which
 ! attributes (if any) scale with length.
 
-if (ele%key == custom$) then
-  print *, "ERROR IN split_lat: I DON'T KNOW HOW TO SPLIT A CUSTOM ELEMENT!"
+if (ele%key == custom$ .or. ele%key == match$) then
+  call out_io (s_fatal$, r_name, "I DON'T KNOW HOW TO SPLIT THIS ELEMENT:" // ele%name)
   call err_exit
 endif
 
@@ -291,14 +292,15 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     do j = lat%ele(i)%ix1_slave, lat%ele(i)%ix2_slave
       if (lat%control(j)%ix_slave == ix_split+1) then
         if (lat%control(j)%ix_attrib == l$) then
-          print *, 'WARNING IN split_lat: GROUP: ', lat%ele(i)%name
-          print *, '        CONTROLS L$ OF SPLIT ELEMENT: ', ele%name
+          call out_io (s_warn$, r_name, 'GROUP: ' // lat%ele(i)%name, &
+                                        'CONTROLS L$ OF SPLIT ELEMENT: ' // ele%name)
         elseif (ix_super_lord /= 0) then
           lat%control(j)%ix_slave = ix_super_lord
         else
-          print *, 'ERROR IN split_lat: GROUP: ', lat%ele(i)%name
-          print *, '      CONTROLS SPLIT ELEMENT: ', ele%name
-          print *, '      BUT NO LORD WAS MADE!'
+          call out_io (s_warn$, r_name, &
+                      'GROUP: ' // lat%ele(i)%name, &
+                      'CONTROLS SPLIT ELEMENT: ' // ele%name, &
+                      'BUT NO LORD WAS MADE!')
           call err_exit
         endif
       endif

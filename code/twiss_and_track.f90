@@ -35,49 +35,62 @@
 
 subroutine twiss_and_track (lat, orb, ok)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => twiss_and_track
+use bmad_struct
+use bmad_interface, except_dummy => twiss_and_track
 
-  implicit none
+implicit none
 
-  type (lat_struct) lat
-  type (coord_struct), allocatable :: orb(:)
-  logical, optional :: ok
-  logical rf_state
+type (lat_struct) lat
+type (coord_struct), allocatable :: orb(:)
+
+integer i
+
+logical, optional :: ok
+logical has_match
 
 !
 
-  call reallocate_coord (orb, lat%n_ele_max)
+call reallocate_coord (orb, lat%n_ele_max)
 
 ! We need to know the orbit first before we can compute the linear
 ! transfer matrices for the elements.
 ! However closed_orbit_calc needs some crude notion of the 1-turn transfer
 ! matrix in order for it to do the calculation.
 
-  if (present(ok)) ok = .false.
+if (present(ok)) ok = .false.
 
-  if (lat%param%lattice_type == circular_lattice$) then
-    call lat_make_mat6 (lat, -1)
-    call twiss_at_start (lat)
-    if (.not. bmad_status%ok) return
-    call closed_orbit_calc (lat, orb, 4)
-    if (.not. bmad_status%ok) return
-  else
-    call track_all (lat, orb)
-  endif
+! A match with match_end$ complicates things since in order to track correctly we
+! need to know the Twiss parameters but the Twiss parameters depends upon the tracking...
+
+has_match = .false.
+do i = 1, lat%n_ele_track
+  if (lat%ele(i)%key == match$ .and. lat%ele(i)%value(match_end$) /= 0) has_match = .true.
+enddo
+
+if (lat%param%lattice_type == circular_lattice$) then
+  call lat_make_mat6 (lat, -1)
+  call twiss_at_start (lat)
+  if (.not. bmad_status%ok) return
+  if (has_match) call twiss_propagate_all (lat)
+  call closed_orbit_calc (lat, orb, 4)
+  if (.not. bmad_status%ok) return
+else
+  if (has_match) call twiss_propagate_all (lat)
+  call track_all (lat, orb)
+endif
 
 ! now we can compute the Twiss parameters.
 
-  call lat_make_mat6 (lat, -1, orb)
+call lat_make_mat6 (lat, -1, orb)
 
-  if (lat%param%lattice_type == circular_lattice$) then
-    call twiss_at_start (lat)
-    if (.not. bmad_status%ok) return
-  endif
-
-  call twiss_propagate_all (lat)
+if (lat%param%lattice_type == circular_lattice$) then
+  call twiss_at_start (lat)
   if (.not. bmad_status%ok) return
+endif
 
-  if (present(ok)) ok = .true.
+call twiss_propagate_all (lat)
+if (.not. bmad_status%ok) return
+
+if (present(ok)) ok = .true.
 
 end subroutine

@@ -382,7 +382,7 @@ implicit none
 type (lat_struct), target :: lattice
 type (ele_struct), pointer :: lord, slave
 
-real(rp) s, val(n_attrib_maxx)
+real(rp) s, slave_val(n_attrib_maxx)
 real(rp) d, e, r_lord, r_slave, cos_lord, cos_lorde, sin_lord, sin_lorde
 real(rp) ang_slave, ang_lord, ang_slave_old
 integer j, ix_slave
@@ -394,21 +394,37 @@ slave => lattice%ele(ix_slave)
 j =  lattice%ic(slave%ic1_lord)
 lord => lattice%ele(lattice%control(j)%ix_lord)
 
-val = slave%value  ! save
+slave_val = slave%value  ! save
 
 slave%value = lord%value
 if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
-  slave%value(dphi0$)        = val(dphi0$)
-  slave%value(E_tot_start$)  = val(E_tot_start$)
-  slave%value(p0c_start$)    = val(p0c_start$)
+  slave%value(dphi0$)        = slave_val(dphi0$)
+  slave%value(E_tot_start$)  = slave_val(E_tot_start$)
+  slave%value(p0c_start$)    = slave_val(p0c_start$)
 endif
 
 ! A slave's field_master = T irregardless of the lord's setting.
 
-slave%value(e_tot$) = val(e_tot$)
-slave%value(p0c$)   = val(p0c$)
+slave%value(e_tot$) = slave_val(e_tot$)
+slave%value(p0c$)   = slave_val(p0c$)
 slave%value(n_ref_pass$)    = 0
 slave%field_master          = .true.
+
+! A match element with match_end$: Restore initial Twiss parameters (which
+! are calculated in twiss_propagate1).
+
+if (lord%key == match$ .and. lord%value(match_end$) /= 0) then
+  slave%value(beta_a0$)    = slave_val(beta_a0$)
+  slave%value(beta_b0$)    = slave_val(beta_b0$)
+  slave%value(alpha_a0$)   = slave_val(alpha_a0$)
+  slave%value(alpha_b0$)   = slave_val(alpha_b0$)
+  slave%value(eta_x0$)     = slave_val(eta_x0$)
+  slave%value(eta_y0$)     = slave_val(eta_y0$)
+  slave%value(etap_x0$)    = slave_val(etap_x0$)
+  slave%value(etap_y0$)    = slave_val(etap_y0$)
+  slave%value(c_11$:c_22$) = slave_val(c_11$:c_22$)
+  slave%value(gamma_c$)    = slave_val(gamma_c$)
+endif
 
 ! An sbend is tricky since the reference orbit changes with energy.
 
