@@ -188,11 +188,8 @@ do i = 1, size(ele%wake%lr)
 
   ! longitudinal kick
 
-  w_norm = lr%norm_sin * ff * (f_exp * s + k * c) + &
-           lr%norm_cos * ff * (f_exp * c - k * s)
-
-  w_skew = lr%skew_sin * ff * (f_exp * s + k * c) + &
-           lr%skew_cos * ff * (f_exp * c - k * s)
+  w_norm = (lr%norm_sin * ff * (f_exp * s + k * c) + lr%norm_cos * ff * (f_exp * c - k * s)) / c_light
+  w_skew = (lr%skew_sin * ff * (f_exp * s + k * c) + lr%skew_cos * ff * (f_exp * c - k * s)) / c_light
 
   call ab_multipole_kick (0.0_rp, w_norm, lr%m, orbit, kx, k_dum)
   call ab_multipole_kick (0.0_rp, w_skew, lr%m, orbit, k_dum, ky)

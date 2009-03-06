@@ -158,20 +158,11 @@ bmad_com%grad_loss_sr_wake = 0.0
 
 ! Put in the transverse wakefields
 
-rf_ele%value(l$) = ele%value(l$)  ! restore the correct length for the moment
-call track1_sr_wake (bunch_end, rf_ele)
-call track1_lr_wake (bunch_end, rf_ele)
-
-! Transfer lr wake info to original ele.
-
-ele%wake%lr%norm_sin = rf_ele%wake%lr%norm_sin
-ele%wake%lr%norm_cos = rf_ele%wake%lr%norm_cos
-ele%wake%lr%skew_sin = rf_ele%wake%lr%skew_sin
-ele%wake%lr%skew_cos = rf_ele%wake%lr%skew_cos
+call track1_sr_wake (bunch_end, ele)
+call track1_lr_wake (bunch_end, ele)
 
 ! Track the last half of the lcavity.  This includes the sr longitudinal wakes 
 
-rf_ele%value(l$)            = ele%value(l$) / 2
 rf_ele%value(e_tot_start$)  = rf_ele%value(e_tot$)
 rf_ele%value(p0c_start$)    = rf_ele%value(p0c$)
 rf_ele%value(e_tot$)        = ele%value(e_tot$)
