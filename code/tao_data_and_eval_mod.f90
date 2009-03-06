@@ -1078,26 +1078,32 @@ case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z', 'rel_floor.theta', 'rel_floor
 case ('sigma.x')  
   if (data_source == 'lattice') return
   call load_it (tao_lat%bunch_params(:)%sigma(s11$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
-  
+  datum_value = sqrt(datum_value)
+
 case ('sigma.px')  
   if (data_source == 'lattice') return
   call load_it (tao_lat%bunch_params(:)%sigma(s22$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  datum_value = sqrt(datum_value)
   
 case ('sigma.y')  
   if (data_source == 'lattice') return
   call load_it (tao_lat%bunch_params(:)%sigma(s33$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  datum_value = sqrt(datum_value)
   
 case ('sigma.py')  
   if (data_source == 'lattice') return
   call load_it (tao_lat%bunch_params(:)%sigma(s44$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  datum_value = sqrt(datum_value)
   
 case ('sigma.z')  
   if (data_source == 'lattice') return
   call load_it (tao_lat%bunch_params(:)%sigma(s55$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  datum_value = sqrt(datum_value)
   
 case ('sigma.pz')  
   if (data_source == 'lattice') return
   call load_it (tao_lat%bunch_params(:)%sigma(s66$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  datum_value = sqrt(datum_value)
   
 case ('sigma.xy')  
   if (data_source == 'lattice') return
