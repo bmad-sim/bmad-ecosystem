@@ -63,7 +63,7 @@ bbu_beam%ix_bunch_end = -1  ! Indicates No bunches
 
 call re_allocate (bbu_beam%ix_ele_bunch, bbu_beam%n_bunch_in_lat+1)
 
-! Find all elements that have a lr wake
+! Find all elements that have a lr wake.
 
 j = 0
 do i = 1, lat%n_ele_track
@@ -73,10 +73,10 @@ do i = 1, lat%n_ele_track
   j = j + 1
   do ih = 1, size(ele%wake%lr)
     call ran_gauss (rr)
-    ele%wake%lr%norm_sin = init_hom_amp * rr(1)
-    ele%wake%lr%norm_cos = init_hom_amp * rr(2)
-    ele%wake%lr%skew_sin = init_hom_amp * rr(3)
-    ele%wake%lr%skew_sin = init_hom_amp * rr(4)
+    ele%wake%lr%norm_sin = init_hom_amp * rr(1) / 2
+    ele%wake%lr%norm_cos = init_hom_amp * rr(2) / 2
+    ele%wake%lr%skew_sin = init_hom_amp * rr(3) / 2
+    ele%wake%lr%skew_sin = init_hom_amp * rr(4) / 2
   enddo
 enddo
 

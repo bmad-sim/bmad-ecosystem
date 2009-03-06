@@ -9,7 +9,7 @@ type (bbu_param_struct) bbu_param
 type (lat_struct) lat, lat_in, lat0
 type (beam_init_struct) beam_init
 
-integer i, ix, j, n_hom
+integer i, ix, j, n_hom, n, n_ele, ix_pass
 
 real(rp) hom_power0, hom_power1, charge0, charge1
 
@@ -56,6 +56,18 @@ else
 endif
 
 lat0 = lat
+
+! Print some information
+
+print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
+
+n_ele = 0
+do i = 1, size(bbu_beam%stage)
+  call multipass_chain (bbu_beam%stage(i)%ix_ele_lr_wake, lat, ix_pass, n_links = n)
+  if (ix_pass /= 1 .and. n /= 0) cycle
+  n_ele = n_ele + 1
+enddo
+print *, 'Number of physical lr wake elements:', n_ele
 
 ! Track to find upper limit
 
