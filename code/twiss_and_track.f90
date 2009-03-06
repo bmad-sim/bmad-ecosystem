@@ -60,12 +60,7 @@ call reallocate_coord (orb, lat%n_ele_max)
 if (present(ok)) ok = .false.
 
 ! A match with match_end$ complicates things since in order to track correctly we
-! need to know the Twiss parameters but the Twiss parameters depends upon the tracking...
-
-has_match = .false.
-do i = 1, lat%n_ele_track
-  if (lat%ele(i)%key == match$ .and. lat%ele(i)%value(match_end$) /= 0) has_match = .true.
-enddo
+! need to know the Twiss parameters. This situation is only allowed for linear lattices.
 
 if (lat%param%lattice_type == circular_lattice$) then
   call lat_make_mat6 (lat, -1)
@@ -75,6 +70,10 @@ if (lat%param%lattice_type == circular_lattice$) then
   call closed_orbit_calc (lat, orb, 4)
   if (.not. bmad_status%ok) return
 else
+  has_match = .false.
+  do i = 1, lat%n_ele_track
+    if (lat%ele(i)%key == match$ .and. lat%ele(i)%value(match_end$) /= 0) has_match = .true.
+  enddo
   if (has_match) call twiss_propagate_all (lat)
   call track_all (lat, orb)
 endif
