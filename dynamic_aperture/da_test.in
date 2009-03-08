@@ -1,6 +1,6 @@
  &input
     lat_file = '/nfs/cesr/mnt/lattice/cesr/bmad/cta_2085mev_20081107.lat'
-    n_turn   = 1000
+    n_turn   = 20
     n_xy_pts = 37
     point_range = 1 37
     n_energy_pts = 3

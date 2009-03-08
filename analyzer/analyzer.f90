@@ -765,9 +765,8 @@ program anaylzer
 
   endif !      if(device_type(1:7)  == '/XSERVE')then
 
-!      call pgpage
 
-!       if(n==1)then
+! first panel
        call pgsci(1)
        if(plot_flag==orbit$)then
          p = int(log10(xmax))
@@ -843,6 +842,10 @@ program anaylzer
        if(plot_flag /= rad_int$)call pgpt(nd, zdet, xdet, 18)
        call pgmtxt('T',3.,0.,0.,comment)
 
+!  plot elements - middle panel
+       call plot_elements(ring, start, end)
+
+! third panel
        call pgsci(1)
        if(plot_flag == orbit$)then
          p = int(log10(ymax))
@@ -916,8 +919,6 @@ program anaylzer
 
          if(plot_flag /= rad_int$)call pgpt(nd, zdet, ydet, 18)
 
-!  plot elements
-       call plot_elements(ring, start, end)
     
 
 !     answer = ' '
@@ -1315,7 +1316,7 @@ program anaylzer
 
 
   call pgenv(start, end,-10.,10.,0,0)
-  call pgsch(1.)
+  call pgsch(1.3)
   do i =1,ring%n_ele_track
    begin = ring%ele(i-1)%s
    ele = ring%ele(i)
