@@ -747,6 +747,7 @@ tao_com%ele_shape_lat_layout = tao_com%ele_shape_floor_plan
 
 ! beta
 
+allocate (s%template_plot(5))
 plt => s%template_plot(1)
 
 nullify(plt%r)
