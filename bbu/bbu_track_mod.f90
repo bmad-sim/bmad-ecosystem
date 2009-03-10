@@ -300,7 +300,6 @@ integer i, j, ix, ix_pass
 !
 
 hom_power = 0
-n_hom = 0
 
 do i = 1, size(bbu_beam%stage)
   ix = bbu_beam%stage(i)%ix_ele_lr_wake
