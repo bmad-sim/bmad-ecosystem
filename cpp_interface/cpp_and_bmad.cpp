@@ -259,12 +259,12 @@ extern "C" void sr_mode_wake_to_f2_(sr_mode_wake_struct*, Re&, Re&, Re&, Re&, Re
 
 extern "C" void sr_mode_wake_to_f_(C_sr_mode_wake& c, sr_mode_wake_struct* f) {
   sr_mode_wake_to_f2_(f, c.amp, c.damp, c.k, c.phi,
-                          c.norm_sin, c.norm_cos, c.skew_sin, c.skew_cos);
+                          c.b_sin, c.b_cos, c.a_sin, c.a_cos);
 }
 
 extern "C" void sr_mode_wake_to_c2_(C_sr_mode_wake& c, Re& amp, Re& damp, Re& k, Re& phi,
-                          Re& norm_sin, Re& norm_cos, Re& skew_sin, Re& skew_cos) {
-  c = C_sr_mode_wake(amp, damp, k, phi, norm_sin, norm_cos, skew_sin, skew_cos);
+                          Re& b_sin, Re& b_cos, Re& a_sin, Re& a_cos) {
+  c = C_sr_mode_wake(amp, damp, k, phi, b_sin, b_cos, a_sin, a_cos);
 }
 
 void operator>> (C_sr_mode_wake& c, sr_mode_wake_struct* f) {
@@ -283,7 +283,7 @@ extern "C" void lr_wake_to_f2_(lr_wake_struct*, Re&, Re&, Re&, Re&, Re&,
 
 extern "C" void lr_wake_to_f_(C_lr_wake& c, lr_wake_struct* f) {
   lr_wake_to_f2_(f, c.freq, c.freq_in, c.R_over_Q, c.Q, c.angle, 
-          c.norm_sin, c.norm_cos, c.skew_sin, c.skew_cos, c.t_ref, c.m, c.polarized);
+          c.b_sin, c.b_cos, c.a_sin, c.a_cos, c.t_ref, c.m, c.polarized);
 }
 
 extern "C" void lr_wake_to_c2_(C_lr_wake& c, Re& freq, Re& freq_in, 
@@ -324,18 +324,18 @@ extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   }
   for (int i = 0; i < n_sr_mode_long; i++) {
     sr_mode_long_wake_in_wake_to_f2_(f, i+1, c.sr_mode_long[i].amp, c.sr_mode_long[i].damp, 
-        c.sr_mode_long[i].k, c.sr_mode_long[i].phi, c.sr_mode_long[i].norm_sin, 
-        c.sr_mode_long[i].norm_cos, c.sr_mode_long[i].skew_sin, c.sr_mode_long[i].skew_cos);
+        c.sr_mode_long[i].k, c.sr_mode_long[i].phi, c.sr_mode_long[i].b_sin, 
+        c.sr_mode_long[i].b_cos, c.sr_mode_long[i].a_sin, c.sr_mode_long[i].a_cos);
   }
   for (int i = 0; i < n_sr_mode_trans; i++) {
     sr_mode_trans_wake_in_wake_to_f2_(f, i+1, c.sr_mode_trans[i].amp, c.sr_mode_trans[i].damp, 
-        c.sr_mode_trans[i].k, c.sr_mode_trans[i].phi, c.sr_mode_trans[i].norm_sin, 
-        c.sr_mode_trans[i].norm_cos, c.sr_mode_trans[i].skew_sin, c.sr_mode_trans[i].skew_cos);
+        c.sr_mode_trans[i].k, c.sr_mode_trans[i].phi, c.sr_mode_trans[i].b_sin, 
+        c.sr_mode_trans[i].b_cos, c.sr_mode_trans[i].a_sin, c.sr_mode_trans[i].a_cos);
   }
   for (int i = 0; i < n_lr; i++) {
     lr_wake_in_wake_to_f2_(f, i+1, c.lr[i].freq, c.lr[i].freq_in, 
-        c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].angle, c.lr[i].norm_sin, 
-        c.lr[i].norm_cos, c.lr[i].skew_sin, c.lr[i].skew_cos, c.lr[i].t_ref, c.lr[i].m, c.lr[i].polarized);
+        c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].angle, c.lr[i].b_sin, 
+        c.lr[i].b_cos, c.lr[i].a_sin, c.lr[i].a_cos, c.lr[i].t_ref, c.lr[i].m, c.lr[i].polarized);
   }
 }
 

@@ -95,15 +95,15 @@ bool operator== (const C_sr_table_wake& x, const C_sr_table_wake& y) {
 bool operator== (const C_sr_mode_wake& x, const C_sr_mode_wake& y) {
   return (x.amp == y.amp) && (x.damp == y.damp) && 
          (x.k == y.k) && (x.phi == y.phi) && 
-         (x.norm_sin == y.norm_sin) && (x.norm_cos == y.norm_cos) && 
-         (x.skew_sin == y.skew_sin) && (x.skew_cos == y.skew_cos);
+         (x.b_sin == y.b_sin) && (x.b_cos == y.b_cos) && 
+         (x.a_sin == y.a_sin) && (x.a_cos == y.a_cos);
 };
 
 bool operator== (const C_lr_wake& x, const C_lr_wake& y) {
   return (x.freq == y.freq) && (x.freq_in == y.freq_in) && 
          (x.R_over_Q == y.R_over_Q) && (x.Q == y.Q) && (x.angle == y.angle) &&
-         (x.norm_sin == y.norm_sin) && (x.norm_cos == y.norm_cos) && 
-         (x.skew_sin == y.skew_sin) && (x.skew_cos == y.skew_cos) && 
+         (x.b_sin == y.b_sin) && (x.b_cos == y.b_cos) && 
+         (x.a_sin == y.a_sin) && (x.a_cos == y.a_cos) && 
          (x.t_ref == y.t_ref) && (x.m == y.m) && (x.polarized == y.polarized);
 };
 

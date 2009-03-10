@@ -189,8 +189,8 @@ logical is_eq
 
 is_eq = (f1%amp == f2%amp) .and. (f1%damp == f2%damp) .and. &
         (f1%k == f2%k) .and. (f1%phi == f2%phi) .and. &
-        (f1%norm_sin == f2%norm_sin) .and. (f1%norm_cos == f2%norm_cos) .and. &
-        (f1%skew_sin == f2%skew_sin) .and. (f1%skew_cos == f2%skew_cos)
+        (f1%b_sin == f2%b_sin) .and. (f1%b_cos == f2%b_cos) .and. &
+        (f1%a_sin == f2%a_sin) .and. (f1%a_cos == f2%a_cos)
 
 end function
 
@@ -210,9 +210,9 @@ logical is_eq
 
 is_eq = (f1%freq == f2%freq) .and. (f1%r_over_q == f2%r_over_q) .and. &
         (f1%freq_in == f2%freq_in) .and. (f1%Q == f2%Q) .and. &
-        (f1%m == f2%m) .and. (f1%norm_sin == f2%norm_sin) .and. &
-        (f1%norm_cos == f2%norm_cos) .and. (f1%skew_sin == f2%skew_sin) .and. &
-        (f1%skew_cos == f2%skew_cos) .and. (f1%t_ref == f2%t_ref) .and. &
+        (f1%m == f2%m) .and. (f1%b_sin == f2%b_sin) .and. &
+        (f1%b_cos == f2%b_cos) .and. (f1%a_sin == f2%a_sin) .and. &
+        (f1%a_cos == f2%a_cos) .and. (f1%t_ref == f2%t_ref) .and. &
         (f1%m == f2%m) .and. (f1%angle == f2%angle) .and. &
         (f1%polarized .eqv. f2%polarized)
 

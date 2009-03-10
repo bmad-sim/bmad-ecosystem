@@ -1475,63 +1475,68 @@ a distance $z_w$ with respect to the reference particle will produce
 wake components
 \begin{alignat}{2}
     \CRNO
-  a_{\sin} &=  &c \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \sin(m \theta_w) 
-  a_{\cos} &= -&c \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \sin(m \theta_w) 
     \label{ac2rq} 
     \\
-  b_{\sin} &=  &c \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \cos(m \theta_w) 
     \CRNO
-  b_{\cos} &= -&c \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \cos(m \theta_w) 
     \nonumber
 \end{alignat}
-These are added to the existing wake components. To calculate the kick
-due to wake the normal and skew components are added together
+These are added to the existing wake components. The total is
+\Begineq
+  a_{\sin, m} = \sum_{\mbox{particles}} \delta a_{\sin, m}
+\Endeq
+with similar equations for $a_{\cos, m}$ etc. Here the sum is over all particles
+that cross the cavity before the kicked particle. To calculate the kick
+due to wake, the normal and skew components are added together
 \begin{align}
-  a &= e^{k z/ 2 Q} \, \left( 
-    a_{\cos} \, \cos (k \, z) + a_{\sin} \, \sin (k \, z) \right) 
+  a_m &= e^{k z/ 2 Q} \, \left( 
+    a_{\cos, m} \, \cos (k \, z) + a_{\sin, m} \, \sin (k \, z) \right) 
     \label{akz2q} \\
-  b &= e^{k z/ 2 Q} \, \left(
-    b_{\cos} \, \cos (k \, z) + b_{\sin} \, \sin (k \, z) \right) \nonumber 
+  b_m &= e^{k z/ 2 Q} \, \left(
+    b_{\cos, m} \, \cos (k \, z) + b_{\sin, m} \, \sin (k \, z) \right) \nonumber 
 \end{align}
-Here $z$ is the distance of the particle with respect the
-reference particle. In analogy to \Eq{ppcimr} and \eq{pciwr} the kick
+Here $z$ is the distance of the particle with respect to the
+reference particle. In analogy to \Eq{ppcimr} and \eq{pciwr}, the kick
 is
 \begin{align}
   -\Delta p_x + i\Delta p_y &= C \, 
-    m \, (b + i a) \, r^{m-1} \, e^{i (m-1) \theta} 
+    m \, (b_m + i a_m) \, r^{m-1} \, e^{i (m-1) \theta} 
     \label{ppcmbar} \\
   \Delta p_z &= C \, r^m \, \left( 
-    (b' + i a') e^{i m\theta} + (b' - i a') e^{-i m\theta} \right)
+    (b_m' + i a_m') e^{i m\theta} + (b_m' - i a_m') e^{-i m\theta} \right)
 \end{align}
 where $a' \equiv da/dz$ and $b' \equiv db/dz$.
 
 The above equations were developed assuming cylindrical symmetry. With
-cylindrical symmetry the cavity modes are actually a pair of
-degenerate modes. When symmetry is broken the modes no longer have the
-same frequency. In this case one has to consider a mode's polarization
-angle $\phi$. Equations \eq{akz2q} and \eq{ppcmbar} are unchanged and
-in place of \Eq{ac2rq}, the contribution of a particle to a mode is
+cylindrical symmetry, the cavity modes are actually a pair of
+degenerate modes. When the symmetry is broken, the modes no longer have the
+same frequency. In this case, one has to consider a mode's polarization
+angle $\phi$. Equations \eq{akz2q} and \eq{ppcmbar} are unchanged. 
+In place of \Eq{ac2rq}, the contribution of a particle to a mode is
 \begin{alignat}{2}
-  a_{\sin} &=  &c \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \left[
     \sin(m \theta_w) \, \sin^2(m \phi) + 
     \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \CRNO
-  a_{\cos} &= -&c \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \left[ 
     \sin(m \theta_w) \, \sin^2(m \phi) + 
     \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \\
-  b_{\sin} &=  &c \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \left[
     \cos(m \theta_w) \, \cos^2(m \phi) + 
     \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \CRNO
-  b_{\cos} &= -&c \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \left[
     \cos(m \theta_w) \, \cos^2(m \phi) + 
     \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]

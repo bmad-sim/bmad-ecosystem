@@ -316,10 +316,10 @@ if (size(ele%wake%sr_mode_long) /= 0) then
 endif
 
 do i = 1, size(ele%wake%sr_mode_long)
-  ele%wake%sr_mode_long%norm_sin = 0
-  ele%wake%sr_mode_long%norm_cos = 0
-  ele%wake%sr_mode_long%skew_sin = 0
-  ele%wake%sr_mode_long%skew_cos = 0
+  ele%wake%sr_mode_long%b_sin = 0
+  ele%wake%sr_mode_long%b_cos = 0
+  ele%wake%sr_mode_long%a_sin = 0
+  ele%wake%sr_mode_long%a_cos = 0
 enddo
 
 !
@@ -380,10 +380,10 @@ end subroutine
 ! Note: It is the responsibility of the calling routine to zero the wakefield
 ! components before the first bunch is sent through. The wakefield components 
 ! are:
-!     ele%wake%lr%norm_sin
-!     ele%wake%lr%norm_cos
-!     ele%wake%lr%skew_sin
-!     ele%wake%lr%skew_cos
+!     ele%wake%lr%b_sin
+!     ele%wake%lr%b_cos
+!     ele%wake%lr%a_sin
+!     ele%wake%lr%a_cos
 !
 ! Modules needed:
 !   use beam_mod

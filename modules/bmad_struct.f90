@@ -79,29 +79,29 @@ type sr_mode_wake_struct  ! Psudo-mode short-Range Wake struct
   real(rp) damp       ! Dampling factor.
   real(rp) k          ! k factor
   real(rp) phi        ! Phase in radians
-  real(rp) norm_sin   ! non-skew sin-like component of the wake
-  real(rp) norm_cos   ! non-skew cos-like component of the wake
-  real(rp) skew_sin   ! skew sin-like component of the wake
-  real(rp) skew_cos   ! skew cos-like component of the wake
+  real(rp) b_sin      ! non-skew sin-like component of the wake
+  real(rp) b_cos      ! non-skew cos-like component of the wake
+  real(rp) a_sin      ! skew sin-like component of the wake
+  real(rp) a_cos      ! skew cos-like component of the wake
 end type
 
 ! Each lr_wake_struct represents a different mode.
 ! A non-zero lr_freq_spread attribute value will make freq different from freq_in.
 
-type lr_wake_struct     ! Long-Range Wake struct.
-  real(rp) freq         ! Actual Frequency in Hz.
-  real(rp) freq_in      ! Input frequency in Hz.
-  real(rp) R_over_Q     ! Strength in V/C/m^2.
-  real(rp) Q            ! Quality factor.
-  real(rp) angle        ! polarization angle (radians/2pi).
-  real(rp) norm_sin     ! non-skew sin-like component of the wake.
-  real(rp) norm_cos     ! non-skew cos-like component of the wake.
-  real(rp) skew_sin     ! skew sin-like component of the wake.
-  real(rp) skew_cos     ! skew cos-like component of the wake.
-  real(rp) t_ref        ! time reference value for computing the exponential term.
-                        !  This is used to prevent value overflow with long trains.
-  integer m             ! Order (1 = dipole, 2 = quad, etc.)
-  logical polarized     ! Polaraized mode?
+type lr_wake_struct    ! Long-Range Wake struct.
+  real(rp) freq        ! Actual Frequency in Hz.
+  real(rp) freq_in     ! Input frequency in Hz.
+  real(rp) R_over_Q    ! Strength in V/C/m^2.
+  real(rp) Q           ! Quality factor.
+  real(rp) angle       ! polarization angle (radians/2pi).
+  real(rp) b_sin       ! non-skew sin-like component of the wake.
+  real(rp) b_cos       ! non-skew cos-like component of the wake.
+  real(rp) a_sin       ! skew sin-like component of the wake.
+  real(rp) a_cos       ! skew cos-like component of the wake.
+  real(rp) t_ref       ! time reference value for computing the exponential term.
+                       !  This is used to prevent value overflow with long trains.
+  integer m            ! Order (1 = dipole, 2 = quad, etc.)
+  logical polarized    ! Polaraized mode?
 end type
 
 ! Note: Bmad routines observe the following rule: 

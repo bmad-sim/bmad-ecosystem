@@ -201,10 +201,9 @@ logical csr_on, err
 !------------------------------------------------
 ! space charge tracking will also include wakes if they are on too.
 
-bunch_end%ix_ele = ix_ele
-
 if (lat%ele(ix_ele)%tracking_method == custom$) then
   call track1_bunch_custom (bunch_start, lat, ix_ele, bunch_end)
+  bunch_end%ix_ele = ix_ele
   return
 endif
 
@@ -214,6 +213,7 @@ if (csr_param%ix2_ele_csr > -1) csr_on = csr_on .and. (ix_ele <= csr_param%ix2_e
 
 if (csr_on) then
   call track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end, err)
+  bunch_end%ix_ele = ix_ele
   return
 endif
 
@@ -222,6 +222,7 @@ endif
 err = .false.
 ele => lat%ele(ix_ele)
 call track1_bunch_hom (bunch_start, ele, lat%param, bunch_end)
+bunch_end%ix_ele = ix_ele
 
 ! If there are wakes...
 ! If a super_slave, the lr wake in the lord is the sum of the slaves.
@@ -231,15 +232,15 @@ if (associated(ele%wake)) then
     do i = ele%ic1_lord, ele%ic2_lord
       ixs = lat%control(lat%ic(i))%ix_lord
       lord => lat%ele(ixs)
-      lord%wake%lr%norm_sin = 0;  lord%wake%lr%norm_cos = 0
-      lord%wake%lr%skew_sin = 0;  lord%wake%lr%skew_cos = 0
+      lord%wake%lr%b_sin = 0;  lord%wake%lr%b_cos = 0
+      lord%wake%lr%a_sin = 0;  lord%wake%lr%a_cos = 0
       lord%wake%lr%t_ref = 0
       do j = lord%ix1_slave, lord%ix2_slave
         ix = lat%control(j)%ix_slave
-        lord%wake%lr%norm_sin = lord%wake%lr%norm_sin + lat%ele(ix)%wake%lr%norm_sin
-        lord%wake%lr%norm_cos = lord%wake%lr%norm_cos + lat%ele(ix)%wake%lr%norm_cos
-        lord%wake%lr%skew_sin = lord%wake%lr%skew_sin + lat%ele(ix)%wake%lr%skew_sin
-        lord%wake%lr%skew_cos = lord%wake%lr%skew_cos + lat%ele(ix)%wake%lr%skew_cos
+        lord%wake%lr%b_sin = lord%wake%lr%b_sin + lat%ele(ix)%wake%lr%b_sin
+        lord%wake%lr%b_cos = lord%wake%lr%b_cos + lat%ele(ix)%wake%lr%b_cos
+        lord%wake%lr%a_sin = lord%wake%lr%a_sin + lat%ele(ix)%wake%lr%a_sin
+        lord%wake%lr%a_cos = lord%wake%lr%a_cos + lat%ele(ix)%wake%lr%a_cos
       enddo
     enddo
   endif
@@ -260,11 +261,11 @@ if (associated(ele%wake)) then
         c = cos (-dt * k)
         s = sin (-dt * k)
 
-        lr_chain%norm_sin =  c * lr%norm_sin + s * lr%norm_cos
-        lr_chain%norm_cos = -s * lr%norm_sin + c * lr%norm_cos
-        lr_chain%skew_sin =  c * lr%skew_sin + s * lr%skew_cos
-        lr_chain%skew_cos = -s * lr%skew_sin + c * lr%skew_cos
-        lr_chain%t_ref    = lr%t_ref + dt
+        lr_chain%b_sin =  c * lr%b_sin + s * lr%b_cos
+        lr_chain%b_cos = -s * lr%b_sin + c * lr%b_cos
+        lr_chain%a_sin =  c * lr%a_sin + s * lr%a_cos
+        lr_chain%a_cos = -s * lr%a_sin + c * lr%a_cos
+        lr_chain%t_ref = lr%t_ref + dt
       enddo
     enddo
   endif

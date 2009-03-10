@@ -290,20 +290,20 @@ public:
   double damp;        // damping factor
   double k;           // k factor
   double phi;         // Phase in radians
-  double norm_sin;    // non-skew sin-like component of the wake
-  double norm_cos;    // non-skew cos-like component of the wake
-  double skew_sin;    // skew sin-like component of the wake
-  double skew_cos;    // skew cos-like component of the wake
+  double b_sin;       // non-skew sin-like component of the wake
+  double b_cos;       // non-skew cos-like component of the wake
+  double a_sin;       // skew sin-like component of the wake
+  double a_cos;       // skew cos-like component of the wake
 
 
   C_sr_mode_wake (double a, double d, double kk, double p, double n_sin = 0, 
                   double n_cos = 0, double s_sin = 0, double s_cos = 0) :
-      amp(a), damp(d), k(kk), phi(p), norm_sin(n_sin), 
-      norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos) {}
+      amp(a), damp(d), k(kk), phi(p), b_sin(n_sin), 
+      b_cos(n_cos), a_sin(s_sin), a_cos(s_cos) {}
 
   C_sr_mode_wake (double a = 0) :
-      amp(0), damp(0), k(0), phi(0), norm_sin(0), norm_cos(0), 
-      skew_sin(0), skew_cos(0) {}
+      amp(0), damp(0), k(0), phi(0), b_sin(0), b_cos(0), 
+      a_sin(0), a_cos(0) {}
 
 };    // End Class
 
@@ -327,10 +327,10 @@ public:
   double R_over_Q;   // wake strength.
   double Q;          // Quality factor
   double angle;      // Polarization angle
-  double norm_sin;
-  double norm_cos;
-  double skew_sin;
-  double skew_cos;
+  double b_sin;
+  double b_cos;
+  double a_sin;
+  double a_cos;
   double t_ref;
   int m;             // Order number (1 = dipole, etc.)
   bool polarized;
@@ -338,12 +338,12 @@ public:
   C_lr_wake (double f, double f_in, double rq, double q, double ang,
           double n_sin, double n_cos, double s_sin, double s_cos, double t_ref,
           int mm, bool pol) :
-      freq(f), freq_in(f_in), R_over_Q(rq), Q(q), angle(ang), norm_sin(n_sin),
-      norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos), t_ref(t_ref), m(mm), polarized(pol){}
+      freq(f), freq_in(f_in), R_over_Q(rq), Q(q), angle(ang), b_sin(n_sin),
+      b_cos(n_cos), a_sin(s_sin), a_cos(s_cos), t_ref(t_ref), m(mm), polarized(pol){}
 
   C_lr_wake (double f = 0) :
-      freq(f), freq_in(0), R_over_Q(0), Q(0), angle(0), norm_sin(0), norm_cos(0),
-      skew_sin(0), skew_cos(0), t_ref(0), m(0), polarized(0){}
+      freq(f), freq_in(0), R_over_Q(0), Q(0), angle(0), b_sin(0), b_cos(0),
+      a_sin(0), a_cos(0), t_ref(0), m(0), polarized(0){}
 };    // End Class
 
 extern "C" void lr_wake_to_c_(lr_wake_struct*, C_lr_wake&);

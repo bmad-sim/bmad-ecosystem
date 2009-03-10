@@ -519,7 +519,7 @@ if (associated(ele%wake)) then
         if (lr%polarized) write (angle, '(f8.3)') lr%angle
         nl=nl+1; write (li(nl), '(i3, 3es12.4, i3, a, 5es10.2)') i, &
                 lr%freq, lr%R_over_Q, lr%Q, lr%m, angle, &
-                lr%norm_sin, lr%norm_cos, lr%skew_sin, lr%skew_cos, lr%t_ref
+                lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
       enddo
     else
       nl=nl+1; li(nl) = 'No long-range HOM modes.'

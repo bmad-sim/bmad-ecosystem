@@ -24,10 +24,10 @@ contains
 ! Output:
 !   lat -- Lat_struct: Lattice
 !     %ele(:) -- Lattice elements
-!       %wake%lr(:)%norm_sin -> Set to zero
-!       %wake%lr(:)%norm_cos -> Set to zero
-!       %wake%lr(:)%skew_sin -> Set to zero
-!       %wake%lr(:)%skew_cos -> Set to zero
+!       %wake%lr(:)%b_sin -> Set to zero
+!       %wake%lr(:)%b_cos -> Set to zero
+!       %wake%lr(:)%a_sin -> Set to zero
+!       %wake%lr(:)%a_cos -> Set to zero
 !-       
 
 subroutine zero_lr_wakes_in_lat (lat)
@@ -41,8 +41,8 @@ integer i
 
 do i = 1, lat%n_ele_max
   if (.not. associated(lat%ele(i)%wake)) cycle
-  lat%ele(i)%wake%lr%norm_sin = 0; lat%ele(i)%wake%lr%norm_cos = 0
-  lat%ele(i)%wake%lr%skew_sin = 0; lat%ele(i)%wake%lr%skew_cos = 0
+  lat%ele(i)%wake%lr%b_sin = 0; lat%ele(i)%wake%lr%b_cos = 0
+  lat%ele(i)%wake%lr%a_sin = 0; lat%ele(i)%wake%lr%a_cos = 0
   lat%ele(i)%wake%lr%t_ref = 0
 enddo
 
@@ -68,10 +68,10 @@ end subroutine zero_lr_wakes_in_lat
 !
 ! Output:
 !   ele     -- Ele_struct: Element with wakes.
-!     %wake%lr(:)%norm_sin -- Non-skew sin-like wake components.
-!     %wake%lr(:)%norm_cos -- Non-skew cos-like wake components.
-!     %wake%lr(:)%skew_sin -- Non-skew sin-like wake components.
-!     %wake%lr(:)%skew_cos -- Non-skew cos-like wake components.
+!     %wake%lr(:)%b_sin -- Non-skew sin-like wake components.
+!     %wake%lr(:)%b_cos -- Non-skew cos-like wake components.
+!     %wake%lr(:)%a_sin -- Non-skew sin-like wake components.
+!     %wake%lr(:)%a_cos -- Non-skew cos-like wake components.
 !     %wake%lr(:)%t_ref    -- Set to t_ref.
 !+
 
@@ -82,7 +82,7 @@ type (coord_struct) orbit
 type (lr_wake_struct), pointer :: lr
 
 integer i
-real(rp) charge, t_ref, dt, k, f_exp, ff, c, s, kx, ky
+real(rp) charge, t_ref, dt, omega, f_exp, ff, c, s, kx, ky
 real(rp) c_a, s_a, kxx, exp_shift, dt_part
 
 ! Check if we have to do any calculations
@@ -103,12 +103,12 @@ do i = 1, size(ele%wake%lr)
   dt_part = - orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$))
   dt = t_ref + dt_part
 
-  k = twopi * lr%freq
-  f_exp = k / (2 * lr%Q)
-  ff = charge * lr%r_over_q * c_light * exp(dt_part * f_exp) / ele%value(p0c$) 
+  omega = twopi * lr%freq
+  f_exp = omega / (2 * lr%Q)
+  ff = charge * lr%r_over_q * c_light * exp(dt_part * f_exp) 
 
-  c = cos (-dt * k)
-  s = sin (-dt * k)
+  c = cos (-dt * omega)
+  s = sin (-dt * omega)
 
   call ab_multipole_kick (0.0_rp, ff, lr%m, orbit, kx, ky)
 
@@ -126,10 +126,10 @@ do i = 1, size(ele%wake%lr)
     lr%t_ref = t_ref
   endif
 
-  lr%norm_sin = lr%norm_sin * exp_shift - kx * c
-  lr%norm_cos = lr%norm_cos * exp_shift + kx * s
-  lr%skew_sin = lr%skew_sin * exp_shift - ky * c
-  lr%skew_cos = lr%skew_cos * exp_shift + ky * s
+  lr%b_sin = lr%b_sin * exp_shift - kx * c
+  lr%b_cos = lr%b_cos * exp_shift + kx * s
+  lr%a_sin = lr%a_sin * exp_shift - ky * c
+  lr%a_cos = lr%a_cos * exp_shift + ky * s
 
 enddo
 
@@ -164,7 +164,7 @@ type (coord_struct) orbit
 type (lr_wake_struct), pointer :: lr
 
 integer i
-real(rp) t_ref, dt, dt_part, k, f_exp, ff, c, s, w_norm, w_skew, kx, ky, k_dum
+real(rp) t_ref, dt, dt_part, omega, f_exp, ff, c, s, w_norm, w_skew, kx, ky, k_dum
 
 ! Check if we have to do any calculations
 
@@ -179,17 +179,17 @@ do i = 1, size(ele%wake%lr)
   dt_part = -orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$)) 
   dt = t_ref + dt_part
 
-  k = twopi * lr%freq
-  f_exp = k / (2 * lr%Q)
-  ff = exp((lr%t_ref - dt) * f_exp)
+  omega = twopi * lr%freq
+  f_exp = omega / (2 * lr%Q)
+  ff = exp((lr%t_ref - dt) * f_exp) / ele%value(p0c$) 
 
-  c = cos (-dt * k)
-  s = sin (-dt * k)
+  c = cos (-dt * omega)
+  s = sin (-dt * omega)
 
   ! longitudinal kick
 
-  w_norm = (lr%norm_sin * ff * (f_exp * s + k * c) + lr%norm_cos * ff * (f_exp * c - k * s)) / c_light
-  w_skew = (lr%skew_sin * ff * (f_exp * s + k * c) + lr%skew_cos * ff * (f_exp * c - k * s)) / c_light
+  w_norm = (lr%b_sin * ff * (f_exp * s + omega * c) + lr%b_cos * ff * (f_exp * c - omega * s)) / c_light
+  w_skew = (lr%a_sin * ff * (f_exp * s + omega * c) + lr%a_cos * ff * (f_exp * c - omega * s)) / c_light
 
   call ab_multipole_kick (0.0_rp, w_norm, lr%m, orbit, kx, k_dum)
   call ab_multipole_kick (0.0_rp, w_skew, lr%m, orbit, k_dum, ky)
@@ -200,8 +200,8 @@ do i = 1, size(ele%wake%lr)
 
   if (lr%m == 0) cycle
 
-  w_norm = lr%norm_sin * ff * s + lr%norm_cos * ff * c
-  w_skew = lr%skew_sin * ff * s + lr%skew_cos * ff * c
+  w_norm = lr%b_sin * ff * s + lr%b_cos * ff * c
+  w_skew = lr%a_sin * ff * s + lr%a_cos * ff * c
 
   call ab_multipole_kick (w_skew, w_norm, lr%m-1, orbit, kx, ky)
 
@@ -364,8 +364,8 @@ do i = 1, size(ele%wake%sr_mode_long)
   c = cos (arg)
   s = sin (arg)
 
-  sr_mode_long%norm_sin = sr_mode_long%norm_sin + ff * c
-  sr_mode_long%norm_cos = sr_mode_long%norm_cos + ff * s
+  sr_mode_long%b_sin = sr_mode_long%b_sin + ff * c
+  sr_mode_long%b_cos = sr_mode_long%b_cos + ff * s
 
 enddo
 
@@ -418,7 +418,7 @@ do i = 1, size(ele%wake%sr_mode_long)
   c = cos (arg)
   s = sin (arg)
 
-  w_norm = sr_mode_long%norm_sin * ff * s + sr_mode_long%norm_cos * ff * c
+  w_norm = sr_mode_long%b_sin * ff * s + sr_mode_long%b_cos * ff * c
   orbit%vec(6) = orbit%vec(6) - w_norm
 
 enddo
@@ -520,10 +520,10 @@ do i = 1, size(ele%wake%sr_mode_trans)
   c = cos (arg)
   s = sin (arg)
 
-  sr_mode_trans%norm_sin = sr_mode_trans%norm_sin + ff * orbit%vec(1) * c
-  sr_mode_trans%norm_cos = sr_mode_trans%norm_cos + ff * orbit%vec(1) * s
-  sr_mode_trans%skew_sin = sr_mode_trans%skew_sin + ff * orbit%vec(3) * c
-  sr_mode_trans%skew_cos = sr_mode_trans%skew_cos + ff * orbit%vec(3) * s
+  sr_mode_trans%b_sin = sr_mode_trans%b_sin + ff * orbit%vec(1) * c
+  sr_mode_trans%b_cos = sr_mode_trans%b_cos + ff * orbit%vec(1) * s
+  sr_mode_trans%a_sin = sr_mode_trans%a_sin + ff * orbit%vec(3) * c
+  sr_mode_trans%a_cos = sr_mode_trans%a_cos + ff * orbit%vec(3) * s
 
 enddo
 
@@ -576,8 +576,8 @@ do i = 1, size(ele%wake%sr_mode_trans)
   c = cos (arg)
   s = sin (arg)
 
-  w_norm = sr_mode_trans%norm_sin * ff * s + sr_mode_trans%norm_cos * ff * c
-  w_skew = sr_mode_trans%skew_sin * ff * s + sr_mode_trans%skew_cos * ff * c
+  w_norm = sr_mode_trans%b_sin * ff * s + sr_mode_trans%b_cos * ff * c
+  w_skew = sr_mode_trans%a_sin * ff * s + sr_mode_trans%a_cos * ff * c
 
   orbit%vec(2) = orbit%vec(2) - w_norm
   orbit%vec(4) = orbit%vec(4) - w_skew

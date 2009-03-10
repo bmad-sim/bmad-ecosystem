@@ -1834,10 +1834,10 @@ do i = 1, size(lr)
   ele%wake%lr(j)%r_over_q  = lr(i)%r_over_q
   ele%wake%lr(j)%q         = lr(i)%q
   ele%wake%lr(j)%m         = lr(i)%m
-  ele%wake%lr(j)%norm_sin  = 0
-  ele%wake%lr(j)%norm_cos  = 0
-  ele%wake%lr(j)%skew_sin  = 0
-  ele%wake%lr(j)%skew_cos  = 0
+  ele%wake%lr(j)%b_sin  = 0
+  ele%wake%lr(j)%b_cos  = 0
+  ele%wake%lr(j)%a_sin  = 0
+  ele%wake%lr(j)%a_cos  = 0
   ele%wake%lr(j)%t_ref     = 0
 
   call downcase_string(lr(i)%angle)

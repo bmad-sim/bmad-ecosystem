@@ -525,7 +525,7 @@ type (c_dummy_struct) c_sr_mode_wake
 
 f => f_sr_mode_wake
 call sr_mode_wake_to_c2 (c_sr_mode_wake, f%amp, f%damp, f%k, f%phi, &
-                          f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos)
+                          f%b_sin, f%b_cos, f%a_sin, f%a_cos)
 
 end subroutine
 
@@ -533,14 +533,14 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine sr_mode_wake_to_f2 (f_sr_mode_wake, amp, damp, freq, phi, 
-!                                     norm_sin, norm_cos, skew_sin, skew_cos)
+!                                     b_sin, b_cos, a_sin, a_cos)
 !
 ! Subroutine used by sr_mode_wake_to_f to convert a C++ C_sr_mode_wake into
 ! a Bmad sr_mode_wake_struct. This routine is not for general use.
 !-
 
 subroutine sr_mode_wake_to_f2 (f_sr_mode_wake, amp, damp, freq, phi, &
-                                        norm_sin, norm_cos, skew_sin, skew_cos)
+                                        b_sin, b_cos, a_sin, a_cos)
 
 use fortran_and_cpp
 use bmad_struct
@@ -549,10 +549,10 @@ use bmad_interface
 implicit none
 
 type (sr_mode_wake_struct) f_sr_mode_wake
-real(rp) amp, damp, freq, phi, norm_sin, norm_cos, skew_sin, skew_cos
+real(rp) amp, damp, freq, phi, b_sin, b_cos, a_sin, a_cos
 
 f_sr_mode_wake = sr_mode_wake_struct(amp, damp, freq, phi, &
-                                      norm_sin, norm_cos, skew_sin, skew_cos)
+                                      b_sin, b_cos, a_sin, a_cos)
 
 end subroutine
 
@@ -585,7 +585,7 @@ type (c_dummy_struct) c_lr_wake
 
 f => f_lr_wake
 call lr_wake_to_c2 (c_lr_wake, f%freq, f%freq_in, f%R_over_Q, f%q, f%angle, &
-         f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos, f%t_ref, f%m, f%polarized)
+         f%b_sin, f%b_cos, f%a_sin, f%a_cos, f%t_ref, f%m, f%polarized)
 
 end subroutine
 
@@ -668,19 +668,19 @@ enddo
 do i = 1, n_sr_mode_long
   sr_mode => f%sr_mode_long(i)
   call sr_mode_long_wake_in_wake_to_c2 (c_wake, i, sr_mode%amp, sr_mode%damp, sr_mode%k, &
-                  sr_mode%phi, sr_mode%norm_sin, sr_mode%norm_cos, sr_mode%skew_sin, sr_mode%skew_cos)
+                  sr_mode%phi, sr_mode%b_sin, sr_mode%b_cos, sr_mode%a_sin, sr_mode%a_cos)
 enddo
 
 do i = 1, n_sr_mode_trans
   sr_mode => f%sr_mode_trans(i)
   call sr_mode_trans_wake_in_wake_to_c2 (c_wake, i, sr_mode%amp, sr_mode%damp, sr_mode%k, &
-                  sr_mode%phi, sr_mode%norm_sin, sr_mode%norm_cos, sr_mode%skew_sin, sr_mode%skew_cos)
+                  sr_mode%phi, sr_mode%b_sin, sr_mode%b_cos, sr_mode%a_sin, sr_mode%a_cos)
 enddo
 
 do i = 1, n_lr
   call lr_wake_in_wake_to_c2 (c_wake, i, f%lr(i)%freq, f%lr(i)%freq_in, &
-         f%lr(i)%r_over_q, f%lr(i)%Q, f%lr(i)%angle, f%lr(i)%norm_sin, &
-         f%lr(i)%norm_cos, f%lr(i)%skew_sin, f%lr(i)%skew_cos, f%lr(i)%m, &
+         f%lr(i)%r_over_q, f%lr(i)%Q, f%lr(i)%angle, f%lr(i)%b_sin, &
+         f%lr(i)%b_cos, f%lr(i)%a_sin, f%lr(i)%a_cos, f%lr(i)%m, &
          f%lr(i)%polarized)
 enddo 
 
@@ -752,14 +752,14 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine sr_mode_long_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
-!                                        norm_sin, norm_cos, skew_sin, skew_cos)
+!                                        b_sin, b_cos, a_sin, a_cos)
 !
 ! Subroutine used by wake_to_f to convert a C++ C_wake into
 ! a Bmad wake_struct. This routine is not for general use.
 !-
 
 subroutine sr_mode_long_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
-                                        norm_sin, norm_cos, skew_sin, skew_cos)
+                                        b_sin, b_cos, a_sin, a_cos)
 
 use fortran_and_cpp
 use bmad_struct
@@ -768,11 +768,11 @@ use bmad_interface
 implicit none
 
 type (wake_struct) f_wake
-real(rp) amp, damp, freq, phi, norm_sin, norm_cos, skew_sin, skew_cos
+real(rp) amp, damp, freq, phi, b_sin, b_cos, a_sin, a_cos
 integer it
 
 f_wake%sr_mode_long(it) = sr_mode_wake_struct(amp, damp, freq, phi, &
-                                        norm_sin, norm_cos, skew_sin, skew_cos)
+                                        b_sin, b_cos, a_sin, a_cos)
 
 end subroutine
 
@@ -780,14 +780,14 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine sr_mode_trans_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
-!                                        norm_sin, norm_cos, skew_sin, skew_cos)
+!                                        b_sin, b_cos, a_sin, a_cos)
 !
 ! Subroutine used by wake_to_f to convert a C++ C_wake into
 ! a Bmad wake_struct. This routine is not for general use.
 !-
 
 subroutine sr_mode_trans_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
-                                        norm_sin, norm_cos, skew_sin, skew_cos)
+                                        b_sin, b_cos, a_sin, a_cos)
 
 use fortran_and_cpp
 use bmad_struct
@@ -796,11 +796,11 @@ use bmad_interface
 implicit none
 
 type (wake_struct) f_wake
-real(rp) amp, damp, freq, phi, norm_sin, norm_cos, skew_sin, skew_cos
+real(rp) amp, damp, freq, phi, b_sin, b_cos, a_sin, a_cos
 integer it
 
 f_wake%sr_mode_trans(it) = sr_mode_wake_struct(amp, damp, freq, phi, &
-                                        norm_sin, norm_cos, skew_sin, skew_cos)
+                                        b_sin, b_cos, a_sin, a_cos)
 
 end subroutine
 
@@ -1785,6 +1785,3 @@ integer it
 call control_to_f (c_control, f_lat%control(it))
 
 end subroutine
-
-
-
