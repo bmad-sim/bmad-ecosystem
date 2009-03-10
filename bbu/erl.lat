@@ -16,7 +16,7 @@ parameter[lattice_type] = linear_lattice
 
 rfw: lcavity, l = 0, gradient = 0.0, lr_wake_file="simple.dat", lr_freq_spread=0.0E-3, rf_frequency = 1.3e9
 
-m1: match, beta_a1=betaa, alpha_a1=alphaa, beta_b1=betab, alpha_b1=alphab, dphi_a=10, dphi_b=0, l=1.0, match_end=.true.
+m1: match, beta_a1=betaa, alpha_a1=alphaa, beta_b1=betab, alpha_b1=alphab, dphi_a=1, dphi_b=1, l=1.0, match_end=.true.
 
 simple: line[multipass] = (rfw,m1)
 

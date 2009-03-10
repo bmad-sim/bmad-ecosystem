@@ -74,10 +74,14 @@ do i = 1, lat%n_ele_track
   j = j + 1
   do ih = 1, size(ele%wake%lr)
     call ran_gauss (rr)
-    ele%wake%lr%norm_sin = init_hom_amp * rr(1) / 2
-    ele%wake%lr%norm_cos = init_hom_amp * rr(2) / 2
-    ele%wake%lr%skew_sin = init_hom_amp * rr(3) / 2
-    ele%wake%lr%skew_sin = init_hom_amp * rr(4) / 2
+    ele%wake%lr%b_sin = init_hom_amp * rr(1) / 2
+    ele%wake%lr%b_cos = init_hom_amp * rr(2) / 2
+    ele%wake%lr%a_sin = init_hom_amp * rr(3) / 2
+    ele%wake%lr%a_cos = init_hom_amp * rr(4) / 2
+    ele%wake%lr%b_sin = 0
+    ele%wake%lr%b_cos = init_hom_amp 
+    ele%wake%lr%a_sin = 0
+    ele%wake%lr%a_cos = 0
   enddo
 enddo
 
@@ -291,7 +295,7 @@ type (lr_wake_struct), pointer :: lr
 
 real(rp) hom_power
 
-integer i, j, n_hom, ix
+integer i, j, ix, ix_pass
 
 !
 
@@ -300,14 +304,15 @@ n_hom = 0
 
 do i = 1, size(bbu_beam%stage)
   ix = bbu_beam%stage(i)%ix_ele_lr_wake
+  call multipass_chain (i, lat, ix_pass)
+  if (ix_pass > 1) cycle
   do j = 1, size(lat%ele(ix)%wake%lr)
     lr => lat%ele(ix)%wake%lr(j)
-    hom_power = hom_power + lr%norm_sin**2 + lr%norm_cos**2  + lr%skew_sin**2 + lr%skew_cos**2
-    n_hom = n_hom + 1
+    hom_power = hom_power + lr%b_sin**2 + lr%b_cos**2  + lr%a_sin**2 + lr%a_cos**2
   enddo
 enddo
 
-hom_power = sqrt(hom_power / n_hom)
+hom_power = sqrt(hom_power)
 
 end subroutine bbu_hom_power_calc
 
