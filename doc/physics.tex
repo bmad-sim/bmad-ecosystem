@@ -1514,6 +1514,14 @@ is
 \end{align}
 where $a' \equiv da/dz$ and $b' \equiv db/dz$.
 
+When simulating trains of bunches, the exponential factor $-k z_w / 2
+Q$ in \Eq{ac2rq} can become very large. To prevent numerical overflow,
+\bmad uses a reference time $z_{\mbox{ref}}$ so that all longitudinal
+positions $z$ in the above equations are replaced by
+\Begineq
+  z \longrightarrow z - z_{\mbox{ref}}
+\Endeq
+
 The above equations were developed assuming cylindrical symmetry. With
 cylindrical symmetry, the cavity modes are actually a pair of
 degenerate modes. When the symmetry is broken, the modes no longer have the

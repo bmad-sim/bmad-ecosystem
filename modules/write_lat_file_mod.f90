@@ -53,6 +53,7 @@ type (wig_term_struct) wt
 type (control_struct) ctl
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
+type (lr_wake_struct), pointer :: lr
 
 real(rp) s0, x_lim, y_lim
 
@@ -64,6 +65,7 @@ character(200) wake_name, file_name
 character(40), allocatable :: names(:)
 character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
 character(40) :: r_name = 'write_bmad_lattice_file'
+character(10) angle
 
 integer j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1, ie
 integer unit(6), ix_names, ix_match
@@ -362,17 +364,23 @@ ele_loop: do ie = 1, lat%n_ele_max
           call out_io (s_info$, r_name, 'Creating LR Wake file: ' // trim(wake_name))
           iuw = lunget()
           open (iuw, file = wake_name)
-          write (iuw, *) '              Freq       R/Q      Q       m  Polarization_Angle'
-          write (iuw, *) '              [Hz]  [Ohm/m^(2m)]             [Radians/2pi]'
+          write (iuw, '(14x, a)') &
+            'Freq       R/Q      Q       m  Polarization   b_sin       b_cos       a_sin       a_cos       t_ref'
+          write (iuw, '(14x, a)') &
+            '[Hz]  [Ohm/m^(2m)]             [Rad/2pi]'
           do n = lbound(ele%wake%lr, 1), ubound(ele%wake%lr, 1)
-            if (ele%wake%lr(n)%polarized) then
-              write (iuw, '(a, i0, a, 3es14.5, i6, f10.6)') 'lr(', n, ') =', &
-                    ele%wake%lr(n)%freq_in, ele%wake%lr(n)%R_over_Q, &
-                     ele%wake%lr(n)%Q, ele%wake%lr(n)%m, ele%wake%lr(n)%angle
+            lr => ele%wake%lr(n)
+            if (lr%polarized) then
+              write (angle, '(f10.6)') lr%angle
             else
-              write (iuw, '(a, i0, a, 3es14.5, i6, f10.6)') 'lr(', n, ') =', &
-                    ele%wake%lr(n)%freq_in, ele%wake%lr(n)%R_over_Q, &
-                    ele%wake%lr(n)%Q, ele%wake%lr(n)%m
+              angle = '     unpol'
+            endif
+            if (any ( (/ lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref /) /= 0)) then
+              write (iuw, '(a, i0, a, 3es14.5, i6, a, 5es12.2)') 'lr(', n, ') =', &
+                    lr%freq_in, lr%R_over_Q, lr%Q, lr%m, angle, lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
+            else
+              write (iuw, '(a, i0, a, 3es14.5, i6, a)') 'lr(', n, ') =', &
+                    lr%freq_in, lr%R_over_Q, lr%Q, lr%m, angle
             endif
           enddo
           close(iuw)

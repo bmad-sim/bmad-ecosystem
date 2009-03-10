@@ -1789,6 +1789,7 @@ type lr_wake_input_struct
   real(rp) Q            ! Quality factor.
   integer m             ! Order (1 = dipole, 2 = quad, etc.)
   character(16) angle   ! polarization angle (radians/2pi).
+  real(rp) b_sin, b_cos, a_sin, a_cos, t_ref
 end type
 
 type (ele_struct) ele
@@ -1813,8 +1814,15 @@ call find_this_file (iu, lr_file_name, full_file_name)
 if (iu < 0) return
 
 ele%wake%lr_file = lr_file_name
+
 lr%freq = -1
 lr%angle = ''
+lr%b_sin = 0
+lr%b_cos = 0
+lr%a_sin = 0
+lr%a_cos = 0
+lr%t_ref = 0
+
 read (iu, nml = long_range_modes, iostat = ios)
 close (iu)
 if (ios /= 0) then
@@ -1828,17 +1836,18 @@ allocate (ele%wake%lr(n_row))
 j = 0
 do i = 1, size(lr)
   if (lr(i)%freq == -1) cycle
+
   j = j + 1
   ele%wake%lr(j)%freq_in   = lr(i)%freq
   ele%wake%lr(j)%freq      = lr(i)%freq
   ele%wake%lr(j)%r_over_q  = lr(i)%r_over_q
   ele%wake%lr(j)%q         = lr(i)%q
   ele%wake%lr(j)%m         = lr(i)%m
-  ele%wake%lr(j)%b_sin  = 0
-  ele%wake%lr(j)%b_cos  = 0
-  ele%wake%lr(j)%a_sin  = 0
-  ele%wake%lr(j)%a_cos  = 0
-  ele%wake%lr(j)%t_ref     = 0
+  ele%wake%lr(j)%b_sin     = lr(i)%b_sin
+  ele%wake%lr(j)%b_cos     = lr(i)%b_cos
+  ele%wake%lr(j)%a_sin     = lr(i)%a_sin
+  ele%wake%lr(j)%a_cos     = lr(i)%a_cos
+  ele%wake%lr(j)%t_ref     = lr(i)%t_ref
 
   call downcase_string(lr(i)%angle)
   if (lr(i)%angle == '') then

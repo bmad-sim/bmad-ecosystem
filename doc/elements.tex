@@ -1001,8 +1001,9 @@ uses Fortran90 namelist syntax: The data begins with the string
 ignored. Each mode is labeled \vn{lr(i)} where \vn{i} is the mode
 index. An example input file is:
 \begin{example}
-              Freq       R/Q      Q       m  Polarization_Angle
-              [Hz]  [Ohm/m^(2m)]             [Radians/2pi]
+              Freq       R/Q      Q       m  Polarization  b_sin  b_cos a_sin  a_cos  t_ref 
+                                             Angle 
+              [Hz]  [Ohm/m^(2m)]             [Rad/2pi]
   &long_range_modes
     lr(1) = 1.6506e9    0.76    7.0e4     1     unpol
     lr(2) = 1.6991e9   11.21    5.0e4     1     0.15
