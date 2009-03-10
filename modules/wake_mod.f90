@@ -72,7 +72,7 @@ end subroutine zero_lr_wakes_in_lat
 !     %wake%lr(:)%b_cos -- Non-skew cos-like wake components.
 !     %wake%lr(:)%a_sin -- Non-skew sin-like wake components.
 !     %wake%lr(:)%a_cos -- Non-skew cos-like wake components.
-!     %wake%lr(:)%t_ref    -- Set to t_ref.
+!     %wake%lr(:)%t_ref -- Set to t_ref.
 !+
 
 subroutine lr_wake_add_to (ele, t_ref, orbit, charge)
@@ -83,7 +83,7 @@ type (lr_wake_struct), pointer :: lr
 
 integer i
 real(rp) charge, t_ref, dt, omega, f_exp, ff, c, s, kx, ky
-real(rp) c_a, s_a, kxx, exp_shift, dt_part
+real(rp) c_a, s_a, kxx, exp_shift, dt_part, a_sin, b_sin
 
 ! Check if we have to do any calculations
 
@@ -101,11 +101,11 @@ do i = 1, size(ele%wake%lr)
 
   lr => ele%wake%lr(i)
   dt_part = - orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$))
-  dt = t_ref + dt_part
+  dt = t_ref + dt_part - lr%t_ref
 
   omega = twopi * lr%freq
   f_exp = omega / (2 * lr%Q)
-  ff = charge * lr%r_over_q * c_light * exp(dt_part * f_exp) 
+  ff = charge * lr%r_over_q * c_light * exp(dt * f_exp) 
 
   c = cos (-dt * omega)
   s = sin (-dt * omega)
@@ -119,17 +119,24 @@ do i = 1, size(ele%wake%lr)
     ky = kxx * c_a * s_a + ky * s_a * s_a
   endif
 
-  if (t_ref == lr%t_ref) then
-    exp_shift = 1
-  else
-    exp_shift = exp((lr%t_ref - t_ref) * f_exp) 
-    lr%t_ref = t_ref
-  endif
+  lr%b_sin = lr%b_sin - kx * c
+  lr%b_cos = lr%b_cos + kx * s
+  lr%a_sin = lr%a_sin - ky * c
+  lr%a_cos = lr%a_cos + ky * s
 
-  lr%b_sin = lr%b_sin * exp_shift - kx * c
-  lr%b_cos = lr%b_cos * exp_shift + kx * s
-  lr%a_sin = lr%a_sin * exp_shift - ky * c
-  lr%a_cos = lr%a_cos * exp_shift + ky * s
+  if (t_ref /= lr%t_ref) then
+    dt = t_ref - lr%t_ref 
+    exp_shift = exp(-dt * f_exp) 
+    lr%t_ref = t_ref
+    c = cos (dt * omega)
+    s = sin (dt * omega)
+    b_sin = lr%b_sin
+    lr%b_sin = exp_shift * ( c * b_sin + s * lr%b_cos)
+    lr%b_cos = exp_shift * (-s * b_sin + c * lr%b_cos)
+    a_sin = lr%a_sin
+    lr%a_sin = exp_shift * ( c * a_sin + s * lr%a_cos)
+    lr%a_cos = exp_shift * (-s * a_sin + c * lr%a_cos)
+  endif
 
 enddo
 
@@ -177,11 +184,11 @@ do i = 1, size(ele%wake%lr)
 
   lr => ele%wake%lr(i)
   dt_part = -orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$)) 
-  dt = t_ref + dt_part
+  dt = t_ref + dt_part - lr%t_ref
 
   omega = twopi * lr%freq
   f_exp = omega / (2 * lr%Q)
-  ff = exp((lr%t_ref - dt) * f_exp) / ele%value(p0c$) 
+  ff = exp(-dt * f_exp) / ele%value(p0c$) 
 
   c = cos (-dt * omega)
   s = sin (-dt * omega)
