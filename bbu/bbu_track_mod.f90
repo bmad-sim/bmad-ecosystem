@@ -6,6 +6,7 @@ use beam_mod
 type bbu_stage_struct
   integer :: ix_ele_lr_wake 
   integer :: ix_head_bunch
+  real(rp) :: amp, phase
 end type
 
 type bbu_beam_struct
@@ -102,7 +103,8 @@ allocate (bbu_beam%stage(j))
 
 ! bbu_beam%stage(i)%ix_ele_lr_wake holds the index in lat%ele(:) of the lcavity of the i^th stage.
 
-! bbu_beam%stage(i)%ix_head_bunch holds the index in bbu_beam%bunch(:) of the head bunch for the i^th stage.
+! bbu_beam%stage(i)%ix_head_bunch holds the index in bbu_beam%bunch(:) of the head 
+! bunch for the i^th stage.
 ! The head bunch is the next bunch that will be propagated through the stage.
 
 bbu_beam%stage%ix_head_bunch = -1    ! Indicates there are no bunches ready for a stage.
@@ -128,8 +130,9 @@ subroutine bbu_track_a_stage (lat, bbu_beam, lost)
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
 type (bbu_beam_struct) bbu_beam
+type (lr_wake_struct), pointer :: lr
 
 real(rp) best_finish_time, finish_time
 
@@ -184,6 +187,12 @@ do j = ix_ele_start+1, ix_ele_end
     lost = .true.
     return
   endif
+  do i_stage = 1, size(bbu_beam%stage)
+    ix_ele = bbu_beam%stage(i_stage)%ix_ele_lr_wake
+    lr => lat%ele(ix_ele)%wake%lr(1)
+    bbu_beam%stage(i_stage)%amp = sqrt(lr%b_sin**2 + lr%b_cos**2)
+    bbu_beam%stage(i_stage)%phase = lr%t_ref * lr%freq + atan2(lr%b_sin, lr%b_cos) / twopi
+  enddo
 enddo
 
 ! If the next stage does not have any bunches waiting to go through then the
@@ -285,6 +294,8 @@ end subroutine bbu_remove_head_bunch
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
+! Calculates power in mode with maximal amplitude
+
 subroutine bbu_hom_power_calc (lat, bbu_beam, hom_power)
 
 implicit none
@@ -307,7 +318,7 @@ do i = 1, size(bbu_beam%stage)
   if (ix_pass > 1) cycle
   do j = 1, size(lat%ele(ix)%wake%lr)
     lr => lat%ele(ix)%wake%lr(j)
-    hom_power = hom_power + lr%b_sin**2 + lr%b_cos**2  + lr%a_sin**2 + lr%a_cos**2
+    hom_power = max(hom_power, lr%b_sin**2 + lr%b_cos**2  + lr%a_sin**2 + lr%a_cos**2)
   enddo
 enddo
 
