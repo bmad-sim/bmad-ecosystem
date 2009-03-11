@@ -351,6 +351,14 @@ if (lat%param%lattice_type == circular_lattice$) then
   call err_exit
 endif
 
+! Transfer wakes from  design
+
+do i = 1, lat%n_ele_max
+  if (associated(lat%ele(i)%wake)) lat%ele(i)%wake%lr = u%design%lat%ele(i)%wake%lr
+enddo
+
+call zero_lr_wakes_in_lat (lat)
+
 ! Find if injecting into another lattice
 
 extract_at_ix_ele = -1
@@ -410,8 +418,6 @@ if (s%global%beam_timer_on) then
 endif
 
 n_alive_old = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost /= not_lost$)
-
-call zero_lr_wakes_in_lat (lat)
 
 do j = ie1, ie2
 
