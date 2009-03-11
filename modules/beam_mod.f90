@@ -254,6 +254,10 @@ if (associated(ele%wake)) then
       do j = 1, size(ele%wake%lr)
         lr       => ele%wake%lr(j)
         lr_chain => lat%ele(ix_chain(i))%wake%lr(j)
+        lr_chain%b_sin = lr%b_sin
+        lr_chain%b_cos = lr%b_cos
+        lr_chain%a_sin = lr%a_sin
+        lr_chain%a_cos = lr%a_cos
         lr_chain%t_ref = lr%t_ref - (lat%ele(ix_chain(i))%ref_time - ele%ref_time)
       enddo
     enddo
