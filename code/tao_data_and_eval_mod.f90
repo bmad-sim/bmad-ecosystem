@@ -1828,7 +1828,7 @@ i_op = 0
 ran_function_pending = .false.
 
 do i = 1, size(stk)
-  stk%name = ''
+  stk(i)%name = ''
   if (allocated(stk(i)%good)) deallocate (stk(i)%good)
   if (allocated(stk(i)%value_ptr)) deallocate (stk(i)%value_ptr)
 enddo
