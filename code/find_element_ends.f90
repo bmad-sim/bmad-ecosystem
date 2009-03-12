@@ -52,10 +52,17 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
     call pointer_to_ele (lat, ele%ix_branch, lat%control(ix1)%ix_slave - 1, ele1)
     call pointer_to_ele (lat, ele%ix_branch, lat%control(ix2)%ix_slave, ele2)
 
+  ! For overlays and groups: The idea is to look at all the slave elements in the tracking 
+  ! part of the lattice and find the minimum and maximum element indexes.
+  ! The small complication is that overlays or groups lords can control other overlays or 
+  ! groups, etc.
+  ! So we must "recursively" follow the slave tree.
+  ! ix_slave_array/ix_branch_array holds the list of slaves we need to look at.
+
   else  ! overlay_lord$ or group_lord$
     ix_start = lat%n_ele_track + 1
     ix_end = 0
-    n = 0
+    n = 0       ! Index in ix_slave_array
     n_slave = ele%n_slave
     call re_allocate(ix_slave_array, n_slave)
     call re_allocate(ix_branch_array, n_slave)
@@ -67,6 +74,7 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
       if (n > n_end) exit
       ix_slave = ix_slave_array(n)
       ix_branch = ix_branch_array(n)
+      ! If the slave itself has slaves then add the sub-slaves to the list
       if (ix_slave > lat%n_ele_track .and. ix_branch == 0) then
         n_slave = lat%ele(ix_slave)%n_slave
         ix1 = lat%ele(ix_slave)%ix1_slave
@@ -76,12 +84,13 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
         ix_slave_array(n_end+1:n_end+n_slave) = lat%control(ix1:ix2)%ix_slave
         ix_branch_array(n_end+1:n_end+n_slave) = lat%control(ix1:ix2)%ix_branch
         n_end = n_end + n_slave
+      ! Else this slave is in the tracking part of the lattice...
       else
         if (ix_slave - 1 < ix_start) then
           ix_start = ix_slave - 1
           ix_start_branch = ix_branch
         endif
-        if (ix_start > ix_end) then
+        if (ix_slave > ix_end) then
           ix_end = ix_slave 
           ix_end_branch = ix_branch
         endif
