@@ -697,12 +697,16 @@ end subroutine init_lat
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+ 
-! Function equivalent_eles (ele1, ele2) result (equiv)
+! Function equivalent_taylor_attributes (ele1, ele2) result (equiv)
 !
-! Subroutine to see if to elements are equivalent in terms of attributes so
+! Subroutine to see if two elements are equivalent in terms of attributes so
 ! that their Taylor Maps would be the same. 
 ! If the reference orbit about which the Taylor map is made is zero then
 ! two elements can be equivalent even if the names are different.
+!
+! This routine is used to see if a taylor map from one element may be 
+! used for another and thus save some computation time. Taylor map elements
+! Are considered *never* to be equivalent since their maps are never computed.
 !
 ! Modules needed:
 !   use bmad
@@ -715,7 +719,7 @@ end subroutine init_lat
 !   equiv -- logical: True if elements are equivalent.
 !-
 
-function equivalent_eles (ele1, ele2) result (equiv)
+function equivalent_taylor_attributes (ele1, ele2) result (equiv)
 
 implicit none
 
@@ -759,6 +763,8 @@ if (associated(ele1%wig_term)) then
     if (ele1%wig_term(it)%phi_z /= ele2%wig_term(it)%phi_z) cycle
   enddo
 endif
+
+if (ele1%key == taylor$) return  
 
 equiv = .true.
 

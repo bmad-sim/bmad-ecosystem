@@ -115,7 +115,7 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb)
         if (.not. associated(ele%taylor(1)%term)) then
           do j = 1, n_taylor
             ie = ix_taylor(j)
-            if (.not. equivalent_eles (ele, lat%ele(ie))) cycle
+            if (.not. equivalent_taylor_attributes (ele, lat%ele(ie))) cycle
             if (present(ref_orb)) then
               if (any(ref_orb(i-1)%vec /= ref_orb(ie-1)%vec)) cycle
             endif

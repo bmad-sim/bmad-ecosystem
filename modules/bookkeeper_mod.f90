@@ -1807,7 +1807,7 @@ out_loop: do i = 1, lattice_out%n_ele_max
 
     ele_in => lattice_in%ele(ix_in(j))
 
-    if (equivalent_eles (ele_in, ele_out)) then
+    if (equivalent_taylor_attributes (ele_in, ele_out)) then
       if (type_out) call out_io (s_info$, r_name, &
           ' Reusing Taylor from: ' // trim(ele_in%name) // '  to: ' //  ele_out%name)
       call attribute_bookkeeper (ele_out, lattice_out%param)

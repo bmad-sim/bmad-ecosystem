@@ -3942,12 +3942,12 @@ if (.not. allocated(ele_array)) return
 do i = 1, lat%n_ele_max
 
   ele => lat%ele(i)
-  call attribute_bookkeeper (ele, lat%param) ! for equivalent_eles test
+  call attribute_bookkeeper (ele, lat%param) ! for equivalent_taylor_attributes test
 
   do j = 1, size(ele_array)
     if (any(ele_array(j)%taylor(:)%ref /= 0)) cycle
     if (bmad_com%taylor_order > ele_array(j)%taylor_order) cycle
-    if (.not. equivalent_eles (ele_array(j), ele)) cycle
+    if (.not. equivalent_taylor_attributes (ele_array(j), ele)) cycle
     exit
   enddo
 
