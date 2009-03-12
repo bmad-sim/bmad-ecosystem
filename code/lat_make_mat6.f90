@@ -142,10 +142,9 @@ recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb)
 
       ! save this taylor in the list if it is a new one. 
 
-      if (want_taylor .and. .not. transferred) then
+      if (associated(ele%taylor(1)%term) .and. .not. transferred) then
         n_taylor = n_taylor + 1
-        if (n_taylor > size(ix_taylor)) &
-                         call re_allocate (ix_taylor, 2*size(ix_taylor))
+        if (n_taylor > size(ix_taylor)) call re_allocate (ix_taylor, 2*size(ix_taylor))
         ix_taylor(n_taylor) = i
       endif
 

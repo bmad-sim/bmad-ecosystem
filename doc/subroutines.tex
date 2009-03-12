@@ -63,7 +63,7 @@ solely meant for \bmad internal use.
 
 \begin{description}
 
-\index{Routine!init_lrbb}
+\index{Routine!init_lrbbi}
 \item[init_lrbbi(lat, oppos_lat, lrbbi_ele, ix_lrbbi, ix_oppos)] \Newline 
      Subroutine to calculate the basic parameters of a beambeam element. 
      Initializes the element and establishes the following values.
@@ -78,11 +78,11 @@ point as specified form a list of crossing points.
 Subroutine to calculate the location of the parasitic crossings points 
 given a bunch and an array of positions of the bunches it will cross. 
 
-\index{Routine!make_lrbb}
+\index{Routine!make_lrbbi}
 \item[make_lrbbi(master_lat, master_lat_oppos, lat, ix_lrbbi, master_ix_lrbbi)] \Newline
 Subroutine to turn elements marking parasitic crossings into beam-beam elements. 
 
-\index{Routine!mark_lrbb}
+\index{Routine!mark_lrbbi}
 \item[mark_lrbbi(master_lat, master_lat_oppos, lat, crossings)] \Newline
 Subroutine to insert named markers into the lat structure at the positions of parasitic crossings. 
 
@@ -110,25 +110,14 @@ The ordering uses the centroid of the particles:
 \item[rest_energy (particle) result (energy)] \Newline 
 Routine to return the rest energy in eV of a particle.
 
-\index{Routine!track1_beam_lat}
-\item[track1_beam_lat (beam_start, lat, ix_ele, beam_end)] \Newline 
+\index{Routine!track1_beam}
+\item[track1_beam (beam_start, lat, ix_ele, beam_end, err)] \Newline 
 Subroutine to track a beam of particles through a single element.
 Overloaded by \vn{track1_beam}.
 
-\index{Routine!track1_beam_ele}
-\item[track1_beam_ele (beam_start, ele, param, beam_end)] \Newline 
-Subroutine to track a beam of particles through a single element.
-Overloaded by \vn{track1_beam}.
-
-\index{Routine!track1_bunch_lat}
-\item[track1_bunch_lat (bunch_start, lat, ix_ele, bunch_end)] \Newline 
+\index{Routine!track1_bunch}
+\item[track1_bunch (bunch_start, lat, ix_ele, bunch_end, err)] \Newline 
 Subroutine to track a bunch of particles through an element.
-Overloaded by \vn{track1_bunch}.
-
-\index{Routine!track1_bunch_ele}
-\item[track1_bunch_ele (bunch_start, ele, param, bunch_end)] \Newline 
-Subroutine to track a bunch of particles through an element.
-Overloaded by \vn{track1_bunch}.
 
 \index{Routine!track1_sr_wake}
 \item[track1_sr_wake (bunch, ele)] \Newline 
@@ -641,7 +630,12 @@ Subroutine to check if the control links in a lat structure are valid.
 \item[attribute_free (ele, ix_attrib, lat, err_print_flag) result (free)] \Newline
 Function to check if an attribute is free to vary.
 
-\index{Routine!elements_locator_key}
+\index{Routine!elements_locator}
+\item[elements_locator (ele_name, lat, indx, err)] \Newline 
+Subroutine to locate all the elements of a certain key 
+and certain name. 
+
+\index{Routine!elements_locator_by_key}
 \item[elements_locator_by_key (key, lat, indx)] \Newline
 Subroutine to locate all the elements of a certain kind in a lat. 
 
@@ -2056,9 +2050,18 @@ Subroutine to set what axis to use: X or X2, Y or Y2.
 \item[qp_get_layout_attrib (who, x1, x2, y1, y2, units)] \Newline 
      Subroutine to get the attributes of the layout.
 
+\index{Routine!qp_get_line}
+\item[qp_get_line (who, line)] \Newline 
+Subroutine to get the default line attributes.
+
 \index{Routine!qp_get_parameters}
 \item[qp_get_parameters (text_scale)] \Newline 
 Subroutine to get various quick_plot parameters.
+
+\index{Routine!qp_get_symbol}
+\item[qp_get_symbol (symbol)] \Newline 
+Subroutine to get the symbol parameters used in plotting data.
+Use qp_set_symbol or qp_set_symbol_attrib to set symbol attributes.
 
 \index{Routine!qp_text_len}
 \item[qp_text_len (text)] \Newline 
@@ -2137,6 +2140,7 @@ Subroutine to clear all drawing from the page.
 Subroutine to finish plotting on a page.
 For X this closes the window.
 
+\index{Routine!qp_convert_point_rel}
 \item[qp_convert_point_rel (x_in, y_in, units_in, x_out, y_out, units_out)] \Newline 
 Subroutine to convert a (x, y) point from from
 one set of relative units to another.
@@ -2192,7 +2196,7 @@ Subroutine to restore the print state.
      Subroutine to save the current attributes. 
      Use qp_restore_state to restore the saved state.
 
-\index{Routine!qp_save_state_basic }
+\index{Routine!qp_save_state_basic}
 \item[qp_save_state_basic ] \Newline 
 Subroutine to save the print state.
 
@@ -2369,7 +2373,7 @@ Subroutine to make a Taylor map for an element. The order of the map is set by s
 Subroutine to see if to elements are equivalent in terms of attributes so
 that their Taylor Maps would be the same. 
 
-\index{Routine!init_taylor}
+\index{Routine!init_taylor_series}
 \item[init_taylor_series (bmad_taylor, n_term)] \Newline
 Subroutine to initialize a Bmad Taylor series. 
 
@@ -2970,6 +2974,11 @@ Subroutine to apply the short range wake fields to a bunch.
 \index{Routine!track1_lr_wake}
 \item[track1_lr_wake (bunch, ele)] \Newline 
 Subroutine to put in the long-range wakes for particle tracking.
+
+\index{Routine!zero_lr_wakes_in_lat}
+\item[zero_lr_wakes_in_lat (lat)] \Newline 
+Routine to zero the long range wake amplitudes for the elements that have
+long range wakes in a lattice.
 
 \end{description}
 

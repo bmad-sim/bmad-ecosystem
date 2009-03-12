@@ -248,6 +248,7 @@ $pl_hash{"assignment"} = "bmad_taylor_mod.f90";
 $pl_hash{"re_associate_integer"} = "reallocate_mod.f90";
 $pl_hash{"solenoid_mat_calc"} = "make_mat6_mod.f90";
 $pl_hash{"read_parameter"} = "aml_parser.f90";
+$pl_hash{"mat_det"} = "mat_det.f90";
 
 #---------------------------------------------------------
 # make a list of names from bmad_subroutines.html
@@ -256,7 +257,7 @@ $tex_file =  'subroutines.tex';
 open (F_IN, $tex_file) || die ("Cannot open File: $tex_file");
 
 while (<F_IN>) {
-  if (/\\item\[(.*?)[\(\] ]/i)  {      # match to "\item[...]" 
+  if (/\\index\{Routine\!(.*?)\}/i)  {      # match to "\index{Routine!...}" 
     $name = $1;
     $name =~ s/protect\\parbox\{6in\}\{//;
     $name =~ tr/A-Z/a-z/;    # lowercase

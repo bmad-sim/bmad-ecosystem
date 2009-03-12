@@ -17,6 +17,7 @@ public:
   void register_aml_element (UAPNode* parent);
   void aml_element_to_bmad (UAPNode* parent);
   void aml_parameter_to_bmad (string who, UAPNode* expand_node, UAPNode* bmad_param_node);
+
 };
 
 //--------------------------------------------------------------------------------------
@@ -82,6 +83,8 @@ extern "C" void aml_parser_cpp_(char* lat_file, uap_node_f_struct* fort_root, in
   ubl.aml_parameter_to_bmad ("beam", expand_root, param_node);
   ubl.aml_parameter_to_bmad ("lattice", expand_root, param_node);
   ubl.aml_parameter_to_bmad ("global", expand_root, param_node);
+
+  ubl.custom_aml_rep_to_x_rep (NULL, expand_root);
 
   // Convert to a fortran tree.
 
