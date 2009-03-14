@@ -1024,7 +1024,7 @@ do ii = 1, size(curve%x_line)
   if (.not. good(ii)) cycle
 
   s_now = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
-  if (s_now .ge. lat%ele(lat%n_ele_track)%s) s_now = lat%ele(lat%n_ele_track)%s - 1e-9
+  if (s_now > lat%ele(lat%n_ele_track)%s) s_now = lat%ele(lat%n_ele_track)%s
   curve%x_line(ii) = s_now
   value = 0
 
