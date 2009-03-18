@@ -41,12 +41,14 @@ call bmad_parser (bbu_param%lat_file_name, lat_in)
 call twiss_propagate_all (lat_in)
 
 if (bbu_param%hyberdize) then
+  print *, 'Note: Hyberdizing lattice...'
   allocate (keep_ele(lat_in%n_ele_max))
   keep_ele = .false.
   do i = 1, lat_in%n_ele_max
     if (.not. associated (lat_in%ele(i)%wake)) cycle
     if (size(lat_in%ele(i)%wake%lr) == 0) cycle
     keep_ele(i) = .true.
+    call update_hybrid_list (lat_in, i, keep_ele)
   enddo
   call make_hybrid_lat (lat_in, keep_ele, .true., lat)
   deallocate (keep_ele)
