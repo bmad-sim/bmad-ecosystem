@@ -17,6 +17,7 @@ public:
   void register_aml_element (UAPNode* parent);
   void aml_element_to_bmad (UAPNode* parent);
   void aml_parameter_to_bmad (string who, UAPNode* expand_node, UAPNode* bmad_param_node);
+  void aml_parser_cpp(char* lat_file, uap_node_f_struct* fort_root, int& ok);
 
 };
 
@@ -25,10 +26,17 @@ public:
 //
 
 extern "C" void aml_parser_cpp_(char* lat_file, uap_node_f_struct* fort_root, int& ok) {
+  UAPToBmadLat ubl;
+  ubl.aml_parser_cpp (lat_file, fort_root, ok);
+  return;
+}
+
+//-----------------------------------------------------------------------------
+
+void UAPToBmadLat::aml_parser_cpp (char* lat_file, uap_node_f_struct* fort_root, int& ok) {
 
   UAPNode* uap_root_node;
   UAPNode* expand_root;
-  UAPToBmadLat ubl;
 
   // Read in the AML file and create an AML representation tree.
 
@@ -68,23 +76,23 @@ extern "C" void aml_parser_cpp_(char* lat_file, uap_node_f_struct* fort_root, in
   UAPNode* master_node = expand_root->getSubNodesByName("master_list").front();
   UAPNode* control_node = expand_root->getSubNodesByName("control_list").front();
 
-  ubl.init (expand_root);
+  init (expand_root);
 
-  ubl.register_aml_element (track_node);
-  ubl.register_aml_element (master_node);
-  ubl.register_aml_element (control_node);
+  register_aml_element (track_node);
+  register_aml_element (master_node);
+  register_aml_element (control_node);
 
-  ubl.aml_element_to_bmad (track_node);
-  ubl.aml_element_to_bmad (master_node);
-  ubl.aml_element_to_bmad (control_node);
+  aml_element_to_bmad (track_node);
+  aml_element_to_bmad (master_node);
+  aml_element_to_bmad (control_node);
 
   UAPNode* param_node = expand_root->addChild("param_list");
 
-  ubl.aml_parameter_to_bmad ("beam", expand_root, param_node);
-  ubl.aml_parameter_to_bmad ("lattice", expand_root, param_node);
-  ubl.aml_parameter_to_bmad ("global", expand_root, param_node);
+  aml_parameter_to_bmad ("beam", expand_root, param_node);
+  aml_parameter_to_bmad ("lattice", expand_root, param_node);
+  aml_parameter_to_bmad ("global", expand_root, param_node);
 
-  ubl.custom_aml_rep_to_x_rep (NULL, expand_root);
+  custom_aml_rep_to_x_rep (NULL, expand_root);
 
   // Convert to a fortran tree.
 
@@ -96,9 +104,8 @@ extern "C" void aml_parser_cpp_(char* lat_file, uap_node_f_struct* fort_root, in
 //-----------------------------------------------------------------------------
 
 void UAPToBmadLat::init (UAPNode* expand_root) {
-
   aml_rep_to_x_init (expand_root);
-
+  return;
 }
 
 //-----------------------------------------------------------------------------

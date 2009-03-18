@@ -7,7 +7,9 @@
 ! The concatinated elements in the new lat are known as hybrid elements.
 !
 ! Note: Lat_out must not be the same actual argument as lat_in.
-! 
+!
+! Note: The routine update_hybrid_list can be useful in constructing the keep_ele array.
+ 
 ! Note: For hybrid elements lat_out%ele(i)%tracking_method and 
 ! lat_out%ele(i)%mat6_calc_method are set as follows:
 !
