@@ -103,9 +103,41 @@ coordinates and quadratic for $z$.
 \subsection{BeamBeam}
 \index{beambeam}
 
-The beam-beam interaction is modeled using the Bassetti-Erskine
-complex error function formula\cite{b:bassetti}. This formula assumes that
-the strong beam
+A beam-beam element simulates the effect on a tracked particle of an opposing 
+beam of particles moving in the opposite direction. The opposing beam, called the
+``strong'' beam, is assumed to be Gaussian in shape. In the \vn{bmad_standard}
+calculation, the kick on the tracked particle is computed using the
+Bassetti--Erskine complex error function formula\cite{b:talman}
+
+The strong beam is divided up into \vn{n_slice} equal charge (not equal
+thickness) slices. The default for \vn{n_slice} is 1. Propagation
+through the strong beam involves a kick at the charge center of each
+slice with drifts in between the kicks. The kicks are calculated using
+the standard Bassetti--Erskine formula.  Even though the strong beam can
+have a finite \vn{sig_z} the length of the element is always considered
+to be zero. This is achieved by adding drifts at either end of any
+tracking so that the longitudinal starting point and ending point are
+identical. The longitudinal $s$--position of the
+\vn{BeamBeam} element is at the center of the strong bunch. For example,
+with \vn{n_slice} = 2 the calculation would proceed as follows:
+\begin{example}
+  0) Start with the reference particle at the center of the strong bunch.
+  1) Propagate (drift) backwards to the center of the first slice.
+  2) Apply the beam--beam kick due to the first slice.
+  3) Propagate (drift) forwards to the center of the second slice.
+  4) Apply the beam--beam kick due to the second slice.
+  5) Propagate (drift) backwards to end up with the reference particle
+     at the center of the strong bunch.
+\end{example}
+
+\vn{bbi_constant}: $ C_{bbi} = 
+N \, m_e \, r_e / (2 \, \pi \, \gamma \, (\sigma_x + \sigma_y))$ 
+is a measure of the beam--beam interaction strength. For example,
+in the linear region near $x = y = 0$ the horizontal component of the
+beam--beam kick is approximately 
+$k_x = -4\, \pi \, x \, C_{bbi} / \sigma_x$ and the
+horizontal beam--beam tune shift is 
+$dQ_x = C_{bbi} \, \beta_a / \sigma_x$.
 
 %-----------------------------------------
 \subsection{Bend\_Sol\_Quad}
