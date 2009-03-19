@@ -378,6 +378,172 @@ do
 
 enddo
 
-end subroutine
+end subroutine bbu_track_all
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+subroutine write_homs (lat)
+
+! Write out information on lattice and HOMs
+! Adapted from Changsheng's Get_Info.f90
+!
+! 19 March 2009 J.A.Crittenden
+
+implicit none
+
+type (lat_struct) lat
+
+
+!Arrays used to store lattice information
+real(rp), Dimension(6,6) :: mat, oldmat,imat, testmat
+real(rp), Dimension(:,:,:), allocatable :: erlmat
+real(rp), Dimension(:),     allocatable :: erltime
+
+
+integer i, j, k, l, u
+real(rp)  time, Vz, P0i, P0f, gamma, cavity_i
+logical judge
+integer :: matrixsize = 4
+real(rp) currth,rovq
+
+allocate(erlmat(800, matrixsize, matrixsize))
+allocate(erltime(800))
+
+      write(6,1000)lat%input_file_name,lat%n_ele_track,lat%ele(0)%value(e_tot$)
+1000  format(' Lattice: ',a200/ &
+             ' Nr Tracking Elements: ',i7/ &
+             ' Beam Energy: ',e10.5// &
+            )
+
+! Initialize the identity matrix
+call mat_make_unit(imat)
+
+!Find the time between each cavity in the low energy lattice
+time=0
+cavity_i=lat%ele(0)%s
+
+! The time between two cavities is stored in erltime(k)
+
+k=1     
+judge=.false.  ! True if the rf cavity has wake fields
+
+do i=1, lat%n_ele_track
+   
+   gamma=lat%ele(i)%value(E_TOT$)/m_electron       ! Calculate the z component of the velocity
+   Vz=c_light*sqrt(1.-1./gamma**2)
+   
+   if (lat%ele(i)%key == LCAVITY$ ) then
+      time=time+(lat%ele(i)%s-cavity_i)/c_light*(1+0.5/(gamma*lat%ele(i-1)%value(E_TOT$)/m_electron))
+      if(associated(lat%ele(i)%wake)) then
+        do j=1, size(lat%ele(i)%wake%lr)
+          if(lat%ele(i)%wake%lr(j)%R_over_Q >1E-10) then            
+          judge=.true.
+          endif
+        enddo
+      endif
+      if (judge) then
+
+
+
+      erltime(k)=time
+      time=0
+      k=k+1       
+      endif
+   else
+      time=time+(lat%ele(i)%s-cavity_i)/Vz
+   endif
+   
+   cavity_i=lat%ele(i)%s
+   judge=.false.
+   
+enddo
+
+
+
+!Calculate Transport Matrices for the low energy lattice
+!Matrix elements are stored in erlmat(i,j,k)
+oldmat=imat
+testmat = imat
+P0i=lat%ele(0)%value(p0c$)     ! Get the first longitudinal reference momentum
+k=1
+judge =.false.
+
+      write(6,2000)
+2000  format('    HOM         Ith(A)            tr             p0c            homfreq             RoverQ           Q            M12      sin omega*tr')
+
+do i=0, lat%n_ele_track
+   
+   mat=matmul(lat%ele(i)%mat6, oldmat) 
+  
+   if (lat%ele(i)%key == LCAVITY$ ) then
+     if(associated(lat%ele(i)%wake)) then
+       do j=1, size(lat%ele(i)%wake%lr)
+          if(lat%ele(i)%wake%lr(j)%R_over_Q >1E-10) then            
+          judge =.true.
+          endif
+       enddo
+     endif
+     if (judge) then
+
+! Print out lr wake file for first cavity with a HOM
+!      if(k.eq.1)then
+!        write(6,2500)lat%ele(i)%lr_wake_file
+2500    format(' HOM file for first cavity: ',a80)
+!      endif
+
+! This code uses the "linac definition" of R/Q, which is
+! a factor of two larger than the "circuit definition." 
+! The HOM files are in the "circuit definition" and
+! the R/Q values are Ohms/m^2, whereas R_over_Q is in Ohms.
+
+ if(lat%ele(i)%key == LCAVITY$)then
+   do j=1, size(lat%ele(i)%wake%lr)
+      rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
+      currth = -2 * P0i * c_light / (rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq)
+      currth = currth / ( mat(1,2) * sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)))
+
+      write(6,3000) k, currth,erltime(k), p0i, lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,mat(1,2),sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k))
+3000  format(i6,3x,20(1x,e15.5))
+
+   enddo
+ endif
+
+      P0f=lat%ele(i)%value(p0c$)
+      mat(1,2)=mat(1,2)/P0i
+      mat(1,4)=mat(1,4)/P0i
+      mat(2,1)=mat(2,1)*P0f
+      mat(2,2)=mat(2,2)*P0f/P0i
+      mat(2,3)=mat(2,3)*P0f
+      mat(2,4)=mat(2,4)*P0f/P0i
+      mat(3,2)=mat(3,2)/P0i
+      mat(3,4)=mat(3,4)/P0i
+      mat(4,1)=mat(4,1)*P0f
+      mat(4,2)=mat(4,2)*P0f/P0i
+      mat(4,3)=mat(4,3)*P0f
+      mat(4,4)=mat(4,4)*P0f/P0i
+
+      do l=1, matrixsize
+        do u=1, matrixsize
+           erlmat(k,l,u)=mat(l,u)
+        enddo
+      enddo
+      
+      mat=imat                                 ! Initialize the transfer matrix
+      k=k+1
+      P0i=P0f 
+      endif ! End of judge selection
+   endif ! End of cavity selection
+   
+   judge =.false.
+   oldmat = mat
+  
+enddo
+
+deallocate (erlmat, erltime)
+
+end subroutine write_homs
+
 
 end module

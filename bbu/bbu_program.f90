@@ -66,6 +66,8 @@ bbu_param%low_power_lim  = hom_power0 / bbu_param%limit_factor
 
 ! Print some information
 
+call write_homs(lat)
+
 print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
 
 n_ele = 0
