@@ -83,6 +83,7 @@ do i = 1, lat%n_ele_track
     ele%wake%lr%b_cos = init_hom_amp 
     ele%wake%lr%a_sin = 0
     ele%wake%lr%a_cos = 0
+    ele%wake%lr%t_ref = 0
   enddo
 enddo
 
