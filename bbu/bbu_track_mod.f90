@@ -74,15 +74,10 @@ do i = 1, lat%n_ele_track
   if (size(ele%wake%lr) == 0) cycle
   j = j + 1
   do ih = 1, size(ele%wake%lr)
-    call ran_gauss (rr)
-    ele%wake%lr%b_sin = init_hom_amp * rr(1) / 2
-    ele%wake%lr%b_cos = init_hom_amp * rr(2) / 2
-    ele%wake%lr%a_sin = init_hom_amp * rr(3) / 2
-    ele%wake%lr%a_cos = init_hom_amp * rr(4) / 2
     ele%wake%lr%b_sin = 0
     ele%wake%lr%b_cos = init_hom_amp 
     ele%wake%lr%a_sin = 0
-    ele%wake%lr%a_cos = 0
+    ele%wake%lr%a_cos = init_hom_amp
     ele%wake%lr%t_ref = 0
   enddo
 enddo
@@ -319,7 +314,7 @@ do i = 1, size(bbu_beam%stage)
   if (ix_pass > 1) cycle
   do j = 1, size(lat%ele(ix)%wake%lr)
     lr => lat%ele(ix)%wake%lr(j)
-    hom_power = max(hom_power, lr%b_sin**2 + lr%b_cos**2  + lr%a_sin**2 + lr%a_cos**2)
+    hom_power = max(hom_power, lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2)
   enddo
 enddo
 
