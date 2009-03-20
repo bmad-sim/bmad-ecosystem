@@ -25,7 +25,8 @@ bbu_param%hybridize = .true.
 bbu_param%limit_factor = 1e3
 bbu_param%current = 20e-3
 bbu_param%rel_tol = 1e-3
-
+bbu_param%num_stages_tracked_per_power_calc = 100
+bbu_param%write_hom_info = .false.
 beam_init%n_particle = 1
 
 open (1, file = 'bbu.init', status = 'old')
@@ -66,7 +67,7 @@ bbu_param%low_power_lim  = hom_power0 / bbu_param%limit_factor
 
 ! Print some information
 
-call write_homs(lat)
+if (bbu_param%write_hom_info) call write_homs(lat)
 
 print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
 

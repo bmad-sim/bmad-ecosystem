@@ -4,7 +4,8 @@ use bmad
 use beam_mod
 
 type bbu_stage_struct
-  integer :: ix_ele_lr_wake 
+  integer :: ix_ele_lr_wake   ! Element index of element with the wake 
+  integer :: ix_pass          ! Pass index when in multipass section
   integer :: ix_head_bunch
   real(rp) :: amp, phase
 end type
@@ -21,11 +22,13 @@ end type
 type bbu_param_struct
   character(80) lat_file_name
   logical hybridize
+  logical write_hom_info
   real(rp) limit_factor
   real(rp) low_power_lim, high_power_lim
   real(rp) simulation_time, bunch_freq, init_hom_amp
   real(rp) current
   real(rp) rel_tol
+  integer num_stages_tracked_per_power_calc
 end type
 
 contains
@@ -43,7 +46,7 @@ type (bbu_beam_struct) bbu_beam
 type (beam_init_struct) beam_init
 type (ele_struct), pointer :: ele
 
-integer i, j, ih
+integer i, j, ih, ix_pass, n_links
 
 real(rp) ds_bunch, init_hom_amp, rr(4)
 
@@ -113,6 +116,8 @@ do i = 1, lat%n_ele_track
   if (size(ele%wake%lr) == 0) cycle
   j = j + 1
   bbu_beam%stage(j)%ix_ele_lr_wake = i
+  call multipass_chain (i, lat, ix_pass, n_links)
+  bbu_beam%stage(j)%ix_pass = ix_pass
 enddo
 
 end subroutine bbu_setup
@@ -183,12 +188,12 @@ do j = ix_ele_start+1, ix_ele_end
     lost = .true.
     return
   endif
-  do i_stage = 1, size(bbu_beam%stage)
-    ix_ele = bbu_beam%stage(i_stage)%ix_ele_lr_wake
-    lr => lat%ele(ix_ele)%wake%lr(1)
-    bbu_beam%stage(i_stage)%amp = sqrt(lr%b_sin**2 + lr%b_cos**2)
-    bbu_beam%stage(i_stage)%phase = lr%t_ref * lr%freq + atan2(lr%b_sin, lr%b_cos) / twopi
-  enddo
+  !do i_stage = 1, size(bbu_beam%stage)
+  !  ix_ele = bbu_beam%stage(i_stage)%ix_ele_lr_wake
+  !  lr => lat%ele(ix_ele)%wake%lr(1)
+  !  bbu_beam%stage(i_stage)%amp = sqrt(lr%b_sin**2 + lr%b_cos**2)
+  !  bbu_beam%stage(i_stage)%phase = lr%t_ref * lr%freq + atan2(lr%b_sin, lr%b_cos) / twopi
+  !enddo
 enddo
 
 ! If the next stage does not have any bunches waiting to go through then the
@@ -302,16 +307,15 @@ type (lr_wake_struct), pointer :: lr
 
 real(rp) hom_power
 
-integer i, j, ix, ix_pass, n_links
+integer i, j, ix
 
 !
 
 hom_power = 0
 
 do i = 1, size(bbu_beam%stage)
+  if (bbu_beam%stage(i)%ix_pass > 1) cycle  ! Skip if already considered.
   ix = bbu_beam%stage(i)%ix_ele_lr_wake
-  call multipass_chain (i, lat, ix_pass, n_links)
-  if (ix_pass > 1) cycle
   do j = 1, size(lat%ele(ix)%wake%lr)
     lr => lat%ele(ix)%wake%lr(j)
     hom_power = max(hom_power, lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2)
@@ -337,7 +341,7 @@ type (beam_init_struct) beam_init
 
 real(rp) hom_power
 
-integer i
+integer i, n_loop
 
 logical lost
 
@@ -351,6 +355,7 @@ enddo
 
 ! Track
 
+n_loop = 0
 do
 
   call bbu_track_a_stage (lat, bbu_beam, lost)
@@ -364,12 +369,15 @@ do
     if (bbu_beam%bunch(bbu_beam%ix_bunch_end)%t_center > bbu_param%simulation_time) return
   endif
 
-  ! Compute average power
+  ! Compute average power. This can actually take a fair amount of time so only do
+  ! this so oftem
 
-  call bbu_hom_power_calc (lat, bbu_beam, hom_power)
-
-  if (hom_power < bbu_param%low_power_lim) return
-  if (hom_power > bbu_param%high_power_lim) return
+  n_loop = modulo(n_loop + 1, bbu_param%num_stages_tracked_per_power_calc)
+  if (n_loop == 0) then
+    call bbu_hom_power_calc (lat, bbu_beam, hom_power)
+    if (hom_power < bbu_param%low_power_lim) return
+    if (hom_power > bbu_param%high_power_lim) return
+  endif
 
 enddo
 
