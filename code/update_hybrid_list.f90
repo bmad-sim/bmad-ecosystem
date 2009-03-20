@@ -4,9 +4,9 @@
 ! Subroutine to add elements to the keep_ele list needed by the routine
 ! make_hybrid_lat.
 !
-! Keep_ele is a list of elements that should appear in the hyberdized lattice. 
+! Keep_ele is a list of elements that should appear in the hybridized lattice. 
 ! This list is used by the subroutine make_hybrid_lat. If an element is to be
-! kept (not hyberdized) then the associated lord and slave elements need
+! kept (not hybridized) then the associated lord and slave elements need
 ! to be also added to the keep_ele list. This routine does that bookkeeping
 ! for a single element keep_ele(n_in).
 !
@@ -19,7 +19,7 @@
 !             slave elements are to be added to keep_ele.
 !
 ! Output:
-!   keep_ele(:) -- Logical: list of lat elements to be not hyberdized.
+!   keep_ele(:) -- Logical: list of lat elements to be not hybridized.
 !                   This is used with make_hybrid_lat.
 !
 ! Note: If keep_ele(n_in) = .false. then no updating is done

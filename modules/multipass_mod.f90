@@ -253,29 +253,26 @@ end function
 ! Output
 !   ix_pass     -- Integer: Multipass pass number of the input element. 
 !                    Set to -1 if input element is not in a multipass section.
+!   n_links     -- Integer, optional: Number of times the physical element is passed through.
 !   ix_chain(:) -- Integer, optional, allocatable: Indexes in lat%ele(:) of the 
 !                    elements of the chain. 
 !                    Note: ix_chain(ix_pass) = ix_ele
-!   n_links     -- Integer, optional: Number of times the physical element is passed through.
-!                    Equal to size(ix_chain).
 !-
 
-subroutine multipass_chain (ix_ele, lat, ix_pass, ix_chain, n_links)
+subroutine multipass_chain (ix_ele, lat, ix_pass, n_links, ix_chain)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, m_lord, s_lord
 
-integer i, j, k, ix_ele, ix_pass, ic, ix_lord, ix_off, ix_c
+integer i, j, k, ix_ele, ix_pass, ic, ix_lord, ix_off, ix_c, n_links
 integer, allocatable, optional :: ix_chain(:)
-integer, optional :: n_links
 
 !
 
 ix_pass = -1
-if (present(n_links)) n_links = 0
-if (present(ix_chain)) call re_allocate (ix_chain, 0)
+n_links = 0
 
 ele => lat%ele(ix_ele)
 
@@ -285,8 +282,8 @@ if (ele%slave_status == multipass_slave$) then
   ic = lat%ic(ele%ic1_lord)
   ix_lord = lat%control(ic)%ix_lord
   m_lord => lat%ele(ix_lord)
-  if (present(ix_chain)) call re_allocate (ix_chain, m_lord%n_slave)
-  if (present(n_links)) n_links = m_lord%n_slave
+  if (present(ix_chain)) call re_allocate (ix_chain, m_lord%n_slave, .false.)
+  n_links = m_lord%n_slave
   do j = 1, m_lord%n_slave
     k = j - 1 + m_lord%ix1_slave
     ix_c = lat%control(k)%ix_slave
@@ -315,8 +312,8 @@ if (ele%slave_status == super_slave$) then
   ic = lat%ic(s_lord%ic1_lord)
   ix_lord = lat%control(ic)%ix_lord
   m_lord => lat%ele(ix_lord)
-  if (present(ix_chain)) call re_allocate (ix_chain, m_lord%n_slave)
-  if (present(n_links)) n_links = m_lord%n_slave
+  if (present(ix_chain)) call re_allocate (ix_chain, m_lord%n_slave, .false.)
+  n_links = m_lord%n_slave
   do j = 1, m_lord%n_slave
     k = j - 1 + m_lord%ix1_slave
     s_lord => lat%ele(lat%control(k)%ix_slave)

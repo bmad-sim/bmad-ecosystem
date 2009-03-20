@@ -191,7 +191,7 @@ type (ele_struct), pointer :: ele, lord
 type (ele_struct), save :: rf_ele
 type (lr_wake_struct), pointer :: lr, lr_chain
 
-integer i, j, n, ix_ele, ix_pass, ixs, ix
+integer i, j, n, ix_ele, ix_pass, ixs, ix, n_links
 integer, save, allocatable :: ix_chain(:)
 
 logical csr_on, err
@@ -247,21 +247,19 @@ if (associated(ele%wake)) then
   ! A chain is a set of elements in the tracking lattice that all represent 
   ! the same physical element.
 
-  call multipass_chain (ix_ele, lat, ix_pass, ix_chain)
-  if (ix_pass > 0) then
-    do i = 1, size(ix_chain)
-      if (i == ix_pass) cycle
-      do j = 1, size(ele%wake%lr)
-        lr       => ele%wake%lr(j)
-        lr_chain => lat%ele(ix_chain(i))%wake%lr(j)
-        lr_chain%b_sin = lr%b_sin
-        lr_chain%b_cos = lr%b_cos
-        lr_chain%a_sin = lr%a_sin
-        lr_chain%a_cos = lr%a_cos
-        lr_chain%t_ref = lr%t_ref - (lat%ele(ix_chain(i))%ref_time - ele%ref_time)
-      enddo
+  call multipass_chain (ix_ele, lat, ix_pass, n_links, ix_chain)
+  do i = 1, n_links
+    if (i == ix_pass) cycle
+    do j = 1, size(ele%wake%lr)
+      lr       => ele%wake%lr(j)
+      lr_chain => lat%ele(ix_chain(i))%wake%lr(j)
+      lr_chain%b_sin = lr%b_sin
+      lr_chain%b_cos = lr%b_cos
+      lr_chain%a_sin = lr%a_sin
+      lr_chain%a_cos = lr%a_cos
+      lr_chain%t_ref = lr%t_ref - (lat%ele(ix_chain(i))%ref_time - ele%ref_time)
     enddo
-  endif
+  enddo
 
 endif
 

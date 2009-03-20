@@ -100,26 +100,37 @@ linear elements the transfer map is linear for the transverse
 coordinates and quadratic for $z$.
 
 %-----------------------------------------
+\subsection{Offset Transformation of a First Order Map}
+\index{x_pitch}\index{y_pitch}\index{tilt}
+
+Given a first order map
+\Begineq
+  \bfr \rightarrow \bfr \, \bfM + \bfK
+\Endeq
+
+
+%-----------------------------------------
 \subsection{BeamBeam}
+\label{s:beambeam.standard}
 \index{beambeam}
 
-A beam-beam element simulates the effect on a tracked particle of an opposing 
-beam of particles moving in the opposite direction. The opposing beam, called the
-``strong'' beam, is assumed to be Gaussian in shape. In the \vn{bmad_standard}
-calculation, the kick on the tracked particle is computed using the
-Bassetti--Erskine complex error function formula\cite{b:talman}
+A beam-beam element\ref{s:beambeam} simulates the effect on a tracked
+particle of an opposing beam of particles moving in the opposite
+direction. The opposing beam, called the ``strong'' beam, is assumed
+to be Gaussian in shape.
 
-The strong beam is divided up into \vn{n_slice} equal charge (not equal
-thickness) slices. The default for \vn{n_slice} is 1. Propagation
-through the strong beam involves a kick at the charge center of each
-slice with drifts in between the kicks. The kicks are calculated using
-the standard Bassetti--Erskine formula.  Even though the strong beam can
-have a finite \vn{sig_z} the length of the element is always considered
-to be zero. This is achieved by adding drifts at either end of any
-tracking so that the longitudinal starting point and ending point are
-identical. The longitudinal $s$--position of the
-\vn{BeamBeam} element is at the center of the strong bunch. For example,
-with \vn{n_slice} = 2 the calculation would proceed as follows:
+The strong beam is divided up into \vn{n_slice} equal charge (not
+equal thickness) slices. Propagation through the strong beam involves
+a kick at the charge center of each slice with drifts in between the
+kicks. The kicks are calculated using the standard Bassetti--Erskine
+complex error function formula\cite{b:talman}.  Even though the strong
+beam can have a finite \vn{sig_z} the length of the element is always
+considered to be zero. This is achieved by adding drifts at either end
+of any tracking so that the longitudinal starting point and ending
+point are identical. The longitudinal $s$--position of the
+\vn{BeamBeam} element is at the center of the strong bunch. For
+example, with \vn{n_slice} = 2 the calculation would proceed as
+follows:
 \begin{example}
   0) Start with the reference particle at the center of the strong bunch.
   1) Propagate (drift) backwards to the center of the first slice.
@@ -130,21 +141,16 @@ with \vn{n_slice} = 2 the calculation would proceed as follows:
      at the center of the strong bunch.
 \end{example}
 
-\vn{bbi_constant}: $ C_{bbi} = 
-N \, m_e \, r_e / (2 \, \pi \, \gamma \, (\sigma_x + \sigma_y))$ 
-is a measure of the beam--beam interaction strength. For example,
-in the linear region near $x = y = 0$ the horizontal component of the
-beam--beam kick is approximately 
-$k_x = -4\, \pi \, x \, C_{bbi} / \sigma_x$ and the
-horizontal beam--beam tune shift is 
-$dQ_x = C_{bbi} \, \beta_a / \sigma_x$.
-
 %-----------------------------------------
 \subsection{Bend\_Sol\_Quad}
+\label{s:bend.sol.quad.standard}
 \index{bend_sol_quad}
+
+
 
 %-----------------------------------------
 \subsection{Drift}
+\label{s:drift.standard}
 \index{drift} 
 
 A drift has $\Bf a = 0$ and $g = 0$. The Hamiltonian for a drift is
@@ -163,6 +169,7 @@ This gives the map
 
 %-----------------------------------------
 \subsection{Kicker, Hkicker, Vkicker, Elseparator}
+\label{s:kicker.standard}
 \index{kicker}
 \index{hkicker}
 \index{vkicker}
@@ -171,6 +178,7 @@ This gives the map
 
 %-----------------------------------------
 \subsection{LCavity}
+\label{s:lcavity.standard}
 \index{lcavity}
 
 For an \vn{LCavity} the problem is simplified by using $(-ct, E)$ for
@@ -227,10 +235,12 @@ where
 
 %-----------------------------------------
 \subsection{Octupole}
+\label{s:octupole.standard}
 \index{octupole}
 
 %-----------------------------------------
 \subsection{Quadrupole}
+\label{s:quadrupole.standard}
 \index{quadrupole}
 
 The \vn{bmad_standard} calculates the transfer map through an upright
@@ -278,21 +288,17 @@ with this
 
 %-----------------------------------------
 \subsection{RFcavity}
+\label{s:rfcavity.standard}
 \index{rfcavity}
 
 %-----------------------------------------
-\subsection{Sbend, Fringe Effects}
+\subsection{Bend: Fringe}
+\label{s:.bend.fringe.standard}
 \index{sbend}
 
-
 %-----------------------------------------
-\subsection{Sbend, No k\_1}
-\index{sbend}
-
-
-
-%-----------------------------------------
-\subsection{Sbend, Finite k\_1}
+\subsection{Bend: Body}
+\label{s:bend.body.standard}
 \index{sbend}
 
 The Hamiltonian is
@@ -346,10 +352,12 @@ with this
 
 %-----------------------------------------
 \subsection{Sextupole}
+\label{s:sextupole.standard}
 \index{sextupole}
 
 %-----------------------------------------
 \subsection{Sol\_Quad}
+\label{s:sol.quad.standard}
 \index{sol_quad}
 
 The Hamiltonian is
@@ -436,6 +444,7 @@ brevity are not reproduced here.
 
 %-----------------------------------------
 \subsection{Solenoid}
+\label{s:solenoid.standard}
 \index{solenoid}
 
 The Hamiltonian is
@@ -466,12 +475,14 @@ where
 
 %-----------------------------------------
 \subsection{Wiggler, Map\_type}
+\label{s:wiggler.map.standard}
 \index{wiggler}
 
 
 
 %-----------------------------------------
 \subsection{Wiggler, Periodic Type}
+\label{s:.wiggler.periodic.standard}
 \index{wiggler}
 
 The horizontal motion looks like a drift with a superimposed
@@ -480,16 +491,6 @@ of periods in the oscillation so that the exit horizontal coordinates
 can be calculated from the initial coordinates using the equations for
 a drift. The vertical motion is a quadratic superimposed with a
 octupole. Vertical motion is calculated using a kick-drift-kick model.
-
-%-----------------------------------------
-\subsection{Offset Transformation of a First Order Map}
-\index{x_pitch}\index{y_pitch}\index{tilt}
-
-Given a first order map
-\Begineq
-  \bfr \rightarrow \bfr \, \bfM + \bfK
-\Endeq
-
 
 
 \end{document}
