@@ -20,7 +20,7 @@ end type
 
 type bbu_param_struct
   character(80) lat_file_name
-  logical hyberdize
+  logical hybridize
   real(rp) limit_factor
   real(rp) low_power_lim, high_power_lim
   real(rp) simulation_time, bunch_freq, init_hom_amp
@@ -302,7 +302,7 @@ type (lr_wake_struct), pointer :: lr
 
 real(rp) hom_power
 
-integer i, j, ix, ix_pass
+integer i, j, ix, ix_pass, n_links
 
 !
 
@@ -310,7 +310,7 @@ hom_power = 0
 
 do i = 1, size(bbu_beam%stage)
   ix = bbu_beam%stage(i)%ix_ele_lr_wake
-  call multipass_chain (i, lat, ix_pass)
+  call multipass_chain (i, lat, ix_pass, n_links)
   if (ix_pass > 1) cycle
   do j = 1, size(lat%ele(ix)%wake%lr)
     lr => lat%ele(ix)%wake%lr(j)

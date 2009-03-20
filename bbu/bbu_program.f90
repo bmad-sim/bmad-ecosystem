@@ -21,7 +21,7 @@ namelist / bbu_params / bbu_param, beam_init
 ! Read in parameters
 
 bbu_param%init_hom_amp = 1e-6
-bbu_param%hyberdize = .true.
+bbu_param%hybridize = .true.
 bbu_param%limit_factor = 1e3
 bbu_param%current = 20e-3
 bbu_param%rel_tol = 1e-3
@@ -40,8 +40,8 @@ print *, 'Lattice file: ', trim(bbu_param%lat_file_name)
 call bmad_parser (bbu_param%lat_file_name, lat_in)
 call twiss_propagate_all (lat_in)
 
-if (bbu_param%hyberdize) then
-  print *, 'Note: Hyberdizing lattice...'
+if (bbu_param%hybridize) then
+  print *, 'Note: Hybridizing lattice...'
   allocate (keep_ele(lat_in%n_ele_max))
   keep_ele = .false.
   do i = 1, lat_in%n_ele_max
