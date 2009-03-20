@@ -889,7 +889,7 @@ enddo
 if (.not. any(u%data(n1:n2)%exists)) then
   call out_io (s_warn$, r_name, &
             'Note: All datums in: ' // tao_d2_d1_name(d1_this), &
-            'are marked as non-existant')
+            'are marked as non-existent')
 endif
 
 end subroutine d1_data_stuffit

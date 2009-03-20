@@ -218,7 +218,7 @@ end type
 ! one datum point.
 ! The universe_struct will hold an array of data_struct structures: u%data(:).
 !
-! %exists     -- The datum can exist. Non-existant datums can serve 
+! %exists     -- The datum can exist. Non-existent datums can serve 
 !                  as place holders in the u%data array.
 ! %good_model -- A valid model value was computed. For example, good_model would 
 !                  be False for some orbit data if the particle being tracked is lost.
@@ -336,7 +336,7 @@ end type
 ! The var_struct defined the fundamental variable structure.
 ! The super_universe_struct will hold an array of var_structs: s%var(:).
 !
-! %exists     -- The variable exists. Non-existant variables can serve as place
+! %exists     -- The variable exists. Non-existent variables can serve as place
 !                  holders in the s%var array.
 ! %good_var   -- The variable can be varied. Eg: Permanent magnet quads are 
 !                  generally considered not to be variables.
