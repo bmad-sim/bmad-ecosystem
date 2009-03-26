@@ -409,13 +409,14 @@ integer i, j, k, kk, l, u
 real(rp)  time, Vz, P0i, P0f, gamma, cavity_i
 logical judge
 integer :: matrixsize = 4
-real(rp) currth,rovq
+real(rp) cnumerator,currth,currthc,rovq,matc,poltheta
 
 allocate(erlmat(800, matrixsize, matrixsize))
 allocate(erltime(800))
 
-      write(6,1000)lat%input_file_name,lat%n_ele_track,lat%ele(0)%value(e_tot$)
-1000  format(' Lattice: ',a200/ &
+      write(6,1000)lat%input_file_name,lat%lattice,lat%n_ele_track,lat%ele(0)%value(e_tot$)
+1000  format(' Lattice File: ',a80/ & 
+             ' Lattice Name: ',a40/ &
              ' Nr Tracking Elements: ',i7/ &
              ' Beam Energy: ',e10.5// &
             )
@@ -475,7 +476,7 @@ kk=1
 judge =.false.
 
       write(6,2000)
-2000  format(' Cavity    HOM         Ith(A)            tr             p0c            homfreq          RoverQ           Q              M12         sin omega*tr')
+2000  format(' Cavity    HOM       Ith(A)   Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr')
 
 do i=0, lat%n_ele_track
    
@@ -489,30 +490,8 @@ do i=0, lat%n_ele_track
           endif
        enddo
      endif
+
      if (judge) then
-
-! Print out lr wake file for first cavity with a HOM
-!      if(k.eq.1)then
-!        write(6,2500)lat%ele(i)%lr_wake_file
-2500    format(' HOM file for first cavity: ',a80)
-!      endif
-
-! This code uses the "linac definition" of R/Q, which is
-! a factor of two larger than the "circuit definition." 
-! The HOM files are in the "circuit definition" and
-! the R/Q values are Ohms/m^2, whereas R_over_Q is in Ohms.
-
- if(erltime(k).gt.0..and.lat%ele(i)%key == LCAVITY$)then
-   do j=1, size(lat%ele(i)%wake%lr)
-      rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
-      currth = -2 * P0i * c_light / (rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq)
-      currth = currth / ( mat(1,2) * sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)))
-      write(6,3000) kk, j, currth,erltime(k), p0i, lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,mat(1,2),sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k))
-3000  format(i4,i9,3x,20(1x,e15.5))
-   enddo
-   kk=kk+1
-
- endif
 
       P0f=lat%ele(i)%value(p0c$)
       mat(1,2)=mat(1,2)/P0i
@@ -533,10 +512,39 @@ do i=0, lat%n_ele_track
            erlmat(k,l,u)=mat(l,u)
         enddo
       enddo
+
+
+! This code uses the "linac definition" of R/Q, which is
+! a factor of two larger than the "circuit definition." 
+! The HOM files are in the "circuit definition" and
+! the R/Q values are Ohms/m^2, whereas R_over_Q is in Ohms.
+
+      if(erltime(k).gt.0..and.lat%ele(i)%key == LCAVITY$)then
+        do j=1, size(lat%ele(i)%wake%lr)
+           rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
+           cnumerator = -2  * c_light / (rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq)
+! Threshold current
+           currth = cnumerator / ( mat(1,2) * sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)))
+! Threshold current for coupling
+           poltheta = 2*pi*lat%ele(i)%wake%lr(j)%angle
+           matc = mat(1,2)*cos(poltheta)**2 + ( mat(1,4) + mat(3,2) )*sin(poltheta)*cos(poltheta) + mat(3,4)*sin(poltheta)**2
+           currthc = currth * mat(1,2) / matc
+
+           write(6,3000) kk, j, currth, currthc, erltime(k), &
+                           lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,lat%ele(i)%wake%lr(j)%angle, &
+                           mat(1,2),mat(1,4),mat(3,2),mat(3,4), &
+                           sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k))
+3000       format(i4,i9,3x,20(1x,e11.3))
+        enddo
+        kk=kk+1
+
+      endif
+
       
-      mat=imat                                 ! Initialize the transfer matrix
+      mat=imat                                 ! Re-initialize the transfer matrix
       k=k+1
       P0i=P0f 
+
       endif ! End of judge selection
    endif ! End of cavity selection
    
