@@ -405,7 +405,7 @@ real(rp), Dimension(:,:,:), allocatable :: erlmat
 real(rp), Dimension(:),     allocatable :: erltime
 
 
-integer i, j, k, l, u
+integer i, j, k, kk, l, u
 real(rp)  time, Vz, P0i, P0f, gamma, cavity_i
 logical judge
 integer :: matrixsize = 4
@@ -471,10 +471,11 @@ oldmat=imat
 testmat = imat
 P0i=lat%ele(0)%value(p0c$)     ! Get the first longitudinal reference momentum
 k=1
+kk=1
 judge =.false.
 
       write(6,2000)
-2000  format('    HOM         Ith(A)            tr             p0c            homfreq             RoverQ           Q            M12      sin omega*tr')
+2000  format(' Cavity    HOM         Ith(A)            tr             p0c            homfreq          RoverQ           Q              M12         sin omega*tr')
 
 do i=0, lat%n_ele_track
    
@@ -484,7 +485,7 @@ do i=0, lat%n_ele_track
      if(associated(lat%ele(i)%wake)) then
        do j=1, size(lat%ele(i)%wake%lr)
           if(lat%ele(i)%wake%lr(j)%R_over_Q >1E-10) then            
-          judge =.true.
+            judge =.true.
           endif
        enddo
      endif
@@ -501,16 +502,16 @@ do i=0, lat%n_ele_track
 ! The HOM files are in the "circuit definition" and
 ! the R/Q values are Ohms/m^2, whereas R_over_Q is in Ohms.
 
- if(lat%ele(i)%key == LCAVITY$)then
+ if(erltime(k).gt.0..and.lat%ele(i)%key == LCAVITY$)then
    do j=1, size(lat%ele(i)%wake%lr)
       rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
       currth = -2 * P0i * c_light / (rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq)
       currth = currth / ( mat(1,2) * sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)))
-
-      write(6,3000) k, currth,erltime(k), p0i, lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,mat(1,2),sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k))
-3000  format(i6,3x,20(1x,e15.5))
-
+      write(6,3000) kk, j, currth,erltime(k), p0i, lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,mat(1,2),sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k))
+3000  format(i4,i9,3x,20(1x,e15.5))
    enddo
+   kk=kk+1
+
  endif
 
       P0f=lat%ele(i)%value(p0c$)
