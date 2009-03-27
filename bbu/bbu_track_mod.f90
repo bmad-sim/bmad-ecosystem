@@ -440,6 +440,7 @@ do i=1, lat%n_ele_track
    
    if (lat%ele(i)%key == LCAVITY$ ) then
       time=time+(lat%ele(i)%s-cavity_i)/c_light*(1+0.5/(gamma*lat%ele(i-1)%value(E_TOT$)/m_electron))
+!      print *,' Incrementing time for passage through cavity',i,lat%ele(i)%name,time
       if(associated(lat%ele(i)%wake)) then
         do j=1, size(lat%ele(i)%wake%lr)
           if(lat%ele(i)%wake%lr(j)%R_over_Q >1E-10) then            
@@ -451,12 +452,14 @@ do i=1, lat%n_ele_track
 
 
 
+      print *, ' Storing time for HOM cavity',k,time
       erltime(k)=time
       time=0
       k=k+1       
       endif
    else
       time=time+(lat%ele(i)%s-cavity_i)/Vz
+!      print *,' Incrementing time for passage through element',i,lat%ele(i)%name,time
    endif
    
    cavity_i=lat%ele(i)%s
@@ -519,7 +522,10 @@ do i=0, lat%n_ele_track
 ! The HOM files are in the "circuit definition" and
 ! the R/Q values are Ohms/m^2, whereas R_over_Q is in Ohms.
 
-      if(erltime(k).gt.0..and.lat%ele(i)%key == LCAVITY$)then
+! Don't print k=1, which is just the interval from the beginning
+! of the lattice to the first cavity with a HOM
+
+      if(k.gt.1.and.erltime(k).gt.0..and.lat%ele(i)%key == LCAVITY$)then
         do j=1, size(lat%ele(i)%wake%lr)
            rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
            cnumerator = -2  * c_light / (rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq)
