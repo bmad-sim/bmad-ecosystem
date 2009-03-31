@@ -312,16 +312,6 @@ interface
 end interface
 
 interface
-  subroutine get_lattice_list (lat_list, num_lats, directory)
-    use precision_def
-    implicit none
-    integer num_lats
-    character(*) directory
-    character(40) lat_list(:)
-  end subroutine
-end interface
-
-interface
   subroutine init_LRBBI(lat, oppos_lat, LRBBI_ele, ix_LRBBI, ix_oppos)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
