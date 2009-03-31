@@ -308,8 +308,8 @@ end type
 
 !
 
-character(3), parameter :: coord_name(6) = &
-                              (/ "X  ", "Px", "Y  ", "Py", "Z  ", "Pz" /)
+character(2), parameter :: coord_name(6) = &
+                              (/ "X ", "Px", "Y ", "Py", "Z ", "Pz" /)
 
 ! KEY value definitions
 ! Note: sbend$ and rbend$ also used for sub_key

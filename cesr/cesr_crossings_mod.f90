@@ -312,7 +312,7 @@ subroutine LRBBI_crossings(n_bucket, oppos_buckets, cross_positions)
 !     print *,' LRBBI_CROSSINGS: n_bucket= ',n_bucket
 
   do i = 1, bunch_tot
-    cross_positions(i) = mod(real(oppos_buckets(i) + n_bucket) / 2, bucket_tot)
+    cross_positions(i) = mod(real(oppos_buckets(i) + n_bucket, rp) / 2, bucket_tot)
     do while (cross_positions(i) .lt. 0)
       cross_positions(i) = bucket_tot + cross_positions(i)
     enddo

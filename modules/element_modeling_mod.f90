@@ -388,7 +388,7 @@ implicit none
 real(rp), intent(in) :: a(:)
 real(rp), intent(out) :: yfit(:)
 real(rp), intent(out) :: dyda(:,:)
-real(rp), automatic :: a_try(size(a)), y_try(size(yfit))
+real(rp) :: a_try(size(a)), y_try(size(yfit))
 
 integer i
 integer status

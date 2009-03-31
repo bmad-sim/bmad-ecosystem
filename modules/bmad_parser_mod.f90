@@ -2447,7 +2447,7 @@ integer nn, nt, i
 
 nn = 20  ! number of "constant" variables
 bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
-                   + ubound(ref_orbit_name, 1) + ubound(element_end_name, 1)
+                    ubound(ref_orbit_name, 1) + ubound(element_end_name, 1)
 bp_com%ivar_tot = bp_com%ivar_init
 
 nt = bp_com%ivar_tot
