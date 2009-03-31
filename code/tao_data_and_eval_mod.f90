@@ -1783,7 +1783,7 @@ integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
 real(rp), allocatable :: value(:)
 
 character(*) :: expression
-character(len(expression)) phrase
+character(200) phrase
 character(1) delim
 character(40) word, word2
 character(40) :: r_name = "tao_evaluate_expression"
@@ -1877,7 +1877,9 @@ parsing_loop: do
 
   ! Something like "lcav[lr(2).freq]" or "[2,4]@orbit.x[1,4] will get split on the "["
 
-  if (delim == '[') then
+  do
+    if (delim /= '[') exit
+
     call word_read (phrase, ']', word2, ix_word2, delim, delim_found, phrase)
     if (.not. delim_found) then
       call out_io (s_warn$, r_name, "NO MATCHING ']' FOR OPENING '[':" // expression)
@@ -1902,7 +1904,8 @@ parsing_loop: do
       word = word(:ix_word) // trim(word2)       
       ix_word = ix_word + ix_word2 
     endif
-  endif
+
+  enddo
 
   ! If delim = "*" then see if this is being used as a wildcard
   ! Examples: "[*]|", "*.*|", "*.x|", "*@orbit.x|", "*@*|", "orbit.*[3]|"
@@ -2016,7 +2019,7 @@ parsing_loop: do
       call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
-                        'ERROR IN EXPRESSION: ' // expression, &
+                        'ERROR IN EVALUATING EXPRESSION: ' // expression, &
                         'CANNOT EVALUATE: ' // word)
         return
       endif
