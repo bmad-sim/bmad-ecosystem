@@ -137,7 +137,7 @@ do j_in = 1, n_ele
 
   ! here if no match found...
   ! If this is the first element after a matched element then just transfer in
-  ! to out. Else modify the out MAT6 transfer matrix using the in MAT6 matrix.
+  ! to out. Else modify the out mat6 transfer matrix using the in MAT6 matrix.
 
   else
 
@@ -158,6 +158,8 @@ do j_in = 1, n_ele
       ele_out%ic2_lord = -1
       ele_out%tracking_method = linear$
       ele_out%mat6_calc_method = no_method$
+      ele_out%value(e_tot_start$) = r_in%ele(j_in-1)%value(e_tot$)
+      ele_out%value(delta_e$) = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
 
       if (present (orb0)) then
         c0 = orb0(j_in)
@@ -212,6 +214,7 @@ do j_in = 1, n_ele
       ele_out%value(x2_limit$) = ele_in%value(x2_limit$)
       ele_out%value(y1_limit$) = ele_in%value(y1_limit$)
       ele_out%value(y2_limit$) = ele_in%value(y2_limit$)
+      ele_out%value(delta_e$)  = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
 
       o_key = ele_out%key 
       if (ele_in%key == drift$ .and. (o_key == drift$ .or. &

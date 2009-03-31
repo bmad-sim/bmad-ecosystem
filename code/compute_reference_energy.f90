@@ -9,7 +9,7 @@
 !
 ! Input:
 !   lat     -- lat_struct: Input lattice.
-!     %ele(0)%value(E_tot$) -- Energy at the start.
+!     %ele(0)%value(E_tot$) -- Energy at the start of the lattice.
 !   compute -- Logical, optional: If present then overrides the setting of
 !                bmad_com%compute_ref_energy
 !
@@ -55,7 +55,7 @@ do i = 1, lat%n_ele_track
 
   select case (ele%key)
   case (lcavity$) 
-    ele%value(E_tot_START$) = E_tot
+    ele%value(E_tot_start$) = E_tot
     ele%value(p0c_start$) = p0c
 
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
@@ -66,6 +66,13 @@ do i = 1, lat%n_ele_track
   case (custom$) 
     E_tot = E_tot + ele%value(gradient$) * ele%value(l$)
     call convert_total_energy_to (E_tot, lat%param%particle, pc = p0c)
+
+  case (hybrid$)
+    ele%value(E_tot_start$) = E_tot
+    ele%value(p0c_start$) = p0c
+    E_tot = E_tot + ele%value(delta_e$)
+    call convert_total_energy_to (E_tot, lat%param%particle, pc = p0c)
+
   end select
 
   ele%value(E_tot$) = E_tot

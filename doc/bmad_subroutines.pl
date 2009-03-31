@@ -5,6 +5,8 @@ use File::Find;
 #---------------------------------------------------------
 # List of subroutines too low level to be mentioned
 
+$pl_hash{"add_taylor_term1"} = "bmad_taylor_mod.f90";
+$pl_hash{"add_taylor_term2"} = "bmad_taylor_mod.f90";
 $pl_hash{"lsc_y0_kick_calc"} = "csr_mod.f90";
 $pl_hash{"test_f_xy_disp"} = "test_f_side.f90";
 $pl_hash{"re_allocate2_real"} = "re_allocate_mod.f90";

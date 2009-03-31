@@ -148,7 +148,7 @@ The \vn{%a}, \vn{%b}, and \vn{%z} components are
 \vn{twiss_struct} structures that hold the Twiss parameters for the
 $a$, $b$ and $z$ modes respectively. The definition of
 the \vn{twiss_struct} structure is
-\index{ele_struct!twiss_struct substruct}
+\index{ele_struct!twiss_struct substructure}
 \begin{example}
   type twiss_struct
     real(rp) beta, alpha, gamma, phi, eta, etap
@@ -186,7 +186,7 @@ to be correct and the dispersion values in \vn{%a} and \vn{%b} are
 ignored. [Notice, though, in an input lattice file, if
 beginning[eta_a] is set, Bmad does the correct bookkeeping.] In
 general, setting one Twiss parameter will affect the others. To make
-sure everything is consistant, the changed_attribute_bookkeeper
+sure everything is consistent, the changed_attribute_bookkeeper
 routine can be used.
 
 If the Twiss parameters need to be transfered from 

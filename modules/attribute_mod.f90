@@ -334,6 +334,7 @@ do i = 1, n_key
     attrib_array(i, osc_amplitude$)  = 'OSC_AMPLITUDE'
   endif
 
+  if (i == hybrid$)         cycle
   if (i == def_beam$)       cycle
   if (i == def_parameter$)  cycle
   if (i == def_beam_start$) cycle
@@ -793,6 +794,9 @@ attrib_array(custom$, y_pitch$)      = 'Y_PITCH'
 attrib_array(custom$, field_calc$)   = 'FIELD_CALC'
 attrib_array(custom$, field_master$) = 'FIELD_MASTER'
 attrib_array(custom$, delta_e$)      = 'DELTA_E'
+
+attrib_array(hybrid$, l$)            = 'L'
+attrib_array(hybrid$, delta_e$)      = 'DELTA_E'
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster

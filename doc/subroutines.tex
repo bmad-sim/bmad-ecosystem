@@ -13,7 +13,7 @@ solely meant for \bmad internal use.
 \begin{center}
 \begin{tabular}{|l|l|} \hline
 {\em Routine Type} & {\em Section} \\ \hline
-  Beam: Long Range Beam-Beam Interaction      & \ref{r:lrbbi}          \\ \hline
+  Beam: Beam-Beam Interaction                 & \ref{r:lrbbi}          \\ \hline
   Beam: Low Level Routines                    & \ref{r:low.beam}       \\ \hline
   Beam: Tracking and Manipulation             & \ref{r:beam}           \\ \hline
   Branch Handling                             & \ref{r:branch}         \\ \hline
@@ -58,8 +58,8 @@ solely meant for \bmad internal use.
 \toffset
 
 %------------------------------------------------------------------------
-\section{Beam: Long Range Beam-Beam Interaction}
-\label{r:lrbbi}    
+\section{Beam: Beam-Beam Interaction}
+\label{r:bbi}    
 
 \begin{description}
 
@@ -72,6 +72,11 @@ solely meant for \bmad internal use.
 \item[insert_lrbbi (lat, lat_oppos, cross_positions, ix_lrbbi)] \Newline
 Subroutine to create and insert beambeam elements at each parasitic crossing
 point as specified form a list of crossing points.
+
+\index{Routine!ion_kick}
+\item[ion_kick] \Newline 
+    subroutine to return the kick felt by an ion due to the
+    passage of a bunch.
 
 \index{Routine!lrbbi_crossings}
 \item[lrbbi_crossings (n_bucket, oppos_buckets, cross_positions)] \Newline
@@ -732,6 +737,11 @@ Subroutine to create a group control element.
 Subroutine to add the controller information to slave elements of an 
 overlay_lord. 
 
+\index{Routine!create_wiggler_model}
+\item[create_wiggler_model (wiggler, lat)] \Newline 
+Routine to create series of bend and drift elements to serve as a model for a wiggler.
+This routine uses the mrqmin nonlinear optimizer to vary the parameters in the wiggler 
+
 \index{Routine!insert_element}
 \item[insert_element (lat, insert_ele, insert_index)] \Newline
 Subroutine to Insert a new element into the tracking part of the 
@@ -786,6 +796,10 @@ hyberdized by \vn{make_hybrid_lat}.
 \item[ele_geometry (ele0, ele, param)] \Newline 
 Subroutine to calculate the physical (floor) placement of an element given the
 placement of the preceeding element. This is the same as the MAD convention.
+
+\index{Routine!init_floor}
+\item[init_floor (floor)] \Newline 
+Routine to initialize a floor_position_struct to zero.
 
 \index{Routine!lat_geometry}
 \item[lat_geometry (lat)] \Newline
