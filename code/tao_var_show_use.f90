@@ -10,6 +10,7 @@
 subroutine tao_var_show_use (v1_var)
 
 use tao_mod
+use location_encode_mod
 
 implicit none
 

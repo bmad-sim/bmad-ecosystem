@@ -29,7 +29,7 @@ Section~\sref{s:init.var}). The variables are divided into banks of
 \vn{key_bound} attribute (\sref{s:init.var}) set to True.
 the 1\St bank uses the next ten, etc.
 At any one time, only one bank is active. To see the status of this
-bank, a \vn{key table} plot (\sref{s:key.table})can be setup as shown in
+bank, a \vn{key_table} plot (\sref{s:key.table})can be setup as shown in
 Figure~\ref{f:key.table}. The relationship between the keys and a
 change in a variable is:
 \begin{example}
@@ -49,7 +49,9 @@ change in a variable is:
 \end{example}
 In the above table ib is the bank number (0 for the 0\Th bank, etc.),
 and the change is in multiples of the \vn{step} (\sref{s:init.var}.
-value for a variable.
+value for a variable. Note: In \vn{line mode}, the command \vn{show
+key_bindings} (\sref{s:show}) may be used to show the entire set of
+bound keys.
 
 Initially the 0Th bank is active. The left arrow and right arrow are
 used to decrease or increase the bank number.  Additionally the

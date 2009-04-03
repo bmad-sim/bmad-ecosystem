@@ -10,6 +10,7 @@
 subroutine tao_data_show_use (d2_data)
 
 use tao_mod
+use location_encode_mod
 
 implicit none
 

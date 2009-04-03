@@ -4,10 +4,11 @@ use tao_mod
 use tao_data_and_eval_mod
 use tao_top10_mod
 use tao_command_mod, only: tao_next_switch
+use tao_lattice_calc_mod
 use random_mod
 use csr_mod, only: csr_param
-use tao_lattice_calc_mod
 use quick_plot
+use location_encode_mod
 
 type show_common_struct
   type (ele_struct), pointer :: ele 
@@ -176,6 +177,7 @@ character(24) show_name, show2_name
 character(100), pointer :: ptr_lines(:)
 character(100), allocatable :: alloc_lines(:)
 character(100) file_name, name
+character(120) header, str
 character(40) ele_name, sub_name, ele1, ele2, switch
 character(60) nam
 
@@ -183,7 +185,7 @@ character(16) :: show_what, show_names(23) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    'beam        ', 'tune        ', 'graph       ', 'curve       ', 'particle    ', &
-   'hom         ', 'zzzzzzzzz   ', 'universe    ', 'orbit       ', 'derivative  ', &
+   'hom         ', 'key_bindings', 'universe    ', 'orbit       ', 'derivative  ', &
    'branches    ', 'use         ', 'taylor_map  ' /)
 
 character(*), allocatable :: lines(:)
@@ -1070,6 +1072,21 @@ case ('hom')
   result_id = show_what
 
 !----------------------------------------------------------------------
+! keys
+
+case ('key_bindings')
+
+  call tao_key_info_to_str (1, 1, size(s%key), str, header)
+  nl=nl+1; lines(nl) = ' Ix  ' // header
+
+  do i = 1, size(s%key)
+    call tao_key_info_to_str (i, 1, size(s%key), str, header)
+    nl=nl+1; write (lines(nl), '(i3, 2x, a)') i, str
+  enddo
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
 ! lattice
 
 case ('lattice')
@@ -1290,7 +1307,7 @@ case ('lattice')
         ios = 0
       else
         write (nam, '(i0)') ie
-        call detab (name, '#', trim(nam))
+        call str_substitute (name, '#', trim(nam))
         ix = index(name, 'ele:')
         if (.not. at_ends .and. ix /= 0) then
           name = name(:ix+3) // '@middle' // trim(name(ix+4:))

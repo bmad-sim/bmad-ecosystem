@@ -147,99 +147,53 @@ type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (tao_var_struct), pointer :: var
 
-integer i, j, k, n, m, p, j_ele, j_att, ix_var
-real(rp) :: y_here, norm, v, x1, x2, y1, y2
+integer i, j, k, ix_var, i_off
+real(rp) :: y_here, x1, x2, y1, y2
 real(rp) :: height
-character(120) str, str2
-character(60) fmt, fmt2
-character(12) model_str, val0_str, delta_str
-character(4) exp_str
+
+character(120) str, header
+character(7) prefix
 character(24) :: r_name = 'tao_plot_key_table'
 
 !
-
-j_ele = 4
-j_att = 5
 
 call qp_set_layout (box = graph%box, margin = graph%margin)
 
 call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
 y_here = y2  ! start from the top of the graph
-
 height = s%plot_page%text_height * s%plot_page%key_table_text_scale
 
-do k = 10*tao_com%ix_key_bank+1, 10*tao_com%ix_key_bank+10
-  if (k > ubound(s%key, 1)) cycle
-  ix_var = s%key(k)
-  if (ix_var == 0) cycle
-  j_ele = max(j_ele, len_trim(s%var(ix_var)%ele_name))
-  j_att = max(j_att, len_trim(s%var(ix_var)%attrib_name))
-enddo
 
-write (fmt, '(a, i5, a, i2, a)') &
-                        '(4x, a, ', j_ele-2, 'x, a, ', j_att-1, 'x, a)'
-write (str, fmt) 'ix  Name', 'Attrib', &
-                         'Value      Value0       Delta   Uni  useit_opt'
-
-call qp_draw_text (str, 5.0_rp, y_here, 'POINTS/GRAPH', &
+i_off = tao_com%ix_key_bank
+call tao_key_info_to_str (1, i_off+1, i_off+10, str, header)
+call qp_draw_text ('   Ix  ' // header, 0.0_rp, y_here, 'POINTS/GRAPH', &
                              height = height, uniform_spacing = .true.)
   
-write (fmt, '(a, i2.2, a, i2.2, a)') &
-        '(i2, 2x, a', j_ele, ', 2x, a', j_att, ', 3a12, 2x, a, 3x, l)'
-
-write (str, '(i2, a)') tao_com%ix_key_bank, ':'
-y_here = y_here - 1.1 * height
-call qp_draw_text (str, 5.0_rp, y_here, 'POINTS/GRAPH', &
-                          height = height, uniform_spacing = .true.)
 
 do i = 1, 10
 
-  k = i + 10*tao_com%ix_key_bank
-  if (k > ubound(s%key, 1)) cycle
-  ix_var = s%key(k)
+  k = i + i_off
+  if (k > ubound(s%key, 1)) return
+
+  prefix = ''
   j = mod(i, 10)
-
-  if (ix_var == 0) then
-    write (str, '(i2)') j
+  if (i == 1) then
+    write (prefix, '(i2, a, i2)') tao_com%ix_key_bank, ':', j
   else
-    var => s%var(ix_var)
-    str2 = tao_var_uni_string(var)
-    v = maxval(abs( (/ var%model_value, var%key_val0, var%key_delta /) ))
-    if (v == 0) then
-      n = 0
-      m = 3
-    else
-      m = 1.001 * log10(v)
-      n = 3 * floor(m/3.0)
-      p = 3 - (m - n)
-    endif
-
-    if (m >= -1 .and. m <= 1) then
-      fmt2 = '(f12.4, a0)'
-      n = 0
-    elseif (m == 2) then
-      fmt2 = '(f12.2, a0)'
-      n = 0
-    else
-      write (fmt2, '(a, i1, a)') '(f8.', p, ', a)'
-      write (exp_str, '(a, i3.2)') 'E', n
-      if (exp_str(2:2) == '0') exp_str(2:2) = '+'
-    endif
-
-    write (model_str, fmt2) var%model_value / 10.0**n, exp_str
-    write (val0_str,  fmt2) var%key_val0 / 10.0**n, exp_str
-    write (delta_str, fmt2) var%key_delta / 10.0**n, exp_str
-
-    write (str, fmt) j, var%ele_name, var%attrib_name, model_str, &
-                        val0_str, delta_str, trim(str2), var%useit_opt
+    write (prefix(4:), '(i2)') j
   endif
 
-  call qp_draw_text (str, 25.0_rp, y_here, 'POINTS/GRAPH', &
-                          height = height, uniform_spacing = .true.)
+  ix_var = s%key(k)
+
+  call tao_key_info_to_str (i+i_off, i_off+1, i_off+10, str, header)
+
   y_here = y_here - 1.1 * height
+  call qp_draw_text (prefix // str, 0.0_rp, y_here, 'POINTS/GRAPH', &
+                          height = height, uniform_spacing = .true.)
+
 enddo
 
-end subroutine
+end subroutine tao_plot_key_table
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -950,39 +904,6 @@ endif
 deallocate (text, symbol, line)
 
 end subroutine
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-
-function tao_var_uni_string (var) result (str)
-
-implicit none
-
-type (tao_var_struct) var
-character(10) str
-integer i, ct
-logical uni(lbound(s%u, 1):ubound(s%u, 1))
-
-!
-
-uni = .false.
-
-do i = 1, size (var%this)
-  uni(var%this(i)%ix_uni) = .true.
-enddo
-
-ct = count(uni)
-
-if (ct == 1) then
-  write (str, '(i3)') var%this(1)%ix_uni
-elseif (ct == size(s%u)) then
-  str = 'All'
-else
-  str = '?'
-endif
-
-end function
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
