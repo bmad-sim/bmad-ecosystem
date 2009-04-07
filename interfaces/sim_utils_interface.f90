@@ -420,18 +420,6 @@ interface
 end interface
  
 interface
-  function settled_test (var_name, var_num, val0, tol, n_settle)
-    implicit none
-    integer var_num
-    integer val0
-    integer tol
-    integer n_settle
-    character(12) var_name
-    logical settled_test
-  end function
-end interface
-
-interface
   subroutine skip_header (ix_unit, error_flag)
     implicit none
     integer ix_unit
@@ -503,13 +491,6 @@ interface
   subroutine test_tune_tracker_lock (tracker_locked)
     implicit none
     logical tracker_locked(2)
-  end subroutine
-end interface
- 
-interface
-  subroutine to_node_name(node_name)
-    implicit none
-    character(*) node_name
   end subroutine
 end interface
  

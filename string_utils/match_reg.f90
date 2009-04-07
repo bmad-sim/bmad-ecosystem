@@ -4,7 +4,7 @@
 ! Function for matching with regular expressions
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   str   -- Character(*): string to test

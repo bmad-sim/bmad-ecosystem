@@ -1,7 +1,7 @@
 module re_allocate_mod
 
-use cesr_utils
-use dcslib_struct
+use sim_utils
+use sim_utils_struct
 
 !+
 ! Subroutine re_allocate

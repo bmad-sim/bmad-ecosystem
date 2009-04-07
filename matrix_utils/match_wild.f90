@@ -16,7 +16,7 @@
 
 function match_wild (string, template) result (this_match)
 
-  use cesr_utils
+  use sim_utils
 
   implicit none
 

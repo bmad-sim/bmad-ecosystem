@@ -4,7 +4,7 @@
 ! subroutine to output matraces to the terminal or to a file
 !
 ! Modules needed:
-!   use dcslib
+!   use sim_utils
 !
 ! input: 
 !   mat(:,:)  -- Real(rp): Matrix to print out.

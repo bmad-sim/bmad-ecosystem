@@ -12,7 +12,7 @@
 !   on Local Procedures", J. Assoc. Comp. Mach., Vol 17(4), 589-602 (1970).
 !
 ! Modules used:
-!   use dcslib
+!   use sim_utils
 !
 ! Input:
 !   spline(:) -- Spline_struct: 
@@ -31,8 +31,8 @@
 
 subroutine spline_akima (spline, ok)
 
-  use dcslib_struct
-  use dcslib_interface, except => spline_akima
+  use sim_utils_struct
+  use sim_utils_interface, except => spline_akima
   use precision_def
 
   implicit none

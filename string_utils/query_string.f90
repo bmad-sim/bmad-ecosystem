@@ -19,7 +19,7 @@
 
 subroutine query_string (query_str, upcase, return_str, ix, ios)
 
-  use cesr_utils
+  use sim_utils
   use precision_def
 
   implicit none

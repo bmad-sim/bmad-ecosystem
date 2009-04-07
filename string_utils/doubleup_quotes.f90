@@ -15,25 +15,6 @@
 !   str_out -> 'This:"":'
 !-                               
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/04/30 16:26:38  dcs
-!F90 Standard conforming update.
-!
-!Revision 1.4  2002/02/23 20:34:41  dcs
-!Modified for Single/Double Real Toggle
-!
-!Revision 1.3  2001/10/25 19:13:14  helms
-!Added explicit variable declarations.
-!mat_inv has been replaced by mat_inverse in BMAD (not DCSLIB)
-!
-!Revision 1.2  2001/09/27 17:47:03  rwh24
-!UNIX compatibility updates
-!
-
-#include "CESR_platform.inc"
-
-
 subroutine doubleup_quotes (str_in, str_out, quote)
 
   use precision_def

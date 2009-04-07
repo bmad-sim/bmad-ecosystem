@@ -25,7 +25,7 @@ contains
 
 subroutine match_word (string, names, ix, exact_case, matched_name)
 
-  use cesr_utils
+  use sim_utils
   use precision_def
 
   implicit none

@@ -5,7 +5,7 @@
 ! point 1 to point 2
 !
 ! Modules needed:
-!   use dcslib
+!   use sim_utils
 !
 ! Input:
 !   angle          -- Real(rp):  Rotation angle in radians.

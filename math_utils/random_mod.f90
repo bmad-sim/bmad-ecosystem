@@ -11,7 +11,7 @@ module random_mod
 use precision_def
 use physical_constants
 use output_mod
-use dcslib_interface
+use sim_utils_interface
 
 !+
 ! Subroutine ran_gauss (harvest)

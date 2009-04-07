@@ -24,7 +24,7 @@
 
 function is_logical (string, ignore) result (good)
 
-use cesr_utils
+use sim_utils
 
 implicit none
 

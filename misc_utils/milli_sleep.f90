@@ -4,7 +4,7 @@
 ! Routine to pause the program for a given number of milli-seconds.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   milli_sec -- Integer: Number of milli-seconds to pause.

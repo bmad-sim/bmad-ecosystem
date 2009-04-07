@@ -8,7 +8,7 @@
 !  "%"  -- Match to any single character.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   str -- Character(*): String to match against.

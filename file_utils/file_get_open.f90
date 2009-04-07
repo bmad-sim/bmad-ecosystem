@@ -28,7 +28,7 @@
 subroutine file_get_open (string, dflt_file_name, &
                                   file_name, file_unit, readonly)
 
-  use dcslib_interface, except => file_get_open
+  use sim_utils_interface, except => file_get_open
   use precision_def
 
   implicit none

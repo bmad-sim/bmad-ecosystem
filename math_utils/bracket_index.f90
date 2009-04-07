@@ -8,7 +8,7 @@
 ! This routine assumes that s_arr is in assending order.
 !
 ! Modules needed:
-!   use dcslib
+!   use sim_utils
 !
 ! Input:
 !   s_arr(i_min:) -- Real(rp): Sequence of real numbers.

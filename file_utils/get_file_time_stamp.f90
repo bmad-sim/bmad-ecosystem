@@ -4,7 +4,7 @@
 ! Routine to get the "last modified" time stamp for a file.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   file        -- Character(*): File name.

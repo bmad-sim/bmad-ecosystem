@@ -17,7 +17,7 @@ contains
 !   This routine draws on the routine trnfnm.F in the CLEO libraries.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   filename -- Character(*): Name requiring expansion of an environment

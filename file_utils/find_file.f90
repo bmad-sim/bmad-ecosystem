@@ -6,7 +6,7 @@
 ! the directories given by dir will also be searched.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   file_in    -- Character(*): Input file name
@@ -23,7 +23,7 @@
 
 subroutine find_file (file_in, found, file_out, dirs)
 
-  use cesr_utils, except => find_file
+  use sim_utils, except => find_file
 
   implicit none
 

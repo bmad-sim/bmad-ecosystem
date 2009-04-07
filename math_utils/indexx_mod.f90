@@ -119,7 +119,7 @@ end subroutine
 ! This is an extension of the Numerical Recipes routine indexx.
 !
 ! Modules needed:
-!   use dcslib
+!   use sim_utils
 !-
 
 	SUBROUTINE indexx_char(arr,index)

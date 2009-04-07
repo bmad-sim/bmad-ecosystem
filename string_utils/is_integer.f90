@@ -4,7 +4,7 @@
 ! Function to tell if the first word in a string is a valid integer.
 !
 ! Modules needed:
-!   use dcslib
+!   use sim_utils
 !
 ! Input:
 !   string  -- Character(*): Character string.

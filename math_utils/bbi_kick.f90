@@ -5,7 +5,7 @@
 ! interaction using the normalized position for input
 !
 ! Modules needed:
-!   use dcslib
+!   use sim_utils
 !
 ! Input:
 !   x_norm -- Real(rp): Normalized coordinate: x / sigma_x.

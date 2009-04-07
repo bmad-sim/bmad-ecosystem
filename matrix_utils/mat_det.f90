@@ -11,7 +11,7 @@
 ! This subroutine is adapted from NUMERICAL RECIPES
 !
 ! Modules needed:
-!   use dcslib
+!   use sim_utils
 !
 ! Input: 
 !   mat(:,:) -- Real(rp): Square matrix.

@@ -26,7 +26,7 @@
 
 subroutine calc_file_number (file_name, num_in, num_out, err_flag)
 
-  use cesr_utils
+  use sim_utils
 
   implicit none
 

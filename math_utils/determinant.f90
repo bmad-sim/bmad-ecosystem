@@ -5,7 +5,7 @@
 ! This routine is adapted from Numerical Recipes.
 !
 ! Modules needed:
-!   use dcslib
+!   use sim_utils
 !
 ! Input: 
 !   mat(:,:) -- Real(rp): Square matrix.

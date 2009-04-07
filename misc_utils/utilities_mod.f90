@@ -14,7 +14,7 @@ contains
 ! optional integer.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   integer_default -- Integer: Default if opt_integer is not present.
@@ -54,7 +54,7 @@ end function
 ! optional logical.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   logic_default -- Logical: Default if opt_logic is not present.
@@ -94,7 +94,7 @@ end function
 ! optional real.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   real_default -- Real(rp): Default if opt_real is not present.
@@ -134,7 +134,7 @@ end function
 ! optional string.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   string_default -- Character(*): Default if opt_string is not present.
@@ -177,7 +177,7 @@ end subroutine
 !    T       F
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   word  -- Character(*): Input string.
@@ -222,7 +222,7 @@ end function
 ! Function to return the string "ON" or "OFF".
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   logic -- Logical: True or False.

@@ -4,7 +4,7 @@
 ! Routine to substitute all instances of one sub-string for another in a string
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   string  -- Character(*): Character string.

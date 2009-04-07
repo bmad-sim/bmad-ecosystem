@@ -5,7 +5,7 @@
 ! This routine uses the 'gs' and 'ppmtogif' system commands.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   ps_file      -- Character(*): Name of existing PS file.
@@ -16,7 +16,7 @@
 
 subroutine ps2gif (ps_file, gif_file, kill_ps_file)
 
-use cesr_utils, only: system_command, logic_option
+use sim_utils, only: system_command, logic_option
 
 implicit none
 

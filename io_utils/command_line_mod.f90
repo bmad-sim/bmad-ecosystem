@@ -14,7 +14,7 @@ contains
 ! line arguments. Use this with cesr_getarg.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   none
@@ -58,7 +58,7 @@ end function cesr_iargc
 ! line argument. Use this with cesr_iargc.
 !
 ! Modules needed:
-!   use cesr_utils
+!   use sim_utils
 !
 ! Input:
 !   i_arg -- Integer: Index of argument to return.

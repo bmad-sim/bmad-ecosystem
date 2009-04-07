@@ -4,7 +4,7 @@
 ! Subroutine to take the symplectic conjugate of a square matrix.
 !
 ! Modules needed:
-!   use dcslib
+!   use sim_utils
 !
 ! Input:
 !   mat1(:, :) -- Real(rp): Input matrix.

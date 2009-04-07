@@ -168,7 +168,7 @@
 module quick_plot
 
 use physical_constants
-use dcslib_interface
+use sim_utils_interface
 use utilities_mod
 use output_mod
 use pgplot_interface

@@ -4,7 +4,7 @@
 ! Subroutine to evalueate a spline at a set of points.
 !
 ! Modules used:
-!   use dcslib
+!   use sim_utils
 !
 ! Input:
 !   spline(:) -- Spline_struct: Spline structure.
@@ -23,9 +23,9 @@
 
 subroutine spline_evaluate (spline, x, ok, y, dy)
 
-  use dcslib_struct
-  use dcslib_interface, except => spline_evaluate
-  use cesr_utils
+  use sim_utils_struct
+  use sim_utils_interface, except => spline_evaluate
+  use sim_utils
 
   implicit none
 

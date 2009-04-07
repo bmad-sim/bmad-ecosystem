@@ -4,7 +4,7 @@
 ! Subroutine to time a program.
 !
 ! Modules needed:
-!   use dcslib_interface
+!   use sim_utils_interface
 !
 ! Input:
 !   command -- Character(*): 'START', 'READ', or 'STOP'

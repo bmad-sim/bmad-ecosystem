@@ -13,7 +13,7 @@ use precision_def
 !    -amp <= mod2 < amp
 !
 ! Modules needed:
-!   dcslib_interface
+!   sim_utils_interface
 ! 
 ! Input:
 !   x    -- Real(sp), Real(dp), or Integer
@@ -43,7 +43,7 @@ contains
 !    -amp <= mod2 < amp
 !
 ! Modules needed:
-!   dcslib_interface
+!   sim_utils_interface
 ! 
 ! Input:
 !   x    -- Real(sp): 
@@ -81,7 +81,7 @@ end function
 !    -amp <= mod2 < amp
 !
 ! Modules needed:
-!   dcslib_interface
+!   sim_utils_interface
 ! 
 ! Input:
 !   x    -- Real(dp): 
@@ -119,7 +119,7 @@ end function
 !    -amp <= mod2 < amp
 !
 ! Modules needed:
-!   dcslib_interface
+!   sim_utils_interface
 ! 
 ! Input:
 !   x    -- Integer: 
