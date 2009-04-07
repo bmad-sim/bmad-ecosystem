@@ -319,7 +319,7 @@ end subroutine
 ! specified file is local, the return value is 0.
 !
 ! Module needed:
-!   use cesr_interface
+!   use sim_utils
 !
 ! Input:  
 !   FileName    -- Character(*): Filename to be split.

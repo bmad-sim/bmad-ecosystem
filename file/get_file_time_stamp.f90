@@ -17,7 +17,7 @@
 
 subroutine get_file_time_stamp (file, time_stamp)
 
-use cesr_interface, except => get_file_time_stamp
+use sim_utils_interface, except => get_file_time_stamp
 
 implicit none
 

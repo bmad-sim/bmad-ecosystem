@@ -1,6 +1,5 @@
-!  ION_KICK_2  SUBROUTINE  BEAM-ION    C.DCS.LIB   DCS         96.7
 !+
-! subroutine ION_KICK_2D
+! subroutine ion_kick_2d (x, y, x_kicker, y_kicker)
 !
 ! subroutine to return the transverse kick felt by a ion
 ! due to the passage of an electron bunch.
@@ -13,27 +12,7 @@
 ! sig_x, sig_y          -- rms widths of the electron bunch
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/07/09 01:29:30  dcs
-!new bmad
-!
-!Revision 1.4  2002/02/23 20:34:45  dcs
-!Modified for Single/Double Real Toggle
-!
-!Revision 1.3  2001/10/25 19:13:15  helms
-!Added explicit variable declarations.
-!mat_inv has been replaced by mat_inverse in BMAD (not DCSLIB)
-!
-!Revision 1.2  2001/09/27 17:47:07  rwh24
-!UNIX compatibility updates
-!
-
-#include "CESR_platform.inc"
-
-
-
-subroutine ION_KICK_2D (x, y, x_kicker, y_kicker)
+subroutine ion_kick_2d (x, y, x_kicker, y_kicker)
 
   use precision_def
 
@@ -65,6 +44,4 @@ subroutine ION_KICK_2D (x, y, x_kicker, y_kicker)
   x_kicker = scale * kx
   y_kicker = scale * ky
 
-  return
-
-  end
+end subroutine

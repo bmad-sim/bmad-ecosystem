@@ -1,21 +1,21 @@
 !+
-! Subroutine str_downcase (destination, source)
+! Subroutine str_upcase (destination, source)
 !
-! Subroutine to convert a string to down case.
+! Subroutine to convert a string to upper case.
 !
 ! Modules needed:
-!   use cesr_interface
+!   use sim_utils_interface
 !
 ! Input:
 !   source -- Character(*): Source string.
 !
 ! Output:
-!   destination -- Character(*): Down cased string.
+!   destination -- Character(*): Upper cased string.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine str_downcase(dst, src)
+subroutine str_upcase(dst, src)
   implicit none
   
   character*(*) dst,src
@@ -27,14 +27,14 @@ subroutine str_downcase(dst, src)
   do i=1,dlen
      if (i.le.slen) then
         s=ichar(src(i:i))
-        if (s .ge. 65 .and. s .le. 90) then
-           s=s+32
+        if (s.ge.97.and.s.le.122) then
+           s=s-32
         endif
         dst(i:i)=char(s)
      else
         dst(i:i)=' '
      endif
   enddo
-end subroutine str_downcase
+end subroutine str_upcase
 
 

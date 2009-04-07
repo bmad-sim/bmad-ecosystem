@@ -1,36 +1,16 @@
-!  ION_KICK    SUBROUTINE  BEAM-ION    C.DCS.LIB   DCS         96.7
 !+
-!     subroutine ION_KICK
+! subroutine ion_kick (x, y, x_kicker, y_kicker, s_kicker)
 !
-!     subroutine to return the kick felt by an ion due to the
-!     passage of a bunch.
+! subroutine to return the kick felt by an ion due to the
+! passage of a bunch.
 !
-!     This subroutine uses MKS units: the output kicks are in m/sec
+! This subroutine uses MKS units: the output kicks are in m/sec
 !
-!     n_elec     -- the number of electrons in a bunch
-!     ion_weight  -- the weight of the ion in AMU
-!     sig_x, sig_y -- rms widths of the electron bunch
-!     alpha, beta  -- TWISS parameters
+! n_elec     -- the number of electrons in a bunch
+! ion_weight  -- the weight of the ion in AMU
+! sig_x, sig_y -- rms widths of the electron bunch
+! alpha, beta  -- TWISS parameters
 !-
-
-!$Id$
-!$Log$
-!Revision 1.5  2003/07/09 01:29:30  dcs
-!new bmad
-!
-!Revision 1.4  2002/02/23 20:34:45  dcs
-!Modified for Single/Double Real Toggle
-!
-!Revision 1.3  2001/10/25 19:13:15  helms
-!Added explicit variable declarations.
-!mat_inv has been replaced by mat_inverse in BMAD (not DCSLIB)
-!
-!Revision 1.2  2001/09/27 17:47:06  rwh24
-!UNIX compatibility updates
-!
-
-#include "CESR_platform.inc"
-
 
 subroutine ion_kick (x, y, x_kicker, y_kicker, s_kicker)
 
@@ -69,6 +49,4 @@ subroutine ion_kick (x, y, x_kicker, y_kicker, s_kicker)
   s_kicker = scale * ((-alpha_x*epsilon_x + eta*etap*sig_ee*sig_ee)* &
       (kxx-kx)/(.01*sig_x) - alpha_y*epsilon_y*(kyy-ky)/(.01*sig_y))
 
-  return
-
-  end
+end subroutine
