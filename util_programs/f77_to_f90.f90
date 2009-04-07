@@ -16,7 +16,7 @@
 
 program f77_to_f90
 
-use cesr_utils
+use sim_utils
 
 implicit none
 
