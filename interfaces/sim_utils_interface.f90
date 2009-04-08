@@ -528,10 +528,11 @@ interface
 end interface
  
 interface
-  subroutine str_substitute (string, str_in, str_out)
+  subroutine str_substitute (string, str_match, str_replace, do_trim)
     implicit none
     character(*) string
-    character(*), optional :: str_in, str_out
+    character(*), optional :: str_match, str_replace
+    logical, optional :: do_trim
   end subroutine
 end interface
 

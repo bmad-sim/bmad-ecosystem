@@ -1,5 +1,5 @@
 !+
-! Subroutine str_substitute (string, str_in, str_out)
+! Subroutine str_substitute (string, str_match, str_replace, do_trim)
 !
 ! Routine to substitute all instances of one sub-string for another in a string
 !
@@ -7,48 +7,57 @@
 !   use sim_utils
 !
 ! Input:
-!   string  -- Character(*): Character string.
-!   str_in  -- Character(*), optional: Sub-string to be replaced. 
-!                 Default is the tab char.
-!   str_out -- Character(*): optional: Sub-string to substitute in. 
-!                 Default is the space char.
+!   string      -- Character(*): Character string.
+!   str_match   -- Character(*), optional: Sub-string to be replaced. 
+!                    Default is the tab char.
+!   str_replace -- Character(*): optional: String to substitute in. 
+!                    Default is the space char.
+!   do_trim     -- Logical, optional: If present and true then substitute only
+!                    in the region string(1:n) where n = len_trim(string).
+!                    This argument only affects things if str_match is composed
+!                    of blanks.
 !
 ! Output:
-!   string  -- Character(*): String with all instances of str_in replaced for str_out.
+!   string  -- Character(*): String with all instances of str_match replaced for str_replace.
 !-
 
-subroutine str_substitute (string, str_in, str_out)
+subroutine str_substitute (string, str_match, str_replace, do_trim)
 
 implicit none
 
 character(*) string
-character(*), optional :: str_in, str_out
+character(*), optional :: str_match, str_replace
 
-integer ixs, ix, n_in
+integer i, ixs, n_match
+logical, optional :: do_trim
 
 !
 
-if (present(str_in)) n_in = len(str_in)
-ixs = 1
+n_match = 1
+if (present(str_match)) n_match = len(str_match)
 
+ixs = len(string)
+if (present(do_trim)) then
+  if (do_trim) ixs = len_trim(string)
+endif
+
+i = ixs + 1
 do 
 
-  if (ixs > len(str_in)) return
+  i = i - 1
+  if (i < 1) return
 
-  if (present(str_in)) then
-    ix = index(string(ixs:), str_in)
+  if (present(str_match)) then
+    if (string(i:i+n_match-1) /= str_match) cycle
   else
-    ix = index(string(ixs:), char(9))  ! tab
+    if (string(i:i) /= char(9)) cycle
   endif
 
-  if (ix == 0) return
-
-  if (present(str_out)) then
-    string = string(:ixs+ix-2) // str_out // trim(string(ixs+ix+n_in-1:))
-    ixs = ixs + ix + n_in - 1
+  if (present(str_replace)) then
+    string = string(:i-1) // str_replace // trim(string(i+n_match:))
+    i = i - n_match + 1
   else
-    string = string(:ixs+ix-2) // ' ' // trim(string(ixs+ix:))
-    ixs = ixs + ix 
+    string = string(:i-1) // ' ' // trim(string(i+n_match:))
   endif
 
 enddo
