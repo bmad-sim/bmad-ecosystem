@@ -158,7 +158,7 @@ endif
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
 LOCAL_LIBS :=
-CESR_LIBS  := bsim bmadz mpm_utils cesr_utils bmad sim_utils recipes_f-90_LEPP
+CESR_LIBS  := bsim bmadz cesr_utils bmad sim_utils recipes_f-90_LEPP
 PKG_LIBS   := forest pgplot
 SYS_LIBS   := lammpio lamf77mpi mpi lam aio aio util pthread
 CERN_LIBS  :=

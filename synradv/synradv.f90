@@ -71,7 +71,7 @@ if (ios == 0) then  ! opened
   logic%command_file_open = .true.
   print *, 'INIT COMMAND FILE FOUND: CESRV.IN ....'
 endif
-call read_outline(walls, u%ring,.true.)
+call read_outline(walls, u%ring, .true.)
 call find_windows (walls%positive_x_wall, window)
 
 
@@ -101,7 +101,7 @@ main_loop: do while (.true.)
   elseif (line(1:ix) == 'RP' .or. &
        (index('RAYPLOT', line(1:ix)) == 1 .and. ix > 3)) then
     print *, '*** Only first window selected will be plotted. ***'
-    call get_window_numbers ( window, iw )
+    call get_window_numbers (window, iw)
     call ray_plot (window, iw(1))
 
   elseif (line(1:ix) == 'WP' .or. &
@@ -122,14 +122,14 @@ main_loop: do while (.true.)
 
   elseif (line(1:ix) == 'BURN') then
     print *, '*** Only first window selected will be plotted. ***'
-    call get_window_numbers ( window, iw )
-    call burn_plot ( window, iw(1), u%ring, gen_params )
+    call get_window_numbers (window, iw)
+    call burn_plot (window, iw(1), u%ring, gen_params)
 
   elseif (line(1:ix) == 'RO' .or. (index('RAYOUTPUT', line(1:ix)) == 1 .and. ix > 3)) then
     call ray_output (window, u%ring, gen_params)
 
   elseif (index('PROJECT', line(1:ix)) == 1 .and. ix > 1) then
-    call project_from_windows ( window )
+    call project_from_windows (window)
 
   elseif (line(1:ix) == 'FW' .or. &
                   (index('FINDWINDOWS', line(1:ix)) == 1 .and. ix > 3)) then
@@ -143,7 +143,7 @@ main_loop: do while (.true.)
       print *, 'Please pick Lattice first...'
       call cesrv_command('L:', u, graph, err_flag)
     endif
-    call read_outline(walls,u%ring,.true.)
+    call read_outline(walls,u%ring, .true.)
 
   elseif (line(1:ix) == 'NS' .or. (index('N_SLICE', line(1:ix)) == 1 .and. ix > 3)) then
     line = line(ix+1:)
