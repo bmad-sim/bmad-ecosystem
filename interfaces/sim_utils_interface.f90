@@ -2,9 +2,6 @@
 
 module sim_utils_interface
 
-use modulo2_mod
-use word_mod
-
 interface
   subroutine abs_sort (array, index, n)
     use precision_def

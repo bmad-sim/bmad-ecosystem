@@ -1,5 +1,7 @@
 module word_mod
 
+use utilities_mod
+
 contains
 
 !+
@@ -25,7 +27,7 @@ contains
 
 subroutine match_word (string, names, ix, exact_case, matched_name)
 
-  use sim_utils
+  use sim_utils_interface
   use precision_def
 
   implicit none

@@ -1,6 +1,5 @@
 !+
-! Subroutine FILE_GET_OPEN (STRING, DFLT_FILE_NAME, FILE_NAME, &
-!                                                     FILE_UNIT, READONLY)
+! subroutine file_get_open (string, dflt_file_name, file_name, file_unit, readonly)
 !
 ! Routine to query the User for the name of an input file (a la FILE_GET).
 ! The subroutine will first look at the command line to see if anything was
@@ -10,32 +9,29 @@
 ! The input file will be opened and the unit number returned.
 !
 ! Input:
-!   STRING         -- Character*(*): Query string.
-!   DFLT_FILE_NAME -- Character*(*): Default file name if no name is given.
-!   READONLY       -- Logical: If true then file will be: readonly, shared.
+!   string         -- Character*(*): Query string.
+!   dflt_file_name -- Character*(*): Default file name if no name is given.
+!   readonly       -- Logical: If true then file will be: readonly, shared.
 !
 ! Output:
-!     FILE_NAME -- Character: File name supplied by the user.
-!     FILE_UNIT -- Integer: Unit number for the file.
+!   file_name -- Character: File name supplied by the user.
+!   file_unit -- Integer: Unit number for the file.
 !
 ! Example:
-!     call FILE_GET_OPEN ('Input file:', '[CESR.DEFAULT].IN', &
-!                                                file_name, funit, .true.)
+!   call file_get_open ('input file:', '[cesr.default].in', file_name, funit, .true.)
 !-           
 
 #include "CESR_platform.inc"
 
-subroutine file_get_open (string, dflt_file_name, &
-                                  file_name, file_unit, readonly)
+subroutine file_get_open (string, dflt_file_name, file_name, file_unit, readonly)
 
   use sim_utils_interface, except => file_get_open
-  use precision_def
 
   implicit none
 
   character*(*) file_name, dflt_file_name, string
 
-  integer file_unit, lunget, ios
+  integer file_unit, ios
 
   logical readonly
 

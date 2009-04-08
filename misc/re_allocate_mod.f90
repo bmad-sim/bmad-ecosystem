@@ -1,6 +1,6 @@
 module re_allocate_mod
 
-use sim_utils
+use utilities_mod
 use sim_utils_struct
 
 !+
