@@ -200,7 +200,7 @@ LOCAL_LFLAGS   := -pg
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
 LOCAL_LIBS := 
-CESR_LIBS  := bmad dcslib recipes_f-90_LEPP cesr_utils 
+CESR_LIBS  := bmad sim_utils recipes_f-90_LEPP 
 PKG_LIBS   := forest
 CERN_LIBS  :=
 SYS_LIBS   := 

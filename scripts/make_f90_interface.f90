@@ -14,7 +14,7 @@
 
 program make_f90_interface
 
-use dcslib_interface
+use sim_utils_interface
 use directory_mod
 
 implicit none                    

@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/lattice \:\=/parameter[lattice] \=/;
+    s/pecklib/mpm_utils cesr_utils/;
 
     print (F_OUT);
   }

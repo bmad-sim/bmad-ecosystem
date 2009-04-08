@@ -9,7 +9,7 @@ One drawback of PGPLOT is that the arguments to
 PGPLOT's subroutines are not always conveniently structured. to remedy
 this a suite of wrapper routines have been developed which can be
 used to drive PGPLOT. This suite is called \quickplot and lives in the
-\vn{dcslib} library which comes with the Bmad distribution. A quick
+\vn{sim_utils} library which comes with the Bmad distribution. A quick
 reference guide can be seen online by using the command \vn{getf
 quick_plot}. For quick identification in a program, all \quickplot
 subroutines start with a \vn{qp_} prefix. Also, by convention, all
@@ -113,7 +113,7 @@ An example of how \quickplot can be used in a program is shown in
 Figure~\ref{f:plot.example}. In the \bmad distribution a copy of this
 program is in the file
 \begin{example}
-  dcslib/plot_example.f90
+  sim_utils/plot_example/plot_example.f90
 \end{example}
 The \vn{plot_example.f90} program generates the figure shown in
 Figure~\ref{f:plot.out} from the input file named \vn{plot.dat}. The

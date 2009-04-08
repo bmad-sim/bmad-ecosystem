@@ -21,21 +21,11 @@ questions about platform support and building problems.
 \index{libraries, Software}
 The subsidiary libraries are: 
 \begin{description}
-\index{cesr_utils library}
-\item[cesr_utils] 
-This is a low level library. Despite its name the
-routines in this library do not have anything to do with the Cornell
-CESR storage ring.  In \vn{cesr_utils} the module \vn{precision_def}
-defines the precision that \bmad works at (see
-\sref{s:precision}) and the module \vn{physical_constants}
-gives the physical and mathematical constants (\vn{pi}, \vn{c_light},
-etc.) that \bmad knows about.
-
-\index{dcslib library}
-\item[dcslib] 
-This library defines a set of miscellaneous helper
-routines.  Routines include spline fitting, Gaussian random number
-generation, etc. The library is named after its creator.
+\index{sim_utils library}
+\item[sim_utils] 
+This library defines a set of miscellaneous helper routines for
+simulations. Included are routines for string manipulation, file manipulation,
+matrix manipulation, spline fitting, Gaussian random number generation, etc. 
 
 \index{PTC/FPP!library}
 \item[forest] 
@@ -77,7 +67,7 @@ obtained from the PGPLOT web site at
 One disadvantage of PGPLOT for the programmer is that it is not the
 most user friendly. To remedy this, there is a set of Fortran90
 wrapper subroutines called \vn{quick_plot}.  The \vn{quick_plot}
-suite is part of the dcslib library and is documented in
+suite is part of the sim_utils library and is documented in
 Chapter~\ref{c:quick.plot}.
 
 \index{XSIF!library}
@@ -85,6 +75,16 @@ Chapter~\ref{c:quick.plot}.
 XSIF is a library from SLAC to read in XSIF format files. See 
 \sref{s:lattice.file.formats} for more details. The only
 \bmad routine to use this library is \vn{xsif_parser}.
+
+\index{cesr_utils}
+\item{cesr_utils} 
+The \vn{cesr_utils} library contains routines used for simulation of
+the CESR storage ring.
+
+\index{mpm_utils}
+\item{mpm_utils}
+The \vn{mpm_utils} library contains routines that access the CESR MPM
+database.
 
 \end{description}
 
@@ -175,11 +175,11 @@ For example, the \vn{listf *locator*} command would produce
 \begin{example}
   /home/cesrulib/cesr_libs/devel/cvssrc/bmad/code/element_locator.f90
   /home/cesrulib/cesr_libs/devel/cvssrc/bmad/code/elements_locator.f90
-  /home/cesrulib/cesr_libs/devel/cvssrc/dcslib/code/cesr_locator.f90
+  /home/cesrulib/cesr_libs/devel/cvssrc/cesr_utils/cesr_locator.f90
 \end{example}
 
 The way \vn{getf} and \vn{listf} work is that they search a list of
-directories to find the \vn{bmad}, \vn{dcslib}, \vn{cesr_utils}, and \vn{tao}
+directories to find the \vn{bmad}, \vn{sim_utils}, and \vn{tao}
 libraries. Currently the libraries in the \bmad distribution that were
 not developed at Cornell are not searched. This is primarily due to
 the fact that, to save time, \vn{getf} and \vn{listf} make assumptions

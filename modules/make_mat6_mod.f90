@@ -2,7 +2,7 @@
 
 module make_mat6_mod
 
-  use dcslib
+  use sim_utils
   use physical_constants
   use bmad_basic_mod
 

@@ -3,7 +3,7 @@
 module matrix_mod
 
   use precision_def
-  use dcslib
+  use sim_utils
   use bmad_basic_mod
 
   integer, parameter :: ok$              = 1

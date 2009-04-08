@@ -343,14 +343,6 @@ interface
 end interface
 
 interface
-  subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
-    implicit none
-    character(*) lattice
-    character(*) bmad_file_name
-  end subroutine
-end interface
- 
-interface
   subroutine make_g_mats (ele, g_mat, g_inv_mat)
     use bmad_struct, only: ele_struct, rp
     implicit none

@@ -47,7 +47,7 @@ subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2)
 
 use bmad_struct
 use bmad_interface, except_dummy => transfer_matrix_calc
-use cesr_utils, only: integer_option
+use sim_utils, only: integer_option
 
 implicit none
 
