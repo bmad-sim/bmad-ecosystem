@@ -40,28 +40,28 @@ if (-r catfile( $curdir, "cesr_utils", "modules", "cesr_utils.f90" )) {
 }
 
 
-if (-r catfile( $curdir, "dcslib", "modules", "dcslib.f90" )) {
-  $dcslib_dir = catfile( $curdir, "dcslib" );
-} elsif (-r catfile( $updir, "dcslib", "modules", "dcslib.f90")) {
-  $dcslib_dir = catfile( $updir, "dcslib" );
-} elsif (-r catfile( $updir, $updir, "dcslib", "modules", "dcslib.f90")) {
-  $dcslib_dir = catfile( $updir, $updir, "dcslib" );
-} elsif (-r catfile( $ENV{"CESR_SRC"}, "dcslib")) {
-  $dcslib_dir = catfile( $ENV{"CESR_SRC"}, "dcslib" );
+if (-r catfile( $curdir, "sim_utils", "interfaces", "sim_utils.f90" )) {
+  $sim_utils_dir = catfile( $curdir, "sim_utils" );
+} elsif (-r catfile( $updir, "sim_utils", "interfaces", "sim_utils.f90")) {
+  $sim_utils_dir = catfile( $updir, "sim_utils" );
+} elsif (-r catfile( $updir, $updir, "sim_utils", "interfaces", "sim_utils.f90")) {
+  $sim_utils_dir = catfile( $updir, $updir, "sim_utils" );
+} elsif (-r catfile( $ENV{"CESR_SRC"}, "sim_utils")) {
+  $sim_utils_dir = catfile( $ENV{"CESR_SRC"}, "sim_utils" );
 } else {
-  $dcslib_dir = catfile( $ENV{"BMAD_SRC"}, "dcslib" );
+  $sim_utils_dir = catfile( $ENV{"BMAD_SRC"}, "sim_utils" );
 }
 
-if (-r catfile( $curdir, "pecklib", "code", "butout.f90" )) {
-  $pecklib_dir = catfile( $curdir, "pecklib" );
-} elsif (-r catfile( $updir, "pecklib", "code", "butout.f90")) {
-  $pecklib_dir = catfile( $updir, "pecklib" );
-} elsif (-r catfile( $updir, $updir, "pecklib", "code", "butout.f90")) {
-  $pecklib_dir = catfile( $updir, $updir, "pecklib" );
-} elsif (-r catfile( $ENV{"CESR_SRC"}, "pecklib")) {
-  $pecklib_dir = catfile( $ENV{"CESR_SRC"}, "pecklib" );
+if (-r catfile( $curdir, "mpm_utils", "code", "butout.f90" )) {
+  $mpm_utils_dir = catfile( $curdir, "mpm_utils" );
+} elsif (-r catfile( $updir, "mpm_utils", "code", "butout.f90")) {
+  $mpm_utils_dir = catfile( $updir, "mpm_utils" );
+} elsif (-r catfile( $updir, $updir, "mpm_utils", "code", "butout.f90")) {
+  $mpm_utils_dir = catfile( $updir, $updir, "mpm_utils" );
+} elsif (-r catfile( $ENV{"CESR_SRC"}, "mpm_utils")) {
+  $mpm_utils_dir = catfile( $ENV{"CESR_SRC"}, "mpm_utils" );
 } else {
-  $pecklib_dir = catfile( $ENV{"BMAD_SRC"}, "pecklib" );
+  $mpm_utils_dir = catfile( $ENV{"BMAD_SRC"}, "mpm_utils" );
 }
 
 
@@ -108,10 +108,10 @@ $str = @ARGV[0];
 $str =~ s/\*/\\w\*/g;  # replace "*" by "\w*"
 
 find(\&searchit, $bmad_dir);
-find(\&searchit, $dcslib_dir);
+find(\&searchit, $sim_utils_dir);
 find(\&searchit, $cesr_utils_dir);
 find(\&searchit, $tao_dir);
-find(\&searchit, $pecklib_dir);
+find(\&searchit, $mpm_utils_dir);
 ## find(\&searchit, $recipes_dir);
 ## find(\&searchit, $forest_dir);
 
@@ -122,7 +122,7 @@ print "\n";
 
 sub searchit {
 
-  if ($File::Find::name =~ /pecklib\/f77/) {return;}  # Do not search this directory.
+  if ($File::Find::name =~ /cesr_utils\/f77/) {return;}  # Do not search this directory.
 
   if (/\#/) {return;}
   $file = $_;
