@@ -159,7 +159,7 @@ endif
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
 LOCAL_LIBS :=
-CESR_LIBS  := bsim dcslib cesr_utils
+CESR_LIBS  := bsim sim_utils cesr_utils
 PKG_LIBS   := pgplot
 SYS_LIBS   :=
 CERN_LIBS  :=

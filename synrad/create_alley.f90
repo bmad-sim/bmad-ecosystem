@@ -14,7 +14,7 @@ subroutine create_alley (wall)
   use sr_struct
   use sr_interface
   use nr
-  use dcslib
+  use sim_utils
 
   implicit none
 
