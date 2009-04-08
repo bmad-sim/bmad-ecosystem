@@ -32,7 +32,7 @@
 # Update for BMAD distribution use.
 #
 # Revision 1.6  2003/07/30 00:09:07  palmer
-# Update default linking order so that cesr_utils FOLLOWS recipes_f-90_LEPP.
+# Update default linking order so that FOLLOWS recipes_f-90_LEPP.
 #
 # Revision 1.5  2003/05/23 20:52:06  palmer
 # Add instructions for setting MAKEFILE variable if a user does not want to
@@ -204,7 +204,7 @@ LOCAL_LFLAGS   :=
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
 LOCAL_LIBS := 
-CESR_LIBS  := tao bmad dcslib recipes_f-90_LEPP cesr_utils 
+CESR_LIBS  := tao bmad sim_utils recipes_f-90_LEPP 
 PKG_LIBS   := forest pgplot xsif
 CERN_LIBS  :=
 SYS_LIBS   := readline curses

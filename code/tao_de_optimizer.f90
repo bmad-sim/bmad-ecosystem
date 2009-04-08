@@ -6,7 +6,7 @@
 ! Subrutine to minimize the merit function by varying variables until
 ! the "data" as calculated from the model matches the measured data.
 ! 
-! This subroutine is a wrapper for the opti_de optimizer in dcslib.
+! This subroutine is a wrapper for the opti_de optimizer in sim_utils.
 ! 'de' stands for 'differential evolution' see opti_de routine for
 ! more details.
 !
