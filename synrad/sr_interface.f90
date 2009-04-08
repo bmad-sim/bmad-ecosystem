@@ -95,15 +95,6 @@ interface
 end interface
 
 interface
-  subroutine convert_blanks_to_underscore (string_in, string_out)
-    use sr_struct
-    implicit none
-    character(*) string_in
-    character(*) string_out
-  end subroutine
-end interface
-
-interface
   subroutine create_alley (wall)
     use sr_struct
     implicit none
@@ -235,15 +226,6 @@ interface
     type (walls_struct) walls
     type (synrad_param_struct) gen_params
     type (crotch_window_struct) window(:)
-  end subroutine
-end interface
-
-interface
-  subroutine check_aperture ( u, hit )
-    use cesrv_struct, only: universe_struct
-    implicit none
-    type (universe_struct) u
-    logical hit
   end subroutine
 end interface
 

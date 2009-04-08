@@ -135,9 +135,6 @@ main_loop: do while (.true.)
                   (index('FINDWINDOWS', line(1:ix)) == 1 .and. ix > 3)) then
     call find_windows (walls%positive_x_wall, window)
 
-  elseif (line(1:ix) == 'CHECK') then
-    call check_aperture(u, hit)
-
   elseif (line(1:ix) == 'IW' .or. line(1:ix) == 'INITWALLS') then
     if (.not.logic%ring_initialized) then
       print *, 'Please pick Lattice first...'

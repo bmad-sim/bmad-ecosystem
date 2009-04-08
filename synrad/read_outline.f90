@@ -515,7 +515,8 @@ open (unit = 11, file = 'outside_wall.dat')
 write (11, *) &
  '   Ix        S(m)       X(m)    Name                   S(in)       X(in) '
 do n=0,outside%n_pt_tot
-  call convert_blanks_to_underscore (outside%pt(n)%name, pt_name)
+  pt_name = outside%pt(n)%name
+  call str_substitute (pt_name, ' ', '_', .true.)
   write(11, '(1x, i4, f12.3, f12.5, 3x, a16, 2f12.3)') n, &
           outside%pt(n)%s, outside%pt(n)%x, pt_name, &
           f*outside%pt(n)%s, f*outside%pt(n)%x
@@ -528,7 +529,8 @@ open (unit = 11, file = 'inside_wall.dat')
 write (11, *) &
  '   Ix        S(m)       X(m)    Name                   S(in)       X(in) '
 do n=0,inside%n_pt_tot
-  call convert_blanks_to_underscore (inside%pt(n)%name, pt_name)
+  pt_name = outside%pt(n)%name
+  call str_substitute (pt_name, ' ', '_', .true.)
   write(11, '(1x, i4, f12.3, f12.5, 3x, a16, 2f12.3)') n, &
           inside%pt(n)%s, inside%pt(n)%x, pt_name, &
           f*inside%pt(n)%s, f*inside%pt(n)%x

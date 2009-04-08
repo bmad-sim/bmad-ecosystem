@@ -253,9 +253,10 @@ subroutine write_power_results (wall, lat, gen_params, use_ele_ix)
       ep_source_name = lat%ele(ep%ix_ele_source)%name
     endif
 
-    call convert_blanks_to_underscore (wall%pt(seg%ix_pt)%name, seg_name)
+    seg_name = wall%pt(seg%ix_pt)%name
+    call str_substitute (seg_name, ' ', '_', .true.)
 
-    fmt = '(i6,1x,a10,f10.3,e11.3,e11.3,e12.4,e12.4,e12.4,f10.3,f10.3,f10.3,2x,a16,1x,a10,e12.4,1x,a40)'
+    fmt = '(i6, 1x, a10, f10.3, 2es11.3, 3es12.4, 3f10.3, 2x, a16, 1x, a10, es12.4, 1x, a40)'
     write (1, fmt) &
               i, seg_name, seg%s, seg%x, &
               ep%power_per_len, &
