@@ -103,7 +103,7 @@ interface
 end interface
 
 interface
-  subroutine delete_overlaping_wall_points (wall)
+  subroutine delete_overlapping_wall_points (wall)
     use sr_struct
     implicit none
     type (wall_struct), target :: wall

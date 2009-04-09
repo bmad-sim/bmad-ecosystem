@@ -348,7 +348,7 @@ subroutine res_line_calc (param, res)
         y_labj = res%line(j)%y_lab
         orderj = abs(pj) + abs(qj) + abs(rj)
 
-        if (res%line(j)%overlap) cycle           ! skip overlaping resonances
+        if (res%line(j)%overlap) cycle      ! skip overlapping resonances
         if ((p*qj - pj*q) .eq. 0) cycle     ! skip parallel lines
 
         if (j .gt. res%num_line) then   ! boundry line
