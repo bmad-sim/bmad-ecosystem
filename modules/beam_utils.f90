@@ -929,27 +929,13 @@ if (.not. beam_init%renorm_center) then
   enddo
 endif
 
-! Put in beam jitter, include alpha correlations
-
-call ran_gauss(ran)
-center(1) = beam_init%center(1) + beam_init%center_jitter(1)*ran(1)
-center(2) = beam_init%center(2) + beam_init%center_jitter(2)*ran(2) + &
-                 (ele%a%alpha/ele%a%beta) * beam_init%center_jitter(1)*ran(1)
-center(3) = beam_init%center(3) + beam_init%center_jitter(3)*ran(3)
-center(4) = beam_init%center(4) + beam_init%center_jitter(4)*ran(4) + &
-                 (ele%b%alpha/ele%b%beta) * beam_init%center_jitter(3)*ran(3)
-center(5) = beam_init%center(5) + beam_init%center_jitter(5)*ran(5)
-center(6) = beam_init%center(6) + beam_init%center_jitter(6)*ran(6) + &
-                 beam_init%dpz_dz * beam_init%center_jitter(5)*ran(5)
-  
-! Now scale by the emittances, etc. and put in jitter
+! scale by the emittances, etc. and put in jitter
 
 call ran_gauss(ran(1:4)) ! ran(3:4) for z and e jitter used below
-denom = (1 + center(6)) * ele%value(E_TOT$)
 a_emitt = beam_init%a_norm_emitt*(1+beam_init%emitt_jitter(1)*ran(1)) &
-                                                      * m_electron / denom
+                                                      * m_electron / ele%value(e_tot$)
 b_emitt = beam_init%b_norm_emitt*(1+beam_init%emitt_jitter(2)*ran(2)) &
-                                                      * m_electron / denom
+                                                      * m_electron / ele%value(e_tot$)
   
 dpz_dz = beam_init%dpz_dz
   
@@ -974,7 +960,17 @@ endif
 
 b = sqrt(1-a**2)
      
-!
+! Put in beam jitter.
+
+call ran_gauss(ran)
+center(1) = beam_init%center(1) + beam_init%center_jitter(1)*ran(1)
+center(2) = beam_init%center(2) + beam_init%center_jitter(2)*ran(2) 
+center(3) = beam_init%center(3) + beam_init%center_jitter(3)*ran(3)
+center(4) = beam_init%center(4) + beam_init%center_jitter(4)*ran(4)
+center(5) = beam_init%center(5) + beam_init%center_jitter(5)*ran(5)
+center(6) = beam_init%center(6) + beam_init%center_jitter(6)*ran(6)
+  
+! Put everything together to distribute the particles.
 
 do i = 1, beam_init%n_particle
 
