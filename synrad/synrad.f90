@@ -1,8 +1,8 @@
 program synrad
 
   use bmad
-  use sr_mod
-  use synrad_output_mod
+  use synrad_mod
+  use synrad_write_power_mod
 
   implicit none
 
@@ -268,7 +268,7 @@ subroutine synch_calc (direction, beam_type, power)
   endif
 
   call twiss_and_track (lat, orb)
-  call calculate_sr_power(lat, orb, direction, power, &
+  call calculate_synrad_power(lat, orb, direction, power, &
                                 walls, sr_param, use_ele_ix)
   call set_wall_eles (walls, lat) 
 
