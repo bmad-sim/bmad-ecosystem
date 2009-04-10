@@ -1,6 +1,7 @@
 module sr_interface
 
 use sr_struct
+use bmad_interface
 
 interface
   function theta_floor (s, lat, theta_base) result (theta_fl)
