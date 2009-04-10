@@ -7,7 +7,10 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/pecklib/mpm_utils cesr_utils/;
+    s/sr_interface/synrad_interface/;
+    s/sr_struct/synrad_struct/;
+    s/sr_mod/synrad_mod/;
+    s/calculate_sr_power/calculate_synrad_power/;
 
     print (F_OUT);
   }
