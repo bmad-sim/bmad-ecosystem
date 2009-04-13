@@ -17,6 +17,7 @@
 subroutine synrad_read_vac_wall_geometry (wall_file, component_file, dflt_dir, s_lat, walls)
 
 use synrad_mod
+use filename_mod
 
 implicit none
 
@@ -35,7 +36,8 @@ real(rp) s_lat, s_ave, f, del_s, factor, s_overlay, s_fudge, seg_len_max
 real(rp), parameter :: fake$ = -9.999e-31
 
 character(*) wall_file, component_file, dflt_dir
-character(80) string, file_name
+character(80) string
+character(200) file
 character, parameter :: tab= char(9)
 character(16) name, pt_name, units
 
@@ -63,12 +65,14 @@ inside%side = negative_x$
 ! read in list of elements
 
 lun = lunget()
-open (lun, file = wall_file, status = 'old', iostat = ios)
+call fullfilename (wall_file, file)
+open (lun, file = file, status = 'old', iostat = ios)
 if (ios == 0) then
-  print *, 'Note: Local Vacuum Element File used: ', trim(wall_file)
+  print *, 'Note: Local Vacuum Element File used: ', trim(file)
 else
-  open (lun, file = trim(dflt_dir) // file_name, status = 'old')
-  print *, 'Note: Using Vacuum Element File: ', trim(dflt_dir) // trim(file_name)
+  call fullfilename (trim(dflt_dir) // trim(wall_file), file)
+  print *, 'Note: Using Vacuum Element File: ', file
+  open (lun, file = file, status = 'old')
 endif
 
 i = 0
@@ -97,12 +101,14 @@ end do
 ! read in outlines of different parts
 ! use a local file if there is one
 
-open (lun, file = component_file,  status = 'old', iostat = ios)
+call fullfilename (component_file, file)
+open (lun, file = file,  status = 'old', iostat = ios)
 if (ios == 0) then
-  print *, 'Note: Local Outline File used: ', trim(component_file)
+  print *, 'Note: Local Outline File used: ', trim(file)
 else
-  open (unit = lun, file = trim(dflt_dir) // component_file, status = 'old')
-  print *, 'Note: Using Outline File: ', trim(dflt_dir) // component_file
+  call fullfilename (trim(dflt_dir) // trim(component_file), file)
+  print *, 'Note: Using Outline File: ', trim(file)
+  open (unit = lun, file = file, status = 'old')
 endif
 
 ixx = 0
