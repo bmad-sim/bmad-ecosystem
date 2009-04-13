@@ -10,38 +10,8 @@
 #                    Dave Sagan's descrip.mms 
 #                    Mike Marsh and his makefiles
 #
-# Modifications:  MAP - 7/24/00-9/23/01 - Many bug fixes and improvements
-#
 #=============================================================================
-#
-# $Id: Makefile 1663 2003-11-10 14:07:23Z palmer $
-#
-# $Log$
-# Revision 1.8  2003/11/10 14:05:22  palmer
-# Update for BMAD distributions.
-#
-# Revision 1.7  2003/04/21 17:25:54  cesrulib
-# new makefile
-#
-# Revision 1.6  2002/02/23 20:34:26  dcs
-# Modified for Single/Double Real Toggle
-#
-# Revision 1.5  2001/10/23 21:41:27  palmer
-# Update Makefile for new M.tail infrastructure.
-#
-# Revision 1.4  2001/10/05 12:26:18  palmer
-# More bug fixes.
-#
-# Revision 1.3  2001/10/05 04:10:27  palmer
-# Bug fixes.
-#
-# Revision 1.2  2001/10/05 03:02:23  palmer
-# Miscellaneous bug fixes.
-#
-# Revision 1.1  2001/10/05 02:44:09  palmer
-# Install the Makefile for the SIM_UTILS library.
-#
-#=============================================================================
+
 
 #-----------------------------------------------------------------------------
 # Specify default source directories for code to be compiled and put into
@@ -78,6 +48,8 @@ LIB_SRC_DIRS := interfaces file io matrix plot_example string conversion math mi
 LOCAL_INCS   := ../include
 LOCAL_MODS   := ../modules
 
+# This is needed for correct building on OSF1 (Tru64) Unix.
+SYS_INC_DIRS := /usr/local/include
 
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  
