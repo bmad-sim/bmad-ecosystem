@@ -12,7 +12,7 @@
 subroutine create_alley (wall)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => create_alley
   use nr
   use sim_utils
 
@@ -39,8 +39,6 @@ subroutine create_alley (wall)
 ! i5 is the point after i3 where the wall starts to go forward again.
 ! i6 is the end of the alley. It is the first point after i5 with:
 !    s_wall(i6) >= s_max_local == s_wall(i2).
-
-
 
   pt => wall%pt
 
@@ -114,12 +112,12 @@ subroutine create_alley (wall)
     i6 = i5
     do
       if (pt(i6)%s < pt(i6-1)%s) then
-        type *, 'ERROR IN CREATE_ALLEY:'
-        type *, '      I CANNOT HANDLE A DOUBLE BACKTRACK ALLEY'
-        type *, '      ON THE WALL: ', wall_name(wall%side)
-        type *, '      BETWEEN POINTS:', i6-1, i6
+        print *, 'ERROR IN CREATE_ALLEY:'
+        print *, '      I CANNOT HANDLE A DOUBLE BACKTRACK ALLEY'
+        print *, '      ON THE WALL: ', wall_name(wall%side)
+        print *, '      BETWEEN POINTS:', i6-1, i6
         do j = i1, i6-1
-          type '(i6, 2x, a, f11.4)', j, wall%pt(j)%name, wall%pt(j)%s
+          print '(i6, 2x, a, f11.4)', j, wall%pt(j)%name, wall%pt(j)%s
         enddo
         call err_exit
       endif
@@ -131,12 +129,12 @@ subroutine create_alley (wall)
 
     do i = i1, i6-1
       if (pt(i)%type /= possible_alley$) then
-        type *, 'ERROR IN CREATE_ALLEY:'
-        type *, '      FOUND A WALL ALLEY WHERE THERE SHOULD BE NONE.'
-        type *, '      ON THE WALL: ', wall_name(wall%side)
-        type *, '      BETWEEN POINTS:', i1, i6-1
+        print *, 'ERROR IN CREATE_ALLEY:'
+        print *, '      FOUND A WALL ALLEY WHERE THERE SHOULD BE NONE.'
+        print *, '      ON THE WALL: ', wall_name(wall%side)
+        print *, '      BETWEEN POINTS:', i1, i6-1
         do j = max(1,i1-1), i6
-          type '(i6, 2x, a, f11.4)', j, wall%pt(j)%name, wall%pt(j)%s
+          print '(i6, 2x, a, f11.4)', j, wall%pt(j)%name, wall%pt(j)%s
         enddo
         call err_exit
       endif

@@ -1,9 +1,5 @@
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
 !+
-! subroutine track_ray_to_wall (ray, lat, walls,
-!                                  hit_flag, track_max)
+! subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
 !
 ! subroutine to propagate a synch radiation ray until it hits
 !    a wall
@@ -25,11 +21,10 @@
 !                                  false if track_max was reached first
 !-
 
-subroutine track_ray_to_wall (ray, lat, walls, &
-     hit_flag, track_max)
+subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => track_ray_to_wall
 
   implicit none
 

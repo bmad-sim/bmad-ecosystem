@@ -1,7 +1,7 @@
 subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => hit_spot_calc
 
   implicit none
 
@@ -28,7 +28,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
   ! if the ray is on the opposite side of the beam centerline from the wall there
   ! is no hit
 
-  if (sign(1.0, ray%now%vec(1)) /= sign(1.0, pt0%x)) return
+  if (sign(1.0_rp, ray%now%vec(1)) /= sign(1.0_rp, pt0%x)) return
 
   ! figure out if there is a hit.
   ! if there is no alley here then we have not hit if x_pos < x_wall.
@@ -113,7 +113,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
       if (abs(ray%now%vec(1)) < abs(pt0%x)) return
 
     else
-      type *, 'ERROR IN HIT_SPOT_CALC: ALLEY ERROR'
+      print *, 'ERROR IN HIT_SPOT_CALC: ALLEY ERROR'
       call err_exit
     endif
 
@@ -169,7 +169,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
 
     s1 = (del2 * ray0%now%vec(5) - del0 * ray2%now%vec(5)) / (del2 - del0)
     if (s1 < min(pt(ix0)%s, pt(ix2)%s) .or. s1 > max(pt(ix0)%s, pt(ix2)%s)) then
-      type *, 'ERROR IN HIT_SPOT_CALC: INTERPOLATION ERROR'
+      print *, 'ERROR IN HIT_SPOT_CALC: INTERPOLATION ERROR'
       call err_exit
     endif
 
@@ -189,7 +189,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
     elseif (s1 > ray2%now%vec(5)) then
       ray0 = ray2; del0 = del2
       ray2 = ray1; del2 = del1
-    elseif (sign(1.0, del0) == sign(1.0, del1)) then
+    elseif (sign(1.0_rp, del0) == sign(1.0_rp, del1)) then
       ray0 = ray1; del0 = del1
     else
       ray2 = ray1; del2 = del1
@@ -205,7 +205,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
   if (r_wall < 0 .and. r_wall > -0.0001) r_wall = 0
 
   if (r_wall > 1 .or. r_wall < 0) then
-    type *, 'ERROR IN HIT_SPOT_CALC: R_WALL OUT OF BOUNDS.', r_wall
+    print *, 'ERROR IN HIT_SPOT_CALC: R_WALL OUT OF BOUNDS.', r_wall
     call err_exit
   endif
 

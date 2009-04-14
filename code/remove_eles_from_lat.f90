@@ -17,12 +17,10 @@
 !   lat -- lat_struct: Compressed lattice.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine remove_eles_from_lat (lat, check_controls)
 
 use bmad_struct
-use bmad_interface
+use bmad_interface, except => remove_eles_from_lat
 
 implicit none
                          

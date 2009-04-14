@@ -22,7 +22,7 @@
 subroutine seg_power_calc (fan, i_ray, walls, lat, gen, power)
 
 use synrad_struct
-use synrad_interface
+use synrad_interface, except => seg_power_calc
 
 implicit none
 

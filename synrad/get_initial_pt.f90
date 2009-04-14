@@ -1,6 +1,3 @@
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
 !+
 ! subroutine get_initial_pt (ray, wall, ix_wall, lat)
 !
@@ -23,7 +20,7 @@
 subroutine get_initial_pt (ray, wall, ix_wall, lat)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => get_initial_pt
 
   implicit none
 

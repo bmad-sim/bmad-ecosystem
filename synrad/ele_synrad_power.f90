@@ -26,7 +26,7 @@
 subroutine ele_synrad_power (lat, ie, orb, direction, power, walls, gen)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => ele_synrad_power
 
   implicit none
 
@@ -76,8 +76,8 @@ subroutine ele_synrad_power (lat, ie, orb, direction, power, walls, gen)
     if (ele%sub_key == periodic_type$) then
       if (ele%value(b_max$) == 0) return
       if (ele%value(n_pole$) == 0) then
-        type *, 'WARNING IN ELE_SYNRAD_POWER: "N_POLE" FOR WIGGLER = 0.'
-        type *, '      CALCULATED RADIATION FROM THIS WIGGLER WILL BE 0!'
+        print *, 'WARNING IN ELE_SYNRAD_POWER: "N_POLE" FOR WIGGLER = 0.'
+        print *, '      CALCULATED RADIATION FROM THIS WIGGLER WILL BE 0!'
       endif
       n_slice = max(1, nint(n_slice * ele%value(n_pole$)))
     else

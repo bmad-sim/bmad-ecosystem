@@ -27,7 +27,7 @@
 subroutine init_ray (ray, lat, ix_ele, l_offset, orb, direction)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => init_ray
   use boris_mod
 
   implicit none
@@ -101,7 +101,7 @@ subroutine init_ray (ray, lat, ix_ele, l_offset, orb, direction)
 
   else
 
-    type *, 'ERROR: UNKNOWN ELEMENT HERE ', ele%name
+    print *, 'ERROR: UNKNOWN ELEMENT HERE ', ele%name
 
   endif
 

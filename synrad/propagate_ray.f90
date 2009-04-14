@@ -1,7 +1,7 @@
 subroutine propagate_ray (ray, s_end, lat, stop_at_extremum, circular)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => propagate_ray
 
   implicit none
 
@@ -21,8 +21,8 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum, circular)
           s_target + ray%direction * lat%param%total_length
 
   if (abs(s_target - ray%now%vec(5)) > 200) then
-    type *, ' ERROR IN PROPAGATE_RAY: TRYING TO PROPAGATE TOO FAR.'
-    type *, '      ', ray%now%vec(5), s_end, s_target
+    print *, ' ERROR IN PROPAGATE_RAY: TRYING TO PROPAGATE TOO FAR.'
+    print *, '      ', ray%now%vec(5), s_end, s_target
     call err_exit
   endif
 
@@ -56,7 +56,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum, circular)
         elseif (ray%now%vec(5) .lt. lat%ele(ray%ix_ele-1)%s) then
           ray%ix_ele = ray%ix_ele - 1
           if (ray%ix_ele == 0) then
-            type *, 'ERROR IN PROPAGATE_RAY: INTERNAL + ERROR'
+            print *, 'ERROR IN PROPAGATE_RAY: INTERNAL + ERROR'
             call err_exit
           endif
         else
@@ -77,7 +77,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum, circular)
         elseif (ray%now%vec(5) .gt. lat%ele(ray%ix_ele)%s) then
           ray%ix_ele = ray%ix_ele + 1
           if (ray%ix_ele == lat%n_ele_track+1) then
-            type *, 'ERROR IN PROPAGATE_RAY: INTERNAL - ERROR'
+            print *, 'ERROR IN PROPAGATE_RAY: INTERNAL - ERROR'
             call err_exit
           endif
         else

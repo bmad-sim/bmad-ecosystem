@@ -106,7 +106,7 @@ end subroutine
 subroutine ele_geometry (floor0, ele, floor)
 
 use bmad_struct
-use bmad_interface
+use bmad_interface, except => ele_geometry
 use multipole_mod
 
 implicit none

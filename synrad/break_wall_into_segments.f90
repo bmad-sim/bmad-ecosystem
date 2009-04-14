@@ -1,7 +1,7 @@
 subroutine break_wall_into_segments (wall, seg_len_max)
 
 use synrad_struct
-use synrad_interface
+use synrad_interface, except => break_wall_into_segments
 
 implicit none
 

@@ -5,7 +5,7 @@
 subroutine next_pt (ray, wall, ix_wall, circular, passed_end)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => next_pt
 
   implicit none
 
@@ -21,7 +21,7 @@ subroutine next_pt (ray, wall, ix_wall, circular, passed_end)
 ! check
 
   if (wall%pt(wall%ix_pt)%ix_pt /= ix_wall) then
-    type *, 'ERROR IN NEXT_PT: INTERNAL ERROR'
+    print *, 'ERROR IN NEXT_PT: INTERNAL ERROR'
     call err_exit
   endif
 

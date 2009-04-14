@@ -91,7 +91,7 @@ subroutine twiss_at_start (lat)
         write (iu, '(4f18.13)') (t0_4(i, j), j = 1, 4)
       enddo
       do i = 1, 4
-        write (iu, '(e, 2x, e)') eta_vec(i), map0(i)
+        write (iu, '(es20.12, 2x, es20.12)') eta_vec(i), map0(i)
       enddo
     endif
   enddo

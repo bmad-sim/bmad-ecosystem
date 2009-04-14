@@ -1,7 +1,7 @@
 subroutine outline_reverse (outline1, outline2)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => outline_reverse
 
   implicit none
 

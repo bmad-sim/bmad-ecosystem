@@ -42,7 +42,7 @@
 subroutine emit_calc (lat, what, mode)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => emit_calc
 
   implicit none
 

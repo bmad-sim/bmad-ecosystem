@@ -1,9 +1,5 @@
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
 !+
-! subroutine calculate_synrad_power (lat, orb, direction, power, &
-!                                  walls, gen, use_ele_ix)
+! subroutine calculate_synrad_power (lat, orb, direction, power, walls, gen, use_ele_ix)
 !
 ! subroutine to calculate the synch radiation power
 !   hitting wall segments from all elements in the lat
@@ -28,11 +24,10 @@
 !                         
 !-
 
-subroutine calculate_synrad_power (lat, orb, direction, power, &
-     walls, gen, use_ele_ix)
+subroutine calculate_synrad_power (lat, orb, direction, power, walls, gen, use_ele_ix)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => calculate_synrad_power
 
   implicit none
 

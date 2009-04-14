@@ -1,7 +1,7 @@
 subroutine outline_concat (outline1, outline2, outline3)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => outline_concat
 
   implicit none
 
@@ -12,8 +12,8 @@ subroutine outline_concat (outline1, outline2, outline3)
 !
 
   if (outline1%zero_is_center .and. outline2%zero_is_center) then
-    type *, 'ERROR: CONCATINATING TWO OUTLINES BOTH OF WHICH HAVE ZERO_IS_CENTER'
-    type *, '      ', outline1%name, outline2%name
+    print *, 'ERROR: CONCATINATING TWO OUTLINES BOTH OF WHICH HAVE ZERO_IS_CENTER'
+    print *, '      ', outline1%name, outline2%name
     call err_exit
   endif
 

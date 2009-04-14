@@ -16,7 +16,7 @@
 
 subroutine synrad_read_vac_wall_geometry (wall_file, component_file, dflt_dir, s_lat, walls)
 
-use synrad_mod
+use synrad_mod, except => synrad_read_vac_wall_geometry
 use filename_mod
 
 implicit none

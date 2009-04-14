@@ -1,11 +1,7 @@
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
 subroutine check_end (point, ix, string_in)
 
   use synrad_struct
-  use synrad_interface
+  use synrad_interface, except => check_end
 
   implicit none
 
@@ -16,7 +12,7 @@ subroutine check_end (point, ix, string_in)
 !
 
   if (abs (point(ix)%x - 0.045) > .0001) then
-      type *, 'WARNING: ', string_in, ' ON OUTLINE NOT AT X = 4.5 CM: ', &
+      print *, 'WARNING: ', string_in, ' ON OUTLINE NOT AT X = 4.5 CM: ', &
                                                                 point(ix)%name
   endif
 
