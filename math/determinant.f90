@@ -19,7 +19,7 @@
 function determinant(mat) result (det)
 
 use nr
-use super_recipes_mod
+use super_recipes_mod, except => determinant
 use precision_def
 
 implicit none

@@ -24,7 +24,7 @@
 
 function is_logical (string, ignore) result (good)
 
-use sim_utils
+use sim_utils, except => is_logical
 
 implicit none
 

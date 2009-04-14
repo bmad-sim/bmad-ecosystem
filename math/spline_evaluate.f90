@@ -23,9 +23,7 @@
 
 subroutine spline_evaluate (spline, x, ok, y, dy)
 
-  use sim_utils_struct
-  use sim_utils_interface, except => spline_evaluate
-  use sim_utils
+  use sim_utils, except => spline_evaluate
 
   implicit none
 

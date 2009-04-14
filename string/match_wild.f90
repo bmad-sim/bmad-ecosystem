@@ -16,7 +16,7 @@
 
 function match_wild (string, template) result (this_match)
 
-  use sim_utils
+  use sim_utils, except => match_wild
 
   implicit none
 
