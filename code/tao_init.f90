@@ -46,10 +46,7 @@ namelist / tao_start / lattice_file, startup_file, wall_file, &
 ! global inits
 
 tao_com%n_alias = 0
-tao_com%cmd_file_level = 0          ! for nested command files
 tao_com%ix_key_bank = 0             ! For single mode.
-tao_com%multi_commands_here = .false.
-tao_com%cmd_from_cmd_file   = .false.
 tao_com%use_saved_beam_in_tracking = .false.
 if (.not. allocated(tao_com%cmd_file)) allocate (tao_com%cmd_file(0:0))
 
@@ -293,7 +290,6 @@ deallocate (s%template_plot)
 
 if (allocated(tao_com%ele_shape_lat_layout)) deallocate (tao_com%ele_shape_lat_layout)
 if (allocated(tao_com%ele_shape_floor_plan)) deallocate (tao_com%ele_shape_floor_plan)
-if (allocated(tao_com%cmd_file))             deallocate (tao_com%cmd_file)
 if (allocated(tao_com%covar))                deallocate (tao_com%covar, tao_com%alpha)
 
 ! Universes 

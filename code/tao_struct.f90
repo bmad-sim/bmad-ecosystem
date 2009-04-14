@@ -506,9 +506,9 @@ type tao_common_struct
   integer :: ix_key_bank = 0             ! For single mode.
   integer :: n_universes = 1   
   logical :: cmd_file_paused
-  logical :: use_cmd_here  = .false.     ! Used for the cmd history stack
+  logical :: use_cmd_here  = .false.                   ! Used for the cmd history stack
   logical :: multi_commands_here = .false.
-  logical :: cmd_from_cmd_file              ! was command from a command file?
+  logical :: cmd_from_cmd_file = .false.               ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
   logical :: lattice_recalc = .true.         ! recalculate the lattice?

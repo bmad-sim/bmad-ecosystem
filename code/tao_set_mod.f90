@@ -148,7 +148,7 @@ end subroutine tao_set_lattice_cmd
 !   set_value -- Character(*): Value to set to.
 !
 ! Output:
-!    %global  -- Global variables structure.
+!    s%global  -- Global variables structure.
 !-
 
 subroutine tao_set_global_cmd (who, set_value)
@@ -193,6 +193,77 @@ else
 endif
 
 end subroutine tao_set_global_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_beam_init_cmd (who, set_value)
+!
+! Routine to set beam_init variables
+! 
+! Input:
+!   who       -- Character(*): which beam_init variable to set
+!   set_value -- Character(*): Value to set to.
+!
+! Output:
+!    s%beam_init  -- Beam_init variables structure.
+!-
+
+subroutine tao_set_beam_init_cmd (who, set_value)
+
+implicit none
+
+type (beam_init_struct) beam_init
+type (tao_universe_struct), pointer :: u
+character(*) who, set_value
+character(40) who2
+character(20) :: r_name = 'tao_set_beam_init_cmd'
+
+integer i, iu, ios
+logical err
+logical, allocatable :: picked_uni(:)
+
+namelist / params / beam_init
+
+! get universe
+
+call tao_pick_universe (who, who2, picked_uni, err)
+
+! open a scratch file for a namelist read
+
+iu = lunget()
+do i = lbound(s%u, 1), ubound(s%u, 1)
+
+  open (iu, status = 'scratch', iostat = ios)
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
+    return
+  endif
+
+  write (iu, *) '&params'
+  write (iu, *) ' beam_init%' // trim(who2) // ' = ' // trim(set_value)
+  write (iu, *) '/'
+  rewind (iu)
+  u => s%u(i)
+  beam_init = u%beam_init  ! set defaults
+  read (iu, nml = params, iostat = ios)
+  close (iu)
+
+  call tao_data_check (err)
+  if (err) return
+
+  if (ios == 0) then
+    u%beam_init = beam_init
+    tao_com%lattice_recalc = .true.
+  else
+    call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+    return
+  endif
+
+enddo
+
+end subroutine tao_set_beam_init_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

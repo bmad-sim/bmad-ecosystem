@@ -715,11 +715,12 @@ Examples:
 The \vn{set} command is used to set values for datums,
 variables, etc. Format:
 \begin{example}
+  set beam_init \{n@\}<component> = <value>
   set curve <curve> <component> = <value>
   set data <data_name>|<component> = <value>
   set global <component> = <value>
   set graph <graph> <component> = <value>
-  set lattice <component> = <value>
+  set lattice \{n@\}<destination\_lat> = <source\_lat>
   set plot_page <component> = <value1> \{<value2>\}
   set universe <what_universe> on/off 
   set universe <what_universe> recalculate
@@ -741,6 +742,24 @@ in place of \vn{<data_name>} or \vn{var_name}.
 %% set curve --------------------------------------------------------------
 
 \begin{description}
+
+\item[set beam_init \{n@\}<component> = <value>] \Newline
+
+For \vn{set beam_init}, the \vn{<component>}s that can be set can be
+found in section~\sref{s:beam.init}. The optional \vn{n@} allows the
+specification of the universe or universes the set is applied to. The
+default is to set the viewed universe. Use the \vn{show beam} command
+(\sref{s:show}) to see the current values of the \vn{beam_init}
+structure.
+
+Examples:
+\begin{example}
+  set beam_init 3@center(2) = 0.004  ! Set px center of beam for universe 3.
+  set beam_init [1,2]@sig_e = 0.02   ! Set sig_e for universes 1 and 2.
+\end{example}
+
+
+%% set curve --------------------------------------------------------------
 
 \item[set curve <curve> <component> = <value>] \Newline
 
@@ -1001,25 +1020,31 @@ Example:
 \begin{description}
 
 \item[show alias] \Newline
+
 Shows a list of defined aliases. See the \vn{alias} command for more
 details.
 
 %% show beam --------------------------------------------------------------
 
 \item[show beam \{<element\_name\_or_index>\}] \Newline
-If \vn{<element_name_or_index>} is absent, \vn{show beam} shows parameters 
-used with beam tracking including the number of particles in a bunch, etc.
-If \vn{<element_name_or_index>} is present, \vn{show beam} will show 
-beam parameters at the selected element. Also see \vn{show particle}.
+
+If \vn{<element_name_or_index>} is absent, \vn{show beam} shows
+parameters used with beam tracking including the number of particles
+in a bunch, etc.  If \vn{<element_name_or_index>} is present, \vn{show
+beam} will show beam parameters at the selected element. Also see
+\vn{show particle}.  Use the \vn{set beam_init} command to set values
+of the \vn{beam_init} structure.
 
 %% show constraints --------------------------------------------------------------
 
 \item[show constraints] \Newline
+
 Lists data and variable constraints.
 
 %% show curve --------------------------------------------------------------
 
 \item[show curve \{-symbol\} \{-line\} <curve\_name>] \Newline
+
 Show information on a particular curve of a particular plot. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names.  Use
 \vn{show plot} to get a list of plot names. The \vn{-symbol} switch
@@ -1045,6 +1070,7 @@ Example:
 %% show data --------------------------------------------------------------
 
 \item[show data \{<data\_name>\}] \Newline
+
 Shows data information. If \vn{<data_name>} is not
 present then a list of all \vn{d2_data} names is printed.
 
@@ -1075,6 +1101,7 @@ Example:
 
 \item[show element \{-taylor\} \{-wig\_terms\} \{-data\} 
                      \{-all\_attributes\} <name>] \Newline
+
 This shows information on lattice elements. \vn{<name>} is in
 \vn{Class:Name} syntax as explained in \sref{s:class:name}. If
 \vn{<name>} contains a wild card or a class name then a list of
@@ -1110,6 +1137,7 @@ Shows information on the global parameter structure (\sref{s:globals}).
 %% show graph --------------------------------------------------------------
 
 \item[show graph <graph\_name>] \Newline
+
 Show information on a particular graph of a particular plot. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names.
 Use \vn{show plot} to get a list of plot names.
@@ -1123,6 +1151,7 @@ Example:
 %% show hom --------------------------------------------------------------
 
 \item[show hom] \Newline
+
 Shows long--range higher order mode information for linac accelerating
 cavities.
 
@@ -1137,6 +1166,7 @@ Shows all key bindings.
 \item[\protect\parbox{6in}{
         show lattice \{-no\_header\} \{-middle\} \{-custom <file\_name>\} \\ 
         \hspace*{2in} \{-s\} \{-elements <name>\} \{<location\_range>\}}] \Newline
+
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
@@ -1224,6 +1254,7 @@ is:
 %% show optimizer --------------------------------------------------------------
 
 \item[show optimizer] \Newline
+
 Shows information pertinent to optimization: Data and variables used, etc.
 
 %% show opt_vars --------------------------------------------------------------
@@ -1237,6 +1268,7 @@ Bmad standard lattice input format.
 \item[\protect\parbox{6in}{
         show particle \{<bunch\_index>.\}<particle\_index> \{<element\_name\_or\_index>\} \\
         show particle -lost \{bunch\_index\}}] \Newline
+
 The command \vn{show particle \{<bunch_index>.\}<particle_index>}
 shows information on a particle at a given element. The default for
 the optional \vn{\{bunch_index\}} index is set by
@@ -1263,6 +1295,7 @@ Examples:
         show plot \{<template\_plot\_name>\} \\
         show plot \{<plot\_region\_name>\} \\
         show plot -shapes}] \Newline
+
 A simple \vn{show plot} displays which templates are being plotted and
 in which regions and also all available templates. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names. A
@@ -1275,6 +1308,7 @@ If the \vn{-shapes} switch is present, the shapes used in drawing
 %% show top10 --------------------------------------------------------------
 
 \item[show top10 \{-derivative\}] \Newline
+
 If the \vn{-derivative} switch is present, this command shows top
 dMerit/dVariable derivatives, and Largest changes in variable value.
 If not present, this command
@@ -1312,6 +1346,7 @@ Examples:
 \item[\protect\parbox{6in}{ 
         show universe \{universe\_number\} \\
         show universe -connections}] \Newline
+
 If the \vn{-connections} switch is present, show information on the
 connections between various universes. Otherwise, shows various
 parameters associated with a given universe. If no universe is
@@ -1321,6 +1356,7 @@ displayed include tune, chromaticity, radiation integrals, etc.
 %% show use --------------------------------------------------------------
 
 \item[show use] \Newline
+
 Shows what data and variables are used in a format that, if saved to a file, can
 be read in with a \vn{call} command.
 
@@ -1330,6 +1366,7 @@ be read in with a \vn{call} command.
         show variable \{<var\_name> <locations>\} \\
         show variable <universe\_number>@}
         show variable -bmad\_format \{-good\_opt\_only\} ] \Newline
+
 Shows variable information. If \vn{<var_name>} is not
 present,  a list of all \vn{v1_var} classes is printed. To show variables
 associated with the \vn{n}th universe use the syntax \vn{show var n@}.
