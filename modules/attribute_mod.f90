@@ -795,8 +795,9 @@ attrib_array(custom$, field_calc$)   = 'FIELD_CALC'
 attrib_array(custom$, field_master$) = 'FIELD_MASTER'
 attrib_array(custom$, delta_e$)      = 'DELTA_E'
 
-attrib_array(hybrid$, l$)            = 'L'
-attrib_array(hybrid$, delta_e$)      = 'DELTA_E'
+attrib_array(hybrid$, l$)              = 'L'
+attrib_array(hybrid$, delta_e$)        = 'DELTA_E'
+attrib_array(hybrid$, delta_ref_time$) = 'DELTA_REF_TIME'
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster

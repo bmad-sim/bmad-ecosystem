@@ -65,7 +65,7 @@ type (coord_struct), optional, volatile :: orb0(0:)
 type (coord_struct) c0, c2
 type (ele_struct), pointer :: ele_in, ele_out
 
-real(rp) e_vec(4)
+real(rp) e_vec(4), ref_time0
 
 integer j_in, i_out, k, n
 integer n_ele, j, ix, ic, o_key, n_con, n_ic
@@ -159,7 +159,9 @@ do j_in = 1, n_ele
       ele_out%tracking_method = linear$
       ele_out%mat6_calc_method = no_method$
       ele_out%value(e_tot_start$) = r_in%ele(j_in-1)%value(e_tot$)
-      ele_out%value(delta_e$) = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
+      ref_time0                   = r_in%ele(j_in-1)%ref_time
+      ele_out%value(delta_e$)        = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
+      ele_out%value(delta_ref_time$) = ele_in%ref_time - ref_time0 
 
       if (present (orb0)) then
         c0 = orb0(j_in)
@@ -211,11 +213,12 @@ do j_in = 1, n_ele
         ele_out%value(vkick$) = ele_out%value(vkick$) + c2%vec(4)
       endif
 
-      ele_out%value(x1_limit$) = ele_in%value(x1_limit$)
-      ele_out%value(x2_limit$) = ele_in%value(x2_limit$)
-      ele_out%value(y1_limit$) = ele_in%value(y1_limit$)
-      ele_out%value(y2_limit$) = ele_in%value(y2_limit$)
-      ele_out%value(delta_e$)  = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
+      ele_out%value(x1_limit$)       = ele_in%value(x1_limit$)
+      ele_out%value(x2_limit$)       = ele_in%value(x2_limit$)
+      ele_out%value(y1_limit$)       = ele_in%value(y1_limit$)
+      ele_out%value(y2_limit$)       = ele_in%value(y2_limit$)
+      ele_out%value(delta_e$)        = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
+      ele_out%value(delta_ref_time$) = ele_in%ref_time - ref_time0 
 
       o_key = ele_out%key 
       if (ele_in%key == drift$ .and. (o_key == drift$ .or. &

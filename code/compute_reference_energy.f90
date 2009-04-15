@@ -81,6 +81,8 @@ do i = 1, lat%n_ele_track
   if (ele%key == lcavity$ .and. lat%ele(i-1)%value(E_tot$) /= E_tot) then
     ele%ref_time = lat%ele(i-1)%ref_time + ele%value(l$) * &
               (p0c - lat%ele(i-1)%value(p0c$)) / ((E_tot - lat%ele(i-1)%value(E_tot$)) * c_light)
+  elseif (ele%key == hybrid$) then
+    ele%ref_time = lat%ele(i-1)%ref_time + ele%value(delta_ref_time$)
   else
     ele%ref_time = lat%ele(i-1)%ref_time + ele%value(l$) * p0c / (E_tot * c_light)
   endif

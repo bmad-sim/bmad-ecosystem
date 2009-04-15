@@ -394,7 +394,7 @@ integer, parameter :: hgap$=13, e_tot_start$=13, tilt_calib$=13
 integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14
 integer, parameter :: de_eta_meas$=14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
-integer, parameter :: n_sample$=15
+integer, parameter :: n_sample$=15, delta_ref_time$=15
 integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16
 integer, parameter :: l_start$=17, h1$=17, x_quad$=17
 integer, parameter :: l_end$=18, h2$=18, y_quad$=18
