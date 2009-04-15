@@ -81,6 +81,10 @@ endif
 #------------------------------------------------
 # Include the standard CESR M.tail makefile
 #------------------------------------------------
-  include ../M.tail
+ifeq "$(BMAD_DIST)" "TRUE"
+  include $(BMAD_GMAKE)/M.tail
+else
+  include $(CESR_GMAKE)/M.tail
+endif
 
 
