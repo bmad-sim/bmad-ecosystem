@@ -1,6 +1,7 @@
 module integration_timer_mod
 
   use ptc_interface_mod
+  use mad_like, only: kill
 
   private get_taylor, diff, term_diff  
 

@@ -4,7 +4,8 @@ MODULE ibs_mod
 
 USE bmad_struct
 USE bmad_interface
-USE nr
+USE nr, only: qromo, midexp, midpnt
+
 
 TYPE ibs_struct
   REAL(rp) inv_Tx

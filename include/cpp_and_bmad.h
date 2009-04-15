@@ -1,6 +1,7 @@
 #ifndef CPP_AND_BMAD
 
 #include <string>
+#include <string.h>
 #include <valarray>
 #include "bmad_parameters.h"
 
