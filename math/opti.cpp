@@ -47,7 +47,7 @@ end function
 #if defined(CESR_LINUX)
 #include <cmath>
 #include <cstdlib>
-#include <iostream.h>
+#include <iostream>
 #elif defined(CESR_UNIX)
 #include <math>
 #include <stdlib.h>
