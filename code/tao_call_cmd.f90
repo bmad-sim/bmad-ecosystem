@@ -26,7 +26,7 @@ character(200) full_name
 character(16) :: r_name = 'tao_call_cmd'
 
 integer iu, nl
-type (tao_command_file_struct), automatic :: cmd_file(0:tao_com%cmd_file_level)
+type (tao_command_file_struct) :: cmd_file(0:tao_com%cmd_file_level)
 
 ! Open the command file and store the unit number
 

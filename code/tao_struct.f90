@@ -244,7 +244,7 @@ type tao_data_struct
   character(40) ele_name     ! Name of the element in the Lattice corresponding to the datum.
   character(40) ele0_name    ! Name lattice element when there is a range 
   character(100) data_type   ! Type of data: "orbit.x", etc.
-  character(20) merit_type   ! Type of constraint: 'target', 'max', 'min', etc.
+  character(40) merit_type   ! Type of constraint: 'target', 'max', 'min', etc.
   character(20) data_source  ! 'lattice', or 'beam'
   integer ix_ele             ! Index of the element in the lattice element array.
   integer ix_ele0            ! Index of lattice elment when there is a range or reference.
@@ -360,6 +360,7 @@ type tao_var_struct
   integer ix_var            ! Index number of this var in the s%var(:) array.
   integer ix_dvar           ! Column in the dData_dVar derivative matrix.
   integer ix_attrib         ! Index in ele%value(:) array if appropriate.
+  integer ix_key_table      ! Has a key binding?
   real(rp), pointer :: model_value      ! Model value.
   real(rp), pointer :: base_value       ! Base value.
   real(rp) design_value     ! Design value from the design lattice.
@@ -378,7 +379,6 @@ type tao_var_struct
   real(rp) key_delta        ! Change in value when a key is pressed.
   real(rp) s                ! longitudinal position of ele.
   character(40) merit_type  ! 'target' or 'limit'
-  logical ix_key_table      ! Has a key binding?
   logical exists            ! See above
   logical good_var          ! See above
   logical good_user         ! See above

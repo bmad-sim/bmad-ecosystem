@@ -473,7 +473,7 @@ integer ios, iu, i, j, j1, k, ix, n_uni, num
 integer n, iostat
 integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
 
-integer, automatic :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
+integer :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
 
 character(*) data_file
 character(40) :: r_name = 'tao_init_data'
@@ -485,8 +485,8 @@ character(40) use_same_lat_eles_as, search_for_lat_eles
 character(100) line
 
 logical err, free, gang, is_set
-logical, automatic :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
-logical, automatic :: mask(lbound(s%u, 1) : ubound(s%u, 1))
+logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
+logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
 namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
 
@@ -1940,7 +1940,7 @@ implicit none
 type (tao_var_struct), target :: var
 type (tao_universe_struct), pointer :: u
 type (tao_this_var_struct), pointer :: this
-type (tao_this_var_struct), automatic :: this_saved(size(var%this))
+type (tao_this_var_struct) :: this_saved(size(var%this))
 
 integer :: ix_ele
 integer ix, ix_uni, ix_this
@@ -2029,7 +2029,7 @@ end subroutine tao_pointer_to_var_in_lattice
 
 subroutine tao_allocate_var_array (n_var)
 
-type (tao_var_struct), automatic :: var(size(s%var))
+type (tao_var_struct) :: var(size(s%var))
 type (tao_v1_var_struct), pointer :: v1
 
 integer i, j1, j2, n0, n_var

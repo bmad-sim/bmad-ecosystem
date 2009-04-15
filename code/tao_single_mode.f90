@@ -201,9 +201,9 @@ case ('-')
     s%global%plot_on = .not. s%global%plot_on
     if (s%global%plot_on) then
       call tao_init_plotting (' ')
-      type *, 'Plotting is now: On'
+      call out_io (s_blank$, r_name, 'Plotting is now: On')
     else
-      type *, 'Plotting is now: Off'
+      call out_io (s_blank$, r_name, 'Plotting is now: Off')
     endif
 
   case default

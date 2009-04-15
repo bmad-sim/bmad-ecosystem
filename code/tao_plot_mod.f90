@@ -539,7 +539,7 @@ if (ele_shape%label_type /= 'none') then
     dx = -2 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
     dy = -2 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
   endif
-  theta = modulo2 (atan2d(dy, dx), 90.0_rp)
+  theta = modulo2 (atan2(dy, dx) * 180 / pi, 90.0_rp)
   if (dx > 0) then
     justify = 'LC'
   else

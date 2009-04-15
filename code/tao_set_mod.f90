@@ -965,7 +965,7 @@ logical error
 !
 
 error = .true.
-read (value_str, '(i)', iostat = ios) ix
+read (value_str, *, iostat = ios) ix
 
 if (ios /= 0 .or. len_trim(value_str) == 0) then
   call out_io (s_error$, r_name, 'BAD ' // trim(var_str) // ' VALUE.')

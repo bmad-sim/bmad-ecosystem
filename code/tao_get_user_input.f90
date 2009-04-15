@@ -314,10 +314,10 @@ if (cmd_word(1) == 'do') then
 
   call set_loop_level (in_loop + 1)
   loop(in_loop)%name = cmd_word(2)
-  read (cmd_word(4), '(I)') loop(in_loop)%start
-  read (cmd_word(6), '(I)') loop(in_loop)%end
+  read (cmd_word(4), *) loop(in_loop)%start
+  read (cmd_word(6), *) loop(in_loop)%end
   loop(in_loop)%step = 1
-  if (cmd_word(7) /= '') read (cmd_word(8), '(I)') loop(in_loop)%step
+  if (cmd_word(7) /= '') read (cmd_word(8), *) loop(in_loop)%step
 
   loop(in_loop)%n_line_start = tao_com%cmd_file(n_level)%n_line
   loop(in_loop)%value = loop(in_loop)%start
