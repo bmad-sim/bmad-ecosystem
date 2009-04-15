@@ -199,6 +199,7 @@ do j_in = 1, n_ele
       endif
 
       ele_out%s = ele_in%s
+      ele_out%ref_time = ele_in%ref_time
       ele_out%value(l$) = ele_out%value(l$) + ele_in%value(l$)
       if (ele_in%value(hkick$) /= 0 .or. ele_in%value(vkick$) /= 0) then
         c2%vec = 0
