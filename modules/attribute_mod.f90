@@ -347,6 +347,8 @@ do i = 1, n_key
   if (i == group$)    cycle
   if (i == overlay$)  cycle
   if (i == girder$)   cycle
+  if (i == mirror$)   cycle
+  if (i == crystal$)  cycle
 
   attrib_array(i, superimpose$)       = 'SUPERIMPOSE'
   attrib_array(i, offset$)            = 'OFFSET'
@@ -798,6 +800,9 @@ attrib_array(custom$, delta_e$)      = 'DELTA_E'
 attrib_array(hybrid$, l$)              = 'L'
 attrib_array(hybrid$, delta_e$)        = 'DELTA_E'
 attrib_array(hybrid$, delta_ref_time$) = 'DELTA_REF_TIME'
+
+attrib_array(mirror$, angle$)          = 'ANGLE'
+attrib_array(mirror$, tilt$)           = 'TILT'
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster

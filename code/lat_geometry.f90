@@ -128,9 +128,7 @@ real(dp), parameter :: twopi_dp = 2 * 3.14159265358979
 ! init
 ! old_theta is used to tell if we have to reconstruct the w_mat
 
-pos(1) = floor0%x
-pos(2) = floor0%y
-pos(3) = floor0%z
+pos   = (/ floor0%x, floor0%y, floor0%z /)
 theta = floor0%theta
 phi   = floor0%phi
 psi   = floor0%psi
@@ -167,11 +165,11 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
     w_mat(3,3) =  c_the * c_phi
   endif
 
-!
+  !
 
   select case (key)
 
-! sbend and multipole
+  ! sbend and multipole
 
   case (sbend$, multipole$)
     if (key == sbend$) then
@@ -207,7 +205,32 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
     pos = pos + matmul(w_mat, r_mat)
     w_mat = matmul (w_mat, s_mat)
 
-! patch
+  ! mirror
+
+  case (mirror$)
+    
+    angle = ele%value(angle$)
+    tlt = ele%value(tilt_tot$)
+    s_ang = sin(angle); c_ang = cos(angle)
+
+    s_mat(1,:) = (/ c_ang,  0.0_dp, -s_ang /)
+    s_mat(2,:) = (/ 0.0_dp, 1.0_dp,  0.0_dp /)
+    s_mat(3,:) = (/ s_ang,  0.0_dp,  c_ang /) 
+
+    if (tlt /= 0) then
+      s_ang = sin(tlt); c_ang = cos(tlt)
+      t_mat(1,:) = (/ c_ang,  -s_ang,  0.0_dp /)
+      t_mat(2,:) = (/ s_ang,   c_ang,  0.0_dp /)
+      t_mat(3,:) = (/ 0.0_dp,  0.0_dp, 1.0_dp /)
+
+      s_mat = matmul (t_mat, s_mat)
+      t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
+      s_mat = matmul (s_mat, t_mat)
+    endif
+
+    w_mat = matmul (w_mat, s_mat)
+
+  ! patch
 
   case (patch$)
 
@@ -242,14 +265,14 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
                                                     ele%value(z_offset$) /)
     pos = pos + matmul(w_mat, r_mat)
 
-! everything else. Just a translation
+  ! everything else. Just a translation
 
   case default
     pos = pos + w_mat(:,3) * leng
 
   end select
 
-! if there has been a rotation calculate new theta, phi, and psi
+  ! if there has been a rotation calculate new theta, phi, and psi
 
   if (key == sbend$ .or. key == patch$ .or. key == multipole$) then
     theta = atan2 (w_mat(1,3), w_mat(3,3))

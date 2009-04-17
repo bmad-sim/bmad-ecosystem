@@ -35,18 +35,18 @@ always at $z = 0$.
 \index{patch}
 In \bmad, a lattice is comprised of a sequence of elements such as
 quadrupoles, bends, RF cavities, etc. Each element has an entrance
-point, an exit point, and a reference curve between them. For a bend,
-the reference curve is a segment of a circular arc. For all other
-elements, the reference curve is a straight line segment. The
+point, an exit point, and a reference curve between them. For a
+\vn{bend}, the reference curve is a segment of a circular arc. For all
+other elements, the reference curve is a straight line segment. The
 reference orbit itself is constructed by arranging the elements so
 that the exit point of one element coincides with the entrance point
 of the next with the reference curves forming an arc with no kinks.
 The reference orbit is then the sum of the reference
 curves. Exceptions to this construction method may be made by using
-\vn{Patch} elements which can arbitrarily offset the entrance point
-of an element with respect to the exit point of the previous element.
-See \sref{s:patch}.  If not specified otherwise, the $s = 0$
-position is the entrance point of the first element.
+\vn{Patch} elements which can arbitrarily offset the entrance point of
+an element with respect to the exit point of the previous element.
+See \sref{s:patch}.  If not specified otherwise, the $s = 0$ position
+is the entrance point of the first element.
 
 \index{x_offset}
 \index{y_offset}
@@ -162,11 +162,9 @@ equations
 \Endeq
 $\Bf R_i$ is the displacement vector for the $i$\Th element and matrix
 $\Bf S_i$ is the rotation of the local reference system of the exit
-end with respect to the entrance end. For all elements that are not a
-\vn{bend} or a \vn{patch} (that is, for all elements whose reference orbit
-through them is a straight line) the corresponding $\Bf R$ and $\Bf S$
-are
-\index{rbend}\index{sbend}\index{patch}
+end with respect to the entrance end. For all elements whose
+reference orbit through them is a straight line, the corresponding
+$\Bf R$ and $\Bf S$ are
 \Begineq
   \Bf R = 
   \begin{pmatrix}
@@ -182,7 +180,7 @@ are
 \Endeq
 
 \index{rbend}\index{sbend}
-For a \vn{bend} $\Bf R$ and $\Bf S$ are given by
+For a \vn{bend}, $\Bf R$ and $\Bf S$ are given by
 \Begineq
   \Bf R = \Bf T \, \Bf R_0, \quad
   \Bf S = \Bf T \, \Bf S_0 \, \Bf T^{-1}
