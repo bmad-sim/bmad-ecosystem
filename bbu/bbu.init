@@ -3,10 +3,11 @@
   bbu_param%simulation_time = 1e-4     ! Time in sec.
   bbu_param%bunch_freq = 1.3e9         ! Freq in Hz.
   bbu_param%init_hom_amp = 1e-6        ! Initial wake amplitude        
-  bbu_param%limit_factor = 1e3         ! Init_hom_amp * limit_factor = simulation unstable limit
+  bbu_param%limit_factor = 1e1         ! Init_hom_amp * limit_factor = simulation unstable limit
 																			 ! Init_hom_amp / limit_factor = simulation stable limit
   bbu_param%hybridize = .true.         ! Combine non-hom elements to speed up simulation?
-  bbu_param%current = 20e-3            ! Starting current (amps)
+!  bbu_param%current = 20e-3            ! Starting current (amps)
+  bbu_param%current = 1.            ! Starting current (amps)
   bbu_param%rel_tol = 1e-3             ! Final threshold current accuracy.
 	bbu_param%write_hom_info = .true.  
 	bbu_param%num_stages_tracked_per_power_calc = 100 ! 
