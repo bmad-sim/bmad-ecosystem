@@ -11,7 +11,13 @@ type (beam_init_struct) beam_init
 
 integer i, ix, j, n_hom, n, n_ele, ix_pass
 
+integer istep
+integer nstep /100/
+real(rp) deldr,dr
+
 real(rp) hom_power0, hom_power1, charge0, charge1
+
+real(rp) currth
 
 logical lost
 logical, allocatable :: keep_ele(:)
@@ -20,20 +26,37 @@ namelist / bbu_params / bbu_param, beam_init
 
 ! Read in parameters
 
-bbu_param%init_hom_amp = 1e-6
-bbu_param%hybridize = .true.
-bbu_param%limit_factor = 1e3
-bbu_param%current = 20e-3
-bbu_param%rel_tol = 1e-3
-bbu_param%num_stages_tracked_per_power_calc = 100
-bbu_param%write_hom_info = .false.
-beam_init%n_particle = 1
+bbu_param%lat_file_name = 'erl.lat'  ! Bmad lattice file name
+bbu_param%simulation_time = 1e-4     ! Time in sec.
+bbu_param%bunch_freq = 1.3e9         ! Freq in Hz.
+bbu_param%init_hom_amp = 1e-6        ! Initial wake amplitude        
+bbu_param%limit_factor = 1e1         ! Init_hom_amp * limit_factor = simulation unstable limit
+bbu_param%hybridize = .true.         ! Combine non-hom elements to speed up simulation?
+bbu_param%current = 20e-3            ! Starting current (amps)
+bbu_param%rel_tol = 1e-3             ! Final threshold current accuracy.
+bbu_param%write_hom_info = .true.  
+bbu_param%num_stages_tracked_per_power_calc = 100 
+bbu_param%prstab2004 = .true.        ! If true, produce PRSTAB 7 (2004) Fig. 3. Use lattice prstab2004.lat.
+bbu_param%nstep = 100
+bbu_param%begdr = 5.234
+bbu_param%enddr = 6.135
+
+  beam_init%n_particle = 1
 
 open (1, file = 'bbu.init', status = 'old')
 read (1, nml = bbu_params)
 close (1)
 
+! Define distance between bunches
 beam_init%ds_bunch = c_light / bbu_param%bunch_freq
+
+! Open output file for threshold current calculation comparison
+if (bbu_param%prstab2004) then
+ open (50, file = 'prstab2004.out', status = 'unknown') 
+ nstep = bbu_param%nstep
+else
+ nstep = 1
+endif
 
 ! Init
 
@@ -41,12 +64,27 @@ print *, 'Lattice file: ', trim(bbu_param%lat_file_name)
 call bmad_parser (bbu_param%lat_file_name, lat_in)
 call twiss_propagate_all (lat_in)
 
+do istep=1,nstep
+
+if (bbu_param%prstab2004) then
+! Change length of taylor element
+ if(nstep.ge.1)then
+  deldr = (bbu_param%enddr - bbu_param%begdr)/(nstep-1)
+ else
+  deldr = 0.
+ endif
+ dr = bbu_param%begdr+(istep-1)*deldr
+ lat_in%ele(6)%value(l$) = dr*c_light/bbu_param%bunch_freq
+ print *,' PRSTAB2004 analysis step: tr/tb, taylor length = ',dr,lat_in%ele(6)%value(l$)
+ call lattice_bookkeeper(lat_in)
+endif
+
 if (bbu_param%hybridize) then
   print *, 'Note: Hybridizing lattice...'
   allocate (keep_ele(lat_in%n_ele_max))
   keep_ele = .false.
   do i = 1, lat_in%n_ele_max
-    if (lat_in%ele(i)%key /= lcavity$) cycle
+!    if (lat_in%ele(i)%key /= lcavity$) cycle
     !! if (.not. associated (lat_in%ele(i)%wake)) cycle
     !! if (size(lat_in%ele(i)%wake%lr) == 0) cycle
     keep_ele(i) = .true.
@@ -68,7 +106,10 @@ bbu_param%low_power_lim  = hom_power0 / bbu_param%limit_factor
 
 ! Print some information
 
-if (bbu_param%write_hom_info) call write_homs(lat)
+if (bbu_param%write_hom_info) call write_homs(lat,bbu_param%bunch_freq,currth)
+
+! Update starting current according to analytic approximation
+if (currth.gt.0.)bbu_param%current = currth
 
 print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
 
@@ -78,6 +119,7 @@ do i = 1, size(bbu_beam%stage)
   if (ix_pass /= 1 .and. n /= 0) cycle
   n_ele = n_ele + 1
 enddo
+
 print *, 'Number of physical lr wake elements:', n_ele
 
 ! Track to find upper limit
@@ -133,5 +175,10 @@ enddo
 beam_init%bunch_charge = (charge0 + charge1) / 2
 print *, 'Threshold Current (A):', beam_init%bunch_charge * c_light / beam_init%ds_bunch 
 
+ if(bbu_param%prstab2004)write(50,*)dr,currth,beam_init%bunch_charge * c_light / beam_init%ds_bunch 
+
+enddo
+
+if(bbu_param%prstab2004)close(50)
 
 end program

@@ -29,6 +29,10 @@ type bbu_param_struct
   real(rp) current
   real(rp) rel_tol
   integer num_stages_tracked_per_power_calc
+  logical prstab2004
+  integer nstep
+  real(rp) begdr
+  real(rp) enddr
 end type
 
 contains
